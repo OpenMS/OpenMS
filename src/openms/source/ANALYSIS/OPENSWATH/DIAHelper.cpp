@@ -74,22 +74,29 @@ namespace OpenMS::DIAHelpers
                 double drift_end,
                 bool centroided)
     {
-      OPENMS_PRECONDITION(spectrum != nullptr, "Spectrum cannot be empty");
+      // TODO are preconditions working?
+      OPENMS_PRECONDITION(spectrum != nullptr, "Spectrum cannot be nullptr");
+      OPENMS_PRECONDITION(spectrum->getMZArray() != nullptr, "Cannot integrate if no m/z is available.");
+      OPENMS_PRECONDITION(spectrum->getMZArray()->empty(), "Cannot integrate if no m/z is available.");
       OPENMS_PRECONDITION(std::adjacent_find(spectrum->getMZArray()->data.begin(),
         spectrum->getMZArray()->data.end(), std::greater<double>()) == spectrum->getMZArray()->data.end(),
         "Precondition violated: m/z vector needs to be sorted!" );
       OPENMS_PRECONDITION(spectrum->getMZArray()->data.size() == spectrum->getIntensityArray()->data.size(), "MZ and Intensity array need to have the same length.");
       OPENMS_PRECONDITION(!centroided,  throw Exception::NotImplemented(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION));
-      OPENMS_PRECONDITION(spectrum->getMZArray() != nullptr, "Cannot integrate if no m/z is available.");
+
+      if (spectrum->getMZArray()->data.empty())
+      {
+        std::cerr << "Warning: Cannot integrate if spectrum is empty" << std::endl;
+        return;
+      }
 
       // drift time checks
-      if ( drift_start != -1 ) // integrate across im as well
+      if ( drift_start >= 0 ) // integrate across im as well
       {
         // additional checks only relevant if ion mobility is present
 
-        //TODO this preconditions do not seem to be working however the if statement below works
+        //TODO this preconditions do not seem to be working? however the if statement below works
         OPENMS_PRECONDITION(spectrum->getDriftTimeArray() != nullptr, "Cannot integrate with drift time if no drift time is available.");
-
         OPENMS_PRECONDITION(spectrum->getMZArray()->data.size() == spectrum->getDriftTimeArray()->data.size(), "MZ and Drift Time array need to have the same length.");
 
         if (spectrum->getDriftTimeArray() == nullptr)
@@ -99,52 +106,59 @@ namespace OpenMS::DIAHelpers
         }
       }
 
-      // get the weighted average for noncentroided data.
-      // TODO this is not optimal if there are two peaks in this window (e.g. if the window is too large)
-      auto mz_arr_end = spectrum->getMZArray()->data.end();
-      auto int_it = spectrum->getIntensityArray()->data.begin();
-
-      // this assumes that the spectra are sorted!
-      auto mz_it = std::lower_bound(spectrum->getMZArray()->data.begin(), mz_arr_end, mz_start);
-
-
-      // also advance intensity and ion mobility iterator now
-      auto iterator_pos = std::distance(spectrum->getMZArray()->data.begin(), mz_it);
-      std::advance(int_it, iterator_pos);
-
-      if ( drift_start != -1 ) // integrate across im as well
+      if (!centroided)
       {
         // get the weighted average for noncentroided data.
         // TODO this is not optimal if there are two peaks in this window (e.g. if the window is too large)
-        auto im_it = spectrum->getDriftTimeArray()->data.begin();
+        auto mz_arr_end = spectrum->getMZArray()->data.end();
+        auto int_it = spectrum->getIntensityArray()->data.begin();
 
-        // also advance ion mobility iterator now
-        std::advance(im_it, iterator_pos);
+        // this assumes that the spectra are sorted!
+        auto mz_it = std::lower_bound(spectrum->getMZArray()->data.begin(), mz_arr_end, mz_start);
 
-        // Start iteration from mz start, end iteration when mz value is larger than mz_end, only store only storing ion mobility values that are in the range
-        while ( ( *mz_it < mz_end ) && (mz_it < mz_arr_end) )
+
+        // also advance intensity and ion mobility iterator now
+        auto iterator_pos = std::distance(spectrum->getMZArray()->data.begin(), mz_it);
+        std::advance(int_it, iterator_pos);
+
+        if ( drift_start >= 0 ) // integrate across im as well
         {
-          if ( *im_it >= drift_start && *im_it <= drift_end)
+          // get the weighted average for noncentroided data.
+          // TODO this is not optimal if there are two peaks in this window (e.g. if the window is too large)
+          auto im_it = spectrum->getDriftTimeArray()->data.begin();
+
+          // also advance ion mobility iterator now
+          std::advance(im_it, iterator_pos);
+
+          // Start iteration from mz start, end iteration when mz value is larger than mz_end, only store only storing ion mobility values that are in the range
+          while ( ( *mz_it < mz_end ) && (mz_it < mz_arr_end) )
+          {
+            if ( *im_it >= drift_start && *im_it <= drift_end)
+            {
+              intensity += (*int_it);
+              im += (*int_it) * (*im_it);
+              mz += (*int_it) * (*mz_it);
+            }
+            ++mz_it;
+            ++int_it;
+            ++im_it;
+          }
+        }
+        else // where do not have IM
+        {
+          while ( ( *mz_it < mz_end ) && (mz_it < mz_arr_end) )
           {
             intensity += (*int_it);
-            im += (*int_it) * (*im_it);
             mz += (*int_it) * (*mz_it);
+
+            ++mz_it;
+            ++int_it;
           }
-          ++mz_it;
-          ++int_it;
-          ++im_it;
         }
       }
-      else // where do not have IM
+      else
       {
-        while ( ( *mz_it < mz_end ) && (mz_it < mz_arr_end) )
-        {
-          intensity += (*int_it);
-          mz += (*int_it) * (*mz_it);
-
-          ++mz_it;
-          ++int_it;
-        }
+        throw Exception::NotImplemented(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
       }
     }
 
@@ -176,13 +190,13 @@ namespace OpenMS::DIAHelpers
         {
           integratedWindowsIntensity.push_back(0.);
           integratedWindowsMZ.push_back(*beg);
-          integratedWindowsIm.push_back(*beg);
+          integratedWindowsIm.push_back( (drift_start + drift_end) / 2.0 ); // average drift time
         }
       }
     }
 
 
-    void integrateWindows(const std::vector<OpenSwath::SpectrumPtr>& spectrum,
+    void integrateWindows(const std::vector<OpenSwath::SpectrumPtr>& spectra,
                           const std::vector<double> & windowsCenter,
                           double width,
                           std::vector<double> & integratedWindowsIntensity,
@@ -192,15 +206,27 @@ namespace OpenMS::DIAHelpers
 			  double drift_end,
                           bool remZero)
     {
+
+      double mz(-1), intensity(0), im(-1);
+      if (windowsCenter.empty())
+      {
+        std::cerr << "Warning no windows supplied!" << std::endl;
+        return;
+      }
+      if (spectra.empty())
+      {
+        std::cerr << "WARNING: no spectra provided" << std::endl;
+        return;
+      }
+
       std::vector<double>::const_iterator beg = windowsCenter.begin();
       std::vector<double>::const_iterator end = windowsCenter.end();
-      double mz, intensity, im;
       for (; beg != end; ++beg)
       {
         double left = *beg - width / 2.0;
         double right = *beg + width / 2.0;
 
-        if (integrateWindow(spectrum, left, right, mz, im, intensity, drift_start, drift_end, false))
+        if (integrateWindow(spectra, left, right, mz, im, intensity, drift_start, drift_end, false))
         {
           integratedWindowsIntensity.push_back(intensity);
           integratedWindowsMZ.push_back(mz);
@@ -209,8 +235,8 @@ namespace OpenMS::DIAHelpers
         else if (!remZero)
         {
           integratedWindowsIntensity.push_back(0.);
-          integratedWindowsMZ.push_back(*beg);
-          integratedWindowsIm.push_back(*beg);
+          integratedWindowsMZ.push_back(*beg); // push back center of window
+          integratedWindowsIm.push_back( (drift_start + drift_end) / 2.0); // push back average drift
         }
       }
     }
@@ -267,8 +293,6 @@ namespace OpenMS::DIAHelpers
                                               double drift_end,
                                               bool centroided)
     {
-
-
       // initiate the values
       mz = 0;
       im = 0;
@@ -285,17 +309,35 @@ namespace OpenMS::DIAHelpers
         if (intensity > 0.)
         {
           mz /= intensity;
-          im /= intensity;
+          if (drift_start >= 0)
+          {
+            im /= intensity;
+          }
+          else // if no IM set to -1
+          {
+            im = -1;
+          }
           return true;
         }
+        else
+        {
+          // if (intensity <= 0)
+          im = -1;
+          mz = -1;
+          intensity = 0;
+          return false;
+        }
       }
-
-      // if (intensity <= 0 || all_spectra.empty())
-      im = -1;
-      mz = -1;
-      intensity = 0;
-      return false;
-     }
+      else
+      {
+        // if (all_spectra.empty())
+        std::cerr << "WARNING: No Spectra provided" << std::endl;
+        im = -1;
+        mz = -1;
+        intensity = 0;
+        return false;
+      }
+    }
 
     // for SWATH -- get the theoretical b and y series masses for a sequence
     void getBYSeries(const AASequence& a, //

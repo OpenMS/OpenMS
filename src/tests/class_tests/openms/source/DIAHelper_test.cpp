@@ -69,84 +69,386 @@ START_TEST(DIAHelper, "$Id$")
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
-
-START_SECTION(testIntegrateWindows_test)
+OpenSwath::SpectrumPtr imSpec(new OpenSwath::Spectrum());
 {
-  OpenSwath::SpectrumPtr spec(new OpenSwath::Spectrum());
-  OpenSwath::BinaryDataArrayPtr mass(new OpenSwath::BinaryDataArray);
+    OpenSwath::BinaryDataArrayPtr mass(new OpenSwath::BinaryDataArray);
+    mass->data.push_back(100.);
+    mass->data.push_back(101.);
+    mass->data.push_back(102.);
+    mass->data.push_back(103.);
+    mass->data.push_back(104.);
+    mass->data.push_back(105.);
+    mass->data.push_back(106.);
 
-  mass->data.push_back(100.);
-  mass->data.push_back(101.);
-  mass->data.push_back(102.);
-  mass->data.push_back(103.);
-  mass->data.push_back(104.);
-  mass->data.push_back(105.);
-  mass->data.push_back(106.);
+    OpenSwath::BinaryDataArrayPtr intensity(new OpenSwath::BinaryDataArray);
+    intensity->data.push_back(1.);
+    intensity->data.push_back(1.);
+    intensity->data.push_back(1.);
+    intensity->data.push_back(1.);
+    intensity->data.push_back(1.);
+    intensity->data.push_back(1.);
+    intensity->data.push_back(1.);
 
-  OpenSwath::BinaryDataArrayPtr intensity(new OpenSwath::BinaryDataArray);
-  intensity->data.push_back(1.);
-  intensity->data.push_back(1.);
-  intensity->data.push_back(1.);
-  intensity->data.push_back(1.);
-  intensity->data.push_back(1.);
-  intensity->data.push_back(1.);
-  intensity->data.push_back(1.);
+    OpenSwath::BinaryDataArrayPtr ion_mobility(new OpenSwath::BinaryDataArray);
+    ion_mobility->data.push_back(1.);
+    ion_mobility->data.push_back(2.);
+    ion_mobility->data.push_back(3.);
+    ion_mobility->data.push_back(4.);
+    ion_mobility->data.push_back(5.);
+    ion_mobility->data.push_back(6.);
+    ion_mobility->data.push_back(7.);
+    ion_mobility->description = "Ion Mobility";
 
-  OpenSwath::BinaryDataArrayPtr ion_mobility(new OpenSwath::BinaryDataArray);
-  ion_mobility->data.push_back(1.);
-  ion_mobility->data.push_back(2.);
-  ion_mobility->data.push_back(3.);
-  ion_mobility->data.push_back(4.);
-  ion_mobility->data.push_back(5.);
-  ion_mobility->data.push_back(6.);
-  ion_mobility->data.push_back(7.);
-  ion_mobility->description = "Ion Mobility";
+    imSpec->setMZArray( mass );
+    imSpec->setIntensityArray( intensity );
+    imSpec->getDataArrays().push_back( ion_mobility );
+}
 
-  spec->setMZArray( mass);
-  spec->setIntensityArray( intensity);
-  spec->getDataArrays().push_back( ion_mobility );
+OpenSwath::SpectrumPtr spec(new OpenSwath::Spectrum());
+{
+    OpenSwath::BinaryDataArrayPtr mass(new OpenSwath::BinaryDataArray);
+    mass->data.push_back(100.);
+    mass->data.push_back(101.);
+    mass->data.push_back(102.);
+    mass->data.push_back(103.);
+    mass->data.push_back(104.);
+    mass->data.push_back(105.);
+    mass->data.push_back(106.);
 
-  std::vector<OpenSwath::SpectrumPtr> specArr;
-  specArr.push_back(spec);
+    OpenSwath::BinaryDataArrayPtr intensity(new OpenSwath::BinaryDataArray);
+    intensity->data.push_back(1.);
+    intensity->data.push_back(1.);
+    intensity->data.push_back(1.);
+    intensity->data.push_back(1.);
+    intensity->data.push_back(1.);
+    intensity->data.push_back(1.);
+    intensity->data.push_back(1.);
 
-  double mz(0), intens(0), im(0);
-  DIAHelpers::integrateWindow(specArr, 101., 103., mz, im, intens, -1, -1);
-  // std::cout << "mz : " << mz << " int : " << intens << std::endl;
-  TEST_REAL_SIMILAR (mz, 101.5);
-  TEST_REAL_SIMILAR (intens, 2);
-  TEST_REAL_SIMILAR (im, -1); // since no IM, this value should be -1
+    spec->setMZArray( mass );
+    spec->setIntensityArray( intensity );
+}
 
-  std::vector<double> windows, intInt, intMz, intIm;
-  windows.push_back(101.);
-  windows.push_back(103.);
-  windows.push_back(105.);
-  DIAHelpers::integrateWindows(specArr, windows, 2, intInt, intMz, intIm, -1, -1);
-  TEST_EQUAL (intInt.size(), intMz.size() )
-  TEST_EQUAL (intInt.size(), intIm.size() )
-  TEST_EQUAL (intInt.size(), 3)
-  TEST_REAL_SIMILAR (intInt[0], 2)
-  TEST_REAL_SIMILAR (intMz[0], 100.5);
-  TEST_REAL_SIMILAR (intIm[0], -1);
 
-  // std::cout << "print Int" << std::endl;
-  // std::copy(intInt.begin(), intInt.end(),
-  //     std::ostream_iterator<double>(std::cout, " "));
-  // std::cout << std::endl << "print mz" << intMz.size() << std::endl;
-  // std::cout << intMz[0] << " " << intMz[1] << " " << intMz[2] << std::endl;
-  // std::copy(intMz.begin(), intMz.end(),
-  //     std::ostream_iterator<double>(std::cout, " "));
+START_SECTION(bool integrateWindow(const OpenSwath::SpectrumPtr& spectrum, double mz_start, double mz_end, double & mz, double & im, double & intensity, double drift_start, double drift_end, bool centroided))
+{
 
-  // Test With Ion Mobility
-  im = 0.0;
-  double im_intens(0.0);
-  DIAHelpers::integrateWindow(specArr, 101., 109., mz, im, im_intens, 2, 5);
-  TEST_REAL_SIMILAR (im, 3.5);
-  TEST_REAL_SIMILAR (im_intens, 4);
+  {
+    //Test integration of empty spectrum
+    OpenSwath::SpectrumPtr emptySpec(new OpenSwath::Spectrum());
+    double mz(0), intens(0), im(0);
 
-  double im2(0.0), im_intens2(0.0);
-  DIAHelpers::integrateWindow(specArr, 101., 103., mz, im2, im_intens2, 2, 5);
-  TEST_REAL_SIMILAR (im2, 2.5);
-  TEST_REAL_SIMILAR (im_intens2, 2);
+    DIAHelpers::integrateWindow(emptySpec, 101., 103., mz, im, intens, -1, -1);
+
+    TEST_REAL_SIMILAR(mz, -1);
+    TEST_REAL_SIMILAR(im, -1);
+    TEST_REAL_SIMILAR(intens, 0);
+  }
+
+  {
+    // Test ion mobility enhanced array with no ion mobility windows, although IM is present it should be ignored
+    double mz(0), intens(0), im(0);
+
+    DIAHelpers::integrateWindow(imSpec, 101., 103., mz, im, intens, -1, -1);
+    TEST_REAL_SIMILAR (mz, 101.5);
+    TEST_REAL_SIMILAR (intens, 2);
+    TEST_REAL_SIMILAR (im, -1); // since no IM, this value should be -1
+  }
+
+
+
+  {
+    // Test With Ion Mobility (Condition 1/2)
+    double mz(0), intens(0), im(0);
+
+    DIAHelpers::integrateWindow(imSpec, 101., 109., mz, im, intens, 2, 5);
+    TEST_REAL_SIMILAR (im, 3.5);
+    TEST_REAL_SIMILAR (intens, 4);
+  }
+
+  {
+    // Test with Ion Mobility (Condition 2/2)
+    double mz(0), intens(0), im(0);
+
+    DIAHelpers::integrateWindow(imSpec, 101., 103., mz, im, intens, 2, 5);
+    TEST_REAL_SIMILAR (im, 2.5);
+    TEST_REAL_SIMILAR (intens, 2);
+  }
+}
+END_SECTION
+
+
+START_SECTION(bool integrateWindow(const std::vector<OpenSwath::SpectrumPtr>& spectra, double mz_start, double mz_end, double & mz, double & im, double & intensity, double drift_start, double drift_end, bool centroided))
+{
+  {
+    // Test integration of empty array
+    std::vector<OpenSwath::SpectrumPtr> emptySpecArr;
+    double mz(0), intens(0), im(0);
+
+    DIAHelpers::integrateWindow(emptySpecArr, 101., 103., mz, im, intens, -1, -1);
+    TEST_REAL_SIMILAR(mz, -1);
+    TEST_REAL_SIMILAR(im, -1);
+    TEST_REAL_SIMILAR(intens, 0);
+  }
+
+  {
+    //Test integration of empty spectrum
+    OpenSwath::SpectrumPtr emptySpec(new OpenSwath::Spectrum());
+    std::vector<OpenSwath::SpectrumPtr> specArrEmptySpectrum;
+    double mz(0), intens(0), im(0);
+
+    specArrEmptySpectrum.push_back(emptySpec);
+    DIAHelpers::integrateWindow(specArrEmptySpectrum, 101., 103., mz, im, intens, -1, -1);
+
+    TEST_REAL_SIMILAR(mz, -1);
+    TEST_REAL_SIMILAR(im, -1);
+    TEST_REAL_SIMILAR(intens, 0);
+  }
+
+  {
+    // Test ion mobility enhanced array with no ion mobility windows, although IM is present it should be ignored
+    std::vector<OpenSwath::SpectrumPtr> specArr;
+    double mz(0), intens(0), im(0);
+    specArr.push_back(imSpec);
+
+    DIAHelpers::integrateWindow(specArr, 101., 103., mz, im, intens, -1, -1);
+    TEST_REAL_SIMILAR (mz, 101.5);
+    TEST_REAL_SIMILAR (intens, 2);
+    TEST_REAL_SIMILAR (im, -1); // since no IM, this value should be -1
+  }
+
+  {
+    // Test With Ion Mobility (Condition 1/2)
+    std::vector<OpenSwath::SpectrumPtr> specArr;
+    double mz(0), intens(0), im(0);
+
+    specArr.push_back(imSpec);
+
+    DIAHelpers::integrateWindow(specArr, 101., 109., mz, im, intens, 2, 5);
+    TEST_REAL_SIMILAR (im, 3.5);
+    TEST_REAL_SIMILAR (intens, 4);
+  }
+
+  {
+    // Test with Ion Mobility (Condition 2/2)
+    std::vector<OpenSwath::SpectrumPtr> specArr;
+    double mz(0), intens(0), im(0);
+
+    specArr.push_back(imSpec);
+
+    DIAHelpers::integrateWindow(specArr, 101., 103., mz, im, intens, 2, 5);
+    TEST_REAL_SIMILAR (im, 2.5);
+    TEST_REAL_SIMILAR (intens, 2);
+  }
+}
+END_SECTION
+
+START_SECTION(void integrateWindows(const OpenSwath::SpectrumPtr& spectra, const std::vector<double> & windowsCenter, double width, std::vector<double> & integratedWindowsIntensity, std::vector<double> & integratedWindowsMZ, std::vector<double> & integratedWindowsIm, double drift_start, double drift_end, bool remZero))
+{
+  {
+    // Test empty spectrum (with non empty windows) - remove zeros
+    OpenSwath::SpectrumPtr emptySpec(new OpenSwath::Spectrum());
+    std::vector<double> windows, intInt, intMz, intIm;
+
+    windows.push_back(101.);
+    windows.push_back(103.);
+    windows.push_back(105.);
+
+    DIAHelpers::integrateWindows(emptySpec, windows, 2, intInt, intMz, intIm, -1, -1, true);
+    TEST_EQUAL (intInt.empty(), true);
+    TEST_EQUAL (intIm.empty(), true);
+    TEST_EQUAL (intMz.empty(), true);
+  }
+
+  {
+    // Test empty spectrum (with non empty windows) - Don't remove zeros
+    OpenSwath::SpectrumPtr emptySpec(new OpenSwath::Spectrum());
+    std::vector<OpenSwath::SpectrumPtr> specArr;
+    std::vector<double> windows, intInt, intMz, intIm;
+
+    windows.push_back(101.);
+    windows.push_back(103.);
+    windows.push_back(105.);
+
+    DIAHelpers::integrateWindows(emptySpec, windows, 2, intInt, intMz, intIm, -1, -1, false);
+    TEST_EQUAL (intInt.size(), intMz.size() )
+    TEST_EQUAL (intInt.size(), intIm.size() )
+    TEST_EQUAL (intInt.size(), 3)
+    TEST_REAL_SIMILAR (intInt[0], 0)
+    TEST_REAL_SIMILAR (intInt[1], 0)
+    TEST_REAL_SIMILAR (intInt[2], 0)
+    TEST_REAL_SIMILAR (intMz[0], 101.) // should be middle of window
+    TEST_REAL_SIMILAR (intMz[1], 103.) // should be middle of window
+    TEST_REAL_SIMILAR (intMz[2], 105.) // should be middle of window
+    TEST_REAL_SIMILAR (intIm[0], -1) // should be avg. drift
+    TEST_REAL_SIMILAR (intIm[1], -1) // should be avg. drift
+    TEST_REAL_SIMILAR (intIm[2], -1) // should be avg. drift
+  }
+
+  {
+    // Test non empty spectrum with no im
+    std::vector<double> windows, intInt, intMz, intIm;
+    windows.push_back(101.);
+    windows.push_back(103.);
+    windows.push_back(105.);
+
+    DIAHelpers::integrateWindows(spec, windows, 2, intInt, intMz, intIm, -1, -1);
+    TEST_EQUAL (intInt.size(), intMz.size() )
+    TEST_EQUAL (intInt.size(), intIm.size() )
+    TEST_EQUAL (intInt.size(), 3)
+    TEST_REAL_SIMILAR (intInt[0], 2)
+    TEST_REAL_SIMILAR (intMz[0], 100.5);
+    TEST_REAL_SIMILAR (intIm[0], -1);
+
+    // std::cout << "print Int" << std::endl;
+    // std::copy(intInt.begin(), intInt.end(),
+    //     std::ostream_iterator<double>(std::cout, " "));
+    // std::cout << std::endl << "print mz" << intMz.size() << std::endl;
+    // std::cout << intMz[0] << " " << intMz[1] << " " << intMz[2] << std::endl;
+    // std::copy(intMz.begin(), intMz.end(),
+    //     std::ostream_iterator<double>(std::cout, " "));
+  }
+
+  {
+    // Test non empty spectrum with ion mobility
+    std::vector<double> windows, intInt, intMz, intIm;
+    windows.push_back(102.);
+
+    DIAHelpers::integrateWindows(imSpec, windows, 2, intInt, intMz, intIm, 2, 5);
+    TEST_EQUAL (intInt.size(), intMz.size() )
+    TEST_EQUAL (intInt.size(), intIm.size() )
+    TEST_EQUAL (intInt.size(), 1)
+    TEST_REAL_SIMILAR (intInt[0], 2)
+    TEST_REAL_SIMILAR (intMz[0], 101.5);
+    TEST_REAL_SIMILAR (intIm[0], 2.5);
+
+    /*
+    std::cout << "print Int" << std::endl;
+    std::copy(intInt.begin(), intInt.end(),
+        std::ostream_iterator<double>(std::cout, " "));
+    std::cout << std::endl << "print mz" << intMz.size() << std::endl;
+    std::cout << intMz[0] << " " << intMz[1] << " " << intMz[2] << std::endl;
+    std::copy(intMz.begin(), intMz.end(),
+        std::ostream_iterator<double>(std::cout, " "));
+    */
+  }
+}
+END_SECTION
+
+
+START_SECTION(void integrateWindows(const std::vector<OpenSwath::SpectrumPtr>& spectrum, const std::vector<double> & windowsCenter, double width, std::vector<double> & integratedWindowsIntensity, std::vector<double> & integratedWindowsMZ, std::vector<double> & integratedWindowsIm, double drift_start, double drift_end, bool remZero))
+{
+  {
+    // Test empty windows
+    OpenSwath::SpectrumPtr emptySpec(new OpenSwath::Spectrum());
+    std::vector<OpenSwath::SpectrumPtr> specArr;
+    std::vector<double> windows, intInt, intMz, intIm;
+    specArr.push_back(emptySpec);
+
+    DIAHelpers::integrateWindows(specArr, windows, 2, intInt, intMz, intIm, -1, -1);
+    TEST_EQUAL (intInt.empty(), true);
+    TEST_EQUAL (intIm.empty(), true);
+    TEST_EQUAL (intMz.empty(), true);
+  }
+
+
+  {
+    // Test empty spectrum (with non empty windows) - remove zeros
+    OpenSwath::SpectrumPtr emptySpec(new OpenSwath::Spectrum());
+    std::vector<OpenSwath::SpectrumPtr> specArr;
+    std::vector<double> windows, intInt, intMz, intIm;
+    specArr.push_back(emptySpec);
+
+    windows.push_back(101.);
+    windows.push_back(103.);
+    windows.push_back(105.);
+
+
+    DIAHelpers::integrateWindows(specArr, windows, 2, intInt, intMz, intIm, -1, -1, true);
+    TEST_EQUAL (intInt.empty(), true);
+    TEST_EQUAL (intIm.empty(), true);
+    TEST_EQUAL (intMz.empty(), true);
+  }
+
+  {
+    // Test empty spectrum (with non empty windows) - Don't remove zeros
+    OpenSwath::SpectrumPtr emptySpec(new OpenSwath::Spectrum());
+    std::vector<OpenSwath::SpectrumPtr> specArr;
+    std::vector<double> windows, intInt, intMz, intIm;
+    specArr.push_back(emptySpec);
+
+    windows.push_back(101.);
+    windows.push_back(103.);
+    windows.push_back(105.);
+
+    DIAHelpers::integrateWindows(specArr, windows, 2, intInt, intMz, intIm, -1, -1, false);
+    TEST_EQUAL (intInt.size(), intMz.size() )
+    TEST_EQUAL (intInt.size(), intIm.size() )
+    TEST_EQUAL (intInt.size(), 3)
+    TEST_REAL_SIMILAR (intInt[0], 0)
+    TEST_REAL_SIMILAR (intInt[1], 0)
+    TEST_REAL_SIMILAR (intInt[2], 0)
+    TEST_REAL_SIMILAR (intMz[0], 101.) // should be middle of window
+    TEST_REAL_SIMILAR (intMz[1], 103.) // should be middle of window
+    TEST_REAL_SIMILAR (intMz[2], 105.) // should be middle of window
+    TEST_REAL_SIMILAR (intIm[0], -1) // should be avg. drift
+    TEST_REAL_SIMILAR (intIm[1], -1) // should be avg. drift
+    TEST_REAL_SIMILAR (intIm[2], -1) // should be avg. drift
+  }
+
+
+  {
+    // Test non empty spectrum with no im
+    std::vector<OpenSwath::SpectrumPtr> specArr;
+    std::vector<double> windows, intInt, intMz, intIm;
+    windows.push_back(101.);
+    windows.push_back(103.);
+    windows.push_back(105.);
+
+    specArr.push_back(spec);
+
+    DIAHelpers::integrateWindows(specArr, windows, 2, intInt, intMz, intIm, -1, -1);
+    TEST_EQUAL (intInt.size(), intMz.size() )
+    TEST_EQUAL (intInt.size(), intIm.size() )
+    TEST_EQUAL (intInt.size(), 3)
+    TEST_REAL_SIMILAR (intInt[0], 2)
+    TEST_REAL_SIMILAR (intMz[0], 100.5);
+    TEST_REAL_SIMILAR (intIm[0], -1);
+
+    // std::cout << "print Int" << std::endl;
+    // std::copy(intInt.begin(), intInt.end(),
+    //     std::ostream_iterator<double>(std::cout, " "));
+    // std::cout << std::endl << "print mz" << intMz.size() << std::endl;
+    // std::cout << intMz[0] << " " << intMz[1] << " " << intMz[2] << std::endl;
+    // std::copy(intMz.begin(), intMz.end(),
+    //     std::ostream_iterator<double>(std::cout, " "));
+  }
+
+  {
+    // Test non empty spectrum with ion mobility
+    std::vector<OpenSwath::SpectrumPtr> specArr;
+    std::vector<double> windows, intInt, intMz, intIm;
+    windows.push_back(102.);
+
+    specArr.push_back(imSpec);
+
+    DIAHelpers::integrateWindows(specArr, windows, 2, intInt, intMz, intIm, 2, 5);
+    TEST_EQUAL (intInt.size(), intMz.size() )
+    TEST_EQUAL (intInt.size(), intIm.size() )
+    TEST_EQUAL (intInt.size(), 1)
+    TEST_REAL_SIMILAR (intInt[0], 2)
+    TEST_REAL_SIMILAR (intMz[0], 101.5);
+    TEST_REAL_SIMILAR (intIm[0], 2.5);
+
+    /*
+    std::cout << "print Int" << std::endl;
+    std::copy(intInt.begin(), intInt.end(),
+        std::ostream_iterator<double>(std::cout, " "));
+    std::cout << std::endl << "print mz" << intMz.size() << std::endl;
+    std::cout << intMz[0] << " " << intMz[1] << " " << intMz[2] << std::endl;
+    std::copy(intMz.begin(), intMz.end(),
+        std::ostream_iterator<double>(std::cout, " "));
+    */
+  }
 }
 END_SECTION
 
