@@ -227,7 +227,7 @@ namespace OpenMS
 
   void DeconvolvedSpectrum::clear()
   {
-    peak_groups_.clear();
+    std::vector<PeakGroup>().swap(peak_groups_);
   }
 
   void DeconvolvedSpectrum::reserve(Size n)
@@ -242,7 +242,7 @@ namespace OpenMS
 
   void DeconvolvedSpectrum::setPeakGroups(std::vector<PeakGroup>& x)
   {
-    peak_groups_.clear();
+    std::vector<PeakGroup>().swap(peak_groups_);
     peak_groups_ = x;
   }
 

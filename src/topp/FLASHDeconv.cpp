@@ -44,6 +44,10 @@
 #include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/METADATA/SpectrumLookup.h>
 
+#ifdef _OPENMP
+  #include <omp.h>
+#endif
+
 #include <QFileInfo>
 
 using namespace OpenMS;
@@ -309,7 +313,6 @@ protected:
   {
     bool DLTrain = false;
     OPENMS_LOG_INFO << "Initializing ... " << endl;
-
     //-------------------------------------------------------------
     // parsing parameters
     //-------------------------------------------------------------
@@ -678,14 +681,34 @@ protected:
 
       if(report_decoy)
       {
+
+
+#ifdef _OPENMP
+
+  #pragma omp parallel
+        {
+  #pragma omp single
+          {
+  #pragma omp task
+            fd_charge_decoy.performSpectrumDeconvolution(*it, precursor_specs, scan_number, write_detail, precursor_map_for_real_time_acquisition);
+  #pragma omp task
+            fd_noise_decoy.performSpectrumDeconvolution(*it, precursor_specs, scan_number, write_detail, precursor_map_for_real_time_acquisition);
+  #pragma omp task
+            fd_iso_decoy.performSpectrumDeconvolution(*it, precursor_specs, scan_number, write_detail, precursor_map_for_real_time_acquisition);
+  #pragma omp taskwait
+          }
+        }
+#else
         fd_charge_decoy.performSpectrumDeconvolution(*it, precursor_specs, scan_number, write_detail, precursor_map_for_real_time_acquisition);
         fd_noise_decoy.performSpectrumDeconvolution(*it, precursor_specs, scan_number, write_detail, precursor_map_for_real_time_acquisition);
         fd_iso_decoy.performSpectrumDeconvolution(*it, precursor_specs, scan_number, write_detail, precursor_map_for_real_time_acquisition);
+#endif
 
-        DeconvolvedSpectrum& decoy_deconvolved_spectrum = fd_noise_decoy.getDeconvolvedSpectrum();
+        DeconvolvedSpectrum decoy_deconvolved_spectrum(*it, scan_number);
 
         decoy_deconvolved_spectrum.reserve(fd_iso_decoy.getDeconvolvedSpectrum().size() + fd_charge_decoy.getDeconvolvedSpectrum().size()
-                                           + fd_noise_decoy.getDeconvolvedSpectrum().size());
+                                           + fd_noise_decoy.getDeconvolvedSpectrum().size()
+                                           );
 
         for(auto& pg: fd_charge_decoy.getDeconvolvedSpectrum())
         {
@@ -693,6 +716,11 @@ protected:
         }
 
         for(auto& pg: fd_iso_decoy.getDeconvolvedSpectrum())
+        {
+          decoy_deconvolved_spectrum.push_back(pg);
+        }
+
+        for(auto& pg: fd_noise_decoy.getDeconvolvedSpectrum())
         {
           decoy_deconvolved_spectrum.push_back(pg);
         }

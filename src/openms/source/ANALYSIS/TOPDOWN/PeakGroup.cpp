@@ -183,7 +183,7 @@ namespace OpenMS
 
     clear();
     reserve((max_isotope) * (max_abs_charge_ - min_abs_charge_ + 1) * 2);
-    noisy_peaks_.clear();
+    std::vector<LogMzPeak>().swap(noisy_peaks_);
     noisy_peaks_.reserve(max_isotope * (max_abs_charge_ - min_abs_charge_ + 1) * 2);
 
     int nmax_abs_charge = -1;
@@ -192,7 +192,7 @@ namespace OpenMS
     float max_sig = 0;
     int noise_start = 0;
 
-    std::vector<bool> skip(spec.size(), false);
+    /*auto skip = boost::dynamic_bitset<>(spec.size());
 
     if(!exclude_mzs.empty())
     {
@@ -205,7 +205,7 @@ namespace OpenMS
         }
         skip[i] = true;
       }
-    }
+    }*/
 
     for (int c = max_abs_charge_; c >= min_abs_charge_; c--)
     {
@@ -223,10 +223,6 @@ namespace OpenMS
 
       for (; index < spec.size(); index++)
       {
-        if(skip[index])
-        {
-          continue;
-        }
         double pint = spec[index].getIntensity();
         if (pint <= 0)
         {
@@ -238,6 +234,11 @@ namespace OpenMS
         if (iso_index > max_isotope)
         {
           break;
+        }
+
+        if(exclude_mzs.size()>0 && exclude_mzs.find(pmz) != exclude_mzs.end())
+        {
+          continue;
         }
 
         if (iso_index >=0 && iso_index <= max_isotope - iso_margin && abs(pmz - cmz - iso_index * iso_delta) <= pmz * tol) //
@@ -664,11 +665,11 @@ namespace OpenMS
   {
     if(flag == PeakGroup::decoyFlag::target)
     {
-      return getQvalue(PeakGroup::decoyFlag::charge_decoy) + getQvalue(PeakGroup::decoyFlag::noise_decoy) + getQvalue(PeakGroup::decoyFlag::isotope_decoy);
+      return std::min(1.0f, getQvalue(PeakGroup::decoyFlag::charge_decoy) + getQvalue(PeakGroup::decoyFlag::noise_decoy) + getQvalue(PeakGroup::decoyFlag::isotope_decoy));
     }
     if(qvalue_.find(flag) == qvalue_.end())
     {
-      return 0;
+      return 1.0f;
     }
     return qvalue_.at(flag);
   }
@@ -788,7 +789,7 @@ namespace OpenMS
 
   void PeakGroup::clear()
   {
-    logMzpeaks_.clear();
+    std::vector<LogMzPeak>().swap(logMzpeaks_);
   }
 
   void PeakGroup::reserve(Size n)
