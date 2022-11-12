@@ -71,7 +71,7 @@ namespace OpenMS
       fs << index++ << "\t" << file_name << "\t" << pg.getScanNumber() << "\t";
       if (decoy)
       {
-        fs << pg.getDecoyIndex() << "\t";
+        fs << pg.getDecoyFlag() << "\t";
       }
       fs << std::to_string(dspec.getOriginalSpectrum().getRT()) << "\t" << dspec.size() << "\t" << std::to_string(avg_mass) << "\t" << std::to_string(mono_mass) << "\t" << intensity << "\t"
          << min_charge << "\t" << max_charge << "\t" << pg.size() << "\t";
@@ -178,8 +178,8 @@ namespace OpenMS
           fs << dspec.getPrecursorPeakGroup().getChargeSNR(dspec.getPrecursor().getCharge()) << "\t" << std::to_string(dspec.getPrecursorPeakGroup().getMonoMass()) << "\t"
              << dspec.getPrecursorPeakGroup().getQScore() << "\t";
           if (decoy)
-            fs << dspec.getPrecursorPeakGroup().getQvalue() << "\t" << dspec.getPrecursorPeakGroup().getQvalueWithIsotopeDecoyOnly() << "\t"
-               << dspec.getPrecursorPeakGroup().getQvalueWithNoiseDecoyOnly() << "\t" << dspec.getPrecursorPeakGroup().getQvalueWithChargeDecoyOnly() << "\t";
+            fs << dspec.getPrecursorPeakGroup().getQvalue() << "\t" << dspec.getPrecursorPeakGroup().getQvalue(PeakGroup::decoyFlag::isotope_decoy) << "\t"
+               << dspec.getPrecursorPeakGroup().getQvalue(PeakGroup::decoyFlag::noise_decoy) << "\t" << dspec.getPrecursorPeakGroup().getQvalue(PeakGroup::decoyFlag::charge_decoy) << "\t";
         }
       }
       fs << pg.getIsotopeCosine() << "\t" << pg.getChargeIsotopeCosine(pg.getRepAbsCharge()) << "\t" << pg.getChargeScore() << "\t";
@@ -190,7 +190,8 @@ namespace OpenMS
 
       if (decoy)
       {
-        fs << "\t" << pg.getQvalue() << "\t" << pg.getQvalueWithIsotopeDecoyOnly() << "\t" << pg.getQvalueWithNoiseDecoyOnly() << "\t" << pg.getQvalueWithChargeDecoyOnly();
+        fs << "\t" << pg.getQvalue() << "\t" << dspec.getPrecursorPeakGroup().getQvalue(PeakGroup::decoyFlag::isotope_decoy) << "\t"
+           << dspec.getPrecursorPeakGroup().getQvalue(PeakGroup::decoyFlag::noise_decoy) << "\t" << dspec.getPrecursorPeakGroup().getQvalue(PeakGroup::decoyFlag::charge_decoy);
       }
 
       if (write_detail)
@@ -268,7 +269,7 @@ namespace OpenMS
     {
       for(auto& pg: dspec)
       {
-        int cl = pg.getDecoyIndex();
+        int cl = pg.getDecoyFlag();
         if(cl<0 || cl>=grouped.size())
         {
           continue;
@@ -291,7 +292,7 @@ namespace OpenMS
       int cntr = 0;
       for (auto& pg : g)
       {
-        int cl = pg.getDecoyIndex();
+        int cl = pg.getDecoyFlag();
 
         for (int i = 0; i < 3; i++)
         {

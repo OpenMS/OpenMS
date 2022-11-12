@@ -179,12 +179,10 @@ namespace OpenMS
     }
 
     int iso_margin = 3;
-
     int max_isotope = avg.getLastIndex(mono_mass) + iso_margin;
 
     clear();
     reserve((max_isotope) * (max_abs_charge_ - min_abs_charge_ + 1) * 2);
-    // if(write_detail)
     noisy_peaks_.clear();
     noisy_peaks_.reserve(max_isotope * (max_abs_charge_ - min_abs_charge_ + 1) * 2);
 
@@ -193,6 +191,21 @@ namespace OpenMS
     int max_sig_charge = 0;
     float max_sig = 0;
     int noise_start = 0;
+
+    std::vector<bool> skip(spec.size(), false);
+
+    if(!exclude_mzs.empty())
+    {
+      for(int i=0; i<spec.size(); i++)
+      {
+        auto p=spec[i];
+        if (exclude_mzs.find(p.getMZ()) == exclude_mzs.end())
+        {
+          continue;
+        }
+        skip[i] = true;
+      }
+    }
 
     for (int c = max_abs_charge_; c >= min_abs_charge_; c--)
     {
@@ -210,11 +223,10 @@ namespace OpenMS
 
       for (; index < spec.size(); index++)
       {
-        if (exclude_mzs.size() > 0 && exclude_mzs.find(spec[index].getMZ()) != exclude_mzs.end())
+        if(skip[index])
         {
           continue;
         }
-
         double pint = spec[index].getIntensity();
         if (pint <= 0)
         {
@@ -648,25 +660,19 @@ namespace OpenMS
     snr_ = t_denom <= 0 ? .0 : (t_nom / t_denom);
   }
 
-  float PeakGroup::getQvalue() const
+  float PeakGroup::getQvalue(PeakGroup::decoyFlag flag) const
   {
-    return qvalue_;
+    if(flag == PeakGroup::decoyFlag::target)
+    {
+      return getQvalue(PeakGroup::decoyFlag::charge_decoy) + getQvalue(PeakGroup::decoyFlag::noise_decoy) + getQvalue(PeakGroup::decoyFlag::isotope_decoy);
+    }
+    if(qvalue_.find(flag) == qvalue_.end())
+    {
+      return 0;
+    }
+    return qvalue_.at(flag);
   }
 
-  float PeakGroup::getQvalueWithChargeDecoyOnly() const
-  {
-    return qvalue_with_charge_decoy_only_;
-  }
-
-  float PeakGroup::getQvalueWithIsotopeDecoyOnly() const
-  {
-    return qvalue_with_isotope_decoy_only_;
-  }
-
-  float PeakGroup::getQvalueWithNoiseDecoyOnly() const
-  {
-    return qvalue_with_noise_decoy_only_;
-  }
 
   float PeakGroup::getSNR() const
   {
@@ -715,12 +721,12 @@ namespace OpenMS
     return is_positive_;
   }
 
-  int PeakGroup::getDecoyIndex() const
+  int PeakGroup::getDecoyFlag() const
   {
     return decoy_index_;
   }
 
-  void PeakGroup::setDecoyIndex(int index)
+  void PeakGroup::setDecoyFlag(int index)
   {
     decoy_index_ = index;
   }
@@ -810,9 +816,9 @@ namespace OpenMS
     std::sort(logMzpeaks_.begin(), logMzpeaks_.end());
   }
 
-  void PeakGroup::setQvalue(float q)
+  void PeakGroup::setQvalue(float q, PeakGroup::decoyFlag flag)
   {
-    qvalue_ = q;
+    qvalue_[flag] = q;
   }
 
   void PeakGroup::clearVectors()
@@ -824,19 +830,6 @@ namespace OpenMS
     std::vector<float>().swap(per_charge_int_);
     std::vector<float>().swap(per_charge_snr_);
     std::vector<float>().swap(per_isotope_int_);
-  }
-
-  void PeakGroup::setQvalueWithChargeDecoyOnly(float q)
-  {
-    qvalue_with_charge_decoy_only_ = q;
-  }
-  void PeakGroup::setQvalueWithIsotopeDecoyOnly(float q)
-  {
-    qvalue_with_isotope_decoy_only_ = q;
-  }
-  void PeakGroup::setQvalueWithNoiseDecoyOnly(float q)
-  {
-    qvalue_with_noise_decoy_only_ = q;
   }
 
   void PeakGroup::calculateDLMatriices(int charge_range, int iso_range, double tol, PrecalculatedAveragine& avg)

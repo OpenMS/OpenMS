@@ -536,15 +536,15 @@ protected:
     {
       fd_charge_decoy.setParameters(fd_param);
       fd_charge_decoy.setAveragine(avg);
-      fd_charge_decoy.setDecoyFlag(1, fd); // charge
+      fd_charge_decoy.setDecoyFlag(PeakGroup::decoyFlag::charge_decoy, fd); // charge
 
       fd_noise_decoy.setParameters(fd_param);
       fd_noise_decoy.setAveragine(avg);
-      fd_noise_decoy.setDecoyFlag(2, fd); // noise
+      fd_noise_decoy.setDecoyFlag(PeakGroup::decoyFlag::noise_decoy, fd); // noise
 
       fd_iso_decoy.setParameters(fd_param);
       fd_iso_decoy.setAveragine(avg);
-      fd_iso_decoy.setDecoyFlag(3, fd);
+      fd_iso_decoy.setDecoyFlag(PeakGroup::decoyFlag::isotope_decoy, fd);
     }
 
     auto mass_tracer = MassFeatureTrace();

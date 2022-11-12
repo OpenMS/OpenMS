@@ -41,9 +41,9 @@ namespace OpenMS
 {
   /**
 @brief  Class describing a deconvolved mass.
-   A mass contains multiple peaks of different charges and isotope indices.
+   A mass contains multiple (LogMz) peaks of different charges and isotope indices.
    PeakGroup is the set of such peaks representing a single monoisotopic mass.
-   PeakGroup also contains features that define the quality of it. It is used by QScore calculation
+   PeakGroup also contains features that define the quality of it. It is used by QScore calculation.
    DeconvolvedSpectrum consists of PeakGroups.
 @ingroup Topdown
 */
@@ -53,6 +53,16 @@ namespace OpenMS
     typedef FLASHDeconvHelperStructs::LogMzPeak LogMzPeak;
     typedef FLASHDeconvHelperStructs::PrecalculatedAveragine PrecalculatedAveragine;
   public:
+
+    /// decoy flag. This flag specifies if a PeakGroup is a target, charge decoy, noise decoy, or isotope decoy.
+    enum decoyFlag
+    {
+      target = 0,
+      charge_decoy,
+      noise_decoy,
+      isotope_decoy
+    };
+
     /// default constructor
     PeakGroup() = default;
 
@@ -95,10 +105,15 @@ namespace OpenMS
       */
     void updateIsotopeCosineAndQScore(const FLASHDeconvHelperStructs::PrecalculatedAveragine& avg, double min_cos);
 
-    /// recruit peaks and then return as a spectrum.
+    /**
+     * @brief given a monoisotopic mass, recruit raw peaks from the raw input spectrum and add to this peakGroup. This is a bit time-consuming and is done for only a small number of selected high-quality peakgroups.
+     * @param spec input raw spectrum
+     * @param tol ppm tolerance
+     * @param avg averagine to recurite isotope peaks
+     * @param mono_mass target monoisotopic mass
+     * @param exclude_mzs excluded mzs in spec. Only used for decoy mass generation.
+     */
     void recruitAllPeaksInSpectrum(const MSSpectrum& spec, const double tol, const FLASHDeconvHelperStructs::PrecalculatedAveragine& avg,  double mono_mass, const std::unordered_set<double>& exclude_mzs);
-
-
 
     /// determine is an mz is a signal of this peakgroup. Input tol is ppm tolerance (e.g., 10.0 for 10ppm tolerance)
     bool isSignalMZ(const double mz, const double tol) const;
@@ -108,7 +123,6 @@ namespace OpenMS
 
     /// set per abs_charge isotope cosine
     void setChargeIsotopeCosine(const int abs_charge, const float cos);
-
 
     /// set mz range that results in max QScore
     void setMaxQScoreMzRange(const double min, const double max);
@@ -193,38 +207,43 @@ namespace OpenMS
     /// get if it is targeted
     bool isTargeted() const;
 
-    int getDecoyIndex() const;
+    /// get the decoy flag of this
+    int getDecoyFlag() const;
 
-    void setDecoyIndex(int index);
+    /// for this PeakGroup, specify the decoy flag.
+    void setDecoyFlag(int index);
 
-    float getQvalue() const;
+    /// get calculated qvalue
+    float getQvalue(PeakGroup::decoyFlag flag = PeakGroup::decoyFlag::target) const;
 
-    void setQvalue(const float q);
+    /// set qvalue.
+    void setQvalue(const float q, PeakGroup::decoyFlag flag);
 
-    float getQvalueWithChargeDecoyOnly() const;
-
-    float getQvalueWithIsotopeDecoyOnly() const;
-
-    float getQvalueWithNoiseDecoyOnly() const;
-
-    void setQvalueWithChargeDecoyOnly(const float q);
-
-    void setQvalueWithIsotopeDecoyOnly(const float q);
-
-    void setQvalueWithNoiseDecoyOnly(const float q);
-
+    /// set distance between consecutive isotopes
     void setIsotopeDaDistance(const double d);
 
+    /// get distance between consecutive isotopes
     double getIsotopeDaDistance() const;
 
+    /// set index of this peak group
     void setIndex(const int i);
 
+    /// get index of this peak group
     int getIndex() const;
 
+    /**
+     * @brief calculate the matrices for DL training and scoring
+     * @param charge_range charge range to be considered, corresponding to the row number of the matrix
+     * @param iso_range isotope range to be considered, corresponding to the column number of the matrix
+     * @param tol ppm tolerance
+     * @param avg averagine to normalize the observed isotope pattern
+     */
     void calculateDLMatriices(int charge_range, int iso_range, double tol, PrecalculatedAveragine& avg);
 
+    /// get the calcualted DL matrix
     Matrix<float> getDLMatrix(int index) const;
 
+    /// iterators for the signal LogMz peaks in this PeakGroup
     std::vector<FLASHDeconvHelperStructs::LogMzPeak>::const_iterator begin() const noexcept;
     std::vector<FLASHDeconvHelperStructs::LogMzPeak>::const_iterator end() const noexcept;
 
@@ -233,13 +252,14 @@ namespace OpenMS
 
     const FLASHDeconvHelperStructs::LogMzPeak& operator[](const Size i) const;
 
-
+    /// iterators for the noisy LogMz peaks in this PeakGroup
     std::vector<FLASHDeconvHelperStructs::LogMzPeak>::const_iterator getNoisePeakBegin() const noexcept;
     std::vector<FLASHDeconvHelperStructs::LogMzPeak>::const_iterator getNoisePeakEnd() const noexcept;
 
     std::vector<FLASHDeconvHelperStructs::LogMzPeak>::iterator getNoisePeakBegin() noexcept;
     std::vector<FLASHDeconvHelperStructs::LogMzPeak>::iterator getNoisePeakEnd() noexcept;
 
+    /// vector operators for the LogMzPeaks in this PeakGroup
     void push_back (const FLASHDeconvHelperStructs::LogMzPeak& pg);
     Size size() const noexcept;
     void clear();
@@ -249,10 +269,10 @@ namespace OpenMS
     void shrink_to_fit();
     void sort();
 
+    /// clear LogMzPeaks vectors to save memory.
     void clearVectors();
 
   private:
-
     /// set per abs_charge signal power
     void setChargePowers_(const int abs_charge, const float signal_pwr, const float noise_pwr, const float intensity);
     /// update chargefit score and also update per charge intensities here.
@@ -306,10 +326,7 @@ namespace OpenMS
     float qscore_ = .0f;
     float avg_ppm_error_ = 0;
     float snr_ = 0;
-    float qvalue_ = 1.0;
-
-    float qvalue_with_isotope_decoy_only_ = 1.0;
-    float qvalue_with_noise_decoy_only_ = 1.0;
-    float qvalue_with_charge_decoy_only_ = 1.0;
+    /// qvalues with different decoy flags
+    std::map<PeakGroup::decoyFlag, float> qvalue_;
   };
 }

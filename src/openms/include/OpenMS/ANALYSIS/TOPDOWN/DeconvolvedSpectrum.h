@@ -99,9 +99,6 @@ namespace OpenMS
     /// get precursor peak
     const Precursor& getPrecursor() const;
 
-    /// set qvalue of precursor peak
-    void setPrecursorPeakGroupQvalue(const double qvalue_with_iso_decoy_only , const double qvalue_with_noise_decoy_only, const double qvalue_with_charge_decoy_only);
-
     /// get possible max mass of the deconvolved masses - for MS1, max mass specified by user
     /// for MSn, min value between max mass specified by the user and precursor mass
     /// @param max_mass the max mass specified by the user
@@ -126,33 +123,35 @@ namespace OpenMS
     /// get activation method
     const Precursor::ActivationMethod& getActivationMethod() const;
 
-    /// set max isotope index
+    /// set precursor for MSn for n>1
     void setPrecursor(const Precursor& precursor);
 
     /// set precursor peak intensity
     void setPrecursorIntensity(const double i);
 
-    /// set max isotope index
+    /// set precursor scan number
     void setPrecursorScanNumber(const int scan_number);
 
     /// set activation method
     void setActivationMethod(const Precursor::ActivationMethod& method);
 
-    /// set precusor peakGroup
+    /// set precursor peakGroup
     void setPrecursorPeakGroup(const PeakGroup& pg);
 
-    ///
+    /// update peak group Qvalues using target and decoy deconvolved spectra, when FDR report is necessary
+    /// @param deconvolved_spectra target deconvolved spectra
+    /// @param deconvolved_decoy_spectra decoy deconvolved spectra
     void static updatePeakGroupQvalues(std::vector<DeconvolvedSpectrum>& deconvolved_spectra, std::vector<DeconvolvedSpectrum>& deconvolved_decoy_spectra);
 
-    ///
+    /// set peak groups in this spectrum
     void setPeakGroups (std::vector<PeakGroup>& x);
 
+    /// iterators and vector operators for std::vector<PeakGroup> peak_groups_ in this spectrum
     std::vector<PeakGroup>::const_iterator begin() const noexcept;
     std::vector<PeakGroup>::const_iterator end() const noexcept;
 
     std::vector<PeakGroup>::iterator begin() noexcept;
     std::vector<PeakGroup>::iterator end() noexcept;
-
 
     const PeakGroup& operator[](Size i) const;
     void push_back (const PeakGroup& pg);
@@ -161,8 +160,9 @@ namespace OpenMS
     void reserve (Size n);
     bool empty() const;
 
-
+    /// sort by deconvolved monoisotopic masses
     void sort();
+    /// sort by QScore of peakGroups
     void sortByQScore();
   private:
     /// peak groups (deconvolved masses)

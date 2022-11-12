@@ -144,7 +144,7 @@ namespace OpenMS
                                                            int window_width = -1, int allowed_iso_error_for_second_best_cos = 0);
 
     /// set decoy_flag_
-    void setDecoyFlag(int flag, FLASHDeconvAlgorithm& targetFD);
+    void setDecoyFlag(PeakGroup::decoyFlag flag, FLASHDeconvAlgorithm& targetFD);
 
   protected:
     void updateMembers_() override;
@@ -191,12 +191,8 @@ namespace OpenMS
 
     FLASHDeconvAlgorithm* targetFD_;
 
-    /// if it is set to 0, not a decoy run. If 1, the charge decoy run, If 2, the random noise decoy run
-    int decoy_run_flag_ = 0;
-
-    static const int charge_decoy_ = 1;
-    static const int noise_decoy_ = 2;
-    static const int isotope_decoy_ = 3;
+    /// PeakGroup::decoyFlag values
+    PeakGroup::decoyFlag decoy_flag_ = PeakGroup::decoyFlag::target;
 
     /// precalculated averagine distributions for fast averagine generation
     FLASHDeconvHelperStructs::PrecalculatedAveragine avg_;

@@ -293,13 +293,13 @@ namespace OpenMS
       for (auto& pg : decoy_deconvolved_spectrum)
       {
         //target (0), an isotope decoy (1), a noise (2), or a charge decoy (3)
-        if(pg.getDecoyIndex() == 3)
+        if(pg.getDecoyFlag() == 3)
         {
           dscore_iso_decoy_map[ms_level].push_back(pg.getQScore());
-        }else if(pg.getDecoyIndex() == 2)
+        }else if(pg.getDecoyFlag() == 2)
         {
           dscore_noise_decoy_map[ms_level].push_back(pg.getQScore());
-        }else if(pg.getDecoyIndex() == 1)
+        }else if(pg.getDecoyFlag() == 1)
         {
           dscore_charge_decoy_map[ms_level].push_back(pg.getQScore());
         }
@@ -373,11 +373,9 @@ namespace OpenMS
         for (auto& pg : deconvolved_spectrum)
         {
           //
-          pg.setQvalueWithChargeDecoyOnly(map_charge[pg.getQScore()]);
-          pg.setQvalueWithNoiseDecoyOnly(map_noise[pg.getQScore()]);
-          pg.setQvalueWithIsotopeDecoyOnly(map_iso[pg.getQScore()]);
-
-          pg.setQvalue(pg.getQvalueWithChargeDecoyOnly() + pg.getQvalueWithIsotopeDecoyOnly() + pg.getQvalueWithNoiseDecoyOnly());
+          pg.setQvalue(map_charge[pg.getQScore()], PeakGroup::decoyFlag::charge_decoy);
+          pg.setQvalue(map_noise[pg.getQScore()], PeakGroup::decoyFlag::noise_decoy);
+          pg.setQvalue(map_iso[pg.getQScore()], PeakGroup::decoyFlag::isotope_decoy);
 
           if(deconvolved_spectrum.getOriginalSpectrum().getMSLevel() > 1 && !deconvolved_spectrum.getPrecursorPeakGroup().empty())
           {
@@ -385,18 +383,13 @@ namespace OpenMS
             auto& pmap_iso = qscore_iso_decoy_map[ms_level - 1];
             auto& pmap_charge = qscore_charge_decoy_map[ms_level - 1];
             auto& pmap_noise = qscore_noise_decoy_map[ms_level - 1];
-            deconvolved_spectrum.setPrecursorPeakGroupQvalue(pmap_iso[qs], pmap_noise[qs], pmap_charge[qs]);
+            deconvolved_spectrum.precursor_peak_group_.setQvalue(pmap_iso[qs], PeakGroup::decoyFlag::isotope_decoy);
+            deconvolved_spectrum.precursor_peak_group_.setQvalue(pmap_noise[qs], PeakGroup::decoyFlag::noise_decoy);
+            deconvolved_spectrum.precursor_peak_group_.setQvalue(pmap_charge[qs], PeakGroup::decoyFlag::charge_decoy);
           }
         }
       }
     }
   }
 
-  void DeconvolvedSpectrum::setPrecursorPeakGroupQvalue(const double qvalue_with_iso_decoy_only , const double qvalue_with_noise_decoy_only, const double qvalue_with_charge_decoy_only)
-  {
-    precursor_peak_group_.setQvalue(qvalue_with_charge_decoy_only+ qvalue_with_iso_decoy_only+ qvalue_with_noise_decoy_only);
-    precursor_peak_group_.setQvalueWithChargeDecoyOnly(qvalue_with_charge_decoy_only);
-    precursor_peak_group_.setQvalueWithIsotopeDecoyOnly(qvalue_with_iso_decoy_only);
-    precursor_peak_group_.setQvalueWithNoiseDecoyOnly(qvalue_with_noise_decoy_only);
-  }
 } // namespace OpenMS

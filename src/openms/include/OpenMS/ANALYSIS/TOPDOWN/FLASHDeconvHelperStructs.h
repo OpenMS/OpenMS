@@ -128,50 +128,6 @@ namespace OpenMS
       double getMostAbundantMassDelta(const double mass) const;
     };
 
-    /// struct for TopPIC identification (both PrSMs and proteoforms)
-    struct OPENMS_DLLAPI TopPicItem
-    {
-    public:
-      TopPicItem() = default;
-
-      /// parse a single line of TopPIC output. Header includes:
-      /// Data file name	Prsm ID	Spectrum ID	Fragmentation	Scan(s)	Retention time	#peaks	Charge	Precursor mass
-      /// Adjusted precursor mass	Proteoform ID	Feature intensity	Feature score	Protein accession	Protein description
-      /// First residue	Last residue	Proteoform	#unexpected modifications	MIScore	#variable PTMs	#matched peaks
-      /// #matched fragment ions	E-value	Spectrum-level Q-value	Proteoform-level Q-value
-      explicit TopPicItem(String in);
-
-      /// the line string
-      String str;
-      /// information from each column
-      int prsm_id;
-      int spec_id;
-      int scan;
-      double rt;
-      int peak_count;
-      int charge;
-      double precursor_mass;
-      double adj_precursor_mass;
-      int proteform_id = -1;
-      String protein_acc = "";
-      int first_residue;
-      int last_residue;
-      std::vector<double> unexp_mod;
-      int matched_peaks;
-      int matched_frags;
-      double e_value;
-      double spec_q_value;
-      double proteofrom_q_value;
-      double intensity;
-
-      /// scan numbers are compared
-      bool operator<(const TopPicItem& a) const;
-
-      bool operator>(const TopPicItem& a) const;
-
-      bool operator==(const TopPicItem& other) const;
-    };
-
     /// Mass feature (Deconvolved masses in spectra are traced by Mass tracing to generate mass features - like LC-MS features).
     struct OPENMS_DLLAPI MassFeature
     {
@@ -226,11 +182,8 @@ namespace OpenMS
 
       /// log mz values are compared
       bool operator<(const LogMzPeak& a) const;
-
       bool operator>(const LogMzPeak& a) const;
-
       bool operator==(const LogMzPeak& other) const;
-
     };
 
     /**
@@ -242,8 +195,7 @@ namespace OpenMS
 
     /**
             //       @brief get charge carrier mass
-            //       @param positive determines the charge carrier mass*/
-    static float getChargeMass(const bool positive);
-
+            //       @param ioniziation_mode Determines the charge carrier mass (true = positive or false = negative)*/
+    static float getChargeMass(const bool positive_ioniziation_mode);
   };
 }

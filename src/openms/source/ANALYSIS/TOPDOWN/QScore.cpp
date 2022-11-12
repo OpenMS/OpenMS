@@ -99,118 +99,6 @@ namespace OpenMS
     return fvector;
   }
 
-  void QScore::writeAttCsvFromTopPICHeader(std::fstream& f, bool write_detail)
-  {
-    f << "ACC,FirstResidue,LastResidue,ProID,RT,ScanNumber,PrecursorScanNumber,PrecursorMonoMass,PrecursorOriginalMonoMass,PrecursorAvgMass,PrecursorMz,PrecursorIntensity,"
-         "MassIntensity,FeatureIntensity,PrecursorCharge,PrecursorMinCharge,"
-         "PrecursorMaxCharge,PTM,PTMMass1,PTMMass2,PTMMass3,ChargeCos,ChargeSNR,Cos,SNR,ChargeScore,AvgPPMerror,Qscore,Evalue,Qvalue,";
-    if (write_detail)
-    {
-      f << "PeakMZs,PeakIntensities,PeakMasses,PeakCharges,PeakIsotopeIndices,";
-    }
-    f << "Class\n";
-  }
-
-  void QScore::writeAttCsvFromTopPIC(const DeconvolvedSpectrum&  deconvolved_spectrum,
-                           const FLASHDeconvHelperStructs::TopPicItem& top_id,
-                           const FLASHDeconvHelperStructs::PrecalculatedAveragine& avg,
-                           std::fstream& f,
-                           bool write_detail)
-  {
-    int scan_number = deconvolved_spectrum.getScanNumber();
-    double pmz = deconvolved_spectrum.getPrecursor().getMZ();
-    auto pg = deconvolved_spectrum.getPrecursorPeakGroup();
-    double pmass = top_id.proteform_id < 0 ? pg.getMonoMass() : top_id.adj_precursor_mass;
-    double precursor_intensity = deconvolved_spectrum.getPrecursor().getIntensity();
-    int fr = top_id.first_residue;
-    int lr = top_id.last_residue;
-    String acc = top_id.protein_acc;
-    int proID = top_id.proteform_id;
-    double rt = deconvolved_spectrum.getOriginalSpectrum().getRT();
-    double pscan = deconvolved_spectrum.getPrecursorScanNumber();
-    double fintensity = top_id.intensity;
-    int charge = deconvolved_spectrum.getPrecursorCharge();
-
-    double e_value = top_id.e_value;
-    double q_value = top_id.proteofrom_q_value;
-    bool is_identified = top_id.proteform_id >= 0;
-    auto ptm_mass = top_id.unexp_mod;
-
-    auto avgpmass = avg.getAverageMassDelta(pmass) + pmass;
-    if (pg.empty())
-    {
-      return;
-    }
-    else
-    {
-      auto fv = toFeatureVector_(&pg, charge);
-      double monomass = pmass;
-      double mass = avgpmass;
-      f << acc << "," << fr << "," << lr << "," << proID << "," << rt << "," << scan_number << "," << pscan << ","
-        << monomass << "," << pg.getMonoMass() << "," << mass << "," << pmz << ","
-        << precursor_intensity << ","
-        << pg.getIntensity() << "," << fintensity << ","
-        << charge << "," << std::get<0>(pg.getAbsChargeRange()) << "," << std::get<1>(pg.getAbsChargeRange()) << ","
-        << (is_identified ? std::to_string(ptm_mass.size()) : "nan") << ",";
-      for (Size k = 0; k < 3; k++)
-      {
-        if (k < ptm_mass.size())
-        {
-          f << ptm_mass[k] << ",";
-        }
-        else
-        {
-          f << "nan,";
-        }
-      }
-
-      for (auto& item: fv)
-      {
-        f << item << ",";
-      }
-
-      f << pg.getQScore() << "," << e_value << "," << q_value << ",";
-      if (write_detail)
-      {
-        f << std::fixed << std::setprecision(2);
-        for (auto& p: pg)
-        {
-          f << p.mz << " ";
-        }
-        f << ";,";
-
-        f << std::fixed << std::setprecision(1);
-        for (auto& p: pg)
-        {
-          f << p.intensity << " ";
-        }
-        f << ";,";
-        f << std::setprecision(-1);
-
-        for (auto& p: pg)
-        {
-          f << p.getUnchargedMass() << " ";
-        }
-        f << ";,";
-
-        for (auto& p: pg)
-        {
-          f << (p.is_positive ? p.abs_charge : -p.abs_charge) << " ";
-        }
-        f << ";,";
-
-        for (auto& p: pg)
-        {
-          f << p.isotopeIndex << " ";
-        }
-        f << ";,";
-        f << std::fixed << std::setprecision(-1);
-      }
-
-      f << (is_identified ? "T" : "F") << "\n";
-    }
-  }
-
   void QScore::writeAttCsvFromDecoyHeader(std::fstream& f)
   {
     f << "MSLevel,ChargeCos,ChargeSNR,Cos,SNR,ChargeScore,AvgPPMerror,Class\n";
@@ -228,7 +116,7 @@ namespace OpenMS
       {
         f << item << ",";
       }
-      f <<  cns[pg.getDecoyIndex()]<< "\n";
+      f <<  cns[pg.getDecoyFlag()]<< "\n";
     }
   }
 }
