@@ -1758,6 +1758,9 @@ protected:
 
     // clean up references (assigned and unassigned)
     IDFilter::removeUnreferencedProteins(consensus, true);
+    
+    // only keep best scoring ID for each consensus feature
+    IDConflictResolverAlgorithm::resolve(consensus);
 
     //-------------------------------------------------------------
     // Peptide quantification
@@ -1822,7 +1825,8 @@ protected:
     // And probably make sure that peptides that correspond to filtered out proteins are not producing errors
     // e.g. by removing them with a Filter beforehand.
 
-    consensus.resolveUniqueIdConflicts(); // TODO: find out if this is still needed
+    consensus.resolveUniqueIdConflicts(); // TODO: find out if this is still needed    
+
     if (!getStringOption_("out_cxml").empty())
     {
       // Note: idXML and consensusXML doesn't support writing quantification at protein groups
@@ -1831,18 +1835,25 @@ protected:
     }
 
     // Fill MzTab with meta data and quants annotated in identification data structure
-    const bool report_unmapped(true);
     const bool report_unidentified_features(false);
+    const bool report_unmapped(true); //TODO we should make a distinction from unassigned after conflict resolution and unassigned because unmappable
+    const bool report_subfeatures(false);
+    const bool report_unidentified_spectra(false);
+    const bool report_not_only_best_psm_per_spectrum(false); 
 
     MzTabFile().store(out,
                       consensus,
                       false, // first run is inference but also a properly merged run, so we don't need the hack
                       report_unidentified_features,
                       report_unmapped,
-                      "Export from ProteomicsLFQ workflow in OpenMS.");
+                      report_subfeatures,
+                      report_unidentified_spectra,
+                      report_not_only_best_psm_per_spectrum);
 
     if (!out_msstats.empty())
     {
+      IDFilter::removeEmptyIdentifications(consensus); // MzTab stream exporter currently doesn't support IDs with empty hits.
+      
       MSstatsFile msstats;
       // TODO: add a helper method to quickly check if experimental design file contain the right columns
       //  (and put this at start of tool)
@@ -1868,7 +1879,6 @@ protected:
 
       // shrink protein runs to the one containing the inference data
       consensus.getProteinIdentifications().resize(1);
-
 
       IDScoreSwitcherAlgorithm switcher;
       Size c = 0;

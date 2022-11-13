@@ -12,6 +12,8 @@ You most likely came here to:
   - point out missing documentation
   - request new features
 
+To do so, open a [new issue](https://github.com/OpenMS/OpenMS/issues/new/choose) describing the bug, your question, etc.
+
 If you found a bug, e.g. an OpenMS tool crashes during data processing, it is essential to provide some basic information:
   - the OpenMS version you are running
   - the platform you are running OpenMS on (Windows 10, ...)

@@ -19,7 +19,7 @@
 
   @section class_or_unit_tests Class or unit tests
 
-  Each OpenMS class has to provide a test program. This test program has to check each method of the class. The test programs reside in the directory <code>src/tests/class_tests/<lib></code> are usually named <code><classname>_test.cpp</code>. The test program has to be coded using the class test macros as described in the OpenMS online reference. Special care should be taken to cover all special cases (e.g. what happens, if a method is called with empty strings, negative values, zero, null pointers etc.).
+  Each OpenMS class has to provide a test program. This test program has to check each method of the class. The test programs reside in the directory <code>src/tests/class_tests/&lt;lib&gt;</code> are usually named <code>&lt;classname&gt;_test.cpp</code>. The test program has to be coded using the class test macros as described in the OpenMS online reference. Special care should be taken to cover all special cases (e.g. what happens, if a method is called with empty strings, negative values, zero, null pointers etc.).
 
   @subsection supplementary_files Supplementary files
 
@@ -88,7 +88,7 @@
 
   @subsection running_tests Running tests
 
-  OpenMS uses <code>CTest</code> to run its tests. You can invoke the <code>ctest</code> executable in the OpenMS binary directory and it will run all tests (including TOPP tests). To run a specific test use the <code>ctest -R <testname></code>, e.g. <code>ctest -R TOPP_FileMerger</code> to run all <code>FileMerger</code> tests. You can add <code>-V</code> or <code>-VV</code> to <code>ctest</code> to make the output more verbose. For Visual Studio and Xcode, provide the configuration to test, e.g., <code>ctest -R TOPP_FileMerger -C</code>. Release to execute all <code>FileMerger</code> tests using the Release build.
+  OpenMS uses <code>CTest</code> to run its tests. You can invoke the <code>ctest</code> executable in the OpenMS binary directory and it will run all tests (including TOPP tests). To run a specific test use the <code>ctest -R &lt;testname&gt;</code>, e.g. <code>ctest -R TOPP_FileMerger</code> to run all <code>FileMerger</code> tests. You can add <code>-V</code> or <code>-VV</code> to <code>ctest</code> to make the output more verbose. For Visual Studio and Xcode, provide the configuration to test, e.g., <code>ctest -R TOPP_FileMerger -C</code>. Release to execute all <code>FileMerger</code> tests using the Release build.
 
   @subsection numerical_inaccuracy Numerical inaccuracy
 

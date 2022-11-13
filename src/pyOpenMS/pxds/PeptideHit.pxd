@@ -9,11 +9,11 @@ cdef extern from "<OpenMS/METADATA/PeptideHit.h>" namespace "OpenMS":
 
     cdef cppclass PeptideHit(MetaInfoInterface):
         # wrap-inherits:
-        #    MetaInfoInterface
+        #   MetaInfoInterface
         # wrap-doc:
-        #   Representation of a peptide hit
-        #   -----
-        #   It contains the fields score, score_type, rank, and sequence
+        #  Representation of a peptide hit
+        #  
+        #  It contains the fields score, score_type, rank, and sequence
 
         PeptideHit() nogil except +
 

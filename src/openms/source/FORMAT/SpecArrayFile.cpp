@@ -39,12 +39,8 @@ using namespace std;
 namespace OpenMS
 {
 
-  SpecArrayFile::SpecArrayFile()
-  {
-  }
+  SpecArrayFile::SpecArrayFile() = default;
 
-  SpecArrayFile::~SpecArrayFile()
-  {
-  }
+  SpecArrayFile::~SpecArrayFile() = default;
 
 } // namespace OpenMS

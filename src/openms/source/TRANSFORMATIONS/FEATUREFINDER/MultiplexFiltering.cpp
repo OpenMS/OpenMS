@@ -43,6 +43,8 @@
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexIsotopicPeakPattern.h>
 #include <OpenMS/MATH/STATISTICS/StatisticFunctions.h>
 
+#include <utility>
+
 using namespace std;
 
 namespace OpenMS
@@ -55,7 +57,7 @@ namespace OpenMS
   patterns_(patterns), isotopes_per_peptide_min_(isotopes_per_peptide_min), isotopes_per_peptide_max_(isotopes_per_peptide_max),
   intensity_cutoff_(intensity_cutoff), rt_band_(rt_band), mz_tolerance_(mz_tolerance), mz_tolerance_unit_in_ppm_(mz_tolerance_unit),
   peptide_similarity_(peptide_similarity), averagine_similarity_(averagine_similarity),
-  averagine_similarity_scaling_(averagine_similarity_scaling), averagine_type_(averagine_type)
+  averagine_similarity_scaling_(averagine_similarity_scaling), averagine_type_(std::move(averagine_type))
   {
     // initialise experiment exp_centroided_
     // Any peaks below the intensity cutoff cannot be relevant. They are therefore removed resulting in reduced memory footprint and runtime.

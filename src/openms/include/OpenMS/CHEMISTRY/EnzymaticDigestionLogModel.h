@@ -71,7 +71,7 @@ public:
     String getEnzymeName() const;
 
     /// Sets the enzyme for the digestion
-    void setEnzyme(const String name);
+    void setEnzyme(const String& name);
 
     /// Performs the enzymatic digestion of a protein.
     void digest(const AASequence& protein, std::vector<AASequence>& output) const;

@@ -548,7 +548,7 @@ namespace OpenMS::Internal
         { 
           if (peptide_evidences_.size() < i + 1) 
           {
-            peptide_evidences_.push_back(PeptideEvidence());
+            peptide_evidences_.emplace_back();
           }
           peptide_evidences_[i].setAABefore(splitted[i][0]);
         }
@@ -562,7 +562,7 @@ namespace OpenMS::Internal
         { 
           if (peptide_evidences_.size() < i + 1) 
           {
-            peptide_evidences_.push_back(PeptideEvidence());
+            peptide_evidences_.emplace_back();
           }
           peptide_evidences_[i].setAAAfter(splitted[i][0]);
         }
@@ -576,7 +576,7 @@ namespace OpenMS::Internal
         { 
           if (peptide_evidences_.size() < i + 1) 
           {
-            peptide_evidences_.push_back(PeptideEvidence());
+            peptide_evidences_.emplace_back();
           }
           peptide_evidences_[i].setStart(splitted[i].toInt());
         }
@@ -590,7 +590,7 @@ namespace OpenMS::Internal
         { 
           if (peptide_evidences_.size() < i + 1) 
           {
-            peptide_evidences_.push_back(PeptideEvidence());
+            peptide_evidences_.emplace_back();
           }
           peptide_evidences_[i].setEnd(splitted[i].toInt());
         }

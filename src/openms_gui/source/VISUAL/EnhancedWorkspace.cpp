@@ -52,9 +52,7 @@ namespace OpenMS
     setAcceptDrops(true);
   }
 
-  EnhancedWorkspace::~EnhancedWorkspace()
-  {
-  }
+  EnhancedWorkspace::~EnhancedWorkspace() = default;
 
   void EnhancedWorkspace::tileHorizontal()
   {
@@ -126,7 +124,7 @@ namespace OpenMS
     {
       EnhancedTabBarWidgetInterface* w = dynamic_cast<EnhancedTabBarWidgetInterface*>(sub_window->widget());
       //cout << "  Tab " << i << ": " << w->window_id << endl;
-      if (w != 0 && w->getWindowId() == id)
+      if (w != nullptr && w->getWindowId() == id)
       {
         return w;
       }

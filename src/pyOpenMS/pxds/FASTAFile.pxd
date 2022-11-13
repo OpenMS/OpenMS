@@ -21,40 +21,40 @@ cdef extern from "<OpenMS/FORMAT/FASTAFile.h>" namespace "OpenMS":
 
         void readStart(const String & filename) nogil except + 
             # wrap-doc:
-            #   Prepares a FASTA file given by 'filename' for streamed reading using readNext()
-            #   -----
-            #   :raises:
-            #       Exception:FileNotFound is thrown if the file does not exists
-            #   :raises:
-            #       Exception:ParseError is thrown if the file does not suit to the standard
+            #  Prepares a FASTA file given by 'filename' for streamed reading using readNext()
+            #  
+            #  :raises:
+            #      Exception:FileNotFound is thrown if the file does not exists
+            #  :raises:
+            #      Exception:ParseError is thrown if the file does not suit to the standard
         bool readNext(FASTAEntry & protein) nogil except +
             # wrap-doc:
-            #   Reads the next FASTA entry from file
-            #   -----
-            #   If you want to read all entries in one go, use load()
-            #   -----
-            #   :returns: true if entry was read; false if eof was reached
-            #   :raises:
-            #       Exception:FileNotFound is thrown if the file does not exists
-            #   :raises:
-            #       Exception:ParseError is thrown if the file does not suit to the standard
+            #  Reads the next FASTA entry from file
+            #  
+            #  If you want to read all entries in one go, use load()
+            #  
+            #  :return: true if entry was read; false if eof was reached
+            #  :raises:
+            #      Exception:FileNotFound is thrown if the file does not exists
+            #  :raises:
+            #      Exception:ParseError is thrown if the file does not suit to the standard
         # NAMESPACE # std::streampos position() nogil except +
         bool atEnd() nogil except + # wrap-doc:Boolean function to check if streams is at end of file
         # NAMESPACE # bool setPosition(const std::streampos & pos) nogil except +
         void writeStart(const String & filename) nogil except + 
             # wrap-doc:
-            #   Prepares a FASTA file given by 'filename' for streamed writing using writeNext()
-            #   -----
-            #   :raises:
-            #       Exception:UnableToCreateFile is thrown if the process is not able to write to the file (disk full?)
+            #  Prepares a FASTA file given by 'filename' for streamed writing using writeNext()
+            #  
+            #  :raises:
+            #      Exception:UnableToCreateFile is thrown if the process is not able to write to the file (disk full?)
         void writeNext(const FASTAEntry & protein) nogil except +
             # wrap-doc:
-            #   Stores the data given by `protein`. Call writeStart() once before calling writeNext()
-            #   -----
-            #   Call writeEnd() when done to close the file!
-            #   -----
-            #   :raises:
-            #       Exception:UnableToCreateFile is thrown if the process is not able to write to the file (disk full?)
+            #  Stores the data given by `protein`. Call writeStart() once before calling writeNext()
+            #  
+            #  Call writeEnd() when done to close the file!
+            #  
+            #  :raises:
+            #      Exception:UnableToCreateFile is thrown if the process is not able to write to the file (disk full?)
         void writeEnd() nogil except + # wrap-doc:Closes the file (flush). Called implicitly when FASTAFile object does out of scope
 
 cdef extern from "<OpenMS/FORMAT/FASTAFile.h>" namespace "OpenMS::FASTAFile":

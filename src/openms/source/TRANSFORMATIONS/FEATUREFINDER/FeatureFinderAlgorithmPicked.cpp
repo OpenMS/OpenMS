@@ -1913,7 +1913,7 @@ namespace OpenMS
     return final;
   }
 
-  void FeatureFinderAlgorithmPicked::cropFeature_(std::shared_ptr<TraceFitter> fitter,
+  void FeatureFinderAlgorithmPicked::cropFeature_(const std::shared_ptr<TraceFitter>& fitter,
                                                   const MassTraces& traces,
                                                   MassTraces& new_traces)
   {
@@ -2009,7 +2009,7 @@ namespace OpenMS
     new_traces.baseline = traces.baseline;
   }
 
-  bool FeatureFinderAlgorithmPicked::checkFeatureQuality_(std::shared_ptr<TraceFitter> fitter,
+  bool FeatureFinderAlgorithmPicked::checkFeatureQuality_(const std::shared_ptr<TraceFitter>& fitter,
                                                           MassTraces& feature_traces,
                                                           const double& seed_mz, const double& min_feature_score,
                                                           String& error_msg, double& fit_score, double& correlation, double& final_score)
@@ -2091,11 +2091,11 @@ namespace OpenMS
     return true;
   }
 
-  void FeatureFinderAlgorithmPicked::writeFeatureDebugInfo_(std::shared_ptr<TraceFitter> fitter,
+  void FeatureFinderAlgorithmPicked::writeFeatureDebugInfo_(const std::shared_ptr<TraceFitter>& fitter,
                                                             const MassTraces& traces,
                                                             const MassTraces& new_traces,
-                                                            bool feature_ok, const String error_msg, const double final_score, const Int plot_nr, const PeakType& peak,
-                                                            const String path)
+                                                            bool feature_ok, const String& error_msg, const double final_score, const Int plot_nr, const PeakType& peak,
+                                                            const String& path)
   {
 
     double pseudo_rt_shift = param_.getValue("debug:pseudo_rt_shift");

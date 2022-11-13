@@ -383,7 +383,7 @@ class StdVectorStringConverter(TypeConverterBase):
             cleanup_code = "del %s" % temp_var
         return code, "deref(%s)" % temp_var, cleanup_code
 
-    def call_method(self, res_type, cy_call_str):
+    def call_method(self, res_type, cy_call_str, with_const=False):
         return "_r = %s" % (cy_call_str)
 
     def output_conversion(self, cpp_type, input_cpp_var, output_py_var):
@@ -477,7 +477,7 @@ class StdSetStringConverter(TypeConverterBase):
             cleanup_code = "del %s" % temp_var
         return code, "deref(%s)" % temp_var, cleanup_code
 
-    def call_method(self, res_type, cy_call_str):
+    def call_method(self, res_type, cy_call_str, with_const=False):
         return "_r = %s" % (cy_call_str)
 
 
@@ -582,7 +582,7 @@ class CVTermMapConverter(TypeConverterBase):
         return code, map_name, cleanup_code
 
 
-    def call_method(self, res_type, cy_call_str):
+    def call_method(self, res_type, cy_call_str, with_const=False):
         return "_r = %s" % (cy_call_str)
 
     def output_conversion(self, cpp_type, input_cpp_var, output_py_var):

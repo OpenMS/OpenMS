@@ -111,7 +111,6 @@ START_SECTION((MobilityPeak2D(MobilityPeak2D && rhs)))
   MobilityPeak2D::PositionType pos2;
   MobilityPeak2D::IntensityType i2;
 
-  MobilityPeak2D orig = p;
   MobilityPeak2D copy_of_p(std::move(p));
 
   i2 = copy_of_p.getIntensity();

@@ -9,9 +9,9 @@ cdef extern from "<OpenMS/FILTERING/TRANSFORMERS/ParentPeakMower.h>" namespace "
 
     cdef cppclass ParentPeakMower(DefaultParamHandler):
         # wrap-inherits:
-        #    DefaultParamHandler
+        #   DefaultParamHandler
         # wrap-doc:
-        #   ParentPeakMower gets rid of high peaks that could stem from unfragmented precursor ions
+        #  ParentPeakMower gets rid of high peaks that could stem from unfragmented precursor ions
         
         ParentPeakMower() nogil except +
         ParentPeakMower(ParentPeakMower &) nogil except + 

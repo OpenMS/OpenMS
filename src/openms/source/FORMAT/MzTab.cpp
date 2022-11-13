@@ -54,9 +54,7 @@ using namespace std;
 
 namespace OpenMS
 {
-  MzTabModification::MzTabModification()
-  {
-  }
+  MzTabModification::MzTabModification() = default;
 
   bool MzTabModification::isNull() const
   {
@@ -915,7 +913,7 @@ namespace OpenMS
     row.opt_.push_back(opt_global_modified_sequence);
 
     // Defines how to consume user value keys for the upcoming keys
-    const auto addUserValueToRowBy = [&row](function<void(const String &s, MzTabOptionalColumnEntry &entry)> f) -> function<void(const String &key)>
+    const auto addUserValueToRowBy = [&row](const function<void(const String &s, MzTabOptionalColumnEntry &entry)>& f) -> function<void(const String &key)>
     {
       return [f,&row](const String &user_value_key)
         {
@@ -2289,7 +2287,10 @@ state0:
 
   bool MzTab::IDMzTabStream::nextPSMRow(MzTabPSMSectionRow& row)
   {
-    if (pep_id_ >= peptide_ids_.size()) return false;
+    if (pep_id_ >= peptide_ids_.size()) 
+    {
+      return false;
+    }
     const PeptideIdentification* pid = peptide_ids_[pep_id_];
 
     auto psm_row = MzTab::PSMSectionRowFromPeptideID_(
@@ -2318,10 +2319,13 @@ state0:
 
     if (psm_row) // valid row?
     {
-      std::swap(row, *psm_row);
-      return true;
+      row = *psm_row;
     }
-    return false;
+    else
+    {
+      row = MzTabPSMSectionRow();
+    }
+    return true;
   }
 
   MzTab MzTab::exportIdentificationsToMzTab(
@@ -3057,10 +3061,13 @@ state0:
 
     if (psm_row) // valid row?
     {
-      std::swap(row, *psm_row);
-      return true;
+      row = *psm_row;
     }
-    return false;
+    else
+    {
+      row = MzTabPSMSectionRow();
+    }
+    return true;
   }
 
   MzTab MzTab::exportConsensusMapToMzTab(
@@ -3104,7 +3111,12 @@ state0:
     MzTabPSMSectionRow psm_row;
     while (s.nextPSMRow(psm_row))
     {
-      m.getPSMSectionRows().emplace_back(std::move(psm_row));
+      // TODO better return a State enum instead of relying on some uninitialized
+      // parts of a row..
+      if (!psm_row.sequence.isNull())
+      {
+        m.getPSMSectionRows().push_back(psm_row);
+      }
     }
 
     return m;

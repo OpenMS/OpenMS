@@ -50,8 +50,7 @@ namespace OpenMS::Internal
     }
 
     MascotXMLHandler::~MascotXMLHandler()
-    {
-    }
+    = default;
 
     void MascotXMLHandler::startElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname, const Attributes& attributes)
     {
@@ -639,7 +638,7 @@ namespace OpenMS::Internal
       character_buffer_ += String(sm_.convert(chars));
     }
     
-    vector<String> MascotXMLHandler::splitModificationBySpecifiedAA(String mod)
+    vector<String> MascotXMLHandler::splitModificationBySpecifiedAA(const String& mod)
     {
       vector<String> mods;
       vector<String> parts;

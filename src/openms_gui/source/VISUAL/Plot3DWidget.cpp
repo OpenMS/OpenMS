@@ -40,8 +40,6 @@
 #include <OpenMS/VISUAL/AxisWidget.h>
 #include <OpenMS/VISUAL/DIALOGS/Plot2DGoToDialog.h>
 
-//QT
-#include <QtWidgets/QGridLayout>
 
 using namespace std;
 
@@ -62,10 +60,7 @@ namespace OpenMS
     connect(canvas(), SIGNAL(showCurrentPeaksAs2D()), this, SIGNAL(showCurrentPeaksAs2D()));
   }
 
-  Plot3DWidget::~Plot3DWidget()
-  {
-
-  }
+  Plot3DWidget::~Plot3DWidget() = default;
 
   void Plot3DWidget::recalculateAxes_()
   {
@@ -84,16 +79,18 @@ namespace OpenMS
   void Plot3DWidget::showGoToDialog()
   {
     Plot2DGoToDialog goto_dialog(this);
-    const DRange<3> & area = canvas()->getDataRange();
+    const auto& area = canvas()->getVisibleArea().getAreaXY();
     goto_dialog.setRange(area.minY(), area.maxY(), area.minX(), area.maxX());
-    goto_dialog.setMinMaxOfRange(canvas()->getDataRange().minY(), canvas()->getDataRange().maxY(), canvas()->getDataRange().minX(), canvas()->getDataRange().maxX());
+
+    auto all_area_xy = canvas_->getMapper().mapRange(canvas_->getDataRange());
+    goto_dialog.setMinMaxOfRange(all_area_xy.minX(), all_area_xy.maxX(), all_area_xy.minY(), all_area_xy.maxY());
+
     goto_dialog.enableFeatureNumber(false);
     if (goto_dialog.exec())
     {
       goto_dialog.fixRange(); // in case user did something invalid
-      PlotCanvas::AreaType area (goto_dialog.getMinMZ(), goto_dialog.getMinRT(), goto_dialog.getMaxMZ(), goto_dialog.getMaxRT());
-      correctAreaToObeyMinMaxRanges_(area);
-      canvas()->setVisibleArea(area);
+      PlotCanvas::AreaXYType area_new(goto_dialog.getMinRT(), goto_dialog.getMinMZ(), goto_dialog.getMaxRT(), goto_dialog.getMaxMZ());
+      canvas()->setVisibleArea(area_new);
     }
   }
 

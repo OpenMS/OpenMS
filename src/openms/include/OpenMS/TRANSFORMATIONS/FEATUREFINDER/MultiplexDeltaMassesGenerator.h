@@ -155,14 +155,14 @@ namespace OpenMS
      * 
      * @param label    long label, UniMod name as it appears in peptide sequences, e.g. "Label:13C(6)15N(4)"
      */
-    String getLabelShort(String label);
+    String getLabelShort(const String& label);
     
     /**
      * @brief returns the long label string
      * 
      * @param label    short label, as it appears in the "labels" parameter, e.g. "Arg10"
      */
-    String getLabelLong(String label);
+    String getLabelLong(const String& label);
     
     /**
      * @brief extract the label set from the sequence
@@ -172,7 +172,7 @@ namespace OpenMS
      * For example, the sequence VLSEEEIDDNFK(Label:13C(6)15N(2))AQR(Label:13C(6)15N(4))
      * contains a set of two labels, Lys8 and Arg10.
      */
-    MultiplexDeltaMasses::LabelSet extractLabelSet(AASequence sequence);
+    MultiplexDeltaMasses::LabelSet extractLabelSet(const AASequence& sequence);
     
     private:
    
