@@ -678,13 +678,13 @@ namespace OpenMS
               line.split(' ', split);
               if (split.size() == 2)
               {
-                spectrum.push_back(make_pair(split[0].toDouble(), split[1].toDouble()));
+                spectrum.emplace_back(split[0].toDouble(), split[1].toDouble());
               }
               else
               {
                 if (split.size() == 3)
                 {
-                  spectrum.push_back(make_pair(split[0].toDouble(), split[1].toDouble()));
+                  spectrum.emplace_back(split[0].toDouble(), split[1].toDouble());
                   // @improvement add meta info e.g. charge, name... (Andreas)
                 }
                 else
