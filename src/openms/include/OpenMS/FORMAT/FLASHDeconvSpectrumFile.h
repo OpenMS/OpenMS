@@ -33,9 +33,10 @@
 // --------------------------------------------------------------------------
 #pragma once
 
+#include <OpenMS/config.h>
 #include <OpenMS/ANALYSIS/TOPDOWN/DeconvolvedSpectrum.h>
 #include <OpenMS/ANALYSIS/TOPDOWN/FLASHDeconvHelperStructs.h>
-#include <OpenMS/config.h>
+
 #include <iomanip>
 
 namespace OpenMS
@@ -85,6 +86,10 @@ namespace OpenMS
                                        const bool write_detail,
                                        const bool decoy);
 
+    static void writeDLMatrixHeader(DeconvolvedSpectrum& dspec, std::fstream& fs);
+
+    static void writeDLMatrix(std::vector<DeconvolvedSpectrum>& dspecs, std::fstream& fs);
+
     /**
       @brief write the deconvolved masses TopFD output (*.msalign)
          @param dspec deconvolved spectrum to write
@@ -95,7 +100,6 @@ namespace OpenMS
     */
     //      @param avg averagine information to calculate monoisotopic and average mass difference
     static void writeTopFD(const DeconvolvedSpectrum& dspec, std::fstream& fs,
-//                           const FLASHDeconvHelperStructs::PrecalculatedAveragine& avg,
                            const double snr_threshold = 1.0,
                            const double decoy_harmonic_factor = 1.0,
                            const double decoy_precursor_offset = .0);

@@ -34,13 +34,14 @@
 
 #pragma once
 
-#include <OpenMS/FILTERING/DATAREDUCTION/MassTraceDetection.h>
-#include <iostream>
-#include <iomanip>
-#include <OpenMS/ANALYSIS/TOPDOWN/FLASHDeconvHelperStructs.h>
 #include <OpenMS/ANALYSIS/TOPDOWN/DeconvolvedSpectrum.h>
+#include <OpenMS/ANALYSIS/TOPDOWN/FLASHDeconvHelperStructs.h>
 #include <OpenMS/ANALYSIS/TOPDOWN/PeakGroup.h>
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
+#include <OpenMS/FILTERING/DATAREDUCTION/MassTraceDetection.h>
+
+#include <iostream>
+#include <iomanip>
 
 namespace OpenMS
 {
@@ -51,7 +52,7 @@ namespace OpenMS
   Currently only works for MS1 spectra. (Top-down DIA is not yet used much).
   Every time an MS1 spectrum is deconvolved, the relevant information is stored in this class.
   Tracing is performed at the end of FLASHDeconv run.
-  This class also comes with tsv, TOpFD, Promex format output functions.
+  This class also comes with tsv, TopFD, ProMex format output functions.
   @ingroup Topdown
   */
 
@@ -72,10 +73,11 @@ namespace OpenMS
     MassFeatureTrace(const MassFeatureTrace& ) = default;
 
     /// move constructor
-    MassFeatureTrace(MassFeatureTrace&& other) = default;
+    MassFeatureTrace(MassFeatureTrace&& other) noexcept = default;
 
     /// assignment operator
     MassFeatureTrace& operator=(const MassFeatureTrace& fd) = default;
+    MassFeatureTrace& operator=(MassFeatureTrace&& fd) = default;
 
     /// Obtain and store information from deconvolved_spectrum (necessary information for mass tracing afterwards)
     void storeInformationFromDeconvolvedSpectrum(DeconvolvedSpectrum& deconvolved_spectrum);
@@ -83,7 +85,6 @@ namespace OpenMS
     /**
        @brief Find mass features.
        @param averagine precalculated averagine for cosine calculation
-       @param fst file streams for topfd output tsv, feature files
        */
     std::vector<FLASHDeconvHelperStructs::MassFeature> findFeatures(const PrecalculatedAveragine& averagine);
 

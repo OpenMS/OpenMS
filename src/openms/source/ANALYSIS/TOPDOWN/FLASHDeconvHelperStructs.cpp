@@ -33,8 +33,9 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/ANALYSIS/TOPDOWN/FLASHDeconvHelperStructs.h>
-#include <sstream>
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
+
+#include <sstream>
 
 namespace OpenMS
 {
@@ -59,9 +60,10 @@ namespace OpenMS
       {
         break;
       }
+
       auto iso = use_RNA_averagine ?
-                 generator->estimateFromRNAWeight(mass) :
-                 generator->estimateFromPeptideWeight(mass);
+                 generator->estimateFromRNAMonoWeight(mass) :
+                 generator->estimateFromPeptideMonoWeight(mass);
 
       const double min_pwr = .9999;
       const Size min_iso_length = 2;
@@ -147,7 +149,7 @@ namespace OpenMS
     return i;
   }
 
-      IsotopeDistribution FLASHDeconvHelperStructs::PrecalculatedAveragine::get(const double mass) const
+  IsotopeDistribution FLASHDeconvHelperStructs::PrecalculatedAveragine::get(const double mass) const
   {
     return isotopes_[massToIndex_(mass)];
   }
@@ -188,7 +190,6 @@ namespace OpenMS
     return apex_index_[index] + right_count_from_apex_[index];
   }
 
-
   void FLASHDeconvHelperStructs::PrecalculatedAveragine::setMaxIsotopeIndex(const int index)
   {
     max_isotope_index_ = index;
@@ -204,7 +205,7 @@ namespace OpenMS
   {
   }
 
-  double FLASHDeconvHelperStructs::LogMzPeak::getUnchargedMass()
+  float FLASHDeconvHelperStructs::LogMzPeak::getUnchargedMass()
   {
     if (abs_charge == 0)
     {
@@ -240,106 +241,14 @@ namespace OpenMS
     return this->logMz == a.logMz && this->intensity == a.intensity;
   }
 
-  double FLASHDeconvHelperStructs::getChargeMass(const bool positive)
+  float FLASHDeconvHelperStructs::getChargeMass(const bool positive_ioniziation_mode)
   {
-    return (positive ? Constants::PROTON_MASS_U : -Constants::PROTON_MASS_U);
+    return (positive_ioniziation_mode ? Constants::PROTON_MASS_U : -Constants::PROTON_MASS_U);
   }
 
 
-  double FLASHDeconvHelperStructs::getLogMz(const double mz, const bool positive)
+  float FLASHDeconvHelperStructs::getLogMz(const double mz, const bool positive)
   {
     return std::log(mz - getChargeMass(positive));
   }
-
-
-  FLASHDeconvHelperStructs::TopPicItem::TopPicItem(String in)
-  {
-    str = in;
-    std::vector<String> results;
-    std::stringstream tmp_stream(in);
-    String str;
-
-    while (getline(tmp_stream, str, '\t'))
-    {
-      results.push_back(str);
-    }
-    prsm_id = stoi(results[1]);
-    spec_id = stoi(results[2]);
-    scan = stoi(results[4]);
-    rt = stod(results[5]);
-    peak_count = stoi(results[6]);
-    charge = stoi(results[7]);
-    precursor_mass = stod(results[8]);
-    adj_precursor_mass = stod(results[9]);
-    proteform_id = stoi(results[10]);
-    if (results[11].hasPrefix("-"))
-    {
-      intensity = 0;
-    }
-    else
-    {
-      intensity = stod(results[11]);
-    }
-    String acc = results[13];
-    int first = acc.find("|");
-    int second = acc.find("|", first + 1);
-    protein_acc = acc.substr(first + 1, second - first - 1);
-    first_residue = stoi(results[15]);
-    last_residue = stoi(results[16]);
-    if (stoi(results[18]) == 0)
-    {
-      //unexp_mod = .0;
-    }
-    else
-    {
-      String seq = results[17];
-      int loc = 0;
-      //int off = seq.find(".", 0);
-      while (seq.find("[", loc) != String::npos)
-      {
-        // mod_first_.push_back(seq.find("(", loc) - off -1);
-        // mod_last_.push_back(seq.find(")", loc) - off -3);
-        loc = seq.find("[", loc);
-        String sub = seq.substr(loc + 1, seq.find("]", loc) - 1 - loc);
-        double mmass = .0;
-        if (isdigit(sub[sub.length() - 1]))
-        {
-          mmass = stod(sub);
-        }
-        else
-        {
-          auto mdb = ModificationsDB::initializeModificationsDB();
-          mmass = mdb->getModification(sub)->getDiffMonoMass();
-        }
-        unexp_mod.push_back(mmass);
-        loc++;
-      }
-    }
-
-
-    matched_peaks = stoi(results[21]);
-    matched_frags = stoi(results[22]);
-    e_value = stod(results[23]);
-    if (results[24] != "-")
-    {
-      spec_q_value = stod(results[24]);
-      proteofrom_q_value = stod(results[25]);
-    }
-  }
-
-  bool FLASHDeconvHelperStructs::TopPicItem::operator<(const FLASHDeconvHelperStructs::TopPicItem& a) const
-  {
-    return this->scan < a.scan;
-  }
-
-  bool FLASHDeconvHelperStructs::TopPicItem::operator>(const FLASHDeconvHelperStructs::TopPicItem& a) const
-  {
-    return this->scan > a.scan;
-  }
-
-  bool FLASHDeconvHelperStructs::TopPicItem::operator==(const FLASHDeconvHelperStructs::TopPicItem& other) const
-  {
-    return this->scan == other.scan;
-  }
-
 }

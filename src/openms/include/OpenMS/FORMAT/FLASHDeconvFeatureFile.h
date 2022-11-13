@@ -35,9 +35,10 @@
 
 #pragma once
 
-#include <OpenMS/ANALYSIS/TOPDOWN/FLASHDeconvHelperStructs.h>
-#include <OpenMS/ANALYSIS//TOPDOWN/PeakGroup.h>
 #include <OpenMS/config.h>
+#include <OpenMS/ANALYSIS/TOPDOWN/FLASHDeconvHelperStructs.h>
+#include <OpenMS/ANALYSIS/TOPDOWN/PeakGroup.h>
+
 #include <iostream>
 #include <iomanip>
 
@@ -51,7 +52,6 @@ namespace OpenMS
 
   class OPENMS_DLLAPI FLASHDeconvFeatureFile {
   public:
-
     /// write header line for regular file output
     static void writeHeader(std::fstream& fs);
 
@@ -64,37 +64,28 @@ namespace OpenMS
     /// write the features in regular file output
     static void writeFeatures(const std::vector<FLASHDeconvHelperStructs::MassFeature>& mass_features, const String& file_name, std::fstream& fs);
 
+
     /**
-         @brief Find mass features and write features in output files.
-         @param file_name input spectrum file name
-         @param promex_out whether promex format output should be generated
-         @param topfd_feature_out whether topfd feature output should be generated
-         @param precursor_peak_groups precursor peak groups of MSn spectra that are used only when topfd_feature_out is set
-         @param averagine precalculated averagine for cosine calculation
-         @param feature_cntr total number of features, updated in this function
-         @param feature_index index to features, updated in this function
-         @param fsf file stream for feature tsv output
-         @param fsp file stream for promex output
-         @param fst file streams for topfd output tsv, feature files
-         */
+     * @brief Find mass features and write features in TopFD format files.
+     * @param mass_features mass features to be written
+     * @param precursor_peak_groups precursor peak groups of MSn spectra that are used only when topfd_feature_out is set
+     * @param scan_rt_map scan number to retention time map
+     * @param file_name input spectrum file name
+     * @param fs file stream
+     */
 
     static void writeTopFDFeatures(const std::vector<FLASHDeconvHelperStructs::MassFeature>& mass_features,
                                    const std::map<int, PeakGroup>& precursor_peak_groups,
                                    const std::map<int, double>& scan_rt_map, const String file_name, std::vector<std::fstream>& fs);
 
     /**
-       @brief Find mass features and write features in output files.
-       @param file_name input spectrum file name
-       @param promex_out whether promex format output should be generated
-       @param topfd_feature_out whether topfd feature output should be generated
-       @param precursor_peak_groups precursor peak groups of MSn spectra that are used only when topfd_feature_out is set
-       @param averagine precalculated averagine for cosine calculation
-       @param feature_cntr total number of features, updated in this function
-       @param feature_index index to features, updated in this function
-       @param fsf file stream for feature tsv output
-       @param fsp file stream for promex output
-       @param fst file streams for topfd output tsv, feature files
-       */
+     * @brief Find mass features and write features in Promex format files.
+     * @param mass_features mass features to be written
+     * @param precursor_peak_groups precursor peak groups of MSn spectra that are used only when topfd_feature_out is set
+     * @param scan_rt_map scan number to retention time map
+     * @param avg averagine to determine isotope pattern range
+     * @param fs file stream
+     */
 
     static void writePromexFeatures(const std::vector<FLASHDeconvHelperStructs::MassFeature>& mass_features,
                                     const std::map<int, PeakGroup>& precursor_peak_groups,

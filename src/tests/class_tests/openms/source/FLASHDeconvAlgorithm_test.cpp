@@ -67,7 +67,7 @@ END_SECTION
 /// < public methods without tests >
 /// - default constructors and operators are not used (copy, move, assignment)
 /// - setTargetMasses : only private member (which can not be accessed) is affected
-/// - getDecoyDeconvolvedSpectrum, isDecoy, addExcludedMonoMass, clearExcludedMonoMasses: under development
+/// - getDecoyDeconvolvedSpectrum, isDecoy, addPreviouslyDeconvolvedMonoMass, clearPreviouslyDeconvolvedMonoMasses: under development
 /// - getAvgPPMError
 
 FLASHDeconvAlgorithm fd_algo = FLASHDeconvAlgorithm();
@@ -98,14 +98,14 @@ START_SECTION((static float getCosine(const std::vector<float>& a,
   std::vector<float> test_array1{571133.0, 306181.0, 95811.0, 22037.0, 4092.0, 645.0, 89.0, 11.0, 1.0, 0.0};
   std::vector<float> test_array2{100, 50, 25, 12.5, 6.25, 3.125, 1, 0, 0};
 
-  float cos_1 = fd_algo.getCosine(test_array1, 0, test_array1.size(), iso_array, iso_array.size(), 0);
-  float cos_2 = fd_algo.getCosine(test_array2, 0, test_array2.size(), iso_array, iso_array.size(), -1);
-  float cos_3 = fd_algo.getCosine(test_array2, 0, 1, iso_array, iso_array.size(), 0);
+  float cos_1 = fd_algo.getCosine(test_array1, 0, test_array1.size(), iso_array, iso_array.size(), 0, 0);
+  float cos_2 = fd_algo.getCosine(test_array2, 0, test_array2.size(), iso_array, iso_array.size(), -1, 0);
+  float cos_3 = fd_algo.getCosine(test_array2, 0, 1, iso_array, iso_array.size(), 0, 0);
 
   TOLERANCE_ABSOLUTE(0.1);
   TEST_REAL_SIMILAR(cos_1, 0.65);
   TEST_REAL_SIMILAR(cos_2, 0.3);
-  TEST_EQUAL(cos_3, 0);
+  TEST_REAL_SIMILAR(cos_3, 0.5);
 }
 END_SECTION
 
@@ -154,16 +154,12 @@ START_SECTION((static double getIsotopeCosineAndDetermineIsotopeIndex(const doub
   tmp_iso_inty.push_back(62.4324335);
 
   int offset = 0;
-  int secondoff;
-  double tmp_iso_1 = fd_algo.getIsotopeCosineAndDetermineIsotopeIndex(1000., tmp_iso_inty, offset, secondoff,
-                                                                      fd_algo.getAveragine(), -1);
+  double tmp_iso_1 = fd_algo.getIsotopeCosineAndDetermineIsotopeIndex(1000., tmp_iso_inty, offset, fd_algo.getAveragine(), -1);
 
-  double tmp_iso_2 = fd_algo.getIsotopeCosineAndDetermineIsotopeIndex(1000., tmp_iso_inty, offset,secondoff,
-                                                                      fd_algo.getAveragine(), -1);
+  double tmp_iso_2 = fd_algo.getIsotopeCosineAndDetermineIsotopeIndex(1000., tmp_iso_inty, offset, fd_algo.getAveragine(), -1);
 
   offset = 3;
-  double tmp_iso_3 = fd_algo.getIsotopeCosineAndDetermineIsotopeIndex(1500., tmp_iso_inty, offset,secondoff,
-                                                                      fd_algo.getAveragine(), -1);
+  double tmp_iso_3 = fd_algo.getIsotopeCosineAndDetermineIsotopeIndex(1500., tmp_iso_inty, offset, fd_algo.getAveragine(), -1);
 
   TEST_REAL_SIMILAR(tmp_iso_1, 0.99999997024829767);
   TEST_REAL_SIMILAR(tmp_iso_2, 0.99999997024829767);
@@ -207,9 +203,10 @@ START_SECTION((DeconvolvedSpectrum& performSpectrumDeconvolution(const MSSpectru
   Precursor precursor = d_ms2_spec.getPrecursor();
   TOLERANCE_ABSOLUTE(1);
   TEST_EQUAL(d_ms1_spec.getPrecursorPeakGroup().size(), 0);
-  TEST_EQUAL(d_ms2_spec.getPrecursorPeakGroup().size(), 66);
+  TEST_EQUAL(d_ms2_spec.getPrecursorPeakGroup().size(), 67);
   TEST_EQUAL(precursor.getCharge(), 9);
-  TEST_REAL_SIMILAR(precursor.getIntensity(), 12031);
+  TOLERANCE_ABSOLUTE(100);
+  TEST_REAL_SIMILAR(precursor.getIntensity(), 12293.4);
 }
 END_SECTION
 
