@@ -239,6 +239,10 @@ protected:
       // getting information while looping through mass traces in FeatureGroup
       for (auto &lmt: fg)
       {
+        if (lmt.getIsotopeIndex() < 0)
+        {
+          continue;
+        }
         auto &lmt_ptr = lmt.getMassTrace();
         mass_trace_labels.push_back(lmt_ptr.getLabel());
 
