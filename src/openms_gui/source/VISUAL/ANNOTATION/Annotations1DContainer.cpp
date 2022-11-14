@@ -32,17 +32,15 @@
 // $Authors: Johannes Junker $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/VISUAL/ANNOTATION/Annotations1DContainer.h>
-
 #include <OpenMS/VISUAL/ANNOTATION/Annotation1DItem.h>
+#include <OpenMS/VISUAL/ANNOTATION/Annotations1DContainer.h>
 
 
 namespace OpenMS
 {
   Annotations1DContainer::Annotations1DContainer() = default;
 
-  Annotations1DContainer::Annotations1DContainer(const Annotations1DContainer& rhs)
-    : Base(rhs)
+  Annotations1DContainer::Annotations1DContainer(const Annotations1DContainer& rhs) : Base(rhs)
   {
     // copy annotations
     for (auto item : rhs)
@@ -51,7 +49,7 @@ namespace OpenMS
     }
   }
 
-  Annotations1DContainer& Annotations1DContainer::operator=(const Annotations1DContainer & rhs)
+  Annotations1DContainer& Annotations1DContainer::operator=(const Annotations1DContainer& rhs)
   {
     if (this != &rhs)
     {
@@ -74,7 +72,7 @@ namespace OpenMS
     deleteAllItems_();
   }
 
-  Annotation1DItem * Annotations1DContainer::getItemAt(const QPoint & pos) const
+  Annotation1DItem* Annotations1DContainer::getItemAt(const QPoint& pos) const
   {
     for (const auto ptr_item : *this)
     {
@@ -86,7 +84,7 @@ namespace OpenMS
     return nullptr;
   }
 
-  void Annotations1DContainer::selectItemAt(const QPoint & pos) const
+  void Annotations1DContainer::selectItemAt(const QPoint& pos) const
   {
     Annotation1DItem* item = getItemAt(pos);
     if (item != nullptr)
@@ -95,7 +93,7 @@ namespace OpenMS
     }
   }
 
-  void Annotations1DContainer::deselectItemAt(const QPoint & pos) const
+  void Annotations1DContainer::deselectItemAt(const QPoint& pos) const
   {
     Annotation1DItem* item = getItemAt(pos);
     if (item != nullptr)
@@ -141,14 +139,14 @@ namespace OpenMS
     // initialize with maximal possible size
     std::vector<Annotation1DItem*> annotation_items(size());
     // copy if is selected
-    auto it = std::copy_if(begin(), end(), annotation_items.begin(), [](Annotation1DItem* anno){return anno->isSelected();});
+    auto it = std::copy_if(begin(), end(), annotation_items.begin(), [](Annotation1DItem* anno) { return anno->isSelected(); });
     // resize to number of actually copied items
     annotation_items.resize(std::distance(annotation_items.begin(), it));
 
     return annotation_items;
   }
 
-  
+
   void Annotations1DContainer::deleteAllItems_() const
   {
     for (const auto ptr_item : *this)
@@ -157,4 +155,4 @@ namespace OpenMS
     }
   }
 
-} //Namespace
+} // namespace OpenMS

@@ -33,9 +33,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/VISUAL/ANNOTATION/Annotation1DDistanceItem.h>
-
 #include <OpenMS/VISUAL/Plot1DCanvas.h>
-
 #include <cmath>
 
 using namespace std;
@@ -44,7 +42,7 @@ namespace OpenMS
 {
   namespace
   {
-    Annotation1DDistanceItem p("test", {0, 0}, {0, 0});  
+    Annotation1DDistanceItem p("test", {0, 0}, {0, 0});
   }
 
   Annotation1DDistanceItem::Annotation1DDistanceItem(const QString& text, const PointXYType& start_point, const PointXYType& end_point, const bool swap_ends_if_negative) :
@@ -78,7 +76,7 @@ namespace OpenMS
     // find out how much additional space is needed for the text:
     QRect text_bb = painter.boundingRect(QRect(), Qt::AlignCenter, text_);
     // place text in the center of the line's bb, but gravitate it up
-    auto new_text_center = canvas->getGravitator().gravitateWith(line_bb.center(), {line_bb.width() / 2 + text_bb.width()/2, line_bb.height() / 2 + text_bb.height()/2});
+    auto new_text_center = canvas->getGravitator().gravitateWith(line_bb.center(), {line_bb.width() / 2 + text_bb.width() / 2, line_bb.height() / 2 + text_bb.height() / 2});
     text_bb.translate(new_text_center - text_bb.center());
     painter.drawText(text_bb, Qt::AlignHCenter, text_);
 

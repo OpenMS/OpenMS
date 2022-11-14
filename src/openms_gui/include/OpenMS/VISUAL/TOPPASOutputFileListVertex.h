@@ -36,7 +36,6 @@
 
 // OpenMS_GUI config
 #include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
-
 #include <OpenMS/VISUAL/TOPPASVertex.h>
 
 namespace OpenMS
@@ -46,25 +45,23 @@ namespace OpenMS
 
       @ingroup TOPPAS_elements
   */
-  class OPENMS_GUI_DLLAPI TOPPASOutputFileListVertex :
-    public TOPPASVertex
+  class OPENMS_GUI_DLLAPI TOPPASOutputFileListVertex : public TOPPASVertex
   {
     Q_OBJECT
 
-public:
-
+  public:
     /// Default constructor
     TOPPASOutputFileListVertex() = default;
     /// Copy constructor
-    TOPPASOutputFileListVertex(const TOPPASOutputFileListVertex & rhs);
+    TOPPASOutputFileListVertex(const TOPPASOutputFileListVertex& rhs);
     /// Destructor
     ~TOPPASOutputFileListVertex() override = default;
     /// Assignment operator
-    TOPPASOutputFileListVertex & operator=(const TOPPASOutputFileListVertex & rhs);
+    TOPPASOutputFileListVertex& operator=(const TOPPASOutputFileListVertex& rhs);
     /// returns "OutputVertex"
     String getName() const override;
     // documented in base class
-    void paint(QPainter * painter, const QStyleOptionGraphicsItem * option, QWidget * widget) override;
+    void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget) override;
     // documented in base class
     QRectF boundingRect() const override;
     // documented in base class
@@ -89,27 +86,26 @@ public:
     /// return the output folder where results are written
     const QString& getOutputFolderName() const;
 
-public slots:
+  public slots:
 
-    //documented in base class
+    // documented in base class
     void inEdgeHasChanged() override;
 
-signals:
+  signals:
     /// Emitted when an output file was written
     void outputFileWritten(const String& file);
 
     /// Emitted when user has changed the output folder name (i.e. output dir needs to be newly created and packages updates)
     void outputFolderNameChanged();
 
-protected:
-
+  protected:
     // custom output folder name
     QString output_folder_name_;
 
-    static bool copy_(const QString & from, const QString & to); ///< STATIC(!) function which calls QFile::copy(); needs to be static, since we need to pass a function pointer (which does not work on member functions)
+    static bool copy_(const QString& from,
+                      const QString& to); ///< STATIC(!) function which calls QFile::copy(); needs to be static, since we need to pass a function pointer (which does not work on member functions)
     // convenience members, not required for operation, but for progress during copying
-    int files_written_ = 0;   ///< files that were already written
-    int files_total_ = 0;     ///< total number of files from upstream
+    int files_written_ = 0; ///< files that were already written
+    int files_total_ = 0;   ///< total number of files from upstream
   };
-}
-
+} // namespace OpenMS

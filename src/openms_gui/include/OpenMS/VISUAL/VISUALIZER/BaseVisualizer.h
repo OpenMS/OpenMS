@@ -49,11 +49,10 @@ namespace OpenMS
 
       Visualizers are mainly used by the MetaDataBrowser.
   */
-  template <typename ObjectType>
+  template<typename ObjectType>
   class OPENMS_GUI_DLLAPI BaseVisualizer
   {
-public:
-
+  public:
     /// Loads the object that is to be edited.
     void load(ObjectType& o)
     {
@@ -63,23 +62,22 @@ public:
       update_();
     }
 
-    virtual ~BaseVisualizer() {}
+    virtual ~BaseVisualizer()
+    {
+    }
 
-protected:
-
+  protected:
     /// Pointer to the object that is currently edited
     ObjectType* ptr_;
     /// Copy of current object used to restore the original values
     ObjectType temp_;
 
-protected:
-
-    ///Updates the GUI from the temp_ variable.
+  protected:
+    /// Updates the GUI from the temp_ variable.
     virtual void update_()
     {
     }
-
   };
 
 
-}
+} // namespace OpenMS

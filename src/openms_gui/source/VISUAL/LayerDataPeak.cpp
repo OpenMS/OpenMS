@@ -32,14 +32,12 @@
 // $Authors: Chris Bielow $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/VISUAL/LayerDataPeak.h>
-
 #include <OpenMS/ANALYSIS/ID/IDMapper.h>
-
 #include <OpenMS/VISUAL/ANNOTATION/Annotation1DPeakItem.h>
-#include <OpenMS/VISUAL/LayerData1DIonMobility.h>
 #include <OpenMS/VISUAL/LayerData1DChrom.h>
+#include <OpenMS/VISUAL/LayerData1DIonMobility.h>
 #include <OpenMS/VISUAL/LayerData1DPeak.h>
+#include <OpenMS/VISUAL/LayerDataPeak.h>
 #include <OpenMS/VISUAL/Painter2DBase.h>
 #include <OpenMS/VISUAL/VISITORS/LayerStatistics.h>
 #include <OpenMS/VISUAL/VISITORS/LayerStoreData.h>
@@ -96,7 +94,7 @@ namespace OpenMS
 
     auto& peak_count = result.stats.number_of_datapoints;
     auto& intensity_max = result.stats.max_intensity;
-    auto& total_intensity_sum = result.stats.sum_intensity; 
+    auto& total_intensity_sum = result.stats.sum_intensity;
 
     // divide visible range into 100 bins (much faster than using a constant, e.g. 0.05, leading to many peaks for large maps without more information)
     float mz_range = area.RangeMZ::getSpan();
@@ -142,7 +140,7 @@ namespace OpenMS
     projection_im[0].setIntensity(0.0);
     projection_im.back().setMobility(area.getMaxMobility());
     projection_im.back().setIntensity(0.0);
-    
+
 
     projection_rt.resize(rt.size() + 2);
     projection_rt[0].setRT(area.getMinRT());
@@ -297,7 +295,7 @@ namespace OpenMS
 
     return true;
   }
-  
+
   const LayerDataBase::ConstExperimentSharedPtrType LayerDataPeak::getPeakData() const
   {
     return boost::static_pointer_cast<const ExperimentType>(peak_map_);

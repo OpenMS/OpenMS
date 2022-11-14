@@ -32,14 +32,11 @@
 // $Authors: Marc Sturm $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/VISUAL/Plot3DOpenGLCanvas.h>
-
-#include <OpenMS/VISUAL/Plot3DCanvas.h>
+#include <OpenMS/MATH/MISC/MathFunctions.h>
 #include <OpenMS/VISUAL/AxisTickCalculator.h>
 #include <OpenMS/VISUAL/LayerDataPeak.h>
-
-#include <OpenMS/MATH/MISC/MathFunctions.h>
-
+#include <OpenMS/VISUAL/Plot3DCanvas.h>
+#include <OpenMS/VISUAL/Plot3DOpenGLCanvas.h>
 #include <QMouseEvent>
 
 using std::cout;
@@ -49,16 +46,14 @@ using std::max;
 namespace OpenMS
 {
 
-  Plot3DOpenGLCanvas::Plot3DOpenGLCanvas(QWidget * parent, Plot3DCanvas & canvas_3d) :
-    QOpenGLWidget(parent),
-    canvas_3d_(canvas_3d)
+  Plot3DOpenGLCanvas::Plot3DOpenGLCanvas(QWidget* parent, Plot3DCanvas& canvas_3d) : QOpenGLWidget(parent), canvas_3d_(canvas_3d)
   {
     canvas_3d.rubber_band_.setParent(this);
 
     x_label_ = (String(Peak2D::shortDimensionName(Peak2D::MZ)) + " [" + String(Peak2D::shortDimensionUnit(Peak2D::MZ)) + "]").toQString();
     y_label_ = (String(Peak2D::shortDimensionName(Peak2D::RT)) + " [" + String(Peak2D::shortDimensionUnit(Peak2D::RT)) + "]").toQString();
 
-    //Set focus policy and mouse tracking in order to get keyboard events
+    // Set focus policy and mouse tracking in order to get keyboard events
     setMouseTracking(true);
     setFocusPolicy(Qt::StrongFocus);
 
@@ -79,22 +74,22 @@ namespace OpenMS
   {
     switch (canvas_3d_.intensity_mode_)
     {
-    case PlotCanvas::IM_SNAP:
-      updateIntensityScale();
-      AxisTickCalculator::calcGridLines(0.0, int_scale_.max_[0], grid_intensity_);
-      break;
+      case PlotCanvas::IM_SNAP:
+        updateIntensityScale();
+        AxisTickCalculator::calcGridLines(0.0, int_scale_.max_[0], grid_intensity_);
+        break;
 
-    case PlotCanvas::IM_NONE:
-      AxisTickCalculator::calcGridLines(0.0, canvas_3d_.overall_data_range_.getMaxIntensity(), grid_intensity_);
-      break;
+      case PlotCanvas::IM_NONE:
+        AxisTickCalculator::calcGridLines(0.0, canvas_3d_.overall_data_range_.getMaxIntensity(), grid_intensity_);
+        break;
 
-    case PlotCanvas::IM_PERCENTAGE:
-      AxisTickCalculator::calcGridLines(0.0, 100.0, grid_intensity_);
-      break;
+      case PlotCanvas::IM_PERCENTAGE:
+        AxisTickCalculator::calcGridLines(0.0, 100.0, grid_intensity_);
+        break;
 
-    case PlotCanvas::IM_LOG:
-      AxisTickCalculator::calcLogGridLines(0.0, log10(1 + max(0.0, canvas_3d_.overall_data_range_.getMaxIntensity())), grid_intensity_);
-      break;
+      case PlotCanvas::IM_LOG:
+        AxisTickCalculator::calcLogGridLines(0.0, log10(1 + max(0.0, canvas_3d_.overall_data_range_.getMaxIntensity())), grid_intensity_);
+        break;
     }
 
     AxisTickCalculator::calcGridLines(canvas_3d_.visible_area_.getAreaUnit().getMinRT(), canvas_3d_.visible_area_.getAreaUnit().getMaxRT(), grid_rt_);
@@ -103,17 +98,17 @@ namespace OpenMS
 
   void Plot3DOpenGLCanvas::transformPoint_(GLdouble out[4], const GLdouble m[16], const GLdouble in[4])
   {
-  #define M(row,col)  m[col*4+row]
+#define M(row, col) m[col * 4 + row]
     out[0] = M(0, 0) * in[0] + M(0, 1) * in[1] + M(0, 2) * in[2] + M(0, 3) * in[3];
     out[1] = M(1, 0) * in[0] + M(1, 1) * in[1] + M(1, 2) * in[2] + M(1, 3) * in[3];
     out[2] = M(2, 0) * in[0] + M(2, 1) * in[1] + M(2, 2) * in[2] + M(2, 3) * in[3];
     out[3] = M(3, 0) * in[0] + M(3, 1) * in[1] + M(3, 2) * in[2] + M(3, 3) * in[3];
-  #undef M
+#undef M
   }
 
-  GLint Plot3DOpenGLCanvas::project_(GLdouble objx, GLdouble objy, GLdouble objz, GLdouble * winx, GLdouble * winy)
+  GLint Plot3DOpenGLCanvas::project_(GLdouble objx, GLdouble objy, GLdouble objz, GLdouble* winx, GLdouble* winy)
   {
-    int height= this->height();
+    int height = this->height();
     int width = this->width();
 
     GLdouble in[4], out[4];
@@ -134,7 +129,10 @@ namespace OpenMS
     transformPoint_(in, proj, out);
 
     // transform homogeneous coordinates into normalized device coordinates
-    if (in[3] == 0.0) { return GL_FALSE; }
+    if (in[3] == 0.0)
+    {
+      return GL_FALSE;
+    }
     in[0] /= in[3];
     in[1] /= in[3];
     in[2] /= in[3];
@@ -144,9 +142,9 @@ namespace OpenMS
     *winy = 0 + (1 + in[1]) * height / 2;
 
     return GL_TRUE;
-  }  
+  }
 
-  void Plot3DOpenGLCanvas::renderText_(double x, double y, double z, const QString & text) 
+  void Plot3DOpenGLCanvas::renderText_(double x, double y, double z, const QString& text)
   {
     // project to screen coordinates
     GLdouble textPosX = 0, textPosY = 0;
@@ -160,12 +158,12 @@ namespace OpenMS
     painter_->drawText(textPosX, textPosY, text);
   }
 
-  void Plot3DOpenGLCanvas::qglColor_(const QColor& color) 
+  void Plot3DOpenGLCanvas::qglColor_(const QColor& color)
   {
     glColor4f(color.redF(), color.greenF(), color.blueF(), color.alphaF());
   }
 
-  void Plot3DOpenGLCanvas::qglClearColor_(const QColor& clearColor) 
+  void Plot3DOpenGLCanvas::qglClearColor_(const QColor& clearColor)
   {
     glClearColor(clearColor.redF(), clearColor.greenF(), clearColor.blueF(), clearColor.alphaF());
   }
@@ -174,7 +172,7 @@ namespace OpenMS
   {
     width_ = (float)w;
     height_ = (float)h;
-    glViewport(0, 0, (GLsizei) w, (GLsizei) h);
+    glViewport(0, 0, (GLsizei)w, (GLsizei)h);
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
     glOrtho(-corner_ * zoom_, corner_ * zoom_, -corner_ * zoom_, corner_ * zoom_, near_, far_);
@@ -196,8 +194,11 @@ namespace OpenMS
     qglClearColor_(color);
     calculateGridLines_();
 
-    //abort if no layers are displayed
-    if (canvas_3d_.getLayerCount() == 0) { return; }
+    // abort if no layers are displayed
+    if (canvas_3d_.getLayerCount() == 0)
+    {
+      return;
+    }
 
     if (canvas_3d_.action_mode_ == PlotCanvas::AM_ZOOM)
     {
@@ -224,12 +225,15 @@ namespace OpenMS
 
         stickdata_ = makeDataAsTopView_();
         axes_ticks_ = makeAxesTicks_();
-        //drawAxesLegend_();
+        // drawAxesLegend_();
       }
     }
     else if (canvas_3d_.action_mode_ == PlotCanvas::AM_TRANSLATE)
     {
-      if (canvas_3d_.show_grid_) { gridlines_ = makeGridLines_(); }
+      if (canvas_3d_.show_grid_)
+      {
+        gridlines_ = makeGridLines_();
+      }
       axes_ = makeAxes_();
       ground_ = makeGround_();
       x_1_ = 0.0;
@@ -246,9 +250,9 @@ namespace OpenMS
 #endif
       }
 
-      stickdata_ =  makeDataAsStick_();
+      stickdata_ = makeDataAsStick_();
       axes_ticks_ = makeAxesTicks_();
-      //drawAxesLegend_();
+      // drawAxesLegend_();
     }
   }
 
@@ -293,13 +297,15 @@ namespace OpenMS
     {
       glCallList(ground_);
 
-      if (canvas_3d_.show_grid_) { glCallList(gridlines_); }
+      if (canvas_3d_.show_grid_)
+      {
+        glCallList(gridlines_);
+      }
 
       glCallList(axes_);
       glCallList(axes_ticks_);
 
-      if (canvas_3d_.action_mode_ == PlotCanvas::AM_ZOOM 
-       || canvas_3d_.action_mode_ == PlotCanvas::AM_TRANSLATE)
+      if (canvas_3d_.action_mode_ == PlotCanvas::AM_ZOOM || canvas_3d_.action_mode_ == PlotCanvas::AM_TRANSLATE)
       {
         glCallList(stickdata_);
       }
@@ -310,10 +316,10 @@ namespace OpenMS
         painter_ = new QPainter(this);
         if (painter_->isActive())
         {
-          drawAxesLegend_(); 
+          drawAxesLegend_();
           painter_->end();
         }
-        delete(painter_);
+        delete (painter_);
       }
     }
   }
@@ -396,99 +402,99 @@ namespace OpenMS
     {
       switch (canvas_3d_.intensity_mode_)
       {
-      case PlotCanvas::IM_LOG:
+        case PlotCanvas::IM_LOG:
 
-        if (canvas_3d_.legend_shown_)
-        {
-          font.setPixelSize(12);
-          text = QString("intensity log");
-          renderText_(-corner_ - 20.0, corner_ + 10.0, -near_ - 2 * corner_ + 20.0, text);
-          font.setPixelSize(10);
-        }
+          if (canvas_3d_.legend_shown_)
+          {
+            font.setPixelSize(12);
+            text = QString("intensity log");
+            renderText_(-corner_ - 20.0, corner_ + 10.0, -near_ - 2 * corner_ + 20.0, text);
+            font.setPixelSize(10);
+          }
 
-        if (zoom_ < 3.0 && grid_intensity_.size() >= 2)
-        {
+          if (zoom_ < 3.0 && grid_intensity_.size() >= 2)
+          {
+            for (Size i = 0; i < grid_intensity_[0].size(); i++)
+            {
+              double intensity = (double)grid_intensity_[0][i];
+              text = QString("%1").arg(intensity, 0, 'f', 0);
+              renderText_(-corner_ - text.length() - width_ / 200.0 - 5.0, -corner_ + scaledIntensity_(pow(10.0, grid_intensity_[0][i]) - 1, canvas_3d_.layers_.getCurrentLayerIndex()),
+                          -near_ - 2 * corner_, text);
+            }
+          }
+          break;
+
+        case PlotCanvas::IM_PERCENTAGE:
+          if (canvas_3d_.legend_shown_)
+          {
+            font.setPixelSize(12);
+            renderText_(-corner_ - 20.0, corner_ + 10.0, -near_ - 2 * corner_ + 20.0, "intensity %");
+            font.setPixelSize(10);
+          }
+
           for (Size i = 0; i < grid_intensity_[0].size(); i++)
           {
-            double intensity = (double)grid_intensity_[0][i];
-            text = QString("%1").arg(intensity, 0, 'f', 0);
-            renderText_(-corner_ - text.length() - width_ / 200.0 - 5.0, -corner_ + scaledIntensity_(pow(10.0, grid_intensity_[0][i]) - 1, canvas_3d_.layers_.getCurrentLayerIndex()), -near_ - 2 * corner_, text);
+            text = QString::number(grid_intensity_[0][i]);
+            renderText_(-corner_ - text.length() - width_ / 200.0 - 5.0, -corner_ + (2.0 * grid_intensity_[0][i]), -near_ - 2 * corner_, text);
           }
-        }
-        break;
+          break;
 
-      case PlotCanvas::IM_PERCENTAGE:
-        if (canvas_3d_.legend_shown_)
-        {
-          font.setPixelSize(12);
-          renderText_(-corner_ - 20.0, corner_ + 10.0, -near_ - 2 * corner_ + 20.0, "intensity %");
-          font.setPixelSize(10);
-        }
-
-        for (Size i = 0; i < grid_intensity_[0].size(); i++)
-        {
-          text = QString::number(grid_intensity_[0][i]);
-          renderText_(-corner_ - text.length() - width_ / 200.0 - 5.0, -corner_ + (2.0 * grid_intensity_[0][i]), -near_ - 2 * corner_, text);
-        }
-        break;
-
-      case PlotCanvas::IM_NONE:
-      case PlotCanvas::IM_SNAP:
-        int expo = 0;
-        if (grid_intensity_.size() >= 1)
-        {
-          expo = (int)ceil(log10(grid_intensity_[0][0]));
-        }
-        if (grid_intensity_.size() >= 2)
-        {
-          if (expo >= ceil(log10(grid_intensity_[1][0])))
+        case PlotCanvas::IM_NONE:
+        case PlotCanvas::IM_SNAP:
+          int expo = 0;
+          if (grid_intensity_.size() >= 1)
           {
-            expo = (int)ceil(log10(grid_intensity_[1][0]));
+            expo = (int)ceil(log10(grid_intensity_[0][0]));
           }
-        }
-        if (grid_intensity_.size() >= 3)
-        {
-          if (expo >= ceil(log10(grid_intensity_[2][0])))
+          if (grid_intensity_.size() >= 2)
           {
-            expo = (int) ceil(log10(grid_intensity_[2][0]));
+            if (expo >= ceil(log10(grid_intensity_[1][0])))
+            {
+              expo = (int)ceil(log10(grid_intensity_[1][0]));
+            }
           }
-        }
-
-        if (canvas_3d_.legend_shown_)
-        {
-          font.setPixelSize(12);
-          text = QString("intensity e+%1").arg((double)expo, 0, 'f', 1);
-          renderText_(-corner_ - 20.0, corner_ + 10.0, -near_ - 2 * corner_ + 20.0, text);
-          font.setPixelSize(10);
-        }
-
-
-        if (zoom_ < 3.0 && grid_intensity_.size() >= 2)
-        {
-          for (Size i = 0; i < grid_intensity_[0].size(); i++)
+          if (grid_intensity_.size() >= 3)
           {
-            double intensity = (double)grid_intensity_[0][i] / pow(10.0, expo);
-            text = QString("%1").arg(intensity, 0, 'f', 1);
-            renderText_(-corner_ - text.length() - width_ / 200.0 - 5.0, -corner_ + scaledIntensity_(grid_intensity_[0][i], canvas_3d_.layers_.getCurrentLayerIndex()), -near_ - 2 * corner_, text);
+            if (expo >= ceil(log10(grid_intensity_[2][0])))
+            {
+              expo = (int)ceil(log10(grid_intensity_[2][0]));
+            }
           }
-          for (Size i = 0; i < grid_intensity_[1].size(); i++)
-          {
-            double intensity = (double)grid_intensity_[1][i] / pow(10.0, expo);
-            text = QString("%1").arg(intensity, 0, 'f', 1);
-            renderText_(-corner_ - text.length() - width_ / 200.0 - 5.0, -corner_ + scaledIntensity_(grid_intensity_[1][i], canvas_3d_.layers_.getCurrentLayerIndex()), -near_ - 2 * corner_, text);
-          }
-        }
-        if (width_ > 800 && height_ > 600 && zoom_ < 2.0 && grid_intensity_.size() >= 3)
-        {
-          for (Size i = 0; i < grid_intensity_[2].size(); i++)
-          {
-            double intensity = (double)grid_intensity_[2][i] / pow(10.0, expo);
-            text = QString("%1").arg(intensity, 0, 'f', 1);
-            renderText_(-corner_ - text.length() - width_ / 200.0 - 5.0, -corner_ + scaledIntensity_(grid_intensity_[2][i], canvas_3d_.layers_.getCurrentLayerIndex()), -near_ - 2 * corner_, text);
-          }
-        }
-        break;
 
+          if (canvas_3d_.legend_shown_)
+          {
+            font.setPixelSize(12);
+            text = QString("intensity e+%1").arg((double)expo, 0, 'f', 1);
+            renderText_(-corner_ - 20.0, corner_ + 10.0, -near_ - 2 * corner_ + 20.0, text);
+            font.setPixelSize(10);
+          }
+
+
+          if (zoom_ < 3.0 && grid_intensity_.size() >= 2)
+          {
+            for (Size i = 0; i < grid_intensity_[0].size(); i++)
+            {
+              double intensity = (double)grid_intensity_[0][i] / pow(10.0, expo);
+              text = QString("%1").arg(intensity, 0, 'f', 1);
+              renderText_(-corner_ - text.length() - width_ / 200.0 - 5.0, -corner_ + scaledIntensity_(grid_intensity_[0][i], canvas_3d_.layers_.getCurrentLayerIndex()), -near_ - 2 * corner_, text);
+            }
+            for (Size i = 0; i < grid_intensity_[1].size(); i++)
+            {
+              double intensity = (double)grid_intensity_[1][i] / pow(10.0, expo);
+              text = QString("%1").arg(intensity, 0, 'f', 1);
+              renderText_(-corner_ - text.length() - width_ / 200.0 - 5.0, -corner_ + scaledIntensity_(grid_intensity_[1][i], canvas_3d_.layers_.getCurrentLayerIndex()), -near_ - 2 * corner_, text);
+            }
+          }
+          if (width_ > 800 && height_ > 600 && zoom_ < 2.0 && grid_intensity_.size() >= 3)
+          {
+            for (Size i = 0; i < grid_intensity_[2].size(); i++)
+            {
+              double intensity = (double)grid_intensity_[2][i] / pow(10.0, expo);
+              text = QString("%1").arg(intensity, 0, 'f', 1);
+              renderText_(-corner_ - text.length() - width_ / 200.0 - 5.0, -corner_ + scaledIntensity_(grid_intensity_[2][i], canvas_3d_.layers_.getCurrentLayerIndex()), -near_ - 2 * corner_, text);
+            }
+          }
+          break;
       }
     }
   }
@@ -587,27 +593,24 @@ namespace OpenMS
             double intensity = 0;
             switch (canvas_3d_.intensity_mode_)
             {
-            case PlotCanvas::IM_NONE:
-              qglColor_(layer.gradient.precalculatedColorAt(it->getIntensity()));
-              break;
+              case PlotCanvas::IM_NONE:
+                qglColor_(layer.gradient.precalculatedColorAt(it->getIntensity()));
+                break;
 
-            case PlotCanvas::IM_PERCENTAGE:
-              intensity = it->getIntensity() * 100.0 / canvas_3d_.getMaxIntensity(i);
-              qglColor_(layer.gradient.precalculatedColorAt(intensity));
-              break;
+              case PlotCanvas::IM_PERCENTAGE:
+                intensity = it->getIntensity() * 100.0 / canvas_3d_.getMaxIntensity(i);
+                qglColor_(layer.gradient.precalculatedColorAt(intensity));
+                break;
 
-            case PlotCanvas::IM_SNAP:
-              qglColor_(layer.gradient.precalculatedColorAt(it->getIntensity()));
-              break;
+              case PlotCanvas::IM_SNAP:
+                qglColor_(layer.gradient.precalculatedColorAt(it->getIntensity()));
+                break;
 
-            case PlotCanvas::IM_LOG:
-              qglColor_(layer.gradient.precalculatedColorAt(log10(1 + max(0.0, (double)(it->getIntensity())))));
-              break;
-
+              case PlotCanvas::IM_LOG:
+                qglColor_(layer.gradient.precalculatedColorAt(log10(1 + max(0.0, (double)(it->getIntensity())))));
+                break;
             }
-            glVertex3f(-corner_ + (GLfloat)scaledMZ_(it->getMZ()),
-                       -corner_,
-                       -near_ - 2 * corner_ - (GLfloat)scaledRT_(it.getRT()));
+            glVertex3f(-corner_ + (GLfloat)scaledMZ_(it->getMZ()), -corner_, -near_ - 2 * corner_ - (GLfloat)scaledRT_(it.getRT()));
             glEnd();
           }
         }
@@ -675,57 +678,40 @@ namespace OpenMS
             double intensity = 0;
             switch (canvas_3d_.intensity_mode_)
             {
+              case PlotCanvas::IM_PERCENTAGE:
 
-            case PlotCanvas::IM_PERCENTAGE:
+                intensity = it->getIntensity() * 100.0 / canvas_3d_.getMaxIntensity(i);
+                qglColor_(layer.gradient.precalculatedColorAt(0.0));
+                glVertex3d(-corner_ + (GLfloat)scaledMZ_(it->getMZ()), -corner_, -near_ - 2 * corner_ - (GLfloat)scaledRT_(it.getRT()));
+                qglColor_(layer.gradient.precalculatedColorAt(intensity));
+                glVertex3d(-corner_ + (GLfloat)scaledMZ_(it->getMZ()), -corner_ + (GLfloat)scaledIntensity_(it->getIntensity(), i), -near_ - 2 * corner_ - (GLfloat)scaledRT_(it.getRT()));
+                break;
 
-              intensity = it->getIntensity() * 100.0 / canvas_3d_.getMaxIntensity(i);
-              qglColor_(layer.gradient.precalculatedColorAt(0.0));
-              glVertex3d(-corner_ + (GLfloat)scaledMZ_(it->getMZ()),
-                         -corner_,
-                         -near_ - 2 * corner_ - (GLfloat)scaledRT_(it.getRT()));
-              qglColor_(layer.gradient.precalculatedColorAt(intensity));
-              glVertex3d(-corner_ + (GLfloat)scaledMZ_(it->getMZ()),
-                         -corner_ + (GLfloat)scaledIntensity_(it->getIntensity(), i),
-                         -near_ - 2 * corner_ - (GLfloat)scaledRT_(it.getRT()));
-              break;
+              case PlotCanvas::IM_NONE:
 
-            case PlotCanvas::IM_NONE:
+                qglColor_(layer.gradient.precalculatedColorAt(0.0));
+                glVertex3d(-corner_ + (GLfloat)scaledMZ_(it->getMZ()), -corner_, -near_ - 2 * corner_ - (GLfloat)scaledRT_(it.getRT()));
+                qglColor_(layer.gradient.precalculatedColorAt(it->getIntensity()));
+                glVertex3d(-corner_ + (GLfloat)scaledMZ_(it->getMZ()), -corner_ + (GLfloat)scaledIntensity_(it->getIntensity(), i), -near_ - 2 * corner_ - (GLfloat)scaledRT_(it.getRT()));
+                break;
 
-              qglColor_(layer.gradient.precalculatedColorAt(0.0));
-              glVertex3d(-corner_ + (GLfloat)scaledMZ_(it->getMZ()),
-                         -corner_,
-                         -near_ - 2 * corner_ - (GLfloat)scaledRT_(it.getRT()));
-              qglColor_(layer.gradient.precalculatedColorAt(it->getIntensity()));
-              glVertex3d(-corner_ + (GLfloat)scaledMZ_(it->getMZ()),
-                         -corner_ + (GLfloat)scaledIntensity_(it->getIntensity(), i),
-                         -near_ - 2 * corner_ - (GLfloat)scaledRT_(it.getRT()));
-              break;
+              case PlotCanvas::IM_SNAP:
 
-            case PlotCanvas::IM_SNAP:
+                qglColor_(layer.gradient.precalculatedColorAt(0.0));
+                glVertex3d(-corner_ + (GLfloat)scaledMZ_(it->getMZ()), -corner_, -near_ - 2 * corner_ - (GLfloat)scaledRT_(it.getRT()));
+                qglColor_(layer.gradient.precalculatedColorAt(it->getIntensity()));
+                glVertex3d(-corner_ + (GLfloat)scaledMZ_(it->getMZ()), -corner_ + (GLfloat)scaledIntensity_(it->getIntensity(), i), -near_ - 2 * corner_ - (GLfloat)scaledRT_(it.getRT()));
 
-              qglColor_(layer.gradient.precalculatedColorAt(0.0));
-              glVertex3d(-corner_ + (GLfloat)scaledMZ_(it->getMZ()),
-                         -corner_,
-                         -near_ - 2 * corner_ - (GLfloat)scaledRT_(it.getRT()));
-              qglColor_(layer.gradient.precalculatedColorAt(it->getIntensity()));
-              glVertex3d(-corner_ + (GLfloat)scaledMZ_(it->getMZ()),
-                         -corner_ + (GLfloat)scaledIntensity_(it->getIntensity(), i),
-                         -near_ - 2 * corner_ - (GLfloat)scaledRT_(it.getRT()));
+                break;
 
-              break;
+              case PlotCanvas::IM_LOG:
 
-            case PlotCanvas::IM_LOG:
+                qglColor_(layer.gradient.precalculatedColorAt(0.0));
+                glVertex3d(-corner_ + (GLfloat)scaledMZ_(it->getMZ()), -corner_, -near_ - 2 * corner_ - (GLfloat)scaledRT_(it.getRT()));
+                qglColor_(layer.gradient.precalculatedColorAt(log10(1 + max(0.0, (double)(it->getIntensity())))));
+                glVertex3d(-corner_ + (GLfloat)scaledMZ_(it->getMZ()), -corner_ + (GLfloat)scaledIntensity_(it->getIntensity(), i), -near_ - 2 * corner_ - (GLfloat)scaledRT_(it.getRT()));
 
-              qglColor_(layer.gradient.precalculatedColorAt(0.0));
-              glVertex3d(-corner_ + (GLfloat)scaledMZ_(it->getMZ()),
-                         -corner_,
-                         -near_ - 2 * corner_ - (GLfloat)scaledRT_(it.getRT()));
-              qglColor_(layer.gradient.precalculatedColorAt(log10(1 + max(0.0, (double)(it->getIntensity())))));
-              glVertex3d(-corner_ + (GLfloat)scaledMZ_(it->getMZ()),
-                         -corner_ + (GLfloat)scaledIntensity_(it->getIntensity(), i),
-                         -near_ - 2 * corner_ - (GLfloat)scaledRT_(it.getRT()));
-
-              break;
+                break;
             }
             glEnd();
           }
@@ -861,59 +847,58 @@ namespace OpenMS
       }
     }
 
-    //Intensity
+    // Intensity
     switch (canvas_3d_.intensity_mode_)
     {
-    case PlotCanvas::IM_PERCENTAGE:
-      if (grid_intensity_.size() >= 1)
-      {
-        for (Size i = 0; i < grid_intensity_[0].size(); i++)
+      case PlotCanvas::IM_PERCENTAGE:
+        if (grid_intensity_.size() >= 1)
         {
-          glVertex3d(-corner_, -corner_ + (2.0 * grid_intensity_[0][i]), -near_ - 2 * corner_);
-          glVertex3d(-corner_ + 4.0, -corner_ + (2.0 * grid_intensity_[0][i]), -near_ - 2 * corner_ - 4.0);
+          for (Size i = 0; i < grid_intensity_[0].size(); i++)
+          {
+            glVertex3d(-corner_, -corner_ + (2.0 * grid_intensity_[0][i]), -near_ - 2 * corner_);
+            glVertex3d(-corner_ + 4.0, -corner_ + (2.0 * grid_intensity_[0][i]), -near_ - 2 * corner_ - 4.0);
+          }
         }
-      }
-      break;
+        break;
 
-    case PlotCanvas::IM_NONE:
-    case PlotCanvas::IM_SNAP:
-      if (grid_intensity_.size() >= 1)
-      {
-        for (Size i = 0; i < grid_intensity_[0].size(); i++)
+      case PlotCanvas::IM_NONE:
+      case PlotCanvas::IM_SNAP:
+        if (grid_intensity_.size() >= 1)
         {
-          glVertex3d(-corner_, -corner_ + scaledIntensity_(grid_intensity_[0][i], canvas_3d_.layers_.getCurrentLayerIndex()), -near_ - 2 * corner_);
-          glVertex3d(-corner_ + 4.0, -corner_ + scaledIntensity_(grid_intensity_[0][i], canvas_3d_.layers_.getCurrentLayerIndex()), -near_ - 2 * corner_ - 4.0);
+          for (Size i = 0; i < grid_intensity_[0].size(); i++)
+          {
+            glVertex3d(-corner_, -corner_ + scaledIntensity_(grid_intensity_[0][i], canvas_3d_.layers_.getCurrentLayerIndex()), -near_ - 2 * corner_);
+            glVertex3d(-corner_ + 4.0, -corner_ + scaledIntensity_(grid_intensity_[0][i], canvas_3d_.layers_.getCurrentLayerIndex()), -near_ - 2 * corner_ - 4.0);
+          }
         }
-      }
-      if (grid_intensity_.size() >= 2)
-      {
-        for (Size i = 0; i < grid_intensity_[1].size(); i++)
+        if (grid_intensity_.size() >= 2)
         {
-          glVertex3d(-corner_, -corner_ + scaledIntensity_(grid_intensity_[1][i], canvas_3d_.layers_.getCurrentLayerIndex()), -near_ - 2 * corner_);
-          glVertex3d(-corner_ + 3.0, -corner_ + scaledIntensity_(grid_intensity_[1][i], canvas_3d_.layers_.getCurrentLayerIndex()), -near_ - 2 * corner_ - 3.0);
+          for (Size i = 0; i < grid_intensity_[1].size(); i++)
+          {
+            glVertex3d(-corner_, -corner_ + scaledIntensity_(grid_intensity_[1][i], canvas_3d_.layers_.getCurrentLayerIndex()), -near_ - 2 * corner_);
+            glVertex3d(-corner_ + 3.0, -corner_ + scaledIntensity_(grid_intensity_[1][i], canvas_3d_.layers_.getCurrentLayerIndex()), -near_ - 2 * corner_ - 3.0);
+          }
         }
-      }
-      if (grid_intensity_.size() >= 3)
-      {
-        for (Size i = 0; i < grid_intensity_[2].size(); i++)
+        if (grid_intensity_.size() >= 3)
         {
-          glVertex3d(-corner_, -corner_ + scaledIntensity_(grid_intensity_[2][i], canvas_3d_.layers_.getCurrentLayerIndex()), -near_ - 2 * corner_);
-          glVertex3d(-corner_ + 2.0, -corner_ + scaledIntensity_(grid_intensity_[2][i], canvas_3d_.layers_.getCurrentLayerIndex()), -near_ - 2 * corner_ - 2.0);
+          for (Size i = 0; i < grid_intensity_[2].size(); i++)
+          {
+            glVertex3d(-corner_, -corner_ + scaledIntensity_(grid_intensity_[2][i], canvas_3d_.layers_.getCurrentLayerIndex()), -near_ - 2 * corner_);
+            glVertex3d(-corner_ + 2.0, -corner_ + scaledIntensity_(grid_intensity_[2][i], canvas_3d_.layers_.getCurrentLayerIndex()), -near_ - 2 * corner_ - 2.0);
+          }
         }
-      }
-      break;
+        break;
 
-    case PlotCanvas::IM_LOG:
-      if (grid_intensity_.size())
-      {
-        for (Size i = 0; i < grid_intensity_[0].size(); i++)
+      case PlotCanvas::IM_LOG:
+        if (grid_intensity_.size())
         {
-          glVertex3d(-corner_, -corner_ + scaledIntensity_(pow(10.0, grid_intensity_[0][i]) - 1, canvas_3d_.layers_.getCurrentLayerIndex()), -near_ - 2 * corner_);
-          glVertex3d(-corner_ + 4.0, -corner_ + scaledIntensity_(pow(10.0, grid_intensity_[0][i]) - 1, canvas_3d_.layers_.getCurrentLayerIndex()), -near_ - 2 * corner_ - 4.0);
+          for (Size i = 0; i < grid_intensity_[0].size(); i++)
+          {
+            glVertex3d(-corner_, -corner_ + scaledIntensity_(pow(10.0, grid_intensity_[0][i]) - 1, canvas_3d_.layers_.getCurrentLayerIndex()), -near_ - 2 * corner_);
+            glVertex3d(-corner_ + 4.0, -corner_ + scaledIntensity_(pow(10.0, grid_intensity_[0][i]) - 1, canvas_3d_.layers_.getCurrentLayerIndex()), -near_ - 2 * corner_ - 4.0);
+          }
         }
-      }
-      break;
-
+        break;
     }
     glEnd();
     glEndList();
@@ -956,36 +941,42 @@ namespace OpenMS
     double scaledintensity = intensity * 2.0 * corner_;
     switch (canvas_3d_.intensity_mode_)
     {
-    case PlotCanvas::IM_SNAP:
-      scaledintensity /= int_scale_.max_[0];
-      break;
+      case PlotCanvas::IM_SNAP:
+        scaledintensity /= int_scale_.max_[0];
+        break;
 
-    case PlotCanvas::IM_NONE:
-      scaledintensity /= canvas_3d_.overall_data_range_.getMaxIntensity();
-      break;
+      case PlotCanvas::IM_NONE:
+        scaledintensity /= canvas_3d_.overall_data_range_.getMaxIntensity();
+        break;
 
-    case PlotCanvas::IM_PERCENTAGE:
-      scaledintensity /= canvas_3d_.getMaxIntensity(layer_index);
-      break;
+      case PlotCanvas::IM_PERCENTAGE:
+        scaledintensity /= canvas_3d_.getMaxIntensity(layer_index);
+        break;
 
-    case PlotCanvas::IM_LOG:
-      scaledintensity = log10(1 + max(0.0, (double)intensity)) * 2.0 * corner_ / log10(1 + max(0.0, canvas_3d_.overall_data_range_.getMaxIntensity()));
-      break;
+      case PlotCanvas::IM_LOG:
+        scaledintensity = log10(1 + max(0.0, (double)intensity)) * 2.0 * corner_ / log10(1 + max(0.0, canvas_3d_.overall_data_range_.getMaxIntensity()));
+        break;
     }
     return scaledintensity;
   }
 
   void Plot3DOpenGLCanvas::normalizeAngle(int* angle)
   {
-    while (*angle < 0) { *angle += 360 * 16; }
-    while (*angle > 360 * 16) { *angle -= 360 * 16; }
+    while (*angle < 0)
+    {
+      *angle += 360 * 16;
+    }
+    while (*angle > 360 * 16)
+    {
+      *angle -= 360 * 16;
+    }
   }
 
   ///////////////wheel- and MouseEvents//////////////////
 
   void Plot3DOpenGLCanvas::actionModeChange()
   {
-    //change from translate to zoom
+    // change from translate to zoom
     if (canvas_3d_.action_mode_ == PlotCanvas::AM_ZOOM)
     {
       storeRotationAndZoom();
@@ -995,7 +986,7 @@ namespace OpenMS
       canvas_3d_.update_buffer_ = true;
       canvas_3d_.update_(OPENMS_PRETTY_FUNCTION);
     }
-    //change from zoom to translate
+    // change from zoom to translate
     else if (canvas_3d_.action_mode_ == PlotCanvas::AM_TRANSLATE)
     {
       // if still in selection mode, quit selection mode first:
@@ -1010,13 +1001,13 @@ namespace OpenMS
     update();
   }
 
-  void Plot3DOpenGLCanvas::focusOutEvent(QFocusEvent * e)
+  void Plot3DOpenGLCanvas::focusOutEvent(QFocusEvent* e)
   {
     canvas_3d_.focusOutEvent(e);
     update();
   }
 
-  void Plot3DOpenGLCanvas::mousePressEvent(QMouseEvent * e)
+  void Plot3DOpenGLCanvas::mousePressEvent(QMouseEvent* e)
   {
     mouse_move_begin_ = e->pos();
     mouse_move_end_ = e->pos();
@@ -1031,7 +1022,7 @@ namespace OpenMS
     update();
   }
 
-  void Plot3DOpenGLCanvas::mouseMoveEvent(QMouseEvent * e)
+  void Plot3DOpenGLCanvas::mouseMoveEvent(QMouseEvent* e)
   {
     if (e->buttons() & Qt::LeftButton)
     {
@@ -1050,7 +1041,7 @@ namespace OpenMS
         normalizeAngle(&y_angle);
         yrot_ = y_angle;
 
-        //drawAxesLegend_();
+        // drawAxesLegend_();
 
         mouse_move_end_ = e->pos();
         canvas_3d_.update_(OPENMS_PRETTY_FUNCTION);
@@ -1059,7 +1050,7 @@ namespace OpenMS
     update();
   }
 
-  void Plot3DOpenGLCanvas::mouseReleaseEvent(QMouseEvent * e)
+  void Plot3DOpenGLCanvas::mouseReleaseEvent(QMouseEvent* e)
   {
     if (canvas_3d_.action_mode_ == PlotCanvas::AM_ZOOM && e->button() == Qt::LeftButton)
     {
@@ -1139,23 +1130,22 @@ namespace OpenMS
     layer.gradient.fromString(layer.param.getValue("dot:gradient"));
     switch (canvas_3d_.intensity_mode_)
     {
-    case PlotCanvas::IM_SNAP:
-      layer.gradient.activatePrecalculationMode(0.0, int_scale_.max_[0], UInt(canvas_3d_.param_.getValue("dot:interpolation_steps")));
-      break;
+      case PlotCanvas::IM_SNAP:
+        layer.gradient.activatePrecalculationMode(0.0, int_scale_.max_[0], UInt(canvas_3d_.param_.getValue("dot:interpolation_steps")));
+        break;
 
-    case PlotCanvas::IM_NONE:
-      layer.gradient.activatePrecalculationMode(0.0, canvas_3d_.overall_data_range_.getMaxIntensity(), UInt(canvas_3d_.param_.getValue("dot:interpolation_steps")));
-      break;
+      case PlotCanvas::IM_NONE:
+        layer.gradient.activatePrecalculationMode(0.0, canvas_3d_.overall_data_range_.getMaxIntensity(), UInt(canvas_3d_.param_.getValue("dot:interpolation_steps")));
+        break;
 
-    case PlotCanvas::IM_PERCENTAGE:
-      layer.gradient.activatePrecalculationMode(0.0, 100.0, UInt(canvas_3d_.param_.getValue("dot:interpolation_steps")));
-      break;
+      case PlotCanvas::IM_PERCENTAGE:
+        layer.gradient.activatePrecalculationMode(0.0, 100.0, UInt(canvas_3d_.param_.getValue("dot:interpolation_steps")));
+        break;
 
-    case PlotCanvas::IM_LOG:
-      layer.gradient.activatePrecalculationMode(0.0, log10(1 + max(0.0, canvas_3d_.overall_data_range_.getMaxIntensity())), UInt(canvas_3d_.param_.getValue("dot:interpolation_steps")));
-      break;
+      case PlotCanvas::IM_LOG:
+        layer.gradient.activatePrecalculationMode(0.0, log10(1 + max(0.0, canvas_3d_.overall_data_range_.getMaxIntensity())), UInt(canvas_3d_.param_.getValue("dot:interpolation_steps")));
+        break;
     }
   }
 
-} //end of namespace
-
+} // namespace OpenMS

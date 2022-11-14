@@ -39,12 +39,11 @@
 
 namespace OpenMS
 {
-  
+
   class OPENMS_GUI_DLLAPI LayerData1DPeak : public LayerDataPeak, public LayerData1DBase
   {
   public:
-    LayerData1DPeak()
-      : LayerDataBase(DT_PEAK)
+    LayerData1DPeak() : LayerDataBase(DT_PEAK)
     {
     }
 
@@ -84,7 +83,7 @@ namespace OpenMS
     }
 
     RangeAllType getRange() const override
-    { 
+    {
       // do NOT change the behaviour of getRange() for 1D, since we want the full m/z range across all spectra
       // when scrolling in the list of spectra
       return LayerDataPeak::getRange();
@@ -111,4 +110,4 @@ namespace OpenMS
   protected:
   };
 
-}// namespace OpenMS
+} // namespace OpenMS

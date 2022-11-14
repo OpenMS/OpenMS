@@ -32,12 +32,11 @@
 // $Authors: Johannes Junker, Chris Bielow, Hendrik Weisser $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/VISUAL/TOPPASSplitterVertex.h>
 #include <OpenMS/VISUAL/TOPPASInputFileListVertex.h>
 #include <OpenMS/VISUAL/TOPPASOutputFileListVertex.h>
-#include <OpenMS/VISUAL/TOPPASToolVertex.h>
 #include <OpenMS/VISUAL/TOPPASScene.h>
-
+#include <OpenMS/VISUAL/TOPPASSplitterVertex.h>
+#include <OpenMS/VISUAL/TOPPASToolVertex.h>
 #include <iostream>
 
 namespace OpenMS
@@ -45,7 +44,7 @@ namespace OpenMS
 
   TOPPASSplitterVertex::TOPPASSplitterVertex(const TOPPASSplitterVertex& rhs) = default;
 
-  TOPPASSplitterVertex & TOPPASSplitterVertex::operator=(const TOPPASSplitterVertex& rhs) = default;
+  TOPPASSplitterVertex& TOPPASSplitterVertex::operator=(const TOPPASSplitterVertex& rhs) = default;
 
   String TOPPASSplitterVertex::getName() const
   {
@@ -55,7 +54,7 @@ namespace OpenMS
   void TOPPASSplitterVertex::run()
   {
     // check if everything ready
-    if (!isUpstreamFinished()) 
+    if (!isUpstreamFinished())
     {
       return;
     }
@@ -73,13 +72,11 @@ namespace OpenMS
     round_counter_ = 0;
 
     // do the virtual splitting (1 round of N files becomes N rounds of 1 file):
-    for (RoundPackages::iterator pkg_it = pkg.begin(); pkg_it != pkg.end();
-      ++pkg_it)
+    for (RoundPackages::iterator pkg_it = pkg.begin(); pkg_it != pkg.end(); ++pkg_it)
     {
       // there can only be one upstream (input) node:
       QStringList files = pkg_it->begin()->second.filenames.get();
-      for (QStringList::iterator file_it = files.begin();
-        file_it != files.end(); ++file_it)
+      for (QStringList::iterator file_it = files.begin(); file_it != files.end(); ++file_it)
       {
         RoundPackage new_pkg;
         new_pkg[-1].filenames.push_back(*file_it);
@@ -144,4 +141,4 @@ namespace OpenMS
   {
   }
 
-}
+} // namespace OpenMS

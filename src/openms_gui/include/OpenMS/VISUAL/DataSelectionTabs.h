@@ -35,10 +35,8 @@
 #pragma once
 
 // OpenMS_GUI config
-#include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
-
 #include <OpenMS/KERNEL/StandardTypes.h>
-
+#include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
 #include <QTabWidget>
 
 namespace OpenMS
@@ -70,20 +68,19 @@ namespace OpenMS
 
   /**
     @brief A tabbed view, to browse lists of spectra or identifications
-    
+
   */
-  class OPENMS_GUI_DLLAPI DataSelectionTabs
-    : public QTabWidget
+  class OPENMS_GUI_DLLAPI DataSelectionTabs : public QTabWidget
   {
     Q_OBJECT
 
   public:
     enum TAB_INDEX
     {
-      SPECTRA_IDX = 0,  ///< first tab
-      IDENT_IDX = 1,    ///< second tab
-      DIAOSW_IDX = 2,   ///< third tab
-      SIZE_OF_TAB_INDEX    
+      SPECTRA_IDX = 0, ///< first tab
+      IDENT_IDX = 1,   ///< second tab
+      DIAOSW_IDX = 2,  ///< third tab
+      SIZE_OF_TAB_INDEX
     };
 
     /// Default constructor
@@ -100,10 +97,10 @@ namespace OpenMS
 
     /// invoked when user changes the active tab to @p tab_index
     void currentTabChanged(int tab_index);
-    
+
     /// forwards to the TOPPView*Behaviour classes, to show a certain spectrum in 1D
     void showSpectrumAsNew1D(int index);
-    
+
     /// forwards to the TOPPView*Behaviour classes, to show a certain set of chromatograms in 1D
     void showChromatogramsAsNew1D(const std::vector<int>& indices);
 
@@ -121,7 +118,7 @@ namespace OpenMS
     SpectraIDViewTab* id_view_widget_;
     DIATreeTab* dia_widget_;
     //@}
-    std::vector< DataTabBase* > tab_ptrs_; ///< holds pointers to all of the above tabs, for iteration purposes
+    std::vector<DataTabBase*> tab_ptrs_; ///< holds pointers to all of the above tabs, for iteration purposes
 
     /// TOPPView behavior for the spectra view
     TVSpectraViewController* spectraview_controller_;
@@ -134,4 +131,4 @@ namespace OpenMS
     TOPPViewBase* tv_;
   };
 
-} //namespace
+} // namespace OpenMS

@@ -35,12 +35,10 @@
 #pragma once
 
 // OpenMS_GUI config
-#include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
-
-#include <OpenMS/VISUAL/TOPPASVertex.h>
-#include <OpenMS/DATASTRUCTURES/Param.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
-
+#include <OpenMS/DATASTRUCTURES/Param.h>
+#include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
+#include <OpenMS/VISUAL/TOPPASVertex.h>
 #include <QtCore/QVector>
 
 namespace OpenMS
@@ -57,31 +55,31 @@ namespace OpenMS
 
       @ingroup TOPPAS_elements
   */
-  class OPENMS_GUI_DLLAPI TOPPASToolVertex :
-    public TOPPASVertex
+  class OPENMS_GUI_DLLAPI TOPPASToolVertex : public TOPPASVertex
   {
     Q_OBJECT
 
-public:
+  public:
     /// current status of the vertex
-    enum TOOLSTATUS {TOOL_READY, TOOL_SCHEDULED, TOOL_RUNNING, TOOL_SUCCESS, TOOL_CRASH, TOOLSTATUS_SIZE};
+    enum TOOLSTATUS
+    {
+      TOOL_READY,
+      TOOL_SCHEDULED,
+      TOOL_RUNNING,
+      TOOL_SUCCESS,
+      TOOL_CRASH,
+      TOOLSTATUS_SIZE
+    };
 
     /// Stores the information for input/output files/lists
-    struct IOInfo
-    {
+    struct IOInfo {
       /// Standard constructor
-      IOInfo() :
-        type(IOT_FILE),
-        param_name(),
-        valid_types()
+      IOInfo() : type(IOT_FILE), param_name(), valid_types()
       {
       }
 
       /// Copy constructor
-      IOInfo(const IOInfo& rhs) :
-        type(rhs.type),
-        param_name(rhs.param_name),
-        valid_types(rhs.valid_types)
+      IOInfo(const IOInfo& rhs) : type(rhs.type), param_name(rhs.param_name), valid_types(rhs.valid_types)
       {
       }
 
@@ -118,19 +116,19 @@ public:
       /// Is any of the input/output parameters a list?
       static bool isAnyList(const QVector<IOInfo>& params)
       {
-        for (QVector<IOInfo>::const_iterator it = params.begin();
-             it != params.end(); ++it)
+        for (QVector<IOInfo>::const_iterator it = params.begin(); it != params.end(); ++it)
         {
-          if (it->type == IOT_LIST) return true;
+          if (it->type == IOT_LIST)
+            return true;
         }
         return false;
       }
 
-      ///The type of the parameter
+      /// The type of the parameter
       IOType type;
-      ///The name of the parameter
+      /// The name of the parameter
       String param_name;
-      ///The valid file types for this parameter
+      /// The valid file types for this parameter
       StringList valid_types;
     };
 
@@ -198,7 +196,7 @@ public:
     /// invert status of recycling (overriding base class)
     bool invertRecylingMode() override;
 
-public slots:
+  public slots:
 
     /// Called when the execution of this tool has finished
     void executionFinished(int ec, QProcess::ExitStatus es);
@@ -219,7 +217,7 @@ public slots:
     /// Called by an outgoing edge when it has changed
     void outEdgeHasChanged() override;
 
-signals:
+  signals:
 
     /// Emitted when the tool is started
     void toolStarted();
@@ -232,13 +230,12 @@ signals:
     /// Emitted from forwardTOPPOutput() to forward the signal outside
     void toppOutputReady(const QString& out);
 
-protected:
-
+  protected:
     ///@name reimplemented Qt events
     //@{
     void mouseDoubleClickEvent(QGraphicsSceneMouseEvent* e) override;
     //@}
-	
+
 
     /// get parent Scene
     TOPPASScene* getScene_() const;
@@ -268,11 +265,10 @@ protected:
     /// The parameters of the tool
     Param param_;
     /// current status of the tool
-    TOOLSTATUS status_{TOOL_READY};
+    TOOLSTATUS status_ {TOOL_READY};
     /// tool initialization status: if C'tor was successful in finding the TOPP tool, this is set to 'true'
-    bool tool_ready_{true};
+    bool tool_ready_ {true};
     /// Breakpoint set?
-    bool breakpoint_set_{false};
+    bool breakpoint_set_ {false};
   };
-}
-
+} // namespace OpenMS

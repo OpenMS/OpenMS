@@ -37,19 +37,19 @@
 
   @brief An assistant for Swath analysis.
 
-  The Wizard takes the user through the whole analysis pipeline for SWATH proteomics data analysis, 
+  The Wizard takes the user through the whole analysis pipeline for SWATH proteomics data analysis,
   i.e. the @ref UTILS_OpenSwathWorkflow tool, including downstream tools such
   as <a href="https://github.com/PyProphet/pyprophet" target="_blank">pyProphet</a> and
   the <a href="https://github.com/msproteomicstools/msproteomicstools" target="_blank">TRIC alignment</a> tool.
-  
+
   Since the downstream tools require Python and the respective modules, the Wizard will check their proper
   installation status and warn the user if a component is missing.
 
   Users can enter the required input data (mzML MS/MS data, configuration files) in dedicated fields, usually by drag'n'droping files from the
   operating systems' file explorer (Explorer, Nautilus, Finder...).
-  The output of the Wizard is both the intermediate files from OpenSWATH (e.g. the XIC data in .sqMass format) and the 
+  The output of the Wizard is both the intermediate files from OpenSWATH (e.g. the XIC data in .sqMass format) and the
   tab-separated table format (.tsv) from pyProphet and TRIC.
-  
+
   This is how the wizard looks like:
   @image html SwathWizard.png
 
@@ -113,27 +113,27 @@
 
 */
 
-//QT
+// QT
 #include <QApplication>
 #include <QtWidgets/QSplashScreen>
 
 
-//OpenMS
+// OpenMS
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/CONCEPT/VersionInfo.h>
-#include <OpenMS/VISUAL/APPLICATIONS/SwathWizardBase.h>
 #include <OpenMS/VISUAL/APPLICATIONS/MISC/QApplicationTOPP.h>
+#include <OpenMS/VISUAL/APPLICATIONS/SwathWizardBase.h>
 
-//STL
+// STL
 #include <iostream>
 #include <map>
 #include <vector>
 
 #ifdef OPENMS_WINDOWSPLATFORM
-#   ifndef _WIN32_WINNT
-#       define _WIN32_WINNT 0x0501 // Win XP (and above)
-#   endif
-#   include <Windows.h>
+  #ifndef _WIN32_WINNT
+    #define _WIN32_WINNT 0x0501 // Win XP (and above)
+  #endif
+  #include <Windows.h>
 #endif
 
 using namespace OpenMS;
@@ -151,15 +151,21 @@ const char* tool_name = "SwathWizard";
 void print_usage(Logger::LogStream& stream = OpenMS_Log_info)
 {
   stream << "\n"
-         << tool_name << " -- An assistant for Swath-Analysis." << "\n"
+         << tool_name << " -- An assistant for Swath-Analysis."
          << "\n"
-         << "Usage:" << "\n"
-         << " " << tool_name << " [options] [files]" << "\n"
          << "\n"
-         << "Options are:" << "\n"
-         << "  --help           Shows this help" << "\n"
+         << "Usage:"
+         << "\n"
+         << " " << tool_name << " [options] [files]"
+         << "\n"
+         << "\n"
+         << "Options are:"
+         << "\n"
+         << "  --help           Shows this help"
+         << "\n"
          << "  --debug          Enables debug messages\n"
-         << "  -ini <File>      Sets the INI file (default: ~/.SwathWizard.ini)" << "\n"
+         << "  -ini <File>      Sets the INI file (default: ~/.SwathWizard.ini)"
+         << "\n"
          << endl;
 }
 
@@ -210,11 +216,11 @@ int main(int argc, const char** argv)
 
   if (param.exists("ini"))
   {
-    //mw.loadPreferences((String)param.getValue("ini"));
+    // mw.loadPreferences((String)param.getValue("ini"));
   }
 
 #ifdef OPENMS_WINDOWSPLATFORM
-  FreeConsole(); // get rid of console window at this point (we will not see any console output from this point on)
+  FreeConsole();     // get rid of console window at this point (we will not see any console output from this point on)
   AttachConsole(-1); // if the parent is a console, reattach to it - so we can see debug output - a normal user will usually not use cmd.exe to start a GUI)
 #endif
 

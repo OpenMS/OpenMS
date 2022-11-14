@@ -32,25 +32,21 @@
 // $Authors: Chris Bielow $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/VISUAL/InputFileList.h>
-#include <ui_InputFileList.h>
-
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/VISUAL/DIALOGS/TOPPASInputFileDialog.h>
-
-#include <QtWidgets/QFileDialog>
+#include <OpenMS/VISUAL/InputFileList.h>
 #include <QApplication>
 #include <QClipboard>
 #include <QKeyEvent>
-#include <QUrl>
-#include <QMimeData>
-
-#include <QString>
-#include <QtWidgets/QFileDialog>
-#include <QMessageBox>
 #include <QListWidgetItem>
+#include <QMessageBox>
+#include <QMimeData>
+#include <QString>
+#include <QUrl>
+#include <QtWidgets/QFileDialog>
+#include <ui_InputFileList.h>
 
-//#include <iostream>
+// #include <iostream>
 
 using namespace std;
 
@@ -58,9 +54,7 @@ namespace OpenMS
 {
   namespace Internal
   {
-    InputFileList::InputFileList(QWidget *parent) :
-      QWidget(parent),
-      ui_(new Ui::InputFileList)
+    InputFileList::InputFileList(QWidget* parent) : QWidget(parent), ui_(new Ui::InputFileList)
     {
       ui_->setupUi(this);
       connect(ui_->add_button, SIGNAL(clicked()), this, SLOT(showFileDialog()));
@@ -88,7 +82,7 @@ namespace OpenMS
       QStringList files;
       for (const QUrl& url : e->mimeData()->urls())
       {
-        files  << url.toLocalFile();
+        files << url.toLocalFile();
       }
       addFiles_(files);
     }
@@ -96,7 +90,7 @@ namespace OpenMS
     void InputFileList::dragMoveEvent(QDragMoveEvent* p_event)
     {
       // TODO allow filtering?
-      //if (!p_event->mimeData()->hasFormat(MY_MIMETYPE))
+      // if (!p_event->mimeData()->hasFormat(MY_MIMETYPE))
       //{
       //  p_event->ignore();
       //  return;
@@ -104,13 +98,14 @@ namespace OpenMS
       p_event->accept();
     }
 
-    void InputFileList::keyPressEvent(QKeyEvent* e) {
+    void InputFileList::keyPressEvent(QKeyEvent* e)
+    {
       // when Ctrl-C is pressed, copy all selected files to clipboard as text
       if (e->matches(QKeySequence::Copy))
       {
         QStringList strings;
         QList<QListWidgetItem*> selected_items = ui_->input_file_list->selectedItems();
-        foreach(QListWidgetItem * item, selected_items)
+        foreach (QListWidgetItem* item, selected_items)
         {
           strings << item->text();
         }
@@ -138,7 +133,7 @@ namespace OpenMS
     void InputFileList::removeSelected()
     {
       QList<QListWidgetItem*> selected_items = ui_->input_file_list->selectedItems();
-      for (QListWidgetItem * item : selected_items)
+      for (QListWidgetItem* item : selected_items)
       {
         ui_->input_file_list->takeItem(ui_->input_file_list->row(item));
       }
@@ -228,6 +223,5 @@ namespace OpenMS
       setCWD(item ? item->text() : "", false);
     }
 
-  } //namespace Internal
-} //namspace OpenMS
-
+  } // namespace Internal
+} // namespace OpenMS

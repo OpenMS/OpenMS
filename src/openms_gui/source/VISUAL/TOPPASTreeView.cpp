@@ -32,13 +32,11 @@
 // $Authors: Johannes Junker $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/VISUAL/TOPPASTreeView.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
-
-#include <QDrag>
+#include <OpenMS/VISUAL/TOPPASTreeView.h>
 #include <QApplication>
+#include <QDrag>
 #include <QtCore/QMimeData>
-
 #include <iostream>
 
 using namespace std;
@@ -46,8 +44,7 @@ using namespace std;
 namespace OpenMS
 {
 
-  TOPPASTreeView::TOPPASTreeView(QWidget * parent) :
-    QTreeWidget(parent)
+  TOPPASTreeView::TOPPASTreeView(QWidget* parent) : QTreeWidget(parent)
   {
     // we drag by ourselves:
     setDragEnabled(false);
@@ -55,7 +52,7 @@ namespace OpenMS
 
   TOPPASTreeView::~TOPPASTreeView() = default;
 
-  void TOPPASTreeView::mousePressEvent(QMouseEvent * event)
+  void TOPPASTreeView::mousePressEvent(QMouseEvent* event)
   {
     QTreeWidget::mousePressEvent(event);
 
@@ -65,7 +62,7 @@ namespace OpenMS
     }
   }
 
-  void TOPPASTreeView::mouseMoveEvent(QMouseEvent * event)
+  void TOPPASTreeView::mouseMoveEvent(QMouseEvent* event)
   {
     QTreeWidget::mouseMoveEvent(event);
 
@@ -83,8 +80,8 @@ namespace OpenMS
       return;
     }
 
-    QDrag * drag = new QDrag(this);
-    QMimeData * mime_data = new QMimeData;
+    QDrag* drag = new QDrag(this);
+    QMimeData* mime_data = new QMimeData;
 
     mime_data->setText(currentItem()->text(0));
     drag->setMimeData(mime_data);
@@ -93,7 +90,7 @@ namespace OpenMS
     drag->exec(Qt::CopyAction);
   }
 
-  void TOPPASTreeView::keyPressEvent(QKeyEvent * e)
+  void TOPPASTreeView::keyPressEvent(QKeyEvent* e)
   {
     QTreeWidget::keyPressEvent(e);
     if (currentItem() && e->key() == Qt::Key_Return)
@@ -107,14 +104,13 @@ namespace OpenMS
     }
   }
 
-  void TOPPASTreeView::enterEvent(QEvent * /*e*/)
+  void TOPPASTreeView::enterEvent(QEvent* /*e*/)
   {
     setFocus();
   }
 
-  void TOPPASTreeView::leaveEvent(QEvent * /*e*/)
+  void TOPPASTreeView::leaveEvent(QEvent* /*e*/)
   {
-
   }
 
-} //namespace OpenMS
+} // namespace OpenMS

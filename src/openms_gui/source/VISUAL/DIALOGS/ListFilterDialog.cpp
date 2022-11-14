@@ -34,12 +34,9 @@
 
 // OpenMS includes
 #include <OpenMS/VISUAL/DIALOGS/ListFilterDialog.h>
-
 #include <OpenMS/VISUAL/MISC/FilterableList.h>
-
-#include <ui_ListFilterDialog.h>
-
 #include <QCloseEvent>
+#include <ui_ListFilterDialog.h>
 
 using namespace std;
 
@@ -47,9 +44,7 @@ namespace OpenMS
 {
 
   /// C'tor with items to show and select from
-  ListFilterDialog::ListFilterDialog(QWidget* parent, const QStringList& items, const QStringList& items_prechosen)
-      : QDialog(parent),
-      ui_(new Ui::ListFilterDialog)
+  ListFilterDialog::ListFilterDialog(QWidget* parent, const QStringList& items, const QStringList& items_prechosen) : QDialog(parent), ui_(new Ui::ListFilterDialog)
   {
     ui_->setupUi(this);
 
@@ -66,8 +61,8 @@ namespace OpenMS
 
     setItems(items);
     setPrechosenItems(items_prechosen);
-  }     
-  
+  }
+
 
   ListFilterDialog::~ListFilterDialog()
   {
@@ -95,10 +90,11 @@ namespace OpenMS
   QStringList ListFilterDialog::getChosenItems() const
   {
     QStringList items;
-    for (int row = 0; row < ui_->list_out->count(); ++row) items << ui_->list_out->item(row)->text();
+    for (int row = 0; row < ui_->list_out->count(); ++row)
+      items << ui_->list_out->item(row)->text();
     return items;
   }
-  
+
   void ListFilterDialog::BtnLRClicked_()
   {
     auto selected = ui_->list_in->getSelectedItems();
@@ -117,7 +113,8 @@ namespace OpenMS
   {
     QStringList selected;
     auto widget_selected = ui_->list_out->selectedItems();
-    for (auto& item : widget_selected) selected << item->text();
+    for (auto& item : widget_selected)
+      selected << item->text();
     qDeleteAll(widget_selected);
     ui_->list_in->removeBlackListItems(selected);
   }
@@ -130,5 +127,4 @@ namespace OpenMS
   }
 
 
-
-}
+} // namespace OpenMS

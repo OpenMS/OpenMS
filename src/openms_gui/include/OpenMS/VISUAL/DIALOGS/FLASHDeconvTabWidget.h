@@ -35,19 +35,16 @@
 #pragma once
 
 // OpenMS_GUI config
-#include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
-
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/DATASTRUCTURES/Param.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
-#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/VISUAL/MISC/ExternalProcessMBox.h>
 #include <OpenMS/VISUAL/MISC/GUIHelpers.h>
+#include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
 #include <OpenMS/VISUAL/TableView.h>
-
 #include <QTabWidget> // our base class
-
+#include <utility>    // for std::pair
 #include <vector>
-#include <utility> // for std::pair
 
 namespace Ui
 {
@@ -70,14 +67,15 @@ namespace OpenMS
     */
     class FLASHDeconvGUILock
     {
-      public:
+    public:
       FLASHDeconvGUILock(FLASHDeconvTabWidget* ftw);
 
       ~FLASHDeconvGUILock();
-      private:
-        FLASHDeconvTabWidget* ftw_;
-        QWidget* old_;
-        GUIHelpers::GUILock glock_;
+
+    private:
+      FLASHDeconvTabWidget* ftw_;
+      QWidget* old_;
+      GUIHelpers::GUILock glock_;
     };
 
     /// A multi-tabbed widget for the FLASHDeconvWizard offering setting of parameters, input-file specification and running FLASHDeconv and more
@@ -88,7 +86,7 @@ namespace OpenMS
     public:
       friend class FLASHDeconvGUILock;
 
-      explicit FLASHDeconvTabWidget(QWidget *parent = nullptr);
+      explicit FLASHDeconvTabWidget(QWidget* parent = nullptr);
       ~FLASHDeconvTabWidget();
 
       StringList getMzMLInputFiles() const;
@@ -128,16 +126,16 @@ namespace OpenMS
       /// If anything is missing: show a Messagebox and return false.
       bool checkFDInputReady_();
 
-      Ui::FLASHDeconvTabWidget *ui;
-      Param flashdeconv_param_; ///< the global FLASHDeconv parameters which will be passed to FLASHDeconv.exe, once updated with parameters the Wizard holds separately
-      Param flashdeconv_param_outputs_; ///< Parameter set for different output formats
+      Ui::FLASHDeconvTabWidget* ui;
+      Param flashdeconv_param_;            ///< the global FLASHDeconv parameters which will be passed to FLASHDeconv.exe, once updated with parameters the Wizard holds separately
+      Param flashdeconv_param_outputs_;    ///< Parameter set for different output formats
       StringList flashdeconv_output_tags_; ///< list of output parameter names checked by the user
 
       ExternalProcessMBox ep_; ///< to run external programs and pipe their output into our log
     };
 
-  }
-} // ns OpenMS
+  } // namespace Internal
+} // namespace OpenMS
 
 // this is required to allow Ui_FLASHDeconvTabWidget (auto UIC'd from .ui) to have a InputFile member
 using InputFile = OpenMS::InputFile;

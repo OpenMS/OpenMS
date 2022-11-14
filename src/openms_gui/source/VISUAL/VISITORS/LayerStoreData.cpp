@@ -33,8 +33,6 @@
 // --------------------------------------------------------------------------
 
 // OpenMS includes
-#include <OpenMS/VISUAL/VISITORS/LayerStoreData.h>
-
 #include <OpenMS/FORMAT/ConsensusXMLFile.h>
 #include <OpenMS/FORMAT/FeatureXMLFile.h>
 #include <OpenMS/FORMAT/FileHandler.h>
@@ -45,6 +43,7 @@
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/METADATA/MetaInfo.h>
 #include <OpenMS/SYSTEM/File.h>
+#include <OpenMS/VISUAL/VISITORS/LayerStoreData.h>
 
 using namespace std;
 
@@ -265,7 +264,7 @@ namespace OpenMS
 
   ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-    // helper for saving a PepIDs to a file
+  // helper for saving a PepIDs to a file
   void savePepIdsToFile(const String& path, const IPeptideIds::PepIds& ids, const ProgressLogger::LogType lt, const FileTypes::Type /*ext*/)
   {
     IdXMLFile fh;

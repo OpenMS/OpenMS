@@ -36,7 +36,6 @@
 
 // OpenMS_GUI config
 #include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
-
 #include <QtWidgets/QDialog>
 
 namespace Ui
@@ -52,13 +51,11 @@ namespace OpenMS
       @ingroup TOPPAS_elements
       @ingroup Dialogs
   */
-  class OPENMS_GUI_DLLAPI TOPPASVertexNameDialog :
-    public QDialog
+  class OPENMS_GUI_DLLAPI TOPPASVertexNameDialog : public QDialog
   {
     Q_OBJECT
 
-public:
-
+  public:
     /// Constructor
     TOPPASVertexNameDialog(const QString& name, const QString& input_regex = QString());
     ~TOPPASVertexNameDialog() override;
@@ -67,10 +64,8 @@ public:
     QString getName();
 
 
-
   private:
     Ui::TOPPASVertexNameDialogTemplate* ui_;
-
   };
 
-}
+} // namespace OpenMS

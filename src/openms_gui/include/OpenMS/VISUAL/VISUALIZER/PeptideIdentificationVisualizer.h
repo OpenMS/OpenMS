@@ -37,7 +37,7 @@
 // OpenMS_GUI config
 #include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
 
-//OpenMS
+// OpenMS
 #include <OpenMS/METADATA/PeptideIdentification.h>
 #include <OpenMS/VISUAL/VISUALIZER/BaseVisualizer.h>
 #include <OpenMS/VISUAL/VISUALIZER/BaseVisualizerGUI.h>
@@ -51,27 +51,25 @@ namespace OpenMS
 
       This class provides all functionality to view the meta information of an object of type PeptideIdentification.
   */
-  class OPENMS_GUI_DLLAPI PeptideIdentificationVisualizer :
-    public BaseVisualizerGUI,
-    public BaseVisualizer<PeptideIdentification>
+  class OPENMS_GUI_DLLAPI PeptideIdentificationVisualizer : public BaseVisualizerGUI, public BaseVisualizer<PeptideIdentification>
   {
     Q_OBJECT
 
-public:
-    ///Constructor
-    PeptideIdentificationVisualizer(bool editable = false, QWidget * parent = nullptr, MetaDataBrowser * caller = nullptr);
+  public:
+    /// Constructor
+    PeptideIdentificationVisualizer(bool editable = false, QWidget* parent = nullptr, MetaDataBrowser* caller = nullptr);
 
     /// Loads the meta data from the object to the viewer. Gets the id of the item in the tree as parameter.
-    void load(PeptideIdentification & s, int tree_item_id);
+    void load(PeptideIdentification& s, int tree_item_id);
 
-public slots:
+  public slots:
 
-    //Docu in base class
+    // Docu in base class
     void store() override;
 
-protected slots:
+  protected slots:
 
-    ///Undo the changes made in the GUI.
+    /// Undo the changes made in the GUI.
     void undo_();
 
     /**
@@ -83,21 +81,21 @@ protected slots:
     */
     void updateTree_();
 
-protected:
+  protected:
     /// Pointer to MetaDataBrowser
-    MetaDataBrowser * pidv_caller_;
+    MetaDataBrowser* pidv_caller_;
     /// The id of the item in the tree
     int tree_id_;
 
     ///@name Edit fields and buttons
     //@{
-    QLineEdit * identifier_;
-    QLineEdit * score_type_;
-    QComboBox * higher_better_;
-    QLineEdit * identification_threshold_;
+    QLineEdit* identifier_;
+    QLineEdit* score_type_;
+    QComboBox* higher_better_;
+    QLineEdit* identification_threshold_;
     //@}
 
     /// Threshold for filtering by score
-    QLineEdit * filter_threshold_;
+    QLineEdit* filter_threshold_;
   };
-}
+} // namespace OpenMS

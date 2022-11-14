@@ -43,8 +43,8 @@ namespace OpenMS
   /// default Ctor; callbacks for stdout/stderr are empty
   ExternalProcessMBox::ExternalProcessMBox() = default;
 
-  ExternalProcessMBox::ExternalProcessMBox(std::function<void(const String&)> callbackStdOut, std::function<void(const String&)> callbackStdErr)
-    : ep_(std::move(callbackStdOut), std::move(callbackStdErr))
+  ExternalProcessMBox::ExternalProcessMBox(std::function<void(const String&)> callbackStdOut, std::function<void(const String&)> callbackStdErr) :
+      ep_(std::move(callbackStdOut), std::move(callbackStdErr))
   {
   }
 
@@ -59,7 +59,7 @@ namespace OpenMS
   ExternalProcess::RETURNSTATE ExternalProcessMBox::run(QWidget* parent, const QString& exe, const QStringList& args, const QString& working_dir, const bool verbose, String& error_msg)
   {
     auto rs = ep_.run(exe, args, working_dir, verbose, error_msg);
-    
+
     QMessageBox::critical(parent, "Error", error_msg.toQString());
 
     return rs;
@@ -70,9 +70,10 @@ namespace OpenMS
     String error_msg;
     auto rs = ep_.run(exe, args, working_dir, verbose, error_msg);
 
-    if (!error_msg.empty()) QMessageBox::critical(parent, "Error", error_msg.toQString());
+    if (!error_msg.empty())
+      QMessageBox::critical(parent, "Error", error_msg.toQString());
 
     return rs;
   }
 
-} // ns OpenMS
+} // namespace OpenMS

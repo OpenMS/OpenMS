@@ -33,21 +33,19 @@
 // --------------------------------------------------------------------------
 
 // OpenMS
-#include <OpenMS/VISUAL/Plot1DWidget.h>
-#include <OpenMS/VISUAL/Plot2DWidget.h>
+#include <OpenMS/CONCEPT/UniqueIdInterface.h>
 #include <OpenMS/VISUAL/AxisWidget.h>
 #include <OpenMS/VISUAL/DIALOGS/Plot2DGoToDialog.h>
-#include <OpenMS/CONCEPT/UniqueIdInterface.h>
-
 #include <OpenMS/VISUAL/LayerDataConsensus.h>
 #include <OpenMS/VISUAL/LayerDataFeature.h>
-
-#include <QtWidgets/QPushButton>
+#include <OpenMS/VISUAL/Plot1DWidget.h>
+#include <OpenMS/VISUAL/Plot2DWidget.h>
+#include <QtCore/QTimer>
+#include <QtWidgets/QCheckBox>
 #include <QtWidgets/QGridLayout>
 #include <QtWidgets/QGroupBox>
 #include <QtWidgets/QMessageBox>
-#include <QtWidgets/QCheckBox>
-#include <QtCore/QTimer>
+#include <QtWidgets/QPushButton>
 
 using namespace std;
 
@@ -56,8 +54,7 @@ namespace OpenMS
   using namespace Internal;
   using namespace Math;
 
-  Plot2DWidget::Plot2DWidget(const Param& preferences, QWidget* parent) :
-    PlotWidget(preferences, parent)
+  Plot2DWidget::Plot2DWidget(const Param& preferences, QWidget* parent) : PlotWidget(preferences, parent)
   {
     setCanvas_(new Plot2DCanvas(preferences, this), 1, 2);
 
@@ -115,7 +112,7 @@ namespace OpenMS
     projections_auto_->setChecked(true);
     box_grid->addWidget(projections_auto_, 4, 1);
 
-    //set up projections auto-update
+    // set up projections auto-update
     projections_timer_ = new QTimer(this);
     projections_timer_->setSingleShot(true);
     projections_timer_->setInterval(1000);
@@ -183,7 +180,7 @@ namespace OpenMS
     // manually set projected unit, since 'addPeakLayer' will guess a visible area, but we want the exact same scaling
     projection_onto_X_->canvas()->setVisibleAreaX(va.minX(), va.maxX());
     grid_->setRowStretch(0, 2);
-    
+
     projection_box_->show();
     projection_onto_X_->show();
     projection_onto_Y_->show();
@@ -202,7 +199,7 @@ namespace OpenMS
   void Plot2DWidget::showGoToDialog()
   {
     Plot2DGoToDialog goto_dialog(this);
-    //set range
+    // set range
     const auto& area = canvas()->getVisibleArea().getAreaXY();
     goto_dialog.setRange(area.minY(), area.maxY(), area.minX(), area.maxX());
 
@@ -222,7 +219,7 @@ namespace OpenMS
       else
       {
         String feature_id = goto_dialog.getFeatureNumber();
-        //try to convert to UInt64 id
+        // try to convert to UInt64 id
         UniqueIdInterface uid;
         uid.setUniqueId(feature_id);
 
@@ -249,7 +246,7 @@ namespace OpenMS
           }
         }
 
-        //check if the feature index exists
+        // check if the feature index exists
         if ((lf && feature_index >= lf->getFeatureMap()->size()) || (lc && feature_index >= lc->getConsensusMap()->size()))
         {
           QMessageBox::warning(this, "Invalid feature number", "Feature number too large/UniqueID not found.\nPlease select a valid feature!");
@@ -261,8 +258,8 @@ namespace OpenMS
           const FeatureMap& map = *lf->getFeatureMap();
           const DBoundingBox<2> bb = map[feature_index].getConvexHull().getBoundingBox();
           RangeAllType range;
-          range.RangeRT::operator=(RangeBase{bb.minPosition()[0], bb.maxPosition()[0]});
-          range.RangeMZ::operator=(RangeBase{bb.minPosition()[1], bb.maxPosition()[1]});
+          range.RangeRT::operator=(RangeBase {bb.minPosition()[0], bb.maxPosition()[0]});
+          range.RangeMZ::operator=(RangeBase {bb.minPosition()[1], bb.maxPosition()[1]});
           range.RangeRT::scaleBy(2);
           range.RangeRT::scaleBy(5);
           canvas()->setVisibleArea(range);
@@ -275,7 +272,6 @@ namespace OpenMS
           range.RangeMZ::extendLeftRight(5);
           canvas()->setVisibleArea(range);
         }
-
       }
     }
   }
@@ -293,4 +289,4 @@ namespace OpenMS
     }
   }
 
-} //Namespace
+} // namespace OpenMS

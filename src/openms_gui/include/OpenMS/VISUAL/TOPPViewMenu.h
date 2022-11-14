@@ -35,15 +35,12 @@
 #pragma once
 
 // OpenMS_GUI config
-#include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
-
 #include <OpenMS/DATASTRUCTURES/FlagSet.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/VISUAL/EnhancedWorkspace.h>
 #include <OpenMS/VISUAL/LayerDataBase.h>
-
+#include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
 #include <QObject>
-
 #include <vector>
 
 class QAction;
@@ -54,16 +51,16 @@ namespace OpenMS
   class TOPPViewBase;
   class EnhancedWorkspace;
   class RecentFilesMenu;
-  
+
   enum class TV_STATUS
   {
     HAS_CANVAS,
     HAS_LAYER,
-    HAS_MIRROR_MODE,  // implies 1D View
+    HAS_MIRROR_MODE, // implies 1D View
     IS_1D_VIEW,
     TOPP_IDLE
   };
-  
+
   using FS_TV = FlagSet<TV_STATUS>;
   /// allow + operations on the enum, e.g. 'HAS_CANVAS + HAS_LAYER + IS_1D_VIEW'
   FS_TV OPENMS_GUI_DLLAPI operator+(const TV_STATUS left, const TV_STATUS right);
@@ -79,8 +76,7 @@ namespace OpenMS
 
 
   */
-  class TOPPViewMenu
-    : public QObject
+  class TOPPViewMenu : public QObject
   {
     Q_OBJECT
   public:
@@ -100,12 +96,13 @@ namespace OpenMS
     void update(const FS_TV status, const LayerDataBase::DataType layer_type);
 
   private:
-    struct ActionRequirement_
-    {
-      ActionRequirement_(QAction* action, const FS_TV& needs, const FS_LAYER layer_set)
-        : action_(action), needs_(needs), layer_set_(layer_set) {}
-      ActionRequirement_(QAction* action, const TV_STATUS& needs, const FS_LAYER layer_set)
-        : action_(action), needs_(needs), layer_set_(layer_set) {}
+    struct ActionRequirement_ {
+      ActionRequirement_(QAction* action, const FS_TV& needs, const FS_LAYER layer_set) : action_(action), needs_(needs), layer_set_(layer_set)
+      {
+      }
+      ActionRequirement_(QAction* action, const TV_STATUS& needs, const FS_LAYER layer_set) : action_(action), needs_(needs), layer_set_(layer_set)
+      {
+      }
 
       /// check if an ActionRequirement is fulfilled by the arguments
       /// i.e. @p status is a superset of needs_ and @p layer_type is a superset of layer_set_ (or layer_set_ is empty)
@@ -119,7 +116,7 @@ namespace OpenMS
     };
 
     /// fills menu_items_ members with ActionRequirements and returns the just created object
-    /// Only use this for items which depend on the state of TOPPViewBase, 
+    /// Only use this for items which depend on the state of TOPPViewBase,
     /// e.g. close() can only work if something is open. But open() is always allowed.
     QAction* addAction_(QAction* action, const TV_STATUS req, const FS_LAYER layer_set = FS_LAYER());
     /// overload for multiple requirements
@@ -132,5 +129,4 @@ namespace OpenMS
     QMenu* m_windows_;
   };
 
-} //namespace
-
+} // namespace OpenMS

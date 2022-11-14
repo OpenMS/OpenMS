@@ -38,11 +38,9 @@
 #include <OpenMS/VISUAL/MISC/GUIHelpers.h>
 #include <OpenMS/VISUAL/Painter1DBase.h>
 #include <OpenMS/VISUAL/Plot1DCanvas.h>
-
 #include <QPainter>
+#include <QStaticText>
 #include <QtGui/QColor>
-#include <QStaticText> 
-
 #include <vector>
 
 namespace OpenMS
@@ -54,11 +52,10 @@ namespace OpenMS
 
       @see Annotation1DItem
   */
-  template <class DataPoint>
-  class Annotation1DCaret :
-    public Annotation1DItem
+  template<class DataPoint>
+  class Annotation1DCaret : public Annotation1DItem
   {
-public:
+  public:
     typedef std::vector<DataPoint> PositionsType;
     using PointType = DataPoint;
 
@@ -224,4 +221,3 @@ public:
     QStaticText st_;
   };
 } // namespace OpenMS
-

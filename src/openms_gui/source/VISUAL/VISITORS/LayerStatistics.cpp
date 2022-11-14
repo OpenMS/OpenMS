@@ -33,12 +33,11 @@
 // --------------------------------------------------------------------------
 
 // OpenMS includes
-#include <OpenMS/VISUAL/VISITORS/LayerStatistics.h>
-
 #include <OpenMS/KERNEL/ConsensusMap.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/METADATA/MetaInfo.h>
+#include <OpenMS/VISUAL/VISITORS/LayerStatistics.h>
 
 using namespace std;
 
@@ -63,16 +62,11 @@ namespace OpenMS
     auto overview_stat = overview_data.find(which);
     if (overview_stat == overview_data.end())
     {
-      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                    "Statistic is not valid for this " + error_message_container,
-                                    which.name);
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Statistic is not valid for this " + error_message_container, which.name);
     }
     // getMin/Max from variant
-    MinMax result = std::visit(overload {[](const auto& stats) -> MinMax {
-                                 return {(double)stats.getMin(), (double)stats.getMax()};
-                               }},
-        overview_stat->second);
-    
+    MinMax result = std::visit(overload {[](const auto& stats) -> MinMax { return {(double)stats.getMin(), (double)stats.getMax()}; }}, overview_stat->second);
+
     return result;
   }
 
@@ -106,7 +100,8 @@ namespace OpenMS
   {
     for (const auto& mda : arrays)
     {
-      if (name != mda.getName()) continue;
+      if (name != mda.getName())
+        continue;
       for (const auto& value : mda)
       {
         hist.inc(value);
@@ -114,8 +109,7 @@ namespace OpenMS
     }
   }
 
-  LayerStatisticsPeakMap::LayerStatisticsPeakMap(const PeakMap& pm) 
-    : pm_(&pm)
+  LayerStatisticsPeakMap::LayerStatisticsPeakMap(const PeakMap& pm) : pm_(&pm)
   {
     computeStatistics_();
   }
@@ -140,8 +134,8 @@ namespace OpenMS
   {
     auto mm = getMinMax(overview_range_data_, which, "PeakMap"); // may throw if unknown statistic
     Math::Histogram<> result(mm.min, mm.max, (mm.max - mm.min) / number_of_bins);
-    
-    if (which == RangeStatsType{ RangeStatsSource::CORE, "intensity" })
+
+    if (which == RangeStatsType {RangeStatsSource::CORE, "intensity"})
     {
       for (const auto& spec : *pm_)
       {
@@ -152,12 +146,12 @@ namespace OpenMS
       }
     }
     else if (which.src == RangeStatsSource::ARRAYINFO)
-    {  
+    {
       for (const auto& spec : *pm_)
       {
         std::visit(overload {[&](const RangeStatsInt& /*int_range*/) { updateHistFromDataArray(spec.getIntegerDataArrays(), which.name, result); },
-                             [&](const RangeStatsDouble& /*double_range*/) { updateHistFromDataArray(spec.getFloatDataArrays(), which.name, result); }}
-                   , overview_range_data_.at(which));
+                             [&](const RangeStatsDouble& /*double_range*/) { updateHistFromDataArray(spec.getFloatDataArrays(), which.name, result); }},
+                   overview_range_data_.at(which));
       }
     }
     return result;
@@ -176,21 +170,27 @@ namespace OpenMS
     }
   }
 
-  Math::Histogram<> LayerStatisticsFeatureMap::getDistribution(const RangeStatsType& which,
-                                                               const UInt number_of_bins) const
+  Math::Histogram<> LayerStatisticsFeatureMap::getDistribution(const RangeStatsType& which, const UInt number_of_bins) const
   {
     auto mm = getMinMax(overview_range_data_, which, "FeatureMap"); // may throw if unknown statistic
-    Math::Histogram<> result(mm.min, mm.max, (mm.max-mm.min) / number_of_bins);
+    Math::Histogram<> result(mm.min, mm.max, (mm.max - mm.min) / number_of_bins);
 
     if (which.src == RangeStatsSource::CORE)
     {
-      if (which.name == "intensity") for (const auto& f : *fm_) result.inc(f.getIntensity());
-      else if (which.name == "charge") for (const auto& f : *fm_) result.inc(f.getCharge());
-      else if (which.name == "quality") for (const auto& f : *fm_) result.inc(f.getOverallQuality());
+      if (which.name == "intensity")
+        for (const auto& f : *fm_)
+          result.inc(f.getIntensity());
+      else if (which.name == "charge")
+        for (const auto& f : *fm_)
+          result.inc(f.getCharge());
+      else if (which.name == "quality")
+        for (const auto& f : *fm_)
+          result.inc(f.getOverallQuality());
     }
     else if (which.src == RangeStatsSource::METAINFO)
     {
-      for (const auto& f : *fm_) addMetaDistributionValue(result, which.name, f);
+      for (const auto& f : *fm_)
+        addMetaDistributionValue(result, which.name, f);
     }
 
     return result;
@@ -218,24 +218,32 @@ namespace OpenMS
     computeStatistics_();
   }
 
-  Math::Histogram<> LayerStatisticsConsensusMap::getDistribution(const RangeStatsType& which,
-                                                                 const UInt number_of_bins) const
+  Math::Histogram<> LayerStatisticsConsensusMap::getDistribution(const RangeStatsType& which, const UInt number_of_bins) const
   {
     auto mm = getMinMax(overview_range_data_, which, "ConsensusMap"); // may throw if unknown statistic
     Math::Histogram<> result(mm.min, mm.max, (mm.max - mm.min) / number_of_bins);
 
     if (which.src == RangeStatsSource::CORE)
     {
-      if (which.name == "intensity") for (const auto& cf : *cm_) result.inc(cf.getIntensity());
-      else if (which.name == "charge") for (const auto& cf : *cm_) result.inc(cf.getCharge());
-      else if (which.name == "quality") for (const auto& cf : *cm_) result.inc(cf.getQuality());
-      else if (which.name == "sub-elements") for (const auto& cf : *cm_) result.inc(cf.size());
+      if (which.name == "intensity")
+        for (const auto& cf : *cm_)
+          result.inc(cf.getIntensity());
+      else if (which.name == "charge")
+        for (const auto& cf : *cm_)
+          result.inc(cf.getCharge());
+      else if (which.name == "quality")
+        for (const auto& cf : *cm_)
+          result.inc(cf.getQuality());
+      else if (which.name == "sub-elements")
+        for (const auto& cf : *cm_)
+          result.inc(cf.size());
     }
     else if (which.src == RangeStatsSource::METAINFO)
     {
-      for (const auto& f : *cm_) addMetaDistributionValue(result, which.name, f);
+      for (const auto& f : *cm_)
+        addMetaDistributionValue(result, which.name, f);
     }
-    
+
     return result;
   }
 
@@ -256,8 +264,7 @@ namespace OpenMS
     overview_range_data_.emplace(RangeStatsType {RangeStatsSource::CORE, "intensity"}, stat_intensity);
     overview_range_data_.emplace(RangeStatsType {RangeStatsSource::CORE, "charge"}, stat_charge);
     overview_range_data_.emplace(RangeStatsType {RangeStatsSource::CORE, "quality"}, stat_quality);
-    overview_range_data_.emplace(RangeStatsType {RangeStatsSource::CORE, "sub-elements"},
-                                 stat_quality);
+    overview_range_data_.emplace(RangeStatsType {RangeStatsSource::CORE, "sub-elements"}, stat_quality);
   }
 
   // IDENT
@@ -267,11 +274,9 @@ namespace OpenMS
     computeStatistics_();
   }
 
-  Math::Histogram<> LayerStatisticsIdent::getDistribution(const RangeStatsType& which,
-                                                          const UInt number_of_bins) const
+  Math::Histogram<> LayerStatisticsIdent::getDistribution(const RangeStatsType& which, const UInt number_of_bins) const
   {
-    auto mm =
-      getMinMax(overview_range_data_, which, "vector<PepIDs>"); // may throw if unknown statistic
+    auto mm = getMinMax(overview_range_data_, which, "vector<PepIDs>"); // may throw if unknown statistic
     Math::Histogram<> result(mm.min, mm.max, (mm.max - mm.min) / number_of_bins);
 
     if (which.src == RangeStatsSource::METAINFO)
@@ -298,8 +303,7 @@ namespace OpenMS
     for (const auto& idx : new_meta_keys)
     {
       const DataValue& meta_dv = meta_interface->getMetaValue(idx);
-      if (meta_dv.valueType() == DataValue::INT_VALUE ||
-          meta_dv.valueType() == DataValue::DOUBLE_VALUE)
+      if (meta_dv.valueType() == DataValue::INT_VALUE || meta_dv.valueType() == DataValue::DOUBLE_VALUE)
       { // range data
         RangeStatsType key = {RangeStatsSource::METAINFO, idx};
         auto itr = overview_range_data_.find(key);
@@ -315,12 +319,12 @@ namespace OpenMS
             {
               return RangeStatsDouble();
             }
-            throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                          "Metavalue has unsupported valuetype", "??");}();// immediately evaluated lambda
-          itr = overview_range_data_.emplace(key, empty_value).first; 
+            throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Metavalue has unsupported valuetype", "??");
+          }(); // immediately evaluated lambda
+          itr = overview_range_data_.emplace(key, empty_value).first;
         }
         // update the value
-        std::visit(overload {[&](auto&& stats) { stats.addDataPoint(meta_dv); }}, itr->second);        
+        std::visit(overload {[&](auto&& stats) { stats.addDataPoint(meta_dv); }}, itr->second);
       }
       else
       { // just count data

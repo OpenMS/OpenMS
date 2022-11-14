@@ -33,12 +33,10 @@
 // --------------------------------------------------------------------------
 
 
-#include <OpenMS/VISUAL/LayerDataIonMobility.h>
-
 #include <OpenMS/KERNEL/DimMapper.h>
-
-#include <OpenMS/VISUAL/Painter2DBase.h>
 #include <OpenMS/VISUAL/LayerData1DIonMobility.h>
+#include <OpenMS/VISUAL/LayerDataIonMobility.h>
+#include <OpenMS/VISUAL/Painter2DBase.h>
 
 
 using namespace std;
@@ -49,8 +47,7 @@ namespace OpenMS
   {
   }
 
-  LayerDataIonMobility::LayerDataIonMobility(const LayerDataIonMobility& ld)
-    : LayerDataBase(static_cast<const LayerDataBase&>(ld))
+  LayerDataIonMobility::LayerDataIonMobility(const LayerDataIonMobility& ld) : LayerDataBase(static_cast<const LayerDataBase&>(ld))
   {
   }
 
@@ -113,8 +110,8 @@ namespace OpenMS
   std::unique_ptr<LayerStatistics> LayerDataIonMobility::getStats() const
   {
     throw Exception::NotImplemented(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
-    // does not exist yet... 
-    //return make_unique<LayerStatisticsIonMobilityMap>(single_mobilogram_);
+    // does not exist yet...
+    // return make_unique<LayerStatisticsIonMobilityMap>(single_mobilogram_);
   }
 
 } // namespace OpenMS

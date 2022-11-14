@@ -33,12 +33,10 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/VISUAL/VISUALIZER/TaggingVisualizer.h>
-
-#include <QtWidgets/QComboBox>
-#include <QtWidgets/QTextEdit>
-#include <QtWidgets/QLineEdit>
 #include <QValidator>
-
+#include <QtWidgets/QComboBox>
+#include <QtWidgets/QLineEdit>
+#include <QtWidgets/QTextEdit>
 #include <iostream>
 
 using namespace std;
@@ -46,9 +44,7 @@ using namespace std;
 namespace OpenMS
 {
 
-  TaggingVisualizer::TaggingVisualizer(bool editable, QWidget * parent) :
-    BaseVisualizerGUI(editable, parent),
-    BaseVisualizer<Tagging>()
+  TaggingVisualizer::TaggingVisualizer(bool editable, QWidget* parent) : BaseVisualizerGUI(editable, parent), BaseVisualizer<Tagging>()
   {
     addLabel_("Modify Tagging information");
     addSeparator_();
@@ -108,4 +104,4 @@ namespace OpenMS
     update_();
   }
 
-}
+} // namespace OpenMS

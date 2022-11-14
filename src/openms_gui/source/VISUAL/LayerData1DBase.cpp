@@ -32,11 +32,10 @@
 // $Authors: Chris Bielow $
 // --------------------------------------------------------------------------
 
+#include <OpenMS/VISUAL/ANNOTATION/Annotation1DPeakItem.h>
+#include <OpenMS/VISUAL/ANNOTATION/Annotations1DContainer.h>
 #include <OpenMS/VISUAL/LayerData1DBase.h>
 
-#include <OpenMS/VISUAL/ANNOTATION/Annotations1DContainer.h>
-#include <OpenMS/VISUAL/ANNOTATION/Annotation1DPeakItem.h>
-                                                        
 using namespace std;
 
 namespace OpenMS
@@ -59,4 +58,4 @@ namespace OpenMS
       annotations_1d_.resize(current_idx_ + 1);
     }
   }
-}// namespace OpenMS
+} // namespace OpenMS

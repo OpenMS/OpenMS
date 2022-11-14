@@ -32,26 +32,23 @@
 // $Authors: Timo Sachsenberg $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/VISUAL/TVSpectraViewController.h>
-
 #include <OpenMS/CONCEPT/RAIICleanup.h>
 #include <OpenMS/KERNEL/ChromatogramTools.h>
 #include <OpenMS/KERNEL/OnDiscMSExperiment.h>
 #include <OpenMS/VISUAL/APPLICATIONS/TOPPViewBase.h>
 #include <OpenMS/VISUAL/AxisWidget.h>
 #include <OpenMS/VISUAL/Plot1DWidget.h>
-
-#include <QtWidgets/QMessageBox>
+#include <OpenMS/VISUAL/TVSpectraViewController.h>
 #include <QtCore/QString>
+#include <QtWidgets/QMessageBox>
 
 using namespace OpenMS;
 using namespace std;
 
 namespace OpenMS
 {
-  TVSpectraViewController::TVSpectraViewController(TOPPViewBase* parent):
-    TVControllerBase(parent)
-  {  
+  TVSpectraViewController::TVSpectraViewController(TOPPViewBase* parent) : TVControllerBase(parent)
+  {
   }
 
   void TVSpectraViewController::showSpectrumAsNew1D(int index)
@@ -62,7 +59,7 @@ namespace OpenMS
     // create new 1D widget; if we return due to error, the widget will be cleaned up automatically
     unique_ptr<Plot1DWidget> wp(new Plot1DWidget(tv_->getCanvasParameters(1), DIM::Y, (QWidget*)tv_->getWorkspace()));
     Plot1DWidget* w = wp.get();
-    
+
     // copy data from current layer (keeps the TYPE and underlying data identical)
     if (!w->canvas()->addLayer(layer.to1DLayer()))
     {
@@ -87,13 +84,8 @@ namespace OpenMS
     tv_->updateMenu();
   }
 
-  bool add1DChromLayers(const std::vector<int>& indices,
-                        Plot1DWidget* target, 
-                        const LayerDataDefs::ExperimentSharedPtrType& chrom_exp_sptr,
-                        const LayerDataDefs::ODExperimentSharedPtrType& ondisc_sptr,
-                        const OSWDataSharedPtrType& chrom_annotation,
-                        const String& layer_basename,
-                        const String& filename)
+  bool add1DChromLayers(const std::vector<int>& indices, Plot1DWidget* target, const LayerDataDefs::ExperimentSharedPtrType& chrom_exp_sptr,
+                        const LayerDataDefs::ODExperimentSharedPtrType& ondisc_sptr, const OSWDataSharedPtrType& chrom_annotation, const String& layer_basename, const String& filename)
   {
     //
     for (const auto& index : indices)
@@ -120,18 +112,18 @@ namespace OpenMS
     // show multiple spectra together is only used for chromatograms directly
     // where multiple (SRM) traces are shown together
     auto layer_chrom = dynamic_cast<LayerDataChrom*>(&tv_->getActiveCanvas()->getCurrentLayer());
-    if (!layer_chrom) return;
+    if (!layer_chrom)
+      return;
 
     auto exp_sptr = layer_chrom->getChromatogramData();
     auto ondisc_sptr = layer_chrom->getOnDiscPeakData();
 
     // open new 1D widget
-    auto* w = new Plot1DWidget(tv_->getCanvasParameters(1), DIM::Y, (QWidget *)tv_->getWorkspace());
+    auto* w = new Plot1DWidget(tv_->getCanvasParameters(1), DIM::Y, (QWidget*)tv_->getWorkspace());
     // use RT + intensity mapping
     w->setMapper({{DIM_UNIT::RT, DIM_UNIT::INT}});
 
-    if (!add1DChromLayers(indices, w, layer_chrom->getChromatogramData(), layer_chrom->getOnDiscPeakData(),
-                     layer_chrom->getChromatogramAnnotation(), layer_chrom->getName(), layer_chrom->filename))
+    if (!add1DChromLayers(indices, w, layer_chrom->getChromatogramData(), layer_chrom->getOnDiscPeakData(), layer_chrom->getChromatogramAnnotation(), layer_chrom->getName(), layer_chrom->filename))
     {
       return;
     }
@@ -148,8 +140,10 @@ namespace OpenMS
     Plot1DWidget* widget_1d = tv_->getActive1DWidget();
 
     // return if no active 1D widget is present or no layers are present (e.g. the addPeakLayer call failed)
-    if (widget_1d == nullptr) return;
-    if (widget_1d->canvas()->getLayerCount() == 0) return;
+    if (widget_1d == nullptr)
+      return;
+    if (widget_1d->canvas()->getLayerCount() == 0)
+      return;
 
     widget_1d->canvas()->activateSpectrum(index);
   }
@@ -157,14 +151,17 @@ namespace OpenMS
   // called by SpectraTreeTab::chromsSelected()
   void TVSpectraViewController::activate1DSpectrum(const std::vector<int>& indices)
   {
-    Plot1DWidget * widget_1d = tv_->getActive1DWidget();
+    Plot1DWidget* widget_1d = tv_->getActive1DWidget();
 
     // return if no active 1D widget is present or no layers are present (e.g. the addPeakLayer call failed)
-    if (widget_1d == nullptr) return;
-    if (widget_1d->canvas()->getLayerCount() == 0) return;
+    if (widget_1d == nullptr)
+      return;
+    if (widget_1d->canvas()->getLayerCount() == 0)
+      return;
 
     const auto* layer = dynamic_cast<LayerDataChrom*>(&widget_1d->canvas()->getCurrentLayer());
-    if (!layer) return;
+    if (!layer)
+      return;
 
     auto chrom_sptr = layer->getChromatogramData();
     auto ondisc_sptr = layer->getOnDiscPeakData();
@@ -175,10 +172,9 @@ namespace OpenMS
     layer = nullptr;                     // ... make sure its not used any more
 
     widget_1d->canvas()->blockSignals(true);
-    RAIICleanup clean([&]() {widget_1d->canvas()->blockSignals(false); });
-    
-    if (!add1DChromLayers(indices, widget_1d, chrom_sptr, ondisc_sptr, annotation, basename,
-                          filename))
+    RAIICleanup clean([&]() { widget_1d->canvas()->blockSignals(false); });
+
+    if (!add1DChromLayers(indices, widget_1d, chrom_sptr, ondisc_sptr, annotation, basename, filename))
     {
       return;
     }
@@ -193,5 +189,4 @@ namespace OpenMS
     // no special handling of spectrum deactivation needed
   }
 
-} // OpenMS
-
+} // namespace OpenMS

@@ -33,28 +33,26 @@
 // --------------------------------------------------------------------------
 
 // OpenMS
-#include <OpenMS/VISUAL/TOPPASWidget.h>
+#include <OpenMS/CONCEPT/Types.h>
+#include <OpenMS/VISUAL/TOPPASEdge.h>
 #include <OpenMS/VISUAL/TOPPASScene.h>
 #include <OpenMS/VISUAL/TOPPASVertex.h>
-#include <OpenMS/VISUAL/TOPPASEdge.h>
-#include <OpenMS/CONCEPT/Types.h>
+#include <OpenMS/VISUAL/TOPPASWidget.h>
 
 
 // Qt
 #include <QDragEnterEvent>
 #include <QDragMoveEvent>
 #include <QDropEvent>
-#include <QtCore/QMimeData>
 #include <QUrl>
+#include <QtCore/QMimeData>
 
 using namespace std;
 
 namespace OpenMS
 {
-  TOPPASWidget::TOPPASWidget(const Param & /*preferences*/, QWidget * parent, const String & tmp_path) :
-    QGraphicsView(parent),
-    EnhancedTabBarWidgetInterface(),
-    scene_(new TOPPASScene(this, tmp_path.toQString()))
+  TOPPASWidget::TOPPASWidget(const Param& /*preferences*/, QWidget* parent, const String& tmp_path) :
+      QGraphicsView(parent), EnhancedTabBarWidgetInterface(), scene_(new TOPPASScene(this, tmp_path.toQString()))
   {
     setAttribute(Qt::WA_DeleteOnClose);
     setAttribute(Qt::WA_AlwaysShowToolTips);
@@ -67,7 +65,7 @@ namespace OpenMS
 
   TOPPASWidget::~TOPPASWidget() = default;
 
-  TOPPASScene * TOPPASWidget::getScene()
+  TOPPASScene* TOPPASWidget::getScene()
   {
     return scene_;
   }
@@ -94,27 +92,27 @@ namespace OpenMS
     scene_->setSceneRect(new_scene_rect);
   }
 
-  void TOPPASWidget::wheelEvent(QWheelEvent * event)
+  void TOPPASWidget::wheelEvent(QWheelEvent* event)
   {
     zoom(event->delta() < 0);
   }
 
-  void TOPPASWidget::dragEnterEvent(QDragEnterEvent * event)
+  void TOPPASWidget::dragEnterEvent(QDragEnterEvent* event)
   {
     // TODO: test mime type/source? where?
     event->acceptProposedAction();
   }
 
-  void TOPPASWidget::dragMoveEvent(QDragMoveEvent * event)
+  void TOPPASWidget::dragMoveEvent(QDragMoveEvent* event)
   {
     // TODO: test mime type/source? where?
     event->acceptProposedAction();
   }
 
-  void TOPPASWidget::dropEvent(QDropEvent * event)
+  void TOPPASWidget::dropEvent(QDropEvent* event)
   {
     // TODO: test mime type/source? where?
-    //std::cerr << "Drop Event with data:\n  " << String( event->mimeData()->formats().join("\n  ")) << "\n\n";
+    // std::cerr << "Drop Event with data:\n  " << String( event->mimeData()->formats().join("\n  ")) << "\n\n";
 
     if (event->mimeData()->hasUrls())
     {
@@ -131,7 +129,7 @@ namespace OpenMS
     event->acceptProposedAction();
   }
 
-  void TOPPASWidget::keyPressEvent(QKeyEvent * e)
+  void TOPPASWidget::keyPressEvent(QKeyEvent* e)
   {
     if (e->key() == Qt::Key_C && e->modifiers() == Qt::ControlModifier)
     {
@@ -152,7 +150,7 @@ namespace OpenMS
     else if (e->key() == Qt::Key_Control)
     {
       setDragMode(QGraphicsView::RubberBandDrag);
-      //color of hovering edge may change
+      // color of hovering edge may change
       TOPPASEdge* hover_edge = scene_->getHoveringEdge();
       if (hover_edge)
       {
@@ -181,12 +179,12 @@ namespace OpenMS
     }
   }
 
-  void TOPPASWidget::keyReleaseEvent(QKeyEvent * e)
+  void TOPPASWidget::keyReleaseEvent(QKeyEvent* e)
   {
     if (e->key() == Qt::Key_Control)
     {
       setDragMode(QGraphicsView::ScrollHandDrag);
-      //color of hovering edge may change
+      // color of hovering edge may change
       TOPPASEdge* hover_edge = scene_->getHoveringEdge();
       if (hover_edge)
       {
@@ -196,29 +194,28 @@ namespace OpenMS
     }
   }
 
-  void TOPPASWidget::leaveEvent(QEvent * /*e*/)
+  void TOPPASWidget::leaveEvent(QEvent* /*e*/)
   {
-
   }
 
-  void TOPPASWidget::enterEvent(QEvent * /*e*/)
+  void TOPPASWidget::enterEvent(QEvent* /*e*/)
   {
 #ifndef Q_WS_MAC
     setFocus();
 #endif
   }
 
-  void TOPPASWidget::resizeEvent(QResizeEvent * /*event*/)
+  void TOPPASWidget::resizeEvent(QResizeEvent* /*event*/)
   {
-// QGraphicsView::resizeEvent(event);
-// if (scene_)
-// {
-// QRectF items_rect = scene_->itemsBoundingRect();
-// scene_->setSceneRect(items_rect.united(mapToScene(viewport()->rect()).boundingRect()));
-// }
+    // QGraphicsView::resizeEvent(event);
+    // if (scene_)
+    // {
+    // QRectF items_rect = scene_->itemsBoundingRect();
+    // scene_->setSceneRect(items_rect.united(mapToScene(viewport()->rect()).boundingRect()));
+    // }
   }
 
-  void TOPPASWidget::closeEvent(QCloseEvent * e)
+  void TOPPASWidget::closeEvent(QCloseEvent* e)
   {
     bool close = scene_->saveIfChanged();
     if (close)
@@ -231,4 +228,4 @@ namespace OpenMS
     }
   }
 
-} //Namespace
+} // namespace OpenMS

@@ -36,12 +36,12 @@
 
 // OpenMS_GUI config
 
+#include <OpenMS/CONCEPT/ProgressLogger.h>
 #include <OpenMS/FILTERING/DATAREDUCTION/DataFilters.h>
 #include <OpenMS/KERNEL/ConsensusMap.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/KERNEL/RangeManager.h>
-#include <OpenMS/CONCEPT/ProgressLogger.h>
 #include <OpenMS/VISUAL/INTERFACES/IPeptideIds.h>
 
 
@@ -54,8 +54,7 @@ namespace OpenMS
   class OPENMS_GUI_DLLAPI LayerStoreData
   {
   public:
-    LayerStoreData(FileTypeList supported_storage_formats) :
-        storage_formats_(supported_storage_formats)
+    LayerStoreData(FileTypeList supported_storage_formats) : storage_formats_(supported_storage_formats)
     {
     }
 
@@ -76,7 +75,6 @@ namespace OpenMS
     virtual void saveToFile(const String& filename, const ProgressLogger::LogType lt) const = 0;
 
   protected:
-
     /// extracts the supported extension (converting UNKNOWN to first item in storage_formats_) or throws an Exception::UnableToCreateFile
     FileTypes::Type getSupportedExtension_(const String& filename) const;
 
@@ -86,13 +84,12 @@ namespace OpenMS
   /**
     @brief Visitor which can save a visible piece of data; subsequently the data can be stored to a file.
   */
-  class OPENMS_GUI_DLLAPI LayerStoreDataPeakMapVisible
-   : public LayerStoreData
+  class OPENMS_GUI_DLLAPI LayerStoreDataPeakMapVisible : public LayerStoreData
   {
   public:
-    LayerStoreDataPeakMapVisible() :
-      LayerStoreData(FileTypeList({FileTypes::MZML, FileTypes::MZDATA, FileTypes::MZXML}))
-    {}
+    LayerStoreDataPeakMapVisible() : LayerStoreData(FileTypeList({FileTypes::MZML, FileTypes::MZDATA, FileTypes::MZXML}))
+    {
+    }
 
     // docu in base class
     void saveToFile(const String& filename, const ProgressLogger::LogType lt) const override;
@@ -159,11 +156,11 @@ namespace OpenMS
     FeatureMap fm_; ///< the filtered data; used when saveToFile() is called
   };
 
- /**
-  @brief Visitor which can save a full FeatureMap; subsequently the data can be stored to a file.
+  /**
+   @brief Visitor which can save a full FeatureMap; subsequently the data can be stored to a file.
 
-  Since only a pointer is stored internally, make sure the lifetime of the FeatureMap exceeds this visitor.
-*/
+   Since only a pointer is stored internally, make sure the lifetime of the FeatureMap exceeds this visitor.
+ */
   class OPENMS_GUI_DLLAPI LayerStoreDataFeatureMapAll : public LayerStoreData
   {
   public:
@@ -219,7 +216,6 @@ namespace OpenMS
   private:
     const ConsensusMap* full_cm_ = nullptr; ///< pointer to the full data, when storeFullExperiment() was called
   };
-
 
 
   /**

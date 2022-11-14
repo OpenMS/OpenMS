@@ -35,10 +35,8 @@
 #pragma once
 
 // OpenMS_GUI config
-#include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
-
 #include <OpenMS/KERNEL/StandardTypes.h>
-
+#include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
 #include <QTextEdit>
 
 namespace OpenMS
@@ -50,17 +48,16 @@ namespace OpenMS
 
 
   */
-  class LogWindow
-    : public QTextEdit
+  class LogWindow : public QTextEdit
   {
     Q_OBJECT
     Q_PROPERTY(int max_length READ maxLength WRITE setMaxLength)
 
   public:
-    ///Log message states
+    /// Log message states
     enum LogState
     {
-      NOTICE, ///< Notice
+      NOTICE,  ///< Notice
       WARNING, ///< Warning
       CRITICAL ///< Fatal error
     };
@@ -73,7 +70,7 @@ namespace OpenMS
 
     /// appends a new block with @p heading and a @p body
     void appendNewHeader(const LogState state, const String& heading, const String& body);
-    
+
     /// appends a line break (same as append(""))
     void addNewline();
 
@@ -90,8 +87,7 @@ namespace OpenMS
 
   private:
     void contextMenuEvent(QContextMenuEvent* event) override;
-    int max_length_ { -1 };  ///< -1 by default, which means there is no maximum length
+    int max_length_ {-1}; ///< -1 by default, which means there is no maximum length
   };
 
-} //namespace
-
+} // namespace OpenMS

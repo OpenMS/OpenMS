@@ -34,12 +34,12 @@
 
 #include <OpenMS/VISUAL/VISUALIZER/SpectrumSettingsVisualizer.h>
 
-//QT
+// QT
 #include <QtWidgets/QComboBox>
-#include <QtWidgets/QTextEdit>
 #include <QtWidgets/QLineEdit>
+#include <QtWidgets/QTextEdit>
 
-//STL
+// STL
 #include <iostream>
 
 using namespace std;
@@ -47,9 +47,7 @@ using namespace std;
 namespace OpenMS
 {
 
-  SpectrumSettingsVisualizer::SpectrumSettingsVisualizer(bool editable, QWidget * parent) :
-    BaseVisualizerGUI(editable, parent),
-    BaseVisualizer<SpectrumSettings>()
+  SpectrumSettingsVisualizer::SpectrumSettingsVisualizer(bool editable, QWidget* parent) : BaseVisualizerGUI(editable, parent), BaseVisualizer<SpectrumSettings>()
   {
     addLabel_("Modify the settings of the spectrum.");
     addSeparator_();
@@ -90,4 +88,4 @@ namespace OpenMS
     update_();
   }
 
-}
+} // namespace OpenMS

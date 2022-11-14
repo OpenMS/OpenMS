@@ -34,15 +34,12 @@
 
 // OpenMS includes
 #include <OpenMS/VISUAL/DIALOGS/TOPPASInputFilesDialog.h>
-#include <ui_TOPPASInputFilesDialog.h>
-
 #include <OpenMS/VISUAL/InputFileList.h>
+#include <ui_TOPPASInputFilesDialog.h>
 
 namespace OpenMS
 {
-  TOPPASInputFilesDialog::TOPPASInputFilesDialog(const QStringList& list, const QString& cwd, QWidget* parent)
-    : QDialog(parent),
-      ui_(new Ui::TOPPASInputFilesDialogTemplate)
+  TOPPASInputFilesDialog::TOPPASInputFilesDialog(const QStringList& list, const QString& cwd, QWidget* parent) : QDialog(parent), ui_(new Ui::TOPPASInputFilesDialogTemplate)
   {
     ui_->setupUi(this);
     ifl_ = (InputFileList*)ui_->input_file_list;
@@ -72,5 +69,4 @@ namespace OpenMS
   }
 
 
-
-} // namespace
+} // namespace OpenMS

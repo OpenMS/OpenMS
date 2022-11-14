@@ -42,21 +42,19 @@ namespace OpenMS
   /** @brief An annotation item which represents a measured distance between two peaks.
       @see Annotation1DItem
   */
-  class Annotation1DDistanceItem :
-    public Annotation1DItem
+  class Annotation1DDistanceItem : public Annotation1DItem
   {
-
-public:
+  public:
     /**
-     * \brief 
+     * \brief
      * \param text The text to display between the two points
      * \param start_point Start point in XY unit coordinates
-     * \param end_point End point in XY unit coordinates 
+     * \param end_point End point in XY unit coordinates
      * \param swap_ends_if_negative Make sure the distance is positive when creating the distance item?
      */
     Annotation1DDistanceItem(const QString& text, const PointXYType& start_point, const PointXYType& end_point, const bool swap_ends_if_negative = true);
     /// Copy constructor
-    Annotation1DDistanceItem(const Annotation1DDistanceItem & rhs) = default;
+    Annotation1DDistanceItem(const Annotation1DDistanceItem& rhs) = default;
     /// Destructor
     ~Annotation1DDistanceItem() override = default;
 
@@ -65,7 +63,7 @@ public:
 
     // Docu in base class
     void draw(Plot1DCanvas* const canvas, QPainter& painter, bool flipped = false) override;
-    
+
     // Docu in base class
     void move(const PointXYType delta, const Gravitator& gr, const DimMapper<2>& dim_mapper) override;
 
@@ -106,7 +104,5 @@ public:
     PointXYType end_point_;
     /// Additional tick lines for the distance item (the gravity dimension is ignored)
     std::vector<PointXYType> ticks_;
-
   };
 } // namespace OpenMS
-

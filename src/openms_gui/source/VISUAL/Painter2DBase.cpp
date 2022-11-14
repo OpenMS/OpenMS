@@ -33,20 +33,16 @@
 // --------------------------------------------------------------------------
 
 
-#include <OpenMS/VISUAL/Painter2DBase.h>
-
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/MATH/MISC/MathFunctions.h>
-
 #include <OpenMS/VISUAL/LayerDataChrom.h>
 #include <OpenMS/VISUAL/LayerDataConsensus.h>
+#include <OpenMS/VISUAL/LayerDataFeature.h>
 #include <OpenMS/VISUAL/LayerDataIdent.h>
 #include <OpenMS/VISUAL/LayerDataIonMobility.h>
-#include <OpenMS/VISUAL/LayerDataFeature.h>
 #include <OpenMS/VISUAL/LayerDataPeak.h>
-
+#include <OpenMS/VISUAL/Painter2DBase.h>
 #include <OpenMS/VISUAL/Plot2DCanvas.h>
-
 #include <QColor>
 #include <QPainter>
 #include <QPoint>
@@ -55,7 +51,7 @@ using namespace std;
 
 namespace OpenMS
 {
-  
+
   void Painter2DBase::paintIcon_(const QPoint& pos, const QRgb& color, const String& icon, Size s, QPainter& p)
   {
     p.save();
@@ -323,8 +319,7 @@ namespace OpenMS
   }
 
   /// abstract away the RT or IM dimension (so we can iterate over both using the same code in paintMaximumIntensities_())
-  struct DimInfo
-  {
+  struct DimInfo {
     DimInfo(const MSExperiment& map, const RangeBase& dim, const DimMapper<2>& mapper) : exp_(map), dim_(dim), mapper_(mapper)
     {
     }
@@ -340,8 +335,7 @@ namespace OpenMS
     /// Map a pair of RT/mz (or IM/mz) to the XY-plane
     virtual DimMapper<2>::Point mapToPoint(double value, double mz) const = 0;
   };
-  struct DimInfoRT : DimInfo
-  {
+  struct DimInfoRT : DimInfo {
     using DimInfo::DimInfo; // inherit C'tor
     double getMaximum() const override
     {
@@ -376,11 +370,10 @@ namespace OpenMS
     }
     DimMapper<2>::Point mapToPoint(double value, double mz) const override
     {
-      // there is no datastructure 
+      // there is no datastructure
       return mapper_.map(MobilityPeak2D({value, mz}, 0));
     }
   };
-
 
 
   void Painter2DPeak::paintMaximumIntensities_(QPainter& painter, Plot2DCanvas* canvas, Size layer_index, Size rt_pixel_count, Size mz_pixel_count)
@@ -394,7 +387,7 @@ namespace OpenMS
     auto RT_or_IM_paint = [&](const DimInfo& mapper) {
       // note: the variables are named, assuming we have an RT+mz canvas.
       //       However, by using 'DimInfo' this could well be an IM+mz canvas (i.e. an IM Frame)
-      
+
       const double rt_min = mapper.dim_.getMin();
       const double rt_max = mapper.dim_.getMax();
       const double mz_min = area.getMinMZ();
@@ -508,7 +501,7 @@ namespace OpenMS
         it_prec = it;
       }
       else if (it->getMSLevel() == 2 && !it->getPrecursors().empty())
-      {                                                                              // this is an MS/MS scan
+      {                                                                                      // this is an MS/MS scan
         QPoint pos_ms2 = canvas->dataToWidget_(it->getPrecursors()[0].getMZ(), it->getRT()); // position of precursor in MS2
         const int x2 = pos_ms2.x();
         const int y2 = pos_ms2.y();
@@ -571,7 +564,6 @@ namespace OpenMS
 
   void Painter2DIonMobility::paint(QPainter* /*painter*/, Plot2DCanvas* /*canvas*/, int /*layer_index*/)
   {
-      
   }
 
   Painter2DFeature::Painter2DFeature(const LayerDataFeature* parent) : layer_(parent)

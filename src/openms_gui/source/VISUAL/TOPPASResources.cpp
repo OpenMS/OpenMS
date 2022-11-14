@@ -32,26 +32,19 @@
 // $Authors: Johannes Junker $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/VISUAL/TOPPASResources.h>
 #include <OpenMS/DATASTRUCTURES/Param.h>
 #include <OpenMS/FORMAT/ParamXMLFile.h>
-
+#include <OpenMS/VISUAL/TOPPASResources.h>
 #include <iostream>
 #include <map>
 
 namespace OpenMS
 {
-  TOPPASResources::TOPPASResources() :
-    QObject(),
-    map_(),
-    empty_list_()
+  TOPPASResources::TOPPASResources() : QObject(), map_(), empty_list_()
   {
   }
 
-  TOPPASResources::TOPPASResources(const TOPPASResources& rhs) :
-    QObject(),
-    map_(rhs.map_),
-    empty_list_()
+  TOPPASResources::TOPPASResources(const TOPPASResources& rhs) : QObject(), map_(rhs.map_), empty_list_()
   {
   }
 
@@ -74,9 +67,7 @@ namespace OpenMS
     {
       StringList substrings;
       String(it.getName()).split(':', substrings);
-      if (substrings.size() != 2 ||
-          substrings.back() != "url_list" ||
-          (it->value).valueType() != ParamValue::STRING_LIST)
+      if (substrings.size() != 2 || substrings.back() != "url_list" || (it->value).valueType() != ParamValue::STRING_LIST)
       {
         std::cerr << "Invalid file format." << std::endl;
         return;
@@ -103,12 +94,12 @@ namespace OpenMS
   {
     Param save_param;
 
-    for (std::map<QString, QList<TOPPASResource> >::const_iterator it = map_.begin(); it != map_.end(); ++it)
+    for (std::map<QString, QList<TOPPASResource>>::const_iterator it = map_.begin(); it != map_.end(); ++it)
     {
       const String& key = String(it->first);
       const QList<TOPPASResource>& resource_list = it->second;
       std::vector<std::string> url_list;
-      foreach(const TOPPASResource &res, resource_list)
+      foreach (const TOPPASResource& res, resource_list)
       {
         url_list.push_back(String(res.getURL().toString().toStdString()));
       }
@@ -134,4 +125,4 @@ namespace OpenMS
     map_.clear();
   }
 
-} //namespace
+} // namespace OpenMS

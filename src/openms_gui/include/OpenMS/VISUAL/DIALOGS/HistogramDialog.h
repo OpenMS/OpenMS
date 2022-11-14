@@ -36,12 +36,10 @@
 #pragma once
 
 // OpenMS_GUI config
-#include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
-
-#include <QtWidgets/QDialog>
-
 #include <OpenMS/MATH/STATISTICS/Histogram.h>
 #include <OpenMS/VISUAL/HistogramWidget.h>
+#include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
+#include <QtWidgets/QDialog>
 
 namespace OpenMS
 {
@@ -50,14 +48,13 @@ namespace OpenMS
 
       @ingroup Dialogs
   */
-  class OPENMS_GUI_DLLAPI HistogramDialog :
-    public QDialog
+  class OPENMS_GUI_DLLAPI HistogramDialog : public QDialog
   {
     Q_OBJECT
 
-public:
+  public:
     /// Constructor
-    HistogramDialog(const Math::Histogram<> & distribution, QWidget * parent = nullptr);
+    HistogramDialog(const Math::Histogram<>& distribution, QWidget* parent = nullptr);
     /// Destructor
     ~HistogramDialog() override;
 
@@ -72,13 +69,12 @@ public:
     void setRightSplitter(float position);
 
     /// Sets the axis legend
-    void setLegend(const String & legend);
+    void setLegend(const String& legend);
     /// Sets log mode
     void setLogMode(bool log_mode);
 
-protected:
-    HistogramWidget * mw_;
+  protected:
+    HistogramWidget* mw_;
   };
 
-} //namespace
-
+} // namespace OpenMS

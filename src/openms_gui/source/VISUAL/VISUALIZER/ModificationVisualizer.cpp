@@ -34,11 +34,10 @@
 
 #include <OpenMS/VISUAL/VISUALIZER/ModificationVisualizer.h>
 
-//QT
-#include <QtWidgets/QTextEdit>
+// QT
 #include <QtWidgets/QComboBox>
 #include <QtWidgets/QLineEdit>
-
+#include <QtWidgets/QTextEdit>
 #include <iostream>
 #include <vector>
 
@@ -47,9 +46,7 @@ using namespace std;
 namespace OpenMS
 {
 
-  ModificationVisualizer::ModificationVisualizer(bool editable, QWidget * parent) :
-    BaseVisualizerGUI(editable, parent),
-    BaseVisualizer<Modification>()
+  ModificationVisualizer::ModificationVisualizer(bool editable, QWidget* parent) : BaseVisualizerGUI(editable, parent), BaseVisualizer<Modification>()
   {
     addLabel_("Modify Modification information");
     addSeparator_();
@@ -94,7 +91,7 @@ namespace OpenMS
       ptr_->setAffectedAminoAcids(modificationAA_->text());
       temp_ = (*ptr_);
     }
-    catch (exception & e)
+    catch (exception& e)
     {
       std::cout << "Error while trying to store the new modification data. " << e.what() << endl;
     }
@@ -105,4 +102,4 @@ namespace OpenMS
     update_();
   }
 
-}
+} // namespace OpenMS

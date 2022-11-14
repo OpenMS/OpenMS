@@ -36,11 +36,10 @@
 
 // OpenMS_GUI config
 #include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
-
+#include <QtCore/QObject>
 #include <QtCore/QString>
 #include <QtCore/QStringList>
 #include <QtCore/QUrl>
-#include <QtCore/QObject>
 
 namespace OpenMS
 {
@@ -51,41 +50,37 @@ namespace OpenMS
 
       @ingroup TOPPAS_elements
   */
-  class OPENMS_GUI_DLLAPI TOPPASResource :
-    QObject
+  class OPENMS_GUI_DLLAPI TOPPASResource : QObject
   {
     Q_OBJECT
 
-public:
-
+  public:
     /// Constructor
-    TOPPASResource(const QString & file);
+    TOPPASResource(const QString& file);
     /// Constructor from URL
-    TOPPASResource(const QUrl & url);
+    TOPPASResource(const QUrl& url);
     /// Copy constructor
-    TOPPASResource(const TOPPASResource & rhs);
+    TOPPASResource(const TOPPASResource& rhs);
     /// Destructor
     ~TOPPASResource() override;
     /// Assignment operator
-    TOPPASResource & operator=(const TOPPASResource & rhs);
+    TOPPASResource& operator=(const TOPPASResource& rhs);
     /// Writes this resource to the local file @p file
-    void writeToFile(const QString & file_name);
+    void writeToFile(const QString& file_name);
     /// Returns the file name of the local file, or "" if it has not been written yet
-    const QString & getLocalFile() const;
+    const QString& getLocalFile() const;
     /// Returns the URL of this resource
-    const QUrl & getURL() const;
+    const QUrl& getURL() const;
     /// Sets the URL of this resource from @p file
-    void fromLocalFile(const QString & file);
+    void fromLocalFile(const QString& file);
 
     /// Supported schemes
     static QStringList supported_schemes;
 
-protected:
-
+  protected:
     /// The URL of this resource
     QUrl url_;
     /// The name of the local file
     QString file_name_;
   };
-}
-
+} // namespace OpenMS

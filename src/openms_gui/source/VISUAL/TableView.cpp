@@ -32,17 +32,14 @@
 // $Authors: Chris Bielow $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/VISUAL/TableView.h>
-
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
-
+#include <OpenMS/VISUAL/TableView.h>
 #include <QFile>
 #include <QFileDialog>
 #include <QHeaderView>
 #include <QMenu>
 #include <QTextStream>
-
 #include <iostream>
 
 using namespace std;
@@ -52,8 +49,7 @@ using namespace std;
 
 namespace OpenMS
 {
-  TableView::TableView(QWidget* parent) :
-    QTableWidget(parent)
+  TableView::TableView(QWidget* parent) : QTableWidget(parent)
   {
     this->setObjectName("table_widget");
 
@@ -93,7 +89,7 @@ namespace OpenMS
       QAction* action = context_menu.addAction(ti->text(), [=]() {
         // invert visibility upon clicking the item
         setColumnHidden(i, !isColumnHidden(i));
-        });
+      });
       action->setCheckable(true);
       action->setChecked(!isColumnHidden(i));
     }
@@ -116,28 +112,28 @@ namespace OpenMS
     }
     QTextStream ts(&f);
     QStringList str_list;
-    
-    QStringList cols_to_export = (getHeaderNames(WidgetHeader::VISIBLE_ONLY, true) + mandatory_export_columns_);    
+
+    QStringList cols_to_export = (getHeaderNames(WidgetHeader::VISIBLE_ONLY, true) + mandatory_export_columns_);
     cols_to_export.removeDuplicates();
 
     QStringList all_header_names = getHeaderNames(WidgetHeader::WITH_INVISIBLE, true);
 
     // write header
-    bool first{true};
+    bool first {true};
     for (int c = 0; c < columnCount(); ++c)
     {
       // columns marked for export
       if (cols_to_export.indexOf(all_header_names[c]) != -1)
       {
-        if (!first) 
-        { 
-          ts << "\t"; 
+        if (!first)
+        {
+          ts << "\t";
         }
-        else 
+        else
         {
           first = false;
         }
-        ts << all_header_names[c];        
+        ts << all_header_names[c];
       }
     }
     ts << "\n";
@@ -157,7 +153,7 @@ namespace OpenMS
         if (ti == nullptr)
         {
           str_list << "";
-          std::cerr << "Warning: Empty table cell found at position: ["<< r << ' ' << c << "]\n";
+          std::cerr << "Warning: Empty table cell found at position: [" << r << ' ' << c << "]\n";
         }
         else
         {
@@ -194,9 +190,9 @@ namespace OpenMS
 
   void TableView::hideColumns(const QStringList& header_names)
   {
-     /*
-       * Suppressing warning toSet() deprecated till Qt 5.14
-       */
+    /*
+     * Suppressing warning toSet() deprecated till Qt 5.14
+     */
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wdeprecated-declarations"
     auto hset = header_names.toSet();
@@ -277,20 +273,17 @@ namespace OpenMS
   void TableView::updateCheckBoxItem(QTableWidgetItem* item)
   {
     // check if this function is called on checkbox items only (either no DisplayRole set or the text is '' or ' ')
-    if (!item->data(Qt::DisplayRole).isValid() || 
-        (item->data(Qt::DisplayRole).type() == QVariant::Type::String
-          && (item->data(Qt::DisplayRole).toString().isEmpty() || item->data(Qt::DisplayRole).toString() == " ")
-        )
-       )
+    if (!item->data(Qt::DisplayRole).isValid() ||
+        (item->data(Qt::DisplayRole).type() == QVariant::Type::String && (item->data(Qt::DisplayRole).toString().isEmpty() || item->data(Qt::DisplayRole).toString() == " ")))
     {
       item->setText(item->checkState() == Qt::Checked ? " " : "");
     }
     else
-    { 
+    {
       throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Called on non-checkbox item");
     }
   }
- 
+
   QStringList TableView::getHeaderNames(const WidgetHeader which, bool use_export_name)
   {
     QStringList header_labels;
@@ -305,7 +298,7 @@ namespace OpenMS
       {
         header_labels << getHeaderExportName(i);
       }
-      else 
+      else
       {
         header_labels << getHeaderName(i);
       }
@@ -329,7 +322,7 @@ namespace OpenMS
     QTableWidgetItem* ti = horizontalHeaderItem(header_column);
     if (ti == nullptr)
     {
-      throw  Exception::ElementNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Header item " + String(header_column) + " not found!");
+      throw Exception::ElementNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Header item " + String(header_column) + " not found!");
     }
     // prefer user role over display role
     if (ti->data(Qt::UserRole).isValid())
@@ -369,9 +362,9 @@ namespace OpenMS
     for (int i = 0; i < this->columnCount(); ++i)
     {
       tableWidth += this->horizontalHeader()->sectionSize(i);
-    } //sections already resized to fit all data
+    } // sections already resized to fit all data
 
-    double scale = (double) widgetWidth / tableWidth;
+    double scale = (double)widgetWidth / tableWidth;
     if (scale > 1.)
     {
       for (int i = 0; i < this->columnCount(); ++i)
@@ -383,4 +376,4 @@ namespace OpenMS
     emit resized();
   }
 
-}
+} // namespace OpenMS

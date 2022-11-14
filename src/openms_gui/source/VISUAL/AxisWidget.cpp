@@ -33,20 +33,20 @@
 // --------------------------------------------------------------------------
 
 // Qt
+#include <QBrush>
 #include <QPaintEvent>
 #include <QPainter>
-#include <QBrush>
 
 // STL
-#include <iostream>
 #include <algorithm>
+#include <iostream>
 
 // OpenMS
-#include <OpenMS/VISUAL/AxisWidget.h>
 #include <OpenMS/CONCEPT/Exception.h>
-#include <OpenMS/VISUAL/AxisTickCalculator.h>
-#include <OpenMS/VISUAL/AxisPainter.h>
 #include <OpenMS/MATH/MISC/MathFunctions.h>
+#include <OpenMS/VISUAL/AxisPainter.h>
+#include <OpenMS/VISUAL/AxisTickCalculator.h>
+#include <OpenMS/VISUAL/AxisWidget.h>
 
 using namespace std;
 
@@ -55,15 +55,7 @@ namespace OpenMS
   using namespace Math;
 
   AxisWidget::AxisWidget(const AxisPainter::Alignment alignment, const char* legend, QWidget* parent) :
-    QWidget(parent),
-    is_log_(false),
-    show_legend_(true),
-    alignment_(alignment),
-    is_inverse_orientation_(false),
-    margin_(0),
-    legend_(legend),
-    tick_level_(2),
-    allow_short_numbers_(false)
+      QWidget(parent), is_log_(false), show_legend_(true), alignment_(alignment), is_inverse_orientation_(false), margin_(0), legend_(legend), tick_level_(2), allow_short_numbers_(false)
   {
     setAxisBounds(0.0, 100.0);
 
@@ -83,18 +75,16 @@ namespace OpenMS
 
   AxisWidget::~AxisWidget() = default;
 
-  void AxisWidget::paintEvent(QPaintEvent * e)
+  void AxisWidget::paintEvent(QPaintEvent* e)
   {
     QPainter painter(this);
     paint(&painter, e);
     painter.end();
   }
 
-  void AxisWidget::paint(QPainter * painter, QPaintEvent * e)
+  void AxisWidget::paint(QPainter* painter, QPaintEvent* e)
   {
-    AxisPainter::paint(painter, e, min_, max_, grid_line_,
-                       width(), height(), alignment_, margin_,
-                       show_legend_, legend_, allow_short_numbers_, is_log_, is_inverse_orientation_);
+    AxisPainter::paint(painter, e, min_, max_, grid_line_, width(), height(), alignment_, margin_, show_legend_, legend_, allow_short_numbers_, is_log_, is_inverse_orientation_);
   }
 
   void AxisWidget::setAxisBounds(double min, double max)
@@ -117,7 +107,7 @@ namespace OpenMS
     }
     else
     {
-      //abort if no change
+      // abort if no change
       if (min_ == min && max_ == max)
         return;
 
@@ -207,7 +197,7 @@ namespace OpenMS
     return is_inverse_orientation_;
   }
 
-  void AxisWidget::setLegend(const String & legend)
+  void AxisWidget::setLegend(const String& legend)
   {
     legend_ = legend;
     if (!show_legend_)
@@ -224,7 +214,7 @@ namespace OpenMS
     }
   }
 
-  const AxisWidget::GridVector & AxisWidget::gridLines() const
+  const AxisWidget::GridVector& AxisWidget::gridLines() const
   {
     return grid_line_;
   }
@@ -244,4 +234,4 @@ namespace OpenMS
     return max_;
   }
 
-} //Namespace
+} // namespace OpenMS

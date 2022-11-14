@@ -49,23 +49,22 @@ namespace OpenMS
   /**
   @brief Behavior of TOPPView in spectra view mode.
   */
-  class TVDIATreeTabController
-    : public TVControllerBase
+  class TVDIATreeTabController : public TVControllerBase
   {
     Q_OBJECT
 
-public:
+  public:
     /// Construct the behaviour with its parent
-  TVDIATreeTabController(TOPPViewBase* parent);
+    TVDIATreeTabController(TOPPViewBase* parent);
 
-public slots:
+  public slots:
     /// shows all transitions from the given subtree
     virtual void showChromatograms(const OSWIndexTrace& trace);
 
     /// shows all transitions from the given subtree in a new 1D canvas
     virtual void showChromatogramsAsNew1D(const OSWIndexTrace& trace);
-    
-private:    
+
+  private:
     bool showChromatogramsInCanvas_(const OSWIndexTrace& trace, MiniLayer& ml, Plot1DWidget* w);
   };
-}
+} // namespace OpenMS

@@ -36,7 +36,6 @@
 
 // OpenMS_GUI config
 #include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
-
 #include <QtWidgets/QDialog>
 
 namespace Ui
@@ -54,13 +53,11 @@ namespace OpenMS
       @ingroup TOPPAS_elements
       @ingroup Dialogs
   */
-  class OPENMS_GUI_DLLAPI TOPPASOutputFilesDialog :
-    public QDialog
+  class OPENMS_GUI_DLLAPI TOPPASOutputFilesDialog : public QDialog
   {
     Q_OBJECT
 
-public:
-
+  public:
     /// Constructor
     TOPPASOutputFilesDialog(const QString& dir_name, int num_jobs);
     ~TOPPASOutputFilesDialog() override;
@@ -71,19 +68,20 @@ public:
     /// Returns the maximum number of jobs in the spinbox
     int getNumJobs() const;
 
-public slots:
+  public slots:
 
     /// Lets the user select the directory via a file dialog
     void showFileDialog();
 
-protected slots:
+  protected slots:
 
     /// Called when OK is pressed; checks if the selected file is valid
     void checkValidity_();
-private:
+
+  private:
     Ui::TOPPASOutputFilesDialogTemplate* ui_;
   };
 
-}
+} // namespace OpenMS
 
 using OutputDirectory = OpenMS::OutputDirectory;

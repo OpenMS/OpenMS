@@ -46,7 +46,7 @@ include(add_mac_bundle.cmake)
 
 # --------------------------------------------------------------------------
 # big include file for headers and cpp files
-include (${PROJECT_SOURCE_DIR}/includes.cmake)
+include(${PROJECT_SOURCE_DIR}/includes.cmake)
 
 # --------------------------------------------------------------------------
 
@@ -59,19 +59,19 @@ qt5_wrap_ui(UI_SOURCES2 ${UI_SOURCES}) # transform .ui to ui_....h files and add
 #------------------------------------------------------------------------------
 # add the library
 openms_add_library(TARGET_NAME OpenMS_GUI
-                   SOURCE_FILES ${OpenMSVisual_sources}
-                   HEADER_FILES ${OpenMSVisual_sources_h}
-                   INTERNAL_INCLUDES ${PROJECT_SOURCE_DIR}/include ${PROJECT_BINARY_DIR}/include
-                   EXTERNAL_INCLUDES
-                   LINK_LIBRARIES ${OpenMS_GUI_DEP_LIBRARIES}
-                   DLL_EXPORT_PATH "OpenMS/VISUAL/")
+        SOURCE_FILES ${OpenMSVisual_sources}
+        HEADER_FILES ${OpenMSVisual_sources_h}
+        INTERNAL_INCLUDES ${PROJECT_SOURCE_DIR}/include ${PROJECT_BINARY_DIR}/include
+        EXTERNAL_INCLUDES
+        LINK_LIBRARIES ${OpenMS_GUI_DEP_LIBRARIES}
+        DLL_EXPORT_PATH "OpenMS/VISUAL/")
 
 # --------------------------------------------------------------------------
 # additional linker flags required by openms_gui
 if (MSVC)
-  set (GUI_lnk_flags "/FORCE:MULTIPLE /INCREMENTAL:NO /ignore:4006 /ignore:4088")
-  set_property(TARGET OpenMS_GUI APPEND PROPERTY LINK_FLAGS ${GUI_lnk_flags}) ## allow multiple definitions of symbols (e.g. from template instanciations or STL-derived classes)
-endif()
+    set(GUI_lnk_flags "/FORCE:MULTIPLE /INCREMENTAL:NO /ignore:4006 /ignore:4088")
+    set_property(TARGET OpenMS_GUI APPEND PROPERTY LINK_FLAGS ${GUI_lnk_flags}) ## allow multiple definitions of symbols (e.g. from template instanciations or STL-derived classes)
+endif ()
 
 #------------------------------------------------------------------------------
 # register relevant paths for the doxygen doc generation
@@ -82,39 +82,39 @@ openms_doc_path("${PROJECT_SOURCE_DIR}/source/VISUAL/APPLICATIONS")
 # GUI tools
 set(GUI_DIR source/VISUAL/APPLICATIONS/GUITOOLS)
 include(${GUI_DIR}/executables.cmake)
-foreach(i ${GUI_executables})
-  set(resource_file ${PROJECT_SOURCE_DIR}/${GUI_DIR}/${i}.rc)
-  set(resource_dir ${PROJECT_SOURCE_DIR}/${GUI_DIR}/${i}-resources/)
-  ## add icons to TOPPView and INIFileEditor
-  if (MSVC AND EXISTS ${resource_file})
-    message(STATUS "Setting resource file ${resource_file} for ${i}")
-    add_executable(${i} ${GUI_DIR}/${i}.cpp ${resource_file})
-    install_tool(${i})
-  elseif(APPLE AND EXISTS ${resource_dir})
-    add_mac_app_bundle(${i})
-  else()
-    if(APPLE)
-      message(STATUS "No icon file (${i}.icns) found in ${resource_dir}. Will not build ${i} as app bundle.")
-    else()
-      message(STATUS "No resource file (${resource_file}) found for ${i}. No icon will be embedded.")
-    endif()
-    add_executable(${i} ${GUI_DIR}/${i}.cpp)
-    install_tool(${i})
-  endif()
+foreach (i ${GUI_executables})
+    set(resource_file ${PROJECT_SOURCE_DIR}/${GUI_DIR}/${i}.rc)
+    set(resource_dir ${PROJECT_SOURCE_DIR}/${GUI_DIR}/${i}-resources/)
+    ## add icons to TOPPView and INIFileEditor
+    if (MSVC AND EXISTS ${resource_file})
+        message(STATUS "Setting resource file ${resource_file} for ${i}")
+        add_executable(${i} ${GUI_DIR}/${i}.cpp ${resource_file})
+        install_tool(${i})
+    elseif (APPLE AND EXISTS ${resource_dir})
+        add_mac_app_bundle(${i})
+    else ()
+        if (APPLE)
+            message(STATUS "No icon file (${i}.icns) found in ${resource_dir}. Will not build ${i} as app bundle.")
+        else ()
+            message(STATUS "No resource file (${resource_file}) found for ${i}. No icon will be embedded.")
+        endif ()
+        add_executable(${i} ${GUI_DIR}/${i}.cpp)
+        install_tool(${i})
+    endif ()
 
-  ## append visual lib as dependency for GUI tools
-  target_link_libraries(${i} OpenMS_GUI)
-endforeach(i)
+    ## append visual lib as dependency for GUI tools
+    target_link_libraries(${i} OpenMS_GUI)
+endforeach (i)
 
-  ## install platform plugins. On Mac this is handled for every GUI app inside its app bundle.
-  if(WIN32)
-      install_qt5_plugin("Qt5::QWindowsIntegrationPlugin" QT_PLUGINS "${INSTALL_PLUGIN_DIR}" QT5PlatformPlugin)
-      file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/qt.conf"
-        "[Paths]\nPlugins = ${QT_PLUGIN_PATH_REL_TO_BIN}\n")
-      install(FILES "${CMAKE_CURRENT_BINARY_DIR}/qt.conf"
-        DESTINATION ${INSTALL_BIN_DIR}
-        COMPONENT QT5PlatformPlugin)
-  endif()
+## install platform plugins. On Mac this is handled for every GUI app inside its app bundle.
+if (WIN32)
+    install_qt5_plugin("Qt5::QWindowsIntegrationPlugin" QT_PLUGINS "${INSTALL_PLUGIN_DIR}" QT5PlatformPlugin)
+    file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/qt.conf"
+            "[Paths]\nPlugins = ${QT_PLUGIN_PATH_REL_TO_BIN}\n")
+    install(FILES "${CMAKE_CURRENT_BINARY_DIR}/qt.conf"
+            DESTINATION ${INSTALL_BIN_DIR}
+            COMPONENT QT5PlatformPlugin)
+endif ()
 
 add_custom_target(GUI)
 add_dependencies(GUI ${GUI_executables})

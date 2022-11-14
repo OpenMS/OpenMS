@@ -32,10 +32,8 @@
 // $Authors: Timo Sachsenberg $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/VISUAL/EnhancedTabBarWidgetInterface.h>
-
 #include <OpenMS/VISUAL/EnhancedTabBar.h>
-
+#include <OpenMS/VISUAL/EnhancedTabBarWidgetInterface.h>
 #include <QObject>
 
 namespace OpenMS
@@ -74,5 +72,4 @@ namespace OpenMS
     return 1234;
   }
 
-}
-
+} // namespace OpenMS

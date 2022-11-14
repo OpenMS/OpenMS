@@ -42,18 +42,15 @@ namespace OpenMS
   /** @brief An annotation item which represents an arbitrary text on the canvas.
           @see Annotation1DItem
   */
-  class Annotation1DTextItem :
-    public Annotation1DItem
+  class Annotation1DTextItem : public Annotation1DItem
   {
-public:
-
+  public:
     /// Constructor
-    Annotation1DTextItem(const PointXYType& position, const QString& text, const int flags = Qt::AlignCenter)
-      : Annotation1DItem(text), position_(position), flags_(flags)
+    Annotation1DTextItem(const PointXYType& position, const QString& text, const int flags = Qt::AlignCenter) : Annotation1DItem(text), position_(position), flags_(flags)
     {
     }
     /// Copy constructor
-    Annotation1DTextItem(const Annotation1DTextItem & rhs) = default;
+    Annotation1DTextItem(const Annotation1DTextItem& rhs) = default;
 
     /// Destructor
     ~Annotation1DTextItem() override = default;
@@ -104,4 +101,3 @@ public:
     int flags_;
   };
 } // namespace OpenMS
-

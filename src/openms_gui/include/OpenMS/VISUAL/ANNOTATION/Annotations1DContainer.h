@@ -35,10 +35,8 @@
 #pragma once
 
 #include <OpenMS/DATASTRUCTURES/DPosition.h>
-
-#include <list>
-
 #include <QtGui/QPen>
+#include <list>
 
 class QPoint;
 class QObject;
@@ -50,29 +48,28 @@ namespace OpenMS
   class Annotation1DItem;
 
   /// Container for annotations to content of Plot1DCanvas
-  class Annotations1DContainer :
-    public std::list<Annotation1DItem *>
+  class Annotations1DContainer : public std::list<Annotation1DItem*>
   {
-public:
+  public:
     /// Default constructor
     Annotations1DContainer();
 
     /// Copy constructor
-    Annotations1DContainer(const Annotations1DContainer & rhs);
+    Annotations1DContainer(const Annotations1DContainer& rhs);
 
     /// Assignment operator
-    Annotations1DContainer & operator=(const Annotations1DContainer & rhs);
+    Annotations1DContainer& operator=(const Annotations1DContainer& rhs);
 
     /// Destructor
     virtual ~Annotations1DContainer();
 
-    using Base = std::list<Annotation1DItem *>;
+    using Base = std::list<Annotation1DItem*>;
 
     /// Iterator for the 1D annotations
     using Iterator = Base::iterator;
 
     /// Const iterator for the 1D annotations
-    using ConstIterator = std::list<Annotation1DItem *>::const_iterator;
+    using ConstIterator = std::list<Annotation1DItem*>::const_iterator;
 
     /// Type of the Points
     using PointType = DPosition<2>;
@@ -85,13 +82,13 @@ public:
             If more than one item's bounding box encloses @p pos , the one in the
             foreground is returned.
     */
-    Annotation1DItem * getItemAt(const QPoint & pos) const;
+    Annotation1DItem* getItemAt(const QPoint& pos) const;
 
     /// Selects the item at @p pos on the canvas, if it exists.
-    void selectItemAt(const QPoint & pos) const;
+    void selectItemAt(const QPoint& pos) const;
 
     /// Deselects the item at @p pos on the canvas, if it exists.
-    void deselectItemAt(const QPoint & pos) const;
+    void deselectItemAt(const QPoint& pos) const;
 
     /// Selects all items
     void selectAll();
@@ -106,16 +103,16 @@ public:
     std::vector<Annotation1DItem*> getSelectedItems();
 
     /// Sets the pen_
-    void setPen(const QPen & pen);
+    void setPen(const QPen& pen);
 
     /// Returns the pen_
-    const QPen & getPen() const;
+    const QPen& getPen() const;
 
     /// Sets the selected_pen_
-    void setSelectedPen(const QPen & pen);
+    void setSelectedPen(const QPen& pen);
 
     /// Returns the selected_pen_
-    const QPen & getSelectedPen() const;
+    const QPen& getSelectedPen() const;
 
   protected:
     /// call delete on all pointers in the container, without modifying the container
@@ -128,5 +125,4 @@ public:
     QPen selected_pen_;
   };
 
-} // namespace
-
+} // namespace OpenMS

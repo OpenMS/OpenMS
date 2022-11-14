@@ -44,8 +44,8 @@
 #include <OpenMS/VISUAL/LayerDataFeature.h>
 #include <OpenMS/VISUAL/LayerDataIdent.h>
 #include <OpenMS/VISUAL/LayerDataPeak.h>
-#include <OpenMS/VISUAL/MetaDataBrowser.h>
 #include <OpenMS/VISUAL/MISC/GUIHelpers.h>
+#include <OpenMS/VISUAL/MetaDataBrowser.h>
 #include <OpenMS/VISUAL/Plot1DCanvas.h>
 #include <OpenMS/VISUAL/PlotCanvas.h>
 #include <OpenMS/VISUAL/PlotWidget.h>
@@ -62,12 +62,8 @@ using namespace std;
 
 namespace OpenMS
 {
-  PlotCanvas::PlotCanvas(const Param& /*preferences*/, QWidget* parent)
-    : QWidget(parent),
-      DefaultParamHandler("PlotCanvas"),
-      unit_mapper_({DIM_UNIT::RT, DIM_UNIT::MZ}),
-      visible_area_(&unit_mapper_),
-      rubber_band_(QRubberBand::Rectangle, this)
+  PlotCanvas::PlotCanvas(const Param& /*preferences*/, QWidget* parent) :
+      QWidget(parent), DefaultParamHandler("PlotCanvas"), unit_mapper_({DIM_UNIT::RT, DIM_UNIT::MZ}), visible_area_(&unit_mapper_), rubber_band_(QRubberBand::Rectangle, this)
   {
     // Prevent filling background
     setAttribute(Qt::WA_OpaquePaintEvent);
@@ -191,7 +187,7 @@ namespace OpenMS
 
   void PlotCanvas::wheelEvent(QWheelEvent* e)
   {
-     /* Supressed warning int QWheelEvent::x() const and y() deprecated
+    /* Supressed warning int QWheelEvent::x() const and y() deprecated
      * Use position() instead, from Qt 5.14
      */
 #pragma GCC diagnostic push
@@ -474,7 +470,7 @@ namespace OpenMS
     return finishAdding_();
   }
 
-  
+
   bool PlotCanvas::addChromLayer(const ExperimentSharedPtrType& map, ODExperimentSharedPtrType od_map, const String& filename)
   {
     if (map->getChromatograms().empty())
@@ -585,7 +581,8 @@ namespace OpenMS
       layer_range.extend(getLayer(layer_index).getRange());
     }
     // set minimum intensity to 0 (avoid negative intensities!)
-    if (layer_range.getMinIntensity() < 0) layer_range.setMinIntensity(0);
+    if (layer_range.getMinIntensity() < 0)
+      layer_range.setMinIntensity(0);
 
     // add 4% margin (2% left, 2% right) to RT, m/z, IM and intensity
     layer_range.scaleBy(1.04);
@@ -742,7 +739,7 @@ namespace OpenMS
   {
     return unit_mapper_;
   }
-  
+
   void PlotCanvas::setMapper(const DimMapper<2>& mapper)
   {
     unit_mapper_ = mapper;

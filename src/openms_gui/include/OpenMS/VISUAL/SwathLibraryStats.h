@@ -35,10 +35,8 @@
 #pragma once
 
 // OpenMS_GUI config
-#include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
-
 #include <OpenMS/ANALYSIS/TARGETED/TargetedExperiment.h>
-
+#include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
 #include <QWidget>
 
 namespace Ui
@@ -48,14 +46,14 @@ namespace Ui
 
 namespace OpenMS
 {
-  
+
   /// A multi-tabbed widget for the SwathWizard offering setting of parameters, input-file specification and running Swath and more
   class OPENMS_GUI_DLLAPI SwathLibraryStats : public QWidget
   {
     Q_OBJECT
 
   public:
-    explicit SwathLibraryStats(QWidget *parent = nullptr);
+    explicit SwathLibraryStats(QWidget* parent = nullptr);
     ~SwathLibraryStats();
 
     /// updates the view with new information immediately
@@ -65,12 +63,12 @@ namespace OpenMS
     void updateFromFile(const QString& pqp_file);
 
   private slots:
-  
+
   private:
     Ui::SwathLibraryStats* ui_;
   };
 
-} // ns OpenMS
+} // namespace OpenMS
 
 // this is required to allow Ui_SwathLibraryStats (auto UIC'd from .ui) to have a SwathLibraryStats member
 using SwathLibraryStats = OpenMS::SwathLibraryStats;

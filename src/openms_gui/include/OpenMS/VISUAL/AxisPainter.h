@@ -35,14 +35,12 @@
 #pragma once
 
 // OpenMS_GUI config
-#include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
-
-#include <vector>
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
-
+#include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
 #include <QPaintEvent>
 #include <QPainter>
+#include <vector>
 
 
 namespace OpenMS
@@ -54,9 +52,9 @@ namespace OpenMS
   */
   class OPENMS_GUI_DLLAPI AxisPainter
   {
-public:
+  public:
     /// Typedef for the grid vector
-    typedef std::vector<std::vector<double> > GridVector;
+    typedef std::vector<std::vector<double>> GridVector;
 
     /// Where the axis is placed
     enum Alignment
@@ -68,11 +66,10 @@ public:
     };
 
     /// Draws an axis
-    static void paint(QPainter * painter, QPaintEvent * e, const double & min, const double & max, const GridVector & grid,
-                      const Int width, const Int height, const Alignment alignment, const UInt margin,
-                      const bool show_legend, const String& legend, const bool shorten_number,
-                      const bool is_log, const bool is_inverse_orientation);
-private:
+    static void paint(QPainter* painter, QPaintEvent* e, const double& min, const double& max, const GridVector& grid, const Int width, const Int height, const Alignment alignment, const UInt margin,
+                      const bool show_legend, const String& legend, const bool shorten_number, const bool is_log, const bool is_inverse_orientation);
+
+  private:
     /// Constructor: only static methods
     AxisPainter();
 
@@ -82,4 +79,4 @@ private:
     /// Round to 8 significant digits after comma (and apply log scaling)
     static double scale_(double x, bool is_log);
   };
-}
+} // namespace OpenMS

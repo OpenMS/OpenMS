@@ -32,19 +32,16 @@
 // $Authors: Chris Bielow $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/VISUAL/RecentFilesMenu.h>
-
-#include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/DATASTRUCTURES/Param.h>
+#include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/SYSTEM/File.h>
-
+#include <OpenMS/VISUAL/RecentFilesMenu.h>
 #include <QAction>
 
 /*
-#include <OpenMS/VISUAL/APPLICATIONS/TOPPViewBase.h>
 #include <OpenMS/VISUAL/APPLICATIONS/MISC/QApplicationTOPP.h>
+#include <OpenMS/VISUAL/APPLICATIONS/TOPPViewBase.h>
 #include <OpenMS/VISUAL/MISC/GUIHelpers.h>
-
 #include <QAction>
 #include <QtWidgets/QMenu>
 #include <QtWidgets/QMenuBar>
@@ -54,10 +51,7 @@ using namespace std;
 
 namespace OpenMS
 {
-  RecentFilesMenu::RecentFilesMenu(int max_entries)
-    : recent_menu_("&Recent files"),
-    max_entries_(max_entries),
-    recent_files_()
+  RecentFilesMenu::RecentFilesMenu(int max_entries) : recent_menu_("&Recent files"), max_entries_(max_entries), recent_files_()
   {
     // add hidden actions
     recent_actions_.resize(max_entries_);
@@ -82,7 +76,7 @@ namespace OpenMS
   unsigned RecentFilesMenu::setFromParam(const Param& filenames)
   {
     QStringList rfiles;
-    unsigned count{ 0 };
+    unsigned count {0};
     for (Param::ParamIterator it = filenames.begin(); it != filenames.end(); ++it)
     {
       QString filename = String(it->value.toString()).toQString();
@@ -99,7 +93,7 @@ namespace OpenMS
   Param RecentFilesMenu::getAsParam() const
   {
     Param p;
-    int i{ 0 };
+    int i {0};
     for (const auto& f : recent_files_)
     {
       p.setValue(String(i), f.toStdString());
@@ -162,4 +156,4 @@ namespace OpenMS
     }
   }
 
-} //Namespace
+} // namespace OpenMS

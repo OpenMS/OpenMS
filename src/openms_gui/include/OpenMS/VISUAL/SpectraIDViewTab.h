@@ -34,14 +34,12 @@
 
 #pragma once
 
+#include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 #include <OpenMS/VISUAL/DataSelectionTabs.h>
 #include <OpenMS/VISUAL/LayerDataBase.h>
 #include <OpenMS/VISUAL/TableView.h>
-#include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
-
-#include <QtWidgets>
 #include <QCheckBox>
-
+#include <QtWidgets>
 #include <unordered_map>
 #include <vector>
 
@@ -52,10 +50,7 @@ namespace OpenMS
 
     @htmlinclude OpenMS_DigestSimulation.parameters
   */
-  class OPENMS_GUI_DLLAPI SpectraIDViewTab :
-    public QWidget,
-    public DefaultParamHandler,
-    public DataTabBase
+  class OPENMS_GUI_DLLAPI SpectraIDViewTab : public QWidget, public DefaultParamHandler, public DataTabBase
   {
     Q_OBJECT
   public:
@@ -76,14 +71,14 @@ namespace OpenMS
     void clear() override;
 
     /// Helper member to block outgoing signals
-    bool ignore_update = false; 
-  
+    bool ignore_update = false;
+
   protected slots:
     /// Rebuild table entries
     void updateEntries_();
     /// Rebuild protein table entries
     void updateProteinEntries_(int spec_cell_row_idx);
-    /// Switch horizontal or vertical layout of the PSM and Proteintable 
+    /// Switch horizontal or vertical layout of the PSM and Proteintable
     void switchOrientation_();
   signals:
     /// request to show a specific spectrum, and (if available) a specific pepId + pepHit in there (otherwise -1, -1)
@@ -94,16 +89,16 @@ namespace OpenMS
     void requestVisibleArea1D(double lower_mz, double upper_mz);
 
   private:
-    /// partially fill the bottom-most row  
+    /// partially fill the bottom-most row
     void fillRow_(const MSSpectrum& spectrum, const int spec_index, const QColor& background_color);
-    /// extract the required part of the accession 
+    /// extract the required part of the accession
     static QString extractNumFromAccession_(const QString& listItem);
     /// open browser to navigate to uniport site with accession
     void openUniProtSiteWithAccession_(const QString& accession);
 
     class SelfResizingTableView_ : TableView
     {
-      void resizeEvent(QResizeEvent * event) override;
+      void resizeEvent(QResizeEvent* event) override;
     };
 
     LayerDataPeak* layer_ = nullptr;
@@ -135,4 +130,4 @@ namespace OpenMS
     /// Protein Cell clicked in protein_table_widget; emits which protein (row) was clicked, and may show additional data
     void proteinCellClicked_(int row, int column);
   };
-}
+} // namespace OpenMS

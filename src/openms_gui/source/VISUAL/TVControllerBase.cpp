@@ -40,9 +40,8 @@ using namespace std;
 
 namespace OpenMS
 {
-  TVControllerBase::TVControllerBase(TOPPViewBase* parent):
-    tv_(parent)
-  {  
+  TVControllerBase::TVControllerBase(TOPPViewBase* parent) : tv_(parent)
+  {
   }
 
   void TVControllerBase::activateBehavior()
@@ -54,4 +53,4 @@ namespace OpenMS
   {
     // no special handling of deactivation is default
   }
-}
+} // namespace OpenMS

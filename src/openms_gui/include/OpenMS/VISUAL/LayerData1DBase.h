@@ -34,8 +34,8 @@
 
 #pragma once
 
-#include <OpenMS/VISUAL/LayerDataBase.h>
 #include <OpenMS/VISUAL/ANNOTATION/Annotations1DContainer.h>
+#include <OpenMS/VISUAL/LayerDataBase.h>
 
 class QWidget;
 
@@ -64,7 +64,7 @@ namespace OpenMS
     /**
      * \brief Given a @p partial_range for the current 1D layer (e.g. an m/z range), fill in the other
      *        dimensions (usually intensity) from all data points which are within the input range.
-     * \param partial_range Range with at least one dimension populated (which is used to filter the current spectrum/chrom/...) 
+     * \param partial_range Range with at least one dimension populated (which is used to filter the current spectrum/chrom/...)
      * \return Range of the data points within the input range (e.g. for spectra: m/z and intensity; or chroms: RT and intensity, etc)
      */
     virtual RangeAllType getRangeForArea(const RangeAllType partial_range) const = 0;
@@ -90,7 +90,7 @@ namespace OpenMS
 
     /// get name augmented with attributes, e.g. '*' if modified
     String getDecoratedName() const override;
-        
+
     /// Returns a const reference to the annotations of the current spectrum (1D view)
     const Annotations1DContainer& getCurrentAnnotations() const
     {
@@ -140,5 +140,4 @@ namespace OpenMS
     std::vector<Annotations1DContainer> annotations_1d_ = std::vector<Annotations1DContainer>(1);
   };
 
-}// namespace OpenMS
-
+} // namespace OpenMS

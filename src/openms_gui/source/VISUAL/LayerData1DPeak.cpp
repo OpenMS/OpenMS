@@ -32,14 +32,12 @@
 // $Authors: Chris Bielow $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/VISUAL/LayerData1DPeak.h>
-
 #include <OpenMS/VISUAL/ANNOTATION/Annotation1DPeakItem.h>
+#include <OpenMS/VISUAL/LayerData1DPeak.h>
 #include <OpenMS/VISUAL/LayerDataPeak.h>
 #include <OpenMS/VISUAL/Painter1DBase.h>
 #include <OpenMS/VISUAL/VISITORS/LayerStatistics.h>
 #include <OpenMS/VISUAL/VISITORS/LayerStoreData.h>
-
 #include <QMenu>
 using namespace std;
 
@@ -327,4 +325,4 @@ namespace OpenMS
   }
 
 
-}// namespace OpenMS
+} // namespace OpenMS

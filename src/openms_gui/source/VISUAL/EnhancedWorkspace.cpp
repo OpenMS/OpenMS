@@ -32,22 +32,18 @@
 // $Authors: Marc Sturm, Timo Sachsenberg $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/VISUAL/EnhancedWorkspace.h>
-
 #include <OpenMS/VISUAL/EnhancedTabBarWidgetInterface.h>
-
-#include <QtCore/QMimeData>
+#include <OpenMS/VISUAL/EnhancedWorkspace.h>
 #include <QDragEnterEvent>
 #include <QDragMoveEvent>
 #include <QDropEvent>
-
 #include <QMdiSubWindow>
+#include <QtCore/QMimeData>
 
 namespace OpenMS
 {
 
-  EnhancedWorkspace::EnhancedWorkspace(QWidget* parent) :
-    QMdiArea(parent)
+  EnhancedWorkspace::EnhancedWorkspace(QWidget* parent) : QMdiArea(parent)
   {
     setAcceptDrops(true);
   }
@@ -123,7 +119,7 @@ namespace OpenMS
     for (const auto& sub_window : this->subWindowList())
     {
       EnhancedTabBarWidgetInterface* w = dynamic_cast<EnhancedTabBarWidgetInterface*>(sub_window->widget());
-      //cout << "  Tab " << i << ": " << w->window_id << endl;
+      // cout << "  Tab " << i << ": " << w->window_id << endl;
       if (w != 0 && w->getWindowId() == id)
       {
         return w;
@@ -132,7 +128,7 @@ namespace OpenMS
     return nullptr;
   }
 
-  void EnhancedWorkspace::dragEnterEvent(QDragEnterEvent * event)
+  void EnhancedWorkspace::dragEnterEvent(QDragEnterEvent* event)
   {
     if (event->mimeData()->hasUrls())
     {
@@ -140,7 +136,7 @@ namespace OpenMS
     }
   }
 
-  void EnhancedWorkspace::dragMoveEvent(QDragMoveEvent * event)
+  void EnhancedWorkspace::dragMoveEvent(QDragMoveEvent* event)
   {
     if (event->mimeData()->hasUrls())
     {
@@ -148,10 +144,10 @@ namespace OpenMS
     }
   }
 
-  void EnhancedWorkspace::dropEvent(QDropEvent * event)
+  void EnhancedWorkspace::dropEvent(QDropEvent* event)
   {
     emit dropReceived(event->mimeData(), dynamic_cast<QWidget*>(event->source()), -1);
     event->acceptProposedAction();
   }
 
-} //namespace
+} // namespace OpenMS

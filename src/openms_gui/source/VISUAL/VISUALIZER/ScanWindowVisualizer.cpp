@@ -34,10 +34,9 @@
 
 #include <OpenMS/VISUAL/VISUALIZER/ScanWindowVisualizer.h>
 
-//QT
-#include <QtWidgets/QTextEdit>
+// QT
 #include <QtWidgets/QLineEdit>
-
+#include <QtWidgets/QTextEdit>
 #include <iostream>
 
 using namespace std;
@@ -45,9 +44,7 @@ using namespace std;
 namespace OpenMS
 {
 
-  ScanWindowVisualizer::ScanWindowVisualizer(bool editable, QWidget * parent) :
-    BaseVisualizerGUI(editable, parent),
-    BaseVisualizer<ScanWindow>()
+  ScanWindowVisualizer::ScanWindowVisualizer(bool editable, QWidget* parent) : BaseVisualizerGUI(editable, parent), BaseVisualizer<ScanWindow>()
   {
     addLabel_("Modify scan window information.");
     addSeparator_();
@@ -76,4 +73,4 @@ namespace OpenMS
     update_();
   }
 
-}
+} // namespace OpenMS

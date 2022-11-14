@@ -36,7 +36,6 @@
 
 // OpenMS_GUI config
 #include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
-
 #include <QtWidgets/QDialog>
 
 namespace Ui
@@ -48,18 +47,18 @@ namespace OpenMS
 {
   namespace Internal
   {
-    ///Preferences dialog for Plot3DWidget
-    class OPENMS_GUI_DLLAPI Plot3DPrefDialog :
-      public QDialog
+    /// Preferences dialog for Plot3DWidget
+    class OPENMS_GUI_DLLAPI Plot3DPrefDialog : public QDialog
     {
       Q_OBJECT
 
-public:
-      ///Constructor
-      Plot3DPrefDialog(QWidget * parent);
+    public:
+      /// Constructor
+      Plot3DPrefDialog(QWidget* parent);
       ~Plot3DPrefDialog() override;
+
     private:
       Ui::Plot3DPrefDialogTemplate* ui_;
     };
-  }
-}
+  } // namespace Internal
+} // namespace OpenMS

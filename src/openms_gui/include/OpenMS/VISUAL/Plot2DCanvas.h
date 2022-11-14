@@ -38,9 +38,9 @@
 #include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
 
 // OpenMS
-#include <OpenMS/VISUAL/PlotCanvas.h>
-#include <OpenMS/VISUAL/Plot1DCanvas.h>
 #include <OpenMS/KERNEL/PeakIndex.h>
+#include <OpenMS/VISUAL/Plot1DCanvas.h>
+#include <OpenMS/VISUAL/PlotCanvas.h>
 
 // QT
 class QPainter;
@@ -67,12 +67,11 @@ namespace OpenMS
 
     @ingroup PlotWidgets
   */
-  class OPENMS_GUI_DLLAPI Plot2DCanvas :
-    public PlotCanvas
+  class OPENMS_GUI_DLLAPI Plot2DCanvas : public PlotCanvas
   {
     Q_OBJECT
 
-public:
+  public:
     /// Default C'tor hidden
     Plot2DCanvas() = delete;
 
@@ -97,23 +96,23 @@ public:
     /// recalculates the dot gradient of the active layer
     void recalculateCurrentLayerDotGradient();
 
-signals:
+  signals:
     /// Requests to show projections for the @p source_layer. Emitted after calling pickProjectionLayer().
     void showProjections(const LayerDataBase* source_layer);
     /// Signal emitted when the projections are to be shown/hidden (e.g. via context menu)
     void toggleProjections();
     /// Requests to display the spectrum with index @p index in 1D
     void showSpectrumAsNew1D(int index);
-    void showChromatogramsAsNew1D(std::vector<int, std::allocator<int> > indices);
+    void showChromatogramsAsNew1D(std::vector<int, std::allocator<int>> indices);
     /// Requests to display all spectra in 3D plot
     void showCurrentPeaksAs3D();
 
-public slots:
+  public slots:
     // Docu in base class
     void activateLayer(Size layer_index) override;
     // Docu in base class
     void removeLayer(Size layer_index) override;
-    //docu in base class
+    // docu in base class
     void updateLayer(Size i) override;
     // Docu in base class
     void horizontalScrollBarChange(int value) override;
@@ -123,12 +122,12 @@ public slots:
     /// Picks an appropriate layer for projection and emits the signal showProjections(LayerDataBase*).
     void pickProjectionLayer();
 
-protected slots:
+  protected slots:
 
     /// Reacts on changed layer parameters
     void currentLayerParametersChanged_();
 
-protected:
+  protected:
     // Docu in base class
     bool finishAdding_() override;
 
@@ -170,21 +169,21 @@ protected:
       float gradientPos = val;
       switch (intensity_mode_)
       {
-      case IM_NONE:
-        gradientPos = val;
-        break;
+        case IM_NONE:
+          gradientPos = val;
+          break;
 
-      case IM_PERCENTAGE:
-        gradientPos = val * percentage_factor_;
-        break;
+        case IM_PERCENTAGE:
+          gradientPos = val * percentage_factor_;
+          break;
 
-      case IM_SNAP:
-        gradientPos = val * snap_factor;
-        break;
+        case IM_SNAP:
+          gradientPos = val * snap_factor;
+          break;
 
-      case IM_LOG:
-        gradientPos = std::log(val + 1);
-        break;
+        case IM_LOG:
+          gradientPos = std::log(val + 1);
+          break;
       }
       return gradient.precalculatedColorIndex(gradientPos);
     }
@@ -199,10 +198,10 @@ protected:
       return gradient.precalculatedColorByIndex(precalculatedColorIndex_(val, gradient, snap_factor));
     }
 
-    /** 
+    /**
       @brief For a certain dimension: computes the size a data point would need, such that the image
              reaches a certain coverage
-      
+
       Internally, this function makes use of the members 'canvas_coverage_min_' (giving the fraction (e.g. 20%) of area which should be covered by data)
       and 'pen_size_max_' (maximum allowed number of pixels per data point).
 
@@ -211,7 +210,7 @@ protected:
       @return The factor by which @p pen_size increased (gives a hint of how many data points should be merged to avoid overplotting)
     */
     double adaptPenScaling_(double ratio_data2pixel, double& pen_size) const;
-    
+
     /// Recalculates the dot gradient of a layer
     void recalculateDotGradient_(Size layer);
 
@@ -249,13 +248,13 @@ protected:
       return dataToWidget_(xy.getX(), xy.getY());
     }
 
-    //docu in base class
+    // docu in base class
     void translateLeft_(Qt::KeyboardModifiers m) override;
-    //docu in base class
+    // docu in base class
     void translateRight_(Qt::KeyboardModifiers m) override;
-    //docu in base class
+    // docu in base class
     void translateForward_() override;
-    //docu in base class
+    // docu in base class
     void translateBackward_() override;
 
     /// Finishes context menu after customization to peaks, features or consensus features
@@ -276,10 +275,9 @@ protected:
 
     /// stores the linear color gradient for non-log modes
     MultiGradient linear_gradient_;
-    
-    double pen_size_min_; ///< minimum number of pixels for one data point
-    double pen_size_max_; ///< maximum number of pixels for one data point
+
+    double pen_size_min_;        ///< minimum number of pixels for one data point
+    double pen_size_max_;        ///< maximum number of pixels for one data point
     double canvas_coverage_min_; ///< minimum coverage of the canvas required; if lower, points are upscaled in size
   };
-}
-
+} // namespace OpenMS

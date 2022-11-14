@@ -34,11 +34,11 @@
 
 #include <iostream>
 
-//OpenMS
-#include <OpenMS/VISUAL/Plot3DWidget.h>
-#include <OpenMS/VISUAL/Plot3DOpenGLCanvas.h>
+// OpenMS
 #include <OpenMS/VISUAL/AxisWidget.h>
 #include <OpenMS/VISUAL/DIALOGS/Plot2DGoToDialog.h>
+#include <OpenMS/VISUAL/Plot3DOpenGLCanvas.h>
+#include <OpenMS/VISUAL/Plot3DWidget.h>
 
 
 using namespace std;
@@ -48,8 +48,7 @@ namespace OpenMS
   using namespace Internal;
   using namespace Math;
 
-  Plot3DWidget::Plot3DWidget(const Param & preferences, QWidget * parent) :
-    PlotWidget(preferences, parent)
+  Plot3DWidget::Plot3DWidget(const Param& preferences, QWidget* parent) : PlotWidget(preferences, parent)
   {
     setCanvas_(new Plot3DCanvas(preferences, this));
 
@@ -73,7 +72,7 @@ namespace OpenMS
 
   bool Plot3DWidget::isLegendShown() const
   {
-    return static_cast<const Plot3DCanvas *>(canvas_)->isLegendShown();
+    return static_cast<const Plot3DCanvas*>(canvas_)->isLegendShown();
   }
 
   void Plot3DWidget::showGoToDialog()
@@ -94,4 +93,4 @@ namespace OpenMS
     }
   }
 
-} //namespace
+} // namespace OpenMS

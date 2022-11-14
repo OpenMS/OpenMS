@@ -32,18 +32,16 @@
 // $Authors: Johannes Junker, Chris Bielow $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/VISUAL/TOPPASInputFileListVertex.h>
-
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/SYSTEM/File.h>
-#include <OpenMS/VISUAL/TOPPASScene.h>
-#include <OpenMS/VISUAL/TOPPASToolVertex.h>
 #include <OpenMS/VISUAL/DIALOGS/TOPPASInputFilesDialog.h>
 #include <OpenMS/VISUAL/MISC/GUIHelpers.h>
-
-#include <QtCore/QFileInfo>
+#include <OpenMS/VISUAL/TOPPASInputFileListVertex.h>
+#include <OpenMS/VISUAL/TOPPASScene.h>
+#include <OpenMS/VISUAL/TOPPASToolVertex.h>
 #include <QtCore/QDir>
+#include <QtCore/QFileInfo>
 
 namespace OpenMS
 {
@@ -57,7 +55,7 @@ namespace OpenMS
     return "InputVertex";
   }
 
-  void TOPPASInputFileListVertex::mouseDoubleClickEvent(QGraphicsSceneMouseEvent * /*e*/)
+  void TOPPASInputFileListVertex::mouseDoubleClickEvent(QGraphicsSceneMouseEvent* /*e*/)
   {
     showFilesDialog();
   }
@@ -70,9 +68,9 @@ namespace OpenMS
       QStringList updated_filelist;
       tifd.getFilenames(updated_filelist);
       if (getFileNames() != updated_filelist)
-      { // files were changed
+      {                                 // files were changed
         setFilenames(updated_filelist); // to correct filenames (separators etc)
-        qobject_cast<TOPPASScene *>(scene())->updateEdgeColors();
+        qobject_cast<TOPPASScene*>(scene())->updateEdgeColors();
 
         // update cwd
         cwd_ = tifd.getCWD();
@@ -87,9 +85,7 @@ namespace OpenMS
     TOPPASVertex::paint(painter, option, widget);
 
     // display number of input files
-    QString text = QString::number(getFileNames().size())
-                   + " input file"
-                   + (getFileNames().size() == 1 ? "" : "s");
+    QString text = QString::number(getFileNames().size()) + " input file" + (getFileNames().size() == 1 ? "" : "s");
     QRectF text_boundings = painter->boundingRect(QRectF(0, 0, 0, 0), Qt::AlignCenter, text);
     painter->drawText(-(int)(text_boundings.width() / 2.0), (int)(text_boundings.height() / 4.0), text);
 
@@ -110,7 +106,7 @@ namespace OpenMS
   bool TOPPASInputFileListVertex::fileNamesValid()
   {
     QStringList fl = getFileNames();
-    foreach(const QString& file, fl)
+    foreach (const QString& file, fl)
     {
       if (!File::exists(file))
       {
@@ -140,12 +136,12 @@ namespace OpenMS
 
   void TOPPASInputFileListVertex::run()
   {
-    round_total_   = (int) output_files_.size(); // for now each file is one round; for the future we might allow to create blocks of files (e.g. for replicate measurements)
-    round_counter_ = (int) round_total_;
+    round_total_ = (int)output_files_.size(); // for now each file is one round; for the future we might allow to create blocks of files (e.g. for replicate measurements)
+    round_counter_ = (int)round_total_;
 
     this->finished_ = true; // input node is ready to go (file check was already done)
 
-    //std::cerr << "#" << this->getTopoNr() << " set #rounds: " << round_total_ << "\n";
+    // std::cerr << "#" << this->getTopoNr() << " set #rounds: " << round_total_ << "\n";
 
     for (ConstEdgeIterator it = outEdgesBegin(); it != outEdgesEnd(); ++it)
     {
@@ -194,4 +190,4 @@ namespace OpenMS
     TOPPASVertex::outEdgeHasChanged();
   }
 
-}
+} // namespace OpenMS

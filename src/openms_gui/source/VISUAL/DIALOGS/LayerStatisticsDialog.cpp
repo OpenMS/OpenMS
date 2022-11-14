@@ -34,14 +34,11 @@
 
 // OpenMS includes
 #include <OpenMS/VISUAL/DIALOGS/LayerStatisticsDialog.h>
-#include <ui_LayerStatisticsDialog.h>
-
 #include <OpenMS/VISUAL/PlotWidget.h>
 #include <OpenMS/VISUAL/VISITORS/LayerStatistics.h>
-
 #include <QtWidgets/QPushButton>
-
 #include <array>
+#include <ui_LayerStatisticsDialog.h>
 #include <variant>
 
 using namespace std;
@@ -62,15 +59,14 @@ namespace OpenMS
   QString toStringWithLocale(const T number)
   {
     std::stringstream iss;
-    iss.imbue(std::locale("")); // use system locale, whatever it may be, e.g. "DE_de" 
+    iss.imbue(std::locale("")); // use system locale, whatever it may be, e.g. "DE_de"
     iss << number;
     return QString(iss.str().c_str());
     // custom locale is only valid for 'iss' and vanishes here
   }
 
 
-  void showDistribution(LayerStatisticsDialog* lsd, const QString& text,
-                        const Math::Histogram<>& hist)
+  void showDistribution(LayerStatisticsDialog* lsd, const QString& text, const Math::Histogram<>& hist)
   {
     if (text == "intensity")
     {
@@ -108,10 +104,10 @@ namespace OpenMS
   void addHeaderRow(QTableWidget* table, int& row_i, const QString& row_name)
   {
     addEmptyRow(table, row_i, "");
-                                
+
     QTableWidgetItem* item = new QTableWidgetItem();
     item->setText(row_name);
-    //item->setBackgroundColor(QColor(Qt::darkGray));
+    // item->setBackgroundColor(QColor(Qt::darkGray));
     QFont font;
     font.setBold(true);
     item->setFont(font);
@@ -121,23 +117,20 @@ namespace OpenMS
     ++row_i;
   }
 
-  void addRangeRow(LayerStatisticsDialog* lsd, QTableWidget* table, int& row_i,
-                   const RangeStatsType& row_name, const RangeStatsVariant& row_data,
-                   const bool enable_show_button, LayerStatistics* stats)
+  void addRangeRow(LayerStatisticsDialog* lsd, QTableWidget* table, int& row_i, const RangeStatsType& row_name, const RangeStatsVariant& row_data, const bool enable_show_button,
+                   LayerStatistics* stats)
   {
     addEmptyRow(table, row_i, row_name.name.c_str());
     // get column data
-    std::array<QString, col_count> col_values = std::visit(overload{
-      [&](const RangeStatsInt& d) -> std::array<QString, col_count> { return {toStringWithLocale(d.getCount()),
-                                                                      QString::number(d.getMin()),
-                                                                      QString::number(d.getMax()),
-                                                                      QString::number(d.getAvg(), 'f', 2)}; },
-      [&](const RangeStatsDouble& d) -> std::array<QString, col_count> { return {toStringWithLocale(d.getCount()),
-                                                                         QString::number(d.getMin(), 'f', 2),
-                                                                         QString::number(d.getMax(), 'f', 2),
-                                                                         QString::number(d.getAvg(), 'f', 2)}; }
-      }, row_data);
-    
+    std::array<QString, col_count> col_values =
+      std::visit(overload {[&](const RangeStatsInt& d) -> std::array<QString, col_count> {
+                             return {toStringWithLocale(d.getCount()), QString::number(d.getMin()), QString::number(d.getMax()), QString::number(d.getAvg(), 'f', 2)};
+                           },
+                           [&](const RangeStatsDouble& d) -> std::array<QString, col_count> {
+                             return {toStringWithLocale(d.getCount()), QString::number(d.getMin(), 'f', 2), QString::number(d.getMax(), 'f', 2), QString::number(d.getAvg(), 'f', 2)};
+                           }},
+                 row_data);
+
     populateRow(table, row_i, col_values);
 
     if (enable_show_button)
@@ -146,7 +139,7 @@ namespace OpenMS
       table->setCellWidget(row_i, col_count, button);
       QObject::connect(button, &QPushButton::clicked, [=]() { showDistribution(lsd, row_name.name.c_str(), stats->getDistribution(row_name)); });
     }
-    
+
     // next row
     ++row_i;
   }
@@ -157,15 +150,12 @@ namespace OpenMS
 
     // column data
     populateRow(table, row_i, {toStringWithLocale(row_data.counter), "-", "-", "-"});
-    
+
     // next row
     ++row_i;
-  } 
+  }
 
-  LayerStatisticsDialog::LayerStatisticsDialog(PlotWidget* parent, std::unique_ptr<LayerStatistics>&& stats) :
-    QDialog(parent),
-    stats_(std::move(stats)),
-    ui_(new Ui::LayerStatisticsDialogTemplate)
+  LayerStatisticsDialog::LayerStatisticsDialog(PlotWidget* parent, std::unique_ptr<LayerStatistics>&& stats) : QDialog(parent), stats_(std::move(stats)), ui_(new Ui::LayerStatisticsDialogTemplate)
   {
     ui_->setupUi(this);
 
@@ -184,7 +174,7 @@ namespace OpenMS
         addHeaderRow(ui_->table_, row_i, StatsSourceNames[(size_t)item.first.src]);
         old_category = item.first.src;
       }
-      bool show_button = (item.first == RangeStatsType{RangeStatsSource::CORE, "intensity"}) || item.first.src == RangeStatsSource::METAINFO;
+      bool show_button = (item.first == RangeStatsType {RangeStatsSource::CORE, "intensity"}) || item.first.src == RangeStatsSource::METAINFO;
       addRangeRow(this, ui_->table_, row_i, item.first, item.second, show_button, stats_.get());
     }
 
@@ -197,11 +187,11 @@ namespace OpenMS
       }
     }
   }
-  
+
   LayerStatisticsDialog::~LayerStatisticsDialog()
   {
     delete ui_;
   }
 
 
-} // namespace
+} // namespace OpenMS

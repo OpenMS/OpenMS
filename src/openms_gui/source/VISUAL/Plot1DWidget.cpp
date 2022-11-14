@@ -33,18 +33,16 @@
 // --------------------------------------------------------------------------
 
 // OpenMS
-#include <OpenMS/VISUAL/Plot1DWidget.h>
-
 #include <OpenMS/VISUAL/AxisWidget.h>
 #include <OpenMS/VISUAL/DIALOGS/Plot1DGoToDialog.h>
-
-#include <QtWidgets/QSpacerItem>
-#include <QtWidgets/QScrollBar>
-#include <QtWidgets/QFileDialog>
-#include <QPainter>
+#include <OpenMS/VISUAL/Plot1DWidget.h>
 #include <QPaintEvent>
-#include <QtSvg/QtSvg>
+#include <QPainter>
 #include <QtSvg/QSvgGenerator>
+#include <QtSvg/QtSvg>
+#include <QtWidgets/QFileDialog>
+#include <QtWidgets/QScrollBar>
+#include <QtWidgets/QSpacerItem>
 
 using namespace std;
 
@@ -53,8 +51,7 @@ namespace OpenMS
   using namespace Internal;
   using namespace Math;
 
-  Plot1DWidget::Plot1DWidget(const Param& preferences, const DIM gravity_axis, QWidget* parent) :
-    PlotWidget(preferences, parent)
+  Plot1DWidget::Plot1DWidget(const Param& preferences, const DIM gravity_axis, QWidget* parent) : PlotWidget(preferences, parent)
   {
     x_axis_->setAllowShortNumbers(false);
 
@@ -92,8 +89,8 @@ namespace OpenMS
     if (canvas()->getGravitator().getGravityAxis() == DIM::X)
     {
       swap(other_axis, int_axis);
-      //vis_area_xy.swapDimensions();
-      //all_area_xy.swapDimensions();
+      // vis_area_xy.swapDimensions();
+      // all_area_xy.swapDimensions();
     }
     // from now on, we can assume X-dim = data; Y-dim = gravity=intensity
 
@@ -223,7 +220,7 @@ namespace OpenMS
     QString filter = "Raster images *.bmp *.png *.jpg *.gif (*.bmp *.png *.jpg *.gif);;Vector images *.svg (*.svg)";
     QString sel_filter;
     QString file_name = QFileDialog::getSaveFileName(this, "Save File", "", filter, &sel_filter);
-    
+
     bool x_visible = x_scrollbar_->isVisible();
     bool y_visible = y_scrollbar_->isVisible();
     x_scrollbar_->hide();
@@ -268,4 +265,4 @@ namespace OpenMS
     }
   }
 
-} //namespace
+} // namespace OpenMS

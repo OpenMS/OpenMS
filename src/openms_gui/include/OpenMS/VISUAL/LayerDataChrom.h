@@ -95,7 +95,7 @@ namespace OpenMS
       return chromatogram_map_->getChromatogram(idx);
     }
 
-    
+
     /**
       @brief Set the current in-memory chrom data
     */
@@ -127,7 +127,7 @@ namespace OpenMS
     {
       return on_disc_peaks_;
     }
-    
+
     OSWDataSharedPtrType& getChromatogramAnnotation()
     {
       return chrom_annotation_;
@@ -152,5 +152,4 @@ namespace OpenMS
     OSWDataSharedPtrType chrom_annotation_;
   };
 
-} //namespace
-
+} // namespace OpenMS

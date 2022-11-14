@@ -36,10 +36,8 @@
 #pragma once
 
 // OpenMS_GUI config
-#include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
-
 #include <OpenMS/FILTERING/DATAREDUCTION/DataFilters.h>
-
+#include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
 #include <QDialog>
 
 namespace Ui
@@ -53,35 +51,34 @@ namespace OpenMS
       @brief Dialog for creating and changing a DataFilter
 
   */
-  class OPENMS_GUI_DLLAPI DataFilterDialog :
-    public QDialog
+  class OPENMS_GUI_DLLAPI DataFilterDialog : public QDialog
   {
     Q_OBJECT
 
-public:
+  public:
     /// constructor
-    DataFilterDialog(DataFilters::DataFilter & filter, QWidget * parent);
+    DataFilterDialog(DataFilters::DataFilter& filter, QWidget* parent);
 
     /// destructor
     virtual ~DataFilterDialog();
 
-protected slots:
+  protected slots:
     /// Checks if the settings are valid and writes them to filter_ if so
     void check_();
     /// Is called when field_ changes and enables/disables the meta data functionality as needed
-    void field_changed_(const QString &);
+    void field_changed_(const QString&);
     /// Is called when op_ changes and disables the value field, if operation is "exists", else enables it
-    void op_changed_(const QString &);
+    void op_changed_(const QString&);
 
-protected:
+  protected:
     /// Reference to the filter that is modified
-    DataFilters::DataFilter & filter_;
+    DataFilters::DataFilter& filter_;
 
-private:
+  private:
     /// Not implemented
     DataFilterDialog();
 
     Ui::DataFilterDialogTemplate* ui_;
   };
 
-}
+} // namespace OpenMS

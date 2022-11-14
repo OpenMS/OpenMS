@@ -36,7 +36,6 @@
 
 // OpenMS_GUI config
 #include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
-
 #include <QtWidgets/QDialog>
 
 namespace Ui
@@ -57,15 +56,15 @@ namespace OpenMS
       @ingroup TOPPAS_elements
       @ingroup Dialogs
   */
-  class OPENMS_GUI_DLLAPI TOPPASInputFilesDialog :
-    public QDialog
+  class OPENMS_GUI_DLLAPI TOPPASInputFilesDialog : public QDialog
   {
     Q_OBJECT
 
-public:
+  public:
     /// Constructor
-    TOPPASInputFilesDialog(QWidget* parent)
-     : TOPPASInputFilesDialog(QStringList(), "", parent) {}
+    TOPPASInputFilesDialog(QWidget* parent) : TOPPASInputFilesDialog(QStringList(), "", parent)
+    {
+    }
     TOPPASInputFilesDialog(const QStringList& list, const QString& cwd, QWidget* parent = 0);
     ~TOPPASInputFilesDialog() override;
 
@@ -74,13 +73,12 @@ public:
     const QString& getCWD() const;
 
 
-private:
+  private:
     Ui::TOPPASInputFilesDialogTemplate* ui_;
     Internal::InputFileList* ifl_;
   };
-  
-}
+
+} // namespace OpenMS
 
 // this is required to allow Ui_SwathTabWidget (auto UIC'd from .ui) to have a TOPPASInputFilesDialog member
 using TOPPASInputFilesDialog = OpenMS::TOPPASInputFilesDialog;
-

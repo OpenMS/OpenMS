@@ -32,15 +32,13 @@
 // $Authors: Chris Bielow $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/VISUAL/DIALOGS/PythonModuleRequirement.h>
-#include <ui_PythonModuleRequirement.h>
-
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/SYSTEM/PythonInfo.h>
-
+#include <OpenMS/VISUAL/DIALOGS/PythonModuleRequirement.h>
+#include <QMessageBox>
 #include <QString>
 #include <QtWidgets/QFileDialog>
-#include <QMessageBox>
+#include <ui_PythonModuleRequirement.h>
 
 using namespace std;
 
@@ -48,9 +46,7 @@ namespace OpenMS
 {
   namespace Internal
   {
-    PythonModuleRequirement::PythonModuleRequirement(QWidget* parent) :
-      QWidget(parent),
-      ui_(new Ui::PythonModuleRequirement)
+    PythonModuleRequirement::PythonModuleRequirement(QWidget* parent) : QWidget(parent), ui_(new Ui::PythonModuleRequirement)
     {
       ui_->setupUi(this);
     }
@@ -63,13 +59,17 @@ namespace OpenMS
       ui_->lbl_modules->setText(" ... updating ... ");
       for (const auto& s : required_modules_)
       {
-        if (PythonInfo::isPackageInstalled(python_exe, s)) valid_modules.push_back(s);
-        else missing_modules.push_back(s);
+        if (PythonInfo::isPackageInstalled(python_exe, s))
+          valid_modules.push_back(s);
+        else
+          missing_modules.push_back(s);
       }
       emit valueChanged(valid_modules, missing_modules);
       QString text = "<ul>";
-      if (!valid_modules.empty()) text += QString("<li> [<code style = \"color: green\">%1</code>] present").arg(valid_modules.join(", "));
-      if (!missing_modules.empty()) text += QString("<li> [<code style = \"color: red\">%1</code>] missing").arg(missing_modules.join(", "));
+      if (!valid_modules.empty())
+        text += QString("<li> [<code style = \"color: green\">%1</code>] present").arg(valid_modules.join(", "));
+      if (!missing_modules.empty())
+        text += QString("<li> [<code style = \"color: red\">%1</code>] missing").arg(missing_modules.join(", "));
       text += "</ul>";
       ui_->lbl_modules->setText(text);
       // if no modules are missing, we are good to go...
@@ -98,6 +98,5 @@ namespace OpenMS
     }
 
 
-  } //namespace Internal
-} //namspace OpenMS
-
+  } // namespace Internal
+} // namespace OpenMS

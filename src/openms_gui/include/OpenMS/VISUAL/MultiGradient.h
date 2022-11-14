@@ -37,19 +37,19 @@
 // OpenMS_GUI config
 #include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
 
-//OpenMS
-#include <OpenMS/CONCEPT/Types.h>
-#include <OpenMS/CONCEPT/Macros.h>
+// OpenMS
 #include <OpenMS/CONCEPT/Exception.h>
+#include <OpenMS/CONCEPT/Macros.h>
+#include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
 
-//QT
+// QT
 #include <QtGui/QColor>
 
-//STL
+// STL
+#include <cmath>
 #include <map>
 #include <vector>
-#include <cmath>
 
 namespace OpenMS
 {
@@ -66,7 +66,7 @@ namespace OpenMS
   */
   class OPENMS_GUI_DLLAPI MultiGradient
   {
-public:
+  public:
     /// Returns the default gradient for linear intensity mode
     static MultiGradient getDefaultGradientLinearIntensityMode();
 
@@ -76,21 +76,21 @@ public:
     /// Interpolation mode.
     enum InterpolationMode
     {
-      IM_LINEAR,        ///< IM_LINEAR returns the linear interpolation (default).
-      IM_STAIRS         ///< IM_STAIRS returns the color of the next lower position
+      IM_LINEAR, ///< IM_LINEAR returns the linear interpolation (default).
+      IM_STAIRS  ///< IM_STAIRS returns the color of the next lower position
     };
 
     /// Constructor
     MultiGradient();
 
     /// Copy constructor
-    MultiGradient(const MultiGradient & multigradient);
+    MultiGradient(const MultiGradient& multigradient);
 
     /// Destructor
     ~MultiGradient();
 
     /// Assignment operator
-    MultiGradient & operator=(const MultiGradient & rhs);
+    MultiGradient& operator=(const MultiGradient& rhs);
 
     /// sets or replaces the color at position @p position
     void insert(double position, QColor color);
@@ -133,22 +133,23 @@ public:
     void deactivatePrecalculationMode();
 
     /// index of color in precalculated table by position in gradient
-    inline Int precalculatedColorIndex( double position ) const
+    inline Int precalculatedColorIndex(double position) const
     {
       OPENMS_PRECONDITION(pre_.size() != 0, "MultiGradient::precalculatedColorIndex(double): Precalculation mode not activated!");
-      OPENMS_PRECONDITION(position >= pre_min_, (String("MultiGradient::precalculatedColorIndex(double): position ") + position + " out of specified range (" + pre_min_ + "-" + (pre_min_ + pre_size_) + ")!").c_str());
+      OPENMS_PRECONDITION(position >= pre_min_,
+                          (String("MultiGradient::precalculatedColorIndex(double): position ") + position + " out of specified range (" + pre_min_ + "-" + (pre_min_ + pre_size_) + ")!").c_str());
 
       Int index = (Int)((position - pre_min_) / pre_size_ * pre_steps_);
 
-      return qBound( 0, index, (Int)pre_.size() - 1 );
+      return qBound(0, index, (Int)pre_.size() - 1);
     }
 
     /// precalculated color by its index in the table
-    inline QColor precalculatedColorByIndex( Int index ) const
+    inline QColor precalculatedColorByIndex(Int index) const
     {
       OPENMS_PRECONDITION(pre_.size() != 0, "MultiGradient::precalculatedColorByIndex(Int): Precalculation mode not activated!");
-      OPENMS_PRECONDITION( index >= 0, "MultiGradient::precalculatedColorByIndex(Int): negative indexes not allowed");
-      OPENMS_PRECONDITION( index < (Int)pre_.size(), (String("MultiGradient::indexedColor(Int): index ") + index + " out of specified range (0-" + pre_.size() + ")!").c_str());
+      OPENMS_PRECONDITION(index >= 0, "MultiGradient::precalculatedColorByIndex(Int): negative indexes not allowed");
+      OPENMS_PRECONDITION(index < (Int)pre_.size(), (String("MultiGradient::indexedColor(Int): index ") + index + " out of specified range (0-" + pre_.size() + ")!").c_str());
 
       return pre_[index];
     }
@@ -162,16 +163,16 @@ public:
     */
     inline QColor precalculatedColorAt(double position) const
     {
-      return precalculatedColorByIndex( precalculatedColorIndex( position ) );
+      return precalculatedColorByIndex(precalculatedColorIndex(position));
     }
 
-    ///return the number of color points
+    /// return the number of color points
     Size size() const;
 
     /// size of precalculated colors table
     Size precalculatedSize() const
     {
-        return pre_.size();
+      return pre_.size();
     }
 
     /// sets the interpolation mode (default or stairs). Default is linear
@@ -179,7 +180,7 @@ public:
     /// returns the interpolation mode
     InterpolationMode getInterpolationMode() const;
 
-    ///convert to string representation
+    /// convert to string representation
     std::string toString() const;
     /**
         @brief Sets the gradient by string representation.
@@ -196,9 +197,9 @@ public:
     <LI> "Stairs|0,#ffff00;11.5,#ffaa00;32,#ff0000;55,#aa00ff;78,#5500ff;100,#000000"
         </UL>
     */
-    void fromString(const std::string & gradient);
+    void fromString(const std::string& gradient);
 
-protected:
+  protected:
     /// Map of index and color
     std::map<double, QColor> pos_col_;
     /// Current interpolation mode
@@ -211,7 +212,6 @@ protected:
     double pre_size_;
     /// Steps of the precalculated color range
     UInt pre_steps_;
-
   };
 
-}
+} // namespace OpenMS

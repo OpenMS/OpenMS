@@ -38,8 +38,8 @@
 #include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
 
 // OpenMS
-#include <OpenMS/VISUAL/PlotCanvas.h>
 #include <OpenMS/VISUAL/MultiGradient.h>
+#include <OpenMS/VISUAL/PlotCanvas.h>
 
 
 class QPainter;
@@ -63,51 +63,49 @@ namespace OpenMS
 
     @ingroup PlotWidgets
   */
-  class OPENMS_GUI_DLLAPI Plot3DCanvas :
-    public PlotCanvas
+  class OPENMS_GUI_DLLAPI Plot3DCanvas : public PlotCanvas
   {
     Q_OBJECT
 
     friend class Plot3DOpenGLCanvas;
 
-public:
-
+  public:
     /// Constructor
-    Plot3DCanvas(const Param & preferences, QWidget * parent = nullptr);
+    Plot3DCanvas(const Param& preferences, QWidget* parent = nullptr);
     /// Destructor
-     ~Plot3DCanvas() override;
+    ~Plot3DCanvas() override;
 
-    ///Different shade modes
+    /// Different shade modes
     enum ShadeModes
     {
       SHADE_FLAT = 0,
       SHADE_SMOOTH = 1
     };
 
-    ///returns the Plot3DOpenGLcanvas
-    Plot3DOpenGLCanvas * openglwidget() const;
+    /// returns the Plot3DOpenGLcanvas
+    Plot3DOpenGLCanvas* openglwidget() const;
 
     ///@name Reimplemented Qt events
     //@{
-    void resizeEvent(QResizeEvent * e) override;
-    void contextMenuEvent(QContextMenuEvent * e) override;
+    void resizeEvent(QResizeEvent* e) override;
+    void contextMenuEvent(QContextMenuEvent* e) override;
     //@}
     /// Returns if the legend is shown
     bool isLegendShown() const;
-    ///Shows/hides the legend
+    /// Shows/hides the legend
     void showLegend(bool);
-    ///pointer to the SpectrumOpenGLCanvas implementation
-    Plot3DOpenGLCanvas * openglcanvas_;
+    /// pointer to the SpectrumOpenGLCanvas implementation
+    Plot3DOpenGLCanvas* openglcanvas_;
 
     // docu in base class
     void showCurrentLayerPreferences() override;
 
-signals:
+  signals:
 
     /// Requests to display all spectra in 2D plot
     void showCurrentPeaksAs2D();
 
-public slots:
+  public slots:
 
     // Docu in base class
     void activateLayer(Size layer_index) override;
@@ -118,33 +116,32 @@ public slots:
     // Docu in base class
     void intensityModeChange_() override;
 
-protected slots:
+  protected slots:
 
     /// Reacts on changed layer parameters
     void currentLayerParamtersChanged_();
 
-protected:
-
+  protected:
     // Docu in base class
     bool finishAdding_() override;
 
     // Reimplementation in order to update the OpenGL widget
-    void update_(const char * caller_name = nullptr) override;
+    void update_(const char* caller_name = nullptr) override;
 
-    ///whether the legend is shown or not
+    /// whether the legend is shown or not
     bool legend_shown_;
 
-    ///stores the linear color gradient for non-log modes
+    /// stores the linear color gradient for non-log modes
     MultiGradient linear_gradient_;
 
-    //docu in base class
+    // docu in base class
     void translateLeft_(Qt::KeyboardModifiers m) override;
-    //docu in base class
+    // docu in base class
     void translateRight_(Qt::KeyboardModifiers m) override;
-    //docu in base class
+    // docu in base class
     void translateForward_() override;
-    //docu in base class
+    // docu in base class
     void translateBackward_() override;
   };
 
-} //namespace
+} // namespace OpenMS

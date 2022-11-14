@@ -32,12 +32,12 @@
 // $Authors: Marc Sturm $
 // --------------------------------------------------------------------------
 
-//OpenMS
+// OpenMS
 #include <OpenMS/VISUAL/VISUALIZER/AcquisitionVisualizer.h>
 
-//QT
-#include <QtWidgets/QLineEdit>
+// QT
 #include <QValidator>
+#include <QtWidgets/QLineEdit>
 
 // STL
 #include <iostream>
@@ -47,11 +47,8 @@ using namespace std;
 namespace OpenMS
 {
 
-  AcquisitionVisualizer::AcquisitionVisualizer(bool editable, QWidget * parent) :
-    BaseVisualizerGUI(editable, parent),
-    BaseVisualizer<Acquisition>()
+  AcquisitionVisualizer::AcquisitionVisualizer(bool editable, QWidget* parent) : BaseVisualizerGUI(editable, parent), BaseVisualizer<Acquisition>()
   {
-
     addLabel_("Show Acquisition information");
     addSeparator_();
     addIntLineEdit_(acquisitionnumber_, "Identifier of the scan");
@@ -77,4 +74,4 @@ namespace OpenMS
     update_();
   }
 
-}
+} // namespace OpenMS

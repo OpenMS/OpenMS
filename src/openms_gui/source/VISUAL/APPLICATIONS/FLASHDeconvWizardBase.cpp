@@ -32,20 +32,19 @@
 // $Authors: Jihyung Kim $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/VISUAL/APPLICATIONS/FLASHDeconvWizardBase.h>
-#include <ui_FLASHDeconvWizardBase.h>
-
-#include <OpenMS/APPLICATIONS/ToolHandler.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
+#include <OpenMS/APPLICATIONS/ToolHandler.h>
 #include <OpenMS/CONCEPT/LogStream.h>
+#include <OpenMS/VISUAL/APPLICATIONS/FLASHDeconvWizardBase.h>
 #include <OpenMS/VISUAL/APPLICATIONS/MISC/QApplicationTOPP.h>
 #include <OpenMS/VISUAL/DIALOGS/FLASHDeconvTabWidget.h>
+#include <ui_FLASHDeconvWizardBase.h>
 
-//Qt
-#include <QtCore/QDir>
+// Qt
 #include <QDesktopServices>
 #include <QMessageBox>
 #include <QSettings>
+#include <QtCore/QDir>
 
 using namespace std;
 using namespace OpenMS;
@@ -55,10 +54,9 @@ namespace OpenMS
   using namespace Internal;
 
   FLASHDeconvWizardBase::FLASHDeconvWizardBase(QWidget* parent) :
-    QMainWindow(parent),
-    DefaultParamHandler("FLASHDeconvWizardBase"),
-    //clipboard_scene_(nullptr),
-    ui(new Ui::FLASHDeconvWizardBase)
+      QMainWindow(parent), DefaultParamHandler("FLASHDeconvWizardBase"),
+      // clipboard_scene_(nullptr),
+      ui(new Ui::FLASHDeconvWizardBase)
   {
     ui->setupUi(this);
     QSettings settings("OpenMS", "FLASHDeconvWizard");
@@ -85,7 +83,7 @@ namespace OpenMS
 
   void OpenMS::FLASHDeconvWizardBase::on_actionExit_triggered()
   {
-      QApplicationTOPP::exit();
+    QApplicationTOPP::exit();
   }
 
   void OpenMS::FLASHDeconvWizardBase::on_actionVisit_FLASHDeconv_homepage_triggered()
@@ -106,9 +104,4 @@ namespace OpenMS
     }
   }
 
-} //namespace OpenMS
-
-
-
-
-
+} // namespace OpenMS

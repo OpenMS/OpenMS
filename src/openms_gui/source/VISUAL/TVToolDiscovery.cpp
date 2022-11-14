@@ -32,18 +32,13 @@
 // $Authors: David Voigt, Ruben Grünberg $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/VISUAL/TVToolDiscovery.h>
-
 #include <OpenMS/APPLICATIONS/ToolHandler.h>
-
 #include <OpenMS/CONCEPT/LogStream.h>
-
-#include <OpenMS/FORMAT/ParamXMLFile.h>
 #include <OpenMS/FORMAT/FileHandler.h>
-
-#include <OpenMS/SYSTEM/File.h>
+#include <OpenMS/FORMAT/ParamXMLFile.h>
 #include <OpenMS/SYSTEM/ExternalProcess.h>
-
+#include <OpenMS/SYSTEM/File.h>
+#include <OpenMS/VISUAL/TVToolDiscovery.h>
 #include <QCoreApplication>
 #include <QDir>
 
@@ -53,11 +48,10 @@ namespace OpenMS
   void TVToolDiscovery::loadToolParams()
   {
     // tool params are only loaded once by using a immediately evaluated lambda
-    static bool _ [[maybe_unused]] = [&]() -> bool
-    {
+    static bool _ [[maybe_unused]] = [&]() -> bool {
       // Get a map of all tools
-      const auto &tools = ToolHandler::getTOPPToolList();
-      const auto &utils = ToolHandler::getUtilList();
+      const auto& tools = ToolHandler::getTOPPToolList();
+      const auto& utils = ToolHandler::getUtilList();
       // Launch threads for loading tool/util params.
       for (const auto& tool : tools)
       {
@@ -75,7 +69,7 @@ namespace OpenMS
   {
     plugin_param_futures_.clear();
     plugins_.clear();
-    const auto &plugins = getPlugins_();
+    const auto& plugins = getPlugins_();
     for (auto& plugin : plugins)
     {
       plugin_param_futures_.push_back(std::async(std::launch::async, getParamFromIni_, plugin, true));
@@ -85,8 +79,7 @@ namespace OpenMS
   void TVToolDiscovery::waitForToolParams()
   {
     // Make sure that future results are only waited for and inserted in params_ once
-    static bool _ [[maybe_unused]] = [&]() -> bool
-    {
+    static bool _ [[maybe_unused]] = [&]() -> bool {
       // Make sure threads have been launched before waiting
       loadToolParams();
       // Wait for futures to finish
@@ -119,7 +112,8 @@ namespace OpenMS
       // Make future results available in plugin_params_
       Param new_param = param_future.get();
       // Skip if the param is empty, that means something went wrong during execution
-      if (new_param.empty()) continue;
+      if (new_param.empty())
+        continue;
       plugins_.push_back(new_param.begin().getTrace().begin()->name);
       plugin_params_.insert("", new_param);
     }
@@ -146,7 +140,7 @@ namespace OpenMS
     // Temporary file path and arguments
     String path = File::getTemporaryFile();
     String working_dir = path.prefix(path.find_last_of('/'));
-    QStringList args{"-write_ini", path.toQString()};
+    QStringList args {"-write_ini", path.toQString()};
     Param tool_param;
     String executable;
     // Return empty param if tool executable cannot be found
@@ -164,15 +158,15 @@ namespace OpenMS
     }
 
     // Write tool ini to temporary file
-    static std::atomic<int> running_processes{0}; // used to limit the number of parallel processes
+    static std::atomic<int> running_processes {0}; // used to limit the number of parallel processes
     auto lam_out = [&](const String& out) { OPENMS_LOG_INFO << out; };
     auto lam_err = [&](const String& out) { OPENMS_LOG_INFO << out; };
 
     // Spawning a thread for all tools is no problem (if std::async decides to do so)
     // but spawning that many processes failed with not enough file handles on machines with large number of cores.
     // Restricting the number of running processes solves that issue.
-    while (running_processes >= 6) 
-    { 
+    while (running_processes >= 6)
+    {
       std::this_thread::sleep_for(std::chrono::milliseconds(10));
       QCoreApplication::processEvents();
     }
@@ -196,14 +190,14 @@ namespace OpenMS
     {
       paramFile.load((path).c_str(), tool_param);
     }
-    catch(const Exception::FileNotFound& e)
+    catch (const Exception::FileNotFound& e)
     {
       std::scoped_lock lock(io_mutex);
-      OPENMS_LOG_DEBUG << e << "\n" << "TOPP tool: " << executable <<
-        " not able to write ini. Plugins must implement -write_ini parameter. Skipping." << std::endl;
+      OPENMS_LOG_DEBUG << e << "\n"
+                       << "TOPP tool: " << executable << " not able to write ini. Plugins must implement -write_ini parameter. Skipping." << std::endl;
       return tool_param;
     }
-    
+
     if (plugins)
     {
       auto tool_name = tool_param.begin().getTrace().begin()->name;
@@ -225,10 +219,8 @@ namespace OpenMS
 
     // here all supported file extensions can be added
     std::vector<std::string> valid_extensions {"", ".py"};
-    const auto comparator = [valid_extensions](const std::string& plugin) -> bool
-    {
-        return !File::executable(plugin) ||
-          (std::find(valid_extensions.begin(), valid_extensions.end(), plugin.substr(plugin.find_last_of('.'))) == valid_extensions.end());
+    const auto comparator = [valid_extensions](const std::string& plugin) -> bool {
+      return !File::executable(plugin) || (std::find(valid_extensions.begin(), valid_extensions.end(), plugin.substr(plugin.find_last_of('.'))) == valid_extensions.end());
     };
 
     if (File::fileList(plugin_path_, "*", plugins, true))
@@ -252,7 +244,7 @@ namespace OpenMS
         if (!path.mkdir(dir))
         {
           OPENMS_LOG_WARN << "Unable to create plugin directory " << plugin_path << std::endl;
-          //plugin_path_ = plugin_path;
+          // plugin_path_ = plugin_path;
           return false;
         }
       }
@@ -279,8 +271,8 @@ namespace OpenMS
 
   std::string TVToolDiscovery::findPluginExecutable(const std::string& name)
   {
-    //TODO: At the moment the usage of subdirectories in the plugin path are not possible
-    //To change that, the tool scanner has to recursively search all directories in the plugin path
+    // TODO: At the moment the usage of subdirectories in the plugin path are not possible
+    // To change that, the tool scanner has to recursively search all directories in the plugin path
     if (!plugin_params_.exists(name + ":filename"))
     {
       return "";
@@ -288,4 +280,4 @@ namespace OpenMS
     return plugin_path_ + "/" + plugin_params_.getValue(name + ":filename").toString();
   }
 
-}
+} // namespace OpenMS

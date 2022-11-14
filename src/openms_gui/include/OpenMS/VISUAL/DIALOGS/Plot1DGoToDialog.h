@@ -35,10 +35,8 @@
 #pragma once
 
 // OpenMS_GUI config
-#include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
-
 #include <OpenMS/CONCEPT/Types.h>
-
+#include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
 #include <QtWidgets/QDialog>
 
 namespace Ui
@@ -54,21 +52,20 @@ namespace OpenMS
 
       @ingroup Dialogs
   */
-  class OPENMS_GUI_DLLAPI Plot1DGoToDialog :
-    public QDialog
+  class OPENMS_GUI_DLLAPI Plot1DGoToDialog : public QDialog
   {
     Q_OBJECT
 
-public:
-    ///Constructor
-    Plot1DGoToDialog(QWidget * parent = nullptr);
-    ///Destructor
+  public:
+    /// Constructor
+    Plot1DGoToDialog(QWidget* parent = nullptr);
+    /// Destructor
     ~Plot1DGoToDialog() override;
 
-    ///Sets the m/z range displayed initially
+    /// Sets the m/z range displayed initially
     void setRange(float min, float max);
 
-    ///Sets the m/z range displayed initially
+    /// Sets the m/z range displayed initially
     void setMinMaxOfRange(float min, float max);
 
 
@@ -77,14 +74,13 @@ public:
     /// Fixes the currently stored range (i.e. ensure correct order of min-max; enforce minimum of 1 Da window IFF min==max
     void fixRange();
 
-    ///Returns the lower m/z bound
+    /// Returns the lower m/z bound
     float getMin() const;
-    ///Returns the upper m/z bound
+    /// Returns the upper m/z bound
     float getMax() const;
 
   private:
     Ui::Plot1DGoToDialogTemplate* ui_;
-
   };
 
-}
+} // namespace OpenMS

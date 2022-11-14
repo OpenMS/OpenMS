@@ -34,11 +34,11 @@
 
 #include <OpenMS/VISUAL/VISUALIZER/DataProcessingVisualizer.h>
 
-//QT
+// QT
 #include <QtWidgets/QLineEdit>
 #include <QtWidgets/QListWidget>
 
-//STL
+// STL
 #include <iostream>
 
 using namespace std;
@@ -46,9 +46,7 @@ using namespace std;
 namespace OpenMS
 {
 
-  DataProcessingVisualizer::DataProcessingVisualizer(bool editable, QWidget * parent) :
-    BaseVisualizerGUI(editable, parent),
-    BaseVisualizer<DataProcessing>()
+  DataProcessingVisualizer::DataProcessingVisualizer(bool editable, QWidget* parent) : BaseVisualizerGUI(editable, parent), BaseVisualizer<DataProcessing>()
   {
     addLabel_("Modify data processing information.");
     addSeparator_();
@@ -60,14 +58,14 @@ namespace OpenMS
 
   void DataProcessingVisualizer::update_()
   {
-    //time
+    // time
     completion_time_->setText(temp_.getCompletionTime().get().c_str());
 
-    //actions
+    // actions
     actions_->clear();
     for (Size i = 0; i < DataProcessing::SIZE_OF_PROCESSINGACTION; ++i)
     {
-      QListWidgetItem * item = new QListWidgetItem(actions_);
+      QListWidgetItem* item = new QListWidgetItem(actions_);
       item->setText(QString::fromStdString(DataProcessing::NamesOfProcessingAction[i]));
       if (temp_.getProcessingActions().count(DataProcessing::ProcessingAction(i)) == 1)
       {
@@ -97,7 +95,7 @@ namespace OpenMS
       date.set(completion_time_->text());
       ptr_->setCompletionTime(date);
     }
-    catch (exception & /*e*/)
+    catch (exception& /*e*/)
     {
       if (date.isNull())
       {
@@ -106,7 +104,7 @@ namespace OpenMS
       }
     }
 
-    //actions
+    // actions
     ptr_->getProcessingActions().clear();
     for (UInt i = 0; i < DataProcessing::SIZE_OF_PROCESSINGACTION; ++i)
     {
@@ -124,4 +122,4 @@ namespace OpenMS
     update_();
   }
 
-}
+} // namespace OpenMS

@@ -37,7 +37,7 @@
 // OpenMS_GUI config
 #include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
 
-//QT
+// QT
 #include <QtWidgets/QWidget>
 
 class QPaintEvent;
@@ -57,33 +57,33 @@ namespace OpenMS
 
       @ingroup Visual
   */
-  class OPENMS_GUI_DLLAPI ColorSelector :
-    public QWidget
+  class OPENMS_GUI_DLLAPI ColorSelector : public QWidget
   {
     Q_OBJECT
 
-public:
+  public:
     /// Constructor
-    ColorSelector(QWidget * parent = nullptr);
+    ColorSelector(QWidget* parent = nullptr);
 
     /// Destructor
     ~ColorSelector() override;
 
     /// Returns the selected color
-    const QColor & getColor();
+    const QColor& getColor();
 
     /// Sets the selected color
-    void setColor(const QColor &);
+    void setColor(const QColor&);
 
     /// Qt size hint
     QSize sizeHint() const override;
-protected:
+
+  protected:
     ///@name Reimplemented Qt events
     //@{
-    void paintEvent(QPaintEvent * e) override;
-    void mousePressEvent(QMouseEvent * e) override;
+    void paintEvent(QPaintEvent* e) override;
+    void mousePressEvent(QMouseEvent* e) override;
     //@}
     QColor color_;
   };
 
-}
+} // namespace OpenMS

@@ -32,20 +32,18 @@
 // $Authors: Marc Sturm $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/VISUAL/PlotWidget.h>
-
 #include <OpenMS/VISUAL/AxisWidget.h>
 #include <OpenMS/VISUAL/DIALOGS/HistogramDialog.h>
 #include <OpenMS/VISUAL/DIALOGS/LayerStatisticsDialog.h>
+#include <OpenMS/VISUAL/PlotWidget.h>
 #include <OpenMS/VISUAL/VISITORS/LayerStatistics.h>
-
 #include <QCloseEvent>
+#include <QScrollBar>
 #include <QtCore/QMimeData>
 #include <QtWidgets/QFileDialog>
 #include <QtWidgets/QGridLayout>
 #include <QtWidgets/QMessageBox>
 #include <QtWidgets/QScrollBar>
-#include <QScrollBar>
 
 using namespace std;
 
@@ -59,9 +57,7 @@ namespace OpenMS
   const char PlotWidget::IM_MS_AXIS_TITLE[] = "Ion Mobility [ms]";
   const char PlotWidget::IM_ONEKZERO_AXIS_TITLE[] = "Ion Mobility [1/K0]";
 
-  PlotWidget::PlotWidget(const Param& /*preferences*/, QWidget* parent) :
-    QWidget(parent),
-    canvas_(nullptr)
+  PlotWidget::PlotWidget(const Param& /*preferences*/, QWidget* parent) : QWidget(parent), canvas_(nullptr)
   {
     setAttribute(Qt::WA_DeleteOnClose);
     grid_ = new QGridLayout(this);
@@ -80,7 +76,7 @@ namespace OpenMS
     // y_scrollbar_->setInvertedAppearance(true);
     // y_scrollbar_->setInvertedControls(true);
 
-    setMinimumSize(250, 250); //Canvas (200) + AxisWidget (30) + ScrollBar (20)
+    setMinimumSize(250, 250); // Canvas (200) + AxisWidget (30) + ScrollBar (20)
     setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::MinimumExpanding);
 
     setAcceptDrops(true);
@@ -229,7 +225,6 @@ namespace OpenMS
 
   void PlotWidget::intensityModeChange_()
   {
-
   }
 
   bool PlotWidget::isLegendShown() const
@@ -257,8 +252,8 @@ namespace OpenMS
       auto local_max = max(f_max, disp_max);
       auto vis_span = disp_max - disp_min;
       scroll->blockSignals(true);
-      //scroll->setMinimum(static_cast<int>(local_min));
-      //scroll->setMaximum(static_cast<int>(std::ceil(local_max - disp_max + disp_min)));
+      // scroll->setMinimum(static_cast<int>(local_min));
+      // scroll->setMaximum(static_cast<int>(std::ceil(local_max - disp_max + disp_min)));
       scroll->setRange(int(local_min), int(std::ceil(local_max - vis_span)));
       scroll->setValue(int(disp_min)); // emits valueChanged, which will call this function here unless signal is blocked
       scroll->setPageStep(vis_span);
@@ -286,11 +281,12 @@ namespace OpenMS
   {
     for (UInt l = 0; l < canvas()->getLayerCount(); ++l)
     {
-      //modified => ask if it should be saved
+      // modified => ask if it should be saved
       const LayerDataBase& layer = canvas()->getLayer(l);
       if (layer.modified)
       {
-        QMessageBox::StandardButton result = QMessageBox::question(this, "Save?", (String("Do you want to save your changes to layer '") + layer.getName() +  "'?").toQString(), QMessageBox::Ok | QMessageBox::Discard);
+        QMessageBox::StandardButton result =
+          QMessageBox::question(this, "Save?", (String("Do you want to save your changes to layer '") + layer.getName() + "'?").toQString(), QMessageBox::Ok | QMessageBox::Discard);
         if (result == QMessageBox::Ok)
         {
           canvas()->activateLayer(l);
@@ -323,7 +319,7 @@ namespace OpenMS
     event->acceptProposedAction();
   }
 
-  void PlotWidget::paintEvent(QPaintEvent * /*event*/)
+  void PlotWidget::paintEvent(QPaintEvent* /*event*/)
   {
     QStyleOption opt;
     opt.init(this);
@@ -332,4 +328,4 @@ namespace OpenMS
     style()->drawPrimitive(QStyle::PE_Widget, &opt, &p, this);
   }
 
-} //namespace OpenMS
+} // namespace OpenMS

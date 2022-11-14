@@ -34,11 +34,8 @@
 
 #pragma once
 
-#include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
-
-
 #include <OpenMS/DATASTRUCTURES/Param.h>
-
+#include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
 #include <QtWidgets/QDialog>
 
 namespace Ui
@@ -55,13 +52,12 @@ namespace OpenMS
 
         @ingroup TOPPView_elements
     */
-    class OPENMS_GUI_DLLAPI TOPPViewPrefDialog :
-      public QDialog
+    class OPENMS_GUI_DLLAPI TOPPViewPrefDialog : public QDialog
     {
       Q_OBJECT
 
-public:
-      TOPPViewPrefDialog(QWidget * parent);
+    public:
+      TOPPViewPrefDialog(QWidget* parent);
       ~TOPPViewPrefDialog() override;
 
       /// initialize GUI values with these parameters
@@ -71,13 +67,14 @@ public:
       /// Can be used to obtain default parameters and their names.
       Param getParam() const;
 
-protected slots:
+    protected slots:
       void browseDefaultPath_();
       void browsePluginsPath_();
-private:
+
+    private:
       Ui::TOPPViewPrefDialogTemplate* ui_;
       mutable Param param_; ///< is updated in getParam()
-      Param tsg_param_; ///< params for TheoreticalSpectrumGenerator in the TSG tab
+      Param tsg_param_;     ///< params for TheoreticalSpectrumGenerator in the TSG tab
     };
-  }
-}
+  } // namespace Internal
+} // namespace OpenMS

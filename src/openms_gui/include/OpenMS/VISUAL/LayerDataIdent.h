@@ -34,8 +34,8 @@
 
 #pragma once
 
-#include <OpenMS/VISUAL/LayerDataBase.h>
 #include <OpenMS/VISUAL/INTERFACES/IPeptideIds.h>
+#include <OpenMS/VISUAL/LayerDataBase.h>
 
 namespace OpenMS
 {
@@ -49,8 +49,7 @@ namespace OpenMS
   {
   public:
     /// Default constructor
-    LayerDataIdent() :
-        LayerDataBase(LayerDataBase::DT_IDENT){};
+    LayerDataIdent() : LayerDataBase(LayerDataBase::DT_IDENT) {};
     /// no Copy-ctor (should not be needed)
     LayerDataIdent(const LayerDataIdent& ld) = delete;
     /// no assignment operator (should not be needed)
@@ -122,4 +121,4 @@ namespace OpenMS
     std::vector<PeptideIdentification> peptides_;
   };
 
-}// namespace OpenMS
+} // namespace OpenMS

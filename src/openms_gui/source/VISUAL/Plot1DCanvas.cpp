@@ -35,24 +35,23 @@
 #include <OpenMS/VISUAL/Plot1DCanvas.h>
 
 // OpenMS
-#include <OpenMS/VISUAL/PlotWidget.h>
-#include <OpenMS/VISUAL/Plot1DWidget.h>
-#include <OpenMS/VISUAL/MISC/GUIHelpers.h>
-#include <OpenMS/VISUAL/DIALOGS/Plot1DPrefDialog.h>
-#include <OpenMS/VISUAL/ColorSelector.h>
-#include <OpenMS/VISUAL/AxisWidget.h>
-#include <OpenMS/VISUAL/ANNOTATION/Annotations1DContainer.h>
-#include <OpenMS/VISUAL/ANNOTATION/Annotation1DTextItem.h>
-#include <OpenMS/VISUAL/ANNOTATION/Annotation1DDistanceItem.h>
-#include <OpenMS/FORMAT/FileHandler.h>
-#include <OpenMS/CONCEPT/RAIICleanup.h>
-#include <OpenMS/CONCEPT/LogStream.h>
-#include <OpenMS/COMPARISON/SPECTRA/SpectrumAlignmentScore.h>
 #include <OpenMS/COMPARISON/SPECTRA/SpectrumAlignment.h>
+#include <OpenMS/COMPARISON/SPECTRA/SpectrumAlignmentScore.h>
+#include <OpenMS/CONCEPT/LogStream.h>
+#include <OpenMS/CONCEPT/RAIICleanup.h>
+#include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/MATH/MISC/MathFunctions.h>
-
-#include <OpenMS/VISUAL/LayerData1DPeak.h>
+#include <OpenMS/VISUAL/ANNOTATION/Annotation1DDistanceItem.h>
+#include <OpenMS/VISUAL/ANNOTATION/Annotation1DTextItem.h>
+#include <OpenMS/VISUAL/ANNOTATION/Annotations1DContainer.h>
+#include <OpenMS/VISUAL/AxisWidget.h>
+#include <OpenMS/VISUAL/ColorSelector.h>
+#include <OpenMS/VISUAL/DIALOGS/Plot1DPrefDialog.h>
 #include <OpenMS/VISUAL/LayerData1DChrom.h>
+#include <OpenMS/VISUAL/LayerData1DPeak.h>
+#include <OpenMS/VISUAL/MISC/GUIHelpers.h>
+#include <OpenMS/VISUAL/Plot1DWidget.h>
+#include <OpenMS/VISUAL/PlotWidget.h>
 
 // Qt
 #include <QElapsedTimer>
@@ -76,7 +75,7 @@ namespace OpenMS
   {
     // create a managed pointer fill it with a spectrum containing the chromatographic data
     LayerDataBase::ExperimentSharedPtrType chrom_exp_sptr(new LayerDataBase::ExperimentType());
-    chrom_exp_sptr->setMetaValue("is_chromatogram", "true"); //this is a hack to store that we have chromatogram data
+    chrom_exp_sptr->setMetaValue("is_chromatogram", "true"); // this is a hack to store that we have chromatogram data
     LayerDataBase::ExperimentType::SpectrumType spectrum;
 
     // retrieve chromatogram (either from in-memory or on-disc representation)
@@ -114,14 +113,12 @@ namespace OpenMS
   }
 
 
-  Plot1DCanvas::Plot1DCanvas(const Param& preferences, const DIM gravity_axis, QWidget* parent) :
-    PlotCanvas(preferences, parent),
-    gr_(gravity_axis)
+  Plot1DCanvas::Plot1DCanvas(const Param& preferences, const DIM gravity_axis, QWidget* parent) : PlotCanvas(preferences, parent), gr_(gravity_axis)
   {
     // for now, default to mz x int
     unit_mapper_ = DimMapper<2>({DIM_UNIT::MZ, DIM_UNIT::INT});
 
-    //Parameter handling
+    // Parameter handling
     defaults_.setValue("highlighted_peak_color", "#ff0000", "Highlighted peak color.");
     defaults_.setValue("icon_color", "#000000", "Peak icon color.");
     defaults_.setValue("peak_color", "#0000ff", "Peak color.");
@@ -167,19 +164,12 @@ namespace OpenMS
     return unit_mapper_.getDim(getGravitator().swap().getGravityAxis());
   }
 
-  bool Plot1DCanvas::addChromLayer(ExperimentSharedPtrType chrom_exp_sptr,
-                                   ODExperimentSharedPtrType ondisc_sptr,
-                                   OSWDataSharedPtrType chrom_annotation,
-                                   const int index,
-                                   const String& filename,
+  bool Plot1DCanvas::addChromLayer(ExperimentSharedPtrType chrom_exp_sptr, ODExperimentSharedPtrType ondisc_sptr, OSWDataSharedPtrType chrom_annotation, const int index, const String& filename,
                                    const String& caption)
   {
     // we do not want addChromLayer to trigger repaint, since we have not set the chromatogram data!
     this->blockSignals(true);
-    RAIICleanup clean([&]()
-    {
-      this->blockSignals(false);
-    });
+    RAIICleanup clean([&]() { this->blockSignals(false); });
 
     // add chromatogram data as peak spectrum
     if (!PlotCanvas::addChromLayer(std::move(chrom_exp_sptr), std::move(ondisc_sptr), filename))
@@ -189,16 +179,16 @@ namespace OpenMS
     auto& ld = dynamic_cast<LayerData1DChrom&>(getCurrentLayer());
     ld.setName(caption);
     ld.getChromatogramAnnotation() = std::move(chrom_annotation); // copy over shared-ptr to OSW-sql data (if available)
-    ld.setCurrentIndex(index);                         // use this chrom for visualization
+    ld.setCurrentIndex(index);                                    // use this chrom for visualization
 
     setDrawMode(Plot1DCanvas::DM_CONNECTEDLINES);
-//    setIntensityMode(Plot1DCanvas::IM_NONE);
+    //    setIntensityMode(Plot1DCanvas::IM_NONE);
 
     // extend the currently visible area, so the new data is visible
-    //auto va = visible_area_.getAreaUnit();
+    // auto va = visible_area_.getAreaUnit();
 
     return true;
-  }       
+  }
 
   void Plot1DCanvas::activateLayer(Size layer_index)
   {
@@ -238,13 +228,15 @@ namespace OpenMS
   {
     QPoint tmp;
     // adapting gravity dimension is required for SNAP mode and percentage mode
-    if (gr_.getGravityAxis() == DIM::Y) y *= percentage_factor_ * getSnapFactor();
-    else if (gr_.getGravityAxis() == DIM::X) x *= percentage_factor_ * getSnapFactor();
-    
+    if (gr_.getGravityAxis() == DIM::Y)
+      y *= percentage_factor_ * getSnapFactor();
+    else if (gr_.getGravityAxis() == DIM::X)
+      x *= percentage_factor_ * getSnapFactor();
+
     dataToWidget_(x, y, tmp);
     point.setX(tmp.x());
     point.setY(tmp.y());
-    
+
     if (mirror_mode_)
     {
       double alignment_shrink_factor = 1.0;
@@ -258,18 +250,18 @@ namespace OpenMS
         {
           point.setY(height() - (int)(tmp.y() / 2.0));
         }
-        else         // show_alignment_
+        else // show_alignment_
         {
           point.setY(height() - (int)((tmp.y() * alignment_shrink_factor) / 2.0));
         }
       }
-      else       // !flipped
+      else // !flipped
       {
         if (!show_alignment_)
         {
           point.setY((int)(tmp.y() / 2.0));
         }
-        else         // show_alignment_
+        else // show_alignment_
         {
           point.setY((int)((tmp.y() * alignment_shrink_factor) / 2.0));
         }
@@ -304,7 +296,7 @@ namespace OpenMS
           actual_y = (height() - y) * 2 / alignment_shrink_factor;
         }
       }
-      else       // y <= height()/2
+      else // y <= height()/2
       {
         if (!show_alignment_)
         {
@@ -322,8 +314,10 @@ namespace OpenMS
     }
     PointXYType p = PlotCanvas::widgetToData_(x, actual_y);
     // adapting gravity dimension is required for SNAP mode and percentage mode
-    if (gr_.getGravityAxis() == DIM::Y) p.setY(p.getY() / (percentage_factor_ * getSnapFactor()));
-    else if (gr_.getGravityAxis() == DIM::X) p.setX(p.getX() / (percentage_factor_ * getSnapFactor()));   
+    if (gr_.getGravityAxis() == DIM::Y)
+      p.setY(p.getY() / (percentage_factor_ * getSnapFactor()));
+    else if (gr_.getGravityAxis() == DIM::X)
+      p.setX(p.getX() / (percentage_factor_ * getSnapFactor()));
 
     return p;
   }
@@ -365,10 +359,10 @@ namespace OpenMS
         }
 
         // if item is a distance item: show distance of selected item in status bar
-        Annotation1DDistanceItem * distance_item = dynamic_cast<Annotation1DDistanceItem *>(item);
+        Annotation1DDistanceItem* distance_item = dynamic_cast<Annotation1DDistanceItem*>(item);
         if (distance_item)
         {
-          emit sendStatusMessage(String("Measured: d") + getNonGravityDim().getDimNameShort() +  "= " + distance_item->getDistance(), 0);
+          emit sendStatusMessage(String("Measured: d") + getNonGravityDim().getDimNameShort() + "= " + distance_item->getDistance(), 0);
         }
       }
       else
@@ -407,8 +401,7 @@ namespace OpenMS
     // mouse position relative to the diagram widget
     QPoint p = e->pos();
     PointXYType data_pos = widgetToData(p);
-    emit sendCursorStatus(unit_mapper_.getDim(DIM::X).formattedValue(data_pos[0]),
-                          unit_mapper_.getDim(DIM::Y).formattedValue(data_pos[1]));
+    emit sendCursorStatus(unit_mapper_.getDim(DIM::X).formattedValue(data_pos[0]), unit_mapper_.getDim(DIM::Y).formattedValue(data_pos[1]));
 
     PeakIndex near_peak = findPeakAtPosition_(p);
 
@@ -429,7 +422,7 @@ namespace OpenMS
         {
           if ((*it)->isSelected())
           {
-            (*it)->move(delta, gr_, unit_mapper_);         
+            (*it)->move(delta, gr_, unit_mapper_);
           }
         }
         update_(OPENMS_PRETTY_FUNCTION);
@@ -524,7 +517,8 @@ namespace OpenMS
     {
       e->accept();
       auto peak_layer = dynamic_cast<LayerData1DPeak*>(&getCurrentLayer());
-      if (peak_layer)  peak_layer->removePeakAnnotationsFromPeptideHit(getCurrentLayer().getCurrentAnnotations().getSelectedItems());
+      if (peak_layer)
+        peak_layer->removePeakAnnotationsFromPeptideHit(getCurrentLayer().getCurrentAnnotations().getSelectedItems());
       getCurrentLayer().getCurrentAnnotations().removeSelectedItems();
       update_(OPENMS_PRETTY_FUNCTION);
     }
@@ -543,7 +537,7 @@ namespace OpenMS
 
   PeakIndex Plot1DCanvas::findPeakAtPosition_(QPoint p)
   {
-    //no layers => return invalid peak index
+    // no layers => return invalid peak index
     if (layers_.empty())
     {
       return PeakIndex();
@@ -595,7 +589,7 @@ namespace OpenMS
 
   void Plot1DCanvas::setDrawMode(DrawModes mode)
   {
-    //no layers
+    // no layers
     if (layers_.empty())
     {
       return;
@@ -609,7 +603,7 @@ namespace OpenMS
 
   Plot1DCanvas::DrawModes Plot1DCanvas::getDrawMode() const
   {
-    //no layers
+    // no layers
     if (layers_.empty())
     {
       return DM_PEAKS;
@@ -630,8 +624,7 @@ namespace OpenMS
     timer.start();
 
     // clear
-    painter->fillRect(0, 0, this->width(), this->height(),
-                      QColor(String(param_.getValue("background_color").toString()).toQString()));
+    painter->fillRect(0, 0, this->width(), this->height(), QColor(String(param_.getValue("background_color").toString()).toQString()));
 
     // we are done if no layer is present
     if (getLayerCount() == 0)
@@ -648,7 +641,7 @@ namespace OpenMS
     {
       updatePercentageFactor_(i);
       auto paint_1d = getLayer(i).getPainter1D();
-      paint_1d->paint(painter, this, (int)i);      
+      paint_1d->paint(painter, this, (int)i);
     }
 
     if (show_alignment_)
@@ -691,7 +684,7 @@ namespace OpenMS
     drawHighlightedPeak_(getCurrentLayerIndex(), measurement_start_, *painter, with_elongation);
     drawHighlightedPeak_(getCurrentLayerIndex(), selected_peak_, *painter, with_elongation);
 
-    //draw delta for measuring
+    // draw delta for measuring
     if (action_mode_ == AM_MEASURE && measurement_start_.isValid())
     {
       drawDeltas_(*painter, measurement_start_, selected_peak_);
@@ -707,14 +700,10 @@ namespace OpenMS
       painter->save();
       double w = text_box_content_.size().width();
       double h = text_box_content_.size().height();
-      //draw text
+      // draw text
       painter->setPen(Qt::black);
       painter->translate(width() - w - 2, 3);
-      painter->fillRect(static_cast<int>(width() - w - 2),
-                        3,
-                        static_cast<int>(w),
-                        static_cast<int>(h),
-                        QColor(255, 255, 255, 200));
+      painter->fillRect(static_cast<int>(width() - w - 2), 3, static_cast<int>(w), static_cast<int>(h), QColor(255, 255, 255, 200));
       text_box_content_.drawContents(painter);
       painter->restore();
     }
@@ -727,7 +716,8 @@ namespace OpenMS
 
   void Plot1DCanvas::drawHighlightedPeak_(Size layer_index, const PeakIndex& peak, QPainter& painter, bool draw_elongation)
   {
-    if (!peak.isValid()) return;
+    if (!peak.isValid())
+      return;
     const auto sel_xy = getLayer(layer_index).peakIndexToXY(peak, unit_mapper_);
 
     painter.setPen(QPen(QColor(String(param_.getValue("highlighted_peak_color").toString()).toQString()), 2));
@@ -752,14 +742,14 @@ namespace OpenMS
 
   bool Plot1DCanvas::finishAdding_()
   {
-/*    const MSSpectrum& spectrum = getCurrentLayer().getCurrentSpectrum();
-    // Abort if no data points are contained (note that all data could be on disk)
-    if (spectrum.empty())
-    {
-      popIncompleteLayer_("Cannot add a dataset that contains no survey scans. Aborting!");
-      return false;
-    }               
-  */
+    /*    const MSSpectrum& spectrum = getCurrentLayer().getCurrentSpectrum();
+        // Abort if no data points are contained (note that all data could be on disk)
+        if (spectrum.empty())
+        {
+          popIncompleteLayer_("Cannot add a dataset that contains no survey scans. Aborting!");
+          return false;
+        }
+      */
 
     // add new draw mode and style (default: peaks)
     draw_modes_.push_back(DM_PEAKS);
@@ -768,32 +758,32 @@ namespace OpenMS
     // Change peak color if this is not the first layer
     switch (getCurrentLayerIndex() % 5)
     {
-    case 0:
-      getCurrentLayer().param.setValue("peak_color", "#0000ff");
-      getCurrentLayer().param.setValue("annotation_color", "#005500");
-      break;
+      case 0:
+        getCurrentLayer().param.setValue("peak_color", "#0000ff");
+        getCurrentLayer().param.setValue("annotation_color", "#005500");
+        break;
 
-    case 1:
-      getCurrentLayer().param.setValue("peak_color", "#00cc00");
-      getCurrentLayer().param.setValue("annotation_color", "#005500");
-      break;
+      case 1:
+        getCurrentLayer().param.setValue("peak_color", "#00cc00");
+        getCurrentLayer().param.setValue("annotation_color", "#005500");
+        break;
 
-    case 2:
-      getCurrentLayer().param.setValue("peak_color", "#cc0000");
-      getCurrentLayer().param.setValue("annotation_color", "#550055");
-      break;
+      case 2:
+        getCurrentLayer().param.setValue("peak_color", "#cc0000");
+        getCurrentLayer().param.setValue("annotation_color", "#550055");
+        break;
 
-    case 3:
-      getCurrentLayer().param.setValue("peak_color", "#00cccc");
-      getCurrentLayer().param.setValue("annotation_color", "#005555");
-      break;
+      case 3:
+        getCurrentLayer().param.setValue("peak_color", "#00cccc");
+        getCurrentLayer().param.setValue("annotation_color", "#005555");
+        break;
 
-    case 4:
-      getCurrentLayer().param.setValue("peak_color", "#ffaa00");
-      getCurrentLayer().param.setValue("annotation_color", "#550000");
-      break;
+      case 4:
+        getCurrentLayer().param.setValue("peak_color", "#ffaa00");
+        getCurrentLayer().param.setValue("annotation_color", "#550000");
+        break;
     }
-    
+
     // update nearest peak
     selected_peak_.clear();
 
@@ -827,7 +817,7 @@ namespace OpenMS
     if (!peak.isValid())
     {
       return;
-    }              
+    }
     const auto xy_point = getCurrentLayer().peakIndexToXY(peak, unit_mapper_);
     QStringList lines;
     lines << unit_mapper_.getDim(DIM::X).formattedValue(xy_point.getX()).toQString();
@@ -843,7 +833,7 @@ namespace OpenMS
     }
 
     const auto peak_start = getCurrentLayer().peakIndexToXY(start, unit_mapper_);
-    auto peak_end = decltype(peak_start){}; // same as peak_start but without the const
+    auto peak_end = decltype(peak_start) {}; // same as peak_start but without the const
     if (end.isValid())
     {
       peak_end = getCurrentLayer().peakIndexToXY(end, unit_mapper_);
@@ -854,8 +844,7 @@ namespace OpenMS
       peak_end = gr_.gravitateNAN(peak_end); // we do not care about the gravity dimension (usually intensity)
     }
 
-    auto dim_text = [](const DimBase& dim, double start_pos, double end_pos, bool ratio /*or difference*/)
-    {
+    auto dim_text = [](const DimBase& dim, double start_pos, double end_pos, bool ratio /*or difference*/) {
       QString result;
       if (ratio)
       {
@@ -953,7 +942,10 @@ namespace OpenMS
 
   void Plot1DCanvas::contextMenuEvent(QContextMenuEvent* e)
   {
-    if (layers_.empty()) { return; }
+    if (layers_.empty())
+    {
+      return;
+    }
 
     QMenu* context_menu = new QMenu(this);
 
@@ -966,12 +958,11 @@ namespace OpenMS
       annots_1d.selectItemAt(e->pos());
       update_(OPENMS_PRETTY_FUNCTION);
 
-      context_menu->addMenu(getCurrentLayer()
-        .getContextMenuAnnotation(annot_item, need_repaint));
+      context_menu->addMenu(getCurrentLayer().getContextMenuAnnotation(annot_item, need_repaint));
     }
     else // !annot_item
     {
-      //Display name and warn if current layer invisible
+      // Display name and warn if current layer invisible
       String layer_name = String("Layer: ") + getCurrentLayer().getName();
       if (!getCurrentLayer().visible)
       {
@@ -980,58 +971,43 @@ namespace OpenMS
       context_menu->addAction(layer_name.toQString())->setEnabled(false);
 
       context_menu->addSeparator();
-      
-      context_menu->addAction("Add label", [&]() {
-        addUserLabelAnnotation_(e->pos());
-      })->setEnabled(!(mirror_mode_ && (getCurrentLayer().flipped ^ (e->pos().y() > height() / 2))));
+
+      context_menu->addAction("Add label", [&]() { addUserLabelAnnotation_(e->pos()); })->setEnabled(!(mirror_mode_ && (getCurrentLayer().flipped ^ (e->pos().y() > height() / 2))));
 
       PeakIndex near_peak = findPeakAtPosition_(e->pos());
-      context_menu->addAction("Add peak annotation", [&]() {
-        addUserPeakAnnotation_(near_peak);
-      })->setEnabled(near_peak.isValid());
-      
-      context_menu->addAction((String("Add peak annotation ") + String(getNonGravityDim().getDimNameShort())).toQString(), [&]() {
-        const auto xy_point = getCurrentLayer().peakIndexToXY(near_peak, unit_mapper_);
-        QString label = getNonGravityDim().formattedValue(gr_.swap().gravityValue(xy_point)).toQString();
-        addPeakAnnotation(near_peak, label, String(getCurrentLayer().param.getValue("peak_color").toString()).toQString());
-      })->setEnabled(near_peak.isValid());
-      
-      context_menu->addSeparator();
-      
-      context_menu->addAction("Reset alignment", [&]() { 
-        resetAlignment();
-      })->setEnabled(show_alignment_);
+      context_menu->addAction("Add peak annotation", [&]() { addUserPeakAnnotation_(near_peak); })->setEnabled(near_peak.isValid());
+
+      context_menu
+        ->addAction((String("Add peak annotation ") + String(getNonGravityDim().getDimNameShort())).toQString(),
+                    [&]() {
+                      const auto xy_point = getCurrentLayer().peakIndexToXY(near_peak, unit_mapper_);
+                      QString label = getNonGravityDim().formattedValue(gr_.swap().gravityValue(xy_point)).toQString();
+                      addPeakAnnotation(near_peak, label, String(getCurrentLayer().param.getValue("peak_color").toString()).toQString());
+                    })
+        ->setEnabled(near_peak.isValid());
 
       context_menu->addSeparator();
 
-      context_menu->addAction("Layer meta data", [&]() {
-        showMetaData(true);
-      });
+      context_menu->addAction("Reset alignment", [&]() { resetAlignment(); })->setEnabled(show_alignment_);
+
+      context_menu->addSeparator();
+
+      context_menu->addAction("Layer meta data", [&]() { showMetaData(true); });
 
       QMenu* save_menu = new QMenu("Save");
-      
-      save_menu->addAction("Layer", [&]() {
-        saveCurrentLayer(false);
-      });
 
-      save_menu->addAction("Visible layer data", [&]() {
-        saveCurrentLayer(true);
-      });
-      
-      save_menu->addAction("As image", [&]() {
-        spectrum_widget_->saveAsImage();
-      });
+      save_menu->addAction("Layer", [&]() { saveCurrentLayer(false); });
+
+      save_menu->addAction("Visible layer data", [&]() { saveCurrentLayer(true); });
+
+      save_menu->addAction("As image", [&]() { spectrum_widget_->saveAsImage(); });
 
       QMenu* settings_menu = new QMenu("Settings");
-      
-      settings_menu->addAction("Show/hide grid lines", [&]() { 
-        showGridLines(!gridLinesShown()); 
-      });
-      
-      settings_menu->addAction("Show/hide axis legends", [&]() {
-        emit changeLegendVisibility();
-      });
-      
+
+      settings_menu->addAction("Show/hide grid lines", [&]() { showGridLines(!gridLinesShown()); });
+
+      settings_menu->addAction("Show/hide axis legends", [&]() { emit changeLegendVisibility(); });
+
       settings_menu->addAction("Style: Stick <--> Area", [&]() {
         if (getDrawMode() != DM_PEAKS)
         {
@@ -1041,7 +1017,7 @@ namespace OpenMS
         {
           setDrawMode(DM_CONNECTEDLINES);
         }
-       });
+      });
 
       settings_menu->addAction("Intensity: Absolute <--> Percent", [&]() {
         if (getIntensityMode() != IM_PERCENTAGE)
@@ -1051,22 +1027,16 @@ namespace OpenMS
         else
         {
           setIntensityMode(IM_SNAP);
-        } 
+        }
       });
 
-      settings_menu->addAction("Show/hide ion ladder in ID view", [&]() {
-        setIonLadderVisible(!isIonLadderVisible());
-      });
+      settings_menu->addAction("Show/hide ion ladder in ID view", [&]() { setIonLadderVisible(!isIonLadderVisible()); });
 
-      settings_menu->addAction("Show/hide automated m/z annotations", [&]() {
-        setDrawInterestingMZs(!draw_interesting_MZs_);
-      });
+      settings_menu->addAction("Show/hide automated m/z annotations", [&]() { setDrawInterestingMZs(!draw_interesting_MZs_); });
 
       settings_menu->addSeparator();
 
-      settings_menu->addAction("Preferences", [&]() {
-        showCurrentLayerPreferences();
-      });
+      settings_menu->addAction("Preferences", [&]() { showCurrentLayerPreferences(); });
 
       context_menu->addMenu(save_menu);
       context_menu->addMenu(settings_menu);
@@ -1074,30 +1044,22 @@ namespace OpenMS
       // only add to context menu if there is a MS1 map
       auto* peak_layer = dynamic_cast<LayerData1DPeak*>(&getCurrentLayer());
       if (peak_layer)
-        {
+      {
         if (peak_layer->getPeakData()->containsScanOfLevel(1))
         {
-          context_menu->addAction("Switch to 2D view", [&]() {
-            emit showCurrentPeaksAs2D();
-          });
-          context_menu->addAction("Switch to 3D view", [&]() {
-            emit showCurrentPeaksAs3D();
-          });
+          context_menu->addAction("Switch to 2D view", [&]() { emit showCurrentPeaksAs2D(); });
+          context_menu->addAction("Switch to 3D view", [&]() { emit showCurrentPeaksAs3D(); });
         }
 
         if (peak_layer->getCurrentSpectrum().containsIMData())
         {
-          context_menu->addAction("Switch to ion mobility view", [&]() {
-            emit showCurrentPeaksAsIonMobility(peak_layer->getCurrentSpectrum());
-          });
+          context_menu->addAction("Switch to ion mobility view", [&]() { emit showCurrentPeaksAsIonMobility(peak_layer->getCurrentSpectrum()); });
         }
 
         if (peak_layer->isDIAData())
         {
           auto l = dynamic_cast<const LayerData1DPeak*>(&getCurrentLayer());
-          context_menu->addAction("Switch to DIA-MS view", [&]() {
-            emit showCurrentPeaksAsDIA(l->getCurrentSpectrum().getPrecursors()[0], *l->getPeakData().get());
-          });
+          context_menu->addAction("Switch to DIA-MS view", [&]() { emit showCurrentPeaksAsDIA(l->getCurrentSpectrum().getPrecursors()[0], *l->getPeakData().get()); });
         }
       }
 
@@ -1177,10 +1139,10 @@ namespace OpenMS
 
   void Plot1DCanvas::updateLayer(Size i)
   {
-    //update nearest peak
+    // update nearest peak
     selected_peak_.clear();
 
-    //update ranges
+    // update ranges
     recalculateRanges_();
 
     resetZoom();
@@ -1194,16 +1156,18 @@ namespace OpenMS
       zoomBack_();
     }
     else
-    { // only zoom the non-gravity axis
+    {                                                          // only zoom the non-gravity axis
       constexpr PointXYType::CoordinateType zoom_factor = 0.8; // i.e. we crop 20% in total (from left + right, depending on where user clicked)
       // we want to zoom into (x,y), which is in pixel units, hence we need to know the relative position of (x,y) in the widget
       double rel_pos = gr_.getGravityAxis() == DIM::Y ? (PointXYType::CoordinateType)x / width() : (PointXYType::CoordinateType)(height() - y) / height();
       auto new_area = visible_area_.getAreaXY();
-      if (gr_.getGravityAxis() == DIM::X) new_area.swapDimensions(); // temporarily swap X<>Y if gravity acts on X
+      if (gr_.getGravityAxis() == DIM::X)
+        new_area.swapDimensions(); // temporarily swap X<>Y if gravity acts on X
       auto zoomed = Math::zoomIn(new_area.minX(), new_area.maxX(), zoom_factor, rel_pos);
       new_area.setMinX(zoomed.first);
       new_area.setMaxX(zoomed.second);
-      if (gr_.getGravityAxis() == DIM::X) new_area.swapDimensions(); // swap back
+      if (gr_.getGravityAxis() == DIM::X)
+        new_area.swapDimensions(); // swap back
 
       if (new_area != visible_area_.getAreaXY())
       {
@@ -1221,7 +1185,7 @@ namespace OpenMS
     {
       const auto a = canvasPixelArea();
       zoom_(a.center().getX(), a.center().getY(), true); // calls changeVisibleArea_
-      return; 
+      return;
     }
 
     // goto next zoom level
@@ -1288,7 +1252,7 @@ namespace OpenMS
 
     painter.save();
 
-    unsigned int xl, xh, yl, yh;     //width/height of the diagram area, x, y coordinates of lo/hi x,y values
+    unsigned int xl, xh, yl, yh; // width/height of the diagram area, x, y coordinates of lo/hi x,y values
 
     xl = 0;
     xh = width();
@@ -1302,18 +1266,18 @@ namespace OpenMS
       // style definitions
       switch (j)
       {
-      case 0:           // style settings for big intervals
-        painter.setPen(p1);
-        break;
+        case 0: // style settings for big intervals
+          painter.setPen(p1);
+          break;
 
-      case 1:           // style settings for small intervals
-        painter.setPen(p2);
-        break;
+        case 1: // style settings for small intervals
+          painter.setPen(p2);
+          break;
 
-      default:
-        std::cout << "empty vertical grid line vector error!" << std::endl;
-        painter.setPen(QPen(QColor(0, 0, 0)));
-        break;
+        default:
+          std::cout << "empty vertical grid line vector error!" << std::endl;
+          painter.setPen(QPen(QColor(0, 0, 0)));
+          break;
       }
 
       for (const auto& line : spectrum_widget_->xAxis()->gridLines()[j])
@@ -1325,22 +1289,21 @@ namespace OpenMS
 
     for (Size j = 0; j != spectrum_widget_->yAxis()->gridLines().size(); j++)
     {
-
       // style definitions
       switch (j)
       {
-      case 0:           // style settings for big intervals
-        painter.setPen(p1);
-        break;
+        case 0: // style settings for big intervals
+          painter.setPen(p1);
+          break;
 
-      case 1:           // style settings for small intervals
-        painter.setPen(p2);
-        break;
+        case 1: // style settings for small intervals
+          painter.setPen(p2);
+          break;
 
-      default:
-        std::cout << "empty vertical grid line vector error!" << std::endl;
-        painter.setPen(QPen(QColor(0, 0, 0)));
-        break;
+        default:
+          std::cout << "empty vertical grid line vector error!" << std::endl;
+          painter.setPen(QPen(QColor(0, 0, 0)));
+          break;
       }
 
       for (const auto& line : spectrum_widget_->yAxis()->gridLines()[j])
@@ -1364,8 +1327,8 @@ namespace OpenMS
             {
               alignment_shrink_factor = (double)(height() - 10) / (double)height();
             }
-            painter.drawLine(xl, (int)((double)(y) * alignment_shrink_factor / 2.0), xh, (int)((double)(y) * alignment_shrink_factor / 2.0));
-            painter.drawLine(xl, yl - (int)((double)(y) * alignment_shrink_factor / 2.0), xh, yl - (int)((double)(y) * alignment_shrink_factor / 2.0));
+            painter.drawLine(xl, (int)((double)(y)*alignment_shrink_factor / 2.0), xh, (int)((double)(y)*alignment_shrink_factor / 2.0));
+            painter.drawLine(xl, yl - (int)((double)(y)*alignment_shrink_factor / 2.0), xh, yl - (int)((double)(y)*alignment_shrink_factor / 2.0));
           }
         }
       }
@@ -1427,7 +1390,7 @@ namespace OpenMS
   {
     painter.save();
 
-    //draw peak-connecting lines between the two spectra
+    // draw peak-connecting lines between the two spectra
     painter.setPen(Qt::red);
     QPoint begin_p, end_p;
     if (mirror_mode_)
@@ -1498,9 +1461,9 @@ namespace OpenMS
   {
     if (intensity_mode_ == IM_PERCENTAGE)
     {
-      // maximum value in data (usually intensity) 
+      // maximum value in data (usually intensity)
       auto max_data_gravity = unit_mapper_.mapRange(getLayer(layer_index).getRange()).maxPosition()[(int)gr_.getGravityAxis()];
-      auto max_all_data     = unit_mapper_.mapRange(overall_data_range_).maxPosition()[(int)gr_.getGravityAxis()];
+      auto max_all_data = unit_mapper_.mapRange(overall_data_range_).maxPosition()[(int)gr_.getGravityAxis()];
       percentage_factor_ = max_all_data / max_data_gravity;
     }
     else
@@ -1521,7 +1484,7 @@ namespace OpenMS
   {
     // clear selected peak, so we do not accidentally access an invalid index next time when moving the mouse
     selected_peak_.clear();
-    
+
     if (getCurrentLayer().hasIndex(index))
     {
       getCurrentLayer().setCurrentIndex(index);
@@ -1548,7 +1511,7 @@ namespace OpenMS
     }
   }
 
-  std::vector<std::pair<Size, Size> > Plot1DCanvas::getAlignedPeaksIndices()
+  std::vector<std::pair<Size, Size>> Plot1DCanvas::getAlignedPeaksIndices()
   {
     return aligned_peaks_indices_;
   }
@@ -1581,4 +1544,4 @@ namespace OpenMS
     return draw_interesting_MZs_;
   }
 
-} //Namespace
+} // namespace OpenMS

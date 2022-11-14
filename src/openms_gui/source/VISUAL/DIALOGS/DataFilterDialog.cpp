@@ -36,11 +36,10 @@
 #include <OpenMS/VISUAL/DIALOGS/DataFilterDialog.h>
 #include <ui_DataFilterDialog.h>
 
-//Qt includes
+// Qt includes
 #include <QDoubleValidator>
 #include <QIntValidator>
 #include <QtWidgets/QMessageBox>
-
 #include <iostream>
 
 using namespace std;
@@ -48,17 +47,14 @@ using namespace std;
 namespace OpenMS
 {
 
-  DataFilterDialog::DataFilterDialog(DataFilters::DataFilter & filter, QWidget * parent) :
-    QDialog(parent),
-    filter_(filter),
-    ui_(new Ui::DataFilterDialogTemplate)
+  DataFilterDialog::DataFilterDialog(DataFilters::DataFilter& filter, QWidget* parent) : QDialog(parent), filter_(filter), ui_(new Ui::DataFilterDialogTemplate)
   {
     ui_->setupUi(this);
     connect(ui_->ok_button_, SIGNAL(clicked()), this, SLOT(check_()));
-    connect(ui_->field_, SIGNAL(activated(const QString &)), this, SLOT(field_changed_(const QString &)));
-    connect(ui_->op_, SIGNAL(activated(const QString &)), this, SLOT(op_changed_(const QString &)));
+    connect(ui_->field_, SIGNAL(activated(const QString&)), this, SLOT(field_changed_(const QString&)));
+    connect(ui_->op_, SIGNAL(activated(const QString&)), this, SLOT(op_changed_(const QString&)));
 
-    //set values for edit mode
+    // set values for edit mode
     ui_->field_->setCurrentIndex((UInt)filter.field);
     ui_->op_->setCurrentIndex((UInt)filter.op);
     if (filter.field == DataFilters::META_DATA)
@@ -69,7 +65,7 @@ namespace OpenMS
       {
         ui_->value_->setText(QString::number(filter.value));
       }
-      else       // get value from filter.value_string (a String)
+      else // get value from filter.value_string (a String)
       {
         ui_->value_->setText(filter.value_string.toQString());
       }
@@ -81,12 +77,12 @@ namespace OpenMS
         ui_->value_label_->setEnabled(false);
       }
     }
-    else     // for non meta data, the value is always numerical
+    else // for non meta data, the value is always numerical
     {
       ui_->value_->setText(QString::number(filter.value));
     }
 
-    //focus the value if this is an edit operation
+    // focus the value if this is an edit operation
     if (filter != DataFilters::DataFilter())
     {
       ui_->value_->selectAll();
@@ -103,7 +99,7 @@ namespace OpenMS
     delete ui_;
   }
 
-  void DataFilterDialog::field_changed_(const QString & field)
+  void DataFilterDialog::field_changed_(const QString& field)
   {
     QString op(ui_->op_->currentText());
     if (field == "Meta data")
@@ -118,7 +114,7 @@ namespace OpenMS
     }
   }
 
-  void DataFilterDialog::op_changed_(const QString & op)
+  void DataFilterDialog::op_changed_(const QString& op)
   {
     QString field(ui_->field_->currentText());
     if (op != "exists")
@@ -142,7 +138,7 @@ namespace OpenMS
     bool not_numerical = true;
     int tmp;
 
-    //meta data
+    // meta data
     if (field == "Meta data")
     {
       QDoubleValidator dv(this);
@@ -162,7 +158,7 @@ namespace OpenMS
         }
       }
     }
-    //intensity, quality, charge:
+    // intensity, quality, charge:
     else
     {
       if (op == "exists")
@@ -170,7 +166,7 @@ namespace OpenMS
         QMessageBox::warning(this, "Invalid operation", "Operation \"exists\" is defined for meta data only!");
         return;
       }
-      //double
+      // double
       if (field == "Intensity" || field == "Quality")
       {
         QDoubleValidator v(this);
@@ -180,7 +176,7 @@ namespace OpenMS
           return;
         }
       }
-      //int
+      // int
       if (field == "Charge" || field == "Size")
       {
         QIntValidator v(this);
@@ -192,7 +188,7 @@ namespace OpenMS
       }
     }
 
-    //write result
+    // write result
     if (field == "Intensity")
       filter_.field = DataFilters::INTENSITY;
     else if (field == "Quality")
@@ -205,12 +201,12 @@ namespace OpenMS
     {
       filter_.field = DataFilters::META_DATA;
       filter_.meta_name = meta_name_field;
-      if (not_numerical)       // entered value is not numerical, store it in value_string (as String)
+      if (not_numerical) // entered value is not numerical, store it in value_string (as String)
       {
         filter_.value_string = String(value);
         filter_.value_is_numerical = false;
       }
-      else       // value is numerical, store it in value (as double)
+      else // value is numerical, store it in value (as double)
       {
         filter_.value = value.toDouble();
         filter_.value_is_numerical = true;
@@ -234,4 +230,4 @@ namespace OpenMS
     accept();
   }
 
-}
+} // namespace OpenMS

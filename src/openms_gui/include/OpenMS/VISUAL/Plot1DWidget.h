@@ -41,8 +41,8 @@
 #include <vector>
 
 // OpenMS
-#include <OpenMS/VISUAL/PlotWidget.h>
 #include <OpenMS/VISUAL/Plot1DCanvas.h>
+#include <OpenMS/VISUAL/PlotWidget.h>
 
 class QAction;
 class QSpacerItem;
@@ -62,12 +62,11 @@ namespace OpenMS
 
       @ingroup PlotWidgets
   */
-  class OPENMS_GUI_DLLAPI Plot1DWidget :
-    public PlotWidget
+  class OPENMS_GUI_DLLAPI Plot1DWidget : public PlotWidget
   {
     Q_OBJECT
 
-public:    
+  public:
     /// Default constructor
     Plot1DWidget(const Param& preferences, const DIM gravity_axis = DIM::Y, QWidget* parent = nullptr);
     /// Destructor
@@ -93,9 +92,9 @@ public:
 
     /// Switches to mirror view, displays another y-axis for the second spectrum
     void toggleMirrorView(bool mirror);
-    
+
     /// Performs an alignment of the layers with @p layer_index_1 and @p layer_index_2
-    void performAlignment(Size layer_index_1, Size layer_index_2, const Param & param);
+    void performAlignment(Size layer_index_1, Size layer_index_2, const Param& param);
 
     /// Resets the alignment
     void resetAlignment();
@@ -106,7 +105,7 @@ public:
     // Docu in base class
     virtual void renderForImage(QPainter& painter);
 
-signals:
+  signals:
     /// Requests to display the whole spectrum in 2D view
     void showCurrentPeaksAs2D();
 
@@ -119,20 +118,18 @@ signals:
     /// Requests to display a full DIA window
     void showCurrentPeaksAsDIA(const Precursor& pc, const MSExperiment& exp);
 
-public slots:
+  public slots:
     // Docu in base class
     void showGoToDialog() override;
 
-protected:
+  protected:
     // Docu in base class
     void recalculateAxes_() override;
 
     /// The second y-axis for the mirror view
-    AxisWidget * flipped_y_axis_;
+    AxisWidget* flipped_y_axis_;
 
     /// Spacer between the two y-axes in mirror mode (needed when visualizing an alignment)
-    QSpacerItem * spacer_;
-
+    QSpacerItem* spacer_;
   };
 } // namespace OpenMS
-

@@ -37,7 +37,7 @@
 // OpenMS_GUI config
 #include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
 
-//OpenMS
+// OpenMS
 #include <OpenMS/METADATA/InstrumentSettings.h>
 #include <OpenMS/VISUAL/VISUALIZER/BaseVisualizer.h>
 #include <OpenMS/VISUAL/VISUALIZER/BaseVisualizerGUI.h>
@@ -50,37 +50,33 @@ namespace OpenMS
 
       This class provides all functionality to view the meta information of an object of type InstrumentSettings.
   */
-  class OPENMS_GUI_DLLAPI InstrumentSettingsVisualizer :
-    public BaseVisualizerGUI,
-    public BaseVisualizer<InstrumentSettings>
+  class OPENMS_GUI_DLLAPI InstrumentSettingsVisualizer : public BaseVisualizerGUI, public BaseVisualizer<InstrumentSettings>
   {
     Q_OBJECT
 
-public:
+  public:
+    /// Constructor
+    InstrumentSettingsVisualizer(bool editable = false, QWidget* parent = nullptr);
 
-    ///Constructor
-    InstrumentSettingsVisualizer(bool editable = false, QWidget * parent = nullptr);
+  public slots:
 
-public slots:
-
-    //Docu in base class
+    // Docu in base class
     void store() override;
 
-protected slots:
+  protected slots:
 
-    ///Undo the changes made in the GUI.
+    /// Undo the changes made in the GUI.
     void undo_();
 
-protected:
-
+  protected:
     ///@name Edit fields and buttons
     //@{
-    QComboBox * instrumentsettings_scan_mode_;
-    QComboBox * zoom_scan_;
-    QComboBox * instrumentsettings_polarity_;
+    QComboBox* instrumentsettings_scan_mode_;
+    QComboBox* zoom_scan_;
+    QComboBox* instrumentsettings_polarity_;
     //@}
 
-    //Docu in base class
+    // Docu in base class
     void update_() override;
   };
-}
+} // namespace OpenMS

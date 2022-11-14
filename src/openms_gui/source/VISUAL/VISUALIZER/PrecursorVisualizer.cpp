@@ -34,12 +34,12 @@
 
 #include <OpenMS/VISUAL/VISUALIZER/PrecursorVisualizer.h>
 
-//QT
-#include <QtWidgets/QLineEdit>
+// QT
 #include <QtWidgets/QComboBox>
+#include <QtWidgets/QLineEdit>
 #include <QtWidgets/QListWidget>
 
-//STL
+// STL
 #include <iostream>
 
 using namespace std;
@@ -47,9 +47,7 @@ using namespace std;
 namespace OpenMS
 {
 
-  PrecursorVisualizer::PrecursorVisualizer(bool editable, QWidget * parent) :
-    BaseVisualizerGUI(editable, parent),
-    BaseVisualizer<Precursor>()
+  PrecursorVisualizer::PrecursorVisualizer(bool editable, QWidget* parent) : BaseVisualizerGUI(editable, parent), BaseVisualizer<Precursor>()
   {
     addLabel_("Modify processing method information.");
 
@@ -77,11 +75,11 @@ namespace OpenMS
     window_low_->setText(String(temp_.getIsolationWindowLowerOffset()).c_str());
     window_up_->setText(String(temp_.getIsolationWindowUpperOffset()).c_str());
 
-    //actions
+    // actions
     activation_methods_->clear();
     for (Size i = 0; i < Precursor::SIZE_OF_ACTIVATIONMETHOD; ++i)
     {
-      QListWidgetItem * item = new QListWidgetItem(activation_methods_);
+      QListWidgetItem* item = new QListWidgetItem(activation_methods_);
       item->setText(QString::fromStdString(Precursor::NamesOfActivationMethod[i]));
       if (temp_.getActivationMethods().count(Precursor::ActivationMethod(i)) == 1)
       {
@@ -132,4 +130,4 @@ namespace OpenMS
     update_();
   }
 
-}
+} // namespace OpenMS

@@ -33,40 +33,37 @@
 // --------------------------------------------------------------------------
 //
 
-#include <iostream>
-#include <cmath>
-
-#include <OpenMS/VISUAL/DIALOGS/SaveImageDialog.h>
-
 #include <OpenMS/MATH/MISC/MathFunctions.h>
+#include <OpenMS/VISUAL/DIALOGS/SaveImageDialog.h>
+#include <cmath>
+#include <iostream>
 
 // Qt
-#include <QtWidgets/QLayout>
-#include <QtWidgets/QPushButton>
-#include <QtWidgets/QComboBox>
-#include <QtWidgets/QLabel>
+#include <QImageWriter>
 #include <QValidator>
+#include <QtWidgets/QApplication>
+#include <QtWidgets/QComboBox>
 #include <QtWidgets/QGridLayout>
 #include <QtWidgets/QHBoxLayout>
-#include <QImageWriter>
-#include <QtWidgets/QApplication>
+#include <QtWidgets/QLabel>
+#include <QtWidgets/QLayout>
+#include <QtWidgets/QPushButton>
 
 namespace OpenMS
 {
 
 
-  SaveImageDialog::SaveImageDialog(QWidget * parent) :
-    QDialog(parent)
+  SaveImageDialog::SaveImageDialog(QWidget* parent) : QDialog(parent)
   {
     size_ratio_ = 1;
-    //create dialog and layout (grid)
-    QGridLayout * grid = new QGridLayout(this);
+    // create dialog and layout (grid)
+    QGridLayout* grid = new QGridLayout(this);
 
-    //add accept/cancel buttons (and their layout)
-    QBoxLayout * box_layout = new QHBoxLayout();
+    // add accept/cancel buttons (and their layout)
+    QBoxLayout* box_layout = new QHBoxLayout();
     grid->addLayout(box_layout, 5, 1);
 
-    QPushButton * button = new QPushButton(this);
+    QPushButton* button = new QPushButton(this);
     button->setText("Cancel");
     connect(button, SIGNAL(clicked()), this, SLOT(reject()));
     box_layout->addWidget(button);
@@ -77,8 +74,8 @@ namespace OpenMS
     connect(button, SIGNAL(clicked()), this, SLOT(checkSize()));
     box_layout->addWidget(button);
 
-    //add picture format selector
-    QLabel * label = new QLabel("Picture format:", this);
+    // add picture format selector
+    QLabel* label = new QLabel("Picture format:", this);
     grid->addWidget(label, 0, 0);
     format_ = new QComboBox(this);
     QList<QByteArray> list = QImageWriter::supportedImageFormats();
@@ -87,7 +84,7 @@ namespace OpenMS
       format_->insertItem(i, list.at(i));
     }
     grid->addWidget(format_, 0, 1, Qt::AlignLeft);
-    //set format to PNG/JPEG if available
+    // set format to PNG/JPEG if available
     int png = -1;
     int jpeg = -1;
     for (int i = 0; i < format_->count(); i++)
@@ -110,22 +107,22 @@ namespace OpenMS
       format_->setCurrentIndex(jpeg);
     }
 
-    //add size boxes and label (and their layout)
+    // add size boxes and label (and their layout)
     label = new QLabel("Size (WxH):", this);
     grid->addWidget(label, 1, 0);
 
-    QValidator * v = new QIntValidator(1, 10000, this);
+    QValidator* v = new QIntValidator(1, 10000, this);
     box_layout = new QHBoxLayout();
     grid->addLayout(box_layout, 1, 1);
     size_x_ = new QLineEdit(this);
     size_x_->setValidator(v);
-    connect(size_x_, SIGNAL(textChanged(const QString &)), this, SLOT(xSizeChanged(const QString &)));
+    connect(size_x_, SIGNAL(textChanged(const QString&)), this, SLOT(xSizeChanged(const QString&)));
     box_layout->addWidget(size_x_);
     label = new QLabel("x", this);
     box_layout->addWidget(label);
     size_y_ = new QLineEdit(this);
     size_y_->setValidator(v);
-    connect(size_y_, SIGNAL(textChanged(const QString &)), this, SLOT(ySizeChanged(const QString &)));
+    connect(size_y_, SIGNAL(textChanged(const QString&)), this, SLOT(ySizeChanged(const QString&)));
     box_layout->addWidget(size_y_);
     label = new QLabel("pixel", this);
     box_layout->addWidget(label);
@@ -138,7 +135,7 @@ namespace OpenMS
 
   void SaveImageDialog::setSize(int x, int y)
   {
-    QString * temp = new QString();
+    QString* temp = new QString();
     temp->setNum(x);
     size_x_->setText(*temp);
     temp->setNum(y);
@@ -158,21 +155,21 @@ namespace OpenMS
     }
   }
 
-  void SaveImageDialog::xSizeChanged(const QString & s)
+  void SaveImageDialog::xSizeChanged(const QString& s)
   {
     if (size_proportions_->isChecked() && size_x_ == qApp->focusWidget())
     {
-      QString * temp = new QString();
+      QString* temp = new QString();
       temp->setNum((int)Math::round(s.toInt() / size_ratio_));
       size_y_->setText(*temp);
     }
   }
 
-  void SaveImageDialog::ySizeChanged(const QString & s)
+  void SaveImageDialog::ySizeChanged(const QString& s)
   {
     if (size_proportions_->isChecked() && size_y_ == qApp->focusWidget())
     {
-      QString * temp = new QString();
+      QString* temp = new QString();
       temp->setNum((int)Math::round(s.toInt() * size_ratio_));
       size_x_->setText(*temp);
     }
@@ -211,4 +208,4 @@ namespace OpenMS
     return format_->currentText();
   }
 
-} //namespace
+} // namespace OpenMS

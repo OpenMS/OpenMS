@@ -46,16 +46,15 @@ namespace OpenMS
   /**
   @brief Behavior of TOPPView in spectra view mode.
   */
-  class TVSpectraViewController
-    : public TVControllerBase
+  class TVSpectraViewController : public TVControllerBase
   {
     Q_OBJECT
 
-public:
+  public:
     /// Construct the behaviour with its parent
     TVSpectraViewController(TOPPViewBase* parent);
 
-public slots:
+  public slots:
     /// Behavior for showSpectrumAsNew1D
     virtual void showSpectrumAsNew1D(int index);
 
@@ -71,4 +70,4 @@ public slots:
     /// Behavior for deactivate1DSpectrum
     virtual void deactivate1DSpectrum(int index);
   };
-}
+} // namespace OpenMS

@@ -32,10 +32,8 @@
 // $Authors: Stephan Aiche, Marc Sturm $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/VISUAL/GUIProgressLoggerImpl.h>
-
 #include <OpenMS/DATASTRUCTURES/String.h>
-
+#include <OpenMS/VISUAL/GUIProgressLoggerImpl.h>
 #include <QApplication>
 #include <QProgressDialog>
 #include <iostream>
@@ -54,11 +52,7 @@ namespace OpenMS
     return "GUI";
   }
 
-  GUIProgressLoggerImpl::GUIProgressLoggerImpl() :
-    dlg_(nullptr),
-    begin_(0),
-    end_(0),
-    current_(0)
+  GUIProgressLoggerImpl::GUIProgressLoggerImpl() : dlg_(nullptr), begin_(0), end_(0), current_(0)
   {
   }
 
@@ -115,4 +109,4 @@ namespace OpenMS
   {
     delete dlg_;
   }
-}
+} // namespace OpenMS

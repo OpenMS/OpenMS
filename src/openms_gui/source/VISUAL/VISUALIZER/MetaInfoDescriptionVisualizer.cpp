@@ -32,10 +32,10 @@
 // $Authors: Marc Sturm $
 // --------------------------------------------------------------------------
 
-//OpenMS
+// OpenMS
 #include <OpenMS/VISUAL/VISUALIZER/MetaInfoDescriptionVisualizer.h>
 
-//QT
+// QT
 #include <QtWidgets/QLineEdit>
 #include <QtWidgets/QTextEdit>
 
@@ -44,9 +44,7 @@ using namespace std;
 namespace OpenMS
 {
 
-  MetaInfoDescriptionVisualizer::MetaInfoDescriptionVisualizer(bool editable, QWidget * parent) :
-    BaseVisualizerGUI(editable, parent),
-    BaseVisualizer<MetaInfoDescription>()
+  MetaInfoDescriptionVisualizer::MetaInfoDescriptionVisualizer(bool editable, QWidget* parent) : BaseVisualizerGUI(editable, parent), BaseVisualizer<MetaInfoDescription>()
   {
     addLabel_("Modify MetaInfoDescription information");
     addSeparator_();
@@ -72,4 +70,4 @@ namespace OpenMS
     update_();
   }
 
-}
+} // namespace OpenMS

@@ -32,10 +32,10 @@
 // $Authors: Marc Sturm $
 // --------------------------------------------------------------------------
 
-//OpenMS
+// OpenMS
 #include <OpenMS/VISUAL/VISUALIZER/PeptideHitVisualizer.h>
 
-//QT
+// QT
 #include <QtWidgets/QLineEdit>
 #include <QtWidgets/QTextEdit>
 
@@ -47,9 +47,7 @@ using namespace std;
 namespace OpenMS
 {
 
-  PeptideHitVisualizer::PeptideHitVisualizer(bool editable, QWidget * parent) :
-    BaseVisualizerGUI(editable, parent),
-    BaseVisualizer<PeptideHit>()
+  PeptideHitVisualizer::PeptideHitVisualizer(bool editable, QWidget* parent) : BaseVisualizerGUI(editable, parent), BaseVisualizer<PeptideHit>()
   {
     addLineEdit_(peptidehit_score_, "Score");
     addLineEdit_(peptidehit_charge_, "Charge");
@@ -73,7 +71,7 @@ namespace OpenMS
 
   void PeptideHitVisualizer::store()
   {
-    //TODO?
+    // TODO?
     (*ptr_) = temp_;
   }
 
@@ -82,4 +80,4 @@ namespace OpenMS
     update_();
   }
 
-}
+} // namespace OpenMS

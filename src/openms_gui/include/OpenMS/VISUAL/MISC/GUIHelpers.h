@@ -34,21 +34,20 @@
 
 #pragma once
 
-#include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/FORMAT/FileHandler.h>
+#include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
 
 // declare Qt classes OUTSIDE of namespace OpenMS!
 class QPainter;
 class QPoint;
 class QRectF;
-class QString; 
+class QString;
 class QStringList;
 class QWidget;
 
 #include <QColor>
 #include <QFont>
-
 #include <array>
 
 namespace OpenMS
@@ -60,18 +59,14 @@ namespace OpenMS
     Namespace which holds static GUI-related helper functions.
   */
   namespace GUIHelpers
-  {        
+  {
     /// Open a folder in file explorer
     /// Will show a message box on failure
     OPENMS_GUI_DLLAPI void openFolder(const QString& folder);
 
     /// Open a dialog to select a filename to save data to.
 
-    OPENMS_GUI_DLLAPI QString getSaveFilename(QWidget* parent,
-                                              const QString& caption,
-                                              const QString& dir,
-                                              const FileTypeList& supported_file_types, 
-                                              bool add_all_filter,
+    OPENMS_GUI_DLLAPI QString getSaveFilename(QWidget* parent, const QString& caption, const QString& dir, const FileTypeList& supported_file_types, bool add_all_filter,
                                               const FileTypes::Type fallback_extension);
 
 
@@ -95,12 +90,12 @@ namespace OpenMS
        @param font Font to use; will use Courier by default
     */
     OPENMS_GUI_DLLAPI void drawText(QPainter& painter, const QStringList& text, const QPoint& where, const QColor& col_fg = QColor("invalid"), const QColor& col_bg = QColor("invalid"),
-                                   const QFont& font = QFont("Courier"));
+                                    const QFont& font = QFont("Courier"));
 
 
     /**
       @brief Obtains the bounding rectangle of a text (useful to determine overlaps etc)
-    
+
     */
     OPENMS_GUI_DLLAPI QRectF getTextDimension(const QStringList& text, const QFont& font, int& line_spacing);
 
@@ -159,16 +154,16 @@ namespace OpenMS
 
       /// D'tor: unlocks the GUI (does nothing if already unlocked)
       ~GUILock();
-      
+
       /// manually lock the GUI (does nothing if already locked)
       void lock();
       /// manually unlock the GUI (does nothing if already unlocked)
       void unlock();
 
     private:
-      QWidget* locked_widget_{ nullptr };
-      bool currently_locked_{ false };
-      bool was_enabled_{ true };
+      QWidget* locked_widget_ {nullptr};
+      bool currently_locked_ {false};
+      bool was_enabled_ {true};
     };
 
     /// color palette for certain purposes
@@ -176,8 +171,7 @@ namespace OpenMS
     class ColorBrewer
     {
     public:
-      struct Distinct
-      {
+      struct Distinct {
         enum NAMES
         {
           Red,
@@ -197,20 +191,9 @@ namespace OpenMS
           SIZE_OF_NAMES
         };
 
-        const std::array<QColor, NAMES::SIZE_OF_NAMES> values = { { Qt::red,
-                                                                    Qt::blue,
-                                                                    Qt::green,
-                                                                    QColor(129, 74, 25) /*brown*/,
-                                                                    QColor(129, 38, 192) /*purple*/,
-                                                                    Qt::lightGray,
-                                                                    QColor(129,197,122) /*lightGreen*/,
-                                                                    QColor(157,175,255) /*lightBlue*/,
-                                                                    Qt::cyan,
-                                                                    QColor(255,146,51) /*orange*/,
-                                                                    Qt::yellow,
-                                                                    QColor(233,222,187) /*tan*/,
-                                                                    QColor(255,205,243) /*pink*/,
-                                                                    Qt::darkGray } };
+        const std::array<QColor, NAMES::SIZE_OF_NAMES> values = {{Qt::red, Qt::blue, Qt::green, QColor(129, 74, 25) /*brown*/, QColor(129, 38, 192) /*purple*/, Qt::lightGray,
+                                                                  QColor(129, 197, 122) /*lightGreen*/, QColor(157, 175, 255) /*lightBlue*/, Qt::cyan, QColor(255, 146, 51) /*orange*/, Qt::yellow,
+                                                                  QColor(233, 222, 187) /*tan*/, QColor(255, 205, 243) /*pink*/, Qt::darkGray}};
       };
 
       /// get a certain color. If @p index is larger than the maximum color, modulo operator will applied (cycling through colors)
@@ -218,7 +201,8 @@ namespace OpenMS
       static QColor getColor(uint32_t index)
       {
         // cycle if necessary
-        if (index >= COLOR_CLASS::NAMES::SIZE_OF_NAMES) index = index % COLOR_CLASS::NAMES::SIZE_OF_NAMES;
+        if (index >= COLOR_CLASS::NAMES::SIZE_OF_NAMES)
+          index = index % COLOR_CLASS::NAMES::SIZE_OF_NAMES;
         return COLOR_CLASS().values[index];
       }
     }; // ColorBrewer
@@ -226,5 +210,5 @@ namespace OpenMS
     OPENMS_GUI_DLLAPI StringList convert(const QStringList& in);
     OPENMS_GUI_DLLAPI QStringList convert(const StringList& in);
 
-  }; // GUIHelpers
-}
+  }; // namespace GUIHelpers
+} // namespace OpenMS

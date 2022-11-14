@@ -34,8 +34,8 @@
 
 #pragma once
 
-#include <OpenMS/VISUAL/LayerDataBase.h>
 #include <OpenMS/VISUAL/INTERFACES/IPeptideIds.h>
+#include <OpenMS/VISUAL/LayerDataBase.h>
 
 namespace OpenMS
 {
@@ -115,7 +115,7 @@ namespace OpenMS
       getFeatureMap()->getUnassignedPeptideIdentifications() = std::move(ids);
     }
 
-    
+
     /// Returns a const reference to the current feature data
     const FeatureMapSharedPtrType& getFeatureMap() const
     {
@@ -133,4 +133,4 @@ namespace OpenMS
     FeatureMapSharedPtrType features_ = FeatureMapSharedPtrType(new FeatureMapType());
   };
 
-}// namespace OpenMS
+} // namespace OpenMS

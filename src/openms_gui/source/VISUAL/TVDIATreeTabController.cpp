@@ -33,19 +33,18 @@
 // --------------------------------------------------------------------------
 
 
-#include <OpenMS/VISUAL/TVDIATreeTabController.h>
-
 #include <OpenMS/CONCEPT/RAIICleanup.h>
 #include <OpenMS/DATASTRUCTURES/OSWData.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/KERNEL/ChromatogramTools.h>
 #include <OpenMS/SYSTEM/File.h>
+#include <OpenMS/VISUAL/ANNOTATION/Annotation1DVerticalLineItem.h>
 #include <OpenMS/VISUAL/APPLICATIONS/TOPPViewBase.h>
 #include <OpenMS/VISUAL/AxisWidget.h>
 #include <OpenMS/VISUAL/LayerDataChrom.h>
-#include <OpenMS/VISUAL/Plot1DWidget.h>
-#include <OpenMS/VISUAL/ANNOTATION/Annotation1DVerticalLineItem.h>
 #include <OpenMS/VISUAL/MISC/GUIHelpers.h>
+#include <OpenMS/VISUAL/Plot1DWidget.h>
+#include <OpenMS/VISUAL/TVDIATreeTabController.h>
 
 using namespace OpenMS;
 using namespace std;
@@ -61,29 +60,21 @@ namespace OpenMS
 
   /// represents all the information we need from a chromatogram layer
   /// We cannot use a full layer, because the original layer might get destroyed in the process...
-  struct MiniLayer
-  {
+  struct MiniLayer {
     ExperimentSharedPtrType full_chrom_exp_sptr;
     ODExperimentSharedPtrType ondisc_sptr;
     OSWDataSharedPtrType annot_sptr;
     String filename;
     String layername;
 
-    explicit MiniLayer(LayerDataChrom& layer)
-    : full_chrom_exp_sptr(layer.getChromatogramData()),
-      ondisc_sptr(layer.getOnDiscPeakData()),
-      annot_sptr(layer.getChromatogramAnnotation()),
-      filename(layer.filename),
-      layername(layer.getName())
+    explicit MiniLayer(LayerDataChrom& layer) :
+        full_chrom_exp_sptr(layer.getChromatogramData()), ondisc_sptr(layer.getOnDiscPeakData()), annot_sptr(layer.getChromatogramAnnotation()), filename(layer.filename), layername(layer.getName())
     {
     }
   };
 
 
-  bool addTransitionAsLayer(Plot1DWidget* w, 
-                            const MiniLayer& ml,
-                            const int transition_id,
-                            std::set<UInt32>& transitions_seen)
+  bool addTransitionAsLayer(Plot1DWidget* w, const MiniLayer& ml, const int transition_id, std::set<UInt32>& transitions_seen)
   {
     if (transitions_seen.find(transition_id) != transitions_seen.end())
     { // duplicate .. do not show
@@ -113,13 +104,9 @@ namespace OpenMS
       return;
     }
     // sort features by left RT
-    std::sort(features.begin(), features.end(), [](const OSWPeakGroup& a, const OSWPeakGroup& b)
-    {
-      return a.getRTLeftWidth() < b.getRTLeftWidth();
-    });
+    std::sort(features.begin(), features.end(), [](const OSWPeakGroup& a, const OSWPeakGroup& b) { return a.getRTLeftWidth() < b.getRTLeftWidth(); });
     const OSWPeakGroup* best_feature = &features[0];
-    auto findBestFeature = [&best_feature](const OSWPeakGroup& f)
-    {
+    auto findBestFeature = [&best_feature](const OSWPeakGroup& f) {
       if (best_feature->getQValue() > f.getQValue())
       {
         best_feature = &f;
@@ -139,9 +126,7 @@ namespace OpenMS
       auto width = feature.getRTRightWidth() - feature.getRTLeftWidth();
       auto center = feature.getRTLeftWidth() + width / 2;
       String ann = String("RT:\n ") + String(feature.getRTExperimental(), false) + "\ndRT:\n " + String(feature.getRTDelta(), false) + "\nQ:\n " + String(feature.getQValue(), false);
-      QColor col = GUIHelpers::ColorBrewer::Distinct().values[(best_feature == &feature) 
-                          ? GUIHelpers::ColorBrewer::Distinct::LightGreen
-                          : GUIHelpers::ColorBrewer::Distinct::LightGrey];
+      QColor col = GUIHelpers::ColorBrewer::Distinct().values[(best_feature == &feature) ? GUIHelpers::ColorBrewer::Distinct::LightGreen : GUIHelpers::ColorBrewer::Distinct::LightGrey];
       Annotation1DVerticalLineItem* item = new Annotation1DVerticalLineItem(center, width, 150, false, col, ann.toQString());
       item->setSelected(false);
       auto text_size = item->getTextRect(); // this is in px units (Qt widget coordinates)
@@ -160,9 +145,7 @@ namespace OpenMS
   }
 
 
-
-  TVDIATreeTabController::TVDIATreeTabController(TOPPViewBase* parent) :
-    TVControllerBase(parent)
+  TVDIATreeTabController::TVDIATreeTabController(TOPPViewBase* parent) : TVControllerBase(parent)
   {
   }
 
@@ -222,14 +205,46 @@ namespace OpenMS
 
     switch (trace.lowest)
     {
-    case OSWHierarchy::Level::PROTEIN:
-    {
-      const auto& prot = data->getProteins()[trace.idx_prot];
-      // show only the first peptide for now...
-      const auto& pep = prot.getPeptidePrecursors()[0];
-      features = pep.getFeatures();
-      for (const auto& feat : pep.getFeatures())
-      {
+      case OSWHierarchy::Level::PROTEIN: {
+        const auto& prot = data->getProteins()[trace.idx_prot];
+        // show only the first peptide for now...
+        const auto& pep = prot.getPeptidePrecursors()[0];
+        features = pep.getFeatures();
+        for (const auto& feat : pep.getFeatures())
+        {
+          const auto& trids = feat.getTransitionIDs();
+          for (UInt trid : trids)
+          {
+            if (!addTransitionAsLayer(w, ml, (Size)trid, transitions_seen))
+            { // something went wrong. abort
+              return false;
+            }
+          }
+        }
+        break;
+      }
+      case OSWHierarchy::Level::PEPTIDE: {
+        const auto& prot = data->getProteins()[trace.idx_prot];
+        const auto& pep = prot.getPeptidePrecursors()[trace.idx_pep];
+        features = pep.getFeatures();
+        for (const auto& feat : pep.getFeatures())
+        {
+          const auto& trids = feat.getTransitionIDs();
+          for (UInt trid : trids)
+          {
+            if (!addTransitionAsLayer(w, ml, (Size)trid, transitions_seen))
+            { // something went wrong. abort
+              return false;
+            }
+          }
+        }
+        break;
+      }
+      case OSWHierarchy::Level::FEATURE: {
+        const auto& prot = data->getProteins()[trace.idx_prot];
+        const auto& pep = prot.getPeptidePrecursors()[trace.idx_pep];
+        const auto& feat = pep.getFeatures()[trace.idx_feat];
+        features = {feat};
         const auto& trids = feat.getTransitionIDs();
         for (UInt trid : trids)
         {
@@ -238,57 +253,21 @@ namespace OpenMS
             return false;
           }
         }
+        break;
       }
-      break;
-    }
-    case OSWHierarchy::Level::PEPTIDE:
-    {
-      const auto& prot = data->getProteins()[trace.idx_prot];
-      const auto& pep = prot.getPeptidePrecursors()[trace.idx_pep];
-      features = pep.getFeatures();
-      for (const auto& feat : pep.getFeatures())
-      {
-        const auto& trids = feat.getTransitionIDs();
-        for (UInt trid : trids)
-        {
-          if (!addTransitionAsLayer(w, ml, (Size)trid, transitions_seen))
-          { // something went wrong. abort
-            return false;
-          }
-        }
-      }
-      break;
-    }
-    case OSWHierarchy::Level::FEATURE:
-    {
-      const auto& prot = data->getProteins()[trace.idx_prot];
-      const auto& pep = prot.getPeptidePrecursors()[trace.idx_pep];
-      const auto& feat = pep.getFeatures()[trace.idx_feat];
-      features = { feat };
-      const auto& trids = feat.getTransitionIDs();
-      for (UInt trid : trids)
-      {
+      case OSWHierarchy::Level::TRANSITION: {
+        const auto& prot = data->getProteins()[trace.idx_prot];
+        const auto& pep = prot.getPeptidePrecursors()[trace.idx_pep];
+        const auto& feat = pep.getFeatures()[trace.idx_feat];
+        const auto& trid = feat.getTransitionIDs()[trace.idx_trans];
         if (!addTransitionAsLayer(w, ml, (Size)trid, transitions_seen))
         { // something went wrong. abort
           return false;
         }
+        break;
       }
-      break;
-    }
-    case OSWHierarchy::Level::TRANSITION:
-    {
-      const auto& prot = data->getProteins()[trace.idx_prot];
-      const auto& pep = prot.getPeptidePrecursors()[trace.idx_pep];
-      const auto& feat = pep.getFeatures()[trace.idx_feat];
-      const auto& trid = feat.getTransitionIDs()[trace.idx_trans];
-      if (!addTransitionAsLayer(w, ml, (Size)trid, transitions_seen))
-      { // something went wrong. abort
-        return false;
-      }
-      break;
-    }
-    default:
-      throw Exception::NotImplemented(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
+      default:
+        throw Exception::NotImplemented(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
     }
 
     // add bars for all identified features
@@ -298,5 +277,4 @@ namespace OpenMS
   }
 
 
-} // OpenMS
-
+} // namespace OpenMS

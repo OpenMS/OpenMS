@@ -40,16 +40,16 @@
 // OpenMS
 #include <OpenMS/VISUAL/LayerData1DBase.h>
 #include <OpenMS/VISUAL/LayerDataChrom.h>
-#include <OpenMS/VISUAL/PlotCanvas.h>
 #include <OpenMS/VISUAL/Painter1DBase.h>
+#include <OpenMS/VISUAL/PlotCanvas.h>
 
 // QT
-#include <QTextDocument>
 #include <QPoint>
+#include <QTextDocument>
 
 // STL
-#include <vector>
 #include <utility>
+#include <vector>
 
 // QT
 class QAction;
@@ -57,7 +57,7 @@ class QAction;
 namespace OpenMS
 {
   class Annotation1DItem;
-  
+
   /**
    * \brief Manipulates X or Y component of points in the X-Y plane, by assuming one axis (either X or Y axis) has gravity acting upon it.
    *
@@ -67,7 +67,6 @@ namespace OpenMS
   class Gravitator
   {
   public:
-
     using AreaXYType = PlotCanvas::GenericArea::AreaXYType;
 
     /**
@@ -118,7 +117,7 @@ namespace OpenMS
         setGravityAxis(DIM::Y);
       }
       /// if 1D view has no intensity dimension, go think about what dimension should be gravitational...
-      throw Exception::NotImplemented(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);      
+      throw Exception::NotImplemented(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
     }
 
     /// Which axis is affected by gravity?
@@ -134,13 +133,13 @@ namespace OpenMS
     Gravitator swap() const
     {
       auto r = *this;
-      r.setGravityAxis( (r.getGravityAxis() == DIM::X) ? DIM::Y : DIM::X);
+      r.setGravityAxis((r.getGravityAxis() == DIM::X) ? DIM::Y : DIM::X);
       return r;
     }
 
     /// Pull the point @p p to the current gravity axis, i.e. the lowest point on the Area
     ///
-    /// @param p A X-Y data point 
+    /// @param p A X-Y data point
     /// @param area An area which contains the min/max range of X and Y axis
     /// @return A X-Y data point identical to @p p, but with its gravity-axis value changed to the minimum given in @p area
     QPoint gravitateMin(QPoint p, const AreaXYType& area) const
@@ -199,7 +198,7 @@ namespace OpenMS
       }
       return p;
     }
-    
+
     /// Same as gravitateTo()
     template<UInt D>
     DPosition<D> gravitateTo(DPosition<D> p, const DPosition<D>& target) const
@@ -316,12 +315,11 @@ namespace OpenMS
 
       @ingroup PlotWidgets
   */
-  class OPENMS_GUI_DLLAPI Plot1DCanvas :
-    public PlotCanvas
+  class OPENMS_GUI_DLLAPI Plot1DCanvas : public PlotCanvas
   {
     Q_OBJECT
 
-public:
+  public:
     /// Label modes (percentage or absolute) of x axis and y axis
     enum LabelMode
     {
@@ -332,13 +330,13 @@ public:
     };
 
     /// extra empty margin added on top to ensure annotations and 100% y-axis label are properly drawn
-    constexpr static double TOP_MARGIN{1.09};
+    constexpr static double TOP_MARGIN {1.09};
 
     /// Default constructor
     Plot1DCanvas(const Param& preferences, const DIM gravity_axis = DIM::Y, QWidget* parent = nullptr);
     /// Destructor
     ~Plot1DCanvas() override;
-    
+
     /// returns the layer data of the layer @p index
     /// @throws std::bad_cast exception if the current layer is not a LayerData1DBase
     const LayerData1DBase& getLayer(Size index) const;
@@ -347,7 +345,7 @@ public:
     LayerData1DBase& getLayer(Size index);
 
     /// returns the layer data of the active layer
-    /// @throws std::bad_cast exception if the current layer is not a LayerData1DBase 
+    /// @throws std::bad_cast exception if the current layer is not a LayerData1DBase
     const LayerData1DBase& getCurrentLayer() const;
     /// returns the layer data of the active layer
     /// @throws std::bad_cast exception if the current layer is not a LayerData1DBase
@@ -368,15 +366,11 @@ public:
     /// @param caption Name of layer
     /// @return true on success, false if data was missing etc
     /// @note: this does NOT trigger layerActivated signal for efficiency-reasons. Do it manually afterwards!
-    bool addChromLayer(ExperimentSharedPtrType chrom_exp_sptr,
-                       ODExperimentSharedPtrType ondisc_sptr, 
-                       OSWDataSharedPtrType chrom_annotation,
-                       const int index,
-                       const String& filename, 
+    bool addChromLayer(ExperimentSharedPtrType chrom_exp_sptr, ODExperimentSharedPtrType ondisc_sptr, OSWDataSharedPtrType chrom_annotation, const int index, const String& filename,
                        const String& caption);
 
-    
-    ///Enumerate all available paint styles
+
+    /// Enumerate all available paint styles
     enum DrawModes
     {
       DM_PEAKS,         ///< draw data as peak
@@ -448,12 +442,12 @@ public:
      * \param data_point
      * \param layer_index The layer of the above data_point (to obtain the data range of the layer)
      */
-    template <class T>
+    template<class T>
     void pushIntoDataRange(T& data_point, const int layer_index)
     { // note: if this is needed for anything other than the 1D Canvas, you need to make sure to call the correct widgetToData/ etc functions --- they work a bit different, depending on Canvas
       auto xy_unit = unit_mapper_.map(data_point); // datatype to xy
       pushIntoDataRange(xy_unit, layer_index);
-      unit_mapper_.fromXY(xy_unit, data_point);    // xy to datatype
+      unit_mapper_.fromXY(xy_unit, data_point); // xy to datatype
     }
 
     /**
@@ -461,7 +455,7 @@ public:
      * \param xy_unit A pair (X and Y coordinate) with values in the units currently used on the axis
      * \param layer_index The layer of the above data_point (to obtain the data range of the layer)
      */
-    //template<>  // specialization does not compile when declared within the class on GCC -- even though it should; but I'm not moving it outside! :)
+    // template<>  // specialization does not compile when declared within the class on GCC -- even though it should; but I'm not moving it outside! :)
     void pushIntoDataRange(PointXYType& xy_unit, const int layer_index)
     { // note: if this is needed for anything other than the 1D Canvas, you need to make sure to call the correct widgetToData/ etc functions --- they work a bit different, depending on Canvas
       auto p_range = unit_mapper_.fromXY(xy_unit);
@@ -469,7 +463,7 @@ public:
       p_range.pushInto(all_range);
       xy_unit = unit_mapper_.mapRange(p_range).minPosition();
     }
-    
+
     /// Display a static text box on the top right
     void setTextBox(const QString& html);
 
@@ -492,7 +486,7 @@ public:
     double getAlignmentScore() const;
 
     /// Returns aligned_peaks_indices_
-    std::vector<std::pair<Size, Size> > getAlignedPeaksIndices();
+    std::vector<std::pair<Size, Size>> getAlignedPeaksIndices();
 
     /// Sets current spectrum index of current layer to @p index
     void activateSpectrum(Size index, bool repaint = true);
@@ -524,7 +518,7 @@ public:
       return gr_;
     }
 
-signals:
+  signals:
     /// Requests to display all spectra in 2D plot
     void showCurrentPeaksAs2D();
 
@@ -537,7 +531,7 @@ signals:
     /// Requests to display all spectra as DIA
     void showCurrentPeaksAsDIA(const Precursor& pc, const MSExperiment& exp);
 
-public slots:
+  public slots:
     // Docu in base class
     void activateLayer(Size layer_index) override;
     // Docu in base class
@@ -547,14 +541,12 @@ public slots:
     // Docu in base class
     void horizontalScrollBarChange(int value) override;
 
-protected slots:
+  protected slots:
 
     /// Reacts on changed layer parameters
     void currentLayerParamtersChanged_();
 
-protected:
-
-    
+  protected:
     /**
       @brief Convert chart to widget coordinates
 
@@ -600,7 +592,7 @@ protected:
     void drawCoordinates_(QPainter& painter, const PeakIndex& peak);
     /// Draws the coordinates (or coordinate deltas) to the widget's upper left corner
     void drawDeltas_(QPainter& painter, const PeakIndex& start, const PeakIndex& end);
-    
+
     /// Draws the alignment on @p painter
     void drawAlignment_(QPainter& painter);
 
@@ -632,7 +624,7 @@ protected:
     // Docu in base class
     void intensityModeChange_() override;
 
-    
+
     /** @name Reimplemented QT events */
     //@{
     void paintEvent(QPaintEvent* e) override;
@@ -698,9 +690,9 @@ protected:
     /// Layer index of the second alignment layer
     Size alignment_layer_2_;
     /// Stores the alignment as MZ values of pairs of aligned peaks in both spectra
-    std::vector<std::pair<double, double> > aligned_peaks_mz_delta_;
+    std::vector<std::pair<double, double>> aligned_peaks_mz_delta_;
     /// Stores the peak indices of pairs of aligned peaks in both spectra
-    std::vector<std::pair<Size, Size> > aligned_peaks_indices_;
+    std::vector<std::pair<Size, Size>> aligned_peaks_indices_;
     /// Stores the score of the last alignment
     double alignment_score_ = 0.0;
     /// whether the ion ladder is displayed on the top right corner in ID view
@@ -714,7 +706,4 @@ protected:
   };
 
 
-
-
 } // namespace OpenMS
-

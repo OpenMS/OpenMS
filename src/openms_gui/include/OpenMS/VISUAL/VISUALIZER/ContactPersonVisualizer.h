@@ -37,7 +37,7 @@
 // OpenMS_GUI config
 #include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
 
-//OpenMS
+// OpenMS
 #include <OpenMS/METADATA/ContactPerson.h>
 #include <OpenMS/VISUAL/VISUALIZER/BaseVisualizer.h>
 #include <OpenMS/VISUAL/VISUALIZER/BaseVisualizerGUI.h>
@@ -49,42 +49,38 @@ namespace OpenMS
 
       This class provides all functionality to view the meta information of an object of type ContactPerson.
   */
-  class OPENMS_GUI_DLLAPI ContactPersonVisualizer :
-    public BaseVisualizerGUI,
-    public BaseVisualizer<ContactPerson>
+  class OPENMS_GUI_DLLAPI ContactPersonVisualizer : public BaseVisualizerGUI, public BaseVisualizer<ContactPerson>
   {
     Q_OBJECT
 
-public:
+  public:
+    /// Constructor
+    ContactPersonVisualizer(bool editable = false, QWidget* parent = nullptr);
 
-    ///Constructor
-    ContactPersonVisualizer(bool editable = false, QWidget * parent = nullptr);
+  public slots:
 
-public slots:
-
-    //Docu in base class
+    // Docu in base class
     void store() override;
 
-protected slots:
+  protected slots:
 
-    ///Undo the changes made in the GUI.
+    /// Undo the changes made in the GUI.
     void undo_();
 
-protected:
-
+  protected:
     ///@name Edit fields and buttons
     //@{
-    QLineEdit * firstname_;
-    QLineEdit * lastname_;
-    QLineEdit * institution_;
-    QLineEdit * email_;
-    QLineEdit * contact_info_;
-    QLineEdit * address_;
-    QLineEdit * url_;
+    QLineEdit* firstname_;
+    QLineEdit* lastname_;
+    QLineEdit* institution_;
+    QLineEdit* email_;
+    QLineEdit* contact_info_;
+    QLineEdit* address_;
+    QLineEdit* url_;
     //@}
 
-    //Docu in base class
+    // Docu in base class
     void update_() override;
   };
 
-}
+} // namespace OpenMS

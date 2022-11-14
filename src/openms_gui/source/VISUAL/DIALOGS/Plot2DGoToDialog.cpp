@@ -33,22 +33,17 @@
 // --------------------------------------------------------------------------
 
 // OpenMS includes
-#include <OpenMS/VISUAL/DIALOGS/Plot2DGoToDialog.h>
-#include <ui_Plot2DGoToDialog.h>
-
-
 #include <OpenMS/DATASTRUCTURES/String.h>
-
+#include <OpenMS/VISUAL/DIALOGS/Plot2DGoToDialog.h>
 #include <QtWidgets/QLineEdit>
+#include <ui_Plot2DGoToDialog.h>
 
 using namespace std;
 
 namespace OpenMS
 {
 
-  Plot2DGoToDialog::Plot2DGoToDialog(QWidget * parent) :
-    QDialog(parent),
-    ui_(new Ui::Plot2DGoToDialogTemplate)
+  Plot2DGoToDialog::Plot2DGoToDialog(QWidget* parent) : QDialog(parent), ui_(new Ui::Plot2DGoToDialogTemplate)
   {
     ui_->setupUi(this);
   }
@@ -88,8 +83,10 @@ namespace OpenMS
     float max_mz = ui_->max_mz_->text().toFloat();
 
     // ensure correct order of min and max
-    if (min_rt > max_rt) swap(min_rt, max_rt);
-    if (min_mz > max_mz) swap(min_mz, max_mz);
+    if (min_rt > max_rt)
+      swap(min_rt, max_rt);
+    if (min_mz > max_mz)
+      swap(min_mz, max_mz);
 
     // do not allow range of 0 --> extend to 1 sec
     if (min_rt == max_rt)
@@ -135,7 +132,7 @@ namespace OpenMS
     ui_->feature_label_->setEnabled(enabled);
     ui_->nr_->setEnabled(enabled);
     ui_->feature_number_->setEnabled(enabled);
-    //Reorder tab order
+    // Reorder tab order
     if (enabled)
     {
       setTabOrder(ui_->feature_number_, ui_->ok_button_);
@@ -169,4 +166,4 @@ namespace OpenMS
     return true;
   }
 
-} //namespace OpenMS
+} // namespace OpenMS

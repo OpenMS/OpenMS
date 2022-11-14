@@ -33,14 +33,11 @@
 // --------------------------------------------------------------------------
 
 
-
-#include <OpenMS/VISUAL/LayerDataChrom.h>
-
 #include <OpenMS/DATASTRUCTURES/OSWData.h>
 #include <OpenMS/KERNEL/DimMapper.h>
-
-#include <OpenMS/VISUAL/LayerData1DPeak.h>
 #include <OpenMS/VISUAL/LayerData1DChrom.h>
+#include <OpenMS/VISUAL/LayerData1DPeak.h>
+#include <OpenMS/VISUAL/LayerDataChrom.h>
 #include <OpenMS/VISUAL/Painter2DBase.h>
 #include <OpenMS/VISUAL/VISITORS/LayerStatistics.h>
 #include <OpenMS/VISUAL/VISITORS/LayerStoreData.h>
@@ -50,9 +47,9 @@ using namespace std;
 
 namespace OpenMS
 {
-  LayerDataChrom::LayerDataChrom():
-    LayerDataBase(LayerDataBase::DT_CHROMATOGRAM)
-  {}
+  LayerDataChrom::LayerDataChrom() : LayerDataBase(LayerDataBase::DT_CHROMATOGRAM)
+  {
+  }
 
   std::unique_ptr<Painter2DBase> LayerDataChrom::getPainter2D() const
   {
@@ -89,7 +86,7 @@ namespace OpenMS
 
     MSSpectrum projection_mz;
     MSChromatogram projection_rt;
-        
+
     // this does not work yet for chromatograms...
     /*
     auto& peak_count = result.stats.number_of_datapoints;

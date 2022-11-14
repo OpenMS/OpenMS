@@ -50,25 +50,25 @@
     - deconvoluted MS1 feature file in TopFD output format (*.feature)
 */
 
-//QT
+// QT
 #include <QApplication>
 
-//OpenMS
+// OpenMS
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/CONCEPT/VersionInfo.h>
 #include <OpenMS/VISUAL/APPLICATIONS/FLASHDeconvWizardBase.h>
 #include <OpenMS/VISUAL/APPLICATIONS/MISC/QApplicationTOPP.h>
 
-//STL
+// STL
 #include <iostream>
 #include <map>
 #include <vector>
 
 #ifdef OPENMS_WINDOWSPLATFORM
-#   ifndef _WIN32_WINNT
-#       define _WIN32_WINNT 0x0501 // Win XP (and above)
-#   endif
-#   include <Windows.h>
+  #ifndef _WIN32_WINNT
+    #define _WIN32_WINNT 0x0501 // Win XP (and above)
+  #endif
+  #include <Windows.h>
 #endif
 
 using namespace OpenMS;
@@ -86,15 +86,20 @@ const char* tool_name = "FLASHDeconvWizard";
 void print_usage(Logger::LogStream& stream = OpenMS_Log_info)
 {
   stream << "\n"
-         << tool_name << " -- An assistant for FLASHDeconv." << "\n"
+         << tool_name << " -- An assistant for FLASHDeconv."
          << "\n"
-         << "Usage:" << "\n"
-         << " " << tool_name << " [options] [files]" << "\n"
          << "\n"
-         << "Options are:" << "\n"
-         << "  --help           Shows this help" << "\n"
+         << "Usage:"
+         << "\n"
+         << " " << tool_name << " [options] [files]"
+         << "\n"
+         << "\n"
+         << "Options are:"
+         << "\n"
+         << "  --help           Shows this help"
+         << "\n"
          << "  --debug          Enables debug messages\n"
-//         << "  -ini <File>      Sets the INI file (default: ~/.SwathWizard.ini)" << "\n"
+         //         << "  -ini <File>      Sets the INI file (default: ~/.SwathWizard.ini)" << "\n"
          << endl;
 }
 
@@ -104,7 +109,7 @@ int main(int argc, const char** argv)
   std::map<std::string, std::string> valid_options, valid_flags, option_lists;
   valid_flags["--help"] = "help";
   valid_flags["--debug"] = "debug";
-//  valid_options["-ini"] = "ini";
+  //  valid_options["-ini"] = "ini";
 
   Param param;
   param.parseCommandLine(argc, argv, valid_options, valid_flags, option_lists);
@@ -143,13 +148,13 @@ int main(int argc, const char** argv)
   FLASHDeconvWizardBase fw;
   fw.show();
 
-//  if (param.exists("ini"))
-//  {
-//    //mw.loadPreferences((String)param.getValue("ini"));
-//  }
+  //  if (param.exists("ini"))
+  //  {
+  //    //mw.loadPreferences((String)param.getValue("ini"));
+  //  }
 
 #ifdef OPENMS_WINDOWSPLATFORM
-  FreeConsole(); // get rid of console window at this point (we will not see any console output from this point on)
+  FreeConsole();     // get rid of console window at this point (we will not see any console output from this point on)
   AttachConsole(-1); // if the parent is a console, reattach to it - so we can see debug output - a normal user will usually not use cmd.exe to start a GUI)
 #endif
 

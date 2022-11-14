@@ -44,12 +44,11 @@ namespace OpenMS
   /**
   @brief Base behavior for different visualizaton modules in TOPPView.
   */
-  class TVControllerBase
-    : public QObject
+  class TVControllerBase : public QObject
   {
     Q_OBJECT
 
-public:
+  public:
     ///@name Type definitions
     //@{
     /// Feature map type
@@ -72,16 +71,17 @@ public:
     TVControllerBase() = delete;
 
     ~TVControllerBase() override = default;
-public slots:
+  public slots:
     /// Slot for behavior activation. The default behaviour does nothing. Override in child class if desired.
     virtual void activateBehavior();
 
     /// Slot for behavior deactivation. The default behaviour does nothing. Override in child class if desired.
     virtual void deactivateBehavior();
-protected:
+
+  protected:
     /// Construct the behaviour
     TVControllerBase(TOPPViewBase* parent);
 
     TOPPViewBase* tv_;
   };
-}
+} // namespace OpenMS

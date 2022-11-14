@@ -53,22 +53,23 @@
 #include <OpenMS/VISUAL/Painter2DBase.h>
 #include <OpenMS/VISUAL/Plot2DCanvas.h>
 #include <OpenMS/VISUAL/PlotWidget.h>
-//STL
+// STL
 #include <algorithm>
 
-//QT
+// QT
+#include <QElapsedTimer>
 #include <QMouseEvent>
 #include <QPainter>
 #include <QPolygon>
-#include <QElapsedTimer>
 #include <QtWidgets/QComboBox>
 #include <QtWidgets/QMenu>
 #include <QtWidgets/QMessageBox>
 
-#define PEN_SIZE_MAX_LIMIT 100    // maximum size of a rectangle representing a point for raw peak data
-#define PEN_SIZE_MIN_LIMIT 1      // minimum. This should not be changed without adapting the way dots are plotted
-                                  // (might lead to inconsistencies when switching between drawing modes of
-                                  //  paintMaximumIntensities() vs. paintAllIntensities() )
+#define PEN_SIZE_MAX_LIMIT 100 // maximum size of a rectangle representing a point for raw peak data
+#define PEN_SIZE_MIN_LIMIT                                                                                                                                                                             \
+  1 // minimum. This should not be changed without adapting the way dots are plotted
+    // (might lead to inconsistencies when switching between drawing modes of
+    //  paintMaximumIntensities() vs. paintAllIntensities() )
 
 // the two following constants describe the valid range of the 'canvas_coverage_min_' member (adaptable by the user)
 #define CANVAS_COVERAGE_MIN_LIMITHIGH 0.5
@@ -81,20 +82,16 @@ namespace OpenMS
 {
   using namespace Internal;
 
-  Plot2DCanvas::Plot2DCanvas(const Param & preferences, QWidget * parent) :
-    PlotCanvas(preferences, parent),
-    pen_size_min_(1),
-    pen_size_max_(20),
-    canvas_coverage_min_(0.2)
+  Plot2DCanvas::Plot2DCanvas(const Param& preferences, QWidget* parent) : PlotCanvas(preferences, parent), pen_size_min_(1), pen_size_max_(20), canvas_coverage_min_(0.2)
   {
-    //Parameter handling
+    // Parameter handling
     defaults_.setValue("background_color", "#ffffff", "Background color.");
     defaults_.setValue("interpolation_steps", 1000, "Number of interpolation steps for peak gradient pre-calculation.");
     defaults_.setMinInt("interpolation_steps", 1);
     defaults_.setMaxInt("interpolation_steps", 1000);
     defaults_.setValue("dot:gradient", "Linear|0,#eeeeee;1,#ffea00;6,#ff0000;14,#aa00ff;23,#5500ff;100,#000000", "Multi-color gradient for peaks.");
     defaults_.setValue("dot:feature_icon", "circle", "Icon used for features and consensus features.");
-    defaults_.setValidStrings("dot:feature_icon", {"diamond","square","circle","triangle"});
+    defaults_.setValidStrings("dot:feature_icon", {"diamond", "square", "circle", "triangle"});
     defaults_.setValue("dot:feature_icon_size", 4, "Icon size used for features and consensus features.");
     defaults_.setMinInt("dot:feature_icon_size", 1);
     defaults_.setMaxInt("dot:feature_icon_size", 999);
@@ -110,13 +107,13 @@ namespace OpenMS
 
   Plot2DCanvas::~Plot2DCanvas() = default;
 
-  void Plot2DCanvas::highlightPeak_(QPainter & painter, const PeakIndex & peak)
+  void Plot2DCanvas::highlightPeak_(QPainter& painter, const PeakIndex& peak)
   {
     if (!peak.isValid())
     {
       return;
     }
-    //determine coordinates;
+    // determine coordinates;
     auto pos_xy = getCurrentLayer().peakIndexToXY(peak, unit_mapper_);
 
     // paint highlighted peak
@@ -126,7 +123,7 @@ namespace OpenMS
     auto p_px = dataToWidget_(pos_xy);
     painter.drawEllipse(p_px.x() - 5, p_px.y() - 5, 10, 10);
 
-    //restore painter
+    // restore painter
     painter.restore();
   }
 
@@ -142,11 +139,11 @@ namespace OpenMS
     a.setArea(VisibleArea::AreaXYType(widgetToData_(pos - QPoint(5, 5)), widgetToData_(pos + QPoint(5, 5))));
     return getCurrentLayer().findHighestDataPoint(a.getAreaUnit());
   }
-  
+
   double Plot2DCanvas::adaptPenScaling_(double ratio_data2pixel, double& pen_width) const
   {
     // is the coverage OK using current pen width?
-    bool has_low_pixel_coverage_withpen = ratio_data2pixel*pen_width < canvas_coverage_min_;
+    bool has_low_pixel_coverage_withpen = ratio_data2pixel * pen_width < canvas_coverage_min_;
     int merge_factor(1);
     if (has_low_pixel_coverage_withpen)
     { // scale up the sparse dimension until we reach the desired coverage (this will lead to overlap in the crowded dimension)
@@ -227,35 +224,35 @@ namespace OpenMS
       }
       if (getLayer(i).type == LayerDataBase::DT_CHROMATOGRAM)
       {
-        //TODO CHROM
+        // TODO CHROM
       }
     }
 
     // try to find the right layer to project
     const LayerDataBase* layer = nullptr;
-    //first choice: current layer
+    // first choice: current layer
     if (layer_count != 0 && getCurrentLayer().type == LayerDataBase::DT_PEAK)
     {
       layer = &(getCurrentLayer());
     }
-    //second choice: the only peak layer
+    // second choice: the only peak layer
     else if (layer_count == 1)
     {
       layer = &(getLayer(last_layer));
     }
-    //third choice: the only visible peak layer
+    // third choice: the only visible peak layer
     else if (visible_layer_count == 1)
     {
       layer = &(getLayer(visible_last_layer));
     }
-    //no layer with peaks: disable projections
+    // no layer with peaks: disable projections
     else
     {
       emit toggleProjections();
       return;
     }
 
-    emit showProjections(layer);    
+    emit showProjections(layer);
   }
 
   bool Plot2DCanvas::finishAdding_()
@@ -281,7 +278,7 @@ namespace OpenMS
 
     if (getLayerCount() == 1)
     {
-      resetZoom(false); //no repaint as this is done in intensityModeChange_() anyway
+      resetZoom(false); // no repaint as this is done in intensityModeChange_() anyway
     }
     else if (getLayerCount() == 2)
     {
@@ -296,7 +293,7 @@ namespace OpenMS
     {
       QMessageBox::warning(this, "Warning", "This dataset contains negative intensities. Use it at your own risk!");
     }
-    
+
     return true;
   }
 
@@ -360,13 +357,12 @@ namespace OpenMS
       {
         if (getLayer(i).visible)
         {
-          auto local_max  = -numeric_limits<Peak1D::IntensityType>::max();
+          auto local_max = -numeric_limits<Peak1D::IntensityType>::max();
           if (auto* lp = dynamic_cast<LayerDataPeak*>(&getLayer(i)))
           {
             for (ExperimentType::ConstAreaIterator it = lp->getPeakData()->areaBeginConst(visible_area_.getAreaUnit().getMinRT(), visible_area_.getAreaUnit().getMaxRT(),
                                                                                           visible_area_.getAreaUnit().getMinMZ(), visible_area_.getAreaUnit().getMaxMZ());
-                 it != lp->getPeakData()->areaEndConst();
-                 ++it)
+                 it != lp->getPeakData()->areaEndConst(); ++it)
             {
               PeakIndex pi = it.getPeakIndex();
               if (it->getIntensity() > local_max && getLayer(i).filters.passes((*lp->getPeakData())[pi.spectrum], pi.peak))
@@ -377,12 +373,9 @@ namespace OpenMS
           }
           else if (auto* lp = dynamic_cast<LayerDataFeature*>(&getLayer(i))) // features
           {
-            for (FeatureMapType::ConstIterator it = lp->getFeatureMap()->begin(); it != lp->getFeatureMap()->end();
-                 ++it)
+            for (FeatureMapType::ConstIterator it = lp->getFeatureMap()->begin(); it != lp->getFeatureMap()->end(); ++it)
             {
-              if (visible_area_.getAreaUnit().containsRT(it->getRT()) &&
-                  visible_area_.getAreaUnit().containsMZ(it->getMZ()) &&
-                  getLayer(i).filters.passes(*it))
+              if (visible_area_.getAreaUnit().containsRT(it->getRT()) && visible_area_.getAreaUnit().containsMZ(it->getMZ()) && getLayer(i).filters.passes(*it))
               {
                 local_max = std::max(local_max, it->getIntensity());
               }
@@ -390,25 +383,21 @@ namespace OpenMS
           }
           else if (auto* lp = dynamic_cast<LayerDataConsensus*>(&getLayer(i))) // consensus
           {
-            for (ConsensusMapType::ConstIterator it = lp->getConsensusMap()->begin(); it != lp->getConsensusMap()->end();
-                 ++it)
+            for (ConsensusMapType::ConstIterator it = lp->getConsensusMap()->begin(); it != lp->getConsensusMap()->end(); ++it)
             {
-              if (visible_area_.getAreaUnit().containsRT(it->getRT()) &&
-                  visible_area_.getAreaUnit().containsMZ(it->getMZ()) &&
-                  getLayer(i).filters.passes(*it) &&
-                  it->getIntensity() > local_max)
+              if (visible_area_.getAreaUnit().containsRT(it->getRT()) && visible_area_.getAreaUnit().containsMZ(it->getMZ()) && getLayer(i).filters.passes(*it) && it->getIntensity() > local_max)
               {
                 local_max = it->getIntensity();
               }
             }
           }
-          else if (getLayer(i).type == LayerDataBase::DT_CHROMATOGRAM)  // chromatogram
+          else if (getLayer(i).type == LayerDataBase::DT_CHROMATOGRAM) // chromatogram
           {
-            //TODO CHROM
+            // TODO CHROM
           }
-          else if (getLayer(i).type == LayerDataBase::DT_IDENT)         // identifications
+          else if (getLayer(i).type == LayerDataBase::DT_IDENT) // identifications
           {
-            //TODO IDENT
+            // TODO IDENT
           }
 
           if (local_max > 0.0)
@@ -453,9 +442,9 @@ namespace OpenMS
     changeVisibleArea_(new_area);
   }
 
-  void Plot2DCanvas::paintEvent(QPaintEvent * e)
+  void Plot2DCanvas::paintEvent(QPaintEvent* e)
   {
-    //Only fill background if no layer is present
+    // Only fill background if no layer is present
     if (getLayerCount() == 0)
     {
       QPainter painter;
@@ -469,10 +458,11 @@ namespace OpenMS
 #ifdef DEBUG_TOPPVIEW
     cout << "BEGIN " << OPENMS_PRETTY_FUNCTION << endl;
     cout << "  Visible area -- m/z: " << visible_area_.minX() << " - " << visible_area_.maxX() << " rt: " << visible_area_.minY() << " - " << visible_area_.maxY() << endl;
-    cout << "  Overall area -- m/z: " << overall_data_range_.minPosition()[0] << " - " << overall_data_range_.maxPosition()[0] << " rt: " << overall_data_range_.minPosition()[1] << " - " << overall_data_range_.maxPosition()[1] << endl;
+    cout << "  Overall area -- m/z: " << overall_data_range_.minPosition()[0] << " - " << overall_data_range_.maxPosition()[0] << " rt: " << overall_data_range_.minPosition()[1] << " - "
+         << overall_data_range_.maxPosition()[1] << endl;
 #endif
 
-    //timing
+    // timing
     QElapsedTimer overall_timer;
     if (show_timing_)
     {
@@ -532,10 +522,10 @@ namespace OpenMS
     painter.begin(this);
 
     // copy peak data from buffer
-     /*
-         * Suppressed warning QVector<QRect> QRegion::rects() const is deprecated
-         * Use begin()/end() instead, from Qt 5.8
-         */
+    /*
+     * Suppressed warning QVector<QRect> QRegion::rects() const is deprecated
+     * Use begin()/end() instead, from Qt 5.8
+     */
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wdeprecated-declarations"
     QVector<QRect> rects = e->region().rects();
@@ -598,9 +588,10 @@ namespace OpenMS
     }
   }
 
-  void Plot2DCanvas::drawCoordinates_(QPainter & painter, const PeakIndex & peak)
+  void Plot2DCanvas::drawCoordinates_(QPainter& painter, const PeakIndex& peak)
   {
-    if (!peak.isValid()) return;
+    if (!peak.isValid())
+      return;
 
     const auto xy_point = getCurrentLayer().peakIndexToXY(peak, unit_mapper_);
     QStringList lines;
@@ -609,7 +600,7 @@ namespace OpenMS
     drawText_(painter, lines);
   }
 
-  void Plot2DCanvas::drawDeltas_(QPainter & painter, const PeakIndex & start, const PeakIndex & end)
+  void Plot2DCanvas::drawDeltas_(QPainter& painter, const PeakIndex& start, const PeakIndex& end)
   {
     if (!start.isValid())
     {
@@ -622,7 +613,7 @@ namespace OpenMS
 
     const auto peak_start = getCurrentLayer().peakIndexToXY(start, unit_mapper_);
     const auto peak_start_int = getCurrentLayer().peakIndexToXY(start, intensity_mapper);
-    auto peak_end = decltype(peak_start) {}; // same as peak_start but without the const
+    auto peak_end = decltype(peak_start) {};     // same as peak_start but without the const
     auto peak_end_int = decltype(peak_start) {}; // same as peak_start but without the const
     if (end.isValid())
     {
@@ -660,7 +651,7 @@ namespace OpenMS
     drawText_(painter, lines);
   }
 
-  void Plot2DCanvas::mousePressEvent(QMouseEvent * e)
+  void Plot2DCanvas::mousePressEvent(QMouseEvent* e)
   {
     last_mouse_pos_ = e->pos();
 
@@ -679,8 +670,8 @@ namespace OpenMS
       }
       else if (action_mode_ == AM_ZOOM)
       {
-        //translate (if not moving features)
-        if ( !(getCurrentLayer().type == LayerDataBase::DT_FEATURE) || !selected_peak_.isValid())
+        // translate (if not moving features)
+        if (!(getCurrentLayer().type == LayerDataBase::DT_FEATURE) || !selected_peak_.isValid())
         {
           rubber_band_.setGeometry(QRect(e->pos(), QSize()));
           rubber_band_.show();
@@ -691,22 +682,21 @@ namespace OpenMS
 
   void Plot2DCanvas::mouseMoveEvent(QMouseEvent* e)
   {
-    grabKeyboard();     // (re-)grab keyboard after it has been released by unhandled key
+    grabKeyboard(); // (re-)grab keyboard after it has been released by unhandled key
     QPoint pos = e->pos();
     PointXYType data_pos = widgetToData_(pos);
-    emit sendCursorStatus(unit_mapper_.getDim(DIM::X).formattedValue(data_pos[0]),
-                          unit_mapper_.getDim(DIM::Y).formattedValue(data_pos[1]));
+    emit sendCursorStatus(unit_mapper_.getDim(DIM::X).formattedValue(data_pos[0]), unit_mapper_.getDim(DIM::Y).formattedValue(data_pos[1]));
 
     PeakIndex near_peak = findNearestPeak_(pos);
 
-    //highlight current peak and display peak coordinates
+    // highlight current peak and display peak coordinates
     if (action_mode_ == AM_MEASURE || (action_mode_ == AM_TRANSLATE && !(e->buttons() & Qt::LeftButton)))
     {
-      //highlight peak
+      // highlight peak
       selected_peak_ = near_peak;
       update_(OPENMS_PRETTY_FUNCTION);
 
-      //show meta data in status bar (if available)
+      // show meta data in status bar (if available)
       if (selected_peak_.isValid())
       {
         String status;
@@ -714,7 +704,7 @@ namespace OpenMS
         auto* lc = dynamic_cast<LayerDataConsensus*>(&getCurrentLayer());
         if (lf || lc)
         {
-          //add meta info
+          // add meta info
           const BaseFeature* f;
           if (lf)
           {
@@ -733,7 +723,8 @@ namespace OpenMS
             if (dv.valueType() == DataValue::DOUBLE_VALUE)
             { // use less precision for large numbers, for better readability
               int precision(2);
-              if ((double)dv < 10) precision = 5;
+              if ((double)dv < 10)
+                precision = 5;
               // ... and add 1k separators, e.g. '540,321.99'
               status += QLocale::c().toString((double)dv, 'f', precision);
             }
@@ -745,8 +736,8 @@ namespace OpenMS
         }
         else if (auto* lp = dynamic_cast<LayerDataPeak*>(&getCurrentLayer()))
         {
-          //meta info
-          const ExperimentType::SpectrumType & s = selected_peak_.getSpectrum(*lp->getPeakData());
+          // meta info
+          const ExperimentType::SpectrumType& s = selected_peak_.getSpectrum(*lp->getPeakData());
           for (Size m = 0; m < s.getFloatDataArrays().size(); ++m)
           {
             if (selected_peak_.peak < s.getFloatDataArrays()[m].size())
@@ -771,7 +762,7 @@ namespace OpenMS
         }
         else if (getCurrentLayer().type == LayerDataBase::DT_CHROMATOGRAM) // chromatogram
         {
-          //TODO CHROM
+          // TODO CHROM
         }
         if (status != "")
         {
@@ -781,7 +772,7 @@ namespace OpenMS
     }
     else if (action_mode_ == AM_ZOOM)
     {
-      //Zoom mode => no peak should be selected
+      // Zoom mode => no peak should be selected
       selected_peak_.clear();
       update_(OPENMS_PRETTY_FUNCTION);
     }
@@ -792,11 +783,11 @@ namespace OpenMS
     }
     else if (action_mode_ == AM_ZOOM)
     {
-      //if mouse button is held down, enlarge the selection
+      // if mouse button is held down, enlarge the selection
       if (e->buttons() & Qt::LeftButton)
       {
         rubber_band_.setGeometry(QRect(last_mouse_pos_, pos).normalized());
-        rubber_band_.show();         //if the mouse button is pressed before the zoom key is pressed
+        rubber_band_.show(); // if the mouse button is pressed before the zoom key is pressed
 
         update_(OPENMS_PRETTY_FUNCTION);
       }
@@ -821,7 +812,7 @@ namespace OpenMS
           modificationStatus_(layers_.getCurrentLayerIndex(), true);
         }
         else // translate
-        { // calculate data coordinates of shift
+        {    // calculate data coordinates of shift
           PointXYType old_data = widgetToData_(last_mouse_pos_);
           PointXYType new_data = widgetToData_(pos);
           // compute new area
@@ -835,7 +826,7 @@ namespace OpenMS
     }
   }
 
-  void Plot2DCanvas::mouseReleaseEvent(QMouseEvent * e)
+  void Plot2DCanvas::mouseReleaseEvent(QMouseEvent* e)
   {
     if (e->button() == Qt::LeftButton)
     {
@@ -861,7 +852,7 @@ namespace OpenMS
     }
   }
 
-  void Plot2DCanvas::contextMenuEvent(QContextMenuEvent * e)
+  void Plot2DCanvas::contextMenuEvent(QContextMenuEvent* e)
   {
     // abort if there are no layers
     if (layers_.empty())
@@ -875,7 +866,7 @@ namespace OpenMS
     QAction* a = nullptr;
     QAction* result = nullptr;
 
-    //Display name and warn if current layer invisible
+    // Display name and warn if current layer invisible
     String layer_name = String("Layer: ") + layer.getName();
     if (!layer.visible)
     {
@@ -886,17 +877,18 @@ namespace OpenMS
 
     context_menu->addAction("Layer meta data");
 
-    QMenu * settings_menu = new QMenu("Settings");
+    QMenu* settings_menu = new QMenu("Settings");
     settings_menu->addAction("Show/hide grid lines");
     settings_menu->addAction("Show/hide axis legends");
     context_menu->addSeparator();
 
     context_menu->addAction("Switch to 3D view");
 
-    const RangeType e_units = [&](){ // mouse position in units
+    const RangeType e_units = [&]() { // mouse position in units
       RangeType r;
       unit_mapper_.fromXY(widgetToData_(e->pos()), r);
-      return r; }();
+      return r;
+    }();
 
     // a small 10x10 pixel area around the current mouse position
     auto check_area = visible_area_.cloneWith({widgetToData_(e->pos() - QPoint(10, 10)), widgetToData_(e->pos() + QPoint(10, 10))}).getAreaUnit();
@@ -904,16 +896,16 @@ namespace OpenMS
     //-------------------PEAKS----------------------------------
     if (auto* lp = dynamic_cast<const LayerDataPeak*>(&layer))
     {
-      //add settings
+      // add settings
       settings_menu->addSeparator();
       settings_menu->addAction("Show/hide projections");
       settings_menu->addAction("Show/hide MS/MS precursors");
 
-      //add surrounding survey scans
-      //find nearest survey scan
+      // add surrounding survey scans
+      // find nearest survey scan
       SignedSize size = lp->getPeakData()->size();
       Int current = lp->getPeakData()->RTBegin(e_units.getMinRT()) - lp->getPeakData()->begin();
-      if (current == size)  // if only one element is present RTBegin points to one after the last element (see RTBegin implementation)
+      if (current == size) // if only one element is present RTBegin points to one after the last element (see RTBegin implementation)
       {
         current = 0;
       }
@@ -933,7 +925,7 @@ namespace OpenMS
         }
         ++i;
       }
-      //search for four scans in both directions
+      // search for four scans in both directions
       vector<Int> indices;
       indices.push_back(current);
       i = 1;
@@ -1018,7 +1010,7 @@ namespace OpenMS
       // evaluate menu
       if ((result = context_menu->exec(mapToGlobal(e->pos()))))
       {
-        if (result->parent() == ms1_scans  || result->parent() == msn_scans)
+        if (result->parent() == ms1_scans || result->parent() == msn_scans)
         {
           emit showSpectrumAsNew1D(result->data().toInt());
         }
@@ -1031,7 +1023,7 @@ namespace OpenMS
     //-------------------FEATURES----------------------------------
     else if (auto* lf = dynamic_cast<const LayerDataFeature*>(&layer))
     {
-      //add settings
+      // add settings
       settings_menu->addSeparator();
       settings_menu->addAction("Show/hide convex hull");
       settings_menu->addAction("Show/hide trace convex hulls");
@@ -1124,8 +1116,7 @@ namespace OpenMS
       PCSetType precursor_in_rt_mz_window;
       for (auto iter = exp.getChromatograms().cbegin(); iter != exp.getChromatograms().cend(); ++iter)
       {
-        if (search_area.containsMZ(iter->getPrecursor().getMZ()) &&
-            RangeBase{iter->front().getRT(), iter->back().getRT()}.contains(search_area.getRangeForDim(MSDim::MZ)))
+        if (search_area.containsMZ(iter->getPrecursor().getMZ()) && RangeBase {iter->front().getRT(), iter->back().getRT()}.contains(search_area.getRangeForDim(MSDim::MZ)))
         {
           precursor_in_rt_mz_window.insert(iter->getPrecursor());
         }
@@ -1135,7 +1126,7 @@ namespace OpenMS
       map<Precursor, vector<Size>, Precursor::MZLess> map_precursor_to_chrom_idx;
       for (PCSetType::const_iterator pit = precursor_in_rt_mz_window.begin(); pit != precursor_in_rt_mz_window.end(); ++pit)
       {
-        for (vector<MSChromatogram >::const_iterator iter = exp.getChromatograms().begin(); iter != exp.getChromatograms().end(); ++iter)
+        for (vector<MSChromatogram>::const_iterator iter = exp.getChromatograms().begin(); iter != exp.getChromatograms().end(); ++iter)
         {
           if (iter->getPrecursor() == *pit)
           {
@@ -1144,7 +1135,7 @@ namespace OpenMS
         }
       }
 
-      QMenu* msn_chromatogram  = nullptr;
+      QMenu* msn_chromatogram = nullptr;
       QMenu* msn_chromatogram_meta = nullptr;
 
       if (!map_precursor_to_chrom_idx.empty())
@@ -1156,12 +1147,12 @@ namespace OpenMS
         for (auto mit = map_precursor_to_chrom_idx.cbegin(); mit != map_precursor_to_chrom_idx.cend(); ++mit)
         {
           // Show the peptide sequence if available, otherwise show the m/z and charge only
-          QString precursor_string = QString("Precursor m/z: (")  + String(mit->first.getCharge()).toQString() + ") " + QString::number(mit->first.getMZ());
+          QString precursor_string = QString("Precursor m/z: (") + String(mit->first.getCharge()).toQString() + ") " + QString::number(mit->first.getMZ());
           if (mit->first.metaValueExists("peptide_sequence"))
           {
             precursor_string = QString::number(mit->first.getMZ()) + " : " + String(mit->first.getMetaValue("peptide_sequence")).toQString() + " (" + QString::number(mit->first.getCharge()) + "+)";
           }
-          QMenu * msn_precursor = msn_chromatogram->addMenu(precursor_string);  // new entry for every precursor
+          QMenu* msn_precursor = msn_chromatogram->addMenu(precursor_string); // new entry for every precursor
 
           // Show all: iterate over all chromatograms corresponding to the current precursor and add action containing all chromatograms
           a = msn_precursor->addAction(QString("Show all"));
@@ -1198,9 +1189,9 @@ namespace OpenMS
             }
             emit showChromatogramsAsNew1D(chrom_indices);
           }
-          else   // Show single chromatogram
+          else // Show single chromatogram
           {
-            //cout << "Chromatogram result " << result->data().toInt() << endl;
+            // cout << "Chromatogram result " << result->data().toInt() << endl;
             emit showSpectrumAsNew1D(result->data().toInt());
           }
         }
@@ -1298,11 +1289,11 @@ namespace OpenMS
     save_menu->addAction("Visible layer data");
     save_menu->addAction("As image");
 
-    //add settings menu
+    // add settings menu
     context_menu->addMenu(save_menu);
     context_menu->addMenu(settings_menu);
 
-    //add external context menu
+    // add external context menu
     if (context_add_)
     {
       context_menu->addSeparator();
@@ -1315,10 +1306,10 @@ namespace OpenMS
     Internal::Plot2DPrefDialog dlg(this);
     LayerDataBase& layer = getCurrentLayer();
 
-    ColorSelector * bg_color = dlg.findChild<ColorSelector *>("bg_color");
-    MultiGradientSelector * gradient = dlg.findChild<MultiGradientSelector *>("gradient");
-    QComboBox * feature_icon = dlg.findChild<QComboBox *>("feature_icon");
-    QSpinBox * feature_icon_size = dlg.findChild<QSpinBox *>("feature_icon_size");
+    ColorSelector* bg_color = dlg.findChild<ColorSelector*>("bg_color");
+    MultiGradientSelector* gradient = dlg.findChild<MultiGradientSelector*>("gradient");
+    QComboBox* feature_icon = dlg.findChild<QComboBox*>("feature_icon");
+    QSpinBox* feature_icon_size = dlg.findChild<QSpinBox*>("feature_icon_size");
 
     bg_color->setColor(QColor(String(param_.getValue("background_color").toString()).toQString()));
     gradient->gradient().fromString(layer.param.getValue("dot:gradient"));
@@ -1345,10 +1336,10 @@ namespace OpenMS
 
   void Plot2DCanvas::updateLayer(Size i)
   {
-    //update nearest peak
+    // update nearest peak
     selected_peak_.clear();
     recalculateRanges_();
-    resetZoom(false);     //no repaint as this is done in intensityModeChange_() anyway
+    resetZoom(false); // no repaint as this is done in intensityModeChange_() anyway
     intensityModeChange_();
     modificationStatus_(i, false);
   }
@@ -1356,24 +1347,24 @@ namespace OpenMS
   void Plot2DCanvas::translateVisibleArea_(double x_axis_rel, double y_axis_rel)
   {
     auto xy = visible_area_.getAreaXY();
-    const auto shift = xy.diagonal() * AreaXYType::PositionType{x_axis_rel, y_axis_rel};
+    const auto shift = xy.diagonal() * AreaXYType::PositionType {x_axis_rel, y_axis_rel};
     // publish (bounds checking is done inside changeVisibleArea_)
     changeVisibleArea_(visible_area_.cloneWith(xy + shift));
   }
 
   void Plot2DCanvas::translateLeft_(Qt::KeyboardModifiers /*m*/)
   {
-    translateVisibleArea_( -0.05, 0.0 );
+    translateVisibleArea_(-0.05, 0.0);
   }
 
   void Plot2DCanvas::translateRight_(Qt::KeyboardModifiers /*m*/)
   {
-    translateVisibleArea_( 0.05, 0.0 );
+    translateVisibleArea_(0.05, 0.0);
   }
 
   void Plot2DCanvas::translateForward_()
   {
-    translateVisibleArea_( 0.0, 0.05 );
+    translateVisibleArea_(0.0, 0.05);
   }
 
   void Plot2DCanvas::translateBackward_()
@@ -1381,7 +1372,7 @@ namespace OpenMS
     translateVisibleArea_(0.0, -0.05);
   }
 
-  void Plot2DCanvas::keyPressEvent(QKeyEvent * e)
+  void Plot2DCanvas::keyPressEvent(QKeyEvent* e)
   {
     // CTRL+ALT (exactly, not e.g. CTRL+ALT+KEYPAD<X>|SHIFT...)
     // note that Qt::KeypadModifier is also a modifier which gets activated when any keypad key is pressed
@@ -1415,7 +1406,7 @@ namespace OpenMS
       if (!status_changed.empty())
       {
         emit sendStatusMessage(status_changed, 0);
-        update_buffer_ = true; // full repaint
+        update_buffer_ = true;           // full repaint
         update_(OPENMS_PRETTY_FUNCTION); // schedule repaint
         return;
       }
@@ -1438,9 +1429,9 @@ namespace OpenMS
     PlotCanvas::keyPressEvent(e);
   }
 
-  void Plot2DCanvas::keyReleaseEvent(QKeyEvent * e)
+  void Plot2DCanvas::keyReleaseEvent(QKeyEvent* e)
   {
-    //zoom if in zoom mode and a valid rectangle is selected
+    // zoom if in zoom mode and a valid rectangle is selected
     if (action_mode_ == AM_ZOOM && rubber_band_.isVisible())
     {
       rubber_band_.hide();
@@ -1461,7 +1452,7 @@ namespace OpenMS
     PlotCanvas::keyReleaseEvent(e);
   }
 
-  void Plot2DCanvas::mouseDoubleClickEvent(QMouseEvent * e)
+  void Plot2DCanvas::mouseDoubleClickEvent(QMouseEvent* e)
   {
     LayerDataBase& current_layer = getCurrentLayer();
     auto* lf = dynamic_cast<LayerDataFeature*>(&current_layer);
@@ -1469,7 +1460,7 @@ namespace OpenMS
     if (current_layer.modifiable && lf)
     {
       Feature tmp;
-      if (selected_peak_.isValid())       //edit existing feature
+      if (selected_peak_.isValid()) // edit existing feature
       {
         FeatureEditDialog dialog(this);
         dialog.setFeature((*lf->getFeatureMap())[selected_peak_.peak]);
@@ -1479,7 +1470,7 @@ namespace OpenMS
           (*lf->getFeatureMap())[selected_peak_.peak] = tmp;
         }
       }
-      else       //create new feature
+      else // create new feature
       {
         tmp.setRT(widgetToData_(e->pos())[1]);
         tmp.setMZ(widgetToData_(e->pos())[0]);
@@ -1513,9 +1504,9 @@ namespace OpenMS
   {
     auto& layer = dynamic_cast<LayerDataFeature&>(layers_.getLayer(i));
 
-    //reserve enough space
+    // reserve enough space
     layer.getFeatureMap()->reserve(layer.getFeatureMap()->size() + map->size());
-    //add features
+    // add features
     for (Size j = 0; j < map->size(); ++j)
     {
       layer.getFeatureMap()->push_back((*map)[j]);
@@ -1540,9 +1531,9 @@ namespace OpenMS
   {
     auto& layer = dynamic_cast<LayerDataConsensus&>(layers_.getLayer(i));
     OPENMS_PRECONDITION(layer.type == LayerDataBase::DT_CONSENSUS, "Plot2DCanvas::mergeIntoLayer(i, map) non-consensus-feature layer selected");
-    //reserve enough space
+    // reserve enough space
     layer.getConsensusMap()->reserve(layer.getConsensusMap()->size() + map->size());
-    //add features
+    // add features
     for (Size j = 0; j < map->size(); ++j)
     {
       layer.getConsensusMap()->push_back((*map)[j]);
@@ -1563,43 +1554,42 @@ namespace OpenMS
     }
   }
 
-  void Plot2DCanvas::mergeIntoLayer(Size i, vector<PeptideIdentification> & peptides)
+  void Plot2DCanvas::mergeIntoLayer(Size i, vector<PeptideIdentification>& peptides)
   {
     LayerDataBase& layer = layers_.getLayer(i);
     OPENMS_PRECONDITION(layer.type == LayerDataBase::DT_IDENT, "Plot2DCanvas::mergeIntoLayer(i, peptides) non-identification layer selected");
-    
+
     auto& layer_peptides = dynamic_cast<IPeptideIds*>(&layer)->getPeptideIds();
     // reserve enough space
     layer_peptides.reserve(layer_peptides.size() + peptides.size());
     // insert peptides
-    layer_peptides.insert(layer_peptides.end(), peptides.begin(),
-                               peptides.end());
+    layer_peptides.insert(layer_peptides.end(), peptides.begin(), peptides.end());
     // update the layer and overall ranges
     recalculateRanges_();
     resetZoom(true);
   }
 
-    bool Plot2DCanvas::collectFragmentScansInArea_(const RangeType& range, QAction* a, QMenu* msn_scans, QMenu* msn_meta)
+  bool Plot2DCanvas::collectFragmentScansInArea_(const RangeType& range, QAction* a, QMenu* msn_scans, QMenu* msn_meta)
+  {
+    auto& layer = dynamic_cast<LayerDataPeak&>(getCurrentLayer());
+    bool item_added = false;
+    const auto last_RT = layer.getPeakData()->RTEnd(range.getMaxRT());
+    for (ExperimentType::ConstIterator it = layer.getPeakData()->RTBegin(range.getMinRT()); it != last_RT; ++it)
     {
-      auto& layer = dynamic_cast<LayerDataPeak&>(getCurrentLayer());
-      bool item_added = false;
-      const auto last_RT = layer.getPeakData()->RTEnd(range.getMaxRT());
-      for (ExperimentType::ConstIterator it = layer.getPeakData()->RTBegin(range.getMinRT());
-                                         it != last_RT; ++it)
+      if (it->getPrecursors().empty())
+        continue;
+
+      double mz = it->getPrecursors()[0].getMZ();
+      if (it->getMSLevel() > 1 && range.containsMZ(mz))
       {
-        if (it->getPrecursors().empty()) continue;
-
-        double mz = it->getPrecursors()[0].getMZ();
-        if (it->getMSLevel() > 1 && range.containsMZ(mz))
-        {
-          a = msn_scans->addAction(QString("RT: ") + QString::number(it->getRT()) + " mz: " + QString::number(mz));
-          a->setData((int)(it - layer.getPeakData()->begin()));
-          a = msn_meta->addAction(QString("RT: ") + QString::number(it->getRT()) + " mz: " + QString::number(mz));
-          a->setData((int)(it - layer.getPeakData()->begin()));
-          item_added = true;
-        }
+        a = msn_scans->addAction(QString("RT: ") + QString::number(it->getRT()) + " mz: " + QString::number(mz));
+        a->setData((int)(it - layer.getPeakData()->begin()));
+        a = msn_meta->addAction(QString("RT: ") + QString::number(it->getRT()) + " mz: " + QString::number(mz));
+        a->setData((int)(it - layer.getPeakData()->begin()));
+        item_added = true;
       }
-      return item_added;
     }
+    return item_added;
+  }
 
-} //namespace OpenMS
+} // namespace OpenMS

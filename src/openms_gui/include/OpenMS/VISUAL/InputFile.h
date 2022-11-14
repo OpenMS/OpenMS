@@ -36,7 +36,6 @@
 
 // OpenMS_GUI config
 #include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
-
 #include <QWidget>
 
 namespace Ui
@@ -52,8 +51,7 @@ namespace OpenMS
       @ingroup TOPPAS_elements
       @ingroup Dialogs
   */
-  class OPENMS_GUI_DLLAPI InputFile :
-    public QWidget
+  class OPENMS_GUI_DLLAPI InputFile : public QWidget
   {
     Q_OBJECT
   public:
@@ -81,7 +79,7 @@ namespace OpenMS
     const QString& getCWD() const;
     /// set the current working directory (for opening files). If the input is not empty, the cwd will not be altered, unless @p force is used
     void setCWD(const QString& cwd, bool force = false);
- 
+
   signals:
     /// emitted when a new file is added (by drag'n'drop or 'Browse' button)
     void updatedCWD(QString new_cwd);
@@ -104,4 +102,4 @@ namespace OpenMS
     Ui::InputFileTemplate* ui_;
   };
 
-}
+} // namespace OpenMS

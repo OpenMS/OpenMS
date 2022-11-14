@@ -33,23 +33,21 @@
 // --------------------------------------------------------------------------
 
 // OpenMS includes
-#include <OpenMS/VISUAL/ColorSelector.h>
 #include <OpenMS/CONCEPT/Types.h>
+#include <OpenMS/VISUAL/ColorSelector.h>
 
-//qt includes
+// qt includes
+#include <QMouseEvent>
+#include <QPaintEvent>
 #include <QPainter>
 #include <QtWidgets/QColorDialog>
-#include <QPaintEvent>
-#include <QMouseEvent>
 
 using namespace std;
 
 namespace OpenMS
 {
 
-  ColorSelector::ColorSelector(QWidget * parent) :
-    QWidget(parent),
-    color_(255, 255, 255)
+  ColorSelector::ColorSelector(QWidget* parent) : QWidget(parent), color_(255, 255, 255)
   {
     setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
   }
@@ -61,7 +59,7 @@ namespace OpenMS
 
   ColorSelector::~ColorSelector() = default;
 
-  void ColorSelector::paintEvent(QPaintEvent * /*e*/)
+  void ColorSelector::paintEvent(QPaintEvent* /*e*/)
   {
     Int size = std::min(width(), height());
     QPainter painter(this);
@@ -73,7 +71,7 @@ namespace OpenMS
     painter.fillRect(2, 2, size - 4, size - 4, color_);
   }
 
-  void ColorSelector::mousePressEvent(QMouseEvent * e)
+  void ColorSelector::mousePressEvent(QMouseEvent* e)
   {
     if (e->button() != Qt::LeftButton)
     {
@@ -88,15 +86,15 @@ namespace OpenMS
     }
   }
 
-  const QColor & ColorSelector::getColor()
+  const QColor& ColorSelector::getColor()
   {
     return color_;
   }
 
-  void ColorSelector::setColor(const QColor & col)
+  void ColorSelector::setColor(const QColor& col)
   {
     color_ = col;
     repaint();
   }
 
-} //namespace OpenMS
+} // namespace OpenMS

@@ -32,39 +32,36 @@
 // $Authors: Marc Sturm $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/VISUAL/APPLICATIONS/INIFileEditorWindow.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/FORMAT/ParamXMLFile.h>
 #include <OpenMS/SYSTEM/File.h>
-
-#include <QtWidgets/QToolBar>
+#include <OpenMS/VISUAL/APPLICATIONS/INIFileEditorWindow.h>
+#include <QCloseEvent>
 #include <QtCore/QString>
+#include <QtWidgets/QCheckBox>
 #include <QtWidgets/QFileDialog>
+#include <QtWidgets/QGridLayout>
 #include <QtWidgets/QMenu>
 #include <QtWidgets/QMenuBar>
 #include <QtWidgets/QMessageBox>
-#include <QtWidgets/QGridLayout>
-#include <QtWidgets/QCheckBox>
-#include <QCloseEvent>
+#include <QtWidgets/QToolBar>
 
 using namespace std;
 
 namespace OpenMS
 {
 
-  INIFileEditorWindow::INIFileEditorWindow(QWidget* parent) :
-    QMainWindow(parent),
-    current_path_(".")
+  INIFileEditorWindow::INIFileEditorWindow(QWidget* parent) : QMainWindow(parent), current_path_(".")
   {
     setWindowTitle("INIFileEditor");
     setWindowIcon(QIcon(":/INIFileEditor.png"));
 
-    //create central widget and layout
+    // create central widget and layout
     QWidget* central_widget = new QWidget;
     setCentralWidget(central_widget);
     QGridLayout* layout = new QGridLayout(central_widget);
 
-    //create advanced check box and ParamEditor and connect them
+    // create advanced check box and ParamEditor and connect them
     editor_ = new ParamEditor(central_widget);
     layout->addWidget(editor_, 0, 0, 1, 2);
 
@@ -98,7 +95,6 @@ namespace OpenMS
     {
       if (File::readable(filename_.toStdString()))
       {
-
         param_.clear();
         ParamXMLFile paramFile;
         try
@@ -186,7 +182,7 @@ namespace OpenMS
 
   void INIFileEditorWindow::updateWindowTitle(bool update)
   {
-    //update window title
+    // update window title
     if (update)
     {
       setWindowTitle((File::basename(filename_) + " * - INIFileEditor").toQString());
@@ -196,8 +192,8 @@ namespace OpenMS
       setWindowTitle((File::basename(filename_) + " - INIFileEditor").toQString());
     }
 
-    //update last path as well
+    // update last path as well
     current_path_ = File::path(filename_);
   }
 
-}
+} // namespace OpenMS

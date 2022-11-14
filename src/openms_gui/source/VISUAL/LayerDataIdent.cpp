@@ -32,10 +32,8 @@
 // $Authors: Chris Bielow $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/VISUAL/LayerDataIdent.h>
-
 #include <OpenMS/KERNEL/DimMapper.h>
-
+#include <OpenMS/VISUAL/LayerDataIdent.h>
 #include <OpenMS/VISUAL/Painter2DBase.h>
 #include <OpenMS/VISUAL/VISITORS/LayerStatistics.h>
 #include <OpenMS/VISUAL/VISITORS/LayerStoreData.h>

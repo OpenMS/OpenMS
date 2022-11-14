@@ -33,15 +33,15 @@
 // --------------------------------------------------------------------------
 
 
-#include <OpenMS/VISUAL/VISUALIZER/ProteinIdentificationVisualizer.h>
+#include <OpenMS/CHEMISTRY/ProteaseDB.h>
 #include <OpenMS/DATASTRUCTURES/DateTime.h>
 #include <OpenMS/VISUAL/MetaDataBrowser.h>
-#include <OpenMS/CHEMISTRY/ProteaseDB.h>
-//QT
-#include <QtWidgets/QLineEdit>
+#include <OpenMS/VISUAL/VISUALIZER/ProteinIdentificationVisualizer.h>
+// QT
 #include <QValidator>
-#include <QtWidgets/QPushButton>
 #include <QtWidgets/QComboBox>
+#include <QtWidgets/QLineEdit>
+#include <QtWidgets/QPushButton>
 
 // STL
 #include <iostream>
@@ -50,9 +50,8 @@ using namespace std;
 
 namespace OpenMS
 {
-  ProteinIdentificationVisualizer::ProteinIdentificationVisualizer(bool editable, QWidget * parent, MetaDataBrowser * caller) :
-    BaseVisualizerGUI(editable, parent),
-    BaseVisualizer<ProteinIdentification>()
+  ProteinIdentificationVisualizer::ProteinIdentificationVisualizer(bool editable, QWidget* parent, MetaDataBrowser* caller) :
+      BaseVisualizerGUI(editable, parent), BaseVisualizer<ProteinIdentification>()
   {
     pidv_caller_ = caller;
 
@@ -80,14 +79,14 @@ namespace OpenMS
 
     addSeparator_();
     addLabel_("Show protein hits with score equal or better than a threshold.");
-    QPushButton * button;
+    QPushButton* button;
     addLineEditButton_("Score threshold", filter_threshold_, button, "Filter");
     connect(button, SIGNAL(clicked()), this, SLOT(updateTree_()));
 
     finishAdding_();
   }
 
-  void ProteinIdentificationVisualizer::load(ProteinIdentification & s, int tree_item_id)
+  void ProteinIdentificationVisualizer::load(ProteinIdentification& s, int tree_item_id)
   {
     ptr_ = &s;
     temp_ = s;
@@ -143,14 +142,14 @@ namespace OpenMS
     ptr_->setSignificanceThreshold(identification_threshold_->text().toFloat());
     ptr_->setScoreType(score_type_->text());
     ptr_->setHigherScoreBetter(higher_better_->currentIndex());
-    //date
+    // date
     DateTime date;
     try
     {
       date.set(identification_date_->text());
       ptr_->setDateTime(date);
     }
-    catch (exception & /*e*/)
+    catch (exception& /*e*/)
     {
       if (date.isNull())
       {
@@ -159,7 +158,7 @@ namespace OpenMS
       }
     }
 
-    //search parameters
+    // search parameters
     ProteinIdentification::SearchParameters tmp = ptr_->getSearchParameters();
     tmp.db = db_->text();
     tmp.db_version = db_version_->text();
@@ -180,4 +179,4 @@ namespace OpenMS
     load(*ptr_, tree_id_);
   }
 
-}
+} // namespace OpenMS

@@ -34,12 +34,12 @@
 
 #include <OpenMS/VISUAL/VISUALIZER/InstrumentVisualizer.h>
 
-//QT
+// QT
+#include <QtWidgets/QComboBox>
 #include <QtWidgets/QLineEdit>
 #include <QtWidgets/QTextEdit>
-#include <QtWidgets/QComboBox>
 
-//STL
+// STL
 #include <iostream>
 #include <string>
 
@@ -48,9 +48,7 @@ using namespace std;
 namespace OpenMS
 {
 
-  InstrumentVisualizer::InstrumentVisualizer(bool editable, QWidget * parent) :
-    BaseVisualizerGUI(editable, parent),
-    BaseVisualizer<Instrument>()
+  InstrumentVisualizer::InstrumentVisualizer(bool editable, QWidget* parent) : BaseVisualizerGUI(editable, parent), BaseVisualizer<Instrument>()
   {
     addLabel_("Modify instrument information.");
     addSeparator_();
@@ -96,4 +94,4 @@ namespace OpenMS
     update_();
   }
 
-}
+} // namespace OpenMS

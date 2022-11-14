@@ -3,14 +3,14 @@ set(directory source/VISUAL/APPLICATIONS/MISC)
 
 ### list all filenames of the directory here
 set(sources_list
-QApplicationTOPP.cpp
-)
+        QApplicationTOPP.cpp
+        )
 
 ### add path to the filenames
 set(sources)
-foreach(i ${sources_list})
-	list(APPEND sources ${directory}/${i})
-endforeach(i)
+foreach (i ${sources_list})
+    list(APPEND sources ${directory}/${i})
+endforeach (i)
 
 ### pass source file list to the upper instance
 set(OpenMSVisual_sources ${OpenMSVisual_sources} ${sources})

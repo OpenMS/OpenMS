@@ -36,9 +36,7 @@
 
 // OpenMS_GUI config
 #include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
-
 #include <QtWidgets/QDialog>
-
 #include <memory> // for unique_ptr
 
 namespace Ui
@@ -56,12 +54,11 @@ namespace OpenMS
 
       @ingroup Dialogs
   */
-  class OPENMS_GUI_DLLAPI LayerStatisticsDialog :
-    public QDialog
+  class OPENMS_GUI_DLLAPI LayerStatisticsDialog : public QDialog
   {
     Q_OBJECT
 
-public:
+  public:
     /// Constructor not implemented
     LayerStatisticsDialog() = delete;
     /// Custom constructor
@@ -69,11 +66,11 @@ public:
     /// D'tor
     ~LayerStatisticsDialog() override;
 
-protected:
+  protected:
     /// The statistics of the layer
     std::unique_ptr<LayerStatistics> stats_;
 
-private:
+  private:
     Ui::LayerStatisticsDialogTemplate* ui_;
   };
-}
+} // namespace OpenMS

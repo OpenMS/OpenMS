@@ -32,13 +32,13 @@
 // $Authors: Marc Sturm $
 // --------------------------------------------------------------------------
 
-//OpenMS
+// OpenMS
 #include <OpenMS/VISUAL/VISUALIZER/HPLCVisualizer.h>
 
-//QT
+// QT
+#include <QValidator>
 #include <QtWidgets/QLineEdit>
 #include <QtWidgets/QTextEdit>
-#include <QValidator>
 #include <iostream>
 
 using namespace std;
@@ -46,9 +46,7 @@ using namespace std;
 namespace OpenMS
 {
 
-  HPLCVisualizer::HPLCVisualizer(bool editable, QWidget * parent) :
-    BaseVisualizerGUI(editable, parent),
-    BaseVisualizer<HPLC>()
+  HPLCVisualizer::HPLCVisualizer(bool editable, QWidget* parent) : BaseVisualizerGUI(editable, parent), BaseVisualizer<HPLC>()
   {
     addLabel_("Modify HPLC information");
     addSeparator_();
@@ -88,4 +86,4 @@ namespace OpenMS
     update_();
   }
 
-}
+} // namespace OpenMS

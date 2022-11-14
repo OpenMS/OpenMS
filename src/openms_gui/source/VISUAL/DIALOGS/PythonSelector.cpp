@@ -32,15 +32,13 @@
 // $Authors: Chris Bielow $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/VISUAL/DIALOGS/PythonSelector.h>
-#include <ui_PythonSelector.h>
-
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/SYSTEM/PythonInfo.h>
-
+#include <OpenMS/VISUAL/DIALOGS/PythonSelector.h>
+#include <QMessageBox>
 #include <QString>
 #include <QtWidgets/QFileDialog>
-#include <QMessageBox>
+#include <ui_PythonSelector.h>
 
 using namespace std;
 
@@ -48,12 +46,10 @@ namespace OpenMS
 {
   namespace Internal
   {
-    PythonSelector::PythonSelector(QWidget* parent) :
-    QWidget(parent),
-    ui_(new Ui::PythonSelector)
+    PythonSelector::PythonSelector(QWidget* parent) : QWidget(parent), ui_(new Ui::PythonSelector)
     {
       ui_->setupUi(this);
-      
+
       connect(ui_->btn_browse, SIGNAL(clicked()), this, SLOT(showFileDialog_()));
       connect(ui_->line_edit, SIGNAL(editingFinished()), this, SLOT(validate_()));
 
@@ -70,13 +66,13 @@ namespace OpenMS
       // TODO: store UI to INI?
     }
 
-    
+
     void PythonSelector::showFileDialog_()
     {
       QString file_name = QFileDialog::getOpenFileName(this, tr("Specify Python executable"), tr(""), tr(/*valid formats*/ ""));
       if (!file_name.isEmpty())
       {
-        ui_->line_edit->setText(file_name); // will not trigger the validator
+        ui_->line_edit->setText(file_name);     // will not trigger the validator
         emit ui_->line_edit->editingFinished(); // simulate loosing focus or pressing return (to trigger validate_())
       }
     }
@@ -84,7 +80,7 @@ namespace OpenMS
     void PythonSelector::validate_()
     {
       String exe = ui_->line_edit->text();
-      
+
       String error;
       bool success = PythonInfo::canRun(exe, error);
       if (success)
@@ -106,5 +102,5 @@ namespace OpenMS
     }
 
 
-  }   //namespace Internal
-} //namspace OpenMS
+  } // namespace Internal
+} // namespace OpenMS

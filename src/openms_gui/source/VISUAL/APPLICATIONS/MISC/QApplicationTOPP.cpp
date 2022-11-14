@@ -32,9 +32,6 @@
 // $Authors: Chris Bielow $
 // --------------------------------------------------------------------------
 
-#include <cstdio>
-#include <cstdlib>
-
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/CONCEPT/Factory.h>
 #include <OpenMS/CONCEPT/LogStream.h>
@@ -42,24 +39,25 @@
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/VISUAL/APPLICATIONS/MISC/QApplicationTOPP.h>
 #include <OpenMS/VISUAL/GUIProgressLoggerImpl.h>
+#include <cstdio>
+#include <cstdlib>
 
-//Qt
+// Qt
 #include <QApplication>
-#include <QtWidgets/QGridLayout>
-#include <QtWidgets/QLabel>
-#include <QtWidgets/QStyleFactory>
-#include <QtWidgets/QPushButton>
-#include <QMessageBox>
 #include <QFile>
 #include <QFileOpenEvent>
 #include <QLibraryInfo>
+#include <QMessageBox>
+#include <QtWidgets/QGridLayout>
+#include <QtWidgets/QLabel>
+#include <QtWidgets/QPushButton>
+#include <QtWidgets/QStyleFactory>
 
 
 namespace OpenMS
 {
 
-  QApplicationTOPP::QApplicationTOPP(int& argc, char** argv) :
-    QApplication(argc, argv)
+  QApplicationTOPP::QApplicationTOPP(int& argc, char** argv) : QApplication(argc, argv)
   {
     // register GUI ProgressLogger that can be used in GUI tools
     Factory<ProgressLogger::ProgressLoggerImpl>::registerProduct(GUIProgressLoggerImpl::getProductName(), &GUIProgressLoggerImpl::create);
@@ -83,7 +81,7 @@ namespace OpenMS
     QFile fh(filename.toQString());
     fh.open(QFile::ReadOnly);
     QString style_string = QLatin1String(fh.readAll());
-    //std::cerr << "Stylesheet content: " << style_string.toStdString() << "\n\n\n";
+    // std::cerr << "Stylesheet content: " << style_string.toStdString() << "\n\n\n";
     this->setStyleSheet(style_string);
   }
 
@@ -117,12 +115,12 @@ namespace OpenMS
   {
     switch (event->type())
     {
-    case QEvent::FileOpen:
-      emit fileOpen(static_cast<QFileOpenEvent*>(event)->file());
-      return true;
+      case QEvent::FileOpen:
+        emit fileOpen(static_cast<QFileOpenEvent*>(event)->file());
+        return true;
 
-    default:
-      return QApplication::event(event);
+      default:
+        return QApplication::event(event);
     }
   }
 
@@ -140,24 +138,24 @@ namespace OpenMS
 
     // text
     QString text = QString("<BR>"
-      "<FONT size=+3>%1</font><BR>"
-      "<BR>"
-      "Version %2 %3"
-      "<BR>"
-      "OpenMS and TOPP is free software available under the<BR>"
-      "BSD 3-Clause License (BSD-new)<BR>"
-      "<BR>"
-      "<BR>"
-      "<BR>"
-      "<BR>"
-      "<BR>"
-      "Any published work based on TOPP and OpenMS shall cite these papers:<BR>"
-      "Roest, Sachsenberg, Aiche, Bielow, Weisser et al., Nat Methods (2016), 13(9):741-748<BR>"
-      "Kohlbacher et al., Bioinformatics (2007), 23:e191-e197<BR>")
-    .arg(toolname)
-    .arg(VersionInfo::getVersion().toQString())
-    .arg( // if we have a revision, embed it also into the shown version number
-      VersionInfo::getRevision().empty() ? "" : QString(" (") + VersionInfo::getRevision().toQString() + ")");
+                           "<FONT size=+3>%1</font><BR>"
+                           "<BR>"
+                           "Version %2 %3"
+                           "<BR>"
+                           "OpenMS and TOPP is free software available under the<BR>"
+                           "BSD 3-Clause License (BSD-new)<BR>"
+                           "<BR>"
+                           "<BR>"
+                           "<BR>"
+                           "<BR>"
+                           "<BR>"
+                           "Any published work based on TOPP and OpenMS shall cite these papers:<BR>"
+                           "Roest, Sachsenberg, Aiche, Bielow, Weisser et al., Nat Methods (2016), 13(9):741-748<BR>"
+                           "Kohlbacher et al., Bioinformatics (2007), 23:e191-e197<BR>")
+                     .arg(toolname)
+                     .arg(VersionInfo::getVersion().toQString())
+                     .arg( // if we have a revision, embed it also into the shown version number
+                       VersionInfo::getRevision().empty() ? "" : QString(" (") + VersionInfo::getRevision().toQString() + ")");
 
     label = new QLabel(text, dlg);
 
@@ -172,4 +170,4 @@ namespace OpenMS
     dlg->exec();
   }
 
-}
+} // namespace OpenMS

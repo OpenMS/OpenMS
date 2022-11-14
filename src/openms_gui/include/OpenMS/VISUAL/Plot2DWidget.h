@@ -38,8 +38,8 @@
 #include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
 
 // OpenMS
-#include <OpenMS/VISUAL/PlotWidget.h>
 #include <OpenMS/VISUAL/Plot2DCanvas.h>
+#include <OpenMS/VISUAL/PlotWidget.h>
 
 class QGroupBox;
 class QLabel;
@@ -60,16 +60,15 @@ namespace OpenMS
 
       @ingroup PlotWidgets
   */
-  class OPENMS_GUI_DLLAPI Plot2DWidget :
-    public PlotWidget
+  class OPENMS_GUI_DLLAPI Plot2DWidget : public PlotWidget
   {
     Q_OBJECT
-public:
+  public:
     /// Main managed data type (experiment)
     typedef LayerDataBase::ExperimentSharedPtrType ExperimentSharedPtrType;
 
     /// Default constructor
-    Plot2DWidget(const Param & preferences, QWidget * parent = nullptr);
+    Plot2DWidget(const Param& preferences, QWidget* parent = nullptr);
     /// Destructor
     ~Plot2DWidget() override = default;
 
@@ -78,7 +77,7 @@ public:
     {
       return static_cast<Plot2DCanvas*>(canvas_);
     }
-            
+
     /// const reference to the horizontal projection
     const Plot1DWidget* getProjectionOntoX() const;
     /// const reference to the vertical projection
@@ -97,7 +96,7 @@ public:
       projection_onto_X_->setMapper(DimMapper<2>({mapper.getDim(DIM::X).getUnit(), DIM_UNIT::INT}));
       projection_onto_Y_->setMapper(DimMapper<2>({DIM_UNIT::INT, mapper.getDim(DIM::Y).getUnit()}));
 
-          // decide on default draw mode, depending on main axis unit (e.g. m/z or RT)
+      // decide on default draw mode, depending on main axis unit (e.g. m/z or RT)
       auto set_style = [&](const DIM_UNIT main_unit_1d, Plot1DCanvas* canvas) {
         switch (main_unit_1d)
         { // this may not be optimal for every unit. Feel free to change behavior.
@@ -117,7 +116,7 @@ public:
       set_style(mapper.getDim(DIM::Y).getUnit(), projection_onto_X_->canvas());
     }
 
-public slots:
+  public slots:
     // Docu in base class
     void recalculateAxes_() override;
     /// Shows/hides the projections
@@ -125,7 +124,7 @@ public slots:
     // Docu in base class
     void showGoToDialog() override;
 
-signals:
+  signals:
     /**
         @brief Signal emitted whenever the visible area changes.
 
@@ -134,36 +133,35 @@ signals:
     void visibleAreaChanged(DRange<2> area);
     /// Requests to display the spectrum with index @p index in 1D
     void showSpectrumAsNew1D(int index);
-    void showChromatogramsAsNew1D(std::vector<int, std::allocator<int> > indices);
+    void showChromatogramsAsNew1D(std::vector<int, std::allocator<int>> indices);
     /// Requests to display all spectra as 1D
     void showCurrentPeaksAs3D();
 
-protected:
+  protected:
     /// shows projections information
     void projectionInfo_(int peaks, double intensity, double max);
 
     /// Vertical projection widget
-    Plot1DWidget * projection_onto_X_;
+    Plot1DWidget* projection_onto_X_;
     /// Horizontal projection widget
-    Plot1DWidget * projection_onto_Y_;
+    Plot1DWidget* projection_onto_Y_;
     /// Group box that shows information about the projections
-    QGroupBox * projection_box_;
+    QGroupBox* projection_box_;
     /// Number of peaks of the projection
-    QLabel * projection_peaks_;
+    QLabel* projection_peaks_;
     /// Intensity sum of the projection
-    QLabel * projection_sum_;
+    QLabel* projection_sum_;
     /// Intensity maximum of the projection
-    QLabel * projection_max_;
+    QLabel* projection_max_;
     /// Checkbox that indicates that projections should be automatically updated (with a slight delay)
-    QCheckBox * projections_auto_;
+    QCheckBox* projections_auto_;
     /// Timer that triggers auto-update of projections
-    QTimer * projections_timer_;
+    QTimer* projections_timer_;
 
-private slots:
+  private slots:
     /// extracts the projections from the @p source_layer and displays them
     void showProjections_(const LayerDataBase* source_layer);
     /// slot that monitors the visible area changes and triggers the update of projections
     void autoUpdateProjections_();
   };
-}
-
+} // namespace OpenMS

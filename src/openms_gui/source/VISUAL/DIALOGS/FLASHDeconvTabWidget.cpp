@@ -32,25 +32,22 @@
 // $Authors: Jihyung Kim $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/VISUAL/DIALOGS/FLASHDeconvTabWidget.h>
-#include <ui_FLASHDeconvTabWidget.h>
-
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/ParamXMLFile.h>
 #include <OpenMS/SYSTEM/File.h>
+#include <OpenMS/VISUAL/DIALOGS/FLASHDeconvTabWidget.h>
 #include <OpenMS/VISUAL/DIALOGS/TOPPASInputFilesDialog.h>
 #include <OpenMS/VISUAL/MISC/GUIHelpers.h>
-
-#include <QtCore/QDateTime>
-#include <QtCore/QDir>
+#include <QDesktopServices>
 #include <QMessageBox>
 #include <QProcess>
 #include <QProgressDialog>
 #include <QSignalBlocker>
-#include <QDesktopServices>
-
+#include <QtCore/QDateTime>
+#include <QtCore/QDir>
 #include <algorithm>
+#include <ui_FLASHDeconvTabWidget.h>
 
 using namespace std;
 
@@ -59,11 +56,7 @@ namespace OpenMS
   namespace Internal
   {
 
-    FLASHDeconvGUILock::FLASHDeconvGUILock(FLASHDeconvTabWidget* ftw)
-      :
-      ftw_(ftw),
-      old_(ftw->currentWidget()),
-      glock_(ftw)
+    FLASHDeconvGUILock::FLASHDeconvGUILock(FLASHDeconvTabWidget* ftw) : ftw_(ftw), old_(ftw->currentWidget()), glock_(ftw)
     {
       ftw->setCurrentWidget(ftw->ui->tab_log);
     }
@@ -81,15 +74,13 @@ namespace OpenMS
     QString getFDDefaultOutDir()
     {
       auto dir = QDir::homePath().append("/FLASHDeconvOut");
-      if (!QDir().exists(dir)) QDir().mkpath(dir);
+      if (!QDir().exists(dir))
+        QDir().mkpath(dir);
       return dir;
     }
 
     FLASHDeconvTabWidget::FLASHDeconvTabWidget(QWidget* parent) :
-        QTabWidget(parent),
-        ui(new Ui::FLASHDeconvTabWidget),
-        ep_([&](const String& out) {writeLog_(out.toQString());},
-            [&](const String& out) {writeLog_(out.toQString());})
+        QTabWidget(parent), ui(new Ui::FLASHDeconvTabWidget), ep_([&](const String& out) { writeLog_(out.toQString()); }, [&](const String& out) { writeLog_(out.toQString()); })
     {
       ui->setupUi(this);
 
@@ -124,8 +115,9 @@ namespace OpenMS
 
     void FLASHDeconvTabWidget::on_run_fd_clicked()
     {
-      if (!checkFDInputReady_()) return;
-      
+      if (!checkFDInputReady_())
+        return;
+
       FLASHDeconvGUILock lock(this); // forbid user interaction
 
       // get parameter
@@ -133,13 +125,13 @@ namespace OpenMS
       updateOutputParamFromWidgets_();
       Param fd_param;
       fd_param.insert("FLASHDeconv:1:", flashdeconv_param_);
-//      tmp_param.insert("FLASHDeconv:1:", flashdeconv_param_outputs_); // dummy to be updated
+      //      tmp_param.insert("FLASHDeconv:1:", flashdeconv_param_outputs_); // dummy to be updated
 
       String tmp_ini = File::getTemporaryFile();
 
       StringList in_mzMLs = getMzMLInputFiles();
       writeLog_(QString("Starting FLASHDeconv with %1 mzML file(s)").arg(in_mzMLs.size()), Qt::darkGreen, true);
-      
+
       QProgressDialog progress("Running FLASHDeconv ", "Abort ...", 0, (int)in_mzMLs.size(), this);
       progress.setWindowModality(Qt::ApplicationModal);
       progress.setMinimumDuration(0); // show immediately
@@ -154,18 +146,15 @@ namespace OpenMS
 
         ParamXMLFile().store(tmp_ini, tmp_param);
 
-        auto r = ep_.run(this,
-                         getFLASHDeconvExe().toQString(),
-                         QStringList() << "-ini" << tmp_ini.toQString()
-                                            << "-in" << mzML.toQString()
-                                            << "-out" << getCurrentOutDir_() + "/" + infileToFDoutput(mzML).toQString(),
-                         "",
-                         true);
-        if (r != ExternalProcess::RETURNSTATE::SUCCESS) break;
-        if (progress.wasCanceled()) break;
+        auto r = ep_.run(this, getFLASHDeconvExe().toQString(),
+                         QStringList() << "-ini" << tmp_ini.toQString() << "-in" << mzML.toQString() << "-out" << getCurrentOutDir_() + "/" + infileToFDoutput(mzML).toQString(), "", true);
+        if (r != ExternalProcess::RETURNSTATE::SUCCESS)
+          break;
+        if (progress.wasCanceled())
+          break;
         progress.setValue(++step);
       } // mzML loop
-      
+
       progress.close();
     }
 
@@ -191,7 +180,7 @@ namespace OpenMS
 
     void FLASHDeconvTabWidget::on_open_output_directory_clicked()
     {
-      QDesktopServices::openUrl( QUrl::fromLocalFile(getCurrentOutDir_()) );
+      QDesktopServices::openUrl(QUrl::fromLocalFile(getCurrentOutDir_()));
     }
 
     void FLASHDeconvTabWidget::updateFLASHDeconvParamFromWidgets_()
@@ -205,31 +194,30 @@ namespace OpenMS
       flashdeconv_output_tags_.clear();
 
       // get checkbox results from the Wizard control
-      if( ui->checkbox_spec->isChecked() )
+      if (ui->checkbox_spec->isChecked())
       {
         flashdeconv_output_tags_.push_back("out_spec");
       }
-      if( ui->checkbox_mzml->isChecked() )
+      if (ui->checkbox_mzml->isChecked())
       {
         flashdeconv_output_tags_.push_back("out_mzml");
         flashdeconv_output_tags_.push_back("out_annotated_mzml");
       }
-      if( ui->checkbox_promex->isChecked() )
+      if (ui->checkbox_promex->isChecked())
       {
         flashdeconv_output_tags_.push_back("out_promex");
       }
-      if( ui->checkbox_topfd->isChecked() )
+      if (ui->checkbox_topfd->isChecked())
       {
         flashdeconv_output_tags_.push_back("out_topFD");
         flashdeconv_output_tags_.push_back("out_topFD_feature");
       }
     }
 
-    void FLASHDeconvTabWidget::updateOutputParamFromPerInputFile(const QString &input_file_name)
+    void FLASHDeconvTabWidget::updateOutputParamFromPerInputFile(const QString& input_file_name)
     {
       const Size max_ms_level = flashdeconv_param_.getValue("max_MS_level");
-      std::string filepath_without_ext = getCurrentOutDir_().toStdString() + "/"
-          + FileHandler::stripExtension(File::basename(input_file_name)) ;
+      std::string filepath_without_ext = getCurrentOutDir_().toStdString() + "/" + FileHandler::stripExtension(File::basename(input_file_name));
 
       for (const auto& param : flashdeconv_param_outputs_)
       {
@@ -240,8 +228,7 @@ namespace OpenMS
 
         // if this output format is requested by the user
         bool is_requested = false;
-        if (!flashdeconv_output_tags_.empty() &&
-            std::find(flashdeconv_output_tags_.begin(), flashdeconv_output_tags_.end(), tag) != flashdeconv_output_tags_.end())
+        if (!flashdeconv_output_tags_.empty() && std::find(flashdeconv_output_tags_.begin(), flashdeconv_output_tags_.end(), tag) != flashdeconv_output_tags_.end())
         {
           is_requested = true;
         }
@@ -261,7 +248,7 @@ namespace OpenMS
           {
             out_path += "_deconv.mzML";
           }
-          else if(tag == "out_annotated_mzml")
+          else if (tag == "out_annotated_mzml")
           {
             out_path += "_annotated.mzML";
           }
@@ -301,7 +288,6 @@ namespace OpenMS
             files_paths.push_back(filepath_without_ext + "_ms" + std::to_string(i + 1) + out_extension);
           }
           flashdeconv_param_outputs_.setValue(tag, files_paths, org_desc, org_tags);
-
         }
       }
     }
@@ -326,20 +312,20 @@ namespace OpenMS
 
       // parameters for different output format
       StringList out_params = {"out_spec", "out_annotated_mzml", "out_mzml", "out_promex", "out_topFD", "out_topFD_feature"};
-      for (const auto& name : out_params) flashdeconv_param_outputs_.setValue(name, ""); // create a dummy param, just so we can use ::copySubset
+      for (const auto& name : out_params)
+        flashdeconv_param_outputs_.setValue(name, ""); // create a dummy param, just so we can use ::copySubset
       flashdeconv_param_outputs_ = flashdeconv_param_.copySubset(flashdeconv_param_outputs_);
 
       // remove output format params from global parameter set
-      for (const auto& name : out_params) flashdeconv_param_.remove(name);
+      for (const auto& name : out_params)
+        flashdeconv_param_.remove(name);
 
       ui->list_editor->load(flashdeconv_param_);
     }
 
     QString FLASHDeconvTabWidget::getCurrentOutDir_() const
     {
-      QString out_dir(ui->out_dir->dirNameValid() ?
-        ui->out_dir->getDirectory() :
-        getFDDefaultOutDir());
+      QString out_dir(ui->out_dir->dirNameValid() ? ui->out_dir->getDirectory() : getFDDefaultOutDir());
       return out_dir;
     }
 
@@ -362,7 +348,7 @@ namespace OpenMS
     {
       writeLog_(text.toQString(), color, new_section);
     }
-    
+
     bool FLASHDeconvTabWidget::checkFDInputReady_()
     {
       if (ui->input_mzMLs->getFilenames().empty())
@@ -382,12 +368,11 @@ namespace OpenMS
     }
 
     /// custom arguments to allow for looping calls
-    struct Args
-    {
+    struct Args {
       QStringList loop_arg; ///< list of arguments to insert; one for every loop
-      size_t insert_pos;       ///< where to insert in the target argument list (index is 0-based)
+      size_t insert_pos;    ///< where to insert in the target argument list (index is 0-based)
     };
-    
+
     typedef std::vector<Args> ArgLoop;
 
     /// Allows running an executable with arguments
@@ -395,27 +380,28 @@ namespace OpenMS
     /// e.g. running 'ls -la .' and 'ls -la ..'
     /// uses Command("ls", QStringList() << "-la" << "%1", ArgLoop{ Args {QStringList() << "." << "..", 1 } })
     /// All lists in loop[i].loop_arg should have the same size (i.e. same number of loops)
-    struct Command
-    {
+    struct Command {
       String exe;
       QStringList args;
       ArgLoop loop;
 
-      Command(const String& e, const QStringList& a, const ArgLoop& l) :
-        exe(e),
-        args(a),
-        loop(l) {}
+      Command(const String& e, const QStringList& a, const ArgLoop& l) : exe(e), args(a), loop(l)
+      {
+      }
 
       /// how many loops can we make according to the ArgLoop provided?
       /// if ArgLoop is empty, we just do a single invokation
       size_t getLoopCount() const
       {
-        if (loop.empty()) return 1;
+        if (loop.empty())
+          return 1;
         size_t common_size = loop[0].loop_arg.size();
         for (const auto& l : loop)
         {
-          if (l.loop_arg.size() != (int)common_size) throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Internal error. Not all loop arguments support the same number of loops!");
-          if ((int)l.insert_pos >= args.size()) throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Internal error. Loop argument wants to insert after end of template arguments!");
+          if (l.loop_arg.size() != (int)common_size)
+            throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Internal error. Not all loop arguments support the same number of loops!");
+          if ((int)l.insert_pos >= args.size())
+            throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Internal error. Loop argument wants to insert after end of template arguments!");
         }
         return common_size;
       }
@@ -427,7 +413,8 @@ namespace OpenMS
         {
           throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Internal error. The loop number you requested is too high!");
         }
-        if (loop.empty()) return args; // no looping available
+        if (loop.empty())
+          return args; // no looping available
 
         QStringList arg_l = args;
         for (const auto& largs : loop) // replace all args for the current round
@@ -438,9 +425,5 @@ namespace OpenMS
       }
     };
 
-  }   //namespace Internal
-} //namspace OpenMS
-
-
-
-
+  } // namespace Internal
+} // namespace OpenMS

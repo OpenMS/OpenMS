@@ -39,12 +39,11 @@
 
 namespace OpenMS
 {
-  
+
   class OPENMS_GUI_DLLAPI LayerData1DIonMobility : public LayerDataIonMobility, public LayerData1DBase
   {
   public:
-    LayerData1DIonMobility()
-      : LayerDataBase(DT_PEAK)
+    LayerData1DIonMobility() : LayerDataBase(DT_PEAK)
     {
     }
 
@@ -100,4 +99,4 @@ namespace OpenMS
   protected:
   };
 
-}// namespace OpenMS
+} // namespace OpenMS

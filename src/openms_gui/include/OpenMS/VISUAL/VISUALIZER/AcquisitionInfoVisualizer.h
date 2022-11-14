@@ -37,12 +37,12 @@
 // OpenMS_GUI config
 #include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
 
-//OpenMS
+// OpenMS
 #include <OpenMS/METADATA/AcquisitionInfo.h>
 #include <OpenMS/VISUAL/VISUALIZER/BaseVisualizer.h>
 #include <OpenMS/VISUAL/VISUALIZER/BaseVisualizerGUI.h>
 
-//QT
+// QT
 
 namespace OpenMS
 {
@@ -51,34 +51,30 @@ namespace OpenMS
 
       This class provides all functionality to view the meta information of an object of type AcquisitionInfo.
   */
-  class OPENMS_GUI_DLLAPI AcquisitionInfoVisualizer :
-    public BaseVisualizerGUI,
-    public BaseVisualizer<AcquisitionInfo>
+  class OPENMS_GUI_DLLAPI AcquisitionInfoVisualizer : public BaseVisualizerGUI, public BaseVisualizer<AcquisitionInfo>
   {
     Q_OBJECT
 
-public:
+  public:
+    /// Constructor
+    AcquisitionInfoVisualizer(bool editable = false, QWidget* parent = nullptr);
 
-    ///Constructor
-    AcquisitionInfoVisualizer(bool editable = false, QWidget * parent = nullptr);
+  public slots:
 
-public slots:
-
-    //Docu in base class
+    // Docu in base class
     void store() override;
 
-protected slots:
+  protected slots:
 
-    ///Undo the changes made in the GUI.
+    /// Undo the changes made in the GUI.
     void undo_();
 
-protected:
-
+  protected:
     /// Edit field for the method
-    QLineEdit * acquisitioninfo_method_;
+    QLineEdit* acquisitioninfo_method_;
 
-    //Docu in base class
+    // Docu in base class
     void update_() override;
   };
 
-}
+} // namespace OpenMS

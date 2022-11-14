@@ -35,9 +35,8 @@
 #pragma once
 
 // OpenMS_GUI config
-#include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
-
 #include <OpenMS/SYSTEM/ExternalProcess.h>
+#include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
 
 namespace OpenMS
 {
@@ -88,4 +87,4 @@ namespace OpenMS
   private:
     ExternalProcess ep_;
   };
-} // ns OpenMS
+} // namespace OpenMS
