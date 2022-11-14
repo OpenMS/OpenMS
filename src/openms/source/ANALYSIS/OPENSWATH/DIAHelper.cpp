@@ -58,6 +58,12 @@ namespace OpenMS::DIAHelpers
       {
         left -= mz_extract_window / 2.0;
         right += mz_extract_window / 2.0;
+
+        // If the left value is now < 0, this is invalid correct it to be 0
+        if (left < 0)
+        {
+          left = 0;
+        }
       }
     }
 

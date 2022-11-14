@@ -468,6 +468,15 @@ START_SECTION([EXTRA] void adjustExtractionWindow(double& right, double& left, c
     TEST_REAL_SIMILAR(left, 500 - 500 * 5 /1e6);
     TEST_REAL_SIMILAR(right, 500 + 500 * 5 /1e6);
   }
+
+  // test case where extraction leads to a negative number, should correct this to the 0 bounds (no ppm)
+  // Note since this is very unlikely with ppm, this functionality is currently not implemented in ppm
+  {
+    double left(500.0), right(500.0);
+    OpenMS::DIAHelpers::adjustExtractionWindow(right, left, 1000, false);
+    TEST_REAL_SIMILAR(left, 0)
+    TEST_REAL_SIMILAR(right, 500 + 500)
+  }
 }
 END_SECTION
 
