@@ -36,7 +36,6 @@
 
 // OpenMS_GUI config
 #include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
-
 #include <OpenMS/VISUAL/TOPPASVertex.h>
 
 namespace OpenMS
@@ -55,13 +54,11 @@ namespace OpenMS
 
       @ingroup TOPPAS_elements
   */
-  class OPENMS_GUI_DLLAPI TOPPASMergerVertex :
-    public TOPPASVertex
+  class OPENMS_GUI_DLLAPI TOPPASMergerVertex : public TOPPASVertex
   {
     Q_OBJECT
 
-public:
-
+  public:
     /// Default constructor
     TOPPASMergerVertex() = default;
     /// Constructor
@@ -85,16 +82,14 @@ public:
     // documented in base class
     void markUnreachable() override;
 
-public slots:
+  public slots:
 
-signals:
+  signals:
     /// Emitted when merging upstream data failed
     void mergeFailed(const QString message);
 
-protected:
-
+  protected:
     /// Stores whether this merger is merging round based or merging all inputs into one list
-    bool round_based_mode_{true};
+    bool round_based_mode_ {true};
   };
-}
-
+} // namespace OpenMS

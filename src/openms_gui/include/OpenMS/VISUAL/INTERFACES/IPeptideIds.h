@@ -35,8 +35,7 @@
 #pragma once
 
 #include <OpenMS/METADATA/PeptideIdentification.h>
-#include <OpenMS/VISUAL/OpenMS_GUIConfig.h> 
-
+#include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
 #include <vector>
 
 namespace OpenMS
@@ -49,7 +48,7 @@ namespace OpenMS
   {
   public:
     using PepIds = std::vector<PeptideIdentification>;
-    
+
     /// get the peptide IDs for this layer
     virtual const PepIds& getPeptideIds() const = 0;
     virtual PepIds& getPeptideIds() = 0;
@@ -59,4 +58,4 @@ namespace OpenMS
     virtual void setPeptideIds(PepIds&& ids) = 0;
   };
 
-}// namespace OpenMS
+} // namespace OpenMS

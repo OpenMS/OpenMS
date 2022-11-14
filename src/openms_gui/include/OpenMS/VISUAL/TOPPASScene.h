@@ -35,14 +35,12 @@
 #pragma once
 
 // OpenMS_GUI config
-#include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
-
-#include <OpenMS/VISUAL/TOPPASEdge.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
+#include <OpenMS/VISUAL/TOPPASEdge.h>
 #include <OpenMS/VISUAL/TOPPASToolVertex.h>
-
-#include <QtWidgets/QGraphicsScene>
 #include <QtCore/QProcess>
+#include <QtWidgets/QGraphicsScene>
 
 namespace OpenMS
 {
@@ -56,13 +54,12 @@ namespace OpenMS
   /**
     @brief A FakeProcess class.
   */
-  class FakeProcess :
-    public QProcess
+  class FakeProcess : public QProcess
   {
     Q_OBJECT
 
-public:
-    virtual void start(const QString & program, const QStringList & arguments, OpenMode mode = ReadWrite);
+  public:
+    virtual void start(const QString& program, const QStringList& arguments, OpenMode mode = ReadWrite);
   };
 
   /**
@@ -82,33 +79,26 @@ public:
 
       @ingroup TOPPAS_elements
   */
-  class OPENMS_GUI_DLLAPI TOPPASScene :
-    public QGraphicsScene
+  class OPENMS_GUI_DLLAPI TOPPASScene : public QGraphicsScene
   {
     Q_OBJECT
 
-public:
-
+  public:
     /// Stores the information for a TOPP process
-    struct TOPPProcess
-    {
+    struct TOPPProcess {
       /// Constructor
-      TOPPProcess(QProcess * p, const QString & cmd, const QStringList & arg, TOPPASToolVertex * const tool) :
-        proc(p),
-        command(cmd),
-        args(arg),
-        tv(tool)
+      TOPPProcess(QProcess* p, const QString& cmd, const QStringList& arg, TOPPASToolVertex* const tool) : proc(p), command(cmd), args(arg), tv(tool)
       {
       }
 
       /// The process
-      QProcess * proc;
+      QProcess* proc;
       /// The command
       QString command;
       /// The arguments
       QStringList args;
       /// The tool which is started (used to call its slots)
-      TOPPASToolVertex * tv;
+      TOPPASToolVertex* tv;
     };
 
     /// The current action mode (creation of a new edge, or panning of the widget)
@@ -122,36 +112,36 @@ public:
     /// Pipeline status after refreshParameters() was called
     enum RefreshStatus
     {
-      ST_REFRESH_NOCHANGE,        ///< no updates required
-      ST_REFRESH_CHANGED,         ///< some parameters were updated, but pipeline is ok
-      ST_REFRESH_CHANGEINVALID,   ///< updating made pipeline invalid
-      ST_REFRESH_REMAINSINVALID   ///< pipeline was not valid before and is invalid afterwards
+      ST_REFRESH_NOCHANGE,      ///< no updates required
+      ST_REFRESH_CHANGED,       ///< some parameters were updated, but pipeline is ok
+      ST_REFRESH_CHANGEINVALID, ///< updating made pipeline invalid
+      ST_REFRESH_REMAINSINVALID ///< pipeline was not valid before and is invalid afterwards
     };
 
 
     /// The container for edges
-    typedef QList<TOPPASEdge *> EdgeContainer;
+    typedef QList<TOPPASEdge*> EdgeContainer;
     /// A mutable iterator for edges
     typedef EdgeContainer::iterator EdgeIterator;
     /// A const iterator for edges
     typedef EdgeContainer::const_iterator ConstEdgeIterator;
     /// The container for vertices
-    typedef QList<TOPPASVertex *> VertexContainer;
+    typedef QList<TOPPASVertex*> VertexContainer;
     /// A mutable iterator for vertices
     typedef VertexContainer::iterator VertexIterator;
     /// A const iterator for vertices
     typedef VertexContainer::const_iterator ConstVertexIterator;
 
     /// Constructor
-    TOPPASScene(QObject * parent, const QString & tmp_path, bool gui = true);
+    TOPPASScene(QObject* parent, const QString& tmp_path, bool gui = true);
 
     /// Destructor
     ~TOPPASScene() override;
 
     /// Adds a vertex
-    void addVertex(TOPPASVertex * tv);
+    void addVertex(TOPPASVertex* tv);
     /// Adds an edge
-    void addEdge(TOPPASEdge * te);
+    void addEdge(TOPPASEdge* te);
     /// Sets the action mode
     void setActionMode(ActionMode mode);
     /// Returns the action mode
@@ -175,27 +165,27 @@ public:
     /// Updates all edge colors (color of green and yellow edges can change when edges are added/removed)
     void updateEdgeColors();
     /// Called when user fires "Resume" action, to clear downstream nodes from previous results
-    void resetDownstream(TOPPASVertex * vertex);
+    void resetDownstream(TOPPASVertex* vertex);
     /// Runs the pipeline
     void runPipeline();
     /// Stores the pipeline to @p file, returns true on success
-    bool store(const String & file);
+    bool store(const String& file);
     /// Loads the pipeline from @p file
-    void load(const String & file);
+    void load(const String& file);
     /// Includes the pipeline @p scene
-    void include(TOPPASScene * new_scene, QPointF pos = QPointF());
+    void include(TOPPASScene* new_scene, QPointF pos = QPointF());
     /// Returns the file name
-    const String & getSaveFileName();
+    const String& getSaveFileName();
     /// Sets the file name
-    void setSaveFileName(const String & name);
+    void setSaveFileName(const String& name);
     /// Performs a topological sort of all vertices
     void topoSort(bool resort_all = true);
     /// Returns the name of the directory for output files
-    const QString & getOutDir() const;
+    const QString& getOutDir() const;
     /// Returns the name of the directory for temporary files
-    const QString & getTempDir() const;
+    const QString& getTempDir() const;
     /// Sets the name of the directory for output files
-    void setOutDir(const QString & dir);
+    void setOutDir(const QString& dir);
     /// Saves the pipeline if it has been changed since the last save.
     bool saveIfChanged();
     /// Sets the changed flag
@@ -205,32 +195,32 @@ public:
     /// Shows a dialog that allows to specify the output directory. If @p always_ask == false, the dialog won't be shown if a directory has been set, already.
     bool askForOutputDir(bool always_ask = true);
     /// Enqueues the process, it will be run when the currently pending processes have finished
-    void enqueueProcess(const TOPPProcess & process);
+    void enqueueProcess(const TOPPProcess& process);
     /// Runs the next process in the queue, if any
     void runNextProcess();
     /// Resets the processes queue
     void resetProcessesQueue();
     /// Sets the clipboard content
-    void setClipboard(TOPPASScene * clipboard);
-    ///Connects the signals to slots
-    void connectVertexSignals(TOPPASVertex * tv);
-    ///Connects the signals to slots
-    void connectToolVertexSignals(TOPPASToolVertex * ttv);
-    ///Connects the signals to slots
-    void connectOutputVertexSignals(TOPPASOutputFileListVertex * oflv);
-    ///Connects the signals to slots
-    void connectMergerVertexSignals(TOPPASMergerVertex * tmv);
-    ///Connects the signals to slots
-    void connectEdgeSignals(TOPPASEdge * e);
-    ///Loads the @p resources into the input nodes of this workflow
-    void loadResources(const TOPPASResources & resources);
-    ///Create @p resources from the current workflow
-    void createResources(TOPPASResources & resources);
-    ///Returns whether the workflow has been changed since the latest "save"
+    void setClipboard(TOPPASScene* clipboard);
+    /// Connects the signals to slots
+    void connectVertexSignals(TOPPASVertex* tv);
+    /// Connects the signals to slots
+    void connectToolVertexSignals(TOPPASToolVertex* ttv);
+    /// Connects the signals to slots
+    void connectOutputVertexSignals(TOPPASOutputFileListVertex* oflv);
+    /// Connects the signals to slots
+    void connectMergerVertexSignals(TOPPASMergerVertex* tmv);
+    /// Connects the signals to slots
+    void connectEdgeSignals(TOPPASEdge* e);
+    /// Loads the @p resources into the input nodes of this workflow
+    void loadResources(const TOPPASResources& resources);
+    /// Create @p resources from the current workflow
+    void createResources(TOPPASResources& resources);
+    /// Returns whether the workflow has been changed since the latest "save"
     bool wasChanged() const;
     /// Refreshes the parameters of the TOPP tools in this workflow
     RefreshStatus refreshParameters();
-    
+
     /// is TOPPASScene run in GUI or non-GUI (ExecutePipeline) mode, i.e. are MessageBoxes allowed?
     bool isGUIMode() const;
 
@@ -239,7 +229,7 @@ public:
     /// workflow description (to be displayed in TOPPAS window)
     QString getDescription() const;
     /// when description is updated by user, use this to update the description for later storage in file
-    void setDescription(const QString & desc);
+    void setDescription(const QString& desc);
     /// sets the maximum number of jobs
     void setAllowedThreads(int num_threads);
     /// returns the hovering edge
@@ -248,7 +238,7 @@ public:
     void checkIfWeAreDone();
 
 
-public slots:
+  public slots:
 
     /// Terminates the currently running pipeline
     void abortPipeline();
@@ -257,9 +247,9 @@ public slots:
     /// Called when an item is released
     void itemReleased();
     /// Called when the position of the hovering edge changes
-    void updateHoveringEdgePos(const QPointF & new_pos);
+    void updateHoveringEdgePos(const QPointF& new_pos);
     /// Called when a new out edge is supposed to be created
-    void addHoveringEdge(const QPointF & pos);
+    void addHoveringEdge(const QPointF& pos);
     /// Called when the new edge is being "released"
     void finishHoveringEdge();
     /// Called by vertices at which an error occurred during pipeline execution
@@ -284,7 +274,7 @@ public slots:
     ///@name Slots for printing log/error output when no GUI is available
     //@{
     /// Writes the TOPP tool output to the logfile (and to stdout if no gui available)
-    void logTOPPOutput(const QString & out);
+    void logTOPPOutput(const QString& out);
     /// Writes the "tool started" message to the logfile (and to stdout if no gui available)
     void logToolStarted();
     /// Writes the "tool finished" message to the logfile (and to stdout if no gui available)
@@ -294,10 +284,10 @@ public slots:
     /// Writes the "tool crashed" message to the logfile (and to stdout if no gui available)
     void logToolCrashed();
     /// Writes the "output file written" message to the logfile (and to stdout if no gui available)
-    void logOutputFileWritten(const String & file);
+    void logOutputFileWritten(const String& file);
     //@}
 
-signals:
+  signals:
 
     /// Emitted when the entire pipeline execution is finished
     void entirePipelineFinished();
@@ -308,7 +298,7 @@ signals:
     /// Kills all connected TOPP processes
     void terminateCurrentPipeline();
     /// Emitted when a selection is copied to the clipboard
-    void selectionCopied(TOPPASScene * ts);
+    void selectionCopied(TOPPASScene* ts);
     /// Requests the clipboard content from TOPPASBase, will be stored in clipboard_
     void requestClipboardContent();
     /// Emitted when the main window needs to be updated
@@ -318,11 +308,10 @@ signals:
     /// Emitted when in dry run mode and asked to run a TOPP tool (to fake success)
     void dryRunFinished(int, QProcess::ExitStatus);
     /// Emitted when there is an important message that needs to be printed in TOPPAS
-    void messageReady(const QString & msg);
+    void messageReady(const QString& msg);
 
 
-protected:
-
+  protected:
     /// The current action mode
     ActionMode action_mode_;
     /// The list of all vertices
@@ -330,9 +319,9 @@ protected:
     /// The list of all edges
     EdgeContainer edges_;
     /// The hovering edge which is currently being created
-    TOPPASEdge * hover_edge_;
+    TOPPASEdge* hover_edge_;
     /// The current potential target vertex of the hovering edge
-    TOPPASVertex * potential_target_;
+    TOPPASVertex* potential_target_;
     /// The file name of this pipeline
     String file_name_;
     /// The path for temporary files
@@ -352,7 +341,7 @@ protected:
     /// The queue of pending TOPP processes
     QList<TOPPProcess> topp_processes_queue_;
     /// Stores the clipboard content when requested from TOPPASBase
-    TOPPASScene * clipboard_;
+    TOPPASScene* clipboard_;
     /// dry run mode (no tools are actually called)
     bool dry_run_;
     /// currently running processes...
@@ -365,23 +354,22 @@ protected:
     TOPPASToolVertex* resume_source_;
 
     /// Returns the vertex in the foreground at position @p pos , if existent, otherwise 0.
-    TOPPASVertex * getVertexAt_(const QPointF & pos);
+    TOPPASVertex* getVertexAt_(const QPointF& pos);
     /// Returns whether an edge between node u and v would be allowed
-    bool isEdgeAllowed_(TOPPASVertex * u, TOPPASVertex * v);
+    bool isEdgeAllowed_(TOPPASVertex* u, TOPPASVertex* v);
     /// DFS helper method. Returns true, if a back edge has been discovered
-    bool dfsVisit_(TOPPASVertex * vertex);
+    bool dfsVisit_(TOPPASVertex* vertex);
     /// Performs a sanity check of the pipeline and notifies user when it finds something strange. Returns if pipeline OK.
     /// if 'allowUserOverride' is true, some dialogs are shown which allow the user to ignore some warnings (e.g. disconnected nodes)
     bool sanityCheck_(bool allowUserOverride);
 
     ///@name reimplemented Qt events
     //@{
-    void contextMenuEvent(QGraphicsSceneContextMenuEvent * event) override;
+    void contextMenuEvent(QGraphicsSceneContextMenuEvent* event) override;
     //@}
 
-    ///Writes the @p text to the logfile
-    void writeToLogFile_(const QString & text);
+    /// Writes the @p text to the logfile
+    void writeToLogFile_(const QString& text);
   };
 
-}
-
+} // namespace OpenMS

@@ -35,13 +35,10 @@
 #pragma once
 
 // OpenMS_GUI config
-#include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
-
 #include <OpenMS/KERNEL/StandardTypes.h>
-
+#include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
 #include <QMenu>
 #include <QStringList>
-
 #include <vector>
 
 class QAction;
@@ -56,15 +53,14 @@ namespace OpenMS
 
 
   */
-  class RecentFilesMenu
-    : public QObject
+  class RecentFilesMenu : public QObject
   {
     Q_OBJECT
-  
+
   signals:
     /// when a recent file action item from the getMenu() was clicked
     void recentFileClicked(const String& filename);
-    
+
   public:
     /// C'tor
     RecentFilesMenu(int max_entries = 15);
@@ -72,7 +68,7 @@ namespace OpenMS
     /// sets a list of recent files (up to max_entries many -- see C'tor)
     void set(const QStringList& initial);
 
-    /** 
+    /**
         @brief Extracts all values from all elements in the param object and tries to interpret them as filenames
         If they exist, they will be used in the list of recent files. The name of the param items is ignored.
 
@@ -90,7 +86,7 @@ namespace OpenMS
 
     /// get a menu-pointer to an internal member which always contains the up-to-date recent items
     QMenu* getMenu();
-    
+
     /// current list of recent files (most recent first)
     const QStringList& get() const;
 
@@ -116,5 +112,4 @@ namespace OpenMS
     std::vector<QAction*> recent_actions_;
   };
 
-} //namespace
-
+} // namespace OpenMS

@@ -19,7 +19,7 @@ cdef extern from "<OpenMS/METADATA/SpectrumLookup.h>" namespace "OpenMS":
                 #  Read and index spectra for later look-up
                 #  
                 #  :param spectra: Container of spectra
-                #  :param scan_regexp: Regular expression for matching scan numbers in spectrum native IDs (must contain the named group "?<SCAN>")
+                #  :param scan_regexp: Regular expression for matching scan numbers in spectrum native IDs (must contain the named group "?<SCAN>". For example, "scan=(?<SCAN>\\d+)").
 
         Size findByRT(double rt) nogil except +
         # wrap-doc:

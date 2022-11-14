@@ -32,11 +32,9 @@
 // $Authors: Chris Bielow $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/VISUAL/LayerDataConsensus.h> 
-
 #include <OpenMS/ANALYSIS/ID/IDMapper.h>
 #include <OpenMS/KERNEL/DimMapper.h>
-
+#include <OpenMS/VISUAL/LayerDataConsensus.h>
 #include <OpenMS/VISUAL/Painter2DBase.h>
 #include <OpenMS/VISUAL/VISITORS/LayerStatistics.h>
 #include <OpenMS/VISUAL/VISITORS/LayerStoreData.h>
@@ -100,7 +98,7 @@ namespace OpenMS
   {
     throw Exception::NotImplemented(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
   } */
-  
+
   std::unique_ptr<LayerStatistics> LayerDataConsensus::getStats() const
   {
     return make_unique<LayerStatisticsConsensusMap>(*consensus_map_);
@@ -114,4 +112,4 @@ namespace OpenMS
     return true;
   }
 
-}// namespace OpenMS
+} // namespace OpenMS

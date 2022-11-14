@@ -36,9 +36,8 @@
 
 // OpenMS_GUI config
 #include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
-
-#include <OpenMS/VISUAL/PlotWidget.h>
 #include <OpenMS/VISUAL/Plot3DCanvas.h>
+#include <OpenMS/VISUAL/PlotWidget.h>
 
 namespace OpenMS
 {
@@ -50,14 +49,13 @@ namespace OpenMS
 
       @ingroup PlotWidgets
   */
-  class OPENMS_GUI_DLLAPI Plot3DWidget :
-    public PlotWidget
+  class OPENMS_GUI_DLLAPI Plot3DWidget : public PlotWidget
   {
     Q_OBJECT
 
-public:
+  public:
     /// Constructor
-    Plot3DWidget(const Param & preferences, QWidget * parent = nullptr);
+    Plot3DWidget(const Param& preferences, QWidget* parent = nullptr);
 
     /// Destructor
     ~Plot3DWidget() override;
@@ -77,19 +75,18 @@ public:
     // Docu in base class
     void recalculateAxes_() override;
 
-    //docu in base class
+    // docu in base class
     bool isLegendShown() const override;
-    //docu in base class
+    // docu in base class
     void showLegend(bool show) override;
 
-signals:
+  signals:
     /// Requests to display all spectra in 2D plot
     void showCurrentPeaksAs2D();
 
-public slots:
+  public slots:
     // Docu in base class
     void showGoToDialog() override;
   };
 
-} //namespace
-
+} // namespace OpenMS

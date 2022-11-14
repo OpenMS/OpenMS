@@ -34,19 +34,16 @@
 
 // OpenMS includes
 #include <OpenMS/VISUAL/DIALOGS/TOPPASInputFileDialog.h>
-#include <ui_TOPPASInputFileDialog.h>
-
-#include <QtWidgets/QMessageBox>
-#include <QtWidgets/QFileDialog>
+#include <QtCore/QFileInfo>
 #include <QtWidgets/QCompleter>
 #include <QtWidgets/QDirModel>
-#include <QtCore/QFileInfo>
+#include <QtWidgets/QFileDialog>
+#include <QtWidgets/QMessageBox>
+#include <ui_TOPPASInputFileDialog.h>
 
 namespace OpenMS
 {
-  TOPPASInputFileDialog::TOPPASInputFileDialog(const QString& file_name)
-    : QDialog(),
-      ui_(new Ui::TOPPASInputFileDialogTemplate)
+  TOPPASInputFileDialog::TOPPASInputFileDialog(const QString& file_name) : QDialog(), ui_(new Ui::TOPPASInputFileDialogTemplate)
   {
     ui_->setupUi(this);
 
@@ -83,4 +80,4 @@ namespace OpenMS
   }
 
 
-} // namespace
+} // namespace OpenMS

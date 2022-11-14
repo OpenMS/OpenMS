@@ -34,17 +34,15 @@
 
 #pragma once
 
-#include <QTableWidget>
-
 #include <OpenMS/VISUAL/MISC/CommonDefs.h>
+#include <QTableWidget>
 
 namespace OpenMS
 {
   /**
     @brief A better QTable for TOPPView, which supports exporting to TSV and conveniently adding data to cells and headers.
   */
-  class TableView :
-    public QTableWidget
+  class TableView : public QTableWidget
   {
     Q_OBJECT
   public:
@@ -55,15 +53,15 @@ namespace OpenMS
 
     /**
       @brief Export table entries as currently shown in the table in TSV format (only for visible data)
-      
+
       A filename will be queried using a dialog, before exporting.
-    
+
       Headers will be exported using their export name (if available, see @p setHeaderExportName()).
-      
+
       All cells will be queried for their Qt::UserRole, then for Qt::DisplayRole and last for Qt::CheckStateRole.
       The first item to return data will be used!
       Thus, to export data which differs from the visible (==DisplayRole), use QTableWidgetItem::setData(Qt::UserRole, ...).
-      
+
       Note: to force export of hidden columns use @p setMandatoryExportColumns()
     */
     virtual void exportEntries();
@@ -81,13 +79,13 @@ namespace OpenMS
     QTableWidgetItem* setAtBottomRow(QTableWidgetItem* item, size_t column_index, const QColor& background, const QColor& foreground);
 
     /// if the item is purely a checkbox (e.g. added with setAtBottomRow(const bool selected, ...)),
-    /// we set its DisplayRole to either '' or ' ', depending on checked state, to allow for row sorting 
+    /// we set its DisplayRole to either '' or ' ', depending on checked state, to allow for row sorting
     /// This function should be called whenever the check-state of the item changes
     static void updateCheckBoxItem(QTableWidgetItem* item);
 
     /// sets the visible headers (and the number of columns)
     void setHeaders(const QStringList& headers);
-    
+
     /// hides columns with the given names
     /// @throws Exception::InvalidParameter if a name is not matching the current column names
     void hideColumns(const QStringList& header_names);
@@ -99,8 +97,8 @@ namespace OpenMS
        where the alternative export name is preferred (if exists). See setHeaderExportName().
 
        @param which With or without invisible columns?
-       @param use_export_name If column has a hidden export name, use that instead of the displayed name 
-       @return List of header names 
+       @param use_export_name If column has a hidden export name, use that instead of the displayed name
+       @return List of header names
     */
     QStringList getHeaderNames(const WidgetHeader which, bool use_export_name = false);
 
@@ -137,7 +135,7 @@ namespace OpenMS
     QString getHeaderName(const int header_column);
 
     /// Set the mandatory export columns @p cols which get exported even if the user decided to hide them.
-    void setMandatoryExportColumns(QStringList& cols);    
+    void setMandatoryExportColumns(QStringList& cols);
   signals:
     /// emitted when the widget is resized
     void resized();
@@ -152,4 +150,4 @@ namespace OpenMS
     /// Display header context menu; allows to show/hide columns
     void headerContextMenu_(const QPoint&);
   };
-}
+} // namespace OpenMS

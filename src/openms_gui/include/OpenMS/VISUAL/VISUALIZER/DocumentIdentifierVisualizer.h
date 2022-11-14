@@ -37,12 +37,12 @@
 // OpenMS_GUI config
 #include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
 
-//OpenMS
+// OpenMS
 #include <OpenMS/METADATA/DocumentIdentifier.h>
 #include <OpenMS/VISUAL/VISUALIZER/BaseVisualizer.h>
 #include <OpenMS/VISUAL/VISUALIZER/BaseVisualizerGUI.h>
 
-//QT
+// QT
 
 namespace OpenMS
 {
@@ -51,36 +51,33 @@ namespace OpenMS
 
       This class provides all functionality to view the meta information of an object of type DocumentIdentifier.
   */
-  class OPENMS_GUI_DLLAPI DocumentIdentifierVisualizer :
-    public BaseVisualizerGUI,
-    public BaseVisualizer<DocumentIdentifier>
+  class OPENMS_GUI_DLLAPI DocumentIdentifierVisualizer : public BaseVisualizerGUI, public BaseVisualizer<DocumentIdentifier>
   {
     Q_OBJECT
 
-public:
+  public:
+    /// Constructor
+    DocumentIdentifierVisualizer(bool editable = false, QWidget* parent = nullptr);
 
-    ///Constructor
-    DocumentIdentifierVisualizer(bool editable = false, QWidget * parent = nullptr);
+  public slots:
 
-public slots:
-
-    //Docu in base class
+    // Docu in base class
     void store() override;
 
-protected slots:
+  protected slots:
 
-    ///Undo the changes made in the GUI.
+    /// Undo the changes made in the GUI.
     void undo_();
 
-protected:
+  protected:
     ///@name Edit fields and buttons
     //@{
-    QLineEdit * identifier_;
-    QLineEdit * file_path_;
-    QLineEdit * file_type_;
+    QLineEdit* identifier_;
+    QLineEdit* file_path_;
+    QLineEdit* file_type_;
     //@}
 
-    //Docu in base class
+    // Docu in base class
     void update_() override;
   };
-}
+} // namespace OpenMS

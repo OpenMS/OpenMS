@@ -33,9 +33,8 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/VISUAL/ANNOTATION/Annotation1DVerticalLineItem.h>
-#include <OpenMS/VISUAL/Plot1DCanvas.h>
 #include <OpenMS/VISUAL/MISC/GUIHelpers.h>
-
+#include <OpenMS/VISUAL/Plot1DCanvas.h>
 #include <QtCore/QPoint>
 #include <QtGui/QPainter>
 
@@ -43,18 +42,12 @@ using namespace std;
 
 namespace OpenMS
 {
-  Annotation1DVerticalLineItem::Annotation1DVerticalLineItem(const PointXYType& center_pos, const QColor& color, const QString& text) :
-      Annotation1DItem(text), pos_(center_pos),
-      color_(color)
+  Annotation1DVerticalLineItem::Annotation1DVerticalLineItem(const PointXYType& center_pos, const QColor& color, const QString& text) : Annotation1DItem(text), pos_(center_pos), color_(color)
   {
   }
 
-  Annotation1DVerticalLineItem::Annotation1DVerticalLineItem(const PointXYType& center_pos, const float width, const int alpha255, const bool dashed_line, const QColor& color, const QString& text)
-    : Annotation1DItem(text), pos_(center_pos),
-      width_(width),
-      alpha255_(alpha255),
-      dashed_(dashed_line),
-      color_(color)
+  Annotation1DVerticalLineItem::Annotation1DVerticalLineItem(const PointXYType& center_pos, const float width, const int alpha255, const bool dashed_line, const QColor& color, const QString& text) :
+      Annotation1DItem(text), pos_(center_pos), width_(width), alpha255_(alpha255), dashed_(dashed_line), color_(color)
   {
   }
 
@@ -78,7 +71,7 @@ namespace OpenMS
     // (if you now think of using { 5 / width_, ... }, to counter the scaling: this only works if width_ < 5, since internally Qt seems to use integer arithmetic...)
     if (dashed_)
     {
-      pen.setDashPattern({ 5, 5, 1, 5 });
+      pen.setDashPattern({5, 5, 1, 5});
     }
 
     // get left/right corner points of the rectangle (line + width); names are as if the line is vertical, but depending on gravity, it could be horizontal as well
@@ -98,11 +91,11 @@ namespace OpenMS
     painter.drawLine(start_px_left, end_px_right);
 
     // compute bounding box on the specified painter
-    bounding_box_ = QRectF(QPointF(start_px_left - px_width/2), QPointF(end_px_right + px_width/2)).normalized();
+    bounding_box_ = QRectF(QPointF(start_px_left - px_width / 2), QPointF(end_px_right + px_width / 2)).normalized();
 
     if (!text_.isEmpty())
     {
-      auto top_left_px = bounding_box_.topLeft() + QPoint(5,5);
+      auto top_left_px = bounding_box_.topLeft() + QPoint(5, 5);
       // shift gravity axis by text_offset_
       auto final = canvas->getGravitator().gravitateTo(top_left_px.toPoint(), QPoint(text_offset_, text_offset_));
       GUIHelpers::drawText(painter, text_.split('\n'), final, Qt::black);
@@ -136,4 +129,4 @@ namespace OpenMS
   {
     text_offset_ = offset;
   }
-} //Namespace
+} // namespace OpenMS

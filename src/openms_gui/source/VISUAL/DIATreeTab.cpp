@@ -33,11 +33,10 @@
 // --------------------------------------------------------------------------
 
 
-#include <OpenMS/VISUAL/DIATreeTab.h>
-
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/CONCEPT/RAIICleanup.h>
 #include <OpenMS/FORMAT/OSWFile.h>
+#include <OpenMS/VISUAL/DIATreeTab.h>
 #include <OpenMS/VISUAL/LayerDataChrom.h>
 #include <OpenMS/VISUAL/TreeView.h>
 
@@ -49,13 +48,23 @@ namespace OpenMS
   {
     enum HeaderNames
     { // indices into QTableWidget's columns (which start at index 0)
-      ENTITY, INDEX, CHARGE, FULL_NAME, RT_DELTA, QVALUE, /* last entry --> */ SIZE_OF_HEADERNAMES
+      ENTITY,
+      INDEX,
+      CHARGE,
+      FULL_NAME,
+      RT_DELTA,
+      QVALUE,
+      /* last entry --> */ SIZE_OF_HEADERNAMES
     };
     // keep in SYNC with enum HeaderNames
-    const QStringList HEADER_NAMES = QStringList()
-      << "entity" << "index" << "charge" << "full name" << "rt delta" << "q-value";
-  }
-                                       
+    const QStringList HEADER_NAMES = QStringList() << "entity"
+                                                   << "index"
+                                                   << "charge"
+                                                   << "full name"
+                                                   << "rt delta"
+                                                   << "q-value";
+  } // namespace Clmn
+
   /// given an item, goes up the tree to the root and collects indices in to the OSWData for each level
   OSWIndexTrace getTrace(QTreeWidgetItem* current)
   {
@@ -72,20 +81,20 @@ namespace OpenMS
       }
       switch (level)
       {
-      case OSWHierarchy::Level::PROTEIN:
-        trace.idx_prot = index;
-        break;
-      case OSWHierarchy::Level::PEPTIDE:
-        trace.idx_pep = index;
-        break;
-      case OSWHierarchy::Level::FEATURE:
-        trace.idx_feat = index;
-        break;
-      case OSWHierarchy::Level::TRANSITION:
-        trace.idx_trans = index;
-        break;
-      default:
-        throw Exception::NotImplemented(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
+        case OSWHierarchy::Level::PROTEIN:
+          trace.idx_prot = index;
+          break;
+        case OSWHierarchy::Level::PEPTIDE:
+          trace.idx_pep = index;
+          break;
+        case OSWHierarchy::Level::FEATURE:
+          trace.idx_feat = index;
+          break;
+        case OSWHierarchy::Level::TRANSITION:
+          trace.idx_trans = index;
+          break;
+        default:
+          throw Exception::NotImplemented(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
       }
       // up one level
       current = current->parent();
@@ -93,15 +102,14 @@ namespace OpenMS
     return trace;
   }
 
-  DIATreeTab::DIATreeTab(QWidget* parent) :
-    QWidget(parent)
+  DIATreeTab::DIATreeTab(QWidget* parent) : QWidget(parent)
   {
     setObjectName("DIA OSW View");
     QVBoxLayout* spectra_widget_layout = new QVBoxLayout(this);
     dia_treewidget_ = new TreeView(this);
     dia_treewidget_->setWhatsThis("Protein/Peptide/Transition selection bar<BR><BR>Here all XICs of a DIA experiment are shown. Left-click on a chrom to show it. "
-      "Double-clicking might be implemented as well, depending on the data. "
-      "Context-menus for both the column header and data rows are available by right-clicking.");
+                                  "Double-clicking might be implemented as well, depending on the data. "
+                                  "Context-menus for both the column header and data rows are available by right-clicking.");
 
     //~ no good for huge experiments - omitted:
     //~ spectrum_selection_->setSortingEnabled(true);
@@ -138,7 +146,7 @@ namespace OpenMS
     spectra_widget_layout->addLayout(tmp_hbox_layout);
   }
 
-  /// adds a subtree (with peptides ...) to a given protein 
+  /// adds a subtree (with peptides ...) to a given protein
   void fillProt(const OSWProtein& prot, QTreeWidgetItem* item_prot)
   {
     for (size_t idx_pep = 0; idx_pep < prot.getPeptidePrecursors().size(); ++idx_pep)
@@ -169,7 +177,7 @@ namespace OpenMS
           item_trans->setData(Clmn::INDEX, Qt::UserRole, OSWHierarchy::TRANSITION); // mark as transition, so we know how to interpret the display role
         }
       }
-      //item_prot->addChild(item_pep);
+      // item_prot->addChild(item_pep);
     }
   }
 
@@ -184,7 +192,7 @@ namespace OpenMS
 
     // if possible, fill it already
     fillProt(prot, item_prot);
-    
+
     return item_prot;
   }
 
@@ -222,21 +230,21 @@ namespace OpenMS
     tr = getTrace(item);
     switch (tr.lowest)
     {
-    case OSWHierarchy::Level::PROTEIN:
-      if (item->childCount() == 0)
-      { // no peptides... load them
-        OSWFile f(current_data_->getSqlSourceFile());
-        f.readProtein(*current_data_, tr.idx_prot);
-        fillProt(current_data_->getProteins()[tr.idx_prot], item);
-      }
-      // do nothing else -- showing all transitions for a protein is overwhelming...      
-      break;
-    case OSWHierarchy::Level::PEPTIDE:
-    case OSWHierarchy::Level::FEATURE:
-    case OSWHierarchy::Level::TRANSITION:
-      break;
-    default:
-      throw Exception::NotImplemented(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
+      case OSWHierarchy::Level::PROTEIN:
+        if (item->childCount() == 0)
+        { // no peptides... load them
+          OSWFile f(current_data_->getSqlSourceFile());
+          f.readProtein(*current_data_, tr.idx_prot);
+          fillProt(current_data_->getProteins()[tr.idx_prot], item);
+        }
+        // do nothing else -- showing all transitions for a protein is overwhelming...
+        break;
+      case OSWHierarchy::Level::PEPTIDE:
+      case OSWHierarchy::Level::FEATURE:
+      case OSWHierarchy::Level::TRANSITION:
+        break;
+      default:
+        throw Exception::NotImplemented(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
     }
 
     return tr;
@@ -245,13 +253,15 @@ namespace OpenMS
   void DIATreeTab::rowSelectionChange_(QTreeWidgetItem* current, QTreeWidgetItem* /*previous*/)
   {
     auto tr = prepareSignal_(current);
-    if (tr.isSet()) emit entityClicked(tr);
+    if (tr.isSet())
+      emit entityClicked(tr);
   }
 
   void DIATreeTab::rowClicked_(QTreeWidgetItem* item, int /*col*/)
   {
     auto tr = prepareSignal_(item);
-    if (tr.isSet()) emit entityClicked(tr);
+    if (tr.isSet())
+      emit entityClicked(tr);
   }
 
   void DIATreeTab::rowDoubleClicked_(QTreeWidgetItem* item, int /*col*/)
@@ -268,7 +278,8 @@ namespace OpenMS
     spectrumSearchText_(); // update selection first (we might be in a new layer)
     QList<QTreeWidgetItem*> selected = dia_treewidget_->selectedItems();
     // show the first selected item
-    if (selected.size() > 0) rowSelectionChange_(selected.first(), selected.first());
+    if (selected.size() > 0)
+      rowSelectionChange_(selected.first(), selected.first());
   }
 
 
@@ -295,7 +306,8 @@ namespace OpenMS
       return;
     }
     auto* lp = dynamic_cast<const LayerDataChrom*>(layer);
-    if (!lp) return;
+    if (!lp)
+      return;
 
     OSWData* data = lp->getChromatogramAnnotation().get();
 
@@ -318,7 +330,7 @@ namespace OpenMS
     dia_treewidget_->setHeaders(Clmn::HEADER_NAMES);
 
 
-    if (data == nullptr  // DIA tab is active, but the layer has no data to show...
+    if (data == nullptr // DIA tab is active, but the layer has no data to show...
         || data->getProteins().empty())
     {
       dia_treewidget_->setHeaders(QStringList() << "No data");
@@ -332,7 +344,7 @@ namespace OpenMS
         dia_treewidget_->addTopLevelItem(item_prot);
       }
     }
-    
+
     populateSearchBox_();
 
     // automatically set column width, depending on data
@@ -356,4 +368,4 @@ namespace OpenMS
     current_data_ = nullptr;
   }
 
-}
+} // namespace OpenMS

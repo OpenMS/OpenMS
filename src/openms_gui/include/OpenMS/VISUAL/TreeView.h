@@ -34,17 +34,15 @@
 
 #pragma once
 
-#include <QTreeWidget>
-
 #include <OpenMS/VISUAL/MISC/CommonDefs.h>
+#include <QTreeWidget>
 
 namespace OpenMS
 {
   /**
     @brief A better QTreeWidget for TOPPView, which supports header context menu and conveniently adding/getting headers names.
   */
-  class TreeView :
-    public QTreeWidget
+  class TreeView : public QTreeWidget
   {
     Q_OBJECT
   public:
@@ -76,4 +74,4 @@ namespace OpenMS
     /// Display header context menu; allows to show/hide columns
     void headerContextMenu_(const QPoint& pos);
   };
-}
+} // namespace OpenMS

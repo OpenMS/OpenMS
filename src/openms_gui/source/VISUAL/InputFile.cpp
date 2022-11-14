@@ -33,24 +33,19 @@
 // --------------------------------------------------------------------------
 
 // OpenMS includes
-#include <OpenMS/VISUAL/InputFile.h>
-#include <ui_InputFile.h>
-
 #include <OpenMS/SYSTEM/File.h>
-
-#include <QtWidgets/QMessageBox>
-#include <QtWidgets/QFileDialog>
-#include <QtWidgets/QCompleter>
-#include <QFileSystemModel>
+#include <OpenMS/VISUAL/InputFile.h>
 #include <QDragEnterEvent>
+#include <QFileSystemModel>
 #include <QMimeData>
+#include <QtWidgets/QCompleter>
+#include <QtWidgets/QFileDialog>
+#include <QtWidgets/QMessageBox>
+#include <ui_InputFile.h>
 
 namespace OpenMS
 {
-  InputFile::InputFile(QWidget* parent)
-    : QWidget(parent),
-      file_format_filter_(),
-      ui_(new Ui::InputFileTemplate)
+  InputFile::InputFile(QWidget* parent) : QWidget(parent), file_format_filter_(), ui_(new Ui::InputFileTemplate)
   {
     ui_->setupUi(this);
     QCompleter* completer = new QCompleter(this);
@@ -86,7 +81,7 @@ namespace OpenMS
   void InputFile::dragMoveEvent(QDragMoveEvent* p_event)
   {
     // TODO allow filtering?
-    //if (!p_event->mimeData()->hasFormat(MY_MIMETYPE))
+    // if (!p_event->mimeData()->hasFormat(MY_MIMETYPE))
     //{
     //  p_event->ignore();
     //  return;
@@ -128,7 +123,7 @@ namespace OpenMS
   void InputFile::showFileDialog()
   {
     QFileInfo fi(getFilename()); // get path from current file as starting directory for selection
-    
+
     QString file_name = QFileDialog::getOpenFileName(this, tr("Specify input file"), cwd_, file_format_filter_);
     if (!file_name.isEmpty())
     {
@@ -137,4 +132,4 @@ namespace OpenMS
   }
 
 
-} // namespace
+} // namespace OpenMS

@@ -32,10 +32,10 @@
 // $Authors: Marc Sturm $
 // --------------------------------------------------------------------------
 
-//OpenMS
+// OpenMS
 #include <OpenMS/VISUAL/VISUALIZER/ContactPersonVisualizer.h>
 
-//QT
+// QT
 #include <QtWidgets/QLineEdit>
 
 using namespace std;
@@ -43,11 +43,8 @@ using namespace std;
 namespace OpenMS
 {
 
-  ContactPersonVisualizer::ContactPersonVisualizer(bool editable, QWidget * parent) :
-    BaseVisualizerGUI(editable, parent),
-    BaseVisualizer<ContactPerson>()
+  ContactPersonVisualizer::ContactPersonVisualizer(bool editable, QWidget* parent) : BaseVisualizerGUI(editable, parent), BaseVisualizer<ContactPerson>()
   {
-
     addLabel_("Modify ContactPerson information");
     addSeparator_();
     addLineEdit_(firstname_, "First name");
@@ -88,4 +85,4 @@ namespace OpenMS
     update_();
   }
 
-}
+} // namespace OpenMS

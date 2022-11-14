@@ -32,8 +32,8 @@
 // $Authors: Timo Sachsenberg $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/VISUAL/AxisPainter.h>
 #include <OpenMS/MATH/MISC/MathFunctions.h>
+#include <OpenMS/VISUAL/AxisPainter.h>
 
 using namespace std;
 
@@ -41,10 +41,8 @@ namespace OpenMS
 {
   using namespace Math;
 
-  void AxisPainter::paint(QPainter * painter, QPaintEvent *, const double & min, const double & max, const GridVector & grid,
-                          const Int width, const Int height, const AxisPainter::Alignment alignment, const UInt margin,
-                          bool show_legend, const String& legend, bool shorten_number,
-                          bool is_log, bool is_inverse_orientation)
+  void AxisPainter::paint(QPainter* painter, QPaintEvent*, const double& min, const double& max, const GridVector& grid, const Int width, const Int height, const AxisPainter::Alignment alignment,
+                          const UInt margin, bool show_legend, const String& legend, bool shorten_number, bool is_log, bool is_inverse_orientation)
   {
     // position of the widget
     bool horizontal_alignment = (alignment == BOTTOM || alignment == TOP);
@@ -61,28 +59,28 @@ namespace OpenMS
     // paint axis lines
     switch (alignment)
     {
-    case BOTTOM:
-      painter->drawLine(0, 0, w - 1, 0);
-      break;
+      case BOTTOM:
+        painter->drawLine(0, 0, w - 1, 0);
+        break;
 
-    case TOP:
-      painter->drawLine(0, h - 1, w - 1, h - 1);
-      break;
+      case TOP:
+        painter->drawLine(0, h - 1, w - 1, h - 1);
+        break;
 
-    case LEFT:
-      painter->drawLine(w - 1, 0, w - 1, h - 1);
-      break;
+      case LEFT:
+        painter->drawLine(w - 1, 0, w - 1, h - 1);
+        break;
 
-    case RIGHT:
-      painter->drawLine(0, 0, 0, h - 1);
-      break;
+      case RIGHT:
+        painter->drawLine(0, 0, 0, h - 1);
+        break;
     }
 
     // shrink font size if text does not fit
     UInt font_size = painter->font().pointSize();
     UInt max_width = 0;
 
-    if (!grid.empty()) //check big intervals only
+    if (!grid.empty()) // check big intervals only
     {
       QFontMetrics metrics(QFont(painter->font().family(), font_size));
       for (Size i = 0; i < grid[0].size(); i++)
@@ -101,7 +99,7 @@ namespace OpenMS
       }
     }
 
-    //shrink font if too much text it displayed
+    // shrink font if too much text it displayed
     UInt overall_required_pixels = 0;
     if (horizontal_alignment)
     {
@@ -114,7 +112,7 @@ namespace OpenMS
     }
     else // Shrink font if the largest text is too big
     {
-      overall_required_pixels = UInt(max_width  + 0.25 * font_size + tick_spacing);
+      overall_required_pixels = UInt(max_width + 0.25 * font_size + tick_spacing);
     }
 
     if (w < overall_required_pixels)
@@ -169,21 +167,21 @@ namespace OpenMS
         painter->setPen(QPen(Qt::black));
         switch (alignment)
         {
-        case BOTTOM:
-          painter->drawLine(tick_pos, 0, tick_pos, tick_size);
-          break;
+          case BOTTOM:
+            painter->drawLine(tick_pos, 0, tick_pos, tick_size);
+            break;
 
-        case TOP:
-          painter->drawLine(tick_pos, h, tick_pos, h - tick_size);
-          break;
+          case TOP:
+            painter->drawLine(tick_pos, h, tick_pos, h - tick_size);
+            break;
 
-        case LEFT:
-          painter->drawLine(w - tick_size, tick_pos + margin, w, tick_pos + margin);
-          break;
+          case LEFT:
+            painter->drawLine(w - tick_size, tick_pos + margin, w, tick_pos + margin);
+            break;
 
-        case RIGHT:
-          painter->drawLine(0, tick_pos + margin, tick_size, tick_pos + margin);
-          break;
+          case RIGHT:
+            painter->drawLine(0, tick_pos + margin, tick_size, tick_pos + margin);
+            break;
         }
 
         // values at axis lines
@@ -225,35 +223,35 @@ namespace OpenMS
         UInt x_pos = 0;
         switch (alignment)
         {
-        case BOTTOM:
-        case TOP:
-          x_pos = tick_pos - UInt(0.5 * textbound.width());
-          break;
+          case BOTTOM:
+          case TOP:
+            x_pos = tick_pos - UInt(0.5 * textbound.width());
+            break;
 
-        case LEFT:
-          x_pos = w - (tick_size + tick_spacing) - textbound.width();
-          break;
+          case LEFT:
+            x_pos = w - (tick_size + tick_spacing) - textbound.width();
+            break;
 
-        case RIGHT:
-          x_pos = tick_size + tick_spacing;
-          break;
+          case RIGHT:
+            x_pos = tick_size + tick_spacing;
+            break;
         }
 
         UInt y_pos = 0;
         switch (alignment)
         {
-        case BOTTOM:
-          y_pos = tick_size + tick_spacing + UInt(0.5 * textbound.height());
-          break;
+          case BOTTOM:
+            y_pos = tick_size + tick_spacing + UInt(0.5 * textbound.height());
+            break;
 
-        case TOP:
-          y_pos = h - (tick_size + tick_spacing);
-          break;
+          case TOP:
+            y_pos = h - (tick_size + tick_spacing);
+            break;
 
-        case LEFT:
-        case RIGHT:
-          y_pos = tick_pos + margin + UInt(0.25 * textbound.height());
-          break;
+          case LEFT:
+          case RIGHT:
+            y_pos = tick_pos + margin + UInt(0.25 * textbound.height());
+            break;
         }
         painter->drawText(x_pos, y_pos, text);
       }
@@ -268,23 +266,23 @@ namespace OpenMS
 
       switch (alignment)
       {
-      case BOTTOM:
-        painter->drawText(0, 0, w, h, Qt::AlignBottom | Qt::AlignHCenter, legend.c_str());
-        break;
+        case BOTTOM:
+          painter->drawText(0, 0, w, h, Qt::AlignBottom | Qt::AlignHCenter, legend.c_str());
+          break;
 
-      case TOP:
-        painter->drawText(0, 0, w, h, Qt::AlignTop | Qt::AlignHCenter, legend.c_str());
-        break;
+        case TOP:
+          painter->drawText(0, 0, w, h, Qt::AlignTop | Qt::AlignHCenter, legend.c_str());
+          break;
 
-      case LEFT:
-        painter->rotate(270);
-        painter->drawText(-(int)h, 0, h, w, Qt::AlignHCenter | Qt::AlignTop, legend.c_str());
-        break;
+        case LEFT:
+          painter->rotate(270);
+          painter->drawText(-(int)h, 0, h, w, Qt::AlignHCenter | Qt::AlignTop, legend.c_str());
+          break;
 
-      case RIGHT:
-        painter->rotate(270);
-        painter->drawText(-(int)h, 0, h, w, Qt::AlignHCenter | Qt::AlignBottom, legend.c_str());
-        break;
+        case RIGHT:
+          painter->rotate(270);
+          painter->drawText(-(int)h, 0, h, w, Qt::AlignHCenter | Qt::AlignBottom, legend.c_str());
+          break;
       }
     }
   }
@@ -297,7 +295,7 @@ namespace OpenMS
     }
     else if (number < 1e6)
     {
-      short_num = QString("%1k").arg(Math::roundDecimal(number /1e3, -2));
+      short_num = QString("%1k").arg(Math::roundDecimal(number / 1e3, -2));
     }
     else if (number < 1e9)
     {
@@ -310,8 +308,8 @@ namespace OpenMS
   }
 
   double AxisPainter::scale_(double x, bool is_log)
-  { // 
+  { //
     return (is_log) ? Math::roundDecimal(pow(10, x), -8) : Math::roundDecimal(x, -8);
   }
 
-}
+} // namespace OpenMS

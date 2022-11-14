@@ -97,7 +97,7 @@ namespace OpenMS
 
   protected:
     /// Current cached spectrum
-    //ExperimentType::SpectrumType cached_spectrum_;
+    // ExperimentType::SpectrumType cached_spectrum_;
   };
 
 } // namespace OpenMS

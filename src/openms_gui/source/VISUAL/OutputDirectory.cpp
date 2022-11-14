@@ -33,23 +33,18 @@
 // --------------------------------------------------------------------------
 
 // OpenMS includes
-#include <OpenMS/VISUAL/OutputDirectory.h>
-#include <ui_OutputDirectory.h>
-
-
 #include <OpenMS/SYSTEM/File.h>
-
-#include <QtWidgets/QMessageBox>
-#include <QtWidgets/QFileDialog>
-#include <QtWidgets/QCompleter>
+#include <OpenMS/VISUAL/OutputDirectory.h>
 #include <QFileSystemModel>
+#include <QtWidgets/QCompleter>
+#include <QtWidgets/QFileDialog>
+#include <QtWidgets/QMessageBox>
+#include <ui_OutputDirectory.h>
 
 
 namespace OpenMS
 {
-  OutputDirectory::OutputDirectory(QWidget* parent)
-    : QWidget(parent),
-      ui_(new Ui::OutputDirectoryTemplate)
+  OutputDirectory::OutputDirectory(QWidget* parent) : QWidget(parent), ui_(new Ui::OutputDirectoryTemplate)
   {
     ui_->setupUi(this);
     QCompleter* completer = new QCompleter(this);
@@ -87,12 +82,12 @@ namespace OpenMS
       setDirectory(selected_dir); // emits directoryChanged()
     }
   }
-  
+
   void OutputDirectory::textEditChanged_(const QString& /*new_text*/)
   {
     emit directoryChanged(getDirectory());
   }
-  
+
 
   bool OutputDirectory::dirNameValid() const
   {
@@ -110,4 +105,4 @@ namespace OpenMS
   }
 
 
-} // namespace
+} // namespace OpenMS

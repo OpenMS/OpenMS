@@ -34,10 +34,11 @@
 
 #pragma once
 
+#include <OpenMS/ANALYSIS/TOPDOWN/DeconvolvedSpectrum.h>
+#include <OpenMS/ANALYSIS/TOPDOWN/FLASHDeconvHelperStructs.h>
 #include <OpenMS/KERNEL/Peak1D.h>
 #include <OpenMS/METADATA/Precursor.h>
-#include <OpenMS/ANALYSIS/TOPDOWN/FLASHDeconvHelperStructs.h>
-#include <OpenMS/ANALYSIS/TOPDOWN/DeconvolvedSpectrum.h>
+
 
 namespace OpenMS
 {
@@ -61,17 +62,7 @@ namespace OpenMS
     /// get QScore for a peak group of specific abs_charge
     static double getQScore(const PeakGroup *pg, const int abs_charge);
 
-    /// function to generate attribute csv file for weka interface
-    static void writeAttCsvFromTopPIC(const DeconvolvedSpectrum&  deconvolved_spectrum,
-                            const FLASHDeconvHelperStructs::TopPicItem& top_id,
-                            const FLASHDeconvHelperStructs::PrecalculatedAveragine& avg,
-                            std::fstream& f,
-                            bool write_detail = false);
-
     static void writeAttCsvFromDecoy(const DeconvolvedSpectrum&  deconvolved_spectrum, std::fstream& f);
-
-    /// write header for attribute csv file
-    static void writeAttCsvFromTopPICHeader(std::fstream& f, bool write_detail = false);
 
     static void writeAttCsvFromDecoyHeader(std::fstream& f);
 

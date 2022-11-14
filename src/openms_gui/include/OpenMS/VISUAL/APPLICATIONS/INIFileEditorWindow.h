@@ -35,14 +35,12 @@
 #pragma once
 
 // OpenMS_GUI config
-#include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
-
-#include <OpenMS/VISUAL/ParamEditor.h>
 #include <OpenMS/DATASTRUCTURES/Param.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
-
-#include <QtWidgets/QMdiArea>
+#include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
+#include <OpenMS/VISUAL/ParamEditor.h>
 #include <QtWidgets/QMainWindow>
+#include <QtWidgets/QMdiArea>
 
 class QToolBar;
 class QAction;
@@ -54,20 +52,19 @@ namespace OpenMS
   /**
       @brief shows the ParamEditor widget in a QMainWindow with a toolbar
   */
-  class OPENMS_GUI_DLLAPI INIFileEditorWindow :
-    public QMainWindow
+  class OPENMS_GUI_DLLAPI INIFileEditorWindow : public QMainWindow
   {
     Q_OBJECT
 
-public:
+  public:
     /// menu is created here
-    INIFileEditorWindow(QWidget * parent = nullptr);
+    INIFileEditorWindow(QWidget* parent = nullptr);
     /// when user closes window a message box asks the user if he wants to save
-    void closeEvent(QCloseEvent * event) override;
+    void closeEvent(QCloseEvent* event) override;
 
-public slots:
-    ///loads the xml-file into a Param object and loads Param into ParamEditor
-    bool openFile(const String & filename = "");
+  public slots:
+    /// loads the xml-file into a Param object and loads Param into ParamEditor
+    bool openFile(const String& filename = "");
     /// saves the users changes in a xml-file if the Param object is valid
     bool saveFile();
     /// like saveFile but with a file dialog to choose a filename
@@ -75,9 +72,9 @@ public slots:
     /// if the user changes data in ParamEditor the title shows a '*'
     void updateWindowTitle(bool);
 
-private:
+  private:
     /// ParamEditor object for visualization
-    ParamEditor * editor_;
+    ParamEditor* editor_;
     /// Param object for storing data
     Param param_;
     /// filename of xml-file to store the Param object
@@ -85,5 +82,4 @@ private:
     /// path used as next default location of the load/store dialogs
     String current_path_;
   };
-}
-
+} // namespace OpenMS

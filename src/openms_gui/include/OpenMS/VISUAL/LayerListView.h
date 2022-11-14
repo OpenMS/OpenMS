@@ -35,10 +35,8 @@
 #pragma once
 
 // OpenMS_GUI config
-#include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
-
 #include <OpenMS/KERNEL/StandardTypes.h>
-
+#include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
 #include <QtWidgets/QListWidget>
 
 namespace OpenMS
@@ -49,8 +47,7 @@ namespace OpenMS
 
 
   */
-  class OPENMS_GUI_DLLAPI LayerListView
-    : public QListWidget
+  class OPENMS_GUI_DLLAPI LayerListView : public QListWidget
   {
     Q_OBJECT
 
@@ -79,5 +76,4 @@ namespace OpenMS
     PlotWidget* spectrum_widget_ = nullptr; ///< holds the actual data. Might be nullptr.
   };
 
-} //namespace
-
+} // namespace OpenMS

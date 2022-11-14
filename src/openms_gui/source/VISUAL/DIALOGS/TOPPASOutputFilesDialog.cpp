@@ -33,23 +33,20 @@
 // --------------------------------------------------------------------------
 
 // OpenMS includes
-#include <OpenMS/VISUAL/DIALOGS/TOPPASOutputFilesDialog.h>
-#include <ui_TOPPASOutputFilesDialog.h>
-
 #include <OpenMS/SYSTEM/File.h>
-
-#include <QtWidgets/QFileDialog>
-#include <QtWidgets/QMessageBox>
-#include <QtWidgets/QCompleter>
-#include <QtWidgets/QDirModel>
+#include <OpenMS/VISUAL/DIALOGS/TOPPASOutputFilesDialog.h>
 #include <QtCore/QDir>
 #include <QtCore/QFileInfo>
+#include <QtWidgets/QCompleter>
+#include <QtWidgets/QDirModel>
+#include <QtWidgets/QFileDialog>
+#include <QtWidgets/QMessageBox>
+#include <ui_TOPPASOutputFilesDialog.h>
 
 
 namespace OpenMS
 {
-  TOPPASOutputFilesDialog::TOPPASOutputFilesDialog(const QString& dir_name, int num_jobs)
-    : ui_(new Ui::TOPPASOutputFilesDialogTemplate)
+  TOPPASOutputFilesDialog::TOPPASOutputFilesDialog(const QString& dir_name, int num_jobs) : ui_(new Ui::TOPPASOutputFilesDialogTemplate)
   {
     ui_->setupUi(this);
     if (dir_name != "")
@@ -64,10 +61,10 @@ namespace OpenMS
     {
       ui_->num_jobs_box->setValue(num_jobs);
     }
-    
+
     connect(ui_->ok_button, SIGNAL(clicked()), this, SLOT(checkValidity_()));
     connect(ui_->cancel_button, SIGNAL(clicked()), this, SLOT(reject()));
-    
+
     // make Ok the default (just pressing Enter will run the workflow)
     ui_->ok_button->setFocus();
   }
@@ -104,4 +101,4 @@ namespace OpenMS
   }
 
 
-} // namespace
+} // namespace OpenMS

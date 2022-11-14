@@ -32,24 +32,21 @@
 // $Authors: Chris Bielow $
 // --------------------------------------------------------------------------
 
+#include <OpenMS/VISUAL/ANNOTATION/Annotation1DDistanceItem.h>
+#include <OpenMS/VISUAL/ANNOTATION/Annotation1DItem.h>
+#include <OpenMS/VISUAL/ANNOTATION/Annotation1DPeakItem.h>
+#include <OpenMS/VISUAL/ANNOTATION/Annotations1DContainer.h>
 #include <OpenMS/VISUAL/LayerData1DChrom.h>
 #include <OpenMS/VISUAL/LayerData1DIonMobility.h>
 #include <OpenMS/VISUAL/LayerData1DPeak.h>
 #include <OpenMS/VISUAL/Painter1DBase.h>
-
-#include <OpenMS/VISUAL/ANNOTATION/Annotation1DItem.h>
-#include <OpenMS/VISUAL/ANNOTATION/Annotation1DDistanceItem.h>
-#include <OpenMS/VISUAL/ANNOTATION/Annotation1DPeakItem.h>
-#include <OpenMS/VISUAL/ANNOTATION/Annotations1DContainer.h>
 #include <OpenMS/VISUAL/Plot1DCanvas.h>
 
 // preprocessing and filtering for automated m/z annotations
 #include <OpenMS/FILTERING/DATAREDUCTION/Deisotoper.h>
-#include <OpenMS/FILTERING/TRANSFORMERS/ThresholdMower.h>
 #include <OpenMS/FILTERING/TRANSFORMERS/NLargest.h>
+#include <OpenMS/FILTERING/TRANSFORMERS/ThresholdMower.h>
 #include <OpenMS/FILTERING/TRANSFORMERS/WindowMower.h>
-
-
 #include <QPainter>
 #include <QPen>
 
@@ -95,19 +92,19 @@ namespace OpenMS
     // draw the actual line
     painter->drawLine(line);
 
-    //painter->save();
-    // draw arrow heads
+    // painter->save();
+    //  draw arrow heads
     if (!arrow_start.isEmpty())
     {
-      //painter->translate(start);
-      //painter->rotate(angle);
+      // painter->translate(start);
+      // painter->rotate(angle);
       QMatrix rotationMatrix;
       rotationMatrix.translate(start.x(), start.y());
       rotationMatrix.rotate(angle);
       QPainterPath path = rotationMatrix.map(arrow_start);
       painter->drawPath(path);
       bounding_rect = bounding_rect.united(path.boundingRect());
-      //painter->restore();
+      // painter->restore();
     }
     if (!arrow_end.isEmpty())
     {
@@ -147,8 +144,8 @@ namespace OpenMS
     if (!layer_->visible)
     {
       return;
-    }                              
-    
+    }
+
     const auto& spectrum = layer_->getCurrentSpectrum();
 
     // get default peak color
@@ -161,7 +158,8 @@ namespace OpenMS
     for (auto& it : layer_->getCurrentAnnotations())
     {
       const auto distance_item = dynamic_cast<Annotation1DDistanceItem*>(it);
-      if (!distance_item) continue;
+      if (!distance_item)
+        continue;
 
       auto draw_line_ = [&](const PointXYType& p) {
         QPoint from;
@@ -173,21 +171,21 @@ namespace OpenMS
       draw_line_(distance_item->getStartPoint());
       draw_line_(distance_item->getEndPoint());
     }
-   
+
     const auto v_begin = spectrum.MZBegin(canvas->visible_area_.getAreaUnit().getMinMZ());
     const auto v_end = spectrum.MZEnd(canvas->visible_area_.getAreaUnit().getMaxMZ());
     QPoint begin, end;
-    
+
     switch (canvas->draw_modes_[layer_index])
     {
-      case Plot1DCanvas::DrawModes::DM_PEAKS:
-      {
+      case Plot1DCanvas::DrawModes::DM_PEAKS: {
         //---------------------DRAWING PEAKS---------------------
 
         for (auto it = v_begin; it != v_end; ++it)
         {
-          if (!layer_->filters.passes(spectrum, it - spectrum.begin())) continue;
-          
+          if (!layer_->filters.passes(spectrum, it - spectrum.begin()))
+            continue;
+
           // use peak colors stored in the layer, if available
           if (layer_->peak_colors_1d.size() == spectrum.size())
           {
@@ -209,13 +207,12 @@ namespace OpenMS
         }
         break;
       }
-      case Plot1DCanvas::DrawModes::DM_CONNECTEDLINES:
-      {
+      case Plot1DCanvas::DrawModes::DM_CONNECTEDLINES: {
         //---------------------DRAWING CONNECTED LINES---------------------
 
         QPainterPath path;
 
-        // connect peaks in visible area; 
+        // connect peaks in visible area;
         // clipping on left and right side
         auto v_begin_cl = v_begin;
         if (v_begin_cl != spectrum.cbegin() && v_begin_cl != spectrum.cend())
@@ -227,7 +224,8 @@ namespace OpenMS
         bool first_point = true;
         for (auto it = v_begin_cl; it != v_end_cl; ++it)
         {
-          if (!layer_->filters.passes(spectrum, it - spectrum.begin())) continue;
+          if (!layer_->filters.passes(spectrum, it - spectrum.begin()))
+            continue;
 
           canvas->dataToWidget(canvas->getMapper().map(*it), begin, layer_->flipped);
 
@@ -326,7 +324,7 @@ namespace OpenMS
         }
       }
 
-      Annotation1DPeakItem item(Peak1D{mz, intensity}, label, Qt::darkGray);
+      Annotation1DPeakItem item(Peak1D {mz, intensity}, label, Qt::darkGray);
       item.setSelected(false);
       item.draw(canvas, painter, layer_->flipped);
     }
@@ -406,7 +404,8 @@ namespace OpenMS
         bool first_point = true;
         for (auto it = v_begin_cl; it != v_end_cl; ++it)
         {
-          if (!layer_->filters.passes(data, it - data.begin())) continue;
+          if (!layer_->filters.passes(data, it - data.begin()))
+            continue;
 
           canvas->dataToWidget(canvas->getMapper().map(*it), begin, layer_->flipped);
 
@@ -465,8 +464,8 @@ namespace OpenMS
 
         for (auto it = v_begin; it != v_end; ++it)
         {
-          //if (!layer_->filters.passes(data, it - data.begin()))
-          //  continue;
+          // if (!layer_->filters.passes(data, it - data.begin()))
+          //   continue;
 
           // use peak colors stored in the layer, if available
           if (layer_->peak_colors_1d.size() == data.size())
@@ -506,8 +505,9 @@ namespace OpenMS
         bool first_point = true;
         for (auto it = v_begin_cl; it != v_end_cl; ++it)
         {
-          if (!layer_->filters.passes(data, it - data.begin())) continue;
-          
+          if (!layer_->filters.passes(data, it - data.begin()))
+            continue;
+
           canvas->dataToWidget(canvas->getMapper().map(*it), begin, layer_->flipped);
 
           // connect lines

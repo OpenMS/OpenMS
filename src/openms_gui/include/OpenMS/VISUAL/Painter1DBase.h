@@ -35,7 +35,6 @@
 #pragma once
 
 #include <OpenMS/KERNEL/MSSpectrum.h>
-
 #include <QPainterPath>
 
 class QPainter;
@@ -51,7 +50,7 @@ namespace OpenMS
 
   /**
    * @brief A base class for painting all items from a data layer (as supported by class derived from here) onto a 1D Canvas
-  */
+   */
   class OPENMS_GUI_DLLAPI Painter1DBase
   {
   public:
@@ -59,10 +58,10 @@ namespace OpenMS
 
     /**
        @brief Paints items using the given painter onto the canvas.
- 
-       @param painter The painter used for drawing 
+
+       @param painter The painter used for drawing
        @param canvas The canvas to paint onto (should expose all the details needed, like canvas size, draw mode, colors etc)
-       @param layer_index Which layer is currently painted (FIXME: remove when Canvas1D::DrawMode and PenStyle are factored out) 
+       @param layer_index Which layer is currently painted (FIXME: remove when Canvas1D::DrawMode and PenStyle are factored out)
     */
     virtual void paint(QPainter* painter, Plot1DCanvas* canvas, int layer_index) = 0;
 
@@ -95,7 +94,7 @@ namespace OpenMS
     }
 
     /**
-     * \brief 
+     * \brief
      * \param painter The painter to paint with
      * \param pen For setting line width and color
      * \param start Start position of the line
@@ -104,8 +103,7 @@ namespace OpenMS
      * \param arrow_end  An (optional) arrow tail. Use 'getOpenArrow' or 'getClosedArrow' for predefined arrows
      * \return The bounding rectangle of the line and arrows (if any)
      */
-    static QRectF drawLineWithArrows(QPainter* painter, const QPen& pen, const QPoint& start, const QPoint& end, 
-                                     const QPainterPath& arrow_start = QPainterPath(),
+    static QRectF drawLineWithArrows(QPainter* painter, const QPen& pen, const QPoint& start, const QPoint& end, const QPainterPath& arrow_start = QPainterPath(),
                                      const QPainterPath& arrow_end = QPainterPath());
 
     void drawAnnotations_(const LayerData1DBase* layer, QPainter& painter, Plot1DCanvas* canvas) const;
@@ -113,7 +111,7 @@ namespace OpenMS
 
   /**
      @brief Painter1D for spectra
-     
+
   */
   class OPENMS_GUI_DLLAPI Painter1DPeak : public Painter1DBase
   {
@@ -148,8 +146,8 @@ namespace OpenMS
     const LayerData1DChrom* layer_; ///< the data to paint
   };
 
-    /**
-   @brief Painter1D for mobilograms
+  /**
+ @brief Painter1D for mobilograms
 
 */
   class OPENMS_GUI_DLLAPI Painter1DIonMobility : public Painter1DBase

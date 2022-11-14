@@ -33,15 +33,13 @@
 // --------------------------------------------------------------------------
 
 // OpenMS includes
-#include <OpenMS/VISUAL/DIALOGS/TOPPViewPrefDialog.h>
-#include <ui_TOPPViewPrefDialog.h>
-
 #include <OpenMS/CHEMISTRY/TheoreticalSpectrumGenerator.h>
 #include <OpenMS/COMPARISON/SPECTRA/SpectrumAlignment.h>
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/CONCEPT/LogStream.h>
-
+#include <OpenMS/VISUAL/DIALOGS/TOPPViewPrefDialog.h>
 #include <QtWidgets/QFileDialog>
+#include <ui_TOPPViewPrefDialog.h>
 
 using namespace std;
 
@@ -49,10 +47,7 @@ namespace OpenMS
 {
   namespace Internal
   {
-    TOPPViewPrefDialog::TOPPViewPrefDialog(QWidget* parent) :
-      QDialog(parent),
-      ui_(new Ui::TOPPViewPrefDialogTemplate),
-      tsg_param_(TheoreticalSpectrumGenerator().getParameters())
+    TOPPViewPrefDialog::TOPPViewPrefDialog(QWidget* parent) : QDialog(parent), ui_(new Ui::TOPPViewPrefDialogTemplate), tsg_param_(TheoreticalSpectrumGenerator().getParameters())
     {
       ui_->setupUi(this);
       ui_->param_editor_spec_gen_->load(tsg_param_);
@@ -112,15 +107,18 @@ namespace OpenMS
     {
       switch (cs)
       {
-        case Qt::CheckState::Checked: return "true";
-        case Qt::CheckState::Unchecked: return "false";
-        default: throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Checkbox had unexpected state", String(cs));
+        case Qt::CheckState::Checked:
+          return "true";
+        case Qt::CheckState::Unchecked:
+          return "false";
+        default:
+          throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Checkbox had unexpected state", String(cs));
       }
     }
 
     Param TOPPViewPrefDialog::getParam() const
     {
-      Param p; 
+      Param p;
       p.setValue("default_path", ui_->default_path->text().toStdString());
       p.setValue("default_path_current", fromCheckState(ui_->default_path_current->checkState()));
 
@@ -154,7 +152,7 @@ namespace OpenMS
       p.setValue("idview:align:is_relative_tolerance", ui_->unit->currentText().toStdString() == "ppm" ? "true" : "false", "Alignment tolerance unit (Da, ppm)");
 
       param_ = p;
-        
+
       return param_;
     }
 
@@ -176,5 +174,5 @@ namespace OpenMS
       }
     }
 
-  }   //namespace Internal
-} //namespace OpenMS
+  } // namespace Internal
+} // namespace OpenMS

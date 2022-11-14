@@ -37,7 +37,7 @@
 // OpenMS_GUI config
 #include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
 
-//OpenMS
+// OpenMS
 #include <OpenMS/METADATA/Product.h>
 #include <OpenMS/VISUAL/VISUALIZER/BaseVisualizer.h>
 #include <OpenMS/VISUAL/VISUALIZER/BaseVisualizerGUI.h>
@@ -49,36 +49,33 @@ namespace OpenMS
 
       This class provides all functionality to view the meta information of an object of type Product.
   */
-  class OPENMS_GUI_DLLAPI ProductVisualizer :
-    public BaseVisualizerGUI,
-    public BaseVisualizer<Product>
+  class OPENMS_GUI_DLLAPI ProductVisualizer : public BaseVisualizerGUI, public BaseVisualizer<Product>
   {
     Q_OBJECT
 
-public:
+  public:
+    /// Constructor
+    ProductVisualizer(bool editable = false, QWidget* parent = nullptr);
 
-    ///Constructor
-    ProductVisualizer(bool editable = false, QWidget * parent = nullptr);
+  public slots:
 
-public slots:
-
-    //Docu in base class
+    // Docu in base class
     void store() override;
 
-protected slots:
+  protected slots:
 
-    ///Undo the changes made in the GUI.
+    /// Undo the changes made in the GUI.
     void undo_();
 
-protected:
+  protected:
     ///@name Edit fields and buttons
     //@{
-    QLineEdit * product_mz_;
-    QLineEdit * product_window_up_;
-    QLineEdit * product_window_low_;
+    QLineEdit* product_mz_;
+    QLineEdit* product_window_up_;
+    QLineEdit* product_window_low_;
     //@}
 
-    //Docu in base class
+    // Docu in base class
     void update_() override;
   };
-}
+} // namespace OpenMS

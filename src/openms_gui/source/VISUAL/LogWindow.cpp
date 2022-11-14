@@ -32,11 +32,9 @@
 // $Authors: Chris Bielow $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/VISUAL/LogWindow.h>
-
 #include <OpenMS/DATASTRUCTURES/DateTime.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
-
+#include <OpenMS/VISUAL/LogWindow.h>
 #include <QContextMenuEvent>
 #include <QMenu>
 #include <QTextEdit>
@@ -45,11 +43,10 @@ using namespace std;
 
 namespace OpenMS
 {
-  LogWindow::LogWindow(QWidget* parent)
-    : QTextEdit(parent)
+  LogWindow::LogWindow(QWidget* parent) : QTextEdit(parent)
   {
     const auto help = "Log Window<BR>"
-      "<BR>Output from TOPP tools and other status information is shown here";
+                      "<BR>Output from TOPP tools and other status information is shown here";
     this->setWhatsThis(help);
     this->setToolTip(help);
 
@@ -61,9 +58,7 @@ namespace OpenMS
   void LogWindow::contextMenuEvent(QContextMenuEvent* event)
   {
     QMenu context_menu;
-    context_menu.addAction("Clear", [&]() {
-      this->clear();
-    });
+    context_menu.addAction("Clear", [&]() { this->clear(); });
     context_menu.exec(this->mapToGlobal(event->pos()));
   }
 
@@ -80,9 +75,15 @@ namespace OpenMS
     String state_string;
     switch (state)
     {
-      case NOTICE: state_string = "NOTICE"; break;
-      case WARNING: state_string = "WARNING"; break;
-      case CRITICAL: state_string = "ERROR"; break;
+      case NOTICE:
+        state_string = "NOTICE";
+        break;
+      case WARNING:
+        state_string = "WARNING";
+        break;
+      case CRITICAL:
+        state_string = "ERROR";
+        break;
     }
 
     // update log
@@ -90,7 +91,7 @@ namespace OpenMS
     append((DateTime::now().getTime() + " " + state_string + ": " + heading).toQString());
     append(body.toQString());
 
-    //show log tool window
+    // show log tool window
     qobject_cast<QWidget*>(parent())->show();
   }
 
@@ -102,12 +103,13 @@ namespace OpenMS
 
   void LogWindow::trimText_()
   {
-    if (max_length_ <= 0) return;
+    if (max_length_ <= 0)
+      return;
 
     if (this->toPlainText().size() > max_length_)
     {
       this->setPlainText(this->toPlainText().right(max_length_ / 2));
-      //std::cerr << "cut text to " << this->toPlainText().size() << "\n";
+      // std::cerr << "cut text to " << this->toPlainText().size() << "\n";
     }
   }
   int LogWindow::maxLength() const
@@ -121,4 +123,4 @@ namespace OpenMS
     max_length_ = max_length;
   }
 
-} //Namespace
+} // namespace OpenMS

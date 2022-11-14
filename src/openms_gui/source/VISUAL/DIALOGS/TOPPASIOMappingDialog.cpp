@@ -33,27 +33,22 @@
 // --------------------------------------------------------------------------
 
 // OpenMS includes
-#include <OpenMS/VISUAL/DIALOGS/TOPPASIOMappingDialog.h>
-#include <ui_TOPPASIOMappingDialog.h>
-
-#include <OpenMS/VISUAL/TOPPASInputFileListVertex.h>
-#include <OpenMS/VISUAL/TOPPASOutputFileListVertex.h>
-#include <OpenMS/VISUAL/TOPPASMergerVertex.h>
-#include <OpenMS/VISUAL/TOPPASSplitterVertex.h>
-#include <OpenMS/VISUAL/TOPPASEdge.h>
-
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/DATASTRUCTURES/ListUtilsIO.h>
-
+#include <OpenMS/VISUAL/DIALOGS/TOPPASIOMappingDialog.h>
+#include <OpenMS/VISUAL/TOPPASEdge.h>
+#include <OpenMS/VISUAL/TOPPASInputFileListVertex.h>
+#include <OpenMS/VISUAL/TOPPASMergerVertex.h>
+#include <OpenMS/VISUAL/TOPPASOutputFileListVertex.h>
+#include <OpenMS/VISUAL/TOPPASSplitterVertex.h>
 #include <QtWidgets/QMessageBox>
-
 #include <iostream>
 #include <sstream>
+#include <ui_TOPPASIOMappingDialog.h>
 
 namespace OpenMS
 {
-  TOPPASIOMappingDialog::TOPPASIOMappingDialog(TOPPASEdge* parent)
-    : ui_(new Ui::TOPPASIOMappingDialogTemplate)
+  TOPPASIOMappingDialog::TOPPASIOMappingDialog(TOPPASEdge* parent) : ui_(new Ui::TOPPASIOMappingDialogTemplate)
   {
     ui_->setupUi(this);
     edge_ = parent;
@@ -71,7 +66,7 @@ namespace OpenMS
   int TOPPASIOMappingDialog::firstExec()
   {
     // check if only 1 parameter, if yes: select it
-    if (ui_->source_combo->count() == 2)     // <select> + 1 parameter
+    if (ui_->source_combo->count() == 2) // <select> + 1 parameter
     {
       ui_->source_combo->setCurrentIndex(1);
     }
@@ -81,8 +76,7 @@ namespace OpenMS
     }
 
     // is there only 1 possible mapping? -> do not show dialog
-    if ((ui_->source_combo->count() == 2 || ui_->source_combo->count() == 0) &&
-        (ui_->target_combo->count() == 2 || ui_->target_combo->count() == 0))
+    if ((ui_->source_combo->count() == 2 || ui_->source_combo->count() == 0) && (ui_->target_combo->count() == 2 || ui_->target_combo->count() == 0))
     {
       checkValidity_();
       return QDialog::Accepted;
@@ -124,12 +118,13 @@ namespace OpenMS
         ui_->source_type_label->setVisible(false);
       }
       ui_->source_combo->addItem("<select>");
-      foreach(TOPPASToolVertex::IOInfo info, source_output_files)
+      foreach (TOPPASToolVertex::IOInfo info, source_output_files)
       {
         String item_name;
         if (info.type == TOPPASToolVertex::IOInfo::IOT_FILE)
         {
-          if (target_splitter) continue; // inputs for splitters must be lists
+          if (target_splitter)
+            continue; // inputs for splitters must be lists
           item_name = "File: ";
         }
         else
@@ -182,7 +177,7 @@ namespace OpenMS
       }
       ui_->target_combo->addItem("<select>");
       int param_counter = -1;
-      foreach(TOPPASToolVertex::IOInfo info, target_input_files)
+      foreach (TOPPASToolVertex::IOInfo info, target_input_files)
       {
         ++param_counter;
         // check if parameter occupied by another edge already
@@ -207,7 +202,8 @@ namespace OpenMS
         String item_name;
         if (info.type == TOPPASToolVertex::IOInfo::IOT_FILE)
         {
-          if (source_merger && !source_merger->roundBasedMode()) continue; // collectors produce lists
+          if (source_merger && !source_merger->roundBasedMode())
+            continue; // collectors produce lists
           item_name = "File: ";
         }
         else
@@ -338,4 +334,4 @@ namespace OpenMS
     }
   }
 
-} // namespace
+} // namespace OpenMS

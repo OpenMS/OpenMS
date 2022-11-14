@@ -33,12 +33,11 @@
 // --------------------------------------------------------------------------
 
 // OpenMS includes
-#include <OpenMS/VISUAL/DIALOGS/TOPPViewOpenDialog.h>
-#include <ui_TOPPViewOpenDialog.h>
-
-#include <OpenMS/config.h>
 #include <OpenMS/DATASTRUCTURES/Param.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/VISUAL/DIALOGS/TOPPViewOpenDialog.h>
+#include <OpenMS/config.h>
+#include <ui_TOPPViewOpenDialog.h>
 
 
 // QT includes
@@ -53,14 +52,12 @@ using namespace std;
 namespace OpenMS
 {
 
-  TOPPViewOpenDialog::TOPPViewOpenDialog(const String & data_name, bool as_window, bool as_2d, bool cutoff, QWidget * parent) :
-    QDialog(parent),
-    map_as_2d_disabled_(false),
-    ui_(new Ui::TOPPViewOpenDialogTemplate)
+  TOPPViewOpenDialog::TOPPViewOpenDialog(const String& data_name, bool as_window, bool as_2d, bool cutoff, QWidget* parent) :
+      QDialog(parent), map_as_2d_disabled_(false), ui_(new Ui::TOPPViewOpenDialogTemplate)
   {
     ui_->setupUi(this);
 
-    //init map view
+    // init map view
     if (!as_2d)
     {
       ui_->d1_->setChecked(true);
@@ -72,13 +69,13 @@ namespace OpenMS
       ui_->d2_->setFocus();
     }
 
-    //init intensity cutoff
+    // init intensity cutoff
     if (cutoff)
     {
       ui_->intensity_cutoff_->setChecked(true);
     }
 
-    //init open as
+    // init open as
     if (!as_window)
     {
       ui_->layer_->setChecked(true);
@@ -91,7 +88,7 @@ namespace OpenMS
     }
     connect(ui_->merge_combo_, SIGNAL(activated(int)), ui_->merge_, SLOT(click()));
 
-    //set title
+    // set title
     setWindowTitle((String("Open data options for ") + data_name).toQString());
   }
 
@@ -156,7 +153,7 @@ namespace OpenMS
     }
   }
 
-  void TOPPViewOpenDialog::updateViewMode_(QAbstractButton * button)
+  void TOPPViewOpenDialog::updateViewMode_(QAbstractButton* button)
   {
     if (button == ui_->layer_ || button == ui_->merge_)
     {
@@ -172,7 +169,7 @@ namespace OpenMS
     }
   }
 
-  void TOPPViewOpenDialog::setMergeLayers(const std::map<Size, String> & layers)
+  void TOPPViewOpenDialog::setMergeLayers(const std::map<Size, String>& layers)
   {
     // remove all items
     ui_->merge_combo_->clear();
@@ -204,4 +201,4 @@ namespace OpenMS
     return -1;
   }
 
-}
+} // namespace OpenMS

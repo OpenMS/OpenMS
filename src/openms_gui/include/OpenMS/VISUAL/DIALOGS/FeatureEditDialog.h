@@ -36,10 +36,8 @@
 #pragma once
 
 // OpenMS_GUI config
-#include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
-
 #include <OpenMS/KERNEL/Feature.h>
-
+#include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
 #include <QDialog>
 
 namespace Ui
@@ -54,34 +52,30 @@ namespace OpenMS
 
       @ingroup Dialogs
   */
-  class OPENMS_GUI_DLLAPI FeatureEditDialog :
-    public QDialog
+  class OPENMS_GUI_DLLAPI FeatureEditDialog : public QDialog
   {
     Q_OBJECT
 
-public:
-
+  public:
     /// Constructor
-    FeatureEditDialog(QWidget * parent);
+    FeatureEditDialog(QWidget* parent);
     /// Destructor
     ~FeatureEditDialog() override;
 
     /// Sets the feature
-    void setFeature(const Feature & feature);
+    void setFeature(const Feature& feature);
     /// Returns the feature
-    const Feature & getFeature() const;
+    const Feature& getFeature() const;
 
-protected:
-
+  protected:
     /// The feature to edit
     mutable Feature feature_;
 
-private:
-    ///Not implemented
+  private:
+    /// Not implemented
     FeatureEditDialog();
 
     Ui::FeatureEditDialogTemplate* ui_;
-
   };
 
-}
+} // namespace OpenMS

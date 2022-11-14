@@ -35,39 +35,39 @@
 # --------------------------------------------------------------------------
 # Custom wrapper of Qt's UI tool
 # --------------------------------------------------------------------------
-macro (qt5_extract_options _qt5_files _qt5_options)
-  set(${_qt5_files})
-  set(${_qt5_options})
-  set(_QT5_DOING_OPTIONS FALSE)
-  foreach(_currentArg ${ARGN})
-    if ("${_currentArg}" STREQUAL "OPTIONS")
-      set(_QT5_DOING_OPTIONS TRUE)
-    else ()
-      if(_QT5_DOING_OPTIONS)
-        list(APPEND ${_qt5_options} "${_currentArg}")
-      else()
-        list(APPEND ${_qt5_files} "${_currentArg}")
-      endif()
-    endif ()
-  endforeach()
-endmacro ()
+macro(qt5_extract_options _qt5_files _qt5_options)
+    set(${_qt5_files})
+    set(${_qt5_options})
+    set(_QT5_DOING_OPTIONS FALSE)
+    foreach (_currentArg ${ARGN})
+        if ("${_currentArg}" STREQUAL "OPTIONS")
+            set(_QT5_DOING_OPTIONS TRUE)
+        else ()
+            if (_QT5_DOING_OPTIONS)
+                list(APPEND ${_qt5_options} "${_currentArg}")
+            else ()
+                list(APPEND ${_qt5_files} "${_currentArg}")
+            endif ()
+        endif ()
+    endforeach ()
+endmacro()
 
-macro (QT5_WRAP_UI_OWN outfiles )
-  qt5_extract_options(ui_files ui_options ${ARGN})
+macro(QT5_WRAP_UI_OWN outfiles)
+    qt5_extract_options(ui_files ui_options ${ARGN})
 
-  # create output directory (will not exist for out-of-source builds)
-  file(MAKE_DIRECTORY ${PROJECT_BINARY_DIR}/${directory})
+    # create output directory (will not exist for out-of-source builds)
+    file(MAKE_DIRECTORY ${PROJECT_BINARY_DIR}/${directory})
 
-  # wrap all files and put them into the
-  #  -> ${PROJECT_BINARY_DIR}/${directory}/ui_${outfile}.h
-  foreach (_it ${ui_files})
-    get_filename_component(outfile ${_it} NAME_WE)
-    get_filename_component(infile ${_it} ABSOLUTE)
-    set(outfile ${PROJECT_BINARY_DIR}/${directory}/ui_${outfile}.h)
-    add_custom_command(OUTPUT ${outfile}
-      COMMAND ${QT_UIC_EXECUTABLE}
-      ARGS ${ui_options} -o ${outfile} ${infile}
-      MAIN_DEPENDENCY ${infile})
-    set(${outfiles} ${${outfiles}} ${outfile})
-  endforeach ()
-endmacro (QT5_WRAP_UI_OWN)
+    # wrap all files and put them into the
+    #  -> ${PROJECT_BINARY_DIR}/${directory}/ui_${outfile}.h
+    foreach (_it ${ui_files})
+        get_filename_component(outfile ${_it} NAME_WE)
+        get_filename_component(infile ${_it} ABSOLUTE)
+        set(outfile ${PROJECT_BINARY_DIR}/${directory}/ui_${outfile}.h)
+        add_custom_command(OUTPUT ${outfile}
+                COMMAND ${QT_UIC_EXECUTABLE}
+                ARGS ${ui_options} -o ${outfile} ${infile}
+                MAIN_DEPENDENCY ${infile})
+        set(${outfiles} ${${outfiles}} ${outfile})
+    endforeach ()
+endmacro(QT5_WRAP_UI_OWN)

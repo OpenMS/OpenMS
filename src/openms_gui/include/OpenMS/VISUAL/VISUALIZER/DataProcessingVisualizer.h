@@ -37,7 +37,7 @@
 // OpenMS_GUI config
 #include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
 
-//OpenMS
+// OpenMS
 #include <OpenMS/METADATA/DataProcessing.h>
 #include <OpenMS/VISUAL/VISUALIZER/BaseVisualizer.h>
 #include <OpenMS/VISUAL/VISUALIZER/BaseVisualizerGUI.h>
@@ -51,36 +51,32 @@ namespace OpenMS
 
       This class provides all functionality to view the meta information of an object of type DataProcessing.
   */
-  class OPENMS_GUI_DLLAPI DataProcessingVisualizer :
-    public BaseVisualizerGUI,
-    public BaseVisualizer<DataProcessing>
+  class OPENMS_GUI_DLLAPI DataProcessingVisualizer : public BaseVisualizerGUI, public BaseVisualizer<DataProcessing>
   {
     Q_OBJECT
 
-public:
-
+  public:
     /// Constructor
-    DataProcessingVisualizer(bool editable = false, QWidget * parent = nullptr);
+    DataProcessingVisualizer(bool editable = false, QWidget* parent = nullptr);
 
-public slots:
+  public slots:
 
-    //Docu in base class
+    // Docu in base class
     void store() override;
 
-protected slots:
+  protected slots:
 
-    ///Undo the changes made in the GUI.
+    /// Undo the changes made in the GUI.
     void undo_();
 
-protected:
-
+  protected:
     ///@name Edit fields and buttons
     //@{
-    QLineEdit * completion_time_;
-    QListWidget * actions_;
+    QLineEdit* completion_time_;
+    QListWidget* actions_;
     //@}
 
-    //Docu in base class
+    // Docu in base class
     void update_() override;
   };
-}
+} // namespace OpenMS

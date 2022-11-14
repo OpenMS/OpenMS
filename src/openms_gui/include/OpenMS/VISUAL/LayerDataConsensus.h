@@ -35,7 +35,6 @@
 #pragma once
 
 #include <OpenMS/VISUAL/LayerDataBase.h>
-
 #include <vector>
 
 namespace OpenMS
@@ -96,7 +95,7 @@ namespace OpenMS
     std::unique_ptr<LayerStatistics> getStats() const override;
 
     bool annotate(const std::vector<PeptideIdentification>& identifications, const std::vector<ProteinIdentification>& protein_identifications) override;
-  
+
     /// Returns a const reference to the consensus feature data
     const ConsensusMapSharedPtrType& getConsensusMap() const
     {
@@ -108,9 +107,10 @@ namespace OpenMS
     {
       return consensus_map_;
     }
+
   protected:
     /// consensus feature data
     ConsensusMapSharedPtrType consensus_map_ = ConsensusMapSharedPtrType(new ConsensusMapType());
   };
 
-}// namespace OpenMS
+} // namespace OpenMS

@@ -32,32 +32,29 @@
 // $Authors: Chris Bielow $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/VISUAL/LayerListView.h>
-
 #include <OpenMS/CONCEPT/RAIICleanup.h>
+#include <OpenMS/VISUAL/LayerListView.h>
 #include <OpenMS/VISUAL/Plot1DCanvas.h>
-#include <OpenMS/VISUAL/Plot2DCanvas.h>
-#include <OpenMS/VISUAL/Plot3DCanvas.h>
 #include <OpenMS/VISUAL/Plot1DWidget.h>
+#include <OpenMS/VISUAL/Plot2DCanvas.h>
 #include <OpenMS/VISUAL/Plot2DWidget.h>
+#include <OpenMS/VISUAL/Plot3DCanvas.h>
 #include <OpenMS/VISUAL/Plot3DWidget.h>
-
 #include <QtWidgets/QListWidgetItem>
 
 using namespace std;
 
 namespace OpenMS
 {
-  LayerListView::LayerListView(QWidget* parent)
-    : QListWidget(parent)
+  LayerListView::LayerListView(QWidget* parent) : QListWidget(parent)
   {
     const auto help = "Layer bar<BR>"
-                       "<BR>Here the available layers are shown. Left-click on a layer to select it."
-                       "<BR>Layers can be shown and hidden using the checkboxes in front of the name."
-                       "<BR>Renaming and removing a layer is possible through the context menu."
-                       "<BR>Dragging a layer to the tab bar copies the layer."
-                       "<BR>Double-clicking a layer open its preferences."
-                       "<BR>You can use the 'PageUp' and 'PageDown' buttons to change the selected layer.";
+                      "<BR>Here the available layers are shown. Left-click on a layer to select it."
+                      "<BR>Layers can be shown and hidden using the checkboxes in front of the name."
+                      "<BR>Renaming and removing a layer is possible through the context menu."
+                      "<BR>Dragging a layer to the tab bar copies the layer."
+                      "<BR>Double-clicking a layer open its preferences."
+                      "<BR>You can use the 'PageUp' and 'PageDown' buttons to change the selected layer.";
     this->setWhatsThis(help);
     this->setToolTip(help);
 
@@ -108,20 +105,20 @@ namespace OpenMS
         item->setIcon(icon);
       }
       else
-      {  // 2D/3D map view
+      { // 2D/3D map view
         switch (layer.type)
         {
-        case LayerDataBase::DT_PEAK:
-          item->setIcon(QIcon(":/peaks.png"));
-          break;
-        case LayerDataBase::DT_FEATURE:
-          item->setIcon(QIcon(":/convexhull.png"));
-          break;
-        case LayerDataBase::DT_CONSENSUS:
-          item->setIcon(QIcon(":/elements.png"));
-          break;
-        default:
-          break;
+          case LayerDataBase::DT_PEAK:
+            item->setIcon(QIcon(":/peaks.png"));
+            break;
+          case LayerDataBase::DT_FEATURE:
+            item->setIcon(QIcon(":/convexhull.png"));
+            break;
+          case LayerDataBase::DT_CONSENSUS:
+            item->setIcon(QIcon(":/elements.png"));
+            break;
+          default:
+            break;
         }
       }
 
@@ -168,14 +165,15 @@ namespace OpenMS
     }
     int layer_idx = this->row(item);
     QMenu* context_menu = new QMenu(this);
-    
+
     context_menu->addAction("Rename", [&]() {
       QString name = QInputDialog::getText(this, "Rename layer", "Name:", QLineEdit::Normal, spectrum_widget_->canvas()->getLayerName(layer_idx).toQString());
       if (name != "")
       {
         spectrum_widget_->canvas()->setLayerName(layer_idx, name);
         emit layerDataChanged();
-      }});
+      }
+    });
 
     context_menu->addAction("Delete", [&]() {
       spectrum_widget_->canvas()->removeLayer(layer_idx);
@@ -204,9 +202,7 @@ namespace OpenMS
     }
 
     context_menu->addSeparator();
-    context_menu->addAction("Preferences", [&]() {
-      spectrum_widget_->canvas()->showCurrentLayerPreferences();
-    });
+    context_menu->addAction("Preferences", [&]() { spectrum_widget_->canvas()->showCurrentLayerPreferences(); });
 
     context_menu->exec(this->mapToGlobal(event->pos()));
   }
@@ -215,4 +211,4 @@ namespace OpenMS
   {
     spectrum_widget_->canvas()->showCurrentLayerPreferences();
   }
-} //Namespace
+} // namespace OpenMS

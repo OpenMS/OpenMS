@@ -36,7 +36,6 @@
 
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
-
 #include <QWidget>
 
 namespace Ui
@@ -55,32 +54,32 @@ namespace OpenMS
     */
     class InputFileList : public QWidget
     {
-        Q_OBJECT
+      Q_OBJECT
 
     public:
-        /// C'tor
-        explicit InputFileList(QWidget* parent = nullptr);
-        ~InputFileList();
-        /// support drag'n'drop of files from OS window manager
-        void dragEnterEvent(QDragEnterEvent* e) override;
-        /// support drag'n'drop of files from OS window manager
-        void dropEvent(QDropEvent* e) override;
-        void dragMoveEvent(QDragMoveEvent* pEvent) override;
-        
-        /// Stores the list of all filenames in the list widget in @p files
-        void getFilenames(QStringList& files) const;
-        /// Stores the list of all filenames in the list widget in @p files
-        StringList getFilenames() const;
-        /// Set the list of all filenames in the list widget
-        void setFilenames(const QStringList& files);
+      /// C'tor
+      explicit InputFileList(QWidget* parent = nullptr);
+      ~InputFileList();
+      /// support drag'n'drop of files from OS window manager
+      void dragEnterEvent(QDragEnterEvent* e) override;
+      /// support drag'n'drop of files from OS window manager
+      void dropEvent(QDropEvent* e) override;
+      void dragMoveEvent(QDragMoveEvent* pEvent) override;
 
-        /// get the CWD (according to most recently added file)
-        const QString& getCWD() const;
-        /// set the current working directory (for opening files), but only if the current input list is not already populated. Use @p force to set the CWD in any case.
-        void setCWD(const QString& cwd, bool force = false);
+      /// Stores the list of all filenames in the list widget in @p files
+      void getFilenames(QStringList& files) const;
+      /// Stores the list of all filenames in the list widget in @p files
+      StringList getFilenames() const;
+      /// Set the list of all filenames in the list widget
+      void setFilenames(const QStringList& files);
 
-        /// support Ctrl+C to copy currently selected items to clipboard
-        void keyPressEvent(QKeyEvent* e) override;
+      /// get the CWD (according to most recently added file)
+      const QString& getCWD() const;
+      /// set the current working directory (for opening files), but only if the current input list is not already populated. Use @p force to set the CWD in any case.
+      void setCWD(const QString& cwd, bool force = false);
+
+      /// support Ctrl+C to copy currently selected items to clipboard
+      void keyPressEvent(QKeyEvent* e) override;
 
     public slots:
 
@@ -108,10 +107,10 @@ namespace OpenMS
       QString cwd_; ///< current working dir, i.e. the last position a file was added from
 
     private:
-      Ui::InputFileList *ui_;
+      Ui::InputFileList* ui_;
     };
-  } // ns Internal
-} // ns OpenMS
+  } // namespace Internal
+} // namespace OpenMS
 
 // this is required to allow parent widgets (auto UIC'd from .ui) to have a InputFileList member
 using InputFileList = OpenMS::Internal::InputFileList;

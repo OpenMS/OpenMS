@@ -37,7 +37,7 @@
 // OpenMS_GUI config
 #include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
 
-//OpenMS
+// OpenMS
 #include <OpenMS/METADATA/ExperimentalSettings.h>
 #include <OpenMS/VISUAL/VISUALIZER/BaseVisualizer.h>
 #include <OpenMS/VISUAL/VISUALIZER/BaseVisualizerGUI.h>
@@ -52,36 +52,33 @@ namespace OpenMS
 
       This class provides all functionality to view the meta information of an object of type ExperimentalSettings.
   */
-  class OPENMS_GUI_DLLAPI ExperimentalSettingsVisualizer :
-    public BaseVisualizerGUI,
-    public BaseVisualizer<ExperimentalSettings>
+  class OPENMS_GUI_DLLAPI ExperimentalSettingsVisualizer : public BaseVisualizerGUI, public BaseVisualizer<ExperimentalSettings>
   {
     Q_OBJECT
 
-public:
+  public:
+    /// Constructor
+    ExperimentalSettingsVisualizer(bool editable = false, QWidget* parent = nullptr);
 
-    ///Constructor
-    ExperimentalSettingsVisualizer(bool editable = false, QWidget * parent = nullptr);
+  public slots:
 
-public slots:
-
-    //Docu in base class
+    // Docu in base class
     void store() override;
 
-protected slots:
+  protected slots:
 
-    ///Undo the changes made in the GUI.
+    /// Undo the changes made in the GUI.
     void undo_();
 
-protected:
+  protected:
     /// The date of this experiment
-    QLineEdit * datetime_;
+    QLineEdit* datetime_;
     /// The comment to this experiment
-    QTextEdit * comment_;
+    QTextEdit* comment_;
     /// Fraction identifier
-    QLineEdit * fraction_identifier_;
+    QLineEdit* fraction_identifier_;
 
-    //Docu in base class
+    // Docu in base class
     void update_() override;
   };
-}
+} // namespace OpenMS

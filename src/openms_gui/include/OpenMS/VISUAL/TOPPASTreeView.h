@@ -37,10 +37,10 @@
 // OpenMS_GUI config
 #include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
 
-//QT
-#include <QtWidgets/QTreeWidget>
+// QT
 #include <QMouseEvent>
 #include <QtCore/QPoint>
+#include <QtWidgets/QTreeWidget>
 
 namespace OpenMS
 {
@@ -51,29 +51,28 @@ namespace OpenMS
 
       @ingroup Visual
   */
-  class OPENMS_GUI_DLLAPI TOPPASTreeView :
-    public QTreeWidget
+  class OPENMS_GUI_DLLAPI TOPPASTreeView : public QTreeWidget
   {
     Q_OBJECT
 
-public:
+  public:
     /// Constructor
-    TOPPASTreeView(QWidget * parent = nullptr);
+    TOPPASTreeView(QWidget* parent = nullptr);
     /// Destructor
     ~TOPPASTreeView() override;
 
-protected:
+  protected:
     ///@name Reimplemented Qt events
     //@{
-    void mousePressEvent(QMouseEvent * e) override;
-    void mouseMoveEvent(QMouseEvent * e) override;
-    void keyPressEvent(QKeyEvent * e) override;
-    void leaveEvent(QEvent * e) override;
-    void enterEvent(QEvent * e) override;
+    void mousePressEvent(QMouseEvent* e) override;
+    void mouseMoveEvent(QMouseEvent* e) override;
+    void keyPressEvent(QKeyEvent* e) override;
+    void leaveEvent(QEvent* e) override;
+    void enterEvent(QEvent* e) override;
     //@}
 
     /// The drag start position
     QPoint drag_start_pos_;
   };
 
-}
+} // namespace OpenMS

@@ -34,11 +34,11 @@
 
 #include <OpenMS/VISUAL/VISUALIZER/MassAnalyzerVisualizer.h>
 
-//QT
-#include <QtWidgets/QLineEdit>
+// QT
 #include <QtWidgets/QComboBox>
+#include <QtWidgets/QLineEdit>
 
-//STL
+// STL
 #include <iostream>
 
 using namespace std;
@@ -46,9 +46,7 @@ using namespace std;
 namespace OpenMS
 {
 
-  MassAnalyzerVisualizer::MassAnalyzerVisualizer(bool editable, QWidget * parent) :
-    BaseVisualizerGUI(editable, parent),
-    BaseVisualizer<MassAnalyzer>()
+  MassAnalyzerVisualizer::MassAnalyzerVisualizer(bool editable, QWidget* parent) : BaseVisualizerGUI(editable, parent), BaseVisualizer<MassAnalyzer>()
   {
     addLabel_("Modify massanalyzer information.");
     addSeparator_();
@@ -139,4 +137,4 @@ namespace OpenMS
     update_();
   }
 
-}
+} // namespace OpenMS

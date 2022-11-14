@@ -37,11 +37,11 @@
 // OpenMS_GUI config
 #include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
 
-//OpenMS
+// OpenMS
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/VISUAL/MultiGradient.h>
 
-//QT
+// QT
 #include <QtWidgets>
 
 class QPaintEvent;
@@ -49,7 +49,7 @@ class QMouseEvent;
 class QKeyEvent;
 class QContextMenuEvent;
 
-//std lib
+// std lib
 #include <vector>
 
 namespace OpenMS
@@ -64,40 +64,39 @@ namespace OpenMS
 
       @ingroup Visual
   */
-  class OPENMS_GUI_DLLAPI MultiGradientSelector :
-    public QWidget
+  class OPENMS_GUI_DLLAPI MultiGradientSelector : public QWidget
   {
     Q_OBJECT
-public:
-    ///Constructor
-    MultiGradientSelector(QWidget * parent = nullptr);
-    ///Destructor
+  public:
+    /// Constructor
+    MultiGradientSelector(QWidget* parent = nullptr);
+    /// Destructor
     ~MultiGradientSelector() override;
 
-    ///returns a const reference to the gradient
-    const MultiGradient & gradient() const;
-    ///returns a mutable reference to the gradient
-    MultiGradient & gradient();
+    /// returns a const reference to the gradient
+    const MultiGradient& gradient() const;
+    /// returns a mutable reference to the gradient
+    MultiGradient& gradient();
 
     /// sets the interpolation mode
     void setInterpolationMode(MultiGradient::InterpolationMode mode);
     /// returns the interpolation mode
     MultiGradient::InterpolationMode getInterpolationMode() const;
 
-public slots:
+  public slots:
     /// sets what interpolation mode is used
     void stairsInterpolation(bool state);
 
-protected:
+  protected:
     ///@name re-implemented Qt events
     //@{
-    void paintEvent(QPaintEvent * e) override;
-    void mousePressEvent(QMouseEvent * e) override;
-    void mouseMoveEvent(QMouseEvent * e) override;
-    void mouseReleaseEvent(QMouseEvent * e) override;
-    void mouseDoubleClickEvent(QMouseEvent * e) override;
-    void keyPressEvent(QKeyEvent * e) override;
-    void contextMenuEvent(QContextMenuEvent * e) override;
+    void paintEvent(QPaintEvent* e) override;
+    void mousePressEvent(QMouseEvent* e) override;
+    void mouseMoveEvent(QMouseEvent* e) override;
+    void mouseReleaseEvent(QMouseEvent* e) override;
+    void mouseDoubleClickEvent(QMouseEvent* e) override;
+    void keyPressEvent(QKeyEvent* e) override;
+    void contextMenuEvent(QContextMenuEvent* e) override;
     //@}
 
     // the actual gradient
@@ -110,13 +109,13 @@ protected:
     // height of the lever area
     Int lever_area_height_;
 
-    //position (0-100) in the vector of the selected lever
+    // position (0-100) in the vector of the selected lever
     Int selected_;
-    //color of the selected lever
+    // color of the selected lever
     QColor selected_color_;
 
-    //stores if the left button is pressed
+    // stores if the left button is pressed
     bool left_button_pressed_;
   };
 
-}
+} // namespace OpenMS

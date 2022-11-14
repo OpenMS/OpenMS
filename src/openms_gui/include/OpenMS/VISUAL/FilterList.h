@@ -36,7 +36,6 @@
 
 #include <OpenMS/FILTERING/DATAREDUCTION/DataFilters.h>
 #include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
-
 #include <QWidget>
 
 namespace Ui
@@ -59,7 +58,7 @@ namespace OpenMS
     */
     class FilterList : public QWidget
     {
-        Q_OBJECT
+      Q_OBJECT
 
     public:
       /// C'tor
@@ -74,21 +73,21 @@ namespace OpenMS
     signals:
       /// emitted when the user has edited/added/removed a filter
       void filterChanged(const DataFilters& filters);
-    
+
     private slots:
       /// the user wants to edit a filter (by double-clicking it)
       /// emits 'filterChanged' signal if filter was modified
       void filterEdit_(QListWidgetItem* item);
 
       /// right-clicking on the QListWidget 'filter' will call this slot
-      void customContextMenuRequested_(const QPoint &pos);
+      void customContextMenuRequested_(const QPoint& pos);
 
     private:
-      Ui::FilterList *ui_;
+      Ui::FilterList* ui_;
       DataFilters filters_; ///< internal representation of filters
     };
-  } // ns Internal
-} // ns OpenMS
+  } // namespace Internal
+} // namespace OpenMS
 
 // this is required to allow parent widgets (auto UIC'd from .ui) to have a FilterList member
 using FilterList = OpenMS::Internal::FilterList;

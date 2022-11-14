@@ -49,8 +49,7 @@ namespace OpenMS
   /**
   @brief Behavior of TOPPView in identification mode.
   */
-  class TVIdentificationViewController
-    : public TVControllerBase
+  class TVIdentificationViewController : public TVControllerBase
   {
     Q_OBJECT
 
@@ -111,7 +110,7 @@ namespace OpenMS
     void extractCoverageStrings(std::vector<PeptideHit::PeakAnnotation> frag_annotations, String& alpha_string, String& beta_string, Size alpha_size, Size beta_size);
 
     /// Generates HTML for showing the sequence with annotations of matched fragments
-    template <typename SeqType>
+    template<typename SeqType>
     String generateSequenceDiagram_(const SeqType& seq, const std::vector<PeptideHit::PeakAnnotation>& annotations, const StringList& top_ions, const StringList& bottom_ions);
 
     /// Helper function for generateSequenceDiagram_() - overload for peptides
@@ -129,4 +128,4 @@ namespace OpenMS
     /// of the AnnotationItems has the Annotation1DContainer
     std::vector<Annotation1DItem*> temporary_annotations_;
   };
-}
+} // namespace OpenMS

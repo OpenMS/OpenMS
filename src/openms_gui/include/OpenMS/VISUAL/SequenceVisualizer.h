@@ -33,13 +33,12 @@
 // --------------------------------------------------------------------------
 
 #ifdef QT_WEBENGINEWIDGETS_LIB
-#pragma once
+  #pragma once
 
-// OpenMS_GUI config
-#include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
-
-#include <QWidget>
-#include <QJsonObject>
+  // OpenMS_GUI config
+  #include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
+  #include <QJsonObject>
+  #include <QWidget>
 
 class QWebEngineView;
 class QWebChannel;
@@ -57,8 +56,8 @@ namespace OpenMS
 
     // We can access the protein and peptide data using SequenceVisualizer.json_data_obj inside JS/HTML resource file
     Q_PROPERTY(QJsonObject json_data_obj MEMBER m_json_data_obj_ NOTIFY dataChanged_)
-    signals:
-      void dataChanged_();
+  signals:
+    void dataChanged_();
 
   public:
     QJsonObject m_json_data_obj_;
@@ -75,17 +74,13 @@ namespace OpenMS
 
   public slots:
     // this method sets protein and peptide data to m_json_data_obj_.
-    void setProteinPeptideDataToJsonObj(
-        const QString& accession_num, 
-        const QString& pro_seq, 
-        const QJsonArray& peptides_data);
+    void setProteinPeptideDataToJsonObj(const QString& accession_num, const QString& pro_seq, const QJsonArray& peptides_data);
 
   private:
-
     Ui::SequenceVisualizer* ui_;
     Backend backend_;
     QWebEngineView* view_;
     QWebChannel* channel_;
   };
-}// namespace OpenMS
+} // namespace OpenMS
 #endif

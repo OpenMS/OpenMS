@@ -37,4 +37,4 @@
 namespace OpenMS
 {
 
-} // Namespace
+} // namespace OpenMS

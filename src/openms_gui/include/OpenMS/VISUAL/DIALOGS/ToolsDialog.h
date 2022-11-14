@@ -35,10 +35,9 @@
 #pragma once
 
 // OpenMS_GUI config
-#include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
-
 #include <OpenMS/DATASTRUCTURES/Param.h>
 #include <OpenMS/VISUAL/LayerDataBase.h>
+#include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
 
 class QLabel;
 class QComboBox;
@@ -66,12 +65,11 @@ namespace OpenMS
 
       @ingroup Dialogs
   */
-  class OPENMS_GUI_DLLAPI ToolsDialog :
-    public QDialog
+  class OPENMS_GUI_DLLAPI ToolsDialog : public QDialog
   {
     Q_OBJECT
 
-public:
+  public:
     /**
         @brief Constructor
 
@@ -82,8 +80,8 @@ public:
         @param layer_type The type of data (determines the applicable tools)
         @param layer_name The name of the selected layer
     */
-    ToolsDialog(QWidget * parent, const Param& params, String ini_file, String default_dir, LayerDataBase::DataType layer_type, const String& layer_name, TVToolDiscovery* tool_scanner);
-    ///Destructor
+    ToolsDialog(QWidget* parent, const Param& params, String ini_file, String default_dir, LayerDataBase::DataType layer_type, const String& layer_name, TVToolDiscovery* tool_scanner);
+    /// Destructor
     ~ToolsDialog() override;
 
     /// to get the parameter name for output. Empty if no output was selected.
@@ -93,25 +91,25 @@ public:
     /// to get the currently selected tool-name
     String getTool();
 
-private:
+  private:
     /// ParamEditor for reading ini-files
-    ParamEditor * editor_;
+    ParamEditor* editor_;
     /// tools description label
-    QLabel * tool_desc_;
+    QLabel* tool_desc_;
     /// ComboBox for choosing a TOPP-tool
-    QComboBox * tools_combo_;
+    QComboBox* tools_combo_;
     /// Button to rerun the automatic plugin detection
     QPushButton* reload_plugins_button_;
     /// for choosing an input parameter
-    QComboBox * input_combo_;
+    QComboBox* input_combo_;
     /// for choosing an output parameter
-    QComboBox * output_combo_;
+    QComboBox* output_combo_;
     /// Param for loading the ini-file
     Param arg_param_;
     /// Param for loading configuration information in the ParamEditor
     Param vis_param_;
     /// ok-button connected with slot ok_()
-    QPushButton * ok_button_;
+    QPushButton* ok_button_;
     /// Location of the temporary INI file this dialog works on
     String ini_file_;
     /// default-dir of ini-file to open
@@ -140,7 +138,7 @@ private:
     /// Create a list of all TOPP tool/util/plugins that are compatible with the active layer type
     QStringList createToolsList_();
 
-protected slots:
+  protected slots:
 
     /// if ok button pressed show the tool output in a new layer, a new window or standard output as messagebox
     void ok_();
@@ -156,4 +154,4 @@ protected slots:
     void reloadPlugins_();
   };
 
-}
+} // namespace OpenMS

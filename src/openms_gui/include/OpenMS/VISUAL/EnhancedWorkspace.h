@@ -36,7 +36,6 @@
 
 // OpenMS_GUI config
 #include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
-
 #include <QMdiArea>
 
 class QMimeData;
@@ -48,14 +47,13 @@ namespace OpenMS
 {
   class EnhancedTabBarWidgetInterface;
 
-  class OPENMS_GUI_DLLAPI EnhancedWorkspace :
-    public QMdiArea
+  class OPENMS_GUI_DLLAPI EnhancedWorkspace : public QMdiArea
   {
     Q_OBJECT
 
-public:
+  public:
     /// Constructor
-    EnhancedWorkspace(QWidget * parent);
+    EnhancedWorkspace(QWidget* parent);
 
     /// Destructor
     ~EnhancedWorkspace() override;
@@ -70,19 +68,17 @@ public:
     /// Returns nullptr if window is not present
     EnhancedTabBarWidgetInterface* getWidget(int id) const;
 
-signals:
+  signals:
 
     /// Signal that is emitted, when a drag-and-drop action ends on this widget
-    void dropReceived(const QMimeData * data, QWidget * source, int id);
+    void dropReceived(const QMimeData* data, QWidget* source, int id);
 
-protected:
-
+  protected:
     ///@name Reimplemented Qt events
     //@{
-    void dragEnterEvent(QDragEnterEvent * event) override;
-    void dragMoveEvent(QDragMoveEvent * event) override;
-    void dropEvent(QDropEvent * event) override;
+    void dragEnterEvent(QDragEnterEvent* event) override;
+    void dragMoveEvent(QDragMoveEvent* event) override;
+    void dropEvent(QDropEvent* event) override;
     //@}
   };
-}
-
+} // namespace OpenMS

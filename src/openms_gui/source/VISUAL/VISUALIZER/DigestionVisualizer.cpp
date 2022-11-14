@@ -34,12 +34,12 @@
 
 #include <OpenMS/VISUAL/VISUALIZER/DigestionVisualizer.h>
 
-//QT
+// QT
 #include <QValidator>
 #include <QtWidgets/QLineEdit>
 #include <QtWidgets/QTextEdit>
 
-//STL
+// STL
 #include <iostream>
 
 using namespace std;
@@ -47,9 +47,7 @@ using namespace std;
 namespace OpenMS
 {
 
-  DigestionVisualizer::DigestionVisualizer(bool editable, QWidget * parent) :
-    BaseVisualizerGUI(editable, parent),
-    BaseVisualizer<Digestion>()
+  DigestionVisualizer::DigestionVisualizer(bool editable, QWidget* parent) : BaseVisualizerGUI(editable, parent), BaseVisualizer<Digestion>()
   {
     addLabel_("Modify Digestion information");
     addSeparator_();
@@ -90,4 +88,4 @@ namespace OpenMS
     update_();
   }
 
-}
+} // namespace OpenMS

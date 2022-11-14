@@ -34,12 +34,10 @@
 
 #pragma once
 
-#include <OpenMS/VISUAL/LayerDataBase.h>
-#include <OpenMS/VISUAL/LayerData1DBase.h>
-
 #include <OpenMS/METADATA/PeptideIdentification.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
-
+#include <OpenMS/VISUAL/LayerData1DBase.h>
+#include <OpenMS/VISUAL/LayerDataBase.h>
 #include <vector>
 
 namespace OpenMS
@@ -54,7 +52,6 @@ namespace OpenMS
   class OPENMS_GUI_DLLAPI LayerDataPeak : public virtual LayerDataBase
   {
   public:
-
     using SpectrumType = ExperimentType::SpectrumType;
     using PeakType = SpectrumType::PeakType;
 
@@ -163,7 +160,6 @@ namespace OpenMS
     }
 
 
-    
     /// Check whether the current layer should be represented as ion mobility
     bool isIonMobilityData() const
     {
@@ -224,4 +220,4 @@ namespace OpenMS
     ODExperimentSharedPtrType on_disc_peaks_ = ODExperimentSharedPtrType(new OnDiscMSExperiment());
   };
 
-}// namespace OpenMS
+} // namespace OpenMS

@@ -37,7 +37,6 @@
 
 // OpenMS_GUI config
 #include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
-
 #include <QDialog>
 
 namespace Ui
@@ -51,12 +50,11 @@ namespace OpenMS
       @brief Dialog for creating and changing a DataFilter
 
   */
-  class OPENMS_GUI_DLLAPI ListFilterDialog :
-    public QDialog
+  class OPENMS_GUI_DLLAPI ListFilterDialog : public QDialog
   {
     Q_OBJECT
 
-public:
+  public:
     /// constructor
     ListFilterDialog() = delete;
 
@@ -69,7 +67,7 @@ public:
 
       @throws Exception::InvalidValue if any of @p items_prechosen is not contained in @p items
 
-    **/     
+    **/
     ListFilterDialog(QWidget* parent, const QStringList& items = QStringList(), const QStringList& items_prechosen = QStringList());
 
     /// destructor
@@ -89,7 +87,7 @@ public:
     /// get all items which where selected by the user
     QStringList getChosenItems() const;
 
-protected slots:
+  protected slots:
     /// button '>>' clicked
     void BtnLRClicked_();
     /// button '> ALL >' clicked
@@ -99,8 +97,8 @@ protected slots:
     /// button '< ALL <' clicked
     void BtnRLAllClicked_();
 
-private:
+  private:
     Ui::ListFilterDialog* ui_;
   };
 
-}
+} // namespace OpenMS

@@ -64,6 +64,7 @@ endif()
 
 # special requirements of some tools
 target_link_libraries(FileMerger Boost::regex)
+
 # collection target
 add_custom_target(TOPP)
 add_dependencies(TOPP ${TOPP_executables})

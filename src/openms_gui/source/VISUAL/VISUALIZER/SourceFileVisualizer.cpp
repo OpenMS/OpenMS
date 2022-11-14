@@ -33,10 +33,8 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/VISUAL/VISUALIZER/SourceFileVisualizer.h>
-
-#include <QtWidgets/QLineEdit>
 #include <QtWidgets/QComboBox>
-
+#include <QtWidgets/QLineEdit>
 #include <iostream>
 
 using namespace std;
@@ -44,9 +42,7 @@ using namespace std;
 namespace OpenMS
 {
 
-  SourceFileVisualizer::SourceFileVisualizer(bool editable, QWidget * parent) :
-    BaseVisualizerGUI(editable, parent),
-    BaseVisualizer<SourceFile>()
+  SourceFileVisualizer::SourceFileVisualizer(bool editable, QWidget* parent) : BaseVisualizerGUI(editable, parent), BaseVisualizer<SourceFile>()
   {
     addLabel_("Modify source file information");
     addSeparator_();
@@ -98,4 +94,4 @@ namespace OpenMS
     update_();
   }
 
-}
+} // namespace OpenMS

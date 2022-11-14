@@ -36,7 +36,6 @@
 
 // OpenMS_GUI config
 #include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
-
 #include <QtWidgets/QGraphicsItem>
 
 namespace OpenMS
@@ -56,14 +55,11 @@ namespace OpenMS
 
       @ingroup TOPPAS_elements
   */
-  class OPENMS_GUI_DLLAPI TOPPASEdge :
-    public QObject,
-    public QGraphicsItem
+  class OPENMS_GUI_DLLAPI TOPPASEdge : public QObject, public QGraphicsItem
   {
     Q_OBJECT
     Q_INTERFACES(QGraphicsItem)
-public:
-
+  public:
     /// The status of this edge
     enum EdgeStatus
     {
@@ -73,7 +69,7 @@ public:
       ES_FILE_EXT_MISMATCH,
       ES_MERGER_EXT_MISMATCH,
       ES_MERGER_WITHOUT_TOOL,
-      ES_NOT_READY_YET,       // no input files given. We cannot know if the types will match.
+      ES_NOT_READY_YET, // no input files given. We cannot know if the types will match.
       ES_TOOL_API_CHANGED,
       ES_UNKNOWN
     };
@@ -81,13 +77,13 @@ public:
     /// Standard constructor
     TOPPASEdge();
     /// Constructor
-    TOPPASEdge(TOPPASVertex * from, const QPointF & hover_pos);
+    TOPPASEdge(TOPPASVertex* from, const QPointF& hover_pos);
     /// Copy constructor
-    TOPPASEdge(const TOPPASEdge & rhs);
+    TOPPASEdge(const TOPPASEdge& rhs);
     /// Destructor
     ~TOPPASEdge() override;
     /// Assignment operator
-    TOPPASEdge & operator=(const TOPPASEdge & rhs);
+    TOPPASEdge& operator=(const TOPPASEdge& rhs);
 
     /// for debug output
     String toString();
@@ -97,25 +93,25 @@ public:
     /// Returns a more precise shape
     QPainterPath shape() const override;
     /// Paints the item
-    void paint(QPainter * painter, const QStyleOptionGraphicsItem * option, QWidget * widget) override;
+    void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget) override;
     /// Returns the start position of this edge
     QPointF startPos() const;
     /// Returns the end position of this edge
     QPointF endPos() const;
     /// Sets the position of the hovering end while edge is being created
-    void setHoverPos(const QPointF & pos);
+    void setHoverPos(const QPointF& pos);
     /// Sets the source vertex of this edge
-    void setSourceVertex(TOPPASVertex * tv);
+    void setSourceVertex(TOPPASVertex* tv);
     /// Sets the target vertex of this edge
-    void setTargetVertex(TOPPASVertex * tv);
+    void setTargetVertex(TOPPASVertex* tv);
     /// Returns the source vertex
-    TOPPASVertex * getSourceVertex();
+    TOPPASVertex* getSourceVertex();
     /// Returns the target vertex
-    TOPPASVertex * getTargetVertex();
+    TOPPASVertex* getTargetVertex();
     /// Call this before changing the item geometry
     void prepareResize();
     /// Sets the color
-    void setColor(const QColor & color);
+    void setColor(const QColor& color);
     /// Returns the status of this edge
     EdgeStatus getEdgeStatus();
     /// Sets the source output parameter index
@@ -137,37 +133,36 @@ public:
     /// Shows the I/O mapping dialog
     void showIOMappingDialog();
 
-public slots:
+  public slots:
 
     /// Called by the source vertex when it has changed
     void sourceHasChanged();
 
-signals:
+  signals:
 
     /// Emitted when something has changed
     void somethingHasChanged();
 
-protected:
-
+  protected:
     ///@name reimplemented Qt events
     //@{
-    void mouseDoubleClickEvent(QGraphicsSceneMouseEvent * e) override;
-    void contextMenuEvent(QGraphicsSceneContextMenuEvent * event) override;
+    void mouseDoubleClickEvent(QGraphicsSceneMouseEvent* e) override;
+    void contextMenuEvent(QGraphicsSceneContextMenuEvent* event) override;
     //@}
 
     ///@name helper methods of getEdgeStatus()
     //@{
-    EdgeStatus getToolToolStatus_(TOPPASToolVertex * source, int source_param_index, TOPPASToolVertex * target, int target_param_index);
-    EdgeStatus getListToolStatus_(TOPPASInputFileListVertex * source, TOPPASToolVertex * target, int target_param_index);
+    EdgeStatus getToolToolStatus_(TOPPASToolVertex* source, int source_param_index, TOPPASToolVertex* target, int target_param_index);
+    EdgeStatus getListToolStatus_(TOPPASInputFileListVertex* source, TOPPASToolVertex* target, int target_param_index);
     //@}
 
     /// point where the current edge touches the source or target (default) vertex
     QPointF borderPoint_(bool atTargetVertex = true) const;
 
     /// Pointer to the source of this edge
-    TOPPASVertex * from_;
+    TOPPASVertex* from_;
     /// Pointer to the target of this edge
-    TOPPASVertex * to_;
+    TOPPASVertex* to_;
     /// Position of hovering end while edge is being created
     QPointF hover_pos_;
     /// The color
@@ -177,5 +172,4 @@ protected:
     /// The target input parameter index
     int target_in_param_;
   };
-}
-
+} // namespace OpenMS

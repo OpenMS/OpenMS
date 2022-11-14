@@ -37,7 +37,7 @@
 // OpenMS_GUI config
 #include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
 
-//Qt
+// Qt
 #include <QtWidgets/QApplication>
 
 namespace OpenMS
@@ -47,13 +47,11 @@ namespace OpenMS
 
     Basically re-implements notify of QApplication to prevent ungraceful exit.
   */
-  class OPENMS_GUI_DLLAPI QApplicationTOPP :
-    public QApplication
+  class OPENMS_GUI_DLLAPI QApplicationTOPP : public QApplication
   {
-
     Q_OBJECT
 
-public:
+  public:
     /// Constructor (no NOT remove the "&" from argc, since Qt will segfault on some platforms otherwise!)
     QApplicationTOPP(int& argc, char** argv);
 
@@ -82,10 +80,8 @@ public:
     static void showAboutDialog(QWidget* parent, const QString& toolname);
 
 
-signals:
+  signals:
     void fileOpen(QString file);
-
   };
 
-}
-
+} // namespace OpenMS

@@ -484,19 +484,19 @@ namespace OpenMS
     std::vector<std::pair<double,double>> points;
 
     // Add points from the LEFT side, until `intensity_threshold` is reached
-    points.push_back({xs.front(), ys.front()}); // Add FIRST point, no matter the threshold
+    points.emplace_back(xs.front(), ys.front()); // Add FIRST point, no matter the threshold
     Size i = 1;
     for (; i < xs.size() - 1 && ys[i] < intensity_threshold; ++i)
     {
-      points.push_back({xs[i], ys[i]});
+      points.emplace_back(xs[i], ys[i]);
     }
 
     // Add points from the RIGHT side, until `intensity_threshold` is reached
-    points.push_back({xs.back(), ys.back()}); // Add LAST point, no matter the threshold
+    points.emplace_back(xs.back(), ys.back()); // Add LAST point, no matter the threshold
     Size j = xs.size() - 2;
     for (; i <= j && ys[j] < intensity_threshold; --j)
     {
-      points.push_back({xs[j], ys[j]});
+      points.emplace_back(xs[j], ys[j]);
     }
 
     // Compute the derivative for points of intensity greater than `intensity_threshold`
@@ -533,7 +533,7 @@ namespace OpenMS
       ++i
     )
     {
-      points.push_back({xs[i], ys[i]});
+      points.emplace_back(xs[i], ys[i]);
     }
 
     // Starting from `j` and proceeding toward the LEFT side,
@@ -547,7 +547,7 @@ namespace OpenMS
       --j
     )
     {
-      points.push_back({xs[j], ys[j]});
+      points.emplace_back(xs[j], ys[j]);
     }
 
     // Create the output vectors containing the training set

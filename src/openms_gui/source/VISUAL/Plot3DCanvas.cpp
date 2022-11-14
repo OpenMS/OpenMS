@@ -32,19 +32,17 @@
 // $Authors: Marc Sturm $
 // --------------------------------------------------------------------------
 
-//OpenMS
-#include <OpenMS/VISUAL/Plot3DCanvas.h>
-
+// OpenMS
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/SYSTEM/FileWatcher.h>
 #include <OpenMS/VISUAL/ColorSelector.h>
 #include <OpenMS/VISUAL/DIALOGS/Plot3DPrefDialog.h>
-#include <OpenMS/VISUAL/MISC/GUIHelpers.h>
 #include <OpenMS/VISUAL/LayerDataPeak.h>
+#include <OpenMS/VISUAL/MISC/GUIHelpers.h>
 #include <OpenMS/VISUAL/MultiGradientSelector.h>
+#include <OpenMS/VISUAL/Plot3DCanvas.h>
 #include <OpenMS/VISUAL/Plot3DOpenGLCanvas.h>
 #include <OpenMS/VISUAL/PlotWidget.h>
-
 #include <QResizeEvent>
 #include <QtWidgets/QComboBox>
 #include <QtWidgets/QFileDialog>
@@ -58,8 +56,7 @@ namespace OpenMS
 {
   using namespace Internal;
 
-  Plot3DCanvas::Plot3DCanvas(const Param & preferences, QWidget * parent) :
-    PlotCanvas(preferences, parent)
+  Plot3DCanvas::Plot3DCanvas(const Param& preferences, QWidget* parent) : PlotCanvas(preferences, parent)
   {
     // Parameter handling
     defaults_.setValue("dot:shade_mode", 1, "Shade mode: single-color ('flat') or gradient peaks ('smooth').");
@@ -83,13 +80,13 @@ namespace OpenMS
     connect(this, SIGNAL(actionModeChange()), openglcanvas_, SLOT(actionModeChange()));
     legend_shown_ = true;
 
-    //connect preferences change to the right slot
+    // connect preferences change to the right slot
     connect(this, SIGNAL(preferencesChange()), this, SLOT(currentLayerParamtersChanged_()));
   }
 
   Plot3DCanvas::~Plot3DCanvas() = default;
 
-  void Plot3DCanvas::resizeEvent(QResizeEvent * e)
+  void Plot3DCanvas::resizeEvent(QResizeEvent* e)
   {
     openglcanvas_->resize(e->size().width(), e->size().height());
   }
@@ -115,7 +112,7 @@ namespace OpenMS
 
     // Abort if no data points are contained
     auto& layer = dynamic_cast<LayerDataPeak&>(getCurrentLayer());
-      
+
     if (layer.getPeakData()->empty())
     {
       popIncompleteLayer_("Cannot add a dataset that contains no survey scans. Aborting!");
@@ -125,7 +122,7 @@ namespace OpenMS
     recalculateRanges_();
     resetZoom(false);
 
-    //Warn if negative intensities are contained
+    // Warn if negative intensities are contained
     if (getCurrentMinIntensity() < 0.0)
     {
       QMessageBox::warning(this, "Warning", "This dataset contains negative intensities. Use it at your own risk!");
@@ -167,24 +164,25 @@ namespace OpenMS
     resetZoom();
   }
 
-  Plot3DOpenGLCanvas * Plot3DCanvas::openglwidget() const
+  Plot3DOpenGLCanvas* Plot3DCanvas::openglwidget() const
   {
-    return static_cast<Plot3DOpenGLCanvas *>(openglcanvas_);
+    return static_cast<Plot3DOpenGLCanvas*>(openglcanvas_);
   }
 
 #ifdef DEBUG_TOPPVIEW
-  void Plot3DCanvas::update_(const char * caller)
+  void Plot3DCanvas::update_(const char* caller)
   {
     cout << "BEGIN " << OPENMS_PRETTY_FUNCTION << " caller: " << caller << endl;
 #else
-  void Plot3DCanvas::update_(const char * /* caller */)
+  void Plot3DCanvas::update_(const char* /* caller */)
   {
 #endif
 
     // make sure OpenGL already properly initialized
-    QOpenGLContext *ctx = QOpenGLContext::currentContext();
-    if (!ctx || !ctx->isValid()) return;
-    
+    QOpenGLContext* ctx = QOpenGLContext::currentContext();
+    if (!ctx || !ctx->isValid())
+      return;
+
     if (update_buffer_)
     {
       update_buffer_ = false;
@@ -203,12 +201,12 @@ namespace OpenMS
     Internal::Plot3DPrefDialog dlg(this);
     LayerDataBase& layer = getCurrentLayer();
 
-// cout << "IN: " << param_ << endl;
+    // cout << "IN: " << param_ << endl;
 
-    ColorSelector * bg_color = dlg.findChild<ColorSelector *>("bg_color");
-    QComboBox * shade = dlg.findChild<QComboBox *>("shade");
-    MultiGradientSelector * gradient = dlg.findChild<MultiGradientSelector *>("gradient");
-    QSpinBox * width  = dlg.findChild<QSpinBox *>("width");
+    ColorSelector* bg_color = dlg.findChild<ColorSelector*>("bg_color");
+    QComboBox* shade = dlg.findChild<QComboBox*>("shade");
+    MultiGradientSelector* gradient = dlg.findChild<MultiGradientSelector*>("gradient");
+    QSpinBox* width = dlg.findChild<QSpinBox*>("width");
 
     bg_color->setColor(QColor(String(param_.getValue("background_color").toString()).toQString()));
     shade->setCurrentIndex(layer.param.getValue("dot:shade_mode"));
@@ -235,17 +233,17 @@ namespace OpenMS
     update_(OPENMS_PRETTY_FUNCTION);
   }
 
-  void Plot3DCanvas::contextMenuEvent(QContextMenuEvent * e)
+  void Plot3DCanvas::contextMenuEvent(QContextMenuEvent* e)
   {
-    //Abort of there are no layers
+    // Abort of there are no layers
     if (layers_.empty())
     {
       return;
     }
-    QMenu * context_menu = new QMenu(this);
-    QAction * result = nullptr;
+    QMenu* context_menu = new QMenu(this);
+    QAction* result = nullptr;
 
-    //Display name and warn if current layer invisible
+    // Display name and warn if current layer invisible
     String layer_name = String("Layer: ") + getCurrentLayer().getName();
     if (!getCurrentLayer().visible)
     {
@@ -255,12 +253,12 @@ namespace OpenMS
     context_menu->addSeparator();
     context_menu->addAction("Layer meta data");
 
-    QMenu * save_menu = new QMenu("Save");
+    QMenu* save_menu = new QMenu("Save");
     context_menu->addMenu(save_menu);
     save_menu->addAction("Layer");
     save_menu->addAction("Visible layer data");
 
-    QMenu * settings_menu = new QMenu("Settings");
+    QMenu* settings_menu = new QMenu("Settings");
     context_menu->addMenu(settings_menu);
     settings_menu->addAction("Show/hide grid lines");
     settings_menu->addAction("Show/hide axis legends");
@@ -269,14 +267,14 @@ namespace OpenMS
 
     context_menu->addAction("Switch to 2D view");
 
-    //add external context menu
+    // add external context menu
     if (context_add_)
     {
       context_menu->addSeparator();
       context_menu->addMenu(context_add_);
     }
 
-    //evaluate menu
+    // evaluate menu
     if ((result = context_menu->exec(mapToGlobal(e->pos()))))
     {
       if (result->text() == "Preferences")
@@ -352,4 +350,4 @@ namespace OpenMS
   {
   }
 
-} //namespace
+} // namespace OpenMS

@@ -37,50 +37,53 @@
 // ------------- DEBUGGING ----------------
 
 // ---- Uncomment to enable debug mode ----
-//#define TOPPAS_DEBUG
+// #define TOPPAS_DEBUG
 // ----------------------------------------
 
 #ifdef TOPPAS_DEBUG
-#define __DEBUG_BEGIN_METHOD__ \
-  {                                                                                                                                                                                   \
-    for (int dbg_indnt_cntr = 0; dbg_indnt_cntr < global_debug_indent_; ++dbg_indnt_cntr)   \
-    {                                                                                                                                                                           \
-      std::cout << "  ";                                                                                                                                  \
-    }                                                                                                                                                                           \
-    std::cout << "BEGIN [" << topo_nr_ << "] " << OPENMS_PRETTY_FUNCTION << std::endl;             \
-    ++global_debug_indent_;                                                                                                                             \
-  }
+  #define __DEBUG_BEGIN_METHOD__                                                                                                                                                                       \
+    {                                                                                                                                                                                                  \
+      for (int dbg_indnt_cntr = 0; dbg_indnt_cntr < global_debug_indent_; ++dbg_indnt_cntr)                                                                                                            \
+      {                                                                                                                                                                                                \
+        std::cout << "  ";                                                                                                                                                                             \
+      }                                                                                                                                                                                                \
+      std::cout << "BEGIN [" << topo_nr_ << "] " << OPENMS_PRETTY_FUNCTION << std::endl;                                                                                                               \
+      ++global_debug_indent_;                                                                                                                                                                          \
+    }
 
-#define __DEBUG_END_METHOD__ \
-  {                                                                                                                                                                                       \
-    --global_debug_indent_;                                                                                                                             \
-    if (global_debug_indent_ < 0) global_debug_indent_ = 0;                                                             \
-    for (int dbg_indnt_cntr = 0; dbg_indnt_cntr < global_debug_indent_; ++dbg_indnt_cntr)   \
-    {                                                                                                                                                                           \
-      std::cout << "  ";                                                                                                                                  \
-    }                                                                                                                                                                           \
-    std::cout << "END [" << topo_nr_ << "] " << OPENMS_PRETTY_FUNCTION << std::endl;                   \
-  }
+  #define __DEBUG_END_METHOD__                                                                                                                                                                         \
+    {                                                                                                                                                                                                  \
+      --global_debug_indent_;                                                                                                                                                                          \
+      if (global_debug_indent_ < 0)                                                                                                                                                                    \
+        global_debug_indent_ = 0;                                                                                                                                                                      \
+      for (int dbg_indnt_cntr = 0; dbg_indnt_cntr < global_debug_indent_; ++dbg_indnt_cntr)                                                                                                            \
+      {                                                                                                                                                                                                \
+        std::cout << "  ";                                                                                                                                                                             \
+      }                                                                                                                                                                                                \
+      std::cout << "END [" << topo_nr_ << "] " << OPENMS_PRETTY_FUNCTION << std::endl;                                                                                                                 \
+    }
 #else
-#define __DEBUG_BEGIN_METHOD__ {}
-#define __DEBUG_END_METHOD__ {}
+  #define __DEBUG_BEGIN_METHOD__                                                                                                                                                                       \
+    {                                                                                                                                                                                                  \
+    }
+  #define __DEBUG_END_METHOD__                                                                                                                                                                         \
+    {                                                                                                                                                                                                  \
+    }
 #endif
 
 // ----------------------------------------
 
 // OpenMS_GUI config
-#include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
-
 #include <OpenMS/DATASTRUCTURES/String.h>
-
+#include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
 #include <QPainter>
 #include <QPainterPath>
-#include <QtWidgets/QGraphicsSceneMouseEvent>
-#include <QtWidgets/QGraphicsSceneContextMenuEvent>
-#include <QtWidgets/QGraphicsItem>
-#include <QtCore/QProcess>
-#include <QtWidgets/QMenu>
 #include <QStringList>
+#include <QtCore/QProcess>
+#include <QtWidgets/QGraphicsItem>
+#include <QtWidgets/QGraphicsSceneContextMenuEvent>
+#include <QtWidgets/QGraphicsSceneMouseEvent>
+#include <QtWidgets/QMenu>
 
 namespace OpenMS
 {
@@ -97,58 +100,55 @@ namespace OpenMS
 
       @ingroup TOPPAS_elements
   */
-  class OPENMS_GUI_DLLAPI TOPPASVertex :
-    public QObject,
-    public QGraphicsItem
+  class OPENMS_GUI_DLLAPI TOPPASVertex : public QObject, public QGraphicsItem
   {
     Q_OBJECT
     Q_INTERFACES(QGraphicsItem)
 
-public:
+  public:
     /// The container for in/out edges
-    typedef QList<TOPPASEdge *> EdgeContainer;
+    typedef QList<TOPPASEdge*> EdgeContainer;
     /// A mutable iterator for in/out edges
     typedef EdgeContainer::iterator EdgeIterator;
     /// A const iterator for in/out edges
     typedef EdgeContainer::const_iterator ConstEdgeIterator;
 
-	  /// A class which interfaces with QStringList for holding filenames
-	  /// Incoming filenames are checked, and an exception is thrown if they are too long
-	  /// to avoid issues with common filesystems (due to filesystem limits).
-	  class TOPPASFilenames
-	  {
-	    public:
-		  TOPPASFilenames() = default;
-	    TOPPASFilenames(const QStringList& filenames);
-		  int size() const;
-		  const QStringList& get() const;
-		  const QString& operator[](int i) const;
+    /// A class which interfaces with QStringList for holding filenames
+    /// Incoming filenames are checked, and an exception is thrown if they are too long
+    /// to avoid issues with common filesystems (due to filesystem limits).
+    class TOPPASFilenames
+    {
+    public:
+      TOPPASFilenames() = default;
+      TOPPASFilenames(const QStringList& filenames);
+      int size() const;
+      const QStringList& get() const;
+      const QString& operator[](int i) const;
 
-		  ///@name Setters; their all use check_() and can throw!
-		  //@{
-		  void set(const QStringList& filenames);
-		  void set(const QString& filename, int i);
-		  void push_back(const QString& filename);
-		  void append(const QStringList& filenames);
-		  //@}
+      ///@name Setters; their all use check_() and can throw!
+      //@{
+      void set(const QStringList& filenames);
+      void set(const QString& filename, int i);
+      void push_back(const QString& filename);
+      void append(const QStringList& filenames);
+      //@}
 
       QStringList getSuffixCounts() const;
 
-	    private:
-		  /*
-		  @brief Check length of filename and throw Exception::FileNotWritable() if too long
-		
-		  @param filename Full path to file (using relative paths will circumvent the effectiveness)
-		  @throw Exception::FileNotWritable() if too long (>=255 chars)
-		  */
-		  void check_(const QString& filename);
-		  QStringList filenames_;   ///< filenames passed from upstream node in this round
-	  };
+    private:
+      /*
+      @brief Check length of filename and throw Exception::FileNotWritable() if too long
 
-	  /// Info for one edge and round, to be passed to next node
-    struct VertexRoundPackage
-    {
-      TOPPASFilenames filenames; ///< filenames passed from upstream node in this round
+      @param filename Full path to file (using relative paths will circumvent the effectiveness)
+      @throw Exception::FileNotWritable() if too long (>=255 chars)
+      */
+      void check_(const QString& filename);
+      QStringList filenames_; ///< filenames passed from upstream node in this round
+    };
+
+    /// Info for one edge and round, to be passed to next node
+    struct VertexRoundPackage {
+      TOPPASFilenames filenames;  ///< filenames passed from upstream node in this round
       TOPPASEdge* edge = nullptr; ///< edge that connects the upstream node to the current one
     };
 
@@ -174,26 +174,26 @@ public:
     /// The color of a vertex during depth-first search
     enum SUBSTREESTATUS
     {
-      TV_ALLFINISHED,  ///< all downstream nodes are done (including the ones which are feed by a parallel subtree)
-      TV_UNFINISHED,   ///< some direct downstream node is not done
+      TV_ALLFINISHED,        ///< all downstream nodes are done (including the ones which are feed by a parallel subtree)
+      TV_UNFINISHED,         ///< some direct downstream node is not done
       TV_UNFINISHED_INBRANCH ///< a parallel subtree which merged with some downstream node A was not done (which prevented processing of the node A)
     };
 
     /// Default Constructor
     TOPPASVertex();
     /// Copy constructor
-    TOPPASVertex(const TOPPASVertex & rhs);
+    TOPPASVertex(const TOPPASVertex& rhs);
     /// Destructor
     ~TOPPASVertex() override = default;
     /// Assignment operator
-    TOPPASVertex& operator=(const TOPPASVertex & rhs);
+    TOPPASVertex& operator=(const TOPPASVertex& rhs);
     /// base paint method for all derived classes. should be called first in child-class paint
     void paint(QPainter* painter, const QStyleOptionGraphicsItem* /*option*/, QWidget* /*widget*/, bool round_shape = true);
 
     /// get the round package for this node from upstream
     /// -- indices in 'RoundPackage' mapping are thus referring to incoming edges of this node
     /// returns false on failure
-    bool buildRoundPackages(RoundPackages & pkg, String & error_msg);
+    bool buildRoundPackages(RoundPackages& pkg, String& error_msg);
 
     /// check if all upstream nodes are ready to go ( 'finished_' is true)
     bool isUpstreamFinished() const;
@@ -215,13 +215,13 @@ public:
     /// Returns the number of outgoing edges
     Size outgoingEdgesCount();
     /// Adds an incoming edge
-    void addInEdge(TOPPASEdge * edge);
+    void addInEdge(TOPPASEdge* edge);
     /// Adds an outgoing edge
-    void addOutEdge(TOPPASEdge * edge);
+    void addOutEdge(TOPPASEdge* edge);
     /// Removes an incoming edge
-    void removeInEdge(TOPPASEdge * edge);
+    void removeInEdge(TOPPASEdge* edge);
     /// Removes an outgoing edge
-    void removeOutEdge(TOPPASEdge * edge);
+    void removeOutEdge(TOPPASEdge* edge);
     /// Returns the DFS color of this node
     DFS_COLOR getDFSColor();
     /// Sets the DFS color of this node
@@ -269,30 +269,30 @@ public:
     QStringList getFileNames() const;
 
     // get the output structure directly
-    const RoundPackages & getOutputFiles() const;
+    const RoundPackages& getOutputFiles() const;
 
 
     /// check if all upstream nodes are finished
     bool allInputsReady() const;
 
 
-public slots:
+  public slots:
 
     /// Called by an incoming edge when it has changed
     virtual void inEdgeHasChanged();
     /// Called by an outgoing edge when it has changed
     virtual void outEdgeHasChanged();
 
-signals:
+  signals:
 
     /// Emitted when this item is clicked
     void clicked();
     /// Emitted when this item is released
     void released();
     /// Emitted when the position of the hovering edge changes
-    void hoveringEdgePosChanged(const QPointF & new_pos);
+    void hoveringEdgePosChanged(const QPointF& new_pos);
     /// Emitted when a new out edge is supposed to be created
-    void newHoveringEdge(const QPointF & pos);
+    void newHoveringEdge(const QPointF& pos);
     /// Emitted when the mouse is released after having dragged a new edge somewhere
     void finishHoveringEdge();
     /// Emitted when something has changed
@@ -303,36 +303,35 @@ signals:
     /// each node type decides itself if this will invalidate the pipeline, depending on its internal status
     void parameterChanged(const bool invalidates_running_pipeline);
 
-protected:
-
+  protected:
     /// The list of incoming edges
     EdgeContainer in_edges_;
     /// The list of outgoing edges
     EdgeContainer out_edges_;
     /// Indicates whether a new out edge is currently being created
-    bool edge_being_created_{false};
+    bool edge_being_created_ {false};
     /// The color of the pen
-    QColor pen_color_{Qt::black};
+    QColor pen_color_ {Qt::black};
     /// The color of the brush
-    QColor brush_color_{ Qt::lightGray};
+    QColor brush_color_ {Qt::lightGray};
     /// The DFS color of this node
-    DFS_COLOR dfs_color_{DFS_WHITE};
+    DFS_COLOR dfs_color_ {DFS_WHITE};
     /// "marked" flag for topological sort
-    bool topo_sort_marked_{false};
+    bool topo_sort_marked_ {false};
     /// The number in a topological sort of the entire graph
     UInt topo_nr_;
     /// Stores the current output file names for each output parameter
     RoundPackages output_files_;
     /// number of rounds this node will do ('Merge All' nodes will pass everything, thus do only one round)
-    int round_total_{-1};
+    int round_total_ {-1};
     /// currently finished number of rounds (TODO: do we need that?)
-    int round_counter_{0};
+    int round_counter_ {0};
     /// Stores whether this node has already been processed during the current pipeline execution
-    bool finished_{false};
+    bool finished_ {false};
     /// Indicates whether this node is reachable (i.e. there is an input node somewhere further upstream)
-    bool reachable_{true};
+    bool reachable_ {true};
     /// shall subsequent tools be allowed to recycle the output of this node to match the number of rounds imposed by other parent nodes?
-    bool allow_output_recycling_{false};
+    bool allow_output_recycling_ {false};
 
 
 #ifdef TOPPAS_DEBUG
@@ -342,24 +341,24 @@ protected:
 
     ///@name reimplemented Qt events
     //@{
-    void mouseReleaseEvent(QGraphicsSceneMouseEvent * e) override;
-    void mousePressEvent(QGraphicsSceneMouseEvent * e) override;
-    void mouseDoubleClickEvent(QGraphicsSceneMouseEvent * e) override;
-    void mouseMoveEvent(QGraphicsSceneMouseEvent * e) override;
-    void contextMenuEvent(QGraphicsSceneContextMenuEvent * event) override;
+    void mouseReleaseEvent(QGraphicsSceneMouseEvent* e) override;
+    void mousePressEvent(QGraphicsSceneMouseEvent* e) override;
+    void mouseDoubleClickEvent(QGraphicsSceneMouseEvent* e) override;
+    void mouseMoveEvent(QGraphicsSceneMouseEvent* e) override;
+    void contextMenuEvent(QGraphicsSceneContextMenuEvent* event) override;
     //@}
 
     /// Moves the target pos of the edge which is just being created to @p pos
-    virtual void moveNewEdgeTo_(const QPointF & pos);
+    virtual void moveNewEdgeTo_(const QPointF& pos);
     /// Returns a three character string (i.e. 001 instead of 1) for the given @p number
     String get3CharsNumber_(UInt number) const;
 
     /// Displays the debug output @p message, if TOPPAS_DEBUG is defined
-    void debugOut_(const String &
+    void debugOut_(const String&
 #ifdef TOPPAS_DEBUG
-                   message
+                     message
 #endif
-                   ) const
+    ) const
     {
 #ifdef TOPPAS_DEBUG
       for (int i = 0; i < global_debug_indent_; ++i)
@@ -369,7 +368,5 @@ protected:
       std::cout << "[" << topo_nr_ << "] " << message << std::endl;
 #endif
     }
-
   };
-}
-
+} // namespace OpenMS

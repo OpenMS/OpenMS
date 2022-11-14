@@ -32,7 +32,7 @@
 // $Authors: Marc Sturm $
 // --------------------------------------------------------------------------
 
-//OpenMS
+// OpenMS
 #include <OpenMS/VISUAL/VISUALIZER/AcquisitionInfoVisualizer.h>
 
 // QT
@@ -47,9 +47,7 @@ using namespace std;
 namespace OpenMS
 {
 
-  AcquisitionInfoVisualizer::AcquisitionInfoVisualizer(bool editable, QWidget * parent) :
-    BaseVisualizerGUI(editable, parent),
-    BaseVisualizer<AcquisitionInfo>()
+  AcquisitionInfoVisualizer::AcquisitionInfoVisualizer(bool editable, QWidget* parent) : BaseVisualizerGUI(editable, parent), BaseVisualizer<AcquisitionInfo>()
   {
     addLabel_("Show AcquisitionInfo information");
     addSeparator_();
@@ -75,4 +73,4 @@ namespace OpenMS
     update_();
   }
 
-}
+} // namespace OpenMS

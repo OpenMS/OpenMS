@@ -37,7 +37,7 @@
 // OpenMS_GUI config
 #include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
 
-//OpenMS
+// OpenMS
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/VISUAL/VISUALIZER/BaseVisualizer.h>
 #include <OpenMS/VISUAL/VISUALIZER/BaseVisualizerGUI.h>
@@ -51,25 +51,23 @@ namespace OpenMS
 
       This class provides all functionality to view the meta information of an object of type Identification.
   */
-  class OPENMS_GUI_DLLAPI ProteinIdentificationVisualizer :
-    public BaseVisualizerGUI,
-    public BaseVisualizer<ProteinIdentification>
+  class OPENMS_GUI_DLLAPI ProteinIdentificationVisualizer : public BaseVisualizerGUI, public BaseVisualizer<ProteinIdentification>
   {
     Q_OBJECT
 
-public:
-    ///Constructor
-    ProteinIdentificationVisualizer(bool editable = false, QWidget * parent = 0, MetaDataBrowser * caller = nullptr);
+  public:
+    /// Constructor
+    ProteinIdentificationVisualizer(bool editable = false, QWidget* parent = 0, MetaDataBrowser* caller = nullptr);
 
     /// Loads the meta data from the object to the viewer. Gets the id of the item in the tree as parameter.
-    void load(ProteinIdentification & s, int tree_item_id);
+    void load(ProteinIdentification& s, int tree_item_id);
 
-public slots:
+  public slots:
 
-    //Docu in base class
+    // Docu in base class
     void store() override;
 
-protected slots:
+  protected slots:
 
     /**
         @brief Updates the tree by calling MetaDataBrowser::updateProteinHits()
@@ -80,38 +78,37 @@ protected slots:
     */
     void updateTree_();
 
-    ///Undo the changes made in the GUI.
+    /// Undo the changes made in the GUI.
     void undo_();
 
-protected:
-
+  protected:
     /// Pointer to MetaDataBrowser
-    MetaDataBrowser * pidv_caller_;
+    MetaDataBrowser* pidv_caller_;
     /// The id of the item in the tree
     int tree_id_;
 
     ///@name Edit fields and buttons
     //@{
-    QLineEdit * engine_;
-    QLineEdit * engine_version_;
-    QLineEdit * identification_date_;
-    QLineEdit * identification_threshold_;
-    QLineEdit * identifier_;
-    QLineEdit * score_type_;
-    QComboBox * higher_better_;
+    QLineEdit* engine_;
+    QLineEdit* engine_version_;
+    QLineEdit* identification_date_;
+    QLineEdit* identification_threshold_;
+    QLineEdit* identifier_;
+    QLineEdit* score_type_;
+    QComboBox* higher_better_;
 
-    QLineEdit * db_;
-    QLineEdit * db_version_;
-    QLineEdit * taxonomy_;
-    QLineEdit * charges_;
-    QLineEdit * missed_cleavages_;
-    QLineEdit * peak_tolerance_;
-    QLineEdit * precursor_tolerance_;
-    QComboBox * mass_type_;
-    QLineEdit * enzyme_;
+    QLineEdit* db_;
+    QLineEdit* db_version_;
+    QLineEdit* taxonomy_;
+    QLineEdit* charges_;
+    QLineEdit* missed_cleavages_;
+    QLineEdit* peak_tolerance_;
+    QLineEdit* precursor_tolerance_;
+    QComboBox* mass_type_;
+    QLineEdit* enzyme_;
     //@}
 
     /// Threshold for filtering by score
-    QLineEdit * filter_threshold_;
+    QLineEdit* filter_threshold_;
   };
-}
+} // namespace OpenMS

@@ -34,12 +34,11 @@
 
 #pragma once
 
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
+#include <OpenMS/DATASTRUCTURES/Param.h>
 #include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
-
 #include <future>
 #include <map>
-#include <OpenMS/DATASTRUCTURES/Param.h>
-#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 
 namespace OpenMS
 {
@@ -62,8 +61,7 @@ namespace OpenMS
   class OPENMS_GUI_DLLAPI TVToolDiscovery
   {
   public:
-    TVToolDiscovery() :
-      plugin_path_() {};
+    TVToolDiscovery() : plugin_path_() {};
 
     TVToolDiscovery(const TVToolDiscovery&) = delete;
 
@@ -107,7 +105,7 @@ namespace OpenMS
      * @param create Attempt to create the directory if it does not already exist
      * @returns False if setting/creating the path fails. True otherwise.
      */
-    [[maybe_unused]] bool setPluginPath(const String& path, bool create=false);
+    [[maybe_unused]] bool setPluginPath(const String& path, bool create = false);
 
     /// set the verbosity level of the tool discovery for debug purposes
     void setVerbose(int verbosity_level);
@@ -119,10 +117,10 @@ namespace OpenMS
     std::string findPluginExecutable(const std::string& name);
 
   private:
-    /** Returns param for a given tool/util. This function is thread-safe. Additionally inserts names of tools into 
+    /** Returns param for a given tool/util. This function is thread-safe. Additionally inserts names of tools into
         plugin list
      */
-    static Param getParamFromIni_(const String& tool_path, bool plugins=false);
+    static Param getParamFromIni_(const String& tool_path, bool plugins = false);
 
     /** Start creating params for each plugin in the set plugin path asynchronously
      *  This should only be called from waitForPluginParams() or the names in the plugins vector are not correct
@@ -151,4 +149,4 @@ namespace OpenMS
     /// Set to value > 0 to output tool discovery debug information
     int verbosity_level_ = 0;
   };
-}
+} // namespace OpenMS

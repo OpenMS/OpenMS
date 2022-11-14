@@ -36,7 +36,6 @@
 
 // OpenMS_GUI config
 #include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
-
 #include <OpenMS/VISUAL/TOPPASVertex.h>
 
 namespace OpenMS
@@ -44,19 +43,18 @@ namespace OpenMS
   /**
       @brief A special vertex that allows to split a list of inputs.
 
-      Tools that produce lists of output files (several files in each processing round, e.g. map alignment tools) cannot directly provide input for tools that only take a single input file in TOPPAS. This "Splitter" node provides the necessary glue, by splitting a list of output files into several rounds of single input files.
+      Tools that produce lists of output files (several files in each processing round, e.g. map alignment tools) cannot directly provide input for tools that only take a single input file in TOPPAS.
+     This "Splitter" node provides the necessary glue, by splitting a list of output files into several rounds of single input files.
 
       See the @ref OpenMS::TOPPASMergerVertex "Collector" node for the opposite operation.
 
       @ingroup TOPPAS_elements
   */
-  class OPENMS_GUI_DLLAPI TOPPASSplitterVertex :
-    public TOPPASVertex
+  class OPENMS_GUI_DLLAPI TOPPASSplitterVertex : public TOPPASVertex
   {
     Q_OBJECT
 
-public:
-
+  public:
     /// Default constructor
     TOPPASSplitterVertex() = default;
     /// Copy constructor
@@ -76,13 +74,10 @@ public:
     // documented in base class
     void markUnreachable() override;
 
-protected:
-
+  protected:
     ///@name reimplemented Qt events
     //@{
     void mouseDoubleClickEvent(QGraphicsSceneMouseEvent* e) override;
     //@}
-
   };
-}
-
+} // namespace OpenMS

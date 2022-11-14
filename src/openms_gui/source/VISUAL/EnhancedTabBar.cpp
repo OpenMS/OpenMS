@@ -32,11 +32,9 @@
 // $Authors: Marc Sturm $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/VISUAL/EnhancedTabBar.h>
-
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
-
+#include <OpenMS/VISUAL/EnhancedTabBar.h>
 #include <QMouseEvent>
 #include <QtWidgets/QMenu>
 #include <QtWidgets/QMessageBox>
@@ -46,12 +44,11 @@ using namespace std;
 namespace OpenMS
 {
 
-  EnhancedTabBar::EnhancedTabBar(QWidget * parent) :
-    QTabBar(parent)
+  EnhancedTabBar::EnhancedTabBar(QWidget* parent) : QTabBar(parent)
   {
     connect(this, SIGNAL(currentChanged(int)), this, SLOT(currentChanged_(int)));
 
-    //set up drag-and-drop
+    // set up drag-and-drop
     setAcceptDrops(true);
   }
 
@@ -59,15 +56,15 @@ namespace OpenMS
 
   void EnhancedTabBar::setTabText(const QString& text)
   {
-    QTabBar::setTabText(currentIndex(),  text);
+    QTabBar::setTabText(currentIndex(), text);
   }
 
-  void EnhancedTabBar::dragEnterEvent(QDragEnterEvent * e)
+  void EnhancedTabBar::dragEnterEvent(QDragEnterEvent* e)
   {
     e->acceptProposedAction();
   }
 
-  void EnhancedTabBar::dropEvent(QDropEvent * e)
+  void EnhancedTabBar::dropEvent(QDropEvent* e)
   {
     int tab = tabAt_(e->pos());
     if (tab != -1)
@@ -82,7 +79,7 @@ namespace OpenMS
     e->acceptProposedAction();
   }
 
-  void EnhancedTabBar::contextMenuEvent(QContextMenuEvent * e)
+  void EnhancedTabBar::contextMenuEvent(QContextMenuEvent* e)
   {
     int tab = tabAt_(e->pos());
     if (tab != -1)
@@ -96,7 +93,7 @@ namespace OpenMS
     }
   }
 
-  void EnhancedTabBar::mouseDoubleClickEvent(QMouseEvent * e)
+  void EnhancedTabBar::mouseDoubleClickEvent(QMouseEvent* e)
   {
     if (e->button() != Qt::LeftButton)
     {
@@ -137,7 +134,7 @@ namespace OpenMS
         return;
       }
     }
-   throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String("Tab with ID ") + id + " is already gone!");
+    throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String("Tab with ID ") + id + " is already gone!");
   }
 
   void EnhancedTabBar::show(int id)
@@ -157,7 +154,7 @@ namespace OpenMS
     emit currentIdChanged(tabData(index).toInt());
   }
 
-  int EnhancedTabBar::tabAt_(const QPoint & pos)
+  int EnhancedTabBar::tabAt_(const QPoint& pos)
   {
     for (int i = 0; i < this->count(); ++i)
     {
@@ -169,4 +166,4 @@ namespace OpenMS
     return -1;
   }
 
-} //namespace OpenMS
+} // namespace OpenMS

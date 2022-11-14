@@ -46,34 +46,34 @@
 
   <B>The command line parameters of this tool are:</B>
   @verbinclude TOPP_TOPPView.cli
-  
+
   Note: By default, TOPPView scans for novel TOPP tools if there has been a version update. To force a rescan you
   can pass the --force flag. To skip the scan for tools, you can pass the --skip_tool_scan flag.
 */
 
-//QT
-#include <QtWidgets/QSplashScreen>
+// QT
 #include <QMessageBox>
+#include <QtWidgets/QSplashScreen>
 
-//OpenMS
-#include <OpenMS/VISUAL/APPLICATIONS/TOPPViewBase.h>
-#include <OpenMS/VISUAL/APPLICATIONS/MISC/QApplicationTOPP.h>
+// OpenMS
 #include <OpenMS/SYSTEM/StopWatch.h>
+#include <OpenMS/VISUAL/APPLICATIONS/MISC/QApplicationTOPP.h>
+#include <OpenMS/VISUAL/APPLICATIONS/TOPPViewBase.h>
 
 
 using namespace OpenMS;
 using namespace std;
 
-//STL
+// STL
 #include <iostream>
 #include <map>
 #include <vector>
 
 #ifdef OPENMS_WINDOWSPLATFORM
-#   ifndef _WIN32_WINNT
-#       define _WIN32_WINNT 0x0501 // Win XP (and above)
-#   endif
-#   include <Windows.h>
+  #ifndef _WIN32_WINNT
+    #define _WIN32_WINNT 0x0501 // Win XP (and above)
+  #endif
+  #include <Windows.h>
 #endif
 
 //-------------------------------------------------------------
@@ -88,32 +88,49 @@ const char* tool_name = "TOPPView";
 void print_usage()
 {
   cerr << endl
-       << tool_name << " -- A viewer for mass spectrometry data." << "\n"
+       << tool_name << " -- A viewer for mass spectrometry data."
        << "\n"
-       << "Usage:" << "\n"
-       << " " << tool_name << " [options] [files]" << "\n"
        << "\n"
-       << "Options are:" << "\n"
-       << "  --help           Shows this help" << "\n"
-       << "  -ini <File>      Sets the INI file (default: ~/.TOPPView.ini)" << "\n"
-       << "  --force          Forces scan for new tools/utils" << "\n"
-       << "  --skip_tool_scan Skips scan for new tools/utils" << "\n"
+       << "Usage:"
        << "\n"
-       << "Hints:" << "\n"
-       << " - To open several files in one window put a '+' in between the files." << "\n"
-       << " - '@bw' after a map file displays the dots in a white to black gradient." << "\n"
-       << " - '@bg' after a map file displays the dots in a grey to black gradient." << "\n"
-       << " - '@b'  after a map file displays the dots in black." << "\n"
-       << " - '@r'  after a map file displays the dots in red." << "\n"
-       << " - '@g'  after a map file displays the dots in green." << "\n"
-       << " - '@m'  after a map file displays the dots in magenta." << "\n"
-       << " - Example: '" << tool_name << " 1.mzML + 2.mzML @bw + 3.mzML @bg'" << "\n"
+       << " " << tool_name << " [options] [files]"
+       << "\n"
+       << "\n"
+       << "Options are:"
+       << "\n"
+       << "  --help           Shows this help"
+       << "\n"
+       << "  -ini <File>      Sets the INI file (default: ~/.TOPPView.ini)"
+       << "\n"
+       << "  --force          Forces scan for new tools/utils"
+       << "\n"
+       << "  --skip_tool_scan Skips scan for new tools/utils"
+       << "\n"
+       << "\n"
+       << "Hints:"
+       << "\n"
+       << " - To open several files in one window put a '+' in between the files."
+       << "\n"
+       << " - '@bw' after a map file displays the dots in a white to black gradient."
+       << "\n"
+       << " - '@bg' after a map file displays the dots in a grey to black gradient."
+       << "\n"
+       << " - '@b'  after a map file displays the dots in black."
+       << "\n"
+       << " - '@r'  after a map file displays the dots in red."
+       << "\n"
+       << " - '@g'  after a map file displays the dots in green."
+       << "\n"
+       << " - '@m'  after a map file displays the dots in magenta."
+       << "\n"
+       << " - Example: '" << tool_name << " 1.mzML + 2.mzML @bw + 3.mzML @bg'"
+       << "\n"
        << endl;
 }
 
 int main(int argc, const char** argv)
 {
-  //list of all the valid options
+  // list of all the valid options
   std::map<std::string, std::string> valid_options, valid_flags, option_lists;
   valid_flags["--help"] = "help";
   valid_flags["--force"] = "force";
@@ -147,7 +164,6 @@ int main(int argc, const char** argv)
 
   try
   {
-
 #if defined(__APPLE__)
     // see https://bugreports.qt.io/browse/QTBUG-104871
     // if you link to QtWebEngine and the corresponding macros are enabled, it will
@@ -155,7 +171,7 @@ int main(int argc, const char** argv)
     // but our OpenGL code for 3D View is written in OpenGL 2.x.
     // Now we force 2.1 which is also available on all? Macs.
     QSurfaceFormat format;
-    format.setVersion(2, 1); // the default is 2, 0
+    format.setVersion(2, 1);                  // the default is 2, 0
     QSurfaceFormat::setDefaultFormat(format); // should be done before creating a QApplication
 #endif
 
@@ -200,7 +216,7 @@ int main(int argc, const char** argv)
       tb.loadPreferences(param.getValue("ini").toString());
     }
 
-    //load command line files
+    // load command line files
     if (param.exists("misc"))
     {
       tb.loadFiles(ListUtils::toStringList<std::string>(param.getValue("misc")), &splash_screen);
@@ -208,19 +224,17 @@ int main(int argc, const char** argv)
 
     // We are about to show the application.
     // Proper time to remove the splashscreen, if at least 1.5 seconds have passed...
-    while (stop_watch.getClockTime() < 1.5) /*wait*/
-    {
-    }
+    while (stop_watch.getClockTime() < 1.5) /*wait*/ {}
     stop_watch.stop();
     splash_screen.close();
 
 #ifdef OPENMS_WINDOWSPLATFORM
-    FreeConsole(); // get rid of console window at this point (we will not see any console output from this point on)
+    FreeConsole();     // get rid of console window at this point (we will not see any console output from this point on)
     AttachConsole(-1); // if the parent is a console, reattach to it - so we can see debug output - a normal user will usually not use cmd.exe to start a GUI)
 #endif
     return a.exec();
   }
-  //######################## ERROR HANDLING #################################
+  // ######################## ERROR HANDLING #################################
   catch (Exception::UnableToCreateFile& e)
   {
     cout << String("Error: Unable to write file (") << e.what() << ")" << endl << "Code location: " << e.getFile() << ":" << e.getLine() << endl;

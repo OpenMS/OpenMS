@@ -36,7 +36,6 @@
 
 // OpenMS_GUI config
 #include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
-
 #include <QWidget>
 
 namespace Ui
@@ -52,8 +51,7 @@ namespace OpenMS
       @ingroup TOPPAS_elements
       @ingroup Dialogs
   */
-  class OPENMS_GUI_DLLAPI OutputDirectory :
-    public QWidget
+  class OPENMS_GUI_DLLAPI OutputDirectory : public QWidget
   {
     Q_OBJECT
   public:
@@ -67,7 +65,7 @@ namespace OpenMS
 
     /// return the directory currently set (does not need to be valid)
     QString getDirectory() const;
-    
+
     /// check if the current directory exists and is writeable
     bool dirNameValid() const;
 
@@ -79,7 +77,7 @@ namespace OpenMS
 
     /// Lets the user select the file via a file dialog
     void showFileDialog();
-    
+
   private slots:
     /// forward internal textEdit::textChanged to directoryChanged signal
     void textEditChanged_(const QString& new_text);
@@ -88,4 +86,4 @@ namespace OpenMS
     Ui::OutputDirectoryTemplate* ui_;
   };
 
-}
+} // namespace OpenMS

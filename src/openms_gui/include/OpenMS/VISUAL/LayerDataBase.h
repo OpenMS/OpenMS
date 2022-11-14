@@ -35,8 +35,6 @@
 #pragma once
 
 #include <OpenMS/DATASTRUCTURES/Param.h>
-#include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
-
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/FILTERING/DATAREDUCTION/DataFilters.h>
 #include <OpenMS/KERNEL/ConsensusMap.h>
@@ -50,10 +48,8 @@
 #include <OpenMS/VISUAL/MISC/CommonDefs.h>
 #include <OpenMS/VISUAL/MultiGradient.h>
 #include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
-
-#include <boost/shared_ptr.hpp>
-
 #include <bitset>
+#include <boost/shared_ptr.hpp>
 #include <vector>
 
 class QWidget;
@@ -67,14 +63,12 @@ namespace OpenMS
   class Painter1DBase;
   class Painter2DBase;
 
-  template <int N_DIM> class DimMapper;
+  template<int N_DIM>
+  class DimMapper;
 
-  struct LayerDataDefs
-  {
-
+  struct LayerDataDefs {
     /// Result of computing a projection on X and Y axis in a 2D Canvas; see LayerDataBase::getProjection()
-    struct ProjectionData
-    {
+    struct ProjectionData {
       /// C'tor
       ProjectionData();
       /// Move C'tor
@@ -164,7 +158,7 @@ namespace OpenMS
   @brief Class that stores the data for one layer
 
   The data for a layer can be peak data, feature data (feature, consensus),
-  chromatogram or peptide identification data. 
+  chromatogram or peptide identification data.
 
   For 2D and 3D data, the data is generally accessible through getPeakData()
   while features are accessible through getFeatureMap() and getConsensusMap().
@@ -174,7 +168,7 @@ namespace OpenMS
   Peak data is stored using a shared pointer to an MSExperiment data structure
   as well as a shared pointer to a OnDiscMSExperiment data structure. Note that
   the actual data may not be in memory as this is not efficient for large files
-  and therefore may have to be retrieved from disk on-demand. 
+  and therefore may have to be retrieved from disk on-demand.
 
   @note The spectrum for 1D viewing retrieved through getCurrentSpectrum() is a
   copy of the actual raw data and *different* from the one retrieved through
@@ -197,15 +191,17 @@ namespace OpenMS
     //@}
 
     /// Default constructor (for virtual inheritance)
-    LayerDataBase() = delete;     // <-- this is the problem. Call assignment op in 1DPeak???
+    LayerDataBase() = delete; // <-- this is the problem. Call assignment op in 1DPeak???
     /// C'tor for child classes
-    explicit LayerDataBase(const DataType type) : type(type) {}
+    explicit LayerDataBase(const DataType type) : type(type)
+    {
+    }
     /// Copy-C'tor
     LayerDataBase(const LayerDataBase& ld) = default;
     /// Assignment operator
     LayerDataBase& operator=(const LayerDataBase& ld) = delete;
     /// Move-C'tor - do not move from this class since its a virtual base class (diamond problem) and the move c'tor may be called twice (which would loose data!)
-    /// Instead of painstakingly writing user-defined move c'tors which check for moving for all the direct child classes, 
+    /// Instead of painstakingly writing user-defined move c'tors which check for moving for all the direct child classes,
     /// we'd rather use copy (which is the automatic fallback, and safe) and incur a small performance hit
     LayerDataBase(LayerDataBase&& ld) = delete;
     /// Move assignment -- deleted, by same argument as for move c'tor
@@ -224,7 +220,7 @@ namespace OpenMS
      * \brief Create a shallow copy (i.e. shared experimental data using shared_ptr) of the current layer, and make it 1D (i.e. support showing a single spec/chrom etc)
      * \return A new layer for 1D
      */
-    virtual std::unique_ptr <LayerData1DBase> to1DLayer() const = 0;
+    virtual std::unique_ptr<LayerData1DBase> to1DLayer() const = 0;
 
     /// Returns a visitor which contains the current visible data and can write the data to disk
     virtual std::unique_ptr<LayerStoreData> storeVisibleData(const RangeAllType& /*visible_range*/, const DataFilters& /*layer_filters*/) const
@@ -288,8 +284,7 @@ namespace OpenMS
     /// add peptide identifications to the layer
     /// Only supported for DT_PEAK, DT_FEATURE and DT_CONSENSUS.
     /// Will return false otherwise.
-    virtual bool annotate(const std::vector<PeptideIdentification>& identifications,
-                          const std::vector<ProteinIdentification>& protein_identifications);
+    virtual bool annotate(const std::vector<PeptideIdentification>& identifications, const std::vector<ProteinIdentification>& protein_identifications);
 
 
     /**
@@ -367,7 +362,7 @@ namespace OpenMS
   public:
     /**
         @brief C'tor with params
-        
+
         @param supported_types Which identification data types are allowed to be opened by the user in annotate()
         @param file_dialog_text The header text of the file dialog shown to the user
         @param gui_lock Optional GUI element which will be locked (disabled) during call to 'annotateWorker_'; can be null_ptr
@@ -400,7 +395,7 @@ namespace OpenMS
 
     const FileTypeList supported_types_;
     const String file_dialog_text_;
-    QWidget* gui_lock_ = nullptr;///< optional widget which will be locked when calling annotateWorker_() in child-classes
+    QWidget* gui_lock_ = nullptr; ///< optional widget which will be locked when calling annotateWorker_() in child-classes
   };
 
   /// Annotate a layer with PeptideIdentifications using Layer::annotate(pepIDs, protIDs).
@@ -408,9 +403,7 @@ namespace OpenMS
   class LayerAnnotatorPeptideID : public LayerAnnotatorBase
   {
   public:
-    LayerAnnotatorPeptideID(QWidget* gui_lock) :
-        LayerAnnotatorBase(std::vector<FileTypes::Type>{FileTypes::IDXML, FileTypes::MZIDENTML},
-                           "Select peptide identification data", gui_lock)
+    LayerAnnotatorPeptideID(QWidget* gui_lock) : LayerAnnotatorBase(std::vector<FileTypes::Type> {FileTypes::IDXML, FileTypes::MZIDENTML}, "Select peptide identification data", gui_lock)
     {
     }
 
@@ -425,9 +418,7 @@ namespace OpenMS
   class LayerAnnotatorAMS : public LayerAnnotatorBase
   {
   public:
-    LayerAnnotatorAMS(QWidget* gui_lock) :
-        LayerAnnotatorBase(std::vector<FileTypes::Type>{FileTypes::FEATUREXML},
-                           "Select AccurateMassSearch's featureXML file", gui_lock)
+    LayerAnnotatorAMS(QWidget* gui_lock) : LayerAnnotatorBase(std::vector<FileTypes::Type> {FileTypes::FEATUREXML}, "Select AccurateMassSearch's featureXML file", gui_lock)
     {
     }
 
@@ -442,9 +433,7 @@ namespace OpenMS
   class LayerAnnotatorOSW : public LayerAnnotatorBase
   {
   public:
-    LayerAnnotatorOSW(QWidget* gui_lock) :
-        LayerAnnotatorBase(std::vector<FileTypes::Type>{FileTypes::OSW},
-                           "Select OpenSwath/pyProphet output file", gui_lock)
+    LayerAnnotatorOSW(QWidget* gui_lock) : LayerAnnotatorBase(std::vector<FileTypes::Type> {FileTypes::OSW}, "Select OpenSwath/pyProphet output file", gui_lock)
     {
     }
 
@@ -457,5 +446,4 @@ namespace OpenMS
   /// Print the contents to a stream.
   OPENMS_GUI_DLLAPI std::ostream& operator<<(std::ostream& os, const LayerDataBase& rhs);
 
-}// namespace OpenMS
-
+} // namespace OpenMS

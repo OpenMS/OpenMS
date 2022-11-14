@@ -32,11 +32,9 @@
 // $Authors: Chris Bielow $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/VISUAL/TreeView.h>
-
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
-
+#include <OpenMS/VISUAL/TreeView.h>
 #include <QHeaderView>
 #include <QMenu>
 
@@ -47,8 +45,7 @@ using namespace std;
 
 namespace OpenMS
 {
-  TreeView::TreeView(QWidget* parent) :
-    QTreeWidget(parent)
+  TreeView::TreeView(QWidget* parent) : QTreeWidget(parent)
   {
     this->setObjectName("tree_widget");
 
@@ -65,9 +62,7 @@ namespace OpenMS
 
     for (int i = 0; i < header->columnCount(); ++i)
     {
-      auto action = context_menu.addAction(header->text(i), [i, this]() {
-        this->setColumnHidden(i, !this->isColumnHidden(i));
-        });
+      auto action = context_menu.addAction(header->text(i), [i, this]() { this->setColumnHidden(i, !this->isColumnHidden(i)); });
       action->setCheckable(true);
       action->setChecked(!this->isColumnHidden(i));
     }
@@ -84,9 +79,9 @@ namespace OpenMS
 
   void TreeView::hideColumns(const QStringList& header_names)
   {
-     /*
-       * Suppressing warning toSet() deprecated till Qt 5.14
-       */
+    /*
+     * Suppressing warning toSet() deprecated till Qt 5.14
+     */
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wdeprecated-declarations"
     auto hset = header_names.toSet();
@@ -131,9 +126,10 @@ namespace OpenMS
     const auto& header = this->headerItem();
     if (header->columnCount() <= header_column)
     {
-      throw Exception::ElementNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Header index " + String(header_column) + " is too large. There are only " + String(header->columnCount()) + " columns!");
+      throw Exception::ElementNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                       "Header index " + String(header_column) + " is too large. There are only " + String(header->columnCount()) + " columns!");
     }
     return header->text(header_column);
   }
 
-}
+} // namespace OpenMS

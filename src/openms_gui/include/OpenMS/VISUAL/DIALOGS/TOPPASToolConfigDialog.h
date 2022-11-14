@@ -35,10 +35,9 @@
 #pragma once
 
 // OpenMS_GUI config
-#include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
-
 #include <OpenMS/DATASTRUCTURES/Param.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
 
 class QComboBox;
 class QPushButton;
@@ -61,12 +60,11 @@ namespace OpenMS
       @ingroup TOPPAS_elements
       @ingroup Dialogs
   */
-  class OPENMS_GUI_DLLAPI TOPPASToolConfigDialog :
-    public QDialog
+  class OPENMS_GUI_DLLAPI TOPPASToolConfigDialog : public QDialog
   {
     Q_OBJECT
 
-public:
+  public:
     /**
         @brief Constructor
 
@@ -78,15 +76,15 @@ public:
         @param tool_desc The tool description
         @param hidden_entries List of entries that are used already in edges etc and should not be shown
     */
-    TOPPASToolConfigDialog(QWidget * parent, Param & param, const String& default_dir, const String& tool_name, const String& tool_type, const String& tool_desc, const QVector<String>& hidden_entries);
-    ///Destructor
+    TOPPASToolConfigDialog(QWidget* parent, Param& param, const String& default_dir, const String& tool_name, const String& tool_type, const String& tool_desc, const QVector<String>& hidden_entries);
+    /// Destructor
     ~TOPPASToolConfigDialog() override;
 
-private:
+  private:
     /// ParamEditor for reading ini-files
-    ParamEditor * editor_;
+    ParamEditor* editor_;
     /// The param we are editing
-    Param * param_;
+    Param* param_;
     /// Param for loading the ini-file
     Param arg_param_;
     /// default-dir of ini-file to open
@@ -100,7 +98,7 @@ private:
     /// The parameters already explained by in edges
     QVector<String> hidden_entries_;
 
-protected slots:
+  protected slots:
     /// Slot for OK button
     void ok_();
     /// loads an ini-file into the editor_
@@ -109,4 +107,4 @@ protected slots:
     void storeINI_();
   };
 
-}
+} // namespace OpenMS

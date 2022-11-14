@@ -32,16 +32,15 @@
 // $Authors: Marc Sturm $
 // --------------------------------------------------------------------------s
 
-#include <OpenMS/VISUAL/VISUALIZER/PeptideIdentificationVisualizer.h>
 #include <OpenMS/DATASTRUCTURES/DateTime.h>
 #include <OpenMS/VISUAL/MetaDataBrowser.h>
+#include <OpenMS/VISUAL/VISUALIZER/PeptideIdentificationVisualizer.h>
 
-//QT
-#include <QtWidgets/QLineEdit>
+// QT
 #include <QValidator>
-#include <QtWidgets/QPushButton>
 #include <QtWidgets/QComboBox>
-
+#include <QtWidgets/QLineEdit>
+#include <QtWidgets/QPushButton>
 #include <iostream>
 
 using namespace std;
@@ -49,9 +48,8 @@ using namespace std;
 namespace OpenMS
 {
 
-  PeptideIdentificationVisualizer::PeptideIdentificationVisualizer(bool editable, QWidget * parent, MetaDataBrowser * caller) :
-    BaseVisualizerGUI(editable, parent),
-    BaseVisualizer<PeptideIdentification>()
+  PeptideIdentificationVisualizer::PeptideIdentificationVisualizer(bool editable, QWidget* parent, MetaDataBrowser* caller) :
+      BaseVisualizerGUI(editable, parent), BaseVisualizer<PeptideIdentification>()
   {
     pidv_caller_ = caller;
 
@@ -64,14 +62,14 @@ namespace OpenMS
 
     addSeparator_();
     addLabel_("Show peptide hits with score equal or better than a threshold.");
-    QPushButton * button;
+    QPushButton* button;
     addLineEditButton_("Score threshold", filter_threshold_, button, "Filter");
     connect(button, SIGNAL(clicked()), this, SLOT(updateTree_()));
 
     finishAdding_();
   }
 
-  void PeptideIdentificationVisualizer::load(PeptideIdentification & s, int tree_item_id)
+  void PeptideIdentificationVisualizer::load(PeptideIdentification& s, int tree_item_id)
   {
     ptr_ = &s;
     temp_ = s;
@@ -112,4 +110,4 @@ namespace OpenMS
     load(*ptr_, tree_id_);
   }
 
-}
+} // namespace OpenMS

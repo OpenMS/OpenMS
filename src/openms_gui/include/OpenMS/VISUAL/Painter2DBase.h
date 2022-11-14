@@ -35,13 +35,11 @@
 #pragma once
 
 
-#include <QRgb>
-#include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
-
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/DATASTRUCTURES/ConvexHull2D.h>
 #include <OpenMS/VISUAL/INTERFACES/IPeptideIds.h>
-
+#include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
+#include <QRgb>
 #include <vector>
 
 class QPainter;
@@ -63,7 +61,7 @@ namespace OpenMS
 
   /**
    * @brief A base class for painting all items from a data layer (as supported by class derived from here) onto a 2D Canvas
-  */
+   */
   class OPENMS_GUI_DLLAPI Painter2DBase
   {
   public:
@@ -71,8 +69,8 @@ namespace OpenMS
 
     /**
        @brief Paints items using the given painter onto the canvas.
- 
-       @param painter The painter used for drawing 
+
+       @param painter The painter used for drawing
        @param canvas The canvas to paint onto (should expose all the details needed, like canvas size, draw mode, colors etc)
        @param layer_index Which layer is currently painted
     */
@@ -83,7 +81,7 @@ namespace OpenMS
      * \brief Emphasize a certain element (e.g. feature), e.g. when mouse hovering.
      * By default, nothing is highlighted. Override for subclasses if you need highlighting.
      *
-     * \param painter The painter used for drawing 
+     * \param painter The painter used for drawing
      * \param canvas The canvas to paint onto (should expose all the details needed, like canvas size, draw mode, colors etc)
      * \param element Which item of the current layer should be drawn?
      */
@@ -118,7 +116,7 @@ namespace OpenMS
 
   /**
      @brief Painter2D for spectra
-     
+
   */
   class OPENMS_GUI_DLLAPI Painter2DPeak : public Painter2DBase
   {
@@ -168,10 +166,10 @@ namespace OpenMS
     const LayerDataChrom* layer_; ///< the data to paint
   };
 
- /**
-   @brief Painter2D for ion mobilograms
+  /**
+    @brief Painter2D for ion mobilograms
 
-  */
+   */
   class OPENMS_GUI_DLLAPI Painter2DIonMobility : public Painter2DBase
   {
   public:
@@ -273,5 +271,5 @@ namespace OpenMS
   protected:
     const LayerDataIdent* layer_; ///< the data to paint
   };
-  
+
 } // namespace OpenMS

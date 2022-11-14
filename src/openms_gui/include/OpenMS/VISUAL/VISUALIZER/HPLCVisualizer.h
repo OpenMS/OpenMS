@@ -37,7 +37,7 @@
 // OpenMS_GUI config
 #include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
 
-//OpenMS
+// OpenMS
 #include <OpenMS/METADATA/HPLC.h>
 #include <OpenMS/VISUAL/VISUALIZER/BaseVisualizer.h>
 #include <OpenMS/VISUAL/VISUALIZER/BaseVisualizerGUI.h>
@@ -50,41 +50,37 @@ namespace OpenMS
 
       This class provides all functionality to view the meta information of an object of type HPLC.
   */
-  class OPENMS_GUI_DLLAPI HPLCVisualizer :
-    public BaseVisualizerGUI,
-    public BaseVisualizer<HPLC>
+  class OPENMS_GUI_DLLAPI HPLCVisualizer : public BaseVisualizerGUI, public BaseVisualizer<HPLC>
   {
     Q_OBJECT
 
-public:
+  public:
+    /// Constructor
+    HPLCVisualizer(bool editable = false, QWidget* parent = nullptr);
 
-    ///Constructor
-    HPLCVisualizer(bool editable = false, QWidget * parent = nullptr);
+  public slots:
 
-public slots:
-
-    //Docu in base class
+    // Docu in base class
     void store() override;
 
-protected slots:
+  protected slots:
 
-    ///Undo the changes made in the GUI.
+    /// Undo the changes made in the GUI.
     void undo_();
 
-protected:
-
+  protected:
     ///@name Edit fields and buttons
     //@{
-    QLineEdit * hplcinstrument_;
-    QLineEdit * hplccolumn_;
-    QLineEdit * hplctemperature_;
-    QLineEdit * hplcpressure_;
-    QLineEdit * hplcflux_;
-    QTextEdit * hplccomment_;
+    QLineEdit* hplcinstrument_;
+    QLineEdit* hplccolumn_;
+    QLineEdit* hplctemperature_;
+    QLineEdit* hplcpressure_;
+    QLineEdit* hplcflux_;
+    QTextEdit* hplccomment_;
     //@}
 
-    //Docu in base class
+    // Docu in base class
     void update_() override;
   };
 
-}
+} // namespace OpenMS

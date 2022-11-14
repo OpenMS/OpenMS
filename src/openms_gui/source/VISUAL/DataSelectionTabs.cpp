@@ -33,20 +33,19 @@
 // --------------------------------------------------------------------------
 
 // OpenMS_GUI config
-#include <OpenMS/VISUAL/DataSelectionTabs.h>
-
 #include <OpenMS/CONCEPT/RAIICleanup.h>
-#include <OpenMS/VISUAL/DIATreeTab.h>
-#include <OpenMS/VISUAL/LayerDataBase.h>
 #include <OpenMS/VISUAL/APPLICATIONS/TOPPViewBase.h>
+#include <OpenMS/VISUAL/DIATreeTab.h>
+#include <OpenMS/VISUAL/DataSelectionTabs.h>
+#include <OpenMS/VISUAL/LayerDataBase.h>
 #include <OpenMS/VISUAL/MISC/GUIHelpers.h>
-#include <OpenMS/VISUAL/SpectraTreeTab.h>
-#include <OpenMS/VISUAL/SpectraIDViewTab.h>
 #include <OpenMS/VISUAL/Plot1DCanvas.h>
 #include <OpenMS/VISUAL/Plot2DCanvas.h>
+#include <OpenMS/VISUAL/SpectraIDViewTab.h>
+#include <OpenMS/VISUAL/SpectraTreeTab.h>
 #include <OpenMS/VISUAL/TVDIATreeTabController.h>
-#include <OpenMS/VISUAL/TVSpectraViewController.h>
 #include <OpenMS/VISUAL/TVIdentificationViewController.h>
+#include <OpenMS/VISUAL/TVSpectraViewController.h>
 
 namespace OpenMS
 {
@@ -59,16 +58,10 @@ namespace OpenMS
 
   /// Default constructor
 
-  DataSelectionTabs::DataSelectionTabs(QWidget* parent, TOPPViewBase* tv)
-    : QTabWidget(parent),
-    spectra_view_widget_(new SpectraTreeTab(this)),
-    id_view_widget_(new SpectraIDViewTab(Param(), this)),
-    dia_widget_(new DIATreeTab(this)),
-    tab_ptrs_{ spectra_view_widget_, id_view_widget_, dia_widget_ },   // make sure to add new tabs here!
-    spectraview_controller_(new TVSpectraViewController(tv)),
-    idview_controller_(new TVIdentificationViewController(tv, id_view_widget_)),
-    diatab_controller_(new TVDIATreeTabController(tv)),
-    tv_(tv)
+  DataSelectionTabs::DataSelectionTabs(QWidget* parent, TOPPViewBase* tv) :
+      QTabWidget(parent), spectra_view_widget_(new SpectraTreeTab(this)), id_view_widget_(new SpectraIDViewTab(Param(), this)),
+      dia_widget_(new DIATreeTab(this)), tab_ptrs_ {spectra_view_widget_, id_view_widget_, dia_widget_}, // make sure to add new tabs here!
+      spectraview_controller_(new TVSpectraViewController(tv)), idview_controller_(new TVIdentificationViewController(tv, id_view_widget_)), diatab_controller_(new TVDIATreeTabController(tv)), tv_(tv)
   {
     // Hook-up controller and views for spectra
     connect(spectra_view_widget_, &SpectraTreeTab::showSpectrumMetaData, tv, &TOPPViewBase::showSpectrumMetaData);
@@ -139,15 +132,12 @@ namespace OpenMS
   {
     // prevent infinite loop when calling 'setTabEnabled' -> currentTabChanged() -> update()
     this->blockSignals(true);
-    RAIICleanup cleanup([&]()
-    {
-      this->blockSignals(false);
-    });
+    RAIICleanup cleanup([&]() { this->blockSignals(false); });
 
     auto layer_ptr = getCurrentLayerData(tv_); // can be nullptr
 
     // becomes true if the currently visible tab has no data
-    bool auto_select = false; 
+    bool auto_select = false;
     // the order is important here. On auto-select, we will pick the highest one which has data to show!
     Size highest_data_index = 0; // will pick spectra_view_widget_ if layer_ptr==nullptr
     for (Size i = 0; i < tab_ptrs_.size(); ++i)
@@ -167,7 +157,7 @@ namespace OpenMS
     }
     // pick the highest tab which has data
     if (auto_select)
-    { 
+    {
       setCurrentIndex(highest_data_index);
     }
     Size current_index = currentIndex();
@@ -180,30 +170,30 @@ namespace OpenMS
     // set new behavior
     switch (tab_index)
     {
-    case SPECTRA_IDX:
-      idview_controller_->deactivateBehavior(); // finalize old behavior
-      diatab_controller_->deactivateBehavior();
-      spectraview_controller_->activateBehavior(); // initialize new behavior
-      break;
-    case IDENT_IDX:
-      spectraview_controller_->deactivateBehavior();
-      diatab_controller_->deactivateBehavior();
-      if (tv_->getActive2DWidget()) // currently, 2D window is open
-      {
-        idview_controller_->showSpectrumAsNew1D(0);
-      }
-      idview_controller_->activateBehavior();
-      break;
-    case DIAOSW_IDX:
-      idview_controller_->deactivateBehavior(); // finalize old behavior
-      spectraview_controller_->deactivateBehavior();
-      diatab_controller_->activateBehavior(); // initialize new behavior
-      break;
-    default:
-      std::cerr << "Error: tab_index " << tab_index << " is invalid\n";
-      throw Exception::NotImplemented(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
+      case SPECTRA_IDX:
+        idview_controller_->deactivateBehavior(); // finalize old behavior
+        diatab_controller_->deactivateBehavior();
+        spectraview_controller_->activateBehavior(); // initialize new behavior
+        break;
+      case IDENT_IDX:
+        spectraview_controller_->deactivateBehavior();
+        diatab_controller_->deactivateBehavior();
+        if (tv_->getActive2DWidget()) // currently, 2D window is open
+        {
+          idview_controller_->showSpectrumAsNew1D(0);
+        }
+        idview_controller_->activateBehavior();
+        break;
+      case DIAOSW_IDX:
+        idview_controller_->deactivateBehavior(); // finalize old behavior
+        spectraview_controller_->deactivateBehavior();
+        diatab_controller_->activateBehavior(); // initialize new behavior
+        break;
+      default:
+        std::cerr << "Error: tab_index " << tab_index << " is invalid\n";
+        throw Exception::NotImplemented(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
     }
-    callUpdateEntries(); //TODO actually this is overkill. Why would you load the entire table again
+    callUpdateEntries(); // TODO actually this is overkill. Why would you load the entire table again
     // when you only switched tabs? The TabView should get notified when the layer data changes, so it only
     // updates when necessary...
     // The only thing that maybe needs to happen when switching tabs is to sync the index across the tables in the different tabs.
@@ -259,24 +249,24 @@ namespace OpenMS
     }
     switch (tab_index)
     {
-    case IDENT_IDX:
-      if (!isTabEnabled(IDENT_IDX))
-      {
-        setTabEnabled(IDENT_IDX, true); // enable identification view
-
-        spectraview_controller_->deactivateBehavior();
-        if (tv_->getActive2DWidget()) // currently 2D window is open
+      case IDENT_IDX:
+        if (!isTabEnabled(IDENT_IDX))
         {
-          idview_controller_->showSpectrumAsNew1D(0);
-        }
-        idview_controller_->activateBehavior();
+          setTabEnabled(IDENT_IDX, true); // enable identification view
 
-        // TODO: check this triggers update!
-        setCurrentIndex(IDENT_IDX); // switch to identification view --> triggers currentTabChanged() slot
-      }
-    case SPECTRA_IDX:
-    default:
-      break;
+          spectraview_controller_->deactivateBehavior();
+          if (tv_->getActive2DWidget()) // currently 2D window is open
+          {
+            idview_controller_->showSpectrumAsNew1D(0);
+          }
+          idview_controller_->activateBehavior();
+
+          // TODO: check this triggers update!
+          setCurrentIndex(IDENT_IDX); // switch to identification view --> triggers currentTabChanged() slot
+        }
+      case SPECTRA_IDX:
+      default:
+        break;
     }
 
     // update here?
@@ -286,5 +276,4 @@ namespace OpenMS
   {
     return id_view_widget_;
   }
-} //namespace
-
+} // namespace OpenMS

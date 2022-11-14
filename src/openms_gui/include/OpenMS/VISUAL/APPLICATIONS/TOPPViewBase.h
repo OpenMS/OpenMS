@@ -37,30 +37,30 @@
 // OpenMS_GUI config
 #include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
 
-//OpenMS
-#include <OpenMS/KERNEL/StandardTypes.h>
+// OpenMS
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
+#include <OpenMS/KERNEL/StandardTypes.h>
+#include <OpenMS/SYSTEM/FileWatcher.h>
+#include <OpenMS/VISUAL/DIALOGS/TheoreticalSpectrumGenerationDialog.h>
 #include <OpenMS/VISUAL/EnhancedTabBar.h>
 #include <OpenMS/VISUAL/EnhancedWorkspace.h>
-#include <OpenMS/SYSTEM/FileWatcher.h>
 #include <OpenMS/VISUAL/FilterList.h>
-#include <OpenMS/VISUAL/RecentFilesMenu.h>
 #include <OpenMS/VISUAL/PlotCanvas.h>
 #include <OpenMS/VISUAL/PlotWidget.h>
+#include <OpenMS/VISUAL/RecentFilesMenu.h>
 #include <OpenMS/VISUAL/TOPPViewMenu.h>
 #include <OpenMS/VISUAL/TVToolDiscovery.h>
-#include <OpenMS/VISUAL/DIALOGS/TheoreticalSpectrumGenerationDialog.h>
 
-//STL
+// STL
 #include <map>
 
-//QT
-#include <QtWidgets/QMainWindow>
-#include <QtWidgets/QButtonGroup>
-#include <QtWidgets/QActionGroup>
-#include <QtCore/QStringList>
-#include <QtCore/QProcess>
+// QT
 #include <QElapsedTimer>
+#include <QtCore/QProcess>
+#include <QtCore/QStringList>
+#include <QtWidgets/QActionGroup>
+#include <QtWidgets/QButtonGroup>
+#include <QtWidgets/QMainWindow>
 
 class QAction;
 class QComboBox;
@@ -98,8 +98,8 @@ namespace OpenMS
     below) and multiple tool bars. On top and bottom are a menu bar and a
     status bar.
 
-    The main layout is using 
-    - Central Widget: 
+    The main layout is using
+    - Central Widget:
       - EnhancedTabBar: tab_bar_
       - EnhancedWorkspace: ws_
     - Docked to the right:
@@ -123,34 +123,32 @@ namespace OpenMS
 
     @ingroup TOPPView_elements
   */
-  class OPENMS_GUI_DLLAPI TOPPViewBase :
-    public QMainWindow,
-    public DefaultParamHandler
+  class OPENMS_GUI_DLLAPI TOPPViewBase : public QMainWindow, public DefaultParamHandler
   {
     Q_OBJECT
 
     friend class TestTOPPView;
 
-public:
+  public:
     ///@name Type definitions
     //@{
-    //Feature map type
+    // Feature map type
     typedef LayerDataBase::FeatureMapType FeatureMapType;
-    //Feature map managed type
+    // Feature map managed type
     typedef LayerDataBase::FeatureMapSharedPtrType FeatureMapSharedPtrType;
 
-    //Consensus feature map type
+    // Consensus feature map type
     typedef LayerDataBase::ConsensusMapType ConsensusMapType;
-    //Consensus  map managed type
+    // Consensus  map managed type
     typedef LayerDataBase::ConsensusMapSharedPtrType ConsensusMapSharedPtrType;
 
-    //Peak map type
+    // Peak map type
     typedef LayerDataBase::ExperimentType ExperimentType;
-    //Main managed data type (experiment)
+    // Main managed data type (experiment)
     typedef LayerDataBase::ExperimentSharedPtrType ExperimentSharedPtrType;
-    //Main on-disc managed data type (experiment)
+    // Main on-disc managed data type (experiment)
     typedef LayerDataBase::ODExperimentSharedPtrType ODExperimentSharedPtrType;
-    ///Peak spectrum type
+    /// Peak spectrum type
     typedef ExperimentType::SpectrumType SpectrumType;
     //@}
 
@@ -172,18 +170,18 @@ public:
     {
       DEFAULT,
       VERBOSE
-    };    
+    };
 
-    ///Constructor
+    /// Constructor
     explicit TOPPViewBase(TOOL_SCAN scan_mode = TOOL_SCAN::SCAN_IF_NEWER_VERSION, VERBOSITY verbosity = VERBOSITY::DEFAULT, QWidget* parent = nullptr);
-    ///Destructor
+    /// Destructor
     ~TOPPViewBase() override;
 
     enum class LOAD_RESULT
     {
       OK,
       FILE_NOT_FOUND,       ///< file did not exist
-      FILETYPE_UNKNOWN,     ///< file exists, but type could no be determined                                                
+      FILETYPE_UNKNOWN,     ///< file exists, but type could no be determined
       FILETYPE_UNSUPPORTED, ///< filetype is known, but the format not supported as layer data
       LOAD_ERROR            ///< an error occurred while loading the file
     };
@@ -218,19 +216,9 @@ public:
       @param window_id in which window the file is opened if opened as a new layer (0 or default equals current
       @param spectrum_id determines the spectrum to show in 1D view.
     */
-    void addData(const FeatureMapSharedPtrType& feature_map,
-                 const ConsensusMapSharedPtrType& consensus_map,
-                 std::vector<PeptideIdentification>& peptides,
-                 const ExperimentSharedPtrType& peak_map,
-                 const ODExperimentSharedPtrType& on_disc_peak_map,
-                 LayerDataBase::DataType data_type,
-                 bool show_as_1d,
-                 bool show_options,
-                 bool as_new_window = true,
-                 const String& filename = "",
-                 const String& caption = "",
-                 UInt window_id = 0,
-                 Size spectrum_id = 0);
+    void addData(const FeatureMapSharedPtrType& feature_map, const ConsensusMapSharedPtrType& consensus_map, std::vector<PeptideIdentification>& peptides, const ExperimentSharedPtrType& peak_map,
+                 const ODExperimentSharedPtrType& on_disc_peak_map, LayerDataBase::DataType data_type, bool show_as_1d, bool show_options, bool as_new_window = true, const String& filename = "",
+                 const String& caption = "", UInt window_id = 0, Size spectrum_id = 0);
 
     /// Opens all the files in the string list
     void loadFiles(const StringList& list, QSplashScreen* splash_screen);
@@ -279,7 +267,7 @@ public:
     /// Opens the provided spectrum widget in a new window
     void showPlotWidgetInWindow(PlotWidget* sw);
 
-public slots:
+  public slots:
     /// changes the current path according to the currently active window/layer
     void updateCurrentPath();
     /// shows the file dialog for opening files (a starting directory, e.g. for the example files can be provided; otherwise, uses the current_path_)
@@ -363,7 +351,7 @@ public slots:
     void metadataFileDialog();
 
     /** @name Toolbar slots
-    */
+     */
     //@{
     void setDrawMode1D(int) const;
     void setIntensityMode(int);
@@ -384,7 +372,7 @@ public slots:
     /// shows a spectrum's metadata with index @p spectrum_index from the currently active canvas
     void showSpectrumMetaData(int spectrum_index) const;
 
-protected slots:
+  protected slots:
     /// slot for the finished signal of the TOPP tools execution
     void finishTOPPToolExecution(int exitCode, QProcess::ExitStatus exitStatus);
     /// aborts the execution of a TOPP tool
@@ -393,7 +381,7 @@ protected slots:
     void showSpectrumBrowser();
 
     /** @name Tabbar slots
-    */
+     */
     //@{
     /// Closes the window corresponding to the data of the tab with identifier @p id
     void closeByTab(int id);
@@ -408,7 +396,8 @@ protected slots:
 
     /// Called if a data file has been externally changed
     void fileChanged_(const String&);
-protected:
+
+  protected:
     /// Initializes the default parameters on TOPPView construction.
     void initializeDefaultParameters_();
 
@@ -447,15 +436,15 @@ protected:
     LogWindow* log_;
 
     /// Determines TVToolDiscovery scans for tool/utils and generates new params.
-    TOOL_SCAN scan_mode_;    
+    TOOL_SCAN scan_mode_;
     /// Scans for tools/utils and generates a param for each.
     TVToolDiscovery tool_scanner_;
 
-    /// Verbosity of TV 
+    /// Verbosity of TV
     VERBOSITY verbosity_;
 
     /** @name Toolbar
-    */
+     */
     //@{
     QToolBar* tool_bar_;
 
@@ -484,7 +473,7 @@ protected:
     //@}
 
     /// Main workspace
-    EnhancedWorkspace ws_;  // not a pointer, but an actual object, so it gets destroyed before the DefaultParamhandler (on which it depends)
+    EnhancedWorkspace ws_; // not a pointer, but an actual object, so it gets destroyed before the DefaultParamhandler (on which it depends)
     /// LAST active subwindow (~ corresponding to tab) in the MDI container. Since subwindows can lose focus,
     /// we want to make sure that things like the ID tables only update when a NEW window is activated. (Actually,
     /// we should check for the underlying data but this might be a @todo).
@@ -492,12 +481,12 @@ protected:
     /// Tab bar. The address of the corresponding window to a tab is stored as an int in tabData()
     EnhancedTabBar tab_bar_;
     /// manages recent list of filenames and the menu that goes with it
-    RecentFilesMenu recent_files_;  // needs to be declared before 'menu_', because its needed there
+    RecentFilesMenu recent_files_; // needs to be declared before 'menu_', because its needed there
     /// manages the menu items (active/inactive) and recent files etc
     TOPPViewMenu menu_;
 
     /** @name Status bar
-    */
+     */
     //@{
     /// Label for messages in the status bar
     QLabel* message_label_;
@@ -520,8 +509,7 @@ protected:
     /// Runs the TOPP tool according to the information in topp_
     void runTOPPTool_();
     /// Information needed for execution of TOPP tools
-    struct
-    {
+    struct {
       Param param;
       String tool;
       String in;
@@ -543,7 +531,7 @@ protected:
     void closeEvent(QCloseEvent* event) override;
     //@}
 
-    ///Additional context menu for 2D layers
+    /// Additional context menu for 2D layers
     QMenu* add_2d_context_;
 
     /// Apply TOPP tool. If @p visible is true, only the visible data is used, otherwise the whole layer is used.
@@ -553,13 +541,12 @@ protected:
     /// Depending on the preferences this is static or changes with the current window/layer.
     String current_path_;
 
-private:
+  private:
     /// Suffix appended to caption of tabs when layer is shown in 3D
     static const String CAPTION_3D_SUFFIX_;
 
     /// This dialog is a member so that its settings can be perserved upon closing.
     TheoreticalSpectrumGenerationDialog spec_gen_dialog_;
-  }; //class
+  }; // class
 
-} //namespace
-
+} // namespace OpenMS

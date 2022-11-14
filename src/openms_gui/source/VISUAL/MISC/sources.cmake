@@ -3,18 +3,18 @@ set(directory source/VISUAL/MISC)
 
 ### list all filenames of the directory here
 set(sources_list
-CommonDefs.cpp
-ExternalProcessMBox.cpp
-FilterableList.cpp
-FilterableList.ui
-GUIHelpers.cpp
-)
+        CommonDefs.cpp
+        ExternalProcessMBox.cpp
+        FilterableList.cpp
+        FilterableList.ui
+        GUIHelpers.cpp
+        )
 
 ### add path to the filenames
 set(sources)
-foreach(i ${sources_list})
-	list(APPEND sources ${directory}/${i})
-endforeach(i)
+foreach (i ${sources_list})
+    list(APPEND sources ${directory}/${i})
+endforeach (i)
 
 ### pass source file list to the upper instance
 set(OpenMSVisual_sources ${OpenMSVisual_sources} ${sources})

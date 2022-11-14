@@ -34,14 +34,13 @@
 
 #pragma once
 
-#include <OpenMS/VISUAL/LayerDataBase.h>
-#include <OpenMS/VISUAL/LayerData1DBase.h>
-
 #include <OpenMS/KERNEL/Mobilogram.h>
+#include <OpenMS/VISUAL/LayerData1DBase.h>
+#include <OpenMS/VISUAL/LayerDataBase.h>
 
 namespace OpenMS
 {
-  
+
   /**
   @brief Class that stores the data for one layer of type IonMobility
 
@@ -102,7 +101,8 @@ namespace OpenMS
 
     const Mobilogram& getMobilogram(Size index) const
     {
-      if (index != 0) throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Only one mobilogram possible atm.", String(index));
+      if (index != 0)
+        throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Only one mobilogram possible atm.", String(index));
       return single_mobilogram_;
     }
 
@@ -116,4 +116,4 @@ namespace OpenMS
     Mobilogram single_mobilogram_; ///< a single mobilogram (for now) -- see class description
   };
 
-}// namespace OpenMS
+} // namespace OpenMS

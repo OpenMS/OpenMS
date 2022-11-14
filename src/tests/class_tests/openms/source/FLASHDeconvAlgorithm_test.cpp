@@ -105,7 +105,7 @@ START_SECTION((static float getCosine(const std::vector<float>& a,
   TOLERANCE_ABSOLUTE(0.1);
   TEST_REAL_SIMILAR(cos_1, 0.65);
   TEST_REAL_SIMILAR(cos_2, 0.3);
-  TEST_EQUAL(cos_3, 0);
+  TEST_REAL_SIMILAR(cos_3, 0.5);
 }
 END_SECTION
 
@@ -203,9 +203,10 @@ START_SECTION((DeconvolvedSpectrum& performSpectrumDeconvolution(const MSSpectru
   Precursor precursor = d_ms2_spec.getPrecursor();
   TOLERANCE_ABSOLUTE(1);
   TEST_EQUAL(d_ms1_spec.getPrecursorPeakGroup().size(), 0);
-  TEST_EQUAL(d_ms2_spec.getPrecursorPeakGroup().size(), 66);
+  TEST_EQUAL(d_ms2_spec.getPrecursorPeakGroup().size(), 67);
   TEST_EQUAL(precursor.getCharge(), 9);
-  TEST_REAL_SIMILAR(precursor.getIntensity(), 12031);
+  TOLERANCE_ABSOLUTE(100);
+  TEST_REAL_SIMILAR(precursor.getIntensity(), 12293.4);
 }
 END_SECTION
 

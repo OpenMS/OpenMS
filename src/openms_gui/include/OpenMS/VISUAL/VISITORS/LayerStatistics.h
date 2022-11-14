@@ -35,13 +35,11 @@
 #pragma once
 
 // OpenMS_GUI config
-#include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
-
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/MATH/STATISTICS/Histogram.h>
 #include <OpenMS/VISUAL/INTERFACES/IPeptideIds.h>
-
+#include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
 #include <array>
 #include <map>
 #include <string>
@@ -52,50 +50,49 @@ namespace OpenMS
   class MetaInfoInterface;
   class ConsensusMap;
   class FeatureMap;
-  
+
   /**
      @brief Struct representing the statistics about a set of values
 
      Min and max are only useful if count > 0
   */
-  template <typename VALUE_TYPE>
-  struct RangeStats
-  {
-    public:  
-      void addDataPoint(VALUE_TYPE v)
-      {
-        ++count_;
-        sum_ += v;
-        min_ = std::min(min_, v);
-        max_ = std::max(max_, v);
-      }
+  template<typename VALUE_TYPE>
+  struct RangeStats {
+  public:
+    void addDataPoint(VALUE_TYPE v)
+    {
+      ++count_;
+      sum_ += v;
+      min_ = std::min(min_, v);
+      max_ = std::max(max_, v);
+    }
 
-      VALUE_TYPE getMin() const
-      {
-        return min_;
-      }
+    VALUE_TYPE getMin() const
+    {
+      return min_;
+    }
 
-      VALUE_TYPE getMax() const
-      {
-        return max_;
-      }
+    VALUE_TYPE getMax() const
+    {
+      return max_;
+    }
 
-      size_t getCount() const
-      {
-        return count_;
-      }
+    size_t getCount() const
+    {
+      return count_;
+    }
 
-      /// get the average value from all calls to addDataPoint()
-      double getAvg() const
-      {
-        return count_ == 0 ? 0 : double(sum_) / count_;
-      }
+    /// get the average value from all calls to addDataPoint()
+    double getAvg() const
+    {
+      return count_ == 0 ? 0 : double(sum_) / count_;
+    }
 
-    protected:
-      size_t count_{0};
-      VALUE_TYPE min_{std::numeric_limits<VALUE_TYPE>::max()}; // init with very high value 
-      VALUE_TYPE max_{std::numeric_limits<VALUE_TYPE>::lowest()}; // init with lowest (=negative) value possible
-      VALUE_TYPE sum_{0};
+  protected:
+    size_t count_ {0};
+    VALUE_TYPE min_ {std::numeric_limits<VALUE_TYPE>::max()};    // init with very high value
+    VALUE_TYPE max_ {std::numeric_limits<VALUE_TYPE>::lowest()}; // init with lowest (=negative) value possible
+    VALUE_TYPE sum_ {0};
   };
 
   using RangeStatsInt = RangeStats<int>;
@@ -103,26 +100,24 @@ namespace OpenMS
   using RangeStatsVariant = std::variant<RangeStatsInt, RangeStatsDouble>;
 
   /// a simple counting struct, for non-numerical occurrences of meta-values
-  struct StatsCounter
-  {
-    size_t counter{0};
+  struct StatsCounter {
+    size_t counter {0};
   };
 
   /// Where did a statistic come from? Useful for display to user, and for internal dispatch when user requests a more detailed value distribution
   enum class RangeStatsSource
   {
-    CORE,  ///< statistic was obtained from a core data structure of the container, e.g. intensity
-    METAINFO, ///< statistic was obtained from MetaInfoInterface of container elements, e.g. "FWHM" for FeatureMaps
-    ARRAYINFO,  ///< statistic was obtained from Float/IntegerArrays of the container elements, e.g. "IonMobility" for PeakMap
+    CORE,      ///< statistic was obtained from a core data structure of the container, e.g. intensity
+    METAINFO,  ///< statistic was obtained from MetaInfoInterface of container elements, e.g. "FWHM" for FeatureMaps
+    ARRAYINFO, ///< statistic was obtained from Float/IntegerArrays of the container elements, e.g. "IonMobility" for PeakMap
     SIZE_OF_STATSSOURCE
   };
-  
+
   /// Names corresponding to elements of enum RangeStatsSource
   static const std::array<const char*, (size_t)RangeStatsSource::SIZE_OF_STATSSOURCE> StatsSourceNames = {"core statistics", "meta values", "data arrays"};
 
   /// Origin and name of a statistic.
-  struct RangeStatsType
-  {
+  struct RangeStatsType {
     RangeStatsSource src;
     std::string name;
 
@@ -162,7 +157,7 @@ namespace OpenMS
 
     /**
        @brief After computing the overview statistic, you can query a concrete distribution by giving the name of the statistic
-       @param which Distribution based on which data? 
+       @param which Distribution based on which data?
        @param number_of_bins Number of histogram bins (equally spaced within [min,max] of the distribution)
        @return The distribution
        @throws Exception::InvalidValue if @p which is not a valid overview statistic for the underlying data
@@ -176,19 +171,18 @@ namespace OpenMS
     /// Brings the meta values of one @p meta_interface (a peak or feature) into the statistics
     void bringInMetaStats_(const MetaInfoInterface* meta_interface);
 
-    StatsMap overview_range_data_; ///< data on numerical values computed during getOverviewStatistics 
+    StatsMap overview_range_data_;        ///< data on numerical values computed during getOverviewStatistics
     StatsCounterMap overview_count_data_; ///< count data on non-numerical values computed during getOverviewStatistics
   };
 
   /**
-    @brief Computes statistics and distributions for a PeakMap    
+    @brief Computes statistics and distributions for a PeakMap
   */
-  class OPENMS_GUI_DLLAPI LayerStatisticsPeakMap
-   : public LayerStatistics
+  class OPENMS_GUI_DLLAPI LayerStatisticsPeakMap : public LayerStatistics
   {
   public:
     LayerStatisticsPeakMap(const PeakMap& pm);
- 
+
     Math::Histogram<> getDistribution(const RangeStatsType& which, const UInt number_of_bins) const override;
 
   private:
@@ -205,8 +199,7 @@ namespace OpenMS
   public:
     LayerStatisticsFeatureMap(const FeatureMap& fm);
 
-    Math::Histogram<> getDistribution(const RangeStatsType& which,
-                                      const UInt number_of_bins) const override;
+    Math::Histogram<> getDistribution(const RangeStatsType& which, const UInt number_of_bins) const override;
 
   private:
     void computeStatistics_() override;
@@ -222,8 +215,7 @@ namespace OpenMS
   public:
     LayerStatisticsConsensusMap(const ConsensusMap& cm);
 
-    Math::Histogram<> getDistribution(const RangeStatsType& which,
-                                      const UInt number_of_bins) const override;
+    Math::Histogram<> getDistribution(const RangeStatsType& which, const UInt number_of_bins) const override;
 
   private:
     void computeStatistics_() override;
@@ -239,13 +231,12 @@ namespace OpenMS
   public:
     LayerStatisticsIdent(const IPeptideIds::PepIds& cm);
 
-    Math::Histogram<> getDistribution(const RangeStatsType& which,
-                                      const UInt number_of_bins) const override;
+    Math::Histogram<> getDistribution(const RangeStatsType& which, const UInt number_of_bins) const override;
 
   private:
     void computeStatistics_() override;
     const IPeptideIds::PepIds* ids_; ///< internal reference to a PeptideIds -- make sure it does not
                                      ///< go out of scope while using this class
   };
-  
+
 } // namespace OpenMS

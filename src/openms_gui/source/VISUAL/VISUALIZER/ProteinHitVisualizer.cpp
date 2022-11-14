@@ -32,13 +32,12 @@
 // $Authors: Marc Sturm $
 // --------------------------------------------------------------------------
 
-//OpenMS
+// OpenMS
 #include <OpenMS/VISUAL/VISUALIZER/ProteinHitVisualizer.h>
 
-//QT
-#include <QtWidgets/QTextEdit>
+// QT
 #include <QtWidgets/QLineEdit>
-
+#include <QtWidgets/QTextEdit>
 #include <iostream>
 
 using namespace std;
@@ -46,9 +45,7 @@ using namespace std;
 namespace OpenMS
 {
 
-  ProteinHitVisualizer::ProteinHitVisualizer(bool editable, QWidget * parent) :
-    BaseVisualizerGUI(editable, parent),
-    BaseVisualizer<ProteinHit>()
+  ProteinHitVisualizer::ProteinHitVisualizer(bool editable, QWidget* parent) : BaseVisualizerGUI(editable, parent), BaseVisualizer<ProteinHit>()
   {
     addLineEdit_(proteinhit_score_, "Score");
     addLineEdit_(proteinhit_rank_, "Rank");
@@ -72,7 +69,7 @@ namespace OpenMS
 
   void ProteinHitVisualizer::store()
   {
-    //TODO?
+    // TODO?
     (*ptr_) = temp_;
   }
 
@@ -81,4 +78,4 @@ namespace OpenMS
     update_();
   }
 
-}
+} // namespace OpenMS

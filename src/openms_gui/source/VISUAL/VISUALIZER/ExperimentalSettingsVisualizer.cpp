@@ -32,16 +32,16 @@
 // $Authors: Marc Sturm $
 // --------------------------------------------------------------------------s
 
-#include <OpenMS/VISUAL/VISUALIZER/ExperimentalSettingsVisualizer.h>
 #include <OpenMS/DATASTRUCTURES/Date.h>
 #include <OpenMS/VISUAL/MetaDataBrowser.h>
+#include <OpenMS/VISUAL/VISUALIZER/ExperimentalSettingsVisualizer.h>
 
-//QT
+// QT
+#include <QtWidgets/QComboBox>
 #include <QtWidgets/QLineEdit>
 #include <QtWidgets/QTextEdit>
-#include <QtWidgets/QComboBox>
 
-//STL
+// STL
 #include <iostream>
 
 using namespace std;
@@ -49,9 +49,7 @@ using namespace std;
 namespace OpenMS
 {
 
-  ExperimentalSettingsVisualizer::ExperimentalSettingsVisualizer(bool editable, QWidget * parent) :
-    BaseVisualizerGUI(editable, parent),
-    BaseVisualizer<ExperimentalSettings>()
+  ExperimentalSettingsVisualizer::ExperimentalSettingsVisualizer(bool editable, QWidget* parent) : BaseVisualizerGUI(editable, parent), BaseVisualizer<ExperimentalSettings>()
   {
     addLabel_("Modify the settings of the experiment.");
     addSeparator_();
@@ -77,7 +75,7 @@ namespace OpenMS
       date.set(datetime_->text());
       ptr_->setDateTime(date);
     }
-    catch (exception & /*e*/)
+    catch (exception& /*e*/)
     {
       if (date.isNull())
       {
@@ -97,4 +95,4 @@ namespace OpenMS
     update_();
   }
 
-}
+} // namespace OpenMS

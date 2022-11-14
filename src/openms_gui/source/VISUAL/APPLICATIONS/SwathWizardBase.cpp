@@ -32,20 +32,19 @@
 // $Authors: Chris Bielow $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/VISUAL/APPLICATIONS/SwathWizardBase.h>
-#include <ui_SwathWizardBase.h>
-
-#include <OpenMS/APPLICATIONS/ToolHandler.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
+#include <OpenMS/APPLICATIONS/ToolHandler.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/VISUAL/APPLICATIONS/MISC/QApplicationTOPP.h>
+#include <OpenMS/VISUAL/APPLICATIONS/SwathWizardBase.h>
 #include <OpenMS/VISUAL/DIALOGS/SwathTabWidget.h>
+#include <ui_SwathWizardBase.h>
 
-//Qt
-#include <QtCore/QDir>
+// Qt
 #include <QDesktopServices>
 #include <QMessageBox>
 #include <QSettings>
+#include <QtCore/QDir>
 
 using namespace std;
 using namespace OpenMS;
@@ -55,10 +54,9 @@ namespace OpenMS
   using namespace Internal;
 
   SwathWizardBase::SwathWizardBase(QWidget* parent) :
-    QMainWindow(parent),
-    DefaultParamHandler("SwathWizardBase"),
-    //clipboard_scene_(nullptr),
-    ui(new Ui::SwathWizardBase)
+      QMainWindow(parent), DefaultParamHandler("SwathWizardBase"),
+      // clipboard_scene_(nullptr),
+      ui(new Ui::SwathWizardBase)
   {
     ui->setupUi(this);
     QSettings settings("OpenMS", "SwathWizard");
@@ -85,7 +83,7 @@ namespace OpenMS
 
   void OpenMS::SwathWizardBase::on_actionExit_triggered()
   {
-      QApplicationTOPP::exit();
+    QApplicationTOPP::exit();
   }
 
   void OpenMS::SwathWizardBase::on_actionVisit_OpenSwath_homepage_triggered()
@@ -93,7 +91,7 @@ namespace OpenMS
     const char* url = "http://openswath.org";
     if (!QDesktopServices::openUrl(QUrl(url)))
     {
-      QMessageBox::warning(0, "Cannot open browser. Please check your default browser settings.", QString(url));
+      QMessageBox::warning(nullptr, "Cannot open browser. Please check your default browser settings.", QString(url));
     }
   }
 
@@ -102,13 +100,8 @@ namespace OpenMS
     const char* url = "https://github.com/OpenMS/OpenMS/issues";
     if (!QDesktopServices::openUrl(QUrl(url)))
     {
-      QMessageBox::warning(0, "Cannot open browser. Please check your default browser settings.", QString(url));
+      QMessageBox::warning(nullptr, "Cannot open browser. Please check your default browser settings.", QString(url));
     }
   }
 
-} //namespace OpenMS
-
-
-
-
-
+} // namespace OpenMS

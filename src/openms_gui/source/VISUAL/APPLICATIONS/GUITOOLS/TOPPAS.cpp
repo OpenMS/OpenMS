@@ -59,31 +59,31 @@
     @verbinclude TOPP_TOPPAS.cli
 */
 
-//QT
+// QT
 #include <QApplication>
 #include <QPainter>
-#include <QtWidgets/QSplashScreen>
 #include <QtCore/QDir>
+#include <QtWidgets/QSplashScreen>
 
 
-//OpenMS
+// OpenMS
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/CONCEPT/VersionInfo.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/SYSTEM/StopWatch.h>
-#include <OpenMS/VISUAL/APPLICATIONS/TOPPASBase.h>
 #include <OpenMS/VISUAL/APPLICATIONS/MISC/QApplicationTOPP.h>
+#include <OpenMS/VISUAL/APPLICATIONS/TOPPASBase.h>
 
-//STL
+// STL
 #include <iostream>
 #include <map>
 #include <vector>
 
 #ifdef OPENMS_WINDOWSPLATFORM
-#   ifndef _WIN32_WINNT
-#       define _WIN32_WINNT 0x0501 // Win XP (and above)
-#   endif
-#   include <Windows.h>
+  #ifndef _WIN32_WINNT
+    #define _WIN32_WINNT 0x0501 // Win XP (and above)
+  #endif
+  #include <Windows.h>
 #endif
 
 using namespace OpenMS;
@@ -101,15 +101,21 @@ const char* tool_name = "TOPPAS";
 void print_usage(Logger::LogStream& stream = OpenMS_Log_info)
 {
   stream << "\n"
-         << tool_name << " -- An assistant for GUI-driven TOPP workflow design." << "\n"
+         << tool_name << " -- An assistant for GUI-driven TOPP workflow design."
          << "\n"
-         << "Usage:" << "\n"
-         << " " << tool_name << " [options] [files]" << "\n"
          << "\n"
-         << "Options are:" << "\n"
-         << "  --help           Shows this help" << "\n"
+         << "Usage:"
+         << "\n"
+         << " " << tool_name << " [options] [files]"
+         << "\n"
+         << "\n"
+         << "Options are:"
+         << "\n"
+         << "  --help           Shows this help"
+         << "\n"
          << "  --debug          Enables debug messages\n"
-         << "  -ini <File>      Sets the INI file (default: ~/.TOPPAS.ini)" << "\n"
+         << "  -ini <File>      Sets the INI file (default: ~/.TOPPAS.ini)"
+         << "\n"
          << endl;
 }
 
@@ -157,7 +163,6 @@ int main(int argc, const char** argv)
 
   try
   {
-
     if (param.exists("execute") || param.exists("out_dir"))
     {
       OPENMS_LOG_ERROR << "The parameters '-execute' and '-out_dir' are not valid anymore. This functionality has been moved to the ExecutePipeline tool." << endl;
@@ -193,29 +198,27 @@ int main(int argc, const char** argv)
     {
       mw->loadFiles(ListUtils::toStringList<std::string>(param.getValue("misc")), &splash_screen);
     }
-    else 
+    else
     {
       mw->newPipeline();
     }
 
     // We are about to show the application.
     // Proper time to  remove the splash screen, if at least 1.5 seconds have passed...
-    while (stop_watch.getClockTime() < 1.5) /*wait*/
-    {
-    }
+    while (stop_watch.getClockTime() < 1.5) /*wait*/ {}
     stop_watch.stop();
     splash_screen.close();
 
 #ifdef OPENMS_WINDOWSPLATFORM
-    FreeConsole(); // get rid of console window at this point (we will not see any console output from this point on)
+    FreeConsole();     // get rid of console window at this point (we will not see any console output from this point on)
     AttachConsole(-1); // if the parent is a console, reattach to it - so we can see debug output - a normal user will usually not use cmd.exe to start a GUI)
 #endif
 
     int result = a.exec();
-    delete(mw);
+    delete (mw);
     return result;
   }
-  //######################## ERROR HANDLING #################################
+  // ######################## ERROR HANDLING #################################
   catch (Exception::UnableToCreateFile& e)
   {
     cout << String("Error: Unable to write file (") << e.what() << ")" << endl << "Code location: " << e.getFile() << ":" << e.getLine() << endl;

@@ -36,9 +36,7 @@
 
 // OpenMS_GUI config
 #include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
-
 #include <OpenMS/VISUAL/TOPPASToolVertex.h>
-
 #include <QtCore/QVector>
 #include <QtWidgets/QDialog>
 
@@ -61,40 +59,37 @@ namespace OpenMS
       @ingroup TOPPAS_elements
       @ingroup Dialogs
   */
-  class OPENMS_GUI_DLLAPI TOPPASIOMappingDialog :
-    public QDialog
+  class OPENMS_GUI_DLLAPI TOPPASIOMappingDialog : public QDialog
   {
     Q_OBJECT
 
-public:
-
+  public:
     /// Constructor
-    TOPPASIOMappingDialog(TOPPASEdge * parent);
+    TOPPASIOMappingDialog(TOPPASEdge* parent);
     ~TOPPASIOMappingDialog() override;
 
-public slots:
+  public slots:
 
     /// Called instead of exec() after edge is constructed (in order to avoid showing the dialog if not necessary)
     int firstExec();
 
-protected:
-
+  protected:
     /// Fills the table
     void fillComboBoxes_();
 
     /// The edge we are configuring
-    TOPPASEdge * edge_;
+    TOPPASEdge* edge_;
 
     /// Vector storing the mapping of the target input combobox indices to param indices of edges
     QVector<int> target_input_param_indices_;
 
-protected slots:
+  protected slots:
 
     /// Called when OK is pressed; checks if the selected parameters are valid
     void checkValidity_();
 
-private:
+  private:
     Ui::TOPPASIOMappingDialogTemplate* ui_;
   };
 
-}
+} // namespace OpenMS

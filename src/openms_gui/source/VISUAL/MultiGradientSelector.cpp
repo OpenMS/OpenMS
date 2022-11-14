@@ -35,14 +35,14 @@
 // OpenMS includes
 #include <OpenMS/VISUAL/MultiGradientSelector.h>
 
-//qt includes
-#include <QPainter>
-#include <QtWidgets/QColorDialog>
-#include <QPixmap>
-#include <QMouseEvent>
-#include <QKeyEvent>
-#include <QPaintEvent>
+// qt includes
 #include <QContextMenuEvent>
+#include <QKeyEvent>
+#include <QMouseEvent>
+#include <QPaintEvent>
+#include <QPainter>
+#include <QPixmap>
+#include <QtWidgets/QColorDialog>
 #include <QtWidgets/QMenu>
 
 using namespace std;
@@ -50,41 +50,33 @@ using namespace std;
 namespace OpenMS
 {
 
-  MultiGradientSelector::MultiGradientSelector(QWidget * parent) :
-    QWidget(parent),
-    gradient_(),
-    margin_(5),
-    gradient_area_width_(0),
-    lever_area_height_(17),
-    selected_(-1),
-    selected_color_(Qt::white)
+  MultiGradientSelector::MultiGradientSelector(QWidget* parent) : QWidget(parent), gradient_(), margin_(5), gradient_area_width_(0), lever_area_height_(17), selected_(-1), selected_color_(Qt::white)
   {
     setMinimumSize(250, 45);
     setFocusPolicy(Qt::ClickFocus);
     setToolTip("Click the lever area to add new levers. Levers can be removed with the DEL key. "
                "Double click a lever to change its color. Levers can be dragged.<BR><BR>"
-               "In the context menu you can select default gradients and change the interplation mode."
-               );
+               "In the context menu you can select default gradients and change the interplation mode.");
   }
 
   MultiGradientSelector::~MultiGradientSelector() = default;
 
-  const MultiGradient & MultiGradientSelector::gradient() const
+  const MultiGradient& MultiGradientSelector::gradient() const
   {
     return gradient_;
   }
 
-  MultiGradient & MultiGradientSelector::gradient()
+  MultiGradient& MultiGradientSelector::gradient()
   {
     return gradient_;
   }
 
-  void MultiGradientSelector::paintEvent(QPaintEvent * /* e */)
+  void MultiGradientSelector::paintEvent(QPaintEvent* /* e */)
   {
     static QPixmap pixmap = QPixmap(size());
     pixmap.fill(palette().window().color());
 
-    //calculate gradient area width
+    // calculate gradient area width
     if (gradient_area_width_ == 0)
     {
       gradient_area_width_ = width() - 2 * margin_ - 2;
@@ -92,18 +84,18 @@ namespace OpenMS
 
     QPainter painter(&pixmap);
 
-    //gradient field outline
+    // gradient field outline
     painter.setPen(QColor(0, 0, 0));
     painter.drawRect(margin_, margin_, width() - 2 * margin_, height() - 2 * margin_ - lever_area_height_);
 
-    //draw gradient
+    // draw gradient
     for (Int i = 0; i <= gradient_area_width_; ++i)
     {
       painter.setPen(gradient_.interpolatedColorAt(i, 0, gradient_area_width_));
       painter.drawLine(margin_ + 1 + i, margin_ + 1, margin_ + 1 + i, height() - margin_ - lever_area_height_ - 1);
     }
 
-    //levers
+    // levers
     painter.setPen(QColor(0, 0, 0));
     for (UInt i = 0; i < (UInt)gradient_.size(); ++i)
     {
@@ -113,7 +105,7 @@ namespace OpenMS
       painter.drawLine(pos, height() - margin_ - lever_area_height_, pos + 4, height() - margin_ - lever_area_height_ + 5);
       painter.fillRect(pos - 3, height() - margin_ - lever_area_height_ + 6, 8, 8, gradient_.color(i));
 
-      //selected lever
+      // selected lever
       if (Int(gradient_.position(i)) == selected_)
       {
         painter.fillRect(pos - 2, height() - margin_ - lever_area_height_ + 3, 6, 3, QColor(0, 0, 0));
@@ -125,7 +117,7 @@ namespace OpenMS
     painter2.drawPixmap(0, 0, pixmap);
   }
 
-  void MultiGradientSelector::mousePressEvent(QMouseEvent * e)
+  void MultiGradientSelector::mousePressEvent(QMouseEvent* e)
   {
     if (e->button() != Qt::LeftButton)
     {
@@ -151,7 +143,7 @@ namespace OpenMS
       }
     }
 
-    //create new lever
+    // create new lever
     if (e->x() >= margin_ && e->x() <= width() - margin_ && e->y() >= height() - margin_ - lever_area_height_ && e->y() <= height() - margin_)
     {
       Int pos = Int(100 * (e->x() - margin_) / float(gradient_area_width_));
@@ -161,15 +153,15 @@ namespace OpenMS
     }
   }
 
-  void MultiGradientSelector::mouseMoveEvent(QMouseEvent * e)
+  void MultiGradientSelector::mouseMoveEvent(QMouseEvent* e)
   {
     if (left_button_pressed_ && selected_ > 0 && selected_ < 100) // don't move first or last lever
     {
-      //inside lever area
+      // inside lever area
       if (e->x() >= margin_ && e->x() <= width() - margin_ && e->y() >= height() - margin_ - lever_area_height_ && e->y() <= height() - margin_)
       {
         Int pos = Int(100 * (e->x() - margin_) / float(gradient_area_width_));
-        if (pos != selected_ && !gradient_.exists(pos))        // lever has been moved AND no other lever at the new position?
+        if (pos != selected_ && !gradient_.exists(pos)) // lever has been moved AND no other lever at the new position?
         {
           gradient_.remove(selected_);
           gradient_.insert(pos, selected_color_);
@@ -180,7 +172,7 @@ namespace OpenMS
     }
   }
 
-  void MultiGradientSelector::mouseReleaseEvent(QMouseEvent * e)
+  void MultiGradientSelector::mouseReleaseEvent(QMouseEvent* e)
   {
     if (e->button() != Qt::LeftButton)
     {
@@ -190,7 +182,7 @@ namespace OpenMS
     left_button_pressed_ = false;
   }
 
-  void MultiGradientSelector::mouseDoubleClickEvent(QMouseEvent * e)
+  void MultiGradientSelector::mouseDoubleClickEvent(QMouseEvent* e)
   {
     for (UInt i = 0; i < (UInt)gradient_.size(); ++i)
     {
@@ -207,9 +199,9 @@ namespace OpenMS
     }
   }
 
-  void MultiGradientSelector::keyPressEvent(QKeyEvent * e)
+  void MultiGradientSelector::keyPressEvent(QKeyEvent* e)
   {
-    if (e->key() == Qt::Key_Delete && selected_ > 0 && selected_ < 100)     // don't remove first or last lever)
+    if (e->key() == Qt::Key_Delete && selected_ > 0 && selected_ < 100) // don't remove first or last lever)
     {
       gradient_.remove(selected_);
       selected_ = -1;
@@ -244,11 +236,11 @@ namespace OpenMS
     return gradient_.getInterpolationMode();
   }
 
-  void MultiGradientSelector::contextMenuEvent(QContextMenuEvent * e)
+  void MultiGradientSelector::contextMenuEvent(QContextMenuEvent* e)
   {
     QMenu main_menu(this);
-    //Default gradient
-    QMenu * defaults = main_menu.addMenu("Default gradients");
+    // Default gradient
+    QMenu* defaults = main_menu.addMenu("Default gradients");
     defaults->addAction("grey - yellow - red - purple - blue - black");
     defaults->addAction("grey - black");
     defaults->addAction("yellow - red - purple - blue - black");
@@ -264,17 +256,17 @@ namespace OpenMS
     defaults->addAction("turquoise");
     defaults->addAction("yellow");
 
-    //Interploate/Stairs
-    QMenu * inter = main_menu.addMenu("Interpolation");
-    QAction * current = inter->addAction("None");
+    // Interploate/Stairs
+    QMenu* inter = main_menu.addMenu("Interpolation");
+    QAction* current = inter->addAction("None");
     if (gradient_.getInterpolationMode() == MultiGradient::IM_STAIRS)
       current->setEnabled(false);
     current = inter->addAction("Linear");
     if (gradient_.getInterpolationMode() == MultiGradient::IM_LINEAR)
       current->setEnabled(false);
 
-    //Execute
-    QAction * result;
+    // Execute
+    QAction* result;
     if ((result = main_menu.exec(e->globalPos())))
     {
       if (result->text() == "grey - yellow - red - purple - blue - black")
@@ -340,4 +332,4 @@ namespace OpenMS
     }
   }
 
-} //namespace OpenMS
+} // namespace OpenMS

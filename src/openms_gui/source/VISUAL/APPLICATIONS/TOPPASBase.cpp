@@ -32,23 +32,21 @@
 // $Authors: Johannes Junker, Chris Bielow $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/VISUAL/APPLICATIONS/TOPPASBase.h>
-
-#include <OpenMS/APPLICATIONS/ToolHandler.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
+#include <OpenMS/APPLICATIONS/ToolHandler.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/CONCEPT/VersionInfo.h>
 #include <OpenMS/DATASTRUCTURES/DateTime.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/FORMAT/ParamXMLFile.h>
 #include <OpenMS/SYSTEM/File.h>
-
 #include <OpenMS/VISUAL/APPLICATIONS/MISC/QApplicationTOPP.h>
-#include <OpenMS/VISUAL/EnhancedWorkspace.h>
+#include <OpenMS/VISUAL/APPLICATIONS/TOPPASBase.h>
 #include <OpenMS/VISUAL/EnhancedTabBar.h>
+#include <OpenMS/VISUAL/EnhancedWorkspace.h>
+#include <OpenMS/VISUAL/LogWindow.h>
 #include <OpenMS/VISUAL/MISC/GUIHelpers.h>
 #include <OpenMS/VISUAL/TOPPASInputFileListVertex.h>
-#include <OpenMS/VISUAL/LogWindow.h>
 #include <OpenMS/VISUAL/TOPPASMergerVertex.h>
 #include <OpenMS/VISUAL/TOPPASOutputFileListVertex.h>
 #include <OpenMS/VISUAL/TOPPASResources.h>
@@ -56,10 +54,9 @@
 #include <OpenMS/VISUAL/TOPPASSplitterVertex.h>
 #include <OpenMS/VISUAL/TOPPASToolVertex.h>
 #include <OpenMS/VISUAL/TOPPASWidget.h>
-
 #include <map>
 
-//Qt
+// Qt
 #include <QApplication>
 #include <QCloseEvent>
 #include <QDesktopServices>
@@ -111,25 +108,17 @@ namespace OpenMS
   int TOPPASBase::node_offset_ = 0;
   qreal TOPPASBase::z_value_ = 42.0;
 
-  TOPPASBase::TOPPASBase(QWidget* parent) :
-    QMainWindow(parent),
-    DefaultParamHandler("TOPPASBase"),
-    clipboard_scene_(nullptr)
+  TOPPASBase::TOPPASBase(QWidget* parent) : QMainWindow(parent), DefaultParamHandler("TOPPASBase"), clipboard_scene_(nullptr)
   {
-
     setWindowTitle("TOPPAS");
     setWindowIcon(QIcon(":/TOPPAS.png"));
 
-    //prevents errors caused by too small width,height values
+    // prevents errors caused by too small width,height values
     setMinimumSize(400, 400);
 
     // center main window
-    setGeometry(
-      (int)(0.1 * QApplication::desktop()->width()),
-      (int)(0.1 * QApplication::desktop()->height()),
-      (int)(0.8 * QApplication::desktop()->width()),
-      (int)(0.8 * QApplication::desktop()->height())
-      );
+    setGeometry((int)(0.1 * QApplication::desktop()->width()), (int)(0.1 * QApplication::desktop()->height()), (int)(0.8 * QApplication::desktop()->width()),
+                (int)(0.8 * QApplication::desktop()->height()));
 
     // create dummy widget (to be able to have a layout), Tab bar and workspace
     QWidget* dummy = new QWidget(this);
@@ -140,7 +129,7 @@ namespace OpenMS
     tab_bar_->addTab("dummy", 1336);
     tab_bar_->setMinimumSize(tab_bar_->sizeHint());
     tab_bar_->removeId(1336);
-    //connect slots and signals for selecting spectra
+    // connect slots and signals for selecting spectra
     connect(tab_bar_, &EnhancedTabBar::currentIdChanged, this, &TOPPASBase::focusByTab);
     connect(tab_bar_, &EnhancedTabBar::closeRequested, this, &TOPPASBase::closeByTab);
 
@@ -151,15 +140,15 @@ namespace OpenMS
 
     box_layout->addWidget(ws_);
 
-    //################## MENUS #################
-    // File menu
+    // ################## MENUS #################
+    //  File menu
     QMenu* file = new QMenu("&File", this);
     menuBar()->addMenu(file);
     file->addAction("&New", this, SLOT(newPipeline()), Qt::CTRL + Qt::Key_N);
     file->addAction("&Open", this, SLOT(openFilesByDialog()), Qt::CTRL + Qt::Key_O);
     file->addAction("Open &example file", this, SLOT(openExampleDialog()), Qt::CTRL + Qt::Key_E);
     file->addAction("&Include", this, SLOT(includePipeline()), Qt::CTRL + Qt::Key_I);
-    //file->addAction("Online &Repository", this, SLOT(openOnlinePipelineRepository()), Qt::CTRL + Qt::Key_R);
+    // file->addAction("Online &Repository", this, SLOT(openOnlinePipelineRepository()), Qt::CTRL + Qt::Key_R);
     file->addAction("&Save", this, SLOT(savePipeline()), Qt::CTRL + Qt::Key_S);
     file->addAction("Save &As", this, SLOT(saveCurrentPipelineAs()), Qt::CTRL + Qt::SHIFT + Qt::Key_S);
     file->addAction("E&xport as image", this, SLOT(exportAsImage()));
@@ -169,7 +158,7 @@ namespace OpenMS
     file->addSeparator();
     // Recent files
     file->addMenu(recent_files_menu_.getMenu()); // updates automatically via RecentFilesMenu class, since this is just a pointer
-    connect(&recent_files_menu_, &RecentFilesMenu::recentFileClicked, [this](const String& filename) { addTOPPASFile(filename, true);});
+    connect(&recent_files_menu_, &RecentFilesMenu::recentFileClicked, [this](const String& filename) { addTOPPASFile(filename, true); });
 
     file->addSeparator();
     file->addAction("&Load TOPPAS resource file", this, SLOT(loadPipelineResourceFile()));
@@ -177,17 +166,17 @@ namespace OpenMS
     file->addSeparator();
     file->addAction("&Quit", qApp, SLOT(quit()));
 
-    //Pipeline menu
+    // Pipeline menu
     QMenu* pipeline = new QMenu("&Pipeline", this);
     menuBar()->addMenu(pipeline);
     pipeline->addAction("&Run (F5)", this, SLOT(runPipeline()));
     pipeline->addAction("&Abort", this, SLOT(abortPipeline()));
 
-    //Windows menu
+    // Windows menu
     QMenu* windows = new QMenu("&Windows", this);
     menuBar()->addMenu(windows);
 
-    //Help menu
+    // Help menu
     QMenu* help = new QMenu("&Help", this);
     menuBar()->addMenu(help);
     QAction* action = help->addAction("OpenMS website", this, SLOT(showURL()));
@@ -199,31 +188,31 @@ namespace OpenMS
     help->addAction("&About", this, SLOT(showAboutDialog()));
 
 
-    //create status bar
+    // create status bar
     message_label_ = new QLabel(statusBar());
     statusBar()->addWidget(message_label_, 1);
 
-    //################## TOOLBARS #################
-    //create toolbars and connect signals
+    // ################## TOOLBARS #################
+    // create toolbars and connect signals
 
     //--Basic tool bar--
-    //tool_bar_ = addToolBar("Basic tool bar");
-    //tool_bar_->show();
+    // tool_bar_ = addToolBar("Basic tool bar");
+    // tool_bar_->show();
 
-    //################## DEFAULTS #################
-    //general
+    // ################## DEFAULTS #################
+    // general
     defaults_.setValue("preferences:default_path", ".", "Default path for loading and storing files.");
     defaults_.setValue("preferences:default_path_current", "true", "If the current path is preferred over the default path.");
-    defaults_.setValidStrings("preferences:default_path_current", {"true","false"});
+    defaults_.setValidStrings("preferences:default_path_current", {"true", "false"});
     defaults_.setValue("preferences:version", "none", "OpenMS version, used to check if the TOPPAS.ini is up-to-date");
-    subsections_.push_back("preferences:RecentFiles");
+    subsections_.emplace_back("preferences:RecentFiles");
     defaultsToParam_();
 
-    //load param file
+    // load param file
     loadPreferences();
 
-    //################## Dock widgets #################
-    //TOPP tools window
+    // ################## Dock widgets #################
+    // TOPP tools window
     QDockWidget* topp_tools_bar = new QDockWidget("TOPP", this);
     topp_tools_bar->setObjectName("TOPP_tools_bar");
     addDockWidget(Qt::LeftDockWidgetArea, topp_tools_bar);
@@ -232,7 +221,7 @@ namespace OpenMS
     connect(tools_tree_view_, SIGNAL(itemDoubleClicked(QTreeWidgetItem*, int)), this, SLOT(insertNewVertexInCenter_(QTreeWidgetItem*)));
     windows->addAction(topp_tools_bar->toggleViewAction());
 
-    //log window
+    // log window
     QDockWidget* log_bar = new QDockWidget("Log", this);
     log_bar->setObjectName("log_bar");
     addDockWidget(Qt::BottomDockWidgetArea, log_bar);
@@ -240,10 +229,10 @@ namespace OpenMS
     log_->setMaxLength(1e7); // limit to 10 mio characters, and trim to 5 mio upon reaching this limit
     log_bar->setWidget(log_);
     log_bar->hide();
-    //windows->addAction("&Show log window",log_bar,SLOT(show()));
+    // windows->addAction("&Show log window",log_bar,SLOT(show()));
     windows->addAction(log_bar->toggleViewAction());
 
-    //workflow description window
+    // workflow description window
     QDockWidget* description_bar = new QDockWidget("Workflow Description", this);
     description_bar->setObjectName("workflow_description_bar");
     addDockWidget(Qt::RightDockWidgetArea, description_bar);
@@ -266,19 +255,19 @@ namespace OpenMS
     qd.cd(new_tmp_dir);
     tmp_path_ = qd.absolutePath();
 
-/* 
-     QT5 replace with QWebEngine
-    // online browser
-    webview_ = new QWebView(parent);
-    webview_->page()->setLinkDelegationPolicy(QWebPage::DelegateAllLinks); // now linkClicked() is emitted
-    connect((webview_->page()), SIGNAL(linkClicked(const QUrl &)), this, SLOT(downloadTOPPASfromHomepage_(const QUrl &)));
-*/
+    /*
+         QT5 replace with QWebEngine
+        // online browser
+        webview_ = new QWebView(parent);
+        webview_->page()->setLinkDelegationPolicy(QWebPage::DelegateAllLinks); // now linkClicked() is emitted
+        connect((webview_->page()), SIGNAL(linkClicked(const QUrl &)), this, SLOT(downloadTOPPASfromHomepage_(const QUrl &)));
+    */
 
     network_manager_ = new QNetworkAccessManager(this);
     connect(network_manager_, SIGNAL(finished(QNetworkReply*)), this, SLOT(toppasFileDownloaded_(QNetworkReply*)));
 
     // update the menu
-    updateMenu(); 
+    updateMenu();
 
     QSettings settings("OpenMS", "TOPPAS");
     restoreGeometry(settings.value("geometry").toByteArray());
@@ -303,63 +292,63 @@ namespace OpenMS
     {
       return;
     }
-    //std::cerr << "changed to '" << String(desc_->toHtml()) << "'\n";
+    // std::cerr << "changed to '" << String(desc_->toHtml()) << "'\n";
     activeSubWindow_()->getScene()->setChanged(true);
     activeSubWindow_()->getScene()->setDescription(desc_->toHtml());
   }
 
   void TOPPASBase::toppasFileDownloaded_(QNetworkReply* /* r */)
   {
-/* QT5
-    r->deleteLater();
-    if (r->error() != QNetworkReply::NoError)
-    {
-      log_->appendNewHeader(LogWindow::LogState::CRITICAL, "Download failed", "Error '" + r->errorString() + "' while downloading TOPPAS file: '" + r->url().toString() + "'");
-      return;
-    }
+    /* QT5
+        r->deleteLater();
+        if (r->error() != QNetworkReply::NoError)
+        {
+          log_->appendNewHeader(LogWindow::LogState::CRITICAL, "Download failed", "Error '" + r->errorString() + "' while downloading TOPPAS file: '" + r->url().toString() + "'");
+          return;
+        }
 
-    QByteArray data = r->readAll();
+        QByteArray data = r->readAll();
 
-    QString proposed_filename;
-    if (r->url().hasQueryItem("file"))
-    {
-      proposed_filename = r->url().queryItemValue("file");
-    }
-    else
-    {
-      proposed_filename = "Workflow.toppas";
-      OPENMS_LOG_WARN << "The URL format of downloads from the TOPPAS Online-Repository has changed. Please notify developers!";
-    }
-    QString filename = QFileDialog::getSaveFileName(this, "Where to save the TOPPAS file?", this->current_path_.toQString() + "/" + proposed_filename, tr("TOPPAS (*.toppas)"));
+        QString proposed_filename;
+        if (r->url().hasQueryItem("file"))
+        {
+          proposed_filename = r->url().queryItemValue("file");
+        }
+        else
+        {
+          proposed_filename = "Workflow.toppas";
+          OPENMS_LOG_WARN << "The URL format of downloads from the TOPPAS Online-Repository has changed. Please notify developers!";
+        }
+        QString filename = QFileDialog::getSaveFileName(this, "Where to save the TOPPAS file?", this->current_path_.toQString() + "/" + proposed_filename, tr("TOPPAS (*.toppas)"));
 
-    // check if the user clicked cancel, to avoid saving .toppas somewhere
-    if (String(filename).trim().empty())
-    {
-      log_->appendNewHeader(LogWindow::LogState::NOTICE, "Download succeeded, but saving aborted by user!", "");
-      return;
-    }
+        // check if the user clicked cancel, to avoid saving .toppas somewhere
+        if (String(filename).trim().empty())
+        {
+          log_->appendNewHeader(LogWindow::LogState::NOTICE, "Download succeeded, but saving aborted by user!", "");
+          return;
+        }
 
-    if (!filename.endsWith(".toppas", Qt::CaseInsensitive))
-    {
-      filename += ".toppas";
-    }
+        if (!filename.endsWith(".toppas", Qt::CaseInsensitive))
+        {
+          filename += ".toppas";
+        }
 
-    QFile file(filename);
-    if (!file.open(QIODevice::WriteOnly | QIODevice::Text))
-    {
-      log_->appendNewHeader(LogWindow::LogState::NOTICE, "Download succeeded. Cannot save the file. Try again with another filename and/or location!", "");
-      return;
-    }
+        QFile file(filename);
+        if (!file.open(QIODevice::WriteOnly | QIODevice::Text))
+        {
+          log_->appendNewHeader(LogWindow::LogState::NOTICE, "Download succeeded. Cannot save the file. Try again with another filename and/or location!", "");
+          return;
+        }
 
-    QTextStream out(&file);
-    out << data;
-    file.close();
+        QTextStream out(&file);
+        out << data;
+        file.close();
 
-    this->addTOPPASFile(filename);
-    log_->appendNewHeader(LogWindow::LogState::NOTICE, "File successfully saved to '" + filename + "'.", "");
-*/
+        this->addTOPPASFile(filename);
+        log_->appendNewHeader(LogWindow::LogState::NOTICE, "File successfully saved to '" + filename + "'.", "");
+    */
   }
-  
+
   void TOPPASBase::TOPPASreadyRead()
   {
     QNetworkReply::NetworkError ne = network_reply_->error();
@@ -379,7 +368,7 @@ namespace OpenMS
       connect(network_reply_, SIGNAL(error(QNetworkReply::NetworkError code)), this, SLOT(TOPPASreadyRead()));
       connect(network_reply_, SIGNAL(finished()), this, SLOT(TOPPASreadyRead()));
       connect(network_reply_, SIGNAL(metaDataChanged()), this, SLOT(TOPPASreadyRead()));
-      connect(network_reply_, SIGNAL(sslErrors(const QList<QSslError> & errors)), this, SLOT(TOPPASreadyRead()));
+      connect(network_reply_, SIGNAL(sslErrors(const QList<QSslError>& errors)), this, SLOT(TOPPASreadyRead()));
       // .. end debug
 
       log_->appendNewHeader(LogWindow::LogState::NOTICE, "Downloading file '" + url.toString() + "'. You will be notified once the download finished.", "");
@@ -388,9 +377,9 @@ namespace OpenMS
     else
     {
       QMessageBox::warning(this, tr("Error"), tr("You can only click '.toppas' files on this page. No navigation is allowed!\n"));
-      /* 
+      /*
       replace with QT5 webengine
-      webview_->setFocus(); 
+      webview_->setFocus();
       webview_->activateWindow();
       */
     }
@@ -398,45 +387,45 @@ namespace OpenMS
 
   void TOPPASBase::openOnlinePipelineRepository()
   {
-/* QT5
-    QUrl url = QUrl("http://www.OpenMS.de/TOPPASWorkflows/");
+    /* QT5
+        QUrl url = QUrl("http://www.OpenMS.de/TOPPASWorkflows/");
 
-    static bool proxy_settings_checked = false;
-    if (!proxy_settings_checked) // do only once because may take several seconds on windows
-    {
-      QNetworkProxy proxy;
-      QUrl tmp_proxy_url(QString(getenv("http_proxy")));
-      QUrl tmp_PROXY_url(QString(getenv("HTTP_PROXY")));
-      QUrl proxy_url = tmp_proxy_url.isValid() ? tmp_proxy_url : tmp_PROXY_url;
-      if (proxy_url.isValid())
-      {
-        QString hostname = proxy_url.host();
-        int port = proxy_url.port();
-        QString username = proxy_url.userName();
-        QString password = proxy_url.password();
-        proxy = QNetworkProxy(QNetworkProxy::HttpProxy, hostname, port, username, password);
-      }
-      else
-      {
-        QList<QNetworkProxy> proxies = QNetworkProxyFactory::systemProxyForQuery(url);
-        if (!proxies.empty())
+        static bool proxy_settings_checked = false;
+        if (!proxy_settings_checked) // do only once because may take several seconds on windows
         {
-          proxy = proxies.first();
+          QNetworkProxy proxy;
+          QUrl tmp_proxy_url(QString(getenv("http_proxy")));
+          QUrl tmp_PROXY_url(QString(getenv("HTTP_PROXY")));
+          QUrl proxy_url = tmp_proxy_url.isValid() ? tmp_proxy_url : tmp_PROXY_url;
+          if (proxy_url.isValid())
+          {
+            QString hostname = proxy_url.host();
+            int port = proxy_url.port();
+            QString username = proxy_url.userName();
+            QString password = proxy_url.password();
+            proxy = QNetworkProxy(QNetworkProxy::HttpProxy, hostname, port, username, password);
+          }
+          else
+          {
+            QList<QNetworkProxy> proxies = QNetworkProxyFactory::systemProxyForQuery(url);
+            if (!proxies.empty())
+            {
+              proxy = proxies.first();
+            }
+          }
+          QNetworkProxy::setApplicationProxy(proxy); //no effect if proxy == QNetworkProxy()
+          proxy_settings_checked = true;
         }
-      }
-      QNetworkProxy::setApplicationProxy(proxy); //no effect if proxy == QNetworkProxy()
-      proxy_settings_checked = true;
-    }
 
-    // show something immediately, so the user does not stare at white screen while the URL is fetched
-    webview_->setHtml("loading content ... ");
-    webview_->show();
-    // ... load the page in background
-    webview_->load(url);
-*/
+        // show something immediately, so the user does not stare at white screen while the URL is fetched
+        webview_->setHtml("loading content ... ");
+        webview_->show();
+        // ... load the page in background
+        webview_->load(url);
+    */
   }
 
-  //static
+  // static
   TOPPASTreeView* TOPPASBase::createTOPPToolsTreeWidget(QWidget* parent_widget)
   {
     TOPPASTreeView* tools_tree_view = new TOPPASTreeView(parent_widget);
@@ -462,7 +451,7 @@ namespace OpenMS
     item->setText(0, "<Splitter>");
     tools_tree_view->addTopLevelItem(item);
 
-    //Param category_param = param_.copy("tool_categories:", true);
+    // Param category_param = param_.copy("tool_categories:", true);
 
     ToolListType tools_list = ToolHandler::getTOPPToolList(true);
     ToolListType util_list = ToolHandler::getUtilList();
@@ -491,7 +480,7 @@ namespace OpenMS
 
     std::map<QString, QTreeWidgetItem*> category_map;
 
-    foreach(const QString &category, category_list)
+    foreach (const QString& category, category_list)
     {
       item = new QTreeWidgetItem((QTreeWidget*)nullptr);
       item->setText(0, category);
@@ -528,11 +517,8 @@ namespace OpenMS
 
   void TOPPASBase::openExampleDialog()
   {
-    QString file_name = QFileDialog::getOpenFileName(this, tr("Open example workflow"),
-                                                     File::getOpenMSDataPath().toQString()
-                                                     + QDir::separator() + "examples" + QDir::separator()
-                                                     + "TOPPAS" + QDir::separator(),
-                                                     tr("TOPPAS pipelines (*.toppas)"));
+    QString file_name = QFileDialog::getOpenFileName(
+      this, tr("Open example workflow"), File::getOpenMSDataPath().toQString() + QDir::separator() + "examples" + QDir::separator() + "TOPPAS" + QDir::separator(), tr("TOPPAS pipelines (*.toppas)"));
 
     addTOPPASFile(file_name);
   }
@@ -552,14 +538,15 @@ namespace OpenMS
 
   void TOPPASBase::addTOPPASFile(const String& file_name, bool in_new_window)
   {
-    if (file_name.empty()) return;
+    if (file_name.empty())
+      return;
 
     if (!file_name.toQString().endsWith(".toppas", Qt::CaseInsensitive))
     {
       OPENMS_LOG_ERROR << "The file '" << file_name << "' is not a .toppas file" << std::endl;
       return;
     }
-    
+
     recent_files_menu_.add(file_name);
 
     TOPPASWidget* asw = activeSubWindow_();
@@ -574,12 +561,13 @@ namespace OpenMS
       }
       TOPPASWidget* tw = new TOPPASWidget(Param(), ws_, tmp_path_);
       scene = tw->getScene();
-      scene->load(file_name); // first load WF, including description etc
+      scene->load(file_name);                       // first load WF, including description etc
       showAsWindow_(tw, File::basename(file_name)); // show it
     }
     else
     {
-      if (!activeSubWindow_()) return;
+      if (!activeSubWindow_())
+        return;
 
       TOPPASScene* tmp_scene = new TOPPASScene(nullptr, this->tmp_path_.toQString(), false);
       tmp_scene->load(file_name);
@@ -588,7 +576,7 @@ namespace OpenMS
       delete tmp_scene;
     }
 
-    //connect signals/slots for log messages
+    // connect signals/slots for log messages
     for (TOPPASScene::VertexIterator it = scene->verticesBegin(); it != scene->verticesEnd(); ++it)
     {
       TOPPASToolVertex* tv = dynamic_cast<TOPPASToolVertex*>(*it);
@@ -598,23 +586,23 @@ namespace OpenMS
         connect(tv, SIGNAL(toolFinished()), this, SLOT(toolFinished()));
         connect(tv, SIGNAL(toolCrashed()), this, SLOT(toolCrashed()));
         connect(tv, SIGNAL(toolFailed()), this, SLOT(toolFailed()));
-        connect(tv, SIGNAL(toolFailed(const QString &)), this, SLOT(updateTOPPOutputLog(const QString &)));
+        connect(tv, SIGNAL(toolFailed(const QString&)), this, SLOT(updateTOPPOutputLog(const QString&)));
         // already done in ToppasScene:
-        //connect (tv, SIGNAL(toppOutputReady(const QString&)), this, SLOT(updateTOPPOutputLog(const QString&)));
+        // connect (tv, SIGNAL(toppOutputReady(const QString&)), this, SLOT(updateTOPPOutputLog(const QString&)));
         continue;
       }
 
       TOPPASMergerVertex* tmv = dynamic_cast<TOPPASMergerVertex*>(*it);
       if (tmv)
       {
-        connect(tmv, SIGNAL(mergeFailed(const QString)), this, SLOT(updateTOPPOutputLog(const QString &)));
+        connect(tmv, SIGNAL(mergeFailed(const QString)), this, SLOT(updateTOPPOutputLog(const QString&)));
         continue;
       }
 
       TOPPASOutputFileListVertex* oflv = dynamic_cast<TOPPASOutputFileListVertex*>(*it);
       if (oflv)
       {
-        connect(oflv, SIGNAL(outputFileWritten(const String &)), this, SLOT(outputVertexFinished(const String &)));
+        connect(oflv, SIGNAL(outputFileWritten(const String&)), this, SLOT(outputVertexFinished(const String&)));
         continue;
       }
     }
@@ -662,10 +650,8 @@ namespace OpenMS
       }
       if (!w->getScene()->store(file_name))
       {
-        QMessageBox::warning(this, tr("Error"),
-                             tr("Unable to save current pipeline. Possible reason: Invalid edges due to parameter refresh."));
+        QMessageBox::warning(this, tr("Error"), tr("Unable to save current pipeline. Possible reason: Invalid edges due to parameter refresh."));
       }
-
     }
     else
     {
@@ -705,8 +691,7 @@ namespace OpenMS
       }
       if (!w->getScene()->store(file_name))
       {
-        QMessageBox::warning(nullptr, tr("Error"),
-                             tr("Unable to save current pipeline. Possible reason: Invalid edges due to parameter refresh."));
+        QMessageBox::warning(nullptr, tr("Error"), tr("Unable to save current pipeline. Possible reason: Invalid edges due to parameter refresh."));
       }
       QString caption = File::basename(file_name).toQString();
       w->setWindowTitle(caption);
@@ -725,9 +710,7 @@ namespace OpenMS
     {
       return;
     }
-    if (!file_name.endsWith(".svg", Qt::CaseInsensitive) &&
-        !file_name.endsWith(".png", Qt::CaseInsensitive) &&
-        !file_name.endsWith(".jpg", Qt::CaseInsensitive))
+    if (!file_name.endsWith(".svg", Qt::CaseInsensitive) && !file_name.endsWith(".png", Qt::CaseInsensitive) && !file_name.endsWith(".jpg", Qt::CaseInsensitive))
     {
       file_name += ".svg";
     }
@@ -843,12 +826,12 @@ namespace OpenMS
     connect(tw, SIGNAL(sendStatusMessage(std::string, OpenMS::UInt)), this, SLOT(showStatusMessage(std::string, OpenMS::UInt)));
     connect(tw, SIGNAL(sendCursorStatus(double, double)), this, SLOT(showCursorStatus(double, double)));
     connect(tw, SIGNAL(toolDroppedOnWidget(double, double)), this, SLOT(insertNewVertex_(double, double)));
-    connect(tw, SIGNAL(pipelineDroppedOnWidget(const String &, bool)), this, SLOT(addTOPPASFile(const String &, bool)));
+    connect(tw, SIGNAL(pipelineDroppedOnWidget(const String&, bool)), this, SLOT(addTOPPASFile(const String&, bool)));
     tw->setWindowTitle(caption.toQString());
 
     tw->addToTabBar(tab_bar_, caption, true);
 
-    //show first window maximized (only visible windows are in the list)
+    // show first window maximized (only visible windows are in the list)
     if (ws_->subWindowList().count() == 0)
     {
       tw->showMaximized();
@@ -863,7 +846,7 @@ namespace OpenMS
     connect(scene, SIGNAL(requestClipboardContent()), this, SLOT(sendClipboardContent()));
     connect(scene, SIGNAL(mainWindowNeedsUpdate()), this, SLOT(updateMenu()));
     connect(scene, SIGNAL(openInTOPPView(QStringList)), this, SLOT(openFilesInTOPPView(QStringList)));
-    connect(scene, SIGNAL(messageReady(const QString &)), this, SLOT(updateTOPPOutputLog(const QString &)));
+    connect(scene, SIGNAL(messageReady(const QString&)), this, SLOT(updateTOPPOutputLog(const QString&)));
     connect(scene, SIGNAL(entirePipelineFinished()), this, SLOT(showPipelineFinishedLogMessage()));
     connect(scene, SIGNAL(entirePipelineFinished()), this, SLOT(updateMenu()));
     connect(scene, SIGNAL(pipelineExecutionFailed()), this, SLOT(updateMenu()));
@@ -896,7 +879,8 @@ namespace OpenMS
     for (QMdiSubWindow* w : all_windows)
     {
       TOPPASWidget* widget = dynamic_cast<TOPPASWidget*>(w->widget());
-      if (!widget) continue; // not a TOPPASWidget.. ignore it
+      if (!widget)
+        continue; // not a TOPPASWidget.. ignore it
 
       if (!widget->getScene()->saveIfChanged())
       { // user chose 'abort' in dialog
@@ -938,7 +922,8 @@ namespace OpenMS
     {
       // try to close the window.. the user might say no
       // The Dtor of 'window' will take care of removing it from the tabbar
-      if (window->close()) updateMenu();
+      if (window->close())
+        updateMenu();
     }
   }
 
@@ -947,7 +932,7 @@ namespace OpenMS
     TOPPASWidget* window = window_(id);
     if (window)
     {
-      //std::cerr << "tab changed...\n";
+      // std::cerr << "tab changed...\n";
       desc_->blockSignals(true);
       desc_->setHtml(window->getScene()->getDescription());
       desc_->blockSignals(false);
@@ -963,7 +948,7 @@ namespace OpenMS
 
   void TOPPASBase::closeFile()
   {
-    if (ws_ != 0 && ws_->currentSubWindow() != 0)
+    if (ws_ != nullptr && ws_->currentSubWindow() != nullptr)
     {
       ws_->currentSubWindow()->close();
     }
@@ -991,7 +976,6 @@ namespace OpenMS
 
   void TOPPASBase::updateToolBar()
   {
-
   }
 
   void TOPPASBase::updateTabBar(QMdiSubWindow* w)
@@ -1009,7 +993,7 @@ namespace OpenMS
 
   void TOPPASBase::loadPreferences(String filename)
   {
-    //compose default ini file path
+    // compose default ini file path
     String default_ini_file = String(QDir::homePath()) + "/.TOPPAS.ini";
 
     if (filename.empty())
@@ -1017,7 +1001,7 @@ namespace OpenMS
       filename = default_ini_file;
     }
 
-    //load preferences, if file exists
+    // load preferences, if file exists
     if (File::exists(filename))
     {
       bool error = false;
@@ -1032,7 +1016,7 @@ namespace OpenMS
         error = true;
       }
 
-      //apply preferences if they are of the current TOPPAS version
+      // apply preferences if they are of the current TOPPAS version
       if (!error && tmp.exists("preferences:version") && tmp.getValue("preferences:version").toString() == VersionInfo::getVersion())
       {
         try
@@ -1048,10 +1032,10 @@ namespace OpenMS
       {
         error = true;
       }
-      //set parameters to defaults when something is fishy with the parameters file
+      // set parameters to defaults when something is fishy with the parameters file
       if (error)
       {
-        //reset parameters (they will be stored again when TOPPAS quits)
+        // reset parameters (they will be stored again when TOPPAS quits)
         setParameters(Param());
 
         cerr << "The TOPPAS preferences files '" << filename << "' was ignored. It is no longer compatible with this TOPPAS version and will be replaced." << endl;
@@ -1073,7 +1057,7 @@ namespace OpenMS
     param_.removeAll("preferences:RecentFiles");
     param_.insert("preferences:RecentFiles:", recent_files_menu_.getAsParam());
 
-    //set version
+    // set version
     param_.setValue("preferences:version", VersionInfo::getVersion());
 
     Param save_param = param_.copy("preferences:");
@@ -1189,18 +1173,18 @@ namespace OpenMS
 
   void TOPPASBase::updateCurrentPath()
   {
-    //do not update if the user disabled this feature.
+    // do not update if the user disabled this feature.
     if (param_.getValue("preferences:default_path_current") != "true")
       return;
 
-    //reset
+    // reset
     current_path_ = param_.getValue("preferences:default_path").toString();
 
-    //update if the current layer has a path associated TODO
-    //if (activeCanvas_() && activeCanvas_()->getLayerCount()!=0 && activeCanvas_()->getCurrentLayer().filename!="")
+    // update if the current layer has a path associated TODO
+    // if (activeCanvas_() && activeCanvas_()->getLayerCount()!=0 && activeCanvas_()->getCurrentLayer().filename!="")
     //{
-    // current_path_ = File::path(activeCanvas_()->getCurrentLayer().filename);
-    //}
+    //  current_path_ = File::path(activeCanvas_()->getCurrentLayer().filename);
+    // }
   }
 
   void TOPPASBase::insertNewVertex_(double x, double y, QTreeWidgetItem* item)
@@ -1223,18 +1207,18 @@ namespace OpenMS
     {
       tv = new TOPPASOutputFileListVertex();
       TOPPASOutputFileListVertex* oflv = dynamic_cast<TOPPASOutputFileListVertex*>(tv);
-      connect(oflv, SIGNAL(outputFileWritten(const String &)), this, SLOT(outputVertexFinished(const String &)));
+      connect(oflv, SIGNAL(outputFileWritten(const String&)), this, SLOT(outputVertexFinished(const String&)));
       scene->connectOutputVertexSignals(oflv);
     }
     else if (tool_name == "<Merger>")
     {
       tv = new TOPPASMergerVertex(true);
-      connect(tv, SIGNAL(mergeFailed(const QString)), this, SLOT(updateTOPPOutputLog(const QString &)));
+      connect(tv, SIGNAL(mergeFailed(const QString)), this, SLOT(updateTOPPOutputLog(const QString&)));
     }
     else if (tool_name == "<Collector>")
     {
       tv = new TOPPASMergerVertex(false);
-      connect(tv, SIGNAL(mergeFailed(const QString)), this, SLOT(updateTOPPOutputLog(const QString &)));
+      connect(tv, SIGNAL(mergeFailed(const QString)), this, SLOT(updateTOPPOutputLog(const QString&)));
     }
     else if (tool_name == "<Splitter>")
     {
@@ -1276,7 +1260,7 @@ namespace OpenMS
       connect(ttv, SIGNAL(toolCrashed()), this, SLOT(toolCrashed()));
       connect(ttv, SIGNAL(toolFailed()), this, SLOT(toolFailed()));
       // already done in ToppasScene:
-      //connect (ttv, SIGNAL(toppOutputReady(const QString&)), this, SLOT(updateTOPPOutputLog(const QString&)));
+      // connect (ttv, SIGNAL(toppOutputReady(const QString&)), this, SLOT(updateTOPPOutputLog(const QString&)));
 
       scene->connectToolVertexSignals(ttv);
     }
@@ -1390,13 +1374,13 @@ namespace OpenMS
   void TOPPASBase::updateTOPPOutputLog(const QString& out)
   {
     const QString& text = out; // shortened version for now (if we reintroduce simultaneous tool execution,
-                        // we need to rethink this (probably only trigger this slot when tool 100% finished)
+                               // we need to rethink this (probably only trigger this slot when tool 100% finished)
 
 
-    //show log if there is output
+    // show log if there is output
     dynamic_cast<QWidget*>(log_->parent())->show();
 
-    //update log_
+    // update log_
     log_->moveCursor(QTextCursor::End, QTextCursor::MoveAnchor); // move cursor to end, since text is inserted at cursor
     log_->insertPlainText(text);
   }
@@ -1463,8 +1447,7 @@ namespace OpenMS
     TOPPASScene::RefreshStatus st = ts->refreshParameters();
     if (st == TOPPASScene::ST_REFRESH_NOCHANGE)
     {
-      QMessageBox::information(tw, tr("Nothing to be done"),
-                               tr("The parameters of the tools used in this workflow have not changed."));
+      QMessageBox::information(tw, tr("Nothing to be done"), tr("The parameters of the tools used in this workflow have not changed."));
       return "";
     }
 
@@ -1472,21 +1455,16 @@ namespace OpenMS
     ts->updateEdgeColors();
     if (st == TOPPASScene::ST_REFRESH_CHANGEINVALID)
     {
-      QMessageBox::information(tw, "Parameters updated!",
-                               "The resulting pipeline is now invalid. Probably some input or output parameters were removed or added. Please repair!",
-                               QMessageBox::Ok);
+      QMessageBox::information(tw, "Parameters updated!", "The resulting pipeline is now invalid. Probably some input or output parameters were removed or added. Please repair!", QMessageBox::Ok);
       return "";
     }
     else if (st == TOPPASScene::ST_REFRESH_REMAINSINVALID)
     {
-      QMessageBox::information(tw, "Parameters updated!",
-                               "The resulting pipeline remains invalid (not runnable). Maybe some input files or even edges are missing. Please repair!",
-                               QMessageBox::Ok);
+      QMessageBox::information(tw, "Parameters updated!", "The resulting pipeline remains invalid (not runnable). Maybe some input files or even edges are missing. Please repair!", QMessageBox::Ok);
       return "";
     }
 
-    int ret = QMessageBox::information(tw, "Parameters updated!",
-                                       "The parameters of some tools in this workflow have changed. Do you want to save these changes now?",
+    int ret = QMessageBox::information(tw, "Parameters updated!", "The parameters of some tools in this workflow have changed. Do you want to save these changes now?",
                                        QMessageBox::Save | QMessageBox::Cancel);
     if (ret == QMessageBox::Save)
     {
@@ -1499,20 +1477,18 @@ namespace OpenMS
 
   void TOPPASBase::openFilesInTOPPView(QStringList files)
   {
-    if (files.empty()) return;
-    
+    if (files.empty())
+      return;
+
     if (files.size() > 1)
     {
       // ask user how to open multiple files
-      QMessageBox msgBox(
-        QMessageBox::Question,
-        tr("Open files with overlay?"),
-        tr("How do you want to open the output files?"),
-        QMessageBox::Yes | QMessageBox::No | QMessageBox::Cancel);
+      QMessageBox msgBox(QMessageBox::Question, tr("Open files with overlay?"), tr("How do you want to open the output files?"), QMessageBox::Yes | QMessageBox::No | QMessageBox::Cancel);
       msgBox.setButtonText(QMessageBox::Yes, tr("&Single Tab - Overlay"));
       msgBox.setButtonText(QMessageBox::No, tr("&Separate tabs"));
       int ret = msgBox.exec();
-      if (ret == QMessageBox::Cancel) return; // Escape was pressed
+      if (ret == QMessageBox::Cancel)
+        return; // Escape was pressed
       if (ret == QMessageBox::Yes)
       {
         /*
@@ -1525,9 +1501,8 @@ namespace OpenMS
 #pragma GCC diagnostic pop
       }
     }
-    
-    GUIHelpers::startTOPPView(files);
 
+    GUIHelpers::startTOPPView(files);
   }
 
   void TOPPASBase::openToppasFile(const QString& filename)
@@ -1535,4 +1510,4 @@ namespace OpenMS
     addTOPPASFile(String(filename));
   }
 
-} //namespace OpenMS
+} // namespace OpenMS

@@ -37,14 +37,14 @@
 // OpenMS_GUI config
 #include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
 
-//OpenMS
+// OpenMS
+#include <OpenMS/METADATA/MetaInfoInterface.h>
 #include <OpenMS/VISUAL/VISUALIZER/BaseVisualizer.h>
 #include <OpenMS/VISUAL/VISUALIZER/BaseVisualizerGUI.h>
-#include <OpenMS/METADATA/MetaInfoInterface.h>
 
-//STL
-#include <vector>
+// STL
 #include <utility>
+#include <vector>
 
 class QAbstractButton;
 class QButtonGroup;
@@ -56,25 +56,23 @@ namespace OpenMS
 
       Meta information is an array of Type-Name-Value tuples. Classes that have a MetaInfo objects as a member can use this class to edit the MetaInfo object.
   */
-  class OPENMS_GUI_DLLAPI MetaInfoVisualizer :
-    public BaseVisualizerGUI,
-    public BaseVisualizer<MetaInfoInterface>
+  class OPENMS_GUI_DLLAPI MetaInfoVisualizer : public BaseVisualizerGUI, public BaseVisualizer<MetaInfoInterface>
   {
     Q_OBJECT
 
-public:
-    ///Constructor
-    MetaInfoVisualizer(bool editable = false, QWidget * parent = nullptr);
+  public:
+    /// Constructor
+    MetaInfoVisualizer(bool editable = false, QWidget* parent = nullptr);
 
-    //Docu in base class
-    void load(MetaInfoInterface & m);
+    // Docu in base class
+    void load(MetaInfoInterface& m);
 
-public slots:
+  public slots:
 
-    //Docu in base class
+    // Docu in base class
     void store() override;
 
-protected slots:
+  protected slots:
 
     /// Adds a new Type-Value pair to the MetaInfo Object.
     void add_();
@@ -82,44 +80,44 @@ protected slots:
     void clear_();
     /// Removes a selected Type-Value pair from the MetaInfo Object.
     void remove_(int);
-    ///Undo the changes made in the GUI.
+    /// Undo the changes made in the GUI.
     void undo_();
 
-protected:
+  protected:
     /// Loads all Type-Value pairs one after another.
     void loadData_(UInt index);
 
     /** @name Edit fields for new Type-Value pair.
-      */
+     */
     //@{
-    QLineEdit * newkey_;
-    QLineEdit * newvalue_;
-    QLineEdit * newdescription_;
+    QLineEdit* newkey_;
+    QLineEdit* newvalue_;
+    QLineEdit* newdescription_;
     //@}
 
     ///@name Arrays of pointers to objects for temporary metaInfo data
     //@{
-    std::vector<std::pair<UInt, QLineEdit *> > metainfoptr_;
-    std::vector<std::pair<UInt, QLabel *> > metalabels_;
-    std::vector<std::pair<UInt, QAbstractButton *> > metabuttons_;
+    std::vector<std::pair<UInt, QLineEdit*>> metainfoptr_;
+    std::vector<std::pair<UInt, QLabel*>> metalabels_;
+    std::vector<std::pair<UInt, QAbstractButton*>> metabuttons_;
     //@}
 
     ///@name Edit fields and buttons
     //@{
-    QPushButton * addbutton_;
-    QPushButton * clearbutton_;
-    QButtonGroup * buttongroup_;
+    QPushButton* addbutton_;
+    QPushButton* clearbutton_;
+    QButtonGroup* buttongroup_;
     //@}
 
     /// Counter to keep track of the actual row in the layout.
     int nextrow_;
 
     /// The layout to display the Type-Value pairs.
-    QGridLayout * viewlayout_;
+    QGridLayout* viewlayout_;
 
     /// Container for metainfo data.
     std::vector<UInt> keys_;
   };
 
 
-}
+} // namespace OpenMS

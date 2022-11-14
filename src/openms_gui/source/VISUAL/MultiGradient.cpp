@@ -45,28 +45,22 @@ namespace OpenMS
 {
   using namespace Exception;
 
-  MultiGradient::MultiGradient() :
-    pos_col_(),
-    interpolation_mode_(IM_LINEAR),
-    pre_min_(0),
-    pre_size_(0),
-    pre_steps_(0)
+  MultiGradient::MultiGradient() : pos_col_(), interpolation_mode_(IM_LINEAR), pre_min_(0), pre_size_(0), pre_steps_(0)
   {
     pos_col_[0] = Qt::white;
     pos_col_[100] = Qt::black;
   }
 
-  MultiGradient::MultiGradient(const MultiGradient & multigradient) = default;
+  MultiGradient::MultiGradient(const MultiGradient& multigradient) = default;
 
-  MultiGradient & MultiGradient::operator=(const MultiGradient & rhs)
+  MultiGradient& MultiGradient::operator=(const MultiGradient& rhs)
   {
     if (this == &rhs)
     {
       return *this;
     }
-    pos_col_ = rhs.pos_col_,
-    interpolation_mode_ = rhs.interpolation_mode_;
-    pre_  = rhs.pre_;
+    pos_col_ = rhs.pos_col_, interpolation_mode_ = rhs.interpolation_mode_;
+    pre_ = rhs.pre_;
     pre_min_ = rhs.pre_min_;
     pre_size_ = rhs.pre_size_;
     pre_steps_ = rhs.pre_steps_;
@@ -134,12 +128,12 @@ namespace OpenMS
       return (--(pos_col_.end()))->second;
     }
 
-    //linear
+    // linear
     if (interpolation_mode_ == IM_LINEAR)
     {
       map<double, QColor>::const_iterator it1 = pos_col_.lower_bound(position);
 
-      if (std::abs(it1->first - position) < numeric_limits<double>::epsilon())  // compare double
+      if (std::abs(it1->first - position) < numeric_limits<double>::epsilon()) // compare double
       {
         return it1->second;
       }
@@ -148,12 +142,11 @@ namespace OpenMS
         map<double, QColor>::const_iterator it0 = it1;
         --it0;
         double factor = (position - it0->first) / (it1->first - it0->first);
-        return QColor(Int(factor * it1->second.red() + (1 - factor) * it0->second.red() + 0.001)
-                     , Int(factor * it1->second.green() + (1 - factor) * it0->second.green() + 0.001)
-                     , Int(factor * it1->second.blue() + (1 - factor) * it0->second.blue() + 0.001));
+        return QColor(Int(factor * it1->second.red() + (1 - factor) * it0->second.red() + 0.001), Int(factor * it1->second.green() + (1 - factor) * it0->second.green() + 0.001),
+                      Int(factor * it1->second.blue() + (1 - factor) * it0->second.blue() + 0.001));
       }
     }
-    //stairs
+    // stairs
     else
     {
       map<double, QColor>::const_iterator it = pos_col_.upper_bound(position);
@@ -181,7 +174,7 @@ namespace OpenMS
   {
     stringstream out;
 
-    //Interpolation Mode
+    // Interpolation Mode
     if (getInterpolationMode() == IM_LINEAR)
     {
       out << "Linear|";
@@ -202,7 +195,7 @@ namespace OpenMS
     return out.str();
   }
 
-  void MultiGradient::fromString(const string & gradient)
+  void MultiGradient::fromString(const string& gradient)
   {
     pos_col_.clear();
 
@@ -220,7 +213,7 @@ namespace OpenMS
     {
       if (*it == '|')
       {
-        //interploation mode
+        // interploation mode
         if (string(tmp, it) == "Linear")
         {
           setInterpolationMode(IM_LINEAR);
@@ -247,7 +240,7 @@ namespace OpenMS
 
   void MultiGradient::activatePrecalculationMode(double min, double max, UInt steps)
   {
-    //add security margin to range to avoid numerical problems
+    // add security margin to range to avoid numerical problems
     pre_min_ = std::min(min, max) - 0.000005;
     pre_size_ = fabs(max - min) + 0.00001;
     pre_steps_ = steps - 1;
@@ -256,7 +249,7 @@ namespace OpenMS
     for (Size step = 0; step < steps; ++step)
     {
       pre_.push_back(interpolatedColorAt(step, 0, pre_steps_));
-      //cout << pre_.back().red() << " " << pre_.back().green() << " " << pre_.back().blue() << endl;
+      // cout << pre_.back().red() << " " << pre_.back().green() << " " << pre_.back().blue() << endl;
     }
   }
 
@@ -302,4 +295,4 @@ namespace OpenMS
     return mg;
   }
 
-} //namespace OpenMS
+} // namespace OpenMS

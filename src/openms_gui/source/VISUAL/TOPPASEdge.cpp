@@ -41,52 +41,29 @@
 #include <OpenMS/VISUAL/TOPPASScene.h>
 #include <OpenMS/VISUAL/TOPPASSplitterVertex.h>
 #include <OpenMS/VISUAL/TOPPASToolVertex.h>
-
-#include <Qt>
+#include <QApplication>
 #include <QPainter>
 #include <QPainterPath>
-#include <QtWidgets/QMessageBox>
+#include <Qt>
 #include <QtWidgets/QMenu>
-#include <QApplication>
+#include <QtWidgets/QMessageBox>
 
 namespace OpenMS
 {
 
-  TOPPASEdge::TOPPASEdge() :
-    QObject(),
-    QGraphicsItem(),
-    from_(nullptr),
-    to_(nullptr),
-    hover_pos_(),
-    color_(),
-    source_out_param_(-1),
-    target_in_param_(-1)
+  TOPPASEdge::TOPPASEdge() : QObject(), QGraphicsItem(), from_(nullptr), to_(nullptr), hover_pos_(), color_(), source_out_param_(-1), target_in_param_(-1)
   {
     setFlag(QGraphicsItem::ItemIsSelectable, true);
   }
 
   TOPPASEdge::TOPPASEdge(TOPPASVertex* from, const QPointF& hover_pos) :
-    QObject(),
-    QGraphicsItem(),
-    from_(from),
-    to_(nullptr),
-    hover_pos_(hover_pos),
-    color_(),
-    source_out_param_(-1),
-    target_in_param_(-1)
+      QObject(), QGraphicsItem(), from_(from), to_(nullptr), hover_pos_(hover_pos), color_(), source_out_param_(-1), target_in_param_(-1)
   {
     setFlag(QGraphicsItem::ItemIsSelectable, true);
   }
 
   TOPPASEdge::TOPPASEdge(const TOPPASEdge& rhs) :
-    QObject(),
-    QGraphicsItem(),
-    from_(rhs.from_),
-    to_(rhs.to_),
-    hover_pos_(rhs.hover_pos_),
-    color_(rhs.color_),
-    source_out_param_(rhs.source_out_param_),
-    target_in_param_(rhs.target_in_param_)
+      QObject(), QGraphicsItem(), from_(rhs.from_), to_(rhs.to_), hover_pos_(rhs.hover_pos_), color_(rhs.color_), source_out_param_(rhs.source_out_param_), target_in_param_(rhs.target_in_param_)
   {
     setFlag(QGraphicsItem::ItemIsSelectable, true);
   }
@@ -206,14 +183,14 @@ namespace OpenMS
     QString str = getSourceOutParamName();
     if (!str.isEmpty())
     {
-      painter->save();     // hard to avoid multiple calls to save() and restore() since we first translate and then rotate
+      painter->save(); // hard to avoid multiple calls to save() and restore() since we first translate and then rotate
       QPointF point = path_line_short.pointAtPercent(0.05);
       painter->translate(point);
       painter->rotate(text_angle);
       if (invert_text_direction)
       {
         QFontMetrics fm(painter->fontMetrics());
-        int text_width=fm.width(str);
+        int text_width = fm.width(str);
         painter->drawText(QPoint(-text_width, y_text), str);
       }
       else
@@ -234,7 +211,7 @@ namespace OpenMS
       painter->rotate(text_angle);
       QFontMetrics fm(painter->fontMetrics());
       int text_width = fm.width(str);
-      int text_height = fm.height();   // shift text below the edge by its own height
+      int text_height = fm.height(); // shift text below the edge by its own height
       if (invert_text_direction)
       {
         painter->drawText(QPoint(arrow_width, text_height + y_text), str);
@@ -284,7 +261,6 @@ namespace OpenMS
       return (borderPoint_());
     }
   }
-
 
 
   QPointF TOPPASEdge::borderPoint_(bool atTargetVertex) const
@@ -454,7 +430,7 @@ namespace OpenMS
     }
 
     // check file type compatibility
-    foreach(const QString& q_file_name, file_names)
+    foreach (const QString& q_file_name, file_names)
     {
       bool type_mismatch = true;
       const String& file_name = String(q_file_name);
@@ -532,7 +508,7 @@ namespace OpenMS
       {
         TOPPASEdge* merger_in_edge = *e_it;
         TOPPASToolVertex* merger_in_tool = qobject_cast<TOPPASToolVertex*>(merger_in_edge->getSourceVertex());
-        TOPPASInputFileListVertex * merger_in_list = qobject_cast<TOPPASInputFileListVertex*>(merger_in_edge->getSourceVertex());
+        TOPPASInputFileListVertex* merger_in_list = qobject_cast<TOPPASInputFileListVertex*>(merger_in_edge->getSourceVertex());
 
         if (merger_in_tool && target_tool)
         {
@@ -634,15 +610,15 @@ namespace OpenMS
     {
       TOPPASVertex* target_o = getTargetVertex();
       const TOPPASToolVertex* target = qobject_cast<TOPPASToolVertex*>(target_o);
-      if (target && target_in_param_>=0)
+      if (target && target_in_param_ >= 0)
       {
-         QVector<TOPPASToolVertex::IOInfo> docks;
-         target->getInputParameters(docks);
-         const TOPPASToolVertex::IOInfo& param = docks[this->target_in_param_]; 
-         return param.param_name.toQString();
+        QVector<TOPPASToolVertex::IOInfo> docks;
+        target->getInputParameters(docks);
+        const TOPPASToolVertex::IOInfo& param = docks[this->target_in_param_];
+        return param.param_name.toQString();
       }
     }
-    return "";    
+    return "";
   }
 
 
@@ -653,15 +629,15 @@ namespace OpenMS
     {
       TOPPASVertex* source_o = getSourceVertex();
       const TOPPASToolVertex* source = qobject_cast<TOPPASToolVertex*>(source_o);
-      if (source && source_out_param_>=0)
+      if (source && source_out_param_ >= 0)
       {
-         QVector<TOPPASToolVertex::IOInfo> docks;
-         source->getOutputParameters(docks);
-         const TOPPASToolVertex::IOInfo& param = docks[this->source_out_param_]; 
-         return param.param_name.toQString();
+        QVector<TOPPASToolVertex::IOInfo> docks;
+        source->getOutputParameters(docks);
+        const TOPPASToolVertex::IOInfo& param = docks[this->source_out_param_];
+        return param.param_name.toQString();
       }
     }
-    return "";    
+    return "";
   }
 
   void TOPPASEdge::updateColor()
@@ -726,4 +702,4 @@ namespace OpenMS
     }
   }
 
-} //namespace
+} // namespace OpenMS

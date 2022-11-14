@@ -34,12 +34,10 @@
 
 #pragma once
 
-#include <OpenMS/VISUAL/ANNOTATION/Annotation1DItem.h>
-
 #include <OpenMS/METADATA/PeptideHit.h>
+#include <OpenMS/VISUAL/ANNOTATION/Annotation1DItem.h>
 #include <OpenMS/VISUAL/MISC/GUIHelpers.h>
 #include <OpenMS/VISUAL/Plot1DCanvas.h>
-
 #include <QtGui/QColor>
 
 namespace OpenMS
@@ -48,14 +46,12 @@ namespace OpenMS
   /** @brief A peak annotation item
             @see Annotation1DItem
     */
-  template <class DataPoint> // e.g.  Peak1D
-  class Annotation1DPeakItem :
-    public Annotation1DItem
+  template<class DataPoint> // e.g.  Peak1D
+  class Annotation1DPeakItem : public Annotation1DItem
   {
-public:
+  public:
     /// Constructor
-    Annotation1DPeakItem(const DataPoint& peak_position, const QString& text, const QColor& color) :
-      Annotation1DItem(text), peak_position_(peak_position), position_(peak_position), color_(color)
+    Annotation1DPeakItem(const DataPoint& peak_position, const QString& text, const QColor& color) : Annotation1DItem(text), peak_position_(peak_position), position_(peak_position), color_(color)
     {
     }
 

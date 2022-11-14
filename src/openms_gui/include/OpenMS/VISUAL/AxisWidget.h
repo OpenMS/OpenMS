@@ -60,19 +60,18 @@ namespace OpenMS
 
       @ingroup Visual
   */
-  class OPENMS_GUI_DLLAPI AxisWidget :
-    public QWidget
+  class OPENMS_GUI_DLLAPI AxisWidget : public QWidget
   {
     Q_OBJECT
 
-public:
-    ///Type definitions
+  public:
+    /// Type definitions
     //@{
-    ///Vector of vector of doubles that defines the grid
-    typedef std::vector<std::vector<double> > GridVector;
+    /// Vector of vector of doubles that defines the grid
+    typedef std::vector<std::vector<double>> GridVector;
 
     /// constructor
-    AxisWidget(const AxisPainter::Alignment alignment, const char * legend = "", QWidget * parent = nullptr);
+    AxisWidget(const AxisPainter::Alignment alignment, const char* legend = "", QWidget* parent = nullptr);
 
     /// destructor
     ~AxisWidget() override;
@@ -90,13 +89,13 @@ public:
     bool isLegendShown() const;
 
     /// sets the legend text
-    void setLegend(const String & legend);
+    void setLegend(const String& legend);
 
     /// returns the actual legend text
-    const String & getLegend() const;
+    const String& getLegend() const;
 
     /// returns the currently used grid lines
-    const GridVector & gridLines() const;
+    const GridVector& gridLines() const;
 
     /// sets the axis to logarithmic scale
     void setLogScale(bool is_log);
@@ -120,17 +119,17 @@ public:
     double getAxisMaximum() const;
 
     /// Actual painting takes place here
-    void paint(QPainter * painter, QPaintEvent * e);
+    void paint(QPainter* painter, QPaintEvent* e);
 
-public slots:
+  public slots:
 
-    ///sets min/max of the axis
+    /// sets min/max of the axis
     void setAxisBounds(double min, double max);
 
     /// set maximum number of tick levels ('1' or '2', default: '2')
     void setTickLevel(UInt level);
 
-protected:
+  protected:
     /// Vector that defines the position of the ticks/gridlines and the shown values on axis
     GridVector grid_line_;
 
@@ -165,7 +164,6 @@ protected:
     bool allow_short_numbers_;
 
     /// Reimplemented Qt event (calls paint with "this")
-    void paintEvent(QPaintEvent *) override;
+    void paintEvent(QPaintEvent*) override;
   };
 } // namespace OpenMS
-

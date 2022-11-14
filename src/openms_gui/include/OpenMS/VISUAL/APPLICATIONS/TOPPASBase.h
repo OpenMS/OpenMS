@@ -37,17 +37,17 @@
 // OpenMS_GUI config
 #include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
 
-//OpenMS
+// OpenMS
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 #include <OpenMS/VISUAL/EnhancedWorkspace.h>
-#include <OpenMS/VISUAL/TOPPASTreeView.h>
 #include <OpenMS/VISUAL/RecentFilesMenu.h>
+#include <OpenMS/VISUAL/TOPPASTreeView.h>
 
-//QT
+// QT
+#include <QtNetwork/QNetworkReply>
 #include <QtWidgets/QButtonGroup>
 #include <QtWidgets/QMainWindow>
 #include <QtWidgets/QMdiArea>
-#include <QtNetwork/QNetworkReply>
 #include <QtWidgets/QSplashScreen>
 
 class QToolBar;
@@ -76,17 +76,14 @@ namespace OpenMS
 
     @ingroup TOPPAS_elements
   */
-  class OPENMS_GUI_DLLAPI TOPPASBase :
-    public QMainWindow,
-    public DefaultParamHandler
+  class OPENMS_GUI_DLLAPI TOPPASBase : public QMainWindow, public DefaultParamHandler
   {
     Q_OBJECT
 
-public:
-
-    ///Constructor
+  public:
+    /// Constructor
     TOPPASBase(QWidget* parent = nullptr);
-    ///Destructor
+    /// Destructor
     ~TOPPASBase() override;
 
     /**
@@ -100,7 +97,7 @@ If the filename is empty, the application name + ".ini" is used as filename
     /// loads the files and updates the splash screen
     void loadFiles(const std::vector<String>& list, QSplashScreen* splash_screen);
 
-public slots:
+  public slots:
     /// opens the file in a new window
     void addTOPPASFile(const String& file_name, bool in_new_window = true);
     /// shows the dialog for opening files
@@ -174,10 +171,10 @@ public slots:
     void openFilesInTOPPView(QStringList all_files);
     /// Opens a toppas file
     void openToppasFile(const QString& filename);
-protected slots:
+  protected slots:
 
     /** @name Tab bar slots
-*/
+     */
     //@{
     /// Closes the window corresponding to the data of the tab with identifier @p id
     void closeByTab(int id);
@@ -204,21 +201,20 @@ protected slots:
     /// user edited the workflow description
     void descriptionUpdated_();
 
-protected:
-
+  protected:
     /// Log output window
     LogWindow* log_;
     /// Workflow Description window
     QTextEdit* desc_;
 
     /** @name Toolbar
-    */
+     */
     //@{
     QToolBar* tool_bar_;
     //@}
 
     /// manages recent list of filenames and the menu that goes with it
-    RecentFilesMenu recent_files_menu_;  // needs to be declared before 'menu_', because its needed there
+    RecentFilesMenu recent_files_menu_; // needs to be declared before 'menu_', because its needed there
 
     /// Main workspace
     EnhancedWorkspace* ws_;
@@ -230,7 +226,7 @@ protected:
     /// the content of the network request
     QNetworkReply* network_reply_;
 
-    ///Tab bar. The address of the corresponding window to a tab is stored as an int in tabData()
+    /// Tab bar. The address of the corresponding window to a tab is stored as an int in tabData()
     EnhancedTabBar* tab_bar_;
 
     /// Tree view of all available TOPP tools
@@ -239,13 +235,13 @@ protected:
     QListWidget* blocks_list_;
 
     /** @name Status bar
-    */
+     */
     //@{
     /// Label for messages in the status bar
     QLabel* message_label_;
     //@}
 
-    ///returns the window with id @p id
+    /// returns the window with id @p id
     TOPPASWidget* window_(int id) const;
 
 
@@ -262,7 +258,7 @@ protected:
     /// z-value counter for new inserted nodes (new nodes should be on top)
     static qreal z_value_;
 
-    ///returns a pointer to the active TOPPASWidget (0 if none is active)
+    /// returns a pointer to the active TOPPASWidget (0 if none is active)
     TOPPASWidget* activeSubWindow_() const;
 
     ///@name reimplemented Qt events
@@ -275,7 +271,7 @@ protected:
     TOPPASScene* clipboard_scene_;
 
 
-public:
+  public:
     /// @name common functions used in TOPPAS and TOPPView
     //@{
     /// Creates and fills a tree widget with all available tools
@@ -294,7 +290,6 @@ public:
     /// Refreshes the TOPP tools parameters of the pipeline
     static QString refreshPipelineParameters(TOPPASWidget* tw, QString current_path);
     //@}
-  }; //class
+  }; // class
 
-} //namespace
-
+} // namespace OpenMS

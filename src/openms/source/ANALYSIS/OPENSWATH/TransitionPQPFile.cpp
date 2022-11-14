@@ -536,7 +536,7 @@ namespace OpenMS
       }
 
       if (gene_map.find(gene_name) == gene_map.end()) gene_map[gene_name] = (int)gene_map.size();
-      peptide_gene_map.push_back(std::make_pair(peptide_set_index, gene_map[gene_name]));
+      peptide_gene_map.emplace_back(peptide_set_index, gene_map[gene_name]);
 
       insert_precursor_sql <<
         "INSERT INTO PRECURSOR (ID, TRAML_ID, GROUP_LABEL, PRECURSOR_MZ, CHARGE, LIBRARY_INTENSITY, " <<

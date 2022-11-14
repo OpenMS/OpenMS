@@ -36,9 +36,8 @@
 
 // OpenMS_GUI config
 #include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
-
-#include <QOpenGLWidget>
 #include <QOpenGLFunctions_2_0>
+#include <QOpenGLWidget>
 
 // OpenMS
 #include <OpenMS/DATASTRUCTURES/DRange.h>
@@ -56,18 +55,15 @@ namespace OpenMS
       @ingroup PlotWidgets
   */
 
-  class OPENMS_GUI_DLLAPI Plot3DOpenGLCanvas :
-    public QOpenGLWidget, 
-    protected QOpenGLFunctions_2_0
+  class OPENMS_GUI_DLLAPI Plot3DOpenGLCanvas : public QOpenGLWidget, protected QOpenGLFunctions_2_0
   {
     Q_OBJECT
 
     friend class Plot3DCanvas;
 
-public:
-
+  public:
     /// Container for axis ticks
-    typedef std::vector<std::vector<double> > AxisTickVector;
+    typedef std::vector<std::vector<double>> AxisTickVector;
 
     /**
      @brief Constructor
@@ -75,7 +71,7 @@ public:
      @param parent The parent widget
      @param canvas_3d The main 3d canvas
     */
-    Plot3DOpenGLCanvas(QWidget * parent, Plot3DCanvas & canvas_3d);
+    Plot3DOpenGLCanvas(QWidget* parent, Plot3DCanvas& canvas_3d);
     /**
         @brief Destructor
 
@@ -83,7 +79,7 @@ public:
     */
     ~Plot3DOpenGLCanvas() override;
 
-    ///virtual function provided from QGLWidget
+    /// virtual function provided from QGLWidget
     void initializeGL() override;
     /// virtual function provided from QGLWidget
     void resizeGL(int w, int h) override;
@@ -92,28 +88,38 @@ public:
 
     /** @name Reimplemented QT events */
     //@{
-    void mouseMoveEvent(QMouseEvent * e) override;
-    void mouseReleaseEvent(QMouseEvent * e) override;
-    void mousePressEvent(QMouseEvent * e) override;
-    void focusOutEvent(QFocusEvent * e) override;
+    void mouseMoveEvent(QMouseEvent* e) override;
+    void mouseReleaseEvent(QMouseEvent* e) override;
+    void mousePressEvent(QMouseEvent* e) override;
+    void focusOutEvent(QFocusEvent* e) override;
     //@}
 
-    void setXLabel(const QString& l) { x_label_ = l; }
-    void setYLabel(const QString& l) { y_label_ = l; }
-    void setZLabel(const QString& l) { z_label_ = l; }
-    
+    void setXLabel(const QString& l)
+    {
+      x_label_ = l;
+    }
+    void setYLabel(const QString& l)
+    {
+      y_label_ = l;
+    }
+    void setZLabel(const QString& l)
+    {
+      z_label_ = l;
+    }
+
     /// updates the min and max values of the intensity
     void updateIntensityScale();
-protected:
+
+  protected:
     /// helper function to project point to device space
-    GLint project_(GLdouble objx, GLdouble objy, GLdouble objz, GLdouble * winx, GLdouble * winy); 
+    GLint project_(GLdouble objx, GLdouble objy, GLdouble objz, GLdouble* winx, GLdouble* winy);
     /// helper function to transform point using matrix m (homogeneous coordinates)
     void transformPoint_(GLdouble out[4], const GLdouble m[16], const GLdouble in[4]);
-    ///helper function to replicate old behaviour of QGLWidget
-    void renderText_(double x, double y, double z, const QString & text);
-    ///helper function to replicate old behaviour of QGLWidget
+    /// helper function to replicate old behaviour of QGLWidget
+    void renderText_(double x, double y, double z, const QString& text);
+    /// helper function to replicate old behaviour of QGLWidget
     void qglColor_(const QColor& color);
-    ///helper function to replicate old behaviour of QGLWidget
+    /// helper function to replicate old behaviour of QGLWidget
     void qglClearColor_(const QColor& clearColor);
     /// Builds up a display list for the 3D view
     GLuint makeDataAsStick_();
@@ -146,10 +152,10 @@ protected:
     double scaledInversMZ_(double mz);
     /// returns the BB-intensity -coordinate :  values --> BB-coordinates
     double scaledIntensity_(float intensity, Size layer_index);
-    
+
     /// recalculates the dot gradient interpolation values.
     void recalculateDotGradient_(LayerDataBase& layer);
-    ///calculate the ticks for the gridlines
+    /// calculate the ticks for the gridlines
     void calculateGridLines_();
 
     /// normalize the angle by "angle % 360*16"
@@ -172,7 +178,7 @@ protected:
     //@}
 
     /// reference to Plot3DCanvas
-    Plot3DCanvas & canvas_3d_;
+    Plot3DCanvas& canvas_3d_;
 
     /// member x-variables for the rotation
     int xrot_;
@@ -193,7 +199,7 @@ protected:
     /// member variables for the zoom-mode
     QPoint mouse_move_end_, mouse_move_begin_;
 
-    ///member variable for the x and y axis of the BB
+    /// member variable for the x and y axis of the BB
     double corner_;
     /// member variable for the zoom mode
     double zoom_;
@@ -210,13 +216,13 @@ protected:
     float height_;
     /// object which contains the min and max values of mz, rt and intensity
     DRange<3> overall_values_;
-    ///object which contains the values of the current min and max intensity
+    /// object which contains the values of the current min and max intensity
     DRange<1> int_scale_;
-    ///member gridvectors which contains the data for the mz-axis-ticks
+    /// member gridvectors which contains the data for the mz-axis-ticks
     AxisTickVector grid_mz_;
-    ///member gridvectors which contains the data for the rt-axis-ticks
+    /// member gridvectors which contains the data for the rt-axis-ticks
     AxisTickVector grid_rt_;
-    ///member gridvectors which contains the data for the intensity-axis-ticks
+    /// member gridvectors which contains the data for the intensity-axis-ticks
     AxisTickVector grid_intensity_;
     /// x1 coordinate of the zoomselection
     double x_1_;
@@ -235,8 +241,8 @@ protected:
     QString y_label_;
     QString z_label_;
 
-protected slots:
+  protected slots:
     /// Slot that reacts on action mode changes
     void actionModeChange();
   };
-}
+} // namespace OpenMS

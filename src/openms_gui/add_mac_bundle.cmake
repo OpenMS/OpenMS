@@ -40,47 +40,47 @@
 # Note that this macro will also take care of installing the bundle in the
 # case that a dmg package should be build
 macro(add_mac_app_bundle _name)
-	# the icon file
-	set(ICON_FILE_PATH      "${PROJECT_SOURCE_DIR}/source/VISUAL/APPLICATIONS/GUITOOLS/${_name}-resources/${_name}.icns")
-	set(INFO_PLIST_TEMPLATE "${PROJECT_SOURCE_DIR}/source/VISUAL/APPLICATIONS/GUITOOLS/${_name}-resources/${_name}.plist.in")
-	get_filename_component(ICON_FILE_NAME "${ICON_FILE_PATH}" NAME)
+    # the icon file
+    set(ICON_FILE_PATH "${PROJECT_SOURCE_DIR}/source/VISUAL/APPLICATIONS/GUITOOLS/${_name}-resources/${_name}.icns")
+    set(INFO_PLIST_TEMPLATE "${PROJECT_SOURCE_DIR}/source/VISUAL/APPLICATIONS/GUITOOLS/${_name}-resources/${_name}.plist.in")
+    get_filename_component(ICON_FILE_NAME "${ICON_FILE_PATH}" NAME)
 
-	# we also need the icns in the app
-	add_executable(
-		${_name}
-		MACOSX_BUNDLE
-		${GUI_DIR}/${_name}.cpp
-		${ICON_FILE_PATH})
+    # we also need the icns in the app
+    add_executable(
+            ${_name}
+            MACOSX_BUNDLE
+            ${GUI_DIR}/${_name}.cpp
+            ${ICON_FILE_PATH})
 
-	string(TIMESTAMP MY_YEAR "%Y")
+    string(TIMESTAMP MY_YEAR "%Y")
 
-	set_target_properties(${_name} PROPERTIES
-		# we want our own info.plist template
-		MACOSX_BUNDLE_INFO_PLIST "${INFO_PLIST_TEMPLATE}"
-		MACOSX_BUNDLE_INFO_STRING "${PROJECT_NAME} Version ${CF_OPENMS_PACKAGE_VERSION}, Copyright ${MY_YEAR} The OpenMS Team."
-		MACOSX_BUNDLE_ICON_FILE ${ICON_FILE_NAME}
-		MACOSX_BUNDLE_GUI_IDENTIFIER "de.openms.${_name}"
-		MACOSX_BUNDLE_LONG_VERSION_STRING "${PROJECT_NAME} Version ${CF_OPENMS_PACKAGE_VERSION}"
-		MACOSX_BUNDLE_BUNDLE_NAME ${_name}
-		MACOSX_BUNDLE_SHORT_VERSION_STRING ${CF_OPENMS_PACKAGE_VERSION}
-		MACOSX_BUNDLE_BUNDLE_VERSION ${CF_OPENMS_PACKAGE_VERSION}
-		MACOSX_BUNDLE_COPYRIGHT "Copyright ${MY_YEAR}, The OpenMS Team. All Rights Reserved."
-	)
+    set_target_properties(${_name} PROPERTIES
+            # we want our own info.plist template
+            MACOSX_BUNDLE_INFO_PLIST "${INFO_PLIST_TEMPLATE}"
+            MACOSX_BUNDLE_INFO_STRING "${PROJECT_NAME} Version ${CF_OPENMS_PACKAGE_VERSION}, Copyright ${MY_YEAR} The OpenMS Team."
+            MACOSX_BUNDLE_ICON_FILE ${ICON_FILE_NAME}
+            MACOSX_BUNDLE_GUI_IDENTIFIER "de.openms.${_name}"
+            MACOSX_BUNDLE_LONG_VERSION_STRING "${PROJECT_NAME} Version ${CF_OPENMS_PACKAGE_VERSION}"
+            MACOSX_BUNDLE_BUNDLE_NAME ${_name}
+            MACOSX_BUNDLE_SHORT_VERSION_STRING ${CF_OPENMS_PACKAGE_VERSION}
+            MACOSX_BUNDLE_BUNDLE_VERSION ${CF_OPENMS_PACKAGE_VERSION}
+            MACOSX_BUNDLE_COPYRIGHT "Copyright ${MY_YEAR}, The OpenMS Team. All Rights Reserved."
+            )
 
-	set_source_files_properties(${ICON_FILE_PATH} PROPERTIES MACOSX_PACKAGE_LOCATION Resources)
+    set_source_files_properties(${ICON_FILE_PATH} PROPERTIES MACOSX_PACKAGE_LOCATION Resources)
 
-	## If you are packaging: Fix up the bundle. -> Copies all non-system dylibs into the bundles
-	## Results in duplicate libraries in the different bundles.. but well.. that's how it is
-	## If you are not packaging, libraries are linked via hardcoded paths specific to your machine.
-	if("${PACKAGE_TYPE}" STREQUAL "dmg")
-        set (APP_FOLDER "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${_name}.app")
+    ## If you are packaging: Fix up the bundle. -> Copies all non-system dylibs into the bundles
+    ## Results in duplicate libraries in the different bundles.. but well.. that's how it is
+    ## If you are not packaging, libraries are linked via hardcoded paths specific to your machine.
+    if ("${PACKAGE_TYPE}" STREQUAL "dmg")
+        set(APP_FOLDER "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${_name}.app")
 
-        set (PLUGIN_VAR_NAME QT_PLUGINS_APPS_${_name})
+        set(PLUGIN_VAR_NAME QT_PLUGINS_APPS_${_name})
         ## Install qt5 plugins needed on mac and save them in a var for fixing their dependencies later
         install_qt5_plugin("Qt5::QCocoaIntegrationPlugin" ${PLUGIN_VAR_NAME} "${APP_FOLDER}/Contents/PlugIns" AAApplications)
         install_qt5_plugin("Qt5::QMacStylePlugin" ${PLUGIN_VAR_NAME} "${APP_FOLDER}/Contents/PlugIns" AAApplications)
 
-        set (QT_PLUGINS_TO_FIX ${${PLUGIN_VAR_NAME}})
+        set(QT_PLUGINS_TO_FIX ${${PLUGIN_VAR_NAME}})
 
         ## Find Qt library folder
         get_target_property(QT_LIBRARY_DIR Qt5::Core LOCATION)
@@ -89,53 +89,53 @@ macro(add_mac_app_bundle _name)
 
         ## Write a qt.conf file with a ref to the plugin dir in app bundles = PlugIns
         file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/qt.conf"
-        "[Paths]\nPlugins = PlugIns\n")
+                "[Paths]\nPlugins = PlugIns\n")
         install(FILES "${CMAKE_CURRENT_BINARY_DIR}/qt.conf"
                 DESTINATION "${APP_FOLDER}/Contents/Resources"
                 COMPONENT AAApplications)
 
         ## Fix up the dependencies in the bundle and make them rel. to their location in the bundle
         ## Give additional plugins to fix and extra dirs where dependencies should be searched
-		install(CODE "
+        install(CODE "
 			set(BU_CHMOD_BUNDLE_ITEMS On)
 			include(BundleUtilities)
 			fixup_bundle(${APP_FOLDER} \"${QT_PLUGINS_TO_FIX}\" \"${QT_LIBRARY_DIR}\")
 			"
-			COMPONENT AApplications)
+                COMPONENT AApplications)
 
-		## Copy bundle to the target install destination
-		install(TARGETS ${_name} BUNDLE
-			DESTINATION .
-			COMPONENT Applications)
-		
-		## Notarization is only possible with Xcode/Appleclang 10, otherwise we just skip
-		if(NOT CMAKE_CXX_COMPILER_VERSION VERSION_LESS 10)
-			## We also need an identity to sign with
-			if(DEFINED CPACK_BUNDLE_APPLE_CERT_APP)
-			## TODO try to find codesign to make sure the right exec is used (currently needs to be in path)
-			## TODO allow choosing keychain
-			## Note: Signing identity has to be unique, and present in any of the keychains in search list
-			## which needs to be unlocked. Play around with keychain argument otherwise.
-                   install(CODE "
+        ## Copy bundle to the target install destination
+        install(TARGETS ${_name} BUNDLE
+                DESTINATION .
+                COMPONENT Applications)
+
+        ## Notarization is only possible with Xcode/Appleclang 10, otherwise we just skip
+        if (NOT CMAKE_CXX_COMPILER_VERSION VERSION_LESS 10)
+            ## We also need an identity to sign with
+            if (DEFINED CPACK_BUNDLE_APPLE_CERT_APP)
+                ## TODO try to find codesign to make sure the right exec is used (currently needs to be in path)
+                ## TODO allow choosing keychain
+                ## Note: Signing identity has to be unique, and present in any of the keychains in search list
+                ## which needs to be unlocked. Play around with keychain argument otherwise.
+                install(CODE "
 execute_process(COMMAND codesign --deep --force --options runtime --sign ${CPACK_BUNDLE_APPLE_CERT_APP} -i de.openms.${_name} \${CMAKE_INSTALL_PREFIX}/${_name}.app OUTPUT_VARIABLE sign_out ERROR_VARIABLE sign_out)
 message('\${sign_out}')" COMPONENT BApplications)
 
-                   install(CODE "
+                install(CODE "
 execute_process(COMMAND codesign -dv \${CMAKE_INSTALL_PREFIX}/${_name}.app OUTPUT_VARIABLE sign_check_out ERROR_VARIABLE sign_check_out)
 message('\${sign_check_out}')" COMPONENT BApplications)
 
-                   install(CODE "
+                install(CODE "
 execute_process(COMMAND ${OPENMS_HOST_DIRECTORY}/cmake/MacOSX/notarize_app.sh \${CMAKE_INSTALL_PREFIX}/${_name}.app de.openms.${_name} ${SIGNING_EMAIL} CODESIGNPW ${OPENMS_HOST_BINARY_DIRECTORY} OUTPUT_VARIABLE notarize_out ERROR_VARIABLE notarize_out)
 message('\${notarize_out}')" COMPONENT BApplications)
 
-                   install(CODE "
+                install(CODE "
 execute_process(COMMAND spctl -a -v \${CMAKE_INSTALL_PREFIX}/${_name}.app OUTPUT_VARIABLE verify_out ERROR_VARIABLE verify_out)
 message('\${verify_out}')" COMPONENT BApplications)
-                   
-			endif(DEFINED CPACK_BUNDLE_APPLE_CERT_APP)
-		endif()
-	else()
-	  ## Just install to the usual bin dir without fixing it up
-	  install_tool(${_name})
-	endif()
+
+            endif (DEFINED CPACK_BUNDLE_APPLE_CERT_APP)
+        endif ()
+    else ()
+        ## Just install to the usual bin dir without fixing it up
+        install_tool(${_name})
+    endif ()
 endmacro()

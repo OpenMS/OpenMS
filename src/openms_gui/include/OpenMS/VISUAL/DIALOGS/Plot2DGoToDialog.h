@@ -35,10 +35,8 @@
 #pragma once
 
 // OpenMS_GUI config
-#include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
-
 #include <OpenMS/CONCEPT/Types.h>
-
+#include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
 #include <QtWidgets/QDialog>
 
 namespace Ui
@@ -56,15 +54,14 @@ namespace OpenMS
 
       @ingroup Dialogs
   */
-  class OPENMS_GUI_DLLAPI Plot2DGoToDialog :
-    public QDialog
+  class OPENMS_GUI_DLLAPI Plot2DGoToDialog : public QDialog
   {
     Q_OBJECT
 
-public:
-    ///Constructor
-    Plot2DGoToDialog(QWidget * parent = nullptr);
-    ///Destructor
+  public:
+    /// Constructor
+    Plot2DGoToDialog(QWidget* parent = nullptr);
+    /// Destructor
     ~Plot2DGoToDialog() override;
 
     /// Returns if a range should be display (true) or if a feature should be displayed (false)
@@ -77,31 +74,30 @@ public:
 
     ///@name Methods for ranges
     //@{
-    ///Sets the data range to display initially
+    /// Sets the data range to display initially
     void setRange(float min_rt, float max_rt, float min_mz, float max_mz);
-    ///Sets the data range of the complete experiment for better navigation with the dialog
+    /// Sets the data range of the complete experiment for better navigation with the dialog
     void setMinMaxOfRange(float min_rt, float max_rt, float min_mz, float max_mz);
-    ///Returns the lower RT bound
+    /// Returns the lower RT bound
     float getMinRT() const;
-    ///Returns the upper RT bound
+    /// Returns the upper RT bound
     float getMaxRT() const;
-    ///Returns the lower m/z bound
+    /// Returns the lower m/z bound
     float getMinMZ() const;
-    ///Returns the upper m/z bound
+    /// Returns the upper m/z bound
     float getMaxMZ() const;
     //@}
 
     ///@name Methods for feature numbers
     //@{
-    ///Returns the selected feature numbers. If a number is returned, the feature rather than the range should be displayed.
+    /// Returns the selected feature numbers. If a number is returned, the feature rather than the range should be displayed.
     String getFeatureNumber() const;
-    ///Disables the feature number field
+    /// Disables the feature number field
     void enableFeatureNumber(bool);
     //@}
 
   private:
     Ui::Plot2DGoToDialogTemplate* ui_;
-
   };
 
-}
+} // namespace OpenMS

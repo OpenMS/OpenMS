@@ -32,10 +32,9 @@
 // $Authors: Chris Bielow $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/VISUAL/MISC/GUIHelpers.h>
-
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/SYSTEM/File.h>
+#include <OpenMS/VISUAL/MISC/GUIHelpers.h>
 #include <QDesktopServices>
 #include <QGuiApplication>
 #include <QMessageBox>
@@ -45,8 +44,8 @@
 #include <QRectF>
 #include <QString>
 #include <QStringList>
-#include <QtWidgets/QFileDialog>
 #include <QUrl>
+#include <QtWidgets/QFileDialog>
 
 namespace OpenMS
 {
@@ -121,9 +120,9 @@ namespace OpenMS
     {
       // execution failed
       OPENMS_LOG_ERROR << p.errorString().toStdString() << std::endl;
-  #if defined(Q_WS_MAC)
+#if defined(Q_WS_MAC)
       OPENMS_LOG_ERROR << "Please check if TOPPAS and TOPPView are located in the same directory" << std::endl;
-  #endif
+#endif
     }
   }
 
@@ -153,10 +152,7 @@ namespace OpenMS
 
     if (!QDesktopServices::openUrl(url_target))
     {
-      QMessageBox::warning(nullptr,
-                           QObject::tr("Error"),
-                           QObject::tr("Unable to open\n") + target + 
-                           QObject::tr("\n\nPossible reason: security settings or misconfigured Operating System"));
+      QMessageBox::warning(nullptr, QObject::tr("Error"), QObject::tr("Unable to open\n") + target + QObject::tr("\n\nPossible reason: security settings or misconfigured Operating System"));
     }
   }
 
@@ -171,10 +167,12 @@ namespace OpenMS
     QRectF dim = getTextDimension(text, painter.font(), line_spacing);
 
     // draw background for text
-    if (col_bg.isValid()) painter.fillRect(where.x(), where.y(), dim.width(), dim.height(), col_bg);
+    if (col_bg.isValid())
+      painter.fillRect(where.x(), where.y(), dim.width(), dim.height(), col_bg);
 
     // draw text
-    if (col_fg.isValid()) painter.setPen(col_fg);
+    if (col_fg.isValid())
+      painter.setPen(col_fg);
 
     for (int i = 0; i < text.size(); ++i)
     {
@@ -273,19 +271,20 @@ namespace OpenMS
   StringList GUIHelpers::convert(const QStringList& in)
   {
     StringList out;
-    for (const auto& s : in) out.push_back(s);
+    for (const auto& s : in)
+      out.push_back(s);
     return out;
   }
 
   QStringList GUIHelpers::convert(const StringList& in)
   {
     QStringList out;
-    for (const auto& s : in) out.push_back(s.toQString());
+    for (const auto& s : in)
+      out.push_back(s.toQString());
     return out;
   }
 
-  GUIHelpers::GUILock::GUILock(QWidget* gui)
-    : locked_widget_(gui)
+  GUIHelpers::GUILock::GUILock(QWidget* gui) : locked_widget_(gui)
   {
     lock();
   }
@@ -297,8 +296,10 @@ namespace OpenMS
 
   void GUIHelpers::GUILock::lock()
   {
-    if (currently_locked_) return;
-    if (locked_widget_ == nullptr) return;
+    if (currently_locked_)
+      return;
+    if (locked_widget_ == nullptr)
+      return;
 
     was_enabled_ = locked_widget_->isEnabled();
     locked_widget_->setEnabled(false);
@@ -308,14 +309,16 @@ namespace OpenMS
 
   void GUIHelpers::GUILock::unlock()
   {
-    if (!currently_locked_) return;
-    if (locked_widget_ == nullptr) return;
+    if (!currently_locked_)
+      return;
+    if (locked_widget_ == nullptr)
+      return;
 
     locked_widget_->setEnabled(was_enabled_);
-    QGuiApplication::restoreOverrideCursor(); 
+    QGuiApplication::restoreOverrideCursor();
     currently_locked_ = false;
   }
-  
+
   GUIHelpers::OverlapDetector::OverlapDetector(int levels)
   {
     if (levels <= 0)
@@ -351,5 +354,4 @@ namespace OpenMS
     return best_index;
   }
 
-} //namespace OpenMS
-
+} // namespace OpenMS

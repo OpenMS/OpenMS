@@ -37,7 +37,7 @@
 // OpenMS_GUI config
 #include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
 
-//OpenMS
+// OpenMS
 #include <OpenMS/METADATA/MassAnalyzer.h>
 #include <OpenMS/VISUAL/VISUALIZER/BaseVisualizer.h>
 #include <OpenMS/VISUAL/VISUALIZER/BaseVisualizerGUI.h>
@@ -49,49 +49,45 @@ namespace OpenMS
 
       This class provides all functionality to view the meta information of an object of type MassAnalyzer.
   */
-  class OPENMS_GUI_DLLAPI MassAnalyzerVisualizer :
-    public BaseVisualizerGUI,
-    public BaseVisualizer<MassAnalyzer>
+  class OPENMS_GUI_DLLAPI MassAnalyzerVisualizer : public BaseVisualizerGUI, public BaseVisualizer<MassAnalyzer>
   {
     Q_OBJECT
 
-public:
+  public:
+    /// Constructor
+    MassAnalyzerVisualizer(bool editable = false, QWidget* parent = nullptr);
 
-    ///Constructor
-    MassAnalyzerVisualizer(bool editable = false, QWidget * parent = nullptr);
+  public slots:
 
-public slots:
-
-    //Docu in base class
+    // Docu in base class
     void store() override;
 
-protected slots:
+  protected slots:
 
-    ///Undo the changes made in the GUI.
+    /// Undo the changes made in the GUI.
     void undo_();
 
-protected:
-
+  protected:
     ///@name edit fields to modify properties
     //@{
-    QLineEdit * order_;
-    QLineEdit * res_;
-    QLineEdit * acc_;
-    QLineEdit * scan_rate_;
-    QLineEdit * scan_time_;
-    QLineEdit * TOF_;
-    QLineEdit * iso_;
-    QLineEdit * final_MS_;
-    QLineEdit * magnetic_fs_;
-    QComboBox * type_;
-    QComboBox * res_method_;
-    QComboBox * res_type_;
-    QComboBox * scan_dir_;
-    QComboBox * scan_law_;
-    QComboBox * reflectron_state_;
+    QLineEdit* order_;
+    QLineEdit* res_;
+    QLineEdit* acc_;
+    QLineEdit* scan_rate_;
+    QLineEdit* scan_time_;
+    QLineEdit* TOF_;
+    QLineEdit* iso_;
+    QLineEdit* final_MS_;
+    QLineEdit* magnetic_fs_;
+    QComboBox* type_;
+    QComboBox* res_method_;
+    QComboBox* res_type_;
+    QComboBox* scan_dir_;
+    QComboBox* scan_law_;
+    QComboBox* reflectron_state_;
     //@}
 
-    //Docu in base class
+    // Docu in base class
     void update_() override;
   };
-}
+} // namespace OpenMS

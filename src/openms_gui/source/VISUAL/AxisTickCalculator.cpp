@@ -34,13 +34,13 @@
 
 
 // STL
-#include <iostream>
 #include <cmath>
+#include <iostream>
 #include <numeric>
 
 // OpenMS
-#include <OpenMS/VISUAL/AxisTickCalculator.h>
 #include <OpenMS/MATH/MISC/MathFunctions.h>
+#include <OpenMS/VISUAL/AxisTickCalculator.h>
 
 using namespace std;
 
@@ -48,7 +48,7 @@ namespace OpenMS
 {
   using namespace Math;
 
-  void AxisTickCalculator::calcGridLines(double x1, double x2, GridVector & grid)
+  void AxisTickCalculator::calcGridLines(double x1, double x2, GridVector& grid)
   {
     grid.clear();
 
@@ -132,7 +132,8 @@ namespace OpenMS
 
   void AxisTickCalculator::calcLogGridLines(double x1, double x2, GridVector& grid)
   {
-    if (std::isnan(x1)) {
+    if (std::isnan(x1))
+    {
       x1 = 0; // may happen for negative values
     }
     if (std::isnan(x2))
@@ -172,4 +173,4 @@ namespace OpenMS
     }
   }
 
-} //namespace
+} // namespace OpenMS

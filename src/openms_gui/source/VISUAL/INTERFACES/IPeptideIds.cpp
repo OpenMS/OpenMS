@@ -38,7 +38,7 @@ using namespace std;
 
 namespace OpenMS
 {
-  
+
   // just an interface. No implementation here...
 
 } // namespace OpenMS

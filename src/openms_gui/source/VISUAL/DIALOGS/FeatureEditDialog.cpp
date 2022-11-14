@@ -41,10 +41,7 @@ using namespace std;
 namespace OpenMS
 {
 
-  FeatureEditDialog::FeatureEditDialog(QWidget * parent) :
-    QDialog(parent),
-    feature_(),
-    ui_(new Ui::FeatureEditDialogTemplate)
+  FeatureEditDialog::FeatureEditDialog(QWidget* parent) : QDialog(parent), feature_(), ui_(new Ui::FeatureEditDialogTemplate)
   {
     ui_->setupUi(this);
   }
@@ -54,27 +51,27 @@ namespace OpenMS
     delete ui_;
   }
 
-  void FeatureEditDialog::setFeature(const Feature & feature)
+  void FeatureEditDialog::setFeature(const Feature& feature)
   {
-    //copy feature
+    // copy feature
     feature_ = feature;
-    //update widgets according to feature data
+    // update widgets according to feature data
     ui_->mz_->setValue(feature_.getMZ());
     ui_->rt_->setValue(feature_.getRT());
     ui_->int_->setValue(feature_.getIntensity());
     ui_->charge_->setValue(feature_.getCharge());
   }
 
-  const Feature & FeatureEditDialog::getFeature() const
+  const Feature& FeatureEditDialog::getFeature() const
   {
-    //update feature data according to widget
+    // update feature data according to widget
     feature_.setMZ(ui_->mz_->value());
     feature_.setRT(ui_->rt_->value());
     feature_.setIntensity(ui_->int_->value());
     feature_.setCharge(ui_->charge_->value());
 
-    //return feature
+    // return feature
     return feature_;
   }
 
-} // namespace
+} // namespace OpenMS

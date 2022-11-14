@@ -37,16 +37,16 @@
 // OpenMS_GUI config
 #include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
 
-//OpenMS
+// OpenMS
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 
-//QT
+// QT
+#include <QtCore/QProcess>
+#include <QtNetwork/QNetworkReply>
+#include <QtWidgets/QButtonGroup>
 #include <QtWidgets/QMainWindow>
 #include <QtWidgets/QMdiArea>
-#include <QtWidgets/QButtonGroup>
-#include <QtCore/QProcess>
 #include <QtWidgets/QSplashScreen>
-#include <QtNetwork/QNetworkReply>
 
 class QToolBar;
 class QListWidget;
@@ -70,26 +70,24 @@ namespace OpenMS
     @brief Main window of the SwathWizard tool
 
   */
-  class OPENMS_GUI_DLLAPI SwathWizardBase :
-    public QMainWindow,
-    public DefaultParamHandler
+  class OPENMS_GUI_DLLAPI SwathWizardBase : public QMainWindow, public DefaultParamHandler
   {
     Q_OBJECT
 
-public:
+  public:
     /// Constructor
     SwathWizardBase(QWidget* parent = nullptr);
     /// Destructor
     ~SwathWizardBase() override;
- 
+
     void showAboutDialog();
 
-protected slots:
+  protected slots:
 
 
-protected:
+  protected:
     /// Log output window
-    //TOPPASLogWindow* log_;
+    // TOPPASLogWindow* log_;
 
     /// The current path (used for loading and storing).
     /// Depending on the preferences this is static or changes with the current window/layer.
@@ -106,7 +104,7 @@ protected:
 
   private:
     Ui::SwathWizardBase* ui;
-    
-  }; //class
 
-} //namespace
+  }; // class
+
+} // namespace OpenMS

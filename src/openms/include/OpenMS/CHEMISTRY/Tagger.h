@@ -55,7 +55,7 @@ namespace OpenMS
       /**
             @brief Constructor for Tagger
 
-            The parameter @p max_abs_charge_ should be >= @p min_abs_charge_.
+            The parameter @p max_charge_ should be >= @p min_charge_.
             Also @p max_tag_length should be >= @p min_tag_length.
 
             @param min_tag_length the minimal sequence tag length.

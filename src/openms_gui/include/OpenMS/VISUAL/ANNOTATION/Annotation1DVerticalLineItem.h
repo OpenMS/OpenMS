@@ -35,7 +35,6 @@
 #pragma once
 
 #include <OpenMS/VISUAL/ANNOTATION/Annotation1DItem.h>
-
 #include <QtGui/QColor>
 
 namespace OpenMS
@@ -43,8 +42,7 @@ namespace OpenMS
   /** @brief An annotation item which represents a vertical line (or more precisely a line along the gravity axis, i.e. it could also be horizontal) and text label on top.
       @see Annotation1DItem
   */
-  class Annotation1DVerticalLineItem :
-      public Annotation1DItem
+  class Annotation1DVerticalLineItem : public Annotation1DItem
   {
   public:
     /**
@@ -53,7 +51,7 @@ namespace OpenMS
       @param center_pos Center of the line in unit coordinates (only the non-gravity component will be used)
       @param color Optional color. If invalid (=default), the current painter color will be used when this is painted
       @param text Optional text displayed next to the line. Can contain '\n' which will force multiple lines.
-    **/ 
+    **/
     Annotation1DVerticalLineItem(const PointXYType& center_pos, const QColor& color = QColor("as_before"), const QString& text = "");
     /**
       Constructor for a single vertical line of 1px width or a broader line (band) with the given width
@@ -100,6 +98,7 @@ namespace OpenMS
     {
       return new Annotation1DVerticalLineItem(*this);
     }
+
   protected:
     /// The position of the line (gravity axis is ignored)
     PointXYType pos_;
@@ -110,7 +109,7 @@ namespace OpenMS
     /// transparency 0...255 of the band/line
     int alpha255_ = 128;
     /// is the band/line dashed?
-    bool dashed_{false};
+    bool dashed_ {false};
     /// The color of the line; if invalid, the current painter color will be used
     QColor color_ = Qt::black;
   };

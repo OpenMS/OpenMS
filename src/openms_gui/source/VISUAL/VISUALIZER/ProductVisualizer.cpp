@@ -34,11 +34,11 @@
 
 #include <OpenMS/VISUAL/VISUALIZER/ProductVisualizer.h>
 
-//QT
-#include <QtWidgets/QLineEdit>
+// QT
 #include <QtWidgets/QComboBox>
+#include <QtWidgets/QLineEdit>
 
-//STL
+// STL
 #include <iostream>
 
 using namespace std;
@@ -46,9 +46,7 @@ using namespace std;
 namespace OpenMS
 {
 
-  ProductVisualizer::ProductVisualizer(bool editable, QWidget * parent) :
-    BaseVisualizerGUI(editable, parent),
-    BaseVisualizer<Product>()
+  ProductVisualizer::ProductVisualizer(bool editable, QWidget* parent) : BaseVisualizerGUI(editable, parent), BaseVisualizer<Product>()
   {
     addLabel_("Modify processing method information.");
 
@@ -82,4 +80,4 @@ namespace OpenMS
     update_();
   }
 
-}
+} // namespace OpenMS

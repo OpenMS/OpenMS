@@ -36,7 +36,6 @@
 
 // OpenMS_GUI config
 #include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
-
 #include <OpenMS/VISUAL/TOPPASVertex.h>
 
 namespace OpenMS
@@ -46,13 +45,11 @@ namespace OpenMS
 
       @ingroup TOPPAS_elements
   */
-  class OPENMS_GUI_DLLAPI TOPPASInputFileListVertex :
-    public TOPPASVertex
+  class OPENMS_GUI_DLLAPI TOPPASInputFileListVertex : public TOPPASVertex
   {
     Q_OBJECT
 
-public:
-
+  public:
     /// Default constructor
     TOPPASInputFileListVertex() = default;
     /// Constructor
@@ -62,15 +59,15 @@ public:
     /// Destructor
     ~TOPPASInputFileListVertex() override = default;
     /// Assignment operator
-    TOPPASInputFileListVertex & operator=(const TOPPASInputFileListVertex & rhs) = default;
+    TOPPASInputFileListVertex& operator=(const TOPPASInputFileListVertex& rhs) = default;
     /// returns "InputVertex"
     String getName() const override;
     /// Sets the list of files
-    void setFilenames(const QStringList & files);
+    void setFilenames(const QStringList& files);
     /// Starts all tools below this node
     void run() override;
     // documented in base class
-    void paint(QPainter * painter, const QStyleOptionGraphicsItem * option, QWidget * widget) override;
+    void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget) override;
     // documented in base class
     QRectF boundingRect() const override;
     /// Checks if the given list of file names is valid
@@ -80,16 +77,15 @@ public:
     /// Opens the folders of the input files
     void openContainingFolder();
     /// Returns the key (for applying resources from a resource file)
-    const QString & getKey();
+    const QString& getKey();
     /// Sets the key (for applying resources from a resource file)
-    void setKey(const QString & key);
+    void setKey(const QString& key);
 
-public slots:
+  public slots:
     /// Called by an outgoing edge when it has changed
     void outEdgeHasChanged() override;
 
-protected:
-
+  protected:
     /// The key of this input node (for applying resources from a resource file)
     QString key_;
 
@@ -98,9 +94,7 @@ protected:
 
     ///@name reimplemented Qt events
     //@{
-    void mouseDoubleClickEvent(QGraphicsSceneMouseEvent * e) override;
+    void mouseDoubleClickEvent(QGraphicsSceneMouseEvent* e) override;
     //@}
-
   };
-}
-
+} // namespace OpenMS

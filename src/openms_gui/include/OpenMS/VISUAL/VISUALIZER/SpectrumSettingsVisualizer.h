@@ -37,7 +37,7 @@
 // OpenMS_GUI config
 #include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
 
-//OpenMS
+// OpenMS
 #include <OpenMS/METADATA/SpectrumSettings.h>
 #include <OpenMS/VISUAL/VISUALIZER/BaseVisualizer.h>
 #include <OpenMS/VISUAL/VISUALIZER/BaseVisualizerGUI.h>
@@ -51,36 +51,33 @@ namespace OpenMS
 
       This class provides all functionality to view the meta information of an object of type SpectrumSettings.
   */
-  class OPENMS_GUI_DLLAPI SpectrumSettingsVisualizer :
-    public BaseVisualizerGUI,
-    public BaseVisualizer<SpectrumSettings>
+  class OPENMS_GUI_DLLAPI SpectrumSettingsVisualizer : public BaseVisualizerGUI, public BaseVisualizer<SpectrumSettings>
   {
     Q_OBJECT
 
-public:
+  public:
+    /// Constructor
+    SpectrumSettingsVisualizer(bool editable = false, QWidget* parent = nullptr);
 
-    ///Constructor
-    SpectrumSettingsVisualizer(bool editable = false, QWidget * parent = nullptr);
+  public slots:
 
-public slots:
-
-    //Docu in base class
+    // Docu in base class
     void store() override;
 
-protected slots:
+  protected slots:
 
-    ///Undo the changes made in the GUI.
+    /// Undo the changes made in the GUI.
     void undo_();
 
-protected:
+  protected:
     /// The date of this experiment
-    QLineEdit * native_id_;
+    QLineEdit* native_id_;
     /// The type of this experiment
-    QComboBox * type_;
+    QComboBox* type_;
     /// The date of this experiment
-    QTextEdit * comment_;
+    QTextEdit* comment_;
 
-    //Docu in base class
+    // Docu in base class
     void update_() override;
   };
-}
+} // namespace OpenMS

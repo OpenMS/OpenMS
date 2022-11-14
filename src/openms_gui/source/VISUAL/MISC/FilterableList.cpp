@@ -32,10 +32,8 @@
 // $Authors: Chris Bielow $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/VISUAL/MISC/FilterableList.h>
-
 #include <OpenMS/CONCEPT/Exception.h>
-
+#include <OpenMS/VISUAL/MISC/FilterableList.h>
 #include <ui_FilterableList.h>
 
 using namespace std;
@@ -44,16 +42,12 @@ namespace OpenMS
 {
   namespace Internal
   {
-    FilterableList::FilterableList(QWidget *parent) :
-      QWidget(parent),
-      ui_(new Ui::FilterableList)
+    FilterableList::FilterableList(QWidget* parent) : QWidget(parent), ui_(new Ui::FilterableList)
     {
       ui_->setupUi(this);
       connect(ui_->filter_text, &QLineEdit::textChanged, this, &FilterableList::filterEdited_);
       // forward double-clicked signal to outside
-      connect(ui_->list_items, &QListWidget::itemDoubleClicked, [&](QListWidgetItem* item) {
-        emit itemDoubleClicked(item);
-      });
+      connect(ui_->list_items, &QListWidget::itemDoubleClicked, [&](QListWidgetItem* item) { emit itemDoubleClicked(item); });
     }
 
     FilterableList::~FilterableList()
@@ -113,14 +107,16 @@ namespace OpenMS
     QStringList FilterableList::getSelectedItems() const
     {
       QStringList items;
-      for (const auto& item : ui_->list_items->selectedItems()) items << item->text();
+      for (const auto& item : ui_->list_items->selectedItems())
+        items << item->text();
       return items;
     }
 
     QStringList FilterableList::getAllVisibleItems() const
     {
       QStringList items;
-      for (int row = 0; row < ui_->list_items->count(); ++row) items << ui_->list_items->item(row)->text();
+      for (int row = 0; row < ui_->list_items->count(); ++row)
+        items << ui_->list_items->item(row)->text();
       return items;
     }
 
@@ -153,6 +149,5 @@ namespace OpenMS
       ui_->list_items->addItems(items_wo_bl_.filter(regex));
     }
 
-  } //namespace Internal
-} //namspace OpenMS
-
+  } // namespace Internal
+} // namespace OpenMS

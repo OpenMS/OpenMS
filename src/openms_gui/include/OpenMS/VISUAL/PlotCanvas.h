@@ -37,18 +37,18 @@
 // OpenMS_GUI config
 #include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
 
-//OpenMS
+// OpenMS
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/CONCEPT/VersionInfo.h>
-#include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 #include <OpenMS/DATASTRUCTURES/DRange.h>
+#include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 #include <OpenMS/KERNEL/DimMapper.h>
 #include <OpenMS/VISUAL/LayerDataBase.h>
 #include <OpenMS/VISUAL/MISC/CommonDefs.h>
 
-//QT
-#include <QtWidgets>
+// QT
 #include <QRubberBand>
+#include <QtWidgets>
 
 class QWheelEvent;
 class QKeyEvent;
@@ -56,7 +56,7 @@ class QMouseEvent;
 class QFocusEvent;
 class QMenu;
 
-//STL
+// STL
 #include <stack>
 #include <vector>
 
@@ -81,36 +81,37 @@ namespace OpenMS
   */
   class LayerStack
   {
-    public:
-      /// adds a new layer and makes it the current layer
-      /// @param new_layer Takes ownership of the layer!
-      void addLayer(LayerDataBaseUPtr new_layer);
+  public:
+    /// adds a new layer and makes it the current layer
+    /// @param new_layer Takes ownership of the layer!
+    void addLayer(LayerDataBaseUPtr new_layer);
 
-      const LayerDataBase& getLayer(const Size index) const;
+    const LayerDataBase& getLayer(const Size index) const;
 
-      LayerDataBase& getLayer(const Size index);
+    LayerDataBase& getLayer(const Size index);
 
-      const LayerDataBase& getCurrentLayer() const;
+    const LayerDataBase& getCurrentLayer() const;
 
-      LayerDataBase& getCurrentLayer();
+    LayerDataBase& getCurrentLayer();
 
-      /// throws Exception::IndexOverflow unless @p index is smaller than getLayerCount()
-      void setCurrentLayer(Size index);
-      
-      Size getCurrentLayerIndex() const;
-      
-      bool empty() const;
+    /// throws Exception::IndexOverflow unless @p index is smaller than getLayerCount()
+    void setCurrentLayer(Size index);
 
-      Size getLayerCount() const;
+    Size getCurrentLayerIndex() const;
 
-      void removeLayer(Size layer_index);
+    bool empty() const;
 
-      void removeCurrentLayer();
-  
+    Size getLayerCount() const;
+
+    void removeLayer(Size layer_index);
+
+    void removeCurrentLayer();
+
   protected:
-      std::vector<LayerDataBaseUPtr> layers_;
+    std::vector<LayerDataBaseUPtr> layers_;
+
   private:
-      Size current_layer_ = -1;
+    Size current_layer_ = -1;
   };
 
   /**
@@ -142,13 +143,11 @@ namespace OpenMS
 
       @ingroup PlotWidgets
   */
-  class OPENMS_GUI_DLLAPI PlotCanvas :
-    public QWidget,
-    public DefaultParamHandler
+  class OPENMS_GUI_DLLAPI PlotCanvas : public QWidget, public DefaultParamHandler
   {
     Q_OBJECT
 
-public:
+  public:
     /**@name Type definitions */
     //@{
 
@@ -175,7 +174,7 @@ public:
     typedef SpectrumType::PeakType PeakType;
     /// a generic range for the most common units
     using RangeType = RangeAllType;
-   
+
     /// The range of data shown on the X and Y axis (unit depends on runtime config)
     using AreaXYType = Area<2>::AreaXYType;
     /// The visible range of data on X and Y axis as shown on plot axis (not necessarily the range of actual data, e.g. no data to show).
@@ -195,18 +194,18 @@ public:
     /// Mouse action modes
     enum ActionModes
     {
-      AM_TRANSLATE,   ///< translate
-      AM_ZOOM,        ///< zoom
-      AM_MEASURE      ///< measure
+      AM_TRANSLATE, ///< translate
+      AM_ZOOM,      ///< zoom
+      AM_MEASURE    ///< measure
     };
 
     /// Display modes of intensity
     enum IntensityModes
     {
-      IM_NONE,        ///< Normal mode: f(x)=x
-      IM_PERCENTAGE,  ///< Shows intensities normalized by layer maximum: f(x)=x/max(x)*100
-      IM_SNAP,        ///< Shows the maximum displayed intensity as if it was the overall maximum intensity
-      IM_LOG          ///< Logarithmic mode
+      IM_NONE,       ///< Normal mode: f(x)=x
+      IM_PERCENTAGE, ///< Shows intensities normalized by layer maximum: f(x)=x/max(x)*100
+      IM_SNAP,       ///< Shows the maximum displayed intensity as if it was the overall maximum intensity
+      IM_LOG         ///< Logarithmic mode
     };
 
     //@}
@@ -337,8 +336,9 @@ public:
     /// sets a layer flag of the layer @p layer
     void setLayerFlag(Size layer, LayerDataBase::Flags f, bool value)
     {
-      //abort if there are no layers
-      if (layers_.empty()) return;
+      // abort if there are no layers
+      if (layers_.empty())
+        return;
 
       layers_.getLayer(layer).flags.set(f, value);
       update_buffer_ = true;
@@ -347,8 +347,9 @@ public:
 
     inline void setLabel(LayerDataBase::LabelType label)
     {
-      //abort if there are no layers
-      if (layers_.empty()) return;
+      // abort if there are no layers
+      if (layers_.empty())
+        return;
       layers_.getCurrentLayer().label = label;
       update_buffer_ = true;
       update();
@@ -385,7 +386,7 @@ public:
     /**
         @brief Sets the filters applied to the data before drawing (for the current layer)
     */
-    virtual void setFilters(const DataFilters & filters);
+    virtual void setFilters(const DataFilters& filters);
 
     /**
         @name Dataset handling methods
@@ -399,9 +400,9 @@ public:
       return layers_.getLayerCount();
     }
 
-    ///change the active layer (the one that is used for selecting and so on)
+    /// change the active layer (the one that is used for selecting and so on)
     virtual void activateLayer(Size layer_index) = 0;
-    ///removes the layer with index @p layer_index
+    /// removes the layer with index @p layer_index
     virtual void removeLayer(Size layer_index) = 0;
 
     /// removes all layers by calling removeLayer() for all layer indices (from highest to lowest)
@@ -409,7 +410,7 @@ public:
     {
       for (Size i = getLayerCount(); i > 0; --i)
       {
-        removeLayer(i-1);
+        removeLayer(i - 1);
       }
       visible_area_.clear(); // reset visible area
     }
@@ -449,7 +450,7 @@ public:
 
         @return If a new layer was created
     */
-    bool addLayer(FeatureMapSharedPtrType map, const String & filename = "");
+    bool addLayer(FeatureMapSharedPtrType map, const String& filename = "");
 
     /**
         @brief Add a consensus feature data layer
@@ -459,19 +460,19 @@ public:
 
         @return If a new layer was created
     */
-    bool addLayer(ConsensusMapSharedPtrType map, const String & filename = "");
+    bool addLayer(ConsensusMapSharedPtrType map, const String& filename = "");
     //@}
 
     /**
         @brief Add an identification data layer
 
-        @param peptides Input list of peptides, which has to be mutable and will be empty after adding. Swapping is used to insert the data. It can be performed in constant time and does not double the required memory.
+        @param peptides Input list of peptides, which has to be mutable and will be empty after adding. Swapping is used to insert the data. It can be performed in constant time and does not double
+       the required memory.
         @param filename This @em absolute filename is used to monitor changes in the file and reload the data
 
         @return If a new layer was created
     */
-    bool addLayer(std::vector<PeptideIdentification> & peptides,
-                  const String & filename = "");
+    bool addLayer(std::vector<PeptideIdentification>& peptides, const String& filename = "");
 
     /// Returns the minimum intensity of the active layer
     inline float getCurrentMinIntensity() const
@@ -498,7 +499,7 @@ public:
     }
 
     /// Sets the @p name of layer @p i
-    void setLayerName(Size i, const String & name);
+    void setLayerName(Size i, const String& name);
 
     /// Gets the name of layer @p i
     String getLayerName(Size i);
@@ -538,7 +539,7 @@ public:
     */
     virtual void showMetaData(bool modifiable = false, Int index = -1);
 
-public slots:
+  public slots:
 
     /**
         @brief change the visibility of a layer
@@ -602,9 +603,9 @@ public slots:
 
     /**
      * @brief Set only the visible area for the x axis; other axes are untouched.
-     * @param min 
-     * @param max 
-    */
+     * @param min
+     * @param max
+     */
     void setVisibleAreaX(double min, double max);
 
     /**
@@ -636,7 +637,7 @@ public slots:
     virtual void verticalScrollBarChange(int value);
 
     /// Sets the additional context menu. If not 0, this menu is added to the context menu of the canvas
-    void setAdditionalContextMenu(QMenu * menu);
+    void setAdditionalContextMenu(QMenu* menu);
 
     /// Updates layer @p i when the data in the corresponding file changes
     virtual void updateLayer(Size i) = 0;
@@ -668,10 +669,10 @@ public slots:
     void layerModficationChange(Size layer, bool modified);
 
     /// Signal emitted whenever a new layer is activated within the current window
-    void layerActivated(QWidget * w);
+    void layerActivated(QWidget* w);
 
     /// Signal emitted whenever the zoom changed
-    void layerZoomChanged(QWidget * w);
+    void layerZoomChanged(QWidget* w);
 
     /**
         @brief Change of the visible area
@@ -705,19 +706,17 @@ public slots:
     /// Emitted when the layer preferences have changed
     void preferencesChange();
 
-protected slots:
+  protected slots:
 
-    ///Updates the cursor according to the current action mode
+    /// Updates the cursor according to the current action mode
     void updateCursor_();
 
-protected:
-
+  protected:
     /// Draws several lines of text to the upper right corner of the widget
-    void drawText_(QPainter & painter, const QStringList& text);
+    void drawText_(QPainter& painter, const QStringList& text);
 
     /// Returns the m/z value of an identification depending on the m/z source of the layer (precursor mass/theoretical peptide mass)
-    double getIdentificationMZ_(const Size layer_index,
-                                    const PeptideIdentification & peptide) const;
+    double getIdentificationMZ_(const Size layer_index, const PeptideIdentification& peptide) const;
 
     /// Method that is called when a new layer has been added
     virtual bool finishAdding_() = 0;
@@ -728,13 +727,13 @@ protected:
 
     ///@name reimplemented QT events
     //@{
-    void resizeEvent(QResizeEvent * e) override;
-    void wheelEvent(QWheelEvent * e) override;
-    void keyPressEvent(QKeyEvent * e) override;
-    void keyReleaseEvent(QKeyEvent * e) override;
-    void focusOutEvent(QFocusEvent * e) override;
-    void leaveEvent(QEvent * e) override;
-    void enterEvent(QEvent * e) override;
+    void resizeEvent(QResizeEvent* e) override;
+    void wheelEvent(QWheelEvent* e) override;
+    void keyPressEvent(QKeyEvent* e) override;
+    void keyReleaseEvent(QKeyEvent* e) override;
+    void focusOutEvent(QFocusEvent* e) override;
+    void leaveEvent(QEvent* e) override;
+    void enterEvent(QEvent* e) override;
     //@}
 
     /// This method is called whenever the intensity mode changes. Reimplement if you need to react on such changes.
@@ -766,9 +765,9 @@ protected:
     //@{
     /// Zooms such that screen point x, y would still point to the same data point
     virtual void zoom_(int x, int y, bool zoom_in);
-    ///Go backward in zoom history
+    /// Go backward in zoom history
     void zoomBack_();
-    ///Go forward in zoom history
+    /// Go forward in zoom history
     virtual void zoomForward_();
     /// Add a visible area to the zoom stack
     void zoomAdd_(const VisibleArea& area);
@@ -807,10 +806,7 @@ protected:
     inline PointXYType widgetToData_(double x, double y)
     {
       const auto& xy = visible_area_.getAreaXY();
-      return PointXYType(
-                xy.minX() + x / width() * xy.width(),
-                xy.minY() + (height() - y) / height() * xy.height()
-                );
+      return PointXYType(xy.minX() + x / width() * xy.width(), xy.minY() + (height() - y) / height() * xy.height());
     }
 
     /// Calls widgetToData_ with x and y position of @p pos
@@ -820,7 +816,7 @@ protected:
     }
 
     /// Helper function to paint grid lines
-    virtual void paintGridLines_(QPainter & painter);
+    virtual void paintGridLines_(QPainter& painter);
 
     /// Buffer that stores the actual peak information
     QImage buffer_;
@@ -917,19 +913,19 @@ protected:
     PeakIndex measurement_start_;
 
     /// Data processing setter for peak maps
-    void addDataProcessing_(PeakMap & map, DataProcessing::ProcessingAction action) const
+    void addDataProcessing_(PeakMap& map, DataProcessing::ProcessingAction action) const
     {
       std::set<DataProcessing::ProcessingAction> actions;
       actions.insert(action);
 
       DataProcessingPtr p = boost::shared_ptr<DataProcessing>(new DataProcessing);
-      //actions
+      // actions
       p->setProcessingActions(actions);
-      //software
+      // software
       p->getSoftware().setName("PlotCanvas");
-      //version
+      // version
       p->getSoftware().setVersion(VersionInfo::getVersion());
-      //time
+      // time
       p->setCompletionTime(DateTime::now());
 
       for (Size i = 0; i < map.size(); ++i)
@@ -937,6 +933,5 @@ protected:
         map[i].getDataProcessing().push_back(p);
       }
     }
-
   };
-}
+} // namespace OpenMS

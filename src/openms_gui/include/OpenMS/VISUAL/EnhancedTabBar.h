@@ -37,7 +37,7 @@
 // OpenMS_GUI config
 #include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
 
-//QT
+// QT
 #include <QTabBar>
 class QMouseEvent;
 class QMimeData;
@@ -57,13 +57,12 @@ namespace OpenMS
 
       @ingroup Visual
   */
-  class OPENMS_GUI_DLLAPI EnhancedTabBar :
-    public QTabBar
+  class OPENMS_GUI_DLLAPI EnhancedTabBar : public QTabBar
   {
     Q_OBJECT
-public:
+  public:
     /// Constructor
-    EnhancedTabBar(QWidget * parent = nullptr);
+    EnhancedTabBar(QWidget* parent = nullptr);
 
     /// Destructor
     ~EnhancedTabBar() override;
@@ -72,16 +71,16 @@ public:
     void setTabText(const QString& text);
 
     /// Adds a new tab with the name @p text and the identifier @p id
-    int addTab(const String & text, int id);
+    int addTab(const String& text, int id);
 
     /// Selects the tab with identifier @p id
     void show(int id);
 
-public slots:
+  public slots:
     /// Remove the tab with identifier @p id
     void removeId(int id);
 
-signals:
+  signals:
     /// Signal that indicates that the current tab changed, giving the @p id of the Tab
     void currentIdChanged(int id);
 
@@ -89,26 +88,26 @@ signals:
     void closeRequested(int id);
 
     /// Signal that is emitted, when a drag-and-drop action ends on a tab
-    void dropOnTab(const QMimeData * data, QWidget * source, int id);
+    void dropOnTab(const QMimeData* data, QWidget* source, int id);
 
     /// Signal that is emitted, when a drag-and-drop action ends on the unused space on the right side of the tabs.
-    void dropOnWidget(const QMimeData * data, QWidget * source);
+    void dropOnWidget(const QMimeData* data, QWidget* source);
 
-protected:
+  protected:
     ///@name Reimplemented Qt events
     //@{
-    void mouseDoubleClickEvent(QMouseEvent * e) override;
-    void contextMenuEvent(QContextMenuEvent * e) override;
-    void dragEnterEvent(QDragEnterEvent * e) override;
-    void dropEvent(QDropEvent * e) override;
+    void mouseDoubleClickEvent(QMouseEvent* e) override;
+    void contextMenuEvent(QContextMenuEvent* e) override;
+    void dragEnterEvent(QDragEnterEvent* e) override;
+    void dropEvent(QDropEvent* e) override;
     //@}
 
     /// Returns the QTabBar index of the tab at position @p pos. If there is no tab at that position -1 is returned.
-    int tabAt_(const QPoint & pos);
+    int tabAt_(const QPoint& pos);
 
-protected slots:
+  protected slots:
     /// Slot that translates the currentChanged(int) signal to currentIdChanged(int)
     void currentChanged_(int id);
   };
 
-}
+} // namespace OpenMS

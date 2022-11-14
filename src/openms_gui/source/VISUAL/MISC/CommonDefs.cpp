@@ -40,4 +40,4 @@ namespace OpenMS
 
   // nothing to see here (yet)
 
-} //namespace OpenMS
+} // namespace OpenMS

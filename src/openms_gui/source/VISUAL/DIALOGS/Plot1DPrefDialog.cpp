@@ -43,9 +43,7 @@ namespace OpenMS
 {
   namespace Internal
   {
-    Plot1DPrefDialog::Plot1DPrefDialog(QWidget * parent) :
-      QDialog(parent),
-      ui_(new Ui::Plot1DPrefDialogTemplate)
+    Plot1DPrefDialog::Plot1DPrefDialog(QWidget* parent) : QDialog(parent), ui_(new Ui::Plot1DPrefDialogTemplate)
     {
       ui_->setupUi(this);
     }
@@ -55,5 +53,5 @@ namespace OpenMS
       delete ui_;
     }
 
-  }   //namespace Internal
-} //namspace OpenMS
+  } // namespace Internal
+} // namespace OpenMS

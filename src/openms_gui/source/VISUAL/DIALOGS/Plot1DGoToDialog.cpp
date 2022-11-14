@@ -34,18 +34,15 @@
 
 // OpenMS includes
 #include <OpenMS/VISUAL/DIALOGS/Plot1DGoToDialog.h>
-#include <ui_Plot1DGoToDialog.h>
-
 #include <QtWidgets/QLineEdit>
+#include <ui_Plot1DGoToDialog.h>
 
 using namespace std;
 
 namespace OpenMS
 {
 
-  Plot1DGoToDialog::Plot1DGoToDialog(QWidget * parent) :
-    QDialog(parent),
-    ui_(new Ui::Plot1DGoToDialogTemplate)
+  Plot1DGoToDialog::Plot1DGoToDialog(QWidget* parent) : QDialog(parent), ui_(new Ui::Plot1DGoToDialogTemplate)
   {
     ui_->setupUi(this);
   }
@@ -80,7 +77,8 @@ namespace OpenMS
     float max_mz = ui_->max_->text().toFloat();
 
     // ensure correct order of min and max
-    if (min_mz > max_mz) swap(min_mz, max_mz);
+    if (min_mz > max_mz)
+      swap(min_mz, max_mz);
 
     // do not allow range of 0 --> extend to 1
     if (min_mz == max_mz)
@@ -104,4 +102,4 @@ namespace OpenMS
     return ui_->max_->text().toFloat();
   }
 
-} //namespace OpenMS
+} // namespace OpenMS

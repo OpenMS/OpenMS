@@ -32,13 +32,11 @@
 // $Authors: Timo Sachsenberg $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/VISUAL/SpectraTreeTab.h>
-
 #include <OpenMS/CONCEPT/RAIICleanup.h>
 #include <OpenMS/VISUAL/LayerData1DPeak.h>
 #include <OpenMS/VISUAL/LayerDataChrom.h>
+#include <OpenMS/VISUAL/SpectraTreeTab.h>
 #include <OpenMS/VISUAL/TreeView.h>
-
 #include <QtWidgets/QComboBox>
 #include <QtWidgets/QLineEdit>
 #include <QtWidgets/QMenu>
@@ -49,7 +47,7 @@ namespace OpenMS
   std::vector<int> listToVec(const QList<QVariant>& in)
   {
     std::vector<int> out;
-    for (const auto & i : in)
+    for (const auto& i : in)
     {
       out.push_back(i.toInt());
     }
@@ -60,7 +58,8 @@ namespace OpenMS
   QList<QVariant> vecToList(const std::vector<Size>& in)
   {
     QList<QVariant> res;
-    for (Size i : in) res.push_back((unsigned int)i);
+    for (Size i : in)
+      res.push_back((unsigned int)i);
     return res;
   }
 
@@ -72,12 +71,24 @@ namespace OpenMS
     enum HeaderNames
     { // indices into QTableWidget's columns (which start at index 0)
       // note: make sure SPEC_INDEX remains at 1 (and is synced with ClmnChrom::CHROM_INDEX!!!)
-      MS_LEVEL, SPEC_INDEX, RT, PRECURSOR_MZ, DISSOCIATION, SCANTYPE, ZOOM, /* last entry --> */ SIZE_OF_HEADERNAMES
+      MS_LEVEL,
+      SPEC_INDEX,
+      RT,
+      PRECURSOR_MZ,
+      DISSOCIATION,
+      SCANTYPE,
+      ZOOM,
+      /* last entry --> */ SIZE_OF_HEADERNAMES
     };
     // keep in SYNC with enum HeaderNames
-    const QStringList HEADER_NAMES = QStringList()
-       << "MS level" << "index" << "RT" << "precursor m/z" << "dissociation" << "scan" << "zoom";
-  }
+    const QStringList HEADER_NAMES = QStringList() << "MS level"
+                                                   << "index"
+                                                   << "RT"
+                                                   << "precursor m/z"
+                                                   << "dissociation"
+                                                   << "scan"
+                                                   << "zoom";
+  } // namespace ClmnPeak
   // Use a namespace to encapsulate names, yet use c-style 'enum' for fast conversion to int.
   // So we can write: 'ClmnPeak::MS_LEVEL', but get implicit conversion to int
   namespace ClmnChrom
@@ -85,17 +96,30 @@ namespace OpenMS
     enum HeaderNames
     { // indices into QTableWidget's columns (which start at index 0)
       // note: make sure CHROM_INDEX remains at 1 (and is synced with ClmnPeak::SPEC_INDEX!!!)
-      TYPE, CHROM_INDEX, MZ, DESCRIPTION, RT_START, RT_END, CHARGE, CHROM_TYPE, /* last entry --> */ SIZE_OF_HEADERNAMES
+      TYPE,
+      CHROM_INDEX,
+      MZ,
+      DESCRIPTION,
+      RT_START,
+      RT_END,
+      CHARGE,
+      CHROM_TYPE,
+      /* last entry --> */ SIZE_OF_HEADERNAMES
     };
     // keep in SYNC with enum HeaderNames
-    const QStringList HEADER_NAMES = QStringList()
-      << " type" << "index" << "m/z" << "Description" << "rt start" << "rt end" << "charge" << "chromatogram type";
-  }
+    const QStringList HEADER_NAMES = QStringList() << " type"
+                                                   << "index"
+                                                   << "m/z"
+                                                   << "Description"
+                                                   << "rt start"
+                                                   << "rt end"
+                                                   << "charge"
+                                                   << "chromatogram type";
+  } // namespace ClmnChrom
 
-  struct IndexExtrator
-  {
-    explicit IndexExtrator(const QTreeWidgetItem* item)
-      : spectrum_index(item->data(ClmnPeak::SPEC_INDEX, Qt::DisplayRole).toInt()),
+  struct IndexExtrator {
+    explicit IndexExtrator(const QTreeWidgetItem* item) :
+        spectrum_index(item->data(ClmnPeak::SPEC_INDEX, Qt::DisplayRole).toInt()),
         res(item->data(ClmnChrom::TYPE, Qt::UserRole).toList()) // this works, even if the QVariant is invalid (then the list is empty)
     {
     }
@@ -110,8 +134,7 @@ namespace OpenMS
   };
 
 
-  SpectraTreeTab::SpectraTreeTab(QWidget * parent) :
-    QWidget(parent)
+  SpectraTreeTab::SpectraTreeTab(QWidget* parent) : QWidget(parent)
   {
     // these must be identical, because there is code which extracts the scan index irrespective of what we show
     assert(ClmnPeak::SPEC_INDEX == ClmnChrom::CHROM_INDEX);
@@ -164,7 +187,7 @@ namespace OpenMS
     if (!text.isEmpty())
     {
       Qt::MatchFlags matchflags = Qt::MatchFixedString;
-      matchflags |=  Qt::MatchRecursive; // match subitems (below top-level)
+      matchflags |= Qt::MatchRecursive; // match subitems (below top-level)
       // 'index' must be named identically for both data types
       assert(ClmnPeak::HEADER_NAMES[ClmnPeak::SPEC_INDEX] == ClmnChrom::HEADER_NAMES[ClmnChrom::CHROM_INDEX]);
       // ... for the following to work:
@@ -262,8 +285,7 @@ namespace OpenMS
       // create menu
       IndexExtrator ie(item);
       QMenu context_menu(spectra_treewidget_);
-      context_menu.addAction("Show in 1D view", [&]()
-      {
+      context_menu.addAction("Show in 1D view", [&]() {
         if (!ie.hasChromIndices())
         {
           emit showSpectrumAsNew1D(ie.spectrum_index);
@@ -273,10 +295,7 @@ namespace OpenMS
           emit showChromatogramsAsNew1D(listToVec(ie.res));
         }
       });
-      context_menu.addAction("Meta data", [&]() 
-      {
-        emit showSpectrumMetaData(ie.spectrum_index);
-      });
+      context_menu.addAction("Meta data", [&]() { emit showSpectrumMetaData(ie.spectrum_index); });
 
       context_menu.exec(spectra_treewidget_->viewport()->mapToGlobal(pos));
     }
@@ -335,11 +354,9 @@ namespace OpenMS
     {
       return;
     }
-    
+
     spectra_treewidget_->blockSignals(true);
-    RAIICleanup clean([&](){
-      spectra_treewidget_->blockSignals(false); 
-    });
+    RAIICleanup clean([&]() { spectra_treewidget_->blockSignals(false); });
 
     QTreeWidgetItem* toplevel_item = nullptr;
     QTreeWidgetItem* selected_item = nullptr;
@@ -357,7 +374,7 @@ namespace OpenMS
       const auto& cl = *lp;
       spectra_treewidget_->clear();
 
-      std::vector<QTreeWidgetItem *> parent_stack;
+      std::vector<QTreeWidgetItem*> parent_stack;
       parent_stack.push_back(nullptr);
       bool fail = false;
       last_peakmap_ = &(*cl.getPeakData());
@@ -369,7 +386,7 @@ namespace OpenMS
 
         if (i > 0)
         {
-          const MSSpectrum& prev_spec = (*cl.getPeakData())[i-1];
+          const MSSpectrum& prev_spec = (*cl.getPeakData())[i - 1];
           // current MS level = previous MS level + 1 (e.g. current: MS2, previous: MS1)
           if (current_spec.getMSLevel() == prev_spec.getMSLevel() + 1)
           {
@@ -396,12 +413,12 @@ namespace OpenMS
             if (parent_stack.size() - level_diff >= 2)
             {
               parent_index = parent_stack.size() - level_diff - 1;
-              QTreeWidgetItem * parent = parent_stack[parent_index];
+              QTreeWidgetItem* parent = parent_stack[parent_index];
               toplevel_item = new QTreeWidgetItem(parent, parent_stack[parent_index + 1]);
             }
             else
             {
-              toplevel_item = new QTreeWidgetItem((QTreeWidget *)nullptr);
+              toplevel_item = new QTreeWidgetItem((QTreeWidget*)nullptr);
             }
             parent_stack.resize(parent_index + 1);
           }
@@ -442,7 +459,7 @@ namespace OpenMS
         {
           const MSSpectrum& current_spec = (*cl.getPeakData())[i];
           toplevel_item = new QTreeWidgetItem();
-          
+
           populatePeakDataRow_(toplevel_item, i, current_spec);
 
           toplevel_items.push_back(toplevel_item);
@@ -475,13 +492,13 @@ namespace OpenMS
     {
       const auto cl = *lp;
       LayerDataBase::ConstExperimentSharedPtrType exp = cl.getChromatogramData();
-      
+
       if (last_peakmap_ == exp.get())
       { // underlying data did not change (which is ALWAYS the chromatograms, never peakdata!)
         // --> Do not update (could be many 10k entries for sqMass data and the lag would be unbearable ...)
         return;
       }
-      
+
       last_peakmap_ = exp.get();
       spectra_treewidget_->clear();
       // New data:
@@ -501,17 +518,17 @@ namespace OpenMS
           this_selected_item = (int)cl.getChromatogramData()->getMetaValue("selected_chromatogram");
         }
       }
-      
+
       // create a header list
       spectra_treewidget_->setHeaders(ClmnChrom::HEADER_NAMES);
-           
+
       if (exp->getChromatograms().size() > 1)
       {
         more_than_one_spectrum = false;
       }
 
       // try to retrieve the map from the cache if available
-      // TODO: same precursor mass / different precursors are not supported! 
+      // TODO: same precursor mass / different precursors are not supported!
       bool was_cached = map_precursor_to_chrom_idx_cache_.find((size_t)(exp.get())) != map_precursor_to_chrom_idx_cache_.end();
       // create new cache or get the existing one
       std::map<Precursor, std::vector<Size>, Precursor::MZLess>& map_precursor_to_chrom_idx = map_precursor_to_chrom_idx_cache_[(size_t)(exp.get())];
@@ -633,6 +650,4 @@ namespace OpenMS
   }
 
 
-
-
-}
+} // namespace OpenMS

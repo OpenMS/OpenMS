@@ -34,10 +34,9 @@
 
 #pragma once
 
-#include <QtWidgets>
-
 #include <OpenMS/VISUAL/DataSelectionTabs.h>
 #include <OpenMS/VISUAL/LayerDataBase.h>
+#include <QtWidgets>
 
 class QLineEdit;
 class QComboBox;
@@ -54,8 +53,7 @@ namespace OpenMS
 
     @ingroup PlotWidgets
   */
-  class OPENMS_GUI_DLLAPI DIATreeTab :
-    public QWidget, public DataTabBase
+  class OPENMS_GUI_DLLAPI DIATreeTab : public QWidget, public DataTabBase
   {
     Q_OBJECT
   public:
@@ -89,7 +87,7 @@ namespace OpenMS
     /// Useful to avoid useless repaintings, which would loose the open/close state of internal tree nodes and selected items
     OSWData* current_data_ = nullptr;
 
-    /** 
+    /**
       @brief convert a tree item to a pointer into an OSWData structure
 
       @param item The tree item (protein, peptide,...) that was clicked
@@ -111,5 +109,4 @@ namespace OpenMS
     /// searches using text box and plots the spectrum
     void searchAndShow_();
   };
-}
-
+} // namespace OpenMS

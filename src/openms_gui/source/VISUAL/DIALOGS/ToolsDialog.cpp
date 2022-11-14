@@ -33,18 +33,16 @@
 // --------------------------------------------------------------------------
 
 // OpenMS includes
-#include <OpenMS/VISUAL/DIALOGS/ToolsDialog.h>
-
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/APPLICATIONS/ToolHandler.h>
 #include <OpenMS/DATASTRUCTURES/Param.h>
 #include <OpenMS/FORMAT/FileTypes.h>
 #include <OpenMS/FORMAT/ParamXMLFile.h>
 #include <OpenMS/SYSTEM/File.h>
+#include <OpenMS/VISUAL/DIALOGS/ToolsDialog.h>
+#include <OpenMS/VISUAL/MISC/CommonDefs.h>
 #include <OpenMS/VISUAL/ParamEditor.h>
 #include <OpenMS/VISUAL/TVToolDiscovery.h>
-#include <OpenMS/VISUAL/MISC/CommonDefs.h>
-
 #include <QProcess>
 #include <QtCore/QStringList>
 #include <QtWidgets/QCheckBox>
@@ -63,21 +61,9 @@ using namespace std;
 namespace OpenMS
 {
 
-  ToolsDialog::ToolsDialog(
-          QWidget* parent,
-          const Param& params,
-          String ini_file,
-          String default_dir,
-          LayerDataBase::DataType layer_type,
-          const String& layer_name,
-          TVToolDiscovery* tool_scanner) :
-            QDialog(parent),
-            ini_file_(std::move(ini_file)),
-            default_dir_(std::move(default_dir)),
-            tool_params_(params.copy("tool_params:", true)),
-            plugin_params_(),
-            tool_scanner_(tool_scanner),
-            layer_type_(layer_type)
+  ToolsDialog::ToolsDialog(QWidget* parent, const Param& params, String ini_file, String default_dir, LayerDataBase::DataType layer_type, const String& layer_name, TVToolDiscovery* tool_scanner) :
+      QDialog(parent), ini_file_(std::move(ini_file)), default_dir_(std::move(default_dir)), tool_params_(params.copy("tool_params:", true)), plugin_params_(), tool_scanner_(tool_scanner),
+      layer_type_(layer_type)
   {
     auto main_grid = new QGridLayout(this);
 
@@ -91,13 +77,11 @@ namespace OpenMS
     main_grid->addWidget(label, 1, 0);
 
     // Determine all available tools compatible with the layer_type
-    tool_map_ = {
-            {FileTypes::Type::MZML, LayerDataBase::DataType::DT_PEAK},
-            {FileTypes::Type::MZXML, LayerDataBase::DataType::DT_PEAK},
-            {FileTypes::Type::FEATUREXML, LayerDataBase::DataType::DT_FEATURE},
-            {FileTypes::Type::CONSENSUSXML, LayerDataBase::DataType::DT_CONSENSUS},
-            {FileTypes::Type::IDXML, LayerDataBase::DataType::DT_IDENT}
-    };
+    tool_map_ = {{FileTypes::Type::MZML, LayerDataBase::DataType::DT_PEAK},
+                 {FileTypes::Type::MZXML, LayerDataBase::DataType::DT_PEAK},
+                 {FileTypes::Type::FEATUREXML, LayerDataBase::DataType::DT_FEATURE},
+                 {FileTypes::Type::CONSENSUSXML, LayerDataBase::DataType::DT_CONSENSUS},
+                 {FileTypes::Type::IDXML, LayerDataBase::DataType::DT_IDENT}};
 
     QStringList list = createToolsList_();
 
@@ -128,7 +112,7 @@ namespace OpenMS
     tool_desc_->setWordWrap(true);
     main_grid->addWidget(tool_desc_, 1, 2, 3, 1);
 
-    //Add advanced mode check box
+    // Add advanced mode check box
     editor_ = new ParamEditor(this);
     main_grid->addWidget(editor_, 4, 0, 1, 5);
 
@@ -184,7 +168,7 @@ namespace OpenMS
     return types;
   }
 
-  void ToolsDialog::setInputOutputCombo_(const Param &p)
+  void ToolsDialog::setInputOutputCombo_(const Param& p)
   {
     String str;
     QStringList input_list("<select>");
@@ -203,7 +187,7 @@ namespace OpenMS
         {
           input_list << QStringList(str.c_str());
         }
-          // Only add to output list if item has "output file" tag.
+        // Only add to output list if item has "output file" tag.
         else if (iter->tags.find("output file") != iter->tags.end())
         {
           output_list << QStringList(str.c_str());
@@ -232,7 +216,7 @@ namespace OpenMS
 
   QStringList ToolsDialog::createToolsList_()
   {
-    //Make sure the list is empty
+    // Make sure the list is empty
     QStringList list;
 
     const auto& tools = ToolHandler::getTOPPToolList();
@@ -255,7 +239,7 @@ namespace OpenMS
         list << pair.first.toQString();
       }
     }
-    //TODO: Plugins get added to the list just like tools/utils and can't be differentiated in the GUI
+    // TODO: Plugins get added to the list just like tools/utils and can't be differentiated in the GUI
     for (const auto& name : tool_scanner_->getPlugins())
     {
       std::vector<LayerDataBase::DataType> tool_types = getTypesFromParam_(plugin_params_.copy(name + ":"));
@@ -265,7 +249,7 @@ namespace OpenMS
       }
     }
 
-    //sort list alphabetically
+    // sort list alphabetically
     list.sort();
     list.push_front("<select tool>");
     return list;
@@ -276,10 +260,10 @@ namespace OpenMS
     enable_();
     if (!arg_param_.empty())
     {
-       tool_desc_->clear();
-       arg_param_.clear();
-       vis_param_.clear();
-       editor_->clear();
+      tool_desc_->clear();
+      arg_param_.clear();
+      vis_param_.clear();
+      editor_->clear();
     }
     auto tool_name = getTool();
     arg_param_ = tool_params_.copy(tool_name + ":");
@@ -355,7 +339,7 @@ namespace OpenMS
   {
     QString string;
     filename_ = QFileDialog::getOpenFileName(this, tr("Open ini file"), default_dir_.c_str(), tr("ini files (*.ini);; all files (*.*)"));
-    //not file selected
+    // not file selected
     if (filename_.isEmpty())
     {
       return;
@@ -378,7 +362,7 @@ namespace OpenMS
       arg_param_.clear();
       return;
     }
-    //set tool combo
+    // set tool combo
     Param::ParamIterator iter = arg_param_.begin();
     String str;
     string = iter.getName().substr(0, iter.getName().find(":")).c_str();
@@ -390,12 +374,12 @@ namespace OpenMS
       return;
     }
     tools_combo_->setCurrentIndex(pos);
-    //Extract the required parameters
+    // Extract the required parameters
     vis_param_ = arg_param_.copy(getTool() + ":1:", true);
     vis_param_.remove("log");
     vis_param_.remove("no_progress");
     vis_param_.remove("debug");
-    //load data into editor
+    // load data into editor
     editor_->load(vis_param_);
 
     setInputOutputCombo_(arg_param_);
@@ -403,12 +387,12 @@ namespace OpenMS
 
   void ToolsDialog::storeINI_()
   {
-    //nothing to save
+    // nothing to save
     if (arg_param_.empty())
       return;
 
     filename_ = QFileDialog::getSaveFileName(this, tr("Save ini file"), default_dir_.c_str(), tr("ini files (*.ini)"));
-    //not file selected
+    // not file selected
     if (filename_.isEmpty())
     {
       return;
@@ -475,4 +459,4 @@ namespace OpenMS
     return tools_combo_->currentText();
   }
 
-}
+} // namespace OpenMS

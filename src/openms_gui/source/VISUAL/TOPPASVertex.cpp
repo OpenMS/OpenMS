@@ -32,18 +32,14 @@
 // $Authors: Johannes Junker, Chris Bielow $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/VISUAL/TOPPASVertex.h>
-
-#include <OpenMS/VISUAL/TOPPASEdge.h>
-#include <OpenMS/VISUAL/TOPPASScene.h>
-
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/SYSTEM/File.h>
-
+#include <OpenMS/VISUAL/TOPPASEdge.h>
+#include <OpenMS/VISUAL/TOPPASScene.h>
+#include <OpenMS/VISUAL/TOPPASVertex.h>
 #include <QSvgRenderer>
 #include <QtCore/QFileInfo>
-
 #include <iostream>
 #include <map>
 
@@ -106,7 +102,8 @@ namespace OpenMS
     for (const QString& fn : filenames_)
     {
       QStringList l = QFileInfo(fn).completeSuffix().split('.');
-      QString suf = ((l.size() > 1 && l[l.size() - 2].size() <= 4) ? l[l.size() - 2] + "." : QString()) + l.back(); // take up to two dots as suffix (the first only if its <=4 chars, e.g. we want ".prot.xml" or ".tar.gz", but not "stupid.filename.with.longdots.mzML")
+      QString suf = ((l.size() > 1 && l[l.size() - 2].size() <= 4) ? l[l.size() - 2] + "." : QString()) +
+                    l.back(); // take up to two dots as suffix (the first only if its <=4 chars, e.g. we want ".prot.xml" or ".tar.gz", but not "stupid.filename.with.longdots.mzML")
       ++suffices[suf];
     }
     QStringList text_l;
@@ -146,22 +143,11 @@ namespace OpenMS
   }
 
   TOPPASVertex::TOPPASVertex(const TOPPASVertex& rhs) :
-    QObject(),
-    QGraphicsItem(),
-    // do not copy pointers to edges
-    in_edges_(/*rhs.in_edges_*/),
-    out_edges_(/*rhs.out_edges_*/),
-    edge_being_created_(rhs.edge_being_created_),
-    pen_color_(rhs.pen_color_),
-    brush_color_(rhs.brush_color_),
-    dfs_color_(rhs.dfs_color_),
-    topo_sort_marked_(rhs.topo_sort_marked_),
-    topo_nr_(rhs.topo_nr_),
-    round_total_(rhs.round_total_),
-    round_counter_(rhs.round_counter_),
-    finished_(rhs.finished_),
-    reachable_(rhs.reachable_),
-    allow_output_recycling_(rhs.allow_output_recycling_)
+      QObject(), QGraphicsItem(),
+      // do not copy pointers to edges
+      in_edges_(/*rhs.in_edges_*/), out_edges_(/*rhs.out_edges_*/), edge_being_created_(rhs.edge_being_created_), pen_color_(rhs.pen_color_), brush_color_(rhs.brush_color_),
+      dfs_color_(rhs.dfs_color_), topo_sort_marked_(rhs.topo_sort_marked_), topo_nr_(rhs.topo_nr_), round_total_(rhs.round_total_), round_counter_(rhs.round_counter_), finished_(rhs.finished_),
+      reachable_(rhs.reachable_), allow_output_recycling_(rhs.allow_output_recycling_)
   {
     setFlag(QGraphicsItem::ItemIsSelectable, true);
     setZValue(42);
@@ -222,7 +208,7 @@ namespace OpenMS
 
     // topo sort number
     painter->drawText(boundingRect().x() + 7, boundingRect().y() + 20, QString::number(topo_nr_));
-    
+
     // recycling status
     if (this->allow_output_recycling_)
     {
@@ -242,7 +228,7 @@ namespace OpenMS
   {
     for (ConstEdgeIterator it = inEdgesBegin(); it != inEdgesEnd(); ++it)
     {
-      TOPPASVertex * tv = (*it)->getSourceVertex();
+      TOPPASVertex* tv = (*it)->getSourceVertex();
       if (!tv->isFinished())
       {
         // some tool that we depend on has not finished execution yet --> do not start yet
@@ -252,7 +238,7 @@ namespace OpenMS
         return false;
       }
     }
-    //std::cerr << "upstream of " << this->getTopoNr() << " is ready!\n";
+    // std::cerr << "upstream of " << this->getTopoNr() << " is ready!\n";
     return true;
   }
 
@@ -266,8 +252,8 @@ namespace OpenMS
     }
 
     // -- determine number of rounds from incoming edges
-    int round_common = -1; // number of rounds common to all
-    int no_recycle_count = 0; // number of edges that do NOT do recycling (there needs to be at least one)
+    int round_common = -1;                                                // number of rounds common to all
+    int no_recycle_count = 0;                                             // number of edges that do NOT do recycling (there needs to be at least one)
     for (ConstEdgeIterator it = inEdgesBegin(); it != inEdgesEnd(); ++it) // all incoming edges should have the same number of rounds (or should be set to 'recycle') !
     {
       TOPPASVertex* tv = (*it)->getSourceVertex();
@@ -301,14 +287,15 @@ namespace OpenMS
     // -- check if rounds from recyling nodes are an integer part of total rounds, i.e. total_rounds = X * node_rounds, X from N+
     for (ConstEdgeIterator it = inEdgesBegin(); it != inEdgesEnd(); ++it) // look at all all recycling edges
     {
-      TOPPASVertex * tv = (*it)->getSourceVertex();
+      TOPPASVertex* tv = (*it)->getSourceVertex();
       if (!tv->allow_output_recycling_)
       {
         continue;
       }
       if (round_common % tv->round_total_ != 0) // modulo should be 0, if not ...
       {
-        error_msg = String(tv->round_total_) + " rounds for incoming edges of node #" + this->getTopoNr() + " are recycled to meet a total of " + round_common + " rounds. But modulo is not 0. No idea on how to combine them! Adapt the number of input files?\n";
+        error_msg = String(tv->round_total_) + " rounds for incoming edges of node #" + this->getTopoNr() + " are recycled to meet a total of " + round_common +
+                    " rounds. But modulo is not 0. No idea on how to combine them! Adapt the number of input files?\n";
         std::cerr << error_msg;
         return false;
       }
@@ -316,7 +303,7 @@ namespace OpenMS
 
     if (round_common <= 0)
     {
-      error_msg =  "Number of input rounds is 0 or negative. This cannot be! Aborting!\n";
+      error_msg = "Number of input rounds is 0 or negative. This cannot be! Aborting!\n";
       std::cerr << error_msg;
       return false;
     }
@@ -363,9 +350,9 @@ namespace OpenMS
     RoundPackage rp = output_files_[round];
     if (rp.find(param_index) == rp.end())
     {
-      throw Exception::IndexOverflow(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, param_index, rp.size());  // index could be larger (its a map, but nevertheless)
+      throw Exception::IndexOverflow(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, param_index, rp.size()); // index could be larger (its a map, but nevertheless)
     }
-    //String s = String(rp[param_index].filenames.join("\" \""));
+    // String s = String(rp[param_index].filenames.join("\" \""));
     return rp[param_index].filenames.get();
   }
 
@@ -376,9 +363,7 @@ namespace OpenMS
 
     for (Size r = 0; r < output_files_.size(); ++r)
     {
-      for (RoundPackage::const_iterator it  = output_files_[r].begin();
-           it != output_files_[r].end();
-           ++it)
+      for (RoundPackage::const_iterator it = output_files_[r].begin(); it != output_files_[r].end(); ++it)
       {
         fl.append(it->second.filenames.get());
       }
@@ -619,7 +604,8 @@ namespace OpenMS
 
   void TOPPASVertex::setRecycling(const bool is_enabled)
   {
-    if (allow_output_recycling_ == is_enabled) return; // nothing changed
+    if (allow_output_recycling_ == is_enabled)
+      return; // nothing changed
 
     invertRecylingMode();
   }
@@ -661,4 +647,4 @@ namespace OpenMS
     return reachable_;
   }
 
-}
+} // namespace OpenMS

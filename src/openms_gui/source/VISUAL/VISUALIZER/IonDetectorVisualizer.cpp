@@ -34,12 +34,12 @@
 
 #include <OpenMS/VISUAL/VISUALIZER/IonDetectorVisualizer.h>
 
-//QT
-#include <QtWidgets/QLineEdit>
+// QT
 #include <QtWidgets/QComboBox>
+#include <QtWidgets/QLineEdit>
 
 
-//STL
+// STL
 #include <iostream>
 
 using namespace std;
@@ -47,9 +47,7 @@ using namespace std;
 namespace OpenMS
 {
 
-  IonDetectorVisualizer::IonDetectorVisualizer(bool editable, QWidget * parent) :
-    BaseVisualizerGUI(editable, parent),
-    BaseVisualizer<IonDetector>()
+  IonDetectorVisualizer::IonDetectorVisualizer(bool editable, QWidget* parent) : BaseVisualizerGUI(editable, parent), BaseVisualizer<IonDetector>()
   {
     addLabel_("Modify iondetector information.");
     addSeparator_();
@@ -99,4 +97,4 @@ namespace OpenMS
     update_();
   }
 
-}
+} // namespace OpenMS

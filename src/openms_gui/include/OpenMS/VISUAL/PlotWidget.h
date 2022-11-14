@@ -37,7 +37,7 @@
 // OpenMS_GUI config
 #include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
 
-//OpenMS
+// OpenMS
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/MATH/STATISTICS/Histogram.h>
 #include <OpenMS/VISUAL/EnhancedTabBarWidgetInterface.h>
@@ -77,13 +77,11 @@ namespace OpenMS
 
       @todo Add support to store the displayed data as SVG image (HiWi)
   */
-  class OPENMS_GUI_DLLAPI PlotWidget :
-    public QWidget,
-    public EnhancedTabBarWidgetInterface
+  class OPENMS_GUI_DLLAPI PlotWidget : public QWidget, public EnhancedTabBarWidgetInterface
   {
     Q_OBJECT
 
-public:
+  public:
     static const char RT_AXIS_TITLE[];
     static const char MZ_AXIS_TITLE[];
     static const char INTENSITY_AXIS_TITLE[];
@@ -102,7 +100,7 @@ public:
     //@}
 
     /// Default constructor
-    PlotWidget(const Param & preferences, QWidget * parent = nullptr);
+    PlotWidget(const Param& preferences, QWidget* parent = nullptr);
     /// Destructor
     ~PlotWidget() override;
 
@@ -110,20 +108,20 @@ public:
         @brief Returns a pointer to canvas object
 
         This method is overwritten for 1D, 2D, 3D to make the class specific members accessible.
-        
+
         The canvas object is set with the setCanvas_() method.
         This is usually done in the constructor.
     */
     virtual PlotCanvas* canvas() const = 0;
 
     /// Returns a pointer to the x-axis axis widget.
-    virtual inline AxisWidget * xAxis()
+    virtual inline AxisWidget* xAxis()
     {
       return x_axis_;
     }
 
     /// Returns a pointer to the y-axis axis widget.
-    virtual inline AxisWidget * yAxis()
+    virtual inline AxisWidget* yAxis()
     {
       return y_axis_;
     }
@@ -146,7 +144,7 @@ public:
     /// Saves the widget's content as image file
     virtual void saveAsImage();
 
-signals:
+  signals:
     /// Emits a status message that should be displayed for @p time ms. If @p time is 0 the message should be displayed until the next message is emitted.
     void sendStatusMessage(std::string, OpenMS::UInt);
     /// Emitted when the cursor position changes (for displaying e.g. in status bar)
@@ -158,7 +156,7 @@ signals:
     /// Signal that is emitted, when a drag-and-drop action ends on this widget
     void dropReceived(const QMimeData* data, QWidget* source, int id);
 
-public slots:
+  public slots:
     /// Shows statistics about the data (count, min, max, avg of intensity, charge, quality and meta data)
     void showStatistics();
     /// Shows the intensity distribution of the current layer
@@ -196,10 +194,10 @@ public slots:
      */
     virtual void setMapper(const DimMapper<2>& mapper) = 0;
 
-protected:
+  protected:
     /// @name Reimplemented Qt events
     //@{
-    void closeEvent(QCloseEvent * e) override;
+    void closeEvent(QCloseEvent* e) override;
     //@}
 
     /**
@@ -208,7 +206,7 @@ protected:
         @p row and @p col define the position of the canvas.
         Axes and scrollbars are added to the left and bottom of the canvas.
     */
-    void setCanvas_(PlotCanvas * canvas, UInt row = 0, UInt col = 2);
+    void setCanvas_(PlotCanvas* canvas, UInt row = 0, UInt col = 2);
     /// Switch between different intensity modes
     virtual void intensityModeChange_();
     /// recalculates the Axis ticks
@@ -216,11 +214,11 @@ protected:
 
     ///@name reimplemented Qt events
     //@{
-    void dragEnterEvent(QDragEnterEvent * event) override;
-    void dragMoveEvent(QDragMoveEvent * event) override;
-    void dropEvent(QDropEvent * event) override;
+    void dragEnterEvent(QDragEnterEvent* event) override;
+    void dragMoveEvent(QDragMoveEvent* event) override;
+    void dropEvent(QDropEvent* event) override;
     /// make our subclassed QWidget listen to things like stylesheet changes
-    void paintEvent(QPaintEvent * /*event*/) override;
+    void paintEvent(QPaintEvent* /*event*/) override;
     //@}
 
     /// Pointer to the canvas widget
@@ -236,5 +234,4 @@ protected:
     /// Vertical scrollbar
     QScrollBar* y_scrollbar_;
   };
-}
-
+} // namespace OpenMS

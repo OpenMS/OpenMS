@@ -36,7 +36,6 @@
 #pragma once
 
 #include <OpenMS/CONCEPT/Types.h>
-
 #include <QtWidgets/QDialog>
 
 namespace Ui
@@ -53,17 +52,15 @@ namespace OpenMS
 
       @ingroup Dialogs
   */
-  class SpectrumAlignmentDialog :
-    public QDialog
+  class SpectrumAlignmentDialog : public QDialog
   {
     Q_OBJECT
 
-public:
-
+  public:
     /// Constructor
-    SpectrumAlignmentDialog(Plot1DWidget * parent);
+    SpectrumAlignmentDialog(Plot1DWidget* parent);
     ~SpectrumAlignmentDialog() override;
-  
+
     double getTolerance() const;
     bool isPPM() const;
 
@@ -72,17 +69,16 @@ public:
     /// Returns the index of the selected flipped layer
     Int get2ndLayerIndex();
 
-protected slots:
+  protected slots:
 
-protected:
-
+  protected:
     /// Stores the layer indices of the layers in the left list (non-flipped layers)
     std::vector<UInt> layer_indices_1_;
     /// Stores the layer indices of the layers in the right list (flipped layers)
     std::vector<UInt> layer_indices_2_;
 
-private:
+  private:
     Ui::SpectrumAlignmentDialogTemplate* ui_;
   };
 
-}
+} // namespace OpenMS

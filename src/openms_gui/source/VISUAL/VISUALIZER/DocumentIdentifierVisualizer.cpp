@@ -32,11 +32,11 @@
 // $Authors: Marc Sturm $
 // --------------------------------------------------------------------------
 
-//OpenMS
-#include <OpenMS/VISUAL/VISUALIZER/DocumentIdentifierVisualizer.h>
+// OpenMS
 #include <OpenMS/FORMAT/FileHandler.h>
+#include <OpenMS/VISUAL/VISUALIZER/DocumentIdentifierVisualizer.h>
 
-//QT
+// QT
 #include <QtWidgets/QLineEdit>
 
 using namespace std;
@@ -44,9 +44,7 @@ using namespace std;
 namespace OpenMS
 {
 
-  DocumentIdentifierVisualizer::DocumentIdentifierVisualizer(bool editable, QWidget * parent) :
-    BaseVisualizerGUI(editable, parent),
-    BaseVisualizer<DocumentIdentifier>()
+  DocumentIdentifierVisualizer::DocumentIdentifierVisualizer(bool editable, QWidget* parent) : BaseVisualizerGUI(editable, parent), BaseVisualizer<DocumentIdentifier>()
   {
     addLabel_("Modify DocumentIdentifier information");
     addSeparator_();
@@ -78,4 +76,4 @@ namespace OpenMS
     update_();
   }
 
-}
+} // namespace OpenMS

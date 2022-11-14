@@ -37,7 +37,7 @@
 // OpenMS_GUI config
 #include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
 
-//OpenMS
+// OpenMS
 #include <OpenMS/METADATA/IonDetector.h>
 #include <OpenMS/VISUAL/VISUALIZER/BaseVisualizer.h>
 #include <OpenMS/VISUAL/VISUALIZER/BaseVisualizerGUI.h>
@@ -49,39 +49,35 @@ namespace OpenMS
 
       This class provides all functionality to view the meta information of an object of type IonDetector.
   */
-  class OPENMS_GUI_DLLAPI IonDetectorVisualizer :
-    public BaseVisualizerGUI,
-    public BaseVisualizer<IonDetector>
+  class OPENMS_GUI_DLLAPI IonDetectorVisualizer : public BaseVisualizerGUI, public BaseVisualizer<IonDetector>
   {
     Q_OBJECT
 
-public:
+  public:
+    /// Constructor
+    IonDetectorVisualizer(bool editable = false, QWidget* parent = nullptr);
 
-    ///Constructor
-    IonDetectorVisualizer(bool editable = false, QWidget * parent = nullptr);
+  public slots:
 
-public slots:
-
-    //Docu in base class
+    // Docu in base class
     void store() override;
 
-protected slots:
+  protected slots:
 
-    ///Undo the changes made in the GUI.
+    /// Undo the changes made in the GUI.
     void undo_();
 
-protected:
-
+  protected:
     ///@name edit fields to modify properties
     //@{
-    QLineEdit * order_;
-    QLineEdit * res_;
-    QLineEdit * freq_;
-    QComboBox * type_;
-    QComboBox * ac_mode_;
+    QLineEdit* order_;
+    QLineEdit* res_;
+    QLineEdit* freq_;
+    QComboBox* type_;
+    QComboBox* ac_mode_;
     //@}
 
-    //Docu in base class
+    // Docu in base class
     void update_() override;
   };
-}
+} // namespace OpenMS

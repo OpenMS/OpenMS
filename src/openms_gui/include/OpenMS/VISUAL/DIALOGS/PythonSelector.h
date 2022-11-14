@@ -37,7 +37,6 @@
 // OpenMS_GUI config
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
-
 #include <QWidget>
 
 namespace Ui
@@ -69,8 +68,8 @@ namespace OpenMS
       /// @param last_known_python_exe The currently best guess where python can be found
       /// @param valid_python Is the python executable given in @last_known_python_exe callable?
       void valueChanged(QString last_known_python_exe, bool valid_python);
-      
-    
+
+
     private slots:
       void showFileDialog_();
 
@@ -78,13 +77,13 @@ namespace OpenMS
 
     private:
       String last_known_python_exe_ = "python"; ///< initial guess or last valid user input
-      bool currently_valid_ = false; ///< unless proven otherwise by 'validate_()'
+      bool currently_valid_ = false;            ///< unless proven otherwise by 'validate_()'
 
       Ui::PythonSelector* ui_;
     };
 
-  }
-} // ns OpenMS
+  } // namespace Internal
+} // namespace OpenMS
 
 // this is required to allow Ui_SwathTabWidget (auto UIC'd from .ui) to have a PythonSelector member
 using PythonSelector = OpenMS::Internal::PythonSelector;

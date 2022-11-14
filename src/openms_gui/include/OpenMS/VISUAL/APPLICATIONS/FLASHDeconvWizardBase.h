@@ -37,16 +37,16 @@
 // OpenMS_GUI config
 #include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
 
-//OpenMS
+// OpenMS
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 
-//QT
+// QT
+#include <QtCore/QProcess>
+#include <QtNetwork/QNetworkReply>
+#include <QtWidgets/QButtonGroup>
 #include <QtWidgets/QMainWindow>
 #include <QtWidgets/QMdiArea>
-#include <QtWidgets/QButtonGroup>
-#include <QtCore/QProcess>
 #include <QtWidgets/QSplashScreen>
-#include <QtNetwork/QNetworkReply>
 
 class QToolBar;
 class QListWidget;
@@ -70,26 +70,24 @@ namespace OpenMS
     @brief Main window of the FLASHDeconvWizard tool
 
   */
-  class OPENMS_GUI_DLLAPI FLASHDeconvWizardBase :
-    public QMainWindow,
-    public DefaultParamHandler
+  class OPENMS_GUI_DLLAPI FLASHDeconvWizardBase : public QMainWindow, public DefaultParamHandler
   {
     Q_OBJECT
 
-public:
+  public:
     /// Constructor
     FLASHDeconvWizardBase(QWidget* parent = nullptr);
     /// Destructor
     ~FLASHDeconvWizardBase() override;
- 
+
     void showAboutDialog();
 
-protected slots:
+  protected slots:
 
 
-protected:
+  protected:
     /// Log output window
-    //TOPPASLogWindow* log_;
+    // TOPPASLogWindow* log_;
 
     /// The current path (used for loading and storing).
     /// Depending on the preferences this is static or changes with the current window/layer.
@@ -106,6 +104,6 @@ protected:
 
   private:
     Ui::FLASHDeconvWizardBase* ui;
-  }; //class
+  }; // class
 
-} //namespace
+} // namespace OpenMS

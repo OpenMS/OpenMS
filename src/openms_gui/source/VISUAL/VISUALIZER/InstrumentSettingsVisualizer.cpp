@@ -34,11 +34,11 @@
 
 #include <OpenMS/VISUAL/VISUALIZER/InstrumentSettingsVisualizer.h>
 
-//QT
-#include <QtWidgets/QLineEdit>
+// QT
 #include <QtWidgets/QComboBox>
+#include <QtWidgets/QLineEdit>
 
-//STL
+// STL
 #include <iostream>
 
 using namespace std;
@@ -46,9 +46,7 @@ using namespace std;
 namespace OpenMS
 {
 
-  InstrumentSettingsVisualizer::InstrumentSettingsVisualizer(bool editable, QWidget * parent) :
-    BaseVisualizerGUI(editable, parent),
-    BaseVisualizer<InstrumentSettings>()
+  InstrumentSettingsVisualizer::InstrumentSettingsVisualizer(bool editable, QWidget* parent) : BaseVisualizerGUI(editable, parent), BaseVisualizer<InstrumentSettings>()
   {
     addLabel_("Modify the settings of the instrument.");
     addSeparator_();
@@ -65,7 +63,6 @@ namespace OpenMS
     {
       fillComboBox_(instrumentsettings_scan_mode_, &temp_.NamesOfScanMode[temp_.getScanMode()], 1);
       fillComboBox_(instrumentsettings_polarity_, &IonSource::NamesOfPolarity[temp_.getPolarity()], 1);
-
     }
     else
     {
@@ -93,4 +90,4 @@ namespace OpenMS
     update_();
   }
 
-}
+} // namespace OpenMS

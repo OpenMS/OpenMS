@@ -32,19 +32,16 @@
 // $Authors: Johannes Junker, Chris Bielow $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/VISUAL/TOPPASMergerVertex.h>
-
 #include <OpenMS/VISUAL/TOPPASInputFileListVertex.h>
+#include <OpenMS/VISUAL/TOPPASMergerVertex.h>
 #include <OpenMS/VISUAL/TOPPASOutputFileListVertex.h>
-#include <OpenMS/VISUAL/TOPPASToolVertex.h>
 #include <OpenMS/VISUAL/TOPPASScene.h>
-
+#include <OpenMS/VISUAL/TOPPASToolVertex.h>
 #include <iostream>
 
 namespace OpenMS
 {
-  TOPPASMergerVertex::TOPPASMergerVertex(bool round_based) :
-    round_based_mode_(round_based)
+  TOPPASMergerVertex::TOPPASMergerVertex(bool round_based) : round_based_mode_(round_based)
   {
   }
 
@@ -81,7 +78,7 @@ namespace OpenMS
 
   void TOPPASMergerVertex::markUnreachable()
   {
-    //only mark as unreachable if all inputs are unreachable. otherwise the dead inputs will just be ignored.
+    // only mark as unreachable if all inputs are unreachable. otherwise the dead inputs will just be ignored.
     bool some_input_reachable_ = false;
     for (ConstEdgeIterator it = inEdgesBegin(); it != inEdgesEnd(); ++it)
     {
@@ -100,8 +97,8 @@ namespace OpenMS
 
   void TOPPASMergerVertex::run()
   {
-    //check if everything ready
-    if (!isUpstreamFinished()) 
+    // check if everything ready
+    if (!isUpstreamFinished())
     {
       return;
     }
@@ -117,8 +114,8 @@ namespace OpenMS
 
     /// update round status
     Size input_rounds = pkg.size();
-    round_total_ = (round_based_mode_ ? (int) input_rounds : 1);  // for round based: take number of rounds from previous tool(s) - should all be equal
-    round_counter_ = 0; // once round_counter_ reaches round_total_, we are done
+    round_total_ = (round_based_mode_ ? (int)input_rounds : 1); // for round based: take number of rounds from previous tool(s) - should all be equal
+    round_counter_ = 0;                                         // once round_counter_ reaches round_total_, we are done
 
     // clear output file list
     output_files_.clear();
@@ -129,8 +126,7 @@ namespace OpenMS
     {
       QStringList files;
       // warning: ite->first (i.e. target-in param could be -1,-2,... etc to cover all incoming edges (they all have -1 theoretically - see buildRoundPackages())
-      for (RoundPackageConstIt ite = pkg[round].begin();
-           ite != pkg[round].end(); ++ite)
+      for (RoundPackageConstIt ite = pkg[round].begin(); ite != pkg[round].end(); ++ite)
       {
         files.append(ite->second.filenames.get()); // concat filenames from all incoming edges
       }
@@ -148,7 +144,6 @@ namespace OpenMS
       debugOut_(String("Starting child ") + tv->getTopoNr());
       tv->run();
     }
-
   }
 
-}
+} // namespace OpenMS

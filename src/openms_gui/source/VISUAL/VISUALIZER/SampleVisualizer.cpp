@@ -35,12 +35,11 @@
 
 #include <OpenMS/VISUAL/VISUALIZER/SampleVisualizer.h>
 
-//QT
-#include <QtWidgets/QTextEdit>
+// QT
 #include <QValidator>
-#include <QtWidgets/QLineEdit>
 #include <QtWidgets/QComboBox>
-
+#include <QtWidgets/QLineEdit>
+#include <QtWidgets/QTextEdit>
 #include <iostream>
 
 using namespace std;
@@ -48,9 +47,7 @@ using namespace std;
 namespace OpenMS
 {
 
-  SampleVisualizer::SampleVisualizer(bool editable, QWidget * parent) :
-    BaseVisualizerGUI(editable, parent),
-    BaseVisualizer<Sample>()
+  SampleVisualizer::SampleVisualizer(bool editable, QWidget* parent) : BaseVisualizerGUI(editable, parent), BaseVisualizer<Sample>()
   {
     addLabel_("Modify Sample information");
     addSeparator_();
@@ -107,4 +104,4 @@ namespace OpenMS
     update_();
   }
 
-}
+} // namespace OpenMS

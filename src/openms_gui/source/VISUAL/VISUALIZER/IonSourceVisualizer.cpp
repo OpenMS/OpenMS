@@ -34,11 +34,11 @@
 
 #include <OpenMS/VISUAL/VISUALIZER/IonSourceVisualizer.h>
 
-//QT
+// QT
 #include <QtWidgets/QComboBox>
 #include <QtWidgets/QLineEdit>
 
-//STL
+// STL
 #include <iostream>
 
 using namespace std;
@@ -46,9 +46,7 @@ using namespace std;
 namespace OpenMS
 {
 
-  IonSourceVisualizer::IonSourceVisualizer(bool editable, QWidget * parent) :
-    BaseVisualizerGUI(editable, parent),
-    BaseVisualizer<IonSource>()
+  IonSourceVisualizer::IonSourceVisualizer(bool editable, QWidget* parent) : BaseVisualizerGUI(editable, parent), BaseVisualizer<IonSource>()
   {
     addLabel_("Modify ionsource information.");
     addSeparator_();
@@ -98,4 +96,4 @@ namespace OpenMS
     update_();
   }
 
-}
+} // namespace OpenMS

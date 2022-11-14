@@ -33,12 +33,11 @@
 // --------------------------------------------------------------------------
 
 
-#include <OpenMS/VISUAL/APPLICATIONS/INIFileEditorWindow.h>
-
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/FORMAT/ParamXMLFile.h>
 #include <OpenMS/SYSTEM/File.h>
+#include <OpenMS/VISUAL/APPLICATIONS/INIFileEditorWindow.h>
 #include <OpenMS/VISUAL/APPLICATIONS/MISC/QApplicationTOPP.h>
 
 #if !defined(__APPLE__)
@@ -47,10 +46,10 @@
 #endif
 
 #ifdef OPENMS_WINDOWSPLATFORM
-#   ifndef _WIN32_WINNT
-#       define _WIN32_WINNT 0x0501 // Win XP (and above)
-#   endif
-#   include <Windows.h>
+  #ifndef _WIN32_WINNT
+    #define _WIN32_WINNT 0x0501 // Win XP (and above)
+  #endif
+  #include <Windows.h>
 #endif
 
 using namespace OpenMS;
@@ -76,12 +75,12 @@ int main(int argc, const char** argv)
   Param param;
   param.parseCommandLine(argc, argv, options, flags, option_lists);
 
-  //catch command line errors
-  if (param.exists("help") //help requested
-     || argc > 3 //too many arguments
-     || (argc == 3 && !param.exists("print")) //three argument but no -print
-     || (param.exists("print") && param.getValue("print") == "") //-print but no file given
-      )
+  // catch command line errors
+  if (param.exists("help")                                        // help requested
+      || argc > 3                                                 // too many arguments
+      || (argc == 3 && !param.exists("print"))                    // three argument but no -print
+      || (param.exists("print") && param.getValue("print") == "") //-print but no file given
+  )
   {
     cerr << endl
          << "INIFileEditor -- An editor for OpenMS configuration files." << endl
@@ -96,7 +95,7 @@ int main(int argc, const char** argv)
     return 0;
   }
 
-  //print a ini file as text
+  // print a ini file as text
   if (param.exists("print"))
   {
     Param data;
@@ -118,20 +117,20 @@ int main(int argc, const char** argv)
     return 0;
   }
 
-  //Create window
+  // Create window
   QApplicationTOPP app(argc, const_cast<char**>(argv));
 
   INIFileEditorWindow editor_window;
 
-  //Open passed file
+  // Open passed file
   if (argc == 2)
   {
-    //cout << "OPEN: "  << argv[1] << endl;
+    // cout << "OPEN: "  << argv[1] << endl;
     editor_window.openFile(argv[1]);
   }
 
 #ifdef OPENMS_WINDOWSPLATFORM
-  FreeConsole(); // get rid of console window at this point (we will not see any console output from this point on)
+  FreeConsole();     // get rid of console window at this point (we will not see any console output from this point on)
   AttachConsole(-1); // if the parent is a console, reattach to it - so we can see debug output - a normal user will usually not use cmd.exe to start a GUI)
 #endif
 

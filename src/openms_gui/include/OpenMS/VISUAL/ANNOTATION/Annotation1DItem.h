@@ -35,7 +35,6 @@
 #pragma once
 
 #include <OpenMS/VISUAL/MISC/CommonDefs.h> // for PointXYType
-
 #include <QtCore/QRectF>
 #include <QtCore/QString>
 
@@ -43,7 +42,8 @@ class QPainter;
 
 namespace OpenMS
 {
-  template<int D> class DimMapper;
+  template<int D>
+  class DimMapper;
   class Gravitator;
   class Plot1DCanvas;
 
@@ -74,7 +74,7 @@ namespace OpenMS
     void setSelected(bool selected);
 
     /// Sets the text of the item
-    void setText(const QString & text);
+    void setText(const QString& text);
 
     /// Returns the text of the item
     const QString& getText() const;
@@ -97,14 +97,14 @@ namespace OpenMS
 
   protected:
     /// Constructor
-    Annotation1DItem(const QString & text);
+    Annotation1DItem(const QString& text);
 
     /// Copy constructor
-    Annotation1DItem(const Annotation1DItem & rhs);
+    Annotation1DItem(const Annotation1DItem& rhs);
 
     /// Draws the bounding_box_
-    void drawBoundingBox_(QPainter & painter);
-   
+    void drawBoundingBox_(QPainter& painter);
+
     /// The current bounding box of this item on the canvas where it has last been drawn
     QRectF bounding_box_;
 

@@ -38,13 +38,13 @@
 #include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
 
 // QT
-#include <QtWidgets>
 #include <QPixmap>
+#include <QtWidgets>
 class QPaintEvent;
 class QResizeEvent;
 class QMouseEvent;
 
-//OpenMS
+// OpenMS
 #include <OpenMS/MATH/STATISTICS/Histogram.h>
 
 namespace OpenMS
@@ -62,14 +62,13 @@ namespace OpenMS
 
       @ingroup Visual
   */
-  class OPENMS_GUI_DLLAPI HistogramWidget :
-    public QWidget
+  class OPENMS_GUI_DLLAPI HistogramWidget : public QWidget
   {
     Q_OBJECT
 
-public:
+  public:
     /// Constructor
-    HistogramWidget(const Math::Histogram<> & distribution, QWidget * parent = nullptr);
+    HistogramWidget(const Math::Histogram<>& distribution, QWidget* parent = nullptr);
 
     /// Destructor
     ~HistogramWidget() override;
@@ -81,9 +80,9 @@ public:
     double getRightSplitter() const;
 
     /// Set axis legends
-    void setLegend(const String & legend);
+    void setLegend(const String& legend);
 
-public slots:
+  public slots:
     /// Shows the splitters if @p on is true. Hides them otherwise.
     void showSplitters(bool on);
 
@@ -96,7 +95,7 @@ public slots:
     /// Enables/disables log mode
     void setLogMode(bool log_mode);
 
-protected:
+  protected:
     /// The histogram to display
     Math::Histogram<> dist_;
 
@@ -113,7 +112,7 @@ protected:
     UInt moving_splitter_;
 
     /// X axis
-    AxisWidget * bottom_axis_;
+    AxisWidget* bottom_axis_;
 
     /// Margin around plot
     UInt margin_;
@@ -129,18 +128,16 @@ protected:
 
     ///@name reimplemented Qt events
     //@{
-    void paintEvent(QPaintEvent *) override;
-    void mousePressEvent(QMouseEvent *) override;
-    void mouseReleaseEvent(QMouseEvent *) override;
-    void mouseMoveEvent(QMouseEvent *) override;
-    void resizeEvent(QResizeEvent *) override;
+    void paintEvent(QPaintEvent*) override;
+    void mousePressEvent(QMouseEvent*) override;
+    void mouseReleaseEvent(QMouseEvent*) override;
+    void mouseMoveEvent(QMouseEvent*) override;
+    void resizeEvent(QResizeEvent*) override;
     //@}
 
-protected slots:
+  protected slots:
 
     /// Context menu event
-    void showContextMenu(const QPoint & pos);
+    void showContextMenu(const QPoint& pos);
   };
 } // namespace OpenMS
-
-
