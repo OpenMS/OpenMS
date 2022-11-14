@@ -596,8 +596,8 @@ namespace OpenMS
         {
           if (match.hasValidPositions(molecule_length, parent_length))
           {
-            pos->second.fragments.push_back(make_pair(match.start_pos,
-                                                      match.end_pos));
+            pos->second.fragments.emplace_back(match.start_pos,
+                                                      match.end_pos);
           }
         }
       }
@@ -625,8 +625,8 @@ namespace OpenMS
         {
           if (match.hasValidPositions(molecule_length, parent_length))
           {
-            pos->second.fragments.push_back(make_pair(match.start_pos,
-                                                      match.end_pos));
+            pos->second.fragments.emplace_back(match.start_pos,
+                                                      match.end_pos);
           }
         }
       }

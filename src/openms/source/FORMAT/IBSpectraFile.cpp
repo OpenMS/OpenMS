@@ -224,7 +224,7 @@ namespace OpenMS
       if (cFeature.getPeptideIdentifications().empty() || !has_proteinIdentifications)
       {
         // we store unidentified hits anyway, because the iTRAQ quant is still helpful for normalization
-        entries.push_back(IdCSV());
+        entries.emplace_back();
       }
       else
       {

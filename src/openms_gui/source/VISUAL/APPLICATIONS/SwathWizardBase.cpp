@@ -91,7 +91,7 @@ namespace OpenMS
     const char* url = "http://openswath.org";
     if (!QDesktopServices::openUrl(QUrl(url)))
     {
-      QMessageBox::warning(0, "Cannot open browser. Please check your default browser settings.", QString(url));
+      QMessageBox::warning(nullptr, "Cannot open browser. Please check your default browser settings.", QString(url));
     }
   }
 
@@ -100,7 +100,7 @@ namespace OpenMS
     const char* url = "https://github.com/OpenMS/OpenMS/issues";
     if (!QDesktopServices::openUrl(QUrl(url)))
     {
-      QMessageBox::warning(0, "Cannot open browser. Please check your default browser settings.", QString(url));
+      QMessageBox::warning(nullptr, "Cannot open browser. Please check your default browser settings.", QString(url));
     }
   }
 

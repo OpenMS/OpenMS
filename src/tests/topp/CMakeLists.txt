@@ -787,6 +787,7 @@ set_tests_properties("TOPP_FileMerger_11_out1" PROPERTIES DEPENDS "TOPP_FileMerg
 add_test("TOPP_FLASHDeconv_1" ${TOPP_BIN_PATH}/FLASHDeconv -test -in ${DATA_DIR_TOPP}/FLASHDeconv_sample_input.mzML -out FLASHDeconv_1.tmp)
 # Currently just testing if the tool runs
 # We cannot currently test the correctness of the tsv output
+# FuzzyDiff cannot give out tolerances/whitelist for tabular format outputs (.tsv)
 
 #------------------------------------------------------------------------------
 # GNPSExport tests

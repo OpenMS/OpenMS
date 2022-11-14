@@ -1591,25 +1591,10 @@ namespace OpenMS::Internal
 
     void TraMLHandler::handleUserParam_(const String& parent_parent_tag, const String& parent_tag, const String& name, const String& type, const String& value)
     {
-      //create a DataValue that contains the data in the right type
-      DataValue data_value;
-      //float type
-      if (type == "xsd:double" || type == "xsd:float")
-      {
-        data_value = DataValue(value.toDouble());
-      }
-      //integer type
-      else if (type == "xsd:byte" || type == "xsd:decimal" || type == "xsd:int" || type == "xsd:integer" || type == "xsd:long" || type == "xsd:negativeInteger" || type == "xsd:nonNegativeInteger" || type == "xsd:nonPositiveInteger" || type == "xsd:positiveInteger" || type == "xsd:short" || type == "xsd:unsignedByte" || type == "xsd:unsignedInt" || type == "xsd:unsignedLong" || type == "xsd:unsignedShort")
-      {
-        data_value = DataValue(value.toInt());
-      }
-      //everything else is treated as a string
-      else
-      {
-        data_value = DataValue(value);
-      }
+      // create a DataValue that contains the data in the right type
+      DataValue data_value = fromXSDString(type, value);
 
-      //find the right MetaInfoInterface
+      // find the right MetaInfoInterface
       if (parent_tag == "Software")
       {
         actual_software_.setMetaValue(name, data_value);

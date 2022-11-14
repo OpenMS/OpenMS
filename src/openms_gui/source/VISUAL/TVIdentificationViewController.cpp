@@ -870,7 +870,7 @@ namespace OpenMS
         Annotation1DDistanceItem* item = new Annotation1DDistanceItem(QString::number(pre.getCharge()), lower_position, upper_position);
         // add additional tick at precursor target position (e.g. to show if isolation window is asymmetric)
         vector<PointXYType> ticks;
-        ticks.push_back({pre.getMZ(), 0});
+        ticks.emplace_back(pre.getMZ(), 0);
         item->setTicks(ticks);
         item->setSelected(false);
 

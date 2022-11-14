@@ -43,7 +43,6 @@ using namespace std;
 
 typedef FLASHDeconvHelperStructs::LogMzPeak LogMzPeak;
 typedef FLASHDeconvHelperStructs::PrecalculatedAveragine PrecalculatedAveragine;
-typedef FLASHDeconvHelperStructs::TopPicItem TopPicItem;
 
 START_TEST(FLASHDeconvHelperStructs, "$Id$")
 

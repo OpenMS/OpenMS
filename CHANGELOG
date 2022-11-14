@@ -37,6 +37,9 @@ UTIL - An executable, just like a TOPP tool, but usually experimental or of less
 reference and advanced developer documentation remains inside OpenMS doxygen
 documentation.
 
+New Tools:
+- FLASHDeconv -- Ultra-fast high-quality deconvolution enables online processing of top-down MS data (TOPP)
+
 ------------------------------------------------------------------------------------------
 ----                                OpenMS 2.8     (released 2/2022)                  ----
 ------------------------------------------------------------------------------------------

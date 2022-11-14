@@ -34,15 +34,16 @@
 
 #pragma once
 
-#include <OpenMS/KERNEL/MSSpectrum.h>
-#include <OpenMS/KERNEL/MSExperiment.h>
-#include <OpenMS/ANALYSIS/TOPDOWN/FLASHDeconvHelperStructs.h>
-#include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
-#include <OpenMS/DATASTRUCTURES//Matrix.h>
-#include <OpenMS/ANALYSIS/TOPDOWN/PeakGroup.h>
 #include <OpenMS/ANALYSIS/TOPDOWN/DeconvolvedSpectrum.h>
-#include <iostream>
+#include <OpenMS/ANALYSIS/TOPDOWN/FLASHDeconvHelperStructs.h>
+#include <OpenMS/ANALYSIS/TOPDOWN/PeakGroup.h>
+#include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
+#include <OpenMS/DATASTRUCTURES/Matrix.h>
+#include <OpenMS/KERNEL/MSExperiment.h>
+#include <OpenMS/KERNEL/MSSpectrum.h>
+
 #include <boost/dynamic_bitset.hpp>
+#include <iostream>
 
 namespace OpenMS
 {
@@ -76,11 +77,10 @@ namespace OpenMS
     FLASHDeconvAlgorithm& operator=(const FLASHDeconvAlgorithm& fd) = default;
 
     /**
-      @brief main deconvolution function that generates the deconvolved and decoy deconvolved spectrum from the original spectrum.
+      @brief main deconvolution function that generates the deconvolved target and decoy spectrum based on the original spectrum.
       @param spec the original spectrum
       @param survey_scans the survey scans to assign precursor mass to the deconvolved spectrum.
-      @param scan_number scan number is provided from input spectrum to this function in most cases.
-      But this parameter is used for real time deconvolution where scan number may be put separately.
+      @param scan_number scan number from input spectrum.
       @param precursor_map_for_FLASHIda deconvolved precursor information from FLASHIda
  */
     void performSpectrumDeconvolution(const MSSpectrum& spec,
@@ -91,10 +91,8 @@ namespace OpenMS
 
     /// return deconvolved spectrum
     DeconvolvedSpectrum& getDeconvolvedSpectrum();
-    // return decoy deconvolved spectrum
-    //DeconvolvedSpectrum& getDecoyDeconvolvedSpectrum();
 
-    /// get calculated averagine. This should be called after calculateAveragine is called.
+    /// get calculated averagine. Call after calculateAveragine is called.
     const PrecalculatedAveragine& getAveragine();
 
     /// set calculated averagine
@@ -132,7 +130,7 @@ namespace OpenMS
 
     /** @brief Examine intensity distribution over isotope indices. Also determines the most plausible isotope index or, monoisotopic mono_mass
         @param mono_mass monoisotopic mass
-        @param per_isotope_intensities per isotope intensity - aggregated through charges
+        @param per_isotope_intensities vector of intensities associated with each isotope - aggregated through charges
         @param offset output offset between input monoisotopic mono_mass and determined monoisotopic mono_mass
         @param avg precalculated averagine
         @param window_width isotope offset value range. If -1, set automatically.
@@ -146,7 +144,7 @@ namespace OpenMS
                                                            int window_width = -1, int allowed_iso_error_for_second_best_cos = 0);
 
     /// set decoy_flag_
-    void setDecoyFlag(int flag, FLASHDeconvAlgorithm& targetFD);
+    void setDecoyFlag(PeakGroup::decoyFlag flag, FLASHDeconvAlgorithm& targetFD);
 
   protected:
     void updateMembers_() override;
@@ -193,13 +191,8 @@ namespace OpenMS
 
     FLASHDeconvAlgorithm* targetFD_;
 
-
-    /// if it is set to 0, not a decoy run. If 1, the charge decoy run, If 2, the random noise decoy run
-    int decoy_run_flag_ = 0;
-
-    static const int charge_decoy_ = 1;
-    static const int noise_decoy_ = 2;
-    static const int isotope_decoy_ = 3;
+    /// PeakGroup::decoyFlag values
+    PeakGroup::decoyFlag decoy_flag_ = PeakGroup::decoyFlag::target;
 
     /// precalculated averagine distributions for fast averagine generation
     FLASHDeconvHelperStructs::PrecalculatedAveragine avg_;
@@ -220,8 +213,6 @@ namespace OpenMS
     std::vector<LogMzPeak> log_mz_peaks_;
     /// deconvolved_spectrum_ stores the deconvolved mass peak groups
     DeconvolvedSpectrum deconvolved_spectrum_;
-    // decoy_deconvolved_spectrum_ stores the deconvolved decoy mass peak groups
-    //DeconvolvedSpectrum decoy_deconvolved_spectrum_;
     /// mass_bins_ stores the selected bins for this spectrum + overlapped spectrum (previous a few spectra).
     boost::dynamic_bitset<> mass_bins_;
     /// mz_bins_ stores the binned log mz peaks
@@ -328,7 +319,7 @@ namespace OpenMS
     @param survey_scans the candidate precursor spectra - the user may allow search of previous N survey scans.
     @param precursor_map_for_real_time_acquisition this contains the deconvolved mass information from FLASHIda runs.
     */
-    bool registerPrecursor(const std::vector<DeconvolvedSpectrum>& survey_scans,
+    bool registerPrecursor_(const std::vector<DeconvolvedSpectrum>& survey_scans,
                                   const std::map<int, std::vector<std::vector<double>>>& precursor_map_for_real_time_acquisition);
 
   };

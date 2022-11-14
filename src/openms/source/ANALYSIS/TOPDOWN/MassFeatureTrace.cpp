@@ -32,8 +32,9 @@
 // $Authors: Kyowon Jeong, Jihyung Kim $
 // --------------------------------------------------------------------------
 
-#include "OpenMS/ANALYSIS/TOPDOWN/MassFeatureTrace.h"
 #include <OpenMS/ANALYSIS/TOPDOWN/FLASHDeconvAlgorithm.h>
+#include <OpenMS/ANALYSIS/TOPDOWN/MassFeatureTrace.h>
+
 #include <utility>
 
 namespace OpenMS
@@ -42,25 +43,17 @@ namespace OpenMS
       DefaultParamHandler("MassFeatureTrace")
   {
     Param mtd_defaults = MassTraceDetection().getDefaults();
-    //mtd_defaults.setValue("min_trace_length", 10.0);
     mtd_defaults.setValue("min_sample_rate",
                           .1,
                           "Minimum fraction of scans along the feature trace that must contain a peak. To raise feature detection sensitivity, lower this value close to 0.");
-    //mtd_defaults.setValue("mass_error_da",
-    //                      1.5,
-    //                      "da tolerance for feature tracing. Due to frequent isotope error, 1.5 Da is recommended.");
-    mtd_defaults.setValue("min_trace_length", 10.0);//
+    mtd_defaults.setValue("min_trace_length", 10.0);
 
     mtd_defaults.setValue("chrom_peak_snr", .0);
     mtd_defaults.addTag("chrom_peak_snr", "advanced");
-    mtd_defaults.setValue("reestimate_mt_sd",
-                          "false");
+    mtd_defaults.setValue("reestimate_mt_sd", "false");
     mtd_defaults.addTag("reestimate_mt_sd", "advanced");
-    mtd_defaults.setValue("noise_threshold_int",
-                          .0);
+    mtd_defaults.setValue("noise_threshold_int", .0);
     mtd_defaults.addTag("noise_threshold_int", "advanced");
-    //mtd_defaults.setValue("min_isotope_cosine", -1.0, "if not set, controlled by -Algorithm:min_isotope_cosine_ option");
-    //mtd_defaults.addTag("min_isotope_cosine", "advanced");
 
     mtd_defaults.setValue("quant_method", "area");
     mtd_defaults.addTag("quant_method", "advanced"); // hide entry
@@ -118,10 +111,6 @@ namespace OpenMS
       int min_feature_abs_charge = INT_MAX; // min feature charge
       int max_feature_abs_charge = INT_MIN; // max feature charge
 
-      //int minFIso = INT_MAX; // min feature isotope index
-      //int maxFIso = INT_MIN; // max feature isotope index
-
-      //auto per_charge_max_intensity = std::vector<double>(charge_range + 1, .0);
       auto per_isotope_intensity = std::vector<float>(averagine.getMaxIsotopeIndex(), .0f);
       auto per_charge_intensity = std::vector<float>(charge_range + min_abs_charge + 1, .0f);
 
@@ -147,7 +136,6 @@ namespace OpenMS
         }
         pgs.push_back(pg);
       }
-      //std::sort(pgs.begin(), pgs.end());
 
       for(auto& pg: pgs)
       {
@@ -211,7 +199,6 @@ namespace OpenMS
         }
       }
 
-
       mass_feature.per_charge_intensity = per_charge_intensity;
       mass_feature.per_isotope_intensity = per_isotope_intensity;
 
@@ -235,14 +222,12 @@ namespace OpenMS
     }
     else
     {
-      //deconvolved_spectrum.sort();
       peak_group_map_[rt] = std::map<double, PeakGroup>();
       auto& sub_pg_map = peak_group_map_[rt];
       for (auto& pg: deconvolved_spectrum)
       {
         sub_pg_map[pg.getMonoMass()] = pg;
       }
-      //scan_rt_map[deconvolved_spectrum.getScanNumber()] = rt;
     }
   }
 

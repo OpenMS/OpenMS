@@ -874,7 +874,7 @@ namespace OpenMS::Internal
         // write the full metadata into the sql file (compress with zlib before)
         std::string encoded_string;
         OpenMS::ZlibCompression::compressString(output, encoded_string);
-        data.push_back(encoded_string);
+        data.emplace_back(encoded_string);
         // data.push_back(output); // in case you need to debug on the uncompressed string ...
         conn.executeBindStatement(prepare_statement, data);
       }
