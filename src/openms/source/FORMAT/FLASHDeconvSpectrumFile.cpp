@@ -235,10 +235,9 @@ namespace OpenMS
     {
       String prefix = "Set" + std::to_string(i+1) + "_";
       auto dlm = pg.getDLMatrix(i).asVector();
-      int j = 0;
-      for(double v : dlm)
+      for(int j=0;j<dlm.size();j++)
       {
-        fs << prefix << j++ << ",";
+        fs << prefix << j<< ",";
       }
     }
     fs << "Class\n";
