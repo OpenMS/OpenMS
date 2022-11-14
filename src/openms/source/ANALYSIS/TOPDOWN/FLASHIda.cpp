@@ -514,7 +514,7 @@ namespace OpenMS
       }
     }
 
-    deconvolved_spectrum_.swap(filtered_peakgroups);
+    deconvolved_spectrum_.setPeakGroups(filtered_peakgroups);
     std::vector<PeakGroup>().swap(filtered_peakgroups);
   }
 
@@ -562,7 +562,7 @@ namespace OpenMS
       precursor_intensities[i] = peakgroup.getChargeIntensity(charges[i]);
     }
     std::vector<PeakGroup> empty;
-    deconvolved_spectrum_.swap(empty);
+    deconvolved_spectrum_.setPeakGroups(empty);
   }
 
   MSSpectrum FLASHIda::makeMSSpectrum_(const double *mzs, const double *ints, const int length, const double rt,
