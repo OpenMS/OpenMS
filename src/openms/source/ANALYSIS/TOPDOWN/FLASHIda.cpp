@@ -37,6 +37,9 @@
 #include <OpenMS/ANALYSIS/TOPDOWN/QScore.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
 #include <sstream>
+#ifdef _OPENMP
+  #include <omp.h>
+#endif
 
 namespace OpenMS
 {
@@ -47,6 +50,10 @@ namespace OpenMS
   // constructor
   FLASHIda::FLASHIda(char *arg)
   {
+
+  #ifdef _OPENMP
+    omp_set_num_threads(4);
+  #endif
     std::unordered_map<std::string, std::vector<double>> inputs;
     std::vector<String> log_files;
     std::vector<String> out_files;
