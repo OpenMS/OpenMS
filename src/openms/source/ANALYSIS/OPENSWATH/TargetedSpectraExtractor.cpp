@@ -55,14 +55,14 @@ namespace OpenMS
   {
     getDefaultParameters(defaults_);
 
-    subsections_.push_back("SavitzkyGolayFilter");
+    subsections_.emplace_back("SavitzkyGolayFilter");
     defaults_.setValue("SavitzkyGolayFilter:frame_length", 15);
     defaults_.setValue("SavitzkyGolayFilter:polynomial_order", 3);
 
-    subsections_.push_back("GaussFilter");
+    subsections_.emplace_back("GaussFilter");
     defaults_.setValue("GaussFilter:gaussian_width", 0.2);
 
-    subsections_.push_back("PeakPickerHiRes");
+    subsections_.emplace_back("PeakPickerHiRes");
     defaults_.setValue("PeakPickerHiRes:signal_to_noise", 1.0);
 
     defaults_.insert("AccurateMassSearchEngine:", AccurateMassSearchEngine().getDefaults());
@@ -912,7 +912,7 @@ namespace OpenMS
       peptide.id = peptide_ref;
       peptide.setChargeState(ms1_feature.getCharge());
       peptide.addMetaValues(ms1_feature);
-      peptide.protein_refs.push_back(peptide_ref);
+      peptide.protein_refs.emplace_back(peptide_ref);
       peptide.rts.push_back(rt_f);
       auto found_peptide = peptides_map.emplace(peptide_ref, peptide);
       if (!found_peptide.second)

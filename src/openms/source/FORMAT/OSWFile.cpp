@@ -132,7 +132,7 @@ namespace OpenMS
             else
             {
               scan_id = group_id_index.size();
-              group_id_index.push_back(sqlite3_column_text(stmt, i));
+              group_id_index.emplace_back(sqlite3_column_text(stmt, i));
             }
           }
           if (strcmp(sqlite3_column_name(stmt, i), "DECOY") == 0)

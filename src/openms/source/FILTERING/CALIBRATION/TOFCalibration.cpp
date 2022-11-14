@@ -42,7 +42,7 @@ namespace OpenMS
   TOFCalibration::TOFCalibration() :
     DefaultParamHandler("TOFCalibration"), ProgressLogger()
   {
-    subsections_.push_back("PeakPicker");
+    subsections_.emplace_back("PeakPicker");
     check_defaults_ = false;   // class has no own parameters
   }
 

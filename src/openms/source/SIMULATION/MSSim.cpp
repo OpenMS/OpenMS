@@ -118,7 +118,7 @@ namespace OpenMS
     defaults_.insert("RawSignal:", RawMSSignalSimulation().getDefaults());
     defaults_.insert("RawTandemSignal:", RawTandemMSSignalSimulation().getDefaults());
 
-    subsections_.push_back("Labeling");
+    subsections_.emplace_back("Labeling");
 
     //sync params (remove duplicates from modules and put them in a global module)
     syncParams_(defaults_, true);

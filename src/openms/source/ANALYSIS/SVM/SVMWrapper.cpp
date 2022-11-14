@@ -663,7 +663,7 @@ namespace OpenMS
       // Creating the particular partition instances
       for (Size i = 0; i < number; i++)
       {
-        problems.push_back(SVMData());
+        problems.emplace_back();
       }
 
       // Creating indices
@@ -827,12 +827,12 @@ namespace OpenMS
   {
     map<SVM_parameter_type, double>::const_iterator start_values_iterator;
     vector<pair<double, Size> > combined_parameters;
-    combined_parameters.push_back(make_pair(1, 25));
+    combined_parameters.emplace_back(1, 25);
 
     double cv_quality = 0.0;
     for (Size i = 1; i < gauss_tables_.size(); ++i)
     {
-      combined_parameters.push_back(make_pair(1, 25));
+      combined_parameters.emplace_back(1, 25);
     }
 
     std::vector<double> start_values(start_values_map.size());
@@ -1743,7 +1743,7 @@ namespace OpenMS
           while (pred_it != predicted_labels.end()
                 && real_it != real_labels.end())
           {
-            points.push_back(make_pair(*real_it, *pred_it));
+            points.emplace_back(*real_it, *pred_it);
             differences.push_back(abs(*real_it - *pred_it));
             file << *real_it << " " << *pred_it << endl;
             ++pred_it;
@@ -1823,7 +1823,7 @@ namespace OpenMS
           while (pred_it != predicted_labels.end()
                 && real_it != partitions[j].labels.end())
           {
-            points.push_back(make_pair(*real_it, *pred_it));
+            points.emplace_back(*real_it, *pred_it);
             differences.push_back(abs(*real_it - *pred_it));
             file << *real_it << " " << *pred_it << endl;
 

@@ -302,7 +302,7 @@ namespace OpenMS
             char* x_offset = xercesc::XMLString::transcode(currentONode->getTextContent());
 
             std::streampos thisOffset = OpenMS::IndexedMzMLUtils::stringToStreampos( String(x_offset) );
-            result.push_back(std::make_pair(String(x_name), thisOffset));
+            result.emplace_back(String(x_name), thisOffset);
 
             xercesc::XMLString::release(&x_name);
             xercesc::XMLString::release(&x_offset);
