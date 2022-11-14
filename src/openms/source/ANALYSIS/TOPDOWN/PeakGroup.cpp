@@ -192,21 +192,6 @@ namespace OpenMS
     float max_sig = 0;
     int noise_start = 0;
 
-    /*auto skip = boost::dynamic_bitset<>(spec.size());
-
-    if(!exclude_mzs.empty())
-    {
-      for(int i=0; i<spec.size(); i++)
-      {
-        auto p=spec[i];
-        if (exclude_mzs.find(p.getMZ()) == exclude_mzs.end())
-        {
-          continue;
-        }
-        skip[i] = true;
-      }
-    }*/
-
     for (int c = max_abs_charge_; c >= min_abs_charge_; c--)
     {
       if (c <= 0)
