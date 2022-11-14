@@ -15,11 +15,10 @@ Digestor
 DigestorMotif
 Epifany
 ERPairFinder
-    FeatureFinderIntact2GraphML
 FeatureFinderMetaboIdent
 FFEval
-    FLASHDeconv2FeatureXML
-    FLASHDeconvQ
+FLASHDeconv2FeatureXML
+FLASHDeconvQ
 FuzzyDiff
 IDDecoyProbability
 IDExtractor

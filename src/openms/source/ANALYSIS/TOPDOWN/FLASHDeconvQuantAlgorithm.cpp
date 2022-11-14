@@ -225,7 +225,7 @@ namespace OpenMS
 
         auto iso_dist = iso_model_.get(fgroup.getMonoisotopicMass());
         float cos_score = FLASHDeconvAlgorithm::getCosine(per_cs_isos[cs], min_isotope_index, max_isotope_index + 1,
-                                                          iso_dist, iso_dist.size(), 0);
+                                                          iso_dist, iso_dist.size(), 0, 2); // min_iso_size_: based on FLASHDeconv
         per_charge_cos[cs] = cos_score;
       }
       // calculate average mass
@@ -511,9 +511,8 @@ namespace OpenMS
 
     /// isotope cosine calculation
     int offset = 0;
-    int second_max_offset = 0;
     float isotope_score =
-        FLASHDeconvAlgorithm::getIsotopeCosineAndDetermineIsotopeIndex(fg.getMonoisotopicMass(), fg.getIsotopeIntensities(), offset, second_max_offset, iso_model_, 1);
+        FLASHDeconvAlgorithm::getIsotopeCosineAndDetermineIsotopeIndex(fg.getMonoisotopicMass(), fg.getIsotopeIntensities(), offset, iso_model_, -1, 1);
     fg.setIsotopeCosine(isotope_score);
     if ( isNotTarget && isotope_score < min_iso_score )
     {
