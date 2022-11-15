@@ -238,7 +238,7 @@ namespace OpenMS
           is_requested = true;
         }
 
-        if (tag == "out_mzml" || tag == "out_annotated_mzml" || tag == "out_promex") //  params having string values
+        if (tag == "out_mzml" || tag == "out_annotated_mzml" || tag == "out_promex" || tag == "in_log") //  params having string values //  params having string values
         {
           // if not requested, set default value
           if (!is_requested)
@@ -263,7 +263,9 @@ namespace OpenMS
           }
           else // (tag == "in_log")
           {
-            out_path = "IDALog_" + out_path + ".log";
+            String dir_path_only = File::path(input_file_name);
+            String file_name_only = FileHandler::stripExtension(File::basename(input_file_name));
+            out_path = dir_path_only + '/' + "IDALog_" + file_name_only + ".log";
           }
           flashdeconv_param_outputs_.setValue(tag, out_path, org_desc, org_tags);
         }
