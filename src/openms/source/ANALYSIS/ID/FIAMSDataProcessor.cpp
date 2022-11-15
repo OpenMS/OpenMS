@@ -234,7 +234,7 @@ namespace OpenMS {
     return is_cached;
   }
 
-  void FIAMSDataProcessor::storeSpectrum_(const MSSpectrum& input, String filename)
+  void FIAMSDataProcessor::storeSpectrum_(const MSSpectrum& input, const String& filename)
   {
       MzMLFile mzml;
       MSExperiment exp;

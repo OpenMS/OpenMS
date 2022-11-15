@@ -702,7 +702,7 @@ namespace OpenMS
     return number_of_missed_cleavages_;
   }
 
-  void XTandemInfile::setOutputResults(String result)
+  void XTandemInfile::setOutputResults(const String& result)
   {
     if (result == "valid" || result == "all" || result == "stochastic")
     {

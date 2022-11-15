@@ -73,7 +73,7 @@ namespace OpenMS
   }
 
   inline void fillDataArray(const std::vector<Internal::MzMLHandlerHelper::BinaryData>& data,
-                            OpenMS::Interfaces::BinaryDataArrayPtr array, bool precision_64, SignedSize index)
+                            const OpenMS::Interfaces::BinaryDataArrayPtr& array, bool precision_64, SignedSize index)
   {
     // This seems to be the fastest method to move the data (faster than copy or assign)
     if (precision_64)

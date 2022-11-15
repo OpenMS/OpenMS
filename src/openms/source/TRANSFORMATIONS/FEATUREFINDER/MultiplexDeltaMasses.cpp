@@ -35,6 +35,7 @@
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexDeltaMasses.h>
 
 #include <sstream>
+#include <utility>
 
 using namespace std;
 
@@ -42,11 +43,11 @@ namespace OpenMS
 {
 
   MultiplexDeltaMasses::DeltaMass::DeltaMass(double dm, LabelSet ls) :
-    delta_mass(dm), label_set(ls)
+    delta_mass(dm), label_set(std::move(ls))
   {
   }
   
-  MultiplexDeltaMasses::DeltaMass::DeltaMass(double dm, String l) :
+  MultiplexDeltaMasses::DeltaMass::DeltaMass(double dm, const String& l) :
     delta_mass(dm), label_set()
   {
     label_set.insert(l);

@@ -34,6 +34,8 @@
 
 #include <OpenMS/ANALYSIS/TARGETED/IncludeExcludeTarget.h>
 
+#include <utility>
+
 namespace OpenMS
 {
   IncludeExcludeTarget::IncludeExcludeTarget() :
@@ -219,7 +221,7 @@ namespace OpenMS
 
   void IncludeExcludeTarget::setRetentionTime(IncludeExcludeTarget::RetentionTime rt)
   {
-    rts_ = rt;
+    rts_ = std::move(rt);
   }
 
   const IncludeExcludeTarget::RetentionTime & IncludeExcludeTarget::getRetentionTime() const

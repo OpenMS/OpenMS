@@ -34,6 +34,8 @@
 
 #include <OpenMS/FORMAT/DATAACCESS/MSDataTransformingConsumer.h>
 
+#include <utility>
+
 namespace OpenMS
 {
   /**
@@ -62,7 +64,7 @@ namespace OpenMS
 
       void MSDataTransformingConsumer::setSpectraProcessingFunc( std::function<void (SpectrumType&)> f_spec )
       {
-        lambda_spec_ = f_spec;
+        lambda_spec_ = std::move(f_spec);
       }
 
       void MSDataTransformingConsumer::consumeChromatogram(ChromatogramType & c)
@@ -73,12 +75,12 @@ namespace OpenMS
 
       void MSDataTransformingConsumer::setChromatogramProcessingFunc( std::function<void (ChromatogramType&)> f_chrom )
       {
-        lambda_chrom_ = f_chrom;
+        lambda_chrom_ = std::move(f_chrom);
       }
       
       void MSDataTransformingConsumer::setExperimentalSettingsFunc( std::function<void (const OpenMS::ExperimentalSettings&)> f_exp_settings )
       {
-        lambda_exp_settings_ = f_exp_settings;
+        lambda_exp_settings_ = std::move(f_exp_settings);
       }
 
       void MSDataTransformingConsumer::setExperimentalSettings(const OpenMS::ExperimentalSettings& es)

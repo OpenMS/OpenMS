@@ -111,8 +111,8 @@ namespace OpenMS
             double sim_score = getSimilarity_(hit1->getSequence(),
                                               hit2->getSequence());
             // use "1 - PEP" so higher scores are better (for "max_element"):
-            current_matches.push_back(make_pair(sim_score,
-                                                1.0 - hit2->getScore()));
+            current_matches.emplace_back(sim_score,
+                                                1.0 - hit2->getScore());
           }
           best_matches.push_back(*max_element(current_matches.begin(),
                                               current_matches.end()));

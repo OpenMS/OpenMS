@@ -73,11 +73,11 @@ namespace OpenMS
     rnase->getCutsBeforeRegEx().split(',', CBregexes);
     for (auto it = std::begin(CAregexes); it != std::end(CAregexes); ++it)
     {
-      cuts_after_regexes_.push_back(boost::regex(*it));
+      cuts_after_regexes_.emplace_back(*it);
     }
     for (auto it = std::begin(CBregexes); it != std::end(CBregexes); ++it)
     {
-      cuts_before_regexes_.push_back(boost::regex(*it));
+      cuts_before_regexes_.emplace_back(*it);
     }
   }
 

@@ -165,7 +165,7 @@ namespace OpenMS
      */
     String prepareLine(const OpenSwath::LightCompound& pep,
         const OpenSwath::LightTransition * transition,
-        const FeatureMap& output, const String id) const;
+        const FeatureMap& output, const String& id) const;
 
     /**
      * @brief Write data to disk

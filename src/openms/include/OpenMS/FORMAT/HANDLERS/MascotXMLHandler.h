@@ -75,7 +75,7 @@ public:
       void characters(const XMLCh* const chars, const XMLSize_t /*length*/) override;
       
       /// Split modification search parameter if for more than one amino acid specified e.g. Phospho (ST)
-      static std::vector<String> splitModificationBySpecifiedAA(String mod);
+      static std::vector<String> splitModificationBySpecifiedAA(const String& mod);
 
 private:
 

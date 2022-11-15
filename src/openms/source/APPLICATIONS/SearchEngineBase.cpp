@@ -109,7 +109,7 @@ namespace OpenMS
     return inputfile_name;
   }
 
-  String SearchEngineBase::getDBFilename(String db) const
+  String SearchEngineBase::getDBFilename(const String& db) const
   {
     String db_name(db.empty() ? getStringOption_("database") : db);
     if (!File::readable(db_name))

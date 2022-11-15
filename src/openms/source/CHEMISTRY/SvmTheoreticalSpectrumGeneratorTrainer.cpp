@@ -227,7 +227,7 @@ namespace OpenMS
 
   SvmTheoreticalSpectrumGeneratorTrainer::~SvmTheoreticalSpectrumGeneratorTrainer() = default;
 
-  void SvmTheoreticalSpectrumGeneratorTrainer::trainModel(const PeakMap& spectra, const std::vector<AASequence>& annotations, String filename, Int precursor_charge)
+  void SvmTheoreticalSpectrumGeneratorTrainer::trainModel(const PeakMap& spectra, const std::vector<AASequence>& annotations, const String& filename, Int precursor_charge)
   {
     //----------- BEGIN OF PARAMETER READING-------------------------
 
@@ -251,35 +251,35 @@ namespace OpenMS
 
     if (param_.getValue("add_b_ions").toBool())
     {
-      ion_types.push_back(IonType(Residue::BIon, EmpiricalFormula(), 1));
+      ion_types.emplace_back(Residue::BIon, EmpiricalFormula(), 1);
       is_primary.push_back(true);
     }
     if (param_.getValue("add_y_ions").toBool())
     {
-      ion_types.push_back(IonType(Residue::YIon, EmpiricalFormula(), 1));
+      ion_types.emplace_back(Residue::YIon, EmpiricalFormula(), 1);
       is_primary.push_back(true);
     }
     if (param_.getValue("add_x_ions").toBool())
     {
-      ion_types.push_back(IonType(Residue::XIon, EmpiricalFormula(), 1));
+      ion_types.emplace_back(Residue::XIon, EmpiricalFormula(), 1);
       is_primary.push_back(false);
       secondary_types = true;
     }
     if (param_.getValue("add_a_ions").toBool())
     {
-      ion_types.push_back(IonType(Residue::AIon, EmpiricalFormula(), 1));
+      ion_types.emplace_back(Residue::AIon, EmpiricalFormula(), 1);
       is_primary.push_back(false);
       secondary_types = true;
     }
     if (param_.getValue("add_z_ions").toBool())
     {
-      ion_types.push_back(IonType(Residue::ZIon, EmpiricalFormula(), 1));
+      ion_types.emplace_back(Residue::ZIon, EmpiricalFormula(), 1);
       is_primary.push_back(false);
       secondary_types = true;
     }
     if (param_.getValue("add_c_ions").toBool())
     {
-      ion_types.push_back(IonType(Residue::CIon, EmpiricalFormula(), 1));
+      ion_types.emplace_back(Residue::CIon, EmpiricalFormula(), 1);
       is_primary.push_back(false);
       secondary_types = true;
     }
@@ -291,16 +291,16 @@ namespace OpenMS
 
       if (param_.getValue("add_b_ions").toBool())
       {
-        ion_types.push_back(IonType(Residue::BIon, loss_ammonia, 1));
-        ion_types.push_back(IonType(Residue::BIon, loss_water, 1));
+        ion_types.emplace_back(Residue::BIon, loss_ammonia, 1);
+        ion_types.emplace_back(Residue::BIon, loss_water, 1);
         is_primary.push_back(false);
         is_primary.push_back(false);
         secondary_types = true;
       }
       if (param_.getValue("add_y_ions").toBool())
       {
-        ion_types.push_back(IonType(Residue::YIon, loss_ammonia, 1));
-        ion_types.push_back(IonType(Residue::YIon, loss_water, 1));
+        ion_types.emplace_back(Residue::YIon, loss_ammonia, 1);
+        ion_types.emplace_back(Residue::YIon, loss_water, 1);
         is_primary.push_back(false);
         is_primary.push_back(false);
         secondary_types = true;
@@ -309,13 +309,13 @@ namespace OpenMS
 
     if (param_.getValue("add_y2_ions").toBool())
     {
-      ion_types.push_back(IonType(Residue::YIon, EmpiricalFormula(), 2));
+      ion_types.emplace_back(Residue::YIon, EmpiricalFormula(), 2);
       is_primary.push_back(false);
       secondary_types = true;
     }
     if (param_.getValue("add_b2_ions").toBool())
     {
-      ion_types.push_back(IonType(Residue::BIon, EmpiricalFormula(), 2));
+      ion_types.emplace_back(Residue::BIon, EmpiricalFormula(), 2);
       is_primary.push_back(false);
       secondary_types = true;
     }
@@ -1131,7 +1131,7 @@ namespace OpenMS
 
   void SvmTheoreticalSpectrumGeneratorTrainer::countIntensities_(const PeakSpectrum& spectrum,
                                                                  const AASequence& annotation,
-                                                                 IonType type,
+                                                                 const IonType& type,
                                                                  std::map<std::pair<IonType, Size>, std::vector<double> >& observed_intensities,
                                                                  double tolerance,
                                                                  Size number_of_regions
@@ -1214,7 +1214,7 @@ namespace OpenMS
     }
   }
 
-  void SvmTheoreticalSpectrumGeneratorTrainer::writeTrainingFile_(std::vector<DescriptorSet>& training_input, std::vector<double>& training_output, String filename)
+  void SvmTheoreticalSpectrumGeneratorTrainer::writeTrainingFile_(std::vector<DescriptorSet>& training_input, std::vector<double>& training_output, const String& filename)
   {
     std::cerr << "Creating Training File.. " << filename;
     TextFile file;

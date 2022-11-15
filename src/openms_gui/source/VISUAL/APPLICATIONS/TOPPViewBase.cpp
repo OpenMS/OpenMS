@@ -510,7 +510,7 @@ namespace OpenMS
     defaults_.setValidStrings("preferences:topp_cleanup", {"true", "false"});
 
     defaults_.setValue("preferences:version", "none", "OpenMS version, used to check if the TOPPView.ini is up-to-date");
-    subsections_.push_back("preferences:RecentFiles");
+    subsections_.emplace_back("preferences:RecentFiles");
 
     // store defaults in param_
     defaultsToParam_();
@@ -811,11 +811,11 @@ namespace OpenMS
     return LOAD_RESULT::OK;
   }
 
-  void TOPPViewBase::addData(FeatureMapSharedPtrType feature_map,
-                             ConsensusMapSharedPtrType consensus_map,
+  void TOPPViewBase::addData(const FeatureMapSharedPtrType& feature_map,
+                             const ConsensusMapSharedPtrType& consensus_map,
                              vector<PeptideIdentification>& peptides,
-                             ExperimentSharedPtrType peak_map,
-                             ODExperimentSharedPtrType on_disc_peak_map,
+                             const ExperimentSharedPtrType& peak_map,
+                             const ODExperimentSharedPtrType& on_disc_peak_map,
                              LayerDataBase::DataType data_type,
                              bool show_as_1d,
                              bool show_options,
@@ -2509,7 +2509,7 @@ namespace OpenMS
       {
         if (sw->canvas()->getLayer(j).filename == filename)
         {
-          needs_update.push_back(std::pair<const PlotWidget*, Size>(sw, j));
+          needs_update.emplace_back(sw, j);
         }
       }
     }

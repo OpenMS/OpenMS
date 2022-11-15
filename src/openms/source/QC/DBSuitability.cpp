@@ -109,7 +109,7 @@ namespace OpenMS
     }
 
     // calculate suitability
-    results_.push_back(SuitabilityData());
+    results_.emplace_back();
     SuitabilityData& suitability_data_full = results_.back();
 
     // make sure pep_ids are sorted
@@ -676,7 +676,7 @@ namespace OpenMS
     return novo_hits_to_data.at(novo_data[ceil(novo_data.size() / 2)]);
   }
 
-  double DBSuitability::getScoreMatchingFDR_(const std::vector<PeptideIdentification>& pep_ids, double FDR, String score_name, bool higher_score_better) const
+  double DBSuitability::getScoreMatchingFDR_(const std::vector<PeptideIdentification>& pep_ids, double FDR, const String& score_name, bool higher_score_better) const
   {
     double worst_score = DBL_MAX;
     if (!higher_score_better)

@@ -638,7 +638,7 @@ namespace OpenMS::Internal
       character_buffer_ += String(sm_.convert(chars));
     }
     
-    vector<String> MascotXMLHandler::splitModificationBySpecifiedAA(String mod)
+    vector<String> MascotXMLHandler::splitModificationBySpecifiedAA(const String& mod)
     {
       vector<String> mods;
       vector<String> parts;

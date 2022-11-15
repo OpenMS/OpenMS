@@ -145,7 +145,7 @@ protected:
       //void writeSourceFile_(std::ostream& os, const String& id, const SourceFile& software);
 
       /// Helper method that writes the Enzymes
-      void writeEnzyme_(String& s, DigestionEnzymeProtein enzy, UInt miss, UInt indent) const;
+      void writeEnzyme_(String& s, const DigestionEnzymeProtein& enzy, UInt miss, UInt indent) const;
 
       /// Helper method that writes the modification search params (fixed or variable)
       void writeModParam_(String& s, const std::vector<String>& mod_names, bool fixed, UInt indent) const;
@@ -154,13 +154,13 @@ protected:
       void writeFragmentAnnotations_(String& s, const std::vector<PeptideHit::PeakAnnotation>& annotations, UInt indent, bool is_ppxl) const;
 
       /// Convenience method to remove the [] from OpenMS internal file uri representation
-      String trimOpenMSfileURI(const String file) const;
+      String trimOpenMSfileURI(const String& file) const;
 
       /// Abstraction of PeptideHit loop for most PeptideHits
       void writePeptideHit(const PeptideHit& hit,
                                 std::vector<PeptideIdentification>::const_iterator& it,
                                 std::map<String, String>& pep_ids,
-                                String cv_ns, std::set<String>& sen_set,
+                                const String& cv_ns, std::set<String>& sen_set,
                                 std::map<String, String>& sen_ids,
                                 std::map<String, std::vector<String> >& pep_evis,
                                 std::map<String, double>& pp_identifier_2_thresh,
@@ -169,8 +169,8 @@ protected:
       /// Abstraction of PeptideHit loop for XL-MS data from OpenPepXL
       void writeXLMSPeptideHit(const PeptideHit& hit,
                                 std::vector<PeptideIdentification>::const_iterator& it,
-                                String ppxl_linkid, std::map<String, String>& pep_ids,
-                                String cv_ns, std::set<String>& sen_set,
+                                const String& ppxl_linkid, std::map<String, String>& pep_ids,
+                                const String& cv_ns, std::set<String>& sen_set,
                                 std::map<String, String>& sen_ids,
                                 std::map<String, std::vector<String> >& pep_evis,
                                 std::map<String, double>& pp_identifier_2_thresh,

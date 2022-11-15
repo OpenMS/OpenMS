@@ -34,11 +34,13 @@
 
 #include <OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/SpectrumAccessTransforming.h>
 
+#include <utility>
+
 namespace OpenMS
 {
 
   SpectrumAccessTransforming::SpectrumAccessTransforming(OpenSwath::SpectrumAccessPtr sptr) :
-    sptr_(sptr)
+    sptr_(std::move(sptr))
   {}
 
   SpectrumAccessTransforming::~SpectrumAccessTransforming() = default;

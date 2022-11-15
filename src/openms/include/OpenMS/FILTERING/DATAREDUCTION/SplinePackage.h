@@ -57,7 +57,7 @@ public:
 /**
  * @brief constructor
  */
-SplinePackage(std::vector<double> pos, std::vector<double> intensity);
+SplinePackage(std::vector<double> pos, const std::vector<double>& intensity);
 
 /**
  * @brief destructor

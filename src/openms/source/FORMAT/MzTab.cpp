@@ -913,7 +913,7 @@ namespace OpenMS
     row.opt_.push_back(opt_global_modified_sequence);
 
     // Defines how to consume user value keys for the upcoming keys
-    const auto addUserValueToRowBy = [&row](function<void(const String &s, MzTabOptionalColumnEntry &entry)> f) -> function<void(const String &key)>
+    const auto addUserValueToRowBy = [&row](const function<void(const String &s, MzTabOptionalColumnEntry &entry)>& f) -> function<void(const String &key)>
     {
       return [f,&row](const String &user_value_key)
         {
@@ -2287,7 +2287,10 @@ state0:
 
   bool MzTab::IDMzTabStream::nextPSMRow(MzTabPSMSectionRow& row)
   {
-    if (pep_id_ >= peptide_ids_.size()) return false;
+    if (pep_id_ >= peptide_ids_.size()) 
+    {
+      return false;
+    }
     const PeptideIdentification* pid = peptide_ids_[pep_id_];
 
     auto psm_row = MzTab::PSMSectionRowFromPeptideID_(
@@ -2316,13 +2319,12 @@ state0:
 
     if (psm_row) // valid row?
     {
-      std::swap(row, *psm_row);
+      row = *psm_row;
     }
-    /* avoid reinitialization of 512 bytes. Skipped row == unchanged. Usually empty rows are input
     else
     {
-      *psm_row = MzTabPSMSectionRow();
-    }*/
+      row = MzTabPSMSectionRow();
+    }
     return true;
   }
 
@@ -3059,13 +3061,12 @@ state0:
 
     if (psm_row) // valid row?
     {
-      std::swap(row, *psm_row);
+      row = *psm_row;
     }
-    /* avoid reinitialization of 512 bytes. Skipped row == unchanged. Usually empty rows are input
     else
     {
-      *psm_row = MzTabPSMSectionRow();
-    }*/
+      row = MzTabPSMSectionRow();
+    }
     return true;
   }
 
@@ -3114,7 +3115,7 @@ state0:
       // parts of a row..
       if (!psm_row.sequence.isNull())
       {
-        m.getPSMSectionRows().emplace_back(std::move(psm_row));
+        m.getPSMSectionRows().push_back(psm_row);
       }
     }
 

@@ -41,6 +41,7 @@
 #include <OpenMS/MATH/STATISTICS/StatisticFunctions.h>
 
 #include <sstream>
+#include <utility>
 
 //#define DEBUG
 
@@ -50,7 +51,7 @@ namespace OpenMS
 {
 
   MultiplexFilteringProfile::MultiplexFilteringProfile(MSExperiment& exp_profile, const MSExperiment& exp_centroided, const std::vector<std::vector<PeakPickerHiRes::PeakBoundary> >& boundaries, const std::vector<MultiplexIsotopicPeakPattern>& patterns, int isotopes_per_peptide_min, int isotopes_per_peptide_max, double intensity_cutoff, double rt_band, double mz_tolerance, bool mz_tolerance_unit, double peptide_similarity, double averagine_similarity, double averagine_similarity_scaling, String averagine_type) :
-    MultiplexFiltering(exp_centroided, patterns, isotopes_per_peptide_min, isotopes_per_peptide_max, intensity_cutoff, rt_band, mz_tolerance, mz_tolerance_unit, peptide_similarity, averagine_similarity, averagine_similarity_scaling, averagine_type)
+    MultiplexFiltering(exp_centroided, patterns, isotopes_per_peptide_min, isotopes_per_peptide_max, intensity_cutoff, rt_band, mz_tolerance, mz_tolerance_unit, peptide_similarity, averagine_similarity, averagine_similarity_scaling, std::move(averagine_type))
   {
     // initialise peak boundaries
     // In the MultiplexFiltering() constructor we initialise the centroided experiment exp_centroided_.
@@ -110,7 +111,7 @@ namespace OpenMS
     // spline interpolate the profile data
     for (MSExperiment::Iterator it = exp_profile.begin(); it < exp_profile.end(); ++it)
     {
-      exp_spline_profile_.push_back(SplineInterpolatedPeaks(*it));
+      exp_spline_profile_.emplace_back(*it);
     }
     
     // TODO: Constructing the navigators here instead in the beginning of the filter() method results in segmentation faults. Why?
