@@ -234,11 +234,12 @@ namespace OpenMS
 
     vector<double> fragments_left, fragments_right, thiol_offsets;
     Size start = add_first_prefix_ion_ ? 0 : 1;
+    // Drop the final thiol, 'cause its not linking anything
+    thiols.resize(oligo.size() - 1);
     if ((add_a_ions_ || add_b_ions_ || add_c_ions_ || add_d_ions_ || add_aB_ions_) && (oligo.size() > start + 1))
     {
       fragments_left.resize(oligo.size() - 1);
-      // Drop the final thiol, 'cause its not linking anything
-      thiols.resize(oligo.size() - 1);
+
       fragments_left[0] = ribo_masses[0] + five_prime_mass;
       for (Size i = 1; i < oligo.size() - 1; ++i)
       {
@@ -346,7 +347,7 @@ namespace OpenMS
     for (Size i = 0; i < size; ++i)
     {
       spectrum.push_back(uncharged_spectrum[i]);
-      spectrum.back().setMZ(abs(spectrum.back().getMZ() / charge + Constants::PROTON_MASS_U));
+      spectrum.back().setMZ(std::fabs(spectrum.back().getMZ() / charge + Constants::PROTON_MASS_U));
     }
     if (add_metainfo_)
     {
@@ -457,7 +458,7 @@ namespace OpenMS
         if (add_final_precursor)
         {
           spectrum.push_back(uncharged_spectrum.back());
-          spectrum.back().setMZ(abs(spectrum.back().getMZ() / charge + Constants::PROTON_MASS_U));
+          spectrum.back().setMZ(std::fabs(spectrum.back().getMZ() / charge + Constants::PROTON_MASS_U));
           if (add_metainfo_)
           {
             spectrum.getStringDataArrays()[0].push_back("M");
