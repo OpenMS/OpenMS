@@ -149,6 +149,11 @@ namespace OpenMS
       {
         // base at position "i" is lost, so use fragment up to pos. "i - 1":
         mass += fragment_masses[i - 1] + offset;
+        // check if the offset should be thiol or not
+        if (oligo[i-1]->getCode().back() == '*')
+        {
+          mass += EmpiricalFormula("SO-1").getMonoWeight();
+        }
       }
       else // first ribonucleotide
       {
