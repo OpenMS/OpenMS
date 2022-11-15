@@ -125,7 +125,6 @@ namespace OpenMS
       updateOutputParamFromWidgets_();
       Param fd_param;
       fd_param.insert("FLASHDeconv:1:", flashdeconv_param_);
-      //      tmp_param.insert("FLASHDeconv:1:", flashdeconv_param_outputs_); // dummy to be updated
 
       String tmp_ini = File::getTemporaryFile();
 
@@ -212,6 +211,12 @@ namespace OpenMS
         flashdeconv_output_tags_.push_back("out_topFD");
         flashdeconv_output_tags_.push_back("out_topFD_feature");
       }
+
+      // optional FLASHIda support part
+      if (ui->checkbox_readlogfile->isChecked())
+      {
+        flashdeconv_output_tags_.push_back("in_log");
+      }
     }
 
     void FLASHDeconvTabWidget::updateOutputParamFromPerInputFile(const QString& input_file_name)
@@ -252,9 +257,13 @@ namespace OpenMS
           {
             out_path += "_annotated.mzML";
           }
-          else // (tag == "out_promex")
+          else if (tag == "out_promex")
           {
             out_path += ".ms1ft";
+          }
+          else // (tag == "in_log")
+          {
+            out_path = "IDALog_" + out_path + ".log";
           }
           flashdeconv_param_outputs_.setValue(tag, out_path, org_desc, org_tags);
         }
@@ -310,8 +319,8 @@ namespace OpenMS
       flashdeconv_param_.remove("in");
       flashdeconv_param_.remove("out");
 
-      // parameters for different output format
-      StringList out_params = {"out_spec", "out_annotated_mzml", "out_mzml", "out_promex", "out_topFD", "out_topFD_feature"};
+      // parameters for different output format & in_log
+      StringList out_params = {"out_spec", "out_annotated_mzml", "out_mzml", "out_promex", "out_topFD", "out_topFD_feature", "in_log"};
       for (const auto& name : out_params)
         flashdeconv_param_outputs_.setValue(name, ""); // create a dummy param, just so we can use ::copySubset
       flashdeconv_param_outputs_ = flashdeconv_param_.copySubset(flashdeconv_param_outputs_);
