@@ -1755,6 +1755,7 @@ ${TOPP_BIN_PATH}/OpenSwathDecoyGenerator -test -in ${DATA_DIR_TOPP}/OpenSwathDec
   add_test("TOPP_OpenSwathWorkflow_17_out2" ${DIFF} -whitelist "id=" -in1 OpenSwathWorkflow_17.chrom.mzML.tmp -in2 ${DATA_DIR_TOPP}/OpenSwathWorkflow_17_output.chrom.mzML)
   set_tests_properties("TOPP_OpenSwathWorkflow_17_out1" PROPERTIES DEPENDS "TOPP_OpenSwathWorkflow_17")
   set_tests_properties("TOPP_OpenSwathWorkflow_17_out2" PROPERTIES DEPENDS "TOPP_OpenSwathWorkflow_17")
+
   # Test with ion mobility
   add_test("TOPP_OpenSwathWorkflow_17_cache" ${TOPP_BIN_PATH}/OpenSwathWorkflow -in ${DATA_DIR_TOPP}/OpenSwathWorkflow_17_input.mzML -tr ${DATA_DIR_TOPP}/OpenSwathWorkflow_17_input.tsv -out_chrom OpenSwathWorkflow_17.chrom.mzML.tmp -out_features OpenSwathWorkflow_17.featureXML.tmp -readOptions cache -ion_mobility_window 0.05 -use_ms1_ion_mobility "false" -Scoring:Scores:use_ion_mobility_scores
     ${OLD_OSW_PARAM} )
@@ -1837,6 +1838,23 @@ ${TOPP_BIN_PATH}/OpenSwathDecoyGenerator -test -in ${DATA_DIR_TOPP}/OpenSwathDec
   add_test("TOPP_OpenSwathWorkflow_23_out2" ${DIFF} -whitelist "id=" -in1 OpenSwathWorkflow_23.chrom.mzML.tmp -in2 ${DATA_DIR_TOPP}/OpenSwathWorkflow_23_output.chrom.mzML)
   set_tests_properties("TOPP_OpenSwathWorkflow_23_out1" PROPERTIES DEPENDS "TOPP_OpenSwathWorkflow_23")
   set_tests_properties("TOPP_OpenSwathWorkflow_23_out2" PROPERTIES DEPENDS "TOPP_OpenSwathWorkflow_23")
+
+  # Previous test with the  -addUpSpectra flag
+  add_test("TOPP_OpenSwathWorkflow_23_b" ${TOPP_BIN_PATH}/OpenSwathWorkflow -in ${DATA_DIR_TOPP}/OpenSwathWorkflow_23_input.mzML -tr ${DATA_DIR_TOPP}/OpenSwathWorkflow_23_input.tsv -out_chrom OpenSwathWorkflow_23_b.chrom.mzML.tmp -out_features OpenSwathWorkflow_23_b.featureXML.tmp -readOptions workingInMemory -ion_mobility_window 0.1 -use_ms1_ion_mobility "false" -Scoring:Scores:use_ion_mobility_scores -pasef -Scoring:add_up_spectra 10 ${OLD_OSW_PARAM})
+  add_test("TOPP_OpenSwathWorkflow_23_b_out1" ${DIFF} -whitelist "id=" -in1 OpenSwathWorkflow_23_b.featureXML.tmp -in2 ${DATA_DIR_TOPP}/OpenSwathWorkflow_23_b_output.featureXML)
+  add_test("TOPP_OpenSwathWorkflow_23_b_out2" ${DIFF} -whitelist "id=" -in1 OpenSwathWorkflow_23_b.chrom.mzML.tmp -in2 ${DATA_DIR_TOPP}/OpenSwathWorkflow_23_b_output.chrom.mzML)
+  set_tests_properties("TOPP_OpenSwathWorkflow_23_b_out1" PROPERTIES DEPENDS "TOPP_OpenSwathWorkflow_23_b")
+  set_tests_properties("TOPP_OpenSwathWorkflow_23_b_out2" PROPERTIES DEPENDS "TOPP_OpenSwathWorkflow_23_b")
+
+
+  add_test("TOPP_OpenSwathWorkflow_17_c" ${TOPP_BIN_PATH}/OpenSwathWorkflow -in ${DATA_DIR_TOPP}/OpenSwathWorkflow_17_input.mzML -tr ${DATA_DIR_TOPP}/OpenSwathWorkflow_17_input.tsv -out_chrom OpenSwathWorkflow_17_c.chrom.mzML.tmp -out_features OpenSwathWorkflow_17_c.featureXML.tmp
+-readOptions workingInMemory -ion_mobility_window 0.05 -use_ms1_ion_mobility "false" -Scoring:Scores:use_ion_mobility_scores -Scoring:add_up_spectra 3
+    ${OLD_OSW_PARAM} )
+  add_test("TOPP_OpenSwathWorkflow_17_c_out1" ${DIFF} -whitelist "id=" -in1 OpenSwathWorkflow_17_c.featureXML.tmp -in2 ${DATA_DIR_TOPP}/OpenSwathWorkflow_17_c_output.featureXML)
+  add_test("TOPP_OpenSwathWorkflow_17_c_out2" ${DIFF} -whitelist "id=" -in1 OpenSwathWorkflow_17_c.chrom.mzML.tmp -in2 ${DATA_DIR_TOPP}/OpenSwathWorkflow_17_c_output.chrom.mzML)
+  set_tests_properties("TOPP_OpenSwathWorkflow_17_c_out1" PROPERTIES DEPENDS "TOPP_OpenSwathWorkflow_17_c")
+  set_tests_properties("TOPP_OpenSwathWorkflow_17_c_out2" PROPERTIES DEPENDS "TOPP_OpenSwathWorkflow_17_c")
+
 
 
 
