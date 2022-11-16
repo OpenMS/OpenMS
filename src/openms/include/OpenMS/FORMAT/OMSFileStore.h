@@ -100,15 +100,6 @@ namespace OpenMS
       */
       ~OMSFileStore();
 
-      /*!
-      @brief Check if a specified database table exists
-
-      @param table_name Name of the table to check
-
-      @return True if table exists, false if not
-      */
-      bool tableExists_(const String& table_name);
-
       /// Write data from an IdentificationData object to database
       void store(const IdentificationData& id_data);
 

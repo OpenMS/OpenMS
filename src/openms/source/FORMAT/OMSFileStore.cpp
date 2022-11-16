@@ -77,11 +77,6 @@ namespace OpenMS::Internal
 
   OMSFileStore::~OMSFileStore() = default;
 
-  bool OMSFileStore::tableExists_(const String& table_name)
-  {
-    return db_.tableExists(table_name);
-  }
-
   void OMSFileStore::createTable_(const String& name, const String& definition, bool may_exist)
   {
     String sql_create = "CREATE TABLE ";
@@ -240,7 +235,7 @@ namespace OpenMS::Internal
 
   void OMSFileStore::createTableMetaInfo_(const String& parent_table, const String& key_column)
   {
-    if (!tableExists_("DataValue")) createTableDataValue_();
+    if (!db_.tableExists("DataValue")) createTableDataValue_();
 
     String parent_ref = parent_table + " (" + key_column + ")";
     String table = parent_table + "_MetaInfo";
@@ -487,7 +482,7 @@ namespace OpenMS::Internal
   {
     if (id_data.getDBSearchParams().empty()) return;
 
-    if (!tableExists_("ID_MoleculeType")) createTableMoleculeType_();
+    if (!db_.tableExists("ID_MoleculeType")) createTableMoleculeType_();
 
     createTable_(
       "ID_DBSearchParam",
@@ -707,7 +702,7 @@ namespace OpenMS::Internal
   {
     if (id_data.getParentSequences().empty()) return;
 
-    if (!tableExists_("ID_MoleculeType")) createTableMoleculeType_();
+    if (!db_.tableExists("ID_MoleculeType")) createTableMoleculeType_();
 
     createTable_(
       "ID_ParentSequence",
@@ -846,7 +841,7 @@ namespace OpenMS::Internal
 
   void OMSFileStore::createTableIdentifiedMolecule_()
   {
-    if (!tableExists_("ID_MoleculeType")) createTableMoleculeType_();
+    if (!db_.tableExists("ID_MoleculeType")) createTableMoleculeType_();
 
     // use one table for all types of identified molecules to allow foreign key
     // references from the input match table:
@@ -870,7 +865,7 @@ namespace OpenMS::Internal
   {
     if (id_data.getIdentifiedCompounds().empty()) return;
 
-    if (!tableExists_("ID_IdentifiedMolecule"))
+    if (!db_.tableExists("ID_IdentifiedMolecule"))
     {
       createTableIdentifiedMolecule_();
     }
@@ -922,7 +917,7 @@ namespace OpenMS::Internal
     if (id_data.getIdentifiedPeptides().empty() &&
         id_data.getIdentifiedOligos().empty()) return;
 
-    if (!tableExists_("ID_IdentifiedMolecule"))
+    if (!db_.tableExists("ID_IdentifiedMolecule"))
     {
       createTableIdentifiedMolecule_();
     }
@@ -1115,7 +1110,7 @@ namespace OpenMS::Internal
       "FOREIGN KEY (observation_id) REFERENCES ID_Observation (id)";
     // add foreign key constraint if the adduct table exists (having the
     // constraint without the table would cause an error on data insertion):
-    if (tableExists_("AdductInfo"))
+    if (db_.tableExists("AdductInfo"))
     {
       table_def += ", FOREIGN KEY (adduct_id) REFERENCES AdductInfo (id)";
     }
