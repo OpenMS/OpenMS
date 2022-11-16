@@ -2520,6 +2520,7 @@ state0:
       }
     }
 
+  // extract meta values stored at consensus feature, peptide id and peptide hit level
   void MzTab::getConsensusMapMetaValues_(const ConsensusMap& consensus_map,
     set<String>& consensus_feature_user_value_keys,
     set<String>& peptide_identification_user_value_keys,
@@ -2681,9 +2682,12 @@ state0:
 
     // create column names from meta values
     // feature meta values
-    for (const auto& k : consensus_feature_user_value_keys_) pep_optional_column_names_.emplace_back("opt_global_" + k);
-    // id meta values
+    for (const auto& k : consensus_feature_user_value_keys_) pep_optional_column_names_.emplace_back("opt_global_" + k);    
+
+    /* 
+    // In the PEP section, meta values in peptide identifications are better omitted as they can be easily looked up from the PSM-level are otherwise duplicates.
     for (const auto& k : consensus_feature_peptide_identification_user_value_keys_) pep_optional_column_names_.emplace_back("opt_global_" + k);
+    */
     // peptide hit (PSM) meta values
     for (const auto& k : consensus_feature_peptide_hit_user_value_keys_) pep_optional_column_names_.emplace_back("opt_global_" + k);
     std::replace(pep_optional_column_names_.begin(), pep_optional_column_names_.end(), String("opt_global_target_decoy"), String("opt_global_cv_MS:1002217_decoy_peptide")); // for PRIDE
