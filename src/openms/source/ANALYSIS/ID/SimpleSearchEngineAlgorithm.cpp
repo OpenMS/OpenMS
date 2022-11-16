@@ -80,8 +80,8 @@ namespace OpenMS
     defaults_.setValue("precursor:mass_tolerance", 10.0, "+/- tolerance for precursor mass.");
 
     std::vector<std::string> precursor_mass_tolerance_unit_valid_strings;
-    precursor_mass_tolerance_unit_valid_strings.push_back("ppm");
-    precursor_mass_tolerance_unit_valid_strings.push_back("Da");
+    precursor_mass_tolerance_unit_valid_strings.emplace_back("ppm");
+    precursor_mass_tolerance_unit_valid_strings.emplace_back("Da");
 
     defaults_.setValue("precursor:mass_tolerance_unit", "ppm", "Unit of precursor mass tolerance.");
     defaults_.setValidStrings("precursor:mass_tolerance_unit", precursor_mass_tolerance_unit_valid_strings);
@@ -98,8 +98,8 @@ namespace OpenMS
     defaults_.setValue("fragment:mass_tolerance", 10.0, "Fragment mass tolerance");
 
     std::vector<std::string> fragment_mass_tolerance_unit_valid_strings;
-    fragment_mass_tolerance_unit_valid_strings.push_back("ppm");
-    fragment_mass_tolerance_unit_valid_strings.push_back("Da");
+    fragment_mass_tolerance_unit_valid_strings.emplace_back("ppm");
+    fragment_mass_tolerance_unit_valid_strings.emplace_back("Da");
 
     defaults_.setValue("fragment:mass_tolerance_unit", "ppm", "Unit of fragment m");
     defaults_.setValidStrings("fragment:mass_tolerance_unit", fragment_mass_tolerance_unit_valid_strings);
@@ -390,6 +390,11 @@ void SimpleSearchEngineAlgorithm::postProcessHits_(const PeakMap& exp,
     protein_ids[0].setDateTime(DateTime::now());
     protein_ids[0].setSearchEngine("SimpleSearchEngine");
     protein_ids[0].setSearchEngineVersion(VersionInfo::getVersion());
+
+    DateTime now = DateTime::now();
+    String identifier("SSE_" + now.get());
+    protein_ids[0].setIdentifier(identifier);
+    for (auto & pid : peptide_ids) { pid.setIdentifier(identifier); }
 
     ProteinIdentification::SearchParameters search_parameters;
     search_parameters.db = database_name;

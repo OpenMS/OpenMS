@@ -54,7 +54,7 @@ namespace OpenMS
 {
   using namespace Math;
 
-  AxisWidget::AxisWidget(AxisPainter::Alignment alignment, const char * legend, QWidget * parent) :
+  AxisWidget::AxisWidget(const AxisPainter::Alignment alignment, const char* legend, QWidget* parent) :
     QWidget(parent),
     is_log_(false),
     show_legend_(true),
@@ -81,9 +81,7 @@ namespace OpenMS
     resize(minimumSize());
   }
 
-  AxisWidget::~AxisWidget()
-  {
-  }
+  AxisWidget::~AxisWidget() = default;
 
   void AxisWidget::paintEvent(QPaintEvent * e)
   {
@@ -108,7 +106,7 @@ namespace OpenMS
 
     if (is_log_)
     {
-      //abort if no change
+      // abort if no change
       if (min_ == linear2log(min) && max_ == linear2log(max))
         return;
 
@@ -190,7 +188,7 @@ namespace OpenMS
     return show_legend_;
   }
 
-  const String & AxisWidget::getLegend()
+  const String& AxisWidget::getLegend() const
   {
     return legend_;
   }

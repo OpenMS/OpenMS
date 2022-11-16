@@ -143,7 +143,7 @@ public:
 
     const std::vector<Product> & getIntermediateProducts() const;
 
-    void addIntermediateProduct(Product product);
+    void addIntermediateProduct(const Product& product);
 
     void setIntermediateProducts(const std::vector<Product> & products);
 

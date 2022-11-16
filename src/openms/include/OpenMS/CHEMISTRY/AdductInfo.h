@@ -64,7 +64,7 @@ namespace OpenMS
 
     /// checks if an adduct (e.g.a 'M+2K-H;1+') is valid, i.e. if the losses (==negative amounts) can actually be lost by the compound given in @p db_entry.
     /// If the negative parts are present in @p db_entry, true is returned.
-    bool isCompatible(EmpiricalFormula db_entry) const;
+    bool isCompatible(const EmpiricalFormula& db_entry) const;
 
     /// get charge of adduct
     int getCharge() const;

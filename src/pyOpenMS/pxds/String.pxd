@@ -12,7 +12,7 @@ cdef extern from "<OpenMS/DATASTRUCTURES/String.h>" namespace "OpenMS":
     # not unicode. Please use toString if you want to have encoded data.
     cdef cppclass String:
         # wrap-hash:
-        #   c_str()
+        #  c_str()
 
         String() nogil except +
         String(String) nogil except +  # wrap-ignore
@@ -42,25 +42,25 @@ cdef extern from "<OpenMS/DATASTRUCTURES/String.h>" namespace "OpenMS::String":
 
 
 #
-#   def _init_2(self, str in_0 ):
-#       assert isinstance(in_0, str), 'arg in_0 wrong type'
-#   
-#       print(b"have init 2 here")
-#       # TODO catch encoding errors ...
-#       py_byte_string = in_0.encode('UTF-8')
-#       cdef char* c_string = py_byte_string
-#       self.inst = shared_ptr[_String](new _String((<char *>c_string)))
+#  def _init_2(self, str in_0 ):
+#      assert isinstance(in_0, str), 'arg in_0 wrong type'
+#  
+#      print(b"have init 2 here")
+#      # TODO catch encoding errors ...
+#      py_byte_string = in_0.encode('UTF-8')
+#      cdef char* c_string = py_byte_string
+#      self.inst = shared_ptr[_String](new _String((<char *>c_string)))
 #
-#       # self.inst = shared_ptr[_String](new _String((<char *>in_0)))
-#   
-#   def __init__(self, *args):
-#       if not args:
-#            self._init_0(*args)
-#       elif (len(args)==1) and (isinstance(args[0], bytes)):
-#            self._init_1(*args)
-#       elif (len(args)==1) and (isinstance(args[0], str)):
-#            self._init_2(*args)
-#       else:
-#              print(b"aaaa")
-#              raise Exception('can not handle type of %s' % (args,)) 
+#      # self.inst = shared_ptr[_String](new _String((<char *>in_0)))
+#  
+#  def __init__(self, *args):
+#      if not args:
+#           self._init_0(*args)
+#      elif (len(args)==1) and (isinstance(args[0], bytes)):
+#           self._init_1(*args)
+#      elif (len(args)==1) and (isinstance(args[0], str)):
+#           self._init_2(*args)
+#      else:
+#             print(b"aaaa")
+#             raise Exception('can not handle type of %s' % (args,)) 
 #

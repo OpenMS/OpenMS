@@ -40,14 +40,9 @@ namespace OpenMS
   {
   }
 
-  PeakMarker::PeakMarker(const PeakMarker & source) :
-    DefaultParamHandler(source)
-  {
-  }
+  PeakMarker::PeakMarker(const PeakMarker & source) = default;
 
-  PeakMarker::~PeakMarker()
-  {
-  }
+  PeakMarker::~PeakMarker() = default;
 
   PeakMarker & PeakMarker::operator=(const PeakMarker & source)
   {

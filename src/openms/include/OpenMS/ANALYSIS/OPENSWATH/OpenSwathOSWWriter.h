@@ -150,7 +150,7 @@ namespace OpenMS
      * @returns A string with the queried score
      *
      */
-    String getScore(const Feature& feature, std::string score_name) const;
+    String getScore(const Feature& feature, const std::string& score_name) const;
 
     /**
      * @brief Prepare concatenated scores for SQLite insertion
@@ -163,7 +163,7 @@ namespace OpenMS
      * @returns A vector of strings with the queried scores
      *
      */
-    std::vector<String> getSeparateScore(const Feature& feature, std::string score_name) const;
+    std::vector<String> getSeparateScore(const Feature& feature, const std::string& score_name) const;
 
     /**
      * @brief Prepare a single line (feature) for output

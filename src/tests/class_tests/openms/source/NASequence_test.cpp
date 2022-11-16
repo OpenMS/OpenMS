@@ -372,6 +372,29 @@ START_SECTION((string toString()))
 {
   NASequence seq = NASequence::fromString("GG");
   TEST_STRING_EQUAL(seq.toString(), "GG");
+    // Test that all the entries in the Mod file work can be parsed from strings
+  for(auto it = db->begin(); it != db->end(); ++it)
+  {
+    if ((*it)->getCode() != "c") // handle the phosphates and cyclophosphates separately, we pass on them for now
+    {
+      continue;
+    } 
+    else if((*it)->getCode() != "p")
+    {
+      continue;
+    }
+    else
+    {
+      //check that we can get the code from the entry, then convert it to a string and back
+      auto ribocode = NASequence().fromString("[" + (*it)->getCode() + "]"); // get the code, which may or may not have brackets
+      String asString = ribocode.toString();
+      if (asString.hasPrefix("[")) // if we were multicharacter toString adds brackets
+      {
+        asString = asString.substr(1, asString.size() - 2);
+      }
+      TEST_STRING_EQUAL(asString, (*it)->getCode());
+    }
+  }
 }
 END_SECTION
 

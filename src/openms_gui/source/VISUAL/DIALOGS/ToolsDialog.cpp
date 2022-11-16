@@ -45,16 +45,17 @@
 #include <OpenMS/VISUAL/TVToolDiscovery.h>
 #include <OpenMS/VISUAL/MISC/CommonDefs.h>
 
+#include <QProcess>
 #include <QtCore/QStringList>
-#include <QtWidgets/QPushButton>
+#include <QtWidgets/QCheckBox>
 #include <QtWidgets/QComboBox>
+#include <QtWidgets/QFileDialog>
 #include <QtWidgets/QHBoxLayout>
 #include <QtWidgets/QLabel>
 #include <QtWidgets/QMessageBox>
+#include <QtWidgets/QPushButton>
 #include <QtWidgets/QRadioButton>
-#include <QtWidgets/QFileDialog>
-#include <QtWidgets/QCheckBox>
-#include <QProcess>
+#include <utility>
 
 
 using namespace std;
@@ -71,8 +72,8 @@ namespace OpenMS
           const String& layer_name,
           TVToolDiscovery* tool_scanner) :
             QDialog(parent),
-            ini_file_(ini_file),
-            default_dir_(default_dir),
+            ini_file_(std::move(ini_file)),
+            default_dir_(std::move(default_dir)),
             tool_params_(params.copy("tool_params:", true)),
             plugin_params_(),
             tool_scanner_(tool_scanner),
@@ -155,9 +156,7 @@ namespace OpenMS
     disable_();
   }
 
-  ToolsDialog::~ToolsDialog()
-  {
-  }
+  ToolsDialog::~ToolsDialog() = default;
 
   std::vector<LayerDataBase::DataType> ToolsDialog::getTypesFromParam_(const Param& p) const
   {

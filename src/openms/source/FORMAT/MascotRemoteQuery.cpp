@@ -51,7 +51,7 @@ namespace OpenMS
   MascotRemoteQuery::MascotRemoteQuery(QObject* parent) :
     QObject(parent),
     DefaultParamHandler("MascotRemoteQuery"),
-    manager_(NULL)
+    manager_(nullptr)
   {
     // server specifications
     defaults_.setValue("hostname", "", "Address of the host where Mascot listens, e.g. 'mascot-server' or '127.0.0.1'");
@@ -241,7 +241,7 @@ namespace OpenMS
 
   }
 
-  void MascotRemoteQuery::getResults(QString results_path)
+  void MascotRemoteQuery::getResults(const QString& results_path)
   {
     // Tidy up again and run another request...
 #ifdef MASCOTREMOTEQUERY_DEBUG
@@ -798,7 +798,7 @@ namespace OpenMS
     if (url[0] != '/') url.prepend('/');
   }
 
-  QUrl MascotRemoteQuery::buildUrl_(std::string path)
+  QUrl MascotRemoteQuery::buildUrl_(const std::string& path)
   {
     String protocol;
     if (use_ssl_)
@@ -823,7 +823,7 @@ namespace OpenMS
     cerr << "<<<< Header to " << what << " (end)." << endl;
   }
 
-  void MascotRemoteQuery::logHeader_(const QNetworkRequest header, const String& what)
+  void MascotRemoteQuery::logHeader_(const QNetworkRequest& header, const String& what)
   {
     QList<QByteArray> header_list = header.rawHeaderList();
     cerr << ">>>> Header to " << what << " (begin):\n";

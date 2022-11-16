@@ -41,13 +41,9 @@
 namespace OpenMS
 {
 
-  IndexedMzMLFileLoader::IndexedMzMLFileLoader()
-  {
-  }
+  IndexedMzMLFileLoader::IndexedMzMLFileLoader() = default;
 
-  IndexedMzMLFileLoader::~IndexedMzMLFileLoader()
-  {
-  }
+  IndexedMzMLFileLoader::~IndexedMzMLFileLoader() = default;
 
   PeakFileOptions & IndexedMzMLFileLoader::getOptions()
   {

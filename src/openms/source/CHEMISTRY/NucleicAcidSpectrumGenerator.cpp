@@ -115,9 +115,7 @@ namespace OpenMS
   }
 
 
-  NucleicAcidSpectrumGenerator::~NucleicAcidSpectrumGenerator()
-  {
-  }
+  NucleicAcidSpectrumGenerator::~NucleicAcidSpectrumGenerator() = default;
 
 
   void NucleicAcidSpectrumGenerator::addFragmentPeaks_(

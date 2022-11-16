@@ -108,9 +108,7 @@ namespace OpenMS
     setLogType(CMD);
   }
 
-  FeatureGroupingAlgorithmKD::~FeatureGroupingAlgorithmKD()
-  {
-  }
+  FeatureGroupingAlgorithmKD::~FeatureGroupingAlgorithmKD() = default;
 
   template <typename MapType>
   void FeatureGroupingAlgorithmKD::group_(const vector<MapType>& input_maps,
@@ -516,7 +514,7 @@ namespace OpenMS
       }
       if (kd_data.feature(i)->metaValueExists(Constants::UserParam::ADDUCT_GROUP))
       {
-        linked_groups.push_back(kd_data.feature(i)->getMetaValue(Constants::UserParam::ADDUCT_GROUP));
+        linked_groups.emplace_back(kd_data.feature(i)->getMetaValue(Constants::UserParam::ADDUCT_GROUP));
       }
     }
     if (kd_data.feature(best_quality_index)->metaValueExists(Constants::UserParam::DC_CHARGE_ADDUCTS))

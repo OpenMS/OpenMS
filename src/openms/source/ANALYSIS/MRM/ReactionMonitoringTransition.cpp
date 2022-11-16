@@ -36,6 +36,8 @@
 
 #include <OpenMS/CONCEPT/Helpers.h>
 
+#include <utility>
+
 namespace OpenMS
 {
 
@@ -300,7 +302,7 @@ namespace OpenMS
     return intermediate_products_;
   }
 
-  void ReactionMonitoringTransition::addIntermediateProduct(ReactionMonitoringTransition::Product product)
+  void ReactionMonitoringTransition::addIntermediateProduct(const ReactionMonitoringTransition::Product& product)
   {
     intermediate_products_.push_back(product);
   }
@@ -312,7 +314,7 @@ namespace OpenMS
 
   void ReactionMonitoringTransition::setProduct(ReactionMonitoringTransition::Product product)
   {
-    product_ = product;
+    product_ = std::move(product);
   }
 
   const ReactionMonitoringTransition::Product & ReactionMonitoringTransition::getProduct() const
@@ -322,7 +324,7 @@ namespace OpenMS
 
   void ReactionMonitoringTransition::setRetentionTime(ReactionMonitoringTransition::RetentionTime rt)
   {
-    rts = rt;
+    rts = std::move(rt);
   }
 
   const ReactionMonitoringTransition::RetentionTime & ReactionMonitoringTransition::getRetentionTime() const

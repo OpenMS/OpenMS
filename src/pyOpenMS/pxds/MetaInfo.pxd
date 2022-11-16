@@ -9,21 +9,21 @@ cdef extern from "<OpenMS/METADATA/MetaInfo.h>" namespace "OpenMS":
 
     cdef cppclass MetaInfo:
         # wrap-doc:
-                #   A Type-Name-Value tuple class
-                #   -----
-                #   MetaInfo maps an index (an integer corresponding to a string) to
-                #   DataValue objects.  The mapping of strings to the index is performed by
-                #   the MetaInfoRegistry, which can be accessed by the method registry()
-                #   -----
-                #   There are two versions of nearly all members. One which operates with a
-                #   string name and another one which operates on an index. The index version
-                #   is always faster, as it does not need to look up the index corresponding
-                #   to the string in the MetaInfoRegistry
-                #   -----
-                #   If you wish to add a MetaInfo member to a class, consider deriving that
-                #   class from MetaInfoInterface, instead of simply adding MetaInfo as
-                #   member. MetaInfoInterface implements a full interface to a MetaInfo
-                #   member and is more memory efficient if no meta info gets added
+                #  A Type-Name-Value tuple class
+                #  
+                #  MetaInfo maps an index (an integer corresponding to a string) to
+                #  DataValue objects.  The mapping of strings to the index is performed by
+                #  the MetaInfoRegistry, which can be accessed by the method registry()
+                #  
+                #  There are two versions of nearly all members. One which operates with a
+                #  string name and another one which operates on an index. The index version
+                #  is always faster, as it does not need to look up the index corresponding
+                #  to the string in the MetaInfoRegistry
+                #  
+                #  If you wish to add a MetaInfo member to a class, consider deriving that
+                #  class from MetaInfoInterface, instead of simply adding MetaInfo as
+                #  member. MetaInfoInterface implements a full interface to a MetaInfo
+                #  member and is more memory efficient if no meta info gets added
 
         MetaInfo() nogil except +
         MetaInfo(MetaInfo &) nogil except +

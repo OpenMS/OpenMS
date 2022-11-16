@@ -4855,7 +4855,7 @@ def testVersion():
      VersionInfo.getRevision
      VersionInfo.getTime
      VersionInfo.getVersion
-     version.version
+     __version__
     """
     _testStrOutput(pyopenms.VersionInfo.getVersion())
     _testStrOutput(pyopenms.VersionInfo.getRevision())
@@ -4876,7 +4876,7 @@ def testVersion():
     assert not vd < vd
     assert not vd > vd
 
-    assert isinstance(pyopenms.version.version, str)
+    assert isinstance(pyopenms.__version__, str)
 
 @report
 def testInspectInfile():
