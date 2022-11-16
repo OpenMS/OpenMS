@@ -3121,12 +3121,7 @@ namespace OpenMS
         {
           if (first)
           { // add header
-            tab_file << "\n" << generateMzTabPSMHeader_(n_search_engine_scores, s.getPSMOptionalColumnNames(), n_header_columns) + "\n";
-            for (auto& s : s.getPSMOptionalColumnNames())
-            {
-              cout << "\n" << s;
-            }
-            
+            tab_file << "\n" << generateMzTabPSMHeader_(n_search_engine_scores, s.getPSMOptionalColumnNames(), n_header_columns) + "\n";           
             first = false;
           }
           size_t n_section_columns = 0;
