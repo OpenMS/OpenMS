@@ -35,7 +35,6 @@
 #include <OpenMS/FORMAT/OMSFile.h>
 #include <OpenMS/FORMAT/OMSFileLoad.h>
 #include <OpenMS/FORMAT/OMSFileStore.h>
-#include <QCoreApplication>
 
 #include <fstream>
 
