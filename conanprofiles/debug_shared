@@ -1,0 +1,8 @@
+include(default)
+
+[settings]
+build_type=Debug
+compiler.libcxx=libstdc++11
+
+[options]
+*:shared=True

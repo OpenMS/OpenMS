@@ -39,7 +39,11 @@
 #include <iostream>
 #include <fstream>
 
-#include "svm.h"
+#ifdef CONAN
+  #include "svm/svm.h"
+#else
+  #include "svm.h"
+#endif
 
 using namespace std;
 

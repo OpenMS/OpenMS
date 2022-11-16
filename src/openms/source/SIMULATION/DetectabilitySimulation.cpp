@@ -39,7 +39,11 @@
 #include <OpenMS/FORMAT/LibSVMEncoder.h>
 #include <OpenMS/FORMAT/ParamXMLFile.h>
 
-#include "svm.h"
+#ifdef CONAN
+  #include <svm/svm.h>
+#else
+  #include <svm.h>
+#endif
 
 using std::vector;
 using std::cout;

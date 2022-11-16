@@ -159,7 +159,7 @@ endmacro()
 # Installs QT5 platform plugin. Prefix can be the usual CMAKE_INSTALL_PREFIX or
 # if you install to a bundle, the app folder
 macro(install_qt5_plugin _qt_plugin_name _qt_plugins_var _targetpath _component)
-  get_target_property(_qt_plugin_path "${_qt_plugin_name}" LOCATION)
+  get_target_property(_qt_plugin_path "${_qt_plugin_name}" IMPORTED_LOCATION)
   if(EXISTS "${_qt_plugin_path}")
     get_filename_component(_qt_plugin_file "${_qt_plugin_path}" NAME)
     get_filename_component(_qt_plugin_type "${_qt_plugin_path}" PATH)
@@ -171,7 +171,7 @@ macro(install_qt5_plugin _qt_plugin_name _qt_plugins_var _targetpath _component)
     set(${_qt_plugins_var}
       "${${_qt_plugins_var}};${_qt_plugin_dest}/${_qt_plugin_file}")
   else()
-    message(FATAL_ERROR "QT plugin ${_qt_plugin_name} not found")
+    message(FATAL_ERROR "QT plugin ${_qt_plugin_name} not found at ${_qt_plugin_path}")
   endif()
 endmacro()
 

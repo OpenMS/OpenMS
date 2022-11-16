@@ -72,7 +72,11 @@ namespace OpenMS
     }
     FileCreatPropList fcparm = FileCreatPropList::DEFAULT;
     FileAccPropList faparm = FileAccPropList::DEFAULT;
-    file_ = new H5::H5File(filename, openFlag, fcparm, faparm);
+    
+    // Work around weird ABI compatibility issues when building HDF5 statically.
+    // Do not use the std::string interfaces but the C string ones.
+    // See also https://stackoverflow.com/questions/51431246/undefined-symbol-for-hdf5-when-using-g
+    file_ = new H5::H5File(filename.c_str(), openFlag, fcparm, faparm);
   }
 
 }

@@ -1,0 +1,7 @@
+include(default)
+
+[settings]
+build_type=Debug
+
+[options]
+*:shared=True

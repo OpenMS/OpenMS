@@ -41,7 +41,7 @@
 // forward declarations
 namespace H5
 {
-  struct H5File;
+  struct OPENMS_DLLAPI H5File;
 }
 
 namespace OpenMS

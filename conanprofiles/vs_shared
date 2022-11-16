@@ -1,0 +1,4 @@
+include(default)
+
+[options]
+*:shared=True
