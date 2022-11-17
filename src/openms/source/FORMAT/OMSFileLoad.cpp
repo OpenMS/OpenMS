@@ -174,16 +174,12 @@ namespace OpenMS::Internal
       if (have_scores)
       {
         subquery.bind(":id", id);
-        if (!subquery.exec())
-        {
-          raiseDBError_(db_.getErrorMsg(), __LINE__, OPENMS_PRETTY_FUNCTION,
-                        "error reading from database");
-        }
         while (subquery.executeStep())
         {
           Key score_type_id = subquery.getColumn(0).getInt64();
           software.assigned_scores.push_back(score_type_refs_[score_type_id]);
         }
+        subquery.reset(); // get ready for new executeStep()
       }
       ID::ProcessingSoftwareRef ref = id_data.registerProcessingSoftware(software);
       processing_software_refs_[id] = ref;
@@ -256,16 +252,12 @@ namespace OpenMS::Internal
                                          Key parent_id)
   {
     query.bind(":id", parent_id);
-    if (!query.exec())
-    {
-      raiseDBError_(query.getErrorMsg(), __LINE__, OPENMS_PRETTY_FUNCTION,
-                    "error reading from database");
-    }
     while (query.executeStep())
     {
       DataValue value = makeDataValue_(query);
       info.setMetaValue(query.getColumn("name").getString(), value);
     }
+    query.reset(); // get ready for new executeStep()
   }
 
 
@@ -275,11 +267,6 @@ namespace OpenMS::Internal
     Key parent_id)
   {
     query.bind(":id", parent_id);
-    if (!query.exec())
-    {
-      raiseDBError_(query.getErrorMsg(), __LINE__, OPENMS_PRETTY_FUNCTION,
-                    "error reading from database");
-    }
     while (query.executeStep())
     {
       ID::AppliedProcessingStep step;
@@ -297,6 +284,7 @@ namespace OpenMS::Internal
       }
       result.addProcessingStep(step); // this takes care of merging the steps
     }
+    query.reset(); // get ready for new executeStep()
   }
 
 
@@ -386,17 +374,13 @@ namespace OpenMS::Internal
       if (have_input_files)
       {
         subquery_file.bind(":id", id);
-        if (!subquery_file.exec())
-        {
-          raiseDBError_(subquery_file.getErrorMsg(), __LINE__,
-                        OPENMS_PRETTY_FUNCTION, "error reading from database");
-        }
         while (subquery_file.executeStep())
         {
           Key input_file_id = subquery_file.getColumn(0).getInt64();
           // the foreign key constraint should ensure that look-up succeeds:
           step.input_file_refs.push_back(input_file_refs_[input_file_id]);
         }
+        subquery_file.reset(); // get ready for new executeStep()
       }
       if (have_meta_info)
       {
@@ -520,12 +504,6 @@ namespace OpenMS::Internal
       }
 
       subquery_group.bind(":id", grouping_id);
-      if (!subquery_group.exec())
-      {
-        raiseDBError_(subquery_group.getErrorMsg(), __LINE__,
-                      OPENMS_PRETTY_FUNCTION, "error reading from database");
-      }
-
       // get all groups in this grouping:
       map<Key, ID::ParentGroup> groups_map;
       while (subquery_group.executeStep())
@@ -543,21 +521,18 @@ namespace OpenMS::Internal
             subquery_group.getColumn("score").getDouble();
         }
       }
+      subquery_group.reset(); // get ready for new executeStep()
       // get parent sequences in each group:
       for (auto& pair : groups_map)
       {
         subquery_parent.bind(":id", pair.first);
-        if (!subquery_parent.exec())
-        {
-          raiseDBError_(subquery_parent.getErrorMsg(), __LINE__,
-                        OPENMS_PRETTY_FUNCTION, "error reading from database");
-        }
         while (subquery_parent.executeStep())
         {
           Key parent_id = subquery_parent.getColumn(0).getInt64();
           pair.second.parent_refs.insert(
             parent_sequence_refs_[parent_id]);
         }
+        subquery_parent.reset(); // get ready for new executeStep()
         grouping.groups.insert(pair.second);
       }
 
@@ -608,11 +583,6 @@ namespace OpenMS::Internal
                                             Key molecule_id)
   {
     query.bind(":id", molecule_id);
-    if (!query.exec())
-    {
-      raiseDBError_(query.getErrorMsg(), __LINE__, OPENMS_PRETTY_FUNCTION,
-                    "error reading from database");
-    }
     while (query.executeStep())
     {
       ID::ParentSequenceRef ref = parent_sequence_refs_[query.getColumn("parent_id").getInt64()];
@@ -625,6 +595,7 @@ namespace OpenMS::Internal
       match.right_neighbor = query.getColumn("right_neighbor").getString();
       parent_matches[ref].insert(match);
     }
+    query.reset(); // get ready for new executeStep()
   }
 
 
@@ -654,11 +625,6 @@ namespace OpenMS::Internal
 
     // load peptides:
     query.bind(":molecule_type_id", int(ID::MoleculeType::PROTEIN) + 1);
-    if (!query.exec())
-    {
-      raiseDBError_(query.getErrorMsg(), __LINE__, OPENMS_PRETTY_FUNCTION,
-                    "error reading from database");
-    }
     while (query.executeStep())
     {
       Key id = query.getColumn("id").getInt64();
@@ -679,14 +645,10 @@ namespace OpenMS::Internal
       ID::IdentifiedPeptideRef ref = id_data.registerIdentifiedPeptide(peptide);
       identified_molecule_vars_[id] = ref;
     }
+    query.reset(); // get ready for new executeStep()
 
     // load RNA oligos:
     query.bind(":molecule_type_id", int(ID::MoleculeType::RNA) + 1);
-    if (!query.exec())
-    {
-      raiseDBError_(query.getErrorMsg(), __LINE__, OPENMS_PRETTY_FUNCTION,
-                    "error reading from database");
-    }
     while (query.executeStep())
     {
       Key id = query.getColumn("id").getInt64();
@@ -707,6 +669,7 @@ namespace OpenMS::Internal
       ID::IdentifiedOligoRef ref = id_data.registerIdentifiedOligo(oligo);
       identified_molecule_vars_[id] = ref;
     }
+    query.reset(); // get ready for new executeStep()
   }
 
 
@@ -715,11 +678,6 @@ namespace OpenMS::Internal
                                                Key parent_id)
   {
     query.bind(":id", parent_id);
-    if (!query.exec())
-    {
-      raiseDBError_(query.getErrorMsg(), __LINE__, OPENMS_PRETTY_FUNCTION,
-                    "error reading from database");
-    }
     while (query.executeStep())
     {
       auto processing_step_id = query.getColumn("processing_step_id");
@@ -736,6 +694,7 @@ namespace OpenMS::Internal
       ann.intensity = query.getColumn("peak_intensity").getDouble();
       match.peak_annotations[processing_step_opt].push_back(ann);
     }
+    query.reset(); // get ready for new executeStep()
   }
 
 
@@ -950,21 +909,18 @@ namespace OpenMS::Internal
         // @TODO: this may be inefficient (see implementation of "addPoint"):
         feature.getConvexHulls()[hull_index].addPoint(point);
       }
+      query_hull->reset(); // get ready for new executeStep()
     }
     // ID matches:
     if (query_match)
     {
       query_match->bind(":id", id);
-      if (!query_match->exec())
-      {
-        raiseDBError_(db_.getErrorMsg(), __LINE__, OPENMS_PRETTY_FUNCTION,
-                      "error reading from database");
-      }
       while (query_match->executeStep())
       {
         Key match_id = query_match->getColumn("observation_match_id").getInt64();
         feature.addIDMatch(observation_match_refs_[match_id]);
       }
+      query_match->reset(); // get ready for new executeStep()
     }
     // subordinates:
     SQLite::Statement query_sub(db_, "SELECT * FROM FEAT_Feature WHERE subordinate_of = " + String(id) + " ORDER BY id ASC");
