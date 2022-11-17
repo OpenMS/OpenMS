@@ -59,11 +59,12 @@ namespace OpenMS::Internal
   }
   constexpr int version_number = 3; // increase this whenever the DB schema changes!
 
-  OMSFileStore::OMSFileStore(const String& filename, LogType log_type)
-  : db_(SQLite::Database(filename, SQLite::OPEN_READWRITE | SQLite::OPEN_CREATE)) // throws on error
+  OMSFileStore::OMSFileStore(const String& filename, LogType log_type) :
+      db_(SQLite::Database(":memory:", SQLite::OPEN_READWRITE | SQLite::OPEN_CREATE)) // dummy DB, because we need to delete the file first, in case it exists
   {
     setLogType(log_type);
-
+    File::remove(filename); // nuke the file (SQLite cannot overwrite it)
+    db_ = SQLite::Database(filename, SQLite::OPEN_READWRITE | SQLite::OPEN_CREATE); // throws on error
     // foreign key constraints are disabled by default - turn them on:
     // @TODO: performance impact? (seems negligible, but should be tested more)
     db_.exec("PRAGMA foreign_keys = ON");
