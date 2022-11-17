@@ -151,7 +151,7 @@ namespace OpenMS
       QJsonArray exportTableToJSON_(const QString& table, const QString& order_by);
 
       /// The database connection (read)
-      SQLite::Database db_;
+      std::unique_ptr<SQLite::Database> db_;
 
       int version_number_; ///< schema version number
 

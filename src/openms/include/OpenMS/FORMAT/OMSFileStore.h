@@ -38,10 +38,9 @@
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/METADATA/ID/IdentificationData.h>
 
-#include <SQLiteCpp/Database.h>
-
 namespace SQLite
 {
+  class Database;
   class Exception;
   class Statement;
 }
@@ -65,19 +64,9 @@ namespace OpenMS
     */
     void raiseDBError_(const String& error, int line, const char* function, const String& context, const String& query = "");
 
-    inline bool execAndReset(SQLite::Statement& query, int expected_modifications)
-    {
-      auto ret = query.exec();
-      query.reset();
-      return ret == expected_modifications;
-    }
-    inline void execWithExceptionAndReset(SQLite::Statement& query, int expected_modifications, int line, const char* function, const char* context)
-    {
-      if (!execAndReset(query, expected_modifications))
-      {
-        raiseDBError_(query.getErrorMsg(), line, function, context);
-      }
-    }
+    bool execAndReset(SQLite::Statement& query, int expected_modifications);
+
+    void execWithExceptionAndReset(SQLite::Statement& query, int expected_modifications, int line, const char* function, const char* context);
 
 
     /*!
@@ -246,7 +235,7 @@ namespace OpenMS
       void storeDataProcessing_(const FeatureMap& features);
 
       /// The database connection (read/write)
-      SQLite::Database db_;
+      std::unique_ptr<SQLite::Database> db_;
 
       /// prepared queries for inserting data into different tables
       std::map<std::string, std::unique_ptr<SQLite::Statement>> prepared_queries_;

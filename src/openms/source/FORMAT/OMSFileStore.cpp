@@ -37,6 +37,7 @@
 #include <OpenMS/CONCEPT/VersionInfo.h>
 #include <OpenMS/CONCEPT/UniqueIdGenerator.h>
 
+#include <SQLiteCpp/Database.h>
 #include <SQLiteCpp/Transaction.h>
 
 #include <sqlite3.h>
@@ -57,24 +58,39 @@ namespace OpenMS::Internal
     }
     throw Exception::FailedAPICall(__FILE__, line, function, msg);
   }
+
+  bool execAndReset(SQLite::Statement& query, int expected_modifications)
+  {
+    auto ret = query.exec();
+    query.reset();
+    return ret == expected_modifications;
+  }
+
+  void execWithExceptionAndReset(SQLite::Statement& query, int expected_modifications, int line, const char* function, const char* context)
+  {
+    if (!execAndReset(query, expected_modifications))
+    {
+      raiseDBError_(query.getErrorMsg(), line, function, context);
+    }
+  }
+
   constexpr int version_number = 3; // increase this whenever the DB schema changes!
 
-  OMSFileStore::OMSFileStore(const String& filename, LogType log_type) :
-      db_(SQLite::Database(":memory:", SQLite::OPEN_READWRITE | SQLite::OPEN_CREATE)) // dummy DB, because we need to delete the file first, in case it exists
+  OMSFileStore::OMSFileStore(const String& filename, LogType log_type)
   {
     setLogType(log_type);
     File::remove(filename); // nuke the file (SQLite cannot overwrite it)
-    db_ = SQLite::Database(filename, SQLite::OPEN_READWRITE | SQLite::OPEN_CREATE); // throws on error
+    db_ = make_unique<SQLite::Database>(filename, SQLite::OPEN_READWRITE | SQLite::OPEN_CREATE); // throws on error
     // foreign key constraints are disabled by default - turn them on:
     // @TODO: performance impact? (seems negligible, but should be tested more)
-    db_.exec("PRAGMA foreign_keys = ON");
+    db_->exec("PRAGMA foreign_keys = ON");
     // disable synchronous filesystem access and the rollback journal to greatly
     // increase write performance - since we write a new output file every time,
     // we don't have to worry about database consistency:
-    db_.exec("PRAGMA synchronous = OFF");
-    db_.exec("PRAGMA journal_mode = OFF");
-    db_.exec("PRAGMA foreign_keys = ON");
-    db_.exec("PRAGMA foreign_keys = ON");
+    db_->exec("PRAGMA synchronous = OFF");
+    db_->exec("PRAGMA journal_mode = OFF");
+    db_->exec("PRAGMA foreign_keys = ON");
+    db_->exec("PRAGMA foreign_keys = ON");
   }
 
   OMSFileStore::~OMSFileStore() = default;
@@ -84,7 +100,7 @@ namespace OpenMS::Internal
     String sql_create = "CREATE TABLE ";
     if (may_exist) sql_create += "IF NOT EXISTS ";
     sql_create += name + " (" + definition + ")";
-    db_.exec(sql_create);
+    db_->exec(sql_create);
   }
 
 
@@ -96,7 +112,7 @@ namespace OpenMS::Internal
                  "OpenMS TEXT, "                \
                  "build_date TEXT");
 
-    SQLite::Statement query(db_, "INSERT INTO version VALUES ("  \
+    SQLite::Statement query(*db_, "INSERT INTO version VALUES ("  \
                                  ":format_version, "             \
                                  "datetime('now'), "             \
                                  ":openms_version, "             \
@@ -118,7 +134,7 @@ namespace OpenMS::Internal
       "(1, 'PROTEIN'), "                        \
       "(2, 'COMPOUND'), "                       \
       "(3, 'RNA')";
-    db_.exec(sql_insert);
+    db_->exec(sql_insert);
   }
 
 
@@ -135,7 +151,7 @@ namespace OpenMS::Internal
       "(4, 'STRING_LIST'), "                   \
       "(5, 'INT_LIST'), "                      \
       "(6, 'DOUBLE_LIST')";
-    db_.exec(sql_insert);
+    db_->exec(sql_insert);
     createTable_(
       "DataValue",
       "id INTEGER PRIMARY KEY NOT NULL, "                               \
@@ -144,7 +160,7 @@ namespace OpenMS::Internal
       "FOREIGN KEY (data_type_id) REFERENCES DataValue_DataType (id)");
     // @TODO: add support for units
     // prepare query for inserting data:
-    auto query = make_unique<SQLite::Statement>(db_, "INSERT INTO DataValue VALUES ("           \
+    auto query = make_unique<SQLite::Statement>(*db_, "INSERT INTO DataValue VALUES ("           \
                                  "NULL, "                                   \
                                  ":data_type, "                             \
                                  ":value)");
@@ -167,7 +183,7 @@ namespace OpenMS::Internal
     }
     query.bind(":value", value.toString());
     execWithExceptionAndReset(query, 1, __LINE__, OPENMS_PRETTY_FUNCTION, "error inserting data");
-    return db_.getLastInsertRowid();
+    return db_->getLastInsertRowid();
   }
 
 
@@ -182,14 +198,14 @@ namespace OpenMS::Internal
                  "UNIQUE (accession, name)");
     // @TODO: add support for unit and value
     // prepare query for inserting data:
-    auto query = make_unique<SQLite::Statement>(db_, "INSERT OR IGNORE INTO CVTerm VALUES ("   \
+    auto query = make_unique<SQLite::Statement>(*db_, "INSERT OR IGNORE INTO CVTerm VALUES ("   \
                                  "NULL, "                                  \
                                  ":accession, "                            \
                                  ":name, "                                 \
                                  ":cv_identifier_ref)");
     prepared_queries_.emplace("CVTerm", std::move(query));
     // alternative query if CVTerm already exists:
-    auto query2 = make_unique<SQLite::Statement>(db_, "SELECT id FROM CVTerm "                 \
+    auto query2 = make_unique<SQLite::Statement>(*db_, "SELECT id FROM CVTerm "                 \
                                   "WHERE accession = :accession AND name = :name");
     prepared_queries_.emplace("CVTerm_2", std::move(query2));
   }
@@ -211,7 +227,7 @@ namespace OpenMS::Internal
     query.bind(":cv_identifier_ref", cv_term.getCVIdentifierRef());
     if (execAndReset(query, 1)) // one row was inserted
     {
-      return db_.getLastInsertRowid();
+      return db_->getLastInsertRowid();
     }
 
     // else: insert has failed, record must already exist - get the key:
@@ -237,7 +253,7 @@ namespace OpenMS::Internal
 
   void OMSFileStore::createTableMetaInfo_(const String& parent_table, const String& key_column)
   {
-    if (!db_.tableExists("DataValue")) createTableDataValue_();
+    if (!db_->tableExists("DataValue")) createTableDataValue_();
 
     String parent_ref = parent_table + " (" + key_column + ")";
     String table = parent_table + "_MetaInfo";
@@ -251,7 +267,7 @@ namespace OpenMS::Internal
       "PRIMARY KEY (parent_id, name)");
 
     // prepare query for inserting data:
-    auto query = make_unique<SQLite::Statement>(db_, "INSERT INTO " + table +
+    auto query = make_unique<SQLite::Statement>(*db_, "INSERT INTO " + table +
                                  " VALUES ("
                                  ":parent_id, "
                                  ":name, "
@@ -298,7 +314,7 @@ namespace OpenMS::Internal
     // @TODO: add constraint that "processing_step_order" must match "..._id"?
     // @TODO: normalize table? (splitting into multiple tables is awkward here)
     // prepare query for inserting data:
-    auto query = make_unique<SQLite::Statement>(db_, "INSERT INTO " + table +
+    auto query = make_unique<SQLite::Statement>(*db_, "INSERT INTO " + table +
                                  " VALUES ("  \
                                  ":parent_id, "
                                  ":processing_step_id, "
@@ -351,7 +367,7 @@ namespace OpenMS::Internal
       "higher_better NUMERIC NOT NULL CHECK (higher_better in (0, 1)), " \
       "FOREIGN KEY (cv_term_id) REFERENCES CVTerm (id)");
 
-    SQLite::Statement query(db_, "INSERT INTO ID_ScoreType VALUES ("       \
+    SQLite::Statement query(*db_, "INSERT INTO ID_ScoreType VALUES ("       \
                   ":id, "                                   \
                   ":cv_term_id, "                           \
                   ":higher_better)");
@@ -379,7 +395,7 @@ namespace OpenMS::Internal
                  "experimental_design_id TEXT, "      \
                  "primary_files TEXT");
 
-    SQLite::Statement query(db_, "INSERT INTO ID_InputFile VALUES ("  \
+    SQLite::Statement query(*db_, "INSERT INTO ID_InputFile VALUES ("  \
                   ":id, "                              \
                   ":name, "                            \
                   ":experimental_design_id, "          \
@@ -411,7 +427,7 @@ namespace OpenMS::Internal
                  "version TEXT, "                     \
                  "UNIQUE (name, version)");
 
-    SQLite::Statement query(db_, "INSERT INTO ID_ProcessingSoftware VALUES ("  \
+    SQLite::Statement query(*db_, "INSERT INTO ID_ProcessingSoftware VALUES ("  \
                   ":id, "                                           \
                   ":name, "                                         \
                   ":version)");
@@ -439,7 +455,7 @@ namespace OpenMS::Internal
         "FOREIGN KEY (software_id) REFERENCES ID_ProcessingSoftware (id), " \
         "FOREIGN KEY (score_type_id) REFERENCES ID_ScoreType (id)");
 
-      SQLite::Statement query2(db_, 
+      SQLite::Statement query2(*db_, 
         "INSERT INTO ID_ProcessingSoftware_AssignedScore VALUES ("      \
         ":software_id, "                                                \
         ":score_type_id, "                                              \
@@ -463,7 +479,7 @@ namespace OpenMS::Internal
   {
     if (id_data.getDBSearchParams().empty()) return;
 
-    if (!db_.tableExists("ID_MoleculeType")) createTableMoleculeType_();
+    if (!db_->tableExists("ID_MoleculeType")) createTableMoleculeType_();
 
     createTable_(
       "ID_DBSearchParam",
@@ -487,7 +503,7 @@ namespace OpenMS::Internal
       "max_length NUMERIC, "                                            \
       "FOREIGN KEY (molecule_type_id) REFERENCES ID_MoleculeType (id)");
 
-    SQLite::Statement query(db_, "INSERT INTO ID_DBSearchParam VALUES (" \
+    SQLite::Statement query(*db_, "INSERT INTO ID_DBSearchParam VALUES (" \
                   ":id, "                                 \
                   ":molecule_type_id, "                   \
                   ":mass_type_average, "                  \
@@ -560,7 +576,7 @@ namespace OpenMS::Internal
     // @TODO: store primary files in a separate table (like input files)?
     // @TODO: store (optional) search param reference in a separate table?
 
-    SQLite::Statement query(db_, "INSERT INTO ID_ProcessingStep VALUES ("      \
+    SQLite::Statement query(*db_, "INSERT INTO ID_ProcessingStep VALUES ("      \
                   ":id, "                                       \
                   ":software_id, "                              \
                   ":date_time, "                                \
@@ -599,7 +615,7 @@ namespace OpenMS::Internal
         "FOREIGN KEY (input_file_id) REFERENCES ID_InputFile (id), "      \
         "UNIQUE (processing_step_id, input_file_id)");
 
-      SQLite::Statement query2(db_, "INSERT INTO ID_ProcessingStep_InputFile VALUES (" \
+      SQLite::Statement query2(*db_, "INSERT INTO ID_ProcessingStep_InputFile VALUES (" \
                     ":processing_step_id, "                             \
                     ":input_file_id)");
 
@@ -630,7 +646,7 @@ namespace OpenMS::Internal
                  "UNIQUE (data_id, input_file_id), "                    \
                  "FOREIGN KEY (input_file_id) REFERENCES ID_InputFile (id)");
 
-    SQLite::Statement query(db_, "INSERT INTO ID_Observation VALUES (" \
+    SQLite::Statement query(*db_, "INSERT INTO ID_Observation VALUES (" \
                   ":id, "                             \
                   ":data_id, "                        \
                   ":input_file_id, "                  \
@@ -671,7 +687,7 @@ namespace OpenMS::Internal
   {
     if (id_data.getParentSequences().empty()) return;
 
-    if (!db_.tableExists("ID_MoleculeType")) createTableMoleculeType_();
+    if (!db_->tableExists("ID_MoleculeType")) createTableMoleculeType_();
 
     createTable_(
       "ID_ParentSequence",
@@ -684,7 +700,7 @@ namespace OpenMS::Internal
       "is_decoy NUMERIC NOT NULL CHECK (is_decoy in (0, 1)) DEFAULT 0, " \
       "FOREIGN KEY (molecule_type_id) REFERENCES ID_MoleculeType (id)");
 
-    SQLite::Statement query(db_, "INSERT INTO ID_ParentSequence VALUES ("  \
+    SQLite::Statement query(*db_, "INSERT INTO ID_ParentSequence VALUES ("  \
                   ":id, "                                   \
                   ":accession, "                            \
                   ":molecule_type_id, "                     \
@@ -735,17 +751,17 @@ namespace OpenMS::Internal
       "FOREIGN KEY (group_id) REFERENCES ID_ParentGroup (id), "         \
       "FOREIGN KEY (parent_id) REFERENCES ID_ParentSequence (id)");
 
-    SQLite::Statement query_grouping(db_, "INSERT INTO ID_ParentGroupSet VALUES ("     \
+    SQLite::Statement query_grouping(*db_, "INSERT INTO ID_ParentGroupSet VALUES ("     \
                            ":id, "                                      \
                            ":label)");
 
-    SQLite::Statement query_group(db_, "INSERT INTO ID_ParentGroup VALUES ("          \
+    SQLite::Statement query_group(*db_, "INSERT INTO ID_ParentGroup VALUES ("          \
                         ":id, "                                        \
                         ":grouping_id, "                               \
                         ":score_type_id, "                             \
                         ":score)");
 
-   SQLite::Statement query_parent(db_, "INSERT INTO ID_ParentGroup_ParentSequence VALUES (" \
+   SQLite::Statement query_parent(*db_, "INSERT INTO ID_ParentGroup_ParentSequence VALUES (" \
                          ":group_id, "                                  \
                          ":parent_id)");
 
@@ -795,7 +811,7 @@ namespace OpenMS::Internal
 
   void OMSFileStore::createTableIdentifiedMolecule_()
   {
-    if (!db_.tableExists("ID_MoleculeType")) createTableMoleculeType_();
+    if (!db_->tableExists("ID_MoleculeType")) createTableMoleculeType_();
 
     // use one table for all types of identified molecules to allow foreign key
     // references from the input match table:
@@ -807,7 +823,7 @@ namespace OpenMS::Internal
       "UNIQUE (molecule_type_id, identifier), "                         \
       "FOREIGN KEY (molecule_type_id) REFERENCES ID_MoleculeType (id)");
     // prepare query for inserting data:
-    auto query = make_unique<SQLite::Statement>(db_, "INSERT INTO ID_IdentifiedMolecule VALUES ("          \
+    auto query = make_unique<SQLite::Statement>(*db_, "INSERT INTO ID_IdentifiedMolecule VALUES ("          \
                   ":id, "                                               \
                   ":molecule_type_id, "                                 \
                   ":identifier)");
@@ -819,7 +835,7 @@ namespace OpenMS::Internal
   {
     if (id_data.getIdentifiedCompounds().empty()) return;
 
-    if (!db_.tableExists("ID_IdentifiedMolecule"))
+    if (!db_->tableExists("ID_IdentifiedMolecule"))
     {
       createTableIdentifiedMolecule_();
     }
@@ -834,7 +850,7 @@ namespace OpenMS::Internal
       "smile TEXT, "                                                    \
       "inchi TEXT, "                                                    \
       "FOREIGN KEY (molecule_id) REFERENCES ID_IdentifiedMolecule (id)");
-    SQLite::Statement query_compound(db_, "INSERT INTO ID_IdentifiedCompound VALUES (" \
+    SQLite::Statement query_compound(*db_, "INSERT INTO ID_IdentifiedCompound VALUES (" \
                            ":molecule_id, "                             \
                            ":formula, "                                 \
                            ":name, "                                    \
@@ -868,7 +884,7 @@ namespace OpenMS::Internal
     if (id_data.getIdentifiedPeptides().empty() &&
         id_data.getIdentifiedOligos().empty()) return;
 
-    if (!db_.tableExists("ID_IdentifiedMolecule"))
+    if (!db_->tableExists("ID_IdentifiedMolecule"))
     {
       createTableIdentifiedMolecule_();
     }
@@ -941,7 +957,7 @@ namespace OpenMS::Internal
       "FOREIGN KEY (parent_id) REFERENCES ID_ParentSequence (id), "     \
       "FOREIGN KEY (molecule_id) REFERENCES ID_IdentifiedMolecule (id)");
     // prepare query for inserting data:
-    auto query = make_unique<SQLite::Statement>(db_, "INSERT INTO ID_ParentMatch VALUES ("         \
+    auto query = make_unique<SQLite::Statement>(*db_, "INSERT INTO ID_ParentMatch VALUES ("         \
                   ":molecule_id, "                              \
                   ":parent_id, "                                \
                   ":start_pos, "                                \
@@ -1000,7 +1016,7 @@ namespace OpenMS::Internal
       "mol_multiplier INTEGER NOT NULL CHECK (mol_multiplier > 0) DEFAULT 1, " \
       "UNIQUE (formula, charge)");
 
-    SQLite::Statement query(db_, "INSERT INTO AdductInfo VALUES (" \
+    SQLite::Statement query(*db_, "INSERT INTO AdductInfo VALUES (" \
                   ":id, "                           \
                   ":name, "                         \
                   ":formula, "                      \
@@ -1052,13 +1068,13 @@ namespace OpenMS::Internal
       "FOREIGN KEY (observation_id) REFERENCES ID_Observation (id)";
     // add foreign key constraint if the adduct table exists (having the
     // constraint without the table would cause an error on data insertion):
-    if (db_.tableExists("AdductInfo"))
+    if (db_->tableExists("AdductInfo"))
     {
       table_def += ", FOREIGN KEY (adduct_id) REFERENCES AdductInfo (id)";
     }
     createTable_("ID_ObservationMatch", table_def);
 
-    SQLite::Statement query(db_, "INSERT INTO ID_ObservationMatch VALUES ("    \
+    SQLite::Statement query(*db_, "INSERT INTO ID_ObservationMatch VALUES ("    \
                   ":id, "                                       \
                   ":identified_molecule_id, "                   \
                   ":observation_id, "                           \
@@ -1102,7 +1118,7 @@ namespace OpenMS::Internal
         "FOREIGN KEY (parent_id) REFERENCES ID_ObservationMatch (id), " \
         "FOREIGN KEY (processing_step_id) REFERENCES ID_ProcessingStep (id)");
 
-      SQLite::Statement query2(db_,
+      SQLite::Statement query2(*db_,
         "INSERT INTO ID_ObservationMatch_PeakAnnotation VALUES ("   \
         ":parent_id, "                                              \
         ":processing_step_id, "                                     \
@@ -1136,7 +1152,7 @@ namespace OpenMS::Internal
         }
       }
       // create index on parent_id column
-      db_.exec("CREATE INDEX PeakAnnotation_parent_id ON ID_ObservationMatch_PeakAnnotation (parent_id)");
+      db_->exec("CREATE INDEX PeakAnnotation_parent_id ON ID_ObservationMatch_PeakAnnotation (parent_id)");
     }
   }
 
@@ -1174,9 +1190,9 @@ namespace OpenMS::Internal
     };
     
     
-    if (sqlite3_get_autocommit(db_.getHandle()) == 1)
+    if (sqlite3_get_autocommit(db_->getHandle()) == 1)
     { // allow a transaction, otherwise another on is already in flight
-      SQLite::Transaction transaction(db_); // avoid SQLite's "implicit transactions", improve runtime
+      SQLite::Transaction transaction(*db_); // avoid SQLite's "implicit transactions", improve runtime
       body();
       transaction.commit();
     }
@@ -1284,7 +1300,7 @@ namespace OpenMS::Internal
                  "FOREIGN KEY (subordinate_of) REFERENCES FEAT_Feature (id), " \
                  "CHECK (id > subordinate_of)"); // check to prevent cycles
 
-    auto query = make_unique<SQLite::Statement>(db_, "INSERT INTO FEAT_Feature VALUES ("      \
+    auto query = make_unique<SQLite::Statement>(*db_, "INSERT INTO FEAT_Feature VALUES ("      \
                   ":id, "                                  \
                   ":rt, "                                  \
                   ":mz, "                                  \
@@ -1318,7 +1334,7 @@ namespace OpenMS::Internal
                    "point_x REAL, "                                     \
                    "point_y REAL, "                                     \
                    "FOREIGN KEY (feature_id) REFERENCES FEAT_Feature (id)");
-      auto query2 = make_unique<SQLite::Statement>(db_, "INSERT INTO FEAT_ConvexHull VALUES ("      \
+      auto query2 = make_unique<SQLite::Statement>(*db_, "INSERT INTO FEAT_ConvexHull VALUES ("      \
                     ":feature_id, "                             \
                     ":hull_index, "                             \
                     ":point_index, "                            \
@@ -1336,7 +1352,7 @@ namespace OpenMS::Internal
                    "observation_match_id INTEGER NOT NULL, "            \
                    "FOREIGN KEY (feature_id) REFERENCES FEAT_Feature (id), " \
                    "FOREIGN KEY (observation_match_id) REFERENCES ID_ObservationMatch (id)");
-      auto query3 = make_unique<SQLite::Statement>(db_, "INSERT INTO FEAT_ObservationMatch VALUES (" \
+      auto query3 = make_unique<SQLite::Statement>(*db_, "INSERT INTO FEAT_ObservationMatch VALUES (" \
                     ":feature_id, "                              \
                     ":observation_match_id)");
       prepared_queries_.emplace("FEAT_ObservationMatch", std::move(query3));
@@ -1359,7 +1375,7 @@ namespace OpenMS::Internal
                  "identifier TEXT, "                \
                  "file_path TEXT, "                 \
                  "file_type TEXT");
-    SQLite::Statement query(db_,
+    SQLite::Statement query(*db_,
     // @TODO: worth using a prepared query for just one insert?
                   "INSERT INTO FEAT_MapMetaData VALUES (" \
                   ":unique_id, "                          \
@@ -1394,7 +1410,7 @@ namespace OpenMS::Internal
                  "completion_time TEXT");
     // "id" is needed to connect to meta info table (see "storeMetaInfos_");
     // "position" is position in the vector ("index" is a reserved word in SQL)
-    SQLite::Statement query(db_, "INSERT INTO FEAT_DataProcessing VALUES (" \
+    SQLite::Statement query(*db_, "INSERT INTO FEAT_DataProcessing VALUES (" \
                   ":id, "                                    \
                   ":software_name, "                         \
                   ":software_version, "                      \
@@ -1425,7 +1441,7 @@ namespace OpenMS::Internal
 
   void OMSFileStore::store(const FeatureMap& features)
   {
-    SQLite::Transaction transaction(db_); // avoid SQLite's "implicit transactions", improve runtime
+    SQLite::Transaction transaction(*db_); // avoid SQLite's "implicit transactions", improve runtime
     if (features.getIdentificationData().empty())
     {
       storeVersionAndDate_();

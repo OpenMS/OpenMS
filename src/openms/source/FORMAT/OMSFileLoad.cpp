@@ -43,6 +43,8 @@
 #include <QtCore/QJsonDocument>
 #include <QtCore/QJsonObject>
 
+#include <SQLiteCpp/Database.h>
+
 #include <sqlite3.h>
 
 using namespace std;
@@ -67,19 +69,19 @@ namespace OpenMS::Internal
 
 
   OMSFileLoad::OMSFileLoad(const String& filename, LogType log_type):
-    db_(filename)
+    db_(make_unique<SQLite::Database>(filename))
   {
     setLogType(log_type);
 
     // read version number:
     try
     {
-      auto version = db_.execAndGet("SELECT OMSFile FROM version");
+      auto version = db_->execAndGet("SELECT OMSFile FROM version");
       version_number_ = version.getInt();
     }
     catch (...)
     {
-      raiseDBError_(db_.getErrorMsg(), __LINE__, OPENMS_PRETTY_FUNCTION,
+      raiseDBError_(db_->getErrorMsg(), __LINE__, OPENMS_PRETTY_FUNCTION,
                     "error reading file format version number");
     }
   }
@@ -110,15 +112,15 @@ namespace OpenMS::Internal
 
   void OMSFileLoad::loadScoreTypes_(IdentificationData& id_data)
   {
-    if (!db_.tableExists("ID_ScoreType")) return;
-    if (!db_.tableExists("CVTerm")) // every score type is a CV term
+    if (!db_->tableExists("ID_ScoreType")) return;
+    if (!db_->tableExists("CVTerm")) // every score type is a CV term
     {
       String msg = "required database table 'CVTerm' not found";
       throw Exception::MissingInformation(__FILE__, __LINE__,
                                           OPENMS_PRETTY_FUNCTION, msg);
     }
     // careful - both joined tables have an "id" field, need to exclude one:
-    SQLite::Statement query(db_, "SELECT S.*, C.accession, C.name, C.cv_identifier_ref " \
+    SQLite::Statement query(*db_, "SELECT S.*, C.accession, C.name, C.cv_identifier_ref " \
                     "FROM ID_ScoreType AS S JOIN CVTerm AS C "          \
                     "ON S.cv_term_id = C.id");
     while (query.executeStep())
@@ -136,9 +138,9 @@ namespace OpenMS::Internal
 
   void OMSFileLoad::loadInputFiles_(IdentificationData& id_data)
   {
-    if (!db_.tableExists("ID_InputFile")) return;
+    if (!db_->tableExists("ID_InputFile")) return;
 
-    SQLite::Statement query(db_, "SELECT * FROM ID_InputFile");
+    SQLite::Statement query(*db_, "SELECT * FROM ID_InputFile");
     while (query.executeStep())
     {
       ID::InputFile input(query.getColumn("name").getString(),
@@ -154,15 +156,15 @@ namespace OpenMS::Internal
 
   void OMSFileLoad::loadProcessingSoftwares_(IdentificationData& id_data)
   {
-    if (!db_.tableExists("ID_ProcessingSoftware")) return;
+    if (!db_->tableExists("ID_ProcessingSoftware")) return;
 
     
-    SQLite::Statement query(db_, "SELECT * FROM ID_ProcessingSoftware");
-    bool have_scores = db_.tableExists("ID_ProcessingSoftware_AssignedScore");
-    SQLite::Statement subquery(db_, "");
+    SQLite::Statement query(*db_, "SELECT * FROM ID_ProcessingSoftware");
+    bool have_scores = db_->tableExists("ID_ProcessingSoftware_AssignedScore");
+    SQLite::Statement subquery(*db_, "");
     if (have_scores)
     {
-      subquery = SQLite::Statement(db_, "SELECT score_type_id "                         \
+      subquery = SQLite::Statement(*db_, "SELECT score_type_id "                         \
                        "FROM ID_ProcessingSoftware_AssignedScore " \
                        "WHERE software_id = :id ORDER BY score_type_order ASC");
     }
@@ -221,14 +223,14 @@ namespace OpenMS::Internal
                                           const String& parent_table)
   {
     String table_name = parent_table + "_MetaInfo";
-    if (!db_.tableExists(table_name)) return false;
+    if (!db_->tableExists(table_name)) return false;
 
     
     String sql_select =
       "SELECT * FROM " + table_name.toQString() + " AS MI " \
       "JOIN DataValue AS DV ON MI.data_value_id = DV.id "   \
       "WHERE MI.parent_id = :id";
-    query = SQLite::Statement(db_, sql_select);
+    query = SQLite::Statement(*db_, sql_select);
     return true;
   }
 
@@ -237,12 +239,12 @@ namespace OpenMS::Internal
                                                        const String& parent_table)
   {
     String table_name = parent_table + "_AppliedProcessingStep";
-    if (!db_.tableExists(table_name)) return false;
+    if (!db_->tableExists(table_name)) return false;
 
     // 
     String sql_select = "SELECT * FROM " + table_name.toQString() +
       " WHERE parent_id = :id ORDER BY processing_step_order ASC";
-    query = SQLite::Statement(db_, sql_select);
+    query = SQLite::Statement(*db_, sql_select);
     return true;
   }
 
@@ -290,9 +292,9 @@ namespace OpenMS::Internal
 
   void OMSFileLoad::loadDBSearchParams_(IdentificationData& id_data)
   {
-    if (!db_.tableExists("ID_DBSearchParam")) return;
+    if (!db_->tableExists("ID_DBSearchParam")) return;
 
-    SQLite::Statement query(db_, "SELECT * FROM ID_DBSearchParam");
+    SQLite::Statement query(*db_, "SELECT * FROM ID_DBSearchParam");
     while (query.executeStep())
     {
       Key id = query.getColumn("id").getInt64();
@@ -349,20 +351,20 @@ namespace OpenMS::Internal
 
   void OMSFileLoad::loadProcessingSteps_(IdentificationData& id_data)
   {
-    if (!db_.tableExists("ID_ProcessingStep")) return;
+    if (!db_->tableExists("ID_ProcessingStep")) return;
 
     
-    SQLite::Statement query(db_, "SELECT * FROM ID_ProcessingStep");
-    SQLite::Statement subquery_file(db_, "");
-    bool have_input_files = db_.tableExists(
+    SQLite::Statement query(*db_, "SELECT * FROM ID_ProcessingStep");
+    SQLite::Statement subquery_file(*db_, "");
+    bool have_input_files = db_->tableExists(
                                          "ID_ProcessingStep_InputFile");
     if (have_input_files)
     {
-      subquery_file = SQLite::Statement(db_, "SELECT input_file_id "                 \
+      subquery_file = SQLite::Statement(*db_, "SELECT input_file_id "                 \
                             "FROM ID_ProcessingStep_InputFile " \
                             "WHERE processing_step_id = :id");
     }
-    SQLite::Statement subquery_info(db_, "");
+    SQLite::Statement subquery_info(*db_, "");
     bool have_meta_info = prepareQueryMetaInfo_(subquery_info, "ID_ProcessingStep");
     while (query.executeStep())
     {
@@ -405,11 +407,11 @@ namespace OpenMS::Internal
 
   void OMSFileLoad::loadObservations_(IdentificationData& id_data)
   {
-    if (!db_.tableExists("ID_Observation")) return;
+    if (!db_->tableExists("ID_Observation")) return;
 
     
-    SQLite::Statement query(db_, "SELECT * FROM ID_Observation");
-    SQLite::Statement subquery_info(db_, "");
+    SQLite::Statement query(*db_, "SELECT * FROM ID_Observation");
+    SQLite::Statement subquery_info(*db_, "");
     bool have_meta_info = prepareQueryMetaInfo_(subquery_info,
                                                 "ID_Observation");
 
@@ -432,15 +434,15 @@ namespace OpenMS::Internal
 
   void OMSFileLoad::loadParentSequences_(IdentificationData& id_data)
   {
-    if (!db_.tableExists("ID_ParentSequence")) return;
+    if (!db_->tableExists("ID_ParentSequence")) return;
 
     
-    SQLite::Statement query(db_, "SELECT * FROM ID_ParentSequence");
+    SQLite::Statement query(*db_, "SELECT * FROM ID_ParentSequence");
     // @TODO: can we combine handling of meta info and applied processing steps?
-    SQLite::Statement subquery_info(db_, "");
+    SQLite::Statement subquery_info(*db_, "");
     bool have_meta_info = prepareQueryMetaInfo_(subquery_info,
                                                 "ID_ParentSequence");
-    SQLite::Statement subquery_step(db_, "");
+    SQLite::Statement subquery_step(*db_, "");
     bool have_applied_steps =
       prepareQueryAppliedProcessingStep_(subquery_step, "ID_ParentSequence");
 
@@ -471,24 +473,24 @@ namespace OpenMS::Internal
 
   void OMSFileLoad::loadParentGroupSets_(IdentificationData& id_data)
   {
-    if (!db_.tableExists("ID_ParentGroupSet")) return;
+    if (!db_->tableExists("ID_ParentGroupSet")) return;
 
     // "grouping_order" column was removed in schema version 3:
     String order_by = version_number_ > 2 ? "id" : "grouping_order";
     
-    SQLite::Statement query(db_, "SELECT * FROM ID_ParentGroupSet ORDER BY " + order_by + " ASC");
+    SQLite::Statement query(*db_, "SELECT * FROM ID_ParentGroupSet ORDER BY " + order_by + " ASC");
     // @TODO: can we combine handling of meta info and applied processing steps?
-    SQLite::Statement subquery_info(db_, "");
+    SQLite::Statement subquery_info(*db_, "");
     bool have_meta_info = prepareQueryMetaInfo_(subquery_info,
                                                 "ID_ParentGroupSet");
-    SQLite::Statement subquery_step(db_, "");
+    SQLite::Statement subquery_step(*db_, "");
     bool have_applied_steps =
       prepareQueryAppliedProcessingStep_(subquery_step,
                                          "ID_ParentGroupSet");
 
-    SQLite::Statement subquery_group(db_, "SELECT * FROM ID_ParentGroup WHERE grouping_id = :id");
+    SQLite::Statement subquery_group(*db_, "SELECT * FROM ID_ParentGroup WHERE grouping_id = :id");
 
-    SQLite::Statement subquery_parent(db_, "SELECT parent_id FROM ID_ParentGroup_ParentSequence WHERE group_id = :id");
+    SQLite::Statement subquery_parent(*db_, "SELECT parent_id FROM ID_ParentGroup_ParentSequence WHERE group_id = :id");
 
     while (query.executeStep())
     {
@@ -543,15 +545,15 @@ namespace OpenMS::Internal
 
   void OMSFileLoad::loadIdentifiedCompounds_(IdentificationData& id_data)
   {
-    if (!db_.tableExists("ID_IdentifiedCompound")) return;
+    if (!db_->tableExists("ID_IdentifiedCompound")) return;
 
     
-    SQLite::Statement query(db_, "SELECT * FROM ID_IdentifiedMolecule JOIN ID_IdentifiedCompound " \
+    SQLite::Statement query(*db_, "SELECT * FROM ID_IdentifiedMolecule JOIN ID_IdentifiedCompound " \
       "ON ID_IdentifiedMolecule.id = ID_IdentifiedCompound.molecule_id");
     // @TODO: can we combine handling of meta info and applied processing steps?
-    SQLite::Statement subquery_info(db_, "");
+    SQLite::Statement subquery_info(*db_, "");
     bool have_meta_info = prepareQueryMetaInfo_(subquery_info, "ID_IdentifiedMolecule");
-    SQLite::Statement subquery_step(db_, "");
+    SQLite::Statement subquery_step(*db_, "");
     bool have_applied_steps =
       prepareQueryAppliedProcessingStep_(subquery_step, "ID_IdentifiedMolecule");
 
@@ -601,25 +603,25 @@ namespace OpenMS::Internal
 
   void OMSFileLoad::loadIdentifiedSequences_(IdentificationData& id_data)
   {
-    if (!db_.tableExists("ID_IdentifiedMolecule")) return;
+    if (!db_->tableExists("ID_IdentifiedMolecule")) return;
 
     
-    SQLite::Statement query(db_, "SELECT * FROM ID_IdentifiedMolecule "          \
+    SQLite::Statement query(*db_, "SELECT * FROM ID_IdentifiedMolecule "          \
                   "WHERE molecule_type_id = :molecule_type_id");
     // @TODO: can we combine handling of meta info and applied processing steps?
-    SQLite::Statement subquery_info(db_, "");
+    SQLite::Statement subquery_info(*db_, "");
     bool have_meta_info = prepareQueryMetaInfo_(subquery_info,
                                                 "ID_IdentifiedMolecule");
-    SQLite::Statement subquery_step(db_, "");
+    SQLite::Statement subquery_step(*db_, "");
     bool have_applied_steps =
       prepareQueryAppliedProcessingStep_(subquery_step,
                                          "ID_IdentifiedMolecule");
-    SQLite::Statement subquery_parent(db_, "");
-    bool have_parent_matches = db_.tableExists(
+    SQLite::Statement subquery_parent(*db_, "");
+    bool have_parent_matches = db_->tableExists(
                                             "ID_ParentMatch");
     if (have_parent_matches)
     {
-      subquery_parent = SQLite::Statement(db_, "SELECT * FROM ID_ParentMatch " \
+      subquery_parent = SQLite::Statement(*db_, "SELECT * FROM ID_ParentMatch " \
                               "WHERE molecule_id = :id");
     }
 
@@ -700,9 +702,9 @@ namespace OpenMS::Internal
 
   void OMSFileLoad::loadAdducts_(IdentificationData& id_data)
   {
-    if (!db_.tableExists("AdductInfo")) return;
+    if (!db_->tableExists("AdductInfo")) return;
 
-    SQLite::Statement query(db_, "SELECT * FROM AdductInfo");
+    SQLite::Statement query(*db_, "SELECT * FROM AdductInfo");
     while (query.executeStep())
     {
       EmpiricalFormula formula(query.getColumn("formula").getString());
@@ -717,24 +719,24 @@ namespace OpenMS::Internal
 
   void OMSFileLoad::loadObservationMatches_(IdentificationData& id_data)
   {
-    if (!db_.tableExists("ID_ObservationMatch")) return;
+    if (!db_->tableExists("ID_ObservationMatch")) return;
 
     
-    SQLite::Statement query(db_, "SELECT * FROM ID_ObservationMatch");
+    SQLite::Statement query(*db_, "SELECT * FROM ID_ObservationMatch");
     // @TODO: can we combine handling of meta info and applied processing steps?
-    SQLite::Statement subquery_info(db_, "");
+    SQLite::Statement subquery_info(*db_, "");
     bool have_meta_info = prepareQueryMetaInfo_(subquery_info,
                                                 "ID_ObservationMatch");
-    SQLite::Statement subquery_step(db_, "");
+    SQLite::Statement subquery_step(*db_, "");
     bool have_applied_steps =
       prepareQueryAppliedProcessingStep_(subquery_step,
                                          "ID_ObservationMatch");
-    SQLite::Statement subquery_ann(db_, "");
+    SQLite::Statement subquery_ann(*db_, "");
     bool have_peak_annotations =
-      db_.tableExists("ID_ObservationMatch_PeakAnnotation");
+      db_->tableExists("ID_ObservationMatch_PeakAnnotation");
     if (have_peak_annotations)
     {
-      subquery_ann = SQLite::Statement(db_, 
+      subquery_ann = SQLite::Statement(*db_, 
         "SELECT * FROM ID_ObservationMatch_PeakAnnotation " \
         "WHERE parent_id = :id");
     }
@@ -803,9 +805,9 @@ namespace OpenMS::Internal
 
   void OMSFileLoad::loadMapMetaData_(FeatureMap& features)
   {
-    if (!db_.tableExists("FEAT_MapMetaData")) return;
+    if (!db_->tableExists("FEAT_MapMetaData")) return;
 
-    SQLite::Statement query(db_, "SELECT * FROM FEAT_MapMetaData");
+    SQLite::Statement query(*db_, "SELECT * FROM FEAT_MapMetaData");
     query.executeStep(); // there should be only one row
     Key id = query.getColumn("unique_id").getInt64();
     features.setUniqueId(id);
@@ -813,7 +815,7 @@ namespace OpenMS::Internal
     features.setLoadedFilePath(query.getColumn("file_path").getString());
     String file_type = query.getColumn("file_type").getString();
     features.setLoadedFilePath(FileTypes::nameToType(file_type));
-    SQLite::Statement query_meta(db_, "");
+    SQLite::Statement query_meta(*db_, "");
     if (prepareQueryMetaInfo_(query_meta, "FEAT_MapMetaData"))
     {
       handleQueryMetaInfo_(query_meta, features, id);
@@ -823,13 +825,13 @@ namespace OpenMS::Internal
 
   void OMSFileLoad::loadDataProcessing_(FeatureMap& features)
   {
-    if (!db_.tableExists("FEAT_DataProcessing")) return;
+    if (!db_->tableExists("FEAT_DataProcessing")) return;
 
     // "position" column was removed in schema version 3:
     String order_by = version_number_ > 2 ? "id" : "position";
-    SQLite::Statement query(db_, "SELECT * FROM FEAT_DataProcessing ORDER BY " + order_by + " ASC");
+    SQLite::Statement query(*db_, "SELECT * FROM FEAT_DataProcessing ORDER BY " + order_by + " ASC");
 
-    SQLite::Statement subquery_info(db_, "");
+    SQLite::Statement subquery_info(*db_, "");
     bool have_meta_info = prepareQueryMetaInfo_(subquery_info, "FEAT_DataProcessing");
 
     while (query.executeStep())
@@ -923,7 +925,7 @@ namespace OpenMS::Internal
       query_match->reset(); // get ready for new executeStep()
     }
     // subordinates:
-    SQLite::Statement query_sub(db_, "SELECT * FROM FEAT_Feature WHERE subordinate_of = " + String(id) + " ORDER BY id ASC");
+    SQLite::Statement query_sub(*db_, "SELECT * FROM FEAT_Feature WHERE subordinate_of = " + String(id) + " ORDER BY id ASC");
     while (query_sub.executeStep())
     {
       Feature sub = loadFeatureAndSubordinates_(query_sub, query_meta,
@@ -936,26 +938,26 @@ namespace OpenMS::Internal
 
   void OMSFileLoad::loadFeatures_(FeatureMap& features)
   {
-    if (!db_.tableExists("FEAT_Feature")) return;
+    if (!db_->tableExists("FEAT_Feature")) return;
 
     // start with top-level features only:
-    SQLite::Statement query_feat(db_, "SELECT * FROM FEAT_Feature WHERE subordinate_of IS NULL ORDER BY id ASC");
+    SQLite::Statement query_feat(*db_, "SELECT * FROM FEAT_Feature WHERE subordinate_of IS NULL ORDER BY id ASC");
     // prepare sub-queries (optional - corresponding tables may not be present):
-    std::optional<SQLite::Statement> query_meta = SQLite::Statement(db_, "");
+    std::optional<SQLite::Statement> query_meta = SQLite::Statement(*db_, "");
     if (!prepareQueryMetaInfo_(*query_meta, "FEAT_Feature"))
     {
       query_meta = std::nullopt;
     }
-    std::optional<SQLite::Statement> query_hull = SQLite::Statement(db_, "");
-    if (db_.tableExists("FEAT_ConvexHull"))
+    std::optional<SQLite::Statement> query_hull = SQLite::Statement(*db_, "");
+    if (db_->tableExists("FEAT_ConvexHull"))
     {
-      query_hull = SQLite::Statement(db_, "SELECT * FROM FEAT_ConvexHull WHERE feature_id = :id " \
+      query_hull = SQLite::Statement(*db_, "SELECT * FROM FEAT_ConvexHull WHERE feature_id = :id " \
                          "ORDER BY hull_index DESC, point_index ASC");
     }
-    std::optional<SQLite::Statement> query_match = SQLite::Statement(db_, "");
-    if (db_.tableExists("FEAT_ObservationMatch"))
+    std::optional<SQLite::Statement> query_match = SQLite::Statement(*db_, "");
+    if (db_->tableExists("FEAT_ObservationMatch"))
     {
-      query_match = SQLite::Statement(db_, "SELECT * FROM FEAT_ObservationMatch WHERE feature_id = :id");
+      query_match = SQLite::Statement(*db_, "SELECT * FROM FEAT_ObservationMatch WHERE feature_id = :id");
     }
 
     while (query_feat.executeStep())
@@ -982,7 +984,7 @@ namespace OpenMS::Internal
 
   void OMSFileLoad::createView_(const String& name, const String& select)
   {
-    SQLite::Statement query(db_, "CREATE TEMP VIEW " + name + " AS " + select);
+    SQLite::Statement query(*db_, "CREATE TEMP VIEW " + name + " AS " + select);
   }
 
 
@@ -995,7 +997,7 @@ namespace OpenMS::Internal
       sql += " ORDER BY " + order_by;
     }
 
-    SQLite::Statement query(db_, sql);
+    SQLite::Statement query(*db_, sql);
 
     QJsonArray array;
     while (query.executeStep())
@@ -1028,7 +1030,7 @@ namespace OpenMS::Internal
     // (more code, but would use less memory)
     QJsonObject json_data;
     // get names of all tables (except SQLite-internal ones) in the database:
-    SQLite::Statement query(db_, "SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%' ORDER BY name");
+    SQLite::Statement query(*db_, "SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%' ORDER BY name");
     while (query.executeStep())
     {
       String table = query.getColumn("name").getString();
