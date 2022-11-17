@@ -50,8 +50,6 @@ namespace OpenMS
 {
   namespace Internal
   {
-
-
     /*!
       @brief Raise a more informative database error
 
@@ -65,8 +63,21 @@ namespace OpenMS
 
       @throw Exception::FailedAPICall Throw this exception
     */
-    void raiseDBError_(const String& error, int line,
-                       const char* function, const String& context, const String& query = "");
+    void raiseDBError_(const String& error, int line, const char* function, const String& context, const String& query = "");
+
+    inline bool execAndReset(SQLite::Statement& query, int expected_modifications)
+    {
+      auto ret = query.exec();
+      query.reset();
+      return ret == expected_modifications;
+    }
+    inline void execWithExceptionAndReset(SQLite::Statement& query, int expected_modifications, int line, const char* function, const char* context)
+    {
+      if (!execAndReset(query, expected_modifications))
+      {
+        raiseDBError_(query.getErrorMsg(), line, function, context);
+      }
+    }
 
 
     /*!

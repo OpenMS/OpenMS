@@ -34,7 +34,8 @@
 
 #include <SQLiteCpp/Transaction.h>
 
-//#include <qglobal.h>
+#include <sqlite3.h>
+
 #include <OpenMS/FORMAT/OMSFileStore.h>
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/CONCEPT/VersionInfo.h>
@@ -103,7 +104,6 @@ namespace OpenMS::Internal
     query.bind(":openms_version", VersionInfo::getVersion());
     query.bind(":build_date", VersionInfo::getTime());     
     query.exec();
-    query.reset(); // get ready for a new execution
   }
 
 
@@ -165,11 +165,7 @@ namespace OpenMS::Internal
       query.bind(":data_type", int(value.valueType()) + 1);
     }
     query.bind(":value", value.toString());
-    if (query.exec() != 1)
-    {
-      raiseDBError_(query.getErrorMsg(), __LINE__, OPENMS_PRETTY_FUNCTION, "error inserting data");
-    }
-    query.reset(); // get ready for a new execution
+    execWithExceptionAndReset(query, 1, __LINE__, OPENMS_PRETTY_FUNCTION, "error inserting data");
     return db_.getLastInsertRowid();
   }
 
@@ -212,14 +208,14 @@ namespace OpenMS::Internal
     }
     query.bind(":name", cv_term.getName());
     query.bind(":cv_identifier_ref", cv_term.getCVIdentifierRef());
-    if (query.exec() == 1) // one row was inserted
+    if (execAndReset(query, 1)) // one row was inserted
     {
       return db_.getLastInsertRowid();
     }
-    query.reset(); // get ready for a new execution
 
     // else: insert has failed, record must already exist - get the key:
     auto& alt_query = *prepared_queries_["CVTerm_2"];
+    alt_query.reset();                  // get ready for a new execution
     if (cv_term.getAccession().empty()) // use NULL for empty accessions
     {
       alt_query.bind(":accession");
@@ -233,7 +229,6 @@ namespace OpenMS::Internal
     {
       raiseDBError_(alt_query.getErrorMsg(), __LINE__, OPENMS_PRETTY_FUNCTION, "error querying database");
     }
-    alt_query.reset(); // get ready for a new execution
 
     return Key(alt_query.getColumn(0).getInt64());
   }
@@ -279,11 +274,7 @@ namespace OpenMS::Internal
       query.bind(":name", info_key);
       Key value_id = storeDataValue_(info.getMetaValue(info_key));
       query.bind(":data_value_id", value_id);
-      if (query.exec() != 1)
-      {
-        raiseDBError_(query.getErrorMsg(), __LINE__, OPENMS_PRETTY_FUNCTION, "error inserting data");
-      }
-      query.reset(); // get ready for a new execution
+      execWithExceptionAndReset(query, 1, __LINE__, OPENMS_PRETTY_FUNCTION, "error inserting data");
     }
   }
 
@@ -331,11 +322,7 @@ namespace OpenMS::Internal
       {
         query.bind(":score_type_id"); // NULL
         query.bind(":score"); // NULL
-        if (query.exec() != 1)
-        {
-          raiseDBError_(query.getErrorMsg(), __LINE__, OPENMS_PRETTY_FUNCTION, "error inserting data");
-        }
-        query.reset(); // get ready for a new execution
+        execWithExceptionAndReset(query, 1, __LINE__, OPENMS_PRETTY_FUNCTION, "error inserting data");
       }
     }
     else // use NULL for missing processing step reference
@@ -346,11 +333,7 @@ namespace OpenMS::Internal
     {
       query.bind(":score_type_id", score_type_keys_[&(*score_pair.first)]);
       query.bind(":score", score_pair.second);
-      if (query.exec() != 1)
-      {
-        raiseDBError_(query.getErrorMsg(), __LINE__, OPENMS_PRETTY_FUNCTION, "error inserting data");
-      }
-      query.reset(); // get ready for a new execution
+      execWithExceptionAndReset(query, 1, __LINE__, OPENMS_PRETTY_FUNCTION, "error inserting data");
     }
   }
 
@@ -378,11 +361,7 @@ namespace OpenMS::Internal
       query.bind(":id", id);
       query.bind(":cv_term_id", cv_id);
       query.bind(":higher_better", int(score_type.higher_better));
-      if (query.exec() != 1)
-      {
-        raiseDBError_(query.getErrorMsg(), __LINE__, OPENMS_PRETTY_FUNCTION, "error inserting data");
-      }
-      query.reset(); // get ready for a new execution
+      execWithExceptionAndReset(query, 1, __LINE__, OPENMS_PRETTY_FUNCTION, "error inserting data");
       score_type_keys_[&score_type] = id;
       ++id;
     }
@@ -414,11 +393,7 @@ namespace OpenMS::Internal
       // @TODO: what if a primary file name contains ","?
       String primary_files = ListUtils::concatenate(input.primary_files);
       query.bind(":primary_files", primary_files);
-      if (query.exec() != 1)
-      {
-        raiseDBError_(query.getErrorMsg(), __LINE__, OPENMS_PRETTY_FUNCTION, "error inserting data");
-      }
-      query.reset(); // get ready for a new execution
+      execWithExceptionAndReset(query, 1, __LINE__, OPENMS_PRETTY_FUNCTION, "error inserting data");
       input_file_keys_[&input] = id;
       ++id;
     }
@@ -447,11 +422,7 @@ namespace OpenMS::Internal
       query.bind(":id", id);
       query.bind(":name", software.getName());
       query.bind(":version", software.getVersion());
-      if (query.exec() != 1)
-      {
-        raiseDBError_(query.getErrorMsg(), __LINE__, OPENMS_PRETTY_FUNCTION, "error inserting data");
-      }
-      query.reset(); // get ready for a new execution
+      execWithExceptionAndReset(query, 1, __LINE__, OPENMS_PRETTY_FUNCTION, "error inserting data");
       processing_software_keys_[&software] = id;
       ++id;
     }
@@ -480,11 +451,7 @@ namespace OpenMS::Internal
         {
           query2.bind(":score_type_id", score_type_keys_[&(*score_type_ref)]);
           query2.bind(":score_type_order", int(++counter));
-          if (query2.exec() != 1)
-          {
-            raiseDBError_(query2.getErrorMsg(), __LINE__, OPENMS_PRETTY_FUNCTION, "error inserting data");
-          }
-          query2.reset(); // get ready for a new execution
+          execWithExceptionAndReset(query2, 1, __LINE__, OPENMS_PRETTY_FUNCTION, "error inserting data");
         }
       }
     }
@@ -570,11 +537,7 @@ namespace OpenMS::Internal
       query.bind(":missed_cleavages", uint32_t(param.missed_cleavages));
       query.bind(":min_length", uint32_t(param.min_length));
       query.bind(":max_length", uint32_t(param.max_length));
-      if (query.exec() != 1)
-      {
-        raiseDBError_(query.getErrorMsg(), __LINE__, OPENMS_PRETTY_FUNCTION, "error inserting data");
-      }
-      query.reset(); // get ready for a new execution
+      execWithExceptionAndReset(query, 1, __LINE__, OPENMS_PRETTY_FUNCTION, "error inserting data");
       search_param_keys_[&param] = id;
       ++id;
     }
@@ -621,11 +584,7 @@ namespace OpenMS::Internal
       {
         query.bind(":search_param_id"); // NULL
       }
-      if (query.exec() != 1)
-      {
-        raiseDBError_(query.getErrorMsg(), __LINE__, OPENMS_PRETTY_FUNCTION, "error inserting data");
-      }
-      query.reset(); // get ready for a new execution
+      execWithExceptionAndReset(query, 1, __LINE__, OPENMS_PRETTY_FUNCTION, "error inserting data");
       processing_step_keys_[&step] = id;
       ++id;
     }
@@ -649,11 +608,7 @@ namespace OpenMS::Internal
         for (ID::InputFileRef input_file_ref : step.input_file_refs)
         {
           query2.bind(":input_file_id", input_file_keys_[&(*input_file_ref)]);
-          if (query2.exec() != 1)
-          {
-            raiseDBError_(query2.getErrorMsg(), __LINE__, OPENMS_PRETTY_FUNCTION, "error inserting data");
-          }
-          query2.reset(); // get ready for a new execution
+          execWithExceptionAndReset(query2, 1, __LINE__, OPENMS_PRETTY_FUNCTION, "error inserting data");
         }
       }
     }
@@ -702,12 +657,7 @@ namespace OpenMS::Internal
       {
         query.bind(":mz"); // NULL
       }
-      if (query.exec() != 1)
-      {
-        raiseDBError_(query.getErrorMsg(), __LINE__, OPENMS_PRETTY_FUNCTION,
-                      "error inserting data");
-      }
-      query.reset(); // get ready for a new execution
+      execWithExceptionAndReset(query, 1, __LINE__, OPENMS_PRETTY_FUNCTION, "error inserting data");
 
       observation_keys_[&obs] = id;
       ++id;
@@ -751,11 +701,7 @@ namespace OpenMS::Internal
       query.bind(":description", parent.description);
       query.bind(":coverage", parent.coverage);
       query.bind(":is_decoy", int(parent.is_decoy));
-      if (query.exec() != 1)
-      {
-        raiseDBError_(query.getErrorMsg(), __LINE__, OPENMS_PRETTY_FUNCTION, "error inserting data");
-      }
-      query.reset(); // get ready for a new execution
+      execWithExceptionAndReset(query, 1, __LINE__, OPENMS_PRETTY_FUNCTION, "error inserting data");
       parent_sequence_keys_[&parent] = id;
       ++id;
     }
@@ -808,11 +754,7 @@ namespace OpenMS::Internal
     {
       query_grouping.bind(":id", grouping_id);
       query_grouping.bind(":label", grouping.label);
-      if (query_grouping.exec() != 1)
-      {
-        raiseDBError_(query_grouping.getErrorMsg(), __LINE__, OPENMS_PRETTY_FUNCTION, "error inserting data");
-      }
-      query_grouping.reset(); // get ready for a new execution
+      execWithExceptionAndReset(query_grouping, 1, __LINE__, OPENMS_PRETTY_FUNCTION, "error inserting data");
 
       for (const ID::ParentGroup& group : grouping.groups)
       {
@@ -822,12 +764,7 @@ namespace OpenMS::Internal
         {
           query_group.bind(":score_type_id");
           query_group.bind(":score");
-          if (query_group.exec() != 1)
-          {
-            raiseDBError_(query_group.getErrorMsg(), __LINE__, OPENMS_PRETTY_FUNCTION, "error inserting data");
-          }
-          query_group.reset(); // get ready for a new execution
-
+          execWithExceptionAndReset(query_group, 1, __LINE__, OPENMS_PRETTY_FUNCTION, "error inserting data");
         }
         else // store group multiple times with different scores
         {
@@ -835,11 +772,7 @@ namespace OpenMS::Internal
           {
             query_group.bind(":score_type_id", score_type_keys_[&(*score_pair.first)]);
             query_group.bind(":score", score_pair.second);
-            if (query_group.exec() != 1)
-            {
-              raiseDBError_(query_group.getErrorMsg(), __LINE__, OPENMS_PRETTY_FUNCTION, "error inserting data");
-            }
-            query_group.reset(); // get ready for a new execution
+            execWithExceptionAndReset(query_group, 1, __LINE__, OPENMS_PRETTY_FUNCTION, "error inserting data");
           }
         }
 
@@ -847,11 +780,7 @@ namespace OpenMS::Internal
         for (ID::ParentSequenceRef parent_ref : group.parent_refs)
         {
           query_parent.bind(":parent_id", parent_sequence_keys_[&(*parent_ref)]);
-          if (query_parent.exec() != 1)
-          {
-            raiseDBError_(query_parent.getErrorMsg(), __LINE__, OPENMS_PRETTY_FUNCTION, "error inserting data");
-          }
-          query_parent.reset(); // get ready for a new execution
+          execWithExceptionAndReset(query_parent, 1, __LINE__, OPENMS_PRETTY_FUNCTION, "error inserting data");
         }
         ++group_id;
       }
@@ -915,22 +844,15 @@ namespace OpenMS::Internal
     {
       query_molecule.bind(":id", id);
       query_molecule.bind(":identifier", compound.identifier);
-      if (query_molecule.exec() != 1)
-      {
-        raiseDBError_(query_molecule.getErrorMsg(), __LINE__, OPENMS_PRETTY_FUNCTION, "error inserting data");
-      }
-      query_molecule.reset(); // get ready for a new execution
+      execWithExceptionAndReset(query_molecule, 1, __LINE__, OPENMS_PRETTY_FUNCTION, "error inserting data");
 
       query_compound.bind(":molecule_id", id);
       query_compound.bind(":formula", compound.formula.toString());
       query_compound.bind(":name", compound.name);
       query_compound.bind(":smile", compound.name);
       query_compound.bind(":inchi", compound.inchi);
-      if (!query_compound.exec())
-      {
-        raiseDBError_(query_compound.getErrorMsg(), __LINE__, OPENMS_PRETTY_FUNCTION, "error inserting data");
-      }
-      query_compound.reset(); // get ready for a new execution
+      execWithExceptionAndReset(query_compound, 1, __LINE__, OPENMS_PRETTY_FUNCTION, "error inserting data");
+
 
       identified_compound_keys_[&compound] = id;
       ++id;
@@ -961,11 +883,7 @@ namespace OpenMS::Internal
       if (!peptide.parent_matches.empty()) any_parent_matches = true;
       query.bind(":id", id);
       query.bind(":identifier", peptide.sequence.toString());
-      if (query.exec() != 1)
-      {
-        raiseDBError_(query.getErrorMsg(), __LINE__, OPENMS_PRETTY_FUNCTION, "error inserting data");
-      }
-      query.reset(); // get ready for a new execution
+      execWithExceptionAndReset(query, 1, __LINE__, OPENMS_PRETTY_FUNCTION, "error inserting data");
 
       identified_peptide_keys_[&peptide] = id;
       ++id;
@@ -979,11 +897,7 @@ namespace OpenMS::Internal
       if (!oligo.parent_matches.empty()) any_parent_matches = true;
       query.bind(":id", id); // use address as primary key
       query.bind(":identifier", oligo.sequence.toString());
-      if (query.exec() != 1)
-      {
-        raiseDBError_(query.getErrorMsg(), __LINE__, OPENMS_PRETTY_FUNCTION, "error inserting data");
-      }
-      query.reset(); // get ready for a new execution
+      execWithExceptionAndReset(query, 1, __LINE__, OPENMS_PRETTY_FUNCTION, "error inserting data");
 
       identified_oligo_keys_[&oligo] = id;
       ++id;
@@ -1066,12 +980,7 @@ namespace OpenMS::Internal
         }
         query.bind(":left_neighbor", match.left_neighbor);
         query.bind(":right_neighbor", match.right_neighbor);
-        if (query.exec() != 1)
-        {
-          raiseDBError_(query.getErrorMsg(), __LINE__, OPENMS_PRETTY_FUNCTION, "error inserting data");
-        }
-        query.reset(); // get ready for a new execution
-
+        execWithExceptionAndReset(query, 1, __LINE__, OPENMS_PRETTY_FUNCTION, "error inserting data");
       }
     }
   }
@@ -1104,11 +1013,7 @@ namespace OpenMS::Internal
       query.bind(":formula", adduct.getEmpiricalFormula().toString());
       query.bind(":charge", adduct.getCharge());
       query.bind(":mol_multiplier", adduct.getMolMultiplier());
-      if (query.exec() != 1)
-      {
-        raiseDBError_(query.getErrorMsg(), __LINE__, OPENMS_PRETTY_FUNCTION, "error inserting data");
-      }
-      query.reset(); // get ready for a new execution
+      execWithExceptionAndReset(query, 1, __LINE__, OPENMS_PRETTY_FUNCTION, "error inserting data");
 
       adduct_keys_[&adduct] = id;
       ++id;
@@ -1162,7 +1067,8 @@ namespace OpenMS::Internal
     Key id = 1;
     for (const ID::ObservationMatch& match : id_data.getObservationMatches())
     {
-      if (!match.peak_annotations.empty()) any_peak_annotations = true;
+      if (!match.peak_annotations.empty())
+        any_peak_annotations = true;
       query.bind(":id", id);
       query.bind(":identified_molecule_id", getDatabaseKey_(match.identified_molecule_var));
       query.bind(":observation_id", observation_keys_[&(*match.observation_ref)]);
@@ -1175,11 +1081,7 @@ namespace OpenMS::Internal
         query.bind(":adduct_id");
       }
       query.bind(":charge", match.charge);
-      if (query.exec() != 1)
-      {
-        raiseDBError_(query.getErrorMsg(), __LINE__, OPENMS_PRETTY_FUNCTION, "error inserting data");
-      }
-      query.reset(); // get ready for a new execution
+      execWithExceptionAndReset(query, 1, __LINE__, OPENMS_PRETTY_FUNCTION, "error inserting data");
 
       observation_match_keys_[&match] = id;
       ++id;
@@ -1228,12 +1130,7 @@ namespace OpenMS::Internal
             query2.bind(":peak_charge", peak_ann.charge);
             query2.bind(":peak_mz", peak_ann.mz);
             query2.bind(":peak_intensity", peak_ann.intensity);
-            if (query2.exec() != 1)
-            {
-              raiseDBError_(query2.getErrorMsg(), __LINE__, OPENMS_PRETTY_FUNCTION, "error inserting data");
-            }
-            query2.reset(); // get ready for a new execution
-
+            execWithExceptionAndReset(query2, 1, __LINE__, OPENMS_PRETTY_FUNCTION, "error inserting data");
           }
         }
       }
@@ -1321,12 +1218,7 @@ namespace OpenMS::Internal
     {
       query_feat.bind(":subordinate_of");
     }
-    if (!query_feat.exec())
-    {
-      raiseDBError_(query_feat.getErrorMsg(), __LINE__, OPENMS_PRETTY_FUNCTION,
-                    "error inserting data");
-    }
-    query_feat.reset(); // get ready for a new execution
+    execWithExceptionAndReset(query_feat, 1, __LINE__, OPENMS_PRETTY_FUNCTION, "error inserting data");
 
     storeMetaInfo_(feature, "FEAT_Feature", feature_id);
     // store convex hulls:
@@ -1344,12 +1236,7 @@ namespace OpenMS::Internal
           query_hull.bind(":point_index", (int64_t)j);
           query_hull.bind(":point_x", point.getX());
           query_hull.bind(":point_y", point.getY());
-          if (!query_hull.exec())
-          {
-            raiseDBError_(query_hull.getErrorMsg(), __LINE__,
-                          OPENMS_PRETTY_FUNCTION, "error inserting data");
-          }
-          query_hull.reset(); // get ready for a new execution
+          execWithExceptionAndReset(query_hull, 1, __LINE__, OPENMS_PRETTY_FUNCTION, "error inserting data");
         }
 
       }
@@ -1362,11 +1249,7 @@ namespace OpenMS::Internal
       for (ID::ObservationMatchRef ref : feature.getIDMatches())
       {
         query_match.bind(":observation_match_id", observation_match_keys_[&(*ref)]);
-        if (!query_match.exec())
-        {
-          raiseDBError_(query_match.getErrorMsg(), __LINE__, OPENMS_PRETTY_FUNCTION, "error inserting data");
-        }
-        query_match.reset(); // get ready for a new execution
+        execWithExceptionAndReset(query_match, 1, __LINE__, OPENMS_PRETTY_FUNCTION, "error inserting data");
       }
     }
     // recurse into subordinates:
@@ -1488,12 +1371,7 @@ namespace OpenMS::Internal
     String file_type = FileTypes::typeToName(features.getLoadedFileType());
     query.bind(":file_type", file_type);
 
-    if (query.exec() != 1)
-    {
-      raiseDBError_(query.getErrorMsg(), __LINE__, OPENMS_PRETTY_FUNCTION,
-                    "error inserting data");
-    }
-    query.reset(); // get ready for a new execution
+    execWithExceptionAndReset(query, 1, __LINE__, OPENMS_PRETTY_FUNCTION, "error inserting data");
 
     if (!features.isMetaEmpty())
     {
@@ -1536,11 +1414,7 @@ namespace OpenMS::Internal
       }
       query.bind(":processing_actions", actions);
       query.bind(":completion_time", proc.getCompletionTime().get());
-      if (query.exec() != 1)
-      {
-        raiseDBError_(query.getErrorMsg(), __LINE__, OPENMS_PRETTY_FUNCTION, "error inserting data");
-      }
-      query.reset(); // get ready for a new execution
+      execWithExceptionAndReset(query, 1, __LINE__, OPENMS_PRETTY_FUNCTION, "error inserting data");
       feat_processing_keys_[&proc] = id;
       ++id;
     }
