@@ -1847,15 +1847,6 @@ ${TOPP_BIN_PATH}/OpenSwathDecoyGenerator -test -in ${DATA_DIR_TOPP}/OpenSwathDec
   set_tests_properties("TOPP_OpenSwathWorkflow_23_b_out2" PROPERTIES DEPENDS "TOPP_OpenSwathWorkflow_23_b")
 
 
-  add_test("TOPP_OpenSwathWorkflow_17_c" ${TOPP_BIN_PATH}/OpenSwathWorkflow -in ${DATA_DIR_TOPP}/OpenSwathWorkflow_17_input.mzML -tr ${DATA_DIR_TOPP}/OpenSwathWorkflow_17_input.tsv -out_chrom OpenSwathWorkflow_17_c.chrom.mzML.tmp -out_features OpenSwathWorkflow_17_c.featureXML.tmp
--readOptions workingInMemory -ion_mobility_window 0.05 -use_ms1_ion_mobility "false" -Scoring:Scores:use_ion_mobility_scores -Scoring:add_up_spectra 3
-    ${OLD_OSW_PARAM} )
-  add_test("TOPP_OpenSwathWorkflow_17_c_out1" ${DIFF} -whitelist "id=" -in1 OpenSwathWorkflow_17_c.featureXML.tmp -in2 ${DATA_DIR_TOPP}/OpenSwathWorkflow_17_c_output.featureXML)
-  add_test("TOPP_OpenSwathWorkflow_17_c_out2" ${DIFF} -whitelist "id=" -in1 OpenSwathWorkflow_17_c.chrom.mzML.tmp -in2 ${DATA_DIR_TOPP}/OpenSwathWorkflow_17_c_output.chrom.mzML)
-  set_tests_properties("TOPP_OpenSwathWorkflow_17_c_out1" PROPERTIES DEPENDS "TOPP_OpenSwathWorkflow_17_c")
-  set_tests_properties("TOPP_OpenSwathWorkflow_17_c_out2" PROPERTIES DEPENDS "TOPP_OpenSwathWorkflow_17_c")
-
-
 
 
 endif(NOT DISABLE_OPENSWATH)
