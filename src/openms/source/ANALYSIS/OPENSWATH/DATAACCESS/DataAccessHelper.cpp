@@ -144,7 +144,7 @@ namespace OpenMS
       transition_exp.compounds.push_back(p);
     }
 
-    //copy compounds and store as compounds 
+    //copy compounds and store as compounds
     for (Size i = 0; i < transition_exp_.getCompounds().size(); i++)
     {
       OpenSwath::LightCompound c;
@@ -161,11 +161,19 @@ namespace OpenMS
       t.precursor_mz = transition.getPrecursorMZ();
       t.library_intensity = transition.getLibraryIntensity();
       t.peptide_ref = transition.getPeptideRef();
+
+      // If compound is a peptide, get the ion mobility information from the compound
+      if (!t.peptide_ref.empty())
+      {
+        OpenSwath::LightCompound p = transition_exp.getPeptideByRef(t.peptide_ref);
+        t.precursor_im = p.getDriftTime();
+      }
       // try compound ref
-      if (t.peptide_ref.empty())
+      else  // (t.peptide_ref.empty())
       {
         t.peptide_ref = transition.getCompoundRef();
       }
+
       if (transition.isProductChargeStateSet())
       {
         t.fragment_charge = transition.getProductChargeState();
