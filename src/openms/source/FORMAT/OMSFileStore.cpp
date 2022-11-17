@@ -1247,34 +1247,45 @@ namespace OpenMS::Internal
   {
     startProgress(0, 13, "Writing identification data to file");
     // generally, create tables only if we have data to write - no empty ones!
-    //db_.transaction(); // avoid SQLite's "implicit transactions", improve runtime
-    SQLite::Transaction transaction(db_);
-    storeVersionAndDate_();
-    nextProgress(); // 1
-    storeInputFiles_(id_data);
-    nextProgress(); // 2
-    storeScoreTypes_(id_data);
-    nextProgress(); // 3
-    storeProcessingSoftwares_(id_data);
-    nextProgress(); // 4
-    storeDBSearchParams_(id_data);
-    nextProgress(); // 5
-    storeProcessingSteps_(id_data);
-    nextProgress(); // 6
-    storeObservations_(id_data);
-    nextProgress(); // 7
-    storeParentSequences_(id_data);
-    nextProgress(); // 8
-    storeParentGroupSets_(id_data);
-    nextProgress(); // 9
-    storeIdentifiedCompounds_(id_data);
-    nextProgress(); // 10
-    storeIdentifiedSequences_(id_data);
-    nextProgress(); // 11
-    storeAdducts_(id_data);
-    nextProgress(); // 12
-    storeObservationMatches_(id_data);
-    transaction.commit();
+    auto body = [&]() {
+      storeVersionAndDate_();
+      nextProgress(); // 1
+      storeInputFiles_(id_data);
+      nextProgress(); // 2
+      storeScoreTypes_(id_data);
+      nextProgress(); // 3
+      storeProcessingSoftwares_(id_data);
+      nextProgress(); // 4
+      storeDBSearchParams_(id_data);
+      nextProgress(); // 5
+      storeProcessingSteps_(id_data);
+      nextProgress(); // 6
+      storeObservations_(id_data);
+      nextProgress(); // 7
+      storeParentSequences_(id_data);
+      nextProgress(); // 8
+      storeParentGroupSets_(id_data);
+      nextProgress(); // 9
+      storeIdentifiedCompounds_(id_data);
+      nextProgress(); // 10
+      storeIdentifiedSequences_(id_data);
+      nextProgress(); // 11
+      storeAdducts_(id_data);
+      nextProgress(); // 12
+      storeObservationMatches_(id_data);
+    };
+    
+    
+    if (sqlite3_get_autocommit(db_.getHandle()) == 1)
+    { // allow a transaction, otherwise another on is already in flight
+      SQLite::Transaction transaction(db_); // avoid SQLite's "implicit transactions", improve runtime
+      body();
+      transaction.commit();
+    }
+    else
+    {
+      body();
+    }
     endProgress();
     // @TODO: store input match groups
   }
