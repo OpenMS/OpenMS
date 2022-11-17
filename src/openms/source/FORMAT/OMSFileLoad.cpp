@@ -941,18 +941,18 @@ namespace OpenMS::Internal
     // start with top-level features only:
     SQLite::Statement query_feat(db_, "SELECT * FROM FEAT_Feature WHERE subordinate_of IS NULL ORDER BY id ASC");
     // prepare sub-queries (optional - corresponding tables may not be present):
-    std::optional<SQLite::Statement> query_meta;
+    std::optional<SQLite::Statement> query_meta = SQLite::Statement(db_, "");
     if (!prepareQueryMetaInfo_(*query_meta, "FEAT_Feature"))
     {
       query_meta = std::nullopt;
     }
-    std::optional<SQLite::Statement> query_hull;
+    std::optional<SQLite::Statement> query_hull = SQLite::Statement(db_, "");
     if (db_.tableExists("FEAT_ConvexHull"))
     {
       query_hull = SQLite::Statement(db_, "SELECT * FROM FEAT_ConvexHull WHERE feature_id = :id " \
                          "ORDER BY hull_index DESC, point_index ASC");
     }
-    std::optional<SQLite::Statement> query_match;
+    std::optional<SQLite::Statement> query_match = SQLite::Statement(db_, "");
     if (db_.tableExists("FEAT_ObservationMatch"))
     {
       query_match = SQLite::Statement(db_, "SELECT * FROM FEAT_ObservationMatch WHERE feature_id = :id");
