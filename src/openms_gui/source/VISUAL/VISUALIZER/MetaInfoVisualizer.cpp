@@ -190,9 +190,9 @@ namespace OpenMS
     viewlayout_->addWidget(button, nextrow_, 2);
 
     //Store information about ID(index) and QWidget
-    metalabels_.push_back(make_pair(index, lab));
-    metainfoptr_.push_back(make_pair(index, ptr));
-    metabuttons_.push_back(make_pair(index, button));
+    metalabels_.emplace_back(index, lab);
+    metainfoptr_.emplace_back(index, ptr);
+    metabuttons_.emplace_back(index, button);
 
     //Insert new button with ID into buttongroup
     buttongroup_->addButton(button, index);
