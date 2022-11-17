@@ -29,7 +29,7 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Hendrik Weisser $
-// $Authors: Hendrik Weisser $
+// $Authors: Hendrik Weisser, Chris Bielow $
 // --------------------------------------------------------------------------
 
 #pragma once
@@ -39,11 +39,11 @@
 #include <OpenMS/METADATA/ID/IdentificationData.h>
 
 #include <SQLiteCpp/Database.h>
-#include <SQLiteCpp/Statement.h>
 
 namespace SQLite
 {
   class Exception;
+  class Statement;
 }
 
 namespace OpenMS

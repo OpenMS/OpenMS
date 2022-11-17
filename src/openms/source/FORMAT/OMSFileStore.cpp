@@ -29,17 +29,17 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Hendrik Weisser $
-// $Authors: Hendrik Weisser $
+// $Authors: Hendrik Weisser, Chris Bielow $
 // --------------------------------------------------------------------------
-
-#include <SQLiteCpp/Transaction.h>
-
-#include <sqlite3.h>
 
 #include <OpenMS/FORMAT/OMSFileStore.h>
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/CONCEPT/VersionInfo.h>
 #include <OpenMS/CONCEPT/UniqueIdGenerator.h>
+
+#include <SQLiteCpp/Transaction.h>
+
+#include <sqlite3.h>
 
 using namespace std;
 
