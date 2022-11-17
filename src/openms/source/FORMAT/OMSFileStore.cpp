@@ -1134,9 +1134,9 @@ namespace OpenMS::Internal
           }
         }
       }
+      // create index on parent_id column
+      db_.exec("CREATE INDEX PeakAnnotation_parent_id ON ID_ObservationMatch_PeakAnnotation (parent_id)");
     }
-    // create index on parent_id column
-    db_.exec("CREATE INDEX PeakAnnotation_parent_id ON ID_ObservationMatch_PeakAnnotation (parent_id)");
   }
 
 
