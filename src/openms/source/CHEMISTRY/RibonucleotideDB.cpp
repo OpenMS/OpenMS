@@ -103,7 +103,6 @@ namespace OpenMS
     QChar prime(0x2032); // Unicode "prime" character
     for (auto& element : mod_obj)
     {
-      element; 
       line_count++;
       //QString row = source.readLine();
 
@@ -126,6 +125,8 @@ namespace OpenMS
   RibonucleotideDB::ConstRibonucleotidePtr parseEntry_(const nlohmann::json::value_type& entry)
   {
     Ribonucleotide* ribo = new Ribonucleotide();
+    ribo->setCode(entry["short_name"]);
+    ribo->setFormula(EmpiricalFormula(entry["formula"]));
     return ribo;
   }
 
