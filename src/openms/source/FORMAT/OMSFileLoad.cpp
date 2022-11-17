@@ -33,7 +33,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/FORMAT/OMSFileLoad.h>
-#include <OpenMS/FORMAT/OMSFileStore.h> // for "tableExists_" and "raiseDBError_"
+#include <OpenMS/FORMAT/OMSFileStore.h> // for "raiseDBError_"
 #include <OpenMS/CHEMISTRY/ProteaseDB.h>
 #include <OpenMS/CHEMISTRY/RNaseDB.h>
 #include <OpenMS/CONCEPT/UniqueIdGenerator.h>
@@ -43,7 +43,7 @@
 #include <QtCore/QJsonDocument>
 #include <QtCore/QJsonObject>
 
-#include "sqlite3.h"
+#include <sqlite3.h>
 
 using namespace std;
 
