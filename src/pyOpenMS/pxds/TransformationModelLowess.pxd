@@ -15,5 +15,5 @@ cdef extern from "<OpenMS/ANALYSIS/MAPMATCHING/TransformationModelLowess.h>" nam
         double evaluate(double value) nogil except +
 
 # COMMENT: wrap static methods
-#cdef extern from "<OpenMS/ANALYSIS/MAPMATCHING/TransformationModelLowess.h>" namespace "OpenMS::TransformationModelLowess":     
-#   void getDefaultParameters(Param& params) nogil except + #wrap-attach:TransformationModelLowess
+cdef extern from "<OpenMS/ANALYSIS/MAPMATCHING/TransformationModelLowess.h>" namespace "OpenMS::TransformationModelLowess":     
+   void getDefaultParameters(Param& params) nogil except + #wrap-attach:TransformationModelLowess
