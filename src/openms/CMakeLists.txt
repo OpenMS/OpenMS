@@ -87,10 +87,10 @@ include (${PROJECT_SOURCE_DIR}/includes.cmake)
 
 #------------------------------------------------------------------------------
 # all the dependency libraries are linked into libOpenMS.so
-set(OPENMS_DEP_LIBRARIES Evergreen LibSVM::LibSVM XercesC::XercesC Qt5::Core Qt5::Network)
+set(OPENMS_DEP_LIBRARIES Evergreen LibSVM::LibSVM XercesC::XercesC Qt5::Core Qt5::Network SQLiteCpp)
 
 set(OPENMS_DEP_PRIVATE_LIBRARIES GTE ${LPTARGET} Eigen3::Eigen HDF5::HDF5 Boost::iostreams Boost::date_time Boost::boost Boost::regex
-  BZip2::BZip2 ZLIB::ZLIB SQLiteCpp)
+  BZip2::BZip2 ZLIB::ZLIB)
 
 #------------------------------------------------------------------------------
 # Install the QSQLite driver if we are not on linux so we can use oms files
