@@ -2520,7 +2520,7 @@ state0:
       }
     }
 
-  // extract meta values stored at consensus feature, peptide id and peptide hit level
+  // extract *all* meta values stored at consensus feature, peptide id and peptide hit level
   void MzTab::getConsensusMapMetaValues_(const ConsensusMap& consensus_map,
     set<String>& consensus_feature_user_value_keys,
     set<String>& peptide_identification_user_value_keys,
@@ -2539,6 +2539,7 @@ state0:
 
       consensus_feature_user_value_keys.insert(keys.begin(), keys.end());
 
+      // extract meta values from assigned peptide identifications
       const vector<PeptideIdentification> & curr_pep_ids = c.getPeptideIdentifications();
       extractMetaValuesFromIDs(curr_pep_ids, peptide_identification_user_value_keys, peptide_hit_user_value_keys);
     }
@@ -2682,15 +2683,26 @@ state0:
 
     // create column names from meta values
     // feature meta values
-    for (const auto& k : consensus_feature_user_value_keys_) pep_optional_column_names_.emplace_back("opt_global_" + k);    
+    for (const auto& k : consensus_feature_user_value_keys_) 
+    {
+      pep_optional_column_names_.emplace_back("opt_global_" + k);
+    }      
 
     /* 
-    // In the PEP section, meta values in peptide identifications are better omitted as they can be easily looked up from the PSM-level are otherwise duplicates.
-    for (const auto& k : consensus_feature_peptide_identification_user_value_keys_) pep_optional_column_names_.emplace_back("opt_global_" + k);
+      Note: In the PEP section, meta values in peptide identifications are better omitted as they can be easily looked up from the PSM-level are otherwise duplicates.
+      For debug purposes one can enable this line:
+      for (const auto& k : consensus_feature_peptide_identification_user_value_keys_) pep_optional_column_names_.emplace_back("opt_global_" + k);
     */
+
     // peptide hit (PSM) meta values
-    for (const auto& k : consensus_feature_peptide_hit_user_value_keys_) pep_optional_column_names_.emplace_back("opt_global_" + k);
-    std::replace(pep_optional_column_names_.begin(), pep_optional_column_names_.end(), String("opt_global_target_decoy"), String("opt_global_cv_MS:1002217_decoy_peptide")); // for PRIDE
+    
+    // whitelisted meta values "target_decoy". Expose in the PEP section with special CV term (for PRIDE compatibility):
+    if (auto it = consensus_feature_peptide_hit_user_value_keys_.find("target_decoy");
+      it != consensus_feature_peptide_hit_user_value_keys_.end())
+    {
+      pep_optional_column_names_.emplace_back("opt_global_cv_MS:1002217_decoy_peptide");
+    }
+    // added during export (for PRIDE compatibility):
     pep_optional_column_names_.emplace_back("opt_global_cv_MS:1000889_peptidoform_sequence");
 
     // PSM optional columns: also from meta values in consensus features
