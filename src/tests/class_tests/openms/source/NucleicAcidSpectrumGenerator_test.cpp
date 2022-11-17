@@ -80,7 +80,7 @@ ptr = new NucleicAcidSpectrumGenerator();
 START_SECTION((void getSpectrum(MSSpectrum& spectrum, const NASequence& oligo, Int min_charge, Int max_charge) const))
 {
   // fragment ion data from Ariadne (ariadne.riken.jp):
-  NASequence seq = NASequence::fromString("[m1A]UCCACA[G*]p"); //Terminal thiol replacement shouldn't change any masses
+  NASequence seq = NASequence::fromString("[m1A]UCCACAGp");
   ABORT_IF(abs(seq.getMonoWeight() - 2585.3800) > 0.01);
   vector<double> aminusB_ions = {113.0244, 456.0926, 762.1179, 1067.1592,
                                  1372.2005, 1701.2530, 2006.2943, 2335.3468};
@@ -204,6 +204,9 @@ START_SECTION((void getSpectrum(MSSpectrum& spectrum, const NASequence& oligo, I
   {
     TEST_REAL_SIMILAR(spectrum[i].getMZ(), z_ions[i]);
   }
+
+  seq = NASequence::fromString("[m1A]UCCACA[G*]p"); //Terminal thiol replacement shouldn't change any masses
+  TEST_REAL_SIMILAR(seq.getMonoWeight(), 2585.3800);
 
   //repeat the above with internal Thiols
 
