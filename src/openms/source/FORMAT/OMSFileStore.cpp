@@ -32,9 +32,9 @@
 // $Authors: Hendrik Weisser $
 // --------------------------------------------------------------------------
 
-#include "SQLiteCpp/Transaction.h"
+#include <SQLiteCpp/Transaction.h>
 
-#include <qglobal.h>
+//#include <qglobal.h>
 #include <OpenMS/FORMAT/OMSFileStore.h>
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/CONCEPT/VersionInfo.h>
@@ -1050,7 +1050,7 @@ namespace OpenMS::Internal
       {
         if (match.start_pos != ID::ParentMatch::UNKNOWN_POSITION)
         {
-          query.bind(":start_pos", uint(match.start_pos));
+          query.bind(":start_pos", uint32_t(match.start_pos));
         }
         else // use NULL value
         {
@@ -1058,7 +1058,7 @@ namespace OpenMS::Internal
         }
         if (match.end_pos != ID::ParentMatch::UNKNOWN_POSITION)
         {
-          query.bind(":end_pos", uint(match.end_pos));
+          query.bind(":end_pos", uint32_t(match.end_pos));
         }
         else // use NULL value
         {
@@ -1293,7 +1293,7 @@ namespace OpenMS::Internal
     query_feat.bind(":overall_quality", feature.getOverallQuality());
     query_feat.bind(":rt_quality", feature.getQuality(0));
     query_feat.bind(":mz_quality", feature.getQuality(1));
-    query_feat.bind(":unique_id", qint64(feature.getUniqueId()));
+    query_feat.bind(":unique_id", int64_t(feature.getUniqueId()));
     if (feature.hasPrimaryID())
     {
       query_feat.bind(":primary_molecule_id", getDatabaseKey_(feature.getPrimaryID()));
@@ -1324,13 +1324,13 @@ namespace OpenMS::Internal
     {
       auto& query_hull = *prepared_queries_["FEAT_ConvexHull"];
       query_hull.bind(":feature_id", feature_id);
-      for (uint i = 0; i < hulls.size(); ++i)
+      for (size_t i = 0; i < hulls.size(); ++i)
       {
-        query_hull.bind(":hull_index", i);
-        for (uint j = 0; j < hulls[i].getHullPoints().size(); ++j)
+        query_hull.bind(":hull_index", (int64_t)i);
+        for (size_t j = 0; j < hulls[i].getHullPoints().size(); ++j)
         {
           const ConvexHull2D::PointType& point = hulls[i].getHullPoints()[j];
-          query_hull.bind(":point_index", j);
+          query_hull.bind(":point_index", (int64_t)j);
           query_hull.bind(":point_x", point.getX());
           query_hull.bind(":point_y", point.getY());
           if (!query_hull.exec())
