@@ -45,8 +45,6 @@
 
 #include <QtCore/QJsonArray> // for JSON export
 
-class SQLite::Statement;
-
 namespace OpenMS
 {
   namespace Internal

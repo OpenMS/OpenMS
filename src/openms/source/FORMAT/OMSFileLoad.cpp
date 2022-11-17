@@ -1007,12 +1007,12 @@ namespace OpenMS::Internal
         // avoid this with separate "header" and "rows" (array)?
         switch (query.getColumn(i).getType())
         {
-          break; case SQLITE_INTEGER: record.insert(query.getColumnName(i), query.getColumn(i).getInt64());
+          break; case SQLITE_INTEGER: record.insert(query.getColumnName(i), qint64(query.getColumn(i).getInt64()));
           break; case SQLITE_FLOAT: record.insert(query.getColumnName(i), query.getColumn(i).getDouble());
           break; case SQLITE_BLOB: record.insert(query.getColumnName(i), query.getColumn(i).getText());
           break; case SQLITE_NULL: record.insert(query.getColumnName(i), "NULL");
           break; case SQLITE3_TEXT: record.insert(query.getColumnName(i), query.getColumn(i).getText());
-          default:
+          break; default:
             throw Exception::NotImplemented(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
         }
       }
