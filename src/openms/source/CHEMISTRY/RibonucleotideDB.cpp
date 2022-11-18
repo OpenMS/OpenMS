@@ -129,8 +129,9 @@ namespace OpenMS
   RibonucleotideDB::ConstRibonucleotidePtr parseEntry_(const nlohmann::json::value_type& entry)
   {
     Ribonucleotide* ribo = new Ribonucleotide();
-    ribo->setName(entry["name"]);
-    ribo->setCode(entry["short_name"]);
+    ribo->setName(entry.at("name"));
+    String code = entry.at("short_name");
+    ribo->setCode(code);
     //FIXME NewCode doesn't exist any more
     if (entry["reference_moiety"].size() == 1 && string(entry.at("reference_moiety").at(0)).length() == 1)
     {
@@ -140,20 +141,24 @@ namespace OpenMS
     else if (entry["reference_moiety"].size() == 4) // if all moieties are possible it might be a terminal
     {
       ribo->setOrigin('X'); // Use X as any unmodified
-      if (ribo->getCode().hasSuffix("pN"))
+      if (code.hasSuffix("pN"))
       {
         ribo->setTermSpecificity(Ribonucleotide::FIVE_PRIME);
       }
-      else if (ribo->getCode().hasSuffix("p") && ribo->getCode().hasPrefix("N"))
+      else if (code.hasSuffix("p") && code.hasPrefix("N"))
       {
         ribo->setTermSpecificity(Ribonucleotide::THREE_PRIME);
+      }
+      else
+      {
+        ribo->setTermSpecificity(Ribonucleotide::ANYWHERE); //other nonspecific mods
       }
     }
     else
     {
       OPENMS_LOG_ERROR << "Error: we don't support bases with multiple reference moieties or multicharacter moieties." << endl;
     }
-    //FIXME HTML code is also gone
+    ribo->setHTMLCode(entry.at("abbrev")); //This is the single letter unicode representation that only SOME mods have
     ribo->setFormula(EmpiricalFormula(entry.at("formula")));
     if (!(entry.at("mass_avg").is_null()))
     {
@@ -161,7 +166,7 @@ namespace OpenMS
     }
     if (ribo->getAvgMass() - ribo->getFormula().getAverageWeight() >= 0.01)
     {
-      OPENMS_LOG_WARN << "Average mass of " << ribo->getCode() << " differs substantially from its formula mass.\n";
+      OPENMS_LOG_WARN << "Average mass of " << code << " differs substantially from its formula mass.\n";
     }
 
     if (!(entry.at("mass_monoiso").is_null()))
@@ -170,22 +175,36 @@ namespace OpenMS
     }
     if (ribo->getMonoMass() - ribo->getFormula().getMonoWeight() >= 0.01)
     {
-      OPENMS_LOG_WARN << "Average mass of " << ribo->getCode() << " differs substantially from its formula mass.\n";
+      OPENMS_LOG_WARN << "Average mass of " << code << " differs substantially from its formula mass.\n";
     }
 
-
-      if (ribo->getCode().hasPrefix('d')) // handle deoxyribose, possibly with methyl mod
+    //TODO: Calculate base loss formula from SMILES
+    if (code.hasPrefix('d')) // handle deoxyribose, possibly with methyl mod
+    {
+      ribo->setBaselossFormula(EmpiricalFormula("C5H10O4"));
+    }
+    else if (code.hasSuffix('m')) // mod. attached to the ribose, not base
+    {
+      ribo->setBaselossFormula(EmpiricalFormula("C6H12O5"));
+    }
+    else if (code.hasSuffix("m*")) // check if we have both a sulfer and a 2'-O methyl
+    {
+      ribo->setBaselossFormula(EmpiricalFormula("C6H12O5"));
+    }
+    else if (code.hasSuffix('?') || code.hasSuffix("?*")) // ambiguity code -> fill the map
+    {
+      if (!entry.contains("alternatives"))
       {
-        ribo->setBaselossFormula(EmpiricalFormula("C5H10O4"));
+        String msg = "Ambiguous mod without alternative found in " + code;
+        //throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, code, msg);
       }
-      else if (ribo->getCode().hasSuffix('m')) // mod. attached to the ribose, not base
-      {
-        ribo->setBaselossFormula(EmpiricalFormula("C6H12O5"));
-      }
-      else if (ribo->getCode().hasSuffix("m*")) // check if we have both a sulfer and a 2'-O methyl
-      {
-        ribo->setBaselossFormula(EmpiricalFormula("C6H12O5"));
-      }
+      String code1 = string(entry.at("alternatives").at(0)), code2 = string(entry.at("alternatives").at(1)); //we always have exactly two ambiguities
+      ambiguity_map_[code] = make_pair(getRibonucleotide(code1), getRibonucleotide(code2));
+    }
+    else if (code.hasSuffix("Ar(p)") ||  code.hasSuffix("Gr(p)"))
+    {
+      ribo->setBaselossFormula(EmpiricalFormula("C10H19O21P"));
+    }
     return ribo;
   }
 
