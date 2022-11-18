@@ -74,7 +74,7 @@ namespace OpenMS
     }
 
     /// Destructor
-    SpectrumAccessSqMass::~SpectrumAccessSqMass() {}
+    SpectrumAccessSqMass::~SpectrumAccessSqMass() = default;
 
     /// Copy constructor
     SpectrumAccessSqMass::SpectrumAccessSqMass(const SpectrumAccessSqMass & rhs) :

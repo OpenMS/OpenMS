@@ -114,10 +114,11 @@ namespace OpenMS
                                        FileTypes::DTA, FileTypes::DTA2D, FileTypes::MGF, FileTypes::MS2,
                                        FileTypes::MSP, FileTypes::BZ2, FileTypes::GZ });
 
-  TOPPViewBase::TOPPViewBase(TOOL_SCAN scan_mode, QWidget* parent) :
+  TOPPViewBase::TOPPViewBase(TOOL_SCAN scan_mode, VERBOSITY verbosity, QWidget* parent) :
     QMainWindow(parent),
     DefaultParamHandler("TOPPViewBase"),
     scan_mode_(scan_mode),
+    verbosity_(verbosity),
     ws_(this),
     tab_bar_(this),
     recent_files_(),
@@ -442,6 +443,11 @@ namespace OpenMS
     current_path_ = param_.getValue(user_section + "default_path").toString();
 
     // set plugin search path, create it if it does not already exist
+    if (verbosity_ == VERBOSITY::VERBOSE) 
+    {
+      tool_scanner_.setVerbose(1);
+    }
+
     String plugin_path = String(param_.getValue(user_section + "plugins_path").toString());
     tool_scanner_.setPluginPath(plugin_path, true);
 
@@ -504,7 +510,7 @@ namespace OpenMS
     defaults_.setValidStrings("preferences:topp_cleanup", {"true", "false"});
 
     defaults_.setValue("preferences:version", "none", "OpenMS version, used to check if the TOPPView.ini is up-to-date");
-    subsections_.push_back("preferences:RecentFiles");
+    subsections_.emplace_back("preferences:RecentFiles");
 
     // store defaults in param_
     defaultsToParam_();
@@ -805,11 +811,11 @@ namespace OpenMS
     return LOAD_RESULT::OK;
   }
 
-  void TOPPViewBase::addData(FeatureMapSharedPtrType feature_map,
-                             ConsensusMapSharedPtrType consensus_map,
+  void TOPPViewBase::addData(const FeatureMapSharedPtrType& feature_map,
+                             const ConsensusMapSharedPtrType& consensus_map,
                              vector<PeptideIdentification>& peptides,
-                             ExperimentSharedPtrType peak_map,
-                             ODExperimentSharedPtrType on_disc_peak_map,
+                             const ExperimentSharedPtrType& peak_map,
+                             const ODExperimentSharedPtrType& on_disc_peak_map,
                              LayerDataBase::DataType data_type,
                              bool show_as_1d,
                              bool show_options,
@@ -2503,7 +2509,7 @@ namespace OpenMS
       {
         if (sw->canvas()->getLayer(j).filename == filename)
         {
-          needs_update.push_back(std::pair<const PlotWidget*, Size>(sw, j));
+          needs_update.emplace_back(sw, j);
         }
       }
     }

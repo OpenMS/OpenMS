@@ -32,31 +32,28 @@
 // $Authors: Chris Bielow $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/VISUAL/MISC/ExternalProcessMBox.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/VISUAL/MISC/ExternalProcessMBox.h>
 #include <QMessageBox>
+#include <utility>
 
 namespace OpenMS
 {
 
   /// default Ctor; callbacks for stdout/stderr are empty
-  ExternalProcessMBox::ExternalProcessMBox()
-  {
-  }
+  ExternalProcessMBox::ExternalProcessMBox() = default;
 
   ExternalProcessMBox::ExternalProcessMBox(std::function<void(const String&)> callbackStdOut, std::function<void(const String&)> callbackStdErr)
-    : ep_(callbackStdOut, callbackStdErr)
+    : ep_(std::move(callbackStdOut), std::move(callbackStdErr))
   {
   }
 
-  ExternalProcessMBox::~ExternalProcessMBox()
-  {
-  }
+  ExternalProcessMBox::~ExternalProcessMBox() = default;
 
   /// re-wire the callbacks used using run()
   void ExternalProcessMBox::setCallbacks(std::function<void(const String&)> callbackStdOut, std::function<void(const String&)> callbackStdErr)
   {
-    ep_.setCallbacks(callbackStdOut, callbackStdErr);
+    ep_.setCallbacks(std::move(callbackStdOut), std::move(callbackStdErr));
   }
 
   ExternalProcess::RETURNSTATE ExternalProcessMBox::run(QWidget* parent, const QString& exe, const QStringList& args, const QString& working_dir, const bool verbose, String& error_msg)

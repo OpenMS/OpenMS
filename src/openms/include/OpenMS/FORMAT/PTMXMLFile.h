@@ -74,7 +74,7 @@ public:
 
         The data is read in and stored in the file 'filename'.
     */
-    void store(String filename, std::map<String, std::pair<String, String> > & ptm_informations) const;
+    void store(const String& filename, std::map<String, std::pair<String, String> > & ptm_informations) const;
   };
 
 } // namespace OpenMS

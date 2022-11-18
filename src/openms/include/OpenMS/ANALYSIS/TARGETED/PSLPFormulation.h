@@ -219,7 +219,7 @@ protected:
 
     void assembleInclusionListForProteinBasedLP_(std::vector<IndexTriple>& variable_indices, FeatureMap& precursors, std::vector<int>& solution_indices, PrecursorIonSelectionPreprocessing& preprocessing);
 
-    void updateObjFunction_(String acc, FeatureMap& features, PrecursorIonSelectionPreprocessing& preprocessed_db, std::vector<IndexTriple>& variable_indices);
+    void updateObjFunction_(const String& acc, FeatureMap& features, PrecursorIonSelectionPreprocessing& preprocessed_db, std::vector<IndexTriple>& variable_indices);
 
 
     Int getNumberOfPrecsInSpectrum_(Int constr_idx);

@@ -40,6 +40,7 @@
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <map>
 #include <string>
+#include <utility>
 
 using namespace std;
 
@@ -48,7 +49,7 @@ namespace OpenMS
 
   NASequence::NASequence(vector<const Ribonucleotide*> seq, const RibonucleotideChainEnd* five_prime, const RibonucleotideChainEnd* three_prime)
   {
-    seq_ = seq;
+    seq_ = std::move(seq);
     five_prime_ = five_prime;
     three_prime_ = three_prime;
   }

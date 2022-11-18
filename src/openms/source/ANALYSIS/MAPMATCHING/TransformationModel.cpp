@@ -80,9 +80,7 @@ namespace OpenMS
     weighting_ = !(x_weight_ == "x" && y_weight_ == "y"); 
   }
 
-  TransformationModel::~TransformationModel()
-  {
-  }
+  TransformationModel::~TransformationModel() = default;
 
   double TransformationModel::evaluate(double value) const
   {

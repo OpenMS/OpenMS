@@ -186,7 +186,7 @@ namespace Internal
       @param id The spectrum native id
       @param s The spectrum to be used and filled with data
     */
-    void getMSSpectrumByNativeId(std::string id, OpenMS::MSSpectrum& s);
+    void getMSSpectrumByNativeId(const std::string& id, OpenMS::MSSpectrum& s);
 
     /**
       @brief Retrieve the raw data for the spectrum at position "id"

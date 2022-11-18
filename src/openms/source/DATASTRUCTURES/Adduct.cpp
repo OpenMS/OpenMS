@@ -67,7 +67,7 @@ namespace OpenMS
   {
   }
 
-  Adduct::Adduct(Int charge, Int amount, double singleMass, String formula, double log_prob, double rt_shift, const String label) :
+  Adduct::Adduct(Int charge, Int amount, double singleMass, const String& formula, double log_prob, double rt_shift, const String& label) :
     charge_(charge),
     amount_(amount),
     singleMass_(singleMass),

@@ -131,7 +131,8 @@
 			</PeptideHit>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="xcorr" higher_score_better="true" significance_threshold="0" MZ="762.728558365233" RT="2.8" >
-			<PeptideHit score="5.638" sequence="EISPDTTLLDLQNNDISELR" charge="3" aa_before="K" aa_after="K" protein_refs="PH_20" >
+			<PeptideHit score="5.638" sequence="DDDDDDDDDDDDDDDR" charge="3" aa_before="K" aa_after="K" protein_refs="PH_20" >
+			<UserParam type="string" name="target_decoy" value="decoy"/>
 			</PeptideHit>
 		</PeptideIdentification>
 	</IdentificationRun>

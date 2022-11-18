@@ -82,7 +82,7 @@ namespace OpenMS
       DeltaMass(double dm, LabelSet ls);
       
       // delta mass with a label set containing a single label
-      DeltaMass(double dm, String l);
+      DeltaMass(double dm, const String& l);
     };
 
     /**

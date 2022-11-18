@@ -34,16 +34,18 @@
 
 #include <OpenMS/FORMAT/DATAACCESS/MSDataChainingConsumer.h>
 
+#include <utility>
+
 namespace OpenMS
 {
 
-  MSDataChainingConsumer::MSDataChainingConsumer() {}
+  MSDataChainingConsumer::MSDataChainingConsumer() = default;
 
   MSDataChainingConsumer::MSDataChainingConsumer(std::vector<Interfaces::IMSDataConsumer *> consumers) :
-    consumers_(consumers)
+    consumers_(std::move(consumers))
   {}
 
-  MSDataChainingConsumer::~MSDataChainingConsumer() {}
+  MSDataChainingConsumer::~MSDataChainingConsumer() = default;
 
   void MSDataChainingConsumer::appendConsumer(Interfaces::IMSDataConsumer * consumer)
   {

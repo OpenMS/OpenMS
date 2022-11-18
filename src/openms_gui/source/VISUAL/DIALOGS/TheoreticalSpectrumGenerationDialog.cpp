@@ -47,11 +47,12 @@
 #include <qflags.h>
 
 #include <array>
+#include <utility>
 
 namespace OpenMS
 {
   TheoreticalSpectrumGenerationDialog::CheckBox::CheckBox(QDoubleSpinBox** sb, QLabel** l, std::array<CheckBoxState, 3> s, std::pair<String, String> p_t, std::pair<String, String> p_s) :
-      ptr_to_spin_box(sb), ptr_to_spin_label(l), state(s), param_this(p_t), param_spin(p_s)
+      ptr_to_spin_box(sb), ptr_to_spin_label(l), state(s), param_this(std::move(p_t)), param_spin(std::move(p_s))
   {}
 
   TheoreticalSpectrumGenerationDialog::TheoreticalSpectrumGenerationDialog() : 

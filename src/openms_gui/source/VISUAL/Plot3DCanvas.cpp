@@ -87,9 +87,7 @@ namespace OpenMS
     connect(this, SIGNAL(preferencesChange()), this, SLOT(currentLayerParamtersChanged_()));
   }
 
-  Plot3DCanvas::~Plot3DCanvas()
-  {
-  }
+  Plot3DCanvas::~Plot3DCanvas() = default;
 
   void Plot3DCanvas::resizeEvent(QResizeEvent * e)
   {
