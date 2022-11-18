@@ -65,7 +65,7 @@ END_SECTION
 START_SECTION(ConstIterator begin())
 {
   RibonucleotideDB::ConstIterator it = ptr->begin();
-  TEST_STRING_EQUAL((*it)->getCode(), "m1Am");
+  TEST_STRING_EQUAL((*it)->getCode(), "io6A");
 }
 END_SECTION
 

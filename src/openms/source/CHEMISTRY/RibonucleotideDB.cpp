@@ -161,7 +161,7 @@ namespace OpenMS
     }
     if (ribo->getAvgMass() - ribo->getFormula().getAverageWeight() >= 0.01)
     {
-      OPENMS_LOG_WARN << "Average mass of " << ribo->getCode() << " differs substantially from its formula mass.";
+      OPENMS_LOG_WARN << "Average mass of " << ribo->getCode() << " differs substantially from its formula mass.\n";
     }
 
     if (!(entry.at("mass_monoiso").is_null()))
@@ -170,7 +170,7 @@ namespace OpenMS
     }
     if (ribo->getMonoMass() - ribo->getFormula().getMonoWeight() >= 0.01)
     {
-      OPENMS_LOG_WARN << "Average mass of " << ribo->getCode() << " differs substantially from its formula mass.";
+      OPENMS_LOG_WARN << "Average mass of " << ribo->getCode() << " differs substantially from its formula mass.\n";
     }
 
 
