@@ -143,6 +143,11 @@ namespace OpenMS
                                                            const PrecalculatedAveragine& avg,
                                                            int window_width = -1, int allowed_iso_error_for_second_best_cos = 0);
 
+
+    static float getAccurateIsotopeCosine(PeakGroup& pg, const PrecalculatedAveragine& avg, double tol, int bin_factor,
+                                          double iso_distance = Constants::ISOTOPE_MASSDIFF_55K_U);
+
+
     /// set decoy_flag_
     void setDecoyFlag(PeakGroup::decoyFlag flag, FLASHDeconvAlgorithm& targetFD);
 
@@ -205,7 +210,7 @@ namespace OpenMS
     /// mass bins that are previsouly deconvolved and excluded for decoy mass generation
     boost::dynamic_bitset<> previously_deconved_mass_bins_for_decoy;
     std::vector<double> previously_deconved_mono_masses_for_decoy;
-    std::unordered_set<double> excluded_mzs_;
+    std::unordered_set<float> excluded_mzs_;
 
     /// Stores log mz peaks
     std::vector<LogMzPeak> log_mz_peaks_;

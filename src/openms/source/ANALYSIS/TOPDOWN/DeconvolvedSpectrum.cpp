@@ -292,14 +292,13 @@ namespace OpenMS
       int ms_level = decoy_deconvolved_spectrum.getOriginalSpectrum().getMSLevel();
       for (auto& pg : decoy_deconvolved_spectrum)
       {
-        //target (0), an isotope decoy (1), a noise (2), or a charge decoy (3)
-        if(pg.getDecoyFlag() == 3)
+        if(pg.getDecoyFlag() == PeakGroup::decoyFlag::isotope_decoy)
         {
           dscore_iso_decoy_map[ms_level].push_back(pg.getQScore());
-        }else if(pg.getDecoyFlag() == 2)
+        }else if(pg.getDecoyFlag() == PeakGroup::decoyFlag::noise_decoy)
         {
           dscore_noise_decoy_map[ms_level].push_back(pg.getQScore());
-        }else if(pg.getDecoyFlag() == 1)
+        }else if(pg.getDecoyFlag() == PeakGroup::decoyFlag::charge_decoy)
         {
           dscore_charge_decoy_map[ms_level].push_back(pg.getQScore());
         }
