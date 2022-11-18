@@ -50,7 +50,7 @@ namespace OpenMS
   {
     //TODO add JSON logic here
     readFromJSON_("/home/samuel/git/OpenMS/share/OpenMS/CHEMISTRY/Modomics.json");
-    readFromFile_("CHEMISTRY/Modomics.tsv");
+    //readFromFile_("CHEMISTRY/Modomics.tsv");
     readFromFile_("CHEMISTRY/Custom_RNA_modifications.tsv");
   }
 
@@ -111,13 +111,17 @@ namespace OpenMS
       try
       {
         ConstRibonucleotidePtr ribo = parseEntry_(element);
-        code_map_[ribo->getCode()] = ribonucleotides_.size();
-        ribonucleotides_.push_back(ribo);
-        max_code_length_ = max(max_code_length_, ribo->getCode().size());
+        // there are some weird exotic mods in modomics that don't have codes. We ignore them
+        if (ribo->getCode() != "") //FIXME add logic to handle lack of masses
+        {
+          code_map_[ribo->getCode()] = ribonucleotides_.size();
+          ribonucleotides_.push_back(ribo);
+          max_code_length_ = max(max_code_length_, ribo->getCode().size());
+        }
       }
       catch (Exception::BaseException& e)
       {
-        OPENMS_LOG_ERROR << "Error: Failed to parse input line " << line_count << ". Reason:\n" << e.getName() << " - " << e.what() << "\nSkipping this line." << endl;
+        OPENMS_LOG_ERROR << "Error: Failed to parse input element " << line_count << ". Reason:\n" << e.getName() << " - " << e.what() << "\nSkipping this line." << endl;
       }
     }
   }
@@ -125,8 +129,63 @@ namespace OpenMS
   RibonucleotideDB::ConstRibonucleotidePtr parseEntry_(const nlohmann::json::value_type& entry)
   {
     Ribonucleotide* ribo = new Ribonucleotide();
+    ribo->setName(entry["name"]);
     ribo->setCode(entry["short_name"]);
-    ribo->setFormula(EmpiricalFormula(entry["formula"]));
+    //FIXME NewCode doesn't exist any more
+    if (entry["reference_moiety"].size() == 1 && string(entry.at("reference_moiety").at(0)).length() == 1)
+    {
+      ribo->setOrigin(string(entry.at("reference_moiety").at(0))[0]);
+      ribo->setTermSpecificity(Ribonucleotide::ANYWHERE); // due to format changes we get the terminal specificity from the moieties, modomics contains base specific terminals, but they can be represented by the wild-card ones
+    }
+    else if (entry["reference_moiety"].size() == 4) // if all moieties are possible it might be a terminal
+    {
+      ribo->setOrigin('X'); // Use X as any unmodified
+      if (ribo->getCode().hasSuffix("pN"))
+      {
+        ribo->setTermSpecificity(Ribonucleotide::FIVE_PRIME);
+      }
+      else if (ribo->getCode().hasSuffix("p") && ribo->getCode().hasPrefix("N"))
+      {
+        ribo->setTermSpecificity(Ribonucleotide::THREE_PRIME);
+      }
+    }
+    else
+    {
+      OPENMS_LOG_ERROR << "Error: we don't support bases with multiple reference moieties or multicharacter moieties." << endl;
+    }
+    //FIXME HTML code is also gone
+    ribo->setFormula(EmpiricalFormula(entry.at("formula")));
+    if (!(entry.at("mass_avg").is_null()))
+    {
+      ribo->setAvgMass(entry.at("mass_avg"));
+    }
+    if (ribo->getAvgMass() - ribo->getFormula().getAverageWeight() >= 0.01)
+    {
+      OPENMS_LOG_WARN << "Average mass of " << ribo->getCode() << " differs substantially from its formula mass.";
+    }
+
+    if (!(entry.at("mass_monoiso").is_null()))
+    {
+      ribo->setMonoMass(entry.at("mass_monoiso"));
+    }
+    if (ribo->getMonoMass() - ribo->getFormula().getMonoWeight() >= 0.01)
+    {
+      OPENMS_LOG_WARN << "Average mass of " << ribo->getCode() << " differs substantially from its formula mass.";
+    }
+
+
+      if (ribo->getCode().hasPrefix('d')) // handle deoxyribose, possibly with methyl mod
+      {
+        ribo->setBaselossFormula(EmpiricalFormula("C5H10O4"));
+      }
+      else if (ribo->getCode().hasSuffix('m')) // mod. attached to the ribose, not base
+      {
+        ribo->setBaselossFormula(EmpiricalFormula("C6H12O5"));
+      }
+      else if (ribo->getCode().hasSuffix("m*")) // check if we have both a sulfer and a 2'-O methyl
+      {
+        ribo->setBaselossFormula(EmpiricalFormula("C6H12O5"));
+      }
     return ribo;
   }
 
