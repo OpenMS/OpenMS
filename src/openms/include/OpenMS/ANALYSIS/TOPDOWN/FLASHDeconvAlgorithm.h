@@ -76,12 +76,6 @@ namespace OpenMS
     /// assignment operator
     FLASHDeconvAlgorithm& operator=(const FLASHDeconvAlgorithm& fd) = default;
 
-    /// move assignment operator
-    FLASHDeconvAlgorithm& operator=(FLASHDeconvAlgorithm&& fd) = default;
-
-    /// destructor
-    ~FLASHDeconvAlgorithm() = default;
-
     /**
       @brief main deconvolution function that generates the deconvolved target and decoy spectrum based on the original spectrum.
       @param spec the original spectrum
@@ -91,8 +85,9 @@ namespace OpenMS
  */
     void performSpectrumDeconvolution(const MSSpectrum& spec,
                                       const std::vector<DeconvolvedSpectrum>& survey_scans,
-                                      int scan_number,
-                                      const std::map<int, std::vector<std::vector<float>>>& precursor_map_for_FLASHIda);
+                                      const int scan_number,
+                                      const bool write_detail,
+                                      const std::map<int, std::vector<std::vector<double>>>& precursor_map_for_FLASHIda);
 
     /// return deconvolved spectrum
     DeconvolvedSpectrum& getDeconvolvedSpectrum();
@@ -106,15 +101,15 @@ namespace OpenMS
     /** @brief set targeted or excluded masses for targeted deconvolution. Masses are targeted or excluded in all ms levels.
         @param exclude if set, masses are excluded.
      */
-    void setTargetMasses(const std::vector<double>& masses, bool exclude = false);
+    void setTargetMasses(const std::vector<double> masses, bool exclude = false);
 
     /** @brief precalculate averagine (for predefined mass bins) to speed up averagine generation
         @param use_RNA_averagine if set, averagine for RNA (nucleotides) is calculated
      */
-    void calculateAveragine(bool use_RNA_averagine);
+    void calculateAveragine(const bool use_RNA_averagine);
 
     /// convert double to nominal mass
-    static int getNominalMass(double mass);
+    static int getNominalMass(const double mass);
 
     /** calculate cosine between two vectors a and b with additional parameters for fast calculation
      * @param a vector a
@@ -133,25 +128,28 @@ namespace OpenMS
                              int offset,
                              int min_iso_size);
 
-
-     /** @brief Examine intensity distribution over isotope indices. Also determines the most plausible isotope index or, monoisotopic mono_mass
-         @param mono_mass monoisotopic mass
-         @param per_isotope_intensities vector of intensities associated with each isotope - aggregated through charges
-         @param offset output offset between input monoisotopic mono_mass and determined monoisotopic mono_mass
-         @param avg precalculated averagine
-         @param window_width isotope offset value range. If -1, set automatically.
-         @param allowed_iso_error_for_second_best_cos allowed isotope error to calculate the second best cos. If decoyFlag is not PeakGroup::DecoyFlag::target, the second best cosine and its corresponding offset will be output
-         @param decoyFlag if this is not PeakGroup::DecoyFlag::target, the second best cosine and its corresponding offset will be output.
-         @return calculated cosine similar score
-      */
-     static float getIsotopeCosineAndDetermineIsotopeIndex(double mono_mass,
+    /** @brief Examine intensity distribution over isotope indices. Also determines the most plausible isotope index or, monoisotopic mono_mass
+        @param mono_mass monoisotopic mass
+        @param per_isotope_intensities vector of intensities associated with each isotope - aggregated through charges
+        @param offset output offset between input monoisotopic mono_mass and determined monoisotopic mono_mass
+        @param avg precalculated averagine
+        @param window_width isotope offset value range. If -1, set automatically.
+        @param allowed_iso_error_for_second_best_cos allowed isotope error to calculate the second best cos. If it is > 0, second best cosine and its corresponding offset will be output
+        @return calculated cosine similar score
+     */
+    static float getIsotopeCosineAndDetermineIsotopeIndex(const double mono_mass,
                                                            const std::vector<float>& per_isotope_intensities,
                                                            int& offset,
                                                            const PrecalculatedAveragine& avg,
-                                                           int window_width = -1, int allowed_iso_error_for_second_best_cos = 0, PeakGroup::DecoyFlag decoyFlag = PeakGroup::DecoyFlag::target);
+                                                           int window_width = -1, int allowed_iso_error_for_second_best_cos = 0);
+
+
+    static float getAccurateIsotopeCosine(PeakGroup& pg, const PrecalculatedAveragine& avg, double tol, int bin_factor,
+                                          double iso_distance = Constants::ISOTOPE_MASSDIFF_55K_U);
+
 
     /// set decoy_flag_
-    void setDecoyFlag(PeakGroup::DecoyFlag flag, FLASHDeconvAlgorithm& targetFD);
+    void setDecoyFlag(PeakGroup::decoyFlag flag, FLASHDeconvAlgorithm& targetFD);
 
   protected:
     void updateMembers_() override;
@@ -173,6 +171,8 @@ namespace OpenMS
     int min_abs_charge_, max_abs_charge_;
     /// is positive mode
     bool is_positive_;
+    /// to store detailed information
+    bool write_detail_ = false;
     /// mass ranges of deconvolution, set by users
     double min_mass_, max_mass_;
     /// current_max_charge_: controlled by precursor charge for MSn n>1; otherwise just max_abs_charge_
@@ -183,8 +183,8 @@ namespace OpenMS
     double current_min_mass_;
     /// peak intensity threshold subject to analysis
     double intensity_threshold_;
-    /// minimum number of peaks supporting a mass minus one
-    const static int min_support_peak_count_ = 2;
+    /// minimum number of peaks supporting a mass
+    const static int min_support_peak_count_ = 3;
     /// tolerance in ppm for each MS level
     DoubleList tolerance_;
     /// bin size for first stage of mass selection - for fast convolution, binning is used
@@ -194,8 +194,8 @@ namespace OpenMS
 
     FLASHDeconvAlgorithm* targetFD_;
 
-    /// PeakGroup::DecoyFlag values
-    PeakGroup::DecoyFlag decoy_flag_ = PeakGroup::DecoyFlag::target;
+    /// PeakGroup::decoyFlag values
+    PeakGroup::decoyFlag decoy_flag_ = PeakGroup::decoyFlag::target;
 
     /// precalculated averagine distributions for fast averagine generation
     FLASHDeconvHelperStructs::PrecalculatedAveragine avg_;
@@ -205,12 +205,12 @@ namespace OpenMS
     std::vector<double> target_mono_masses_;
 
     /// mass bins that are excluded for FLASHIda global targeting mode
-    std::vector<double> excluded_masses_;
+    std::vector<double> excluded_mono_masses_;
 
     /// mass bins that are previsouly deconvolved and excluded for decoy mass generation
     boost::dynamic_bitset<> previously_deconved_mass_bins_for_decoy;
     std::vector<double> previously_deconved_mono_masses_for_decoy;
-    std::unordered_set<int> excluded_integer_mzs_;
+    std::unordered_set<float> excluded_mzs_;
 
     /// Stores log mz peaks
     std::vector<LogMzPeak> log_mz_peaks_;
@@ -239,7 +239,7 @@ namespace OpenMS
     double mz_bin_min_value_;
 
     /// current ms Level
-    uint ms_level_;
+    int ms_level_;
 
 
     /// default precursor isolation window size.
@@ -251,7 +251,7 @@ namespace OpenMS
         @param bin_width bin width
         @return value corresponding to bin
      */
-    static double getBinValue_(Size bin, double min_value, double bin_width);
+    static double getBinValue_(const Size bin, const double min_value, const double bin_width);
 
     /** @brief static function that converts value to bin
         @param value value
@@ -259,7 +259,7 @@ namespace OpenMS
         @param bin_width bin width
         @return bin corresponding to value
      */
-    static Size getBinNumber_(double value, double min_value, double bin_width);
+    static Size getBinNumber_(const double value, const double min_value, const double bin_width);
 
     ///generate log mz peaks from the input spectrum
     void updateLogMzPeaks_();
@@ -268,11 +268,11 @@ namespace OpenMS
         @param bin_number number of mz bins
         @param mz_bin_intensities intensity per mz bin
      */
-    void updateMzBins_(Size bin_number, std::vector<float>& mz_bin_intensities);
+    void updateMzBins_(const Size bin_number, std::vector<float>& mz_bin_intensities);
 
 
     ///get mass value for input mass bin
-    double getMassFromMassBin_(Size mass_bin, double bin_width) const;
+    double getMassFromMassBin_(Size mass_bin, double bin_width);
 
     ///get mz value for input mz bin
     double getMzFromMzBin_(Size mass_bin, double bin_width);
@@ -309,10 +309,10 @@ namespace OpenMS
     /// function for peak group scoring and filtering
     void scoreAndFilterPeakGroups_();
 
-    void removeChargeErrorPeakGroups_(DeconvolvedSpectrum& dpec);
+    void removeHarmonicsPeakGroups_(DeconvolvedSpectrum& dpec);
 
     /// filter out overlapping masses
-    void removeOverlappingPeakGroups_(DeconvolvedSpectrum& dspec);
+    void removeOverlappingPeakGroups_(DeconvolvedSpectrum& dpec, const double tol, const int iso_length = 1);
 
     /**
     @brief register the precursor peak as well as the precursor peak group (or mass) if possible for MSn (n>1) spectrum.
@@ -323,7 +323,7 @@ namespace OpenMS
     @param precursor_map_for_real_time_acquisition this contains the deconvolved mass information from FLASHIda runs.
     */
     bool registerPrecursor_(const std::vector<DeconvolvedSpectrum>& survey_scans,
-                                  const std::map<int, std::vector<std::vector<float>>>& precursor_map_for_real_time_acquisition);
+                                  const std::map<int, std::vector<std::vector<double>>>& precursor_map_for_real_time_acquisition);
 
   };
 }

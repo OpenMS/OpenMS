@@ -68,7 +68,7 @@ namespace OpenMS
       const Size min_iso_length = 2;
       const int min_left_right_count = 2;
       double total_pwr = .0;
-      size_t most_abundant_index_ = 0;
+      int most_abundant_index_ = 0;
       double most_abundant_int = 0;
 
       /// sum of squared intensities to see the total power of isotope pattern. The range of isotope pattern is
@@ -85,7 +85,7 @@ namespace OpenMS
       }
 
       int left_count = 0;
-      int right_count = (int)iso.size() - 1;
+      int right_count = iso.size() - 1;
       int trim_count = 0;
 
       while (iso.size() - trim_count > min_iso_length && left_count<right_count)
@@ -120,14 +120,14 @@ namespace OpenMS
           right_count--;
         }
       }
-      left_count = (int)most_abundant_index_ - left_count;
-      right_count = right_count - (int)most_abundant_index_;
+      left_count = most_abundant_index_ - left_count;
+      right_count = right_count - most_abundant_index_;
       iso.trimRight(1e-10);
 
       for (auto & k : iso)
       {
-        float ori_int = k.getIntensity();
-        k.setIntensity(ori_int / (float)sqrt(total_pwr));
+        double ori_int = k.getIntensity();
+        k.setIntensity(ori_int / sqrt(total_pwr));
       }
       left_count = left_count < min_left_right_count ? min_left_right_count : left_count;
       right_count = right_count < min_left_right_count ? min_left_right_count : right_count;
@@ -148,13 +148,56 @@ namespace OpenMS
     return i;
   }
 
+  std::vector<float> FLASHDeconvHelperStructs::PrecalculatedAveragine::getConvolutedPattern(double mass, double tol, double iso_da, int bin_factor) const //bin_factor = odd number
+  {
+    auto iso = get(mass);
+    double stdev = tol * mass/2.355;
+    std::vector<double> p(bin_factor*10,.0);
+    for(int i=0;i<p.size();i++)
+    {
+      double x = i * (iso_da/bin_factor);
+      p[i] = 1.0/(stdev*sqrt(2.0)*3.141592)*exp(-.5*pow(x/stdev,2.0));
+    }
+
+    std::vector<float> ret((2 + iso.size()) * bin_factor,.0f);
+
+    for(int i=0;i<iso.size();i++)
+    {
+      int loc = bin_factor - 1 + i * bin_factor;
+      for(int j=0;j<p.size();j++)
+      {
+        if(loc - j >= 0 && loc - j < ret.size())
+        {
+          ret[loc - j] += iso[i].getIntensity() * p[j];
+        }
+
+        if(j!=0 && loc + j >= 0 && loc + j < ret.size())
+        {
+          ret[loc + j] += iso[i].getIntensity() * p[j];
+        }
+      }
+    }
+    float power = .0;
+    for(float r : ret)
+    {
+      power += r*r;
+    }
+    if(power > 0)
+    {
+      for (float& r : ret)
+      {
+        r /= sqrt(power);
+      }
+    }
+    return ret;
+  }
 
   IsotopeDistribution FLASHDeconvHelperStructs::PrecalculatedAveragine::get(const double mass) const
   {
     return isotopes_[massToIndex_(mass)];
   }
 
-  size_t FLASHDeconvHelperStructs::PrecalculatedAveragine::getMaxIsotopeIndex() const
+  int FLASHDeconvHelperStructs::PrecalculatedAveragine::getMaxIsotopeIndex() const
   {
     return max_isotope_index_;
   }
@@ -198,7 +241,7 @@ namespace OpenMS
   FLASHDeconvHelperStructs::LogMzPeak::LogMzPeak(const Peak1D& peak, const bool positive) :
       mz((float)peak.getMZ()),
       intensity(peak.getIntensity()),
-      logMz(getLogMz((float)peak.getMZ(), positive)),
+      logMz(getLogMz(peak.getMZ(), positive)),
       abs_charge(0),
       is_positive(positive),
       isotopeIndex(0)
@@ -213,7 +256,7 @@ namespace OpenMS
     }
     if (mass <= 0)
     {
-      mass = (mz - getChargeMass(is_positive)) * (float)abs_charge;
+      mass = (mz - getChargeMass(is_positive)) * abs_charge;
     }
     return mass;
   }
@@ -243,11 +286,11 @@ namespace OpenMS
 
   float FLASHDeconvHelperStructs::getChargeMass(const bool positive_ioniziation_mode)
   {
-    return (float)(positive_ioniziation_mode ? Constants::PROTON_MASS_U : -Constants::PROTON_MASS_U);
+    return (positive_ioniziation_mode ? Constants::PROTON_MASS_U : -Constants::PROTON_MASS_U);
   }
 
 
-  float FLASHDeconvHelperStructs::getLogMz(const float mz, const bool positive)
+  float FLASHDeconvHelperStructs::getLogMz(const double mz, const bool positive)
   {
     return std::log(mz - getChargeMass(positive));
   }

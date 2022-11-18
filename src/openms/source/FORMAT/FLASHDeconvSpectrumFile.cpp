@@ -262,7 +262,7 @@ namespace OpenMS
   void FLASHDeconvSpectrumFile::writeDLMatrix(std::vector<DeconvolvedSpectrum>& dspecs, std::fstream& fs)
   {
     String cns[] = {"T", "D1", "D2", "D3"};
-    int count = 25000;
+    int count = 30000;
     //class,ID,group,data
     std::vector<std::vector<PeakGroup>> grouped(4);
 
@@ -278,6 +278,7 @@ namespace OpenMS
         grouped[cl].push_back(pg);
       }
     }
+
 
     for(auto& g : grouped)
     {
