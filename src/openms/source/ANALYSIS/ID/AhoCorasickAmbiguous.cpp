@@ -526,7 +526,7 @@ namespace OpenMS
 
   Index ACTrie::findChildNaive_(Index parent, AA child_label)
   {
-    for (const auto& child : umap_index2children_naive_[parent])
+    for (auto child : umap_index2children_naive_[parent])  // OMS_CODING_TEST_EXCLUDE Note: only a 4byte type. Copy it!
     {
       if (trie_[child.pos()].edge == child_label)
         return child;
