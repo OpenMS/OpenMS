@@ -948,13 +948,13 @@ namespace OpenMS::Internal
     {
       query_meta = std::nullopt;
     }
-    std::optional<SQLite::Statement> query_hull = SQLite::Statement(*db_, "");
+    std::optional<SQLite::Statement> query_hull;
     if (db_->tableExists("FEAT_ConvexHull"))
     {
       query_hull = SQLite::Statement(*db_, "SELECT * FROM FEAT_ConvexHull WHERE feature_id = :id " \
                          "ORDER BY hull_index DESC, point_index ASC");
     }
-    std::optional<SQLite::Statement> query_match = SQLite::Statement(*db_, "");
+    std::optional<SQLite::Statement> query_match;
     if (db_->tableExists("FEAT_ObservationMatch"))
     {
       query_match = SQLite::Statement(*db_, "SELECT * FROM FEAT_ObservationMatch WHERE feature_id = :id");
