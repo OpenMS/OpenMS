@@ -182,19 +182,9 @@ START_SECTION((float getChargeIntensity(const int abs_charge) const))
 }
 END_SECTION
 
-
-START_SECTION((void setMaxQScoreMzRange(const double min, const double max)))
-{
-  sample_pg.setMaxQScoreMzRange(1125.5118055019082, 1127.0168377586081);
-  std::tuple<double, double> tmp_range = sample_pg.getMaxQScoreMzRange();
-  TEST_REAL_SIMILAR(std::get<0>(tmp_range), 1125.5118055019082);
-  TEST_REAL_SIMILAR(std::get<1>(tmp_range), 1127.0168377586081);
-}
-END_SECTION
-
 START_SECTION((std::tuple<double, double> getMaxQScoreMzRange() const))
 {
-  std::tuple<double, double> tmp_range = sample_pg.getMaxQScoreMzRange();
+  std::tuple<double, double> tmp_range = sample_pg.getRepMzRange();
   TEST_REAL_SIMILAR(std::get<0>(tmp_range), 1125.5118055019082);
   TEST_REAL_SIMILAR(std::get<1>(tmp_range), 1127.0168377586081);
 }
@@ -388,7 +378,7 @@ END_SECTION
 
 
 /// TODOs
-/// - updateIsotopeCosineAndQScore, recruitAllPeaksInSpectrum, isSignalMZ, setTargeted, getIsotopeIntensities
+/// - updateIsotopeCosineSNRAvgErrorAndQScore, recruitAllPeaksInSpectrum, isSignalMZ, setTargeted, getIsotopeIntensities
 /// - isTargeted, getDecoyFlag, setDecoyFlag, getQvalue, setQvalue, getQvalueWithChargeDecoyOnly, setQvalueWithChargeDecoyOnly
 
 

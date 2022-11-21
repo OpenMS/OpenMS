@@ -99,11 +99,11 @@ namespace OpenMS
     void updateMonomassAndIsotopeIntensities();
 
     /**
-           @brief Update isotope cosine sore and qscore
+           @brief Update isotope cosine sore and qscore. Mono mass is also updated one last time. SNR, per charge SNR, and avg errors are updated here.
            @param avg precalculated averagine
            @param min_cos the peak groups with cosine score less than this will have QScore 0.
       */
-    void updateIsotopeCosineAndQScore(const FLASHDeconvHelperStructs::PrecalculatedAveragine& avg, double min_cos);
+    void updateIsotopeCosineSNRAvgErrorAndQScore(const FLASHDeconvHelperStructs::PrecalculatedAveragine& avg, double min_cos);
 
     /**
      * @brief given a monoisotopic mass, recruit raw peaks from the raw input spectrum and add to this peakGroup. This is a bit time-consuming and is done for only a small number of selected high-quality peakgroups.
@@ -115,7 +115,7 @@ namespace OpenMS
      */
     void recruitAllPeaksInSpectrum(const MSSpectrum& spec, const double tol, const FLASHDeconvHelperStructs::PrecalculatedAveragine& avg,  double mono_mass, const std::unordered_set<float>& excluded_mzs);
 
-    /// determine is an mz is a signal of this peakgroup. Input tol is ppm tolerance (e.g., 10.0 for 10ppm tolerance)
+    /// determine is an mz is a signal of this peakgroup. Input tol is ppm tolerance (e.g., 10.0 for 10ppm tolerance). Assume logMzPeaks are sorted.
     bool isSignalMZ(const double mz, const double tol) const;
 
     /// set scan number
@@ -123,9 +123,6 @@ namespace OpenMS
 
     /// set per abs_charge isotope cosine
     void setChargeIsotopeCosine(const int abs_charge, const float cos);
-
-    /// set mz range that results in max QScore
-    void setMaxQScoreMzRange(const double min, const double max);
 
     /// set min_abs_charge and max_abs_charge charge range
     void setAbsChargeRange(const int min_abs_charge, const int max_abs_charge);
@@ -147,6 +144,7 @@ namespace OpenMS
 
     /// set SNR manually - for FLASHIda log file parsing
     void setSNR(const float snr);
+
     /// set charge SNR manually - for FLASHIda log file parsing
     void setChargeSNR(const int abs_charge, const float c_snr);
 
@@ -172,7 +170,7 @@ namespace OpenMS
     float getChargeIntensity(const int abs_charge) const;
 
     /// get mz range that results in max QScore
-    std::tuple<double, double> getMaxQScoreMzRange() const;
+    std::tuple<double, double> getRepMzRange() const;
 
     /// get mz range of the charge
     std::tuple<double, double> getMzRange(int abs_charge) const;
@@ -301,8 +299,6 @@ namespace OpenMS
     std::vector<float> per_charge_snr_;
     /// per isotope intensity.
     std::vector<float> per_isotope_int_;
-    /// mz range resulting in maximum Q score
-    double max_qscore_mz_end_, max_qscore_mz_start_;
     /// charge range
     int min_abs_charge_ = 0, max_abs_charge_ = -1;
     /// peak group index
