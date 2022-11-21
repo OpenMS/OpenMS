@@ -108,7 +108,7 @@ public:
     //@{
     /// Isotope scores, see class description
     void dia_isotope_scores(const std::vector<TransitionType>& transitions,
-                            std::vector<SpectrumPtrType> spectrum,
+                            std::vector<SpectrumPtrType>& spectrum,
                             OpenSwath::IMRMFeature* mrmfeature,
                             double& isotope_corr,
                             double& isotope_overlap,
@@ -133,7 +133,7 @@ public:
       @param ppm_score Resulting score
       @return False if no signal was found (and no sensible score calculated), true otherwise
     */
-    bool dia_ms1_massdiff_score(double precursor_mz, std::vector<SpectrumPtrType> spectrum,
+    bool dia_ms1_massdiff_score(double precursor_mz, std::vector<SpectrumPtrType>& spectrum,
                                 double& ppm_score, double drift_start, double drift_end) const;
 
     /// Precursor isotope scores for precursors (peptides and metabolites)
@@ -148,7 +148,7 @@ public:
                           int charge, double& bseries_score, double& yseries_score, double drift_start, double drift_end) const;
 
     /// Dotproduct / Manhattan score with theoretical spectrum
-    void score_with_isotopes(std::vector<SpectrumPtrType> spectrum,
+    void score_with_isotopes(std::vector<SpectrumPtrType>& spectrum,
                              const std::vector<TransitionType>& transitions,
                              double& dotprod,
                              double& manhattan,
