@@ -342,7 +342,7 @@ namespace OpenSwath
       OPENSWATH_PRECONDITION(xcorr_contrast_matrix_.rows() > 0 && xcorr_contrast_matrix_.cols() > 1, "Expect cross-correlation matrix of at least 1x2");
 
       OpenSwath::mean_and_stddev msc;
-      for (auto e : xcorr_contrast_matrix_)
+      for (const auto& e : xcorr_contrast_matrix_)
       {
         // first is the X value (RT), should be an int
         msc(std::abs(Scoring::xcorrArrayGetMaxPeak(e)->first));  
@@ -411,7 +411,7 @@ namespace OpenSwath
       OPENSWATH_PRECONDITION(xcorr_precursor_contrast_matrix_.rows() > 0 && xcorr_precursor_contrast_matrix_.cols() > 1, "Expect cross-correlation matrix of at least 1x2");
 
       OpenSwath::mean_and_stddev msc;
-      for (auto e : xcorr_precursor_contrast_matrix_)
+      for (const auto& e : xcorr_precursor_contrast_matrix_)
       {
         // first is the X value (RT), should be an int
         msc(std::abs(Scoring::xcorrArrayGetMaxPeak(e)->first));
@@ -432,7 +432,7 @@ namespace OpenSwath
       OPENSWATH_PRECONDITION(xcorr_precursor_contrast_matrix_.rows() > 0 && xcorr_precursor_contrast_matrix_.cols() > 0, "Expect cross-correlation matrix of at least 1x1");
 
       OpenSwath::mean_and_stddev msc;
-      for (auto e : xcorr_precursor_contrast_matrix_)
+      for (const auto& e : xcorr_precursor_contrast_matrix_)
       {
         // first is the X value (RT), should be an int
         msc(std::abs(Scoring::xcorrArrayGetMaxPeak(e)->first)); 
@@ -534,7 +534,7 @@ namespace OpenSwath
       OPENSWATH_PRECONDITION(xcorr_contrast_matrix_max_peak_sec_.rows() > 0 && xcorr_contrast_matrix_max_peak_sec_.cols() > 1, "Expect cross-correlation matrix of at least 1x2");
 
       double intensities{0};
-      for(auto e : xcorr_contrast_matrix_max_peak_sec_)
+      for (const auto& e : xcorr_contrast_matrix_max_peak_sec_)
       {
         intensities += e;
       }
@@ -582,9 +582,8 @@ namespace OpenSwath
     {
       OPENSWATH_PRECONDITION(xcorr_precursor_contrast_matrix_.rows() > 0 && xcorr_precursor_contrast_matrix_.cols() > 0, "Expect cross-correlation matrix of at least 1x1");
 
-
       double intensities{0};
-      for(auto e : xcorr_precursor_contrast_matrix_)
+      for (const auto& e : xcorr_precursor_contrast_matrix_)
       {
         intensities += Scoring::xcorrArrayGetMaxPeak(e)->second;
       }
@@ -597,7 +596,7 @@ namespace OpenSwath
 
 
       double intensities{0};
-      for(auto e : xcorr_precursor_contrast_matrix_)
+      for (const auto& e : xcorr_precursor_contrast_matrix_)
       {
         intensities += Scoring::xcorrArrayGetMaxPeak(e)->second;
       }
@@ -858,7 +857,7 @@ namespace OpenSwath
       OPENSWATH_PRECONDITION(mi_matrix_.rows() > 1, "Expect mutual information matrix of at least 2x2");
 
       double mi_scores{0};
-      for(auto e : mi_matrix_)
+      for (const auto& e : mi_matrix_)
       {
         mi_scores += e;
       }
@@ -901,7 +900,7 @@ namespace OpenSwath
       OPENSWATH_PRECONDITION(mi_precursor_matrix_.rows() > 1, "Expect mutual information matrix of at least 2x2");
 
       double mi_scores{0};
-      for(auto e : mi_precursor_matrix_)
+      for (const auto& e : mi_precursor_matrix_)
       {
         mi_scores += e;
       }
@@ -915,7 +914,7 @@ namespace OpenSwath
       OPENSWATH_PRECONDITION(mi_precursor_contrast_matrix_.rows() > 0 && mi_precursor_contrast_matrix_.cols() > 1, "Expect mutual information matrix of at least 1x2");
 
       double mi_scores{0};
-      for(auto e : mi_precursor_contrast_matrix_)
+      for (const auto& e : mi_precursor_contrast_matrix_)
       {
         mi_scores += e;
       }
@@ -928,7 +927,7 @@ namespace OpenSwath
 
       double mi_scores{0};
 
-      for(auto e: mi_precursor_combined_matrix_)
+      for (const auto& e: mi_precursor_combined_matrix_)
       {
         mi_scores += e;
       }
