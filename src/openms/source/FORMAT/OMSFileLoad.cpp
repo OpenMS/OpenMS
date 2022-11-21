@@ -1007,12 +1007,12 @@ namespace OpenMS::Internal
       {
         // @TODO: this will repeat field names for every row -
         // avoid this with separate "header" and "rows" (array)?
-        switch (query.getColumn(i).getType())
-        {
+        switch (query.getColumn(i).getType()) // sqlite stores each cell based on the actual value, not the declared column type
+        {                                     //, thus, we could use query.getColumnDeclaredType(i), but it would incur conversion
           break; case SQLITE_INTEGER: record.insert(query.getColumnName(i), qint64(query.getColumn(i).getInt64()));
           break; case SQLITE_FLOAT: record.insert(query.getColumnName(i), query.getColumn(i).getDouble());
           break; case SQLITE_BLOB: record.insert(query.getColumnName(i), query.getColumn(i).getText());
-          break; case SQLITE_NULL: record.insert(query.getColumnName(i), "NULL");
+          break; case SQLITE_NULL: record.insert(query.getColumnName(i), "");
           break; case SQLITE3_TEXT: record.insert(query.getColumnName(i), query.getColumn(i).getText());
           break; default:
             throw Exception::NotImplemented(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
