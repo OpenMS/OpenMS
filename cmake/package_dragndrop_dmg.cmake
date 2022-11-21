@@ -85,16 +85,18 @@ install(FILES       ${PROJECT_SOURCE_DIR}/cmake/MacOSX/README
                     WORLD_READ
         COMPONENT   TOPPShell)
 
+## ----------
+## No need to for this at the moment: no Qt plugins required anymore. Left here for reference.
+## ----------
 ## Install the qt.conf file so we can find the libraries
 ## add qt.conf to the bin directory for DMGs
-file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/qt.conf"
-"[Paths]\nPlugins = ../lib/plugins/plugins/\n")
-install(FILES       ${CMAKE_CURRENT_BINARY_DIR}/qt.conf
-        DESTINATION ./bin
-        PERMISSIONS OWNER_WRITE OWNER_READ
-                    GROUP_READ
-                    WORLD_READ
-        COMPONENT   QT5SQLitePlugin)
+#file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/qt.conf" "[Paths]\nPlugins = ../lib/plugins/plugins/\n")
+#install(FILES       ${CMAKE_CURRENT_BINARY_DIR}/qt.conf
+#        DESTINATION ./bin
+#        PERMISSIONS OWNER_WRITE OWNER_READ
+#                    GROUP_READ
+#                    WORLD_READ
+#        COMPONENT   QT5SQLitePlugin)
 
 
 ## Create own target because you cannot "depend" on the internal target 'package'
