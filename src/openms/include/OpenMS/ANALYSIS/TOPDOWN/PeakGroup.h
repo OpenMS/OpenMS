@@ -111,9 +111,9 @@ namespace OpenMS
      * @param tol ppm tolerance
      * @param avg averagine to recurite isotope peaks
      * @param mono_mass target monoisotopic mass
-     * @param exclude_mzs excluded mzs in spec. Only used for decoy mass generation.
+     * @param exclude_mz_charge excluded mz - charge pairs in spec. Only used for decoy mass generation.
      */
-    void recruitAllPeaksInSpectrum(const MSSpectrum& spec, const double tol, const FLASHDeconvHelperStructs::PrecalculatedAveragine& avg,  double mono_mass, const std::unordered_set<double>& exclude_mzs);
+    void recruitAllPeaksInSpectrum(const MSSpectrum& spec, const double tol, const FLASHDeconvHelperStructs::PrecalculatedAveragine& avg,  double mono_mass, const std::unordered_set<float>& excluded_mzs);
 
     /// determine is an mz is a signal of this peakgroup. Input tol is ppm tolerance (e.g., 10.0 for 10ppm tolerance)
     bool isSignalMZ(const double mz, const double tol) const;
@@ -208,10 +208,10 @@ namespace OpenMS
     bool isTargeted() const;
 
     /// get the decoy flag of this
-    int getDecoyFlag() const;
+    PeakGroup::decoyFlag getDecoyFlag() const;
 
     /// for this PeakGroup, specify the decoy flag.
-    void setDecoyFlag(int index);
+    void setDecoyFlag(PeakGroup::decoyFlag index);
 
     /// get calculated qvalue
     float getQvalue(PeakGroup::decoyFlag flag = PeakGroup::decoyFlag::target) const;
@@ -238,7 +238,7 @@ namespace OpenMS
      * @param tol ppm tolerance
      * @param avg averagine to normalize the observed isotope pattern
      */
-    void calculateDLMatriices(int charge_range, int iso_range, double tol, PrecalculatedAveragine& avg);
+    void calculateDLMatrices(int charge_range, int iso_range, double tol, PrecalculatedAveragine& avg);
 
     /// get the calcualted DL matrix
     Matrix<float> getDLMatrix(int index) const;
@@ -281,6 +281,8 @@ namespace OpenMS
     void updateAvgPPMError_();
     /// get ppm error of a logMzPeak
     double getAbsPPMError_(const LogMzPeak& p) const;
+    /// get Da error of a logMzPeak from the closest isotope
+    double getAbsDaError_(const LogMzPeak& p) const;
     /// using signal and total (signal + noise) power, update SNR value
     void updateSNR_();
 
@@ -315,7 +317,7 @@ namespace OpenMS
     double monoisotopic_mass_ = -1.0;
     double intensity_;// total intensity
     /// index to specify if this peak_group is a target (0), an isotope decoy (1), a noise (2), or a charge decoy (3)
-    int decoy_index_ = 0;
+    PeakGroup::decoyFlag decoy_flag_ = target;
 
     /// distance between consecutive isotopes. Can be different for decoys
     double iso_da_distance_ = Constants::ISOTOPE_MASSDIFF_55K_U;

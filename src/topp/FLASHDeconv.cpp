@@ -34,6 +34,7 @@
 
 #include <OpenMS/ANALYSIS/TOPDOWN/DeconvolvedSpectrum.h>
 #include <OpenMS/ANALYSIS/TOPDOWN/FLASHDeconvAlgorithm.h>
+#include <OpenMS/ANALYSIS/TOPDOWN/FLASHIda.h>
 #include <OpenMS/ANALYSIS/TOPDOWN/MassFeatureTrace.h>
 #include <OpenMS/ANALYSIS/TOPDOWN/QScore.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
@@ -189,7 +190,7 @@ protected:
     fd_defaults.addTag("max_rt", "advanced");
     fd_defaults.setValue("min_mass", 50.0);
     fd_defaults.setValue("max_mass", 100000.0);
-    fd_defaults.setValue("min_intensity", 10.0, "Intensity threshold");
+    fd_defaults.setValue("min_intensity", 0.0, "Intensity threshold");
     fd_defaults.addTag("min_intensity", "advanced");
     fd_defaults.setValue("min_isotope_cosine", DoubleList {.85, .85, .85},
                          "Cosine similarity thresholds between avg. and observed isotope patterns for MS1, 2, ... "
@@ -351,7 +352,7 @@ protected:
     }
 
     std::map<int, std::vector<std::vector<double>>>
-      precursor_map_for_real_time_acquisition; // For FLASHIda later; FLASHIda::parseFLASHIdaLog(in_log_file); // ms1 scan -> mass, charge ,score, mz range, precursor int, mass int, color
+      precursor_map_for_real_time_acquisition = FLASHIda::parseFLASHIdaLog(in_log_file); // ms1 scan -> mass, charge ,score, mz range, precursor int, mass int, color
 
     //-------------------------------------------------------------
     // reading input
@@ -398,7 +399,6 @@ protected:
     for (auto& it : map)
     {
       gradient_rt = std::max(gradient_rt, it.getRT());
-
       // if forced_ms_level > 0, force MS level of all spectra to 1.
       if (forced_ms_level > 0)
       {
@@ -499,6 +499,7 @@ protected:
     fd.setParameters(fd_param);
     fd.calculateAveragine(use_RNA_averagine);
     auto avg = fd.getAveragine();
+
     if (report_decoy)
     {
       fd_charge_decoy.setParameters(fd_param);
@@ -744,6 +745,7 @@ protected:
 
     if (DLTrain)
     {
+      int cr = 5, ir = 5;
       QScore::writeAttCsvFromDecoyHeader(out_att_stream);
 
       for (auto& deconvolved_spectrum : deconvolved_spectra)
@@ -752,7 +754,7 @@ protected:
           QScore::writeAttCsvFromDecoy(deconvolved_spectrum, out_att_stream);
         for (auto& pg : deconvolved_spectrum) // TODO
         {
-          pg.calculateDLMatriices(11, 21, tols[deconvolved_spectrum.getOriginalSpectrum().getMSLevel() - 1] * 1e-6, avg);
+          pg.calculateDLMatrices(cr, ir, tols[deconvolved_spectrum.getOriginalSpectrum().getMSLevel() - 1] * 1e-6, avg);
           pg.clearVectors();
         }
       }
@@ -763,7 +765,7 @@ protected:
           QScore::writeAttCsvFromDecoy(deconvolved_spectrum, out_att_stream);
         for (auto& pg : deconvolved_spectrum) // TODO
         {
-          pg.calculateDLMatriices(11, 21, tols[deconvolved_spectrum.getOriginalSpectrum().getMSLevel() - 1] * 1e-6, avg);
+          pg.calculateDLMatrices(cr, ir, tols[deconvolved_spectrum.getOriginalSpectrum().getMSLevel() - 1] * 1e-6, avg);
           pg.clearVectors();
         }
       }

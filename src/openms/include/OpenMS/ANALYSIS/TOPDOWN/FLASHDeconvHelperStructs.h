@@ -100,6 +100,9 @@ namespace OpenMS
                              CoarseIsotopePatternGenerator *generator,
                              const bool use_RNA_averagine);
 
+      std::vector<float> getConvolutedPattern(double mass, double tol, double iso_da, int bin_factor) const;
+
+
       /// get distribution for input mass. If input mass exceeds the maximum mass (specified in constructor), output for the maximum mass
       IsotopeDistribution get(const double mass) const;
 
@@ -148,7 +151,7 @@ namespace OpenMS
     {
     public:
       /// original peak mz
-      double mz = 0;
+      float mz = 0;
       /// original peak intensity
       float intensity = 0;
       /// log transformed mz
