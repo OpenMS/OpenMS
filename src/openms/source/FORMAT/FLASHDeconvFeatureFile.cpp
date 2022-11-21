@@ -322,7 +322,7 @@ namespace OpenMS
 
       auto crange = precursor.second.getAbsChargeRange();
       bool is_positive = precursor.second.isPositive();
-      auto mz_range = precursor.second.getMaxQScoreMzRange();
+      auto mz_range = precursor.second.getRepMzRange();
       double rmz = (std::get<0>(mz_range) + std::get<1>(mz_range)) / 2.0;
 
       for (auto& pp : precursor.second)

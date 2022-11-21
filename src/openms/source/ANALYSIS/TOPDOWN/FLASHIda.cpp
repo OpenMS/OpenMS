@@ -338,7 +338,8 @@ namespace OpenMS
         int charge = pg.getRepAbsCharge();
         double qscore = pg.getQScore();
         double mass = pg.getMonoMass();
-        double center_mz = (std::get<0>(pg.getMaxQScoreMzRange()) + std::get<1>(pg.getMaxQScoreMzRange())) / 2.0;
+        auto [mz1, mz2] = pg.getRepMzRange();
+        double center_mz = (mz1 + mz2) / 2.0;
 
         int nominal_mass = FLASHDeconvAlgorithm::getNominalMass(mass);
         bool target_matched = false;
@@ -415,8 +416,6 @@ namespace OpenMS
           }
         }
 
-        auto [olmz, ormz] = pg.getMaxQScoreMzRange();
-
         // here crawling isolation windows max_isolation_window_half_
         auto ospec = deconvolved_spectrum_.getOriginalSpectrum();
         if (ospec.size() > 2)
@@ -425,18 +424,11 @@ namespace OpenMS
           int tindexl = index == 0 ? index : index - 1;
           Size tindexr = index == 0 ? index + 1 : index;
           double lmz = ospec[tindexl].getMZ(), rmz = ospec[tindexr].getMZ();
-          ;
-
           double sig_pwr = .0;
           double noise_pwr = .0;
 
           bool goleft = tindexl > 0 && (center_mz - lmz >= rmz - center_mz);
           bool goright = tindexr < ospec.size() - 1 && (center_mz - lmz <= rmz - center_mz);
-
-          // auto pmz_range = pg.getMzRange(charge);
-          // double pmzl = std::get<0>(pmz_range);
-          // double pmzr = std::get<1>(pmz_range);
-          // double final_snr = .0;
 
           while (goleft || goright)
           {
@@ -472,7 +464,7 @@ namespace OpenMS
             goleft = tindexl > 0 && (center_mz - lmz >= rmz - center_mz);
             goright = tindexr < ospec.size() - 1 && (center_mz - lmz <= rmz - center_mz);
 
-            if (lmz > olmz || rmz < ormz || rmz - lmz < min_isolation_window_half_ * 2)
+            if (lmz > mz1 || rmz < mz2 || rmz - lmz < min_isolation_window_half_ * 2)
             {
               continue;
             }
@@ -482,12 +474,13 @@ namespace OpenMS
               break;
             }
           }
-          olmz = std::max(center_mz - max_isolation_window_half_, lmz);
-          ormz = std::min(center_mz + max_isolation_window_half_, rmz);
+          mz1 = std::max(center_mz - max_isolation_window_half_, lmz);
+          mz2 = std::min(center_mz + max_isolation_window_half_, rmz);
         }
 
-        if (olmz < ospec[0].getMZ() - max_isolation_window_half_ || ormz > ospec.back().getMZ() + max_isolation_window_half_ || olmz + 2 * min_isolation_window_half_ > ormz ||
-            ormz - olmz > 2 * max_isolation_window_half_)
+        if (mz1 < ospec[0].getMZ() - max_isolation_window_half_ || mz2 > ospec.back().getMZ() + max_isolation_window_half_ ||
+            mz1 + 2 * min_isolation_window_half_ > mz2 ||
+            mz2 - mz1 > 2 * max_isolation_window_half_)
         {
           continue;
         }
@@ -511,8 +504,8 @@ namespace OpenMS
         filtered_peakgroups.push_back(pg);
         trigger_charges.push_back(charge);
 
-        trigger_left_isolation_mzs_.push_back(olmz);
-        trigger_right_isolation_mzs_.push_back(ormz);
+        trigger_left_isolation_mzs_.push_back(mz1);
+        trigger_right_isolation_mzs_.push_back(mz2);
 
         current_selected_mzs.insert(integer_mz);
       }

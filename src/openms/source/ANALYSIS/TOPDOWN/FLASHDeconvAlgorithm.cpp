@@ -1206,8 +1206,8 @@ namespace OpenMS
           }
         }
 
-        // min cosine is checked in here. mono mass is also updated one last time.
-        peak_group.updateIsotopeCosineAndQScore(avg_, peak_group.isTargeted() ? .5 : min_isotope_cosine_[ms_level_ - 1]);
+        // min cosine is checked in here. mono mass is also updated one last time. SNR, per charge SNR, and avg errors are updated here.
+        peak_group.updateIsotopeCosineSNRAvgErrorAndQScore(avg_, peak_group.isTargeted() ? .5 : min_isotope_cosine_[ms_level_ - 1]);
 
         cr = peak_group.getAbsChargeRange();
 
@@ -1256,8 +1256,6 @@ namespace OpenMS
         {
           continue;
         }
-        auto max_q_score_mz_range = peak_group.getMzRange(peak_group.getRepAbsCharge());
-        peak_group.setMaxQScoreMzRange(std::get<0>(max_q_score_mz_range), std::get<1>(max_q_score_mz_range));
         peak_group.setDecoyFlag(decoy_flag_);
         filtered_peak_groups_private.push_back(peak_group);
       }
