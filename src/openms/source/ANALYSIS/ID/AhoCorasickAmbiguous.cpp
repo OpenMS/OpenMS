@@ -636,7 +636,7 @@ namespace OpenMS
     return i_;
   }
 
-  const Index::T& Index::pos() const
+  Index::T Index::pos() const
   {
     return i_;
   }
