@@ -754,7 +754,7 @@ protected:
           QScore::writeAttCsvFromDecoy(deconvolved_spectrum, out_att_stream);
         for (auto& pg : deconvolved_spectrum) // TODO
         {
-          pg.calculateDLMatrices(cr, ir, tols[deconvolved_spectrum.getOriginalSpectrum().getMSLevel() - 1] * 1e-6, avg);
+          pg.calculateDLMatrices(cr, ir, avg);
           pg.clearVectors();
         }
       }
@@ -765,7 +765,7 @@ protected:
           QScore::writeAttCsvFromDecoy(deconvolved_spectrum, out_att_stream);
         for (auto& pg : deconvolved_spectrum) // TODO
         {
-          pg.calculateDLMatrices(cr, ir, tols[deconvolved_spectrum.getOriginalSpectrum().getMSLevel() - 1] * 1e-6, avg);
+          pg.calculateDLMatrices(cr, ir, avg);
           pg.clearVectors();
         }
       }
