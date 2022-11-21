@@ -442,11 +442,8 @@ namespace OpenMS
 
   bool PeakGroup::isSignalMZ(const double mz, const double tol) const
   {
-    LogMzPeak tmp(Peak1D((mz - mz * tol * 2e-6), 1.0), is_positive_);
-    auto i = std::upper_bound(logMzpeaks_.begin(), logMzpeaks_.end(), tmp);
-    while (i < logMzpeaks_.end())
+    for (auto& p : logMzpeaks_)
     {
-      auto p = *i;
       if (abs(p.mz - mz) < p.mz * tol * 1e-6)
       {
         return true;
@@ -827,15 +824,13 @@ namespace OpenMS
     std::vector<float>().swap(per_isotope_int_);
   }
 
-  void PeakGroup::calculateDLMatrices(int charge_range, int iso_range, double tol, PrecalculatedAveragine& avg)
+  void PeakGroup::calculateDLMatrices(int charge_range, int iso_range, PrecalculatedAveragine& avg)
   {
     int factor = 5;
     int iso_index_diff = -avg.getApexIndex(getMonoMass()) + (int)(iso_range / 2);
     auto max_charge_iter = std::max_element(per_charge_int_.begin(), per_charge_int_.end());
     int charge_index_diff = -std::distance(per_charge_int_.begin(), max_charge_iter) + (int)(charge_range / 2);
     auto iso = avg.get(getMonoMass());
-
-    float base = iso.getMostAbundant().getIntensity() / 100.0;
     Matrix<float> sig, sigtol;
     sig.resize(charge_range, iso_range * factor, .0);
     sigtol.resize(charge_range, iso_range, .0);

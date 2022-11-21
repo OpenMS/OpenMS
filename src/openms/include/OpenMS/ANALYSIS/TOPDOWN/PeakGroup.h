@@ -233,10 +233,9 @@ namespace OpenMS
      * @brief calculate the matrices for DL training and scoring
      * @param charge_range charge range to be considered, corresponding to the row number of the matrix
      * @param iso_range isotope range to be considered, corresponding to the column number of the matrix
-     * @param tol ppm tolerance
      * @param avg averagine to normalize the observed isotope pattern
      */
-    void calculateDLMatrices(int charge_range, int iso_range, double tol, PrecalculatedAveragine& avg);
+    void calculateDLMatrices(int charge_range, int iso_range, PrecalculatedAveragine& avg);
 
     /// get the calcualted DL matrix
     Matrix<float> getDLMatrix(int index) const;
