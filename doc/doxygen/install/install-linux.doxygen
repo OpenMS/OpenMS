@@ -114,7 +114,7 @@
     sudo apt-get install libboost-regex-dev libboost-iostreams-dev \
       libboost-date-time-dev libboost-math-dev libboost-random-dev libsvm-dev \
       libglpk-dev zlib1g-dev libxerces-c-dev libbz2-dev coinor-libcoinmp-dev libhdf5-dev
-      # Use from contrib: EIGEN; SQLITE; WILDMAGIC (since libwildmagic-dev is buggy)
+      # Use from contrib: EIGEN; WILDMAGIC (since libwildmagic-dev is buggy)
     </pre></td>
   </tr>
   <tr>
@@ -125,7 +125,7 @@
     sudo apt update
     sudo apt-get install build-essential cmake autoconf patch libtool git automake
     sudo apt-get install qtbase5-dev libqt5svg5-dev libqt5opengl5-dev
-    sudo apt-get install libeigen3-dev libsqlite3-dev libboost-random1.62-dev \
+    sudo apt-get install libeigen3-dev libboost-random1.62-dev \
       libboost-regex1.62-dev libboost-iostreams1.62-dev libboost-date-time1.62-dev libboost-math1.62-dev \
       libxerces-c-dev libglpk-dev zlib1g-dev libsvm-dev libbz2-dev coinor-libcoinmp-dev libhdf5-dev
       # this should eliminate the need for building contrib libraries.
@@ -139,7 +139,7 @@
     sudo apt update    
     sudo apt-get install build-essential cmake autoconf patch libtool git automake
     sudo apt-get install qtbase5-dev libqt5svg5-dev libqt5opengl5-dev
-    sudo apt-get install libeigen3-dev libsqlite3-dev libboost-random1.67-dev \
+    sudo apt-get install libeigen3-dev libboost-random1.67-dev \
       libboost-regex1.67-dev libboost-iostreams1.67-dev libboost-date-time1.67-dev libboost-math1.67-dev \
       libxerces-c-dev zlib1g-dev libsvm-dev libbz2-dev coinor-libcoinmp-dev libhdf5-dev
       # this should eliminate the need for building contrib libraries. Note: installing libglpk-dev is optional.
