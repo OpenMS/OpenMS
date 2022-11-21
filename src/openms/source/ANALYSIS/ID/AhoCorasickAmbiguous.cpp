@@ -80,7 +80,7 @@ namespace OpenMS
   void ACTrie::addNeedle(const std::string& needle)
   {
     Index cn {0}; // start at root
-    for (const auto& c : needle)
+    for (auto c : needle) // OMS_CODING_TEST_EXCLUDE
     {
       AA aa(c);
       // make sure invalid chars raise an exception
