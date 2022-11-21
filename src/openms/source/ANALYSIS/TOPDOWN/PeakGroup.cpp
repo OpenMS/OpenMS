@@ -91,7 +91,7 @@ namespace OpenMS
     return abs(average_mass - p.mass);
   }
 
-  void PeakGroup::updateIsotopeCosineAndQScore(const FLASHDeconvHelperStructs::PrecalculatedAveragine& avg, double min_cos)
+  void PeakGroup::updateIsotopeCosineSNRAvgErrorAndQScore(const FLASHDeconvHelperStructs::PrecalculatedAveragine& avg, double min_cos)
   {
     qscore_ = 0;
     if (empty())
@@ -442,8 +442,11 @@ namespace OpenMS
 
   bool PeakGroup::isSignalMZ(const double mz, const double tol) const
   {
-    for (auto& p : logMzpeaks_)
+    LogMzPeak tmp(Peak1D((mz - mz * tol * 2e-6), 1.0), is_positive_);
+    auto i = std::upper_bound(logMzpeaks_.begin(), logMzpeaks_.end(), tmp);
+    while (i < logMzpeaks_.end())
     {
+      auto p = *i;
       if (abs(p.mz - mz) < p.mz * tol * 1e-6)
       {
         return true;
@@ -511,12 +514,6 @@ namespace OpenMS
     per_charge_cos_[abs_charge] = cos;
   }
 
-  void PeakGroup::setMaxQScoreMzRange(const double min, const double max)
-  {
-    max_qscore_mz_start_ = min;
-    max_qscore_mz_end_ = max;
-  }
-
   void PeakGroup::setAbsChargeRange(const int min_abs_charge, const int max_abs_charge)
   {
     min_abs_charge_ = min_abs_charge;
@@ -553,9 +550,9 @@ namespace OpenMS
     qscore_ = q;
   }
 
-  std::tuple<double, double> PeakGroup::getMaxQScoreMzRange() const
+  std::tuple<double, double> PeakGroup::getRepMzRange() const
   {
-    return std::tuple<double, double> {max_qscore_mz_start_, max_qscore_mz_end_};
+    return getMzRange(getRepAbsCharge());
   }
 
   std::tuple<double, double> PeakGroup::getMzRange(int abs_charge) const
