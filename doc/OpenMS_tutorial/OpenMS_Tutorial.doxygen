@@ -225,8 +225,8 @@ The extensible %OpenMS library implements common mass spectrometric data process
         - Small molecule feature linking:
             - QT based clustering and linking (Tool FeatureLinkerUnlabeledQT)
             - fast, KD-tree based linking (Tool FeatureLinkerUnlabeledKD)
-        - Adduct decharing:
-            - Linear programming based determination of small molecule ion adducts and charges (Tool MetboliteAdductDecharger)
+        - Adduct decharging:
+            - Linear programming based determination of small molecule ion adducts and charges (Tool MetaboliteAdductDecharger)
         - Targeted data extraction: 
             - Analysis of data-independent acquisition or SWATH-MS data (Tool OpenSWATH)
     - Identification:

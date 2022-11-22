@@ -32,7 +32,7 @@
 # $Authors: Stephan Aiche, Julianus Pfeuffer $
 # --------------------------------------------------------------------------
 
-cmake_minimum_required(VERSION 3.15 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.21 FATAL_ERROR)
 
 # Handle default build type
 get_property(multiConfig GLOBAL PROPERTY GENERATOR_IS_MULTI_CONFIG)
@@ -84,6 +84,8 @@ option(HAS_XSERVER "Indicates if an X server is available. If set to Off it will
 option(ENABLE_DOCS "Indicates whether documentation should be built." ON)
 option(ENABLE_TUTORIALS "Indicates whether tutorials should be build. Note that this also depends on the availability of (pdf)latex." ON)
 option(WITH_GUI "Build GUI parts of OpenMS (TOPPView&Co). This requires QtGui." ON)
+option(NO_WEBENGINE_WIDGETS "Do not use QtWebengineWidgets. Disables Javascript views in TOPPView." OFF)
+
 if(MSVC)
   option(MT_ENABLE_NESTED_OPENMP "Enable nested parallelism." OFF)
 else()
@@ -328,7 +330,8 @@ include (${PROJECT_SOURCE_DIR}/cmake/export_macros.cmake)
 set(VALID_PACKAGE_TYPES "none" # the classical build type make/make install
                         "rpm"  # rpm package
                         "deb"  # deb package
-                        "dmg"  # a drag&drop dmg package for macosx
+                        "dmg"  # a drag&drop dmg package for macOS
+                        "pkg"  # a productbuild installer for macOS
                         "nsis") # an NSIS installer for Windows
 
 set(PACKAGE_TYPE "none" CACHE STRING "Package type (internal): ${VALID_PACKAGE_TYPES}")
@@ -383,7 +386,11 @@ if(UNIX)
 	# use, i.e. don't skip the full RPATH for the build tree
 	if(NOT DEFINED CMAKE_SKIP_BUILD_RPATH)
 	  SET(CMAKE_SKIP_BUILD_RPATH  FALSE)
-	endif()
+  endif()
+
+  if(NOT DEFINED CMAKE_MACOSX_RPATH)
+    SET(CMAKE_MACOSX_RPATH  TRUE)
+  endif()
 
 	# when building, don't use the install RPATH already
 	# (but later on when installing)
@@ -401,18 +408,26 @@ if(UNIX)
   # if e.g. Qt is already built with RPATH, our libs will have @rpath/QtCore as dependency.
   # We need to include all link directories that should be specified by the
   # dependency target to our RPATH as well.
-  if (NOT DEFINED CMAKE_INSTALL_RPATH_USE_LINK_PATH)
+  if (APPLE AND NOT "${PACKAGE_TYPE}" STREQUAL "pkg" AND NOT DEFINED CMAKE_INSTALL_RPATH_USE_LINK_PATH)
     SET(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
   endif()
   
-	# our default RPATH to be added when installing
+  #if(NOT DEFINED CMAKE_INSTALL_NAME_DIR AND APPLE)
+  #  SET(CMAKE_INSTALL_NAME_DIR "$<INSTALL_PREFIX>/${INSTALL_LIB_DIR}")
+  #endif()
+  
+	# our default RPATH to be added when installing. Can be changed per-target, e.g. in app bundles
 	if(NOT DEFINED CMAKE_INSTALL_RPATH)
     if (APPLE)
-      # currently our fix_dependencies.rb script requires our lib dir to be present in the RPATHS
-      # so it can find libOpenMS for one of our executables, even if it is linked as @rpath/libOpenMS.
-      # Disadvantage: even on the target machine, they will have the build folder baked in.
-      # Alternative: copy all our libs first so they do not need to be found.
-      SET(CMAKE_INSTALL_RPATH "@executable_path/../${INSTALL_LIB_DIR}/;${CMAKE_LIBRARY_OUTPUT_DIRECTORY}")
+      if(NOT "${PACKAGE_TYPE}" STREQUAL "pkg")
+        # currently our fix_dependencies.rb script requires our lib dir to be present in the RPATHS
+        # so it can find libOpenMS for one of our executables, even if it is linked as @rpath/libOpenMS.
+        # Disadvantage: even on the target machine, they will have the build folder baked in.
+        # Alternative: copy all our libs first so they do not need to be found.
+        SET(CMAKE_INSTALL_RPATH "@executable_path/../${INSTALL_LIB_DIR}/;${CMAKE_LIBRARY_OUTPUT_DIRECTORY}")
+      else()
+        SET(CMAKE_INSTALL_RPATH "@executable_path/../${INSTALL_LIB_DIR}/")
+      endif()
     else()
       SET(CMAKE_INSTALL_RPATH "$ORIGIN/../${INSTALL_LIB_DIR}/")
     endif()
@@ -470,8 +485,10 @@ install_export_targets()
 # packaging routines:
 if(NOT "${PACKAGE_TYPE}" STREQUAL "none")
   include(cmake/package_general.cmake)
-  if("${PACKAGE_TYPE}" STREQUAL "dmg") # .. MacOSX
+  if("${PACKAGE_TYPE}" STREQUAL "dmg") # .. macOS dmg
     include(cmake/package_dragndrop_dmg.cmake)
+  elseif("${PACKAGE_TYPE}" STREQUAL "pkg") # .. macOS pkg
+    include(cmake/package_mac_productbuild.cmake)
   elseif("${PACKAGE_TYPE}" STREQUAL "rpm") # .. rpms
     include(cmake/package_rpm.cmake)
   elseif("${PACKAGE_TYPE}" STREQUAL "deb") # .. debs

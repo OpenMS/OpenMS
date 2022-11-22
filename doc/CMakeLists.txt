@@ -113,9 +113,6 @@ if(ENABLE_DOCS)
   #------------------------------------------------------------------------------
   # find the necessary packages
   find_package(Doxygen)
-  find_package(LATEX)
-  # Doxygen with formulas built with LaTeX actually also needs Ghostscript but there is no official find module for it, yet.
-  #find_package(Ghostscript)
 
   #------------------------------------------------------------------------------
   # the doc targets
@@ -309,6 +306,7 @@ if(ENABLE_DOCS)
     install(DIRECTORY ${PROJECT_BINARY_DIR}/html
       DESTINATION ${INSTALL_DOC_DIR}
       COMPONENT doc
+      OPTIONAL
       FILE_PERMISSIONS      OWNER_WRITE OWNER_READ
                             GROUP_READ
                             WORLD_READ
@@ -320,14 +318,19 @@ if(ENABLE_DOCS)
       REGEX ".*\\.map\$" EXCLUDE ## Exclude temporary map files
       REGEX ".*\\.md5\$" EXCLUDE ## Exclude temporary md5 files
     )
-    install_file(${PROJECT_BINARY_DIR}/index.html ${INSTALL_DOC_DIR} doc)
+    # TODO would be cool to somehow have documentation optional
+    #install_file(${PROJECT_BINARY_DIR}/index.html ${INSTALL_DOC_DIR} doc)
 
     #------------------------------------------------------------------------------
     # PDF Tutorials
     #------------------------------------------------------------------------------
     # DOXYGEN_FOUND is true. Otherwise we would not list any doc targets at all.
-    if (PDFLATEX_COMPILER)
-      if (ENABLE_TUTORIALS)
+    
+    if (ENABLE_TUTORIALS)
+      find_package(LATEX)
+      # Doxygen with formulas built with LaTeX actually also needs Ghostscript but there is no official find module for it, yet.
+      #find_package(Ghostscript)
+      if (PDFLATEX_COMPILER)
         set(DOC_TUTORIALS_ACTIVE TRUE)
 
         # configure doxyfiles for tutorials
@@ -371,17 +374,20 @@ if(ENABLE_DOCS)
 
         #------------------------------------------------------------------------------
         # install also the tutorial pdfs
-        install_file(${PROJECT_BINARY_DIR}/OpenMS_tutorial.pdf ${INSTALL_DOC_DIR} doc)
+        install(FILES ${PROJECT_BINARY_DIR}/OpenMS_tutorial.pdf
+                DESTINATION ${INSTALL_DOC_DIR}
+                COMPONENT doc
+                OPTIONAL)
 
         #------------------------------------------------------------------------------
         # inform the user
         message(STATUS "Enabled tutorials (-D ENABLE_TUTORIALS=On).")
       else()
-        message(STATUS "Disabled tutorials (-D ENABLE_TUTORIALS=Off).")
+        message(STATUS "PDFLaTeX missing. Disabling 'doc_tutorials' target!")
       endif()
     else()
       set(DOC_TUTORIALS_ACTIVE FALSE)
-      message(STATUS "PDFLaTeX missing. Disabling 'doc_tutorials' target!")
+      message(STATUS "Disabled tutorials (-D ENABLE_TUTORIALS=Off).")
     endif()
   else()
     message(STATUS "Doxygen not found. Disabling all documentation targets!")

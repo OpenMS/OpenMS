@@ -52,7 +52,7 @@ using namespace std;
 <table>
     <tr>
         <td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. predecessor tools </td>
-  <td VALIGN="middle" ROWSPAN=4> \f$ \longrightarrow \f$ PeakPickerWavelet \f$ \longrightarrow \f$</td>
+  <td VALIGN="middle" ROWSPAN=4> &rarr; PeakPickerWavelet &rarr;</td>
         <td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. successor tools </td>
     </tr>
     <tr>
