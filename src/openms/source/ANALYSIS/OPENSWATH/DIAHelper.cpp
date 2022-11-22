@@ -121,21 +121,19 @@ namespace OpenMS::DIAHelpers
         auto mz_it = std::lower_bound(spectrum->getMZArray()->data.begin(), mz_arr_end, mz_start);
 
 
-        // also advance intensity and ion mobility iterator now
+        // also advance intensity iterator now
         auto iterator_pos = std::distance(spectrum->getMZArray()->data.begin(), mz_it);
         std::advance(int_it, iterator_pos);
 
         if ( drift_start >= 0 ) // integrate across im as well
         {
-          // get the weighted average for noncentroided data.
-          // TODO this is not optimal if there are two peaks in this window (e.g. if the window is too large)
           auto im_it = spectrum->getDriftTimeArray()->data.begin();
 
           // also advance ion mobility iterator now
           std::advance(im_it, iterator_pos);
 
           // Start iteration from mz start, end iteration when mz value is larger than mz_end, only store only storing ion mobility values that are in the range
-          while ( ( *mz_it < mz_end ) && (mz_it < mz_arr_end) )
+          while ( mz_it != mz_arr_end && *mz_it < mz_end )
           {
             if ( *im_it >= drift_start && *im_it <= drift_end)
             {
@@ -150,7 +148,7 @@ namespace OpenMS::DIAHelpers
         }
         else // where do not have IM
         {
-          while ( ( *mz_it < mz_end ) && (mz_it < mz_arr_end) )
+          while ( mz_it != mz_arr_end && *mz_it < mz_end )
           {
             intensity += (*int_it);
             mz += (*int_it) * (*mz_it);

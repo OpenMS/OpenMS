@@ -180,7 +180,7 @@ namespace OpenMS
     // the input data), therefore create a map to map to bins.
     std::map< int, double> im_chrom;
 
-    for (auto spectrum:spectra)
+    for (const auto& spectrum : spectra)
     {
       OPENMS_PRECONDITION(spectrum->getDriftTimeArray() != nullptr, "Cannot filter by drift time if no drift time is available.");
       OPENMS_PRECONDITION(spectrum->getMZArray()->data.size() == spectrum->getIntensityArray()->data.size(), "MZ and Intensity array need to have the same length.");

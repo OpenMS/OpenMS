@@ -106,7 +106,7 @@ namespace OpenMS
     /**
       @brief Performs scoring of the ion mobility dimension in MS1
 
-      @param spectra vector of the DIA MS1 spectrum found at the peak apex
+      @param spectra vector containing the DIA MS1 spectra found at (or around) the peak apex
       @param transitions The transitions used for scoring
       @param scores The output scores
       @param drift_lower Ion Mobility extraction start
