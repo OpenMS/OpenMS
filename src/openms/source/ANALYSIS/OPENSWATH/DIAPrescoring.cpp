@@ -135,7 +135,7 @@ namespace OpenMS
     } //end of for loop over spectra
   }
 
-  void DiaPrescore::score(std::vector<OpenSwath::SpectrumPtr> spec,
+  void DiaPrescore::score(std::vector<OpenSwath::SpectrumPtr>& spec,
                           const std::vector<OpenSwath::LightTransition>& lt,
                           double& dotprod,
                           double& manhattan,

@@ -126,7 +126,7 @@ namespace OpenMS
   ///////////////////////////////////////////////////////////////////////////
   // DIA / SWATH scoring
 
-  void DIAScoring::dia_isotope_scores(const std::vector<TransitionType>& transitions, std::vector<SpectrumPtrType> spectrum,
+  void DIAScoring::dia_isotope_scores(const std::vector<TransitionType>& transitions, std::vector<SpectrumPtrType>& spectrum,
                                       OpenSwath::IMRMFeature* mrmfeature, double& isotope_corr, double& isotope_overlap, double drift_start, double drift_end) const
   {
     isotope_corr = 0;
@@ -180,7 +180,7 @@ namespace OpenMS
     ppm_score /= transitions.size();
   }
 
-  bool DIAScoring::dia_ms1_massdiff_score(double precursor_mz, std::vector<SpectrumPtrType> spectrum,
+  bool DIAScoring::dia_ms1_massdiff_score(double precursor_mz, std::vector<SpectrumPtrType>& spectrum,
                                           double& ppm_score, double drift_start, double drift_end) const
   {
     ppm_score = -1;
@@ -301,7 +301,7 @@ namespace OpenMS
     }
   }
 
-  void DIAScoring::score_with_isotopes(std::vector<SpectrumPtrType> spectrum, const std::vector<TransitionType>& transitions,
+  void DIAScoring::score_with_isotopes(std::vector<SpectrumPtrType>& spectrum, const std::vector<TransitionType>& transitions,
                                        double& dotprod, double& manhattan, double drift_start, double drift_end) const
   {
     OpenMS::DiaPrescore dp(dia_extract_window_, dia_nr_isotopes_, dia_nr_charges_);

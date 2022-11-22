@@ -474,7 +474,7 @@ namespace OpenMS
                                         const bool /* use_spline */,
                                         const double drift_extra)
   {
-    OPENMS_PRECONDITION(spectra != nullptr, "Spectra cannot be null");
+    OPENMS_PRECONDITION(!spectra.empty(), "Spectra cannot be empty");
     for (auto s:spectra)
     {
       if (s->getDriftTimeArray() == nullptr)
