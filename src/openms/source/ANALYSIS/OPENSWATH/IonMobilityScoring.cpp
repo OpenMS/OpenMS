@@ -422,7 +422,6 @@ namespace OpenMS
 
     // in order to prevent assertion error call calcXcorrPrecursorContrastSumFragShapeScore(), same as calcXcorrPrecursorContrastShapeScore() however different assertion.
     scores.im_ms1_sum_contrast_shape = mrmscore_.calcXcorrPrecursorContrastSumFragShapeScore();
-
   }
 
   void IonMobilityScoring::driftScoringMS1(const std::vector<OpenSwath::SpectrumPtr>& spectra,

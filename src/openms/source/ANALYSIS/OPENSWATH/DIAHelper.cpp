@@ -49,6 +49,12 @@ namespace OpenMS::DIAHelpers
     {
       OPENMS_PRECONDITION(mz_extract_window > 0, "MZ extraction window needs to be larger than zero.");
 
+      // If the left value is now < 0, this is invalid correct it to be 0
+      if (left < 0)
+      {
+        left = 0;
+      }
+
       if (mz_extraction_ppm)
       {
         left -= left * mz_extract_window / 2e6;
@@ -58,12 +64,6 @@ namespace OpenMS::DIAHelpers
       {
         left -= mz_extract_window / 2.0;
         right += mz_extract_window / 2.0;
-
-        // If the left value is now < 0, this is invalid correct it to be 0
-        if (left < 0)
-        {
-          left = 0;
-        }
       }
     }
 
@@ -80,14 +80,14 @@ namespace OpenMS::DIAHelpers
                 double drift_end,
                 bool centroided)
     {
-      // TODO are preconditions working?
       OPENMS_PRECONDITION(spectrum != nullptr, "Spectrum cannot be nullptr");
       OPENMS_PRECONDITION(spectrum->getMZArray() != nullptr, "Cannot integrate if no m/z is available.");
-      OPENMS_PRECONDITION(spectrum->getMZArray()->empty(), "Cannot integrate if no m/z is available.");
+      OPENMS_PRECONDITION(!spectrum->getMZArray()->empty(), "Cannot integrate if no m/z is available.");
       OPENMS_PRECONDITION(std::adjacent_find(spectrum->getMZArray()->data.begin(),
         spectrum->getMZArray()->data.end(), std::greater<double>()) == spectrum->getMZArray()->data.end(),
         "Precondition violated: m/z vector needs to be sorted!" );
       OPENMS_PRECONDITION(spectrum->getMZArray()->data.size() == spectrum->getIntensityArray()->data.size(), "MZ and Intensity array need to have the same length.");
+      OPENMS_PRECONDITION(drift_start < 0 || spectrum->getMZArray()->data.size() == spectrum->getDriftTimeArray()->data.size(), "MZ and Drift Time array need to have the same length.");
       OPENMS_PRECONDITION(!centroided,  throw Exception::NotImplemented(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION));
 
       if (spectrum->getMZArray()->data.empty())
@@ -96,19 +96,17 @@ namespace OpenMS::DIAHelpers
         return;
       }
 
-      // drift time checks
-      if ( drift_start >= 0 ) // integrate across im as well
+      // check if drift time is set and if it is present
+      if (drift_start >= 0) // user wants integration across drift time
       {
         // additional checks only relevant if ion mobility is present
-
-        //TODO this preconditions do not seem to be working? however the if statement below works
         OPENMS_PRECONDITION(spectrum->getDriftTimeArray() != nullptr, "Cannot integrate with drift time if no drift time is available.");
         OPENMS_PRECONDITION(spectrum->getMZArray()->data.size() == spectrum->getDriftTimeArray()->data.size(), "MZ and Drift Time array need to have the same length.");
 
         if (spectrum->getDriftTimeArray() == nullptr)
         {
-          std::cerr << "Warning: Cannot integrate with drift time if no drift time is available.\n";
-          return;
+            std::cerr << "Warning: Cannot integrate with drift time if no drift time is available, will integrate without drift time\n";
+            drift_start(-1), drift_end(-1);
         }
       }
 
