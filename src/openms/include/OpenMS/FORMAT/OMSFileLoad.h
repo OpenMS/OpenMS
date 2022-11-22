@@ -39,9 +39,12 @@
 #include <OpenMS/METADATA/ID/IdentificationData.h>
 #include <OpenMS/FORMAT/OMSFileStore.h>
 
-#include <SQLiteCpp/Database.h>
-
 #include <QtCore/QJsonArray> // for JSON export
+
+namespace SQLite
+{
+  class Database;
+} // namespace SQLite
 
 namespace OpenMS
 {
