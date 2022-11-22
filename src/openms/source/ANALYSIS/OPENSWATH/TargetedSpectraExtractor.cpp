@@ -639,10 +639,10 @@ namespace OpenMS
     selected_spectra.clear();
     selected_features.clear(true);
 
-    for (auto it = transition_best_spec.cbegin(); it != transition_best_spec.cend(); ++it)
+    for (const auto& m : transition_best_spec)
     {
-      selected_spectra.push_back(scored_spectra[it->second]);
-      if (compute_features) selected_features.push_back(features[it->second]);
+      selected_spectra.push_back(scored_spectra[m.second]);
+      if (compute_features) selected_features.push_back(features[m.second]);
     }
   }
 
@@ -948,16 +948,16 @@ namespace OpenMS
 
     // Reconstruct the final vectors from the maps
     std::vector<TargetedExperiment::Peptide> peptides;
-    for (auto p : peptides_map) {
+    for (const auto& p : peptides_map) {
       peptides.push_back(p.second);
     }
     std::vector<TargetedExperiment::Protein> proteins;
-    for (auto p : proteins_map)
+    for (const auto& p : proteins_map)
     {
       proteins.push_back(p.second);
     }
     std::vector<ReactionMonitoringTransition> rmt_vec;
-    for (auto p : rmt_map)
+    for (const auto& p : rmt_map)
     {
       rmt_vec.push_back(p.second);
     }
