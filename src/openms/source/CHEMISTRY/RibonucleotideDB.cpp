@@ -44,7 +44,6 @@ using namespace std;
 
 namespace OpenMS
 {
-  RibonucleotideDB::ConstRibonucleotidePtr parseEntry_(const nlohmann::json::value_type& entry);
 
   RibonucleotideDB::RibonucleotideDB() : max_code_length_(0)
   {
@@ -126,7 +125,7 @@ namespace OpenMS
     }
   }
 
-  RibonucleotideDB::ConstRibonucleotidePtr parseEntry_(const nlohmann::json::value_type& entry)
+  RibonucleotideDB::ConstRibonucleotidePtr RibonucleotideDB::parseEntry_(const nlohmann::json::value_type& entry)
   {
     Ribonucleotide* ribo = new Ribonucleotide();
     ribo->setName(entry.at("name"));

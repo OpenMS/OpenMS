@@ -39,6 +39,11 @@
 
 #include <unordered_map>
 
+namespace nlohmann::json
+{
+  class json::value_type;
+}
+
 namespace OpenMS
 {
   /** @ingroup Chemistry
@@ -114,6 +119,8 @@ namespace OpenMS
 
     /// create a (modified) nucleotide from an input row
     ConstRibonucleotidePtr parseRow_(const std::string& row, Size line_count);
+
+    ConstRibonucleotidePtr parseEntry_(const nlohmann::json::value_type& entry);
 
     /// list of known (modified) nucleotides
     std::vector<ConstRibonucleotidePtr> ribonucleotides_;
