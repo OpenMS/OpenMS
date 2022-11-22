@@ -114,7 +114,7 @@
     sudo apt-get install libboost-regex-dev libboost-iostreams-dev \
       libboost-date-time-dev libboost-math-dev libboost-random-dev libsvm-dev \
       libglpk-dev zlib1g-dev libxerces-c-dev libbz2-dev coinor-libcoinmp-dev libhdf5-dev
-      # Use from contrib: EIGEN; SQLITE
+      # Use from contrib: EIGEN
     </pre></td>
   </tr>
   <tr>
