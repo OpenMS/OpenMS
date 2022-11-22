@@ -1,7 +1,7 @@
 MTD	mzTab-version	1.0.0
 MTD	mzTab-mode	null
 MTD	mzTab-type	null
-MTD	description	Sirius-5.6.2
+MTD	description	Sirius-5.6.3
 MTD	smallmolecule_search_engine_score[1]	[, , SiriusScore, ]
 MTD	smallmolecule_search_engine_score[2]	[, , TreeScore, ]
 MTD	smallmolecule_search_engine_score[3]	[, , IsotopeScore, ]
