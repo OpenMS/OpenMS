@@ -35,7 +35,6 @@
 #include <OpenMS/FORMAT/OMSFile.h>
 #include <OpenMS/FORMAT/OMSFileLoad.h>
 #include <OpenMS/FORMAT/OMSFileStore.h>
-#include <QCoreApplication>
 
 #include <fstream>
 
@@ -59,13 +58,6 @@ namespace OpenMS
 
   void OMSFile::load(const String& filename, IdentificationData& id_data)
   {
-    /*if (!QCoreApplication::instance())
-    {
-      char argv[1] = "";
-      int argc = 0;
-      QCoreApplication a(argc, reinterpret_cast<char**>(&argv));
-      std::cout << QCoreApplication::libraryPaths().join(" ").toStdString() << std::endl;
-    }*/
     OpenMS::Internal::OMSFileLoad helper(filename, log_type_);
     helper.load(id_data);
   }

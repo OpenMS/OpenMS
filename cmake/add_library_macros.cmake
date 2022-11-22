@@ -123,6 +123,7 @@ endmacro()
 #                    EXTERNAL_INCLUDES <list of external include directories for the library>
 #                                      (will be added with -isystem if available)
 #                    LINK_LIBRARIES <list of libraries used when linking the library>
+#                    PRIVATE_LINK_LIBRARIES <list of internal libraries used when linking the library>
 #                    DLL_EXPORT_PATH <path to the dll export header>)
 function(openms_add_library)
   #------------------------------------------------------------------------------
@@ -130,6 +131,7 @@ function(openms_add_library)
   set(options )
   set(oneValueArgs TARGET_NAME DLL_EXPORT_PATH)
   set(multiValueArgs INTERNAL_INCLUDES PRIVATE_INCLUDES EXTERNAL_INCLUDES SOURCE_FILES HEADER_FILES LINK_LIBRARIES PRIVATE_LINK_LIBRARIES)
+  ## make above arguments available as variables, e.g. ${openms_add_library_PRIVATE_LINK_LIBRARIES}
   cmake_parse_arguments(openms_add_library "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN} )
 
   #------------------------------------------------------------------------------

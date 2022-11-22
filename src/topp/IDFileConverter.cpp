@@ -57,9 +57,6 @@
 #include <OpenMS/FORMAT/XTandemXMLFile.h>
 #include <OpenMS/SYSTEM/File.h>
 
-
-#include <QtCore/QCoreApplication>
-
 #ifdef _OPENMP
 #include <omp.h>
 #endif
