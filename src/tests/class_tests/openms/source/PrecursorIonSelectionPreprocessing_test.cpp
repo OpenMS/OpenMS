@@ -49,6 +49,10 @@ START_TEST(PrecursorIonSelectionPreprocessing, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
+// different versions of the SVM lib yield slightly different results
+TOLERANCE_RELATIVE(1.1)
+TOLERANCE_ABSOLUTE(0.1)
+
 PrecursorIonSelectionPreprocessing* ptr = nullptr;
 PrecursorIonSelectionPreprocessing* nullPointer = nullptr;
 START_SECTION(PrecursorIonSelectionPreprocessing())
