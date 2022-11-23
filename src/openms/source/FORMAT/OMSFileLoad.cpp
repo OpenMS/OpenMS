@@ -29,25 +29,23 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Hendrik Weisser $
-// $Authors: Hendrik Weisser $
+// $Authors: Hendrik Weisser, Chris Bielow $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/FORMAT/OMSFileLoad.h>
-#include <OpenMS/FORMAT/OMSFileStore.h> // for "tableExists_" and "raiseDBError_"
+#include <OpenMS/FORMAT/OMSFileStore.h> // for "raiseDBError_"
 #include <OpenMS/CHEMISTRY/ProteaseDB.h>
 #include <OpenMS/CHEMISTRY/RNaseDB.h>
 #include <OpenMS/CONCEPT/UniqueIdGenerator.h>
 
 #include <QString>
-#include <QtSql/QSqlDatabase>
-#include <QtSql/QSqlError>
-#include <QtSql/QSqlQuery>
-#include <QtSql/QSqlRecord>
-// strangely, this is needed for type conversions in "QSqlQuery::bindValue":
-#include <QtSql/QSqlQueryModel>
 // JSON export:
 #include <QtCore/QJsonDocument>
 #include <QtCore/QJsonObject>
+
+#include <SQLiteCpp/Database.h>
+
+#include <sqlite3.h>
 
 using namespace std;
 
@@ -71,36 +69,26 @@ namespace OpenMS::Internal
 
 
   OMSFileLoad::OMSFileLoad(const String& filename, LogType log_type):
-    db_name_("load_" + filename.toQString() + "_" + QString::number(UniqueIdGenerator::getUniqueId()))
+    db_(make_unique<SQLite::Database>(filename))
   {
     setLogType(log_type);
 
-    // open database:
-    QSqlDatabase db = QSqlDatabase::addDatabase("QSQLITE", db_name_);
-    db.setDatabaseName(filename.toQString());
-    db.setConnectOptions("QSQLITE_OPEN_READONLY");
-    if (!db.open())
-    {
-      raiseDBError_(db.lastError(), __LINE__, OPENMS_PRETTY_FUNCTION,
-                    "error opening SQLite database");
-      // if d'tor doesn't get called, DB connection (db_name_) doesn't get
-      // removed, but that shouldn't be a big problem
-    }
     // read version number:
-    QSqlQuery query(db);
-    if (!(query.exec("SELECT OMSFile FROM version") && query.first()))
+    try
     {
-      raiseDBError_(db.lastError(), __LINE__, OPENMS_PRETTY_FUNCTION,
+      auto version = db_->execAndGet("SELECT OMSFile FROM version");
+      version_number_ = version.getInt();
+    }
+    catch (...)
+    {
+      raiseDBError_(db_->getErrorMsg(), __LINE__, OPENMS_PRETTY_FUNCTION,
                     "error reading file format version number");
     }
-    version_number_ = query.value(0).toInt();
   }
 
 
   OMSFileLoad::~OMSFileLoad()
   {
-    QSqlDatabase::database(db_name_).close();
-    QSqlDatabase::removeDatabase(db_name_);
   }
 
 
@@ -108,116 +96,92 @@ namespace OpenMS::Internal
   // CVTerm OMSFileLoad::loadCVTerm_(int id)
   // {
   //   // this assumes that the "CVTerm" table exists!
-  //   QSqlQuery query(db_);
-  //   query.setForwardOnly(true);
+  //   SQLite::Statement query(db_);
+  //   
   //   QString sql_select = "SELECT * FROM CVTerm WHERE id = " + QString(id);
-  //   if (!query.exec(sql_select) || !query.next())
+  //   if (!query.exec(sql_select) || !query.executeStep())
   //   {
-  //     raiseDBError_(model.lastError(), __LINE__, OPENMS_PRETTY_FUNCTION,
+  //     raiseDBError_(model.getErrorMsg(), __LINE__, OPENMS_PRETTY_FUNCTION,
   //                   "error reading from database");
   //   }
-  //   return CVTerm(query.value("accession").toString(),
-  //                 query.value("name").toString(),
-  //                 query.value("cv_identifier_ref").toString());
+  //   return CVTerm(query.getColumn("accession").getString(),
+  //                 query.getColumn("name").getString(),
+  //                 query.getColumn("cv_identifier_ref").getString());
   // }
 
 
   void OMSFileLoad::loadScoreTypes_(IdentificationData& id_data)
   {
-    if (!tableExists_(db_name_, "ID_ScoreType")) return;
-    if (!tableExists_(db_name_, "CVTerm")) // every score type is a CV term
+    if (!db_->tableExists("ID_ScoreType")) return;
+    if (!db_->tableExists("CVTerm")) // every score type is a CV term
     {
       String msg = "required database table 'CVTerm' not found";
       throw Exception::MissingInformation(__FILE__, __LINE__,
                                           OPENMS_PRETTY_FUNCTION, msg);
     }
-    QSqlQuery query(QSqlDatabase::database(db_name_));
-    query.setForwardOnly(true);
     // careful - both joined tables have an "id" field, need to exclude one:
-    if (!query.exec("SELECT S.*, C.accession, C.name, C.cv_identifier_ref " \
+    SQLite::Statement query(*db_, "SELECT S.*, C.accession, C.name, C.cv_identifier_ref " \
                     "FROM ID_ScoreType AS S JOIN CVTerm AS C "          \
-                    "ON S.cv_term_id = C.id"))
+                    "ON S.cv_term_id = C.id");
+    while (query.executeStep())
     {
-      raiseDBError_(query.lastError(), __LINE__, OPENMS_PRETTY_FUNCTION,
-                    "error reading from database");
-    }
-    while (query.next())
-    {
-      CVTerm cv_term(query.value("accession").toString(),
-                     query.value("name").toString(),
-                     query.value("cv_identifier_ref").toString());
-      bool higher_better = query.value("higher_better").toInt();
+      CVTerm cv_term(query.getColumn("accession").getString(),
+                     query.getColumn("name").getString(),
+                     query.getColumn("cv_identifier_ref").getString());
+      bool higher_better = query.getColumn("higher_better").getInt();
       ID::ScoreType score_type(cv_term, higher_better);
       ID::ScoreTypeRef ref = id_data.registerScoreType(score_type);
-      score_type_refs_[query.value("id").toLongLong()] = ref;
+      score_type_refs_[query.getColumn("id").getInt64()] = ref;
     }
   }
 
 
   void OMSFileLoad::loadInputFiles_(IdentificationData& id_data)
   {
-    if (!tableExists_(db_name_, "ID_InputFile")) return;
+    if (!db_->tableExists("ID_InputFile")) return;
 
-    QSqlQuery query(QSqlDatabase::database(db_name_));
-    query.setForwardOnly(true);
-    if (!query.exec("SELECT * FROM ID_InputFile"))
+    SQLite::Statement query(*db_, "SELECT * FROM ID_InputFile");
+    while (query.executeStep())
     {
-      raiseDBError_(query.lastError(), __LINE__, OPENMS_PRETTY_FUNCTION,
-                    "error reading from database");
-    }
-    while (query.next())
-    {
-      ID::InputFile input(query.value("name").toString(),
-                          query.value("experimental_design_id").toString());
-      String primary_files = query.value("primary_files").toString();
+      ID::InputFile input(query.getColumn("name").getString(),
+                          query.getColumn("experimental_design_id").getString());
+      String primary_files = query.getColumn("primary_files").getString();
       vector<String> pf_list = ListUtils::create<String>(primary_files);
       input.primary_files.insert(pf_list.begin(), pf_list.end());
       ID::InputFileRef ref = id_data.registerInputFile(input);
-      input_file_refs_[query.value("id").toLongLong()] = ref;
+      input_file_refs_[query.getColumn("id").getInt64()] = ref;
     }
   }
 
 
   void OMSFileLoad::loadProcessingSoftwares_(IdentificationData& id_data)
   {
-    if (!tableExists_(db_name_, "ID_ProcessingSoftware")) return;
+    if (!db_->tableExists("ID_ProcessingSoftware")) return;
 
-    QSqlDatabase db = QSqlDatabase::database(db_name_);
-    QSqlQuery query(db);
-    query.setForwardOnly(true);
-    if (!query.exec("SELECT * FROM ID_ProcessingSoftware"))
-    {
-      raiseDBError_(query.lastError(), __LINE__, OPENMS_PRETTY_FUNCTION,
-                    "error reading from database");
-    }
-    bool have_scores = tableExists_(db_name_,
-                                    "ID_ProcessingSoftware_AssignedScore");
-    QSqlQuery subquery(db);
+    
+    SQLite::Statement query(*db_, "SELECT * FROM ID_ProcessingSoftware");
+    bool have_scores = db_->tableExists("ID_ProcessingSoftware_AssignedScore");
+    SQLite::Statement subquery(*db_, "");
     if (have_scores)
     {
-      subquery.setForwardOnly(true);
-      subquery.prepare("SELECT score_type_id "                         \
+      subquery = SQLite::Statement(*db_, "SELECT score_type_id "                         \
                        "FROM ID_ProcessingSoftware_AssignedScore " \
                        "WHERE software_id = :id ORDER BY score_type_order ASC");
     }
-    while (query.next())
+    while (query.executeStep())
     {
-      Key id = query.value("id").toLongLong();
-      ID::ProcessingSoftware software(query.value("name").toString(),
-                                          query.value("version").toString());
+      Key id = query.getColumn("id").getInt64();
+      ID::ProcessingSoftware software(query.getColumn("name").getString(),
+                                          query.getColumn("version").getString());
       if (have_scores)
       {
-        subquery.bindValue(":id", id);
-        if (!subquery.exec())
+        subquery.bind(":id", id);
+        while (subquery.executeStep())
         {
-          raiseDBError_(subquery.lastError(), __LINE__, OPENMS_PRETTY_FUNCTION,
-                        "error reading from database");
-        }
-        while (subquery.next())
-        {
-          Key score_type_id = subquery.value(0).toLongLong();
+          Key score_type_id = subquery.getColumn(0).getInt64();
           software.assigned_scores.push_back(score_type_refs_[score_type_id]);
         }
+        subquery.reset(); // get ready for new executeStep()
       }
       ID::ProcessingSoftwareRef ref = id_data.registerProcessingSoftware(software);
       processing_software_refs_[id] = ref;
@@ -225,12 +189,12 @@ namespace OpenMS::Internal
   }
 
 
-  DataValue OMSFileLoad::makeDataValue_(const QSqlQuery& query)
+  DataValue OMSFileLoad::makeDataValue_(const SQLite::Statement& query)
   {
     DataValue::DataType type = DataValue::EMPTY_VALUE;
-    int type_index = query.value("data_type_id").toInt();
+    int type_index = query.getColumn("data_type_id").getInt();
     if (type_index > 0) type = DataValue::DataType(type_index - 1);
-    String value = query.value("value").toString();
+    String value = query.getColumn("value").getString();
     switch (type)
     {
     case DataValue::STRING_VALUE:
@@ -255,125 +219,111 @@ namespace OpenMS::Internal
   }
 
 
-  bool OMSFileLoad::prepareQueryMetaInfo_(QSqlQuery& query,
+  bool OMSFileLoad::prepareQueryMetaInfo_(SQLite::Statement& query,
                                           const String& parent_table)
   {
     String table_name = parent_table + "_MetaInfo";
-    if (!tableExists_(db_name_, table_name)) return false;
+    if (!db_->tableExists(table_name)) return false;
 
-    query.setForwardOnly(true);
-    QString sql_select =
+    
+    String sql_select =
       "SELECT * FROM " + table_name.toQString() + " AS MI " \
       "JOIN DataValue AS DV ON MI.data_value_id = DV.id "   \
       "WHERE MI.parent_id = :id";
-    query.prepare(sql_select);
+    query = SQLite::Statement(*db_, sql_select);
     return true;
   }
 
 
-  bool OMSFileLoad::prepareQueryAppliedProcessingStep_(QSqlQuery& query,
+  bool OMSFileLoad::prepareQueryAppliedProcessingStep_(SQLite::Statement& query,
                                                        const String& parent_table)
   {
     String table_name = parent_table + "_AppliedProcessingStep";
-    if (!tableExists_(db_name_, table_name)) return false;
+    if (!db_->tableExists(table_name)) return false;
 
-    // query.setForwardOnly(true);
-    QString sql_select = "SELECT * FROM " + table_name.toQString() +
+    // 
+    String sql_select = "SELECT * FROM " + table_name.toQString() +
       " WHERE parent_id = :id ORDER BY processing_step_order ASC";
-    query.prepare(sql_select);
+    query = SQLite::Statement(*db_, sql_select);
     return true;
   }
 
 
-  void OMSFileLoad::handleQueryMetaInfo_(QSqlQuery& query,
+  void OMSFileLoad::handleQueryMetaInfo_(SQLite::Statement& query,
                                          MetaInfoInterface& info,
                                          Key parent_id)
   {
-    query.bindValue(":id", parent_id);
-    if (!query.exec())
-    {
-      raiseDBError_(query.lastError(), __LINE__, OPENMS_PRETTY_FUNCTION,
-                    "error reading from database");
-    }
-    while (query.next())
+    query.bind(":id", parent_id);
+    while (query.executeStep())
     {
       DataValue value = makeDataValue_(query);
-      info.setMetaValue(query.value("name").toString(), value);
+      info.setMetaValue(query.getColumn("name").getString(), value);
     }
+    query.reset(); // get ready for new executeStep()
   }
 
 
   void OMSFileLoad::handleQueryAppliedProcessingStep_(
-    QSqlQuery& query,
+    SQLite::Statement& query,
     IdentificationDataInternal::ScoredProcessingResult& result,
     Key parent_id)
   {
-    query.bindValue(":id", parent_id);
-    if (!query.exec())
-    {
-      raiseDBError_(query.lastError(), __LINE__, OPENMS_PRETTY_FUNCTION,
-                    "error reading from database");
-    }
-    while (query.next())
+    query.bind(":id", parent_id);
+    while (query.executeStep())
     {
       ID::AppliedProcessingStep step;
-      QVariant step_id_opt = query.value("processing_step_id");
+      auto step_id_opt = query.getColumn("processing_step_id");
       if (!step_id_opt.isNull())
       {
         step.processing_step_opt =
-          processing_step_refs_[step_id_opt.toLongLong()];
+          processing_step_refs_[step_id_opt.getInt64()];
       }
-      QVariant score_type_opt = query.value("score_type_id");
+      auto score_type_opt = query.getColumn("score_type_id");
       if (!score_type_opt.isNull())
       {
-        step.scores[score_type_refs_[score_type_opt.toLongLong()]] =
-          query.value("score").toDouble();
+        step.scores[score_type_refs_[score_type_opt.getInt64()]] =
+          query.getColumn("score").getDouble();
       }
       result.addProcessingStep(step); // this takes care of merging the steps
     }
+    query.reset(); // get ready for new executeStep()
   }
 
 
   void OMSFileLoad::loadDBSearchParams_(IdentificationData& id_data)
   {
-    if (!tableExists_(db_name_, "ID_DBSearchParam")) return;
+    if (!db_->tableExists("ID_DBSearchParam")) return;
 
-    QSqlQuery query(QSqlDatabase::database(db_name_));
-    query.setForwardOnly(true);
-    if (!query.exec("SELECT * FROM ID_DBSearchParam"))
+    SQLite::Statement query(*db_, "SELECT * FROM ID_DBSearchParam");
+    while (query.executeStep())
     {
-      raiseDBError_(query.lastError(), __LINE__, OPENMS_PRETTY_FUNCTION,
-                    "error reading from database");
-    }
-    while (query.next())
-    {
-      Key id = query.value("id").toLongLong();
+      Key id = query.getColumn("id").getInt64();
       ID::DBSearchParam param;
-      int molecule_type_index = query.value("molecule_type_id").toInt() - 1;
+      int molecule_type_index = query.getColumn("molecule_type_id").getInt() - 1;
       param.molecule_type = ID::MoleculeType(molecule_type_index);
-      int mass_type_index = query.value("mass_type_average").toInt();
+      int mass_type_index = query.getColumn("mass_type_average").getInt();
       param.mass_type = ID::MassType(mass_type_index);
-      param.database = query.value("database").toString();
-      param.database_version = query.value("database_version").toString();
-      param.taxonomy = query.value("taxonomy").toString();
+      param.database = query.getColumn("database").getString();
+      param.database_version = query.getColumn("database_version").getString();
+      param.taxonomy = query.getColumn("taxonomy").getString();
       vector<Int> charges =
-        ListUtils::create<Int>(query.value("charges").toString());
+        ListUtils::create<Int>(query.getColumn("charges").getString());
       param.charges.insert(charges.begin(), charges.end());
       vector<String> fixed_mods =
-        ListUtils::create<String>(query.value("fixed_mods").toString());
+        ListUtils::create<String>(query.getColumn("fixed_mods").getString());
       param.fixed_mods.insert(fixed_mods.begin(), fixed_mods.end());
       vector<String> variable_mods =
-        ListUtils::create<String>(query.value("variable_mods").toString());
+        ListUtils::create<String>(query.getColumn("variable_mods").getString());
       param.variable_mods.insert(variable_mods.begin(), variable_mods.end());
       param.precursor_mass_tolerance =
-        query.value("precursor_mass_tolerance").toDouble();
+        query.getColumn("precursor_mass_tolerance").getDouble();
       param.fragment_mass_tolerance =
-        query.value("fragment_mass_tolerance").toDouble();
+        query.getColumn("fragment_mass_tolerance").getDouble();
       param.precursor_tolerance_ppm =
-        query.value("precursor_tolerance_ppm").toInt();
+        query.getColumn("precursor_tolerance_ppm").getInt();
       param.fragment_tolerance_ppm =
-        query.value("fragment_tolerance_ppm").toInt();
-      String enzyme = query.value("digestion_enzyme").toString();
+        query.getColumn("fragment_tolerance_ppm").getInt();
+      String enzyme = query.getColumn("digestion_enzyme").getString();
       if (!enzyme.empty())
       {
         if (param.molecule_type == ID::MoleculeType::PROTEIN)
@@ -387,12 +337,12 @@ namespace OpenMS::Internal
       }
       if (version_number_ > 1)
       {
-        String spec = query.value("enzyme_term_specificity").toString();
+        String spec = query.getColumn("enzyme_term_specificity").getString();
         param.enzyme_term_specificity = EnzymaticDigestion::getSpecificityByName(spec);
       }
-      param.missed_cleavages = query.value("missed_cleavages").toUInt();
-      param.min_length = query.value("min_length").toUInt();
-      param.max_length = query.value("max_length").toUInt();
+      param.missed_cleavages = query.getColumn("missed_cleavages").getUInt();
+      param.min_length = query.getColumn("min_length").getUInt();
+      param.max_length = query.getColumn("max_length").getUInt();
       ID::SearchParamRef ref = id_data.registerDBSearchParam(param);
       search_param_refs_[id] = ref;
     }
@@ -401,56 +351,45 @@ namespace OpenMS::Internal
 
   void OMSFileLoad::loadProcessingSteps_(IdentificationData& id_data)
   {
-    if (!tableExists_(db_name_, "ID_ProcessingStep")) return;
+    if (!db_->tableExists("ID_ProcessingStep")) return;
 
-    QSqlDatabase db = QSqlDatabase::database(db_name_);
-    QSqlQuery query(db);
-    query.setForwardOnly(true);
-    if (!query.exec("SELECT * FROM ID_ProcessingStep"))
-    {
-      raiseDBError_(query.lastError(), __LINE__, OPENMS_PRETTY_FUNCTION,
-                    "error reading from database");
-    }
-    QSqlQuery subquery_file(db);
-    bool have_input_files = tableExists_(db_name_,
+    
+    SQLite::Statement query(*db_, "SELECT * FROM ID_ProcessingStep");
+    SQLite::Statement subquery_file(*db_, "");
+    bool have_input_files = db_->tableExists(
                                          "ID_ProcessingStep_InputFile");
     if (have_input_files)
     {
-      subquery_file.setForwardOnly(true);
-      subquery_file.prepare("SELECT input_file_id "                 \
+      subquery_file = SQLite::Statement(*db_, "SELECT input_file_id "                 \
                             "FROM ID_ProcessingStep_InputFile " \
                             "WHERE processing_step_id = :id");
     }
-    QSqlQuery subquery_info(db);
+    SQLite::Statement subquery_info(*db_, "");
     bool have_meta_info = prepareQueryMetaInfo_(subquery_info, "ID_ProcessingStep");
-    while (query.next())
+    while (query.executeStep())
     {
-      Key id = query.value("id").toLongLong();
-      Key software_id = query.value("software_id").toLongLong();
+      Key id = query.getColumn("id").getInt64();
+      Key software_id = query.getColumn("software_id").getInt64();
       ID::ProcessingStep step(processing_software_refs_[software_id]);
-      String date_time = query.value("date_time").toString();
+      String date_time = query.getColumn("date_time").getString();
       if (!date_time.empty()) step.date_time.set(date_time);
       if (have_input_files)
       {
-        subquery_file.bindValue(":id", id);
-        if (!subquery_file.exec())
+        subquery_file.bind(":id", id);
+        while (subquery_file.executeStep())
         {
-          raiseDBError_(subquery_file.lastError(), __LINE__,
-                        OPENMS_PRETTY_FUNCTION, "error reading from database");
-        }
-        while (subquery_file.next())
-        {
-          Key input_file_id = subquery_file.value(0).toLongLong();
+          Key input_file_id = subquery_file.getColumn(0).getInt64();
           // the foreign key constraint should ensure that look-up succeeds:
           step.input_file_refs.push_back(input_file_refs_[input_file_id]);
         }
+        subquery_file.reset(); // get ready for new executeStep()
       }
       if (have_meta_info)
       {
         handleQueryMetaInfo_(subquery_info, step, id);
       }
       ID::ProcessingStepRef ref;
-      QVariant opt_search_param_id = query.value("search_param_id");
+      auto opt_search_param_id = query.getColumn("search_param_id");
       if (opt_search_param_id.isNull()) // no DB search params available
       {
         ref = id_data.registerProcessingStep(step);
@@ -458,7 +397,7 @@ namespace OpenMS::Internal
       else
       {
         ID::SearchParamRef search_param_ref =
-          search_param_refs_[opt_search_param_id.toLongLong()];
+          search_param_refs_[opt_search_param_id.getInt64()];
         ref = id_data.registerProcessingStep(step, search_param_ref);
       }
       processing_step_refs_[id] = ref;
@@ -468,30 +407,24 @@ namespace OpenMS::Internal
 
   void OMSFileLoad::loadObservations_(IdentificationData& id_data)
   {
-    if (!tableExists_(db_name_, "ID_Observation")) return;
+    if (!db_->tableExists("ID_Observation")) return;
 
-    QSqlDatabase db = QSqlDatabase::database(db_name_);
-    QSqlQuery query(db);
-    query.setForwardOnly(true);
-    if (!query.exec("SELECT * FROM ID_Observation"))
-    {
-      raiseDBError_(query.lastError(), __LINE__, OPENMS_PRETTY_FUNCTION,
-                    "error reading from database");
-    }
-    QSqlQuery subquery_info(db);
+    
+    SQLite::Statement query(*db_, "SELECT * FROM ID_Observation");
+    SQLite::Statement subquery_info(*db_, "");
     bool have_meta_info = prepareQueryMetaInfo_(subquery_info,
                                                 "ID_Observation");
 
-    while (query.next())
+    while (query.executeStep())
     {
-      QVariant input_file_id = query.value("input_file_id");
-      ID::Observation obs(query.value("data_id").toString(),
-                          input_file_refs_[input_file_id.toLongLong()]);
-      QVariant rt = query.value("rt");
-      if (!rt.isNull()) obs.rt = rt.toDouble();
-      QVariant mz = query.value("mz");
-      if (!mz.isNull()) obs.mz = mz.toDouble();
-      Key id = query.value("id").toLongLong();
+      auto input_file_id = query.getColumn("input_file_id");
+      ID::Observation obs(query.getColumn("data_id").getString(),
+                          input_file_refs_[input_file_id.getInt64()]);
+      auto rt = query.getColumn("rt");
+      if (!rt.isNull()) obs.rt = rt.getDouble();
+      auto mz = query.getColumn("mz");
+      if (!mz.isNull()) obs.mz = mz.getDouble();
+      Key id = query.getColumn("id").getInt64();
       if (have_meta_info) handleQueryMetaInfo_(subquery_info, obs, id);
       ID::ObservationRef ref = id_data.registerObservation(obs);
       observation_refs_[id] = ref;
@@ -501,35 +434,29 @@ namespace OpenMS::Internal
 
   void OMSFileLoad::loadParentSequences_(IdentificationData& id_data)
   {
-    if (!tableExists_(db_name_, "ID_ParentSequence")) return;
+    if (!db_->tableExists("ID_ParentSequence")) return;
 
-    QSqlDatabase db = QSqlDatabase::database(db_name_);
-    QSqlQuery query(db);
-    query.setForwardOnly(true);
-    if (!query.exec("SELECT * FROM ID_ParentSequence"))
-    {
-      raiseDBError_(query.lastError(), __LINE__, OPENMS_PRETTY_FUNCTION,
-                    "error reading from database");
-    }
+    
+    SQLite::Statement query(*db_, "SELECT * FROM ID_ParentSequence");
     // @TODO: can we combine handling of meta info and applied processing steps?
-    QSqlQuery subquery_info(db);
+    SQLite::Statement subquery_info(*db_, "");
     bool have_meta_info = prepareQueryMetaInfo_(subquery_info,
                                                 "ID_ParentSequence");
-    QSqlQuery subquery_step(db);
+    SQLite::Statement subquery_step(*db_, "");
     bool have_applied_steps =
       prepareQueryAppliedProcessingStep_(subquery_step, "ID_ParentSequence");
 
-    while (query.next())
+    while (query.executeStep())
     {
-      String accession = query.value("accession").toString();
+      String accession = query.getColumn("accession").getString();
       ID::ParentSequence parent(accession);
-      int molecule_type_index = query.value("molecule_type_id").toInt() - 1;
+      int molecule_type_index = query.getColumn("molecule_type_id").getInt() - 1;
       parent.molecule_type = ID::MoleculeType(molecule_type_index);
-      parent.sequence = query.value("sequence").toString();
-      parent.description = query.value("description").toString();
-      parent.coverage = query.value("coverage").toDouble();
-      parent.is_decoy = query.value("is_decoy").toInt();
-      Key id = query.value("id").toLongLong();
+      parent.sequence = query.getColumn("sequence").getString();
+      parent.description = query.getColumn("description").getString();
+      parent.coverage = query.getColumn("coverage").getDouble();
+      parent.is_decoy = query.getColumn("is_decoy").getInt();
+      Key id = query.getColumn("id").getInt64();
       if (have_meta_info)
       {
         handleQueryMetaInfo_(subquery_info, parent, id);
@@ -546,40 +473,29 @@ namespace OpenMS::Internal
 
   void OMSFileLoad::loadParentGroupSets_(IdentificationData& id_data)
   {
-    if (!tableExists_(db_name_, "ID_ParentGroupSet")) return;
+    if (!db_->tableExists("ID_ParentGroupSet")) return;
 
-    QSqlDatabase db = QSqlDatabase::database(db_name_);
-    QSqlQuery query(db);
-    query.setForwardOnly(true);
     // "grouping_order" column was removed in schema version 3:
-    QString order_by = version_number_ > 2 ? "id" : "grouping_order";
-    if (!query.exec("SELECT * FROM ID_ParentGroupSet ORDER BY " + order_by + " ASC"))
-    {
-      raiseDBError_(query.lastError(), __LINE__, OPENMS_PRETTY_FUNCTION,
-                    "error reading from database");
-    }
+    String order_by = version_number_ > 2 ? "id" : "grouping_order";
+    
+    SQLite::Statement query(*db_, "SELECT * FROM ID_ParentGroupSet ORDER BY " + order_by + " ASC");
     // @TODO: can we combine handling of meta info and applied processing steps?
-    QSqlQuery subquery_info(db);
+    SQLite::Statement subquery_info(*db_, "");
     bool have_meta_info = prepareQueryMetaInfo_(subquery_info,
                                                 "ID_ParentGroupSet");
-    QSqlQuery subquery_step(db);
+    SQLite::Statement subquery_step(*db_, "");
     bool have_applied_steps =
       prepareQueryAppliedProcessingStep_(subquery_step,
                                          "ID_ParentGroupSet");
 
-    QSqlQuery subquery_group(db);
-    subquery_group.setForwardOnly(true);
-    subquery_group.prepare("SELECT * FROM ID_ParentGroup WHERE grouping_id = :id");
+    SQLite::Statement subquery_group(*db_, "SELECT * FROM ID_ParentGroup WHERE grouping_id = :id");
 
-    QSqlQuery subquery_parent(db);
-    subquery_parent.setForwardOnly(true);
-    subquery_parent.prepare(
-      "SELECT parent_id FROM ID_ParentGroup_ParentSequence WHERE group_id = :id");
+    SQLite::Statement subquery_parent(*db_, "SELECT parent_id FROM ID_ParentGroup_ParentSequence WHERE group_id = :id");
 
-    while (query.next())
+    while (query.executeStep())
     {
-      ID::ParentGroupSet grouping(query.value("label").toString());
-      Key grouping_id = query.value("id").toLongLong();
+      ID::ParentGroupSet grouping(query.getColumn("label").getString());
+      Key grouping_id = query.getColumn("id").getInt64();
       if (have_meta_info)
       {
         handleQueryMetaInfo_(subquery_info, grouping, grouping_id);
@@ -589,45 +505,36 @@ namespace OpenMS::Internal
         handleQueryAppliedProcessingStep_(subquery_step, grouping, grouping_id);
       }
 
-      subquery_group.bindValue(":id", grouping_id);
-      if (!subquery_group.exec())
-      {
-        raiseDBError_(subquery_group.lastError(), __LINE__,
-                      OPENMS_PRETTY_FUNCTION, "error reading from database");
-      }
-
+      subquery_group.bind(":id", grouping_id);
       // get all groups in this grouping:
       map<Key, ID::ParentGroup> groups_map;
-      while (subquery_group.next())
+      while (subquery_group.executeStep())
       {
-        Key group_id = subquery_group.value("id").toLongLong();
-        QVariant score_type_id = subquery_group.value("score_type_id");
+        Key group_id = subquery_group.getColumn("id").getInt64();
+        auto score_type_id = subquery_group.getColumn("score_type_id");
         if (score_type_id.isNull()) // no scores
         {
           groups_map[group_id]; // insert empty group
         }
         else
         {
-          ID::ScoreTypeRef ref = score_type_refs_[score_type_id.toLongLong()];
+          ID::ScoreTypeRef ref = score_type_refs_[score_type_id.getInt64()];
           groups_map[group_id].scores[ref] =
-            subquery_group.value("score").toDouble();
+            subquery_group.getColumn("score").getDouble();
         }
       }
+      subquery_group.reset(); // get ready for new executeStep()
       // get parent sequences in each group:
       for (auto& pair : groups_map)
       {
-        subquery_parent.bindValue(":id", pair.first);
-        if (!subquery_parent.exec())
+        subquery_parent.bind(":id", pair.first);
+        while (subquery_parent.executeStep())
         {
-          raiseDBError_(subquery_parent.lastError(), __LINE__,
-                        OPENMS_PRETTY_FUNCTION, "error reading from database");
-        }
-        while (subquery_parent.next())
-        {
-          Key parent_id = subquery_parent.value(0).toLongLong();
+          Key parent_id = subquery_parent.getColumn(0).getInt64();
           pair.second.parent_refs.insert(
             parent_sequence_refs_[parent_id]);
         }
+        subquery_parent.reset(); // get ready for new executeStep()
         grouping.groups.insert(pair.second);
       }
 
@@ -638,35 +545,27 @@ namespace OpenMS::Internal
 
   void OMSFileLoad::loadIdentifiedCompounds_(IdentificationData& id_data)
   {
-    if (!tableExists_(db_name_, "ID_IdentifiedCompound")) return;
+    if (!db_->tableExists("ID_IdentifiedCompound")) return;
 
-    QSqlDatabase db = QSqlDatabase::database(db_name_);
-    QSqlQuery query(db);
-    query.setForwardOnly(true);
-    QString sql_select =
-      "SELECT * FROM ID_IdentifiedMolecule JOIN ID_IdentifiedCompound " \
-      "ON ID_IdentifiedMolecule.id = ID_IdentifiedCompound.molecule_id";
-    if (!query.exec(sql_select))
-    {
-      raiseDBError_(query.lastError(), __LINE__, OPENMS_PRETTY_FUNCTION,
-                    "error reading from database");
-    }
+    
+    SQLite::Statement query(*db_, "SELECT * FROM ID_IdentifiedMolecule JOIN ID_IdentifiedCompound " \
+      "ON ID_IdentifiedMolecule.id = ID_IdentifiedCompound.molecule_id");
     // @TODO: can we combine handling of meta info and applied processing steps?
-    QSqlQuery subquery_info(db);
+    SQLite::Statement subquery_info(*db_, "");
     bool have_meta_info = prepareQueryMetaInfo_(subquery_info, "ID_IdentifiedMolecule");
-    QSqlQuery subquery_step(db);
+    SQLite::Statement subquery_step(*db_, "");
     bool have_applied_steps =
       prepareQueryAppliedProcessingStep_(subquery_step, "ID_IdentifiedMolecule");
 
-    while (query.next())
+    while (query.executeStep())
     {
       ID::IdentifiedCompound compound(
-        query.value("identifier").toString(),
-        EmpiricalFormula(query.value("formula").toString()),
-        query.value("name").toString(),
-        query.value("smile").toString(),
-        query.value("inchi").toString());
-      Key id = query.value("id").toLongLong();
+        query.getColumn("identifier").getString(),
+        EmpiricalFormula(query.getColumn("formula").getString()),
+        query.getColumn("name").getString(),
+        query.getColumn("smile").getString(),
+        query.getColumn("inchi").getString());
+      Key id = query.getColumn("id").getInt64();
       if (have_meta_info)
       {
         handleQueryMetaInfo_(subquery_info, compound, id);
@@ -681,69 +580,57 @@ namespace OpenMS::Internal
   }
 
 
-  void OMSFileLoad::handleQueryParentMatch_(QSqlQuery& query,
+  void OMSFileLoad::handleQueryParentMatch_(SQLite::Statement& query,
                                             IdentificationData::ParentMatches& parent_matches,
                                             Key molecule_id)
   {
-    query.bindValue(":id", molecule_id);
-    if (!query.exec())
+    query.bind(":id", molecule_id);
+    while (query.executeStep())
     {
-      raiseDBError_(query.lastError(), __LINE__, OPENMS_PRETTY_FUNCTION,
-                    "error reading from database");
-    }
-    while (query.next())
-    {
-      ID::ParentSequenceRef ref = parent_sequence_refs_[query.value("parent_id").toLongLong()];
+      ID::ParentSequenceRef ref = parent_sequence_refs_[query.getColumn("parent_id").getInt64()];
       ID::ParentMatch match;
-      QVariant start_pos = query.value("start_pos");
-      QVariant end_pos = query.value("end_pos");
-      if (!start_pos.isNull()) match.start_pos = start_pos.toInt();
-      if (!end_pos.isNull()) match.end_pos = end_pos.toInt();
-      match.left_neighbor = query.value("left_neighbor").toString();
-      match.right_neighbor = query.value("right_neighbor").toString();
+      auto start_pos = query.getColumn("start_pos");
+      auto end_pos = query.getColumn("end_pos");
+      if (!start_pos.isNull()) match.start_pos = start_pos.getInt();
+      if (!end_pos.isNull()) match.end_pos = end_pos.getInt();
+      match.left_neighbor = query.getColumn("left_neighbor").getString();
+      match.right_neighbor = query.getColumn("right_neighbor").getString();
       parent_matches[ref].insert(match);
     }
+    query.reset(); // get ready for new executeStep()
   }
 
 
   void OMSFileLoad::loadIdentifiedSequences_(IdentificationData& id_data)
   {
-    if (!tableExists_(db_name_, "ID_IdentifiedMolecule")) return;
+    if (!db_->tableExists("ID_IdentifiedMolecule")) return;
 
-    QSqlDatabase db = QSqlDatabase::database(db_name_);
-    QSqlQuery query(db);
-    query.setForwardOnly(true);
-    query.prepare("SELECT * FROM ID_IdentifiedMolecule "          \
+    
+    SQLite::Statement query(*db_, "SELECT * FROM ID_IdentifiedMolecule "          \
                   "WHERE molecule_type_id = :molecule_type_id");
     // @TODO: can we combine handling of meta info and applied processing steps?
-    QSqlQuery subquery_info(db);
+    SQLite::Statement subquery_info(*db_, "");
     bool have_meta_info = prepareQueryMetaInfo_(subquery_info,
                                                 "ID_IdentifiedMolecule");
-    QSqlQuery subquery_step(db);
+    SQLite::Statement subquery_step(*db_, "");
     bool have_applied_steps =
       prepareQueryAppliedProcessingStep_(subquery_step,
                                          "ID_IdentifiedMolecule");
-    QSqlQuery subquery_parent(db);
-    bool have_parent_matches = tableExists_(db_name_,
+    SQLite::Statement subquery_parent(*db_, "");
+    bool have_parent_matches = db_->tableExists(
                                             "ID_ParentMatch");
     if (have_parent_matches)
     {
-      subquery_parent.setForwardOnly(true);
-      subquery_parent.prepare("SELECT * FROM ID_ParentMatch " \
+      subquery_parent = SQLite::Statement(*db_, "SELECT * FROM ID_ParentMatch " \
                               "WHERE molecule_id = :id");
     }
 
     // load peptides:
-    query.bindValue(":molecule_type_id", int(ID::MoleculeType::PROTEIN) + 1);
-    if (!query.exec())
+    query.bind(":molecule_type_id", int(ID::MoleculeType::PROTEIN) + 1);
+    while (query.executeStep())
     {
-      raiseDBError_(query.lastError(), __LINE__, OPENMS_PRETTY_FUNCTION,
-                    "error reading from database");
-    }
-    while (query.next())
-    {
-      Key id = query.value("id").toLongLong();
-      String sequence = query.value("identifier").toString();
+      Key id = query.getColumn("id").getInt64();
+      String sequence = query.getColumn("identifier").getString();
       ID::IdentifiedPeptide peptide(AASequence::fromString(sequence));
       if (have_meta_info)
       {
@@ -760,18 +647,14 @@ namespace OpenMS::Internal
       ID::IdentifiedPeptideRef ref = id_data.registerIdentifiedPeptide(peptide);
       identified_molecule_vars_[id] = ref;
     }
+    query.reset(); // get ready for new executeStep()
 
     // load RNA oligos:
-    query.bindValue(":molecule_type_id", int(ID::MoleculeType::RNA) + 1);
-    if (!query.exec())
+    query.bind(":molecule_type_id", int(ID::MoleculeType::RNA) + 1);
+    while (query.executeStep())
     {
-      raiseDBError_(query.lastError(), __LINE__, OPENMS_PRETTY_FUNCTION,
-                    "error reading from database");
-    }
-    while (query.next())
-    {
-      Key id = query.value("id").toLongLong();
-      String sequence = query.value("identifier").toString();
+      Key id = query.getColumn("id").getInt64();
+      String sequence = query.getColumn("identifier").getString();
       ID::IdentifiedOligo oligo(NASequence::fromString(sequence));
       if (have_meta_info)
       {
@@ -788,105 +671,88 @@ namespace OpenMS::Internal
       ID::IdentifiedOligoRef ref = id_data.registerIdentifiedOligo(oligo);
       identified_molecule_vars_[id] = ref;
     }
+    query.reset(); // get ready for new executeStep()
   }
 
 
-  void OMSFileLoad::handleQueryPeakAnnotation_(QSqlQuery& query,
+  void OMSFileLoad::handleQueryPeakAnnotation_(SQLite::Statement& query,
                                                ID::ObservationMatch& match,
                                                Key parent_id)
   {
-    query.bindValue(":id", parent_id);
-    if (!query.exec())
+    query.bind(":id", parent_id);
+    while (query.executeStep())
     {
-      raiseDBError_(query.lastError(), __LINE__, OPENMS_PRETTY_FUNCTION,
-                    "error reading from database");
-    }
-    while (query.next())
-    {
-      QVariant processing_step_id = query.value("processing_step_id");
+      auto processing_step_id = query.getColumn("processing_step_id");
       std::optional<ID::ProcessingStepRef> processing_step_opt = std::nullopt;
       if (!processing_step_id.isNull())
       {
         processing_step_opt =
-          processing_step_refs_[processing_step_id.toLongLong()];
+          processing_step_refs_[processing_step_id.getInt64()];
       }
       PeptideHit::PeakAnnotation ann;
-      ann.annotation = query.value("peak_annotation").toString();
-      ann.charge = query.value("peak_charge").toInt();
-      ann.mz = query.value("peak_mz").toDouble();
-      ann.intensity = query.value("peak_intensity").toDouble();
+      ann.annotation = query.getColumn("peak_annotation").getString();
+      ann.charge = query.getColumn("peak_charge").getInt();
+      ann.mz = query.getColumn("peak_mz").getDouble();
+      ann.intensity = query.getColumn("peak_intensity").getDouble();
       match.peak_annotations[processing_step_opt].push_back(ann);
     }
+    query.reset(); // get ready for new executeStep()
   }
 
 
   void OMSFileLoad::loadAdducts_(IdentificationData& id_data)
   {
-    if (!tableExists_(db_name_, "AdductInfo")) return;
+    if (!db_->tableExists("AdductInfo")) return;
 
-    QSqlQuery query(QSqlDatabase::database(db_name_));
-    query.setForwardOnly(true);
-    if (!query.exec("SELECT * FROM AdductInfo"))
+    SQLite::Statement query(*db_, "SELECT * FROM AdductInfo");
+    while (query.executeStep())
     {
-      raiseDBError_(query.lastError(), __LINE__, OPENMS_PRETTY_FUNCTION,
-                    "error reading from database");
-    }
-
-    while (query.next())
-    {
-      EmpiricalFormula formula(query.value("formula").toString());
-      AdductInfo adduct(query.value("name").toString(), formula,
-                        query.value("charge").toInt(),
-                        query.value("mol_multiplier").toInt());
+      EmpiricalFormula formula(query.getColumn("formula").getString());
+      AdductInfo adduct(query.getColumn("name").getString(), formula,
+                        query.getColumn("charge").getInt(),
+                        query.getColumn("mol_multiplier").getInt());
       ID::AdductRef ref = id_data.registerAdduct(adduct);
-      adduct_refs_[query.value("id").toLongLong()] = ref;
+      adduct_refs_[query.getColumn("id").getInt64()] = ref;
     }
   }
 
 
   void OMSFileLoad::loadObservationMatches_(IdentificationData& id_data)
   {
-    if (!tableExists_(db_name_, "ID_ObservationMatch")) return;
+    if (!db_->tableExists("ID_ObservationMatch")) return;
 
-    QSqlDatabase db = QSqlDatabase::database(db_name_);
-    QSqlQuery query(db);
-    query.setForwardOnly(true);
-    if (!query.exec("SELECT * FROM ID_ObservationMatch"))
-    {
-      raiseDBError_(query.lastError(), __LINE__, OPENMS_PRETTY_FUNCTION,
-                    "error reading from database");
-    }
+    
+    SQLite::Statement query(*db_, "SELECT * FROM ID_ObservationMatch");
     // @TODO: can we combine handling of meta info and applied processing steps?
-    QSqlQuery subquery_info(db);
+    SQLite::Statement subquery_info(*db_, "");
     bool have_meta_info = prepareQueryMetaInfo_(subquery_info,
                                                 "ID_ObservationMatch");
-    QSqlQuery subquery_step(db);
+    SQLite::Statement subquery_step(*db_, "");
     bool have_applied_steps =
       prepareQueryAppliedProcessingStep_(subquery_step,
                                          "ID_ObservationMatch");
-    QSqlQuery subquery_ann(db);
+    SQLite::Statement subquery_ann(*db_, "");
     bool have_peak_annotations =
-      tableExists_(db_name_, "ID_ObservationMatch_PeakAnnotation");
+      db_->tableExists("ID_ObservationMatch_PeakAnnotation");
     if (have_peak_annotations)
     {
-      subquery_ann.setForwardOnly(true);
-      subquery_ann.prepare(
+      subquery_ann = SQLite::Statement(*db_, 
         "SELECT * FROM ID_ObservationMatch_PeakAnnotation " \
         "WHERE parent_id = :id");
     }
 
-    while (query.next())
+    while (query.executeStep())
     {
-      Key id = query.value("id").toLongLong();
-      Key molecule_id = query.value("identified_molecule_id").toLongLong();
-      Key query_id = query.value("observation_id").toLongLong();
+      Key id = query.getColumn("id").getInt64();
+      Key molecule_id = query.getColumn("identified_molecule_id").getInt64();
+      Key query_id = query.getColumn("observation_id").getInt64();
       ID::ObservationMatch match(identified_molecule_vars_[molecule_id],
                                    observation_refs_[query_id],
-                                   query.value("charge").toInt());
-      QVariant adduct_id = query.value("adduct_id"); // adduct is optional
+                                   query.getColumn("charge").getInt());
+      auto adduct_id = query.getColumn("adduct_id"); // adduct is optional
       if (!adduct_id.isNull())
       {
-        match.adduct_opt = adduct_refs_[adduct_id.toLongLong()];
+        match.adduct_opt = adduct_refs_[adduct_id.getInt64()];
       }
       if (have_meta_info)
       {
@@ -939,24 +805,17 @@ namespace OpenMS::Internal
 
   void OMSFileLoad::loadMapMetaData_(FeatureMap& features)
   {
-    if (!tableExists_(db_name_, "FEAT_MapMetaData")) return;
+    if (!db_->tableExists("FEAT_MapMetaData")) return;
 
-    QSqlQuery query(QSqlDatabase::database(db_name_));
-    query.setForwardOnly(true);
-    if (!query.exec("SELECT * FROM FEAT_MapMetaData"))
-    {
-      raiseDBError_(query.lastError(), __LINE__, OPENMS_PRETTY_FUNCTION,
-                    "error reading from database");
-    }
-
-    query.next(); // there should be only one row
-    Key id = query.value("unique_id").toLongLong();
+    SQLite::Statement query(*db_, "SELECT * FROM FEAT_MapMetaData");
+    query.executeStep(); // there should be only one row
+    Key id = query.getColumn("unique_id").getInt64();
     features.setUniqueId(id);
-    features.setIdentifier(query.value("identifier").toString());
-    features.setLoadedFilePath(query.value("file_path").toString());
-    String file_type = query.value("file_type").toString();
+    features.setIdentifier(query.getColumn("identifier").getString());
+    features.setLoadedFilePath(query.getColumn("file_path").getString());
+    String file_type = query.getColumn("file_type").getString();
     features.setLoadedFilePath(FileTypes::nameToType(file_type));
-    QSqlQuery query_meta(QSqlDatabase::database(db_name_));
+    SQLite::Statement query_meta(*db_, "");
     if (prepareQueryMetaInfo_(query_meta, "FEAT_MapMetaData"))
     {
       handleQueryMetaInfo_(query_meta, features, id);
@@ -966,29 +825,23 @@ namespace OpenMS::Internal
 
   void OMSFileLoad::loadDataProcessing_(FeatureMap& features)
   {
-    if (!tableExists_(db_name_, "FEAT_DataProcessing")) return;
+    if (!db_->tableExists("FEAT_DataProcessing")) return;
 
-    QSqlQuery query(QSqlDatabase::database(db_name_));
-    query.setForwardOnly(true);
     // "position" column was removed in schema version 3:
-    QString order_by = version_number_ > 2 ? "id" : "position";
-    if (!query.exec("SELECT * FROM FEAT_DataProcessing ORDER BY " + order_by + " ASC"))
-    {
-      raiseDBError_(query.lastError(), __LINE__, OPENMS_PRETTY_FUNCTION,
-                    "error reading from database");
-    }
+    String order_by = version_number_ > 2 ? "id" : "position";
+    SQLite::Statement query(*db_, "SELECT * FROM FEAT_DataProcessing ORDER BY " + order_by + " ASC");
 
-    QSqlQuery subquery_info(QSqlDatabase::database(db_name_));
+    SQLite::Statement subquery_info(*db_, "");
     bool have_meta_info = prepareQueryMetaInfo_(subquery_info, "FEAT_DataProcessing");
 
-    while (query.next())
+    while (query.executeStep())
     {
       DataProcessing proc;
-      Software sw(query.value("software_name").toString(),
-                  query.value("software_version").toString());
+      Software sw(query.getColumn("software_name").getString(),
+                  query.getColumn("software_version").getString());
       proc.setSoftware(sw);
       vector<String> actions =
-        ListUtils::create<String>(query.value("processing_actions").toString());
+        ListUtils::create<String>(query.getColumn("processing_actions").getString());
       for (const String& action : actions)
       {
         auto pos = find(begin(DataProcessing::NamesOfProcessingAction),
@@ -1004,11 +857,11 @@ namespace OpenMS::Internal
         }
       }
       DateTime time;
-      time.set(query.value("completion_time").toString());
+      time.set(query.getColumn("completion_time").getString());
       proc.setCompletionTime(time);
       if (have_meta_info)
       {
-        Key id = query.value("id").toLongLong();
+        Key id = query.getColumn("id").getInt64();
         handleQueryMetaInfo_(subquery_info, proc, id);
       }
       features.getDataProcessing().push_back(proc);
@@ -1017,24 +870,24 @@ namespace OpenMS::Internal
 
 
   Feature OMSFileLoad::loadFeatureAndSubordinates_(
-    QSqlQuery& query_feat, std::optional<QSqlQuery>& query_meta,
-    std::optional<QSqlQuery>& query_hull, std::optional<QSqlQuery>& query_match)
+    SQLite::Statement& query_feat, std::optional<SQLite::Statement>& query_meta,
+    std::optional<SQLite::Statement>& query_hull, std::optional<SQLite::Statement>& query_match)
   {
     Feature feature;
-    int id = query_feat.value("id").toInt();
-    feature.setRT(query_feat.value("rt").toDouble());
-    feature.setMZ(query_feat.value("mz").toDouble());
-    feature.setIntensity(query_feat.value("intensity").toDouble());
-    feature.setCharge(query_feat.value("charge").toInt());
-    feature.setWidth(query_feat.value("width").toDouble());
-    feature.setOverallQuality(query_feat.value("overall_quality").toDouble());
-    feature.setQuality(0, query_feat.value("rt_quality").toDouble());
-    feature.setQuality(1, query_feat.value("mz_quality").toDouble());
-    feature.setUniqueId(query_feat.value("unique_id").toLongLong());
-    QVariant primary_id = query_feat.value("primary_molecule_id"); // optional
+    int id = query_feat.getColumn("id").getInt();
+    feature.setRT(query_feat.getColumn("rt").getDouble());
+    feature.setMZ(query_feat.getColumn("mz").getDouble());
+    feature.setIntensity(query_feat.getColumn("intensity").getDouble());
+    feature.setCharge(query_feat.getColumn("charge").getInt());
+    feature.setWidth(query_feat.getColumn("width").getDouble());
+    feature.setOverallQuality(query_feat.getColumn("overall_quality").getDouble());
+    feature.setQuality(0, query_feat.getColumn("rt_quality").getDouble());
+    feature.setQuality(1, query_feat.getColumn("mz_quality").getDouble());
+    feature.setUniqueId(query_feat.getColumn("unique_id").getInt64());
+    auto primary_id = query_feat.getColumn("primary_molecule_id"); // optional
     if (!primary_id.isNull())
     {
-      feature.setPrimaryID(identified_molecule_vars_[primary_id.toLongLong()]);
+      feature.setPrimaryID(identified_molecule_vars_[primary_id.getInt64()]);
     }
     // meta data:
     if (query_meta)
@@ -1044,52 +897,36 @@ namespace OpenMS::Internal
     // convex hulls:
     if (query_hull)
     {
-      query_hull->bindValue(":id", id);
-      if (!query_hull->exec())
+      query_hull->bind(":id", id);
+      while (query_hull->executeStep())
       {
-        raiseDBError_(query_hull->lastError(), __LINE__, OPENMS_PRETTY_FUNCTION,
-                      "error reading from database");
-      }
-      while (query_hull->next())
-      {
-        Size hull_index = query_hull->value("hull_index").toUInt();
+        Size hull_index = query_hull->getColumn("hull_index").getUInt();
         // first row should have max. hull index (sorted descending):
         if (feature.getConvexHulls().size() <= hull_index)
         {
           feature.getConvexHulls().resize(hull_index + 1);
         }
-        ConvexHull2D::PointType point(query_hull->value("point_x").toDouble(),
-                                      query_hull->value("point_y").toDouble());
+        ConvexHull2D::PointType point(query_hull->getColumn("point_x").getDouble(),
+                                      query_hull->getColumn("point_y").getDouble());
         // @TODO: this may be inefficient (see implementation of "addPoint"):
         feature.getConvexHulls()[hull_index].addPoint(point);
       }
+      query_hull->reset(); // get ready for new executeStep()
     }
     // ID matches:
     if (query_match)
     {
-      query_match->bindValue(":id", id);
-      if (!query_match->exec())
+      query_match->bind(":id", id);
+      while (query_match->executeStep())
       {
-        raiseDBError_(query_match->lastError(), __LINE__, OPENMS_PRETTY_FUNCTION,
-                      "error reading from database");
-      }
-      while (query_match->next())
-      {
-        Key match_id = query_match->value("observation_match_id").toLongLong();
+        Key match_id = query_match->getColumn("observation_match_id").getInt64();
         feature.addIDMatch(observation_match_refs_[match_id]);
       }
+      query_match->reset(); // get ready for new executeStep()
     }
     // subordinates:
-    QSqlQuery query_sub(QSqlDatabase::database(db_name_));
-    query_sub.setForwardOnly(true);
-    QString sql = "SELECT * FROM FEAT_Feature WHERE subordinate_of = " +
-      QString::number(id) + " ORDER BY id ASC";
-    if (!query_sub.exec(sql))
-    {
-      raiseDBError_(query_sub.lastError(), __LINE__, OPENMS_PRETTY_FUNCTION,
-                    "error reading from database");
-    }
-    while (query_sub.next())
+    SQLite::Statement query_sub(*db_, "SELECT * FROM FEAT_Feature WHERE subordinate_of = " + String(id) + " ORDER BY id ASC");
+    while (query_sub.executeStep())
     {
       Feature sub = loadFeatureAndSubordinates_(query_sub, query_meta,
                                                 query_hull, query_match);
@@ -1101,39 +938,29 @@ namespace OpenMS::Internal
 
   void OMSFileLoad::loadFeatures_(FeatureMap& features)
   {
-    if (!tableExists_(db_name_, "FEAT_Feature")) return;
-
-    QSqlDatabase db = QSqlDatabase::database(db_name_);
+    if (!db_->tableExists("FEAT_Feature")) return;
 
     // start with top-level features only:
-    QSqlQuery query_feat(db);
-    query_feat.setForwardOnly(true);
-    if (!query_feat.exec("SELECT * FROM FEAT_Feature WHERE subordinate_of IS NULL ORDER BY id ASC"))
-    {
-      raiseDBError_(query_feat.lastError(), __LINE__, OPENMS_PRETTY_FUNCTION,
-                    "error reading from database");
-    }
+    SQLite::Statement query_feat(*db_, "SELECT * FROM FEAT_Feature WHERE subordinate_of IS NULL ORDER BY id ASC");
     // prepare sub-queries (optional - corresponding tables may not be present):
-    std::optional<QSqlQuery> query_meta(db);
+    std::optional<SQLite::Statement> query_meta = SQLite::Statement(*db_, "");
     if (!prepareQueryMetaInfo_(*query_meta, "FEAT_Feature"))
     {
       query_meta = std::nullopt;
     }
-    std::optional<QSqlQuery> query_hull;
-    if (tableExists_(db_name_, "FEAT_ConvexHull"))
+    std::optional<SQLite::Statement> query_hull;
+    if (db_->tableExists("FEAT_ConvexHull"))
     {
-      query_hull = QSqlQuery(db);
-      query_hull->prepare("SELECT * FROM FEAT_ConvexHull WHERE feature_id = :id " \
+      query_hull = SQLite::Statement(*db_, "SELECT * FROM FEAT_ConvexHull WHERE feature_id = :id " \
                          "ORDER BY hull_index DESC, point_index ASC");
     }
-    std::optional<QSqlQuery> query_match;
-    if (tableExists_(db_name_, "FEAT_ObservationMatch"))
+    std::optional<SQLite::Statement> query_match;
+    if (db_->tableExists("FEAT_ObservationMatch"))
     {
-      query_match = QSqlQuery(db);
-      query_match->prepare("SELECT * FROM FEAT_ObservationMatch WHERE feature_id = :id");
+      query_match = SQLite::Statement(*db_, "SELECT * FROM FEAT_ObservationMatch WHERE feature_id = :id");
     }
 
-    while (query_feat.next())
+    while (query_feat.executeStep())
     {
       Feature feature = loadFeatureAndSubordinates_(query_feat, query_meta,
                                                     query_hull, query_match);
@@ -1155,41 +982,41 @@ namespace OpenMS::Internal
   }
 
 
-  void OMSFileLoad::createView_(const QString& name, const QString& select)
+  void OMSFileLoad::createView_(const String& name, const String& select)
   {
-    QSqlQuery query(QSqlDatabase::database(db_name_));
-    if (!query.exec("CREATE TEMP VIEW " + name + " AS " + select))
-    {
-      raiseDBError_(query.lastError(), __LINE__, OPENMS_PRETTY_FUNCTION, "error creating database view",
-                    query.lastQuery());
-    }
+    SQLite::Statement query(*db_, "CREATE TEMP VIEW " + name + " AS " + select);
   }
 
 
   QJsonArray OMSFileLoad::exportTableToJSON_(const QString& table, const QString& order_by)
   {
     // code based on: https://stackoverflow.com/a/18067555
-    QSqlQuery query(QSqlDatabase::database(db_name_));
-    query.setForwardOnly(true);
-    QString sql = "SELECT * FROM " + table;
+    String sql = "SELECT * FROM " + table;
     if (!order_by.isEmpty())
     {
       sql += " ORDER BY " + order_by;
     }
-    if (!query.exec(sql))
-    {
-      raiseDBError_(query.lastError(), __LINE__, OPENMS_PRETTY_FUNCTION, "error reading from database");
-    }
+
+    SQLite::Statement query(*db_, sql);
 
     QJsonArray array;
-    while (query.next())
+    while (query.executeStep())
     {
       QJsonObject record;
-      for (int i = 0; i < query.record().count(); ++i)
+      for (int i = 0; i < query.getColumnCount(); ++i)
       {
         // @TODO: this will repeat field names for every row -
         // avoid this with separate "header" and "rows" (array)?
-        record.insert(query.record().fieldName(i), QJsonValue::fromVariant(query.value(i)));
+        switch (query.getColumn(i).getType()) // sqlite stores each cell based on the actual value, not the declared column type
+        {                                     //, thus, we could use query.getColumnDeclaredType(i), but it would incur conversion
+          break; case SQLITE_INTEGER: record.insert(query.getColumnName(i), qint64(query.getColumn(i).getInt64()));
+          break; case SQLITE_FLOAT: record.insert(query.getColumnName(i), query.getColumn(i).getDouble());
+          break; case SQLITE_BLOB: record.insert(query.getColumnName(i), query.getColumn(i).getText());
+          break; case SQLITE_NULL: record.insert(query.getColumnName(i), "");
+          break; case SQLITE3_TEXT: record.insert(query.getColumnName(i), query.getColumn(i).getText());
+          break; default:
+            throw Exception::NotImplemented(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
+        }
       }
       array.push_back(record);
     }
@@ -1203,30 +1030,25 @@ namespace OpenMS::Internal
     // (more code, but would use less memory)
     QJsonObject json_data;
     // get names of all tables (except SQLite-internal ones) in the database:
-    QSqlQuery query(QSqlDatabase::database(db_name_));
-    query.setForwardOnly(true);
-    if (!query.exec("SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%' ORDER BY name"))
+    SQLite::Statement query(*db_, "SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%' ORDER BY name");
+    while (query.executeStep())
     {
-      raiseDBError_(query.lastError(), __LINE__, OPENMS_PRETTY_FUNCTION, "error listing database tables");
-    }
-    while (query.next())
-    {
-      QString table = query.value("name").toString();
+      String table = query.getColumn("name").getString();
       QString order_by = "id"; // row order for most tables
       // special cases regarding ordering, e.g. tables without "id" column:
-      if (table.endsWith("_MetaInfo"))
+      if (table.hasSuffix("_MetaInfo"))
       {
         order_by = "parent_id, name";
       }
-      else if (table.endsWith("_AppliedProcessingStep"))
+      else if (table.hasSuffix("_AppliedProcessingStep"))
       {
         order_by = "parent_id, processing_step_order, score_type_id";
       }
-      else if (auto pos = export_order_by_.find(table); pos != export_order_by_.end())
+      else if (auto pos = export_order_by_.find(table.toQString()); pos != export_order_by_.end())
       {
         order_by = pos->second;
       }
-      json_data.insert(table, exportTableToJSON_(table, order_by));
+      json_data.insert(table.toQString(), exportTableToJSON_(table.toQString(), order_by));
     }
 
     QJsonDocument json_doc;

@@ -207,14 +207,16 @@ add_custom_target(
   DEPENDS prepare_knime_payload_binaries
 )
 
+## Kept for reference: we removed the qsqlite dependency and don't need the plugin anymore
 ## Copy Sqlite plugin and create qt.conf
 # TODO in theory we should make that dependent on if Qt was linked dynamically but this is all we support
 #  mid-term anyway.
-add_custom_command(
-    TARGET prepare_knime_payload_libs POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E make_directory ${PAYLOAD_LIB_PATH}/plugins/
-    COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:Qt5::QSQLiteDriverPlugin> ${PAYLOAD_LIB_PATH}/plugins/
-)
+#add_custom_command(
+#    TARGET prepare_knime_payload_libs POST_BUILD
+#    COMMAND ${CMAKE_COMMAND} -E make_directory ${PAYLOAD_LIB_PATH}/plugins/
+#    COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:Qt5::QSQLiteDriverPlugin> ${PAYLOAD_LIB_PATH}/plugins/
+#)
+
 
 # create qt.conf file that specifies plugin dir location
 add_custom_command(
