@@ -417,7 +417,7 @@ namespace OpenMS
       proteins.push_back(protein);
     }
 
-    srand(time(0));
+    srand(time(nullptr));
     std::vector<size_t> item_list, selection_list;
     item_list.reserve(exp.getPeptides().size());
     for (Size k = 0; k < exp.getPeptides().size(); k++) {item_list.push_back(k);}
@@ -549,9 +549,9 @@ namespace OpenMS
       String peptide_ref = pep_it->first;
       String decoy_peptide_ref = decoy_tag + pep_it->first; // see above, the decoy peptide id is computed deterministically from the target id
       if (!dec.hasPeptide(decoy_peptide_ref)) { continue; }
-      const TargetedExperiment::Peptide target_peptide = exp.getPeptideByRef(peptide_ref);
+      const TargetedExperiment::Peptide& target_peptide = exp.getPeptideByRef(peptide_ref);
 
-      const TargetedExperiment::Peptide decoy_peptide = dec.getPeptideByRef(decoy_peptide_ref);
+      const TargetedExperiment::Peptide& decoy_peptide = dec.getPeptideByRef(decoy_peptide_ref);
       OpenMS::AASequence target_peptide_sequence = TargetedExperimentHelper::getAASequence(target_peptide);
       OpenMS::AASequence decoy_peptide_sequence = TargetedExperimentHelper::getAASequence(decoy_peptide);
 

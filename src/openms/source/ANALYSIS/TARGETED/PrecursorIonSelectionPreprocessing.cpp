@@ -146,7 +146,7 @@ namespace OpenMS
     return prot_masses_;
   }
 
-  const std::vector<double>& PrecursorIonSelectionPreprocessing::getMasses(String acc) const
+  const std::vector<double>& PrecursorIonSelectionPreprocessing::getMasses(const String& acc) const
   {
     std::map<String, std::vector<double> >::const_iterator iter = prot_masses_.begin();
     while (iter != prot_masses_.end() && acc != iter->first)
@@ -174,7 +174,7 @@ namespace OpenMS
     return prot_peptide_seq_map_;
   }
 
-  double PrecursorIonSelectionPreprocessing::getRT(String prot_id, Size peptide_index)
+  double PrecursorIonSelectionPreprocessing::getRT(const String& prot_id, Size peptide_index)
   {
     if (!rt_prot_map_.empty())
     {
@@ -192,7 +192,7 @@ namespace OpenMS
     return -1;
   }
 
-  double PrecursorIonSelectionPreprocessing::getPT(String prot_id, Size peptide_index)
+  double PrecursorIonSelectionPreprocessing::getPT(const String& prot_id, Size peptide_index)
   {
     if (!pt_prot_map_.empty())
     {
@@ -289,8 +289,8 @@ namespace OpenMS
 
   }
 
-  void PrecursorIonSelectionPreprocessing::dbPreprocessing(String db_path, String rt_model_path,
-                                                           String dt_model_path, bool save)
+  void PrecursorIonSelectionPreprocessing::dbPreprocessing(const String& db_path, const String& rt_model_path,
+                                                           const String& dt_model_path, bool save)
   {
 #ifdef PISP_DEBUG
     std::cout << "Parameters: " << param_.getValue("preprocessed_db_path")
@@ -376,7 +376,7 @@ namespace OpenMS
           else
           {
             std::vector<std::pair<String, Size> > tmp_vec;
-            tmp_vec.push_back(make_pair(entries[e].identifier, prot_masses.size() - 1));
+            tmp_vec.emplace_back(entries[e].identifier, prot_masses.size() - 1);
             tmp_peptide_map.insert(make_pair(vec_iter.toUnmodifiedString(), tmp_vec));
           }
           if (sequences_.count(vec_iter) == 0) // peptide sequences are considered only once
@@ -618,7 +618,7 @@ namespace OpenMS
     }
   }
 
-  void PrecursorIonSelectionPreprocessing::dbPreprocessing(String db_path, bool save)
+  void PrecursorIonSelectionPreprocessing::dbPreprocessing(const String& db_path, bool save)
   {
 #ifdef PISP_DEBUG
     std::cout << "Parameters: " << param_.getValue("preprocessed_db_path")
@@ -827,7 +827,7 @@ namespace OpenMS
 
   }
 
-  void PrecursorIonSelectionPreprocessing::savePreprocessedDB_(String db_path, String path)
+  void PrecursorIonSelectionPreprocessing::savePreprocessedDB_(const String& db_path, const String& path)
   {
     std::ofstream out(path.c_str());
     out.precision(10);
@@ -903,7 +903,7 @@ namespace OpenMS
 
   }
 
-  void PrecursorIonSelectionPreprocessing::savePreprocessedDBWithRT_(String db_path, String path)
+  void PrecursorIonSelectionPreprocessing::savePreprocessedDBWithRT_(const String& db_path, const String& path)
   {
     std::ofstream out(path.c_str());
     out.precision(10);
@@ -1013,7 +1013,7 @@ namespace OpenMS
 
   }
 
-  void PrecursorIonSelectionPreprocessing::loadPreprocessedDB_(String path)
+  void PrecursorIonSelectionPreprocessing::loadPreprocessedDB_(const String& path)
   {
     // first get protein_masses_map
     TextFile file;
@@ -1208,7 +1208,7 @@ namespace OpenMS
     mu_ = param_.getValue("rt_settings:gauss_mean");
   }
 
-  double PrecursorIonSelectionPreprocessing::getRTProbability(String prot_id, Size peptide_index, Feature& feature)
+  double PrecursorIonSelectionPreprocessing::getRTProbability(const String& prot_id, Size peptide_index, Feature& feature)
   {
     double theo_rt = 0.;
     if (!rt_prot_map_.empty())

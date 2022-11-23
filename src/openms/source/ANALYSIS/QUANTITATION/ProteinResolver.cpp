@@ -66,12 +66,7 @@ namespace OpenMS
     defaultsToParam_();
   }
 
-  ProteinResolver::ProteinResolver(const ProteinResolver & cp) :
-    DefaultParamHandler(cp),
-    resolver_result_(cp.resolver_result_),
-    protein_data_(cp.protein_data_)
-  {
-  }
+  ProteinResolver::ProteinResolver(const ProteinResolver & cp) = default;
 
   ProteinResolver & ProteinResolver::operator=(const ProteinResolver & rhs)
   {

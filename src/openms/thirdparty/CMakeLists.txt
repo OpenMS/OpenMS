@@ -33,7 +33,7 @@
 # --------------------------------------------------------------------------
 
 project("OpenMS-3rd-party-libs")
-cmake_minimum_required(VERSION 3.0 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.15 FATAL_ERROR)
 
 # evergreen Bayesian inference library (0.9)
 add_subdirectory(evergreen/src)
@@ -46,4 +46,5 @@ add_subdirectory(eol-bspline)
 add_subdirectory(IsoSpec)
 add_subdirectory(json)
 add_subdirectory(GTE)
+add_subdirectory(SQLiteCpp)
 

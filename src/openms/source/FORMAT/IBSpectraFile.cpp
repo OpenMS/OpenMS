@@ -60,11 +60,11 @@ namespace OpenMS
     String accession; // Protein AC
     String peptide; // Peptide sequence
     String modif; // Peptide modification string
-    Int charge; // Charge state
-    double theo_mass; // Theoretical peptide mass
-    double exp_mass; // Experimentally observed mass
-    double parent_intens; // Parent intensity
-    double retention_time; // Retention time
+    Int charge{0}; // Charge state
+    double theo_mass{-1.}; // Theoretical peptide mass
+    double exp_mass{-1.}; // Experimentally observed mass
+    double parent_intens{-1.}; // Parent intensity
+    double retention_time{-1.}; // Retention time
     String spectrum; // Spectrum identifier
     String search_engine; // Protein search engine and score
 
@@ -86,29 +86,20 @@ namespace OpenMS
       accession("UNIDENTIFIED_PROTEIN"),
       peptide("UNIDENTIFIED_PEPTIDE"),
       modif(""),
-      charge(0),
-      theo_mass(-1.),
-      exp_mass(-1.),
-      parent_intens(-1.),
-      retention_time(-1.),
+      
       spectrum(""),
       search_engine("open-ms-generic")
     {}
   };
 
-  IBSpectraFile::IBSpectraFile()
-  {
-  }
+  IBSpectraFile::IBSpectraFile() = default;
 
   IBSpectraFile::IBSpectraFile(const IBSpectraFile& /* other */)
   {
     // no members
   }
 
-  IBSpectraFile& IBSpectraFile::operator=(const IBSpectraFile& /* rhs */)
-  {
-    return *this;
-  }
+  IBSpectraFile& IBSpectraFile::operator=(const IBSpectraFile& /* rhs */) = default;
 
   boost::shared_ptr<IsobaricQuantitationMethod> IBSpectraFile::guessExperimentType_(const ConsensusMap& cm)
   {
@@ -233,7 +224,7 @@ namespace OpenMS
       if (cFeature.getPeptideIdentifications().empty() || !has_proteinIdentifications)
       {
         // we store unidentified hits anyway, because the iTRAQ quant is still helpful for normalization
-        entries.push_back(IdCSV());
+        entries.emplace_back();
       }
       else
       {

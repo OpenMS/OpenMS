@@ -55,9 +55,9 @@ namespace OpenMS
 
   /// Loads a Swath run from a list of split mzML files
   std::vector<OpenSwath::SwathMap> SwathFile::loadSplit(StringList file_list,
-        String tmp,
+        const String& tmp,
     boost::shared_ptr<ExperimentalSettings>& exp_meta,
-    String readoptions)
+    const String& readoptions)
   {
     int progress = 0;
     startProgress(0, file_list.size(), "Loading data");
@@ -209,10 +209,10 @@ namespace OpenMS
   }
 
   /// Loads a Swath run from a single mzXML file
-  std::vector<OpenSwath::SwathMap> SwathFile::loadMzXML(String file,
-    String tmp,
+  std::vector<OpenSwath::SwathMap> SwathFile::loadMzXML(const String& file,
+    const String& tmp,
     boost::shared_ptr<ExperimentalSettings>& exp_meta,
-    String readoptions)
+    const String& readoptions)
   {
     std::cout << "Loading mzXML file " << file << " using readoptions " << readoptions << std::endl;
     String tmp_fname = "openswath_tmpfile";
@@ -267,7 +267,7 @@ namespace OpenMS
   }
 
   /// Loads a Swath run from a single sqMass file
-  std::vector<OpenSwath::SwathMap> SwathFile::loadSqMass(String file, boost::shared_ptr<ExperimentalSettings>& /* exp_meta */)
+  std::vector<OpenSwath::SwathMap> SwathFile::loadSqMass(const String& file, boost::shared_ptr<ExperimentalSettings>& /* exp_meta */)
   {
     startProgress(0, 1, "Loading sqmass data file " + file);
 
@@ -300,7 +300,7 @@ namespace OpenMS
 
   /// Cache a file to disk
   OpenSwath::SpectrumAccessPtr SwathFile::doCacheFile_(const String& in, const String& tmp, const String& tmp_fname,
-    boost::shared_ptr<PeakMap > experiment_metadata)
+    const boost::shared_ptr<PeakMap >& experiment_metadata)
   {
     String cached_file = tmp + tmp_fname + ".cached";
     String meta_file = tmp + tmp_fname;

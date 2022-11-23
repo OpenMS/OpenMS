@@ -39,11 +39,12 @@
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/SYSTEM/File.h>
 
-#include <boost/random/uniform_real.hpp>
-#include <boost/random/poisson_distribution.hpp>
+#include <boost/math/distributions.hpp>
 #include <boost/random/exponential_distribution.hpp>
 #include <boost/random/normal_distribution.hpp>
-#include <boost/math/distributions.hpp>
+#include <boost/random/poisson_distribution.hpp>
+#include <boost/random/uniform_real.hpp>
+#include <utility>
 
 #ifdef _OPENMP
 #include <omp.h>
@@ -68,7 +69,7 @@ namespace OpenMS
     intensity_scale_stddev_(),
     res_model_(RES_CONSTANT),
     res_base_(0),
-    rnd_gen_(rng),
+    rnd_gen_(std::move(rng)),
     contaminants_(),
     contaminants_loaded_(false)
   {
@@ -130,9 +131,7 @@ namespace OpenMS
     return *this;
   }
 
-  RawMSSignalSimulation::~RawMSSignalSimulation()
-  {
-  }
+  RawMSSignalSimulation::~RawMSSignalSimulation() = default;
 
   void RawMSSignalSimulation::setDefaultParams_()
   {
@@ -863,10 +862,10 @@ namespace OpenMS
       // add four edge points of mass trace
       ConvexHull2D hull;
       std::vector<DPosition<2> > points;
-      points.push_back(DPosition<2>(rt_min, mz - 0.001));
-      points.push_back(DPosition<2>(rt_min, mz + 0.001));
-      points.push_back(DPosition<2>(rt_max, mz - 0.001));
-      points.push_back(DPosition<2>(rt_max, mz + 0.001));
+      points.emplace_back(rt_min, mz - 0.001);
+      points.emplace_back(rt_min, mz + 0.001);
+      points.emplace_back(rt_max, mz - 0.001);
+      points.emplace_back(rt_max, mz + 0.001);
       hull.addPoints(points);
       active_feature.getConvexHulls().push_back(hull);
 

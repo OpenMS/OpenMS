@@ -159,9 +159,7 @@ namespace OpenMS
     return *this;
   }
 
-  TheoreticalSpectrumGeneratorXLMS::~TheoreticalSpectrumGeneratorXLMS()
-  {
-  }
+  TheoreticalSpectrumGeneratorXLMS::~TheoreticalSpectrumGeneratorXLMS() = default;
 
   void TheoreticalSpectrumGeneratorXLMS::getLinearIonSpectrum(PeakSpectrum & spectrum, AASequence & peptide, Size link_pos, bool frag_alpha, int charge, Size link_pos_2) const
   {

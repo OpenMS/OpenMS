@@ -100,7 +100,7 @@ namespace OpenMS
 
         @param filename Filename for the output mzML
       */
-      explicit MSDataWritingConsumer(String filename);
+      explicit MSDataWritingConsumer(const String& filename);
 
       /// Destructor
       ~MSDataWritingConsumer() override;

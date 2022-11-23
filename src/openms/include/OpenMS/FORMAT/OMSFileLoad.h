@@ -29,7 +29,7 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Hendrik Weisser $
-// $Authors: Hendrik Weisser $
+// $Authors: Hendrik Weisser, Chris Bielow $
 // --------------------------------------------------------------------------
 
 #pragma once
@@ -37,9 +37,14 @@
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/METADATA/ID/IdentificationData.h>
+#include <OpenMS/FORMAT/OMSFileStore.h>
 
-#include <QString>
-class QSqlQuery;
+#include <QtCore/QJsonArray> // for JSON export
+
+namespace SQLite
+{
+  class Database;
+} // namespace SQLite
 
 namespace OpenMS
 {
@@ -53,7 +58,7 @@ namespace OpenMS
     class OMSFileLoad: public ProgressLogger
     {
     public:
-      using Key = qint64; ///< Type used for database keys
+      using Key = OMSFileStore::Key; ///< Type used for database keys
 
       /*!
         @brief Constructor
@@ -79,6 +84,9 @@ namespace OpenMS
 
       /// Load data from database and populate a FeatureMap object
       void load(FeatureMap& features);
+
+      /// Export database contents in JSON format, write to stream
+      void exportToJSON(std::ostream& output);
 
     private:
       // static CVTerm loadCVTerm_(int id);
@@ -113,38 +121,44 @@ namespace OpenMS
 
       void loadFeatures_(FeatureMap& features);
 
-      Feature loadFeatureAndSubordinates_(QSqlQuery& query_feat,
-                                          std::optional<QSqlQuery>& query_meta,
-                                          std::optional<QSqlQuery>& query_hull,
-                                          std::optional<QSqlQuery>& query_match);
+      Feature loadFeatureAndSubordinates_(SQLite::Statement& query_feat,
+                                          std::optional<SQLite::Statement>& query_meta,
+                                          std::optional<SQLite::Statement>& query_hull,
+                                          std::optional<SQLite::Statement>& query_match);
 
-      static DataValue makeDataValue_(const QSqlQuery& query);
+      static DataValue makeDataValue_(const SQLite::Statement& query);
 
-      bool prepareQueryMetaInfo_(QSqlQuery& query, const String& parent_table);
+      bool prepareQueryMetaInfo_(SQLite::Statement& query, const String& parent_table);
 
-      void handleQueryMetaInfo_(QSqlQuery& query, MetaInfoInterface& info,
+      void handleQueryMetaInfo_(SQLite::Statement& query, MetaInfoInterface& info,
                                 Key parent_id);
 
-      bool prepareQueryAppliedProcessingStep_(QSqlQuery& query,
+      bool prepareQueryAppliedProcessingStep_(SQLite::Statement& query,
                                               const String& parent_table);
 
       void handleQueryAppliedProcessingStep_(
-        QSqlQuery& query,
+        SQLite::Statement& query,
         IdentificationDataInternal::ScoredProcessingResult& result,
         Key parent_id);
 
       void handleQueryParentMatch_(
-        QSqlQuery& query, IdentificationData::ParentMatches& parent_matches,
+        SQLite::Statement& query, IdentificationData::ParentMatches& parent_matches,
         Key molecule_id);
 
       void handleQueryPeakAnnotation_(
-        QSqlQuery& query, IdentificationData::ObservationMatch& match,
+        SQLite::Statement& query, IdentificationData::ObservationMatch& match,
         Key parent_id);
 
-      // store name, not database connection itself (see https://stackoverflow.com/a/55200682):
-      QString db_name_;
+      void createView_(const String& name, const String& select);
+
+      QJsonArray exportTableToJSON_(const QString& table, const QString& order_by);
+
+      /// The database connection (read)
+      std::unique_ptr<SQLite::Database> db_;
 
       int version_number_; ///< schema version number
+
+      QString subquery_score_; ///< query for score types used in JSON export
 
       // mappings between database keys and loaded data:
       std::unordered_map<Key, IdentificationData::ScoreTypeRef> score_type_refs_;
@@ -153,10 +167,14 @@ namespace OpenMS
       std::unordered_map<Key, IdentificationData::ProcessingStepRef> processing_step_refs_;
       std::unordered_map<Key, IdentificationData::SearchParamRef> search_param_refs_;
       std::unordered_map<Key, IdentificationData::ObservationRef> observation_refs_;
-      std::unordered_map<Key, IdentificationData::ParentSequenceRef> parent_refs_;
+      std::unordered_map<Key, IdentificationData::ParentSequenceRef> parent_sequence_refs_;
       std::unordered_map<Key, IdentificationData::IdentifiedMolecule> identified_molecule_vars_;
       std::unordered_map<Key, IdentificationData::ObservationMatchRef> observation_match_refs_;
       std::unordered_map<Key, IdentificationData::AdductRef> adduct_refs_;
+
+      // mapping: table name -> ordering critera (for JSON export)
+      // @TODO: could use 'unordered_map' here, but would need to specify hash function for 'QString'
+      static std::map<QString, QString> export_order_by_;
     };
   }
 }

@@ -44,18 +44,11 @@
 namespace OpenMS
 {
 
-  ProteinInference::ProteinInference()
-  {
-  }
+  ProteinInference::ProteinInference() = default;
 
-  ProteinInference::ProteinInference(const ProteinInference& /*cp*/)
-  {
-  }
+  ProteinInference::ProteinInference(const ProteinInference& /*cp*/) = default;
 
-  ProteinInference& ProteinInference::operator=(const ProteinInference& /*rhs*/)
-  {
-    return *this;
-  }
+  ProteinInference& ProteinInference::operator=(const ProteinInference& /*rhs*/) = default;
 
   void ProteinInference::infer(ConsensusMap& consensus_map, const UInt reference_map)
   {

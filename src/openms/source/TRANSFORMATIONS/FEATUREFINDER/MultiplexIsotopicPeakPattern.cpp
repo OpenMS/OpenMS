@@ -36,13 +36,15 @@
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexDeltaMasses.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexIsotopicPeakPattern.h>
 
+#include <utility>
+
 using namespace std;
 
 namespace OpenMS
 {
 
   MultiplexIsotopicPeakPattern::MultiplexIsotopicPeakPattern(int c, int ppp, MultiplexDeltaMasses ms, int msi) :
-    charge_(c), peaks_per_peptide_(ppp), mass_shifts_(ms), mass_shift_index_(msi)
+    charge_(c), peaks_per_peptide_(ppp), mass_shifts_(std::move(ms)), mass_shift_index_(msi)
   {
     // generate m/z shifts
     for (unsigned i = 0; i < mass_shifts_.getDeltaMasses().size(); ++i)

@@ -37,6 +37,8 @@
 #include <OpenMS/CHEMISTRY/SvmTheoreticalSpectrumGeneratorSet.h>
 #include <OpenMS/FILTERING/TRANSFORMERS/SpectraMerger.h>
 
+#include <utility>
+
 namespace OpenMS
 {
   RawTandemMSSignalSimulation::RawTandemMSSignalSimulation() :
@@ -48,7 +50,7 @@ namespace OpenMS
 
   RawTandemMSSignalSimulation::RawTandemMSSignalSimulation(SimTypes::MutableSimRandomNumberGeneratorPtr rng) :
     DefaultParamHandler("RawTandemMSSignalSimulation"),
-    rnd_gen_(rng)
+    rnd_gen_(std::move(rng))
   {
     initParam_();
   }
@@ -74,7 +76,7 @@ namespace OpenMS
     defaults_.setValue("status", "disabled", "Create Tandem-MS scans?");
     defaults_.setValidStrings("status", {"disabled","precursor","MS^E"});
 
-    subsections_.push_back("Precursor:");
+    subsections_.emplace_back("Precursor:");
     defaults_.insert("Precursor:", OfflinePrecursorIonSelection().getDefaults());
     defaults_.remove("Precursor:peptides_per_protein");
     defaults_.setValue("Precursor:charge_filter", ListUtils::create<Int>("2,3"), "Charges considered for MS2 fragmentation.");
@@ -88,7 +90,7 @@ namespace OpenMS
     defaults_.setMaxInt("tandem_mode", 2);
     defaults_.setValue("svm_model_set_file", "SIMULATION/SvmModelSet.model", "File containing the filenames of SVM Models for different charge variants");
 
-    subsections_.push_back("TandemSim:");
+    subsections_.emplace_back("TandemSim:");
     defaults_.insert("TandemSim:Simple:", TheoreticalSpectrumGenerator().getDefaults());
     Param svm_par = SvmTheoreticalSpectrumGenerator().getDefaults();
     svm_par.remove("svm_mode");
@@ -102,9 +104,7 @@ namespace OpenMS
     defaultsToParam_();
   }
 
-  RawTandemMSSignalSimulation::~RawTandemMSSignalSimulation()
-  {
-  }
+  RawTandemMSSignalSimulation::~RawTandemMSSignalSimulation() = default;
 
   void RawTandemMSSignalSimulation::generateMSESpectra_(const SimTypes::FeatureMapSim& features, const SimTypes::MSSimExperiment& experiment, SimTypes::MSSimExperiment& ms2)
   {

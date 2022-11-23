@@ -45,13 +45,9 @@
 
 namespace OpenMS
 {
-  ClusterAnalyzer::ClusterAnalyzer()
-  {
-  }
+  ClusterAnalyzer::ClusterAnalyzer() = default;
 
-  ClusterAnalyzer::~ClusterAnalyzer()
-  {
-  }
+  ClusterAnalyzer::~ClusterAnalyzer() = default;
 
   ClusterAnalyzer & ClusterAnalyzer::operator=(const ClusterAnalyzer & source)
   {
@@ -645,7 +641,7 @@ namespace OpenMS
     clusters.reserve(tree.size() + 1);
     for (Size i = 0; i < tree.size() + 1; ++i)
     {
-      clusters.push_back(std::vector<Size>(1, i));
+      clusters.emplace_back(1, i);
     }
     //redo clustering till step (original.dimensionsize()-cluster_quantity)
     for (Size cluster_step = 0; cluster_step < tree.size() + 1 - cluster_quantity; ++cluster_step)

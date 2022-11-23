@@ -43,12 +43,9 @@
 #include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/FORMAT/TraMLFile.h>
 #include <OpenMS/FORMAT/TransformationXMLFile.h>
-#include <OpenMS/KERNEL/MSSpectrum.h>
 #include <OpenMS/MATH/MISC/MathFunctions.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/ElutionModelFitter.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithmPickedHelperStructs.h>
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/EGHTraceFitter.h>
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/GaussTraceFitter.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithmMetaboIdent.h>
 #include <OpenMS/SYSTEM/File.h>
 
@@ -160,6 +157,7 @@ protected:
     registerOutputFile_("trafo_out", "<file>", "", "Output file: Retention times (expected vs. observed)", false);
     setValidFormats_("trafo_out", ListUtils::create<String>("trafoXML"));
     setValidFormats_("candidates_out", ListUtils::create<String>("featureXML"));
+    registerFlag_("force", "Force processing of files with no MS1 spectra", true);
 
     Param ffmetaboident_params;
     ffmetaboident_params.insert("", FeatureFinderAlgorithmMetaboIdent().getParameters());
@@ -241,6 +239,7 @@ protected:
     String lib_out = getStringOption_("lib_out");
     String chrom_out = getStringOption_("chrom_out");
     String trafo_out = getStringOption_("trafo_out");
+    bool force = getFlag_("force");
 
     prog_log_.setLogType(log_type_);
 
@@ -259,7 +258,12 @@ protected:
     mzml.setLogType(log_type_);
     mzml.getOptions().addMSLevel(1);
     mzml.load(in, ff_mident.getMSData());
-
+    if (ff_mident.getMSData().empty() && !force)
+    {
+      OPENMS_LOG_ERROR << "Error: No MS1 scans in '"
+                       << in << "' - aborting." << endl;
+      return INCOMPATIBLE_INPUT_DATA;
+    }
     FeatureMap features;
     ff_mident.run(table, features, in);
 

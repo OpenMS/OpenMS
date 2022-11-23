@@ -34,14 +34,19 @@
 
 #pragma once
 
-#include <OpenMS/VISUAL/LayerDataBase.h>
+#include <OpenMS/KERNEL/MSSpectrum.h>
+
+#include <QPainterPath>
 
 class QPainter;
 class QPenStyle;
 
 namespace OpenMS
 {
-  class LayerDataPeak;
+  class LayerData1DBase;
+  class LayerData1DChrom;
+  class LayerData1DIonMobility;
+  class LayerData1DPeak;
   class Plot1DCanvas;
 
   /**
@@ -59,10 +64,51 @@ namespace OpenMS
        @param canvas The canvas to paint onto (should expose all the details needed, like canvas size, draw mode, colors etc)
        @param layer_index Which layer is currently painted (FIXME: remove when Canvas1D::DrawMode and PenStyle are factored out) 
     */
-    virtual void paint(QPainter*, Plot1DCanvas* canvas, int layer_index) = 0;
+    virtual void paint(QPainter* painter, Plot1DCanvas* canvas, int layer_index) = 0;
 
     /// static method to draw a dashed line
-    static void drawDashedLine(const QPoint& from, const QPoint& to, QPainter* painter, QColor color);
+    static void drawDashedLine(const QPoint& from, const QPoint& to, QPainter* painter, const QColor& color);
+
+    /// draw a cross at @p position, using a certain size (= width = height) of the cross
+    static void drawCross(const QPoint& position, QPainter* painter, const int size = 8);
+
+    /// draw a caret '^' at @p position, using a certain size (= width) of the caret
+    static void drawCaret(const QPoint& position, QPainter* painter, const int size = 8);
+
+    static QPainterPath getOpenArrow(int arrow_width)
+    { // arrow definition
+      QPainterPath arrow;
+      arrow.moveTo(QPointF(0, 0));
+      arrow.lineTo(QPointF(-arrow_width, 4));
+      arrow.moveTo(QPointF(0, 0));
+      arrow.lineTo(QPointF(-arrow_width, -4));
+      return arrow;
+    }
+    static QPainterPath getClosedArrow(int arrow_width)
+    { // arrow definition
+      QPainterPath arrow;
+      arrow.moveTo(QPointF(0, 0));
+      arrow.lineTo(QPointF(-arrow_width, 4));
+      arrow.lineTo(QPointF(-arrow_width, -4));
+      arrow.closeSubpath();
+      return arrow;
+    }
+
+    /**
+     * \brief 
+     * \param painter The painter to paint with
+     * \param pen For setting line width and color
+     * \param start Start position of the line
+     * \param end End position of the line
+     * \param arrow_start An (optional) arrow head. Use 'getOpenArrow' or 'getClosedArrow' for predefined arrows
+     * \param arrow_end  An (optional) arrow tail. Use 'getOpenArrow' or 'getClosedArrow' for predefined arrows
+     * \return The bounding rectangle of the line and arrows (if any)
+     */
+    static QRectF drawLineWithArrows(QPainter* painter, const QPen& pen, const QPoint& start, const QPoint& end, 
+                                     const QPainterPath& arrow_start = QPainterPath(),
+                                     const QPainterPath& arrow_end = QPainterPath());
+
+    void drawAnnotations_(const LayerData1DBase* layer, QPainter& painter, Plot1DCanvas* canvas) const;
   };
 
   /**
@@ -73,18 +119,50 @@ namespace OpenMS
   {
   public:
     /// C'tor which remembers the layer to paint
-    Painter1DPeak(const LayerDataPeak* parent);
+    Painter1DPeak(const LayerData1DPeak* parent);
 
     /// Implementation of base class
     void paint(QPainter*, Plot1DCanvas* canvas, int layer_index) override;
 
   protected:
-    /// draw all Annotation1DItems attached to the layer
-    void drawAnnotations_(QPainter& painter, Plot1DCanvas* canvas);
     /// annotate up to 10 interesting peaks in the range @p vbegin to @pvend with their m/z values (using deisotoping and intensity filtering)
-    void drawMZAtInterestingPeaks_(QPainter& painter, Plot1DCanvas* canvas, MSSpectrum::ConstIterator vbegin, MSSpectrum::ConstIterator vend);
+    void drawMZAtInterestingPeaks_(QPainter& painter, Plot1DCanvas* canvas, MSSpectrum::ConstIterator v_begin, MSSpectrum::ConstIterator v_end) const;
 
-    const LayerDataPeak* layer_; ///< the data to paint
+    const LayerData1DPeak* layer_; ///< the data to paint
+  };
+
+  /**
+     @brief Painter1D for chromatograms
+
+  */
+  class OPENMS_GUI_DLLAPI Painter1DChrom : public Painter1DBase
+  {
+  public:
+    /// C'tor which remembers the layer to paint
+    Painter1DChrom(const LayerData1DChrom* parent);
+
+    /// Implementation of base class
+    void paint(QPainter*, Plot1DCanvas* canvas, int layer_index) override;
+
+  protected:
+    const LayerData1DChrom* layer_; ///< the data to paint
+  };
+
+    /**
+   @brief Painter1D for mobilograms
+
+*/
+  class OPENMS_GUI_DLLAPI Painter1DIonMobility : public Painter1DBase
+  {
+  public:
+    /// C'tor which remembers the layer to paint
+    Painter1DIonMobility(const LayerData1DIonMobility* parent);
+
+    /// Implementation of base class
+    void paint(QPainter*, Plot1DCanvas* canvas, int layer_index) override;
+
+  protected:
+    const LayerData1DIonMobility* layer_; ///< the data to paint
   };
 
 } // namespace OpenMS

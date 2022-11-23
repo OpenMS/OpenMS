@@ -35,6 +35,7 @@
 #pragma once
 
 #include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/KERNEL/Mobilogram.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
 #include <OpenMS/KERNEL/MSChromatogram.h>
 
@@ -51,7 +52,7 @@ namespace OpenMS
   class OPENMS_DLLAPI DataFilters
   {
 public:
-    DataFilters();
+    DataFilters() = default;
 
     ///Information to filter
     enum FilterType
@@ -327,14 +328,59 @@ public:
       return true;
     }
 
-protected:
+    /// Returns if the a peak in a @p mobilogram at @p peak_index fulfills the current filter criteria
+    inline bool passes(const Mobilogram& mobilogram, Size peak_index) const
+    {
+      if (!is_active_) {
+        return true;
+      }
+        
+
+      for (Size i = 0; i < filters_.size(); i++)
+      {
+        const DataFilters::DataFilter& filter = filters_[i];
+        if (filter.field == INTENSITY)
+        {
+          switch (filter.op)
+          {
+            case GREATER_EQUAL:
+              if (mobilogram[peak_index].getIntensity() < filter.value)
+                return false;
+
+              break;
+
+            case EQUAL:
+              if (mobilogram[peak_index].getIntensity() != filter.value)
+                return false;
+
+              break;
+
+            case LESS_EQUAL:
+              if (mobilogram[peak_index].getIntensity() > filter.value)
+                return false;
+
+              break;
+
+            default:
+              break;
+          }
+        }
+        else if (filter.field == META_DATA)
+        { // no metadata arrays so far...
+          return false;
+        }
+      }
+      return true;
+    }
+
+  protected:
     ///Array of DataFilters
     std::vector<DataFilter> filters_;
     ///Vector of meta indices acting as index cache
     std::vector<Size> meta_indices_;
 
     ///Determines if the filters are activated
-    bool is_active_;
+    bool is_active_ = false;
 
     ///Returns if the meta value at @p index of @p meta_interface (a peak or feature) passes the @p filter
     bool metaPasses_(const MetaInfoInterface& meta_interface, const DataFilters::DataFilter& filter, Size index) const;

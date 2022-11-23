@@ -95,7 +95,7 @@ namespace OpenMS
       }
       else
       {
-        QMessageBox::warning(0, QString("Python not found"), error.toQString());
+        QMessageBox::warning(nullptr, QString("Python not found"), error.toQString());
         // no need to currently_valid_=false, since we will revert to 'last_known_python_exe_'
       }
 

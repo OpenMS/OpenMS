@@ -38,6 +38,7 @@
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 
 #include <array>
+#include <utility>
 
 namespace OpenMS
 {
@@ -49,7 +50,7 @@ namespace OpenMS
     String name;
     String description;
     TypeNameBinding(FileTypes::Type type, String name, String description)
-      : type(type), name(name), description(description)
+      : type(type), name(std::move(name)), description(std::move(description))
     {
     }
   };
@@ -167,7 +168,7 @@ namespace OpenMS
       {
         items.push_back("*." + FileTypes::typeToName(t));
       }
-      result.items.push_back("all readable files (" + ListUtils::concatenate(items, " ") + ")");
+      result.items.emplace_back("all readable files (" + ListUtils::concatenate(items, " ") + ")");
       result.types.push_back(FileTypes::Type::UNKNOWN); // cannot associate a single type to a collection
     }                                     
     if (style == FilterLayout::ONE_BY_ONE || style == FilterLayout::BOTH)
@@ -181,7 +182,7 @@ namespace OpenMS
     }
     if (add_all_filter)
     {
-      result.items.push_back("all files (*)");
+      result.items.emplace_back("all files (*)");
       result.types.push_back(FileTypes::Type::UNKNOWN); // cannot associate a single type to a collection
     }
     return result;

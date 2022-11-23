@@ -653,7 +653,7 @@ for (set<Size>::const_iterator it = used_pos.begin(); it != used_pos.end(); ++it
 
     // now handle the modifications
     ModificationDefinitionsSet mod_set(ListUtils::toStringList<std::string>(param_.getValue("fixed_modifications")), ListUtils::toStringList<std::string>(param_.getValue("variable_modifications")));
-    set<ModificationDefinition> fixed_mods = mod_set.getFixedModifications();
+    const set<ModificationDefinition>& fixed_mods = mod_set.getFixedModifications();
 
     for (set<ModificationDefinition>::const_iterator it = fixed_mods.begin(); it != fixed_mods.end(); ++it)
     {
@@ -695,7 +695,7 @@ for (set<Size>::const_iterator it = used_pos.begin(); it != used_pos.end(); ++it
 
     const StringList mod_names(ListUtils::create<String>("a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s,t,u,v,w,x,y,z"));
     vector<String>::const_iterator actual_mod_name = mod_names.begin();
-    set<ModificationDefinition> var_mods = mod_set.getVariableModifications();
+    const set<ModificationDefinition>& var_mods = mod_set.getVariableModifications();
     for (set<ModificationDefinition>::const_iterator it = var_mods.begin(); it != var_mods.end(); ++it)
     {
       ResidueModification mod = it->getModification();

@@ -29,7 +29,7 @@
         return result
 
     def getChromatogram(self,  id_ ):
-        """Cython signature: MSChromatogram getChromatogram(size_t id_)"""
+        """Cython signature: `MSChromatogram getChromatogram(size_t id_)`"""
         assert isinstance(id_, (int, long)), 'arg id_ wrong type'
         assert id_ < self.getNrChromatograms(), 'Requested chromatogram %s does not exist, there are only %s chromatograms' % (id_, self.getNrChromatograms() )
     
@@ -39,7 +39,7 @@
         return py_result
 
     def getSpectrum(self,  id_ ):
-        """Cython signature: MSSpectrum getSpectrum(size_t id_)"""
+        """Cython signature: `MSSpectrum getSpectrum(size_t id_)`"""
         assert isinstance(id_, (int, long)), 'arg id_ wrong type'
         assert id_ < self.getNrSpectra(), 'Requested spectrum %s does not exist, there are only %s spectra' % (id_, self.getNrSpectra() )
     

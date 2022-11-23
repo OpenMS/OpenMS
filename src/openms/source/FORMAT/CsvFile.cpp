@@ -45,9 +45,7 @@ namespace OpenMS
 
   }
 
-  CsvFile::~CsvFile()
-  {
-  }
+  CsvFile::~CsvFile() = default;
 
   CsvFile::CsvFile(const String& filename, char is, bool ie, Int first_n) :
     TextFile(), itemseperator_(is), itemenclosed_(ie)

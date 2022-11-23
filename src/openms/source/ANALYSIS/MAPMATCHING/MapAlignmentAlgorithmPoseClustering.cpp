@@ -64,9 +64,7 @@ namespace OpenMS
     max_num_peaks_considered_ = param_.getValue("max_num_peaks_considered");
   }
 
-  MapAlignmentAlgorithmPoseClustering::~MapAlignmentAlgorithmPoseClustering()
-  {
-  }
+  MapAlignmentAlgorithmPoseClustering::~MapAlignmentAlgorithmPoseClustering() = default;
 
   void MapAlignmentAlgorithmPoseClustering::align(const FeatureMap& map, TransformationDescription& trafo)
   {

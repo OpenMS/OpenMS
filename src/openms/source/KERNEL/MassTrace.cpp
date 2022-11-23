@@ -50,34 +50,24 @@ namespace OpenMS
     }
 
     MassTrace::MassTrace(const std::list<PeakType>& trace_peaks) :
-            fwhm_mz_avg(0),
+            
             trace_peaks_(),
-            centroid_mz_(),
-            centroid_sd_(),
-            centroid_rt_(),
+            
             label_(),
-            smoothed_intensities_(),
-            fwhm_(0.0),
-            fwhm_start_idx_(0),
-            fwhm_end_idx_(0),
-            quant_method_(MT_QUANT_AREA)
+            smoothed_intensities_()
+            
     {
       trace_peaks_.reserve(trace_peaks.size());
       std::copy(trace_peaks.begin(), trace_peaks.end(), back_inserter(trace_peaks_));
     }
 
     MassTrace::MassTrace(const std::vector<PeakType>& trace_peaks) :
-            fwhm_mz_avg(0),
+            
             trace_peaks_(trace_peaks),
-            centroid_mz_(),
-            centroid_sd_(),
-            centroid_rt_(),
+            
             label_(),
-            smoothed_intensities_(),
-            fwhm_(0.0),
-            fwhm_start_idx_(0),
-            fwhm_end_idx_(0),
-            quant_method_(MT_QUANT_AREA)
+            smoothed_intensities_()
+            
     {
     }
 

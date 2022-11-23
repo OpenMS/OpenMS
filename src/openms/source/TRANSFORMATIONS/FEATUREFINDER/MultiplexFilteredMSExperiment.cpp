@@ -51,9 +51,7 @@ using namespace std;
 namespace OpenMS
 {
 
-  MultiplexFilteredMSExperiment::MultiplexFilteredMSExperiment()
-  {
-  }
+  MultiplexFilteredMSExperiment::MultiplexFilteredMSExperiment() = default;
 
   void MultiplexFilteredMSExperiment::addPeak(const MultiplexFilteredPeak& peak)
   {
@@ -102,7 +100,7 @@ namespace OpenMS
     return result_.size();
   }
   
-  void MultiplexFilteredMSExperiment::writeDebugOutput(const MSExperiment& exp_picked, String debug_out) const
+  void MultiplexFilteredMSExperiment::writeDebugOutput(const MSExperiment& exp_picked, const String& debug_out) const
   {
     ConsensusMap map;
     

@@ -5,11 +5,11 @@ cdef extern from "<OpenMS/CONCEPT/ProgressLogger.h>" namespace "OpenMS":
 
     cdef cppclass ProgressLogger:
         # wrap-doc:
-            #   Base class for all classes that want to report their progress
-            #   -----
-            #   Per default the progress log is disabled. Use setLogType to enable it
-            #   -----
-            #   Use startProgress, setProgress and endProgress for the actual logging
+            #  Base class for all classes that want to report their progress
+            #  
+            #  Per default the progress log is disabled. Use setLogType to enable it
+            #  
+            #  Use startProgress, setProgress and endProgress for the actual logging
 
         ProgressLogger() nogil except + 
         ProgressLogger(ProgressLogger &) nogil except +

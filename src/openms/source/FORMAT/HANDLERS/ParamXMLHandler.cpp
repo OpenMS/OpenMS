@@ -49,8 +49,7 @@ namespace OpenMS::Internal
     }
 
     ParamXMLHandler::~ParamXMLHandler()
-    {
-    }
+    = default;
 
     void ParamXMLHandler::startElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname, const Attributes& attributes)
     {
@@ -80,7 +79,7 @@ namespace OpenMS::Internal
         optionalAttributeAsString_(advanced_string, attributes, "advanced");
         if (advanced_string == "true")
         {
-          tags.push_back("advanced");
+          tags.emplace_back("advanced");
         }
 
         //required
@@ -88,7 +87,7 @@ namespace OpenMS::Internal
         optionalAttributeAsString_(advanced_string, attributes, "required");
         if (advanced_string == "true")
         {
-          tags.push_back("required");
+          tags.emplace_back("required");
         }
 
         //type
@@ -104,17 +103,17 @@ namespace OpenMS::Internal
         // since param v1.6.2 we support explicitly naming input/output files as types
         else if (type == "input-file")
         {
-          tags.push_back("input file");
+          tags.emplace_back("input file");
           param_.setValue(name, value, description, tags);
         }
         else if (type == "output-file")
         {
-          tags.push_back("output file");          
+          tags.emplace_back("output file");          
           param_.setValue(name, value, description, tags);
         }
         else if (type == "output-prefix")
         {
-          tags.push_back("output prefix");          
+          tags.emplace_back("output prefix");          
           param_.setValue(name, value, description, tags);
         }
         else if (type == "float" || type == "double")
@@ -237,12 +236,12 @@ namespace OpenMS::Internal
         if (list_.type == "input-file")
         {
           list_.type = "string";
-          list_.tags.push_back("input file");
+          list_.tags.emplace_back("input file");
         }
         else if (list_.type == "output-file")
         {
           list_.type = "string";
-          list_.tags.push_back("output file");
+          list_.tags.emplace_back("output file");
         }
 
         list_.name = path_ + attributeAsString_(attributes, "name");
@@ -257,7 +256,7 @@ namespace OpenMS::Internal
         optionalAttributeAsString_(advanced_string, attributes, "advanced");
         if (advanced_string == "true")
         {
-          list_.tags.push_back("advanced");
+          list_.tags.emplace_back("advanced");
         }
 
         //advanced
@@ -265,7 +264,7 @@ namespace OpenMS::Internal
         optionalAttributeAsString_(required_string, attributes, "required");
         if (required_string == "true")
         {
-          list_.tags.push_back("required");
+          list_.tags.emplace_back("required");
         }
         
         list_.restrictions_index = attributes.getIndex(s_restrictions);

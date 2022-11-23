@@ -10,7 +10,7 @@ cdef extern from "<OpenMS/FILTERING/SMOOTHING/LowessSmoothing.h>" namespace "Ope
 
     cdef cppclass LowessSmoothing(DefaultParamHandler):
         # wrap-inherits:
-        #    DefaultParamHandler
+        #   DefaultParamHandler
 
         LowessSmoothing() nogil except +
 

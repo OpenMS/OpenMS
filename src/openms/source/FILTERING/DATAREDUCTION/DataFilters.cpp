@@ -42,13 +42,6 @@ using namespace std;
 namespace OpenMS
 {
 
-  DataFilters::DataFilters() :
-    filters_(),
-    meta_indices_(),
-    is_active_(false)
-  {
-  }
-
   bool DataFilters::DataFilter::operator==(const DataFilter & rhs) const
   {
     return field == rhs.field

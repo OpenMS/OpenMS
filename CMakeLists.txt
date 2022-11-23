@@ -32,7 +32,7 @@
 # $Authors: Stephan Aiche, Julianus Pfeuffer $
 # --------------------------------------------------------------------------
 
-cmake_minimum_required(VERSION 3.9.0 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.15 FATAL_ERROR)
 
 # Handle default build type
 get_property(multiConfig GLOBAL PROPERTY GENERATOR_IS_MULTI_CONFIG)
@@ -260,7 +260,7 @@ endif()
 #------------------------------------------------------------------------------
 # Enable SIRIUS_test (SiriusAdapter/AssayGeneratorMetabo)
 #------------------------------------------------------------------------------
-option(ENABLE_SIRIUS_TEST "Enable test for SIRIUS (SiriusAdapter)" ON)
+option(ENABLE_SIRIUS_TEST "Enable test for SIRIUS (SiriusAdapter)" OFF)
 
 #------------------------------------------------------------------------------
 # Enable CSI:FingerID_test (SiriusAdapter)
@@ -378,17 +378,8 @@ set(INSTALL_PLUGIN_DIR ${INSTALL_LIB_DIR}/${INSTALL_PLUGIN_SUBDIR})
 file(RELATIVE_PATH INSTALL_LIB_PATH_REL_TO_BIN /${INSTALL_BIN_DIR} /${INSTALL_LIB_DIR})
 set(QT_PLUGIN_PATH_REL_TO_BIN ${INSTALL_LIB_PATH_REL_TO_BIN}/${INSTALL_PLUGIN_SUBDIR})
 
-# Never use RPATH by default. We have other means on every platform.
-# E.g. not yet compatible with our fix_mac_dependencies script.
-if(NOT DEFINED CMAKE_MACOSX_RPATH)
-  SET(CMAKE_MACOSX_RPATH FALSE)
-endif()
-# macOS-specific variable used when installing own libraries/bins. Use relative path to bin here.
-if(NOT DEFINED CMAKE_INSTALL_NAME_DIR)
-  SET(CMAKE_INSTALL_NAME_DIR "@executable_path/../${INSTALL_LIB_DIR}")
-endif()
 
-if(UNIX AND NOT APPLE)
+if(UNIX)
 	# use, i.e. don't skip the full RPATH for the build tree
 	if(NOT DEFINED CMAKE_SKIP_BUILD_RPATH)
 	  SET(CMAKE_SKIP_BUILD_RPATH  FALSE)
@@ -406,15 +397,25 @@ if(UNIX AND NOT APPLE)
 			SET(CMAKE_BUILD_WITH_INSTALL_RPATH FALSE)
 		endif()
   endif()
-	# the RPATH to be used when installing
+  
+  # if e.g. Qt is already built with RPATH, our libs will have @rpath/QtCore as dependency.
+  # We need to include all link directories that should be specified by the
+  # dependency target to our RPATH as well.
+  if (NOT DEFINED CMAKE_INSTALL_RPATH_USE_LINK_PATH)
+    SET(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
+  endif()
+  
+	# our default RPATH to be added when installing
 	if(NOT DEFINED CMAKE_INSTALL_RPATH)
-		SET(CMAKE_INSTALL_RPATH "$ORIGIN/../lib/")
-	endif()
-
-	# don't add the automatically determined parts of the RPATH
-	# which point to directories outside the build tree to the install RPATH
-	if(NOT DEFINED CMAKE_INSTALL_RPATH_USE_LINK_PATH)
-		SET(CMAKE_INSTALL_RPATH_USE_LINK_PATH FALSE)
+    if (APPLE)
+      # currently our fix_dependencies.rb script requires our lib dir to be present in the RPATHS
+      # so it can find libOpenMS for one of our executables, even if it is linked as @rpath/libOpenMS.
+      # Disadvantage: even on the target machine, they will have the build folder baked in.
+      # Alternative: copy all our libs first so they do not need to be found.
+      SET(CMAKE_INSTALL_RPATH "@executable_path/../${INSTALL_LIB_DIR}/;${CMAKE_LIBRARY_OUTPUT_DIRECTORY}")
+    else()
+      SET(CMAKE_INSTALL_RPATH "$ORIGIN/../${INSTALL_LIB_DIR}/")
+    endif()
 	endif()
 endif()
 

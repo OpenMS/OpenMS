@@ -156,9 +156,9 @@ if __name__ == '__main__':
       raise Exception("Internal Error: chunking lost files")
 
   if (int(PY_NUM_MODULES)==1):
-    mnames = ["pyopenms"]
+    mnames = ["_pyopenms"]
   else:
-    mnames = ["pyopenms_%s" % (k+1) for k in range(int(PY_NUM_MODULES))]
+    mnames = ["_pyopenms_%s" % (k+1) for k in range(int(PY_NUM_MODULES))]
   allDecl_mapping = {}
   for pxd_f, m in zip(pxd_files_chunk, mnames):
       tmp_decls = []
@@ -236,13 +236,13 @@ if __name__ == '__main__':
   print("Created all %s pyopenms.cpps" % PY_NUM_MODULES)
 
 
-  with open("pyopenms/all_modules.py", "w") as fp:
+  with open("pyopenms/_all_modules.py", "w") as fp:
       for modname in mnames:
-          fp.write("from .%s import *\n" % modname)
+          fp.write("from .%s import *  # pylint: disable=wildcard-import; lgtm(py/polluting-import)\n" % modname)
 
 
   # create version information
   version = OPEN_MS_VERSION
 
-  print("version=%r\n" % version, file=open("pyopenms/version.py", "w"))
-  print("info=%r\n" % QT_QMAKE_VERSION_INFO, file=open("pyopenms/qt_version_info.py", "w"))
+  print("version=%r\n" % version, file=open("pyopenms/_version.py", "w"))
+  print("info=%r\n" % QT_QMAKE_VERSION_INFO, file=open("pyopenms/_qt_version_info.py", "w"))
