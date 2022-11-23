@@ -551,12 +551,12 @@ namespace OpenMS
   std::vector<OpenSwath::SpectrumPtr> OpenSwathScoring::fetchSpectrumSwath(std::vector<OpenSwath::SwathMap> swath_maps, double RT, int nr_spectra_to_add, double drift_lower, double drift_upper)
   {
     OPENMS_PRECONDITION(nr_spectra_to_add >= 1, "nr_spectra_to_add must be at least 1.")
-    std::vector<OpenSwath::SpectrumPtr> spectrum_out;
+    OPENMS_PRECONDITION(!swath_maps.empty(), "swath_maps vector cannot be empty")
 
     // This is not SONAR data
     if (swath_maps.size() == 1)
     {
-      spectrum_out = fetchSpectrumSwath(swath_maps[0].sptr, RT, nr_spectra_to_add, drift_lower, drift_upper);
+      return fetchSpectrumSwath(swath_maps[0].sptr, RT, nr_spectra_to_add, drift_lower, drift_upper);
     }
     else
     {
@@ -569,10 +569,10 @@ namespace OpenMS
         all_spectra.push_back(spec);
       }
       OpenSwath::SpectrumPtr spectrum_ = SpectrumAddition::addUpSpectra(all_spectra, spacing_for_spectra_resampling_, true);
+      std::vector<OpenSwath::SpectrumPtr> spectrum_out;
       spectrum_out.push_back(spectrum_);
+      return spectrum_out;
     }
-    OPENMS_POSTCONDITION(spectrum_out.size() > 0, "Must return a vector with at least one SpectrumPtr");
-    return spectrum_out;
   }
 
   OpenSwath::SpectrumPtr OpenSwathScoring::filterByDrift_(const OpenSwath::SpectrumPtr& input, const double drift_lower, const double drift_upper)

@@ -238,12 +238,16 @@ namespace OpenMS
       {
         if (ms1_im_)
         {
-          sp_ms1 = OpenSwathScoring().fetchSpectrumSwath(ms1_maps, bestRT, 1, 0, 0)[0];
+          std::vector<OpenSwath::SpectrumPtr> fetchSpectrumArr = OpenSwathScoring().fetchSpectrumSwath(ms1_maps, bestRT, 1, 0, 0);
+          sp_ms1 = (!fetchSpectrumArr.empty()) ? fetchSpectrumArr[0] : *new(OpenSwath::SpectrumPtr);
         }
         else
         {
-          sp_ms2 = OpenSwathScoring().fetchSpectrumSwath(used_maps, bestRT, 1, 0, 0)[0];
+          std::vector<OpenSwath::SpectrumPtr> fetchSpectrumArr = OpenSwathScoring().fetchSpectrumSwath(used_maps, bestRT, 1, 0, 0);
+          sp_ms2 = (!fetchSpectrumArr.empty()) ? fetchSpectrumArr[0] : *new(OpenSwath::SpectrumPtr);
+
         }
+
       }
 
       for (const auto& tr : transition_group->getTransitions())
@@ -382,6 +386,7 @@ namespace OpenMS
     bool ppm = mz_extraction_window_ppm_;
     double mz_extr_window = mz_extraction_window_;
     std::string corr_type = mz_correction_function_;
+    double im_extraction = im_extraction_window_;
 
     OPENMS_LOG_DEBUG << "SwathMapMassCorrection::correctMZ with type " << corr_type << " and window " << mz_extr_window << " in ppm " << ppm << std::endl;
 
@@ -446,9 +451,18 @@ namespace OpenMS
         continue;
       }
 
+      // if ion mobility extraction window is set than extract with ion mobility
+      double drift_lower(-1), drift_upper(-1);
+      if (im_extraction > 0)
+      {
+        drift_lower = drift_target - (im_extraction / 2);
+        drift_upper = drift_target + (im_extraction / 2);
+      }
+
       // Get the spectrum for this RT and extract raw data points for all the
       // calibrating transitions (fragment m/z values) from the spectrum
-      OpenSwath::SpectrumPtr sp = OpenSwathScoring().fetchSpectrumSwath(used_maps, bestRT, 1, 0, 0)[0];
+      std::vector<OpenSwath::SpectrumPtr> spArr = OpenSwathScoring().fetchSpectrumSwath(used_maps, bestRT, 1, 0, 0);
+      OpenSwath::SpectrumPtr sp = (!spArr.empty()) ? spArr[0] : *new(OpenSwath::SpectrumPtr);
       for (const auto& tr : transition_group->getTransitions())
       {
         double mz, intensity, left(tr.product_mz), right(tr.product_mz), im;
@@ -456,7 +470,8 @@ namespace OpenMS
 
         // integrate spectrum at the position of the theoretical mass
         DIAHelpers::adjustExtractionWindow(right, left, mz_extr_window, ppm);
-        DIAHelpers::integrateWindow(sp, left, right, mz, im, intensity,  -1, -1,  centroided); // TODO should this be applied with Ion mobility??
+
+        DIAHelpers::integrateWindow(sp, left, right, mz, im, intensity,  drift_lower, drift_upper,  centroided); // Correct using the irt_im
 
         // skip empty windows
         if (mz == -1)
