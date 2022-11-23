@@ -108,7 +108,10 @@ endforeach(i)
 
   ## install platform plugins. On Mac this is handled for every GUI app inside its app bundle.
   if(WIN32)
-      install_qt5_plugin("Qt5::QWindowsIntegrationPlugin" QT_PLUGINS "${INSTALL_PLUGIN_DIR}" QtPlatformPlugin)
+      install(IMPORTED_RUNTIME_ARTIFACTS "Qt5::QWindowsIntegrationPlugin"
+              DESTINATION "${INSTALL_PLUGIN_DIR}/platforms"
+              RUNTIME_DEPENDENCY_SET OPENMS_DEPS
+              COMPONENT Dependencies)
       file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/qt.conf"
         "[Paths]\nPlugins = ${QT_PLUGIN_PATH_REL_TO_BIN}\n")
       install(FILES "${CMAKE_CURRENT_BINARY_DIR}/qt.conf"
