@@ -57,7 +57,13 @@ set(OPENMS_LOGOSMALL ${PROJECT_SOURCE_DIR}/cmake/MacOSX/${OPENMS_LOGOSMALL_NAME}
 
 ########################################################### Fixing dynamic dependencies
 ## Qt Plugins needed for the CL tools should have been installed before (such as QSqliteDriverPlugin)
+## This currently works because our libs and TOPP tools include all dependencies. For macOS,
+##  the app bundles need to have a different RUNTIME_DEPENDENCY_SET (TOPPView_DEPS, ...) due
+##  to CMake assuming you want standalone bundles. But we want to share libs between them.
 install(RUNTIME_DEPENDENCY_SET OPENMS_DEPS DESTINATION ${INSTALL_LIB_DIR} COMPONENT Dependencies)
+#install(RUNTIME_DEPENDENCY_SET TOPPView_DEPS) # I think without giving DESTINATION and COMPONENT it will be inferred
+#install(RUNTIME_DEPENDENCY_SET TOPPAS_DEPS)
+#...
 
 ########################################################### SEARCHENGINES
 set(THIRDPARTY_COMPONENT_GROUP)

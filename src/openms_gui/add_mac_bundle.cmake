@@ -166,6 +166,9 @@ message('\${verify_out}')" COMPONENT Applications)
 		endif()
 	else()
 	  ## Just install to the usual bin dir without fixing it up
-	  install_tool(${_name})
+		install(TARGETS ${_name} RUNTIME_DEPENDENCY_SET ${_name}_DEPS
+						RUNTIME DESTINATION ${INSTALL_BIN_DIR} COMPONENT Applications
+						BUNDLE DESTINATION ${INSTALL_BIN_DIR} COMPONENT Applications
+						)
 	endif()
 endmacro()

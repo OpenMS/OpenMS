@@ -40,6 +40,7 @@ if(NOT multiConfig AND NOT DEFINED CMAKE_BUILD_TYPE)
   set(CMAKE_BUILD_TYPE Release CACHE STRING "Choose the type of build.")
 endif()
 
+## TODO get rid of C. Seems like only HDF5 C Component needs it.
 project("OpenMS_host" LANGUAGES C CXX)
 
 # required for cmake < 3.13 if ccache is used
@@ -339,10 +340,10 @@ is_valid_package(${PACKAGE_TYPE})
 
 ## Warn here because you need the signing identity before the app bundles are defined in the
 ## src subfolder
-if("${PACKAGE_TYPE}" STREQUAL "dmg")
+if("${PACKAGE_TYPE}" STREQUAL "dmg" OR "${PACKAGE_TYPE}" STREQUAL "pkg")
   if (NOT DEFINED SIGNING_IDENTITY OR "${SIGNING_IDENTITY}" STREQUAL "" OR NOT DEFINED SIGNING_EMAIL OR "${SIGNING_EMAIL}" STREQUAL "")
     message(WARNING "Trying to create dmg image without SIGNING_IDENTITY and SIGNING_EMAIL being set. "
-                         "This disables codesigning and might lead to problems with Gatekeeper on target machines.")
+                    "This disables codesigning and might lead to problems with macOS' Gatekeeper on target machines.")
   else()
     ## CPack has a special variable for the identity
     set(CPACK_BUNDLE_APPLE_CERT_APP "${SIGNING_IDENTITY}")
