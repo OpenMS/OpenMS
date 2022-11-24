@@ -135,7 +135,7 @@ START_SECTION(void simulate(PeakSpectrum & spectrum, const AASequence & peptide,
       for(Size i = 0; i<min_size; ++i)
       {
         TEST_REAL_SIMILAR(spec[i].getPosition()[0],(exp[0][i]).getPosition()[0])
-        TEST_EQUAL(spec[i].getIntensity(),(exp[0][i]).getIntensity())
+        TEST_REAL_SIMILAR(spec[i].getIntensity(),(exp[0][i]).getIntensity())
         }
     }
 END_SECTION

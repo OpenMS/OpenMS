@@ -99,7 +99,7 @@ bool compare_generator_to_reference(IsoSpecGeneratorWrapper& IW, const std::vect
   {
     Peak1D p = IW.getConf();
     ISOSPEC_TEST_ASSERTION(p.getPos() == IW.getMass());
-    ISOSPEC_TEST_ASSERTION(p.getIntensity() == static_cast<float>(IW.getIntensity()));
+    ISOSPEC_TEST_ASSERTION(p.getIntensity() == IW.getIntensity());
     ISOSPEC_TEST_ASSERTION(my_real_similar(IW.getIntensity(), exp(IW.getLogIntensity())))
 
     for(auto it = reference.begin(); it != reference.end(); it++)
