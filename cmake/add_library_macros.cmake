@@ -157,6 +157,8 @@ function(openms_add_library)
 
   set_target_properties(${openms_add_library_TARGET_NAME} PROPERTIES CXX_VISIBILITY_PRESET hidden)
   set_target_properties(${openms_add_library_TARGET_NAME} PROPERTIES VISIBILITY_INLINES_HIDDEN 1)
+  set_target_properties(${openms_add_library_TARGET_NAME} PROPERTIES AUTOMOC ON)
+
   #------------------------------------------------------------------------------
   # Include directories
   # since internal includes all start with include/OpenMS and install_headers takes care of merging them in the install tree,
@@ -177,6 +179,19 @@ function(openms_add_library)
   # If we want full support, we need our own try_compiles (e.g. for structured bindings first available in GCC7)
   # or specify a min version of each compiler.
   target_compile_features(${openms_add_library_TARGET_NAME} PUBLIC cxx_std_17)
+
+  if (CMAKE_COMPILER_IS_GNUCXX)
+    target_compile_options(${openms_add_library_TARGET_NAME} PRIVATE 
+    -Wall
+    -Wextra
+    #-fvisibility=hidden # This is now added as a target property for each library.     
+    -Wno-non-virtual-dtor
+    -Wno-unknown-pragmas
+    -Wno-long-long 
+    -Wno-unknown-pragmas
+    -Wno-unused-function
+    -Wno-variadic-macros)
+  endif()
 
   set_target_properties(${openms_add_library_TARGET_NAME} PROPERTIES CXX_VISIBILITY_PRESET hidden)
   set_target_properties(${openms_add_library_TARGET_NAME} PROPERTIES VISIBILITY_INLINES_HIDDEN 1)
