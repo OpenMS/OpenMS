@@ -67,12 +67,12 @@ namespace OpenMS
       if (token_string.hasSuffix(".log"))
       {
         log_files.push_back(token_string);
-        ss << token_string << " is used for mass targeting";
+        ss << token_string << " ";
       }
       else if (token_string.hasSuffix(".out"))
       {
         out_files.push_back(token_string);
-        ss << token_string << " is used for mass targeting";
+        ss << token_string << " ";
       }
       else
       {
@@ -96,11 +96,11 @@ namespace OpenMS
     targeting_mode_ = (int)(inputs["target_mode"][0]);
     if (targeting_mode_ == 1)
     {
-      std::cout << ss.str() << " inclusion mode\n";
+      std::cout << ss.str() << " file(s) is(are) used to generate inclusion list\n";
     }
     else if (targeting_mode_ == 2)
     {
-      std::cout << ss.str() << " exclusion mode\n";
+      std::cout << ss.str() << " file(s) is(are) used to generate exclusion list\n";
     }
     Param fd_defaults = FLASHDeconvAlgorithm().getDefaults();
 
