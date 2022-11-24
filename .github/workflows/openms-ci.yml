@@ -12,6 +12,8 @@ jobs:
   build-win:
     runs-on: windows-2022
     continue-on-error: true
+    outputs:
+      job-status: ${{ job.status }}
     steps:
     - uses: actions/checkout@v3
       with:
@@ -125,6 +127,8 @@ jobs:
   build-macos:
     runs-on: macos-latest
     continue-on-error: true
+    outputs:
+      job-status: ${{ job.status }}
     steps:
     - uses: actions/checkout@v3
       with:
@@ -250,6 +254,8 @@ jobs:
     runs-on: ubuntu-latest
     continue-on-error: true
     container: ghcr.io/openms/contrib_manylinux2014:latest
+    outputs:
+      job-status: ${{ job.status }}
 
     steps:
     # Cancels older builds if still running
@@ -356,7 +362,8 @@ jobs:
   build-lnx-clang:
     runs-on: ubuntu-20.04
     continue-on-error: true
-
+    outputs:
+      job-status: ${{ job.status }}
     steps:
     # Cancels older builds if still running
     - uses: rokroskar/workflow-run-cleanup-action@master
@@ -471,3 +478,12 @@ jobs:
           OPENMP: "On"
           USE_STATIC_BOOST: "Off"
           BUILD_FLAGS: "-j2"
+        
+  overall-status:
+    runs-on: ubuntu-latest
+    needs: [build-win, build-lnx, build-macos]
+    if: ${{ always() }}
+    steps:
+    - name: Check on failures
+      if: needs.build-win.outputs.job-status != "Success" || needs.build-lnx.outputs.job.status == "Success" || needs.build-macos.outputs.job.status == "Success" 
+      run: exit 1
