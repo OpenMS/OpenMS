@@ -192,7 +192,6 @@ namespace OpenMS
     int targeting_mode_ = 0; /// 0 no targeting 1 inclusive 2 exclusive
     /// maps for global inclusion/exclusion targeting
     std::map<double, std::vector<double>> target_mass_rt_map_;
-    std::map<double, std::vector<double>> target_mz_rt_map_;
     std::vector<double> target_masses_; /// current target masses
 
     /// precursor SNR threshold

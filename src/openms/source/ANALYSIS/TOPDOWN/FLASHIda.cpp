@@ -96,11 +96,11 @@ namespace OpenMS
     targeting_mode_ = (int)(inputs["target_mode"][0]);
     if (targeting_mode_ == 1)
     {
-      std::cout << ss.str() << " file(s) is(are) used to generate inclusion list\n";
+      std::cout << ss.str() << "file(s) is(are) used to generate inclusion list\n";
     }
     else if (targeting_mode_ == 2)
     {
-      std::cout << ss.str() << " file(s) is(are) used to generate exclusion list\n";
+      std::cout << ss.str() << "file(s) is(are) used to generate exclusion list\n";
     }
     Param fd_defaults = FLASHDeconvAlgorithm().getDefaults();
 
@@ -142,7 +142,6 @@ namespace OpenMS
             Size ed = line.find('(') - 2;
             String n = line.substr(st, ed - st + 1);
             rt = atof(n.c_str());
-            // std::cout << " rt " << n << std::endl ;
             // precursor_map_for_real_time_acquisition[scan] = std::vector<std::vector<double>>();//// ms1 scan -> mass, charge ,score, mz range, precursor int, mass int, color
           }
           if (line.hasPrefix("Mass"))
@@ -198,12 +197,6 @@ namespace OpenMS
               target_mass_rt_map_[mass] = std::vector<double>();
             }
             target_mass_rt_map_[mass].push_back(60.0 * atof(results[0].c_str()));
-
-            if (target_mz_rt_map_.find(mz) == target_mz_rt_map_.end())
-            {
-              target_mz_rt_map_[mz] = std::vector<double>();
-            }
-            target_mz_rt_map_[mz].push_back(60.0 * atof(results[0].c_str()));
           }
         }
         instream.close();
