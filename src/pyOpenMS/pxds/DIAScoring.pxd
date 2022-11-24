@@ -6,6 +6,7 @@ from LightTargetedExperiment cimport *
 from AASequence cimport *
 from DefaultParamHandler cimport *
 from EmpiricalFormula cimport *
+from libcpp.vector cimport vector as libcpp_vector
 
 cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/DIAScoring.h>" namespace "OpenMS":
 
@@ -17,18 +18,18 @@ cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/DIAScoring.h>" namespace "OpenMS":
         # private
         DIAScoring(DIAScoring) nogil except + # wrap-ignore
 
-        bool dia_ms1_massdiff_score(double precursor_mz, OSSpectrumPtr spectrum,
-                                    double& ppm_score) nogil except + 
+        bool dia_ms1_massdiff_score(double precursor_mz, libcpp_vector[shared_ptr[OSSpectrum] ] spectrum,
+                                    double& ppm_score, double & drift_start, double & drift_end) nogil except +
 
-        void dia_ms1_isotope_scores_averagine(double precursor_mz, OSSpectrumPtr spectrum,
-                                    double& isotope_corr, double& isotope_overlap, int charge_state) nogil except +
+        void dia_ms1_isotope_scores_averagine(double precursor_mz, libcpp_vector[shared_ptr[OSSpectrum] ] spectrum,
+                                    double& isotope_corr, double& isotope_overlap, int charge_state, double & drift_start, double & drift_end) nogil except +
 
-        void dia_ms1_isotope_scores(double precursor_mz, OSSpectrumPtr spectrum,
-                                    double& isotope_corr, double& isotope_overlap, EmpiricalFormula& sum_formula) nogil except +
+        void dia_ms1_isotope_scores(double precursor_mz, libcpp_vector[shared_ptr[OSSpectrum] ] spectrum,
+                                    double& isotope_corr, double& isotope_overlap, EmpiricalFormula& sum_formula, double & drift_start, double & drift_end) nogil except +
         # TODO automatically wrap 
-        void dia_by_ion_score(OSSpectrumPtr spectrum, AASequence sequence, int charge, double & bseries_score, double & yseries_score) nogil except + # wrap-return:return(bseries_score,yseries_score) wrap-ignore
+        void dia_by_ion_score( libcpp_vector[shared_ptr[OSSpectrum] ] spectrum, AASequence sequence, int charge, double & bseries_score, double & yseries_score, double & drift_start, double & drift_end) nogil except + # wrap-return:return(bseries_score,yseries_score) wrap-ignore
 
         # Dotproduct / Manhatten score with theoretical spectrum
-        void score_with_isotopes(OSSpectrumPtr spectrum, libcpp_vector[LightTransition] transitions,
-                                 double& dotprod, double& manhattan) nogil except +
+        void score_with_isotopes( libcpp_vector[shared_ptr[OSSpectrum] ] spectrum, libcpp_vector[LightTransition] transitions,
+                                 double& dotprod, double& manhattan, double & drift_start, double & drift_end) nogil except +
 
