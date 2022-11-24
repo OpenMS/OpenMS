@@ -29,7 +29,7 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Hendrik Weisser $
-// $Authors: Hendrik Weisser $
+// $Authors: Hendrik Weisser, Chris Bielow $
 // --------------------------------------------------------------------------
 
 #pragma once
@@ -37,12 +37,14 @@
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/METADATA/ID/IdentificationData.h>
+#include <OpenMS/FORMAT/OMSFileStore.h>
 
 #include <QtCore/QJsonArray> // for JSON export
-#include <QString>
-#include <QStringList> // avoid compiler error on initialization using init. list
 
-class QSqlQuery;
+namespace SQLite
+{
+  class Database;
+} // namespace SQLite
 
 namespace OpenMS
 {
@@ -56,7 +58,7 @@ namespace OpenMS
     class OMSFileLoad: public ProgressLogger
     {
     public:
-      using Key = qint64; ///< Type used for database keys
+      using Key = OMSFileStore::Key; ///< Type used for database keys
 
       /*!
         @brief Constructor
@@ -119,40 +121,40 @@ namespace OpenMS
 
       void loadFeatures_(FeatureMap& features);
 
-      Feature loadFeatureAndSubordinates_(QSqlQuery& query_feat,
-                                          std::optional<QSqlQuery>& query_meta,
-                                          std::optional<QSqlQuery>& query_hull,
-                                          std::optional<QSqlQuery>& query_match);
+      Feature loadFeatureAndSubordinates_(SQLite::Statement& query_feat,
+                                          std::optional<SQLite::Statement>& query_meta,
+                                          std::optional<SQLite::Statement>& query_hull,
+                                          std::optional<SQLite::Statement>& query_match);
 
-      static DataValue makeDataValue_(const QSqlQuery& query);
+      static DataValue makeDataValue_(const SQLite::Statement& query);
 
-      bool prepareQueryMetaInfo_(QSqlQuery& query, const String& parent_table);
+      bool prepareQueryMetaInfo_(SQLite::Statement& query, const String& parent_table);
 
-      void handleQueryMetaInfo_(QSqlQuery& query, MetaInfoInterface& info,
+      void handleQueryMetaInfo_(SQLite::Statement& query, MetaInfoInterface& info,
                                 Key parent_id);
 
-      bool prepareQueryAppliedProcessingStep_(QSqlQuery& query,
+      bool prepareQueryAppliedProcessingStep_(SQLite::Statement& query,
                                               const String& parent_table);
 
       void handleQueryAppliedProcessingStep_(
-        QSqlQuery& query,
+        SQLite::Statement& query,
         IdentificationDataInternal::ScoredProcessingResult& result,
         Key parent_id);
 
       void handleQueryParentMatch_(
-        QSqlQuery& query, IdentificationData::ParentMatches& parent_matches,
+        SQLite::Statement& query, IdentificationData::ParentMatches& parent_matches,
         Key molecule_id);
 
       void handleQueryPeakAnnotation_(
-        QSqlQuery& query, IdentificationData::ObservationMatch& match,
+        SQLite::Statement& query, IdentificationData::ObservationMatch& match,
         Key parent_id);
 
-      void createView_(const QString& name, const QString& select);
+      void createView_(const String& name, const String& select);
 
       QJsonArray exportTableToJSON_(const QString& table, const QString& order_by);
 
-      // store name, not database connection itself (see https://stackoverflow.com/a/55200682):
-      QString db_name_;
+      /// The database connection (read)
+      std::unique_ptr<SQLite::Database> db_;
 
       int version_number_; ///< schema version number
 

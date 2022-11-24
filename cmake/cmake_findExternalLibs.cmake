@@ -122,14 +122,6 @@ if (WITH_CRAWDAD)
 endif()
 
 #------------------------------------------------------------------------------
-# SQLITE
-# creates SQLite::SQLite3 target
-# In our contrib we make a subdir in the includes -> Add PATH_SUFFIXES
-# Look for the necessary header
-find_path(SQLite3_INCLUDE_DIR NAMES sqlite3.h PATH_SUFFIXES "sqlite")
-find_package(SQLite3 3.15.0 REQUIRED)
-
-#------------------------------------------------------------------------------
 # HDF5
 # For MSVC use static linking to the HDF5 libraries
 if(MSVC)
