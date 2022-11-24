@@ -63,12 +63,12 @@ namespace OpenMS
 
       out_spec.emplace_back(pg.getMonoMass() + charge_mass_offset, pg.getIntensity());
       auto [z1, z2] = pg.getAbsChargeRange();
-      int min_iso = 0, max_iso = -1;
+      int min_iso = -1, max_iso = 0;
 
       for(auto& p: pg)
       {
-        min_iso = std::max(min_iso, p.isotopeIndex);
-        max_iso = max_iso < 0 ? p.isotopeIndex : std::min(max_iso, p.isotopeIndex);
+        min_iso = min_iso < 0 ? p.isotopeIndex :std::min(min_iso, p.isotopeIndex);
+        max_iso = std::max(max_iso, p.isotopeIndex);
       }
       val <<z1<<":"<<z2<< ","<<min_iso<<":"<<max_iso<<";";
 

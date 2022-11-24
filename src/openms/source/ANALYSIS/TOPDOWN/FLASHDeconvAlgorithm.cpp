@@ -97,12 +97,12 @@ namespace OpenMS
       for (auto& pg : targetFD_->deconvolved_spectrum_)
       {
         auto [m, M] = pg.getAbsChargeRange();
-        int min_iso = 0, max_iso = avg_.getLastIndex(pg.getMonoMass()) + 10;
+        int min_iso = -1, max_iso = 0;
         for (auto& p : pg)
         {
           previously_deconved_mono_masses_for_decoy.push_back(p.getUnchargedMass());
-          min_iso = std::max(min_iso, p.isotopeIndex);
-          max_iso = std::min(max_iso, p.isotopeIndex);
+          min_iso = min_iso<0? p.isotopeIndex : std::min(min_iso, p.isotopeIndex);
+          max_iso = std::max(max_iso, p.isotopeIndex);
         }
         for(int i=-2*M;i<=0;i++)
         {
