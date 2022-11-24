@@ -20,9 +20,7 @@ cdef extern from "<OpenMS/FORMAT/DATAACCESS/MSDataWritingConsumer.h>" namespace 
                 #  Set experimental settings for the whole file
                 #  
                 #  
-                #  :param exp: Experimental settings to be used for this file (from this
-                #  and the first spectrum/chromatogram, the class will deduce most of
-                #  the header of the mzML file)
+                #  :param exp: Experimental settings to be used for this file (from this and the first spectrum/chromatogram, the class will deduce most of the header of the mzML file)
 
         void setExpectedSize(Size expectedSpectra, Size expectedChromatograms) nogil except +
             # wrap-doc:
