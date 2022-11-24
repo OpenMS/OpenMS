@@ -35,7 +35,6 @@
 project("OpenMS")
 cmake_minimum_required(VERSION 3.15 FATAL_ERROR)
 
-set(CMAKE_AUTOMOC ON) # some OpenMS classes make use of Signal/Slot, e.g. SYSTEM/FileWatcher.cpp
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
 #------------------------------------------------------------------------------

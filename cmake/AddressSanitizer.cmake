@@ -47,9 +47,9 @@ if ("${CMAKE_BUILD_TYPE}" STREQUAL "Debug")
     add_compile_options( -fsanitize=address
                          -fno-omit-frame-pointer)
     # add AddressSanitizer also for linker
-    set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -fsanitize=address")
-    set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -fsanitize=address")
-    set(CMAKE_STATIC_LINKER_FLAGS "${CMAKE_STATIC_LINKER_FLAGS} -fsanitize=address")
+    set(CXX_EXE_LINKER_FLAGS "${CMAKE_CXX_EXE_LINKER_FLAGS} -fsanitize=address")
+    set(CXX_SHARED_LINKER_FLAGS "${CMAKE_CXX_SHARED_LINKER_FLAGS} -fsanitize=address")
+    set(CXX_STATIC_LINKER_FLAGS "${CMAKE_CXX_STATIC_LINKER_FLAGS} -fsanitize=address")
     message(STATUS "AddressSanitizer is on.")
   endif()
 else()
