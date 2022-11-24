@@ -101,7 +101,7 @@ namespace OpenMS
     /** @brief set targeted or excluded masses for targeted deconvolution. Masses are targeted or excluded in all ms levels.
         @param exclude if set, masses are excluded.
      */
-    void setTargetMasses(const std::vector<double> masses, bool exclude = false);
+    void setTargetMasses(const std::vector<double>& masses, bool exclude = false);
 
     /** @brief precalculate averagine (for predefined mass bins) to speed up averagine generation
         @param use_RNA_averagine if set, averagine for RNA (nucleotides) is calculated
@@ -205,7 +205,7 @@ namespace OpenMS
     std::vector<double> target_mono_masses_;
 
     /// mass bins that are excluded for FLASHIda global targeting mode
-    std::vector<double> excluded_mono_masses_;
+    std::vector<double> excluded_masses_;
 
     /// mass bins that are previsouly deconvolved and excluded for decoy mass generation
     boost::dynamic_bitset<> previously_deconved_mass_bins_for_decoy;
