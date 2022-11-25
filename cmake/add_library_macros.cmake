@@ -37,6 +37,13 @@ include(CMakeParseArguments)
 include(GenerateExportHeader)
 include(CheckLibArchitecture)
 
+
+#------------------------------------------------------------------------------
+# Enable AddressSanitizer and include some helper function to add compiler and linker flags
+#------------------------------------------------------------------------------  
+option(ADDRESS_SANITIZER "[Clang/GCC only] Enable AddressSanitizer mode (quite slow)." OFF)
+include(${PROJECT_SOURCE_DIR}/cmake/AddressSanitizer.cmake)
+
 #------------------------------------------------------------------------------
 ## export a single option indicating if libraries should be build as unity
 ## build
@@ -193,6 +200,11 @@ function(openms_add_library)
     -Wno-variadic-macros)
   endif()
 
+  if(ADDRESS_SANITIZER)
+    add_asan_to_target(${openms_add_library_TARGET_NAME})
+  endif()
+  
+  
   set_target_properties(${openms_add_library_TARGET_NAME} PROPERTIES CXX_VISIBILITY_PRESET hidden)
   set_target_properties(${openms_add_library_TARGET_NAME} PROPERTIES VISIBILITY_INLINES_HIDDEN 1)
 
