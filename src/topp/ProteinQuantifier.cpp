@@ -915,7 +915,7 @@ protected:
            !inference_in_cxml,
            report_unidentified_features,
            report_unmapped,
-           export_subfeatures,
+           report_subfeatures,
            false,
            getFlag_("export_all_psms")); // direct stream to disc
       }
