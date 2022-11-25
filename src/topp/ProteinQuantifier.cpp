@@ -907,14 +907,17 @@ protected:
 
         // fill MzTab with meta data and quants annotated in identification data structure
         const bool report_unmapped(true);
-        const bool report_unidentified_features(false);
+        const bool report_unidentified_features(true);
         const bool report_subfeatures(false);
+
         MzTabFile().store(mztab,
-          consensus, 
-          !inference_in_cxml,
-          report_unidentified_features,
-          report_unmapped,
-          report_subfeatures);
+           consensus,
+           !inference_in_cxml,
+           report_unidentified_features,
+           report_unmapped,
+           export_subfeatures,
+           false,
+           getFlag_("export_all_psms")); // direct stream to disc
       }
     }
 
