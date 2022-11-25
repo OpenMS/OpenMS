@@ -46,10 +46,10 @@ function(add_asan_to_target TARGET_NAME_ARG)
       else()
         # add AddressSanitizer for compiler and linker
         target_compile_options("${TARGET_NAME_ARG}" 
-          PRIVATE 
+          PUBLIC 
             -fsanitize=address
             -fno-omit-frame-pointer)
-        target_link_options(${TARGET_NAME_ARG} PRIVATE -fsanitize=address)           
+        target_link_options("${TARGET_NAME_ARG}" PUBLIC -fsanitize=address)           
         message(STATUS "AddressSanitizer is on.")
       endif()
     else()
