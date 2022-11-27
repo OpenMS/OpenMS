@@ -154,7 +154,6 @@ namespace OpenMS
     startProgress(0, 1, "Loading metadata file " + file);
     boost::shared_ptr<PeakMap> exp_stripped = populateMetaData_(file);
     exp_meta = exp_stripped;
-    std::cout << "JOSH loaded file path is: " << exp_meta->getLoadedFilePath() << std::endl;
 
     // First pass through the file -> get the meta data
     std::cout << "Will analyze the metadata first to determine the number of SWATH windows and the window sizes." << std::endl;
