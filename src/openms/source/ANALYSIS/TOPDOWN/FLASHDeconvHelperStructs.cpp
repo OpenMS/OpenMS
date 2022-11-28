@@ -34,8 +34,7 @@
 
 #include <OpenMS/ANALYSIS/TOPDOWN/FLASHDeconvHelperStructs.h>
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
-
-#include <sstream>
+#include <random>
 
 namespace OpenMS
 {
@@ -149,6 +148,7 @@ namespace OpenMS
     return i;
   }
 
+
   IsotopeDistribution FLASHDeconvHelperStructs::PrecalculatedAveragine::get(const double mass) const
   {
     return isotopes_[massToIndex_(mass)];
@@ -196,7 +196,7 @@ namespace OpenMS
   }
 
   FLASHDeconvHelperStructs::LogMzPeak::LogMzPeak(const Peak1D& peak, const bool positive) :
-      mz(peak.getMZ()),
+      mz((float)peak.getMZ()),
       intensity(peak.getIntensity()),
       logMz(getLogMz(peak.getMZ(), positive)),
       abs_charge(0),

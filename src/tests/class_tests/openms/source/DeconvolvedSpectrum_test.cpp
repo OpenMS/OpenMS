@@ -191,8 +191,8 @@ END_SECTION
 
 START_SECTION(String& getActivationMethod() const)
 {
-  String act_method = ms2_deconv_spec.getActivationMethod();
-  TEST_STRING_EQUAL("ETD", act_method); // TODO: why ETD?
+  Precursor::ActivationMethod act_method = ms2_deconv_spec.getActivationMethod();
+  TEST_EQUAL(Precursor::ActivationMethod::ETD, act_method); // TODO: why ETD?
 }
 END_SECTION
 ////////

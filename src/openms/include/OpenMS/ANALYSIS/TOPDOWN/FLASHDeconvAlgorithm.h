@@ -71,10 +71,16 @@ namespace OpenMS
     FLASHDeconvAlgorithm(const FLASHDeconvAlgorithm& ) = default;
 
     /// move constructor
-    FLASHDeconvAlgorithm(FLASHDeconvAlgorithm&& other) = default;
+    FLASHDeconvAlgorithm(FLASHDeconvAlgorithm&& other) noexcept = default;
 
     /// assignment operator
     FLASHDeconvAlgorithm& operator=(const FLASHDeconvAlgorithm& fd) = default;
+
+    /// move assignment operator
+    FLASHDeconvAlgorithm& operator=(FLASHDeconvAlgorithm&& fd) noexcept = default;
+
+    /// destructor
+    ~FLASHDeconvAlgorithm() = default;
 
     /**
       @brief main deconvolution function that generates the deconvolved target and decoy spectrum based on the original spectrum.
@@ -101,7 +107,7 @@ namespace OpenMS
     /** @brief set targeted or excluded masses for targeted deconvolution. Masses are targeted or excluded in all ms levels.
         @param exclude if set, masses are excluded.
      */
-    void setTargetMasses(const std::vector<double> masses, bool exclude = false);
+    void setTargetMasses(const std::vector<double>& masses, bool exclude = false);
 
     /** @brief precalculate averagine (for predefined mass bins) to speed up averagine generation
         @param use_RNA_averagine if set, averagine for RNA (nucleotides) is calculated
@@ -144,7 +150,7 @@ namespace OpenMS
                                                            int window_width = -1, int allowed_iso_error_for_second_best_cos = 0);
 
     /// set decoy_flag_
-    void setDecoyFlag(PeakGroup::decoyFlag flag, FLASHDeconvAlgorithm& targetFD);
+    void setDecoyFlag(PeakGroup::DecoyFlag flag, FLASHDeconvAlgorithm& targetFD);
 
   protected:
     void updateMembers_() override;
@@ -170,8 +176,6 @@ namespace OpenMS
     bool write_detail_ = false;
     /// mass ranges of deconvolution, set by users
     double min_mass_, max_mass_;
-    /// current_min_charge_ charge: 1 for MSn n>1; otherwise just min_abs_charge_
-    int current_min_charge_;
     /// current_max_charge_: controlled by precursor charge for MSn n>1; otherwise just max_abs_charge_
     int current_max_charge_;
     /// max mass is controlled by precursor mass for MSn n>1; otherwise just max_mass
@@ -191,8 +195,8 @@ namespace OpenMS
 
     FLASHDeconvAlgorithm* targetFD_;
 
-    /// PeakGroup::decoyFlag values
-    PeakGroup::decoyFlag decoy_flag_ = PeakGroup::decoyFlag::target;
+    /// PeakGroup::DecoyFlag values
+    PeakGroup::DecoyFlag decoy_flag_ = PeakGroup::DecoyFlag::target;
 
     /// precalculated averagine distributions for fast averagine generation
     FLASHDeconvHelperStructs::PrecalculatedAveragine avg_;
@@ -202,12 +206,12 @@ namespace OpenMS
     std::vector<double> target_mono_masses_;
 
     /// mass bins that are excluded for FLASHIda global targeting mode
-    std::vector<double> excluded_mono_masses_;
+    std::vector<double> excluded_masses_;
 
     /// mass bins that are previsouly deconvolved and excluded for decoy mass generation
     boost::dynamic_bitset<> previously_deconved_mass_bins_for_decoy;
     std::vector<double> previously_deconved_mono_masses_for_decoy;
-    std::unordered_set<double> excluded_mzs_;
+    std::unordered_set<int> excluded_integer_mzs_;
 
     /// Stores log mz peaks
     std::vector<LogMzPeak> log_mz_peaks_;
