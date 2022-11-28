@@ -49,7 +49,7 @@ if($ENV{CMAKE_GENERATOR} MATCHES ".*Visual Studio.*")
 "${INITIAL_CACHE}
 CMAKE_GENERATOR_PLATFORM=x64"
   )
-  set(OWN_OPTIONS "--debug-find" "-DCMAKE_CXX_RELEASE_FLAGS='/MD /Od /Ob0 /DNDEBUG /EHsc'")
+  set(OWN_OPTIONS "-DCMAKE_CXX_RELEASE_FLAGS='/MD /Od /Ob0 /DNDEBUG /EHsc'")
 endif()
 
 # create cache

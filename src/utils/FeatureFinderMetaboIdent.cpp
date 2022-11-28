@@ -43,12 +43,9 @@
 #include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/FORMAT/TraMLFile.h>
 #include <OpenMS/FORMAT/TransformationXMLFile.h>
-#include <OpenMS/KERNEL/MSSpectrum.h>
 #include <OpenMS/MATH/MISC/MathFunctions.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/ElutionModelFitter.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithmPickedHelperStructs.h>
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/EGHTraceFitter.h>
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/GaussTraceFitter.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithmMetaboIdent.h>
 #include <OpenMS/SYSTEM/File.h>
 
