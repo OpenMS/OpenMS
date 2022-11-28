@@ -224,21 +224,6 @@ namespace OpenMS
     }
   }
 
-  template<class BidiIter>
-  BidiIter random_unique(BidiIter begin, BidiIter end, size_t num_random)
-  {
-    size_t left = std::distance(begin, end);
-    while (num_random--)
-    {
-      BidiIter r = begin;
-      std::advance(r, rand()%left);
-      std::swap(*begin, *r);
-      ++begin;
-      --left;
-    }
-    return begin;
-  }
-
   void FLASHDeconvSpectrumFile::writeDeconvolvedMassesHeader(std::fstream& fs, const int ms_level, const bool detail, const bool decoy)
   {
     if (detail)

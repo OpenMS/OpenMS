@@ -130,7 +130,8 @@ namespace OpenMS
     }
 
     ms_level_ = spec.getMSLevel();
-    deconvolved_spectrum_ = DeconvolvedSpectrum(spec, scan_number);
+    deconvolved_spectrum_ = DeconvolvedSpectrum(scan_number);
+    deconvolved_spectrum_.setOriginalSpectrum(spec);
     write_detail_ = write_detail;
     // for MSn (n>1) register precursor peak and peak group.
     registerPrecursor_(survey_scans, precursor_map_for_FLASHIda);

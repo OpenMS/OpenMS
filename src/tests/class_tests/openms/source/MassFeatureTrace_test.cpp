@@ -75,7 +75,8 @@ MassFeatureTrace mass_tracer;
 MSSpectrum sample_spec;
 sample_spec.setRT(50.0);
 sample_spec.setMSLevel(1);
-DeconvolvedSpectrum deconv_spec1(sample_spec, 1);
+DeconvolvedSpectrum deconv_spec1(1);
+deconv_spec1.setOriginalSpectrum(sample_spec);
 
 PeakGroup tmp_pg = PeakGroup(15, 18, true);
 auto p1 = new Peak1D(1000.8455675085044, 8347717.5);
@@ -154,11 +155,13 @@ tmp_pg.updateMonomassAndIsotopeIntensities();
 deconv_spec1.push_back(tmp_pg);
 
 sample_spec.setRT(55.0);
-DeconvolvedSpectrum deconv_spec2(sample_spec, 2);
+DeconvolvedSpectrum deconv_spec2(2);
+deconv_spec2.setOriginalSpectrum(sample_spec);
 deconv_spec2.push_back(tmp_pg);
 
 sample_spec.setRT(61.0);
-DeconvolvedSpectrum deconv_spec3(sample_spec, 3);
+DeconvolvedSpectrum deconv_spec3(3);
+deconv_spec3.setOriginalSpectrum(sample_spec);
 deconv_spec3.push_back(tmp_pg);
 //////////////////////////////
 

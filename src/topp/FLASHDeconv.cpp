@@ -282,7 +282,7 @@ protected:
     String in_file = getStringOption_("in");
     String out_file = getStringOption_("out");
     String in_train_file {};
-    String in_log_file = getStringOption_("in_log");
+    String in_log_file;// = getStringOption_("in_log");
 
     auto out_spec_file = getStringList_("out_spec");
     String out_mzml_file = getStringOption_("out_mzml");
@@ -651,7 +651,8 @@ protected:
             fd_iso_decoy.performSpectrumDeconvolution(*it, precursor_specs, scan_number, write_detail, precursor_map_for_real_time_acquisition);
           }
         }
-        DeconvolvedSpectrum decoy_deconvolved_spectrum(*it, scan_number);
+        DeconvolvedSpectrum decoy_deconvolved_spectrum(scan_number);
+        decoy_deconvolved_spectrum.setOriginalSpectrum(*it);
 
         decoy_deconvolved_spectrum.reserve(fd_iso_decoy.getDeconvolvedSpectrum().size() + fd_charge_decoy.getDeconvolvedSpectrum().size() + fd_noise_decoy.getDeconvolvedSpectrum().size());
 

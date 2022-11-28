@@ -73,7 +73,8 @@ MzMLFile().load(OPENMS_GET_TEST_DATA_PATH("FLASHDeconv_sample_input1.mzML"), inp
 MSSpectrum test_spec = input[0];
 START_SECTION((DeconvolvedSpectrum(const MSSpectrum &spectrum, const int scan_number)))
 {
-  DeconvolvedSpectrum tmp_spec = DeconvolvedSpectrum(test_spec, 1);
+  DeconvolvedSpectrum tmp_spec = DeconvolvedSpectrum(1);
+  tmp_spec.setOriginalSpectrum(test_spec);
   TEST_EQUAL(tmp_spec.getScanNumber(), 1);
   TEST_EQUAL(tmp_spec.getOriginalSpectrum().size(), test_spec.size());
 }
@@ -81,7 +82,8 @@ END_SECTION
 
 
 ////////
-DeconvolvedSpectrum test_deconv_spec = DeconvolvedSpectrum(test_spec, 1);
+DeconvolvedSpectrum test_deconv_spec = DeconvolvedSpectrum(1);
+test_deconv_spec.setOriginalSpectrum(test_spec);
 START_SECTION((int getScanNumber() const))
 {
   int tmp_num = test_deconv_spec.getScanNumber();
