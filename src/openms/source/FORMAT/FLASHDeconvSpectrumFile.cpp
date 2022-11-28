@@ -45,7 +45,7 @@ namespace OpenMS
   void FLASHDeconvSpectrumFile::writeDeconvolvedMasses(DeconvolvedSpectrum& dspec, std::fstream& fs, const String& file_name, const FLASHDeconvHelperStructs::PrecalculatedAveragine& avg,
                                                       const bool write_detail, const bool decoy)
   {
-    static std::vector<int> indices{};
+    static std::vector<uint> indices{};
 
     if (dspec.empty())
     {
@@ -56,7 +56,7 @@ namespace OpenMS
     {
       indices.push_back(1);
     }
-    int& index = indices[dspec.getOriginalSpectrum().getMSLevel()-1];
+    uint& index = indices[dspec.getOriginalSpectrum().getMSLevel()-1];
 
     for (auto& pg : dspec)
     {
@@ -179,8 +179,8 @@ namespace OpenMS
           fs << dspec.getPrecursorPeakGroup().getChargeSNR(dspec.getPrecursor().getCharge()) << "\t" << std::to_string(dspec.getPrecursorPeakGroup().getMonoMass()) << "\t"
              << dspec.getPrecursorPeakGroup().getQScore() << "\t";
           if (decoy)
-            fs << dspec.getPrecursorPeakGroup().getQvalue() << "\t" << dspec.getPrecursorPeakGroup().getQvalue(PeakGroup::decoyFlag::isotope_decoy) << "\t"
-               << dspec.getPrecursorPeakGroup().getQvalue(PeakGroup::decoyFlag::noise_decoy) << "\t" << dspec.getPrecursorPeakGroup().getQvalue(PeakGroup::decoyFlag::charge_decoy) << "\t";
+            fs << dspec.getPrecursorPeakGroup().getQvalue() << "\t" << dspec.getPrecursorPeakGroup().getQvalue(PeakGroup::DecoyFlag::isotope_decoy) << "\t"
+               << dspec.getPrecursorPeakGroup().getQvalue(PeakGroup::DecoyFlag::noise_decoy) << "\t" << dspec.getPrecursorPeakGroup().getQvalue(PeakGroup::DecoyFlag::charge_decoy) << "\t";
         }
       }
       fs << pg.getIsotopeCosine() << "\t" << pg.getChargeIsotopeCosine(pg.getRepAbsCharge()) << "\t" << pg.getChargeScore() << "\t";
@@ -191,8 +191,8 @@ namespace OpenMS
 
       if (decoy)
       {
-        fs << "\t" << pg.getQvalue() << "\t" << pg.getQvalue(PeakGroup::decoyFlag::isotope_decoy) << "\t"
-           << pg.getQvalue(PeakGroup::decoyFlag::noise_decoy) << "\t" << pg.getQvalue(PeakGroup::decoyFlag::charge_decoy);
+        fs << "\t" << pg.getQvalue() << "\t" << pg.getQvalue(PeakGroup::DecoyFlag::isotope_decoy) << "\t"
+           << pg.getQvalue(PeakGroup::DecoyFlag::noise_decoy) << "\t" << pg.getQvalue(PeakGroup::DecoyFlag::charge_decoy);
       }
 
       if (write_detail)
@@ -211,7 +211,7 @@ namespace OpenMS
         fs << "\t";
 
         auto iso_intensities = pg.getIsotopeIntensities();
-        for (int i = 0; i < iso_intensities.size(); i++)
+        for (size_t i = 0; i < iso_intensities.size(); i++)
         {
           fs << iso_intensities[i];
           if (i < iso_intensities.size() - 1)
@@ -337,7 +337,7 @@ namespace OpenMS
             if(pg.getDecoyFlag() != 2)
               continue;
           }
-          else if(pg.getDecoyFlag() != PeakGroup::decoyFlag::target)
+          else if(pg.getDecoyFlag() != PeakGroup::DecoyFlag::target)
           {
             continue;
           }

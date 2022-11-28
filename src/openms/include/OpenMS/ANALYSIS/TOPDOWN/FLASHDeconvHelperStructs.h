@@ -100,6 +100,21 @@ namespace OpenMS
                              CoarseIsotopePatternGenerator *generator,
                              const bool use_RNA_averagine);
 
+
+      /// copy constructor
+      PrecalculatedAveragine(const PrecalculatedAveragine& ) = default;
+
+      /// move constructor
+      PrecalculatedAveragine(PrecalculatedAveragine&& other) noexcept = default;
+
+      /// copy assignment operator
+      PrecalculatedAveragine& operator=(const PrecalculatedAveragine& pc) = default;
+
+      /// move assignment operator
+      PrecalculatedAveragine& operator=(PrecalculatedAveragine&& pc) noexcept = default;
+
+      /// destructor
+      ~PrecalculatedAveragine() = default ;
       std::vector<float> getConvolutedPattern(double mass, double tol, double iso_da, int bin_factor) const;
 
 

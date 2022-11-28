@@ -63,10 +63,9 @@ namespace OpenMS
 
     /**
        @brief Constructor for DeconvolvedSpectrum. Takes the spectrum and scan number calculated from outside
-       @param spectrum spectrum for which the deconvolution will be performed
        @param scan_number scan number of the spectrum
   */
-    DeconvolvedSpectrum(const MSSpectrum& spectrum, const int scan_number);
+    DeconvolvedSpectrum(const int scan_number);
 
     /// default destructor
     ~DeconvolvedSpectrum() = default;
@@ -137,6 +136,9 @@ namespace OpenMS
 
     /// set precursor peakGroup
     void setPrecursorPeakGroup(const PeakGroup& pg);
+
+    /// original spectrum setter
+    void setOriginalSpectrum(const MSSpectrum& spec);
 
     /// update peak group Qvalues using target and decoy deconvolved spectra, when FDR report is necessary
     /// @param deconvolved_spectra target deconvolved spectra

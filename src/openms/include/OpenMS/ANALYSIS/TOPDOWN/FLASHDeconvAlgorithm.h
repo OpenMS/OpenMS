@@ -71,10 +71,16 @@ namespace OpenMS
     FLASHDeconvAlgorithm(const FLASHDeconvAlgorithm& ) = default;
 
     /// move constructor
-    FLASHDeconvAlgorithm(FLASHDeconvAlgorithm&& other) = default;
+    FLASHDeconvAlgorithm(FLASHDeconvAlgorithm&& other) noexcept = default;
 
     /// assignment operator
     FLASHDeconvAlgorithm& operator=(const FLASHDeconvAlgorithm& fd) = default;
+
+    /// move assignment operator
+    FLASHDeconvAlgorithm& operator=(FLASHDeconvAlgorithm&& fd) noexcept = default;
+
+    /// destructor
+    ~FLASHDeconvAlgorithm() = default;
 
     /**
       @brief main deconvolution function that generates the deconvolved target and decoy spectrum based on the original spectrum.
@@ -149,7 +155,7 @@ namespace OpenMS
 
 
     /// set decoy_flag_
-    void setDecoyFlag(PeakGroup::decoyFlag flag, FLASHDeconvAlgorithm& targetFD);
+    void setDecoyFlag(PeakGroup::DecoyFlag flag, FLASHDeconvAlgorithm& targetFD);
 
   protected:
     void updateMembers_() override;
@@ -194,8 +200,8 @@ namespace OpenMS
 
     FLASHDeconvAlgorithm* targetFD_;
 
-    /// PeakGroup::decoyFlag values
-    PeakGroup::decoyFlag decoy_flag_ = PeakGroup::decoyFlag::target;
+    /// PeakGroup::DecoyFlag values
+    PeakGroup::DecoyFlag decoy_flag_ = PeakGroup::DecoyFlag::target;
 
     /// precalculated averagine distributions for fast averagine generation
     FLASHDeconvHelperStructs::PrecalculatedAveragine avg_;

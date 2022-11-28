@@ -73,7 +73,8 @@ MzMLFile().load(OPENMS_GET_TEST_DATA_PATH("FLASHDeconv_sample_input1.mzML"), inp
 MSSpectrum test_spec = input[0];
 START_SECTION((DeconvolvedSpectrum(const MSSpectrum &spectrum, const int scan_number)))
 {
-  DeconvolvedSpectrum tmp_spec = DeconvolvedSpectrum(test_spec, 1);
+  DeconvolvedSpectrum tmp_spec = DeconvolvedSpectrum(1);
+  tmp_spec.setOriginalSpectrum(test_spec);
   TEST_EQUAL(tmp_spec.getScanNumber(), 1);
   TEST_EQUAL(tmp_spec.getOriginalSpectrum().size(), test_spec.size());
 }
@@ -81,9 +82,10 @@ END_SECTION
 
 
 ////////
-DeconvolvedSpectrum test_deconv_spec = DeconvolvedSpectrum(test_spec, 1);
+DeconvolvedSpectrum test_deconv_spec = DeconvolvedSpectrum(1);
 START_SECTION((int getScanNumber() const))
 {
+  test_deconv_spec.setOriginalSpectrum(test_spec);
   int tmp_num = test_deconv_spec.getScanNumber();
   TEST_EQUAL(tmp_num, 1);
 }
@@ -191,8 +193,8 @@ END_SECTION
 
 START_SECTION(String& getActivationMethod() const)
 {
-  String act_method = ms2_deconv_spec.getActivationMethod();
-  TEST_STRING_EQUAL("ETD", act_method); // TODO: why ETD?
+  Precursor::ActivationMethod act_method = ms2_deconv_spec.getActivationMethod();
+  TEST_EQUAL(Precursor::ActivationMethod::ETD, act_method); // TODO: why ETD?
 }
 END_SECTION
 ////////

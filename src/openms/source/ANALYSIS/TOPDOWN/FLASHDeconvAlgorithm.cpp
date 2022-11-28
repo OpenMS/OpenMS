@@ -130,7 +130,8 @@ namespace OpenMS
     }
 
     ms_level_ = spec.getMSLevel();
-    deconvolved_spectrum_ = DeconvolvedSpectrum(spec, scan_number);
+    deconvolved_spectrum_ = DeconvolvedSpectrum(scan_number);
+    deconvolved_spectrum_.setOriginalSpectrum(spec);
     write_detail_ = write_detail;
     // for MSn (n>1) register precursor peak and peak group.
     registerPrecursor_(survey_scans, precursor_map_for_FLASHIda);
@@ -737,7 +738,7 @@ namespace OpenMS
       std::vector<double> total_harmonic_intensity(harmonic_charges_.size(), .0);
 
       // scan through charge - from mass to m/z
-      for (int j = per_mass_abs_charge_ranges.getValue(0, mass_bin_index); j <= per_mass_abs_charge_ranges.getValue(1, mass_bin_index); j++)
+      for (size_t j = per_mass_abs_charge_ranges.getValue(0, mass_bin_index); j <= per_mass_abs_charge_ranges.getValue(1, mass_bin_index); j++)
       {
         int max_peak_index = -1;
         int abs_charge = j + 1;
@@ -1007,7 +1008,7 @@ namespace OpenMS
     return deconvolved_spectrum_;
   }
 
-  void FLASHDeconvAlgorithm::setDecoyFlag(PeakGroup::decoyFlag flag, FLASHDeconvAlgorithm& targetFD)
+  void FLASHDeconvAlgorithm::setDecoyFlag(PeakGroup::DecoyFlag flag, FLASHDeconvAlgorithm& targetFD)
   {
     decoy_flag_ = flag;
     targetFD_ = &targetFD;
