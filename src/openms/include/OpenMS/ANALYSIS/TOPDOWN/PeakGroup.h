@@ -113,7 +113,7 @@ namespace OpenMS
      * @param mono_mass target monoisotopic mass
      * @param exclude_mz_charge excluded mz - charge pairs in spec. Only used for decoy mass generation.
      */
-    void recruitAllPeaksInSpectrum(const MSSpectrum& spec, const double tol, const FLASHDeconvHelperStructs::PrecalculatedAveragine& avg,  double mono_mass, const std::unordered_set<float>& excluded_mzs);
+    void recruitAllPeaksInSpectrum(const MSSpectrum& spec, const double tol, const FLASHDeconvHelperStructs::PrecalculatedAveragine& avg,  double mono_mass, const std::unordered_set<int>& excluded_integer_mzs_, int charge_offset = 0, double charge_multiple = 1.0, int isotope_off = 0);
 
     /// determine is an mz is a signal of this peakgroup. Input tol is ppm tolerance (e.g., 10.0 for 10ppm tolerance). Assume logMzPeaks are sorted.
     bool isSignalMZ(const double mz, const double tol) const;
@@ -235,7 +235,7 @@ namespace OpenMS
      * @param iso_range isotope range to be considered, corresponding to the column number of the matrix
      * @param avg averagine to normalize the observed isotope pattern
      */
-    void calculateDLMatrices(int charge_range, int iso_range, PrecalculatedAveragine& avg);
+    void calculateDLMatrices(int charge_range, int iso_range, const PrecalculatedAveragine& avg);
 
     /// get the calcualted DL matrix
     Matrix<float> getDLMatrix(int index) const;
@@ -279,7 +279,7 @@ namespace OpenMS
     /// get ppm error of a logMzPeak
     double getAbsPPMError_(const LogMzPeak& p) const;
     /// get Da error of a logMzPeak from the closest isotope
-    double getAbsDaError_(const LogMzPeak& p) const;
+    double getAbsDaError_(LogMzPeak& p);
     /// using signal and total (signal + noise) power, update SNR value
     void updateSNR_();
 

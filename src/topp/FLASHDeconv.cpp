@@ -283,7 +283,7 @@ protected:
     const Size max_peak_count_ = 30000;
     String in_file = getStringOption_("in");
     String out_file = getStringOption_("out");
-    String in_train_file = "";
+    String in_train_file {};
     String in_log_file = getStringOption_("in_log");
 
     auto out_spec_file = getStringList_("out_spec");
@@ -745,43 +745,24 @@ protected:
 
     if (DLTrain)
     {
-      int cr = 5, ir = 5;
       QScore::writeAttCsvFromDecoyHeader(out_att_stream);
 
       for (auto& deconvolved_spectrum : deconvolved_spectra)
       {
         if (deconvolved_spectrum.getOriginalSpectrum().getMSLevel() == 1)
           QScore::writeAttCsvFromDecoy(deconvolved_spectrum, out_att_stream);
-        for (auto& pg : deconvolved_spectrum) // TODO
-        {
-          pg.calculateDLMatrices(cr, ir, avg);
-          pg.clearVectors();
-        }
       }
 
       for (auto& deconvolved_spectrum : decoy_deconvolved_spectra)
       {
         if (deconvolved_spectrum.getOriginalSpectrum().getMSLevel() == 1)
           QScore::writeAttCsvFromDecoy(deconvolved_spectrum, out_att_stream);
-        for (auto& pg : deconvolved_spectrum) // TODO
-        {
-          pg.calculateDLMatrices(cr, ir, avg);
-          pg.clearVectors();
-        }
       }
 
-      for (auto& deconvolved_spectrum : deconvolved_spectra)
-      {
-        if (deconvolved_spectrum.empty())
-        {
-          continue;
-        }
-        FLASHDeconvSpectrumFile::writeDLMatrixHeader(deconvolved_spectrum, out_dl_stream);
-        break;
-      }
+      FLASHDeconvSpectrumFile::writeDLMatrixHeader(out_dl_stream);
 
-      FLASHDeconvSpectrumFile::writeDLMatrix(deconvolved_spectra, out_dl_stream);
-      FLASHDeconvSpectrumFile::writeDLMatrix(decoy_deconvolved_spectra, out_dl_stream);
+      FLASHDeconvSpectrumFile::writeDLMatrix(deconvolved_spectra, out_dl_stream, 1e-6 * tols[0], avg);
+      FLASHDeconvSpectrumFile::writeDLMatrix(decoy_deconvolved_spectra, out_dl_stream, 1e-6 * tols[0], avg);
 
       out_dl_stream.close();
       out_att_stream.close();

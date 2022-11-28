@@ -224,19 +224,15 @@ namespace OpenMS
     }
   }
 
-  void FLASHDeconvSpectrumFile::writeDeconvolvedMassesHeader(std::fstream& fs, const uint ms_level, const bool detail, const bool decoy)
-  {
-    if(dspec.size() <= 0)
-    {
-      return;
-    }
+  inline const int dlrow = 21, dlcol = 21;// charge, iso
 
-    auto pg = dspec[0];
+  void FLASHDeconvSpectrumFile::writeDLMatrixHeader(std::fstream& fs)
+  {
     for(int i = 0; i < 3; i++)
     {
       String prefix = "Set" + std::to_string(i+1) + "_";
-      auto dlm = pg.getDLMatrix(i).asVector();
-      for(int j=0;j<dlm.size();j++)
+      auto dlm = dlrow * dlcol;
+      for(int j=0;j<dlm;j++)
       {
         fs << prefix << j<< ",";
       }
@@ -259,43 +255,131 @@ namespace OpenMS
     return begin;
   }
 
-  void FLASHDeconvSpectrumFile::writeDLMatrix(std::vector<DeconvolvedSpectrum>& dspecs, std::fstream& fs)
+  void FLASHDeconvSpectrumFile::writeDLMatrix(std::vector<DeconvolvedSpectrum>& dspecs, std::fstream& fs, double tol, const FLASHDeconvHelperStructs::PrecalculatedAveragine& avg)
   {
     String cns[] = {"T", "D1", "D2", "D3"};
     int count = 30000;
     //class,ID,group,data
     std::vector<std::vector<PeakGroup>> grouped(4);
+    std::unordered_set<int> tmp{};
 
-    for(auto& dspec: dspecs)
+    for(int i=0;i<4;i++)
     {
-      for(auto& pg: dspec)
+      for(int j=0;j< dspecs.size();j++)
       {
-        int cl = pg.getDecoyFlag();
-        if(cl<0 || cl>=grouped.size())
+        auto& dspec = dspecs[j];
+        if(dspec.getOriginalSpectrum().getMSLevel() != 1)
         {
           continue;
         }
-        grouped[cl].push_back(pg);
+        int charge_offset = 0;// 1 -1 2 -2
+        double charge_multiple = 1.0;// 2 3 5 1/2 1/3 1/5    10 cases
+        if(i==1)
+        {
+          switch (j%10)
+          {
+            case 0:
+              charge_offset = 1;
+              break;
+            case 1:
+              charge_offset = -1;
+              break;
+            case 2:
+              charge_offset = 2;
+              break;
+            case 3:
+              charge_offset = -2;
+              break;
+            case 4:
+              charge_multiple = 2.0;
+              break;
+            case 5:
+              charge_multiple = 3.0;
+              break;
+            case 6:
+              charge_multiple = 5.0;
+              break;
+            case 7:
+              charge_multiple = 1.0/2.0;
+              break;
+            case 8:
+              charge_multiple = 1.0/3.0;
+              break;
+            case 9:
+              charge_multiple = 1.0/5.0;
+              break;
+          }
+        }
+        int isotope_off = 0; // 1 -1 2 -2
+        if(i==3)
+        {
+          switch (j%4)
+          {
+            case 0:
+              isotope_off = 1;
+              break;
+            case 1:
+              isotope_off = -1;
+              break;
+            case 2:
+              isotope_off = 2;
+              break;
+            case 3:
+              isotope_off = -2;
+              break;
+          }
+        }
+
+        for(auto& pg: dspec)
+        {
+          if(i==2)
+          {
+            if(pg.getDecoyFlag() != 2)
+              continue;
+          }
+          else if(pg.getDecoyFlag() != PeakGroup::decoyFlag::target)
+          {
+            continue;
+          }
+          PeakGroup tpg(pg);
+          //if(i>0 && i!=2)
+          {
+            tpg.recruitAllPeaksInSpectrum(dspec.getOriginalSpectrum(), tol, avg, pg.getMonoMass(), tmp, charge_offset, charge_multiple, isotope_off);
+          }
+          //std::cout<<tpg.getMonoMass()<<std::endl;
+          tpg.calculateDLMatrices(dlrow,dlcol, avg);
+
+          double sum = .0;
+          for (int k = 0; k < 3; k++)
+          {
+            auto vec = tpg.getDLMatrix(k).asVector();
+            sum += std::accumulate(vec.begin(), vec.end(), .0);
+          }
+
+          if(sum == 0)
+          {
+            continue;
+          }
+
+          grouped[i].push_back(tpg);
+        }
       }
     }
-
-
-    for(auto& g : grouped)
+    for(int i=0;i<4;i++)
     {
+      auto g= grouped[i];
       if(g.size() < count)
       {
         continue;
       }
       random_unique(g.begin(), g.end(), count);
     }
-
-    for(auto& g : grouped)
+    for(int i=0;i<4;i++)
     {
+      auto g= grouped[i];
       int cntr = 0;
       for (auto& pg : g)
       {
-        int cl = pg.getDecoyFlag();
-
         for (int i = 0; i < 3; i++)
         {
           auto dlm = pg.getDLMatrix(i).asVector();
@@ -304,7 +388,7 @@ namespace OpenMS
             fs << v << ",";
           }
         }
-        fs << cns[cl] << "\n";
+        fs << cns[i] << "\n";
         if(++cntr >= count)
         {
           break;
