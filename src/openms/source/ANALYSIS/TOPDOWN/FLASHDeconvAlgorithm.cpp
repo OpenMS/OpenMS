@@ -90,7 +90,7 @@ namespace OpenMS
     iso_da_distance_ = decoy_flag_ != PeakGroup::noise_decoy ? Constants::ISOTOPE_MASSDIFF_55K_U : Constants::ISOTOPE_MASSDIFF_55K_U * sqrt(7.0);
     previously_deconved_mono_masses_for_decoy.clear();
     previously_deconved_mass_bins_for_decoy.clear();
-    excluded_mzs_.clear();
+    excluded_integer_mzs_.clear();
 
     if (decoy_flag_ == PeakGroup::charge_decoy) // charge decoy
     {
@@ -124,7 +124,7 @@ namespace OpenMS
       {
         for (auto& p : pg)
         {
-          excluded_mzs_.insert(p.mz);
+          excluded_integer_mzs_.insert((int)p.mz);
         }
       }
     }
@@ -266,7 +266,7 @@ namespace OpenMS
       {
         break;
       }
-      if (excluded_mzs_.size() > 0 && excluded_mzs_.find((float)peak.getMZ()) != excluded_mzs_.end())
+      if (excluded_integer_mzs_.size() > 0 && excluded_integer_mzs_.find((int)peak.getMZ()) != excluded_integer_mzs_.end())
       {
         continue;
       }
@@ -1144,7 +1144,7 @@ namespace OpenMS
           continue;
         }
 
-        peak_group.recruitAllPeaksInSpectrum(deconvolved_spectrum_.getOriginalSpectrum(), tol, avg_, peak_group.getMonoMass() + offset * iso_da_distance_, excluded_mzs_);
+        peak_group.recruitAllPeaksInSpectrum(deconvolved_spectrum_.getOriginalSpectrum(), tol, avg_, peak_group.getMonoMass() + offset * iso_da_distance_, excluded_integer_mzs_);
 
         if (peak_group.empty() || peak_group.getMonoMass() < current_min_mass_ || peak_group.getMonoMass() > current_max_mass_)
         {
