@@ -121,7 +121,8 @@ jobs:
           BUILD_TYPE: "Release"
           OPENMP: "Off"
           USE_STATIC_BOOST: "On"
-          #  BUILD_FLAGS: "-p:CL_MPCount=2"
+          #  BUILD_FLAGS: "-p:CL_MPCount=2" # For VS Generator and MSBuild
+          BUILD_FLAGS: "-j2" # For Ninja
 
   build-macos:
     runs-on: macos-latest
