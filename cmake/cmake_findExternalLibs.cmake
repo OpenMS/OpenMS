@@ -179,7 +179,9 @@ if (WITH_GUI)
 
   set(OpenMS_GUI_QT_COMPONENTS ${TEMP_OpenMS_GUI_QT_COMPONENTS} CACHE INTERNAL "QT components for GUI lib")
 
-  set(OpenMS_GUI_QT_COMPONENTS_OPT WebEngineWidgets)
+  if(NOT NO_WEBENGINE_WIDGETS)
+    set(OpenMS_GUI_QT_COMPONENTS_OPT WebEngineWidgets)
+  endif()
 
   find_package(Qt5 REQUIRED COMPONENTS ${OpenMS_GUI_QT_COMPONENTS})
 
@@ -195,9 +197,8 @@ if (WITH_GUI)
   if(Qt5WebEngineWidgets_FOUND)
     list(APPEND OpenMS_GUI_QT_FOUND_COMPONENTS_OPT "WebEngineWidgets")
   else()
-    message(WARNING "Qt5WebEngineWidgets not found, disabling JS Views in TOPPView!")
+    message(WARNING "Qt5WebEngineWidgets not found or disabled, disabling JS Views in TOPPView!")
   endif()
-    
 
   set(OpenMS_GUI_DEP_LIBRARIES "OpenMS")
 

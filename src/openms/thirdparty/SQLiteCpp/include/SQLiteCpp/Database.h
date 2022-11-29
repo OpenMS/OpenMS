@@ -33,13 +33,16 @@ __IPHONE_OS_VERSION_MIN_REQUIRED < __IPHONE_13_0
     #define SQLITECPP_HAVE_STD_FILESYSTEM
 #endif
 
+// !!!!!!!!!!! std::filesystem detection doesn't work on all compiler so we disable the extra constructors !!!!!!!!!!!
+#undef SQLITECPP_HAVE_STD_FILESYSTEM
+#undef SQLITECPP_HAVE_STD_EXPERIMENTAL_FILESYSTEM
+
 #ifdef SQLITECPP_HAVE_STD_FILESYSTEM
 #include  <filesystem>
 #endif // c++17 and a suitable compiler
 
 #else // SQLITECPP_HAVE_STD_EXPERIMENTAL_FILESYSTEM
 
-#define SQLITECPP_HAVE_STD_FILESYSTEM
 #include  <experimental/filesystem>
 namespace std {
 namespace filesystem = experimental::filesystem;
