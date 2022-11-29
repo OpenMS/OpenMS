@@ -36,6 +36,7 @@ UTIL - An executable, just like a TOPP tool, but usually experimental or of less
 - OpenMS documentation is moved to openms.readthedocs.io/en/latest. OpenMS API
 reference and advanced developer documentation remains inside OpenMS doxygen
 documentation.
+- Add support for user defined ribonucleotides with phosphorothioate linkages
 
 New Tools:
 - FLASHDeconv -- Ultra-fast high-quality deconvolution enables online processing of top-down MS data (TOPP)

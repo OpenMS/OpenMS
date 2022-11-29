@@ -73,7 +73,7 @@ using namespace OpenMS;
       <table>
           <tr>
               <td ALIGN = "center" BGCOLOR="#EBEBEB"> potential predecessor tools </td>
-              <td VALIGN="middle" ROWSPAN=3> \f$ \longrightarrow \f$ OpenSwathChromatogramExtractor \f$ \longrightarrow \f$</td>
+              <td VALIGN="middle" ROWSPAN=3> &rarr; OpenSwathChromatogramExtractor &rarr;</td>
               <td ALIGN = "center" BGCOLOR="#EBEBEB"> potential successor tools </td>
           </tr>
           <tr>
