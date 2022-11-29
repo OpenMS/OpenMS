@@ -137,6 +137,8 @@ namespace OpenMS
   String::String(float f, bool full_precision) :
     string()
   {
+    if (std::fabs(f) < std::numeric_limits<float>::min()) { *this = "0.0"; return; } // workaroud for issue https://github.com/OpenMS/OpenMS/issues/6507
+
     full_precision ? StringConversions::append(f, *this)
                    : StringConversions::appendLowP(f, *this);
   }
@@ -144,6 +146,8 @@ namespace OpenMS
   String::String(double d, bool full_precision) :
     string()
   {
+    if (std::fabs(d) < std::numeric_limits<double>::min()) { *this = "0.0"; return; } // workaroud for issue https://github.com/OpenMS/OpenMS/issues/6507
+
     full_precision ? StringConversions::append(d, *this)
                    : StringConversions::appendLowP(d, *this);
   }
@@ -151,6 +155,8 @@ namespace OpenMS
   String::String(long double ld, bool full_precision) :
     string()
   {
+    if (std::fabs(ld) < std::numeric_limits<long double>::min()) { *this = "0.0"; return; } // workaroud for issue https://github.com/OpenMS/OpenMS/issues/6507
+
     full_precision ? StringConversions::append(ld, *this)
                    : StringConversions::appendLowP(ld, *this);
   }
