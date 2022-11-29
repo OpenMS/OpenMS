@@ -485,5 +485,5 @@ jobs:
     if: ${{ always() }}
     steps:
     - name: Check on failures
-      if: ${{ needs.build-win.outputs.job-status != "Success" || needs.build-lnx.outputs.job.status == "Success" || needs.build-macos.outputs.job.status == "Success" }} 
+      if: ${{ needs.build-win.outputs.job-status != 'Success' || needs.build-lnx.outputs.job-status != 'Success' || needs.build-macos.outputs.job-status != 'Success' }} 
       run: exit 1
