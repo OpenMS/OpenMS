@@ -87,18 +87,20 @@ include (${PROJECT_SOURCE_DIR}/includes.cmake)
 
 #------------------------------------------------------------------------------
 # all the dependency libraries are linked into libOpenMS.so
-set(OPENMS_DEP_LIBRARIES Evergreen LibSVM::LibSVM XercesC::XercesC Qt5::Core Qt5::Network Qt5::Sql)
+set(OPENMS_DEP_LIBRARIES Evergreen LibSVM::LibSVM XercesC::XercesC Qt5::Core Qt5::Network)
 
-set(OPENMS_DEP_PRIVATE_LIBRARIES GTE ${LPTARGET} Eigen3::Eigen HDF5::HDF5 Boost::iostreams Boost::date_time Boost::boost Boost::regex
-  BZip2::BZip2 ZLIB::ZLIB SQLite::SQLite3)
+set(OPENMS_DEP_PRIVATE_LIBRARIES GTE ${LPTARGET} Eigen3::Eigen HDF5::HDF5 Boost::iostreams Boost::date_time Boost::boost Boost::regex BZip2::BZip2 ZLIB::ZLIB SQLiteCpp)
 
+## ----------
+## No need to for this at the moment: no Qt plugins required anymore. Left here for reference.
+## ----------
 #------------------------------------------------------------------------------
 # Install the QSQLite driver if we are not on linux so we can use oms files
-if(WIN32 OR APPLE)
-  install_qt5_plugin("Qt5::QSQLiteDriverPlugin" QT_SQLITE_PLUGIN "${INSTALL_PLUGIN_DIR}/plugins" QT5SQLitePlugin)
-endif()
+#if(WIN32 OR APPLE)
+#  install_qt5_plugin_builddir("Qt5::QSQLiteDriverPlugin" QT_SQLITE_PLUGIN "${INSTALL_PLUGIN_DIR}" Dependencies)
+#endif()
 
-# xerces requires linking against CoreFoundation&CoreServices on macOS
+# Xerces requires linking against CoreFoundation&CoreServices on macOS
 # TODO check if this is still the case
 if(APPLE)
   find_library(CoreFoundation_LIBRARY CoreFoundation )

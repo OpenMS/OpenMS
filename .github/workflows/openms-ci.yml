@@ -438,7 +438,7 @@ jobs:
            sudo apt update    
            sudo apt-get install build-essential cmake autoconf patch libtool git automake
            sudo apt-get install qtbase5-dev libqt5svg5-dev libqt5opengl5-dev
-           sudo apt-get install libeigen3-dev libsqlite3-dev libboost-random1.67-dev libboost-regex1.67-dev libboost-iostreams1.67-dev libboost-date-time1.67-dev libboost-math1.67-dev libxerces-c-dev zlib1g-dev libsvm-dev libbz2-dev coinor-libcoinmp-dev libhdf5-dev
+           sudo apt-get install libeigen3-dev libboost-random1.67-dev libboost-regex1.67-dev libboost-iostreams1.67-dev libboost-date-time1.67-dev libboost-math1.67-dev libxerces-c-dev zlib1g-dev libsvm-dev libbz2-dev coinor-libcoinmp-dev libhdf5-dev
 
     - name: Build and test lnx
       run: |

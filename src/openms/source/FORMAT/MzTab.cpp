@@ -2472,21 +2472,11 @@ state0:
     peptide_hit_user_value_keys.erase("spectrum_reference");
   }
 
-  void MzTab::getConsensusMapMetaValues_(const ConsensusMap& consensus_map,
-    set<String>& consensus_feature_user_value_keys,
+  // local helper to extract meta values with space substituted with '_'
+  void extractMetaValuesFromIDs(const vector<PeptideIdentification> & curr_pep_ids, 
     set<String>& peptide_identification_user_value_keys,
     set<String>& peptide_hit_user_value_keys)
-  {
-    for (ConsensusFeature const & c : consensus_map)
     {
-      vector<String> keys;
-      c.getKeys(keys);
-      // replace whitespaces with underscore
-      std::transform(keys.begin(), keys.end(), keys.begin(), [&](String& s) { return s.substitute(' ', '_'); });
-
-      consensus_feature_user_value_keys.insert(keys.begin(), keys.end());
-
-      const vector<PeptideIdentification> & curr_pep_ids = c.getPeptideIdentifications();
       for (auto const & pep_id : curr_pep_ids)
       {      
         vector<String> pep_keys;
@@ -2504,6 +2494,54 @@ state0:
           peptide_hit_user_value_keys.insert(ph_keys.begin(), ph_keys.end());
         }
       }
+    }
+
+  // local helper to extract meta values with space substituted with '_'
+  void extractMetaValuesFromIDPointers(const vector<const PeptideIdentification*> & curr_pep_ids, 
+    set<String>& peptide_identification_user_value_keys,
+    set<String>& peptide_hit_user_value_keys)
+    {
+      for (auto const * pep_id : curr_pep_ids)
+      {      
+        vector<String> pep_keys;
+        pep_id->getKeys(pep_keys);
+        // replace whitespaces with underscore
+        std::transform(pep_keys.begin(), pep_keys.end(), pep_keys.begin(), [&](String& s) { return s.substitute(' ', '_'); });
+        peptide_identification_user_value_keys.insert(pep_keys.begin(), pep_keys.end());
+
+        for (auto const & hit : pep_id->getHits())
+        {
+          vector<String> ph_keys;
+          hit.getKeys(ph_keys);
+          // replace whitespaces with underscore
+          std::transform(ph_keys.begin(), ph_keys.end(), ph_keys.begin(), [&](String& s) { return s.substitute(' ', '_'); });
+          peptide_hit_user_value_keys.insert(ph_keys.begin(), ph_keys.end());
+        }
+      }
+    }
+
+  // extract *all* meta values stored at consensus feature, peptide id and peptide hit level
+  void MzTab::getConsensusMapMetaValues_(const ConsensusMap& consensus_map,
+    set<String>& consensus_feature_user_value_keys,
+    set<String>& peptide_identification_user_value_keys,
+    set<String>& peptide_hit_user_value_keys)
+  {
+    // extract meta values from unassigned peptide identifications
+    const vector<PeptideIdentification> & curr_pep_ids = consensus_map.getUnassignedPeptideIdentifications();
+    extractMetaValuesFromIDs(curr_pep_ids, peptide_identification_user_value_keys, peptide_hit_user_value_keys);
+
+    for (ConsensusFeature const & c : consensus_map)
+    {
+      vector<String> keys;
+      c.getKeys(keys);
+      // replace whitespaces with underscore
+      std::transform(keys.begin(), keys.end(), keys.begin(), [&](String& s) { return s.substitute(' ', '_'); });
+
+      consensus_feature_user_value_keys.insert(keys.begin(), keys.end());
+
+      // extract meta values from assigned peptide identifications
+      const vector<PeptideIdentification> & curr_pep_ids = c.getPeptideIdentifications();
+      extractMetaValuesFromIDs(curr_pep_ids, peptide_identification_user_value_keys, peptide_hit_user_value_keys);
     }
 
     // we don't want spectrum reference to show up as meta value (already in dedicated column)
@@ -2529,23 +2567,7 @@ state0:
       }
     }
 
-    for (auto const & pep_id : peptide_ids_)
-    {
-      vector<String> pid_keys;
-      pep_id->getKeys(pid_keys);
-      // replace whitespaces with underscore
-      std::transform(pid_keys.begin(), pid_keys.end(), pid_keys.begin(), [&](String& s) { return s.substitute(' ', '_'); });
-      peptide_id_user_value_keys.insert(pid_keys.begin(), pid_keys.end());
-
-      for (auto const & hit : pep_id->getHits())
-      {
-        vector<String> ph_keys;
-        hit.getKeys(ph_keys);
-        // replace whitespaces with underscore
-        std::transform(ph_keys.begin(), ph_keys.end(), ph_keys.begin(), [&](String& s) { return s.substitute(' ', '_'); });
-        peptide_hit_user_value_keys.insert(ph_keys.begin(), ph_keys.end());
-      }
-    }
+    extractMetaValuesFromIDPointers(peptide_ids_, peptide_id_user_value_keys, peptide_hit_user_value_keys);
   }
 
   void MzTab::getSearchModifications_(const vector<const ProteinIdentification*>& prot_ids, StringList& var_mods, StringList& fixed_mods)
@@ -2661,13 +2683,26 @@ state0:
 
     // create column names from meta values
     // feature meta values
-    for (const auto& k : consensus_feature_user_value_keys_) pep_optional_column_names_.emplace_back("opt_global_" + k);
-    // id meta values
-    for (const auto& k : consensus_feature_peptide_identification_user_value_keys_) pep_optional_column_names_.emplace_back("opt_global_" + k);
+    for (const auto& k : consensus_feature_user_value_keys_) 
+    {
+      pep_optional_column_names_.emplace_back("opt_global_" + k);
+    }      
+
+    /* 
+      Note: In the PEP section, meta values in peptide identifications are better omitted as they can be easily looked up from the PSM-level are otherwise duplicates.
+      For debug purposes one can enable this line:
+      for (const auto& k : consensus_feature_peptide_identification_user_value_keys_) pep_optional_column_names_.emplace_back("opt_global_" + k);
+    */
+
     // peptide hit (PSM) meta values
-    //maybe it's better not to output the PSM information here as it is already stored in the PSM section and referenceable via spectra_ref
-    for (const auto& k : consensus_feature_peptide_hit_user_value_keys_) pep_optional_column_names_.emplace_back("opt_global_" + k);
-    std::replace(pep_optional_column_names_.begin(), pep_optional_column_names_.end(), String("opt_global_target_decoy"), String("opt_global_cv_MS:1002217_decoy_peptide")); // for PRIDE
+    
+    // whitelisted meta values "target_decoy". Expose in the PEP section with special CV term (for PRIDE compatibility):
+    if (auto it = consensus_feature_peptide_hit_user_value_keys_.find("target_decoy");
+      it != consensus_feature_peptide_hit_user_value_keys_.end())
+    {
+      pep_optional_column_names_.emplace_back("opt_global_cv_MS:1002217_decoy_peptide");
+    }
+    // added during export (for PRIDE compatibility):
     pep_optional_column_names_.emplace_back("opt_global_cv_MS:1000889_peptidoform_sequence");
 
     // PSM optional columns: also from meta values in consensus features
