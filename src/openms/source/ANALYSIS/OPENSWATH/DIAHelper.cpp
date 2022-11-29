@@ -42,6 +42,8 @@
 
 #include <utility>
 
+#include <OpenMS/CONCEPT/LogStream.h>
+
 namespace OpenMS::DIAHelpers
   {
 
@@ -94,7 +96,7 @@ namespace OpenMS::DIAHelpers
 
       if (spectrum->getMZArray()->data.empty())
       {
-        std::cerr << "Warning: Cannot integrate if spectrum is empty" << std::endl;
+        OPENMS_LOG_WARN << "Warning: Cannot integrate if spectrum is empty" << std::endl;
         return;
       }
 
@@ -103,8 +105,7 @@ namespace OpenMS::DIAHelpers
       {
         if (spectrum->getDriftTimeArray() == nullptr)
         {
-            std::cerr << "Warning: Cannot integrate with drift time if no drift time is available, will integrate without drift time\n";
-            drift_start = -1, drift_end = -1;
+            throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Cannot integrate with drift time if no drift time is available");
         }
       }
 
@@ -209,12 +210,13 @@ namespace OpenMS::DIAHelpers
       double mz(-1), intensity(0), im(-1);
       if (windowsCenter.empty())
       {
-        std::cerr << "Warning no windows supplied!" << std::endl;
+        throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "No windows supplied!");
         return;
       }
+
       if (spectra.empty())
       {
-        std::cerr << "WARNING: no spectra provided" << std::endl;
+        OPENMS_LOG_WARN << "Warning: no spectra provided" << std::endl;
         return;
       }
 
@@ -330,7 +332,7 @@ namespace OpenMS::DIAHelpers
       else
       {
         // if (all_spectra.empty())
-        std::cerr << "WARNING: No Spectra provided" << std::endl;
+        OPENMS_LOG_WARN << "Warning: no spectra provided" << std::endl;
         im = -1;
         mz = -1;
         intensity = 0;

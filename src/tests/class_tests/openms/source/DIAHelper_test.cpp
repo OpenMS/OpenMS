@@ -145,6 +145,12 @@ START_SECTION(bool integrateWindow(const OpenSwath::SpectrumPtr& spectrum, doubl
   }
 
   {
+    // Test spectrum without ion mobility while asking for ion mobility filtering, should throw an exception
+    double mz(0), intens(0), im(0);
+    TEST_EXCEPTION_WITH_MESSAGE(Exception::MissingInformation, DIAHelpers::integrateWindow(spec, 101., 103., mz, im, intens, 2, 5), "Cannot integrate with drift time if no drift time is available");
+  }
+
+  {
     // Test ion mobility enhanced array with no ion mobility windows, although IM is present it should be ignored
     double mz(0), intens(0), im(0);
 
@@ -344,10 +350,7 @@ START_SECTION(void integrateWindows(const std::vector<OpenSwath::SpectrumPtr>& s
     std::vector<double> windows, intInt, intMz, intIm;
     specArr.push_back(emptySpec);
 
-    DIAHelpers::integrateWindows(specArr, windows, 2, intInt, intMz, intIm, -1, -1);
-    TEST_EQUAL (intInt.empty(), true);
-    TEST_EQUAL (intIm.empty(), true);
-    TEST_EQUAL (intMz.empty(), true);
+    TEST_EXCEPTION_WITH_MESSAGE(Exception::MissingInformation, DIAHelpers::integrateWindows(specArr, windows, 2, intInt, intMz, intIm, -1, -1), "No windows supplied!");
   }
 
 
