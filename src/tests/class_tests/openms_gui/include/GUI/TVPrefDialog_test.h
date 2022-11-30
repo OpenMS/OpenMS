@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -28,60 +28,46 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Timo Sachsenberg $
-// $Authors: Marc Sturm, Chris Bielow $
+// $Maintainer: Tom Waschischeck $
+// $Authors: Tom Waschischeck $
 // --------------------------------------------------------------------------
+#include <QtTest/QtTest>
+#include <QtGui>
 
-#pragma once
+#include <OpenMS/CONCEPT/LogStream.h>
+#include <OpenMS/VISUAL/DIALOGS/TOPPViewPrefDialog.h>
+#include <ui_TOPPViewPrefDialog.h>
 
-#include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
-
-
-#include <OpenMS/DATASTRUCTURES/Param.h>
-
-#include <QtWidgets/QDialog>
-
-namespace Ui
-{
-  class TOPPViewPrefDialogTemplate;
-}
+#define UI dialog_.ui_
 
 namespace OpenMS
 {
-  class TestTVPrefDialog; // fwd declaring test class
-
-  namespace Internal
+	class TestTVPrefDialog : public QObject
   {
-    /**
-        @brief Preferences dialog for TOPPView
+    Q_OBJECT
 
-        @ingroup TOPPView_elements
-    */
-    class OPENMS_GUI_DLLAPI TOPPViewPrefDialog :
-      public QDialog
+  public:
+    TestTVPrefDialog() : dialog_(NULL)
     {
-      Q_OBJECT
+      OPENMS_LOG_INFO.remove(std::cout);
+    }
 
-public:
-      friend class OpenMS::TestTVPrefDialog;  // to test the GUI expressed in the private member ui_
+    ~TestTVPrefDialog()
+    {
+      dialog_.destroy();
+    }
 
-      TOPPViewPrefDialog(QWidget * parent);
-      ~TOPPViewPrefDialog() override;
+  private slots:
+    void testConstruction();
 
-      /// initialize GUI values with these parameters
-      void setParam(const Param& param);
+    void testParamExport();
 
-      /// update the parameters given the current GUI state.
-      /// Can be used to obtain default parameters and their names.
-      Param getParam() const;
+    void testGui();
 
-protected slots:
-      void browseDefaultPath_();
-      void browsePluginsPath_();
-private:
-      Ui::TOPPViewPrefDialogTemplate* ui_;
-      mutable Param param_; ///< is updated in getParam()
-      Param tsg_param_; ///< params for TheoreticalSpectrumGenerator in the TSG tab
-    };
-  }
+  private:
+    void checkFileDialog_();
+    void checkColorDialog_();
+
+    Internal::TOPPViewPrefDialog dialog_;
+  };
 }

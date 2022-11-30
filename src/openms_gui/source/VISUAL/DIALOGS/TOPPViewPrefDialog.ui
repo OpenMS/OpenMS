@@ -27,7 +27,7 @@
    <item row="0" column="0" rowspan="2" colspan="2">
     <widget class="QTabWidget" name="tabWidget">
      <property name="currentIndex">
-      <number>4</number>
+      <number>0</number>
      </property>
      <widget class="QWidget" name="tab">
       <attribute name="title">
@@ -55,7 +55,7 @@
         </widget>
        </item>
        <item row="9" column="0" colspan="2">
-        <widget class="QLabel" name="label_14">
+        <widget class="QLabel" name="file_change_label">
          <property name="toolTip">
           <string>&lt;html&gt;&lt;head&gt;&lt;meta name=&quot;qrichtext&quot; content=&quot;1&quot; /&gt;&lt;style type=&quot;text/css&quot;&gt;
 p, li { white-space: pre-wrap; }
@@ -68,7 +68,7 @@ p, li { white-space: pre-wrap; }
         </widget>
        </item>
        <item row="4" column="0">
-        <widget class="QLabel" name="label_8">
+        <widget class="QLabel" name="default_map_label">
          <property name="text">
           <string>Default map view:</string>
          </property>
@@ -88,7 +88,7 @@ p, li { white-space: pre-wrap; }
         </spacer>
        </item>
        <item row="8" column="0">
-        <widget class="QLabel" name="label_9">
+        <widget class="QLabel" name="intensity_cutoff_label">
          <property name="toolTip">
           <string>&lt;html&gt;&lt;head&gt;&lt;meta name=&quot;qrichtext&quot; content=&quot;1&quot; /&gt;&lt;style type=&quot;text/css&quot;&gt;
 p, li { white-space: pre-wrap; }
@@ -164,7 +164,7 @@ p, li { white-space: pre-wrap; }
         </widget>
        </item>
        <item row="11" column="0">
-        <widget class="QLabel" name="label">
+        <widget class="QLabel" name="caching_label">
          <property name="text">
           <string>Caching Strategy</string>
          </property>
@@ -191,7 +191,7 @@ p, li { white-space: pre-wrap; }
         </widget>
        </item>
        <item row="0" column="0">
-        <widget class="QLabel" name="label_5">
+        <widget class="QLabel" name="default_path_label">
          <property name="toolTip">
           <string>&lt;html&gt;&lt;head&gt;&lt;meta name=&quot;qrichtext&quot; content=&quot;1&quot; /&gt;&lt;style type=&quot;text/css&quot;&gt;
 p, li { white-space: pre-wrap; }
@@ -220,7 +220,7 @@ p, li { white-space: pre-wrap; }
         </widget>
        </item>
        <item row="3" column="0">
-        <widget class="QLabel" name="label_2">
+        <widget class="QLabel" name="plugins_path_label">
          <property name="text">
           <string>Plugins path:</string>
          </property>
@@ -276,21 +276,21 @@ p, li { white-space: pre-wrap; }
         <widget class="OpenMS::ColorSelector" name="color_1D" native="true"/>
        </item>
        <item row="0" column="0">
-        <widget class="QLabel" name="label_11">
+        <widget class="QLabel" name="peak_1D_label">
          <property name="text">
           <string>Peak color:</string>
          </property>
         </widget>
        </item>
        <item row="2" column="0">
-        <widget class="QLabel" name="label_12">
+        <widget class="QLabel" name="icon_1D_label">
          <property name="text">
           <string>Icon color:</string>
          </property>
         </widget>
        </item>
        <item row="1" column="0">
-        <widget class="QLabel" name="label_10">
+        <widget class="QLabel" name="selected_1D_label">
          <property name="text">
           <string>Selected peak color:</string>
          </property>
@@ -304,7 +304,7 @@ p, li { white-space: pre-wrap; }
       </attribute>
       <layout class="QGridLayout" name="gridLayout_2">
        <item row="0" column="0">
-        <widget class="QLabel" name="label_13">
+        <widget class="QLabel" name="peak_2D_label">
          <property name="text">
           <string>Peak gradient:</string>
          </property>
@@ -327,7 +327,7 @@ p, li { white-space: pre-wrap; }
         </spacer>
        </item>
        <item row="1" column="0">
-        <widget class="QLabel" name="label_17">
+        <widget class="QLabel" name="mz_axis_label">
          <property name="text">
           <string>m/z axis:</string>
          </property>
@@ -354,7 +354,7 @@ p, li { white-space: pre-wrap; }
         </widget>
        </item>
        <item row="2" column="0">
-        <widget class="QLabel" name="label_21">
+        <widget class="QLabel" name="feature_icon_2D_label">
          <property name="text">
           <string>feature icon:</string>
          </property>
@@ -385,7 +385,7 @@ p, li { white-space: pre-wrap; }
         </widget>
        </item>
        <item row="3" column="0">
-        <widget class="QLabel" name="label_22">
+        <widget class="QLabel" name="feature_icon_size_2D_label">
          <property name="text">
           <string>feature icon size:</string>
          </property>
@@ -422,7 +422,7 @@ p, li { white-space: pre-wrap; }
       </attribute>
       <layout class="QGridLayout">
        <item row="0" column="0">
-        <widget class="QLabel" name="label_18">
+        <widget class="QLabel" name="peak_3D_label">
          <property name="text">
           <string>Peak colors:</string>
          </property>
@@ -432,7 +432,7 @@ p, li { white-space: pre-wrap; }
         <widget class="OpenMS::MultiGradientSelector" name="peak_3D" native="true"/>
        </item>
        <item row="1" column="0">
-        <widget class="QLabel" name="label_19">
+        <widget class="QLabel" name="shade_3D_label">
          <property name="text">
           <string>Shade mode:</string>
          </property>
@@ -472,7 +472,7 @@ p, li { white-space: pre-wrap; }
         </spacer>
        </item>
        <item row="2" column="0">
-        <widget class="QLabel" name="label_20">
+        <widget class="QLabel" name="line_width_3D_label">
          <property name="text">
           <string>Line width:</string>
          </property>
@@ -511,7 +511,14 @@ p, li { white-space: pre-wrap; }
        <string>Theoretical Spectra Generation</string>
       </attribute>
       <layout class="QGridLayout" name="gridLayout_4">
-       <item row="1" column="3">
+       <item row="2" column="2" alignment="Qt::AlignRight">
+        <widget class="QLabel" name="tolerance_label">
+         <property name="text">
+          <string>Alignment Tolerance  </string>
+         </property>
+        </widget>
+       </item>
+       <item row="2" column="3">
         <widget class="QDoubleSpinBox" name="tolerance">
          <property name="sizePolicy">
           <sizepolicy hsizetype="Maximum" vsizetype="Maximum">
@@ -530,14 +537,7 @@ p, li { white-space: pre-wrap; }
          </property>
         </widget>
        </item>
-       <item row="1" column="2" alignment="Qt::AlignRight">
-        <widget class="QLabel" name="label_2">
-         <property name="text">
-          <string>Alignment Tolerance  </string>
-         </property>
-        </widget>
-       </item>
-       <item row="1" column="4">
+       <item row="2" column="4">
         <widget class="QComboBox" name="unit">
          <property name="sizePolicy">
           <sizepolicy hsizetype="Maximum" vsizetype="Fixed">
@@ -557,8 +557,16 @@ p, li { white-space: pre-wrap; }
          </item>
         </widget>
        </item>
-       <item row="0" column="0" colspan="5">
+       <item row="1" column="0" colspan="5">
         <widget class="OpenMS::ParamEditor" name="param_editor_spec_gen_" native="true"/>
+       </item>
+       <item row="0" column="0" colspan="5">
+        <widget class="QLabel" name="param_usage_label">
+         <property name="text">
+          <string>These settings are used to generate theoretical spectra of peptide identifications to align them and use them
+for spectra annotation. (i.e. &quot;Tools&quot; -&gt; &quot;Annotate with peptide identifications&quot;)</string>
+         </property>
+        </widget>
        </item>
       </layout>
      </widget>
