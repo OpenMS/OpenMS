@@ -230,14 +230,6 @@ if(STL_DEBUG)
 endif()
 
 #------------------------------------------------------------------------------
-# Enable AddressSanitizer
-#------------------------------------------------------------------------------
-option(ADDRESS_SANITIZER "[Clang/GCC only] Enable AddressSanitizer mode (quite slow)." OFF)
-if(ADDRESS_SANITIZER)
-  include(cmake/AddressSanitizer.cmake)
-endif()
-
-#------------------------------------------------------------------------------
 # Add options for link time optimizations (LTO) aka interprocedural optimization
 #------------------------------------------------------------------------------
 option(ENABLE_IPO
