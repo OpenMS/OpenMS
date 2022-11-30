@@ -182,7 +182,15 @@ START_SECTION((float getChargeIntensity(const int abs_charge) const))
 }
 END_SECTION
 
-START_SECTION((std::tuple<double, double> getMaxQScoreMzRange() const))
+START_SECTION((void setRepAbsCharge(const int max_qscore_charge)))
+{
+  sample_pg.setRepAbsCharge(2);
+  int temp_abs = sample_pg.getRepAbsCharge();
+  TEST_EQUAL(temp_abs, 2);
+}
+END_SECTION
+
+START_SECTION((std::tuple<double, double> getRepMzRange() const))
 {
   std::tuple<double, double> tmp_range = sample_pg.getRepMzRange();
   TEST_REAL_SIMILAR(std::get<0>(tmp_range), 1125.5118055019082);
@@ -223,7 +231,6 @@ START_SECTION((float getIsotopeCosine() const))
   TEST_REAL_SIMILAR(temp_iso, 0.3);
 }
 END_SECTION
-
 
 START_SECTION((int getRepAbsCharge() const))
 {
