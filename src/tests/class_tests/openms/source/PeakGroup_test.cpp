@@ -182,6 +182,14 @@ START_SECTION((float getChargeIntensity(const int abs_charge) const))
 }
 END_SECTION
 
+START_SECTION((void setRepAbsCharge(const int max_qscore_charge)))
+{
+  sample_pg.setRepAbsCharge(2);
+  int temp_abs = sample_pg.getRepAbsCharge();
+  TEST_EQUAL(temp_abs, 2);
+}
+END_SECTION
+
 
 START_SECTION((std::tuple<double, double> getRepMzRange() const))
 {
@@ -225,14 +233,6 @@ START_SECTION((float getIsotopeCosine() const))
 }
 END_SECTION
 
-
-START_SECTION((void setRepAbsCharge(const int max_qscore_charge)))
-{
-  sample_pg.setRepAbsCharge(2);
-  int temp_abs = sample_pg.getRepAbsCharge();
-  TEST_EQUAL(temp_abs, 2);
-}
-END_SECTION
 
 START_SECTION((int getRepAbsCharge() const))
 {
