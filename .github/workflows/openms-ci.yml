@@ -122,7 +122,7 @@ jobs:
           OPENMP: "Off"
           USE_STATIC_BOOST: "On"
           #  BUILD_FLAGS: "-p:CL_MPCount=2" # For VS Generator and MSBuild
-          BUILD_FLAGS: "-j2" # For Ninja
+          BUILD_FLAGS: "-j2" # Ninja will otherwise use all cores (doesn't go well in GHA) 
 
   build-macos:
     runs-on: macos-latest
