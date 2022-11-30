@@ -183,6 +183,7 @@
 #include <OpenMS/SIMULATION/LABELING/ITRAQLabeler.h>
 #include <OpenMS/SIMULATION/LABELING/SILACLabeler.h>
 #include <OpenMS/SIMULATION/LABELING/ICPLLabeler.h>
+#include <OpenMS/SIMULATION/LABELING/LabelFreeLabeler.h>
 #include <OpenMS/APPLICATIONS/MapAlignerBase.h>
 #include <OpenMS/QC/DBSuitability.h>
 
@@ -388,14 +389,14 @@ int main(int argc, char** argv)
 
   DOCME(AScore);
   DOCME(AccurateMassSearchEngine);
-  //DOCME(BaseLabeler); //abstract base class, TODO: causes compile error on Mac
-  //DOCME(BaseModel);  //TODO: causes compile error on Mac
+  //DOCME(BaseLabeler); //TODO: causes compile error on Mac. DOCME2 is tested for this class below.
+  //DOCME(BaseModel);  //TODO: causes compile error on Mac. DOCME2 is tested for this class below.
   DOCME(BernNorm);
   DOCME(BiGaussFitter1D);
   DOCME(BiGaussModel);
   DOCME(BinnedSharedPeakCount);
   DOCME(BinnedSpectralContrastAngle);
-  //DOCME(BinnedSpectrumCompareFunctor);  //TODO: causes compile error on Mac
+  //DOCME(BinnedSpectrumCompareFunctor);  //TODO: causes compile error on Mac. DOCME2 is tested for this class below.
   DOCME(BinnedSumAgreeingIntensities);
   DOCME(ComplementFilter);
   DOCME(ComplementMarker);
@@ -515,6 +516,7 @@ int main(int argc, char** argv)
   DOCME(ITRAQLabeler);
   DOCME(SILACLabeler);
   DOCME(ICPLLabeler);
+  DOCME(LabelFreeLabeler);
   DOCME(PeptideAndProteinQuant);
   DOCME(Math::PosteriorErrorProbabilityModel);
   // workarounds for documenting model parameters in MapAligners:
@@ -539,10 +541,13 @@ int main(int argc, char** argv)
   DOCME2(SignalToNoiseEstimatorMedian, SignalToNoiseEstimatorMedian<>());
   DOCME2(IonizationSimulation, IonizationSimulation(SimTypes::MutableSimRandomNumberGeneratorPtr()));
   DOCME2(RawMSSignalSimulation, RawMSSignalSimulation(SimTypes::MutableSimRandomNumberGeneratorPtr()));
-  DOCME2(RawTandemMSSignalSimulation, RawTandemMSSignalSimulation(SimTypes::MutableSimRandomNumberGeneratorPtr()))
-  DOCME2(RTSimulation, RTSimulation(SimTypes::MutableSimRandomNumberGeneratorPtr()))
-  DOCME2(GaussTraceFitter, (GaussTraceFitter()))
-  DOCME2(EGHTraceFitter, (EGHTraceFitter()))
+  DOCME2(RawTandemMSSignalSimulation, RawTandemMSSignalSimulation(SimTypes::MutableSimRandomNumberGeneratorPtr()));
+  DOCME2(RTSimulation, RTSimulation(SimTypes::MutableSimRandomNumberGeneratorPtr()));
+  DOCME2(GaussTraceFitter, (GaussTraceFitter()));
+  DOCME2(EGHTraceFitter, (EGHTraceFitter()));
+  DOCME2(BaseLabeler, (ICPLLabeler())); //BaseLabeler is an abstract base class, get parameters from subclass ICPLLabeler
+  DOCME2(BaseModel, (EGHModel())); //BaseModel is an abstract base class, get parameters from subclass EGHModel
+  DOCME2(BinnedSpectrumCompareFunctor, (BinnedSharedPeakCount())); //BaseModel is a base class, get parameters from subclass BinnedSharedPeakCount
 
   // handle GUI documentation separately
 #ifdef WITH_GUI
