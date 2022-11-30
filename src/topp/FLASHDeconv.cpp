@@ -122,7 +122,7 @@ protected:
                             false);
     setValidFormats_("out_topFD_feature", ListUtils::create<String>("feature"), false);
 
-    registerDoubleOption_("min_precursor_snr", "<SNR value>", 0.0,
+    registerDoubleOption_("min_precursor_snr", "<SNR value>", 1.0,
                           "Minimum precursor SNR (SNR within the precursor envelope range) for identification. Similar to precursor interference level, but more stringent."
                           "When FLASHIda log file is used, this parameter is ignored. Applied only for topFD msalign outputs.",
                           false, false);
@@ -283,7 +283,7 @@ protected:
     const Size max_peak_count_ = 30000;
     String in_file = getStringOption_("in");
     String out_file = getStringOption_("out");
-    String in_train_file = "";
+    String in_train_file {};
     String in_log_file = getStringOption_("in_log");
 
     auto out_spec_file = getStringList_("out_spec");
@@ -309,11 +309,7 @@ protected:
     std::vector<fstream> out_spec_streams, out_topfd_streams, out_topfd_feature_streams;
 
     out_stream.open(out_file, fstream::out);
-    if (DLTrain)
-    {
-      out_dl_stream.open(out_file + "_dl.csv", fstream::out);
-      out_att_stream.open(out_file + "_qscore.csv", fstream::out);
-    }
+
 
     FLASHDeconvFeatureFile::writeHeader(out_stream);
 
@@ -504,15 +500,15 @@ protected:
     {
       fd_charge_decoy.setParameters(fd_param);
       fd_charge_decoy.setAveragine(avg);
-      fd_charge_decoy.setDecoyFlag(PeakGroup::decoyFlag::charge_decoy, fd); // charge
+      fd_charge_decoy.setDecoyFlag(PeakGroup::DecoyFlag::charge_decoy, fd); // charge
 
       fd_noise_decoy.setParameters(fd_param);
       fd_noise_decoy.setAveragine(avg);
-      fd_noise_decoy.setDecoyFlag(PeakGroup::decoyFlag::noise_decoy, fd); // noise
+      fd_noise_decoy.setDecoyFlag(PeakGroup::DecoyFlag::noise_decoy, fd); // noise
 
       fd_iso_decoy.setParameters(fd_param);
       fd_iso_decoy.setAveragine(avg);
-      fd_iso_decoy.setDecoyFlag(PeakGroup::decoyFlag::isotope_decoy, fd);
+      fd_iso_decoy.setDecoyFlag(PeakGroup::DecoyFlag::isotope_decoy, fd);
     }
 
     auto mass_tracer = MassFeatureTrace();
@@ -657,7 +653,8 @@ protected:
             fd_iso_decoy.performSpectrumDeconvolution(*it, precursor_specs, scan_number, write_detail, precursor_map_for_real_time_acquisition);
           }
         }
-        DeconvolvedSpectrum decoy_deconvolved_spectrum(*it, scan_number);
+        DeconvolvedSpectrum decoy_deconvolved_spectrum(scan_number);
+        decoy_deconvolved_spectrum.setOriginalSpectrum(*it);
 
         decoy_deconvolved_spectrum.reserve(fd_iso_decoy.getDeconvolvedSpectrum().size() + fd_charge_decoy.getDeconvolvedSpectrum().size() + fd_noise_decoy.getDeconvolvedSpectrum().size());
 
@@ -745,43 +742,24 @@ protected:
 
     if (DLTrain)
     {
-      int cr = 5, ir = 5;
       QScore::writeAttCsvFromDecoyHeader(out_att_stream);
 
       for (auto& deconvolved_spectrum : deconvolved_spectra)
       {
         if (deconvolved_spectrum.getOriginalSpectrum().getMSLevel() == 1)
           QScore::writeAttCsvFromDecoy(deconvolved_spectrum, out_att_stream);
-        for (auto& pg : deconvolved_spectrum) // TODO
-        {
-          pg.calculateDLMatrices(cr, ir, avg);
-          pg.clearVectors();
-        }
       }
 
       for (auto& deconvolved_spectrum : decoy_deconvolved_spectra)
       {
         if (deconvolved_spectrum.getOriginalSpectrum().getMSLevel() == 1)
           QScore::writeAttCsvFromDecoy(deconvolved_spectrum, out_att_stream);
-        for (auto& pg : deconvolved_spectrum) // TODO
-        {
-          pg.calculateDLMatrices(cr, ir, avg);
-          pg.clearVectors();
-        }
       }
 
-      for (auto& deconvolved_spectrum : deconvolved_spectra)
-      {
-        if (deconvolved_spectrum.empty())
-        {
-          continue;
-        }
-        FLASHDeconvSpectrumFile::writeDLMatrixHeader(deconvolved_spectrum, out_dl_stream);
-        break;
-      }
+      FLASHDeconvSpectrumFile::writeDLMatrixHeader(out_dl_stream);
 
-      FLASHDeconvSpectrumFile::writeDLMatrix(deconvolved_spectra, out_dl_stream);
-      FLASHDeconvSpectrumFile::writeDLMatrix(decoy_deconvolved_spectra, out_dl_stream);
+      FLASHDeconvSpectrumFile::writeDLMatrix(deconvolved_spectra, out_dl_stream, 1e-6 * tols[0], avg);
+      FLASHDeconvSpectrumFile::writeDLMatrix(decoy_deconvolved_spectra, out_dl_stream, 1e-6 * tols[0], avg);
 
       out_dl_stream.close();
       out_att_stream.close();

@@ -24,6 +24,5 @@ cdef extern from "<OpenMS/ANALYSIS/QUANTITATION/ProteinInference.h>" namespace "
             #  quantitative ConsensusMap prior to this step
             #  
             #  
-            #  :param consensus_map: Peptide quantitation with ProteinIdentifications attached, where
-            #       Protein quantitation will be attached
+            #  :param consensus_map: Peptide quantitation with ProteinIdentifications attached, where protein quantitation will be attached
             #  :param reference_map: Index of (iTRAQ) reference channel within the consensus map

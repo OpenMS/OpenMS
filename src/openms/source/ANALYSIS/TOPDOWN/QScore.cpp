@@ -47,24 +47,7 @@ namespace OpenMS
     { // all zero
       return .0;
     }
-    //const std::vector<double> weights({ 1.492, -2.0041, -14.3891, -0.9853, 0.4568, 0.063, 14.4072});
     const std::vector<double> weights({ -.0941, -1.9804, -12.7522, 0.2622, -1.2431, 0.0815, 13.5244});
-
-    //ChargeCos         1.492
-    //ChargeSNR       -2.0041
-    //Cos            -14.3891
-    //SNR             -0.9853
-    //ChargeScore      0.4568
-    //AvgPPMerror       0.063
-    //Intercept       14.4072
-
-    // ChargeCos           0.0941
-    // ChargeSNR           1.9804
-    // Cos                12.7522
-    // SNR                -0.2622
-    // ChargeScore         1.2431
-    // AvgPPMerror        -0.0815
-    // Intercept         -13.5244
 
     double score = weights.back();
     auto fv = toFeatureVector_(pg, abs_charge);

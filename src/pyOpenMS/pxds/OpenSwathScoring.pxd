@@ -22,16 +22,11 @@ cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/OpenSwathScoring.h>" namespace "Ope
                 #  Sets the parameters for the scoring
                 #  
                 #  
-                #  rt_normalization_factor : double
-                #      Specifies the range of the normalized retention time space
-                #  add_up_spectra : int
-                #      How many spectra to add up (default 1)
-                #  spacing_for_spectra_resampling : double
-                #      Spacing factor for spectra addition
-                #  su : OpenSwath_Scores_Usage
-                #      Which scores to actually compute
-                #  spectrum_addition_method : libcpp_string
-                #      Method to use for spectrum addition (valid: "simple", "resample")
+                #  :param rt_normalization_factor: Specifies the range of the normalized retention time space
+                #  :param add_up_spectra: How many spectra to add up (default 1)
+                #  :param spacing_for_spectra_resampling: Spacing factor for spectra addition
+                #  :param su: Which scores to actually compute
+                #  :param spectrum_addition_method: Method to use for spectrum addition (valid: "simple", "resample")
 
         # void calculateChromatographicScores(
         #      OpenSwath::IMRMFeature* imrmfeature,

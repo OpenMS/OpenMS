@@ -64,7 +64,7 @@ using namespace std;
     <table>
         <tr>
             <td ALIGN = "center" BGCOLOR="#EBEBEB"> potential predecessor tools </td>
-            <td VALIGN="middle" ROWSPAN=3> \f$ \longrightarrow \f$ IDMapper \f$ \longrightarrow \f$</td>
+            <td VALIGN="middle" ROWSPAN=3> &rarr; IDMapper &rarr;</td>
             <td ALIGN = "center" BGCOLOR="#EBEBEB"> potential successor tools </td>
         </tr>
         <tr>

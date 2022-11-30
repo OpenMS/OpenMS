@@ -71,10 +71,16 @@ namespace OpenMS
     FLASHDeconvAlgorithm(const FLASHDeconvAlgorithm& ) = default;
 
     /// move constructor
-    FLASHDeconvAlgorithm(FLASHDeconvAlgorithm&& other) = default;
+    FLASHDeconvAlgorithm(FLASHDeconvAlgorithm&& other) noexcept = default;
 
     /// assignment operator
     FLASHDeconvAlgorithm& operator=(const FLASHDeconvAlgorithm& fd) = default;
+
+    /// move assignment operator
+    FLASHDeconvAlgorithm& operator=(FLASHDeconvAlgorithm&& fd) noexcept = default;
+
+    /// destructor
+    ~FLASHDeconvAlgorithm() = default;
 
     /**
       @brief main deconvolution function that generates the deconvolved target and decoy spectrum based on the original spectrum.
@@ -149,7 +155,7 @@ namespace OpenMS
 
 
     /// set decoy_flag_
-    void setDecoyFlag(PeakGroup::decoyFlag flag, FLASHDeconvAlgorithm& targetFD);
+    void setDecoyFlag(PeakGroup::DecoyFlag flag, FLASHDeconvAlgorithm& targetFD);
 
   protected:
     void updateMembers_() override;
@@ -194,8 +200,8 @@ namespace OpenMS
 
     FLASHDeconvAlgorithm* targetFD_;
 
-    /// PeakGroup::decoyFlag values
-    PeakGroup::decoyFlag decoy_flag_ = PeakGroup::decoyFlag::target;
+    /// PeakGroup::DecoyFlag values
+    PeakGroup::DecoyFlag decoy_flag_ = PeakGroup::DecoyFlag::target;
 
     /// precalculated averagine distributions for fast averagine generation
     FLASHDeconvHelperStructs::PrecalculatedAveragine avg_;
@@ -210,7 +216,7 @@ namespace OpenMS
     /// mass bins that are previsouly deconvolved and excluded for decoy mass generation
     boost::dynamic_bitset<> previously_deconved_mass_bins_for_decoy;
     std::vector<double> previously_deconved_mono_masses_for_decoy;
-    std::unordered_set<float> excluded_mzs_;
+    std::unordered_set<int> excluded_integer_mzs_;
 
     /// Stores log mz peaks
     std::vector<LogMzPeak> log_mz_peaks_;
@@ -309,7 +315,7 @@ namespace OpenMS
     /// function for peak group scoring and filtering
     void scoreAndFilterPeakGroups_();
 
-    void removeHarmonicsPeakGroups_(DeconvolvedSpectrum& dpec);
+    void removeChargeErrorPeakGroups_(DeconvolvedSpectrum& dpec);
 
     /// filter out overlapping masses
     void removeOverlappingPeakGroups_(DeconvolvedSpectrum& dpec, const double tol, const int iso_length = 1);

@@ -85,10 +85,10 @@ namespace OpenMS
     return abs(average_mass / p.abs_charge + FLASHDeconvHelperStructs::getChargeMass(p.is_positive) - p.mz) / p.mz * 1e6;
   }
 
-  double PeakGroup::getAbsDaError_(const LogMzPeak& p) const
+  double PeakGroup::getAbsDaError_(LogMzPeak& p)
   {
     double average_mass = monoisotopic_mass_ + p.isotopeIndex * iso_da_distance_;
-    return abs(average_mass - p.mass);
+    return abs(average_mass - p.getUnchargedMass());
   }
 
   void PeakGroup::updateIsotopeCosineSNRAvgErrorAndQScore(const FLASHDeconvHelperStructs::PrecalculatedAveragine& avg, double min_cos)
@@ -176,12 +176,19 @@ namespace OpenMS
   }
 
   void PeakGroup::recruitAllPeaksInSpectrum(const MSSpectrum& spec, const double tol, const FLASHDeconvHelperStructs::PrecalculatedAveragine& avg, double mono_mass,
-                                            const std::unordered_set<float>& exclude_mzs)
+                                            const std::unordered_set<int>& excluded_integer_mzs_, int charge_offset, double charge_multiple, int isotope_off)
   {
     if (mono_mass < 0)
     {
       return;
     }
+
+    mono_mass = (mono_mass + isotope_off * iso_da_distance_) * charge_multiple * (charge_offset + getRepAbsCharge()) / getRepAbsCharge();
+    max_abs_charge_ += charge_offset;
+    min_abs_charge_ += charge_offset;
+    max_abs_charge_ *= charge_multiple;
+    min_abs_charge_ *= charge_multiple;
+    monoisotopic_mass_ = mono_mass;
 
     int iso_margin = 3;
     int max_isotope = avg.getLastIndex(mono_mass) + iso_margin;
@@ -189,6 +196,7 @@ namespace OpenMS
     min_isotope=std::max(0, min_isotope);
 
     clear();
+    noisy_peaks_.clear();
     reserve((max_isotope) * (max_abs_charge_ - min_abs_charge_ + 1) * 2);
     std::vector<LogMzPeak>().swap(noisy_peaks_);
     noisy_peaks_.reserve(max_isotope * (max_abs_charge_ - min_abs_charge_ + 1) * 2);
@@ -198,6 +206,10 @@ namespace OpenMS
     int max_sig_charge = 0;
     float max_sig = 0;
     int noise_start = 0;
+
+    per_charge_noise_pwr_ = std::vector<float>(1 + max_abs_charge_, .0);
+    per_charge_signal_pwr_ = std::vector<float>(1 + max_abs_charge_, .0);
+    per_charge_int_ = std::vector<float>(1 + max_abs_charge_, .0);
 
     for (int c = max_abs_charge_; c >= min_abs_charge_; c--)
     {
@@ -228,7 +240,7 @@ namespace OpenMS
           break;
         }
 
-        if(exclude_mzs.size()>0 && exclude_mzs.find(pmz) != exclude_mzs.end())
+        if(excluded_integer_mzs_.size()>0 && excluded_integer_mzs_.find((int)pmz) != excluded_integer_mzs_.end())
         {
           continue;
         }
@@ -481,18 +493,7 @@ namespace OpenMS
     {
       return;
     }
-    if (per_charge_noise_pwr_.empty())
-    {
-      per_charge_noise_pwr_ = std::vector<float>(1 + max_abs_charge_, .0);
-    }
-    if (per_charge_signal_pwr_.empty())
-    {
-      per_charge_signal_pwr_ = std::vector<float>(1 + max_abs_charge_, .0);
-    }
-    if (per_charge_int_.empty())
-    {
-      per_charge_int_ = std::vector<float>(1 + max_abs_charge_, .0);
-    }
+
     per_charge_int_[abs_charge] = intensity;
     per_charge_noise_pwr_[abs_charge] = noise_pwr;
     per_charge_signal_pwr_[abs_charge] = signal_pwr;
@@ -652,11 +653,11 @@ namespace OpenMS
     snr_ = t_denom <= 0 ? .0 : (t_nom / t_denom);
   }
 
-  float PeakGroup::getQvalue(PeakGroup::decoyFlag flag) const
+  float PeakGroup::getQvalue(PeakGroup::DecoyFlag flag) const
   {
-    if(flag == PeakGroup::decoyFlag::target)
+    if(flag == PeakGroup::DecoyFlag::target)
     {
-      return std::min(1.0f, getQvalue(PeakGroup::decoyFlag::charge_decoy) + getQvalue(PeakGroup::decoyFlag::noise_decoy) + getQvalue(PeakGroup::decoyFlag::isotope_decoy));
+      return std::min(1.0f, getQvalue(PeakGroup::DecoyFlag::charge_decoy) + getQvalue(PeakGroup::DecoyFlag::noise_decoy) + getQvalue(PeakGroup::DecoyFlag::isotope_decoy));
     }
     if(qvalue_.find(flag) == qvalue_.end())
     {
@@ -713,12 +714,12 @@ namespace OpenMS
     return is_positive_;
   }
 
-  PeakGroup::decoyFlag PeakGroup::getDecoyFlag() const
+  PeakGroup::DecoyFlag PeakGroup::getDecoyFlag() const
   {
     return decoy_flag_;
   }
 
-  void PeakGroup::setDecoyFlag(PeakGroup::decoyFlag flag)
+  void PeakGroup::setDecoyFlag(const PeakGroup::DecoyFlag flag)
   {
     decoy_flag_ = flag;
   }
@@ -733,12 +734,12 @@ namespace OpenMS
     return iso_da_distance_;
   }
 
-  void PeakGroup::setIndex(const int i)
+  void PeakGroup::setIndex(const uint i)
   {
     index_ = i;
   }
 
-  int PeakGroup::getIndex() const
+  uint PeakGroup::getIndex() const
   {
     return index_;
   }
@@ -808,7 +809,7 @@ namespace OpenMS
     std::sort(logMzpeaks_.begin(), logMzpeaks_.end());
   }
 
-  void PeakGroup::setQvalue(float q, PeakGroup::decoyFlag flag)
+  void PeakGroup::setQvalue(float q, PeakGroup::DecoyFlag flag)
   {
     qvalue_[flag] = q;
   }
@@ -824,43 +825,8 @@ namespace OpenMS
     std::vector<float>().swap(per_isotope_int_);
   }
 
-  void PeakGroup::calculateDLMatrices(int charge_range, int iso_range, PrecalculatedAveragine& avg)
+  void PeakGroup::calculateDLMatrices(int charge_range, int iso_range, const PrecalculatedAveragine& avg)
   {
-    int factor = 5;
-    int iso_index_diff = -avg.getApexIndex(getMonoMass()) + (int)(iso_range / 2);
-    auto max_charge_iter = std::max_element(per_charge_int_.begin(), per_charge_int_.end());
-    int charge_index_diff = -std::distance(per_charge_int_.begin(), max_charge_iter) + (int)(charge_range / 2);
-    auto iso = avg.get(getMonoMass());
-    Matrix<float> sig, sigtol;
-    sig.resize(charge_range, iso_range * factor, .0);
-    sigtol.resize(charge_range, iso_range, .0);
-
-    for (auto& p : logMzpeaks_)
-    {
-      int iso_index = p.isotopeIndex + iso_index_diff;
-      int charge_index = p.abs_charge + charge_index_diff;
-      if (iso_index < 0 || iso_index >= iso_range)
-      {
-        continue;
-      }
-      if (charge_index < 0 || charge_index >= charge_range)
-      {
-        continue;
-      }
-
-      if (p.intensity < sig.getValue(charge_index, iso_index))
-      {
-        continue;
-      }
-      sig.setValue(charge_index, iso_index, p.intensity);
-      sigtol.setValue(charge_index, iso_index, getAbsDaError_(p));
-    }
-
-
-
-
-
-    /*
     int iso_index_diff = -avg.getApexIndex(getMonoMass()) + (int)(iso_range / 2);
     auto max_charge_iter = std::max_element(per_charge_int_.begin(), per_charge_int_.end());
     int charge_index_diff = -std::distance(per_charge_int_.begin(), max_charge_iter) + (int)(charge_range / 2);
@@ -953,7 +919,6 @@ namespace OpenMS
     dl_matrices_.push_back(sig);
     dl_matrices_.push_back(noise);
     dl_matrices_.push_back(sigtol);
-     */
   }
 
   std::vector<FLASHDeconvHelperStructs::LogMzPeak>::iterator PeakGroup::getNoisePeakBegin() noexcept

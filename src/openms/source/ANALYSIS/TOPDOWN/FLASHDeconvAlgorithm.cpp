@@ -90,7 +90,7 @@ namespace OpenMS
     iso_da_distance_ = decoy_flag_ != PeakGroup::noise_decoy ? Constants::ISOTOPE_MASSDIFF_55K_U : Constants::ISOTOPE_MASSDIFF_55K_U * sqrt(7.0);
     previously_deconved_mono_masses_for_decoy.clear();
     previously_deconved_mass_bins_for_decoy.clear();
-    excluded_mzs_.clear();
+    excluded_integer_mzs_.clear();
 
     if (decoy_flag_ == PeakGroup::charge_decoy) // charge decoy
     {
@@ -124,13 +124,14 @@ namespace OpenMS
       {
         for (auto& p : pg)
         {
-          excluded_mzs_.insert(p.mz);
+          excluded_integer_mzs_.insert((int)p.mz);
         }
       }
     }
 
     ms_level_ = spec.getMSLevel();
-    deconvolved_spectrum_ = DeconvolvedSpectrum(spec, scan_number);
+    deconvolved_spectrum_ = DeconvolvedSpectrum(scan_number);
+    deconvolved_spectrum_.setOriginalSpectrum(spec);
     write_detail_ = write_detail;
     // for MSn (n>1) register precursor peak and peak group.
     registerPrecursor_(survey_scans, precursor_map_for_FLASHIda);
@@ -266,7 +267,7 @@ namespace OpenMS
       {
         break;
       }
-      if (excluded_mzs_.size() > 0 && excluded_mzs_.find((float)peak.getMZ()) != excluded_mzs_.end())
+      if (excluded_integer_mzs_.size() > 0 && excluded_integer_mzs_.find((int)peak.getMZ()) != excluded_integer_mzs_.end())
       {
         continue;
       }
@@ -635,7 +636,7 @@ namespace OpenMS
                 // max_intensity_abs_charge off by one here
                 if (!artifact)
                 {
-                  for (int coff = 1; coff <= 3 && !artifact; coff++)
+                  for (int coff = 1; coff <= 4 && !artifact; coff++)
                   {
                     for (int f = -1; f <= 1 && !artifact; f += 2)
                     {
@@ -737,7 +738,7 @@ namespace OpenMS
       std::vector<double> total_harmonic_intensity(harmonic_charges_.size(), .0);
 
       // scan through charge - from mass to m/z
-      for (int j = per_mass_abs_charge_ranges.getValue(0, mass_bin_index); j <= per_mass_abs_charge_ranges.getValue(1, mass_bin_index); j++)
+      for (size_t j = per_mass_abs_charge_ranges.getValue(0, mass_bin_index); j <= per_mass_abs_charge_ranges.getValue(1, mass_bin_index); j++)
       {
         int max_peak_index = -1;
         int abs_charge = j + 1;
@@ -1007,7 +1008,7 @@ namespace OpenMS
     return deconvolved_spectrum_;
   }
 
-  void FLASHDeconvAlgorithm::setDecoyFlag(PeakGroup::decoyFlag flag, FLASHDeconvAlgorithm& targetFD)
+  void FLASHDeconvAlgorithm::setDecoyFlag(PeakGroup::DecoyFlag flag, FLASHDeconvAlgorithm& targetFD)
   {
     decoy_flag_ = flag;
     targetFD_ = &targetFD;
@@ -1144,7 +1145,7 @@ namespace OpenMS
           continue;
         }
 
-        peak_group.recruitAllPeaksInSpectrum(deconvolved_spectrum_.getOriginalSpectrum(), tol, avg_, peak_group.getMonoMass() + offset * iso_da_distance_, excluded_mzs_);
+        peak_group.recruitAllPeaksInSpectrum(deconvolved_spectrum_.getOriginalSpectrum(), tol, avg_, peak_group.getMonoMass() + offset * iso_da_distance_, excluded_integer_mzs_);
 
         if (peak_group.empty() || peak_group.getMonoMass() < current_min_mass_ || peak_group.getMonoMass() > current_max_mass_)
         {
@@ -1156,37 +1157,6 @@ namespace OpenMS
         if (std::get<0>(cr) > low_charge_ && (std::get<1>(cr) - std::get<0>(cr)) < min_support_peak_count_ - 1)
         {
           continue;
-        }
-
-        // first check if it is targeted or excluded
-        if (excluded_masses_.size() > 0)
-        {
-          double delta = peak_group.getMonoMass() * tolerance_[ms_level_ - 1] * 2;
-          auto upper = std::upper_bound(excluded_masses_.begin(), excluded_masses_.end(), peak_group.getMonoMass() + delta);
-          bool exclude = false;
-          while (!exclude)
-          {
-            if (upper != excluded_masses_.end())
-            {
-              if (std::abs(*upper - peak_group.getMonoMass()) < delta)
-              {
-                exclude = true;
-              }
-              if (peak_group.getMonoMass() - *upper > delta)
-              {
-                break;
-              }
-            }
-            if (upper == excluded_masses_.begin())
-            {
-              break;
-            }
-            --upper;
-          }
-          if (exclude)
-          {
-            continue;
-          }
         }
 
         if (target_mono_masses_.size() > 0)
@@ -1273,16 +1243,10 @@ namespace OpenMS
       filtered_peak_groups.insert(filtered_peak_groups.end(), filtered_peak_groups_private.begin(), filtered_peak_groups_private.end());
     }
     deconvolved_spectrum_.setPeakGroups(filtered_peak_groups);
-
-    if (!std::is_sorted(deconvolved_spectrum_.begin(), deconvolved_spectrum_.end()))
-    {
-      deconvolved_spectrum_.sort();
-    }
+    deconvolved_spectrum_.sort();
 
     removeOverlappingPeakGroups_(deconvolved_spectrum_, tolerance_[ms_level_ - 1], 1);
-    removeHarmonicsPeakGroups_(deconvolved_spectrum_); //
-
-
+    removeChargeErrorPeakGroups_(deconvolved_spectrum_); //
 
   }
 
@@ -1510,9 +1474,9 @@ namespace OpenMS
     return n / sqrt(a_norm);
   }
 
-  void FLASHDeconvAlgorithm::removeHarmonicsPeakGroups_(DeconvolvedSpectrum& dpec)
+  void FLASHDeconvAlgorithm::removeChargeErrorPeakGroups_(DeconvolvedSpectrum& dpec)
   {
-    std::map<double, std::set<int>> peak_to_pgs;
+    std::map<float, std::set<int>> peak_to_pgs;
     std::set<int> to_remove_pgs;
     std::vector<PeakGroup> filtered_pg_vec;
     filtered_pg_vec.reserve(dpec.size());
@@ -1529,6 +1493,7 @@ namespace OpenMS
     for (auto& e : peak_to_pgs)
     {
       auto pg_is = e.second;
+      auto pmz = e.first;
       if (pg_is.size() == 1)
       {
         continue;
@@ -1537,36 +1502,81 @@ namespace OpenMS
       for (auto i : pg_is)
       {
         double mass1 = dpec[i].getMonoMass();
+        int repz1 = (int)round(mass1/pmz);
         double snr1 = dpec[i].getSNR();
         for (auto j : pg_is)
         {
+          if(i==j)
+          {
+            continue;
+          }
           double mass2 = dpec[j].getMonoMass();
+          int repz2 = (int)round(mass2/pmz);
           double snr2 = dpec[j].getSNR();
-          if (mass1 <= mass2)
+          if (repz1 == repz2 || snr1 <= snr2)
           {
             continue;
           }
 
-          bool harmonic = false;
-          for (int hc = 2; mass2 * (hc - 1) < mass1 && hc < 100; hc++) // 100 just in case
+          bool charge_error = false;
+
+          for (int hc = 2; hc < 20; hc++)
           {
-            if (abs(hc - mass1 / mass2) < 0.001)
+            if (repz2 * hc == repz1 && abs(mass2 * hc - mass1) < 2.1 * iso_da_distance_)
             {
-              harmonic = true;
+              charge_error = true;
+              break;
+            }
+            if (repz1 * hc == repz2 && abs(mass2 / hc - mass1) < 2.1 * iso_da_distance_)
+            {
+              charge_error = true;
               break;
             }
           }
 
-          if (harmonic)
+          if(!charge_error)
           {
-            if (snr1 < snr2)
+            if(abs(repz1 - repz2) <= 4 && abs(mass1 - mass2 / repz2 * repz1)  < 2.1 * iso_da_distance_)
             {
-              to_remove_pgs.insert(i);
+              charge_error = true;
             }
-            else
+          }
+
+          if (charge_error)
+          {
+            to_remove_pgs.insert(j);
+          }
+        }
+
+        // lastly check if it is excluded
+        if (excluded_masses_.size() > 0)
+        {
+          auto& peak_group = dpec[i];
+          double delta = peak_group.getMonoMass() * tolerance_[ms_level_ - 1] * 2;
+          auto upper = std::upper_bound(excluded_masses_.begin(), excluded_masses_.end(), peak_group.getMonoMass() + delta);
+          bool exclude = false;
+          while (!exclude)
+          {
+            if (upper != excluded_masses_.end())
             {
-              to_remove_pgs.insert(j);
+              if (std::abs(*upper - peak_group.getMonoMass()) < delta)
+              {
+                exclude = true;
+              }
+              if (peak_group.getMonoMass() - *upper > delta)
+              {
+                break;
+              }
             }
+            if (upper == excluded_masses_.begin())
+            {
+              break;
+            }
+            --upper;
+          }
+          if (exclude)
+          {
+            to_remove_pgs.insert(i);
           }
         }
       }
@@ -1596,12 +1606,11 @@ namespace OpenMS
     {
       if (i > 0)
       {
-        if (!dpec[i].isTargeted() && abs(dpec[i - 1].getMonoMass() - dpec[i].getMonoMass()) < 1e-3 && dpec[i - 1].getIntensity() >= dpec[i].getIntensity())
+        if (!dpec[i].isTargeted() && abs(dpec[i - 1].getMonoMass() - dpec[i].getMonoMass()) < 1e-3 && dpec[i - 1].getSNR() >= dpec[i].getSNR())
         {
           continue;
         }
       }
-
       filtered_pg_vec.push_back(dpec[i]);
     }
     dpec.setPeakGroups(filtered_pg_vec);

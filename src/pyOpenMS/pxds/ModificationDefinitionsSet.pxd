@@ -10,11 +10,11 @@ cdef extern from "<OpenMS/CHEMISTRY/ModificationDefinitionsSet.h>" namespace "Op
 
   cdef cppclass ModificationDefinitionsSet:
       # wrap-doc:
-        # Representation of a set of modification definitions
-        # -----
-        # This class enhances the modification definitions as defined in the
-        # class ModificationDefinition into a set of definitions. This is also
-        # e.g. used as input parameters in search engines.
+        #  Representation of a set of modification definitions
+        #  
+        #  This class enhances the modification definitions as defined in the
+        #  class ModificationDefinition into a set of definitions. This is also
+        #  e.g. used as input parameters in search engines.
 
     ModificationDefinitionsSet() nogil except +
     ModificationDefinitionsSet(ModificationDefinitionsSet &) nogil except +

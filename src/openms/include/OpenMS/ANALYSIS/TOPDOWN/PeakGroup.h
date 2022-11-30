@@ -55,7 +55,7 @@ namespace OpenMS
   public:
 
     /// decoy flag. This flag specifies if a PeakGroup is a target, charge decoy, noise decoy, or isotope decoy.
-    enum decoyFlag
+    enum DecoyFlag
     {
       target = 0,
       charge_decoy,
@@ -113,7 +113,7 @@ namespace OpenMS
      * @param mono_mass target monoisotopic mass
      * @param exclude_mz_charge excluded mz - charge pairs in spec. Only used for decoy mass generation.
      */
-    void recruitAllPeaksInSpectrum(const MSSpectrum& spec, const double tol, const FLASHDeconvHelperStructs::PrecalculatedAveragine& avg,  double mono_mass, const std::unordered_set<float>& excluded_mzs);
+    void recruitAllPeaksInSpectrum(const MSSpectrum& spec, const double tol, const FLASHDeconvHelperStructs::PrecalculatedAveragine& avg,  double mono_mass, const std::unordered_set<int>& excluded_integer_mzs_, int charge_offset = 0, double charge_multiple = 1.0, int isotope_off = 0);
 
     /// determine is an mz is a signal of this peakgroup. Input tol is ppm tolerance (e.g., 10.0 for 10ppm tolerance). Assume logMzPeaks are sorted.
     bool isSignalMZ(const double mz, const double tol) const;
@@ -206,16 +206,16 @@ namespace OpenMS
     bool isTargeted() const;
 
     /// get the decoy flag of this
-    PeakGroup::decoyFlag getDecoyFlag() const;
+    PeakGroup::DecoyFlag getDecoyFlag() const;
 
     /// for this PeakGroup, specify the decoy flag.
-    void setDecoyFlag(PeakGroup::decoyFlag index);
+    void setDecoyFlag(const PeakGroup::DecoyFlag index);
 
     /// get calculated qvalue
-    float getQvalue(PeakGroup::decoyFlag flag = PeakGroup::decoyFlag::target) const;
+    float getQvalue(PeakGroup::DecoyFlag flag = PeakGroup::DecoyFlag::target) const;
 
     /// set qvalue.
-    void setQvalue(const float q, PeakGroup::decoyFlag flag);
+    void setQvalue(const float q, PeakGroup::DecoyFlag flag);
 
     /// set distance between consecutive isotopes
     void setIsotopeDaDistance(const double d);
@@ -224,10 +224,10 @@ namespace OpenMS
     double getIsotopeDaDistance() const;
 
     /// set index of this peak group
-    void setIndex(const int i);
+    void setIndex(const uint i);
 
     /// get index of this peak group
-    int getIndex() const;
+    uint getIndex() const;
 
     /**
      * @brief calculate the matrices for DL training and scoring
@@ -235,7 +235,7 @@ namespace OpenMS
      * @param iso_range isotope range to be considered, corresponding to the column number of the matrix
      * @param avg averagine to normalize the observed isotope pattern
      */
-    void calculateDLMatrices(int charge_range, int iso_range, PrecalculatedAveragine& avg);
+    void calculateDLMatrices(int charge_range, int iso_range, const PrecalculatedAveragine& avg);
 
     /// get the calcualted DL matrix
     Matrix<float> getDLMatrix(int index) const;
@@ -279,7 +279,7 @@ namespace OpenMS
     /// get ppm error of a logMzPeak
     double getAbsPPMError_(const LogMzPeak& p) const;
     /// get Da error of a logMzPeak from the closest isotope
-    double getAbsDaError_(const LogMzPeak& p) const;
+    double getAbsDaError_(LogMzPeak& p);
     /// using signal and total (signal + noise) power, update SNR value
     void updateSNR_();
 
@@ -301,7 +301,7 @@ namespace OpenMS
     /// charge range
     int min_abs_charge_ = 0, max_abs_charge_ = -1;
     /// peak group index
-    int index_ = 0;
+    uint index_ = 0;
     /// scan number
     int scan_number_;
     /// is positive or not
@@ -312,7 +312,7 @@ namespace OpenMS
     double monoisotopic_mass_ = -1.0;
     double intensity_;// total intensity
     /// index to specify if this peak_group is a target (0), an isotope decoy (1), a noise (2), or a charge decoy (3)
-    PeakGroup::decoyFlag decoy_flag_ = target;
+    PeakGroup::DecoyFlag decoy_flag_ = target;
 
     /// distance between consecutive isotopes. Can be different for decoys
     double iso_da_distance_ = Constants::ISOTOPE_MASSDIFF_55K_U;
@@ -324,6 +324,6 @@ namespace OpenMS
     float avg_ppm_error_ = 0;
     float snr_ = 0;
     /// qvalues with different decoy flags
-    std::map<PeakGroup::decoyFlag, float> qvalue_;
+    std::map<PeakGroup::DecoyFlag, float> qvalue_;
   };
 }
