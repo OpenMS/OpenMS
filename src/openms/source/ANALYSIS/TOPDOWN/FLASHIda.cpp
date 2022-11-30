@@ -47,7 +47,7 @@ namespace OpenMS
   inline const double min_isolation_window_half_ = .6;
   /// maximum isolation window width divided by two
   inline const double max_isolation_window_half_ = 3.0;
-  // constructor
+  /// constructor
   FLASHIda::FLASHIda(char* arg)
   {
 #ifdef _OPENMP
@@ -174,7 +174,6 @@ namespace OpenMS
       {
         String line;
         double mass;
-        double mz;
         while (std::getline(instream, line))
         {
           if (line.hasPrefix("rt"))
@@ -189,7 +188,7 @@ namespace OpenMS
             results.push_back(str);
           }
           mass = atof(results[5].c_str());
-          mz = (atof(results[1].c_str()) + atof(results[2].c_str())) / 2.0;
+
           if (targeting_mode_ > 0)
           {
             if (target_mass_rt_map_.find(mass) == target_mass_rt_map_.end())

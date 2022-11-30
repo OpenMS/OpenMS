@@ -309,7 +309,7 @@ namespace OpenMS
     /// function for peak group scoring and filtering
     void scoreAndFilterPeakGroups_();
 
-    void removeHarmonicsPeakGroups_(DeconvolvedSpectrum& dpec);
+    void removeChargeErrorPeakGroups_(DeconvolvedSpectrum& dpec);
 
     /// filter out overlapping masses
     void removeOverlappingPeakGroups_(DeconvolvedSpectrum& dpec, const double tol, const int iso_length = 1);
