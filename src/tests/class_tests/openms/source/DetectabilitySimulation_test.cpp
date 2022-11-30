@@ -46,6 +46,10 @@ using namespace std;
 
 START_TEST(DetectabilitySimulation, "$Id$")
 
+// different versions of the SVM lib yield slightly different results
+TOLERANCE_RELATIVE(1.1)
+TOLERANCE_ABSOLUTE(0.1)
+
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
@@ -141,7 +145,7 @@ START_SECTION((void filterDetectability(SimTypes::FeatureMapSim & features)))
   detect_svm.filterDetectability(svm_features);
 
   TEST_EQUAL(svm_features.size(), 2)
-  TEST_EQUAL(svm_features[0].getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), "TVQMENQFVAFVDK")
+  TEST_EQUAL(svm_features[0].getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), "TVQMENQFVAFVDK")  
   TEST_REAL_SIMILAR(svm_features[0].getMetaValue("detectability"), 0.869237485950867)
   TEST_EQUAL(svm_features[1].getPeptideIdentifications()[0].getHits()[0].getSequence().toString(), "AAAAHTKLRTTIPPEFG")
   TEST_REAL_SIMILAR(svm_features[1].getMetaValue("detectability"), 0.723545391996237)

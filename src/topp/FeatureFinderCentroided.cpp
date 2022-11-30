@@ -61,7 +61,7 @@ using namespace std;
  <table>
   <tr>
    <td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. predecessor tools </td>
-   <td VALIGN="middle" ROWSPAN=3> \f$ \longrightarrow \f$ FeatureFinderCentroided \f$ \longrightarrow \f$</td>
+   <td VALIGN="middle" ROWSPAN=3> &rarr; FeatureFinderCentroided &rarr;</td>
    <td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. successor tools </td>
   </tr>
   <tr>

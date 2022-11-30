@@ -665,7 +665,7 @@ namespace OpenMS
     {
       vector<IdentificationData::ObservationMatchRef> best_matches =
           id_data.getBestMatchPerObservation(score_ref);
-      for (auto match_ref : best_matches)
+      for (const auto& match_ref : best_matches)
       {
         handleObservationMatch_(match_ref, score_ref, target_scores, decoy_scores,
                           molecule_to_decoy, match_to_score);
