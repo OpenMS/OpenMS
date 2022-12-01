@@ -512,7 +512,7 @@ namespace OpenMS
     /// isotope cosine calculation
     int offset = 0;
     float isotope_score =
-        FLASHDeconvAlgorithm::getIsotopeCosineAndDetermineIsotopeIndex(fg.getMonoisotopicMass(), fg.getIsotopeIntensities(), offset, iso_model_, -1, 1);
+        FLASHDeconvAlgorithm::getIsotopeCosineAndDetermineIsotopeIndex(fg.getMonoisotopicMass(), fg.getIsotopeIntensities(), offset, iso_model_, -1);
     fg.setIsotopeCosine(isotope_score);
     if ( isNotTarget && isotope_score < min_iso_score )
     {
