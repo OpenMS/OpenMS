@@ -389,14 +389,11 @@ int main(int argc, char** argv)
 
   DOCME(AScore);
   DOCME(AccurateMassSearchEngine);
-  //DOCME(BaseLabeler); //TODO: causes compile error on Mac. DOCME2 is tested for this class below.
-  //DOCME(BaseModel);  //TODO: causes compile error on Mac. DOCME2 is tested for this class below.
   DOCME(BernNorm);
   DOCME(BiGaussFitter1D);
   DOCME(BiGaussModel);
   DOCME(BinnedSharedPeakCount);
   DOCME(BinnedSpectralContrastAngle);
-  //DOCME(BinnedSpectrumCompareFunctor);  //TODO: causes compile error on Mac. DOCME2 is tested for this class below.
   DOCME(BinnedSumAgreeingIntensities);
   DOCME(ComplementFilter);
   DOCME(ComplementMarker);
@@ -420,7 +417,6 @@ int main(int argc, char** argv)
   DOCME(FalseDiscoveryRate);
   DOCME(FeatureDeconvolution);
   DOCME(FeatureDistance);
-  //DOCME(FeatureFinderAlgorithm);  //TODO: causes compile error on Mac
   DOCME(FeatureFinderAlgorithmMetaboIdent);
   DOCME(FeatureFindingMetabo);
   DOCME(FeatureGroupingAlgorithmLabeled);
@@ -473,7 +469,6 @@ int main(int argc, char** argv)
   DOCME(QTClusterFinder);
   DOCME(SavitzkyGolayFilter);
   DOCME(LowessSmoothing);
-  //DOCME(SignalToNoiseEstimator);  //TODO: causes compile error on Mac
   DOCME(SimplePairFinder);
   DOCME(SimpleSVM);
   DOCME(SONARScoring);
@@ -491,7 +486,6 @@ int main(int argc, char** argv)
   DOCME(TICFilter);
   DOCME(TheoreticalSpectrumGenerator);
   DOCME(ThresholdMower);
-  //DOCME(TraceFitter);  //TODO: causes compile error on Mac
   DOCME(TransitionTSVFile);
   DOCME(TwoDOptimization);
   DOCME(WindowMower);
@@ -535,16 +529,19 @@ int main(int argc, char** argv)
   DOCME2(ConsensusIDAlgorithmSimilarity, (ConsensusIDAlgorithmBest()));
   DOCME2(FeatureFinderAlgorithmIsotopeWavelet, (FeatureFinderAlgorithmIsotopeWavelet()));
   DOCME2(FeatureFinderAlgorithmPicked, (FeatureFinderAlgorithmPicked()));
-  DOCME2(FeatureFinderAlgorithmMRM, (FeatureFinderAlgorithmMRM()))
+  DOCME2(FeatureFinderAlgorithmMRM, (FeatureFinderAlgorithmMRM()));
+  DOCME2(FeatureFinderAlgorithm, (FeatureFinderAlgorithmMRM())); //FeatureFinderAlgorithm is a base class, get parameters from subclass FeatureFinderAlgorithmMRM
   DOCME2(ProductModel, ProductModel<2>());
   DOCME2(SignalToNoiseEstimatorMeanIterative, SignalToNoiseEstimatorMeanIterative<>());
   DOCME2(SignalToNoiseEstimatorMedian, SignalToNoiseEstimatorMedian<>());
+  DOCME2(SignalToNoiseEstimator, SignalToNoiseEstimatorMedian<>()); //SignalToNoiseEstimator is a base class, get parameters from subclass SignalToNoiseEstimatorMedian
   DOCME2(IonizationSimulation, IonizationSimulation(SimTypes::MutableSimRandomNumberGeneratorPtr()));
   DOCME2(RawMSSignalSimulation, RawMSSignalSimulation(SimTypes::MutableSimRandomNumberGeneratorPtr()));
   DOCME2(RawTandemMSSignalSimulation, RawTandemMSSignalSimulation(SimTypes::MutableSimRandomNumberGeneratorPtr()));
   DOCME2(RTSimulation, RTSimulation(SimTypes::MutableSimRandomNumberGeneratorPtr()));
   DOCME2(GaussTraceFitter, (GaussTraceFitter()));
   DOCME2(EGHTraceFitter, (EGHTraceFitter()));
+  DOCME2(TraceFitter, (GaussTraceFitter())); //TraceFitter is an abstract base class, get parameters from subclass GaussTraceFitter
   DOCME2(BaseLabeler, (ICPLLabeler())); //BaseLabeler is an abstract base class, get parameters from subclass ICPLLabeler
   DOCME2(BaseModel, (EGHModel())); //BaseModel is an abstract base class, get parameters from subclass EGHModel
   DOCME2(BinnedSpectrumCompareFunctor, (BinnedSharedPeakCount())); //BaseModel is a base class, get parameters from subclass BinnedSharedPeakCount
@@ -557,7 +554,7 @@ int main(int argc, char** argv)
   DOCME2(TOPPViewBase, TOPPViewBase(TOPPViewBase::TOOL_SCAN::SKIP_SCAN));
   DOCME(TOPPASBase);
 
-  //DOCME(PlotCanvas);  //TODO: causes compile error on Mac
+  DOCME2(PlotCanvas, Plot1DCanvas(Param()));
   DOCME2(Plot1DCanvas, Plot1DCanvas(Param()));
   DOCME2(Plot2DCanvas, Plot2DCanvas(Param()));
   DOCME2(Plot3DCanvas, Plot3DCanvas(Param()));
