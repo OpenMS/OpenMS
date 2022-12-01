@@ -83,9 +83,9 @@ END_SECTION
 
 ////////
 DeconvolvedSpectrum test_deconv_spec = DeconvolvedSpectrum(1);
-test_deconv_spec.setOriginalSpectrum(test_spec);
 START_SECTION((int getScanNumber() const))
 {
+  test_deconv_spec.setOriginalSpectrum(test_spec);
   int tmp_num = test_deconv_spec.getScanNumber();
   TEST_EQUAL(tmp_num, 1);
 }
@@ -149,10 +149,10 @@ START_SECTION((PeakGroup getPrecursorPeakGroup() const))
 {
   PeakGroup tmp_precursor_pgs = ms2_deconv_spec.getPrecursorPeakGroup();
 
-  TEST_EQUAL(tmp_precursor_pgs.size(), 67);
+  TEST_EQUAL(tmp_precursor_pgs.size(), 65);
   TOLERANCE_ABSOLUTE(5);
   TEST_REAL_SIMILAR(tmp_precursor_pgs.getMonoMass(), 13674.2798657377);
-  TEST_REAL_SIMILAR(tmp_precursor_pgs.getIntensity(), 236124.872070312);
+  TEST_REAL_SIMILAR(tmp_precursor_pgs.getIntensity(), 232085.069824219);
   TEST_EQUAL(tmp_precursor_pgs.getScanNumber(), 4);
 }
 END_SECTION
