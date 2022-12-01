@@ -139,7 +139,7 @@ macro(add_mac_app_bundle _name)
 
 		
 		## Notarization is only possible with Xcode/Appleclang 10, otherwise we just skip
-		if(NOT CMAKE_CXX_COMPILER_VERSION VERSION_LESS 10 AND "${PACKAGE_TYPE}" STREQUAL "dmg")
+		if(NOT CMAKE_CXX_COMPILER_VERSION VERSION_LESS 10 AND ("${PACKAGE_TYPE}" STREQUAL "dmg" OR "${PACKAGE_TYPE}" STREQUAL "pkg"))
 			## We also need an identity to sign with
 			if(DEFINED CPACK_BUNDLE_APPLE_CERT_APP)
 			## TODO try to find codesign to make sure the right exec is used (currently needs to be in path)
@@ -154,6 +154,7 @@ message('\${sign_out}')" COMPONENT Applications)
 execute_process(COMMAND codesign -dv \${CMAKE_INSTALL_PREFIX}/${_name}.app OUTPUT_VARIABLE sign_check_out ERROR_VARIABLE sign_check_out)
 message('\${sign_check_out}')" COMPONENT Applications)
 
+				if ("${PACKAGE_TYPE}" STREQUAL "dmg")
 				 install(CODE "
 execute_process(COMMAND ${OPENMS_HOST_DIRECTORY}/cmake/MacOSX/notarize_app.sh \${CMAKE_INSTALL_PREFIX}/${_name}.app de.openms.${_name} ${SIGNING_EMAIL} CODESIGNPW ${OPENMS_HOST_BINARY_DIRECTORY} OUTPUT_VARIABLE notarize_out ERROR_VARIABLE notarize_out)
 message('\${notarize_out}')" COMPONENT Applications)
@@ -161,6 +162,7 @@ message('\${notarize_out}')" COMPONENT Applications)
 				 install(CODE "
 execute_process(COMMAND spctl -a -v \${CMAKE_INSTALL_PREFIX}/${_name}.app OUTPUT_VARIABLE verify_out ERROR_VARIABLE verify_out)
 message('\${verify_out}')" COMPONENT Applications)
+				endif()
    
 			endif(DEFINED CPACK_BUNDLE_APPLE_CERT_APP)
 		endif()
