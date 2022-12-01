@@ -76,7 +76,7 @@ protected:
     fstream out_stream;
     out_stream.open(out, fstream::out);
 
-
+/*
     out_stream<<"RT(min)\tmz\n";
     for(auto& it : experiment)
     {
@@ -87,8 +87,8 @@ protected:
       out_stream<< it.getRT()/60<<"\t"<<it.getPrecursors()[0].getMZ()<<"\n";
 
 
-    }
-    /*
+    }*/
+
     for(auto& it : experiment)
     {
       if(it.empty() || it.getMSLevel() != 1)
@@ -105,7 +105,7 @@ protected:
         out_stream <<p.getMZ()<<"\t"<<p.getIntensity()<<"\n";
       }
     }
-*/
+
     out_stream.close();
 
     return EXECUTION_OK;
