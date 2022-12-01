@@ -71,13 +71,13 @@ namespace OpenMS
     FLASHDeconvAlgorithm(const FLASHDeconvAlgorithm& ) = default;
 
     /// move constructor
-    FLASHDeconvAlgorithm(FLASHDeconvAlgorithm&& other) noexcept = default;
+    FLASHDeconvAlgorithm(FLASHDeconvAlgorithm&& other) = default;
 
     /// assignment operator
     FLASHDeconvAlgorithm& operator=(const FLASHDeconvAlgorithm& fd) = default;
 
     /// move assignment operator
-    FLASHDeconvAlgorithm& operator=(FLASHDeconvAlgorithm&& fd) noexcept = default;
+    FLASHDeconvAlgorithm& operator=(FLASHDeconvAlgorithm&& fd) = default;
 
     /// destructor
     ~FLASHDeconvAlgorithm() = default;
