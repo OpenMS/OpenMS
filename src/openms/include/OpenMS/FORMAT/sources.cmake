@@ -36,8 +36,6 @@ ExperimentalDesignFile.h
 FASTAFile.h
 FeatureXMLFile.h
 FileHandler.h
-FLASHDeconvFeatureFile.h
-FLASHDeconvSpectrumFile.h
 GNPSMetaValueFile.h
 GNPSMGFFile.h
 GNPSQuantificationFile.h
