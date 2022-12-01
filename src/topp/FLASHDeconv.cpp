@@ -647,8 +647,8 @@ protected:
       {
 #pragma omp parallel sections default(none) shared(fd_charge_decoy, fd_noise_decoy, fd_iso_decoy, it, precursor_specs, scan_number, write_detail, precursor_map_for_real_time_acquisition)
         {
-#pragma omp section// default(none) shared(fd_charge_decoy, it, precursor_specs, scan_number, write_detail, precursor_map_for_real_time_acquisition)
-          fd_charge_decoy.performSpectrumDeconvolution(*it, precursor_specs, scan_number, write_detail, precursor_map_for_real_time_acquisition);
+#pragma omp section // default(none) shared(fd_charge_decoy, it, precursor_specs, scan_number, write_detail, precursor_map_for_real_time_acquisition)
+            fd_charge_decoy.performSpectrumDeconvolution(*it, precursor_specs, scan_number, write_detail, precursor_map_for_real_time_acquisition);
 #pragma omp section //default(none) shared(fd_noise_decoy, it, precursor_specs, scan_number, write_detail, precursor_map_for_real_time_acquisition)
           fd_noise_decoy.performSpectrumDeconvolution(*it, precursor_specs, scan_number, write_detail, precursor_map_for_real_time_acquisition);
 #pragma omp section //default(none) shared(fd_iso_decoy, it, precursor_specs, scan_number, write_detail, precursor_map_for_real_time_acquisition)

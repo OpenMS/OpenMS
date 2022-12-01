@@ -191,8 +191,9 @@ namespace OpenMS
     monoisotopic_mass_ = mono_mass;
 
     int iso_margin = 3;
-    int max_isotope = avg.getLastIndex(mono_mass) + iso_margin;
-    int min_isotope = avg.getApexIndex(mono_mass) - avg.getLeftCountFromApex(mono_mass) - iso_margin;
+    int max_isotope = avg.getLastIndex(mono_mass);
+    int apex_isotope =  avg.getApexIndex(mono_mass) ;
+    int min_isotope = apex_isotope - avg.getLeftCountFromApex(mono_mass) - iso_margin;
     min_isotope=std::max(0, min_isotope);
 
     clear();
@@ -250,7 +251,7 @@ namespace OpenMS
           continue;
         }
 
-        if (iso_index <= max_isotope - iso_margin && abs(pmz - cmz - iso_index * iso_delta) <= pmz * tol)
+        if (iso_index <= max_isotope && abs(pmz - cmz - iso_index * iso_delta) <= pmz * tol)
         {
           auto p = LogMzPeak(spec[index], is_positive_);
           p.isotopeIndex = iso_index;
@@ -283,7 +284,7 @@ namespace OpenMS
         for (; noise_start < noisy_peaks_.size(); noise_start++)
         {
           auto& p = noisy_peaks_[noise_start];
-          if (p.isotopeIndex < min_isotope - 1 || p.isotopeIndex > max_isotope - iso_margin)
+          if (p.isotopeIndex < min_isotope - 1 || p.isotopeIndex > max_isotope)
           {
             continue;
           }
@@ -445,6 +446,7 @@ namespace OpenMS
       }
 
       per_isotope_int_[p.isotopeIndex] += p.intensity;
+      //per_isotope_int_[p.isotopeIndex] = std::max(per_isotope_int_[p.isotopeIndex], p.intensity);
       nominator += pi * (p.getUnchargedMass() - p.isotopeIndex * iso_da_distance_);
       intensity_ += pi;
     }
