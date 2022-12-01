@@ -57,7 +57,7 @@ using namespace std;
   <table>
   <tr>
   <td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. predecessor tools </td>
-  <td VALIGN="middle" ROWSPAN=3> \f$ \longrightarrow \f$ ExternalCalibration \f$ \longrightarrow \f$</td>
+  <td VALIGN="middle" ROWSPAN=3> &rarr; ExternalCalibration &rarr;</td>
   <td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. successor tools </td>
   </tr>
   <tr>

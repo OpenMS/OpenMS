@@ -69,12 +69,12 @@ macro(openms_export_targets )
 
   # install the generated config file
   install_file(${PROJECT_BINARY_DIR}/OpenMSConfig.cmake
-               ${INSTALL_LIB_DIR}/cmake/OpenMS/
+               ${INSTALL_CMAKE_DIR}
                cmake)
 
   # .. and ConfigVersion.cmake
   install_file(${PROJECT_BINARY_DIR}/OpenMSConfigVersion.cmake
-               ${INSTALL_LIB_DIR}/cmake/OpenMS/
+               ${INSTALL_CMAKE_DIR}
                cmake)
 
   # register the package

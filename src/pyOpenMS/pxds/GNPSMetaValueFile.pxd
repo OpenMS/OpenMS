@@ -15,11 +15,6 @@ cdef extern from "<OpenMS/FORMAT/GNPSMetaValueFile.h>" namespace "OpenMS":
         #  
         #  This will produce the minimal required meta values and can be extended manually.
         #  
-        #  Parameters
-        #  
-        #  consensus_map: ConsensusMap
-        #   Input ConsensusMap from which the input mzML files will be determined.
-        #  
-        #  output_file : str
-        #   Output file path for the meta value table.  
+        #  :param consensus_map: Input ConsensusMap from which the input mzML files will be determined.
+        #  :param output_file: Output file path for the meta value table.  
         

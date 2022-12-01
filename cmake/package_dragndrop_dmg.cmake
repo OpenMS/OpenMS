@@ -35,6 +35,8 @@
 ## Very useful for debugging purposes: Disables the dependency on the "make install" target.
 ## In our case e.g. "make install" always builds the documentation etc. 
 #set(CMAKE_SKIP_INSTALL_ALL_DEPENDENCY On)
+## Or reduce the set of components to package
+#set(CPACK_COMPONENTS_ALL Applications Dependencies zzz-fixing-dependencies)
 
 set(CPACK_GENERATOR "DragNDrop")
 
@@ -50,14 +52,16 @@ set(CPACK_PACKAGE_FILE_NAME "${CPACK_PACKAGE_NAME}-${OPENMS_PACKAGE_VERSION_FULL
 ## Fix OpenMS dependencies for all executables in the install directory under bin.
 ## That affects everything but the bundles (which have their own structure and are fixed up in add_mac_bundle.cmake)
 ########################################################### Fix Dependencies
-install(CODE "execute_process(COMMAND ${PROJECT_SOURCE_DIR}/cmake/MacOSX/fix_dependencies.rb -b \${CMAKE_INSTALL_PREFIX}/${INSTALL_BIN_DIR}/ -l \${CMAKE_INSTALL_PREFIX}/${INSTALL_LIB_DIR}/ -p \${CMAKE_INSTALL_PREFIX}/${INSTALL_LIB_DIR}/plugins/plugins/)"
+install(CODE "execute_process(COMMAND ${PROJECT_SOURCE_DIR}/cmake/MacOSX/fix_dependencies.rb -b \${CMAKE_INSTALL_PREFIX}/${INSTALL_BIN_DIR}/ -l \${CMAKE_INSTALL_PREFIX}/${INSTALL_LIB_DIR}/ -p \${CMAKE_INSTALL_PREFIX}/${INSTALL_PLUGIN_DIR})"
   COMPONENT zzz-fixing-dependencies
 )
 
 ## Apple no longer supports signing for DMGs in a useful way.
-# install(CODE "execute_process(COMMAND ${PROJECT_SOURCE_DIR}/cmake/MacOSX/sign_bins_and_libs.rb -d \${CMAKE_INSTALL_PREFIX}/ -s ${CPACK_BUNDLE_APPLE_CERT_APP})"
-#   COMPONENT zzz-sign-bins-and-libs
-# )
+if(DEFINED CPACK_BUNDLE_APPLE_CERT_APP)
+  install(CODE "execute_process(COMMAND ${PROJECT_SOURCE_DIR}/cmake/MacOSX/sign_bins_and_libs.rb -d \${CMAKE_INSTALL_PREFIX}/ -s ${CPACK_BUNDLE_APPLE_CERT_APP})"
+    COMPONENT zzz-sign-bins-and-libs
+  )
+endif()
 
 ## Additionally install TOPPShell into root of install folder
 
@@ -78,23 +82,26 @@ install(FILES       ${PROJECT_SOURCE_DIR}/cmake/MacOSX/TOPP_bash_profile
                     WORLD_READ
         COMPONENT   TOPPShell)
 
-install(FILES       ${PROJECT_SOURCE_DIR}/cmake/MacOSX/README
+install(FILES       ${PROJECT_SOURCE_DIR}/cmake/MacOSX/README.md
         DESTINATION .
         PERMISSIONS OWNER_WRITE OWNER_READ
                     GROUP_READ
                     WORLD_READ
         COMPONENT   TOPPShell)
 
+## ----------
+## No need to for this at the moment: no Qt plugins required anymore. Left here for reference.
+## ----------
 ## Install the qt.conf file so we can find the libraries
 ## add qt.conf to the bin directory for DMGs
-file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/qt.conf"
-"[Paths]\nPlugins = ../lib/plugins/plugins/\n")
-install(FILES       ${CMAKE_CURRENT_BINARY_DIR}/qt.conf
-        DESTINATION ./bin
-        PERMISSIONS OWNER_WRITE OWNER_READ
-                    GROUP_READ
-                    WORLD_READ
-        COMPONENT   QT5SQLitePlugin)
+#file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/qt.conf"
+#"[Paths]\nPlugins = ../${INSTALL_PLUGIN_DIR}/\n")
+#install(FILES       ${CMAKE_CURRENT_BINARY_DIR}/qt.conf
+#        DESTINATION ${INSTALL_BIN_DIR}
+#        PERMISSIONS OWNER_WRITE OWNER_READ
+#                    GROUP_READ
+#                    WORLD_READ
+#        COMPONENT   Dependencies)
 
 
 ## Create own target because you cannot "depend" on the internal target 'package'
@@ -105,7 +112,6 @@ add_custom_target(dist
 
 ########################################################### Create dmg with background image
 if (DEFINED CMAKE_VERSION AND NOT "${CMAKE_VERSION}" VERSION_LESS "3.5")
-  set(OPENMS_LOGO ${PROJECT_SOURCE_DIR}/cmake/MacOSX/openms_logo_large_transparent.png) ## The logo to be used for the OpenMS folder on the DMG
   set(OPENMS_DMG_FOLDER_NAME "${CPACK_PACKAGE_NAME}-${OPENMS_PACKAGE_VERSION_FULLSTRING}") ## The name of the OpenMS folder on the DMG
   configure_file(${PROJECT_SOURCE_DIR}/cmake/MacOSX/setup_applescript.scpt.in ${PROJECT_BINARY_DIR}/macOS_bundle_setup/setup_applescript.scpt)
   set(CPACK_DMG_DS_STORE_SETUP_SCRIPT ${PROJECT_BINARY_DIR}/macOS_bundle_setup/setup_applescript.scpt)
