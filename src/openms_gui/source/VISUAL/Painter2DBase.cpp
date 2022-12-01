@@ -498,7 +498,7 @@ namespace OpenMS
     p.setColor(Qt::black);
     painter.setPen(p);
 
-    auto it_prec = peak_map.end();
+    auto it_prec = peak_map.end(); // MS1 spectrum of parent ion
     auto it_end = peak_map.RTEnd(canvas->visible_area_.getAreaUnit().getMaxRT());
     for (auto it = peak_map.RTBegin(canvas->visible_area_.getAreaUnit().getMinRT()); it != it_end; ++it)
     {
@@ -508,16 +508,21 @@ namespace OpenMS
         it_prec = it;
       }
       else if (it->getMSLevel() == 2 && !it->getPrecursors().empty())
-      {                                                                              // this is an MS/MS scan
-        QPoint pos_ms2 = canvas->dataToWidget_(it->getPrecursors()[0].getMZ(), it->getRT()); // position of precursor in MS2
-        const int x2 = pos_ms2.x();
-        const int y2 = pos_ms2.y();
+      { // this is an MS/MS scan
+        
+        // position of precursor in MS2
+        const auto data_xy_ms2 = canvas->unit_mapper_.map(Peak2D({it->getRT(), it->getPrecursors()[0].getMZ()}, {}));
+        const QPoint pos_px_ms2 = canvas->dataToWidget_(data_xy_ms2); 
+        const int x2 = pos_px_ms2.x();
+        const int y2 = pos_px_ms2.y();
 
         if (it_prec != peak_map.end())
         {
-          QPoint pos_ms1 = canvas->dataToWidget_(it->getPrecursors()[0].getMZ(), it_prec->getRT()); // position of precursor in MS1
-          const int x = pos_ms1.x();
-          const int y = pos_ms1.y();
+          // position of precursor in MS1
+          const auto data_xy_ms1 = canvas->unit_mapper_.map(Peak2D({it_prec->getRT(), it->getPrecursors()[0].getMZ()}, {}));
+          const QPoint pos_px_ms1 = canvas->dataToWidget_(data_xy_ms1);
+          const int x = pos_px_ms1.x();
+          const int y = pos_px_ms1.y();
           // diamond shape in MS1
           painter.drawLine(x, y + 3, x + 3, y);
           painter.drawLine(x + 3, y, x, y - 3);
