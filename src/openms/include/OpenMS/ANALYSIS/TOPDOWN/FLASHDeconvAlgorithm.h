@@ -134,20 +134,22 @@ namespace OpenMS
                              int offset,
                              int min_iso_size);
 
-    /** @brief Examine intensity distribution over isotope indices. Also determines the most plausible isotope index or, monoisotopic mono_mass
-        @param mono_mass monoisotopic mass
-        @param per_isotope_intensities vector of intensities associated with each isotope - aggregated through charges
-        @param offset output offset between input monoisotopic mono_mass and determined monoisotopic mono_mass
-        @param avg precalculated averagine
-        @param window_width isotope offset value range. If -1, set automatically.
-        @param allowed_iso_error_for_second_best_cos allowed isotope error to calculate the second best cos. If it is > 0, second best cosine and its corresponding offset will be output
-        @return calculated cosine similar score
-     */
-    static float getIsotopeCosineAndDetermineIsotopeIndex(const double mono_mass,
+
+     /** @brief Examine intensity distribution over isotope indices. Also determines the most plausible isotope index or, monoisotopic mono_mass
+         @param mono_mass monoisotopic mass
+         @param per_isotope_intensities vector of intensities associated with each isotope - aggregated through charges
+         @param offset output offset between input monoisotopic mono_mass and determined monoisotopic mono_mass
+         @param avg precalculated averagine
+         @param window_width isotope offset value range. If -1, set automatically.
+         @param allowed_iso_error_for_second_best_cos allowed isotope error to calculate the second best cos. If decoyFlag is not PeakGroup::DecoyFlag::target, the second best cosine and its corresponding offset will be output
+         @param decoyFlag if this is not PeakGroup::DecoyFlag::target, the second best cosine and its corresponding offset will be output.
+         @return calculated cosine similar score
+      */
+     static float getIsotopeCosineAndDetermineIsotopeIndex(const double mono_mass,
                                                            const std::vector<float>& per_isotope_intensities,
                                                            int& offset,
                                                            const PrecalculatedAveragine& avg,
-                                                           int window_width = -1, int allowed_iso_error_for_second_best_cos = 0);
+                                                           int window_width = -1, int allowed_iso_error_for_second_best_cos = 0, PeakGroup::DecoyFlag decoyFlag = PeakGroup::DecoyFlag::target);
 
 
     static float getAccurateIsotopeCosine(PeakGroup& pg, const PrecalculatedAveragine& avg, double tol, int bin_factor,
