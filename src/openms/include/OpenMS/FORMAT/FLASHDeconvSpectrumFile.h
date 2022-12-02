@@ -57,9 +57,9 @@ namespace OpenMS
             @param decoy if set true, decoy and qvalue information will be written.
        */
     static void writeDeconvolvedMassesHeader(std::fstream& fs,
-                                             const int ms_level,
-                                             const bool detail,
-                                             const bool decoy);
+                                             uint ms_level,
+                                             bool detail,
+                                             bool decoy);
 
     /**
           @brief write the deconvolved masses in the output file (spectrum level)
@@ -83,8 +83,8 @@ namespace OpenMS
     static void writeDeconvolvedMasses(DeconvolvedSpectrum& dspec, std::fstream& fs,
                                        const String& file_name,
                                        const FLASHDeconvHelperStructs::PrecalculatedAveragine& avg,
-                                       const bool write_detail,
-                                       const bool decoy);
+                                       bool write_detail,
+                                       bool decoy);
 
     static void writeDLMatrixHeader(std::fstream& fs);
 
@@ -100,9 +100,9 @@ namespace OpenMS
     */
     //      @param avg averagine information to calculate monoisotopic and average mass difference
     static void writeTopFD(const DeconvolvedSpectrum& dspec, std::fstream& fs,
-                           const double snr_threshold = 1.0,
-                           const double decoy_harmonic_factor = 1.0,
-                           const double decoy_precursor_offset = .0);
+                           double snr_threshold = 1.0,
+                           double decoy_harmonic_factor = 1.0,
+                           double decoy_precursor_offset = .0);
 
   private:
 
