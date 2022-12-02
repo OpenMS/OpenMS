@@ -1462,9 +1462,9 @@ namespace OpenMS
             continue;
           }
 
-          bool charge_error = snr1 > snr2 * 4; // if snr is already highly different, it is charge error..
+          bool charge_error = false; // if snr is already highly different, it is charge error..
 
-          if (!charge_error && std::max(abs(mass2 - mass1 / repz1 * repz2), abs(mass1 - mass2 / repz2 * repz1)) <= 2 * iso_da_distance_)
+          if (snr1 > snr2 * 4 || std::max(abs(mass2 - mass1 / repz1 * repz2), abs(mass1 - mass2 / repz2 * repz1)) <= 2 * iso_da_distance_)
           {
             charge_error = true;
           }
