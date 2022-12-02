@@ -1251,7 +1251,7 @@ namespace OpenMS
   }
 
   float FLASHDeconvAlgorithm::getIsotopeCosineAndDetermineIsotopeIndex(const double mono_mass, const std::vector<float>& per_isotope_intensities, int& offset, const PrecalculatedAveragine& avg,
-                                                                       int window_width, int allowed_iso_error_for_second_best_cos)
+                                                                       int window_width, int allowed_iso_error_for_second_best_cos, PeakGroup::DecoyFlag decoyFlag)
   {
     offset = 0;
     if (per_isotope_intensities.size() < min_iso_size_)
@@ -1307,7 +1307,7 @@ namespace OpenMS
       }
     }
 
-    if (allowed_iso_error_for_second_best_cos > 0)
+    if (decoyFlag != PeakGroup::DecoyFlag::target)
     {
       for (int tmp_offset = offset - 3; tmp_offset <= offset + 3; tmp_offset++)
       {
@@ -1335,6 +1335,7 @@ namespace OpenMS
 
     return max_cos;
   }
+
 
   float FLASHDeconvAlgorithm::getCosine(const std::vector<float>& a, int a_start, int a_end, const IsotopeDistribution& b, int b_size, int offset, int min_iso_size)
   {
@@ -1409,7 +1410,8 @@ namespace OpenMS
     return n / sqrt(a_norm);
   }
 
-  void FLASHDeconvAlgorithm::removeChargeErrorPeakGroups_(DeconvolvedSpectrum& dpec)
+
+  void FLASHDeconvAlgorithm::removeChargeErrorPeakGroups_(DeconvolvedSpectrum& dspec)
   {
     std::map<float, std::set<int>> peak_to_pgs;
     std::set<int> to_remove_pgs;
@@ -1436,26 +1438,34 @@ namespace OpenMS
 
       for (auto i : pg_is)
       {
-        double mass1 = dpec[i].getMonoMass();
-        int repz1 = (int)round(mass1/pmz);
-        double snr1 = dpec[i].getSNR();
+        double mass1 = dspec[i].getMonoMass();
+        // int iso_length = avg_.getRightCountFromApex(mass1) + avg_.getLeftCountFromApex(mass1) + 1;
+
+        int repz1 = (int)round(mass1 / pmz);
+
+        double snr1 = dspec[i].getSNR();
         for (auto j : pg_is)
         {
           if(i==j)
           {
             continue;
           }
-          double mass2 = dpec[j].getMonoMass();
-          int repz2 = (int)round(mass2/pmz);
-          double snr2 = dpec[j].getSNR();
-          if (repz1 == repz2 || snr1 <= snr2)
+          double mass2 = dspec[j].getMonoMass();
+          int repz2 = (int)round(mass2 / pmz);
+          if (repz2 != dspec[j].getRepAbsCharge())
+          {
+            continue;
+          }
+          double snr2 = dspec[j].getSNR();
+
+          if (snr1 <= snr2)
           {
             continue;
           }
 
           bool charge_error = false;
 
-          for (int hc = 2; hc < 20; hc++)
+          if (std::max(abs(mass2 - mass1 / repz1 * repz2), abs(mass1 - mass2 / repz2 * repz1)) <= 2 * iso_da_distance_)
           {
             if (repz2 * hc == repz1 && abs(mass2 * hc - mass1) < 2.1 * iso_da_distance_)
             {
@@ -1550,89 +1560,6 @@ namespace OpenMS
     }
     dpec.setPeakGroups(filtered_pg_vec);
     std::vector<PeakGroup>().swap(filtered_pg_vec);
-    filtered_pg_vec.reserve(dpec.size());
-
-    for (Size i = 0; i < dpec.size(); i++)
-    {
-      bool select = true;
-      auto& pg = (dpec)[i];
-      if (pg.isTargeted())
-      {
-        filtered_pg_vec.push_back(pg);
-        continue;
-      }
-
-      if (pg.getMonoMass() <= 0)
-      {
-        continue;
-      }
-      double mass_tolerance = pg.getMonoMass() * tol;
-
-      int j = i + 1;
-      for (int l = 0; l <= iso_length; l++)
-      {
-        double off = iso_da_distance_ * l;
-        for (; j < (int)dpec.size(); j++)
-        {
-          auto& pgo = (dpec)[j];
-
-          if (l != 0 && pgo.getMonoMass() - pg.getMonoMass() < off - mass_tolerance)
-          {
-            continue;
-          }
-
-          if (pgo.getMonoMass() - pg.getMonoMass() > off + mass_tolerance)
-          {
-            break;
-          }
-          select &= pg.getSNR() >= pgo.getSNR();
-          if (!select)
-          {
-            break;
-          }
-        }
-        if (!select)
-        {
-          break;
-        }
-      }
-
-      if (!select)
-      {
-        continue;
-      }
-
-      j = i - 1;
-      for (int l = 0; l <= iso_length; l++)
-      {
-        double off = iso_da_distance_ * l;
-        for (; j >= 0; j--)
-        {
-          auto& pgo = (dpec)[j];
-
-          if (l != 0 && pg.getMonoMass() - pgo.getMonoMass() < off - mass_tolerance)
-          {
-            continue;
-          }
-
-          if (pg.getMonoMass() - pgo.getMonoMass() > off + mass_tolerance)
-          {
-            break;
-          }
-          select &= pg.getSNR() >= pgo.getSNR();
-          if (!select)
-          {
-            break;
-          }
-        }
-      }
-      if (!select)
-      {
-        continue;
-      }
-      filtered_pg_vec.push_back(pg);
-    }
-    dpec.setPeakGroups(filtered_pg_vec);
   }
 
   void FLASHDeconvAlgorithm::setTargetMasses(const std::vector<double>& masses, bool excluded)
