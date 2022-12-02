@@ -610,10 +610,6 @@ namespace OpenMS
 
                 for (int h : harmonic_charges_)
                 {
-                  // if (h * abs_charge > current_max_charge_)
-                  //  {
-                  //  break;
-                  //  }
                   for (int f = -1; f <= 1 && !artifact; f += 2) //
                   {
                     double hmass = log_mass - log(h) * f;
@@ -1503,7 +1499,7 @@ namespace OpenMS
         int repz1 = (int)round(mass1 / pmz);
         if(repz1 != dspec[i].getRepAbsCharge())
         {
-        //  continue;
+          //  continue;
         }
 
         double snr1 = dspec[i].getSNR();
