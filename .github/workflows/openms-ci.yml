@@ -68,6 +68,9 @@ jobs:
       shell: bash
       run: echo "RUN_NAME=pr$(jq --raw-output .pull_request.number $GITHUB_EVENT_PATH)" >> $GITHUB_ENV
       id: extract_pr
+      
+    - name: Setup Ninja
+      uses: seanmiddleditch/gha-setup-ninja@master
 
     - name: Setup cmake
       uses: jwlawson/actions-setup-cmake@v1.13
@@ -95,8 +98,6 @@ jobs:
     - name: Tests windows
       shell: bash
       run: |
-          cmake --version
-
           #run openms tests
           mkdir $GITHUB_WORKSPACE/OpenMS/bld/
           ctest --output-on-failure -V -S ../OpenMS/OpenMS/tools/ci/cibuild.cmake
@@ -108,7 +109,7 @@ jobs:
           fi
 
       env:
-          CMAKE_GENERATOR: "Visual Studio 17 2022"
+          CMAKE_GENERATOR: "Ninja"
           CONTRIB_BUILD_DIRECTORY: "${{ github.workspace }}/OpenMS/contrib"
           CI_PROVIDER: "GitHub-Actions"
           SOURCE_DIRECTORY: "${{ github.workspace }}/OpenMS"
@@ -122,7 +123,8 @@ jobs:
           BUILD_TYPE: "Release"
           OPENMP: "Off"
           USE_STATIC_BOOST: "On"
-          BUILD_FLAGS: "-p:CL_MPCount=2"
+          #  BUILD_FLAGS: "-p:CL_MPCount=2" # For VS Generator and MSBuild
+          BUILD_FLAGS: "-j2" # Ninja will otherwise use all cores (doesn't go well in GHA) 
 
   build-macos:
     runs-on: macos-latest
