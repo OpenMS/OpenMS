@@ -65,7 +65,7 @@ namespace OpenMS
        @brief Constructor for DeconvolvedSpectrum. Takes the spectrum and scan number calculated from outside
        @param scan_number scan number of the spectrum
   */
-    DeconvolvedSpectrum(const int scan_number);
+    explicit DeconvolvedSpectrum(int scan_number);
 
     /// default destructor
     ~DeconvolvedSpectrum() = default;
@@ -84,7 +84,7 @@ namespace OpenMS
     /// @param to_charge the charge of each peak in mzml output.
     /// @param tol the ppm tolerance
     /// @param retain_undeconvolved if set, undeconvolved peaks in the original peaks are output (assuming their abs charge == 1 and m/zs are adjusted with the to_charge parameter)
-    MSSpectrum toSpectrum(const int to_charge, double tol = 10.0, bool retain_undeconvolved = false);
+    MSSpectrum toSpectrum(int to_charge, double tol = 10.0, bool retain_undeconvolved = false);
 
     /// original spectrum getter
     const MSSpectrum& getOriginalSpectrum() const;
@@ -101,17 +101,17 @@ namespace OpenMS
     /// get possible max mass of the deconvolved masses - for MS1, max mass specified by user
     /// for MSn, min value between max mass specified by the user and precursor mass
     /// @param max_mass the max mass specified by the user
-    double getCurrentMaxMass(const double max_mass) const;
+    double getCurrentMaxMass(double max_mass) const;
 
     /// get possible min mass of the deconvolved masses - for MS1, min mass specified by user
     /// for MSn, 50.0
     /// @param min_mass the min mass specified by the user
-    double getCurrentMinMass(const double min_mass) const;
+    double getCurrentMinMass(double min_mass) const;
 
     /// get possible max charge of the deconvolved masses - for MS1, max charge specified by user
     /// for MSn, min value between max charge specified by the user and precursor charge
     /// @param max_abs_charge the max absolute value of the charge specified by the user
-    int getCurrentMaxAbsCharge(const int max_abs_charge) const;
+    int getCurrentMaxAbsCharge(int max_abs_charge) const;
 
     /// get scan number of the original spectrum
     int getScanNumber() const;
@@ -126,10 +126,10 @@ namespace OpenMS
     void setPrecursor(const Precursor& precursor);
 
     /// set precursor peak intensity
-    void setPrecursorIntensity(const double i);
+    void setPrecursorIntensity(float i);
 
     /// set precursor scan number
-    void setPrecursorScanNumber(const int scan_number);
+    void setPrecursorScanNumber(int scan_number);
 
     /// set activation method
     void setActivationMethod(const Precursor::ActivationMethod& method);
@@ -156,6 +156,7 @@ namespace OpenMS
     std::vector<PeakGroup>::iterator end() noexcept;
 
     const PeakGroup& operator[](Size i) const;
+    PeakGroup& operator[](Size i);
     void push_back (const PeakGroup& pg);
     Size size() const noexcept;
     void clear();
