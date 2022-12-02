@@ -1128,7 +1128,7 @@ namespace OpenMS
       std::vector<PeakGroup> filtered_peak_groups_private;
       filtered_peak_groups_private.reserve(deconvolved_spectrum_.size());
 #pragma omp for nowait schedule(static)
-      for (SignedSize i = 0; i < deconvolved_spectrum_.size(); i++)
+      for (int i = 0; i < (int)deconvolved_spectrum_.size(); i++)
       {
         auto& peak_group = deconvolved_spectrum_[i];
         int offset = 0;
@@ -1442,6 +1442,7 @@ namespace OpenMS
         int repz1 = (int)round(mass1 / pmz);
 
         double snr1 = dspec[i].getSNR();
+
         for (auto j : pg_is)
         {
           if (i == j)
@@ -1461,9 +1462,9 @@ namespace OpenMS
             continue;
           }
 
-          bool charge_error = false;
+          bool charge_error = snr1 > snr2 * 4; // if snr is already highly different, it is charge error..
 
-          if (std::max(abs(mass2 - mass1 / repz1 * repz2), abs(mass1 - mass2 / repz2 * repz1)) <= 2 * iso_da_distance_)
+          if (!charge_error && std::max(abs(mass2 - mass1 / repz1 * repz2), abs(mass1 - mass2 / repz2 * repz1)) <= 2 * iso_da_distance_)
           {
             charge_error = true;
           }
