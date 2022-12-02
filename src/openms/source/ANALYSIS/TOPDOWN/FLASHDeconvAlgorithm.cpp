@@ -544,7 +544,7 @@ namespace OpenMS
     while (mz_bin_index != mz_bins_.npos)
     {
       long max_index = -1;
-      float max_intensity = -1e11;
+      float max_intensity = -1e11f;
       int max_intensity_abs_charge_range = 0;
 
       for (int j = 0; j < charge_range; j++)
@@ -573,7 +573,7 @@ namespace OpenMS
           { // no signal
             continue;
           }
-          max_intensity = 1e38;
+          max_intensity = 1e38f;
           max_index = mass_bin_index;
           max_intensity_abs_charge_range = j;
         }
@@ -1128,7 +1128,7 @@ namespace OpenMS
       std::vector<PeakGroup> filtered_peak_groups_private;
       filtered_peak_groups_private.reserve(deconvolved_spectrum_.size());
 #pragma omp for nowait schedule(static)
-      for (size_t i = 0; i < deconvolved_spectrum_.size(); i++)
+      for (SignedSize i = 0; i < deconvolved_spectrum_.size(); i++)
       {
         auto& peak_group = deconvolved_spectrum_[i];
         int offset = 0;
