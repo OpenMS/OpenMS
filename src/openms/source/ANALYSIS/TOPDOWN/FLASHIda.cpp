@@ -225,7 +225,7 @@ namespace OpenMS
     }
 
     std::vector<DeconvolvedSpectrum> tmp;
-    std::map<int, std::vector<std::vector<double>>> empty;
+    std::map<int, std::vector<std::vector<float>>> empty;
 
     target_masses_.clear();
     if (targeting_mode_ > 0)
@@ -245,13 +245,13 @@ namespace OpenMS
       fd_.setTargetMasses(target_masses_, targeting_mode_ == 2);
     }
 
-    fd_.performSpectrumDeconvolution(spec, tmp, 0, false, empty);
+    fd_.performSpectrumDeconvolution(spec, tmp, 0, empty);
     deconvolved_spectrum_ = fd_.getDeconvolvedSpectrum();
     // per spec deconvolution
     FLASHIda::filterPeakGroupsUsingMassExclusion_(ms_level, rt);
     // spec.clear(true);
 
-    return deconvolved_spectrum_.size();
+    return (int)deconvolved_spectrum_.size();
   }
 
   void FLASHIda::filterPeakGroupsUsingMassExclusion_(const int ms_level, const double rt)
@@ -413,7 +413,7 @@ namespace OpenMS
         if (ospec.size() > 2)
         {
           Size index = ospec.findNearest(center_mz);
-          int tindexl = index == 0 ? index : index - 1;
+          Size tindexl = index == 0 ? index : index - 1;
           Size tindexr = index == 0 ? index + 1 : index;
           double lmz = ospec[tindexl].getMZ(), rmz = ospec[tindexr].getMZ();
           double sig_pwr = .0;
@@ -560,9 +560,9 @@ namespace OpenMS
   }
 
 
-  std::map<int, std::vector<std::vector<double>>> FLASHIda::parseFLASHIdaLog(const String& in_log_file)
+  std::map<int, std::vector<std::vector<float>>> FLASHIda::parseFLASHIdaLog(const String& in_log_file)
   {
-    std::map<int, std::vector<std::vector<double>>> precursor_map_for_real_time_acquisition; // ms1 scan -> mass, charge ,score, mz range, precursor int, mass int, color
+    std::map<int, std::vector<std::vector<float>>> precursor_map_for_real_time_acquisition; // ms1 scan -> mass, charge ,score, mz range, precursor int, mass int, color
 
 
     if (in_log_file.empty())
@@ -584,8 +584,8 @@ namespace OpenMS
     {
       String line;
       int scan;
-      double mass, charge, w1, w2, qscore, pint, mint, z1, z2;
-      double features[6];
+      float mass, charge, w1, w2, qscore, pint, mint, z1, z2;
+      float features[6];
       while (std::getline(instream, line))
       {
         if (line.find("0 targets") != line.npos)
@@ -598,44 +598,44 @@ namespace OpenMS
           Size ed = line.find(' ', st);
           String n = line.substr(st, ed);
           scan = atoi(n.c_str());
-          precursor_map_for_real_time_acquisition[scan] = std::vector<std::vector<double>>(); //// ms1 scan -> mass, charge ,score, mz range, precursor int, mass int, color
+          precursor_map_for_real_time_acquisition[scan] = std::vector<std::vector<float>>(); //// ms1 scan -> mass, charge ,score, mz range, precursor int, mass int, color
         }
         if (line.hasPrefix("Mass"))
         {
           Size st = 5;
           Size ed = line.find('\t');
           String n = line.substr(st, ed);
-          mass = atof(n.c_str());
+          mass = (float)atof(n.c_str());
 
           st = line.find("Z=") + 2;
           ed = line.find('\t', st);
           n = line.substr(st, ed);
-          charge = atof(n.c_str());
+          charge = (float)atof(n.c_str());
 
           st = line.find("Score=") + 6;
           ed = line.find('\t', st);
           n = line.substr(st, ed);
-          qscore = atof(n.c_str());
+          qscore = (float)atof(n.c_str());
 
           st = line.find("[") + 1;
           ed = line.find('-', st);
           n = line.substr(st, ed);
-          w1 = atof(n.c_str());
+          w1 = (float)atof(n.c_str());
 
           st = line.find('-', ed) + 1;
           ed = line.find(']', st);
           n = line.substr(st, ed);
-          w2 = atof(n.c_str());
+          w2 = (float)atof(n.c_str());
 
           st = line.find("PrecursorIntensity=", ed) + 19;
           ed = line.find('\t', st);
           n = line.substr(st, ed);
-          pint = atof(n.c_str());
+          pint = (float)atof(n.c_str());
 
           st = line.find("PrecursorMassIntensity=", ed) + 23;
           ed = line.find('\t', st);
           n = line.substr(st, ed);
-          mint = atof(n.c_str());
+          mint = (float)atof(n.c_str());
 
           st = line.find("Features=", ed) + 9;
           // ed = line.find(' ', st);
@@ -643,43 +643,43 @@ namespace OpenMS
           st = line.find('[', st) + 1;
           ed = line.find(',', st);
           n = line.substr(st, ed);
-          features[0] = atof(n.c_str());
+          features[0] = (float)atof(n.c_str());
 
           st = line.find(',', st) + 1;
           ed = line.find(',', st);
           n = line.substr(st, ed);
-          features[1] = atof(n.c_str());
+          features[1] = (float)atof(n.c_str());
 
           st = line.find(',', st) + 1;
           ed = line.find(',', st);
           n = line.substr(st, ed);
-          features[2] = atof(n.c_str());
+          features[2] = (float)atof(n.c_str());
 
           st = line.find(',', st) + 1;
           ed = line.find(',', st);
           n = line.substr(st, ed);
-          features[3] = atof(n.c_str());
+          features[3] = (float)atof(n.c_str());
 
           st = line.find(',', st) + 1;
           ed = line.find(',', st);
           n = line.substr(st, ed);
-          features[4] = atof(n.c_str());
+          features[4] = (float)atof(n.c_str());
 
           st = line.find(',', st) + 1;
           ed = line.find(']', st);
           n = line.substr(st, ed);
-          features[5] = atof(n.c_str());
+          features[5] = (float)atof(n.c_str());
 
           st = line.find("ChargeRange=[", ed) + 13;
           ed = line.find('-', st);
           n = line.substr(st, ed);
-          z1 = atof(n.c_str());
+          z1 = (float)atof(n.c_str());
 
           st = line.find("-", ed) + 1;
           ed = line.find(']', st);
           n = line.substr(st, ed);
-          z2 = atof(n.c_str());
-          std::vector<double> e(15);
+          z2 = (float)atof(n.c_str());
+          std::vector<float> e(15);
           e[0] = mass;
           e[1] = charge;
           e[2] = qscore;
