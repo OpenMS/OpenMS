@@ -284,7 +284,7 @@ protected:
     String in_file = getStringOption_("in");
     String out_file = getStringOption_("out");
     String in_train_file {};
-    String in_log_file = getStringOption_("in_log");
+    String in_log_file;// = getStringOption_("in_log");
 
     auto out_spec_file = getStringList_("out_spec");
     String out_mzml_file = getStringOption_("out_mzml");
