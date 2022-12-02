@@ -82,9 +82,9 @@ namespace OpenMS
       */
     int getPeakGroups(const double *mzs,
                       const double *intensities,
-                      const int length,
-                      const double rt,
-                      const int ms_level,
+                      int length,
+                      double rt,
+                      int ms_level,
                       const char *name);
 
     /**
@@ -126,7 +126,7 @@ namespace OpenMS
            @param in_log_file input log file
            @return parsed information : scan number - percursor information
     **/
-    static std::map<int, std::vector<std::vector<double>>> parseFLASHIdaLog(const String& in_log_file);
+    static std::map<int, std::vector<std::vector<float>>> parseFLASHIdaLog(const String& in_log_file);
 
   private:
     /// PeakGroup comparator for soring by QScore
@@ -149,7 +149,7 @@ namespace OpenMS
          @param ms_level MS level
          @param rt Retention time
     */
-    void filterPeakGroupsUsingMassExclusion_(const int ms_level, const double rt);
+    void filterPeakGroupsUsingMassExclusion_(int ms_level, double rt);
 
     /**
          @brief generate MSSpectrum class using mzs and intensities. mzs and intensities and other information are
@@ -163,9 +163,9 @@ namespace OpenMS
     */
     static MSSpectrum makeMSSpectrum_(const double *mzs,
                                       const double *ints,
-                                      const int length,
-                                      const double rt,
-                                      const int ms_level,
+                                      int length,
+                                      double rt,
+                                      int ms_level,
                                       const char *name);
 
     /// deconvolved spectrum that contains the peak group

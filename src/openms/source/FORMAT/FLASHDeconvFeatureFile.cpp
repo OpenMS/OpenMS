@@ -128,7 +128,7 @@ namespace OpenMS
 
   void FLASHDeconvFeatureFile::writeTopFDFeatures(const std::vector<FLASHDeconvHelperStructs::MassFeature>& mass_features,
                                                   const std::map<int, PeakGroup>& precursor_peak_groups,
-                                                  const std::map<int, double>& scan_rt_map, const String file_name, std::vector<std::fstream>& fs)
+                                                  const std::map<int, double>& scan_rt_map, const String& file_name, std::vector<std::fstream>& fs)
   {
     int topid = 1;
     std::unordered_map<int, int> mtid_topid;
@@ -147,7 +147,7 @@ namespace OpenMS
         {
           fs[i] << "0\t" << topid << "\t" << mass_feature.mt.getCentroidMZ() << "\t" << sum_intensity << "\t" << mass_feature.mt.begin()->getRT() << "\t" << mass_feature.mt.rbegin()->getRT() << "\t" << mass_feature.mt[mass_feature.mt.findMaxByIntPeak()].getRT()<< "\t"
                 << mass_feature.min_charge << "\t" << mass_feature.max_charge << "\t0\t0\n";
-          mtid_topid[l] = topid;
+          mtid_topid[(int)l] = topid;
         }
       }
       topid++;
@@ -220,7 +220,7 @@ namespace OpenMS
     int promexid = 1;
 
     auto per_isotope_intensity = std::vector<double>(avg.getMaxIsotopeIndex(), .0);
-    std::map<int, double> rt_scan_map;
+    std::map<double, int> rt_scan_map;
     for(auto const& item : scan_rt_map)
     {
       rt_scan_map[item.second] = item.first;
@@ -288,9 +288,8 @@ namespace OpenMS
       bool selected = false;
       double max_intensity = .0;
 
-      for (Size l = 0; l < mass_features.size(); l++)
+      for (auto& mass_feature : mass_features)
       {
-        auto mass_feature = mass_features[l];
         auto mt = mass_feature.mt;
         if (abs(precursor.second.getMonoMass() - mt.getCentroidMZ()) > 1.5)
         {
@@ -327,7 +326,7 @@ namespace OpenMS
 
       for (auto& pp : precursor.second)
       {
-        if (pp.isotopeIndex < 0 || pp.isotopeIndex >= avg.getMaxIsotopeIndex())
+        if (pp.isotopeIndex < 0 || pp.isotopeIndex >= (int)avg.getMaxIsotopeIndex())
         {
           continue;
         }
@@ -342,7 +341,7 @@ namespace OpenMS
 
       double isotope_score = precursor.second.getIsotopeCosine();
 
-      for (int j = 0; j < avg.getMaxIsotopeIndex(); ++j)
+      for (size_t j = 0; j < avg.getMaxIsotopeIndex(); ++j)
       {
         if (per_isotope_intensity[j] <= 0)
         {

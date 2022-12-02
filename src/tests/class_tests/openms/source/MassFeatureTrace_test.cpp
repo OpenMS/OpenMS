@@ -77,6 +77,7 @@ sample_spec.setRT(50.0);
 sample_spec.setMSLevel(1);
 DeconvolvedSpectrum deconv_spec1(1);
 deconv_spec1.setOriginalSpectrum(sample_spec);
+
 PeakGroup tmp_pg = PeakGroup(15, 18, true);
 auto p1 = new Peak1D(1000.8455675085044, 8347717.5);
 FLASHDeconvHelperStructs::LogMzPeak tmp_p1(*p1, true);
