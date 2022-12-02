@@ -692,7 +692,7 @@ protected:
       {
         mass_tracer.storeInformationFromDeconvolvedSpectrum(deconvolved_spectrum); // add deconvolved mass in mass_tracer
       }
-      if (out_spec_streams.size() + 1> ms_level)
+      if (out_spec_streams.size() + 1 > ms_level)
       {
         FLASHDeconvSpectrumFile::writeDeconvolvedMasses(deconvolved_spectrum, out_spec_streams[ms_level - 1], in_file, avg, write_detail, report_decoy);
       }
