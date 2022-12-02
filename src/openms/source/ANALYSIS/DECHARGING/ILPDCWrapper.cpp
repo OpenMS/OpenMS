@@ -86,10 +86,10 @@ namespace OpenMS
             // point group2 to group1
             g2pairs[group1].insert(g2pairs[group2].begin(), g2pairs[group2].end());
             g2pairs.erase(group2);
-            for (std::set<Size>::const_iterator its = g2f[group2].begin(); its != g2f[group2].end(); ++its)
+            for (const auto& g2 : g2f[group2])
             {
-              g2f[group1].insert(*its);
-              f2g[*its] = group1; // reassign features of group2 to group1
+              g2f[group1].insert(g2);
+              f2g[g2] = group1; // reassign features of group2 to group1
             }
             g2f.erase(group2);
           }
@@ -125,17 +125,17 @@ namespace OpenMS
 
       std::map<Size, Size> hist_component_sum;
       // now walk though groups and see the size:
-      for (std::map<Size, std::set<Size> >::const_iterator it = g2f.begin(); it != g2f.end(); ++it)
+      for (const auto& component : g2f)
       {
-        ++hist_component_sum[it->second.size()]; // e.g. component 2 has size 4; thus increase count for size 4
+        ++hist_component_sum[component.second.size()]; // e.g. component 2 has size 4; thus increase count for size 4
       }
       if (verbose_level > 1)
       {
         OPENMS_LOG_INFO << "Components:\n";
         OPENMS_LOG_INFO << "  Size 1 occurs ?x\n";
-        for (std::map<Size, Size>::const_iterator it = hist_component_sum.begin(); it != hist_component_sum.end(); ++it)
+        for(const auto& component : hist_component_sum)
         {
-          OPENMS_LOG_INFO << "  Size " << it->first << " occurs " << it->second << "x\n";
+          OPENMS_LOG_INFO << "  Size " << component.first << " occurs " << component.second << "x\n";
         }
       }
 
@@ -145,9 +145,9 @@ namespace OpenMS
 
       Size start(0);
       Size count(0);
-      for (std::map<Size, std::set<Size> >::const_iterator it = g2pairs.begin(); it != g2pairs.end(); ++it)
+      for (const auto& item : g2pairs)
       {
-        Size clique_size = it->second.size();
+        Size clique_size = item.second.size();
         if (count > pairs_per_bin || clique_size > big_clique_bin_threshold)
         {
           if (count > 0) // either bin is full or we have to close it due to big clique
@@ -160,9 +160,9 @@ namespace OpenMS
           }
           if (clique_size > big_clique_bin_threshold) // extra bin for this big clique
           {
-            for (std::set<Size>::const_iterator i_p = it->second.begin(); i_p != it->second.end(); ++i_p)
+            for (const auto& pair : item.second)
             {
-              pairs_clique_ordered.push_back(pairs[*i_p]);
+              pairs_clique_ordered.push_back(pairs[pair]);
             }
             if (verbose_level > 2)
               OPENMS_LOG_INFO << "Extra bin for big clique (" << clique_size << ") prepended to schedule\n";
@@ -172,9 +172,9 @@ namespace OpenMS
           }
         }
         count += clique_size;
-        for (std::set<Size>::const_iterator i_p = it->second.begin(); i_p != it->second.end(); ++i_p)
+        for (const auto& pair : item.second)
         {
-          pairs_clique_ordered.push_back(pairs[*i_p]);
+          pairs_clique_ordered.push_back(pairs[pair]);
         }
       }
       if (count > 0)
@@ -252,12 +252,12 @@ namespace OpenMS
 
     // ADD Features (multiple variants of one feature are constrained to size=1)
     Size count(0); // each entry is a feature idx --->    Map["AdductCgf"]->adjacentEdges
-    for (r_type::iterator it = features.begin(); it != features.end(); ++it)
+    for (auto& feature : features)
     {
       ++count;
       std::vector<Int> columns;
       std::vector<double> elements;
-      for (FeatureType_::const_iterator iti = it->second.begin(); iti != it->second.end(); ++iti)
+      for (const auto& item : feature.second)
       {
         Int index = build.addColumn();
         build.setColumnBounds(index, 0, 1, LPWrapper::DOUBLE_BOUNDED);
@@ -270,13 +270,13 @@ namespace OpenMS
         /* get adjacent edges */
         std::vector<Int> columns_e;
         std::vector<double> elements_e;
-        for (std::set<Size>::const_iterator it_e = iti->second.begin(); it_e != iti->second.end(); ++it_e)
+        for (const auto& element : item.second)
         {
-          columns_e.push_back((Int) * it_e);
+          columns_e.push_back((Int) element);
           elements_e.push_back(-1.0);
         }
         columns_e.push_back((Int) index);
-        elements_e.push_back(iti->second.size()); // factor of variant is number of adjacent edges
+        elements_e.push_back(item.second.size()); // factor of variant is number of adjacent edges
         String se = String("cv") + index;
         build.addRow(columns_e, elements_e, se, 0, 10000, LPWrapper::LOWER_BOUND_ONLY);
       }
@@ -491,9 +491,9 @@ namespace OpenMS
     if (verbose_level > 2)
       OPENMS_LOG_INFO << "Active edges: " << active_edges << " of overall " << pairs.size() << std::endl;
 
-    for (std::map<String, Size>::const_iterator it = count_cmp.begin(); it != count_cmp.end(); ++it)
+    for (const auto& cmp : count_cmp)
     {
-      //std::cout << "Cmp " << it->first << " x " << it->second << "\n";
+      //std::cout << "Cmp " << cmp.first << " x " << cmp.second << "\n";
     }
 
     double opt_value = build.getObjectiveValue();

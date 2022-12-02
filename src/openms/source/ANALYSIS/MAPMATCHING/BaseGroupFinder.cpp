@@ -68,15 +68,15 @@ namespace OpenMS
     for (Size i = 0; i < maps.size(); ++i)
     {
       const ConsensusMap& map = maps[i];
-      for (ConsensusMap::ColumnHeaders::const_iterator it = map.getColumnHeaders().begin(); it != map.getColumnHeaders().end(); ++it)
+      for (const auto& header : map.getColumnHeaders())
       {
-        if (used_ids.find(it->first) != used_ids.end())
+        if (used_ids.find(header.first) != used_ids.end())
         {
           throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "file ids have to be unique");
         }
         else
         {
-          used_ids.insert(it->first);
+          used_ids.insert(header.first);
         }
       }
     }
