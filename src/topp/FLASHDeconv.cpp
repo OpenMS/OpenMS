@@ -294,7 +294,7 @@ protected:
     auto out_topfd_feature_file = getStringList_("out_topFD_feature");
     double topFD_SNR_threshold = getDoubleOption_("min_precursor_snr");
     bool use_RNA_averagine = getIntOption_("use_RNA_averagine") > 0;
-    int max_ms_level = getIntOption_("max_MS_level");
+    uint max_ms_level = getIntOption_("max_MS_level");
     int forced_ms_level = getIntOption_("forced_MS_level");
     int merge = getIntOption_("merging_method");
     bool write_detail = getIntOption_("write_detail") > 0;
@@ -347,7 +347,7 @@ protected:
       }
     }
 
-    std::map<int, std::vector<std::vector<double>>>
+    std::map<int, std::vector<std::vector<float>>>
       precursor_map_for_real_time_acquisition = FLASHIda::parseFLASHIdaLog(in_log_file); // ms1 scan -> mass, charge ,score, mz range, precursor int, mass int, color
 
     //-------------------------------------------------------------
@@ -360,7 +360,7 @@ protected:
     double expected_identification_count = .0;
 
     // feature number per input file
-    int feature_cntr = 0;
+    size_t feature_cntr = 0;
 
     OPENMS_LOG_INFO << "Processing : " << in_file << endl;
 
@@ -377,13 +377,13 @@ protected:
     mzml.setOptions(opt);
     mzml.load(in_file, map);
 
-    int current_max_ms_level = 0;
+    uint current_max_ms_level = 0;
 
-    auto spec_cntr = std::vector<int>(max_ms_level, 0);
+    auto spec_cntr = std::vector<size_t>(max_ms_level, 0);
     // spectrum number with at least one deconvolved mass per ms level per input file
-    auto qspec_cntr = std::vector<int>(max_ms_level, 0);
+    auto qspec_cntr = std::vector<size_t>(max_ms_level, 0);
     // mass number per ms level per input file
-    auto mass_cntr = std::vector<int>(max_ms_level, 0);
+    auto mass_cntr = std::vector<size_t>(max_ms_level, 0);
     auto elapsed_deconv_cpu_secs = std::vector<double>(max_ms_level, .0);
     auto elapsed_deconv_wall_secs = std::vector<double>(max_ms_level, .0);
     std::map<int, double> scan_rt_map;
@@ -406,7 +406,7 @@ protected:
         continue;
       }
 
-      if ((int)it.getMSLevel() > max_ms_level)
+      if (it.getMSLevel() > max_ms_level)
       {
         continue;
       }
@@ -416,7 +416,7 @@ protected:
         max_precursor_c = std::max(max_precursor_c, it.getPrecursors()[0].getCharge());
       }
 
-      int ms_level = it.getMSLevel();
+      uint ms_level = it.getMSLevel();
       current_max_ms_level = current_max_ms_level < ms_level ? ms_level : current_max_ms_level;
 
       if (min_rt > 0 && it.getRT() < min_rt)
@@ -433,7 +433,7 @@ protected:
 
     // Run FLASHDeconv here
 
-    int scan_number = 0;
+    int scan_number(0);
     int num_last_deconvolved_spectra = getIntOption_("preceding_MS1_count");
     if (!in_log_file.empty())
     {
@@ -464,9 +464,9 @@ protected:
       merger.setParameters(sm_param);
       map.sortSpectra();
 
-      for (int tmp_ms_level = 1; tmp_ms_level <= current_max_ms_level; tmp_ms_level++)
+      for (uint tmp_ms_level = 1; tmp_ms_level <= current_max_ms_level; tmp_ms_level++)
       {
-        merger.average(map, "gaussian", tmp_ms_level);
+        merger.average(map, "gaussian", (int)tmp_ms_level);
       }
     }
     else if (merge == 2)
@@ -478,7 +478,7 @@ protected:
       sm_param.setValue("block_method:rt_block_size", (int)gradient_rt + 10);
       map.sortSpectra();
 
-      for (int ml = 1; ml <= current_max_ms_level; ml++)
+      for (int ml = 1; ml <= (int)current_max_ms_level; ml++)
       {
         sm_param.setValue("mz_binning_width", tols[ml - 1] / 2.0);
         sm_param.setValue("block_method:ms_levels", IntList {ml});
@@ -533,7 +533,7 @@ protected:
 
     ProgressLogger progresslogger;
     progresslogger.setLogType(log_type_);
-    progresslogger.startProgress(0, map.size(), "running FLASHDeconv");
+    progresslogger.startProgress(0, (SignedSize)map.size(), "running FLASHDeconv");
 
     std::vector<DeconvolvedSpectrum> deconvolved_spectra;
     deconvolved_spectra.reserve(map.size());
@@ -551,7 +551,7 @@ protected:
       {
         continue;
       }
-      int ms_level = it->getMSLevel();
+      uint ms_level = it->getMSLevel();
       if (ms_level > current_max_ms_level)
       {
         continue;
@@ -567,7 +567,7 @@ protected:
       {
         precursor_specs = (last_deconvolved_spectra[ms_level - 1]);
       }
-      fd.performSpectrumDeconvolution(*it, precursor_specs, scan_number, write_detail, precursor_map_for_real_time_acquisition);
+      fd.performSpectrumDeconvolution(*it, precursor_specs, scan_number, precursor_map_for_real_time_acquisition);
       auto& deconvolved_spectrum = fd.getDeconvolvedSpectrum();
 
       if (deconvolved_spectrum.empty())
@@ -607,7 +607,7 @@ protected:
           for (auto& pg : deconvolved_spectrum)
           {
             val << std::to_string(pg.getMonoMass()) << ":";
-            for (int k = 0; k < pg.size(); k++)
+            for (size_t k = 0; k < pg.size(); k++)
             {
               auto& p = pg[k];
               auto pindex = it->findNearest(p.mz);
@@ -643,12 +643,12 @@ protected:
       {
 #pragma omp parallel sections default(none) shared(fd_charge_decoy, fd_noise_decoy, fd_iso_decoy, it, precursor_specs, scan_number, write_detail, precursor_map_for_real_time_acquisition)
         {
-#pragma omp section // default(none) shared(fd_charge_decoy, it, precursor_specs, scan_number, write_detail, precursor_map_for_real_time_acquisition)
-            fd_charge_decoy.performSpectrumDeconvolution(*it, precursor_specs, scan_number, write_detail, precursor_map_for_real_time_acquisition);
-#pragma omp section //default(none) shared(fd_noise_decoy, it, precursor_specs, scan_number, write_detail, precursor_map_for_real_time_acquisition)
-            fd_noise_decoy.performSpectrumDeconvolution(*it, precursor_specs, scan_number, write_detail, precursor_map_for_real_time_acquisition);
-#pragma omp section //default(none) shared(fd_iso_decoy, it, precursor_specs, scan_number, write_detail, precursor_map_for_real_time_acquisition)
-            fd_iso_decoy.performSpectrumDeconvolution(*it, precursor_specs, scan_number, write_detail, precursor_map_for_real_time_acquisition);
+#pragma omp section
+          fd_charge_decoy.performSpectrumDeconvolution(*it, precursor_specs, scan_number, precursor_map_for_real_time_acquisition);
+#pragma omp section
+          fd_noise_decoy.performSpectrumDeconvolution(*it, precursor_specs, scan_number, precursor_map_for_real_time_acquisition);
+#pragma omp section
+          fd_iso_decoy.performSpectrumDeconvolution(*it, precursor_specs, scan_number, precursor_map_for_real_time_acquisition);
         }
         DeconvolvedSpectrum decoy_deconvolved_spectrum(scan_number);
         decoy_deconvolved_spectrum.setOriginalSpectrum(*it);
@@ -690,16 +690,16 @@ protected:
 
     for (auto& deconvolved_spectrum : deconvolved_spectra)
     {
-      int ms_level = deconvolved_spectrum.getOriginalSpectrum().getMSLevel();
+      uint ms_level = deconvolved_spectrum.getOriginalSpectrum().getMSLevel();
       if (ms_level == 1)
       {
         mass_tracer.storeInformationFromDeconvolvedSpectrum(deconvolved_spectrum); // add deconvolved mass in mass_tracer
       }
-      if ((int)out_spec_streams.size() > ms_level - 1)
+      if (out_spec_streams.size() + 1> ms_level)
       {
         FLASHDeconvSpectrumFile::writeDeconvolvedMasses(deconvolved_spectrum, out_spec_streams[ms_level - 1], in_file, avg, write_detail, report_decoy);
       }
-      if ((int)out_topfd_streams.size() > ms_level - 1)
+      if (out_topfd_streams.size() + 1 > ms_level)
       {
         FLASHDeconvSpectrumFile::writeTopFD(deconvolved_spectrum, out_topfd_streams[ms_level - 1], topFD_SNR_threshold); //, 1, (float)rand() / (float)RAND_MAX * 10 + 10);
       }
@@ -708,9 +708,9 @@ protected:
     {
       for (auto& deconvolved_spectrum : decoy_deconvolved_spectra)
       {
-        int ms_level = deconvolved_spectrum.getOriginalSpectrum().getMSLevel();
+        uint ms_level = deconvolved_spectrum.getOriginalSpectrum().getMSLevel();
 
-        if ((int)out_spec_streams.size() > ms_level - 1)
+        if (out_spec_streams.size() + 1 > ms_level)
         {
           FLASHDeconvSpectrumFile::writeDeconvolvedMasses(deconvolved_spectrum, out_spec_streams[ms_level - 1], in_file, avg, write_detail, report_decoy);
         }
@@ -795,13 +795,13 @@ protected:
       OPENMS_LOG_INFO << "Mass tracer found " << feature_cntr << " features" << endl;
     }
 
-    int total_spec_cntr = 0;
-    for (int j = 0; j < (int)current_max_ms_level; j++)
+    size_t total_spec_cntr = 0;
+    for (size_t j = 0; j < current_max_ms_level; j++)
     {
       total_spec_cntr += spec_cntr[j];
 
-      OPENMS_LOG_INFO << "-- deconv per MS" << (j + 1) << " spectrum (except spec loading, feature finding) [took " << 1000.0 * elapsed_deconv_cpu_secs[j] / total_spec_cntr << " ms (CPU), "
-                      << 1000.0 * elapsed_deconv_wall_secs[j] / total_spec_cntr << " ms (Wall)] --" << endl;
+      OPENMS_LOG_INFO << "-- deconv per MS" << (j + 1) << " spectrum (except spec loading, feature finding) [took " << 1000.0 * elapsed_deconv_cpu_secs[j] / (double)total_spec_cntr << " ms (CPU), "
+                      << 1000.0 * elapsed_deconv_wall_secs[j] / (double)total_spec_cntr << " ms (Wall)] --" << endl;
     }
 
     if (expected_identification_count > 0)
@@ -817,7 +817,7 @@ protected:
     }
     if (!out_topfd_feature_file.empty())
     {
-      int j = 0;
+      uint j = 0;
       for (auto& out_topfd_feature_stream : out_topfd_feature_streams)
       {
         out_topfd_feature_stream.close();
@@ -831,7 +831,7 @@ protected:
 
     if (!out_topfd_file.empty())
     {
-      int j = 0;
+      uint j = 0;
       for (auto& out_topfd_stream : out_topfd_streams)
       {
         out_topfd_stream.close();
@@ -844,7 +844,7 @@ protected:
     }
     if (!out_spec_file.empty())
     {
-      int j = 0;
+      uint j = 0;
       for (auto& out_spec_stream : out_spec_streams)
       {
         out_spec_stream.close();

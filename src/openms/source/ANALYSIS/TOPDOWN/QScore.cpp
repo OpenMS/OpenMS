@@ -32,7 +32,6 @@
 // $Authors: Kyowon Jeong$
 // --------------------------------------------------------------------------
 
-#include <OpenMS/ANALYSIS/TOPDOWN/FLASHDeconvAlgorithm.h>
 #include <OpenMS/ANALYSIS/TOPDOWN/FLASHDeconvHelperStructs.h>
 #include <OpenMS/ANALYSIS/TOPDOWN/PeakGroup.h>
 #include <OpenMS/ANALYSIS/TOPDOWN/QScore.h>
@@ -41,11 +40,11 @@
 
 namespace OpenMS
 {
-  double QScore::getQScore(const PeakGroup *pg, const int abs_charge)
+  float QScore::getQScore(const PeakGroup *pg, const int abs_charge)
   {
     if (pg->empty())
     { // all zero
-      return .0;
+      return .0f;
     }
     const std::vector<double> weights({ -.0941, -1.9804, -12.7522, 0.2622, -1.2431, 0.0815, 13.5244});
 
@@ -56,7 +55,7 @@ namespace OpenMS
     {
       score += fv[i] * weights[i];
     }
-    double qscore = 1.0 / (1.0 + exp(score));
+    float qscore = 1.0f / (1.0f + (float)exp(score));
 
     return qscore;
   }
@@ -89,7 +88,7 @@ namespace OpenMS
 
   void QScore::writeAttCsvFromDecoy(const DeconvolvedSpectrum& deconvolved_spectrum, std::fstream& f)
   {
-    int ms_level = deconvolved_spectrum.getOriginalSpectrum().getMSLevel();
+    uint ms_level = deconvolved_spectrum.getOriginalSpectrum().getMSLevel();
     String cns[] = {"T", "D", "D", "D"};
     for(auto& pg:deconvolved_spectrum)
     {

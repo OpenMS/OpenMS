@@ -68,7 +68,7 @@ namespace OpenMS
       const Size min_iso_length = 2;
       const int min_left_right_count = 2;
       double total_pwr = .0;
-      int most_abundant_index_ = 0;
+      size_t most_abundant_index_ = 0;
       double most_abundant_int = 0;
 
       /// sum of squared intensities to see the total power of isotope pattern. The range of isotope pattern is
@@ -85,7 +85,7 @@ namespace OpenMS
       }
 
       int left_count = 0;
-      int right_count = iso.size() - 1;
+      int right_count = (int)iso.size() - 1;
       int trim_count = 0;
 
       while (iso.size() - trim_count > min_iso_length && left_count<right_count)
@@ -120,14 +120,14 @@ namespace OpenMS
           right_count--;
         }
       }
-      left_count = most_abundant_index_ - left_count;
-      right_count = right_count - most_abundant_index_;
+      left_count = (int)most_abundant_index_ - left_count;
+      right_count = right_count - (int)most_abundant_index_;
       iso.trimRight(1e-10);
 
       for (auto & k : iso)
       {
-        double ori_int = k.getIntensity();
-        k.setIntensity(ori_int / sqrt(total_pwr));
+        float ori_int = k.getIntensity();
+        k.setIntensity(ori_int / (float)sqrt(total_pwr));
       }
       left_count = left_count < min_left_right_count ? min_left_right_count : left_count;
       right_count = right_count < min_left_right_count ? min_left_right_count : right_count;
@@ -197,7 +197,7 @@ namespace OpenMS
     return isotopes_[massToIndex_(mass)];
   }
 
-  int FLASHDeconvHelperStructs::PrecalculatedAveragine::getMaxIsotopeIndex() const
+  size_t FLASHDeconvHelperStructs::PrecalculatedAveragine::getMaxIsotopeIndex() const
   {
     return max_isotope_index_;
   }
@@ -241,7 +241,7 @@ namespace OpenMS
   FLASHDeconvHelperStructs::LogMzPeak::LogMzPeak(const Peak1D& peak, const bool positive) :
       mz((float)peak.getMZ()),
       intensity(peak.getIntensity()),
-      logMz(getLogMz(peak.getMZ(), positive)),
+      logMz(getLogMz((float)peak.getMZ(), positive)),
       abs_charge(0),
       is_positive(positive),
       isotopeIndex(0)
@@ -256,7 +256,7 @@ namespace OpenMS
     }
     if (mass <= 0)
     {
-      mass = (mz - getChargeMass(is_positive)) * abs_charge;
+      mass = (mz - getChargeMass(is_positive)) * (float)abs_charge;
     }
     return mass;
   }
@@ -286,11 +286,11 @@ namespace OpenMS
 
   float FLASHDeconvHelperStructs::getChargeMass(const bool positive_ioniziation_mode)
   {
-    return (positive_ioniziation_mode ? Constants::PROTON_MASS_U : -Constants::PROTON_MASS_U);
+    return (float)(positive_ioniziation_mode ? Constants::PROTON_MASS_U : -Constants::PROTON_MASS_U);
   }
 
 
-  float FLASHDeconvHelperStructs::getLogMz(const double mz, const bool positive)
+  float FLASHDeconvHelperStructs::getLogMz(const float mz, const bool positive)
   {
     return std::log(mz - getChargeMass(positive));
   }

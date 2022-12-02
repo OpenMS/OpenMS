@@ -81,7 +81,7 @@ namespace OpenMS
       /// min mass for calculation
       double min_mass_;
       /// calculate the mass bin index from mass
-      Size massToIndex_(double const mass) const;
+      Size massToIndex_(double mass) const;
     public:
       /// default constructor
       PrecalculatedAveragine() = default;
@@ -94,11 +94,11 @@ namespace OpenMS
        @param generator this generates (calculates) the distributions
        @param use_RNA_averagine if set, nucleotide-based isotope patters are calculated
     */
-      PrecalculatedAveragine(const double min_mass,
-                             const double max_mass,
-                             const double delta,
+      PrecalculatedAveragine(double min_mass,
+                             double max_mass,
+                             double delta,
                              CoarseIsotopePatternGenerator *generator,
-                             const bool use_RNA_averagine);
+                             bool use_RNA_averagine);
 
 
       /// copy constructor
@@ -119,31 +119,31 @@ namespace OpenMS
 
 
       /// get distribution for input mass. If input mass exceeds the maximum mass (specified in constructor), output for the maximum mass
-      IsotopeDistribution get(const double mass) const;
+      IsotopeDistribution get(double mass) const;
 
       /// get max isotope index
-      int getMaxIsotopeIndex() const;
+      size_t getMaxIsotopeIndex() const;
 
       /// set max isotope index
-      void setMaxIsotopeIndex(const int index);
+      void setMaxIsotopeIndex(int index);
 
       /// get isotope distance (from apex to the left direction) to consider. This is specified in the constructor. index. If input mass exceeds the maximum mass (specified in constructor), output for the maximum mass
-      Size getLeftCountFromApex(const double mass) const;
+      Size getLeftCountFromApex(double mass) const;
 
       /// get isotope distance (from apex to the rigth direction) to consider. This is specified in the constructor. index. If input mass exceeds the maximum mass (specified in constructor), output for the maximum mass
-      Size getRightCountFromApex(const double mass) const;
+      Size getRightCountFromApex(double mass) const;
 
       /// get index of most abundant isotope. If input mass exceeds the maximum mass (specified in constructor), output for the maximum mass
-      Size getApexIndex(const double mass) const;
+      Size getApexIndex(double mass) const;
 
       /// get index of last isotope. If input mass exceeds the maximum mass (specified in constructor), output for the maximum mass
-      Size getLastIndex(const double mass) const;
+      Size getLastIndex(double mass) const;
 
       /// get mass difference between avg and mono masses. If input mass exceeds the maximum mass (specified in constructor), output for the maximum mass
-      double getAverageMassDelta(const double mass) const;
+      double getAverageMassDelta(double mass) const;
 
       /// get mass difference between most abundant mass and mono masses. If input mass exceeds the maximum mass (specified in constructor), output for the maximum mass
-      double getMostAbundantMassDelta(const double mass) const;
+      double getMostAbundantMassDelta(double mass) const;
     };
 
     /// Mass feature (Deconvolved masses in spectra are traced by Mass tracing to generate mass features - like LC-MS features).
@@ -187,7 +187,7 @@ namespace OpenMS
                @brief constructor from Peak1D.
               @param positive determines the charge carrier mass
         */
-      explicit LogMzPeak(const Peak1D& peak, const bool positive);
+      explicit LogMzPeak(const Peak1D& peak, bool positive);
 
       /// copy constructor
       LogMzPeak(const LogMzPeak& ) = default;
@@ -209,11 +209,11 @@ namespace OpenMS
         //       @param mz mz
         //       @param positive determines the charge carrier mass
        */
-    static float getLogMz(const double mz, const bool positive);
+    static float getLogMz(float mz, bool positive);
 
     /**
             //       @brief get charge carrier mass
             //       @param ioniziation_mode Determines the charge carrier mass (true = positive or false = negative)*/
-    static float getChargeMass(const bool positive_ioniziation_mode);
+    static float getChargeMass(bool positive_ioniziation_mode);
   };
 }
