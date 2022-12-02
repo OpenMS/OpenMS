@@ -1497,7 +1497,7 @@ namespace OpenMS
         // int iso_length = avg_.getRightCountFromApex(mass1) + avg_.getLeftCountFromApex(mass1) + 1;
 
         int repz1 = (int)round(mass1 / pmz);
-        if(repz1 != dspec[i].getRepAbsCharge())
+        if (repz1 != dspec[i].getRepAbsCharge())
         {
           //  continue;
         }
@@ -1511,7 +1511,7 @@ namespace OpenMS
           }
           double mass2 = dspec[j].getMonoMass();
           int repz2 = (int)round(mass2 / pmz);
-          if(repz2 != dspec[j].getRepAbsCharge())
+          if (repz2 != dspec[j].getRepAbsCharge())
           {
             continue;
           }
@@ -1524,7 +1524,7 @@ namespace OpenMS
 
           bool charge_error = false;
 
-          if (std::max(abs(mass2 - mass1/repz1*repz2), abs(mass1 - mass2/repz2*repz1)) <= 2 * iso_da_distance_)
+          if (std::max(abs(mass2 - mass1 / repz1 * repz2), abs(mass1 - mass2 / repz2 * repz1)) <= 2 * iso_da_distance_)
           {
             charge_error = true;
           }
