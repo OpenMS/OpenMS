@@ -294,7 +294,7 @@ def handleFramework(frameworkPath, targetPath, rpaths)
       end
   else
     debug "RPath but no lib found. Assuming fixed already: #{libname}"
-    if $EXTRACTFW
+    if !$EXTRACTFW
       # But at least adjust the libname which is used in handleDependencies to fix loading.
       # get framework path (name of dir containing .framework)
       frameworkDir=frameworkPath.to_s.gsub(/(.*\.framework).*/,'\1')
