@@ -114,24 +114,24 @@ namespace OpenMS
   ///@name Iterating ranges and areas
   //@{
   /// Returns an area iterator for @p area
-  MSExperiment::AreaIterator MSExperiment::areaBegin(CoordinateType min_rt, CoordinateType max_rt, CoordinateType min_mz, CoordinateType max_mz)
+  MSExperiment::AreaIterator MSExperiment::areaBegin(CoordinateType min_rt, CoordinateType max_rt, CoordinateType min_mz, CoordinateType max_mz, UInt ms_level)
   {
     OPENMS_PRECONDITION(min_rt <= max_rt, "Swapped RT range boundaries!")
     OPENMS_PRECONDITION(min_mz <= max_mz, "Swapped MZ range boundaries!")
     OPENMS_PRECONDITION(this->isSorted(true), "Experiment is not sorted by RT and m/z! Using AreaIterator will give invalid results!")
     auto [min_im, max_im] = RangeMobility{}.getNonEmptyRange(); // a full range
-    auto area = AreaIterator::Param(spectra_.begin(), RTBegin(min_rt), RTEnd(max_rt));
+    auto area = AreaIterator::Param(spectra_.begin(), RTBegin(min_rt), RTEnd(max_rt), ms_level);
     area.lowMZ(min_mz).highMZ(max_mz).lowIM(min_im).highIM(max_im);
     return AreaIterator(area);
   }
 
-  MSExperiment::AreaIterator MSExperiment::areaBegin(const RangeManagerType& range)
+  MSExperiment::AreaIterator MSExperiment::areaBegin(const RangeManagerType& range, UInt ms_level)
   {
     OPENMS_PRECONDITION(this->isSorted(true), "Experiment is not sorted by RT and m/z! Using ConstAreaIterator will give invalid results!")
     auto [min_rt, max_rt] = range.RangeRT::getNonEmptyRange();
     auto [min_mz, max_mz] = range.RangeMZ::getNonEmptyRange();
     auto [min_im, max_im] = range.RangeMobility::getNonEmptyRange();
-    auto area = AreaIterator::Param(spectra_.begin(), RTBegin(min_rt), RTEnd(max_rt));
+    auto area = AreaIterator::Param(spectra_.begin(), RTBegin(min_rt), RTEnd(max_rt), ms_level);
     area.lowMZ(min_mz).highMZ(max_mz).lowIM(min_im).highIM(max_im);
     return AreaIterator(area);
   }
@@ -143,24 +143,24 @@ namespace OpenMS
   }
 
   /// Returns a non-mutable area iterator for @p area
-  MSExperiment::ConstAreaIterator MSExperiment::areaBeginConst(CoordinateType min_rt, CoordinateType max_rt, CoordinateType min_mz, CoordinateType max_mz) const
+  MSExperiment::ConstAreaIterator MSExperiment::areaBeginConst(CoordinateType min_rt, CoordinateType max_rt, CoordinateType min_mz, CoordinateType max_mz, UInt ms_level) const
   {
     OPENMS_PRECONDITION(min_rt <= max_rt, "Swapped RT range boundaries!")
     OPENMS_PRECONDITION(min_mz <= max_mz, "Swapped MZ range boundaries!")
     OPENMS_PRECONDITION(this->isSorted(true), "Experiment is not sorted by RT and m/z! Using ConstAreaIterator will give invalid results!")
     auto [min_im, max_im] = RangeMobility{}.getNonEmptyRange(); // a full range
-    auto area = ConstAreaIterator::Param(spectra_.begin(), RTBegin(min_rt), RTEnd(max_rt));
+    auto area = ConstAreaIterator::Param(spectra_.begin(), RTBegin(min_rt), RTEnd(max_rt), ms_level);
     area.lowMZ(min_mz).highMZ(max_mz).lowIM(min_im).highIM(max_im);
     return ConstAreaIterator(area);
   }
 
-  MSExperiment::ConstAreaIterator MSExperiment::areaBeginConst(const RangeManagerType& range) const
+  MSExperiment::ConstAreaIterator MSExperiment::areaBeginConst(const RangeManagerType& range, UInt ms_level) const
   {
     OPENMS_PRECONDITION(this->isSorted(true), "Experiment is not sorted by RT and m/z! Using ConstAreaIterator will give invalid results!")
     auto [min_rt, max_rt] = range.RangeRT::getNonEmptyRange();
     auto [min_mz, max_mz] = range.RangeMZ::getNonEmptyRange();
     auto [min_im, max_im] = range.RangeMobility::getNonEmptyRange();
-    auto area = ConstAreaIterator::Param(spectra_.begin(), RTBegin(min_rt), RTEnd(max_rt));
+    auto area = ConstAreaIterator::Param(spectra_.begin(), RTBegin(min_rt), RTEnd(max_rt), ms_level);
     area.lowMZ(min_mz).highMZ(max_mz).lowIM(min_im).highIM(max_im);
     return ConstAreaIterator(area);
   }

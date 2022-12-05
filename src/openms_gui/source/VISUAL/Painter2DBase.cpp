@@ -292,18 +292,20 @@ namespace OpenMS
     const auto& map = *layer_->getPeakData();
     const auto& area = canvas->visible_area_.getAreaUnit();
     const auto end_area = map.areaEndConst();
-    for (auto i = map.areaBeginConst(area); i != end_area; ++i)
+    const UInt MS_LEVEL {1};
+    for (auto i = map.areaBeginConst(area, MS_LEVEL); i != end_area; ++i)
     {
       PeakIndex pi = i.getPeakIndex();
       if (layer_->filters.passes(map[pi.spectrum], pi.peak))
       {
         auto from = canvas->unit_mapper_.map(i);
-        QPoint pos = canvas->dataToWidget_(from.getX(), from.getY());
+        QPoint pos = canvas->dataToWidget_(from);
         // store point in the array of its color
         Int colorIndex = canvas->precalculatedColorIndex_(i->getIntensity(), layer_->gradient, snap_factor);
         coloredPoints[colorIndex].push_back(pos);
       }
     }
+
     // draw point arrays from minimum to maximum intensity,
     // avoiding low-intensity points obscuring the high-intensity ones
     painter.save();

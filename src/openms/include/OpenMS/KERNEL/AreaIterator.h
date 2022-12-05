@@ -79,18 +79,10 @@ public:
          * \param begin The first spectrum with a valid RT/IM time
          * \param end The last spectrum with a valid RT/IM time
          */
-        Param(SpectrumIteratorType first, SpectrumIteratorType begin, SpectrumIteratorType end)
+        Param(SpectrumIteratorType first, SpectrumIteratorType begin, SpectrumIteratorType end, uint8_t ms_level)
           : first_(first), current_scan_(begin), end_scan_(end)
         {
-          // if begin is dereferencable ...
-          if (begin != end)
-          {
-            ms_level_ = begin->getMSLevel();
-          }
-          else
-          {
-            ms_level_ = 1;
-          }
+          ms_level_ = ms_level;
         }
 
         /// return the end-iterator

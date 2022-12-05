@@ -97,7 +97,7 @@ START_SECTION((AreaIterator()))
 END_SECTION
 
 START_SECTION((AreaIterator(SpectrumIteratorType first, SpectrumIteratorType begin, SpectrumIteratorType end, CoordinateType low_mz, CoordinateType high_mz)))
-	ptr2 = new AI(AIP(exp.begin(),exp.RTBegin(0), exp.RTEnd(0)).lowMZ(0).highMZ(0));
+	ptr2 = new AI(AIP(exp.begin(),exp.RTBegin(0), exp.RTEnd(0), 1).lowMZ(0).highMZ(0));
   TEST_NOT_EQUAL(ptr2,nullPointer)
 END_SECTION
 
@@ -112,7 +112,7 @@ START_SECTION((bool operator==(const AreaIterator &rhs) const))
 	TEST_EQUAL(a2==a2, true)
 	TEST_EQUAL(a1==a2, true)
 	
-	AI a3(AIP(exp.begin(),exp.RTBegin(0), exp.RTEnd(10)).lowMZ(500).highMZ(600));
+	AI a3(AIP(exp.begin(),exp.RTBegin(0), exp.RTEnd(10), 1).lowMZ(500).highMZ(600));
 	TEST_EQUAL(a3==a3, true)
 	TEST_EQUAL(a1==a3, false)
 	TEST_EQUAL(a2==a3, false)
@@ -124,7 +124,7 @@ START_SECTION((bool operator!=(const AreaIterator &rhs) const))
 	TEST_EQUAL(a2!=a2, false)
 	TEST_EQUAL(a1!=a2, false)
 	
-	AI a3(AIP(exp.begin(), exp.RTBegin(0), exp.RTEnd(10)).lowMZ(500).highMZ(600));
+	AI a3(AIP(exp.begin(), exp.RTBegin(0), exp.RTEnd(10), 1).lowMZ(500).highMZ(600));
 	TEST_EQUAL(a3!=a3, false)
 	TEST_EQUAL(a1!=a3, true)
 	TEST_EQUAL(a2!=a3, true)
@@ -132,7 +132,7 @@ END_SECTION
 
 START_SECTION((AreaIterator(const AreaIterator &rhs)))
 	AI a1;
-	AI a2(AIP(exp.begin(),exp.RTBegin(0), exp.RTEnd(10)).lowMZ(500).highMZ(600));
+  AI a2(AIP(exp.begin(), exp.RTBegin(0), exp.RTEnd(10), 1).lowMZ(500).highMZ(600));
 
 	AI a3(a2);
 	TEST_EQUAL(a3==a1, false)
@@ -147,7 +147,7 @@ END_SECTION
 
 START_SECTION((AreaIterator& operator=(const AreaIterator &rhs)))
 	AI a1, a2;
-	AI a3(AIP(exp.begin(),exp.RTBegin(0), exp.RTEnd(10)).lowMZ(500).highMZ(600));
+  AI a3(AIP(exp.begin(), exp.RTBegin(0), exp.RTEnd(10), 1).lowMZ(500).highMZ(600));
 
 	a2 = a3;
 	TEST_EQUAL(a2==a3, true)
@@ -159,17 +159,17 @@ START_SECTION((AreaIterator& operator=(const AreaIterator &rhs)))
 END_SECTION
 
 START_SECTION((reference operator *() const))
-  AI it = AI(AIP(exp.begin(), exp.RTBegin(0), exp.RTEnd(7)).lowMZ(505).highMZ(520));
+  AI it = AI(AIP(exp.begin(), exp.RTBegin(0), exp.RTEnd(7), 1).lowMZ(505).highMZ(520));
   TEST_REAL_SIMILAR((*it).getMZ(),510.0);
 END_SECTION
 
 START_SECTION((pointer operator->() const))
-	AI it = AI(AIP(exp.begin(), exp.RTBegin(0), exp.RTEnd(7)).lowMZ(505).highMZ(520));
+	AI it = AI(AIP(exp.begin(), exp.RTBegin(0), exp.RTEnd(7), 1).lowMZ(505).highMZ(520));
 	TEST_REAL_SIMILAR(it->getMZ(),510.0);
 END_SECTION
 
 START_SECTION((AreaIterator& operator++()))
-	AI it = AI(AIP(exp.begin(), exp.RTBegin(0), exp.RTEnd(7)).lowMZ(505).highMZ(520));
+	AI it = AI(AIP(exp.begin(), exp.RTBegin(0), exp.RTEnd(7), 1).lowMZ(505).highMZ(520));
 	Map::PeakType* peak = &(*(it++));
 	TEST_REAL_SIMILAR(peak->getMZ(),510.0);
 	peak = &(*(it++));
@@ -178,7 +178,7 @@ START_SECTION((AreaIterator& operator++()))
 END_SECTION
 
 START_SECTION((AreaIterator operator++(int)))
-	AI it = AI(AIP(exp.begin(), exp.RTBegin(0), exp.RTEnd(7)).lowMZ(505).highMZ(520));
+	AI it = AI(AIP(exp.begin(), exp.RTBegin(0), exp.RTEnd(7), 1).lowMZ(505).highMZ(520));
 	TEST_REAL_SIMILAR(it->getMZ(),510.0);
 	++it;
 	TEST_REAL_SIMILAR(it->getMZ(),506.0);
@@ -187,7 +187,7 @@ START_SECTION((AreaIterator operator++(int)))
 END_SECTION
 
 START_SECTION((CoordinateType getRT() const))
-	AI it = AI(AIP(exp.begin(), exp.RTBegin(3), exp.RTEnd(9)).lowMZ(503).highMZ(509));
+	AI it = AI(AIP(exp.begin(), exp.RTBegin(3), exp.RTEnd(9), 1).lowMZ(503).highMZ(509));
 	TEST_REAL_SIMILAR(it->getMZ(),504.0);
 	TEST_REAL_SIMILAR(it.getRT(),4.0);
 	++it;
@@ -204,7 +204,7 @@ START_SECTION((CoordinateType getRT() const))
 END_SECTION
 
 START_SECTION((CoordinateType getDriftTime() const))
-  AI it = AI(AIP(exp.begin(), exp.RTBegin(3), exp.RTEnd(9)).lowMZ(503).highMZ(509).lowIM(1).highIM(1.5));
+  AI it = AI(AIP(exp.begin(), exp.RTBegin(3), exp.RTEnd(9), 1).lowMZ(503).highMZ(509).lowIM(1).highIM(1.5));
   TEST_REAL_SIMILAR(it->getMZ(), 504.0);
   TEST_REAL_SIMILAR(it.getRT(), 4.0);
   TEST_REAL_SIMILAR(it.getDriftTime(), 1.4);
@@ -247,15 +247,15 @@ START_SECTION([EXTRA] Overall test)
     TEST_EQUAL(it == exp.areaEnd(), true);
   };
   // restrict dimensions (from -inf,+inf), but include the whole range
-  test_all(AI(AIP(exp.begin(), exp.RTBegin(0), exp.RTEnd(15)).lowMZ(500).highMZ(520)));
-  test_all(AI(AIP(exp.begin(), exp.RTBegin(0), exp.RTEnd(15))));
-  test_all(AI(AIP(exp.begin(), exp.RTBegin(0), exp.RTEnd(15)).lowIM(0).highIM(2)));
-  test_all(AI(AIP(exp.begin(), exp.RTBegin(0), exp.RTEnd(15)).lowIM(0).highIM(2).lowMZ(500).highMZ(520)));
-  test_all(AI(AIP(exp.begin(), exp.RTBegin(0), exp.RTEnd(15)).lowIM(0).highIM(2).lowMZ(500).highMZ(520).msLevel(1)));
+  test_all(AI(AIP(exp.begin(), exp.RTBegin(0), exp.RTEnd(15), 1).lowMZ(500).highMZ(520)));
+  test_all(AI(AIP(exp.begin(), exp.RTBegin(0), exp.RTEnd(15), 1)));
+  test_all(AI(AIP(exp.begin(), exp.RTBegin(0), exp.RTEnd(15), 1).lowIM(0).highIM(2)));
+  test_all(AI(AIP(exp.begin(), exp.RTBegin(0), exp.RTEnd(15), 1).lowIM(0).highIM(2).lowMZ(500).highMZ(520)));
+  test_all(AI(AIP(exp.begin(), exp.RTBegin(0), exp.RTEnd(15), 1).lowIM(0).highIM(2).lowMZ(500).highMZ(520).msLevel(1)));
 	
-  AI it = AI(AIP(exp.begin(), exp.RTBegin(0), exp.RTEnd(15)).lowMZ(500).highMZ(520));
+  AI it = AI(AIP(exp.begin(), exp.RTBegin(0), exp.RTEnd(15), 1).lowMZ(500).highMZ(520));
   // center peaks
-  it = AI(AIP(exp.begin(), exp.RTBegin(3), exp.RTEnd(9)).lowMZ(503).highMZ(509));
+  it = AI(AIP(exp.begin(), exp.RTBegin(3), exp.RTEnd(9), 1).lowMZ(503).highMZ(509));
 	TEST_REAL_SIMILAR(it->getMZ(),504.0);
 	TEST_REAL_SIMILAR(it.getRT(),4.0);	
 	++it;
@@ -271,7 +271,7 @@ START_SECTION([EXTRA] Overall test)
 	TEST_EQUAL(it==exp.areaEnd(),true);
 	
 	//upper left area
-  it = AI(AIP(exp.begin(), exp.RTBegin(0), exp.RTEnd(7)).lowMZ(505).highMZ(520));
+  it = AI(AIP(exp.begin(), exp.RTBegin(0), exp.RTEnd(7), 1).lowMZ(505).highMZ(520));
 	TEST_REAL_SIMILAR(it->getMZ(),510.0);
 	TEST_REAL_SIMILAR(it.getRT(),2.0);	
 	++it;
@@ -281,7 +281,7 @@ START_SECTION([EXTRA] Overall test)
 	TEST_EQUAL(it==exp.areaEnd(),true);
 	
 	//upper right area
-  it = AI(AIP(exp.begin(), exp.RTBegin(5), exp.RTEnd(11)).lowMZ(505).highMZ(520));
+  it = AI(AIP(exp.begin(), exp.RTBegin(5), exp.RTEnd(11), 1).lowMZ(505).highMZ(520));
 	TEST_REAL_SIMILAR(it->getMZ(),506.1);
 	TEST_REAL_SIMILAR(it.getRT(),8.0);	
 	++it;
@@ -291,7 +291,7 @@ START_SECTION([EXTRA] Overall test)
 	TEST_EQUAL(it==exp.areaEnd(),true);
 	
 	//lower right
-	it = AI(AIP(exp.begin(), exp.RTBegin(5), exp.RTEnd(11)).lowMZ(500).highMZ(505));
+  it = AI(AIP(exp.begin(), exp.RTBegin(5), exp.RTEnd(11), 1).lowMZ(500).highMZ(505));
 	TEST_REAL_SIMILAR(it->getMZ(),504.1);
 	TEST_REAL_SIMILAR(it.getRT(),8.0);	
 	++it;
@@ -301,7 +301,7 @@ START_SECTION([EXTRA] Overall test)
 	TEST_EQUAL(it==exp.areaEnd(),true);
 
 	// lower left
-  it = AI(AIP(exp.begin(), exp.RTBegin(0), exp.RTEnd(7)).lowMZ(500).highMZ(505));
+  it = AI(AIP(exp.begin(), exp.RTBegin(0), exp.RTEnd(7), 1).lowMZ(500).highMZ(505));
 	TEST_REAL_SIMILAR(it->getMZ(),502.0)
 	TEST_REAL_SIMILAR(it.getRT(),2.0)	
 	++it;
@@ -311,23 +311,23 @@ START_SECTION([EXTRA] Overall test)
 	TEST_EQUAL(it==exp.areaEnd(),true)
 
 	// Test with empty RT range
-  it = AI(AIP(exp.begin(), exp.RTBegin(5), exp.RTEnd(5.5)).lowMZ(500).highMZ(520));
+  it = AI(AIP(exp.begin(), exp.RTBegin(5), exp.RTEnd(5.5), 1).lowMZ(500).highMZ(520));
 	TEST_EQUAL(it==exp.areaEnd(),true)
 
 	// Test with empty MZ range
-  it = AI(AIP(exp.begin(), exp.RTBegin(0), exp.RTEnd(15)).lowMZ(505).highMZ(505.5));
+  it = AI(AIP(exp.begin(), exp.RTBegin(0), exp.RTEnd(15), 1).lowMZ(505).highMZ(505.5));
 	TEST_EQUAL(it==exp.areaEnd(),true)
 
 	// Test with empty RT + MZ range
-  it = AI(AIP(exp.begin(), exp.RTBegin(5), exp.RTEnd(5.5)).lowMZ(505).highMZ(505.5));
+  it = AI(AIP(exp.begin(), exp.RTBegin(5), exp.RTEnd(5.5), 1).lowMZ(505).highMZ(505.5));
 	TEST_EQUAL(it==exp.areaEnd(),true)
 
 	// Test with empty IM range
-  it = AI(AIP(exp.begin(), exp.RTBegin(0), exp.RTEnd(15)).lowIM(0).highIM(0.9));
+  it = AI(AIP(exp.begin(), exp.RTBegin(0), exp.RTEnd(15), 1).lowIM(0).highIM(0.9));
   TEST_EQUAL(it == exp.areaEnd(), true)
 
 	// Test with empty MS level
-  it = AI(AIP(exp.begin(), exp.RTBegin(0), exp.RTEnd(15)).msLevel(3));
+  it = AI(AIP(exp.begin(), exp.RTBegin(0), exp.RTEnd(15), 3));
   TEST_EQUAL(it == exp.areaEnd(), true)
 
   // Test with empty (no MS level 1) experiment
@@ -337,16 +337,16 @@ START_SECTION([EXTRA] Overall test)
   exp2[2].setMSLevel(2);
   exp2[3].setMSLevel(2);
   exp2[4].setMSLevel(2);
-  it = AI(AIP(exp2.begin(), exp2.RTBegin(0), exp2.RTEnd(15)).lowMZ(500).highMZ(520).msLevel(1));
+  it = AI(AIP(exp2.begin(), exp2.RTBegin(0), exp2.RTEnd(15), 1).lowMZ(500).highMZ(520));
   TEST_TRUE(it==exp2.areaEnd())
-  // however: automatic MS level should work (determined from exp2.RTBegin(0))
-  it = AI(AIP(exp2.begin(), exp2.RTBegin(0), exp2.RTEnd(15)).lowMZ(500).highMZ(520));
+  // however: MS level 2 should work 
+  it = AI(AIP(exp2.begin(), exp2.RTBegin(0), exp2.RTEnd(15), 2).lowMZ(500).highMZ(520));
   TEST_FALSE(it == exp2.areaEnd())
   END_SECTION
 
 START_SECTION((PeakIndex getPeakIndex() const))
   PeakIndex i;
-AI it = AI(AIP(exp.begin(), exp.begin(), exp.end()).lowMZ(0).highMZ(1000));
+AI it = AI(AIP(exp.begin(), exp.begin(), exp.end(), 1).lowMZ(0).highMZ(1000));
 	i = it.getPeakIndex();
 	TEST_EQUAL(i.peak,0)
 	TEST_EQUAL(i.spectrum,0)	
