@@ -24,7 +24,7 @@ jobs:
             **/*.h
             **/*.cpp
           sha: ${{ github.event.pull_request.head.sha }}
-          max_fetch_depth: 5000
+          fetch_depth: 5000
 
 # Perform linting
     - name: Use clang format linting
