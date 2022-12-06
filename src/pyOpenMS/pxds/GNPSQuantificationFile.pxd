@@ -17,11 +17,6 @@ cdef extern from "<OpenMS/FORMAT/GNPSQuantificationFile.h>" namespace "OpenMS":
         #  a row for every consensus feature with information on rt, mz, intensity, width and quality. The same information is
         #  added for each original feature in the consensus feature.
         #  
-        #  Parameters
-        #  
-        #  consensus_map : ConsensusMap
-        #   Input ConsensusMap annotated with IonIdentityMolecularNetworking.annotateConsensusMap.
-        #  
-        #  output_file : str
-        #   Output file path for the feature quantification table.  
+        #  :param consensus_map: Input ConsensusMap annotated with IonIdentityMolecularNetworking.annotateConsensusMap.
+        #  :param output_file: Output file path for the feature quantification table.  
         
