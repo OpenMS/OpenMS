@@ -23,6 +23,7 @@ jobs:
           files: |
             **/*.h
             **/*.cpp
+          sha: ${{ github.event.pull_request.head.sha }}
 
 # Perform linting
     - name: Use clang format linting
