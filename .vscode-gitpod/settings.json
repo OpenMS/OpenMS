@@ -6,7 +6,6 @@
     "cmake.ignoreKitEnv": true,
     "cmake.configureOnOpen": true,
     "cmake.configureArgs": [
-      "-DCMAKE_BUILD_TYPE=Debug",
       "-DCMAKE_EXPORT_COMPILE_COMMANDS=ON",
       "-DCMAKE_PREFIX_PATH='/contrib-build/;/usr/;/usr/local'",
       "-DBOOST_USE_STATIC=OFF",
