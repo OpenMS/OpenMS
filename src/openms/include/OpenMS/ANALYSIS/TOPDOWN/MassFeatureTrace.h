@@ -73,7 +73,7 @@ namespace OpenMS
     MassFeatureTrace(const MassFeatureTrace& ) = default;
 
     /// move constructor
-    MassFeatureTrace(MassFeatureTrace&& other) noexcept = default;
+    MassFeatureTrace(MassFeatureTrace&& other) = default;
 
     /// assignment operator
     MassFeatureTrace& operator=(const MassFeatureTrace& fd) = default;

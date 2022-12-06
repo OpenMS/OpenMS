@@ -33,6 +33,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/FORMAT/FLASHDeconvSpectrumFile.h>
+#include <random>
 
 namespace OpenMS
 {
@@ -44,7 +45,7 @@ namespace OpenMS
   void FLASHDeconvSpectrumFile::writeDeconvolvedMasses(DeconvolvedSpectrum& dspec, std::fstream& fs, const String& file_name, const FLASHDeconvHelperStructs::PrecalculatedAveragine& avg,
                                                       const bool write_detail, const bool decoy)
   {
-    static std::vector<int> indices{};
+    static std::vector<uint> indices{};
 
     if (dspec.empty())
     {
@@ -55,7 +56,7 @@ namespace OpenMS
     {
       indices.push_back(1);
     }
-    int& index = indices[dspec.getOriginalSpectrum().getMSLevel()-1];
+    uint& index = indices[dspec.getOriginalSpectrum().getMSLevel()-1];
 
     for (auto& pg : dspec)
     {
@@ -178,20 +179,20 @@ namespace OpenMS
           fs << dspec.getPrecursorPeakGroup().getChargeSNR(dspec.getPrecursor().getCharge()) << "\t" << std::to_string(dspec.getPrecursorPeakGroup().getMonoMass()) << "\t"
              << dspec.getPrecursorPeakGroup().getQScore() << "\t";
           if (decoy)
-            fs << dspec.getPrecursorPeakGroup().getQvalue() << "\t" << dspec.getPrecursorPeakGroup().getQvalue(PeakGroup::decoyFlag::isotope_decoy) << "\t"
-               << dspec.getPrecursorPeakGroup().getQvalue(PeakGroup::decoyFlag::noise_decoy) << "\t" << dspec.getPrecursorPeakGroup().getQvalue(PeakGroup::decoyFlag::charge_decoy) << "\t";
+            fs << dspec.getPrecursorPeakGroup().getQvalue() << "\t" << dspec.getPrecursorPeakGroup().getQvalue(PeakGroup::DecoyFlag::isotope_decoy) << "\t"
+               << dspec.getPrecursorPeakGroup().getQvalue(PeakGroup::DecoyFlag::noise_decoy) << "\t" << dspec.getPrecursorPeakGroup().getQvalue(PeakGroup::DecoyFlag::charge_decoy) << "\t";
         }
       }
       fs << pg.getIsotopeCosine() << "\t" << pg.getChargeIsotopeCosine(pg.getRepAbsCharge()) << "\t" << pg.getChargeScore() << "\t";
 
-      auto max_qscore_mz_range = pg.getMaxQScoreMzRange();
+      auto max_qscore_mz_range = pg.getRepMzRange();
       fs << pg.getSNR() << "\t" << pg.getChargeSNR(pg.getRepAbsCharge()) << "\t"<< pg.getAvgPPMError() << "\t" << (pg.isPositive() ? pg.getRepAbsCharge() : -pg.getRepAbsCharge()) << "\t"
          << std::to_string(std::get<0>(max_qscore_mz_range)) << "\t" << std::to_string(std::get<1>(max_qscore_mz_range)) << "\t" << pg.getQScore();
 
       if (decoy)
       {
-        fs << "\t" << pg.getQvalue() << "\t" << pg.getQvalue(PeakGroup::decoyFlag::isotope_decoy) << "\t"
-           << pg.getQvalue(PeakGroup::decoyFlag::noise_decoy) << "\t" << pg.getQvalue(PeakGroup::decoyFlag::charge_decoy);
+        fs << "\t" << pg.getQvalue() << "\t" << pg.getQvalue(PeakGroup::DecoyFlag::isotope_decoy) << "\t"
+           << pg.getQvalue(PeakGroup::DecoyFlag::noise_decoy) << "\t" << pg.getQvalue(PeakGroup::DecoyFlag::charge_decoy);
       }
 
       if (write_detail)
@@ -210,7 +211,7 @@ namespace OpenMS
         fs << "\t";
 
         auto iso_intensities = pg.getIsotopeIntensities();
-        for (int i = 0; i < iso_intensities.size(); i++)
+        for (size_t i = 0; i < iso_intensities.size(); i++)
         {
           fs << iso_intensities[i];
           if (i < iso_intensities.size() - 1)
@@ -223,95 +224,7 @@ namespace OpenMS
     }
   }
 
-  void FLASHDeconvSpectrumFile::writeDLMatrixHeader(DeconvolvedSpectrum& dspec, std::fstream& fs)
-  {
-    if(dspec.size() <= 0)
-    {
-      return;
-    }
-
-    auto pg = dspec[0];
-    for(int i = 0; i < 3; i++)
-    {
-      String prefix = "Set" + std::to_string(i+1) + "_";
-      auto dlm = pg.getDLMatrix(i).asVector();
-      int j = 0;
-      for(double v : dlm)
-      {
-        fs << prefix << j++ << ",";
-      }
-    }
-    fs << "Class\n";
-  }
-
-  template<class BidiIter>
-  BidiIter random_unique(BidiIter begin, BidiIter end, size_t num_random)
-  {
-    size_t left = std::distance(begin, end);
-    while (num_random--) {
-      BidiIter r = begin;
-      std::advance(r, rand()%left);
-      std::swap(*begin, *r);
-      ++begin;
-      --left;
-    }
-    return begin;
-  }
-
-  void FLASHDeconvSpectrumFile::writeDLMatrix(std::vector<DeconvolvedSpectrum>& dspecs, std::fstream& fs)
-  {
-    String cns[] = {"T", "D1", "D2", "D3"};
-    int count = 25000;
-    //class,ID,group,data
-    std::vector<std::vector<PeakGroup>> grouped(4);
-
-    for(auto& dspec: dspecs)
-    {
-      for(auto& pg: dspec)
-      {
-        int cl = pg.getDecoyFlag();
-        if(cl<0 || cl>=grouped.size())
-        {
-          continue;
-        }
-        grouped[cl].push_back(pg);
-      }
-    }
-
-    for(auto& g : grouped)
-    {
-      if(g.size() < count)
-      {
-        continue;
-      }
-      random_unique(g.begin(), g.end(), count);
-    }
-
-    for(auto& g : grouped)
-    {
-      int cntr = 0;
-      for (auto& pg : g)
-      {
-        int cl = pg.getDecoyFlag();
-
-        for (int i = 0; i < 3; i++)
-        {
-          auto dlm = pg.getDLMatrix(i).asVector();
-          for (double v : dlm)
-          {
-            fs << v << ",";
-          }
-        }
-        fs << cns[cl] << "\n";
-        if(++cntr >= count)
-        {
-          break;
-        }
-      }
-    }
-  }
-
-  void FLASHDeconvSpectrumFile::writeDeconvolvedMassesHeader(std::fstream& fs, const int ms_level, const bool detail, const bool decoy)
+  void FLASHDeconvSpectrumFile::writeDeconvolvedMassesHeader(std::fstream& fs, const uint ms_level, const bool detail, const bool decoy)
   {
     if (detail)
     {

@@ -35,7 +35,6 @@
 #include <OpenMS/ANALYSIS/TOPDOWN/FLASHDeconvAlgorithm.h>
 #include <OpenMS/ANALYSIS/TOPDOWN/MassFeatureTrace.h>
 
-#include <utility>
 
 namespace OpenMS
 {
@@ -141,7 +140,7 @@ namespace OpenMS
       {
         for (auto& p: pg)
         {
-          if (p.isotopeIndex < 0 || p.isotopeIndex >= averagine.getMaxIsotopeIndex() || p.abs_charge < min_abs_charge ||
+          if (p.isotopeIndex < 0 || p.isotopeIndex >= (int)averagine.getMaxIsotopeIndex() || p.abs_charge < min_abs_charge ||
               p.abs_charge >= charge_range + min_abs_charge + 1)
           {
             continue;
@@ -172,7 +171,7 @@ namespace OpenMS
 
       mass_feature.avg_mass = averagine.getAverageMassDelta(mass) + mass;
       mass_feature.mt = mt;
-      mass_feature.charge_count = charges.count();
+      mass_feature.charge_count = (int)charges.count();
       mass_feature.isotope_score = isotope_score;
       mass_feature.min_charge = (is_positive ? min_feature_abs_charge : -max_feature_abs_charge) ;
       mass_feature.max_charge = (is_positive ? max_feature_abs_charge : -min_feature_abs_charge) ;
@@ -187,7 +186,7 @@ namespace OpenMS
         {
           for (auto& p : pg)
           {
-            if (p.isotopeIndex < offset || p.isotopeIndex >= averagine.getMaxIsotopeIndex() + offset || p.abs_charge < min_abs_charge || p.abs_charge >= charge_range + min_abs_charge + 1)
+            if (p.isotopeIndex < offset || p.isotopeIndex >= (int)averagine.getMaxIsotopeIndex() + offset || p.abs_charge < min_abs_charge || p.abs_charge >= charge_range + min_abs_charge + 1)
             {
               continue;
             }
