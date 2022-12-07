@@ -461,14 +461,17 @@ jobs:
       uses: actions/download-artifact@v3
       with:
           name: Linux-wheels
+          path: /home/runner/work/OpenMS/OpenMS/Linux-wheels
     - name: Download artifacts
       uses: actions/download-artifact@v3
       with:
           name: Windows-wheels
+          path: /home/runner/work/OpenMS/OpenMS/Windows-wheels
     - name: Download artifacts
       uses: actions/download-artifact@v3
       with:
           name: macOS-wheels
+          path: /home/runner/work/OpenMS/OpenMS/macOS-wheels
 
     - name: Merge all artifacts
       run: |
