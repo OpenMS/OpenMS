@@ -1063,7 +1063,7 @@ namespace OpenMS
           continue;
         }
         Size j = getBinNumber_(log(m), mass_bin_min_value_, bin_width_[ms_level_ - 1]);
-        if (j < 0)
+        if (j == 0)
         {
           continue;
         }
