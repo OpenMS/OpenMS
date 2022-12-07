@@ -216,15 +216,13 @@ add_custom_target(
 #    COMMAND ${CMAKE_COMMAND} -E make_directory ${PAYLOAD_LIB_PATH}/plugins/
 #    COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:Qt5::QSQLiteDriverPlugin> ${PAYLOAD_LIB_PATH}/plugins/
 #)
-
-
 # create qt.conf file that specifies plugin dir location
-add_custom_command(
-    TARGET prepare_knime_payload_libs POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E echo "[Paths]" > ${PAYLOAD_LIB_PATH}/qt.conf
-    COMMAND ${CMAKE_COMMAND} -E echo "Plugins = plugins" >> ${PAYLOAD_LIB_PATH}/qt.conf
-    COMMAND ${CMAKE_COMMAND} -E echo "" >> ${PAYLOAD_LIB_PATH}/qt.conf
-)
+#add_custom_command(
+#    TARGET prepare_knime_payload_libs POST_BUILD
+#    COMMAND ${CMAKE_COMMAND} -E echo "[Paths]" > ${PAYLOAD_BIN_PATH}/qt.conf
+#    COMMAND ${CMAKE_COMMAND} -E echo "Plugins = ../${PAYLOAD_LIB_PATH}/plugins" >> ${PAYLOAD_BIN_PATH}/qt.conf
+#    COMMAND ${CMAKE_COMMAND} -E echo "" >> ${PAYLOAD_BIN_PATH}/qt.conf
+#)
 
 ## Assemble common required libraries for win and lnx
 ## Note that we do not need QtGui libraries since we do not include GUI tools here.
@@ -240,8 +238,8 @@ endforeach()
 if (APPLE) ## On APPLE use our script because the executables need to be relinked and some rpath lookups done
   add_custom_command(
     TARGET prepare_knime_payload_libs POST_BUILD
-    COMMAND ${PROJECT_SOURCE_DIR}/cmake/MacOSX/fix_dependencies.rb -l ${PAYLOAD_LIB_PATH} -b ${PAYLOAD_BIN_PATH} -p ${PAYLOAD_LIB_PATH}/plugins -f
-  )
+    COMMAND ${PROJECT_SOURCE_DIR}/cmake/MacOSX/fix_dependencies.rb -l ${PAYLOAD_LIB_PATH} -b ${PAYLOAD_BIN_PATH} -f
+  ) # -p ${PAYLOAD_LIB_PATH}/plugins not applicable for now
   add_custom_command(
           TARGET prepare_knime_payload_libs POST_BUILD
           COMMAND find ${PAYLOAD_BIN_PATH} -depth 1 -type f -exec ${CMAKE_STRIP} -S {} "\;"

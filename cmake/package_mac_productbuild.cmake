@@ -92,7 +92,6 @@ install(FILES       ${CMAKE_CURRENT_BINARY_DIR}/qt.conf
                     WORLD_READ
         COMPONENT   Applications)
 
-
 ## Fix OpenMS dependencies for all executables in the install directory under bin.
 ## That affects everything but the bundles (whose Framework folders are symlinked to lib anyway).
 ########################################################### Fix Dependencies
@@ -100,7 +99,19 @@ install(FILES       ${CMAKE_CURRENT_BINARY_DIR}/qt.conf
 install(CODE "execute_process(COMMAND ${OPENMS_HOST_DIRECTORY}/cmake/MacOSX/fix_dependencies.rb -b \${CMAKE_INSTALL_PREFIX}/../../../Applications${CPACK_PACKAGING_INSTALL_PREFIX}/${INSTALL_BIN_DIR}/ -l \${CMAKE_INSTALL_PREFIX}/${INSTALL_LIB_DIR}/ -p \${CMAKE_INSTALL_PREFIX}/${INSTALL_PLUGIN_DIR} -e @rpath/ -n -c)"
         COMPONENT Dependencies
         )
+# We have to do signing after fixing, otherwise signature will be invalidated.
+# We have to choose COMPONENT Dependencies, otherwise it would be performed at the end of installing Applications, which
+# comes first (alphabetically per component, then order of install calls)
+# If the install CODE is not in the same component though, we need to navigate from the component specific install
+# prefix to the other prefix. This is unfortunately very unrobust.
+# TODO find better order or rewrite fix_dependencies script to be called separately
+install(CODE "execute_process(COMMAND find \${CMAKE_INSTALL_PREFIX}/../../../Applications${CPACK_PACKAGING_INSTALL_PREFIX}/${INSTALL_BIN_DIR}/ -type f -exec codesign --force --options runtime --sign \"${CPACK_BUNDLE_APPLE_CERT_APP}\" {} \\;)"
+        COMPONENT Dependencies
+        )
 install(CODE "execute_process(COMMAND ${OPENMS_HOST_DIRECTORY}/cmake/MacOSX/fix_dependencies.rb -l \${CMAKE_INSTALL_PREFIX}/${INSTALL_LIB_DIR}/ -e @rpath/ -n -c)"
+        COMPONENT library
+        )
+install(CODE "execute_process(COMMAND find \${CMAKE_INSTALL_PREFIX}/${INSTALL_LIB_DIR}/ -type f -exec codesign --force --options runtime --sign \"${CPACK_BUNDLE_APPLE_CERT_APP}\" {} \\;)"
         COMPONENT library
         )
 
@@ -118,5 +129,11 @@ add_custom_target(dist
   COMMAND cpack -G ${CPACK_GENERATOR}
   COMMENT "Building ${CPACK_GENERATOR} package"
 )
+
+add_custom_target(finalized_dist
+                  COMMAND ${PROJECT_SOURCE_DIR}/cmake/MacOSX/fixdmg.sh
+                  WORKING_DIRECTORY ${PROJECT_BINARY_DIR}
+                  COMMENT "Finalizing dmg image"
+                  DEPENDS dist)
 
 
