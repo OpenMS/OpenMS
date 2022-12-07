@@ -161,6 +161,16 @@ if(ENABLE_DOCS)
     file(TO_NATIVE_PATH "${_DEFAULTPARAMHANDLERDOCUMENTER_EXECUTABLE}" DEFAULTPARAMHANDLERDOCUMENTER_EXECUTABLE)
     file(TO_NATIVE_PATH "${_BINARY_PATH}" BINARY_PATH)
 
+    if(WIN32)
+      set(pathsep ";")
+    else()
+      set(pathsep ":")
+    endif()
+    list(TRANSFORM CMAKE_PREFIX_PATH APPEND "/bin" OUTPUT_VARIABLE DEP_BIN_DIRS)
+    string(REPLACE ";" "${pathsep}" DEP_BIN_DIRS "${DEP_BIN_DIRS}")
+    list(TRANSFORM CMAKE_PREFIX_PATH APPEND "/lib" OUTPUT_VARIABLE DEP_LIB_DIRS)
+    string(REPLACE ";" "${pathsep}" DEP_LIB_DIRS "${DEP_LIB_DIRS}")
+
     #------------------------------------------------------------------------------
     # doc_param_internal targets
     add_custom_target(doc_param_internal
@@ -177,11 +187,11 @@ if(ENABLE_DOCS)
                       COMMAND ${CMAKE_COMMAND} -E echo "Building OpenMS parameter docu:"
                       COMMAND ${CMAKE_COMMAND} -E echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
                       COMMAND ${CMAKE_COMMAND} -E make_directory doxygen/parameters/output/
-                      COMMAND ${CMAKE_COMMAND} -E chdir doxygen/parameters/ ${DEFAULTPARAMHANDLERDOCUMENTER_EXECUTABLE}
+                      COMMAND ${CMAKE_COMMAND} -E chdir doxygen/parameters/ ${CMAKE_COMMAND} -E env "PATH=${DEP_BIN_DIRS}${pathsep}${DEP_LIB_DIRS}${pathsep}$ENV{PATH}" ${DEFAULTPARAMHANDLERDOCUMENTER_EXECUTABLE}
                       COMMAND ${CMAKE_COMMAND} -E echo ""
                       COMMAND ${CMAKE_COMMAND} -E echo "Building TOPP/UTILS docu:"
                       COMMAND ${CMAKE_COMMAND} -E echo "~~~~~~~~~~~~~~~~~~~~~~~~~"
-                      COMMAND ${CMAKE_COMMAND} -E chdir doxygen/parameters/ ${TOPPDOCUMENTER_EXECUTABLE} ${BINARY_PATH}
+                      COMMAND ${CMAKE_COMMAND} -E chdir doxygen/parameters/ ${CMAKE_COMMAND} -E env "PATH=${DEP_BIN_DIRS}${pathsep}${DEP_LIB_DIRS}${pathsep}$ENV{PATH}" ${TOPPDOCUMENTER_EXECUTABLE} ${BINARY_PATH}
                       COMMAND ${CMAKE_COMMAND} -E echo ""
                       COMMENT "Build the parameters documentation"
                       VERBATIM)
