@@ -148,6 +148,7 @@ namespace OpenMS
     return i;
   }
 
+  /*
   std::vector<float> FLASHDeconvHelperStructs::PrecalculatedAveragine::getConvolutedPattern(double mass, double tol, double iso_da, int bin_factor) const //bin_factor = odd number
   {
     auto iso = get(mass);
@@ -191,7 +192,7 @@ namespace OpenMS
     }
     return ret;
   }
-
+*/
   IsotopeDistribution FLASHDeconvHelperStructs::PrecalculatedAveragine::get(const double mass) const
   {
     return isotopes_[massToIndex_(mass)];

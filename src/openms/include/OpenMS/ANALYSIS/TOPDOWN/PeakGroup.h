@@ -118,6 +118,8 @@ namespace OpenMS
     /// determine is an mz is a signal of this peakgroup. Input tol is ppm tolerance (e.g., 10.0 for 10ppm tolerance). Assume logMzPeaks are sorted.
     bool isSignalMZ(double mz, double tol) const;
 
+    //float getSumIntensityForMonoMass(float mono_mass, int hc, float iso_da, double tol) const;
+
     /// set scan number
     void setScanNumber(int scan_number);
 
