@@ -1237,11 +1237,16 @@ namespace OpenMS
         filtered_peak_groups_private.push_back(peak_group);
       }
 
+#ifdef _OPENMP
 #pragma omp for schedule(static) ordered
       for(int i=0; i<omp_get_num_threads(); i++) {
 #pragma omp ordered
         filtered_peak_groups.insert(filtered_peak_groups.end(), filtered_peak_groups_private.begin(), filtered_peak_groups_private.end());
       }
+#else
+      filtered_peak_groups = filtered_peak_groups_private;
+#endif
+
     }
     deconvolved_spectrum_.setPeakGroups(filtered_peak_groups);
     deconvolved_spectrum_.sort();

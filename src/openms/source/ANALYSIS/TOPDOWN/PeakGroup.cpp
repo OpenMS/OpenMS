@@ -184,6 +184,9 @@ namespace OpenMS
     min_abs_charge_ += charge_offset;
     max_abs_charge_ = (int)(max_abs_charge_ * charge_multiple);
     min_abs_charge_ = (int)(min_abs_charge_ * charge_multiple);
+    min_abs_charge_ = std::max(min_abs_charge_, 1);
+    max_abs_charge_ = std::max(max_abs_charge_, 1);
+
     monoisotopic_mass_ = mono_mass;
 
     int iso_margin = 3;
