@@ -461,14 +461,17 @@ jobs:
       uses: actions/download-artifact@v3
       with:
           name: Linux-wheels
+          path: /home/runner/work/OpenMS/OpenMS/Linux-wheels
     - name: Download artifacts
       uses: actions/download-artifact@v3
       with:
           name: Windows-wheels
+          path: /home/runner/work/OpenMS/OpenMS/Windows-wheels
     - name: Download artifacts
       uses: actions/download-artifact@v3
       with:
           name: macOS-wheels
+          path: /home/runner/work/OpenMS/OpenMS/macOS-wheels
 
     - name: Merge all artifacts
       run: |
@@ -479,16 +482,16 @@ jobs:
 
     - name: Publish package to nightly PyPI
       if: "github.ref == 'refs/heads/nightly'"
-      uses: pypa/gh-action-pypi-publish@release/v1.5.0
+      uses: pypa/gh-action-pypi-publish@release/v1
       with:
-        repository_url: https://abi-services.informatik.uni-tuebingen.de/pypi/
+        repository_url: https://pypi.cs.uni-tuebingen.de/
         user: openms
         password: ${{ secrets.abiservices_pypi_pw }}
         packages_dir: ${{ github.workspace }}/wheels
 
     - name: Publish package to PyPI
       if: "contains(github.ref, 'Release')"
-      uses: pypa/gh-action-pypi-publish@release/v1.5.0
+      uses: pypa/gh-action-pypi-publish@release/v1
       with:
         user: __token__
         password: ${{ secrets.pypi_api_token_release }}

@@ -144,7 +144,7 @@ endif()
 SET(QT_MIN_VERSION "5.6.0")
 
 # find qt
-set(OpenMS_QT_COMPONENTS Core Network Sql CACHE INTERNAL "QT components for core lib")
+set(OpenMS_QT_COMPONENTS Core Network CACHE INTERNAL "QT components for core lib")
 find_package(Qt5 ${QT_MIN_VERSION} COMPONENTS ${OpenMS_QT_COMPONENTS} REQUIRED)
 
 IF (NOT Qt5Core_FOUND)
@@ -179,7 +179,9 @@ if (WITH_GUI)
 
   set(OpenMS_GUI_QT_COMPONENTS ${TEMP_OpenMS_GUI_QT_COMPONENTS} CACHE INTERNAL "QT components for GUI lib")
 
-  set(OpenMS_GUI_QT_COMPONENTS_OPT WebEngineWidgets)
+  if(NOT NO_WEBENGINE_WIDGETS)
+    set(OpenMS_GUI_QT_COMPONENTS_OPT WebEngineWidgets)
+  endif()
 
   find_package(Qt5 REQUIRED COMPONENTS ${OpenMS_GUI_QT_COMPONENTS})
 
@@ -195,9 +197,8 @@ if (WITH_GUI)
   if(Qt5WebEngineWidgets_FOUND)
     list(APPEND OpenMS_GUI_QT_FOUND_COMPONENTS_OPT "WebEngineWidgets")
   else()
-    message(WARNING "Qt5WebEngineWidgets not found, disabling JS Views in TOPPView!")
+    message(WARNING "Qt5WebEngineWidgets not found or disabled, disabling JS Views in TOPPView!")
   endif()
-    
 
   set(OpenMS_GUI_DEP_LIBRARIES "OpenMS")
 

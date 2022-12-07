@@ -93,7 +93,7 @@ protected:
 
     typedef std::map<UInt, BoxElement> Box; ///<Key: RT (index), value: BoxElement
 
-    UInt max_charge_; ///<The maximal charge state we will consider
+    UInt max_charge_; ///<The maximal absolute charge state we will consider
     double intensity_threshold_; ///<The only parameter of the isotope wavelet
     UInt RT_votes_cutoff_, real_RT_votes_cutoff_, RT_interleave_; ///<The number of subsequent scans a pattern must cover in order to be considered as signal
     String use_gpus_, intensity_type_;
