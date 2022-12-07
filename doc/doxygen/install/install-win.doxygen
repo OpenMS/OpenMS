@@ -172,8 +172,8 @@
         </ol>
       <li>add the <tt>&lt;path-to-qt&gt;/bin</tt> (!) directory to your PATH Environment Variable, so the dlls are found during runtime.
       <li>set the environment variable QT_QPA_PLATFORM_PLUGIN_PATH to <tt>&lt;path-to-qt&gt;/plugins/platforms</tt>,
-          otherwise you might get an error "This application failed to start because it could not find or load the Qt platform plugin "windows".
-          Alternatively, you can copy the entire platforms-folder into the folder where your %OpenMS executables will be created (but they will depend on the build-type, i.e. release|debug|...).
+          otherwise you might get an error "This application failed to start because it could not find or load the Qt platform plugin 'windows'".
+          Alternatively, you can copy the entire platforms-folder into the folder where your %OpenMS executables will be created (but they will depend on the build-type, i.e. release, debug etc.).
     </ol>
 
 
