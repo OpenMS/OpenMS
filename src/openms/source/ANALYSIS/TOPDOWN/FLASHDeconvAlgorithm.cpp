@@ -659,7 +659,7 @@ namespace OpenMS
               }
             }
 
-            if (!artifact)
+            if (!artifact)//
             {
               max_intensity = t;
               max_index = mass_bin_index;
@@ -948,7 +948,7 @@ namespace OpenMS
         }
       }
 
-      if (total_signal_intensity / 2 > *std::max_element(total_harmonic_intensity.begin(), total_harmonic_intensity.end()) && !pg.empty())
+      if (total_signal_intensity / 2.0 > *std::max_element(total_harmonic_intensity.begin(), total_harmonic_intensity.end()) && !pg.empty())
       {
         double max_intensity = -1.0;
         double t_mass = .0;
@@ -1457,12 +1457,14 @@ namespace OpenMS
           }
           double snr2 = dspec[j].getSNR();
 
+
           if (snr1 <= snr2)
           {
             continue;
           }
 
           bool charge_error = false; // if snr is already highly different, it is charge error..
+
 
           if (snr1 > snr2 * 4 || std::max(abs(mass2 - mass1 / repz1 * repz2), abs(mass1 - mass2 / repz2 * repz1)) <= 2 * iso_da_distance_)
           {
@@ -1519,6 +1521,7 @@ namespace OpenMS
       {
         continue;
       }
+
       filtered_pg_vec.push_back(dspec[i]);
     }
     dspec.setPeakGroups(filtered_pg_vec);
