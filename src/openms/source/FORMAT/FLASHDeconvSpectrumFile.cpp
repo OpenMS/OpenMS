@@ -314,7 +314,7 @@ namespace OpenMS
     }
   }
 
-  inline const int z = 1, iso = 11;
+  inline const int z = 5, iso = 21;
   void FLASHDeconvSpectrumFile::writeDLMatrixHeader(std::fstream& fs)
   {
     for(int i=0;i<3;i++)
@@ -346,7 +346,7 @@ namespace OpenMS
   void FLASHDeconvSpectrumFile::writeDLMatrix(std::vector<DeconvolvedSpectrum>& dspecs, std::fstream& fs, const FLASHDeconvHelperStructs::PrecalculatedAveragine& avg)
   {
     String cns[] = {"T", "D1", "D2", "D3"};
-    int count = 25000;
+    int count = 10000;
     //class,ID,group,data
     std::vector<std::vector<PeakGroup>> grouped(4);
 

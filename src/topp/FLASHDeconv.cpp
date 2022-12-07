@@ -751,6 +751,7 @@ protected:
         {
           continue;
         }
+        QScore::writeAttCsvFromDecoy(deconvolved_spectrum, out_att_stream);
         DeconvolvedSpectrum false_deconvolved_spectrum;
         false_deconvolved_spectrum.setOriginalSpectrum(deconvolved_spectrum.getOriginalSpectrum());
         false_deconvolved_spectrum.reserve(deconvolved_spectrum.size());
@@ -824,11 +825,6 @@ protected:
           pg.setDecoyFlag(flag);
         }
         false_deconvolved_spectra.push_back(false_deconvolved_spectrum);
-      }
-
-      for (auto& deconvolved_spectrum : false_deconvolved_spectra)
-      {
-        QScore::writeAttCsvFromDecoy(deconvolved_spectrum, out_att_stream);
       }
 
       FLASHDeconvSpectrumFile::writeDLMatrixHeader(out_dl_stream);
