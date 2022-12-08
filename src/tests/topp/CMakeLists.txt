@@ -783,6 +783,13 @@ add_test("TOPP_FileMerger_11_out1" ${DIFF} -whitelist ${INDEX_WHITELIST} "id=" "
 set_tests_properties("TOPP_FileMerger_11_out1" PROPERTIES DEPENDS "TOPP_FileMerger_11")
 
 #------------------------------------------------------------------------------
+# FLASHDeconv tests
+add_test("TOPP_FLASHDeconv_1" ${TOPP_BIN_PATH}/FLASHDeconv -test -in ${DATA_DIR_TOPP}/FLASHDeconv_sample_input.mzML -out FLASHDeconv_1.tmp)
+# Currently just testing if the tool runs
+# We cannot currently test the correctness of the tsv output
+# FuzzyDiff cannot give out tolerances/whitelist for tabular format outputs (.tsv)
+
+#------------------------------------------------------------------------------
 # GNPSExport tests
 # test mostintense output
 add_test("TOPP_GNPSExport_1" ${TOPP_BIN_PATH}/GNPSExport -test -ini ${DATA_DIR_TOPP}/GNPSExport_1_mostint.ini -in_cm ${DATA_DIR_TOPP}/GNPSExport_cons1.consensusXML -in_mzml ${DATA_DIR_TOPP}/GNPSExport_mzml1.mzML ${DATA_DIR_TOPP}/GNPSExport_mzml2.mzML -out GNPSExport_1_out.tmp -out_quantification GNPSExport_1_out_quant.tmp)

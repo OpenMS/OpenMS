@@ -120,6 +120,11 @@ namespace OpenMS
     */
     inline const double C13C12_MASSDIFF_U = 1.0033548378; // u
 
+    /** Average mass difference between consecutive isotopes for proteins of mass 55kDa. Referred to the values used in TopPIC.
+        In units (\f$1.002371\f$u)
+    */
+    inline const double ISOTOPE_MASSDIFF_55K_U = 1.002371; // u
+
     /** Neutron mass.
             In units of kg (\f$1.6749286 \cdot 10^{-27}\f$ kg).
     */

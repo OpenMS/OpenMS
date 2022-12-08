@@ -146,6 +146,15 @@ START_SECTION((template < typename MapType > void mergeSpectraPrecursors(MapType
 
 END_SECTION
 
+START_SECTION((bool areMassesMatched(double mz1, double mz2, double tol_ppm, int max_c)))
+  SpectraMerger merger;
+  bool non_matched = merger.areMassesMatched(100, 1000, 10, 5);
+  bool matched = merger.areMassesMatched(1000, 1000.001, 10, 5);
+
+  TEST_EQUAL(non_matched, false);
+  TEST_EQUAL(matched, true);
+END_SECTION
+
 START_SECTION((template < typename MapType > void averageGaussian(MapType &exp)))
 	PeakMap exp;
 	MzMLFile().load(OPENMS_GET_TEST_DATA_PATH("SpectraMerger_input_3.mzML"), exp);    // profile mode
