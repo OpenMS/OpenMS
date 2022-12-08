@@ -144,7 +144,7 @@ endif()
 SET(QT_MIN_VERSION "5.6.0")
 
 # find qt
-set(OpenMS_QT_COMPONENTS Core Network Sql CACHE INTERNAL "QT components for core lib")
+set(OpenMS_QT_COMPONENTS Core Network CACHE INTERNAL "QT components for core lib")
 find_package(Qt5 ${QT_MIN_VERSION} COMPONENTS ${OpenMS_QT_COMPONENTS} REQUIRED)
 
 IF (NOT Qt5Core_FOUND)

@@ -1063,7 +1063,7 @@ namespace OpenMS
           continue;
         }
         Size j = getBinNumber_(log(m), mass_bin_min_value_, bin_width_[ms_level_ - 1]);
-        if (j < 0)
+        if (j == 0)
         {
           continue;
         }
@@ -1237,11 +1237,15 @@ namespace OpenMS
         filtered_peak_groups_private.push_back(peak_group);
       }
 
-#pragma omp for schedule(static) ordered
+#ifdef _OPENMP
+  #pragma omp for schedule(static) ordered
       for(int i=0; i<omp_get_num_threads(); i++) {
-#pragma omp ordered
+  #pragma omp ordered
         filtered_peak_groups.insert(filtered_peak_groups.end(), filtered_peak_groups_private.begin(), filtered_peak_groups_private.end());
       }
+#else
+      filtered_peak_groups = filtered_peak_groups_private;
+#endif
     }
     deconvolved_spectrum_.setPeakGroups(filtered_peak_groups);
     deconvolved_spectrum_.sort();
@@ -1450,7 +1454,7 @@ namespace OpenMS
           }
           double mass2 = dspec[j].getMonoMass();
           int repz2 = (int)round(mass2 / pmz);
-          if (repz2 != dspec[j].getRepAbsCharge())
+          if(repz2 != dspec[j].getRepAbsCharge())
           {
             continue;
           }
