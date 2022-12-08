@@ -56,14 +56,14 @@ openms_add_library(TARGET_NAME OpenMS_ML
                    INTERNAL_INCLUDES ${PROJECT_SOURCE_DIR}/include ${PROJECT_BINARY_DIR}/include
                    EXTERNAL_INCLUDES
                    LINK_LIBRARIES ${OpenMS_ML_DEP_LIBRARIES}
-                   DLL_EXPORT_PATH "OpenMS/VISUAL/")
+                   DLL_EXPORT_PATH "OpenMS/") # TODO ???
 
 # --------------------------------------------------------------------------
 # TODO .additional linker flags 
-#if (MSVC)
-#  set (GUI_lnk_flags "/FORCE:MULTIPLE /INCREMENTAL:NO /ignore:4006 /ignore:4088")
-#  set_property(TARGET OpenMS_GUI APPEND PROPERTY LINK_FLAGS ${GUI_lnk_flags}) ## allow multiple definitions of symbols (e.g. from template instanciations or STL-derived classes)
-#endif()
+if (MSVC)
+  set (ML_lnk_flags "/FORCE:MULTIPLE /INCREMENTAL:NO /ignore:4006 /ignore:4088")
+  set_property(TARGET OpenMS_ML APPEND PROPERTY LINK_FLAGS ${ML_lnk_flags}) ## allow multiple definitions of symbols (e.g. from template instanciations or STL-derived classes)
+endif()
 
 #------------------------------------------------------------------------------
 # register relevant paths for the doxygen doc generation
@@ -72,31 +72,5 @@ openms_add_library(TARGET_NAME OpenMS_ML
 
 # --------------------------------------------------------------------------
 # TODO: probably don't need to add executables / install tools
-#set(GUI_DIR source/VISUAL/APPLICATIONS/GUITOOLS)
-#include(${GUI_DIR}/executables.cmake)
-#foreach(i ${GUI_executables})
-#  set(resource_file ${PROJECT_SOURCE_DIR}/${GUI_DIR}/${i}.rc)
-#  set(resource_dir ${PROJECT_SOURCE_DIR}/${GUI_DIR}/${i}-resources/)
-#  ## add icons to TOPPView and INIFileEditor
-#  if (MSVC AND EXISTS ${resource_file})
-#    message(STATUS "Setting resource file ${resource_file} for ${i}")
-#    add_executable(${i} ${GUI_DIR}/${i}.cpp ${resource_file})
-#    install_tool(${i})
-#  elseif(APPLE AND EXISTS ${resource_dir})
-#    add_mac_app_bundle(${i})
-#  else()
-#    if(APPLE)
-#      message(STATUS "No icon file (${i}.icns) found in ${resource_dir}. Will not build ${i} as app bundle.")
-#    else()
-#      message(STATUS "No resource file (${resource_file}) found for ${i}. No icon will be embedded.")
-#    endif()
-#    add_executable(${i} ${GUI_DIR}/${i}.cpp)
-#    install_tool(${i})
-#  endif()
-#
-#  ## append visual lib as dependency for GUI tools
-#  target_link_libraries(${i} OpenMS_GUI)
-#endforeach(i)
-
 # probably don't need a add_custom_target(TODO...) here
 
