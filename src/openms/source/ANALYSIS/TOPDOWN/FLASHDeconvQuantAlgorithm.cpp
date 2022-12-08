@@ -248,8 +248,8 @@ namespace OpenMS
 
      // run deconvolution
      std::vector<DeconvolvedSpectrum> null_survey_scan; // empty one, since only MS1s are considered.
-     const std::map<int, std::vector<std::vector<double>>> null_map; // empty one
-     fd_.performSpectrumDeconvolution(spec, null_survey_scan, 0, false, null_map);
+     const std::map<int, std::vector<std::vector<float>>> null_map; // empty one
+     fd_.performSpectrumDeconvolution(spec, null_survey_scan, 0, null_map);
      DeconvolvedSpectrum deconv_spec = fd_.getDeconvolvedSpectrum();
 
      if (deconv_spec.empty()) // if no result was found
@@ -989,8 +989,8 @@ namespace OpenMS
           }
 
           fg_indices_in_current_cluster.insert(*it);
-          FeatureGroup &current_fg = fgroups[*it];
 
+          FeatureGroup &current_fg = fgroups[*it];
           for (const auto &mt_index: current_fg.getTraceIndices())
           {
             if (!bfs_visited[mt_index])
