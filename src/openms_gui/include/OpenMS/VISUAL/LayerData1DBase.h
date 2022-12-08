@@ -61,6 +61,10 @@ namespace OpenMS
      */
     virtual std::unique_ptr<Painter1DBase> getPainter1D() const = 0;
 
+    /// Returns the data range in all known dimensions for the data of the currently active index (i.e. only a single spec/chrom/etc).
+    /// If a layer does not support the dimension (or the layer is empty) the dimension will be empty
+    /// If you need the data range for the whole layer (i.e. all specs/chroms/etc), call 'LayerDataBase::getRange()'
+    virtual RangeAllType getRange1D() const = 0;
     /**
      * \brief Given a @p partial_range for the current 1D layer (e.g. an m/z range), fill in the other
      *        dimensions (usually intensity) from all data points which are within the input range.
