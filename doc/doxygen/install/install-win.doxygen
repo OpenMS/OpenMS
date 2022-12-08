@@ -35,7 +35,7 @@
       <li><b>Microsoft Visual C++ Compiler</b>: Comes with <a href="https://visualstudio.microsoft.com/de/downloads/?q=build+tools">
           Microsoft Visual Studio Build Tools</a>. Scroll to the bottom of the page to get the build tools only.
           If you want, you can also download the full Visual Studio (Community/Pro/Enterprise) IDE.<br>
-        <b>OpenMS requires at least Visual Studio 2019 (version 16.8.4 from January 2021) or later.
+        <b>%OpenMS requires at least Visual Studio 2019 (version 16.8.4 from January 2021) or later.
         Earlier versions have compiler bugs and may not compile without modifications.</b>
         <br><b>Not supported (or at least not tested) is MinGW (g++ based compiler). Do not use a MinGW-enabled shell since CMake will get confused! Please use the Command Prompt of the Visual Studio version you want to build with or load vcvarsall.sh (see below).</b>
             Other compilers which are close to the VS toolchain might work, but are not tested.
@@ -172,8 +172,8 @@
         </ol>
       <li>add the <tt>&lt;path-to-qt&gt;/bin</tt> (!) directory to your PATH Environment Variable, so the dlls are found during runtime.
       <li>set the environment variable QT_QPA_PLATFORM_PLUGIN_PATH to <tt>&lt;path-to-qt&gt;/plugins/platforms</tt>,
-          otherwise you might get an error "This application failed to start because it could not find or load the Qt platform plugin "windows".
-          Alternatively, you can copy the entire platforms-folder into the folder where your %OpenMS executables will be created (but they will depend on the build-type, i.e. release|debug|...).
+          otherwise you might get an error "This application failed to start because it could not find or load the Qt platform plugin 'windows'".
+          Alternatively, you can copy the entire platforms-folder into the folder where your %OpenMS executables will be created (but they will depend on the build-type, i.e. release, debug etc.).
     </ol>
 
 
@@ -251,7 +251,7 @@
         Example:
         \code
         cd c:\dev\OpenMS_Win64
-        cmake -D OPENMS_CONTRIB_LIBS="C:\dev\contrib_win64_build" -D CMAKE_PREFIX_PATH=c:\dev\Qt5.6.2\5.6\msvc2015_64\ -G "Visual Studio 16 2019" -A x64 -T host=x64 ..\OpenMS
+        cmake -D OPENMS_CONTRIB_LIBS="C:/dev/contrib_win64_build" -D CMAKE_PREFIX_PATH=c:/dev/Qt5.6.2/5.6/msvc2015_64/ -G "Visual Studio 16 2019" -A x64 -T host=x64 ../OpenMS
         \endcode
        
     </ol>
@@ -362,9 +362,10 @@
 
       <li> Configure %OpenMS as usual with additional flags <tt>SEARCH_ENGINES_DIRECTORY</tt> (for the flattened THIRDPARTY directory) and <tt>PACKAGE_TYPE="nsis"</tt>, 
       e.g.
+      
       \code
       cd <build-tree>
-      cmake ... -DSEARCH_ENGINES_DIRECTORY=C:\dev\THIRDPARTY\Windows\64bit -DPACKAGE_TYPE="nsis" <path-to-source-tree>
+      cmake ... -DSEARCH_ENGINES_DIRECTORY=C:/dev/THIRDPARTY/Windows/64bit -DPACKAGE_TYPE="nsis" <path-to-source-tree>
       \endcode
       
       <li> Build all targets (incl. 'doc' and 'doc_tutorials') in Release mode (copy the Qt5 plugin to the <code>[OpenMS_build]/bin/Release</code> and <code>[OpenMS_build]/doc/doxygen/parameters/Release/</code> directories first)
