@@ -199,7 +199,7 @@ if (WITH_GUI)
     list(APPEND OpenMS_GUI_QT_FOUND_COMPONENTS_OPT "WebEngineWidgets")
     # we assume that it is available for now. They should have dependencies when installing Qt.
     install(IMPORTED_RUNTIME_ARTIFACTS "Qt5::QuickWidgets"
-            DESTINATION "${INSTALL_BIN_DIR}"
+            DESTINATION "${INSTALL_LIB_DIR}"
             RUNTIME_DEPENDENCY_SET OPENMS_GUI_DEPS
             COMPONENT Dependencies)
   else()

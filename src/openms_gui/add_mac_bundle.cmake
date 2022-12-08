@@ -54,7 +54,7 @@ macro(add_mac_app_bundle _name)
 		${ICON_FILE_PATH})
 	
 	set_target_properties(${_name}
-												PROPERTIES INSTALL_RPATH "@executable_path/../Frameworks")
+												PROPERTIES INSTALL_RPATH "@executable_path/../Frameworks;@executable_path/../../../lib")
 
 	string(TIMESTAMP MY_YEAR "%Y")
 
@@ -115,7 +115,7 @@ macro(add_mac_app_bundle _name)
 		if("${PACKAGE_TYPE}" STREQUAL "pkg")
 			## Write a qt.conf file with a ref to the plugin dir outside of the bundle (to share)
 			file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/macappqt.conf"
-					 "[Paths]\nPlugins = ../../../${INSTALL_PLUGIN_DIR}\n")
+					 "[Paths]\nPlugins = ../../${INSTALL_PLUGIN_DIR}\n")
 			install(FILES "${CMAKE_CURRENT_BINARY_DIR}/macappqt.conf"
 							DESTINATION "${_name}.app/Contents/Resources/"
 							RENAME "qt.conf"
