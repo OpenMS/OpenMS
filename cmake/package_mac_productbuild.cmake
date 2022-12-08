@@ -81,16 +81,17 @@ install(FILES       ${PROJECT_SOURCE_DIR}/cmake/MacOSX/README.md
                     WORLD_READ
         COMPONENT   TOPPShell)
 
+## Not needed unless we need Qt plugins for TOPP again
 ## Install the qt.conf file so we can find the libraries
 ## add qt.conf to the bin directory for DMGs/pkgs
-file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/qt.conf"
-"[Paths]\nPlugins = ../${INSTALL_PLUGIN_DIR}\n")
-install(FILES       ${CMAKE_CURRENT_BINARY_DIR}/qt.conf
-        DESTINATION ./${INSTALL_BIN_DIR}
-        PERMISSIONS OWNER_WRITE OWNER_READ
-                    GROUP_READ
-                    WORLD_READ
-        COMPONENT   Applications)
+#file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/qt.conf"
+#"[Paths]\nPlugins = ../${INSTALL_PLUGIN_DIR}\n")
+#install(FILES       ${CMAKE_CURRENT_BINARY_DIR}/qt.conf
+#        DESTINATION ./${INSTALL_BIN_DIR}
+#        PERMISSIONS OWNER_WRITE OWNER_READ
+#                    GROUP_READ
+#                    WORLD_READ
+#        COMPONENT   Applications)
 
 ## Fix OpenMS dependencies for all executables in the install directory under bin.
 ## That affects everything but the bundles (whose Framework folders are symlinked to lib anyway).
@@ -105,13 +106,13 @@ install(CODE "execute_process(COMMAND ${OPENMS_HOST_DIRECTORY}/cmake/MacOSX/fix_
 # If the install CODE is not in the same component though, we need to navigate from the component specific install
 # prefix to the other prefix. This is unfortunately very unrobust.
 # TODO find better order or rewrite fix_dependencies script to be called separately
-install(CODE "execute_process(COMMAND find \${CMAKE_INSTALL_PREFIX}/../../../Applications${CPACK_PACKAGING_INSTALL_PREFIX}/${INSTALL_BIN_DIR}/ -type f -exec codesign --force --options runtime --sign \"${CPACK_BUNDLE_APPLE_CERT_APP}\" {} \\;)"
+install(CODE "execute_process(COMMAND find \${CMAKE_INSTALL_PREFIX}/../../../Applications${CPACK_PACKAGING_INSTALL_PREFIX}/${INSTALL_BIN_DIR}/ -type f -exec codesign --force --options runtime -i de.openms.TOPP.{} --sign \"${CPACK_BUNDLE_APPLE_CERT_APP}\" {} \\;)"
         COMPONENT Dependencies
         )
 install(CODE "execute_process(COMMAND ${OPENMS_HOST_DIRECTORY}/cmake/MacOSX/fix_dependencies.rb -l \${CMAKE_INSTALL_PREFIX}/${INSTALL_LIB_DIR}/ -e @rpath/ -n -c)"
         COMPONENT library
         )
-install(CODE "execute_process(COMMAND find \${CMAKE_INSTALL_PREFIX}/${INSTALL_LIB_DIR}/ -type f -exec codesign --force --options runtime --sign \"${CPACK_BUNDLE_APPLE_CERT_APP}\" {} \\;)"
+install(CODE "execute_process(COMMAND find \${CMAKE_INSTALL_PREFIX}/${INSTALL_LIB_DIR}/ -type f -exec codesign --force --options runtime -i de.openms.TOPP.libs.{} --sign \"${CPACK_BUNDLE_APPLE_CERT_APP}\" {} \\;)"
         COMPONENT library
         )
 
