@@ -240,16 +240,16 @@ namespace OpenMS
   }
 
   FLASHDeconvHelperStructs::LogMzPeak::LogMzPeak(const Peak1D& peak, const bool positive) :
-      mz((float)peak.getMZ()),
+      mz(peak.getMZ()),
       intensity(peak.getIntensity()),
-      logMz(getLogMz((float)peak.getMZ(), positive)),
+      logMz(getLogMz(peak.getMZ(), positive)),
       abs_charge(0),
       is_positive(positive),
       isotopeIndex(0)
   {
   }
 
-  float FLASHDeconvHelperStructs::LogMzPeak::getUnchargedMass()
+  double FLASHDeconvHelperStructs::LogMzPeak::getUnchargedMass()
   {
     if (abs_charge == 0)
     {
@@ -290,8 +290,7 @@ namespace OpenMS
     return (float)(positive_ioniziation_mode ? Constants::PROTON_MASS_U : -Constants::PROTON_MASS_U);
   }
 
-
-  float FLASHDeconvHelperStructs::getLogMz(const float mz, const bool positive)
+  double FLASHDeconvHelperStructs::getLogMz(const double mz, const bool positive)
   {
     return std::log(mz - getChargeMass(positive));
   }

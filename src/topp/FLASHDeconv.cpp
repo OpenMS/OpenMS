@@ -275,7 +275,7 @@ protected:
   // the main_ function is called after all parameters are read
   ExitCodes main_(int, const char**) override
   {
-    bool DLTrain = true;
+    bool DLTrain = false;
     OPENMS_LOG_INFO << "Initializing ... " << endl;
     //-------------------------------------------------------------
     // parsing parameters
@@ -820,6 +820,8 @@ protected:
               break;
             case 11:
               charge_multiple = 1.0 / 2.0;
+              break;
+            default:
               break;
           }
 

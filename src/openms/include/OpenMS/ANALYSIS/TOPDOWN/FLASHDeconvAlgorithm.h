@@ -280,7 +280,7 @@ namespace OpenMS
     double getMassFromMassBin_(Size mass_bin, double bin_width) const;
 
     ///get mz value for input mz bin
-    double getMzFromMzBin_(Size mass_bin, double bin_width);
+    double getMzFromMzBin_(Size mass_bin, double bin_width) const;
 
     ///Generate peak groups from the input spectrum
     void generatePeakGroupsFromSpectrum_();
@@ -314,10 +314,11 @@ namespace OpenMS
     /// function for peak group scoring and filtering
     void scoreAndFilterPeakGroups_();
 
+    /// filter out charge error masses
     void removeChargeErrorPeakGroups_(DeconvolvedSpectrum& dspec);
 
     /// filter out overlapping masses
-    void removeOverlappingPeakGroups_(DeconvolvedSpectrum& dspec);
+    static void removeOverlappingPeakGroups_(DeconvolvedSpectrum& dspec);
 
     /**
     @brief register the precursor peak as well as the precursor peak group (or mass) if possible for MSn (n>1) spectrum.
