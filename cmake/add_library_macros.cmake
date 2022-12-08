@@ -301,19 +301,23 @@ function(openms_add_library)
     endforeach()
 
     if(Qt5WebEngineWidgets_FOUND)
-      get_target_property(fsfa Qt5::QuickWidgets IMPORTED_LOCATION_DEBUG)
-      message("tgtprop ${fsfa}")
       set (genex "IMPORTED_LOCATION_$<UPPER_CASE:$<CONFIG>>")
       add_custom_command(TARGET ${openms_add_library_TARGET_NAME} POST_BUILD
               COMMAND ${CMAKE_COMMAND} -E copy_if_different
               $<TARGET_PROPERTY:Qt5::QuickWidgets,${genex}>
               $<TARGET_FILE_DIR:${openms_add_library_TARGET_NAME}>
               )
+
+      # For now, we add Qt to the path when calling the documenters.
+      # Since the documenters depend on OpenMS_GUI
+      # they need Qt platform plugins etc. which very hard to set up correctly.
+      # And I think the documenters are not called very often outside of CMake.
       #add_custom_command(TARGET ${openms_add_library_TARGET_NAME} POST_BUILD
       #        COMMAND ${CMAKE_COMMAND} -E copy_if_different
       #        $<TARGET_PROPERTY:Qt5::QuickWidgets,${genex}>
       #        ${DLL_DOC_TARGET_PATH}
       #        )
+
       add_custom_command(TARGET ${openms_add_library_TARGET_NAME} POST_BUILD
               COMMAND ${CMAKE_COMMAND} -E copy_if_different
               $<TARGET_PROPERTY:Qt5::QuickWidgets,${genex}>
