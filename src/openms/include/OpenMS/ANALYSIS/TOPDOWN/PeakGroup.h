@@ -118,8 +118,6 @@ namespace OpenMS
     /// determine is an mz is a signal of this peakgroup. Input tol is ppm tolerance (e.g., 10.0 for 10ppm tolerance). Assume logMzPeaks are sorted.
     bool isSignalMZ(double mz, double tol) const;
 
-    //float getSumIntensityForMonoMass(float mono_mass, int hc, float iso_da, double tol) const;
-
     /// set scan number
     void setScanNumber(int scan_number);
 
@@ -181,7 +179,7 @@ namespace OpenMS
     std::tuple<int, int> getAbsChargeRange() const;
 
     /// get per isotope intensities
-    std::vector<float> getIsotopeIntensities() const;
+    const std::vector<float>& getIsotopeIntensities() const;
 
     /// get isotopic cosine score
     float getIsotopeCosine() const;

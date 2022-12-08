@@ -355,7 +355,7 @@ namespace OpenMS
       for(auto& pg: dspec)
       {
          int cl = pg.getDecoyFlag();
-         if(cl<0 || cl>=grouped.size())
+         if(cl<0 || cl>= (int)grouped.size())
          {
           continue;
          }
@@ -366,7 +366,7 @@ namespace OpenMS
 
     for(auto& g : grouped)
     {
-      if(g.size() < count)
+      if((int)g.size() < count)
       {
          continue;
       }

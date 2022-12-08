@@ -117,13 +117,15 @@ namespace OpenMS
 
     auto iso_dist = avg.get(monoisotopic_mass_);
     int iso_size = (int)iso_dist.size();
+    auto current_per_isotope_intensities = std::vector<float>(getIsotopeIntensities().size(), .0f);
+
     for (int abs_charge = min_abs_charge_; abs_charge <= max_abs_charge_; abs_charge++)
     {
       if (getChargeIntensity(abs_charge) <= 0)
       {
         continue;
       }
-      auto current_per_isotope_intensities = std::vector<float>(getIsotopeIntensities().size(), .0f);
+      std::fill(current_per_isotope_intensities.begin(), current_per_isotope_intensities.end(), .0f);
       int min_isotope_index = (int)current_per_isotope_intensities.size();
       int max_isotope_index = -1; // this is inclusive!!
 
@@ -231,7 +233,7 @@ namespace OpenMS
         {
           continue;
         }
-        float pmz = (float)spec[index].getMZ();
+        double pmz = spec[index].getMZ();
         int iso_index = (int)round((pmz - cmz) / iso_delta);
 
         if (iso_index > max_isotope)
@@ -610,7 +612,7 @@ namespace OpenMS
     return std::tuple<int, int> {min_abs_charge_, max_abs_charge_};
   }
 
-  std::vector<float> PeakGroup::getIsotopeIntensities() const
+  const std::vector<float>& PeakGroup::getIsotopeIntensities() const
   {
     return per_isotope_int_;
   }
