@@ -97,7 +97,7 @@ namespace OpenMS
       PrecalculatedAveragine(double min_mass,
                              double max_mass,
                              double delta,
-                             CoarseIsotopePatternGenerator *generator,
+                             CoarseIsotopePatternGenerator &generator,
                              bool use_RNA_averagine);
 
 
@@ -115,7 +115,8 @@ namespace OpenMS
 
       /// destructor
       ~PrecalculatedAveragine() = default ;
-      std::vector<float> getConvolutedPattern(double mass, double tol, double iso_da, int bin_factor) const;
+
+      //std::vector<float> getConvolutedPattern(double mass, double tol, double iso_da, int bin_factor) const;
 
 
       /// get distribution for input mass. If input mass exceeds the maximum mass (specified in constructor), output for the maximum mass
