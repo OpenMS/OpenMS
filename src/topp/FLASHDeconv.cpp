@@ -645,7 +645,7 @@ protected:
 
       if (report_decoy)
       {
-#pragma omp parallel sections default(none) shared(fd_charge_decoy, fd_noise_decoy, fd_iso_decoy, it, precursor_specs, scan_number, write_detail, precursor_map_for_real_time_acquisition)
+#pragma omp parallel sections default(none) shared(fd_charge_decoy, fd_noise_decoy, fd_iso_decoy, it, precursor_specs, scan_number, precursor_map_for_real_time_acquisition)
         {
 #pragma omp section
           fd_charge_decoy.performSpectrumDeconvolution(*it, precursor_specs, scan_number, precursor_map_for_real_time_acquisition);
@@ -661,16 +661,25 @@ protected:
 
         for (auto& pg : fd_charge_decoy.getDeconvolvedSpectrum())
         {
+          if(!write_detail && !DLTrain){
+            pg.clearPeaks();
+          }
           decoy_deconvolved_spectrum.push_back(pg);
         }
 
         for (auto& pg : fd_iso_decoy.getDeconvolvedSpectrum())
         {
+          if(!write_detail && !DLTrain){
+            pg.clearPeaks();
+          }
           decoy_deconvolved_spectrum.push_back(pg);
         }
 
         for (auto& pg : fd_noise_decoy.getDeconvolvedSpectrum())
         {
+          if(!write_detail && !DLTrain){
+            pg.clearPeaks();
+          }
           decoy_deconvolved_spectrum.push_back(pg);
         }
 
@@ -681,6 +690,12 @@ protected:
 
       qspec_cntr[ms_level - 1]++;
       mass_cntr[ms_level - 1] += deconvolved_spectrum.size();
+      if(!write_detail && !DLTrain){
+        for (auto& pg : deconvolved_spectrum)
+        {
+            pg.clearPeaks();
+        }
+      }
       deconvolved_spectra.push_back(deconvolved_spectrum);
 
       elapsed_deconv_cpu_secs[ms_level - 1] += double(clock() - deconv_begin) / CLOCKS_PER_SEC;
