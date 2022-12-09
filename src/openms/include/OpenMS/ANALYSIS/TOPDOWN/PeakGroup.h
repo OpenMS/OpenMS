@@ -267,7 +267,7 @@ namespace OpenMS
     void sort();
 
     /// clear LogMzPeaks vectors to save memory.
-    void clearVectors();
+    void clearPeaks();
 
   private:
     /// set per abs_charge signal power

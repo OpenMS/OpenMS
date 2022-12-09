@@ -842,15 +842,14 @@ namespace OpenMS
     qvalue_[flag] = q;
   }
 
-  void PeakGroup::clearVectors()
+  void PeakGroup::clearPeaks()
   {
-    std::vector<LogMzPeak>().swap(logMzpeaks_);
     std::vector<LogMzPeak>().swap(noisy_peaks_);
-
+    std::vector<LogMzPeak>().swap(logMzpeaks_);
     std::vector<float>().swap(per_charge_cos_);
-    std::vector<float>().swap(per_charge_int_);
+    //std::vector<float>().swap(per_charge_int_);
     std::vector<float>().swap(per_charge_snr_);
-    std::vector<float>().swap(per_isotope_int_);
+    //std::vector<float>().swap(per_isotope_int_);
   }
 
   void PeakGroup::calculateDLMatrices(int charge_range, int iso_range, const PrecalculatedAveragine& avg)
