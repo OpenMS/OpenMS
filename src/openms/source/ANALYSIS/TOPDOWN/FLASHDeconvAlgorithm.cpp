@@ -259,6 +259,10 @@ namespace OpenMS
     // threshold = threshold < min_intensity * 2 ? min_intensity * 2 : threshold;
     for (auto& peak : deconvolved_spectrum_.getOriginalSpectrum())
     {
+      if (peak.getIntensity() <= threshold) //
+      {
+        continue;
+      }
       if (min_mz_ > 0 && peak.getMZ() < min_mz_)
       {
         continue;
@@ -268,10 +272,6 @@ namespace OpenMS
         break;
       }
       if (excluded_integer_mzs_.size() > 0 && excluded_integer_mzs_.find((int)peak.getMZ()) != excluded_integer_mzs_.end())
-      {
-        continue;
-      }
-      if (peak.getIntensity() <= threshold) //
       {
         continue;
       }

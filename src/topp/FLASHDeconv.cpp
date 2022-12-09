@@ -226,7 +226,6 @@ protected:
         continue;
       }
       it.sortByIntensity(true);
-
       while (it.size() > count)
       {
         it.pop_back();
@@ -303,6 +302,7 @@ protected:
     double max_mz = getDoubleOption_("Algorithm:max_mz");
     double min_rt = getDoubleOption_("Algorithm:min_rt");
     double max_rt = getDoubleOption_("Algorithm:max_rt");
+    double min_intensity = getDoubleOption_("Algorithm:min_intensity");
 
     fstream out_stream, out_train_stream, out_promex_stream, out_att_stream, out_dl_stream;
     std::vector<fstream> out_spec_streams, out_topfd_streams, out_topfd_feature_streams;
@@ -376,6 +376,10 @@ protected:
     {
       opt.setMZRange(DRange<1> {min_mz, max_mz});
     }
+    if (min_intensity>=0)
+    {
+      opt.setIntensityRange(DRange<1> {min_intensity, 1e200});
+    }
     mzml.setLogType(log_type_);
     mzml.setOptions(opt);
     mzml.load(in_file, map);
@@ -436,7 +440,7 @@ protected:
 
     // Run FLASHDeconv here
 
-    int scan_number(0);
+    int scan_number;
     int num_last_deconvolved_spectra = getIntOption_("preceding_MS1_count");
     if (!in_log_file.empty())
     {
@@ -548,12 +552,18 @@ protected:
     {
       scan_number = SpectrumLookup::extractScanNumber(it->getNativeID(), map.getSourceFiles()[0].getNativeIDTypeAccession());
 
+      if(scan_number < 0)
+      {
+        scan_number = (int)std::distance(map.begin(), it) + 1;
+      }
+
       progresslogger.nextProgress();
 
       if (it->empty())
       {
         continue;
       }
+
       uint ms_level = it->getMSLevel();
       if (ms_level > current_max_ms_level)
       {
@@ -700,6 +710,7 @@ protected:
       elapsed_deconv_wall_secs[ms_level - 1] += chrono::duration<double>(chrono::high_resolution_clock::now() - deconv_t_start).count();
     }
     progresslogger.endProgress();
+
 
     std::cout << " writing per spectrum deconvolution results ... " << std::endl;
 
