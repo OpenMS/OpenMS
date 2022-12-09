@@ -55,7 +55,7 @@ namespace OpenMS
   public:
 
     /// decoy flag. This flag specifies if a PeakGroup is a target, charge decoy, noise decoy, or isotope decoy.
-    enum decoyFlag
+    enum DecoyFlag
     {
       target = 0,
       charge_decoy,
@@ -206,13 +206,13 @@ namespace OpenMS
     bool isTargeted() const;
 
     /// get the decoy flag of this
-    PeakGroup::decoyFlag getDecoyFlag() const;
+    PeakGroup::DecoyFlag getDecoyFlag() const;
 
     /// for this PeakGroup, specify the decoy flag.
     void setDecoyFlag(PeakGroup::DecoyFlag index);
 
     /// get calculated qvalue
-    float getQvalue(PeakGroup::decoyFlag flag = PeakGroup::decoyFlag::target) const;
+    float getQvalue(PeakGroup::DecoyFlag flag = PeakGroup::DecoyFlag::target) const;
 
     /// set qvalue.
     void setQvalue(float q, PeakGroup::DecoyFlag flag);
@@ -227,7 +227,7 @@ namespace OpenMS
     void setIndex(uint i);
 
     /// get index of this peak group
-    int getIndex() const;
+    uint getIndex() const;
 
     /**
      * @brief calculate the matrices for DL training and scoring
@@ -301,7 +301,7 @@ namespace OpenMS
     /// charge range
     int min_abs_charge_ = 0, max_abs_charge_ = -1;
     /// peak group index
-    int index_ = 0;
+    uint index_ = 0;
     /// scan number
     int scan_number_;
     /// is positive or not
@@ -312,7 +312,7 @@ namespace OpenMS
     double monoisotopic_mass_ = -1.0;
     float intensity_;// total intensity
     /// index to specify if this peak_group is a target (0), an isotope decoy (1), a noise (2), or a charge decoy (3)
-    PeakGroup::decoyFlag decoy_flag_ = target;
+    PeakGroup::DecoyFlag decoy_flag_ = target;
 
     /// distance between consecutive isotopes. Can be different for decoys
     double iso_da_distance_ = Constants::ISOTOPE_MASSDIFF_55K_U;
@@ -324,6 +324,6 @@ namespace OpenMS
     float avg_ppm_error_ = 0;
     float snr_ = 0;
     /// qvalues with different decoy flags
-    std::map<PeakGroup::decoyFlag, float> qvalue_;
+    std::map<PeakGroup::DecoyFlag, float> qvalue_;
   };
 }

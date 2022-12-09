@@ -3,17 +3,18 @@ set(directory include/OpenMS/VISUAL/APPLICATIONS)
 
 ### list all header files of the directory here
 set(sources_list_h
-INIFileEditorWindow.h
-SwathWizardBase.h
-TOPPViewBase.h
-TOPPASBase.h
-)
+        FLASHDeconvWizardBase.h
+        INIFileEditorWindow.h
+        SwathWizardBase.h
+        TOPPViewBase.h
+        TOPPASBase.h
+        )
 
 ### add path to the filenames
 set(sources_h)
-foreach(i ${sources_list_h})
-	list(APPEND sources_h ${directory}/${i})
-endforeach(i)
+foreach (i ${sources_list_h})
+    list(APPEND sources_h ${directory}/${i})
+endforeach (i)
 
 ### treat as source files, for autoMOC'ing instead of manually calling QT5_WRAP_CPP()
 set(OpenMSVisual_sources ${OpenMSVisual_sources} ${sources_h})

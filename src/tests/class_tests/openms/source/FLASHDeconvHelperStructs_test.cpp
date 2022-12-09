@@ -163,9 +163,9 @@ START_SECTION(([FLASHDeconvHelperStructs::PrecalculatedAveragine] PrecalculatedA
 END_SECTION
 
 // test data
-CoarseIsotopePatternGenerator *generator = new CoarseIsotopePatternGenerator();
+CoarseIsotopePatternGenerator generator = CoarseIsotopePatternGenerator();
 PrecalculatedAveragine p_avg_test;
-START_SECTION(([FLASHDeconvHelperStructs::PrecalculatedAveragine] PrecalculatedAveragine(const double min_mass, const double max_mass, const double delta, CoarseIsotopePatternGenerator *generator, const bool use_RNA_averagine)))
+START_SECTION(([FLASHDeconvHelperStructs::PrecalculatedAveragine] PrecalculatedAveragine(const double min_mass, const double max_mass, const double delta, CoarseIsotopePatternGenerator& generator, const bool use_RNA_averagine)))
 {
   p_avg_test = PrecalculatedAveragine(50, 100, 25, generator, false);
   Size temp_a_idx = p_avg_test.getApexIndex(75);

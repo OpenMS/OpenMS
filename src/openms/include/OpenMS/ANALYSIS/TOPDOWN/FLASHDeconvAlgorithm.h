@@ -156,7 +156,7 @@ namespace OpenMS
 
 
     /// set decoy_flag_
-    void setDecoyFlag(PeakGroup::decoyFlag flag, FLASHDeconvAlgorithm& targetFD);
+    void setDecoyFlag(PeakGroup::DecoyFlag flag, FLASHDeconvAlgorithm& targetFD);
 
   protected:
     void updateMembers_() override;
@@ -199,8 +199,8 @@ namespace OpenMS
 
     FLASHDeconvAlgorithm* targetFD_;
 
-    /// PeakGroup::decoyFlag values
-    PeakGroup::decoyFlag decoy_flag_ = PeakGroup::decoyFlag::target;
+    /// PeakGroup::DecoyFlag values
+    PeakGroup::DecoyFlag decoy_flag_ = PeakGroup::DecoyFlag::target;
 
     /// precalculated averagine distributions for fast averagine generation
     FLASHDeconvHelperStructs::PrecalculatedAveragine avg_;

@@ -145,10 +145,10 @@ START_SECTION((bool isPositive() const))
 END_SECTION
 
 START_SECTION((int getScanNumber() const))
-    {
-      int test_scan_num = sample_pg.getScanNumber();
-      TEST_EQUAL(test_scan_num, 3);
-    }
+{
+  int test_scan_num = sample_pg.getScanNumber();
+  TEST_EQUAL(test_scan_num, 3);
+}
 END_SECTION
 
 START_SECTION((void setScanNumber(const int scan_number)))
@@ -189,6 +189,7 @@ START_SECTION((void setRepAbsCharge(const int max_qscore_charge)))
   TEST_EQUAL(temp_abs, 2);
 }
 END_SECTION
+
 
 START_SECTION((std::tuple<double, double> getRepMzRange() const))
 {
@@ -231,6 +232,7 @@ START_SECTION((float getIsotopeCosine() const))
   TEST_REAL_SIMILAR(temp_iso, 0.3);
 }
 END_SECTION
+
 
 START_SECTION((int getRepAbsCharge() const))
 {
@@ -377,7 +379,7 @@ END_SECTION
 
 
 /// TODOs
-/// - updateIsotopeCosineSNRAvgErrorAndQScore, recruitAllPeaksInSpectrum, isSignalMZ, setTargeted, getIsotopeIntensities
+/// - updateIsotopeCosineAndQScore, recruitAllPeaksInSpectrum, isSignalMZ, setTargeted, getIsotopeIntensities
 /// - isTargeted, getDecoyFlag, setDecoyFlag, getQvalue, setQvalue, getQvalueWithChargeDecoyOnly, setQvalueWithChargeDecoyOnly
 
 

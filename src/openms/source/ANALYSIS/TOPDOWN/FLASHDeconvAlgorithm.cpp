@@ -1019,7 +1019,7 @@ namespace OpenMS
     return deconvolved_spectrum_;
   }
 
-  void FLASHDeconvAlgorithm::setDecoyFlag(PeakGroup::decoyFlag flag, FLASHDeconvAlgorithm& targetFD)
+  void FLASHDeconvAlgorithm::setDecoyFlag(PeakGroup::DecoyFlag flag, FLASHDeconvAlgorithm& targetFD)
   {
     decoy_flag_ = flag;
     targetFD_ = &targetFD;

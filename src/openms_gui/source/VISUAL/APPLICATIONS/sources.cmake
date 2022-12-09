@@ -3,19 +3,21 @@ set(directory source/VISUAL/APPLICATIONS)
 
 ### list all filenames of the directory here
 set(sources_list
-INIFileEditorWindow.cpp
-SwathWizardBase.cpp
-SwathWizardBase.ui
-TOPPViewBase.cpp
-TOPPASBase.cpp
-MISC/QApplicationTOPP.cpp
-)
+        FLASHDeconvWizardBase.cpp
+        FLASHDeconvWizardBase.ui
+        INIFileEditorWindow.cpp
+        SwathWizardBase.cpp
+        SwathWizardBase.ui
+        TOPPViewBase.cpp
+        TOPPASBase.cpp
+        MISC/QApplicationTOPP.cpp
+        )
 
 ### add path to the filenames
 set(sources)
-foreach(i ${sources_list})
-	list(APPEND sources ${directory}/${i})
-endforeach(i)
+foreach (i ${sources_list})
+    list(APPEND sources ${directory}/${i})
+endforeach (i)
 
 ### pass source file list to the upper instance
 set(OpenMSVisual_sources ${OpenMSVisual_sources} ${sources})
