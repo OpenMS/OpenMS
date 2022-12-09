@@ -96,6 +96,5 @@ namespace OpenMS
     double min_isotope_cosine_;
     /// peak group information is stored in here for tracing
     std::map<double, std::map<double, PeakGroup>> peak_group_map_; // rt , mono mass, peakgroup
-
   };
 }
