@@ -41,7 +41,7 @@ namespace OpenMS
   FLASHDeconvHelperStructs::PrecalculatedAveragine::PrecalculatedAveragine(const double min_mass,
                                                                            const double max_mass,
                                                                            const double delta,
-                                                                           CoarseIsotopePatternGenerator *generator,
+                                                                           CoarseIsotopePatternGenerator& generator,
                                                                            const bool use_RNA_averagine)
       :
       mass_interval_(delta), min_mass_(min_mass)
@@ -61,8 +61,8 @@ namespace OpenMS
       }
 
       auto iso = use_RNA_averagine ?
-                 generator->estimateFromRNAMonoWeight(mass) :
-                 generator->estimateFromPeptideMonoWeight(mass);
+                 generator.estimateFromRNAMonoWeight(mass) :
+                 generator.estimateFromPeptideMonoWeight(mass);
 
       const double min_pwr = .9999;
       const Size min_iso_length = 2;
