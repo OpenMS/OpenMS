@@ -107,6 +107,14 @@ namespace OpenMS
     return estimateFromWeightAndComp(average_weight, 4.9384, 7.7583, 1.3577, 1.4773, 0.0417, 0);
   }
 
+  IsotopeDistribution CoarseIsotopePatternGenerator::estimateFromPeptideMonoWeight(double mono_weight)
+  {
+    // Element counts are from Senko's Averagine model
+    return estimateFromMonoWeightAndComp(mono_weight, 4.9384, 7.7583, 1.3577, 1.4773, 0.0417, 0);
+  }
+
+
+
   IsotopeDistribution CoarseIsotopePatternGenerator::estimateFromPeptideWeightAndS(double average_weight, UInt S)
   {
     // Element counts are from Senko's Averagine model, excluding sulfur.
@@ -118,6 +126,12 @@ namespace OpenMS
     return estimateFromWeightAndComp(average_weight, 9.75, 12.25, 3.75, 7, 0, 1);
   }
 
+  IsotopeDistribution CoarseIsotopePatternGenerator::estimateFromRNAMonoWeight(double mono_weight)
+  {
+    return estimateFromMonoWeightAndComp(mono_weight, 9.75, 12.25, 3.75, 7, 0, 1);
+  }
+
+
   IsotopeDistribution CoarseIsotopePatternGenerator::estimateFromDNAWeight(double average_weight)
   {
     return estimateFromWeightAndComp(average_weight, 9.75, 12.25, 3.75, 6, 0, 1);
@@ -127,6 +141,13 @@ namespace OpenMS
   {
     EmpiricalFormula ef;
     ef.estimateFromWeightAndComp(average_weight, C, H, N, O, S, P);
+    return ef.getIsotopeDistribution(*this);
+  }
+
+  IsotopeDistribution CoarseIsotopePatternGenerator::estimateFromMonoWeightAndComp(double mono_weight, double C, double H, double N, double O, double S, double P)
+  {
+    EmpiricalFormula ef;
+    ef.estimateFromMonoWeightAndComp(mono_weight, C, H, N, O, S, P);
     return ef.getIsotopeDistribution(*this);
   }
 
