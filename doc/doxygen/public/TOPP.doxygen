@@ -35,7 +35,7 @@
 /**
   @page TOPP_documentation TOPP documentation
 
-  'TOPP - The %OpenMS Proteomics Pipeline' is a pipeline for the analysis of HPLC-MS data. It consists of several small applications that
+  'TOPP - The %OpenMS PiPeline' is a pipeline for the analysis of HPLC-MS data. It consists of several small applications that
   can be chained to create analysis pipelines tailored for a specific problem.
 
  	The TOPP tools are divided into several subgroups:
