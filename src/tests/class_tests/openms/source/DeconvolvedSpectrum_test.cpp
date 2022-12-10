@@ -149,10 +149,10 @@ START_SECTION((PeakGroup getPrecursorPeakGroup() const))
 {
   PeakGroup tmp_precursor_pgs = ms2_deconv_spec.getPrecursorPeakGroup();
 
-  TEST_EQUAL(tmp_precursor_pgs.size(), 65);
+  TEST_EQUAL(tmp_precursor_pgs.size(), 64);
   TOLERANCE_ABSOLUTE(5);
   TEST_REAL_SIMILAR(tmp_precursor_pgs.getMonoMass(), 13674.2798657377);
-  TEST_REAL_SIMILAR(tmp_precursor_pgs.getIntensity(), 232085.069824219);
+  TEST_REAL_SIMILAR(tmp_precursor_pgs.getIntensity(), 230572);
   TEST_EQUAL(tmp_precursor_pgs.getScanNumber(), 4);
 }
 END_SECTION
