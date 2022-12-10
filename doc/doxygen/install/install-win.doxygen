@@ -6,7 +6,7 @@
 
 
   This document addresses %OpenMS users and explains the
-  installation procedure for building %OpenMS from its sources. If you only want to use the %OpenMS Proteomics Pipeline (TOPP), you are strongly
+  installation procedure for building %OpenMS from its sources. If you only want to use the %OpenMS PiPeline (TOPP), you are strongly
   encouraged to <b>download the windows binary installer</b>
   (see <a href="http://www.OpenMS.de/download/" target="_blank">here</a>),
   instead of building %OpenMS from sources.
