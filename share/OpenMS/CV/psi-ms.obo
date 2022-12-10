@@ -5184,7 +5184,7 @@ is_a: MS:1000494 ! Thermo Scientific instrument model
 [Term]
 id: MS:1000752
 name: TOPP software
-def: "TOPP (The OpenMS proteomics pipeline) software." [PSI:MS]
+def: "TOPP (The OpenMS PiPeline) software." [PSI:MS]
 is_a: MS:1001456 ! analysis software
 is_a: MS:1001457 ! data processing software
 
