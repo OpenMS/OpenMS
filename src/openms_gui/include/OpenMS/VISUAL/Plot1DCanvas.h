@@ -431,13 +431,13 @@ public:
     }
 
     /**
-      @brief compute distance in widget coordinates (unit axis as shown) when moving @p x/y pixel in chart coordinates
+      @brief compute distance in data coordinates (unit axis as shown) when moving @p x/y pixel in chart/widget coordinates
     */
     inline PointXYType widgetToDataDistance(double x, double y)
     {
-      PointXYType point = widgetToData_(x, y);
+      PointXYType point = Plot1DCanvas::widgetToData(x, y); // call the 1D version, otherwise intensity&mirror modes will not be honored
       // subtract the 'offset'
-      PointXYType zero = widgetToData_(0, 0);
+      PointXYType zero = Plot1DCanvas::widgetToData(0, 0); // call the 1D version, otherwise intensity&mirror modes will not be honored
       point -= zero;
       return point;
     }
