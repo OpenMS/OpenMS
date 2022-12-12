@@ -70,7 +70,7 @@ if (NOT VC_REDIST_PATH)
 			file(GLOB_RECURSE VC_REDIST_ABS_PATH "${VC_ROOT_PATH}/vcredist.${ARCH}.exe")
 		endif()
 
-		message(STATUS "VS Redist locations (1st try): ${VC_REDIST_ABS_PATH}")
+		message(STATUS "VS Redist locations (1st try): '${VC_REDIST_ABS_PATH}'")
 	endif()
 
 	if (NOT VC_REDIST_ABS_PATH AND DEFINED ENV{VCToolsRedistDir}) ## if still not found, try to use older methods
@@ -86,7 +86,7 @@ if (NOT VC_REDIST_PATH)
 			file(GLOB_RECURSE VC_REDIST_ABS_PATH "${VC_ROOT_PATH}/vcredist.${ARCH}.exe")
 		endif()
 
-		message(STATUS "VS Redist locations (2nd try): ${VC_REDIST_ABS_PATH}")
+		message(STATUS "VS Redist locations (2nd try): '${VC_REDIST_ABS_PATH}'")
 	endif()
 
 	if (NOT VC_REDIST_ABS_PATH) ## if still not found try vswhere
@@ -99,18 +99,20 @@ if (NOT VC_REDIST_PATH)
 		OUTPUT_VARIABLE VC_ROOT_PATH
 		ERROR_VARIABLE VSWHERE_ERROR
 		RESULT_VARIABLE VSWHERE_RESULT
-		#COMMAND_ECHO STDOUT
+		COMMAND_ECHO STDOUT
 		)
+		string(STRIP ${VC_ROOT_PATH} VC_ROOT_PATH)
+		cmake_path(SET VC_ROOT_PATH NORMALIZE ${VC_ROOT_PATH})
 
 		if (VSWHERE_RESULT EQUAL 0)
-			message(${VC_ROOT_PATH})
-			file(GLOB_RECURSE VC_REDIST_ABS_PATH "${VC_ROOT_PATH}/vc_redist.${ARCH}.exe")
-			if (NOT VC_REDIST_ABS_PATH)
-				file(GLOB_RECURSE VC_REDIST_ABS_PATH "${VC_ROOT_PATH}/vcredist_${ARCH}.exe")
-			endif()
-			if (NOT VC_REDIST_ABS_PATH)
-				file(GLOB_RECURSE VC_REDIST_ABS_PATH "${VC_ROOT_PATH}/vcredist.${ARCH}.exe")
-			endif()
+			message("Globbing for vc_redist.${ARCH}.exe in ${VC_ROOT_PATH}")
+			file(GLOB_RECURSE VC_REDIST_ABS_PATH FOLLOW_SYMLINKS "${VC_ROOT_PATH}/vc_redist.${ARCH}.exe")
+			#if (NOT VC_REDIST_ABS_PATH)
+			#	file(GLOB_RECURSE VC_REDIST_ABS_PATH "${VC_ROOT_PATH}/vcredist_${ARCH}.exe")
+			#endif()
+			#if (NOT VC_REDIST_ABS_PATH)
+			#	file(GLOB_RECURSE VC_REDIST_ABS_PATH "${VC_ROOT_PATH}/vcredist.${ARCH}.exe")
+			#endif()
 			message(STATUS "VS Redist locations (3rd try): ${VC_REDIST_ABS_PATH}")
 		endif()
 	endif()
