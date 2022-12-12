@@ -48,8 +48,8 @@ set(CPACK_PRODUCTBUILD_BACKGROUND_ALIGNMENT "bottomleft")
 set(CPACK_PRODUCTBUILD_BACKGROUND_SCALING "none")
 
 # reuse signing identity from signing app bundles (as in dmg)
-if(NOT DEFINED CPACK_PKGBUILD_IDENTITY_NAME AND DEFINED CPACK_BUNDLE_APPLE_CERT_APP)
-  set(CPACK_PKGBUILD_IDENTITY_NAME ${CPACK_BUNDLE_APPLE_CERT_APP})
+if(NOT DEFINED CPACK_PKGBUILD_IDENTITY_NAME)
+  message(WARNING "CPACK_PKGBUILD_IDENTITY_NAME not set. PKG will not be signed. Make sure to specify an identity with a Developer ID: Installer certificate (not Application certificate).")
 endif()
 
 
@@ -81,17 +81,17 @@ install(FILES       ${PROJECT_SOURCE_DIR}/cmake/MacOSX/README.md
                     WORLD_READ
         COMPONENT   TOPPShell)
 
+## Not needed unless we need Qt plugins for TOPP again
 ## Install the qt.conf file so we can find the libraries
 ## add qt.conf to the bin directory for DMGs/pkgs
-file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/qt.conf"
-"[Paths]\nPlugins = ../${INSTALL_PLUGIN_DIR}\n")
-install(FILES       ${CMAKE_CURRENT_BINARY_DIR}/qt.conf
-        DESTINATION ./${INSTALL_BIN_DIR}
-        PERMISSIONS OWNER_WRITE OWNER_READ
-                    GROUP_READ
-                    WORLD_READ
-        COMPONENT   Applications)
-
+#file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/qt.conf"
+#"[Paths]\nPlugins = ../${INSTALL_PLUGIN_DIR}\n")
+#install(FILES       ${CMAKE_CURRENT_BINARY_DIR}/qt.conf
+#        DESTINATION ./${INSTALL_BIN_DIR}
+#        PERMISSIONS OWNER_WRITE OWNER_READ
+#                    GROUP_READ
+#                    WORLD_READ
+#        COMPONENT   Applications)
 
 ## Fix OpenMS dependencies for all executables in the install directory under bin.
 ## That affects everything but the bundles (whose Framework folders are symlinked to lib anyway).
@@ -100,7 +100,24 @@ install(FILES       ${CMAKE_CURRENT_BINARY_DIR}/qt.conf
 install(CODE "execute_process(COMMAND ${OPENMS_HOST_DIRECTORY}/cmake/MacOSX/fix_dependencies.rb -b \${CMAKE_INSTALL_PREFIX}/../../../Applications${CPACK_PACKAGING_INSTALL_PREFIX}/${INSTALL_BIN_DIR}/ -l \${CMAKE_INSTALL_PREFIX}/${INSTALL_LIB_DIR}/ -p \${CMAKE_INSTALL_PREFIX}/${INSTALL_PLUGIN_DIR} -e @rpath/ -n -c)"
         COMPONENT Dependencies
         )
+# We have to do signing after fixing, otherwise signature will be invalidated.
+# We have to choose COMPONENT Dependencies, otherwise it would be performed at the end of installing Applications, which
+# comes first (alphabetically per component, then order of install calls)
+# If the install CODE is not in the same component though, we need to navigate from the component specific install
+# prefix to the other prefix. This is unfortunately very unrobust.
+# TODO find better order or rewrite fix_dependencies script to be called separately
+install(CODE "
+        execute_process(COMMAND find \${CMAKE_INSTALL_PREFIX}/../../../Applications${CPACK_PACKAGING_INSTALL_PREFIX}/${INSTALL_BIN_DIR}/ -type f -execdir codesign --force --options runtime -i de.openms.TOPP.{} --sign \"${CPACK_BUNDLE_APPLE_CERT_APP}\" {} \\; OUTPUT_VARIABLE topp_sign_out ERROR_VARIABLE topp_sign_out)
+        execute_process(COMMAND find \${CMAKE_INSTALL_PREFIX}/${INSTALL_LIB_DIR}/ -type f -execdir codesign --force --options runtime -i de.openms.TOPP.libs.{} --sign \"${CPACK_BUNDLE_APPLE_CERT_APP}\" {} \\; OUTPUT_VARIABLE topp_sign_out ERROR_VARIABLE topp_sign_out)
+        message('\${topp_sign_out}')"
+        COMPONENT Dependencies
+        )
 install(CODE "execute_process(COMMAND ${OPENMS_HOST_DIRECTORY}/cmake/MacOSX/fix_dependencies.rb -l \${CMAKE_INSTALL_PREFIX}/${INSTALL_LIB_DIR}/ -e @rpath/ -n -c)"
+        COMPONENT library
+        )
+install(CODE "
+        execute_process(COMMAND find \${CMAKE_INSTALL_PREFIX}/${INSTALL_LIB_DIR}/ -type f -execdir codesign --force --options runtime -i de.openms.TOPP.libs.{} --sign \"${CPACK_BUNDLE_APPLE_CERT_APP}\" {} \\; OUTPUT_VARIABLE lib_sign_out ERROR_VARIABLE lib_sign_out)
+        message('\${lib_sign_out}')"
         COMPONENT library
         )
 
@@ -118,5 +135,11 @@ add_custom_target(dist
   COMMAND cpack -G ${CPACK_GENERATOR}
   COMMENT "Building ${CPACK_GENERATOR} package"
 )
+
+add_custom_target(finalized_dist
+                  COMMAND ${PROJECT_SOURCE_DIR}/cmake/MacOSX/fixdmg.sh
+                  WORKING_DIRECTORY ${PROJECT_BINARY_DIR}
+                  COMMENT "Finalizing dmg image"
+                  DEPENDS dist)
 
 
