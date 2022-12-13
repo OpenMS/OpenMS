@@ -1358,7 +1358,7 @@ namespace OpenMS
     zoom_together_ = !zoom_together_;
   }
 
-  void TOPPViewBase::layerZoomChanged() const // todo rename zoomothers
+  void TOPPViewBase::zoomOtherWindows() const
   {
     if (!zoom_together_) return;
 
@@ -1395,7 +1395,7 @@ namespace OpenMS
     connect(sw->canvas(), &PlotCanvas::preferencesChange, this, &TOPPViewBase::updateLayerBar);
     connect(sw->canvas(), &PlotCanvas::layerActivated, this, &TOPPViewBase::layerActivated);
     connect(sw->canvas(), &PlotCanvas::layerModficationChange, this, &TOPPViewBase::updateLayerBar);
-    connect(sw->canvas(), &PlotCanvas::layerZoomChanged, this, &TOPPViewBase::layerZoomChanged);
+    connect(sw->canvas(), &PlotCanvas::layerZoomChanged, this, &TOPPViewBase::zoomOtherWindows);
     connect(sw, &PlotWidget::sendStatusMessage, this, &TOPPViewBase::showStatusMessage);
     connect(sw, &PlotWidget::sendCursorStatus, this, &TOPPViewBase::showCursorStatus);
     connect(sw, &PlotWidget::dropReceived, this, &TOPPViewBase::copyLayer);

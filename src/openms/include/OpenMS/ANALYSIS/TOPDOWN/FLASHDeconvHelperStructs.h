@@ -97,7 +97,7 @@ namespace OpenMS
       PrecalculatedAveragine(double min_mass,
                              double max_mass,
                              double delta,
-                             CoarseIsotopePatternGenerator *generator,
+                             CoarseIsotopePatternGenerator &generator,
                              bool use_RNA_averagine);
 
 
@@ -165,13 +165,13 @@ namespace OpenMS
     {
     public:
       /// original peak mz
-      float mz = 0;
+      double mz = 0;
       /// original peak intensity
       float intensity = 0;
       /// log transformed mz
-      float logMz = -1000;
+      double logMz = -1000;
       /// determined mass after deconvolution. NOT monoisotopic but only decharged
-      float mass = .0;
+      double mass = .0;
       /// absolute charge (in case negative, is_positive is set to false
       int abs_charge = 0;
       /// is positive mode
@@ -195,7 +195,7 @@ namespace OpenMS
       ~LogMzPeak() = default;
 
       /// get uncharged mass of this peak. It is NOT a monoisotopic mass of a PeakGroup, rather a monoisotopic mass of each LogMzPeak. Returns 0 if no charge set
-      float getUnchargedMass();
+      double getUnchargedMass();
 
       /// log mz values are compared
       bool operator<(const LogMzPeak& a) const;
@@ -208,7 +208,7 @@ namespace OpenMS
         //       @param mz mz
         //       @param positive determines the charge carrier mass
        */
-    static float getLogMz(float mz, bool positive);
+    static double getLogMz(double mz, bool positive);
 
     /**
             //       @brief get charge carrier mass
