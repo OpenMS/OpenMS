@@ -125,7 +125,7 @@ START_SECTION((double getCurrentMaxMass(const double max_mass) const))
   TOLERANCE_ABSOLUTE(1);
   TEST_REAL_SIMILAR(ms1_max_mass, 1000.);
   TEST_REAL_SIMILAR(ms2_max_mass, 13674.);
-}a
+}
 END_SECTION
 
 START_SECTION((double getCurrentMinMass(const double min_mass) const))
