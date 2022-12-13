@@ -245,7 +245,7 @@ namespace OpenMS
         }
         double pmz = spec[index].getMZ();
         int iso_index = (int)round((pmz - cmz) / iso_delta);
-         if (iso_index > max_isotope)
+        if (iso_index > max_isotope)
         {
           break;
         }
@@ -505,33 +505,6 @@ namespace OpenMS
     }
     return false;
   }
-
-  /*
-  float PeakGroup::getSumIntensityForMonoMass(float mono_mass, int hc, float iso_da, double tol) const
-  {
-    float sum = .0;
-    for (auto& p : logMzpeaks_)
-    {
-      float mass_diff = (p.mass - mono_mass) * hc;
-      float mass_error = abs(mass_diff - round(mass_diff/iso_da) * iso_da);
-      if (mass_error < mono_mass * tol  * hc)
-      {
-        sum+=p.intensity;
-      }
-    }
-
-    for (auto& p : noisy_peaks_)
-    {
-      float mass_diff = (p.mass - mono_mass) * hc;
-      float mass_error = abs(mass_diff - round(mass_diff/iso_da) * iso_da);
-      if (mass_error < mono_mass * tol  * hc)
-      {
-        sum+=p.intensity;
-      }
-    }
-    return sum;
-  }
-*/
 
   void PeakGroup::setSNR(const float snr)
   {

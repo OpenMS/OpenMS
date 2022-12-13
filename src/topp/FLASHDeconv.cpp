@@ -221,6 +221,7 @@ protected:
         continue;
       }
       it.sortByIntensity(true);
+
       while (it.size() > count)
       {
         it.pop_back();
@@ -657,7 +658,6 @@ protected:
       elapsed_deconv_wall_secs[ms_level - 1] += chrono::duration<double>(chrono::high_resolution_clock::now() - deconv_t_start).count();
     }
     progresslogger.endProgress();
-
 
     std::cout << " writing per spectrum deconvolution results ... " << std::endl;
 

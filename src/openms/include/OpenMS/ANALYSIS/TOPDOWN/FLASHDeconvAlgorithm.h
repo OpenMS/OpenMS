@@ -150,11 +150,6 @@ namespace OpenMS
                                                            const PrecalculatedAveragine& avg,
                                                            int window_width = -1, int allowed_iso_error_for_second_best_cos = 0, PeakGroup::DecoyFlag decoyFlag = PeakGroup::DecoyFlag::target);
 
-
-    static float getAccurateIsotopeCosine(PeakGroup& pg, const PrecalculatedAveragine& avg, double tol, int bin_factor,
-                                          double iso_distance = Constants::ISOTOPE_MASSDIFF_55K_U);
-
-
     /// set decoy_flag_
     void setDecoyFlag(PeakGroup::DecoyFlag flag, FLASHDeconvAlgorithm& targetFD);
 
