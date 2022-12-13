@@ -67,7 +67,7 @@ START_SECTION((~DPosition()))
 	delete d10_ptr;
 END_SECTION
 
-START_SECTION(void swap(DPosition& rhs))
+START_SECTION(void swap(DPosition& rhs) noexcept)
 {
   DPosition<3> i(1, 2, 3);
   DPosition<3> j(4, 5, 6);
@@ -78,6 +78,28 @@ START_SECTION(void swap(DPosition& rhs))
   TEST_REAL_SIMILAR(j[0], 1)
   TEST_REAL_SIMILAR(j[1], 2)
   TEST_REAL_SIMILAR(j[2], 3)
+}
+END_SECTION
+
+START_SECTION(DPosition& abs() noexcept)
+{
+  // a bit of fuzz, just to make sure we call the correct std::abs() function for the appropriate data type
+  constexpr const auto weird_negative_int = std::numeric_limits<int64_t>::lowest() + 2; // this value cannot be accurately represented by a double
+  constexpr const auto weird_positive_int = -weird_negative_int;
+  constexpr const double inaccutate_double(weird_negative_int);
+  static_assert(int64_t(inaccutate_double) != weird_negative_int); // make sure its inaccurate
+  DPosition<3, Int64> i(weird_negative_int, -5, weird_positive_int); // test if we call the correct abs() function, i.e. the one for int, not double
+  i.abs();
+  TEST_EQUAL(i[0], weird_positive_int)
+  TEST_EQUAL(i[1], 5)
+  TEST_EQUAL(i[2], weird_positive_int)
+  // test we call abs() for double, not for float
+  const auto small_negative_double = -std::numeric_limits<double>::epsilon();
+  DPosition<3, double> j(-1.4444, -small_negative_double, small_negative_double);
+  j.abs();
+  TEST_EQUAL(j[0], 1.4444)
+  TEST_EQUAL(j[1], -small_negative_double)  // test equal, not similar!
+  TEST_EQUAL(j[2], -small_negative_double)  // test equal, not similar!
 }
 END_SECTION
 

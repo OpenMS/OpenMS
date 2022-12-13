@@ -294,8 +294,8 @@ public slots:
     void editMetadata();
     /// gets called if a layer got activated
     void layerActivated();
-    /// gets called when a layer changes in zoom
-    void layerZoomChanged() const;
+    /// gets called when a layer changes in zoom; will apply the same zoom to other windows (if linked)
+    void zoomOtherWindows() const;
     /// link the zoom of individual windows
     void linkZoom();
     /// gets called if a layer got deactivated
