@@ -107,13 +107,16 @@ namespace OpenMS
 
     /**
      * @brief given a monoisotopic mass, recruit raw peaks from the raw input spectrum and add to this peakGroup. This is a bit time-consuming and is done for only a small number of selected high-quality peakgroups.
-     * @param spec input raw spectrum
-     * @param tol ppm tolerance
-     * @param avg averagine to recurite isotope peaks
-     * @param mono_mass target monoisotopic mass
-     * @param exclude_mz_charge excluded mz - charge pairs in spec. Only used for decoy mass generation.
+     * @param spec raw spectrum
+     * @param tol mass tolerance
+     * @param avg precalculated averagine
+     * @param mono_mass monoisotopic mass
+     * @param excluded_integer_mzs_ mzs that will be included - only for decoy generation
+     * @param charge_offset charge offset from peaks to recruited peaks
+     * @param charge_multiple charge multiplication factor for recruited peaks
+     * @param mz_off mz offset for recruited peaks
      */
-    void recruitAllPeaksInSpectrum(const MSSpectrum& spec, double tol, const FLASHDeconvHelperStructs::PrecalculatedAveragine& avg,  double mono_mass, const std::unordered_set<int>& excluded_integer_mzs_, int charge_offset = 0, double charge_multiple = 1.0, int isotope_off = 0);
+    void recruitAllPeaksInSpectrum(const MSSpectrum& spec, double tol, const FLASHDeconvHelperStructs::PrecalculatedAveragine& avg,  double mono_mass, const std::unordered_set<int>& excluded_integer_mzs_, int charge_offset = 0, double charge_multiple = 1.0, double mz_off = .0);
 
     /// determine is an mz is a signal of this peakgroup. Input tol is ppm tolerance (e.g., 10.0 for 10ppm tolerance). Assume logMzPeaks are sorted.
     bool isSignalMZ(double mz, double tol) const;
@@ -199,6 +202,9 @@ namespace OpenMS
     /// get average mass ppm error;
     float getAvgPPMError() const;
 
+    /// get average mass ppm error;
+    float getAvgDaError() const;
+
     /// get if it is positive mode
     bool isPositive() const;
 
@@ -276,6 +282,8 @@ namespace OpenMS
     void updateChargeFitScoreAndChargeIntensities_();
     ///update avg ppm error
     void updateAvgPPMError_();
+    ///update avg Da error
+    void updateAvgDaError_();
     /// get ppm error of a logMzPeak
     float getAbsPPMError_(const LogMzPeak& p) const;
     /// get Da error of a logMzPeak from the closest isotope
@@ -322,6 +330,7 @@ namespace OpenMS
     float charge_score_;
     float qscore_ = .0f;
     float avg_ppm_error_ = 0;
+    float avg_da_error_ = 0;
     float snr_ = 0;
     /// qvalues with different decoy flags
     std::map<PeakGroup::DecoyFlag, float> qvalue_;

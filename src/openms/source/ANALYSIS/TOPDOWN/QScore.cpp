@@ -46,7 +46,7 @@ namespace OpenMS
     { // all zero
       return .0f;
     }
-    const std::vector<double> weights({ -.0941, -1.9804, -12.7522, 0.2622, -1.2431, 0.0815, 13.5244});
+    const std::vector<double> weights({ -8.9686, 0.7105, -8.0507, -0.4402, 0.1983, 15.0979});
 
     double score = weights.back();
     auto fv = toFeatureVector_(pg, abs_charge);
@@ -62,28 +62,28 @@ namespace OpenMS
 
   std::vector<double> QScore::toFeatureVector_(const PeakGroup *pg, const int abs_charge)
   {
-    std::vector<double> fvector(6);
+    std::vector<double> fvector(5);
 
     double a = pg->getChargeIsotopeCosine(abs_charge);
     double d = 1;
     int index = 0;
     fvector[index++] = (log2(a + d));
     a = pg->getChargeSNR(abs_charge);
-    fvector[index++] = (log2(d + a / (1 + a)));
+    fvector[index++] = (log2(d + a / (d + a)));
     a = pg->getIsotopeCosine();
     fvector[index++] = (log2(a + d));
     a = pg->getSNR();
-    fvector[index++] = (log2(d + a / (1 + a)));
-    a = pg->getChargeScore();
-    fvector[index++] = (log2(a + d));
+    fvector[index++] = (log2(d + a / (d + a)));
+    //a = pg->getChargeScore();
+    //fvector[index++] = (log2(a + d));
     a = pg->getAvgPPMError();
-    fvector[index++] = (log2(abs(a) + d));
+    fvector[index++] = (log2(a + d));
     return fvector;
   }
 
   void QScore::writeAttCsvFromDecoyHeader(std::fstream& f)
   {
-    f << "MSLevel,ChargeCos,ChargeSNR,Cos,SNR,ChargeScore,AvgPPMerror,Class\n";
+    f << "MSLevel,ChargeCos,ChargeSNR,Cos,SNR,AvgPPMError,Class\n";
   }
 
   void QScore::writeAttCsvFromDecoy(const DeconvolvedSpectrum& deconvolved_spectrum, std::fstream& f)
@@ -92,6 +92,10 @@ namespace OpenMS
     String cns[] = {"T", "D", "D", "D"};
     for(auto& pg:deconvolved_spectrum)
     {
+      if(pg.getSNR() < 1e-2) // remove masses with too low SNRs - they act as outliers.
+      {
+        continue;
+      }
       auto fv = toFeatureVector_(&pg, pg.getRepAbsCharge());
       f<< ms_level<<",";
       for (auto& item: fv)

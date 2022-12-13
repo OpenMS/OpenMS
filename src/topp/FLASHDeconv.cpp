@@ -235,42 +235,6 @@ protected:
     }
   }
 
-  static std::vector<double> getTargetMasses(String targets)
-  {
-    vector<double> result;
-    if (targets.empty())
-    {
-      return result;
-    }
-
-    String target_masses;
-    if (isdigit(targets[0]))
-    {
-      target_masses = targets;
-    }
-    else // if it is a file
-    {
-      std::ifstream in_trainstream(targets);
-      String line;
-      while (std::getline(in_trainstream, line))
-      {
-        target_masses.append(line);
-      }
-    }
-
-    std::cout << "Monoisotopic masses ";
-    stringstream s_stream(target_masses); // create string stream from the string
-    while (s_stream.good())
-    {
-      String substr;
-      getline(s_stream, substr, ','); // get first string delimited by comma
-      result.push_back(std::stod(substr));
-      std::cout << std::stod(substr) << " ";
-    }
-    std::cout << " Da are targeted." << std::endl;
-    return result;
-  }
-
   // the main_ function is called after all parameters are read
   ExitCodes main_(int, const char**) override
   {
@@ -767,103 +731,6 @@ protected:
       }
     }
 
-    if (DLTrain)
-    {
-      QScore::writeAttCsvFromDecoyHeader(out_att_stream);
-      vector<DeconvolvedSpectrum> false_deconvolved_spectra;
-      false_deconvolved_spectra.reserve(deconvolved_spectra.size() * 3);
-
-      for (auto& deconvolved_spectrum : decoy_deconvolved_spectra)
-      {
-        if (deconvolved_spectrum.getOriginalSpectrum().getMSLevel() != 1)
-        {
-          continue;
-        }
-        QScore::writeAttCsvFromDecoy(deconvolved_spectrum, out_att_stream);
-        DeconvolvedSpectrum false_deconvolved_spectrum;
-        false_deconvolved_spectrum.setOriginalSpectrum(deconvolved_spectrum.getOriginalSpectrum());
-        false_deconvolved_spectrum.reserve(deconvolved_spectrum.size());
-        for (auto& pg : deconvolved_spectrum)
-        {
-          if(pg.getDecoyFlag() == PeakGroup::DecoyFlag::charge_decoy || pg.getDecoyFlag() == PeakGroup::DecoyFlag::target)
-          {
-            continue;
-          }
-          false_deconvolved_spectrum.push_back(pg);
-        }
-        false_deconvolved_spectra.push_back(false_deconvolved_spectrum);
-      }
-      for (auto& deconvolved_spectrum : deconvolved_spectra)
-      {
-        if (deconvolved_spectrum.getOriginalSpectrum().getMSLevel() != 1)
-        {
-          continue;
-        }
-        QScore::writeAttCsvFromDecoy(deconvolved_spectrum, out_att_stream);
-
-        auto false_deconvolved_spectrum(deconvolved_spectrum);
-        int j = 0; //-2 -1 1 2     2 3 4 5 /2 /3 /4 /5       -2 -1 1 2
-        for (auto& pg : false_deconvolved_spectrum)
-        {
-          int k = j++ % 12;
-          int charge_offset = 0;
-          double charge_multiple = 1;
-          PeakGroup::DecoyFlag flag = PeakGroup::DecoyFlag::charge_decoy;
-          switch (k)
-          {
-            case 0:
-              charge_offset = -2;
-              break;
-            case 1:
-              charge_offset = -1;
-              break;
-            case 2:
-              charge_offset = 1;
-              break;
-            case 3:
-              charge_offset = 2;
-              break;
-            case 4:
-              charge_multiple = 2.0;
-              break;
-            case 5:
-              charge_multiple = 3.0;
-              break;
-            case 6:
-              charge_multiple = 4.0;
-              break;
-            case 7:
-              charge_multiple = 5.0;
-              break;
-            case 8:
-              charge_multiple = 1.0 / 5.0;
-              break;
-            case 9:
-              charge_multiple = 1.0 / 4.0;
-              break;
-            case 10:
-              charge_multiple = 1.0 / 3.0;
-              break;
-            case 11:
-              charge_multiple = 1.0 / 2.0;
-              break;
-            default:
-              break;
-          }
-
-          pg.recruitAllPeaksInSpectrum(deconvolved_spectrum.getOriginalSpectrum(), 1e-6*tols[0], avg, pg.getMonoMass(), std::unordered_set<int>(), charge_offset, charge_multiple, 0);
-          pg.setDecoyFlag(flag);
-        }
-        false_deconvolved_spectra.push_back(false_deconvolved_spectrum);
-      }
-
-      FLASHDeconvSpectrumFile::writeDLMatrixHeader(out_dl_stream);
-      FLASHDeconvSpectrumFile::writeDLMatrix(deconvolved_spectra, out_dl_stream, avg);
-      FLASHDeconvSpectrumFile::writeDLMatrix(false_deconvolved_spectra, out_dl_stream, avg);
-      out_dl_stream.close();
-      out_att_stream.close();
-    }
-
     if (!out_mzml_file.empty())
     {
       MzMLFile mzml_file;
@@ -956,6 +823,113 @@ protected:
         }
         j++;
       }
+    }
+
+
+    if (DLTrain)
+    {
+      QScore::writeAttCsvFromDecoyHeader(out_att_stream);
+      vector<DeconvolvedSpectrum> false_deconvolved_spectra;
+      false_deconvolved_spectra.reserve(deconvolved_spectra.size() * 3);
+
+      for (auto& deconvolved_spectrum : decoy_deconvolved_spectra)
+      {
+        if (deconvolved_spectrum.getOriginalSpectrum().getMSLevel() != 1)
+        {
+          continue;
+        }
+        QScore::writeAttCsvFromDecoy(deconvolved_spectrum, out_att_stream);
+        DeconvolvedSpectrum false_deconvolved_spectrum;
+        false_deconvolved_spectrum.setOriginalSpectrum(deconvolved_spectrum.getOriginalSpectrum());
+        false_deconvolved_spectrum.reserve(deconvolved_spectrum.size());
+        for (auto& pg : deconvolved_spectrum)
+        {
+          if(pg.getDecoyFlag() == PeakGroup::DecoyFlag::charge_decoy || pg.getDecoyFlag() == PeakGroup::DecoyFlag::target)
+          {
+            continue;
+          }
+          false_deconvolved_spectrum.push_back(pg);
+        }
+        false_deconvolved_spectra.push_back(false_deconvolved_spectrum);
+      }
+      for (auto& deconvolved_spectrum : deconvolved_spectra)
+      {
+        if (deconvolved_spectrum.getOriginalSpectrum().getMSLevel() != 1)
+        {
+          continue;
+        }
+        QScore::writeAttCsvFromDecoy(deconvolved_spectrum, out_att_stream);
+
+        auto false_deconvolved_spectrum(deconvolved_spectrum);
+        int j = 0; //-2 -1 1 2     2 3 4 5 /2 /3 /4 /5       -2 -1 1 2
+        for (auto& pg : false_deconvolved_spectrum)
+        {
+          int k = j++ % 13;
+          int charge_offset = 0;
+          double charge_multiple = 1;
+          double mz_offset = .0;
+          PeakGroup::DecoyFlag flag = PeakGroup::DecoyFlag::charge_decoy;
+          switch (k)
+          {
+            case 0:
+              charge_offset = -2;
+              break;
+            case 1:
+              charge_offset = -1;
+              break;
+            case 2:
+              charge_offset = 1;
+              break;
+            case 3:
+              charge_offset = 2;
+              break;
+            case 4:
+              charge_multiple = 2.0;
+              break;
+            case 5:
+              charge_multiple = 3.0;
+              break;
+            case 6:
+              charge_multiple = 5.0;
+              break;
+            case 7:
+              charge_multiple = 1.0 / 5.0;
+              break;
+            case 8:
+              charge_multiple = 1.0 / 3.0;
+              break;
+            case 9:
+              charge_multiple = 1.0 / 2.0;
+              break;
+            case 10:
+              flag = PeakGroup::DecoyFlag::noise_decoy;
+              mz_offset = 5.0;
+              break;
+            case 11:
+              flag = PeakGroup::DecoyFlag::noise_decoy;
+              mz_offset = 3.0;
+              break;
+            case 12:
+              flag = PeakGroup::DecoyFlag::noise_decoy;
+              mz_offset = -3.0;
+              break;
+            default:
+              flag = PeakGroup::DecoyFlag::noise_decoy;
+              mz_offset = -5.0;
+              break;
+          }
+
+          pg.recruitAllPeaksInSpectrum(deconvolved_spectrum.getOriginalSpectrum(), 1e-6*tols[0], avg, pg.getMonoMass(), std::unordered_set<int>(), charge_offset, charge_multiple, mz_offset);
+          pg.setDecoyFlag(flag);
+        }
+        false_deconvolved_spectra.push_back(false_deconvolved_spectrum);
+      }
+
+      FLASHDeconvSpectrumFile::writeDLMatrixHeader(out_dl_stream);
+      FLASHDeconvSpectrumFile::writeDLMatrix(deconvolved_spectra, out_dl_stream, avg);
+      FLASHDeconvSpectrumFile::writeDLMatrix(false_deconvolved_spectra, out_dl_stream, avg);
+      out_dl_stream.close();
+      out_att_stream.close();
     }
 
     return EXECUTION_OK;

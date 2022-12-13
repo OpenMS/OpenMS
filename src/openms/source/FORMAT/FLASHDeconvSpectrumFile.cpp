@@ -354,6 +354,10 @@ namespace OpenMS
     {
       for(auto& pg: dspec)
       {
+         if(pg.size() == 0)
+         {
+          continue;
+         }
          int cl = pg.getDecoyFlag();
          if(cl<0 || cl>= (int)grouped.size())
          {
