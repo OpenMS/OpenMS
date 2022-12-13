@@ -68,10 +68,18 @@ set(OPENMS_LOGOSMALL ${PROJECT_SOURCE_DIR}/cmake/MacOSX/${OPENMS_LOGOSMALL_NAME}
 
 # On Windows we need to tell CMake where to look for.
 # We also do not need API sets. So exclude them.
+if(WIN32)
+  set(EXCLUDE "api-ms" "ext-ms" "hvsi" "pdmutilities")
+elseif(APPLE)
+  set(EXCLUDE "/usr/lib" "/System/")
+else()
+  set(EXCLUDE)
+endif()
+
 install(RUNTIME_DEPENDENCY_SET OPENMS_DEPS
         DESTINATION ${INSTALL_LIB_DIR}
         COMPONENT Dependencies
-        PRE_EXCLUDE_REGEXES "api-ms" "ext-ms" "hvsi" "pdmutilities"
+        PRE_EXCLUDE_REGEXES ${EXCLUDE} 
         DIRECTORIES ${CMAKE_RUNTIME_OUTPUT_DIRECTORY})
 #install(RUNTIME_DEPENDENCY_SET TOPPView_DEPS) # I think without giving DESTINATION and COMPONENT it will be inferred
 #install(RUNTIME_DEPENDENCY_SET TOPPAS_DEPS)
