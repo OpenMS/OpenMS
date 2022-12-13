@@ -38,6 +38,9 @@ reference and advanced developer documentation remains inside OpenMS doxygen
 documentation.
 - Add support for user defined ribonucleotides with phosphorothioate linkages
 
+New Tools:
+- FLASHDeconv -- Ultra-fast high-quality deconvolution enables online processing of top-down MS data (TOPP)
+
 ------------------------------------------------------------------------------------------
 ----                                OpenMS 2.8     (released 2/2022)                  ----
 ------------------------------------------------------------------------------------------
