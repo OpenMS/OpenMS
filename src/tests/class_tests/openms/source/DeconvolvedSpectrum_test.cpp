@@ -125,7 +125,7 @@ START_SECTION((double getCurrentMaxMass(const double max_mass) const))
   TOLERANCE_ABSOLUTE(1);
   TEST_REAL_SIMILAR(ms1_max_mass, 1000.);
   TEST_REAL_SIMILAR(ms2_max_mass, 13674.);
-}
+}a
 END_SECTION
 
 START_SECTION((double getCurrentMinMass(const double min_mass) const))
@@ -140,7 +140,7 @@ END_SECTION
 START_SECTION((MSSpectrum toSpectrum(const int mass_charge)))
 {
   MSSpectrum peakgroup_spec = prec_deconv_spec_1.toSpectrum(9);
-  TEST_EQUAL(peakgroup_spec.size(), 4);
+  TEST_EQUAL(peakgroup_spec.size(), 2);
   TEST_REAL_SIMILAR(peakgroup_spec.getRT(), 251.72280736002);
 }
 END_SECTION
