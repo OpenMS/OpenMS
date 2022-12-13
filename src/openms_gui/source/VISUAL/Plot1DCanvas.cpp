@@ -904,7 +904,6 @@ namespace OpenMS
     {
       percentage_factor_ = 1.0;
     }
-    if (old != percentage_factor_) std::cerr << "new % factor: " << percentage_factor_ << '\n';
   }
   void Plot1DCanvas::updateScrollbars_()
   {
