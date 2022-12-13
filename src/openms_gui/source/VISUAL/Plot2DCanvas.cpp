@@ -606,6 +606,14 @@ namespace OpenMS
     QStringList lines;
     lines << unit_mapper_.getDim(DIM::X).formattedValue(xy_point.getX()).toQString();
     lines << unit_mapper_.getDim(DIM::Y).formattedValue(xy_point.getY()).toQString();
+    if (unit_mapper_.getDim(DIM::X).getUnit() != DIM_UNIT::INT && unit_mapper_.getDim(DIM::Y).getUnit() != DIM_UNIT::INT)
+    { // if intensity is not mapped to X or Y, add it
+      // Note: it may be cleaner to hoist this function into the derived classes of Painter2D, 
+      //       if the logic here depends on the actual Layer type (currently, 'INT' should work fine for all).
+      DimMapper<2> int_mapper({DIM_UNIT::INT, DIM_UNIT::INT});
+      const auto int_point = getCurrentLayer().peakIndexToXY(peak, int_mapper);
+      lines << int_mapper.getDim(DIM::X).formattedValue(int_point.getX()).toQString();
+    }
     drawText_(painter, lines);
   }
 

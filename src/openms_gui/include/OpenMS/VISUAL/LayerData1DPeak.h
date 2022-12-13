@@ -83,11 +83,9 @@ namespace OpenMS
       LayerDataPeak::updateRanges();
     }
 
-    RangeAllType getRange() const override
-    { 
-      // do NOT change the behaviour of getRange() for 1D, since we want the full m/z range across all spectra
-      // when scrolling in the list of spectra
-      return LayerDataPeak::getRange();
+    RangeAllType getRange1D() const override
+    {
+      return RangeAllType().assign(getCurrentSpectrum().getRange());
     }
 
     // docu in base class

@@ -39,6 +39,7 @@
 #include <OpenMS/CONCEPT/PrecisionWrapper.h>
 
 #include <algorithm>
+#include <cmath>  // for std::abs on integrals and floats
 #include <limits>
 #include <ostream>
 
@@ -127,13 +128,23 @@ public:
 
     //@}
 
-    /// Swap the two points
+    /// Swap the two objects
     void swap(DPosition& rhs) noexcept
     {
-      for (Size i = 0; i < D; i++)
+      for (Size i = 0; i < D; ++i)
       {
         std::swap(coordinate_[i], rhs.coordinate_[i]);
       }
+    }
+
+    /// Make all dimension values positive
+    DPosition& abs() noexcept
+    {
+      for (Size i = 0; i < D; ++i)
+      {
+        coordinate_[i] = std::abs(coordinate_[i]);
+      }
+      return *this;
     }
 
     /**@name Accessors */
