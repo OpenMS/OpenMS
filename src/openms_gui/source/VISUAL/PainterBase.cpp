@@ -36,6 +36,9 @@
 
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
+
+#include <cassert>
+
 #include <QPainter>
 #include <QPen>
 
