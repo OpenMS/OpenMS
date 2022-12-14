@@ -893,7 +893,6 @@ namespace OpenMS
 
   void Plot1DCanvas::recalculatePercentageFactor_(Size layer_index)
   {
-    auto old = percentage_factor_;
     if (intensity_mode_ == IM_PERCENTAGE)
     {
       // maximum value (usually intensity) in whole layer

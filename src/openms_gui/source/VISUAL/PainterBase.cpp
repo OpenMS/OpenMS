@@ -88,10 +88,10 @@ namespace OpenMS
     const int half_size = size / 2;
     const auto x = center.x();
     const auto y = center.y();
-    painter->drawLine(x, y + 3, x + 3, y);
-    painter->drawLine(x + 3, y, x, y - 3);
-    painter->drawLine(x, y - 3, x - 3, y);
-    painter->drawLine(x - 3, y, x, y + 3);
+    painter->drawLine(x, y + half_size, x + half_size, y);
+    painter->drawLine(x + half_size, y, x, y - half_size);
+    painter->drawLine(x, y - half_size, x - half_size, y);
+    painter->drawLine(x - half_size, y, x, y + half_size);
   }
   
   void PainterBase::drawIcon(const QPoint& pos, const QRgb& color, const ShapeIcon icon, Size s, QPainter& p)
