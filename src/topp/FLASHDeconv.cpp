@@ -327,7 +327,7 @@ protected:
     {
       opt.setMZRange(DRange<1> {min_mz, max_mz});
     }
-    if (min_intensity>=0)
+    if (min_intensity >= 0)
     {
       opt.setIntensityRange(DRange<1> {min_intensity, 1e200});
     }
@@ -391,7 +391,6 @@ protected:
 
     // Run FLASHDeconv here
 
-    int scan_number;
     int num_last_deconvolved_spectra = getIntOption_("preceding_MS1_count");
 
     auto last_deconvolved_spectra = std::unordered_map<UInt, std::vector<DeconvolvedSpectrum>>();
@@ -497,9 +496,9 @@ protected:
 
     for (auto it = map.begin(); it != map.end(); ++it)
     {
-      scan_number = SpectrumLookup::extractScanNumber(it->getNativeID(), map.getSourceFiles()[0].getNativeIDTypeAccession());
+      int scan_number = SpectrumLookup::extractScanNumber(it->getNativeID(), map.getSourceFiles()[0].getNativeIDTypeAccession());
 
-      if(scan_number < 0)
+      if (scan_number < 0)
       {
         scan_number = (int)std::distance(map.begin(), it) + 1;
       }
@@ -617,25 +616,16 @@ protected:
 
         for (auto& pg : fd_charge_decoy.getDeconvolvedSpectrum())
         {
-          if(!write_detail){
-            pg.clearPeaks();
-          }
           decoy_deconvolved_spectrum.push_back(pg);
         }
 
         for (auto& pg : fd_iso_decoy.getDeconvolvedSpectrum())
         {
-          if(!write_detail){
-            pg.clearPeaks();
-          }
           decoy_deconvolved_spectrum.push_back(pg);
         }
 
         for (auto& pg : fd_noise_decoy.getDeconvolvedSpectrum())
         {
-          if(!write_detail){
-            pg.clearPeaks();
-          }
           decoy_deconvolved_spectrum.push_back(pg);
         }
 
@@ -646,12 +636,6 @@ protected:
 
       qspec_cntr[ms_level - 1]++;
       mass_cntr[ms_level - 1] += deconvolved_spectrum.size();
-      if(!write_detail){
-        for (auto& pg : deconvolved_spectrum)
-        {
-            pg.clearPeaks();
-        }
-      }
       deconvolved_spectra.push_back(deconvolved_spectrum);
 
       elapsed_deconv_cpu_secs[ms_level - 1] += double(clock() - deconv_begin) / CLOCKS_PER_SEC;
@@ -672,7 +656,7 @@ protected:
       }
       if (out_spec_streams.size() + 1 > ms_level)
       {
-        FLASHDeconvSpectrumFile::writeDeconvolvedMasses(deconvolved_spectrum, out_spec_streams[ms_level - 1], in_file, avg, write_detail, report_decoy);
+        FLASHDeconvSpectrumFile::writeDeconvolvedMasses(deconvolved_spectrum, out_spec_streams[ms_level - 1], in_file, avg, tols[ms_level-1], write_detail, report_decoy);
       }
       if (out_topfd_streams.size() + 1 > ms_level)
       {
@@ -687,7 +671,7 @@ protected:
 
         if (out_spec_streams.size() + 1 > ms_level)
         {
-          FLASHDeconvSpectrumFile::writeDeconvolvedMasses(deconvolved_spectrum, out_spec_streams[ms_level - 1], in_file, avg, write_detail, report_decoy);
+          FLASHDeconvSpectrumFile::writeDeconvolvedMasses(deconvolved_spectrum, out_spec_streams[ms_level - 1], in_file, avg, tols[ms_level-1], write_detail, report_decoy);
         }
       }
     }

@@ -38,11 +38,13 @@
 namespace OpenMS
 {
   /**
-    @brief FLASHDeconv Spectrum level output *.tsv, *.msalign (for TopPIC) file formats
+   * @brief FLASHDeconv Spectrum level output *.tsv, *.msalign (for TopPIC) file formats
      @ingroup FileIO
-**/
 
-  void FLASHDeconvSpectrumFile::writeDeconvolvedMasses(DeconvolvedSpectrum& dspec, std::fstream& fs, const String& file_name, const FLASHDeconvHelperStructs::PrecalculatedAveragine& avg,
+   */
+
+  void FLASHDeconvSpectrumFile::writeDeconvolvedMasses(DeconvolvedSpectrum& dspec, std::fstream& fs, const String& file_name,
+                                                       const FLASHDeconvHelperStructs::PrecalculatedAveragine& avg, double tol,
                                                       const bool write_detail, const bool decoy)
   {
     static std::vector<uint> indices{};
@@ -79,6 +81,9 @@ namespace OpenMS
 
       if (write_detail)
       {
+        std::unordered_set<int> excluded_integer_mzs;
+        auto noisy_peaks = pg.recruitAllPeaksInSpectrum(dspec.getOriginalSpectrum(), tol * 1e-6, avg, pg.getMonoMass(), excluded_integer_mzs);
+
         fs << std::fixed << std::setprecision(2);
         for (auto& p : pg)
         {
@@ -121,44 +126,42 @@ namespace OpenMS
 
         fs << "\t";
         fs << std::fixed << std::setprecision(2);
-        for (auto iter = pg.getNoisePeakBegin(); iter<pg.getNoisePeakEnd();iter++)
+        for (auto& np: noisy_peaks)
         {
-          fs << (*iter).mz << " ";
+          fs << np.mz << " ";
         }
 
         fs << "\t";
         fs << std::fixed << std::setprecision(1);
-        for (auto iter = pg.getNoisePeakBegin(); iter<pg.getNoisePeakEnd();iter++)
+        for (auto& np: noisy_peaks)
         {
-          fs << (*iter).intensity << " ";
+          fs << np.intensity << " ";
         }
 
         fs << "\t";
         fs << std::setprecision(-1);
-        for (auto iter = pg.getNoisePeakBegin(); iter<pg.getNoisePeakEnd();iter++)
+        for (auto& np: noisy_peaks)
         {
-          auto p= (*iter);
-          fs << (p.is_positive ? p.abs_charge : -p.abs_charge) << " ";
+          fs << (np.is_positive ? np.abs_charge : -np.abs_charge) << " ";
         }
 
         fs << "\t";
-        for (auto iter = pg.getNoisePeakBegin(); iter<pg.getNoisePeakEnd();iter++)
+        for (auto& np: noisy_peaks)
         {
-          fs << (*iter).getUnchargedMass() << " ";
+          fs << np.getUnchargedMass() << " ";
         }
 
         fs << "\t";
-        for (auto iter = pg.getNoisePeakBegin(); iter<pg.getNoisePeakEnd();iter++)
+        for (auto& np: noisy_peaks)
         {
-          fs << (*iter).isotopeIndex << " ";
+          fs << np.isotopeIndex << " ";
         }
 
         fs << "\t";
-        for (auto iter = pg.getNoisePeakBegin(); iter<pg.getNoisePeakEnd();iter++)
+        for (auto& np: noisy_peaks)
         {
-          auto p = (*iter);
-          double average_mass = pg.getMonoMass() + p.isotopeIndex * pg.getIsotopeDaDistance();
-          double mass_error = (average_mass / p.abs_charge + FLASHDeconvHelperStructs::getChargeMass(p.is_positive) - p.mz) / p.mz;
+          double average_mass = pg.getMonoMass() + np.isotopeIndex * pg.getIsotopeDaDistance();
+          double mass_error = (average_mass / np.abs_charge + FLASHDeconvHelperStructs::getChargeMass(np.is_positive) - np.mz) / np.mz;
           fs << 1e6 * mass_error << " ";
         }
         fs << "\t";

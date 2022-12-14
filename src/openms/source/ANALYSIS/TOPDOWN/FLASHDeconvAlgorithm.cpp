@@ -585,7 +585,6 @@ namespace OpenMS
           }
 
           float t = mass_intensities[mass_bin_index];
-
           if (t <= 0) // no signal
           {
             continue;
@@ -596,27 +595,52 @@ namespace OpenMS
           if (max_intensity < t)
           {
             bool artifact = false;
-            // mass level harmonic, charge off by n artifact removal
-            //if (abs_charge > low_charge_)
-            {
-              double original_log_mass = getBinValue_(mass_bin_index, mass_bin_min_value_, bin_width);
-              double mass = exp(original_log_mass);
-              {
-                double log_mass = log(mass);
-                if (log_mass < 1)
-                {
-                  continue;
-                }
 
-                for (int h : harmonic_charges_)
+            double original_log_mass = getBinValue_(mass_bin_index, mass_bin_min_value_, bin_width);
+            double mass = exp(original_log_mass);
+            {
+              double log_mass = log(mass);
+              if (log_mass < 1)
+              {
+                continue;
+              }
+
+              for (int h : harmonic_charges_)
+              {
+                if (h * abs_charge > current_max_charge_)
                 {
-                  if (h * abs_charge > current_max_charge_)
+                  break;
+                }
+                for (int f : {-1, 1})
+                {
+                  double hmass = log_mass - log(h) * f;
+                  Size hmass_index = getBinNumber_(hmass, mass_bin_min_value_, bin_width);
+                  if (hmass_index > 0 && hmass_index < mass_bins_.size() - 1)
                   {
-                    break;
+                    if (mass_intensities[hmass_index] >= t)
+                    {
+                      artifact = true;
+                      break;
+                    }
                   }
-                  for (int f = -1; f <= 1; f += 2)
+                }
+                if (artifact)
+                {
+                  break;
+                }
+              }
+              // max_intensity_abs_charge off by one here
+              if (!artifact)
+              {
+                for (int coff = 1; coff <= 2 && !artifact; coff++)
+                {
+                  for (int f : {-1, 1})
                   {
-                    double hmass = log_mass - log(h) * f;
+                    if (abs_charge + f * coff <= 0)
+                    {
+                      continue;
+                    }
+                    double hmass = log_mass - log(abs_charge) + log(abs_charge + f * coff);
                     Size hmass_index = getBinNumber_(hmass, mass_bin_min_value_, bin_width);
                     if (hmass_index > 0 && hmass_index < mass_bins_.size() - 1)
                     {
@@ -624,34 +648,6 @@ namespace OpenMS
                       {
                         artifact = true;
                         break;
-                      }
-                    }
-                  }
-                  if (artifact)
-                  {
-                    break;
-                  }
-                }
-                // max_intensity_abs_charge off by one here
-                if (!artifact)
-                {
-                  for (int coff = 1; coff <= 2 && !artifact; coff++)
-                  {
-                    for (int f = -1; f <= 1; f += 2)
-                    {
-                      if (abs_charge + f * coff <= 0)
-                      {
-                        continue;
-                      }
-                      double hmass = log_mass - log(abs_charge) + log(abs_charge + f * coff);
-                      Size hmass_index = getBinNumber_(hmass, mass_bin_min_value_, bin_width);
-                      if (hmass_index > 0 && hmass_index < mass_bins_.size() - 1)
-                      {
-                        if (mass_intensities[hmass_index] >= t)
-                        {
-                          artifact = true;
-                          break;
-                        }
                       }
                     }
                   }
