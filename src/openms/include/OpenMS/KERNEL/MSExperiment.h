@@ -338,19 +338,19 @@ public:
     ///@name Iterating ranges and areas
     //@{
     /// Returns an area iterator for @p area
-    AreaIterator areaBegin(CoordinateType min_rt, CoordinateType max_rt, CoordinateType min_mz, CoordinateType max_mz);
+    AreaIterator areaBegin(CoordinateType min_rt, CoordinateType max_rt, CoordinateType min_mz, CoordinateType max_mz, UInt  ms_level = 1);
 
     /// Returns a area iterator for all peaks in @p range. If a dimension is empty(), it is ignored (i.e. does not restrict the area)
-    AreaIterator areaBegin(const RangeManagerType& range);
+    AreaIterator areaBegin(const RangeManagerType& range, UInt ms_level = 1);
 
     /// Returns an invalid area iterator marking the end of an area
     AreaIterator areaEnd();
 
     /// Returns a non-mutable area iterator for @p area
-    ConstAreaIterator areaBeginConst(CoordinateType min_rt, CoordinateType max_rt, CoordinateType min_mz, CoordinateType max_mz) const;
+    ConstAreaIterator areaBeginConst(CoordinateType min_rt, CoordinateType max_rt, CoordinateType min_mz, CoordinateType max_mz, UInt ms_level = 1) const;
 
     /// Returns a non-mutable area iterator for all peaks in @p range. If a dimension is empty(), it is ignored (i.e. does not restrict the area)
-    ConstAreaIterator areaBeginConst(const RangeManagerType& range) const;
+    ConstAreaIterator areaBeginConst(const RangeManagerType& range, UInt ms_level = 1) const;
 
     /// Returns an non-mutable invalid area iterator marking the end of an area
     ConstAreaIterator areaEndConst() const;

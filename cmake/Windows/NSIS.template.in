@@ -284,7 +284,7 @@ Section "Documentation" SEC_Doc
       SetOutPath $INSTDIR\share\doc\html
       File /r "${OPENMSDOCDIR}\html\*.*"
       SetOutPath $INSTDIR\share\doc
-      File "${OPENMSDOCDIR}\OpenMS_tutorial.pdf"
+      File /nonfatal "${OPENMSDOCDIR}\OpenMS_tutorial.pdf"
     !endif
 
     !insertmacro UNINSTALL.LOG_CLOSE_INSTALL
