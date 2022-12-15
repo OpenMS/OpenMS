@@ -32,37 +32,56 @@
 # $Authors: Timo Sachsenberg $
 # --------------------------------------------------------------------------
 
+################### Download libtorch
+
+# for libraries for linux/CPU only
+include(FetchContent)
+
+if (UNIX)
+  FetchContent_Declare(
+    Torch
+    PREFIX Torch
+    URL https://download.pytorch.org/libtorch/cpu/libtorch-cxx11-abi-shared-with-deps-1.13.0%2Bcpu.zip
+  )
+endif()
+
+# create Torch properties like, e.g. ${torch_SOURCE_DIR} etc.
+FetchContent_GetProperties(Torch)
+if(NOT torch_POPULATED)
+  FetchContent_Populate(Torch)
+endif()
+
+list(APPEND CMAKE_PREFIX_PATH "${torch_SOURCE_DIR}/share/cmake/Torch")
+message(${CMAKE_PREFIX_PATH})
+find_package(Torch REQUIRED)
+#target_link_libraries(OpenMS_ML PRIVATE ${TORCH_LIBRARIES})
+
+# add Torch library as dependency to OpenMS_ML library
+list(APPEND OpenMS_ML_DEP_LIBRARIES ${OpenMS_ML_DEP_LIBRARIES})
+
+
 project("OpenMS_ML")
 cmake_minimum_required(VERSION 3.15 FATAL_ERROR)
-
-include(ExternalProject)
-
-#set(CMAKE_AUTOUIC OFF) # leave off since this is broken, see qt5_wrap_ui below
-#set(CMAKE_AUTOMOC ON)
 
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
 # --------------------------------------------------------------------------
-# include custom macros for openms_gui lib
-# TODO check if needed... include(add_mac_bundle.cmake)
-
-# --------------------------------------------------------------------------
-# big include file for headers and cpp files
+# entry point for include file for headers and cpp files
 include (${PROJECT_SOURCE_DIR}/includes.cmake)
 
 #------------------------------------------------------------------------------
 # add the library
-openms_add_library(TARGET_NAME OpenMS_ML
-                   SOURCE_FILES ${OpenMSML_sources}
+openms_add_library(TARGET_NAME OpenMS_ML                            # name of the library
+                   SOURCE_FILES ${OpenMSML_sources}                 # library source and header files
                    HEADER_FILES ${OpenMSML_sources_h}
                    INTERNAL_INCLUDES ${PROJECT_SOURCE_DIR}/include ${PROJECT_BINARY_DIR}/include
                    EXTERNAL_INCLUDES
-                   LINK_LIBRARIES ${OpenMS_ML_DEP_LIBRARIES}
+                   LINK_LIBRARIES ${OpenMS_ML_DEP_LIBRARIES}        # link dependencies (torch)
                    DLL_EXPORT_PATH "OpenMS/ML/")
 
-### source group definition
-#source_group("Source Files\\OpenMSML" FILES ${sources})
-#source_group("Header Files\\OpenMSML" FILES ${header_dataaccess})
+### source group definition (probably for VS)
+#source_group("Source Files\\OpenMS\\ML" FILES ${sources})
+#source_group("Header Files\\OpenMS\\ML" FILES ${header_dataaccess})
 
 # --------------------------------------------------------------------------
 # TODO .additional linker flags 
@@ -74,15 +93,4 @@ endif()
 #------------------------------------------------------------------------------
 # register relevant paths for the doxygen doc generation
 #openms_doc_path("${PROJECT_SOURCE_DIR}/include")
-#openms_doc_path("${PROJECT_SOURCE_DIR}/source/VISUAL/APPLICATIONS")
-
-# --------------------------------------------------------------------------
-# TODO: probably don't need to add executables / install tools
-# probably don't need a add_custom_target(TODO...) here
-
-# for linux/CPU only
-ExternalProject_Add(
-  pytorch
-  PREFIX pytorch
-  URL https://download.pytorch.org/libtorch/cpu/libtorch-cxx11-abi-shared-with-deps-1.13.0%2Bcpu.zip
-)
+#openms_doc_path("${PROJECT_SOURCE_DIR}/source/")

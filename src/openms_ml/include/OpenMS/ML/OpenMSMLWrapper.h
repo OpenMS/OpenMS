@@ -34,7 +34,7 @@
 
 #pragma once
 
-#include <OpenMS/KERNEL/StandardTypes.h>
+#include <OpenMS/OpenMS_MLConfig.h>
 
 #include <vector>
 #include <string>
@@ -42,12 +42,11 @@
 // Note: No torch headers may be included here! only in c++ file. otherwise torch will pollute whole OpenMS API
 namespace OpenMS
 {
-	OPENMS_DLLAPI class DeepLCPredictor
+	class OPENMS_ML_DLLAPI DeepLCWrapper
 	{
 		explicit DeepLCWrapper(const std::string& filename);
 
 		std::vector<double> predict(const std::vector<std::string>& sequences, const std::vector<double>& obs_rt); // TODO: other inputs... encoding etc.
-
 	};
 
 }

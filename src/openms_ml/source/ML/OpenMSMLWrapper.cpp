@@ -32,9 +32,11 @@
 // $Authors: Timo Sachsenberg $
 // --------------------------------------------------------------------------
 
-#include <OpenMSMLWrapper.h>
+#include <OpenMS/ML/OpenMSMLWrapper.h>
 
-DeepLCWrapper::DeepLCWrapper(std::string filename)
+using namespace OpenMS;
+
+DeepLCWrapper::DeepLCWrapper(const std::string& filename)
 {
 	// TODO load the model etc.
 }
