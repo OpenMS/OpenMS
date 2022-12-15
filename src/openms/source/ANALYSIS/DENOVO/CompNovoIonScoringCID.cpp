@@ -67,9 +67,10 @@ namespace OpenMS
 
   void CompNovoIonScoringCID::scoreSpectrum(std::map<double, IonScore> & ion_scores, PeakSpectrum & CID_spec, double precursor_weight, Size charge)
   {
-    for (PeakSpectrum::ConstIterator it = CID_spec.begin(); it != CID_spec.end(); ++it)
+  //  for (PeakSpectrum::ConstIterator it = CID_spec.begin(); it != CID_spec.end(); ++it)
+    for (const auto& spec : CID_spec)
     {
-      double it_pos(it->getPosition()[0]);
+      double it_pos(spec.getPosition()[0]);
       IonScore ion_score;
       ion_scores[it_pos] = ion_score;
     }
@@ -77,9 +78,10 @@ namespace OpenMS
     // adds single charged variants of putative single charged ions
     //addSingleChargedIons_(ion_scores, CID_spec);
 
-    for (PeakSpectrum::ConstIterator it = CID_spec.begin(); it != CID_spec.end(); ++it)
+    //for (PeakSpectrum::ConstIterator it = CID_spec.begin(); it != CID_spec.end(); ++it)
+    for (const auto& spec : CID_spec)
     {
-      double it_pos(it->getPosition()[0]);
+      double it_pos(spec.getPosition()[0]);
       IonScore ion_score;
       ion_scores[it_pos] = ion_score;
     }

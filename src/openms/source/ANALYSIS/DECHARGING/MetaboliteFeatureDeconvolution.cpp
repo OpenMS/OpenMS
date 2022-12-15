@@ -929,9 +929,9 @@ namespace OpenMS
           else //** conflict: the two elements of the pair already have separate CFs --> merge
           { // take every feature from second CF and: #1 put into first CF, #2 change registration with map
             ConsensusFeature::HandleSetType hst = cons_map[target_cf1].getFeatures();
-            for (const auto& hst_iter: hst) //** update cf_index
+            for (const auto& handle: hst) //** update cf_index
             {
-              clique_register[fm_out.uniqueIdToIndex(hst_iter.getUniqueId())] = target_cf0;
+              clique_register[fm_out.uniqueIdToIndex(handle.getUniqueId())] = target_cf0;
             }
             // insert features from cf1 to cf0
             cons_map[target_cf0].insert(hst);
@@ -958,35 +958,35 @@ namespace OpenMS
       // skip if no backbone
       Size backbone_count = 0;
       ConsensusFeature::HandleSetType hst = cmap.getFeatures();
-      for (const auto& hst_iter : hst)
+      for (const auto& handle : hst)
       {
-        backbone_count += (Size)fm_out[fm_out.uniqueIdToIndex(hst_iter.getUniqueId())].getMetaValue("is_backbone");
+        backbone_count += (Size)fm_out[fm_out.uniqueIdToIndex(handle.getUniqueId())].getMetaValue("is_backbone");
       }
       if (backbone_count == 0)
       {
-        for (const auto& hst_iter : hst) //** remove cluster members from registry (they will become single features)
+        for (const auto& handle : hst) //** remove cluster members from registry (they will become single features)
         {
-          clique_register.erase(fm_out.uniqueIdToIndex(hst_iter.getUniqueId()));
+          clique_register.erase(fm_out.uniqueIdToIndex(handle.getUniqueId()));
         }
         continue;
       }
 
       // store element adducts
-      for (const auto& hst_iter : hst)
+      for (const auto& handle : hst)
       {
-        if (fm_out[fm_out.uniqueIdToIndex(hst_iter.getUniqueId())].metaValueExists(Constants::UserParam::DC_CHARGE_ADDUCTS))
+        if (fm_out[fm_out.uniqueIdToIndex(handle.getUniqueId())].metaValueExists(Constants::UserParam::DC_CHARGE_ADDUCTS))
         {
-          cmap.setMetaValue(String(hst_iter.getUniqueId()), fm_out[fm_out.uniqueIdToIndex(hst_iter.getUniqueId())].getMetaValue(Constants::UserParam::DC_CHARGE_ADDUCTS));
+          cmap.setMetaValue(String(handle.getUniqueId()), fm_out[fm_out.uniqueIdToIndex(handle.getUniqueId())].getMetaValue(Constants::UserParam::DC_CHARGE_ADDUCTS));
         }
         // also add consensusID of group to all feature_relation
-        fm_out[fm_out.uniqueIdToIndex(hst_iter.getUniqueId())].setMetaValue(Constants::UserParam::ADDUCT_GROUP, String(cmap.getUniqueId()));
+        fm_out[fm_out.uniqueIdToIndex(handle.getUniqueId())].setMetaValue(Constants::UserParam::ADDUCT_GROUP, String(cmap.getUniqueId()));
       }
 
       // store number of distinct charges
       std::set<Int> charges;
-      for (const auto& hst_iter : hst)
+      for (const auto& handle : hst)
       {
-        charges.insert(hst_iter.getCharge());
+        charges.insert(handle.getCharge());
       }
       IntList i_charges;
       for (const auto& charge : charges)

@@ -87,14 +87,14 @@ namespace OpenMS
   void CompNovoIdentificationCID::getIdentifications(vector<PeptideIdentification> & pep_ids, const PeakMap & exp)
   {
     Size count(1);
-    for (PeakMap::ConstIterator it = exp.begin(); it != exp.end(); ++it, ++count)
+    for (const auto& spec : exp)
     {
       //cerr << count << "/" << exp.size() << endl;
       PeptideIdentification id;
       // TODO check if both CID and ETD is present;
-      PeakSpectrum CID_spec(*it);
-      id.setRT(it->getRT());
-      id.setMZ(it->getPrecursors().begin()->getMZ());
+      PeakSpectrum CID_spec(spec);
+      id.setRT(spec.getRT());
+      id.setMZ(spec.getPrecursors().begin()->getMZ());
 
       subspec_to_sequences_.clear();
       permute_cache_.clear();
@@ -111,6 +111,7 @@ namespace OpenMS
       //{
       //return;
       //}
+      ++count;
     }
     return;
   }
@@ -160,12 +161,13 @@ namespace OpenMS
 
     // now delete all peaks that are right of the estimated precursor weight
     Size peak_counter(0);
-    for (PeakSpectrum::ConstIterator it = new_CID_spec.begin(); it != new_CID_spec.end(); ++it, ++peak_counter)
+    for (const auto& spec : new_CID_spec)
     {
-      if (it->getPosition()[0] > precursor_weight)
+      if (spec.getPosition()[0] > precursor_weight)
       {
         break;
       }
+      ++peak_counter;
     }
     if (peak_counter < new_CID_spec.size())
     {
@@ -237,11 +239,11 @@ for (PeakSpectrum::ConstIterator it1 = CID_spec.begin(); it1 != CID_spec.end(); 
 #ifdef WRITE_SCORED_SPEC
     PeakSpectrum filtered_spec(new_CID_spec);
     filtered_spec.clear();
-    for (Map<double, CompNovoIonScoringCID::IonScore>::const_iterator it = ion_scores.begin(); it != ion_scores.end(); ++it)
+    for (const auto& i_score : ion_scores)
     {
       Peak1D p;
-      p.setIntensity(it->second.score);
-      p.setPosition(it->first);
+      p.setIntensity(i_score.second.score);
+      p.setPosition(i_score.first);
       filtered_spec.push_back(p);
     }
     DTAFile().store("spec_scored.dta", filtered_spec);
@@ -357,17 +359,17 @@ for (PeakSpectrum::ConstIterator it1 = CID_spec.begin(); it1 != CID_spec.end(); 
 
     vector<PeptideHit> hits;
     Size missed_cleavages = param_.getValue("missed_cleavages");
-    for (set<String>::const_iterator it = sequences.begin(); it != sequences.end(); ++it)
+    for (const auto& seq : sequences)
     {
 
-      Size num_missed = countMissedCleavagesTryptic_(*it);
+      Size num_missed = countMissedCleavagesTryptic_(seq);
       if (missed_cleavages < num_missed)
       {
-        //cerr << "Two many missed cleavages: " << *it << ", found " << num_missed << ", allowed " << missed_cleavages << endl;
+        //cerr << "Two many missed cleavages: " << seq << ", found " << num_missed << ", allowed " << missed_cleavages << endl;
         continue;
       }
       PeakSpectrum CID_sim_spec;
-      getCIDSpectrum_(CID_sim_spec, *it, charge);
+      getCIDSpectrum_(CID_sim_spec, seq, charge);
 
       //normalizer.filterSpectrum(CID_sim_spec);
 
@@ -376,10 +378,10 @@ for (PeakSpectrum::ConstIterator it1 = CID_spec.begin(); it1 != CID_spec.end(); 
       PeptideHit hit;
       hit.setScore(cid_score);
 
-      hit.setSequence(getModifiedAASequence_(*it));
+      hit.setSequence(getModifiedAASequence_(seq));
       hit.setCharge((Int)charge);   //TODO unify charge interface: int or size?
       hits.push_back(hit);
-      //cerr << getModifiedAASequence_(*it) << " " << cid_score << " " << endl;
+      //cerr << getModifiedAASequence_(seq) << " " << cid_score << " " << endl;
     }
 
     // rescore the top hits
@@ -394,10 +396,10 @@ for (PeakSpectrum::ConstIterator it1 = CID_spec.begin(); it1 != CID_spec.end(); 
     align_param.setValue("use_linear_factor", "true");
     alignment_score.setParameters(align_param);
 
-    for (vector<PeptideHit>::iterator it = hits.begin(); it != hits.end(); ++it)
-    {
-      //cerr << "Pre: " << it->getRank() << " " << it->getSequence() << " " << it->getScore() << " " << endl;
-    }
+    //for (auto& hit : hits)
+    //{
+      //cerr << "Pre: " << hit.getRank() << " " << hit.getSequence() << " " << hit.getScore() << " " << endl;
+    //}
 
     Size number_of_prescoring_hits = param_.getValue("number_of_prescoring_hits");
     if (hits.size() > number_of_prescoring_hits)
@@ -405,31 +407,31 @@ for (PeakSpectrum::ConstIterator it1 = CID_spec.begin(); it1 != CID_spec.end(); 
       hits.resize(number_of_prescoring_hits);
     }
 
-    for (vector<PeptideHit>::iterator it = hits.begin(); it != hits.end(); ++it)
+    for (auto& hit : hits)
     {
       PeakSpectrum CID_sim_spec;
-      getCIDSpectrum_(CID_sim_spec, getModifiedStringFromAASequence_(it->getSequence()), charge);
+      getCIDSpectrum_(CID_sim_spec, getModifiedStringFromAASequence_(hit.getSequence()), charge);
 
       normalizer.filterSpectrum(CID_sim_spec);
 
-      //DTAFile().store("sim_specs/" + it->getSequence().toUnmodifiedString() + "_sim_CID.dta", CID_sim_spec);
+      //DTAFile().store("sim_specs/" + hit.getSequence().toUnmodifiedString() + "_sim_CID.dta", CID_sim_spec);
 
       //double cid_score = spectra_zhang(CID_sim_spec, CID_spec);
       double cid_score = alignment_score(CID_sim_spec, CID_spec);
 
-      //cerr << "Final: " << it->getSequence() << " " << cid_score << endl;
+      //cerr << "Final: " << hit.getSequence() << " " << cid_score << endl;
 
-      it->setScore(cid_score);
+      hit.setScore(cid_score);
     }
 
     id.setHits(hits);
     id.assignRanks();
     hits = id.getHits();
 
-    for (vector<PeptideHit>::iterator it = hits.begin(); it != hits.end(); ++it)
-    {
-      //cerr << "Fin: " << it->getRank() << " " << it->getSequence() << " " << it->getScore() << " " << endl;
-    }
+    //for (auto& hit : hits)
+    //{
+      //cerr << "Fin: " << hit.getRank() << " " << hit.getSequence() << " " << hit.getScore() << " " << endl;
+    //}
 
     Size number_of_hits = param_.getValue("number_of_hits");
     if (id.getHits().size() > number_of_hits)
@@ -579,13 +581,13 @@ for (PeakSpectrum::ConstIterator it1 = CID_spec.begin(); it1 != CID_spec.end(); 
 #endif
 
       //static Map<String, set<String> > permute_cache;
-      for (vector<MassDecomposition>::const_iterator it = decomps.begin(); it != decomps.end(); ++it)
+      for (const auto& dc : decomps)
       {
 #ifdef DAC_DEBUG
-        cerr << it->toString() << endl;
+        cerr << dc.toString() << endl;
 #endif
 
-        String exp_string = it->toExpandedString();
+        String exp_string = dc.toExpandedString();
         if (permute_cache_.find(exp_string) == permute_cache_.end())
         {
           permute_("", exp_string, sequences);
@@ -642,25 +644,25 @@ for (PeakSpectrum::ConstIterator it1 = CID_spec.begin(); it1 != CID_spec.end(); 
     // run divide step
 #ifdef DAC_DEBUG
     cerr << tabs_ << "Selected " << pivots.size() << " pivot ions: ";
-    for (vector<Size>::const_iterator it = pivots.begin(); it != pivots.end(); ++it)
+    for (const auto& pivot : pivots)
     {
-      cerr << *it << "(" << CID_spec[*it].getPosition()[0] << ") ";
+      cerr << pivot << "(" << CID_spec[pivot].getPosition()[0] << ") ";
     }
     cerr << endl;
 #endif
 
-    for (vector<Size>::const_iterator it = pivots.begin(); it != pivots.end(); ++it)
+    for (const auto& pivot : pivots)
     {
       set<String> seq1, seq2, new_sequences;
 
       // the smaller the 'gap' the greater the chance of not finding anything
       // so we we compute the smaller gap first
-      double diff1(CID_spec[*it].getPosition()[0] - CID_spec[left].getPosition()[0]);
-      double diff2(CID_spec[right].getPosition()[0] - CID_spec[*it].getPosition()[0]);
+      double diff1(CID_spec[pivot].getPosition()[0] - CID_spec[left].getPosition()[0]);
+      double diff2(CID_spec[right].getPosition()[0] - CID_spec[pivot].getPosition()[0]);
 
       if (diff1 < diff2)
       {
-        getDecompositionsDAC_(seq1, left, *it, peptide_weight, CID_spec, ion_scores);
+        getDecompositionsDAC_(seq1, left, pivot, peptide_weight, CID_spec, ion_scores);
         if (seq1.empty())
         {
 #ifdef DAC_DEBUG
@@ -669,11 +671,11 @@ for (PeakSpectrum::ConstIterator it1 = CID_spec.begin(); it1 != CID_spec.end(); 
           continue;
         }
 
-        getDecompositionsDAC_(seq2, *it, right, peptide_weight, CID_spec, ion_scores);
+        getDecompositionsDAC_(seq2, pivot, right, peptide_weight, CID_spec, ion_scores);
       }
       else
       {
-        getDecompositionsDAC_(seq2, *it, right, peptide_weight, CID_spec, ion_scores);
+        getDecompositionsDAC_(seq2, pivot, right, peptide_weight, CID_spec, ion_scores);
         if (seq2.empty())
         {
 #ifdef DAC_DEBUG
@@ -682,7 +684,7 @@ for (PeakSpectrum::ConstIterator it1 = CID_spec.begin(); it1 != CID_spec.end(); 
           continue;
         }
 
-        getDecompositionsDAC_(seq1, left, *it, peptide_weight, CID_spec, ion_scores);
+        getDecompositionsDAC_(seq1, left, pivot, peptide_weight, CID_spec, ion_scores);
       }
 
 #ifdef DAC_DEBUG
@@ -703,11 +705,11 @@ for (PeakSpectrum::ConstIterator it1 = CID_spec.begin(); it1 != CID_spec.end(); 
         continue;
       }
 
-      for (set<String>::const_iterator it1 = seq1.begin(); it1 != seq1.end(); ++it1)
+      for (const auto& s1 : seq1)
       {
-        for (set<String>::const_iterator it2 = seq2.begin(); it2 != seq2.end(); ++it2)
+        for (const auto& s2 : seq2)
         {
-          new_sequences.insert(*it2 + *it1);
+          new_sequences.insert(s2 + s1);
         }
       }
 
@@ -723,24 +725,24 @@ for (PeakSpectrum::ConstIterator it1 = CID_spec.begin(); it1 != CID_spec.end(); 
         }
 
 #ifdef DAC_DEBUG
-        for (set<String>::const_iterator it1 = new_sequences.begin(); it1 != new_sequences.end(); ++it1)
+        for (const auto& seq : new_sequences)
         {
-          cerr << tabs_ << *it1 << endl;
+          cerr << tabs_ << seq << endl;
         }
         cerr << endl;
 #endif
       }
 
-      for (set<String>::const_iterator sit = new_sequences.begin(); sit != new_sequences.end(); ++sit)
+      for (const auto& seq : new_sequences)
       {
-        sequences.insert(*sit);
+        sequences.insert(seq);
       }
     }
 #ifdef DAC_DEBUG
     cerr << tabs_ << "Found sequences for " << CID_spec[left].getPosition()[0] << " " << CID_spec[right].getPosition()[0] << endl;
-    for (set<String>::const_iterator sit = sequences.begin(); sit != sequences.end(); ++sit)
+    for (const auto& seq : sequences)
     {
-      cerr << tabs_ << *sit << endl;
+      cerr << tabs_ << seq << endl;
     }
 #endif
 
