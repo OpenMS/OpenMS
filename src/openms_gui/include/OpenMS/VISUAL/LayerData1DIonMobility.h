@@ -71,6 +71,11 @@ namespace OpenMS
       spec_filtered.updateRanges();
       return RangeAllType().assign(spec_filtered.getRange());
     }
+    
+    RangeAllType getRange1D() const override
+    {
+      return RangeAllType().assign(getCurrentMobilogram().getRange());
+    }
 
     const Mobilogram& getCurrentMobilogram() const
     {

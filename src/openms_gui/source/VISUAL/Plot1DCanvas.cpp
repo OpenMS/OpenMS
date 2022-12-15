@@ -210,26 +210,40 @@ namespace OpenMS
     emit layerActivated(this);
   }
 
+  void Plot1DCanvas::changeVisibleAreaCommon_(const UnitRange& new_area, bool repaint, bool add_to_stack)
+  {
+    auto corrected = correctGravityAxisOfVisibleArea_(new_area);
+    
+    if (intensity_mode_ != IM_PERCENTAGE) // not for Percentage mode, which is always [0,100]
+    { // make sure we stay inside the overall data range of the currently displayable 1D data
+      corrected.pushInto(overall_data_range_1d_);
+    }
+    
+    PlotCanvas::changeVisibleArea_(visible_area_.cloneWith(corrected), repaint, add_to_stack);
+  }
+
   void Plot1DCanvas::changeVisibleArea_(const AreaXYType& new_area, bool repaint, bool add_to_stack)
   {
-    PlotCanvas::changeVisibleArea_(visible_area_.cloneWith(new_area), repaint, add_to_stack);
-    emit layerZoomChanged(this);
+    changeVisibleAreaCommon_(visible_area_.cloneWith(new_area).getAreaUnit(), repaint, add_to_stack);
   }
   void Plot1DCanvas::changeVisibleArea_(const UnitRange& new_area, bool repaint, bool add_to_stack)
   {
-    PlotCanvas::changeVisibleArea_(visible_area_.cloneWith(new_area), repaint, add_to_stack);
-    emit layerZoomChanged(this);
+    changeVisibleAreaCommon_(new_area, repaint, add_to_stack);
+  }
+  void Plot1DCanvas::changeVisibleArea_(VisibleArea new_area, bool repaint, bool add_to_stack)
+  {
+    changeVisibleAreaCommon_(new_area.getAreaUnit(), repaint, add_to_stack);
   }
 
   void Plot1DCanvas::dataToWidget(const DPosition<2>& xy_point, QPoint& point, bool flipped)
   {
-    dataToWidget(xy_point.getX(), xy_point.getY(), point, flipped);
+    Plot1DCanvas::dataToWidget(xy_point.getX(), xy_point.getY(), point, flipped);
   }
 
   void Plot1DCanvas::dataToWidget(const DPosition<2>& xy_point, DPosition<2>& point, bool flipped)
   {
     QPoint p;
-    dataToWidget(xy_point.getX(), xy_point.getY(), p, flipped);
+    Plot1DCanvas::dataToWidget(xy_point.getX(), xy_point.getY(), p, flipped);
     point.setX(p.x());
     point.setY(p.y());
   }
@@ -237,9 +251,9 @@ namespace OpenMS
   void Plot1DCanvas::dataToWidget(double x, double y, QPoint& point, bool flipped)
   {
     QPoint tmp;
-    // adapting gravity dimension is required for SNAP mode and percentage mode
-    if (gr_.getGravityAxis() == DIM::Y) y *= percentage_factor_ * getSnapFactor();
-    else if (gr_.getGravityAxis() == DIM::X) x *= percentage_factor_ * getSnapFactor();
+    // adapting gravity dimension is required for percentage mode
+    if (gr_.getGravityAxis() == DIM::Y) y *= percentage_factor_;
+    else if (gr_.getGravityAxis() == DIM::X) x *= percentage_factor_;
     
     dataToWidget_(x, y, tmp);
     point.setX(tmp.x());
@@ -321,9 +335,9 @@ namespace OpenMS
       actual_y = y;
     }
     PointXYType p = PlotCanvas::widgetToData_(x, actual_y);
-    // adapting gravity dimension is required for SNAP mode and percentage mode
-    if (gr_.getGravityAxis() == DIM::Y) p.setY(p.getY() / (percentage_factor_ * getSnapFactor()));
-    else if (gr_.getGravityAxis() == DIM::X) p.setX(p.getX() / (percentage_factor_ * getSnapFactor()));   
+    // adapting gravity dimension is required for percentage mode
+    if (gr_.getGravityAxis() == DIM::Y) p.setY(p.getY() / (percentage_factor_));
+    else if (gr_.getGravityAxis() == DIM::X) p.setX(p.getX() / (percentage_factor_));
 
     return p;
   }
@@ -388,7 +402,7 @@ namespace OpenMS
         {
           measurement_start_ = selected_peak_;
           auto peak_xy = getCurrentLayer().peakIndexToXY(measurement_start_, unit_mapper_);
-          updatePercentageFactor_(getCurrentLayerIndex());
+          recalculatePercentageFactor_(getCurrentLayerIndex());
           dataToWidget(peak_xy, measurement_start_point_px_, getCurrentLayer().flipped);
           // use intensity (usually) of mouse, not of the peak
           measurement_start_point_px_ = gr_.gravitateTo(measurement_start_point_px_, last_mouse_pos_);
@@ -421,7 +435,7 @@ namespace OpenMS
       }
       if (move)
       {
-        updatePercentageFactor_(getCurrentLayerIndex());
+        recalculatePercentageFactor_(getCurrentLayerIndex());
         PointXYType delta = widgetToData(p) - widgetToData(last_mouse_pos_);
 
         Annotations1DContainer& ann_1d = getCurrentLayer().getCurrentAnnotations();
@@ -502,7 +516,7 @@ namespace OpenMS
           auto mouse_xy = widgetToData(e->pos());
           start_xy = gr_.gravitateTo(start_xy, mouse_xy);
           end_xy = gr_.gravitateTo(end_xy, mouse_xy);
-          updatePercentageFactor_(getCurrentLayerIndex());
+          recalculatePercentageFactor_(getCurrentLayerIndex());
           // draw line for measured distance between two peaks and annotate with distance in m/z -- use 4 digits to resolve 13C distances between isotopes
           auto* item = new Annotation1DDistanceItem("", start_xy, end_xy);
           item->setText(QString::number(item->getDistance(), 'f', getNonGravityDim().valuePrecision()));
@@ -553,7 +567,7 @@ namespace OpenMS
     {
       return PeakIndex();
     }
-    updatePercentageFactor_(getCurrentLayerIndex());
+    recalculatePercentageFactor_(getCurrentLayerIndex());
 
     RangeAllType search_area = unit_mapper_.fromXY(widgetToData(p - QPoint(2, 2)));
     search_area.extend(unit_mapper_.fromXY(widgetToData(p + QPoint(2, 2))));
@@ -646,7 +660,7 @@ namespace OpenMS
     // paint each layer
     for (Size i = 0; i < getLayerCount(); ++i)
     {
-      updatePercentageFactor_(i);
+      recalculatePercentageFactor_(i);
       auto paint_1d = getLayer(i).getPainter1D();
       paint_1d->paint(painter, this, (int)i);      
     }
@@ -732,7 +746,7 @@ namespace OpenMS
 
     painter.setPen(QPen(QColor(String(param_.getValue("highlighted_peak_color").toString()).toQString()), 2));
 
-    updatePercentageFactor_(layer_index);
+    recalculatePercentageFactor_(layer_index);
 
     QPoint begin;
     dataToWidget(sel_xy, begin, getLayer(layer_index).flipped);
@@ -801,7 +815,7 @@ namespace OpenMS
     getCurrentLayer().updateRanges();
     recalculateRanges_();
 
-    resetZoom(false); // no repaint as this is done in intensityModeChange_() anyway
+    resetZoom(false); // no repaint as this is done in setIntensityMode() anyway
 
     // warn if negative intensities are contained
     if (getCurrentMinIntensity() < 0.0f)
@@ -813,8 +827,6 @@ namespace OpenMS
     {
       setIntensityMode(IM_PERCENTAGE);
     }
-
-    recalculateSnapFactor_();
 
     emit layerActivated(this);
 
@@ -879,32 +891,22 @@ namespace OpenMS
     drawText_(painter, lines);
   }
 
-  void Plot1DCanvas::recalculateSnapFactor_()
+  void Plot1DCanvas::recalculatePercentageFactor_(Size layer_index)
   {
-    if (intensity_mode_ == IM_SNAP)
+    if (intensity_mode_ == IM_PERCENTAGE)
     {
-      // find maximum displayed(!) intensity across all layers
-      double max_visible_intensity = numeric_limits<double>::lowest();
-      auto vis_area = visible_area_.getAreaUnit();
-      auto filter_area = vis_area.clear(getGravityDim().getUnit()); // only keep the non-gravity range (e.g. m/z)
-      for (Size i = 0; i < getLayerCount(); ++i)
-      {
-        const auto updated_area = getLayer(i).getRangeForArea(filter_area);
-        max_visible_intensity = std::max(max_visible_intensity, updated_area.getMaxIntensity());
-      }
-
-      // add some margin on top of local maximum to be sure we are able to draw labels inside the view
-      snap_factors_[0] = overall_data_range_.getMaxIntensity() / (max_visible_intensity * TOP_MARGIN);
+      // maximum value (usually intensity) in whole layer
+      const auto max_data_gravity = unit_mapper_.mapRange(getLayer(layer_index).getRange1D()).maxPosition()[(int)gr_.getGravityAxis()];
+      percentage_factor_ = 100 / max_data_gravity;
     }
     else
     {
-      snap_factors_[0] = 1.0;
+      percentage_factor_ = 1.0;
     }
   }
-
   void Plot1DCanvas::updateScrollbars_()
   {
-    auto xy_overall_area = visible_area_.cloneWith(overall_data_range_).getAreaXY();
+    auto xy_overall_area = visible_area_.cloneWith(overall_data_range_1d_).getAreaXY();
     emit updateHScrollbar(xy_overall_area.minPosition()[0], visible_area_.getAreaXY().minPosition()[0], visible_area_.getAreaXY().maxPosition()[0], xy_overall_area.maxPosition()[0]);
     emit updateVScrollbar(1, 1, 1, 1);
   }
@@ -1137,7 +1139,7 @@ namespace OpenMS
 
   void Plot1DCanvas::addLabelAnnotation_(const QPoint& screen_position, const QString& text)
   {
-    updatePercentageFactor_(getCurrentLayerIndex());
+    recalculatePercentageFactor_(getCurrentLayerIndex());
 
     PointXYType position = widgetToData(screen_position);
     auto item = new Annotation1DTextItem(position, text);
@@ -1208,7 +1210,7 @@ namespace OpenMS
       if (new_area != visible_area_.getAreaXY())
       {
         zoomAdd_(visible_area_.cloneWith(new_area));
-        PlotCanvas::changeVisibleArea_(*zoom_pos_);
+        changeVisibleArea_(*zoom_pos_);  
       }
     }
   }
@@ -1226,7 +1228,7 @@ namespace OpenMS
 
     // goto next zoom level
     ++zoom_pos_;
-    PlotCanvas::changeVisibleArea_(*zoom_pos_);
+    changeVisibleArea_(*zoom_pos_);
   }
 
   void Plot1DCanvas::translateLeft_(Qt::KeyboardModifiers /*m*/)
@@ -1448,7 +1450,7 @@ namespace OpenMS
         return;
       }
       const ExperimentType::SpectrumType& spectrum_1 = ptr_layer_1->getCurrentSpectrum();
-      updatePercentageFactor_(alignment_layer_1_);
+      recalculatePercentageFactor_(alignment_layer_1_);
       for (Size i = 0; i < getAlignmentSize(); ++i)
       {
         dataToWidget(spectrum_1[aligned_peaks_indices_[i].first].getMZ(), 0, begin_p, false);
@@ -1471,7 +1473,7 @@ namespace OpenMS
 
   void Plot1DCanvas::intensityModeChange_()
   {
-    recalculateSnapFactor_();
+    changeVisibleArea_(visible_area_, false, false); // updates y-axis
     ensureAnnotationsWithinDataRange_();
     // update axes (e.g. make it Log-scale)
     if (spectrum_widget_)
@@ -1481,31 +1483,46 @@ namespace OpenMS
     update_(OPENMS_PRETTY_FUNCTION);
   }
 
+  RangeAllType Plot1DCanvas::correctGravityAxisOfVisibleArea_(UnitRange area)
+  {
+    // depending on intensity mode, the y-axis either shows
+    //  The maximum range (normal & log) 
+    //  or the local maximum (snap mode)
+    //  or [0, 100] (percentage mode)
+    if (intensity_mode_ == PlotCanvas::IntensityModes::IM_SNAP)
+    {                                        // find the range of the current data (as determined by x-axis)
+      area.clear(getGravityDim().getUnit()); // delete gravity (e.g. intensity), only keep the non-gravity range (e.g. m/z)
+      for (Size i = 0; i < getLayerCount(); ++i)
+      {
+        area.extend(getLayer(i).getRangeForArea(area));
+      }
+      auto& intensity = getGravityDim().map(area); // make sure y-axis spans [0, max * TOP_MARGIN]
+      intensity.extend(0);
+      intensity.extend(intensity.getMax() * TOP_MARGIN);
+    }
+    else if (intensity_mode_ == PlotCanvas::IntensityModes::IM_PERCENTAGE)
+    {
+      auto& intensity = getGravityDim().map(area);
+      intensity = RangeBase(0, 100 * TOP_MARGIN);
+    }
+    else
+    { // use y-range of all layers
+      auto& intensity = getGravityDim().map(area);
+      intensity = getGravityDim().map(overall_data_range_1d_);
+    }
+    return area;
+  }
+
   void Plot1DCanvas::ensureAnnotationsWithinDataRange_()
   {
     for (Size i = 0; i < getLayerCount(); ++i)
     {
-      updatePercentageFactor_(i);
+      recalculatePercentageFactor_(i);
       Annotations1DContainer& ann_1d = getLayer(i).getCurrentAnnotations();
       for (Annotations1DContainer::Iterator it = ann_1d.begin(); it != ann_1d.end(); ++it)
       {
         (*it)->ensureWithinDataRange(this, i);
       }
-    }
-  }
-
-  void Plot1DCanvas::updatePercentageFactor_(Size layer_index)
-  {
-    if (intensity_mode_ == IM_PERCENTAGE)
-    {
-      // maximum value in data (usually intensity) 
-      auto max_data_gravity = unit_mapper_.mapRange(getLayer(layer_index).getRange()).maxPosition()[(int)gr_.getGravityAxis()];
-      auto max_all_data     = unit_mapper_.mapRange(overall_data_range_).maxPosition()[(int)gr_.getGravityAxis()];
-      percentage_factor_ = max_all_data / max_data_gravity;
-    }
-    else
-    {
-      percentage_factor_ = 1.0;
     }
   }
 
@@ -1525,11 +1542,8 @@ namespace OpenMS
     if (getCurrentLayer().hasIndex(index))
     {
       getCurrentLayer().setCurrentIndex(index);
-      recalculateSnapFactor_();
-      if (repaint)
-      {
-        update_(OPENMS_PRETTY_FUNCTION);
-      }
+      recalculateRanges_(); // adapt overall_range_(1d)_
+      changeVisibleArea_(visible_area_, repaint, false); // updates y-axis based on new spectrum
     }
   }
 

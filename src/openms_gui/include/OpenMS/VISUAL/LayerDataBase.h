@@ -305,8 +305,9 @@ namespace OpenMS
 
     using RangeAllType = RangeManager<RangeRT, RangeMZ, RangeIntensity, RangeMobility>;
 
-    /// Returns the data range in all known dimensions. If a layer does not support the dimension (or the layer is empty)
-    /// the dimension will be empty
+    /// Returns the data range of the whole layer (i.e. all scans/chroms/etc) in all known dimensions.
+    /// If a layer does not support the dimension (or the layer is empty) the dimension will be empty
+    /// If you need the data range for a 1D view (i.e. only a single spec/chrom/etc), call 'LayerDataBase1D::getRange1D()'
     virtual RangeAllType getRange() const = 0;
 
     /// compute layer statistics (via visitor)
