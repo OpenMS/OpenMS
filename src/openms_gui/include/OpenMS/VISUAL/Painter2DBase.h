@@ -34,13 +34,12 @@
 
 #pragma once
 
-
-#include <QRgb>
 #include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
 
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/DATASTRUCTURES/ConvexHull2D.h>
 #include <OpenMS/VISUAL/INTERFACES/IPeptideIds.h>
+#include <OpenMS/VISUAL/PainterBase.h>
 
 #include <vector>
 
@@ -61,10 +60,11 @@ namespace OpenMS
   struct PeakIndex;
   class Plot2DCanvas;
 
+
   /**
    * @brief A base class for painting all items from a data layer (as supported by class derived from here) onto a 2D Canvas
   */
-  class OPENMS_GUI_DLLAPI Painter2DBase
+  class OPENMS_GUI_DLLAPI Painter2DBase : public PainterBase
   {
   public:
     virtual ~Painter2DBase() = default;
@@ -78,7 +78,6 @@ namespace OpenMS
     */
     virtual void paint(QPainter* painter, Plot2DCanvas* canvas, int layer_index) = 0;
 
-
     /**
      * \brief Emphasize a certain element (e.g. feature), e.g. when mouse hovering.
      * By default, nothing is highlighted. Override for subclasses if you need highlighting.
@@ -90,9 +89,6 @@ namespace OpenMS
     virtual void highlightElement(QPainter* painter, Plot2DCanvas* canvas, const PeakIndex element);
 
   protected:
-    /// draws squares, circles etc
-    static void paintIcon_(const QPoint& pos, const QRgb& color, const String& icon, Size s, QPainter& p);
-
     /**
       @brief Paints a convex hull.
 

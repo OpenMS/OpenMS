@@ -161,9 +161,28 @@ if(ENABLE_DOCS)
     file(TO_NATIVE_PATH "${_DEFAULTPARAMHANDLERDOCUMENTER_EXECUTABLE}" DEFAULTPARAMHANDLERDOCUMENTER_EXECUTABLE)
     file(TO_NATIVE_PATH "${_BINARY_PATH}" BINARY_PATH)
 
+    # add bin/ and lib/ to all path that potentially contain dependencies
+    list(TRANSFORM CMAKE_PREFIX_PATH APPEND "/bin" OUTPUT_VARIABLE DEP_BIN_DIRS)
+    list(TRANSFORM CMAKE_PREFIX_PATH APPEND "/lib" OUTPUT_VARIABLE DEP_LIB_DIRS)
+
+    # 
+    if (CMAKE_GENERATOR MATCHES "Visual Studio" AND NOT CMAKE_MSVCIDE_RUN_PATH)
+      list(APPEND CMAKE_MSVCIDE_RUN_PATH ${DEP_BIN_DIRS} ${DEP_LIB_DIRS})
+    else()
+      if(WIN32)
+        set(pathsep ";")
+      else()
+        set(pathsep ":")
+      endif()
+      string(REPLACE ";" "${pathsep}" DEP_BIN_DIRS "${DEP_BIN_DIRS}")
+      string(REPLACE ";" "${pathsep}" DEP_LIB_DIRS "${DEP_LIB_DIRS}")   
+    endif()
+
+
     #------------------------------------------------------------------------------
     # doc_param_internal targets
-    add_custom_target(doc_param_internal
+    if (CMAKE_GENERATOR MATCHES "Visual Studio")
+      add_custom_target(doc_param_internal
                       COMMAND ${CMAKE_COMMAND} -E echo ""
                       COMMAND ${CMAKE_COMMAND} -E echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
                       COMMAND ${CMAKE_COMMAND} -E echo "Creating the algorithm parameter and TOPP parameter documentation"
@@ -184,7 +203,32 @@ if(ENABLE_DOCS)
                       COMMAND ${CMAKE_COMMAND} -E chdir doxygen/parameters/ ${TOPPDOCUMENTER_EXECUTABLE} ${BINARY_PATH}
                       COMMAND ${CMAKE_COMMAND} -E echo ""
                       COMMENT "Build the parameters documentation"
+                      VERBATIM)      
+    else()
+      add_custom_target(doc_param_internal
+                      COMMAND ${CMAKE_COMMAND} -E echo ""
+                      COMMAND ${CMAKE_COMMAND} -E echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
+                      COMMAND ${CMAKE_COMMAND} -E echo "Creating the algorithm parameter and TOPP parameter documentation"
+                      COMMAND ${CMAKE_COMMAND} -E echo ""
+                      COMMAND ${CMAKE_COMMAND} -E echo "Note: A functioning OpenMS/TOPP installation and a running X-server (Unix) is required for this step!"
+                      COMMAND ${CMAKE_COMMAND} -E echo "      Windows only: OpenMS and Open_GUI.dll's need to be accessible by the Documenter executables in"
+                      COMMAND ${CMAKE_COMMAND} -E echo "      doxygen/parameters/. If the automatic CMake post build copy step did not work, try to add them"
+                      COMMAND ${CMAKE_COMMAND} -E echo "      to your Path variable."
+                      COMMAND ${CMAKE_COMMAND} -E echo "      If this step fails, use the target 'doc_minimal'."
+                      COMMAND ${CMAKE_COMMAND} -E echo ""
+                      COMMAND ${CMAKE_COMMAND} -E echo "Building OpenMS parameter docu:"
+                      COMMAND ${CMAKE_COMMAND} -E echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
+                      COMMAND ${CMAKE_COMMAND} -E make_directory doxygen/parameters/output/
+                      COMMAND ${CMAKE_COMMAND} -E chdir doxygen/parameters/ ${CMAKE_COMMAND} -E env "PATH=${DEP_BIN_DIRS}${pathsep}${DEP_LIB_DIRS}${pathsep}$ENV{PATH}" ${DEFAULTPARAMHANDLERDOCUMENTER_EXECUTABLE}
+                      COMMAND ${CMAKE_COMMAND} -E echo ""
+                      COMMAND ${CMAKE_COMMAND} -E echo "Building TOPP/UTILS docu:"
+                      COMMAND ${CMAKE_COMMAND} -E echo "~~~~~~~~~~~~~~~~~~~~~~~~~"
+                      COMMAND ${CMAKE_COMMAND} -E chdir doxygen/parameters/ ${CMAKE_COMMAND} -E env "PATH=${DEP_BIN_DIRS}${pathsep}${DEP_LIB_DIRS}${pathsep}$ENV{PATH}" ${TOPPDOCUMENTER_EXECUTABLE} ${BINARY_PATH}
+                      COMMAND ${CMAKE_COMMAND} -E echo ""
+                      COMMENT "Build the parameters documentation"
                       VERBATIM)
+    endif()
+
     add_dependencies(doc_param_internal doc_progs)
 
     #------------------------------------------------------------------------------

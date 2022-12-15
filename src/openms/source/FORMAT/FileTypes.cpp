@@ -40,6 +40,7 @@
 #include <array>
 #include <utility>
 
+#include <cassert>
 namespace OpenMS
 {
   /// connect the type to some other information
@@ -49,9 +50,12 @@ namespace OpenMS
     FileTypes::Type type;
     String name;
     String description;
-    TypeNameBinding(FileTypes::Type type, String name, String description)
-      : type(type), name(std::move(name)), description(std::move(description))
+    TypeNameBinding(FileTypes::Type ptype, String pname, String pdescription)
+      : type(ptype), name(std::move(pname)), description(std::move(pdescription))
     {
+      // Check that there are no double-spaces in the description, since Qt will replace "  " with " " in filters supplied to QFileDialog::getSaveFileName.
+      // And if you later ask for the selected filter, you will get a different string back.
+      assert(description.find("  ") == std::string::npos);
     }
   };
 
@@ -64,7 +68,7 @@ namespace OpenMS
     TypeNameBinding(FileTypes::MZDATA, "mzData", "mzData raw data file"),
     TypeNameBinding(FileTypes::MZXML, "mzXML", "mzXML raw data file"),
     TypeNameBinding(FileTypes::FEATUREXML, "featureXML", "OpenMS feature map"),
-    TypeNameBinding(FileTypes::IDXML, "idXML", "OpenMS peptide identification  file"),
+    TypeNameBinding(FileTypes::IDXML, "idXML", "OpenMS peptide identification file"),
     TypeNameBinding(FileTypes::CONSENSUSXML, "consensusXML", "OpenMS consensus feature map"),
     TypeNameBinding(FileTypes::MGF, "mgf", "mascot generic format file"),
     TypeNameBinding(FileTypes::INI, "ini", "OpenMS parameter file"),

@@ -78,19 +78,11 @@ public:
          * \param first The very first spectrum of the experiment
          * \param begin The first spectrum with a valid RT/IM time
          * \param end The last spectrum with a valid RT/IM time
+         * \param ms_level Only peaks from spectra with this ms_level are used
          */
-        Param(SpectrumIteratorType first, SpectrumIteratorType begin, SpectrumIteratorType end)
-          : first_(first), current_scan_(begin), end_scan_(end)
+        Param(SpectrumIteratorType first, SpectrumIteratorType begin, SpectrumIteratorType end, uint8_t ms_level)
+          : first_(first), current_scan_(begin), end_scan_(end), ms_level_(ms_level)
         {
-          // if begin is dereferencable ...
-          if (begin != end)
-          {
-            ms_level_ = begin->getMSLevel();
-          }
-          else
-          {
-            ms_level_ = 1;
-          }
         }
 
         /// return the end-iterator
