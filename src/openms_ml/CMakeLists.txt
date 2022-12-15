@@ -52,12 +52,10 @@ if(NOT torch_POPULATED)
 endif()
 
 list(APPEND CMAKE_PREFIX_PATH "${torch_SOURCE_DIR}/share/cmake/Torch")
-message(${CMAKE_PREFIX_PATH})
 find_package(Torch REQUIRED)
-#target_link_libraries(OpenMS_ML PRIVATE ${TORCH_LIBRARIES})
 
 # add Torch library as dependency to OpenMS_ML library
-list(APPEND OpenMS_ML_DEP_LIBRARIES ${OpenMS_ML_DEP_LIBRARIES})
+list(APPEND OpenMS_ML_DEP_LIBRARIES torch)
 
 
 project("OpenMS_ML")
