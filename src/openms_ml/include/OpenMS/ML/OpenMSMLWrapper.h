@@ -44,7 +44,7 @@ namespace OpenMS
 {
 	OPENMS_DLLAPI class DeepLCPredictor
 	{
-		explicit DeepLCWrapper(std::string filename);
+		explicit DeepLCWrapper(const std::string& filename);
 
 		std::vector<double> predict(const std::vector<std::string>& sequences, const std::vector<double>& obs_rt); // TODO: other inputs... encoding etc.
 

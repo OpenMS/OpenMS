@@ -160,6 +160,11 @@ function(openms_add_library)
 
   #------------------------------------------------------------------------------
   # Add the library
+  
+  # print included files for debug purposes
+  # include(CMakePrintHelpers)
+  # cmake_print_variables(openms_add_library_TARGET_NAME)
+  # cmake_print_variables(openms_add_library_SOURCE_FILES)
   add_library(${openms_add_library_TARGET_NAME} ${openms_add_library_SOURCE_FILES})
 
   set_target_properties(${openms_add_library_TARGET_NAME} PROPERTIES CXX_VISIBILITY_PRESET hidden)
