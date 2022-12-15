@@ -682,7 +682,7 @@ protected:
     
     
     /// Adjust the gravity axis (usually y-axis with intensity) according to the given range on the x-axis 
-    /// (since the user cannot freely choose the limitis of this axis in 1D View)
+    /// (since the user cannot freely choose the limits of this axis in 1D View)
     RangeAllType correctGravityAxisOfVisibleArea_(UnitRange area);
     
     /** @name Reimplemented QT events */
