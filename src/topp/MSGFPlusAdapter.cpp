@@ -519,7 +519,6 @@ protected:
                    << "-d" << db_name.toQString()
                    << "-t" << QString::number(precursor_mass_tol) + precursor_error_units.toQString()
                    << "-ti" << getStringOption_("isotope_error_range").toQString()
-                   << "-tda" << "0" // for consistency, enforce external decoys
                    << "-m" << QString::number(fragment_method_code)
                    << "-inst" << QString::number(instrument_code)
                    << "-e" << QString::number(enzyme_code)
