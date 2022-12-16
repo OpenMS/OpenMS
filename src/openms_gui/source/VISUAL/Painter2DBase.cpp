@@ -55,39 +55,7 @@ using namespace std;
 
 namespace OpenMS
 {
-  
-  void Painter2DBase::paintIcon_(const QPoint& pos, const QRgb& color, const String& icon, Size s, QPainter& p)
-  {
-    p.save();
-    p.setPen(color);
-    p.setBrush(QBrush(QColor(color), Qt::SolidPattern));
 
-    int s_half = (int)s / 2;
-
-    if (icon == "diamond")
-    {
-      QPolygon pol;
-      pol.putPoints(0, 4, pos.x() + s_half, pos.y(), pos.x(), pos.y() + s_half, pos.x() - (int)s_half, pos.y(), pos.x(), pos.y() - (int)s_half);
-      p.drawConvexPolygon(pol);
-    }
-    else if (icon == "square")
-    {
-      QPolygon pol;
-      pol.putPoints(0, 4, pos.x() + s_half, pos.y() + s_half, pos.x() - s_half, pos.y() + s_half, pos.x() - s_half, pos.y() - s_half, pos.x() + s_half, pos.y() - s_half);
-      p.drawConvexPolygon(pol);
-    }
-    else if (icon == "circle")
-    {
-      p.drawEllipse(QRectF(pos.x() - s_half, pos.y() - s_half, s, s));
-    }
-    else if (icon == "triangle")
-    {
-      QPolygon pol;
-      pol.putPoints(0, 3, pos.x(), pos.y() + s_half, pos.x() + s_half, pos.y() - (int)s_half, pos.x() - (int)s_half, pos.y() - (int)s_half);
-      p.drawConvexPolygon(pol);
-    }
-    p.restore();
-  }
 
   void Painter2DBase::highlightElement(QPainter* /*painter*/, Plot2DCanvas* /*canvas*/, const PeakIndex /*element*/)
   {
@@ -526,20 +494,15 @@ namespace OpenMS
           const int x = pos_px_ms1.x();
           const int y = pos_px_ms1.y();
           // diamond shape in MS1
-          painter.drawLine(x, y + 3, x + 3, y);
-          painter.drawLine(x + 3, y, x, y - 3);
-          painter.drawLine(x, y - 3, x - 3, y);
-          painter.drawLine(x - 3, y, x, y + 3);
+          drawDiamond({x, y}, &painter, 6);
 
           // rt position of corresponding MS2
-          painter.drawLine(x2 - 3, y2, x2 + 3, y2);
           painter.drawLine(x, y, x2, y2);
         }
         else // no preceding MS1
         {
           // rt position of corresponding MS2 (cross)
-          painter.drawLine(x2 - 3, y2, x2 + 3, y2);
-          painter.drawLine(x2, y2 - 3, x2, y2 + 3);
+          drawCross({x2, y2}, &painter, 6);
         }
       }
     }
@@ -578,7 +541,6 @@ namespace OpenMS
 
   void Painter2DIonMobility::paint(QPainter* /*painter*/, Plot2DCanvas* /*canvas*/, int /*layer_index*/)
   {
-      
   }
 
   Painter2DFeature::Painter2DFeature(const LayerDataFeature* parent) : layer_(parent)
@@ -604,7 +566,7 @@ namespace OpenMS
     const double snap_factor = canvas->snap_factors_[layer_index];
 
     int line_spacing = QFontMetrics(painter->font()).lineSpacing();
-    String icon = layer_->param.getValue("dot:feature_icon").toString();
+    const auto icon = toShapeIcon(layer_->param.getValue("dot:feature_icon").toString());
     Size icon_size = layer_->param.getValue("dot:feature_icon_size");
     bool show_label = (layer_->label != LayerDataBase::L_NONE);
     UInt num = 0;
@@ -624,7 +586,7 @@ namespace OpenMS
         }
         // paint
         QPoint pos = canvas->dataToWidget_(canvas->unit_mapper_.map(f));
-        paintIcon_(pos, color.rgb(), icon, icon_size, *painter);
+        drawIcon(pos, color.rgb(), icon, icon_size, *painter);
         // labels
         if (show_label)
         {
@@ -698,7 +660,7 @@ namespace OpenMS
     }
 
     const double snap_factor = canvas->snap_factors_[layer_index];
-    String icon = layer_->param.getValue("dot:feature_icon").toString();
+    const auto icon = toShapeIcon(layer_->param.getValue("dot:feature_icon").toString());
     Size icon_size = layer_->param.getValue("dot:feature_icon_size");
 
     const auto area = canvas->visible_area_.getAreaUnit();
@@ -720,7 +682,7 @@ namespace OpenMS
 
         // paint
         auto pos_unit = canvas->unit_mapper_.map(cf);
-        paintIcon_(canvas->dataToWidget_(pos_unit), color.rgb(), icon, icon_size, *painter);
+        drawIcon(canvas->dataToWidget_(pos_unit), color.rgb(), icon, icon_size, *painter);
       }
     }
   }

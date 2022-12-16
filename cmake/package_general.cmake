@@ -76,10 +76,15 @@ else()
   set(EXCLUDE)
 endif()
 
+# TODO check if we can reduce the permissions
 install(RUNTIME_DEPENDENCY_SET OPENMS_DEPS
         DESTINATION ${INSTALL_LIB_DIR}
+        PERMISSIONS
+          OWNER_READ OWNER_WRITE OWNER_EXECUTE
+          GROUP_READ GROUP_WRITE GROUP_EXECUTE
+          WORLD_READ WORLD_WRITE WORLD_EXECUTE
         COMPONENT Dependencies
-        PRE_EXCLUDE_REGEXES ${EXCLUDE} 
+        PRE_EXCLUDE_REGEXES ${EXCLUDE}
         DIRECTORIES $<TARGET_FILE_DIR:OpenMS>)
 
 #install(RUNTIME_DEPENDENCY_SET TOPPView_DEPS) # I think without giving DESTINATION and COMPONENT it will be inferred
