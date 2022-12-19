@@ -60,7 +60,33 @@ set(OPENMS_LOGOSMALL ${PROJECT_SOURCE_DIR}/cmake/MacOSX/${OPENMS_LOGOSMALL_NAME}
 ## This currently works because our libs and TOPP tools include all dependencies. For macOS,
 ##  the app bundles need to have a different RUNTIME_DEPENDENCY_SET (TOPPView_DEPS, ...) due
 ##  to CMake assuming you want standalone bundles. But we want to share libs between them.
-install(RUNTIME_DEPENDENCY_SET OPENMS_DEPS DESTINATION ${INSTALL_LIB_DIR} COMPONENT Dependencies)
+
+# This would be to look in the Contrib and other cmake_prefix_paths for dependencies.
+#list(TRANSFORM CMAKE_PREFIX_PATH APPEND "/bin" OUTPUT_VARIABLE DEP_BIN_DIRS)
+#list(TRANSFORM CMAKE_PREFIX_PATH APPEND "/lib" OUTPUT_VARIABLE DEP_LIB_DIRS)
+# But since we copy them in the build stage to our runtime directory (bin), we can add this one.
+
+# On Windows we need to tell CMake where to look for.
+# We also do not need API sets. So exclude them.
+if(WIN32)
+  set(EXCLUDE "api-ms" "ext-ms" "hvsi" "pdmutilities")
+elseif(APPLE)
+  set(EXCLUDE "/usr/lib" "/System/")
+else()
+  set(EXCLUDE)
+endif()
+
+# TODO check if we can reduce the permissions
+install(RUNTIME_DEPENDENCY_SET OPENMS_DEPS
+        DESTINATION ${INSTALL_LIB_DIR}
+        PERMISSIONS
+          OWNER_READ OWNER_WRITE OWNER_EXECUTE
+          GROUP_READ GROUP_WRITE GROUP_EXECUTE
+          WORLD_READ WORLD_WRITE WORLD_EXECUTE
+        COMPONENT Dependencies
+        PRE_EXCLUDE_REGEXES ${EXCLUDE}
+        DIRECTORIES $<TARGET_FILE_DIR:OpenMS>)
+
 #install(RUNTIME_DEPENDENCY_SET TOPPView_DEPS) # I think without giving DESTINATION and COMPONENT it will be inferred
 #install(RUNTIME_DEPENDENCY_SET TOPPAS_DEPS)
 #...

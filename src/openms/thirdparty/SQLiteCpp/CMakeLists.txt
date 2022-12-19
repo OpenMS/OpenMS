@@ -4,21 +4,9 @@
 #
 # Distributed under the MIT License (MIT) (See accompanying file LICENSE.txt
 # or copy at http://opensource.org/licenses/MIT)
-cmake_minimum_required(VERSION 3.1) # for "CMAKE_CXX_STANDARD" version
+cmake_minimum_required(VERSION 3.6) # for "CMAKE_CXX_STANDARD" version
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake") # custom CMake modules like FindSQLiteCpp
 project(SQLiteCpp VERSION 3.2.0)
-
-# SQLiteC++ 3.x requires C++11 features
-if (NOT CMAKE_CXX_STANDARD)
-    set(CMAKE_CXX_STANDARD 11)
-elseif (CMAKE_CXX_STANDARD LESS 11)
-    message(WARNING "CMAKE_CXX_STANDARD has been set to '${CMAKE_CXX_STANDARD}' which is lower than the minimum required standard (c++11).")
-endif ()
-message(STATUS "Using c++ standard c++${CMAKE_CXX_STANDARD}")
-set(CMAKE_CXX_STANDARD_REQUIRED ON)
-
-message (STATUS "CMake version: ${CMAKE_VERSION}")
-message (STATUS "Project version: ${PROJECT_VERSION}")
 
 option(SQLITECPP_BUILD_TESTS "Build and run tests." OFF)
 
@@ -72,28 +60,6 @@ endif (MSVC)
 # and then common variables
 set(CPPLINT_ARG_VERBOSE "--verbose=3")
 set(CPPLINT_ARG_LINELENGTH "--linelength=120")
-
-# Print CXX compiler information
-message (STATUS "CMAKE_CXX_COMPILER '${CMAKE_CXX_COMPILER}' '${CMAKE_CXX_COMPILER_ID}' '${CMAKE_CXX_COMPILER_VERSION}'")
-
-# Print CXX FLAGS
-message (STATUS "CMAKE_CXX_FLAGS                '${CMAKE_CXX_FLAGS}'")
-if (MSVC)
-    message (STATUS "CMAKE_CXX_FLAGS_DEBUG          '${CMAKE_CXX_FLAGS_DEBUG}'")
-    message (STATUS "CMAKE_CXX_FLAGS_RELEASE        '${CMAKE_CXX_FLAGS_RELEASE}'")
-    message (STATUS "CMAKE_CXX_FLAGS_RELWITHDEBINFO '${CMAKE_CXX_FLAGS_RELWITHDEBINFO}'")
-    message (STATUS "CMAKE_CXX_FLAGS_MINSIZEREL     '${CMAKE_CXX_FLAGS_MINSIZEREL}'")
-else (NOT MSVC)
-    if     (CMAKE_BUILD_TYPE STREQUAL Debug)
-        message (STATUS "CMAKE_CXX_FLAGS_DEBUG          '${CMAKE_CXX_FLAGS_DEBUG}'")
-    elseif (CMAKE_BUILD_TYPE STREQUAL RelWithDebInfo)
-        message (STATUS "CMAKE_CXX_FLAGS_RELWITHDEBINFO '${CMAKE_CXX_FLAGS_RELWITHDEBINFO}'")
-    elseif (CMAKE_BUILD_TYPE STREQUAL MinSizeRel)
-        message (STATUS "CMAKE_CXX_FLAGS_MINSIZEREL     '${CMAKE_CXX_FLAGS_MINSIZEREL}'")
-    else ()
-        message (STATUS "CMAKE_CXX_FLAGS_RELEASE        '${CMAKE_CXX_FLAGS_RELEASE}'")
-    endif ()
-endif ()
 
 ## Build the C++ Wrapper ##
 
@@ -157,7 +123,7 @@ set(SQLITECPP_DOC
 )
 source_group(doc FILES ${SQLITECPP_DOC})
 
-option(SQLITECPP_INCLUDE_SCRIPT "Include config & script files." ON)
+option(SQLITECPP_INCLUDE_SCRIPT "Include config & script files." OFF)
 if (SQLITECPP_INCLUDE_SCRIPT)
     # list of config & script files of the library
     set(SQLITECPP_SCRIPT
@@ -181,6 +147,7 @@ endif()
 
 # add sources of the wrapper as a "SQLiteCpp" static library
 add_library(SQLiteCpp STATIC ${SQLITECPP_SRC} ${SQLITECPP_INC} ${SQLITECPP_DOC} ${SQLITECPP_SCRIPT})
+target_compile_features(SQLiteCpp PUBLIC cxx_std_11)
 
 # Options relative to SQLite and SQLiteC++ functions
 
@@ -308,49 +275,24 @@ target_include_directories(SQLiteCpp
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
     $<INSTALL_INTERFACE:include/>)
 
-# Allow the library to be installed via "make install" and found with "find_package"
-
-include(GNUInstallDirs)
-install(TARGETS SQLiteCpp
-    EXPORT ${PROJECT_NAME}Targets
-    LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
-    ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
-    COMPONENT libraries)
-install(DIRECTORY include/ DESTINATION ${CMAKE_INSTALL_INCLUDEDIR} COMPONENT headers FILES_MATCHING REGEX ".*\\.(hpp|h)$")
-install(EXPORT ${PROJECT_NAME}Targets DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/${PROJECT_NAME})
-install(FILES ${PROJECT_SOURCE_DIR}/package.xml DESTINATION ${CMAKE_INSTALL_DATADIR}/${PROJECT_NAME})
-
-include(CMakePackageConfigHelpers)
-write_basic_package_version_file(
-    cmake/${PROJECT_NAME}ConfigVersion.cmake
-    VERSION ${PROJECT_VERSION}
-    COMPATIBILITY AnyNewerVersion)
-configure_package_config_file(
-    cmake/${PROJECT_NAME}Config.cmake.in
-    cmake/${PROJECT_NAME}Config.cmake
-    INSTALL_DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/${PROJECT_NAME})
-install(FILES
-    ${CMAKE_CURRENT_BINARY_DIR}/cmake/${PROJECT_NAME}Config.cmake
-    ${CMAKE_CURRENT_BINARY_DIR}/cmake/${PROJECT_NAME}ConfigVersion.cmake
-    DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/${PROJECT_NAME})
-
 # Optional additional targets:
 
-option(SQLITECPP_RUN_CPPLINT "Run cpplint.py tool for Google C++ StyleGuide." ON)
-if (SQLITECPP_RUN_CPPLINT)
-    find_package(PythonInterp)
-    if (PYTHONINTERP_FOUND)
-        # add a cpplint target to the "all" target
-        add_custom_target(SQLiteCpp_cpplint
-         ALL
-         COMMAND ${PYTHON_EXECUTABLE} ${PROJECT_SOURCE_DIR}/cpplint.py ${CPPLINT_ARG_OUTPUT} ${CPPLINT_ARG_VERBOSE} ${CPPLINT_ARG_LINELENGTH} ${SQLITECPP_SRC} ${SQLITECPP_INC}
-        )
-    endif (PYTHONINTERP_FOUND)
-else (SQLITECPP_RUN_CPPLINT)
-    message(STATUS "SQLITECPP_RUN_CPPLINT OFF")
-endif (SQLITECPP_RUN_CPPLINT)
+# Uses ancient python find module!! DO NOT USE!
+#option(SQLITECPP_RUN_CPPLINT "Run cpplint.py tool for Google C++ StyleGuide." OFF)
+#if (SQLITECPP_RUN_CPPLINT)
+#    find_package(PythonInterp)
+#    if (PYTHONINTERP_FOUND)
+#        # add a cpplint target to the "all" target
+#        add_custom_target(SQLiteCpp_cpplint
+#         ALL
+#         COMMAND ${PYTHON_EXECUTABLE} ${PROJECT_SOURCE_DIR}/cpplint.py ${CPPLINT_ARG_OUTPUT} ${CPPLINT_ARG_VERBOSE} ${CPPLINT_ARG_LINELENGTH} ${SQLITECPP_SRC} ${SQLITECPP_INC}
+#        )
+#    endif (PYTHONINTERP_FOUND)
+#else (SQLITECPP_RUN_CPPLINT)
+#    message(STATUS "SQLITECPP_RUN_CPPLINT OFF")
+#endif (SQLITECPP_RUN_CPPLINT)
 
-option(SQLITECPP_RUN_CPPCHECK "Run cppcheck C++ static analysis tool." ON)
+option(SQLITECPP_RUN_CPPCHECK "Run cppcheck C++ static analysis tool." OFF)
 if (SQLITECPP_RUN_CPPCHECK)
     find_program(CPPCHECK_EXECUTABLE NAMES cppcheck)
     if (CPPCHECK_EXECUTABLE)

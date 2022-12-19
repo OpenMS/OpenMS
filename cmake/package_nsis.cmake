@@ -44,47 +44,90 @@ else()
   set(PLATFORM "64")
   set(ARCH "x64")
 endif()
+
 if (NOT VC_REDIST_EXE)
-  set(VC_REDIST_EXE "vcredist_${ARCH}.exe")
+	set(VC_REDIST_EXE "vcredist_${ARCH}.exe")
 endif()
 
-## Find redistributable to be installed by NSIS
+# Find redistributable to be installed by NSIS
 if (NOT VC_REDIST_PATH)
-  string(REGEX REPLACE ".*Visual Studio ([1-9][1-9]).*" "\\1" OPENMS_MSVC_VERSION_STRING "${CMAKE_GENERATOR}")
-  if("${OPENMS_MSVC_VERSION_STRING}" GREATER "15")
-    if (DEFINED ENV{VCINSTALLDIR})
-      ## according to https://docs.microsoft.com/de-de/cpp/windows/redistributing-visual-cpp-files?view=msvc-160
-      get_filename_component(VC_ROOT_PATH "$ENV{VCINSTALLDIR}Redist/MSVC/v142" ABSOLUTE)
-      file(GLOB_RECURSE VC_REDIST_ABS_PATH "${VC_ROOT_PATH}/${VC_REDIST_EXE}")
-      message(STATUS "VS Redist locations (1st try): ${VC_REDIST_ABS_PATH}")
-    endif()
-    if (NOT VC_REDIST_ABS_PATH AND DEFINED ENV{VCToolsRedistDir}) ## if still not found, try to use older methods
-      ## An alternative solution to find redists
-      #execute_process(COMMAND "$ENV{PROGRAMFILES}/Microsoft Visual Studio/Installer/vswhere" -latest -version "${OPENMS_MSVC_VERSION_STRING}" -property installationPath
-      #                OUTPUT_VARIABLE VC_ROOT_PATH
-      #				  ERROR_VARIABLE VSWHERE_ERROR
-      #				  RESULT_VARIABLE VSWHERE_RESULT)
-      #if ("${VSWHERE_RESULT}" NOTEQUAL "0")
-      #  message(FATAL_ERROR "Executing vswhere to find vsredist executable for win packaging failed. Either specify VC_REDIST_PATH or make sure vswhere works.")
-      #endif()
+	if (MSVC_TOOLSET_VERSION EQUAL 141)
+		set(VS_VERSION 15)
+	elseif(MSVC_TOOLSET_VERSION EQUAL 142)
+		set(VS_VERSION 16)
+	elseif(MSVC_TOOLSET_VERSION EQUAL 143)
+		set(VS_VERSION 17)
+	endif()
 
-      ## We have to glob recurse in the parent folder because there is a version number in the end.
-      ## Unfortunately in my case the default version (latest) does not include the redist?!
-      ## TODO Not sure if this environment variable always exists. In the VS command line it should! Fallback vswhere or VCINSTALLDIR/Redist/MSVC?
-      get_filename_component(VC_ROOT_PATH "$ENV{VCToolsRedistDir}.." ABSOLUTE)
-      file(GLOB_RECURSE VC_REDIST_ABS_PATH "${VC_ROOT_PATH}/${VC_REDIST_EXE}")
-      message(STATUS "VS Redist locations (2nd try): ${VC_REDIST_ABS_PATH}")
-    endif()
-    if (VC_REDIST_ABS_PATH)
-      ## arbitrarily pick first of the found redists
-      list(GET VC_REDIST_ABS_PATH 0 VC_REDIST_ABS_PATH)
-      get_filename_component(VC_REDIST_PATH "${VC_REDIST_ABS_PATH}" DIRECTORY)
-      message(STATUS "   ... picked first directory: ${VC_REDIST_PATH}")
-    endif()
-  endif()
-  if (NOT VC_REDIST_PATH) ## if still not found
-    message(FATAL_ERROR "Variable VC_REDIST_PATH missing. Are you on a proper VS 2019+ command line?")
-  endif()
+	if (DEFINED ENV{VCINSTALLDIR})
+		## according to https://docs.microsoft.com/de-de/cpp/windows/redistributing-visual-cpp-files?view=msvc-160
+		get_filename_component(VC_ROOT_PATH "$ENV{VCINSTALLDIR}Redist/MSVC/v${MSVC_TOOLSET_VERSION}" ABSOLUTE)
+		file(GLOB_RECURSE VC_REDIST_ABS_PATH "${VC_ROOT_PATH}/vc_redist.${ARCH}.exe")
+		if (NOT VC_REDIST_ABS_PATH)
+			file(GLOB_RECURSE VC_REDIST_ABS_PATH "${VC_ROOT_PATH}/vcredist_${ARCH}.exe")
+		endif()
+		if (NOT VC_REDIST_ABS_PATH)
+			file(GLOB_RECURSE VC_REDIST_ABS_PATH "${VC_ROOT_PATH}/vcredist.${ARCH}.exe")
+		endif()
+
+		message(STATUS "VS Redist locations (1st try): '${VC_REDIST_ABS_PATH}'")
+	endif()
+
+	if (NOT VC_REDIST_ABS_PATH AND DEFINED ENV{VCToolsRedistDir}) ## if still not found, try to use older methods
+		## We have to glob recurse in the parent folder because there is a version number in the end.
+		## Unfortunately in my case the default version (latest) does not include the redist?!
+		## TODO Not sure if this environment variable always exists. In the VS command line it should! Fallback vswhere or VCINSTALLDIR/Redist/MSVC?
+		get_filename_component(VC_ROOT_PATH "$ENV{VCToolsRedistDir}.." ABSOLUTE)
+		file(GLOB_RECURSE VC_REDIST_ABS_PATH "${VC_ROOT_PATH}/vc_redist.${ARCH}.exe")
+		if (NOT VC_REDIST_ABS_PATH)
+			file(GLOB_RECURSE VC_REDIST_ABS_PATH "${VC_ROOT_PATH}/vcredist_${ARCH}.exe")
+		endif()
+		if (NOT VC_REDIST_ABS_PATH)
+			file(GLOB_RECURSE VC_REDIST_ABS_PATH "${VC_ROOT_PATH}/vcredist.${ARCH}.exe")
+		endif()
+
+		message(STATUS "VS Redist locations (2nd try): '${VC_REDIST_ABS_PATH}'")
+	endif()
+
+	if (NOT VC_REDIST_ABS_PATH) ## if still not found try vswhere
+
+		include(${OPENMS_HOST_DIRECTORY}/cmake/Windows/VSWhere.cmake)
+
+		toolchain_ensure_vswhere()
+
+		execute_process(COMMAND ${VSWHERE_PATH} -products * -latest -version "${VS_VERSION}" -property installationPath
+		OUTPUT_VARIABLE VC_ROOT_PATH
+		ERROR_VARIABLE VSWHERE_ERROR
+		RESULT_VARIABLE VSWHERE_RESULT
+		COMMAND_ECHO STDOUT
+		)
+		string(STRIP ${VC_ROOT_PATH} VC_ROOT_PATH)
+		cmake_path(SET VC_ROOT_PATH NORMALIZE ${VC_ROOT_PATH})
+
+		if (VSWHERE_RESULT EQUAL 0)
+			message("Globbing for vc_redist.${ARCH}.exe in ${VC_ROOT_PATH}")
+			file(GLOB_RECURSE VC_REDIST_ABS_PATH FOLLOW_SYMLINKS "${VC_ROOT_PATH}/vc_redist.${ARCH}.exe")
+			if (NOT VC_REDIST_ABS_PATH)
+				file(GLOB_RECURSE VC_REDIST_ABS_PATH "${VC_ROOT_PATH}/vcredist_${ARCH}.exe")
+			endif()
+			if (NOT VC_REDIST_ABS_PATH)
+				file(GLOB_RECURSE VC_REDIST_ABS_PATH "${VC_ROOT_PATH}/vcredist.${ARCH}.exe")
+			endif()
+			message(STATUS "VS Redist locations (3rd try): ${VC_REDIST_ABS_PATH}")
+		endif()
+	endif()
+
+	if (VC_REDIST_ABS_PATH)
+		## arbitrarily pick first of the found redists
+		list(GET VC_REDIST_ABS_PATH 0 VC_REDIST_ABS_PATH)
+		get_filename_component(VC_REDIST_PATH "${VC_REDIST_ABS_PATH}" DIRECTORY)
+		get_filename_component(VC_REDIST_EXE "${VC_REDIST_ABS_PATH}" NAME)
+		message(STATUS "   ... picked first directory: ${VC_REDIST_PATH}")
+	endif()
+endif()
+
+if (NOT VC_REDIST_PATH) ## if still not found: error
+	message(FATAL_ERROR "Variable VC_REDIST_PATH missing. Are you on a proper VS 2019+ command line?")
 endif()
 
 if(EXISTS ${SEARCH_ENGINES_DIRECTORY})
@@ -97,7 +140,9 @@ if(EXISTS ${SEARCH_ENGINES_DIRECTORY})
 		)
 endif()
 
-##TODO try following instead once CMake generates NSIS commands for us. Installs dll instead of redist though. Thirdparties?
+#TODO try following instead once CMake generates NSIS commands for us. Installs dll instead of redist though.
+# This means we would need to change the NSIS script to just copy them over.
+
 # ########################################################### System runtime libraries
 # set(CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS_SKIP TRUE)
 # include(InstallRequiredSystemLibraries)

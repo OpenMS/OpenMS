@@ -1,4 +1,5 @@
-# This is a basic workflow to help you get started with Actions
+# This builds python wheels on manylinux, macOS and Windows and uploads them
+# to public pypi for release and the pypi.cs.uni-tuebingen.de for nightlies.
 
 name: pyopenms-wheels
 
@@ -312,23 +313,10 @@ jobs:
             cmake --version
             # build an array based the python versions in /opt/python
             py_paths=()
+            echo "Available python versions:"
             for PYBIN in /opt/python/cp*
             do
               echo $PYBIN
-              py_paths+=("$PYBIN")
-            done
-
-            # use the latest 3 python versions similar to macOS, windows
-            for i in 0{1..3}
-            do
-              PYBIN="${py_paths[${#py_paths[@]}-i]}"
-              "$PYBIN/bin/pip" install -U pip
-              "$PYBIN/bin/pip" install -U Cython
-              "$PYBIN/bin/pip" install -U setuptools
-              "$PYBIN/bin/pip" install -U wheel==0.31.1
-              "$PYBIN/bin/pip" install -U numpy
-              "$PYBIN/bin/pip" install -U pytest
-              "$PYBIN/bin/pip" install -U autowrap
             done
 
             mkdir -p $GITHUB_WORKSPACE/data/wheelhouse/
@@ -342,9 +330,17 @@ jobs:
             make -j4 OpenMS
 
             # compile and configure OpenMS
-            for i in 0{1..3}
+            # since string sorting does not work with 9,10,11+ we need to specify manually.
+            # TODO use a "supported version" file
+            for PYBIN in /opt/python/cp*3{9,10,11}
             do
-              PYBIN="${py_paths[${#py_paths[@]}-i]}"
+              "$PYBIN/bin/pip" install -U pip
+              "$PYBIN/bin/pip" install -U Cython
+              "$PYBIN/bin/pip" install -U setuptools
+              "$PYBIN/bin/pip" install -U wheel==0.31.1
+              "$PYBIN/bin/pip" install -U numpy
+              "$PYBIN/bin/pip" install -U pytest
+              "$PYBIN/bin/pip" install -U autowrap
 
               # configure (don't copy deps since we use auditwheel)
               cmake -DNO_DEPENDENCIES=ON -DOPENMS_CONTRIB_LIBS="/contrib-build/" -DCMAKE_PREFIX_PATH="/contrib-build/" -DPYOPENMS=On -DPython_ROOT_DIR=$PYBIN -DPython_FIND_STRATEGY="LOCATION" $GITHUB_WORKSPACE/OpenMS
@@ -461,14 +457,17 @@ jobs:
       uses: actions/download-artifact@v3
       with:
           name: Linux-wheels
+          path: /home/runner/work/OpenMS/OpenMS/Linux-wheels
     - name: Download artifacts
       uses: actions/download-artifact@v3
       with:
           name: Windows-wheels
+          path: /home/runner/work/OpenMS/OpenMS/Windows-wheels
     - name: Download artifacts
       uses: actions/download-artifact@v3
       with:
           name: macOS-wheels
+          path: /home/runner/work/OpenMS/OpenMS/macOS-wheels
 
     - name: Merge all artifacts
       run: |
@@ -479,16 +478,16 @@ jobs:
 
     - name: Publish package to nightly PyPI
       if: "github.ref == 'refs/heads/nightly'"
-      uses: pypa/gh-action-pypi-publish@release/v1.5.0
+      uses: pypa/gh-action-pypi-publish@release/v1
       with:
-        repository_url: https://abi-services.informatik.uni-tuebingen.de/pypi/
+        repository_url: https://pypi.cs.uni-tuebingen.de/
         user: openms
         password: ${{ secrets.abiservices_pypi_pw }}
         packages_dir: ${{ github.workspace }}/wheels
 
     - name: Publish package to PyPI
       if: "contains(github.ref, 'Release')"
-      uses: pypa/gh-action-pypi-publish@release/v1.5.0
+      uses: pypa/gh-action-pypi-publish@release/v1
       with:
         user: __token__
         password: ${{ secrets.pypi_api_token_release }}

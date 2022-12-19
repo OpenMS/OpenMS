@@ -69,6 +69,11 @@ openms_add_library(TARGET_NAME OpenMS_GUI
 # --------------------------------------------------------------------------
 # additional linker flags required by openms_gui
 if (MSVC)
+  ## treat warning of unused function parameter as error, similar to -Werror=unused-variable on GCC
+  target_compile_options(OpenMS_GUI PRIVATE "/we4100")
+  ## treat warning of unused local variable as error, similar to -Werror=unused-variable on GCC
+  target_compile_options(OpenMS_GUI PRIVATE "/we4189")
+
   set (GUI_lnk_flags "/FORCE:MULTIPLE /INCREMENTAL:NO /ignore:4006 /ignore:4088")
   set_property(TARGET OpenMS_GUI APPEND PROPERTY LINK_FLAGS ${GUI_lnk_flags}) ## allow multiple definitions of symbols (e.g. from template instanciations or STL-derived classes)
 endif()

@@ -35,7 +35,6 @@
 project("OpenMS")
 cmake_minimum_required(VERSION 3.15 FATAL_ERROR)
 
-set(CMAKE_AUTOMOC ON) # some OpenMS classes make use of Signal/Slot, e.g. SYSTEM/FileWatcher.cpp
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
 #------------------------------------------------------------------------------
@@ -134,10 +133,9 @@ openms_add_library(TARGET_NAME  OpenMS
                    DLL_EXPORT_PATH "OpenMS/")
 
 if (MSVC)
-  ## treat warning of unused function parameter as error
+  ## treat warning of unused function parameter as error, similar to -Werror=unused-variable on GCC
   target_compile_options(OpenMS PRIVATE "/we4100")
-
-  ## treat warning of unused local variable as error
+  ## treat warning of unused local variable as error, similar to -Werror=unused-variable on GCC
   target_compile_options(OpenMS PRIVATE "/we4189")
 endif()
 
