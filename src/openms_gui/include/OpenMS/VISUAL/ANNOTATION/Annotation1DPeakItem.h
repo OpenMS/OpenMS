@@ -78,8 +78,18 @@ public:
       canvas->dataToWidget(canvas->getMapper().map(position_), position_widget, flipped);
       canvas->dataToWidget(canvas->getMapper().map(peak_position_), peak_position_widget, flipped);
 
-      // compute bounding box of text_item on the specified painter
+      // pre-compute bounding box of text_item
+      const auto prebox = QApplication::fontMetrics().boundingRect(position_widget.x(), position_widget.y(), 0, 0, Qt::AlignCenter, getText());
+      // Shift position of the widget/text, so it sits 'on top' of the peak
+      // We can only do that there, since we do not know the state of 'flipped' in general
+      // Compute the delta in data-units, NOT pixels, since the shift (up/down, or even left/right) depends on state of 'flipped' and axis 
+      const auto deltaXY_in_units = canvas->widgetToDataDistance(prebox.width(), prebox.height()).abs(); // abs() to make sure y axis is not negative
+      const auto delta_gravity_in_units = canvas->getGravitator().swap().gravitateZero(deltaXY_in_units); // only keep gravity dim
+      // recompute 'position_widget', shifting the text up by 1/2 box
+      canvas->dataToWidget(canvas->getMapper().map(position_) + delta_gravity_in_units / 2, position_widget, flipped);
+      // re-compute bounding box of text_item on with new position!
       bounding_box_ = QApplication::fontMetrics().boundingRect(position_widget.x(), position_widget.y(), 0, 0, Qt::AlignCenter, getText());
+
 
       // draw connection line between anchor point and current position if pixel coordinates differ significantly
       if ((position_widget - peak_position_widget).manhattanLength() > 2)

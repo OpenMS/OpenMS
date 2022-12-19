@@ -37,6 +37,13 @@ include(CMakeParseArguments)
 include(GenerateExportHeader)
 include(CheckLibArchitecture)
 
+
+#------------------------------------------------------------------------------
+# Enable AddressSanitizer and include some helper function to add compiler and linker flags
+#------------------------------------------------------------------------------  
+option(ADDRESS_SANITIZER "[Clang/GCC only] Enable AddressSanitizer mode (quite slow)." OFF)
+include(${PROJECT_SOURCE_DIR}/cmake/AddressSanitizer.cmake)
+
 #------------------------------------------------------------------------------
 ## export a single option indicating if libraries should be build as unity
 ## build
@@ -157,6 +164,8 @@ function(openms_add_library)
 
   set_target_properties(${openms_add_library_TARGET_NAME} PROPERTIES CXX_VISIBILITY_PRESET hidden)
   set_target_properties(${openms_add_library_TARGET_NAME} PROPERTIES VISIBILITY_INLINES_HIDDEN 1)
+  set_target_properties(${openms_add_library_TARGET_NAME} PROPERTIES AUTOMOC ON)
+
   #------------------------------------------------------------------------------
   # Include directories
   # since internal includes all start with include/OpenMS and install_headers takes care of merging them in the install tree,
@@ -178,6 +187,24 @@ function(openms_add_library)
   # or specify a min version of each compiler.
   target_compile_features(${openms_add_library_TARGET_NAME} PUBLIC cxx_std_17)
 
+  if (CMAKE_COMPILER_IS_GNUCXX)
+    target_compile_options(${openms_add_library_TARGET_NAME} PRIVATE 
+    -Wall
+    -Wextra
+    #-fvisibility=hidden # This is now added as a target property for each library.     
+    -Wno-non-virtual-dtor
+    -Wno-unknown-pragmas
+    -Wno-long-long 
+    -Wno-unknown-pragmas
+    -Wno-unused-function
+    -Wno-variadic-macros)
+  endif()
+
+  if(ADDRESS_SANITIZER)
+    add_asan_to_target(${openms_add_library_TARGET_NAME})
+  endif()
+  
+  
   set_target_properties(${openms_add_library_TARGET_NAME} PROPERTIES CXX_VISIBILITY_PRESET hidden)
   set_target_properties(${openms_add_library_TARGET_NAME} PROPERTIES VISIBILITY_INLINES_HIDDEN 1)
 
@@ -263,7 +290,7 @@ function(openms_add_library)
             ${DLL_DOC_TARGET_PATH}
             )
 
-    foreach(command IN ITEMS "${copy_dlls_to_output_folder}" "${copy_dlls_to_test_folder}" "${copy_dlls_to_doc_folder}")
+    foreach(command IN ITEMS "${copy_dlls_to_output_folder}" "${copy_dlls_to_test_folder}")# "${copy_dlls_to_doc_folder}")
       set(if_runtime_dlls_copy
               $<IF:${has_dll_dep},${command},${none_command}>
               )
@@ -272,6 +299,31 @@ function(openms_add_library)
               COMMAND_EXPAND_LISTS
               )
     endforeach()
+
+    if(Qt5WebEngineWidgets_FOUND)
+      set (genex "IMPORTED_LOCATION_$<UPPER_CASE:$<CONFIG>>")
+      add_custom_command(TARGET ${openms_add_library_TARGET_NAME} POST_BUILD
+              COMMAND ${CMAKE_COMMAND} -E copy_if_different
+              $<TARGET_PROPERTY:Qt5::QuickWidgets,${genex}>
+              $<TARGET_FILE_DIR:${openms_add_library_TARGET_NAME}>
+              )
+
+      # For now, we add Qt to the path when calling the documenters.
+      # Since the documenters depend on OpenMS_GUI
+      # they need Qt platform plugins etc. which very hard to set up correctly.
+      # And I think the documenters are not called very often outside of CMake.
+      #add_custom_command(TARGET ${openms_add_library_TARGET_NAME} POST_BUILD
+      #        COMMAND ${CMAKE_COMMAND} -E copy_if_different
+      #        $<TARGET_PROPERTY:Qt5::QuickWidgets,${genex}>
+      #        ${DLL_DOC_TARGET_PATH}
+      #        )
+
+      add_custom_command(TARGET ${openms_add_library_TARGET_NAME} POST_BUILD
+              COMMAND ${CMAKE_COMMAND} -E copy_if_different
+              $<TARGET_PROPERTY:Qt5::QuickWidgets,${genex}>
+              ${DLL_TEST_TARGET_PATH}
+              )
+    endif()
   endif()
   #------------------------------------------------------------------------------
   # Status message for configure output

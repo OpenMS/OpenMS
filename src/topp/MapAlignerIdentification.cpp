@@ -59,7 +59,7 @@ using namespace std;
     <table>
         <tr>
             <td ALIGN = "center" BGCOLOR="#EBEBEB"> potential predecessor tools </td>
-            <td VALIGN="middle" ROWSPAN=4> \f$ \longrightarrow \f$ MapAlignerIdentification \f$ \longrightarrow \f$</td>
+            <td VALIGN="middle" ROWSPAN=4> &rarr; MapAlignerIdentification &rarr;</td>
             <td ALIGN = "center" BGCOLOR="#EBEBEB"> potential successor tools </td>
         </tr>
         <tr>

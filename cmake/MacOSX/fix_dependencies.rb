@@ -49,6 +49,8 @@ $DEBUG = false
 $currentIndent=0
 $executableId="@executable_path/"
 $EXTRACTFW = false
+$auto_relative = true
+$nocopy = false
 
 ###############################################################################
 def debug(message)
@@ -125,6 +127,19 @@ def handleDependencies(otool_out, targetPath, currentLib, rpaths)
     # (\/usr\/lib|\/System)
     if fix_lib.match(/^(\/usr\/lib|\/System)/)
       debug "Ignoring system-lib: #{fix_lib}"
+    elsif $nocopy
+      if isFramework(fix_lib)
+        # get framework path (name of dir containing .framework)
+        frameworkDir=fix_lib.to_s.gsub(/(.*\.framework).*/,'\1')
+        frameworkName=frameworkDir.to_s.gsub(/(.*\/)([^\/]*\.framework)/,'\2')
+
+        # the actual lib name
+        internFrameworkDir=fix_lib.to_s.gsub(/(.*\.framework)\/(.*)/,'\2')
+        libname=frameworkName+'/'+internFrameworkDir
+        fixLoadPath(fix_lib, libname, currentLib)
+      else
+        fixLoadPath(fix_lib, File.basename(fix_lib), currentLib)
+      end
     elsif fix_lib.start_with?("@loader") or fix_lib.start_with?("@executable")
       if $EXTRACTFW
         # only fix loading of this library if it does not start with executable/loader_path.
@@ -251,30 +266,48 @@ def handleFramework(frameworkPath, targetPath, rpaths)
     end
   end
 
-  if $EXTRACTFW
-    newFrameWorkPath, libname = copyLibFromFramework(frameworkPath, targetPath)
+  if not frameworkPath.to_s.start_with?("@rpath")
+      if $EXTRACTFW
+        newFrameWorkPath, libname = copyLibFromFramework(frameworkPath, targetPath)
+      else
+        # copy framework to target directory
+        newFrameWorkPath, libname = copyFramework(frameworkPath, targetPath)
+      end
+
+      if not $handledLibraries.include?(libname)
+        # run otool
+        otool_out=`otool -L #{frameworkPath}`.strip.split(/\n/)
+        # strips first two lines
+        id, otool_out = extractInstallName(otool_out)
+
+        # update the install_name (-id)
+        fixId(newFrameWorkPath,libname)
+        debug "Handle FW #{frameworkPath} -> #{id}"
+
+        # check the actual dependencies (lines 3++)
+        handleDependencies(otool_out, targetPath, newFrameWorkPath, rpaths)
+
+        # mark as processed
+        $handledLibraries.add(libname)
+      else
+        debug "Already fixed #{libname}"
+      end
   else
-    # copy framework to target directory
-    newFrameWorkPath, libname= copyFramework(frameworkPath, targetPath)
-  end
+    debug "RPath but no lib found. Assuming fixed already: #{libname}"
+    if !$EXTRACTFW
+      # But at least adjust the libname which is used in handleDependencies to fix loading.
+      # get framework path (name of dir containing .framework)
+      frameworkDir=frameworkPath.to_s.gsub(/(.*\.framework).*/,'\1')
+      frameworkName=frameworkDir.to_s.gsub(/(.*\/)([^\/]*\.framework)/,'\2')
 
-  if not $handledLibraries.include?(libname)
-    # run otool
-    otool_out=`otool -L #{frameworkPath}`.strip.split(/\n/)
-    # strips first two lines
-    id, otool_out = extractInstallName(otool_out)
-
-    # update the install_name (-id)
-    fixId(newFrameWorkPath,libname)
-    debug "Handle FW #{frameworkPath} -> #{id}"
-
-    # check the actual dependencies (lines 3++)
-    handleDependencies(otool_out, targetPath, newFrameWorkPath, rpaths)
-
-    # mark as processed
-    $handledLibraries.add(libname)
-  else
-    debug "Already fixed #{libname}"
+      # the actual lib name
+      internFrameworkDir=frameworkPath.to_s.gsub(/(.*\.framework)\/(.*)/,'\2')
+      libname=frameworkName+'/'+internFrameworkDir
+    else
+      libname=File.basename(frameworkPath)
+    end
+    # the new path
+    newFrameworkPath="#{targetPath}/#{libname}"
   end
 
   # update ids of dependencies
@@ -365,12 +398,14 @@ end
 opts = GetoptLong.new(
   [ '--help', '-h', GetoptLong::NO_ARGUMENT ],
   [ '--verbose', '-v', GetoptLong::NO_ARGUMENT ],
-  [ '--lib-path', '-l', GetoptLong::REQUIRED_ARGUMENT ],
+  [ '--lib-path', '-l', GetoptLong::OPTIONAL_ARGUMENT ],
   [ '--install-name-tool', '-i', GetoptLong::OPTIONAL_ARGUMENT ],
   [ '--bin-path', '-b', GetoptLong::OPTIONAL_ARGUMENT ],
   [ '--plugin-path', '-p', GetoptLong::OPTIONAL_ARGUMENT ],
   [ '--path-prefix', '-e', GetoptLong::OPTIONAL_ARGUMENT ],
-  [ '--extract-from-framework', '-f', GetoptLong::NO_ARGUMENT]
+  [ '--extract-from-framework', '-f', GetoptLong::NO_ARGUMENT],
+  [ '--no-auto-relative', '-n', GetoptLong::NO_ARGUMENT],
+  [ '--no-copy', '-c', GetoptLong::NO_ARGUMENT]
 )
 
 usage = "#{File.basename($0)} --bin-path PATH-TO-BINARIES --lib-path PATH-TO-STORE-LIBRARIES
@@ -383,11 +418,15 @@ usage = "#{File.basename($0)} --bin-path PATH-TO-BINARIES --lib-path PATH-TO-STO
 -b, --bin-path:
   the path were all the binaries that should be handled are located
 -p, --plugin-path:
-  the path were optional plugin libraries like from QT5 are located (experimental)
+  the path were optional plugin libraries like from Qt are located (experimental)
 -e, --path-prefix:
   the prefix that is added to the new install_name (default: @executable_path/)
 -f, --extract-from-framework:
   extract the linked libraries from their Framework folder. CAUTION: this does not copy Headers and Resources. Not tested with already present frameworks.
+-n, --no-auto-relative:
+  use path-prefix as is, without adding the relative path between bin path and lib path.
+-c, --no-copy:
+  do not copy dependencies, only fix up loading to relative paths
 -v, --verbose:
   increase verbosity
 "
@@ -409,47 +448,63 @@ opts.each do |opt, arg|
       $executableId = arg
     when '--extract-from-framework'
       $EXTRACTFW = true
+    when '--no-auto-relative'
+      $auto_relative = false
+    when '--no-copy'
+      $nocopy = true
     when '--verbose'
       $DEBUG = true
   end
 end
 
-if $lib_dir.nil?
-  puts "Please provide at least a lib path"
+if $lib_dir.nil? and $bin_dir.nil?
+  puts "Please provide at least a lib path or bin path with no-copy"
   puts usage.to_s
   exit 1
-elsif !$bin_dir.nil?
-  $executableId = $executableId + $lib_dir.relative_path_from($bin_dir).to_s
+elsif $lib_dir.nil? and not $bin_dir.nil? and not $nocopy
+  puts "If you only specify a bin_dir, no-copy must be active."
+  puts usage.to_s
+  exit 1
+elsif !$lib_dir.nil? and !$bin_dir.nil?
+  if $auto_relative
+    $executableId = $executableId + $lib_dir.relative_path_from($bin_dir).to_s
+  end
   $executableId += "/"
   puts "Substituting prefix to find libs with:"
   puts $executableId
 end
 
-debug "HANDLING LIB DIR"
+
 # fix libraries contained in lib-path
 # recurse two-levels to capture the libraries inside the frameworks
-Dir.chdir($lib_dir.to_s) do
-  lib_files = Dir.glob(["*","*/*"])
-  for content in lib_files
-    # in case plugin dir is a subdir of lib dir
-    if ($plugin_dir.nil? or not ($lib_dir+content).to_s.start_with?($plugin_dir.to_s)) and fixable(content, $lib_dir)
-      if isFramework(content)
-        handleFramework($lib_dir + content, $lib_dir, [])
-      elsif (content.end_with?(".dylib") or content.end_with?(".so"))
-        # TODO what to do with extracted Qt libs. They dont have an ending.
-        handleDyLib($lib_dir + content, $lib_dir, [])
-      else
-        debug "Skipped #{$lib_dir + content} -- No lib or framework?"
+if !$lib_dir.nil?
+    debug "HANDLING LIB DIR"
+    Dir.chdir($lib_dir.to_s) do
+      lib_files = Dir.glob(["*","*/*"])
+      for content in lib_files
+        if ($plugin_dir.nil? or not ($lib_dir+content).to_s.start_with?($plugin_dir.to_s))
+          if fixable(content, $lib_dir)
+              if isFramework(content)
+                handleFramework($lib_dir + content, $lib_dir, [])
+              elsif (content.end_with?(".dylib") or content.end_with?(".so"))
+                # TODO what to do with extracted Qt libs. They dont have an ending.
+                handleDyLib($lib_dir + content, $lib_dir, [])
+              else
+                debug "Skipped #{$lib_dir + content} -- No lib or framework?"
+              end
+            else
+              debug "Skipped #{$lib_dir + content} -- Otool not executable on it."
+            end
+        else
+          debug "Skipped #{$lib_dir + content} -- Part of plugin_dir."
+        end
       end
-    else
-      debug "Skipped #{$lib_dir + content} -- Otool not executable on it."
     end
-  end
 end
 
-debug "HANDLING BIN DIR"
 # fix binary references
 if !$bin_dir.nil?
+  debug "HANDLING BIN DIR"
   for content in Dir.entries($bin_dir)
     if fixable(content, $bin_dir)
       if (content.end_with?(".dylib") or content.end_with?(".so"))

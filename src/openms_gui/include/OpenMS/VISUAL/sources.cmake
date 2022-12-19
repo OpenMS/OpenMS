@@ -36,6 +36,7 @@ MultiGradientSelector.h
 OutputDirectory.h
 Painter1DBase.h
 Painter2DBase.h
+PainterBase.h
 ParamEditor.h
 Plot1DCanvas.h
 Plot1DWidget.h

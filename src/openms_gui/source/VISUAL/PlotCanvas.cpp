@@ -174,8 +174,9 @@ namespace OpenMS
     {
       visible_area_ = new_area;
       updateScrollbars_();
-      emit visibleAreaChanged(new_area);
-      emit layerZoomChanged(this);
+      recalculateSnapFactor_();
+      emit visibleAreaChanged(new_area); // calls PlotWidget::updateAxes, which calls Plot(1D/2D/3D)Widget::recalculateAxes_
+      emit layerZoomChanged(this); // calls TOPPViewBase::zoomOtherWindows (for linked windows)
     }
 
     if (repaint)

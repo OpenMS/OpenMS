@@ -431,13 +431,13 @@ public:
     }
 
     /**
-      @brief compute distance in widget coordinates (unit axis as shown) when moving @p x/y pixel in chart coordinates
+      @brief compute distance in data coordinates (unit axis as shown) when moving @p x/y pixel in chart/widget coordinates
     */
     inline PointXYType widgetToDataDistance(double x, double y)
     {
-      PointXYType point = widgetToData_(x, y);
+      PointXYType point = Plot1DCanvas::widgetToData(x, y); // call the 1D version, otherwise intensity&mirror modes will not be honored
       // subtract the 'offset'
-      PointXYType zero = widgetToData_(0, 0);
+      PointXYType zero = Plot1DCanvas::widgetToData(0, 0); // call the 1D version, otherwise intensity&mirror modes will not be honored
       point -= zero;
       return point;
     }
@@ -604,6 +604,12 @@ protected:
     /// Draws the alignment on @p painter
     void drawAlignment_(QPainter& painter);
 
+    /// internal method, called before calling parent function PlotCanvas::changeVisibleArea_
+    void changeVisibleAreaCommon_(const UnitRange& new_area, bool repaint, bool add_to_stack);
+
+    // Docu in base class
+    void changeVisibleArea_(VisibleArea new_area, bool repaint = true, bool add_to_stack = false) override;
+
     /**
         @brief Changes visible area interval
 
@@ -622,16 +628,62 @@ protected:
     /// Draws a highlighted peak; if draw_elongation is true, the elongation line is drawn (for measuring)
     void drawHighlightedPeak_(Size layer_index, const PeakIndex& peak, QPainter& painter, bool draw_elongation = false);
 
-    /// Recalculates the current scale factor based on the specified layer (= 1.0 if intensity mode != IM_PERCENTAGE)
-    void updatePercentageFactor_(Size layer_index);
 
-    // Docu in base class
-    void recalculateSnapFactor_() override;
+    /**
+        @brief Zooms fully out and resets the zoom stack
+
+        Sets the visible area to the initial value, such that all data (for the current spec/chrom/...) is shown.
+
+        @param repaint If @em true a repaint is forced. Otherwise only the new area is set.
+    */
+    void resetZoom(bool repaint = true) override
+    {
+      zoomClear_();
+      PlotCanvas::changeVisibleArea_(visible_area_.cloneWith(overall_data_range_1d_), repaint, true);
+    }
+        
+    /// Recalculates the current scale factor based on the specified layer (= 1.0 if intensity mode != IM_PERCENTAGE)
+    void recalculatePercentageFactor_(Size layer_index);
+
+    /**
+        @brief Recalculates the overall_data_range_ (by calling PlotCanvas::recalculateRanges_)
+               plus the overall_data_range_1d_ (which only takes into account the current spec/chrom/.. of all layers)
+
+        A small margin is added to each side of the range in order to display all data.
+    */
+    void recalculateRanges_() override
+    {
+      PlotCanvas::recalculateRanges_(); // for: overall_data_range_
+      // the same thing for: overall_data_range_1d_
+      RangeType& layer_range_1d = overall_data_range_1d_;
+      layer_range_1d.clearRanges();
+
+      for (Size layer_index = 0; layer_index < getLayerCount(); ++layer_index)
+      {
+        layer_range_1d.extend(getLayer(layer_index).getRange1D());
+      }
+      // add 4% margin (2% left, 2% right) to all dimensions, except the current gravity axes's minimum (usually intensity)
+      layer_range_1d.scaleBy(1.04);
+
+      // set minimum intensity to 0 (avoid negative intensities!)
+      auto& gravity_range = getGravityDim().map(layer_range_1d);
+      if (gravity_range.getMin() < 0)
+        gravity_range.setMin(0);
+      
+      // make sure that each dimension is not a single point (axis widget won't like that)
+      // (this needs to be the last command to ensure this property holds when leaving the function!)
+      layer_range_1d.minSpanIfSingular(1);
+    }
+
     // Docu in base class
     void updateScrollbars_() override;
     // Docu in base class
     void intensityModeChange_() override;
-
+    
+    
+    /// Adjust the gravity axis (usually y-axis with intensity) according to the given range on the x-axis 
+    /// (since the user cannot freely choose the limits of this axis in 1D View)
+    RangeAllType correctGravityAxisOfVisibleArea_(UnitRange area);
     
     /** @name Reimplemented QT events */
     //@{
@@ -679,6 +731,9 @@ protected:
     /////////////////////
     ////// data members
     /////////////////////
+
+    /// The data range (m/z, RT and intensity) of the current(!) spec/chrom for all layers
+    RangeType overall_data_range_1d_;
 
     /// Draw modes (for each layer) - sticks or connected lines
     std::vector<DrawModes> draw_modes_;
