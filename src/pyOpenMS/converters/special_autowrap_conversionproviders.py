@@ -240,9 +240,9 @@ class OpenMSStringConverter(TypeConverterBase):
         if (cpp_type.is_ptr or cpp_type.is_ref) and not cpp_type.is_const:
             return "isinstance(%s, String)" % (argument_var)
 
-        # Allow conversion from unicode str, bytes and OpenMS::String
+        # Allow conversion from str, bytes and OpenMS::String
         return "(isinstance(%s, str) or isinstance(%s, bytes) or isinstance(%s, String))" % (
-            argument_var,argument_var,argument_var, argument_var)
+            argument_var,argument_var,argument_var)
 
     def input_conversion(self, cpp_type, argument_var, arg_num):
 
