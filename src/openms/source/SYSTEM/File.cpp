@@ -951,12 +951,14 @@ void File::download(const std::string& url, const std::string& download_folder)
 
   if (!query->hasError())
   {
-    OPENMS_LOG_INFO << "Download of '" << url << "' successful." << endl;  
     QString folder = download_folder.empty() ? QString("./") : QString(download_folder.c_str());
-    QFile file(QString(folder) + "/" + saveFileName_(qURL));
+    QString filename = QString(folder) + "/" + saveFileName_(qURL); 
+    QFile file(filename);
     file.open(QIODevice::ReadWrite);
     file.write(query->getResponseBinary().data(), query->getResponseBinary().size());
     file.close();
+    OPENMS_LOG_INFO << "Download of '" << url << "' successful." << endl;
+    OPENMS_LOG_INFO << "Stored as '" << filename.toStdString() << "'." << endl;
   }
   else
   {
