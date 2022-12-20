@@ -60,13 +60,16 @@ class OpenMSDPosition2Vector(TypeConverterBase):
         return "np.ndarray[np.float32_t,ndim=2]"
     
     def matching_python_type_full(self, cpp_type):
-        # TODO figure out the best way to do numpy typing.
-        # Note that using e.g. the nptyping package will need a top-of-file import which we cannot inject.
-        # This means we would either need to support injection or import per default in autowraps pyi files
-        # For now, write a string which just serves as documentation
-        return "'np.ndarray[np.float32_t,ndim=2]'"
+        # TODO figure out the best way to do numpy typing. Being able to specify the dimensions would be nice:
+        #  might be available soon (without extensions): https://github.com/numpy/numpy/issues/16544
+        # Note that using those types will need a top-of-file import which we cannot inject to autowrap (yet).
+        # This means we would either need to support injection or import per default in autowraps pyi files.
+        # For now, we add it to all pyi files in a post-processing step of our build system.
+        return "'_np.ndarray[Any, _np.dtype[_np.float32]]'"
 
     def type_check_expression(self, cpp_type, argument_var):
+        # TODO in autowrap: More finegrained error reporting. Currently it just reports
+        #  if ANY of the input types to a function does not match. Not which, not why..
         return "%s.shape[1] == 2" % argument_var
 
     def input_conversion(self, cpp_type, argument_var, arg_num):
