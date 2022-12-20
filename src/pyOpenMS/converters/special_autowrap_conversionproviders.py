@@ -136,10 +136,10 @@ class OpenMSDataValue(TypeConverterBase):
         return ""
 
     def matching_python_type_full(self, cpp_type):
-        return "Union[int, long, float, bytes, str, List[int], List[long], List[float], List[bytes]]"
+        return "Union[int, float, bytes, str, List[int], List[float], List[bytes]]"
 
     def type_check_expression(self, cpp_type, argument_var):
-        return "isinstance(%s, (int, long, float, list, bytes, str))" % argument_var
+        return "isinstance(%s, (int, float, list, bytes, str))" % argument_var
 
     def input_conversion(self, cpp_type, argument_var, arg_num):
         call_as = "deref(DataValue(%s).inst.get())" % argument_var
@@ -183,10 +183,10 @@ class OpenMSParamValue(TypeConverterBase):
         return ""
       
     def matching_python_type_full(self, cpp_type):
-        return "Union[int, long, float, bytes, str, List[int], List[long], List[float], List[bytes]]"
+        return "Union[int, float, bytes, str, List[int], List[float], List[bytes]]"
 
     def type_check_expression(self, cpp_type, argument_var):
-        return "isinstance(%s, (int, long, float, list, bytes, str))" % argument_var
+        return "isinstance(%s, (int, float, list, bytes, str))" % argument_var
 
     def input_conversion(self, cpp_type, argument_var, arg_num):
         call_as = "deref(ParamValue(%s).inst.get())" % argument_var
