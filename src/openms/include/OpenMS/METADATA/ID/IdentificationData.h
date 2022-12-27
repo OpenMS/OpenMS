@@ -698,7 +698,7 @@ namespace OpenMS
                                        const RefTranslator& trans);
 
     /*!
-      @brief Helper functor for adding processing steps to elements in a @t boost::multi_index_container structure
+      @brief Helper functor for adding processing steps to elements in a @p boost::multi_index_container structure
 
       The validity of the processing step reference cannot be checked here!
     */
