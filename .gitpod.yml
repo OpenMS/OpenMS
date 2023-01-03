@@ -12,7 +12,7 @@ tasks:
       command: |
         export PATH=$PATH$( find ${PWD}/THIRDPARTY/All -type d -printf ":%p" )
         export PATH=$PATH$( find ${PWD}/THIRDPARTY/Linux/64bit -type d -printf ":%p" )
-        pushd build && make -j7 all && popd
+        pushd build && make --debug=v -j7 all && popd
 image:
   file: .gitpod.Dockerfile
 github:
