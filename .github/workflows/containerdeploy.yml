@@ -2,8 +2,9 @@ name: deploy-container-images
 on:
   workflow_dispatch:
   push:
-    branches:        
+    branches:
       - nightly
+      - feat/singularity
       - 'release/**'
 
 jobs:
@@ -19,15 +20,11 @@ jobs:
         run: |
             BRANCH=${{ steps.extract_branch.outputs.branch }}
             ## use latest to follow docker conventions
-            if [[ "$BRANCH" == "develop" ]]
+            if [[ "$BRANCH" == "develop" || "$BRANCH" == "nightly" || "$BRANCH" == "feat/singularity"]]
             then 
               BRANCH="latest"
             fi
-            if [[ "$BRANCH" == "nightly" ]]
-            then 
-              BRANCH="latest"
-            fi
-            ## Remove release/ from release branch name
+            ## Remove release/ from release branch name (or keep the non-release name)
             echo "##[set-output name=tag;]$(echo ${BRANCH#release/})"
         id: tag_name
       - name: Downcase REPO
