@@ -1,4 +1,4 @@
-name: deploy-docker-images
+name: deploy-container-images
 on:
   workflow_dispatch:
   push:
@@ -7,7 +7,7 @@ on:
       - 'release/**'
 
 jobs:
-  Deploy:
+  DeployDocker:
     runs-on: ubuntu-latest
     steps:
       - name: Extract branch name
@@ -69,3 +69,49 @@ jobs:
             OPENMS_BRANCH=${{ steps.extract_branch.outputs.branch }}
           tags: |
             ghcr.io/${{ steps.downcase_repo.outputs.repo }}-executables:${{ steps.tag_name.outputs.tag }}
+
+  DeploySingularity:
+    runs-on: ubuntu-latest
+    container:
+      image: quay.io/singularity/singularity:v3.10.4
+      options: --privileged
+    steps:
+      - name: Extract branch name
+        shell: bash
+        run: echo "##[set-output name=branch;]$(echo ${GITHUB_REF#refs/heads/})"
+        id: extract_branch
+      - name: Define tag name
+        shell: bash
+        run: |
+            BRANCH=${{ steps.extract_branch.outputs.branch }}
+            ## use latest to follow docker conventions
+            if [[ "$BRANCH" == "develop" ]]
+            then 
+              BRANCH="latest"
+            fi
+            if [[ "$BRANCH" == "nightly" ]]
+            then 
+              BRANCH="latest"
+            fi
+            ## Remove release/ from release branch name
+            echo "##[set-output name=tag;]$(echo ${BRANCH#release/})"
+        id: tag_name
+      - name: Downcase REPO
+        run: echo "##[set-output name=repo;]$(echo ${GITHUB_REPOSITORY,,})"
+        id: downcase_repo
+      - name: Checkout Dockerfiles
+        shell: bash # uses git bash on windows
+        run: |
+            git clone https://github.com/OpenMS/dockerfiles
+            cd dockerfiles
+            ## for release, try to checkout the specific release branch in the dockerfiles repo first
+            if [[ "${{ steps.extract_branch.outputs.branch }}" == "release/"* ]]
+            then
+              git checkout ${{ steps.extract_branch.outputs.branch }} || git checkout master
+            fi
+      - name: Build Singularity library image
+        run: |
+            spython recipe dockerfiles/library/Dockerfile &> dockerfiles/library/Singularity.def
+            sudo -E singularity build library.sif dockerfiles/library/Singularity.def
+            echo ${{ secrets.GITHUB_TOKEN }} | singularity remote login -u jpfeuffer --password-stdin oras://ghcr.io
+            singularity push container.sif oras://ghcr.io/${{ steps.downcase_repo.outputs.repo }}-library-sif:${{ steps.tag_name.outputs.tag }}
