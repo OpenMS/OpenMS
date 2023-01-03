@@ -20,7 +20,7 @@ jobs:
         run: |
             BRANCH=${{ steps.extract_branch.outputs.branch }}
             ## use latest to follow docker conventions
-            if [[ "$BRANCH" == "develop" || "$BRANCH" == "nightly" || "$BRANCH" == "feat/singularity"]]
+            if [[ "$BRANCH" == "develop" || "$BRANCH" == "nightly" || "$BRANCH" == "feat/singularity" ]]
             then 
               BRANCH="latest"
             fi
@@ -82,11 +82,7 @@ jobs:
         run: |
             BRANCH=${{ steps.extract_branch.outputs.branch }}
             ## use latest to follow docker conventions
-            if [[ "$BRANCH" == "develop" ]]
-            then 
-              BRANCH="latest"
-            fi
-            if [[ "$BRANCH" == "nightly" ]]
+            if [[ "$BRANCH" == "develop" || "$BRANCH" == "nightly" || "$BRANCH" == "feat/singularity" ]]
             then 
               BRANCH="latest"
             fi
