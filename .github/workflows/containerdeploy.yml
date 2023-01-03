@@ -104,6 +104,7 @@ jobs:
             fi
       - name: Build Singularity library image
         run: |
+            sudo apk add --no-cache py3-pip
             python3 -m pip install spython
             spython recipe dockerfiles/library/Dockerfile &> dockerfiles/library/Singularity.def
             sudo -E singularity build library.sif dockerfiles/library/Singularity.def
