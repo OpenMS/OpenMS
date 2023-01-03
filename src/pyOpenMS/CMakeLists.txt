@@ -357,6 +357,7 @@ file(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/pyOpenMS/extra_includes)
 
 _copy_assets("${PROJECT_SOURCE_DIR}/pyopenms/" "*.py" ${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms/)
 _copy_assets("${PROJECT_SOURCE_DIR}/pyopenms/" "*.sh" ${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms/)
+_copy_assets("${PROJECT_SOURCE_DIR}/pyopenms/" "*.pyi" ${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms/)
 _copy_assets("${PROJECT_SOURCE_DIR}/pyopenms/" "py.typed" ${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms/)
 _copy_assets("${PROJECT_SOURCE_DIR}/pyTOPP/" "*.py" ${CMAKE_BINARY_DIR}/pyOpenMS/pyTOPP/)
 _copy_assets("${PROJECT_SOURCE_DIR}/tests/unittests/" "*" ${CMAKE_BINARY_DIR}/pyOpenMS/tests/unittests)
