@@ -494,7 +494,7 @@ namespace OpenMS
     const TransformationDescription& trafo,
     const ChromExtractParams & cp,
     const ChromExtractParams & cp_ms1,
-    const Param & feature_finder_param,
+    Param & feature_finder_param,
     const OpenSwath::LightTargetedExperiment& transition_exp,
     FeatureMap& out_featureFile,
     bool store_features,
@@ -520,9 +520,11 @@ namespace OpenMS
 
     // (i) Obtain precursor chromatograms (MS1) if precursor extraction is enabled
     ChromExtractParams ms1_cp(cp_ms1);
+
     if (!use_ms1_ion_mobility_)
     {
       ms1_cp.im_extraction_window = -1;
+      feature_finder_param.setValue("use_ms1_ion_mobility", "false");
     }
 
     if (ms1_only && !use_ms1_traces_)

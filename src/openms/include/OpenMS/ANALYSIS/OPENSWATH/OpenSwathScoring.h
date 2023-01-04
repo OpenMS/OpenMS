@@ -67,6 +67,7 @@ namespace OpenMS
     std::string spectra_addition_method_;
     double im_drift_extra_pcnt_;
     OpenSwath_Scores_Usage su_;
+    bool use_ms1_ion_mobility_; // whether to use MS1 ion mobility extraction in DIA scores
 
   public:
 
@@ -92,7 +93,8 @@ namespace OpenMS
                     double spacing_for_spectra_resampling,
                     const double drift_extra,
                     const OpenSwath_Scores_Usage & su,
-                    const std::string& spectrum_addition_method);
+                    const std::string& spectrum_addition_method,
+                    bool use_ms1_ion_mobility);
 
     /** @brief Score a single peakgroup in a chromatogram using only chromatographic properties.
      *

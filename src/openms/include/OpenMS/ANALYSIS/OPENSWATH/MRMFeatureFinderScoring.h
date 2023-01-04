@@ -290,6 +290,7 @@ private:
     bool write_convex_hull_;
     bool strict_;
     String scoring_model_;
+    bool use_ms1_ion_mobility_;
 
     // scoring parameters
     double rt_normalization_factor_;

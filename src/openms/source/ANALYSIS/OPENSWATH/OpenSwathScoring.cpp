@@ -115,7 +115,8 @@ namespace OpenMS
                                     double spacing_for_spectra_resampling,
                                     const double drift_extra,
                                     const OpenSwath_Scores_Usage & su,
-                                    const std::string& spectrum_addition_method)
+                                    const std::string& spectrum_addition_method,
+                                    bool use_ms1_ion_mobility)
   {
     this->rt_normalization_factor_ = rt_normalization_factor;
     this->add_up_spectra_ = add_up_spectra;
@@ -123,6 +124,7 @@ namespace OpenMS
     this->im_drift_extra_pcnt_ = drift_extra;
     this->spacing_for_spectra_resampling_ = spacing_for_spectra_resampling;
     this->su_ = su;
+    this->use_ms1_ion_mobility_ = use_ms1_ion_mobility;
   }
 
   void OpenSwathScoring::calculateDIAScores(OpenSwath::IMRMFeature* imrmfeature,
@@ -210,12 +212,25 @@ namespace OpenMS
       diascoring.dia_by_ion_score(spectra, aas, by_charge_state, scores.bseries_score, scores.yseries_score, drift_lower, drift_upper);
     }
 
+    double drift_lower_ms1;
+    double drift_upper_ms1;
+    if (use_ms1_ion_mobility_)
+    {
+      drift_lower_ms1 = drift_lower;
+      drift_upper_ms1 = drift_upper;
+    }
+    else // do not extract across IM in MS1
+    {
+      drift_lower_ms1 = -1;
+      drift_upper_ms1 = -1;
+    }
+
     if (ms1_map && ms1_map->getNrSpectra() > 0)
     {
       double precursor_mz = transitions[0].precursor_mz;
       double rt = imrmfeature->getRT();
 
-      calculatePrecursorDIAScores(ms1_map, diascoring, precursor_mz, rt, compound, scores, drift_lower, drift_upper);
+      calculatePrecursorDIAScores(ms1_map, diascoring, precursor_mz, rt, compound, scores, drift_lower_ms1, drift_upper_ms1);
     }
 
 
@@ -225,12 +240,12 @@ namespace OpenMS
         bool dia_extraction_ppm_ = diascoring.getParameters().getValue("dia_extraction_unit") == "ppm";
         double rt = imrmfeature->getRT();
 
-        std::vector<OpenSwath::SpectrumPtr> ms1_spectrum = fetchSpectrumSwath(ms1_map, rt, add_up_spectra_, drift_lower, drift_upper);
+        std::vector<OpenSwath::SpectrumPtr> ms1_spectrum = fetchSpectrumSwath(ms1_map, rt, add_up_spectra_, drift_lower_ms1, drift_upper_ms1);
         IonMobilityScoring::driftScoringMS1(ms1_spectrum,
-            transitions, scores, drift_lower, drift_upper, drift_target, dia_extract_window_, dia_extraction_ppm_, false, im_drift_extra_pcnt_);
+            transitions, scores, drift_lower_ms1, drift_upper_ms1, drift_target, dia_extract_window_, dia_extraction_ppm_, false, im_drift_extra_pcnt_);
 
         IonMobilityScoring::driftScoringMS1Contrast(spectra, ms1_spectrum,
-            transitions, scores, drift_lower, drift_upper, dia_extract_window_, dia_extraction_ppm_, im_drift_extra_pcnt_);
+            transitions, scores, drift_lower_ms1, drift_upper_ms1, dia_extract_window_, dia_extraction_ppm_, im_drift_extra_pcnt_);
     }
   }
 
@@ -242,6 +257,13 @@ namespace OpenMS
                                    OpenSwath_Scores & scores,
                                    double drift_lower, double drift_upper)
   {
+    // change drift_lower and drift_upper based on ms1 settings
+    if (!use_ms1_ion_mobility_)
+    {
+      drift_lower = -1;
+      drift_upper = -1;
+    }
+
     // Compute precursor-level scores:
     // - compute mass difference in ppm
     // - compute isotopic pattern score
@@ -305,6 +327,12 @@ namespace OpenMS
   {
     OPENMS_PRECONDITION(imrmfeature != nullptr, "Feature to be scored cannot be null");
     OPENMS_PRECONDITION(swath_maps.size() > 0, "There needs to be at least one swath map.");
+
+    if (!use_ms1_ion_mobility_)
+    {
+      drift_lower = -1;
+      drift_upper = -1;
+    }
 
     // Identify corresponding SONAR maps (if more than one map is used)
     std::vector<OpenSwath::SwathMap> used_swath_maps;
