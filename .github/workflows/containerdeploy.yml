@@ -90,13 +90,11 @@ jobs:
             echo "tag=${BRANCH#release/}" >> $GITHUB_OUTPUT
         id: tag_name
       - name: Downcase REPO
-        run: |
-            echo "???????????????????????????????"
-            echo "${GITHUB_REPOSITORY}"
-            echo "repo=${GITHUB_REPOSITORY,,}" >> $GITHUB_OUTPUT
+        shell: bash
+        run: echo "repo=${GITHUB_REPOSITORY,,}" >> $GITHUB_OUTPUT
         id: downcase_repo
       - name: Checkout Dockerfiles
-        shell: bash # uses git bash on windows
+        shell: bash
         run: |
             git clone https://github.com/OpenMS/dockerfiles
             cd dockerfiles
@@ -106,6 +104,7 @@ jobs:
               git checkout ${{ steps.extract_branch.outputs.branch }} || git checkout master
             fi
       - name: Build Singularity library image
+        shell: bash
         run: |
             sudo apk add --no-cache py3-pip
             python3 -m pip install spython
