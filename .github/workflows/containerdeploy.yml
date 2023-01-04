@@ -132,4 +132,5 @@ jobs:
         run: |
             echo ${{ secrets.GITHUB_TOKEN }} | singularity remote login -u jpfeuffer --password-stdin oras://ghcr.io
             singularity push library.sif oras://ghcr.io/${{ steps.downcase_repo.outputs.repo }}-library-sif:${{ steps.tag_name.outputs.tag }}
+            echo ${{ secrets.GITHUB_TOKEN }} | singularity remote login -u jpfeuffer --password-stdin oras://ghcr.io
             singularity push executables.sif oras://ghcr.io/${{ steps.downcase_repo.outputs.repo }}-executables-sif:${{ steps.tag_name.outputs.tag }}
