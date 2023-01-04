@@ -109,7 +109,7 @@ public:
 
       The bin size for summing the intensities is defined as mz / (resolution*4) 
       for all the mzs taken with the @p bin_step defined in the parameters.
-      Uses `OpenMS::SpectrumAddition::addUpSpectra` function with the sliding bin size parameter. 
+      Uses `SpectrumAddition::addUpSpectra` function with the sliding bin size parameter. 
 
       @param input  Input vector of spectra
       @return a spectrum

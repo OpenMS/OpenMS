@@ -17,50 +17,6 @@ else (WIN32) # UNIX
     set(DEV_NULL                "/dev/null")
 endif (WIN32)
 
-# then Compiler/IDE differences:
-if (MSVC)
-    set(CPPLINT_ARG_OUTPUT      "--output=vs7")
-    set(CPPCHECK_ARG_TEMPLATE   "--template=vs")
-    # disable Visual Studio warnings for fopen() used in the example
-    add_definitions(-D_CRT_SECURE_NO_WARNINGS)
-    # Flags for linking with multithread static C++ runtime, required by internal googletest
-    option(SQLITECPP_USE_STATIC_RUNTIME "Use MSVC static runtime (default for internal googletest)." ${SQLITECPP_BUILD_TESTS})
-    if (SQLITECPP_USE_STATIC_RUNTIME)
-        message(STATUS "Linking against multithread static C++ runtime")
-        set(CMAKE_C_FLAGS_RELEASE   "${CMAKE_C_FLAGS_RELEASE} /MT")
-        set(CMAKE_C_FLAGS_DEBUG     "${CMAKE_C_FLAGS_DEBUG} /MTd")
-        set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} /MT")
-        set(CMAKE_CXX_FLAGS_DEBUG   "${CMAKE_CXX_FLAGS_DEBUG} /MTd")
-    endif (SQLITECPP_USE_STATIC_RUNTIME)
-    # MSVC versions prior to 2015 are not supported anymore by SQLiteC++ 3.x
-    if (MSVC_VERSION LESS 1900) # OR MSVC_TOOLSET_VERSION LESS 140)
-      message(ERROR "Visual Studio prior to 2015 is not supported anymore.")
-    endif (MSVC_VERSION LESS 1900)
-else (MSVC)
-    set(CPPLINT_ARG_OUTPUT      "--output=eclipse")
-    set(CPPCHECK_ARG_TEMPLATE   "--template=gcc")
-    # Useful compile flags and extra warnings
-    # Stack protection is not supported on MinGW-W64 on Windows, allow this flag to be turned off.
-    option(SQLITECPP_USE_STACK_PROTECTION "USE Stack Protection hardening." ON)
-    if (SQLITECPP_USE_STACK_PROTECTION)
-        message (STATUS "Using Stack Protection hardening")
-        add_compile_options(-fstack-protector)
-    endif()
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -Wpedantic -Wswitch-enum -Wshadow -Wno-long-long") # C++ only, don't bother with sqlite3
-    if (CMAKE_COMPILER_IS_GNUCXX)
-        # GCC flags
-        option(SQLITECPP_USE_GCOV "USE GCov instrumentation." OFF)
-        if (SQLITECPP_USE_GCOV)
-            message (STATUS "Using GCov instrumentation")
-            add_compile_options (-coverage)
-            set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -coverage")
-        endif ()
-    endif (CMAKE_COMPILER_IS_GNUCXX)
-endif (MSVC)
-# and then common variables
-set(CPPLINT_ARG_VERBOSE "--verbose=3")
-set(CPPLINT_ARG_LINELENGTH "--linelength=120")
-
 ## Build the C++ Wrapper ##
 
 # adding a new file require explicitly modifying the CMakeLists.txt

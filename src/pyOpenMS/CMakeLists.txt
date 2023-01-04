@@ -167,7 +167,7 @@ if(AUTOWRAP_MISSING)
 else()
     execute_process(
         COMMAND
-        ${Python_EXECUTABLE} -c "import autowrap; exit(autowrap.version >= (0, 22, 9))"
+        ${Python_EXECUTABLE} -c "import autowrap; exit(autowrap.version >= (0, 22, 11))"
         RESULT_VARIABLE _AUTOWRAP_VERSION_OK
         ERROR_QUIET
         OUTPUT_QUIET
@@ -188,7 +188,7 @@ else()
         message(STATUS "Looking for autowrap - found autowrap ${AUTOWRAP_VERSION}, version ok")
         set(AUTOWRAP_VERSION_OK TRUE)
     else()
-        message(STATUS "Found autowrap version ${AUTOWRAP_VERSION}. The version is too old (>= 0.22.9 is required)")
+        message(STATUS "Found autowrap version ${AUTOWRAP_VERSION}. The version is too old (>= 0.22.11 is required)")
         message(FATAL_ERROR "Please upgrade autowrap or disable pyOpenMS.")
     endif()
 endif()
@@ -357,6 +357,7 @@ file(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/pyOpenMS/extra_includes)
 
 _copy_assets("${PROJECT_SOURCE_DIR}/pyopenms/" "*.py" ${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms/)
 _copy_assets("${PROJECT_SOURCE_DIR}/pyopenms/" "*.sh" ${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms/)
+_copy_assets("${PROJECT_SOURCE_DIR}/pyopenms/" "*.pyi" ${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms/)
 _copy_assets("${PROJECT_SOURCE_DIR}/pyopenms/" "py.typed" ${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms/)
 _copy_assets("${PROJECT_SOURCE_DIR}/pyTOPP/" "*.py" ${CMAKE_BINARY_DIR}/pyOpenMS/pyTOPP/)
 _copy_assets("${PROJECT_SOURCE_DIR}/tests/unittests/" "*" ${CMAKE_BINARY_DIR}/pyOpenMS/tests/unittests)

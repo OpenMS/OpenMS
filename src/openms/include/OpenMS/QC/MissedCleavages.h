@@ -69,7 +69,7 @@ namespace OpenMS
     virtual ~MissedCleavages() = default;
 
     /**
-     * @brief Counts the number of MissedCleavages per PeptideIdentification.
+     * @brief Counts the number of missed cleavages per PeptideIdentification.
      *
      * The result is a key/value map: #missed_cleavages --> counts
      * Additionally the first PeptideHit in each PeptideIdentification of the FeatureMap is annotated with metavalue 'missed_cleavages'.
@@ -83,7 +83,7 @@ namespace OpenMS
     /// returns the name of the metric
     const String& getName() const override;
     
-    /// returns the result as maps of #missed_cleavages --> counts; one map for each call to compute(...)
+    /// returns the result as maps of number of missed_cleavages to counts; one map for each call to compute(...)
     const std::vector<std::map<UInt32, UInt32>>& getResults() const;
 
     /**
