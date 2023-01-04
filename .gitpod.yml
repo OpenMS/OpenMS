@@ -7,16 +7,15 @@ tasks:
         export PATH=$PATH$( find ${PWD}/THIRDPARTY/Linux/64bit -type d -printf ":%p" )
         mkdir -p build && pushd build
         cmake -DCMAKE_BUILD_TYPE=Debug -DHAS_XSERVER=OFF -DENABLE_DOCS=OFF -DWITH_GUI=OFF -DCMAKE_EXPORT_COMPILE_COMMANDS=ON -DCMAKE_PREFIX_PATH='/contrib-build/;/usr/;/usr/local' -DBOOST_USE_STATIC=OFF ../
-        make -j7 OpenMS TOPP
+        make -j7 OpenMS TOPP UTILS
         popd
       command: |
         export PATH=$PATH$( find ${PWD}/THIRDPARTY/All -type d -printf ":%p" )
         export PATH=$PATH$( find ${PWD}/THIRDPARTY/Linux/64bit -type d -printf ":%p" )
-        #pushd build && make --debug=v -j7 all && popd
+        pushd build && make -j7 all && popd
 image:
   file: .gitpod.Dockerfile
 github:
-#foo
   prebuilds:
     # enable for the master/default branch (defaults to true)
     master: true
