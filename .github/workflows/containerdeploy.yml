@@ -122,11 +122,14 @@ jobs:
         run: |
             spython recipe dockerfiles/executables/Dockerfile &> dockerfiles/executables/Singularity.def
             cat dockerfiles/executables/Singularity.def
-            #sudo -E singularity build executables.sif dockerfiles/executables/Singularity.def
+            sed -i "s/^From:.*/From: $(pwd)\/library.sif/" dockerfiles/executables/Singularity.def
+            sed -i "s/Bootstrap:.*/Bootstrap: localimage/" dockerfiles/executables/Singularity.def
+            cat dockerfiles/executables/Singularity.def
+            sudo -E singularity build executables.sif dockerfiles/executables/Singularity.def
             
       - name: Upload images to ghcr.io
         shell: bash
         run: |
             echo ${{ secrets.GITHUB_TOKEN }} | singularity remote login -u jpfeuffer --password-stdin oras://ghcr.io
             singularity push library.sif oras://ghcr.io/${{ steps.downcase_repo.outputs.repo }}-library-sif:${{ steps.tag_name.outputs.tag }}
-            #singularity push executables.sif oras://ghcr.io/${{ steps.downcase_repo.outputs.repo }}-executables-sif:${{ steps.tag_name.outputs.tag }}
+            singularity push executables.sif oras://ghcr.io/${{ steps.downcase_repo.outputs.repo }}-executables-sif:${{ steps.tag_name.outputs.tag }}
