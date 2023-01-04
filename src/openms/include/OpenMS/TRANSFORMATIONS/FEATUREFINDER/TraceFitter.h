@@ -184,7 +184,7 @@ protected:
      *
      * @param s The solver containing the fitted parameter values.
      */
-    virtual void getOptimizedParameters_(const Eigen::VectorXd&) = 0;
+    virtual void getOptimizedParameters_(const Eigen::VectorXd& s) = 0;
     /**
      * Optimize the given parameters using the Levenberg-Marquardt algorithm.
      */

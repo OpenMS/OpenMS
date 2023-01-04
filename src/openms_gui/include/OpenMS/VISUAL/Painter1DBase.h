@@ -83,7 +83,7 @@ namespace OpenMS
     void paint(QPainter*, Plot1DCanvas* canvas, int layer_index) override;
 
   protected:
-    /// annotate up to 10 interesting peaks in the range @p vbegin to @pvend with their m/z values (using deisotoping and intensity filtering)
+    /// annotate up to 10 interesting peaks in the range @p vbegin to @p vend with their m/z values (using deisotoping and intensity filtering)
     void drawMZAtInterestingPeaks_(QPainter& painter, Plot1DCanvas* canvas, MSSpectrum::ConstIterator v_begin, MSSpectrum::ConstIterator v_end) const;
 
     const LayerData1DPeak* layer_; ///< the data to paint
