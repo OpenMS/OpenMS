@@ -90,7 +90,10 @@ jobs:
             echo "tag=${BRANCH#release/}" >> $GITHUB_OUTPUT
         id: tag_name
       - name: Downcase REPO
-        run: echo "repo=${GITHUB_REPOSITORY,,}" >> $GITHUB_OUTPUT
+        run: |
+            echo "???????????????????????????????"
+            echo "${GITHUB_REPOSITORY}"
+            echo "repo=${GITHUB_REPOSITORY,,}" >> $GITHUB_OUTPUT
         id: downcase_repo
       - name: Checkout Dockerfiles
         shell: bash # uses git bash on windows
