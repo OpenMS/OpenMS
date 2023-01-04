@@ -13,7 +13,7 @@ jobs:
     steps:
       - name: Extract branch name
         shell: bash
-        run: echo "##[set-output name=branch;]$(echo ${GITHUB_REF#refs/heads/})"
+        run: echo "{branch}={${GITHUB_REF#refs/heads/}}" >> $GITHUB_OUTPUT
         id: extract_branch
       - name: Define tag name
         shell: bash
@@ -25,10 +25,10 @@ jobs:
               BRANCH="latest"
             fi
             ## Remove release/ from release branch name (or keep the non-release name)
-            echo "##[set-output name=tag;]$(echo ${BRANCH#release/})"
+            echo "{tag}={${BRANCH#release/}}" >> $GITHUB_OUTPUT
         id: tag_name
       - name: Downcase REPO
-        run: echo "##[set-output name=repo;]$(echo ${GITHUB_REPOSITORY,,})"
+        run: echo "{repo}={${GITHUB_REPOSITORY,,}}" >> $GITHUB_OUTPUT
         id: downcase_repo
       - name: Checkout Dockerfiles
         shell: bash # uses git bash on windows
@@ -75,7 +75,7 @@ jobs:
     steps:
       - name: Extract branch name
         shell: bash
-        run: echo "##[set-output name=branch;]$(echo ${GITHUB_REF#refs/heads/})"
+        run: echo "{branch}={${GITHUB_REF#refs/heads/}}" >> $GITHUB_OUTPUT
         id: extract_branch
       - name: Define tag name
         shell: bash
@@ -87,10 +87,10 @@ jobs:
               BRANCH="latest"
             fi
             ## Remove release/ from release branch name
-            echo "##[set-output name=tag;]$(echo ${BRANCH#release/})"
+            echo "{tag}={${BRANCH#release/}}" >> $GITHUB_OUTPUT
         id: tag_name
       - name: Downcase REPO
-        run: echo "##[set-output name=repo;]$(echo ${GITHUB_REPOSITORY,,})"
+        run: echo "{repo}={${GITHUB_REPOSITORY,,}}" >> $GITHUB_OUTPUT
         id: downcase_repo
       - name: Checkout Dockerfiles
         shell: bash # uses git bash on windows
@@ -109,4 +109,4 @@ jobs:
             spython recipe dockerfiles/library/Dockerfile &> dockerfiles/library/Singularity.def
             sudo -E singularity build library.sif dockerfiles/library/Singularity.def
             echo ${{ secrets.GITHUB_TOKEN }} | singularity remote login -u jpfeuffer --password-stdin oras://ghcr.io
-            singularity push library.sif oras://ghcr.io/${GITHUB_REPOSITORY}:${{ steps.tag_name.outputs.tag }}
+            singularity push library.sif oras://ghcr.io/${{ steps.downcase_repo.outputs.repo }}-library-sif:${{ steps.tag_name.outputs.tag }}
