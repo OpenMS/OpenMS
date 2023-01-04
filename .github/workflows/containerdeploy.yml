@@ -103,12 +103,30 @@ jobs:
             then
               git checkout ${{ steps.extract_branch.outputs.branch }} || git checkout master
             fi
-      - name: Build Singularity library image
+            
+      - name: Install spython for conversion
         shell: bash
         run: |
             sudo apk add --no-cache py3-pip
             python3 -m pip install spython
+            
+      - name: Build Singularity library image
+        shell: bash
+        run: |
             spython recipe dockerfiles/library/Dockerfile &> dockerfiles/library/Singularity.def
+            cat dockerfiles/library/Singularity.def
             sudo -E singularity build library.sif dockerfiles/library/Singularity.def
+            
+      - name: Build Singularity tools image
+        shell: bash
+        run: |
+            spython recipe dockerfiles/executables/Dockerfile &> dockerfiles/executables/Singularity.def
+            cat dockerfiles/executables/Singularity.def
+            #sudo -E singularity build executables.sif dockerfiles/executables/Singularity.def
+            
+      - name: Upload images to ghcr.io
+        shell: bash
+        run: |
             echo ${{ secrets.GITHUB_TOKEN }} | singularity remote login -u jpfeuffer --password-stdin oras://ghcr.io
             singularity push library.sif oras://ghcr.io/${{ steps.downcase_repo.outputs.repo }}-library-sif:${{ steps.tag_name.outputs.tag }}
+            #singularity push executables.sif oras://ghcr.io/${{ steps.downcase_repo.outputs.repo }}-executables-sif:${{ steps.tag_name.outputs.tag }}
