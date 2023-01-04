@@ -109,4 +109,4 @@ jobs:
             spython recipe dockerfiles/library/Dockerfile &> dockerfiles/library/Singularity.def
             sudo -E singularity build library.sif dockerfiles/library/Singularity.def
             echo ${{ secrets.GITHUB_TOKEN }} | singularity remote login -u jpfeuffer --password-stdin oras://ghcr.io
-            singularity push library.sif oras://ghcr.io/${{ steps.downcase_repo.outputs.repo }}-library-sif:${{ steps.tag_name.outputs.tag }}
+            singularity push library.sif oras://ghcr.io/${GITHUB_REPOSITORY}:${{ steps.tag_name.outputs.tag }}
