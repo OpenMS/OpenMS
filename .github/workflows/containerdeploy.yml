@@ -13,7 +13,7 @@ jobs:
     steps:
       - name: Extract branch name
         shell: bash
-        run: echo "{branch}={${GITHUB_REF#refs/heads/}}" >> $GITHUB_OUTPUT
+        run: echo "branch=${GITHUB_REF#refs/heads/}" >> $GITHUB_OUTPUT
         id: extract_branch
       - name: Define tag name
         shell: bash
@@ -25,10 +25,10 @@ jobs:
               BRANCH="latest"
             fi
             ## Remove release/ from release branch name (or keep the non-release name)
-            echo "{tag}={${BRANCH#release/}}" >> $GITHUB_OUTPUT
+            echo "tag=${BRANCH#release/}" >> $GITHUB_OUTPUT
         id: tag_name
       - name: Downcase REPO
-        run: echo "{repo}={${GITHUB_REPOSITORY,,}}" >> $GITHUB_OUTPUT
+        run: echo "repo=${GITHUB_REPOSITORY,,}" >> $GITHUB_OUTPUT
         id: downcase_repo
       - name: Checkout Dockerfiles
         shell: bash # uses git bash on windows
@@ -75,7 +75,7 @@ jobs:
     steps:
       - name: Extract branch name
         shell: bash
-        run: echo "{branch}={${GITHUB_REF#refs/heads/}}" >> $GITHUB_OUTPUT
+        run: echo "branch=${GITHUB_REF#refs/heads/}" >> $GITHUB_OUTPUT
         id: extract_branch
       - name: Define tag name
         shell: bash
@@ -87,10 +87,10 @@ jobs:
               BRANCH="latest"
             fi
             ## Remove release/ from release branch name
-            echo "{tag}={${BRANCH#release/}}" >> $GITHUB_OUTPUT
+            echo "tag=${BRANCH#release/}" >> $GITHUB_OUTPUT
         id: tag_name
       - name: Downcase REPO
-        run: echo "{repo}={${GITHUB_REPOSITORY,,}}" >> $GITHUB_OUTPUT
+        run: echo "repo=${GITHUB_REPOSITORY,,}" >> $GITHUB_OUTPUT
         id: downcase_repo
       - name: Checkout Dockerfiles
         shell: bash # uses git bash on windows
