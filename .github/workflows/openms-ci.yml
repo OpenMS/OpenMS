@@ -114,7 +114,6 @@ jobs:
           CI_PROVIDER: "GitHub-Actions"
           SOURCE_DIRECTORY: "${{ github.workspace }}/OpenMS"
           BUILD_NAME: "${{ env.RUN_NAME }}-Windows-testClass-testTOPP"
-          OPENMS_CONTRIB_LIBS: "${{ github.workspace }}/OpenMS/contrib"
           ENABLE_STYLE_TESTING: "OFF"
           ENABLE_TOPP_TESTING: "ON"
           ENABLE_CLASS_TESTING: "ON"
@@ -276,7 +275,6 @@ jobs:
   build-lnx:
     runs-on: ubuntu-latest
     continue-on-error: true
-    container: ghcr.io/openms/contrib_manylinux2014:latest
     outputs:
       job-status: ${{ job.status }}
 
@@ -291,14 +289,17 @@ jobs:
       name: Checkout sources
       with:
         path: OpenMS
-
-    - name: Install ccache
+        
+    - name: Install dev tools, xvfb, jq (for GH parsing)
       run: |
-        yum -y install ccache ninja-build
-        ccache --version
+           sudo add-apt-repository universe
+           sudo apt update   
+           sudo apt-get install -y build-essential cmake autoconf patch libtool git automake ninja-build jq xvfb
+           sudo apt-get install -y qtbase5-dev libqt5svg5-dev libqt5opengl5-dev
+           sudo apt-get install -y libeigen3-dev libboost-random-dev libboost-regex-dev libboost-iostreams-dev libboost-date-time-dev libboost-math-dev libxerces-c-dev zlib1g-dev libsvm-dev libbz2-dev coinor-libcoinmp-dev libhdf5-dev
 
     - name: Load ccache
-      uses: actions/cache@v2
+      uses: actions/cache@v3
       with:
         path: .ccache
         key: ${{ runner.os }}-ccache-${{ github.ref }}-${{ github.run_number }}
@@ -312,7 +313,6 @@ jobs:
       if: github.event_name == 'push'
       shell: bash
       run: |
-        yum -y install jq
         ref=`jq --raw-output .ref "$GITHUB_EVENT_PATH"`
         ref=${ref#"refs/heads/"}
         ref=${ref#"refs/"}
@@ -324,28 +324,8 @@ jobs:
       if: github.event_name == 'pull_request'
       shell: bash
       run: |
-        yum -y install jq
         echo "RUN_NAME=pr$(jq --raw-output .pull_request.number $GITHUB_EVENT_PATH)" >> $GITHUB_ENV
       id: extract_pr
-
-      #  open step log to get ssh access
-      #  If the CI has failed and the branch is ci-debug then start a tmate
-      #  session. SSH rendezvous point is emited continuously in the job output.
-      #  hack needed to fix apt dependency
-#    - name: "Debug: Package dependancies for tmate"
-#      run: |
-#        yum install -y xz
-#        ln -s /bin/true /bin/apt-get
-#
-#    - name: "Debug: Start tmate"
-#      uses: mxschmitt/action-tmate@v3.3
-#      with:
-#        limit-access-to-actor: true
-#        sudo: false
-
-    - name: Install Xvfb package
-      run: |
-            yum -y install xorg-x11-server-Xvfb
 
     - name: Add THIRDPARTY
       shell: bash
@@ -387,7 +367,6 @@ jobs:
           CMAKE_GENERATOR: "Ninja"
           SOURCE_DIRECTORY: "${{ github.workspace }}/OpenMS"
           BUILD_NAME: "${{ env.RUN_NAME }}-Ubuntu-testClass-testTOPP"
-          OPENMS_CONTRIB_LIBS: "${{ github.workspace }}/OpenMS/contrib"
           ENABLE_STYLE_TESTING: "OFF"
           ENABLE_TOPP_TESTING: "ON"
           ENABLE_CLASS_TESTING: "ON"
@@ -423,11 +402,18 @@ jobs:
       with:
         path: OpenMS
 
+    - name: Install dev tools, xvfb, jq (for GH parsing)
+      run: |
+           sudo add-apt-repository universe
+           sudo apt update    
+           sudo apt-get install build-essential cmake autoconf patch libtool git automake ninja-build jq xvfb
+           sudo apt-get install qtbase5-dev libqt5svg5-dev libqt5opengl5-dev
+           sudo apt-get install libeigen3-dev libboost-random1.67-dev libboost-regex1.67-dev libboost-iostreams1.67-dev libboost-date-time1.67-dev libboost-math1.67-dev libxerces-c-dev zlib1g-dev libsvm-dev libbz2-dev coinor-libcoinmp-dev libhdf5-dev
+
     - name: Extract branch name
       if: github.event_name == 'push'
       shell: bash
       run: |
-        sudo apt-get install -y jq
         ref=`jq --raw-output .ref "$GITHUB_EVENT_PATH"`
         ref=${ref#"refs/heads/"}
         ref=${ref#"refs/"}
@@ -439,28 +425,8 @@ jobs:
       if: github.event_name == 'pull_request'
       shell: bash
       run: |
-        sudo apt-get install -y jq
         echo "RUN_NAME=pr$(jq --raw-output .pull_request.number $GITHUB_EVENT_PATH)" >> $GITHUB_ENV
       id: extract_pr
-
-      #  open step log to get ssh access
-      #  If the CI has failed and the branch is ci-debug then start a tmate
-      #  session. SSH rendezvous point is emited continuously in the job output.
-      #  hack needed to fix apt dependency
-#    - name: "Debug: Package dependancies for tmate"
-#      run: |
-#        sudo apt-get install -y xz
-#        ln -s /bin/true /bin/apt-get
-#
-#    - name: "Debug: Start tmate"
-#      uses: mxschmitt/action-tmate@v3.3
-#      with:
-#        limit-access-to-actor: true
-#        sudo: false
-
-    - name: Install Xvfb package
-      run: |
-            sudo apt-get install -y xvfb
 
     - name: Add THIRDPARTY
       shell: bash
@@ -515,7 +481,6 @@ jobs:
           CMAKE_GENERATOR: "Ninja"
           SOURCE_DIRECTORY: "${{ github.workspace }}/OpenMS"
           BUILD_NAME: "${{ env.RUN_NAME }}-Ubuntu-testClass-testTOPP"
-          OPENMS_CONTRIB_LIBS: "${{ github.workspace }}/OpenMS/contrib"
           ENABLE_STYLE_TESTING: "OFF"
           ENABLE_TOPP_TESTING: "ON"
           ENABLE_CLASS_TESTING: "ON"
