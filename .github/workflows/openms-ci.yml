@@ -374,9 +374,6 @@ jobs:
             ## TODO allow changing Contrib path to get rid of the extra cmake file!
             dbus-uuidgen > /var/lib/dbus/machine-id
             xvfb-run ctest --output-on-failure -V -S $GITHUB_WORKSPACE/OpenMS/tools/ci/cibuild.cmake
-            
-            cat $GITHUB_WORKSPACE/OpenMS/bld/CMakeFiles/CMakeError.log
-            cat $GITHUB_WORKSPACE/OpenMS/bld/CMakeFiles/CMakeTmp/testCXXCompiler.cxx
 
             FAILED_TEST=$(find $GITHUB_WORKSPACE/OpenMS/bld/ -name "Test.xml" -type f -exec grep "<Test Status=\"failed\">" -c {} \; )
             if [ "$FAILED_TEST" -gt "0" ] ; then
