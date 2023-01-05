@@ -34,13 +34,11 @@
 
 #include <OpenMS/VISUAL/APPLICATIONS/TOPPViewBase.h>
 
-#include <OpenMS/CHEMISTRY/AASequence.h>
 #include <OpenMS/CHEMISTRY/TheoreticalSpectrumGenerator.h>
 #include <OpenMS/CONCEPT/EnumHelpers.h>
 #include <OpenMS/CONCEPT/RAIICleanup.h>
 #include <OpenMS/CONCEPT/VersionInfo.h>
 #include <OpenMS/CONCEPT/LogStream.h>
-#include <OpenMS/FILTERING/NOISEESTIMATION/SignalToNoiseEstimator.h>
 #include <OpenMS/FORMAT/ConsensusXMLFile.h>
 #include <OpenMS/FORMAT/FeatureXMLFile.h>
 #include <OpenMS/FORMAT/FileHandler.h>
@@ -50,7 +48,6 @@
 #include <OpenMS/FORMAT/MzIdentMLFile.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/FORMAT/ParamXMLFile.h>
-#include <OpenMS/FORMAT/TextFile.h>
 #include <OpenMS/IONMOBILITY/IMDataConverter.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
@@ -58,9 +55,6 @@
 #include <OpenMS/METADATA/Precursor.h>
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/SYSTEM/FileWatcher.h>
-#include <OpenMS/VISUAL/ANNOTATION/Annotation1DDistanceItem.h>
-#include <OpenMS/VISUAL/ANNOTATION/Annotation1DPeakItem.h>
-#include <OpenMS/VISUAL/ANNOTATION/Annotation1DTextItem.h>
 #include <OpenMS/VISUAL/AxisWidget.h>
 #include <OpenMS/VISUAL/DataSelectionTabs.h>
 #include <OpenMS/VISUAL/DIALOGS/SpectrumAlignmentDialog.h>
@@ -70,6 +64,10 @@
 #include <OpenMS/VISUAL/DIALOGS/TOPPViewPrefDialog.h>
 #include <OpenMS/VISUAL/INTERFACES/IPeptideIds.h>
 #include <OpenMS/VISUAL/LayerListView.h>
+#include <OpenMS/VISUAL/LayerDataChrom.h>
+#include <OpenMS/VISUAL/LayerDataConsensus.h>
+#include <OpenMS/VISUAL/LayerDataFeature.h>
+#include <OpenMS/VISUAL/LayerDataPeak.h>
 #include <OpenMS/VISUAL/LogWindow.h>
 #include <OpenMS/VISUAL/MetaDataBrowser.h>
 #include <OpenMS/VISUAL/MISC/GUIHelpers.h>
@@ -82,6 +80,7 @@
 #include <OpenMS/VISUAL/Plot3DWidget.h>
 #include <OpenMS/VISUAL/SpectraIDViewTab.h>
 #include <OpenMS/VISUAL/SpectraTreeTab.h>
+#include <OpenMS/VISUAL/VISITORS/LayerStoreData.h>
 
 // Qt
 #include <QCloseEvent>
@@ -115,10 +114,11 @@ namespace OpenMS
                                        FileTypes::DTA, FileTypes::DTA2D, FileTypes::MGF, FileTypes::MS2,
                                        FileTypes::MSP, FileTypes::BZ2, FileTypes::GZ });
 
-  TOPPViewBase::TOPPViewBase(TOOL_SCAN scan_mode, QWidget* parent) :
+  TOPPViewBase::TOPPViewBase(TOOL_SCAN scan_mode, VERBOSITY verbosity, QWidget* parent) :
     QMainWindow(parent),
     DefaultParamHandler("TOPPViewBase"),
     scan_mode_(scan_mode),
+    verbosity_(verbosity),
     ws_(this),
     tab_bar_(this),
     recent_files_(),
@@ -171,14 +171,14 @@ namespace OpenMS
     message_label_ = new QLabel(statusBar());
     statusBar()->addWidget(message_label_, 1);
 
-    rt_label_ = new QLabel("RT: 12345678", statusBar());
-    rt_label_->setMinimumSize(rt_label_->sizeHint());
-    rt_label_->setText("");
-    statusBar()->addPermanentWidget(rt_label_, 0);
-    mz_label_ = new QLabel("m/z: 123456780912", statusBar());
-    mz_label_->setMinimumSize(mz_label_->sizeHint());
-    mz_label_->setText("");
-    statusBar()->addPermanentWidget(mz_label_, 0);
+    x_label_ = new QLabel("RT: 12345678", statusBar());
+    x_label_->setMinimumSize(x_label_->sizeHint());
+    x_label_->setText("");
+    statusBar()->addPermanentWidget(x_label_, 0);
+    y_label_ = new QLabel("m/z: 123456780912", statusBar());
+    y_label_->setMinimumSize(y_label_->sizeHint());
+    y_label_->setText("");
+    statusBar()->addPermanentWidget(y_label_, 0);
 
     //################## TOOLBARS #################
     // create toolbars and connect signals
@@ -443,6 +443,11 @@ namespace OpenMS
     current_path_ = param_.getValue(user_section + "default_path").toString();
 
     // set plugin search path, create it if it does not already exist
+    if (verbosity_ == VERBOSITY::VERBOSE) 
+    {
+      tool_scanner_.setVerbose(1);
+    }
+
     String plugin_path = String(param_.getValue(user_section + "plugins_path").toString());
     tool_scanner_.setPluginPath(plugin_path, true);
 
@@ -505,7 +510,7 @@ namespace OpenMS
     defaults_.setValidStrings("preferences:topp_cleanup", {"true", "false"});
 
     defaults_.setValue("preferences:version", "none", "OpenMS version, used to check if the TOPPView.ini is up-to-date");
-    subsections_.push_back("preferences:RecentFiles");
+    subsections_.emplace_back("preferences:RecentFiles");
 
     // store defaults in param_
     defaultsToParam_();
@@ -680,9 +685,9 @@ namespace OpenMS
         if (file_type == FileTypes::MZML)
         {
           // Load index only and check success (is it indexed?)
-          Internal::IndexedMzMLHandler indexed_mzml_file_;
-          indexed_mzml_file_.openFile(filename);
-          if ( indexed_mzml_file_.getParsingSuccess() && cache_ms2_on_disc)
+          Internal::IndexedMzMLHandler indexed_mzml_file;
+          indexed_mzml_file.openFile(filename);
+          if ( indexed_mzml_file.getParsingSuccess() && cache_ms2_on_disc)
           {
             // If it has an index, now load index and meta data
             on_disc_peaks->openFile(filename, false);
@@ -702,17 +707,16 @@ namespace OpenMS
             // with actual spectra including raw data (allowing us to only
             // populate MS1 spectra with actual data).
 
-            // peak_map_sptr = boost::static_pointer_cast<ExperimentSharedPtrType>(on_disc_peaks->getMetaData());
             peak_map_sptr = on_disc_peaks->getMetaData();
 
-            for (Size k = 0; k < indexed_mzml_file_.getNrSpectra() && !cache_ms1_on_disc; k++)
+            for (Size k = 0; k < indexed_mzml_file.getNrSpectra() && !cache_ms1_on_disc; k++)
             {
               if ( peak_map_sptr->getSpectrum(k).getMSLevel() == 1)
               {
                 peak_map_sptr->getSpectrum(k) = on_disc_peaks->getSpectrum(k);
               }
             }
-            for (Size k = 0; k < indexed_mzml_file_.getNrChromatograms() && !cache_ms2_on_disc; k++)
+            for (Size k = 0; k < indexed_mzml_file.getNrChromatograms() && !cache_ms2_on_disc; k++)
             {
               peak_map_sptr->getChromatogram(k) = on_disc_peaks->getChromatogram(k);
             }
@@ -730,7 +734,7 @@ namespace OpenMS
         OPENMS_LOG_INFO << "INFO: done loading all " << std::endl;
 
         // a mzML file may contain both, chromatogram and peak data
-        // -> this is handled in PlotCanvas::addLayer
+        // -> this is handled in PlotCanvas::addPeakLayer
         data_type = LayerDataBase::DT_CHROMATOGRAM;
         if (peak_map_sptr->containsScanOfLevel(1))
         {
@@ -744,7 +748,7 @@ namespace OpenMS
       return LOAD_RESULT::LOAD_ERROR;
     }
 
-    // sort for mz and update ranges of newly loaded data
+    // sort for m/z and update ranges of newly loaded data
     peak_map_sptr->sortSpectra(true);
     peak_map_sptr->updateRanges(1);
 
@@ -787,9 +791,9 @@ namespace OpenMS
       peak_map_sptr, 
       on_disc_peaks, 
       data_type, 
-      false, 
+      false,   // show as 1D
       show_options, 
-      true, 
+      true,    // as new window
       abs_filename, 
       caption, 
       window_id, 
@@ -807,11 +811,11 @@ namespace OpenMS
     return LOAD_RESULT::OK;
   }
 
-  void TOPPViewBase::addData(FeatureMapSharedPtrType feature_map,
-                             ConsensusMapSharedPtrType consensus_map,
+  void TOPPViewBase::addData(const FeatureMapSharedPtrType& feature_map,
+                             const ConsensusMapSharedPtrType& consensus_map,
                              vector<PeptideIdentification>& peptides,
-                             ExperimentSharedPtrType peak_map,
-                             ODExperimentSharedPtrType on_disc_peak_map,
+                             const ExperimentSharedPtrType& peak_map,
+                             const ODExperimentSharedPtrType& on_disc_peak_map,
                              LayerDataBase::DataType data_type,
                              bool show_as_1d,
                              bool show_options,
@@ -855,38 +859,33 @@ namespace OpenMS
     TOPPViewOpenDialog dialog(caption, as_new_window, maps_as_2d, use_intensity_cutoff, this);
 
     // disable opening in new window when there is no active window or feature/ID data is to be opened, but the current window is a 3D window
-    if (target_window == nullptr || (mergeable && dynamic_cast<Plot3DWidget*>(target_window) != nullptr))
+    if (target_window == nullptr || (mergeable && dynamic_cast<Plot3DWidget*>(target_window)))
     {
       dialog.disableLocation(true);
     }
 
-    // disable 1d/2d/3d option for feature/consensus/identification maps
-    if (mergeable)
+    // for feature/consensus/identification maps
+    if (mergeable) 
     {
-      dialog.disableDimension(true);
-    }
-
-    // disable cutoff for feature/consensus/identification maps
-    if (mergeable)
-    {
+      dialog.disableDimension(true); // disable 1d/2d/3d option
       dialog.disableCutoff(false);
-    }
 
-    // enable merge layers if a feature layer is opened and there are already features layers to merge it to
-    if (mergeable && target_window != nullptr) //TODO merge
-    {
-      PlotCanvas* open_canvas = target_window->canvas();
-      std::map<Size, String> layers;
-      for (Size i = 0; i < open_canvas->getLayerCount(); ++i)
+      // enable merge layers if a feature layer is opened and there are already features layers to merge it to
+      if (target_window)
       {
-        if (data_type == open_canvas->getLayer(i).type)
+        PlotCanvas* open_canvas = target_window->canvas();
+        std::map<Size, String> layers;
+        for (Size i = 0; i < open_canvas->getLayerCount(); ++i)
         {
-          layers[i] = open_canvas->getLayer(i).getName();
+          if (data_type == open_canvas->getLayer(i).type)
+          {
+            layers[i] = open_canvas->getLayer(i).getName();
+          }
         }
+        dialog.setMergeLayers(layers); // adds a dropdown
       }
-      dialog.setMergeLayers(layers);
     }
-
+    
     // show options if requested
     if (show_options && !dialog.exec())
     {
@@ -917,7 +916,7 @@ namespace OpenMS
     {
       if (maps_as_1d) // 2d in 1d window
       {
-        target_window = new Plot1DWidget(getCanvasParameters(1), &ws_);
+        target_window = new Plot1DWidget(getCanvasParameters(1), DIM::Y, &ws_);
       }
       else if (maps_as_2d || mergeable) // 2d or features/IDs
       {
@@ -929,7 +928,7 @@ namespace OpenMS
       }
     }
 
-    if (merge_layer == -1) // add layer to the window
+    if (merge_layer == -1) // add new layer to the window
     {
       if (data_type == LayerDataBase::DT_FEATURE) // features
       {
@@ -948,30 +947,20 @@ namespace OpenMS
         if (!target_window->canvas()->addLayer(peptides, filename))
           return;
       }
-      else // peaks
+      else // peaks or chrom
       {
-        if (!target_window->canvas()->addLayer(peak_map, on_disc_peak_map, filename))
+        if (data_type == LayerDataBase::DT_PEAK &&
+            !target_window->canvas()->addPeakLayer(peak_map, on_disc_peak_map, filename, use_intensity_cutoff))
+        {
           return;
-
-        // calculate noise
-        if (use_intensity_cutoff)
-        {
-          double cutoff = estimateNoiseFromRandomScans(*(target_window->canvas()->getCurrentLayer().getPeakData()), 1, 10, 80);
-          DataFilters filters;
-          filters.add(DataFilters::DataFilter(DataFilters::INTENSITY, DataFilters::GREATER_EQUAL, cutoff));
-          target_window->canvas()->setFilters(filters);
         }
-        else // no mower, hide zeros if wanted
+        
+        if (data_type == LayerDataBase::DT_CHROMATOGRAM &&
+            !target_window->canvas()->addChromLayer(peak_map, on_disc_peak_map, filename))
         {
-          if (target_window->canvas()->getCurrentLayer().getPeakData()->hasZeroIntensities(1))
-          {
-            statusBar()->showMessage("Note: Data contains zero values.\nA filter will be added to hide these values.\nYou can reenable data points with zero intensity by removing the filter.");
-            DataFilters filters;
-            filters.add(DataFilters::DataFilter(DataFilters::INTENSITY, DataFilters::GREATER_EQUAL, 0.001));
-            target_window->canvas()->setFilters(filters);
-          }
+          return;
         }
-
+        
         Plot1DWidget* open_1d_window = dynamic_cast<Plot1DWidget*>(target_window);
         if (open_1d_window)
         {
@@ -998,7 +987,7 @@ namespace OpenMS
 
     if (as_new_window)
     {
-      showPlotWidgetInWindow(target_window, caption);
+      showPlotWidgetInWindow(target_window);
     }
 
     // enable spectra view tab (not required anymore since selection_view_.update() will decide automatically)
@@ -1056,7 +1045,7 @@ namespace OpenMS
     getActivePlotWidget()->showStatistics();
   }
 
-  void TOPPViewBase::showStatusMessage(string msg, OpenMS::UInt time)
+  void TOPPViewBase::showStatusMessage(const string& msg, OpenMS::UInt time)
   {
     if (time == 0)
     {
@@ -1069,40 +1058,11 @@ namespace OpenMS
     }
   }
 
-  void TOPPViewBase::showCursorStatusInvert(double mz, double rt)
-  {
-    // swap rt vs mz (for vertical projection)
-    showCursorStatus(rt, mz);
-  }
-
-  void TOPPViewBase::showCursorStatus(double mz, double rt)
+  void TOPPViewBase::showCursorStatus(const String& x, const String& y)
   {
     message_label_->setText("");
-    if (mz == -1)
-    {
-      mz_label_->setText("m/z: ");
-    }
-    else if (isinf(mz) || isnan(mz))
-    {
-      mz_label_->setText("m/z: n/a");
-    }
-    else
-    {
-      mz_label_->setText((String("m/z: ") + String::number(mz, 6).fillLeft(' ', 8)).toQString());
-    }
-
-    if (rt == -1)
-    {
-      rt_label_->setText("RT: ");
-    }
-    else if (isinf(rt) || isnan(rt))
-    {
-      rt_label_->setText("RT: n/a");
-    }
-    else
-    {
-      rt_label_->setText((String("RT: ") + String::number(rt, 1).fillLeft(' ', 8)).toQString());
-    }
+    x_label_->setText(x.toQString());
+    y_label_->setText(y.toQString());
     statusBar()->update();
   }
 
@@ -1351,9 +1311,7 @@ namespace OpenMS
       if (getActiveCanvas()->getLayerCount() != 0) 
       {
         fs |= TV_STATUS::HAS_LAYER;
-        layer_type = getCurrentLayer()->getChromatogramData().get()->getNrChromatograms() > 0
-                             ? LayerDataBase::DT_CHROMATOGRAM // chrom data in 1D view is shown as DT_PEAK...
-                             : getCurrentLayer()->type;
+        layer_type = getCurrentLayer()->type;
       }
     }
     // is this a 1D view
@@ -1400,7 +1358,7 @@ namespace OpenMS
     zoom_together_ = !zoom_together_;
   }
 
-  void TOPPViewBase::layerZoomChanged() const // todo rename zoomothers
+  void TOPPViewBase::zoomOtherWindows() const
   {
     if (!zoom_together_) return;
 
@@ -1408,10 +1366,9 @@ namespace OpenMS
     if (!windows.count()) return;
 
     PlotWidget* w = getActivePlotWidget();
-    DRange<2> new_visible_area = w->canvas()->getVisibleArea();
+    auto new_visible_area = w->canvas()->getVisibleArea();
     // only zoom if other window is also (not) a chromatogram
-    bool sender_is_chrom = w->canvas()->getCurrentLayer().type == LayerDataBase::DT_CHROMATOGRAM ||
-                           w->canvas()->getCurrentLayer().chromatogram_flag_set();
+    bool sender_is_chrom = w->canvas()->getCurrentLayer().type == LayerDataBase::DT_CHROMATOGRAM;
 
     // go through all windows, adjust the visible area where necessary
     for (int i = 0; i < int(windows.count()); ++i)
@@ -1419,8 +1376,7 @@ namespace OpenMS
       PlotWidget* specwidg = qobject_cast<PlotWidget*>(windows.at(i)->widget());
       if (!specwidg) continue;
 
-      bool is_chrom = specwidg->canvas()->getCurrentLayer().type == LayerDataBase::DT_CHROMATOGRAM ||
-                      specwidg->canvas()->getCurrentLayer().chromatogram_flag_set();
+      bool is_chrom = specwidg->canvas()->getCurrentLayer().type == LayerDataBase::DT_CHROMATOGRAM;
       if (is_chrom != sender_is_chrom) continue;
       // not the same dimensionality (e.g. Plot1DCanvas vs. 2DCanvas)
       if (w->canvas()->getName() != specwidg->canvas()->getName()) continue;
@@ -1433,46 +1389,51 @@ namespace OpenMS
   {
   }
 
-  void TOPPViewBase::showPlotWidgetInWindow(PlotWidget* sw, const String& caption)
+  void TOPPViewBase::showPlotWidgetInWindow(PlotWidget* sw)
   {
     ws_.addSubWindow(sw);
     connect(sw->canvas(), &PlotCanvas::preferencesChange, this, &TOPPViewBase::updateLayerBar);
     connect(sw->canvas(), &PlotCanvas::layerActivated, this, &TOPPViewBase::layerActivated);
     connect(sw->canvas(), &PlotCanvas::layerModficationChange, this, &TOPPViewBase::updateLayerBar);
-    connect(sw->canvas(), &PlotCanvas::layerZoomChanged, this, &TOPPViewBase::layerZoomChanged);
+    connect(sw->canvas(), &PlotCanvas::layerZoomChanged, this, &TOPPViewBase::zoomOtherWindows);
     connect(sw, &PlotWidget::sendStatusMessage, this, &TOPPViewBase::showStatusMessage);
     connect(sw, &PlotWidget::sendCursorStatus, this, &TOPPViewBase::showCursorStatus);
     connect(sw, &PlotWidget::dropReceived, this, &TOPPViewBase::copyLayer);
 
+    auto base_name = sw->canvas()->getCurrentLayer().getDecoratedName();
+
     // 1D spectrum specific signals
     Plot1DWidget* sw1 = qobject_cast<Plot1DWidget*>(sw);
-    if (sw1 != nullptr)
+    if (sw1)
     {
       connect(sw1, &Plot1DWidget::showCurrentPeaksAs2D, this, &TOPPViewBase::showCurrentPeaksAs2D);
       connect(sw1, &Plot1DWidget::showCurrentPeaksAs3D, this, &TOPPViewBase::showCurrentPeaksAs3D);
       connect(sw1, &Plot1DWidget::showCurrentPeaksAsIonMobility, this, &TOPPViewBase::showCurrentPeaksAsIonMobility);
       connect(sw1, &Plot1DWidget::showCurrentPeaksAsDIA, this, &TOPPViewBase::showCurrentPeaksAsDIA);
+      base_name += " (1D)";
     }
 
     // 2D spectrum specific signals
     Plot2DWidget* sw2 = qobject_cast<Plot2DWidget*>(sw);
-    if (sw2 != nullptr)
+    if (sw2)
     {
-      connect(sw2->getHorizontalProjection(), &Plot2DWidget::sendCursorStatus, this, &TOPPViewBase::showCursorStatus);
-      connect(sw2->getVerticalProjection(), &Plot2DWidget::sendCursorStatus, this, &TOPPViewBase::showCursorStatusInvert);
+      connect(sw2->getProjectionOntoX(), &Plot1DWidget::sendCursorStatus, this, &TOPPViewBase::showCursorStatus);
+      connect(sw2->getProjectionOntoY(), &Plot1DWidget::sendCursorStatus, this, &TOPPViewBase::showCursorStatus);
       connect(sw2, &Plot2DWidget::showSpectrumAsNew1D, selection_view_, &DataSelectionTabs::showSpectrumAsNew1D);
       connect(sw2, &Plot2DWidget::showCurrentPeaksAs3D , this, &TOPPViewBase::showCurrentPeaksAs3D);
+      base_name += " (2D)";
     }
 
     // 3D spectrum specific signals
     Plot3DWidget* sw3 = qobject_cast<Plot3DWidget*>(sw);
-    if (sw3 != nullptr)
+    if (sw3)
     {
       connect(sw3, &Plot3DWidget::showCurrentPeaksAs2D,this, &TOPPViewBase::showCurrentPeaksAs2D);
+      base_name += " (3D)";
     }
 
-    sw->setWindowTitle(caption.toQString());
-    sw->addToTabBar(&tab_bar_, caption, true);
+    sw->setWindowTitle(base_name.toQString());
+    sw->addToTabBar(&tab_bar_, base_name, true);
     
     // show first window maximized (only visible windows are in the list)
     if (ws_.subWindowList().count() == 1)
@@ -1773,73 +1734,19 @@ namespace OpenMS
       return;
     }
 
-    // Store data
+    // store data
     topp_.layer_name = layer.getName();
     topp_.window_id = getActivePlotWidget()->getWindowId();
-    topp_.spectrum_id = layer.getCurrentSpectrumIndex();
-    if (layer.type == LayerDataBase::DT_PEAK  && !(layer.chromatogram_flag_set()))
+    if (auto layer_1d = dynamic_cast<const LayerData1DBase*>(&layer))
     {
-      MzMLFile f;
-      f.setLogType(ProgressLogger::GUI);
-      if (topp_.visible_area_only)
-      {
-        ExperimentType exp;
-        getActiveCanvas()->getVisiblePeakData(exp);
-        f.store(topp_.file_name + "_in", exp);
-      }
-      else
-      {
-        f.store(topp_.file_name + "_in", *layer.getPeakData());
-      }
+      topp_.spectrum_id = layer_1d->getCurrentIndex();
     }
-    else if (layer.type == LayerDataBase::DT_CHROMATOGRAM || layer.chromatogram_flag_set())
-    {
-      MzMLFile f;
-      // This means we have chromatogram data, either as DT_CHROMATOGRAM or as
-      // DT_PEAK with the chromatogram flag set. To run the TOPPTool we need to
-      // remove the flag and add the newly generated layer as spectrum data
-      // (otherwise we run into problems with SpectraTreeTab::updateEntries
-      // which assumes that all chromatogram data has chromatograms).
-      getActiveCanvas()->getCurrentLayer().remove_chromatogram_flag(); // removing the flag is not constant
-      //getActiveCanvas()->getCurrentLayer().getPeakData()->setMetaValue("chromatogram_passed_through_TOPP", "true");
 
-      f.setLogType(ProgressLogger::GUI);
-      if (topp_.visible_area_only)
-      {
-        ExperimentType exp;
-        getActiveCanvas()->getVisiblePeakData(exp);
-        f.store(topp_.file_name + "_in", exp);
-      }
-      else
-      {
-        f.store(topp_.file_name + "_in", *layer.getPeakData());
-      }
-    }
-    else if (layer.type == LayerDataBase::DT_FEATURE)
-    {
-      if (topp_.visible_area_only)
-      {
-        FeatureMapType map;
-        getActiveCanvas()->getVisibleFeatureData(map);
-        FeatureXMLFile().store(topp_.file_name + "_in", map);
-      }
-      else
-      {
-        FeatureXMLFile().store(topp_.file_name + "_in", *layer.getFeatureMap());
-      }
-    }
-    else
-    {
-      if (topp_.visible_area_only)
-      {
-        ConsensusMapType map;
-        getActiveCanvas()->getVisibleConsensusData(map);
-        ConsensusXMLFile().store(topp_.file_name + "_in", map);
-      }
-      else
-      {
-        ConsensusXMLFile().store(topp_.file_name + "_in", *layer.getConsensusMap());
-      }
+    { // just a local scope
+      auto visitor_data = topp_.visible_area_only
+                          ? layer.storeVisibleData(getActiveCanvas()->getVisibleArea().getAreaUnit(), layer.filters)
+                          : layer.storeFullData();
+      visitor_data->saveToFile(topp_.file_name, ProgressLogger::GUI);
     }
 
     // compose argument list
@@ -1856,7 +1763,7 @@ namespace OpenMS
     }
 
     // start log and show it
-    log_->appendNewHeader(LogWindow::LogState::NOTICE, QString("Starting '%1'").arg(topp_.tool.toQString()), ""); // tool + args.join(" "));
+    log_->appendNewHeader(LogWindow::LogState::NOTICE, QString("Starting '%1'").arg(topp_.tool.toQString()), "");
 
     // initialize process
     topp_.process = new QProcess();
@@ -1897,12 +1804,10 @@ namespace OpenMS
       // ensure that all tool output is emitted into log screen
       updateProcessLog();
 
-      // re-enable Apply TOPP tool menues
+      // re-enable Apply TOPP tool menus
       delete topp_.process;
       topp_.process = nullptr;
       updateMenu();
-
-      return;
     }
   }
 
@@ -2021,6 +1926,8 @@ namespace OpenMS
     {
       return;
     }
+    selection_view_->setCurrentIndex(DataSelectionTabs::DIAOSW_IDX); // switch to DIA view
+    selection_view_->currentTabChanged(DataSelectionTabs::DIAOSW_IDX);
   }
 
   void TOPPViewBase::showSpectrumGenerationDialog()
@@ -2086,14 +1993,17 @@ namespace OpenMS
   void TOPPViewBase::showCurrentPeaksAs2D()
   {
     LayerDataBase& layer = getActiveCanvas()->getCurrentLayer();
-    ExperimentSharedPtrType exp_sptr = layer.getPeakDataMuteable();
-    ODExperimentSharedPtrType od_exp_sptr = layer.getOnDiscPeakData();
+    auto* lp = dynamic_cast<LayerDataPeak*>(&layer);
+    if (!lp) return;
+
+    ExperimentSharedPtrType exp_sptr = lp->getPeakDataMuteable();
+    ODExperimentSharedPtrType od_exp_sptr = lp->getOnDiscPeakData();
 
     // open new 2D widget
     Plot2DWidget* w = new Plot2DWidget(getCanvasParameters(2), &ws_);
 
     // add data
-    if (!w->canvas()->addLayer(exp_sptr, od_exp_sptr, layer.filename))
+    if (!w->canvas()->addPeakLayer(exp_sptr, od_exp_sptr, layer.filename))
     {
       return;
     }
@@ -2105,55 +2015,43 @@ namespace OpenMS
       caption = caption.prefix(caption.rfind(CAPTION_3D_SUFFIX_));
     }
     w->canvas()->setLayerName(w->canvas()->getCurrentLayerIndex(), caption);
-    showPlotWidgetInWindow(w, caption);
+    showPlotWidgetInWindow(w);
     updateMenu();
   }
 
 
-  void TOPPViewBase::showCurrentPeaksAsIonMobility()
+  void TOPPViewBase::showCurrentPeaksAsIonMobility(const MSSpectrum& spec)
   {
     const LayerDataBase& layer = getActiveCanvas()->getCurrentLayer();
-
-    // Get current spectrum
-    auto spidx = layer.getCurrentSpectrumIndex();
     
-    ExperimentSharedPtrType exp(new MSExperiment(IMDataConverter::splitByIonMobility(layer.getCurrentSpectrum())));
+    ExperimentSharedPtrType exp(new MSExperiment(IMDataConverter::splitByIonMobility(spec)));
     // hack, but currently not avoidable, because 2D widget does not support IM natively yet...
-    for (auto& spec : exp->getSpectra()) spec.setRT(spec.getDriftTime());
+    // for (auto& spec : exp->getSpectra()) spec.setRT(spec.getDriftTime());
 
     // open new 2D widget
     Plot2DWidget* w = new Plot2DWidget(getCanvasParameters(2), &ws_);
+    // map to IM + MZ
+    w->setMapper(DimMapper<2>({IMTypes::fromIMUnit(exp->getSpectra()[0].getDriftTimeUnit()), DIM_UNIT::MZ}));
 
     // add data
-    if (!w->canvas()->addLayer(exp, PlotCanvas::ODExperimentSharedPtrType(new OnDiscMSExperiment()), layer.filename))
+    if (!w->canvas()->addPeakLayer(exp, PlotCanvas::ODExperimentSharedPtrType(new OnDiscMSExperiment()), layer.filename + " (IM Frame)"))
     {
       return;
     }
-    w->xAxis()->setLegend("Ion Mobility [" + exp->getSpectra()[0].getDriftTimeUnitAsString() + "]");
 
-    String caption = layer.getName() + " (Ion Mobility Scan " + String(spidx) + ")";
-    // remove 3D suffix added when opening data in 3D mode (see below showCurrentPeaksAs3D())
-    if (caption.hasSuffix(CAPTION_3D_SUFFIX_))
-    {
-      caption = caption.prefix(caption.rfind(CAPTION_3D_SUFFIX_));
-    }
-    w->canvas()->setLayerName(w->canvas()->getCurrentLayerIndex(), caption);
-    showPlotWidgetInWindow(w, caption);
+    showPlotWidgetInWindow(w);
     updateMenu();
   }
 
-  void TOPPViewBase::showCurrentPeaksAsDIA()
+  void TOPPViewBase::showCurrentPeaksAsDIA(const Precursor& pc, const MSExperiment& exp)
   {
     const LayerDataBase& layer = getActiveCanvas()->getCurrentLayer();
-
-    if (!layer.isDIAData())
+    auto* lp = dynamic_cast<const LayerDataPeak*>(&layer);
+    if (!lp || !lp->isDIAData())
     {
       std::cout << "Layer does not contain DIA / SWATH-MS data" << std::endl;
       return;
     }
-
-    // Get current spectrum
-    MSSpectrum tmps = layer.getCurrentSpectrum();
 
     // Add spectra into a MSExperiment, sort and prepare it for display
     ExperimentSharedPtrType tmpe(new OpenMS::MSExperiment() );
@@ -2161,46 +2059,42 @@ namespace OpenMS
     // Collect all MS2 spectra with the same precursor as the current spectrum
     // (they are in the same SWATH window)
     String caption_add = "";
-    if (!tmps.getPrecursors().empty())
-    {
-      // Get precursor isolation windows
-      const auto& prec = tmps.getPrecursors()[0];
-      double lower = prec.getMZ() - prec.getIsolationWindowLowerOffset();
-      double upper = prec.getMZ() + prec.getIsolationWindowUpperOffset();
 
-      Size k = 0;
-      for (const auto& spec : (*layer.getPeakData() ) )
+    double lower = pc.getMZ() - pc.getIsolationWindowLowerOffset();
+    double upper = pc.getMZ() + pc.getIsolationWindowUpperOffset();
+
+    Size k = 0;
+    for (const auto& spec : exp)
+    {
+      if (spec.getMSLevel() == 2 && !spec.getPrecursors().empty() )
       {
-        if (spec.getMSLevel() == 2 && !spec.getPrecursors().empty() )
+        if (fabs(spec.getPrecursors()[0].getMZ() - pc.getMZ()) < 1e-4)
         {
-          if (fabs(spec.getPrecursors()[0].getMZ() - tmps.getPrecursors()[0].getMZ() ) < 1e-4 )
+          // Get the spectrum in question (from memory or disk) and add to
+          // the newly created MSExperiment
+          if (spec.size() > 0)
           {
-            // Get the spectrum in question (from memory or disk) and add to
-            // the newly created MSExperiment
-            if (spec.size() > 0)
-            {
-              // Get data from memory - copy data and tell TOPPView that this
-              // is MS1 data so that it will be displayed properly in 2D and 3D
-              // view
-              MSSpectrum t = spec;
-              t.setMSLevel(1);
-              tmpe->addSpectrum(t);
-            }
-            else if (layer.getOnDiscPeakData()->getNrSpectra() > k)
-            {
-              // Get data from disk - copy data and tell TOPPView that this is
-              // MS1 data so that it will be displayed properly in 2D and 3D
-              // view
-              MSSpectrum t = layer.getOnDiscPeakData()->getSpectrum(k);
-              t.setMSLevel(1);
-              tmpe->addSpectrum(t);
-            }
+            // Get data from memory - copy data and tell TOPPView that this
+            // is MS1 data so that it will be displayed properly in 2D and 3D
+            // view
+            MSSpectrum t = spec;
+            t.setMSLevel(1);
+            tmpe->addSpectrum(t);
+          }
+          else if (lp->getOnDiscPeakData()->getNrSpectra() > k)
+          {
+            // Get data from disk - copy data and tell TOPPView that this is
+            // MS1 data so that it will be displayed properly in 2D and 3D
+            // view
+            MSSpectrum t = lp->getOnDiscPeakData()->getSpectrum(k);
+            t.setMSLevel(1);
+            tmpe->addSpectrum(t);
           }
         }
-        k++;
       }
-      caption_add = "(DIA window " + String(lower) + " - " + String(upper) + ")";
+      k++;
     }
+    caption_add = "(DIA window " + String(lower) + " - " + String(upper) + ")";
     
     tmpe->sortSpectra();
     tmpe->updateRanges();
@@ -2209,20 +2103,15 @@ namespace OpenMS
     Plot2DWidget* w = new Plot2DWidget(getCanvasParameters(2), &ws_);
 
     // add data
-    if (!w->canvas()->addLayer(tmpe, PlotCanvas::ODExperimentSharedPtrType(new OnDiscMSExperiment()), layer.filename))
+    if (!w->canvas()->addPeakLayer(tmpe, PlotCanvas::ODExperimentSharedPtrType(new OnDiscMSExperiment()), layer.filename))
     {
       return;
     }
 
     String caption = layer.getName();
     caption += caption_add;
-    // remove 3D suffix added when opening data in 3D mode (see below showCurrentPeaksAs3D())
-    if (caption.hasSuffix(CAPTION_3D_SUFFIX_))
-    {
-      caption = caption.prefix(caption.rfind(CAPTION_3D_SUFFIX_));
-    }
     w->canvas()->setLayerName(w->canvas()->getCurrentLayerIndex(), caption);
-    showPlotWidgetInWindow(w, caption);
+    showPlotWidgetInWindow(w);
     updateMenu();
   }
 
@@ -2259,17 +2148,18 @@ namespace OpenMS
     }
 
     LayerDataBase& layer = const_cast<LayerDataBase&>(getActiveCanvas()->getLayer(best_candidate));
-
-    if (layer.type != LayerDataBase::DT_PEAK)
+    auto* lp = dynamic_cast<LayerDataPeak*>(&layer);
+    if (!lp)
     {
       log_->appendNewHeader(LogWindow::LogState::NOTICE, "Wrong layer type", "Something went wrong during layer selection. Please report this problem with a description of your current layers!");
+      return;
     }
     // open new 3D widget
     Plot3DWidget* w = new Plot3DWidget(getCanvasParameters(3), &ws_);
 
-    ExperimentSharedPtrType exp_sptr = layer.getPeakDataMuteable();
+    ExperimentSharedPtrType exp_sptr = lp->getPeakDataMuteable();
 
-    if (layer.isIonMobilityData())
+    if (lp->isIonMobilityData())
     {
       // Determine ion mobility unit (default is milliseconds)
       String unit = "ms";
@@ -2282,7 +2172,7 @@ namespace OpenMS
       w->canvas()->openglwidget()->setYLabel(label.c_str());
     }
 
-    if (!w->canvas()->addLayer(exp_sptr, PlotCanvas::ODExperimentSharedPtrType(new OnDiscMSExperiment()), layer.filename))
+    if (!w->canvas()->addPeakLayer(exp_sptr, PlotCanvas::ODExperimentSharedPtrType(new OnDiscMSExperiment()), layer.filename))
     {
       return;
     }
@@ -2303,7 +2193,7 @@ namespace OpenMS
     // set layer name
     String caption = layer.getName() + CAPTION_3D_SUFFIX_;
     w->canvas()->setLayerName(w->canvas()->getCurrentLayerIndex(), caption);
-    showPlotWidgetInWindow(w, caption);
+    showPlotWidgetInWindow(w);
 
     // set intensity mode (after spectrum has been added!)
     setIntensityMode(PlotCanvas::IM_SNAP);
@@ -2512,17 +2402,31 @@ namespace OpenMS
         // only the selected row can be dragged => the source layer is the selected layer
         LayerDataBase& layer = getActiveCanvas()->getCurrentLayer();
 
-        // attach feature, consensus and peak data
-        FeatureMapSharedPtrType features = layer.getFeatureMap();
-        ExperimentSharedPtrType peaks = layer.getPeakDataMuteable();
-        ConsensusMapSharedPtrType consensus = layer.getConsensusMap();
+        // attach feature, consensus and peak data          (new OnDiscMSExperiment());
+        FeatureMapSharedPtrType features(new FeatureMapType());
+        if (auto* lp = dynamic_cast<LayerDataFeature*>(&layer)) features = lp->getFeatureMap();
+
+        ConsensusMapSharedPtrType consensus(new ConsensusMapType());
+        if (auto* lp = dynamic_cast<LayerDataConsensus*>(&layer)) consensus = lp->getConsensusMap();
+
+        ExperimentSharedPtrType peaks(new ExperimentType());
+        ODExperimentSharedPtrType on_disc_peaks(new OnDiscMSExperiment());
+        if (auto* lp = dynamic_cast<LayerDataPeak*>(&layer))
+        {
+          peaks = lp->getPeakDataMuteable();
+          on_disc_peaks = lp->getOnDiscPeakData();
+        }
+        if (auto* lp = dynamic_cast<LayerDataChrom*>(&layer))
+        {
+          peaks = lp->getChromatogramData();
+          on_disc_peaks = lp->getOnDiscPeakData();
+        }
         // if the layer provides identification data -> retrieve it
         vector<PeptideIdentification> peptides;
         if (auto p = dynamic_cast<IPeptideIds*>(&layer); p != nullptr)
         {
           peptides = p->getPeptideIds();
         }
-        ODExperimentSharedPtrType on_disc_peaks = layer.getOnDiscPeakData();
 
         // add the data
         addData(features, consensus, peptides, peaks, on_disc_peaks, layer.type, false, false, true, layer.filename, layer.getName(), new_id);
@@ -2605,7 +2509,7 @@ namespace OpenMS
       {
         if (sw->canvas()->getLayer(j).filename == filename)
         {
-          needs_update.push_back(std::pair<const PlotWidget*, Size>(sw, j));
+          needs_update.emplace_back(sw, j);
         }
       }
     }
@@ -2651,62 +2555,62 @@ namespace OpenMS
     {
       return;
     }
-    LayerDataBase& layer = const_cast<LayerDataBase&>(sw->canvas()->getLayer(layer_index));
+    LayerDataBase& layer = sw->canvas()->getLayer(layer_index);
     // reload data
-    if (layer.type == LayerDataBase::DT_PEAK) // peak data
+    if (auto* lp = dynamic_cast<LayerDataPeak*>(&layer)) // peak data
     {
       try
       {
-        FileHandler().loadExperiment(layer.filename, *layer.getPeakDataMuteable());
+        FileHandler().loadExperiment(layer.filename, *lp->getPeakDataMuteable());
       }
       catch (Exception::BaseException& e)
       {
         QMessageBox::critical(this, "Error", (String("Error while loading file") + layer.filename + "\nError message: " + e.what()).toQString());
-        layer.getPeakDataMuteable()->clear(true);
+        lp->getPeakDataMuteable()->clear(true);
       }
-      layer.getPeakDataMuteable()->sortSpectra(true);
-      layer.getPeakDataMuteable()->updateRanges(1);
+      lp->getPeakDataMuteable()->sortSpectra(true);
+      lp->getPeakDataMuteable()->updateRanges(1);
     }
-    else if (layer.type == LayerDataBase::DT_FEATURE) // feature data
+    else if (auto* lp = dynamic_cast<LayerDataFeature*>(&layer)) // feature data
     {
       try
       {
-        FileHandler().loadFeatures(layer.filename, *layer.getFeatureMap());
+        FileHandler().loadFeatures(layer.filename, *lp->getFeatureMap());
       }
       catch (Exception::BaseException& e)
       {
         QMessageBox::critical(this, "Error", (String("Error while loading file") + layer.filename + "\nError message: " + e.what()).toQString());
-        layer.getFeatureMap()->clear(true);
+        lp->getFeatureMap()->clear(true);
       }
-      layer.getFeatureMap()->updateRanges();
+      lp->getFeatureMap()->updateRanges();
     }
-    else if (layer.type == LayerDataBase::DT_CONSENSUS) // consensus feature data
+    else if (auto* lp = dynamic_cast<LayerDataConsensus*>(&layer)) // consensus feature data
     {
       try
       {
-        ConsensusXMLFile().load(layer.filename, *layer.getConsensusMap());
+        ConsensusXMLFile().load(layer.filename, *lp->getConsensusMap());
       }
       catch (Exception::BaseException& e)
       {
         QMessageBox::critical(this, "Error", (String("Error while loading file") + layer.filename + "\nError message: " + e.what()).toQString());
-        layer.getConsensusMap()->clear(true);
+        lp->getConsensusMap()->clear(true);
       }
-      layer.getConsensusMap()->updateRanges();
+      lp->getConsensusMap()->updateRanges();
     }
-    else if (layer.type == LayerDataBase::DT_CHROMATOGRAM) // chromatogram
+    else if (auto* lp = dynamic_cast<LayerDataChrom*>(&layer)) // chromatogram
     {
       // TODO CHROM
       try
       {
-        FileHandler().loadExperiment(layer.filename, *layer.getPeakDataMuteable());
+        FileHandler().loadExperiment(layer.filename, *lp->getChromatogramData());
       }
       catch (Exception::BaseException& e)
       {
         QMessageBox::critical(this, "Error", (String("Error while loading file") + layer.filename + "\nError message: " + e.what()).toQString());
-        layer.getPeakDataMuteable()->clear(true);
+        lp->getChromatogramData()->clear(true);
       }
-      layer.getPeakDataMuteable()->sortChromatograms(true);
-      layer.getPeakDataMuteable()->updateRanges(1);
+      lp->getChromatogramData()->sortChromatograms(true);
+      lp->getChromatogramData()->updateRanges(1);
     }
 
     // update all layers that need an update

@@ -23,20 +23,20 @@ cdef extern from "<OpenMS/KERNEL/MSSpectrum.h>" namespace "OpenMS":
         #  See help(SpectrumSettings) for information about meta-information
         #  
         #  Usage:
-        #
+        #  
         #  .. code-block:: python
         #  
         #    ms_level = spectrum.getMSLevel()
         #    rt = spectrum.getRT()
         #    mz, intensities = spectrum.get_peaks()
-        #
-        #
+        #  
+        #  
         #  Usage:
-        #
+        #  
         #  .. code-block:: python
         #  
         #    from pyopenms import *
-        #
+        #    
         #    spectrum = MSSpectrum()
         #    spectrum.setDriftTime(25) # 25 ms
         #    spectrum.setRT(205.2) # 205.2 s
@@ -48,10 +48,10 @@ cdef extern from "<OpenMS/KERNEL/MSSpectrum.h>" namespace "OpenMS":
         #    p.setActivationEnergy(40) # 40 eV
         #    p.setCharge(4) # 4+ ion
         #    spectrum.setPrecursors( [p] )
-        #
+        #    
         #    # Add raw data to spectrum
         #    spectrum.set_peaks( ([401.5], [900]) )
-        #
+        #    
         #    # Additional data arrays / peak annotations
         #    fda = FloatDataArray()
         #    fda.setName("Signal to Noise Array")
@@ -61,17 +61,18 @@ cdef extern from "<OpenMS/KERNEL/MSSpectrum.h>" namespace "OpenMS":
         #    sda.push_back("y15++")
         #    spectrum.setFloatDataArrays( [fda] )
         #    spectrum.setStringDataArrays( [sda] )
-        #
+        #    
         #    # Add spectrum to MSExperiment
         #    exp = MSExperiment()
         #    exp.addSpectrum(spectrum)
-        #
+        #    
         #    # Add second spectrum and store as mzML file
         #    spectrum2 = MSSpectrum()
         #    spectrum2.set_peaks( ([1, 2], [1, 2]) )
         #    exp.addSpectrum(spectrum2)
-        #
+        #    
         #    MzMLFile().store("testfile.mzML", exp)
+        #  
         #  
 
         MSSpectrum() nogil except +

@@ -22,7 +22,7 @@ cdef extern from "<OpenMS/FORMAT/MzMLFile.h>" namespace "OpenMS":
         #  See help(PeakFileOptions) for available options.
         #  
         #  Usage:
-        #
+        #  
         #  .. code-block:: python
         #  
         #    exp = MSExperiment()

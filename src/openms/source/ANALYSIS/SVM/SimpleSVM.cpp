@@ -325,13 +325,13 @@ pair<double, double> SimpleSVM::chooseBestParameters_() const
       double value = performance_[g_index][c_index];
       if (value == best_value)
       {
-        best_indexes.push_back(make_pair(g_index, c_index));
+        best_indexes.emplace_back(g_index, c_index);
       }
       else if (value > best_value)
       {
         best_value = value;
         best_indexes.clear();
-        best_indexes.push_back(make_pair(g_index, c_index));
+        best_indexes.emplace_back(g_index, c_index);
       }
     }
   }

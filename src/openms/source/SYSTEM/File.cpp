@@ -579,7 +579,7 @@ namespace OpenMS
   {
     Param p = getSystemParameters();
     String dir;
-    if (getenv("OPENMS_TMPDIR") != 0)
+    if (getenv("OPENMS_TMPDIR") != nullptr)
     {
       dir = getenv("OPENMS_TMPDIR");
     }

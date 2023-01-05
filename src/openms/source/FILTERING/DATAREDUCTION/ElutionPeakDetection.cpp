@@ -69,9 +69,7 @@ namespace OpenMS
     this->setLogType(CMD);
   }
 
-  ElutionPeakDetection::~ElutionPeakDetection()
-  {
-  }
+  ElutionPeakDetection::~ElutionPeakDetection() = default;
 
   double ElutionPeakDetection::computeMassTraceNoise(const MassTrace& tr)
   {

@@ -188,12 +188,12 @@ public:
     /* @brief Returns a string representation of the DateTime object.
        @param format "yyyy-MM-ddThh:mm:ss" corresponds to ISO 8601 and should be preferred.
 	  */
-	  String toString(std::string format = "yyyy-MM-ddThh:mm:ss") const;
+	  String toString(const std::string& format = "yyyy-MM-ddThh:mm:ss") const;
 
     /* @brief Creates a DateTime object from string representation.
        @param format "yyyy-MM-ddThh:mm:ss" corresponds to ISO 8601 and should be preferred.
 	  */
-      static DateTime fromString(const std::string& date, std::string format = "yyyy-MM-ddThh:mm:ss");
+      static DateTime fromString(const std::string& date, const std::string& format = "yyyy-MM-ddThh:mm:ss");
 
       /**
           @brief Returns a string representation of the date and time

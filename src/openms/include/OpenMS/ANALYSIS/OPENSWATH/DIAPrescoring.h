@@ -88,7 +88,7 @@ public:
       @brief Compute manhattan and dotprod score for all spectra which can be accessed by
       the SpectrumAccessPtr for all transitions groups in the LightTargetedExperiment.
     */
-    void operator()(OpenSwath::SpectrumAccessPtr swath_ptr,
+    void operator()(const OpenSwath::SpectrumAccessPtr& swath_ptr,
                     OpenSwath::LightTargetedExperiment& transition_exp_used,
                     OpenSwath::IDataFrameWriter* ivw) const;
   };

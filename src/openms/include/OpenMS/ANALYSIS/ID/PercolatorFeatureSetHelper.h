@@ -72,7 +72,7 @@ namespace OpenMS
          
           Appends a vector of PeptideIdentification to another and prepares Percolator features in MetaInfo (With the respective key "CONCAT:" + search_engine).
          */
-        static void concatMULTISEPeptideIds(std::vector<PeptideIdentification>& all_peptide_ids, std::vector<PeptideIdentification>& new_peptide_ids, String search_engine);
+        static void concatMULTISEPeptideIds(std::vector<PeptideIdentification>& all_peptide_ids, std::vector<PeptideIdentification>& new_peptide_ids, const String& search_engine);
 
         /**
           @brief mergeMULTISEPeptideIds
@@ -82,7 +82,7 @@ namespace OpenMS
          
           Merges a vector of PeptideIdentification into another and prepares the merged MetaInfo and scores for collection in addMULTISEFeatures for feature registration.
          */
-        static void mergeMULTISEPeptideIds(std::vector<PeptideIdentification>& all_peptide_ids, std::vector<PeptideIdentification>& new_peptide_ids, String search_engine);
+        static void mergeMULTISEPeptideIds(std::vector<PeptideIdentification>& all_peptide_ids, std::vector<PeptideIdentification>& new_peptide_ids, const String& search_engine);
 
         /**
           @brief mergeMULTISEProteinIds
@@ -175,7 +175,7 @@ namespace OpenMS
         static double rescaleFragmentFeature_(double featureValue, int NumMatchedMainIons);
 
         /// helper function for assigning the frequently occurring feature delta score
-        static void assignDeltaScore_(std::vector<PeptideHit>& hits, String score_ref, String output_ref);
+        static void assignDeltaScore_(std::vector<PeptideHit>& hits, const String& score_ref, const String& output_ref);
 
         /// gets the scan identifier to merge by
         static String getScanMergeKey_(std::vector<PeptideIdentification>::iterator it, std::vector<PeptideIdentification>::iterator start);

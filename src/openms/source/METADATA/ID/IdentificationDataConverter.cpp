@@ -1059,7 +1059,7 @@ namespace OpenMS
   }
 
 
-  void IdentificationDataConverter::handleFeatureImport_(Feature& feature, IntList indexes,
+  void IdentificationDataConverter::handleFeatureImport_(Feature& feature, const IntList& indexes,
                                                          vector<PeptideIdentification>& peptides,
                                                          Size& id_counter, bool clear_original)
   {

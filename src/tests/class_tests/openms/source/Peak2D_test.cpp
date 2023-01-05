@@ -111,7 +111,6 @@ START_SECTION((Peak2D(Peak2D &&rhs)))
   Peak2D::PositionType pos2;
   Peak2D::IntensityType i2;
 
-  Peak2D orig = p;
   Peak2D copy_of_p(std::move(p));
 
   i2 = copy_of_p.getIntensity();

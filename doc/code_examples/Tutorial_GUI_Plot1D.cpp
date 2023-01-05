@@ -55,8 +55,8 @@ Int main(int argc, const char** argv)
   DTAFile().load(tutorial_data_path, exp[0]);
   LayerDataBase::ExperimentSharedPtrType exp_sptr(new PeakMap(exp));
   LayerDataBase::ODExperimentSharedPtrType on_disc_exp_sptr(new OnDiscMSExperiment());
-  auto* widget = new Plot1DWidget(Param(), nullptr);
-  widget->canvas()->addLayer(exp_sptr, on_disc_exp_sptr);
+  auto* widget = new Plot1DWidget(Param(), DIM::Y, nullptr);
+  widget->canvas()->addPeakLayer(exp_sptr, on_disc_exp_sptr);
   widget->show();
 
   return app.exec();

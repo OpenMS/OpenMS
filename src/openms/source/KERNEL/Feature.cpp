@@ -75,9 +75,7 @@ namespace OpenMS
     std::copy(feature.qualities_, feature.qualities_ + 2, qualities_);
   }
 
-  Feature::~Feature()
-  {
-  }
+  Feature::~Feature() = default;
 
   Feature::QualityType Feature::getOverallQuality() const
   {

@@ -49,9 +49,7 @@ namespace OpenMS
   {
   }
 
-  LabelFreeLabeler::~LabelFreeLabeler()
-  {
-  }
+  LabelFreeLabeler::~LabelFreeLabeler() = default;
 
   void LabelFreeLabeler::preCheck(Param& /* param */) const
   {

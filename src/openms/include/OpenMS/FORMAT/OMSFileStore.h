@@ -29,7 +29,7 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Hendrik Weisser $
-// $Authors: Hendrik Weisser $
+// $Authors: Hendrik Weisser, Chris Bielow $
 // --------------------------------------------------------------------------
 
 #pragma once
@@ -38,24 +38,17 @@
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/METADATA/ID/IdentificationData.h>
 
-#include <QtSql/QSqlQuery>
-
-class QSqlError;
+namespace SQLite
+{
+  class Database;
+  class Exception;
+  class Statement;
+}
 
 namespace OpenMS
 {
   namespace Internal
   {
-    /*!
-      @brief Check if a specified database table exists
-
-      @param db_name Name of the database (as used by Qt/QSqlDatabase)
-      @param table_name Name of the table to check
-
-      @return True if table exists, false if not
-    */
-    bool tableExists_(const String& db_name, const String& table_name);
-
     /*!
       @brief Raise a more informative database error
 
@@ -69,8 +62,11 @@ namespace OpenMS
 
       @throw Exception::FailedAPICall Throw this exception
     */
-    void raiseDBError_(const QSqlError& error, int line,
-                       const char* function, const String& context, const String& query = "");
+    void raiseDBError_(const String& error, int line, const char* function, const String& context, const String& query = "");
+
+    bool execAndReset(SQLite::Statement& query, int expected_modifications);
+
+    void execWithExceptionAndReset(SQLite::Statement& query, int expected_modifications, int line, const char* function, const char* context);
 
 
     /*!
@@ -81,7 +77,8 @@ namespace OpenMS
     class OMSFileStore: public ProgressLogger
     {
     public:
-      using Key = qint64; ///< Type used for database keys
+       ///< Type used for database keys
+       using Key = int64_t; //std::decltype(((SQLite::Database*)nullptr)->getLastInsertRowid());
 
        /*!
         @brief Constructor
@@ -237,11 +234,11 @@ namespace OpenMS
 
       void storeDataProcessing_(const FeatureMap& features);
 
-      // store name, not database connection itself (see https://stackoverflow.com/a/55200682):
-      QString db_name_;
+      /// The database connection (read/write)
+      std::unique_ptr<SQLite::Database> db_;
 
       /// prepared queries for inserting data into different tables
-      std::map<std::string, QSqlQuery> prepared_queries_;
+      std::map<std::string, std::unique_ptr<SQLite::Statement>> prepared_queries_;
 
       // mapping between loaded data and database keys:
       // @NOTE: in principle we could use `unordered_map` here for efficiency,

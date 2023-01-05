@@ -57,8 +57,7 @@ namespace OpenMS
     setDefaultParams_();
   }
 
-  ItraqFourPlexQuantitationMethod::~ItraqFourPlexQuantitationMethod()
-  = default;
+  ItraqFourPlexQuantitationMethod::~ItraqFourPlexQuantitationMethod() = default;
 
   void ItraqFourPlexQuantitationMethod::setDefaultParams_()
   {

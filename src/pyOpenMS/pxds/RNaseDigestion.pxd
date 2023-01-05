@@ -14,7 +14,7 @@ cdef extern from "<OpenMS/CHEMISTRY/RNaseDigestion.h>" namespace "OpenMS":
         #  Class for the enzymatic digestion of RNA
         #    
         #  Usage:
-        #
+        #  
         #  .. code-block:: python
         #  
         #        from pyopenms import *

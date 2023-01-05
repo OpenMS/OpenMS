@@ -123,7 +123,7 @@ namespace OpenMS
       else if (boost::regex_search(line, m, re_synon))
       {
         // OPENMS_LOG_DEBUG << "Synon: " << m[1] << "\n";
-        synonyms_.push_back(String(m[1]));
+        synonyms_.emplace_back(m[1]);
       }
       // Name
       else if (boost::regex_search(line, m, re_name))

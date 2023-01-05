@@ -61,8 +61,6 @@ namespace OpenMS
     return *this;
   }
 
-  IntensityBalanceFilter::~IntensityBalanceFilter()
-  {
-  }
+  IntensityBalanceFilter::~IntensityBalanceFilter() = default;
 
 }

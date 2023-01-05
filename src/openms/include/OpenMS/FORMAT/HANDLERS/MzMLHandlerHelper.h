@@ -129,7 +129,7 @@ namespace OpenMS
       */
       static String getCompressionTerm_(const PeakFileOptions& opt,
                                         MSNumpressCoder::NumpressConfig np_compression,
-                                        String indent = "",
+                                        const String& indent = "",
                                         bool use_numpress = false);
 
       /**

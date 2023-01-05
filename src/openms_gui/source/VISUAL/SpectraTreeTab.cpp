@@ -35,6 +35,8 @@
 #include <OpenMS/VISUAL/SpectraTreeTab.h>
 
 #include <OpenMS/CONCEPT/RAIICleanup.h>
+#include <OpenMS/VISUAL/LayerData1DPeak.h>
+#include <OpenMS/VISUAL/LayerDataChrom.h>
 #include <OpenMS/VISUAL/TreeView.h>
 
 #include <QtWidgets/QComboBox>
@@ -182,9 +184,27 @@ namespace OpenMS
     }
   }
 
-  void SpectraTreeTab::updateIndexFromCurrentLayer()
+  bool SpectraTreeTab::getSelectedScan(MSExperiment& exp, LayerDataBase::DataType& current_type) const
   {
-    spectra_treewidget_->setTreePosition(layer_->getCurrentSpectrumIndex());
+    exp.clear(true);
+    QTreeWidgetItem* item = spectra_treewidget_->currentItem();
+    if (item == nullptr)
+    {
+      return false;
+    }
+    // getting the index works for PEAK and CHROM data
+    int index = item->data(ClmnPeak::SPEC_INDEX, Qt::DisplayRole).toInt();
+    if (spectra_treewidget_->headerItem()->text(ClmnChrom::MZ) == ClmnChrom::HEADER_NAMES[ClmnChrom::MZ])
+    { // we currently show chromatogram data
+      current_type = LayerDataBase::DT_CHROMATOGRAM;
+      exp.addChromatogram(last_peakmap_->getChromatograms()[index]);
+    }
+    else
+    {
+      current_type = LayerDataBase::DT_PEAK;
+      exp.addSpectrum(last_peakmap_->getSpectra()[index]);
+    }
+    return true;
   }
 
   void SpectraTreeTab::itemSelectionChange_(QTreeWidgetItem* current, QTreeWidgetItem* /*previous*/)
@@ -195,13 +215,13 @@ namespace OpenMS
     }
 
     IndexExtrator ie(current);
-    if (!ie.hasChromIndices())
-    {
-      emit spectrumSelected(ie.spectrum_index);
-    }
-    else
+    if (ie.hasChromIndices())
     { // open several chromatograms at once
       emit chromsSelected(listToVec(ie.res));
+    }
+    else
+    {
+      emit spectrumSelected(ie.spectrum_index);
     }
   }
 
@@ -297,8 +317,8 @@ namespace OpenMS
     {
       return false;
     }
-    bool is_peak = layer->type == LayerDataBase::DT_PEAK && !(layer->chromatogram_flag_set());
-    bool is_chrom = layer->type == LayerDataBase::DT_CHROMATOGRAM || layer->chromatogram_flag_set();
+    bool is_peak = layer->type == LayerDataBase::DT_PEAK;
+    bool is_chrom = layer->type == LayerDataBase::DT_CHROMATOGRAM;
     return is_peak || is_chrom;
   }
 
@@ -315,8 +335,7 @@ namespace OpenMS
     {
       return;
     }
-    LayerDataBase& cl = *layer;
-
+    
     spectra_treewidget_->blockSignals(true);
     RAIICleanup clean([&](){
       spectra_treewidget_->blockSignals(false); 
@@ -328,14 +347,20 @@ namespace OpenMS
     bool more_than_one_spectrum = true;
 
     // Branch if the current layer is a spectrum
-    if (cl.type == LayerDataBase::DT_PEAK  && !(cl.chromatogram_flag_set()))
+    if (auto* lp = dynamic_cast<LayerDataPeak*>(layer))
     {
+      Size spec_index = std::numeric_limits<Size>::max();
+      if (auto* layer_peak1d = dynamic_cast<LayerData1DPeak*>(lp))
+      {
+        spec_index = layer_peak1d->getCurrentIndex();
+      }
+      const auto& cl = *lp;
       spectra_treewidget_->clear();
 
       std::vector<QTreeWidgetItem *> parent_stack;
       parent_stack.push_back(nullptr);
       bool fail = false;
-      last_peakmap_ = &*cl.getPeakData();
+      last_peakmap_ = &(*cl.getPeakData());
       spectra_treewidget_->setHeaders(ClmnPeak::HEADER_NAMES);
 
       for (Size i = 0; i < cl.getPeakData()->size(); ++i)
@@ -400,7 +425,7 @@ namespace OpenMS
 
         populatePeakDataRow_(toplevel_item, i, current_spec);
 
-        if (i == cl.getCurrentSpectrumIndex())
+        if (i == spec_index)
         {
           // just remember it, select later
           selected_item = toplevel_item;
@@ -421,7 +446,7 @@ namespace OpenMS
           populatePeakDataRow_(toplevel_item, i, current_spec);
 
           toplevel_items.push_back(toplevel_item);
-          if (i == cl.getCurrentSpectrumIndex())
+          if (i == spec_index)
           {
             // just remember it, select later
             selected_item = toplevel_item;
@@ -446,11 +471,10 @@ namespace OpenMS
     }
     // Branch if the current layer is a chromatogram (either indicated by its
     // type or by the flag which is set).
-    else if (cl.type == LayerDataBase::DT_CHROMATOGRAM || cl.chromatogram_flag_set())
+    else if (auto* lp = dynamic_cast<LayerDataChrom*>(layer))
     {
-      LayerDataBase::ConstExperimentSharedPtrType exp = (cl.chromatogram_flag_set() // if set, the actual full data is in getChromatogramData; the peakdata only contains a single spec
-                                                     ? cl.getChromatogramData()
-                                                     : cl.getPeakData());
+      const auto cl = *lp;
+      LayerDataBase::ConstExperimentSharedPtrType exp = cl.getChromatogramData();
       
       if (last_peakmap_ == exp.get())
       { // underlying data did not change (which is ALWAYS the chromatograms, never peakdata!)
@@ -466,15 +490,18 @@ namespace OpenMS
       // whether multiple ones are selected.
       bool multiple_select = false;
       int this_selected_item = -1;
-      if (!cl.getPeakData()->empty() && cl.getPeakData()->metaValueExists("multiple_select"))
+      if (!cl.getChromatogramData()->empty())
       {
-        multiple_select = cl.getPeakData()->getMetaValue("multiple_select").toBool();
+        if (cl.getChromatogramData()->metaValueExists("multiple_select"))
+        {
+          multiple_select = cl.getChromatogramData()->getMetaValue("multiple_select").toBool();
+        }
+        if (cl.getChromatogramData()->metaValueExists("selected_chromatogram"))
+        {
+          this_selected_item = (int)cl.getChromatogramData()->getMetaValue("selected_chromatogram");
+        }
       }
-      if (!cl.getPeakData()->empty() && cl.getPeakData()->metaValueExists("selected_chromatogram"))
-      {
-        this_selected_item = (int)cl.getPeakData()->getMetaValue("selected_chromatogram");
-      }
-
+      
       // create a header list
       spectra_treewidget_->setHeaders(ClmnChrom::HEADER_NAMES);
            
@@ -606,27 +633,6 @@ namespace OpenMS
   }
 
 
-  bool SpectraTreeTab::getSelectedScan(MSExperiment& exp, LayerDataBase::DataType& current_type) const
-  {
-    exp.clear(true);
-    QTreeWidgetItem* item = spectra_treewidget_->currentItem();
-    if (item == nullptr)
-    {
-      return false;
-    }
-    // getting the index works for PEAK and CHROM data
-    int index = item->data(ClmnPeak::SPEC_INDEX, Qt::DisplayRole).toInt();
-    if (spectra_treewidget_->headerItem()->text(ClmnChrom::MZ) == ClmnChrom::HEADER_NAMES[ClmnChrom::MZ])
-    { // we currently show chromatogram data
-      current_type = LayerDataBase::DT_CHROMATOGRAM;
-      exp.addChromatogram(last_peakmap_->getChromatograms()[index]);
-    }
-    else
-    {
-      current_type = LayerDataBase::DT_PEAK;
-      exp.addSpectrum(last_peakmap_->getSpectra()[index]);
-    }
-    return true;
-  }
+
 
 }

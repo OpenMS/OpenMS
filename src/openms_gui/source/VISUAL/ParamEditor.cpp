@@ -388,7 +388,7 @@ namespace OpenMS
       return QItemDelegate::eventFilter(editor, event);
     }
 
-    bool ParamEditorDelegate::exists_(QString name, QModelIndex index) const
+    bool ParamEditorDelegate::exists_(const QString& name, QModelIndex index) const
     {
       UInt current_index = 0;
       while (index.parent().child(current_index, 0).isValid())

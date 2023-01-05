@@ -243,9 +243,7 @@ namespace OpenMS
     return *this;
   }
 
-  SvmTheoreticalSpectrumGenerator::~SvmTheoreticalSpectrumGenerator()
-  {
-  }
+  SvmTheoreticalSpectrumGenerator::~SvmTheoreticalSpectrumGenerator() = default;
 
   Size SvmTheoreticalSpectrumGenerator::generateDescriptorSet_(const AASequence& peptide, Size position, const IonType& type, Size /* precursor_charge */, DescriptorSet& desc_set)
   {
@@ -868,13 +866,13 @@ namespace OpenMS
             }
             if (intens > 0)
             {
-              peaks_to_generate.push_back(std::make_pair(std::make_pair(mp_.ion_types[type_nr], intens), i));
+              peaks_to_generate.emplace_back(std::make_pair(mp_.ion_types[type_nr], intens), i);
             }
           }
         }
         else if (simulation_type == 1)
         {
-          peaks_to_generate.push_back(std::make_pair(std::make_pair(mp_.ion_types[type_nr], predicted_intensity[i]), i));
+          peaks_to_generate.emplace_back(std::make_pair(mp_.ion_types[type_nr], predicted_intensity[i]), i);
 
           //binning the predicted intensity
           if (predicted_intensity[i] > 0)
@@ -906,7 +904,7 @@ namespace OpenMS
               }
               if (intens > 0)
               {
-                peaks_to_generate.push_back(std::make_pair(std::make_pair(*it, intens), i));
+                peaks_to_generate.emplace_back(std::make_pair(*it, intens), i);
               }
             }
           }
@@ -922,7 +920,7 @@ namespace OpenMS
 
             if (binned_int != 0)
             {
-              peaks_to_generate.push_back(std::make_pair(std::make_pair(*it, mp_.intensity_bin_values[binned_int - 1]), i));
+              peaks_to_generate.emplace_back(std::make_pair(*it, mp_.intensity_bin_values[binned_int - 1]), i);
             }
           }
         }

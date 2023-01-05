@@ -32,34 +32,30 @@
 // $Authors: Timo Sachsenberg $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/VISUAL/SpectraIDViewTab.h>
-#include <OpenMS/VISUAL/SequenceVisualizer.h>
+#include "OpenMS/VISUAL/LayerDataPeak.h"
 
-#include <OpenMS/VISUAL/TableView.h>
-
+#include <OpenMS/CHEMISTRY/AASequence.h>
 #include <OpenMS/CHEMISTRY/TheoreticalSpectrumGenerator.h>
 #include <OpenMS/COMPARISON/SPECTRA/SpectrumAlignment.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/FORMAT/MzIdentMLFile.h>
 #include <OpenMS/METADATA/MetaInfoInterfaceUtils.h>
-#include <OpenMS/VISUAL/MISC/GUIHelpers.h>
-#include <OpenMS/CHEMISTRY/AASequence.h>
 #include <OpenMS/SYSTEM/NetworkGetRequest.h>
-#include <QtCore/QDateTime>
+#include <OpenMS/VISUAL/LayerData1DPeak.h>
+#include <OpenMS/VISUAL/MISC/GUIHelpers.h>
+#include <OpenMS/VISUAL/SequenceVisualizer.h>
+#include <OpenMS/VISUAL/SpectraIDViewTab.h>
+#include <OpenMS/VISUAL/TableView.h>
 
-#include <QtWidgets/QVBoxLayout>
-#include <QtWidgets/QHBoxLayout>
-#include <QtWidgets/QPushButton>
-#include <QtWidgets/QFileDialog>
-#include <QtWidgets/QLabel>
-#include <QtWidgets/QListWidget>
-#include <QRegExp>
 #include <QJsonArray>
-#include <QJsonDocument>
 #include <QJsonObject>
 #include <QJsonValue>
+#include <QRegExp>
 #include <QString>
 #include <QStringList>
+#include <QtWidgets/QListWidget>
+#include <QtWidgets/QPushButton>
+#include <QtWidgets/QVBoxLayout>
 
 #include <vector>
 #include <string>
@@ -188,7 +184,7 @@ namespace OpenMS
     //clear the map each time entries are updated with updateEntries()
     protein_to_peptide_id_map.clear();
 
-    if (is_first_time_loading_)
+    if (is_first_time_loading_ && layer_)
     {
       for (const auto& spec : *layer_->getPeakData())
       {
@@ -396,7 +392,7 @@ namespace OpenMS
     if (table_widget_->selectionModel()->selectedRows().empty())
     {
       // deselect whatever is currently shown
-      layer_->getCurrentSpectrumIndex();
+      //layer_->getCurrentSpectrumIndex();
       // Deselecting spectrum does not do what you think it does. It still paints stuff. Without annotations..
       // so just leave it for now.
       //
@@ -432,7 +428,7 @@ namespace OpenMS
     }
     
     // deselect whatever is currently shown
-    int last_spectrum_index = int(layer_->getCurrentSpectrumIndex());
+    int last_spectrum_index = int(dynamic_cast<LayerData1DPeak*>(layer_)->getCurrentIndex());
     emit spectrumDeselected(last_spectrum_index);
 
     int current_spectrum_index = table_widget_->item(row, Clmn::SPEC_INDEX)->data(Qt::DisplayRole).toInt();
@@ -550,18 +546,19 @@ namespace OpenMS
     // this is a very easy check.
     // We do not check for PeptideIdentifications attached to Spectra, because the user could just
     // want the list of unidentified MS2 spectra (obtained by unchecking the 'just hits' button).
-    bool no_data = (layer == nullptr
-                || (layer->type == LayerDataBase::DT_PEAK && layer->getPeakData()->empty())
-                || (layer->type == LayerDataBase::DT_CHROMATOGRAM && layer->getChromatogramData()->empty()));
+    auto* ptr_peak = dynamic_cast<const LayerDataPeak*>(layer);
+    bool no_data = (ptr_peak == nullptr
+                    || (ptr_peak && ptr_peak->getPeakData()->empty()));
     return !no_data;
   }
 
   void SpectraIDViewTab::updateEntries(LayerDataBase* cl)
   {
-
     // do not try to be smart and check if layer_ == cl; to return early
     // since the layer content might have changed, e.g. pepIDs were added
-    layer_ = cl;
+    auto* ptr_peak = dynamic_cast<LayerDataPeak*>(cl);
+    layer_ = ptr_peak; // might be nullptr
+
     // setting "is_first_time_loading_ = true;" here currently negates the logic of creating the map only the first time
     // the data loads, but in future, after fixing the issue of calling updateEntries() multiple times, we can use it to only
     // create the map when the table data loads completely new data from idXML file. Currently the map gets created each time 
@@ -714,7 +711,10 @@ namespace OpenMS
       return;
     }
 
-    int restore_spec_index = layer_->getCurrentSpectrumIndex();
+    auto layer_peak = dynamic_cast<LayerData1DPeak*>(layer_);
+    if (!layer_peak) return;
+
+    int restore_spec_index = int(layer_peak->getCurrentIndex());
 
     set<String> common_keys;
     bool has_peak_annotations(false);
@@ -968,7 +968,7 @@ namespace OpenMS
     }
 
     // synchronize PeptideHits with the annotations in the spectrum
-    layer_->synchronizePeakAnnotations();
+    dynamic_cast<LayerData1DPeak*>(layer_)->synchronizePeakAnnotations();
 
     vector<ProteinIdentification> prot_id = (*layer_->getPeakData()).getProteinIdentifications();
     vector<PeptideIdentification> all_pep_ids;

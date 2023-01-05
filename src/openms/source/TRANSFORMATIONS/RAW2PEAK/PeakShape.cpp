@@ -113,9 +113,7 @@ namespace OpenMS
 
   }
 
-  PeakShape::~PeakShape()
-  {
-  }
+  PeakShape::~PeakShape() = default;
 
   PeakShape & PeakShape::operator=(const PeakShape & rhs)
   {

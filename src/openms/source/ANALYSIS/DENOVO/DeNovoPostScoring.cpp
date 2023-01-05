@@ -45,8 +45,6 @@ namespace OpenMS
     //defaultsToParam_();
   }
 
-  DeNovoPostScoring::~DeNovoPostScoring()
-  {
-  }
+  DeNovoPostScoring::~DeNovoPostScoring() = default;
 
 }

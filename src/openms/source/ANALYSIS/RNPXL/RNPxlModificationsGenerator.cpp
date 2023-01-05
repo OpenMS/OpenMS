@@ -47,7 +47,7 @@ namespace OpenMS
 {
 
 //static
-bool RNPxlModificationsGenerator::notInSeq(String res_seq, String query)
+bool RNPxlModificationsGenerator::notInSeq(const String& res_seq, const String& query)
 {
   // special case: empty query is in every seq -> false
   if (query.empty()) { return false; }
@@ -67,11 +67,11 @@ bool RNPxlModificationsGenerator::notInSeq(String res_seq, String query)
 }
 
 //static
-RNPxlModificationMassesResult RNPxlModificationsGenerator::initModificationMassesRNA(StringList target_nucleotides,
-                                                                                     StringList nt_groups,
-                                                                                     std::set<char> can_xl,
-                                                                                     StringList mappings,
-                                                                                     StringList modifications,
+RNPxlModificationMassesResult RNPxlModificationsGenerator::initModificationMassesRNA(const StringList& target_nucleotides,
+                                                                                     const StringList& nt_groups,
+                                                                                     const std::set<char>& can_xl,
+                                                                                     const StringList& mappings,
+                                                                                     const StringList& modifications,
                                                                                      String sequence_restriction,
                                                                                      bool cysteine_adduct,
                                                                                      Int max_length)
@@ -117,8 +117,8 @@ RNPxlModificationMassesResult RNPxlModificationsGenerator::initModificationMasse
     // add single source nucleotides to all_combinations
     for (Size i = 0; i != source_nucleotides.size(); ++i)
     {
-      all_combinations.push_back(String(source_nucleotides[i]));
-      actual_combinations.push_back(String(source_nucleotides[i]));
+      all_combinations.emplace_back(source_nucleotides[i]);
+      actual_combinations.emplace_back(source_nucleotides[i]);
     }
 
     for (Int i = 1; i <= max_length - 1; ++i)
@@ -129,8 +129,8 @@ RNPxlModificationMassesResult RNPxlModificationsGenerator::initModificationMasse
         // grow actual_combinations/ all_combinations by one nucleotide
         for (Size c = 0; c != actual_combinations.size(); ++c)
         {
-          new_combinations.push_back(source_nucleotides[n] + actual_combinations[c]);
-          all_combinations.push_back(source_nucleotides[n] + actual_combinations[c]);
+          new_combinations.emplace_back(source_nucleotides[n] + actual_combinations[c]);
+          all_combinations.emplace_back(source_nucleotides[n] + actual_combinations[c]);
         }
       }
       actual_combinations = new_combinations;
@@ -349,7 +349,7 @@ RNPxlModificationMassesResult RNPxlModificationsGenerator::initModificationMasse
 
       if (!has_xl_nt) 
       { // no cross-linked nucleotide => not valid
-        violates_restriction.push_back(make_pair(mit->first, s)); 
+        violates_restriction.emplace_back(mit->first, s); 
         continue;
       }
 
@@ -362,7 +362,7 @@ RNPxlModificationMassesResult RNPxlModificationsGenerator::initModificationMasse
       // nucleotide stile formula (e.g. AATU matches to more than one group (e.g., RNA and DNA))?
       if (found_in_n_groups > 1)
       {
-        violates_restriction.push_back(make_pair(mit->first, s)); 
+        violates_restriction.emplace_back(mit->first, s); 
         continue;
       }
 
@@ -378,7 +378,7 @@ RNPxlModificationMassesResult RNPxlModificationsGenerator::initModificationMasse
 
       if (containment_violated)
       { 
-        violates_restriction.push_back(make_pair(mit->first, s)); // chemical formula, nucleotide style formula pair violates restrictions
+        violates_restriction.emplace_back(mit->first, s); // chemical formula, nucleotide style formula pair violates restrictions
       }
     }
   }

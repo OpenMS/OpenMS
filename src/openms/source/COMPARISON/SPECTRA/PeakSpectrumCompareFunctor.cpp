@@ -51,14 +51,9 @@ namespace OpenMS
   {
   }
 
-  PeakSpectrumCompareFunctor::PeakSpectrumCompareFunctor(const PeakSpectrumCompareFunctor & source) :
-    DefaultParamHandler(source)
-  {
-  }
+  PeakSpectrumCompareFunctor::PeakSpectrumCompareFunctor(const PeakSpectrumCompareFunctor & source) = default;
 
-  PeakSpectrumCompareFunctor::~PeakSpectrumCompareFunctor()
-  {
-  }
+  PeakSpectrumCompareFunctor::~PeakSpectrumCompareFunctor() = default;
 
   PeakSpectrumCompareFunctor & PeakSpectrumCompareFunctor::operator=(const PeakSpectrumCompareFunctor & source)
   {

@@ -137,9 +137,7 @@ using namespace OpenMS;
     defaultsToParam_();
   }
 
-  OpenPepXLAlgorithm::~OpenPepXLAlgorithm()
-  {
-  }
+  OpenPepXLAlgorithm::~OpenPepXLAlgorithm() = default;
 
   void OpenPepXLAlgorithm::updateMembers_()
   {
@@ -294,7 +292,7 @@ using namespace OpenMS;
               {
                 const PeptideIdentification& pi_0 = cit->getPeptideIdentifications()[x];
                 const PeptideIdentification& pi_1 = cit->getPeptideIdentifications()[y];
-                spectrum_pairs.push_back(make_pair(pi_0.getMetaValue("spectrum_index"), pi_1.getMetaValue("spectrum_index")));
+                spectrum_pairs.emplace_back(pi_0.getMetaValue("spectrum_index"), pi_1.getMetaValue("spectrum_index"));
                 double current_precursor_mz0 = spectra[pi_0.getMetaValue("spectrum_index")].getPrecursors()[0].getMZ();
                 double current_precursor_mz1 = spectra[pi_1.getMetaValue("spectrum_index")].getPrecursors()[0].getMZ();
                 double current_precursor_charge0 = spectra[pi_0.getMetaValue("spectrum_index")].getPrecursors()[0].getCharge();

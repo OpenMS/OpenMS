@@ -32,14 +32,14 @@
 // $Authors: Chris Bielow $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/VISUAL/LayerDataPeak.h>
+#include <OpenMS/VISUAL/LayerData1DChrom.h>
+#include <OpenMS/VISUAL/LayerData1DIonMobility.h>
+#include <OpenMS/VISUAL/LayerData1DPeak.h>
 #include <OpenMS/VISUAL/Painter1DBase.h>
 
 #include <OpenMS/VISUAL/ANNOTATION/Annotation1DItem.h>
 #include <OpenMS/VISUAL/ANNOTATION/Annotation1DDistanceItem.h>
-#include <OpenMS/VISUAL/ANNOTATION/Annotation1DTextItem.h>
 #include <OpenMS/VISUAL/ANNOTATION/Annotation1DPeakItem.h>
-#include <OpenMS/VISUAL/ANNOTATION/Annotation1DVerticalLineItem.h>
 #include <OpenMS/VISUAL/ANNOTATION/Annotations1DContainer.h>
 #include <OpenMS/VISUAL/Plot1DCanvas.h>
 
@@ -57,20 +57,24 @@ using namespace std;
 
 namespace OpenMS
 {
-  void Painter1DBase::drawDashedLine(const QPoint& from, const QPoint& to, QPainter* painter, QColor color)
+  void Painter1DBase::drawAnnotations_(const LayerData1DBase* layer, QPainter& painter, Plot1DCanvas* canvas) const
   {
-    QPen pen;
-    QVector<qreal> dashes;
-    dashes << 5 << 5 << 1 << 5;
-    pen.setDashPattern(dashes);
-    pen.setColor(color);
-    painter->save();
-    painter->setPen(pen);
-    painter->drawLine(from, to);
-    painter->restore();
+    const QColor col {QColor(String(layer->param.getValue("annotation_color").toString()).toQString())};
+    // 0: default pen; 1: selected pen
+    const QPen pen[2] = {col, col.lighter()};
+
+    for (const auto& c : layer->getCurrentAnnotations())
+    {
+      painter.setPen(pen[c->isSelected()]);
+      c->draw(canvas, painter, layer->flipped);
+    }
   }
 
-  Painter1DPeak::Painter1DPeak(const LayerDataPeak* parent) : layer_(parent)
+  // ###############################
+  // ###### 1D Peak
+  // ###############################
+
+  Painter1DPeak::Painter1DPeak(const LayerData1DPeak* parent) : layer_(parent)
   {
   }
 
@@ -83,44 +87,40 @@ namespace OpenMS
     
     const auto& spectrum = layer_->getCurrentSpectrum();
 
-    // get default icon and peak color
-    //QPen icon_pen = QPen(QColor(String(layer_->param.getValue("icon_color").toString()).toQString()), 1);
+    // get default peak color
     QPen pen(QColor(String(layer_->param.getValue("peak_color").toString()).toQString()), 1);
-    Qt::PenStyle pen_style = canvas->peak_penstyle_[layer_index];
-    pen.setStyle(pen_style);
-
+    pen.setStyle(canvas->peak_penstyle_[layer_index]);
     painter->setPen(pen);
+
     // draw dashed elongations for pairs of peaks annotated with a distance
-    QColor color = String(canvas->param_.getValue("highlighted_peak_color").toString()).toQString();
+    const QColor color = String(canvas->param_.getValue("highlighted_peak_color").toString()).toQString();
     for (auto& it : layer_->getCurrentAnnotations())
     {
-      Annotation1DDistanceItem* distance_item = dynamic_cast<Annotation1DDistanceItem*>(it);
-      if (distance_item)
-      {
-        QPoint from, to;
-        canvas->dataToWidget(distance_item->getStartPoint().getX(), 0, from, layer_->flipped);
+      const auto distance_item = dynamic_cast<Annotation1DDistanceItem*>(it);
+      if (!distance_item) continue;
 
-        canvas->dataToWidget(distance_item->getStartPoint().getX(), canvas->visible_area_.maxY(), to, layer_->flipped);
+      auto draw_line_ = [&](const PointXYType& p) {
+        QPoint from;
+        canvas->dataToWidget(p, from, layer_->flipped);
+        from = canvas->getGravitator().gravitateZero(from);
+        QPoint to = canvas->getGravitator().gravitateMax(from, canvas->canvasPixelArea());
         drawDashedLine(from, to, painter, color);
-
-        canvas->dataToWidget(distance_item->getEndPoint().getX(), 0, from, layer_->flipped);
-
-        canvas->dataToWidget(distance_item->getEndPoint().getX(), canvas->visible_area_.maxY(), to, layer_->flipped);
-        drawDashedLine(from, to, painter, color);
-      }
+      };
+      draw_line_(distance_item->getStartPoint());
+      draw_line_(distance_item->getEndPoint());
     }
    
-    auto vbegin = spectrum.MZBegin(canvas->visible_area_.minX());
-    auto vend = spectrum.MZEnd(canvas->visible_area_.maxX());
+    const auto v_begin = spectrum.MZBegin(canvas->visible_area_.getAreaUnit().getMinMZ());
+    const auto v_end = spectrum.MZEnd(canvas->visible_area_.getAreaUnit().getMaxMZ());
     QPoint begin, end;
-    Plot1DCanvas::DrawModes line_mode = canvas->draw_modes_[layer_index];
-    switch (line_mode)
+    
+    switch (canvas->draw_modes_[layer_index])
     {
       case Plot1DCanvas::DrawModes::DM_PEAKS:
       {
         //---------------------DRAWING PEAKS---------------------
 
-        for (auto it = vbegin; it != vend; ++it)
+        for (auto it = v_begin; it != v_end; ++it)
         {
           if (!layer_->filters.passes(spectrum, it - spectrum.begin())) continue;
           
@@ -128,20 +128,19 @@ namespace OpenMS
           if (layer_->peak_colors_1d.size() == spectrum.size())
           {
             // find correct peak index
-            Size peak_index = std::distance(spectrum.begin(), it);
+            const Size peak_index = std::distance(spectrum.cbegin(), it);
             pen.setColor(layer_->peak_colors_1d[peak_index]);
             painter->setPen(pen);
           }
-
-          // Warn if non-empty peak color array present but size doesn't match number of peaks
-          // This indicates a bug but we gracefully just issue a warning
-          if (!layer_->peak_colors_1d.empty() && layer_->peak_colors_1d.size() < spectrum.size())
-          {
+          else if (!layer_->peak_colors_1d.empty())
+          { // Warn if non-empty peak color array present but size doesn't match number of peaks
+            // This indicates a bug but we gracefully just issue a warning
             OPENMS_LOG_ERROR << "Peak color array size (" << layer_->peak_colors_1d.size() << ") doesn't match number of peaks (" << spectrum.size() << ") in spectrum." << endl;
           }
-          canvas->dataToWidget(*it, end, layer_->flipped);
-          canvas->dataToWidget(it->getMZ(), 0.0f, begin, layer_->flipped);
-          // draw peak
+          // draw stick
+          auto p_xy = canvas->getMapper().map(*it);
+          canvas->dataToWidget(p_xy, end, layer_->flipped);
+          canvas->dataToWidget(canvas->getGravitator().gravitateZero(p_xy), begin, layer_->flipped);
           painter->drawLine(begin, end);
         }
         break;
@@ -152,11 +151,21 @@ namespace OpenMS
 
         QPainterPath path;
 
-        // connect peaks in visible area; (no clipping needed)
+        // connect peaks in visible area; 
+        // clipping on left and right side
+        auto v_begin_cl = v_begin;
+        if (v_begin_cl != spectrum.cbegin() && v_begin_cl != spectrum.cend())
+          --v_begin_cl;
+        auto v_end_cl = v_end;
+        if (v_end_cl != spectrum.cbegin() && v_end_cl != spectrum.cend())
+          ++v_end_cl;
+
         bool first_point = true;
-        for (auto it = vbegin; it != vend; it++)
+        for (auto it = v_begin_cl; it != v_end_cl; ++it)
         {
-          canvas->dataToWidget(*it, begin, layer_->flipped);
+          if (!layer_->filters.passes(spectrum, it - spectrum.begin())) continue;
+
+          canvas->dataToWidget(canvas->getMapper().map(*it), begin, layer_->flipped);
 
           // connect lines
           if (first_point)
@@ -170,23 +179,6 @@ namespace OpenMS
           }
         }
         painter->drawPath(path);
-
-        // clipping on left side
-        if (vbegin != spectrum.begin() && vbegin != spectrum.end())
-        {
-          canvas->dataToWidget(*(vbegin - 1), begin, layer_->flipped);
-          canvas->dataToWidget(*(vbegin), end, layer_->flipped);
-          painter->drawLine(begin, end);
-        }
-
-        // clipping on right side
-        if (vend != spectrum.end() && vend != spectrum.begin())
-        {
-          canvas->dataToWidget(*(vend - 1), begin, layer_->flipped);
-          canvas->dataToWidget(*(vend), end, layer_->flipped);
-          painter->drawLine(begin, end);
-        }
-
         break;
       }
 
@@ -197,44 +189,16 @@ namespace OpenMS
     // annotate interesting m/z's
     if (canvas->draw_interesting_MZs_)
     {
-      drawMZAtInterestingPeaks_(*painter, canvas, vbegin, vend);
+      drawMZAtInterestingPeaks_(*painter, canvas, v_begin, v_end);
     }
 
     // draw all annotation items
-    drawAnnotations_(*painter, canvas);
-
-    // draw a legend
-    if (canvas->param_.getValue("show_legend").toBool())
-    {
-      double xpos = canvas->getVisibleArea().maxX() - (canvas->getVisibleArea().maxX() - canvas->getVisibleArea().minX()) * 0.1;
-      auto tmp = max_element(spectrum.MZBegin(canvas->visible_area_.minX()), spectrum.MZEnd(xpos), Plot1DCanvas::PeakType::IntensityLess());
-      if (tmp != spectrum.end())
-      {
-        Plot1DCanvas::PointType position(xpos, std::max<double>(tmp->getIntensity() - 100, tmp->getIntensity() * 0.8));
-        Annotation1DPeakItem item = Annotation1DPeakItem(position, layer_->getName().toQString(), QColor(String(layer_->param.getValue("peak_color").toString()).toQString()));
-        item.draw(canvas, *painter);
-      }
-    }
-  }
-  
-
-
-  void Painter1DPeak::drawAnnotations_(QPainter& painter, Plot1DCanvas* canvas)
-  {
-    QColor col {QColor(String(layer_->param.getValue("annotation_color").toString()).toQString())};
-    // 0: default pen; 1: selected pen
-    QPen pen[2] = {col, col.lighter()};
-
-    for (const auto& c : layer_->getCurrentAnnotations())
-    {
-      painter.setPen(pen[c->isSelected()]);
-      c->draw(canvas, painter, layer_->flipped);
-    }
+    drawAnnotations_(layer_, *painter, canvas);
   }
 
-  void Painter1DPeak::drawMZAtInterestingPeaks_(QPainter& painter, Plot1DCanvas* canvas, MSSpectrum::ConstIterator vbegin, MSSpectrum::ConstIterator vend)
+  void Painter1DPeak::drawMZAtInterestingPeaks_(QPainter& painter, Plot1DCanvas* canvas, MSSpectrum::ConstIterator v_begin, MSSpectrum::ConstIterator v_end) const
   {
-    if (vbegin == vend)
+    if (v_begin == v_end)
     {
       return;
     }
@@ -242,14 +206,14 @@ namespace OpenMS
 
     // copy visible peaks into spec
     MSSpectrum spec;
-    for (auto it(vbegin); it != vend; ++it)
+    for (auto it(v_begin); it != v_end; ++it)
     {
       spec.push_back(*it);
     }
 
     // calculate distance between first and last peak
-    --vend;
-    double visible_range = vend->getMZ() - vbegin->getMZ();
+    --v_end;
+    double visible_range = v_end->getMZ() - v_begin->getMZ();
 
     // remove 0 intensities
     ThresholdMower threshold_mower_filter;
@@ -275,9 +239,9 @@ namespace OpenMS
     window_mower_filter.setParameters(filter_param);
     window_mower_filter.filterPeakSpectrum(spec);
 
-    NLargest nlargest_filter(10); // maximum number of annotated m/z's in visible area
-    nlargest_filter.filterPeakSpectrum(spec);
-    spec.sortByPosition(); // nlargest changes order
+    // maximum number of annotated m/z's in visible area
+    NLargest(10).filterPeakSpectrum(spec);
+    spec.sortByPosition(); // n-largest changes order
 
     for (size_t i = 0; i < spec.size(); ++i)
     {
@@ -298,10 +262,210 @@ namespace OpenMS
         }
       }
 
-      Annotation1DPeakItem item({mz, intensity}, label, Qt::darkGray);
+      Annotation1DPeakItem item(Peak1D{mz, intensity}, label, Qt::darkGray);
       item.setSelected(false);
       item.draw(canvas, painter, layer_->flipped);
     }
   }
 
+
+  // ###############################
+  // ###### 1D Chrom
+  // ###############################
+
+  Painter1DChrom::Painter1DChrom(const LayerData1DChrom* parent) : layer_(parent)
+  {
+  }
+
+  void Painter1DChrom::paint(QPainter* painter, Plot1DCanvas* canvas, int layer_index)
+  {
+    if (!layer_->visible)
+    {
+      return;
+    }
+
+    const auto& data = layer_->getCurrentChrom();
+
+    // get default peak color
+    QPen pen(QColor(String(layer_->param.getValue("peak_color").toString()).toQString()), 1);
+    pen.setStyle(canvas->peak_penstyle_[layer_index]);
+    painter->setPen(pen);
+
+    const auto v_begin = data.RTBegin(canvas->visible_area_.getAreaUnit().getMinRT());
+    const auto v_end = data.RTEnd(canvas->visible_area_.getAreaUnit().getMaxRT());
+    QPoint begin, end;
+    switch (canvas->draw_modes_[layer_index])
+    {
+      case Plot1DCanvas::DrawModes::DM_PEAKS: {
+        //---------------------DRAWING PEAKS---------------------
+
+        for (auto it = v_begin; it != v_end; ++it)
+        {
+          if (!layer_->filters.passes(data, it - data.begin()))
+            continue;
+
+          // use peak colors stored in the layer, if available
+          if (layer_->peak_colors_1d.size() == data.size())
+          {
+            // find correct peak index
+            const Size peak_index = std::distance(data.begin(), it);
+            pen.setColor(layer_->peak_colors_1d[peak_index]);
+            painter->setPen(pen);
+          }
+          else if (!layer_->peak_colors_1d.empty())
+          { // Warn if non-empty peak color array present but size doesn't match number of peaks
+            // This indicates a bug but we gracefully just issue a warning
+            OPENMS_LOG_ERROR << "Peak color array size (" << layer_->peak_colors_1d.size() << ") doesn't match number of peaks (" << data.size() << ") in chromatogram." << endl;
+          }
+          // draw stick
+          auto p_xy = canvas->getMapper().map(*it);
+          canvas->dataToWidget(p_xy, end, layer_->flipped);
+          canvas->dataToWidget(canvas->getGravitator().gravitateZero(p_xy), begin, layer_->flipped);
+          painter->drawLine(begin, end);
+        }
+        break;
+      }
+      case Plot1DCanvas::DrawModes::DM_CONNECTEDLINES: {
+        //---------------------DRAWING CONNECTED LINES---------------------
+
+        QPainterPath path;
+
+        // connect peaks in visible area;
+        // clipping on left and right side
+        auto v_begin_cl = v_begin;
+        if (v_begin_cl != data.cbegin() && v_begin_cl != data.cend())
+          --v_begin_cl;
+        auto v_end_cl = v_end;
+        if (v_end_cl != data.cbegin() && v_end_cl != data.cend())
+          ++v_end_cl;
+
+        bool first_point = true;
+        for (auto it = v_begin_cl; it != v_end_cl; ++it)
+        {
+          if (!layer_->filters.passes(data, it - data.begin())) continue;
+
+          canvas->dataToWidget(canvas->getMapper().map(*it), begin, layer_->flipped);
+
+          // connect lines
+          if (first_point)
+          {
+            path.moveTo(begin);
+            first_point = false;
+          }
+          else
+          {
+            path.lineTo(begin);
+          }
+        }
+        painter->drawPath(path);
+        break;
+      }
+
+      default:
+        throw Exception::NotImplemented(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
+    }
+
+    // draw all annotation items
+    drawAnnotations_(layer_, *painter, canvas);
+  }
+
+  // ###############################
+  // ###### 1D Mobilogram
+  // ###############################
+
+  Painter1DIonMobility::Painter1DIonMobility(const LayerData1DIonMobility* parent) : layer_(parent)
+  {
+  }
+
+  void Painter1DIonMobility::paint(QPainter* painter, Plot1DCanvas* canvas, int layer_index)
+  {
+    if (!layer_->visible)
+    {
+      return;
+    }
+
+    const auto& data = layer_->getCurrentMobilogram();
+
+    // get default peak color
+    QPen pen(QColor(String(layer_->param.getValue("peak_color").toString()).toQString()), 1);
+    pen.setStyle(canvas->peak_penstyle_[layer_index]);
+    painter->setPen(pen);
+
+    const auto v_begin = data.MBBegin(canvas->visible_area_.getAreaUnit().getMinMobility());
+    const auto v_end = data.MBEnd(canvas->visible_area_.getAreaUnit().getMaxMobility());
+    QPoint begin, end;
+    switch (canvas->draw_modes_[layer_index])
+    {
+      case Plot1DCanvas::DrawModes::DM_PEAKS: {
+        //---------------------DRAWING PEAKS---------------------
+
+        for (auto it = v_begin; it != v_end; ++it)
+        {
+          //if (!layer_->filters.passes(data, it - data.begin()))
+          //  continue;
+
+          // use peak colors stored in the layer, if available
+          if (layer_->peak_colors_1d.size() == data.size())
+          {
+            // find correct peak index
+            const Size peak_index = std::distance(data.begin(), it);
+            pen.setColor(layer_->peak_colors_1d[peak_index]);
+            painter->setPen(pen);
+          }
+          else if (!layer_->peak_colors_1d.empty())
+          { // Warn if non-empty peak color array present but size doesn't match number of peaks
+            // This indicates a bug but we gracefully just issue a warning
+            OPENMS_LOG_ERROR << "Peak color array size (" << layer_->peak_colors_1d.size() << ") doesn't match number of peaks (" << data.size() << ") in chromatogram." << endl;
+          }
+          // draw stick
+          auto p_xy = canvas->getMapper().map(*it);
+          canvas->dataToWidget(p_xy, end, layer_->flipped);
+          canvas->dataToWidget(canvas->getGravitator().gravitateZero(p_xy), begin, layer_->flipped);
+          painter->drawLine(begin, end);
+        }
+        break;
+      }
+      case Plot1DCanvas::DrawModes::DM_CONNECTEDLINES: {
+        //---------------------DRAWING CONNECTED LINES---------------------
+
+        QPainterPath path;
+
+        // connect peaks in visible area;
+        // clipping on left and right side
+        auto v_begin_cl = v_begin;
+        if (v_begin_cl != data.cbegin() && v_begin_cl != data.cend())
+          --v_begin_cl;
+        auto v_end_cl = v_end;
+        if (v_end_cl != data.cbegin() && v_end_cl != data.cend())
+          ++v_end_cl;
+
+        bool first_point = true;
+        for (auto it = v_begin_cl; it != v_end_cl; ++it)
+        {
+          if (!layer_->filters.passes(data, it - data.begin())) continue;
+          
+          canvas->dataToWidget(canvas->getMapper().map(*it), begin, layer_->flipped);
+
+          // connect lines
+          if (first_point)
+          {
+            path.moveTo(begin);
+            first_point = false;
+          }
+          else
+          {
+            path.lineTo(begin);
+          }
+        }
+        painter->drawPath(path);
+        break;
+      }
+
+      default:
+        throw Exception::NotImplemented(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
+    }
+
+    // draw all annotation items
+    drawAnnotations_(layer_, *painter, canvas);
+  }
 } // namespace OpenMS

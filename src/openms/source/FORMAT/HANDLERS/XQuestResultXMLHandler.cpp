@@ -100,17 +100,15 @@ namespace OpenMS::Internal
                                                    const String& version
                                                  ) :
       XMLHandler(filename, version),
-      pep_ids_(0),
-      prot_ids_(0),
+      pep_ids_(nullptr),
+      prot_ids_(nullptr),
       cpro_id_(&pro_id),
       cpep_id_(&pep_id)
     {
     }
 
     XQuestResultXMLHandler::~XQuestResultXMLHandler()
-    {
-
-    }
+    = default;
 
     void XQuestResultXMLHandler::extractDateTime_(const String & xquest_datetime_string, DateTime & date_time) const
     {

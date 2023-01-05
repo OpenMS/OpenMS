@@ -312,15 +312,36 @@ public:
     */
     //@{
 
+    
     /**
-        @brief Conversion to int
+        @brief Conversion to Int
 
         This method extracts only the integral part of the string.
         If you want the result rounded, use toFloat() and round the result.
 
-        @exception Exception::ConversionError is thrown if the string could not be converted to int
+        @exception Exception::ConversionError is thrown if the string could not be converted to Int
     */
     OPENMS_DLLAPI Int toInt() const;
+
+    /**
+        @brief Conversion to Int32
+
+        This method extracts only the integral part of the string.
+        If you want the result rounded, use toFloat() and round the result.
+
+        @exception Exception::ConversionError is thrown if the string could not be converted to Int32
+    */
+    OPENMS_DLLAPI Int32 toInt32() const;
+
+    /**
+    @brief Conversion to Int64
+
+    This method extracts only the integral part of the string.
+    If you want the result rounded, use toFloat() and round the result.
+
+    @exception Exception::ConversionError is thrown if the string could not be converted to Int64
+    */
+    OPENMS_DLLAPI Int64 toInt64() const;
 
     /**
       @brief Conversion to float

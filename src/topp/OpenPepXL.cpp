@@ -112,7 +112,7 @@ using namespace OpenMS;
     <table>
         <tr>
             <td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. predecessor tools </td>
-            <td VALIGN="middle" ROWSPAN=2> \f$ \longrightarrow \f$ OpenPepXL \f$ \longrightarrow \f$</td>
+            <td VALIGN="middle" ROWSPAN=2> &rarr; OpenPepXL &rarr;</td>
             <td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. successor tools </td>
         </tr>
         <tr>

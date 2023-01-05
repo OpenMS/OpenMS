@@ -111,16 +111,16 @@ namespace OpenMS
     // annotate network number and create a map with feature ID and partner IDs
     // partner feature vertexes are connected via a group vertex
     std::unordered_map<size_t, std::set<size_t>> partner_map;
-    for (auto i : boost::make_iterator_range(vertices(g)))
+    for (const auto& i : boost::make_iterator_range(vertices(g)))
     {
       if (!g[i].is_feature) continue;
       consensus_map[g[i].uid].setMetaValue(Constants::UserParam::IIMN_ANNOTATION_NETWORK_NUMBER, components[i]+1);
       auto group_neighbours = boost::adjacent_vertices(i, g);
-      for (auto gn : make_iterator_range(group_neighbours))
+      for (const auto& gn : make_iterator_range(group_neighbours))
       {
         auto feature_partners = boost::adjacent_vertices(gn, g);
         
-        for (auto partner : make_iterator_range(feature_partners))
+        for (const auto& partner : make_iterator_range(feature_partners))
         {
           if (i == partner) continue;
           partner_map[g[i].uid].insert(g[partner].uid);

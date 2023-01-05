@@ -57,9 +57,6 @@
 #include <OpenMS/FORMAT/XTandemXMLFile.h>
 #include <OpenMS/SYSTEM/File.h>
 
-
-#include <QtCore/QCoreApplication>
-
 #ifdef _OPENMP
 #include <omp.h>
 #endif
@@ -80,7 +77,7 @@ using namespace std;
     <table>
         <tr>
             <td ALIGN = "center" BGCOLOR="#EBEBEB"> potential predecessor tools </td>
-            <td VALIGN="middle" ROWSPAN=3> \f$ \longrightarrow \f$ IDFileConverter \f$ \longrightarrow \f$</td>
+            <td VALIGN="middle" ROWSPAN=3> &rarr; IDFileConverter &rarr;</td>
             <td ALIGN = "center" BGCOLOR="#EBEBEB"> potential successor tools </td>
         </tr>
         <tr>

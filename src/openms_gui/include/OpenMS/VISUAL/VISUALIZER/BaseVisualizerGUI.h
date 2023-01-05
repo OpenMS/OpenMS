@@ -87,9 +87,9 @@ public slots:
 protected:
 
     /// Adds a label to the grid layout.
-    void addLabel_(QString label);
+    void addLabel_(const QString& label);
     /// Adds a label to a certain row
-    void addLabel_(QString label, UInt row);
+    void addLabel_(const QString& label, UInt row);
     /// Adds a line edit field with label to the grid layout.
     void addLineEdit_(QLineEdit * & ptr, QString label);
     /// Adds a line edit field to the grid layout including a int validator
@@ -97,7 +97,7 @@ protected:
     /// Adds a line edit field to the grid layout including a double validator
     void addDoubleLineEdit_(QLineEdit * & ptr, QString label);
     /// Adds a line edit field with label and button to the next free position in the grid.
-    void addLineEditButton_(QString label, QLineEdit * & ptr1, QPushButton * & ptr2, QString buttonlabel);
+    void addLineEditButton_(const QString& label, QLineEdit * & ptr1, QPushButton * & ptr2, const QString& buttonlabel);
     /// Adds a list edit field to the grid layout.
     void addListView_(QListWidget * & ptr, QString label);
     /// Adds a text edit field to the grid layout.
@@ -111,9 +111,9 @@ protected:
     /// Adds vertical spacer.
     void addVSpacer_();
     /// Adds a button to the next free position in the grid.
-    void addButton_(QPushButton * & ptr, QString label);
+    void addButton_(QPushButton * & ptr, const QString& label);
     /// Adds two buttons in a row.
-    void add2Buttons_(QPushButton * & ptr1, QString label1, QPushButton * & ptr2, QString label2);
+    void add2Buttons_(QPushButton * & ptr1, const QString& label1, QPushButton * & ptr2, const QString& label2);
     /// Adds a horizontal line as a separator.
     void addSeparator_();
     /// Adds buttons common to all visualizers

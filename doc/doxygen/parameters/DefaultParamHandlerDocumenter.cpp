@@ -180,6 +180,19 @@
 using namespace std;
 using namespace OpenMS;
 
+// this weird piece of code is required to avoid the following linker errors in VS2019
+/*
+Error	LNK2001	unresolved external symbol "public: virtual void * __cdecl OpenMS::MSExperiment::`scalar deleting destructor'(unsigned int)" (??_GMSExperiment@OpenMS@@UEAAPEAXI@Z)	DefaultParamHandlerDocumenter	C:\dev\openms_test_build19\doc\DefaultParamHandlerDocumenter.obj	1	
+Error	LNK2019	unresolved external symbol "public: virtual void * __cdecl OpenMS::MSExperiment::`vector deleting destructor'(unsigned int)" (??_EMSExperiment@OpenMS@@UEAAPEAXI@Z) referenced in function "[thunk]:public: virtual void * __cdecl OpenMS::MSExperiment::`vector deleting destructor'`adjustor{72}' (unsigned int)" (??_EMSExperiment@OpenMS@@WEI@EAAPEAXI@Z)	DefaultParamHandlerDocumenter	C:\dev\openms_test_build19\doc\DefaultParamHandlerDocumenter.obj	1
+see https://stackoverflow.com/a/74235019/1913074
+Alternatively, define ~MSExperiment(){}; instead of using ' = default;'
+*/
+void foo()
+{
+  auto p = new MSExperiment();
+  delete p;
+}
+
 //**********************************************************************************
 //Helper method - use this method to generate the actual parameter documentation
 //**********************************************************************************
@@ -491,9 +504,9 @@ int main(int argc, char** argv)
   DOCME2(TOPPViewBase, TOPPViewBase(TOPPViewBase::TOOL_SCAN::SKIP_SCAN));
   DOCME(TOPPASBase);
 
-  DOCME2(Plot1DCanvas, Plot1DCanvas(Param(), nullptr));
-  DOCME2(Plot2DCanvas, Plot2DCanvas(Param(), nullptr));
-  DOCME2(Plot3DCanvas, Plot3DCanvas(Param(), nullptr));
+  DOCME2(Plot1DCanvas, Plot1DCanvas(Param()));
+  DOCME2(Plot2DCanvas, Plot2DCanvas(Param()));
+  DOCME2(Plot3DCanvas, Plot3DCanvas(Param()));
 #endif
 
   return 0;

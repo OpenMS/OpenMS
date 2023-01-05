@@ -52,7 +52,7 @@ namespace OpenMS
     }
 
     ToolDescriptionInternal::ToolDescriptionInternal(const String& p_name, const StringList& p_types) :
-      is_internal(false),
+      
       name(p_name),
       category(),
       types(p_types)

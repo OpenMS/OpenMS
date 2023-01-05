@@ -62,8 +62,7 @@ namespace OpenMS
     setDefaultParams_();
   }
 
-  ItraqEightPlexQuantitationMethod::~ItraqEightPlexQuantitationMethod()
-  = default;
+  ItraqEightPlexQuantitationMethod::~ItraqEightPlexQuantitationMethod() = default;
 
   ItraqEightPlexQuantitationMethod::ItraqEightPlexQuantitationMethod(const ItraqEightPlexQuantitationMethod& other):
   IsobaricQuantitationMethod(other)

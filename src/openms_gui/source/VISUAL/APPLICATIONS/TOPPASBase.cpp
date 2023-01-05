@@ -61,21 +61,21 @@
 
 //Qt
 #include <QApplication>
+#include <QCloseEvent>
+#include <QDesktopServices>
+#include <QNetworkAccessManager>
+#include <QNetworkProxy>
+#include <QNetworkProxyFactory>
+#include <QNetworkReply>
+#include <QSvgGenerator>
+#include <QTextCodec>
+#include <QTextStream>
 #include <QtCore/QDir>
 #include <QtCore/QFile>
 #include <QtCore/QMap>
 #include <QtCore/QSet>
 #include <QtCore/QSettings>
 #include <QtCore/QUrl>
-#include <QCloseEvent>
-#include <QDesktopServices>
-#include <QNetworkAccessManager>
-#include <QNetworkProxyFactory>
-#include <QNetworkProxy>
-#include <QNetworkReply>
-#include <QSvgGenerator>
-#include <QTextStream>
-#include <QTextCodec>
 #include <QtWidgets/QCheckBox>
 #include <QtWidgets/QDesktopWidget>
 #include <QtWidgets/QDockWidget>
@@ -84,6 +84,7 @@
 #include <QtWidgets/QLabel>
 #include <QtWidgets/QListWidget>
 #include <QtWidgets/QListWidgetItem>
+#include <QtWidgets/QMdiSubWindow>
 #include <QtWidgets/QMenu>
 #include <QtWidgets/QMenuBar>
 #include <QtWidgets/QMessageBox>
@@ -92,12 +93,12 @@
 #include <QtWidgets/QTextEdit>
 #include <QtWidgets/QToolBar>
 #include <QtWidgets/QToolButton>
+#include <QtWidgets/QToolTip>
 #include <QtWidgets/QTreeWidget>
 #include <QtWidgets/QTreeWidgetItem>
-#include <QtWidgets/QToolTip>
 #include <QtWidgets/QVBoxLayout>
 #include <QtWidgets/QWhatsThis>
-#include <QtWidgets/QMdiSubWindow>
+#include <utility>
 
 
 using namespace std;
@@ -215,7 +216,7 @@ namespace OpenMS
     defaults_.setValue("preferences:default_path_current", "true", "If the current path is preferred over the default path.");
     defaults_.setValidStrings("preferences:default_path_current", {"true","false"});
     defaults_.setValue("preferences:version", "none", "OpenMS version, used to check if the TOPPAS.ini is up-to-date");
-    subsections_.push_back("preferences:RecentFiles");
+    subsections_.emplace_back("preferences:RecentFiles");
     defaultsToParam_();
 
     //load param file
@@ -688,7 +689,7 @@ namespace OpenMS
   }
 
   // static
-  QString TOPPASBase::savePipelineAs(TOPPASWidget* w, QString current_path)
+  QString TOPPASBase::savePipelineAs(TOPPASWidget* w, const QString& current_path)
   {
     if (!w)
     {
@@ -782,7 +783,7 @@ namespace OpenMS
   }
 
   // static
-  QString TOPPASBase::loadPipelineResourceFile(TOPPASWidget* w, QString current_path)
+  QString TOPPASBase::loadPipelineResourceFile(TOPPASWidget* w, const QString& current_path)
   {
     if (!w)
     {
@@ -807,7 +808,7 @@ namespace OpenMS
   }
 
   // static
-  QString TOPPASBase::savePipelineResourceFile(TOPPASWidget* w, QString current_path)
+  QString TOPPASBase::savePipelineResourceFile(TOPPASWidget* w, const QString& current_path)
   {
     if (!w)
     {
@@ -962,14 +963,14 @@ namespace OpenMS
 
   void TOPPASBase::closeFile()
   {
-    if (ws_ != 0 && ws_->currentSubWindow() != 0)
+    if (ws_ != nullptr && ws_->currentSubWindow() != nullptr)
     {
       ws_->currentSubWindow()->close();
     }
     updateMenu();
   }
 
-  void TOPPASBase::showStatusMessage(string msg, OpenMS::UInt time)
+  void TOPPASBase::showStatusMessage(const string& msg, OpenMS::UInt time)
   {
     if (time == 0)
     {
@@ -1388,7 +1389,7 @@ namespace OpenMS
 
   void TOPPASBase::updateTOPPOutputLog(const QString& out)
   {
-    QString text = out; // shortened version for now (if we reintroduce simultaneous tool execution,
+    const QString& text = out; // shortened version for now (if we reintroduce simultaneous tool execution,
                         // we need to rethink this (probably only trigger this slot when tool 100% finished)
 
 
@@ -1489,7 +1490,7 @@ namespace OpenMS
                                        QMessageBox::Save | QMessageBox::Cancel);
     if (ret == QMessageBox::Save)
     {
-      QString file_name = TOPPASBase::savePipelineAs(tw, current_path);
+      QString file_name = TOPPASBase::savePipelineAs(tw, std::move(current_path));
       return file_name;
     }
 
@@ -1529,7 +1530,7 @@ namespace OpenMS
 
   }
 
-  void TOPPASBase::openToppasFile(QString filename)
+  void TOPPASBase::openToppasFile(const QString& filename)
   {
     addTOPPASFile(String(filename));
   }

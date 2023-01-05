@@ -77,7 +77,7 @@ public:
     FIAMSScheduler& operator=(const FIAMSScheduler& fdp) = default;
 
     /**
-      @brief Run the FIA-MS data analysis for the batch defined in the @filename_
+      @brief Run the FIA-MS data analysis for the batch defined in the @p filename_
     */
     void run();
 

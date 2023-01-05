@@ -186,7 +186,7 @@ private:
     /// helper function, returns the string representation of the peptide hit accession
     void getProteinAccessions_(std::vector<String> & result, const std::vector<PeptideHit> & peptide_hits);
     /// helper function, returns the protein identification for the given peptide identification based on the same identifier
-    void getProteinIdentification_(ProteinIdentification & result, PeptideIdentification pep_ident, std::vector<ProteinIdentification> & prot_idents);
+    void getProteinIdentification_(ProteinIdentification & result, const PeptideIdentification& pep_ident, std::vector<ProteinIdentification> & prot_idents);
     /// helper function, register a potential output file basename to detect duplicate output basenames
     bool registerBasename_(std::map<String, std::pair<UInt, UInt> >& basename_to_numeric, const IDRipper::RipFileIdentifier& rfi);
     /// helper function, sets the value of mode to new_value and returns true if the old value was identical or unset (-1)

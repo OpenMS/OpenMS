@@ -48,9 +48,7 @@ namespace OpenMS
   {
   }
 
-  CVTerm::~CVTerm()
-  {
-  }
+  CVTerm::~CVTerm() = default;
 
   bool CVTerm::operator==(const CVTerm & rhs) const
   {

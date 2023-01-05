@@ -43,14 +43,9 @@ namespace OpenMS
   {
   }
 
-  SqrtMower::~SqrtMower()
-  {
-  }
+  SqrtMower::~SqrtMower() = default;
 
-  SqrtMower::SqrtMower(const SqrtMower & source) :
-    DefaultParamHandler(source)
-  {
-  }
+  SqrtMower::SqrtMower(const SqrtMower & source) = default;
 
   SqrtMower & SqrtMower::operator=(const SqrtMower & source)
   {

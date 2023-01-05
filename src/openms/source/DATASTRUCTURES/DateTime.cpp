@@ -112,7 +112,7 @@ namespace OpenMS
     return dt_->isValid();
   }
 
-  String DateTime::toString(std::string format) const
+  String DateTime::toString(const std::string& format) const
   {
     return dt_->toString(QString::fromStdString(format)).toStdString();
   }
@@ -335,7 +335,7 @@ namespace OpenMS
   }
 
   // static
-  DateTime DateTime::fromString(const std::string& date, std::string format)
+  DateTime DateTime::fromString(const std::string& date, const std::string& format)
   {
     DateTime d;
     *d.dt_ = QDateTime::fromString(QString::fromStdString(date), QString::fromStdString(format));

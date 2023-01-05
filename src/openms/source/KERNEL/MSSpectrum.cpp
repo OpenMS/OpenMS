@@ -529,19 +529,7 @@ namespace OpenMS
     integer_data_arrays_()
   {}
 
-  MSSpectrum::MSSpectrum(const MSSpectrum &source) :
-    ContainerType(source),
-    RangeManagerContainerType(source),
-    SpectrumSettings(source),
-    retention_time_(source.retention_time_),
-    drift_time_(source.drift_time_),
-    drift_time_unit_(source.drift_time_unit_),
-    ms_level_(source.ms_level_),
-    name_(source.name_),
-    float_data_arrays_(source.float_data_arrays_),
-    string_data_arrays_(source.string_data_arrays_),
-    integer_data_arrays_(source.integer_data_arrays_)
-  {}
+  MSSpectrum::MSSpectrum(const MSSpectrum &source) = default;
 
   MSSpectrum &MSSpectrum::operator=(const SpectrumSettings &source)
   {

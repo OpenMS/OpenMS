@@ -45,9 +45,7 @@ namespace OpenMS
     defaultsToParam_();
   }
 
-  ThresholdMower::~ThresholdMower()
-  {
-  }
+  ThresholdMower::~ThresholdMower() = default;
 
   ThresholdMower::ThresholdMower(const ThresholdMower & source) :
     DefaultParamHandler(source)

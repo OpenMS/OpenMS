@@ -98,18 +98,20 @@ namespace OpenMS
     struct GridSearchEvaluator;
 
 
-    /// @TODO loop over all runs
     /**
      * @brief Perform inference. Filter, build graph, run the private inferPosteriorProbabilities_ function.
      *  Writes its results into protein and (optionally also) peptide hits (as new score).
      *  Optionally adds indistinguishable protein groups with separate scores, too.
      *  Output scores are always posterior probabilities. Input can be posterior or error probabilities.
-     *  See @class Param object defaults_ of @class BayesianProteinInferenceAlgorithm for more settings.
+     *  See Param object defaults_ within the BayesianProteinInferenceAlgorithm for more settings.
      *  Currently only takes first proteinID run and all peptides (irrespective of getIdentifier()).
      * @param proteinIDs Input/output proteins
      * @param peptideIDs Input/output peptides
      * @param greedy_group_resolution Do greedy group resolution? Remove all but best association for "razor" peptides.
      * @param exp_des Experimental design can be used to create an extended graph with replicate information. (experimental)
+     * 
+     * @todo loop over all runs
+     * 
      */
     void inferPosteriorProbabilities(
         std::vector<ProteinIdentification>& proteinIDs,
@@ -122,7 +124,7 @@ namespace OpenMS
      *  Writes its results into protein and (optionally also) peptide hits (as new score).
      *  Optionally adds indistinguishable protein groups with separate scores, too.
      *  Output scores are always posterior probabilities. Input can be posterior or error probabilities.
-     *  See @class Param object defaults_ of @class BayesianProteinInferenceAlgorithm for more settings.
+     *  See Param object defaults_ within the BayesianProteinInferenceAlgorithm for more settings.
      *  Currently only takes first proteinID run and all peptides (irrespective of getIdentifier()).
      * @param cmap Features with input/output peptides and proteins (from getProteinIdentifications)
      * @param greedy_group_resolution Do greedy group resolution? Remove all but best association for "razor" peptides.

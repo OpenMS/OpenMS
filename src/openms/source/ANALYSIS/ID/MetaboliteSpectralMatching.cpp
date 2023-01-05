@@ -71,29 +71,10 @@ namespace OpenMS
   }
 
   /// Default destructor
-  SpectralMatch::~SpectralMatch()
-  {
-  }
+  SpectralMatch::~SpectralMatch() = default;
 
   /// Copy constructor
-  SpectralMatch::SpectralMatch(const SpectralMatch& sm) :
-    observed_precursor_mass_(sm.observed_precursor_mass_),
-    observed_precursor_rt_(sm.observed_precursor_rt_),
-    found_precursor_mass_(sm.found_precursor_mass_),
-    found_precursor_charge_(sm.found_precursor_charge_),
-    matching_score_(sm.matching_score_),
-    observed_spectrum_idx_(sm.observed_spectrum_idx_),
-    matching_spectrum_idx_(sm.matching_spectrum_idx_),
-    observed_spectrum_native_id_(sm.observed_spectrum_native_id_),
-    primary_id_(sm.primary_id_),
-    secondary_id_(sm.secondary_id_),
-    common_name_(sm.common_name_),
-    sum_formula_(sm.sum_formula_),
-    inchi_string_(sm.inchi_string_),
-    smiles_string_(sm.smiles_string_),
-    precursor_adduct_(sm.precursor_adduct_)
-  {
-  }
+  SpectralMatch::SpectralMatch(const SpectralMatch& sm) = default;
 
   /// Assignment operator
   SpectralMatch& SpectralMatch::operator=(const SpectralMatch& rhs)
@@ -323,9 +304,7 @@ namespace OpenMS
   }
 
 
-  MetaboliteSpectralMatching::~MetaboliteSpectralMatching()
-  {
-  }
+  MetaboliteSpectralMatching::~MetaboliteSpectralMatching() = default;
 
 
   double MetaboliteSpectralMatching::computeHyperScore(
@@ -337,7 +316,7 @@ namespace OpenMS
   {
     return computeHyperScore_(fragment_mass_error,
                               fragment_mass_tolerance_unit_ppm, exp_spectrum,
-                              db_spectrum, 0, mz_lower_bound);
+                              db_spectrum, nullptr, mz_lower_bound);
   }
 
 
@@ -410,7 +389,7 @@ namespace OpenMS
     }
 
     // return annotations for matching peaks?
-    if ((annotations != 0) &&
+    if ((annotations != nullptr) &&
         !db_spectrum.getStringDataArrays().empty() &&
         !db_spectrum.getIntegerDataArrays().empty())
     {

@@ -102,7 +102,7 @@ namespace OpenMS
  
       @throws OpenMS::Exception::FileNotFound if database name could not be resolved
     */
-    String getDBFilename(String db = "") const;
+    String getDBFilename(const String& db = "") const;
 
 
     /**

@@ -185,8 +185,8 @@ protected:
     */
     void addConstraint_(
       LPWrapper& problem,
-      std::vector<Int> indices,
-      std::vector<double> values,
+      const std::vector<Int>& indices,
+      const std::vector<double>& values,
       const String& name,
       const double lb,
       const double ub,

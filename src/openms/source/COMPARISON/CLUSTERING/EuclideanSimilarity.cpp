@@ -42,14 +42,9 @@ namespace OpenMS
   {
   }
 
-  EuclideanSimilarity::EuclideanSimilarity(const EuclideanSimilarity & source) :
-    scale_(source.scale_)
-  {
-  }
+  EuclideanSimilarity::EuclideanSimilarity(const EuclideanSimilarity & source) = default;
 
-  EuclideanSimilarity::~EuclideanSimilarity()
-  {
-  }
+  EuclideanSimilarity::~EuclideanSimilarity() = default;
 
   EuclideanSimilarity & EuclideanSimilarity::operator=(const EuclideanSimilarity & source)
   {

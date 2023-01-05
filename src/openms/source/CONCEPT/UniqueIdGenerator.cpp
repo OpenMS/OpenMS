@@ -78,9 +78,7 @@ namespace OpenMS
     }
   }
 
-  UniqueIdGenerator::UniqueIdGenerator()
-  {
-  }
+  UniqueIdGenerator::UniqueIdGenerator() = default;
 
   UniqueIdGenerator & UniqueIdGenerator::getInstance_()
   {

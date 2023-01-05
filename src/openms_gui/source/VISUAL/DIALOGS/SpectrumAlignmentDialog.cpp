@@ -61,7 +61,7 @@ namespace OpenMS
     Plot1DCanvas * cc = parent->canvas();
     for (UInt i = 0; i < cc->getLayerCount(); ++i)
     {
-      const LayerDataBase& layer = cc->getLayer(i);
+      const auto& layer = cc->getLayer(i);
       if (layer.flipped)
       {
         ui_->layer_list_2->addItem(layer.getName().toQString());

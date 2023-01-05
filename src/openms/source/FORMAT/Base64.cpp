@@ -245,7 +245,7 @@ print s
     {
       if (!it->isEmpty())
       {
-        out.push_back(QString(*it).toStdString());
+        out.emplace_back(QString(*it).toStdString());
       }
     }
   }

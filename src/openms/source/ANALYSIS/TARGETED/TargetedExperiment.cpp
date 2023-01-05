@@ -119,9 +119,7 @@ namespace OpenMS
   {
   }
 
-  TargetedExperiment::~TargetedExperiment()
-  {
-  }
+  TargetedExperiment::~TargetedExperiment() = default;
 
   TargetedExperiment& TargetedExperiment::operator=(const TargetedExperiment & rhs)
   {

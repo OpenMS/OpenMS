@@ -34,6 +34,8 @@
 
 #pragma once
 
+#include <OpenMS/DATASTRUCTURES/DPosition.h>
+
 
 namespace OpenMS
 {
@@ -53,4 +55,6 @@ namespace OpenMS
     WITH_INVISIBLE,
   };
 
+  /// Type of the Points in a 'flat' canvas (1D and 2D)
+  using PointXYType = DPosition<2U>;
 }
