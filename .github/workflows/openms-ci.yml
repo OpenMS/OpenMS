@@ -403,6 +403,8 @@ jobs:
           CCACHE_COMPRESS: true
           CCACHE_COMPRESSLEVEL: "12"
           CCACHE_MAXSIZE: "400M"
+          CCACHE_SLOPPINESS: "time_macros,include_file_ctime,include_file_mtime"
+          CCACHE_COMPILERCHECK: "content"
 
   build-lnx-clang:
     runs-on: ubuntu-20.04
