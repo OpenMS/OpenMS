@@ -162,7 +162,7 @@ jobs:
         setup-python: 'false' # see https://github.com/jurplel/install-qt-action/issues/130
 
     - name: Install build tools
-      run: brew install autoconf automake libtool
+      run: brew install autoconf automake libtool ninja
 
     - name: Cache contrib
       id: cache-contrib-os
@@ -253,7 +253,7 @@ jobs:
       env:
           CONTRIB_BUILD_DIRECTORY: "${{ github.workspace }}/OpenMS/contrib"
           CI_PROVIDER: "GitHub-Actions"
-          CMAKE_GENERATOR: "Unix Makefiles"
+          CMAKE_GENERATOR: "Ninja"
           SOURCE_DIRECTORY: "${{ github.workspace }}/OpenMS"
           BUILD_NAME: "${{ env.RUN_NAME }}-macOS-testClass-testTOPP"
           OPENMS_CONTRIB_LIBS: "${{ github.workspace }}/OpenMS/contrib"
@@ -294,7 +294,7 @@ jobs:
 
     - name: Install ccache
       run: |
-        yum -y install ccache
+        yum -y install ccache ninja-build
         ccache --version
 
     - name: Load ccache
@@ -384,7 +384,7 @@ jobs:
       env:
           CONTRIB_BUILD_DIRECTORY: "/contrib-build"
           CI_PROVIDER: "GitHub-Actions"
-          CMAKE_GENERATOR: "Unix Makefiles"
+          CMAKE_GENERATOR: "Ninja"
           SOURCE_DIRECTORY: "${{ github.workspace }}/OpenMS"
           BUILD_NAME: "${{ env.RUN_NAME }}-Ubuntu-testClass-testTOPP"
           OPENMS_CONTRIB_LIBS: "${{ github.workspace }}/OpenMS/contrib"
@@ -401,10 +401,10 @@ jobs:
           CCACHE_BASEDIR: "${{ github.workspace }}"
           CCACHE_DIR: "${{ github.workspace }}/.ccache"
           CCACHE_COMPRESS: true
-          CCACHE_COMPRESSLEVEL: "12"
-          CCACHE_MAXSIZE: "400M"
-          CCACHE_SLOPPINESS: "time_macros,include_file_ctime,include_file_mtime"
-          CCACHE_COMPILERCHECK: "content"
+          CCACHE_COMPRESSLEVEL: 12
+          CCACHE_MAXSIZE: 400M
+          CCACHE_SLOPPINESS: time_macros,include_file_ctime,include_file_mtime
+          CCACHE_COMPILERCHECK: content
 
   build-lnx-clang:
     runs-on: ubuntu-20.04
@@ -490,7 +490,7 @@ jobs:
       run: |
            sudo add-apt-repository universe
            sudo apt update    
-           sudo apt-get install build-essential cmake autoconf patch libtool git automake
+           sudo apt-get install build-essential cmake autoconf patch libtool git automake ninja-build
            sudo apt-get install qtbase5-dev libqt5svg5-dev libqt5opengl5-dev
            sudo apt-get install libeigen3-dev libboost-random1.67-dev libboost-regex1.67-dev libboost-iostreams1.67-dev libboost-date-time1.67-dev libboost-math1.67-dev libxerces-c-dev zlib1g-dev libsvm-dev libbz2-dev coinor-libcoinmp-dev libhdf5-dev
 
@@ -512,7 +512,7 @@ jobs:
       env:
           CONTRIB_BUILD_DIRECTORY: "/contrib-build"
           CI_PROVIDER: "GitHub-Actions"
-          CMAKE_GENERATOR: "Unix Makefiles"
+          CMAKE_GENERATOR: "Ninja"
           SOURCE_DIRECTORY: "${{ github.workspace }}/OpenMS"
           BUILD_NAME: "${{ env.RUN_NAME }}-Ubuntu-testClass-testTOPP"
           OPENMS_CONTRIB_LIBS: "${{ github.workspace }}/OpenMS/contrib"
