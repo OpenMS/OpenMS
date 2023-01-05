@@ -114,6 +114,9 @@ jobs:
         shell: bash
         run: |
             spython recipe dockerfiles/library/Dockerfile &> dockerfiles/library/Singularity.def
+            sed -i "s/(^From:.*:)(.*)/\1${{ steps.tag_name.outputs.tag }}/" dockerfiles/executables/Singularity.def
+            sed -i "s/(^OPENMS_BRANCH=)(.*)/\1${{ steps.extract_branch.outputs.branch }}/" dockerfiles/executables/Singularity.def
+            sed -i "s/(^OPENMS_TAG=)(.*)/\1${{ steps.tag_name.outputs.tag }}/" dockerfiles/executables/Singularity.def
             cat dockerfiles/library/Singularity.def
             sudo -E singularity build library.sif dockerfiles/library/Singularity.def
             
@@ -121,7 +124,6 @@ jobs:
         shell: bash
         run: |
             spython recipe dockerfiles/executables/Dockerfile &> dockerfiles/executables/Singularity.def
-            cat dockerfiles/executables/Singularity.def
             sed -i "s%^From:.*%From: $(pwd)/library.sif%" dockerfiles/executables/Singularity.def
             sed -i "s/^Bootstrap:.*/Bootstrap: localimage/" dockerfiles/executables/Singularity.def
             cat dockerfiles/executables/Singularity.def
