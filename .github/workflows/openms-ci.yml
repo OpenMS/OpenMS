@@ -353,6 +353,8 @@ jobs:
             ## TODO potentially parse some OS infos and add to build name
             ## TODO allow changing Contrib path to get rid of the extra cmake file!
             xvfb-run ctest --output-on-failure -V -S $GITHUB_WORKSPACE/OpenMS/tools/ci/cibuild.cmake
+            find $GITHUB_WORKSPACE/OpenMS/bld/ -name "LastBuild.*" -type f -exec cat {} \;
+
 
             FAILED_TEST=$(find $GITHUB_WORKSPACE/OpenMS/bld/ -name "Test.xml" -type f -exec grep "<Test Status=\"failed\">" -c {} \; )
             if [ "$FAILED_TEST" -gt "0" ] ; then
