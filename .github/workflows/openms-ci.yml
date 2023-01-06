@@ -68,14 +68,22 @@ jobs:
       shell: bash
       run: echo "RUN_NAME=pr$(jq --raw-output .pull_request.number $GITHUB_EVENT_PATH)" >> $GITHUB_ENV
       id: extract_pr
-      
-    - name: Setup Ninja
-      uses: seanmiddleditch/gha-setup-ninja@master
 
-    - name: Setup cmake
-      uses: jwlawson/actions-setup-cmake@v1.13
+    - name: Setup build tools
+      shell: bash
+      run: |
+        choco install ccache ninja cmake
+
+    - name: Setup ccache cache
+      uses: actions/cache@v3
       with:
-        cmake-version: 'latest'
+        path: .ccache
+        key: ${{ runner.os }}-ccache-${{ github.ref }}-${{ github.run_number }}
+        # Restoring: From current branch, otherwise from base branch, otherwise from any branch.
+        restore-keys: |
+          ${{ runner.os }}-ccache-${{ github.ref }}
+          ${{ runner.os }}-ccache-${{ github.base_ref }}
+          ${{ runner.os }}-ccache-
 
     - name: Add THIRDPARTY
       shell: bash
@@ -123,7 +131,13 @@ jobs:
           OPENMP: "Off"
           USE_STATIC_BOOST: "On"
           #  BUILD_FLAGS: "-p:CL_MPCount=2" # For VS Generator and MSBuild
-          BUILD_FLAGS: "-j2" # Ninja will otherwise use all cores (doesn't go well in GHA) 
+          BUILD_FLAGS: "-j2" # Ninja will otherwise use all cores (doesn't go well in GHA)
+          CMAKE_CCACHE_EXE: "ccache"
+          CCACHE_BASEDIR: ${{ github.workspace }}
+          CCACHE_DIR: ${{ github.workspace }}/.ccache
+          CCACHE_COMPRESS: true
+          CCACHE_COMPRESSLEVEL: 12
+          CCACHE_MAXSIZE: 400M
 
   build-macos:
     runs-on: macos-latest
@@ -139,8 +153,8 @@ jobs:
       run: |
         brew install ccache && brew link --overwrite ccache
 
-    - name: Load ccache
-      uses: actions/cache@v2
+    - name: Setup ccache cache
+      uses: actions/cache@v3
       with:
         path: .ccache
         key: ${{ runner.os }}-ccache-${{ github.ref }}-${{ github.run_number }}
@@ -298,7 +312,7 @@ jobs:
            sudo apt-get install -y qtbase5-dev libqt5svg5-dev libqt5opengl5-dev
            sudo apt-get install -y libeigen3-dev libboost-random-dev libboost-regex-dev libboost-iostreams-dev libboost-date-time-dev libboost-math-dev libxerces-c-dev zlib1g-dev libsvm-dev libbz2-dev coinor-libcoinmp-dev libhdf5-dev
 
-    - name: Load ccache
+    - name: Setup ccache cache
       uses: actions/cache@v3
       with:
         path: .ccache
@@ -352,9 +366,7 @@ jobs:
             ## TODO allow changing of ctest build site in cmake
             ## TODO potentially parse some OS infos and add to build name
             ## TODO allow changing Contrib path to get rid of the extra cmake file!
-            xvfb-run ctest --output-on-failure -V -S $GITHUB_WORKSPACE/OpenMS/tools/ci/cibuild.cmake | true
-            find $GITHUB_WORKSPACE/OpenMS/bld/ -name "LastBuild*" -type f -exec cat {} \;
-
+            xvfb-run ctest --output-on-failure -V -S $GITHUB_WORKSPACE/OpenMS/tools/ci/cibuild.cmake | find $GITHUB_WORKSPACE/OpenMS/bld/ -name "LastBuild*" -type f -exec cat {} \;
 
             FAILED_TEST=$(find $GITHUB_WORKSPACE/OpenMS/bld/ -name "Test.xml" -type f -exec grep "<Test Status=\"failed\">" -c {} \; )
             if [ "$FAILED_TEST" -gt "0" ] ; then
@@ -411,6 +423,17 @@ jobs:
            sudo apt-get install qtbase5-dev libqt5svg5-dev libqt5opengl5-dev
            sudo apt-get install libeigen3-dev libboost-random1.67-dev libboost-regex1.67-dev libboost-iostreams1.67-dev libboost-date-time1.67-dev libboost-math1.67-dev libxerces-c-dev zlib1g-dev libsvm-dev libbz2-dev coinor-libcoinmp-dev libhdf5-dev
 
+    - name: Setup ccache cache
+      uses: actions/cache@v3
+      with:
+        path: .ccache
+        key: ${{ runner.os }}-clng-ccache-${{ github.ref }}-${{ github.run_number }}
+        # Restoring: From current branch, otherwise from base branch, otherwise from any branch.
+        restore-keys: |
+          ${{ runner.os }}-clng-ccache-${{ github.ref }}
+          ${{ runner.os }}-clng-ccache-${{ github.base_ref }}
+          ${{ runner.os }}-clng-ccache-
+
     - name: Extract branch name
       if: github.event_name == 'push'
       shell: bash
@@ -457,7 +480,7 @@ jobs:
       run: |
            sudo add-apt-repository universe
            sudo apt update    
-           sudo apt-get install build-essential cmake autoconf patch libtool git automake ninja-build
+           sudo apt-get install build-essential cmake autoconf patch libtool git automake ninja-build ccache
            sudo apt-get install qtbase5-dev libqt5svg5-dev libqt5opengl5-dev
            sudo apt-get install libeigen3-dev libboost-random1.67-dev libboost-regex1.67-dev libboost-iostreams1.67-dev libboost-date-time1.67-dev libboost-math1.67-dev libxerces-c-dev zlib1g-dev libsvm-dev libbz2-dev coinor-libcoinmp-dev libhdf5-dev
 
@@ -491,6 +514,14 @@ jobs:
           OPENMP: "On"
           USE_STATIC_BOOST: "Off"
           BUILD_FLAGS: "-j2"
+          CMAKE_CCACHE_EXE: "ccache"
+          CCACHE_BASEDIR: "${{ github.workspace }}"
+          CCACHE_DIR: "${{ github.workspace }}/.ccache"
+          CCACHE_COMPRESS: true
+          CCACHE_COMPRESSLEVEL: 12
+          CCACHE_MAXSIZE: 400M
+          CCACHE_SLOPPINESS: time_macros,include_file_ctime,include_file_mtime
+          CCACHE_COMPILERCHECK: content
         
   overall-status:
     runs-on: ubuntu-latest

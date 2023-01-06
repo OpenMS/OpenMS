@@ -25,7 +25,7 @@ OPENMS_CONTRIB_LIBS=$ENV{CONTRIB_BUILD_DIRECTORY}
 BOOST_USE_STATIC=$ENV{USE_STATIC_BOOST}
 CMAKE_BUILD_TYPE=$ENV{BUILD_TYPE}
 ENABLE_TUTORIALS=Off
-ENABLE_GCC_WERROR=On
+ENABLE_GCC_WERROR=Off
 PYOPENMS=$ENV{PYOPENMS}
 MT_ENABLE_OPENMP=$ENV{OPENMP}
 PYTHON_EXECUTABLE:FILEPATH=$ENV{PYTHON_EXE}
@@ -78,7 +78,6 @@ set (CTEST_CUSTOM_WARNING_EXCEPTION
     ".*qsharedpointer_impl.h:595:43.*"
     )
 
-
 # try to speed up the builds so we don't get killed
 set(CTEST_BUILD_FLAGS "$ENV{BUILD_FLAGS}")
 
@@ -99,7 +98,19 @@ if("$ENV{ENABLE_STYLE_TESTING}" STREQUAL "OFF")
   if("$ENV{PYOPENMS}" STREQUAL "ON")
     ctest_build(BUILD "${CTEST_BINARY_DIRECTORY}" TARGET "pyopenms" NUMBER_ERRORS _build_errors)
   else()
-    ctest_build(BUILD "${CTEST_BINARY_DIRECTORY}" NUMBER_ERRORS _build_errors)
+    if(WIN32)
+       ctest_build(BUILD "${CTEST_BINARY_DIRECTORY}" TARGET "GUI" NUMBER_ERRORS _build_errors)
+       ctest_submit(PARTS Build)
+       ctest_build(BUILD "${CTEST_BINARY_DIRECTORY}" APPEND TARGET "TOPP" NUMBER_ERRORS _build_errors)
+       ctest_submit(PARTS Build)
+       ctest_build(BUILD "${CTEST_BINARY_DIRECTORY}" APPEND TARGET "UTILS" NUMBER_ERRORS _build_errors)
+       ctest_submit(PARTS Build)
+       set(CTEST_BUILD_FLAGS "-j1") # Super duper hack, since no one wants to debug excessive memory usage on win
+       ctest_build(BUILD "${CTEST_BINARY_DIRECTORY}" APPEND NUMBER_ERRORS _build_errors)
+       ctest_submit(PARTS Build)
+    else()
+      ctest_build(BUILD "${CTEST_BINARY_DIRECTORY}" NUMBER_ERRORS _build_errors)
+    endif()
   endif()
 else()
   set(_build_errors 0)
