@@ -399,7 +399,7 @@ jobs:
           CCACHE_COMPILERCHECK: content
 
   build-lnx-clang:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     continue-on-error: true
     outputs:
       job-status: ${{ job.status }}
@@ -421,7 +421,7 @@ jobs:
            sudo apt update    
            sudo apt-get install build-essential cmake autoconf patch libtool git automake ninja-build jq xvfb ccache
            sudo apt-get install qtbase5-dev libqt5svg5-dev libqt5opengl5-dev
-           sudo apt-get install libeigen3-dev libboost-random1.67-dev libboost-regex1.67-dev libboost-iostreams1.67-dev libboost-date-time1.67-dev libboost-math1.67-dev libxerces-c-dev zlib1g-dev libsvm-dev libbz2-dev coinor-libcoinmp-dev libhdf5-dev
+           sudo apt-get install libeigen3-dev libboost-random-dev libboost-regex-dev libboost-iostreams-dev libboost-date-time-dev libboost-math-dev libxerces-c-dev zlib1g-dev libsvm-dev libbz2-dev coinor-libcoinmp-dev libhdf5-dev
 
     - name: Setup ccache cache
       uses: actions/cache@v3
@@ -471,10 +471,10 @@ jobs:
           done
           
     - name: Install LLVM and Clang
-      uses: KyleMayes/install-llvm-action@v1.6.0
+      uses: KyleMayes/install-llvm-action@v1.6.1
       with:        
-        ubuntu-version: "20.04"
-        version: "12.0.0"        
+        ubuntu-version: "22.04"
+        version: "15.0.6"        
   
     - name: Build and test lnx
       run: |
