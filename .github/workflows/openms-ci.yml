@@ -294,7 +294,7 @@ jobs:
       run: |
            sudo add-apt-repository universe
            sudo apt update   
-           sudo apt-get install -y build-essential cmake autoconf patch libtool git automake ninja-build jq xvfb
+           sudo apt-get install -y build-essential cmake autoconf patch libtool git automake ninja-build jq xvfb ccache
            sudo apt-get install -y qtbase5-dev libqt5svg5-dev libqt5opengl5-dev
            sudo apt-get install -y libeigen3-dev libboost-random-dev libboost-regex-dev libboost-iostreams-dev libboost-date-time-dev libboost-math-dev libxerces-c-dev zlib1g-dev libsvm-dev libbz2-dev coinor-libcoinmp-dev libhdf5-dev
 
