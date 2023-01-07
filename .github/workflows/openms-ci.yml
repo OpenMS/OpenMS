@@ -469,12 +469,12 @@ jobs:
           do
             echo $thirdpartytool >> $GITHUB_PATH
           done
-          
-    - name: Install LLVM and Clang
-      uses: KyleMayes/install-llvm-action@v1.6.1
-      with:        
-        ubuntu-version: "22.04"
-        version: "15.0.6"        
+
+    - name: Set up Clang
+      uses: egor-tensin/setup-clang@v1
+      with:
+        version: 15
+        platform: x64   
   
     - name: Build and test lnx
       run: |
