@@ -106,13 +106,11 @@ namespace OpenMS
 
     if (clear_ids)
     { // start with empty IDs
-      vector<PeptideIdentification> empty_ids;
       for (PeakMap::iterator it = map.begin(); it != map.end(); ++it)
       {
-        it->setPeptideIdentifications(empty_ids);
+        it->setPeptideIdentifications({});
       }
-      vector<ProteinIdentification> empty_prot_ids;
-      map.setProteinIdentifications(empty_prot_ids);
+      map.setProteinIdentifications({});
     }
 
     if (peptide_ids.empty()) return;
@@ -249,22 +247,49 @@ namespace OpenMS
     annotate(map, peptide_ids, protein_ids, clear_ids, map_ms1);
   }
 
-  bool isMatchByNativeID(const PeptideIdentification& id, ConsensusFeature& cf)
+  enum class NATIVE_ID_TYPE
   {
-    // check if the native id of an identifying spectrum is annotated            
-    String ref_mv;
-    if (cf.metaValueExists("id_scan_id")) // identifying MS2 spectrum in MS3 TMT
-    {
-      ref_mv = "id_scan_id";
-    }
-    else if (cf.metaValueExists("scan_id")) // identifying MS2 spectrum in standard TMT
-    {
-      ref_mv = "scan_id";
-    }
+    UNKNOWN, MS2IDMS3TMT, MS2IDTMT 
+  };
 
-    // return if no meta info to match ids between spectra and consensus features?
-    if (ref_mv.empty() || !id.metaValueExists("spectrum_reference")) return false;
-    return id.getMetaValue("spectrum_reference") == cf.getMetaValue(ref_mv);
+  bool isMatchByNativeID(
+    const PeptideIdentification& id, 
+    const ConsensusFeature& cf, 
+    NATIVE_ID_TYPE idtype = NATIVE_ID_TYPE::UNKNOWN)
+  {
+    switch(idtype)
+    {
+      case NATIVE_ID_TYPE::UNKNOWN:
+        {
+          // check if the native id of an identifying spectrum is annotated            
+          String ref_mv;
+          if (cf.metaValueExists("id_scan_id")) // identifying MS2 spectrum in MS3 TMT
+          {
+            ref_mv = "id_scan_id";
+          }
+          else if (cf.metaValueExists("scan_id")) // identifying MS2 spectrum in standard TMT
+          {
+            ref_mv = "scan_id";
+          }
+
+          // return if no meta info to match ids between spectra and consensus features?
+          if (ref_mv.empty() || !id.metaValueExists("spectrum_reference")) return false;
+          return id.getMetaValue("spectrum_reference") == cf.getMetaValue(ref_mv);
+        }
+      break;
+      case NATIVE_ID_TYPE::MS2IDMS3TMT:
+        {
+          return id.getMetaValue("spectrum_reference") == cf.getMetaValue("id_scan_id");
+        }
+      break;
+      case NATIVE_ID_TYPE::MS2IDTMT:
+        {
+          return id.getMetaValue("spectrum_reference") == cf.getMetaValue("scan_id");
+        }
+      break;
+      default:
+        return false;
+    }
   }
 
   void IDMapper::annotate(
@@ -283,10 +308,10 @@ namespace OpenMS
 
     // keep track of assigned/unassigned peptide identifications.
     // maps Pep.Id. index to number of assignments to a feature
-    std::map<Size, Size> assigned_ids;
+    std::unordered_map<Size, Size> assigned_ids;
 
     // keep track of assigned/unassigned precursors
-    std::map<Size, Size> assigned_precursors;
+    std::unordered_map<Size, Size> assigned_precursors;
 
     // store which peptides fit which feature (and avoid double entries)
     // consensusMap -> {peptide_index}
@@ -299,9 +324,27 @@ namespace OpenMS
     // for statistics
     Size id_matches_none(0), id_matches_single(0), id_matches_multiple(0);
 
+    NATIVE_ID_TYPE native_id_type{NATIVE_ID_TYPE::UNKNOWN};
+    
+    for (auto & cf : map)
+    {      
+      // check if the native id of an identifying spectrum is annotated
+      if (cf.metaValueExists("id_scan_id")) // identifying MS2 spectrum in MS3 TMT
+      {
+        native_id_type = NATIVE_ID_TYPE::MS2IDMS3TMT;
+        break;
+      }
+      else if (cf.metaValueExists("scan_id")) // identifying MS2 spectrum in standard TMT
+      {
+        native_id_type = NATIVE_ID_TYPE::MS2IDTMT;
+        break;
+      }
+    }
+
     // iterate over the peptide IDs
     for (Size i = 0; i < ids.size(); ++i)
     {
+      // skip IDs without peptide annotations
       if (ids[i].getHits().empty()) continue;
 
       getIDDetails_(ids[i], rt_pep, mz_values, charges);
@@ -339,8 +382,12 @@ namespace OpenMS
           //check if we compare distance from centroid or subelements
           if (!measure_from_subelements)
           {
-            if (isMatchByNativeID(ids[i], map[cm_index]) || // can we match by native ids? if not, match by rt/mz
-               (isMatch_(rt_pep - map[cm_index].getRT(), mz_pep, map[cm_index].getMZ()) && (ignore_charge_ || ListUtils::contains(current_charges, map[cm_index].getCharge()))))
+            if (
+               (
+                (isMatch_(rt_pep - map[cm_index].getRT(), mz_pep, map[cm_index].getMZ() && 
+                (ignore_charge_ || ListUtils::contains(current_charges, map[cm_index].getCharge())))) ||
+                isMatchByNativeID(ids[i], map[cm_index], native_id_type)) // can we match by native ids? if not, match by rt/mz               
+               )
             {
               id_mapped = true;
               was_added = true;
@@ -354,7 +401,8 @@ namespace OpenMS
                  it_handle != map[cm_index].getFeatures().end();
                  ++it_handle)
             {
-              if (isMatch_(rt_pep - it_handle->getRT(), mz_pep, it_handle->getMZ()) && (ignore_charge_ || ListUtils::contains(current_charges, it_handle->getCharge())))
+              if (isMatch_(rt_pep - it_handle->getRT(), mz_pep, it_handle->getMZ()) && 
+                  (ignore_charge_ || ListUtils::contains(current_charges, it_handle->getCharge())))
               {
                 id_mapped = true;
                 was_added = true;
@@ -393,13 +441,13 @@ namespace OpenMS
       }
     } // Identifications
 
-    for (std::map<Size, Size>::const_iterator it = assigned_ids.begin(); it != assigned_ids.end(); ++it)
+    for (auto aid : assigned_ids)
     {
-      if (it->second == 1)
+      if (aid.second == 1)
       {
         ++id_matches_single;
       }
-      else if (it->second > 1)
+      else if (aid.second > 1)
       {
         ++id_matches_multiple;
       }
@@ -519,13 +567,13 @@ namespace OpenMS
       if (!precursor_mapped) ++spectrum_matches_none;
     }
 
-    for (std::map<Size, Size>::const_iterator it = assigned_precursors.begin(); it != assigned_precursors.end(); ++it)
+    for (auto apc : assigned_precursors)
     {
-      if (it->second == 1)
+      if (apc.second == 1)
       {
         ++spectrum_matches_single;
       }
-      else if (it->second > 1)
+      else if (apc.second > 1)
       {
         ++spectrum_matches_multiple;
       }
@@ -547,8 +595,12 @@ namespace OpenMS
     }
   }
 
-  void IDMapper::annotate(FeatureMap& map, const vector<PeptideIdentification>& ids, const vector<ProteinIdentification>& protein_ids,
-                          bool use_centroid_rt, bool use_centroid_mz, const PeakMap& spectra)
+  void IDMapper::annotate(FeatureMap& map, 
+    const vector<PeptideIdentification>& ids, 
+    const vector<ProteinIdentification>& protein_ids,
+    bool use_centroid_rt, 
+    bool use_centroid_mz, 
+    const PeakMap& spectra)
   {
     // cout << "Starting annotation..." << endl;
     checkHits_(ids); // check RT and m/z are present
