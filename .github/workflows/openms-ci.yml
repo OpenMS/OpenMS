@@ -36,6 +36,23 @@ jobs:
       with:
         arch: x64
 
+    - name: Setup build tools
+      shell: bash
+      run: |
+        choco install ccache ninja cmake gh
+        echo "C:\Program Files\GitHub CLI" >> $GITHUB_PATH
+
+    - name: Extract branch/PR infos
+      shell: bash
+      run: |
+        cd OpenMS
+        RUN_NAME_LOCAL=$(echo ${GITHUB_REF#refs/heads/} | tr / -)
+        echo "RUN_NAME=${RUN_NAME_LOCAL}" >> $GITHUB_ENV
+        echo "BASE_REF=$(gh pr view --json baseRefName -q .baseRefName || echo ${RUN_NAME_LOCAL})" >> $GITHUB_ENV
+      id: extract_branch
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
     - name: Cache contrib
       id: cache-contrib-win
       uses: actions/cache@v3
@@ -50,22 +67,6 @@ jobs:
           curl -o contribbld.tar.gz https://abibuilder.cs.uni-tuebingen.de/archive/openms/contrib/windows/x64/msvc-14.2/contrib_build.tar.gz
           tar -xzf contribbld.tar.gz
           rm contribbld.tar.gz
-
-    - name: Setup build tools
-      shell: bash
-      run: |
-        choco install ccache ninja cmake gh
-
-    - name: Extract branch/PR infos
-      shell: bash
-      run: |
-        cd OpenMS
-        RUN_NAME_LOCAL=$(echo ${GITHUB_REF#refs/heads/} | tr / -)
-        echo "RUN_NAME=${RUN_NAME_LOCAL}" >> $GITHUB_ENV
-        echo "BASE_REF=$(gh pr view --json baseRefName -q .baseRefName || echo ${RUN_NAME_LOCAL})" >> $GITHUB_ENV
-      id: extract_branch
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
     - name: Setup ccache cache
       uses: actions/cache@v3
@@ -143,6 +144,17 @@ jobs:
       with:
         path: OpenMS
 
+    - name: Extract branch/PR infos
+      shell: bash
+      run: |
+        cd OpenMS
+        RUN_NAME_LOCAL=$(echo ${GITHUB_REF#refs/heads/} | tr / -)
+        echo "RUN_NAME=${RUN_NAME_LOCAL}" >> $GITHUB_ENV
+        echo "BASE_REF=$(gh pr view --json baseRefName -q .baseRefName || echo ${RUN_NAME_LOCAL})" >> $GITHUB_ENV
+      id: extract_branch
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
     - name: Install ccache
       run: |
         brew install ccache && brew link --overwrite ccache
@@ -212,17 +224,6 @@ jobs:
             done
             otool -L /Users/runner/work/OpenMS/Qt/5.12.7/clang_64/lib/QtCore.framework/Versions/5/QtCore
           popd
-
-    - name: Extract branch/PR infos
-      shell: bash
-      run: |
-        cd OpenMS
-        RUN_NAME_LOCAL=$(echo ${GITHUB_REF#refs/heads/} | tr / -)
-        echo "RUN_NAME=${RUN_NAME_LOCAL}" >> $GITHUB_ENV
-        echo "BASE_REF=$(gh pr view --json baseRefName -q .baseRefName || echo ${RUN_NAME_LOCAL})" >> $GITHUB_ENV
-      id: extract_branch
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
     - name: Add THIRDPARTY
       shell: bash
@@ -295,6 +296,17 @@ jobs:
       name: Checkout sources
       with:
         path: OpenMS
+
+    - name: Extract branch/PR infos
+      shell: bash
+      run: |
+        cd OpenMS
+        RUN_NAME_LOCAL=$(echo ${GITHUB_REF#refs/heads/} | tr / -)
+        echo "RUN_NAME=${RUN_NAME_LOCAL}" >> $GITHUB_ENV
+        echo "BASE_REF=$(gh pr view --json baseRefName -q .baseRefName || echo ${RUN_NAME_LOCAL})" >> $GITHUB_ENV
+      id: extract_branch
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         
     - name: Install dev tools, xvfb, ...
       run: |
@@ -315,17 +327,6 @@ jobs:
           ${{ runner.os }}-ccache-${{ env.RUN_NAME }}
           ${{ runner.os }}-ccache-${{ env.BASE_REF }}
           ${{ runner.os }}-ccache-
-
-    - name: Extract branch/PR infos
-      shell: bash
-      run: |
-        cd OpenMS
-        RUN_NAME_LOCAL=$(echo ${GITHUB_REF#refs/heads/} | tr / -)
-        echo "RUN_NAME=${RUN_NAME_LOCAL}" >> $GITHUB_ENV
-        echo "BASE_REF=$(gh pr view --json baseRefName -q .baseRefName || echo ${RUN_NAME_LOCAL})" >> $GITHUB_ENV
-      id: extract_branch
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
     - name: Add THIRDPARTY
       shell: bash
@@ -399,6 +400,17 @@ jobs:
       with:
         path: OpenMS
 
+    - name: Extract branch/PR infos
+      shell: bash
+      run: |
+        cd OpenMS
+        RUN_NAME_LOCAL=$(echo ${GITHUB_REF#refs/heads/} | tr / -)
+        echo "RUN_NAME=${RUN_NAME_LOCAL}" >> $GITHUB_ENV
+        echo "BASE_REF=$(gh pr view --json baseRefName -q .baseRefName || echo ${RUN_NAME_LOCAL})" >> $GITHUB_ENV
+      id: extract_branch
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
     - name: Install dev tools, xvfb, ...
       run: |
            sudo add-apt-repository universe
@@ -418,17 +430,6 @@ jobs:
           ${{ runner.os }}-clng-ccache-${{ env.RUN_NAME }}
           ${{ runner.os }}-clng-ccache-${{ env.BASE_REF }}
           ${{ runner.os }}-clng-ccache-
-
-    - name: Extract branch/PR infos
-      shell: bash
-      run: |
-        cd OpenMS
-        RUN_NAME_LOCAL=$(echo ${GITHUB_REF#refs/heads/} | tr / -)
-        echo "RUN_NAME=${RUN_NAME_LOCAL}" >> $GITHUB_ENV
-        echo "BASE_REF=$(gh pr view --json baseRefName -q .baseRefName || echo ${RUN_NAME_LOCAL})" >> $GITHUB_ENV
-      id: extract_branch
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
     - name: Add THIRDPARTY
       shell: bash
