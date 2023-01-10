@@ -11,7 +11,6 @@ jobs:
 
   build-win:
     runs-on: windows-2022
-    continue-on-error: true
     outputs:
       job-status: ${{ job.status }}
     steps:
@@ -52,22 +51,15 @@ jobs:
           tar -xzf contribbld.tar.gz
           rm contribbld.tar.gz
 
-    - name: Extract branch name
-      if: github.event_name == 'push'
+    - name: Extract branch/PR infos
       shell: bash
       run: |
-        ref=`jq --raw-output .ref "$GITHUB_EVENT_PATH"`
-        ref=${ref#"refs/heads/"}
-        ref=${ref#"refs/"}
-        ref=${ref//\//-}
-        echo "RUN_NAME=$ref" >> $GITHUB_ENV
+        RUN_NAME_LOCAL=$(echo ${GITHUB_REF#refs/heads/} | tr / -)
+        echo "RUN_NAME=${RUN_NAME_LOCAL}" >> $GITHUB_ENV
+        echo "BASE_REF=$(gh pr view --json baseRefName -q .baseRefName || echo ${RUN_NAME_LOCAL})" >> $GITHUB_ENV
       id: extract_branch
-
-    - name: Extract PR number
-      if: github.event_name == 'pull_request'
-      shell: bash
-      run: echo "RUN_NAME=pr$(jq --raw-output .pull_request.number $GITHUB_EVENT_PATH)" >> $GITHUB_ENV
-      id: extract_pr
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
     - name: Setup build tools
       shell: bash
@@ -82,7 +74,7 @@ jobs:
         # Restoring: From current branch, otherwise from base branch, otherwise from any branch.
         restore-keys: |
           ${{ runner.os }}-ccache-${{ github.ref }}
-          ${{ runner.os }}-ccache-${{ github.base_ref }}
+          ${{ runner.os }}-ccache-${{ env.BASE_REF }}
           ${{ runner.os }}-ccache-
 
     - name: Add THIRDPARTY
@@ -103,25 +95,18 @@ jobs:
             echo $thirdpartytool >> $GITHUB_PATH
           done
 
-    - name: Tests windows
+    - name: Build and test windows
       shell: bash
       run: |
-          #run openms tests
           mkdir $GITHUB_WORKSPACE/OpenMS/bld/
           ctest --output-on-failure -V -S ../OpenMS/OpenMS/tools/ci/cibuild.cmake
-
-          FAILED_TEST=$(find $GITHUB_WORKSPACE/OpenMS/bld/ -name "Test.xml" -type f -exec grep "<Test Status=\"failed\">" -c {} \; )
-          if [ "$FAILED_TEST" -gt "0" ] ; then
-            echo "$FAILED_TEST tests failed"
-            exit 1
-          fi
-
       env:
-          CMAKE_GENERATOR: "Ninja"
+          #OS_PREFIX_PATH: "${{ env.Qt5_Dir }}/lib/cmake;${{ env.Qt5_Dir }}"
           CONTRIB_BUILD_DIRECTORY: "${{ github.workspace }}/OpenMS/contrib"
           CI_PROVIDER: "GitHub-Actions"
+          CMAKE_GENERATOR: "Ninja"
           SOURCE_DIRECTORY: "${{ github.workspace }}/OpenMS"
-          BUILD_NAME: "${{ env.RUN_NAME }}-Windows-testClass-testTOPP"
+          BUILD_NAME: "${{ env.RUN_NAME }}-Win64-class-topp-${{ github.run_number }}"
           ENABLE_STYLE_TESTING: "OFF"
           ENABLE_TOPP_TESTING: "ON"
           ENABLE_CLASS_TESTING: "ON"
@@ -139,9 +124,16 @@ jobs:
           CCACHE_COMPRESSLEVEL: 12
           CCACHE_MAXSIZE: 400M
 
+    - name: Test Windows
+      run: $LAUNCHER ctest --output-on-failure -V -S $GITHUB_WORKSPACE/OpenMS/tools/ci/citest.cmake
+      env:
+          LAUNCHER: ""
+          SOURCE_DIRECTORY: "${{ github.workspace }}/OpenMS"
+          CI_PROVIDER: "GitHub-Actions"
+          BUILD_NAME: "${{ env.RUN_NAME }}-Win64-class-topp-${{ github.run_number }}"
+
   build-macos:
     runs-on: macos-latest
-    continue-on-error: true
     outputs:
       job-status: ${{ job.status }}
     steps:
@@ -161,7 +153,7 @@ jobs:
         # Restoring: From current branch, otherwise from base branch, otherwise from any branch.
         restore-keys: |
           ${{ runner.os }}-ccache-${{ github.ref }}
-          ${{ runner.os }}-ccache-${{ github.base_ref }}
+          ${{ runner.os }}-ccache-${{ env.BASE_REF }}
           ${{ runner.os }}-ccache-
 
     - name: Install Qt
@@ -215,22 +207,15 @@ jobs:
             otool -L /Users/runner/work/OpenMS/Qt/5.12.7/clang_64/lib/QtCore.framework/Versions/5/QtCore
           popd
 
-    - name: Extract branch name
-      if: github.event_name == 'push'
+    - name: Extract branch/PR infos
       shell: bash
       run: |
-        ref=`jq --raw-output .ref "$GITHUB_EVENT_PATH"`
-        ref=${ref#"refs/heads/"}
-        ref=${ref#"refs/"}
-        ref=${ref//\//-}
-        echo "RUN_NAME=$ref" >> $GITHUB_ENV
+        RUN_NAME_LOCAL=$(echo ${GITHUB_REF#refs/heads/} | tr / -)
+        echo "RUN_NAME=${RUN_NAME_LOCAL}" >> $GITHUB_ENV
+        echo "BASE_REF=$(gh pr view --json baseRefName -q .baseRefName || echo ${RUN_NAME_LOCAL})" >> $GITHUB_ENV
       id: extract_branch
-
-    - name: Extract PR number
-      if: github.event_name == 'pull_request'
-      shell: bash
-      run: echo "RUN_NAME=pr$(jq --raw-output .pull_request.number $GITHUB_EVENT_PATH)" >> $GITHUB_ENV
-      id: extract_pr
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
     - name: Add THIRDPARTY
       shell: bash
@@ -250,25 +235,18 @@ jobs:
             echo $thirdpartytool >> $GITHUB_PATH
           done
 
-    - name: Build and test osx
+    - name: Build macOS
       run: |
-          export OS_PREFIX_PATH="${Qt5_Dir}/lib/cmake;${Qt5_Dir}"
-          mkdir $GITHUB_WORKSPACE/OpenMS/bld/
-          ## TODO allow changing of ctest build site in cmake
-          ## TODO potentially parse some OS infos and add to build name
-          ctest --output-on-failure -V -S $GITHUB_WORKSPACE/OpenMS/tools/ci/cibuild.cmake
-          find $GITHUB_WORKSPACE/OpenMS/bld/ -name "LastBuild*" -type f -exec cat {} \;
-          FAILED_TEST=$(find $GITHUB_WORKSPACE/OpenMS/bld/ -name "Test.xml" -type f -exec grep "<Test Status=\"failed\">" -c {} \; )
-          if [ "$FAILED_TEST" -gt "0" ] ; then
-            echo "$FAILED_TEST tests failed"
-            exit 1
-          fi
+            mkdir $GITHUB_WORKSPACE/OpenMS/bld/
+            ctest --output-on-failure -V -S $GITHUB_WORKSPACE/OpenMS/tools/ci/cibuild.cmake
+            # For debugging full logs: find $GITHUB_WORKSPACE/OpenMS/bld/ -name "LastBuild*" -type f -exec cat {} \;
       env:
+          OS_PREFIX_PATH: "${{ env.Qt5_Dir }}/lib/cmake;${{ env.Qt5_Dir }}"
           CONTRIB_BUILD_DIRECTORY: "${{ github.workspace }}/OpenMS/contrib"
           CI_PROVIDER: "GitHub-Actions"
           CMAKE_GENERATOR: "Ninja"
           SOURCE_DIRECTORY: "${{ github.workspace }}/OpenMS"
-          BUILD_NAME: "${{ env.RUN_NAME }}-macOS-testClass-testTOPP"
+          BUILD_NAME: "${{ env.RUN_NAME }}-macOS-class-topp-${{ github.run_number }}"
           OPENMS_CONTRIB_LIBS: "${{ github.workspace }}/OpenMS/contrib"
           ENABLE_STYLE_TESTING: "OFF"
           ENABLE_TOPP_TESTING: "ON"
@@ -286,9 +264,16 @@ jobs:
           CCACHE_COMPRESSLEVEL: 12
           CCACHE_MAXSIZE: 400M
 
+    - name: Test macOS
+      run: $LAUNCHER ctest --output-on-failure -V -S $GITHUB_WORKSPACE/OpenMS/tools/ci/citest.cmake
+      env:
+          LAUNCHER: ""
+          SOURCE_DIRECTORY: "${{ github.workspace }}/OpenMS"
+          CI_PROVIDER: "GitHub-Actions"
+          BUILD_NAME: "${{ env.RUN_NAME }}-macOS-clang-class-topp-${{ github.run_number }}"
+
   build-lnx:
     runs-on: ubuntu-latest
-    continue-on-error: true
     outputs:
       job-status: ${{ job.status }}
 
@@ -304,11 +289,11 @@ jobs:
       with:
         path: OpenMS
         
-    - name: Install dev tools, xvfb, jq (for GH parsing)
+    - name: Install dev tools, xvfb, ...
       run: |
            sudo add-apt-repository universe
            sudo apt update   
-           sudo apt-get install -y build-essential cmake autoconf patch libtool git automake ninja-build jq xvfb ccache
+           sudo apt-get install -y build-essential cmake autoconf patch libtool git automake ninja-build xvfb ccache
            sudo apt-get install -y qtbase5-dev libqt5svg5-dev libqt5opengl5-dev
            sudo apt-get install -y libeigen3-dev libboost-random-dev libboost-regex-dev libboost-iostreams-dev libboost-date-time-dev libboost-math-dev libxerces-c-dev zlib1g-dev libsvm-dev libbz2-dev coinor-libcoinmp-dev libhdf5-dev
 
@@ -320,26 +305,18 @@ jobs:
         # Restoring: From current branch, otherwise from base branch, otherwise from any branch.
         restore-keys: |
           ${{ runner.os }}-ccache-${{ github.ref }}
-          ${{ runner.os }}-ccache-${{ github.base_ref }}
+          ${{ runner.os }}-ccache-${{ env.BASE_REF }}
           ${{ runner.os }}-ccache-
 
-    - name: Extract branch name
-      if: github.event_name == 'push'
+    - name: Extract branch/PR infos
       shell: bash
       run: |
-        ref=`jq --raw-output .ref "$GITHUB_EVENT_PATH"`
-        ref=${ref#"refs/heads/"}
-        ref=${ref#"refs/"}
-        ref=${ref//\//-}
-        echo "RUN_NAME=$ref" >> $GITHUB_ENV
+        RUN_NAME_LOCAL=$(echo ${GITHUB_REF#refs/heads/} | tr / -)
+        echo "RUN_NAME=${RUN_NAME_LOCAL}" >> $GITHUB_ENV
+        echo "BASE_REF=$(gh pr view --json baseRefName -q .baseRefName || echo ${RUN_NAME_LOCAL})" >> $GITHUB_ENV
       id: extract_branch
-
-    - name: Extract PR number
-      if: github.event_name == 'pull_request'
-      shell: bash
-      run: |
-        echo "RUN_NAME=pr$(jq --raw-output .pull_request.number $GITHUB_EVENT_PATH)" >> $GITHUB_ENV
-      id: extract_pr
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
     - name: Add THIRDPARTY
       shell: bash
@@ -359,27 +336,18 @@ jobs:
             echo $thirdpartytool >> $GITHUB_PATH
           done
 
-    - name: Build and test lnx
+    - name: Build lnx
       run: |
-            export OS_PREFIX_PATH="${Qt5_Dir}/lib/cmake;${Qt5_Dir}"
             mkdir $GITHUB_WORKSPACE/OpenMS/bld/
-            ## TODO allow changing of ctest build site in cmake
-            ## TODO potentially parse some OS infos and add to build name
-            ## TODO allow changing Contrib path to get rid of the extra cmake file!
-            xvfb-run ctest --output-on-failure -V -S $GITHUB_WORKSPACE/OpenMS/tools/ci/cibuild.cmake | find $GITHUB_WORKSPACE/OpenMS/bld/ -name "LastBuild*" -type f -exec cat {} \;
-
-            FAILED_TEST=$(find $GITHUB_WORKSPACE/OpenMS/bld/ -name "Test.xml" -type f -exec grep "<Test Status=\"failed\">" -c {} \; )
-            if [ "$FAILED_TEST" -gt "0" ] ; then
-              echo "$FAILED_TEST tests failed"
-              exit 1
-            fi
-
+            ctest --output-on-failure -V -S $GITHUB_WORKSPACE/OpenMS/tools/ci/cibuild.cmake
+            # For debugging full logs: find $GITHUB_WORKSPACE/OpenMS/bld/ -name "LastBuild*" -type f -exec cat {} \;
       env:
+          OS_PREFIX_PATH: "${{ env.Qt5_Dir }}/lib/cmake;${{ env.Qt5_Dir }}"
           CONTRIB_BUILD_DIRECTORY: "/contrib-build"
           CI_PROVIDER: "GitHub-Actions"
           CMAKE_GENERATOR: "Ninja"
           SOURCE_DIRECTORY: "${{ github.workspace }}/OpenMS"
-          BUILD_NAME: "${{ env.RUN_NAME }}-Ubuntu-gcc-testClass-testTOPP"
+          BUILD_NAME: "${{ env.RUN_NAME }}-Ubuntu-gcc-class-topp-${{ github.run_number }}"
           ENABLE_STYLE_TESTING: "OFF"
           ENABLE_TOPP_TESTING: "ON"
           ENABLE_CLASS_TESTING: "ON"
@@ -398,9 +366,16 @@ jobs:
           CCACHE_SLOPPINESS: time_macros,include_file_ctime,include_file_mtime
           CCACHE_COMPILERCHECK: content
 
+    - name: Test lnx
+      run: $LAUNCHER ctest --output-on-failure -V -S $GITHUB_WORKSPACE/OpenMS/tools/ci/citest.cmake
+      env:
+          LAUNCHER: "xvfb-run"
+          SOURCE_DIRECTORY: "${{ github.workspace }}/OpenMS"
+          CI_PROVIDER: "GitHub-Actions"
+          BUILD_NAME: "${{ env.RUN_NAME }}-Ubuntu-gcc-class-topp-${{ github.run_number }}"
+
   build-lnx-clang:
     runs-on: ubuntu-22.04
-    continue-on-error: true
     outputs:
       job-status: ${{ job.status }}
     steps:
@@ -415,11 +390,11 @@ jobs:
       with:
         path: OpenMS
 
-    - name: Install dev tools, xvfb, jq (for GH parsing)
+    - name: Install dev tools, xvfb, ...
       run: |
            sudo add-apt-repository universe
            sudo apt update    
-           sudo apt-get install build-essential cmake autoconf patch libtool git automake ninja-build jq xvfb ccache
+           sudo apt-get install build-essential cmake autoconf patch libtool git automake ninja-build xvfb ccache
            sudo apt-get install qtbase5-dev libqt5svg5-dev libqt5opengl5-dev
            sudo apt-get install libeigen3-dev libboost-random-dev libboost-regex-dev libboost-iostreams-dev libboost-date-time-dev libboost-math-dev libxerces-c-dev zlib1g-dev libsvm-dev libbz2-dev coinor-libcoinmp-dev libhdf5-dev
 
@@ -431,26 +406,18 @@ jobs:
         # Restoring: From current branch, otherwise from base branch, otherwise from any branch.
         restore-keys: |
           ${{ runner.os }}-clng-ccache-${{ github.ref }}
-          ${{ runner.os }}-clng-ccache-${{ github.base_ref }}
+          ${{ runner.os }}-clng-ccache-${{ env.BASE_REF }}
           ${{ runner.os }}-clng-ccache-
 
-    - name: Extract branch name
-      if: github.event_name == 'push'
+    - name: Extract branch/PR infos
       shell: bash
       run: |
-        ref=`jq --raw-output .ref "$GITHUB_EVENT_PATH"`
-        ref=${ref#"refs/heads/"}
-        ref=${ref#"refs/"}
-        ref=${ref//\//-}
-        echo "RUN_NAME=$ref" >> $GITHUB_ENV
+        RUN_NAME_LOCAL=$(echo ${GITHUB_REF#refs/heads/} | tr / -)
+        echo "RUN_NAME=${RUN_NAME_LOCAL}" >> $GITHUB_ENV
+        echo "BASE_REF=$(gh pr view --json baseRefName -q .baseRefName || echo ${RUN_NAME_LOCAL})" >> $GITHUB_ENV
       id: extract_branch
-
-    - name: Extract PR number
-      if: github.event_name == 'pull_request'
-      shell: bash
-      run: |
-        echo "RUN_NAME=pr$(jq --raw-output .pull_request.number $GITHUB_EVENT_PATH)" >> $GITHUB_ENV
-      id: extract_pr
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
     - name: Add THIRDPARTY
       shell: bash
@@ -476,27 +443,17 @@ jobs:
         version: 15
         platform: x64   
   
-    - name: Build and test lnx
+    - name: Build lnx-clang
       run: |
-            export OS_PREFIX_PATH="${Qt5_Dir}/lib/cmake;${Qt5_Dir}"
             mkdir $GITHUB_WORKSPACE/OpenMS/bld/
-            ## TODO allow changing of ctest build site in cmake
-            ## TODO potentially parse some OS infos and add to build name
-            ## TODO allow changing Contrib path to get rid of the extra cmake file!
-            xvfb-run ctest --output-on-failure -V -S $GITHUB_WORKSPACE/OpenMS/tools/ci/cibuild.cmake
-
-            FAILED_TEST=$(find $GITHUB_WORKSPACE/OpenMS/bld/ -name "Test.xml" -type f -exec grep "<Test Status=\"failed\">" -c {} \; )
-            if [ "$FAILED_TEST" -gt "0" ] ; then
-              echo "$FAILED_TEST tests failed"
-              exit -1
-            fi
-
+            ctest --output-on-failure -V -S $GITHUB_WORKSPACE/OpenMS/tools/ci/cibuild.cmake
       env:
+          OS_PREFIX_PATH: "${{ env.Qt5_Dir }}/lib/cmake;${{ env.Qt5_Dir }}"
           CONTRIB_BUILD_DIRECTORY: "/contrib-build"
           CI_PROVIDER: "GitHub-Actions"
           CMAKE_GENERATOR: "Ninja"
           SOURCE_DIRECTORY: "${{ github.workspace }}/OpenMS"
-          BUILD_NAME: "${{ env.RUN_NAME }}-Ubuntu-clang-testClass-testTOPP"
+          BUILD_NAME: "${{ env.RUN_NAME }}-Ubuntu-clang-class-topp-${{ github.run_number }}"
           ENABLE_STYLE_TESTING: "OFF"
           ENABLE_TOPP_TESTING: "ON"
           ENABLE_CLASS_TESTING: "ON"
@@ -514,12 +471,20 @@ jobs:
           CCACHE_MAXSIZE: 400M
           CCACHE_SLOPPINESS: time_macros,include_file_ctime,include_file_mtime
           CCACHE_COMPILERCHECK: content
-        
+
+    - name: Test lnx-clang
+      run: $LAUNCHER ctest --output-on-failure -V -S $GITHUB_WORKSPACE/OpenMS/tools/ci/citest.cmake
+      env:
+          LAUNCHER: "xvfb-run"
+          SOURCE_DIRECTORY: "${{ github.workspace }}/OpenMS"
+          CI_PROVIDER: "GitHub-Actions"
+          BUILD_NAME: "${{ env.RUN_NAME }}-Ubuntu-clang-class-topp-${{ github.run_number }}"
+
   overall-status:
     runs-on: ubuntu-latest
-    needs: [build-win, build-lnx, build-macos]
+    needs: [build-win, build-lnx, build-lnx-clang, build-macos]
     if: ${{ always() }}
     steps:
     - name: Check on failures
-      if: ${{ needs.build-win.outputs.job-status != 'Success' || needs.build-lnx.outputs.job-status != 'Success' || needs.build-macos.outputs.job-status != 'Success' }} 
+      if: ${{ needs.build-win.outputs.job-status != 'Success' || needs.build-lnx.outputs.job-status != 'Success' || needs.build-lnx-clang.outputs.job-status != 'Success' || needs.build-macos.outputs.job-status != 'Success' }} 
       run: exit 1

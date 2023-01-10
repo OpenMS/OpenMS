@@ -63,12 +63,6 @@ endif()
 # create cache
 file(WRITE "${CTEST_BINARY_DIRECTORY}/CMakeCache.txt" ${INITIAL_CACHE})
 
-# ignore failing GzipIfstream_test which seems to be related to the used
-# zlib version
-set(CTEST_CUSTOM_TESTS_IGNORE
-	GzipIfstream_test
-)
-
 # customize reporting of errors in CDash
 set(CTEST_CUSTOM_MAXIMUM_NUMBER_OF_ERRORS 1000)
 set(CTEST_CUSTOM_MAXIMUM_NUMBER_OF_WARNINGS 1000)
@@ -88,9 +82,15 @@ endif()
 
 set(CTEST_CMAKE_GENERATOR "$ENV{CMAKE_GENERATOR}")
 
-# run the classical CTest suite without update
-# travis-ci handles this for us
-ctest_start     (Continuous)
+# run the classical CTest suite
+ctest_start     (Continuous) # TODO think about adding GROUP GitHub-Actions to separate visually
+
+# Gather update information.
+find_package(Git)
+set(CTEST_UPDATE_VERSION_ONLY ON)
+set(CTEST_UPDATE_COMMAND "${GIT_EXECUTABLE}")
+ctest_update()
+
 ctest_configure (BUILD "${CTEST_BINARY_DIRECTORY}" OPTIONS "${OWN_OPTIONS}" RETURN_VALUE _configure_ret)
 
 # we only build when we do non-style testing and we may have special targets like pyopenms
@@ -116,17 +116,9 @@ else()
   set(_build_errors 0)
 endif()
 
-## build lib&executables, run tests
-## for pyopenms build, only run pyopenms tests
-if("$ENV{PYOPENMS}" STREQUAL "ON")
-  ctest_test(BUILD "${CTEST_BINARY_DIRECTORY}" INCLUDE "pyopenms" PARALLEL_LEVEL 3)
-else()
-  ctest_test(BUILD "${CTEST_BINARY_DIRECTORY}" PARALLEL_LEVEL 3)
-endif()
-## send to CDash
-ctest_submit()
-
 # indicate errors
 if(${_build_errors} GREATER 0 OR NOT ${_configure_ret} EQUAL 0)
   file(WRITE "$ENV{SOURCE_DIRECTORY}/failed" "build_failed")
 endif()
+
+message("Please check the build results at: https://cdash.openms.de/index.php?project=OpenMS&begin=2023-01-01&end=2030-01-01&filtercount=1&field1=buildname&compare1=63&value1=${CTEST_BUILD_NAME}")
