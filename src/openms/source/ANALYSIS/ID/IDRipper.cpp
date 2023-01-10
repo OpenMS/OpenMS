@@ -34,6 +34,7 @@
 
 #include <OpenMS/ANALYSIS/ID/IDRipper.h>
 #include <OpenMS/CONCEPT/LogStream.h>
+#include <OpenMS/CONCEPT/Constants.h>
 
 #include <QDir>
 #include <array>
@@ -47,7 +48,7 @@ using std::make_pair;
 namespace OpenMS
 {
 
-  const std::array<std::string, IDRipper::SIZE_OF_ORIGIN_ANNOTATION_FORMAT> IDRipper::names_of_OriginAnnotationFormat = {"file_origin", "map_index", "id_merge_index", "unknown"};
+  const std::array<std::string, IDRipper::SIZE_OF_ORIGIN_ANNOTATION_FORMAT> IDRipper::names_of_OriginAnnotationFormat = {"file_origin", "map_index", Constants::UserParam::ID_MERGE_INDEX, "unknown"};
 
   IDRipper::IDRipper() :
     DefaultParamHandler("IDRipper")
