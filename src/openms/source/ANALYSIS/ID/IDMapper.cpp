@@ -305,33 +305,37 @@ namespace OpenMS
     std::map<String, std::unordered_map<String, const PeptideIdentification*>> file2nativeid2pepid;
     bool has_spectrum_references{false};
 
-    ProteinIdentification::Mapping mspath_mapping{protein_ids}; // used to retrieve spectrum file information annotated in protein ids given a peptide identification
-
     std::unordered_map<String, ConsensusFeature*> nativeid2cf;
 
     NATIVE_ID_TYPE native_id_type = checkTMTType(map);
 
-    for (Size i = 0; i < ids.size(); ++i)
-    {
-      const PeptideIdentification* pid = &ids[i];
-      
-      if (pid->getHits().empty()) continue; // skip IDs without peptide annotations
-
-      String spectrum_file = mspath_mapping.getPrimaryMSRunPath(*pid);
-      String spectrum_reference = pid->getMetaValue(Constants::UserParam::SPECTRUM_REFERENCE);
-      // missing file origin is fine but we need a spectrum_reference if we want to build the map
-      if (spectrum_reference.empty()) continue;
-  
-      // TODO: check if there is already an entry
-      file2nativeid2pepid[spectrum_file][spectrum_reference] = pid;
-      has_spectrum_references = true;
-    }
-
-
     // We have TMT data: spectrum references annotated at consensus feature and in id
     // We can directly map by native id
-    if ((native_id_type != NATIVE_ID_TYPE::UNKNOWN) && has_spectrum_references)
+    if ((native_id_type != NATIVE_ID_TYPE::UNKNOWN) )
     {
+      ProteinIdentification::Mapping mspath_mapping{protein_ids}; // used to retrieve spectrum file information annotated in protein ids given a peptide identification
+
+      for (Size i = 0; i < ids.size(); ++i)
+      {
+        const PeptideIdentification* pid = &ids[i];
+        
+        if (pid->getHits().empty()) continue; // skip IDs without peptide annotations
+
+        String spectrum_file = mspath_mapping.getPrimaryMSRunPath(*pid);
+        String spectrum_reference = pid->getMetaValue(Constants::UserParam::SPECTRUM_REFERENCE);
+        // missing file origin is fine but we need a spectrum_reference if we want to build the map
+        if (spectrum_reference.empty()) continue;
+    
+        // TODO: check if there is already an entry
+        file2nativeid2pepid[spectrum_file][spectrum_reference] = pid;
+        has_spectrum_references = true;
+      }
+
+      if (!has_spectrum_references)
+      {
+        throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "No spectrum references in ID file used in id mapping TMT/iTRAQ data.");
+      }
+
       if (measure_from_subelements)
       {
         OPENMS_LOG_WARN << "IDMapper is configured to measure from subelements. Because the data looks like TMT/iTRAQ this option will be ignored." << std::endl;
