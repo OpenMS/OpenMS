@@ -24,6 +24,8 @@ set(CTEST_CUSTOM_TESTS_IGNORE
 set(CTEST_CUSTOM_MAXIMUM_NUMBER_OF_ERRORS 1000)
 set(CTEST_CUSTOM_MAXIMUM_NUMBER_OF_WARNINGS 1000)
 
+ctest_start(APPEND)
+
 ## build lib&executables, run tests
 ## for pyopenms build, only run pyopenms tests
 if("$ENV{PYOPENMS}" STREQUAL "ON")

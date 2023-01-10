@@ -83,7 +83,7 @@ endif()
 set(CTEST_CMAKE_GENERATOR "$ENV{CMAKE_GENERATOR}")
 
 # run the classical CTest suite
-ctest_start     (Continuous) # TODO think about adding GROUP GitHub-Actions to separate visually
+ctest_start(Continuous) # TODO think about adding GROUP GitHub-Actions to separate visually
 
 # Gather update information.
 find_package(Git)
@@ -92,6 +92,7 @@ set(CTEST_UPDATE_COMMAND "${GIT_EXECUTABLE}")
 ctest_update()
 
 ctest_configure (BUILD "${CTEST_BINARY_DIRECTORY}" OPTIONS "${OWN_OPTIONS}" RETURN_VALUE _configure_ret)
+ctest_submit(PARTS Update Configure)
 
 # we only build when we do non-style testing and we may have special targets like pyopenms
 if("$ENV{ENABLE_STYLE_TESTING}" STREQUAL "OFF")
@@ -110,15 +111,11 @@ if("$ENV{ENABLE_STYLE_TESTING}" STREQUAL "OFF")
        ctest_submit(PARTS Build)
     else()
       ctest_build(BUILD "${CTEST_BINARY_DIRECTORY}" NUMBER_ERRORS _build_errors)
+      ctest_submit(PARTS Build)
     endif()
   endif()
 else()
   set(_build_errors 0)
-endif()
-
-# indicate errors
-if(${_build_errors} GREATER 0 OR NOT ${_configure_ret} EQUAL 0)
-  file(WRITE "$ENV{SOURCE_DIRECTORY}/failed" "build_failed")
 endif()
 
 message("Please check the build results at: https://cdash.openms.de/index.php?project=OpenMS&begin=2023-01-01&end=2030-01-01&filtercount=1&field1=buildname&compare1=63&value1=${CTEST_BUILD_NAME}")
