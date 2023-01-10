@@ -98,7 +98,7 @@ jobs:
             echo $thirdpartytool >> $GITHUB_PATH
           done
 
-    - name: Build and test windows
+    - name: Build Windows
       shell: bash
       run: |
           mkdir $GITHUB_WORKSPACE/OpenMS/bld/
@@ -128,6 +128,7 @@ jobs:
           CCACHE_MAXSIZE: 400M
 
     - name: Test Windows
+      shell: bash
       run: $LAUNCHER ctest --output-on-failure -V -S $GITHUB_WORKSPACE/OpenMS/tools/ci/citest.cmake
       env:
           LAUNCHER: ""
