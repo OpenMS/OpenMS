@@ -252,6 +252,23 @@ namespace OpenMS
     UNKNOWN, MS2IDMS3TMT, MS2IDTMT 
   };
 
+  NATIVE_ID_TYPE checkTMTType(const ConsensusMap& map)
+  {
+    for (auto & cf : map)
+    {      
+      // check if the native id of an identifying spectrum is annotated
+      if (cf.metaValueExists("id_scan_id")) // identifying MS2 spectrum in MS3 TMT
+      {
+        return NATIVE_ID_TYPE::MS2IDMS3TMT;
+      }
+      else if (cf.metaValueExists("scan_id")) // identifying MS2 spectrum in standard TMT
+      {
+        return NATIVE_ID_TYPE::MS2IDTMT;
+      }
+    }
+    return NATIVE_ID_TYPE::UNKNOWN;
+  }
+
   void IDMapper::annotate(
     ConsensusMap& map,
     const vector<PeptideIdentification>& ids,
@@ -285,41 +302,31 @@ namespace OpenMS
     Size id_matches_none(0), id_matches_single(0), id_matches_multiple(0);
 
     // build map from file to peptide id
-//    std::map<String, std::unordered_map<String, const PeptideIdentification*>> file2nativeid2pepid;
+    std::map<String, std::unordered_map<String, const PeptideIdentification*>> file2nativeid2pepid;
     bool has_spectrum_references{false};
+
+    ProteinIdentification::Mapping mspath_mapping{protein_ids}; // used to retrieve spectrum file information annotated in protein ids given a peptide identification
+
+    std::unordered_map<String, ConsensusFeature*> nativeid2cf;
+
+    NATIVE_ID_TYPE native_id_type = checkTMTType(map);
+
     for (Size i = 0; i < ids.size(); ++i)
     {
       const PeptideIdentification* pid = &ids[i];
+      
+      if (pid->getHits().empty()) continue; // skip IDs without peptide annotations
 
-      // skip IDs without peptide annotations
-      if (pid->getHits().empty()) continue;
-      String file_origin = pid->getMetaValue("file_origin", "");
+      String spectrum_file = mspath_mapping.getPrimaryMSRunPath(*pid);
       String spectrum_reference = pid->getMetaValue(Constants::UserParam::SPECTRUM_REFERENCE);
       // missing file origin is fine but we need a spectrum_reference if we want to build the map
       if (spectrum_reference.empty()) continue;
   
       // TODO: check if there is already an entry
-//      file2nativeid2pepid[file_origin][spectrum_reference] = pid; // TODO: also use file information
+      file2nativeid2pepid[spectrum_file][spectrum_reference] = pid;
       has_spectrum_references = true;
     }
 
-    std::unordered_map<String, ConsensusFeature*> nativeid2cf;
-    NATIVE_ID_TYPE native_id_type{NATIVE_ID_TYPE::UNKNOWN};
-    for (auto & cf : map)
-    {      
-      // check if the native id of an identifying spectrum is annotated
-      if (cf.metaValueExists("id_scan_id")) // identifying MS2 spectrum in MS3 TMT
-      {
-        native_id_type = NATIVE_ID_TYPE::MS2IDMS3TMT;
-        nativeid2cf[cf.getMetaValue("id_scan_id")] = &cf;
-      }
-      else if (cf.metaValueExists("scan_id")) // identifying MS2 spectrum in standard TMT
-      {
-        native_id_type = NATIVE_ID_TYPE::MS2IDTMT;
-        nativeid2cf[cf.getMetaValue("scan_id")] = &cf;
-      }
-      // else native_id_type stays UNKNOWN
-    }
 
     // We have TMT data: spectrum references annotated at consensus feature and in id
     // We can directly map by native id
@@ -335,25 +342,30 @@ namespace OpenMS
         OPENMS_LOG_WARN << "IDMapper is configured to validate charges. Because the data looks like TMT/iTRAQ and this option will be ignored."  << std::endl;
       }
 
-      for (Size i = 0; i < ids.size(); ++i)
-      {        
-        if (ids[i].getHits().empty()) continue; // skip IDs without peptide annotations
+      for (auto& cf : map)
+      {  
+        const auto first_channel = *cf.getFeatures().begin();                  
+        const String& filename = map.getColumnHeaders()[first_channel.getMapIndex()].filename; // all channels are associated with same file in TMT/iTRAQ
 
-        getIDDetails_(ids[i], rt_pep, mz_values, charges);
-
-        String spectrum_native_id = ids[i].getMetaValue(Constants::UserParam::SPECTRUM_REFERENCE);
-        auto cf_it = nativeid2cf.find(spectrum_native_id);
-        if (cf_it == nativeid2cf.end()) 
+        String cf_scan_id = (native_id_type == NATIVE_ID_TYPE::MS2IDMS3TMT) ? cf.getMetaValue("id_scan_id", "") : cf.getMetaValue("scan_id", "");
+        if (cf.metaValueExists(cf_scan_id)) 
         {
-          // the id has not been mapped to any consensus feature
-          map.getUnassignedPeptideIdentifications().push_back(ids[i]);
-          ++id_matches_none;
+          if (auto run_it = file2nativeid2pepid.find(filename); run_it != file2nativeid2pepid.end()) // TMT/iTRAQ run has identifications
+          {
+            if (auto scanid_it = run_it->second.find(cf_scan_id); scanid_it != run_it->second.end()) // TMT/iTRAQ run has scan_id with identification
+            {
+              cf.getPeptideIdentifications().push_back(*scanid_it->second);
+              ++id_matches_single; // in TMT we only match to single consensus feature
+            }
+          } // else identification file does not contained scan id (e.g. was removed)          
         }
-        else
+        else // else identification file does not contained identifications for this run
         {
-          cf_it->second->getPeptideIdentifications().push_back(ids[i]);
-          ++assigned_ids[i];
-        }
+          OPENMS_LOG_WARN << "ConsensusMap for TMT/iTRAQ experiment contains scan identifier '" << cf_scan_id 
+                          << "' quantified in file '" << filename 
+                          << "' but there is no matching identification."
+                          << std::endl;
+        } 
       }
     }
     else
@@ -454,17 +466,17 @@ namespace OpenMS
           ++id_matches_none;
         }
       } // Identifications
-    }
 
-    for (auto aid : assigned_ids)
-    {
-      if (aid.second == 1)
+      for (auto aid : assigned_ids)
       {
-        ++id_matches_single;
-      }
-      else if (aid.second > 1)
-      {
-        ++id_matches_multiple;
+        if (aid.second == 1)
+        {
+          ++id_matches_single;
+        }
+        else if (aid.second > 1)
+        {
+          ++id_matches_multiple;
+        }
       }
     }
 
