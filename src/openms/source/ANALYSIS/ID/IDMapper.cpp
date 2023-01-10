@@ -415,7 +415,7 @@ namespace OpenMS
             //check if we compare distance from centroid or subelements
             if (!measure_from_subelements)
             {
-              if (  // can we match by native ids? if not, match by rt/mz
+              if (
                   isMatch_(rt_pep - map[cm_index].getRT(), mz_pep, map[cm_index].getMZ()) && 
                   (ignore_charge_ || ListUtils::contains(current_charges, map[cm_index].getCharge()))  
                   ) 
