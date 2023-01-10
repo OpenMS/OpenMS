@@ -36,6 +36,7 @@
 #include <OpenMS/MATH/MISC/MathFunctions.h>
 #include <OpenMS/METADATA/SpectrumLookup.h>
 #include <OpenMS/CONCEPT/Constants.h>
+#include <OpenMS/SYSTEM/File.h>
 
 #include <unordered_set>
 
