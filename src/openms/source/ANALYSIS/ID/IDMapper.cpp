@@ -321,7 +321,7 @@ namespace OpenMS
         
         if (pid->getHits().empty()) continue; // skip IDs without peptide annotations
 
-        String spectrum_file = mspath_mapping.getPrimaryMSRunPath(*pid);
+        String spectrum_file = File::basename(mspath_mapping.getPrimaryMSRunPath(*pid));
         String spectrum_reference = pid->getMetaValue(Constants::UserParam::SPECTRUM_REFERENCE);
         // missing file origin is fine but we need a spectrum_reference if we want to build the map
         if (spectrum_reference.empty()) continue;
@@ -349,7 +349,7 @@ namespace OpenMS
       for (auto& cf : map)
       {  
         const auto first_channel = *cf.getFeatures().begin();                  
-        const String& filename = map.getColumnHeaders()[first_channel.getMapIndex()].filename; // all channels are associated with same file in TMT/iTRAQ
+        String filename = File::basename(map.getColumnHeaders()[first_channel.getMapIndex()].filename); // all channels are associated with same file in TMT/iTRAQ
 
         String cf_scan_id = (native_id_type == NATIVE_ID_TYPE::MS2IDMS3TMT) ? cf.getMetaValue("id_scan_id", "") : cf.getMetaValue("scan_id", "");
         if (cf.metaValueExists(cf_scan_id)) 
