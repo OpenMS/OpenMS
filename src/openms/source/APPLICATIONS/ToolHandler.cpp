@@ -74,6 +74,7 @@ namespace OpenMS
     tools_map["FileInfo"] = Internal::ToolDescription("FileInfo", "File Handling");
     tools_map["FileMerger"] = Internal::ToolDescription("FileMerger", "File Handling");
     tools_map["FLASHDeconv"] = Internal::ToolDescription("FLASHDeconv", "Signal processing and preprocessing");
+    tools_map["FLASHIdent"] = Internal::ToolDescription("FLASHIdent", "Identification");
     tools_map["GNPSExport"] = Internal::ToolDescription("GNPSExport", "File Handling");
     tools_map["HighResPrecursorMassCorrector"] = Internal::ToolDescription("HighResPrecursorMassCorrector", "Signal processing and preprocessing");
     tools_map["IDConflictResolver"] = Internal::ToolDescription("IDConflictResolver", "ID Processing");

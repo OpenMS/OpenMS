@@ -8,6 +8,7 @@ set(sources_list_h
     FLASHDeconvHelperStructs.h
     FLASHIda.h
     FLASHIdaBridgeFunctions.h
+	FLASHIdentAlgorithm.h
     MassFeatureTrace.h
     PeakGroup.h
     QScore.h

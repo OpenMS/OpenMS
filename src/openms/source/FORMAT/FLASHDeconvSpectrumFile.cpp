@@ -317,7 +317,7 @@ namespace OpenMS
     }
   }
 
-  inline const int z = 5, iso = 21;
+  inline const int z = 11, iso = 21;
   void FLASHDeconvSpectrumFile::writeDLMatrixHeader(std::fstream& fs)
   {
     for(int i=0;i<3;i++)
