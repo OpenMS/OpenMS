@@ -36,6 +36,7 @@
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
+#include <unordered_map>
 
 
 namespace OpenMS
@@ -84,7 +85,11 @@ public:
         String origin_fullname;
 
         /// Constructs a new RipFileIdentifier object
-        RipFileIdentifier(const IDRipper::IdentificationRuns& id_runs, const PeptideIdentification& pep_id, const std::map<String, UInt>& file_origin_map, const IDRipper::OriginAnnotationFormat origin_annotation_fmt, bool split_ident_runs);
+        RipFileIdentifier(const IDRipper::IdentificationRuns& id_runs, 
+          const PeptideIdentification& pep_id, 
+          const std::map<String, UInt>& file_origin_map, 
+          const IDRipper::OriginAnnotationFormat origin_annotation_fmt, 
+          bool split_ident_runs);
 
         /// Get identification run index
         UInt getIdentRunIdx();
@@ -182,11 +187,11 @@ private:
     /// helper function, detects file origin annotation standard from collections of protein and peptide hits
     OriginAnnotationFormat detectOriginAnnotationFormat_(std::map<String, UInt> & file_origin_map, const std::vector<PeptideIdentification> & peptide_idents);
     /// helper function, extracts all protein hits that match the protein accession
-    void getProteinHits_(std::vector<ProteinHit> & result, const std::vector<ProteinHit> & protein_hits, const std::vector<String> & protein_accessions);
+    void getProteinHits_(std::vector<ProteinHit> & result, const std::unordered_map<String, const ProteinHit*> & acc2protein_hits, const std::vector<String> & protein_accessions);
     /// helper function, returns the string representation of the peptide hit accession
     void getProteinAccessions_(std::vector<String> & result, const std::vector<PeptideHit> & peptide_hits);
-    /// helper function, returns the protein identification for the given peptide identification based on the same identifier
-    void getProteinIdentification_(ProteinIdentification & result, const PeptideIdentification& pep_ident, std::vector<ProteinIdentification> & prot_idents);
+    /// helper function, returns the protein identification for the given peptide identification based on the same identifier using id_runs as lookup
+    void getProteinIdentification_(ProteinIdentification & result, const PeptideIdentification& pep_ident, std::vector<ProteinIdentification> & prot_idents, const IdentificationRuns& id_runs);
     /// helper function, register a potential output file basename to detect duplicate output basenames
     bool registerBasename_(std::map<String, std::pair<UInt, UInt> >& basename_to_numeric, const IDRipper::RipFileIdentifier& rfi);
     /// helper function, sets the value of mode to new_value and returns true if the old value was identical or unset (-1)
