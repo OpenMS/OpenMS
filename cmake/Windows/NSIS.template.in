@@ -3,11 +3,7 @@
 ############################################
 ## useful resources:
 # http://abarinoff-dev.blogspot.com/2010/04/passing-parameters-and-retrieving.html
-# http://nsis.sourceforge.net/UAC_plug-in
 # http://nsis.sourceforge.net/Inetc_plug-in
-#
-## using the UAC-plugin the installer is run in elevated mode by default (inner instance). If you want to
-## do some user specific action (e.g. Start-Menu entries) you need to use the UAC's wrappers and calls
 
 ###################
 ### CPACK config ##
@@ -28,7 +24,7 @@ SetCompressor /SOLID lzma
 ### NSISRESOURCES now consists of the cmake/Windows directory of the source tree.
 !addplugindir ${NSISRESOURCES}\Plugins\x86-unicode
 
-# set to "0" for deployment!!! use "1" to build the executable fast (for script debugging)
+# set to "0" for deployment!!! use "1" to build the installer fast (for script debugging)
 !define DEBUG_BUILD 0
 # set to "0" for deployment!!! use "1" to skip packaging of *.html files (takes ages)
 !define DEBUG_SKIP_DOCU 0
@@ -66,15 +62,18 @@ SetCompressor /SOLID lzma
 
 # Defines
 !define REGKEY "SOFTWARE\$(^Name)"
-!define PRODUCT_UNINST_ROOT HKLM
+!define PRODUCT_UNINST_ROOT SHCTX
 !define PRODUCT_UNINST_KEY ${REGKEY}
 !define COMPANY "OpenMS Developer Team"
 !define URL https://www.OpenMS.de
 !define APPNAME "OpenMS"
+!define PRODUCT_NAME "OpenMS"
+!define PROGEXE "TOPPView.exe"
 
-## UAC plugin requires us to use normal user privileges
-##, it will launch an admin process within the user process automatically
-RequestExecutionLevel user    /* RequestExecutionLevel REQUIRED! */
+# MultiUser defines
+!define MULTIUSER_INSTALLMODE_INSTDIR "${PRODUCT_NAME}-${VERSION}"
+!define MULTIUSER_INSTALLMODE_64_BIT 1
+!define MULTIUSER_INSTALLMODE_NO_HELP_DIALOG 1
 
 # Included files
 
@@ -84,14 +83,15 @@ RequestExecutionLevel user    /* RequestExecutionLevel REQUIRED! */
 !include Sections.nsh
 !include Library.nsh
 !include FileFunc.nsh
-!include ${NSISRESOURCES}\UAC.nsh
-!include ${NSISRESOURCES}\IncludeScript_Misc.nsh
+#!include ${NSISRESOURCES}\Include\UAC.nsh
+!include ${NSISRESOURCES}\Include\IncludeScript_Misc.nsh
 !define FOLDERLIST_EXE ${NSISRESOURCES}\FolderList.exe
-!include ${NSISRESOURCES}\IncludeScript_FileLogging.nsh
-!include ${NSISRESOURCES}\EnvVarUpdate.nsh
-!include x64.nsh
-!include ${NSISRESOURCES}\LogicLib.nsh
-!include ${NSISRESOURCES}\AdvUninstLog2.nsh
+!include ${NSISRESOURCES}\Include\IncludeScript_FileLogging.nsh
+!include ${NSISRESOURCES}\Include\EnvVarUpdate.nsh
+#!include x64.nsh
+#!include ${NSISRESOURCES}\Include\LogicLib.nsh
+!include ${NSISRESOURCES}\Include\AdvUninstLog2.nsh
+!include ${NSISRESOURCES}\Include\NsisMultiUser.nsh
 
 # For uninstalllog
 !insertmacro UNATTENDED_UNINSTALL
@@ -121,19 +121,20 @@ ReserveFile "${NSISDIR}\Plugins\x86-unicode\advsplash.dll"
 
 # Variables
 Var StartMenuGroup
+Var EnvVarUpdateLoc
 
 # MUI defines
 #!define MUI_ICON OpenMS.ico
 
 !define MUI_FINISHPAGE_NOAUTOCLOSE
-!define UMUI_STARTMENUPAGE_REGISTRY_ROOT HKLM
+!define UMUI_STARTMENUPAGE_REGISTRY_ROOT SHCTX
 !define UMUI_STARTMENUPAGE_REGISTRY_KEY ${REGKEY}
 !define UMUI_STARTMENUPAGE_REGISTRY_VALUENAME StartMenuGroup
 !define UMUI_STARTMENUPAGE_DEFAULTFOLDER "OpenMS"
 !define MUI_LICENSEPAGE_RADIOBUTTONS
 !define MUI_FINISHPAGE_SHOWREADME $INSTDIR\ReleaseNotes.txt
 !define MUI_UNFINISHPAGE_NOAUTOCLOSE
-!define UMUI_LANGDLL_REGISTRY_ROOT HKLM
+!define UMUI_LANGDLL_REGISTRY_ROOT SHCTX
 !define UMUI_LANGDLL_REGISTRY_KEY ${REGKEY}
 !define UMUI_LANGDLL_REGISTRY_VALUENAME InstallerLanguage
 
@@ -141,6 +142,7 @@ Var StartMenuGroup
 !insertmacro MUI_PAGE_WELCOME
 !define MUI_PAGE_CUSTOMFUNCTION_SHOW licpageshow
 !insertmacro MUI_PAGE_LICENSE ${OPENMSDIRSRC}\License.txt
+!insertmacro MULTIUSER_PAGE_INSTALLMODE
 !insertmacro MUI_PAGE_DIRECTORY
 !insertmacro MUI_PAGE_COMPONENTS
 !insertmacro MUI_PAGE_STARTMENU Application $StartMenuGroup
@@ -153,6 +155,7 @@ Var StartMenuGroup
 !insertmacro MUI_LANGUAGE German
 !insertmacro MUI_LANGUAGE English
 !insertmacro MUI_LANGUAGE French
+!insertmacro MULTIUSER_LANGUAGE_INIT
 
 # Installer Language Strings
 LangString ^UninstallLink ${LANG_GERMAN} "Uninstall $(^Name)"
@@ -163,10 +166,10 @@ LangString ^UninstallLink ${LANG_FRENCH} "Uninstall $(^Name)"
 # to a mono spaced one.
 # from http://stackoverflow.com/questions/8424172/nsis-display-license-with-a-monospace-font
 Function licpageshow
-FindWindow $0 "#32770" "" $HWNDPARENT
-CreateFont $1 "Consolas" "8"
-GetDlgItem $0 $0 1000
-SendMessage $0 ${WM_SETFONT} $1 1
+    FindWindow $0 "#32770" "" $HWNDPARENT
+    CreateFont $1 "Consolas" "8"
+    GetDlgItem $0 $0 1000
+    SendMessage $0 ${WM_SETFONT} $1 1
 FunctionEnd
 
 
@@ -175,24 +178,24 @@ InstType "Recommended"  #1
 InstType "Minimum"      #2
 InstType "Full"         #3
 
-# Installer attributes
-!if ${PLATFORM} == 32
-	InstallDir "$PROGRAMFILES32\OpenMS-${VERSION}"
-!else
-	InstallDir "$PROGRAMFILES64\OpenMS-${VERSION}"
-!endif
+# Installer attributes (should be done by NsisMultiUser plugin MULTIUSER_INSTALLMODE_INSTDIR)
+#!if ${PLATFORM} == 32
+#	InstallDir "$PROGRAMFILES32\${PRODUCT_NAME}-${VERSION}"
+#!else
+#	InstallDir "$PROGRAMFILES64\${PRODUCT_NAME}-${VERSION}"
+#!endif
 
 CRCCheck on
 ShowInstDetails hide
 VIProductVersion ${VERSION_LONG}
-VIAddVersionKey /LANG=${LANG_GERMAN} ProductName "OpenMS"
+VIAddVersionKey /LANG=${LANG_GERMAN} ProductName "${PRODUCT_NAME}"
 VIAddVersionKey /LANG=${LANG_GERMAN} ProductVersion "${VERSION}"
 VIAddVersionKey /LANG=${LANG_GERMAN} CompanyName "${COMPANY}"
 VIAddVersionKey /LANG=${LANG_GERMAN} CompanyWebsite "${URL}"
 VIAddVersionKey /LANG=${LANG_GERMAN} FileVersion "${VERSION}"
 VIAddVersionKey /LANG=${LANG_GERMAN} FileDescription ""
 VIAddVersionKey /LANG=${LANG_GERMAN} LegalCopyright ""
-InstallDirRegKey HKLM "${REGKEY}" Path
+
 ShowUninstDetails hide
 
 ; HKLM (all users) vs HKCU (current user) defines
@@ -218,33 +221,42 @@ Function CreateSMGroupShortcut
     CreateDirectory "$SMPROGRAMS\${APPNAME}"
     CreateShortcut "$SMPROGRAMS\${APPNAME}\$R1.lnk" $R0
 
-no_smgroup:
-    Pop $R2
-    Pop $R1
-    Pop $R0
+    no_smgroup:
+        Pop $R2
+        Pop $R1
+        Pop $R0
 FunctionEnd
 
 
 # Installer sections
 Section "OpenMS Library" SEC_Lib
     SectionIn 1 2 3 RO
-# we need to install add dll´s together with the binaries
-# to ensure the dynamic linking uses the correct dll´s
-# (putting dll´s in another path makes it prone to
-# invalid PATH settings)
+
     SetOutPath $INSTDIR\bin
     SetOverwrite on
 
     # open log file
     !insertmacro UNINSTALL.LOG_OPEN_INSTALL
 
-    # install files
-    File "${OPENMSBINDIR}\*.dll"
-    File "${OPENMSBINDIR}\*.lib"
-    File /r "${OPENMSBINDIR}\plugins\*.*"
-    File "${OPENMSBINDIR}\*.conf"
+    # install files for bin dir
+    File "${OPENMSLIBDIR}\*.dll"
+    File "${OPENMSLIBDIR}\*.lib"
+
+    !insertmacro UNINSTALL.LOG_CLOSE_INSTALL
+
+    SetOutPath $INSTDIR\bin\plugins
+    SetOverwrite on
+
+    !insertmacro UNINSTALL.LOG_OPEN_INSTALL
+    File /r "${OPENMSPLUGINDIR}\*.*"
+    !insertmacro UNINSTALL.LOG_CLOSE_INSTALL
+
+    # share dir
     SetOutPath $INSTDIR\share\OpenMS
     SetOverwrite on
+
+    !insertmacro UNINSTALL.LOG_OPEN_INSTALL
+
     !if ${DEBUG_BUILD} == 0
         File /r /x "THIRDPARTY" /x "doc" "${OPENMSSHAREDIR}\*.*"
     !endif
@@ -258,12 +270,18 @@ SectionEnd
 
 Section "TOPP tools" SEC_TOPP
     SectionIn 1 2 3 RO
-    #open log file
-    !insertmacro UNINSTALL.LOG_OPEN_INSTALL
 
     SetOutPath $INSTDIR\bin
     SetOverwrite on
 
+    #open uninstall log file
+    !insertmacro UNINSTALL.LOG_OPEN_INSTALL
+
+    # We do not need qt.conf if the plugins are in the standard location plugins
+    #File "${OPENMSBINDIR}\qt.conf"
+
+    # install every tool exe except for Tutorials (if present)
+    # skip in installer debug mode
     !if ${DEBUG_BUILD} == 0
         File /x "Tutorial_*.exe" "${OPENMSBINDIR}\*.exe"
     !endif
@@ -274,17 +292,19 @@ SectionEnd
 
 Section "Documentation" SEC_Doc
     SectionIn 1 3
-    #open log file
-    !insertmacro UNINSTALL.LOG_OPEN_INSTALL
 
     SetOverwrite on
+    SetOutPath $INSTDIR\share\doc\html
 
-	## html docu
+    # open uninstall log file
+    !insertmacro UNINSTALL.LOG_OPEN_INSTALL
+
+	# html docs
     !if ${DEBUG_SKIP_DOCU} == 0
-      SetOutPath $INSTDIR\share\doc\html
+
       File /r "${OPENMSDOCDIR}\html\*.*"
-      SetOutPath $INSTDIR\share\doc
-      File /nonfatal "${OPENMSDOCDIR}\OpenMS_tutorial.pdf"
+      #SetOutPath $INSTDIR\share\doc
+      #File /nonfatal "${OPENMSDOCDIR}\OpenMS_tutorial.pdf"
     !endif
 
     !insertmacro UNINSTALL.LOG_CLOSE_INSTALL
@@ -296,103 +316,103 @@ SectionGroup "ThirdParty" SEC_ThirdParty
 	!if ${DEBUG_BUILD} == 0
 		Section "Proteowizard" SEC_pwiz
 		    SectionIn 1 3
+            SetOverwrite on
+            CreateDirectory "$INSTDIR\share\OpenMS\THIRDPARTY\pwiz-bin"
+            SetOutPath "$INSTDIR\share\OpenMS\THIRDPARTY\pwiz-bin"
 			!insertmacro UNINSTALL.LOG_OPEN_INSTALL
 
-			SetOverwrite on
-			CreateDirectory "$INSTDIR\share\OpenMS\THIRDPARTY\pwiz-bin"
-			SetOutPath "$INSTDIR\share\OpenMS\THIRDPARTY\pwiz-bin"
             File /r "${THIRDPARTYDIR}\pwiz-bin\*.*"
 
             !insertmacro UNINSTALL.LOG_CLOSE_INSTALL
         SectionEnd
 
-    Section ".NET and VCRedist for Proteowizard" SEC_dotnet
-        SectionIn 1 3
-      !insertmacro UNINSTALL.LOG_OPEN_INSTALL
-      SetOverwrite on
+        Section ".NET and VCRedist for Proteowizard" SEC_dotnet
+            SectionIn 1 3
+            SetOverwrite on
+            !insertmacro UNINSTALL.LOG_OPEN_INSTALL
 
-      Var /GLOBAL netSilentArgs
-      StrCpy $netSilentArgs ""
-      IfSilent 0 +2
-        StrCpy $netSilentArgs "/q /norestart"
+            Var /GLOBAL netSilentArgs
+            StrCpy $netSilentArgs ""
+            IfSilent 0 +2
+                StrCpy $netSilentArgs "/q /norestart"
 
-			## download .NET 3.5 and 4.0 (required by pwiz)
+            ## download .NET 3.5 and 4.0 (required by pwiz)
 
-			inetc::get /BANNER "Getting .NET 3.5 SP1 installer." \
-					"http://www.microsoft.com/downloads/info.aspx?na=41&SrcFamilyId=AB99342F-5D1A-413D-8319-81DA479AB0D7&SrcDisplayLang=en&u=http%3a%2f%2fdownload.microsoft.com%2fdownload%2f0%2f6%2f1%2f061F001C-8752-4600-A198-53214C69B51F%2fdotnetfx35setup.exe" \
-					"$EXEDIR\NET3.5_SP1_installer.exe"
-			Pop $0
-			StrCmp $0 "OK" dl35ok net35_install_success
-			MessageBox MB_OK|MB_ICONEXCLAMATION "Downloading 'Microsoft .NET 3.5 SP1' failed. You must download and install it manually in order for Proteowizard to work!" /SD IDOK
+            inetc::get /BANNER "Getting .NET 3.5 SP1 installer." \
+                    "http://www.microsoft.com/downloads/info.aspx?na=41&SrcFamilyId=AB99342F-5D1A-413D-8319-81DA479AB0D7&SrcDisplayLang=en&u=http%3a%2f%2fdownload.microsoft.com%2fdownload%2f0%2f6%2f1%2f061F001C-8752-4600-A198-53214C69B51F%2fdotnetfx35setup.exe" \
+                    "$EXEDIR\NET3.5_SP1_installer.exe"
+            Pop $0
+            StrCmp $0 "OK" dl35ok net35_install_success
+            MessageBox MB_OK|MB_ICONEXCLAMATION "Downloading 'Microsoft .NET 3.5 SP1' failed. You must download and install it manually in order for Proteowizard to work!" /SD IDOK
 
-			dl35ok:
-			ClearErrors
-			ExecWait '"$EXEDIR\NET3.5_SP1_installer.exe" $netSilentArgs' $0
-			StrCmp $0 0 net35_install_success
-			MessageBox MB_OK|MB_ICONEXCLAMATION "The installation of the Microsoft .NET 3.5 SP1' package failed! You must download and install it manually in order for Proteowizard to work!" /SD IDOK
+            dl35ok:
+                ClearErrors
+                ExecWait '"$EXEDIR\NET3.5_SP1_installer.exe" $netSilentArgs' $0
+                StrCmp $0 0 net35_install_success
+                MessageBox MB_OK|MB_ICONEXCLAMATION "The installation of the Microsoft .NET 3.5 SP1' package failed! You must download and install it manually in order for Proteowizard to work!" /SD IDOK
 
-			net35_install_success:
-			## .NET 3.5 installed, yeah!
+            net35_install_success:
+                ## .NET 3.5 installed, yeah!
 
-			inetc::get /BANNER "Getting .NET 4.0 installer." \
-					"http://www.microsoft.com/downloads/info.aspx?na=41&SrcFamilyId=AB99342F-5D1A-413D-8319-81DA479AB0D7&SrcDisplayLang=en&u=http%3a%2f%2fdownload.microsoft.com%2fdownload%2f9%2f5%2fA%2f95A9616B-7A37-4AF6-BC36-D6EA96C8DAAE%2fdotNetFx40_Full_x86_x64.exe" \
-					"$EXEDIR\NET4.0_installer.exe"
+                inetc::get /BANNER "Getting .NET 4.0 installer." \
+                        "http://www.microsoft.com/downloads/info.aspx?na=41&SrcFamilyId=AB99342F-5D1A-413D-8319-81DA479AB0D7&SrcDisplayLang=en&u=http%3a%2f%2fdownload.microsoft.com%2fdownload%2f9%2f5%2fA%2f95A9616B-7A37-4AF6-BC36-D6EA96C8DAAE%2fdotNetFx40_Full_x86_x64.exe" \
+                        "$EXEDIR\NET4.0_installer.exe"
 
-			Pop $0
-			StrCmp $0 "OK" dl40ok net40_install_success
-			MessageBox MB_OK|MB_ICONEXCLAMATION "Downloading 'Microsoft .NET 4.0' failed. You must download and install it manually in order for Proteowizard to work!" /SD IDOK
+                Pop $0
+                StrCmp $0 "OK" dl40ok net40_install_success
+                MessageBox MB_OK|MB_ICONEXCLAMATION "Downloading 'Microsoft .NET 4.0' failed. You must download and install it manually in order for Proteowizard to work!" /SD IDOK
 
-			dl40ok:
-			ClearErrors
-			ExecWait '"$EXEDIR\NET4.0_installer.exe" $netSilentArgs' $0
-			StrCmp $0 0 net40_install_success
-			MessageBox MB_OK|MB_ICONEXCLAMATION "The installation of the Microsoft .NET 4.0' package failed! You must download and install it manually in order for Proteowizard to work!" /SD IDOK
+            dl40ok:
+                ClearErrors
+                ExecWait '"$EXEDIR\NET4.0_installer.exe" $netSilentArgs' $0
+                StrCmp $0 0 net40_install_success
+                MessageBox MB_OK|MB_ICONEXCLAMATION "The installation of the Microsoft .NET 4.0' package failed! You must download and install it manually in order for Proteowizard to work!" /SD IDOK
 
-			net40_install_success:
-			## .NET 4.0 installed, yeah!
+            net40_install_success:
+                ## .NET 4.0 installed, yeah!
 
-			## pwiz now requires vs 2010 32bit (!) runtime libraries installed (Agilent libraries)
-      ## 2017: now also 2012 and 2013 of the corresponding platform
-			SetOutPath $TEMP
-			SetOverwrite on
+                ## pwiz now requires vs 2010 32bit (!) runtime libraries installed (Agilent libraries)
+                ## 2017: now also 2012 and 2013 of the corresponding platform
+                SetOutPath $TEMP
+                SetOverwrite on
 
-			File  "${THIRDPARTYDIR}\${VS_PWIZ_REDISTRIBUTABLE_EXE}"
-			ClearErrors
-			ExecWait '$TEMP\${VS_PWIZ_REDISTRIBUTABLE_EXE} /passive /norestart' $0
-			StrCmp $0 0 vs_pwiz_install_success
-			StrCmp $0 1638 vs_pwiz_install_success
-			MessageBox MB_OK "The installation of the Visual Studio redistributable package '${VS_PWIZ_REDISTRIBUTABLE_EXE}' failed! Proteowizard will not work unless this package is installed! The package is located at '$TEMP\${VS_PWIZ_REDISTRIBUTABLE_EXE}'. Try to execute it as administrator - there will likely be an error which you can blame Microsoft for. If you cannot fix it contact the OpenMS developers!"
+                File  "${THIRDPARTYDIR}\${VS_PWIZ_REDISTRIBUTABLE_EXE}"
+                ClearErrors
+                ExecWait '$TEMP\${VS_PWIZ_REDISTRIBUTABLE_EXE} /passive /norestart' $0
+                StrCmp $0 0 vs_pwiz_install_success
+                StrCmp $0 1638 vs_pwiz_install_success
+                MessageBox MB_OK "The installation of the Visual Studio redistributable package '${VS_PWIZ_REDISTRIBUTABLE_EXE}' failed! Proteowizard will not work unless this package is installed! The package is located at '$TEMP\${VS_PWIZ_REDISTRIBUTABLE_EXE}'. Try to execute it as administrator - there will likely be an error which you can blame Microsoft for. If you cannot fix it contact the OpenMS developers!"
 
-			vs_pwiz_install_success:
+            vs_pwiz_install_success:
 
-      File  "${THIRDPARTYDIR}\${VS_PWIZ_ADD1_REDISTRIBUTABLE_EXE}"
-			ClearErrors
-			ExecWait '$TEMP\${VS_PWIZ_ADD1_REDISTRIBUTABLE_EXE} /passive /norestart' $0
-			StrCmp $0 0 vs_pwiz_add1_install_success
-			StrCmp $0 1638 vs_pwiz_add1_install_success
-			MessageBox MB_OK "The installation of the Visual Studio redistributable package '${VS_PWIZ_ADD1_REDISTRIBUTABLE_EXE}' failed! Proteowizard will not work unless this package is installed! The package is located at '$TEMP\${VS_PWIZ_ADD1_REDISTRIBUTABLE_EXE}'. Try to execute it as administrator - there will likely be an error which you can blame Microsoft for. If you cannot fix it contact the OpenMS developers!"
+                File  "${THIRDPARTYDIR}\${VS_PWIZ_ADD1_REDISTRIBUTABLE_EXE}"
+                ClearErrors
+                ExecWait '$TEMP\${VS_PWIZ_ADD1_REDISTRIBUTABLE_EXE} /passive /norestart' $0
+                StrCmp $0 0 vs_pwiz_add1_install_success
+                StrCmp $0 1638 vs_pwiz_add1_install_success
+                MessageBox MB_OK "The installation of the Visual Studio redistributable package '${VS_PWIZ_ADD1_REDISTRIBUTABLE_EXE}' failed! Proteowizard will not work unless this package is installed! The package is located at '$TEMP\${VS_PWIZ_ADD1_REDISTRIBUTABLE_EXE}'. Try to execute it as administrator - there will likely be an error which you can blame Microsoft for. If you cannot fix it contact the OpenMS developers!"
 
-			vs_pwiz_add1_install_success:
+            vs_pwiz_add1_install_success:
 
-      File  "${THIRDPARTYDIR}\${VS_PWIZ_ADD2_REDISTRIBUTABLE_EXE}"
-			ClearErrors
-			ExecWait '$TEMP\${VS_PWIZ_ADD2_REDISTRIBUTABLE_EXE} /install /passive /norestart' $0
-			StrCmp $0 0 vs_pwiz_add2_install_success
-			StrCmp $0 1638 vs_pwiz_add2_install_success
-			MessageBox MB_OK "The installation of the Visual Studio redistributable package '${VS_PWIZ_ADD2_REDISTRIBUTABLE_EXE}' failed! Proteowizard will not work unless this package is installed! The package is located at '$TEMP\${VS_PWIZ_ADD2_REDISTRIBUTABLE_EXE}'. Try to execute it as administrator - there will likely be an error which you can blame Microsoft for. If you cannot fix it contact the OpenMS developers!"
+                File  "${THIRDPARTYDIR}\${VS_PWIZ_ADD2_REDISTRIBUTABLE_EXE}"
+                ClearErrors
+                ExecWait '$TEMP\${VS_PWIZ_ADD2_REDISTRIBUTABLE_EXE} /install /passive /norestart' $0
+                StrCmp $0 0 vs_pwiz_add2_install_success
+                StrCmp $0 1638 vs_pwiz_add2_install_success
+                MessageBox MB_OK "The installation of the Visual Studio redistributable package '${VS_PWIZ_ADD2_REDISTRIBUTABLE_EXE}' failed! Proteowizard will not work unless this package is installed! The package is located at '$TEMP\${VS_PWIZ_ADD2_REDISTRIBUTABLE_EXE}'. Try to execute it as administrator - there will likely be an error which you can blame Microsoft for. If you cannot fix it contact the OpenMS developers!"
 
-      ## reasons why the install might fail:
+            ## reasons why the install might fail:
 
-			vs_pwiz_add2_install_success:
+            vs_pwiz_add2_install_success:
 
-			!insertmacro UNINSTALL.LOG_CLOSE_INSTALL
-		SectionEnd
+            !insertmacro UNINSTALL.LOG_CLOSE_INSTALL
+        SectionEnd
 
-      ## Install every other directory in the given (flattened) THIRDPARTY folder.
-      !tempfile filelist
-      !system 'FOR /D %A IN ("${THIRDPARTYDIR}\*") DO @( IF NOT "%~nA" == "pwiz-bin" ((echo Section "%~nA" & echo SectionIn 1 3 & echo !insertmacro UNINSTALL.LOG_OPEN_INSTALL & echo SetOverwrite on & echo CreateDirectory "$INSTDIR\share\OpenMS\THIRDPARTY\%~nA" & echo SetOutPath "$INSTDIR\share\OpenMS\THIRDPARTY\%~nA" & echo File /r "%~A\*.*" & echo Var /GLOBAL %~nAInstalled & echo StrCpy $%~nAInstalled "1" & echo !insertmacro UNINSTALL.LOG_CLOSE_INSTALL & echo SectionEnd) >> "${filelist}"))'
-      !include "${filelist}"
-      !delfile "${filelist}"
+        ## Install every other directory in the given (flattened) THIRDPARTY folder.
+        !tempfile filelist
+        !system 'FOR /D %A IN ("${THIRDPARTYDIR}\*") DO @( IF NOT "%~nA" == "pwiz-bin" ((echo Section "%~nA" & echo SectionIn 1 3 & echo !insertmacro UNINSTALL.LOG_OPEN_INSTALL & echo SetOverwrite on & echo CreateDirectory "$INSTDIR\share\OpenMS\THIRDPARTY\%~nA" & echo SetOutPath "$INSTDIR\share\OpenMS\THIRDPARTY\%~nA" & echo File /r "%~A\*.*" & echo Var /GLOBAL %~nAInstalled & echo StrCpy $%~nAInstalled "1" & echo !insertmacro UNINSTALL.LOG_CLOSE_INSTALL & echo SectionEnd) >> "${filelist}"))'
+        !include "${filelist}"
+        !delfile "${filelist}"
 
 	!endif
 
@@ -400,11 +420,10 @@ SectionGroupEnd
 
 Section "-License" SEC_License
     SectionIn 1 2 3
-    #open log file
-    !insertmacro UNINSTALL.LOG_OPEN_INSTALL
-
     SetOutPath $INSTDIR
     SetOverwrite on
+    #open uninstall log file
+    !insertmacro UNINSTALL.LOG_OPEN_INSTALL
 
     File  "${NSISRESOURCES}\ReleaseNotes.txt"
 
@@ -414,8 +433,8 @@ SectionEnd
 Function CreateShortcuts
     !insertmacro MUI_STARTMENU_WRITE_BEGIN Application
 
-		## warning: create shortcuts only AFTER installing files, OR renew SetOutPath
-		## otherwise all files will be installed to the default install directory
+	## warning: create shortcuts only AFTER installing files, OR renew SetOutPath
+	## otherwise all files will be installed to the default install directory
     !insertmacro CREATE_SMGROUP_SHORTCUT "OpenMS Documentation (html)" $INSTDIR\share\doc\html\index.html
     !insertmacro CREATE_SMGROUP_SHORTCUT "OpenMS Tutorial (pdf)" $INSTDIR\share\doc\OpenMS_tutorial.pdf
 
@@ -434,8 +453,25 @@ FunctionEnd
 
 
 Section "-Create_StartMenu" SEC_StartMenuCreate
-  GetFunctionAddress $0 CreateShortcuts
-  UAC::ExecCodeSegment $0
+    #GetFunctionAddress $0 CreateShortcuts
+    #UAC::ExecCodeSegment $0
+    !insertmacro MUI_STARTMENU_WRITE_BEGIN Application
+
+    ## warning: create shortcuts only AFTER installing files, OR renew SetOutPath
+    ## otherwise all files will be installed to the default install directory
+    !insertmacro CREATE_SMGROUP_SHORTCUT "OpenMS Documentation (html)" $INSTDIR\share\doc\html\index.html
+    !insertmacro CREATE_SMGROUP_SHORTCUT "OpenMS Tutorial (pdf)" $INSTDIR\share\doc\OpenMS_tutorial.pdf
+
+    !insertmacro CREATE_SMGROUP_SHORTCUT TOPPView $INSTDIR\bin\TOPPView.exe
+    !insertmacro CREATE_SMGROUP_SHORTCUT TOPPAS $INSTDIR\bin\TOPPAS.exe
+    !insertmacro CREATE_SMGROUP_SHORTCUT SwathWizard $INSTDIR\bin\SwathWizard.exe
+    !insertmacro CREATE_SMGROUP_SHORTCUT INIFileEditor $INSTDIR\bin\INIFileEditor.exe
+    !insertmacro CREATE_SMGROUP_SHORTCUT "OpenMS Homepage" http://www.OpenMS.de/
+    !insertmacro CREATE_SMGROUP_SHORTCUT "TOPP command line" "$INSTDIR\bin\command.bat"
+
+    SetOutPath $SMPROGRAMS\${APPNAME}
+    CreateShortcut "$SMPROGRAMS\${APPNAME}\$(^UninstallLink).lnk" $INSTDIR\uninstall.exe
+    !insertmacro MUI_STARTMENU_WRITE_END
 SectionEnd
 
 Section "-Create_command_bat" SEC_CmdBat
@@ -464,8 +500,14 @@ Section "-PathInst" SEC_PathRegister
     # no logging required, as we do not install files in this section
     ## HINT: do not forget to also add/modify the un.EnvVarUpdate in the uninstall section!
 
+    ${If} $MultiUser.InstallMode == "AllUsers"
+        StrCpy $EnvVarUpdateLoc "HKLM"
+    ${Else}
+        StrCpy $EnvVarUpdateLoc "HKCU"
+    ${EndIf}
+
     # OpenMS binary path
-    ${EnvVarUpdate} $0 "PATH" "A" "HKLM" "$INSTDIR\bin"
+    ${EnvVarUpdate} $0 "PATH" "A" "$EnvVarUpdateLoc" "$INSTDIR\bin"
     IfErrors 0 +2
       MessageBox MB_OK "Unable to add '$INSTDIR\bin' to PATH environment. Add manually if required. See 'details' for details."
 
@@ -477,7 +519,7 @@ Section "-PathInst" SEC_PathRegister
       StrCmp $1 ".." skip
       IfFileExists "$INSTDIR\share\OpenMS\THIRDPARTY\$1\*.*" IsDir skip
       IsDir:
-        ${EnvVarUpdate} $3 "PATH" "A" "HKLM" "$INSTDIR\share\OpenMS\THIRDPARTY\$1"
+        ${EnvVarUpdate} $3 "PATH" "A" "$EnvVarUpdateLoc" "$INSTDIR\share\OpenMS\THIRDPARTY\$1"
         IfErrors 0 +2
           MessageBox MB_OK "Unable to add '$1' to PATH environment. Add manually if required. See 'details' for details."
       skip:
@@ -486,10 +528,16 @@ Section "-PathInst" SEC_PathRegister
     done:
       FindClose $0
 
-    #create OPENMS_DATA_PATH environment variable (for shared xml files etc)
-    ; set variable
-    WriteRegExpandStr ${env_hklm} "OPENMS_DATA_PATH" "$INSTDIR\share\OpenMS"
-    ; make sure windows knows about the change
+    # Create OPENMS_DATA_PATH environment variable (for shared xml files etc)
+
+    # Set variable
+    ${If} $MultiUser.InstallMode == "AllUsers"
+        WriteRegExpandStr ${env_hklm} "OPENMS_DATA_PATH" "$INSTDIR\share\OpenMS"
+    ${Else}
+        WriteRegExpandStr ${env_hkcu} "OPENMS_DATA_PATH" "$INSTDIR\share\OpenMS"
+    ${EndIf}
+
+    # Make sure windows knows about the change
     SendMessage ${HWND_BROADCAST} ${WM_WININICHANGE} 0 "STR:Environment" /TIMEOUT=5000
 
 SectionEnd
@@ -507,42 +555,61 @@ SectionGroup "Register File Extensions" SEC_RegisterExt
 
 SectionGroupEnd
 
+# TODO make selectable or remove altogether by shipping the vcredist dlls instead of installer.
 Section "-hidden VSRuntime"
-    # this requires admin privileges!
     SetOutPath $TEMP
     SetOverwrite on
 
     File "${VS_REDISTRIBUTABLE_PATH}\${VS_REDISTRIBUTABLE_EXE}"
-    ClearErrors
-    ExecWait '$TEMP\${VS_REDISTRIBUTABLE_EXE} /install /passive /norestart' $0
-    StrCmp $0 0 vs_install_success
-    StrCmp $0 1638 vs_install_success
-    MessageBox MB_OK|MB_ICONEXCLAMATION "The installation of the Visual Studio redistributable package '${VS_REDISTRIBUTABLE_EXE}' failed! OpenMS will not work unless this package is installed! The package is located at '$TEMP\${VS_REDISTRIBUTABLE_EXE}'. Try to execute it as administrator - there will likely be an error which you can blame Microsoft for. If you cannot fix it contact the OpenMS developers!"
-
-    ## reasons why the install might fail:
+    # this requires admin privileges!
+    ${If} $IsAdmin == 1
+        ClearErrors
+        ExecWait '$TEMP\${VS_REDISTRIBUTABLE_EXE} /install /passive /norestart' $0
+        StrCmp $0 0 vs_install_success
+        StrCmp $0 1638 vs_install_success
+        MessageBox MB_OK|MB_ICONEXCLAMATION "The installation of the Visual Studio redistributable package '${VS_REDISTRIBUTABLE_EXE}' failed! OpenMS will not work unless this package is installed! The package is located at '$TEMP\${VS_REDISTRIBUTABLE_EXE}'. Try to execute it as administrator - there will likely be an error which you can blame Microsoft for. If you cannot fix it contact the OpenMS developers!"
+    ${Else}
+        MessageBox MB_OK|MB_ICONEXCLAMATION "Single user install was selected. '${VS_REDISTRIBUTABLE_EXE}' was not installed since it requires admin rights! OpenMS will probably not work unless this package is installed! The package is located at '$TEMP\${VS_REDISTRIBUTABLE_EXE}'. Try to execute it as administrator - there will likely be an error which you can blame Microsoft for. If you cannot fix it contact the OpenMS developers!"
+    ${EndIf}
 
 	vs_install_success:
 
 SectionEnd
 
+## This is done by NsisMultiUser plugin now
 Section -post SEC0008
-    WriteRegStr HKLM "${REGKEY}" Path $INSTDIR
-    WriteRegStr HKLM "${REGKEY}" "UninstallString" "$INSTDIR\uninstall.exe"
-    SetOutPath $INSTDIR
-    WriteUninstaller $INSTDIR\uninstall.exe
-    WriteRegStr HKLM "SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\$(^Name)" DisplayName "$(^Name)"
-    WriteRegStr HKLM "SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\$(^Name)" DisplayVersion "${VERSION}"
-    WriteRegStr HKLM "SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\$(^Name)" Publisher "OpenMS Developer Team"
-    WriteRegStr HKLM "SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\$(^Name)" URLInfoAbout "${URL}"
-    WriteRegStr HKLM "SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\$(^Name)" DisplayIcon $INSTDIR\uninstall.exe
-    WriteRegStr HKLM "SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\$(^Name)" UninstallString $INSTDIR\uninstall.exe
-    WriteRegDWORD HKLM "SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\$(^Name)" NoModify 1
-    WriteRegDWORD HKLM "SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\$(^Name)" NoRepair 1
+     SetOutPath $INSTDIR
+     # Write uninstaller and registry uninstall info as the last step:
+     # - Cons: user does not have the option to run the uninstaller if sth. goes wrong
+     # - Pros: we can use the uninstall logger plugin that avoids boilerplate code
+
+     # defined by NsisMultiUser plugin. default uninstall.exe.
+     WriteUninstaller "${UNINSTALL_FILENAME}"
+     # add registry keys
+     !insertmacro MULTIUSER_RegistryAddInstallInfo
+
+#    WriteRegStr SHCTX "${REGKEY}" Path $INSTDIR
+#    WriteRegStr SHCTX "${REGKEY}" "UninstallString" "$INSTDIR\uninstall.exe"
+#    SetOutPath $INSTDIR
+#    WriteUninstaller $INSTDIR\uninstall.exe
+#    WriteRegStr SHCTX "SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\$(^Name)" DisplayName "$(^Name)"
+#    WriteRegStr SHCTX "SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\$(^Name)" DisplayVersion "${VERSION}"
+#    WriteRegStr SHCTX "SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\$(^Name)" Publisher "OpenMS Developer Team"
+#    WriteRegStr SHCTX "SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\$(^Name)" URLInfoAbout "${URL}"
+#    WriteRegStr SHCTX "SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\$(^Name)" DisplayIcon $INSTDIR\uninstall.exe
+#    WriteRegStr SHCTX "SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\$(^Name)" UninstallString $INSTDIR\uninstall.exe
+#    WriteRegDWORD SHCTX "SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\$(^Name)" NoModify 1
+#    WriteRegDWORD SHCTX "SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\$(^Name)" NoRepair 1
+SectionEnd
+
+# hidden section, write install size as the final step
+Section "-Write Install Size"
+	!insertmacro MULTIUSER_RegistryAddInstallSizeInfo
 SectionEnd
 
 Function parseParameters
 
-  ClearErrors
+    ClearErrors
 
     ; /nothirdparty
     ${GetOptions} $cmdLineParams '/nothirdparty' $R0
@@ -551,120 +618,119 @@ Function parseParameters
       goto parsedParams
 
     ; /nopwiz
-  nopwiz:
-    ${GetOptions} $cmdLineParams '/nopwiz' $R0
-    IfErrors nodotnet 0
-      !insertmacro ClearSectionFlag ${SEC_pwiz} ${SF_SELECTED}
-      goto parsedParams
+    nopwiz:
+        ${GetOptions} $cmdLineParams '/nopwiz' $R0
+        IfErrors nodotnet 0
+          !insertmacro ClearSectionFlag ${SEC_pwiz} ${SF_SELECTED}
+          goto parsedParams
 
     ; /nodotnet
-  nodotnet:
-    ${GetOptions} $cmdLineParams '/nodotnet' $R0
-    IfErrors parsedParams 0
-      !insertmacro ClearSectionFlag ${SEC_dotnet} ${SF_SELECTED}
+    nodotnet:
+        ${GetOptions} $cmdLineParams '/nodotnet' $R0
+        IfErrors parsedParams 0
+          !insertmacro ClearSectionFlag ${SEC_dotnet} ${SF_SELECTED}
 
-  parsedParams:
+    parsedParams:
+
 FunctionEnd
 
 # Installer functions
-; Attempt to give the UAC plug-in a user process and an admin process.
 Function .onInit
 
-  ## UAC init:
-  ## copied from http://nsis.sourceforge.net/UAC_plug-in
+    ## now our own code:
+    !insertmacro MULTIUSER_INIT
+    !insertmacro UNINSTALL.LOG_PREPARE_INSTALL
 
-  UAC_Elevate:
-      UAC::RunElevated
-      StrCmp 1223 $0 UAC_ElevationAborted ; UAC dialog aborted by user?
-      StrCmp 0 $0 0 UAC_Err ; Error?
-      StrCmp 1 $1 0 UAC_Success ;Are we the real deal or just the wrapper?
-      Quit
+    # Command line options for silent install (with "/S")
 
-  UAC_Err:
-      MessageBox mb_iconstop "Unable to elevate, error $0"
+    # Get parameters
+    Var /GLOBAL cmdLineParams
+    Push $R0
+    ${GetParameters} $cmdLineParams
+
+    # /? param (help)
+    ClearErrors
+    ${GetOptions} $cmdLineParams '/?' $R0
+    ${ifnot} ${errors}
+        MessageBox MB_ICONINFORMATION "Usage:$\r$\n\
+            $\r$\n\
+            /allusers$\t- (un)install for all users, case-insensitive$\r$\n\
+            /currentuser$\t- (un)install for current user only, case-insensitive$\r$\n\
+            /uninstall$\t- (installer only) run uninstaller, requires /allusers or /currentuser, case-insensitive$\r$\n\
+            /nothirdparty$\t- does not install thirdparty tools, case-sensitive$\r$\n\
+            /nopwiz$\t- does not install proteowizard, case-sensitive$\r$\n\
+            /nodotnet$\t- does not try to install dotnet framework, case-sensitive$\r$\n\
+            /S$\t- silent mode, requires /allusers or /currentuser, case-sensitive$\r$\n\
+            /D$\t- (installer only) set install directory, must be last parameter, without quotes, case-sensitive$\r$\n\
+            /?$\t- display this message$\r$\n\
+            $\r$\n\
+            $\r$\n\
+            Return codes (decimal):$\r$\n\
+            $\r$\n\
+            0$\t- normal execution (no error)$\r$\n\
+            1$\t- (un)installation aborted by user (Cancel button)$\r$\n\
+            2$\t- (un)installation aborted by script$\r$\n\
+            666660$\t- invalid command-line parameters$\r$\n\
+            666661$\t- elevation is not allowed by defines$\r$\n\
+            666662$\t- uninstaller detected there's no installed version$\r$\n\
+            666663$\t- executing uninstaller from the installer failed$\r$\n\
+            666666$\t- cannot start elevated instance$\r$\n\
+            other$\t- Windows error code when trying to start elevated instance"
+        SetErrorLevel 0
+        Quit
+    ${endif}
+
+    Pop $R0
+
+    # Initialise options
+
+    # Parse Parameters
+    Push $R0
+    Call parseParameters
+    Pop $R0
+
+    # show splash screen
+    InitPluginsDir
+    Push $R1
+    File /oname=$PLUGINSDIR\spltmp.bmp "${NSISRESOURCES}\images\OpenMS_splash.bmp"
+    advsplash::show 1000 600 400 -1 $PLUGINSDIR\spltmp
+    Pop $R1
+    Pop $R1
+
+    ## deny starting of x64 installer on an x86 system (will not run)
+    !if ${PLATFORM} == 64
+    ${If} ${RunningX64}
+    ${else}
+      MessageBox mb_iconstop "You are running a 32bit operating system. The executables of this setup are 64bit, and thus cannot be run after installation. Use a 64bit OS, or use the 32bit setup of OpenMS."
       Abort
+    ${EndIf}
+    !endif
 
-  UAC_ElevationAborted:
-      # elevation was aborted, run as normal?
-      MessageBox mb_iconstop "This installer requires administrative rights, aborting!"
-      Abort
+    # check for previous versions
+    # on install we did:     WriteRegStr SHCTX "${REGKEY}" "Path" "$INSTDIR"
+    ReadRegStr $R0 SHCTX "${REGKEY}" "Path"
+    StrCmp $R0 "" virgin_install
 
-  UAC_Success:
-      StrCmp 1 $3 +4 ;Admin?
-      StrCmp 3 $1 0 UAC_ElevationAborted ;Try again?
-      MessageBox mb_iconstop "This installer requires administrative rights, try again"
-      goto UAC_Elevate
+    ## store, if the old-installer is present ($R8 should be empty then)
+    ReadRegStr $R8 SHCTX "${REGKEY}" "UninstallString"
 
-  ## now our own code:
-
-  !insertmacro UNINSTALL.LOG_PREPARE_INSTALL
-
-  # Command line options for silent install (with "/S")
-
-  # Get parameters
-  Var /GLOBAL cmdLineParams
-  Push $R0
-  ${GetParameters} $cmdLineParams
-
-  ; /? param (help)
-  ClearErrors
-  ${GetOptions} $cmdLineParams '/?' $R0
-  IfErrors +3 0
-  MessageBox MB_OK "You can use the following command line parameters to disable the corresponding sections: /nothirdparty, /nopwiz, /nodotnet"
-  Abort
-
-  Pop $R0
-
-  #Initialise options
-
-  # Parse Parameters
-  Push $R0
-  Call parseParameters
-  Pop $R0
-
-  # show splash screen
-  InitPluginsDir
-  Push $R1
-  File /oname=$PLUGINSDIR\spltmp.bmp "${NSISRESOURCES}\images\OpenMS_splash.bmp"
-  advsplash::show 1000 600 400 -1 $PLUGINSDIR\spltmp
-  Pop $R1
-  Pop $R1
-
-	## deny starting of x64 installer on an x86 system (will not run)
-	!if ${PLATFORM} == 64
-		${If} ${RunningX64}
-		${else}
-		  MessageBox mb_iconstop "You are running a 32bit operating system. The executables of this setup are 64bit, and thus cannot be run after installation. Use a 64bit OS, or use the 32bit setup of OpenMS."
-		  Abort
-		${EndIf}
-	!endif
-
-
-  # check for previous versions
-  #on install we did:     WriteRegStr HKLM "${REGKEY}" "Path" "$INSTDIR"
-  ReadRegStr $R0  HKLM "${REGKEY}" "Path"
-  StrCmp $R0 "" virgin_install
-
-  ## store, if the old-installer is present ($R8 should be empty then)
-  ReadRegStr $R8  HKLM "${REGKEY}" "UninstallString"
-
-  MessageBox MB_OKCANCEL|MB_ICONEXCLAMATION \
+    MessageBox MB_OKCANCEL|MB_ICONEXCLAMATION \
     "OpenMS has already been installed. $\nThe old version will be removed automatically. \
      Please close all OpenMS applications before continuing!" \
     IDCANCEL  quit_installer
 
-  ;Run the uninstaller
-  ClearErrors
-  ExecWait '$R0\uninstall.exe _?=$R0';; Do not execute the copy of uninstaller (ExecWait won´t work)
-  Delete "$R0\uninstall.exe"          # delete installer manually
+    ;Run the uninstaller
+    ClearErrors
+    ExecWait '$R0\uninstall.exe _?=$R0' ;; Do not execute the copy of uninstaller (ExecWait won´t work)
+    Delete "$R0\uninstall.exe"          # delete installer manually
 
-  push $R9
-  ${DirState} "$R0" $R9
-  StrCmp $R9 1 0 virgin_install
-  pop $R9
+    push $R9
+    ${DirState} "$R0" $R9
+    StrCmp $R9 1 0 virgin_install
+    pop $R9
 
-  # look for the very first (and buggy) version of the installer
-  StrCmp $R8 "" 0 new_installer
+    # look for the very first (and buggy) version of the installer
+    StrCmp $R8 "" 0 new_installer
       # we found the old installer:
       ## delete the licenses, share other stuff
       RmDir /REBOOTOK "$R0\GUI"
@@ -677,31 +743,27 @@ Function .onInit
       DeleteRegValue ${env_hklm} "OPENMS_DATA_PATH"
       ; make sure windows knows about the change
       SendMessage ${HWND_BROADCAST} ${WM_WININICHANGE} 0 "STR:Environment" /TIMEOUT=5000
-      #${EnvVarUpdate} $0 "OPENMS_DATA_PATH" "R" "HKLM" "$R0\lib"
 
-  new_installer:
+    new_installer:
+    ## check that all *.dll´s and *.exe files are gone (userfiles are ok)! otherwise force reboot
+    !insertmacro REBOOT_ON_INCOMPLETE_DELETION $R0
 
-  ## check that all *.dll´s and *.exe files are gone (userfiles are ok)! otherwise force reboot
-  !insertmacro REBOOT_ON_INCOMPLETE_DELETION $R0
+    virgin_install:
+    !insertmacro MUI_LANGDLL_DISPLAY
+    return
 
-virgin_install:
-
-  !insertmacro MUI_LANGDLL_DISPLAY
-
-  return
-
-quit_installer:
-  quit
+    quit_installer:
+    quit
 
 FunctionEnd
 
 Function .OnInstFailed
-   UAC::Unload ;Must call unload!
+   #UAC::Unload ;Must call unload!
 FunctionEnd
 
 Function .OnInstSuccess
    !insertmacro UNINSTALL.LOG_UPDATE_INSTALL
-   UAC::Unload ;Must call unload!
+   #UAC::Unload ;Must call unload!
 FunctionEnd
 
 # set the component descriptions after the Sections have been defined!
@@ -716,18 +778,26 @@ FunctionEnd
 ################
 ## UNINSTALL ###
 ################
+!insertmacro MULTIUSER_UNPAGE_INSTALLMODE
 
 # Uninstaller sections
 
 Section "Uninstall"
-    ReadRegStr $INSTDIR HKLM "${REGKEY}" Path
+    ReadRegStr $INSTDIR SHCTX "${REGKEY}" Path
     !insertmacro MUI_STARTMENU_GETFOLDER Application $StartMenuGroup
     !insertmacro MUI_UNGETLANGUAGE
 
     ## undo changes to PATH
+    UserInfo::GetAccountType
+    Pop $0
+    ${If} $0 == "Admin"
+        StrCpy $EnvVarUpdateLoc "HKLM"
+    ${Else}
+        StrCpy $EnvVarUpdateLoc "HKCU"
+    ${EndIf}
 
     # OpenMS binary path
-    ${un.EnvVarUpdate} $0 "PATH" "R" "HKLM" "$INSTDIR\bin"
+    ${un.EnvVarUpdate} $0 "PATH" "R" "$EnvVarUpdateLoc" "$INSTDIR\bin"
 
     # Third Party library paths
     FindFirst $0 $1 $INSTDIR\share\OpenMS\THIRDPARTY\*.*
@@ -737,7 +807,7 @@ Section "Uninstall"
       StrCmp $1 ".." skipun
       IfFileExists "$INSTDIR\share\OpenMS\THIRDPARTY\$1\*.*" IsDirun skipun
       IsDirun:
-        ${un.EnvVarUpdate} $3 "PATH" "R" "HKLM" "$INSTDIR\share\OpenMS\THIRDPARTY\$1"
+        ${un.EnvVarUpdate} $3 "PATH" "R" "$EnvVarUpdateLoc" "$INSTDIR\share\OpenMS\THIRDPARTY\$1"
         IfErrors 0 +2
           MessageBox MB_OK "Unable to remove '$1' from PATH environment. Remove manually if required. See 'details' for details."
       skipun:
@@ -747,7 +817,11 @@ Section "Uninstall"
       FindClose $0
 
     ## remove OPENMS_DATA_PATH
-    ${un.EnvVarUpdate} $0 "OPENMS_DATA_PATH" "R" "HKLM" "$INSTDIR\share\OpenMS"
+    ${If} $MultiUser.InstallMode == "AllUsers"
+        DeleteRegValue ${env_hklm} "OPENMS_DATA_PATH"
+    ${Else}
+        DeleteRegValue ${env_hkcu} "OPENMS_DATA_PATH"
+    ${EndIf}
 
     # remove extension-links to TOPPView
     !insertmacro OpenMSGUIExtensions UnRegisterExtensionSection
@@ -760,16 +834,18 @@ Section "Uninstall"
     Push "\"
     Call un.RemoveEmptyDirs
 
-    ## clean up the registry
-    DeleteRegKey HKLM "SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\$(^Name)"
+    ## clean up the registry (should be done by the NsisMultiUser plugin)
+    #DeleteRegKey SHCTX "SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\$(^Name)"
     # delete /Software/OpenMS (with all its content)
-    DeleteRegKey HKLM "${REGKEY}"
+    DeleteRegKey SHCTX "${REGKEY}"
+
+    # Remove the uninstaller from registry as the very last step - if sth. goes wrong, let the user run it again
+    !insertmacro MULTIUSER_RegistryRemoveInstallInfo
 
     RmDir /REBOOTOK $INSTDIR
 
-    ## delete start menu entries (via user process to find the correct $SMPROGRAMS directory)
-    GetFunctionAddress $0 un.clearStartMenu
-    UAC::ExecCodeSegment $0
+    ## delete start menu entries ($SMPROGRAMS depends on the ShellContext)
+    RmDir /r /REBOOTOK $SMPROGRAMS\${APPNAME}
 
 SectionEnd
 
@@ -781,31 +857,31 @@ FunctionEnd
 # UnInstaller functions
 ; Attempt to give the UAC plug-in a user process and an admin process.
 Function un.onInit
+    !insertmacro MULTIUSER_UNINIT
+    ## UAC init:
+    ## copied from http://nsis.sourceforge.net/UAC_plug-in
 
-## UAC init:
-## copied from http://nsis.sourceforge.net/UAC_plug-in
-
-UAC_Elevate:
-    UAC::RunElevated
-    StrCmp 1223 $0 UAC_ElevationAborted ; UAC dialog aborted by user?
-    StrCmp 0 $0 0 UAC_Err ; Error?
-    StrCmp 1 $1 0 UAC_Success ;Are we the real deal or just the wrapper?
-    Quit
-
-UAC_Err:
-    MessageBox mb_iconstop "Unable to elevate, error $0"
-    Abort
-
-UAC_ElevationAborted:
-    # elevation was aborted, run as normal?
-    MessageBox mb_iconstop "This installer requires administrative rights, aborting!"
-    Abort
-
-UAC_Success:
-    StrCmp 1 $3 +4 ;Admin?
-    StrCmp 3 $1 0 UAC_ElevationAborted ;Try again?
-    MessageBox mb_iconstop "This installer requires administrative rights, try again"
-    goto UAC_Elevate
+    #UAC_Elevate:
+    #    UAC::RunElevated
+    #    StrCmp 1223 $0 UAC_ElevationAborted ; UAC dialog aborted by user?
+    #    StrCmp 0 $0 0 UAC_Err ; Error?
+    #    StrCmp 1 $1 0 UAC_Success ;Are we the real deal or just the wrapper?
+    #    Quit
+    #
+    #UAC_Err:
+    #    MessageBox mb_iconstop "Unable to elevate, error $0"
+    #    Abort
+    #
+    #UAC_ElevationAborted:
+    #    # elevation was aborted, run as normal?
+    #    MessageBox mb_iconstop "This installer requires administrative rights, aborting!"
+    #    Abort
+    #
+    #UAC_Success:
+    #    StrCmp 1 $3 +4 ;Admin?
+    #    StrCmp 3 $1 0 UAC_ElevationAborted ;Try again?
+    #    MessageBox mb_iconstop "This installer requires administrative rights, try again"
+    #    goto UAC_Elevate
 
 FunctionEnd
 
