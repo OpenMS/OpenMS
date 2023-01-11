@@ -3,8 +3,8 @@
 
 Glossary:
 OpenMS - Name of the project and our C++ library
-TOPP - "The OpenMS Proteomics Pipeline", collection of chainable tools for flexible HPLC/MS workflows
-TOPPAS - "The OpenMS Proteomics Pipeline Assistant", graphical tool to interactively build and run HPLC/MS workflows
+TOPP - "The OpenMS PiPeline", collection of chainable tools for flexible HPLC/MS workflows. Formerly known as "The OpenMS Proteomics Pipeline"
+TOPPAS - "The OpenMS PiPeline Assistant", graphical tool to interactively build and run HPLC/MS workflows
 TOPPView - Versatile viewer for HPLC/MS data
 INI file - parameter configuration file, holding custom parameter settings for TOPP tools
 INIFileEditor - graphical parameter editor for INI files

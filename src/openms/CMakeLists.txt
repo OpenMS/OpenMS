@@ -133,10 +133,9 @@ openms_add_library(TARGET_NAME  OpenMS
                    DLL_EXPORT_PATH "OpenMS/")
 
 if (MSVC)
-  ## treat warning of unused function parameter as error
+  ## treat warning of unused function parameter as error, similar to -Werror=unused-variable on GCC
   target_compile_options(OpenMS PRIVATE "/we4100")
-
-  ## treat warning of unused local variable as error
+  ## treat warning of unused local variable as error, similar to -Werror=unused-variable on GCC
   target_compile_options(OpenMS PRIVATE "/we4189")
 endif()
 

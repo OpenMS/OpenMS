@@ -145,10 +145,10 @@ START_SECTION((bool isPositive() const))
 END_SECTION
 
 START_SECTION((int getScanNumber() const))
-    {
-      int test_scan_num = sample_pg.getScanNumber();
-      TEST_EQUAL(test_scan_num, 3);
-    }
+{
+  int test_scan_num = sample_pg.getScanNumber();
+  TEST_EQUAL(test_scan_num, 3);
+}
 END_SECTION
 
 START_SECTION((void setScanNumber(const int scan_number)))

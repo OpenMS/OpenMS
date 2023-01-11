@@ -362,7 +362,7 @@ public:
     /// add a chromatogram layer
     /// @param chrom_exp_sptr An MSExperiment with chromatograms
     /// @param ondisc_sptr OnDisk experiment, as fallback to read the chromatogram from, should @p chrom_exp_sptr.getChromatograms(index) be empty
-    /// @param OSWDataSharedPtrType If OSWData was loaded, pass the shared_pointer from the LayerData. Otherwise leave empty.
+    /// @param chrom_annotation If OSWData was loaded, pass the shared_pointer from the LayerData. Otherwise leave empty.
     /// @param index Index of the chromatogram to show
     /// @param filename For file change watcher (can be empty, if need be)
     /// @param caption Name of layer
@@ -682,7 +682,7 @@ protected:
     
     
     /// Adjust the gravity axis (usually y-axis with intensity) according to the given range on the x-axis 
-    /// (since the user cannot freely choose the limitis of this axis in 1D View)
+    /// (since the user cannot freely choose the limits of this axis in 1D View)
     RangeAllType correctGravityAxisOfVisibleArea_(UnitRange area);
     
     /** @name Reimplemented QT events */

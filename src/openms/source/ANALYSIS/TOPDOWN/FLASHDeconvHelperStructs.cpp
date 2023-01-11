@@ -41,7 +41,7 @@ namespace OpenMS
   FLASHDeconvHelperStructs::PrecalculatedAveragine::PrecalculatedAveragine(const double min_mass,
                                                                            const double max_mass,
                                                                            const double delta,
-                                                                           CoarseIsotopePatternGenerator *generator,
+                                                                           CoarseIsotopePatternGenerator& generator,
                                                                            const bool use_RNA_averagine)
       :
       mass_interval_(delta), min_mass_(min_mass)
@@ -61,8 +61,8 @@ namespace OpenMS
       }
 
       auto iso = use_RNA_averagine ?
-                 generator->estimateFromRNAMonoWeight(mass) :
-                 generator->estimateFromPeptideMonoWeight(mass);
+                 generator.estimateFromRNAMonoWeight(mass) :
+                 generator.estimateFromPeptideMonoWeight(mass);
 
       const double min_pwr = .9999;
       const Size min_iso_length = 2;
@@ -148,7 +148,6 @@ namespace OpenMS
     return i;
   }
 
-
   IsotopeDistribution FLASHDeconvHelperStructs::PrecalculatedAveragine::get(const double mass) const
   {
     return isotopes_[massToIndex_(mass)];
@@ -196,16 +195,16 @@ namespace OpenMS
   }
 
   FLASHDeconvHelperStructs::LogMzPeak::LogMzPeak(const Peak1D& peak, const bool positive) :
-      mz((float)peak.getMZ()),
+      mz(peak.getMZ()),
       intensity(peak.getIntensity()),
-      logMz(getLogMz((float)peak.getMZ(), positive)),
+      logMz(getLogMz(peak.getMZ(), positive)),
       abs_charge(0),
       is_positive(positive),
       isotopeIndex(0)
   {
   }
 
-  float FLASHDeconvHelperStructs::LogMzPeak::getUnchargedMass()
+  double FLASHDeconvHelperStructs::LogMzPeak::getUnchargedMass()
   {
     if (abs_charge == 0)
     {
@@ -246,8 +245,7 @@ namespace OpenMS
     return (float)(positive_ioniziation_mode ? Constants::PROTON_MASS_U : -Constants::PROTON_MASS_U);
   }
 
-
-  float FLASHDeconvHelperStructs::getLogMz(const float mz, const bool positive)
+  double FLASHDeconvHelperStructs::getLogMz(const double mz, const bool positive)
   {
     return std::log(mz - getChargeMass(positive));
   }
