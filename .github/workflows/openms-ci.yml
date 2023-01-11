@@ -75,7 +75,6 @@ jobs:
         key: ${{ runner.os }}-ccache-${{ env.RUN_NAME }}-${{ github.run_number }}
         # Restoring: From current branch, otherwise from base branch, otherwise from any branch.
         restore-keys: |
-          ${{ runner.os }}-ccache-${{ github.ref }}
           ${{ runner.os }}-ccache-${{ env.RUN_NAME }}
           ${{ runner.os }}-ccache-${{ env.BASE_REF }}
           ${{ runner.os }}-ccache-
@@ -170,7 +169,6 @@ jobs:
         # TODO: Check if this is even necessary. This should be the default lookup order by GH.
         #  So maybe ${{ runner.os }}-ccache- is enough.
         restore-keys: |
-          ${{ runner.os }}-ccache-${{ github.ref }}
           ${{ runner.os }}-ccache-${{ env.RUN_NAME }}
           ${{ runner.os }}-ccache-${{ env.BASE_REF }}
           ${{ runner.os }}-ccache-
@@ -324,7 +322,6 @@ jobs:
         key: ${{ runner.os }}-ccache-${{ env.RUN_NAME }}-${{ github.run_number }}
         # Restoring: From current branch, otherwise from base branch, otherwise from any branch.
         restore-keys: |
-          ${{ runner.os }}-ccache-${{ github.ref }}
           ${{ runner.os }}-ccache-${{ env.RUN_NAME }}
           ${{ runner.os }}-ccache-${{ env.BASE_REF }}
           ${{ runner.os }}-ccache-
@@ -427,7 +424,6 @@ jobs:
         key: ${{ runner.os }}-clng-ccache-${{ env.RUN_NAME }}-${{ github.run_number }}
         # Restoring: From current branch, otherwise from base branch, otherwise from any branch.
         restore-keys: |
-          ${{ runner.os }}-clng-ccache-${{ github.ref }}
           ${{ runner.os }}-clng-ccache-${{ env.RUN_NAME }}
           ${{ runner.os }}-clng-ccache-${{ env.BASE_REF }}
           ${{ runner.os }}-clng-ccache-
