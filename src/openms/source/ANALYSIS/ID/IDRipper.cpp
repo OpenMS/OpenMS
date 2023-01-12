@@ -34,20 +34,17 @@
 
 #include <OpenMS/ANALYSIS/ID/IDRipper.h>
 #include <OpenMS/CONCEPT/LogStream.h>
+#include <OpenMS/CONCEPT/Constants.h>
 
 #include <QDir>
 #include <array>
 
-using std::vector;
-using std::string;
-using std::map;
-using std::pair;
-using std::make_pair;
+using namespace std;
 
 namespace OpenMS
 {
 
-  const std::array<std::string, IDRipper::SIZE_OF_ORIGIN_ANNOTATION_FORMAT> IDRipper::names_of_OriginAnnotationFormat = {"file_origin", "map_index", "id_merge_index", "unknown"};
+  const std::array<std::string, IDRipper::SIZE_OF_ORIGIN_ANNOTATION_FORMAT> IDRipper::names_of_OriginAnnotationFormat = {"file_origin", "map_index", Constants::UserParam::ID_MERGE_INDEX, "unknown"};
 
   IDRipper::IDRipper() :
     DefaultParamHandler("IDRipper")
@@ -71,6 +68,7 @@ namespace OpenMS
 
   IDRipper::IdentificationRuns::IdentificationRuns(const vector<ProteinIdentification>& prot_ids)
   {
+    // build index_ map that maps the identifiers in prot_ids to indices 0,1,...
     for (const auto& prot_id : prot_ids)
     {
       String id_run_id = prot_id.getIdentifier();
@@ -82,7 +80,7 @@ namespace OpenMS
       this->index_map[id_run_id] = idx;
       const DataValue& mv_spectra_data = prot_id.getMetaValue("spectra_data");
       spectra_data.push_back(mv_spectra_data.isEmpty() ? StringList() : mv_spectra_data.toStringList());
-      }
+    }
   }
 
   bool IDRipper::RipFileIdentifierIdxComparator::operator()(const RipFileIdentifier& left, const RipFileIdentifier& right) const
@@ -191,13 +189,16 @@ namespace OpenMS
     const IdentificationRuns id_runs = IdentificationRuns(proteins);
 
     // Collect all protein hits
-    vector<ProteinHit> all_protein_hits;
+    unordered_map<String, const ProteinHit*> acc2protein_hits;
     for (ProteinIdentification& prot : proteins)
     {
       // remove protein identification file origin
       prot.removeMetaValue(names_of_OriginAnnotationFormat[origin_annotation_fmt]);
       vector<ProteinHit>& protein_hits  = prot.getHits();
-      all_protein_hits.insert(all_protein_hits.end(), protein_hits.begin(), protein_hits.end());
+      for (const auto& ph : protein_hits)
+      {
+        acc2protein_hits[ph.getAccession()] = &ph;
+      }
     }
 
     map<String, pair<UInt, UInt> > basename_to_numeric;
@@ -230,11 +231,11 @@ namespace OpenMS
 
       // returns all protein hits that are associated with the given peptide hits
       vector<ProteinHit> protein2accessions;
-      getProteinHits_(protein2accessions, all_protein_hits, protein_accessions);
+      getProteinHits_(protein2accessions, acc2protein_hits, protein_accessions);
 
       // search for the protein identification of the peptide identification
       ProteinIdentification prot_ident;
-      getProteinIdentification_(prot_ident, pep, proteins);
+      getProteinIdentification_(prot_ident, pep, proteins, id_runs);
       // TODO catch case that ProteinIdentification prot_ident is not found in the for-loop
 
       RipFileMap::iterator it = ripped.find(rfi);
@@ -385,16 +386,14 @@ IDRipper::OriginAnnotationFormat IDRipper::detectOriginAnnotationFormat_(map<Str
     }
   }
 
-  void IDRipper::getProteinHits_(vector<ProteinHit>& result, const vector<ProteinHit>& protein_hits, const vector<String>& protein_accessions)
+  void IDRipper::getProteinHits_(vector<ProteinHit>& result, const unordered_map<String, const ProteinHit*>& acc2protein_hits, const vector<String>& protein_accessions)
   {
-    for (const String& it : protein_accessions)
+    for (const String& s : protein_accessions)
     {
-      for (const ProteinHit& prot : protein_hits)
+      if (auto it = acc2protein_hits.find(s); it != acc2protein_hits.end())
       {
-        if (prot.getAccession().compare(it) == 0)
-        {
-          result.push_back(prot);
-        }
+        const ProteinHit* prot_ptr = it->second;
+        result.push_back(*prot_ptr);
       }
     }
   }
@@ -404,21 +403,17 @@ IDRipper::OriginAnnotationFormat IDRipper::detectOriginAnnotationFormat_(map<Str
     for (const PeptideHit& it : peptide_hits)
     {
       std::set<String> protein_accessions = it.extractProteinAccessionsSet();
-      result.insert(result.end(), protein_accessions.begin(), protein_accessions.end());
+      result.insert(result.end(), make_move_iterator(protein_accessions.begin()), make_move_iterator(protein_accessions.end()));
     }
   }
 
-  void IDRipper::getProteinIdentification_(ProteinIdentification& result, const PeptideIdentification& pep_ident, std::vector<ProteinIdentification>& prot_idents)
+  void IDRipper::getProteinIdentification_(ProteinIdentification& result, const PeptideIdentification& pep_ident, std::vector<ProteinIdentification>& prot_idents, const IdentificationRuns& id_runs)
   {
     const String& identifier = pep_ident.getIdentifier();
-
-    for (ProteinIdentification& prot: prot_idents)
+    if (auto it = id_runs.index_map.find(identifier); it != id_runs.index_map.end())
     {
-      if (identifier.compare(prot.getIdentifier()) == 0)
-      {
-        result = prot;
-        break;
-      }
+      result = prot_idents[it->second];
+      return;
     }
   }
 

@@ -73,7 +73,7 @@ if(WIN32)
 elseif(APPLE)
   set(EXCLUDE "/usr/lib" "/System/")
 else()
-  set(EXCLUDE)
+  set(EXCLUDE ".*/ld-linux-.*" ".*/linux-vdso.*" ".*/libm\\..*" ".*/libc\\..*" ".*/libpthread\\..*" ".*/libdl\\..*")
 endif()
 
 # TODO check if we can reduce the permissions

@@ -2,9 +2,9 @@ from Types cimport *
 from Matrix cimport *
 from DoubleList cimport *
 from String cimport *
+from libcpp.string cimport string as libcpp_utf8_string
 from Feature cimport *
 from FeatureMap cimport *
-from String cimport *
 from DefaultParamHandler cimport *
 
 cdef extern from "<OpenMS/ANALYSIS/QUANTITATION/IsotopeLabelingMDVs.h>" namespace "OpenMS":
@@ -72,7 +72,7 @@ cdef extern from "<OpenMS/ANALYSIS/QUANTITATION/IsotopeLabelingMDVs.h>" namespac
 
         void calculateMDVAccuracies(
           const FeatureMap & normalized_featureMap,
-          const String & feature_name, const libcpp_map[ libcpp_string, libcpp_string ] & fragment_isotopomer_theoretical_formulas) nogil except +
+          const String & feature_name, const libcpp_map[ libcpp_utf8_string, libcpp_utf8_string ] & fragment_isotopomer_theoretical_formulas) nogil except +
             # wrap-doc:
               #  This function calculates the accuracy of the MDV as compared to the theoretical MDV (only for 12C quality control experiments)
               #  using average deviation to the mean
