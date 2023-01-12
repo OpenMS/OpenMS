@@ -76,9 +76,9 @@ public:
     struct OPENMS_DLLAPI RipFileIdentifier
     {
         /// The numerical index of the source IdentificationRun
-        UInt ident_run_idx;
+        UInt ident_run_idx{};
         /// The numerical index of the source file_origin / spectra_data element
-        UInt file_origin_idx;
+        UInt file_origin_idx{};
         /// The output basename derived from the file_origin / spectra_data element
         String out_basename;
         /// The full length origin read from the file_origin / spectra_data element
@@ -92,16 +92,16 @@ public:
           bool split_ident_runs);
 
         /// Get identification run index
-        UInt getIdentRunIdx();
+        UInt getIdentRunIdx() const;
 
         /// Get file origin index
-        UInt getFileOriginIdx();
+        UInt getFileOriginIdx() const;
 
         /// Get origin full name
-        const String & getOriginFullname();
+        const String & getOriginFullname() const;
 
         /// Get output base name
-        const String & getOutputBasename();
+        const String & getOutputBasename() const;
     };
 
     /// Provides a 'less' operation for RipFileIdentifiers that ignores the out_basename and origin_fullname members
@@ -187,9 +187,9 @@ private:
     /// helper function, detects file origin annotation standard from collections of protein and peptide hits
     OriginAnnotationFormat detectOriginAnnotationFormat_(std::map<String, UInt> & file_origin_map, const std::vector<PeptideIdentification> & peptide_idents);
     /// helper function, extracts all protein hits that match the protein accession
-    void getProteinHits_(std::vector<ProteinHit> & result, const std::unordered_map<String, const ProteinHit*> & acc2protein_hits, const std::vector<String> & protein_accessions);
+    void getProteinHits_(std::vector<ProteinHit> & result, const std::unordered_map<String, const ProteinHit*> & acc2protein_hits, const std::set<String> & protein_accessions);
     /// helper function, returns the string representation of the peptide hit accession
-    void getProteinAccessions_(std::vector<String> & result, const std::vector<PeptideHit> & peptide_hits);
+    std::set<String> getProteinAccessions_(const std::vector<PeptideHit> & peptide_hits);
     /// helper function, returns the index of the protein identification for the given peptide identification based on the same identifier using id_runs as lookup
     int getProteinIdentification_(const PeptideIdentification& pep_ident, const IdentificationRuns& id_runs);
     /// helper function, register a potential output file basename to detect duplicate output basenames

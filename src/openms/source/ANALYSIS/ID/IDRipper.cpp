@@ -38,6 +38,7 @@
 
 #include <QDir>
 #include <array>
+#include <unordered_set>
 
 using namespace std;
 
@@ -121,34 +122,34 @@ namespace OpenMS
       }
   }
 
-  UInt IDRipper::RipFileIdentifier::getIdentRunIdx()
+  UInt IDRipper::RipFileIdentifier::getIdentRunIdx() const
   {
-      return this->ident_run_idx;
+    return ident_run_idx;
   }
 
-  UInt IDRipper::RipFileIdentifier::getFileOriginIdx()
+  UInt IDRipper::RipFileIdentifier::getFileOriginIdx() const
   {
-      return this->file_origin_idx;
+    return file_origin_idx;
   }
 
-  const String & IDRipper::RipFileIdentifier::getOriginFullname()
+  const String & IDRipper::RipFileIdentifier::getOriginFullname() const
   {
-      return this->origin_fullname;
+    return origin_fullname;
   }
 
-  const String & IDRipper::RipFileIdentifier::getOutputBasename()
+  const String & IDRipper::RipFileIdentifier::getOutputBasename() const
   {
-      return this->out_basename;
+    return out_basename;
   }
 
   const std::vector<ProteinIdentification> & IDRipper::RipFileContent::getProteinIdentifications()
   {
-      return this->prot_idents;
+    return prot_idents;
   }
 
   const std::vector<PeptideIdentification> & IDRipper::RipFileContent::getPeptideIdentifications()
   {
-      return this->pep_idents;
+    return pep_idents;
   }
 
   bool IDRipper::registerBasename_(map<String, pair<UInt, UInt> >& basename_to_numeric, const IDRipper::RipFileIdentifier& rfi)
@@ -204,6 +205,9 @@ namespace OpenMS
 
     map<String, pair<UInt, UInt> > basename_to_numeric;
 
+    // map run identifier to protein accessions that were already added
+    unordered_map<String, unordered_set<String>> ripped_prot_map;
+
     //store protein and peptides identifications for each file origin
     for (PeptideIdentification& pep : peptides)
     {
@@ -228,8 +232,7 @@ namespace OpenMS
         continue;
       }
       // collect all protein accessions that are stored in the peptide hits
-      vector<String> protein_accessions;
-      getProteinAccessions_(protein_accessions, peptide_hits);
+      set<String> protein_accessions = getProteinAccessions_(peptide_hits);
       if (protein_accessions.empty())
       {
         OPENMS_LOG_WARN << "Peptide hits with empty protein accession." << std::endl;
@@ -253,45 +256,28 @@ namespace OpenMS
         OPENMS_LOG_WARN << "Run identifier: " << pep.getIdentifier() << " was not found in protein identification runs." << std::endl;
         continue;
       }
-      const ProteinIdentification& prot_ident = proteins[prot_ident_index];
 
-      RipFileMap::iterator it = ripped.find(rfi);
-      // If file_origin already exists
-      if (it != ripped.end())
-      {
-        vector<ProteinIdentification>& ripped_prot = it->second.prot_idents;
-        bool flag = true;
-
-        for (auto& rp_ident : ripped_prot)
-        {
-          // ProteinIdentification is already there, just add protein hits
-          if (prot_ident.getIdentifier() == rp_ident.getIdentifier())
-          {
-            for (const ProteinHit& prot : proteins_of_accessions)
-            {
-              rp_ident.insertHit(prot);
-            }
-            flag = false;
-            break;
-          }
-        }
-        // if protein identification run is not yet in the Ripped data structure add it
-        if (flag)
-        {
-          ProteinIdentification p{prot_ident};
-          p.setHits(proteins_of_accessions);
-          ripped_prot.push_back(std::move(p));
-        }
-        vector<PeptideIdentification>& pep_tmp = it->second.pep_idents;
-        pep_tmp.push_back(pep);
-      }
-      else // otherwise create new entry for file_origin
-      {
-        // create protein identification, TODO parameters
-        vector<ProteinIdentification> protein_idents;
-        // only use the protein hits that are needed for the peptide identification
-        ProteinIdentification p{prot_ident};
+      const ProteinIdentification& merged_protein_id_run = proteins[prot_ident_index]; // protein identification run in the merged file
+      const String& merged_prot_identifier = merged_protein_id_run.getIdentifier();        // protein identification run identifier in merged file
+    
+      if (RipFileMap::iterator it = ripped.find(rfi); it == ripped.end())
+      { // file identifier does not exist yet. We need to create it.
+        OPENMS_LOG_INFO << "Creating entry for file identifier:\n" 
+                        << "File origin: " << rfi.getOriginFullname() << "\n"
+                        // << "Identification run index: " << rfi.getIdentRunIdx() << "\n" // not set here?
+                        << "Basename: " << rfi.getOutputBasename() << "\n"
+                        << "Merged identification file run identifier: " << merged_prot_identifier << "\n"
+                        << std::endl;
+        // create the protein run but only set the protein hits that are needed for the current peptide identification
+        ProteinIdentification p{merged_protein_id_run}; 
         p.setHits(proteins_of_accessions);
+        for (const ProteinHit& prot : proteins_of_accessions)
+        { // register protein so we don't add it twice          
+          const String& acc = prot.getAccession();
+          ripped_prot_map[merged_prot_identifier].insert(acc);
+        }
+
+        vector<ProteinIdentification> protein_idents;
         protein_idents.push_back(std::move(p));
 
         //create new peptide identification
@@ -300,8 +286,63 @@ namespace OpenMS
 
         //create and insert new map entry
         ripped.insert(make_pair(rfi, RipFileContent(protein_idents, peptide_idents)));
+      }    
+      else
+      { // if file identifier already exists we attach
+        // query all protein identification runs for file identifier in the Ripped data structure
+        vector<ProteinIdentification>& ripped_protein_id_runs = it->second.prot_idents;
+
+        bool ripped_protein_identifier_exists{false};
+
+        for (auto& ripped_protein_id_run : ripped_protein_id_runs)
+        { // for all protein identification runs associated with the current file identifier...
+          const String& ripped_prot_identifier = ripped_protein_id_run.getIdentifier();
+          if (merged_prot_identifier == ripped_prot_identifier)
+          { // protein identification run already exists in ripped map. just add protein hits if not already present            
+            for (const ProteinHit& prot : proteins_of_accessions)
+            {               
+              // check if protein has already been added              
+              const String& acc = prot.getAccession();
+              auto& acc_set = ripped_prot_map[merged_prot_identifier];
+              if (auto ri = acc_set.find(acc); ri == acc_set.end())
+              { // only add protein once to the run identifier
+                ripped_protein_id_run.insertHit(prot);
+                acc_set.insert(acc);
+                //std::cout << "ripped/merged identifier: " << ripped_prot_identifier << " " << prot << std::endl;
+              }                
+            }
+            ripped_protein_identifier_exists = true;
+            break;
+          }
+        }
+
+        // file identifier exists but not the protein identification run identifier -  we did not add anything so far to it
+        if (!ripped_protein_identifier_exists) 
+        {
+          ProteinIdentification p{merged_protein_id_run};
+          p.setHits({});
+
+          for (const ProteinHit& prot : proteins_of_accessions)
+          {              
+            // check if protein has already been added
+            const String& acc = prot.getAccession();
+            auto& acc_set = ripped_prot_map[merged_prot_identifier];
+            if (auto ri = acc_set.find(acc); ri == acc_set.end())
+            { // only add protein once to the run identifier
+              p.insertHit(prot);;
+              acc_set.insert(acc);
+              //std::cout << "ripped/merged identifier: " << ripped_prot_identifier << " " << prot << std::endl;
+            }                
+          }
+          ripped_protein_id_runs.push_back(std::move(p));
+        }
+
+        // add current peptide identification
+        vector<PeptideIdentification>& ripped_pep = it->second.pep_idents;
+        ripped_pep.push_back(pep);
       }
     }
+
     // Reduce the spectra data string list if that's what we ripped by
     if (origin_annotation_fmt == MAP_INDEX || origin_annotation_fmt == ID_MERGE_INDEX)
     {
@@ -367,7 +408,7 @@ IDRipper::OriginAnnotationFormat IDRipper::detectOriginAnnotationFormat_(map<Str
     for (vector<PeptideIdentification>::const_iterator it = peptide_idents.begin(); it != peptide_idents.end(); ++it)
     {
       bool mode_identified = false;
-      for (size_t i = 0; i<SIZE_OF_ORIGIN_ANNOTATION_FORMAT; ++i)
+      for (size_t i = 0; i < SIZE_OF_ORIGIN_ANNOTATION_FORMAT; ++i)
       {
         if (it->metaValueExists(names_of_OriginAnnotationFormat[i]))
         {
@@ -409,7 +450,7 @@ IDRipper::OriginAnnotationFormat IDRipper::detectOriginAnnotationFormat_(map<Str
     }
   }
 
-  void IDRipper::getProteinHits_(vector<ProteinHit>& result, const unordered_map<String, const ProteinHit*>& acc2protein_hits, const vector<String>& protein_accessions)
+  void IDRipper::getProteinHits_(vector<ProteinHit>& result, const unordered_map<String, const ProteinHit*>& acc2protein_hits, const set<String>& protein_accessions)
   {
     for (const String& s : protein_accessions)
     {
@@ -421,13 +462,15 @@ IDRipper::OriginAnnotationFormat IDRipper::detectOriginAnnotationFormat_(map<Str
     }
   }
 
-  void IDRipper::getProteinAccessions_(vector<String>& result, const vector<PeptideHit>& peptide_hits)
+  std::set<String> IDRipper::getProteinAccessions_(const vector<PeptideHit>& peptide_hits)
   {
+    std::set<String> accession_set;
     for (const PeptideHit& it : peptide_hits)
     {
       std::set<String> protein_accessions = it.extractProteinAccessionsSet();
-      result.insert(result.end(), make_move_iterator(protein_accessions.begin()), make_move_iterator(protein_accessions.end()));
+      accession_set.insert(make_move_iterator(protein_accessions.begin()), make_move_iterator(protein_accessions.end()));
     }
+    return accession_set;
   }
 
   int IDRipper::getProteinIdentification_(const PeptideIdentification& pep_ident, const IdentificationRuns& id_runs)
