@@ -37,13 +37,8 @@ SetCompressor /SOLID lzma
 !define VS_PWIZ_REDISTRIBUTABLE_EXE "vcredist2010_x86_sp1.exe"
 
 # additional pwiz redistributables
-!if ${PLATFORM} == 32
-  !define VS_PWIZ_ADD1_REDISTRIBUTABLE_EXE "vcredist2012_x86_upd4.exe"
-  !define VS_PWIZ_ADD2_REDISTRIBUTABLE_EXE "vcredist2013_x86_upd2.exe"
-!else
-  !define VS_PWIZ_ADD1_REDISTRIBUTABLE_EXE "vcredist2012_x64_upd4.exe"
-  !define VS_PWIZ_ADD2_REDISTRIBUTABLE_EXE "vcredist2013_x64_upd2.exe"
-!endif
+!define VS_PWIZ_ADD1_REDISTRIBUTABLE_EXE "vcredist2012_x64_upd4.exe"
+!define VS_PWIZ_ADD2_REDISTRIBUTABLE_EXE "vcredist2013_x64_upd2.exe"
 
 # which extensions to connect to TOPPView and TOPPAS
 !macro OpenMSGUIExtensions _action
@@ -61,19 +56,26 @@ SetCompressor /SOLID lzma
 !macroend
 
 # Defines
-!define REGKEY "SOFTWARE\$(^Name)"
-!define PRODUCT_UNINST_ROOT SHCTX
-!define PRODUCT_UNINST_KEY ${REGKEY}
-!define COMPANY "OpenMS Developer Team"
-!define URL https://www.OpenMS.de
 !define APPNAME "OpenMS"
-!define PRODUCT_NAME "OpenMS"
-!define PROGEXE "TOPPView.exe"
+!define PRODUCT_NAME "${APPNAME}"
+!define PROGEXE "bin\TOPPView.exe" # For the icon used by MultiUser plugin, relative to INSTDIR
+!define REGKEY "SOFTWARE\$(^Name)" # For our own additional regkeys
+!define PRODUCT_UNINST_ROOT SHCTX # For AdvUninstallLog (matches default of MultiUser)
+!define PRODUCT_UNINST_KEY "Software\Microsoft\Windows\CurrentVersion\Uninstall\${PRODUCT_NAME}" # For AdvUninstallLog (matches default of MultiUser)
+!define COMPANY "OpenMS Developer Team"
+!define COMPANY_NAME "${COMPANY}" # For MultiUser
+!define URL "https://www.OpenMS.de"
+!define URL_INFO_ABOUT "${URL} # For MultiUser
+
+# We could also define the following
+#CONTACT
+#URL_HELP_LINK
+	
 
 # MultiUser defines
-!define MULTIUSER_INSTALLMODE_INSTDIR "${PRODUCT_NAME}-${VERSION}"
+!define MULTIUSER_INSTALLMODE_INSTDIR "${PRODUCT_NAME}-${VERSION}" # Otherwise it would just be PRODUCT_NAME
 !define MULTIUSER_INSTALLMODE_64_BIT 1
-!define MULTIUSER_INSTALLMODE_NO_HELP_DIALOG 1
+!define MULTIUSER_INSTALLMODE_NO_HELP_DIALOG 1 # We define our own with additional params later
 
 # Included files
 
@@ -83,22 +85,20 @@ SetCompressor /SOLID lzma
 !include Sections.nsh
 !include Library.nsh
 !include FileFunc.nsh
-#!include ${NSISRESOURCES}\Include\UAC.nsh
 !include ${NSISRESOURCES}\Include\IncludeScript_Misc.nsh
-!define FOLDERLIST_EXE ${NSISRESOURCES}\FolderList.exe
 !include ${NSISRESOURCES}\Include\IncludeScript_FileLogging.nsh
 !include ${NSISRESOURCES}\Include\EnvVarUpdate.nsh
-#!include x64.nsh
-#!include ${NSISRESOURCES}\Include\LogicLib.nsh
 !include ${NSISRESOURCES}\Include\AdvUninstLog2.nsh
 !include ${NSISRESOURCES}\Include\NsisMultiUser.nsh
 
-# For uninstalllog
-!insertmacro UNATTENDED_UNINSTALL
+!define FOLDERLIST_EXE ${NSISRESOURCES}\FolderList.exe
 
+# For AdvUninstalllog (alternative INTERACTIVE_UNINSTALL will trigger message boxes for each file)
+!insertmacro UNATTENDED_UNINSTALL
 
 # Reserved Files
 !insertmacro MUI_RESERVEFILE_LANGDLL
+
 # Modify the next line to adapt to the plugin for other NSIS versions (currently 3.0 release)
 # e.g. NSIS 2.x does not have the subfolders x86-unicode or x86-ansi, so remove them.
 ReserveFile "${NSISDIR}\Plugins\x86-unicode\advsplash.dll"
@@ -119,7 +119,7 @@ ReserveFile "${NSISDIR}\Plugins\x86-unicode\advsplash.dll"
 !insertmacro DirState
 !insertmacro GetFileName
 
-# Variables
+# (global) Variables to be set and used during our script
 Var StartMenuGroup
 Var EnvVarUpdateLoc
 
@@ -130,7 +130,7 @@ Var EnvVarUpdateLoc
 !define UMUI_STARTMENUPAGE_REGISTRY_ROOT SHCTX
 !define UMUI_STARTMENUPAGE_REGISTRY_KEY ${REGKEY}
 !define UMUI_STARTMENUPAGE_REGISTRY_VALUENAME StartMenuGroup
-!define UMUI_STARTMENUPAGE_DEFAULTFOLDER "OpenMS"
+!define UMUI_STARTMENUPAGE_DEFAULTFOLDER "${PRODUCT_NAME}"
 !define MUI_LICENSEPAGE_RADIOBUTTONS
 !define MUI_FINISHPAGE_SHOWREADME $INSTDIR\ReleaseNotes.txt
 !define MUI_UNFINISHPAGE_NOAUTOCLOSE
@@ -148,8 +148,12 @@ Var EnvVarUpdateLoc
 !insertmacro MUI_PAGE_STARTMENU Application $StartMenuGroup
 !insertmacro MUI_PAGE_INSTFILES
 !insertmacro MUI_PAGE_FINISH
-#!insertmacro MUI_UNPAGE_CONFIRM
+
+# Uninstaller pages
+!insertmacro MUI_UNPAGE_CONFIRM
+!insertmacro MULTIUSER_UNPAGE_INSTALLMODE
 !insertmacro MUI_UNPAGE_INSTFILES
+#!insertmacro MUI_UNPAGE_FINISH # We probably do not need a finish page during uninstall
 
 # Installer languages
 !insertmacro MUI_LANGUAGE German
@@ -757,11 +761,11 @@ Function .onInit
 
 FunctionEnd
 
-Function .OnInstFailed
+Function .onInstFailed
    #UAC::Unload ;Must call unload!
 FunctionEnd
 
-Function .OnInstSuccess
+Function .onInstSuccess
    !insertmacro UNINSTALL.LOG_UPDATE_INSTALL
    #UAC::Unload ;Must call unload!
 FunctionEnd
@@ -778,7 +782,6 @@ FunctionEnd
 ################
 ## UNINSTALL ###
 ################
-!insertmacro MULTIUSER_UNPAGE_INSTALLMODE
 
 # Uninstaller sections
 
