@@ -248,10 +248,9 @@ using namespace OpenMS;
         // Assign FDR value as meta value and also set as score
         bool assigned = false;
         double fdr = 1;
-        for (StringList::const_iterator crosslink_types_it = crosslink_types.begin();
-            crosslink_types_it != crosslink_types.end(); ++crosslink_types_it)
+        for (const auto& cl_type : crosslink_types)
         {
-          String current_crosslink_type = *crosslink_types_it;
+          String current_crosslink_type = cl_type;
           Size idx = std::floor((score - this->min_score_) / arg_binsize_);
           if (   current_crosslink_type == crosslink_class_fulldecoysinterlinks_
               || current_crosslink_type == crosslink_class_hybriddecoysinterlinks_

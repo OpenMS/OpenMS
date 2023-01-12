@@ -1088,11 +1088,11 @@ namespace OpenMS
     std::vector<String> freqs;
     iter->split('\t', freqs);
 
-    for (std::vector<String>::const_iterator f_iter = freqs.begin(); f_iter != freqs.end(); ++f_iter)
+    for (const auto& freq : freqs)
     {
-      counter_.push_back(f_iter->toInt());
-      if ((UInt)f_iter->toInt() > f_max_)
-        f_max_ = f_iter->toInt();
+      counter_.push_back(freq.toInt());
+      if ((UInt)freq.toInt() > f_max_)
+        f_max_ = freq.toInt();
     }
     ++iter;
 

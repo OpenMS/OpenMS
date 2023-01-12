@@ -131,9 +131,9 @@ namespace OpenMS
     }
 
     OPENMS_LOG_INFO << "Clustered overlapping windows\nCluster sizes:\n";
-    for (std::map<Size, Size>::const_iterator it = cluster_sizes.begin(); it != cluster_sizes.end(); ++it)
+    for (const auto& c_size : cluster_sizes)
     {
-      OPENMS_LOG_INFO << "  size " << it->first << ": " << it->second << "x\n";
+      OPENMS_LOG_INFO << "  size " << c_size.first << ": " << c_size.second << "x\n";
     }
     OPENMS_LOG_INFO << " --> Window count before: " << list.size() << "\n"
              << "     Window count after : " << list_new.size() << "\n";

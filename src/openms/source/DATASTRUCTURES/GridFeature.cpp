@@ -50,14 +50,13 @@ namespace OpenMS
   {
     const vector<PeptideIdentification>& peptides =
       feature.getPeptideIdentifications();
-    for (vector<PeptideIdentification>::const_iterator pep_it =
-           peptides.begin(); pep_it != peptides.end(); ++pep_it)
+    for (const auto& pep : peptides)
     {
-      if (pep_it->getHits().empty())
+      if (pep.getHits().empty())
       {
         continue; // shouldn't be the case
       }
-      annotations_.insert(pep_it->getHits()[0].getSequence());
+      annotations_.insert(pep.getHits()[0].getSequence());
     }
   }
 

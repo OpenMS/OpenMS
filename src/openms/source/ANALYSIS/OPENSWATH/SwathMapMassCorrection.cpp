@@ -571,15 +571,15 @@ namespace OpenMS
 #ifdef SWATHMAPMASSCORRECTION_DEBUG
     double s_ppm_before = 0;
     double s_ppm_after = 0;
-    for (TransformationDescription::DataPoints::iterator d = data_all.begin(); d != data_all.end(); ++d)
+    for (auto& d : data_all)
     {
-      double ppm_before = (d->first - d->second) * 1000000 / d->first;
-      double predict = d->first*d->first*regression_params[2] + d->first*regression_params[1]+regression_params[0];
-      double ppm_after = ( predict - d->second) * 1000000 / d->first;
+      double ppm_before = (d.first - d.second) * 1000000 / d.first;
+      double predict = d.first*d.first*regression_params[2] + d.first*regression_params[1]+regression_params[0];
+      double ppm_after = ( predict - d.second) * 1000000 / d.first;
       if (is_ppm)
       {
-        double new_mz = d->first - predict*d->first/1000000;
-        ppm_after = ( new_mz - d->second) * 1000000 / d->first;
+        double new_mz = d.first - predict*d.first/1000000;
+        ppm_after = ( new_mz - d.second) * 1000000 / d.first;
       }
       s_ppm_before += std::fabs(ppm_before);
       s_ppm_after += std::fabs(ppm_after);

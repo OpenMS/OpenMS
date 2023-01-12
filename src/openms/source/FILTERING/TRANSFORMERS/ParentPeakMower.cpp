@@ -76,9 +76,9 @@ namespace OpenMS
 
   void ParentPeakMower::filterPeakMap(PeakMap & exp)
   {
-    for (PeakMap::Iterator it = exp.begin(); it != exp.end(); ++it)
+    for (auto& spec : exp)
     {
-      filterSpectrum(*it);
+      filterSpectrum(spec);
     }
   }
 

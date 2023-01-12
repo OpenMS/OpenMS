@@ -113,9 +113,9 @@ namespace OpenMS
   void SvmTheoreticalSpectrumGeneratorSet::getSupportedCharges(std::set<Size>& charges)
   {
     charges.clear();
-    for (std::map<Size, SvmTheoreticalSpectrumGenerator>::const_iterator it = simulators_.begin(); it != simulators_.end(); ++it)
+    for (const auto& sim : simulators_)
     {
-      charges.insert(it->first);
+      charges.insert(sim.first);
     }
   }
 

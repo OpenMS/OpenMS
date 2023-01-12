@@ -662,9 +662,9 @@ namespace OpenMS
   {
     IsotopeDistribution::ContainerType dist;
     
-    for (map<unsigned int, double>::const_iterator it = abundance.begin(); it != abundance.end(); ++it)
+    for (const auto& abun : abundance)
     { 
-      dist.push_back(Peak1D(mass.at(it->first) , abundance.at(it->first)));
+      dist.push_back(Peak1D(mass.at(abun.first) , abundance.at(abun.first)));
     }
 
     IsotopeDistribution iso_dist;
