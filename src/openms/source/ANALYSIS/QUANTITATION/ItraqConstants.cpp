@@ -114,13 +114,13 @@ namespace OpenMS
     isotope_corrections[2].setMatrix<6, 4>(ItraqConstants::ISOTOPECORRECTIONS_TMT_SIXPLEX);
 
     // split the channels key:name pairs apart
-    for (StringList::const_iterator it = channels.begin(); it != channels.end(); ++it)
+    for (const auto& ch : channels)
     {
       StringList result;
-      it->split(':', result);
+      ch.split(':', result);
       if (result.size() != 2)
       {
-        throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "ItraqQuantifier: Invalid entry in Param 'isotope_correction_values'; expected one ':', got this: '" + (*it) + "'");
+        throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "ItraqQuantifier: Invalid entry in Param 'isotope_correction_values'; expected one ':', got this: '" + (ch) + "'");
       }
       result[0] = result[0].trim();       // hold channel name
       result[1] = result[1].trim();       // holds 4 values
@@ -226,19 +226,19 @@ namespace OpenMS
   void ItraqConstants::updateChannelMap(const StringList & active_channels, ChannelMapType & map)
   {
     // split the channels key:name pairs apart
-    for (StringList::const_iterator it = active_channels.begin(); it != active_channels.end(); ++it)
+    for (const auto& ch : active_channels)
     {
       StringList result;
-      it->split(':', result);
+      ch.split(':', result);
       if (result.size() != 2)
       {
-        throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "ItraqConstants: Invalid entry in Param 'channel_active'; expected one semicolon ('" + (*it) + "')");
+        throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "ItraqConstants: Invalid entry in Param 'channel_active'; expected one semicolon ('" + (ch) + "')");
       }
       result[0] = result[0].trim();
       result[1] = result[1].trim();
       if (result[0] == String::EMPTY || result[1] == String::EMPTY)
       {
-        throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "ItraqConstants: Invalid entry in Param 'channel_active'; key or value is empty ('" + (*it) + "')");
+        throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "ItraqConstants: Invalid entry in Param 'channel_active'; key or value is empty ('" + (ch) + "')");
       }
       Int channel = result[0].toInt();
       if (map.find(channel) == map.end())

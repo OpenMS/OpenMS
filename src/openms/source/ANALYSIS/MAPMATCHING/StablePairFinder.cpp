@@ -257,19 +257,19 @@ namespace OpenMS
     const vector<PeptideIdentification>& pep2 = feat2.getPeptideIdentifications();
 
     set<String> best1, best2;
-    for (vector<PeptideIdentification>::const_iterator pep_it = pep1.begin(); pep_it != pep1.end(); ++pep_it)
+    for (const auto& pep : pep1)
     {
-      if (pep_it->getHits().empty())
+      if (pep.getHits().empty())
         continue; // shouldn't be the case
 
-      best1.insert(getBestHitSequence_(*pep_it).toString());
+      best1.insert(getBestHitSequence_(pep).toString());
     }
-    for (vector<PeptideIdentification>::const_iterator pep_it = pep2.begin(); pep_it != pep2.end(); ++pep_it)
+    for (const auto& pep : pep2)
     {
-      if (pep_it->getHits().empty())
+      if (pep.getHits().empty())
         continue; // shouldn't be the case
 
-      best2.insert(getBestHitSequence_(*pep_it).toString());
+      best2.insert(getBestHitSequence_(pep).toString());
     }
     return best1 == best2;
   }
