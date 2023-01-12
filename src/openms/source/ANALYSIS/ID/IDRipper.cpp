@@ -179,7 +179,7 @@ namespace OpenMS
 
     if (origin_annotation_fmt == UNKNOWN_OAF)
     {
-        throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "input file",
+      throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "input file",
         "Unable to detect origin annotation format of provided input file.");
     }
 
@@ -188,20 +188,22 @@ namespace OpenMS
     // Build identifier index
     const IdentificationRuns id_runs = IdentificationRuns(proteins);
 
-    // Collect all protein hits
+    // Collect a unique set of representative protein hits. One per accession. Looks at all runs and removes the file origin
     unordered_map<String, const ProteinHit*> acc2protein_hits;
     for (ProteinIdentification& prot : proteins)
     {
-      // remove protein identification file origin
       prot.removeMetaValue(names_of_OriginAnnotationFormat[origin_annotation_fmt]);
-      vector<ProteinHit>& protein_hits  = prot.getHits();
+      const vector<ProteinHit>& protein_hits  = prot.getHits();
       for (const auto& ph : protein_hits)
       {
         acc2protein_hits[ph.getAccession()] = &ph;
       }
     }
 
+    size_t protein_identifier_not_found{};
+
     map<String, pair<UInt, UInt> > basename_to_numeric;
+
     //store protein and peptides identifications for each file origin
     for (PeptideIdentification& pep : peptides)
     {
@@ -219,7 +221,7 @@ namespace OpenMS
       // remove file origin annotation
       pep.removeMetaValue(names_of_OriginAnnotationFormat[origin_annotation_fmt]);
 
-      // try to get peptide hits for peptide identification
+      // get peptide hits (PSMs) for each peptide identification (spectrum)
       const vector<PeptideHit>& peptide_hits = pep.getHits();
       if (peptide_hits.empty())
       {
@@ -228,41 +230,57 @@ namespace OpenMS
       // collect all protein accessions that are stored in the peptide hits
       vector<String> protein_accessions;
       getProteinAccessions_(protein_accessions, peptide_hits);
+      if (protein_accessions.empty())
+      {
+        OPENMS_LOG_WARN << "Peptide hits with empty protein accession." << std::endl;
+        continue;
+      }
 
-      // returns all protein hits that are associated with the given peptide hits
-      vector<ProteinHit> protein2accessions;
-      getProteinHits_(protein2accessions, acc2protein_hits, protein_accessions);
+      // returns all protein hits that are associated with the accessions of current peptide hits
+      vector<ProteinHit> proteins_of_accessions;
+      getProteinHits_(proteins_of_accessions, acc2protein_hits, protein_accessions);
+      if (proteins_of_accessions.empty())
+      {
+        OPENMS_LOG_WARN << "No proteins found for given accessions." << std::endl;
+        continue;
+      }
 
       // search for the protein identification of the peptide identification
-      ProteinIdentification prot_ident;
-      getProteinIdentification_(prot_ident, pep, proteins, id_runs);
-      // TODO catch case that ProteinIdentification prot_ident is not found in the for-loop
+      int prot_ident_index = getProteinIdentification_(pep, id_runs);
+      if (prot_ident_index == -1)
+      {
+        ++protein_identifier_not_found;
+        OPENMS_LOG_WARN << "Run identifier: " << pep.getIdentifier() << " was not found in protein identification runs." << std::endl;
+        continue;
+      }
+      const ProteinIdentification& prot_ident = proteins[prot_ident_index];
 
       RipFileMap::iterator it = ripped.find(rfi);
       // If file_origin already exists
       if (it != ripped.end())
       {
-        vector<ProteinIdentification>& prot_tmp = it->second.prot_idents;
+        vector<ProteinIdentification>& ripped_prot = it->second.prot_idents;
         bool flag = true;
 
-        for (vector<ProteinIdentification>::iterator it2 = prot_tmp.begin(); it2 != prot_tmp.end(); ++it2)
+        for (auto& rp_ident : ripped_prot)
         {
           // ProteinIdentification is already there, just add protein hits
-          if (prot_ident.getIdentifier().compare(it2->getIdentifier()) == 0)
+          if (prot_ident.getIdentifier() == rp_ident.getIdentifier())
           {
-            for (const ProteinHit& prot : protein2accessions)
+            for (const ProteinHit& prot : proteins_of_accessions)
             {
-              it2->insertHit(prot);
+              rp_ident.insertHit(prot);
             }
             flag = false;
             break;
           }
         }
-        // if it was not found
+        // if protein identification run is not yet in the Ripped data structure add it
         if (flag)
         {
-          prot_ident.setHits(protein2accessions);
-          prot_tmp.push_back(prot_ident);
+          ProteinIdentification p{prot_ident};
+          p.setHits(proteins_of_accessions);
+          ripped_prot.push_back(std::move(p));
         }
         vector<PeptideIdentification>& pep_tmp = it->second.pep_idents;
         pep_tmp.push_back(pep);
@@ -272,8 +290,9 @@ namespace OpenMS
         // create protein identification, TODO parameters
         vector<ProteinIdentification> protein_idents;
         // only use the protein hits that are needed for the peptide identification
-        prot_ident.setHits(protein2accessions);
-        protein_idents.push_back(prot_ident);
+        ProteinIdentification p{prot_ident};
+        p.setHits(proteins_of_accessions);
+        protein_idents.push_back(std::move(p));
 
         //create new peptide identification
         vector<PeptideIdentification> peptide_idents;
@@ -301,6 +320,10 @@ namespace OpenMS
           prot_id.setPrimaryMSRunPath(new_list);
         }
       }
+    }
+    if (protein_identifier_not_found > 0)
+    {
+      OPENMS_LOG_ERROR << "Some protein identification runs referenced in peptide identifications were not found." << std::endl;
     }
   }
 
@@ -407,14 +430,14 @@ IDRipper::OriginAnnotationFormat IDRipper::detectOriginAnnotationFormat_(map<Str
     }
   }
 
-  void IDRipper::getProteinIdentification_(ProteinIdentification& result, const PeptideIdentification& pep_ident, std::vector<ProteinIdentification>& prot_idents, const IdentificationRuns& id_runs)
+  int IDRipper::getProteinIdentification_(const PeptideIdentification& pep_ident, const IdentificationRuns& id_runs)
   {
     const String& identifier = pep_ident.getIdentifier();
     if (auto it = id_runs.index_map.find(identifier); it != id_runs.index_map.end())
     {
-      result = prot_idents[it->second];
-      return;
+      return it->second;
     }
+    return -1;
   }
 
 } // namespace OpenMS

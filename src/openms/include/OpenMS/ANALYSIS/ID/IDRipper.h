@@ -190,8 +190,8 @@ private:
     void getProteinHits_(std::vector<ProteinHit> & result, const std::unordered_map<String, const ProteinHit*> & acc2protein_hits, const std::vector<String> & protein_accessions);
     /// helper function, returns the string representation of the peptide hit accession
     void getProteinAccessions_(std::vector<String> & result, const std::vector<PeptideHit> & peptide_hits);
-    /// helper function, returns the protein identification for the given peptide identification based on the same identifier using id_runs as lookup
-    void getProteinIdentification_(ProteinIdentification & result, const PeptideIdentification& pep_ident, std::vector<ProteinIdentification> & prot_idents, const IdentificationRuns& id_runs);
+    /// helper function, returns the index of the protein identification for the given peptide identification based on the same identifier using id_runs as lookup
+    int getProteinIdentification_(const PeptideIdentification& pep_ident, const IdentificationRuns& id_runs);
     /// helper function, register a potential output file basename to detect duplicate output basenames
     bool registerBasename_(std::map<String, std::pair<UInt, UInt> >& basename_to_numeric, const IDRipper::RipFileIdentifier& rfi);
     /// helper function, sets the value of mode to new_value and returns true if the old value was identical or unset (-1)
