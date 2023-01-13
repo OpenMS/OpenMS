@@ -780,7 +780,7 @@ FunctionEnd
 # set the component descriptions after the Sections have been defined!
 !insertmacro MUI_FUNCTION_DESCRIPTION_BEGIN
 !insertmacro MUI_DESCRIPTION_TEXT ${SEC_Lib} "The core libraries of OpenMS"
-!insertmacro MUI_DESCRIPTION_TEXT ${SEC_TOPP} "TOPP (The OpenMS Proteomics Pipeline) - chainable tools for MS data analysis"
+!insertmacro MUI_DESCRIPTION_TEXT ${SEC_TOPP} "TOPP (The OpenMS PiPeline) - chainable tools for data analysis"
 !insertmacro MUI_DESCRIPTION_TEXT ${SEC_Doc} "Documentation/Tutorials for TOPP, TOPPView and the OpenMS library itself."
 !insertmacro MUI_DESCRIPTION_TEXT ${SEC_ThirdParty} "Install third party libraries (e.g., ProteoWizard)."
 !insertmacro MUI_DESCRIPTION_TEXT ${SEC_dotnet} "Install .NET and Microsoft Visual Studio Runtime for Proteowizard. (may require the installer to be run in admin mode). Deactivate if you are not admin and think this is installed already (or will be installed later) by an admin."
