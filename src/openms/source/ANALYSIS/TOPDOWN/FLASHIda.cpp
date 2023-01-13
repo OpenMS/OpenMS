@@ -130,6 +130,7 @@ namespace OpenMS
         String line;
         double rt = .0;
         double mass;
+        double qscore;
         while (std::getline(instream, line))
         {
           if (line.find("0 targets") != line.npos)
@@ -151,6 +152,11 @@ namespace OpenMS
             String n = line.substr(st, ed - st + 1);
             mass = atof(n.c_str());
 
+            st = line.find("Score=") + 6;
+            ed = line.find('\t', st);
+            n = line.substr(st, ed - st + 1);
+            qscore = atof(n.c_str());
+
             if (targeting_mode_ > 0)
             {
               if (target_mass_rt_map_.find(mass) == target_mass_rt_map_.end())
@@ -159,6 +165,11 @@ namespace OpenMS
               }
               target_mass_rt_map_[mass].push_back(rt * 60.0);
             }
+            if (target_mass_qscore_map_.find(mass) == target_mass_qscore_map_.end())
+            {
+              target_mass_qscore_map_[mass] = std::vector<double>();
+            }
+            target_mass_qscore_map_[mass].push_back(qscore);
             // precursor_map_for_real_time_acquisition[scan].push_back(e);
           }
         }
@@ -174,6 +185,8 @@ namespace OpenMS
       {
         String line;
         double mass;
+        double qscore;
+
         while (std::getline(instream, line))
         {
           if (line.hasPrefix("rt"))
@@ -188,6 +201,7 @@ namespace OpenMS
             results.push_back(str);
           }
           mass = atof(results[5].c_str());
+          qscore = atof(results[3].c_str());
 
           if (targeting_mode_ > 0)
           {
@@ -196,6 +210,11 @@ namespace OpenMS
               target_mass_rt_map_[mass] = std::vector<double>();
             }
             target_mass_rt_map_[mass].push_back(60.0 * atof(results[0].c_str()));
+            if (target_mass_qscore_map_.find(mass) == target_mass_qscore_map_.end())
+            {
+              target_mass_qscore_map_[mass] = std::vector<double>();
+            }
+            target_mass_qscore_map_[mass].push_back(qscore);
           }
         }
         instream.close();
@@ -242,7 +261,7 @@ namespace OpenMS
         }
       }
       std::sort(target_masses_.begin(), target_masses_.end());
-      fd_.setTargetMasses(target_masses_, targeting_mode_ == 2);
+      fd_.setTargetMasses(target_masses_, false);
     }
 
     fd_.performSpectrumDeconvolution(spec, tmp, 0, empty);
@@ -274,6 +293,29 @@ namespace OpenMS
     std::unordered_map<int, double> new_all_mass_rt_map_;
     std::unordered_map<int, double> new_mass_qscore_map_;
 
+    for (auto& [mass, rts] : target_mass_rt_map_)
+    {
+      int nominal_mass =  FLASHDeconvAlgorithm::getNominalMass(mass);
+      auto qscores = target_mass_qscore_map_[mass];
+      for (int i=0;i<rts.size();i++)
+      {
+        double prt = rts[i];
+        double qscore = qscores[i];
+        if (std::abs(rt - prt) < rt_window_)
+        {
+          auto inter = new_mass_qscore_map_.find(nominal_mass);
+          if (inter == new_mass_qscore_map_.end())
+          {
+            new_mass_qscore_map_[nominal_mass] = 1 - qscore;
+          }
+          else
+          {
+            new_mass_qscore_map_[nominal_mass] *= 1 - qscore;
+          }
+        }
+      }
+    }
+
     for (auto& [m, r] : tqscore_exceeding_mz_rt_map_)
     {
       if (rt - r > rt_window_)
@@ -303,7 +345,16 @@ namespace OpenMS
         continue;
       }
       new_all_mass_rt_map_[item.first] = item.second;
-      new_mass_qscore_map_[item.first] = mass_qscore_map_[item.first];
+
+      auto inter = new_mass_qscore_map_.find(item.first);
+      if (inter == new_mass_qscore_map_.end())
+      {
+        new_mass_qscore_map_[item.first] = mass_qscore_map_[item.first];
+      }
+      else
+      {
+        new_mass_qscore_map_[item.first] *= mass_qscore_map_[item.first];
+      }
     }
     new_all_mass_rt_map_.swap(all_mass_rt_map_);
     std::unordered_map<int, double>().swap(new_all_mass_rt_map_);
@@ -338,7 +389,7 @@ namespace OpenMS
         double snr_threshold = snr_threshold_;
         double qscore_threshold = qscore_threshold_;
 
-        if (targeting_mode_ > 0 && target_masses_.size() > 0)
+        if (targeting_mode_ == 1 && target_masses_.size() > 0)  // inclusive mode
         {
           double delta = 2 * tol_[0] * mass * 1e-6;
           auto ub = std::upper_bound(target_masses_.begin(), target_masses_.end(), mass + delta);
@@ -362,24 +413,15 @@ namespace OpenMS
             }
             ub--;
           }
-          if (targeting_mode_ == 1) // inclusive mode
+
+          if (target_matched)
           {
-            if (target_matched)
-            {
-              snr_threshold = 0.0;
-              qscore_threshold = 0.0;
-            }
-            else
-            {
-              continue;
-            }
+            snr_threshold = 0.0;
+            qscore_threshold = 0.0;
           }
-          else if (targeting_mode_ == 2) // exclusive mode
+          else
           {
-            if (target_matched)
-            {
-              continue;
-            }
+            continue;
           }
         }
 

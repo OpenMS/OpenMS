@@ -142,7 +142,7 @@ namespace OpenMS
     std::unordered_map<int, double> tqscore_exceeding_mz_rt_map_; /// integer mz value vs. retention time with tqscore exceeding total qscore threshold
     std::unordered_map<int, double> tqscore_exceeding_mass_rt_map_; /// integer mass value vs. retention time with tqscore exceeding total qscore threshold
     std::unordered_map<int, double> all_mass_rt_map_; /// mz value vs. retention time for all acquired precursors
-    std::unordered_map<int, double> mass_qscore_map_; /// mass value vs. retention time for all acquired precursors
+    std::unordered_map<int, double> mass_qscore_map_; /// mass value vs. total qscore for all acquired precursors
 
     /**
          @brief discard peak groups using mass exclusion
@@ -192,6 +192,7 @@ namespace OpenMS
     int targeting_mode_ = 0; /// 0 no targeting 1 inclusive 2 exclusive
     /// maps for global inclusion/exclusion targeting
     std::map<double, std::vector<double>> target_mass_rt_map_;
+    std::map<double, std::vector<double>> target_mass_qscore_map_;
     std::vector<double> target_masses_; /// current target masses
 
     /// precursor SNR threshold
