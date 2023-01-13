@@ -59,32 +59,32 @@ RNPxlMarkerIonExtractor::MarkerIonsType RNPxlMarkerIonExtractor::extractMarkerIo
   spec.sortByPosition();
 
   // for each nucleotide with marker ions
-  for (MarkerIonsType::iterator it = marker_ions.begin(); it != marker_ions.end(); ++it)
+  for (auto& ion : marker_ions)
   {
     // for each marker ion of the current nucleotide
-    for (Size i = 0; i != it->second.size(); ++i)
+    for (Size i = 0; i != ion.second.size(); ++i)
     {
-      double mz = it->second[i].first;
+      double mz = ion.second[i].first;
       double max_intensity = 0;
-      for (PeakSpectrum::ConstIterator sit = spec.begin(); sit != spec.end(); ++sit)
+      for (const auto& peak : spec)
       {
-        if (sit->getMZ() + marker_tolerance < mz)
+        if (peak.getMZ() + marker_tolerance < mz)
         {
           continue;
         }
-        if (mz < sit->getMZ() - marker_tolerance)
+        if (mz < peak.getMZ() - marker_tolerance)
         {
           break;
         }
-        if (fabs(mz - sit->getMZ()) < marker_tolerance)
+        if (fabs(mz - peak.getMZ()) < marker_tolerance)
         {
-          if (max_intensity < sit->getIntensity())
+          if (max_intensity < peak.getIntensity())
           {
-            max_intensity = sit->getIntensity();
+            max_intensity = peak.getIntensity();
           }
         }
       }
-      it->second[i].second = max_intensity;
+      ion.second[i].second = max_intensity;
     }
   }
   return marker_ions;

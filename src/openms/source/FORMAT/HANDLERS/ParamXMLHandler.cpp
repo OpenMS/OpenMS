@@ -329,9 +329,9 @@ namespace OpenMS::Internal
         open_tags_.pop_back();
         //renew path
         path_ = "";
-        for (vector<String>::iterator it = open_tags_.begin(); it != open_tags_.end(); ++it)
+        for (auto& tag : open_tags_)
         {
-          path_ += *it + ":";
+          path_ += tag + ":";
         }
       }
       else if (element == "ITEMLIST")

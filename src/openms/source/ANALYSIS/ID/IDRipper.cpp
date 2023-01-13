@@ -245,14 +245,14 @@ namespace OpenMS
         vector<ProteinIdentification>& prot_tmp = it->second.prot_idents;
         bool flag = true;
 
-        for (vector<ProteinIdentification>::iterator it2 = prot_tmp.begin(); it2 != prot_tmp.end(); ++it2)
+        for (auto& protein : prot_tmp)
         {
           // ProteinIdentification is already there, just add protein hits
-          if (prot_ident.getIdentifier().compare(it2->getIdentifier()) == 0)
+          if (prot_ident.getIdentifier().compare(protein.getIdentifier()) == 0)
           {
             for (const ProteinHit& prot : protein2accessions)
             {
-              it2->insertHit(prot);
+              protein.insertHit(prot);
             }
             flag = false;
             break;
@@ -317,10 +317,10 @@ namespace OpenMS
 
       rfis.clear();
       rfcs.clear();
-      for (RipFileMap::iterator it = rfm.begin(); it != rfm.end(); ++it)
+      for (auto& map : rfm)
       {
-          rfis.push_back(it->first);
-          rfcs.push_back(it->second);
+          rfis.push_back(map.first);
+          rfcs.push_back(map.second);
       }
   }
 
@@ -341,12 +341,12 @@ IDRipper::OriginAnnotationFormat IDRipper::detectOriginAnnotationFormat_(map<Str
     file_origin_map.clear();
 
     short mode = -1;
-    for (vector<PeptideIdentification>::const_iterator it = peptide_idents.begin(); it != peptide_idents.end(); ++it)
+    for (const auto& pep_id : peptide_idents)
     {
       bool mode_identified = false;
       for (size_t i = 0; i<SIZE_OF_ORIGIN_ANNOTATION_FORMAT; ++i)
       {
-        if (it->metaValueExists(names_of_OriginAnnotationFormat[i]))
+        if (pep_id.metaValueExists(names_of_OriginAnnotationFormat[i]))
         {
           // Different mode identified for same or different peptide
           if (mode_identified || !setOriginAnnotationMode_(mode, i))
@@ -360,7 +360,7 @@ IDRipper::OriginAnnotationFormat IDRipper::detectOriginAnnotationFormat_(map<Str
 
           if (i == 0) // names_of_OriginAnnotationFormat[0] == "file_origin"
           {
-            const String& file_origin = it->getMetaValue("file_origin");
+            const String& file_origin = pep_id.getMetaValue("file_origin");
             // Did we already assign an index to this file_origin?
             if (file_origin_map.find(file_origin) == file_origin_map.end())
             {

@@ -91,11 +91,10 @@ namespace OpenMS
                                                    SpectrumMetaData& meta,
                                                    MetaDataFlags flags) const
   {
-    for (std::vector<boost::regex>::const_iterator it = 
-           reference_formats.begin(); it != reference_formats.end(); ++it)
+    for (const auto& format : reference_formats)
     {
       boost::smatch match;
-      bool found = boost::regex_search(spectrum_ref, match, *it);
+      bool found = boost::regex_search(spectrum_ref, match, format);
       if (found)
       {
         // first try to extract the requested meta data from the reference:
@@ -167,7 +166,7 @@ namespace OpenMS
         }
         if (flags) // not all requested values have been found -> look them up
         {
-          Size index = findByRegExpMatch_(spectrum_ref, it->str(), match);
+          Size index = findByRegExpMatch_(spectrum_ref, format.str(), match);
           meta = metadata_[index];
         }
         return; // use the first reference format that matches

@@ -83,9 +83,9 @@ namespace OpenMS
 
   void CVTermList::consumeCVTerms(const std::map<String, vector<CVTerm> >& cv_term_map)
   {
-    for (std::map<String, std::vector<CVTerm> >::const_iterator it = cv_term_map.begin(); it != cv_term_map.end(); ++it)
+    for (const auto& term : cv_term_map)
     {
-      cv_terms_[it->first].insert(cv_terms_[it->first].end(), it->second.begin(), it->second.end());
+      cv_terms_[term.first].insert(cv_terms_[term.first].end(), term.second.begin(), term.second.end());
     }
   }
 

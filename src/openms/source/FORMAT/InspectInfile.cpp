@@ -151,15 +151,15 @@ namespace OpenMS
       file_content << "blind," << blind_ << "\n";
     }
     //mod,+57,C,fix,carbamidomethylation
-    for (std::map<String, vector<String> >::iterator mods_i = PTMname_residues_mass_type_.begin(); mods_i != PTMname_residues_mass_type_.end(); ++mods_i)
+    for (auto& mods : PTMname_residues_mass_type_)
     {
       // fix", "cterminal", "nterminal", and "opt
-      mods_i->second[2].toLower();
-      if (mods_i->second[2].hasSuffix("term"))
+      mods.second[2].toLower();
+      if (mods.second[2].hasSuffix("term"))
       {
-        mods_i->second[2].append("inal");
+        mods.second[2].append("inal");
       }
-      file_content << "mod," << mods_i->second[1] << "," << mods_i->second[0] << "," << mods_i->second[2] << "," << mods_i->first << "\n";
+      file_content << "mod," << mods.second[1] << "," << mods.second[0] << "," << mods.second[2] << "," << mods.first << "\n";
     }
 
     if (modifications_per_peptide_ > -1)
@@ -218,9 +218,9 @@ namespace OpenMS
       // 0 - mass; 1 - composition; 2 - ptm name
       Int mass_or_composition_or_name(-1);
 
-      for (vector<String>::const_iterator mod_i = modifications.begin(); mod_i != modifications.end(); ++mod_i)
+      for (const auto& mod : modifications)
       {
-        if (mod_i->empty())
+        if (mod.empty())
         {
           continue;
         }
@@ -229,9 +229,9 @@ namespace OpenMS
         name = residues = mass = type = "";
 
         // get the single parts of the modification string
-        mod_i->split(',', mod_parts);
+        mod.split(',', mod_parts);
         if (mod_parts.empty())
-          mod_parts.push_back(*mod_i);
+          mod_parts.push_back(mod);
         mass_or_composition_or_name = -1;
 
         // check whether the first part is a mass, composition or name
@@ -331,7 +331,7 @@ namespace OpenMS
           catch (Exception::ParseError& /*pe*/)
           {
             PTMname_residues_mass_type_.clear();
-            throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, *mod_i, "There's something wrong with this modification. Aborting!");
+            throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, mod, "There's something wrong with this modification. Aborting!");
           }
         }
 
@@ -342,7 +342,7 @@ namespace OpenMS
           if (mod_parts.empty())
           {
             PTMname_residues_mass_type_.clear();
-            throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, *mod_i, "No residues for modification given. Aborting!");
+            throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, mod, "No residues for modification given. Aborting!");
           }
 
           // get the residues
@@ -374,7 +374,7 @@ namespace OpenMS
         if (mod_parts.size() > 1)
         {
           PTMname_residues_mass_type_.clear();
-          throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, *mod_i, "There's something wrong with the type of this modification. Aborting!");
+          throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, mod, "There's something wrong with the type of this modification. Aborting!");
         }
 
         // get the name
@@ -402,7 +402,7 @@ namespace OpenMS
         else
         {
           PTMname_residues_mass_type_.clear();
-          throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, *mod_i, "There's already a modification with this name. Aborting!");
+          throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, mod, "There's already a modification with this name. Aborting!");
         }
       }
     }

@@ -158,11 +158,10 @@ namespace OpenMS::Internal
       vector< PeptideEvidence > evidences;
       evidences.reserve(prot_list.size());
 
-      for (StringList::const_iterator prot_list_it = prot_list.begin();
-           prot_list_it != prot_list.end(); ++prot_list_it)
+      for (const auto& prot : prot_list)
       {
         PeptideEvidence pep_ev;
-        String accession = *prot_list_it;
+        String accession = prot;
 
         if (this->accessions_.find(accession) == this->accessions_.end())
         {
@@ -189,10 +188,9 @@ namespace OpenMS::Internal
     // Assign all attributes in the peptide_id_attributes map to the MetaInfoInterface object
     void XQuestResultXMLHandler::addMetaValues_(MetaInfoInterface & meta_info_interface)
     {
-      for (std::map<String, DataValue>::const_iterator it = this->peptide_id_meta_values_.begin();
-           it != this->peptide_id_meta_values_.end(); ++it)
+      for (const auto& val : this->peptide_id_meta_values_)
       {
-        std::pair<String, DataValue> item = *it;
+        std::pair<String, DataValue> item = val;
         meta_info_interface.setMetaValue(item.first, item.second);
       }
     }

@@ -187,10 +187,10 @@ namespace OpenMS
 
       // add accessions of all indistinguishable proteins the peptide belongs to
       ProteinIdentification::ProteinGroup& indist = prot_id_->getIndistinguishableProteins().back();
-      for (StringList::const_iterator accession = indist.accessions.begin(); accession != indist.accessions.end(); ++accession)
+      for (const auto& accession : indist.accessions)
       {
         PeptideEvidence pe;
-        pe.setProteinAccession(*accession);
+        pe.setProteinAccession(accession);
         pep_hit_->addPeptideEvidence(pe);
       }
       pep_hit_->setMetaValue("is_unique", String(attributeAsString_(attributes, "is_nondegenerate_evidence")) == "Y" ? 1 : 0);

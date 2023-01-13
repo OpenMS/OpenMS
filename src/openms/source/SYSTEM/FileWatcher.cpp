@@ -55,13 +55,13 @@ namespace OpenMS
     //cout << "File changed: " << String(name) << endl;
     // Look up if there is already a timer for this file
     QTimer * timer = nullptr;
-    for (map<QString, QString>::const_iterator it = timers_.begin(); it != timers_.end(); ++it)
+    for (const auto& map : timers_)
     {
-      if (it->second == name)     //we found the timer name and id
+      if (map.second == name)     //we found the timer name and id
       {
-        //cout << " - Found timer name: " << String(it->second) << endl;
+        //cout << " - Found timer name: " << String(map.second) << endl;
         //search for the timer instance with the corresponding Id
-        timer = findChild<QTimer *>(it->first);
+        timer = findChild<QTimer *>(map.first);
       }
     }
 

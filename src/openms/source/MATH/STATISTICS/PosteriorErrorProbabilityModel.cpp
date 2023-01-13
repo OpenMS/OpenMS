@@ -634,9 +634,9 @@ namespace OpenMS::Math
       Int bin = 0;
       points[bin] = temp;
       double temp_divider = dividing_score;
-      for (std::vector<double>::iterator it = x_scores.begin(); it < x_scores.end(); ++it)
+      for (auto& score : x_scores)
       {
-        if (temp_divider - *it >= 0 && bin < number_of_bins - 1)
+        if (temp_divider - score >= 0 && bin < number_of_bins - 1)
         {
           points[bin].setY(points[bin].getY() + 1);
         }
@@ -734,10 +734,10 @@ namespace OpenMS::Math
       Int bin = 0;
       points[bin] = temp;
       double temp_divider = dividing_score;
-      for (std::vector<double>::iterator it = target.begin(); it < target.end(); ++it)
+      for (auto& hit : target)
       {
-        *it = *it + fabs(smallest_score_) + 0.001;
-        if (temp_divider - *it >= 0 && bin < number_of_bins - 1)
+        hit = hit + fabs(smallest_score_) + 0.001;
+        if (temp_divider - hit >= 0 && bin < number_of_bins - 1)
         {
           points[bin][1] += 1;
         }
@@ -757,10 +757,10 @@ namespace OpenMS::Math
 
       bin = 0;
       temp_divider = dividing_score;
-      for (std::vector<double>::iterator it = decoy.begin(); it < decoy.end(); ++it)
+      for (auto& hit : decoy)
       {
-        *it = *it + fabs(smallest_score_) + 0.001;
-        if (temp_divider - *it >= 0 && bin < number_of_bins - 1)
+        hit = hit + fabs(smallest_score_) + 0.001;
+        if (temp_divider - hit >= 0 && bin < number_of_bins - 1)
         {
           points[bin][2] += 1;
         }

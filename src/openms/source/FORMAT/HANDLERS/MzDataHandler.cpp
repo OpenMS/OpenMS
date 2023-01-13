@@ -1479,11 +1479,11 @@ namespace OpenMS::Internal
     {
       std::vector<String> keys;
       meta.getKeys(keys);
-      for (std::vector<String>::const_iterator it = keys.begin(); it != keys.end(); ++it)
+      for (const auto& key : keys)
       {
-        if ((*it)[0] != '#')             // internally used meta info start with '#'
+        if ((key)[0] != '#')             // internally used meta info start with '#'
         {
-          os << String(indent, '\t') << "<userParam name=\"" << *it << "\" value=\"" << meta.getMetaValue(*it) << "\"/>\n";
+          os << String(indent, '\t') << "<userParam name=\"" << key << "\" value=\"" << meta.getMetaValue(key) << "\"/>\n";
         }
       }
     }

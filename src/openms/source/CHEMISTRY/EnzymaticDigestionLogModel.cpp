@@ -52,18 +52,17 @@ namespace OpenMS
     // load the cleavage model from disk (might throw exceptions)
     TextFile tf;
     tf.load(File::find("./CHEMISTRY/MissedCleavage.model"), true);
-    for (TextFile::ConstIterator it = tf.begin(); it != tf.end(); ++it)
+    for (auto& txt : tf)
     {
-      String tmp = *it;
-      if (tmp.trim().hasPrefix("#"))
+      if (txt.trim().hasPrefix("#"))
       {
         continue;  // skip comments
       }
       StringList components;
-      tmp.split(' ', components);
+      txt.split(' ', components);
       if (components.size() != 4)
       {
-        throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String("split(' ',") + tmp + ")", String("Got ") + components.size() + " columns, expected 4!");
+        throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String("split(' ',") + txt + ")", String("Got ") + components.size() + " columns, expected 4!");
       }
       BindingSite_ bs(components[0].toInt(), components[1].trim());
       CleavageModel_ cl(components[2].toDouble(), components[3].toDouble());

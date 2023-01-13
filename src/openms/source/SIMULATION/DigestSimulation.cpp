@@ -256,15 +256,15 @@ namespace OpenMS
         // sum up intensity values
         generated_features[dp].setIntensity(generated_features[dp].getIntensity() + intensities["intensity"]);
         // ... same for other intensities (iTRAQ...)
-        for (std::map<String, SimTypes::SimIntensityType>::const_iterator it_other = intensities.begin(); it_other != intensities.end(); ++it_other)
+        for (const auto& other : intensities)
         {
-          if (!generated_features[dp].metaValueExists(it_other->first))
+          if (!generated_features[dp].metaValueExists(other.first))
           {
-            generated_features[dp].setMetaValue(it_other->first, it_other->second);
+            generated_features[dp].setMetaValue(other.first, other.second);
           }
           else
           {
-            generated_features[dp].setMetaValue(it_other->first, SimTypes::SimIntensityType(generated_features[dp].getMetaValue(it_other->first)) + it_other->second);
+            generated_features[dp].setMetaValue(other.first, SimTypes::SimIntensityType(generated_features[dp].getMetaValue(other.first)) + other.second);
           }
         }
 
@@ -278,10 +278,10 @@ namespace OpenMS
         std::vector<PeptideIdentification> pep_idents = generated_features[dp].getPeptideIdentifications();
         std::vector<PeptideHit> pep_hits = pep_idents[0].getHits();
 
-        for (std::set<String>::const_iterator s_it = protein_accessions.begin(); s_it != protein_accessions.end(); ++s_it)
+        for (const auto& acc : protein_accessions)
         {
           PeptideEvidence pe;
-          pe.setProteinAccession(*s_it);
+          pe.setProteinAccession(acc);
           pep_hits[0].addPeptideEvidence(pe);
         }
         pep_idents[0].setHits(pep_hits);
@@ -290,13 +290,11 @@ namespace OpenMS
     }
 
     // add generated_features to FeatureMap
-    for (std::map<AASequence, Feature>::iterator it_gf = generated_features.begin();
-         it_gf != generated_features.end();
-         ++it_gf)
+    for (auto& gf : generated_features)
     {
       // round up intensity
-      (it_gf->second).setIntensity(ceil((it_gf->second).getIntensity()));
-      feature_map.push_back(it_gf->second);
+      (gf.second).setIntensity(ceil((gf.second).getIntensity()));
+      feature_map.push_back(gf.second);
     }
 
   }

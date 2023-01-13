@@ -140,9 +140,9 @@ namespace OpenMS
   {
     // no action here .. just check for correct # of channels
     Size active_channel_count = 0;
-    for (ChannelMapType::const_iterator it = channel_map_.begin(); it != channel_map_.end(); ++it)
+    for (const auto& channel : channel_map_)
     {
-      if (it->second.active)
+      if (channel.second.active)
       {
         ++active_channel_count;
       }
@@ -380,10 +380,10 @@ namespace OpenMS
     m->setZero();
     Size ch(0);
     Size ch_internal(0);
-    for (ChannelMapType::const_iterator it = channel_map_.begin(); it != channel_map_.end(); ++it)
+    for (const auto& channel : channel_map_)
     {
       SimTypes::SimIntensityType intensity(0);
-      if (it->second.active && f.metaValueExists(getChannelIntensityName(ch_internal))) // peptide is present in this channel
+      if (channel.second.active && f.metaValueExists(getChannelIntensityName(ch_internal))) // peptide is present in this channel
       {
         intensity = (double) f.getMetaValue(getChannelIntensityName(ch_internal));
         ++ch_internal;

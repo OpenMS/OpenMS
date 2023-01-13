@@ -109,9 +109,9 @@ namespace OpenMS
     }
     
     // spline interpolate the profile data
-    for (MSExperiment::Iterator it = exp_profile.begin(); it < exp_profile.end(); ++it)
+    for (auto& profile : exp_profile)
     {
-      exp_spline_profile_.emplace_back(*it);
+      exp_spline_profile_.emplace_back(profile);
     }
     
     // TODO: Constructing the navigators here instead in the beginning of the filter() method results in segmentation faults. Why?

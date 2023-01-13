@@ -3514,17 +3514,17 @@ namespace OpenMS::Internal
       std::vector<String> keys;
       meta.getKeys(keys);
 
-      for (std::vector<String>::iterator key = keys.begin(); key != keys.end(); ++key)
+      for (auto& key : keys)
       {
-        if (exclude.count(*key)) continue; // skip excluded entries
+        if (exclude.count(key)) continue; // skip excluded entries
 
         // special treatment of GO and BTO terms
         // <cvParam cvRef="BTO" accession="BTO:0000199" name="cardiac muscle"/>
 
-        if (*key == "GO cellular component" || *key == "brenda source tissue")
+        if (key == "GO cellular component" || key == "brenda source tissue")
         {
           // the CVTerm info is in the meta value
-          const ControlledVocabulary::CVTerm* c = cv_.checkAndGetTermByName(meta.getMetaValue(*key));
+          const ControlledVocabulary::CVTerm* c = cv_.checkAndGetTermByName(meta.getMetaValue(key));
 
           if (c != nullptr)
           {
@@ -3535,13 +3535,13 @@ namespace OpenMS::Internal
         else
         {
           bool writtenAsCVTerm = false;
-          const ControlledVocabulary::CVTerm* c = cv_.checkAndGetTermByName(*key);
+          const ControlledVocabulary::CVTerm* c = cv_.checkAndGetTermByName(key);
           if (c != nullptr)
           {
             if (validateCV_(*c, path, validator))
             {
               // write CV
-              cvParams.push_back(writeCV_(*c, meta.getMetaValue(*key)));
+              cvParams.push_back(writeCV_(*c, meta.getMetaValue(key)));
               writtenAsCVTerm = true;
             }
           }
@@ -3549,9 +3549,9 @@ namespace OpenMS::Internal
           // if we could not write it as CVTerm we will store it at least as userParam
           if (!writtenAsCVTerm)
           {
-            String userParam = "<userParam name=\"" + *key + "\" type=\"";
+            String userParam = "<userParam name=\"" + key + "\" type=\"";
 
-            const DataValue& d = meta.getMetaValue(*key);
+            const DataValue& d = meta.getMetaValue(key);
             //determine type
             if (d.valueType() == DataValue::INT_VALUE)
             {
