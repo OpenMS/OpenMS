@@ -206,7 +206,7 @@ namespace OpenMS
     map<String, pair<UInt, UInt> > basename_to_numeric;
 
     // map run identifier to protein accessions that were already added
-    unordered_map<String, unordered_set<String>> ripped_prot_map;
+    map<IDRipper::RipFileIdentifier, unordered_map<String, unordered_set<String>>, RipFileIdentifierIdxComparator> ripped_prot_map;
 
     //store protein and peptides identifications for each file origin
     for (PeptideIdentification& pep : peptides)
@@ -274,7 +274,7 @@ namespace OpenMS
         for (const ProteinHit& prot : proteins_of_accessions)
         { // register protein so we don't add it twice          
           const String& acc = prot.getAccession();
-          ripped_prot_map[merged_prot_identifier].insert(acc);
+          ripped_prot_map[rfi][merged_prot_identifier].insert(acc);
         }
 
         vector<ProteinIdentification> protein_idents;
@@ -303,7 +303,7 @@ namespace OpenMS
             {               
               // check if protein has already been added              
               const String& acc = prot.getAccession();
-              auto& acc_set = ripped_prot_map[merged_prot_identifier];
+              auto& acc_set = ripped_prot_map[rfi][merged_prot_identifier];
               if (auto ri = acc_set.find(acc); ri == acc_set.end())
               { // only add protein once to the run identifier
                 ripped_protein_id_run.insertHit(prot);
@@ -326,7 +326,7 @@ namespace OpenMS
           {              
             // check if protein has already been added
             const String& acc = prot.getAccession();
-            auto& acc_set = ripped_prot_map[merged_prot_identifier];
+             auto& acc_set = ripped_prot_map[rfi][merged_prot_identifier];
             if (auto ri = acc_set.find(acc); ri == acc_set.end())
             { // only add protein once to the run identifier
               p.insertHit(prot);;
