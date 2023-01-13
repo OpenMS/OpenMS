@@ -529,16 +529,17 @@ namespace OpenMS
           mass_qscore_map_[nominal_mass] *= 1 - qscore;
         }
 
+        double tqscore_factor_for_exclusion = 1.0;
         if (targeting_mode_ == 2)
         {
           inter = t_mass_qscore_map_.find(nominal_mass);
           if (inter != t_mass_qscore_map_.end())
           {
-            mass_qscore_map_[nominal_mass] *= t_mass_qscore_map_[nominal_mass];
+            tqscore_factor_for_exclusion = t_mass_qscore_map_[nominal_mass];
           }
         }
 
-        if (1 - mass_qscore_map_[nominal_mass] > tqscore_threshold)
+        if (1 - mass_qscore_map_[nominal_mass] * tqscore_factor_for_exclusion > tqscore_threshold)
         {
           tqscore_exceeding_mass_rt_map_[nominal_mass] = rt;
           tqscore_exceeding_mz_rt_map_[integer_mz] = rt;
