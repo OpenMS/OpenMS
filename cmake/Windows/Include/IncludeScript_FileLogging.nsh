@@ -110,6 +110,7 @@ Function un.TrimNewlines
    Exch $R0
 FunctionEnd
 
+; From AdvUninstallLog(2).nsh
 ; Function un.RemoveEmptyDirs
   ; Pop $9
   ; !define Index 'Line${__LINE__}'

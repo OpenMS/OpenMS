@@ -12,6 +12,7 @@ Name "@CPACK_PACKAGE_NAME@"
 BrandingText "@CPACK_PACKAGE_FILE_NAME@"
 OutFile "@CPACK_TOPLEVEL_DIRECTORY@/@CPACK_OUTPUT_FILE_NAME@"
 SetCompressor /SOLID lzma
+
 !define INST_DIR "@CPACK_TEMPORARY_DIRECTORY@"
 ## Long version has to have 4 levels...
 !define VERSION_LONG "@CPACK_PACKAGE_VERSION@.0"
@@ -23,9 +24,11 @@ SetCompressor /SOLID lzma
 !include ..\..\..\Cfg_Settings.nsh
 ### NSISRESOURCES now consists of the cmake/Windows directory of the source tree.
 !addplugindir ${NSISRESOURCES}\Plugins\x86-unicode
+!addincludedir ${NSISRESOURCES}\Include
 
 # set to "0" for deployment!!! use "1" to build the installer fast (for script debugging)
 !define DEBUG_BUILD 0
+!define DEBUG_NO_THIRDPARTY 0
 # set to "0" for deployment!!! use "1" to skip packaging of *.html files (takes ages)
 !define DEBUG_SKIP_DOCU 0
 
@@ -58,14 +61,20 @@ SetCompressor /SOLID lzma
 # Defines
 !define APPNAME "OpenMS"
 !define PRODUCT_NAME "${APPNAME}"
-!define PROGEXE "bin\TOPPView.exe" # For the icon used by MultiUser plugin, relative to INSTDIR
-!define REGKEY "SOFTWARE\$(^Name)" # For our own additional regkeys
-!define PRODUCT_UNINST_ROOT SHCTX # For AdvUninstallLog (matches default of MultiUser)
-!define PRODUCT_UNINST_KEY "Software\Microsoft\Windows\CurrentVersion\Uninstall\${PRODUCT_NAME}" # For AdvUninstallLog (matches default of MultiUser)
+# For the icon used by MultiUser plugin, relative to INSTDIR
+!define PROGEXE "bin\TOPPView.exe"
+# For our own additional regkeys
+!define REGKEY "SOFTWARE\$(^Name)"
+# For AdvUninstallLog (matches default of MultiUser)
+!define PRODUCT_UNINST_ROOT SHCTX
+# For AdvUninstallLog (matches default of MultiUser)
+!define PRODUCT_UNINST_KEY "Software\Microsoft\Windows\CurrentVersion\Uninstall\${PRODUCT_NAME}"
 !define COMPANY "OpenMS Developer Team"
-!define COMPANY_NAME "${COMPANY}" # For MultiUser
+# For MultiUser
+!define COMPANY_NAME "${COMPANY}"
 !define URL "https://www.OpenMS.de"
-!define URL_INFO_ABOUT "${URL} # For MultiUser
+# For MultiUser
+!define URL_INFO_ABOUT "${URL}"
 
 # We could also define the following
 #CONTACT
@@ -85,13 +94,15 @@ SetCompressor /SOLID lzma
 !include Sections.nsh
 !include Library.nsh
 !include FileFunc.nsh
-!include ${NSISRESOURCES}\Include\IncludeScript_Misc.nsh
-!include ${NSISRESOURCES}\Include\IncludeScript_FileLogging.nsh
-!include ${NSISRESOURCES}\Include\EnvVarUpdate.nsh
-!include ${NSISRESOURCES}\Include\AdvUninstLog2.nsh
-!include ${NSISRESOURCES}\Include\NsisMultiUser.nsh
 
 !define FOLDERLIST_EXE ${NSISRESOURCES}\FolderList.exe
+
+# Private includes from repo
+!include IncludeScript_Misc.nsh
+!include IncludeScript_FileLogging.nsh
+!include EnvVarUpdate.nsh
+!include AdvUninstLog2.nsh
+!include NsisMultiUser.nsh
 
 # For AdvUninstalllog (alternative INTERACTIVE_UNINSTALL will trigger message boxes for each file)
 !insertmacro UNATTENDED_UNINSTALL
@@ -126,17 +137,21 @@ Var EnvVarUpdateLoc
 # MUI defines
 #!define MUI_ICON OpenMS.ico
 
+# UI settings
 !define MUI_FINISHPAGE_NOAUTOCLOSE
 !define UMUI_STARTMENUPAGE_REGISTRY_ROOT SHCTX
-!define UMUI_STARTMENUPAGE_REGISTRY_KEY ${REGKEY}
+!define UMUI_STARTMENUPAGE_REGISTRY_KEY ${PRODUCT_UNINST_KEY}
 !define UMUI_STARTMENUPAGE_REGISTRY_VALUENAME StartMenuGroup
 !define UMUI_STARTMENUPAGE_DEFAULTFOLDER "${PRODUCT_NAME}"
 !define MUI_LICENSEPAGE_RADIOBUTTONS
 !define MUI_FINISHPAGE_SHOWREADME $INSTDIR\ReleaseNotes.txt
 !define MUI_UNFINISHPAGE_NOAUTOCLOSE
-!define UMUI_LANGDLL_REGISTRY_ROOT SHCTX
-!define UMUI_LANGDLL_REGISTRY_KEY ${REGKEY}
-!define UMUI_LANGDLL_REGISTRY_VALUENAME InstallerLanguage
+
+# Remember the installer language
+!define MUI_LANGDLL_REGISTRY_ROOT SHCTX
+!define MUI_LANGDLL_REGISTRY_KEY ${PRODUCT_UNINST_KEY}
+!define MUI_LANGDLL_REGISTRY_VALUENAME "InstallerLanguage"
+
 
 # Installer pages
 !insertmacro MUI_PAGE_WELCOME
@@ -151,9 +166,9 @@ Var EnvVarUpdateLoc
 
 # Uninstaller pages
 !insertmacro MUI_UNPAGE_CONFIRM
+!define MULTIUSER_INSTALLMODE_CHANGE_MODE_FUNCTION un.PageInstallModeChangeMode
 !insertmacro MULTIUSER_UNPAGE_INSTALLMODE
 !insertmacro MUI_UNPAGE_INSTFILES
-#!insertmacro MUI_UNPAGE_FINISH # We probably do not need a finish page during uninstall
 
 # Installer languages
 !insertmacro MUI_LANGUAGE German
@@ -182,13 +197,7 @@ InstType "Recommended"  #1
 InstType "Minimum"      #2
 InstType "Full"         #3
 
-# Installer attributes (should be done by NsisMultiUser plugin MULTIUSER_INSTALLMODE_INSTDIR)
-#!if ${PLATFORM} == 32
-#	InstallDir "$PROGRAMFILES32\${PRODUCT_NAME}-${VERSION}"
-#!else
-#	InstallDir "$PROGRAMFILES64\${PRODUCT_NAME}-${VERSION}"
-#!endif
-
+# TODO check what this does
 CRCCheck on
 ShowInstDetails hide
 VIProductVersion ${VERSION_LONG}
@@ -281,7 +290,8 @@ Section "TOPP tools" SEC_TOPP
     #open uninstall log file
     !insertmacro UNINSTALL.LOG_OPEN_INSTALL
 
-    # We do not need qt.conf if the plugins are in the standard location plugins
+    # Since Qt 5.14 we probably do not need qt.conf if the plugins are in the standard location "plugins"
+    # Qt is built "-relocatable" since then.
     #File "${OPENMSBINDIR}\qt.conf"
 
     # install every tool exe except for Tutorials (if present)
@@ -317,7 +327,7 @@ SectionEnd
 ## Third party libs
 ## TODO switch to packagedir
 SectionGroup "ThirdParty" SEC_ThirdParty
-	!if ${DEBUG_BUILD} == 0
+	!if ${DEBUG_NO_THIRDPARTY} == 0
 		Section "Proteowizard" SEC_pwiz
 		    SectionIn 1 3
             SetOverwrite on
@@ -330,7 +340,7 @@ SectionGroup "ThirdParty" SEC_ThirdParty
             !insertmacro UNINSTALL.LOG_CLOSE_INSTALL
         SectionEnd
 
-        Section ".NET and VCRedist for Proteowizard" SEC_dotnet
+        Section ".NET and VSRuntime for Proteowizard" SEC_dotnet
             SectionIn 1 3
             SetOverwrite on
             !insertmacro UNINSTALL.LOG_OPEN_INSTALL
@@ -446,7 +456,7 @@ Function CreateShortcuts
     !insertmacro CREATE_SMGROUP_SHORTCUT TOPPAS $INSTDIR\bin\TOPPAS.exe
     !insertmacro CREATE_SMGROUP_SHORTCUT SwathWizard $INSTDIR\bin\SwathWizard.exe
     !insertmacro CREATE_SMGROUP_SHORTCUT INIFileEditor $INSTDIR\bin\INIFileEditor.exe
-    !insertmacro CREATE_SMGROUP_SHORTCUT "OpenMS Homepage" http://www.OpenMS.de/
+    !insertmacro CREATE_SMGROUP_SHORTCUT "OpenMS Homepage" "${URL}"
     !insertmacro CREATE_SMGROUP_SHORTCUT "TOPP command line" "$INSTDIR\bin\command.bat"
 
     SetOutPath $SMPROGRAMS\${APPNAME}
@@ -481,9 +491,9 @@ SectionEnd
 Section "-Create_command_bat" SEC_CmdBat
     SectionIn 1 2 3
     #open log file
-    !insertmacro UNINSTALL.LOG_OPEN_INSTALL
+    # Does not work for FileWrite somehow: !insertmacro UNINSTALL.LOG_OPEN_INSTALL
 
-    ## create a command bat
+    ## create a command bat (i.e. a TOPP shell)
     push $R0
     push $0
     StrCpy $R0 $INSTDIR 2
@@ -493,9 +503,10 @@ Section "-Create_command_bat" SEC_CmdBat
     pop $0
     pop $R0
 
-    FileWrite $UninstallLog "$INSTDIR\bin\command.bat$\r$\n"
+    # Does not work. Maybe needs to be done later? For now we delete manually in "-Uninstall" section
+    # FileWrite $UninstallLog "$INSTDIR\bin\command.bat$\r$\n"
 
-    !insertmacro UNINSTALL.LOG_CLOSE_INSTALL
+    # Does not work for FileWrite somehow: !insertmacro UNINSTALL.LOG_CLOSE_INSTALL
 SectionEnd
 
 
@@ -560,21 +571,22 @@ SectionGroup "Register File Extensions" SEC_RegisterExt
 SectionGroupEnd
 
 # TODO make selectable or remove altogether by shipping the vcredist dlls instead of installer.
-Section "-hidden VSRuntime"
+Section "Microsoft Visual Studio Runtime" SEC_VSRuntime
+    SectionIn 1 3
     SetOutPath $TEMP
     SetOverwrite on
 
     File "${VS_REDISTRIBUTABLE_PATH}\${VS_REDISTRIBUTABLE_EXE}"
     # this requires admin privileges!
-    ${If} $IsAdmin == 1
+    #${If} $IsAdmin == 1
         ClearErrors
         ExecWait '$TEMP\${VS_REDISTRIBUTABLE_EXE} /install /passive /norestart' $0
         StrCmp $0 0 vs_install_success
         StrCmp $0 1638 vs_install_success
         MessageBox MB_OK|MB_ICONEXCLAMATION "The installation of the Visual Studio redistributable package '${VS_REDISTRIBUTABLE_EXE}' failed! OpenMS will not work unless this package is installed! The package is located at '$TEMP\${VS_REDISTRIBUTABLE_EXE}'. Try to execute it as administrator - there will likely be an error which you can blame Microsoft for. If you cannot fix it contact the OpenMS developers!"
-    ${Else}
-        MessageBox MB_OK|MB_ICONEXCLAMATION "Single user install was selected. '${VS_REDISTRIBUTABLE_EXE}' was not installed since it requires admin rights! OpenMS will probably not work unless this package is installed! The package is located at '$TEMP\${VS_REDISTRIBUTABLE_EXE}'. Try to execute it as administrator - there will likely be an error which you can blame Microsoft for. If you cannot fix it contact the OpenMS developers!"
-    ${EndIf}
+    #${Else}
+    #    MessageBox MB_OK|MB_ICONEXCLAMATION "Single user install was selected. '${VS_REDISTRIBUTABLE_EXE}' was not installed since it requires admin rights! OpenMS will probably not work unless this package is installed! The package is located at '$TEMP\${VS_REDISTRIBUTABLE_EXE}'. Try to execute it as administrator - there will likely be an error which you can blame Microsoft for. If you cannot fix it contact the OpenMS developers!"
+    #${EndIf}
 
 	vs_install_success:
 
@@ -589,13 +601,9 @@ Section -post SEC0008
 
      # defined by NsisMultiUser plugin. default uninstall.exe.
      WriteUninstaller "${UNINSTALL_FILENAME}"
-     # add registry keys
+     # add registry keys like the ones below
      !insertmacro MULTIUSER_RegistryAddInstallInfo
 
-#    WriteRegStr SHCTX "${REGKEY}" Path $INSTDIR
-#    WriteRegStr SHCTX "${REGKEY}" "UninstallString" "$INSTDIR\uninstall.exe"
-#    SetOutPath $INSTDIR
-#    WriteUninstaller $INSTDIR\uninstall.exe
 #    WriteRegStr SHCTX "SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\$(^Name)" DisplayName "$(^Name)"
 #    WriteRegStr SHCTX "SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\$(^Name)" DisplayVersion "${VERSION}"
 #    WriteRegStr SHCTX "SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\$(^Name)" Publisher "OpenMS Developer Team"
@@ -767,16 +775,17 @@ FunctionEnd
 
 Function .onInstSuccess
    !insertmacro UNINSTALL.LOG_UPDATE_INSTALL
-   #UAC::Unload ;Must call unload!
 FunctionEnd
 
 # set the component descriptions after the Sections have been defined!
 !insertmacro MUI_FUNCTION_DESCRIPTION_BEGIN
 !insertmacro MUI_DESCRIPTION_TEXT ${SEC_Lib} "The core libraries of OpenMS"
-!insertmacro MUI_DESCRIPTION_TEXT ${SEC_TOPP} "TOPP (The OpenMS Proteomics Pipeline) - chainable tools for data analysis"
+!insertmacro MUI_DESCRIPTION_TEXT ${SEC_TOPP} "TOPP (The OpenMS Proteomics Pipeline) - chainable tools for MS data analysis"
 !insertmacro MUI_DESCRIPTION_TEXT ${SEC_Doc} "Documentation/Tutorials for TOPP, TOPPView and the OpenMS library itself."
-!insertmacro MUI_DESCRIPTION_TEXT ${SEC_ThirdParty} "Install third party libraries (e.g. ProteoWizard)."
-!insertmacro MUI_DESCRIPTION_TEXT ${SEC_RegisterExt} "Register certain file types (e.g. '.mzML') with TOPPView.exe"
+!insertmacro MUI_DESCRIPTION_TEXT ${SEC_ThirdParty} "Install third party libraries (e.g., ProteoWizard)."
+!insertmacro MUI_DESCRIPTION_TEXT ${SEC_dotnet} "Install .NET and Microsoft Visual Studio Runtime for Proteowizard. (may require the installer to be run in admin mode). Deactivate if you are not admin and think this is installed already (or will be installed later) by an admin."
+!insertmacro MUI_DESCRIPTION_TEXT ${SEC_RegisterExt} "Register certain file types (e.g., '.mzML') with TOPPView.exe."
+!insertmacro MUI_DESCRIPTION_TEXT ${SEC_VSRuntime} "Install the required Microsoft Visual Studio runtime (may require the installer to be run in admin mode). Deactivate if you are not admin and think this is installed already (or will be installed later) by an admin."
 !insertmacro MUI_FUNCTION_DESCRIPTION_END
 
 ################
@@ -785,15 +794,12 @@ FunctionEnd
 
 # Uninstaller sections
 
-Section "Uninstall"
-    ReadRegStr $INSTDIR SHCTX "${REGKEY}" Path
+Section "-Uninstall"
     !insertmacro MUI_STARTMENU_GETFOLDER Application $StartMenuGroup
     !insertmacro MUI_UNGETLANGUAGE
 
     ## undo changes to PATH
-    UserInfo::GetAccountType
-    Pop $0
-    ${If} $0 == "Admin"
+    ${If} $MultiUser.InstallMode == "AllUsers"
         StrCpy $EnvVarUpdateLoc "HKLM"
     ${Else}
         StrCpy $EnvVarUpdateLoc "HKCU"
@@ -833,15 +839,16 @@ Section "Uninstall"
     ## delete all installed files
 	!insertmacro UNINSTALL.NEW_UNINSTALL
 
-    # remove directories which are now empty
-    Push "\"
+    # remove directories which are now empty (in case some were forgotten)
+    Push "$INSTDIR"
     Call un.RemoveEmptyDirs
 
     ## clean up the registry (should be done by the NsisMultiUser plugin)
     #DeleteRegKey SHCTX "SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\$(^Name)"
     # delete /Software/OpenMS (with all its content)
     DeleteRegKey SHCTX "${REGKEY}"
-
+    # somehow our generated bat file is not recorded by AdvUninstallLog
+    Delete "$INSTDIR\bin\command.bat"
     # Remove the uninstaller from registry as the very last step - if sth. goes wrong, let the user run it again
     !insertmacro MULTIUSER_RegistryRemoveInstallInfo
 
@@ -852,40 +859,14 @@ Section "Uninstall"
 
 SectionEnd
 
-Function un.clearStartMenu
-   # delete Startmenu-Entry
-   RmDir /r /REBOOTOK $SMPROGRAMS\${APPNAME}
-FunctionEnd
-
 # UnInstaller functions
-; Attempt to give the UAC plug-in a user process and an admin process.
 Function un.onInit
     !insertmacro MULTIUSER_UNINIT
-    ## UAC init:
-    ## copied from http://nsis.sourceforge.net/UAC_plug-in
+    !insertmacro MUI_UNGETLANGUAGE ; we always get the language, since the outer and inner instance might have different language
+FunctionEnd
 
-    #UAC_Elevate:
-    #    UAC::RunElevated
-    #    StrCmp 1223 $0 UAC_ElevationAborted ; UAC dialog aborted by user?
-    #    StrCmp 0 $0 0 UAC_Err ; Error?
-    #    StrCmp 1 $1 0 UAC_Success ;Are we the real deal or just the wrapper?
-    #    Quit
-    #
-    #UAC_Err:
-    #    MessageBox mb_iconstop "Unable to elevate, error $0"
-    #    Abort
-    #
-    #UAC_ElevationAborted:
-    #    # elevation was aborted, run as normal?
-    #    MessageBox mb_iconstop "This installer requires administrative rights, aborting!"
-    #    Abort
-    #
-    #UAC_Success:
-    #    StrCmp 1 $3 +4 ;Admin?
-    #    StrCmp 3 $1 0 UAC_ElevationAborted ;Try again?
-    #    MessageBox mb_iconstop "This installer requires administrative rights, try again"
-    #    goto UAC_Elevate
-
+Function un.PageInstallModeChangeMode
+    !insertmacro MUI_STARTMENU_GETFOLDER Application $StartMenuGroup
 FunctionEnd
 
 

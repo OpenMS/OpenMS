@@ -17,7 +17,7 @@ Copyright 2016-2018 Ricardo Drizin, Alex Mitev
 !include x64.nsh
 !include WinVer.nsh
 !include FileFunc.nsh
-!include ${NSISRESOURCES}\Include\UAC.nsh
+!include UAC.nsh
 !include StrFunc.nsh
 
 RequestExecutionLevel user ; will ask elevation only if necessary
@@ -165,7 +165,7 @@ RequestExecutionLevel user ; will ask elevation only if necessary
 
 /****** Installer/uninstaller initialization ******/
 !macro MULTIUSER_LANGUAGE_INIT ; called by user script after the last MUI_LANGUAGE call
-	!include "${NSISRESOURCES}\Include\NsisMultiUserLang.nsh"
+	!include "NsisMultiUserLang.nsh"
 !macroend
 
 !macro MULTIUSER_INIT ; called by user script in .onInit (after MULTIUSER_PAGE_INSTALLMODE)
