@@ -164,12 +164,12 @@ namespace OpenMS
                 target_mass_rt_map_[mass] = std::vector<double>();
               }
               target_mass_rt_map_[mass].push_back(rt * 60.0);
+              if (target_mass_qscore_map_.find(mass) == target_mass_qscore_map_.end())
+              {
+                target_mass_qscore_map_[mass] = std::vector<double>();
+              }
+              target_mass_qscore_map_[mass].push_back(qscore);
             }
-            if (target_mass_qscore_map_.find(mass) == target_mass_qscore_map_.end())
-            {
-              target_mass_qscore_map_[mass] = std::vector<double>();
-            }
-            target_mass_qscore_map_[mass].push_back(qscore);
             // precursor_map_for_real_time_acquisition[scan].push_back(e);
           }
         }
@@ -294,24 +294,27 @@ namespace OpenMS
     std::unordered_map<int, double> new_mass_qscore_map_;
     std::unordered_map<int, double> t_mass_qscore_map_;
 
-    for (auto& [mass, rts] : target_mass_rt_map_)
+    if (targeting_mode_ == 2)
     {
-      int nominal_mass =  FLASHDeconvAlgorithm::getNominalMass(mass);
-      auto qscores = target_mass_qscore_map_[mass];
-      for (int i=0;i<rts.size();i++)
+      for (auto& [mass, rts] : target_mass_rt_map_)
       {
-        double prt = rts[i];
-        double qscore = qscores[i];
-        if (std::abs(rt - prt) < rt_window_)
+        int nominal_mass = FLASHDeconvAlgorithm::getNominalMass(mass);
+        auto qscores = target_mass_qscore_map_[mass];
+        for (int i = 0; i < rts.size(); i++)
         {
-          auto inter = t_mass_qscore_map_.find(nominal_mass);
-          if (inter == t_mass_qscore_map_.end())
+          double prt = rts[i];
+          double qscore = qscores[i];
+          if (std::abs(rt - prt) < rt_window_)
           {
-            t_mass_qscore_map_[nominal_mass] = 1 - qscore;
-          }
-          else
-          {
-            t_mass_qscore_map_[nominal_mass] *= 1 - qscore;
+            auto inter = t_mass_qscore_map_.find(nominal_mass);
+            if (inter == t_mass_qscore_map_.end())
+            {
+              t_mass_qscore_map_[nominal_mass] = 1 - qscore;
+            }
+            else
+            {
+              t_mass_qscore_map_[nominal_mass] *= 1 - qscore;
+            }
           }
         }
       }
@@ -526,10 +529,13 @@ namespace OpenMS
           mass_qscore_map_[nominal_mass] *= 1 - qscore;
         }
 
-        inter = t_mass_qscore_map_.find(nominal_mass);
-        if (inter != t_mass_qscore_map_.end())
+        if (targeting_mode_ == 2)
         {
-          mass_qscore_map_[nominal_mass] *= t_mass_qscore_map_[nominal_mass];
+          inter = t_mass_qscore_map_.find(nominal_mass);
+          if (inter != t_mass_qscore_map_.end())
+          {
+            mass_qscore_map_[nominal_mass] *= t_mass_qscore_map_[nominal_mass];
+          }
         }
 
         if (1 - mass_qscore_map_[nominal_mass] > tqscore_threshold)
