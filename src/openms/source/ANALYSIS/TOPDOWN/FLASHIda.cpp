@@ -292,6 +292,7 @@ namespace OpenMS
     std::unordered_map<int, double> new_mass_rt_map_;
     std::unordered_map<int, double> new_all_mass_rt_map_;
     std::unordered_map<int, double> new_mass_qscore_map_;
+    std::unordered_map<int, double> t_mass_qscore_map_;
 
     for (auto& [mass, rts] : target_mass_rt_map_)
     {
@@ -303,14 +304,14 @@ namespace OpenMS
         double qscore = qscores[i];
         if (std::abs(rt - prt) < rt_window_)
         {
-          auto inter = new_mass_qscore_map_.find(nominal_mass);
-          if (inter == new_mass_qscore_map_.end())
+          auto inter = t_mass_qscore_map_.find(nominal_mass);
+          if (inter == t_mass_qscore_map_.end())
           {
-            new_mass_qscore_map_[nominal_mass] = 1 - qscore;
+            t_mass_qscore_map_[nominal_mass] = 1 - qscore;
           }
           else
           {
-            new_mass_qscore_map_[nominal_mass] *= 1 - qscore;
+            t_mass_qscore_map_[nominal_mass] *= 1 - qscore;
           }
         }
       }
@@ -347,14 +348,9 @@ namespace OpenMS
       new_all_mass_rt_map_[item.first] = item.second;
 
       auto inter = new_mass_qscore_map_.find(item.first);
-      if (inter == new_mass_qscore_map_.end())
-      {
-        new_mass_qscore_map_[item.first] = mass_qscore_map_[item.first];
-      }
-      else
-      {
-        new_mass_qscore_map_[item.first] *= mass_qscore_map_[item.first];
-      }
+
+      new_mass_qscore_map_[item.first] = mass_qscore_map_[item.first];
+
     }
     new_all_mass_rt_map_.swap(all_mass_rt_map_);
     std::unordered_map<int, double>().swap(new_all_mass_rt_map_);
@@ -528,6 +524,12 @@ namespace OpenMS
         else
         {
           mass_qscore_map_[nominal_mass] *= 1 - qscore;
+        }
+
+        inter = t_mass_qscore_map_.find(nominal_mass);
+        if (inter != t_mass_qscore_map_.end())
+        {
+          mass_qscore_map_[nominal_mass] *= t_mass_qscore_map_[nominal_mass];
         }
 
         if (1 - mass_qscore_map_[nominal_mass] > tqscore_threshold)
