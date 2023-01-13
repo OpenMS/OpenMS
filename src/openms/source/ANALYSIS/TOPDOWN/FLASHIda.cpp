@@ -388,6 +388,16 @@ namespace OpenMS
         double snr_threshold = snr_threshold_;
         double qscore_threshold = qscore_threshold_;
 
+        double tqscore_factor_for_exclusion = 1.0;
+        if (targeting_mode_ == 2)
+        {
+          auto inter = t_mass_qscore_map_.find(nominal_mass);
+          if (inter != t_mass_qscore_map_.end())
+          {
+            tqscore_factor_for_exclusion = t_mass_qscore_map_[nominal_mass];
+          }
+        }
+
         if (targeting_mode_ == 1 && target_masses_.size() > 0)  // inclusive mode
         {
           double delta = 2 * tol_[0] * mass * 1e-6;
@@ -443,7 +453,7 @@ namespace OpenMS
 
         if (selection_phase == 0)
         { // first, select masses under tqscore threshold
-          if (tqscore_exceeding_mass_rt_map_.find(nominal_mass) != tqscore_exceeding_mass_rt_map_.end() || tqscore_exceeding_mz_rt_map_.find(integer_mz) != tqscore_exceeding_mz_rt_map_.end())
+          if (1 - tqscore_factor_for_exclusion  > tqscore_threshold ||  tqscore_exceeding_mass_rt_map_.find(nominal_mass) != tqscore_exceeding_mass_rt_map_.end() || tqscore_exceeding_mz_rt_map_.find(integer_mz) != tqscore_exceeding_mz_rt_map_.end())
           {
             continue;
           }
@@ -527,16 +537,6 @@ namespace OpenMS
         else
         {
           mass_qscore_map_[nominal_mass] *= 1 - qscore;
-        }
-
-        double tqscore_factor_for_exclusion = 1.0;
-        if (targeting_mode_ == 2)
-        {
-          inter = t_mass_qscore_map_.find(nominal_mass);
-          if (inter != t_mass_qscore_map_.end())
-          {
-            tqscore_factor_for_exclusion = t_mass_qscore_map_[nominal_mass];
-          }
         }
 
         if (1 - mass_qscore_map_[nominal_mass] * tqscore_factor_for_exclusion > tqscore_threshold)
