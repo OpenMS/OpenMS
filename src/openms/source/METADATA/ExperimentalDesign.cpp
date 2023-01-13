@@ -152,7 +152,7 @@ namespace OpenMS
           r.sample_name = r.sample;
         } else {
           r.sample_name = f.second.getMetaValue("sample_name");
-          const auto& [it, inserted] = samplename_to_sample_mapping.emplace(r.sample_name,samplename_to_sample_mapping.size());
+          [[maybe_unused]] const auto& [it, inserted] = samplename_to_sample_mapping.emplace(r.sample_name,samplename_to_sample_mapping.size());
           r.sample = it->second;
         }
 

@@ -14,7 +14,7 @@ cdef extern from "<OpenMS/METADATA/ProteinIdentification.h>" namespace "OpenMS":
 
     cdef cppclass ProteinIdentification(MetaInfoInterface):
         # wrap-inherits:
-        #    MetaInfoInterface
+        #   MetaInfoInterface
 
         ProteinIdentification() nogil except +
         ProteinIdentification(ProteinIdentification &) nogil except +
@@ -84,9 +84,10 @@ cdef extern from "<OpenMS/METADATA/ProteinIdentification.h>" namespace "OpenMS":
 
         void setPrimaryMSRunPath(StringList& s) nogil except +
           # wrap-doc:
-            #   Set the file paths to the primary MS runs (usually the mzML files obtained after data conversion from raw files)
-            #   -----
-            #   :param raw: Store paths to the raw files (or equivalent) rather than mzMLs
+            #  Set the file paths to the primary MS runs (usually the mzML files obtained after data conversion from raw files)
+            #  
+            #  
+            #  :param raw: Store paths to the raw files (or equivalent) rather than mzMLs
 
         void addPrimaryMSRunPath(StringList& s) nogil except +
         void getPrimaryMSRunPath(StringList& output) nogil except +
@@ -104,7 +105,7 @@ cdef extern from "<OpenMS/METADATA/ProteinIdentification.h>" namespace "OpenMS::
 
     cdef enum PeakMassType:
         # wrap-attach:
-        #    ProteinIdentification
+        #   ProteinIdentification
         MONOISOTOPIC, AVERAGE, SIZE_OF_PEAKMASSTYPE
 
     cdef cppclass ProteinGroup:
@@ -121,7 +122,7 @@ cdef extern from "<OpenMS/METADATA/ProteinIdentification.h>" namespace "OpenMS::
     # Search parameters of the DB search
     cdef cppclass SearchParameters(MetaInfoInterface):
         # wrap-inherits:
-        #    MetaInfoInterface
+        #   MetaInfoInterface
 
       SearchParameters()  nogil except +
       SearchParameters(SearchParameters &) nogil except +

@@ -65,7 +65,7 @@ namespace TRIOT {
     class ForEachFixedDimension<0U>	{
   public:
     template <typename FUNCTION, typename ...TENSORS>
-    inline static void apply(const_tup_t shape, FUNCTION function, TENSORS & ...args) {
+    inline static void apply(const_tup_t /*shape*/, FUNCTION /*function*/, TENSORS & .../*args*/) {
 		// do nothing, so that memset is not called with size = 0 which is a GCC extension
 	}
   };
@@ -128,16 +128,21 @@ namespace TRIOT {
     class ForEachVisibleCounterFixedDimension<0U>	{
   public:
     template <typename FUNCTION, typename ...TENSORS>
-    inline static void apply(const_tup_t shape, FUNCTION function, TENSORS & ...args) {
+    inline static void apply(const_tup_t /*shape*/, FUNCTION /*function*/, TENSORS & .../*args*/) {
 		// do nothing, so that memset is not called with size = 0 which is a GCC extension
 	}
   };
 }
 
 template <typename ...TENSORS>
-void check_tensor_pack_bounds(const TENSORS & ...args, const Vector<unsigned long> & shape) {
-  #ifdef SHAPE_CHECK
-  // Verify same shapes:
+#ifndef SHAPE_CHECK
+  void check_tensor_pack_bounds(const TENSORS&... /*args*/, const Vector<unsigned long>& /*shape*/)
+  {
+  }
+#else
+  void check_tensor_pack_bounds(const TENSORS&... args, const Vector<unsigned long>& shape)
+  {
+    // Verify same shapes:
 
   // TODO: this could be faster by using an array of references; C++
   // does not allow an array of references, but it would allow an
@@ -151,11 +156,11 @@ void check_tensor_pack_bounds(const TENSORS & ...args, const Vector<unsigned lon
     // the current view_shape:
     assert(s >= shape);
   }
-  #endif
 }
+#endif
 
-template <typename ...TENSORS>
-void check_tensor_pack_bounds(const Vector<unsigned long> & shape) {
+  template <typename ...TENSORS>
+void check_tensor_pack_bounds(const Vector<unsigned long> & /*shape*/) {
 }
 
 template <typename ...TENSORS>

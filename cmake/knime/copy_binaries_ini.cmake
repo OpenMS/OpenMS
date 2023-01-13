@@ -32,7 +32,7 @@
 # $Authors: Stephan Aiche $
 # --------------------------------------------------------------------------
 
-CMAKE_MINIMUM_REQUIRED (VERSION 2.8)
+cmake_minimum_required(VERSION 3.15 FATAL_ERROR)
 
 # include helper functions 
 include ( ${SCRIPT_DIR}common.cmake )

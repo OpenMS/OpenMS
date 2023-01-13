@@ -12,7 +12,7 @@ cdef extern from "<OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithmPi
     cdef cppclass FeatureFinderAlgorithmPicked(DefaultParamHandler):
 
         # wrap-inherits:
-        #    DefaultParamHandler
+        #   DefaultParamHandler
         FeatureFinderAlgorithmPicked() nogil except +
         # private
         FeatureFinderAlgorithmPicked(FeatureFinderAlgorithmPicked &) nogil except + # wrap-ignore

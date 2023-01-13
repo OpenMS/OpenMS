@@ -10,9 +10,9 @@ cdef extern from "<OpenMS/METADATA/Instrument.h>" namespace "OpenMS":
 
     cdef cppclass Instrument(MetaInfoInterface):
         # wrap-inherits:
-        #    MetaInfoInterface
+        #   MetaInfoInterface
         # wrap-doc:
-        #   Description of a MS instrument
+        #  Description of a MS instrument
 
         Instrument() nogil except + # wrap-doc:Description of a MS instrument
         Instrument(Instrument &) nogil except +

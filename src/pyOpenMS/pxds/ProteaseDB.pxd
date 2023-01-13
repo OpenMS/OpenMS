@@ -6,7 +6,7 @@ cdef extern from "<OpenMS/CHEMISTRY/ProteaseDB.h>" namespace "OpenMS":
 
     cdef cppclass ProteaseDB "OpenMS::ProteaseDB":
         # wrap-manual-memory:
-        #     cdef AutowrapPtrHolder[_ProteaseDB] inst
+        #    cdef AutowrapPtrHolder[_ProteaseDB] inst
 
         # protected
         ProteaseDB() nogil except + #wrap-ignore

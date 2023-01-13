@@ -1,4 +1,5 @@
-# This is a basic workflow to help you get started with Actions
+# This builds python wheels on manylinux, macOS and Windows and uploads them
+# to public pypi for release and the pypi.cs.uni-tuebingen.de for nightlies.
 
 name: pyopenms-wheels
 
@@ -17,12 +18,12 @@ jobs:
   build-win:
     runs-on: windows-latest
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
       with:
         path: OpenMS
       
     - name: Setup cmake
-      uses: jwlawson/actions-setup-cmake@v1.9
+      uses: jwlawson/actions-setup-cmake@v1.13
       with:
         cmake-version: '3.23.x'
 
@@ -30,14 +31,14 @@ jobs:
       run: echo "PATH=C:\hostedtoolcache\windows\Python\3.7.9\x64\Scripts;C:\hostedtoolcache\windows\Python\3.7.9\x64;C:\hostedtoolcache\windows\Ruby\2.5.8\x64\bin;C:\Program Files\Java\jdk8u265-b01\bin;C:\ProgramData\kind;C:\vcpkg;C:\cf-cli;C:\Program Files (x86)\NSIS;C:\windows\system32;C:\windows;C:\windows\System32\Wbem;C:\windows\System32\WindowsPowerShell\v1.0;C:\windows\System32\OpenSSH;C:\ProgramData\Chocolatey\bin;C:\Program Files\Docker;C:\Program Files\PowerShell\7;C:\Program Files\OpenSSL\bin;C:\Strawberry\c\bin;C:\Strawberry\perl\site\bin;C:\Strawberry\perl\bin;C:\Program Files\Git\cmd;C:\Program Files\Git\mingw64\bin;C:\Program Files\Git\usr\bin;C:\Program Files (x86)\Microsoft Visual Studio\2019\\Enterprise\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\bin" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
 
     - name: Install Qt
-      uses: jurplel/install-qt-action@v2
+      uses: jurplel/install-qt-action@v3
       with:
         version: '5.12.6' # 5.12.7 is broken https://bugreports.qt.io/browse/QTBUG-81715
         host: 'windows' # default: win64_msvc2017_64
         target: 'desktop'
         install-deps: 'true'
-        modules: 'qtsvg'
-        cached: 'false'
+        archives: 'qtsvg qtbase'
+        cache: 'false'
 
     - name: Install Miniconda
       shell: bash # uses git bash on windows
@@ -127,7 +128,7 @@ jobs:
 
           done
 
-    - uses: actions/upload-artifact@v1
+    - uses: actions/upload-artifact@v3
       name: Upload artifacts
       with:
         name: ${{ runner.os }}-wheels
@@ -136,12 +137,12 @@ jobs:
   build-macos:
     runs-on: macos-latest
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
       with:
         path: OpenMS
 
     - name: Setup cmake
-      uses: jwlawson/actions-setup-cmake@v1.9
+      uses: jwlawson/actions-setup-cmake@v1.13
       with:
         cmake-version: '3.23.x'
 
@@ -270,7 +271,7 @@ jobs:
 
           done
 
-    - uses: actions/upload-artifact@v2
+    - uses: actions/upload-artifact@v3
       name: Upload artifacts
       if: always()
       with:
@@ -279,7 +280,7 @@ jobs:
           bld/CMakeCache.txt
           bld/pyOpenMS/env.py
         
-    - uses: actions/upload-artifact@v1
+    - uses: actions/upload-artifact@v3
       name: Upload wheels
       with:
         name: ${{ runner.os }}-wheels
@@ -296,13 +297,13 @@ jobs:
         GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
       if: "!startsWith(github.ref, 'refs/tags/') && github.ref != 'refs/heads/master' && github.ref != 'refs/heads/develop'"
 
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
       name: Checkout sources
       with:
         path: OpenMS
 
     - name: Setup cmake
-      uses: jwlawson/actions-setup-cmake@v1.9
+      uses: jwlawson/actions-setup-cmake@v1.13
       with:
         cmake-version: '3.23.x'
 
@@ -312,23 +313,10 @@ jobs:
             cmake --version
             # build an array based the python versions in /opt/python
             py_paths=()
+            echo "Available python versions:"
             for PYBIN in /opt/python/cp*
             do
               echo $PYBIN
-              py_paths+=("$PYBIN")
-            done
-
-            # use the latest 3 python versions similar to macOS, windows
-            for i in 0{1..3}
-            do
-              PYBIN="${py_paths[${#py_paths[@]}-i]}"
-              "$PYBIN/bin/pip" install -U pip
-              "$PYBIN/bin/pip" install -U Cython
-              "$PYBIN/bin/pip" install -U setuptools
-              "$PYBIN/bin/pip" install -U wheel==0.31.1
-              "$PYBIN/bin/pip" install -U numpy
-              "$PYBIN/bin/pip" install -U pytest
-              "$PYBIN/bin/pip" install -U autowrap
             done
 
             mkdir -p $GITHUB_WORKSPACE/data/wheelhouse/
@@ -342,9 +330,17 @@ jobs:
             make -j4 OpenMS
 
             # compile and configure OpenMS
-            for i in 0{1..3}
+            # since string sorting does not work with 9,10,11+ we need to specify manually.
+            # TODO use a "supported version" file
+            for PYBIN in /opt/python/cp*3{9,10,11}
             do
-              PYBIN="${py_paths[${#py_paths[@]}-i]}"
+              "$PYBIN/bin/pip" install -U pip
+              "$PYBIN/bin/pip" install -U Cython
+              "$PYBIN/bin/pip" install -U setuptools
+              "$PYBIN/bin/pip" install -U wheel==0.31.1
+              "$PYBIN/bin/pip" install -U numpy
+              "$PYBIN/bin/pip" install -U pytest
+              "$PYBIN/bin/pip" install -U autowrap
 
               # configure (don't copy deps since we use auditwheel)
               cmake -DNO_DEPENDENCIES=ON -DOPENMS_CONTRIB_LIBS="/contrib-build/" -DCMAKE_PREFIX_PATH="/contrib-build/" -DPYOPENMS=On -DPython_ROOT_DIR=$PYBIN -DPython_FIND_STRATEGY="LOCATION" $GITHUB_WORKSPACE/OpenMS
@@ -368,7 +364,7 @@ jobs:
               export LD_LIBRARY_PATH=$LD_OLD_LIBRARY_PATH
             done
 
-    - uses: actions/upload-artifact@v1
+    - uses: actions/upload-artifact@v3
       name: Upload artifacts
       with:
         name: ${{ runner.os }}-wheels
@@ -407,7 +403,7 @@ jobs:
         echo "$HOME/miniconda3/Scripts" >> $GITHUB_PATH
 
     - name: Download artifacts
-      uses: actions/download-artifact@v1.0.0
+      uses: actions/download-artifact@v3
       with:
           name: ${{ runner.os }}-wheels
 
@@ -458,17 +454,20 @@ jobs:
     steps:
     # haha github is just ridiculous.. not getting their actions to do basic stuff for years
     - name: Download artifacts
-      uses: actions/download-artifact@v1.0.0
+      uses: actions/download-artifact@v3
       with:
           name: Linux-wheels
+          path: /home/runner/work/OpenMS/OpenMS/Linux-wheels
     - name: Download artifacts
-      uses: actions/download-artifact@v1.0.0
+      uses: actions/download-artifact@v3
       with:
           name: Windows-wheels
+          path: /home/runner/work/OpenMS/OpenMS/Windows-wheels
     - name: Download artifacts
-      uses: actions/download-artifact@v1.0.0
+      uses: actions/download-artifact@v3
       with:
           name: macOS-wheels
+          path: /home/runner/work/OpenMS/OpenMS/macOS-wheels
 
     - name: Merge all artifacts
       run: |
@@ -481,7 +480,7 @@ jobs:
       if: "github.ref == 'refs/heads/nightly'"
       uses: pypa/gh-action-pypi-publish@release/v1
       with:
-        repository_url: https://abi-services.informatik.uni-tuebingen.de/pypi/
+        repository_url: https://pypi.cs.uni-tuebingen.de/
         user: openms
         password: ${{ secrets.abiservices_pypi_pw }}
         packages_dir: ${{ github.workspace }}/wheels

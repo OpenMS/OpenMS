@@ -9,7 +9,7 @@ cdef extern from "<OpenMS/ANALYSIS/ID/FalseDiscoveryRate.h>" namespace "OpenMS":
 
     cdef cppclass FalseDiscoveryRate(DefaultParamHandler):
         # wrap-inherits:
-        #    DefaultParamHandler
+        #   DefaultParamHandler
 
         FalseDiscoveryRate() nogil except +
         # private

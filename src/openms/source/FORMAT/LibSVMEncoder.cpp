@@ -74,7 +74,7 @@ namespace OpenMS
     {
       if (counts[i] > 0)
       {
-        composition_vector.push_back(make_pair(Int(i + 1), (((double) counts[i]) / total_count)));
+        composition_vector.emplace_back(Int(i + 1), (((double) counts[i]) / total_count));
       }
     }
     delete[] counts;
@@ -218,8 +218,8 @@ namespace OpenMS
     {
 
       encodeCompositionVector(sequences[i], encoded_vector, allowed_characters);
-      encoded_vector.push_back(make_pair(Int(allowed_characters.size() + 1), (double) sequences[i].length()));
-      encoded_vector.push_back(make_pair(Int(allowed_characters.size() + 2), AASequence::fromString(sequences[i]).getAverageWeight()));
+      encoded_vector.emplace_back(Int(allowed_characters.size() + 1), (double) sequences[i].length());
+      encoded_vector.emplace_back(Int(allowed_characters.size() + 2), AASequence::fromString(sequences[i]).getAverageWeight());
       svm_node* libsvm_vector = encodeLibSVMVector(encoded_vector);
       vectors.push_back(libsvm_vector);
     }
@@ -503,13 +503,13 @@ namespace OpenMS
         sort(temp_positions.begin(), temp_positions.end());
         for (Size i = 0; i < temp_positions.size(); ++i)
         {
-          libsvm_vector.push_back(make_pair(elements->first, temp_positions[i]));
+          libsvm_vector.emplace_back(elements->first, temp_positions[i]);
         }
         elements = elements_end;
       }
       if (length_encoding)
       {
-        libsvm_vector.push_back(make_pair((Int) sequence.size(), (double)pow((double)k_mer_length, (double) number_of_residues) + 1));
+        libsvm_vector.emplace_back((Int) sequence.size(), (double)pow((double)k_mer_length, (double) number_of_residues) + 1);
       }
     }
 

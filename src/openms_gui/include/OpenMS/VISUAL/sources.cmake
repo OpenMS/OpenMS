@@ -18,11 +18,15 @@ HistogramWidget.h
 InputFile.h
 InputFileList.h
 LayerListView.h
+LayerData1DBase.h
+LayerData1DChrom.h
+LayerData1DIonMobility.h
 LayerDataBase.h
 LayerDataChrom.h
 LayerDataConsensus.h
 LayerDataFeature.h
 LayerDataIdent.h
+LayerData1DPeak.h
 LayerDataPeak.h
 ListEditor.h
 LogWindow.h
@@ -31,6 +35,8 @@ MultiGradient.h
 MultiGradientSelector.h
 OutputDirectory.h
 Painter1DBase.h
+Painter2DBase.h
+PainterBase.h
 ParamEditor.h
 Plot1DCanvas.h
 Plot1DWidget.h

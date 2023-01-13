@@ -46,12 +46,12 @@ namespace OpenMS
     setName("TMTSixPlexQuantitationMethod");
 
     // create the channel map
-    channels_.push_back(IsobaricChannelInformation("126", 0, "", 126.127725, -1, -1, 1, 2));
-    channels_.push_back(IsobaricChannelInformation("127", 1, "", 127.124760, -1, 0, 2, 3));
-    channels_.push_back(IsobaricChannelInformation("128", 2, "", 128.134433, 0, 1, 3, 4));
-    channels_.push_back(IsobaricChannelInformation("129", 3, "", 129.131468, 1, 2, 4, 5));
-    channels_.push_back(IsobaricChannelInformation("130", 4, "", 130.141141, 2, 3, 5, -1));
-    channels_.push_back(IsobaricChannelInformation("131", 5, "", 131.138176, 3, 4, -1, -1));
+    channels_.push_back(IsobaricChannelInformation("126", 0, "", 126.127725, {-1, -1, 1, 2}));
+    channels_.push_back(IsobaricChannelInformation("127", 1, "", 127.124760, {-1, 0, 2, 3}));
+    channels_.push_back(IsobaricChannelInformation("128", 2, "", 128.134433, {0, 1, 3, 4}));
+    channels_.push_back(IsobaricChannelInformation("129", 3, "", 129.131468, {1, 2, 4, 5}));
+    channels_.push_back(IsobaricChannelInformation("130", 4, "", 130.141141, {2, 3, 5, -1}));
+    channels_.push_back(IsobaricChannelInformation("131", 5, "", 131.138176, {3, 4, -1, -1}));
 
     // we assume 126 to be the reference
     reference_channel_ = 0;
@@ -108,18 +108,7 @@ namespace OpenMS
     reference_channel_ = other.reference_channel_;
   }
 
-  TMTSixPlexQuantitationMethod& TMTSixPlexQuantitationMethod::operator=(const TMTSixPlexQuantitationMethod& rhs)
-  {
-    if (this == &rhs)
-      return *this;
-
-    channels_.clear();
-    channels_.insert(channels_.begin(), rhs.channels_.begin(), rhs.channels_.end());
-
-    reference_channel_ = rhs.reference_channel_;
-
-    return *this;
-  }
+  TMTSixPlexQuantitationMethod& TMTSixPlexQuantitationMethod::operator=(const TMTSixPlexQuantitationMethod& rhs) = default;
 
   const String& TMTSixPlexQuantitationMethod::getMethodName() const
   {
@@ -139,7 +128,7 @@ namespace OpenMS
   Matrix<double> TMTSixPlexQuantitationMethod::getIsotopeCorrectionMatrix() const
   {
     StringList iso_correction = ListUtils::toStringList<std::string>(getParameters().getValue("correction_matrix"));
-    return stringListToIsotopCorrectionMatrix_(iso_correction);
+    return stringListToIsotopeCorrectionMatrix_(iso_correction);
   }
 
   Size TMTSixPlexQuantitationMethod::getReferenceChannel() const

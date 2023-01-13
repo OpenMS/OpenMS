@@ -102,9 +102,9 @@ namespace OpenMS
     defaults_.setValue("optimization", "no", "If the peak parameters position, intensity and left/right width" \
                                              "shall be optimized set optimization to one_dimensional or two_dimensional.", {"advanced"});
     std::vector<std::string> valid_opts;
-    valid_opts.push_back("no");
-    valid_opts.push_back("one_dimensional");
-    valid_opts.push_back("two_dimensional");
+    valid_opts.emplace_back("no");
+    valid_opts.emplace_back("one_dimensional");
+    valid_opts.emplace_back("two_dimensional");
     defaults_.setValidStrings("optimization", valid_opts);
     defaults_.setValue("optimization:penalties:position", 0.0, "penalty term for the fitting of the position:" \
                                                                "If it differs too much from the initial one it can be penalized ", {"advanced"});
@@ -172,9 +172,7 @@ namespace OpenMS
     defaultsToParam_();
   }
 
-  PeakPickerCWT::~PeakPickerCWT()
-  {
-  }
+  PeakPickerCWT::~PeakPickerCWT() = default;
 
   void PeakPickerCWT::updateMembers_()
   {
@@ -846,7 +844,7 @@ namespace OpenMS
     double dist = peak_width / (num_peaks + 1);
 
     // put peak into peak vector using default values for the widths and peak type
-    peaks_DC.push_back(PeakShape(0, 0, left_width, right_width, 0, PeakShape::SECH_PEAK));
+    peaks_DC.emplace_back(0, 0, left_width, right_width, 0, PeakShape::SECH_PEAK);
 
     // adjust the positions and get their initial intensities from the profile data
     for (Size i = 0; i < num_peaks; ++i)

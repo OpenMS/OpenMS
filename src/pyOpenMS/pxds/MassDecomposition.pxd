@@ -6,11 +6,11 @@ cdef extern from "<OpenMS/CHEMISTRY/MASSDECOMPOSITION/MassDecomposition.h>" name
     
     cdef cppclass MassDecomposition "OpenMS::MassDecomposition":
         # wrap-doc:
-            #   Class represents a decomposition of a mass into amino acids
-            #   -----
-            #   This class represents a mass decomposition into amino acids. A
-            #   decomposition are amino acids given with frequencies which add
-            #   up to a specific mass.
+            #  Class represents a decomposition of a mass into amino acids
+            #  
+            #  This class represents a mass decomposition into amino acids. A
+            #  decomposition are amino acids given with frequencies which add
+            #  up to a specific mass.
 
         MassDecomposition() nogil except +
         MassDecomposition(MassDecomposition &) nogil except +

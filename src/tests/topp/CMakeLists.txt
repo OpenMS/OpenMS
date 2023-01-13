@@ -33,7 +33,7 @@
 # --------------------------------------------------------------------------
 
 project("OpenMS_TOPP_tests")
-cmake_minimum_required(VERSION 3.0 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.15 FATAL_ERROR)
 
 #
 # README:
@@ -783,6 +783,13 @@ add_test("TOPP_FileMerger_11_out1" ${DIFF} -whitelist ${INDEX_WHITELIST} "id=" "
 set_tests_properties("TOPP_FileMerger_11_out1" PROPERTIES DEPENDS "TOPP_FileMerger_11")
 
 #------------------------------------------------------------------------------
+# FLASHDeconv tests
+add_test("TOPP_FLASHDeconv_1" ${TOPP_BIN_PATH}/FLASHDeconv -test -in ${DATA_DIR_TOPP}/FLASHDeconv_sample_input.mzML -out FLASHDeconv_1.tmp)
+# Currently just testing if the tool runs
+# We cannot currently test the correctness of the tsv output
+# FuzzyDiff cannot give out tolerances/whitelist for tabular format outputs (.tsv)
+
+#------------------------------------------------------------------------------
 # GNPSExport tests
 # test mostintense output
 add_test("TOPP_GNPSExport_1" ${TOPP_BIN_PATH}/GNPSExport -test -ini ${DATA_DIR_TOPP}/GNPSExport_1_mostint.ini -in_cm ${DATA_DIR_TOPP}/GNPSExport_cons1.consensusXML -in_mzml ${DATA_DIR_TOPP}/GNPSExport_mzml1.mzML ${DATA_DIR_TOPP}/GNPSExport_mzml2.mzML -out GNPSExport_1_out.tmp -out_quantification GNPSExport_1_out_quant.tmp)
@@ -807,7 +814,6 @@ set_tests_properties("TOPP_GNPSExport_4_out_pairs" PROPERTIES DEPENDS "TOPP_GNPS
 add_test("TOPP_GNPSExport_4_out_meta_values" ${DIFF} -in1 GNPSExport_4_out_meta_values.tmp -in2 ${DATA_DIR_TOPP}/GNPSExport_4_out_meta_values.tsv)
 set_tests_properties("TOPP_GNPSExport_4_out_meta_values" PROPERTIES DEPENDS "TOPP_GNPSExport_4")
 
-#------------------------------------------------------------------------------ 
 # HighResPrecursorMassCorrector tests
 add_test("TOPP_HighResPrecursorMassCorrector_1"
 ${TOPP_BIN_PATH}/HighResPrecursorMassCorrector -test -in ${DATA_DIR_TOPP}/HighResPrecursorMassCorrector_2860_1103_3.mzML -feature:in ${DATA_DIR_TOPP}/HighResPrecursorMassCorrector_2860_1103_3.featureXML -out HighResPrecursorMassCorrector_2860_1103_3_out.tmp)
@@ -2763,6 +2769,16 @@ add_test("UTILS_IDSplitter_1_out1" ${DIFF} -in1 IDSplitter_1_output1.tmp -in2 ${
 set_tests_properties("UTILS_IDSplitter_1_out1" PROPERTIES DEPENDS "UTILS_IDSplitter_1")
 add_test("UTILS_IDSplitter_1_out2" ${DIFF} -in1 IDSplitter_1_output2.tmp -in2 ${DATA_DIR_TOPP}/IDSplitter_1_output.idXML )
 set_tests_properties("UTILS_IDSplitter_1_out2" PROPERTIES DEPENDS "UTILS_IDSplitter_1")
+
+# JSONExporter:
+# proteomics test file (= IDFileConverter_34_output1.oms):
+add_test("UTILS_JSONExporter_1" ${TOPP_BIN_PATH}/JSONExporter -test -in ${DATA_DIR_TOPP}/JSONExporter_protein.oms -out JSONExporter_1_output.tmp)
+add_test("UTILS_JSONExporter_1_out" ${DIFF} -in1 JSONExporter_1_output.tmp -in2 ${DATA_DIR_TOPP}/JSONExporter_1_output.json)
+set_tests_properties("UTILS_JSONExporter_1_out" PROPERTIES DEPENDS "UTILS_JSONExporter_1")
+# RNA test file (= NucleicAcidSearchEngine_13_out.tmp):
+add_test("UTILS_JSONExporter_2" ${TOPP_BIN_PATH}/JSONExporter -test -in ${DATA_DIR_TOPP}/JSONExporter_RNA.oms -out JSONExporter_2_output.tmp)
+add_test("UTILS_JSONExporter_2_out" ${DIFF} -in1 JSONExporter_2_output.tmp -in2 ${DATA_DIR_TOPP}/JSONExporter_2_output.json)
+set_tests_properties("UTILS_JSONExporter_2_out" PROPERTIES DEPENDS "UTILS_JSONExporter_2")
 
 # MassCalculator:
 add_test("UTILS_MassCalculator_1" ${TOPP_BIN_PATH}/MassCalculator -test -in ${DATA_DIR_TOPP}/MassCalculator_1_input.tsv -out MassCalculator_1_output.tmp -charge 0 1 -format table -separator ,)

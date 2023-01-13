@@ -19,4 +19,4 @@ cdef extern from "<OpenMS/ANALYSIS/MAPMATCHING/TransformationModelBSpline.h>" na
 
 # COMMENT: wrap static methods
 #cdef extern from "<OpenMS/ANALYSIS/MAPMATCHING/TransformationModelBSpline.h>" namespace "OpenMS::TransformationModelBSpline":
-#    void getDefaultParameters(Param& params) nogil except +  # wrap-attach:TransformationModelBSpline
+#   void getDefaultParameters(Param& params) nogil except +  # wrap-attach:TransformationModelBSpline

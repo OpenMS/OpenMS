@@ -756,7 +756,6 @@ START_SECTION((Iterator RTBegin(CoordinateType rt)))
 {
   PeakMap tmp;
   MSSpectrum s;
-  Peak1D p;
 
   s.setRT(30.0);
   tmp.addSpectrum(s);
@@ -783,7 +782,6 @@ START_SECTION((Iterator RTEnd(CoordinateType rt)))
 {
   PeakMap tmp;
   MSSpectrum s;
-  Peak1D p;
 
   s.setRT(30.0);
   tmp.addSpectrum(s);
@@ -810,7 +808,6 @@ START_SECTION((Iterator IMBegin(CoordinateType im)))
 {
   PeakMap tmp;
   MSSpectrum s;
-  Peak1D p;
 
   s.setDriftTime(30.0);
   tmp.addSpectrum(s);
@@ -837,7 +834,6 @@ START_SECTION((Iterator IMEnd(CoordinateType rt)))
 {
   PeakMap tmp;
   MSSpectrum s;
-  Peak1D p;
 
   s.setDriftTime(30.0);
   tmp.addSpectrum(s);
@@ -865,7 +861,6 @@ START_SECTION((ConstIterator RTBegin(CoordinateType rt) const))
 {
   PeakMap tmp;
   MSSpectrum s;
-  Peak1D p;
 
   s.setRT(30.0);
   tmp.addSpectrum(s);
@@ -880,11 +875,11 @@ START_SECTION((ConstIterator RTBegin(CoordinateType rt) const))
 
   it = tmp.RTBegin(20.0);
   TEST_REAL_SIMILAR(it->getRT(),30.0)
-    it = tmp.RTBegin(30.0);
+  it = tmp.RTBegin(30.0);
   TEST_REAL_SIMILAR(it->getRT(),30.0)
-    it = tmp.RTBegin(31.0);
+  it = tmp.RTBegin(31.0);
   TEST_REAL_SIMILAR(it->getRT(),40.0)
-    TEST_EQUAL(tmp.RTBegin(55.0) == tmp.end(), true)
+  TEST_EQUAL(tmp.RTBegin(55.0) == tmp.end(), true)
 }
 END_SECTION
 
@@ -892,7 +887,6 @@ START_SECTION((ConstIterator RTEnd(CoordinateType rt) const))
 {
   PeakMap tmp;
   MSSpectrum s;
-  Peak1D p;
 
   s.setRT(30.0);
   tmp.addSpectrum(s);
@@ -907,11 +901,11 @@ START_SECTION((ConstIterator RTEnd(CoordinateType rt) const))
 
   it = tmp.RTEnd(20.0);
   TEST_REAL_SIMILAR(it->getRT(),30.0)
-    it = tmp.RTEnd(30.0);
+  it = tmp.RTEnd(30.0);
   TEST_REAL_SIMILAR(it->getRT(),40.0)
-    it = tmp.RTEnd(31.0);
+  it = tmp.RTEnd(31.0);
   TEST_REAL_SIMILAR(it->getRT(),40.0)
-    TEST_EQUAL(tmp.RTBegin(55.0) == tmp.end(), true)
+  TEST_EQUAL(tmp.RTBegin(55.0) == tmp.end(), true)
 }
 END_SECTION
 

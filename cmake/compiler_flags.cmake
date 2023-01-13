@@ -51,8 +51,7 @@ endif()
 if (CMAKE_COMPILER_IS_GNUCXX)
 
   add_compile_options(-Wall -Wextra
-    #-fvisibility=hidden # This is now added as a target property for each library.
-    -Wno-non-virtual-dtor 
+    #-fvisibility=hidden # This is now added as a target property for each library.     
     -Wno-unknown-pragmas
     -Wno-long-long 
     -Wno-unknown-pragmas
@@ -105,7 +104,7 @@ elseif (MSVC)
 	## hdf5 linkage for windows (in case we want to build dynamically)
 	# add_definitions(-DH5_BUILT_AS_DYNAMIC_LIB)
 
-	## FeatureFinder.obj is huge and won't compile in VS2008 debug otherwise:
+	## some .obj are huge and won't compile in VS2022 debug otherwise:
 	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /bigobj")
 
 	## use multiple CPU cores (if available)

@@ -33,7 +33,7 @@ Tensor<double> semi_outer_apply(const TensorLike<double, TENSOR> & lhs, const Te
   if (unique_lhs_dims > 0 || unique_rhs_dims > 0) {
     Vector<unsigned long> counter_lhs(lhs.dimension());
     Vector<unsigned long> counter_rhs(rhs.dimension());
-    enumerate_apply_tensors([&counter_lhs, &counter_rhs, &lhs, &rhs, unique_lhs_dims, unique_rhs_dims, overlapping_inner_dims, &semi_outer_function](const_tup_t counter_result, const unsigned char result_dims, double & res_val) {
+    enumerate_apply_tensors([&counter_lhs, &counter_rhs, &lhs, &rhs, unique_lhs_dims, unique_rhs_dims, overlapping_inner_dims, &semi_outer_function](const_tup_t counter_result, const unsigned char /*result_dims*/, double & res_val) {
 	// Note: This could be optimized to not use the counter Vectors:
 	for (unsigned char i=0; i<unique_lhs_dims; ++i)
 	  counter_lhs[i] = counter_result[i];

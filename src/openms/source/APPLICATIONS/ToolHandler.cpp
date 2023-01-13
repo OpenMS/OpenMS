@@ -73,6 +73,7 @@ namespace OpenMS
     tools_map["FileFilter"] = Internal::ToolDescription("FileFilter", "File Handling");
     tools_map["FileInfo"] = Internal::ToolDescription("FileInfo", "File Handling");
     tools_map["FileMerger"] = Internal::ToolDescription("FileMerger", "File Handling");
+    tools_map["FLASHDeconv"] = Internal::ToolDescription("FLASHDeconv", "Signal processing and preprocessing");
     tools_map["GNPSExport"] = Internal::ToolDescription("GNPSExport", "File Handling");
     tools_map["HighResPrecursorMassCorrector"] = Internal::ToolDescription("HighResPrecursorMassCorrector", "Signal processing and preprocessing");
     tools_map["IDConflictResolver"] = Internal::ToolDescription("IDConflictResolver", "ID Processing");
@@ -202,6 +203,7 @@ namespace OpenMS
     util_map["IDMassAccuracy"] = Internal::ToolDescription("IDMassAccuracy", util_category);
     util_map["IDScoreSwitcher"] = Internal::ToolDescription("IDScoreSwitcher", util_category);
     util_map["IDSplitter"] = Internal::ToolDescription("IDSplitter", util_category);
+    util_map["JSONExporter"] = Internal::ToolDescription("JSONExporter",util_category);
     util_map["LabeledEval"] = Internal::ToolDescription("LabeledEval", util_category);
     util_map["NovorAdapter"] = Internal::ToolDescription("NovorAdapter", util_category);
     util_map["MassCalculator"] = Internal::ToolDescription("MassCalculator", util_category);

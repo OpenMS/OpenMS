@@ -218,7 +218,7 @@ if not iswin:
         extra_compile_args.append("-O0")
         extra_link_args.append("-O0")
 
-mnames = ["pyopenms_%s" % (k+1) for k in range(int(PY_NUM_MODULES))]
+mnames = ["_pyopenms_%s" % (k+1) for k in range(int(PY_NUM_MODULES))]
 ext = []
 
 ##WARNING debug
@@ -254,7 +254,7 @@ setup(
     packages=["pyopenms"],
     ext_package="pyopenms",
     package_data= {
-        'pyopenms': ['py.typed']
+        'pyopenms': ['py.typed', '*.pyi']
     },
 	install_requires=[
           'numpy',
@@ -279,7 +279,7 @@ setup(
     long_description_content_type="text/x-rst",
     zip_safe=False,
 
-    url="http://open-ms.de",
+    url="https://openms.de",
 
     author="Uwe Schmitt and the OpenMS team",
     author_email="uschmitt@mineway.de",

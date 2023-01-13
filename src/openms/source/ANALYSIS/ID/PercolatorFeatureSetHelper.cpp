@@ -303,7 +303,7 @@ namespace OpenMS
       }
     }
 
-    void PercolatorFeatureSetHelper::mergeMULTISEPeptideIds(vector<PeptideIdentification>& all_peptide_ids, vector<PeptideIdentification>& new_peptide_ids, String search_engine)
+    void PercolatorFeatureSetHelper::mergeMULTISEPeptideIds(vector<PeptideIdentification>& all_peptide_ids, vector<PeptideIdentification>& new_peptide_ids, const String& search_engine)
     {
       OPENMS_LOG_DEBUG << "creating spectrum map" << endl;
       
@@ -447,7 +447,7 @@ namespace OpenMS
       String SE = new_protein_ids.front().getSearchEngine();  
       if (all_protein_ids.empty())
       {
-        all_protein_ids.push_back(ProteinIdentification());
+        all_protein_ids.emplace_back();
         DateTime now = DateTime::now();
         String date_string = now.getDate();
         String identifier = "TopPerc_" + date_string;
@@ -535,7 +535,7 @@ namespace OpenMS
       OPENMS_LOG_DEBUG << "Merging for this file finished." << endl;
     }
     
-    void PercolatorFeatureSetHelper::concatMULTISEPeptideIds(vector<PeptideIdentification>& all_peptide_ids, vector<PeptideIdentification>& new_peptide_ids, String search_engine)
+    void PercolatorFeatureSetHelper::concatMULTISEPeptideIds(vector<PeptideIdentification>& all_peptide_ids, vector<PeptideIdentification>& new_peptide_ids, const String& search_engine)
     {      
       for (vector<PeptideIdentification>::iterator pit = new_peptide_ids.begin(); pit != new_peptide_ids.end(); ++pit)
       {
@@ -577,29 +577,29 @@ namespace OpenMS
       {
         feature_set.push_back("MS:1002049");  // rawscore
         feature_set.push_back("MS:1002053");  // evalue
-        max_better.push_back("MS:1002049");  // higher is better - start high, get min
-        min_better.push_back("MS:1002053");  // lower is better - start low, get max
+        max_better.emplace_back("MS:1002049");  // higher is better - start high, get min
+        min_better.emplace_back("MS:1002053");  // lower is better - start low, get max
       }
       if (ListUtils::contains(search_engines_used, "Mascot"))
       {
         feature_set.push_back("MS:1001171");  // score aka Mascot
         feature_set.push_back("MS:1001172");  // evalue aka EValue
-        max_better.push_back("MS:1001171");  // higher is better - start high, get min
-        min_better.push_back("MS:1001172");  // lower is better - start low, get max
+        max_better.emplace_back("MS:1001171");  // higher is better - start high, get min
+        min_better.emplace_back("MS:1001172");  // lower is better - start low, get max
       }
       if (ListUtils::contains(search_engines_used, "Comet"))
       {
         feature_set.push_back("MS:1002252");  // xcorr
         feature_set.push_back("MS:1002257");  // evalue
-        max_better.push_back("MS:1002252");  // higher is better - start high, get min
-        min_better.push_back("MS:1002257");  // lower is better - start low, get max
+        max_better.emplace_back("MS:1002252");  // higher is better - start high, get min
+        min_better.emplace_back("MS:1002257");  // lower is better - start low, get max
       }
       if (ListUtils::contains(search_engines_used, "XTandem"))
       {
         feature_set.push_back("MS:1001331");  // hyperscore aka XTandem
         feature_set.push_back("MS:1001330");  // evalue aka E-Value
-        max_better.push_back("MS:1001331");  // higher is better - start high, get min
-        min_better.push_back("MS:1001330");  // lower is better - start low, get max
+        max_better.emplace_back("MS:1001331");  // higher is better - start high, get min
+        min_better.emplace_back("MS:1001330");  // lower is better - start low, get max
       }
       //feature_set.push_back("MULTI:ionFrac");
       //feature_set.push_back("MULTI:numHits"); // this is not informative if we only keep PSMs with hits for all search engines
@@ -766,7 +766,7 @@ namespace OpenMS
       return featureValue * ((double)numerator / denominator);
     }
     
-    void PercolatorFeatureSetHelper::assignDeltaScore_(vector<PeptideHit>& hits, String score_ref, String output_ref)
+    void PercolatorFeatureSetHelper::assignDeltaScore_(vector<PeptideHit>& hits, const String& score_ref, const String& output_ref)
     {
       if (!hits.empty())
       {

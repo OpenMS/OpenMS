@@ -133,7 +133,7 @@ private:
     void execQuery();
 
     /// download result file
-    void getResults(QString results_path);
+    void getResults(const QString& results_path);
 
     /// assignment operator
     OPENMS_DLLAPI MascotRemoteQuery& operator=(const MascotRemoteQuery& rhs);
@@ -152,10 +152,10 @@ private:
     void removeHostName_(QString& url);
 
     /// helper function to build URL
-    QUrl buildUrl_(std::string path);
+    QUrl buildUrl_(const std::string& path);
 
     /// Write HTTP header to error stream (for debugging)
-    OPENMS_DLLAPI void logHeader_(const QNetworkRequest header, const String& what);
+    OPENMS_DLLAPI void logHeader_(const QNetworkRequest& header, const String& what);
 
     /// Write HTTP header to error stream (for debugging)
     OPENMS_DLLAPI void logHeader_(const QNetworkReply* header, const String& what);

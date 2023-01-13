@@ -947,7 +947,7 @@ namespace OpenMS
   {
     if (required && !default_value.empty())
       throw InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Registering a required StringOption param (" + name + ") with a non-empty default is forbidden!", default_value);
-    parameters_.push_back(ParameterInformation(name, ParameterInformation::STRING, argument, default_value, description, required, advanced));
+    parameters_.emplace_back(name, ParameterInformation::STRING, argument, default_value, description, required, advanced);
   }
 
   ParameterInformation& TOPPBase::getParameterByName_(const String& name)
@@ -991,7 +991,7 @@ namespace OpenMS
       throw ElementNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, name);
     }
 
-    StringList valids = strings;
+    const StringList& valids = strings;
     StringList defaults;
 
     if (p.type == ParameterInformation::STRING)
@@ -1152,21 +1152,21 @@ namespace OpenMS
     }
     if (required && !default_value.empty() && count_conflicting_tags == 0)
       throw InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Registering a required InputFile param (" + name + ") with a non-empty default is forbidden!", default_value);
-    parameters_.push_back(ParameterInformation(name, ParameterInformation::INPUT_FILE, argument, default_value, description, required, advanced, tags));
+    parameters_.emplace_back(name, ParameterInformation::INPUT_FILE, argument, default_value, description, required, advanced, tags);
   }
 
   void TOPPBase::registerOutputFile_(const String& name, const String& argument, const String& default_value, const String& description, bool required, bool advanced)
   {
     if (required && !default_value.empty())
       throw InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Registering a required OutputFile param (" + name + ") with a non-empty default is forbidden!", default_value);
-    parameters_.push_back(ParameterInformation(name, ParameterInformation::OUTPUT_FILE, argument, default_value, description, required, advanced));
+    parameters_.emplace_back(name, ParameterInformation::OUTPUT_FILE, argument, default_value, description, required, advanced);
   }
 
   void TOPPBase::registerOutputPrefix_(const String& name, const String& argument, const String& default_value, const String& description, bool required, bool advanced)
   {
     if (required && !default_value.empty())
       throw InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Registering a required OutputPrefix param (" + name + ") with a non-empty default is forbidden!", default_value);
-    parameters_.push_back(ParameterInformation(name, ParameterInformation::OUTPUT_PREFIX, argument, default_value, description, required, advanced));
+    parameters_.emplace_back(name, ParameterInformation::OUTPUT_PREFIX, argument, default_value, description, required, advanced);
   }
 
   void TOPPBase::registerDoubleOption_(const String& name, const String& argument, double default_value, const String& description, bool required, bool advanced)
@@ -1175,7 +1175,7 @@ namespace OpenMS
     {
       throw InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Registering a double param (" + name + ") as 'required' is forbidden (there is no value to indicate it is missing)!", String(default_value));
     }
-    parameters_.push_back(ParameterInformation(name, ParameterInformation::DOUBLE, argument, default_value, description, required, advanced));
+    parameters_.emplace_back(name, ParameterInformation::DOUBLE, argument, default_value, description, required, advanced);
   }
 
   void TOPPBase::registerIntOption_(const String& name, const String& argument, Int default_value, const String& description, bool required, bool advanced)
@@ -1184,17 +1184,17 @@ namespace OpenMS
     {
       throw InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Registering an Int param (" + name + ") as 'required' is forbidden (there is no value to indicate it is missing)!", String(default_value));
     }
-    parameters_.push_back(ParameterInformation(name, ParameterInformation::INT, argument, default_value, description, required, advanced));
+    parameters_.emplace_back(name, ParameterInformation::INT, argument, default_value, description, required, advanced);
   }
 
-  void TOPPBase::registerOutputFileList_(const String& name, const String& argument, StringList default_value, const String& description, bool required, bool advanced)
+  void TOPPBase::registerOutputFileList_(const String& name, const String& argument, const StringList& default_value, const String& description, bool required, bool advanced)
   {
     if (required && !default_value.empty())
       throw InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Registering a required OutputFileList param (" + name + ") with a non-empty default is forbidden!", ListUtils::concatenate(default_value, ","));
-    parameters_.push_back(ParameterInformation(name, ParameterInformation::OUTPUT_FILE_LIST, argument, ListUtils::create<std::string>(default_value), description, required, advanced));
+    parameters_.emplace_back(name, ParameterInformation::OUTPUT_FILE_LIST, argument, ListUtils::create<std::string>(default_value), description, required, advanced);
   }
 
-  void TOPPBase::registerInputFileList_(const String& name, const String& argument, StringList default_value, const String& description, bool required, bool advanced, const StringList& tags)
+  void TOPPBase::registerInputFileList_(const String& name, const String& argument, const StringList& default_value, const String& description, bool required, bool advanced, const StringList& tags)
   {
     int count_conflicting_tags = (ListUtils::contains(tags, "skipexists") + ListUtils::contains(tags, "is_executable"));
     if (count_conflicting_tags >= 2)
@@ -1203,47 +1203,47 @@ namespace OpenMS
     }
     if (required && !default_value.empty() && count_conflicting_tags == 0)
       throw InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Registering a required InputFileList param (" + name + ") with a non-empty default is forbidden!", ListUtils::concatenate(default_value, ","));
-    parameters_.push_back(ParameterInformation(name, ParameterInformation::INPUT_FILE_LIST, argument, ListUtils::create<std::string>(default_value), description, required, advanced, tags));
+    parameters_.emplace_back(name, ParameterInformation::INPUT_FILE_LIST, argument, ListUtils::create<std::string>(default_value), description, required, advanced, tags);
   }
 
-  void TOPPBase::registerStringList_(const String& name, const String& argument, StringList default_value, const String& description, bool required, bool advanced)
+  void TOPPBase::registerStringList_(const String& name, const String& argument, const StringList& default_value, const String& description, bool required, bool advanced)
   {
     if (required && !default_value.empty())
       throw InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Registering a required StringList param (" + name + ") with a non-empty default is forbidden!", ListUtils::concatenate(default_value, ","));
-    parameters_.push_back(ParameterInformation(name, ParameterInformation::STRINGLIST, argument, ListUtils::create<std::string>(default_value), description, required, advanced));
+    parameters_.emplace_back(name, ParameterInformation::STRINGLIST, argument, ListUtils::create<std::string>(default_value), description, required, advanced);
   }
 
-  void TOPPBase::registerIntList_(const String& name, const String& argument, IntList default_value, const String& description, bool required, bool advanced)
+  void TOPPBase::registerIntList_(const String& name, const String& argument, const IntList& default_value, const String& description, bool required, bool advanced)
   {
     stringstream ss;
     ss << default_value;
     if (required && !default_value.empty())
       throw InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Registering a required IntList param (" + name + ") with a non-empty default is forbidden!", String(ss.str()));
-    parameters_.push_back(ParameterInformation(name, ParameterInformation::INTLIST, argument, default_value, description, required, advanced));
+    parameters_.emplace_back(name, ParameterInformation::INTLIST, argument, default_value, description, required, advanced);
   }
 
-  void TOPPBase::registerDoubleList_(const String& name, const String& argument, DoubleList default_value, const String& description, bool required, bool advanced)
+  void TOPPBase::registerDoubleList_(const String& name, const String& argument, const DoubleList& default_value, const String& description, bool required, bool advanced)
   {
     stringstream ss;
     ss << default_value;
     if (required && !default_value.empty())
       throw InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Registering a required DoubleList param (" + name + ") with a non-empty default is forbidden!", String(ss.str()));
-    parameters_.push_back(ParameterInformation(name, ParameterInformation::DOUBLELIST, argument, default_value, description, required, advanced));
+    parameters_.emplace_back(name, ParameterInformation::DOUBLELIST, argument, default_value, description, required, advanced);
   }
 
   void TOPPBase::registerFlag_(const String& name, const String& description, bool advanced)
   {
-    parameters_.push_back(ParameterInformation(name, ParameterInformation::FLAG, "", "", description, false, advanced));
+    parameters_.emplace_back(name, ParameterInformation::FLAG, "", "", description, false, advanced);
   }
 
   void TOPPBase::addEmptyLine_()
   {
-    parameters_.push_back(ParameterInformation("", ParameterInformation::NEWLINE, "", "", "", false, false));
+    parameters_.emplace_back("", ParameterInformation::NEWLINE, "", "", "", false, false);
   }
 
   void TOPPBase::addText_(const String& text)
   {
-    parameters_.push_back(ParameterInformation("", ParameterInformation::TEXT, "", "", text, false, false));
+    parameters_.emplace_back("", ParameterInformation::TEXT, "", "", text, false, false);
   }
 
   const ParameterInformation& TOPPBase::findEntry_(const String& name) const
@@ -2040,26 +2040,26 @@ namespace OpenMS
       std::vector<std::string> tags;
       if (it->advanced)
       {
-        tags.push_back("advanced");
+        tags.emplace_back("advanced");
       }
       if (it->required)
       {
-        tags.push_back("required");
+        tags.emplace_back("required");
       }
 
       if (it->type == ParameterInformation::INPUT_FILE || it->type == ParameterInformation::INPUT_FILE_LIST)
       {
-        tags.push_back("input file");
+        tags.emplace_back("input file");
       }
 
       if (it->type == ParameterInformation::OUTPUT_FILE || it->type == ParameterInformation::OUTPUT_FILE_LIST)
       {
-        tags.push_back("output file");
+        tags.emplace_back("output file");
       }
 
       if (it->type == ParameterInformation::OUTPUT_PREFIX)
       {
-        tags.push_back("output prefix");
+        tags.emplace_back("output prefix");
       }
 
       switch (it->type)

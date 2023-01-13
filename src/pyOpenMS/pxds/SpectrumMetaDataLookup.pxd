@@ -18,36 +18,36 @@ cdef extern from "<OpenMS/METADATA/SpectrumMetaDataLookup.h>" namespace "OpenMS"
 
         void readSpectra(MSExperiment spectra, String scan_regexp, bool get_precursor_rt) nogil except +
         # wrap-doc:
-                #   Read spectra and store their meta data
-                #   -----
-                #   :param SpectrumContainer: Spectrum container class, must support `size` and `operator[]`
-                #   :param spectra: Container of spectra
-                #   :param scan_regexp: Regular expression for matching scan numbers in spectrum native IDs (must contain the named group "?<SCAN>")
-                #   :param get_precursor_rt: Assign precursor retention times? (This relies on all precursor spectra being present and in the right order.)
+                #  Read spectra and store their meta data
+                #  
+                #  :param SpectrumContainer: Spectrum container class, must support `size` and `operator[]`
+                #  :param spectra: Container of spectra
+                #  :param scan_regexp: Regular expression for matching scan numbers in spectrum native IDs (must contain the named group "?<SCAN>")
+                #  :param get_precursor_rt: Assign precursor retention times? (This relies on all precursor spectra being present and in the right order.)
 
         void getSpectrumMetaData(Size index, SpectrumMetaData& meta) nogil except +
         # wrap-doc:
-                #   Look up meta data of a spectrum
-                #   -----
-                #   :param index: Index of the spectrum
-                #   :param meta: Meta data output
+                #  Look up meta data of a spectrum
+                #  
+                #  :param index: Index of the spectrum
+                #  :param meta: Meta data output
 
         void getSpectrumMetaData(String spectrum_ref, SpectrumMetaData& meta) nogil except +
         # wrap-doc:
-                #   Extract meta data from a spectrum
-                #   -----
-                #   :param spectrum: Spectrum input
-                #   :param meta: Meta data output
-                #   :param scan_regexp: Regular expression for extracting scan number from spectrum native ID
-                #   :param precursor_rts: RTs of potential precursor spectra of different MS levels
+                #  Extract meta data from a spectrum
+                #  
+                #  :param spectrum: Spectrum input
+                #  :param meta: Meta data output
+                #  :param scan_regexp: Regular expression for extracting scan number from spectrum native ID
+                #  :param precursor_rts: RTs of potential precursor spectra of different MS levels
 
         void getSpectrumMetaData(String spectrum_ref, SpectrumMetaData& meta, unsigned char flags) nogil except +
         # wrap-doc:
-                #   Extract meta data via a spectrum reference
-                #   -----
-                #   :param spectrum_ref: Spectrum reference to parse
-                #   :param metadata: Meta data output
-                #   :param flags: What meta data to extract
+                #  Extract meta data via a spectrum reference
+                #  
+                #  :param spectrum_ref: Spectrum reference to parse
+                #  :param metadata: Meta data output
+                #  :param flags: What meta data to extract
 
         void setSpectraDataRef(const String & spectra_data) nogil except +
 

@@ -167,7 +167,7 @@ if(AUTOWRAP_MISSING)
 else()
     execute_process(
         COMMAND
-        ${Python_EXECUTABLE} -c "import autowrap; exit(autowrap.version >= (0, 22, 9))"
+        ${Python_EXECUTABLE} -c "import autowrap; exit(autowrap.version >= (0, 22, 11))"
         RESULT_VARIABLE _AUTOWRAP_VERSION_OK
         ERROR_QUIET
         OUTPUT_QUIET
@@ -188,7 +188,7 @@ else()
         message(STATUS "Looking for autowrap - found autowrap ${AUTOWRAP_VERSION}, version ok")
         set(AUTOWRAP_VERSION_OK TRUE)
     else()
-        message(STATUS "Found autowrap version ${AUTOWRAP_VERSION}. The version is too old (>= 0.22.9 is required)")
+        message(STATUS "Found autowrap version ${AUTOWRAP_VERSION}. The version is too old (>= 0.22.11 is required)")
         message(FATAL_ERROR "Please upgrade autowrap or disable pyOpenMS.")
     endif()
 endif()
@@ -209,7 +209,7 @@ if( _PYTEST_MISSING EQUAL 0)
     set(PYTEST_MISSING FALSE)
 endif()
 if(PYTEST_MISSING)
-	message(FATAL_ERROR "Looking for pytest testing framework - not found")
+	message(WARNING "Looking for pytest testing framework - not found. Testing pyopenms will not work.")
 else()
 	message(STATUS "Looking for pytest testing framework - found")
 endif()
@@ -290,7 +290,7 @@ endif()
 #------------------------------------------------------------------------------
 # Handle missing libraries (this should never be reached, as the individual
 #  parts should fire FATAL_ERRORs if something is missing)
-if(NUMPY_MISSING OR CYTHON_MODULE_NOTFOUND OR NOT CYTHON_MODULE_VERSION_CHECK_OK OR NOT AUTOWRAP_VERSION_OK OR PYTEST_MISSING
+if(NUMPY_MISSING OR CYTHON_MODULE_NOTFOUND OR NOT CYTHON_MODULE_VERSION_CHECK_OK OR NOT AUTOWRAP_VERSION_OK
    OR SETUPTOOLS_MISSING OR WHEEL_MISSING)
   message(FATAL_ERROR "Required Python modules not found or out of date")
 endif()
@@ -357,6 +357,7 @@ file(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/pyOpenMS/extra_includes)
 
 _copy_assets("${PROJECT_SOURCE_DIR}/pyopenms/" "*.py" ${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms/)
 _copy_assets("${PROJECT_SOURCE_DIR}/pyopenms/" "*.sh" ${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms/)
+_copy_assets("${PROJECT_SOURCE_DIR}/pyopenms/" "*.pyi" ${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms/)
 _copy_assets("${PROJECT_SOURCE_DIR}/pyopenms/" "py.typed" ${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms/)
 _copy_assets("${PROJECT_SOURCE_DIR}/pyTOPP/" "*.py" ${CMAKE_BINARY_DIR}/pyOpenMS/pyTOPP/)
 _copy_assets("${PROJECT_SOURCE_DIR}/tests/unittests/" "*" ${CMAKE_BINARY_DIR}/pyOpenMS/tests/unittests)
@@ -716,31 +717,6 @@ ELSE()
             WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/pyOpenMS )
     ENDIF()
 ENDIF()
-
-# IF(LINUX AND PY_NO_OUTPUT)
-#   add_custom_command(
-#             OUTPUT ${PYSOFILES}
-#             COMMAND ${Python_EXECUTABLE} setup.py build_ext -j ${PY_NUM_THREADS} ${PY_EXTRA_ARGS} 2> /dev/null
-#             COMMENT "Compiling and linking pyopenms C++ extension with the chosen C++ compiler"
-#             DEPENDS compile_pxds prepare_pyopenms_libs
-#             WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/pyOpenMS )
-# ELSEIF(APPLE) # We need to still copy libs with our script
-#   add_custom_command(
-#             OUTPUT ${PYSOFILES}
-#             COMMAND ${Python_EXECUTABLE} setup.py build_ext -j ${PY_NUM_THREADS} ${PY_EXTRA_ARGS}
-#             COMMAND ${CMAKE_SOURCE_DIR}/cmake/MacOSX/fix_dependencies.rb -l ${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms -e "@rpath/" -f -v
-#             COMMENT "Compiling and linking pyopenms C++ extension with the chosen C++ compiler"
-#             DEPENDS compile_pxds prepare_pyopenms_libs
-#             WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/pyOpenMS )
-# ELSE()
-#   add_custom_command(
-#             OUTPUT ${PYSOFILES}
-#             COMMAND ${Python_EXECUTABLE} setup.py build_ext -j ${PY_NUM_THREADS} ${PY_EXTRA_ARGS}
-#             COMMENT "Compiling and linking pyopenms C++ extension with the chosen C++ compiler"
-#             DEPENDS compile_pxds prepare_pyopenms_libs
-#             WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/pyOpenMS )
-# ENDIF()
-
 
 ###########################################################################
 #####                      Testing pyOpenMS                           #####

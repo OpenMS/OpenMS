@@ -63,9 +63,7 @@ namespace OpenMS::Internal
     cmap_ = &map;
     file_ = filename;
   }
-  FeatureXMLHandler::~FeatureXMLHandler()
-  {
-  }
+  FeatureXMLHandler::~FeatureXMLHandler() = default;
 
   void FeatureXMLHandler::resetMembers_()
   {
@@ -664,7 +662,7 @@ namespace OpenMS::Internal
         { 
           if (peptide_evidences_.size() < i + 1) 
           {
-            peptide_evidences_.push_back(PeptideEvidence());
+            peptide_evidences_.emplace_back();
           }
           peptide_evidences_[i].setAABefore(splitted[i][0]);
         }
@@ -681,7 +679,7 @@ namespace OpenMS::Internal
         { 
           if (peptide_evidences_.size() < i + 1) 
           {
-            peptide_evidences_.push_back(PeptideEvidence());
+            peptide_evidences_.emplace_back();
           }
           peptide_evidences_[i].setAAAfter(splitted[i][0]);
         }
@@ -699,7 +697,7 @@ namespace OpenMS::Internal
         { 
           if (peptide_evidences_.size() < i + 1) 
           {
-            peptide_evidences_.push_back(PeptideEvidence());
+            peptide_evidences_.emplace_back();
           }
           peptide_evidences_[i].setStart(splitted[i].toInt());
         }
@@ -716,7 +714,7 @@ namespace OpenMS::Internal
         { 
           if (peptide_evidences_.size() < i + 1) 
           {
-            peptide_evidences_.push_back(PeptideEvidence());
+            peptide_evidences_.emplace_back();
           }
           peptide_evidences_[i].setEnd(splitted[i].toInt());
         }
@@ -1116,7 +1114,7 @@ namespace OpenMS::Internal
     }
     if (create)
     {
-      f1->getSubordinates().push_back(Feature());
+      f1->getSubordinates().emplace_back();
       current_feature_ = &f1->getSubordinates().back();
       last_meta_ = &f1->getSubordinates().back();
       return;

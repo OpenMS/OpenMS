@@ -11,7 +11,7 @@ cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/DIAScoring.h>" namespace "OpenMS":
 
     cdef cppclass DIAScoring(DefaultParamHandler):
         # wrap-inherits:
-        #    DefaultParamHandler
+        #   DefaultParamHandler
 
         DIAScoring() nogil except +
         # private

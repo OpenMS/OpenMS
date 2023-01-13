@@ -55,14 +55,14 @@ namespace OpenMS
   {
     getDefaultParameters(defaults_);
 
-    subsections_.push_back("SavitzkyGolayFilter");
+    subsections_.emplace_back("SavitzkyGolayFilter");
     defaults_.setValue("SavitzkyGolayFilter:frame_length", 15);
     defaults_.setValue("SavitzkyGolayFilter:polynomial_order", 3);
 
-    subsections_.push_back("GaussFilter");
+    subsections_.emplace_back("GaussFilter");
     defaults_.setValue("GaussFilter:gaussian_width", 0.2);
 
-    subsections_.push_back("PeakPickerHiRes");
+    subsections_.emplace_back("PeakPickerHiRes");
     defaults_.setValue("PeakPickerHiRes:signal_to_noise", 1.0);
 
     defaults_.insert("AccurateMassSearchEngine:", AccurateMassSearchEngine().getDefaults());
@@ -639,10 +639,10 @@ namespace OpenMS
     selected_spectra.clear();
     selected_features.clear(true);
 
-    for (auto it = transition_best_spec.cbegin(); it != transition_best_spec.cend(); ++it)
+    for (const auto& m : transition_best_spec)
     {
-      selected_spectra.push_back(scored_spectra[it->second]);
-      if (compute_features) selected_features.push_back(features[it->second]);
+      selected_spectra.push_back(scored_spectra[m.second]);
+      if (compute_features) selected_features.push_back(features[m.second]);
     }
   }
 
@@ -912,7 +912,7 @@ namespace OpenMS
       peptide.id = peptide_ref;
       peptide.setChargeState(ms1_feature.getCharge());
       peptide.addMetaValues(ms1_feature);
-      peptide.protein_refs.push_back(peptide_ref);
+      peptide.protein_refs.emplace_back(peptide_ref);
       peptide.rts.push_back(rt_f);
       auto found_peptide = peptides_map.emplace(peptide_ref, peptide);
       if (!found_peptide.second)
@@ -948,16 +948,16 @@ namespace OpenMS
 
     // Reconstruct the final vectors from the maps
     std::vector<TargetedExperiment::Peptide> peptides;
-    for (auto p : peptides_map) {
+    for (const auto& p : peptides_map) {
       peptides.push_back(p.second);
     }
     std::vector<TargetedExperiment::Protein> proteins;
-    for (auto p : proteins_map)
+    for (const auto& p : proteins_map)
     {
       proteins.push_back(p.second);
     }
     std::vector<ReactionMonitoringTransition> rmt_vec;
-    for (auto p : rmt_map)
+    for (const auto& p : rmt_map)
     {
       rmt_vec.push_back(p.second);
     }

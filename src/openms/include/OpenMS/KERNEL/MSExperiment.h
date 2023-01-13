@@ -116,32 +116,65 @@ public:
     typedef Base::iterator iterator;
     typedef Base::const_iterator const_iterator;
 
+    /// Constructor
+    MSExperiment();
+
+    /// Copy constructor
+    MSExperiment(const MSExperiment & source);
+
+    /// Move constructor
+    MSExperiment(MSExperiment&&) = default;
+
+    /// Assignment operator
+    MSExperiment & operator=(const MSExperiment & source);
+
+    /// Move assignment operator
+    MSExperiment& operator=(MSExperiment&&) & = default;
+
+    /// Assignment operator
+    MSExperiment & operator=(const ExperimentalSettings & source);
+
+    /// D'tor
+    ~MSExperiment() override;
+
+    /// Equality operator
+    bool operator==(const MSExperiment & rhs) const;
+
+    /// Equality operator
+    bool operator!=(const MSExperiment & rhs) const;
+    
+    /// The number of spectra
     inline Size size() const
     {
       return spectra_.size();
     }
 
-    inline void resize(Size s)
+    /// Resize to @p n spectra
+    inline void resize(Size n)
     {
-      spectra_.resize(s);
+      spectra_.resize(n);
     }
 
+    /// Are there any spectra (does not consider chromatograms)
     inline bool empty() const
     {
       return spectra_.empty();
     }
-
-    inline void reserve(Size s)
+    
+    /// Reserve space for @p n spectra
+    inline void reserve(Size n)
     {
-      spectra_.reserve(s);
+      spectra_.reserve(n);
     }
 
-    inline SpectrumType& operator[] (Size n)
+    /// Random access to @p n'th spectrum
+    inline SpectrumType& operator[](Size n)
     {
       return spectra_[n];
     }
 
-    inline const SpectrumType& operator[] (Size n) const
+    /// Random access to @p n'th spectrum
+    inline const SpectrumType& operator[](Size n) const
     {
       return spectra_[n];
     }
@@ -170,30 +203,6 @@ public:
     // Aliases / chromatograms
     void reserveSpaceSpectra(Size s);
     void reserveSpaceChromatograms(Size s);
-
-    /// Constructor
-    MSExperiment();
-
-    /// Copy constructor
-    MSExperiment(const MSExperiment & source);
-
-    /// Move constructor
-    MSExperiment(MSExperiment&&) = default;
-
-    /// Assignment operator
-    MSExperiment & operator=(const MSExperiment & source);
-
-    /// Move assignment operator
-    MSExperiment& operator=(MSExperiment&&) & = default;
-
-    /// Assignment operator
-    MSExperiment & operator=(const ExperimentalSettings & source);
-
-    /// Equality operator
-    bool operator==(const MSExperiment & rhs) const;
-
-    /// Equality operator
-    bool operator!=(const MSExperiment & rhs) const;
 
     ///@name Conversion to/from 2D data
     //@{
@@ -329,19 +338,19 @@ public:
     ///@name Iterating ranges and areas
     //@{
     /// Returns an area iterator for @p area
-    AreaIterator areaBegin(CoordinateType min_rt, CoordinateType max_rt, CoordinateType min_mz, CoordinateType max_mz);
+    AreaIterator areaBegin(CoordinateType min_rt, CoordinateType max_rt, CoordinateType min_mz, CoordinateType max_mz, UInt  ms_level = 1);
 
     /// Returns a area iterator for all peaks in @p range. If a dimension is empty(), it is ignored (i.e. does not restrict the area)
-    AreaIterator areaBegin(const RangeManagerType& range);
+    AreaIterator areaBegin(const RangeManagerType& range, UInt ms_level = 1);
 
     /// Returns an invalid area iterator marking the end of an area
     AreaIterator areaEnd();
 
     /// Returns a non-mutable area iterator for @p area
-    ConstAreaIterator areaBeginConst(CoordinateType min_rt, CoordinateType max_rt, CoordinateType min_mz, CoordinateType max_mz) const;
+    ConstAreaIterator areaBeginConst(CoordinateType min_rt, CoordinateType max_rt, CoordinateType min_mz, CoordinateType max_mz, UInt ms_level = 1) const;
 
     /// Returns a non-mutable area iterator for all peaks in @p range. If a dimension is empty(), it is ignored (i.e. does not restrict the area)
-    ConstAreaIterator areaBeginConst(const RangeManagerType& range) const;
+    ConstAreaIterator areaBeginConst(const RangeManagerType& range, UInt ms_level = 1) const;
 
     /// Returns an non-mutable invalid area iterator marking the end of an area
     ConstAreaIterator areaEndConst() const;

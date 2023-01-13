@@ -35,7 +35,8 @@
 #include <OpenMS/FORMAT/OMSFile.h>
 #include <OpenMS/FORMAT/OMSFileLoad.h>
 #include <OpenMS/FORMAT/OMSFileStore.h>
-#include <QCoreApplication>
+
+#include <fstream>
 
 using namespace std;
 
@@ -57,13 +58,6 @@ namespace OpenMS
 
   void OMSFile::load(const String& filename, IdentificationData& id_data)
   {
-    /*if (!QCoreApplication::instance())
-    {
-      char argv[1] = "";
-      int argc = 0;
-      QCoreApplication a(argc, reinterpret_cast<char**>(&argv));
-      std::cout << QCoreApplication::libraryPaths().join(" ").toStdString() << std::endl;
-    }*/
     OpenMS::Internal::OMSFileLoad helper(filename, log_type_);
     helper.load(id_data);
   }
@@ -73,4 +67,19 @@ namespace OpenMS
     OpenMS::Internal::OMSFileLoad helper(filename, log_type_);
     helper.load(features);
   }
+
+  void OMSFile::exportToJSON(const String& filename_in, const String& filename_out)
+  {
+    OpenMS::Internal::OMSFileLoad helper(filename_in, log_type_);
+    ofstream output(filename_out.c_str());
+    if (output.is_open())
+    {
+      helper.exportToJSON(output);
+    }
+    else
+    {
+      throw Exception::FileNotWritable(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename_out);
+    }
+  }
+
 }

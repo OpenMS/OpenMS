@@ -169,7 +169,7 @@ public:
     UInt getNumberOfMissedCleavages() const;
 
     /// sets the output result type ("all", "valid" or "stochastic")
-    void setOutputResults(String result);
+    void setOutputResults(const String& result);
 
     /// returns the output result type ("all", "valid" or "stochastic")
     String getOutputResults() const;

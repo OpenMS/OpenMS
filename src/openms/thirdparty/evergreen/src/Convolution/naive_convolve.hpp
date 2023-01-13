@@ -17,7 +17,7 @@ Tensor<T> naive_convolve(const Tensor<T> & lhs, const Tensor<T> & rhs) {
   Tensor<T> result(lhs.data_shape() + rhs.data_shape() - 1ul);
   Vector<unsigned long> counter_result(result.dimension());
 
-  enumerate_for_each_tensors([&counter_result, &result, &rhs](const_tup_t counter_lhs, const unsigned char dim_lhs, T lhs_val) {
+  enumerate_for_each_tensors([&counter_result, &result, &rhs](const_tup_t counter_lhs, const unsigned char /*dim_lhs*/, T lhs_val) {
       enumerate_for_each_tensors([&counter_result, &result, &rhs, &counter_lhs, &lhs_val](const_tup_t counter_rhs, const unsigned char dim_rhs, T rhs_val) {
 	  for (unsigned char i=0; i<dim_rhs; ++i)
 	    counter_result[i] = counter_lhs[i] + counter_rhs[i];
@@ -45,7 +45,7 @@ Tensor<T> naive_max_convolve(const Tensor<T> & lhs, const Tensor<T> & rhs) {
   Tensor<T> result(lhs.data_shape() + rhs.data_shape() - 1ul);
   Vector<unsigned long> counter_result(result.dimension());
 
-  enumerate_for_each_tensors([&counter_result, &result, &rhs](const_tup_t counter_lhs, const unsigned char dim_lhs, T lhs_val) {
+  enumerate_for_each_tensors([&counter_result, &result, &rhs](const_tup_t counter_lhs, const unsigned char /*dim_lhs*/, T lhs_val) {
       enumerate_for_each_tensors([&counter_result, &result, &rhs, &counter_lhs, &lhs_val](const_tup_t counter_rhs, const unsigned char dim_rhs, T rhs_val) {
 	  for (unsigned char i=0; i<dim_rhs; ++i)
 	    counter_result[i] = counter_lhs[i] + counter_rhs[i];
@@ -77,7 +77,8 @@ Tensor<T> naive_p_convolve(const Tensor<T> & lhs, const Tensor<T> & rhs, double 
   // perform max max-convolution (this gets the largest element of
   // each u vector). On the second pass, apply p-norm. On third pass,
   // scale by max value.
-  enumerate_for_each_tensors([&counter_result, &max_result, &rhs](const_tup_t counter_lhs, const unsigned char dim_lhs, T lhs_val) {
+  enumerate_for_each_tensors(
+    [&counter_result, &max_result, &rhs](const_tup_t counter_lhs, const unsigned char /*dim_lhs*/, T lhs_val) {
       enumerate_for_each_tensors([&counter_result, &max_result, &rhs, &counter_lhs, &lhs_val](const_tup_t counter_rhs, const unsigned char dim_rhs, T rhs_val) {
 	  for (unsigned char i=0; i<dim_rhs; ++i)
 	    counter_result[i] = counter_lhs[i] + counter_rhs[i];
@@ -93,7 +94,7 @@ Tensor<T> naive_p_convolve(const Tensor<T> & lhs, const Tensor<T> & rhs, double 
   Tensor<T> result(max_result.data_shape());
 
   // Apply p-norms:
-  enumerate_for_each_tensors([&counter_result, &result, &rhs, &max_result, &p_goal](const_tup_t counter_lhs, const unsigned char dim_lhs, T lhs_val) {
+  enumerate_for_each_tensors([&counter_result, &result, &rhs, &max_result, &p_goal](const_tup_t counter_lhs, const unsigned char /*dim_lhs*/, T lhs_val) {
       enumerate_for_each_tensors([&counter_result, &result, &rhs, &counter_lhs, &lhs_val, &max_result, &p_goal](const_tup_t counter_rhs, const unsigned char dim_rhs, T rhs_val) {
 	  for (unsigned char i=0; i<dim_rhs; ++i)
 	    counter_result[i] = counter_lhs[i] + counter_rhs[i];

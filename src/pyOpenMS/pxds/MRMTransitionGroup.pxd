@@ -13,8 +13,8 @@ cdef extern from "<OpenMS/KERNEL/MRMTransitionGroup.h>" namespace "OpenMS":
     cdef cppclass MRMTransitionGroup[SpectrumT, TransitionT]:
 
         # wrap-instances:
-        #   MRMTransitionGroupCP := MRMTransitionGroup[MSChromatogram, ReactionMonitoringTransition]
-        #   LightMRMTransitionGroupCP := MRMTransitionGroup[MSChromatogram, LightTransition]
+        #  MRMTransitionGroupCP := MRMTransitionGroup[MSChromatogram, ReactionMonitoringTransition]
+        #  LightMRMTransitionGroupCP := MRMTransitionGroup[MSChromatogram, LightTransition]
 
         MRMTransitionGroup() nogil except +# TODO(whole file)
         MRMTransitionGroup(MRMTransitionGroup[SpectrumT, TransitionT] &) nogil except +

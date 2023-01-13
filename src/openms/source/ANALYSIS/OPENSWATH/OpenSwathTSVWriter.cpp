@@ -38,9 +38,9 @@ namespace OpenMS
 {
 
 
-  OpenSwathTSVWriter::OpenSwathTSVWriter(const String& output_filename, 
+  OpenSwathTSVWriter::OpenSwathTSVWriter(const String& output_filename,
                                          const String& input_filename,
-                                         bool ms1_scores, 
+                                         bool ms1_scores,
                                          bool sonar) :
     ofs(output_filename.c_str()),
     input_filename_(input_filename),
@@ -57,7 +57,7 @@ namespace OpenMS
 
     void OpenSwathTSVWriter::writeHeader()
     {
-      ofs << "transition_group_id" << "\t" 
+      ofs << "transition_group_id" << "\t"
           << "peptide_group_label" << "\t"
           << "run_id" << "\t"
           << "filename"<< "\t"\
@@ -83,8 +83,9 @@ namespace OpenMS
         "\tvar_massdev_score\tvar_massdev_score_weighted\tvar_norm_rt_score\tvar_xcorr_coelution" <<
         "\tvar_xcorr_coelution_weighted\tvar_xcorr_shape\tvar_xcorr_shape_weighted" <<
         "\tvar_im_xcorr_shape\tvar_im_xcorr_coelution\tvar_im_delta_score\tvar_im_ms1_delta_score" <<
-        "\tim_drift\tim_drift_weighted" <<
+        "\tim_drift_ms2\tim_drift_weighted_ms2\tdelta_im_ms2\tim_drift_ms1\tim_delta_ms1" <<
         "\tvar_yseries_score\tvar_elution_model_fit_score";
+
       if (use_ms1_traces_)
       {
         ofs << "\tvar_ms1_ppm_diff\tvar_ms1_isotope_corr\tvar_ms1_isotope_overlap\tvar_ms1_xcorr_coelution\tvar_ms1_xcorr_shape";
@@ -98,7 +99,7 @@ namespace OpenMS
       {
         ofs << "\taggr_prec_Peak_Area\taggr_prec_Peak_Apex\taggr_prec_Annotation";
       }
-      ofs << "\taggr_Peak_Area\taggr_Peak_Apex\taggr_Fragment_Annotation" << "\t" 
+      ofs << "\taggr_Peak_Area\taggr_Peak_Apex\taggr_Fragment_Annotation" << "\t"
           << "rt_fwhm" << "\t"
           << "masserror_ppm";
       ofs << "\n";
@@ -106,7 +107,7 @@ namespace OpenMS
 
     String OpenSwathTSVWriter::prepareLine(const OpenSwath::LightCompound& pep,
         const OpenSwath::LightTransition * transition,
-        const FeatureMap& output, const String id) const
+        const FeatureMap& output, const String& id) const
     {
         String result = "";
         String decoy = "0"; // 0 = false
@@ -185,7 +186,7 @@ namespace OpenMS
             main_var = (String)feature_it->getMetaValue("main_var_xx_lda_prelim_score");
           }
 
-          String line = 
+          String line =
             id + "_run0"
             + "\t" + group_label
             + "\t" + "0"
@@ -242,6 +243,9 @@ namespace OpenMS
             + "\t" + (String)feature_it->getMetaValue("var_im_ms1_delta_score")
             + "\t" + (String)feature_it->getMetaValue("im_drift")
             + "\t" + (String)feature_it->getMetaValue("im_drift_weighted")
+            + "\t" + (String)feature_it->getMetaValue("im_delta")
+            + "\t" + (String)feature_it->getMetaValue("im_ms1_drift")
+            + "\t" + (String)feature_it->getMetaValue("im_ms1_delta")
 
             + "\t" + (String)feature_it->getMetaValue("var_yseries_score")
             + "\t" + (String)feature_it->getMetaValue("var_elution_model_fit_score");

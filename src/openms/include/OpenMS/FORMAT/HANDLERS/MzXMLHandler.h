@@ -176,7 +176,7 @@ protected:
       inline bool writeAttributeIfExists_(std::ostream& os, const MetaInfoInterface& meta, const String& metakey, const String& attname);
 
       /// write metaInfo to xml (usually in nameValue-tag)
-      inline void writeUserParam_(std::ostream& os, const MetaInfoInterface& meta, int indent = 4, String tag = "nameValue");
+      inline void writeUserParam_(std::ostream& os, const MetaInfoInterface& meta, int indent = 4, const String& tag = "nameValue");
 
       /**
       @brief Fill a single spectrum with data from input

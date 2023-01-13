@@ -58,9 +58,7 @@ namespace OpenMS
   {
   }
 
-  SingleLinkage::~SingleLinkage()
-  {
-  }
+  SingleLinkage::~SingleLinkage() = default;
 
   SingleLinkage & SingleLinkage::operator=(const SingleLinkage & source)
   {
@@ -143,7 +141,7 @@ namespace OpenMS
     for (Size i = 0; i < pi.size() - 1; ++i)
     {
       //strict order is always kept in algorithm: i < pi[i]
-      cluster_tree.push_back(BinaryTreeNode(i, pi[i], lambda[i]));
+      cluster_tree.emplace_back(i, pi[i], lambda[i]);
       //~ std::cout << i << '\n' << pi[i] << '\n' << lambda[i] << std::endl;
     }
 

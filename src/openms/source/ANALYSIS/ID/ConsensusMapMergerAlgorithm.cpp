@@ -290,16 +290,16 @@ namespace OpenMS
       Size old_merge_idx = 0;
       //TODO we could lookup the old protein ID and see if there were multiple MSruns. If so, we should fail if not
       // exist
-      if (pid.metaValueExists("id_merge_index"))
+      if (pid.metaValueExists(Constants::UserParam::ID_MERGE_INDEX))
       {
-        old_merge_idx = pid.getMetaValue("id_merge_index");
+        old_merge_idx = pid.getMetaValue(Constants::UserParam::ID_MERGE_INDEX);
       }
 
       for (const auto& run_to_put : runs_to_put)
       {
         const ProteinIdentification& new_prot_id_run = new_prot_ids[run_to_put];
         pid.setIdentifier(new_prot_id_run.getIdentifier());
-        pid.setMetaValue("id_merge_index",
+        pid.setMetaValue(Constants::UserParam::ID_MERGE_INDEX,
             old_merge_idx + oldrunid_newrunidx_pair2newmergeidx_offset[{pid.getIdentifier(), run_to_put}]);
       }
     };
@@ -377,9 +377,9 @@ namespace OpenMS
       const auto& p = oldrunid2offset_multi_pair[pid.getIdentifier()];
       pid.setIdentifier(new_prot_id_run_string);
       Size old = 0;
-      if (pid.metaValueExists("id_merge_index"))
+      if (pid.metaValueExists(Constants::UserParam::ID_MERGE_INDEX))
       {
-        old = pid.getMetaValue("id_merge_index");
+        old = pid.getMetaValue(Constants::UserParam::ID_MERGE_INDEX);
       }
       else
       {
@@ -392,7 +392,7 @@ namespace OpenMS
               "No id_merge_index value in a merged ID run."); //TODO add more info about where.
         }
       }
-      pid.setMetaValue("id_merge_index", old + p.first);
+      pid.setMetaValue(Constants::UserParam::ID_MERGE_INDEX, old + p.first);
     };
 
     cmap.applyFunctionOnPeptideIDs(fun);

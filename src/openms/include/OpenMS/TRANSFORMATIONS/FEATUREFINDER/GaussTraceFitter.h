@@ -94,7 +94,7 @@ protected:
 
     static const Size NUM_PARAMS_;
 
-    void getOptimizedParameters_(const Eigen::VectorXd& x_init) override;
+    void getOptimizedParameters_(const Eigen::VectorXd& s) override;
 
     class GaussTraceFunctor :
       public TraceFitter::GenericFunctor

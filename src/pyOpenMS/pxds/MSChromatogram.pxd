@@ -16,17 +16,20 @@ cdef extern from "<OpenMS/KERNEL/MSChromatogram.h>" namespace "OpenMS":
         #  RangeManagerRtInt
         #
         # wrap-doc:
-        #   The representation of a chromatogram.
-        #   Raw data access is proved by `get_peaks` and `set_peaks`, which yields numpy arrays
-        #   Iterations yields access to underlying peak objects but is slower
-        #   Extra data arrays can be accessed through getFloatDataArrays / getIntegerDataArrays / getStringDataArrays
-        #   See help(ChromatogramSettings) for information about meta-information
-        #   -----
-        #   Usage:
-        #     precursor = chromatogram.getPrecursor()
-        #     product = chromatogram.getProduct()
-        #     rt, intensities = chromatogram.get_peaks()
-        #   -----
+        #  The representation of a chromatogram.
+        #  Raw data access is proved by `get_peaks` and `set_peaks`, which yields numpy arrays
+        #  Iterations yields access to underlying peak objects but is slower
+        #  Extra data arrays can be accessed through getFloatDataArrays / getIntegerDataArrays / getStringDataArrays
+        #  See help(ChromatogramSettings) for information about meta-information
+        #  
+        #  Usage:
+        #
+        #  .. code-block:: python
+        #  
+        #    precursor = chromatogram.getPrecursor()
+        #    product = chromatogram.getProduct()
+        #    rt, intensities = chromatogram.get_peaks()
+        #  
 
         MSChromatogram() nogil except +
         MSChromatogram(MSChromatogram &) nogil except +
@@ -45,9 +48,10 @@ cdef extern from "<OpenMS/KERNEL/MSChromatogram.h>" namespace "OpenMS":
         void updateRanges() nogil except +
         void clear(int) nogil except +
             # wrap-doc:
-                #   Clears all data and meta data
-                #   -----
-                #   :param clear_meta_data: If true, all meta data is cleared in addition to the data
+                #  Clears all data and meta data
+                #  
+                #  
+                #  :param clear_meta_data: If true, all meta data is cleared in addition to the data
 
         void push_back(ChromatogramPeak)  nogil except + # wrap-doc:Append a peak
 
@@ -55,27 +59,28 @@ cdef extern from "<OpenMS/KERNEL/MSChromatogram.h>" namespace "OpenMS":
 
         void sortByIntensity(bool reverse) nogil except +
             # wrap-doc:
-                #   Lexicographically sorts the peaks by their intensity
-                #   -----
-                #   Sorts the peaks according to ascending intensity. Meta data arrays will be sorted accordingly
+                #  Lexicographically sorts the peaks by their intensity
+                #  
+                #  
+                #  Sorts the peaks according to ascending intensity. Meta data arrays will be sorted accordingly
 
         void sortByPosition() nogil except +
             # wrap-doc:
-                #   Lexicographically sorts the peaks by their position
-                #   -----
-                #   The chromatogram is sorted with respect to position. Meta data arrays will be sorted accordingly
+                #  Lexicographically sorts the peaks by their position
+                #  
+                #  
+                #  The chromatogram is sorted with respect to position. Meta data arrays will be sorted accordingly
 
         int findNearest(double) nogil except +
             # wrap-doc:
-                #   Binary search for the peak nearest to a specific RT
-                #   -----
-                #   :param rt: The searched for mass-to-charge ratio searched
-                #   :returns: Returns the index of the peak.
-                #   -----
-                #   :note: Make sure the chromatogram is sorted with respect to RT! Otherwise the result is undefined
-                #   -----
-                #   :raises:
-                #     Exception: Precondition is thrown if the chromatogram is empty (not only in debug mode)
+                #  Binary search for the peak nearest to a specific RT
+                #  :note: Make sure the chromatogram is sorted with respect to RT! Otherwise the result is undefined
+                #  
+                #  
+                #  :param rt: The searched for mass-to-charge ratio searched
+                #  :return: Returns the index of the peak.
+                #  :raises:
+                #    Exception: Precondition is thrown if the chromatogram is empty (not only in debug mode)
 
         void assign(libcpp_vector[ChromatogramPeak].iterator, libcpp_vector[ChromatogramPeak].iterator) nogil except + # wrap-ignore
         libcpp_vector[ChromatogramPeak].iterator begin() nogil except +  # wrap-iter-begin:__iter__(ChromatogramPeak)

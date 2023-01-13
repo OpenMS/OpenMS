@@ -72,9 +72,7 @@ namespace OpenMS
     return *this;
   }
 
-  EnzymaticDigestion::~EnzymaticDigestion()
-  {
-  }
+  EnzymaticDigestion::~EnzymaticDigestion() = default;
 
   Size EnzymaticDigestion::getMissedCleavages() const
   {
@@ -148,9 +146,15 @@ namespace OpenMS
     return isValidProduct_(sequence, pos, length, ignore_missed_cleavages, false, false);
   }
 
+  Size EnzymaticDigestion::countInternalCleavageSites(const String& sequence) const
+  {
+    return tokenize_(sequence).size() - 1;
+  }
+
   bool EnzymaticDigestion::filterByMissedCleavages(const String& sequence, const std::function<bool(Int)>& filter) const
   {
-    return filter(Int(tokenize_(sequence).size() - 1));
+    const int mc = countInternalCleavageSites(sequence);
+    return filter(mc);
   }
 
   bool EnzymaticDigestion::isValidProduct_(const String& sequence, int pos, int length, bool ignore_missed_cleavages, bool allow_nterm_protein_cleavage, bool allow_random_asp_pro_cleavage) const
@@ -165,17 +169,17 @@ namespace OpenMS
     const int seq_size = (int)sequence.size();
     if (pos >= seq_size)
     {
-      OPENMS_LOG_WARN << "Error: start of fragment (" << pos << ") is beyond end of sequence '" << sequence << "'!" << endl;
+      OPENMS_LOG_WARN << "Warning: start of fragment (" << pos << ") is beyond end of sequence '" << sequence << "'!" << endl;
       return false;
     }
     if (pos + length > seq_size)
     {
-      OPENMS_LOG_WARN << "Error: end of fragment (" << (pos + length) << ") is beyond end of sequence '" << sequence << "'!" << endl;
+      OPENMS_LOG_WARN << "Warning: end of fragment (" << (pos + length) << ") is beyond end of sequence '" << sequence << "'!" << endl;
       return false;
     }
     if (length == 0 || sequence.empty())
     {
-      OPENMS_LOG_WARN << "Error: fragment and sequence must not be empty!" << endl;
+      OPENMS_LOG_WARN << "Warning: fragment and sequence must not be empty!" << endl;
       return false;
     }
 

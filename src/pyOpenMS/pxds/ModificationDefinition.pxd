@@ -7,7 +7,7 @@ cdef extern from "<OpenMS/CHEMISTRY/ModificationDefinition.h>" namespace "OpenMS
     
     cdef cppclass ModificationDefinition "OpenMS::ModificationDefinition":
         # wrap-hash:
-        #   getModificationName().c_str()
+        #  getModificationName().c_str()
 
         ModificationDefinition() nogil except +
         ModificationDefinition(ModificationDefinition &) nogil except +

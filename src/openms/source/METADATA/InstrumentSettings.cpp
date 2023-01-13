@@ -34,6 +34,8 @@
 
 #include <OpenMS/METADATA/InstrumentSettings.h>
 
+#include <utility>
+
 using namespace std;
 
 namespace OpenMS
@@ -49,9 +51,7 @@ namespace OpenMS
   {
   }
 
-  InstrumentSettings::~InstrumentSettings()
-  {
-  }
+  InstrumentSettings::~InstrumentSettings() = default;
 
   bool InstrumentSettings::operator==(const InstrumentSettings & rhs) const
   {
@@ -99,7 +99,7 @@ namespace OpenMS
 
   void InstrumentSettings::setScanWindows(std::vector<ScanWindow>  scan_windows)
   {
-    scan_windows_ =  scan_windows;
+    scan_windows_ =  std::move(scan_windows);
   }
 
   bool InstrumentSettings::getZoomScan() const

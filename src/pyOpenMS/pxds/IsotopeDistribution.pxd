@@ -8,20 +8,20 @@ cdef extern from "<OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/IsotopeDistribution.h>" 
 
     cdef cppclass IsotopeDistribution:
         # wrap-doc:
-            #   Isotope distribution class
-            #   -----
-            #   A container that holds an isotope distribution. It consists of mass values
-            #   and their correspondent probabilities (stored in the intensity slot)
-            #   -----
-            #   Isotope distributions can be calculated using either the
-            #   CoarseIsotopePatternGenerator for quantized atomic masses which group
-            #   isotopes with the same atomic number. Alternatively, the
-            #   FineIsotopePatternGenerator can be used that calculates hyperfine isotopic
-            #   distributions 
-            #    -----
-            #   This class only describes the container that holds the isotopic
-            #   distribution, calculations are done using classes derived from
-            #   IsotopePatternGenerator        
+            #  Isotope distribution class
+            #  
+            #  A container that holds an isotope distribution. It consists of mass values
+            #  and their correspondent probabilities (stored in the intensity slot)
+            #  
+            #  Isotope distributions can be calculated using either the
+            #  CoarseIsotopePatternGenerator for quantized atomic masses which group
+            #  isotopes with the same atomic number. Alternatively, the
+            #  FineIsotopePatternGenerator can be used that calculates hyperfine isotopic
+            #  distributions 
+            #   
+            #  This class only describes the container that holds the isotopic
+            #  distribution, calculations are done using classes derived from
+            #  IsotopePatternGenerator        
 
         IsotopeDistribution() nogil except +
         IsotopeDistribution(IsotopeDistribution &) nogil except +
@@ -63,7 +63,7 @@ cdef extern from "<OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/IsotopeDistribution.h>" 
     
     cdef enum Sorted "OpenMS::IsotopeDistribution::Sorted":
         # wrap-attach:
-        #    IsotopeDistribution
+        #   IsotopeDistribution
         INTENSITY
         MASS
         UNDEFINED
@@ -73,14 +73,14 @@ cdef extern from "<OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/FineIsotopePatternGenera
     cdef cppclass FineIsotopePatternGenerator:
         #
         # wrap-doc:
-        #   Isotope pattern generator for fine isotope distributions.
-        #   Generates isotopes until a stop condition (threshold) is reached,
-        #   the lower the threshold the more isotopes are generated. The
-        #   parameter use_total_prob defines whether the stop condition is
-        #   interpreted as the total probability that the distribution should
-        #   cover (default) or as a threshold for individual peaks. Finally,
-        #   the absolute parameter specifies for individual peak thresholding
-        #   if the threshold is absolute or relative.
+        #  Isotope pattern generator for fine isotope distributions.
+        #  Generates isotopes until a stop condition (threshold) is reached,
+        #  the lower the threshold the more isotopes are generated. The
+        #  parameter use_total_prob defines whether the stop condition is
+        #  interpreted as the total probability that the distribution should
+        #  cover (default) or as a threshold for individual peaks. Finally,
+        #  the absolute parameter specifies for individual peak thresholding
+        #  if the threshold is absolute or relative.
 
         FineIsotopePatternGenerator() nogil except + 
         FineIsotopePatternGenerator(double threshold) nogil except +
@@ -116,7 +116,7 @@ cdef extern from "<OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/CoarseIsotopePatternGene
         
         void setMaxIsotope(Size max_isotope) nogil except + # wrap-doc:Sets the maximal isotope with 'max_isotope'
 
-        #   "Determination of Monoisotopic Masses and Ion Populations for Large Biomolecules from Resolved Isotopic Distributions"
+        #  "Determination of Monoisotopic Masses and Ion Populations for Large Biomolecules from Resolved Isotopic Distributions"
         IsotopeDistribution estimateFromPeptideWeight(double average_weight) nogil except + # wrap-doc:Estimate Peptide Isotopedistribution from weight and number of isotopes that should be reported
 
         IsotopeDistribution estimateFromPeptideWeightAndS(double average_weight, UInt S) nogil except + # wrap-doc:Estimate peptide IsotopeDistribution from average weight and exact number of sulfurs
@@ -146,45 +146,45 @@ cdef extern from "<OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/CoarseIsotopePatternGene
                                                                      UInt S_fragment,
                                                                      libcpp_set[ unsigned int ]& precursor_isotopes) nogil except +
             # wrap-doc:
-                #   Estimate peptide fragment IsotopeDistribution from the precursor's average weight,
-                #   number of sulfurs in the precursor, fragment's average weight, number of sulfurs in the fragment,
-                #   and a set of isolated precursor isotopes.
+                #  Estimate peptide fragment IsotopeDistribution from the precursor's average weight,
+                #  number of sulfurs in the precursor, fragment's average weight, number of sulfurs in the fragment,
+                #  and a set of isolated precursor isotopes.
 
         IsotopeDistribution approximateFromPeptideWeight(double mass, UInt num_peaks, UInt charge) nogil except +
 
             # wrap-doc:
-                #   Roughly approximate peptide IsotopeDistribution from monoisotopic weight using Poisson distribution.
-                #   m/z values approximated by adding one neutron mass (divided by charge) for every peak, starting at 
-		#   the given monoisotopic weight. Foundation from: Bellew et al, https://dx.doi.org/10.1093/bioinformatics/btl276
-		#   This method is around 50 times faster than estimateFromPeptideWeight, but only an approximation.
-		#   The following are the intensities of the first 6 peaks generated for a monoisotopic mass of 1000:
-		#   estimateFromPeptideWeight:    0.571133000;0.306181000;0.095811100;0.022036900;0.004092170;0.000644568
-		#   approximateFromPeptideWeight: 0.573753000;0.318752000;0.088542200;0.016396700;0.002277320;0.000253036
-		#   KL divergences of the first 20 intensities of estimateFromPeptideWeight and this approximation range from 4.97E-5 for a
-		#   monoisotopic mass of 20 to 0.0144 for a mass of 2500. For comparison, when comparing an observed pattern with a 
-		#   theoretical ground truth, the observed pattern is said to be an isotopic pattern if the KL between the two is below 0.05
-		#   for 2 peaks and below 0.6 for >=6 peaks by Guo Ci Teo et al.
+                #  Roughly approximate peptide IsotopeDistribution from monoisotopic weight using Poisson distribution.
+                #  m/z values approximated by adding one neutron mass (divided by charge) for every peak, starting at 
+		#  the given monoisotopic weight. Foundation from: Bellew et al, https://dx.doi.org/10.1093/bioinformatics/btl276
+		#  This method is around 50 times faster than estimateFromPeptideWeight, but only an approximation.
+		#  The following are the intensities of the first 6 peaks generated for a monoisotopic mass of 1000:
+		#  estimateFromPeptideWeight:    0.571133000;0.306181000;0.095811100;0.022036900;0.004092170;0.000644568
+		#  approximateFromPeptideWeight: 0.573753000;0.318752000;0.088542200;0.016396700;0.002277320;0.000253036
+		#  KL divergences of the first 20 intensities of estimateFromPeptideWeight and this approximation range from 4.97E-5 for a
+		#  monoisotopic mass of 20 to 0.0144 for a mass of 2500. For comparison, when comparing an observed pattern with a 
+		#  theoretical ground truth, the observed pattern is said to be an isotopic pattern if the KL between the two is below 0.05
+		#  for 2 peaks and below 0.6 for >=6 peaks by Guo Ci Teo et al.
 
         libcpp_vector[ double ] approximateIntensities(double mass, UInt num_peaks) nogil except +
 
             # wrap-doc:
-                #   Roughly approximate peptidic isotope pattern intensities from monoisotopic weight using Poisson distribution.
-                #   Foundation from: Bellew et al, https://dx.doi.org/10.1093/bioinformatics/btl276
-		#   This method is around 100 times faster than estimateFromPeptideWeight, but only an approximation, see approximateFromPeptideWeight.
+                #  Roughly approximate peptidic isotope pattern intensities from monoisotopic weight using Poisson distribution.
+                #  Foundation from: Bellew et al, https://dx.doi.org/10.1093/bioinformatics/btl276
+		#  This method is around 100 times faster than estimateFromPeptideWeight, but only an approximation, see approximateFromPeptideWeight.
 
         IsotopeDistribution estimateForFragmentFromRNAWeight(double average_weight_precursor,
                                                              double average_weight_fragment,
                                                              libcpp_set[ unsigned int ]& precursor_isotopes) nogil except +
             # wrap-doc:
-                #   Estimate RNA fragment IsotopeDistribution from the precursor's average weight,
-                #   fragment's average weight, and a set of isolated precursor isotopes
+                #  Estimate RNA fragment IsotopeDistribution from the precursor's average weight,
+                #  fragment's average weight, and a set of isolated precursor isotopes
 
         IsotopeDistribution estimateForFragmentFromDNAWeight(double average_weight_precursor,
                                                              double average_weight_fragment,
                                                              libcpp_set[ unsigned int ]& precursor_isotopes) nogil except +
             # wrap-doc:
-                #   Estimate DNA fragment IsotopeDistribution from the precursor's average weight,
-                #   fragment's average weight, and a set of isolated precursor isotopes.
+                #  Estimate DNA fragment IsotopeDistribution from the precursor's average weight,
+                #  fragment's average weight, and a set of isolated precursor isotopes.
 
         IsotopeDistribution estimateForFragmentFromWeightAndComp(double average_weight_precursor,
                                                                  double average_weight_fragment,
@@ -196,8 +196,8 @@ cdef extern from "<OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/CoarseIsotopePatternGene
                                                                  double S,
                                                                  double P) nogil except +
             # wrap-doc:
-                #   Estimate fragment IsotopeDistribution from the precursor's average weight,
-                #   fragment's average weight, a set of isolated precursor isotopes, and average composition
+                #  Estimate fragment IsotopeDistribution from the precursor's average weight,
+                #  fragment's average weight, a set of isolated precursor isotopes, and average composition
 
         IsotopeDistribution calcFragmentIsotopeDist(IsotopeDistribution& fragment_isotope_dist,
                                                     IsotopeDistribution& comp_fragment_isotope_dist,

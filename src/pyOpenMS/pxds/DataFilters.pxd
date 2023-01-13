@@ -42,7 +42,7 @@ cdef extern from "<OpenMS/FILTERING/DATAREDUCTION/DataFilters.h>" namespace "Ope
 cdef extern from "<OpenMS/FILTERING/DATAREDUCTION/DataFilters.h>" namespace "OpenMS::DataFilters":
     cdef enum FilterType "OpenMS::DataFilters::FilterType":
         #wrap-attach:
-        #    DataFilters
+        #   DataFilters
         INTENSITY
         QUALITY
         CHARGE
@@ -52,7 +52,7 @@ cdef extern from "<OpenMS/FILTERING/DATAREDUCTION/DataFilters.h>" namespace "Ope
 cdef extern from "<OpenMS/FILTERING/DATAREDUCTION/DataFilters.h>" namespace "OpenMS::DataFilters":
     cdef enum FilterOperation "OpenMS::DataFilters::FilterOperation":
         #wrap-attach:
-        #    DataFilters
+        #   DataFilters
         GREATER_EQUAL
         EQUAL
         LESS_EQUAL

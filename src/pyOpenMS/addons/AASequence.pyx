@@ -8,8 +8,8 @@ from libcpp.map cimport map as libcpp_map
             v = c_mmap[ _String(<char *>k) ]
 
     def __iter__(self):
-        cdef int n = self.inst.get().size()
-        cdef int i = 0
+        cdef unsigned long n = self.inst.get().size()
+        cdef unsigned long i = 0
 
         cdef Residue py_result 
         while i < n:

@@ -8,7 +8,7 @@ cdef extern from "<OpenMS/METADATA/ContactPerson.h>" namespace "OpenMS":
 
     cdef cppclass ContactPerson(MetaInfoInterface):
         # wrap-inherits:
-        #    MetaInfoInterface
+        #   MetaInfoInterface
 
         ContactPerson() nogil except +
         ContactPerson(ContactPerson &) nogil except +

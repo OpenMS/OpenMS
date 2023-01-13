@@ -107,7 +107,7 @@ public:
             @throw Exception::FileNotFound
             @throw Exception::UnableToCreateFile
     */
-    void generateTrieDB(const String & source_database_filename, const String & database_filename, const String & index_filename, bool append = false, const String species = "");
+    void generateTrieDB(const String & source_database_filename, const String & database_filename, const String & index_filename, bool append = false, const String& species = "");
 
 
     /// retrieve the accession type and accession number from a protein description line

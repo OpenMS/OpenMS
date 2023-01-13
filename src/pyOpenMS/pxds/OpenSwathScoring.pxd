@@ -18,42 +18,37 @@ cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/OpenSwathScoring.h>" namespace "Ope
                         OpenSwath_Scores_Usage su,
                         libcpp_string spectrum_addition_method) nogil except +
             # wrap-doc:
-                #   Initialize the scoring object\n
-                #   Sets the parameters for the scoring
-                #   
-                #   ----------
-                #   rt_normalization_factor : double
-                #       Specifies the range of the normalized retention time space
-                #   add_up_spectra : int
-                #       How many spectra to add up (default 1)
-                #   spacing_for_spectra_resampling : double
-                #       Spacing factor for spectra addition
-                #   su : OpenSwath_Scores_Usage
-                #       Which scores to actually compute
-                #   spectrum_addition_method : libcpp_string
-                #       Method to use for spectrum addition (valid: "simple", "resample")
+                #  Initialize the scoring object\n
+                #  Sets the parameters for the scoring
+                #  
+                #  
+                #  :param rt_normalization_factor: Specifies the range of the normalized retention time space
+                #  :param add_up_spectra: How many spectra to add up (default 1)
+                #  :param spacing_for_spectra_resampling: Spacing factor for spectra addition
+                #  :param su: Which scores to actually compute
+                #  :param spectrum_addition_method: Method to use for spectrum addition (valid: "simple", "resample")
 
         # void calculateChromatographicScores(
-        #       OpenSwath::IMRMFeature* imrmfeature,
-        #       const std::vector<std::string>& native_ids,
-        #       const std::vector<double>& normalized_library_intensity,
-        #       std::vector<OpenSwath::ISignalToNoisePtr>& signal_noise_estimators,
-        #       OpenSwath_Scores & scores) nogil except +
+        #      OpenSwath::IMRMFeature* imrmfeature,
+        #      const std::vector<std::string>& native_ids,
+        #      const std::vector<double>& normalized_library_intensity,
+        #      std::vector<OpenSwath::ISignalToNoisePtr>& signal_noise_estimators,
+        #      OpenSwath_Scores & scores) nogil except +
 
         # void calculateLibraryScores(
-        #       OpenSwath::IMRMFeature* imrmfeature,
-        #       const std::vector<TransitionType> & transitions,
-        #       const PeptideType& pep,
-        #       const double normalized_feature_rt,
-        #       OpenSwath_Scores & scores) nogil except +
+        #      OpenSwath::IMRMFeature* imrmfeature,
+        #      const std::vector<TransitionType> & transitions,
+        #      const PeptideType& pep,
+        #      const double normalized_feature_rt,
+        #      OpenSwath_Scores & scores) nogil except +
 
         # void calculateDIAScores(OpenSwath::IMRMFeature* imrmfeature, 
-        #     const std::vector<TransitionType> & transitions,
-        #     OpenSwath::SpectrumAccessPtr swath_map,
-        #     OpenSwath::SpectrumAccessPtr ms1_map,
-        #     OpenMS::DIAScoring & diascoring,
-        #     const PeptideType& pep,
-        #     OpenSwath_Scores & scores) nogil except +
+        #    const std::vector<TransitionType> & transitions,
+        #    OpenSwath::SpectrumAccessPtr swath_map,
+        #    OpenSwath::SpectrumAccessPtr ms1_map,
+        #    OpenMS::DIAScoring & diascoring,
+        #    const PeptideType& pep,
+        #    OpenSwath_Scores & scores) nogil except +
 
         void getNormalized_library_intensities_(libcpp_vector[LightTransition] transitions,
                                                 libcpp_vector[double] normalized_library_intensity) nogil except +

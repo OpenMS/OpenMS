@@ -257,9 +257,9 @@ public:
     T convert(const String& s);
   
     template<>
-    inline Int convert(const String& s)
+    inline Int32 convert(const String& s)
     {
-      return s.toInt();
+      return s.toInt32();
     }
     template<>
     inline double convert(const String& s)

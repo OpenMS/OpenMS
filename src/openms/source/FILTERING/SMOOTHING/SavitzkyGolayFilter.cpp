@@ -51,9 +51,7 @@ namespace OpenMS
     defaultsToParam_();
   }
 
-  SavitzkyGolayFilter::~SavitzkyGolayFilter()
-  {
-  }
+  SavitzkyGolayFilter::~SavitzkyGolayFilter() = default;
 
   void SavitzkyGolayFilter::updateMembers_()
   {

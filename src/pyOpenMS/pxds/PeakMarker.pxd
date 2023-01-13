@@ -11,7 +11,7 @@ cdef extern from "<OpenMS/FILTERING/TRANSFORMERS/PeakMarker.h>" namespace "OpenM
         # wrap-inherits:
         #  DefaultParamHandler
         # wrap-doc:
-        #   PeakMarker marks peaks that seem to fulfill some criterion
+        #  PeakMarker marks peaks that seem to fulfill some criterion
 
         PeakMarker() nogil except +
         PeakMarker(PeakMarker &) nogil except +

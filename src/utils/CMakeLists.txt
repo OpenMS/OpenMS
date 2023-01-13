@@ -33,7 +33,7 @@
 # --------------------------------------------------------------------------
 
 project("OpenMS_UTILS")
-cmake_minimum_required(VERSION 3.9.0 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.15 FATAL_ERROR)
 
 # --------------------------------------------------------------------------
 # OpenMS' UTILS tools

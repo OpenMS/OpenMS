@@ -1,5 +1,5 @@
 project("IsoSpec")
-cmake_minimum_required(VERSION 3.0)
+cmake_minimum_required(VERSION 3.15 FATAL_ERROR)
 
 set(my_sources
 cwrapper.cpp

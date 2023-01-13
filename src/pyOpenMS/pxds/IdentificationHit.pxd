@@ -8,7 +8,7 @@ cdef extern from "<OpenMS/METADATA/IdentificationHit.h>" namespace "OpenMS":
 
     cdef cppclass IdentificationHit(MetaInfoInterface):
         # wrap-inherits:
-        #   MetaInfoInterface
+        #  MetaInfoInterface
 
         IdentificationHit()   nogil except + # wrap-doc:Represents a object which can store the information of an analysisXML instance
         IdentificationHit(IdentificationHit &) nogil except +

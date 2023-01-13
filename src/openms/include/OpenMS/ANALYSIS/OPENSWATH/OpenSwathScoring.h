@@ -183,7 +183,7 @@ namespace OpenMS
     void calculateDIAScores(OpenSwath::IMRMFeature* imrmfeature,
                             const std::vector<TransitionType>& transitions,
                             const std::vector<OpenSwath::SwathMap>& swath_maps,
-                            OpenSwath::SpectrumAccessPtr ms1_map,
+                            const OpenSwath::SpectrumAccessPtr& ms1_map,
                             const OpenMS::DIAScoring& diascoring,
                             const CompoundType& compound,
                             OpenSwath_Scores& scores,
@@ -205,7 +205,7 @@ namespace OpenMS
      * @param drift_upper Drift time upper extraction boundary
      *
     */
-    void calculatePrecursorDIAScores(OpenSwath::SpectrumAccessPtr ms1_map, 
+    void calculatePrecursorDIAScores(const OpenSwath::SpectrumAccessPtr& ms1_map, 
                                      const OpenMS::DIAScoring& diascoring,
                                      double precursor_mz, 
                                      double rt, 
@@ -229,7 +229,7 @@ namespace OpenMS
     */
     void calculateDIAIdScores(OpenSwath::IMRMFeature* imrmfeature,
                               const TransitionType & transition,
-                              const std::vector<OpenSwath::SwathMap> swath_maps,
+                              const std::vector<OpenSwath::SwathMap>& swath_maps,
                               const OpenMS::DIAScoring & diascoring,
                               OpenSwath_Scores & scores,
                               double drift_lower,
@@ -305,7 +305,7 @@ namespace OpenMS
      *
      * @return Added up spectrum
     */
-    OpenSwath::SpectrumPtr getAddedSpectra_(OpenSwath::SpectrumAccessPtr swath_map,
+    OpenSwath::SpectrumPtr getAddedSpectra_(const OpenSwath::SpectrumAccessPtr& swath_map,
                                             double RT,
                                             int nr_spectra_to_add,
                                             const double drift_lower,

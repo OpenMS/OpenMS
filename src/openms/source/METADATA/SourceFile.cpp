@@ -47,15 +47,13 @@ namespace OpenMS
     file_size_(),
     file_type_(),
     checksum_(),
-    checksum_type_(SourceFile::UNKNOWN_CHECKSUM),
+    
     native_id_type_(""),
     native_id_type_accession_("")
   {
   }
 
-  SourceFile::~SourceFile()
-  {
-  }
+  SourceFile::~SourceFile() = default;
 
   bool SourceFile::operator==(const SourceFile& rhs) const
   {

@@ -162,7 +162,7 @@ namespace OpenMS
   {
     /** SIRIUS version
     */
-    inline const std::string CURRENT_VERSION = "5.5.5";
+    inline const std::string CURRENT_VERSION = "5.6.3";
   }
 
 }

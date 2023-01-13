@@ -6,7 +6,7 @@ cdef extern from "<OpenMS/METADATA/MassAnalyzer.h>" namespace "OpenMS":
 
     cdef cppclass MassAnalyzer(MetaInfoInterface):
         # wrap-inherits:
-        #    MetaInfoInterface
+        #   MetaInfoInterface
 
         MassAnalyzer() nogil except +
         MassAnalyzer(MassAnalyzer &) nogil except +
@@ -54,14 +54,14 @@ cdef extern from "<OpenMS/METADATA/MassAnalyzer.h>" namespace "OpenMS":
         void setMagneticFieldStrength(double magnetic_field_strength) nogil except + # wrap-doc:Sets the strength of the magnetic field (in T)
 
         #
-        #   @brief returns the position of this part in the whole Instrument.
+        #  @brief returns the position of this part in the whole Instrument.
         #
-        #   Order can be ignored, as long the instrument has this default setup:
-        #   - one ion source
-        #   - one or many mass analyzers
-        #   - one ion detector
+        #  Order can be ignored, as long the instrument has this default setup:
+        #  - one ion source
+        #  - one or many mass analyzers
+        #  - one ion detector
         #
-        #   For more complex instruments the order should be defined.
+        #  For more complex instruments the order should be defined.
         Int getOrder() nogil except + # wrap-doc:Returns the position of this part in the whole Instrument
         # sets the order
         void setOrder(Int order) nogil except + # wrap-doc:Sets the order
@@ -71,7 +71,7 @@ cdef extern from "<OpenMS/METADATA/MassAnalyzer.h>" namespace "OpenMS::MassAnaly
     # analyzer type
     cdef enum AnalyzerType:
       # wrap-attach:
-      #     MassAnalyzer
+      #    MassAnalyzer
       ANALYZERNULL,                         #< Unknown
       QUADRUPOLE,                           #< Quadrupole
       PAULIONTRAP,                          #< Quadrupole ion trap / Paul ion trap
@@ -93,7 +93,7 @@ cdef extern from "<OpenMS/METADATA/MassAnalyzer.h>" namespace "OpenMS::MassAnaly
     # Which of the available standard measures is used to define whether two peaks are separate
     cdef enum ResolutionMethod:
       # wrap-attach:
-      #     MassAnalyzer
+      #    MassAnalyzer
       RESMETHNULL,                  #< Unknown
       FWHM,                         #< Full width at half max
       TENPERCENTVALLEY,             #< Ten percent valley
@@ -103,7 +103,7 @@ cdef extern from "<OpenMS/METADATA/MassAnalyzer.h>" namespace "OpenMS::MassAnaly
     # Resolution type
     cdef enum ResolutionType:
       # wrap-attach:
-      #     MassAnalyzer
+      #    MassAnalyzer
       RESTYPENULL,              #< Unknown
       CONSTANT,                 #< Constant
       PROPORTIONAL,             #< Proportional
@@ -112,7 +112,7 @@ cdef extern from "<OpenMS/METADATA/MassAnalyzer.h>" namespace "OpenMS::MassAnaly
     # direction of scanning
     cdef enum ScanDirection:
       # wrap-attach:
-      #     MassAnalyzer
+      #    MassAnalyzer
       SCANDIRNULL,              #< Unknown
       UP,                       #< Up
       DOWN,                     #< Down
@@ -121,7 +121,7 @@ cdef extern from "<OpenMS/METADATA/MassAnalyzer.h>" namespace "OpenMS::MassAnaly
     #Scan law
     cdef enum ScanLaw:
       # wrap-attach:
-      #     MassAnalyzer
+      #    MassAnalyzer
       SCANLAWNULL,              #< Unknown
       EXPONENTIAL,              #< Unknown
       LINEAR,                   #< Linear
@@ -131,7 +131,7 @@ cdef extern from "<OpenMS/METADATA/MassAnalyzer.h>" namespace "OpenMS::MassAnaly
     #Reflectron state
     cdef enum ReflectronState:
       # wrap-attach:
-      #     MassAnalyzer
+      #    MassAnalyzer
       REFLSTATENULL,            #< Unknown
       ON,                       #< On
       OFF,                      #< Off

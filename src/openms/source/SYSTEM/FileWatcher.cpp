@@ -48,9 +48,7 @@ namespace OpenMS
     connect(this, &FileWatcher::fileChanged, [this](const String& s) { monitorFileChanged_(s.toQString()); });
   }
 
-  FileWatcher::~FileWatcher()
-  {
-  }
+  FileWatcher::~FileWatcher() = default;
 
   void FileWatcher::monitorFileChanged_(const QString & name)
   {

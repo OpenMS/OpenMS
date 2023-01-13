@@ -7,10 +7,10 @@ cdef extern from "<OpenMS/FORMAT/DATAACCESS/MSDataStoringConsumer.h>" namespace 
     
     cdef cppclass MSDataStoringConsumer :
         # wrap-doc:
-            #   Consumer class that simply stores the data
-            #   -----
-            #   This class is able to keep spectra and chromatograms passed to it in memory
-            #   and the data can be accessed through getData()
+            #  Consumer class that simply stores the data
+            #  
+            #  This class is able to keep spectra and chromatograms passed to it in memory
+            #  and the data can be accessed through getData()
 
         MSDataStoringConsumer() nogil except +
         MSDataStoringConsumer(MSDataStoringConsumer &) nogil except + # compiler

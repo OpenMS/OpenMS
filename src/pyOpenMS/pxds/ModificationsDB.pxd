@@ -8,7 +8,7 @@ cdef extern from "<OpenMS/CHEMISTRY/ModificationsDB.h>" namespace "OpenMS":
     
     cdef cppclass ModificationsDB "OpenMS::ModificationsDB":
         # wrap-manual-memory:
-        #   cdef AutowrapPtrHolder[_ModificationsDB] inst
+        #  cdef AutowrapPtrHolder[_ModificationsDB] inst
 
         # private
         ModificationsDB() nogil except + # wrap-ignore
@@ -22,11 +22,11 @@ cdef extern from "<OpenMS/CHEMISTRY/ModificationsDB.h>" namespace "OpenMS":
                                  const String& residue,
                                  TermSpecificity term_spec) nogil except +
             # wrap-doc:
-                #   Collects all modifications which have the given name as synonym
-                #   -----
-                #   If `residue` is set, only modifications with matching residue of origin are considered
-                #   If `term_spec` is set, only modifications with matching term specificity are considered
-                #   The resulting set of modifications will be empty if no modification exists that fulfills the criteria
+                #  Collects all modifications which have the given name as synonym
+                #  
+                #  If `residue` is set, only modifications with matching residue of origin are considered
+                #  If `term_spec` is set, only modifications with matching term specificity are considered
+                #  The resulting set of modifications will be empty if no modification exists that fulfills the criteria
 
         const ResidueModification * getModification(Size index) nogil except + # wrap-doc:Returns the modification with the given index
 
@@ -53,22 +53,23 @@ cdef extern from "<OpenMS/CHEMISTRY/ModificationsDB.h>" namespace "OpenMS":
         const ResidueModification* getBestModificationByDiffMonoMass(double mass, double max_error,
                                                                      const String& residue, TermSpecificity term_spec) nogil except +
             # wrap-doc:
-                #   Returns the best matching modification for the given delta mass and residue
-                #   -----
-                #   Query the modifications DB to get the best matching modification with
-                #   the given delta mass at the given residue (NULL pointer means no result,
-                #   maybe the maximal error tolerance needs to be increased). Possible
-                #   input for CAM modification would be a delta mass of 57 and a residue
-                #   of "C".
-                #   -----
-                #   Note: If there are multiple possible matches with equal masses, it
-                #   will choose the _first_ match which defaults to the first matching
-                #   UniMod entry.
-                #   -----
-                #   :param residue: The residue at which the modifications occurs
-                #   :param mass: The monoisotopic mass of the residue including the mass of the modification
-                #   :param max_error: The maximal mass error in the modification search
-                #   :returns: A pointer to the best matching modification (or NULL if none was found)
+                #  Returns the best matching modification for the given delta mass and residue
+                #  
+                #  Query the modifications DB to get the best matching modification with
+                #  the given delta mass at the given residue (NULL pointer means no result,
+                #  maybe the maximal error tolerance needs to be increased). Possible
+                #  input for CAM modification would be a delta mass of 57 and a residue
+                #  of "C".
+                #  
+                #  Note: If there are multiple possible matches with equal masses, it
+                #  will choose the _first_ match which defaults to the first matching
+                #  UniMod entry.
+                #  
+                #  
+                #  :param residue: The residue at which the modifications occurs
+                #  :param mass: The monoisotopic mass of the residue including the mass of the modification
+                #  :param max_error: The maximal mass error in the modification search
+                #  :return: A pointer to the best matching modification (or NULL if none was found)
 
         void getAllSearchModifications(libcpp_vector[ String ] & modifications) nogil except + # wrap-doc:Collects all modifications that can be used for identification searches
 

@@ -41,9 +41,7 @@ using namespace std;
 namespace OpenMS
 {
 
-  CVTermList::~CVTermList()
-  {
-  }
+  CVTermList::~CVTermList() = default;
 
   CVTermList::CVTermList(CVTermList&& rhs) noexcept :
     MetaInfoInterface(std::move(rhs)),

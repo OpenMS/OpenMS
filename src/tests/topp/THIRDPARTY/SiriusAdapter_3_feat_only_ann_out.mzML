@@ -289,102 +289,6 @@
 				<cvParam cvRef="MS" accession="MS:1000511" name="ms level" value="2" />
 				<cvParam cvRef="MS" accession="MS:1000294" name="mass spectrum" />
 				<userParam name="peak_mz" type="xsd:string" value="mz"/>
-				<userParam name="annotated_sumformula" type="xsd:string" value="C21H17"/>
-				<userParam name="annotated_adduct" type="xsd:string" value="[M+Na]+"/>
-				<userParam name="decoy" type="xsd:integer" value="0"/>
-				<userParam name="score" type="xsd:double" value="0.0"/>
-				<scanList count="1">
-					<cvParam cvRef="MS" accession="MS:1000795" name="no combination" />
-					<scan>
-						<cvParam cvRef="MS" accession="MS:1000016" name="scan start time" value="-1" unitAccession="UO:0000010" unitName="second" unitCvRef="UO" />
-					</scan>
-				</scanList>
-				<binaryDataArrayList count="5">
-					<binaryDataArray encodedLength="12">
-						<cvParam cvRef="MS" accession="MS:1000514" name="m/z array" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
-						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
-						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
-						<binary>pWd6ifFBckA=</binary>
-					</binaryDataArray>
-					<binaryDataArray encodedLength="8">
-						<cvParam cvRef="MS" accession="MS:1000515" name="intensity array" unitAccession="MS:1000131" unitName="number of detector counts" unitCvRef="MS"/>
-						<cvParam cvRef="MS" accession="MS:1000521" name="32-bit float" />
-						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
-						<binary>AIBHRA==</binary>
-					</binaryDataArray>
-					<binaryDataArray arrayLength="1" encodedLength="8" >
-						<cvParam cvRef="MS" accession="MS:1000786" name="non-standard data array" value="exact_mass" />
-						<cvParam cvRef="MS" accession="MS:1000521" name="32-bit float" />
-						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
-						<binary>pg+SQw==</binary>
-					</binaryDataArray>
-					<binaryDataArray arrayLength="1" encodedLength="12" >
-						<cvParam cvRef="MS" accession="MS:1001479" name="null-terminated ASCII string" />
-												<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
-						<cvParam cvRef="MS" accession="MS:1000786" name="non-standard data array" value="explanation" />
-						<binary>QzIxSDE3AA==</binary>
-					</binaryDataArray>
-					<binaryDataArray arrayLength="1" encodedLength="16" >
-						<cvParam cvRef="MS" accession="MS:1001479" name="null-terminated ASCII string" />
-												<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
-						<cvParam cvRef="MS" accession="MS:1000786" name="non-standard data array" value="" />
-						<binary>W00gKyBOYV0rAA==</binary>
-					</binaryDataArray>
-				</binaryDataArrayList>
-			</spectrum>
-			<spectrum id="sample=1 period=1 cycle=2166 experiment=6_2" index="6" defaultArrayLength="1">
-				<cvParam cvRef="MS" accession="MS:1000525" name="spectrum representation" />
-				<cvParam cvRef="MS" accession="MS:1000511" name="ms level" value="2" />
-				<cvParam cvRef="MS" accession="MS:1000294" name="mass spectrum" />
-				<userParam name="peak_mz" type="xsd:string" value="mz"/>
-				<userParam name="annotated_sumformula" type="xsd:string" value="C18H21O"/>
-				<userParam name="annotated_adduct" type="xsd:string" value="[M+K]+"/>
-				<userParam name="decoy" type="xsd:integer" value="0"/>
-				<userParam name="score" type="xsd:double" value="0.0"/>
-				<scanList count="1">
-					<cvParam cvRef="MS" accession="MS:1000795" name="no combination" />
-					<scan>
-						<cvParam cvRef="MS" accession="MS:1000016" name="scan start time" value="-1" unitAccession="UO:0000010" unitName="second" unitCvRef="UO" />
-					</scan>
-				</scanList>
-				<binaryDataArrayList count="5">
-					<binaryDataArray encodedLength="12">
-						<cvParam cvRef="MS" accession="MS:1000514" name="m/z array" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
-						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
-						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
-						<binary>pWd6ifFBckA=</binary>
-					</binaryDataArray>
-					<binaryDataArray encodedLength="8">
-						<cvParam cvRef="MS" accession="MS:1000515" name="intensity array" unitAccession="MS:1000131" unitName="number of detector counts" unitCvRef="MS"/>
-						<cvParam cvRef="MS" accession="MS:1000521" name="32-bit float" />
-						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
-						<binary>AIBHRA==</binary>
-					</binaryDataArray>
-					<binaryDataArray arrayLength="1" encodedLength="8" >
-						<cvParam cvRef="MS" accession="MS:1000786" name="non-standard data array" value="exact_mass" />
-						<cvParam cvRef="MS" accession="MS:1000521" name="32-bit float" />
-						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
-						<binary>qw+SQw==</binary>
-					</binaryDataArray>
-					<binaryDataArray arrayLength="1" encodedLength="12" >
-						<cvParam cvRef="MS" accession="MS:1001479" name="null-terminated ASCII string" />
-												<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
-						<cvParam cvRef="MS" accession="MS:1000786" name="non-standard data array" value="explanation" />
-						<binary>QzE4SDIxTwA=</binary>
-					</binaryDataArray>
-					<binaryDataArray arrayLength="1" encodedLength="12" >
-						<cvParam cvRef="MS" accession="MS:1001479" name="null-terminated ASCII string" />
-												<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
-						<cvParam cvRef="MS" accession="MS:1000786" name="non-standard data array" value="" />
-						<binary>W00gKyBLXSsA</binary>
-					</binaryDataArray>
-				</binaryDataArrayList>
-			</spectrum>
-			<spectrum id="sample=1 period=1 cycle=2166 experiment=6_3" index="7" defaultArrayLength="1">
-				<cvParam cvRef="MS" accession="MS:1000525" name="spectrum representation" />
-				<cvParam cvRef="MS" accession="MS:1000511" name="ms level" value="2" />
-				<cvParam cvRef="MS" accession="MS:1000294" name="mass spectrum" />
-				<userParam name="peak_mz" type="xsd:string" value="mz"/>
 				<userParam name="annotated_sumformula" type="xsd:string" value="C16H19N3"/>
 				<userParam name="annotated_adduct" type="xsd:string" value="[M+K]+"/>
 				<userParam name="decoy" type="xsd:integer" value="0"/>
@@ -428,7 +332,7 @@
 					</binaryDataArray>
 				</binaryDataArrayList>
 			</spectrum>
-			<spectrum id="sample=1 period=1 cycle=2166 experiment=6_4" index="8" defaultArrayLength="1">
+			<spectrum id="sample=1 period=1 cycle=2166 experiment=6_2" index="6" defaultArrayLength="1">
 				<cvParam cvRef="MS" accession="MS:1000525" name="spectrum representation" />
 				<cvParam cvRef="MS" accession="MS:1000511" name="ms level" value="2" />
 				<cvParam cvRef="MS" accession="MS:1000294" name="mass spectrum" />
@@ -476,7 +380,7 @@
 					</binaryDataArray>
 				</binaryDataArrayList>
 			</spectrum>
-			<spectrum id="sample=1 period=1 cycle=2166 experiment=6_5" index="9" defaultArrayLength="1">
+			<spectrum id="sample=1 period=1 cycle=2166 experiment=6_3" index="7" defaultArrayLength="1">
 				<cvParam cvRef="MS" accession="MS:1000525" name="spectrum representation" />
 				<cvParam cvRef="MS" accession="MS:1000511" name="ms level" value="2" />
 				<cvParam cvRef="MS" accession="MS:1000294" name="mass spectrum" />
@@ -521,6 +425,102 @@
 												<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
 						<cvParam cvRef="MS" accession="MS:1000786" name="non-standard data array" value="" />
 						<binary>W00gKyBOYV0rAA==</binary>
+					</binaryDataArray>
+				</binaryDataArrayList>
+			</spectrum>
+			<spectrum id="sample=1 period=1 cycle=2166 experiment=6_4" index="8" defaultArrayLength="1">
+				<cvParam cvRef="MS" accession="MS:1000525" name="spectrum representation" />
+				<cvParam cvRef="MS" accession="MS:1000511" name="ms level" value="2" />
+				<cvParam cvRef="MS" accession="MS:1000294" name="mass spectrum" />
+				<userParam name="peak_mz" type="xsd:string" value="mz"/>
+				<userParam name="annotated_sumformula" type="xsd:string" value="C10H15F2N5O3"/>
+				<userParam name="annotated_adduct" type="xsd:string" value="[M+H]+"/>
+				<userParam name="decoy" type="xsd:integer" value="0"/>
+				<userParam name="score" type="xsd:double" value="0.0"/>
+				<scanList count="1">
+					<cvParam cvRef="MS" accession="MS:1000795" name="no combination" />
+					<scan>
+						<cvParam cvRef="MS" accession="MS:1000016" name="scan start time" value="-1" unitAccession="UO:0000010" unitName="second" unitCvRef="UO" />
+					</scan>
+				</scanList>
+				<binaryDataArrayList count="5">
+					<binaryDataArray encodedLength="12">
+						<cvParam cvRef="MS" accession="MS:1000514" name="m/z array" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
+						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
+						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
+						<binary>pWd6ifFBckA=</binary>
+					</binaryDataArray>
+					<binaryDataArray encodedLength="8">
+						<cvParam cvRef="MS" accession="MS:1000515" name="intensity array" unitAccession="MS:1000131" unitName="number of detector counts" unitCvRef="MS"/>
+						<cvParam cvRef="MS" accession="MS:1000521" name="32-bit float" />
+						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
+						<binary>AIBHRA==</binary>
+					</binaryDataArray>
+					<binaryDataArray arrayLength="1" encodedLength="8" >
+						<cvParam cvRef="MS" accession="MS:1000786" name="non-standard data array" value="exact_mass" />
+						<cvParam cvRef="MS" accession="MS:1000521" name="32-bit float" />
+						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
+						<binary>kA+SQw==</binary>
+					</binaryDataArray>
+					<binaryDataArray arrayLength="1" encodedLength="20" >
+						<cvParam cvRef="MS" accession="MS:1001479" name="null-terminated ASCII string" />
+												<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
+						<cvParam cvRef="MS" accession="MS:1000786" name="non-standard data array" value="explanation" />
+						<binary>QzEwSDE1RjJONU8zAA==</binary>
+					</binaryDataArray>
+					<binaryDataArray arrayLength="1" encodedLength="12" >
+						<cvParam cvRef="MS" accession="MS:1001479" name="null-terminated ASCII string" />
+												<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
+						<cvParam cvRef="MS" accession="MS:1000786" name="non-standard data array" value="" />
+						<binary>W00gKyBIXSsA</binary>
+					</binaryDataArray>
+				</binaryDataArrayList>
+			</spectrum>
+			<spectrum id="sample=1 period=1 cycle=2166 experiment=6_5" index="9" defaultArrayLength="1">
+				<cvParam cvRef="MS" accession="MS:1000525" name="spectrum representation" />
+				<cvParam cvRef="MS" accession="MS:1000511" name="ms level" value="2" />
+				<cvParam cvRef="MS" accession="MS:1000294" name="mass spectrum" />
+				<userParam name="peak_mz" type="xsd:string" value="mz"/>
+				<userParam name="annotated_sumformula" type="xsd:string" value="C12H21NO5S"/>
+				<userParam name="annotated_adduct" type="xsd:string" value="[M+H]+"/>
+				<userParam name="decoy" type="xsd:integer" value="0"/>
+				<userParam name="score" type="xsd:double" value="0.0"/>
+				<scanList count="1">
+					<cvParam cvRef="MS" accession="MS:1000795" name="no combination" />
+					<scan>
+						<cvParam cvRef="MS" accession="MS:1000016" name="scan start time" value="-1" unitAccession="UO:0000010" unitName="second" unitCvRef="UO" />
+					</scan>
+				</scanList>
+				<binaryDataArrayList count="5">
+					<binaryDataArray encodedLength="12">
+						<cvParam cvRef="MS" accession="MS:1000514" name="m/z array" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
+						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
+						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
+						<binary>pWd6ifFBckA=</binary>
+					</binaryDataArray>
+					<binaryDataArray encodedLength="8">
+						<cvParam cvRef="MS" accession="MS:1000515" name="intensity array" unitAccession="MS:1000131" unitName="number of detector counts" unitCvRef="MS"/>
+						<cvParam cvRef="MS" accession="MS:1000521" name="32-bit float" />
+						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
+						<binary>AIBHRA==</binary>
+					</binaryDataArray>
+					<binaryDataArray arrayLength="1" encodedLength="8" >
+						<cvParam cvRef="MS" accession="MS:1000786" name="non-standard data array" value="exact_mass" />
+						<cvParam cvRef="MS" accession="MS:1000521" name="32-bit float" />
+						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
+						<binary>hw+SQw==</binary>
+					</binaryDataArray>
+					<binaryDataArray arrayLength="1" encodedLength="16" >
+						<cvParam cvRef="MS" accession="MS:1001479" name="null-terminated ASCII string" />
+												<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
+						<cvParam cvRef="MS" accession="MS:1000786" name="non-standard data array" value="explanation" />
+						<binary>QzEySDIxTk81UwA=</binary>
+					</binaryDataArray>
+					<binaryDataArray arrayLength="1" encodedLength="12" >
+						<cvParam cvRef="MS" accession="MS:1001479" name="null-terminated ASCII string" />
+												<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
+						<cvParam cvRef="MS" accession="MS:1000786" name="non-standard data array" value="" />
+						<binary>W00gKyBIXSsA</binary>
 					</binaryDataArray>
 				</binaryDataArrayList>
 			</spectrum>
@@ -676,56 +676,7 @@
 				<cvParam cvRef="MS" accession="MS:1000511" name="ms level" value="2" />
 				<cvParam cvRef="MS" accession="MS:1000294" name="mass spectrum" />
 				<userParam name="peak_mz" type="xsd:string" value="mz"/>
-				<userParam name="annotated_sumformula" type="xsd:string" value="C21H17"/>
-				<userParam name="annotated_adduct" type="xsd:string" value="[M+Na]+"/>
-				<userParam name="decoy" type="xsd:integer" value="0"/>
-				<userParam name="score" type="xsd:double" value="0.0"/>
-				<userParam name="feat_id" type="xsd:string" value="13442776035824190606"/>
-				<scanList count="1">
-					<cvParam cvRef="MS" accession="MS:1000795" name="no combination" />
-					<scan>
-						<cvParam cvRef="MS" accession="MS:1000016" name="scan start time" value="-1" unitAccession="UO:0000010" unitName="second" unitCvRef="UO" />
-					</scan>
-				</scanList>
-				<binaryDataArrayList count="5">
-					<binaryDataArray encodedLength="12">
-						<cvParam cvRef="MS" accession="MS:1000514" name="m/z array" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
-						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
-						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
-						<binary>ChNGs/JBckA=</binary>
-					</binaryDataArray>
-					<binaryDataArray encodedLength="8">
-						<cvParam cvRef="MS" accession="MS:1000515" name="intensity array" unitAccession="MS:1000131" unitName="number of detector counts" unitCvRef="MS"/>
-						<cvParam cvRef="MS" accession="MS:1000521" name="32-bit float" />
-						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
-						<binary>gFQJSA==</binary>
-					</binaryDataArray>
-					<binaryDataArray arrayLength="1" encodedLength="8" >
-						<cvParam cvRef="MS" accession="MS:1000786" name="non-standard data array" value="exact_mass" />
-						<cvParam cvRef="MS" accession="MS:1000521" name="32-bit float" />
-						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
-						<binary>pg+SQw==</binary>
-					</binaryDataArray>
-					<binaryDataArray arrayLength="1" encodedLength="12" >
-						<cvParam cvRef="MS" accession="MS:1001479" name="null-terminated ASCII string" />
-												<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
-						<cvParam cvRef="MS" accession="MS:1000786" name="non-standard data array" value="explanation" />
-						<binary>QzIxSDE3AA==</binary>
-					</binaryDataArray>
-					<binaryDataArray arrayLength="1" encodedLength="16" >
-						<cvParam cvRef="MS" accession="MS:1001479" name="null-terminated ASCII string" />
-												<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
-						<cvParam cvRef="MS" accession="MS:1000786" name="non-standard data array" value="" />
-						<binary>W00gKyBOYV0rAA==</binary>
-					</binaryDataArray>
-				</binaryDataArrayList>
-			</spectrum>
-			<spectrum id="sample=1 period=1 cycle=2167 experiment=5|sample=1 period=1 cycle=2175 experiment=4|sample=1 period=1 cycle=2176 experiment=6_5" index="14" defaultArrayLength="1">
-				<cvParam cvRef="MS" accession="MS:1000525" name="spectrum representation" />
-				<cvParam cvRef="MS" accession="MS:1000511" name="ms level" value="2" />
-				<cvParam cvRef="MS" accession="MS:1000294" name="mass spectrum" />
-				<userParam name="peak_mz" type="xsd:string" value="mz"/>
-				<userParam name="annotated_sumformula" type="xsd:string" value="C18H21O"/>
+				<userParam name="annotated_sumformula" type="xsd:string" value="C16H19N3"/>
 				<userParam name="annotated_adduct" type="xsd:string" value="[M+K]+"/>
 				<userParam name="decoy" type="xsd:integer" value="0"/>
 				<userParam name="score" type="xsd:double" value="0.0"/>
@@ -753,13 +704,13 @@
 						<cvParam cvRef="MS" accession="MS:1000786" name="non-standard data array" value="exact_mass" />
 						<cvParam cvRef="MS" accession="MS:1000521" name="32-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
-						<binary>qw+SQw==</binary>
+						<binary>fw+SQw==</binary>
 					</binaryDataArray>
 					<binaryDataArray arrayLength="1" encodedLength="12" >
 						<cvParam cvRef="MS" accession="MS:1001479" name="null-terminated ASCII string" />
 												<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
 						<cvParam cvRef="MS" accession="MS:1000786" name="non-standard data array" value="explanation" />
-						<binary>QzE4SDIxTwA=</binary>
+						<binary>QzE2SDE5TjMA</binary>
 					</binaryDataArray>
 					<binaryDataArray arrayLength="1" encodedLength="12" >
 						<cvParam cvRef="MS" accession="MS:1001479" name="null-terminated ASCII string" />
@@ -769,15 +720,16 @@
 					</binaryDataArray>
 				</binaryDataArrayList>
 			</spectrum>
-			<spectrum id="sample=1 period=1 cycle=2171 experiment=3" index="15" defaultArrayLength="1">
+			<spectrum id="sample=1 period=1 cycle=2167 experiment=5|sample=1 period=1 cycle=2175 experiment=4|sample=1 period=1 cycle=2176 experiment=6_5" index="14" defaultArrayLength="1">
 				<cvParam cvRef="MS" accession="MS:1000525" name="spectrum representation" />
 				<cvParam cvRef="MS" accession="MS:1000511" name="ms level" value="2" />
 				<cvParam cvRef="MS" accession="MS:1000294" name="mass spectrum" />
 				<userParam name="peak_mz" type="xsd:string" value="mz"/>
-				<userParam name="annotated_sumformula" type="xsd:string" value="C13H21O6"/>
-				<userParam name="annotated_adduct" type="xsd:string" value="[M+Na]+"/>
+				<userParam name="annotated_sumformula" type="xsd:string" value="C14H18N3O2P"/>
+				<userParam name="annotated_adduct" type="xsd:string" value="[M+H]+"/>
 				<userParam name="decoy" type="xsd:integer" value="0"/>
 				<userParam name="score" type="xsd:double" value="0.0"/>
+				<userParam name="feat_id" type="xsd:string" value="13442776035824190606"/>
 				<scanList count="1">
 					<cvParam cvRef="MS" accession="MS:1000795" name="no combination" />
 					<scan>
@@ -789,35 +741,35 @@
 						<cvParam cvRef="MS" accession="MS:1000514" name="m/z array" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
-						<binary>ujKoNviBckA=</binary>
+						<binary>ChNGs/JBckA=</binary>
 					</binaryDataArray>
 					<binaryDataArray encodedLength="8">
 						<cvParam cvRef="MS" accession="MS:1000515" name="intensity array" unitAccession="MS:1000131" unitName="number of detector counts" unitCvRef="MS"/>
 						<cvParam cvRef="MS" accession="MS:1000521" name="32-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
-						<binary>AACoQg==</binary>
+						<binary>gFQJSA==</binary>
 					</binaryDataArray>
 					<binaryDataArray arrayLength="1" encodedLength="8" >
 						<cvParam cvRef="MS" accession="MS:1000786" name="non-standard data array" value="exact_mass" />
 						<cvParam cvRef="MS" accession="MS:1000521" name="32-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
-						<binary>wA+UQw==</binary>
-					</binaryDataArray>
-					<binaryDataArray arrayLength="1" encodedLength="12" >
-						<cvParam cvRef="MS" accession="MS:1001479" name="null-terminated ASCII string" />
-												<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
-						<cvParam cvRef="MS" accession="MS:1000786" name="non-standard data array" value="explanation" />
-						<binary>QzEzSDIxTzYA</binary>
+						<binary>ew+SQw==</binary>
 					</binaryDataArray>
 					<binaryDataArray arrayLength="1" encodedLength="16" >
 						<cvParam cvRef="MS" accession="MS:1001479" name="null-terminated ASCII string" />
 												<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
+						<cvParam cvRef="MS" accession="MS:1000786" name="non-standard data array" value="explanation" />
+						<binary>QzE0SDE4TjNPMlAA</binary>
+					</binaryDataArray>
+					<binaryDataArray arrayLength="1" encodedLength="12" >
+						<cvParam cvRef="MS" accession="MS:1001479" name="null-terminated ASCII string" />
+												<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
 						<cvParam cvRef="MS" accession="MS:1000786" name="non-standard data array" value="" />
-						<binary>W00gKyBOYV0rAA==</binary>
+						<binary>W00gKyBIXSsA</binary>
 					</binaryDataArray>
 				</binaryDataArrayList>
 			</spectrum>
-			<spectrum id="sample=1 period=1 cycle=2171 experiment=3_2" index="16" defaultArrayLength="1">
+			<spectrum id="sample=1 period=1 cycle=2171 experiment=3" index="15" defaultArrayLength="1">
 				<cvParam cvRef="MS" accession="MS:1000525" name="spectrum representation" />
 				<cvParam cvRef="MS" accession="MS:1000511" name="ms level" value="2" />
 				<cvParam cvRef="MS" accession="MS:1000294" name="mass spectrum" />
@@ -865,7 +817,7 @@
 					</binaryDataArray>
 				</binaryDataArrayList>
 			</spectrum>
-			<spectrum id="sample=1 period=1 cycle=2171 experiment=3_3" index="17" defaultArrayLength="1">
+			<spectrum id="sample=1 period=1 cycle=2171 experiment=3_2" index="16" defaultArrayLength="1">
 				<cvParam cvRef="MS" accession="MS:1000525" name="spectrum representation" />
 				<cvParam cvRef="MS" accession="MS:1000511" name="ms level" value="2" />
 				<cvParam cvRef="MS" accession="MS:1000294" name="mass spectrum" />
@@ -913,7 +865,7 @@
 					</binaryDataArray>
 				</binaryDataArrayList>
 			</spectrum>
-			<spectrum id="sample=1 period=1 cycle=2171 experiment=3_4" index="18" defaultArrayLength="1">
+			<spectrum id="sample=1 period=1 cycle=2171 experiment=3_3" index="17" defaultArrayLength="1">
 				<cvParam cvRef="MS" accession="MS:1000525" name="spectrum representation" />
 				<cvParam cvRef="MS" accession="MS:1000511" name="ms level" value="2" />
 				<cvParam cvRef="MS" accession="MS:1000294" name="mass spectrum" />
@@ -961,7 +913,7 @@
 					</binaryDataArray>
 				</binaryDataArrayList>
 			</spectrum>
-			<spectrum id="sample=1 period=1 cycle=2171 experiment=3_5" index="19" defaultArrayLength="1">
+			<spectrum id="sample=1 period=1 cycle=2171 experiment=3_4" index="18" defaultArrayLength="1">
 				<cvParam cvRef="MS" accession="MS:1000525" name="spectrum representation" />
 				<cvParam cvRef="MS" accession="MS:1000511" name="ms level" value="2" />
 				<cvParam cvRef="MS" accession="MS:1000294" name="mass spectrum" />
@@ -1009,13 +961,13 @@
 					</binaryDataArray>
 				</binaryDataArrayList>
 			</spectrum>
-			<spectrum id="sample=1 period=1 cycle=2172 experiment=4" index="20" defaultArrayLength="1">
+			<spectrum id="sample=1 period=1 cycle=2171 experiment=3_5" index="19" defaultArrayLength="1">
 				<cvParam cvRef="MS" accession="MS:1000525" name="spectrum representation" />
 				<cvParam cvRef="MS" accession="MS:1000511" name="ms level" value="2" />
 				<cvParam cvRef="MS" accession="MS:1000294" name="mass spectrum" />
 				<userParam name="peak_mz" type="xsd:string" value="mz"/>
-				<userParam name="annotated_sumformula" type="xsd:string" value="C13H21O6"/>
-				<userParam name="annotated_adduct" type="xsd:string" value="[M+Na]+"/>
+				<userParam name="annotated_sumformula" type="xsd:string" value="C9H13N9O3"/>
+				<userParam name="annotated_adduct" type="xsd:string" value="[M+H]+"/>
 				<userParam name="decoy" type="xsd:integer" value="0"/>
 				<userParam name="score" type="xsd:double" value="0.0"/>
 				<scanList count="1">
@@ -1029,35 +981,35 @@
 						<cvParam cvRef="MS" accession="MS:1000514" name="m/z array" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
 						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
-						<binary>aAjHLPuBckA=</binary>
+						<binary>ujKoNviBckA=</binary>
 					</binaryDataArray>
 					<binaryDataArray encodedLength="8">
 						<cvParam cvRef="MS" accession="MS:1000515" name="intensity array" unitAccession="MS:1000131" unitName="number of detector counts" unitCvRef="MS"/>
 						<cvParam cvRef="MS" accession="MS:1000521" name="32-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
-						<binary>AAB8Qw==</binary>
+						<binary>AACoQg==</binary>
 					</binaryDataArray>
 					<binaryDataArray arrayLength="1" encodedLength="8" >
 						<cvParam cvRef="MS" accession="MS:1000786" name="non-standard data array" value="exact_mass" />
 						<cvParam cvRef="MS" accession="MS:1000521" name="32-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
-						<binary>wA+UQw==</binary>
-					</binaryDataArray>
-					<binaryDataArray arrayLength="1" encodedLength="12" >
-						<cvParam cvRef="MS" accession="MS:1001479" name="null-terminated ASCII string" />
-												<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
-						<cvParam cvRef="MS" accession="MS:1000786" name="non-standard data array" value="explanation" />
-						<binary>QzEzSDIxTzYA</binary>
+						<binary>ig+UQw==</binary>
 					</binaryDataArray>
 					<binaryDataArray arrayLength="1" encodedLength="16" >
 						<cvParam cvRef="MS" accession="MS:1001479" name="null-terminated ASCII string" />
 												<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
+						<cvParam cvRef="MS" accession="MS:1000786" name="non-standard data array" value="explanation" />
+						<binary>QzlIMTNOOU8zAA==</binary>
+					</binaryDataArray>
+					<binaryDataArray arrayLength="1" encodedLength="12" >
+						<cvParam cvRef="MS" accession="MS:1001479" name="null-terminated ASCII string" />
+												<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
 						<cvParam cvRef="MS" accession="MS:1000786" name="non-standard data array" value="" />
-						<binary>W00gKyBOYV0rAA==</binary>
+						<binary>W00gKyBIXSsA</binary>
 					</binaryDataArray>
 				</binaryDataArrayList>
 			</spectrum>
-			<spectrum id="sample=1 period=1 cycle=2172 experiment=4_2" index="21" defaultArrayLength="1">
+			<spectrum id="sample=1 period=1 cycle=2172 experiment=4" index="20" defaultArrayLength="1">
 				<cvParam cvRef="MS" accession="MS:1000525" name="spectrum representation" />
 				<cvParam cvRef="MS" accession="MS:1000511" name="ms level" value="2" />
 				<cvParam cvRef="MS" accession="MS:1000294" name="mass spectrum" />
@@ -1105,7 +1057,7 @@
 					</binaryDataArray>
 				</binaryDataArrayList>
 			</spectrum>
-			<spectrum id="sample=1 period=1 cycle=2172 experiment=4_3" index="22" defaultArrayLength="1">
+			<spectrum id="sample=1 period=1 cycle=2172 experiment=4_2" index="21" defaultArrayLength="1">
 				<cvParam cvRef="MS" accession="MS:1000525" name="spectrum representation" />
 				<cvParam cvRef="MS" accession="MS:1000511" name="ms level" value="2" />
 				<cvParam cvRef="MS" accession="MS:1000294" name="mass spectrum" />
@@ -1153,7 +1105,7 @@
 					</binaryDataArray>
 				</binaryDataArrayList>
 			</spectrum>
-			<spectrum id="sample=1 period=1 cycle=2172 experiment=4_4" index="23" defaultArrayLength="1">
+			<spectrum id="sample=1 period=1 cycle=2172 experiment=4_3" index="22" defaultArrayLength="1">
 				<cvParam cvRef="MS" accession="MS:1000525" name="spectrum representation" />
 				<cvParam cvRef="MS" accession="MS:1000511" name="ms level" value="2" />
 				<cvParam cvRef="MS" accession="MS:1000294" name="mass spectrum" />
@@ -1201,7 +1153,7 @@
 					</binaryDataArray>
 				</binaryDataArrayList>
 			</spectrum>
-			<spectrum id="sample=1 period=1 cycle=2172 experiment=4_5" index="24" defaultArrayLength="1">
+			<spectrum id="sample=1 period=1 cycle=2172 experiment=4_4" index="23" defaultArrayLength="1">
 				<cvParam cvRef="MS" accession="MS:1000525" name="spectrum representation" />
 				<cvParam cvRef="MS" accession="MS:1000511" name="ms level" value="2" />
 				<cvParam cvRef="MS" accession="MS:1000294" name="mass spectrum" />
@@ -1246,6 +1198,54 @@
 												<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
 						<cvParam cvRef="MS" accession="MS:1000786" name="non-standard data array" value="" />
 						<binary>W00gKyBIXSsA</binary>
+					</binaryDataArray>
+				</binaryDataArrayList>
+			</spectrum>
+			<spectrum id="sample=1 period=1 cycle=2172 experiment=4_5" index="24" defaultArrayLength="1">
+				<cvParam cvRef="MS" accession="MS:1000525" name="spectrum representation" />
+				<cvParam cvRef="MS" accession="MS:1000511" name="ms level" value="2" />
+				<cvParam cvRef="MS" accession="MS:1000294" name="mass spectrum" />
+				<userParam name="peak_mz" type="xsd:string" value="mz"/>
+				<userParam name="annotated_sumformula" type="xsd:string" value="C16H19NO3"/>
+				<userParam name="annotated_adduct" type="xsd:string" value="[M+Na]+"/>
+				<userParam name="decoy" type="xsd:integer" value="0"/>
+				<userParam name="score" type="xsd:double" value="0.0"/>
+				<scanList count="1">
+					<cvParam cvRef="MS" accession="MS:1000795" name="no combination" />
+					<scan>
+						<cvParam cvRef="MS" accession="MS:1000016" name="scan start time" value="-1" unitAccession="UO:0000010" unitName="second" unitCvRef="UO" />
+					</scan>
+				</scanList>
+				<binaryDataArrayList count="5">
+					<binaryDataArray encodedLength="12">
+						<cvParam cvRef="MS" accession="MS:1000514" name="m/z array" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS" />
+						<cvParam cvRef="MS" accession="MS:1000523" name="64-bit float" />
+						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
+						<binary>aAjHLPuBckA=</binary>
+					</binaryDataArray>
+					<binaryDataArray encodedLength="8">
+						<cvParam cvRef="MS" accession="MS:1000515" name="intensity array" unitAccession="MS:1000131" unitName="number of detector counts" unitCvRef="MS"/>
+						<cvParam cvRef="MS" accession="MS:1000521" name="32-bit float" />
+						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
+						<binary>AAB8Qw==</binary>
+					</binaryDataArray>
+					<binaryDataArray arrayLength="1" encodedLength="8" >
+						<cvParam cvRef="MS" accession="MS:1000786" name="non-standard data array" value="exact_mass" />
+						<cvParam cvRef="MS" accession="MS:1000521" name="32-bit float" />
+						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
+						<binary>GBCUQw==</binary>
+					</binaryDataArray>
+					<binaryDataArray arrayLength="1" encodedLength="16" >
+						<cvParam cvRef="MS" accession="MS:1001479" name="null-terminated ASCII string" />
+												<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
+						<cvParam cvRef="MS" accession="MS:1000786" name="non-standard data array" value="explanation" />
+						<binary>QzE2SDE5Tk8zAA==</binary>
+					</binaryDataArray>
+					<binaryDataArray arrayLength="1" encodedLength="16" >
+						<cvParam cvRef="MS" accession="MS:1001479" name="null-terminated ASCII string" />
+												<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
+						<cvParam cvRef="MS" accession="MS:1000786" name="non-standard data array" value="" />
+						<binary>W00gKyBOYV0rAA==</binary>
 					</binaryDataArray>
 				</binaryDataArrayList>
 			</spectrum>
@@ -1446,8 +1446,8 @@
 				<cvParam cvRef="MS" accession="MS:1000511" name="ms level" value="2" />
 				<cvParam cvRef="MS" accession="MS:1000294" name="mass spectrum" />
 				<userParam name="peak_mz" type="xsd:string" value="mz"/>
-				<userParam name="annotated_sumformula" type="xsd:string" value="C13H21O6"/>
-				<userParam name="annotated_adduct" type="xsd:string" value="[M+Na]+"/>
+				<userParam name="annotated_sumformula" type="xsd:string" value="C9H19N7O2"/>
+				<userParam name="annotated_adduct" type="xsd:string" value="[M+K]+"/>
 				<userParam name="decoy" type="xsd:integer" value="0"/>
 				<userParam name="score" type="xsd:double" value="0.0"/>
 				<scanList count="1">
@@ -1473,19 +1473,19 @@
 						<cvParam cvRef="MS" accession="MS:1000786" name="non-standard data array" value="exact_mass" />
 						<cvParam cvRef="MS" accession="MS:1000521" name="32-bit float" />
 						<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
-						<binary>wA+UQw==</binary>
-					</binaryDataArray>
-					<binaryDataArray arrayLength="1" encodedLength="12" >
-						<cvParam cvRef="MS" accession="MS:1001479" name="null-terminated ASCII string" />
-												<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
-						<cvParam cvRef="MS" accession="MS:1000786" name="non-standard data array" value="explanation" />
-						<binary>QzEzSDIxTzYA</binary>
+						<binary>xA+UQw==</binary>
 					</binaryDataArray>
 					<binaryDataArray arrayLength="1" encodedLength="16" >
 						<cvParam cvRef="MS" accession="MS:1001479" name="null-terminated ASCII string" />
 												<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
+						<cvParam cvRef="MS" accession="MS:1000786" name="non-standard data array" value="explanation" />
+						<binary>QzlIMTlON08yAA==</binary>
+					</binaryDataArray>
+					<binaryDataArray arrayLength="1" encodedLength="12" >
+						<cvParam cvRef="MS" accession="MS:1001479" name="null-terminated ASCII string" />
+												<cvParam cvRef="MS" accession="MS:1000576" name="no compression" />
 						<cvParam cvRef="MS" accession="MS:1000786" name="non-standard data array" value="" />
-						<binary>W00gKyBOYV0rAA==</binary>
+						<binary>W00gKyBLXSsA</binary>
 					</binaryDataArray>
 				</binaryDataArrayList>
 			</spectrum>
@@ -2028,43 +2028,43 @@
 		<offset idRef="sample=1 period=1 cycle=2165 experiment=4_4">11838</offset>
 		<offset idRef="sample=1 period=1 cycle=2165 experiment=4_5">14770</offset>
 		<offset idRef="sample=1 period=1 cycle=2166 experiment=6">17692</offset>
-		<offset idRef="sample=1 period=1 cycle=2166 experiment=6_2">20615</offset>
-		<offset idRef="sample=1 period=1 cycle=2166 experiment=6_3">23536</offset>
-		<offset idRef="sample=1 period=1 cycle=2166 experiment=6_4">26458</offset>
-		<offset idRef="sample=1 period=1 cycle=2166 experiment=6_5">29385</offset>
-		<offset idRef="sample=1 period=1 cycle=2167 experiment=5|sample=1 period=1 cycle=2175 experiment=4|sample=1 period=1 cycle=2176 experiment=6">32317</offset>
-		<offset idRef="sample=1 period=1 cycle=2167 experiment=5|sample=1 period=1 cycle=2175 experiment=4|sample=1 period=1 cycle=2176 experiment=6_2">35413</offset>
-		<offset idRef="sample=1 period=1 cycle=2167 experiment=5|sample=1 period=1 cycle=2175 experiment=4|sample=1 period=1 cycle=2176 experiment=6_3">38506</offset>
-		<offset idRef="sample=1 period=1 cycle=2167 experiment=5|sample=1 period=1 cycle=2175 experiment=4|sample=1 period=1 cycle=2176 experiment=6_4">41602</offset>
-		<offset idRef="sample=1 period=1 cycle=2167 experiment=5|sample=1 period=1 cycle=2175 experiment=4|sample=1 period=1 cycle=2176 experiment=6_5">44691</offset>
-		<offset idRef="sample=1 period=1 cycle=2171 experiment=3">47776</offset>
-		<offset idRef="sample=1 period=1 cycle=2171 experiment=3_2">50702</offset>
-		<offset idRef="sample=1 period=1 cycle=2171 experiment=3_3">53635</offset>
-		<offset idRef="sample=1 period=1 cycle=2171 experiment=3_4">56563</offset>
-		<offset idRef="sample=1 period=1 cycle=2171 experiment=3_5">59492</offset>
-		<offset idRef="sample=1 period=1 cycle=2172 experiment=4">62426</offset>
-		<offset idRef="sample=1 period=1 cycle=2172 experiment=4_2">65352</offset>
-		<offset idRef="sample=1 period=1 cycle=2172 experiment=4_3">68281</offset>
-		<offset idRef="sample=1 period=1 cycle=2172 experiment=4_4">71209</offset>
-		<offset idRef="sample=1 period=1 cycle=2172 experiment=4_5">74142</offset>
-		<offset idRef="sample=1 period=1 cycle=2173 experiment=2">77070</offset>
-		<offset idRef="sample=1 period=1 cycle=2173 experiment=2_2">79996</offset>
-		<offset idRef="sample=1 period=1 cycle=2173 experiment=2_3">82929</offset>
-		<offset idRef="sample=1 period=1 cycle=2173 experiment=2_4">85857</offset>
-		<offset idRef="sample=1 period=1 cycle=2173 experiment=2_5">88786</offset>
-		<offset idRef="sample=1 period=1 cycle=2199 experiment=3">91714</offset>
-		<offset idRef="sample=1 period=1 cycle=2199 experiment=3_2">94640</offset>
-		<offset idRef="sample=1 period=1 cycle=2199 experiment=3_3">97568</offset>
-		<offset idRef="sample=1 period=1 cycle=2199 experiment=3_4">100497</offset>
-		<offset idRef="sample=1 period=1 cycle=2199 experiment=3_5">103425</offset>
-		<offset idRef="sample=1 period=1 cycle=2199 experiment=3_6">106359</offset>
-		<offset idRef="sample=1 period=1 cycle=2204 experiment=6">109288</offset>
-		<offset idRef="sample=1 period=1 cycle=2204 experiment=6_2">112214</offset>
-		<offset idRef="sample=1 period=1 cycle=2204 experiment=6_3">115143</offset>
-		<offset idRef="sample=1 period=1 cycle=2204 experiment=6_4">118077</offset>
-		<offset idRef="sample=1 period=1 cycle=2204 experiment=6_5">120999</offset>
+		<offset idRef="sample=1 period=1 cycle=2166 experiment=6_2">20612</offset>
+		<offset idRef="sample=1 period=1 cycle=2166 experiment=6_3">23539</offset>
+		<offset idRef="sample=1 period=1 cycle=2166 experiment=6_4">26471</offset>
+		<offset idRef="sample=1 period=1 cycle=2166 experiment=6_5">29405</offset>
+		<offset idRef="sample=1 period=1 cycle=2167 experiment=5|sample=1 period=1 cycle=2175 experiment=4|sample=1 period=1 cycle=2176 experiment=6">32333</offset>
+		<offset idRef="sample=1 period=1 cycle=2167 experiment=5|sample=1 period=1 cycle=2175 experiment=4|sample=1 period=1 cycle=2176 experiment=6_2">35429</offset>
+		<offset idRef="sample=1 period=1 cycle=2167 experiment=5|sample=1 period=1 cycle=2175 experiment=4|sample=1 period=1 cycle=2176 experiment=6_3">38522</offset>
+		<offset idRef="sample=1 period=1 cycle=2167 experiment=5|sample=1 period=1 cycle=2175 experiment=4|sample=1 period=1 cycle=2176 experiment=6_4">41618</offset>
+		<offset idRef="sample=1 period=1 cycle=2167 experiment=5|sample=1 period=1 cycle=2175 experiment=4|sample=1 period=1 cycle=2176 experiment=6_5">44704</offset>
+		<offset idRef="sample=1 period=1 cycle=2171 experiment=3">47797</offset>
+		<offset idRef="sample=1 period=1 cycle=2171 experiment=3_2">50728</offset>
+		<offset idRef="sample=1 period=1 cycle=2171 experiment=3_3">53656</offset>
+		<offset idRef="sample=1 period=1 cycle=2171 experiment=3_4">56585</offset>
+		<offset idRef="sample=1 period=1 cycle=2171 experiment=3_5">59519</offset>
+		<offset idRef="sample=1 period=1 cycle=2172 experiment=4">62447</offset>
+		<offset idRef="sample=1 period=1 cycle=2172 experiment=4_2">65374</offset>
+		<offset idRef="sample=1 period=1 cycle=2172 experiment=4_3">68302</offset>
+		<offset idRef="sample=1 period=1 cycle=2172 experiment=4_4">71235</offset>
+		<offset idRef="sample=1 period=1 cycle=2172 experiment=4_5">74163</offset>
+		<offset idRef="sample=1 period=1 cycle=2173 experiment=2">77096</offset>
+		<offset idRef="sample=1 period=1 cycle=2173 experiment=2_2">80022</offset>
+		<offset idRef="sample=1 period=1 cycle=2173 experiment=2_3">82955</offset>
+		<offset idRef="sample=1 period=1 cycle=2173 experiment=2_4">85883</offset>
+		<offset idRef="sample=1 period=1 cycle=2173 experiment=2_5">88812</offset>
+		<offset idRef="sample=1 period=1 cycle=2199 experiment=3">91740</offset>
+		<offset idRef="sample=1 period=1 cycle=2199 experiment=3_2">94666</offset>
+		<offset idRef="sample=1 period=1 cycle=2199 experiment=3_3">97594</offset>
+		<offset idRef="sample=1 period=1 cycle=2199 experiment=3_4">100523</offset>
+		<offset idRef="sample=1 period=1 cycle=2199 experiment=3_5">103451</offset>
+		<offset idRef="sample=1 period=1 cycle=2199 experiment=3_6">106385</offset>
+		<offset idRef="sample=1 period=1 cycle=2204 experiment=6">109314</offset>
+		<offset idRef="sample=1 period=1 cycle=2204 experiment=6_2">112240</offset>
+		<offset idRef="sample=1 period=1 cycle=2204 experiment=6_3">115169</offset>
+		<offset idRef="sample=1 period=1 cycle=2204 experiment=6_4">118103</offset>
+		<offset idRef="sample=1 period=1 cycle=2204 experiment=6_5">121025</offset>
 	</index>
 </indexList>
-<indexListOffset>123962</indexListOffset>
+<indexListOffset>123988</indexListOffset>
 <fileChecksum>0</fileChecksum>
 </indexedmzML>

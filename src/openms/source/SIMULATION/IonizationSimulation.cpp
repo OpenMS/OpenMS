@@ -46,6 +46,7 @@
 #endif
 
 #include <atomic>
+#include <utility>
 
 namespace OpenMS
 {
@@ -76,7 +77,7 @@ namespace OpenMS
     esi_adducts_(),
     max_adduct_charge_(),
     maldi_probabilities_(),
-    rnd_gen_(random_generator)
+    rnd_gen_(std::move(random_generator))
   {
     setDefaultParams_();
     updateMembers_();

@@ -11,7 +11,7 @@ cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/TransitionTSVFile.h>" namespace "Op
 
     cdef cppclass TransitionTSVFile(ProgressLogger):
         # wrap-inherits:
-        #    ProgressLogger
+        #   ProgressLogger
 
         TransitionTSVFile() nogil except +
         TransitionTSVFile(TransitionTSVFile &) nogil except + # compiler

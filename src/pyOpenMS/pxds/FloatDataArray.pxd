@@ -14,8 +14,8 @@ cdef extern from "<OpenMS/METADATA/DataArrays.h>" namespace "OpenMS::DataArrays"
         #  MetaInfoDescription
         #
         # wrap-doc:
-        #   The representation of extra float data attached to a spectrum or chromatogram.
-        #   Raw data access is proved by `get_peaks` and `set_peaks`, which yields numpy arrays
+        #  The representation of extra float data attached to a spectrum or chromatogram.
+        #  Raw data access is proved by `get_peaks` and `set_peaks`, which yields numpy arrays
 
         FloatDataArray() nogil except +
         FloatDataArray(FloatDataArray &) nogil except + # compiler

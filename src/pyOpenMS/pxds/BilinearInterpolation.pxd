@@ -7,7 +7,7 @@ cdef extern from "<OpenMS/MATH/MISC/BilinearInterpolation.h>" namespace "OpenMS:
     
     cdef cppclass BilinearInterpolation[KeyType,ValueType]:
         # wrap-instances:
-        #   BilinearInterpolation := BilinearInterpolation[double, double]
+        #  BilinearInterpolation := BilinearInterpolation[double, double]
 
         BilinearInterpolation() nogil except +
         BilinearInterpolation(BilinearInterpolation &) nogil except +

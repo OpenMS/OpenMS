@@ -9,7 +9,7 @@ cdef extern from "<OpenMS/FILTERING/TRANSFORMERS/WindowMower.h>" namespace "Open
 
     cdef cppclass WindowMower(DefaultParamHandler):
         # wrap-inherits:
-        #    DefaultParamHandler
+        #   DefaultParamHandler
 
         WindowMower() nogil except +
         WindowMower(WindowMower &) nogil except +

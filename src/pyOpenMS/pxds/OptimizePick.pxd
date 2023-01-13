@@ -7,10 +7,10 @@ cdef extern from "<OpenMS/TRANSFORMATIONS/RAW2PEAK/OptimizePick.h>" namespace "O
     
     cdef cppclass OptimizePick "OpenMS::OptimizePick":
         # wrap-doc:
-            #   This class provides the non-linear optimization of the peak parameters
-            #   -----
-            #   Given a vector of peak shapes, this class optimizes all peak shapes parameters using a non-linear optimization
-            #   For the non-linear optimization we use the Levenberg-Marquardt algorithm provided by the Eigen
+            #  This class provides the non-linear optimization of the peak parameters
+            #  
+            #  Given a vector of peak shapes, this class optimizes all peak shapes parameters using a non-linear optimization
+            #  For the non-linear optimization we use the Levenberg-Marquardt algorithm provided by the Eigen
 
         OptimizePick() nogil except +
         OptimizePick(OptimizePick &) nogil except + # compiler

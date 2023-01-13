@@ -6,7 +6,7 @@ cdef extern from "<OpenMS/CHEMISTRY/ResidueDB.h>" namespace "OpenMS":
     
     cdef cppclass ResidueDB "OpenMS::ResidueDB":
         # wrap-manual-memory:
-        #   cdef AutowrapPtrHolder[_ResidueDB] inst
+        #  cdef AutowrapPtrHolder[_ResidueDB] inst
 
         ResidueDB(ResidueDB) nogil except + #wrap-ignore
 

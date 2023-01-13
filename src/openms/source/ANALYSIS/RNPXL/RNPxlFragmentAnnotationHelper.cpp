@@ -55,7 +55,7 @@ namespace OpenMS
 
   std::vector<PeptideHit::PeakAnnotation> RNPxlFragmentAnnotationHelper::fragmentAnnotationDetailsToPHFA(
     const String& ion_type, 
-    std::map<Size, std::vector<FragmentAnnotationDetail_> > ion_annotation_details)
+    const std::map<Size, std::vector<FragmentAnnotationDetail_> >& ion_annotation_details)
   {
     std::vector<PeptideHit::PeakAnnotation> fas;
     for (const auto& ait : ion_annotation_details)

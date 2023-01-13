@@ -9,7 +9,7 @@ cdef extern from "<OpenMS/FILTERING/TRANSFORMERS/ThresholdMower.h>" namespace "O
 
     cdef cppclass ThresholdMower(DefaultParamHandler):
         # wrap-inherits:
-        #    DefaultParamHandler
+        #   DefaultParamHandler
 
         ThresholdMower() nogil except +
         ThresholdMower(ThresholdMower &) nogil except +

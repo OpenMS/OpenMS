@@ -6,10 +6,10 @@ cdef extern from "<OpenMS/KERNEL/Peak2D.h>" namespace "OpenMS":
 
     cdef cppclass Peak2D:
         # wrap-doc:
-            #   A 2-dimensional raw data point or peak.
-            #   -----
-            #   This data structure is intended for continuous data or peak data.
-            #   If you want to annotated single peaks with meta data, use RichPeak2D instead
+            #  A 2-dimensional raw data point or peak.
+            #  
+            #  This data structure is intended for continuous data or peak data.
+            #  If you want to annotated single peaks with meta data, use RichPeak2D instead
 
         Peak2D() nogil except +
         Peak2D(Peak2D &) nogil except +

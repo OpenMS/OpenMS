@@ -9,7 +9,7 @@ cdef extern from "<OpenMS/FILTERING/TRANSFORMERS/Scaler.h>" namespace "OpenMS":
 
     cdef cppclass Scaler(DefaultParamHandler):
         # wrap-inherits:
-        #    DefaultParamHandler
+        #   DefaultParamHandler
 
         Scaler()       nogil except +
         Scaler(Scaler &) nogil except + #wrap-ignore

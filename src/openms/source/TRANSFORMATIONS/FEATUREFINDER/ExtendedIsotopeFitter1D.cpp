@@ -62,9 +62,7 @@ namespace OpenMS
     updateMembers_();
   }
 
-  ExtendedIsotopeFitter1D::~ExtendedIsotopeFitter1D()
-  {
-  }
+  ExtendedIsotopeFitter1D::~ExtendedIsotopeFitter1D() = default;
 
   ExtendedIsotopeFitter1D& ExtendedIsotopeFitter1D::operator=(const ExtendedIsotopeFitter1D& source)
   {

@@ -33,7 +33,7 @@
 # --------------------------------------------------------------------------
 
 project("OpenMS_TOPP")
-cmake_minimum_required(VERSION 3.9.0 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.15 FATAL_ERROR)
 
 # --------------------------------------------------------------------------
 # OpenMS' TOPP tools

@@ -10,7 +10,7 @@ cdef extern from "<OpenMS/METADATA/MetaInfoDescription.h>" namespace "OpenMS":
 
     cdef cppclass MetaInfoDescription(MetaInfoInterface):
         # wrap-inherits:
-        #   MetaInfoInterface
+        #  MetaInfoInterface
 
         MetaInfoDescription() nogil except +
         MetaInfoDescription(MetaInfoDescription& ) nogil except +

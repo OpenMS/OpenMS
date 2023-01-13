@@ -34,7 +34,6 @@
 
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 
-#include <OpenMS/DATASTRUCTURES/StringListUtils.h>
 #include <OpenMS/FILTERING/TRANSFORMERS/LinearResampler.h>
 #include <OpenMS/FORMAT/FeatureXMLFile.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
@@ -80,13 +79,13 @@ class TOPPImageCreator :
 public:
   TOPPImageCreator() :
     TOPPBase("ImageCreator",
-             "Transforms an LC-MS map into an image.", false)
+             "Transforms an LC-MS map into an image.", false), 
+    out_formats_({"png", "jpg", "bmp", "tiff", "ppm"}) // all in lower case!
   {
-    out_formats_ = ListUtils::create<String>("png,jpg,bmp,tiff,ppm");
   }
 
 protected:
-  StringList out_formats_; ///< valid output formats for image
+  const StringList out_formats_; ///< valid output formats for image
 
   void addPoint_(int x, int y, QImage& image, QColor color = Qt::black,
                  Size size = 2)
@@ -216,9 +215,9 @@ protected:
   void registerOptionsAndFlags_() override
   {
     registerInputFile_("in", "<file>", "", "input file ");
-    setValidFormats_("in", ListUtils::create<String>("mzML"));
+    setValidFormats_("in", {"mzML"});
     registerInputFile_("in_featureXML", "<file>", "", "input file ", false);
-    setValidFormats_("in_featureXML", ListUtils::create<String>("featureXML"));
+    setValidFormats_("in_featureXML", {"featureXML"});
 
     registerOutputFile_("out", "<file>", "", "output file");
     setValidFormats_("out", out_formats_, false);
@@ -240,7 +239,7 @@ protected:
     registerDoubleOption_("max_intensity", "<int>", 0, "Maximum peak intensity used to determine range for colors.\n"
                                                        "If 0, this is determined from the data.", false);
     registerFlag_("log_intensity", "Apply logarithm to intensity values");
-    registerFlag_("transpose", "flag to transpose the resampled matrix (RT vs. m/z).\n"
+    registerFlag_("transpose", "Flag to transpose the resampled matrix (RT vs. m/z).\n"
                                "Per default, dimensions run bottom-up in RT and left-right in m/z.");
     registerFlag_("precursors", "Mark locations of MS2 precursors.\n");
     registerStringOption_("precursor_color", "<color>", "#000000", "Color for precursor marks (color code or word, e.g. 'black') (requires 'precursors' flag to be active)", false);
@@ -269,8 +268,7 @@ protected:
       {
         format = "nosuffix";
       }
-      StringListUtils::toUpper(out_formats_);
-      if (!ListUtils::contains(out_formats_, format.toUpper()))
+      if (!ListUtils::contains(out_formats_, format.toLower()))
       {
         OPENMS_LOG_ERROR << "No explicit image output format was provided via 'out_type', and the suffix ('" << format << "') does not resemble a valid type. Please fix one of them." << std::endl;
         return ILLEGAL_PARAMETERS;

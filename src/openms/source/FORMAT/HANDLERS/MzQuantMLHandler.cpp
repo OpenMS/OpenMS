@@ -65,8 +65,7 @@ namespace OpenMS::Internal
     }
 
     MzQuantMLHandler::~MzQuantMLHandler()
-    {
-    }
+    = default;
 
     void MzQuantMLHandler::startElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname, const xercesc::Attributes& attributes)
     {
@@ -200,7 +199,7 @@ namespace OpenMS::Internal
           optionalAttributeAsString_(residue, attributes, "residues");
           if (massdelta_string != "145")
           {
-            current_assay_.mods_.push_back(std::make_pair(residue, massdelta_string.toDouble()));
+            current_assay_.mods_.emplace_back(residue, massdelta_string.toDouble());
           }
           //TODO CV handling
         }
@@ -654,23 +653,8 @@ namespace OpenMS::Internal
 
     void MzQuantMLHandler::handleUserParam_(const String& parent_parent_tag, const String& parent_tag, const String& name, const String& type, const String& value)
     {
-      //create a DataValue that contains the data in the right type
-      DataValue data_value;
-      //float type
-      if (type == "xsd:double" || type == "xsd:float")
-      {
-        data_value = DataValue(value.toDouble());
-      }
-      //integer type
-      else if (type == "xsd:byte" || type == "xsd:decimal" || type == "xsd:int" || type == "xsd:integer" || type == "xsd:long" || type == "xsd:negativeInteger" || type == "xsd:nonNegativeInteger" || type == "xsd:nonPositiveInteger" || type == "xsd:positiveInteger" || type == "xsd:short" || type == "xsd:unsignedByte" || type == "xsd:unsignedInt" || type == "xsd:unsignedLong" || type == "xsd:unsignedShort")
-      {
-        data_value = DataValue(value.toInt());
-      }
-      //everything else is treated as a string
-      else
-      {
-        data_value = DataValue(value);
-      }
+      // create a DataValue that contains the data in the right type
+      DataValue data_value = fromXSDString(type, value);
 
       if (parent_parent_tag.empty())
       {
@@ -1305,7 +1289,7 @@ namespace OpenMS::Internal
       {
         s += String(indent, '\t') + "<userParam name=\"" + keys[i] + "\" unitName=\"";
 
-        DataValue d = meta.getMetaValue(keys[i]);
+        const DataValue& d = meta.getMetaValue(keys[i]);
         //determine type
         if (d.valueType() == DataValue::INT_VALUE)
         {

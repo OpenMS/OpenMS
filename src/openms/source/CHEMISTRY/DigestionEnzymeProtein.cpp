@@ -87,9 +87,7 @@ namespace OpenMS
   {
   }
 
-  DigestionEnzymeProtein::~DigestionEnzymeProtein()
-  {
-  }
+  DigestionEnzymeProtein::~DigestionEnzymeProtein() = default;
 
   void DigestionEnzymeProtein::setNTermGain(const EmpiricalFormula& value)
   {

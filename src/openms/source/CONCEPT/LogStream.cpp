@@ -215,7 +215,7 @@ namespace OpenMS
       log_time_cache_.clear();
     }
 
-    void LogStreamBuf::distribute_(std::string outstring)
+    void LogStreamBuf::distribute_(const std::string& outstring)
     {
       // if there are any streams in our list, we
       // copy the line into that streams, too and flush them

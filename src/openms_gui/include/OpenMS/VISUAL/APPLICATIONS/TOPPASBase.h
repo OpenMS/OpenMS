@@ -139,7 +139,7 @@ public slots:
       If @p time is 0 the status message is displayed until showStatusMessage is called with an empty message or a new message.
       Otherwise the message is displayed for @p time ms.
     */
-    void showStatusMessage(std::string msg, OpenMS::UInt time);
+    void showStatusMessage(const std::string& msg, OpenMS::UInt time);
     /// shows x,y coordinates in the status bar
     void showCursorStatus(double x, double y);
     /// closes the active window
@@ -173,7 +173,7 @@ public slots:
     /// Open files in a new TOPPView instance
     void openFilesInTOPPView(QStringList all_files);
     /// Opens a toppas file
-    void openToppasFile(QString filename);
+    void openToppasFile(const QString& filename);
 protected slots:
 
     /** @name Tab bar slots
@@ -283,13 +283,13 @@ public:
 
     /// Saves the workflow in the provided TOPPASWidget to a user defined location.
     /// Returns the full file name or "" if no valid one is selected.
-    static QString savePipelineAs(TOPPASWidget* w, QString current_path);
+    static QString savePipelineAs(TOPPASWidget* w, const QString& current_path);
 
     /// Loads and sets the resources of the TOPPASWidget.
-    static QString loadPipelineResourceFile(TOPPASWidget* w, QString current_path);
+    static QString loadPipelineResourceFile(TOPPASWidget* w, const QString& current_path);
 
     /// Saves the resources of the TOPPASWidget.
-    static QString savePipelineResourceFile(TOPPASWidget* w, QString current_path);
+    static QString savePipelineResourceFile(TOPPASWidget* w, const QString& current_path);
 
     /// Refreshes the TOPP tools parameters of the pipeline
     static QString refreshPipelineParameters(TOPPASWidget* tw, QString current_path);

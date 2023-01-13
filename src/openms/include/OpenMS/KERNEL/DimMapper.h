@@ -101,6 +101,8 @@ namespace OpenMS
 
     /// obtain value from a certain point in a spectrum
     virtual ValueType map(const MSSpectrum& spec, const Size index) const = 0;
+    /// obtain value from a certain point in a chromatogram
+    virtual ValueType map(const MSChromatogram& chrom, const Size index) const = 0;
     /// obtain value from a certain point in a mobilogram
     virtual ValueType map(const Mobilogram& mb, const Size index) const = 0;
     
@@ -118,6 +120,9 @@ namespace OpenMS
 
     /// Return the min/max (range) for a certain dimension
     virtual RangeBase map(const RangeAllType& rm) const = 0;
+
+    /// Return the min/max (range) for a certain dimension (i.e. a reference to the base class of @p rm)
+    virtual RangeBase& map(RangeAllType& rm) const = 0;
 
     /// Set the min/max (range) in @p out for a certain dimension
     virtual void setRange(const RangeBase& in, RangeAllType& out) const = 0;
@@ -197,6 +202,10 @@ namespace OpenMS
     {
       return spec.getRT();
     }
+    ValueType map(const MSChromatogram& chrom, const Size index) const override
+    {
+      return chrom[index].getRT();
+    }
     ValueType map(const Mobilogram& mb, const Size /*index*/) const override
     {
       return mb.getRT();
@@ -241,6 +250,10 @@ namespace OpenMS
     }
 
     RangeBase map(const RangeAllType& rm) const override
+    {
+      return rm.getRangeForDim(MSDim::RT);
+    }
+    RangeBase& map(RangeAllType& rm) const override
     {
       return rm.getRangeForDim(MSDim::RT);
     }
@@ -312,7 +325,11 @@ namespace OpenMS
     {
       return spec[index].getMZ();
     }
-    ValueType map(const Mobilogram&, const Size /*index*/) const override
+    ValueType map(const MSChromatogram& chrom, const Size /*index*/) const override
+    {
+      return chrom.getPrecursor().getMZ();
+    }
+    ValueType map(const Mobilogram& /*mb*/, const Size /*index*/) const override
     {
       throw Exception::InvalidRange(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
     }
@@ -343,6 +360,10 @@ namespace OpenMS
     }
 
     RangeBase map(const RangeAllType& rm) const override
+    {
+      return rm.getRangeForDim(MSDim::MZ);
+    }
+    RangeBase& map(RangeAllType& rm) const override
     {
       return rm.getRangeForDim(MSDim::MZ);
     }
@@ -415,6 +436,10 @@ namespace OpenMS
     {
       return spec[index].getIntensity();
     }
+    ValueType map(const MSChromatogram& chrom, const Size index) const override
+    {
+      return chrom[index].getIntensity();
+    }
     ValueType map(const Mobilogram& mb, const Size index) const override
     {
       return mb[index].getIntensity();
@@ -453,6 +478,10 @@ namespace OpenMS
     }
     
     RangeBase map(const RangeAllType& rm) const override
+    {
+      return rm.getRangeForDim(MSDim::INT);
+    }
+    RangeBase& map(RangeAllType& rm) const override
     {
       return rm.getRangeForDim(MSDim::INT);
     }
@@ -534,6 +563,10 @@ namespace OpenMS
     {
       return spec.getDriftTime();
     }
+    ValueType map(const MSChromatogram&, const Size) const override
+    {
+      throw Exception::InvalidRange(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
+    }
     ValueType map(const Mobilogram& mb, const Size index) const override
     {
       return mb[index].getMobility();
@@ -550,6 +583,10 @@ namespace OpenMS
     }
 
     RangeBase map(const RangeAllType& rm) const override
+    {
+      return rm.getRangeForDim(MSDim::IM);
+    }
+    RangeBase& map(RangeAllType& rm) const override
     {
       return rm.getRangeForDim(MSDim::IM);
     }
@@ -889,6 +926,12 @@ namespace OpenMS
       auto a = data_range_;
       a.pushInto(sandbox);
       setArea(a);
+    }
+
+    /// empty all dimensions
+    void clear()
+    {
+      setArea(RangeAllType());
     }
 
   private:

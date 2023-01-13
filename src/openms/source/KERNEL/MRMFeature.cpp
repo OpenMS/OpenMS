@@ -71,9 +71,7 @@ namespace OpenMS
     return *this;
   }
 
-  MRMFeature::~MRMFeature()
-  {
-  }
+  MRMFeature::~MRMFeature() = default;
 
   const OpenSwath_Scores & MRMFeature::getScores() const
   {
@@ -150,12 +148,12 @@ namespace OpenMS
     }
   }
 
-  Feature & MRMFeature::getPrecursorFeature(String key)
+  Feature & MRMFeature::getPrecursorFeature(const String& key)
   {
     return precursor_features_.at(precursor_feature_map_[key]);
   }
 
-  const Feature & MRMFeature::getPrecursorFeature(String key) const
+  const Feature & MRMFeature::getPrecursorFeature(const String& key) const
   {
     return precursor_features_.at(precursor_feature_map_.at(key));
   }

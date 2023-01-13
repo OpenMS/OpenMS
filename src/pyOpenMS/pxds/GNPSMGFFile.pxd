@@ -9,7 +9,7 @@ cdef extern from "<OpenMS/FORMAT/GNPSMGFFile.h>" namespace "OpenMS":
 
     cdef cppclass GNPSMGFFile(DefaultParamHandler):
         # wrap-inherits:
-        #    DefaultParamHandler        
+        #   DefaultParamHandler        
 
         GNPSMGFFile() nogil except +
         GNPSMGFFile(GNPSMGFFile &) nogil except +

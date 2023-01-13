@@ -9,12 +9,12 @@ cdef extern from "<OpenMS/FORMAT/SqMassFile.h>" namespace "OpenMS":
     
     cdef cppclass SqMassFile:
     # wrap-doc:
-            #   An class that uses on-disk SQLite database to read and write spectra and chromatograms
-            #   -----
-            #   This class provides functions to read and write spectra and chromatograms
-            #   to disk using a SQLite database and store them in sqMass format. This
-            #   allows users to access, select and filter spectra and chromatograms
-            #   on-demand even in a large collection of data
+            #  An class that uses on-disk SQLite database to read and write spectra and chromatograms
+            #  
+            #  This class provides functions to read and write spectra and chromatograms
+            #  to disk using a SQLite database and store them in sqMass format. This
+            #  allows users to access, select and filter spectra and chromatograms
+            #  on-demand even in a large collection of data
 
         SqMassFile() nogil except +
         SqMassFile(SqMassFile &) nogil except + # compiler

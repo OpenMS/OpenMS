@@ -326,7 +326,7 @@ protected:
                               const Internal::MzMLValidator& validator);
 
       template <typename ContainerT>
-      void writeContainerData_(std::ostream& os, const PeakFileOptions& pf_options_, const ContainerT& container, String array_type);
+      void writeContainerData_(std::ostream& os, const PeakFileOptions& pf_options_, const ContainerT& container, const String& array_type);
 
       /**
           @brief Write a single \<binaryDataArray\> element to the output

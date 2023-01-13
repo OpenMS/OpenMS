@@ -61,7 +61,7 @@ namespace OpenMS::DIAHelpers
       }
     }
 
-    void integrateWindows(const OpenSwath::SpectrumPtr spectrum,
+    void integrateWindows(const OpenSwath::SpectrumPtr& spectrum,
                           const std::vector<double> & windowsCenter,
                           double width,
                           std::vector<double> & integratedWindowsIntensity,
@@ -88,7 +88,7 @@ namespace OpenMS::DIAHelpers
       }
     }
 
-    void integrateDriftSpectrum(OpenSwath::SpectrumPtr spectrum, 
+    void integrateDriftSpectrum(const OpenSwath::SpectrumPtr& spectrum, 
                                               double mz_start,
                                               double mz_end,
                                               double & im,
@@ -143,7 +143,7 @@ namespace OpenMS::DIAHelpers
 
     }
 
-    bool integrateWindow(const OpenSwath::SpectrumPtr spectrum,
+    bool integrateWindow(const OpenSwath::SpectrumPtr& spectrum,
                          double mz_start,
                          double mz_end,
                          double & mz,

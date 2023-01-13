@@ -77,9 +77,7 @@ namespace OpenMS
     }
   }
 
-  Param::ParamEntry::~ParamEntry()
-  {
-  }
+  Param::ParamEntry::~ParamEntry() = default;
 
   bool Param::ParamEntry::isValid(std::string& message) const
   {
@@ -219,9 +217,7 @@ namespace OpenMS
       }
   }
 
-  Param::ParamNode::~ParamNode()
-  {
-  }
+  Param::ParamNode::~ParamNode() = default;
 
   bool Param::ParamNode::operator==(const ParamNode& rhs) const
   {
@@ -347,7 +343,7 @@ namespace OpenMS
       }
       else //create it
       {
-        insert_node->nodes.push_back(ParamNode(local_name, ""));
+        insert_node->nodes.emplace_back(local_name, "");
         insert_node = &(insert_node->nodes.back());
         //std::cerr << " - Created new node: " << insert_node->name << std::endl;
       }
@@ -400,7 +396,7 @@ namespace OpenMS
       }
       else //create it
       {
-        insert_node->nodes.push_back(ParamNode(local_name, ""));
+        insert_node->nodes.emplace_back(local_name, "");
         insert_node = &(insert_node->nodes.back());
         //std::cerr << " - Created new node: " << insert_node->name << std::endl;
       }
@@ -456,9 +452,7 @@ namespace OpenMS
   {
   }
 
-  Param::~Param()
-  {
-  }
+  Param::~Param() = default;
 
   Param::Param(const ParamNode& node) :
     root_(node)
@@ -644,7 +638,7 @@ namespace OpenMS
         if (!real_pathname.empty())
         {
           std::string description_old = getSectionDescription(prefix + real_pathname);
-          std::string description_new = defaults.getSectionDescription(real_pathname);
+          const std::string& description_new = defaults.getSectionDescription(real_pathname);
           if (description_old.empty())
           {
             //std::cerr << "## Setting description of " << prefix+real_pathname << " to"<< std::endl;
@@ -925,11 +919,9 @@ namespace OpenMS
   void Param::parseCommandLine(const int argc, const char** argv, const std::map<std::string, std::string>& options_with_one_argument, const std::map<std::string, std::string>& options_without_argument, const std::map<std::string, std::string>& options_with_multiple_argument, const std::string& misc, const std::string& unknown)
   {
     //determine misc key
-    std::string misc_key = misc;
-
+    
     //determine unknown key
-    std::string unknown_key = unknown;
-
+    
     //parse arguments
     std::string arg, arg1;
     for (int i = 1; i < argc; ++i)
@@ -1424,7 +1416,7 @@ OPENMS_THREAD_CRITICAL(LOGSTREAM)
         if (!real_pathname.empty())
         {
           std::string description_old = getSectionDescription(prefix + real_pathname);
-          std::string description_new = toMerge.getSectionDescription(real_pathname);
+          const std::string& description_new = toMerge.getSectionDescription(real_pathname);
           if (description_old.empty())
           {
             setSectionDescription(real_pathname, description_new);
@@ -1492,9 +1484,7 @@ OPENMS_THREAD_CRITICAL(LOGSTREAM)
     operator++();
   }
 
-  Param::ParamIterator::~ParamIterator()
-  {
-  }
+  Param::ParamIterator::~ParamIterator() = default;
 
   const Param::ParamEntry& Param::ParamIterator::operator*()
   {
@@ -1540,7 +1530,7 @@ OPENMS_THREAD_CRITICAL(LOGSTREAM)
         stack_.push_back(&(node->nodes[0]));
         //cout << " - entering into: " << node->nodes[0].name <<endl;
         //track changes (enter a node)
-        trace_.push_back(TraceInfo(node->nodes[0].name, node->nodes[0].description, true));
+        trace_.emplace_back(node->nodes[0].name, node->nodes[0].description, true);
 
         continue;
       }
@@ -1566,7 +1556,7 @@ OPENMS_THREAD_CRITICAL(LOGSTREAM)
           //cout << " - descended to: " << node->name << endl;
 
           //track changes (leave a node)
-          trace_.push_back(TraceInfo(last->name, last->description, false));
+          trace_.emplace_back(last->name, last->description, false);
 
           //check of new subtree is accessible
           unsigned int next_index = (last - &(node->nodes[0])) + 1;
@@ -1576,7 +1566,7 @@ OPENMS_THREAD_CRITICAL(LOGSTREAM)
             stack_.push_back(&(node->nodes[next_index]));
             //cout << " - entering into: " << node->nodes[next_index].name  << endl;
             //track changes (enter a node)
-            trace_.push_back(TraceInfo(node->nodes[next_index].name, node->nodes[next_index].description, true));
+            trace_.emplace_back(node->nodes[next_index].name, node->nodes[next_index].description, true);
             break;
           }
         }

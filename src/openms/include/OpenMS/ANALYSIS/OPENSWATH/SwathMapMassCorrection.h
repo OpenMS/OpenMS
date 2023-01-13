@@ -80,11 +80,11 @@ public:
      * @param transition_group_map A MRMFeatureFinderScoring result map
      * @param targeted_exp The corresponding spectral library (required for extraction coordinates)
      * @param swath_maps The raw swath maps from the current run, will be modified (replaced with a corrected version)
-     *
+     * @param pasef Whether the data is PASEF data with possible overlapping m/z windows (with different ion mobility). In this case, the "best" SWATH window (with precursor cetntered around IM) is chosen.
      */
     void correctMZ(const std::map<String, OpenMS::MRMFeatureFinderScoring::MRMTransitionGroupType *>& transition_group_map,
                    const OpenSwath::LightTargetedExperiment & targeted_exp,
-                   std::vector< OpenSwath::SwathMap > & swath_maps);
+                   std::vector< OpenSwath::SwathMap > & swath_maps, const bool pasef);
 
     /**
      * @brief Correct the ion mobility values of a SWATH map based on the RT-normalization peptides
@@ -98,13 +98,27 @@ public:
      * @param transition_group_map A MRMFeatureFinderScoring result map
      * @param swath_maps The raw swath maps from the current run
      * @param targeted_exp The corresponding spectral library (required for extraction coordinates)
+     * @param pasef whether the data is PASEF data with possible overlapping m/z windows (with different ion mobility). In this case, the "best" SWATH window (with precursor cetntered around IM) is chosen.
      * @param im_trafo The resulting map containing the transformation
-     *
      */
     void correctIM(const std::map<String, OpenMS::MRMFeatureFinderScoring::MRMTransitionGroupType *> & transition_group_map,
                    const OpenSwath::LightTargetedExperiment & targeted_exp,
                    const std::vector< OpenSwath::SwathMap > & swath_maps,
+                   const bool pasef,
                    TransformationDescription & im_trafo);
+
+    /**
+     * @brief Computes the SwathMaps for PASEF data in which windows can have the same m/z but differ by ion mobility
+     *
+     * For each precursor, the SwathMap is chosen based on library m/z and ion mobility.
+     * If two or more SwathMaps isolate the same precursor the SwathMap in which the precursor is more centered across
+     * ion mobility is chosen. Note that the single swath_map returned is in a vector so that this function is compatible with SONAR functions
+     *
+     * @param [IN] transition_group A MRMTransitionGroup for which the SwathMap is assigned to
+     * @param [OUT] swath_maps A vector containing the a single entry, the swath map which the MRMFeature is assigned to
+     */
+    std::vector<OpenSwath::SwathMap> findSwathMapsPasef(const OpenMS::MRMFeatureFinderScoring::MRMTransitionGroupType& transition_group,
+                                                         const std::vector< OpenSwath::SwathMap > & swath_maps);
 
   private:
     double mz_extraction_window_;

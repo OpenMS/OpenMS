@@ -39,16 +39,14 @@
 
 namespace OpenMS
 {
-  IsobaricQuantitationMethod::~IsobaricQuantitationMethod()
-  {
-  }
+  IsobaricQuantitationMethod::~IsobaricQuantitationMethod() = default;
 
   IsobaricQuantitationMethod::IsobaricQuantitationMethod() :
     DefaultParamHandler("IsobaricQuantitationMethod")
   {
   }
 
-  Matrix<double> IsobaricQuantitationMethod::stringListToIsotopCorrectionMatrix_(const StringList& stringlist) const
+  Matrix<double> IsobaricQuantitationMethod::stringListToIsotopeCorrectionMatrix_(const StringList& stringlist) const
   {
     // check the string list
     if (stringlist.size() != getNumberOfChannels())
@@ -56,73 +54,62 @@ namespace OpenMS
       throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String("IsobaricQuantitationMethod: Invalid string representation of the isotope correction matrix. Expected ") + getNumberOfChannels() + " entries but got " + stringlist.size() + ".");
     }
 
-    // create matrix to fill from stringlist
-    Matrix<double> isotope_correction_matrix(getNumberOfChannels(), 4);
+    // compute frequency matrix based on the deviation matrix
+    Matrix<double> channel_frequency(getNumberOfChannels(), getNumberOfChannels(), 0.0);
 
     // channel index
-    Size channel_index = 0;
+    Size contributing_channel = 0;
 
     // fill row-wise
-    for (StringList::const_iterator it = stringlist.begin(); it != stringlist.end(); ++it)
+    for (const auto& l : stringlist)
     {
       StringList corrections;
-      it->split('/', corrections);
-      if (corrections.size() != 4)
+      l.split('/', corrections);
+
+      auto number_of_columns = getChannelInformation()[contributing_channel].affected_channels.size();
+      if (corrections.size() != number_of_columns )
       {
-        throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "IsobaricQuantitationMethod: Invalid entry in string representation of the isotope correction matrx. Expected four correction values separated by '/', got: '" + *it + "'");
+        throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String("Corrections for channel ID #") + contributing_channel + " must contain " + number_of_columns + " values, but has " + corrections.size() + "!", String(corrections.size()));
       }
 
       // overwrite line in Matrix with custom values
-      isotope_correction_matrix.setValue(channel_index, 0, corrections[0].toDouble());
-      isotope_correction_matrix.setValue(channel_index, 1, corrections[1].toDouble());
-      isotope_correction_matrix.setValue(channel_index, 2, corrections[2].toDouble());
-      isotope_correction_matrix.setValue(channel_index, 3, corrections[3].toDouble());
-
-      // increment channel index
-      ++channel_index;
-    }
-
-    // compute frequency matrix based on the deviation matrix
-    Matrix<double> channel_frequency(getNumberOfChannels(), getNumberOfChannels());
-
-    // matrix element i, j == what contributes channel i to the intensity of channel j
-    for (Size contributing_channel = 0; contributing_channel < getNumberOfChannels(); ++contributing_channel)
-    {
-      for (Size target_channel = 0; target_channel < getNumberOfChannels(); ++target_channel)
+      Size affected_channel_idx = 0;
+      double self_contribution = 100.0;
+      double correction;
+      Int target_channel;
+      for (auto& c : corrections)
       {
-        // as the isotope_correction_matrix encodes what channel i contributes to theoretical -2/-1/+1/+2 channels
-        // hence we check if the target_channel corresponds to the contributing_channel -2/-1/+1/+2
-        // if yes, we assign the corresponding contribution
-        // contribution to itself is handled separately
-
-        if (getChannelInformation()[contributing_channel].channel_id_minus_2 == static_cast<Int>(target_channel))
+        c = c.trim().toUpper();
+        if (c != "NA" && c != "-1" && c != "0.0")
         {
-          channel_frequency.setValue(target_channel, contributing_channel, isotope_correction_matrix.getValue(contributing_channel, 0) / 100);
-        }
-        else if (getChannelInformation()[contributing_channel].channel_id_minus_1 == static_cast<Int>(target_channel))
-        {
-          channel_frequency.setValue(target_channel, contributing_channel, isotope_correction_matrix.getValue(contributing_channel, 1) / 100);
-        }
-        else if (getChannelInformation()[contributing_channel].channel_id_plus_1 == static_cast<Int>(target_channel))
-        {
-          channel_frequency.setValue(target_channel, contributing_channel, isotope_correction_matrix.getValue(contributing_channel, 2) / 100);
-        }
-        else if (getChannelInformation()[contributing_channel].channel_id_plus_2 == static_cast<Int>(target_channel))
-        {
-          channel_frequency.setValue(target_channel, contributing_channel, isotope_correction_matrix.getValue(contributing_channel, 3) / 100);
-        }
-        else if (target_channel == contributing_channel)
-        {
-          double self_contribution = 100.0;
-          for (Size column_idx = 0; column_idx < 4; ++column_idx)
+          target_channel = getChannelInformation()[contributing_channel].affected_channels[affected_channel_idx];
+          try
           {
-            self_contribution -= isotope_correction_matrix.getValue(contributing_channel, column_idx);
+            correction = c.toDouble();
           }
-          channel_frequency.setValue(contributing_channel, contributing_channel, (self_contribution / 100));
-        }
-      }
-    }
+          catch (Exception::ConversionError& e)
+          {
+            throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String("Correction entry #") + affected_channel_idx + " in channel ID " + contributing_channel + " must be one of na/NA/-1 or a floating point number representation!", c);
+          }
 
+          if (correction < 0.0 || correction > 100.0)
+          {
+            throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String("Correction entry #") + affected_channel_idx + " in channel ID " + contributing_channel + " must be a percentage between 0 and 100!", c);
+          }
+          
+          if (target_channel >= 0 && Size(target_channel) < getNumberOfChannels())
+          {
+            channel_frequency.setValue(target_channel, contributing_channel, correction / 100.0);
+          }
+          self_contribution -= correction; // count reduced self-contribution even if it does not affect another channel
+        }
+        affected_channel_idx++;
+      }
+      // set reduced self contribution
+      channel_frequency.setValue(contributing_channel, contributing_channel, self_contribution / 100.0);
+      // increment channel index
+      ++contributing_channel;
+    }
     return channel_frequency;
   }
 

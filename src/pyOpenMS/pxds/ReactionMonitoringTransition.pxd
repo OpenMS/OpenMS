@@ -7,15 +7,15 @@ cdef extern from "<OpenMS/ANALYSIS/MRM/ReactionMonitoringTransition.h>" namespac
 
     cdef cppclass ReactionMonitoringTransition(CVTermList):
         # wrap-inherits:
-        #    CVTermList
+        #   CVTermList
         # wrap-doc:
-        #   This class stores a SRM/MRM transition
-        #   -----
-        #   This class is capable of representing a <Transition> tag in a TraML
-        #   document completely and contains all associated information
-        #   -----
-        #   The default values for precursor m/z is 0.0 which indicates that it is
-        #   uninitialized
+        #  This class stores a SRM/MRM transition
+        #  
+        #  This class is capable of representing a <Transition> tag in a TraML
+        #  document completely and contains all associated information
+        #  
+        #  The default values for precursor m/z is 0.0 which indicates that it is
+        #  uninitialized
 
         ReactionMonitoringTransition() nogil except +
         ReactionMonitoringTransition(ReactionMonitoringTransition &)   nogil except +

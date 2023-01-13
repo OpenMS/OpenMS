@@ -194,7 +194,7 @@ public:
 public slots:
 
     /// Set a list of error strings due to invalid date format.
-    void setStatus(std::string status);
+    void setStatus(const std::string& status);
 
 protected slots:
 

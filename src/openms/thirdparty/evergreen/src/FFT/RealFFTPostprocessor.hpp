@@ -82,10 +82,10 @@ class RealFFTPostprocessor<0u> {
 public:
   // Note: Here N refers to the full length of the equivalent complex
   // FFT (as above):
-  inline static void apply(cpx* const data) {
+  inline static void apply(cpx* const /*data*/) {
   }
 
-  inline static void apply_inverse(cpx* const data) {
+  inline static void apply_inverse(cpx* const /*data*/) {
   }
 };
 

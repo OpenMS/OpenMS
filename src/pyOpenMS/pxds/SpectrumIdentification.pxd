@@ -8,7 +8,7 @@ cdef extern from "<OpenMS/METADATA/SpectrumIdentification.h>" namespace "OpenMS"
 
     cdef cppclass SpectrumIdentification(MetaInfoInterface):
         # wrap-inherits:
-        #   MetaInfoInterface
+        #  MetaInfoInterface
 
         SpectrumIdentification() nogil except +
         SpectrumIdentification(SpectrumIdentification &) nogil except +

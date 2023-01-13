@@ -47,14 +47,14 @@ namespace OpenMS
     setName("ItraqFourPlexQuantitationMethod");
 
     // create the channel map
-    channels_.push_back(IsobaricChannelInformation("113", 0, "", 113.1078, -1, -1, 1, 2));
-    channels_.push_back(IsobaricChannelInformation("114", 1, "", 114.1112, -1, 0, 2, 3));
-    channels_.push_back(IsobaricChannelInformation("115", 2, "", 115.1082, 0, 1, 3, 4));
-    channels_.push_back(IsobaricChannelInformation("116", 3, "", 116.1116, 1, 2, 4, 5));
-    channels_.push_back(IsobaricChannelInformation("117", 4, "", 117.1149, 2, 3, 5, 6));
-    channels_.push_back(IsobaricChannelInformation("118", 5, "", 118.1120, 3, 4, 6, 7));
-    channels_.push_back(IsobaricChannelInformation("119", 6, "", 119.1153, 4, 5, -1, 7));
-    channels_.push_back(IsobaricChannelInformation("121", 7, "", 121.1220, 6, -1, -1, -1));
+    channels_.push_back(IsobaricChannelInformation("113", 0, "", 113.1078, {-1, -1, 1, 2}));
+    channels_.push_back(IsobaricChannelInformation("114", 1, "", 114.1112, {-1, 0, 2, 3}));
+    channels_.push_back(IsobaricChannelInformation("115", 2, "", 115.1082, {0, 1, 3, 4}));
+    channels_.push_back(IsobaricChannelInformation("116", 3, "", 116.1116, {1, 2, 4, 5}));
+    channels_.push_back(IsobaricChannelInformation("117", 4, "", 117.1149, {2, 3, 5, 6}));
+    channels_.push_back(IsobaricChannelInformation("118", 5, "", 118.1120, {3, 4, 6, 7}));
+    channels_.push_back(IsobaricChannelInformation("119", 6, "", 119.1153, {4, 5, -1, 7}));
+    channels_.push_back(IsobaricChannelInformation("121", 7, "", 121.1220, {6, -1, -1, -1}));
 
     // we assume 114 to be the reference
     reference_channel_ = 0;
@@ -62,9 +62,7 @@ namespace OpenMS
     setDefaultParams_();
   }
 
-  ItraqEightPlexQuantitationMethod::~ItraqEightPlexQuantitationMethod()
-  {
-  }
+  ItraqEightPlexQuantitationMethod::~ItraqEightPlexQuantitationMethod() = default;
 
   ItraqEightPlexQuantitationMethod::ItraqEightPlexQuantitationMethod(const ItraqEightPlexQuantitationMethod& other):
   IsobaricQuantitationMethod(other)
@@ -168,7 +166,7 @@ namespace OpenMS
   Matrix<double> ItraqEightPlexQuantitationMethod::getIsotopeCorrectionMatrix() const
   {
     StringList iso_correction = ListUtils::toStringList<std::string>(getParameters().getValue("correction_matrix"));
-    return stringListToIsotopCorrectionMatrix_(iso_correction);
+    return stringListToIsotopeCorrectionMatrix_(iso_correction);
   }
 
   Size ItraqEightPlexQuantitationMethod::getReferenceChannel() const

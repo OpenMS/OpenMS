@@ -10,7 +10,7 @@ cdef extern from "<OpenMS/CHEMISTRY/CrossLinksDB.h>" namespace "OpenMS":
     
     cdef cppclass CrossLinksDB:
         # wrap-manual-memory:
-        #     cdef AutowrapPtrHolder[_CrossLinksDB] inst
+        #    cdef AutowrapPtrHolder[_CrossLinksDB] inst
 
         # private
         CrossLinksDB() nogil except + #wrap-ignore

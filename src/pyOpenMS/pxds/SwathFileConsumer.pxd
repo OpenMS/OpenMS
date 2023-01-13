@@ -29,7 +29,7 @@ cdef extern from "<OpenMS/FORMAT/DATAACCESS/SwathFileConsumer.h>" namespace "Ope
 
     cdef cppclass RegularSwathFileConsumer(FullSwathFileConsumer):
         # wrap-inherits:
-        #    FullSwathFileConsumer
+        #   FullSwathFileConsumer
 
         RegularSwathFileConsumer() nogil except +
         RegularSwathFileConsumer(RegularSwathFileConsumer &) nogil except + # compiler
@@ -39,7 +39,7 @@ cdef extern from "<OpenMS/FORMAT/DATAACCESS/SwathFileConsumer.h>" namespace "Ope
 
     cdef cppclass CachedSwathFileConsumer(FullSwathFileConsumer):
         # wrap-inherits:
-        #    FullSwathFileConsumer
+        #   FullSwathFileConsumer
 
         CachedSwathFileConsumer() nogil except + #wrap-ignore
         CachedSwathFileConsumer(CachedSwathFileConsumer &) nogil except + # compiler

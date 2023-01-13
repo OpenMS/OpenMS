@@ -6,9 +6,9 @@ cdef extern from "<OpenMS/ANALYSIS/MAPMATCHING/LabeledPairFinder.h>" namespace "
     
     cdef cppclass LabeledPairFinder(BaseGroupFinder) :
         # wrap-doc:
-                #   The LabeledPairFinder allows the matching of labeled features (features with a fixed distance)
-                #   -----
-                #   Finds feature pairs that have a defined distance in RT and m/z in the same map
+                #  The LabeledPairFinder allows the matching of labeled features (features with a fixed distance)
+                #  
+                #  Finds feature pairs that have a defined distance in RT and m/z in the same map
 
         # wrap-inherits:
         #  BaseGroupFinder

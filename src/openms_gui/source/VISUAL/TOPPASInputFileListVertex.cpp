@@ -64,7 +64,7 @@ namespace OpenMS
 
   void TOPPASInputFileListVertex::showFilesDialog()
   {
-    TOPPASInputFilesDialog tifd(getFileNames(), cwd_, 0);
+    TOPPASInputFilesDialog tifd(getFileNames(), cwd_, nullptr);
     if (tifd.exec())
     {
       QStringList updated_filelist;

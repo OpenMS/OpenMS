@@ -284,7 +284,7 @@ Section "Documentation" SEC_Doc
       SetOutPath $INSTDIR\share\doc\html
       File /r "${OPENMSDOCDIR}\html\*.*"
       SetOutPath $INSTDIR\share\doc
-      File "${OPENMSDOCDIR}\OpenMS_tutorial.pdf"
+      File /nonfatal "${OPENMSDOCDIR}\OpenMS_tutorial.pdf"
     !endif
 
     !insertmacro UNINSTALL.LOG_CLOSE_INSTALL
@@ -707,7 +707,7 @@ FunctionEnd
 # set the component descriptions after the Sections have been defined!
 !insertmacro MUI_FUNCTION_DESCRIPTION_BEGIN
 !insertmacro MUI_DESCRIPTION_TEXT ${SEC_Lib} "The core libraries of OpenMS"
-!insertmacro MUI_DESCRIPTION_TEXT ${SEC_TOPP} "TOPP (The OpenMS Proteomics Pipeline) - chainable tools for data analysis"
+!insertmacro MUI_DESCRIPTION_TEXT ${SEC_TOPP} "TOPP (The OpenMS PiPeline) - chainable tools for data analysis"
 !insertmacro MUI_DESCRIPTION_TEXT ${SEC_Doc} "Documentation/Tutorials for TOPP, TOPPView and the OpenMS library itself."
 !insertmacro MUI_DESCRIPTION_TEXT ${SEC_ThirdParty} "Install third party libraries (e.g. ProteoWizard)."
 !insertmacro MUI_DESCRIPTION_TEXT ${SEC_RegisterExt} "Register certain file types (e.g. '.mzML') with TOPPView.exe"

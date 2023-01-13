@@ -9,7 +9,7 @@ cdef extern from "<OpenMS/FORMAT/PercolatorInfile.h>" namespace "OpenMS":
     
     cdef cppclass PercolatorInfile "OpenMS::PercolatorInfile":
         # wrap-doc:
-            #   Class for storing Percolator tab-delimited input files
+            #  Class for storing Percolator tab-delimited input files
 
         PercolatorInfile() nogil except +
         PercolatorInfile(PercolatorInfile &) nogil except + 

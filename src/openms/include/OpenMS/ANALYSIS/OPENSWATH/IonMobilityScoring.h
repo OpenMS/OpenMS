@@ -92,7 +92,7 @@ namespace OpenMS
       @return Populates additional scores in the @p scores object
 
     */
-    static void driftScoring(OpenSwath::SpectrumPtr spectrum,
+    static void driftScoring(const OpenSwath::SpectrumPtr& spectrum,
                              const std::vector<TransitionType> & transitions,
                              OpenSwath_Scores & scores,
                              const double drift_lower,
@@ -120,7 +120,7 @@ namespace OpenMS
       @return Populates additional scores in the @p scores object
 
     */
-    static void driftScoringMS1(OpenSwath::SpectrumPtr spectrum,
+    static void driftScoringMS1(const OpenSwath::SpectrumPtr& spectrum,
                                 const std::vector<TransitionType> & transitions,
                                 OpenSwath_Scores & scores,
                                 const double drift_lower,
@@ -149,7 +149,7 @@ namespace OpenMS
       @return Populates additional scores in the @p scores object
 
     */
-    static void driftScoringMS1Contrast(OpenSwath::SpectrumPtr spectrum, OpenSwath::SpectrumPtr ms1spectrum,
+    static void driftScoringMS1Contrast(const OpenSwath::SpectrumPtr& spectrum, const OpenSwath::SpectrumPtr& ms1spectrum,
                                         const std::vector<TransitionType> & transitions,
                                         OpenSwath_Scores & scores,
                                         const double drift_lower,

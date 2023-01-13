@@ -44,6 +44,7 @@
 #include <boost/random/uniform_real.hpp>
 
 #include <map>
+#include <utility>
 
 using std::vector;
 using std::cout;
@@ -61,7 +62,7 @@ namespace OpenMS
   }
 
   RTSimulation::RTSimulation(SimTypes::MutableSimRandomNumberGeneratorPtr random_generator) :
-    DefaultParamHandler("RTSimulation"), rnd_gen_(random_generator)
+    DefaultParamHandler("RTSimulation"), rnd_gen_(std::move(random_generator))
   {
     setDefaultParams_();
     updateMembers_();
@@ -83,9 +84,7 @@ namespace OpenMS
     return *this;
   }
 
-  RTSimulation::~RTSimulation()
-  {
-  }
+  RTSimulation::~RTSimulation() = default;
 
   void RTSimulation::setDefaultParams_()
   {

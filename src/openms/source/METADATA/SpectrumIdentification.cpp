@@ -39,9 +39,7 @@ using namespace std;
 namespace OpenMS
 {
 
-  SpectrumIdentification::~SpectrumIdentification()
-  {
-  }
+  SpectrumIdentification::~SpectrumIdentification() = default;
 
   // Equality operator
   bool SpectrumIdentification::operator==(const SpectrumIdentification & rhs) const

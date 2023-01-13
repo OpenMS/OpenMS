@@ -71,9 +71,7 @@ namespace OpenMS
     defaultsToParam_();
   }
 
-  MapAlignmentAlgorithmIdentification::~MapAlignmentAlgorithmIdentification()
-  {
-  }
+  MapAlignmentAlgorithmIdentification::~MapAlignmentAlgorithmIdentification() = default;
 
   void MapAlignmentAlgorithmIdentification::checkParameters_(Size runs)
   {
@@ -356,7 +354,7 @@ namespace OpenMS
           }
         }
       }
-      transforms.push_back(TransformationDescription(data));
+      transforms.emplace_back(data);
       OPENMS_LOG_INFO << "- " << data.size() << " data points for sample "
                << i + offset + 1;
       if (n_outliers) OPENMS_LOG_INFO << " (" << n_outliers << " outliers removed)";
