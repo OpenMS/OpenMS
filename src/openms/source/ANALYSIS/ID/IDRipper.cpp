@@ -308,7 +308,9 @@ namespace OpenMS
               { // only add protein once to the run identifier
                 ripped_protein_id_run.insertHit(prot);
                 acc_set.insert(acc);
-                //std::cout << "ripped/merged identifier: " << ripped_prot_identifier << " " << prot << std::endl;
+                #ifdef DEBUG_IDRIPPER
+                  std::cout << "ripped/merged identifier: " << ripped_prot_identifier << " " << prot << std::endl;
+                #endif
               }                
             }
             ripped_protein_identifier_exists = true;
@@ -331,7 +333,9 @@ namespace OpenMS
             { // only add protein once to the run identifier
               p.insertHit(prot);;
               acc_set.insert(acc);
-              //std::cout << "ripped/merged identifier: " << ripped_prot_identifier << " " << prot << std::endl;
+              #ifdef DEBUG_IDRIPPER
+                std::cout << "ripped/merged identifier: " << ripped_prot_identifier << " " << prot << std::endl;
+              #endif
             }                
           }
           ripped_protein_id_runs.push_back(std::move(p));
