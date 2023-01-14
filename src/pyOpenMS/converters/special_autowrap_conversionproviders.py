@@ -235,7 +235,10 @@ class OpenMSStringConverter(TypeConverterBase):
         return ""
       
     def matching_python_type_full(self, cpp_type):
-        return "Union[bytes, str, String]"
+        if (cpp_type.is_ptr or cpp_type.is_ref) and not cpp_type.is_const:
+            return "String"
+        else:
+            return "Union[bytes, str, String]"
 
     def type_check_expression(self, cpp_type, argument_var):
         # Need to treat ptr and reference differently as these may be modified
