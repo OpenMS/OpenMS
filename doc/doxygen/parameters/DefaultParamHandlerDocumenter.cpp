@@ -390,6 +390,8 @@ int main(int argc, char** argv)
   DOCME(AScore);
   DOCME(AccurateMassSearchEngine);
   DOCME(BernNorm);
+  DOCME(BasicProteinInferenceAlgorithm);
+  DOCME(BayesianProteinInferenceAlgorithm);
   DOCME(BiGaussFitter1D);
   DOCME(BiGaussModel);
   DOCME(BinnedSharedPeakCount);
