@@ -247,7 +247,7 @@ namespace OpenMS
     std::map<int, std::vector<std::vector<float>>> empty;
 
     target_masses_.clear();
-    if (targeting_mode_ > 0)
+    if (targeting_mode_ == 1)
     {
       for (auto& [mass, rts] : target_mass_rt_map_)
       {
@@ -397,6 +397,11 @@ namespace OpenMS
             tqscore_factor_for_exclusion = t_mass_qscore_map_[nominal_mass];
           }
         }
+        if (1 - tqscore_factor_for_exclusion > tqscore_threshold)
+        {
+          continue;
+        }
+
 
         if (targeting_mode_ == 1 && target_masses_.size() > 0)  // inclusive mode
         {
@@ -453,7 +458,7 @@ namespace OpenMS
 
         if (selection_phase == 0)
         { // first, select masses under tqscore threshold
-          if (1 - tqscore_factor_for_exclusion  > tqscore_threshold ||  tqscore_exceeding_mass_rt_map_.find(nominal_mass) != tqscore_exceeding_mass_rt_map_.end() || tqscore_exceeding_mz_rt_map_.find(integer_mz) != tqscore_exceeding_mz_rt_map_.end())
+          if (tqscore_exceeding_mass_rt_map_.find(nominal_mass) != tqscore_exceeding_mass_rt_map_.end() || tqscore_exceeding_mz_rt_map_.find(integer_mz) != tqscore_exceeding_mz_rt_map_.end())
           {
             continue;
           }
