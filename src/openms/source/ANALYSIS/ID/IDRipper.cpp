@@ -56,16 +56,7 @@ namespace OpenMS
 
   IDRipper::~IDRipper() = default;
 
-  IDRipper& IDRipper::operator=(const IDRipper& rhs)
-  {
-    if (this == &rhs)
-      return *this;
-
-    DefaultParamHandler::operator=(rhs);
-    updateMembers_();
-
-    return *this;
-  }
+  IDRipper& IDRipper::operator=(const IDRipper& rhs) = default;
 
   IDRipper::IdentificationRuns::IdentificationRuns(const vector<ProteinIdentification>& prot_ids)
   {
@@ -269,8 +260,9 @@ namespace OpenMS
                         << "Merged identification file run identifier: " << merged_prot_identifier << "\n"
                         << std::endl;
         // create the protein run but only set the protein hits that are needed for the current peptide identification
-        ProteinIdentification p{merged_protein_id_run}; 
-        p.setHits(proteins_of_accessions);
+        ProteinIdentification p;
+        p.copyMetaDataOnly(merged_protein_id_run);
+        p.setHits(proteins_of_accessions); // TODO: what about protein groups?
         for (const ProteinHit& prot : proteins_of_accessions)
         { // register protein so we don't add it twice          
           const String& acc = prot.getAccession();
@@ -320,9 +312,9 @@ namespace OpenMS
 
         // file identifier exists but not the protein identification run identifier -  we did not add anything so far to it
         if (!ripped_protein_identifier_exists) 
-        {
-          ProteinIdentification p{merged_protein_id_run};
-          p.setHits({});
+        {    
+          ProteinIdentification p;
+          p.copyMetaDataOnly(merged_protein_id_run);
 
           for (const ProteinHit& prot : proteins_of_accessions)
           {              
@@ -354,7 +346,7 @@ namespace OpenMS
       for (it = ripped.begin(); it != ripped.end(); ++it)
       {
         const RipFileIdentifier& rfi = it->first;
-        RipFileContent&          rfc = it->second;
+        RipFileContent& rfc = it->second;
 
         for (ProteinIdentification& prot_id : rfc.prot_idents)
         {

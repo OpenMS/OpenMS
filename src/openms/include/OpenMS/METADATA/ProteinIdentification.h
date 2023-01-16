@@ -90,6 +90,7 @@ public:
       {
         create(prot_ids);
       }
+
       void create(const std::vector<ProteinIdentification>& prot_ids)
       {
         identifier_to_msrunpath.clear();
@@ -492,6 +493,8 @@ public:
 
     //@}
 
+    /// Copies only metadata (no protein hits or protein groups)
+    void copyMetaDataOnly(const ProteinIdentification&);
 protected:
     ///@name General information (search engine, parameters and database)
     //@{
