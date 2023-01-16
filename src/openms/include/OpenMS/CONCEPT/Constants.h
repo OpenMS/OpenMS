@@ -316,6 +316,12 @@ namespace OpenMS
       */
       inline const std::string   SPECTRUM_REFERENCE = "spectrum_reference";
 
+      /** User parameter name to store the index of the primary MS run associated with the PeptideIdentification (is is not yet treated as a class attribute).
+          Set by IDMerger algorithm.
+              String
+      */
+      inline const std::string   ID_MERGE_INDEX = "id_merge_index";
+
       /** User parameter name for target/decoy annotation of a PeptideHit, e.g. as annotated by PeptideIndexer. One of: target, decoy, target+decoy
               String
       */

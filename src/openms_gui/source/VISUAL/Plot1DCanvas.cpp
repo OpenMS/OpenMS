@@ -1497,7 +1497,7 @@ namespace OpenMS
         area.extend(getLayer(i).getRangeForArea(area));
       }
       auto& intensity = getGravityDim().map(area); // make sure y-axis spans [0, max * TOP_MARGIN]
-      intensity.extend(0);
+      intensity.setMin(0); // make sure we start at 0
       intensity.extend(intensity.getMax() * TOP_MARGIN);
     }
     else if (intensity_mode_ == PlotCanvas::IntensityModes::IM_PERCENTAGE)
@@ -1509,6 +1509,7 @@ namespace OpenMS
     { // use y-range of all layers
       auto& intensity = getGravityDim().map(area);
       intensity = getGravityDim().map(overall_data_range_1d_);
+      intensity.setMin(0); // make sure we start at 0
     }
     return area;
   }

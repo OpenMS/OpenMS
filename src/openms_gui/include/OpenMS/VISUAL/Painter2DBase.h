@@ -133,10 +133,11 @@ namespace OpenMS
       Paints the peaks as small ellipses. The peaks are colored according to the
       selected dot gradient.
 
+      @param painter The QPainter to paint with.
+      @param canvas The canvas to paint on.
       @param layer_index The index of the layer.
       @param rt_pixel_count
       @param mz_pixel_count
-      @param painter The QPainter to paint on.
     */
     void paintMaximumIntensities_(QPainter& painter, Plot2DCanvas* canvas, Size layer_index, Size rt_pixel_count, Size mz_pixel_count);
 

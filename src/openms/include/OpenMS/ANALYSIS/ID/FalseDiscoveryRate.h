@@ -207,7 +207,7 @@ public:
        @brief Calculate FDR on the level of observation matches (e.g. peptide-spectrum matches) for "general" identification data
 
        @param id_data Identification data
-       @param score_key Key of the score to use for FDR calculation
+       @param score_ref Key of the score to use for FDR calculation
 
        @return Key of the FDR score
     */
