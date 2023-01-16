@@ -962,8 +962,8 @@ void File::download(const std::string& url, const std::string& download_folder)
   }
   else
   {
-    OPENMS_LOG_ERROR << "Download of '" << url << "' failed!" << endl;
-    OPENMS_LOG_ERROR << "Error: " << String(query->getErrorString()) << endl;
+    String error = "Download of '" + url + "' failed!. Error: " + String(query->getErrorString()) + '\n';
+    throw Exception::FileNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, error);
   }
 
   delete query;
