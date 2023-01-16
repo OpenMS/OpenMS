@@ -397,7 +397,7 @@ namespace OpenMS
             tqscore_factor_for_exclusion = t_mass_qscore_map_[nominal_mass];
           }
         }
-        if (1 - tqscore_factor_for_exclusion > tqscore_threshold)
+        if (selection_phase == 0 && 1 - tqscore_factor_for_exclusion > tqscore_threshold)
         {
           continue;
         }
@@ -758,9 +758,14 @@ namespace OpenMS
     {
       std::cout << in_log_file << " not found\n";
     }
-    std::cout << "Used precursor size : " << precursor_map_for_real_time_acquisition.size() << std::endl;
+    int mass_cntr = 0;
+    for(auto& v : precursor_map_for_real_time_acquisition)
+    {
+      mass_cntr+=v.second.size();
+    }
+
+    std::cout << "Used precursor size : " << precursor_map_for_real_time_acquisition.size() << " precursor masses : " << mass_cntr <<  std::endl;
 
     return precursor_map_for_real_time_acquisition;
   }
-
 } // namespace OpenMS
