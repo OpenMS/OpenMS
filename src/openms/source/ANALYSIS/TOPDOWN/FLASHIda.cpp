@@ -397,11 +397,10 @@ namespace OpenMS
             tqscore_factor_for_exclusion = t_mass_qscore_map_[nominal_mass];
           }
         }
-        if (selection_phase == 0 && 1 - tqscore_factor_for_exclusion > tqscore_threshold)
+        if (selection_phase == 0 && tqscore_factor_for_exclusion > tqscore_threshold)
         {
           continue;
         }
-
 
         if (targeting_mode_ == 1 && target_masses_.size() > 0)  // inclusive mode
         {
@@ -430,7 +429,7 @@ namespace OpenMS
 
           if (target_matched)
           {
-            snr_threshold = 0.0;
+            //snr_threshold = 0.0;
             qscore_threshold = 0.0;
           }
           else
@@ -527,8 +526,8 @@ namespace OpenMS
         }
 
         if (mz1 < ospec[0].getMZ() - max_isolation_window_half_ || mz2 > ospec.back().getMZ() + max_isolation_window_half_ ||
-            mz1 + 2 * min_isolation_window_half_ > mz2 ||
-            mz2 - mz1 > 2 * max_isolation_window_half_)
+            mz1 + 2 * min_isolation_window_half_ - .01 > mz2 ||
+            mz2 - mz1 > 2 * max_isolation_window_half_ + .01)
         {
           continue;
         }

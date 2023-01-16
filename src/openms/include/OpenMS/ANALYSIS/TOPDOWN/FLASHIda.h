@@ -196,7 +196,7 @@ namespace OpenMS
     std::vector<double> target_masses_; /// current target masses
 
     /// precursor SNR threshold
-    double snr_threshold_ = 1.0;
+    double snr_threshold_ = .3;
 
     /// mass tolerance
     DoubleList tol_;
