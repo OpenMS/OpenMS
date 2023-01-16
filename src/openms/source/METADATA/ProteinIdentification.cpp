@@ -952,4 +952,18 @@ namespace OpenMS
     return "";
   }
 
+  void ProteinIdentification::copyMetaDataOnly(const ProteinIdentification& p)
+  {
+    id_ = p.id_;
+    search_engine_ = p.search_engine_;
+    search_engine_version_ = p.search_engine_version_;
+    search_parameters_ = p.search_parameters_;
+    date_ = p.date_;
+
+    protein_score_type_ = p.protein_score_type_;
+    higher_score_better_ = p.higher_score_better_;
+    protein_significance_threshold_ = p.protein_significance_threshold_;
+    MetaInfoInterface::operator=(static_cast<MetaInfoInterface>(p));
+  }
+
 } // namespace OpenMS
