@@ -396,11 +396,12 @@ namespace OpenMS
           {
             tqscore_factor_for_exclusion = t_mass_qscore_map_[nominal_mass];
           }
+          if (selection_phase == 0 && 1 - tqscore_factor_for_exclusion > tqscore_threshold)
+          {
+            continue;
+          }
         }
-        if (selection_phase == 0 && tqscore_factor_for_exclusion > tqscore_threshold)
-        {
-          continue;
-        }
+
 
         if (targeting_mode_ == 1 && target_masses_.size() > 0)  // inclusive mode
         {

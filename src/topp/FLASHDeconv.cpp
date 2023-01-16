@@ -122,7 +122,7 @@ protected:
                             false);
     setValidFormats_("out_topFD_feature", ListUtils::create<String>("feature"), false);
 
-    registerDoubleOption_("min_precursor_snr", "<SNR value>", 1.0,
+    registerDoubleOption_("min_precursor_snr", "<SNR value>", .3,
                           "Minimum precursor SNR (SNR within the precursor envelope range) for identification. Similar to precursor interference level, but more stringent."
                           "When FLASHIda log file is used, this parameter is ignored. Applied only for topFD msalign outputs.",
                           false, false);
