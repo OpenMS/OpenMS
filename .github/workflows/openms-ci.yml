@@ -39,8 +39,10 @@ jobs:
     - name: Setup build tools
       shell: bash
       run: |
-        choco install ccache ninja cmake gh
-        echo "C:\Program Files\GitHub CLI" >> $GITHUB_PATH
+        choco install ccache ninja cmake
+        ## GH CLI "SHOULD BE" installed. Sometimes I had to manually install nonetheless. Super weird.
+        # https://github.com/actions/runner-images/blob/main/images/win/scripts/Installers/Install-GitHub-CLI.ps1
+        echo "C:\Program Files (x86)\GitHub CLI" >> $GITHUB_PATH
 
     - name: Extract branch/PR infos
       shell: bash
