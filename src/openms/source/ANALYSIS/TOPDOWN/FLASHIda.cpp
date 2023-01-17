@@ -276,7 +276,7 @@ namespace OpenMS
   void FLASHIda::filterPeakGroupsUsingMassExclusion_(const int ms_level, const double rt)
   {
     std::vector<PeakGroup> filtered_peakgroups;
-
+    deconvolved_spectrum_.sortByQScore();
     Size mass_count = (Size)mass_count_[ms_level - 1];
     trigger_charges.clear();
     trigger_charges.reserve(mass_count);
@@ -298,6 +298,7 @@ namespace OpenMS
     {
       for (auto& [mass, rts] : target_mass_rt_map_)
       {
+        int nominal_mass = FLASHDeconvAlgorithm::getNominalMass(mass);
         auto qscores = target_mass_qscore_map_[mass];
         for (int i = 0; i < rts.size(); i++)
         {
@@ -305,20 +306,19 @@ namespace OpenMS
           double qscore = qscores[i];
           if (std::abs(rt - prt) < rt_window_)
           {
-            auto peak = PeakGroup(1,100,true);
-            peak.setRepAbsCharge(1);
-            peak.setQScore(qscore);
-            peak.setChargeSNR(1,100);
-            peak.setMonoisotopicMass(mass);
-            peak.setDecoyFlag(PeakGroup::DecoyFlag::noise_decoy);
-            deconvolved_spectrum_.push_back(peak);
-            break;
+            auto inter = t_mass_qscore_map_.find(nominal_mass);
+            if (inter == t_mass_qscore_map_.end())
+            {
+              t_mass_qscore_map_[nominal_mass] = 1 - qscore;
+            }
+            else
+            {
+              t_mass_qscore_map_[nominal_mass] *= 1 - qscore;
+            }
           }
         }
       }
     }
-
-    deconvolved_spectrum_.sortByQScore();
 
     for (auto& [m, r] : tqscore_exceeding_mz_rt_map_)
     {
@@ -362,100 +362,109 @@ namespace OpenMS
     std::unordered_map<int, double>().swap(new_mass_qscore_map_);
 
     int selection_phase_start = 0;
-    int selection_phase_end = targeting_mode_ == 2? 2 : 1; // inclusive
+    int selection_phase_end = 1; // inclusive
     // When selection_phase == 0, consider only the masses whose tqscore did not exceed total qscore threshold.
     // when selection_phase == 1, consider all other masses for selection
     // for target inclusive masses, qscore precursor snr threshold is not applied.
     // In all phase, for target exclusive mode, all the exclusive masses are excluded. For target inclusive mode, only the target masses are considered.
 
-    for (int selection_phase = selection_phase_start; selection_phase <= selection_phase_end; selection_phase++)
+    for (int iteration = targeting_mode_ == 2? 0 : 1; iteration <  2 ;iteration++)
     {
-      for (auto& pg : deconvolved_spectrum_)
+      for (int selection_phase = selection_phase_start; selection_phase <= selection_phase_end; selection_phase++)
       {
-        if (filtered_peakgroups.size() >= mass_count)
+        for (auto& pg : deconvolved_spectrum_)
         {
-          break;
-        }
-
-        int charge = pg.getRepAbsCharge();
-        double qscore = pg.getQScore();
-        double mass = pg.getMonoMass();
-        auto [mz1, mz2] = pg.getRepMzRange();
-        double center_mz = (mz1 + mz2) / 2.0;
-
-        int nominal_mass = FLASHDeconvAlgorithm::getNominalMass(mass);
-        bool target_matched = false;
-        double snr_threshold = snr_threshold_;
-        double qscore_threshold = qscore_threshold_;
-
-        if (targeting_mode_ == 1 && target_masses_.size() > 0)  // inclusive mode
-        {
-          double delta = 2 * tol_[0] * mass * 1e-6;
-          auto ub = std::upper_bound(target_masses_.begin(), target_masses_.end(), mass + delta);
-
-          while (!target_matched)
+          if (filtered_peakgroups.size() >= mass_count)
           {
-            if (ub != target_masses_.end())
+            break;
+          }
+
+          int charge = pg.getRepAbsCharge();
+          double qscore = pg.getQScore();
+          double mass = pg.getMonoMass();
+          auto [mz1, mz2] = pg.getRepMzRange();
+          double center_mz = (mz1 + mz2) / 2.0;
+
+          int nominal_mass = FLASHDeconvAlgorithm::getNominalMass(mass);
+          bool target_matched = false;
+          double snr_threshold = snr_threshold_;
+          double qscore_threshold = qscore_threshold_;
+          double tqscore_factor_for_exclusion = 1.0;
+          int integer_mz = (int)round(center_mz);
+
+          if (iteration == 0)
+          {
+            auto inter = t_mass_qscore_map_.find(nominal_mass);
+            if (inter != t_mass_qscore_map_.end())
             {
-              if (std::abs(*ub - mass) < delta) // target is detected.
+              tqscore_factor_for_exclusion = t_mass_qscore_map_[nominal_mass];
+            }
+            if (1 - tqscore_factor_for_exclusion > tqscore_threshold)
+            {
+              continue;
+            }
+          }
+
+          if (targeting_mode_ == 1 && target_masses_.size() > 0) // inclusive mode
+          {
+            double delta = 2 * tol_[0] * mass * 1e-6;
+            auto ub = std::upper_bound(target_masses_.begin(), target_masses_.end(), mass + delta);
+
+            while (!target_matched)
+            {
+              if (ub != target_masses_.end())
               {
-                target_matched = true;
+                if (std::abs(*ub - mass) < delta) // target is detected.
+                {
+                  target_matched = true;
+                }
+                if (mass - *ub > delta)
+                {
+                  break;
+                }
               }
-              if (mass - *ub > delta)
+              if (ub == target_masses_.begin())
               {
                 break;
               }
+              ub--;
             }
-            if (ub == target_masses_.begin())
+
+            if (target_matched)
             {
-              break;
+              // snr_threshold = 0.0;
+              qscore_threshold = 0.0;
             }
-            ub--;
+            else
+            {
+              continue;
+            }
           }
 
-          if (target_matched)
+          if (qscore < qscore_threshold)
           {
-            //snr_threshold = 0.0;
-            qscore_threshold = 0.0;
+            break;
           }
-          else
-          {
-            continue;
-          }
-        }
 
-        if(targeting_mode_ == 2 && selection_phase == 0 && pg.getDecoyFlag() != PeakGroup::DecoyFlag::noise_decoy)
-        {
-          continue;
-        }
-
-        if (qscore < qscore_threshold)
-        {
-          break;
-        }
-
-        if (pg.getChargeSNR(charge) < snr_threshold)
-        {
-          continue;
-        }
-
-        int integer_mz = (int)round(center_mz);
-
-        if (current_selected_mzs.find(integer_mz) != current_selected_mzs.end())
-        {
-          continue;
-        }
-
-        if (selection_phase == selection_phase_end - 1)
-        { // first, select masses under tqscore threshold
-          if (tqscore_exceeding_mass_rt_map_.find(nominal_mass) != tqscore_exceeding_mass_rt_map_.end() || tqscore_exceeding_mz_rt_map_.find(integer_mz) != tqscore_exceeding_mz_rt_map_.end())
+          if (pg.getChargeSNR(charge) < snr_threshold)
           {
             continue;
           }
-        }
 
-        if(pg.getDecoyFlag() != PeakGroup::DecoyFlag::noise_decoy)
-        {
+
+          if (current_selected_mzs.find(integer_mz) != current_selected_mzs.end())
+          {
+            continue;
+          }
+
+          if (selection_phase < selection_phase_end)
+          { // first, select masses under tqscore threshold
+            if (tqscore_exceeding_mass_rt_map_.find(nominal_mass) != tqscore_exceeding_mass_rt_map_.end() || tqscore_exceeding_mz_rt_map_.find(integer_mz) != tqscore_exceeding_mz_rt_map_.end())
+            {
+              continue;
+            }
+          }
+
           // here crawling isolation windows max_isolation_window_half_
           auto ospec = deconvolved_spectrum_.getOriginalSpectrum();
           if (ospec.size() > 2)
@@ -523,35 +532,34 @@ namespace OpenMS
           {
             continue;
           }
-        }
-        all_mass_rt_map_[nominal_mass] = rt;
-        auto inter = mass_qscore_map_.find(nominal_mass);
-        if (inter == mass_qscore_map_.end())
-        {
-          mass_qscore_map_[nominal_mass] = 1 - qscore;
-        }
-        else
-        {
-          mass_qscore_map_[nominal_mass] *= 1 - qscore;
-        }
 
-        if (1 - mass_qscore_map_[nominal_mass] > tqscore_threshold)
-        {
-          tqscore_exceeding_mass_rt_map_[nominal_mass] = rt;
-          tqscore_exceeding_mz_rt_map_[integer_mz] = rt;
-        }
+          all_mass_rt_map_[nominal_mass] = rt;
+          auto inter = mass_qscore_map_.find(nominal_mass);
+          if (inter == mass_qscore_map_.end())
+          {
+            mass_qscore_map_[nominal_mass] = 1 - qscore;
+          }
+          else
+          {
+            mass_qscore_map_[nominal_mass] *= 1 - qscore;
+          }
 
-        if(pg.getDecoyFlag() != PeakGroup::DecoyFlag::noise_decoy)
-        {
-          current_selected_mzs.insert(integer_mz);
+          if (1 - mass_qscore_map_[nominal_mass] * tqscore_factor_for_exclusion > tqscore_threshold)
+          {
+            tqscore_exceeding_mass_rt_map_[nominal_mass] = rt;
+            tqscore_exceeding_mz_rt_map_[integer_mz] = rt;
+          }
+
+          filtered_peakgroups.push_back(pg);
           trigger_charges.push_back(charge);
+
           trigger_left_isolation_mzs_.push_back(mz1);
           trigger_right_isolation_mzs_.push_back(mz2);
-          filtered_peakgroups.push_back(pg);
+
+          current_selected_mzs.insert(integer_mz);
         }
       }
     }
-
     deconvolved_spectrum_.setPeakGroups(filtered_peakgroups);
     std::vector<PeakGroup>().swap(filtered_peakgroups);
   }
