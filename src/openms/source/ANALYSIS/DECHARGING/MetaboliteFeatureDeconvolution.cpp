@@ -180,7 +180,7 @@ namespace OpenMS
     // adducts might look like this:
     //   Element:Probability[:RTShift[:Label]]
     double summed_probs = 0.0;
-    for (auto& p_add : potential_adducts_s)
+    for (String& p_add : potential_adducts_s)
     {
       // skip disabled adducts
       if (p_add.trim().hasPrefix("#"))
