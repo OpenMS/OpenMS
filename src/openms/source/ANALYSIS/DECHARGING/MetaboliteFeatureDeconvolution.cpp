@@ -1050,7 +1050,7 @@ namespace OpenMS
       //remove info not wanted in decharged consensus
       std::vector<String> keys;
       cf.getKeys(keys);
-      for (const auto& key : keys)
+      for (const String& key : keys)
       {
         if (key == "is_ungrouped_monoisotopic" || key == "is_ungrouped_with_charge")
           continue;
