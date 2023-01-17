@@ -276,7 +276,7 @@ namespace OpenMS
   void FLASHIda::filterPeakGroupsUsingMassExclusion_(const int ms_level, const double rt)
   {
     std::vector<PeakGroup> filtered_peakgroups;
-    deconvolved_spectrum_.sortByQScore();
+
     Size mass_count = (Size)mass_count_[ms_level - 1];
     trigger_charges.clear();
     trigger_charges.reserve(mass_count);
@@ -298,7 +298,6 @@ namespace OpenMS
     {
       for (auto& [mass, rts] : target_mass_rt_map_)
       {
-        int nominal_mass = FLASHDeconvAlgorithm::getNominalMass(mass);
         auto qscores = target_mass_qscore_map_[mass];
         for (int i = 0; i < rts.size(); i++)
         {
@@ -306,19 +305,20 @@ namespace OpenMS
           double qscore = qscores[i];
           if (std::abs(rt - prt) < rt_window_)
           {
-            auto inter = t_mass_qscore_map_.find(nominal_mass);
-            if (inter == t_mass_qscore_map_.end())
-            {
-              t_mass_qscore_map_[nominal_mass] = 1 - qscore;
-            }
-            else
-            {
-              t_mass_qscore_map_[nominal_mass] *= 1 - qscore;
-            }
+            auto peak = PeakGroup(1,100,true);
+            peak.setRepAbsCharge(1);
+            peak.setQScore(qscore);
+            peak.setChargeSNR(1,100);
+            peak.setMonoisotopicMass(mass);
+            peak.setDecoyFlag(PeakGroup::DecoyFlag::noise_decoy);
+            deconvolved_spectrum_.push_back(peak);
+            break;
           }
         }
       }
     }
+
+    deconvolved_spectrum_.sortByQScore();
 
     for (auto& [m, r] : tqscore_exceeding_mz_rt_map_)
     {
@@ -388,21 +388,6 @@ namespace OpenMS
         double snr_threshold = snr_threshold_;
         double qscore_threshold = qscore_threshold_;
 
-        double tqscore_factor_for_exclusion = 1.0;
-        if (targeting_mode_ == 2)
-        {
-          auto inter = t_mass_qscore_map_.find(nominal_mass);
-          if (inter != t_mass_qscore_map_.end())
-          {
-            tqscore_factor_for_exclusion = t_mass_qscore_map_[nominal_mass];
-          }
-          if (selection_phase == 0 && 1 - tqscore_factor_for_exclusion > tqscore_threshold)
-          {
-            continue;
-          }
-        }
-
-
         if (targeting_mode_ == 1 && target_masses_.size() > 0)  // inclusive mode
         {
           double delta = 2 * tol_[0] * mass * 1e-6;
@@ -464,75 +449,76 @@ namespace OpenMS
           }
         }
 
-        // here crawling isolation windows max_isolation_window_half_
-        auto ospec = deconvolved_spectrum_.getOriginalSpectrum();
-        if (ospec.size() > 2)
+        if(pg.getDecoyFlag() != PeakGroup::DecoyFlag::noise_decoy)
         {
-          Size index = ospec.findNearest(center_mz);
-          Size tindexl = index == 0 ? index : index - 1;
-          Size tindexr = index == 0 ? index + 1 : index;
-          double lmz = ospec[tindexl].getMZ(), rmz = ospec[tindexr].getMZ();
-          double sig_pwr = .0;
-          double noise_pwr = .0;
-
-          bool goleft = tindexl > 0 && (center_mz - lmz >= rmz - center_mz);
-          bool goright = tindexr < ospec.size() - 1 && (center_mz - lmz <= rmz - center_mz);
-
-          while (goleft || goright)
+          // here crawling isolation windows max_isolation_window_half_
+          auto ospec = deconvolved_spectrum_.getOriginalSpectrum();
+          if (ospec.size() > 2)
           {
-            if (goleft)
-            {
-              double power = pow(ospec[tindexl].getIntensity(), 2);
-              if (pg.isSignalMZ(ospec[tindexl].getMZ(), tol_[ospec.getMSLevel() - 1])) //
-              {
-                sig_pwr += power;
-              }
-              else
-              {
-                noise_pwr += power;
-              }
-              tindexl--;
-              lmz = ospec[tindexl].getMZ();
-            }
-            if (goright)
-            {
-              double power = pow(ospec[tindexr].getIntensity(), 2);
-              if (pg.isSignalMZ(ospec[tindexr].getMZ(), tol_[ospec.getMSLevel() - 1])) //
-              {
-                sig_pwr += power;
-              }
-              else
-              {
-                noise_pwr += power;
-              }
-              tindexr++;
-              rmz = ospec[tindexr].getMZ();
-            }
+            Size index = ospec.findNearest(center_mz);
+            Size tindexl = index == 0 ? index : index - 1;
+            Size tindexr = index == 0 ? index + 1 : index;
+            double lmz = ospec[tindexl].getMZ(), rmz = ospec[tindexr].getMZ();
+            double sig_pwr = .0;
+            double noise_pwr = .0;
 
-            goleft = tindexl > 0 && (center_mz - lmz >= rmz - center_mz);
-            goright = tindexr < ospec.size() - 1 && (center_mz - lmz <= rmz - center_mz);
+            bool goleft = tindexl > 0 && (center_mz - lmz >= rmz - center_mz);
+            bool goright = tindexr < ospec.size() - 1 && (center_mz - lmz <= rmz - center_mz);
 
-            if (lmz > mz1 || rmz < mz2 || rmz - lmz < min_isolation_window_half_ * 2)
+            while (goleft || goright)
             {
-              continue;
-            }
+              if (goleft)
+              {
+                double power = pow(ospec[tindexl].getIntensity(), 2);
+                if (pg.isSignalMZ(ospec[tindexl].getMZ(), tol_[ospec.getMSLevel() - 1])) //
+                {
+                  sig_pwr += power;
+                }
+                else
+                {
+                  noise_pwr += power;
+                }
+                tindexl--;
+                lmz = ospec[tindexl].getMZ();
+              }
+              if (goright)
+              {
+                double power = pow(ospec[tindexr].getIntensity(), 2);
+                if (pg.isSignalMZ(ospec[tindexr].getMZ(), tol_[ospec.getMSLevel() - 1])) //
+                {
+                  sig_pwr += power;
+                }
+                else
+                {
+                  noise_pwr += power;
+                }
+                tindexr++;
+                rmz = ospec[tindexr].getMZ();
+              }
 
-            if (sig_pwr / noise_pwr < snr_threshold)
-            {
-              break;
+              goleft = tindexl > 0 && (center_mz - lmz >= rmz - center_mz);
+              goright = tindexr < ospec.size() - 1 && (center_mz - lmz <= rmz - center_mz);
+
+              if (lmz > mz1 || rmz < mz2 || rmz - lmz < min_isolation_window_half_ * 2)
+              {
+                continue;
+              }
+
+              if (sig_pwr / noise_pwr < snr_threshold)
+              {
+                break;
+              }
             }
+            mz1 = std::max(center_mz - max_isolation_window_half_, lmz);
+            mz2 = std::min(center_mz + max_isolation_window_half_, rmz);
           }
-          mz1 = std::max(center_mz - max_isolation_window_half_, lmz);
-          mz2 = std::min(center_mz + max_isolation_window_half_, rmz);
-        }
 
-        if (mz1 < ospec[0].getMZ() - max_isolation_window_half_ || mz2 > ospec.back().getMZ() + max_isolation_window_half_ ||
-            mz1 + 2 * min_isolation_window_half_ - .01 > mz2 ||
-            mz2 - mz1 > 2 * max_isolation_window_half_ + .01)
-        {
-          continue;
+          if (mz1 < ospec[0].getMZ() - max_isolation_window_half_ || mz2 > ospec.back().getMZ() + max_isolation_window_half_ || mz1 + 2 * min_isolation_window_half_ - .01 > mz2 ||
+              mz2 - mz1 > 2 * max_isolation_window_half_ + .01)
+          {
+            continue;
+          }
         }
-
         all_mass_rt_map_[nominal_mass] = rt;
         auto inter = mass_qscore_map_.find(nominal_mass);
         if (inter == mass_qscore_map_.end())
@@ -544,18 +530,20 @@ namespace OpenMS
           mass_qscore_map_[nominal_mass] *= 1 - qscore;
         }
 
-        if (1 - mass_qscore_map_[nominal_mass] * tqscore_factor_for_exclusion > tqscore_threshold)
+        if (1 - mass_qscore_map_[nominal_mass] > tqscore_threshold)
         {
           tqscore_exceeding_mass_rt_map_[nominal_mass] = rt;
           tqscore_exceeding_mz_rt_map_[integer_mz] = rt;
         }
-        filtered_peakgroups.push_back(pg);
-        trigger_charges.push_back(charge);
 
-        trigger_left_isolation_mzs_.push_back(mz1);
-        trigger_right_isolation_mzs_.push_back(mz2);
-
-        current_selected_mzs.insert(integer_mz);
+        if(pg.getDecoyFlag() != PeakGroup::DecoyFlag::noise_decoy)
+        {
+          current_selected_mzs.insert(integer_mz);
+          trigger_charges.push_back(charge);
+          trigger_left_isolation_mzs_.push_back(mz1);
+          trigger_right_isolation_mzs_.push_back(mz2);
+          filtered_peakgroups.push_back(pg);
+        }
       }
     }
 

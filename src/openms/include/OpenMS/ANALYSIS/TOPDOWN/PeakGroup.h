@@ -137,6 +137,9 @@ namespace OpenMS
     /// set representative max_qscore_charge
     void setRepAbsCharge(int max_qscore_charge);
 
+    /// set monoisotopic mass
+    void setMonoisotopicMass(double mono_mass);
+
     /// set Q score - for FLASHIda log file parsing
     void setQScore(float qscore);
 

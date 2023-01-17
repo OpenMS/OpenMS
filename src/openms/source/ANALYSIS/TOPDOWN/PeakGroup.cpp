@@ -594,6 +594,11 @@ namespace OpenMS
     isotope_cosine_score_ = cos;
   }
 
+  void PeakGroup::setMonoisotopicMass(double mono_mass)
+  {
+    monoisotopic_mass_ = mono_mass;
+  }
+
   void PeakGroup::setRepAbsCharge(const int max_qscore_charge)
   {
     max_qscore_abs_charge_ = max_qscore_charge;
