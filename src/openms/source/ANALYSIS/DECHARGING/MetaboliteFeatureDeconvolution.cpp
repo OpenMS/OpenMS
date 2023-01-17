@@ -868,7 +868,7 @@ namespace OpenMS
         //remove info not wanted in pair
         std::vector<String> keys;
         cf.getKeys(keys);
-        for (const auto& key : keys)
+        for (const String& key : keys)
         {
           cf.removeMetaValue(key);
         }
