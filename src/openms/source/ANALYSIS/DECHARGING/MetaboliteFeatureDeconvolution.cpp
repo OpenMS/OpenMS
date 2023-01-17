@@ -883,7 +883,7 @@ namespace OpenMS
 
         //remove info not wanted in decharged consensus
         cf.getKeys(keys);
-        for (const auto& key : keys)
+        for (const String& key : keys)
         {
           cf.removeMetaValue(key);
         }
