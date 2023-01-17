@@ -362,7 +362,7 @@ namespace OpenMS
     std::unordered_map<int, double>().swap(new_mass_qscore_map_);
 
     int selection_phase_start = 0;
-    int selection_phase_end = 1; // inclusive
+    int selection_phase_end = targeting_mode_ == 2? 2 : 1; // inclusive
     // When selection_phase == 0, consider only the masses whose tqscore did not exceed total qscore threshold.
     // when selection_phase == 1, consider all other masses for selection
     // for target inclusive masses, qscore precursor snr threshold is not applied.
@@ -424,6 +424,11 @@ namespace OpenMS
           }
         }
 
+        if(targeting_mode_ == 2 && selection_phase == 0 && pg.getDecoyFlag() != PeakGroup::DecoyFlag::noise_decoy)
+        {
+          continue;
+        }
+
         if (qscore < qscore_threshold)
         {
           break;
@@ -441,7 +446,7 @@ namespace OpenMS
           continue;
         }
 
-        if (selection_phase == 0)
+        if (selection_phase == selection_phase_end - 1)
         { // first, select masses under tqscore threshold
           if (tqscore_exceeding_mass_rt_map_.find(nominal_mass) != tqscore_exceeding_mass_rt_map_.end() || tqscore_exceeding_mz_rt_map_.find(integer_mz) != tqscore_exceeding_mz_rt_map_.end())
           {
