@@ -70,7 +70,6 @@
 			<userParam name="MSGFPlusAdapter:1:mzid_out" unitName="xsd:string" value="MSGFPlusAdapter_1_out2.tmp.mzid"/>
 			<userParam name="MSGFPlusAdapter:1:executable" unitName="xsd:string" value="/home/sachsenb/OMS/OpenMS/THIRDPARTY/All/MSGFPlus/MSGFPlus.jar"/>
 			<userParam name="MSGFPlusAdapter:1:database" unitName="xsd:string" value="/home/sachsenb/OMS/OpenMS/src/tests/topp/THIRDPARTY/proteins.fasta"/>
-			<userParam name="MSGFPlusAdapter:1:add_decoys" unitName="xsd:string" value="false"/>
 			<userParam name="MSGFPlusAdapter:1:precursor_mass_tolerance" unitName="xsd:double" value="10.0"/>
 			<userParam name="MSGFPlusAdapter:1:precursor_error_units" unitName="xsd:string" value="ppm"/>
 			<userParam name="MSGFPlusAdapter:1:isotope_error_range" unitName="xsd:string" value="0,1"/>
