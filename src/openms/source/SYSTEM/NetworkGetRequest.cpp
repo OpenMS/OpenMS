@@ -97,10 +97,15 @@ namespace OpenMS
     emit done();
   }
 
+  const QByteArray& NetworkGetRequest::getResponseBinary() const
+  {
+    return response_bytes_;
+  }
+
   QString NetworkGetRequest::getResponse() const
   {
     return QString(response_bytes_);
-  }
+  }  
 
   bool NetworkGetRequest::hasError() const
   {
