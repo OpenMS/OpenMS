@@ -1,3 +1,5 @@
+##
+
 # Code adopted from:
 # Wout Bittremieux. “spectrum_utils: A Python package for mass spectrometry data processing and visualization.”
 # Analytical Chemistry 92 (1) 659-661 (2020) doi:10.1021/acs.analchem.9b04884.
@@ -276,12 +278,13 @@ def plot_spectrum(spectrum: "MSSpectrum", color_ions: bool = True,
     Parameters
     ----------
     spectrum : MSSpectrum
-        The spectrum to be plotted. Reads annotations from the first StringDataArray if it has the same length as the number of peaks.
+        The spectrum to be plotted.
+        Reads annotations from the first StringDataArray if it has the same length as the number of peaks.
     color_ions : bool, optional
-        Flag indicating whether or not to color annotated fragment ions. The
+        Flag indicating whether to color annotated fragment ions. The
         default is True.
     annotate_ions : bool, optional
-        Flag indicating whether or not to annotate fragment ions. The default
+        Flag indicating whether to annotate fragment ions. The default
         is True.
     matched_peaks : Optional[Set], optional
         Indices of matched peaks in a spectrum alignment.
@@ -370,9 +373,11 @@ def mirror_plot_spectrum(spec_top: "MSSpectrum", spec_bottom: "MSSpectrum", alig
     Parameters
     ----------
     spec_top : MSSpectrum
-        The spectrum to be plotted on the top. Reads annotations from the first StringDataArray if it has the same length as the number of peaks.
+        The spectrum to be plotted on the top.
+        Reads annotations from the first StringDataArray if it has the same length as the number of peaks.
     spec_bottom : MSSpectrum
-        The spectrum to be plotted on the bottom. Reads annotations from the first StringDataArray if it has the same length as the number of peaks.
+        The spectrum to be plotted on the bottom.
+        Reads annotations from the first StringDataArray if it has the same length as the number of peaks.
     alignment : Optional[List], optional
         List of aligned peak pairs.
     spectrum_top_kws : Optional[Dict], optional
@@ -400,9 +405,9 @@ def mirror_plot_spectrum(spec_top: "MSSpectrum", spec_bottom: "MSSpectrum", alig
         spectrum_bottom_kws = {}
 
     if alignment is not None:
-        matched_peaks_top, matched_peaks_bottom = set(zip(*alignment))
+        matched_peaks_bottom, matched_peaks_top = set(zip(*alignment))
     else:
-        matched_peaks_top, matched_peaks_bottom = None, None
+        matched_peaks_bottom, matched_peaks_top = None, None
 
     # Top spectrum.
     plot_spectrum(spec_top, mirror_intensity=False, ax=ax, matched_peaks=matched_peaks_top, **spectrum_top_kws)
