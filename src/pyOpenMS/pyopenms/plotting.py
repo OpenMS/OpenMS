@@ -1,5 +1,3 @@
-##
-
 # Code adopted from:
 # Wout Bittremieux. “spectrum_utils: A Python package for mass spectrometry data processing and visualization.”
 # Analytical Chemistry 92 (1) 659-661 (2020) doi:10.1021/acs.analchem.9b04884.
