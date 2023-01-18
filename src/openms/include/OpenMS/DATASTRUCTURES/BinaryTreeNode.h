@@ -52,7 +52,7 @@ public:
     BinaryTreeNode(const Size i, const Size j, const float x);
 
     /// destructor
-    ~BinaryTreeNode();
+    ~BinaryTreeNode() = default;
 
     /// copy constructor
     BinaryTreeNode(const BinaryTreeNode& source);

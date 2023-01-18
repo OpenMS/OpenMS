@@ -73,7 +73,7 @@ namespace OpenMS
     IonMobilityScoring();
 
     /// Destructor
-    ~IonMobilityScoring();
+    ~IonMobilityScoring() = default;
 
     /**
       @brief Performs scoring of the ion mobility dimension in MS2

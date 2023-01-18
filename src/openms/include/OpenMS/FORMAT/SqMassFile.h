@@ -78,7 +78,7 @@ public:
     SqMassFile();
 
     /// Default destructor
-    ~SqMassFile();
+    ~SqMassFile() = default;
     //@}
 
     /** @name Read / Write a complete mass spectrometric experiment

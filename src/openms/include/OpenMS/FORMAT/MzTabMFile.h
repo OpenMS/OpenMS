@@ -54,7 +54,7 @@ namespace OpenMS
     MzTabMFile();
 
     /// Default Destructor
-    ~MzTabMFile();
+    ~MzTabMFile() = default;
 
     /// Store MzTabM file
     void store(const String& filename, const MzTabM& mztab_m) const;

@@ -58,7 +58,7 @@ namespace OpenMS
     ///Default constructor
     MzTabFile();
     ///Destructor
-    ~MzTabFile();
+    ~MzTabFile() = default;
 
     typedef std::map<std::pair<String, String>, std::vector<PeptideHit> > MapAccPepType;
 

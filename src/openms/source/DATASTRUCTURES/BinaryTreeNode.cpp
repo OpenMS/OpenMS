@@ -44,7 +44,7 @@ namespace OpenMS
 
   BinaryTreeNode::BinaryTreeNode(const BinaryTreeNode& source)  = default;
 
-  BinaryTreeNode::~BinaryTreeNode() = default;
+  
 
   BinaryTreeNode& BinaryTreeNode::operator=(const BinaryTreeNode& source)
   {

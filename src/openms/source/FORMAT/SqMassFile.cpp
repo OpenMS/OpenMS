@@ -41,7 +41,7 @@ namespace OpenMS
 
   SqMassFile::SqMassFile() = default;
 
-  SqMassFile::~SqMassFile() = default;
+  
 
   void SqMassFile::load(const String& filename, MapType& map) const
   {

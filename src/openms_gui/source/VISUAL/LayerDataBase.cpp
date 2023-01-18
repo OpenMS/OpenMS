@@ -56,7 +56,7 @@ using namespace std;
 namespace OpenMS
 {
   LayerDataDefs::ProjectionData::ProjectionData() = default;
-  LayerDataDefs::ProjectionData::ProjectionData(ProjectionData&&) = default;
+  LayerDataDefs::ProjectionData::ProjectionData(ProjectionData&&)  noexcept = default;
   LayerDataDefs::ProjectionData::~ProjectionData() = default;
 
   const std::string LayerDataDefs::NamesOfLabelType[] = {"None", "Index", "Label meta data", "Peptide identification", "All peptide identifications"};
