@@ -534,7 +534,8 @@ protected:
                    << "-addFeatures" << QString::number(int((getParam_().getValue("add_features") == "true")))
                    << "-tasks" << QString::number(getIntOption_("tasks"))
                    << "-thread" << QString::number(getIntOption_("threads"));
-    if (getFlag_(allow_dense_centroided_peaks)){
+    if (getFlag_("allow_dense_centroided_peaks"))
+    {
       process_params << "-allowDenseCentroidedPeaks=1";
     }
     String conf = getStringOption_("conf");
