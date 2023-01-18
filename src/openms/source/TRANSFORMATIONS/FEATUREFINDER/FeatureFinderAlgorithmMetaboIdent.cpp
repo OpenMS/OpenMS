@@ -182,9 +182,29 @@ namespace OpenMS
 
     // initialize algorithm classes needed later:
     Param params = feat_finder_.getParameters();
+
     params.setValue("stop_report_after_feature", -1); // return all features
+    params.setValue("EMGScoring:max_iteration", param_.getValue("EMGScoring:max_iteration")); // propagate setting to sub algorithms
+    params.setValue("EMGScoring:init_mom", param_.getValue("EMGScoring:init_mom")); // propagate setting to sub algorithms
     params.setValue("Scores:use_rt_score", "false"); // RT may not be reliable
-    params.setValue("write_convex_hull", "true");
+    params.setValue("Scores:use_ionseries_scores", "false"); // since FFID only uses MS1 spectra, this is useless
+    params.setValue("Scores:use_ms2_isotope_scores", "false"); // since FFID only uses MS1 spectra, this is useless
+    params.setValue("Scores:use_ms1_correlation", "false"); // this would be redundant to the "MS2" correlation and since
+    // precursor transition = first product transition, additionally biased
+    params.setValue("Scores:use_ms1_mi", "false"); // same as above. On MS1 level we basically only care about the "MS1 fullscan" scores
+    //TODO for MS1 level scoring there is an additional parameter add_up_spectra with which we can add up spectra
+    // around the apex, to complete isotopic envelopes (and therefore make this score more robust).
+
+    if ((elution_model_ != "none") || (!candidates_out_.empty()))
+    {
+      params.setValue("Scores:use_elution_model_score", "false"); // TODO: test if this works for requantificiation
+      params.setValue("write_convex_hull", "false");
+    }
+    else
+    {
+      params.setValue("write_convex_hull", "true");
+    }      
+    
     if (min_peak_width_ < 1.0)
     {
       min_peak_width_ *= peak_width_;
@@ -601,7 +621,7 @@ namespace OpenMS
   {
     for (Feature& feat : features)
     {
-      // @TODO: make this more efficient?
+      // @TODO: make this more efficient? Can probably be converted to 
       vector<FeatureGroup> current_overlaps;
       vector<FeatureGroup> no_overlaps;
       for (const FeatureGroup& group : overlap_groups)
