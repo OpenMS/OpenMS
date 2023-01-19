@@ -195,14 +195,15 @@ namespace OpenMS
     //TODO for MS1 level scoring there is an additional parameter add_up_spectra with which we can add up spectra
     // around the apex, to complete isotopic envelopes (and therefore make this score more robust).
 
+    params.setValue("write_convex_hull", "true"); // some parts of FFMId expect convex hulls
+
     if ((elution_model_ != "none") || (!candidates_out_.empty()))
     {
       params.setValue("Scores:use_elution_model_score", "false"); // TODO: test if this works for requantificiation
-      params.setValue("write_convex_hull", "true");
     }
     else // no elution model
     {
-      params.setValue("write_convex_hull", "false");
+      params.setValue("Scores:use_elution_model_score", "true");  
     }      
     
     if (min_peak_width_ < 1.0)
@@ -624,33 +625,33 @@ namespace OpenMS
     for (Feature& feat : features)
     {
       // @TODO: make this more efficient? Can probably be converted to 
-      for (const FeatureGroup& group : overlap_groups)
+      for (FeatureGroup& group : overlap_groups)
       {
         if (hasOverlappingFeature_(feat, group, feature_bounds))
         {
-          current_overlaps.push_back(group);
+          current_overlaps.push_back(std::move(group));
         }
         else
         {
-          no_overlaps.push_back(group);
+          no_overlaps.push_back(std::move(group));
         }
       }
+
       if (current_overlaps.empty()) // make new group for current feature
       {
-        FeatureGroup new_group(1, &(feat));
-        no_overlaps.push_back(new_group);
+        no_overlaps.push_back(FeatureGroup(1, &(feat)));
       }
       else // merge all groups that overlap the current feature, then add it
       {
         FeatureGroup& merged = current_overlaps.front();
-        for (vector<FeatureGroup>::const_iterator group_it =
-               ++current_overlaps.begin(); group_it != current_overlaps.end();
+        for (auto group_it = ++current_overlaps.begin(); 
+             group_it != current_overlaps.end();
              ++group_it)
         {
-          merged.insert(merged.end(), group_it->begin(), group_it->end());
+          merged.insert(merged.end(), std::make_move_iterator(group_it->begin()), std::make_move_iterator(group_it->end()));
         }
         merged.push_back(&feat);
-        no_overlaps.push_back(merged);
+        no_overlaps.push_back(std::move(merged));
       }
       overlap_groups.swap(no_overlaps);
 
