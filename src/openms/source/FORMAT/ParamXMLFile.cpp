@@ -228,11 +228,11 @@ namespace OpenMS
         if (!tag_list.empty())
         {
           String list;
-          for (std::set<std::string>::const_iterator tag_it = tag_list.begin(); tag_it != tag_list.end(); ++tag_it)
+          for (const std::string& tag : tag_list)
           {
             if (!list.empty())
               list += ",";
-            list += *tag_it;
+            list += tag;
           }
           os << " tags=\"" << writeXMLEscape(list) << "\"";
         }
@@ -368,7 +368,7 @@ namespace OpenMS
     {
       //close remaining tags
       const std::vector<Param::ParamIterator::TraceInfo>& trace = it.getTrace();
-      for (std::vector<Param::ParamIterator::TraceInfo>::const_iterator it2 = trace.begin(); it2 != trace.end(); ++it2)
+      for (const auto& tr : trace)
       {
         Size ss = indentation.size();
         indentation.resize(ss - 2);

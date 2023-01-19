@@ -827,14 +827,14 @@ namespace OpenMS
         dist = formula.getIsotopeDistribution(FineIsotopePatternGenerator(max_isotope_probability_));
       }
 
-      for (IsotopeDistribution::ConstIterator it = dist.begin(); it != dist.end(); ++it)
+      for (const auto& peak : dist)
       {
         if (add_metainfo_)
         {
           ion_names.push_back(ion_name);
           charges.push_back(charge);
         }
-        spectrum.emplace_back(it->getMZ() / (double)charge, pre_int_ * it->getIntensity());
+        spectrum.emplace_back(peak.getMZ() / (double)charge, pre_int_ * peak.getIntensity());
       }
     }
     else
@@ -867,14 +867,14 @@ namespace OpenMS
         dist = ion.getIsotopeDistribution(FineIsotopePatternGenerator(max_isotope_probability_));
       }
 
-      for (IsotopeDistribution::ConstIterator it = dist.begin(); it != dist.end(); ++it)
+      for (const auto& peak : dist)
       {
         if (add_metainfo_)
         {
           ion_names.push_back(ion_name_h2o);
           charges.push_back(charge);
         }
-        spectrum.emplace_back(it->getMZ() / charge, pre_int_H2O_ * it->getIntensity());
+        spectrum.emplace_back(peak.getMZ() / charge, pre_int_H2O_ * peak.getIntensity());
       }
     }
     else
@@ -907,14 +907,14 @@ namespace OpenMS
         dist = ion.getIsotopeDistribution(FineIsotopePatternGenerator(max_isotope_probability_));
       }
 
-      for (IsotopeDistribution::ConstIterator it = dist.begin(); it != dist.end(); ++it)
+      for (const auto& peak : dist)
       {
         if (add_metainfo_)
         {
           ion_names.push_back(ion_name_nh3);
           charges.push_back(charge);
         }
-        spectrum.emplace_back(it->getMZ() / (double)charge, pre_int_NH3_ * it->getIntensity());
+        spectrum.emplace_back(peak.getMZ() / (double)charge, pre_int_NH3_ * peak.getIntensity());
       }
     }
     else

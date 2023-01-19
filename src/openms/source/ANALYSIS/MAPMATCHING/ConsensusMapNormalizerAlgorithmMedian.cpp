@@ -195,18 +195,18 @@ namespace OpenMS
     const vector<ProteinIdentification>& prot_ids = map.getProteinIdentifications();
     const vector<PeptideIdentification>& pep_ids = cf_it->getPeptideIdentifications();
 
-    for (vector<PeptideIdentification>::const_iterator p_it = pep_ids.begin(); p_it != pep_ids.end(); ++p_it)
+    for (const auto& pep : pep_ids)
     {
-      const vector<PeptideHit>& hits = p_it->getHits();
-      for (vector<PeptideHit>::const_iterator h_it = hits.begin(); h_it != hits.end(); ++h_it)
+      const vector<PeptideHit>& hits = pep.getHits();
+      for (const auto& hit : hits)
       {
-        const set<String>& accs = h_it->extractProteinAccessionsSet();
-        for (set<String>::const_iterator acc_it = accs.begin(); acc_it != accs.end(); ++acc_it)
+        const set<String>& accs = hit.extractProteinAccessionsSet();
+        for (const String& acc : accs)
         {
           // does accession match?
           if (!(acc_filter.empty() ||
                 boost::regex_search("", m, acc_regexp) ||
-                boost::regex_search(acc_it->c_str(), m, acc_regexp)))
+                boost::regex_search(acc.c_str(), m, acc_regexp)))
           {
             //no
             continue;
@@ -217,10 +217,10 @@ namespace OpenMS
           {
             return true;
           }
-          for (vector<ProteinIdentification>::const_iterator pr_it = prot_ids.begin(); pr_it != prot_ids.end(); ++pr_it)
+          for (const auto& pr : prot_ids)
           {
-            std::vector<ProteinHit>::const_iterator pr_hit = const_cast<ProteinIdentification&>(*pr_it).findHit(*acc_it);
-            if (pr_hit != pr_it->getHits().end())
+            std::vector<ProteinHit>::const_iterator pr_hit = const_cast<ProteinIdentification&>(pr).findHit(acc);
+            if (pr_hit != pr.getHits().end())
             {
               const char* desc = pr_hit->getDescription().c_str();
               if (boost::regex_search(desc, m, desc_regexp))

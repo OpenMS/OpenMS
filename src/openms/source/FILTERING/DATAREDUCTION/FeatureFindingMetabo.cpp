@@ -657,13 +657,13 @@ namespace OpenMS
     // Look at peaks at the same RT 
     // TODO: this only works if both traces are sampled with equal rate at the same RT
     std::vector<double> x, y, overlap_rts;
-    for (std::map<double, std::vector<double> >::const_iterator m_it = coinciding_rts.begin(); m_it != coinciding_rts.end(); ++m_it)
+    for (const auto& rt : coinciding_rts)
     {
-      if (m_it->second.size() == 2)
+      if (rt.second.size() == 2)
       {
-        x.push_back(m_it->second[0]);
-        y.push_back(m_it->second[1]);
-        overlap_rts.push_back(m_it->first);
+        x.push_back(rt.second[0]);
+        y.push_back(rt.second[1]);
+        overlap_rts.push_back(rt.first);
       }
     }
 

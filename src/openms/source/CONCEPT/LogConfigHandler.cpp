@@ -74,21 +74,21 @@ namespace OpenMS
     Param p;
     String suffix = " FILE";
     std::vector<std::string> commands;
-    for (StringList::const_iterator iter = settings.begin(); iter != settings.end(); ++iter)
+    for (const String& setting : settings)
     {
       // split by " " to get all keywords
       StringList l;
-      (*iter).split(' ', l, true);
+      (setting).split(' ', l, true);
 
       if (l.size() < 2 || l.size() > 3)
       {
-        throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, (*iter), "Error while parsing logger config. Setting can only have 2 or 3 arguments.");
+        throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, (setting), "Error while parsing logger config. Setting can only have 2 or 3 arguments.");
       }
 
       // we parse a command line here, so we append a FILE to each of the arguments
       // to indicate, that all of these streams are FILE streams
       // for cout/cerr the type parameter is ignored
-      String new_command = *iter + suffix;
+      String new_command = setting + suffix;
       commands.push_back(new_command);
     }
 
@@ -101,11 +101,11 @@ namespace OpenMS
   {
     StringList configurations = ListUtils::toStringList<std::string>(param.getValue(LogConfigHandler::PARAM_NAME));
 
-    for (StringList::const_iterator iter = configurations.begin(); iter != configurations.end(); ++iter)
+    for (const String& config : configurations)
     {
       // split by " " to get the commands
       StringList commands;
-      iter->split(' ', commands, true);
+      config.split(' ', commands, true);
 
       Logger::LogStream & log = getLogStreamByName_(commands[0]);
 
@@ -131,7 +131,7 @@ namespace OpenMS
         {
           if (commands.size() <= 3) // write error to cerr and not a LogStream (because we're just configuring it...)
           {
-            std::cerr << "Error during configuring logging: the command '" << (*iter) << "' requires 4 entries but has only " << commands.size() << "\n";
+            std::cerr << "Error during configuring logging: the command '" << (config) << "' requires 4 entries but has only " << commands.size() << "\n";
             continue;
           }
           const String & stream_type = commands[3];
@@ -183,7 +183,7 @@ namespace OpenMS
         {
           if (commands.size() <= 3) // write error to cerr and not a LogStream (because we're just configuring it...)
           {
-            std::cerr << "Error during configuring logging: the command '" << (*iter) << "' requires 4 entries but has only " << commands.size() << "\n";
+            std::cerr << "Error during configuring logging: the command '" << (config) << "' requires 4 entries but has only " << commands.size() << "\n";
             continue;
           }
           const String & stream_type = commands[3];
@@ -210,26 +210,26 @@ namespace OpenMS
       else if (command == "clear")
       {
         // remove all streams from the given log
-        for (std::set<String>::iterator it = getConfigSetByName_(commands[0]).begin(); it != getConfigSetByName_(commands[0]).end(); ++it)
+        for (auto& stream : getConfigSetByName_(commands[0]))
         {
-          if (*it == "cout")
+          if (stream == "cout")
           {
             log.remove(cout);
           }
-          else if (*it == "cerr")
+          else if (stream == "cerr")
           {
             log.remove(cerr);
           }
           else // handle the file streams
           {
-            log.remove(STREAM_HANDLER.getStream(stream_type_map_[*it], *it));
-            STREAM_HANDLER.unregisterStream(stream_type_map_[*it], *it);
+            log.remove(STREAM_HANDLER.getStream(stream_type_map_[stream], stream));
+            STREAM_HANDLER.unregisterStream(stream_type_map_[stream], stream);
 
             // remove the type from the stream_type_map if there is no
             // stream referencing it anymore
-            if (!STREAM_HANDLER.hasStream(stream_type_map_[*it], *it))
+            if (!STREAM_HANDLER.hasStream(stream_type_map_[stream], stream))
             {
-              stream_type_map_.erase(*it);
+              stream_type_map_.erase(stream);
             }
           }
         }
@@ -339,13 +339,13 @@ namespace OpenMS
   void printStreamConfig_(std::ostream & os, const String & name, const std::set<String> & stream_names, const std::map<String, StreamHandler::StreamType> & stream_type_map)
   {
     os << name << endl;
-    for (std::set<String>::const_iterator it = stream_names.begin(); it != stream_names.end(); ++it)
+    for (const String& s_name : stream_names)
     {
-      os << "->" << "\t" << *it;
+      os << "->" << "\t" << s_name;
       // append stream type
       os << " (";
 
-      switch ((stream_type_map.find(*it))->second)
+      switch ((stream_type_map.find(s_name))->second)
       {
       case StreamHandler::STRING:
         os << "STRINGSTREAM";

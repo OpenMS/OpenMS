@@ -146,11 +146,11 @@ namespace OpenMS
     // size is equal - we need to check more thorough...
     if (cmp_[side_this].size() == cmp.getComponent()[side_other].size())
     {
-      for (CompomerSide::const_iterator it = cmp_[side_this].begin(); it != cmp_[side_this].end(); ++it)
+      for (const auto& side1 : cmp_[side_this])
       {
         // is it there at all?! if yes: has it the same amount?!
-        CompomerSide::const_iterator it2 = cmp.getComponent()[side_other].find(it->first);
-        if (it2 == cmp.getComponent()[side_other].end() || it2->second.getAmount() != it->second.getAmount())
+        CompomerSide::const_iterator it2 = cmp.getComponent()[side_other].find(side1.first);
+        if (it2 == cmp.getComponent()[side_other].end() || it2->second.getAmount() != side1.second.getAmount())
         {
           conflict_found = true;
           break;
@@ -306,11 +306,11 @@ namespace OpenMS
     }
     StringList tmp;
 
-    for (CompomerSide::const_iterator it = this->cmp_[side].begin(); it != this->cmp_[side].end(); ++it)
+    for (const auto& cmp_side : this->cmp_[side])
     {
-      if (!it->second.getLabel().empty())
+      if (!cmp_side.second.getLabel().empty())
       {
-        tmp.push_back(it->second.getLabel());
+        tmp.push_back(cmp_side.second.getLabel());
       }
     }
 
@@ -320,9 +320,9 @@ namespace OpenMS
   /// Adds @p add_side to this compomer.
   void Compomer::add(const CompomerSide& add_side, UInt side)
   {
-    for (CompomerSide::const_iterator it = add_side.begin(); it != add_side.end(); ++it)
+    for (const auto& new_side : add_side)
     {
-      this->add(it->second, side);
+      this->add(new_side.second, side);
     }
   }
 

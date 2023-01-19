@@ -124,9 +124,9 @@ namespace OpenMS
 //      }
 //      return false;
       //most scores are higher better, but most entries in CV for these are not annotated -> default is true
-      for (StringList::const_iterator unp = term.unparsed.begin(); unp != term.unparsed.end(); ++unp)
+      for (const String& unp : term.unparsed)
       {
-        if (unp->hasPrefix("relationship: has_order MS:1002109")) return false;
+        if (unp.hasPrefix("relationship: has_order MS:1002109")) return false;
       }
       return true;
   }
@@ -427,25 +427,25 @@ namespace OpenMS
     }
 
     // now build all child terms
-    for (std::map<String, CVTerm>::iterator it = terms_.begin(); it != terms_.end(); ++it)
+    for (auto& child : terms_)
     {
-      //cerr << it->first << "\n";
-      for (set<String>::const_iterator pit = it->second.parents.begin(); pit != it->second.parents.end(); ++pit)
+      //cerr << child.first << "\n";
+      for (const String& parent : child.second.parents)
       {
         //cerr << "Parent: " << *pit << "\n";
-        terms_[*pit].children.insert(it->first);
+        terms_[parent].children.insert(child.first);
       }
 
-      std::map<String, String>::iterator mit = namesToIds_.find(it->second.name);
+      std::map<String, String>::iterator mit = namesToIds_.find(child.second.name);
       if (mit == namesToIds_.end())
       {
-        namesToIds_.insert(pair<String, String>(it->second.name, it->first));
+        namesToIds_.insert(pair<String, String>(child.second.name, child.first));
       }
       else
       {
         //~ TODO that case would be bad do something
-        String s = it->second.name + it->second.description;
-        namesToIds_.insert(pair<String, String>(s, it->first));
+        String s = child.second.name + child.second.description;
+        namesToIds_.insert(pair<String, String>(s, child.first));
       }
     }
   }
