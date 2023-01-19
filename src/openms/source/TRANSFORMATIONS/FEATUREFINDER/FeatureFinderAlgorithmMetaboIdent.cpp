@@ -198,11 +198,11 @@ namespace OpenMS
     if ((elution_model_ != "none") || (!candidates_out_.empty()))
     {
       params.setValue("Scores:use_elution_model_score", "false"); // TODO: test if this works for requantificiation
-      params.setValue("write_convex_hull", "false");
-    }
-    else
-    {
       params.setValue("write_convex_hull", "true");
+    }
+    else // no elution model
+    {
+      params.setValue("write_convex_hull", "false");
     }      
     
     if (min_peak_width_ < 1.0)
