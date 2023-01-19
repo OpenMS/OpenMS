@@ -619,11 +619,11 @@ namespace OpenMS
                                 const FeatureBoundsMap& feature_bounds,
                                 vector<FeatureGroup>& overlap_groups)
   {
+    vector<FeatureGroup> current_overlaps;
+    vector<FeatureGroup> no_overlaps;
     for (Feature& feat : features)
     {
       // @TODO: make this more efficient? Can probably be converted to 
-      vector<FeatureGroup> current_overlaps;
-      vector<FeatureGroup> no_overlaps;
       for (const FeatureGroup& group : overlap_groups)
       {
         if (hasOverlappingFeature_(feat, group, feature_bounds))
@@ -653,6 +653,9 @@ namespace OpenMS
         no_overlaps.push_back(merged);
       }
       overlap_groups.swap(no_overlaps);
+
+      current_overlaps.clear();
+      no_overlaps.clear();
     }
   }
 
