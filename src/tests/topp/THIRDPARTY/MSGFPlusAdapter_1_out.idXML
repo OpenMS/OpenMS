@@ -40,7 +40,6 @@
 				<UserParam type="int" name="MSGFPlusAdapter:1:tasks" value="0"/>
 				<UserParam type="stringList" name="MSGFPlusAdapter:1:fixed_modifications" value="[]"/>
 				<UserParam type="stringList" name="MSGFPlusAdapter:1:variable_modifications" value="[Oxidation (M)]"/>
-				<UserParam type="string" name="MSGFPlusAdapter:1:allow_dense_centroided_peaks" value="false"/>
 				<UserParam type="string" name="MSGFPlusAdapter:1:legacy_conversion" value="false"/>
 				<UserParam type="string" name="MSGFPlusAdapter:1:conf" value=""/>
 				<UserParam type="string" name="MSGFPlusAdapter:1:java_executable" value="java"/>
