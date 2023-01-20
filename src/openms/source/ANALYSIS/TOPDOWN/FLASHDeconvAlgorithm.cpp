@@ -1186,7 +1186,7 @@ namespace OpenMS
         }
 
         // min cosine is checked in here. mono mass is also updated one last time. SNR, per charge SNR, and avg errors are updated here.
-        peak_group.updateIsotopeCosineSNRAvgErrorAndQScore(avg_, peak_group.isTargeted() ? min_isotope_cosine_[ms_level_ - 1] : min_isotope_cosine_[ms_level_ - 1]); // Todo
+        peak_group.updateIsotopeCosineSNRAvgErrorAndQScore(avg_,  min_isotope_cosine_[ms_level_ - 1]);
 
         cr = peak_group.getAbsChargeRange();
 

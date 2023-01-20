@@ -432,7 +432,7 @@ namespace OpenMS
 
             if (target_matched)
             {
-              // snr_threshold = 0.0;
+              snr_threshold = 0.0;
               qscore_threshold = 0.0;
             }
             else
