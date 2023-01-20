@@ -81,24 +81,22 @@ namespace OpenMS
       for (size_t i_cm = 0; i_cm < consensus_map.size(); ++i_cm)
       {
         std::vector<PeptideHit> peptide_hits;
-        for (std::vector<PeptideIdentification>::iterator it_pepid = consensus_map[i_cm].getPeptideIdentifications().begin();
-             it_pepid != consensus_map[i_cm].getPeptideIdentifications().end();
-             ++it_pepid)
+        for (auto& pepid : consensus_map[i_cm].getPeptideIdentifications())
         {
           // are Protein- and PeptideIdentification from the same search engine run?
-          if (it_pepid->getIdentifier() != protein_ident.getIdentifier())
+          if (pepid.getIdentifier() != protein_ident.getIdentifier())
             continue;
 
           std::set<String> accessions;
           accessions.insert(accession);
-          std::vector<PeptideHit> peptide_hits_local = PeptideIdentification::getReferencingHits(it_pepid->getHits(), accessions);
+          std::vector<PeptideHit> peptide_hits_local = PeptideIdentification::getReferencingHits(pepid.getHits(), accessions);
 
           if (peptide_hits_local.empty())
           {
             continue;
           }
 
-          if (sortByUnique_(peptide_hits_local, it_pepid->isHigherScoreBetter())) // we found a unique peptide
+          if (sortByUnique_(peptide_hits_local, pepid.isHigherScoreBetter())) // we found a unique peptide
           {
             peptide_hits.push_back(peptide_hits_local[0]);
           }
@@ -133,12 +131,10 @@ namespace OpenMS
       // number of unique peptides pointing to current protein
       UInt coverage_count = (UInt)consensus_to_peptide.size();
 
-      for (std::map<size_t, PeptideHit>::iterator it_pephits = consensus_to_peptide.begin();
-           it_pephits != consensus_to_peptide.end();
-           ++it_pephits)
+      for (auto& pephits : consensus_to_peptide)
       {
-        coverage += it_pephits->second.getSequence().size();
-        const ConsensusFeature::HandleSetType& handles = consensus_map[it_pephits->first].getFeatures();
+        coverage += pephits.second.getSequence().size();
+        const ConsensusFeature::HandleSetType& handles = consensus_map[pephits.first].getFeatures();
         //search if reference is present
         ConsensusFeature::HandleSetType::const_iterator it_ref = handles.end();
         for (ConsensusFeature::HandleSetType::const_iterator it = handles.begin();
@@ -157,30 +153,26 @@ namespace OpenMS
         if (it_ref == handles.end())
           continue;
 
-        for (ConsensusFeature::HandleSetType::const_iterator it = handles.begin();
-             it != handles.end();
-             ++it)
+        for (const auto& handle : handles)
         {
-          ratios[it->getMapIndex()].push_back(it->getIntensity() / it_ref->getIntensity());
+          ratios[handle.getMapIndex()].push_back(handle.getIntensity() / it_ref->getIntensity());
         }
 
       }
 
       // sort ratios map-wise and take median
-      for (ConsensusMap::ColumnHeaders::const_iterator it_file = consensus_map.getColumnHeaders().begin();
-           it_file != consensus_map.getColumnHeaders().end();
-           ++it_file)
+      for (const auto& file : consensus_map.getColumnHeaders())
       {
-        if (ratios.find(it_file->first) != ratios.end())
+        if (ratios.find(file.first) != ratios.end())
         {
           //sort intensity ratios for map #it_file->first
-          std::sort(ratios[it_file->first].begin(), ratios[it_file->first].end());
+          std::sort(ratios[file.first].begin(), ratios[file.first].end());
           //take median
-          IntensityType protein_ratio = ratios[it_file->first][ratios[it_file->first].size() / 2];
+          IntensityType protein_ratio = ratios[file.first][ratios[file.first].size() / 2];
 
           //TODO if ratios have high variance emit a warning!
 
-          protein_ident.getHits()[i].setMetaValue(String("ratio_") + String(it_file->first), protein_ratio);
+          protein_ident.getHits()[i].setMetaValue(String("ratio_") + String(file.first), protein_ratio);
         }
 
       } // ! map loop

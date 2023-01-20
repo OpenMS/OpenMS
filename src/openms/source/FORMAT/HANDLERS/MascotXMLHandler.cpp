@@ -198,13 +198,13 @@ namespace OpenMS::Internal
         if (modified_peptides_.empty())
         {
           // fixed modifications
-          for (vector<String>::const_iterator it = search_parameters_.fixed_modifications.begin(); it != search_parameters_.fixed_modifications.end(); ++it)
+          for (const String& mod : search_parameters_.fixed_modifications)
           {
             vector<String> mod_split;
-            it->split(' ', mod_split);
+            mod.split(' ', mod_split);
             if (mod_split.size() < 2 || mod_split.size() > 3)
             {
-              error(LOAD, String("Cannot parse fixed modification '") + *it + "'");
+              error(LOAD, String("Cannot parse fixed modification '") + mod + "'");
             }
             else
             {
@@ -448,13 +448,13 @@ namespace OpenMS::Internal
           vector<String> tmp_mods;
           temp_string.split(',', tmp_mods);
           
-          for (vector<String>::const_iterator it = tmp_mods.begin(); it != tmp_mods.end(); ++it)
+          for (const String& mod : tmp_mods)
           {
             // check if modification is not on the remove list
-            if (std::find(remove_fixed_mods_.begin(), remove_fixed_mods_.end(), *it) == remove_fixed_mods_.end())
+            if (std::find(remove_fixed_mods_.begin(), remove_fixed_mods_.end(), mod) == remove_fixed_mods_.end())
             {
               // split because e.g. Phospho (ST)
-              vector<String> mods_split = splitModificationBySpecifiedAA(*it);
+              vector<String> mods_split = splitModificationBySpecifiedAA(mod);
               search_parameters_.fixed_modifications.insert(search_parameters_.fixed_modifications.end(), mods_split.begin(), mods_split.end());
             }
           }
@@ -472,10 +472,10 @@ namespace OpenMS::Internal
           vector<String> tmp_mods;
           temp_string.split(',', tmp_mods);
           
-          for (vector<String>::const_iterator it = tmp_mods.begin(); it != tmp_mods.end(); ++it)
+          for (const String& mod : tmp_mods)
           {
             // split because e.g. Phospho (ST)
-            vector<String> mods_split = splitModificationBySpecifiedAA(*it);
+            vector<String> mods_split = splitModificationBySpecifiedAA(mod);
             search_parameters_.variable_modifications.insert(search_parameters_.variable_modifications.end(), mods_split.begin(), mods_split.end());
           }
         }
@@ -611,9 +611,9 @@ namespace OpenMS::Internal
         // split variable modifications e.g. Phospho (ST)
         //vector<String> var_mods;
         vector<String> var_mods;
-        for (vector<String>::iterator it = search_parameters_.variable_modifications.begin(); it != search_parameters_.variable_modifications.end(); ++it)
+        for (String& mod : search_parameters_.variable_modifications)
         {
-          vector<String> mods_split = splitModificationBySpecifiedAA(*it);
+          vector<String> mods_split = splitModificationBySpecifiedAA(mod);
           var_mods.insert(var_mods.end(), mods_split.begin(), mods_split.end());
         }
         search_parameters_.variable_modifications = var_mods;
@@ -662,9 +662,9 @@ namespace OpenMS::Internal
       String AAs = parts[1];
       AAs.remove(')');
       AAs.remove('(');
-      for (String::const_iterator it = AAs.begin(); it != AAs.end(); ++it)
+      for (const char& aa : AAs)
       {
-        String tmp_mod = parts[0] + " (" + *it + ")";
+        String tmp_mod = parts[0] + " (" + aa + ")";
         if (mod_db->has(tmp_mod))
         {
           mods.push_back(tmp_mod);

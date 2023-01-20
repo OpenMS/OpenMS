@@ -251,12 +251,12 @@ RNPxlModificationMassesResult RNPxlModificationsGenerator::initModificationMasse
     // Append precursor modifications (e.g., "-H2O") 
     // to generate modified nucleotides: e.g.: "U" -> "U", "U-H2O", ...
     vector<EmpiricalFormula> actual_combinations;
-    for (map<String, EmpiricalFormula>::const_iterator mit = map_target_to_formula.begin(); mit != map_target_to_formula.end(); ++mit)
+    for (const auto& map_ttf : map_target_to_formula)
     {
-      String target_nucleotide = mit->first;
+      String target_nucleotide = map_ttf.first;
       OPENMS_LOG_INFO << "target nucleotide: " << target_nucleotide << endl;
 
-      EmpiricalFormula target_nucleotide_formula = mit->second;
+      EmpiricalFormula target_nucleotide_formula = map_ttf.second;
 
       NucleotideModifications nt_mods = map_to_nucleotide_modifications[target_nucleotide];
 
@@ -326,10 +326,10 @@ RNPxlModificationMassesResult RNPxlModificationsGenerator::initModificationMasse
   // 1) do not contain a cross-linkable nucleotide
   // 2) or contain no cross-linkable nucleotide that is part of the restricted target sequences
   std::vector<pair<String, String> > violates_restriction; // elemental composition, nucleotide style formula
-  for (std::map<String, double>::const_iterator mit = result.mod_masses.begin(); mit != result.mod_masses.end(); ++mit)
+  for (const auto& res_mm : result.mod_masses)
   {
     // remove additive or subtractive modifications from string as these are not used in string comparison
-    const set<String>& ambiguities = result.mod_combinations[mit->first];
+    const set<String>& ambiguities = result.mod_combinations[res_mm.first];
     for (String const & s : ambiguities)
     {
       String nucleotide_style_formula(s);
@@ -349,7 +349,7 @@ RNPxlModificationMassesResult RNPxlModificationsGenerator::initModificationMasse
 
       if (!has_xl_nt) 
       { // no cross-linked nucleotide => not valid
-        violates_restriction.emplace_back(mit->first, s); 
+        violates_restriction.emplace_back(res_mm.first, s); 
         continue;
       }
 
@@ -362,7 +362,7 @@ RNPxlModificationMassesResult RNPxlModificationsGenerator::initModificationMasse
       // nucleotide stile formula (e.g. AATU matches to more than one group (e.g., RNA and DNA))?
       if (found_in_n_groups > 1)
       {
-        violates_restriction.emplace_back(mit->first, s); 
+        violates_restriction.emplace_back(res_mm.first, s); 
         continue;
       }
 
@@ -378,7 +378,7 @@ RNPxlModificationMassesResult RNPxlModificationsGenerator::initModificationMasse
 
       if (containment_violated)
       { 
-        violates_restriction.emplace_back(mit->first, s); // chemical formula, nucleotide style formula pair violates restrictions
+        violates_restriction.emplace_back(res_mm.first, s); // chemical formula, nucleotide style formula pair violates restrictions
       }
     }
   }
@@ -431,9 +431,9 @@ RNPxlModificationMassesResult RNPxlModificationsGenerator::initModificationMasse
 
     const set<String>& ambiguities = result.mod_combinations[m.first];
     set<String> printed;
-    for (set<String>::const_iterator sit = ambiguities.begin(); sit != ambiguities.end(); ++sit)
+    for (const String& s : ambiguities)
     {
-      String nucleotide_style_formula = *sit;
+      String nucleotide_style_formula = s;
       Size p1 = nucleotide_style_formula.find('-');
       Size p2 = nucleotide_style_formula.find('+');
       Size p = min(p1, p2);

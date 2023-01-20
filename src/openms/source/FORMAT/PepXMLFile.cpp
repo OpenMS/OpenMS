@@ -489,12 +489,11 @@ namespace OpenMS
     // register modifications
     set<String> aa_mods;
     set<String> n_term_mods, c_term_mods;
-    for (vector<PeptideIdentification>::const_iterator it = peptide_ids.begin();
-         it != peptide_ids.end(); ++it)
+    for (const auto& pepid : peptide_ids)
     {
-      if (!it->getHits().empty())
+      if (!pepid.getHits().empty())
       {
-        PeptideHit h = *it->getHits().begin();
+        PeptideHit h = *pepid.getHits().begin();
 
         if (h.getSequence().isModified())
         {
@@ -521,10 +520,9 @@ namespace OpenMS
 
     // write modifications definitions
     // <aminoacid_modification aminoacid="C" massdiff="+58.01" mass="161.014664" variable="Y" binary="N" description="Carboxymethyl (C)"/>
-    for (set<String>::const_iterator it = aa_mods.begin();
-         it != aa_mods.end(); ++it)
+    for (const String& aamod : aa_mods)
     {
-      const ResidueModification* mod = ModificationsDB::getInstance()->getModification(*it, "", ResidueModification::ANYWHERE);
+      const ResidueModification* mod = ModificationsDB::getInstance()->getModification(aamod, "", ResidueModification::ANYWHERE);
 
       // compute mass of modified residue
       EmpiricalFormula ef = ResidueDB::getInstance()->getResidue(mod->getOrigin())->getFormula(Residue::Internal);
@@ -534,27 +532,27 @@ namespace OpenMS
         << "<aminoacid_modification aminoacid=\"" << mod->getOrigin()
         << "\" massdiff=\"" << precisionWrapper(mod->getDiffMonoMass()) << "\" mass=\""
         << precisionWrapper(ef.getMonoWeight())
-        << R"(" variable="Y" binary="N" description=")" << *it << "\"/>"
+        << R"(" variable="Y" binary="N" description=")" << aamod << "\"/>"
         << "\n";
     }
 
-    for (set<String>::const_iterator it = n_term_mods.begin(); it != n_term_mods.end(); ++it)
+    for (const String& ntmod : n_term_mods)
     {
-      const ResidueModification* mod = ModificationsDB::getInstance()->getModification(*it, "", ResidueModification::N_TERM);
+      const ResidueModification* mod = ModificationsDB::getInstance()->getModification(ntmod, "", ResidueModification::N_TERM);
       f << "\t\t"
         << R"(<terminal_modification terminus="n" massdiff=")"
         << precisionWrapper(mod->getDiffMonoMass()) << "\" mass=\"" << precisionWrapper(mod->getMonoMass())
-        << R"(" variable="Y" description=")" << *it
+        << R"(" variable="Y" description=")" << ntmod
         << R"(" protein_terminus=""/>)" << "\n";
     }
 
-    for (set<String>::const_iterator it = c_term_mods.begin(); it != c_term_mods.end(); ++it)
+    for (const String& ctmod : c_term_mods)
     {
-      const ResidueModification* mod = ModificationsDB::getInstance()->getModification(*it, "", ResidueModification::C_TERM);
+      const ResidueModification* mod = ModificationsDB::getInstance()->getModification(ctmod, "", ResidueModification::C_TERM);
       f << "\t\t"
         << R"(<terminal_modification terminus="c" massdiff=")"
         << precisionWrapper(mod->getDiffMonoMass()) << "\" mass=\"" << precisionWrapper(mod->getMonoMass())
-        << R"(" variable="Y" description=")" << *it
+        << R"(" variable="Y" description=")" << ctmod
         << R"(" protein_terminus=""/>)" << "\n";
     }
 
@@ -783,10 +781,9 @@ namespace OpenMS
             if (!ar_it.sub_scores.empty())
             {
               f << "\t\t\t\t\t<search_score_summary>" << "\n";
-              for (std::map<String, double>::const_iterator subscore_it = ar_it.sub_scores.begin();
-                  subscore_it != ar_it.sub_scores.end(); ++subscore_it)
+              for (const auto& subscore : ar_it.sub_scores)
               {
-                f << "\t\t\t\t\t\t<parameter name=\""<< subscore_it->first << "\" value=\"" << subscore_it->second << "\"/>\n";
+                f << "\t\t\t\t\t\t<parameter name=\""<< subscore.first << "\" value=\"" << subscore.second << "\"/>\n";
               }
               f << "\t\t\t\t\t</search_score_summary>" << "\n";
             }
