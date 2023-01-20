@@ -361,14 +361,14 @@ namespace OpenMS
     new_mass_qscore_map_.swap(mass_qscore_map_);
     std::unordered_map<int, double>().swap(new_mass_qscore_map_);
 
-    int selection_phase_start = 0;
-    int selection_phase_end = 1; // inclusive
+    const int selection_phase_start = 0;
+    const int selection_phase_end = 1; // inclusive
     // When selection_phase == 0, consider only the masses whose tqscore did not exceed total qscore threshold.
     // when selection_phase == 1, consider all other masses for selection
     // for target inclusive masses, qscore precursor snr threshold is not applied.
     // In all phase, for target exclusive mode, all the exclusive masses are excluded. For target inclusive mode, only the target masses are considered.
 
-    for (int iteration = targeting_mode_ == 2? 0 : 1; iteration <  2 ;iteration++)
+    for (int iteration = targeting_mode_ == 2? 0 : 1; iteration <  2 ;iteration++) // for mass exclusion, first collect masses with exclusion list. Then collect without exclusion. This works the best
     {
       for (int selection_phase = selection_phase_start; selection_phase <= selection_phase_end; selection_phase++)
       {
