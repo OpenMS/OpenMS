@@ -118,15 +118,15 @@ namespace OpenMS
 
     MultiplexDeltaMassesGenerator generator;
     const Param& p = generator.getParameters();
-    for (Param::ParamIterator it = p.begin(); it != p.end(); ++it)
+    for (auto& parameter : p)
     {
       String label_name = "labels:";
-      label_name += it->name;
+      label_name += parameter.name;
 
-      defaults_.setValue(label_name, it->value, it->description, {"advanced"});
+      defaults_.setValue(label_name, parameter.value, parameter.description, {"advanced"});
       defaults_.setMinFloat(label_name, 0.0);
 
-      label_mass_shift_.insert(make_pair(it->name, it->value));
+      label_mass_shift_.insert(make_pair(parameter.name, parameter.value));
     }
 
     // parameter section: algorithm, get selected charge range
@@ -565,26 +565,26 @@ namespace OpenMS
     for (unsigned pattern = 0; pattern < patterns.size(); ++pattern)
     {
       // loop over clusters
-      for (std::map<int, GridBasedCluster>::const_iterator cluster_it = cluster_results[pattern].begin(); cluster_it != cluster_results[pattern].end(); ++cluster_it)
+      for (const auto& cl : cluster_results[pattern])
       {
-        GridBasedCluster cluster = cluster_it->second;
+        GridBasedCluster cluster = cl.second;
         std::vector<int> points = cluster.getPoints();
 
         // Construct a satellite set for the complete peptide multiplet
         // Make sure there are no duplicates, i.e. the same satellite from different filtered peaks.
         std::multimap<size_t, MultiplexSatelliteCentroided > satellites;
         // loop over points in cluster
-        for (std::vector<int>::const_iterator point_it = points.begin(); point_it != points.end(); ++point_it)
+        for (const int& point : points)
         {
-          MultiplexFilteredPeak peak = filter_results[pattern].getPeak(*point_it);
+          MultiplexFilteredPeak peak = filter_results[pattern].getPeak(point);
           // loop over satellites of the peak
-          for (std::multimap<size_t, MultiplexSatelliteCentroided >::const_iterator satellite_it = peak.getSatellites().begin(); satellite_it != peak.getSatellites().end(); ++satellite_it)
+          for (const auto& sat1 : peak.getSatellites())
           {
             // check if this satellite (i.e. these indices) are already in the set
             bool satellite_in_set = false;
-            for (std::multimap<size_t, MultiplexSatelliteCentroided >::const_iterator satellite_it_2 = satellites.begin(); satellite_it_2 != satellites.end(); ++satellite_it_2)
+            for (const auto& sat2 : satellites)
             {
-              if ((satellite_it_2->second.getRTidx() == satellite_it->second.getRTidx()) && (satellite_it_2->second.getMZidx() == satellite_it->second.getMZidx()))
+              if ((sat2.second.getRTidx() == sat1.second.getRTidx()) && (sat2.second.getMZidx() == sat1.second.getMZidx()))
               {
                 satellite_in_set = true;
                 break;
@@ -595,7 +595,7 @@ namespace OpenMS
               break;
             }
 
-            satellites.insert(std::make_pair(satellite_it->first, MultiplexSatelliteCentroided(satellite_it->second.getRTidx(), satellite_it->second.getMZidx())));
+            satellites.insert(std::make_pair(sat1.first, MultiplexSatelliteCentroided(sat1.second.getRTidx(), sat1.second.getMZidx())));
           }
         }
 
@@ -750,22 +750,22 @@ namespace OpenMS
       setProgress(++progress);
 
       // loop over clusters
-      for (std::map<int, GridBasedCluster>::const_iterator cluster_it = cluster_results[pattern].begin(); cluster_it != cluster_results[pattern].end(); ++cluster_it)
+      for (const auto& cl : cluster_results[pattern])
       {
-        GridBasedCluster cluster = cluster_it->second;
+        GridBasedCluster cluster = cl.second;
         std::vector<int> points = cluster.getPoints();
 
         // Construct a satellite set for the complete peptide multiplet
         // Make sure there are no duplicates, i.e. the same satellite from different filtered peaks.
         std::multimap<size_t, MultiplexSatelliteProfile > satellites;
         // loop over points in cluster
-        for (std::vector<int>::const_iterator point_it = points.begin(); point_it != points.end(); ++point_it)
+        for (const int& point : points)
         {
-          MultiplexFilteredPeak peak = filter_results[pattern].getPeak(*point_it);
+          MultiplexFilteredPeak peak = filter_results[pattern].getPeak(point);
           // loop over satellites of the peak
-          for (std::multimap<size_t, MultiplexSatelliteProfile >::const_iterator satellite_it = peak.getSatellitesProfile().begin(); satellite_it != peak.getSatellitesProfile().end(); ++satellite_it)
+          for (const auto& sat : peak.getSatellitesProfile())
           {
-            satellites.insert(std::make_pair(satellite_it->first, MultiplexSatelliteProfile(satellite_it->second.getRT(), satellite_it->second.getMZ(), satellite_it->second.getIntensity())));
+            satellites.insert(std::make_pair(sat.first, MultiplexSatelliteProfile(sat.second.getRT(), sat.second.getMZ(), sat.second.getIntensity())));
           }
         }
 

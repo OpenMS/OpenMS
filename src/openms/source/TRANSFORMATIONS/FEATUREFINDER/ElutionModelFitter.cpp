@@ -96,20 +96,18 @@ double ElutionModelFitter::calculateFitQuality_(const TraceFitter* fitter,
   double rt_end = min(fitter->getUpperRTBound(),
                       traces[0].peaks.back().first);
 
-  for (MassTraces::const_iterator tr_it = traces.begin();
-       tr_it != traces.end(); ++tr_it)
+  for (const auto& trace : traces)
   {
-    for (vector<pair<double, const Peak1D*> >::const_iterator p_it =
-           tr_it->peaks.begin(); p_it != tr_it->peaks.end(); ++p_it)
+    for (const auto& peak : trace.peaks)
     {
-      double rt = p_it->first;
+      double rt = peak.first;
       if ((rt >= rt_start) && (rt <= rt_end))
       {
         double model_value = fitter->getValue(rt);
-        double diff = fabs(model_value * tr_it->theoretical_int -
-                           p_it->second->getIntensity());
+        double diff = fabs(model_value * trace.theoretical_int -
+                           peak.second->getIntensity());
         mre += diff / model_value;
-        total_weights += tr_it->theoretical_int;
+        total_weights += trace.theoretical_int;
       }
     }
   }
@@ -465,11 +463,10 @@ void ElutionModelFitter::fitElutionModels(FeatureMap& features)
     double x_datum_min, x_datum_max, y_datum_min, y_datum_max;
     lm.getParameters(slope, intercept, x_weight, y_weight, x_datum_min, x_datum_max, y_datum_min, y_datum_max);
     OPENMS_LOG_INFO << "Imputing model failures with a linear model based on log(rawIntensities). Slope: " << slope << ", Intercept: " << intercept << endl;
-    for (vector<FeatureMap::Iterator>::iterator it = failed_models.begin();
-         it != failed_models.end(); ++it)
+    for (auto& model : failed_models)
     {
-      double area = exp(lm.evaluate(log((*it)->getIntensity())));
-      (*it)->setIntensity(area);
+      double area = exp(lm.evaluate(log((model)->getIntensity())));
+      (model)->setIntensity(area);
     }
   }
 }
