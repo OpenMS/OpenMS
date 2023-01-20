@@ -237,10 +237,10 @@ namespace OpenMS
 
       // add singletons from unlabeled channel
       // clean up unlabeled_index
-      for (std::map<String, Feature>::iterator unlabeled_index_iter = unlabeled_features_index.begin(); unlabeled_index_iter != unlabeled_features_index.end(); ++unlabeled_index_iter)
+      for (const auto& unlabeled_index : unlabeled_features_index)
       {
         // the single ones from c0
-        final_feature_map.push_back(unlabeled_index_iter->second);
+        final_feature_map.push_back(unlabeled_index.second);
       }
     }
 
@@ -369,9 +369,9 @@ namespace OpenMS
       }
 
       // clean up labeled_index
-      for (std::map<String, Feature>::iterator medium_channle_index_iterator = medium_features_index.begin(); medium_channle_index_iterator != medium_features_index.end(); ++medium_channle_index_iterator)
+      for (auto& med_idx : medium_features_index)
       {
-        Feature& medium_channel_feature = medium_channle_index_iterator->second;
+        Feature& medium_channel_feature = med_idx.second;
         medium_channel_feature.ensureUniqueId();
 
         String medium_channel_feature_unmodified_sequence = getUnmodifiedSequence_(medium_channel_feature, medium_channel_arginine_label_, medium_channel_lysine_label_);
@@ -409,10 +409,10 @@ namespace OpenMS
       }
 
       // clean up unlabeled_index
-      for (std::map<String, Feature>::iterator unlabeled_index_iter = unlabeled_features_index.begin(); unlabeled_index_iter != unlabeled_features_index.end(); ++unlabeled_index_iter)
+      for (auto& unlabeled_index : unlabeled_features_index)
       {
         // the single ones from c0
-        final_feature_map.push_back(unlabeled_index_iter->second);
+        final_feature_map.push_back(unlabeled_index.second);
       }
     }
 
