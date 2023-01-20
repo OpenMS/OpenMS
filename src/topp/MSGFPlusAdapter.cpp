@@ -536,7 +536,7 @@ protected:
                    << "-thread" << QString::number(getIntOption_("threads"));
     if (getFlag_("allow_dense_centroided_peaks"))
     {
-      process_params << "-allowDenseCentroidedPeaks=1";
+      process_params << "-allowDenseCentroidedPeaks 1";
     }
     String conf = getStringOption_("conf");
     if (!conf.empty())
