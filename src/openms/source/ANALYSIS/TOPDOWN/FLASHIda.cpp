@@ -368,7 +368,7 @@ namespace OpenMS
     // for target inclusive masses, qscore precursor snr threshold is not applied.
     // In all phase, for target exclusive mode, all the exclusive masses are excluded. For target inclusive mode, only the target masses are considered.
 
-    for (int iteration = targeting_mode_ == 2? 0 : 1; iteration <  2 ;iteration++) // for mass exclusion, first collect masses with exclusion list. Then collect without exclusion. This works the best
+    for (int iteration = targeting_mode_ == 2? 0 : 1; iteration < 2 ;iteration++) // for mass exclusion, first collect masses with exclusion list. Then collect without exclusion. This works the best
     {
       for (int selection_phase = selection_phase_start; selection_phase <= selection_phase_end; selection_phase++)
       {
@@ -433,7 +433,7 @@ namespace OpenMS
             if (target_matched)
             {
               snr_threshold = 0.0;
-              qscore_threshold = 0.0;
+              qscore_threshold = 0.0; // stop exclusion for targets. TODO tqscore lowest first? charge change.
             }
             else
             {
@@ -451,10 +451,12 @@ namespace OpenMS
             continue;
           }
 
-
-          if (current_selected_mzs.find(integer_mz) != current_selected_mzs.end())
+          if (!target_matched || selection_phase < selection_phase_end)
           {
-            continue;
+            if (current_selected_mzs.find(integer_mz) != current_selected_mzs.end())
+            {
+              continue;
+            }
           }
 
           if (selection_phase < selection_phase_end)
