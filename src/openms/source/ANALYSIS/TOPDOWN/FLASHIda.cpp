@@ -362,9 +362,10 @@ namespace OpenMS
     std::unordered_map<int, double>().swap(new_mass_qscore_map_);
 
     const int selection_phase_start = 0;
-    const int selection_phase_end = 1; // inclusive
+    const int selection_phase_end = 2; // inclusive
     // When selection_phase == 0, consider only the masses whose tqscore did not exceed total qscore threshold.
-    // when selection_phase == 1, consider all other masses for selection
+    // when selection_phase == 1, consider all other masses for selection but the same m/z is avoided
+    // when selection_phase == 2, consider all.
     // for target inclusive masses, qscore precursor snr threshold is not applied.
     // In all phase, for target exclusive mode, all the exclusive masses are excluded. For target inclusive mode, only the target masses are considered.
 
@@ -459,7 +460,7 @@ namespace OpenMS
             }
           }
 
-          if (selection_phase < selection_phase_end)
+          if (selection_phase < selection_phase_end - 1)
           { // first, select masses under tqscore threshold
             if (tqscore_exceeding_mass_rt_map_.find(nominal_mass) != tqscore_exceeding_mass_rt_map_.end() || tqscore_exceeding_mz_rt_map_.find(integer_mz) != tqscore_exceeding_mz_rt_map_.end())
             {
