@@ -286,7 +286,8 @@ namespace OpenMS
     trigger_right_isolation_mzs_.reserve(mass_count);
 
     filtered_peakgroups.reserve(mass_count_.size());
-    std::set<int> current_selected_mzs; // current selected mzs
+    std::set<double> current_selected_mzs; // current selected mzs
+    std::set<double> current_selected_masses; // current selected mzs
 
     std::unordered_map<int, double> new_mz_rt_map_;
     std::unordered_map<int, double> new_mass_rt_map_;
@@ -452,9 +453,14 @@ namespace OpenMS
             continue;
           }
 
-          if (!target_matched || selection_phase < selection_phase_end)
+
+          if (current_selected_mzs.find(center_mz) != current_selected_mzs.end()) // mz has been triggered
           {
-            if (current_selected_mzs.find(integer_mz) != current_selected_mzs.end())
+            if (selection_phase < selection_phase_end)
+            {
+              continue;
+            }
+            if (!target_matched && current_selected_masses.find(pg.getMonoMass()) == current_selected_masses.end()) // but mass is different
             {
               continue;
             }
@@ -558,8 +564,8 @@ namespace OpenMS
 
           trigger_left_isolation_mzs_.push_back(mz1);
           trigger_right_isolation_mzs_.push_back(mz2);
-
-          current_selected_mzs.insert(integer_mz);
+          current_selected_masses.insert(pg.getMonoMass());
+          current_selected_mzs.insert(center_mz);
         }
       }
     }
