@@ -523,12 +523,12 @@ def peptide_identifications_to_df(peps: List[_PeptideIdentification], decode_ont
 
 
 def update_scores_from_df(peps: List[_PeptideIdentification], df : _pd.DataFrame, main_score_name : str):
-    """Updates the scores in PeptideIdentification objects using a pandas dataframe.
-    Parameters:
-    peps (List[PeptideIdentification]): list of PeptideIdentification objects
-    df dataframe obtained by converting peps to a dataframe. Minimum required: P_ID column and column with name main_score_name
-    Returns:
-    List[PeptideIdentification]: peptide identifications
+    """
+    Updates the scores in PeptideIdentification objects using a pandas dataframe.
+                
+    :param peps: list of PeptideIdentification objects
+    :param df: pandas dataframe obtained by converting peps to a dataframe. Minimum required: P_ID column and column with name passed by main_score_name
+    :return: the updated list of peptide identifications
     """
 
     rets = peps
