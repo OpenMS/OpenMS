@@ -2304,7 +2304,7 @@ def test_peptide_identifications_to_df():
 
     # update from dataframe
     df = pyopenms.peptide_identifications_to_df(peps)
-    df["ScoreType"][0] = 10.0;
+    df["ScoreType"][0] = 10.0
     peps = pyopenms.update_scores_from_df(peps, df, "ScoreType")
     assert peps[0].getHits()[0].getScore() == 10.0
 
