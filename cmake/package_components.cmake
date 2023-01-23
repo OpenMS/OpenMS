@@ -35,6 +35,8 @@ cpack_add_install_type(recommended DISPLAY_NAME "Recommended")
 cpack_add_install_type(full DISPLAY_NAME "Full")
 cpack_add_install_type(minimal DISPLAY_NAME "Minimal")
 
+## TODO group some components like "OpenMS_header", "OpenSWATH_header", "thirdparty_headers"...
+## TODO do components more fine-grained, so you can install only OpenSwath parts, or only TOPPView but not TOPPAS, etc
 cpack_add_component(share
                 DISPLAY_NAME "OpenMS shared files"
                 DESCRIPTION "OpenMS shared files"

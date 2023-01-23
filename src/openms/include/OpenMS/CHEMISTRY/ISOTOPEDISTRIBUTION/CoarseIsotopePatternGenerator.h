@@ -147,6 +147,16 @@ namespace OpenMS
     IsotopeDistribution estimateFromPeptideWeight(double average_weight);
 
     /**
+    @brief Estimate Peptide Isotopedistribution from monoisotopic weight and number of isotopes that should be reported
+
+    Implementation using the averagine model proposed by Senko et al. in
+      "Determination of Monoisotopic Masses and Ion Populations for Large Biomolecules from Resolved Isotopic Distributions"
+      But this function takes monoisotopic mass. Thus determination of monoisotopic mass is not performed.
+      */
+      IsotopeDistribution estimateFromPeptideMonoWeight(double mono_weight);
+
+
+    /**
        @brief Estimate peptide IsotopeDistribution from average weight and exact number of sulfurs
 
        @param average_weight: Average weight to estimate an EmpiricalFormula for
@@ -199,6 +209,15 @@ namespace OpenMS
     IsotopeDistribution estimateFromRNAWeight(double average_weight);
 
     /**
+     @brief Estimate Nucleotide Isotopedistribution from monoisotopic weight and number of isotopes that should be reported
+
+    averagine model from Zubarev, R. A.; Demirev, P. A. in
+       "Isotope  depletion  of  large biomolecules: Implications for molecular mass measurements."
+       */
+   IsotopeDistribution estimateFromRNAMonoWeight(double mono_weight);
+
+
+    /**
        @brief Estimate Nucleotide Isotopedistribution from weight and number of isotopes that should be reported
        averagine model from Zubarev, R. A.; Demirev, P. A. in
        "Isotope  depletion  of  large biomolecules: Implications for molecular mass measurements."
@@ -211,6 +230,14 @@ namespace OpenMS
 
     */
     IsotopeDistribution estimateFromWeightAndComp(double average_weight, double C, double H, double N, double O, double S, double P);
+
+    /**
+
+    @brief Estimate Isotopedistribution from monoisotopic weight, average composition, and number of isotopes that should be reported
+
+      */
+    IsotopeDistribution estimateFromMonoWeightAndComp(double mono_weight, double C, double H, double N, double O, double S, double P);
+
 
     /**
        @brief Estimate IsotopeDistribution from weight, exact number of sulfurs, and average remaining composition

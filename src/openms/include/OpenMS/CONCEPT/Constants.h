@@ -120,6 +120,11 @@ namespace OpenMS
     */
     inline const double C13C12_MASSDIFF_U = 1.0033548378; // u
 
+    /** Average mass difference between consecutive isotopes for proteins of mass 55kDa. Referred to the values used in TopPIC.
+        In units (\f$1.002371\f$u)
+    */
+    inline const double ISOTOPE_MASSDIFF_55K_U = 1.002371; // u
+
     /** Neutron mass.
             In units of kg (\f$1.6749286 \cdot 10^{-27}\f$ kg).
     */
@@ -310,6 +315,12 @@ namespace OpenMS
               String
       */
       inline const std::string   SPECTRUM_REFERENCE = "spectrum_reference";
+
+      /** User parameter name to store the index of the primary MS run associated with the PeptideIdentification (is is not yet treated as a class attribute).
+          Set by IDMerger algorithm.
+              String
+      */
+      inline const std::string   ID_MERGE_INDEX = "id_merge_index";
 
       /** User parameter name for target/decoy annotation of a PeptideHit, e.g. as annotated by PeptideIndexer. One of: target, decoy, target+decoy
               String

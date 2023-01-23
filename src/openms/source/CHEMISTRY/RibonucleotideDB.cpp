@@ -35,7 +35,6 @@
 #include <OpenMS/CHEMISTRY/RibonucleotideDB.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/SYSTEM/File.h>
-
 #include <QFile>
 #include <QTextStream>
 
@@ -43,8 +42,7 @@ using namespace std;
 
 namespace OpenMS
 {
-  RibonucleotideDB::RibonucleotideDB():
-    max_code_length_(0)
+  RibonucleotideDB::RibonucleotideDB() : max_code_length_(0)
   {
     readFromFile_("CHEMISTRY/Modomics.tsv");
     readFromFile_("CHEMISTRY/Custom_RNA_modifications.tsv");
@@ -64,7 +62,7 @@ namespace OpenMS
   {
     for (auto& r : ribonucleotides_)
     {
-      delete(r);
+      delete (r);
     }
   }
 
@@ -94,8 +92,7 @@ namespace OpenMS
     if (!line.hasPrefix(header)) // additional columns are allowed
     {
       String msg = "expected header line starting with: '" + header + "'";
-      throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                  line, msg);
+      throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, line, msg);
     }
 
     QChar prime(0x2032); // Unicode "prime" character
@@ -115,25 +112,20 @@ namespace OpenMS
       }
       catch (Exception::BaseException& e)
       {
-        OPENMS_LOG_ERROR << "Error: Failed to parse input line " << line_count
-                  << ". Reason:\n" << e.getName()
-                  << " - " << e.what() << "\nSkipping this line." << endl;
+        OPENMS_LOG_ERROR << "Error: Failed to parse input line " << line_count << ". Reason:\n" << e.getName() << " - " << e.what() << "\nSkipping this line." << endl;
       }
     }
   }
 
 
-  RibonucleotideDB::ConstRibonucleotidePtr RibonucleotideDB::parseRow_(
-    const std::string& row, Size line_count)
+  RibonucleotideDB::ConstRibonucleotidePtr RibonucleotideDB::parseRow_(const std::string& row, Size line_count)
   {
     vector<String> parts;
     String(row).split('\t', parts);
     if (parts.size() < 9)
     {
-      String msg = "9 tab-separated fields expected, found " +
-        String(parts.size()) + " in line " + String(line_count);
-      throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                  row, msg);
+      String msg = "9 tab-separated fields expected, found " + String(parts.size()) + " in line " + String(line_count);
+      throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, row, msg);
     }
     Ribonucleotide* ribo = new Ribonucleotide();
     ribo->setName(parts[0]);
@@ -192,16 +184,13 @@ namespace OpenMS
     {
       if (parts[1].front() == 'd') // handle deoxyribose, possibly with methyl mod
       {
-        if (parts[1].back() == 'm') // do we have both a methylation and a deoxylation?
-        {
-          ribo->setBaselossFormula(EmpiricalFormula("C6H12O4"));
-        }
-        else  // Otherwise we have just the O difference
-        {
-          ribo->setBaselossFormula(EmpiricalFormula("C5H10O4"));
-        }
+        ribo->setBaselossFormula(EmpiricalFormula("C5H10O4"));
       }
       else if (parts[1].back() == 'm') // mod. attached to the ribose, not base
+      {
+        ribo->setBaselossFormula(EmpiricalFormula("C6H12O5"));
+      }
+      else if (parts[1].substr(parts[1].size() - 2) == "m*") // check if we have both a sulfer and a 2'-O methyl
       {
         ribo->setBaselossFormula(EmpiricalFormula("C6H12O5"));
       }
@@ -209,15 +198,11 @@ namespace OpenMS
       {
         if (parts.size() < 10)
         {
-          String msg =
-            "10th field expected for ambiguous modification in line " +
-            String(line_count);
-          throw Exception::ParseError(__FILE__, __LINE__,
-                                      OPENMS_PRETTY_FUNCTION, row, msg);
+          String msg = "10th field expected for ambiguous modification in line " + String(line_count);
+          throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, row, msg);
         }
         String code1 = parts[9].prefix(' '), code2 = parts[9].suffix(' ');
-        ambiguity_map_[parts[1]] = make_pair(getRibonucleotide(code1),
-                                             getRibonucleotide(code2));
+        ambiguity_map_[parts[1]] = make_pair(getRibonucleotide(code1), getRibonucleotide(code2));
       }
       else if ((parts[1] == "Ar(p)") || (parts[1] == "Gr(p)"))
       {
@@ -228,22 +213,18 @@ namespace OpenMS
   }
 
 
-  RibonucleotideDB::ConstRibonucleotidePtr
-  RibonucleotideDB::getRibonucleotide(const std::string& code)
+  RibonucleotideDB::ConstRibonucleotidePtr RibonucleotideDB::getRibonucleotide(const std::string& code)
   {
-    std::unordered_map<std::string, Size>::const_iterator pos =
-      code_map_.find(code);
+    std::unordered_map<std::string, Size>::const_iterator pos = code_map_.find(code);
     if (pos == code_map_.end())
     {
-      throw Exception::ElementNotFound(__FILE__, __LINE__,
-                                       OPENMS_PRETTY_FUNCTION, code);
+      throw Exception::ElementNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, code);
     }
     return ribonucleotides_[pos->second];
   }
 
 
-  RibonucleotideDB::ConstRibonucleotidePtr
-  RibonucleotideDB::getRibonucleotidePrefix(const std::string& seq)
+  RibonucleotideDB::ConstRibonucleotidePtr RibonucleotideDB::getRibonucleotidePrefix(const std::string& seq)
   {
     std::string prefix = seq.substr(0, max_code_length_);
     while (!prefix.empty())
@@ -255,22 +236,17 @@ namespace OpenMS
       }
       prefix = prefix.substr(0, prefix.size() - 1);
     }
-    throw Exception::ElementNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                     seq);
+    throw Exception::ElementNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, seq);
   }
 
 
-  pair<RibonucleotideDB::ConstRibonucleotidePtr,
-       RibonucleotideDB::ConstRibonucleotidePtr>
-  RibonucleotideDB::getRibonucleotideAlternatives(const std::string& code)
+  pair<RibonucleotideDB::ConstRibonucleotidePtr, RibonucleotideDB::ConstRibonucleotidePtr> RibonucleotideDB::getRibonucleotideAlternatives(const std::string& code)
   {
     auto pos = ambiguity_map_.find(code);
     if (pos == ambiguity_map_.end())
     {
-      throw Exception::ElementNotFound(__FILE__, __LINE__,
-                                       OPENMS_PRETTY_FUNCTION, code);
+      throw Exception::ElementNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, code);
     }
     return pos->second;
   }
-}
-
+} // namespace OpenMS

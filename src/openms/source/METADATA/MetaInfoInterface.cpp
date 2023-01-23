@@ -147,7 +147,16 @@ namespace OpenMS
     return !(operator==(rhs));
   }
 
-  const DataValue& MetaInfoInterface::getMetaValue(const String& name, const DataValue& default_value) const
+  const DataValue& MetaInfoInterface::getMetaValue(const String& name) const
+  {
+    if (meta_ == nullptr)
+    {
+      return DataValue::EMPTY;
+    }
+    return meta_->getValue(name, DataValue::EMPTY);
+  }
+
+  DataValue MetaInfoInterface::getMetaValue(const String& name, const DataValue& default_value) const
   {
     if (meta_ == nullptr)
     {
@@ -156,7 +165,16 @@ namespace OpenMS
     return meta_->getValue(name, default_value);
   }
 
-  const DataValue& MetaInfoInterface::getMetaValue(UInt index, const DataValue& default_value) const
+  const DataValue& MetaInfoInterface::getMetaValue(UInt index) const
+  {
+    if (meta_ == nullptr)
+    {
+      return DataValue::EMPTY;
+    }
+    return meta_->getValue(index, DataValue::EMPTY);
+  }
+
+  DataValue MetaInfoInterface::getMetaValue(UInt index, const DataValue& default_value) const
   {
     if (meta_ == nullptr)
     {

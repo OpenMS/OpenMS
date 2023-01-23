@@ -122,7 +122,7 @@ namespace OpenMS
       double minRT = std::numeric_limits<double>::max();
       for (auto& map : input_maps)
       {
-        for (auto feat : map) //OMS_CODING_TEST_EXCLUDE
+        for (auto feat : map) //OMS_CODING_TEST_EXCLUDE Note: needs copy to sort
         {
           if (feat.getRT() < minRT) minRT = feat.getRT();
           auto& pepIDs = feat.getPeptideIdentifications();

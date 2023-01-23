@@ -56,7 +56,7 @@ using namespace std;
     <table>
         <tr>
             <td ALIGN = "center" BGCOLOR="#EBEBEB"> potential predecessor tools </td>
-            <td VALIGN="middle" ROWSPAN=2> \f$ \longrightarrow \f$ MapRTTransformer \f$ \longrightarrow \f$</td>
+            <td VALIGN="middle" ROWSPAN=2> &rarr; MapRTTransformer &rarr;</td>
             <td ALIGN = "center" BGCOLOR="#EBEBEB"> potential successor tools </td>
         </tr>
         <tr>

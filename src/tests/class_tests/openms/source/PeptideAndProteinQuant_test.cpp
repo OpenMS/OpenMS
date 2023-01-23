@@ -160,9 +160,9 @@ START_SECTION((const Statistics& getStatistics()))
   TEST_EQUAL(stats.n_samples, 2);
   TEST_EQUAL(stats.quant_proteins, 10);
   TEST_EQUAL(stats.too_few_peptides, 10);
-  TEST_EQUAL(stats.quant_peptides, 13);
-  TEST_EQUAL(stats.total_peptides, 13);
-  TEST_EQUAL(stats.quant_features, 18);
+  TEST_EQUAL(stats.quant_peptides, 13); // one decoy peptide is not quantified
+  TEST_EQUAL(stats.total_peptides, 14);
+  TEST_EQUAL(stats.quant_features, 17); // feature with a decoy peptide is not quantified
   TEST_EQUAL(stats.total_features, 18);
   TEST_EQUAL(stats.blank_features, 0);
   TEST_EQUAL(stats.ambig_features, 0);

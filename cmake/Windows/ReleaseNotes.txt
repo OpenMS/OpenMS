@@ -1,7 +1,7 @@
 Congratulations!  You have successfully installed the TOPP tools of OpenMS and
 the OpenMS library.
 
-"TOPP" is an acronym for "The OpenMS Proteomics Pipeline".  It consists of
+"TOPP" is an acronym for "The OpenMS PiPeline".  It consists of
 several small applications that can be chained to create analysis pipelines
 tailored for a specific problem.
 

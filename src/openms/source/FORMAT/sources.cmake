@@ -21,6 +21,8 @@ EDTAFile.cpp
 ExperimentalDesignFile.cpp
 FASTAFile.cpp
 FeatureXMLFile.cpp
+FLASHDeconvFeatureFile.cpp
+FLASHDeconvSpectrumFile.cpp
 FileHandler.cpp
 FileTypes.cpp
 GNPSMetaValueFile.cpp

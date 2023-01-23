@@ -32,7 +32,7 @@
 # $Authors: Stephan Aiche, Julianus Pfeuffer $
 # --------------------------------------------------------------------------
 
-cmake_minimum_required(VERSION 3.15 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.21 FATAL_ERROR)
 
 # Handle default build type
 get_property(multiConfig GLOBAL PROPERTY GENERATOR_IS_MULTI_CONFIG)
@@ -40,6 +40,7 @@ if(NOT multiConfig AND NOT DEFINED CMAKE_BUILD_TYPE)
   set(CMAKE_BUILD_TYPE Release CACHE STRING "Choose the type of build.")
 endif()
 
+## TODO get rid of C. Seems like only HDF5 C Component needs it.
 project("OpenMS_host" LANGUAGES C CXX)
 
 # required for cmake < 3.13 if ccache is used
@@ -84,6 +85,8 @@ option(HAS_XSERVER "Indicates if an X server is available. If set to Off it will
 option(ENABLE_DOCS "Indicates whether documentation should be built." ON)
 option(ENABLE_TUTORIALS "Indicates whether tutorials should be build. Note that this also depends on the availability of (pdf)latex." ON)
 option(WITH_GUI "Build GUI parts of OpenMS (TOPPView&Co). This requires QtGui." ON)
+option(NO_WEBENGINE_WIDGETS "Do not use QtWebengineWidgets. Disables Javascript views in TOPPView." OFF)
+
 if(MSVC)
   option(MT_ENABLE_NESTED_OPENMP "Enable nested parallelism." OFF)
 else()
@@ -227,14 +230,6 @@ if(STL_DEBUG)
 endif()
 
 #------------------------------------------------------------------------------
-# Enable AddressSanitizer
-#------------------------------------------------------------------------------
-option(ADDRESS_SANITIZER "[Clang/GCC only] Enable AddressSanitizer mode (quite slow)." OFF)
-if(ADDRESS_SANITIZER)
-  include(cmake/AddressSanitizer.cmake)
-endif()
-
-#------------------------------------------------------------------------------
 # Add options for link time optimizations (LTO) aka interprocedural optimization
 #------------------------------------------------------------------------------
 option(ENABLE_IPO
@@ -328,7 +323,8 @@ include (${PROJECT_SOURCE_DIR}/cmake/export_macros.cmake)
 set(VALID_PACKAGE_TYPES "none" # the classical build type make/make install
                         "rpm"  # rpm package
                         "deb"  # deb package
-                        "dmg"  # a drag&drop dmg package for macosx
+                        "dmg"  # a drag&drop dmg package for macOS
+                        "pkg"  # a productbuild installer for macOS
                         "nsis") # an NSIS installer for Windows
 
 set(PACKAGE_TYPE "none" CACHE STRING "Package type (internal): ${VALID_PACKAGE_TYPES}")
@@ -336,10 +332,10 @@ is_valid_package(${PACKAGE_TYPE})
 
 ## Warn here because you need the signing identity before the app bundles are defined in the
 ## src subfolder
-if("${PACKAGE_TYPE}" STREQUAL "dmg")
+if("${PACKAGE_TYPE}" STREQUAL "dmg" OR "${PACKAGE_TYPE}" STREQUAL "pkg")
   if (NOT DEFINED SIGNING_IDENTITY OR "${SIGNING_IDENTITY}" STREQUAL "" OR NOT DEFINED SIGNING_EMAIL OR "${SIGNING_EMAIL}" STREQUAL "")
-    message(WARNING "Trying to create dmg image without SIGNING_IDENTITY and SIGNING_EMAIL being set. "
-                         "This disables codesigning and might lead to problems with Gatekeeper on target machines.")
+    message(WARNING "Trying to create macOS package/image without SIGNING_IDENTITY and SIGNING_EMAIL being set. "
+                    "This disables notarization and might lead to problems with macOS' Gatekeeper on target machines.")
   else()
     ## CPack has a special variable for the identity
     set(CPACK_BUNDLE_APPLE_CERT_APP "${SIGNING_IDENTITY}")
@@ -383,7 +379,11 @@ if(UNIX)
 	# use, i.e. don't skip the full RPATH for the build tree
 	if(NOT DEFINED CMAKE_SKIP_BUILD_RPATH)
 	  SET(CMAKE_SKIP_BUILD_RPATH  FALSE)
-	endif()
+  endif()
+
+  if(NOT DEFINED CMAKE_MACOSX_RPATH)
+    SET(CMAKE_MACOSX_RPATH  TRUE)
+  endif()
 
 	# when building, don't use the install RPATH already
 	# (but later on when installing)
@@ -401,18 +401,26 @@ if(UNIX)
   # if e.g. Qt is already built with RPATH, our libs will have @rpath/QtCore as dependency.
   # We need to include all link directories that should be specified by the
   # dependency target to our RPATH as well.
-  if (NOT DEFINED CMAKE_INSTALL_RPATH_USE_LINK_PATH)
+  if (APPLE AND NOT "${PACKAGE_TYPE}" STREQUAL "pkg" AND NOT DEFINED CMAKE_INSTALL_RPATH_USE_LINK_PATH)
     SET(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
   endif()
   
-	# our default RPATH to be added when installing
+  #if(NOT DEFINED CMAKE_INSTALL_NAME_DIR AND APPLE)
+  #  SET(CMAKE_INSTALL_NAME_DIR "$<INSTALL_PREFIX>/${INSTALL_LIB_DIR}")
+  #endif()
+  
+	# our default RPATH to be added when installing. Can be changed per-target, e.g. in app bundles
 	if(NOT DEFINED CMAKE_INSTALL_RPATH)
     if (APPLE)
-      # currently our fix_dependencies.rb script requires our lib dir to be present in the RPATHS
-      # so it can find libOpenMS for one of our executables, even if it is linked as @rpath/libOpenMS.
-      # Disadvantage: even on the target machine, they will have the build folder baked in.
-      # Alternative: copy all our libs first so they do not need to be found.
-      SET(CMAKE_INSTALL_RPATH "@executable_path/../${INSTALL_LIB_DIR}/;${CMAKE_LIBRARY_OUTPUT_DIRECTORY}")
+      if(NOT "${PACKAGE_TYPE}" STREQUAL "pkg")
+        # currently our fix_dependencies.rb script requires our lib dir to be present in the RPATHS
+        # so it can find libOpenMS for one of our executables, even if it is linked as @rpath/libOpenMS.
+        # Disadvantage: even on the target machine, they will have the build folder baked in.
+        # Alternative: copy all our libs first so they do not need to be found.
+        SET(CMAKE_INSTALL_RPATH "@executable_path/../${INSTALL_LIB_DIR}/;${CMAKE_LIBRARY_OUTPUT_DIRECTORY}")
+      else()
+        SET(CMAKE_INSTALL_RPATH "@executable_path/../${INSTALL_LIB_DIR}/")
+      endif()
     else()
       SET(CMAKE_INSTALL_RPATH "$ORIGIN/../${INSTALL_LIB_DIR}/")
     endif()
@@ -470,8 +478,10 @@ install_export_targets()
 # packaging routines:
 if(NOT "${PACKAGE_TYPE}" STREQUAL "none")
   include(cmake/package_general.cmake)
-  if("${PACKAGE_TYPE}" STREQUAL "dmg") # .. MacOSX
+  if("${PACKAGE_TYPE}" STREQUAL "dmg") # .. macOS dmg
     include(cmake/package_dragndrop_dmg.cmake)
+  elseif("${PACKAGE_TYPE}" STREQUAL "pkg") # .. macOS pkg
+    include(cmake/package_mac_productbuild.cmake)
   elseif("${PACKAGE_TYPE}" STREQUAL "rpm") # .. rpms
     include(cmake/package_rpm.cmake)
   elseif("${PACKAGE_TYPE}" STREQUAL "deb") # .. debs

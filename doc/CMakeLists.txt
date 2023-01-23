@@ -113,9 +113,6 @@ if(ENABLE_DOCS)
   #------------------------------------------------------------------------------
   # find the necessary packages
   find_package(Doxygen)
-  find_package(LATEX)
-  # Doxygen with formulas built with LaTeX actually also needs Ghostscript but there is no official find module for it, yet.
-  #find_package(Ghostscript)
 
   #------------------------------------------------------------------------------
   # the doc targets
@@ -164,9 +161,28 @@ if(ENABLE_DOCS)
     file(TO_NATIVE_PATH "${_DEFAULTPARAMHANDLERDOCUMENTER_EXECUTABLE}" DEFAULTPARAMHANDLERDOCUMENTER_EXECUTABLE)
     file(TO_NATIVE_PATH "${_BINARY_PATH}" BINARY_PATH)
 
+    # add bin/ and lib/ to all path that potentially contain dependencies
+    list(TRANSFORM CMAKE_PREFIX_PATH APPEND "/bin" OUTPUT_VARIABLE DEP_BIN_DIRS)
+    list(TRANSFORM CMAKE_PREFIX_PATH APPEND "/lib" OUTPUT_VARIABLE DEP_LIB_DIRS)
+
+    # 
+    if (CMAKE_GENERATOR MATCHES "Visual Studio" AND NOT CMAKE_MSVCIDE_RUN_PATH)
+      list(APPEND CMAKE_MSVCIDE_RUN_PATH ${DEP_BIN_DIRS} ${DEP_LIB_DIRS})
+    else()
+      if(WIN32)
+        set(pathsep ";")
+      else()
+        set(pathsep ":")
+      endif()
+      string(REPLACE ";" "${pathsep}" DEP_BIN_DIRS "${DEP_BIN_DIRS}")
+      string(REPLACE ";" "${pathsep}" DEP_LIB_DIRS "${DEP_LIB_DIRS}")   
+    endif()
+
+
     #------------------------------------------------------------------------------
     # doc_param_internal targets
-    add_custom_target(doc_param_internal
+    if (CMAKE_GENERATOR MATCHES "Visual Studio")
+      add_custom_target(doc_param_internal
                       COMMAND ${CMAKE_COMMAND} -E echo ""
                       COMMAND ${CMAKE_COMMAND} -E echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
                       COMMAND ${CMAKE_COMMAND} -E echo "Creating the algorithm parameter and TOPP parameter documentation"
@@ -187,7 +203,32 @@ if(ENABLE_DOCS)
                       COMMAND ${CMAKE_COMMAND} -E chdir doxygen/parameters/ ${TOPPDOCUMENTER_EXECUTABLE} ${BINARY_PATH}
                       COMMAND ${CMAKE_COMMAND} -E echo ""
                       COMMENT "Build the parameters documentation"
+                      VERBATIM)      
+    else()
+      add_custom_target(doc_param_internal
+                      COMMAND ${CMAKE_COMMAND} -E echo ""
+                      COMMAND ${CMAKE_COMMAND} -E echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
+                      COMMAND ${CMAKE_COMMAND} -E echo "Creating the algorithm parameter and TOPP parameter documentation"
+                      COMMAND ${CMAKE_COMMAND} -E echo ""
+                      COMMAND ${CMAKE_COMMAND} -E echo "Note: A functioning OpenMS/TOPP installation and a running X-server (Unix) is required for this step!"
+                      COMMAND ${CMAKE_COMMAND} -E echo "      Windows only: OpenMS and Open_GUI.dll's need to be accessible by the Documenter executables in"
+                      COMMAND ${CMAKE_COMMAND} -E echo "      doxygen/parameters/. If the automatic CMake post build copy step did not work, try to add them"
+                      COMMAND ${CMAKE_COMMAND} -E echo "      to your Path variable."
+                      COMMAND ${CMAKE_COMMAND} -E echo "      If this step fails, use the target 'doc_minimal'."
+                      COMMAND ${CMAKE_COMMAND} -E echo ""
+                      COMMAND ${CMAKE_COMMAND} -E echo "Building OpenMS parameter docu:"
+                      COMMAND ${CMAKE_COMMAND} -E echo "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~"
+                      COMMAND ${CMAKE_COMMAND} -E make_directory doxygen/parameters/output/
+                      COMMAND ${CMAKE_COMMAND} -E chdir doxygen/parameters/ ${CMAKE_COMMAND} -E env "PATH=${DEP_BIN_DIRS}${pathsep}${DEP_LIB_DIRS}${pathsep}$ENV{PATH}" ${DEFAULTPARAMHANDLERDOCUMENTER_EXECUTABLE}
+                      COMMAND ${CMAKE_COMMAND} -E echo ""
+                      COMMAND ${CMAKE_COMMAND} -E echo "Building TOPP/UTILS docu:"
+                      COMMAND ${CMAKE_COMMAND} -E echo "~~~~~~~~~~~~~~~~~~~~~~~~~"
+                      COMMAND ${CMAKE_COMMAND} -E chdir doxygen/parameters/ ${CMAKE_COMMAND} -E env "PATH=${DEP_BIN_DIRS}${pathsep}${DEP_LIB_DIRS}${pathsep}$ENV{PATH}" ${TOPPDOCUMENTER_EXECUTABLE} ${BINARY_PATH}
+                      COMMAND ${CMAKE_COMMAND} -E echo ""
+                      COMMENT "Build the parameters documentation"
                       VERBATIM)
+    endif()
+
     add_dependencies(doc_param_internal doc_progs)
 
     #------------------------------------------------------------------------------
@@ -309,6 +350,7 @@ if(ENABLE_DOCS)
     install(DIRECTORY ${PROJECT_BINARY_DIR}/html
       DESTINATION ${INSTALL_DOC_DIR}
       COMPONENT doc
+      OPTIONAL
       FILE_PERMISSIONS      OWNER_WRITE OWNER_READ
                             GROUP_READ
                             WORLD_READ
@@ -320,14 +362,19 @@ if(ENABLE_DOCS)
       REGEX ".*\\.map\$" EXCLUDE ## Exclude temporary map files
       REGEX ".*\\.md5\$" EXCLUDE ## Exclude temporary md5 files
     )
-    install_file(${PROJECT_BINARY_DIR}/index.html ${INSTALL_DOC_DIR} doc)
+    # TODO would be cool to somehow have documentation optional
+    #install_file(${PROJECT_BINARY_DIR}/index.html ${INSTALL_DOC_DIR} doc)
 
     #------------------------------------------------------------------------------
     # PDF Tutorials
     #------------------------------------------------------------------------------
     # DOXYGEN_FOUND is true. Otherwise we would not list any doc targets at all.
-    if (PDFLATEX_COMPILER)
-      if (ENABLE_TUTORIALS)
+    
+    if (ENABLE_TUTORIALS)
+      find_package(LATEX)
+      # Doxygen with formulas built with LaTeX actually also needs Ghostscript but there is no official find module for it, yet.
+      #find_package(Ghostscript)
+      if (PDFLATEX_COMPILER)
         set(DOC_TUTORIALS_ACTIVE TRUE)
 
         # configure doxyfiles for tutorials
@@ -371,17 +418,20 @@ if(ENABLE_DOCS)
 
         #------------------------------------------------------------------------------
         # install also the tutorial pdfs
-        install_file(${PROJECT_BINARY_DIR}/OpenMS_tutorial.pdf ${INSTALL_DOC_DIR} doc)
+        install(FILES ${PROJECT_BINARY_DIR}/OpenMS_tutorial.pdf
+                DESTINATION ${INSTALL_DOC_DIR}
+                COMPONENT doc
+                OPTIONAL)
 
         #------------------------------------------------------------------------------
         # inform the user
         message(STATUS "Enabled tutorials (-D ENABLE_TUTORIALS=On).")
       else()
-        message(STATUS "Disabled tutorials (-D ENABLE_TUTORIALS=Off).")
+        message(STATUS "PDFLaTeX missing. Disabling 'doc_tutorials' target!")
       endif()
     else()
       set(DOC_TUTORIALS_ACTIVE FALSE)
-      message(STATUS "PDFLaTeX missing. Disabling 'doc_tutorials' target!")
+      message(STATUS "Disabled tutorials (-D ENABLE_TUTORIALS=Off).")
     endif()
   else()
     message(STATUS "Doxygen not found. Disabling all documentation targets!")
