@@ -2260,6 +2260,7 @@ def testIdXMLFile():
 
 @report
 def test_peptide_identifications_to_df():
+    # convert to dataframe
     peps = []
 
     p = pyopenms.PeptideIdentification()
@@ -2300,6 +2301,12 @@ def test_peptide_identifications_to_df():
     assert pyopenms.peptide_identifications_to_df(peps, decode_ontology=False).shape == (2,10)
     assert pyopenms.peptide_identifications_to_df(peps)['protein_accession'][0] == 'sp|Accession1,sp|Accession2'
     assert pyopenms.peptide_identifications_to_df(peps, export_unidentified=False).shape == (1,10)
+
+    # update from dataframe
+    df = pyopenms.peptide_identifications_to_df(peps)
+    df["ScoreType"][0] = 10.0;
+    peps = pyopenms.update_scores_from_df(peps, df, "ScoreType")
+    assert peps[0].getHits()[0].getScore() == 10.0
 
 @report
 def testPepXMLFile():

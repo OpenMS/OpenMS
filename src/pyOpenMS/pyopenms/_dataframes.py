@@ -521,7 +521,7 @@ def peptide_identifications_to_df(peps: List[_PeptideIdentification], decode_ont
     return _pd.DataFrame(_np.fromiter((extract(pep) for pep in peps), dtype=dt, count=count))
 
 
-def update_scores_from_df(peps: List[PeptideIdentification], df : _pd.DataFrame, main_score_name : str):
+def update_scores_from_df(peps: List[_PeptideIdentification], df : _pd.DataFrame, main_score_name : str):
     """Updates the scores in PeptideIdentification objects using a pandas dataframe.
     Parameters:
     peps (List[PeptideIdentification]): list of PeptideIdentification objects
@@ -534,9 +534,11 @@ def update_scores_from_df(peps: List[PeptideIdentification], df : _pd.DataFrame,
 
     for index, row in df.iterrows():
         pid_index = int(row["P_ID"])
-        pi = PeptideIdentification(peps[pid_index])
-        pi.setScore(float(row[main_score_name]))
+        pi = _PeptideIdentification(peps[pid_index])
         pi.setScoreType(main_score_name)
+        hits = pi.getHits()
+        hits[0] = hits[0].setScore(float(row[main_score_name]))
+        pi.setHits(hits)
         rets[pid_index] = pi
 
     return rets
