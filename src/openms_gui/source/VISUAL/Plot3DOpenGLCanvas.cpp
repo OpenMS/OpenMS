@@ -1083,10 +1083,10 @@ namespace OpenMS
 
   void Plot3DOpenGLCanvas::dataToZoomArray_(double x_1, double y_1, double x_2, double y_2)
   {
-    double scale_x1 = scaledInversMZ_(x_1 + 100.0);
-    double scale_x2 = scaledInversMZ_(x_2 + 100.0);
-    double scale_y1 = scaledInversRT_(-200 - y_1);
-    double scale_y2 = scaledInversRT_(-200 - y_2);
+    double scale_x1 = scaledInversRT_(-200 - y_1);
+    double scale_x2 = scaledInversRT_(-200 - y_2);
+    double scale_y1 = scaledInversMZ_(x_1 + 100.0);
+    double scale_y2 = scaledInversMZ_(x_2 + 100.0);
     DRange<2> new_area_;
     if (scale_x1 > scale_x2)
     {
