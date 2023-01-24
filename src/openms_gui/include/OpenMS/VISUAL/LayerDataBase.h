@@ -188,6 +188,9 @@ namespace OpenMS
 
   @ingroup PlotWidgets
   */
+#ifdef _MSC_VER
+  #pragma warning(disable : 4250) // 'class1' : inherits 'class2::member' via dominance
+#endif
   class OPENMS_GUI_DLLAPI LayerDataBase : public LayerDataDefs
   {
   public:

@@ -92,7 +92,6 @@ namespace OpenMS
 
       // 2D view
       ui_->peak_2D->gradient().fromString(param_.getValue("2d:dot:gradient"));
-      ui_->mapping_2D->setCurrentIndex(ui_->mapping_2D->findText(String(param_.getValue("2d:mapping_of_mz_to").toString()).toQString()));
       ui_->feature_icon_2D->setCurrentIndex(ui_->feature_icon_2D->findText(String(param_.getValue("2d:dot:feature_icon").toString()).toQString()));
       ui_->feature_icon_size_2D->setValue((Int)param_.getValue("2d:dot:feature_icon_size"));
 
@@ -138,7 +137,6 @@ namespace OpenMS
       p.setValue("1d:icon_color", ui_->icon_1D->getColor().name().toStdString());
 
       p.setValue("2d:dot:gradient", ui_->peak_2D->gradient().toString());
-      p.setValue("2d:mapping_of_mz_to", ui_->mapping_2D->currentText().toStdString());
       p.setValue("2d:dot:feature_icon", ui_->feature_icon_2D->currentText().toStdString());
       p.setValue("2d:dot:feature_icon_size", ui_->feature_icon_size_2D->value());
 

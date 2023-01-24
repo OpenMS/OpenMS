@@ -482,16 +482,16 @@ def peptide_identifications_to_df(peps: List[_PeptideIdentification], decode_ont
     else:
         clearMVs = decodedMVs
         
-    clearcols = ["id", "RT", "mz", mainscorename, "charge", "protein_accession", "start", "end"] + clearMVs
-    coltypes = ['U100', 'f', 'f', 'f', 'i','U1000', 'U1000', 'U1000'] + types
+    clearcols = ["id", "RT", "mz", mainscorename, "charge", "protein_accession", "start", "end", "P_ID", "PSM_ID"] + clearMVs
+    coltypes = ['U100', 'f', 'f', 'f', 'i','U1000', 'U1000', 'U1000', 'i', 'i'] + types
     dt = list(zip(clearcols, coltypes))
 
-    def extract(pep):
+    def extract(pep, pep_idx):
         hits = pep.getHits()
         if not hits:
             if export_unidentified:
                 return (pep.getIdentifier().encode('utf-8'), pep.getRT(), pep.getMZ(), default_missing_values[float], default_missing_values[int],
-                        default_missing_values[str], default_missing_values[str], default_missing_values[str], *dmv)
+                        default_missing_values[str], default_missing_values[str], default_missing_values[str], pep_idx, default_missing_values[int], *dmv)
             else:
                 return
 
@@ -502,6 +502,9 @@ def peptide_identifications_to_df(peps: List[_PeptideIdentification], decode_ont
         ret += [','.join(v) if v else default_missing_values[str] for v in ([e.getProteinAccession() for e in evs],
                                                                             [str(e.getStart()) for e in evs],
                                                                             [str(e.getEnd()) for e in evs])]
+
+        ret += [str(pep_idx), 0] # we currently only export the first hit
+
         for k in metavals:
             if besthit.metaValueExists(k):
                 val = besthit.getMetaValue(k)
@@ -516,4 +519,34 @@ def peptide_identifications_to_df(peps: List[_PeptideIdentification], decode_ont
                 ret.append(default_missing_values[type(val)])
         return tuple(ret)
 
-    return _pd.DataFrame(_np.fromiter((extract(pep) for pep in peps), dtype=dt, count=count))
+    return _pd.DataFrame(_np.fromiter((extract(pep, pep_idx) for pep_idx, pep in enumerate(peps)), dtype=dt, count=count))
+
+
+def update_scores_from_df(peps: List[_PeptideIdentification], df : _pd.DataFrame, main_score_name : str):
+    """
+    Updates the scores in PeptideIdentification objects using a pandas dataframe.
+                
+    :param peps: list of PeptideIdentification objects
+    :param df: pandas dataframe obtained by converting peps to a dataframe. Minimum required: P_ID column and column with name passed by main_score_name
+    :return: the updated list of peptide identifications
+    """
+
+    rets = peps
+
+    for index, row in df.iterrows():
+        pid_index = int(row["P_ID"])
+        pi = _PeptideIdentification(peps[pid_index])
+        pi.setScoreType(main_score_name)
+        hits = pi.getHits() # type: list[PeptideHit]
+        if len(hits) > 0:
+            best_hit = hits[0]
+            best_hit.setScore(float(row[main_score_name]))
+            hits[0] = best_hit
+            pi.setHits(hits)
+
+        rets[pid_index] = pi
+
+    return rets
+
+
+

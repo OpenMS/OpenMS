@@ -182,9 +182,30 @@ namespace OpenMS
 
     // initialize algorithm classes needed later:
     Param params = feat_finder_.getParameters();
+
     params.setValue("stop_report_after_feature", -1); // return all features
+    params.setValue("EMGScoring:max_iteration", param_.getValue("EMGScoring:max_iteration")); // propagate setting to sub algorithms
+    params.setValue("EMGScoring:init_mom", param_.getValue("EMGScoring:init_mom")); // propagate setting to sub algorithms
     params.setValue("Scores:use_rt_score", "false"); // RT may not be reliable
-    params.setValue("write_convex_hull", "true");
+    params.setValue("Scores:use_ionseries_scores", "false"); // since FFID only uses MS1 spectra, this is useless
+    params.setValue("Scores:use_ms2_isotope_scores", "false"); // since FFID only uses MS1 spectra, this is useless
+    params.setValue("Scores:use_ms1_correlation", "false"); // this would be redundant to the "MS2" correlation and since
+    // precursor transition = first product transition, additionally biased
+    params.setValue("Scores:use_ms1_mi", "false"); // same as above. On MS1 level we basically only care about the "MS1 fullscan" scores
+    //TODO for MS1 level scoring there is an additional parameter add_up_spectra with which we can add up spectra
+    // around the apex, to complete isotopic envelopes (and therefore make this score more robust).
+
+    params.setValue("write_convex_hull", "true"); // some parts of FFMId expect convex hulls
+
+    if ((elution_model_ != "none") || (!candidates_out_.empty()))
+    {
+      params.setValue("Scores:use_elution_model_score", "false"); // TODO: test if this works for requantificiation
+    }
+    else // no elution model
+    {
+      params.setValue("Scores:use_elution_model_score", "true");  
+    }      
+    
     if (min_peak_width_ < 1.0)
     {
       min_peak_width_ *= peak_width_;
@@ -599,40 +620,43 @@ namespace OpenMS
                                 const FeatureBoundsMap& feature_bounds,
                                 vector<FeatureGroup>& overlap_groups)
   {
+    vector<FeatureGroup> current_overlaps;
+    vector<FeatureGroup> no_overlaps;
     for (Feature& feat : features)
     {
-      // @TODO: make this more efficient?
-      vector<FeatureGroup> current_overlaps;
-      vector<FeatureGroup> no_overlaps;
-      for (const FeatureGroup& group : overlap_groups)
+      // @TODO: make this more efficient? Can probably be converted to 
+      for (FeatureGroup& group : overlap_groups)
       {
         if (hasOverlappingFeature_(feat, group, feature_bounds))
         {
-          current_overlaps.push_back(group);
+          current_overlaps.push_back(std::move(group));
         }
         else
         {
-          no_overlaps.push_back(group);
+          no_overlaps.push_back(std::move(group));
         }
       }
+
       if (current_overlaps.empty()) // make new group for current feature
       {
-        FeatureGroup new_group(1, &(feat));
-        no_overlaps.push_back(new_group);
+        no_overlaps.push_back(FeatureGroup(1, &(feat)));
       }
       else // merge all groups that overlap the current feature, then add it
       {
         FeatureGroup& merged = current_overlaps.front();
-        for (vector<FeatureGroup>::const_iterator group_it =
-               ++current_overlaps.begin(); group_it != current_overlaps.end();
+        for (auto group_it = ++current_overlaps.begin(); 
+             group_it != current_overlaps.end();
              ++group_it)
         {
-          merged.insert(merged.end(), group_it->begin(), group_it->end());
+          merged.insert(merged.end(), std::make_move_iterator(group_it->begin()), std::make_move_iterator(group_it->end()));
         }
         merged.push_back(&feat);
-        no_overlaps.push_back(merged);
+        no_overlaps.push_back(std::move(merged));
       }
       overlap_groups.swap(no_overlaps);
+
+      current_overlaps.clear();
+      no_overlaps.clear();
     }
   }
 
