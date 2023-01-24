@@ -2008,13 +2008,6 @@ namespace OpenMS
       return;
     }
 
-    String caption = layer.getName();
-    // remove 3D suffix added when opening data in 3D mode (see below showCurrentPeaksAs3D())
-    if (caption.hasSuffix(CAPTION_3D_SUFFIX_))
-    {
-      caption = caption.prefix(caption.rfind(CAPTION_3D_SUFFIX_));
-    }
-    w->canvas()->setLayerName(w->canvas()->getCurrentLayerIndex(), caption);
     showPlotWidgetInWindow(w);
     updateMenu();
   }
@@ -2190,9 +2183,6 @@ namespace OpenMS
       w->canvas()->setVisibleArea(getActiveCanvas()->getVisibleArea());
     }
 
-    // set layer name
-    String caption = layer.getName() + CAPTION_3D_SUFFIX_;
-    w->canvas()->setLayerName(w->canvas()->getCurrentLayerIndex(), caption);
     showPlotWidgetInWindow(w);
 
     // set intensity mode (after spectrum has been added!)
