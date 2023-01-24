@@ -104,8 +104,6 @@ namespace OpenMS
   using namespace Internal;
   using namespace Math;
 
-  const String TOPPViewBase::CAPTION_3D_SUFFIX_ = " (3D)";
-
   const std::string user_section = "preferences:user:";
 
   /// supported types which can be opened with File-->Open
