@@ -41,6 +41,6 @@ namespace OpenMS
   class OPENMS_DLLAPI FeatureOverlapFilter
   {
     public:
-    static void filter(FeatureMap& fmap);
+    static void filter(FeatureMap& fmap, bool check_overlap_at_trace_level = false);
   };
 }

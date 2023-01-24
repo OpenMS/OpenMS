@@ -207,14 +207,7 @@ protected:
   void generateTransitions_(const String& target_id, double mz, Int charge,
                             const IsotopeDistribution& iso_dist);
 
-  /// Check if two sets of mass trace boundaries overlap
-  bool hasOverlappingBounds_(const std::vector<MassTraceBounds>& mtb1,
-                             const std::vector<MassTraceBounds>& mtb2) const;
-
-  void getFeatureBounds_(const FeatureMap& features,
-                         FeatureBoundsMap& feature_bounds);
-
-
+/*
   bool hasOverlappingFeature_(const Feature& feature, const FeatureGroup& group, 
                               const FeatureBoundsMap& feature_bounds) const;
 
@@ -224,7 +217,7 @@ protected:
 
   void resolveOverlappingFeatures_(FeatureGroup& group,
                                    const FeatureBoundsMap& feature_bounds);
-
+*/
   void annotateFeatures_(FeatureMap& features);
 
   void ensureConvexHulls_(Feature& feature) const;
