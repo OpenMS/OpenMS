@@ -693,4 +693,104 @@ namespace OpenMS::Internal::ClassTest
 
         return result;
       }
-}
+
+
+      void printLastException(std::ostream& out)
+      {
+        std::exception_ptr ex = std::current_exception();
+        try
+        {
+          std::rethrow_exception(ex);
+        } 
+        catch (::OpenMS::Exception::BaseException& e)
+        {
+          TEST::this_test = false;
+          TEST::test = false;
+          TEST::all_tests = false;
+          {
+            TEST::initialNewline();
+            out << "Error: Caught unexpected OpenMS exception of type '" << e.getName() << "'";
+            if ((e.getLine() > 0) && std::strcmp(e.getFile(), ""))
+            {
+              out << " thrown in line " << e.getLine() << " of file '" << e.getFile() << "' in function '" << e.getFunction() << "'";
+            }
+            out << " - Message: " << e.what() << std::endl;
+          }
+        } /* catch std:: exceptions */
+        catch (std::exception& e)
+        {
+          TEST::this_test = false;
+          TEST::test = false;
+          TEST::all_tests = false;
+          {
+            TEST::initialNewline();
+            out << "Error: Caught unexpected std::exception\n";
+            out << " - Message: " << e.what() << std::endl;
+          }
+        } /* catch all other exceptions */
+        catch (...)
+        {
+          TEST::this_test = false;
+          TEST::test = false;
+          TEST::all_tests = false;
+          {
+            TEST::initialNewline();
+            out << "Error: Caught unidentified and unexpected exception - No message." << std::endl;
+          }
+        }
+      }
+
+      int endTestPostProcess(std::ostream& out)
+      {
+        /* check validity of temporary files if known */
+        if (!TEST::validate(TEST::tmp_file_list))
+        {
+          TEST::all_tests = false;
+        }
+        if (TEST::verbose == 0)
+        {
+          out << "Output of successful tests were suppressed. Set the environment variable 'OPENMS_TEST_VERBOSE=True' to enable them." << std::endl;
+        } /* check for exit code */
+        if (!TEST::all_tests)
+        {
+          out << "FAILED\n";
+          if (TEST::add_message != "")
+            out << "Message: " << TEST::add_message << '\n';
+          out << "Failed lines: ";
+          for (OpenMS::Size i = 0; i < TEST::failed_lines_list.size(); ++i)
+          {
+            out << TEST::failed_lines_list[i] << " ";
+          }
+          out << std::endl;
+          return 1;
+        }
+        else
+        { /* remove temporary files*/
+          TEST::removeTempFiles();
+          out << "PASSED";
+          if (TEST::add_message != "")
+            out << " (" << TEST::add_message << ")";
+          out << std::endl;
+          return 0;
+        }
+      }
+      
+      void endSectionPostProcess(std::ostream& out, const int line)
+      {
+        TEST::all_tests = TEST::all_tests && TEST::test;
+        if (TEST::test)
+        {
+          out << ": passed\n";
+        }
+        else
+        {
+          out << ": failed\n";
+        }
+        if (TEST::test_count == 0)
+        {
+          if (OpenMS::String(TEST::test_name).has('~'))
+            out << "Warning: no subtests performed in '" << TEST::test_name << "' (line " << line << ")!\n";
+        }
+        stdcout << std::endl;
+      }
+  }
