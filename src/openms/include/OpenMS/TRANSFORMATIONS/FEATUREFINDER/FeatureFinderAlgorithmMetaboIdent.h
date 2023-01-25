@@ -207,17 +207,6 @@ protected:
   void generateTransitions_(const String& target_id, double mz, Int charge,
                             const IsotopeDistribution& iso_dist);
 
-/*
-  bool hasOverlappingFeature_(const Feature& feature, const FeatureGroup& group, 
-                              const FeatureBoundsMap& feature_bounds) const;
-
-  void findOverlappingFeatures_(FeatureMap& features,
-                                const FeatureBoundsMap& feature_bounds,
-                                std::vector<FeatureGroup>& overlap_groups);
-
-  void resolveOverlappingFeatures_(FeatureGroup& group,
-                                   const FeatureBoundsMap& feature_bounds);
-*/
   void annotateFeatures_(FeatureMap& features);
 
   void ensureConvexHulls_(Feature& feature) const;
