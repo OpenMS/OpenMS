@@ -98,7 +98,7 @@ using namespace std;
     IsobaricAnalyzer, this tool will use the spectrum ID attached to the feature to retrieve an identification from the idXML.
     
     <B>Annotation with mzML (both feature and consensusXML input):</B>\n
-    Instead of/In addition to annotating with putatively identified spectra (i.e., PSMs) from idXML, you can use the original spectra in an mzML to attach
+    Instead of/in addition to annotating with putatively identified spectra (i.e. PSMs) from idXML, you can use the original spectra in an mzML to attach
     all potential MS2 spectra to a (Consensus)Feature. See the @p spectra:in option.
 
     @note Currently mzIdentML (mzid) is not directly supported as an input/output format of this tool. Convert mzid files to/from idXML using @ref TOPP_IDFileConverter if necessary.
@@ -172,7 +172,7 @@ protected:
     registerFlag_("consensus:annotate_ids_with_subelements", "Store the map index of the sub-feature in the peptide ID.", true);
 
     registerTOPPSubsection_("spectra", "Options for annotating with original spectra");
-    registerInputFile_("spectra:in", "<file>", "", "Specifiy the underlying MS run (mzML) to also annotate unidentified spectra to features or consensus features.", false);
+    registerInputFile_("spectra:in", "<file>", "", "Specify the underlying MS run (mzML) to also annotate unidentified spectra to features or consensus features.", false);
     setValidFormats_("spectra:in", ListUtils::create<String>("mzML"));
   }
 
