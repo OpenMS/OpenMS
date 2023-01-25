@@ -38,6 +38,8 @@
 #include <Box.h>
 #include <unordered_set>
 
+#include <cmath>
+
 namespace OpenMS
 {
   /// Boundaries for a mass trace in a feature
@@ -142,9 +144,11 @@ namespace OpenMS
     return hasOverlappingBounds(fbm_it1->second, fbm_it2->second);
   }
 
-  void FeatureOverlapFilter::filter(FeatureMap& fmap, bool check_overlap_at_trace_level)
+  void FeatureOverlapFilter::filter(FeatureMap& fmap, std::function<bool(const Feature&, const Feature&)> FeatureComparator, bool check_overlap_at_trace_level)
   {
-    fmap.sortByOverallQuality(true);
+    // Sort all features according to the comparator. After the sort, the "smallest" == best feature will be the first entry we will start processing with...
+    std::sort(fmap.begin(), fmap.end(), FeatureComparator);
+
     const auto getBox = [](const Feature* f)
     {
         const auto& bb = f->getConvexHull().getBoundingBox();
@@ -156,6 +160,7 @@ namespace OpenMS
     float minRT = fmap.getMinRT();
     float maxRT = fmap.getMaxRT();
 
+    // build quadtree with all features
     quadtree::Box<float> fullExp(minMZ-1,minRT-1,maxMZ-minMZ+2,maxRT-minRT+2);
     auto quadtree = quadtree::Quadtree<Feature*, decltype(getBox)>(fullExp, getBox);
     for (auto& f : fmap)
@@ -175,17 +180,20 @@ namespace OpenMS
       {
         for (const auto& overlap : quadtree.query(getBox(&f)))
         {
-          bool is_true_overlap = true;
-
-          if (check_overlap_at_trace_level)
-          {            
-            is_true_overlap = tracesOverlap(f, *overlap, fbm) ? true : false;
-          }
-
-          if ((overlap != &f) && is_true_overlap)
+          if ((overlap != &f))
           {
-            removed_uids.insert(overlap->getUniqueId());
-            overlap->setOverallQuality(-1.); // used to filter
+            // Because feature boundaries might be large and lead to many overlapps, we (optionally) also can check if the boundaries of traces overlap
+            bool is_true_overlap = true;
+            if (check_overlap_at_trace_level)
+            {            
+              is_true_overlap = tracesOverlap(f, *overlap, fbm) ? true : false;
+            }
+
+            if (is_true_overlap)
+            {
+              removed_uids.insert(overlap->getUniqueId());
+              overlap->setOverallQuality(-1.); // used to filter
+            }
           }
         }
       }
@@ -193,7 +201,7 @@ namespace OpenMS
 
     const auto lowQuality = [](const Feature& f)
     {
-        return f.getOverallQuality() < 0;
+        return f.getOverallQuality() == -1.; // used to filter, is representable as float/double and can be exactly compared
     };
     fmap.erase(std::remove_if(fmap.begin(), fmap.end(), lowQuality), fmap.end());
 

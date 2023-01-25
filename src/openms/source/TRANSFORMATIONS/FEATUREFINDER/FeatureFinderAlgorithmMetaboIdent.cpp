@@ -263,7 +263,17 @@ namespace OpenMS
              << " features left after selection of best candidates." << endl;
 
     constexpr bool CHECK_TRACES_FOR_OVERLAP = true;
-    FeatureOverlapFilter::filter(features, CHECK_TRACES_FOR_OVERLAP);
+
+    // criterium used to select the best feature amongs overlapping ones (lower = better)
+    auto FeatureComparator = [](const Feature& left, const Feature& right)
+      {
+        double left_rt_delta = std::abs(double(left.getMetaValue("rt_deviation")));
+        double right_rt_delta = std::abs(double(right.getMetaValue("rt_deviation")));
+        size_t left_intensity = left.getIntensity();
+        size_t right_intensity = right.getIntensity();
+        return std::tie(left_rt_delta, right_intensity) < std::tie(right_rt_delta, left_intensity); // Note: left and right intensity are swapped because here higher is better
+      };
+    FeatureOverlapFilter::filter(features, FeatureComparator, CHECK_TRACES_FOR_OVERLAP);
 
     if (features.empty())
     {
@@ -463,112 +473,6 @@ namespace OpenMS
     te_rt.setRT(rt);
     target.rts.push_back(te_rt);
   }
-
-/*
-  /// Resolve overlapping features by picking the best and removing all others
-  void FeatureFinderAlgorithmMetaboIdent::resolveOverlappingFeatures_(FeatureGroup& group,
-                                   const FeatureBoundsMap& feature_bounds)
-  {
-    if (debug_level_ > 0)
-    {
-      String msg = "Overlapping features: ";
-      for (FeatureGroup::const_iterator it = group.begin(); it != group.end();
-           ++it)
-      {
-        if (it != group.begin())
-        {
-          msg += ", ";
-        }
-        msg += String((*it)->getMetaValue("PeptideRef")) + " (RT " +
-          String(float((*it)->getRT())) + ")";
-      }
-      OPENMS_LOG_DEBUG << msg << endl;
-    }
-
-    Feature* best_feature = nullptr;
-    while (!group.empty())
-    {
-      double best_rt_delta = numeric_limits<double>::infinity();
-      // best feature is the one with min. RT deviation to target:
-      for (FeatureGroup::const_iterator it = group.begin(); it != group.end();
-           ++it)
-      {
-        double rt_delta = abs(double((*it)->getMetaValue("rt_deviation")));
-        if ((rt_delta < best_rt_delta) ||
-            ((rt_delta == best_rt_delta) && ((*it)->getIntensity() >
-                                             best_feature->getIntensity())))
-        {
-          best_rt_delta = rt_delta;
-          best_feature = *it;
-        }
-        else if ((rt_delta == best_rt_delta) && ((*it)->getIntensity() ==
-                                                 best_feature->getIntensity()))
-        {
-          // are the features the same? (@TODO: use "Math::approximatelyEqual"?)
-          if (((*it)->getRT() == best_feature->getRT()) &&
-              ((*it)->getMZ() == best_feature->getMZ()))
-          {
-            // update annotations:
-            // @TODO: also adjust "formula" and "expected_rt"?
-            String label = best_feature->getMetaValue("label");
-            label += "/" + String((*it)->getMetaValue("label"));
-            best_feature->setMetaValue("label", label);
-            StringList alt_refs;
-            if (best_feature->metaValueExists("alt_PeptideRef"))
-            {
-              alt_refs = best_feature->getMetaValue("alt_PeptideRef");
-            }
-            alt_refs.push_back((*it)->getMetaValue("PeptideRef"));
-            best_feature->setMetaValue("alt_PeptideRef", alt_refs);
-          }
-          else
-          {
-            OPENMS_LOG_WARN
-              << "Warning: cannot decide between equally good feature candidates; picking the first one of "
-              << best_feature->getMetaValue("PeptideRef") << " (RT "
-              << float(best_feature->getRT()) << ") and "
-              << (*it)->getMetaValue("PeptideRef") << " (RT "
-              << float((*it)->getRT()) << ")." << endl;
-          }
-        }
-      }
-      // we have found a "best" feature, now remove other features that overlap:
-      FeatureGroup no_overlaps;
-      FeatureBoundsMap::const_iterator fbm_it1 =
-        feature_bounds.find(best_feature->getUniqueId());
-      for (FeatureGroup::const_iterator it = group.begin(); it != group.end();
-           ++it)
-      {
-        if (*it == best_feature)
-        {
-          continue;
-        }
-        FeatureBoundsMap::const_iterator fbm_it2 =
-          feature_bounds.find((*it)->getUniqueId());
-        if (hasOverlappingBounds_(fbm_it1->second, fbm_it2->second))
-        {
-          // keep a record of the feature that is getting removed:
-          String ref = String((*it)->getMetaValue("PeptideRef")) + " (RT " +
-            String(float((*it)->getRT())) + ")";
-          StringList overlap_refs;
-          if (best_feature->metaValueExists("overlap_removed"))
-          {
-            overlap_refs = best_feature->getMetaValue("overlap_removed");
-          }
-          overlap_refs.push_back(ref);
-          best_feature->setMetaValue("overlap_removed", overlap_refs);
-          (*it)->setMetaValue("FFMetId_remove", ""); // mark for removal
-        }
-        else
-        {
-          no_overlaps.push_back(*it);
-        }
-      }
-      group.swap(no_overlaps);
-    }
-  }
-*/
-
 
   /// Add relevant annotations/meta values to features
   void FeatureFinderAlgorithmMetaboIdent::annotateFeatures_(FeatureMap& features)

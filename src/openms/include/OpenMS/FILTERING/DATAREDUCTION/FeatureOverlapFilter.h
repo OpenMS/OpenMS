@@ -40,7 +40,21 @@ namespace OpenMS
 {
   class OPENMS_DLLAPI FeatureOverlapFilter
   {
-    public:
-    static void filter(FeatureMap& fmap, bool check_overlap_at_trace_level = false);
+    public:   
+    /*
+        @brief Filter overlapping features using a spatial datastructure (quadtree). 
+               Retains only the best feature in each cluster of overlapping features..
+
+        @param FeatureComparator must implement the concept of a less comparator.
+               If several features overlap, the feature that evaluates as the lowest one considered best (according to this comparator) and kept.
+               The other overlapping features are removed.
+
+        @ingroup Datareduction
+    */
+    static void filter(FeatureMap& fmap, std::function<bool(const Feature&, const Feature&)> FeatureComparator, bool check_overlap_at_trace_level = false);
   };
+
+
 }
+
+
