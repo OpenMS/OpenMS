@@ -55,10 +55,6 @@ namespace OpenMS
     LayerDataChrom(const LayerDataChrom& ld) = default;
     /// no assignment operator (should not be needed)
     LayerDataChrom& operator=(const LayerDataChrom& ld) = delete;
-    /// move C'tor
-    LayerDataChrom(LayerDataChrom&& ld) = default;
-    /// move assignment
-    LayerDataChrom& operator=(LayerDataChrom&& ld) = default;
 
     std::unique_ptr<Painter2DBase> getPainter2D() const override;
 
