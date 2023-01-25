@@ -28,8 +28,8 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Chris Bielow $
-// $Authors: Leon Bichmann, Timo Sachsenberg $
+// $Maintainer: Amit Kumar Mishra $
+// $Authors: Amit Kumar Mishra $
 // --------------------------------------------------------------------------
 
 #pragma once
