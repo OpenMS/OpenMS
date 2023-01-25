@@ -200,7 +200,7 @@ namespace OpenMS
       }
     }
 
-    const auto filtered = [](const Feature& f)
+    const auto filtered = [&removed_uids](const Feature& f)
     {
         return removed_uids.count(f.getUniqueId()) == 1;
     };
