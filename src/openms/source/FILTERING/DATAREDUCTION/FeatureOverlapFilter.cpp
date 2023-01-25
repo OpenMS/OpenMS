@@ -146,6 +146,7 @@ namespace OpenMS
 
   void FeatureOverlapFilter::filter(FeatureMap& fmap, std::function<bool(const Feature&, const Feature&)> FeatureComparator, bool check_overlap_at_trace_level)
   {
+    fmap.updateRanges();
     // Sort all features according to the comparator. After the sort, the "smallest" == best feature will be the first entry we will start processing with...
     std::sort(fmap.begin(), fmap.end(), FeatureComparator);
 
