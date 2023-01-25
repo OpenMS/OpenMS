@@ -52,20 +52,7 @@
 
 namespace OpenMS
 {
-
-  struct MobilityPeak
-  {
-    double im;
-    double intensity;
-    MobilityPeak ();
-    MobilityPeak (double im_, double int_) :
-      im(im_),
-      intensity(int_)
-    {}
-  };
-  typedef std::vector< MobilityPeak > IonMobilogram;
-
-  std::vector<double> computeGrid(const std::vector< IonMobilogram >& mobilograms, double eps)
+  std::vector<double> IonMobilityScoring::computeGrid_(const std::vector< IonMobilogram >& mobilograms, double eps)
   {
     // Extract all ion mobility values across all transitions and produce a
     // grid of all permitted ion mobility values
@@ -115,7 +102,7 @@ namespace OpenMS
    @param max_peak_idx The grid position of the maximum
 
   */
-  void alignToGrid(const IonMobilogram& profile,
+  void IonMobilityScoring::alignToGrid_(const IonMobilogram& profile,
                const std::vector<double>& im_grid,
                std::vector< double >& al_int_values,
                std::vector< double >& al_im_values,
@@ -160,15 +147,13 @@ namespace OpenMS
   }
 
   // compute ion mobilogram as well as im weighted average. This is based off of integrateWindows() in DIAHelper.cpp
-  void computeIonMobilogram(std::vector<OpenSwath::SpectrumPtr> spectra,
-                              double mz_start,
-                              double mz_end,
+  void IonMobilityScoring::computeIonMobilogram(const SpectrumSequence& spectra,
+                              const RangeMZ& mz_range,
+                              const RangeMobility& im_range,
                               double & im,
                               double & intensity,
                               IonMobilogram& res,
-                              double eps,
-                              double drift_start,
-                              double drift_end)
+                              double eps)
   {
 
     // rounding multiplier for the ion mobility value
@@ -191,7 +176,7 @@ namespace OpenMS
       auto im_it = spectrum->getDriftTimeArray()->data.begin();
 
       // this assumes that the spectra are sorted!
-      auto mz_it = std::lower_bound(spectrum->getMZArray()->data.begin(), mz_arr_end, mz_start);
+      auto mz_it = std::lower_bound(spectrum->getMZArray()->data.begin(), mz_arr_end, mz_range.getMin());
       // auto mz_it_end = std::lower_bound(mz_it, mz_arr_end, mz_end);
 
       // also advance intensity and ion mobility iterator now
@@ -200,9 +185,11 @@ namespace OpenMS
       std::advance(im_it, iterator_pos);
 
       // Start iteration from mz start, end iteration when mz value is larger than mz_end, only store only storing ion mobility values that are in the range
+      double mz_end = mz_range.getMax();
       while ( ( *mz_it < mz_end ) && (mz_it < mz_arr_end) )
       {
-        if ( *im_it >= drift_start && *im_it <= drift_end)
+
+        if (im_range.contains(*im_it))
         {
           intensity += (*int_it);
           im += (*int_it) * (*im_it);
@@ -232,19 +219,8 @@ namespace OpenMS
     }
   }
 
-
-  /**
-    @brief Integrate intensity in an ion mobility spectrum from start to end
-
-    This function will integrate the intensity in a spectrum between mz_start
-    and mz_end, returning the total intensity and an intensity-weighted drift
-    time value.
-
-    This function also returns the full ion mobility profile in "res".
-
-    @note If there is no signal, mz will be set to -1 and intensity to 0
-  */
-  void integrateDriftSpectrum(const OpenSwath::SpectrumPtr& spectrum,
+ /*
+ void integrateDriftSpectrum(const OpenSwath::SpectrumPtr& spectrum,
                               double mz_start,
                               double mz_end,
                               double & im,
@@ -305,6 +281,7 @@ namespace OpenMS
       res.emplace_back(k.first / IM_IDX_MULT, k.second );
     }
   }
+  */
 
   /// Constructor
   IonMobilityScoring::IonMobilityScoring() = default;
@@ -312,11 +289,10 @@ namespace OpenMS
   /// Destructor
   IonMobilityScoring::~IonMobilityScoring() = default;
 
-  void IonMobilityScoring::driftScoringMS1Contrast(const std::vector<OpenSwath::SpectrumPtr>& spectra, const std::vector<OpenSwath::SpectrumPtr>& ms1spectrum,
+  void IonMobilityScoring::driftScoringMS1Contrast(const SpectrumSequence& spectra, const std::vector<OpenSwath::SpectrumPtr>& ms1spectrum,
                                                    const std::vector<TransitionType> & transitions,
                                                    OpenSwath_Scores & scores,
-                                                   const double drift_lower,
-                                                   const double drift_upper,
+                                                   RangeMobility im_range,
                                                    const double dia_extract_window_,
                                                    const bool dia_extraction_ppm_,
                                                    const double drift_extra)
@@ -346,9 +322,9 @@ namespace OpenMS
 
     double eps = 1e-5; // eps for two grid cells to be considered equal
 
-    double drift_width = fabs(drift_upper - drift_lower);
-    double drift_lower_used = drift_lower - drift_width * drift_extra;
-    double drift_upper_used = drift_upper + drift_width * drift_extra;
+
+    // extend IM range by drift_extra
+    im_range.extendLeftRight(drift_extra);
 
     std::vector< IonMobilogram > mobilograms;
 
@@ -359,21 +335,23 @@ namespace OpenMS
       IonMobilogram res;
       const TransitionType transition = transitions[k];
       // Calculate the difference of the theoretical ion mobility and the actually measured ion mobility
-      double left(transition.getProductMZ()), right(transition.getProductMZ());
-      DIAHelpers::adjustExtractionWindow(right, left, dia_extract_window_, dia_extraction_ppm_);
-      computeIonMobilogram(spectra, left, right, im, intensity, res, eps, drift_lower_used, drift_upper_used);
+      RangeMZ mz_range(transition.getProductMZ());
+      mz_range.minSpanIfSingular(dia_extract_window_, dia_extraction_ppm_);
+
+      computeIonMobilogram(spectra, mz_range, im_range, im, intensity, res, eps);
       mobilograms.push_back( std::move(res) );
     }
 
     // Step 2: MS1 extraction
     double im(0), intensity(0);
     IonMobilogram ms1_profile;
-    double left(transitions[0].getPrecursorMZ()), right(transitions[0].getPrecursorMZ());
-    DIAHelpers::adjustExtractionWindow(right, left, dia_extract_window_, dia_extraction_ppm_);
-    computeIonMobilogram(ms1spectrum, left, right, im, intensity, ms1_profile, eps, drift_lower_used, drift_upper_used); // TODO: aggregate over isotopes
+    RangeMZ mz_range(transitions[0].getPrecursorMZ());
+    mz_range.minSpanIfSingular(dia_extract_window_, dia_extraction_ppm_);
+
+    computeIonMobilogram(ms1spectrum, mz_range, im_range, im, intensity, ms1_profile, eps); // TODO: aggregate over isotopes
     mobilograms.push_back(ms1_profile);
 
-    std::vector<double> im_grid = computeGrid(mobilograms, eps); // ensure grid is based on all profiles!
+    std::vector<double> im_grid = computeGrid_(mobilograms, eps); // ensure grid is based on all profiles!
     mobilograms.pop_back();
 
     // Step 3: Align the IonMobilogram vectors to the grid
@@ -382,13 +360,13 @@ namespace OpenMS
     {
       std::vector< double > arrInt, arrIM;
       Size max_peak_idx = 0;
-      alignToGrid(mobilogram, im_grid, arrInt, arrIM, eps, max_peak_idx);
+      alignToGrid_(mobilogram, im_grid, arrInt, arrIM, eps, max_peak_idx);
       aligned_mobilograms.push_back(arrInt);
     }
 
     std::vector< double > ms1_int_values, ms1_im_values;
     Size max_peak_idx = 0;
-    alignToGrid(ms1_profile, im_grid, ms1_int_values, ms1_im_values, eps, max_peak_idx);
+    alignToGrid_(ms1_profile, im_grid, ms1_int_values, ms1_im_values, eps, max_peak_idx);
 
     // Step 4: MS1 contrast scores
     {
@@ -427,9 +405,8 @@ namespace OpenMS
   void IonMobilityScoring::driftScoringMS1(const std::vector<OpenSwath::SpectrumPtr>& spectra,
                                            const std::vector<TransitionType> & transitions,
                                            OpenSwath_Scores & scores,
-                                           const double drift_lower,
-                                           const double drift_upper,
                                            const double drift_target,
+                                           RangeMobility im_range,
                                            const double dia_extract_window_,
                                            const bool dia_extraction_ppm_,
                                            const bool /* use_spline */,
@@ -446,14 +423,12 @@ namespace OpenMS
       }
     }
 
-    double drift_width = fabs(drift_upper - drift_lower);
-    double drift_lower_used = drift_lower - drift_width * drift_extra;
-    double drift_upper_used = drift_upper + drift_width * drift_extra;
+    im_range.extendLeftRight(drift_extra);
 
     double im(0), intensity(0), mz(0);
-    double left(transitions[0].getPrecursorMZ()), right(transitions[0].getPrecursorMZ());
-    DIAHelpers::adjustExtractionWindow(right, left, dia_extract_window_, dia_extraction_ppm_);
-    DIAHelpers::integrateWindow(spectra, left, right, mz, im, intensity, drift_lower_used, drift_upper_used);
+    RangeMZ mz_range(transitions[0].getPrecursorMZ());
+    mz_range.minSpanIfSingular(dia_extract_window_, dia_extraction_ppm_);
+    DIAHelpers::integrateWindow(spectra, mz, im, intensity, mz_range, im_range);
 
     // Record the measured ion mobility
     scores.im_ms1_drift = im;
@@ -466,9 +441,8 @@ namespace OpenMS
   void IonMobilityScoring::driftScoring(const std::vector<OpenSwath::SpectrumPtr>& spectra,
                                         const std::vector<TransitionType> & transitions,
                                         OpenSwath_Scores & scores,
-                                        const double drift_lower,
-                                        const double drift_upper,
                                         const double drift_target,
+                                        RangeMobility im_range,
                                         const double dia_extract_window_,
                                         const bool dia_extraction_ppm_,
                                         const bool /* use_spline */,
@@ -486,9 +460,8 @@ namespace OpenMS
 
     double eps = 1e-5; // eps for two grid cells to be considered equal
 
-    double drift_width = fabs(drift_upper - drift_lower);
-    double drift_lower_used = drift_lower - drift_width * drift_extra;
-    double drift_upper_used = drift_upper + drift_width * drift_extra;
+
+    im_range.extendLeftRight(drift_extra);
 
     double delta_drift = 0;
     double delta_drift_abs = 0;
@@ -507,9 +480,12 @@ namespace OpenMS
       double im(0), intensity(0);
 
       // Calculate the difference of the theoretical ion mobility and the actually measured ion mobility
-      double left(transition.getProductMZ()), right(transition.getProductMZ());
-      DIAHelpers::adjustExtractionWindow(right, left, dia_extract_window_, dia_extraction_ppm_);
-      computeIonMobilogram(spectra, left, right, im, intensity, res, eps, drift_lower_used, drift_upper_used);
+      RangeMZ mz_range(transition.getPrecursorMZ());
+      mz_range.minSpanIfSingular(dia_extract_window_, dia_extraction_ppm_);
+
+      //double left(transition.getProductMZ()), right(transition.getProductMZ());
+      //DIAHelpers::adjustExtractionWindow(right, left, dia_extract_window_, dia_extraction_ppm_);
+      computeIonMobilogram(spectra, mz_range, im_range, im, intensity, res, eps);
       mobilograms.push_back(res);
 
       // TODO what do to about those that have no signal ?
@@ -550,13 +526,13 @@ namespace OpenMS
     scores.im_drift_weighted = computed_im_weighted;
 
     // Step 2: Align the IonMobilogram vectors to the grid
-    std::vector<double> im_grid = computeGrid(mobilograms, eps);
+    std::vector<double> im_grid = computeGrid_(mobilograms, eps);
     std::vector< std::vector< double > > aligned_mobilograms;
     for (const auto & mobilogram : mobilograms)
     {
       std::vector< double > arr_int, arr_IM;
       Size max_peak_idx = 0;
-      alignToGrid(mobilogram, im_grid, arr_int, arr_IM, eps, max_peak_idx);
+      alignToGrid_(mobilogram, im_grid, arr_int, arr_IM, eps, max_peak_idx);
       if (!arr_int.empty()) aligned_mobilograms.push_back(arr_int);
     }
 

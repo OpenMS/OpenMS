@@ -336,18 +336,13 @@ namespace OpenMS
 
     // get drift time upper/lower offset (this assumes that all chromatograms
     // are derived from the same precursor with the same drift time)
-    double drift_lower(0), drift_upper(0);
-    if (!trgr_ident.getChromatograms().empty())
+    RangeMobility im_range;
+
+    if ( (!trgr_ident.getChromatograms().empty()) || (!trgr_ident.getPrecursorChromatograms().empty()) )
     {
       auto & prec = trgr_ident.getChromatograms()[0].getPrecursor();
-      drift_lower = prec.getDriftTime() - prec.getDriftTimeWindowLowerOffset();
-      drift_upper = prec.getDriftTime() + prec.getDriftTimeWindowUpperOffset();
-    }
-    else if (!trgr_ident.getPrecursorChromatograms().empty())
-    {
-      auto & prec = trgr_ident.getPrecursorChromatograms()[0].getPrecursor();
-      drift_lower = prec.getDriftTime() - prec.getDriftTimeWindowLowerOffset();
-      drift_upper = prec.getDriftTime() + prec.getDriftTimeWindowUpperOffset();
+      im_range.setMin(prec.getDriftTime()); // sets the minimum and maximum
+      im_range.minSpanIfSingular(prec.getDriftTimeWindowLowerOffset());
     }
 
     std::vector<std::string> native_ids_identification;
@@ -459,7 +454,7 @@ namespace OpenMS
 
         scorer.calculateDIAIdScores(idimrmfeature,
                                     trgr_ident.getTransition(native_ids_identification[i]),
-                                    swath_maps, diascoring_, tmp_scores, drift_lower, drift_upper);
+                                    swath_maps, im_range, diascoring_, tmp_scores);
 
         ind_isotope_correlation.push_back(tmp_scores.isotope_correlation);
         ind_isotope_overlap.push_back(tmp_scores.isotope_overlap);
@@ -480,6 +475,7 @@ namespace OpenMS
                                                 FeatureMap& output,
                                                 bool ms1only) const
   {
+    std::cout << "JOSH scoring peakgorups" << std::endl;
     if (PeptideRefMap_.empty())
     {
       throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
@@ -503,20 +499,19 @@ namespace OpenMS
 
     // get drift time upper/lower offset (this assumes that all chromatograms
     // are derived from the same precursor with the same drift time)
-    double drift_lower(0), drift_upper(0), drift_target(0);
-    if (!transition_group_detection.getChromatograms().empty())
+    RangeMobility im_range;
+    double drift_target(0);
+
+    if ( (!transition_group_detection.getChromatograms().empty()) || (!transition_group_detection.getPrecursorChromatograms().empty()) )
     {
       auto & prec = transition_group_detection.getChromatograms()[0].getPrecursor();
-      drift_lower = prec.getDriftTime() - prec.getDriftTimeWindowLowerOffset();
-      drift_upper = prec.getDriftTime() + prec.getDriftTimeWindowUpperOffset();
-      drift_target = prec.getDriftTime();
-    }
-    else if (!transition_group_detection.getPrecursorChromatograms().empty())
-    {
-      auto & prec = transition_group_detection.getPrecursorChromatograms()[0].getPrecursor();
-      drift_lower = prec.getDriftTime() - prec.getDriftTimeWindowLowerOffset();
-      drift_upper = prec.getDriftTime() + prec.getDriftTimeWindowUpperOffset();
-      drift_target = prec.getDriftTime();
+      double drift_time = prec.getDriftTime();
+
+      if (drift_time > 0)
+      {
+        im_range.setMin(drift_time); // sets the minimum and maximum
+        im_range.minSpanIfSingular(prec.getDriftTimeWindowLowerOffset());
+      }
     }
 
     // currently we cannot do much about the log messages and they mostly occur in decoy transition signals
@@ -645,7 +640,7 @@ namespace OpenMS
         // full spectra scores
         if (ms1_map_ && ms1_map_->getNrSpectra() > 0 && mrmfeature.getMZ() > 0)
         {
-          scorer.calculatePrecursorDIAScores(ms1_map_, diascoring_, precursor_mz, imrmfeature->getRT(), *pep, scores, drift_lower, drift_upper);
+          scorer.calculatePrecursorDIAScores(ms1_map_, diascoring_, precursor_mz, imrmfeature->getRT(), *pep, im_range, scores);
         }
         if (su_.use_ms1_fullscan)
         {
@@ -704,7 +699,7 @@ namespace OpenMS
           scorer.calculateDIAScores(imrmfeature,
                                     transition_group_detection.getTransitions(),
                                     swath_maps, ms1_map_, diascoring_, *pep, scores, masserror_ppm,
-                                    drift_lower, drift_upper, drift_target);
+                                    drift_target, im_range);
           mrmfeature.setMetaValue("masserror_ppm", masserror_ppm);
         }
         if (sonar_present && su_.use_sonar_scores)

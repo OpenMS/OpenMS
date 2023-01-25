@@ -42,6 +42,8 @@
 #include <OpenMS/OPENSWATHALGO/DATAACCESS/ITransition.h>
 #include <OpenMS/OPENSWATHALGO/DATAACCESS/TransitionExperiment.h>
 
+#include <OpenMS/KERNEL/RangeManager.h>
+
 namespace OpenMS
 {
   class TheoreticalSpectrumGenerator;
@@ -92,6 +94,8 @@ namespace OpenMS
 
 public:
 
+    using SpectrumSequence = std::vector<OpenSwath::SpectrumPtr>; // a vector of spectrum pointers that DIA scores can operate on, allows for clever integration of only the target region
+
     ///@name Constructors and Destructor
     //@{
     /// Default constructor
@@ -108,22 +112,20 @@ public:
     //@{
     /// Isotope scores, see class description
     void dia_isotope_scores(const std::vector<TransitionType>& transitions,
-                            std::vector<SpectrumPtrType>& spectrum,
+                            SpectrumSequence& spectrum,
                             OpenSwath::IMRMFeature* mrmfeature,
+                            const RangeMobility& im_range,
                             double& isotope_corr,
-                            double& isotope_overlap,
-			    double drift_lower,
-			    double drift_upper) const;
+                            double& isotope_overlap) const;
 
     /// Massdiff scores, see class description
     void dia_massdiff_score(const std::vector<TransitionType>& transitions,
-                            const std::vector<SpectrumPtrType>& spectrum,
+                            const SpectrumSequence& spectrum,
                             const std::vector<double>& normalized_library_intensity,
+                            const RangeMobility& im_range,
                             double& ppm_score,
                             double& ppm_score_weighted,
-                            std::vector<double>& diff_ppm,
-			    double drift_start,
-			    double drift_end) const;
+                            std::vector<double>& diff_ppm) const;
 
     /**
       Precursor massdifference score
@@ -133,27 +135,26 @@ public:
       @param ppm_score Resulting score
       @return False if no signal was found (and no sensible score calculated), true otherwise
     */
-    bool dia_ms1_massdiff_score(double precursor_mz, std::vector<SpectrumPtrType>& spectrum,
-                                double& ppm_score, double drift_start, double drift_end) const;
+    bool dia_ms1_massdiff_score(double precursor_mz, const SpectrumSequence& spectrum, const RangeMobility& im_range,
+                                double& ppm_score) const;
 
     /// Precursor isotope scores for precursors (peptides and metabolites)
-    void dia_ms1_isotope_scores_averagine(double precursor_mz, const std::vector<SpectrumPtrType>& spectrum,
-                                          double& isotope_corr, double& isotope_overlap, int charge_state, double drift_start, double drift_end) const;
-    void dia_ms1_isotope_scores(double precursor_mz, const std::vector<SpectrumPtrType>& spectrum,
-                                double& isotope_corr, double& isotope_overlap, const EmpiricalFormula& sum_formula, double drift_start, double drift_end) const;
+    void dia_ms1_isotope_scores_averagine(double precursor_mz, const std::vector<SpectrumPtrType>& spectrum, int charge_state, RangeMobility& im_range,
+                                          double& isotope_corr, double& isotope_overlap) const;
+    void dia_ms1_isotope_scores(double precursor_mz, const std::vector<SpectrumPtrType>& spectrum, RangeMobility& im_range,
+                                double& isotope_corr, double& isotope_overlap, const EmpiricalFormula& sum_formula) const;
 
 
     /// b/y ion scores
-    void dia_by_ion_score(const std::vector<SpectrumPtrType>& spectrum, AASequence& sequence,
-                          int charge, double& bseries_score, double& yseries_score, double drift_start, double drift_end) const;
+    void dia_by_ion_score(const SpectrumSequence& spectrum, AASequence& sequence,
+                          int charge, const RangeMobility& im_range, double& bseries_score, double& yseries_score) const;
 
     /// Dotproduct / Manhattan score with theoretical spectrum
     void score_with_isotopes(std::vector<SpectrumPtrType>& spectrum,
                              const std::vector<TransitionType>& transitions,
+                             const RangeMobility& im_range,
                              double& dotprod,
-                             double& manhattan,
-                             double drift_start,
-                             double drift_end) const;
+                             double& manhattan) const;
     //@}
 
 private:
@@ -171,8 +172,9 @@ private:
     void diaIsotopeScoresSub_(const std::vector<TransitionType>& transitions,
                               const std::vector<SpectrumPtrType>& spectrum,
                               std::map<std::string, double>& intensities,
+                              const RangeMobility& im_range,
                               double& isotope_corr,
-                              double& isotope_overlap, double drift_start, double drift_end) const;
+                              double& isotope_overlap) const;
 
     /// retrieves intensities from MRMFeature
     /// computes a vector of relative intensities for each feature (output to intensities)
@@ -198,7 +200,7 @@ private:
       @param nr_occurrences Will contain the maximum ratio of a peaks intensity compared to the monoisotopic peak intensity how often a peak is found at lower m/z than mono_mz with an intensity higher than mono_int. Multiple charge states are tested, see class parameter dia_nr_charges_
 
     */
-    void largePeaksBeforeFirstIsotope_(const std::vector<SpectrumPtrType>& spectrum, double mono_mz, double mono_int, int& nr_occurrences, double& max_ratio, double drift_start, double drift_end) const;
+    void largePeaksBeforeFirstIsotope_(const SpectrumSequence& spectrum, double mono_mz, double mono_int, int& nr_occurrences, double& max_ratio, const RangeMobility& im_range) const;
 
     /**
       @brief Compare an experimental isotope pattern to a theoretical one
@@ -234,9 +236,8 @@ private:
 
     /// Get the intensities of isotopes around @p precursor_mz in experimental @p spectrum
     /// and fill @p isotopes_int.
-    void getIsotopeIntysFromExpSpec_(double precursor_mz, const std::vector<SpectrumPtrType>& spectrum,
-                                     std::vector<double>& isotopes_int,
-                                     int charge_state, double drift_start, double drift_end) const;
+    void getIsotopeIntysFromExpSpec_(double precursor_mz, const SpectrumSequence& spectrum, int charge_state, const RangeMobility& im_range,
+                                     std::vector<double>& isotopes_int) const;
 
     // Parameters
     double dia_extract_window_;

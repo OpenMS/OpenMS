@@ -213,20 +213,12 @@ namespace OpenMS
         OpenSwath::SpectrumPtr spectrum_ = swath_map->getSpectrumById(closest_idx);
 
         // integrate intensity within that scan
-        double left = transitions[k].getProductMZ();
-        double right = transitions[k].getProductMZ();
-        if (dia_extraction_ppm_)
-        {
-          left -= left * dia_extract_window_ / 2e6;
-          right += right * dia_extract_window_ / 2e6;
-        }
-        else
-        {
-          left -= dia_extract_window_ / 2.0;
-          right += dia_extract_window_ / 2.0;
-        }
+        RangeMZ mz_range(transitions[k].getProductMZ());
+        mz_range.minSpanIfSingular(dia_extract_window_, dia_extraction_ppm_);
+
         double mz, intensity, im; // create im even though not used
-        DIAHelpers::integrateWindow(spectrum_, left, right, mz, im, intensity, -1, -1, dia_centroided_);
+        RangeMobility im_range;
+        DIAHelpers::integrateWindow(spectrum_, mz, im, intensity, mz_range, im_range, dia_centroided_);
 
         sonar_profile.push_back(intensity);
         sonar_mz_profile.push_back(mz);

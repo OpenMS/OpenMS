@@ -79,8 +79,8 @@ namespace OpenMS
   }
 
   void DiaPrescore::operator()(const OpenSwath::SpectrumAccessPtr& swath_ptr,
-                               OpenSwath::LightTargetedExperiment& transition_exp_used,
-                               OpenSwath::IDataFrameWriter* ivw, double drift_start, double drift_end) const
+                               OpenSwath::LightTargetedExperiment& transition_exp_used, const RangeMobility& im_range,
+                               OpenSwath::IDataFrameWriter* ivw) const
   {
     //getParams();
     typedef std::map<std::string, std::vector<OpenSwath::LightTransition> > Mmap;
@@ -122,7 +122,7 @@ namespace OpenMS
         double score1;
         double score2;
         //OpenSwath::LightPeptide pep;
-        score(spec, beg->second, score1, score2, drift_start, drift_end);
+        score(spec, beg->second, im_range, score1, score2);
 
         score1v.push_back(score1);
         score2v.push_back(score2);
@@ -135,12 +135,11 @@ namespace OpenMS
     } //end of for loop over spectra
   }
 
-  void DiaPrescore::score(std::vector<OpenSwath::SpectrumPtr>& spec,
+  void DiaPrescore::score(const SpectrumSequence& spec,
                           const std::vector<OpenSwath::LightTransition>& lt,
+                          const RangeMobility& im_range,
                           double& dotprod,
-                          double& manhattan,
-                          double drift_start,
-                          double drift_end) const
+                          double& manhattan) const
   {
     std::vector<std::pair<double, double> > res;
     std::vector<std::pair<double, double> > spectrumWIso, spectrumWIsoNegPreIso;
@@ -188,7 +187,7 @@ namespace OpenMS
     DIAHelpers::extractFirst(spectrumWIso, mzTheor);
     DIAHelpers::extractSecond(spectrumWIso, intTheor);
     std::vector<double> intExp, mzExp, imExp;
-    DIAHelpers::integrateWindows(spec, mzTheor, dia_extract_window_, intExp, mzExp, imExp, drift_start, drift_end);
+    DIAHelpers::integrateWindows(spec, mzTheor, dia_extract_window_, intExp, mzExp, imExp, im_range);
     std::transform(intExp.begin(), intExp.end(), intExp.begin(), [](double val){return std::sqrt(val);});
     std::transform(intTheor.begin(), intTheor.end(), intTheor.begin(), [](double val){return std::sqrt(val);});
 

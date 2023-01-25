@@ -39,6 +39,8 @@
 #include <OpenMS/OPENSWATHALGO/DATAACCESS/TransitionExperiment.h>
 
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
+#include <OpenMS/KERNEL/RangeManager.h>
+#include <OpenMS/ANALYSIS/OPENSWATH/DIAHelper.h>
 
 namespace OpenMS
 {
@@ -64,6 +66,7 @@ namespace OpenMS
     int nr_charges_;
 public:
 
+    using SpectrumSequence = std::vector<OpenSwath::SpectrumPtr>; // a vector of spectrum pointers that DIA scores can operate on, allows for clever integration of only the target region
     DiaPrescore();
 
     DiaPrescore(double dia_extract_window, int nr_isotopes = 4, int nr_charges = 4);
@@ -79,20 +82,19 @@ public:
       and compute manhattan distance and dotprod score between spectrum intensities
       and simulated spectrum.
     */
-    void score(std::vector<OpenSwath::SpectrumPtr>& spec,
+    void score(const SpectrumSequence& spec,
                const std::vector<OpenSwath::LightTransition>& lt,
+               const RangeMobility& im_range,
                double& dotprod,
-               double& manhattan,
-               double drift_start,
-               double drift_end) const;
+               double& manhattan) const;
 
     /**
       @brief Compute manhattan and dotprod score for all spectra which can be accessed by
       the SpectrumAccessPtr for all transitions groups in the LightTargetedExperiment.
     */
     void operator()(const OpenSwath::SpectrumAccessPtr& swath_ptr,
-                    OpenSwath::LightTargetedExperiment& transition_exp_used,
-                    OpenSwath::IDataFrameWriter* ivw, double drift_start, double drift_end) const;
+                    OpenSwath::LightTargetedExperiment& transition_exp_used, const RangeMobility& range_im,
+                    OpenSwath::IDataFrameWriter* ivw) const;
   };
 
 

@@ -65,7 +65,17 @@ namespace OpenMS
   public:
     /// C'tor: initialize with empty range
     RangeBase() = default;
-    
+    /*
+    RangeBase():
+     min_(0), max_(-1);
+    */
+
+    /// Cutom C'tor which sets the range to a singular point
+    RangeBase(const double single) :
+      min_(single), max_(single)
+    {
+    }
+
     /// Custom C'tor to set min and max
     /// @throws Exception::InvalidRange if min > max
     RangeBase(const double min, const double max) :
@@ -107,7 +117,7 @@ namespace OpenMS
     /// is the range empty (i.e. min > max)?
     bool isEmpty() const
     {
-      return min_ > max_; 
+      return min_ > max_;
     }
 
     /// is @p value within [min, max]?
@@ -123,11 +133,11 @@ namespace OpenMS
     }
 
     /** @name Accessors for min and max
-      
+
         We use accessors, to keep range consistent (i.e. ensure that min <= max)
     */
-    ///@{  
-    
+    ///@{
+
     /// sets the minimum (and the maximum, if uninitialized)
     void setMin(const double min)
     {
@@ -163,7 +173,7 @@ namespace OpenMS
       min_ = std::min(min_, other.min_);
       max_ = std::max(max_, other.max_);
     }
-    
+
     /// extend the range such that it includes the given @p value
     void extend(const double value)
     {
@@ -240,7 +250,7 @@ namespace OpenMS
 
        Let d = max - min; then min = min - d*(factor-1)/2,
        i.e. scale(1.5) extends the range by 25% on each side.
- 
+
        Scaling an empty range will not have any effect.
 
        @param factor The multiplier to increase the range by
@@ -300,7 +310,7 @@ namespace OpenMS
     double min_ = std::numeric_limits<double>::max();
     double max_ = std::numeric_limits<double>::lowest();
   };
-  
+
   OPENMS_DLLAPI std::ostream& operator<<(std::ostream& out, const RangeBase& b);
 
   struct OPENMS_DLLAPI RangeRT : public RangeBase {
@@ -311,7 +321,7 @@ namespace OpenMS
     using RangeBase::RangeBase; // inherit C'tors from base
 
     /** @name Accessors for min and max
-      
+
         We use accessors, to keep range consistent (i.e. ensure that min <= max)
     */
     ///@{
@@ -359,7 +369,7 @@ namespace OpenMS
       return RangeBase::contains(inner_range);
     }
   };
-  
+
   OPENMS_DLLAPI std::ostream& operator<<(std::ostream& out, const RangeRT& range);
 
   struct OPENMS_DLLAPI RangeMZ : public RangeBase
@@ -371,7 +381,7 @@ namespace OpenMS
     using RangeBase::RangeBase; // inherit C'tors from base
 
     /** @name Accessors for min and max
-      
+
         We use accessors, to keep range consistent (i.e. ensure that min <= max)
     */
     ///@{
@@ -413,6 +423,24 @@ namespace OpenMS
       return RangeBase::contains(value);
     }
 
+    /* If the current range is a single point (e.g. min==max), then extend the range by min_span/2 on either side.
+     * If @p ppm is True, range min_span is assumed to be in ppm
+     * Unit of min_span is in ppm
+     * @note ranges cannot be negative, will autocorrect to 0 if have a negative value
+     */
+    void minSpanIfSingular(const double min_span, const bool ppm)
+    {
+        RangeBase::minSpanIfSingular(min_span);
+        if ( ( min_ == max_ ) & (ppm) )
+        {
+          scaleBy(1/1e6);
+        }
+        if (min_ < 0)
+        {
+          min_ = 0;
+        }
+    }
+
     /// is the range @p inner_range within [min, max] of this range?
     bool containsMZ(const RangeBase& inner_range) const
     {
@@ -429,7 +457,7 @@ namespace OpenMS
     using RangeBase::RangeBase; // inherit C'tors from base
 
     /** @name Accessors for min and max
-      
+
         We use accessors, to keep range consistent (i.e. ensure that min <= max)
     */
     ///@{
@@ -487,7 +515,7 @@ namespace OpenMS
     using RangeBase::RangeBase; // inherit C'tors from base
 
     /** @name Accessors for min and max
-      
+
         We use accessors, to keep range consistent (i.e. ensure that min <= max)
     */
     ///@{
@@ -537,7 +565,7 @@ namespace OpenMS
   };
 
   OPENMS_DLLAPI std::ostream& operator<<(std::ostream& out, const RangeMobility& range);
-  
+
   /// Enum listing state of dimensions (RangeBases)
   enum class HasRangeType
   {
@@ -616,7 +644,7 @@ namespace OpenMS
         throw Exception::InvalidRange(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION , "No assignment took place (no dimensions in common!);");
       }
       return *this;
-    }                 
+    }
 
     /// extend all dimensions which overlap with @p rhs to contain the range of @p rhs
     /// Dimensions which are not contained in @p rhs are left untouched.
@@ -709,7 +737,7 @@ namespace OpenMS
       }
     }
 
-    
+
     /// Clamp min/max of all overlapping dimensions to min/max of @p rhs
     /// Dimensions which are not contained in @p rhs or where rhs is empty are left untouched.
     /// @param rhs Range to clamp to
@@ -773,7 +801,7 @@ namespace OpenMS
       assert((r_base != nullptr) && "No base class has this MSDim!");
       return *r_base;
     }
-    
+
     /// is any/some/all dimension in this range populated?
     HasRangeType hasRange() const
     {
@@ -890,7 +918,7 @@ namespace OpenMS
     return out;
   }
 
-  /// use this class as a base class for containers, e.g. MSSpectrum. It forces them to implement 'updateRanges()' as a common interface 
+  /// use this class as a base class for containers, e.g. MSSpectrum. It forces them to implement 'updateRanges()' as a common interface
   /// and provides a 'getRange()' member which saves casting to a range type manually
   template <typename ...RangeBases>
   class RangeManagerContainer

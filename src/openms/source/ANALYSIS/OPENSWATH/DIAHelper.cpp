@@ -72,13 +72,11 @@ namespace OpenMS::DIAHelpers
     // no expensive division calls
     // assumes mz, im and intensity should already be initiated.
     void _integrateWindowHelper(const OpenSwath::SpectrumPtr& spectrum,
-                double mz_start,
-                double mz_end,
                 double & mz,
                 double & im,
                 double & intensity,
-                double drift_start,
-                double drift_end,
+                const RangeMZ & mz_range,
+                const RangeMobility & im_range,
                 bool centroided)
     {
       OPENMS_PRECONDITION(spectrum != nullptr, "Spectrum cannot be nullptr");
@@ -89,8 +87,8 @@ namespace OpenMS::DIAHelpers
       OPENMS_PRECONDITION(spectrum->getMZArray()->data.size() == spectrum->getIntensityArray()->data.size(), "MZ and Intensity array need to have the same length.");
 
       // ion mobility specific preconditions
-      OPENMS_PRECONDITION(drift_start < 0 || spectrum->getDriftTimeArray() != nullptr, "Cannot integrate with drift time if no drift time is available.");
-      OPENMS_PRECONDITION(drift_start < 0 || spectrum->getMZArray()->data.size() == spectrum->getDriftTimeArray()->data.size(), "MZ and Drift Time array need to have the same length.");
+      OPENMS_PRECONDITION(im_range.isEmpty() || spectrum->getDriftTimeArray() != nullptr, "Cannot integrate with drift time if no drift time is available.");
+      OPENMS_PRECONDITION(im_range.isEmpty() || spectrum->getMZArray()->data.size() == spectrum->getDriftTimeArray()->data.size(), "MZ and Drift Time array need to have the same length.");
 
       OPENMS_PRECONDITION(!centroided,  throw Exception::NotImplemented(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION));
 
@@ -100,8 +98,11 @@ namespace OpenMS::DIAHelpers
         return;
       }
 
-      // check if drift time is set and if it is present
-      if (drift_start >= 0) // user wants integration across drift time
+      std::cout << "IntegrateWindowHelper: im_range is" << im_range.getMin() << " to " << im_range.getMax() << std::endl;
+      std::cout << "IntegrateWindowHelper: im_range isEmpty: " << im_range.isEmpty() << std::endl;
+
+      // if im_range is set, than integrate across dirft time
+      if (!im_range.isEmpty()) // if imRange supplied, integrate across IM
       {
         if (spectrum->getDriftTimeArray() == nullptr)
         {
@@ -117,13 +118,15 @@ namespace OpenMS::DIAHelpers
         auto int_it = spectrum->getIntensityArray()->data.begin();
 
         // this assumes that the spectra are sorted!
-        auto mz_it = std::lower_bound(spectrum->getMZArray()->data.begin(), mz_arr_end, mz_start);
+        auto mz_it = std::lower_bound(spectrum->getMZArray()->data.begin(), mz_arr_end, mz_range.getMin());
 
         // also advance intensity iterator now
         auto iterator_pos = std::distance(spectrum->getMZArray()->data.begin(), mz_it);
         std::advance(int_it, iterator_pos);
 
-        if ( drift_start >= 0 ) // integrate across im as well
+        double mz_end = mz_range.getMax(); // store the maximum mz value in a double to minimize function calls
+
+        if ( !im_range.isEmpty() ) // integrate across im as well
         {
           auto im_it = spectrum->getDriftTimeArray()->data.begin();
 
@@ -131,9 +134,10 @@ namespace OpenMS::DIAHelpers
           std::advance(im_it, iterator_pos);
 
           // Start iteration from mz start, end iteration when mz value is larger than mz_end, only store only storing ion mobility values that are in the range
+          //while ( (mz_it != mz_arr_end) && (*mz_it < mz_end) )
           while ( (mz_it != mz_arr_end) && (*mz_it < mz_end) )
           {
-            if ( *im_it >= drift_start && *im_it <= drift_end)
+            if (im_range.contains(*im_it))
             {
               intensity += (*int_it);
               im += (*int_it) * (*im_it);
@@ -169,8 +173,7 @@ namespace OpenMS::DIAHelpers
                           std::vector<double> & integratedWindowsIntensity,
                           std::vector<double> & integratedWindowsMZ,
 			  std::vector<double> & integratedWindowsIm,
-			  double drift_start,
-			  double drift_end,
+                          const RangeMobility & range_im,
                           bool remZero)
     {
       std::vector<double>::const_iterator beg = windowsCenter.begin();
@@ -178,9 +181,12 @@ namespace OpenMS::DIAHelpers
       double mz, intensity, im;
       for (; beg != end; ++beg)
       {
+        // assemble RangeMZ object based on window
         double left = *beg - width / 2.0;
         double right = *beg + width / 2.0;
-        if (integrateWindow(spectrum, left, right, mz, im, intensity, drift_start, drift_end, false))
+        RangeMZ range_mz(left, right);
+
+        if (integrateWindow(spectrum, mz, im, intensity, range_mz, range_im, false))
         {
           integratedWindowsIntensity.push_back(intensity);
           integratedWindowsMZ.push_back(mz);
@@ -190,20 +196,22 @@ namespace OpenMS::DIAHelpers
         {
           integratedWindowsIntensity.push_back(0.);
           integratedWindowsMZ.push_back(*beg);
-          integratedWindowsIm.push_back( (drift_start + drift_end) / 2.0 ); // average drift time
+          if ( !range_im.isEmpty() )
+          {
+            integratedWindowsIm.push_back( range_im.center() ); // average drift time
+          }
         }
       }
     }
 
 
-    void integrateWindows(const std::vector<OpenSwath::SpectrumPtr>& spectra,
+    void integrateWindows(const SpectrumSequence& spectra,
                           const std::vector<double> & windowsCenter,
                           double width,
                           std::vector<double> & integratedWindowsIntensity,
                           std::vector<double> & integratedWindowsMZ,
 			  std::vector<double> & integratedWindowsIm,
-			  double drift_start,
-			  double drift_end,
+                          const RangeMobility& range_im,
                           bool remZero)
     {
 
@@ -224,10 +232,13 @@ namespace OpenMS::DIAHelpers
       std::vector<double>::const_iterator end = windowsCenter.end();
       for (; beg != end; ++beg)
       {
+        //assemble rangeMZ object based on windows
         double left = *beg - width / 2.0;
         double right = *beg + width / 2.0;
 
-        if (integrateWindow(spectra, left, right, mz, im, intensity, drift_start, drift_end, false))
+        RangeMZ range_mz(left, right);
+
+        if (integrateWindow(spectra, mz, im, intensity, range_mz, range_im, false))
         {
           integratedWindowsIntensity.push_back(intensity);
           integratedWindowsMZ.push_back(mz);
@@ -237,19 +248,20 @@ namespace OpenMS::DIAHelpers
         {
           integratedWindowsIntensity.push_back(0.);
           integratedWindowsMZ.push_back(*beg); // push back center of window
-          integratedWindowsIm.push_back( (drift_start + drift_end) / 2.0); // push back average drift
+          if ( !range_im.isEmpty() )
+          {
+            integratedWindowsIm.push_back(range_im.center()); // push back average drift
+          }
         }
       }
     }
 
     bool integrateWindow(const OpenSwath::SpectrumPtr& spectrum,
-                                              double mz_start,
-                                              double mz_end,
                                               double & mz,
                                               double & im,
                                               double & intensity,
-                                              double drift_start,
-                                              double drift_end,
+                                              const RangeMZ & range_mz,
+                                              const RangeMobility & range_im,
                                               bool centroided)
     {
 
@@ -258,14 +270,14 @@ namespace OpenMS::DIAHelpers
       im = 0;
       intensity = 0;
 
-      _integrateWindowHelper(spectrum, mz_start, mz_end, mz, im, intensity, drift_start, drift_end, centroided);
+      _integrateWindowHelper(spectrum, mz, im, intensity, range_mz, range_im, centroided);
 
       // Post processing get the weighted average mz and im by dividing my intensity
       if (intensity > 0.)
       {
         mz /= intensity;
 
-        if (drift_start >= 0.)
+        if ( !range_im.isEmpty() )
         {
           im /= intensity;
         }
@@ -284,14 +296,12 @@ namespace OpenMS::DIAHelpers
       }
     }
 
-    bool integrateWindow(const std::vector<OpenSwath::SpectrumPtr>& spectra,
-                                              double mz_start,
-                                              double mz_end,
+    bool integrateWindow(const SpectrumSequence& spectra,
                                               double & mz,
                                               double & im,
                                               double & intensity,
-                                              double drift_start,
-                                              double drift_end,
+                                              const RangeMZ & range_mz,
+                                              const RangeMobility & range_im,
                                               bool centroided)
     {
       // initiate the values
@@ -303,14 +313,14 @@ namespace OpenMS::DIAHelpers
       {
         for (const auto& s : spectra)
         {
-          _integrateWindowHelper(s, mz_start, mz_end, mz, im, intensity, drift_start, drift_end, centroided);
+          _integrateWindowHelper(s, mz, im, intensity, range_mz, range_im, centroided);
         }
 
         // Post processing get the weighted average mz and im by dividing my intensity
         if (intensity > 0.)
         {
           mz /= intensity;
-          if (drift_start >= 0)
+          if ( !range_im.isEmpty() )
           {
             im /= intensity;
           }
