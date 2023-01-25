@@ -150,7 +150,7 @@ namespace OpenMS
       {
         LocalPeakType p;
         p.setMZ(it->getX());
-        p.setIntensity(it->getY());
+        p.setIntensity(LocalPeakType::IntensityType(it->getY()));
         filter_spec.push_back(p);
       }
 
