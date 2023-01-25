@@ -46,7 +46,7 @@ namespace OpenMS
                Retains only the best feature in each cluster of overlapping features..
 
         @param FeatureComparator must implement the concept of a less comparator.
-               If several features overlap, the feature that evaluates as the lowest one considered best (according to this comparator) and kept.
+               If several features overlap, the feature that evaluates as "smallest" is considered the best (according to the passed comparator) and is kept.
                The other overlapping features are removed.
 
         @ingroup Datareduction
