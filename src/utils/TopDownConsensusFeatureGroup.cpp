@@ -64,10 +64,11 @@ public:
   }
 
 private:
-  String QUANT_METHOD;
-  double MASS_TOL;
-  int RT_TOL;
-  Size REP_COUNT;
+  String QUANT_METHOD_;
+  double MASS_TOL_;
+  String MASS_TOL_UNIT_;
+  int RT_TOL_;
+  Size REP_COUNT_;
 
 protected:
   void registerOptionsAndFlags_() override
@@ -77,8 +78,10 @@ protected:
     registerOutputFile_("out", "<file>", "", "Output tsv file", true);
     setValidFormats_("out", ListUtils::create<String>("tsv"));
 
-    registerDoubleOption_("mass_tol", "<value>", 1.5, "Mass tolerance in Dalton.", false);
+    registerDoubleOption_("mass_tol", "<value>", 100, "Mass tolerance.", false);
     setMinFloat_("mass_tol", 0.0);
+    registerStringOption_("mass_tol_unit", "<choice>", "ppm", "Mass tolerance unit", false);
+    setValidStrings_("mass_tol_unit", {"ppm", "dalton"});
     registerIntOption_("rt_tol", "<integer>", 180, "Retention time tolerance for MedianApexRetentionTime in second", false);
     setMinInt_("rt_tol", 0);
     registerStringOption_("quant_method", "<choice>", "FeatureGroupQuantity", "Quantity value to use from FLASHDeconvQ result", false);
@@ -184,7 +187,7 @@ protected:
       fg.fgroup_index = (Size) tmp_line[header_dict.at("FeatureGroupIndex")].toInt();
       fg.mass = tmp_line[header_dict.at("MonoisotopicMass")].toDouble();
       fg.apex_rt = tmp_line[header_dict.at("MedianApexRetentionTime")].toDouble();
-      fg.abundance = tmp_line[header_dict.at(QUANT_METHOD)].toDouble();
+      fg.abundance = tmp_line[header_dict.at(QUANT_METHOD_)].toDouble();
       fgroups.push_back(fg);
     }
     OPENMS_LOG_INFO << ", #FeatureGroup " << fgroups.size() << std::endl;
@@ -200,7 +203,7 @@ protected:
     std::sort(fgroups.begin(), fgroups.end());
 
     consensus.clear();
-    consensus.reserve(fgroups.size()/REP_COUNT);
+    consensus.reserve(fgroups.size()/REP_COUNT_);
 
     // vector of pointer for fgroups. To link the leftover fgroups for computing consensus.
     vector<FeatureGroup*> fgroup_pointers;
@@ -218,16 +221,21 @@ protected:
       Size reference_index = iter - fgroup_pointers.begin();
       FeatureGroup* reference_fg = *iter;
       double reference_mass = reference_fg->mass;
+      double mass_tolerance = MASS_TOL_;
+      if (MASS_TOL_UNIT_ == "ppm")
+      {
+        mass_tolerance *= reference_mass;
+      }
 
       /// collect FeatureGroup within mass and rt tolerance
       std::vector<FeatureGroup*> candidate_fgs;
       std::vector<Size> candidate_indices; // index from fgroup_pointers
       // iter to right side (larger masses than reference FeatureGroup)
       ++iter; // move forward to reference+1 point
-      for(; (iter<fgroup_pointers.end()) && ((*iter)->mass - reference_mass <= MASS_TOL) ; ++iter)
+      for(; (iter<fgroup_pointers.end()) && ((*iter)->mass - reference_mass <= mass_tolerance) ; ++iter)
       {
         // check if RT tolerance matches
-        if (std::abs((*iter)->apex_rt - reference_fg->apex_rt) > RT_TOL)
+        if (std::abs((*iter)->apex_rt - reference_fg->apex_rt) > RT_TOL_)
         {
           continue;
         }
@@ -241,9 +249,9 @@ protected:
       }
       // iter to left side (smaller masses than reference FeatureGroup)
       iter = fgroup_pointers.begin() + reference_index - 1; // back to reference-1 point
-      for(; (iter>=fgroup_pointers.begin()) && (reference_mass - (*iter)->mass <= MASS_TOL) ; --iter)
+      for(; (iter>=fgroup_pointers.begin()) && (reference_mass - (*iter)->mass <= mass_tolerance) ; --iter)
       {
-        if (std::abs((*iter)->apex_rt - reference_fg->apex_rt) > RT_TOL)
+        if (std::abs((*iter)->apex_rt - reference_fg->apex_rt) > RT_TOL_)
         {
           continue;
         }
@@ -263,14 +271,14 @@ protected:
         rep_set.insert(tmp->rep_index);
       }
       // remove reference featgroup, if not eligible for consensus
-      if (rep_set.size() < REP_COUNT-1)
+      if (rep_set.size() < REP_COUNT_-1)
       {
         fgroup_pointers.erase(fgroup_pointers.begin() + reference_index);
         continue;
       }
 
       /// Among the candidates from the same replicate, the one with the highest abundance wins.
-      std::vector<FeatureGroup*> collected_fgs(REP_COUNT);
+      std::vector<FeatureGroup*> collected_fgs(REP_COUNT_);
       std::vector<Size> collected_indices; // index from fgroups (for erase, later)
       for (Size rep_index : rep_set)
       {
@@ -328,10 +336,16 @@ protected:
     StringList ins = getStringList_("in");
     String out = getStringOption_("out");
 
-    MASS_TOL = getDoubleOption_("mass_tol");
-    RT_TOL = getIntOption_("rt_tol");
-    QUANT_METHOD = getStringOption_("quant_method");
-    REP_COUNT = ins.size();
+    MASS_TOL_ = getDoubleOption_("mass_tol");
+    MASS_TOL_UNIT_ = getStringOption_("mass_tol_unit");
+    RT_TOL_ = getIntOption_("rt_tol");
+    QUANT_METHOD_ = getStringOption_("quant_method");
+    REP_COUNT_ = ins.size();
+
+    if (MASS_TOL_UNIT_ == "ppm")
+    {
+      MASS_TOL_ *= 1e-6;
+    }
 
     //-------------------------------------------------------------
     // loading input
