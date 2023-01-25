@@ -33,8 +33,13 @@
 # --------------------------------------------------------------------------
 
 # path were the CTDs will be stored
-set(KNIME_PLUGIN_DIRECTORY ${PROJECT_BINARY_DIR}/ctds CACHE PATH "Directory containing the generated plugin-sources for the OpenMS KNIME package")
+set(KNIME_PROJECT_DIRECTORY ${PROJECT_BINARY_DIR}/knime CACHE PATH "Directory containing the generated plugin-sources for the OpenMS KNIME package")
+set(KNIME_PLUGIN_DIRECTORY ${KNIME_PROJECT_DIRECTORY}/de.openms.topp)
 set(CTD_PATH ${KNIME_PLUGIN_DIRECTORY}/descriptors)
+set(KNIME_LIB_DIRECTORY ${KNIME_PROJECT_DIRECTORY}/de.openms.lib)
+set(LIB_PATH ${KNIME_LIB_DIRECTORY}/payload)
+set(KNIME_TP_PLUGIN_DIRECTORY ${KNIME_PROJECT_DIRECTORY}/de.openms.thirdparty)
+set(CTD_TP_PATH ${KNIME_THIRDPARTY_PLUGIN_DIRECTORY}/descriptors)
 
 # path where the executables can be found
 if(CMAKE_CONFIGURATION_TYPES)
@@ -60,10 +65,17 @@ if(DEFINED OLD_CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS_SKIP)
 endif()
 
 # payload paths
+# for the topp plugin
 set(PAYLOAD_PATH ${KNIME_PLUGIN_DIRECTORY}/payload)
 set(PAYLOAD_BIN_PATH ${PAYLOAD_PATH}/bin)
-set(PAYLOAD_LIB_PATH ${PAYLOAD_PATH}/lib)
-set(PAYLOAD_SHARE_PATH ${PAYLOAD_PATH}/share)
+
+# for the lib plugin
+set(PAYLOAD_LIB_PATH ${LIB_PATH}/lib)
+set(PAYLOAD_SHARE_PATH ${LIB_PATH}/share)
+
+# for the thirdparty plugin
+set(TP_PAYLOAD_PATH ${KNIME_TP_PLUGIN_DIRECTORY}/payload)
+set(TP_PAYLOAD_BIN_PATH ${TP_PAYLOAD_PATH}/bin)
 
 # Find Qt5 includes for KNIME packaging
 find_package(Qt5 COMPONENTS ${OpenMS_QT_COMPONENTS} REQUIRED)
@@ -92,7 +104,10 @@ else()
 endif()
 
 # create the target directory
+file(MAKE_DIRECTORY ${KNIME_PROJECT_DIRECTORY})
 file(MAKE_DIRECTORY ${KNIME_PLUGIN_DIRECTORY})
+file(MAKE_DIRECTORY ${KNIME_LIB_DIRECTORY})
+file(MAKE_DIRECTORY ${KNIME_TP_PLUGIN_DIRECTORY})
 
 add_custom_target(
   configure_plugin_properties
@@ -105,6 +120,7 @@ file(COPY        ${PROJECT_SOURCE_DIR}/cmake/knime/icons
      PATTERN ".git" EXCLUDE)
 
 # list of all tools that can generate CTDs and do not include GUI libraries
+# TODO make a new category for Adapters
 set(CTD_executables ${TOPP_TOOLS} ${UTILS_TOOLS})
 
 # remove tools that do not produce CTDs or should not be shipped (because of dependencies or specifics that can not be resolved in KNIME)
@@ -120,12 +136,33 @@ add_custom_target(
   DEPENDS TOPP UTILS
 )
 
+# TODO do regex with "Adapter". Safe enough?
+list(THIRDPARTY_ADAPTERS
+    "MaRaClusterAdapter"
+    "XTandemAdapter"
+    "MSGFPlusAdapter"
+    "LuciphorAdapter"
+    "CometAdapter"
+    "PercolatorAdapter"
+    "FidoAdapter"
+    "MSFraggerAdapter"
+    "SiriusAdapter"
+    "NovorAdapter"
+  )
+
 # call the tools to write ctds
 foreach(TOOL ${CTD_executables})
-  add_custom_command(
-    TARGET  create_ctds POST_BUILD
-    COMMAND ${TOPP_BIN_PATH}/${TOOL} -write_ctd ${CTD_PATH}
-  )
+  if(${TOOL} IN THIRDPARTY_ADAPTERS)
+    add_custom_command(
+      TARGET  create_ctds POST_BUILD
+      COMMAND ${TOPP_BIN_PATH}/${TOOL} -write_ctd ${CTD_TP_PATH}
+    )
+  else()
+    add_custom_command(
+        TARGET  create_ctds POST_BUILD
+        COMMAND ${TOPP_BIN_PATH}/${TOOL} -write_ctd ${CTD_PATH}
+    )
+  endif()
 endforeach()
 
 # remove those parts of the CTDs we cannot or do not want to model in KNIME
@@ -133,29 +170,36 @@ endforeach()
 add_custom_target(
   final_ctds
   # MaRaClusterAdapter
-  COMMAND ${CMAKE_COMMAND} -D SCRIPT_DIR=${SCRIPT_DIRECTORY} -DTOOLNAME=MaRaClusterAdapter -DPARAM=maracluster_executable -D CTD_PATH=${CTD_PATH} -P ${SCRIPT_DIRECTORY}remove_parameter_from_ctd.cmake
+  COMMAND ${CMAKE_COMMAND} -D SCRIPT_DIR=${SCRIPT_DIRECTORY} -DTOOLNAME=MaRaClusterAdapter -DPARAM=maracluster_executable -D CTD_PATH=${CTD_TP_PATH} -P ${SCRIPT_DIRECTORY}remove_parameter_from_ctd.cmake
   # XTandemAdapter
-  COMMAND ${CMAKE_COMMAND} -D SCRIPT_DIR=${SCRIPT_DIRECTORY} -DTOOLNAME=XTandemAdapter -DPARAM=xtandem_executable -D CTD_PATH=${CTD_PATH} -P ${SCRIPT_DIRECTORY}remove_parameter_from_ctd.cmake
+  COMMAND ${CMAKE_COMMAND} -D SCRIPT_DIR=${SCRIPT_DIRECTORY} -DTOOLNAME=XTandemAdapter -DPARAM=xtandem_executable -D CTD_PATH=${CTD_TP_PATH} -P ${SCRIPT_DIRECTORY}remove_parameter_from_ctd.cmake
   # MSGFPlusAdapter
-  COMMAND ${CMAKE_COMMAND} -D SCRIPT_DIR=${SCRIPT_DIRECTORY} -DTOOLNAME=MSGFPlusAdapter -DPARAM=executable -D CTD_PATH=${CTD_PATH} -P ${SCRIPT_DIRECTORY}remove_parameter_from_ctd.cmake
+  COMMAND ${CMAKE_COMMAND} -D SCRIPT_DIR=${SCRIPT_DIRECTORY} -DTOOLNAME=MSGFPlusAdapter -DPARAM=executable -D CTD_PATH=${CTD_TP_PATH} -P ${SCRIPT_DIRECTORY}remove_parameter_from_ctd.cmake
   # LuciPhorAdapter
-  COMMAND ${CMAKE_COMMAND} -D SCRIPT_DIR=${SCRIPT_DIRECTORY} -DTOOLNAME=LuciphorAdapter -DPARAM=executable -D CTD_PATH=${CTD_PATH} -P ${SCRIPT_DIRECTORY}remove_parameter_from_ctd.cmake
+  COMMAND ${CMAKE_COMMAND} -D SCRIPT_DIR=${SCRIPT_DIRECTORY} -DTOOLNAME=LuciphorAdapter -DPARAM=executable -D CTD_PATH=${CTD_TP_PATH} -P ${SCRIPT_DIRECTORY}remove_parameter_from_ctd.cmake
   # CometAdapter
-  COMMAND ${CMAKE_COMMAND} -D SCRIPT_DIR=${SCRIPT_DIRECTORY} -DTOOLNAME=CometAdapter -DPARAM=comet_executable -D CTD_PATH=${CTD_PATH} -P ${SCRIPT_DIRECTORY}remove_parameter_from_ctd.cmake
+  COMMAND ${CMAKE_COMMAND} -D SCRIPT_DIR=${SCRIPT_DIRECTORY} -DTOOLNAME=CometAdapter -DPARAM=comet_executable -D CTD_PATH=${CTD_TP_PATH} -P ${SCRIPT_DIRECTORY}remove_parameter_from_ctd.cmake
   # PercolatorAdapter
-  COMMAND ${CMAKE_COMMAND} -D SCRIPT_DIR=${SCRIPT_DIRECTORY} -DTOOLNAME=PercolatorAdapter -DPARAM=percolator_executable -D CTD_PATH=${CTD_PATH} -P ${SCRIPT_DIRECTORY}remove_parameter_from_ctd.cmake
+  COMMAND ${CMAKE_COMMAND} -D SCRIPT_DIR=${SCRIPT_DIRECTORY} -DTOOLNAME=PercolatorAdapter -DPARAM=percolator_executable -D CTD_PATH=${CTD_TP_PATH} -P ${SCRIPT_DIRECTORY}remove_parameter_from_ctd.cmake
   # FidoAdapter
-  COMMAND ${CMAKE_COMMAND} -D SCRIPT_DIR=${SCRIPT_DIRECTORY} -DTOOLNAME=FidoAdapter -DPARAM=fido_executable -D CTD_PATH=${CTD_PATH} -P ${SCRIPT_DIRECTORY}remove_parameter_from_ctd.cmake
-  COMMAND ${CMAKE_COMMAND} -D SCRIPT_DIR=${SCRIPT_DIRECTORY} -DTOOLNAME=FidoAdapter -DPARAM=fidocp_executable -D CTD_PATH=${CTD_PATH} -P ${SCRIPT_DIRECTORY}remove_parameter_from_ctd.cmake
+  COMMAND ${CMAKE_COMMAND} -D SCRIPT_DIR=${SCRIPT_DIRECTORY} -DTOOLNAME=FidoAdapter -DPARAM=fido_executable -D CTD_PATH=${CTD_TP_PATH} -P ${SCRIPT_DIRECTORY}remove_parameter_from_ctd.cmake
+  COMMAND ${CMAKE_COMMAND} -D SCRIPT_DIR=${SCRIPT_DIRECTORY} -DTOOLNAME=FidoAdapter -DPARAM=fidocp_executable -D CTD_PATH=${CTD_TP_PATH} -P ${SCRIPT_DIRECTORY}remove_parameter_from_ctd.cmake
   DEPENDS create_ctds
 )
 
 # remove out_type parameters
 foreach(TOOL ${CTD_executables})
-  add_custom_command(
-    TARGET  final_ctds POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -D SCRIPT_DIR=${SCRIPT_DIRECTORY} -DTOOLNAME=${TOOL} -DPARAM=out_type -D CTD_PATH=${CTD_PATH} -P ${SCRIPT_DIRECTORY}remove_parameter_from_ctd.cmake
-  )
+  if(${TOOL} IN THIRDPARTY_ADAPTERS)
+    add_custom_command(
+      TARGET  final_ctds POST_BUILD
+      COMMAND ${CMAKE_COMMAND} -D SCRIPT_DIR=${SCRIPT_DIRECTORY} -DTOOLNAME=${TOOL} -DPARAM=out_type -D CTD_PATH=${CTD_PATH} -P ${SCRIPT_DIRECTORY}remove_parameter_from_ctd.cmake
+    )
+  else ()
+    add_custom_command(
+        TARGET  final_ctds POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -D SCRIPT_DIR=${SCRIPT_DIRECTORY} -DTOOLNAME=${TOOL} -DPARAM=out_type -D CTD_PATH=${CTD_TP_PATH} -P ${SCRIPT_DIRECTORY}remove_parameter_from_ctd.cmake
+    )
+  endif()
 endforeach()
 
 # create final target that collects all sub-calls
@@ -163,6 +207,8 @@ add_custom_target(
   prepare_knime_descriptors
   COMMAND ${CMAKE_COMMAND} -E copy ${PROJECT_SOURCE_DIR}/cmake/knime/mimetypes.xml ${CTD_PATH}
   COMMAND ${CMAKE_COMMAND} -E copy ${PROJECT_SOURCE_DIR}/cmake/knime/mime.types ${CTD_PATH}
+  COMMAND ${CMAKE_COMMAND} -E copy ${PROJECT_SOURCE_DIR}/cmake/knime/mimetypes.xml ${CTD_TP_PATH}
+  COMMAND ${CMAKE_COMMAND} -E copy ${PROJECT_SOURCE_DIR}/cmake/knime/mime.types ${CTD_TP_PATH}
   DEPENDS final_ctds
 )
 
@@ -191,10 +237,17 @@ add_custom_target(
 # copy the binaries
 foreach(TOOL ${CTD_executables})
   set(tool_path ${TOPP_BIN_PATH}/${TOOL}${CMAKE_EXECUTABLE_SUFFIX})
-  add_custom_command(
-    TARGET  prepare_knime_payload_binaries POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E copy ${tool_path} "${PAYLOAD_BIN_PATH}/"
-  )
+  if(${TOOL} IN THIRDPARTY_ADAPTERS)
+    add_custom_command(
+        TARGET  prepare_knime_payload_binaries POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy ${tool_path} "${TP_PAYLOAD_BIN_PATH}/"
+    )
+  else()
+    add_custom_command(
+        TARGET  prepare_knime_payload_binaries POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy ${tool_path} "${PAYLOAD_BIN_PATH}/"
+    )
+  endif()
 endforeach()
 
 add_custom_target(
@@ -235,18 +288,21 @@ foreach (KNIME_TOOLS_DEPENDENCY OpenMS OpenSwathAlgo)
 endforeach()
 
 # assemble the libraries
-if (APPLE) ## On APPLE use our script because the executables need to be relinked and some rpath lookups done
+if (APPLE) ## On APPLE use our script because the executables' install_names need to be changed
   add_custom_command(
     TARGET prepare_knime_payload_libs POST_BUILD
-    COMMAND ${PROJECT_SOURCE_DIR}/cmake/MacOSX/fix_dependencies.rb -l ${PAYLOAD_LIB_PATH} -b ${PAYLOAD_BIN_PATH} -f
+    COMMAND ${PROJECT_SOURCE_DIR}/cmake/MacOSX/fix_dependencies.rb -l ${PAYLOAD_LIB_PATH} -b ${PAYLOAD_BIN_PATH} -f -e "" -n
+    COMMAND ${PROJECT_SOURCE_DIR}/cmake/MacOSX/fix_dependencies.rb -l ${PAYLOAD_LIB_PATH} -b ${PAYLOAD_TP_BIN_PATH} -f -e "" -n
   ) # -p ${PAYLOAD_LIB_PATH}/plugins not applicable for now
   add_custom_command(
           TARGET prepare_knime_payload_libs POST_BUILD
           COMMAND find ${PAYLOAD_BIN_PATH} -depth 1 -type f -exec ${CMAKE_STRIP} -S {} "\;"
+          COMMAND find ${TP_PAYLOAD_BIN_PATH} -depth 1 -type f -exec ${CMAKE_STRIP} -S {} "\;"
   )
   add_custom_command(
           TARGET prepare_knime_payload_libs POST_BUILD
           COMMAND find ${PAYLOAD_LIB_PATH} -type f -name "*.dylib" -exec ${CMAKE_STRIP} -x {} "\;"
+          COMMAND find ${PAYLOAD_LIB_PATH} -type f -name "Qt*" -exec ${CMAKE_STRIP} -x {} "\;"
   )
 elseif(WIN32)
   # on Win everything should be linked statically for distribution except Qt
