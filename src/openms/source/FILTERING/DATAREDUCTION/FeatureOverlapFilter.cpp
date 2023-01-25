@@ -152,7 +152,7 @@ namespace OpenMS
     const auto getBox = [](const Feature* f)
     {
         const auto& bb = f->getConvexHull().getBoundingBox();
-        return quadtree::Box<float>(bb.minY(),bb.minX(),bb.maxY()-bb.minY(),bb.maxX()-bb.minX());
+        return quadtree::Box<float>(bb.minY(), bb.minX(), bb.maxY()-bb.minY(), bb.maxX()-bb.minX());
     };
 
     float minMZ = fmap.getMinMZ();
@@ -161,10 +161,12 @@ namespace OpenMS
     float maxRT = fmap.getMaxRT();
 
     // build quadtree with all features
-    quadtree::Box<float> fullExp(minMZ-1,minRT-1,maxMZ-minMZ+2,maxRT-minRT+2);
+    quadtree::Box<float> fullExp(minMZ-1, minRT-1, maxMZ-minMZ+2, maxRT-minRT+2);
     auto quadtree = quadtree::Quadtree<Feature*, decltype(getBox)>(fullExp, getBox);
     for (auto& f : fmap)
+    {
         quadtree.add(&f);
+    }        
 
     // if we check for overlapping traces we need a faster lookup structure
     FeatureBoundsMap fbm;
@@ -186,24 +188,23 @@ namespace OpenMS
             bool is_true_overlap = true;
             if (check_overlap_at_trace_level)
             {            
-              is_true_overlap = tracesOverlap(f, *overlap, fbm) ? true : false;
+              is_true_overlap = tracesOverlap(f, *overlap, fbm);
             }
 
             if (is_true_overlap)
             {
               removed_uids.insert(overlap->getUniqueId());
-              overlap->setOverallQuality(-1.); // used to filter
             }
           }
         }
       }
     }
 
-    const auto lowQuality = [](const Feature& f)
+    const auto filtered = [](const Feature& f)
     {
-        return f.getOverallQuality() == -1.; // used to filter, is representable as float/double and can be exactly compared
+        return removed_uids.count(f.getUniqueId()) == 1;
     };
-    fmap.erase(std::remove_if(fmap.begin(), fmap.end(), lowQuality), fmap.end());
+    fmap.erase(std::remove_if(fmap.begin(), fmap.end(), filtered), fmap.end());
   }
 
 }
