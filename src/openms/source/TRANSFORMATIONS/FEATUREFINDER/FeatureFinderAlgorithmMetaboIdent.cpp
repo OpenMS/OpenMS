@@ -274,6 +274,7 @@ namespace OpenMS
         return std::tie(left_rt_delta, right_intensity) < std::tie(right_rt_delta, left_intensity); // Note: left and right intensity are swapped because here higher is better
       };
     FeatureOverlapFilter::filter(features, FeatureComparator, CHECK_TRACES_FOR_OVERLAP);
+    std::sort(features.begin(), features.end(), feature_compare_); // sort by ref and rt
 
     if (features.empty())
     {
