@@ -117,7 +117,7 @@ public:
 
     /// default constructor
     // BinnedSpectrum() = delete;
-    BinnedSpectrum() {}
+    BinnedSpectrum() {};
 
     /// detailed constructor
     BinnedSpectrum(const PeakSpectrum& ps, float size, bool unit_ppm, UInt spread, float offset);
@@ -184,19 +184,19 @@ public:
 
 private:
     /// the spread to left or right
-    UInt bin_spread_;
+    UInt bin_spread_ {0};
 
     /// the size of each bin
-    float bin_size_;
+    float bin_size_ {0};
 
     /// absolute bin size or relative bin size
-    bool unit_ppm_;
+    bool unit_ppm_ {false};
 
     /// offset of bin start
-    float offset_;
+    float offset_ {0};
 
     /// bins
-    SparseVectorType* bins_;
+    SparseVectorType* bins_ {nullptr};
 
     /// calculate binning of peak spectrum
     void binSpectrum_(const PeakSpectrum& ps);
