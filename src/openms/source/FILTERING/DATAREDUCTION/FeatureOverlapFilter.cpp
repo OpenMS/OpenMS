@@ -204,7 +204,6 @@ namespace OpenMS
         return f.getOverallQuality() == -1.; // used to filter, is representable as float/double and can be exactly compared
     };
     fmap.erase(std::remove_if(fmap.begin(), fmap.end(), lowQuality), fmap.end());
-    fmap.sortByPosition(); // sort in canonical order
   }
 
 }
