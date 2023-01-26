@@ -100,12 +100,11 @@ namespace OpenMS
     // deal with log scaling for intensity axis
     int_axis->setLogScale(canvas()->getIntensityMode() == PlotCanvas::IM_LOG);
 
-    // to compute the axis values at min/max, we simply use widgetToData() at the corners of the canvas (mind that y axis is inverted in Qt's pixel coordinate system)
-    auto top_left_units = canvas()->widgetToData(0, canvas()->height());    // e.g. --> 0, 300
-    auto bottom_right_units = canvas()->widgetToData(canvas()->width(), 0); // e.g. --> 8000, 900
+    // use visible area. Its the only authority!
+    const auto& xy_ranges = canvas()->getVisibleArea().getAreaXY();
 
-    x_axis_->setAxisBounds(top_left_units.getX(), bottom_right_units.getX());
-    y_axis_->setAxisBounds(top_left_units.getY(), bottom_right_units.getY());
+    x_axis_->setAxisBounds(xy_ranges.minX(), xy_ranges.maxX());
+    y_axis_->setAxisBounds(xy_ranges.minY(), xy_ranges.maxY());
 
     // assume flipped-y-axis is identical
     flipped_y_axis_->setLegend(y_axis_->getLegend());

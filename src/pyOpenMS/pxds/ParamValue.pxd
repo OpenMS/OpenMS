@@ -1,4 +1,5 @@
 from libcpp cimport bool
+from libcpp.string cimport string as libcpp_string
 from libcpp.string cimport string as libcpp_utf8_string # triggers input conversion provider for std string
 from libcpp.string cimport string as libcpp_utf8_output_string #triggers output conversion provider for std string
 from libcpp.vector cimport vector as libcpp_vector
@@ -27,7 +28,7 @@ cdef extern from "<OpenMS/DATASTRUCTURES/ParamValue.h>" namespace "OpenMS":
          int operator()(ParamValue) nogil except + #wrap-cast:toInt
          libcpp_utf8_output_string operator()(ParamValue) nogil except + #wrap-cast:toString
          double operator()(ParamValue) nogil except + #wrap-cast:toDouble
-         libcpp_vector[ libcpp_utf8_string ] toStringVector() nogil except + # wrap-doc:Explicitly convert ParamValue to string vector
+         libcpp_vector[ libcpp_string ] toStringVector() nogil except + # wrap-doc:Explicitly convert ParamValue to string vector
          libcpp_vector[ double ] toDoubleVector() nogil except + # wrap-doc:Explicitly convert ParamValue to DoubleList
          libcpp_vector[ int ] toIntVector() nogil except + # wrap-doc:Explicitly convert ParamValue to IntList
          bool toBool() nogil except + # wrap-doc:Converts the strings 'true' and 'false' to a bool

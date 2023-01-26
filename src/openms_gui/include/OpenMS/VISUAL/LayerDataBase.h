@@ -188,6 +188,9 @@ namespace OpenMS
 
   @ingroup PlotWidgets
   */
+#ifdef _MSC_VER
+  #pragma warning(disable : 4250) // 'class1' : inherits 'class2::member' via dominance
+#endif
   class OPENMS_GUI_DLLAPI LayerDataBase : public LayerDataDefs
   {
   public:
@@ -305,8 +308,9 @@ namespace OpenMS
 
     using RangeAllType = RangeManager<RangeRT, RangeMZ, RangeIntensity, RangeMobility>;
 
-    /// Returns the data range in all known dimensions. If a layer does not support the dimension (or the layer is empty)
-    /// the dimension will be empty
+    /// Returns the data range of the whole layer (i.e. all scans/chroms/etc) in all known dimensions.
+    /// If a layer does not support the dimension (or the layer is empty) the dimension will be empty
+    /// If you need the data range for a 1D view (i.e. only a single spec/chrom/etc), call 'LayerDataBase1D::getRange1D()'
     virtual RangeAllType getRange() const = 0;
 
     /// compute layer statistics (via visitor)
@@ -361,7 +365,8 @@ namespace OpenMS
   };
 
   /// A base class to annotate layers of specific types with (identification) data
-  /// @hint Add new derived classes to getAnnotatorWhichSupports() to enable automatic annotation in TOPPView
+  /// 
+  /// @note Add new derived classes to getAnnotatorWhichSupports() to enable automatic annotation in TOPPView
   class LayerAnnotatorBase
   {
   public:

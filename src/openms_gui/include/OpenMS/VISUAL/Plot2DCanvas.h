@@ -233,7 +233,7 @@ protected:
       Translates chart coordinates to widget coordinates.
       @param x the chart coordinate x
       @param y the chart coordinate y
-      @param point returned widget coordinates
+      @return A point in widget coordinates
     */
     QPoint dataToWidget_(double x, double y) const
     {

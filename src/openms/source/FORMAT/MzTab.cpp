@@ -1099,9 +1099,9 @@ namespace OpenMS
         }
         else
         {
-          if (pep.metaValueExists("id_merge_index"))
+          if (pep.metaValueExists(Constants::UserParam::ID_MERGE_INDEX))
           {
-            id_merge_index = pep.getMetaValue("id_merge_index");
+            id_merge_index = pep.getMetaValue(Constants::UserParam::ID_MERGE_INDEX);
             msfile_index = map_run_fileidx_2_msfileidx.at({spec_run_index, id_merge_index});
           }
           else
@@ -1205,9 +1205,9 @@ namespace OpenMS
     }
     else
     {
-      if (pid.metaValueExists("id_merge_index"))
+      if (pid.metaValueExists(Constants::UserParam::ID_MERGE_INDEX))
       {
-        msfile_index = map_run_fileidx_2_msfileidx[{run_index, pid.getMetaValue("id_merge_index")}];
+        msfile_index = map_run_fileidx_2_msfileidx[{run_index, pid.getMetaValue(Constants::UserParam::ID_MERGE_INDEX)}];
       }
       else
       {

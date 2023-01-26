@@ -104,8 +104,6 @@ namespace OpenMS
   using namespace Internal;
   using namespace Math;
 
-  const String TOPPViewBase::CAPTION_3D_SUFFIX_ = " (3D)";
-
   const std::string user_section = "preferences:user:";
 
   /// supported types which can be opened with File-->Open
@@ -1358,7 +1356,7 @@ namespace OpenMS
     zoom_together_ = !zoom_together_;
   }
 
-  void TOPPViewBase::layerZoomChanged() const // todo rename zoomothers
+  void TOPPViewBase::zoomOtherWindows() const
   {
     if (!zoom_together_) return;
 
@@ -1395,7 +1393,7 @@ namespace OpenMS
     connect(sw->canvas(), &PlotCanvas::preferencesChange, this, &TOPPViewBase::updateLayerBar);
     connect(sw->canvas(), &PlotCanvas::layerActivated, this, &TOPPViewBase::layerActivated);
     connect(sw->canvas(), &PlotCanvas::layerModficationChange, this, &TOPPViewBase::updateLayerBar);
-    connect(sw->canvas(), &PlotCanvas::layerZoomChanged, this, &TOPPViewBase::layerZoomChanged);
+    connect(sw->canvas(), &PlotCanvas::layerZoomChanged, this, &TOPPViewBase::zoomOtherWindows);
     connect(sw, &PlotWidget::sendStatusMessage, this, &TOPPViewBase::showStatusMessage);
     connect(sw, &PlotWidget::sendCursorStatus, this, &TOPPViewBase::showCursorStatus);
     connect(sw, &PlotWidget::dropReceived, this, &TOPPViewBase::copyLayer);
@@ -2008,13 +2006,6 @@ namespace OpenMS
       return;
     }
 
-    String caption = layer.getName();
-    // remove 3D suffix added when opening data in 3D mode (see below showCurrentPeaksAs3D())
-    if (caption.hasSuffix(CAPTION_3D_SUFFIX_))
-    {
-      caption = caption.prefix(caption.rfind(CAPTION_3D_SUFFIX_));
-    }
-    w->canvas()->setLayerName(w->canvas()->getCurrentLayerIndex(), caption);
     showPlotWidgetInWindow(w);
     updateMenu();
   }
@@ -2190,9 +2181,6 @@ namespace OpenMS
       w->canvas()->setVisibleArea(getActiveCanvas()->getVisibleArea());
     }
 
-    // set layer name
-    String caption = layer.getName() + CAPTION_3D_SUFFIX_;
-    w->canvas()->setLayerName(w->canvas()->getCurrentLayerIndex(), caption);
     showPlotWidgetInWindow(w);
 
     // set intensity mode (after spectrum has been added!)

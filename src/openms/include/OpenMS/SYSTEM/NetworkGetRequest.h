@@ -67,6 +67,9 @@ namespace OpenMS
     /// returns the response
     OPENMS_DLLAPI QString getResponse() const;
 
+    /// returns the response
+    OPENMS_DLLAPI const QByteArray& getResponseBinary() const;
+
     /// returns true if an error occurred during the query
     OPENMS_DLLAPI bool hasError() const;
 

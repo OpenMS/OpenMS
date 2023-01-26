@@ -124,7 +124,6 @@ protected slots:
     void currentLayerParamtersChanged_();
 
 protected:
-
     // Docu in base class
     bool finishAdding_() override;
 
@@ -136,15 +135,6 @@ protected:
 
     ///stores the linear color gradient for non-log modes
     MultiGradient linear_gradient_;
-
-    //docu in base class
-    void translateLeft_(Qt::KeyboardModifiers m) override;
-    //docu in base class
-    void translateRight_(Qt::KeyboardModifiers m) override;
-    //docu in base class
-    void translateForward_() override;
-    //docu in base class
-    void translateBackward_() override;
   };
 
 } //namespace

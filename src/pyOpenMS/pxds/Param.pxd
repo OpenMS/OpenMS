@@ -1,4 +1,5 @@
 from libcpp.string cimport string as libcpp_utf8_string
+from libcpp.string cimport string as libcpp_string
 from Types cimport *
 from ParamValue cimport *
 from ParamNode cimport *
@@ -40,7 +41,7 @@ cdef extern from "<OpenMS/DATASTRUCTURES/Param.h>" namespace "OpenMS":
          void addTag(libcpp_utf8_string key, libcpp_utf8_string tag) nogil except +
          void addTags(libcpp_utf8_string key, libcpp_vector[libcpp_utf8_string] tags) nogil except +
          int hasTag(libcpp_utf8_string key, libcpp_utf8_string tag) nogil except +
-         libcpp_vector[libcpp_utf8_string] getTags(libcpp_utf8_string key) nogil except +
+         libcpp_vector[libcpp_string] getTags(libcpp_utf8_string key) nogil except +
          void clearTags(libcpp_utf8_string key) nogil except +
 
          libcpp_utf8_output_string getDescription(libcpp_utf8_string key) nogil except +

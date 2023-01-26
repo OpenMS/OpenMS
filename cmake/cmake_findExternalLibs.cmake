@@ -144,11 +144,11 @@ endif()
 SET(QT_MIN_VERSION "5.6.0")
 
 # find qt
-set(OpenMS_QT_COMPONENTS Core Network Sql CACHE INTERNAL "QT components for core lib")
+set(OpenMS_QT_COMPONENTS Core Network CACHE INTERNAL "QT components for core lib")
 find_package(Qt5 ${QT_MIN_VERSION} COMPONENTS ${OpenMS_QT_COMPONENTS} REQUIRED)
 
 IF (NOT Qt5Core_FOUND)
-  message(STATUS "QT5Core not found!")
+  message(STATUS "Qt5Core not found!")
   message(FATAL_ERROR "To find a custom Qt installation use: cmake <..more options..> -DCMAKE_PREFIX_PATH='<path_to_parent_folder_of_lib_folder_withAllQt5Libs>' <src-dir>")
 ELSE()
   message(STATUS "Found Qt ${Qt5Core_VERSION}")
@@ -162,6 +162,10 @@ endif()
 #------------------------------------------------------------------------------
 # PTHREAD
 #------------------------------------------------------------------------------
+# Prefer the -pthread compiler flag to be consistent with SQLiteCpp and avoid
+# rebuilds
+# TODO Do we even need this, when OpenMP is not active?
+set(THREADS_PREFER_PTHREAD_FLAG ON)
 find_package (Threads REQUIRED)
 
 
@@ -190,14 +194,36 @@ if (WITH_GUI)
     message(FATAL_ERROR "To find a custom Qt installation use: cmake <..more options..> -DCMAKE_PREFIX_PATH='<path_to_parent_folder_of_lib_folder_withAllQt5Libs>' <src-dir>")
   ENDIF()
 
-  find_package(Qt5 QUIET COMPONENTS ${OpenMS_GUI_QT_COMPONENTS_OPT})
+  ## QuickWidgets is a runtime-only dependency that we need to copy and install when WebEngine is found.
+  # https://gitlab.kitware.com/cmake/cmake/-/issues/16462
+  # https://bugreports.qt.io/browse/QTBUG-110118
+  find_package(Qt5 QUIET COMPONENTS ${OpenMS_GUI_QT_COMPONENTS_OPT} QuickWidgets)
 
   # TODO only works if WebEngineWidgets is the only optional component
   set(OpenMS_GUI_QT_FOUND_COMPONENTS_OPT)
   if(Qt5WebEngineWidgets_FOUND)
     list(APPEND OpenMS_GUI_QT_FOUND_COMPONENTS_OPT "WebEngineWidgets")
+    # we assume that it is available for now. They should have dependencies when installing Qt.
+    install(IMPORTED_RUNTIME_ARTIFACTS "Qt5::QuickWidgets"
+            DESTINATION "${INSTALL_LIB_DIR}"
+            RUNTIME_DEPENDENCY_SET OPENMS_GUI_DEPS
+            COMPONENT Dependencies)
   else()
     message(WARNING "Qt5WebEngineWidgets not found or disabled, disabling JS Views in TOPPView!")
+  endif()
+
+  # The following can be checked since Qt 5.12 https://github.com/qtwebkit/qtwebkit/issues/846
+  # evaluates to False if it does not exist
+  # TODO check what needs to be done for other values
+  if (${Qt5Gui_OPENGL_IMPLEMENTATION} STREQUAL GLESv2)
+      install(IMPORTED_RUNTIME_ARTIFACTS "Qt5::Gui_EGL"
+            DESTINATION "${INSTALL_LIB_DIR}"
+            RUNTIME_DEPENDENCY_SET OPENMS_GUI_DEPS
+            COMPONENT Dependencies)
+      install(IMPORTED_RUNTIME_ARTIFACTS "Qt5::Gui_GLESv2"
+            DESTINATION "${INSTALL_LIB_DIR}"
+            RUNTIME_DEPENDENCY_SET OPENMS_GUI_DEPS
+            COMPONENT Dependencies)
   endif()
 
   set(OpenMS_GUI_DEP_LIBRARIES "OpenMS")
