@@ -86,17 +86,15 @@ namespace OpenMS
     //look up the light and heavy index
     Size light_index = numeric_limits<Size>::max();
     Size heavy_index = numeric_limits<Size>::max();
-    for (ConsensusMap::ColumnHeaders::const_iterator it = result_map.getColumnHeaders().begin();
-         it != result_map.getColumnHeaders().end();
-         ++it)
+    for (const auto& col : result_map.getColumnHeaders())
     {
-      if (it->second.label == "heavy")
+      if (col.second.label == "heavy")
       {
-        heavy_index = it->first;
+        heavy_index = col.first;
       }
-      else if (it->second.label == "light")
+      else if (col.second.label == "light")
       {
-        light_index = it->first;
+        light_index = col.first;
       }
     }
     if (light_index == numeric_limits<Size>::max() || heavy_index == numeric_limits<Size>::max())
@@ -127,18 +125,18 @@ namespace OpenMS
       //find all possible RT distances of features with the same charge and a good m/z distance
       vector<double> dists;
       dists.reserve(model_ref.size());
-      for (RefMap::const_iterator it = model_ref.begin(); it != model_ref.end(); ++it)
+      for (const auto& ref1 : model_ref)
       {
-        for (RefMap::const_iterator it2 = model_ref.begin(); it2 != model_ref.end(); ++it2)
+        for (const auto& ref2 : model_ref)
         {
-          for (DoubleList::const_iterator dist_it = mz_pair_dists.begin(); dist_it != mz_pair_dists.end(); ++dist_it)
+          for (const double& dist : mz_pair_dists)
           {
-            double mz_pair_dist = *dist_it;
-            if (it2->getCharge() == it->getCharge()
-               && it2->getMZ() >= it->getMZ() + mz_pair_dist / it->getCharge() - mz_dev
-               && it2->getMZ() <= it->getMZ() + mz_pair_dist / it->getCharge() + mz_dev)
+            double mz_pair_dist = dist;
+            if (ref2.getCharge() == ref1.getCharge()
+               && ref2.getMZ() >= ref1.getMZ() + mz_pair_dist / ref1.getCharge() - mz_dev
+               && ref2.getMZ() <= ref1.getMZ() + mz_pair_dist / ref1.getCharge() + mz_dev)
             {
-              dists.push_back(it2->getRT() - it->getRT());
+              dists.push_back(ref2.getRT() - ref1.getRT());
             }
           }
         }
@@ -228,23 +226,23 @@ namespace OpenMS
 
 
     // check each feature
-    for (RefMap::const_iterator it = model_ref.begin(); it != model_ref.end(); ++it)
+    for (const auto& ref : model_ref)
     {
-      for (DoubleList::const_iterator dist_it = mz_pair_dists.begin(); dist_it != mz_pair_dists.end(); ++dist_it)
+      for (const double& dist : mz_pair_dists)
       {
-        double mz_pair_dist = *dist_it;
-        RefMap::const_iterator it2 = lower_bound(model_ref.begin(), model_ref.end(), it->getRT() + rt_pair_dist - rt_dev_low, ConsensusFeature::RTLess());
-        while (it2 != model_ref.end() && it2->getRT() <= it->getRT() + rt_pair_dist + rt_dev_high)
+        double mz_pair_dist = dist;
+        RefMap::const_iterator it2 = lower_bound(model_ref.begin(), model_ref.end(), ref.getRT() + rt_pair_dist - rt_dev_low, ConsensusFeature::RTLess());
+        while (it2 != model_ref.end() && it2->getRT() <= ref.getRT() + rt_pair_dist + rt_dev_high)
         {
           // if in mrm mode, we need to compare precursor mass difference and fragment mass difference, charge remains the same
 
           double prec_mz_diff(0);
           if (mrm)
           {
-            prec_mz_diff = fabs((double)it2->getMetaValue("MZ") - (double)it->getMetaValue("MZ"));
-            if (it->getCharge() != 0)
+            prec_mz_diff = fabs((double)it2->getMetaValue("MZ") - (double)ref.getMetaValue("MZ"));
+            if (ref.getCharge() != 0)
             {
-              prec_mz_diff = fabs(prec_mz_diff - mz_pair_dist / it->getCharge());
+              prec_mz_diff = fabs(prec_mz_diff - mz_pair_dist / ref.getCharge());
             }
             else
             {
@@ -253,12 +251,12 @@ namespace OpenMS
           }
 
           bool mrm_correct_dist(false);
-          double frag_mz_diff = fabs(it->getMZ() - it2->getMZ());
+          double frag_mz_diff = fabs(ref.getMZ() - it2->getMZ());
 
-          //cerr << it->getRT() << " charge1=" << it->getCharge() << ", charge2=" << it2->getCharge() << ", prec_diff=" << prec_mz_diff << ", frag_diff=" << frag_mz_diff << endl;
+          //cerr << ref.getRT() << " charge1=" << ref.getCharge() << ", charge2=" << it2->getCharge() << ", prec_diff=" << prec_mz_diff << ", frag_diff=" << frag_mz_diff << endl;
 
           if (mrm &&
-              it2->getCharge() == it->getCharge() &&
+              it2->getCharge() == ref.getCharge() &&
               prec_mz_diff < mz_dev &&
               (frag_mz_diff < mz_dev || fabs(frag_mz_diff - mz_pair_dist) < mz_dev))
           {
@@ -267,15 +265,15 @@ namespace OpenMS
           }
 
           if ((mrm && mrm_correct_dist) || (!mrm &&
-                                            it2->getCharge() == it->getCharge() &&
-                                            it2->getMZ() >= it->getMZ() + mz_pair_dist / it->getCharge() - mz_dev &&
-                                            it2->getMZ() <= it->getMZ() + mz_pair_dist / it->getCharge() + mz_dev
+                                            it2->getCharge() == ref.getCharge() &&
+                                            it2->getMZ() >= ref.getMZ() + mz_pair_dist / ref.getCharge() - mz_dev &&
+                                            it2->getMZ() <= ref.getMZ() + mz_pair_dist / ref.getCharge() + mz_dev
                                             ))
           {
             //cerr << "dist correct" << endl;
             double score = sqrt(
-              PValue_(it2->getMZ() - it->getMZ(), mz_pair_dist / it->getCharge(), mz_dev, mz_dev) *
-              PValue_(it2->getRT() - it->getRT(), rt_pair_dist, rt_dev_low, rt_dev_high)
+              PValue_(it2->getMZ() - ref.getMZ(), mz_pair_dist / ref.getCharge(), mz_dev, mz_dev) *
+              PValue_(it2->getRT() - ref.getRT(), rt_pair_dist, rt_dev_low, rt_dev_high)
               );
 
             // Note: we used to copy the id from the light feature here, but that strategy does not generalize to more than two labels.
@@ -284,11 +282,11 @@ namespace OpenMS
             matches.push_back(ConsensusFeature());
             matches.back().setUniqueId();
 
-            matches.back().insert(light_index, *it);
+            matches.back().insert(light_index, ref);
             matches.back().clearMetaInfo();
             matches.back().insert(heavy_index, *it2);
             matches.back().setQuality(score);
-            matches.back().setCharge(it->getCharge());
+            matches.back().setCharge(ref.getCharge());
             matches.back().computeMonoisotopicConsensus();
           }
           ++it2;
@@ -301,17 +299,17 @@ namespace OpenMS
     // - take highest-quality matches first (greedy) and mark them as used
     set<Size> used_features;
     matches.sortByQuality(true);
-    for (ConsensusMap::const_iterator match = matches.begin(); match != matches.end(); ++match)
+    for (const ConsensusFeature& match : matches)
     {
       //check if features are not used yet
-      if (used_features.find(match->begin()->getUniqueId()) == used_features.end() &&
-          used_features.find(match->rbegin()->getUniqueId()) == used_features.end()
+      if (used_features.find(match.begin()->getUniqueId()) == used_features.end() &&
+          used_features.find(match.rbegin()->getUniqueId()) == used_features.end()
           )
       {
         //if unused, add it to the final set of elements
-        result_map.push_back(*match);
-        used_features.insert(match->begin()->getUniqueId());
-        used_features.insert(match->rbegin()->getUniqueId());
+        result_map.push_back(match);
+        used_features.insert(match.begin()->getUniqueId());
+        used_features.insert(match.rbegin()->getUniqueId());
       }
     }
 

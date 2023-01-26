@@ -47,19 +47,15 @@ namespace OpenMS
   std::ostream& operator<<(std::ostream& os, const ConnectedComponent& conn_comp)
   {
     os << "Proteins: ";
-    for (std::set<Size>::const_iterator prot_it = conn_comp.prot_grp_indices.begin();
-          prot_it != conn_comp.prot_grp_indices.end();
-          ++prot_it)
+    for (const Size& prot : conn_comp.prot_grp_indices)
     {
-      os << *prot_it << ",";
+      os << prot << ",";
     }
     os << std::endl;
     os << "Peptides: ";
-    for (std::set<Size>::const_iterator pep_it = conn_comp.pep_indices.begin();
-          pep_it != conn_comp.pep_indices.end();
-          ++pep_it)
+    for (const Size& pep : conn_comp.pep_indices)
     {
-      os << *pep_it << ",";
+      os << pep << ",";
     }
 
     return os;    
@@ -115,12 +111,11 @@ namespace OpenMS
         groups.begin();
          group_it != groups.end(); ++group_it)
     {
-      for (vector<String>::const_iterator acc_it = group_it->accessions.begin();
-           acc_it != group_it->accessions.end(); ++acc_it)
+      for (const String& acc : group_it->accessions)
       {
         Size idx = group_it - groups.begin();
-        prot_acc_to_indist_prot_grp[*acc_it] = idx;
-        if (decoy_accs.find(*acc_it) != decoy_accs.end())
+        prot_acc_to_indist_prot_grp[acc] = idx;
+        if (decoy_accs.find(acc) != decoy_accs.end())
         {
           indist_prot_grp_decoy[idx] = true;
         }
@@ -141,10 +136,9 @@ namespace OpenMS
         unordered_map<Size,set<Size>> grpIdxToEvIdx;
 
         Size ev_idx = 0;
-        for (vector<PeptideEvidence>::const_iterator pepev_it = pepev.begin();
-             pepev_it != pepev.end(); ++pepev_it, ++ev_idx)
+        for (const PeptideEvidence& pep_ev : pepev)
         {
-          String acc = pepev_it->getProteinAccession();
+          String acc = pep_ev.getProteinAccession();
 
           auto found = prot_acc_to_indist_prot_grp.find(acc);
           if (found == prot_acc_to_indist_prot_grp.end())
@@ -188,6 +182,7 @@ namespace OpenMS
               }
             }
           }
+          ++ev_idx;
         }
 
         bool targets_first_resolve_ties = false;
@@ -311,11 +306,10 @@ namespace OpenMS
          groups.begin();
          group_it != groups.end(); ++group_it)
     {
-      for (vector<String>::const_iterator acc_it = group_it->accessions.begin();
-           acc_it != group_it->accessions.end(); ++acc_it)
+      for (const String& acc : group_it->accessions)
       {
         Size idx = group_it - groups.begin();
-        prot_acc_to_indist_prot_grp_[*acc_it] = idx;
+        prot_acc_to_indist_prot_grp_[acc] = idx;
       }
     }
     
@@ -332,10 +326,9 @@ namespace OpenMS
         PeptideHit best_hit = hits[0];
         const vector<PeptideEvidence>& pepev = best_hit.getPeptideEvidences();
 
-        for (vector<PeptideEvidence>::const_iterator pepev_it = pepev.begin();
-             pepev_it != pepev.end(); ++pepev_it)
+        for (const PeptideEvidence& pep_ev : pepev)
         {
-          String acc = pepev_it->getProteinAccession();
+          String acc = pep_ev.getProteinAccession();
           auto found = prot_acc_to_indist_prot_grp_.find(acc);
           if (found == prot_acc_to_indist_prot_grp_.end())
           {
@@ -429,12 +422,9 @@ namespace OpenMS
                                                            peptides);
       
       // mark proteins of this component as visited by removing them
-      for (set<Size>::iterator grp_it =
-           curr_component.prot_grp_indices.begin();
-           grp_it != curr_component.prot_grp_indices.end();
-           ++grp_it)
+      for (const Size& grp : curr_component.prot_grp_indices)
       {
-        indist_prot_grp_to_pep_.erase(*grp_it);
+        indist_prot_grp_to_pep_.erase(grp);
       }
     }
     
@@ -490,27 +480,25 @@ namespace OpenMS
         neighbors = pep_to_indist_prot_grp_[curr_node.second];
       }
     
-      for (set<Size>::iterator nb_it = neighbors.begin();
-         nb_it != neighbors.end();
-         ++nb_it)
+      for (const Size& nb : neighbors)
       {
         // If current node is protein, its neighbors are peptides and
         // vice versa -> look in corresponding "result" set and insert
         // if not present
         if (!curr_node.first)
         {
-          success = conn_comp.prot_grp_indices.insert(*nb_it);
+          success = conn_comp.prot_grp_indices.insert(nb);
         }
         else
         {
-          success = conn_comp.pep_indices.insert(*nb_it);
+          success = conn_comp.pep_indices.insert(nb);
         }
       
         // If it was not seen yet, add it to the queue to process
         // its neighbors later. All neighbors are from the opposite type now
         if (success.second)
         {
-          my_queue.push(make_pair(!curr_node.first, *nb_it));
+          my_queue.push(make_pair(!curr_node.first, nb));
         }
       }
     }
@@ -757,10 +745,9 @@ namespace OpenMS
       }
 
       // Update all the peptides the current best point to
-      for (set<Size>::iterator pepid_it = indist_prot_grp_to_pep_[*grp_it].begin();
-           pepid_it != indist_prot_grp_to_pep_[*grp_it].end(); ++pepid_it)
+      for (const Size& pepid : indist_prot_grp_to_pep_[*grp_it])
       {
-        vector<PeptideHit> pep_id_hits = peptides[*pepid_it].getHits();
+        vector<PeptideHit> pep_id_hits = peptides[pepid].getHits();
         vector<PeptideEvidence> best_hit_ev =
             pep_id_hits[0].getPeptideEvidences();
 
@@ -771,7 +758,7 @@ namespace OpenMS
         for (; grp_it_cont != prot_grp_indices.end();
                               ++grp_it_cont)
         {
-          indist_prot_grp_to_pep_[*grp_it_cont].erase(*pepid_it);
+          indist_prot_grp_to_pep_[*grp_it_cont].erase(pepid);
         }
 
         // go through all the evidence of this peptide and remove all
@@ -796,7 +783,7 @@ namespace OpenMS
         }
         // Set the remaining evidences as new evidence
         pep_id_hits[0].setPeptideEvidences(best_hit_ev);
-        peptides[*pepid_it].setHits(pep_id_hits);
+        peptides[pepid].setHits(pep_id_hits);
       }
     }
 

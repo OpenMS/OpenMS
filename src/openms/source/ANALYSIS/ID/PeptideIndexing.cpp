@@ -409,10 +409,9 @@ PeptideIndexing::ExitCodes PeptideIndexing::run_(FASTAContainer<T>& proteins, st
     if (!keep_unreferenced_proteins_)
     {
       // delete only protein hits, not whole ID runs incl. meta data:
-      for (std::vector<ProteinIdentification>::iterator it = prot_ids.begin();
-        it != prot_ids.end(); ++it)
+      for (auto& id : prot_ids)
       {
-        it->getHits().clear();
+        id.getHits().clear();
       }
     }
     return PEPTIDE_IDS_EMPTY;
@@ -656,12 +655,12 @@ PeptideIndexing::ExitCodes PeptideIndexing::run_(FASTAContainer<T>& proteins, st
   Size pep_idx(0);
   Size func_hits_idx(0); ///< current position in func.pep_to_prot[] which has a stretch of matches for current pep_idx
   const Size func_hits_size = func.pep_to_prot.size(); 
-  for (std::vector<PeptideIdentification>::iterator it1 = pep_ids.begin(); it1 != pep_ids.end(); ++it1)
+  for (auto& pepid : pep_ids)
   {
     // which ProteinIdentification does the peptide belong to?
-    Size run_idx = runid_to_runidx[it1->getIdentifier()];
+    Size run_idx = runid_to_runidx[pepid.getIdentifier()];
 
-    std::vector<PeptideHit>& hits = it1->getHits();
+    std::vector<PeptideHit>& hits = pepid.getHits();
 
     for (std::vector<PeptideHit>::iterator it_hit = hits.begin(); it_hit != hits.end(); /* no increase here! we might need to erase it; see below */)
     {
@@ -780,16 +779,16 @@ PeptideIndexing::ExitCodes PeptideIndexing::run_(FASTAContainer<T>& proteins, st
     {
       // go through existing protein hits and count orphaned proteins (with no peptide hits)
       std::vector<ProteinHit> orphaned_hits;
-      for (std::vector<ProteinHit>::iterator p_hit = phits.begin(); p_hit != phits.end(); ++p_hit)
+      for (auto& p_hit : phits)
       {
-        const String& acc = p_hit->getAccession();
+        const String& acc = p_hit.getAccession();
         if (acc_to_prot.find(acc) == acc_to_prot.end()) // acc_to_prot only contains found proteins from current run
         { // old hit is orphaned
           ++stats_orphaned_proteins;
           if (keep_unreferenced_proteins_)
           {
-            p_hit->setMetaValue("target_decoy", "");
-            orphaned_hits.push_back(*p_hit);
+            p_hit.setMetaValue("target_decoy", "");
+            orphaned_hits.push_back(p_hit);
           }
         }
       }
@@ -800,14 +799,14 @@ PeptideIndexing::ExitCodes PeptideIndexing::run_(FASTAContainer<T>& proteins, st
     // add new protein hits
     FASTAFile::FASTAEntry fe;
     phits.reserve(phits.size() + masterset.size());
-    for (std::set<Size>::const_iterator it = masterset.begin(); it != masterset.end(); ++it)
+    for (const auto& match : masterset)
     {
       ProteinHit hit;
-      hit.setAccession(protein_accessions[*it]);
+      hit.setAccession(protein_accessions[match]);
       
       if (write_protein_sequence_ || write_protein_description_)
       {
-        proteins.readAt(fe, *it);
+        proteins.readAt(fe, match);
         if (write_protein_sequence_)
         {
           hit.setSequence(fe.sequence);
@@ -817,7 +816,7 @@ PeptideIndexing::ExitCodes PeptideIndexing::run_(FASTAContainer<T>& proteins, st
           hit.setDescription(fe.description);
         } // no else, since description is empty by default
       }
-      if (protein_is_decoy[*it])
+      if (protein_is_decoy[match])
       {
         hit.setMetaValue("target_decoy", "decoy");
         ++stats_proteins_decoy;

@@ -317,9 +317,9 @@ namespace OpenMS
 
     /*
     cerr << "Size of ion_scores " << ion_scores.size() << endl;
-    for (Map<double, IonScore>::const_iterator it = ion_scores.begin(); it != ion_scores.end(); ++it)
+    for (const auto& iscore : ion_scores)
     {
-        cerr << it->first << " " << it->second.score << endl;
+        cerr << iscore.first << " " << iscore.second.score << endl;
     }*/
 
 #ifdef WRITE_SCORED_SPEC
@@ -493,9 +493,9 @@ namespace OpenMS
     alignment_score.setParameters(align_param);
 
     /*
-    for (vector<PeptideHit>::iterator it = hits.begin(); it != hits.end(); ++it)
+    for (PeptideHit& hit : hits)
     {
-        cerr << "Pre: " << it->getRank() << " " << it->getSequence() << " " << it->getScore() << " " << endl;
+        cerr << "Pre: " << hit.getRank() << " " << hit.getSequence() << " " << hit.getScore() << " " << endl;
     }
     */
 
@@ -530,9 +530,9 @@ namespace OpenMS
     hits = id.getHits();
 
     /*
-    for (vector<PeptideHit>::iterator it = hits.begin(); it != hits.end(); ++it)
+    for (PeptideHit& hit : hits)
     {
-        cerr << "Fin: " << it->getRank() << " " << it->getSequence() << " " << it->getScore() << " " << endl;
+        cerr << "Fin: " << hit.getRank() << " " << hit.getSequence() << " " << hit.getScore() << " " << endl;
     }
     */
 
@@ -596,9 +596,9 @@ namespace OpenMS
 
 #ifdef REDUCE_PERMUTS_DEBUG
       cerr << "Subscoring: " << *it << " " << cid_score << " " << etd_score << " " << score << " (CID=";
-/*      for (PeakSpectrum::ConstIterator pit = CID_sim_spec.begin(); pit != CID_sim_spec.end(); ++pit)
+      /*for (const Peak1D& peak : CID_sim_spec)
         {
-        cerr << pit->getPosition()[0] << "|" << pit->getIntensity() << "; ";
+        cerr << peak.getPosition()[0] << "|" << peak.getIntensity() << "; ";
         }*/
       cerr << endl;
 #endif

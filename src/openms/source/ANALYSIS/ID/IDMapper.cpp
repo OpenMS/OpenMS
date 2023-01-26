@@ -107,9 +107,9 @@ namespace OpenMS
 
     if (clear_ids)
     { // start with empty IDs
-      for (PeakMap::iterator it = map.begin(); it != map.end(); ++it)
+      for (auto& exp : map)
       {
-        it->setPeptideIdentifications({});
+        exp.setPeptideIdentifications({});
       }
       map.setProteinIdentifications({});
     }
@@ -233,15 +233,15 @@ namespace OpenMS
     const vector<ProteinIdentification>& protein_ids = fmap.getProteinIdentifications();
     vector<PeptideIdentification> peptide_ids;
 
-    for (FeatureMap::const_iterator it = fmap.begin(); it != fmap.end(); ++it)
+    for (const Feature& feat : fmap)
     {
-      const vector<PeptideIdentification>& pi = it->getPeptideIdentifications();
-      for (vector<PeptideIdentification>::const_iterator itp = pi.begin(); itp != pi.end(); ++itp)
+      const vector<PeptideIdentification>& pi = feat.getPeptideIdentifications();
+      for (const PeptideIdentification& pepid : pi)
       {
-        peptide_ids.push_back(*itp);
+        peptide_ids.push_back(pepid);
         // if pepID has no m/z or RT, use the values of the feature
-        if (!itp->hasMZ()) peptide_ids.back().setMZ(it->getMZ());
-        if (!itp->hasRT()) peptide_ids.back().setRT(it->getRT());
+        if (!pepid.hasMZ()) peptide_ids.back().setMZ(feat.getMZ());
+        if (!pepid.hasRT()) peptide_ids.back().setRT(feat.getRT());
       }
 
     }
@@ -428,12 +428,10 @@ namespace OpenMS
             }
             else
             {            
-              for (ConsensusFeature::HandleSetType::const_iterator it_handle = map[cm_index].getFeatures().begin();
-                  it_handle != map[cm_index].getFeatures().end();
-                  ++it_handle)
+              for (const FeatureHandle& handle : map[cm_index].getFeatures())
               {
-                if (isMatch_(rt_pep - it_handle->getRT(), mz_pep, it_handle->getMZ()) && 
-                    (ignore_charge_ || ListUtils::contains(current_charges, it_handle->getCharge())))
+                if (isMatch_(rt_pep - handle.getRT(), mz_pep, handle.getMZ()) && 
+                    (ignore_charge_ || ListUtils::contains(current_charges, handle.getCharge())))
                 {
                   id_mapped = true;
                   was_added = true;
@@ -443,7 +441,7 @@ namespace OpenMS
                     PeptideIdentification id_pep = ids[i];
                     if (annotate_ids_with_subelements)
                     {
-                      id_pep.setMetaValue("map_index", it_handle->getMapIndex());
+                      id_pep.setMetaValue("map_index", handle.getMapIndex());
                     }
 
                     map[cm_index].getPeptideIdentifications().push_back(id_pep);
@@ -574,16 +572,14 @@ namespace OpenMS
           }
           else // measure from subelements
           {
-            for (ConsensusFeature::HandleSetType::const_iterator it_handle = map[cm_index].getFeatures().begin();
-                 it_handle != map[cm_index].getFeatures().end();
-                 ++it_handle)
+            for (const FeatureHandle& handle : map[cm_index].getFeatures())
             {
-              if (isMatch_(rt_value - it_handle->getRT(), mz_p, it_handle->getMZ())  && (ignore_charge_ || ListUtils::contains(current_charges, it_handle->getCharge())))
+              if (isMatch_(rt_value - handle.getRT(), mz_p, handle.getMZ())  && (ignore_charge_ || ListUtils::contains(current_charges, handle.getCharge())))
               {
                 if (annotate_ids_with_subelements)
                 {
                   // store the map index the precursor was mapped to
-                  Size map_index = it_handle->getMapIndex();
+                  Size map_index = handle.getMapIndex();
 
                   // we use no underscore here to be compatible with linkers
                   precursor_empty_id.setMetaValue("map_index", map_index);
@@ -763,15 +759,14 @@ namespace OpenMS
 
         // iterate over m/z values (only one if "mz_ref." is "precursor"):
         Size l_index = 0;
-        for (DoubleList::iterator mz_it = mz_values.begin();
-             mz_it != mz_values.end(); ++mz_it, ++l_index)
+        for (double& mz : mz_values)
         {
           if (check_charge && (charges[l_index] != feat.getCharge()))
           {
             continue;                   // charge states need to match
           }
 
-          DPosition<2> id_pos(rt_value, *mz_it);
+          DPosition<2> id_pos(rt_value, mz);
           if (boxes[hash_it].encloses(id_pos))                 // potential match
           {
             if (use_centroid_mz)
@@ -780,15 +775,13 @@ namespace OpenMS
               // into the overall bounding box -> success!
               feat.getPeptideIdentifications().push_back(id_it);
               ++matching_features;
-              break;                     // "mz_it" loop
+              break;                     // "mz" loop
             }
             // else: check all the mass traces
             bool found_match = false;
-            for (vector<ConvexHull2D>::iterator ch_it =
-                 feat.getConvexHulls().begin(); ch_it !=
-                 feat.getConvexHulls().end(); ++ch_it)
+            for (ConvexHull2D& ch : feat.getConvexHulls())
             {
-              DBoundingBox<2> box = ch_it->getBoundingBox();
+              DBoundingBox<2> box = ch.getBoundingBox();
               if (use_centroid_rt)
               {
                 box.setMinX(feat.getRT());
@@ -800,11 +793,12 @@ namespace OpenMS
                 feat.getPeptideIdentifications().push_back(id_it);
                 ++matching_features;
                 found_match = true;
-                break; // "ch_it" loop
+                break; // "ch" loop
               }
             }
-            if (found_match) break; // "mz_it" loop
+            if (found_match) break; // "mz" loop
           }
+          ++l_index;
         }
       }
       if (matching_features == 0)
@@ -913,11 +907,9 @@ namespace OpenMS
             }
             // else: check all the mass traces
             bool found_match = false;
-            for (vector<ConvexHull2D>::iterator ch_it =
-                  feat.getConvexHulls().begin(); ch_it !=
-                  feat.getConvexHulls().end(); ++ch_it)
+            for (ConvexHull2D& ch : feat.getConvexHulls())
             {
-              DBoundingBox<2> box = ch_it->getBoundingBox();
+              DBoundingBox<2> box = ch.getBoundingBox();
               if (use_centroid_rt)
               {
                 box.setMinX(feat.getRT());
@@ -929,7 +921,7 @@ namespace OpenMS
                 feat.getPeptideIdentifications().push_back(precursor_empty_id);
                 ++matching_features;
                 found_match = true;
-                break; // "ch_it" loop
+                break; // "ch" loop
               }
             }
 
