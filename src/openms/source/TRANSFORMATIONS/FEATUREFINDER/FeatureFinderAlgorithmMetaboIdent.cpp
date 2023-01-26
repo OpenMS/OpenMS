@@ -294,7 +294,49 @@ namespace OpenMS
         size_t right_intensity = right.getIntensity();
         return std::tie(left_rt_delta, right_intensity) < std::tie(right_rt_delta, left_intensity); // Note: left and right intensity are swapped because here higher is better
       };
-    FeatureOverlapFilter::filter(features, FeatureComparator, CHECK_TRACES_FOR_OVERLAP);
+
+    // callback used to transfer information from an identical overlapping feature with different annotation to the representative on
+    auto FeatureOverlapCallback = [](Feature& cluster_representative, Feature& overlap)
+      {
+        size_t best_intensity = cluster_representative.getIntensity();
+        size_t overlap_intensity = overlap.getIntensity();
+
+        if (overlap_intensity != best_intensity) return true; // early out: features are different
+
+        // this part will nearly never be called (e.g., only completely identicial features)
+        // so it is ok to perform some slow operations like querying meta values 
+        double best_rt_delta = std::abs(double(cluster_representative.getMetaValue("rt_deviation")));
+        double overlap_rt_delta = std::abs(double(overlap.getMetaValue("rt_deviation")));
+
+        if (overlap_rt_delta == best_rt_delta)
+        {
+          double best_RT = cluster_representative.getRT();
+          double overlap_RT = overlap.getRT();
+          double best_MZ = cluster_representative.getMZ();
+          double overlap_MZ = overlap.getMZ();
+
+          // are the features the same? (@TODO: use "Math::approximatelyEqual"?)
+          if ((overlap_MZ == best_MZ) && (overlap_RT == best_RT))
+          {
+            // update annotations:
+            // @TODO: also adjust "formula" and "expected_rt"?
+            String label = cluster_representative.getMetaValue("label");            
+            label += "/" + String(overlap.getMetaValue("label"));
+            cluster_representative.setMetaValue("label", label);
+            StringList alt_refs;
+            if (cluster_representative.metaValueExists("alt_PeptideRef"))
+            {
+              alt_refs = cluster_representative.getMetaValue("alt_PeptideRef");
+            }
+            alt_refs.push_back(overlap.getMetaValue("PeptideRef"));
+            cluster_representative.setMetaValue("alt_PeptideRef", alt_refs);
+          }
+        }
+
+        return true;
+      };
+
+    FeatureOverlapFilter::filter(features, FeatureComparator, FeatureOverlapCallback, CHECK_TRACES_FOR_OVERLAP);
     std::sort(features.begin(), features.end(), feature_compare_); // sort by ref and rt
 
     if (features.empty())

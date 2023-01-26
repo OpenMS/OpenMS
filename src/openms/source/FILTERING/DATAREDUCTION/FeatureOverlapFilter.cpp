@@ -144,7 +144,10 @@ namespace OpenMS
     return hasOverlappingBounds(fbm_it1->second, fbm_it2->second);
   }
 
-  void FeatureOverlapFilter::filter(FeatureMap& fmap, std::function<bool(const Feature&, const Feature&)> FeatureComparator, bool check_overlap_at_trace_level)
+  void FeatureOverlapFilter::filter(FeatureMap& fmap, 
+    std::function<bool(const Feature&, const Feature&)> FeatureComparator, 
+    std::function<bool(Feature&, Feature&)> FeatureOverlapCallback,
+    bool check_overlap_at_trace_level)
   {
     fmap.updateRanges();
     // Sort all features according to the comparator. After the sort, the "smallest" == best feature will be the first entry we will start processing with...
@@ -177,11 +180,11 @@ namespace OpenMS
     }
 
     std::unordered_set<Size> removed_uids;
-    for (const auto& f : fmap)
+    for (auto& f : fmap)
     {
       if (removed_uids.count(f.getUniqueId()) == 0)
       {
-        for (const auto& overlap : quadtree.query(getBox(&f)))
+        for (auto& overlap : quadtree.query(getBox(&f)))
         {
           if ((overlap != &f))
           {
@@ -194,7 +197,12 @@ namespace OpenMS
 
             if (is_true_overlap)
             {
-              removed_uids.insert(overlap->getUniqueId());
+              // callback allows to e.g., transfer information from the to-be-removed feature to the representative feature
+              // if the callback returns false, overlap will not be removed (at least not because of an overlap with f)
+              if (FeatureOverlapCallback(f, *overlap)) 
+              {
+                removed_uids.insert(overlap->getUniqueId());
+              }                            
             }
           }
         }

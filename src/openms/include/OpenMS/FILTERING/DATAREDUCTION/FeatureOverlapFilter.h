@@ -43,15 +43,27 @@ namespace OpenMS
     public:   
     /*
         @brief Filter overlapping features using a spatial datastructure (quadtree). 
-               Retains only the best feature in each cluster of overlapping features..
+               Retains only the best feature in each cluster of overlapping features.
 
         @param FeatureComparator must implement the concept of a less comparator.
                If several features overlap, the feature that evaluates as "smallest" is considered the best (according to the passed comparator) and is kept.
-               The other overlapping features are removed.
+               The other overlapping features are removed and FeatureOverlapCallback evaluated on them.
+
+        @param FeatureOverlapCallback(best_in_cluster, f) is called if a feature f overlaps with a feature best_in_cluster.
+               FeatureOverlapCallback provides a customization point to e.g.:
+              - transfer information from the soon-to-be-removed feature f over to the best_in_cluster feature
+              - gather overlap statistics
+              - help in debugging
+              - etc.
+              in form of a callable.
+              If the FeatureOverlapCallback returns false, the overlapping feature will be treated as not overlapping with best_in_cluster (and not removed).
 
         @ingroup Datareduction
     */
-    static void filter(FeatureMap& fmap, std::function<bool(const Feature&, const Feature&)> FeatureComparator, bool check_overlap_at_trace_level = false);
+    static void filter(FeatureMap& fmap, 
+      std::function<bool(const Feature&, const Feature&)> FeatureComparator,
+      std::function<bool(Feature&, Feature&)> FeatureOverlapCallback = [](Feature&, Feature&){ return true; },
+      bool check_overlap_at_trace_level = false);
   };
 
 
