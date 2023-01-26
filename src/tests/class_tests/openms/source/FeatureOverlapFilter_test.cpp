@@ -123,7 +123,7 @@ START_SECTION((Filter FeatureMap))
     f.ensureUniqueId();
   }
   
-  FeatureOverlapFilter::filter(fmap);
+  FeatureOverlapFilter::filter(fmap, [](const Feature& left, const Feature& right){ return left.getOverallQuality() > right.getOverallQuality(); });
 
   TEST_EQUAL(fmap[0].getOverallQuality(), 10)
   TEST_EQUAL(fmap[1].getOverallQuality(), 7)

@@ -137,22 +137,10 @@ namespace OpenMS
         }
       }
       
-#ifdef DEBUG
-      // write filtered peaks to debug output
-      std::stringstream debug_out;
-      debug_out << "filter_result_" << pattern_idx << ".consensusXML";
-      result.writeDebugOutput(exp_centroided_, debug_out.str());
-#endif
-      
       // add results of this pattern to list
       filter_results.push_back(result);
     }
     
-#ifdef DEBUG
-    // clock for monitoring run time performance
-    OPENMS_LOG_INFO << "\nThe filtering step of the algorithm took " << (float)(clock()-start)/CLOCKS_PER_SEC << " seconds.\n\n";
-#endif
-
     endProgress();
     
     return filter_results;
