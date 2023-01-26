@@ -345,7 +345,7 @@ namespace OpenMS
       };
 
     FeatureOverlapFilter::filter(features, FeatureComparator, FeatureOverlapCallback, CHECK_TRACES_FOR_OVERLAP);
-    std::sort(features.begin(), features.end(), feature_compare_); // sort by ref and rt
+    std::stable_sort(features.begin(), features.end(), feature_compare_); // sort by ref and rt
 
     if (features.empty())
     {

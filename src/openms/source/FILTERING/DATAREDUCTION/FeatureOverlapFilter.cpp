@@ -151,7 +151,7 @@ namespace OpenMS
   {
     fmap.updateRanges();
     // Sort all features according to the comparator. After the sort, the "smallest" == best feature will be the first entry we will start processing with...
-    std::sort(fmap.begin(), fmap.end(), FeatureComparator);
+    std::stable_sort(fmap.begin(), fmap.end(), FeatureComparator);
 
     const auto getBox = [](const Feature* f)
     {
