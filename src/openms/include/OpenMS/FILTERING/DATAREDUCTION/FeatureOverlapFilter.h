@@ -48,6 +48,7 @@ namespace OpenMS
         @param FeatureComparator must implement the concept of a less comparator.
                If several features overlap, the feature that evaluates as "smallest" is considered the best (according to the passed comparator) and is kept.
                The other overlapping features are removed and FeatureOverlapCallback evaluated on them.
+               Default: overall feature quality.
 
         @param FeatureOverlapCallback(best_in_cluster, f) is called if a feature f overlaps with a feature best_in_cluster.
                FeatureOverlapCallback provides a customization point to e.g.:
@@ -57,15 +58,15 @@ namespace OpenMS
               - etc.
               in form of a callable.
               If the FeatureOverlapCallback returns false, the overlapping feature will be treated as not overlapping with best_in_cluster (and not removed).
+              Default: function that just returns true.
 
         @ingroup Datareduction
     */
     static void filter(FeatureMap& fmap, 
-      std::function<bool(const Feature&, const Feature&)> FeatureComparator,
+      std::function<bool(const Feature&, const Feature&)> FeatureComparator = [](const Feature& left, const Feature& right){ return left.getOverallQuality() > right.getOverallQuality(); },
       std::function<bool(Feature&, Feature&)> FeatureOverlapCallback = [](Feature&, Feature&){ return true; },
-      bool check_overlap_at_trace_level = false);
+      bool check_overlap_at_trace_level = true);
   };
-
 
 }
 
