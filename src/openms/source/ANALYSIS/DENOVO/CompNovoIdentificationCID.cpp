@@ -188,27 +188,28 @@ namespace OpenMS
 
     // add complement to spectrum
     /*
-for (PeakSpectrum::ConstIterator it1 = CID_spec.begin(); it1 != CID_spec.end(); ++it1)
+for (const Peak1D& peak1 : CID_spec)
 {
   // get m/z of complement
-  double mz_comp = precursor_weight - it1->getPosition()[0] + Constants::PROTON_MASS_U;
+  double mz_comp = precursor_weight - peak1.getPosition()[0] + Constants::PROTON_MASS_U;
 
   // search if peaks are available that have similar m/z values
   Size count(0);
   bool found(false);
-  for (PeakSpectrum::ConstIterator it2 = CID_spec.begin(); it2 != CID_spec.end(); ++it2, ++count)
+  for (const Peak1D& peak2 : CID_spec)
   {
-    if (fabs(mz_comp - it2->getPosition()[0]) < fragment_mass_tolerance)
+    if (fabs(mz_comp - peak2.getPosition()[0]) < fragment_mass_tolerance)
     {
       // add peak intensity to corresponding peak in new_CID_spec
       new_CID_spec[count].setIntensity(new_CID_spec[count].getIntensity());
     }
+    ++count;
   }
   if (!found)
   {
     // infer this peak
     Peak1D p;
-    p.setIntensity(it1->getIntensity());
+    p.setIntensity(peak1.getIntensity());
     p.setPosition(mz_comp);
     new_CID_spec.push_back(p);
   }
@@ -231,9 +232,9 @@ for (PeakSpectrum::ConstIterator it1 = CID_spec.begin(); it1 != CID_spec.end(); 
 
     /*
     cerr << "Size of ion_scores " << ion_scores.size() << endl;
-    for (Map<double, IonScore>::const_iterator it = ion_scores.begin(); it != ion_scores.end(); ++it)
+    for (const auto& iscore : ion_scores)
     {
-        cerr << it->first << " " << it->second.score << endl;
+        cerr << iscore.first << " " << iscore.second.score << endl;
     }*/
 
 #ifdef WRITE_SCORED_SPEC
@@ -485,9 +486,9 @@ for (PeakSpectrum::ConstIterator it1 = CID_spec.begin(); it1 != CID_spec.end(); 
 
 #ifdef REDUCE_PERMUTS_DEBUG
       cerr << "Subscoring: " << *it << " " << cid_score << " (CID=";
-/*      for (PeakSpectrum::ConstIterator pit = CID_sim_spec.begin(); pit != CID_sim_spec.end(); ++pit)
+/*      for (const Peak1D& peak : CID_sim_spec)
         {
-        cerr << pit->getPosition()[0] << "|" << pit->getIntensity() << "; ";
+        cerr << peak.getPosition()[0] << "|" << peak.getIntensity() << "; ";
         }*/
       cerr << endl;
 #endif

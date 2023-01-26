@@ -270,9 +270,9 @@ namespace OpenMS
     //if (sequence[0] == 'Q' && prefix == 0 && suffix == 0)
     //{
       /*
-      for (PeakSpectrum::Iterator it = spec.begin(); it != spec.end(); ++it)
+      for (Peak1D& peak : spec)
       {
-          it->setIntensity(it->getIntensity() * 0.5);
+          peak.setIntensity(peak.getIntensity() * 0.5);
       }*/
 
       /*
@@ -290,18 +290,18 @@ namespace OpenMS
   void CompNovoIdentificationBase::filterPermuts_(set<String> & permut) const
   {
     set<String> tmp;
-    for (set<String>::const_iterator it = permut.begin(); it != permut.end(); ++it)
+    for (const String& pm : permut)
     {
       if (tryptic_only_)
       {
-        if ((*it)[it->size() - 1] == 'K' || (*it)[it->size() - 1] == 'R')
+        if (pm[pm.size() - 1] == 'K' || pm[pm.size() - 1] == 'R')
         {
-          tmp.insert(*it);
+          tmp.insert(pm);
         }
       }
       else
       {
-        tmp.insert(*it);
+        tmp.insert(pm);
       }
     }
     permut = tmp;
@@ -430,9 +430,9 @@ namespace OpenMS
             // now check if a very similar ion is already selected +/- 3Da
             //bool has_similar(false);
             /*
-for (set<Size>::const_iterator it = used_pos.begin(); it != used_pos.end(); ++it)
+for (const Size& pos : used_pos)
 {
-    if (fabs(CID_spec[*it].getPosition()[0] - CID_spec[i].getPosition()[0]) < 1.5)
+    if (fabs(CID_spec[pos].getPosition()[0] - CID_spec[i].getPosition()[0]) < 1.5)
     {
     has_similar = true;
     }
@@ -739,9 +739,9 @@ for (set<Size>::const_iterator it = used_pos.begin(); it != used_pos.end(); ++it
     /*
     cerr << "Following masses are used for identification: " << endl;
 
-    for (Map<char, double>::const_iterator it = aa_to_weight_.begin(); it != aa_to_weight_.end(); ++it)
+    for (const auto& aa : aa_to_weight_)
     {
-        cerr << it->first << " " << precisionWrapper(it->second) << endl;
+        cerr << aa.first << " " << precisionWrapper(aa.second) << endl;
     }*/
 
     Param decomp_param(mass_decomp_algorithm_.getParameters());
