@@ -89,10 +89,13 @@ START_SECTION ( [EXTRA] testscorefunction)
   sptrArr.push_back(sptr);
 
   double mzres, intensityres, imres;
-  DIAHelpers::integrateWindow(sptrArr,499.,501.,mzres, imres, intensityres, -1, -1);
+  RangeMZ mz_range(500.);
+  RangeMobility im_range_empty;
+  mz_range.minSpanIfSingular(1., false);
+  DIAHelpers::integrateWindow(sptrArr, mzres, imres, intensityres, mz_range, im_range_empty);
 
   TEST_REAL_SIMILAR(mzres, 499.392014652015);
-  TEST_REAL_SIMILAR(intensityres,273 );
+  TEST_REAL_SIMILAR(intensityres, 273 );
 
 
   // >> exp = [240, 74, 39, 15, 0] > 121 / 500.338842975207
@@ -101,7 +104,9 @@ START_SECTION ( [EXTRA] testscorefunction)
   // >> pearsonr(exp, theo)
   // (0.99463189043051314, 0.00047175434098498532)
   //
-  DIAHelpers::integrateWindow(sptrArr,499.6,501.4,mzres, imres, intensityres, -1, -1);
+  mz_range.setMin(499.6);
+  mz_range.setMax(501.4);
+  DIAHelpers::integrateWindow(sptrArr, mzres, imres, intensityres, mz_range, im_range_empty);
 
   std::cout << "mz" << mzres << std::endl;
   std::cout << "intensity" << intensityres << std::endl;
@@ -113,7 +118,7 @@ START_SECTION ( [EXTRA] testscorefunction)
   wincenter.push_back(200.);
   wincenter.push_back(500.);
   wincenter.push_back(600.);
-  DIAHelpers::integrateWindows(sptrArr,wincenter,0.5, intresv, mzresv, imresv, -1, -1);
+  DIAHelpers::integrateWindows(sptrArr,wincenter,0.5, intresv, mzresv, imresv, im_range_empty);
   TEST_REAL_SIMILAR(mzresv[0], 300);
   TEST_REAL_SIMILAR(intresv[0],0 );
   TEST_REAL_SIMILAR(mzresv[1],200 );

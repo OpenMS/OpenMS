@@ -120,15 +120,17 @@ START_SECTION((void getNormalized_library_intensities_(const std::vector<Transit
 END_SECTION
 
 START_SECTION((OpenSwath::SpectrumPtr OpenSwathScoring::fetchSpectrumSwath(std::vector<OpenSwath::SwathMap> swath_maps,
-                                                              double RT, int nr_spectra_to_add, double drift_lower, double drift_upper)))
+                                                              double RT, int nr_spectra_to_add, RangeMobility im_range)))
 {
+
+  RangeMobility im_range_empty; // use this empty im range as input for all examples
   // test result for empty map
   {
     boost::shared_ptr<PeakMap > swath_map (new PeakMap);
     OpenSwath::SpectrumAccessPtr swath_ptr = SimpleOpenMSSpectraFactory::getSpectrumAccessOpenMSPtr(swath_map);
 
     OpenSwathScoring sc;
-    std::vector<OpenSwath::SpectrumPtr> sp = sc.fetchSpectrumSwath(swath_ptr, 20.0, 1, -1, -1);
+    std::vector<OpenSwath::SpectrumPtr> sp = sc.fetchSpectrumSwath(swath_ptr, 20.0, 1, im_range_empty);
 
     TEST_EQUAL(sp.empty(), true);
   }
@@ -152,7 +154,7 @@ START_SECTION((OpenSwath::SpectrumPtr OpenSwathScoring::fetchSpectrumSwath(std::
     OpenSwath_Scores_Usage su;
     sc.initialize(1.0, 1, 0.005, 0.0, su, "resample", true);
 
-    std::vector<OpenSwath::SpectrumPtr> sp = sc.fetchSpectrumSwath(swath_ptr, 20.0, 1, -1, -1);
+    std::vector<OpenSwath::SpectrumPtr> sp = sc.fetchSpectrumSwath(swath_ptr, 20.0, 1, im_range_empty);
 
     TEST_EQUAL(sp.size(), 1);
     TEST_EQUAL(sp[0]->getMZArray()->data.size(), 1);
@@ -162,7 +164,7 @@ START_SECTION((OpenSwath::SpectrumPtr OpenSwathScoring::fetchSpectrumSwath(std::
     TEST_REAL_SIMILAR(sp[0]->getIntensityArray()->data[0], 200.0);
 
     sc.initialize(1.0, 1, 0.005, 0.0, su, "simple", true);
-    sp = sc.fetchSpectrumSwath(swath_ptr, 20.0, 1, -1, -1);
+    sp = sc.fetchSpectrumSwath(swath_ptr, 20.0, 1, im_range_empty);
 
     TEST_EQUAL(sp.size(), 1);
     TEST_EQUAL(sp[0]->getMZArray()->data.size(), 1);
@@ -194,7 +196,7 @@ START_SECTION((OpenSwath::SpectrumPtr OpenSwathScoring::fetchSpectrumSwath(std::
     OpenSwathScoring sc;
     OpenSwath_Scores_Usage su;
     sc.initialize(1.0, 1, 0.005, 0.0, su, "resample", true);
-    std::vector<OpenSwath::SpectrumPtr> sp = sc.fetchSpectrumSwath(swath_ptr, 20.0, 3, -1, -1);
+    std::vector<OpenSwath::SpectrumPtr> sp = sc.fetchSpectrumSwath(swath_ptr, 20.0, 3, im_range_empty);
 
     TEST_EQUAL(sp.size(), 1);
     TEST_EQUAL(sp[0]->getMZArray()->data.size(), 1);
@@ -204,7 +206,7 @@ START_SECTION((OpenSwath::SpectrumPtr OpenSwathScoring::fetchSpectrumSwath(std::
     TEST_REAL_SIMILAR(sp[0]->getIntensityArray()->data[0], 600.0);
 
     sc.initialize(1.0, 1, 0.005, 0.0, su, "simple", true);
-    sp = sc.fetchSpectrumSwath(swath_ptr, 20.0, 3, -1, -1);
+    sp = sc.fetchSpectrumSwath(swath_ptr, 20.0, 3, im_range_empty);
 
     TEST_EQUAL(sp[0]->getMZArray()->data.size(), 1);
     TEST_EQUAL(sp[0]->getIntensityArray()->data.size(), 1);
@@ -260,7 +262,7 @@ START_SECTION((OpenSwath::SpectrumPtr OpenSwathScoring::fetchSpectrumSwath(std::
     OpenSwathScoring sc;
     OpenSwath_Scores_Usage su;
     sc.initialize(1.0, 1, 0.005, 0.0, su, "resample", true);
-    std::vector<OpenSwath::SpectrumPtr> sp = sc.fetchSpectrumSwath(swath_ptr, 20.0, 3, -1, -1);
+    std::vector<OpenSwath::SpectrumPtr> sp = sc.fetchSpectrumSwath(swath_ptr, 20.0, 3, im_range_empty);
 
     TEST_EQUAL(sp.size(), 1);
     TEST_EQUAL(sp[0]->getMZArray()->data.size(), 3);
@@ -275,7 +277,7 @@ START_SECTION((OpenSwath::SpectrumPtr OpenSwathScoring::fetchSpectrumSwath(std::
 
     // in simple method all 3 spectra should be returned
     sc.initialize(1.0, 1, 0.005, 0.0, su, "simple", true);
-    sp = sc.fetchSpectrumSwath(swath_ptr, 20.0, 3, -1, -1);
+    sp = sc.fetchSpectrumSwath(swath_ptr, 20.0, 3, im_range_empty);
     TEST_EQUAL(sp.size(), 3);
     TEST_EQUAL(sp[0]->getMZArray()->data.size(), 1);
     TEST_EQUAL(sp[1]->getMZArray()->data.size(), 1);

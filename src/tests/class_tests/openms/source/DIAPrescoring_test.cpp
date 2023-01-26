@@ -82,6 +82,7 @@ START_SECTION ( test score function with perfect first transition and ion mobili
   std::vector<OpenSwath::BinaryDataArrayPtr> binaryDataArrayPtrs;
   OpenSwath::BinaryDataArrayPtr data1(new OpenSwath::BinaryDataArray);
   OpenSwath::BinaryDataArrayPtr data2(new OpenSwath::BinaryDataArray);
+  RangeMobility im_range_empty;
 
   static const double arr1[] = {
       10, 20, 50, 100, 50, 20, 10, // peak at 499
@@ -123,7 +124,7 @@ START_SECTION ( test score function with perfect first transition and ion mobili
   std::vector <OpenSwath::SpectrumPtr> sptrArr;
   sptrArr.push_back(sptr);
 
-  diaprescore.score(sptrArr, transitions , dotprod, manhattan, -1, -1);
+  diaprescore.score(sptrArr, transitions , im_range_empty, dotprod, manhattan);
   //std::cout << "dotprod : " << dotprod << std::endl;
   //std::cout << "manhattan : " << manhattan << std::endl;
   // >> exp = [240, 74, 39, 15, 0]
@@ -194,11 +195,12 @@ START_SECTION ( test score function missing first transition )
   transitions.push_back(mock_tr2);
 
   DiaPrescore diaprescore(0.05);
+  RangeMobility im_range_empty;
   double manhattan = 0., dotprod = 0.;
 
   std::vector <OpenSwath::SpectrumPtr> sptrArr;
   sptrArr.push_back(sptr);
-  diaprescore.score(sptrArr, transitions , dotprod, manhattan, -1, -1);
+  diaprescore.score(sptrArr, transitions, im_range_empty, dotprod, manhattan);
   //std::cout << "dotprod : " << dotprod << std::endl;
   //std::cout << "manhattan : " << manhattan << std::endl;
   // >> exp = [240, 74, 39, 15, 0]
@@ -265,12 +267,13 @@ START_SECTION ( test score function with shifted first transition )
   transitions.push_back(mock_tr2);
 
   DiaPrescore diaprescore(0.05);
+  RangeMobility im_range_empty;
   double manhattan = 0., dotprod = 0.;
 
   std::vector <OpenSwath::SpectrumPtr> sptrArr;
   sptrArr.push_back(sptr);
 
-  diaprescore.score(sptrArr, transitions , dotprod, manhattan, -1, -1);
+  diaprescore.score(sptrArr, transitions, im_range_empty, dotprod, manhattan);
   //std::cout << "dotprod : " << dotprod << std::endl;
   //std::cout << "manhattan : " << manhattan << std::endl;
   // >> exp = [240, 74, 39, 15, 0]
@@ -363,11 +366,13 @@ START_SECTION ( test score function missing first transition due to different io
   transitions.push_back(mock_tr2);
 
   DiaPrescore diaprescore(0.05);
+  RangeMobility im_range(PRECURSOR_ION_MOBILITY);
+  im_range.minSpanIfSingular(ION_MOBILITY_WIDTH);
   double manhattan = 0., dotprod = 0.;
 
   std::vector <OpenSwath::SpectrumPtr> sptrArr;
   sptrArr.push_back(sptr);
-  diaprescore.score(sptrArr, transitions , dotprod, manhattan, PRECURSOR_ION_MOBILITY - (ION_MOBILITY_WIDTH / 2.0), PRECURSOR_ION_MOBILITY + (ION_MOBILITY_WIDTH / 2.0));
+  diaprescore.score(sptrArr, transitions, im_range, dotprod, manhattan);
   //std::cout << "dotprod : " << dotprod << std::endl;
   //std::cout << "manhattan : " << manhattan << std::endl;
   // >> exp = [240, 74, 39, 15, 0]

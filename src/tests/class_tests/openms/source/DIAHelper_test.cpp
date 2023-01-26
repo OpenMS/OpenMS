@@ -129,15 +129,30 @@ OpenSwath::SpectrumPtr spec(new OpenSwath::Spectrum());
 }
 
 
-START_SECTION(bool integrateWindow(const OpenSwath::SpectrumPtr& spectrum, double mz_start, double mz_end, double & mz, double & im, double & intensity, double drift_start, double drift_end, bool centroided))
+START_SECTION(bool integrateWindow(const OpenSwath::SpectrumPtr& spectrum, double & mz, double & im, double & intensity, RangeMZ range_mz, RangeMobility im_range, bool centroided))
 {
 
+  RangeMobility empty_im_range; // empty im range for testing
+
+  // IM range from 2 to 5
+  RangeMobility nonempty_im_range(3.5);
+
+  //Mz range from 101 to 103
+  RangeMZ mz_range(102.);
+  mz_range.minSpanIfSingular(1., false); // not in ppm
+
+
+  //mz range from 101 to 109
+  RangeMZ mz_range_2(105.);
+  mz_range_2.minSpanIfSingular(4., false); // not in ppm
+
+  nonempty_im_range.minSpanIfSingular(1.5);
   {
     //Test integration of empty spectrum
     OpenSwath::SpectrumPtr emptySpec(new OpenSwath::Spectrum());
     double mz(0), intens(0), im(0);
 
-    DIAHelpers::integrateWindow(emptySpec, 101., 103., mz, im, intens, -1, -1);
+    DIAHelpers::integrateWindow(emptySpec, mz, im, intens, mz_range, empty_im_range);
 
     TEST_REAL_SIMILAR(mz, -1);
     TEST_REAL_SIMILAR(im, -1);
@@ -147,14 +162,14 @@ START_SECTION(bool integrateWindow(const OpenSwath::SpectrumPtr& spectrum, doubl
   {
     // Test spectrum without ion mobility while asking for ion mobility filtering, should throw an exception
     double mz(0), intens(0), im(0);
-    TEST_EXCEPTION_WITH_MESSAGE(Exception::MissingInformation, DIAHelpers::integrateWindow(spec, 101., 103., mz, im, intens, 2, 5), "Cannot integrate with drift time if no drift time is available");
+    TEST_EXCEPTION_WITH_MESSAGE(Exception::MissingInformation, DIAHelpers::integrateWindow(spec, mz, im, intens, mz_range, nonempty_im_range), "Cannot integrate with drift time if no drift time is available");
   }
 
   {
     // Test ion mobility enhanced array with no ion mobility windows, although IM is present it should be ignored
     double mz(0), intens(0), im(0);
 
-    DIAHelpers::integrateWindow(imSpec, 101., 103., mz, im, intens, -1, -1);
+    DIAHelpers::integrateWindow(imSpec, mz, im, intens, mz_range, empty_im_range);
     TEST_REAL_SIMILAR (mz, 101.5);
     TEST_REAL_SIMILAR (intens, 2);
     TEST_REAL_SIMILAR (im, -1); // since no IM, this value should be -1
@@ -166,7 +181,7 @@ START_SECTION(bool integrateWindow(const OpenSwath::SpectrumPtr& spectrum, doubl
     // Test With Ion Mobility (Condition 1/2)
     double mz(0), intens(0), im(0);
 
-    DIAHelpers::integrateWindow(imSpec, 101., 109., mz, im, intens, 2, 5);
+    DIAHelpers::integrateWindow(imSpec, mz, im, intens, mz_range_2, nonempty_im_range);
     TEST_REAL_SIMILAR (im, 3.5);
     TEST_REAL_SIMILAR (intens, 4);
   }
@@ -175,7 +190,7 @@ START_SECTION(bool integrateWindow(const OpenSwath::SpectrumPtr& spectrum, doubl
     // Test with Ion Mobility (Condition 2/2)
     double mz(0), intens(0), im(0);
 
-    DIAHelpers::integrateWindow(imSpec, 101., 103., mz, im, intens, 2, 5);
+    DIAHelpers::integrateWindow(imSpec, mz, im, intens, mz_range, nonempty_im_range);
     TEST_REAL_SIMILAR (im, 2.5);
     TEST_REAL_SIMILAR (intens, 2);
   }
@@ -183,14 +198,31 @@ START_SECTION(bool integrateWindow(const OpenSwath::SpectrumPtr& spectrum, doubl
 END_SECTION
 
 
-START_SECTION(bool integrateWindow(const std::vector<OpenSwath::SpectrumPtr>& spectra, double mz_start, double mz_end, double & mz, double & im, double & intensity, double drift_start, double drift_end, bool centroided))
+START_SECTION(bool integrateWindow(const SpectrumSequence& spectra, double & mz, double & im, double & intensity, RangeMZ mz_range, const RangeMobility& im_range, bool centroided))
 {
+
+  RangeMobility empty_im_range; // empty im range for testing
+
+  // IM range from 2 to 5
+  RangeMobility nonempty_im_range(3.5);
+  nonempty_im_range.minSpanIfSingular(1.5);
+
+  //Mz range from 101 to 103
+  RangeMZ mz_range(102., false); // not in ppm
+  mz_range.minSpanIfSingular(1., false);
+
+
+  //mz range from 101 to 109
+  RangeMZ mz_range_2(105.);
+  mz_range_2.minSpanIfSingular(4., false); // not in ppm
+
+
   {
     // Test integration of empty array
     std::vector<OpenSwath::SpectrumPtr> emptySpecArr;
     double mz(0), intens(0), im(0);
 
-    DIAHelpers::integrateWindow(emptySpecArr, 101., 103., mz, im, intens, -1, -1);
+    DIAHelpers::integrateWindow(emptySpecArr, mz, im, intens, mz_range, empty_im_range);
     TEST_REAL_SIMILAR(mz, -1);
     TEST_REAL_SIMILAR(im, -1);
     TEST_REAL_SIMILAR(intens, 0);
@@ -203,7 +235,7 @@ START_SECTION(bool integrateWindow(const std::vector<OpenSwath::SpectrumPtr>& sp
     double mz(0), intens(0), im(0);
 
     specArrEmptySpectrum.push_back(emptySpec);
-    DIAHelpers::integrateWindow(specArrEmptySpectrum, 101., 103., mz, im, intens, -1, -1);
+    DIAHelpers::integrateWindow(specArrEmptySpectrum, mz, im, intens, mz_range, empty_im_range);
 
     TEST_REAL_SIMILAR(mz, -1);
     TEST_REAL_SIMILAR(im, -1);
@@ -216,7 +248,7 @@ START_SECTION(bool integrateWindow(const std::vector<OpenSwath::SpectrumPtr>& sp
     double mz(0), intens(0), im(0);
     specArr.push_back(imSpec);
 
-    DIAHelpers::integrateWindow(specArr, 101., 103., mz, im, intens, -1, -1);
+    DIAHelpers::integrateWindow(specArr, mz, im, intens, mz_range, empty_im_range);
     TEST_REAL_SIMILAR (mz, 101.5);
     TEST_REAL_SIMILAR (intens, 2);
     TEST_REAL_SIMILAR (im, -1); // since no IM, this value should be -1
@@ -229,7 +261,7 @@ START_SECTION(bool integrateWindow(const std::vector<OpenSwath::SpectrumPtr>& sp
 
     specArr.push_back(imSpec);
 
-    DIAHelpers::integrateWindow(specArr, 101., 109., mz, im, intens, 2, 5);
+    DIAHelpers::integrateWindow(specArr, mz, im, intens, mz_range_2, nonempty_im_range);
     TEST_REAL_SIMILAR (im, 3.5);
     TEST_REAL_SIMILAR (intens, 4);
   }
@@ -241,15 +273,20 @@ START_SECTION(bool integrateWindow(const std::vector<OpenSwath::SpectrumPtr>& sp
 
     specArr.push_back(imSpec);
 
-    DIAHelpers::integrateWindow(specArr, 101., 103., mz, im, intens, 2, 5);
+    DIAHelpers::integrateWindow(specArr, mz, im, intens, mz_range_2, nonempty_im_range);
     TEST_REAL_SIMILAR (im, 2.5);
     TEST_REAL_SIMILAR (intens, 2);
   }
 }
 END_SECTION
 
-START_SECTION(void integrateWindows(const OpenSwath::SpectrumPtr& spectra, const std::vector<double> & windowsCenter, double width, std::vector<double> & integratedWindowsIntensity, std::vector<double> & integratedWindowsMZ, std::vector<double> & integratedWindowsIm, double drift_start, double drift_end, bool remZero))
+START_SECTION(void integrateWindows(const OpenSwath::SpectrumPtr& spectra, const std::vector<double> & windowsCenter, double width, std::vector<double> & integratedWindowsIntensity, std::vector<double> & integratedWindowsMZ, std::vector<double> & integratedWindowsIm, const RangeMobility& im_range, bool remZero))
 {
+
+  RangeMobility empty_im_range; // empty im range for testing
+  RangeMobility nonempty_im_range(3.5);
+  nonempty_im_range.minSpanIfSingular(1.5);
+
   {
     // Test empty spectrum (with non empty windows) - remove zeros
     OpenSwath::SpectrumPtr emptySpec(new OpenSwath::Spectrum());
@@ -259,7 +296,7 @@ START_SECTION(void integrateWindows(const OpenSwath::SpectrumPtr& spectra, const
     windows.push_back(103.);
     windows.push_back(105.);
 
-    DIAHelpers::integrateWindows(emptySpec, windows, 2, intInt, intMz, intIm, -1, -1, true);
+    DIAHelpers::integrateWindows(emptySpec, windows, 2, intInt, intMz, intIm, empty_im_range,  true);
     TEST_EQUAL (intInt.empty(), true);
     TEST_EQUAL (intIm.empty(), true);
     TEST_EQUAL (intMz.empty(), true);
@@ -275,7 +312,7 @@ START_SECTION(void integrateWindows(const OpenSwath::SpectrumPtr& spectra, const
     windows.push_back(103.);
     windows.push_back(105.);
 
-    DIAHelpers::integrateWindows(emptySpec, windows, 2, intInt, intMz, intIm, -1, -1, false);
+    DIAHelpers::integrateWindows(emptySpec, windows, 2, intInt, intMz, intIm, empty_im_range, false);
     TEST_EQUAL (intInt.size(), intMz.size() )
     TEST_EQUAL (intInt.size(), intIm.size() )
     TEST_EQUAL (intInt.size(), 3)
@@ -297,7 +334,7 @@ START_SECTION(void integrateWindows(const OpenSwath::SpectrumPtr& spectra, const
     windows.push_back(103.);
     windows.push_back(105.);
 
-    DIAHelpers::integrateWindows(spec, windows, 2, intInt, intMz, intIm, -1, -1);
+    DIAHelpers::integrateWindows(spec, windows, 2, intInt, intMz, intIm, empty_im_range);
     TEST_EQUAL (intInt.size(), intMz.size() )
     TEST_EQUAL (intInt.size(), intIm.size() )
     TEST_EQUAL (intInt.size(), 3)
@@ -319,7 +356,7 @@ START_SECTION(void integrateWindows(const OpenSwath::SpectrumPtr& spectra, const
     std::vector<double> windows, intInt, intMz, intIm;
     windows.push_back(102.);
 
-    DIAHelpers::integrateWindows(imSpec, windows, 2, intInt, intMz, intIm, 2, 5);
+    DIAHelpers::integrateWindows(imSpec, windows, 2, intInt, intMz, intIm, nonempty_im_range);
     TEST_EQUAL (intInt.size(), intMz.size() )
     TEST_EQUAL (intInt.size(), intIm.size() )
     TEST_EQUAL (intInt.size(), 1)
@@ -341,8 +378,12 @@ START_SECTION(void integrateWindows(const OpenSwath::SpectrumPtr& spectra, const
 END_SECTION
 
 
-START_SECTION(void integrateWindows(const std::vector<OpenSwath::SpectrumPtr>& spectrum, const std::vector<double> & windowsCenter, double width, std::vector<double> & integratedWindowsIntensity, std::vector<double> & integratedWindowsMZ, std::vector<double> & integratedWindowsIm, double drift_start, double drift_end, bool remZero))
+START_SECTION(void integrateWindows(const SpectrumSequence& spectrum, const std::vector<double> & windowsCenter, double width, std::vector<double> & integratedWindowsIntensity, std::vector<double> & integratedWindowsMZ, std::vector<double> & integratedWindowsIm, const RangeMobility& im_range, bool remZero))
 {
+  RangeMobility empty_im_range; // empty im range for testing
+  RangeMobility nonempty_im_range(3.5);
+  nonempty_im_range.minSpanIfSingular(1.5);
+
   {
     // Test empty windows
     OpenSwath::SpectrumPtr emptySpec(new OpenSwath::Spectrum());
@@ -350,7 +391,7 @@ START_SECTION(void integrateWindows(const std::vector<OpenSwath::SpectrumPtr>& s
     std::vector<double> windows, intInt, intMz, intIm;
     specArr.push_back(emptySpec);
 
-    TEST_EXCEPTION_WITH_MESSAGE(Exception::MissingInformation, DIAHelpers::integrateWindows(specArr, windows, 2, intInt, intMz, intIm, -1, -1), "No windows supplied!");
+    TEST_EXCEPTION_WITH_MESSAGE(Exception::MissingInformation, DIAHelpers::integrateWindows(specArr, windows, 2, intInt, intMz, intIm, empty_im_range), "No windows supplied!");
   }
 
 
@@ -366,7 +407,7 @@ START_SECTION(void integrateWindows(const std::vector<OpenSwath::SpectrumPtr>& s
     windows.push_back(105.);
 
 
-    DIAHelpers::integrateWindows(specArr, windows, 2, intInt, intMz, intIm, -1, -1, true);
+    DIAHelpers::integrateWindows(specArr, windows, 2, intInt, intMz, intIm, nonempty_im_range, true);
     TEST_EQUAL (intInt.empty(), true);
     TEST_EQUAL (intIm.empty(), true);
     TEST_EQUAL (intMz.empty(), true);
@@ -383,7 +424,7 @@ START_SECTION(void integrateWindows(const std::vector<OpenSwath::SpectrumPtr>& s
     windows.push_back(103.);
     windows.push_back(105.);
 
-    DIAHelpers::integrateWindows(specArr, windows, 2, intInt, intMz, intIm, -1, -1, false);
+    DIAHelpers::integrateWindows(specArr, windows, 2, intInt, intMz, intIm, empty_im_range, false);
     TEST_EQUAL (intInt.size(), intMz.size() )
     TEST_EQUAL (intInt.size(), intIm.size() )
     TEST_EQUAL (intInt.size(), 3)
@@ -409,7 +450,7 @@ START_SECTION(void integrateWindows(const std::vector<OpenSwath::SpectrumPtr>& s
 
     specArr.push_back(spec);
 
-    DIAHelpers::integrateWindows(specArr, windows, 2, intInt, intMz, intIm, -1, -1);
+    DIAHelpers::integrateWindows(specArr, windows, 2, intInt, intMz, intIm, empty_im_range);
     TEST_EQUAL (intInt.size(), intMz.size() )
     TEST_EQUAL (intInt.size(), intIm.size() )
     TEST_EQUAL (intInt.size(), 3)
@@ -434,7 +475,7 @@ START_SECTION(void integrateWindows(const std::vector<OpenSwath::SpectrumPtr>& s
 
     specArr.push_back(imSpec);
 
-    DIAHelpers::integrateWindows(specArr, windows, 2, intInt, intMz, intIm, 2, 5);
+    DIAHelpers::integrateWindows(specArr, windows, 2, intInt, intMz, intIm, nonempty_im_range);
     TEST_EQUAL (intInt.size(), intMz.size() )
     TEST_EQUAL (intInt.size(), intIm.size() )
     TEST_EQUAL (intInt.size(), 1)

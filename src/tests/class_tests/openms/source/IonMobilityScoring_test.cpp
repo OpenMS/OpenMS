@@ -219,9 +219,8 @@ START_SECTION(([EXTRA]
     static void driftScoring(std::vector<OpenSwath::SpectrumPtr> spectrum,
                              const std::vector<TransitionType> & transitions,
                              OpenSwath_Scores & scores,
-                             const double drift_lower,
-                             const double drift_upper,
                              const double drift_target,
+                             const RangeMobility im_range,
                              const double dia_extraction_window_,
                              const bool dia_extraction_ppm_,
                              const bool use_spline,
@@ -229,9 +228,9 @@ START_SECTION(([EXTRA]
 {
   OpenSwath_Scores scores;
 
-  double drift_lower = 0.5;
-  double drift_upper = 1.5;
   double drift_target = 1.0;
+  RangeMobility im_range_1(1.0);
+  im_range_1.minSpanIfSingular(0.5);
   double im_drift_extra_pcnt_ = 0.25;
 
   double dia_extract_window_ = 0.3;
@@ -245,7 +244,7 @@ START_SECTION(([EXTRA]
 
   // test with just IM information
   IonMobilityScoring::driftScoring(sptrArr, transitions, scores,
-                                   drift_lower, drift_upper, drift_target,
+                                   drift_target, im_range_1,
                                    dia_extract_window_, dia_extraction_ppm_,
                                    false, im_drift_extra_pcnt_);
 
@@ -255,7 +254,7 @@ START_SECTION(([EXTRA]
   drift_spectrum->setIntensityArray( intensity);
 
   IonMobilityScoring::driftScoring(sptrArr, transitions, scores,
-                                   drift_lower, drift_upper, drift_target,
+                                   drift_target, im_range_1,
                                    dia_extract_window_, dia_extraction_ppm_,
                                    false, im_drift_extra_pcnt_);
 
@@ -268,7 +267,7 @@ START_SECTION(([EXTRA]
   TEST_EQUAL(drift_spectrum->getMZArray()->data.size(), drift_spectrum->getDriftTimeArray()->data.size())
 
   IonMobilityScoring::driftScoring(sptrArr2, transitions, scores,
-                                   drift_lower, drift_upper, drift_target,
+                                   drift_target, im_range_1,
                                    dia_extract_window_, dia_extraction_ppm_,
                                    false, im_drift_extra_pcnt_);
 
@@ -281,7 +280,7 @@ START_SECTION(([EXTRA]
 
   dia_extract_window_ = 0.1;
   IonMobilityScoring::driftScoring(sptrArr2, transitions, scores,
-                                   drift_lower, drift_upper, drift_target,
+                                   drift_target, im_range_1,
                                    dia_extract_window_, dia_extraction_ppm_,
                                    false, im_drift_extra_pcnt_);
 
@@ -294,11 +293,11 @@ START_SECTION(([EXTRA]
 
   // deal with exactly one entry in mobilogram
   dia_extract_window_ = 0.3;
-  drift_lower = 1.0;
-  drift_upper = 1.1;
+  RangeMobility im_range_2(1.05);
+  im_range_2.minSpanIfSingular(0.05);
   drift_target = 1.05;
   IonMobilityScoring::driftScoring(sptrArr2, transitions, scores,
-                                   drift_lower, drift_upper, drift_target,
+                                   drift_target, im_range_2,
                                    dia_extract_window_, dia_extraction_ppm_,
                                    false, im_drift_extra_pcnt_);
 
@@ -311,11 +310,12 @@ START_SECTION(([EXTRA]
 
   // deal with one zero transitions
   dia_extract_window_ = 0.3;
-  drift_lower = 1.0;
-  drift_upper = 1.3;
+  RangeMobility im_range_3;
+  im_range_3.setMin(1.0);
+  im_range_3.setMax(1.3);
   drift_target = 1.1;
   IonMobilityScoring::driftScoring(sptrArr2, transitions, scores,
-                                   drift_lower, drift_upper, drift_target,
+                                   drift_target, im_range_3,
                                    dia_extract_window_, dia_extraction_ppm_,
                                    false, im_drift_extra_pcnt_);
 
@@ -327,11 +327,14 @@ START_SECTION(([EXTRA]
   TEST_REAL_SIMILAR(scores.im_xcorr_coelution_score, 3.73205080756888)
 
   // deal with all-zero transitions
-  drift_lower = 2.5;
-  drift_upper = 3.5;
-  drift_target = 3.0;
+  RangeMobility im_range_4(3.0);
+  im_range_4.minSpanIfSingular(0.5);
+
+  //drift_lower = 2.5;
+  //drift_upper = 3.5;
+  //drift_target = 3.0;
   IonMobilityScoring::driftScoring(sptrArr2, transitions, scores,
-                                   drift_lower, drift_upper, drift_target,
+                                   drift_target, im_range_4,
                                    dia_extract_window_, dia_extraction_ppm_,
                                    false, im_drift_extra_pcnt_);
 
@@ -358,9 +361,10 @@ START_SECTION([EXTRA]
 {
   OpenSwath_Scores scores;
 
-  double drift_lower = 0.5;
-  double drift_upper = 1.5;
+  // IM range from 0.5 to 1.5
   double drift_target = 1.0;
+  RangeMobility im_range(drift_target);
+  im_range.minSpanIfSingular(0.5);
   double im_drift_extra_pcnt_ = 0.25;
 
   double dia_extract_window_ = 0.3;
@@ -373,7 +377,7 @@ START_SECTION([EXTRA]
   sptrArr.push_back(drift_spectrum);
 
   IonMobilityScoring::driftScoringMS1(sptrArr, transitions, scores,
-                                   drift_lower, drift_upper, drift_target,
+                                   drift_target, im_range,
                                    dia_extract_window_, dia_extraction_ppm_,
                                    false, im_drift_extra_pcnt_);
 
@@ -386,7 +390,7 @@ START_SECTION([EXTRA]
   sptrArr2.push_back(drift_spectrum);
 
   IonMobilityScoring::driftScoringMS1(sptrArr2, transitions, scores,
-                                   drift_lower, drift_upper, drift_target,
+                                   drift_target, im_range,
                                    dia_extract_window_, dia_extraction_ppm_,
                                    false, im_drift_extra_pcnt_);
 
@@ -400,7 +404,7 @@ START_SECTION([EXTRA]
   TEST_EQUAL(drift_spectrum->getMZArray()->data.size(), drift_spectrum->getDriftTimeArray()->data.size())
 
   IonMobilityScoring::driftScoringMS1(sptrArr3, transitions, scores,
-                                   drift_lower, drift_upper, drift_target,
+                                   drift_target, im_range,
                                    dia_extract_window_, dia_extraction_ppm_,
                                    false, im_drift_extra_pcnt_);
 
@@ -422,8 +426,9 @@ START_SECTION(([EXTRA]
 {
   OpenSwath_Scores scores;
 
-  double drift_lower = 0.5;
-  double drift_upper = 1.5;
+  // IM from 0.5 to 1.5
+  RangeMobility im_range_1(1);
+  im_range_1.minSpanIfSingular(0.5);
   double im_drift_extra_pcnt_ = 0.25;
 
   double dia_extract_window_ = 0.3;
@@ -443,7 +448,7 @@ START_SECTION(([EXTRA]
   sptrArrMS1.push_back(drift_spectrum_ms1);
 
   IonMobilityScoring::driftScoringMS1Contrast(sptrArr, sptrArrMS1, transitions, scores,
-                                   drift_lower, drift_upper,
+                                   im_range_1,
                                    dia_extract_window_, dia_extraction_ppm_,
                                    im_drift_extra_pcnt_);
 
@@ -462,7 +467,7 @@ START_SECTION(([EXTRA]
   sptrArrMS1_2.push_back(drift_spectrum_ms1);
 
   IonMobilityScoring::driftScoringMS1Contrast(sptrArr_2, sptrArrMS1, transitions, scores,
-                                   drift_lower, drift_upper,
+                                   im_range_1,
                                    dia_extract_window_, dia_extraction_ppm_,
                                    im_drift_extra_pcnt_);
 
@@ -481,7 +486,7 @@ START_SECTION(([EXTRA]
   TEST_EQUAL(drift_spectrum->getMZArray()->data.size(), drift_spectrum->getDriftTimeArray()->data.size())
 
   IonMobilityScoring::driftScoringMS1Contrast(sptrArr_3, sptrArrMS1_3, transitions, scores,
-                                   drift_lower, drift_upper,
+                                   im_range_1,
                                    dia_extract_window_, dia_extraction_ppm_,
                                    im_drift_extra_pcnt_);
 
@@ -492,7 +497,7 @@ START_SECTION(([EXTRA]
 
   dia_extract_window_ = 0.1;
   IonMobilityScoring::driftScoringMS1Contrast(sptrArr_3, sptrArrMS1_3, transitions, scores,
-                                   drift_lower, drift_upper,
+                                   im_range_1,
                                    dia_extract_window_, dia_extraction_ppm_,
                                    im_drift_extra_pcnt_);
 
@@ -503,10 +508,13 @@ START_SECTION(([EXTRA]
 
   // deal with exactly one entry in mobilogram
   dia_extract_window_ = 0.3;
-  drift_lower = 1.0;
-  drift_upper = 1.1;
+
+  // IM Span from 1.0 to 1.1
+  RangeMobility im_range_2(1.05);
+  im_range_2.minSpanIfSingular(0.05);
+
   IonMobilityScoring::driftScoringMS1Contrast(sptrArr_3, sptrArrMS1_3, transitions, scores,
-                                   drift_lower, drift_upper,
+                                   im_range_2,
                                    dia_extract_window_, dia_extraction_ppm_,
                                    im_drift_extra_pcnt_);
 
@@ -517,10 +525,11 @@ START_SECTION(([EXTRA]
 
   // deal with one zero transitions
   dia_extract_window_ = 0.3;
-  drift_lower = 1.0;
-  drift_upper = 1.3;
+  //Im Span from 1.0 to 1.3
+  RangeMobility im_range_3(1.15);
+  im_range_3.minSpanIfSingular(0.15);
   IonMobilityScoring::driftScoringMS1Contrast(sptrArr_3, sptrArrMS1_3, transitions, scores,
-                                   drift_lower, drift_upper,
+                                   im_range_3,
                                    dia_extract_window_, dia_extraction_ppm_,
                                    im_drift_extra_pcnt_);
 
@@ -530,11 +539,12 @@ START_SECTION(([EXTRA]
   TEST_REAL_SIMILAR(scores.im_ms1_sum_contrast_shape, 0)
 
   // deal with all-zero transitions
-  drift_lower = 2.5;
-  drift_upper = 3.5;
+  // IM span from 2.5 to 3.5
+  RangeMobility im_range_4(3.);
+  im_range_4.minSpanIfSingular(0.5);
 
   IonMobilityScoring::driftScoringMS1Contrast(sptrArr_3, sptrArrMS1_3, transitions, scores,
-                                   drift_lower, drift_upper,
+                                   im_range_4,
                                    dia_extract_window_, dia_extraction_ppm_,
                                    im_drift_extra_pcnt_);
 
