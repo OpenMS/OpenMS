@@ -333,6 +333,14 @@ namespace OpenMS
           }
         }
 
+        // annotate which features were removed because of overlap with the representative feature
+        String ref = String(overlap.getMetaValue("PeptideRef")) + " (RT " +
+          String(float(overlap.getRT())) + ")";
+
+        StringList overlap_refs = cluster_representative.getMetaValue("overlap_removed", StringList{});
+        overlap_refs.push_back(std::move(ref));
+        cluster_representative.setMetaValue("overlap_removed", std::move(overlap_refs)); // TODO: implement setMetaValue that takes DataValue as r-value reference &&
+
         return true;
       };
 
