@@ -77,6 +77,10 @@ namespace OpenMS
                                                     double *precursor_intensities,
                                                     double *peakgroup_intensities);
 
+  extern "C" OPENMS_DLLAPI int GetAllPeakGroupSize(FLASHIda *pObject);
+
+  extern "C" OPENMS_DLLAPI void GetAllMonoisotopicMasses(FLASHIda *pObject, double *masses, int length);
+
   /// keeps the precalculated averagine to calculate average masses from monoisotopic masses
   static FLASHDeconvHelperStructs::PrecalculatedAveragine avg;
 }

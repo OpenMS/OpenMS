@@ -228,10 +228,12 @@ namespace OpenMS
     std::cout << fd_defaults << std::endl;
   }
 
-  int FLASHIda::getPeakGroups(const double* mzs, const double* ints, const int length, const double rt, const int ms_level, const char* name)
+  int FLASHIda::getPeakGroups(const double* mzs, const double* ints,
+                              const int length, const double rt, const int ms_level, const char* name)
   {
+    int ret[2] = {0,0};
     auto spec = makeMSSpectrum_(mzs, ints, length, rt, ms_level, name);
-    // deconvolved_spectrum_ = DeconvolvedSpectrum(spec, 1);
+    // selected_peak_groups_ = DeconvolvedSpectrum(spec, 1);
     if (ms_level == 1)
     {
       // current_max_mass_ = max_mass;
@@ -264,18 +266,19 @@ namespace OpenMS
       fd_.setTargetMasses(target_masses_, false);
     }
 
+    selected_peak_groups_.clear();
+    deconvolved_spectrum_.clear();
+
     fd_.performSpectrumDeconvolution(spec, tmp, 0, empty);
     deconvolved_spectrum_ = fd_.getDeconvolvedSpectrum();
     // per spec deconvolution
     FLASHIda::filterPeakGroupsUsingMassExclusion_(ms_level, rt);
     // spec.clear(true);
-
-    return (int)deconvolved_spectrum_.size();
+    return (int)selected_peak_groups_.size();
   }
 
   void FLASHIda::filterPeakGroupsUsingMassExclusion_(const int ms_level, const double rt)
   {
-    std::vector<PeakGroup> filtered_peakgroups;
     deconvolved_spectrum_.sortByQScore();
     Size mass_count = (Size)mass_count_[ms_level - 1];
     trigger_charges.clear();
@@ -285,7 +288,7 @@ namespace OpenMS
     trigger_right_isolation_mzs_.clear();
     trigger_right_isolation_mzs_.reserve(mass_count);
 
-    filtered_peakgroups.reserve(mass_count_.size());
+    selected_peak_groups_.reserve(mass_count_.size());
     std::set<double> current_selected_mzs; // current selected mzs
     std::set<double> current_selected_masses; // current selected mzs
 
@@ -376,7 +379,7 @@ namespace OpenMS
       {
         for (auto& pg : deconvolved_spectrum_)
         {
-          if (filtered_peakgroups.size() >= mass_count)
+          if (selected_peak_groups_.size() >= mass_count)
           {
             break;
           }
@@ -559,7 +562,7 @@ namespace OpenMS
             tqscore_exceeding_mz_rt_map_[integer_mz] = rt;
           }
 
-          filtered_peakgroups.push_back(pg);
+          selected_peak_groups_.push_back(pg);
           trigger_charges.push_back(charge);
 
           trigger_left_isolation_mzs_.push_back(mz1);
@@ -569,22 +572,34 @@ namespace OpenMS
         }
       }
     }
-    deconvolved_spectrum_.setPeakGroups(filtered_peakgroups);
-    std::vector<PeakGroup>().swap(filtered_peakgroups);
+  }
+
+  void FLASHIda::getAllMonoisotopicMasses(double *masses, int length)
+  {
+    int len = std::min(length, (int)deconvolved_spectrum_.size());
+    for(int i=0;i<len;i++)
+    {
+      masses[i] = deconvolved_spectrum_[i].getMonoMass();
+    }
+  }
+
+  int FLASHIda::GetAllPeakGroupSize()
+  {
+    return deconvolved_spectrum_.size();
   }
 
   void FLASHIda::getIsolationWindows(double* wstart, double* wend, double* qscores, int* charges, int* min_charges, int* max_charges, double* mono_masses, double* chare_cos, double* charge_snrs,
                                      double* iso_cos, double* snrs, double* charge_scores, double* ppm_errors, double* precursor_intensities, double* peakgroup_intensities)
   {
-    // std::sort(deconvolved_spectrum_.begin(), deconvolved_spectrum_.end(), QscoreComparator_);
+    // std::sort(selected_peak_groups_.begin(), selected_peak_groups_.end(), QscoreComparator_);
 
-    for (Size i = 0; i < deconvolved_spectrum_.size(); i++)
+    for (Size i = 0; i < selected_peak_groups_.size(); i++)
     {
       if (trigger_charges[i] == 0)
       {
         continue;
       }
-      auto peakgroup = deconvolved_spectrum_[i];
+      auto peakgroup = selected_peak_groups_[i];
       charges[i] = trigger_charges[i];
       auto cr = peakgroup.getAbsChargeRange();
       min_charges[i] = std::get<0>(cr);
@@ -604,8 +619,6 @@ namespace OpenMS
       peakgroup_intensities[i] = peakgroup.getIntensity();
       precursor_intensities[i] = peakgroup.getChargeIntensity(charges[i]);
     }
-    std::vector<PeakGroup> empty;
-    deconvolved_spectrum_.setPeakGroups(empty);
   }
 
   MSSpectrum FLASHIda::makeMSSpectrum_(const double* mzs, const double* ints, const int length, const double rt, const int ms_level, const char* name)

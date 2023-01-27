@@ -78,7 +78,7 @@ namespace OpenMS
            @param rt Retention time in seconds
            @param ms_level ms level
            @param name spectrum name
-           @return number of peak groups
+           @return number of acquired peak groups
       */
     int getPeakGroups(const double *mzs,
                       const double *intensities,
@@ -120,6 +120,11 @@ namespace OpenMS
                              double *ppm_errors,
                              double *precursor_intensities,
                              double *peakgroup_intensities);
+
+
+    void getAllMonoisotopicMasses(double *masses, int length);
+
+    int GetAllPeakGroupSize();
 
     /**
            @brief parse FLASHIda log file
@@ -170,6 +175,8 @@ namespace OpenMS
 
     /// deconvolved spectrum that contains the peak group
     DeconvolvedSpectrum deconvolved_spectrum_;
+    /// selected peak groups out of deconvolved_spectrum_
+    DeconvolvedSpectrum selected_peak_groups_;
     /// peakGroup charges to be triggered
     std::vector<int> trigger_charges;
     /// peakGroup isolation window ranges

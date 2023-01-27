@@ -219,7 +219,7 @@ namespace OpenMS
 
     /// Stores log mz peaks
     std::vector<LogMzPeak> log_mz_peaks_;
-    /// deconvolved_spectrum_ stores the deconvolved mass peak groups
+    /// selected_peak_groups_ stores the deconvolved mass peak groups
     DeconvolvedSpectrum deconvolved_spectrum_;
     /// mass_bins_ stores the selected bins for this spectrum + overlapped spectrum (previous a few spectra).
     boost::dynamic_bitset<> mass_bins_;

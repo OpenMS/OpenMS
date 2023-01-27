@@ -51,8 +51,7 @@ namespace OpenMS
     }
   }
 
-  int
-  GetPeakGroupSize(FLASHIda *pObject, double *mzs, double *ints, int length, double rt_min, int msLevel, char *name)
+  int GetPeakGroupSize(FLASHIda *pObject, double *mzs, double *ints, int length, double rt_min, int msLevel, char *name)
   {
     if (pObject != nullptr)
     {
@@ -91,6 +90,22 @@ namespace OpenMS
                                    charge_snrs, iso_cos, snrs, charge_scores, ppm_errors,
                                    precursor_intensities,
                                    peakgroup_intensities);
+    }
+  }
+
+  int GetAllPeakGroupSize(FLASHIda *pObject)
+  {if (pObject != nullptr)
+    {
+      return pObject->GetAllPeakGroupSize();
+    }
+    return 0;
+  }
+
+  void GetAllMonoisotopicMasses(FLASHIda *pObject, double *masses, int length)
+  {
+    if (pObject != nullptr)
+    {
+      pObject->getAllMonoisotopicMasses(masses, length);
     }
   }
 }
