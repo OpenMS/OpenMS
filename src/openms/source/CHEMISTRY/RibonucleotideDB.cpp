@@ -45,6 +45,14 @@ using namespace std;
 namespace OpenMS
 {
 
+  struct ParsedEntry_
+    {
+      Ribonucleotide* ribo;
+      String alternative_1;
+      String alternative_2;
+      bool isAmbiguous () { return alternative_1.empty(); }
+    };
+
   RibonucleotideDB::RibonucleotideDB() : max_code_length_(0)
   {
     //TODO add JSON logic here
@@ -71,8 +79,9 @@ namespace OpenMS
     }
   }
 
-  RibonucleotideDB::ConstRibonucleotidePtr parseEntry_(const nlohmann::json::value_type& entry)
+  ParsedEntry_ parseEntry_(const nlohmann::json::value_type& entry)
   {
+    ParsedEntry_ parsed;
     Ribonucleotide* ribo = new Ribonucleotide();
     ribo->setName(entry.at("name"));
     String code = entry.at("short_name");
@@ -143,16 +152,15 @@ namespace OpenMS
         String msg = "Ambiguous mod without alternative found in " + code;
         //throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, code, msg);
       }
-      String code1 = string(entry.at("alternatives").at(0)), code2 = string(entry.at("alternatives").at(1)); //we always have exactly two ambiguities
-      this.ambiguity_map_[code] = make_pair(this.getRibonucleotide(code1), this.getRibonucleotide(code2));
+      parsed.alternative_1 = string(entry.at("alternatives").at(0)), parsed.alternative_2 = string(entry.at("alternatives").at(1)); //we always have exactly two ambiguities
     }
     else if (code.hasSuffix("Ar(p)") ||  code.hasSuffix("Gr(p)"))
     {
       ribo->setBaselossFormula(EmpiricalFormula("C10H19O21P"));
     }
-    return ribo;
+    parsed.ribo = ribo;
+    return parsed;
   }
-
 
   void RibonucleotideDB::readFromJSON_(const std::string& path)
   {
@@ -191,7 +199,12 @@ namespace OpenMS
       //row.replace(prime, '\'');
       try
       {
-        ConstRibonucleotidePtr ribo = parseEntry_(element);
+        ParsedEntry_ entry = parseEntry_(element);
+        ConstRibonucleotidePtr ribo = entry.ribo;
+        if (entry.isAmbiguous()) // Handle the ambiguity map
+        {
+          ambiguity_map_[ribo->getCode()] = make_pair(getRibonucleotide(entry.alternative_1), getRibonucleotide(entry.alternative_2));
+        }
         // there are some weird exotic mods in modomics that don't have codes. We ignore them
         if (ribo->getCode() != "") //FIXME add logic to handle lack of masses
         {
