@@ -143,7 +143,6 @@ namespace OpenMS
     OPENMS_PRECONDITION(transitions.size() > 0, "There needs to be at least one transition.");
     OPENMS_PRECONDITION(swath_maps.size() > 0, "There needs to be at least one swath map.");
 
-    std::cout << "calculating DIA scores" << std::endl;
     // Identify corresponding SONAR maps (if more than one map is used)
     std::vector<OpenSwath::SwathMap> used_swath_maps;
     if (swath_maps.size() > 1 || transitions.empty())
@@ -577,11 +576,6 @@ namespace OpenMS
     OPENMS_PRECONDITION(nr_spectra_to_add >= 1, "nr_spectra_to_add must be at least 1.")
     OPENMS_PRECONDITION(!swath_maps.empty(), "swath_maps vector cannot be empty")
 
-    std::cout << "in fetch spectrum swath for sonar data" << std::endl;
-
-    std::cout << "im range is : " << im_range.getMin() << " to " << im_range.getMax();
-
-
     // This is not SONAR data
     if (swath_maps.size() == 1)
     {
@@ -606,7 +600,6 @@ namespace OpenMS
 
   OpenSwath::SpectrumPtr OpenSwathScoring::filterByDrift_(const OpenSwath::SpectrumPtr& input, const RangeMobility& im_range)
   {
-    std::cout << "in filter by drift" << std::endl;
       // NOTE: this function is very inefficient because filtering unsorted array
       OPENMS_PRECONDITION(im_range.isEmpty(), "Cannot filter by drift time if im_range is not set");
       OPENMS_PRECONDITION(input->getDriftTimeArray() != nullptr, "Cannot filter by drift time if no drift time is available.");
@@ -689,7 +682,6 @@ namespace OpenMS
 
   OpenSwath::SpectrumPtr OpenSwathScoring::getAddedSpectra_(std::vector<OpenSwath::SpectrumPtr>& all_spectra, const RangeMobility& im_range)
   {
-    std::cout << "getting added spectra" << std::endl;
     OpenSwath::SpectrumPtr added_spec(new OpenSwath::Spectrum);
     added_spec->getDataArrays().push_back( OpenSwath::BinaryDataArrayPtr(new OpenSwath::BinaryDataArray) );
     added_spec->getDataArrays().back()->description = "Ion Mobility";

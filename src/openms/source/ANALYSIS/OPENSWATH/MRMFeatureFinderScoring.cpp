@@ -475,7 +475,6 @@ namespace OpenMS
                                                 FeatureMap& output,
                                                 bool ms1only) const
   {
-    std::cout << "JOSH scoring peakgorups" << std::endl;
     if (PeptideRefMap_.empty())
     {
       throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
@@ -502,15 +501,29 @@ namespace OpenMS
     RangeMobility im_range;
     double drift_target(0);
 
-    if ( (!transition_group_detection.getChromatograms().empty()) || (!transition_group_detection.getPrecursorChromatograms().empty()) )
+    if ( !transition_group_detection.getChromatograms().empty() )
     {
       auto & prec = transition_group_detection.getChromatograms()[0].getPrecursor();
-      double drift_time = prec.getDriftTime();
+      drift_target = prec.getDriftTime();
 
-      if (drift_time > 0)
+      if (drift_target > 0)
       {
-        im_range.setMin(drift_time); // sets the minimum and maximum
-        im_range.minSpanIfSingular(prec.getDriftTimeWindowLowerOffset());
+        im_range.setMin(drift_target); // sets the minimum and maximum
+        // currently only works for symmetrical window
+        im_range.minSpanIfSingular(prec.getDriftTimeWindowLowerOffset() * 2);
+      }
+    }
+
+    else if ( !transition_group_detection.getPrecursorChromatograms().empty() )
+    {
+      auto & prec = transition_group_detection.getPrecursorChromatograms()[0].getPrecursor();
+      drift_target = prec.getDriftTime();
+
+      if (drift_target > 0)
+      {
+        im_range.setMin(drift_target); // sets the minimum and maximum
+        // currently only works for symmetrical window
+        im_range.minSpanIfSingular(prec.getDriftTimeWindowLowerOffset() * 2);
       }
     }
 
