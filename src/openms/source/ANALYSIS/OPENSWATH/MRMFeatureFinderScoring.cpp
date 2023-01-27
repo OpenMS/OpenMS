@@ -246,18 +246,18 @@ namespace OpenMS
 
     Size progress = 0;
     startProgress(0, transition_group_map.size(), "picking peaks");
-    for (TransitionGroupMapType::iterator trgroup_it = transition_group_map.begin(); trgroup_it != transition_group_map.end(); ++trgroup_it)
+    for (auto& trgroup : transition_group_map)
     {
 
       setProgress(++progress);
-      MRMTransitionGroupType& transition_group = trgroup_it->second;
+      MRMTransitionGroupType& transition_group = trgroup.second;
       if (transition_group.getChromatograms().empty() || transition_group.getTransitions().empty())
       {
         continue;
       }
 
       trgroup_picker.pickTransitionGroup(transition_group);
-      scorePeakgroups(trgroup_it->second, trafo, swath_maps, output);
+      scorePeakgroups(trgroup.second, trafo, swath_maps, output);
     }
     endProgress();
 
@@ -278,11 +278,11 @@ namespace OpenMS
   {
     std::vector<TransitionType> tr = transition_group.getTransitions();
     std::vector<std::string> detecting_transitions;
-    for (std::vector<TransitionType>::const_iterator tr_it = tr.begin(); tr_it != tr.end(); ++tr_it)
+    for (const auto& transition : tr)
     {
-      if (tr_it->isDetectingTransition())
+      if (transition.isDetectingTransition())
       {
-        detecting_transitions.push_back(tr_it->getNativeID());
+        detecting_transitions.push_back(transition.getNativeID());
       }
     }
 
@@ -302,17 +302,17 @@ namespace OpenMS
   {
     std::vector<TransitionType> tr = transition_group.getTransitions();
     std::vector<std::string> identifying_transitions, identifying_transitions_decoy;
-    for (std::vector<TransitionType>::iterator tr_it = tr.begin(); tr_it != tr.end(); ++tr_it)
+    for (auto& transition : tr)
     {
-      if (tr_it->isIdentifyingTransition())
+      if (transition.isIdentifyingTransition())
       {
-        if (tr_it->decoy)
+        if (transition.decoy)
         {
-          identifying_transitions_decoy.push_back(tr_it->getNativeID());
+          identifying_transitions_decoy.push_back(transition.getNativeID());
         }
         else
         {
-          identifying_transitions.push_back(tr_it->getNativeID());
+          identifying_transitions.push_back(transition.getNativeID());
         }
       }
     }
@@ -999,16 +999,16 @@ namespace OpenMS
     double total_intensity = 0, total_peak_apices = 0;
     double ms1_total_intensity = 0, ms1_total_peak_apices = 0;
 
-    for (std::vector<Feature>::iterator f_it = allFeatures.begin(); f_it != allFeatures.end(); ++f_it)
+    for (Feature& feat : allFeatures)
     {
-      processFeatureForOutput(*f_it, write_convex_hull_, quantification_cutoff_, total_intensity, total_peak_apices, "MS2");
+      processFeatureForOutput(feat, write_convex_hull_, quantification_cutoff_, total_intensity, total_peak_apices, "MS2");
     }
     // Also append data for MS1 precursors
     std::vector<String> precursors_ids;
     mrmfeature.getPrecursorFeatureIDs(precursors_ids);
-    for (std::vector<String>::iterator id_it = precursors_ids.begin(); id_it != precursors_ids.end(); ++id_it)
+    for (String& id : precursors_ids)
     {
-      Feature curr_feature = mrmfeature.getPrecursorFeature(*id_it);
+      Feature curr_feature = mrmfeature.getPrecursorFeature(id);
       if (charge != 0)
       {
         curr_feature.setCharge(charge);
@@ -1181,13 +1181,13 @@ namespace OpenMS
     endProgress();
 
     // The assumption is that for each transition that is in the TargetedExperiment we have exactly one chromatogram
-    for (TransitionGroupMapType::iterator trgroup_it = transition_group_map.begin(); trgroup_it != transition_group_map.end(); ++trgroup_it)
+    for (auto& trgroup : transition_group_map)
     {
-      if (!trgroup_it->second.isInternallyConsistent())
+      if (!trgroup.second.isInternallyConsistent())
       {
         throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Error: Could not match all transition to all chromatograms:\nFor chromatogram " + \
-                                         trgroup_it->second.getTransitionGroupID() + " I found " + String(trgroup_it->second.getChromatograms().size()) + \
-                                         " chromatograms but " + String(trgroup_it->second.getTransitions().size()) + " transitions.");
+                                         trgroup.second.getTransitionGroupID() + " I found " + String(trgroup.second.getChromatograms().size()) + \
+                                         " chromatograms but " + String(trgroup.second.getTransitions().size()) + " transitions.");
       }
     }
   }

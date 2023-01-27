@@ -92,10 +92,10 @@ namespace OpenMS
 
     if (load_proteins)
     {
-      for (set<String>::const_iterator it = accessions.begin(); it != accessions.end(); ++it)
+      for (const String& acc : accessions)
       {
         ProteinHit hit;
-        hit.setAccession(*it);
+        hit.setAccession(acc);
         protein_identification.insertHit(hit);
       }
 
@@ -279,15 +279,15 @@ namespace OpenMS
       if (mod_def_set_.getNumberOfFixedModifications() != 0)
       {
         set<String> fixed_mod_names = mod_def_set_.getFixedModificationNames();
-        for (set<String>::const_iterator it = fixed_mod_names.begin(); it != fixed_mod_names.end(); ++it)
+        for (const String& mod : fixed_mod_names)
         {
-          String origin = ModificationsDB::getInstance()->getModification(*it)->getOrigin();
+          String origin = ModificationsDB::getInstance()->getModification(mod)->getOrigin();
           UInt position(0);
           for (const Residue& ait : seq)
           {
             if (ait.getOneLetterCode() == origin)
             {
-              seq.setModification(position, *it);
+              seq.setModification(position, mod);
             }
             ++position;
           }
@@ -379,17 +379,17 @@ namespace OpenMS
     String file = File::find("CHEMISTRY/OMSSA_modification_mapping");
     TextFile infile(file);
 
-    for (TextFile::ConstIterator it = infile.begin(); it != infile.end(); ++it)
+    for (const String& txt : infile)
     {
       vector<String> split;
-      it->split(',', split);
+      txt.split(',', split);
 
-      if (!it->empty() && (*it)[0] != '#')
+      if (!txt.empty() && txt[0] != '#')
       {
         Int omssa_mod_num = split[0].trim().toInt();
         if (split.size() < 2)
         {
-          fatalError(LOAD, String("Invalid mapping file line: '") + *it + "'");
+          fatalError(LOAD, String("Invalid mapping file line: '") + txt + "'");
         }
         vector<const ResidueModification*> mods;
         for (Size i = 2; i != split.size(); ++i)
@@ -412,12 +412,12 @@ namespace OpenMS
     mod_def_set_ = mod_set;
     UInt omssa_mod_num(119);
     set<String> mod_names = mod_set.getVariableModificationNames();
-    for (set<String>::const_iterator it = mod_names.begin(); it != mod_names.end(); ++it)
+    for (const auto& mod : mod_names)
     {
-      if (!(mods_to_num_.find(*it) != mods_to_num_.end()))
+      if (!(mods_to_num_.find(mod) != mods_to_num_.end()))
       {
-        mods_map_[omssa_mod_num].push_back(ModificationsDB::getInstance()->getModification(*it));
-        mods_to_num_[*it] = omssa_mod_num;
+        mods_map_[omssa_mod_num].push_back(ModificationsDB::getInstance()->getModification(mod));
+        mods_to_num_[mod] = omssa_mod_num;
         ++omssa_mod_num;
       }
     }

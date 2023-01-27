@@ -97,9 +97,9 @@ namespace OpenMS
     // LOWESS defaults
     Param lowess_defaults;
     TransformationModelLowess::getDefaultParameters(lowess_defaults);
-    for (Param::ParamIterator it = lowess_defaults.begin(); it != lowess_defaults.end(); ++it)
+    for (auto& parameter : lowess_defaults)
     {
-      const_cast<Param::ParamEntry&>(*it).tags.insert("advanced");
+      const_cast<Param::ParamEntry&>(parameter).tags.insert("advanced");
     }
     defaults_.insert("LOWESS:", lowess_defaults);
     defaults_.setSectionDescription("LOWESS", "LOWESS parameters for internal RT transformations (only relevant if 'warp:enabled' is set to 'true')");

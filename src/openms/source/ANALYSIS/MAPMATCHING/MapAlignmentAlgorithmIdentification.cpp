@@ -230,13 +230,11 @@ namespace OpenMS
       computeMedians_(rt_data[i], medians_per_run[i], sorted);
     }
     SeqToList medians_per_seq;
-    for (vector<SeqToValue>::iterator run_it = medians_per_run.begin();
-         run_it != medians_per_run.end(); ++run_it)
+    for (auto& run : medians_per_run)
     {
-      for (SeqToValue::iterator med_it = run_it->begin();
-           med_it != run_it->end(); ++med_it)
+      for (auto& med : run)
       {
-        medians_per_seq[med_it->first].push_back(med_it->second);
+        medians_per_seq[med.first].push_back(med.second);
       }
     }
 

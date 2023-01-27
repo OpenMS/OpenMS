@@ -192,9 +192,9 @@ namespace OpenMS
       }
 
       // re-insert the missing K/P/R at the appropriate places
-      for (IndexType::iterator it = idx.begin(); it != idx.end(); ++it)
+      for (auto& i : idx)
       {
-        peptide_index.insert(peptide_index.begin() + *it, *it);
+        peptide_index.insert(peptide_index.begin() + i, i);
       }
 
       // use the shuffled index to create the new peptide sequence and
@@ -293,9 +293,9 @@ namespace OpenMS
     std::reverse(peptide_index.begin(), peptide_index.end());
 
     // re-insert the missing K/P/R at the appropriate places
-    for (IndexType::iterator it = idx.begin(); it != idx.end(); ++it)
+    for (auto& i : idx)
     {
-      peptide_index.insert(peptide_index.begin() + *it, *it);
+      peptide_index.insert(peptide_index.begin() + i, i);
     }
 
     // use the reversed index to create the new peptide sequence and
@@ -541,13 +541,12 @@ namespace OpenMS
 
     progress = 0;
     startProgress(0, peptide_trans_map.size(), "Generating decoy transitions");
-    for (MRMDecoy::PeptideTransitionMapType::iterator pep_it = peptide_trans_map.begin();
-         pep_it != peptide_trans_map.end(); ++pep_it)
+    for (auto& pep : peptide_trans_map)
     {
       setProgress(++progress);
 
-      String peptide_ref = pep_it->first;
-      String decoy_peptide_ref = decoy_tag + pep_it->first; // see above, the decoy peptide id is computed deterministically from the target id
+      String peptide_ref = pep.first;
+      String decoy_peptide_ref = decoy_tag + pep.first; // see above, the decoy peptide id is computed deterministically from the target id
       if (!dec.hasPeptide(decoy_peptide_ref)) { continue; }
       const TargetedExperiment::Peptide& target_peptide = exp.getPeptideByRef(peptide_ref);
 
@@ -571,9 +570,9 @@ namespace OpenMS
       double decoy_precursor_mz = decoy_peptide_sequence.getMZ(decoy_charge);
       decoy_precursor_mz += precursor_mz_shift; // fix for TOPPView: Duplicate precursor MZ is not displayed.
 
-      for (Size i = 0; i < pep_it->second.size(); i++)
+      for (Size i = 0; i < pep.second.size(); i++)
       {
-        const ReactionMonitoringTransition tr = *(pep_it->second[i]);
+        const ReactionMonitoringTransition tr = *(pep.second[i]);
 
         if (!tr.isDetectingTransition() || tr.getDecoyTransitionType() == ReactionMonitoringTransition::DECOY)
         {
