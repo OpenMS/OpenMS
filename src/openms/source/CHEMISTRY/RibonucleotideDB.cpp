@@ -71,61 +71,7 @@ namespace OpenMS
     }
   }
 
-
-  void RibonucleotideDB::readFromJSON_(const std::string& path)
-  {
-    using json = nlohmann::json;
-
-    String full_path = File::find(path);
-
-    // the input file is Unicode encoded, so we need Qt to read it:
-    QFile file(full_path.toQString());
-    if (!file.open(QIODevice::ReadOnly | QIODevice::Text))
-    {
-      throw Exception::FileNotReadable(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, full_path);
-    }
-
-    QTextStream source(&file);
-    source.setCodec("UTF-8");
-    Size line_count = 0;
-    //String line = source.readLine();
-    json mod_obj;
-    try
-    {
-      mod_obj = json::parse(String(source.readAll()));
-    }
-    catch (Exception::ParseError& e)
-    {
-      OPENMS_LOG_ERROR << "Error: Failed to parse Modomics JSON. Reason:\n" << e.getName() << " - " << e.what() << endl;
-      throw e;
-    }
-    QChar prime(0x2032); // Unicode "prime" character
-    for (auto& element : mod_obj)
-    {
-      line_count++;
-      //QString row = source.readLine();
-
-      // replace all "prime" characters with apostrophes (e.g. in "5'", "3'"):
-      //row.replace(prime, '\'');
-      try
-      {
-        ConstRibonucleotidePtr ribo = parseEntry_(element);
-        // there are some weird exotic mods in modomics that don't have codes. We ignore them
-        if (ribo->getCode() != "") //FIXME add logic to handle lack of masses
-        {
-          code_map_[ribo->getCode()] = ribonucleotides_.size();
-          ribonucleotides_.push_back(ribo);
-          max_code_length_ = max(max_code_length_, ribo->getCode().size());
-        }
-      }
-      catch (Exception::BaseException& e)
-      {
-        OPENMS_LOG_ERROR << "Error: Failed to parse input element " << line_count << ". Reason:\n" << e.getName() << " - " << e.what() << "\nSkipping this line." << endl;
-      }
-    }
-  }
-
-  RibonucleotideDB::ConstRibonucleotidePtr RibonucleotideDB::parseEntry_(const nlohmann::json::value_type& entry)
+  RibonucleotideDB::ConstRibonucleotidePtr parseEntry_(const nlohmann::json::value_type& entry)
   {
     Ribonucleotide* ribo = new Ribonucleotide();
     ribo->setName(entry.at("name"));
@@ -198,13 +144,67 @@ namespace OpenMS
         //throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, code, msg);
       }
       String code1 = string(entry.at("alternatives").at(0)), code2 = string(entry.at("alternatives").at(1)); //we always have exactly two ambiguities
-      ambiguity_map_[code] = make_pair(getRibonucleotide(code1), getRibonucleotide(code2));
+      this.ambiguity_map_[code] = make_pair(this.getRibonucleotide(code1), this.getRibonucleotide(code2));
     }
     else if (code.hasSuffix("Ar(p)") ||  code.hasSuffix("Gr(p)"))
     {
       ribo->setBaselossFormula(EmpiricalFormula("C10H19O21P"));
     }
     return ribo;
+  }
+
+
+  void RibonucleotideDB::readFromJSON_(const std::string& path)
+  {
+    using json = nlohmann::json;
+
+    String full_path = File::find(path);
+
+    // the input file is Unicode encoded, so we need Qt to read it:
+    QFile file(full_path.toQString());
+    if (!file.open(QIODevice::ReadOnly | QIODevice::Text))
+    {
+      throw Exception::FileNotReadable(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, full_path);
+    }
+
+    QTextStream source(&file);
+    source.setCodec("UTF-8");
+    Size line_count = 0;
+    //String line = source.readLine();
+    json mod_obj;
+    try
+    {
+      mod_obj = json::parse(String(source.readAll()));
+    }
+    catch (Exception::ParseError& e)
+    {
+      OPENMS_LOG_ERROR << "Error: Failed to parse Modomics JSON. Reason:\n" << e.getName() << " - " << e.what() << endl;
+      throw e;
+    }
+    QChar prime(0x2032); // Unicode "prime" character
+    for (auto& element : mod_obj)
+    {
+      line_count++;
+      //QString row = source.readLine();
+
+      // replace all "prime" characters with apostrophes (e.g. in "5'", "3'"):
+      //row.replace(prime, '\'');
+      try
+      {
+        ConstRibonucleotidePtr ribo = parseEntry_(element);
+        // there are some weird exotic mods in modomics that don't have codes. We ignore them
+        if (ribo->getCode() != "") //FIXME add logic to handle lack of masses
+        {
+          code_map_[ribo->getCode()] = ribonucleotides_.size();
+          ribonucleotides_.push_back(ribo);
+          max_code_length_ = max(max_code_length_, ribo->getCode().size());
+        }
+      }
+      catch (Exception::BaseException& e)
+      {
+        OPENMS_LOG_ERROR << "Error: Failed to parse input element " << line_count << ". Reason:\n" << e.getName() << " - " << e.what() << "\nSkipping this line." << endl;
+      }
+    }
   }
 
   void RibonucleotideDB::readFromFile_(const std::string& path)
