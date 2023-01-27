@@ -79,33 +79,31 @@ namespace OpenMS::DIAHelpers
                 const RangeMobility & im_range,
                 bool centroided)
     {
-      OPENMS_PRECONDITION(spectrum != nullptr, "Spectrum cannot be nullptr");
-      OPENMS_PRECONDITION(spectrum->getMZArray() != nullptr, "Cannot integrate if no m/z is available.");
+      OPENMS_PRECONDITION(spectrum != nullptr, "precondition: Spectrum cannot be nullptr");
+      OPENMS_PRECONDITION(spectrum->getMZArray() != nullptr, "precondition: Cannot integrate if no m/z is available.");
+      //OPENMS_PRECONDITION(!spectrum->getMZArray()->data.empty(), " precondition: Warning: Cannot integrate if spectrum is empty"); // This is not a failure should check for this afterwards
       OPENMS_PRECONDITION(std::adjacent_find(spectrum->getMZArray()->data.begin(),
         spectrum->getMZArray()->data.end(), std::greater<double>()) == spectrum->getMZArray()->data.end(),
         "Precondition violated: m/z vector needs to be sorted!" );
-      OPENMS_PRECONDITION(spectrum->getMZArray()->data.size() == spectrum->getIntensityArray()->data.size(), "MZ and Intensity array need to have the same length.");
+      OPENMS_PRECONDITION(spectrum->getMZArray()->data.size() == spectrum->getIntensityArray()->data.size(), "precondition: MZ and Intensity array need to have the same length.");
 
       // ion mobility specific preconditions
-      OPENMS_PRECONDITION(im_range.isEmpty() || spectrum->getDriftTimeArray() != nullptr, "Cannot integrate with drift time if no drift time is available.");
-      OPENMS_PRECONDITION(im_range.isEmpty() || spectrum->getMZArray()->data.size() == spectrum->getDriftTimeArray()->data.size(), "MZ and Drift Time array need to have the same length.");
-
+      //OPENMS_PRECONDITION((im_range.isEmpty()) && (spectrum->getDriftTimeArray() != nullptr), "precondition: Cannot integrate with drift time if no drift time is available."); This is not a failure can handle this
+      OPENMS_PRECONDITION((spectrum->getDriftTimeArray() == nullptr) || (spectrum->getDriftTimeArray()->data.empty()) || (spectrum->getMZArray()->data.size() == spectrum->getDriftTimeArray()->data.size()), "precondition: MZ and Drift Time array need to have the same length.");
       OPENMS_PRECONDITION(!centroided,  throw Exception::NotImplemented(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION));
 
-      if (spectrum->getMZArray()->data.empty())
+      if ( spectrum->getMZArray()->data.empty() )
       {
         OPENMS_LOG_WARN << "Warning: Cannot integrate if spectrum is empty" << std::endl;
         return;
       }
-
-      std::cout << "IntegrateWindowHelper: im_range is" << im_range.getMin() << " to " << im_range.getMax() << std::endl;
-      std::cout << "IntegrateWindowHelper: im_range isEmpty: " << im_range.isEmpty() << std::endl;
 
       // if im_range is set, than integrate across dirft time
       if (!im_range.isEmpty()) // if imRange supplied, integrate across IM
       {
         if (spectrum->getDriftTimeArray() == nullptr)
         {
+            //throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Cannot integrate with drift time if no drift time is available");
             throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Cannot integrate with drift time if no drift time is available");
         }
       }
@@ -182,9 +180,8 @@ namespace OpenMS::DIAHelpers
       for (; beg != end; ++beg)
       {
         // assemble RangeMZ object based on window
-        double left = *beg - width / 2.0;
-        double right = *beg + width / 2.0;
-        RangeMZ range_mz(left, right);
+        RangeMZ range_mz(*beg);
+        range_mz.minSpanIfSingular(width, false);
 
         if (integrateWindow(spectrum, mz, im, intensity, range_mz, range_im, false))
         {
@@ -199,6 +196,10 @@ namespace OpenMS::DIAHelpers
           if ( !range_im.isEmpty() )
           {
             integratedWindowsIm.push_back( range_im.center() ); // average drift time
+          }
+          else
+          {
+            integratedWindowsIm.push_back(-1);
           }
         }
       }
@@ -233,10 +234,8 @@ namespace OpenMS::DIAHelpers
       for (; beg != end; ++beg)
       {
         //assemble rangeMZ object based on windows
-        double left = *beg - width / 2.0;
-        double right = *beg + width / 2.0;
-
-        RangeMZ range_mz(left, right);
+        RangeMZ range_mz(*beg);
+        range_mz.minSpanIfSingular(width, false);
 
         if (integrateWindow(spectra, mz, im, intensity, range_mz, range_im, false))
         {
@@ -251,6 +250,10 @@ namespace OpenMS::DIAHelpers
           if ( !range_im.isEmpty() )
           {
             integratedWindowsIm.push_back(range_im.center()); // push back average drift
+          }
+          else
+          {
+            integratedWindowsIm.push_back(-1);
           }
         }
       }

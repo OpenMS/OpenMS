@@ -200,7 +200,8 @@ protected:
       //std::cout << "using data frame writer for storing data. Outfile :" << out << std::endl;
       OpenSwath::IDataFrameWriter* dfw = new OpenSwath::CSVWriter(fname);
       OpenMS::DiaPrescore dp;
-      dp.operator()(spectrumAccess, transition_exp_used, dfw, -1, -1); //note IM not supported here yet 
+      RangeMobility im_range; // create empty IM range object
+      dp.operator()(spectrumAccess, transition_exp_used, im_range, dfw); //note IM not supported here yet
       delete dfw;
       //featureFinder.pickExperiment(chromatogram_ptr, out_featureFile,
       //transition_exp_used, trafo, swath_ptr, transition_group_map);

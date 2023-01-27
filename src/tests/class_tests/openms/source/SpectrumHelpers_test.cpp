@@ -89,9 +89,10 @@ START_SECTION ( [EXTRA] testscorefunction)
   sptrArr.push_back(sptr);
 
   double mzres, intensityres, imres;
+  // mz range from 499 to 501
   RangeMZ mz_range(500.);
   RangeMobility im_range_empty;
-  mz_range.minSpanIfSingular(1., false);
+  mz_range.minSpanIfSingular(2., false);
   DIAHelpers::integrateWindow(sptrArr, mzres, imres, intensityres, mz_range, im_range_empty);
 
   TEST_REAL_SIMILAR(mzres, 499.392014652015);
@@ -108,8 +109,6 @@ START_SECTION ( [EXTRA] testscorefunction)
   mz_range.setMax(501.4);
   DIAHelpers::integrateWindow(sptrArr, mzres, imres, intensityres, mz_range, im_range_empty);
 
-  std::cout << "mz" << mzres << std::endl;
-  std::cout << "intensity" << intensityres << std::endl;
   TEST_REAL_SIMILAR(mzres, 500.338842975207);
   TEST_REAL_SIMILAR(intensityres,121 );
 

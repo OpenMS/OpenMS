@@ -216,7 +216,7 @@ OpenSwath::SpectrumPtr ms1spec(new OpenSwath::Spectrum());
 }
 
 START_SECTION(([EXTRA]
-    static void driftScoring(std::vector<OpenSwath::SpectrumPtr> spectrum,
+    static void driftScoring(const SpectrumSequence& spectrum,
                              const std::vector<TransitionType> & transitions,
                              OpenSwath_Scores & scores,
                              const double drift_target,
@@ -230,41 +230,46 @@ START_SECTION(([EXTRA]
 
   double drift_target = 1.0;
   RangeMobility im_range_1(1.0);
-  im_range_1.minSpanIfSingular(0.5);
+  im_range_1.minSpanIfSingular(1.);
   double im_drift_extra_pcnt_ = 0.25;
 
   double dia_extract_window_ = 0.3;
   bool dia_extraction_ppm_ = false;
+
+  // Test #1: Empty Spectrum
   OpenSwath::SpectrumPtr drift_spectrum(new OpenSwath::Spectrum());
+  OpenSwath::BinaryDataArrayPtr mass(new OpenSwath::BinaryDataArray);
+  OpenSwath::BinaryDataArrayPtr intensity(new OpenSwath::BinaryDataArray);
   OpenSwath::BinaryDataArrayPtr ion_mobility(new OpenSwath::BinaryDataArray);
+
+  drift_spectrum->setMZArray( mass);
+  drift_spectrum->setIntensityArray( intensity);
   drift_spectrum->getDataArrays().push_back( ion_mobility );
 
   std::vector<OpenSwath::SpectrumPtr> sptrArr;
   sptrArr.push_back(drift_spectrum);
 
-  // test with just IM information
   IonMobilityScoring::driftScoring(sptrArr, transitions, scores,
                                    drift_target, im_range_1,
                                    dia_extract_window_, dia_extraction_ppm_,
                                    false, im_drift_extra_pcnt_);
 
-  OpenSwath::BinaryDataArrayPtr mass(new OpenSwath::BinaryDataArray);
-  OpenSwath::BinaryDataArrayPtr intensity(new OpenSwath::BinaryDataArray);
-  drift_spectrum->setMZArray( mass);
-  drift_spectrum->setIntensityArray( intensity);
+  TEST_REAL_SIMILAR(scores.im_drift, 0);
+  TEST_REAL_SIMILAR(scores.im_drift_weighted, 0);
+  TEST_REAL_SIMILAR(scores.im_delta_score, 0);
+  TEST_REAL_SIMILAR(scores.im_xcorr_shape_score, 0)
+  TEST_REAL_SIMILAR(scores.im_xcorr_coelution_score, 0)
 
-  IonMobilityScoring::driftScoring(sptrArr, transitions, scores,
-                                   drift_target, im_range_1,
-                                   dia_extract_window_, dia_extraction_ppm_,
-                                   false, im_drift_extra_pcnt_);
-
+  // Test #2: IM Scores (Condition 1/2)
   drift_spectrum = spec;
   std::vector<OpenSwath::SpectrumPtr> sptrArr2;
   sptrArr2.push_back(spec);
 
+  // Test integrity of spectrum
   TEST_EQUAL(drift_spectrum->getMZArray()->data.size(), 24)
   TEST_EQUAL(drift_spectrum->getMZArray()->data.size(), drift_spectrum->getIntensityArray()->data.size())
   TEST_EQUAL(drift_spectrum->getMZArray()->data.size(), drift_spectrum->getDriftTimeArray()->data.size())
+
 
   IonMobilityScoring::driftScoring(sptrArr2, transitions, scores,
                                    drift_target, im_range_1,
@@ -278,6 +283,7 @@ START_SECTION(([EXTRA]
   TEST_REAL_SIMILAR(scores.im_xcorr_shape_score, 0.892124778448826)
   TEST_REAL_SIMILAR(scores.im_xcorr_coelution_score, 2.73205080756888)
 
+  // Test #3: IM Scores (Condition 2/2)
   dia_extract_window_ = 0.1;
   IonMobilityScoring::driftScoring(sptrArr2, transitions, scores,
                                    drift_target, im_range_1,
@@ -291,11 +297,11 @@ START_SECTION(([EXTRA]
   TEST_REAL_SIMILAR(scores.im_xcorr_shape_score, 0.833513903989399)
   TEST_REAL_SIMILAR(scores.im_xcorr_coelution_score, 0.910683602522959)
 
-  // deal with exactly one entry in mobilogram
+  // Test #4: deal with exactly one entry in mobilogram
   dia_extract_window_ = 0.3;
-  RangeMobility im_range_2(1.05);
-  im_range_2.minSpanIfSingular(0.05);
   drift_target = 1.05;
+  RangeMobility im_range_2(drift_target);
+  im_range_2.minSpanIfSingular(0.1);
   IonMobilityScoring::driftScoring(sptrArr2, transitions, scores,
                                    drift_target, im_range_2,
                                    dia_extract_window_, dia_extraction_ppm_,
@@ -308,7 +314,7 @@ START_SECTION(([EXTRA]
   TEST_REAL_SIMILAR(scores.im_xcorr_shape_score, 0.0) // higher is better
   TEST_REAL_SIMILAR(scores.im_xcorr_coelution_score, 1.) // lower is better
 
-  // deal with one zero transitions
+  // Test #5: deal with one zero transitions
   dia_extract_window_ = 0.3;
   RangeMobility im_range_3;
   im_range_3.setMin(1.0);
@@ -326,13 +332,11 @@ START_SECTION(([EXTRA]
   TEST_REAL_SIMILAR(scores.im_xcorr_shape_score, 1.0/3)
   TEST_REAL_SIMILAR(scores.im_xcorr_coelution_score, 3.73205080756888)
 
-  // deal with all-zero transitions
+  // Test #6: deal with all-zero transitions
+  // IM range from 2.5 to 3.5
   RangeMobility im_range_4(3.0);
-  im_range_4.minSpanIfSingular(0.5);
+  im_range_4.minSpanIfSingular(1.);
 
-  //drift_lower = 2.5;
-  //drift_upper = 3.5;
-  //drift_target = 3.0;
   IonMobilityScoring::driftScoring(sptrArr2, transitions, scores,
                                    drift_target, im_range_4,
                                    dia_extract_window_, dia_extraction_ppm_,
@@ -348,7 +352,7 @@ START_SECTION(([EXTRA]
 END_SECTION
 
 START_SECTION([EXTRA]
-    static void driftScoringMS1(std::vector<OpenSwath::SpectrumPtr spectrum>,
+    static void driftScoringMS1(const SpectrumSequence& spectrum&,
                                 const std::vector<TransitionType> & transitions,
                                 OpenSwath_Scores & scores,
                                 const double drift_lower,
@@ -364,7 +368,7 @@ START_SECTION([EXTRA]
   // IM range from 0.5 to 1.5
   double drift_target = 1.0;
   RangeMobility im_range(drift_target);
-  im_range.minSpanIfSingular(0.5);
+  im_range.minSpanIfSingular(1.);
   double im_drift_extra_pcnt_ = 0.25;
 
   double dia_extract_window_ = 0.3;
@@ -428,7 +432,7 @@ START_SECTION(([EXTRA]
 
   // IM from 0.5 to 1.5
   RangeMobility im_range_1(1);
-  im_range_1.minSpanIfSingular(0.5);
+  im_range_1.minSpanIfSingular(1.);
   double im_drift_extra_pcnt_ = 0.25;
 
   double dia_extract_window_ = 0.3;
@@ -511,7 +515,7 @@ START_SECTION(([EXTRA]
 
   // IM Span from 1.0 to 1.1
   RangeMobility im_range_2(1.05);
-  im_range_2.minSpanIfSingular(0.05);
+  im_range_2.minSpanIfSingular(0.1);
 
   IonMobilityScoring::driftScoringMS1Contrast(sptrArr_3, sptrArrMS1_3, transitions, scores,
                                    im_range_2,
@@ -527,7 +531,7 @@ START_SECTION(([EXTRA]
   dia_extract_window_ = 0.3;
   //Im Span from 1.0 to 1.3
   RangeMobility im_range_3(1.15);
-  im_range_3.minSpanIfSingular(0.15);
+  im_range_3.minSpanIfSingular(0.3);
   IonMobilityScoring::driftScoringMS1Contrast(sptrArr_3, sptrArrMS1_3, transitions, scores,
                                    im_range_3,
                                    dia_extract_window_, dia_extraction_ppm_,
@@ -541,7 +545,7 @@ START_SECTION(([EXTRA]
   // deal with all-zero transitions
   // IM span from 2.5 to 3.5
   RangeMobility im_range_4(3.);
-  im_range_4.minSpanIfSingular(0.5);
+  im_range_4.minSpanIfSingular(1.);
 
   IonMobilityScoring::driftScoringMS1Contrast(sptrArr_3, sptrArrMS1_3, transitions, scores,
                                    im_range_4,

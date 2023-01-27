@@ -322,9 +322,8 @@ namespace OpenMS
 
     double eps = 1e-5; // eps for two grid cells to be considered equal
 
-
     // extend IM range by drift_extra
-    im_range.extendLeftRight(drift_extra);
+    im_range.scaleBy(drift_extra * 2. + 1); // multiple by 2 because want drift extra to be extended by that amount on either side
 
     std::vector< IonMobilogram > mobilograms;
 
@@ -423,7 +422,7 @@ namespace OpenMS
       }
     }
 
-    im_range.extendLeftRight(drift_extra);
+    im_range.scaleBy(drift_extra * 2. + 1); // multiple by 2 because want drift extra to be extended by that amount on either side
 
     double im(0), intensity(0), mz(0);
     RangeMZ mz_range(transitions[0].getPrecursorMZ());
@@ -438,7 +437,7 @@ namespace OpenMS
     scores.im_ms1_delta = drift_target - im;
   }
 
-  void IonMobilityScoring::driftScoring(const std::vector<OpenSwath::SpectrumPtr>& spectra,
+  void IonMobilityScoring::driftScoring(const SpectrumSequence& spectra,
                                         const std::vector<TransitionType> & transitions,
                                         OpenSwath_Scores & scores,
                                         const double drift_target,
@@ -460,8 +459,7 @@ namespace OpenMS
 
     double eps = 1e-5; // eps for two grid cells to be considered equal
 
-
-    im_range.extendLeftRight(drift_extra);
+    im_range.scaleBy(drift_extra * 2. + 1); // multiple by 2 because want drift extra to be extended by that amount on either side
 
     double delta_drift = 0;
     double delta_drift_abs = 0;
@@ -480,7 +478,7 @@ namespace OpenMS
       double im(0), intensity(0);
 
       // Calculate the difference of the theoretical ion mobility and the actually measured ion mobility
-      RangeMZ mz_range(transition.getPrecursorMZ());
+      RangeMZ mz_range(transition.getProductMZ());
       mz_range.minSpanIfSingular(dia_extract_window_, dia_extraction_ppm_);
 
       //double left(transition.getProductMZ()), right(transition.getProductMZ());
