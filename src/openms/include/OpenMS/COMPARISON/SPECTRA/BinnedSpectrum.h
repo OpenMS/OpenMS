@@ -149,7 +149,7 @@ public:
       if (unit_ppm_)
       {
         // mz = MIN_MZ_ * (1.0 + bin_size_)^index for index
-        return (MIN_MZ_ * pow(1.0f + bin_size_ * 1e-6f, (float)i));
+        return float(MIN_MZ_ * pow(1.0 + bin_size_ * 1e-6, i));
       }
       else 
       { 
