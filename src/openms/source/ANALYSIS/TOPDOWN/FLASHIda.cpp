@@ -298,18 +298,14 @@ namespace OpenMS
     {
       for (auto& [prt, masses] : exclusion_rt_masses_map_)
       {
+        if (std::abs(rt - prt) >= rt_window_ && prt != 0)
+          continue;
         for (double mass : masses)
         {
-          if (std::abs(rt - prt) < rt_window_ || prt == 0)
-          {
-            excluded_masses_.push_back(mass);
-            std::cout<<mass<<" is excluded!\n"; // TODO remove
-            break;
-          }
+          excluded_masses_.push_back(mass);
         }
       }
       std::sort(excluded_masses_.begin(), excluded_masses_.end());
-
     }
 
     selected_peak_groups_.clear();
