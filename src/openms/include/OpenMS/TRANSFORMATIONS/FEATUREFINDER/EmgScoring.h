@@ -149,8 +149,9 @@ namespace OpenMS
       for (ConvexHull2D::PointArrayType::const_iterator it = current_section.begin(); it != current_section.end(); it++)
       {
         LocalPeakType p;
+        using IntensityType = typename LocalPeakType::IntensityType;
         p.setMZ(it->getX());
-        p.setIntensity(LocalPeakType::IntensityType(it->getY()));
+        p.setIntensity(IntensityType(it->getY()));
         filter_spec.push_back(p);
       }
 
