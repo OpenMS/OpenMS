@@ -1,11 +1,21 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
-<featureMap version="1.9" id="fm_14811341817612382122" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/OpenMS/OpenMS/develop/share/OpenMS/SCHEMAS/FeatureXML_1_9.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+<featureMap version="1.9" id="fm_15050004366391181853" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/OpenMS/OpenMS/develop/share/OpenMS/SCHEMAS/FeatureXML_1_9.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
 	<UserParam type="stringList" name="spectra_data" value="[file://FeatureFinderMetaboIdent_1_input.mzML]"/>
 	<dataProcessing completion_time="1999-12-31T23:59:59">
 		<software name="FeatureFinderMetaboIdent" version="version_string" />
 		<processingAction name="Quantitation" />
 		<UserParam type="string" name="parameter: mode" value="test_mode"/>
 	</dataProcessing>
+	<IdentificationRun id="PI_0" date="0000-00-00T00:00:00" search_engine="" search_engine_version="">
+		<SearchParameters db="" db_version="" taxonomy="" mass_type="monoisotopic" charges="" enzyme="unknown_enzyme" missed_cleavages="0" precursor_peak_tolerance="0" precursor_peak_tolerance_ppm="false" peak_mass_tolerance="0" peak_mass_tolerance_ppm="false" >
+		</SearchParameters>
+		<ProteinIdentification score_type="" higher_score_better="true" significance_threshold="0">
+		</ProteinIdentification>
+	</IdentificationRun>
+	<UnassignedPeptideIdentification identification_run_ref="PI_0" score_type="" higher_score_better="true" significance_threshold="0" MZ="269.088047849571" RT="264.1" >
+		<UserParam type="string" name="label" value="very_similar_to_inosine"/>
+		<UserParam type="string" name="PeptideRef" value="very_similar_to_inosine_m268.08078_z1_rt264.100006"/>
+	</UnassignedPeptideIdentification>
 	<featureList count="6">
 		<feature id="f_5233264595117471314">
 			<position dim="0">205.484198359457054</position>
@@ -1003,7 +1013,7 @@
 					</convexhull>
 					<UserParam type="float" name="MZ" value="269.088047849571012"/>
 					<UserParam type="float" name="peak_apex_position" value="263.291352000000018"/>
-					<UserParam type="string" name="native_id" value="inosine_m268.08078_z1_rt264.0_i0"/>
+					<UserParam type="string" name="native_id" value="equal_to_inosine_m268.08078_z1_rt264.0_i0"/>
 					<UserParam type="float" name="peak_apex_int" value="5.813127e06"/>
 					<UserParam type="float" name="total_xic" value="8.454421868060303e07"/>
 					<UserParam type="float" name="width_at_50" value="3.941262000000052"/>
@@ -1058,7 +1068,7 @@
 					</convexhull>
 					<UserParam type="float" name="MZ" value="270.091402687370987"/>
 					<UserParam type="float" name="peak_apex_position" value="263.291352000000018"/>
-					<UserParam type="string" name="native_id" value="inosine_m268.08078_z1_rt264.0_i1"/>
+					<UserParam type="string" name="native_id" value="equal_to_inosine_m268.08078_z1_rt264.0_i1"/>
 					<UserParam type="float" name="peak_apex_int" value="6.9725540625e05"/>
 					<UserParam type="float" name="total_xic" value="9.666521437133788e06"/>
 					<UserParam type="float" name="width_at_50" value="3.941262000000052"/>
@@ -1066,10 +1076,10 @@
 					<UserParam type="float" name="isotope_probability" value="0.112071216106415"/>
 				</feature>
 			</subordinate>
-			<UserParam type="string" name="label" value="inosine"/>
+			<UserParam type="string" name="label" value="equal_to_inosine/inosine"/>
 			<UserParam type="float" name="expected_rt" value="264.0"/>
 			<UserParam type="float" name="total_xic" value="9.421074011773682e07"/>
-			<UserParam type="string" name="PeptideRef" value="inosine_m268.08078_z1_rt264.0"/>
+			<UserParam type="string" name="PeptideRef" value="equal_to_inosine_m268.08078_z1_rt264.0"/>
 			<UserParam type="float" name="leftWidth" value="259.3502197265625"/>
 			<UserParam type="float" name="rightWidth" value="268.808990478515625"/>
 			<UserParam type="float" name="peak_apices_sum" value="6.51038240625e06"/>
@@ -1099,6 +1109,8 @@
 			<UserParam type="string" name="sum_formula" value="C10H12N4O5"/>
 			<UserParam type="int" name="num_of_masstraces" value="2"/>
 			<UserParam type="float" name="rt_deviation" value="0.697462246069904"/>
+			<UserParam type="stringList" name="alt_PeptideRef" value="[inosine_m268.08078_z1_rt264.0]"/>
+			<UserParam type="stringList" name="overlap_removed" value="[inosine_m268.08078_z1_rt264.0 (RT 263.302551),very_similar_to_inosine_m268.08078_z1_rt264.100006 (RT 263.302551)]"/>
 			<UserParam type="float" name="model_height" value="6.380144938211546e06"/>
 			<UserParam type="float" name="model_FWHM" value="3.635998523789209"/>
 			<UserParam type="float" name="model_center" value="263.444394334498782"/>
