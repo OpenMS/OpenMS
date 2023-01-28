@@ -55,7 +55,7 @@ namespace OpenMS
 #endif
     std::unordered_map<std::string, std::vector<double>> inputs;
     std::vector<String> log_files;
-    std::vector<String> out_files;
+    std::vector<String> out_files; /// add tsv for exclusion list in the future.
     char* token = std::strtok(arg, " ");
     std::string key;
     std::stringstream ss {};
@@ -96,11 +96,14 @@ namespace OpenMS
     targeting_mode_ = (int)(inputs["target_mode"][0]);
     if (targeting_mode_ == 1)
     {
-      std::cout << ss.str() << "file(s) is(are) used to generate inclusion list\n";
+      std::cout << ss.str() << "file(s) is(are) used for inclusion mode\n";
     }
     else if (targeting_mode_ == 2)
     {
-      std::cout << ss.str() << "file(s) is(are) used to generate exclusion list\n";
+      std::cout << ss.str() << "file(s) is(are) used for in-depth mode\n";
+    }else if (targeting_mode_ == 3)
+    {
+      std::cout << ss.str() << "file(s) is(are) used for exclusion mode\n";
     }
     Param fd_defaults = FLASHDeconvAlgorithm().getDefaults();
 
@@ -157,7 +160,7 @@ namespace OpenMS
             n = line.substr(st, ed - st + 1);
             qscore = atof(n.c_str());
 
-            if (targeting_mode_ > 0)
+            if (targeting_mode_ == 1 || targeting_mode_ == 2)
             {
               if (target_mass_rt_map_.find(mass) == target_mass_rt_map_.end())
               {
@@ -170,7 +173,31 @@ namespace OpenMS
               }
               target_mass_qscore_map_[mass].push_back(qscore);
             }
-            // precursor_map_for_real_time_acquisition[scan].push_back(e);
+          }
+          else if (line.hasPrefix("AllMass"))
+          {
+            if (targeting_mode_ == 3)
+            {
+              Size st = 8;
+              Size ed = line.size();
+              String n = line.substr(st, ed - st + 1);
+
+              std::stringstream tmp_stream(n);
+              String str;
+              std::vector<double> results;
+              while (getline(tmp_stream, str, ' '))
+              {
+                results.push_back(atof(str.c_str()));
+              }
+              if (exclusion_rt_masses_map_.find(rt * 60.0) == exclusion_rt_masses_map_.end())
+              {
+                exclusion_rt_masses_map_[rt * 60.0] = std::vector<double>();
+              }
+              for(double m : results)
+              {
+                exclusion_rt_masses_map_[rt * 60.0].push_back(m);
+              }
+            }
           }
         }
         instream.close();
@@ -180,7 +207,7 @@ namespace OpenMS
     for (auto& log_file : out_files)
     {
       std::ifstream instream(log_file);
-
+      double rt = .0;
       if (instream.good())
       {
         String line;
@@ -193,6 +220,7 @@ namespace OpenMS
           {
             continue;
           }
+
           std::stringstream tmp_stream(line);
           String str;
           std::vector<String> results;
@@ -203,13 +231,14 @@ namespace OpenMS
           mass = atof(results[5].c_str());
           qscore = atof(results[3].c_str());
 
-          if (targeting_mode_ > 0)
+          if (targeting_mode_ == 1 || targeting_mode_ == 2)
           {
             if (target_mass_rt_map_.find(mass) == target_mass_rt_map_.end())
             {
               target_mass_rt_map_[mass] = std::vector<double>();
             }
-            target_mass_rt_map_[mass].push_back(60.0 * atof(results[0].c_str()));
+            rt = atof(results[0].c_str());
+            target_mass_rt_map_[mass].push_back(60.0 * rt);
             if (target_mass_qscore_map_.find(mass) == target_mass_qscore_map_.end())
             {
               target_mass_qscore_map_[mass] = std::vector<double>();
@@ -249,6 +278,7 @@ namespace OpenMS
     std::map<int, std::vector<std::vector<float>>> empty;
 
     target_masses_.clear();
+    excluded_masses_.clear();
     if (targeting_mode_ == 1)
     {
       for (auto& [mass, rts] : target_mass_rt_map_)
@@ -264,6 +294,22 @@ namespace OpenMS
       }
       std::sort(target_masses_.begin(), target_masses_.end());
       fd_.setTargetMasses(target_masses_, false);
+    }else if (targeting_mode_ == 3)
+    {
+      for (auto& [prt, masses] : exclusion_rt_masses_map_)
+      {
+        for (double mass : masses)
+        {
+          if (std::abs(rt - prt) < rt_window_ || prt == 0)
+          {
+            excluded_masses_.push_back(mass);
+            std::cout<<mass<<" is excluded!\n"; // TODO remove
+            break;
+          }
+        }
+      }
+      std::sort(excluded_masses_.begin(), excluded_masses_.end());
+
     }
 
     selected_peak_groups_.clear();
@@ -441,6 +487,36 @@ namespace OpenMS
               qscore_threshold = 0.0; // stop exclusion for targets. TODO tqscore lowest first? charge change.
             }
             else
+            {
+              continue;
+            }
+          }else if (targeting_mode_ == 3 && excluded_masses_.size() > 0) // inclusive mode
+          {
+            bool to_exclude = false;
+            double delta = 2 * tol_[0] * mass * 1e-6;
+            auto ub = std::upper_bound(excluded_masses_.begin(), excluded_masses_.end(), mass + delta);
+
+            while (!to_exclude)
+            {
+              if (ub != excluded_masses_.end())
+              {
+                if (std::abs(*ub - mass) < delta) // target is detected.
+                {
+                  to_exclude = true;
+                }
+                if (mass - *ub > delta)
+                {
+                  break;
+                }
+              }
+              if (ub == excluded_masses_.begin())
+              {
+                break;
+              }
+              ub--;
+            }
+
+            if (to_exclude)
             {
               continue;
             }

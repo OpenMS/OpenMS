@@ -197,10 +197,15 @@ namespace OpenMS
     IntList mass_count_;
 
     int targeting_mode_ = 0; /// 0 no targeting 1 inclusive 2 exclusive
-    /// maps for global inclusion/exclusion targeting
+
+    /// maps for global inclusion targeting
     std::map<double, std::vector<double>> target_mass_rt_map_;
     std::map<double, std::vector<double>> target_mass_qscore_map_;
-    std::vector<double> target_masses_; /// current target masses
+    std::vector<double> target_masses_; /// current target masses. updated per spectrum
+
+    /// maps for global exclusion
+    std::map<double, std::vector<double>> exclusion_rt_masses_map_; /// if rt == 0, its mapped masses are always excluded.
+    std::vector<double> excluded_masses_; /// current target masses. updated per spectrum
 
     /// precursor SNR threshold
     double snr_threshold_ = 1;
