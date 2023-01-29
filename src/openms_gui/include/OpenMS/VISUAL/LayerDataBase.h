@@ -379,7 +379,7 @@ namespace OpenMS
       **/
     LayerAnnotatorBase(const FileTypeList& supported_types, const String& file_dialog_text, QWidget* gui_lock);
     
-    /// Make D'tor virtual
+    /// Make D'tor virtual for correct destruction from pointers to base
     virtual ~LayerAnnotatorBase() = default;
 
     /// Annotates a @p layer, writing messages to @p log and showing QMessageBoxes on errors.
