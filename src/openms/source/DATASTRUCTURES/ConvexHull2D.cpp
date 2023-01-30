@@ -167,10 +167,10 @@ namespace OpenMS
     // the internal structure might not be defined, but we try it first
     if (!map_points_.empty())
     {
-      for (HullPointType::const_iterator it = map_points_.begin(); it != map_points_.end(); ++it)
+      for (const auto& point : map_points_)
       {
-        bb.enlarge(it->first, it->second.minPosition()[0]);
-        bb.enlarge(it->first, it->second.maxPosition()[0]);
+        bb.enlarge(point.first, point.second.minPosition()[0]);
+        bb.enlarge(point.first, point.second.maxPosition()[0]);
       }
     }
     else if (!outer_points_.empty())

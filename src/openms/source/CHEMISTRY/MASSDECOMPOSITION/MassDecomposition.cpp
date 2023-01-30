@@ -98,20 +98,20 @@ namespace OpenMS
 
   MassDecomposition& MassDecomposition::operator+=(const MassDecomposition& d)
   {
-    for (map<char, Size>::const_iterator it = d.decomp_.begin(); it != d.decomp_.end(); ++it)
+    for (const auto& dc : d.decomp_)
     {
-      map<char, Size>::iterator it2 = decomp_.find(it->first);
+      map<char, Size>::iterator it2 = decomp_.find(dc.first);
       if (it2 == decomp_.end())
       {
-        decomp_.insert(*it);
-        if (it->second > number_of_max_aa_)
+        decomp_.insert(dc);
+        if (dc.second > number_of_max_aa_)
         {
-          number_of_max_aa_ = it->second;
+          number_of_max_aa_ = dc.second;
         }
       }
       else
       {
-        it2->second += it->second;
+        it2->second += dc.second;
         if (it2->second > number_of_max_aa_)
         {
           number_of_max_aa_ = it2->second;
@@ -137,9 +137,9 @@ namespace OpenMS
   String MassDecomposition::toString() const
   {
     String s;
-    for (map<char, Size>::const_iterator it = decomp_.begin(); it != decomp_.end(); ++it)
+    for (const auto& dc : decomp_)
     {
-      s += it->first + String(it->second) + String(" ");
+      s += dc.first + String(dc.second) + String(" ");
     }
     return s.trim();
   }
@@ -147,9 +147,9 @@ namespace OpenMS
   String MassDecomposition::toExpandedString() const
   {
     String s;
-    for (map<char, Size>::const_iterator it = decomp_.begin(); it != decomp_.end(); ++it)
+    for (const auto& dc : decomp_)
     {
-      s += String(it->second, it->first);
+      s += String(dc.second, dc.first);
     }
     return s;
   }
@@ -157,9 +157,9 @@ namespace OpenMS
   bool MassDecomposition::containsTag(const String& tag) const
   {
     map<char, Size> tmp;
-    for (String::ConstIterator it = tag.begin(); it != tag.end(); ++it)
+    for (const char& ch : tag)
     {
-      char aa = *it;
+      char aa = ch;
       map<char, Size>::const_iterator it2 = decomp_.find(aa);
       if (it2 == decomp_.end())
       {
@@ -178,9 +178,9 @@ namespace OpenMS
     }
 
     // check if tag decomp_ is compatible with decomp_
-    for (map<char, Size>::const_iterator it = tmp.begin(); it != tmp.end(); ++it)
+    for (const auto& dc : tmp)
     {
-      if (decomp_.find(it->first)->second < it->second)
+      if (decomp_.find(dc.first)->second < dc.second)
       {
         return false;
       }
@@ -191,12 +191,12 @@ namespace OpenMS
 
   bool MassDecomposition::compatible(const MassDecomposition& deco) const
   {
-    for (map<char, Size>::const_iterator it = deco.decomp_.begin(); it != deco.decomp_.end(); ++it)
+    for (const auto& dc : deco.decomp_)
     {
-      map<char, Size>::const_iterator it2 = decomp_.find(it->first);
-      if (it2 == decomp_.end() || decomp_.find(it->first)->second < it->second)
+      map<char, Size>::const_iterator it2 = decomp_.find(dc.first);
+      if (it2 == decomp_.end() || decomp_.find(dc.first)->second < dc.second)
       {
-        cerr << it->first << " " << it->second << endl;
+        cerr << dc.first << " " << dc.second << endl;
         return false;
       }
     }
@@ -206,23 +206,23 @@ namespace OpenMS
   MassDecomposition MassDecomposition::operator+(const MassDecomposition& rhs) const
   {
     MassDecomposition d(*this);
-    for (map<char, Size>::const_iterator it = rhs.decomp_.begin(); it != rhs.decomp_.end(); ++it)
+    for (const auto& dc : rhs.decomp_)
     {
-      map<char, Size>::iterator it2 = d.decomp_.find(it->first);
+      map<char, Size>::iterator it2 = d.decomp_.find(dc.first);
       if (it2 == d.decomp_.end())
       {
-        d.decomp_.insert(*it);
-        if (it->second > number_of_max_aa_)
+        d.decomp_.insert(dc);
+        if (dc.second > number_of_max_aa_)
         {
-          d.number_of_max_aa_ = it->second;
+          d.number_of_max_aa_ = dc.second;
         }
       }
       else
       {
-        d.decomp_[it->first] += it->second;
-        if (d.decomp_[it->first] > d.number_of_max_aa_)
+        d.decomp_[dc.first] += dc.second;
+        if (d.decomp_[dc.first] > d.number_of_max_aa_)
         {
-          d.number_of_max_aa_ = d.decomp_[it->first];
+          d.number_of_max_aa_ = d.decomp_[dc.first];
         }
       }
     }
