@@ -150,18 +150,14 @@ namespace OpenMS
     header.push_back("spectrum"); // Spectrum identifier
     header.push_back("search.engine"); // Protein search engine and score
 
-    for (IsobaricQuantitationMethod::IsobaricChannelList::const_iterator it = quantMethod.getChannelInformation().begin();
-         it != quantMethod.getChannelInformation().end();
-         ++it)
+    for (const auto& info : quantMethod.getChannelInformation())
     {
-      header.push_back("X" + String(int(it->center)) +  "_mass");
+      header.push_back("X" + String(int(info.center)) +  "_mass");
     }
 
-    for (IsobaricQuantitationMethod::IsobaricChannelList::const_iterator it = quantMethod.getChannelInformation().begin();
-         it != quantMethod.getChannelInformation().end();
-         ++it)
+    for (const auto& info : quantMethod.getChannelInformation())
     {
-      header.push_back("X" + String(int(it->center)) +  "_ions");
+      header.push_back("X" + String(int(info.center)) +  "_ions");
     }
 
     return header;
@@ -170,10 +166,9 @@ namespace OpenMS
   String IBSpectraFile::getModifString_(const AASequence& sequence)
   {
     String modif = sequence.getNTerminalModificationName();
-    for (AASequence::ConstIterator aa_it = sequence.begin();
-         aa_it != sequence.end(); ++aa_it)
+    for (const Residue& aa : sequence)
     {
-      modif += ":" + aa_it->getModificationName();
+      modif += ":" + aa.getModificationName();
     }
     if (!sequence.getCTerminalModificationName().empty())
     {
@@ -213,11 +208,9 @@ namespace OpenMS
     TextFile textFile;
     textFile.addLine(ListUtils::concatenate(constructHeader_(*quantMethod), "\t"));
 
-    for (ConsensusMap::ConstIterator cm_iter = cm.begin();
-         cm_iter != cm.end();
-         ++cm_iter)
+    for (const ConsensusFeature& cf : cm)
     {
-      const ConsensusFeature& cFeature = *cm_iter;
+      const ConsensusFeature& cFeature = cf;
       std::vector<IdCSV> entries;
 
       /// 1st we extract the identification information from the consensus feature
@@ -236,7 +229,7 @@ namespace OpenMS
           if (!allow_non_unique) continue; // we only want unique peptides
         }
 
-        for (std::set<String>::const_iterator prot_ac = protein_accessions.begin(); prot_ac != protein_accessions.end(); ++prot_ac)
+        for (const String& prot_ac : protein_accessions)
         {
           IdCSV entry;
           entry.charge = cFeature.getPeptideIdentifications()[0].getHits()[0].getCharge();
@@ -246,7 +239,7 @@ namespace OpenMS
           // write modif
           entry.modif = getModifString_(cFeature.getPeptideIdentifications()[0].getHits()[0].getSequence());
 
-          ProtHitIt proteinHit = protIdent.findHit(*prot_ac);
+          ProtHitIt proteinHit = protIdent.findHit(prot_ac);
           if (proteinHit == protIdent.getHits().end())
           {
             std::cerr << "Protein referenced in peptide not found...\n";
@@ -266,43 +259,35 @@ namespace OpenMS
         continue;
       }
 
-      for (std::vector<IdCSV>::iterator entry = entries.begin();
-           entry != entries.end();
-           ++entry)
+      for (IdCSV& entry : entries)
       {
         // set parent intensity
-        entry->parent_intens = cFeature.getIntensity();
-        entry->retention_time = cFeature.getRT();
-        entry->spectrum = cFeature.getUniqueId();
-        entry->exp_mass = cFeature.getMZ();
+        entry.parent_intens = cFeature.getIntensity();
+        entry.retention_time = cFeature.getRT();
+        entry.spectrum = cFeature.getUniqueId();
+        entry.exp_mass = cFeature.getMZ();
 
         // create output line
         StringList currentLine;
 
         // add entry to currentLine
-        entry->toStringList(currentLine);
+        entry.toStringList(currentLine);
 
         // extract channel intensities and positions
         std::map<Int, double> intensityMap;
         ConsensusFeature::HandleSetType features = cFeature.getFeatures();
 
-        for (ConsensusFeature::HandleSetType::const_iterator fIt = features.begin();
-             fIt != features.end();
-             ++fIt)
+        for (const FeatureHandle& feat : features)
         {
-          intensityMap[Int(fIt->getMZ())] = (fIt->getIntensity() > intensity_threshold ? fIt->getIntensity() : 0.0);
+          intensityMap[Int(feat.getMZ())] = (feat.getIntensity() > intensity_threshold ? feat.getIntensity() : 0.0);
         }
-        for (IsobaricQuantitationMethod::IsobaricChannelList::const_iterator it = quantMethod->getChannelInformation().begin();
-             it != quantMethod->getChannelInformation().end();
-             ++it)
+        for (const IsobaricQuantitationMethod::IsobaricChannelInformation& info : quantMethod->getChannelInformation())
         {
-          currentLine.push_back(String(it->center));
+          currentLine.push_back(String(info.center));
         }
-        for (IsobaricQuantitationMethod::IsobaricChannelList::const_iterator it = quantMethod->getChannelInformation().begin();
-             it != quantMethod->getChannelInformation().end();
-             ++it)
+        for (const IsobaricQuantitationMethod::IsobaricChannelInformation& info : quantMethod->getChannelInformation())
         {
-          currentLine.push_back(String(intensityMap[int(it->center)]));
+          currentLine.push_back(String(intensityMap[int(info.center)]));
         }
 
         textFile.addLine(ListUtils::concatenate(currentLine, "\t"));

@@ -866,10 +866,9 @@ namespace OpenMS
         }
 
         // go through different charge states:
-        for (ChargeMap::const_iterator cm_it = pm_it->second.begin();
-             cm_it != pm_it->second.end(); ++cm_it)
+        for (const auto& cm : pm_it->second)
         {
-          Int charge = cm_it->first;
+          Int charge = cm.first;
 
           double mz = seq.getMZ(charge);
           OPENMS_LOG_DEBUG << "\nPeptide " << peptide.sequence << "/" << charge << " (m/z: " << mz << "):" << endl;
@@ -1056,11 +1055,10 @@ namespace OpenMS
       // find the "best" feature (with the most IDs):
       Size best_index = 0;
       Size best_count = 0;
-      for (map<Size, vector<PeptideIdentification*> >::iterator fi_it =
-             feat_ids.begin(); fi_it != feat_ids.end(); ++fi_it)
+      for (auto& fi : feat_ids)
       {
-        Size current_index = fi_it->first;
-        Size current_count = fi_it->second.size();
+        Size current_index = fi.first;
+        Size current_count = fi.second.size();
         if ((current_count > best_count) ||
             ((current_count == best_count) && // break ties by intensity
              (features[current_index].getIntensity() >
@@ -1086,12 +1084,11 @@ namespace OpenMS
       }
     }
     // store unassigned IDs from the current RT region:
-    for (RTMap::const_iterator rt_it = rt_internal.begin();
-         rt_it != rt_internal.end(); ++rt_it)
+    for (const auto& rt : rt_internal)
     {
-      if (!assigned_ids.count(rt_it->second))
+      if (!assigned_ids.count(rt.second))
       {
-        const PeptideIdentification& pep_id = *(rt_it->second);
+        const PeptideIdentification& pep_id = *(rt.second);
         features.getUnassignedPeptideIdentifications().push_back(pep_id);
       }
     }
@@ -1216,11 +1213,10 @@ namespace OpenMS
                                     (peptide_ref != previous_ref)))
         {
           transformed_internal.clear();
-          for (RTMap::const_iterator it = rt_internal.begin();
-               it != rt_internal.end(); ++it)
+          for (const auto& rt : rt_internal)
           {
-            double transformed_rt = trafo_external_.apply(it->first);
-            RTMap::value_type pair = make_pair(transformed_rt, it->second);
+            double transformed_rt = trafo_external_.apply(rt.first);
+            RTMap::value_type pair = make_pair(transformed_rt, rt.second);
             transformed_internal.insert(transformed_internal.end(), pair);
           }
         }
@@ -1267,16 +1263,14 @@ namespace OpenMS
                                    ref_rt_map[peptide_ref].first);
     // store unassigned peptide IDs from assays that did not generate any
     // feature candidates:
-    for (PeptideRefRTMap::iterator ref_it = ref_rt_map.begin();
-         ref_it != ref_rt_map.end(); ++ref_it)
+    for (auto& ref : ref_rt_map)
     {
-      RTMap& rt_internal = ref_it->second.first;
+      RTMap& rt_internal = ref.second.first;
       if (!rt_internal.empty()) // not cleared by '...FinalizeAssay()'
       {
-        for (RTMap::const_iterator rt_it = rt_internal.begin();
-             rt_it != rt_internal.end(); ++rt_it)
+        for (const auto& rt : rt_internal)
         {
-          const PeptideIdentification& pep_id = *(rt_it->second);
+          const PeptideIdentification& pep_id = *(rt.second);
           features.getUnassignedPeptideIdentifications().push_back(pep_id);
         }
       }
@@ -1477,10 +1471,9 @@ namespace OpenMS
     // sequence, then select the first "svm_n_samples_" elements.
     std::vector<Size> selection;
     selection.reserve(training_labels.size());
-    for (std::map<Size, Int>::iterator it = training_labels.begin();
-         it != training_labels.end(); ++it)
+    for (auto& label : training_labels)
     {
-      selection.push_back(it->first);
+      selection.push_back(label.first);
     }
     //TODO check how often this is potentially called and move out the initialization
     Math::RandomShuffler shuffler;
@@ -1510,10 +1503,9 @@ namespace OpenMS
     selection.resize(svm_n_samples_);
     // copy the selected subset back:
     std::map<Size, Int> temp;
-    for (vector<Size>::iterator it = selection.begin(); it != selection.end();
-         ++it)
+    for (auto& sel : selection)
     {
-      temp[*it] = training_labels[*it];
+      temp[sel] = training_labels[sel];
     }
     training_labels.swap(temp);
   }
@@ -1618,10 +1610,9 @@ namespace OpenMS
       std::map<String, double> feature_weights;
       svm.getFeatureWeights(feature_weights);
       OPENMS_LOG_DEBUG << "SVM feature weights:" << endl;
-      for (std::map<String, double>::iterator it = feature_weights.begin();
-           it != feature_weights.end(); ++it)
+      for (auto& weight : feature_weights)
       {
-        OPENMS_LOG_DEBUG << "- " << it->first << ": " << it->second << endl;
+        OPENMS_LOG_DEBUG << "- " << weight.first << ": " << weight.second << endl;
       }
     }
 

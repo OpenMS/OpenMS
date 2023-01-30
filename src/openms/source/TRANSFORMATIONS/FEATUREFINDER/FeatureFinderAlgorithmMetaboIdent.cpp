@@ -413,26 +413,25 @@ namespace OpenMS
     iso_dist.renormalize();
 
     // go through different charge states:
-    for (vector<Int>::const_iterator z_it = charges.begin();
-         z_it != charges.end(); ++z_it)
+    for (const Int& z : charges)
     {
-      if (*z_it == 0)
+      if (z == 0)
       {
         OPENMS_LOG_ERROR << "Error: Invalid charge 0 for target '" << name
                          << "' - skipping this charge." << endl;
         continue;
       }
-      target.setChargeState(*z_it);
+      target.setChargeState(z);
       double mz = 0.0;
       if (!mass_given) // calculate m/z from formula
       {
-        emp_formula.setCharge(*z_it);
+        emp_formula.setCharge(z);
         // "EmpiricalFormula::getMonoWeight()" already includes charges:
-        mz = abs(emp_formula.getMonoWeight() / *z_it);
+        mz = abs(emp_formula.getMonoWeight() / z);
       }
       else
       {
-        mz = calculateMZ_(mass, *z_it);
+        mz = calculateMZ_(mass, z);
       }
 
       // recycle to one range entry per RT:
@@ -447,7 +446,7 @@ namespace OpenMS
 
       for (Size i = 0; i < rts.size(); ++i)
       {
-        target.id = target_id + "_z" + String(*z_it) + "_rt" +
+        target.id = target_id + "_z" + String(z) + "_rt" +
           String(float(rts[i]));
         target.setMetaValue("expected_rt", rts[i]);
         target_rts_[target.id] = rts[i];
@@ -462,7 +461,7 @@ namespace OpenMS
         addTargetRT_(target, rts[i] - rt_tol);
         addTargetRT_(target, rts[i] + rt_tol);
         library_.addCompound(target);
-        generateTransitions_(target.id, mz, *z_it, iso_dist);
+        generateTransitions_(target.id, mz, z, iso_dist);
       }
     }
   }
@@ -533,11 +532,10 @@ namespace OpenMS
     FeatureBoundsMap::const_iterator fbm_it1 =
       feature_bounds.find(feature.getUniqueId());
     // check overlaps with other features:
-    for (FeatureGroup::const_iterator group_it = group.begin();
-         group_it != group.end(); ++group_it)
+    for (const auto& feat : group)
     {
       FeatureBoundsMap::const_iterator fbm_it2 =
-        feature_bounds.find((*group_it)->getUniqueId());
+        feature_bounds.find(feat->getUniqueId());
       // two features overlap if any of their mass traces overlap:
       if (hasOverlappingBounds_(fbm_it1->second, fbm_it2->second))
       {
@@ -578,13 +576,11 @@ namespace OpenMS
           continue;
         }
         double rt_min = hull.getHullPoints().back().getX();
-        for (ConvexHull2D::PointArrayType::const_iterator p_it =
-               hull.getHullPoints().begin(); p_it != hull.getHullPoints().end();
-             ++p_it)
+        for (const ConvexHull2D::PointType& point : hull.getHullPoints())
         {
-          if (p_it->getY() > 0)
+          if (point.getY() > 0)
           {
-            rt_min = p_it->getX();
+            rt_min = point.getX();
             break;
           }
         }
@@ -685,35 +681,34 @@ namespace OpenMS
     {
       double best_rt_delta = numeric_limits<double>::infinity();
       // best feature is the one with min. RT deviation to target:
-      for (FeatureGroup::const_iterator it = group.begin(); it != group.end();
-           ++it)
+      for (const auto& feat : group)
       {
-        double rt_delta = abs(double((*it)->getMetaValue("rt_deviation")));
+        double rt_delta = abs(double(feat->getMetaValue("rt_deviation")));
         if ((rt_delta < best_rt_delta) ||
-            ((rt_delta == best_rt_delta) && ((*it)->getIntensity() >
+            ((rt_delta == best_rt_delta) && (feat->getIntensity() >
                                              best_feature->getIntensity())))
         {
           best_rt_delta = rt_delta;
-          best_feature = *it;
+          best_feature = feat;
         }
-        else if ((rt_delta == best_rt_delta) && ((*it)->getIntensity() ==
+        else if ((rt_delta == best_rt_delta) && (feat->getIntensity() ==
                                                  best_feature->getIntensity()))
         {
           // are the features the same? (@TODO: use "Math::approximatelyEqual"?)
-          if (((*it)->getRT() == best_feature->getRT()) &&
-              ((*it)->getMZ() == best_feature->getMZ()))
+          if ((feat->getRT() == best_feature->getRT()) &&
+              (feat->getMZ() == best_feature->getMZ()))
           {
             // update annotations:
             // @TODO: also adjust "formula" and "expected_rt"?
             String label = best_feature->getMetaValue("label");
-            label += "/" + String((*it)->getMetaValue("label"));
+            label += "/" + String(feat->getMetaValue("label"));
             best_feature->setMetaValue("label", label);
             StringList alt_refs;
             if (best_feature->metaValueExists("alt_PeptideRef"))
             {
               alt_refs = best_feature->getMetaValue("alt_PeptideRef");
             }
-            alt_refs.push_back((*it)->getMetaValue("PeptideRef"));
+            alt_refs.push_back(feat->getMetaValue("PeptideRef"));
             best_feature->setMetaValue("alt_PeptideRef", alt_refs);
           }
           else
@@ -722,8 +717,8 @@ namespace OpenMS
               << "Warning: cannot decide between equally good feature candidates; picking the first one of "
               << best_feature->getMetaValue("PeptideRef") << " (RT "
               << float(best_feature->getRT()) << ") and "
-              << (*it)->getMetaValue("PeptideRef") << " (RT "
-              << float((*it)->getRT()) << ")." << endl;
+              << feat->getMetaValue("PeptideRef") << " (RT "
+              << float(feat->getRT()) << ")." << endl;
           }
         }
       }
@@ -731,20 +726,19 @@ namespace OpenMS
       FeatureGroup no_overlaps;
       FeatureBoundsMap::const_iterator fbm_it1 =
         feature_bounds.find(best_feature->getUniqueId());
-      for (FeatureGroup::const_iterator it = group.begin(); it != group.end();
-           ++it)
+      for (const auto& feat : group)
       {
-        if (*it == best_feature)
+        if (feat == best_feature)
         {
           continue;
         }
         FeatureBoundsMap::const_iterator fbm_it2 =
-          feature_bounds.find((*it)->getUniqueId());
+          feature_bounds.find((feat)->getUniqueId());
         if (hasOverlappingBounds_(fbm_it1->second, fbm_it2->second))
         {
           // keep a record of the feature that is getting removed:
-          String ref = String((*it)->getMetaValue("PeptideRef")) + " (RT " +
-            String(float((*it)->getRT())) + ")";
+          String ref = String((feat)->getMetaValue("PeptideRef")) + " (RT " +
+            String(float((feat)->getRT())) + ")";
           StringList overlap_refs;
           if (best_feature->metaValueExists("overlap_removed"))
           {
@@ -752,11 +746,11 @@ namespace OpenMS
           }
           overlap_refs.push_back(ref);
           best_feature->setMetaValue("overlap_removed", overlap_refs);
-          (*it)->setMetaValue("FFMetId_remove", ""); // mark for removal
+          (feat)->setMetaValue("FFMetId_remove", ""); // mark for removal
         }
         else
         {
-          no_overlaps.push_back(*it);
+          no_overlaps.push_back(feat);
         }
       }
       group.swap(no_overlaps);
@@ -886,31 +880,29 @@ namespace OpenMS
   {
     Size n_shared = 0;
     set<String> found_refs;
-    for (FeatureMap::Iterator it = features.begin(); it != features.end(); ++it)
+    for (Feature& feat : features)
     {
-      found_refs.insert(it->getMetaValue("PeptideRef"));
-      if (it->metaValueExists("alt_PeptideRef"))
+      found_refs.insert(feat.getMetaValue("PeptideRef"));
+      if (feat.metaValueExists("alt_PeptideRef"))
       {
         n_shared++;
-        StringList alt_refs = it->getMetaValue("alt_PeptideRef");
+        StringList alt_refs = feat.getMetaValue("alt_PeptideRef");
         found_refs.insert(alt_refs.begin(), alt_refs.end());
       }
     }
     // targets without features:
     size_t n_missing = library_.getCompounds().size() - found_refs.size();
     features.getUnassignedPeptideIdentifications().reserve(n_missing);
-    for (vector<TargetedExperiment::Compound>::const_iterator it =
-           library_.getCompounds().begin(); it != library_.getCompounds().end();
-         ++it)
+    for (const TargetedExperiment::Compound& cmpd : library_.getCompounds())
     {
-      if (!found_refs.count(it->id))
+      if (!found_refs.count(cmpd.id))
       {
         PeptideIdentification peptide;
         peptide.setIdentifier("id");
-        peptide.setMetaValue("label", it->getMetaValue("name"));
-        peptide.setMetaValue("PeptideRef", it->id);
-        peptide.setRT(it->getMetaValue("expected_rt"));
-        peptide.setMZ(calculateMZ_(it->theoretical_mass, it->getChargeState()));
+        peptide.setMetaValue("label", cmpd.getMetaValue("name"));
+        peptide.setMetaValue("PeptideRef", cmpd.id);
+        peptide.setRT(cmpd.getMetaValue("expected_rt"));
+        peptide.setMZ(calculateMZ_(cmpd.theoretical_mass, cmpd.getChargeState()));
         features.getUnassignedPeptideIdentifications().push_back(peptide);
       }
       if (features.getUnassignedPeptideIdentifications().size() >= n_missing)
