@@ -180,7 +180,7 @@ namespace OpenMS
     // adducts might look like this:
     //   Element:Probability[:RTShift[:Label]]
     double summed_probs = 0.0;
-    for (auto& p_add : potential_adducts_s)
+    for (String& p_add : potential_adducts_s)
     {
       // skip disabled adducts
       if (p_add.trim().hasPrefix("#"))
@@ -868,7 +868,7 @@ namespace OpenMS
         //remove info not wanted in pair
         std::vector<String> keys;
         cf.getKeys(keys);
-        for (const auto& key : keys)
+        for (const String& key : keys)
         {
           cf.removeMetaValue(key);
         }
@@ -883,7 +883,7 @@ namespace OpenMS
 
         //remove info not wanted in decharged consensus
         cf.getKeys(keys);
-        for (const auto& key : keys)
+        for (const String& key : keys)
         {
           cf.removeMetaValue(key);
         }
@@ -1050,7 +1050,7 @@ namespace OpenMS
       //remove info not wanted in decharged consensus
       std::vector<String> keys;
       cf.getKeys(keys);
-      for (const auto& key : keys)
+      for (const String& key : keys)
       {
         if (key == "is_ungrouped_monoisotopic" || key == "is_ungrouped_with_charge")
           continue;

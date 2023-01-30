@@ -300,6 +300,11 @@ function(openms_add_library)
               )
     endforeach()
 
+    ## WARNING: HACK needed because of:
+    # https://gitlab.kitware.com/cmake/cmake/-/issues/16462
+    # https://bugreports.qt.io/browse/QTBUG-110118
+    # There is a private dependency of Qt5WebEngineWidgets to Qt5QuickWidgets.
+    # We need to copy it and all its deps, too.
     if(Qt5WebEngineWidgets_FOUND)
       set (genex "IMPORTED_LOCATION_$<UPPER_CASE:$<CONFIG>>")
       add_custom_command(TARGET ${openms_add_library_TARGET_NAME} POST_BUILD
@@ -310,7 +315,7 @@ function(openms_add_library)
 
       # For now, we add Qt to the path when calling the documenters.
       # Since the documenters depend on OpenMS_GUI
-      # they need Qt platform plugins etc. which very hard to set up correctly.
+      # they need Qt platform plugins etc. which is very hard to set up correctly.
       # And I think the documenters are not called very often outside of CMake.
       #add_custom_command(TARGET ${openms_add_library_TARGET_NAME} POST_BUILD
       #        COMMAND ${CMAKE_COMMAND} -E copy_if_different
