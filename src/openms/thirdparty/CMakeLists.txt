@@ -35,6 +35,8 @@
 project("OpenMS-3rd-party-libs")
 cmake_minimum_required(VERSION 3.15 FATAL_ERROR)
 
+include(FetchContent)
+
 # evergreen Bayesian inference library (0.9)
 add_subdirectory(evergreen/src)
 
@@ -48,3 +50,8 @@ add_subdirectory(json)
 add_subdirectory(GTE)
 add_subdirectory(SQLiteCpp)
 
+FetchContent_Declare(fmt
+  GIT_REPOSITORY https://github.com/fmtlib/fmt.git
+  GIT_TAG 9.1.0
+)
+FetchContent_MakeAvailable(fmt)
