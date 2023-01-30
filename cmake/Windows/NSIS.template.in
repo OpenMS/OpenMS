@@ -83,6 +83,7 @@ SetCompressor /SOLID lzma
 
 # MultiUser defines
 !define MULTIUSER_INSTALLMODE_INSTDIR "${PRODUCT_NAME}-${VERSION}" # Otherwise it would just be PRODUCT_NAME
+!define MULTIUSER_INSTALLMODE_DEFAULT_ALLUSERS 1 # Default to Alluser install even when not an admin
 !define MULTIUSER_INSTALLMODE_64_BIT 1
 !define MULTIUSER_INSTALLMODE_NO_HELP_DIALOG 1 # We define our own with additional params later
 
@@ -305,7 +306,7 @@ SectionEnd
 
 
 Section "Documentation" SEC_Doc
-    SectionIn 1 3
+    SectionIn 3
 
     SetOverwrite on
     SetOutPath $INSTDIR\share\doc\html
