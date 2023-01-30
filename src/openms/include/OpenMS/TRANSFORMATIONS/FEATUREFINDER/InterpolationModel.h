@@ -59,7 +59,8 @@ public:
     typedef double IntensityType;
     typedef DPosition<1> PositionType;
     typedef double CoordinateType;
-    typedef Math::LinearInterpolation<double> LinearInterpolation;
+    using KeyType = double;
+    typedef Math::LinearInterpolation<KeyType> LinearInterpolation;
 
     /// Default constructor
     InterpolationModel() :
@@ -145,7 +146,7 @@ public:
       PeakT peak;
       for (Size i = 0; i < interpolation_.getData().size(); ++i)
       {
-        peak.getPosition()[0] = interpolation_.index2key(i);
+        peak.getPosition()[0] = interpolation_.index2key((KeyType)i);
         peak.setIntensity((PeakT::IntensityType)interpolation_.getData()[i]);
         cont.push_back(peak);
       }
