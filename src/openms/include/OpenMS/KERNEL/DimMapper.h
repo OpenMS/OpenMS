@@ -494,23 +494,23 @@ namespace OpenMS
     /// set the intensity of a Peak1D
     void fromXY(const ValueType in, Peak1D& p) const override
     {
-      p.setIntensity(in);
+      p.setIntensity(Peak1D::IntensityType(in));
     }
 
     /// set the intensity of a ChromatogramPeak
     void fromXY(const ValueType in, ChromatogramPeak& p) const override
     {
-      p.setIntensity(in);
+      p.setIntensity(ChromatogramPeak::IntensityType(in));
     }
     /// set the intensity of a MobilityPeak1D
     void fromXY(const ValueType in, MobilityPeak1D& p) const override
     {
-      p.setIntensity(in);
+      p.setIntensity(MobilityPeak1D::IntensityType(in));
     }
     /// set the intensity of a MobilityPeak2D
     void fromXY(const ValueType in, MobilityPeak2D& p) const override
     {
-      p.setIntensity(in);
+      p.setIntensity(MobilityPeak2D::IntensityType(in));
     }
   };
 

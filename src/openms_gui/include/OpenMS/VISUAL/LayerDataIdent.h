@@ -55,10 +55,6 @@ namespace OpenMS
     LayerDataIdent(const LayerDataIdent& ld) = delete;
     /// no assignment operator (should not be needed)
     LayerDataIdent& operator=(const LayerDataIdent& ld) = delete;
-    /// move Ctor
-    LayerDataIdent(LayerDataIdent&& ld) = default;
-    /// move assignment
-    LayerDataIdent& operator=(LayerDataIdent&& ld) = default;
 
     std::unique_ptr<Painter2DBase> getPainter2D() const override;
 

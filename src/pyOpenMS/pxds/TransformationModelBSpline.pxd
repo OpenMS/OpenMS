@@ -18,5 +18,5 @@ cdef extern from "<OpenMS/ANALYSIS/MAPMATCHING/TransformationModelBSpline.h>" na
         double evaluate(double value) nogil except + # wrap-doc:Evaluates the model at the given values
 
 # COMMENT: wrap static methods
-#cdef extern from "<OpenMS/ANALYSIS/MAPMATCHING/TransformationModelBSpline.h>" namespace "OpenMS::TransformationModelBSpline":
-#   void getDefaultParameters(Param& params) nogil except +  # wrap-attach:TransformationModelBSpline
+cdef extern from "<OpenMS/ANALYSIS/MAPMATCHING/TransformationModelBSpline.h>" namespace "OpenMS::TransformationModelBSpline":
+   void getDefaultParameters(Param& params) nogil except +  # wrap-attach:TransformationModelBSpline

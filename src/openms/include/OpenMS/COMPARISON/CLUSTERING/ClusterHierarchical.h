@@ -167,7 +167,7 @@ public:
       for (Size i = 0; i < data.size(); i++)
       {
         //double sz(2), UInt sp(1);
-        binned_data.push_back(BinnedSpectrum(data[i], sz, false, sp, offset));
+        binned_data.emplace_back(data[i], sz, false, sp, offset);
       }
 
       //create distancematrix for data with comparator
