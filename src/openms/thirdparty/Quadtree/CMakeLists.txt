@@ -28,24 +28,9 @@
 # ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 # --------------------------------------------------------------------------
-# $Maintainer: Stephan Aiche $
-# $Authors: Stephan Aiche $
+# $Maintainer: Julianus Pfeuffer $
+# $Authors: Julianus Pfeuffer $
 # --------------------------------------------------------------------------
 
-project("OpenMS-3rd-party-libs")
-cmake_minimum_required(VERSION 3.15 FATAL_ERROR)
-
-# evergreen Bayesian inference library (0.9)
-add_subdirectory(evergreen/src)
-
-## Note these libraries will not be compiled
-## but we only expose their sources
-
-# eol-bspline lib
-add_subdirectory(eol-bspline)
-add_subdirectory(IsoSpec)
-add_subdirectory(json)
-add_subdirectory(GTE)
-add_subdirectory(SQLiteCpp)
-add_subdirectory(Quadtree)
-
+add_library(Quadtree INTERFACE)
+target_include_directories(Quadtree INTERFACE "include")
