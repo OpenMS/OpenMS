@@ -29,9 +29,9 @@ ctest_start(APPEND)
 ## build lib&executables, run tests
 ## for pyopenms build, only run pyopenms tests
 if("$ENV{PYOPENMS}" STREQUAL "ON")
-  ctest_test(BUILD "${CTEST_BINARY_DIRECTORY}" INCLUDE "pyopenms" PARALLEL_LEVEL 3 NUMBER_ERRORS _test_errors)
+  ctest_test(BUILD "${CTEST_BINARY_DIRECTORY}" INCLUDE "pyopenms" PARALLEL_LEVEL 3 RETURN_VALUE _test_errors)
 else()
-  ctest_test(BUILD "${CTEST_BINARY_DIRECTORY}" PARALLEL_LEVEL 3 NUMBER_ERRORS _test_errors)
+  ctest_test(BUILD "${CTEST_BINARY_DIRECTORY}" PARALLEL_LEVEL 3 RETURN_VALUE _test_errors)
 endif()
 ## send test results to CDash
 ctest_submit(PARTS Test Done)
