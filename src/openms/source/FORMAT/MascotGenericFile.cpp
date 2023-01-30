@@ -124,15 +124,13 @@ namespace OpenMS
     // and "Deamidated (Q)", but Mascot only understands "Deamidated (NQ)"
     String special_mods = param_.getValue("special_modifications").toString();
     vector<String> mod_groups = ListUtils::create<String>(special_mods);
-    for (StringList::const_iterator mod_it = mod_groups.begin();
-         mod_it != mod_groups.end(); ++mod_it)
+    for (const String& mg : mod_groups)
     {
-      String mod = mod_it->prefix(' ');
-      String residues = mod_it->suffix('(').prefix(')');
-      for (String::const_iterator res_it = residues.begin();
-           res_it != residues.end(); ++res_it)
+      String mod = mg.prefix(' ');
+      String residues = mg.suffix('(').prefix(')');
+      for (const char& res : residues)
       {
-        mod_group_map_[mod + " (" + String(*res_it) + ")"] = *mod_it;
+        mod_group_map_[mod + " (" + String(res) + ")"] = mg;
       }
     }
   }
@@ -189,23 +187,22 @@ namespace OpenMS
     // @TODO: remove handling of special cases when a general solution for
     // specificity groups in UniMod is implemented (ticket #387)
     set<String> filtered_mods;
-    for (StringList::const_iterator it = mods.begin(); it != mods.end(); ++it)
+    for (const String& mod : mods)
     {
-      map<String, String>::iterator pos = mod_group_map_.find(*it);
+      map<String, String>::iterator pos = mod_group_map_.find(mod);
       if (pos == mod_group_map_.end())
       {
-        filtered_mods.insert(*it);
+        filtered_mods.insert(mod);
       }
       else
       {
         filtered_mods.insert(pos->second);
       }
     }
-    for (set<String>::const_iterator it = filtered_mods.begin();
-         it != filtered_mods.end(); ++it)
+    for (const String& fmod : filtered_mods)
     {
       writeParameterHeader_(tag, os);
-      os << *it << "\n";
+      os << fmod << "\n";
     }
   }
 
@@ -407,22 +404,22 @@ namespace OpenMS
 
       if (!store_compact_)
       {
-        for (PeakSpectrum::const_iterator it = spec.begin(); it != spec.end(); ++it)
+        for (const Peak1D& peak : spec)
         {
-          os << precisionWrapper(it->getMZ()) << " "
-             << precisionWrapper(it->getIntensity()) << "\n";
+          os << precisionWrapper(peak.getMZ()) << " "
+             << precisionWrapper(peak.getIntensity()) << "\n";
         }
       }
       else
       {
-        for (PeakSpectrum::const_iterator it = spec.begin(); it != spec.end(); ++it)
+        for (const Peak1D& peak : spec)
         {
-          PeakSpectrum::PeakType::IntensityType intensity = it->getIntensity();
+          PeakSpectrum::PeakType::IntensityType intensity = peak.getIntensity();
           if (intensity == 0.0)
           {
             continue; // skip zero-intensity peaks
           }
-          os << fixed << setprecision(HIGH_PRECISION) << it->getMZ() << " "
+          os << fixed << setprecision(HIGH_PRECISION) << peak.getMZ() << " "
              << setprecision(LOW_PRECISION) << intensity << "\n";
         }
       }

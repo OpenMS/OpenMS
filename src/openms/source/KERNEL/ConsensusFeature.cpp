@@ -142,9 +142,9 @@ namespace OpenMS
   std::vector<FeatureHandle> ConsensusFeature::getFeatureList() const
   {
     std::vector<FeatureHandle> tmp;
-    for (ConsensusFeature::HandleSetType::const_iterator it = handles_.begin(); it != handles_.end(); ++it)
+    for (const FeatureHandle& handle : handles_)
     {
-      tmp.push_back(*it);
+      tmp.push_back(handle);
     }
     return tmp;
   }
@@ -153,23 +153,23 @@ namespace OpenMS
   {
     DPosition<2> min = DPosition<2>::maxPositive();
     DPosition<2> max = DPosition<2>::minPositive();
-    for (ConsensusFeature::HandleSetType::const_iterator it = handles_.begin(); it != handles_.end(); ++it)
+    for (const FeatureHandle& handle : handles_)
     {
-      if (it->getRT() < min[0])
+      if (handle.getRT() < min[0])
       {
-        min[0] = it->getRT();
+        min[0] = handle.getRT();
       }
-      if (it->getRT() > max[0])
+      if (handle.getRT() > max[0])
       {
-        max[0] = it->getRT();
+        max[0] = handle.getRT();
       }
-      if (it->getMZ() < min[1])
+      if (handle.getMZ() < min[1])
       {
-        min[1] = it->getMZ();
+        min[1] = handle.getMZ();
       }
-      if (it->getMZ() > max[1])
+      if (handle.getMZ() > max[1])
       {
-        max[1] = it->getMZ();
+        max[1] = handle.getMZ();
       }
     }
     return DRange<2>(min, max);
@@ -179,15 +179,15 @@ namespace OpenMS
   {
     DPosition<1> min = DPosition<1>::maxPositive();
     DPosition<1> max = DPosition<1>::minPositive();
-    for (ConsensusFeature::HandleSetType::const_iterator it = handles_.begin(); it != handles_.end(); ++it)
+    for (const FeatureHandle& handle : handles_)
     {
-      if (it->getIntensity() < min[0])
+      if (handle.getIntensity() < min[0])
       {
-        min[0] = it->getIntensity();
+        min[0] = handle.getIntensity();
       }
-      if (it->getIntensity() > max[0])
+      if (handle.getIntensity() > max[0])
       {
-        max[0] = it->getIntensity();
+        max[0] = handle.getIntensity();
       }
     }
     return DRange<1>(min, max);
@@ -205,12 +205,12 @@ namespace OpenMS
     Int charge_most_frequent = 0;
     UInt charge_most_frequent_occ = 0;
 
-    for (ConsensusFeature::HandleSetType::const_iterator it = handles_.begin(); it != handles_.end(); ++it)
+    for (const FeatureHandle& handle : handles_)
     {
-      rt += it->getRT();
-      mz += it->getMZ();
-      intensity += it->getIntensity();
-      const Int it_charge = it->getCharge();
+      rt += handle.getRT();
+      mz += handle.getMZ();
+      intensity += handle.getIntensity();
+      const Int it_charge = handle.getCharge();
       const UInt it_charge_occ = ++charge_occ[it_charge];
       if (it_charge_occ > charge_most_frequent_occ)
       {
@@ -246,15 +246,15 @@ namespace OpenMS
     Int charge_most_frequent = 0;
     UInt charge_most_frequent_occ = 0;
 
-    for (ConsensusFeature::HandleSetType::const_iterator it = handles_.begin(); it != handles_.end(); ++it)
+    for (const FeatureHandle& handle : handles_)
     {
-      rt += it->getRT();
-      if (it->getMZ() < mz)
+      rt += handle.getRT();
+      if (handle.getMZ() < mz)
       {
-        mz = it->getMZ();
+        mz = handle.getMZ();
       }
-      intensity += it->getIntensity();
-      const Int it_charge = it->getCharge();
+      intensity += handle.getIntensity();
+      const Int it_charge = handle.getCharge();
       const UInt it_charge_occ = ++charge_occ[it_charge];
       if (it_charge_occ > charge_most_frequent_occ)
       {
@@ -288,9 +288,9 @@ namespace OpenMS
     double proton_mass = Constants::PROTON_MASS_U;
 
     // intensity sum (for weighting)
-    for (ConsensusFeature::HandleSetType::const_iterator it = handles_.begin(); it != handles_.end(); ++it)
+    for (const FeatureHandle& handle : handles_)
     {
-      intensity += it->getIntensity();
+      intensity += handle.getIntensity();
     }
 
     // unweighted averaging by default
@@ -299,15 +299,15 @@ namespace OpenMS
     double weighting_factor = 1.0 / size();
 
     // RT and Mass
-    for (ConsensusFeature::HandleSetType::const_iterator it = handles_.begin(); it != handles_.end(); ++it)
+    for (const FeatureHandle& handle : handles_)
     {
-      Int q = it->getCharge();
+      Int q = handle.getCharge();
       if (q == 0)
       {
         OPENMS_LOG_WARN << "ConsensusFeature::computeDechargeConsensus() WARNING: Feature's charge is 0! This will lead to M=0!\n";
       }
       double adduct_mass;
-      Size index = fm.uniqueIdToIndex(it->getUniqueId());
+      Size index = fm.uniqueIdToIndex(handle.getUniqueId());
       if (index > fm.size())
       {
         throw Exception::IndexOverflow(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, index, fm.size());
@@ -323,10 +323,10 @@ namespace OpenMS
 
       if (intensity_weighted_averaging)
       {
-        weighting_factor = it->getIntensity() / intensity;
+        weighting_factor = handle.getIntensity() / intensity;
       }
-      rt += it->getRT() * weighting_factor;
-      m += (it->getMZ() * abs(q) - adduct_mass) * weighting_factor;
+      rt += handle.getRT() * weighting_factor;
+      m += (handle.getMZ() * abs(q) - adduct_mass) * weighting_factor;
     }
 
     // compute the average position and intensity
@@ -420,13 +420,13 @@ namespace OpenMS
     os << "Quality " << precisionWrapper(cons.getQuality()) << std::endl;
     os << "Grouped features: " << std::endl;
 
-    for (ConsensusFeature::HandleSetType::const_iterator it = cons.begin(); it != cons.end(); ++it)
+    for (const FeatureHandle& handle : cons)
     {
-      os << " - Map index: " << it->getMapIndex() << std::endl
-         << "   Feature id: " << it->getUniqueId() << std::endl
-         << "   RT: " << precisionWrapper(it->getRT()) << std::endl
-         << "   m/z: " << precisionWrapper(it->getMZ()) << std::endl
-         << "   Intensity: " << precisionWrapper(it->getIntensity()) << std::endl;
+      os << " - Map index: " << handle.getMapIndex() << std::endl
+         << "   Feature id: " << handle.getUniqueId() << std::endl
+         << "   RT: " << precisionWrapper(handle.getRT()) << std::endl
+         << "   m/z: " << precisionWrapper(handle.getMZ()) << std::endl
+         << "   Intensity: " << precisionWrapper(handle.getIntensity()) << std::endl;
     }
 
     os << "Meta information: " << std::endl;

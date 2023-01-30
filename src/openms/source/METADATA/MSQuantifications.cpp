@@ -83,14 +83,14 @@ namespace OpenMS
     std::vector<DataProcessing> list = data_processings_;
 
     //This is one way street for dataprocessing - it probably wont get mapped back after write out and reading
-    for (std::vector<FeatureMap >::const_iterator fit = feature_maps_.begin(); fit != feature_maps_.end(); ++fit)
+    for (const FeatureMap& fmap : feature_maps_)
     {
-      list.insert(list.end(), fit->getDataProcessing().begin(), fit->getDataProcessing().end());
+      list.insert(list.end(), fmap.getDataProcessing().begin(), fmap.getDataProcessing().end());
     }
 
-    for (std::vector<ConsensusMap>::const_iterator cit = consensus_maps_.begin(); cit != consensus_maps_.end(); ++cit)
+    for (const ConsensusMap& cmap : consensus_maps_)
     {
-      list.insert(list.end(), cit->getDataProcessing().begin(), cit->getDataProcessing().end());
+      list.insert(list.end(), cmap.getDataProcessing().begin(), cmap.getDataProcessing().end());
     }
 
     return list;
@@ -153,19 +153,19 @@ namespace OpenMS
 
   void MSQuantifications::assignUIDs()
   {
-    for (std::vector<Assay>::iterator ait = assays_.begin(); ait != assays_.end(); ++ait)
+    for (auto& assay : assays_)
     {
-      ait->uid_ = String(UniqueIdGenerator::getUniqueId());
+      assay.uid_ = String(UniqueIdGenerator::getUniqueId());
     }
   }
 
   void MSQuantifications::registerExperiment(PeakMap & exp, std::vector<std::vector<std::pair<String, double> > > label)
   {
-    for (std::vector<std::vector<std::pair<String, double> > >::const_iterator lit = label.begin(); lit != label.end(); ++lit)
+    for (const auto& lbl : label)
     {
       //TODO look for existing labels
       Assay a;
-      a.mods_ = (*lit);
+      a.mods_ = lbl;
       a.raw_files_.push_back(exp.getExperimentalSettings());
       assays_.push_back(a);
     }
@@ -180,11 +180,11 @@ namespace OpenMS
   
   void MSQuantifications::registerExperiment(ExperimentalSettings & es, std::vector<DataProcessing>& /* dps */,  std::vector<std::vector<std::pair<String, double> > > label)
   {
-    for (std::vector<std::vector<std::pair<String, double> > >::const_iterator lit = label.begin(); lit != label.end(); ++lit)
+    for (const auto& lbl : label)
     {
       //TODO look for existing labels
       Assay a;
-      a.mods_ = (*lit);
+      a.mods_ = lbl;
       a.raw_files_.push_back(es);
       assays_.push_back(a);
     }

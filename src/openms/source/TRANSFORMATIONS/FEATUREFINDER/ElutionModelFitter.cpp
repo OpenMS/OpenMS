@@ -263,18 +263,16 @@ void ElutionModelFitter::fitElutionModels(FeatureMap& features)
       MassTrace trace;
       trace.peaks.reserve(points_per_hull);
       const ConvexHull2D& hull = sub.getConvexHulls()[0];
-      for (ConvexHull2D::PointArrayTypeConstIterator point_it =
-             hull.getHullPoints().begin(); point_it !=
-             hull.getHullPoints().end(); ++point_it)
+      for (const ConvexHull2D::PointType& point : hull.getHullPoints())
       {
-        double intensity = point_it->getY();
+        double intensity = point.getY();
         if (intensity > 0.0) // only use non-zero intensities for fitting
         {
           Peak1D peak;
           peak.setMZ(sub.getMZ());
           peak.setIntensity(intensity);
           peaks.push_back(peak);
-          trace.peaks.emplace_back(point_it->getX(), &peaks.back());
+          trace.peaks.emplace_back(point.getX(), &peaks.back());
         }
       }
       trace.updateMaximum();
