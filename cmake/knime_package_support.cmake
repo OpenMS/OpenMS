@@ -144,7 +144,7 @@ find_package(Git)
 if(GIT_FOUND)
   file(TO_CMAKE_PATH DIR "${CMAKE_CURRENT_LIST_DIR}" )
   execute_process(COMMAND ${GIT_EXECUTABLE} log -n 1 --simplify-by-decoration --pretty=%ai
-                  WORKING_DIRECTORY ${DIR}}
+                  WORKING_DIRECTORY ${DIR}
                   ERROR_QUIET
                   OUTPUT_VARIABLE OpenMS_WC_LAST_CHANGED_DATE
                   OUTPUT_STRIP_TRAILING_WHITESPACE)
@@ -434,7 +434,7 @@ add_custom_target(
   COMMAND ${CMAKE_COMMAND} -E copy ${PROJECT_SOURCE_DIR}/cmake/knime/TPCOPYRIGHT ${KNIME_TP_PLUGIN_DIRECTORY}/COPYRIGHT
   COMMAND ${CMAKE_COMMAND} -E copy ${PROJECT_SOURCE_DIR}/cmake/knime/TPDESCRIPTION ${KNIME_TP_PLUGIN_DIRECTORY}/DESCRIPTION
   DEPENDS create_knime_folders
-) ## TODO create a separate license file for the Thirdparties
+) ## TODO maybe create a separate license file for the Thirdparties on-the-fly by using the actual licenses in the THIRDPARTY submodule
 
 add_custom_target(
   prepare_knime_package
