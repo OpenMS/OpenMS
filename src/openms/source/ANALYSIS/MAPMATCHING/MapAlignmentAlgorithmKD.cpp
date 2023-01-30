@@ -52,10 +52,9 @@ MapAlignmentAlgorithmKD::MapAlignmentAlgorithmKD(Size num_maps, const Param& par
 
 MapAlignmentAlgorithmKD::~MapAlignmentAlgorithmKD()
 {
-  for (vector<TransformationModelLowess*>::iterator it = transformations_.begin();
-       it != transformations_.end(); ++it)
+  for (auto& trans : transformations_)
   {
-    delete *it;
+    delete trans;
   }
 }
 
@@ -73,14 +72,14 @@ void MapAlignmentAlgorithmKD::addRTFitData(const KDTreeFeatureMaps& kd_data)
 
   // compute average RTs for all CCs
   map<Size, double> avg_rts;
-  for (map<Size, vector<Size> >::const_iterator it = filtered_ccs.begin(); it != filtered_ccs.end(); ++it)
+  for (const auto& fcc : filtered_ccs)
   {
     double avg_rt = 0;
-    Size cc_index = it->first;
-    const vector<Size>& cc = it->second;
-    for (vector<Size>::const_iterator cc_it = cc.begin(); cc_it != cc.end(); ++cc_it)
+    Size cc_index = fcc.first;
+    const vector<Size>& cc = fcc.second;
+    for (const Size& c : cc)
     {
-      Size i = *cc_it;
+      Size i = c;
       avg_rt += kd_data.rt(i);
     }
     avg_rt /= cc.size();
@@ -88,13 +87,13 @@ void MapAlignmentAlgorithmKD::addRTFitData(const KDTreeFeatureMaps& kd_data)
   }
 
   // generate fit data for each map, add to fit_data_
-  for (map<Size, vector<Size> >::const_iterator it = filtered_ccs.begin(); it != filtered_ccs.end(); ++it)
+  for (const auto& fcc : filtered_ccs)
   {
-    Size cc_index = it->first;
-    const vector<Size>& cc = it->second;
-    for (vector<Size>::const_iterator cc_it = cc.begin(); cc_it != cc.end(); ++cc_it)
+    Size cc_index = fcc.first;
+    const vector<Size>& cc = fcc.second;
+    for (const Size& c : cc)
     {
-      Size i = *cc_it;
+      Size i = c;
       double rt = kd_data.rt(i);
       double avg_rt = avg_rts[cc_index];
       fit_data_[kd_data.mapIndex(i)].push_back(make_pair(rt, avg_rt));
@@ -172,11 +171,9 @@ Size MapAlignmentAlgorithmKD::computeCCs_(const KDTreeFeatureMaps& kd_data, vect
 
       vector<Size> compatible_features;
       kd_data.getNeighborhood(i, compatible_features, rt_tol_secs_, mz_tol_, mz_ppm_, false, max_pairwise_log_fc_);
-      for (vector<Size>::const_iterator it = compatible_features.begin();
-           it != compatible_features.end();
-           ++it)
+      for (const Size& cf : compatible_features)
       {
-        Size j = *it;
+        Size j = cf;
         if (!bfs_visited[j])
         {
           bfs_queue.push(j);
@@ -209,9 +206,9 @@ void MapAlignmentAlgorithmKD::filterCCs_(const KDTreeFeatureMaps& kd_data, const
   int max_nr_conflicts = (int)param_.getValue("warp:max_nr_conflicts");
   filtered_ccs.clear();
 
-  for (map<Size, vector<Size> >::const_iterator it = ccs.begin(); it != ccs.end(); ++it)
+  for (const auto& c : ccs)
   {
-    const vector<Size>& cc = it->second;
+    const vector<Size>& cc = c.second;
 
     // size OK?
     if (cc.size() < min_size)
@@ -222,9 +219,9 @@ void MapAlignmentAlgorithmKD::filterCCs_(const KDTreeFeatureMaps& kd_data, const
 
     // charges compatible?
     set<int> charges;
-    for (vector<Size>::const_iterator idx_it = cc.begin(); idx_it != cc.end(); ++idx_it)
+    for (const Size& idx : cc)
     {
-      int z = kd_data.charge(*idx_it);
+      int z = kd_data.charge(idx);
       if (z != 0)
       {
         charges.insert(z);
@@ -242,10 +239,10 @@ void MapAlignmentAlgorithmKD::filterCCs_(const KDTreeFeatureMaps& kd_data, const
     {
       set<Size> map_indices;
       int nr_conflicts = 0;
-      for (vector<Size>::const_iterator idx_it = cc.begin(); idx_it != cc.end(); ++idx_it)
+      for (const Size& idx : cc)
       {
         // filter out if too many features from same map
-        Size map_idx = kd_data.mapIndex(*idx_it);
+        Size map_idx = kd_data.mapIndex(idx);
         if (map_indices.find(map_idx) != map_indices.end())
         {
           if (++nr_conflicts > max_nr_conflicts)
@@ -263,7 +260,7 @@ void MapAlignmentAlgorithmKD::filterCCs_(const KDTreeFeatureMaps& kd_data, const
 
     if (passes)
     {
-      filtered_ccs[it->first] = cc;
+      filtered_ccs[c.first] = cc;
     }
   }
 }

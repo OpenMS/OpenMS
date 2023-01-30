@@ -322,11 +322,11 @@ namespace OpenMS
         //remove modifications (small characters and everything that's not in the alphabet)
         String sequence;
         sequence_with_mods = substrings[peptide_column].substr(start, end - start);
-        for (String::ConstIterator c_i = sequence_with_mods.begin(); c_i != sequence_with_mods.end(); ++c_i)
+        for (const char& c : sequence_with_mods)
         {
-          if ((bool) isalpha(*c_i) && (bool) isupper(*c_i))
+          if ((bool) isalpha(c) && (bool) isupper(c))
           {
-            sequence.append(1, *c_i);
+            sequence.append(1, c);
           }
         }
         peptide_hit.setSequence(AASequence::fromString(sequence));
