@@ -285,17 +285,17 @@ namespace OpenMS
       vector<StringView> current_digest;
       digestor.digestUnmodified(fasta_db[fasta_index].sequence, current_digest, min_peptide_length);
 
-      for (vector<StringView>::iterator cit = current_digest.begin(); cit != current_digest.end(); ++cit)
+      for (StringView& cd : current_digest)
       {
         // skip peptides with invalid AAs // TODO is this necessary?
-        if (cit->getString().has('B') || cit->getString().has('O') || cit->getString().has('U') || cit->getString().has('X') || cit->getString().has('Z')) continue;
+        if (cd.getString().has('B') || cd.getString().has('O') || cd.getString().has('U') || cd.getString().has('X') || cd.getString().has('Z')) continue;
 
         OPXLDataStructs::PeptidePosition position = OPXLDataStructs::INTERNAL;
-        if (fasta_db[fasta_index].sequence.hasPrefix(cit->getString()))
+        if (fasta_db[fasta_index].sequence.hasPrefix(cd.getString()))
         {
           position = OPXLDataStructs::N_TERM;
         }
-        else if (fasta_db[fasta_index].sequence.hasSuffix(cit->getString()))
+        else if (fasta_db[fasta_index].sequence.hasSuffix(cd.getString()))
         {
           position = OPXLDataStructs::C_TERM;
         }
@@ -314,14 +314,14 @@ namespace OpenMS
         {
           for (const String& res : cross_link_residue1)
           {
-            if (res.size() == 1 && (cit->getString().find(res) < cit->getString().size()-1))
+            if (res.size() == 1 && (cd.getString().find(res) < cd.getString().size()-1))
             {
               skip = false;
             }
           }
           for (const String& res : cross_link_residue2)
           {
-            if (res.size() == 1 && (cit->getString().find(res) < cit->getString().size()-1))
+            if (res.size() == 1 && (cd.getString().find(res) < cd.getString().size()-1))
             {
               skip = false;
             }
@@ -331,7 +331,7 @@ namespace OpenMS
 
         bool already_processed = false;
 
-        if (processed_peptides.find(*cit) != processed_peptides.end())
+        if (processed_peptides.find(cd) != processed_peptides.end())
         {
           // peptide (and all modified variants) already processed so skip it
           already_processed = true;
@@ -342,7 +342,7 @@ namespace OpenMS
         vector<AASequence> all_modified_peptides;
 
         // generate all modified variants of a peptide
-        AASequence aas = AASequence::fromString(cit->getString());
+        AASequence aas = AASequence::fromString(cd.getString());
         ModifiedPeptideGenerator::applyFixedModifications(fixed_modifications, aas);
         ModifiedPeptideGenerator::applyVariableModifications(variable_modifications, aas, max_variable_mods_per_peptide, all_modified_peptides);
 
@@ -353,9 +353,9 @@ namespace OpenMS
           pep_mass.peptide_mass = candidate.getMonoWeight();
           pep_mass.peptide_seq = candidate;
           pep_mass.position = position;
-          pep_mass.unmodified_seq = cit->getString();
+          pep_mass.unmodified_seq = cd.getString();
 
-          processed_peptides.insert(pair<StringView, AASequence>(*cit, candidate));
+          processed_peptides.insert(pair<StringView, AASequence>(cd, candidate));
           peptide_masses.push_back(pep_mass);
         }
       }
@@ -993,10 +993,10 @@ namespace OpenMS
 
       // cross-link position in Protein (alpha)
       const std::vector<PeptideEvidence> pevs = ph_alpha.getPeptideEvidences();
-      for (std::vector<PeptideEvidence>::const_iterator pev = pevs.begin(); pev != pevs.end(); ++pev)
+      for (const PeptideEvidence& pev : pevs)
       {
-        // start counting at 1: pev->getStart() and xl_pos are both starting at 0,  with + 1 the N-term residue is number 1
-        Int prot_link_pos = pev->getStart() + String(ph_alpha.getMetaValue(Constants::UserParam::OPENPEPXL_XL_POS1)).toInt() + 1;
+        // start counting at 1: pev.getStart() and xl_pos are both starting at 0,  with + 1 the N-term residue is number 1
+        Int prot_link_pos = pev.getStart() + String(ph_alpha.getMetaValue(Constants::UserParam::OPENPEPXL_XL_POS1)).toInt() + 1;
         prot1_pos = prot1_pos + "," + prot_link_pos;
       }
       // remove leading "," of first position
@@ -1014,12 +1014,12 @@ namespace OpenMS
         String prot2_accessions;
 
         const std::vector<PeptideEvidence> pevs_beta = ph_beta.getPeptideEvidences();
-        for (std::vector<PeptideEvidence>::const_iterator pev = pevs_beta.begin(); pev != pevs_beta.end(); ++pev)
+        for (const PeptideEvidence& pev : pevs_beta)
         {
-          // start counting at 1: pev->getStart() and xl_pos are both starting at 0,  with + 1 the N-term residue is number 1
-          Int prot_link_pos = pev->getStart() + String(ph_alpha.getMetaValue(Constants::UserParam::OPENPEPXL_XL_POS2)).toInt() + 1;
+          // start counting at 1: pev.getStart() and xl_pos are both starting at 0,  with + 1 the N-term residue is number 1
+          Int prot_link_pos = pev.getStart() + String(ph_alpha.getMetaValue(Constants::UserParam::OPENPEPXL_XL_POS2)).toInt() + 1;
           prot2_pos = prot2_pos + "," + prot_link_pos;
-          prot2_accessions = prot2_accessions + "," + pev->getProteinAccession();
+          prot2_accessions = prot2_accessions + "," + pev.getProteinAccession();
         }
         // remove leading "," of first position
         if (!prot2_pos.empty())
@@ -1036,10 +1036,10 @@ namespace OpenMS
         if (ph_alpha.getMetaValue(Constants::UserParam::OPENPEPXL_XL_POS2) != "-")
         {
           String prot2_pos;
-          for (std::vector<PeptideEvidence>::const_iterator pev = pevs.begin(); pev != pevs.end(); ++pev)
+          for (const PeptideEvidence& pev : pevs)
           {
-            // start counting at 1: pev->getStart() and xl_pos are both starting at 0,  with + 1 the N-term residue is number 1
-            Int prot_link_pos = pev->getStart() + String(ph_alpha.getMetaValue(Constants::UserParam::OPENPEPXL_XL_POS2)).toInt() + 1;
+            // start counting at 1: pev.getStart() and xl_pos are both starting at 0,  with + 1 the N-term residue is number 1
+            Int prot_link_pos = pev.getStart() + String(ph_alpha.getMetaValue(Constants::UserParam::OPENPEPXL_XL_POS2)).toInt() + 1;
             prot2_pos = prot2_pos + "," + prot_link_pos;
           }
           // remove leading "," of first position
@@ -1071,9 +1071,9 @@ namespace OpenMS
         String prot2_accessions;
 
         const std::vector<PeptideEvidence> pevs_beta = ph_beta.getPeptideEvidences();
-        for (std::vector<PeptideEvidence>::const_iterator pev = pevs_beta.begin(); pev != pevs_beta.end(); ++pev)
+        for (const PeptideEvidence& pev : pevs_beta)
         {
-          prot2_accessions = prot2_accessions + "," + pev->getProteinAccession();
+          prot2_accessions = prot2_accessions + "," + pev.getProteinAccession();
         }
 
         if (!prot2_accessions.empty())
