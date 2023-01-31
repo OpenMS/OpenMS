@@ -277,6 +277,7 @@ namespace OpenMS
   void DeconvolvedSpectrum::updatePeakGroupQvalues(std::vector<DeconvolvedSpectrum>& deconvolved_spectra,
                                                    std::vector<DeconvolvedSpectrum>& deconvolved_decoy_spectra) // per ms level + precursor update as well.
   {
+    const float pi = .5f;
     std::map<uint, std::vector<float>> tscore_map; // per ms level
 
     std::map<uint, std::vector<float>> dscore_iso_decoy_map;
@@ -346,8 +347,8 @@ namespace OpenMS
         float ts = tscore[i];
         size_t dindex = dscore_charge.size() == 0 ? 0 : std::distance(std::lower_bound(dscore_charge.begin(), dscore_charge.end(), ts), dscore_charge.end());
         size_t tindex = tscore.size() - i;
-
-        tmp_q_charge = std::min(tmp_q_charge, ((float)dindex / (float)(dindex + tindex)));
+        dindex = std::min(dindex, tindex);
+        tmp_q_charge = std::min(tmp_q_charge, (pi * (float)dindex / (float)(dindex + tindex)));
         map_charge[ts] = tmp_q_charge;
       }
 
@@ -358,8 +359,8 @@ namespace OpenMS
         float ts = tscore[i];
         size_t dindex = dscore_iso.size() == 0 ? 0 : std::distance(std::lower_bound(dscore_iso.begin(), dscore_iso.end(), ts), dscore_iso.end());
         size_t tindex = tscore.size() - i;
-
-        tmp_q_iso = std::min(tmp_q_iso, ((float)dindex / (float)(dindex + tindex) * (1 - map_charge[ts])));
+        dindex = std::min(dindex, tindex);
+        tmp_q_iso = std::min(tmp_q_iso, (pi * (float)dindex / (float)(dindex + tindex) * (1.0f - map_charge[ts])));
         map_iso[ts] = tmp_q_iso;
       }
 
@@ -371,8 +372,8 @@ namespace OpenMS
         float ts = tscore[i];
         size_t dindex = dscore_noise.size() == 0 ? 0 : std::distance(std::lower_bound(dscore_noise.begin(), dscore_noise.end(), ts), dscore_noise.end());
         size_t tindex = tscore.size() - i;
-
-        tmp_q_noise = std::min(tmp_q_noise, ((float)dindex / (float)(dindex + tindex)));
+        dindex = std::min(dindex, tindex);
+        tmp_q_noise = std::min(tmp_q_noise, (pi * (float)dindex / (float)(dindex + tindex)));
         map_noise[ts] = tmp_q_noise;
       }
     }

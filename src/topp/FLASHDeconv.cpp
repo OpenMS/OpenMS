@@ -651,6 +651,20 @@ protected:
           decoy_deconvolved_spectrum.push_back(pg);
         }
 
+        decoy_deconvolved_spectrum.sortByQScore();
+        deconvolved_spectrum.sortByQScore();
+        DeconvolvedSpectrum tmp_spectrum(scan_number);
+        for(auto pg : decoy_deconvolved_spectrum)
+        {
+          if(pg.getQScore() < deconvolved_spectrum[deconvolved_spectrum.size() - 1].getQScore())
+          {
+            break;
+          }
+          tmp_spectrum.push_back(pg);
+        }
+        decoy_deconvolved_spectrum = tmp_spectrum;
+
+        deconvolved_spectrum.sort();
         decoy_deconvolved_spectrum.sort();
 
         decoy_deconvolved_spectra.push_back(decoy_deconvolved_spectrum);
