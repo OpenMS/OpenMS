@@ -285,18 +285,18 @@ namespace OpenMS
 
       // filter sets to retain compatible features:
       // if precursor_mz = feature_mz + n * feature_charge (+/- mz_tolerance) a feature is compatible, others are removed from the set
-      for (map<Size, set<Size> >::iterator it = scan_idx_to_feature_idx.begin(); it != scan_idx_to_feature_idx.end(); ++it)
+      for (auto& idx : scan_idx_to_feature_idx)
       {
-        const Size scan = it->first;
+        const Size scan = idx.first;
         const double pc_mz = exp[scan].getPrecursors()[0].getMZ();
         const double mz_tolerance_da = ppm ? pc_mz * mz_tolerance * 1e-6  : mz_tolerance;
 
         // Note: This is the "delete while iterating" pattern so mind the pre- and postincrement
-        for (set<Size>::iterator sit = it->second.begin(); sit != it->second.end(); )
+        for (set<Size>::iterator sit = idx.second.begin(); sit != idx.second.end(); )
         {
           if (!compatible_(features[*sit], pc_mz, mz_tolerance_da, max_trace))
           {
-            it->second.erase(sit++);
+            idx.second.erase(sit++);
           }
           else
           {
@@ -327,16 +327,16 @@ namespace OpenMS
       if (!all_matching_features)
       {
         // keep only nearest features in set
-        for (map<Size, set<Size> >::iterator it = scan_idx_to_feature_idx.begin(); it != scan_idx_to_feature_idx.end(); ++it)
+        for (auto& idx : scan_idx_to_feature_idx)
         {
-          const Size scan = it->first;
+          const Size scan = idx.first;
           const double pc_rt = exp[scan].getRT();
 
           double min_distance = 1e16;
-          set<Size>::iterator best_feature = it->second.begin();
+          set<Size>::iterator best_feature = idx.second.begin();
 
           // determine nearest/best feature
-          for (set<Size>::iterator sit = it->second.begin(); sit != it->second.end(); ++sit)
+          for (set<Size>::iterator sit = idx.second.begin(); sit != idx.second.end(); ++sit)
           {
             const double current_distance = fabs(pc_rt - features[*sit].getRT());
             if (current_distance < min_distance)
@@ -348,11 +348,11 @@ namespace OpenMS
 
           // delete all except the nearest/best feature
           // Note: This is the "delete while iterating" pattern so mind the pre- and postincrement
-          for (set<Size>::iterator sit = it->second.begin(); sit != it->second.end(); )
+          for (set<Size>::iterator sit = idx.second.begin(); sit != idx.second.end(); )
           {
             if (sit != best_feature)
             {
-              it->second.erase(sit++);
+              idx.second.erase(sit++);
             }
             else
             {
@@ -367,15 +367,15 @@ namespace OpenMS
       if (keep_original)
       {
         // duplicate spectra for each feature in set and adapt precursor_mz and precursor_charge to feature_mz and feature_charge
-        for (map<Size, set<Size> >::iterator it = scan_idx_to_feature_idx.begin(); it != scan_idx_to_feature_idx.end(); ++it)
+        for (auto& idx : scan_idx_to_feature_idx)
         {
-          const Size scan = it->first;
+          const Size scan = idx.first;
           MSSpectrum spectrum = exp[scan];
           corrected_precursors.insert(scan);
-          for (set<Size>::iterator f_it = it->second.begin(); f_it != it->second.end(); ++f_it)
+          for (const Size& f : idx.second)
           {
-            spectrum.getPrecursors()[0].setMZ(features[*f_it].getMZ());
-            spectrum.getPrecursors()[0].setCharge(features[*f_it].getCharge());
+            spectrum.getPrecursors()[0].setMZ(features[f].getMZ());
+            spectrum.getPrecursors()[0].setCharge(features[f].getCharge());
             exp.addSpectrum(spectrum);
           }
         }
@@ -383,11 +383,11 @@ namespace OpenMS
       else
       {
         // set precursor_mz and _charge to the feature_mz and _charge
-        for (map<Size, set<Size> >::iterator it = scan_idx_to_feature_idx.begin(); it != scan_idx_to_feature_idx.end(); ++it)
+        for (auto& idx : scan_idx_to_feature_idx)
         {
-          const Size scan = it->first;
-          exp[scan].getPrecursors()[0].setMZ(features[*it->second.begin()].getMZ());
-          exp[scan].getPrecursors()[0].setCharge(features[*it->second.begin()].getCharge());
+          const Size scan = idx.first;
+          exp[scan].getPrecursors()[0].setMZ(features[*idx.second.begin()].getMZ());
+          exp[scan].getPrecursors()[0].setCharge(features[*idx.second.begin()].getCharge());
           corrected_precursors.insert(scan);
         }
       }

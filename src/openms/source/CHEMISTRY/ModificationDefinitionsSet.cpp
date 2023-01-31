@@ -99,15 +99,15 @@ namespace OpenMS
     fixed_mods_.clear();
     variable_mods_.clear();
 
-    for (set<ModificationDefinition>::const_iterator it = mods.begin(); it != mods.end(); ++it)
+    for (const ModificationDefinition& mod : mods)
     {
-      if (it->isFixedModification())
+      if (mod.isFixedModification())
       {
-        fixed_mods_.insert(*it);
+        fixed_mods_.insert(mod);
       }
       else
       {
-        variable_mods_.insert(*it);
+        variable_mods_.insert(mod);
       }
     }
     return;
@@ -123,15 +123,15 @@ namespace OpenMS
     fixed_mods_.clear();
     variable_mods_.clear();
 
-    for (StringList::const_iterator it = fixed_modifications.begin(); it != fixed_modifications.end(); ++it)
+    for (const String& mod : fixed_modifications)
     {
-      ModificationDefinition def(*it, true);
+      ModificationDefinition def(mod, true);
       fixed_mods_.insert(def);
     }
 
-    for (StringList::const_iterator it = variable_modifications.begin(); it != variable_modifications.end(); ++it)
+    for (const String& mod : variable_modifications)
     {
-      ModificationDefinition def(*it, false);
+      ModificationDefinition def(mod, false);
       variable_mods_.insert(def);
     }
   }
@@ -139,9 +139,9 @@ namespace OpenMS
   set<ModificationDefinition> ModificationDefinitionsSet::getModifications() const
   {
     set<ModificationDefinition> mods = fixed_mods_;
-    for (set<ModificationDefinition>::const_iterator it = variable_mods_.begin(); it != variable_mods_.end(); ++it)
+    for (const ModificationDefinition& mod : variable_mods_)
     {
-      mods.insert(*it);
+      mods.insert(mod);
     }
 
     return mods;
@@ -150,13 +150,13 @@ namespace OpenMS
   set<String> ModificationDefinitionsSet::getModificationNames() const
   {
     set<String> mod_names;
-    for (set<ModificationDefinition>::const_iterator it = variable_mods_.begin(); it != variable_mods_.end(); ++it)
+    for (const ModificationDefinition& mod : variable_mods_)
     {
-      mod_names.insert(it->getModificationName());
+      mod_names.insert(mod.getModificationName());
     }
-    for (set<ModificationDefinition>::const_iterator it = fixed_mods_.begin(); it != fixed_mods_.end(); ++it)
+    for (const ModificationDefinition& mod : fixed_mods_)
     {
-      mod_names.insert(it->getModificationName());
+      mod_names.insert(mod.getModificationName());
     }
     return mod_names;
   }
@@ -165,15 +165,15 @@ namespace OpenMS
   {
     fixed_modifications.clear();
     fixed_modifications.reserve(fixed_mods_.size());
-    for (set<ModificationDefinition>::const_iterator it = fixed_mods_.begin(); it != fixed_mods_.end(); ++it)
+    for (const ModificationDefinition& mod: fixed_mods_)
     {
-      fixed_modifications.push_back(it->getModificationName());
+      fixed_modifications.push_back(mod.getModificationName());
     }
     variable_modifications.clear();
     variable_modifications.reserve(variable_mods_.size());
-    for (set<ModificationDefinition>::const_iterator it = variable_mods_.begin(); it != variable_mods_.end(); ++it)
+    for (const ModificationDefinition& mod : variable_mods_)
     {
-      variable_modifications.push_back(it->getModificationName());
+      variable_modifications.push_back(mod.getModificationName());
     }
   }
 
@@ -190,9 +190,9 @@ namespace OpenMS
   set<String> ModificationDefinitionsSet::getFixedModificationNames() const
   {
     set<String> mod_names;
-    for (set<ModificationDefinition>::const_iterator it = fixed_mods_.begin(); it != fixed_mods_.end(); ++it)
+    for (const ModificationDefinition& mod : fixed_mods_)
     {
-      mod_names.insert(it->getModificationName());
+      mod_names.insert(mod.getModificationName());
     }
     return mod_names;
   }
@@ -200,9 +200,9 @@ namespace OpenMS
   set<String> ModificationDefinitionsSet::getVariableModificationNames() const
   {
     set<String> mod_names;
-    for (set<ModificationDefinition>::const_iterator it = variable_mods_.begin(); it != variable_mods_.end(); ++it)
+    for (const ModificationDefinition& mod : variable_mods_)
     {
-      mod_names.insert(it->getModificationName());
+      mod_names.insert(mod.getModificationName());
     }
     return mod_names;
   }
@@ -228,23 +228,23 @@ namespace OpenMS
     }
 
     // check whether the fixed modifications are fulfilled
-    for (set<String>::const_iterator it1 = fixed_names.begin(); it1 != fixed_names.end(); ++it1)
+    for (const String& fn : fixed_names)
     {
-      String origin = ModificationsDB::getInstance()->getModification(*it1)->getOrigin();
+      String origin = ModificationsDB::getInstance()->getModification(fn)->getOrigin();
       // only single 1lc amino acids are allowed
       if (origin.size() != 1) continue;
      
-      for (AASequence::ConstIterator it2 = peptide.begin(); it2 != peptide.end(); ++it2)
+      for (const Residue& pep : peptide)
       {
-        if (origin == it2->getOneLetterCode())
+        if (origin == pep.getOneLetterCode())
         {
           // check whether the residue is modified (has to be)
-          if (!it2->isModified())
+          if (!pep.isModified())
           {
             return false;
           }
           // check whether the modification is the same
-          if (ModificationsDB::getInstance()->getModification(*it1)->getId() != it2->getModificationName())
+          if (ModificationsDB::getInstance()->getModification(fn)->getId() != pep.getModificationName())
           {
             return false;
           }
@@ -253,11 +253,11 @@ namespace OpenMS
     }
 
     // check whether other modifications than the variable are present
-    for (AASequence::ConstIterator it = peptide.begin(); it != peptide.end(); ++it)
+    for (const Residue& pep : peptide)
     {
-      if (it->isModified())
+      if (pep.isModified())
       {
-        String mod = it->getModification()->getFullId();
+        String mod = pep.getModification()->getFullId();
         if (var_names.find(mod) == var_names.end() &&
             fixed_names.find(mod) == fixed_names.end())
         {
@@ -303,10 +303,9 @@ namespace OpenMS
 
   void ModificationDefinitionsSet::addMatches_(multimap<double, ModificationDefinition>& matches, double mass, const String& residue, ResidueModification::TermSpecificity term_spec, const set<ModificationDefinition>& source, bool is_delta, double tolerance)
   {
-    for (set<ModificationDefinition>::const_iterator it = source.begin();
-         it != source.end(); ++it)
+    for (const ModificationDefinition& src : source)
     {
-      const ResidueModification& mod = it->getModification();
+      const ResidueModification& mod = src.getModification();
       // do the residues match?
       char origin = mod.getOrigin();
       if (!(residue.empty() || (origin == 'X') || (residue[0] == origin) ||
@@ -337,7 +336,7 @@ namespace OpenMS
         mass_error = fabs(mod_mass - mass);
         if (mass_error > tolerance) continue;
       }
-      matches.insert(make_pair(mass_error, *it));
+      matches.insert(make_pair(mass_error, src));
     }
   }
 
@@ -372,30 +371,28 @@ namespace OpenMS
         const AASequence& seq = hit.getSequence();
         mod_map["N-term"].insert(seq.getNTerminalModification());
         mod_map["C-term"].insert(seq.getCTerminalModification());
-        for (AASequence::ConstIterator seq_it = seq.begin();
-             seq_it != seq.end(); ++seq_it)
+        for (const Residue& sq : seq)
         {
-          mod_map[seq_it->getOneLetterCode()].insert(seq_it->getModification());
+          mod_map[sq.getOneLetterCode()].insert(sq.getModification());
         }
       }
     }
 
     fixed_mods_.clear();
     variable_mods_.clear();
-    for (map<String, set<const ResidueModification*> >::const_iterator map_it =
-           mod_map.begin(); map_it != mod_map.end(); ++map_it)
+    for (const auto& map : mod_map)
     {
       set<const ResidueModification*>::const_iterator set_it =
-        map_it->second.begin();
+        map.second.begin();
       // if there's only one mod, it's probably a fixed one:
-      if ((map_it->second.size() == 1) && (*set_it != 0))
+      if ((map.second.size() == 1) && (*set_it != 0))
       {
         ModificationDefinition mod_def(**set_it, true);
         fixed_mods_.insert(mod_def);
       }
       else // variable mod(s)
       {
-        for (; set_it != map_it->second.end(); ++set_it)
+        for (; set_it != map.second.end(); ++set_it)
         {
           if (*set_it != 0)
           {
