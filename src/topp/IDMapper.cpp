@@ -99,7 +99,7 @@ using namespace std;
     
     <B>Annotation with mzML (both feature and consensusXML input):</B>\n
     Instead of/in addition to annotating with putatively identified spectra (i.e. PSMs) from idXML, you can use the original spectra in an mzML to attach
-    all potential MS2 spectra to a (Consensus)Feature. See the @p spectra:in option.
+    all potential MS2 spectra to a (Consensus)Feature. See the @p spectra:in option. This can be used for advanced workflows that want to create spectral libraries or targeted assays for unknown entities.
 
     @note Currently mzIdentML (mzid) is not directly supported as an input/output format of this tool. Convert mzid files to/from idXML using @ref TOPP_IDFileConverter if necessary.
 
