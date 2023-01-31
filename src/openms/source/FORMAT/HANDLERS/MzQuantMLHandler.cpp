@@ -327,9 +327,9 @@ namespace OpenMS::Internal
         {
           std::vector<String> splits;
           r.split(" ", splits);
-          for (std::vector<String>::iterator it = splits.begin(); it != splits.end(); ++it)
+          for (String& spl : splits)
           {
-            current_row_.push_back(it->toDouble());
+            current_row_.push_back(spl.toDouble());
           }
         }
       }
@@ -395,15 +395,15 @@ namespace OpenMS::Internal
       else if (tag_ == "DataProcessingList")
       {
         std::vector<DataProcessing> dps;
-        for (std::map<int, DataProcessing>::const_iterator it = current_orderedps_.begin(); it != current_orderedps_.end(); ++it)
+        for (const auto& cur_ord : current_orderedps_)
         {
-          dps.push_back(it->second);
+          dps.push_back(cur_ord.second);
         }
-        for (std::vector<DataProcessing>::iterator it = dps.begin(); it != dps.end(); ++it)
+        for (DataProcessing& dp : dps)
         {
-          if (it->metaValueExists("software_ref") && current_sws_.find(it->getMetaValue("software_ref")) != current_sws_.end())
+          if (dp.metaValueExists("software_ref") && current_sws_.find(dp.getMetaValue("software_ref")) != current_sws_.end())
           {
-            it->setSoftware(current_sws_[it->getMetaValue("software_ref")]);
+            dp.setSoftware(current_sws_[dp.getMetaValue("software_ref")]);
           }
         }
         msq_->setDataProcessingList(dps);
@@ -470,9 +470,9 @@ namespace OpenMS::Internal
       else if (tag_ == "MS2AssayQuantLayer")
       {
         ConsensusMap cm;
-        for (std::map<String, ConsensusFeature>::iterator it = cf_cf_obj_.begin(); it != cf_cf_obj_.end(); ++it)
+        for (auto& obj : cf_cf_obj_)
         {
-          cm.push_back(it->second);
+          cm.push_back(obj.second);
         }
         f_cf_ids_.clear();
         cm_cf_ids_.clear();
@@ -482,9 +482,9 @@ namespace OpenMS::Internal
       else if (tag_ == "FeatureList") // TODO what if there are more than one FeatureQuantLayer?
       {
         //~ assemble consensus features
-        for (std::map<String, String>::iterator it = f_cf_ids_.begin(); it != f_cf_ids_.end(); ++it)
+        for (auto& id : f_cf_ids_)
         {
-          cf_cf_obj_[it->second].insert(f_f_obj_[it->first]);
+          cf_cf_obj_[id.second].insert(f_f_obj_[id.first]);
         }
 
         //~ assemble consensus maps
@@ -861,13 +861,13 @@ namespace OpenMS::Internal
         }
 
         ratio_xml += "\t<RatioList>\n";
-        for (std::map<String, String>::const_iterator rit = numden_r_ids_.begin(); rit != numden_r_ids_.end(); ++rit)
+        for (const auto& rid : numden_r_ids_)
         {
-          ratio_xml += "\t\t<Ratio id=\"r_" + String(rit->second) + "\" numerator_ref=\"a_" + String(r_r_obj_[rit->second].numerator_ref_) + "\" denominator_ref=\"a_" + String(r_r_obj_[rit->second].denominator_ref_) + "\" >\n";
+          ratio_xml += "\t\t<Ratio id=\"r_" + String(rid.second) + "\" numerator_ref=\"a_" + String(r_r_obj_[rid.second].numerator_ref_) + "\" denominator_ref=\"a_" + String(r_r_obj_[rid.second].denominator_ref_) + "\" >\n";
           ratio_xml += "\t\t\t<RatioCalculation>\n";
-          for (std::vector<String>::const_iterator dit = r_r_obj_[rit->second].description_.begin(); dit != r_r_obj_[rit->second].description_.end(); ++dit)
+          for (const String& desc : r_r_obj_[rid.second].description_)
           {
-            ratio_xml += "\t\t\t\t<userParam name=\"" + String(*dit) + "\"/>\n";
+            ratio_xml += "\t\t\t\t<userParam name=\"" + String(desc) + "\"/>\n";
           }
           ratio_xml += "\t\t\t\t<cvParam cvRef=\"PSI-MS\" accession=\"MS:1001848\" name=\"simple ratio of two values\"/>\n";
           ratio_xml += "\t\t\t</RatioCalculation>\n";
@@ -932,10 +932,10 @@ namespace OpenMS::Internal
         switch (cmsq_->getAnalysisSummary().quant_type_) //enum QUANT_TYPES {MS1LABEL=0, MS2LABEL, LABELFREE, SIZE_OF_QUANT_TYPES}; // derived from processing applied
         {
         case 0:
-          for (std::vector<std::pair<String, double> >::const_iterator lit = ait.mods_.begin(); lit != ait.mods_.end(); ++lit)
+          for (const auto& l : ait.mods_)
           {
             String cv_acc, cv_name;
-            switch ((int)std::floor(lit->second + (double)0.5)) //delta >! 0
+            switch ((int)std::floor(l.second + (double)0.5)) //delta >! 0
             {
             case 6:
               cv_acc = "MOD:00544";
@@ -956,8 +956,8 @@ namespace OpenMS::Internal
               cv_name = "unlabeled sample";
               cv_acc = "MS:1002038";
             }
-            assay_xml += "\t\t\t\t<Modification massDelta=\"" + String(lit->second) + "\" >\n";
-            assay_xml += "\t\t\t\t\t<cvParam cvRef=\"PSI-MOD\" accession=\"" + cv_acc + "\" name=\"" + cv_name + "\" value=\"" + String(lit->first) + "\"/>\n";
+            assay_xml += "\t\t\t\t<Modification massDelta=\"" + String(l.second) + "\" >\n";
+            assay_xml += "\t\t\t\t\t<cvParam cvRef=\"PSI-MOD\" accession=\"" + cv_acc + "\" name=\"" + cv_name + "\" value=\"" + String(l.first) + "\"/>\n";
             assay_xml += "\t\t\t\t</Modification>\n";
           }
           break;
@@ -966,11 +966,11 @@ namespace OpenMS::Internal
         {
           //~ assay_xml += "\t\t\t\t<Modification massDelta=\"145\" residues=\"N-term\">\n";
           //~ assay_xml += "\t\t\t\t\t<cvParam name =\"itraq label\"/>\n";
-          for (std::vector<std::pair<String, double> >::const_iterator lit = ait.mods_.begin(); lit != ait.mods_.end(); ++lit)
+          for (const auto& l : ait.mods_)
           {
             assay_xml += "\t\t\t\t<Modification massDelta=\"145\">\n";
             String cv_acc, cv_name;
-            switch ((int)lit->second) //~ TODO 8plex
+            switch ((int)l.second) //~ TODO 8plex
             {
             case 114:
               cv_name = "iTRAQ4plex-114 reporter fragment";
@@ -996,7 +996,7 @@ namespace OpenMS::Internal
               cv_name = "Applied Biosystems iTRAQ(TM) multiplexed quantitation chemistry";
               cv_acc = "MOD:00564";
             }
-            assay_xml += "\t\t\t\t\t<cvParam cvRef=\"PSI-MOD\" accession=\"" + cv_acc +  "\" name=\"" + cv_name + "\" value=\"" + String(lit->first) + "\"/>\n";
+            assay_xml += "\t\t\t\t\t<cvParam cvRef=\"PSI-MOD\" accession=\"" + cv_acc +  "\" name=\"" + cv_name + "\" value=\"" + String(l.first) + "\"/>\n";
             assay_xml += "\t\t\t\t</Modification>\n";
           }
           break;
@@ -1044,18 +1044,18 @@ namespace OpenMS::Internal
           {
             std::vector<UInt64> idvec;
             idvec.push_back(UniqueIdGenerator::getUniqueId());
-            for (std::set<FeatureHandle, FeatureHandle::IndexLess>::const_iterator fit = feature_handles.begin(); fit != feature_handles.end(); ++fit)
+            for (const FeatureHandle& handle : feature_handles)
             {
               fid.push_back(UniqueIdGenerator::getUniqueId());
               idvec.push_back(fid.back());
-              fin.push_back(fit->getIntensity());
-              fwi.push_back(fit->getWidth());
+              fin.push_back(handle.getIntensity());
+              fwi.push_back(handle.getWidth());
               //~ fqu.push_back(jt->getQuality());
-              feature_xml += "\t\t<Feature id=\"f_" + String(fid.back()) + "\" rt=\"" + String(fit->getRT()) + "\" mz=\"" + String(fit->getMZ()) + "\" charge=\"" + String(fit->getCharge()) + "\">\n";
+              feature_xml += "\t\t<Feature id=\"f_" + String(fid.back()) + "\" rt=\"" + String(handle.getRT()) + "\" mz=\"" + String(handle.getMZ()) + "\" charge=\"" + String(handle.getCharge()) + "\">\n";
               // TODO as soon as SILACAnalyzer incorporate convex hulls read from the featuremap
               //~ writeUserParam_(os, *jt, UInt(2)); // FeatureHandle has no MetaInfoInterface!!!
-              feature_xml += "\t\t\t<userParam name=\"map_index\" value=\"" + String(fit->getMapIndex()) + "\"/>\n";
-              feature_xml += "\t\t\t<userParam name=\"feature_index\" value=\"" + String(fit->getUniqueId()) + "\"/>\n";
+              feature_xml += "\t\t\t<userParam name=\"map_index\" value=\"" + String(handle.getMapIndex()) + "\"/>\n";
+              feature_xml += "\t\t\t<userParam name=\"feature_index\" value=\"" + String(handle.getUniqueId()) + "\"/>\n";
               feature_xml += "\t\t</Feature>\n";
             }
             cmid.push_back(idvec);
@@ -1068,9 +1068,9 @@ namespace OpenMS::Internal
             feature_xml += "\t\t<Feature id=\"f_" + String(fid.back()) + "\" rt=\"" + String(cit.getRT()) + "\" mz=\"" + String(cit.getMZ()) + "\" charge=\"" + String(cit.getCharge()) + "\"/>\n";
             //~ std::vector<UInt64> cidvec;
             //~ cidvec.push_back(fid.back());
-            for (std::set<FeatureHandle, FeatureHandle::IndexLess>::const_iterator fit = feature_handles.begin(); fit != feature_handles.end(); ++fit)
+            for (const FeatureHandle& handle : feature_handles)
             {
-              fi.push_back(fit->getIntensity());
+              fi.push_back(handle.getIntensity());
             }
             f2i.push_back(fi);
           } break;
@@ -1169,9 +1169,9 @@ namespace OpenMS::Internal
           peptide_xml += String("\t\t<RatioQuantLayer id=\"q_") + String(UniqueIdGenerator::getUniqueId()) + String("\">\n");
           peptide_xml += String("\t\t\t\t\t<DataType>\n\t\t\t\t\t\t<cvParam cvRef=\"PSI-MS\" accession=\"MS:1001132\" name=\"peptide ratio\"/>\n\t\t\t\t\t</DataType>\n");
           peptide_xml += String("\t\t\t\t<ColumnIndex>");
-          for (std::map<String, String>::const_iterator rit = numden_r_ids_.begin(); rit != numden_r_ids_.end(); ++rit)
+          for (const auto& rid : numden_r_ids_)
           {
-            peptide_xml += String("r_") + String(rit->second) + String(" ");
+            peptide_xml += String("r_") + String(rid.second) + String(" ");
           }
           peptide_xml += String("</ColumnIndex>\n\t\t\t\t<DataMatrix>\n");
 
@@ -1189,9 +1189,9 @@ namespace OpenMS::Internal
             }
             std::vector<String> dis;
             //TODO insert missing ratio_refs into r_values with value "-1"
-            for (std::map<String, String>::const_iterator sit = r_values.begin(); sit != r_values.end(); ++sit)
+            for (const auto& s : r_values)
             {
-              dis.push_back(sit->second);
+              dis.push_back(s.second);
             }
             peptide_xml += ListUtils::concatenate(dis, " ").trim() + String("</Row>\n");
           }
@@ -1251,12 +1251,12 @@ namespace OpenMS::Internal
     void MzQuantMLHandler::writeCVParams_(String& s, const std::map<String, std::vector<CVTerm> >& cvl, UInt indent)
     {
       String inden((size_t)indent, '\t');
-      for (std::map<String, std::vector<CVTerm> >::const_iterator jt = cvl.begin(); jt != cvl.end(); ++jt)
+      for (const auto& cv : cvl)
       {
-        for (const CVTerm& kt :  (*jt).second)
+        for (const CVTerm& kt :  cv.second)
         {
           s += inden;
-          s += "<cvParam cvRef=\"" + kt.getCVIdentifierRef() + "\" accession=\"" + (*jt).first + "\" name=\"" + kt.getName();
+          s += "<cvParam cvRef=\"" + kt.getCVIdentifierRef() + "\" accession=\"" + cv.first + "\" name=\"" + kt.getName();
           if (kt.hasValue())
           {
             s += "\" value=\"" + kt.getValue().toString() + "\"/>\n"; // value is OpenMS::DataValue

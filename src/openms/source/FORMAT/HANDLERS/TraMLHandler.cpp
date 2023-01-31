@@ -640,9 +640,9 @@ namespace OpenMS::Internal
           writeCVParams_(os,  *it, 3);
           writeUserParam_(os, (MetaInfoInterface) * it, 3);
 
-          for (std::vector<String>::const_iterator rit = it->protein_refs.begin(); rit != it->protein_refs.end(); ++rit)
+          for (const String& ref : it->protein_refs)
           {
-            os << "      <ProteinRef ref=\"" << writeXMLEscape(*rit) << "\"/>" << "\n";
+            os << "      <ProteinRef ref=\"" << writeXMLEscape(ref) << "\"/>" << "\n";
           }
 
           if (!it->mods.empty())
@@ -695,9 +695,9 @@ namespace OpenMS::Internal
           if (!it->rts.empty())
           {
             os << "      <RetentionTimeList>\n";
-            for (std::vector<TargetedExperiment::RetentionTime>::const_iterator rit = it->rts.begin(); rit != it->rts.end(); ++rit)
+            for (const TargetedExperimentHelper::RetentionTime& rt : it->rts)
             {
-              writeRetentionTime_(os, *rit);
+              writeRetentionTime_(os, rt);
             }
             os << "      </RetentionTimeList>\n";
           }
@@ -743,9 +743,9 @@ namespace OpenMS::Internal
           if (!it->rts.empty())
           {
             os << "      <RetentionTimeList>\n";
-            for (std::vector<TargetedExperiment::RetentionTime>::const_iterator rit = it->rts.begin(); rit != it->rts.end(); ++rit)
+            for (const TargetedExperimentHelper::RetentionTime& rt : it->rts)
             {
-              writeRetentionTime_(os, *rit);
+              writeRetentionTime_(os, rt);
             }
             os << "      </RetentionTimeList>\n";
           }
@@ -1745,10 +1745,9 @@ namespace OpenMS::Internal
 
     void TraMLHandler::writeCVList_(std::ostream & os, const std::map<String, std::vector<CVTerm>> & cv_terms, UInt indent) const
     {
-      for (std::map<String, std::vector<CVTerm> >::const_iterator it = cv_terms.begin();
-           it != cv_terms.end(); ++it)
+      for (const auto& term : cv_terms)
       {
-        for (const CVTerm& cit : it->second)
+        for (const CVTerm& cit : term.second)
         {
           os << String(2 * indent, ' ') << "<cvParam cvRef=\"" << cit.getCVIdentifierRef() << "\" accession=\"" << cit.getAccession() << "\" name=\"" << cit.getName() << "\"";
           if (cit.hasValue() && !cit.getValue().isEmpty() && !cit.getValue().toString().empty())
