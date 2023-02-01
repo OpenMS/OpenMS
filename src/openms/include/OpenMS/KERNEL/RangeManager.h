@@ -113,13 +113,13 @@ namespace OpenMS
     /// is @p value within [min, max]?
     bool contains(const double value) const
     {
-      return (min_ <= value) & (value <= max_);
+      return uint8_t(min_ <= value) & uint8_t(value <= max_); // using && leads to branches on all compilers in Debug and in Release on MVSC
     }
 
     /// is the range @p inner_range within [min, max]?
     bool contains(const RangeBase& inner_range) const
     {
-      return contains(inner_range.min_) & contains(inner_range.max_);
+      return uint8_t(contains(inner_range.min_)) & uint8_t(contains(inner_range.max_)); // using && leads to branches on all compilers in Debug and in Release on MVSC
     }
 
     /** @name Accessors for min and max

@@ -153,10 +153,8 @@ protected:
     setValidFormats_("lib_out", ListUtils::create<String>("traML"));
     registerOutputFile_("chrom_out", "<file>", "", "Output file: Chromatograms", false);
     setValidFormats_("chrom_out", ListUtils::create<String>("mzML"));
-    registerOutputFile_("candidates_out", "<file>", "", "Output file: Feature candidates (before filtering and model fitting)", false);
     registerOutputFile_("trafo_out", "<file>", "", "Output file: Retention times (expected vs. observed)", false);
     setValidFormats_("trafo_out", ListUtils::create<String>("trafoXML"));
-    setValidFormats_("candidates_out", ListUtils::create<String>("featureXML"));
     registerFlag_("force", "Force processing of files with no MS1 spectra", true);
 
     Param ffmetaboident_params;

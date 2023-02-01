@@ -148,6 +148,10 @@ namespace OpenMS
   class OPENMS_GUI_DLLAPI LayerStatistics
   {
   public:
+
+    /// Make D'tor virtual for correct destruction from pointers to base
+    virtual ~LayerStatistics() = default;
+
     /// get all range statistics, any of which can then be plugged into getDistribution()
     const StatsMap& getRangeStatistics() const
     {

@@ -28,22 +28,17 @@
 # ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 # --------------------------------------------------------------------------
-# $Maintainer: Stephan Aiche $
-# $Authors: Stephan Aiche $
+# $Maintainer: Julianus Pfeuffer $
+# $Authors: Stephan Aiche, Julianus Pfeuffer $
 # --------------------------------------------------------------------------
 
-cmake_minimum_required(VERSION 3.15 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.18 FATAL_ERROR)
 
 # include helper functions 
 include ( ${SCRIPT_DIR}common.cmake )
 
 set(required_variables "ARCH;PLATFORM;PAYLOAD_FOLDER")
 check_variables(required_variables)
-
-find_package(Java REQUIRED)
-if (NOT Java_JAR_EXECUTABLE)
-	message(FATAL_ERROR "Jar executable not found. It is needed to bundle the sources for the KNIME package. Make sure you have the Java SDK installed and in PATH.")
-endif()
 
 set(zip_file "${PAYLOAD_FOLDER}/binaries_${PLATFORM}_${ARCH}.zip")
 file(TO_NATIVE_PATH ${zip_file} native_zip)
@@ -52,40 +47,6 @@ file(TO_NATIVE_PATH ${zip_file} native_zip)
 ## Otherwise add files by updating the zip with jar -u
 set(INITIALLY_CREATE_ZIP On)
 file(GLOB payload_content "${PAYLOAD_FOLDER}/*")
-foreach(file ${payload_content})
-	string(REPLACE "${PAYLOAD_FOLDER}/" "" trimmed_file ${file})
-	
-	## This means basically "just zip the files" (TODO we could think of using a lighter zip program instead)
-	## Generates no new Manifests
-	set(JAR_ARGS "fM") 
-	if(NOT INITIALLY_CREATE_ZIP)
-		set(JAR_ARGS "u${JAR_ARGS}")
-	else()
-		set(JAR_ARGS "c${JAR_ARGS}")
-		set(INITIALLY_CREATE_ZIP Off)
-	endif()
 
-	message(STATUS "${Java_JAR_EXECUTABLE} ${JAR_ARGS} ${native_zip} ${trimmed_file}")
-	
-	# add to zip file
-	execute_process(
-		COMMAND "${Java_JAR_EXECUTABLE}" "${JAR_ARGS}" "${native_zip}" "${trimmed_file}"
-		WORKING_DIRECTORY ${PAYLOAD_FOLDER}
-		RESULT_VARIABLE _result
-	)
-	
-	# remove from fs
-	if(IS_DIRECTORY ${file})
-		execute_process(
-			COMMAND ${CMAKE_COMMAND} -E "remove_directory" "${file}"
-			WORKING_DIRECTORY ${PAYLOAD_FOLDER}
-			RESULT_VARIABLE _result
-		)
-	else()
-		execute_process(
-			COMMAND ${CMAKE_COMMAND} -E "remove" "${file}"
-			WORKING_DIRECTORY ${PAYLOAD_FOLDER}
-			RESULT_VARIABLE _result
-		)
-	endif()
-endforeach()
+file(ARCHIVE_CREATE OUTPUT ${native_zip} PATHS ${payload_content} FORMAT zip)
+file(REMOVE_RECURSE ${payload_content})

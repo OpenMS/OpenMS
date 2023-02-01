@@ -320,6 +320,7 @@ set(filtering_executables_list
   Deisotoper_test
   ElutionPeakDetection_test
   FeatureFindingMetabo_test
+  FeatureOverlapFilter_test
   FilterFunctor_test
   FastLowessSmoothing_test
   GaussFilter_test
