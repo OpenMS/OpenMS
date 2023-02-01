@@ -50,6 +50,8 @@
 #include <OpenMS/ANALYSIS/XLMS/OPXLSpectrumProcessingAlgorithms.h>
 #include <OpenMS/CHEMISTRY/DecoyGenerator.h>
 
+#include <OpenMS/IONMOBILITY/FAIMSHelper.h>
+
 #include <OpenMS/FILTERING/DATAREDUCTION/Deisotoper.h>
 #include <OpenMS/ANALYSIS/NUXL/NuXLModificationsGenerator.h>
 #include <OpenMS/ANALYSIS/NUXL/NuXLReport.h>
@@ -262,7 +264,9 @@ public:
 protected:
   /// percolator feature set
   StringList feature_set_;
- 
+  
+  bool has_FAIMS_CV_{false};
+
   void registerOptionsAndFlags_() override
   {
     registerInputFile_("in", "<file>", "", "input file ");
@@ -3130,6 +3134,11 @@ static void scoreXLIons_(
         ph.setMetaValue("precursor_purity", purities.at(spec.getNativeID()).signal_proportion);
       }
 
+      if (has_FAIMS_CV_)
+      {
+        ph.setMetaValue("FAIMS_CV", spec.getDriftTime());
+      }
+
       ph.setMetaValue("nucleotide_mass_tags", (double)spec.getFloatDataArrays()[2][0]);
       int maxtag = spec.getIntegerDataArrays()[NuXLConstants::IA_DENOVO_TAG_INDEX][0];
       ph.setMetaValue("NuXL:aminoacid_max_tag", maxtag);
@@ -4538,6 +4547,7 @@ static void scoreXLIons_(
     // define percolator feature set
     StringList data_dependent_features; // percolator features that only exist e.g., if MS1 spectra were present
     if (!purities.empty()) data_dependent_features << "precursor_purity";
+
     definePercolatorFeatureSet_(data_dependent_features);
 
     PeakFileOptions options;
@@ -4546,6 +4556,9 @@ static void scoreXLIons_(
     f.getOptions() = options;
     f.load(in_mzml, spectra);
     spectra.sortSpectra(true);
+
+    has_FAIMS_CV_ = FAIMSHelper::getCompensationVoltages(spectra).size() > 1; // need more than one CV value for scoring
+    if (!has_FAIMS_CV_) data_dependent_features << "FAIMS_CV";
 
     // only executed if we have a pre-search with enough calibrants
     if (ic.getCalibrationPoints().size() > 1)
@@ -6151,8 +6164,6 @@ static void scoreXLIons_(
     OPENMS_LOG_DEBUG << "scan index: " << scan_index << " achieved score: " << score << endl;
 #endif
   }
-
-
 };
 
 map<String, vector<vector<double>>> OpenNuXL::fragment_adduct2block_if_masses_present = {};

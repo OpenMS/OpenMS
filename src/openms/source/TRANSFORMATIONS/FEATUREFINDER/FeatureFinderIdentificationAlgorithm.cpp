@@ -1335,10 +1335,34 @@ namespace OpenMS
       }
     }
 
-
     Int charge = hit.getCharge();
+    // precursor information
     double rt = peptide.getRT();
     double mz = peptide.getMZ();
+
+    // meta value to forcefully overwrite m/z value with external one
+    // to quantify this kind of data, we need to introduce a modification that matches the mass difference
+    // we just start at the N-term and look for the first unmodified AA
+    if (hit.metaValueExists("CalcMass"))
+    {
+      double diff_mz = (double)hit.getMetaValue("CalcMass") - hit.getSequence().getMZ(charge);
+      double diff_mass = diff_mz * charge;
+      if (fabs(diff_mass) > 0.01)
+      {
+        OPENMS_LOG_DEBUG_NOFILE << "Peptide m/z value and m/z of CalcMass meta value differ (" << hit.getSequence().getMZ(charge) << " / " << hit.getMetaValue("CalcMass")
+                                << "Assuming unspecified/unlocalized modification." << endl;
+        AASequence seq = hit.getSequence(); // TODO: add ref version to PeptideHit
+        for (auto r = seq.begin(); r != seq.end(); ++r)
+        {
+          if (r->isModified()) continue;
+          int residue_index = r - seq.begin();
+          seq.setModificationByDiffMonoMass(residue_index, diff_mass);
+          break;
+        }
+        hit.setSequence(std::move(seq)); 
+      }
+    }
+
     if (!external)
     {
       if (peptide.metaValueExists("SeedFeatureID"))
@@ -1349,7 +1373,8 @@ namespace OpenMS
       {
         OPENMS_LOG_DEBUG_NOFILE << "Adding peptide (internal) " << hit.getSequence() << "; CHG: " << charge << "; RT: " << rt << "; MZ: " << mz << endl;
       }
-      peptide_map[hit.getSequence()][charge].first.emplace(rt, &peptide);
+
+      peptide_map[hit.getSequence()][charge].first.emplace(rt, &peptide); // place into multimap
     }
     else
     {
