@@ -57,7 +57,7 @@ using namespace std;
   <table>
   <tr>
   <td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. predecessor tools </td>
-  <td VALIGN="middle" ROWSPAN=2> \f$ \longrightarrow \f$ PrecursorMassCorrector \f$ \longrightarrow \f$</td>
+  <td VALIGN="middle" ROWSPAN=2> &rarr; PrecursorMassCorrector &rarr;</td>
   <td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. successor tools </td>
   </tr>
   <tr>
@@ -144,7 +144,7 @@ protected:
     // calculations
     FeatureFinderAlgorithmIsotopeWavelet iso_ff;
     Param ff_param(iso_ff.getParameters());
-    ff_param.setValue("max_charge", getIntOption_("max_charge"));
+    ff_param.setValue("max_charge", abs(getIntOption_("max_charge")));
     ff_param.setValue("intensity_threshold", getDoubleOption_("intensity_threshold"));
     iso_ff.setParameters(ff_param);
 

@@ -749,7 +749,7 @@ namespace OpenMS
     OPENMS_LOG_DEBUG << "  Samples (Assays): " << stats_.n_samples << endl;
 
     stats_.total_features = peptides.size();
-
+    
     countPeptides_(peptides);
 
     map<pair<String,Size>, String> identifier_idmergeidx_to_ms_file;
@@ -773,12 +773,15 @@ namespace OpenMS
       OPENMS_LOG_DEBUG << "  run index : MS file " << i << " : " << ListUtils::concatenate(ms_files, ", ") << endl;
     }
 
-
     for (auto & p : peptides)
     {
       if (p.getHits().empty()) { continue; }
       Size id_merge_idx = p.getMetaValue("id_merge_idx",0);
       const PeptideHit& hit = p.getHits()[0];
+
+      // don't quantify decoys
+      if ((std::string)hit.getMetaValue("target_decoy", DataValue("target")) == "decoy") continue;
+
       stats_.quant_features++;
       const AASequence& seq = hit.getSequence();
       const String& ms_file_path = identifier_idmergeidx_to_ms_file[{p.getIdentifier(),id_merge_idx}];

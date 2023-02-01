@@ -120,7 +120,7 @@ public:
   /// If @p spectra_file is provided it will be used as a fall-back to setPrimaryMSRunPath
   /// in the feature map in case a proper primaryMSRunPath is not annotated in the MSExperiment.
   /// If there are no MS1 scans in the MSData return 'features' unchanged
-  void run(const std::vector<FeatureFinderMetaboIdentCompound>& metaboIdentTable, FeatureMap& features, String spectra_file = "");
+  void run(const std::vector<FeatureFinderMetaboIdentCompound>& metaboIdentTable, FeatureMap& features, const String& spectra_file = "");
 
   /// @brief Retrieve chromatograms (empty if run was not executed)
   PeakMap& getMSData() { return ms_data_; }
@@ -206,24 +206,6 @@ protected:
 
   void generateTransitions_(const String& target_id, double mz, Int charge,
                             const IsotopeDistribution& iso_dist);
-
-  /// Check if two sets of mass trace boundaries overlap
-  bool hasOverlappingBounds_(const std::vector<MassTraceBounds>& mtb1,
-                             const std::vector<MassTraceBounds>& mtb2) const;
-
-  void getFeatureBounds_(const FeatureMap& features,
-                         FeatureBoundsMap& feature_bounds);
-
-
-  bool hasOverlappingFeature_(const Feature& feature, const FeatureGroup& group, 
-                              const FeatureBoundsMap& feature_bounds) const;
-
-  void findOverlappingFeatures_(FeatureMap& features,
-                                const FeatureBoundsMap& feature_bounds,
-                                std::vector<FeatureGroup>& overlap_groups);
-
-  void resolveOverlappingFeatures_(FeatureGroup& group,
-                                   const FeatureBoundsMap& feature_bounds);
 
   void annotateFeatures_(FeatureMap& features);
 

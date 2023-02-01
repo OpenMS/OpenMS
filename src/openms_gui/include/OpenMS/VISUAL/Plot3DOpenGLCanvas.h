@@ -112,9 +112,9 @@ protected:
     ///helper function to replicate old behaviour of QGLWidget
     void renderText_(double x, double y, double z, const QString & text);
     ///helper function to replicate old behaviour of QGLWidget
-    void qglColor_(QColor color);
+    void qglColor_(const QColor& color);
     ///helper function to replicate old behaviour of QGLWidget
-    void qglClearColor_(QColor clearColor);
+    void qglClearColor_(const QColor& clearColor);
     /// Builds up a display list for the 3D view
     GLuint makeDataAsStick_();
     /// Builds up a display list for the axes

@@ -21,10 +21,8 @@ cdef extern from "<OpenMS/ANALYSIS/ID/IonIdentityMolecularNetworking.h>" namespa
         #  This method requires the features annotated with the Constants::UserParams::IIMN_LINKED_GROUPS meta value.
         #  If at least one of the features has an annotation for Constants::UserParam::IIMN_LINKED_GROUPS, annotate ConsensusMap for IIMN.
         #  
-        #  Parameters
         #  
-        #  consensus_map : ConsensusMap
-        #   Input ConsensusMap without IIMN annotations.
+        #  :param consensus_map: Input ConsensusMap without IIMN annotations.
 
         void writeSupplementaryPairTable(const ConsensusMap& consensus_map, const String& output_file) nogil except + #wrap-attach:IonIdentityMolecularNetworking
         # wrap-doc:
@@ -33,10 +31,6 @@ cdef extern from "<OpenMS/ANALYSIS/ID/IonIdentityMolecularNetworking.h>" namespa
         #  The table contains the columns "ID 1" (row ID of first feature), "ID 2" (row ID of second feature), "EdgeType" (MS1/2 annotation),
         #  "Score" (the number of direct partners from both connected features) and "Annotation" (adducts and delta m/z between two connected features).
         #  
-        #  Parameters
         #  
-        #  consensus_map : ConsensusMap
-        #   Input ConsensusMap annotated with IonIdentityMolecularNetworking.annotateConsensusMap.
-        #  
-        #  output_file : str
-        #   Output file path for the supplementary pair table.
+        #  :param consensus_map: Input ConsensusMap annotated with IonIdentityMolecularNetworking.annotateConsensusMap.
+        #  :param output_file: Output file path for the supplementary pair table.

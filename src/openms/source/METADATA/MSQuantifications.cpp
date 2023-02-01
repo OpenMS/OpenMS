@@ -36,6 +36,8 @@
 
 #include <OpenMS/CONCEPT/UniqueIdGenerator.h>
 
+#include <utility>
+
 using namespace std;
 
 namespace OpenMS
@@ -51,15 +53,13 @@ namespace OpenMS
 
     //~ AssayList,InputFiles,SoftwareList
     //~ aus exp.
-    this->registerExperiment(es,dps,label);
+    this->registerExperiment(es,dps,std::move(label));
     
     this->setDataProcessingList(fm.getDataProcessing()); //TODO add dp from experiment (i.e. mzml) ?
     feature_maps_  = std::vector<FeatureMap > (1,fm);
   }
 
-  MSQuantifications::~MSQuantifications()
-  {
-  }
+  MSQuantifications::~MSQuantifications() = default;
 
   /// Equality operator
   bool MSQuantifications::operator==(const MSQuantifications & rhs) const

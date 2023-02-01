@@ -86,10 +86,10 @@ public:
     void showCurrentLayerPreferences() override;
 
     /// Merges the features in @p map into the features layer @p i
-    void mergeIntoLayer(Size i, FeatureMapSharedPtrType map);
+    void mergeIntoLayer(Size i, const FeatureMapSharedPtrType& map);
 
     /// Merges the consensus features in @p map into the features layer @p i
-    void mergeIntoLayer(Size i, ConsensusMapSharedPtrType map);
+    void mergeIntoLayer(Size i, const ConsensusMapSharedPtrType& map);
 
     /// Merges the peptide identifications in @p peptides into the peptide layer @p i
     void mergeIntoLayer(Size i, std::vector<PeptideIdentification>& peptides);
@@ -233,7 +233,7 @@ protected:
       Translates chart coordinates to widget coordinates.
       @param x the chart coordinate x
       @param y the chart coordinate y
-      @param point returned widget coordinates
+      @return A point in widget coordinates
     */
     QPoint dataToWidget_(double x, double y) const
     {

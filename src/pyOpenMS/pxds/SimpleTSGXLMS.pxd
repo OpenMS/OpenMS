@@ -35,11 +35,11 @@ cdef extern from "<OpenMS/CHEMISTRY/SimpleTSGXLMS.h>" namespace "OpenMS":
                 #  For a loop-link two different positions can be set and link_pos_2 must be larger than link_pos
                 #  The generated ion types and other additional settings are determined by the tool parameters
                 #  
-                #  param spectrum: The spectrum to which the new peaks are added. Does not have to be empty, the generated peaks will be pushed onto it
-                #  param peptide: The peptide to fragment
-                #  param link_pos: The position of the cross-linker on the given peptide
-                #  param charge: The maximal charge of the ions
-                #  param link_pos_2: A second position for the linker, in case it is a loop link
+                #  :param spectrum: The spectrum to which the new peaks are added. Does not have to be empty, the generated peaks will be pushed onto it
+                #  :param peptide: The peptide to fragment
+                #  :param link_pos: The position of the cross-linker on the given peptide
+                #  :param charge: The maximal charge of the ions
+                #  :param link_pos_2: A second position for the linker, in case it is a loop link
 
         void getXLinkIonSpectrum(libcpp_vector[ SimplePeak ]& spectrum, AASequence peptide,
                 Size link_pos, double precursor_mass,

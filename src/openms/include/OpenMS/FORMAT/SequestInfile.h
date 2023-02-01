@@ -141,7 +141,7 @@ public:
     /// returns the enzyme used for cleavage
     String getEnzymeName() const;
     /// sets the enzyme used for cleavage (by means of the number from a list of enzymes)
-    Size setEnzyme(String enzyme_name);
+    Size setEnzyme(const String& enzyme_name);
 
     /// returns the maximum number of amino acids containing the same modification in a peptide
     Size getMaxAAPerModPerPeptide() const;

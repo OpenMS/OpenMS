@@ -45,9 +45,7 @@ namespace OpenMS
   {
   }
 
-  SpectrumAccessOpenMSCached::~SpectrumAccessOpenMSCached()
-  {
-  }
+  SpectrumAccessOpenMSCached::~SpectrumAccessOpenMSCached() = default;
 
   SpectrumAccessOpenMSCached::SpectrumAccessOpenMSCached(const SpectrumAccessOpenMSCached & rhs) :
     CachedmzML(rhs)

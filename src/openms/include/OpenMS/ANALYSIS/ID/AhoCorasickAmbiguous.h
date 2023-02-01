@@ -227,6 +227,8 @@ namespace OpenMS
     /// allows to set the index, using `index.pos() = 3;` or simply read its value
     T& pos();
 
+    /// allows to read the index, using `index.pos()` 
+    T pos() const;
   private:
     T i_ = std::numeric_limits<T>::max(); ///< internal number representation; invalid state by default
   };

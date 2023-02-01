@@ -87,9 +87,7 @@ namespace OpenMS
     connect(this, SIGNAL(preferencesChange()), this, SLOT(currentLayerParamtersChanged_()));
   }
 
-  Plot3DCanvas::~Plot3DCanvas()
-  {
-  }
+  Plot3DCanvas::~Plot3DCanvas() = default;
 
   void Plot3DCanvas::resizeEvent(QResizeEvent * e)
   {
@@ -336,22 +334,6 @@ namespace OpenMS
       openglwidget()->recalculateDotGradient_(layers_.getLayer(i));
     }
     PlotCanvas::intensityModeChange_();
-  }
-
-  void Plot3DCanvas::translateLeft_(Qt::KeyboardModifiers /*m*/)
-  {
-  }
-
-  void Plot3DCanvas::translateRight_(Qt::KeyboardModifiers /*m*/)
-  {
-  }
-
-  void Plot3DCanvas::translateForward_()
-  {
-  }
-
-  void Plot3DCanvas::translateBackward_()
-  {
   }
 
 } //namespace

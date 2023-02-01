@@ -63,7 +63,7 @@ using namespace std;
  <table>
   <tr>
    <td ALIGN = "center" BGCOLOR="#EBEBEB"> potential predecessor tools </td>
-   <td VALIGN="middle" ROWSPAN=5> \f$ \longrightarrow \f$ IDFilter \f$ \longrightarrow \f$</td>
+   <td VALIGN="middle" ROWSPAN=5> &rarr; IDFilter &rarr;</td>
    <td ALIGN = "center" BGCOLOR="#EBEBEB"> potential successor tools </td>
   </tr>
   <tr>

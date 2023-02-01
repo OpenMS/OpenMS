@@ -65,7 +65,7 @@ using namespace std;
 <table>
     <tr>
         <td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. predecessor tools </td>
-        <td VALIGN="middle" ROWSPAN=2> \f$ \longrightarrow \f$ EICExtractor \f$ \longrightarrow \f$</td>
+        <td VALIGN="middle" ROWSPAN=2> &rarr; EICExtractor &rarr;</td>
         <td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. successor tools </td>
     </tr>
     <tr>

@@ -43,7 +43,7 @@ namespace OpenMS
 
   void AxisPainter::paint(QPainter * painter, QPaintEvent *, const double & min, const double & max, const GridVector & grid,
                           const Int width, const Int height, const AxisPainter::Alignment alignment, const UInt margin,
-                          bool show_legend, String legend, bool shorten_number,
+                          bool show_legend, const String& legend, bool shorten_number,
                           bool is_log, bool is_inverse_orientation)
   {
     // position of the widget

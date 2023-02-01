@@ -87,7 +87,7 @@ public:
      @param rnd_gen random number generator which will be passed to the different classes
      @param peptides List of peptides and abundances that will be simulated
      */
-    void simulate(SimTypes::MutableSimRandomNumberGeneratorPtr rnd_gen, SimTypes::SampleChannels& peptides);
+    void simulate(const SimTypes::MutableSimRandomNumberGeneratorPtr& rnd_gen, SimTypes::SampleChannels& peptides);
 
     /// Access the simulated experiment
     const SimTypes::MSSimExperiment& getExperiment() const;

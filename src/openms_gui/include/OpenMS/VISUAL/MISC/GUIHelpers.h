@@ -70,7 +70,7 @@ namespace OpenMS
     OPENMS_GUI_DLLAPI QString getSaveFilename(QWidget* parent,
                                               const QString& caption,
                                               const QString& dir,
-                                              FileTypeList supported_file_types, 
+                                              const FileTypeList& supported_file_types, 
                                               bool add_all_filter,
                                               const FileTypes::Type fallback_extension);
 
@@ -94,7 +94,7 @@ namespace OpenMS
        @param col_bg Optional background color of bounding rectangle; if invalid (=default) no background will be painted
        @param font Font to use; will use Courier by default
     */
-    OPENMS_GUI_DLLAPI void drawText(QPainter& painter, const QStringList& text, const QPoint& where, const QColor col_fg = QColor("invalid"), const QColor col_bg = QColor("invalid"),
+    OPENMS_GUI_DLLAPI void drawText(QPainter& painter, const QStringList& text, const QPoint& where, const QColor& col_fg = QColor("invalid"), const QColor& col_bg = QColor("invalid"),
                                    const QFont& font = QFont("Courier"));
 
 

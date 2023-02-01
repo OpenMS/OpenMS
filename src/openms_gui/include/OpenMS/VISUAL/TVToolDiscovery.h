@@ -109,6 +109,9 @@ namespace OpenMS
      */
     [[maybe_unused]] bool setPluginPath(const String& path, bool create=false);
 
+    /// set the verbosity level of the tool discovery for debug purposes
+    void setVerbose(int verbosity_level);
+
     /// Returns the current set path to search plugins in
     const std::string getPluginPath();
 
@@ -144,5 +147,8 @@ namespace OpenMS
 
     /// The names of all loaded plugins, this is used to add the plugins to the list in the ToolsDialog
     std::vector<std::string> plugins_;
+
+    /// Set to value > 0 to output tool discovery debug information
+    int verbosity_level_ = 0;
   };
 }

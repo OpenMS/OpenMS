@@ -65,17 +65,11 @@ namespace OpenMS
 
 #endif
 
-  SequestOutfile::SequestOutfile()
-  {
-  }
+  SequestOutfile::SequestOutfile() = default;
 
-  SequestOutfile::SequestOutfile(const SequestOutfile&)
-  {
-  }
+  SequestOutfile::SequestOutfile(const SequestOutfile&) = default;
 
-  SequestOutfile::~SequestOutfile()
-  {
-  }
+  SequestOutfile::~SequestOutfile() = default;
 
   SequestOutfile& SequestOutfile::operator=(const SequestOutfile& sequest_outfile)
   {
@@ -548,7 +542,7 @@ namespace OpenMS
         if (nf_i != not_found.end())
         {
           sequences.push_back(sequence);
-          found.push_back(*nf_i);
+          found.emplace_back(*nf_i);
           not_found.erase(nf_i);
         }
         nf_i = not_found.find(accession); // for the first protein in the database, there's no predecessing protein
@@ -562,7 +556,7 @@ namespace OpenMS
     if (nf_i != not_found.end())
     {
       sequences.push_back(sequence);
-      found.push_back(*nf_i);
+      found.emplace_back(*nf_i);
       not_found.erase(nf_i);
     }
 

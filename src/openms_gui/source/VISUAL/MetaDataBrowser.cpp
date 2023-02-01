@@ -147,7 +147,7 @@ namespace OpenMS
     return editable_;
   }
 
-  void MetaDataBrowser::setStatus(std::string status)
+  void MetaDataBrowser::setStatus(const std::string& status)
   {
     status_list_ = status_list_ + "\n" + status;
   }

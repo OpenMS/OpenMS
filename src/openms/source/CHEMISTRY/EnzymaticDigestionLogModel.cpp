@@ -71,13 +71,7 @@ namespace OpenMS
     }
   }
 
-  EnzymaticDigestionLogModel::EnzymaticDigestionLogModel(const EnzymaticDigestionLogModel& rhs) :
-    enzyme_(rhs.enzyme_),
-    log_model_threshold_(rhs.log_model_threshold_),
-    model_data_(rhs.model_data_)
-  {
-
-  }
+  EnzymaticDigestionLogModel::EnzymaticDigestionLogModel(const EnzymaticDigestionLogModel& rhs) = default;
 
   /// Assignment operator
   EnzymaticDigestionLogModel& EnzymaticDigestionLogModel::operator=(const EnzymaticDigestionLogModel& rhs)
@@ -91,7 +85,7 @@ namespace OpenMS
     return *this;
   }
 
-  void EnzymaticDigestionLogModel::setEnzyme(const String enzyme_name)
+  void EnzymaticDigestionLogModel::setEnzyme(const String& enzyme_name)
   {
     enzyme_ = ProteaseDB::getInstance()->getEnzyme(enzyme_name);
   }

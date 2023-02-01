@@ -60,10 +60,7 @@ namespace OpenMS
     connect(canvas(), SIGNAL(showCurrentPeaksAs2D()), this, SIGNAL(showCurrentPeaksAs2D()));
   }
 
-  Plot3DWidget::~Plot3DWidget()
-  {
-
-  }
+  Plot3DWidget::~Plot3DWidget() = default;
 
   void Plot3DWidget::recalculateAxes_()
   {
@@ -82,18 +79,21 @@ namespace OpenMS
   void Plot3DWidget::showGoToDialog()
   {
     Plot2DGoToDialog goto_dialog(this);
-    const auto& area = canvas()->getVisibleArea().getAreaXY();
-    goto_dialog.setRange(area.minY(), area.maxY(), area.minX(), area.maxX());
+    auto va = canvas()->getVisibleArea().getAreaUnit();
+    goto_dialog.setRange(va.getMinRT(), va.getMaxRT(), va.getMinMZ(), va.getMaxMZ());
 
-    auto all_area_xy = canvas_->getMapper().mapRange(canvas_->getDataRange());
-    goto_dialog.setMinMaxOfRange(all_area_xy.minX(), all_area_xy.maxX(), all_area_xy.minY(), all_area_xy.maxY());
+    const auto& full_range = canvas_->getDataRange();
+    goto_dialog.setMinMaxOfRange(full_range.getMinRT(), full_range.getMaxRT(), full_range.getMinMZ(), full_range.getMaxMZ());
 
     goto_dialog.enableFeatureNumber(false);
     if (goto_dialog.exec())
     {
       goto_dialog.fixRange(); // in case user did something invalid
-      PlotCanvas::AreaXYType area_new(goto_dialog.getMinRT(), goto_dialog.getMinMZ(), goto_dialog.getMaxRT(), goto_dialog.getMaxMZ());
-      canvas()->setVisibleArea(area_new);
+      va.setMinRT(goto_dialog.getMinRT());
+      va.setMaxRT(goto_dialog.getMaxRT());
+      va.setMinMZ(goto_dialog.getMinMZ());
+      va.setMaxMZ(goto_dialog.getMaxMZ());
+      canvas()->setVisibleArea(va);
     }
   }
 

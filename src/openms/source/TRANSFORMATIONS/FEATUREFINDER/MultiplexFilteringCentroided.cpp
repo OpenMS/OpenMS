@@ -39,6 +39,8 @@
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexFilteringCentroided.h>
 #include <OpenMS/MATH/STATISTICS/StatisticFunctions.h>
 
+#include <utility>
+
 #ifdef _OPENMP
 #include <omp.h>
 #endif
@@ -51,7 +53,7 @@ namespace OpenMS
 {
 
   MultiplexFilteringCentroided::MultiplexFilteringCentroided(const MSExperiment& exp_centroided, const std::vector<MultiplexIsotopicPeakPattern>& patterns, int isotopes_per_peptide_min, int isotopes_per_peptide_max, double intensity_cutoff, double rt_band, double mz_tolerance, bool mz_tolerance_unit, double peptide_similarity, double averagine_similarity, double averagine_similarity_scaling, String averagine_type) :
-    MultiplexFiltering(exp_centroided, patterns, isotopes_per_peptide_min, isotopes_per_peptide_max, intensity_cutoff, rt_band, mz_tolerance, mz_tolerance_unit, peptide_similarity, averagine_similarity, averagine_similarity_scaling, averagine_type)
+    MultiplexFiltering(exp_centroided, patterns, isotopes_per_peptide_min, isotopes_per_peptide_max, intensity_cutoff, rt_band, mz_tolerance, mz_tolerance_unit, peptide_similarity, averagine_similarity, averagine_similarity_scaling, std::move(averagine_type))
   {
   }
 
@@ -135,22 +137,10 @@ namespace OpenMS
         }
       }
       
-#ifdef DEBUG
-      // write filtered peaks to debug output
-      std::stringstream debug_out;
-      debug_out << "filter_result_" << pattern_idx << ".consensusXML";
-      result.writeDebugOutput(exp_centroided_, debug_out.str());
-#endif
-      
       // add results of this pattern to list
       filter_results.push_back(result);
     }
     
-#ifdef DEBUG
-    // clock for monitoring run time performance
-    OPENMS_LOG_INFO << "\nThe filtering step of the algorithm took " << (float)(clock()-start)/CLOCKS_PER_SEC << " seconds.\n\n";
-#endif
-
     endProgress();
     
     return filter_results;

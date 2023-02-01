@@ -120,10 +120,10 @@ public:
     void getPrecursorFeatureIDs(std::vector<String> & result) const;
 
     /// get a specified precursor feature
-    Feature & getPrecursorFeature(String key);
+    Feature & getPrecursorFeature(const String& key);
 
     /// get a specified precursor feature (const)
-    const Feature & getPrecursorFeature(String key) const;
+    const Feature & getPrecursorFeature(const String& key) const;
 
     void IDScoresAsMetaValue(bool decoy, const OpenSwath_Ind_Scores& idscores);
     //@}

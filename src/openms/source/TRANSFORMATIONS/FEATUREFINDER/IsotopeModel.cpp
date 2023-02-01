@@ -76,9 +76,7 @@ namespace OpenMS
     updateMembers_();
   }
 
-  IsotopeModel::~IsotopeModel()
-  {
-  }
+  IsotopeModel::~IsotopeModel() = default;
 
   IsotopeModel & IsotopeModel::operator=(const IsotopeModel & source)
   {

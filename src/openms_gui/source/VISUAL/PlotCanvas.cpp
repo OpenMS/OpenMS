@@ -56,6 +56,7 @@
 #include <QPainter>
 #include <QtWidgets/QMessageBox>
 #include <iostream>
+#include <utility>
 
 using namespace std;
 
@@ -93,9 +94,7 @@ namespace OpenMS
     connect(this, SIGNAL(actionModeChange()), this, SLOT(updateCursor_()));
   }
 
-  PlotCanvas::~PlotCanvas()
-  {
-  }
+  PlotCanvas::~PlotCanvas() = default;
 
   void PlotCanvas::resizeEvent(QResizeEvent* /* e */)
   {
@@ -175,8 +174,9 @@ namespace OpenMS
     {
       visible_area_ = new_area;
       updateScrollbars_();
-      emit visibleAreaChanged(new_area);
-      emit layerZoomChanged(this);
+      recalculateSnapFactor_();
+      emit visibleAreaChanged(new_area); // calls PlotWidget::updateAxes, which calls Plot(1D/2D/3D)Widget::recalculateAxes_
+      emit layerZoomChanged(this); // calls TOPPViewBase::zoomOtherWindows (for linked windows)
     }
 
     if (repaint)
@@ -433,7 +433,7 @@ namespace OpenMS
     return finishAdding_();
   }
 
-  bool PlotCanvas::addPeakLayer(ExperimentSharedPtrType map, ODExperimentSharedPtrType od_map, const String& filename, const bool use_noise_cutoff)
+  bool PlotCanvas::addPeakLayer(const ExperimentSharedPtrType& map, ODExperimentSharedPtrType od_map, const String& filename, const bool use_noise_cutoff)
   {
     if (map->getSpectra().empty())
     {
@@ -449,7 +449,7 @@ namespace OpenMS
     else
       new_layer.reset(new LayerDataPeak);
     new_layer->setPeakData(map);
-    new_layer->setOnDiscPeakData(od_map);
+    new_layer->setOnDiscPeakData(std::move(od_map));
 
     setBaseLayerParameters(new_layer.get(), param_, filename);
     layers_.addLayer(std::move(new_layer));
@@ -476,7 +476,7 @@ namespace OpenMS
   }
 
   
-  bool PlotCanvas::addChromLayer(ExperimentSharedPtrType map, ODExperimentSharedPtrType od_map, const String& filename)
+  bool PlotCanvas::addChromLayer(const ExperimentSharedPtrType& map, ODExperimentSharedPtrType od_map, const String& filename)
   {
     if (map->getChromatograms().empty())
     {
@@ -492,7 +492,7 @@ namespace OpenMS
     else
       new_layer.reset(new LayerDataChrom);
     new_layer->setChromData(map);
-    new_layer->setOnDiscPeakData(od_map);
+    new_layer->setOnDiscPeakData(std::move(od_map));
 
     setBaseLayerParameters(new_layer.get(), param_, filename);
     layers_.addLayer(std::move(new_layer));
@@ -503,7 +503,7 @@ namespace OpenMS
   bool PlotCanvas::addLayer(FeatureMapSharedPtrType map, const String& filename)
   {
     LayerDataFeatureUPtr new_layer(new LayerDataFeature);
-    new_layer->getFeatureMap() = map;
+    new_layer->getFeatureMap() = std::move(map);
 
     setBaseLayerParameters(new_layer.get(), param_, filename);
     layers_.addLayer(std::move(new_layer));
@@ -846,7 +846,7 @@ namespace OpenMS
     }
   }
 
-  void PlotCanvas::drawText_(QPainter& painter, QStringList text)
+  void PlotCanvas::drawText_(QPainter& painter, const QStringList& text)
   {
     GUIHelpers::drawText(painter, text, {2, 3}, Qt::black, QColor(255, 255, 255, 200));
   }

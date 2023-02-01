@@ -116,9 +116,7 @@ namespace OpenMS
     defaultsToParam_();
   }
 
-  MascotGenericFile::~MascotGenericFile()
-  {
-  }
+  MascotGenericFile::~MascotGenericFile() = default;
 
   void MascotGenericFile::updateMembers_()
   {
@@ -455,7 +453,7 @@ namespace OpenMS
 
 
     String native_id_type_accession;
-    vector<SourceFile> sourcefiles = experiment.getSourceFiles();
+    const vector<SourceFile>& sourcefiles = experiment.getSourceFiles();
     if (sourcefiles.empty())
     {
       OPENMS_LOG_WARN << "MascotGenericFile: no native ID accession." << endl;

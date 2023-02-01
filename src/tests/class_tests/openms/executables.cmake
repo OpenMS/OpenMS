@@ -320,6 +320,7 @@ set(filtering_executables_list
   Deisotoper_test
   ElutionPeakDetection_test
   FeatureFindingMetabo_test
+  FeatureOverlapFilter_test
   FilterFunctor_test
   FastLowessSmoothing_test
   GaussFilter_test
@@ -477,6 +478,7 @@ set(analysis_executables_list
   ConsensusMapNormalizerAlgorithmQuantile_test
   ConsensusMapMergerAlgorithm_test
   #DataAccessHelper_test
+  DeconvolvedSpectrum_test
   DeNovoAlgorithm_test
   DeNovoIdentification_test
   DeNovoIonScoring_test
@@ -492,6 +494,8 @@ set(analysis_executables_list
   FeatureHandle_test
   FIAMSDataProcessor_test
   FIAMSScheduler_test
+  FLASHDeconvAlgorithm_test
+  FLASHDeconvHelperStructs_test
   HiddenMarkovModel_test
   IDBoostGraph_test
   IDMapper_test
@@ -536,6 +540,7 @@ set(analysis_executables_list
   MapAlignmentTransformer_test
   MassDecompositionAlgorithm_test
   MassDecomposition_test
+  MassFeatureTrace_test
   MetaboliteFeatureDeconvolution_test
   MetaboliteSpectralMatching_test
   ModifiedPeptideGenerator_test
@@ -544,6 +549,7 @@ set(analysis_executables_list
   PeptideIndexing_test
   PeptideAndProteinQuant_test
   PeptideProteinResolution_test
+  PeakGroup_test
   PeakIntensityPredictor_test
   PScore_test
   HyperScore_test

@@ -56,7 +56,7 @@ using namespace std;
     <table>
         <tr>
       <td ALIGN = "center" BGCOLOR="#EBEBEB" ROWSPAN=1> pot. predecessor tools </td>
-      <td VALIGN="middle" ROWSPAN=3> \f$ \longrightarrow \f$ FeatureFinderIsotopeWavelet \f$ \longrightarrow \f$</td>
+      <td VALIGN="middle" ROWSPAN=3> &rarr; FeatureFinderIsotopeWavelet &rarr;</td>
             <td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. successor tools </td>
         </tr>
         <tr>

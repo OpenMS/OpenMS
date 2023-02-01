@@ -89,7 +89,7 @@ class OPENMS_DLLAPI NuXLFragmentAnnotationHelper
   /// conversion of NuXL annotations to PeptideHit::PeakAnnotation
   static std::vector<PeptideHit::PeakAnnotation> fragmentAnnotationDetailsToPHFA(
     const String& ion_type, 
-    std::map<Size, std::vector<FragmentAnnotationDetail_> > ion_annotation_details);
+    const std::map<Size, std::vector<FragmentAnnotationDetail_> >& ion_annotation_details);
 
   static std::vector<PeptideHit::PeakAnnotation> shiftedToPHFA(
     const std::map<String, 

@@ -43,6 +43,22 @@ else()
   set(TOPP_BIN_PATH ${OPENMS_BINARY_DIR})
 endif()
 
+# Use the builtin CMake module to gather paths for Windows runtimes to ship
+# Do not install. We rely on copying at build time in this script
+if(DEFINED CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS_SKIP)
+  set(OLD_CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS_SKIP ${CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS_SKIP})
+endif()
+
+set(CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS_SKIP TRUE)
+
+# collect compiler-provided system runtime libraries (e.g., VS runtime libraries)
+include(InstallRequiredSystemLibraries)
+
+# Reset var, just in case
+if(DEFINED OLD_CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS_SKIP)
+  set(CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS_SKIP ${OLD_CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS_SKIP})
+endif()
+
 # payload paths
 set(PAYLOAD_PATH ${KNIME_PLUGIN_DIRECTORY}/payload)
 set(PAYLOAD_BIN_PATH ${PAYLOAD_PATH}/bin)
@@ -191,22 +207,22 @@ add_custom_target(
   DEPENDS prepare_knime_payload_binaries
 )
 
+## Kept for reference: we removed the qsqlite dependency and don't need the plugin anymore
 ## Copy Sqlite plugin and create qt.conf
 # TODO in theory we should make that dependent on if Qt was linked dynamically but this is all we support
 #  mid-term anyway.
-add_custom_command(
-    TARGET prepare_knime_payload_libs POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E make_directory ${PAYLOAD_LIB_PATH}/plugins/
-    COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:Qt5::QSQLiteDriverPlugin> ${PAYLOAD_LIB_PATH}/plugins/
-)
-
+#add_custom_command(
+#    TARGET prepare_knime_payload_libs POST_BUILD
+#    COMMAND ${CMAKE_COMMAND} -E make_directory ${PAYLOAD_LIB_PATH}/plugins/
+#    COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:Qt5::QSQLiteDriverPlugin> ${PAYLOAD_LIB_PATH}/plugins/
+#)
 # create qt.conf file that specifies plugin dir location
-add_custom_command(
-    TARGET prepare_knime_payload_libs POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E echo "[Paths]" > ${PAYLOAD_LIB_PATH}/qt.conf
-    COMMAND ${CMAKE_COMMAND} -E echo "Plugins = plugins" >> ${PAYLOAD_LIB_PATH}/qt.conf
-    COMMAND ${CMAKE_COMMAND} -E echo "" >> ${PAYLOAD_LIB_PATH}/qt.conf
-)
+#add_custom_command(
+#    TARGET prepare_knime_payload_libs POST_BUILD
+#    COMMAND ${CMAKE_COMMAND} -E echo "[Paths]" > ${PAYLOAD_BIN_PATH}/qt.conf
+#    COMMAND ${CMAKE_COMMAND} -E echo "Plugins = ../${PAYLOAD_LIB_PATH}/plugins" >> ${PAYLOAD_BIN_PATH}/qt.conf
+#    COMMAND ${CMAKE_COMMAND} -E echo "" >> ${PAYLOAD_BIN_PATH}/qt.conf
+#)
 
 ## Assemble common required libraries for win and lnx
 ## Note that we do not need QtGui libraries since we do not include GUI tools here.
@@ -222,7 +238,15 @@ endforeach()
 if (APPLE) ## On APPLE use our script because the executables need to be relinked and some rpath lookups done
   add_custom_command(
     TARGET prepare_knime_payload_libs POST_BUILD
-    COMMAND ${PROJECT_SOURCE_DIR}/cmake/MacOSX/fix_dependencies.rb -l ${PAYLOAD_LIB_PATH} -b ${PAYLOAD_BIN_PATH} -p ${PAYLOAD_LIB_PATH}/plugins -f
+    COMMAND ${PROJECT_SOURCE_DIR}/cmake/MacOSX/fix_dependencies.rb -l ${PAYLOAD_LIB_PATH} -b ${PAYLOAD_BIN_PATH} -f
+  ) # -p ${PAYLOAD_LIB_PATH}/plugins not applicable for now
+  add_custom_command(
+          TARGET prepare_knime_payload_libs POST_BUILD
+          COMMAND find ${PAYLOAD_BIN_PATH} -depth 1 -type f -exec ${CMAKE_STRIP} -S {} "\;"
+  )
+  add_custom_command(
+          TARGET prepare_knime_payload_libs POST_BUILD
+          COMMAND find ${PAYLOAD_LIB_PATH} -type f -name "*.dylib" -exec ${CMAKE_STRIP} -x {} "\;"
   )
 elseif(WIN32)
   # on Win everything should be linked statically for distribution except Qt
@@ -232,6 +256,12 @@ elseif(WIN32)
 		COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:Qt5::${KNIME_TOOLS_QT5_DEPENDENCY}> ${PAYLOAD_LIB_PATH}
 	  )
   endforeach()
+  # copying multiple files is possible since CMake 3.5. Last entry is destination. Copy all runtime libs
+  # figured out by the CMake InstallRequiredSystemLibraries module
+  add_custom_command(
+      TARGET prepare_knime_payload_libs POST_BUILD
+      COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS} ${PAYLOAD_LIB_PATH}
+  )
 else()
   foreach (KNIME_DEPENDENCY OpenMS OpenSwathAlgo)
     # copy the dependencies of our libs.
@@ -240,6 +270,14 @@ else()
       COMMAND ${CMAKE_COMMAND} -V -DDEPS="$<TARGET_FILE:${KNIME_DEPENDENCY}>" -DTARGET="${PAYLOAD_LIB_PATH}" -DLOOKUP_DIRS="${OPENMS_CONTRIB_LIBS}/lib\;${QT_INSTALL_BINS}\;${QT_INSTALL_LIBS}" -P ${SCRIPT_DIRECTORY}knime_copy_deps.cmake
       )
   endforeach()
+  add_custom_command(
+          TARGET prepare_knime_payload_libs POST_BUILD
+          COMMAND find ${PAYLOAD_BIN_PATH} -depth 1 -type f -exec ${CMAKE_STRIP} -s {} "\;"
+  )
+  add_custom_command(
+          TARGET prepare_knime_payload_libs POST_BUILD
+          COMMAND find ${PAYLOAD_LIB_PATH} -type f -name "*.so" -exec ${CMAKE_STRIP} -x {} "\;"
+  )
 endif()
 
 # handle the binaries.ini

@@ -55,10 +55,9 @@ namespace OpenMS
     public TransformationModelInterpolated::Interpolator
   {
 public:
-    Spline2dInterpolator() :
-      spline_(nullptr)
-    {
-    }
+    Spline2dInterpolator() 
+      
+    = default;
 
     void init(std::vector<double>& x, std::vector<double>& y) override
     {
@@ -80,7 +79,7 @@ public:
     }
 
 private:
-    CubicSpline2d* spline_;
+    CubicSpline2d* spline_{nullptr};
     // Spline2d<double>* spline_;
   };
 
@@ -91,9 +90,9 @@ private:
     public TransformationModelInterpolated::Interpolator
   {
 public:
-    AkimaInterpolator() :
-      interpolator_(nullptr)
-    {}
+    AkimaInterpolator() 
+      
+    = default;
 
     void init(std::vector<double>& x, std::vector<double>& y) override
     {
@@ -113,7 +112,7 @@ public:
     }
 
 private:
-    gte::IntpAkimaNonuniform1<double>* interpolator_;
+    gte::IntpAkimaNonuniform1<double>* interpolator_{nullptr};
   };
 
   /**
@@ -124,7 +123,7 @@ private:
   {
 public:
     LinearInterpolator()
-    {}
+    = default;
 
     void init(std::vector<double>& x, std::vector<double>& y) override
     {
@@ -167,8 +166,7 @@ public:
     }
 
     ~LinearInterpolator() override
-    {
-    }
+    = default;
 
 private:
     /// x values

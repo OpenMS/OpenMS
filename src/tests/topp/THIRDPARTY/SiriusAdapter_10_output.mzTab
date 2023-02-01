@@ -1,11 +1,11 @@
 MTD	mzTab-version	1.0.0
 MTD	mzTab-mode	null
 MTD	mzTab-type	null
-MTD	description	Sirius-4.9.0
+MTD	description	Sirius-5.6.3
 MTD	smallmolecule_search_engine_score[1]	[, , SiriusScore, ]
 MTD	smallmolecule_search_engine_score[2]	[, , TreeScore, ]
 MTD	smallmolecule_search_engine_score[3]	[, , IsotopeScore, ]
-MTD	ms_run[1]-location	/home/axel/dev/OpenMS/src/tests/topp/AssayGeneratorMetabo_decoy_generation_input.mzML
+MTD	ms_run[1]-location	/Users/builder/jenkins/ws/openms/PR/bldtst/87227eb0/source/src/tests/topp/AssayGeneratorMetabo_decoy_generation_input.mzML
 
 SMH	identifier	chemical_formula	smiles	inchi_key	description	exp_mass_to_charge	calc_mass_to_charge	charge	retention_time	taxid	species	database	database_version	spectra_ref	search_engine	best_search_engine_score[1]	best_search_engine_score[2]	best_search_engine_score[3]	modifications	opt_global_adduct	opt_gobal_precursorFormula	opt_global_rank	opt_global_explainedPeaks	opt_global_explainedIntensity	opt_global_median_mass_error_fragment_peaks_ppm	opt_global_median_absolute_mass_error_fragment_peaks_ppm	opt_global_mass_error_precursor_ppm	opt_global_compoundId	opt_global_compoundScanNumber	opt_global_featureId	opt_global_native_id
 SML	null	C9H15N6O6P	null	null	null	373.041706160139995	null	null	604.553999999999974	null	null	null	null	null	null	28.670265576134039	28.670265576134039	0.0	null	[M + K]+	C9H15N6O6P	1	9	0.994643154576381	-1.396009995468828	1.396009995468828	-1.396009995468828	1	847004	null	sample=1 period=1 cycle=847 experiment=4
@@ -90,8 +90,8 @@ SML	null	C33H47FN2O	null	null	null	507.377802577316004	null	null	613.20499999998
 SML	null	C32H52O3	null	null	null	507.377802577316004	null	null	613.204999999980032	null	null	null	null	null	null	3.5	3.5	0.0	null	[M + Na]+	C32H52O3	5	1	0.0	nan	nan	-6.038196308384239	26	856004	null	sample=1 period=1 cycle=856 experiment=4
 SML	null	C10H12O5	null	null	null	213.074829537142989	null	null	614.173999999979969	null	null	null	null	null	null	3.5	3.5	0.0	null	[M + H]+	C10H12O5	1	1	0.0	nan	nan	-4.319604288913501	28	857003	null	sample=1 period=1 cycle=857 experiment=3
 SML	null	C8H14O5	null	null	null	213.074829537142989	null	null	614.173999999979969	null	null	null	null	null	null	3.5	3.5	0.0	null	[M + Na]+	C8H14O5	2	1	0.0	nan	nan	6.970739132860442	28	857003	null	sample=1 period=1 cycle=857 experiment=3
-SML	null	C9H10N4O	null	null	null	213.074829537142989	null	null	614.173999999979969	null	null	null	null	null	null	1.0	1.0	0.0	null	[M + Na]+	C9H10N4O	3	1	0.0	nan	nan	0.694108509974577	28	857003	null	sample=1 period=1 cycle=857 experiment=3
-SML	null	C6H8N6O3	null	null	null	213.074829537142989	null	null	614.173999999979969	null	null	null	null	null	null	1.0	1.0	0.0	null	[M + H]+	C6H8N6O3	4	1	0.0	nan	nan	8.28332964678035	28	857003	null	sample=1 period=1 cycle=857 experiment=3
+SML	null	C6H8N6O3	null	null	null	213.074829537142989	null	null	614.173999999979969	null	null	null	null	null	null	1.0	1.0	0.0	null	[M + H]+	C6H8N6O3	3	1	0.0	nan	nan	8.28332964678035	28	857003	null	sample=1 period=1 cycle=857 experiment=3
+SML	null	C9H10N4O	null	null	null	213.074829537142989	null	null	614.173999999979969	null	null	null	null	null	null	1.0	1.0	0.0	null	[M + Na]+	C9H10N4O	4	1	0.0	nan	nan	0.694108509974577	28	857003	null	sample=1 period=1 cycle=857 experiment=3
 SML	null	C6H14N4O2	null	null	null	213.074829537142989	null	null	614.173999999979969	null	null	null	null	null	null	1.0	1.0	0.0	null	[M + K]+	C6H14N4O2	5	1	0.0	nan	nan	-0.019950491336188	28	857003	null	sample=1 period=1 cycle=857 experiment=3
 SML	null	C11H15N2O9P	null	null	null	373.040157682534982	null	null	614.173999999979969	null	null	null	null	null	null	23.830222282750416	23.830222282750416	0.0	null	[M + Na]+	C11H15N2O9P	1	6	0.889909025895723	1.305298961381369	3.823427075478538	-1.554008445412062	29	857004	null	sample=1 period=1 cycle=857 experiment=4
 SML	null	C12H19N2O4PS2	null	null	null	373.040157682534982	null	null	614.173999999979969	null	null	null	null	null	null	23.720375409778153	23.720375409778153	0.0	null	[M + Na]+	C12H19N2O4PS2	2	9	0.940559246410657	5.456786647266265	6.842002799677939	-3.883591419560776	29	857004	null	sample=1 period=1 cycle=857 experiment=4
@@ -167,7 +167,7 @@ SML	null	C29H51N3O5	null	null	null	522.38651805643201	null	null	618.982999999980
 SML	null	C36H47N3	null	null	null	522.38651805643201	null	null	618.982999999980052	null	null	null	null	null	null	1.0	1.0	0.0	null	[M + H]+	C36H47N3	2	1	0.0	nan	nan	4.293947611526791	48	862004	null	sample=1 period=1 cycle=862 experiment=4
 SML	null	C30H47N7O	null	null	null	522.38651805643201	null	null	618.982999999980052	null	null	null	null	null	null	1.0	1.0	0.0	null	[M + H]+	C30H47N7O	3	1	0.0	nan	nan	-9.509279981043925	48	862004	null	sample=1 period=1 cycle=862 experiment=4
 SML	null	C31H53N3O	null	null	null	522.38651805643201	null	null	618.982999999980052	null	null	null	null	null	null	1.0	1.0	0.0	null	[M + K]+	C31H53N3O	4	1	0.0	nan	nan	8.607879771097275	48	862004	null	sample=1 period=1 cycle=862 experiment=4
-SML	null	C28H49N7O	null	null	null	522.38651805643201	null	null	618.982999999980052	null	null	null	null	null	null	1.0	1.0	0.0	null	[M + Na]+	C28H49N7O	5	1	0.0	nan	nan	-4.904092219108683	48	862004	null	sample=1 period=1 cycle=862 experiment=4
+SML	null	C25H47N9O3	null	null	null	522.38651805643201	null	null	618.982999999980052	null	null	null	null	null	null	1.0	1.0	0.0	null	[M + H]+	C25H47N9O3	5	1	0.0	nan	nan	-1.808545255031244	48	862004	null	sample=1 period=1 cycle=862 experiment=4
 SML	null	C32H43N9O3	null	null	null	602.355320245104963	null	null	618.982999999980052	null	null	null	null	null	null	6.955514843428635	6.955514843428635	0.0	null	[M + H]+	C32H43N9O3	1	2	0.552501381197249	-1.918108645384416	1.918108645384416	-1.398581463893163	49	862006	null	sample=1 period=1 cycle=862 experiment=6
 SML	null	C27H49N9O4	null	null	null	602.355320245104963	null	null	618.982999999980052	null	null	null	null	null	null	6.773744877209534	6.773744877209534	0.0	null	[M + K]+	C27H49N9O4	2	2	0.552501381197249	5.396148465222392	5.396148465222392	2.34263227547646	49	862006	null	sample=1 period=1 cycle=862 experiment=6
 SML	null	C30H45N9O3	null	null	null	602.355320245104963	null	null	618.982999999980052	null	null	null	null	null	null	6.744400283004429	6.744400283004429	0.0	null	[M + Na]+	C30H45N9O3	3	2	0.552501381197249	5.88997133554043	5.88997133554043	2.595220730944644	49	862006	null	sample=1 period=1 cycle=862 experiment=6

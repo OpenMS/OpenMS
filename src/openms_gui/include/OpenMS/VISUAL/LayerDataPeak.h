@@ -64,10 +64,6 @@ namespace OpenMS
     LayerDataPeak(const LayerDataPeak& ld) = default;
     /// no assignment operator (should not be needed)
     LayerDataPeak& operator=(const LayerDataPeak& ld) = delete;
-    /// move Ctor
-    LayerDataPeak(LayerDataPeak&& ld) = default;
-    /// move assignment
-    LayerDataPeak& operator=(LayerDataPeak&& ld) = default;
 
     std::unique_ptr<Painter2DBase> getPainter2D() const override;
 

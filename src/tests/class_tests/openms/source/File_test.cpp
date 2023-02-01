@@ -333,6 +333,23 @@ START_SECTION(File::~TempDir())
   if (File::exists(path)) File::removeDir(path.toQString());
 }
 END_SECTION
+
+
+START_SECTION(File::download(std::string url, std::string filename))
+{
+  std::string url = R"(http://raw.githubusercontent.com/OpenMS/images/master/logos/OpenMS_transparent_background.png)";
+  std::string folder = File::getTempDirectory();
+  File::download(url, folder);
+  std::string output_file_path = folder + "/OpenMS_transparent_background.png";
+
+  TEST_EQUAL(File::exists(output_file_path), 1);
+  if (File::exists(output_file_path))
+  {
+    File::removeDir(QString(output_file_path.c_str()));
+  }
+}
+END_SECTION
+
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST

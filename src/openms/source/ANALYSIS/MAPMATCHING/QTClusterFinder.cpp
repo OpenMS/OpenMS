@@ -122,7 +122,7 @@ namespace OpenMS
       double minRT = std::numeric_limits<double>::max();
       for (auto& map : input_maps)
       {
-        for (auto feat : map) //OMS_CODING_TEST_EXCLUDE
+        for (auto feat : map) //OMS_CODING_TEST_EXCLUDE Note: needs copy to sort
         {
           if (feat.getRT() < minRT) minRT = feat.getRT();
           auto& pepIDs = feat.getPeptideIdentifications();
@@ -554,7 +554,7 @@ void QTClusterFinder::createConsensusFeature_(ConsensusFeature& feature,
       }
       if (elem_feat.metaValueExists(Constants::UserParam::ADDUCT_GROUP))
       {
-        linked_groups.push_back(elem_feat.getMetaValue(Constants::UserParam::ADDUCT_GROUP));
+        linked_groups.emplace_back(elem_feat.getMetaValue(Constants::UserParam::ADDUCT_GROUP));
       }
     }
     if (elements[best_quality_index].feature->getFeature().metaValueExists(Constants::UserParam::DC_CHARGE_ADDUCTS))

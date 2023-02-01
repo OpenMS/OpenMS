@@ -121,6 +121,9 @@ namespace OpenMS
     /// Return the min/max (range) for a certain dimension
     virtual RangeBase map(const RangeAllType& rm) const = 0;
 
+    /// Return the min/max (range) for a certain dimension (i.e. a reference to the base class of @p rm)
+    virtual RangeBase& map(RangeAllType& rm) const = 0;
+
     /// Set the min/max (range) in @p out for a certain dimension
     virtual void setRange(const RangeBase& in, RangeAllType& out) const = 0;
 
@@ -250,6 +253,10 @@ namespace OpenMS
     {
       return rm.getRangeForDim(MSDim::RT);
     }
+    RangeBase& map(RangeAllType& rm) const override
+    {
+      return rm.getRangeForDim(MSDim::RT);
+    }
 
     void setRange(const RangeBase& in, RangeAllType& out) const override
     {
@@ -353,6 +360,10 @@ namespace OpenMS
     }
 
     RangeBase map(const RangeAllType& rm) const override
+    {
+      return rm.getRangeForDim(MSDim::MZ);
+    }
+    RangeBase& map(RangeAllType& rm) const override
     {
       return rm.getRangeForDim(MSDim::MZ);
     }
@@ -470,6 +481,10 @@ namespace OpenMS
     {
       return rm.getRangeForDim(MSDim::INT);
     }
+    RangeBase& map(RangeAllType& rm) const override
+    {
+      return rm.getRangeForDim(MSDim::INT);
+    }
 
     void setRange(const RangeBase& in, RangeAllType& out) const override
     {
@@ -479,23 +494,23 @@ namespace OpenMS
     /// set the intensity of a Peak1D
     void fromXY(const ValueType in, Peak1D& p) const override
     {
-      p.setIntensity(in);
+      p.setIntensity(Peak1D::IntensityType(in));
     }
 
     /// set the intensity of a ChromatogramPeak
     void fromXY(const ValueType in, ChromatogramPeak& p) const override
     {
-      p.setIntensity(in);
+      p.setIntensity(ChromatogramPeak::IntensityType(in));
     }
     /// set the intensity of a MobilityPeak1D
     void fromXY(const ValueType in, MobilityPeak1D& p) const override
     {
-      p.setIntensity(in);
+      p.setIntensity(MobilityPeak1D::IntensityType(in));
     }
     /// set the intensity of a MobilityPeak2D
     void fromXY(const ValueType in, MobilityPeak2D& p) const override
     {
-      p.setIntensity(in);
+      p.setIntensity(MobilityPeak2D::IntensityType(in));
     }
   };
 
@@ -568,6 +583,10 @@ namespace OpenMS
     }
 
     RangeBase map(const RangeAllType& rm) const override
+    {
+      return rm.getRangeForDim(MSDim::IM);
+    }
+    RangeBase& map(RangeAllType& rm) const override
     {
       return rm.getRangeForDim(MSDim::IM);
     }

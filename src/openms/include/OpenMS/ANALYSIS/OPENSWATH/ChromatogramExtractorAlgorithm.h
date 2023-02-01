@@ -100,7 +100,7 @@ public:
      * @param filter Which function to apply in m/z space (currently "tophat" only)
      *
     */
-    void extractChromatograms(const OpenSwath::SpectrumAccessPtr input,
+    void extractChromatograms(const OpenSwath::SpectrumAccessPtr& input,
         std::vector< OpenSwath::ChromatogramPtr >& output,
         const std::vector<ExtractionCoordinates>& extraction_coordinates,
         double mz_extraction_window,

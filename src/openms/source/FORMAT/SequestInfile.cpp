@@ -565,7 +565,7 @@ namespace OpenMS
     return einfo_i->first;
   }
 
-  Size SequestInfile::setEnzyme(String enzyme_name)
+  Size SequestInfile::setEnzyme(const String& enzyme_name)
   {
     enzyme_number_ = 0;
     map<String, vector<String> >::const_iterator einfo_i;
@@ -925,23 +925,23 @@ namespace OpenMS
   {
     vector<String> info;
     // cuts n to c? cuts before doesn't cut after
-    info.push_back("0"); info.push_back("-"); info.push_back("-"); enzyme_info_["No_Enzyme"] = info; info.clear();
-    info.push_back("1"); info.push_back("KR"); info.push_back("-"); enzyme_info_["Trypsin_Strict"] = info; info.clear();
-    info.push_back("1"); info.push_back("KRLNH"); info.push_back("-"); enzyme_info_["Trypsin"] = info; info.clear();
-    info.push_back("1"); info.push_back("FWYL"); info.push_back("-"); enzyme_info_["Chymotrypsin"] = info; info.clear();
-    info.push_back("1"); info.push_back("FWY"); info.push_back("-"); enzyme_info_["Chymotrypsin_WYF"] = info; info.clear();
-    info.push_back("1"); info.push_back("R"); info.push_back("-"); enzyme_info_["Clostripain"] = info; info.clear();
-    info.push_back("1"); info.push_back("M"); info.push_back("-"); enzyme_info_["Cyanogen_Bromide"] = info; info.clear();
-    info.push_back("1"); info.push_back("W"); info.push_back("-"); enzyme_info_["IodosoBenzoate"] = info; info.clear();
-    info.push_back("1"); info.push_back("P"); info.push_back("-"); enzyme_info_["Proline_Endopept"] = info; info.clear();
-    info.push_back("1"); info.push_back("E"); info.push_back("-"); enzyme_info_["GluC"] = info; info.clear();
-    info.push_back("1"); info.push_back("ED"); info.push_back("-"); enzyme_info_["GluC_ED"] = info; info.clear();
-    info.push_back("1"); info.push_back("K"); info.push_back("-"); enzyme_info_["LysC"] = info; info.clear();
-    info.push_back("0"); info.push_back("D"); info.push_back("-"); enzyme_info_["AspN"] = info; info.clear();
-    info.push_back("0"); info.push_back("DE"); info.push_back("-"); enzyme_info_["AspN_DE"] = info; info.clear();
-    info.push_back("1"); info.push_back("ALIV"); info.push_back("P"); enzyme_info_["Elastase"] = info; info.clear();
-    info.push_back("1"); info.push_back("ALIVKRWFY"); info.push_back("P"); enzyme_info_["Elastase/Tryp/Chymo"] = info; info.clear();
-    info.push_back("1"); info.push_back("KRLFWYN"); info.push_back("-"); enzyme_info_["Trypsin/Chymo"] = info; info.clear();
+    info.emplace_back("0"); info.emplace_back("-"); info.emplace_back("-"); enzyme_info_["No_Enzyme"] = info; info.clear();
+    info.emplace_back("1"); info.emplace_back("KR"); info.emplace_back("-"); enzyme_info_["Trypsin_Strict"] = info; info.clear();
+    info.emplace_back("1"); info.emplace_back("KRLNH"); info.emplace_back("-"); enzyme_info_["Trypsin"] = info; info.clear();
+    info.emplace_back("1"); info.emplace_back("FWYL"); info.emplace_back("-"); enzyme_info_["Chymotrypsin"] = info; info.clear();
+    info.emplace_back("1"); info.emplace_back("FWY"); info.emplace_back("-"); enzyme_info_["Chymotrypsin_WYF"] = info; info.clear();
+    info.emplace_back("1"); info.emplace_back("R"); info.emplace_back("-"); enzyme_info_["Clostripain"] = info; info.clear();
+    info.emplace_back("1"); info.emplace_back("M"); info.emplace_back("-"); enzyme_info_["Cyanogen_Bromide"] = info; info.clear();
+    info.emplace_back("1"); info.emplace_back("W"); info.emplace_back("-"); enzyme_info_["IodosoBenzoate"] = info; info.clear();
+    info.emplace_back("1"); info.emplace_back("P"); info.emplace_back("-"); enzyme_info_["Proline_Endopept"] = info; info.clear();
+    info.emplace_back("1"); info.emplace_back("E"); info.emplace_back("-"); enzyme_info_["GluC"] = info; info.clear();
+    info.emplace_back("1"); info.emplace_back("ED"); info.emplace_back("-"); enzyme_info_["GluC_ED"] = info; info.clear();
+    info.emplace_back("1"); info.emplace_back("K"); info.emplace_back("-"); enzyme_info_["LysC"] = info; info.clear();
+    info.emplace_back("0"); info.emplace_back("D"); info.emplace_back("-"); enzyme_info_["AspN"] = info; info.clear();
+    info.emplace_back("0"); info.emplace_back("DE"); info.emplace_back("-"); enzyme_info_["AspN_DE"] = info; info.clear();
+    info.emplace_back("1"); info.emplace_back("ALIV"); info.emplace_back("P"); enzyme_info_["Elastase"] = info; info.clear();
+    info.emplace_back("1"); info.emplace_back("ALIVKRWFY"); info.emplace_back("P"); enzyme_info_["Elastase/Tryp/Chymo"] = info; info.clear();
+    info.emplace_back("1"); info.emplace_back("KRLFWYN"); info.emplace_back("-"); enzyme_info_["Trypsin/Chymo"] = info; info.clear();
   }
 
 }

@@ -46,4 +46,6 @@ add_subdirectory(eol-bspline)
 add_subdirectory(IsoSpec)
 add_subdirectory(json)
 add_subdirectory(GTE)
+add_subdirectory(SQLiteCpp)
+add_subdirectory(Quadtree)
 

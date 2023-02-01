@@ -89,9 +89,9 @@ namespace OpenMS
 
   bool add1DChromLayers(const std::vector<int>& indices,
                         Plot1DWidget* target, 
-                        LayerDataDefs::ExperimentSharedPtrType chrom_exp_sptr,
-                        LayerDataDefs::ODExperimentSharedPtrType ondisc_sptr,
-                        OSWDataSharedPtrType chrom_annotation,
+                        const LayerDataDefs::ExperimentSharedPtrType& chrom_exp_sptr,
+                        const LayerDataDefs::ODExperimentSharedPtrType& ondisc_sptr,
+                        const OSWDataSharedPtrType& chrom_annotation,
                         const String& layer_basename,
                         const String& filename)
   {

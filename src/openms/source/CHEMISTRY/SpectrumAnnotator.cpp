@@ -117,9 +117,7 @@ namespace OpenMS
     return *this;
   }
 
-  SpectrumAnnotator::~SpectrumAnnotator()
-  {
-  }
+  SpectrumAnnotator::~SpectrumAnnotator() = default;
 
   void SpectrumAnnotator::annotateMatches(PeakSpectrum& spec, const PeptideHit& ph, const TheoreticalSpectrumGenerator& tg, const SpectrumAlignment& sa) const
   {
@@ -152,7 +150,8 @@ namespace OpenMS
       charge_annotations[it->second] = theoretical_spec.getIntegerDataArrays()[0][it->first];
     }
 
-    Param sap = sa.getParameters();
+    const Param& sap = sa.getParameters();
+
     spec.setMetaValue("fragment_mass_tolerance", sap.getValue("tolerance"));
     spec.setMetaValue("fragment_mass_tolerance_ppm", false);
     spec.setFloatDataArrays(PeakSpectrum::FloatDataArrays(1, std::move(error_annotations)));

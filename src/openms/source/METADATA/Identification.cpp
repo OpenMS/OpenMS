@@ -39,9 +39,7 @@ using namespace std;
 namespace OpenMS
 {
 
-  Identification::~Identification()
-  {
-  }
+  Identification::~Identification() = default;
 
   // Equality operator
   bool Identification::operator==(const Identification & rhs) const

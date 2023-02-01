@@ -43,12 +43,9 @@
 #include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/FORMAT/TraMLFile.h>
 #include <OpenMS/FORMAT/TransformationXMLFile.h>
-#include <OpenMS/KERNEL/MSSpectrum.h>
 #include <OpenMS/MATH/MISC/MathFunctions.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/ElutionModelFitter.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithmPickedHelperStructs.h>
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/EGHTraceFitter.h>
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/GaussTraceFitter.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithmMetaboIdent.h>
 #include <OpenMS/SYSTEM/File.h>
 
@@ -71,7 +68,7 @@ using namespace std;
      <table>
        <tr>
          <td ALIGN="center" BGCOLOR="#EBEBEB"> pot. predecessor tools </td>
-         <td VALIGN="middle" ROWSPAN=2> \f$ \longrightarrow \f$ FeatureFinderMetaboIdent \f$ \longrightarrow \f$</td>
+         <td VALIGN="middle" ROWSPAN=2> &rarr; FeatureFinderMetaboIdent &rarr;</td>
          <td ALIGN="center" BGCOLOR="#EBEBEB"> pot. successor tools </td>
        </tr>
        <tr>
@@ -254,7 +251,11 @@ protected:
 
     FeatureFinderAlgorithmMetaboIdent ff_mident;
     // copy (command line) tool parameters that match the algorithm parameters back to the algorithm
-    ff_mident.setParameters(getParam_().copySubset(FeatureFinderAlgorithmMetaboIdent().getDefaults()));
+    auto tool_parameter = getParam_().copySubset(FeatureFinderAlgorithmMetaboIdent().getDefaults());
+    tool_parameter.setValue("EMGScoring:init_mom", "true"); // overwrite defaults
+    tool_parameter.setValue("EMGScoring:max_iteration", 100); // overwrite defaults
+    tool_parameter.setValue("debug", debug_level_); // pass down debug level
+    ff_mident.setParameters(tool_parameter);
 
     OPENMS_LOG_INFO << "Loading input LC-MS data..." << endl;
     MzMLFile mzml;

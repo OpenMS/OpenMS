@@ -39,13 +39,9 @@
 
 namespace OpenMS::Internal
 {
-  CachedMzMLHandler::CachedMzMLHandler()
-  {
-  }
+  CachedMzMLHandler::CachedMzMLHandler() = default;
 
-  CachedMzMLHandler::~CachedMzMLHandler()
-  {
-  }
+  CachedMzMLHandler::~CachedMzMLHandler() = default;
 
   CachedMzMLHandler& CachedMzMLHandler::operator=(const CachedMzMLHandler& rhs)
   {
@@ -86,7 +82,7 @@ namespace OpenMS::Internal
     endProgress();
   }
 
-  void CachedMzMLHandler::readMemdump(MapType& exp_reading, String filename) const
+  void CachedMzMLHandler::readMemdump(MapType& exp_reading, const String& filename) const
   {
     std::ifstream ifs(filename.c_str(), std::ios::binary);
     if (ifs.fail())
@@ -144,7 +140,7 @@ namespace OpenMS::Internal
     return chrom_index_;
   }
 
-  void CachedMzMLHandler::createMemdumpIndex(String filename)
+  void CachedMzMLHandler::createMemdumpIndex(const String& filename)
   {
     std::ifstream ifs(filename.c_str(), std::ios::binary);
     if (ifs.fail())
@@ -228,7 +224,7 @@ namespace OpenMS::Internal
     endProgress();
   }
 
-  void CachedMzMLHandler::writeMetadata(MapType exp, String out_meta, bool addCacheMetaValue)
+  void CachedMzMLHandler::writeMetadata(MapType exp, const String& out_meta, bool addCacheMetaValue)
   {
     // delete the actual data for all spectra and chromatograms, leave only metadata
     // TODO : remove copy
@@ -271,7 +267,7 @@ namespace OpenMS::Internal
   {
     // delete the actual data for all spectra and chromatograms, leave only metadata
     // TODO : remove copy
-    ExperimentalSettings qq = exp;
+    const ExperimentalSettings& qq = exp;
     MSExperiment out_exp;
     out_exp = qq;
     // std::vector<MSChromatogram > chromatograms = exp.getChromatograms(); // copy

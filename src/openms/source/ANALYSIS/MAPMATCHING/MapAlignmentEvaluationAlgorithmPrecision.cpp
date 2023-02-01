@@ -43,9 +43,7 @@ namespace OpenMS
   {
   }
 
-  MapAlignmentEvaluationAlgorithmPrecision::~MapAlignmentEvaluationAlgorithmPrecision()
-  {
-  }
+  MapAlignmentEvaluationAlgorithmPrecision::~MapAlignmentEvaluationAlgorithmPrecision() = default;
 
   void MapAlignmentEvaluationAlgorithmPrecision::evaluate(const ConsensusMap & consensus_map_in, const ConsensusMap & consensus_map_gt, const double & rt_dev, const double & mz_dev, const Peak2D::IntensityType & int_dev, const bool use_charge, double & out)
   {

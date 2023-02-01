@@ -44,8 +44,6 @@ namespace OpenMS
   {
   }
 
-  UnnormalizedComparator::~UnnormalizedComparator() throw()
-  {
-  }
+  UnnormalizedComparator::~UnnormalizedComparator() throw() = default;
 
 }

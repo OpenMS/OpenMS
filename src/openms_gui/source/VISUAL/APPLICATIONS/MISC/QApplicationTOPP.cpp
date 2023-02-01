@@ -87,9 +87,7 @@ namespace OpenMS
     this->setStyleSheet(style_string);
   }
 
-  QApplicationTOPP::~QApplicationTOPP()
-  {
-  }
+  QApplicationTOPP::~QApplicationTOPP() = default;
 
   /*
     @brief: Catch exceptions in Qt GUI applications, preventing ungraceful exit

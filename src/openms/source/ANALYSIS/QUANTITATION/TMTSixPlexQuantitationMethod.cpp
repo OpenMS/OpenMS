@@ -108,8 +108,7 @@ namespace OpenMS
     reference_channel_ = other.reference_channel_;
   }
 
-  TMTSixPlexQuantitationMethod& TMTSixPlexQuantitationMethod::operator=(const TMTSixPlexQuantitationMethod& rhs)
-  = default;
+  TMTSixPlexQuantitationMethod& TMTSixPlexQuantitationMethod::operator=(const TMTSixPlexQuantitationMethod& rhs) = default;
 
   const String& TMTSixPlexQuantitationMethod::getMethodName() const
   {

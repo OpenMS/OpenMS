@@ -155,7 +155,7 @@ namespace OpenMS
   void InclusionExclusionList::writeTargets(const std::vector<FASTAFile::FASTAEntry>& fasta_entries,
                                             const String& out_path,
                                             const IntList& charges,
-                                            const String rt_model_path)
+                                            const String& rt_model_path)
   {
     WindowList result;
 

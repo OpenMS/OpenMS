@@ -71,30 +71,10 @@ namespace OpenMS
   }
 
   /// default destructor
-  AccurateMassSearchResult::~AccurateMassSearchResult()
-  {
-  }
+  AccurateMassSearchResult::~AccurateMassSearchResult() = default;
 
   /// copy constructor
-  AccurateMassSearchResult::AccurateMassSearchResult(const AccurateMassSearchResult& source) :
-    observed_mz_(source.observed_mz_),
-    theoretical_mz_(source.theoretical_mz_),
-    searched_mass_(source.searched_mass_),
-    db_mass_(source.db_mass_),
-    charge_(source.charge_),
-    mz_error_ppm_(source.mz_error_ppm_),
-    observed_rt_(source.observed_rt_),
-    observed_intensity_(source.observed_intensity_),
-    individual_intensities_(source.individual_intensities_),
-    matching_index_(source.matching_index_),
-    source_feature_index_(source.source_feature_index_),
-    found_adduct_(source.found_adduct_),
-    empirical_formula_(source.empirical_formula_),
-    matching_hmdb_ids_(source.matching_hmdb_ids_),
-    mass_trace_intensities_(source.mass_trace_intensities_),
-    isotopes_sim_score_(source.isotopes_sim_score_)
-  {
-  }
+  AccurateMassSearchResult::AccurateMassSearchResult(const AccurateMassSearchResult& source) = default;
 
   /// assignment operator
   AccurateMassSearchResult& AccurateMassSearchResult::operator=(const AccurateMassSearchResult& rhs)
@@ -352,9 +332,7 @@ namespace OpenMS
     defaultsToParam_();
   }
 
-  AccurateMassSearchEngine::~AccurateMassSearchEngine()
-  {
-  }
+  AccurateMassSearchEngine::~AccurateMassSearchEngine() = default;
 
 /// public methods
 
@@ -536,7 +514,7 @@ namespace OpenMS
 
     // collect meta data:
     // intensities for all maps as given in handles; 0 if no handle is present for a map
-    ConsensusFeature::HandleSetType ind_feats(cfeat.getFeatures()); // sorted by MapIndices
+    const ConsensusFeature::HandleSetType& ind_feats(cfeat.getFeatures()); // sorted by MapIndices
     ConsensusFeature::const_iterator f_it = ind_feats.begin();
     std::vector<double> tmp_f_ints;
     for (Size map_idx = 0; map_idx < number_of_maps; ++map_idx)
@@ -678,7 +656,7 @@ namespace OpenMS
     // filter FeatureMap to only have entries with an PrimaryID attached
     if (!keep_unidentified_masses_)
     {
-      fmap.erase(std::remove_if(fmap.begin(), fmap.end(), [](Feature f){ return !f.hasPrimaryID(); }), fmap.end());
+      fmap.erase(std::remove_if(fmap.begin(), fmap.end(), [](const Feature& f){ return !f.hasPrimaryID(); }), fmap.end());
     }
 
     // add the identification data to the featureXML

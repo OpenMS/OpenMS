@@ -47,7 +47,7 @@ namespace OpenMS
 {
 
 //static
-bool NuXLModificationsGenerator::notInSeq(String res_seq, String query)
+bool NuXLModificationsGenerator::notInSeq(const String& res_seq, const String& query)
 {
   // special case: empty query is in every seq -> false
   if (query.empty()) { return false; }
@@ -67,11 +67,11 @@ bool NuXLModificationsGenerator::notInSeq(String res_seq, String query)
 }
 
 //static
-NuXLModificationMassesResult NuXLModificationsGenerator::initModificationMassesNA(StringList target_nucleotides,
-                                                                                     StringList nt_groups,
-                                                                                     std::set<char> can_xl,
-                                                                                     StringList mappings,
-                                                                                     StringList modifications,
+NuXLModificationMassesResult NuXLModificationsGenerator::initModificationMassesNA(const StringList& target_nucleotides,
+                                                                                     const StringList& nt_groups,
+                                                                                     const std::set<char>& can_xl,
+                                                                                     const StringList& mappings,
+                                                                                     const StringList& modifications,
                                                                                      String sequence_restriction,
                                                                                      bool cysteine_adduct,
                                                                                      Int max_length)
@@ -118,8 +118,8 @@ NuXLModificationMassesResult NuXLModificationsGenerator::initModificationMassesN
     // add single source nucleotides to all_combinations
     for (Size i = 0; i != source_nucleotides.size(); ++i)
     {
-      all_combinations.push_back(String(source_nucleotides[i]));
-      actual_combinations.push_back(String(source_nucleotides[i]));
+      all_combinations.emplace_back(source_nucleotides[i]);
+      actual_combinations.emplace_back(source_nucleotides[i]);
     }
 
     for (Int i = 1; i <= max_length - 1; ++i)
@@ -130,8 +130,8 @@ NuXLModificationMassesResult NuXLModificationsGenerator::initModificationMassesN
         // grow actual_combinations/ all_combinations by one nucleotide
         for (Size c = 0; c != actual_combinations.size(); ++c)
         {
-          new_combinations.push_back(source_nucleotides[n] + actual_combinations[c]);
-          all_combinations.push_back(source_nucleotides[n] + actual_combinations[c]);
+          new_combinations.emplace_back(source_nucleotides[n] + actual_combinations[c]);
+          all_combinations.emplace_back(source_nucleotides[n] + actual_combinations[c]);
         }
       }
       actual_combinations = new_combinations;

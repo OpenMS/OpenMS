@@ -146,9 +146,7 @@ namespace OpenMS
     return *this;
   }
 
-  TheoreticalSpectrumGenerator::~TheoreticalSpectrumGenerator()
-  {
-  }
+  TheoreticalSpectrumGenerator::~TheoreticalSpectrumGenerator() = default;
 
   void TheoreticalSpectrumGenerator::getSpectrum(PeakSpectrum& spectrum, const AASequence& peptide, Int min_charge, Int max_charge, Int precursor_charge) const
   {

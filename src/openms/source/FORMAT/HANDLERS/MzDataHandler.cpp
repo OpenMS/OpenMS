@@ -245,7 +245,7 @@ namespace OpenMS::Internal
       // Do something depending on the tag
       if (tag == "sourceFile")
       {
-        exp_->getSourceFiles().push_back(SourceFile());
+        exp_->getSourceFiles().emplace_back();
       }
       if (tag == "contact")
       {
@@ -273,7 +273,7 @@ namespace OpenMS::Internal
       }
       else if (tag == "precursor")
       {
-        spec_.getPrecursors().push_back(Precursor());
+        spec_.getPrecursors().emplace_back();
       }
       else if (tag == "cvParam")
       {
@@ -426,7 +426,7 @@ namespace OpenMS::Internal
       }
       else if (tag == "supDesc")
       {
-        meta_id_descs_.push_back(std::make_pair(attributeAsString_(attributes, s_supdataarrayref), MetaInfoDescription()));
+        meta_id_descs_.emplace_back(attributeAsString_(attributes, s_supdataarrayref), MetaInfoDescription());
       }
       else if (tag == "data")
       {
@@ -521,7 +521,7 @@ namespace OpenMS::Internal
           // the dingle-precision vector, so that we don't mess up the index
           //std::cout << "list size: " << decoded_double.size() << std::endl;
           decoded_double_list_.push_back(decoded_double);
-          decoded_list_.push_back(std::vector<float>());
+          decoded_list_.emplace_back();
         }
         else                                                // precision 32 Bit
         {
@@ -537,7 +537,7 @@ namespace OpenMS::Internal
           }
           //std::cout << "list size: " << decoded.size() << std::endl;
           decoded_list_.push_back(decoded);
-          decoded_double_list_.push_back(std::vector<double>());
+          decoded_double_list_.emplace_back();
         }
       }
 

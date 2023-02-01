@@ -59,10 +59,7 @@ namespace OpenMS
     return QSize(15, 15);
   }
 
-  ColorSelector::~ColorSelector()
-  {
-
-  }
+  ColorSelector::~ColorSelector() = default;
 
   void ColorSelector::paintEvent(QPaintEvent * /*e*/)
   {

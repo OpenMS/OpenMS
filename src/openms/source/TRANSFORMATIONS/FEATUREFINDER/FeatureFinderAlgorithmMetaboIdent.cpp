@@ -41,12 +41,18 @@
 
 #include <OpenMS/ANALYSIS/OPENSWATH/ChromatogramExtractor.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/SimpleOpenMSSpectraAccessFactory.h>
+
 #include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/CoarseIsotopePatternGenerator.h>
 #include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/IsotopeDistribution.h>
+
 #include <OpenMS/FORMAT/FileHandler.h>
+
 #include <OpenMS/MATH/MISC/MathFunctions.h>
+
 #include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/CONCEPT/LogStream.h>
+
+#include <OpenMS/FILTERING/DATAREDUCTION/FeatureOverlapFilter.h>
 
 #include <vector>
 #include <numeric>
@@ -163,7 +169,7 @@ namespace OpenMS
 
   void FeatureFinderAlgorithmMetaboIdent::run(const vector<FeatureFinderAlgorithmMetaboIdent::FeatureFinderMetaboIdentCompound>& metaboIdentTable, 
     FeatureMap& features, 
-    String spectra_file)
+    const String& spectra_file)
   {
     // if proper mzML is annotated in MS data use this as reference. Otherwise, overwrite with spectra_file information.
     features.setPrimaryMSRunPath({spectra_file}, ms_data_); 
@@ -182,9 +188,30 @@ namespace OpenMS
 
     // initialize algorithm classes needed later:
     Param params = feat_finder_.getParameters();
+
     params.setValue("stop_report_after_feature", -1); // return all features
+    params.setValue("EMGScoring:max_iteration", param_.getValue("EMGScoring:max_iteration")); // propagate setting to sub algorithms
+    params.setValue("EMGScoring:init_mom", param_.getValue("EMGScoring:init_mom")); // propagate setting to sub algorithms
     params.setValue("Scores:use_rt_score", "false"); // RT may not be reliable
-    params.setValue("write_convex_hull", "true");
+    params.setValue("Scores:use_ionseries_scores", "false"); // since FFID only uses MS1 spectra, this is useless
+    params.setValue("Scores:use_ms2_isotope_scores", "false"); // since FFID only uses MS1 spectra, this is useless
+    params.setValue("Scores:use_ms1_correlation", "false"); // this would be redundant to the "MS2" correlation and since
+    // precursor transition = first product transition, additionally biased
+    params.setValue("Scores:use_ms1_mi", "false"); // same as above. On MS1 level we basically only care about the "MS1 fullscan" scores
+    //TODO for MS1 level scoring there is an additional parameter add_up_spectra with which we can add up spectra
+    // around the apex, to complete isotopic envelopes (and therefore make this score more robust).
+
+    params.setValue("write_convex_hull", "true"); // some parts of FFMId expect convex hulls
+
+    if ((elution_model_ != "none") || (!candidates_out_.empty()))
+    {
+      params.setValue("Scores:use_elution_model_score", "false"); // TODO: test if this works for requantificiation
+    }
+    else // no elution model
+    {
+      params.setValue("Scores:use_elution_model_score", "true");  
+    }      
+    
     if (min_peak_width_ < 1.0)
     {
       min_peak_width_ *= peak_width_;
@@ -244,53 +271,87 @@ namespace OpenMS
     // features.setProteinIdentifications(proteins);
     features.ensureUniqueId();
     
-    // sort features:
-    sort(features.begin(), features.end(), feature_compare_);
-
     if (!candidates_out_.empty()) // store feature candidates
     {
+      sort(features.begin(), features.end(), feature_compare_);
       FileHandler().storeFeatures(candidates_out_, features);
     }
+
+
 
     selectFeaturesFromCandidates_(features);
     OPENMS_LOG_INFO << features.size()
              << " features left after selection of best candidates." << endl;
 
-    // get bounding boxes for all mass traces in all features:
-    FeatureBoundsMap feature_bounds;
-    getFeatureBounds_(features, feature_bounds);
-    // find and resolve overlaps:
-    vector<FeatureGroup> overlap_groups;
-    findOverlappingFeatures_(features, feature_bounds, overlap_groups);
-    if (overlap_groups.size() == features.size())
-    {
-      OPENMS_LOG_INFO << "No overlaps between features found." << endl;
-    }
-    else
-    {
-      Size n_overlap_groups = 0, n_overlap_features = 0;
-      for (FeatureGroup& group : overlap_groups)
-      {
-        if (group.size() > 1)
-        {
-          n_overlap_groups++;
-          n_overlap_features += group.size();
-          resolveOverlappingFeatures_(group, feature_bounds);
-        }
-      }
-      features.erase(remove_if(features.begin(), features.end(),
-                             feature_filter_), features.end());
-      OPENMS_LOG_INFO << features.size()
-               << " features left after resolving overlaps (involving "
-               << n_overlap_features << " features in " << n_overlap_groups
-               << " groups)." << endl;
-      if (features.empty())
-      {
-        OPENMS_LOG_INFO << "No features left after filtering." << endl;
-      }    
-    }
+    constexpr bool CHECK_TRACES_FOR_OVERLAP = true;
 
-    if (features.empty()) return;
+    // criterium used to select the best feature amongs overlapping ones (lower = better)
+    auto FeatureComparator = [](const Feature& left, const Feature& right)
+      {
+        double left_rt_delta = std::abs(double(left.getMetaValue("rt_deviation")));
+        double right_rt_delta = std::abs(double(right.getMetaValue("rt_deviation")));
+        size_t left_intensity = left.getIntensity();
+        size_t right_intensity = right.getIntensity();
+        return std::tie(left_rt_delta, right_intensity) < std::tie(right_rt_delta, left_intensity); // Note: left and right intensity are swapped because here higher is better
+      };
+
+    // callback used to transfer information from an identical overlapping feature with different annotation to the representative on
+    auto FeatureOverlapCallback = [](Feature& cluster_representative, Feature& overlap)
+      {
+        size_t best_intensity = cluster_representative.getIntensity();
+        size_t overlap_intensity = overlap.getIntensity();
+
+        if (overlap_intensity != best_intensity) return true; // early out: features are different
+
+        // this part will nearly never be called (e.g., only completely identicial features)
+        // so it is ok to perform some slow operations like querying meta values 
+        double best_rt_delta = std::abs(double(cluster_representative.getMetaValue("rt_deviation")));
+        double overlap_rt_delta = std::abs(double(overlap.getMetaValue("rt_deviation")));
+
+        if (overlap_rt_delta == best_rt_delta)
+        {
+          double best_RT = cluster_representative.getRT();
+          double overlap_RT = overlap.getRT();
+          double best_MZ = cluster_representative.getMZ();
+          double overlap_MZ = overlap.getMZ();
+
+          // are the features the same? (@TODO: use "Math::approximatelyEqual"?)
+          if ((overlap_MZ == best_MZ) && (overlap_RT == best_RT))
+          {
+            // update annotations:
+            // @TODO: also adjust "formula" and "expected_rt"?
+            String label = cluster_representative.getMetaValue("label");            
+            label += "/" + String(overlap.getMetaValue("label"));
+            cluster_representative.setMetaValue("label", label);
+            StringList alt_refs;
+            if (cluster_representative.metaValueExists("alt_PeptideRef"))
+            {
+              alt_refs = cluster_representative.getMetaValue("alt_PeptideRef");
+            }
+            alt_refs.push_back(overlap.getMetaValue("PeptideRef"));
+            cluster_representative.setMetaValue("alt_PeptideRef", alt_refs);
+          }
+        }
+
+        // annotate which features were removed because of overlap with the representative feature
+        String ref = String(overlap.getMetaValue("PeptideRef")) + " (RT " +
+          String(float(overlap.getRT())) + ")";
+
+        StringList overlap_refs = cluster_representative.getMetaValue("overlap_removed", StringList{});
+        overlap_refs.push_back(std::move(ref));
+        cluster_representative.setMetaValue("overlap_removed", std::move(overlap_refs)); // TODO: implement setMetaValue that takes DataValue as r-value reference &&
+
+        return true;
+      };
+
+    FeatureOverlapFilter::filter(features, FeatureComparator, FeatureOverlapCallback, CHECK_TRACES_FOR_OVERLAP);
+    std::stable_sort(features.begin(), features.end(), feature_compare_); // sort by ref and rt
+
+    if (features.empty())
+    {
+      OPENMS_LOG_INFO << "No features left after filtering." << endl;
+      return;
+    }    
 
     n_shared_ = addTargetAnnotations_(features);
 
@@ -485,259 +546,6 @@ namespace OpenMS
     target.rts.push_back(te_rt);
   }
 
-  /// Check if two sets of mass trace boundaries overlap
-  bool FeatureFinderAlgorithmMetaboIdent::hasOverlappingBounds_(const vector<MassTraceBounds>& mtb1,
-                             const vector<MassTraceBounds>& mtb2) const
-  {
-    for (const MassTraceBounds& mt1 : mtb1)
-    {
-      for (const MassTraceBounds& mt2 : mtb2)
-      {
-        if (!((mt1.rt_max < mt2.rt_min) ||
-              (mt1.rt_min > mt2.rt_max) ||
-              (mt1.mz_max < mt2.mz_min) ||
-              (mt1.mz_min > mt2.mz_max)))
-        {
-          return true;
-        }
-      }
-    }
-    return false;
-  }
-
-  /// Check if a feature overlaps with a group of other features
-  bool FeatureFinderAlgorithmMetaboIdent::hasOverlappingFeature_(const Feature& feature, const FeatureGroup& group,
-                              const FeatureBoundsMap& feature_bounds) const
-  {
-    FeatureBoundsMap::const_iterator fbm_it1 =
-      feature_bounds.find(feature.getUniqueId());
-    // check overlaps with other features:
-    for (FeatureGroup::const_iterator group_it = group.begin();
-         group_it != group.end(); ++group_it)
-    {
-      FeatureBoundsMap::const_iterator fbm_it2 =
-        feature_bounds.find((*group_it)->getUniqueId());
-      // two features overlap if any of their mass traces overlap:
-      if (hasOverlappingBounds_(fbm_it1->second, fbm_it2->second))
-      {
-        return true;
-      }
-    }
-    return false;
-  }
-
-
-  /// Get bounding boxes for all mass traces in all features of a feature map
-  void FeatureFinderAlgorithmMetaboIdent::getFeatureBounds_(const FeatureMap& features,
-                         FeatureBoundsMap& feature_bounds)
-  {
-    for (const  Feature& feat : features)
-    {
-      for (Size i = 0; i < feat.getSubordinates().size(); ++i)
-      {
-        MassTraceBounds mtb;
-        mtb.sub_index = i;
-        const ConvexHull2D::PointArrayType& points =
-          feat.getConvexHulls()[i].getHullPoints();
-        mtb.mz_min = points.front().getY();
-        mtb.mz_max = points.back().getY();
-        const Feature& sub = feat.getSubordinates()[i];
-        // convex hulls should be written out by "MRMFeatureFinderScoring" (see
-        // parameter "write_convex_hull"):
-        if (sub.getConvexHulls().empty())
-        {
-          String error = "convex hulls for mass traces missing";
-          throw Exception::MissingInformation(__FILE__, __LINE__,
-                                              OPENMS_PRETTY_FUNCTION, error);
-        }
-        const ConvexHull2D& hull = sub.getConvexHulls()[0];
-        // find beginning of mass trace (non-zero intensity):
-        if (hull.getHullPoints().empty())
-        {
-          continue;
-        }
-        double rt_min = hull.getHullPoints().back().getX();
-        for (ConvexHull2D::PointArrayType::const_iterator p_it =
-               hull.getHullPoints().begin(); p_it != hull.getHullPoints().end();
-             ++p_it)
-        {
-          if (p_it->getY() > 0)
-          {
-            rt_min = p_it->getX();
-            break;
-          }
-        }
-        // find end of mass trace (non-zero intensity):
-        double rt_max = hull.getHullPoints().front().getX();
-        for (ConvexHull2D::PointArrayType::const_reverse_iterator p_it =
-               hull.getHullPoints().rbegin(); p_it !=
-               hull.getHullPoints().rend(); ++p_it)
-        {
-          if (p_it->getX() < rt_min)
-          {
-            break;
-          }
-          if (p_it->getY() > 0)
-          {
-            rt_max = p_it->getX();
-            break;
-          }
-        }
-        if (rt_min > rt_max)
-        {
-          continue; // no peak -> skip
-        }
-        mtb.rt_min = rt_min;
-        mtb.rt_max = rt_max;
-        feature_bounds[feat.getUniqueId()].push_back(mtb);
-      }
-    }
-  }
-
-  /// Partition features of a feature map into groups of overlapping features
-  void FeatureFinderAlgorithmMetaboIdent::findOverlappingFeatures_(FeatureMap& features,
-                                const FeatureBoundsMap& feature_bounds,
-                                vector<FeatureGroup>& overlap_groups)
-  {
-    for (Feature& feat : features)
-    {
-      // @TODO: make this more efficient?
-      vector<FeatureGroup> current_overlaps;
-      vector<FeatureGroup> no_overlaps;
-      for (const FeatureGroup& group : overlap_groups)
-      {
-        if (hasOverlappingFeature_(feat, group, feature_bounds))
-        {
-          current_overlaps.push_back(group);
-        }
-        else
-        {
-          no_overlaps.push_back(group);
-        }
-      }
-      if (current_overlaps.empty()) // make new group for current feature
-      {
-        FeatureGroup new_group(1, &(feat));
-        no_overlaps.push_back(new_group);
-      }
-      else // merge all groups that overlap the current feature, then add it
-      {
-        FeatureGroup& merged = current_overlaps.front();
-        for (vector<FeatureGroup>::const_iterator group_it =
-               ++current_overlaps.begin(); group_it != current_overlaps.end();
-             ++group_it)
-        {
-          merged.insert(merged.end(), group_it->begin(), group_it->end());
-        }
-        merged.push_back(&feat);
-        no_overlaps.push_back(merged);
-      }
-      overlap_groups.swap(no_overlaps);
-    }
-  }
-
-  /// Resolve overlapping features by picking the best and removing all others
-  void FeatureFinderAlgorithmMetaboIdent::resolveOverlappingFeatures_(FeatureGroup& group,
-                                   const FeatureBoundsMap& feature_bounds)
-  {
-    if (debug_level_ > 0)
-    {
-      String msg = "Overlapping features: ";
-      for (FeatureGroup::const_iterator it = group.begin(); it != group.end();
-           ++it)
-      {
-        if (it != group.begin())
-        {
-          msg += ", ";
-        }
-        msg += String((*it)->getMetaValue("PeptideRef")) + " (RT " +
-          String(float((*it)->getRT())) + ")";
-      }
-      OPENMS_LOG_DEBUG << msg << endl;
-    }
-
-    Feature* best_feature = 0;
-    while (!group.empty())
-    {
-      double best_rt_delta = numeric_limits<double>::infinity();
-      // best feature is the one with min. RT deviation to target:
-      for (FeatureGroup::const_iterator it = group.begin(); it != group.end();
-           ++it)
-      {
-        double rt_delta = abs(double((*it)->getMetaValue("rt_deviation")));
-        if ((rt_delta < best_rt_delta) ||
-            ((rt_delta == best_rt_delta) && ((*it)->getIntensity() >
-                                             best_feature->getIntensity())))
-        {
-          best_rt_delta = rt_delta;
-          best_feature = *it;
-        }
-        else if ((rt_delta == best_rt_delta) && ((*it)->getIntensity() ==
-                                                 best_feature->getIntensity()))
-        {
-          // are the features the same? (@TODO: use "Math::approximatelyEqual"?)
-          if (((*it)->getRT() == best_feature->getRT()) &&
-              ((*it)->getMZ() == best_feature->getMZ()))
-          {
-            // update annotations:
-            // @TODO: also adjust "formula" and "expected_rt"?
-            String label = best_feature->getMetaValue("label");
-            label += "/" + String((*it)->getMetaValue("label"));
-            best_feature->setMetaValue("label", label);
-            StringList alt_refs;
-            if (best_feature->metaValueExists("alt_PeptideRef"))
-            {
-              alt_refs = best_feature->getMetaValue("alt_PeptideRef");
-            }
-            alt_refs.push_back((*it)->getMetaValue("PeptideRef"));
-            best_feature->setMetaValue("alt_PeptideRef", alt_refs);
-          }
-          else
-          {
-            OPENMS_LOG_WARN
-              << "Warning: cannot decide between equally good feature candidates; picking the first one of "
-              << best_feature->getMetaValue("PeptideRef") << " (RT "
-              << float(best_feature->getRT()) << ") and "
-              << (*it)->getMetaValue("PeptideRef") << " (RT "
-              << float((*it)->getRT()) << ")." << endl;
-          }
-        }
-      }
-      // we have found a "best" feature, now remove other features that overlap:
-      FeatureGroup no_overlaps;
-      FeatureBoundsMap::const_iterator fbm_it1 =
-        feature_bounds.find(best_feature->getUniqueId());
-      for (FeatureGroup::const_iterator it = group.begin(); it != group.end();
-           ++it)
-      {
-        if (*it == best_feature)
-        {
-          continue;
-        }
-        FeatureBoundsMap::const_iterator fbm_it2 =
-          feature_bounds.find((*it)->getUniqueId());
-        if (hasOverlappingBounds_(fbm_it1->second, fbm_it2->second))
-        {
-          // keep a record of the feature that is getting removed:
-          String ref = String((*it)->getMetaValue("PeptideRef")) + " (RT " +
-            String(float((*it)->getRT())) + ")";
-          StringList overlap_refs;
-          if (best_feature->metaValueExists("overlap_removed"))
-          {
-            overlap_refs = best_feature->getMetaValue("overlap_removed");
-          }
-          overlap_refs.push_back(ref);
-          best_feature->setMetaValue("overlap_removed", overlap_refs);
-          (*it)->setMetaValue("FFMetId_remove", ""); // mark for removal
-        }
-        else
-        {
-          no_overlaps.push_back(*it);
-        }
-      }
-      group.swap(no_overlaps);
-    }
-  }
 
   /// Add relevant annotations/meta values to features
   void FeatureFinderAlgorithmMetaboIdent::annotateFeatures_(FeatureMap& features)

@@ -2137,13 +2137,13 @@ def testFeatureXMLFile():
     assert fm.get_df(meta_values='all', export_peptide_identifications=False).shape == (2, 12)
 
     assert pd.merge(fm.get_df(), pyopenms.peptide_identifications_to_df(fm.get_assigned_peptide_identifications()),
-                on = ['feature_id', 'ID_native_id', 'ID_filename']).shape == (2,22)
+                on = ['feature_id', 'ID_native_id', 'ID_filename']).shape == (2,24)
 
     fm = pyopenms.FeatureMap()
     pyopenms.FeatureXMLFile().load(os.path.join(os.environ['OPENMS_DATA_PATH'], 'examples/FRACTIONS/BSA1_F1_idmapped.featureXML'), fm)
 
     assert pd.merge(fm.get_df(), pyopenms.peptide_identifications_to_df(fm.get_assigned_peptide_identifications()),
-                    on = ['feature_id', 'ID_native_id', 'ID_filename']).shape == (15,24)
+                    on = ['feature_id', 'ID_native_id', 'ID_filename']).shape == (15,26)
 
     fh = pyopenms.FeatureXMLFile()
     fh.store("test.featureXML", fm)
@@ -2260,6 +2260,7 @@ def testIdXMLFile():
 
 @report
 def test_peptide_identifications_to_df():
+    # convert to dataframe
     peps = []
 
     p = pyopenms.PeptideIdentification()
@@ -2296,10 +2297,16 @@ def test_peptide_identifications_to_df():
 
     peps.append(p1)
 
-    assert pyopenms.peptide_identifications_to_df(peps).shape == (2,10)
-    assert pyopenms.peptide_identifications_to_df(peps, decode_ontology=False).shape == (2,10)
+    assert pyopenms.peptide_identifications_to_df(peps).shape == (2,12)
+    assert pyopenms.peptide_identifications_to_df(peps, decode_ontology=False).shape == (2,12)
     assert pyopenms.peptide_identifications_to_df(peps)['protein_accession'][0] == 'sp|Accession1,sp|Accession2'
-    assert pyopenms.peptide_identifications_to_df(peps, export_unidentified=False).shape == (1,10)
+    assert pyopenms.peptide_identifications_to_df(peps, export_unidentified=False).shape == (1,12)
+
+    # update from dataframe
+    df = pyopenms.peptide_identifications_to_df(peps)
+    df["ScoreType"][0] = 10.0
+    peps = pyopenms.update_scores_from_df(peps, df, "ScoreType")
+    assert peps[0].getHits()[0].getScore() == 10.0
 
 @report
 def testPepXMLFile():

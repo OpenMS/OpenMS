@@ -647,7 +647,7 @@ private:
     OPENMS_DLLAPI OpenMS::AASequence getAASequence(const Peptide& peptide);
 
     /// helper function that sets a modification on a AASequence object
-    OPENMS_DLLAPI void setModification(int location, int max_size, String modification, OpenMS::AASequence & aas);
+    OPENMS_DLLAPI void setModification(int location, int max_size, const String& modification, OpenMS::AASequence & aas);
 
   }
 

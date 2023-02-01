@@ -47,6 +47,7 @@ if (MT_ENABLE_OPENMP)
 endif()
 
 if (OPENMP_FOUND)
+  set(CMAKE_INSTALL_OPENMP_LIBRARIES TRUE)
   # For CMake < 3.9, we need to make the OpenMP target ourselves
   # from https://cliutils.gitlab.io/modern-cmake/chapters/packages/OpenMP.html
   if(NOT TARGET OpenMP::OpenMP_CXX)

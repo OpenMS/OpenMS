@@ -156,7 +156,7 @@ namespace OpenMS
                                    Math::LinearInterpolation<double, double>& rt_high_hash_,
                                    const int hashing_round,
                                    const double rt_pair_min_distance,
-                                   const String dump_pairs_basename,
+                                   const String& dump_pairs_basename,
                                    const Int dump_buckets_serial,
                                    const double mz_pair_max_distance,
                                    const double winlength_factor_baseline,
@@ -324,7 +324,7 @@ namespace OpenMS
     Math::LinearInterpolation<double, double>& scaling_hash_1,
     const bool do_dump_buckets,
     const UInt struc_elem_length_datapoints,
-    const String dump_buckets_basename,
+    const String& dump_buckets_basename,
     const Int dump_buckets_serial,
     const double scaling_histogram_crossing_slope,
     const double scaling_cutoff_stdev_multiplier,
@@ -484,7 +484,7 @@ namespace OpenMS
     const double scaling_histogram_crossing_slope,
     const double scaling_cutoff_stdev_multiplier,
     const UInt loops_mean_stdev_cutoff,
-    const String dump_buckets_basename,
+    const String& dump_buckets_basename,
     double& rt_low_centroid,
     double& rt_high_centroid)
   {

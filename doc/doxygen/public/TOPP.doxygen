@@ -35,7 +35,7 @@
 /**
   @page TOPP_documentation TOPP documentation
 
-  'TOPP - The %OpenMS Proteomics Pipeline' is a pipeline for the analysis of HPLC-MS data. It consists of several small applications that
+  'TOPP - The %OpenMS PiPeline' is a pipeline for the analysis of HPLC-MS data. It consists of several small applications that
   can be chained to create analysis pipelines tailored for a specific problem.
 
  	The TOPP tools are divided into several subgroups:
@@ -189,4 +189,7 @@
   - @subpage TOPP_GenericWrapper - Allows the generic wrapping of external tools.
   - @subpage TOPP_ExecutePipeline - Executes workflows created by TOPPAS.
   - @subpage TOPP_GNPSExport - Export MS/MS data in .MGF format for GNPS.
+
+  <b>Top down</b>
+  - @subpage TOPP_FLASHDeconv - Computes a feature deconvolution from Top down MS data.
 */

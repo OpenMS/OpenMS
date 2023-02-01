@@ -1415,7 +1415,7 @@ namespace OpenMS::Internal
       }
     }
 
-    void MzIdentMLDOMHandler::parseSpectrumIdentificationItemSetXLMS(set<String>::const_iterator set_it, std::multimap<String, int> xl_val_map, DOMElement* element_res, String spectrumID)
+    void MzIdentMLDOMHandler::parseSpectrumIdentificationItemSetXLMS(set<String>::const_iterator set_it, std::multimap<String, int> xl_val_map, DOMElement* element_res, const String& spectrumID)
     {
       // each value in the set corresponds to one PeptideIdentification object
       std::pair <std::multimap<String, int>::iterator, std::multimap<String, int>::iterator> range;

@@ -92,17 +92,17 @@ namespace OpenMS
          @param cysteine_adduct special DTT adduct
          @param max_length maximum oligo length
       */
-      static NuXLModificationMassesResult initModificationMassesNA(StringList target_nucleotides,
-                                                                     StringList nt_groups,
-                                                                     std::set<char> can_xl,
-                                                                     StringList mappings,
-                                                                     StringList modifications,
+      static NuXLModificationMassesResult initModificationMassesNA(const StringList& target_nucleotides,
+                                                                     const StringList& nt_groups,
+                                                                     const std::set<char>& can_xl,
+                                                                     const StringList& mappings,
+                                                                     const StringList& modifications,
                                                                      String sequence_restriction = "",
                                                                      bool cysteine_adduct = false,
                                                                      Int max_length = 4);
     private:
       /// return true if qery is not in sequence
-      static bool notInSeq(String res_seq, String query);
+      static bool notInSeq(const String& res_seq, const String& query);
 
       static void generateTargetSequences(const String& res_seq, Size param_pos, const std::map<char, std::vector<char> >& map_source2target, StringList& target_sequences);
     };

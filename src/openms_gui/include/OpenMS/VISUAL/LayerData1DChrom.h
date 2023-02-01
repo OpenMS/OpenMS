@@ -69,6 +69,10 @@ namespace OpenMS
       return RangeAllType().assign(chrom_filtered.getRange());
     }
 
+    RangeAllType getRange1D() const override
+    {
+      return RangeAllType().assign(getCurrentChrom().getRange());
+    }
 
     const ExperimentType::ChromatogramType& getCurrentChrom() const
     {

@@ -80,8 +80,8 @@ namespace OpenMS
     defaults_.setValue("precursor:mass_tolerance", 10.0, "+/- tolerance for precursor mass.");
 
     std::vector<std::string> precursor_mass_tolerance_unit_valid_strings;
-    precursor_mass_tolerance_unit_valid_strings.push_back("ppm");
-    precursor_mass_tolerance_unit_valid_strings.push_back("Da");
+    precursor_mass_tolerance_unit_valid_strings.emplace_back("ppm");
+    precursor_mass_tolerance_unit_valid_strings.emplace_back("Da");
 
     defaults_.setValue("precursor:mass_tolerance_unit", "ppm", "Unit of precursor mass tolerance +/- to the theoretical one.");
     defaults_.setValidStrings("precursor:mass_tolerance_unit", precursor_mass_tolerance_unit_valid_strings);
@@ -98,8 +98,8 @@ namespace OpenMS
     defaults_.setValue("fragment:mass_tolerance", 10.0, "Fragment mass tolerance +/- to the theoretical one");
 
     std::vector<std::string> fragment_mass_tolerance_unit_valid_strings;
-    fragment_mass_tolerance_unit_valid_strings.push_back("ppm");
-    fragment_mass_tolerance_unit_valid_strings.push_back("Da");
+    fragment_mass_tolerance_unit_valid_strings.emplace_back("ppm");
+    fragment_mass_tolerance_unit_valid_strings.emplace_back("Da");
 
     defaults_.setValue("fragment:mass_tolerance_unit", "ppm", "Unit of fragment m");
     defaults_.setValidStrings("fragment:mass_tolerance_unit", fragment_mass_tolerance_unit_valid_strings);
