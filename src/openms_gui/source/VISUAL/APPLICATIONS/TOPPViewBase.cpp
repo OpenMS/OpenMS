@@ -732,11 +732,23 @@ namespace OpenMS
         OPENMS_LOG_INFO << "INFO: done loading all " << std::endl;
 
         // a mzML file may contain both, chromatogram and peak data
-        // -> this is handled in PlotCanvas::addPeakLayer
-        data_type = LayerDataBase::DT_CHROMATOGRAM;
-        if (peak_map_sptr->getNrSpectra() > 0)
+        // -> this is handled in PlotCanvas::addPeakLayer FIXME: No it's not!
+        if (peak_map_sptr->getNrChromatograms() > 0)
         {
+          data_type = LayerDataBase::DT_CHROMATOGRAM;
+        }
+        else if (peak_map_sptr->getNrSpectra() > 0)
+        {
+          if (data_type == LayerDataBase::DT_CHROMATOGRAM)
+          {
+            OPENMS_LOG_WARN << "Your input data contains chromatograms and spectra, falling back to display spectra only." << std::endl;
+          }
           data_type = LayerDataBase::DT_PEAK;
+        }
+        else
+        {
+          data_type = LayerDataBase::DT_UNKNOWN;
+          throw Exception::FileEmpty(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "MzML filed doesn't have either spectra or chromatograms.");
         }
       }
     }
