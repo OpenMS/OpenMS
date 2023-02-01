@@ -233,7 +233,7 @@ namespace OpenMS
       painter->translate(point);
       painter->rotate(text_angle);
       QFontMetrics fm(painter->fontMetrics());
-      int text_width = fm.width(str);
+      int text_width = fm.width(str); // replace with QFontMetrics::horizontalAdvance if Qt >= 5.11
       int text_height = fm.height();   // shift text below the edge by its own height
       if (invert_text_direction)
       {
