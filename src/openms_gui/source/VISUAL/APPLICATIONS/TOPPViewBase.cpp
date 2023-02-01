@@ -734,7 +734,7 @@ namespace OpenMS
         // a mzML file may contain both, chromatogram and peak data
         // -> this is handled in PlotCanvas::addPeakLayer
         data_type = LayerDataBase::DT_CHROMATOGRAM;
-        if (peak_map_sptr->containsScanOfLevel(1))
+        if (peak_map_sptr->getNrSpectra() > 0)
         {
           data_type = LayerDataBase::DT_PEAK;
         }
