@@ -114,7 +114,7 @@ set(OPENMS_PACKAGE_VERSION "${OPENMS_PACKAGE_VERSION_MAJOR}.${OPENMS_PACKAGE_VER
 
 message(STATUS "Building OpenMS ${OPENMS_PACKAGE_VERSION}")
 #------------------------------------------------------------------------------
-# retrieve detailed informations on the working copy (git)
+# retrieve detailed information on the working copy (git)
 include(GetGitRevisionDescription)
 option(GIT_TRACKING "Embedding of Git version control information into the OpenMS library (and OpenMSInfo tool). Note that if activated, every branch-switch or commit will trigger re-generation of the build system (MakeFiles, VS Solutions etc)." ON)
 if (GIT_TRACKING)

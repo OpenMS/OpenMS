@@ -178,23 +178,23 @@ protected:
   void registerOptionsAndFlags_() override
   {
     registerInputFile_("in", "<file>", "", "Input file: LC-MS raw data");
-    setValidFormats_("in", ListUtils::create<String>("mzML"));
+    setValidFormats_("in", {"mzML"});
     registerInputFile_("id", "<file>", "", "Input file: Peptide identifications derived directly from 'in'");
-    setValidFormats_("id", ListUtils::create<String>("idXML"));
+    setValidFormats_("id", {"idXML"});
     registerInputFile_("id_ext", "<file>", "", "Input file: 'External' peptide identifications (e.g. from aligned runs)", false);
-    setValidFormats_("id_ext", ListUtils::create<String>("idXML"));
+    setValidFormats_("id_ext", {"idXML"});
     registerOutputFile_("out", "<file>", "", "Output file: Features");
-    setValidFormats_("out", ListUtils::create<String>("featureXML"));
+    setValidFormats_("out", {"featureXML"});
     registerOutputFile_("lib_out", "<file>", "", "Output file: Assay library", false);
-    setValidFormats_("lib_out", ListUtils::create<String>("traML"));
+    setValidFormats_("lib_out", {"traML"});
     registerOutputFile_("chrom_out", "<file>", "", "Output file: Chromatograms", false);
-    setValidFormats_("chrom_out", ListUtils::create<String>("mzML"));
+    setValidFormats_("chrom_out", {"mzML"});
     registerOutputFile_("candidates_out", "<file>", "", "Output file: Feature candidates (before filtering and model fitting)", false);
-    setValidFormats_("candidates_out", ListUtils::create<String>("featureXML"));
+    setValidFormats_("candidates_out", {"featureXML"});
     registerInputFile_("candidates_in", "<file>", "",
                        "Input file: Feature candidates from a previous run. If set, only feature classification and elution model fitting are carried out, if enabled. Many parameters are ignored.",
                        false, true);
-    setValidFormats_("candidates_in", ListUtils::create<String>("featureXML"));
+    setValidFormats_("candidates_in", {"featureXML"});
 
     Param algo_with_subsection;
     Param subsection = FeatureFinderIdentificationAlgorithm().getDefaults();

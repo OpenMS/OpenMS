@@ -186,10 +186,10 @@ namespace OpenMS
     //parse command line
     //----------------------------------------------------------
 
-    //register values from derived TOPP tool
+    // register values from derived TOPP tool
     registerOptionsAndFlags_();
     addEmptyLine_();
-    //common section for all tools
+    // common section for all tools
     if (ToolHandler::getTOPPToolList().count(tool_name_))
       addText_("Common TOPP options:");
     else

@@ -71,7 +71,7 @@ namespace OpenMS
   FeatureFinderAlgorithmMetaboIdent::FeatureFinderAlgorithmMetaboIdent() :
     DefaultParamHandler("FeatureFinderAlgorithmMetaboIdent")
   {
-    defaults_.setValue("candidates_out", "", "Optional output file with feature candidates.", vector<string>{"output file"});
+    defaults_.setValue("candidates_out", "", "Optional output file: Feature candidates (before filtering and model fitting).", {"output file"});
 
     defaults_.setValue("extract:mz_window", 10.0, "m/z window size for chromatogram extraction (unit: ppm if 1 or greater, else Da/Th)");
     defaults_.setMinFloat("extract:mz_window", 0.0);
