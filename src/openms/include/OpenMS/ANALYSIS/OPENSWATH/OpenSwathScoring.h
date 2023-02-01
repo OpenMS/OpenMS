@@ -70,10 +70,17 @@ namespace OpenMS
 
     using SpectrumSequence = std::vector<OpenSwath::SpectrumPtr>; // a vector of spectrum pointers that DIA scores can operate on, allows for clever integration of only the target region
 
+    enum SpectrumAdditionMethod
+    {
+      SIMPLE,
+      RESAMPLE
+    };
+
+
     double rt_normalization_factor_;
     double spacing_for_spectra_resampling_;
     int add_up_spectra_;
-    std::string spectra_addition_method_;
+    SpectrumAdditionMethod spectra_addition_method_;
     double im_drift_extra_pcnt_;
     OpenSwath_Scores_Usage su_;
     bool use_ms1_ion_mobility_; // whether to use MS1 ion mobility extraction in DIA scores

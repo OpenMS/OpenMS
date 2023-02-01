@@ -102,7 +102,7 @@ namespace OpenMS
     rt_normalization_factor_(1.0),
     spacing_for_spectra_resampling_(0.005),
     add_up_spectra_(1),
-    spectra_addition_method_("simple"),
+    spectra_addition_method_(SIMPLE),
     im_drift_extra_pcnt_(0.0)
   {
   }
@@ -121,7 +121,19 @@ namespace OpenMS
   {
     this->rt_normalization_factor_ = rt_normalization_factor;
     this->add_up_spectra_ = add_up_spectra;
-    this->spectra_addition_method_ = spectrum_addition_method;
+    if (spectrum_addition_method == "simple")
+    {
+      this->spectra_addition_method_ = SIMPLE;
+    }
+    else if (spectrum_addition_method == "resample")
+    {
+      this->spectra_addition_method_ = RESAMPLE;
+    }
+    else
+    {
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "spectrum_addition_method must be simple or resample", spectrum_addition_method);
+    }
+
     this->im_drift_extra_pcnt_ = drift_extra;
     this->spacing_for_spectra_resampling_ = spacing_for_spectra_resampling;
     this->su_ = su;
@@ -558,12 +570,12 @@ namespace OpenMS
   SpectrumSequence OpenSwathScoring::fetchSpectrumSwath(OpenSwath::SpectrumAccessPtr swathmap, double RT, int nr_spectra_to_add, const RangeMobility& im_range)
   {
 
-    std::vector<OpenSwath::SpectrumPtr> all_spectra = fetchMultipleSpectra_(swathmap, RT, nr_spectra_to_add);
-    if (spectra_addition_method_ == "simple")
+    SpectrumSequence all_spectra = fetchMultipleSpectra_(swathmap, RT, nr_spectra_to_add);
+    if (spectra_addition_method_ == SIMPLE)
     {
       return all_spectra;
     }
-    else
+    else // (spectra_addition_method_ == RESAMPLE)
     {
       std::vector<OpenSwath::SpectrumPtr> spectrum_out;
       spectrum_out.push_back(getAddedSpectra_(all_spectra, im_range));
@@ -591,10 +603,7 @@ namespace OpenMS
         OpenSwath::SpectrumPtr spec = getAddedSpectra_(spectrum_vector, im_range);
         all_spectra.push_back(spec);
       }
-      OpenSwath::SpectrumPtr spectrum_ = SpectrumAddition::addUpSpectra(all_spectra, spacing_for_spectra_resampling_, true);
-      std::vector<OpenSwath::SpectrumPtr> spectrum_out;
-      spectrum_out.push_back(spectrum_);
-      return spectrum_out;
+      return { SpectrumAddition::addUpSpectra(all_spectra, spacing_for_spectra_resampling_, true) };
     }
   }
 
@@ -606,8 +615,7 @@ namespace OpenMS
 
       if (input->getDriftTimeArray() == nullptr)
       {
-        OPENMS_LOG_WARN << "Warning: Cannot filter by drift time if no drift time is available.\n";
-        return input;
+        throw Exception::NullPointer(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
       }
 
       OpenSwath::SpectrumPtr output(new OpenSwath::Spectrum);
@@ -616,10 +624,10 @@ namespace OpenMS
       OpenSwath::BinaryDataArrayPtr int_arr = input->getIntensityArray();
       OpenSwath::BinaryDataArrayPtr im_arr = input->getDriftTimeArray();
 
-      std::vector<double>::const_iterator mz_it = mz_arr->data.begin();
-      std::vector<double>::const_iterator int_it = int_arr->data.begin();
-      std::vector<double>::const_iterator im_it = im_arr->data.begin();
-      std::vector<double>::const_iterator mz_end = mz_arr->data.end();
+      auto mz_it = mz_arr->data.cbegin();
+      auto int_it = int_arr->data.cbegin();
+      auto im_it = im_arr->data.cbegin();
+      auto mz_end = mz_arr->data.cend();
 
       OpenSwath::BinaryDataArrayPtr mz_arr_out(new OpenSwath::BinaryDataArray);
       OpenSwath::BinaryDataArrayPtr intens_arr_out(new OpenSwath::BinaryDataArray);
@@ -706,7 +714,7 @@ namespace OpenMS
     }
 
     // Otherwise do spectrum addition
-    if (spectra_addition_method_ == "simple")
+    if (spectra_addition_method_ == SIMPLE)
     {
       // Ensure that we have the same number of data arrays as in the input spectrum
       if (!all_spectra.empty() && all_spectra[0]->getDataArrays().size() > 2)
