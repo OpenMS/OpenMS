@@ -222,8 +222,7 @@ def _annotate_ion(mz: float, intensity: float, annotation: Optional[str],
     """
     Annotate a specific fragment peak.
 
-    Parameters
-    ----------
+    Parameters:
     mz : float
         The peak's m/z value (position of the annotation on the x axis).
     intensity : float
@@ -240,8 +239,7 @@ def _annotate_ion(mz: float, intensity: float, annotation: Optional[str],
     ax : plt.Axes
         Axes instance on which to plot the annotation.
 
-    Returns
-    -------
+    Returns:
     Tuple[str, int]
         A tuple of the annotation's color as a hex string and the annotation's
         zorder.
@@ -279,8 +277,7 @@ def plot_spectrum(spectrum: "MSSpectrum", color_ions: bool = True,
     """
     Plot an MS/MS spectrum.
 
-    Parameters
-    ----------
+    Parameters:
     spectrum : MSSpectrum
         The spectrum to be plotted.
         Reads annotations from the first StringDataArray if it has the same length as the number of peaks.
@@ -304,8 +301,7 @@ def plot_spectrum(spectrum: "MSSpectrum", color_ions: bool = True,
         Axes instance on which to plot the spectrum. If None the current Axes
         instance is used.
 
-    Returns
-    -------
+    Returns:
     plt.Axes
         The matplotlib Axes instance on which the spectrum is plotted.
     """
@@ -374,8 +370,7 @@ def mirror_plot_spectrum(spec_top: "MSSpectrum", spec_bottom: "MSSpectrum", alig
     """
     Mirror plot two MS/MS spectra.
 
-    Parameters
-    ----------
+    Parameters:
     spec_top : MSSpectrum
         The spectrum to be plotted on the top.
         Reads annotations from the first StringDataArray if it has the same length as the number of peaks.
@@ -392,8 +387,7 @@ def mirror_plot_spectrum(spec_top: "MSSpectrum", spec_bottom: "MSSpectrum", alig
         Axes instance on which to plot the spectrum. If None the current Axes
         instance is used.
 
-    Returns
-    -------
+    Returns:
     plt.Axes
         The matplotlib Axes instance on which the spectra are plotted.
     """
