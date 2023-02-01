@@ -204,8 +204,7 @@ def plot_chromatogram(c: "MSChromatogram"):
     """
     Plot chromatogram peaks.
 
-    Parameters
-    ----------
+    Parameters:
     c : MSChromatogram
         The chromatogram to be plotted.
     """
