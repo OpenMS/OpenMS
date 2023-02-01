@@ -65,14 +65,14 @@ namespace OpenMS
 
   void MSDataSqlConsumer::flush()
   {
-    if (!spectra_.empty() ) 
+    if (!spectra_.empty() )
     {
       handler_->writeSpectra(spectra_);
       spectra_.clear();
       spectra_.reserve(flush_after_);
     }
 
-    if (!chromatograms_.empty() ) 
+    if (!chromatograms_.empty() )
     {
       handler_->writeChromatograms(chromatograms_);
       chromatograms_.clear();
@@ -97,14 +97,14 @@ namespace OpenMS
   void MSDataSqlConsumer::consumeChromatogram(ChromatogramType & c)
   {
     chromatograms_.push_back(c);
-    c.clear(false);
+    //c.clear(false);
     if (full_meta_)
     {
       peak_meta_.addChromatogram(c);
     }
     if (chromatograms_.size() >= flush_after_)
     {
-      flush();
+      //flush();
     }
   }
 
