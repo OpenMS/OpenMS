@@ -245,7 +245,7 @@ public:
       // check for newlines in the label and only continue with the first line for charge determination
       peak_anno.remove('\r');
       QStringList lines = peak_anno.split('\n');
-      // TODO: replace with 'peak_anno.split('\n',  Qt::SkipEmptyParts), which is only supported in Qt 5.14 and above
+      // TODO: replace with 'peak_anno.split('\n',  Qt::SkipEmptyParts), which is only supported in Qt 5.14 and above: CONTRIB_UPDATE_Qt_5.14
       lines.removeAll({}); // remove empty strings
       if (lines.size() > 1)
       {
