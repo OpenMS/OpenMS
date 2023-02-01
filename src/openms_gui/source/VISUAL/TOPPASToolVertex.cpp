@@ -342,7 +342,7 @@ namespace OpenMS
       }
     }
     // order in param can change --> sort
-    qSort(io_infos);
+    std::sort(io_infos.begin(), io_infos.end());
   }
 
   void TOPPASToolVertex::paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
