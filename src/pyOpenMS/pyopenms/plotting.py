@@ -1,9 +1,11 @@
-# """Plot MSSpectrum & MSChromatogram data
-#
-# The MSSpectrum plotting function are adapted from:
-# Wout Bittremieux. “spectrum_utils: A Python package for mass spectrometry data processing and visualization.”
-# Plot a single spectrum with plot_spectrum or two with mirror_plot_spectrum, using matplotlib.
-# """
+"""
+Plot MSSpectrum & MSChromatogram data
+
+The MSSpectrum plotting function are adapted from:
+Wout Bittremieux. “spectrum_utils: A Python package for mass spectrometry data processing and visualization.”
+Plot a single spectrum with plot_spectrum or two with mirror_plot_spectrum, using matplotlib.
+
+"""
 
 # Code adopted from:
 # Wout Bittremieux. “spectrum_utils: A Python package for mass spectrometry data processing and visualization.”
@@ -207,6 +209,7 @@ def plot_chromatogram(c: "MSChromatogram"):
     Parameters:
     c : MSChromatogram
         The chromatogram to be plotted.
+
     """
 
     import matplotlib.pyplot as plt
@@ -228,8 +231,7 @@ def _annotate_ion(mz: float, intensity: float, annotation: Optional[str],
         The peak's m/z value (position of the annotation on the x axis).
     intensity : float
         The peak's intensity (position of the annotation on the y axis).
-    annotation : Optional[MoleculeFragmentAnnotation,
-                          PeptideFragmentAnnotation]
+    annotation : Optional[MoleculeFragmentAnnotation, PeptideFragmentAnnotation]
         The annotation that will be plotted.
     color_ions : bool
         Flag whether to color the peak annotation or not.
@@ -244,6 +246,7 @@ def _annotate_ion(mz: float, intensity: float, annotation: Optional[str],
     Tuple[str, int]
         A tuple of the annotation's color as a hex string and the annotation's
         zorder.
+
     """
 
     # No annotation -> Just return peak styling information.
@@ -284,11 +287,9 @@ def plot_spectrum(spectrum: "MSSpectrum", color_ions: bool = True,
         The spectrum to be plotted.
         Reads annotations from the first StringDataArray if it has the same length as the number of peaks.
     color_ions : bool, optional
-        Flag indicating whether to color annotated fragment ions. The
-        default is True.
+        Flag indicating whether to color annotated fragment ions. The default is True.
     annotate_ions : bool, optional
-        Flag indicating whether to annotate fragment ions. The default
-        is True.
+        Flag indicating whether to annotate fragment ions. The default is True.
     matched_peaks : Optional[Set], optional
         Indices of matched peaks in a spectrum alignment.
     annot_kws : Optional[Dict], optional
@@ -297,15 +298,14 @@ def plot_spectrum(spectrum: "MSSpectrum", color_ions: bool = True,
         Flag indicating whether to flip the intensity axis or not.
     grid : Union[bool, str], optional
         Draw grid lines or not. Either a boolean to enable/disable both major
-        and minor grid lines or 'major'/'minor' to enable major or minor grid
-        lines respectively.
+        and minor grid lines or 'major'/'minor' to enable major or minor grid lines respectively.
     ax : Optional[plt.Axes], optional
-        Axes instance on which to plot the spectrum. If None the current Axes
-        instance is used.
+        Axes instance on which to plot the spectrum. If None the current Axes instance is used.
 
     Returns:
     plt.Axes
         The matplotlib Axes instance on which the spectrum is plotted.
+
     """
 
     import matplotlib.pyplot as plt
@@ -387,14 +387,14 @@ def mirror_plot_spectrum(spec_top: "MSSpectrum", spec_bottom: "MSSpectrum", alig
     spectrum_bottom_kws : Optional[Dict], optional
         Keyword arguments for `Plotting.plot_spectrum` of bottom spectrum.
     ax : Optional[plt.Axes], optional
-        Axes instance on which to plot the spectrum. If None the current Axes
-        instance is used.
+        Axes instance on which to plot the spectrum. If None the current Axes instance is used.
 
     Returns:
     plt.Axes
         The matplotlib Axes instance on which the spectra are plotted.
+
     """
-    
+
     import matplotlib.pyplot as plt
     import matplotlib.ticker as mticker
     if ax is None:
