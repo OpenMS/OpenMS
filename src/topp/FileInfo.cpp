@@ -1122,9 +1122,12 @@ protected:
             os << spectrum.begin()->getMZ() << " .. " << spectrum.rbegin()->getMZ() << '\n';
           }
 
-         os << "  IM:         " <<  spectrum.getDriftTime() << ' '
-            << spectrum.getDriftTimeUnitAsString()
-            << '\n';
+          if (spectrum.getDriftTimeUnit() != DriftTimeUnit::NONE)
+          {
+            os << "  IM:         " <<  spectrum.getDriftTime() << ' '
+                << spectrum.getDriftTimeUnitAsString()
+                << '\n';
+          }            
 
           os << "Precursors:  " << spectrum.getPrecursors().size() <<  '\n';
 
