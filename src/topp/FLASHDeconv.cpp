@@ -148,7 +148,7 @@ protected:
     setMinInt_("max_MS_level", 1);
 
     registerIntOption_("forced_MS_level", "", 0,
-                       "If set to an integer N, MS level of all spectra will be set to N regardless of original MS level. Useful when deconvolving datasets containing only MS2 spectra.", false, true);
+                       "If set to an integer N, also deconvolute all spectra of level N and set precursor charge to mzml_mass_charge. Useful when deconvolving datasets containing only MS2 spectra.", false, true);
     setMinInt_("forced_MS_level", 0);
 
     registerIntOption_("merging_method", "<0: None 1: gaussian averaging 2: block method>", 0,
@@ -354,9 +354,9 @@ protected:
     {
       gradient_rt = std::max(gradient_rt, it.getRT());
       // if forced_ms_level > 0, force MS level of all spectra to 1.
-      if (forced_ms_level > 0)
+      if (forced_ms_level == it.getMSLevel())
       {
-        it.setMSLevel(forced_ms_level);
+        it.setMSLevel(1);
       }
 
       if (it.empty())
@@ -548,7 +548,14 @@ protected:
         if (!deconvolved_spectrum.empty())
         {
           auto dspec = deconvolved_spectrum.toSpectrum(mzml_charge, tols[ms_level - 1], false);
-
+          if (forced_ms_level != 0)
+          {
+            dspec.setMSLevel(forced_ms_level);
+            if (dspec.getPrecursors().size() == 1 )
+            {
+              dspec.getPrecursors()[0].setCharge(mzml_charge);
+            }
+          }
           if (dspec.size() > 0)
           {
             exp.addSpectrum(dspec);
