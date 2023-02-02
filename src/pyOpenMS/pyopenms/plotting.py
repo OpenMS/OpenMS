@@ -191,12 +191,12 @@ import math
 from typing import Dict, Optional, Tuple, Union, List, Set
 import itertools
 
-
 colors = {'a': '#388E3C', 'b': '#1976D2', 'c': '#00796B',
           'x': '#7B1FA2', 'y': '#D32F2F', 'z': '#F57C00',
           '?': '#212121', 'f': '#212121', None: '#212121'}
 zorders = {'a': 3, 'b': 4, 'c': 3, 'x': 3, 'y': 4, 'z': 3, '?': 2, 'f': 5,
            None: 1}
+
 
 # TODO switch to forward declarations via from __future__ import annotations
 # when py 3.7 is minimum. Then you can use types instead of strings
@@ -208,6 +208,7 @@ def plot_chromatogram(c: "MSChromatogram"):
     c : MSChromatogram
         The chromatogram to be plotted.
     """
+
     import matplotlib.pyplot as plt
     x, y = c.get_peaks()
     plt.plot(x, y)
@@ -244,6 +245,7 @@ def _annotate_ion(mz: float, intensity: float, annotation: Optional[str],
         A tuple of the annotation's color as a hex string and the annotation's
         zorder.
     """
+
     # No annotation -> Just return peak styling information.
     if annotation is None:
         return colors.get(None), zorders.get(None)
@@ -272,8 +274,8 @@ def _annotate_ion(mz: float, intensity: float, annotation: Optional[str],
 
 
 def plot_spectrum(spectrum: "MSSpectrum", color_ions: bool = True,
-             annotate_ions: bool = True, matched_peaks: Optional[Set] = None, annot_kws: Optional[Dict] = None,
-             mirror_intensity: bool = False, grid: Union[bool, str] = True, ax=None):
+                  annotate_ions: bool = True, matched_peaks: Optional[Set] = None, annot_kws: Optional[Dict] = None,
+                  mirror_intensity: bool = False, grid: Union[bool, str] = True, ax=None):
     """
     Plot an MS/MS spectrum.
 
@@ -305,6 +307,7 @@ def plot_spectrum(spectrum: "MSSpectrum", color_ions: bool = True,
     plt.Axes
         The matplotlib Axes instance on which the spectrum is plotted.
     """
+
     import matplotlib.pyplot as plt
     import matplotlib.ticker as mticker
 
@@ -391,6 +394,7 @@ def mirror_plot_spectrum(spec_top: "MSSpectrum", spec_bottom: "MSSpectrum", alig
     plt.Axes
         The matplotlib Axes instance on which the spectra are plotted.
     """
+    
     import matplotlib.pyplot as plt
     import matplotlib.ticker as mticker
     if ax is None:
