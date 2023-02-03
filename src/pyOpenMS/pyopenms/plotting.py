@@ -1,5 +1,4 @@
-"""
-Plot MSSpectrum & MSChromatogram data
+"""Plot MSSpectrum & MSChromatogram data
 
 The MSSpectrum plotting function are adapted from:
 Wout Bittremieux. “spectrum_utils: A Python package for mass spectrometry data processing and visualization.”
@@ -202,8 +201,7 @@ zorders = {'a': 3, 'b': 4, 'c': 3, 'x': 3, 'y': 4, 'z': 3, '?': 2, 'f': 5,
 # TODO switch to forward declarations via from __future__ import annotations
 # when py 3.7 is minimum. Then you can use types instead of strings
 def plot_chromatogram(c: "MSChromatogram"):
-    """
-    Plot chromatogram peaks.
+    """Plot chromatogram peaks.
 
     :param c: The chromatogram to be plotted.
     :type c: MSChromatogram
@@ -220,8 +218,7 @@ def plot_chromatogram(c: "MSChromatogram"):
 def _annotate_ion(mz: float, intensity: float, annotation: Optional[str],
                   color_ions: bool, annotate_ions: bool, matched: Optional[bool],
                   annotation_kws: Dict[str, object], ax) -> Tuple[str, int]:
-    """
-    Annotate a specific fragment peak.
+    """Annotate a specific fragment peak.
 
     :param mz: The peak's m/z value (position of the annotation on the x axis).
     :type mz: float
@@ -279,8 +276,7 @@ def _annotate_ion(mz: float, intensity: float, annotation: Optional[str],
 def plot_spectrum(spectrum: "MSSpectrum", color_ions: bool = True,
                   annotate_ions: bool = True, matched_peaks: Optional[Set] = None, annot_kws: Optional[Dict] = None,
                   mirror_intensity: bool = False, grid: Union[bool, str] = True, ax=None):
-    """
-    Plot an MS/MS spectrum.
+    """Plot an MS/MS spectrum.
 
     :param spectrum: The spectrum to be plotted.
         Reads annotations from the first StringDataArray if it has the same length as the number of peaks.
@@ -375,8 +371,7 @@ def plot_spectrum(spectrum: "MSSpectrum", color_ions: bool = True,
 def mirror_plot_spectrum(spec_top: "MSSpectrum", spec_bottom: "MSSpectrum", alignment: Optional[List] = None,
                          spectrum_top_kws: Optional[Dict] = None, spectrum_bottom_kws: Optional[Dict] = None,
                          ax=None):
-    """
-    Mirror plot two MS/MS spectra.
+    """Mirror plot two MS/MS spectra.
 
     :param spec_top: The spectrum to be plotted on the top.
         Reads annotations from the first StringDataArray if it has the same length as the number of peaks.
