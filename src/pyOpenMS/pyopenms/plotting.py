@@ -207,9 +207,9 @@ def plot_chromatogram(c: "MSChromatogram"):
     Plot chromatogram peaks.
 
     Parameters:
+
     c : MSChromatogram
         The chromatogram to be plotted.
-
     """
 
     import matplotlib.pyplot as plt
@@ -227,26 +227,25 @@ def _annotate_ion(mz: float, intensity: float, annotation: Optional[str],
     Annotate a specific fragment peak.
 
     Parameters:
-    mz : float
-        The peak's m/z value (position of the annotation on the x axis).
-    intensity : float
-        The peak's intensity (position of the annotation on the y axis).
-    annotation : Optional[MoleculeFragmentAnnotation, PeptideFragmentAnnotation]
-        The annotation that will be plotted.
-    color_ions : bool
-        Flag whether to color the peak annotation or not.
-    annotate_ions : bool
-        Flag whether to annotation the peak or not.
-    annotation_kws : Dict
-        Keyword arguments for `ax.text` to customize peak annotations.
-    ax : plt.Axes
-        Axes instance on which to plot the annotation.
+        mz : float
+            The peak's m/z value (position of the annotation on the x axis).
+        intensity : float
+            The peak's intensity (position of the annotation on the y axis).
+        annotation : Optional[MoleculeFragmentAnnotation, PeptideFragmentAnnotation]
+            The annotation that will be plotted.
+        color_ions : bool
+            Flag whether to color the peak annotation or not.
+        annotate_ions : bool
+            Flag whether to annotation the peak or not.
+        annotation_kws : Dict
+            Keyword arguments for `ax.text` to customize peak annotations.
+        ax : plt.Axes
+            Axes instance on which to plot the annotation.
 
     Returns:
-    Tuple[str, int]
-        A tuple of the annotation's color as a hex string and the annotation's
-        zorder.
-
+        Tuple[str, int]
+            A tuple of the annotation's color as a hex string and the annotation's
+            zorder.
     """
 
     # No annotation -> Just return peak styling information.
@@ -305,7 +304,6 @@ def plot_spectrum(spectrum: "MSSpectrum", color_ions: bool = True,
     Returns:
     plt.Axes
         The matplotlib Axes instance on which the spectrum is plotted.
-
     """
 
     import matplotlib.pyplot as plt
