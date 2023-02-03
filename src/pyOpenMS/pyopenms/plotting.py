@@ -207,9 +207,8 @@ def plot_chromatogram(c: "MSChromatogram"):
     Plot chromatogram peaks.
 
     Parameters:
-
-    c : MSChromatogram
-        The chromatogram to be plotted.
+        c : MSChromatogram
+            The chromatogram to be plotted.
     """
 
     import matplotlib.pyplot as plt
@@ -282,28 +281,28 @@ def plot_spectrum(spectrum: "MSSpectrum", color_ions: bool = True,
     Plot an MS/MS spectrum.
 
     Parameters:
-    spectrum : MSSpectrum
-        The spectrum to be plotted.
-        Reads annotations from the first StringDataArray if it has the same length as the number of peaks.
-    color_ions : bool, optional
-        Flag indicating whether to color annotated fragment ions. The default is True.
-    annotate_ions : bool, optional
-        Flag indicating whether to annotate fragment ions. The default is True.
-    matched_peaks : Optional[Set], optional
-        Indices of matched peaks in a spectrum alignment.
-    annot_kws : Optional[Dict], optional
-        Keyword arguments for `ax.text` to customize peak annotations.
-    mirror_intensity : bool, optional
-        Flag indicating whether to flip the intensity axis or not.
-    grid : Union[bool, str], optional
-        Draw grid lines or not. Either a boolean to enable/disable both major
-        and minor grid lines or 'major'/'minor' to enable major or minor grid lines respectively.
-    ax : Optional[plt.Axes], optional
-        Axes instance on which to plot the spectrum. If None the current Axes instance is used.
+        spectrum : MSSpectrum
+            The spectrum to be plotted.
+            Reads annotations from the first StringDataArray if it has the same length as the number of peaks.
+        color_ions : bool, optional
+            Flag indicating whether to color annotated fragment ions. The default is True.
+        annotate_ions : bool, optional
+            Flag indicating whether to annotate fragment ions. The default is True.
+        matched_peaks : Optional[Set], optional
+            Indices of matched peaks in a spectrum alignment.
+        annot_kws : Optional[Dict], optional
+            Keyword arguments for `ax.text` to customize peak annotations.
+        mirror_intensity : bool, optional
+            Flag indicating whether to flip the intensity axis or not.
+        grid : Union[bool, str], optional
+            Draw grid lines or not. Either a boolean to enable/disable both major
+            and minor grid lines or 'major'/'minor' to enable major or minor grid lines respectively.
+        ax : Optional[plt.Axes], optional
+            Axes instance on which to plot the spectrum. If None the current Axes instance is used.
 
     Returns:
-    plt.Axes
-        The matplotlib Axes instance on which the spectrum is plotted.
+        plt.Axes
+            The matplotlib Axes instance on which the spectrum is plotted.
     """
 
     import matplotlib.pyplot as plt
@@ -372,25 +371,24 @@ def mirror_plot_spectrum(spec_top: "MSSpectrum", spec_bottom: "MSSpectrum", alig
     Mirror plot two MS/MS spectra.
 
     Parameters:
-    spec_top : MSSpectrum
-        The spectrum to be plotted on the top.
-        Reads annotations from the first StringDataArray if it has the same length as the number of peaks.
-    spec_bottom : MSSpectrum
-        The spectrum to be plotted on the bottom.
-        Reads annotations from the first StringDataArray if it has the same length as the number of peaks.
-    alignment : Optional[List], optional
-        List of aligned peak pairs.
-    spectrum_top_kws : Optional[Dict], optional
-        Keyword arguments for `Plotting.plot_spectrum` of top spectrum.
-    spectrum_bottom_kws : Optional[Dict], optional
-        Keyword arguments for `Plotting.plot_spectrum` of bottom spectrum.
-    ax : Optional[plt.Axes], optional
-        Axes instance on which to plot the spectrum. If None the current Axes instance is used.
+        spec_top : MSSpectrum
+            The spectrum to be plotted on the top.
+            Reads annotations from the first StringDataArray if it has the same length as the number of peaks.
+        spec_bottom : MSSpectrum
+            The spectrum to be plotted on the bottom.
+            Reads annotations from the first StringDataArray if it has the same length as the number of peaks.
+        alignment : Optional[List], optional
+            List of aligned peak pairs.
+        spectrum_top_kws : Optional[Dict], optional
+            Keyword arguments for `Plotting.plot_spectrum` of top spectrum.
+        spectrum_bottom_kws : Optional[Dict], optional
+            Keyword arguments for `Plotting.plot_spectrum` of bottom spectrum.
+        ax : Optional[plt.Axes], optional
+            Axes instance on which to plot the spectrum. If None the current Axes instance is used.
 
     Returns:
-    plt.Axes
-        The matplotlib Axes instance on which the spectra are plotted.
-
+        plt.Axes
+            The matplotlib Axes instance on which the spectra are plotted.
     """
 
     import matplotlib.pyplot as plt
