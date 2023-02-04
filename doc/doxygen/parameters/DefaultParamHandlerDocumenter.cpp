@@ -34,6 +34,8 @@
 
 #include <OpenMS/ANALYSIS/ID/AScore.h>
 #include <OpenMS/ANALYSIS/ID/AccurateMassSearchEngine.h>
+#include <OpenMS/ANALYSIS/ID/BasicProteinInferenceAlgorithm.h>
+#include <OpenMS/ANALYSIS/ID/BayesianProteinInferenceAlgorithm.h>
 #include <OpenMS/ANALYSIS/ID/FIAMSDataProcessor.h>
 #include <OpenMS/ANALYSIS/ID/IDMapper.h>
 #include <OpenMS/ANALYSIS/ID/IDRipper.h>
