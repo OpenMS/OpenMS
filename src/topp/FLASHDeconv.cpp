@@ -553,7 +553,11 @@ protected:
             dspec.setMSLevel(forced_ms_level);
             if (dspec.getPrecursors().size() == 1 )
             {
-              dspec.getPrecursors()[0].setCharge(mzml_charge);
+              // Decharge the precursor and update the mass to the correct mzml_charge (-1 0 or 1)
+              auto this_precursor = dspec.getPrecursors()[0];
+              this_precursor.setMZ(this_precursor.getMZ() * abs(this_precursor.getCharge()) - (mzml_charge * this_precursor.getCharge() * Constants::PROTON_MASS_U));
+              this_precursor.setCharge(1);
+              dspec.getPrecursors()[0] = this_precursor;
             }
           }
           if (dspec.size() > 0)
