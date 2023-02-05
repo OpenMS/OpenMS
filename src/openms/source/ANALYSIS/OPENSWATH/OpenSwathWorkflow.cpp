@@ -850,10 +850,8 @@ namespace OpenMS
     for (Size j = 0; j < ms1_chromatograms.size(); j++)
     {
       if (ms1_chromatograms[j].empty()) continue; // skip empty chromatograms
-      {
-        // write MS1 chromatograms to disk
-        chromConsumer->consumeChromatogram( ms1_chromatograms[j] );
-      }
+      // write MS1 chromatograms to disk
+      chromConsumer->consumeChromatogram( ms1_chromatograms[j] );
     }
 
 
