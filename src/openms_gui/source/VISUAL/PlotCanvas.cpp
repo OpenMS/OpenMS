@@ -427,7 +427,7 @@ namespace OpenMS
 
   bool PlotCanvas::addLayer(std::unique_ptr<LayerData1DBase> new_layer)
   {
-    setBaseLayerParameters(new_layer.get(), param_, "");
+    setBaseLayerParameters(new_layer.get(), param_, new_layer->filename);
     layers_.addLayer(std::move(new_layer));
 
     return finishAdding_();
