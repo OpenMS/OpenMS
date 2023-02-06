@@ -63,10 +63,10 @@ namespace OpenMS
 
   std::ostream& operator<<(std::ostream& os, const LayerDataBase& rhs)
   {
-    os << "--LayerDataBase BEGIN--" << std::endl;
-    os << "name: " << rhs.getName() << std::endl;
-    os << "visible: " << rhs.visible << std::endl;
-    os << "--LayerDataBase END--" << std::endl;
+    os << "--LayerDataBase BEGIN--\n";
+    os << "name: " << rhs.getName() << '\n';
+    os << "visible: " << rhs.visible << '\n';
+    os << "--LayerDataBase END--\n";
     return os;
   }
 
