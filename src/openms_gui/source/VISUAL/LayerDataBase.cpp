@@ -71,10 +71,10 @@ namespace OpenMS
   }
 
 
-  /// get name augmented with attributes, e.g. [flipped], or '*' if modified
+  /// get name plus name_extra plus optionally augmented with attributes, e.g. '*' if modified
   String LayerDataBase::getDecoratedName() const
   {
-    String n = name_;
+    String n = name_ + name_suffix_;
     if (modified)
     {
       n += '*';
