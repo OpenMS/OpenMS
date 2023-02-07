@@ -123,11 +123,13 @@ endif()
 
 #------------------------------------------------------------------------------
 # HDF5
-# For MSVC use static linking to the HDF5 libraries
-if(MSVC)
-  set(HDF5_USE_STATIC_LIBRARIES ON)
+if (WITH_HDF5)
+  # For MSVC use static linking to the HDF5 libraries
+  if(MSVC)
+    set(HDF5_USE_STATIC_LIBRARIES ON)
+  endif()
+  find_package(HDF5 MODULE REQUIRED COMPONENTS C CXX)
 endif()
-find_package(HDF5 MODULE REQUIRED COMPONENTS C CXX)
 
 #------------------------------------------------------------------------------
 # Done finding contrib libraries
