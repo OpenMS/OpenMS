@@ -205,46 +205,10 @@ namespace OpenMS
 
       bool allow_missing = false;
 
-      IdentifiedMolecule translate(IdentifiedMolecule old) const
-      {
-        switch (old.getMoleculeType())
-        {
-          case MoleculeType::PROTEIN:
-          {
-            auto pos = identified_peptide_refs.find(old.getIdentifiedPeptideRef());
-            if (pos != identified_peptide_refs.end()) return pos->second;
-          }
-          break;
-          case MoleculeType::COMPOUND:
-          {
-            auto pos = identified_compound_refs.find(old.getIdentifiedCompoundRef());
-            if (pos != identified_compound_refs.end()) return pos->second;
-          }
-          break;
-          case MoleculeType::RNA:
-          {
-            auto pos = identified_oligo_refs.find(old.getIdentifiedOligoRef());
-            if (pos != identified_oligo_refs.end()) return pos->second;
-          }
-          break;
-          default:
-            throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                          "invalid molecule type",
-                                          String(old.getMoleculeType()));
-        }
-        if (allow_missing) return old;
-        throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                            "no match for reference");
-      }
+      IdentifiedMolecule translate(IdentifiedMolecule old) const;
 
-      ObservationMatchRef translate(ObservationMatchRef old) const
-      {
-        auto pos = observation_match_refs.find(old);
-        if (pos != observation_match_refs.end()) return pos->second;
-        if (allow_missing) return old;
-        throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                            "no match for reference");
-      }
+      ObservationMatchRef translate(ObservationMatchRef old) const;
+
     };
 
     /// Default constructor
@@ -522,6 +486,17 @@ namespace OpenMS
 
     /// Get range of matches (cf. @p equal_range) for a given observation
     std::pair<ObservationMatchRef, ObservationMatchRef> getMatchesForObservation(ObservationRef obs_ref) const;
+
+    /*!
+      @brief Helper function for filtering observation matches (e.g. PSMs) in IdentificationData
+
+      Depending on parameter @p cleanup_affected, the data structure may be cleaned up (IdentificationData::cleanup) to remove any invalidated references at the end of this operation.
+
+      @param func Functor that returns true for items to be removed
+      @param cleanup_affected Will filtering invalidate other parts of @p id_data that need to be cleaned up?
+    */
+    template <typename PredicateType>
+    void removeObservationMatchesIf(PredicateType&& func, bool cleanup_affected = false);
 
     /*!
       @brief Look up a score type by name.
@@ -813,87 +788,8 @@ namespace OpenMS
       return ref;
     }
 
-    /// Check whether a reference points to an element in a container
-    template <typename RefType, typename ContainerType>
-    static bool isValidReference_(RefType ref, ContainerType& container)
-    {
-      for (auto it = container.begin(); it != container.end(); ++it)
-      {
-        if (ref == it) return true;
-      }
-      return false;
-    }
-
-    /// Check validity of a reference based on a look-up table of addresses
-    template <typename RefType>
-    static bool isValidHashedReference_(
-      RefType ref, const AddressLookup& lookup)
-    {
-      return lookup.count(ref);
-    }
-
-    /// Remove elements from a set (or ordered multi_index_container) if they fulfill a predicate
-    template <typename ContainerType, typename PredicateType>
-    static void removeFromSetIf_(ContainerType& container, PredicateType predicate)
-    {
-      for (auto it = container.begin(); it != container.end(); )
-      {
-        if (predicate(it))
-        {
-          it = container.erase(it);
-        }
-        else
-        {
-          ++it;
-        }
-      }
-    }
-
-    /// Remove elements from a set (or ordered multi_index_container) if they don't occur in a look-up table
-    template <typename ContainerType>
-    static void removeFromSetIfNotHashed_(
-      ContainerType& container, const AddressLookup& lookup)
-    {
-      removeFromSetIf_(container, [&lookup](typename ContainerType::iterator it)
-                       {
-                         return !lookup.count(uintptr_t(&(*it)));
-                       });
-    }
-
-    /// Recreate the address look-up table for a container
-    template <typename ContainerType>
-    static void updateAddressLookup_(const ContainerType& container,
-                                     AddressLookup& lookup)
-    {
-      lookup.clear();
-      lookup.reserve(container.size());
-      for (const auto& element : container)
-      {
-        lookup.insert(uintptr_t(&element));
-      }
-    }
-
-    /// Helper function to add a meta value to an element in a multi-index container
-    template <typename RefType, typename ContainerType>
-    void setMetaValue_(const RefType ref, const String& key, const DataValue& value,
-                       ContainerType& container, const AddressLookup& lookup = AddressLookup())
-    {
-      if (!no_checks_ && ((lookup.empty() && !isValidReference_(ref, container)) ||
-                          (!lookup.empty() && !isValidHashedReference_(ref, lookup))))
-      {
-        String msg = "invalid reference for the given container";
-        throw Exception::IllegalArgument(__FILE__, __LINE__,
-                                         OPENMS_PRETTY_FUNCTION, msg);
-      }
-      container.modify(ref, [&key, &value](typename ContainerType::value_type& element)
-      {
-        element.setMetaValue(key, value);
-      });
-    }
-
-
-    // these classes need access to manipulate data:
-    friend class IDFilter;
+    // these classes need access to manipulate data: TODO remove! breaks encapsulation and design/architecture
     friend class MapAlignmentTransformer;
   };
+  
 }
