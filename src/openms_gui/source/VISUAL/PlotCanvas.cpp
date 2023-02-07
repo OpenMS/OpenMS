@@ -193,7 +193,7 @@ namespace OpenMS
   void PlotCanvas::wheelEvent(QWheelEvent* e)
   {
      /* Supressed warning int QWheelEvent::x() const and y() deprecated
-     * Use position() instead, from Qt 5.14
+     * Use position() instead, from Qt 5.14; CONTRIB_UPDATE_Qt_5.14
      */
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wdeprecated-declarations"
@@ -427,7 +427,7 @@ namespace OpenMS
 
   bool PlotCanvas::addLayer(std::unique_ptr<LayerData1DBase> new_layer)
   {
-    setBaseLayerParameters(new_layer.get(), param_, "");
+    setBaseLayerParameters(new_layer.get(), param_, new_layer->filename);
     layers_.addLayer(std::move(new_layer));
 
     return finishAdding_();

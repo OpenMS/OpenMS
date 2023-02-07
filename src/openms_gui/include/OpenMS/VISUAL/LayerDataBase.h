@@ -313,17 +313,33 @@ namespace OpenMS
     /// If you need the data range for a 1D view (i.e. only a single spec/chrom/etc), call 'LayerDataBase1D::getRange1D()'
     virtual RangeAllType getRange() const = 0;
 
-    /// compute layer statistics (via visitor)
+    /// Compute layer statistics (via visitor)
     virtual std::unique_ptr<LayerStatistics> getStats() const = 0;
 
+    /// The name of the layer, usually the basename of the file
     const String& getName() const
     {
       return name_;
     }
+    /// Set the name of the layer, usually the basename of the file
     void setName(const String& new_name)
     {
       name_ = new_name;
     }
+
+    /// get the extra annotation to the layers name, e.g. '[39]' for which chromatogram index is currently shown in 1D
+    const String& getNameSuffix() const
+    {
+      return name_suffix_;
+    }
+    /// set an extra annotation as suffix to the layers name, e.g. '[39]' for which chromatogram index is currently shown in 1D
+    void setNameSuffix(const String& decorator)
+    {
+      name_suffix_ = decorator;
+    }
+
+    /// get name augmented with attributes, e.g. '*' if modified
+    virtual String getDecoratedName() const;
 
     /// if this layer is visible
     bool visible = true;
@@ -356,12 +372,11 @@ namespace OpenMS
     int peptide_id_index = -1;
     int peptide_hit_index = -1;
 
-    /// get name augmented with attributes, e.g. '*' if modified
-    virtual String getDecoratedName() const;
-
   private:
     /// layer name
     String name_;
+    /// an extra annotation as suffix to the layers name, e.g. '[39]' for which chromatogram index is currently shown in 1D
+    String name_suffix_;
   };
 
   /// A base class to annotate layers of specific types with (identification) data

@@ -365,7 +365,8 @@ public:
     /// @param chrom_annotation If OSWData was loaded, pass the shared_pointer from the LayerData. Otherwise leave empty.
     /// @param index Index of the chromatogram to show
     /// @param filename For file change watcher (can be empty, if need be)
-    /// @param caption Name of layer
+    /// @param basename Name of layer (usually the basename of the file)
+    /// @param basename_extra Optional suffix of the layer name (e.g. a peptide sequence, or an index '[39]).
     /// @return true on success, false if data was missing etc
     /// @note: this does NOT trigger layerActivated signal for efficiency-reasons. Do it manually afterwards!
     bool addChromLayer(ExperimentSharedPtrType chrom_exp_sptr,
@@ -373,7 +374,8 @@ public:
                        OSWDataSharedPtrType chrom_annotation,
                        const int index,
                        const String& filename, 
-                       const String& caption);
+                       const String& basename,
+                       const String& basename_extra);
 
     
     ///Enumerate all available paint styles

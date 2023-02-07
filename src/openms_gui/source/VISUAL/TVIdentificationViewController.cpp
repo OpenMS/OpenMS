@@ -107,8 +107,8 @@ namespace OpenMS
       // set visible area to visible area in 2D view
       w->canvas()->setVisibleArea(tv_->getActiveCanvas()->getVisibleArea());
       
-      String caption = layer.getName();
-      w->canvas()->setLayerName(w->canvas()->getCurrentLayerIndex(), caption);
+      w->canvas()->getCurrentLayer().setName(layer.getName());
+      w->canvas()->getCurrentLayer().setNameSuffix(layer.getNameSuffix());
 
       tv_->showPlotWidgetInWindow(w);
 
