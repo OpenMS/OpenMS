@@ -101,7 +101,7 @@ ZlibCompression.cpp
 )
 
 if (WITH_HDF5)
-  list(APPEND sources_list HDF5Connector.h)  
+  list(APPEND sources_list HDF5Connector.cpp)  
 endif()
 
 ### add path to the filenames
