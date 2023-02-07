@@ -30,7 +30,6 @@ GNPSMGFFile.cpp
 GNPSQuantificationFile.cpp
 GzipIfstream.cpp
 GzipInputStream.cpp
-HDF5Connector.cpp
 IBSpectraFile.cpp
 IdXMLFile.cpp
 IndentedStream.cpp
@@ -100,6 +99,10 @@ XTandemInfile.cpp
 XTandemXMLFile.cpp
 ZlibCompression.cpp
 )
+
+if (WITH_HDF5)
+  list(APPEND sources_list HDF5Connector.h)  
+endif()
 
 ### add path to the filenames
 set(sources)
