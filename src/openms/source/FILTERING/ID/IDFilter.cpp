@@ -915,8 +915,8 @@ namespace OpenMS
     Size n_parents = id_data.getParentSequences().size();
 
     // predicate to compare the target/decoy status of a parent sequence
-    // returns false if the current score is worse than the cutoff
-    // returns true otherwise
+    // returns true if decoy
+    // returns false if target
     auto is_decoy = [&](IdentificationData::ParentSequenceRef it)->bool 
     { 
       return it->is_decoy;
