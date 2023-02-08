@@ -102,6 +102,77 @@ namespace OpenMS
     });
   }
 
+  template <typename ContainerType, typename ElementType>
+  typename ContainerType::iterator IdentificationData::insertIntoMultiIndex_(
+    ContainerType& container, const ElementType& element,
+    AddressLookup& lookup)
+  {
+    typename ContainerType::iterator ref =
+      insertIntoMultiIndex_(container, element);
+    lookup.insert(uintptr_t(&(*ref)));
+    return ref;
+  }
+
+  template <typename ElementType>
+  struct IdentificationData::ModifyMultiIndexRemoveParentMatches
+  {
+    ModifyMultiIndexRemoveParentMatches(const AddressLookup& lookup):
+      lookup(lookup)
+    {
+    }
+
+    void operator()(ElementType& element)
+    {
+      removeFromSetIf_(element.parent_matches,
+                        [&](const ParentMatches::iterator it)
+                        {
+                          return !lookup.count(it->first);
+                        });
+    }
+
+    const AddressLookup& lookup;
+  };
+
+  template <typename ElementType>
+  struct IdentificationData::ModifyMultiIndexAddProcessingStep
+  {
+    ModifyMultiIndexAddProcessingStep(ProcessingStepRef step_ref):
+      step_ref(step_ref)
+    {
+    }
+
+    void operator()(ElementType& element)
+    {
+      element.addProcessingStep(step_ref);
+    }
+
+    ProcessingStepRef step_ref;
+  };  
+
+  template <typename ElementType>
+  struct IdentificationData::ModifyMultiIndexAddScore
+  {
+    ModifyMultiIndexAddScore(ScoreTypeRef score_type_ref, double value):
+      score_type_ref(score_type_ref), value(value)
+    {
+    }
+
+    void operator()(ElementType& element)
+    {
+      if (element.steps_and_scores.empty())
+      {
+        element.addScore(score_type_ref, value);
+      }
+      else // add score to most recent step
+      {
+        element.addScore(score_type_ref, value,
+                          element.steps_and_scores.back().processing_step_opt);
+      }
+    }  
+    ScoreTypeRef score_type_ref;
+    double value;
+  };
+
   void IdentificationData::checkScoreTypes_(const map<IdentificationData::ScoreTypeRef, double>&
                                             scores) const
   {
@@ -1283,6 +1354,32 @@ namespace OpenMS
     if (allow_missing) return old;
     throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                         "no match for reference");
+  }
+
+  template <typename ContainerType, typename ElementType>
+  typename ContainerType::iterator IdentificationData::insertIntoMultiIndex_(
+    ContainerType& container, const ElementType& element)
+  {
+    checkAppliedProcessingSteps_(element.steps_and_scores);
+
+    auto result = container.insert(element);
+    if (!result.second) // existing element - merge in new information
+    {
+      container.modify(result.first, [&element](ElementType& existing)
+                        {
+                          existing.merge(element);
+                        });
+    }
+
+    // add current processing step (if necessary):
+    if (current_step_ref_ != processing_steps_.end())
+    {
+      ModifyMultiIndexAddProcessingStep<ElementType>
+        modifier(current_step_ref_);
+      container.modify(result.first, modifier);
+    }
+
+    return result.first;
   }
 
 } // end namespace OpenMS

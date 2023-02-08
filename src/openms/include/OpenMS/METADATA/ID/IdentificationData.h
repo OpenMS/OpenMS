@@ -714,20 +714,7 @@ namespace OpenMS
       The validity of the processing step reference cannot be checked here!
     */
     template <typename ElementType>
-    struct ModifyMultiIndexAddProcessingStep
-    {
-      ModifyMultiIndexAddProcessingStep(ProcessingStepRef step_ref):
-        step_ref(step_ref)
-      {
-      }
-
-      void operator()(ElementType& element)
-      {
-        element.addProcessingStep(step_ref);
-      }
-
-      ProcessingStepRef step_ref;
-    };
+    struct ModifyMultiIndexAddProcessingStep;
 
     /**
       @brief Helper functor for adding scores to elements in a @em boost::multi_index_container structure
@@ -735,29 +722,7 @@ namespace OpenMS
       The validity of the score type reference cannot be checked here!
     */
     template <typename ElementType>
-    struct ModifyMultiIndexAddScore
-    {
-      ModifyMultiIndexAddScore(ScoreTypeRef score_type_ref, double value):
-        score_type_ref(score_type_ref), value(value)
-      {
-      }
-
-      void operator()(ElementType& element)
-      {
-        if (element.steps_and_scores.empty())
-        {
-          element.addScore(score_type_ref, value);
-        }
-        else // add score to most recent step
-        {
-          element.addScore(score_type_ref, value,
-                           element.steps_and_scores.back().processing_step_opt);
-        }
-      }
-
-      ScoreTypeRef score_type_ref;
-      double value;
-    };
+    struct ModifyMultiIndexAddScore;
 
     /**
       @brief Helper functor for removing invalid parent matches from elements in a @em boost::multi_index_container structure
@@ -765,64 +730,17 @@ namespace OpenMS
       Used during filtering, to update parent matches after parents have been removed.
     */
     template <typename ElementType>
-    struct ModifyMultiIndexRemoveParentMatches
-    {
-      ModifyMultiIndexRemoveParentMatches(const AddressLookup& lookup):
-        lookup(lookup)
-      {
-      }
-
-      void operator()(ElementType& element)
-      {
-        removeFromSetIf_(element.parent_matches,
-                         [&](const ParentMatches::iterator it)
-                         {
-                           return !lookup.count(it->first);
-                         });
-      }
-
-      const AddressLookup& lookup;
-    };
-
+    struct ModifyMultiIndexRemoveParentMatches;
 
     /// Helper function for adding entries (derived from ScoredProcessingResult) to a @em boost::multi_index_container structure
     template <typename ContainerType, typename ElementType>
-    typename ContainerType::iterator insertIntoMultiIndex_(
-      ContainerType& container, const ElementType& element)
-    {
-      checkAppliedProcessingSteps_(element.steps_and_scores);
-
-      auto result = container.insert(element);
-      if (!result.second) // existing element - merge in new information
-      {
-        container.modify(result.first, [&element](ElementType& existing)
-                         {
-                           existing.merge(element);
-                         });
-      }
-
-      // add current processing step (if necessary):
-      if (current_step_ref_ != processing_steps_.end())
-      {
-        ModifyMultiIndexAddProcessingStep<ElementType>
-          modifier(current_step_ref_);
-        container.modify(result.first, modifier);
-      }
-
-      return result.first;
-    }
+    typename ContainerType::iterator insertIntoMultiIndex_(ContainerType& container, const ElementType& element);
 
     /// Variant of insertIntoMultiIndex_() that also updates a look-up table of valid references (addresses)
     template <typename ContainerType, typename ElementType>
     typename ContainerType::iterator insertIntoMultiIndex_(
       ContainerType& container, const ElementType& element,
-      AddressLookup& lookup)
-    {
-      typename ContainerType::iterator ref =
-        insertIntoMultiIndex_(container, element);
-      lookup.insert(uintptr_t(&(*ref)));
-      return ref;
-    }
+      AddressLookup& lookup);
 
   };
   
