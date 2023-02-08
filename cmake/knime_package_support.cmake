@@ -142,7 +142,7 @@ endforeach()
 
 find_package(Git)
 if(GIT_FOUND)
-  file(TO_CMAKE_PATH DIR "${CMAKE_CURRENT_LIST_DIR}" )
+  file(TO_CMAKE_PATH "${CMAKE_CURRENT_LIST_DIR}" DIR)
   execute_process(COMMAND ${GIT_EXECUTABLE} log -n 1 --simplify-by-decoration --pretty=%ai
                   WORKING_DIRECTORY ${DIR}
                   ERROR_QUIET

@@ -91,13 +91,14 @@ namespace OpenMS
     }
     transitions_seen.insert(transition_id);
 
-    String chrom_caption = FileHandler::stripExtension(File::basename(ml.filename)) + "[" + transition_id + "]";
-
     // convert from native id to chrom_index
     int chrom_index = ml.annot_sptr->fromNativeID(transition_id);
 
     // add data and return if something went wrong
-    if (!w->canvas()->addChromLayer(ml.full_chrom_exp_sptr, ml.ondisc_sptr, ml.annot_sptr, chrom_index, ml.filename, chrom_caption))
+    if (!w->canvas()->addChromLayer(ml.full_chrom_exp_sptr, ml.ondisc_sptr, ml.annot_sptr,
+                                    chrom_index, ml.filename, 
+                                    FileHandler::stripExtension(File::basename(ml.filename)),
+                                    String("[") + transition_id + "]"))
     {
       return false;
     }
