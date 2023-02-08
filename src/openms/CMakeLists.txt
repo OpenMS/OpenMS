@@ -88,7 +88,17 @@ include (${PROJECT_SOURCE_DIR}/includes.cmake)
 # all the dependency libraries are linked into libOpenMS.so
 set(OPENMS_DEP_LIBRARIES Evergreen LibSVM::LibSVM XercesC::XercesC Qt5::Core Qt5::Network)
 
-set(OPENMS_DEP_PRIVATE_LIBRARIES GTE Quadtree ${LPTARGET} Eigen3::Eigen HDF5::HDF5 Boost::iostreams Boost::date_time Boost::boost Boost::regex BZip2::BZip2 ZLIB::ZLIB SQLiteCpp)
+set(OPENMS_DEP_PRIVATE_LIBRARIES 
+  GTE Quadtree ${LPTARGET} 
+  Eigen3::Eigen
+  $<$<BOOL:${WITH_HDF5}>:HDF5::HDF5>
+  Boost::iostreams
+  Boost::date_time
+  Boost::boost
+  Boost::regex
+  BZip2::BZip2
+  ZLIB::ZLIB
+  SQLiteCpp)
 
 ## ----------
 ## No need to for this at the moment: no Qt plugins required anymore. Left here for reference.
