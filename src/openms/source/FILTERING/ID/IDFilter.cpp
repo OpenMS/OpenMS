@@ -881,7 +881,7 @@ namespace OpenMS
     // predicate to compare the best match(es) to all (ordered) observation matches
     // returns false if the current om is a best match (-> not to be removed)
     // returns true if an inferior om was found (-> will be removed)
-    auto has_worse_score = [&](IdentificationData::ObservationMatchRef it)->bool 
+    auto has_worse_score = [&best_match_it](IdentificationData::ObservationMatchRef it)->bool 
     { 
       if (it == *best_match_it)
       {
@@ -914,7 +914,7 @@ namespace OpenMS
   {
     Size n_parents = id_data.getParentSequences().size();
 
-    // predicate to compare the the score of observation matches to a cutoff
+    // predicate to compare the target/decoy status of a parent sequence
     // returns false if the current score is worse than the cutoff
     // returns true otherwise
     auto is_decoy = [&](IdentificationData::ParentSequenceRef it)->bool 
