@@ -1379,14 +1379,6 @@ public:
 
     /// @name Filter functions for class IdentificationData
     ///@{
-/*
-    template <typename PredicateType>
-    static void filterObservationMatchesByFunctor(
-        IdentificationData& id_data, PredicateType&& func, bool cleanup_affected = false)
-    {
-      id_data.removeObservationMatchesIf(func, cleanup_affected);
-    }
-*/
     /*!
       @brief Filter IdentificationData to keep only the best match (e.g. PSM) for each observation (e.g. spectrum)
 
