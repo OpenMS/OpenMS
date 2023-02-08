@@ -881,7 +881,7 @@ namespace OpenMS
     // predicate to compare the best match(es) to all (ordered) observation matches
     // returns false if the current om is a best match (-> not to be removed)
     // returns true if an inferior om was found (-> will be removed)
-    auto is_worse_score = [&](IdentificationData::ObservationMatchRef it)->bool 
+    auto has_worse_score = [&](IdentificationData::ObservationMatchRef it)->bool 
     { 
       if (it == *best_match_it)
       {
