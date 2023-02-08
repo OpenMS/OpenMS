@@ -532,7 +532,7 @@ namespace OpenMS
     {
       auto count = parents_.size();
       removeFromSetIf_(parents_, func);
-      if (count != observation_matches_.size()) cleanup();
+      if (count != parents_.size()) cleanup();
     }
 
     template <typename PredicateType>
