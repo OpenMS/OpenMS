@@ -901,7 +901,7 @@ namespace OpenMS
     // predicate to compare the the score of observation matches to a cutoff
     // returns false if the current score is worse than the cutoff
     // returns true otherwise
-    auto is_worse_than_cutoff = [&](IdentificationData::ScoreTypeRef it)->bool 
+    auto is_worse_than_cutoff = [&](IdentificationData::ObservationMatchRef it)->bool 
     { 
       pair<double, bool> score = it->getScore(score_ref);
       return !score.second || score_ref->isBetterScore(cutoff, score.first);
