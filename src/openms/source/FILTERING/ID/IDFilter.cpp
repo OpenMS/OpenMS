@@ -879,7 +879,7 @@ namespace OpenMS
     auto best_match_it = best_matches.begin();
 
     // predicate to compare the best match(es) to all (ordered) observation matches
-    // returns false if the current om is a best match (-> not not be removed)
+    // returns false if the current om is a best match (-> not to be removed)
     // returns true if an inferior om was found (-> will be removed)
     auto is_worse_score = [&](IdentificationData::ObservationMatchRef it)->bool 
     { 
