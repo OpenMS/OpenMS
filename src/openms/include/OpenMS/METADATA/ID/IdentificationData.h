@@ -91,6 +91,24 @@ namespace OpenMS
 
     @ingroup Metadata
   */
+
+  /// Remove elements from a set (or ordered multi_index_container) if they fulfill a predicate (TODO: deprecate and use std::erase_if with C++20 adoption)
+  template <typename ContainerType, typename PredicateType>
+  static void removeFromSetIf_(ContainerType& container, PredicateType predicate)
+  {
+    for (auto it = container.begin(); it != container.end(); )
+    {
+      if (predicate(it))
+      {
+        it = container.erase(it);
+      }
+      else
+      {
+        ++it;
+      }
+    }
+  }
+
   class OPENMS_DLLAPI IdentificationData: public MetaInfoInterface
   {
   public:
@@ -492,11 +510,22 @@ namespace OpenMS
 
       Depending on parameter @p cleanup_affected, the data structure may be cleaned up (IdentificationData::cleanup) to remove any invalidated references at the end of this operation.
 
-      @param func Functor that returns true for items to be removed
+      @param func Functor that returns true for container elements to be removed
       @param cleanup_affected Will filtering invalidate other parts of @p id_data that need to be cleaned up?
     */
     template <typename PredicateType>
-    void removeObservationMatchesIf(PredicateType&& func, bool cleanup_affected = false);
+    void removeObservationMatchesIf(PredicateType&& func, bool cleanup_affected)
+    {
+      removeFromSetIf_(observation_matches_, func);
+      if (cleanup_affected) cleanup();
+    }
+
+    template <typename PredicateType>
+    void removeParentSequencesIf(PredicateType&& func, bool cleanup_affected)
+    {
+      removeFromSetIf_(parents_, func);
+      if (cleanup_affected) cleanup();
+    }
 
     /*!
       @brief Look up a score type by name.

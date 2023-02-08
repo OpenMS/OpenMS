@@ -60,23 +60,6 @@ namespace OpenMS
     return lookup.count(ref);
   }
 
-  /// Remove elements from a set (or ordered multi_index_container) if they fulfill a predicate
-  template <typename ContainerType, typename PredicateType>
-  static void removeFromSetIf_(ContainerType& container, PredicateType predicate)
-  {
-    for (auto it = container.begin(); it != container.end(); )
-    {
-      if (predicate(it))
-      {
-        it = container.erase(it);
-      }
-      else
-      {
-        ++it;
-      }
-    }
-  }
-
   /// Remove elements from a set (or ordered multi_index_container) if they don't occur in a look-up table
   template <typename ContainerType>
   static void removeFromSetIfNotHashed_(
@@ -1300,13 +1283,6 @@ namespace OpenMS
     if (allow_missing) return old;
     throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                         "no match for reference");
-  }
-  
-  template <typename PredicateType>
-  void IdentificationData::removeObservationMatchesIf(PredicateType&& func, bool cleanup_affected)
-  {
-    removeFromSetIf_(observation_matches_, func);
-    if (cleanup_affected) cleanup();
   }
 
 } // end namespace OpenMS
