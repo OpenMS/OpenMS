@@ -891,29 +891,27 @@ namespace OpenMS
       return true;
     };
     
-    id_data.removeObservationMatchesIf(is_worse_score, true);
+    id_data.removeObservationMatchesIf(has_worse_score);
   }
 
   void IDFilter::filterObservationMatchesByScore(
     IdentificationData& id_data, IdentificationData::ScoreTypeRef score_ref,
     double cutoff)
   {
-    // predicate to compare the the score of observation matches to a cutoff
-    // returns false if the current score is worse than the cutoff
-    // returns true otherwise
+    // predicate to compare the score of observation matches to a cutoff
+    // returns true if the current score is worse than the cutoff
+    // returns false otherwise
     auto is_worse_than_cutoff = [&](IdentificationData::ObservationMatchRef it)->bool 
     { 
       pair<double, bool> score = it->getScore(score_ref);
       return !score.second || score_ref->isBetterScore(cutoff, score.first);
     };
     
-    id_data.removeObservationMatchesIf(is_worse_than_cutoff, true);
+    id_data.removeObservationMatchesIf(is_worse_than_cutoff);
   }
 
   void IDFilter::removeDecoys(IdentificationData& id_data)
   {
-    Size n_parents = id_data.getParentSequences().size();
-
     // predicate to compare the target/decoy status of a parent sequence
     // returns true if decoy
     // returns false if target
@@ -922,8 +920,7 @@ namespace OpenMS
       return it->is_decoy;
     };
     
-    id_data.removeParentSequencesIf(is_decoy, false);
-    if (id_data.getParentSequences().size() < n_parents) id_data.cleanup(); // only clean up if sth. removed
+    id_data.removeParentSequencesIf(is_decoy);
   }
 
 } // namespace OpenMS

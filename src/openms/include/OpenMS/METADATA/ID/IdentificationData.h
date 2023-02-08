@@ -508,23 +508,31 @@ namespace OpenMS
     /*!
       @brief Helper function for filtering observation matches (e.g. PSMs) in IdentificationData
 
-      Depending on parameter @p cleanup_affected, the data structure may be cleaned up (IdentificationData::cleanup) to remove any invalidated references at the end of this operation.
+      If other parts are invalidated by filtering, the data structure is automatically cleaned up (IdentificationData::cleanup) to remove any invalidated references at the end of this operation.
 
       @param func Functor that returns true for container elements to be removed
-      @param cleanup_affected Will filtering invalidate other parts of @p id_data that need to be cleaned up?
     */
     template <typename PredicateType>
-    void removeObservationMatchesIf(PredicateType&& func, bool cleanup_affected)
+    void removeObservationMatchesIf(PredicateType&& func)
     {
+      auto count = observation_matches_.size();
       removeFromSetIf_(observation_matches_, func);
-      if (cleanup_affected) cleanup();
+      if (count != observation_matches_.size()) cleanup();
     }
 
+    /*!
+      @brief Helper function for filtering parent sequences (e.g. protein sequences) in IdentificationData
+
+      If other parts are invalidated by filtering, the data structure is automatically cleaned up (IdentificationData::cleanup) to remove any invalidated references at the end of this operation.
+
+      @param func Functor that returns true for container elements to be removed
+    */
     template <typename PredicateType>
-    void removeParentSequencesIf(PredicateType&& func, bool cleanup_affected)
+    void removeParentSequencesIf(PredicateType&& func)
     {
+      auto count = parents_.size();
       removeFromSetIf_(parents_, func);
-      if (cleanup_affected) cleanup();
+      if (count != observation_matches_.size()) cleanup();
     }
 
     template <typename PredicateType>
