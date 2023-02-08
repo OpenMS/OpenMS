@@ -527,6 +527,13 @@ namespace OpenMS
       if (cleanup_affected) cleanup();
     }
 
+    template <typename PredicateType>
+    void applyToObservations(PredicateType&& func)
+    {
+      for (auto it = observations_.begin(); it != observations_.end(); ++it)
+        observations_.modify(it, func);   
+    }
+
     /*!
       @brief Look up a score type by name.
 
@@ -817,8 +824,6 @@ namespace OpenMS
       return ref;
     }
 
-    // these classes need access to manipulate data: TODO remove! breaks encapsulation and design/architecture
-    friend class MapAlignmentTransformer;
   };
   
 }
