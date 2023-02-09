@@ -581,7 +581,7 @@ namespace OpenMS
     vector<ProteinIdentification> proteins;
     String annotate_path;
 
-    LayerDataBase::DataType data_type;
+    LayerDataBase::DataType data_type(LayerDataBase::DT_UNKNOWN);
 
     ODExperimentSharedPtrType on_disc_peaks(new OnDiscMSExperiment);
 
@@ -747,7 +747,6 @@ namespace OpenMS
         }
         else
         {
-          data_type = LayerDataBase::DT_UNKNOWN;
           throw Exception::FileEmpty(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "MzML filed doesn't have either spectra or chromatograms.");
         }
       }

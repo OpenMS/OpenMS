@@ -378,6 +378,9 @@ namespace OpenMS
         @param gui_lock Optional GUI element which will be locked (disabled) during call to 'annotateWorker_'; can be null_ptr
       **/
     LayerAnnotatorBase(const FileTypeList& supported_types, const String& file_dialog_text, QWidget* gui_lock);
+    
+    /// Make D'tor virtual for correct destruction from pointers to base
+    virtual ~LayerAnnotatorBase() = default;
 
     /// Annotates a @p layer, writing messages to @p log and showing QMessageBoxes on errors.
     /// The input file is selected via a file-dialog which is opened with @p current_path as initial path.
