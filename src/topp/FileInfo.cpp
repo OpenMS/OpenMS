@@ -42,6 +42,7 @@
 #include <OpenMS/ANALYSIS/OPENSWATH/TransitionTSVFile.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/TransitionPQPFile.h>
 #include <OpenMS/DATASTRUCTURES/StringListUtils.h>
+#include <OpenMS/DATASTRUCTURES/ListUtilsIO.h> // for operator<< on StringList
 #include <OpenMS/FORMAT/ConsensusXMLFile.h>
 #include <OpenMS/FORMAT/FASTAFile.h>
 #include <OpenMS/FORMAT/FeatureXMLFile.h>
@@ -56,6 +57,7 @@
 #include <OpenMS/FORMAT/PeakTypeEstimator.h>
 #include <OpenMS/FORMAT/PepXMLFile.h>
 #include <OpenMS/FORMAT/TransformationXMLFile.h>
+#include <OpenMS/IONMOBILITY/FAIMSHelper.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/KERNEL/Feature.h>
 #include <OpenMS/MATH/MISC/MathFunctions.h>
@@ -523,7 +525,6 @@ protected:
       os << "Ambiguous amino acids (B/Z/X)  : " << amb   << " (" << (amb > 0 ? (static_cast<Size>(amb * 10000 / number_of_aacids) / 100.0) : 0) << "%)\n";
       os << "                      (B/Z/X/I): " << amb_I << " (" << (amb_I > 0 ? (static_cast<Size>(amb_I * 10000 / number_of_aacids) / 100.0) : 0) << "%)\n\n";
     }
-
     else if (in_type == FileTypes::FEATUREXML) //features
     {
       FeatureXMLFile ff;
@@ -1041,7 +1042,19 @@ protected:
         }
         os << '\n';  
       }
-       
+      
+      auto cvs = FAIMSHelper::getCompensationVoltages(exp);
+      if (!cvs.empty())
+      {        
+        os << "IM (FAIMS_CV): ";
+        StringList cvs_sl;
+        for (double cv : cvs)
+        {
+          cvs_sl.push_back(String(cv));
+        }
+        os << cvs_sl << "\n\n";
+      }
+
       // some chromatogram information
       if (!exp.getChromatograms().empty())
       {
@@ -1109,6 +1122,13 @@ protected:
           {
             os << spectrum.begin()->getMZ() << " .. " << spectrum.rbegin()->getMZ() << '\n';
           }
+
+          if (spectrum.getDriftTimeUnit() != DriftTimeUnit::NONE)
+          {
+            os << "  IM:         " <<  spectrum.getDriftTime() << ' '
+                << spectrum.getDriftTimeUnitAsString()
+                << '\n';
+          }            
 
           os << "Precursors:  " << spectrum.getPrecursors().size() <<  '\n';
 

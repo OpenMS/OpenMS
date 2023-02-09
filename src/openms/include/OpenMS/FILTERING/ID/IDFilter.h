@@ -1379,24 +1379,6 @@ public:
 
     /// @name Filter functions for class IdentificationData
     ///@{
-
-    /*!
-      @brief Helper function for filtering observation matches (e.g. PSMs) in IdentificationData
-
-      Depending on parameter @p cleanup_affected, the data structure may be cleaned up (IdentificationData::cleanup) to remove any invalidated references at the end of this operation.
-
-      @param id_data Data to be filtered
-      @param func Functor that returns true for items to be removed
-      @param cleanup_affected Will filtering invalidate other parts of @p id_data that need to be cleaned up?
-    */
-    template <typename PredicateType>
-    static void filterObservationMatchesByFunctor(
-        IdentificationData& id_data, PredicateType&& func, bool cleanup_affected = false)
-    {
-      id_data.removeFromSetIf_(id_data.observation_matches_, func);
-      if (cleanup_affected) id_data.cleanup();
-    }
-
     /*!
       @brief Filter IdentificationData to keep only the best match (e.g. PSM) for each observation (e.g. spectrum)
 

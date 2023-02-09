@@ -172,7 +172,8 @@ namespace OpenMS
                                    OSWDataSharedPtrType chrom_annotation,
                                    const int index,
                                    const String& filename,
-                                   const String& caption)
+                                   const String& basename,
+                                   const String& basename_extra)
   {
     // we do not want addChromLayer to trigger repaint, since we have not set the chromatogram data!
     this->blockSignals(true);
@@ -187,18 +188,20 @@ namespace OpenMS
       return false;
     }
     auto& ld = dynamic_cast<LayerData1DChrom&>(getCurrentLayer());
-    ld.setName(caption);
+    ld.setName(basename);
+    ld.setNameSuffix(basename_extra);
     ld.getChromatogramAnnotation() = std::move(chrom_annotation); // copy over shared-ptr to OSW-sql data (if available)
     ld.setCurrentIndex(index);                         // use this chrom for visualization
+    recalculateRanges_(); // needed here, since 'setCurrentIndex()' changes the current Chromatogram
 
     setDrawMode(Plot1DCanvas::DM_CONNECTEDLINES);
-//    setIntensityMode(Plot1DCanvas::IM_NONE);
+    //setIntensityMode(Plot1DCanvas::IM_NONE);
 
     // extend the currently visible area, so the new data is visible
     //auto va = visible_area_.getAreaUnit();
 
     return true;
-  }       
+  }
 
   void Plot1DCanvas::activateLayer(Size layer_index)
   {

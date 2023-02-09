@@ -48,7 +48,7 @@ namespace OpenMS
 
   std::unique_ptr<LayerStoreData> LayerData1DPeak::storeVisibleData(const RangeAllType& visible_range, const DataFilters& layer_filters) const
   {
-    auto ret = std::unique_ptr<LayerStoreDataPeakMapVisible>();
+    auto ret = std::make_unique<LayerStoreDataPeakMapVisible>();
     ret->storeVisibleSpectrum(getCurrentSpectrum(), visible_range, layer_filters);
     return ret;
   }
