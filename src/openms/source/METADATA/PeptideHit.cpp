@@ -206,11 +206,16 @@ namespace OpenMS
     return rank_;
   }
 
-  // returns the peptide sequence without trailing or following spaces
   const AASequence& PeptideHit::getSequence() const
   {
     return sequence_;
   }
+
+  AASequence& PeptideHit::getSequence()
+  {
+    return sequence_;
+  }
+
 
   void PeptideHit::setSequence(const AASequence& sequence)
   {

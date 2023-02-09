@@ -427,9 +427,12 @@ namespace OpenMS
       throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "invalid cell clicked.", String(row) + " " + column);
     }
     
-    // deselect whatever is currently shown
-    int last_spectrum_index = int(dynamic_cast<LayerData1DPeak*>(layer_)->getCurrentIndex());
-    emit spectrumDeselected(last_spectrum_index);
+    // deselect whatever is currently shown (if we are in 1D view)
+    auto* layer_1d = dynamic_cast<LayerData1DPeak*>(layer_);
+    if (layer_1d)
+    {
+      emit spectrumDeselected(int(layer_1d->getCurrentIndex()));
+    }
 
     int current_spectrum_index = table_widget_->item(row, Clmn::SPEC_INDEX)->data(Qt::DisplayRole).toInt();
     const auto& exp = *layer_->getPeakData();

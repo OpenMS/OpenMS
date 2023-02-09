@@ -99,15 +99,15 @@ namespace OpenMS
     for (const auto& index : indices)
     {
       // get caption (either chromatogram idx or peptide sequence, if available)
-      String chrom_caption = layer_basename + "[" + index + "]";
+      String basename_suffix;
       if (chrom_exp_sptr->metaValueExists("peptide_sequence"))
       {
-        chrom_caption = String(chrom_exp_sptr->getMetaValue("peptide_sequence"));
+        basename_suffix = String(chrom_exp_sptr->getMetaValue("peptide_sequence"));
       }
-      ((chrom_caption += "[") += index) += "]";
+      ((basename_suffix += "[") += index) += "]";
 
       // add chromatogram data
-      if (!target->canvas()->addChromLayer(chrom_exp_sptr, ondisc_sptr, chrom_annotation, index, filename, chrom_caption))
+      if (!target->canvas()->addChromLayer(chrom_exp_sptr, ondisc_sptr, chrom_annotation, index, filename, layer_basename, basename_suffix))
       {
         return false;
       }

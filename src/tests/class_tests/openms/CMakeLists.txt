@@ -91,7 +91,10 @@ target_link_libraries(Base64_test ZLIB::ZLIB)
 target_link_libraries(LPWrapper_test CoinOR::CoinOR)
 target_link_libraries(SpectraSTSimilarityScore_test Eigen3::Eigen)
 target_link_libraries(BinnedSpectrum_test Eigen3::Eigen)
-target_link_libraries(HDF5_test HDF5::HDF5)
+
+if (WITH_HDF5)
+  target_link_libraries(HDF5_test HDF5::HDF5)
+endif()
 
 #------------------------------------------------------------------------------
 # restore old compiler flags
