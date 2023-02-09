@@ -737,7 +737,7 @@ namespace OpenMS
         {
           data_type = LayerDataBase::DT_CHROMATOGRAM;
         }
-        else if (peak_map_sptr->getNrSpectra() > 0)
+        if (peak_map_sptr->getNrSpectra() > 0)
         {
           if (data_type == LayerDataBase::DT_CHROMATOGRAM)
           {
