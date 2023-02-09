@@ -50,8 +50,6 @@
 #include <OpenMS/ANALYSIS/XLMS/OPXLSpectrumProcessingAlgorithms.h>
 #include <OpenMS/CHEMISTRY/DecoyGenerator.h>
 
-#include <OpenMS/IONMOBILITY/FAIMSHelper.h>
-
 #include <OpenMS/FILTERING/DATAREDUCTION/Deisotoper.h>
 #include <OpenMS/ANALYSIS/NUXL/NuXLModificationsGenerator.h>
 #include <OpenMS/ANALYSIS/NUXL/NuXLReport.h>
@@ -265,7 +263,7 @@ protected:
   /// percolator feature set
   StringList feature_set_;
   
-  bool has_FAIMS_CV_{false};
+  bool has_IM_{false}; // compatible IM annotated
 
   void registerOptionsAndFlags_() override
   {
@@ -3134,9 +3132,9 @@ static void scoreXLIons_(
         ph.setMetaValue("precursor_purity", purities.at(spec.getNativeID()).signal_proportion);
       }
 
-      if (has_FAIMS_CV_)
+      if (has_IM_)
       {
-        ph.setMetaValue("FAIMS_CV", spec.getDriftTime());
+        ph.setMetaValue("IM", spec.getDriftTime());
       }
 
       ph.setMetaValue("nucleotide_mass_tags", (double)spec.getFloatDataArrays()[2][0]);
@@ -3999,6 +3997,62 @@ static void scoreXLIons_(
     }
   }
 
+  std::tuple<IMFormat, DriftTimeUnit> getMS2IMType(const MSExperiment& spectra)
+  {
+    IMFormat IM_format = IMTypes::determineIMFormat(spectra);  
+    DriftTimeUnit IM_unit = DriftTimeUnit::NONE;
+    if (IM_format == IMFormat::MULTIPLE_SPECTRA)
+    {
+      OPENMS_LOG_INFO << "Ion Mobility annotated at the spectrum level." << std::endl;
+
+      auto im_it = std::find_if_not(spectra.begin(), spectra.end(), 
+        [](const MSSpectrum& s) 
+        {  // skip non-MS2 spectra and spectra without DriftTime annotation
+          if (s.getMSLevel() != 2) 
+            return true; 
+          return s.getDriftTimeUnit() == DriftTimeUnit::NONE; 
+        });
+
+      if (im_it != spectra.end())
+      {
+        IM_unit = im_it->getDriftTimeUnit();      
+      }
+    }
+    else if (IM_format == IMFormat::NONE)
+    {
+      OPENMS_LOG_INFO << "No Ion Mobility annotated at the spectrum level." << std::endl;
+    }
+    else if (IM_format == IMFormat::CONCATENATED)
+    {
+      OPENMS_LOG_INFO << "Concatenated Ion Mobility not supported. IM values need to be annotated at the spectrum level." << std::endl;
+    }
+    else if (IM_format == IMFormat::MIXED)
+    {
+      OPENMS_LOG_INFO << "Mixed Ion Mobility not supported. IM values need to be annotated at the spectrum level." << std::endl;
+    }
+    return make_tuple(IM_format, IM_unit);
+  }
+
+  void convertVSSCToCCS(MSExperiment& spectra)
+  {
+    OPENMS_LOG_INFO << "Converting 1/k0 to CCS values." << std::endl;
+    for (auto& s : spectra)
+    {
+      double IM = s.getDriftTime();
+      double mz = s.getPrecursors()[0].getMZ();
+      double charge = s.getPrecursors()[0].getCharge();
+      double bruker_CCS_coef = 1059.62245; // constant coefficient for Bruker in the Mason-Schamp equation
+      double IM_N2_gas_mass = 28.0134; // 28.0 in alpha code
+      double mass = mz * charge;
+      double reduced_mass = mass * IM_N2_gas_mass / (mass + IM_N2_gas_mass);
+      double CCS = IM * charge * bruker_CCS_coef / std::sqrt(reduced_mass); // Mason-Schamp equation
+      //const double LC = 2.6867811e25; // Loschmidt Constant in m^-3
+      //double CCS = sqrt(2.0 * M_PI / (mz * charge * 28.0134 / (mz * charge + 28.0134) * 1.66053904e-27) * 1.38064852e-23 * 305.0) * (IM * 1.6021766208e-19 / LC) * 3.0 / 16.0 * 1.0e24 * charge;
+      //std::cout << "IM: " << IM << " to " << CCS << std::endl;
+      s.setDriftTime(CCS);
+    }
+  }
+
   void filterPeakInterference_(PeakMap& spectra, const map<String, PrecursorPurity::PurityScores>& purities, double fragment_mass_tolerance = 20.0, bool fragment_mass_tolerance_unit_ppm = true)
   {
     double filtered_peaks_count{0};
@@ -4548,8 +4602,6 @@ static void scoreXLIons_(
     StringList data_dependent_features; // percolator features that only exist e.g., if MS1 spectra were present
     if (!purities.empty()) data_dependent_features << "precursor_purity";
 
-    definePercolatorFeatureSet_(data_dependent_features);
-
     PeakFileOptions options;
     options.clearMSLevels();
     options.addMSLevel(2);
@@ -4557,8 +4609,25 @@ static void scoreXLIons_(
     f.load(in_mzml, spectra);
     spectra.sortSpectra(true);
 
-    has_FAIMS_CV_ = FAIMSHelper::getCompensationVoltages(spectra).size() > 1; // need more than one CV value for scoring
-    if (!has_FAIMS_CV_) data_dependent_features << "FAIMS_CV";
+    // determine IM format (if any)
+    auto [IM_format, IM_unit] =  getMS2IMType(spectra);
+    has_IM_ = (IM_unit != DriftTimeUnit::NONE);
+
+    if (has_IM_)
+    {
+      OPENMS_LOG_INFO << "Adding Ion Mobility to feature set." << std::endl;
+      data_dependent_features << "IM";
+    }
+
+    // convert 1/k0 to CCS
+    if (IM_unit == DriftTimeUnit::VSSC)
+    {      
+      convertVSSCToCCS(spectra);
+    }
+
+    // all data dependent features (IM available or not, precursor intensities from MS1 available etc.) are known. We can define percolator features.
+    definePercolatorFeatureSet_(data_dependent_features);
+
 
     // only executed if we have a pre-search with enough calibrants
     if (ic.getCalibrationPoints().size() > 1)
@@ -5345,6 +5414,13 @@ static void scoreXLIons_(
     spectra.clear(true);
     f.load(in_mzml, spectra);
     spectra.sortSpectra(true);    
+    //auto [IM_format, IM_unit] = getMS2IMType(spectra);
+
+    // convert 1/k0 to CCS
+    if (IM_unit == DriftTimeUnit::VSSC)
+    {      
+      convertVSSCToCCS(spectra);
+    }
 
     preprocessSpectra_(spectra, 
     //                   fragment_mass_tolerance, 
