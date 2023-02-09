@@ -37,6 +37,7 @@
 #include <OpenMS/ANALYSIS/TOPDOWN/FLASHIda.h>
 #include <OpenMS/ANALYSIS/TOPDOWN/MassFeatureTrace.h>
 #include <OpenMS/ANALYSIS/TOPDOWN/QScore.h>
+#include <OpenMS/ANALYSIS/TOPDOWN/Qvalue.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/FILTERING/TRANSFORMERS/SpectraMerger.h>
 #include <OpenMS/FORMAT/FLASHDeconvFeatureFile.h>
@@ -681,7 +682,7 @@ protected:
 
     std::cout << " writing per spectrum deconvolution results ... " << std::endl;
 
-    DeconvolvedSpectrum::updatePeakGroupQvalues(deconvolved_spectra, decoy_deconvolved_spectra);
+    Qvalue::updatePeakGroupQvalues(deconvolved_spectra, decoy_deconvolved_spectra);
 
     for (auto& deconvolved_spectrum : deconvolved_spectra)
     {
@@ -920,7 +921,7 @@ protected:
               break;
           }
 
-          pg.recruitAllPeaksInSpectrum(deconvolved_spectrum.getOriginalSpectrum(), 1e-6*tols[0], avg, pg.getMonoMass(), std::unordered_set<int>(), charge_offset, charge_multiple, mz_offset);
+          pg.recruitAllPeaksInSpectrum(deconvolved_spectrum.getOriginalSpectrum(), 1e-6*tols[0], avg, pg.getMonoMass(), std::unordered_set<double>(), charge_offset, charge_multiple, mz_offset);
           pg.setDecoyFlag(flag);
         }
         false_deconvolved_spectra.push_back(false_deconvolved_spectrum);

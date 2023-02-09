@@ -185,7 +185,7 @@ namespace OpenMS
   }
 
   std::vector<FLASHDeconvHelperStructs::LogMzPeak> PeakGroup::recruitAllPeaksInSpectrum(const MSSpectrum& spec, const double tol, const FLASHDeconvHelperStructs::PrecalculatedAveragine& avg, double mono_mass,
-                                            const std::unordered_set<int>& excluded_integer_mzs_, int charge_offset, double charge_multiple, double mz_off)
+                                            const std::unordered_set<double>& excluded_peak_mzs, int charge_offset, double charge_multiple, double mz_off)
   {
     std::vector<LogMzPeak> noisy_peaks;
     if (mono_mass < 0)
@@ -256,8 +256,8 @@ namespace OpenMS
         {
           continue;
         }
-        // if excluded_integer_mzs_ is not empty, these mzs should be ignored in this raw spectrum for this peak group! But they can be included in noisy peaks.
-        bool excluded = excluded_integer_mzs_.size()>0 && excluded_integer_mzs_.find((int)pmz) != excluded_integer_mzs_.end();
+        // if excluded_peak_mzs_ is not empty, these mzs should be ignored in this raw spectrum for this peak group! But they can be included in noisy peaks.
+        bool excluded = excluded_peak_mzs.size()>0 && excluded_peak_mzs.find(pmz) != excluded_peak_mzs.end();
 
         if (!excluded && abs(pmz - cmz - iso_index * iso_delta) <= pmz * tol)
         {
@@ -890,7 +890,6 @@ namespace OpenMS
     qvalue_[flag] = q;
   }
 
-
   void PeakGroup::calculateDLMatrices(const MSSpectrum& spec, double tol, int charge_range, int iso_range, const PrecalculatedAveragine& avg)
   {
     int iso_index_diff = -(int)avg.getApexIndex(getMonoMass()) + (int)(iso_range / 2);
@@ -927,8 +926,8 @@ namespace OpenMS
     }
 
     noise.resize(charge_range, iso_range, .0);
-    std::unordered_set<int> excluded_integer_mzs;
-    auto noisy_peaks = recruitAllPeaksInSpectrum(spec, tol * 1e-6, avg, getMonoMass(), excluded_integer_mzs);
+    std::unordered_set<double> excluded_peak_mzs;
+    auto noisy_peaks = recruitAllPeaksInSpectrum(spec, tol * 1e-6, avg, getMonoMass(), excluded_peak_mzs);
     std::sort(noisy_peaks.begin(), noisy_peaks.end());
 
     for (auto& p : noisy_peaks)

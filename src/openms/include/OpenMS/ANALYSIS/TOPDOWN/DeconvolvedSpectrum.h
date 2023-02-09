@@ -137,13 +137,11 @@ namespace OpenMS
     /// set precursor peakGroup
     void setPrecursorPeakGroup(const PeakGroup& pg);
 
+    /// set precursor Qvalue
+    void setPrecursorQvalue(float q, PeakGroup::DecoyFlag flag);
+
     /// original spectrum setter
     void setOriginalSpectrum(const MSSpectrum& spec);
-
-    /// update peak group Qvalues using target and decoy deconvolved spectra, when FDR report is necessary
-    /// @param deconvolved_spectra target deconvolved spectra
-    /// @param deconvolved_decoy_spectra decoy deconvolved spectra
-    void static updatePeakGroupQvalues(std::vector<DeconvolvedSpectrum>& deconvolved_spectra, std::vector<DeconvolvedSpectrum>& deconvolved_decoy_spectra);
 
     /// set peak groups in this spectrum
     void setPeakGroups (std::vector<PeakGroup>& x);

@@ -12,6 +12,7 @@ set(sources_list
 	MassFeatureTrace.cpp
 	PeakGroup.cpp
 	QScore.cpp
+		Qvalue.cpp
 	)
 
 ### add path to the filenames

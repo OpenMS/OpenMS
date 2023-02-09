@@ -81,8 +81,8 @@ namespace OpenMS
 
       if (write_detail)
       {
-        std::unordered_set<int> excluded_integer_mzs;
-        auto noisy_peaks = pg.recruitAllPeaksInSpectrum(dspec.getOriginalSpectrum(), tol * 1e-6, avg, pg.getMonoMass(), excluded_integer_mzs);
+        std::unordered_set<double> excluded_peak_mzs;
+        auto noisy_peaks = pg.recruitAllPeaksInSpectrum(dspec.getOriginalSpectrum(), tol * 1e-6, avg, pg.getMonoMass(), excluded_peak_mzs);
         std::sort(noisy_peaks.begin(), noisy_peaks.end());
         fs << std::fixed << std::setprecision(2);
         for (auto& p : pg)

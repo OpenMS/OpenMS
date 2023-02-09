@@ -12,6 +12,7 @@ set(sources_list_h
     MassFeatureTrace.h
     PeakGroup.h
     QScore.h
+	Qvalue.h
     )
 
 ### add path to the filenames
