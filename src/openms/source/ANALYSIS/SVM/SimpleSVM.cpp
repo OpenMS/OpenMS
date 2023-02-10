@@ -366,7 +366,7 @@ pair<double, double> SimpleSVM::chooseBestParameters_() const
     }
   }
   OPENMS_LOG_INFO << "Best cross-validation performance: " 
-           << float(best_value * 100.0) << "% correct" << endl;
+           << best_value << " (accuracy or R-squared)" << endl;
   if (best_indexes.size() == 1)
   {
     return make_pair(log2_C_[best_indexes[0].second],
