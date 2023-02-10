@@ -69,7 +69,7 @@ END_SECTION
 
 SimpleSVM svm, untrained_svm;
 SimpleSVM::PredictorMap predictors;
-map<Size, Int> labels;
+map<Size, double> labels;
 
 // read test data:
 ifstream pred_file(OPENMS_GET_TEST_DATA_PATH("SimpleSVM_test_predictors.txt"));
@@ -112,14 +112,14 @@ START_SECTION((~SimpleSVM))
 END_SECTION
 
 START_SECTION((void setup(PredictorMap& predictors,
-                          const map<Size, Int>& labels)))
+                          const map<Size, double>& labels)))
 {
   ABORT_IF(predictors.empty());
   ABORT_IF(labels.empty());
 
   SimpleSVM::PredictorMap empty_pred;
   TEST_EXCEPTION(Exception::IllegalArgument, svm.setup(empty_pred, labels));
-  map<Size, Int> bad_labels;
+  map<Size, double> bad_labels;
   bad_labels[0] = 1;
   SimpleSVM::PredictorMap tmp(predictors); // copy predictors to prevent rescaling to 0..1
   TEST_EXCEPTION(Exception::MissingInformation,

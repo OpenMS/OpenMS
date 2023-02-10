@@ -1398,7 +1398,7 @@ namespace OpenMS
   }
 
   void FeatureFinderIdentificationAlgorithm::getUnbiasedSample_(const multimap<double, pair<Size, bool> >& valid_obs,
-                          map<Size, Int>& training_labels)
+                          map<Size, double>& training_labels)
   {
     // Create an unbiased training sample:
     // - same number of pos./neg. observations (approx.),
@@ -1470,15 +1470,14 @@ namespace OpenMS
   }
 
 
-  void FeatureFinderIdentificationAlgorithm::getRandomSample_(std::map<Size, Int>& training_labels) const
+  void FeatureFinderIdentificationAlgorithm::getRandomSample_(std::map<Size, double>& training_labels) const
   {
     // @TODO: can this be done with less copying back and forth of data?
     // Pick a random subset of size "svm_n_samples_" for training: Shuffle the whole
     // sequence, then select the first "svm_n_samples_" elements.
     std::vector<Size> selection;
     selection.reserve(training_labels.size());
-    for (std::map<Size, Int>::iterator it = training_labels.begin();
-         it != training_labels.end(); ++it)
+    for (auto it = training_labels.begin(); it != training_labels.end(); ++it)
     {
       selection.push_back(it->first);
     }
@@ -1509,7 +1508,7 @@ namespace OpenMS
     }
     selection.resize(svm_n_samples_);
     // copy the selected subset back:
-    std::map<Size, Int> temp;
+    std::map<Size, double> temp;
     for (vector<Size>::iterator it = selection.begin(); it != selection.end();
          ++it)
     {
@@ -1551,7 +1550,7 @@ namespace OpenMS
     }
 
     // get labels for SVM:
-    std::map<Size, Int> training_labels;
+    std::map<Size, double> training_labels;
     bool no_selection = param_.getValue("svm:no_selection") == "true";
     // mapping (for bias correction): intensity -> (index, positive?)
     std::multimap<double, pair<Size, bool> > valid_obs;
@@ -1559,7 +1558,7 @@ namespace OpenMS
     for (Size feat_index = 0; feat_index < features.size(); ++feat_index)
     {
       String feature_class = features[feat_index].getMetaValue("feature_class");
-      Int label = -1;
+      int label = -1;
       if (feature_class == "positive")
       {
         label = 1;
@@ -1579,7 +1578,7 @@ namespace OpenMS
         }
         else
         {
-          training_labels[feat_index] = label;
+          training_labels[feat_index] = (double)label;
         }
       }
     }

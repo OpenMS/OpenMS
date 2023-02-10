@@ -76,11 +76,11 @@ namespace OpenMS
     /// SVM prediction result
     struct Prediction
     {
-      /// Predicted class label
-      Int label;
+      /// Predicted class label or regression value
+      double label;
 
-      /// Predicted probabilities for different classes
-      std::map<Int, double> probabilities;
+      /// Class label and their predicted probabilities
+      std::map<double, double> probabilities;
     };
 
     /// Default constructor
@@ -93,13 +93,13 @@ namespace OpenMS
        @brief Load data and train a model.
 
        @param predictors Mapping from predictor name to vector of predictor values (for different observations). All vectors should have the same length; values will be changed by scaling.
-       @param labels Mapping from observation index to class label in the training set.
+       @param labels Mapping from observation index to class label or regression value in the training set.
 
        @throw Exception::IllegalArgument if @p predictors is empty
        @throw Exception::InvalidValue if an invalid index is used in @p labels
        @throw Exception::MissingInformation if there are fewer than two class labels in @p labels, or if there are not enough observations for cross-validation
     */
-    void setup(PredictorMap& predictors, const std::map<Size, Int>& labels);
+    void setup(PredictorMap& predictors, const std::map<Size, double>& labels, bool classification = true);
 
     /**
        @brief Predict class labels (and probabilities).
@@ -175,7 +175,7 @@ namespace OpenMS
     std::pair<double, double> chooseBestParameters_() const;
 
     /// Run cross-validation to optimize SVM parameters
-    void optimizeParameters_();
+    void optimizeParameters_(bool classification);
   };
 }
 
