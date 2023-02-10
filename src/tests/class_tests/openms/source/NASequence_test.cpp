@@ -307,7 +307,6 @@ START_SECTION((EmpiricalFormula getFormula(NASequence::NASFragmentType type = NA
   NASequence thiolseq = NASequence::fromString("*[dA*][dA]");
   TEST_EQUAL(thiolseq.getFormula(NASequence::WIon, -1), EmpiricalFormula("C20H25N10O9P2S2"));
   TEST_EQUAL(thiolseq.getFormula(NASequence::YIon, -1), EmpiricalFormula("C20H24N10O7P1S1"));
-
 }
 END_SECTION
 
