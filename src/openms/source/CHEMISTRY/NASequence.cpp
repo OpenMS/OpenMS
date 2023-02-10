@@ -211,7 +211,6 @@ namespace OpenMS
     {
       local_five_prime = five_prime_->getFormula() - H_form;
     }
-    cout << local_five_prime << endl;
 
     switch (type)
     {
