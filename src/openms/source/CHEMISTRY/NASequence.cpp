@@ -211,6 +211,7 @@ namespace OpenMS
     {
       local_five_prime = five_prime_->getFormula() - H_form;
     }
+    cout << local_five_prime << endl;
 
     switch (type)
     {
@@ -236,9 +237,9 @@ namespace OpenMS
         return our_form + (H_form * charge) + local_five_prime + d_ion_to_full + ((seq_.back()->getCode().back() == '*') ? EmpiricalFormula("SO-1") : EmpiricalFormula(""));
 
       case WIon:
-        return our_form + (H_form * charge) + local_three_prime + w_ion_to_full + ((local_five_prime == EmpiricalFormula("H2PO2S")) ? EmpiricalFormula("SO-1") : EmpiricalFormula(""));
+        return our_form + (H_form * charge) + local_three_prime + w_ion_to_full + ((local_five_prime == EmpiricalFormula("HPO2S")) ? EmpiricalFormula("SO-1") : EmpiricalFormula(""));
       case XIon:
-        return our_form + (H_form * charge) + local_three_prime + x_ion_to_full + ((local_five_prime == EmpiricalFormula("H2PO2S")) ? EmpiricalFormula("SO-1") : EmpiricalFormula(""));
+        return our_form + (H_form * charge) + local_three_prime + x_ion_to_full + ((local_five_prime == EmpiricalFormula("HPO2S")) ? EmpiricalFormula("SO-1") : EmpiricalFormula(""));
 
       case YIon:
         return our_form + (H_form * charge) + local_three_prime + y_ion_to_full;
