@@ -634,8 +634,6 @@ namespace OpenMS
       OpenSwath::BinaryDataArrayPtr im_arr_out(new OpenSwath::BinaryDataArray);
       im_arr_out->description = im_arr->description;
 
-      size_t n = mz_arr->data.size();
-      im_arr_out->data.reserve(n);
       while (mz_it != mz_end)
       {
         if (im_range.contains(*im_it))
