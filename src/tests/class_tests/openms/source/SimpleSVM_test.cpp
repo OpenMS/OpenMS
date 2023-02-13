@@ -69,7 +69,7 @@ END_SECTION
 
 SimpleSVM svm, untrained_svm;
 SimpleSVM::PredictorMap predictors;
-map<Size, Int> labels;
+map<Size, double> labels;
 
 // read test data:
 ifstream pred_file(OPENMS_GET_TEST_DATA_PATH("SimpleSVM_test_predictors.txt"));
@@ -112,14 +112,14 @@ START_SECTION((~SimpleSVM))
 END_SECTION
 
 START_SECTION((void setup(PredictorMap& predictors,
-                          const map<Size, Int>& labels)))
+                          const map<Size, double>& labels)))
 {
   ABORT_IF(predictors.empty());
   ABORT_IF(labels.empty());
 
   SimpleSVM::PredictorMap empty_pred;
   TEST_EXCEPTION(Exception::IllegalArgument, svm.setup(empty_pred, labels));
-  map<Size, Int> bad_labels;
+  map<Size, double> bad_labels;
   bad_labels[0] = 1;
   SimpleSVM::PredictorMap tmp(predictors); // copy predictors to prevent rescaling to 0..1
   TEST_EXCEPTION(Exception::MissingInformation,
@@ -240,6 +240,68 @@ START_SECTION((void writeXvalResults(const String& path) const))
   TOLERANCE_RELATIVE(1.2);
   TEST_FILE_SIMILAR(xval_file,
                     OPENMS_GET_TEST_DATA_PATH("SimpleSVM_test_xval.txt"));
+}
+END_SECTION
+
+
+START_SECTION(regression)
+{
+  // create some noisy sinus data (data with clear outlier)
+  // python code:
+  // X = np.sort(5 * np.random.rand(40, 1), axis=0)
+  // y = np.sin(X).ravel()
+  // # add noise to targets
+  // y[::5] += 3 * (0.5 - np.random.rand(8))
+
+  SimpleSVM::PredictorMap x{ {"x", {
+    0.0604460,     0.0827345,    0.0860808,     0.1587253, 
+    0.2340380,     0.2376890,    0.2420991,     0.3825909, 
+    0.4185480,     0.4909027,    0.7375445,     0.9507514, 
+    0.9566240,     1.0680931,    1.1448901,     1.2531016, 
+    1.3127954,     1.6548730,    1.8522109,     1.9021369, 
+    2.0112177,     2.2142165,    2.2331448,     2.3437173, 
+    2.7221007,     2.8684072,    2.9972565,     3.0146882, 
+    3.0934168,     3.2048384,    3.2171502,     3.2959385, 
+    3.6047516,     4.0592506,    4.0725104,     4.1267237, 
+    4.7097008,     4.7699635,    4.8069954,     4.8126888 }}};
+  
+  map<Size, double> y{ {
+    {0, -0.0604637},  {1, 0.0826401},   {2, 0.0859745},   {3, 0.1580597},   {4, 0.2319073},   {5, 1.1990320},
+    {6, 0.2397410},   {7, 0.3733253},   {8, 0.4064343},   {9, 0.4714222},  {10, 2.1056848},  {11, 0.8138523},
+   {12, 0.8172507},  {13, 0.8762834},  {14, 0.9106647},  {15, 1.4817945},  {16, 0.9669019},  {17, 0.9964676},
+   {18, 0.9606635},  {19, 0.9456070},  {20, 1.3416947},  {21, 0.8000485},  {22, 0.7885501},  {23, 0.7158742},
+   {24, 0.4072964},  {25, -0.1396564}, {26, 0.1438354},  {27, 0.1265640},  {28, 0.0481571},  {29, -0.0632036},
+   {30, -0.2082548}, {31, -0.1537337}, {32, -0.4467765}, {33, -0.7941806}, {34, -0.8021682}, {35, -1.9997169},
+   {36, -0.9999963}, {37, -0.9983430}, {38, -0.9955281}, {39, -0.9949741 } } };
+
+  auto param = svm.getParameters();
+  param.setValue("kernel", "RBF");
+  svm.setParameters(param);
+
+  svm.setup(x, y, false); // set up regression
+
+  vector<SimpleSVM::Prediction> predictions;
+  svm.predict(predictions);
+
+  // test a few inlier
+  TEST_EQUAL(std::abs(predictions[0].label - y[0]) < 0.2, true);
+  TEST_EQUAL(std::abs(predictions[23].label - y[23]) < 0.2, true);
+  TEST_EQUAL(std::abs(predictions[36].label - y[36]) < 0.2, true);
+
+  // test a few outlier
+  TEST_EQUAL(std::abs(predictions[10].label - y[10]) > 0.2, true);
+  TEST_EQUAL(std::abs(predictions[15].label - y[15]) > 0.2, true);
+  TEST_EQUAL(std::abs(predictions[35].label - y[35]) > 0.2, true);
+
+  /* debug code to produce prediction error
+  size_t index{};
+  for (const auto& p : predictions)
+  {
+    std::cout << "index: " << index << " y: " << y[index] << " predicted y: " << p.label << " abs. error: " << std::abs(y[index] - p.label) << std::endl;
+    ++index;
+  }
+  */
+
 }
 END_SECTION
 

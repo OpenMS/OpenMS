@@ -38,6 +38,8 @@
 #include <OpenMS/FORMAT/SVOutStream.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 
+#include <OpenMS/MATH/STATISTICS/StatisticFunctions.h>
+
 using namespace OpenMS;
 using namespace std;
 
@@ -88,13 +90,15 @@ void SimpleSVM::clear_()
   delete[] data_.y;
 }
 
-void SimpleSVM::setup(PredictorMap& predictors, const map<Size, Int>& labels)
+void SimpleSVM::setup(PredictorMap& predictors, const map<Size, double>& labels, bool classification)
 {
   if (predictors.empty() || predictors.begin()->second.empty())
   {
     throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                      "Predictors for SVM must not be empty.");
   }
+
+  // count elements for first feature dimension to determine number of observations
   Size n_obs = predictors.begin()->second.size();
   n_parts_ = param_.getValue("xval");
 
@@ -107,11 +111,13 @@ void SimpleSVM::setup(PredictorMap& predictors, const map<Size, Int>& labels)
   data_.l = labels.size();
   data_.x = new svm_node*[data_.l];
   data_.y = new double[data_.l];
-  map<Int, Size> label_table;
+  map<double, Size> label_table;
   Size index = 0;
-  for (map<Size, Int>::const_iterator it = labels.begin(); it != labels.end();
+  for (auto it = labels.cbegin(); it != labels.cend();
        ++it, ++index)
   {
+    const Size& training_index = it->first;
+    const double& label = it->second;
     if (it->first >= n_obs)
     {
       String msg = "Invalid training index; there are only " + String(n_obs) +
@@ -119,43 +125,66 @@ void SimpleSVM::setup(PredictorMap& predictors, const map<Size, Int>& labels)
       throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                     msg, String(it->first));
     }
-    data_.x[index] = &(nodes_[it->first][0]);
-    data_.y[index] = double(it->second);
-    label_table[it->second]++;
+    data_.x[index] = &(nodes_[training_index][0]);
+    data_.y[index] = label;
+    label_table[label]++;
   }
-  if (label_table.size() < 2)
-  {
-    throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                        "Need at least two classes (distinct "
-                                        "labels) for SVM classification.");
-  }
-  String msg = "Training SVM on " + String(data_.l) + " observations. Classes:";
-  for (map<Int, Size>::iterator it = label_table.begin(); 
-       it != label_table.end(); ++it)
-  {
-    if (it->second < n_parts_)
-    {
-      msg = "Not enough observations of class " + String(it->first) + " for " +
-        String(n_parts_) + "-fold cross-validation.";
-      throw Exception::MissingInformation(__FILE__, __LINE__, 
-                                          OPENMS_PRETTY_FUNCTION, msg);
-    }
-    msg += "\n- '" + String(it->first) + "': " + String(it->second) +
-      " observations";
-  }
-  OPENMS_LOG_INFO << msg << endl;
 
-  svm_params_.svm_type = C_SVC;
+  if (classification)
+  {
+    // check for 2 or more classes
+    if (label_table.size() < 2)
+    {
+      throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                          "Need at least two classes (distinct "
+                                          "labels) for SVM classification.");
+    }
+
+    String msg = "Training SVM on " + String(data_.l) + " observations. Classes:";
+    for (map<double, Size>::iterator it = label_table.begin(); 
+        it != label_table.end(); ++it)
+    {
+      if (it->second < n_parts_)
+      {
+        msg = "Not enough observations of class " + String(it->first) + " for " +
+          String(n_parts_) + "-fold cross-validation.";
+        throw Exception::MissingInformation(__FILE__, __LINE__, 
+                                            OPENMS_PRETTY_FUNCTION, msg);
+      }
+      msg += "\n- '" + String(it->first) + "': " + String(it->second) +
+        " observations";
+    }
+    OPENMS_LOG_INFO << msg << endl;
+
+    svm_params_.svm_type = C_SVC;
+  }
+  else
+  { // regression
+    if (data_.l < n_parts_) // TODO: check minimum amount of points needed for training a regression model. Assume 1 is enough for now.
+    {
+        String msg = "Not enough observations for " + String(n_parts_) + "-fold cross-validation.";
+        throw Exception::MissingInformation(__FILE__, __LINE__, 
+                                            OPENMS_PRETTY_FUNCTION, msg);
+    }
+
+    OPENMS_LOG_INFO << "Training SVR on " + String(data_.l) + " observations." << endl;
+
+    svm_params_.svm_type = EPSILON_SVR;
+    svm_params_.p = 0.1; // epsilon parameter of epsilon-SVR
+  }
+
   std::string kernel = param_.getValue("kernel");
   svm_params_.kernel_type = (kernel == "RBF") ? RBF : LINEAR;
   svm_params_.eps = param_.getValue("epsilon");
+
   svm_params_.cache_size = param_.getValue("cache_size");
   svm_params_.shrinking = !param_.getValue("no_shrinking").toBool();
   svm_params_.nr_weight = 0; // weighting not supported for now
   svm_params_.probability = 0; // no prob. estimation during cross-validation
 
-  optimizeParameters_();
+  optimizeParameters_(classification);
   svm_params_.probability = 1;
+
   model_ = svm_train(&data_, &svm_params_);
   OPENMS_LOG_INFO << "Number of support vectors in the final model: " << model_->l
            << endl;
@@ -177,7 +206,7 @@ void SimpleSVM::predict(vector<Prediction>& predictions, vector<Size> indexes) c
     for (Size i = 0; i < n_obs; indexes.push_back(i++)){};
   }
   Size n_classes = svm_get_nr_class(model_);
-  vector<Int> labels(n_classes);
+  vector<int> labels(n_classes);
   svm_get_labels(model_, &(labels[0]));
   vector<double> probabilities(n_classes);
   predictions.clear();
@@ -192,8 +221,8 @@ void SimpleSVM::predict(vector<Prediction>& predictions, vector<Size> indexes) c
                                     msg, String(*it));
     }
     Prediction pred;
-    pred.label = Int(svm_predict_probability(model_, &(nodes_[*it][0]), 
-                                             &(probabilities[0])));
+    pred.label = svm_predict_probability(model_, &(nodes_[*it][0]), 
+                                             &(probabilities[0]));
     for (Size i = 0; i < n_classes; ++i)
     {
       pred.probabilities[labels[i]] = probabilities[i];
@@ -202,6 +231,7 @@ void SimpleSVM::predict(vector<Prediction>& predictions, vector<Size> indexes) c
   }
 }
 
+// only works in classification mode
 void SimpleSVM::getFeatureWeights(map<String, double>& feature_weights) const
 {
   if (model_ == nullptr)
@@ -336,7 +366,7 @@ pair<double, double> SimpleSVM::chooseBestParameters_() const
     }
   }
   OPENMS_LOG_INFO << "Best cross-validation performance: " 
-           << float(best_value * 100.0) << "% correct" << endl;
+           << best_value << " (accuracy or R-squared)" << endl;
   if (best_indexes.size() == 1)
   {
     return make_pair(log2_C_[best_indexes[0].second],
@@ -376,8 +406,32 @@ pair<double, double> SimpleSVM::chooseBestParameters_() const
   return make_pair(log2_C_[indexes.second], log2_gamma_[indexes.first]);
 }
 
-void SimpleSVM::optimizeParameters_()
+void SimpleSVM::optimizeParameters_(bool classification)
 {
+  auto perFoldClassificationAccuracy = [&](const auto& d, const auto& targets)->double {
+    Size n_correct = 0;
+    for (Size i = 0; i < Size(d.l); ++i)
+    {
+      if (targets[i] == d.y[i]) n_correct++;
+    }
+    const double ratio = n_correct / double(d.l);
+    return ratio;            
+  };
+
+  auto perFoldRegressionRSquared = [&](const auto& d, const auto& targets)->double {
+
+    double targets_mean = Math::mean(std::begin(targets), std::end(targets)); // mean of truth y-values
+
+    double u{}, v{u};
+    for (Size i = 0; i < Size(d.l); ++i)
+    {
+      u += std::pow(targets[i] - d.y[i], 2.0);
+      v += std::pow(targets[i] - targets_mean, 2.0);      
+    }
+    const double Rsquared = (v != 0.0) ? (1.0 - u/v) : -1.0;
+    return Rsquared;
+  };
+
   log2_C_ = param_.getValue("log2_C");
   if (svm_params_.kernel_type == RBF)
   {
@@ -388,12 +442,12 @@ void SimpleSVM::optimizeParameters_()
     log2_gamma_ = vector<double>(1, 0.0);
   }
 
-  OPENMS_LOG_INFO << "Running cross-validation to find optimal SVM parameters..." 
-           << endl;
+  OPENMS_LOG_INFO << "Running cross-validation to find optimal parameters..." 
+          << endl;
   Size prog_counter = 0;
   ProgressLogger prog_log;
   prog_log.startProgress(1, log2_gamma_.size() * log2_C_.size(),
-                         "testing SVM parameters");
+                        "testing parameters");
   // classification performance for different parameter pairs:
   performance_.resize(log2_gamma_.size());
   // vary "C"s in inner loop to keep results for all "C"s in one vector:
@@ -405,28 +459,26 @@ void SimpleSVM::optimizeParameters_()
     {
       svm_params_.C = pow(2.0, log2_C_[c_index]);
       vector<double> targets(data_.l);
+
       svm_cross_validation(&data_, &svm_params_, n_parts_, &(targets[0]));
-      Size n_correct = 0;
-      for (Size i = 0; i < Size(data_.l); ++i)
-      {
-        if (targets[i] == data_.y[i]) n_correct++;
-      }
-      double ratio = n_correct / double(data_.l);
-      performance_[g_index][c_index] = ratio;
+
+      double acc = classification ? perFoldClassificationAccuracy(data_, targets) : perFoldRegressionRSquared(data_, targets);
+
+      performance_[g_index][c_index] = acc;
       prog_log.setProgress(++prog_counter);
+
       OPENMS_LOG_DEBUG << "Performance (log2_C = " << log2_C_[c_index] 
-                << ", log2_gamma = " << log2_gamma_[g_index] << "): " 
-                << n_correct << " correct (" << float(ratio * 100.0) << "%)"
-                << endl;
+          << ", log2_gamma = " << log2_gamma_[g_index] << ") " 
+          << "accuracy: " << float(acc * 100.0) << "%"
+          << endl;
     }
   }
   prog_log.endProgress();
 
   pair<double, double> best_params = chooseBestParameters_();
   OPENMS_LOG_INFO << "Best SVM parameters: log2_C = " << best_params.first
-           << ", log2_gamma = " << best_params.second << endl;
+          << ", log2_gamma = " << best_params.second << endl;
 
   svm_params_.C = pow(2.0, best_params.first);
   svm_params_.gamma = pow(2.0, best_params.second);
 }
-
