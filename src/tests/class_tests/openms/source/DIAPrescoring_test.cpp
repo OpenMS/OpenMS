@@ -312,7 +312,7 @@ START_SECTION ( test score function missing first transition due to different io
   OpenSwath::BinaryDataArrayPtr data2(new OpenSwath::BinaryDataArray);
   OpenSwath::BinaryDataArrayPtr data3(new OpenSwath::BinaryDataArray);
 
-  static const double arr1[] = {
+  std::vector<double> intensity {
 
     10, 20, 50, 100, 50, 20, 10, // peak at 499
     3, 7, 15, 30, 15, 7, 3,      // peak at 500
@@ -325,8 +325,7 @@ START_SECTION ( test score function missing first transition due to different io
     1, 3, 9, 15, 9, 3, 1,        // peak at 602
     3, 9, 3                      // peak at 603
   };
-  std::vector<double> intensity (arr1, arr1 + sizeof(arr1) / sizeof(double) );
-  static const double arr2[] = {
+  std::vector<double> mz {
 
     498.97, 498.98, 498.99, 499.0, 499.01, 499.02, 499.03,
     499.97, 499.98, 499.99, 500.0, 500.01, 500.02, 500.03,
@@ -338,9 +337,8 @@ START_SECTION ( test score function missing first transition due to different io
     601.97, 601.98, 601.99, 602.0, 602.01, 602.02, 602.03,
     602.99, 603.0, 603.01
   };
-  std::vector<double> mz (arr2, arr2 + sizeof(arr2) / sizeof(double) );
 
-  static const double arr3[] = {
+  std::vector<double> im {
       1, 1, 3, 1, 1, 1, 1,      // peak at 499
       2, 2, 3, 1, 2, 1, 2,      // peak at 500
       1, 2, 1, 2, 3, 2, 2,      // peak at 501
@@ -351,13 +349,12 @@ START_SECTION ( test score function missing first transition due to different io
       8, 6, 8, 8, 6, 6, 6,      // peak at 602
       6, 8, 6                   // peak at 603
   };
-  std::vector<double> im (arr3, arr3 + sizeof(arr3) / sizeof(double) );
 
   data1->data = mz;
   data2->data = intensity;
   data3->data = im;
-  sptr->setMZArray( data1);
-  sptr->setIntensityArray( data2);
+  sptr->setMZArray(&mz);
+  sptr->setIntensityArray(&intensity) data2);
   data3->description = "Ion Mobility";
   sptr->getDataArrays().push_back( data3);
 
