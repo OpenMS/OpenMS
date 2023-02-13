@@ -29,7 +29,7 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Eugen Netz $
-// $Authors: Lukas Zimmermann $
+// $Authors: Lukas Zimmermann, Eugen Netz $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/FORMAT/HANDLERS/XQuestResultXMLHandler.h>
