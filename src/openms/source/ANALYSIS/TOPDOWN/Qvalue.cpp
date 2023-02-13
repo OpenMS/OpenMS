@@ -44,7 +44,7 @@ namespace OpenMS
   void Qvalue::updatePeakGroupQvalues(std::vector<DeconvolvedSpectrum>& deconvolved_spectra,
                                                    std::vector<DeconvolvedSpectrum>& deconvolved_decoy_spectra) // per ms level + precursor update as well.
   {
-    uint bin_number = 25;
+    uint bin_number = 50;
     std::map<uint, std::vector<float>> tscore_map; // per ms level
 
     std::map<uint, std::vector<float>> dscore_iso_decoy_map;
@@ -104,12 +104,31 @@ namespace OpenMS
       auto charge_dist = getDistribution(dscore_charge, bin_number);
       auto noise_dist = getDistribution(dscore_noise, bin_number);
       auto iso_dist = getDistribution(dscore_iso, bin_number);
-      std::vector<float> weights(4, .25f);
 
+      float iso_threshold = .0f;
+      for (int i = (int)bin_number - 1; i >= 0; i--)
+      {
+        if ((iso_dist[i] > 0 && iso_dist[i] < charge_dist[i]))
+        {
+          iso_threshold = ((float)i)/bin_number;
+          break;
+        }
+      }
+      std::vector<float> tmp_dscore_iso(dscore_iso);
+      dscore_iso.clear();
+      for(auto q : tmp_dscore_iso)
+      {
+        if(q < iso_threshold) continue;
+        dscore_iso.push_back(q);
+      }
+      iso_dist = getDistribution(dscore_iso, bin_number);
+
+      std::vector<float> weights(4, .25f);
       std::vector<float> target_dist(bin_number, .0f);
       for(uint iteration = 0; iteration<100;iteration++)
       {
         std::fill(target_dist.begin(), target_dist.end(), .0f);
+        float max_t = .0;
         for (int i = (int)bin_number - 1; i >= 0; i--)
         {
           float fp = (charge_dist[i] * weights[0] + noise_dist[i] * weights[1] + iso_dist[i] * weights[2]);
@@ -118,16 +137,32 @@ namespace OpenMS
             break;
           }
           target_dist[i] = mixed_dist[i] - fp;
+          if(target_dist[i] > 0 && target_dist[i] < max_t * .1f)
+          {
+            break;
+          }
+          max_t = std::max(max_t, target_dist[i]);
         }
-        target_dist = smoothByMovingAvg(target_dist);
-
+       // target_dist = smoothByMovingAvg(target_dist);
+        float csum = .0f;
+        for(auto r : target_dist) csum += r;
+        if(csum > 0)
+        {
+          for (auto& r : target_dist)
+            r /= csum;
+        }
         std::vector<std::vector<float>> comp_dists {};
         comp_dists.push_back(charge_dist);
         comp_dists.push_back(noise_dist);
         comp_dists.push_back(iso_dist);
         comp_dists.push_back(target_dist);
 
-        weights = getDistributionWeights(mixed_dist, comp_dists);
+        auto tmp_weight = getDistributionWeights(mixed_dist, comp_dists);
+        if(tmp_weight == weights)
+        {
+          break;
+        }
+        weights = tmp_weight;
       }
 
       weights[0] *= dscore_charge.size() == 0 ? .0 : ((double)qscores.size() / dscore_charge.size());
@@ -195,7 +230,6 @@ namespace OpenMS
 
         for (auto& pg : deconvolved_spectrum)
         {
-          //
           pg.setQvalue(map_charge[pg.getQScore()], PeakGroup::DecoyFlag::charge_decoy);
           pg.setQvalue(map_noise[pg.getQScore()], PeakGroup::DecoyFlag::noise_decoy);
           pg.setQvalue(map_iso[pg.getQScore()], PeakGroup::DecoyFlag::isotope_decoy);
@@ -225,7 +259,7 @@ namespace OpenMS
       {
         continue;
       }
-      uint bin = (uint)(qscore * (bin_number - 1.0));
+      uint bin = (uint)(qscore * qscore * qscore * (bin_number - 1.0));
       ret[bin]++;
     }
     if(qscores.size() > 0)
@@ -235,8 +269,14 @@ namespace OpenMS
         ret[i] /= qscores.size();
       }
     }
-
-    ret = smoothByMovingAvg(ret);
+    float csum = .0f;
+    for(auto r : ret) csum += r;
+    if(csum > 0)
+    {
+      for (auto& r : ret)
+        r /= csum;
+    }
+    //ret = smoothByMovingAvg(ret);
     return ret;
   }
 
@@ -267,6 +307,7 @@ namespace OpenMS
           }
         }
         tmp_weights[i] *= t;
+        tmp_weights[i] = std::max(.0f, tmp_weights[i]);
         tmp_weight_sum += tmp_weights[i];
       }
 
@@ -277,31 +318,13 @@ namespace OpenMS
           tmp_weight /= tmp_weight_sum;
         }
       }
-
+      if(weights == tmp_weights)
+      {
+        break;
+      }
       weights.swap(tmp_weights);
     }
     return weights;
-  }
-  std::vector<float> Qvalue::smoothByMovingAvg(const std::vector<float> &v, uint span)
-  {
-    std::vector<float> ret(v.size(), .0f);
-
-    float csum = .0;
-    for(uint i=0;i<v.size() + span/2;i++)
-    {
-      if(i<v.size())
-        csum += v[i];
-      if(i >= span)
-        csum -= v[i-span];
-      if(i > span/2)
-      ret[i-span/2] = (csum / span);
-    }
-
-    csum = .0;
-    for(auto r : ret) csum += r;
-    for(auto& r : ret) r/=csum;
-
-    return ret;
   }
 
 }

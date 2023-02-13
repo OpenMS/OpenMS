@@ -82,6 +82,17 @@ namespace OpenMS
     return (int)(mass * 0.999497 + .5);
   }
 
+  void FLASHDeconvAlgorithm::getMZsToExclude(const DeconvolvedSpectrum& dspec, std::unordered_set<double>& excluded_mzs)
+  {
+    for (auto& pg : dspec)
+    {
+      for (auto& p : pg)
+      {
+        excluded_mzs.insert(p.mz);
+      }
+    }
+  }
+
   // The main function called from outside. precursor_map_for_FLASHIda is used to read FLASHIda information
   void FLASHDeconvAlgorithm::performSpectrumDeconvolution(const MSSpectrum& spec, const std::vector<DeconvolvedSpectrum>& survey_scans, const int scan_number,
                                                           const std::map<int, std::vector<std::vector<float>>>& precursor_map_for_FLASHIda)
@@ -120,13 +131,7 @@ namespace OpenMS
     }
     if (decoy_flag_ == PeakGroup::noise_decoy) // noise decoy
     {
-      for (auto& pg : targetFD_->deconvolved_spectrum_)
-      {
-        for (auto& p : pg)
-        {
-          excluded_peak_mzs_.insert(p.mz);
-        }
-      }
+      getMZsToExclude(targetFD_->deconvolved_spectrum_, excluded_peak_mzs_);
     }
 
     ms_level_ = spec.getMSLevel();
@@ -1152,9 +1157,9 @@ namespace OpenMS
           continue;
         }
 
-        auto cr = peak_group.getAbsChargeRange();
+        auto [z1, z2] = peak_group.getAbsChargeRange();
 
-        if (std::get<0>(cr) > low_charge_ && (std::get<1>(cr) - std::get<0>(cr)) < min_support_peak_count_)
+        if (z1 > low_charge_ && (z2 - z1) < min_support_peak_count_)
         {
           continue;
         }
@@ -1188,14 +1193,14 @@ namespace OpenMS
         // min cosine is checked in here. mono mass is also updated one last time. SNR, per charge SNR, and avg errors are updated here.
         peak_group.updateIsotopeCosineSNRAvgErrorAndQScore(avg_,  min_isotope_cosine_[ms_level_ - 1]);
 
-        cr = peak_group.getAbsChargeRange();
+        auto cr = peak_group.getAbsChargeRange();
 
         if (std::get<0>(cr) > low_charge_ && (std::get<1>(cr) - std::get<0>(cr)) < min_support_peak_count_)
         {
           continue;
         }
 
-        if (peak_group.getQScore() <= 0)
+        if (peak_group.getQScore() <= 0 || (peak_group.getSNR() < .3 && std::get<1>(cr) <= low_charge_)) // for low charge range, snr .3 prevents extreme high harmonics
         {
           continue;
         }

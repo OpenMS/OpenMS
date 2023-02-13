@@ -150,6 +150,9 @@ namespace OpenMS
                                                            const PrecalculatedAveragine& avg,
                                                            int window_width = -1, int allowed_iso_error_for_second_best_cos = 0, PeakGroup::DecoyFlag decoyFlag = PeakGroup::DecoyFlag::target);
 
+     static void getMZsToExclude(const DeconvolvedSpectrum& dspec, std::unordered_set<double>& excluded_mzs);
+
+
 
     static float getAccurateIsotopeCosine(PeakGroup& pg, const PrecalculatedAveragine& avg, double tol, int bin_factor,
                                           double iso_distance = Constants::ISOTOPE_MASSDIFF_55K_U);

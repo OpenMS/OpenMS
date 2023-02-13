@@ -271,7 +271,7 @@ namespace OpenMS
     /// vector operators for the LogMzPeaks in this PeakGroup
     void push_back (const FLASHDeconvHelperStructs::LogMzPeak& pg);
     Size size() const noexcept;
-    void clear();
+
     void reserve (Size n);
     bool empty() const;
     void swap (std::vector<FLASHDeconvHelperStructs::LogMzPeak>& x);
@@ -294,6 +294,7 @@ namespace OpenMS
     /// using signal and total (signal + noise) power, update SNR value
     void updateSNR_();
 
+    void clear_();
     /// Encoded matrix for DL scoring
     std::vector<Matrix<float>> dl_matrices_;
 

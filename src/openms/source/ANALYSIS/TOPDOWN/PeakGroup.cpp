@@ -209,7 +209,7 @@ namespace OpenMS
     int min_isotope = (int)(avg.getApexIndex(mono_mass) - avg.getLeftCountFromApex(mono_mass) - iso_margin);
     min_isotope=std::max(0, min_isotope);
 
-    clear(); // clear logMzPeaks
+    clear_(); // clear logMzPeaks
 
     reserve((max_isotope) * (max_abs_charge_ - min_abs_charge_ + 1) * 2);
     noisy_peaks.reserve(max_isotope * (max_abs_charge_ - min_abs_charge_ + 1) * 2);
@@ -397,7 +397,7 @@ namespace OpenMS
     // if no peak has been found...
     if (min_abs_charge_ > max_abs_charge_)
     {
-      clear();
+      clear_();
     }
     else
     {
@@ -855,7 +855,7 @@ namespace OpenMS
     return logMzpeaks_.size();
   }
 
-  void PeakGroup::clear()
+  void PeakGroup::clear_()
   {
     std::vector<LogMzPeak>().swap(logMzpeaks_);
   }

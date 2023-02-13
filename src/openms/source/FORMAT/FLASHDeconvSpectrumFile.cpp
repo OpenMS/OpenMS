@@ -32,6 +32,7 @@
 // $Authors: Kyowon Jeong $
 // --------------------------------------------------------------------------
 
+#include <OpenMS/ANALYSIS/TOPDOWN/FLASHDeconvAlgorithm.h>
 #include <OpenMS/FORMAT/FLASHDeconvSpectrumFile.h>
 #include <random>
 
@@ -43,7 +44,7 @@ namespace OpenMS
 
    */
 
-  void FLASHDeconvSpectrumFile::writeDeconvolvedMasses(DeconvolvedSpectrum& dspec, std::fstream& fs, const String& file_name,
+  void FLASHDeconvSpectrumFile::writeDeconvolvedMasses(DeconvolvedSpectrum& dspec, DeconvolvedSpectrum& target_spec, std::fstream& fs, const String& file_name,
                                                        const FLASHDeconvHelperStructs::PrecalculatedAveragine& avg, double tol,
                                                       const bool write_detail, const bool decoy)
   {
@@ -82,6 +83,7 @@ namespace OpenMS
       if (write_detail)
       {
         std::unordered_set<double> excluded_peak_mzs;
+        if(pg.getDecoyFlag() == PeakGroup::DecoyFlag::noise_decoy) FLASHDeconvAlgorithm::getMZsToExclude(target_spec, excluded_peak_mzs);
         auto noisy_peaks = pg.recruitAllPeaksInSpectrum(dspec.getOriginalSpectrum(), tol * 1e-6, avg, pg.getMonoMass(), excluded_peak_mzs);
         std::sort(noisy_peaks.begin(), noisy_peaks.end());
         fs << std::fixed << std::setprecision(2);

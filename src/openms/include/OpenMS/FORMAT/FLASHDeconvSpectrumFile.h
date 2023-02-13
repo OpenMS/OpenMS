@@ -64,6 +64,7 @@ namespace OpenMS
     /**
           @brief write the deconvolved masses in the output file (spectrum level)
           @param dspec deconvolved spectrum to write
+          @param target_spec target spectrum only used for dummy spectrum output
           @param fs file stream to the output file
           @param file_name the output file name that the deconvolved masses will be written.
           @param avg averagine information to calculate monoisotopic and average mass difference within this function. In PeakGroup (peaks of DeconvolvedSpectrum) only monoisotopic mass is recorded. To write both monoisotopic and average masses, their mass difference should be calculated using this averagine information.
@@ -81,12 +82,14 @@ namespace OpenMS
           Detailed MS1 and MS2 headers include all corresponding headers above plus:
             PeakMZs, PeakIntensities, PeakCharges, PeakMasses, PeakIsotopeIndices, PeakPPMErrors
         */
-    static void writeDeconvolvedMasses(DeconvolvedSpectrum& dspec, std::fstream& fs,
+    static void writeDeconvolvedMasses(DeconvolvedSpectrum& dspec,
+                                       DeconvolvedSpectrum& target_spec,
+                                       std::fstream& fs,
                                        const String& file_name,
                                        const FLASHDeconvHelperStructs::PrecalculatedAveragine& avg,
                                        double tol,
                                        bool write_detail,
-                                       bool decoy);
+                                       bool record_decoy);
 
     static void writeDLMatrixHeader(std::fstream& fs);
 

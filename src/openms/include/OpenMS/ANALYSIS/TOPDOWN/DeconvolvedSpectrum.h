@@ -89,6 +89,9 @@ namespace OpenMS
     /// original spectrum getter
     const MSSpectrum& getOriginalSpectrum() const;
 
+    /// get target deconvolved spectrum
+    const DeconvolvedSpectrum getTargetSpectrum() const;
+
     /// get precursor peak group for MSn (n>1) spectrum. It returns an empty peak group if no peak group is registered (by registerPrecursor)
     const PeakGroup& getPrecursorPeakGroup() const;
 
@@ -178,6 +181,5 @@ namespace OpenMS
     Precursor::ActivationMethod activation_method_;
     /// scan number and precursor scan number
     int scan_number_ = 0, precursor_scan_number_ = 0;
-
   };
 }

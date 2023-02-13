@@ -278,6 +278,4 @@ namespace OpenMS
   {
     precursor_peak_group_.setQvalue(q, flag);
   }
-
-
 }

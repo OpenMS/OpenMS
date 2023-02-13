@@ -61,6 +61,5 @@ namespace OpenMS
   private:
     static std::vector<float> getDistribution(const std::vector<float>& qscores, uint bin_number);
     static std::vector<float> getDistributionWeights(const std::vector<float>& mixed_dist, const  std::vector<std::vector<float>>& comp_dists, uint num_iterations = 100);
-    static std::vector<float> smoothByMovingAvg(const std::vector<float>& v, uint span = 3);
   };
 }

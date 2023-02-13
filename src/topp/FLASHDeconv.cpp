@@ -514,8 +514,8 @@ protected:
     std::vector<DeconvolvedSpectrum> deconvolved_spectra;
     deconvolved_spectra.reserve(map.size());
 
-    std::vector<DeconvolvedSpectrum> decoy_deconvolved_spectra;
-    decoy_deconvolved_spectra.reserve(map.size() * 3);
+    std::vector<DeconvolvedSpectrum> dummy_deconvolved_spectra;
+    dummy_deconvolved_spectra.reserve(map.size() * 3);
 
     for (auto it = map.begin(); it != map.end(); ++it)
     {
@@ -655,7 +655,8 @@ protected:
         decoy_deconvolved_spectrum.sortByQScore();
         deconvolved_spectrum.sortByQScore();
         DeconvolvedSpectrum tmp_spectrum(scan_number);
-        for(auto pg : decoy_deconvolved_spectrum)
+        tmp_spectrum.setOriginalSpectrum(*it);
+        for(auto& pg : decoy_deconvolved_spectrum)
         {
           if(pg.getQScore() < deconvolved_spectrum[deconvolved_spectrum.size() - 1].getQScore())
           {
@@ -668,7 +669,7 @@ protected:
         deconvolved_spectrum.sort();
         decoy_deconvolved_spectrum.sort();
 
-        decoy_deconvolved_spectra.push_back(decoy_deconvolved_spectrum);
+        dummy_deconvolved_spectra.push_back(decoy_deconvolved_spectrum);
       }
 
       qspec_cntr[ms_level - 1]++;
@@ -682,7 +683,7 @@ protected:
 
     std::cout << " writing per spectrum deconvolution results ... " << std::endl;
 
-    Qvalue::updatePeakGroupQvalues(deconvolved_spectra, decoy_deconvolved_spectra);
+    Qvalue::updatePeakGroupQvalues(deconvolved_spectra, dummy_deconvolved_spectra);
 
     for (auto& deconvolved_spectrum : deconvolved_spectra)
     {
@@ -693,7 +694,7 @@ protected:
       }
       if (out_spec_streams.size() + 1 > ms_level)
       {
-        FLASHDeconvSpectrumFile::writeDeconvolvedMasses(deconvolved_spectrum, out_spec_streams[ms_level - 1], in_file, avg, tols[ms_level-1], write_detail, report_decoy);
+        FLASHDeconvSpectrumFile::writeDeconvolvedMasses(deconvolved_spectrum, deconvolved_spectrum, out_spec_streams[ms_level - 1], in_file, avg, tols[ms_level-1], write_detail, report_decoy);
       }
       if (out_topfd_streams.size() + 1 > ms_level)
       {
@@ -702,13 +703,15 @@ protected:
     }
     if (report_decoy)
     {
-      for (auto& deconvolved_spectrum : decoy_deconvolved_spectra)
+      for (uint i=0; i < dummy_deconvolved_spectra.size(); i++)
       {
+        auto dummy_deconvolved_spectrum = dummy_deconvolved_spectra[i];
+        auto deconvolved_spectrum = deconvolved_spectra[i];
         uint ms_level = deconvolved_spectrum.getOriginalSpectrum().getMSLevel();
 
         if (out_spec_streams.size() + 1 > ms_level)
         {
-          FLASHDeconvSpectrumFile::writeDeconvolvedMasses(deconvolved_spectrum, out_spec_streams[ms_level - 1], in_file, avg, tols[ms_level-1], write_detail, report_decoy);
+          FLASHDeconvSpectrumFile::writeDeconvolvedMasses(dummy_deconvolved_spectrum, deconvolved_spectrum, out_spec_streams[ms_level - 1], in_file, avg, tols[ms_level-1], write_detail, report_decoy);
         }
       }
     }
@@ -834,7 +837,7 @@ protected:
       vector<DeconvolvedSpectrum> false_deconvolved_spectra;
       false_deconvolved_spectra.reserve(deconvolved_spectra.size() * 3);
 
-      for (auto& deconvolved_spectrum : decoy_deconvolved_spectra)
+      for (auto& deconvolved_spectrum : dummy_deconvolved_spectra)
       {
         if (deconvolved_spectrum.getOriginalSpectrum().getMSLevel() != 1)
         {
