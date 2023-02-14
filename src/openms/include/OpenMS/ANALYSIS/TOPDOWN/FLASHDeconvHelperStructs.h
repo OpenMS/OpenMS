@@ -116,6 +116,8 @@ namespace OpenMS
       /// destructor
       ~PrecalculatedAveragine() = default ;
 
+      //std::vector<float> getConvolutedPattern(double mass, double tol, double iso_da, int bin_factor) const;
+
 
       /// get distribution for input mass. If input mass exceeds the maximum mass (specified in constructor), output for the maximum mass
       IsotopeDistribution get(double mass) const;
@@ -183,9 +185,9 @@ namespace OpenMS
       LogMzPeak() = default;
 
       /**
-        @brief constructor from Peak1D.
-        @param positive determines the charge carrier mass
-      */
+               @brief constructor from Peak1D.
+              @param positive determines the charge carrier mass
+        */
       explicit LogMzPeak(const Peak1D& peak, bool positive);
 
       /// copy constructor
@@ -204,16 +206,15 @@ namespace OpenMS
     };
 
     /**
-        @brief calculate log mzs from mzs
-        @param mz mz
-        @param positive determines the charge carrier mass. If positive it is + proton mass. If negative - proton mass. Used to calculate uncharged mass of a peak
-    */
+        //       @brief calculate log mzs from mzs
+        //       @param mz mz
+        //       @param positive determines the charge carrier mass
+       */
     static double getLogMz(double mz, bool positive);
 
     /**
-       @brief get charge carrier mass
-       @param ioniziation_mode Determines the charge carrier mass (true = positive or false = negative)
-    */
+            //       @brief get charge carrier mass
+            //       @param ioniziation_mode Determines the charge carrier mass (true = positive or false = negative)*/
     static float getChargeMass(bool positive_ioniziation_mode);
   };
 }

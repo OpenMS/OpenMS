@@ -28,84 +28,46 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Kyowon Jeong$
-// $Authors: Kyowon Jeong$
+// $Maintainer: Julianus Pfeuffer $
+// $Authors: Julianus Pfeuffer $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/ANALYSIS/TOPDOWN/FLASHIdaBridgeFunctions.h>
+#pragma once
+
+#include <OpenMS/KERNEL/FeatureMap.h>
 
 namespace OpenMS
 {
-  FLASHIda *CreateFLASHIda(char *arg)
+  class OPENMS_DLLAPI FeatureOverlapFilter
   {
-    std::cout << " FLASHIda creating ... " << std::endl;
-    return new FLASHIda(arg);
-  }
+    public:   
+    /*
+        @brief Filter overlapping features using a spatial datastructure (quadtree). 
+               Retains only the best feature in each cluster of overlapping features.
 
-  void DisposeFLASHIda(FLASHIda *pObject)
-  {
-    if (pObject != nullptr)
-    {
-      delete pObject;
-      pObject = nullptr;
-    }
-  }
+        @param FeatureComparator must implement the concept of a less comparator.
+               If several features overlap, the feature that evaluates as "smallest" is considered the best (according to the passed comparator) and is kept.
+               The other overlapping features are removed and FeatureOverlapCallback evaluated on them.
+               Default: overall feature quality.
 
-  int GetPeakGroupSize(FLASHIda *pObject, double *mzs, double *ints, int length, double rt_min, int msLevel, char *name)
-  {
-    if (pObject != nullptr)
-    {
-      return pObject->getPeakGroups(mzs, ints, length, rt_min * 60.0, msLevel, name);
-    }
-    return 0;
-  }
+        @param FeatureOverlapCallback(best_in_cluster, f) is called if a feature f overlaps with a feature best_in_cluster.
+               FeatureOverlapCallback provides a customization point to e.g.:
+              - transfer information from the soon-to-be-removed feature f over to the best_in_cluster feature
+              - gather overlap statistics
+              - help in debugging
+              - etc.
+              in form of a callable.
+              If the FeatureOverlapCallback returns false, the overlapping feature will be treated as not overlapping with best_in_cluster (and not removed).
+              Default: function that just returns true.
 
-  void GetIsolationWindows(FLASHIda *pObject,
-                           double *wstart,
-                           double *wend,
-                           double *qscores,
-                           int *charges,
-                           int *min_charges,
-                           int *max_charges,
-                           double *mono_masses,
-                           double *chare_cos,
-                           double *charge_snrs,
-                           double *iso_cos,
-                           double *snrs,
-                           double *charge_scores,
-                           double *ppm_errors,
-                           double *precursor_intensities,
-                           double *peakgroup_intensities
-  )
-  {
-    if (pObject != nullptr)
-    {
-      pObject->getIsolationWindows(wstart,
-                                   wend,
-                                   qscores,
-                                   charges,
-                                   min_charges,
-                                   max_charges,
-                                   mono_masses, chare_cos,
-                                   charge_snrs, iso_cos, snrs, charge_scores, ppm_errors,
-                                   precursor_intensities,
-                                   peakgroup_intensities);
-    }
-  }
+        @ingroup Datareduction
+    */
+    static void filter(FeatureMap& fmap, 
+      std::function<bool(const Feature&, const Feature&)> FeatureComparator = [](const Feature& left, const Feature& right){ return left.getOverallQuality() > right.getOverallQuality(); },
+      std::function<bool(Feature&, Feature&)> FeatureOverlapCallback = [](Feature&, Feature&){ return true; },
+      bool check_overlap_at_trace_level = true);
+  };
 
-  int GetAllPeakGroupSize(FLASHIda *pObject)
-  {if (pObject != nullptr)
-    {
-      return pObject->GetAllPeakGroupSize();
-    }
-    return 0;
-  }
-
-  void GetAllMonoisotopicMasses(FLASHIda *pObject, double *masses, int length)
-  {
-    if (pObject != nullptr)
-    {
-      pObject->getAllMonoisotopicMasses(masses, length);
-    }
-  }
 }
+
+
