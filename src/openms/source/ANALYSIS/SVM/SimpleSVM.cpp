@@ -190,6 +190,7 @@ void SimpleSVM::setup(PredictorMap& predictors, const map<Size, double>& labels,
            << endl;
 }
 
+// predict on (subset) of training data
 void SimpleSVM::predict(vector<Prediction>& predictions, vector<Size> indexes) const
 {
   if (model_ == nullptr)
@@ -229,6 +230,79 @@ void SimpleSVM::predict(vector<Prediction>& predictions, vector<Size> indexes) c
     }
     predictions.push_back(pred);
   }
+}
+
+void scaleDataUsingTrainingRanges(SimpleSVM::PredictorMap& predictors, const map<String, pair<double, double>>& scaling)
+{
+  // scale each feature dimension to the min-max-range
+  for (auto pred_it = predictors.begin();
+       pred_it != predictors.end(); ++pred_it)
+  {
+    if (pred_it->second.empty()) continue; // uninformative predictor
+    auto val_begin = pred_it->second.begin();
+    auto val_end = pred_it->second.end();
+    for (; val_begin != val_end; ++val_begin)
+    {
+      if (scaling.count(pred_it->first) == 0)
+      {
+        //std::cout << "Predictor: '" << pred_it->first << "' not found in scale map because it is uninformative." << std::endl; 
+        continue;
+      }      
+      auto [min, max] = scaling.at(pred_it->first);
+      double range = max - min;
+       *val_begin = (*val_begin - min) / range;
+    }
+  }
+  
+}
+
+// predict on novel e.g., test data
+void SimpleSVM::predict(PredictorMap& predictors, vector<Prediction>& predictions) const
+{
+  if (model_ == nullptr)
+  {
+    throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                  "SVM/SVR model has not been trained (use the "
+                                  "'setup' method)");
+  }
+
+  Size n_obs = predictors.begin()->second.size(); // length of the first feature ...
+  Size feature_dim = predictors.size(); 
+
+  scaleDataUsingTrainingRanges(predictors, scaling_);
+
+  //std::cout << "Predicting on novel data with obs./feature dimensionality: " << n_obs << "/" << feature_dim << std::endl;
+
+  Size n_classes = svm_get_nr_class(model_);
+  vector<int> labels(n_classes);
+  svm_get_labels(model_, &(labels[0]));
+  vector<double> probabilities(n_classes);
+  predictions.clear();
+  predictions.reserve(n_obs);
+
+  svm_node *x = new svm_node[feature_dim + 1];
+  for (Size i = 0; i != n_obs; ++i)
+  {
+    size_t feature_index{0};
+    for (auto p : predictors) 
+    {
+      x[feature_index].index = feature_index + 1;
+      x[feature_index].value = p.second[i]; // feature value for observation i
+      ++feature_index;
+    }
+    x[feature_dim].index = -1;
+    x[feature_dim].value = 0;
+
+
+    Prediction pred;
+    pred.label = svm_predict_probability(model_, x, &(probabilities[0]));
+    for (Size c = 0; c < n_classes; ++c)
+    {
+      pred.probabilities[labels[c]] = probabilities[c];
+    }
+    predictions.push_back(pred);
+  }
+  delete[] x;  
 }
 
 // only works in classification mode
@@ -312,7 +386,7 @@ void SimpleSVM::convertData_(const PredictorMap& predictors)
     for (Size obs_index = 0; obs_index < n_obs; ++obs_index)
     {
       double value = pred_it->second[obs_index];
-      if (value > 0.0)
+      if (value > 0.0) // TODO: why > 0.0?
       {
         svm_node node = {pred_index, value};
         nodes_[obs_index].push_back(node);
@@ -320,11 +394,10 @@ void SimpleSVM::convertData_(const PredictorMap& predictors)
     }
   }
   OPENMS_LOG_DEBUG << "Number of predictors for SVM: " << pred_index << endl;
-  svm_node final = {-1, 0.0};
-  for (vector<vector<struct svm_node> >::iterator node_it = nodes_.begin();
-       node_it != nodes_.end(); ++node_it)
+  svm_node sentinel = {-1, 0.0};
+  for (auto node_it = nodes_.begin(); node_it != nodes_.end(); ++node_it)
   {
-    node_it->push_back(final);
+    node_it->push_back(sentinel);
   }
 }
 

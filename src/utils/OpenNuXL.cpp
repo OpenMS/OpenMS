@@ -49,6 +49,10 @@
 #include <OpenMS/FILTERING/CALIBRATION/PrecursorCorrection.h>
 #include <OpenMS/ANALYSIS/XLMS/OPXLSpectrumProcessingAlgorithms.h>
 #include <OpenMS/CHEMISTRY/DecoyGenerator.h>
+#include <OpenMS/FORMAT/LibSVMEncoder.h>
+
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderIdentificationAlgorithm.h>
+
 
 #include <OpenMS/FILTERING/DATAREDUCTION/Deisotoper.h>
 #include <OpenMS/ANALYSIS/NUXL/NuXLModificationsGenerator.h>
@@ -139,6 +143,171 @@
 using namespace OpenMS;
 using namespace OpenMS::Internal;
 using namespace std;
+
+
+struct NuXLRTPrediction
+{
+  SimpleSVM svm;
+
+  String allowed_characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+
+  map<Int, double> encodeHelper_(const String& seq)
+  {
+    LibSVMEncoder c;
+    int n_feature_dimensions = allowed_characters.size() + 1; // after AA hist
+    vector<pair<Int, double> > encoded_vector;
+    c.encodeCompositionVector(seq, encoded_vector, allowed_characters);
+    //std::cout << encoded_vector.size() << std::endl;
+    encoded_vector.emplace_back(n_feature_dimensions, seq.size() / 100.0);
+
+    map<Int, double> v;
+    for (auto& e : encoded_vector) 
+    {
+      v[e.first - 1] = e.second; // encoded vector is 1-based -> convert to 0-based
+    }
+    return v;
+  }
+
+  std::tuple<SimpleSVM::PredictorMap, map<size_t, double>> buildPredictorsAndResponseFromIdentifiedFeatures_(const FeatureMap& features)
+  {
+    SimpleSVM::PredictorMap x;
+    map<size_t, double> y; 
+
+    // encode identification for SVR (mainly AA hist. and length)
+    size_t index{};
+    for (const auto& f : features)
+    {
+      const auto& pids = f.getPeptideIdentifications();
+      if (pids.empty()) continue;
+
+      const auto& phits = pids[0].getHits(); 
+      if (phits.empty()) continue;
+
+     
+      const String& seq = phits[0].getSequence().toUnmodifiedString();
+
+      auto v = encodeHelper_(seq);
+
+      // convert row vector to columns
+      for (size_t i = 0; i != allowed_characters.size(); ++i)
+      {
+        if (v.find(i) != v.end())
+        {
+          x[allowed_characters[i]].push_back(v[i]);
+        }
+        else
+        { 
+          x[allowed_characters[i]].push_back(0.0);
+        }    
+      }
+      x["AA_length"].push_back(seq.size() / 100.0); // length feature
+      x["charge"].push_back(f.getCharge());
+      const double RT = f.getRT();
+      y[index++] = RT;
+    }
+    return make_tuple(x,y);
+  }
+
+  std::tuple<SimpleSVM::PredictorMap, map<size_t, double>> buildPredictorsAndResponse_(const vector<PeptideIdentification>& peptides, bool all_hits)
+  {
+    SimpleSVM::PredictorMap x;
+    map<size_t, double> y; 
+
+    // encode identification for SVR (mainly AA hist. and length)
+    size_t index{};
+    for (const auto& pid : peptides)
+    {
+      const auto& phits = pid.getHits();
+
+      for (const auto& ph : phits)
+      {
+        const String& seq = ph.getSequence().toUnmodifiedString();
+
+        auto v = encodeHelper_(seq);
+
+        // convert row vector to columns
+        for (size_t i = 0; i != allowed_characters.size(); ++i)
+        {
+          if (v.find(i) != v.end())
+          {
+            x[allowed_characters[i]].push_back(v[i]);
+          }
+          else
+          { 
+            x[allowed_characters[i]].push_back(0.0);
+          }    
+        }
+        x["AA_length"].push_back(seq.size() / 100.0); // length feature
+        x["charge"].push_back(ph.getCharge());
+
+        const double RT = pid.getRT();
+        y[index++] = RT;
+
+        if (!all_hits) break;
+      }
+
+    }
+    return make_tuple(x,y);
+  }
+
+  // spectra centroided MS1 (MS2 optional), IDs need to be filtered to contain only high confidend ones
+  void train(const std::string& spectra_filename, 
+    vector<PeptideIdentification> peptides, 
+    const vector<ProteinIdentification>& proteins)
+  {
+    FalseDiscoveryRate().apply(peptides);
+    IDFilter::filterHitsByScore(peptides, 0.05);
+    IDFilter::removeDecoyHits(peptides);
+    IDFilter::keepBestPerPeptide(peptides, true, true, 1);
+    // detect features for accurate (elution profile apex) retention times
+    FeatureFinderIdentificationAlgorithm ffid_algo;
+    MzMLFile mzml;
+    mzml.getOptions().addMSLevel(1);
+    mzml.load(spectra_filename, ffid_algo.getMSData());
+    FeatureMap features;
+    ffid_algo.run(peptides, proteins, {}, {}, features, FeatureMap(), spectra_filename);
+    
+    auto [x, y] = buildPredictorsAndResponseFromIdentifiedFeatures_(features);
+
+    auto param = svm.getParameters();
+    //param.setValue("kernel", "RBF");
+    param.setValue("kernel", "linear");
+    svm.setParameters(param);
+
+    svm.setup(x, y, false); // set up regression and train
+  }
+
+  void annotatePredictions_(const vector<SimpleSVM::Prediction>& preds, vector<PeptideIdentification>& peptides, bool all_hits)
+  {   
+    size_t i{};
+    for (auto& pid : peptides)
+    {
+      auto& phits = pid.getHits();
+      for (auto& ph : phits)
+      {
+        double err = preds[i].label - pid.getRT();
+        ph.setMetaValue("RT_error", err);
+        ph.setMetaValue("RT_predict", preds[i].label);
+        // std::cout << preds[i].label << " " << pid.getRT() << " " << err << std::endl;
+        ++i; 
+      }
+
+   } 
+  }
+
+  // annotates the RT error on all data
+  void predict(vector<PeptideIdentification>& peptides)
+  {
+    const bool all_hits{true};
+    auto [x, y] = buildPredictorsAndResponse_(peptides, all_hits); // also predict for second or worse
+    vector<SimpleSVM::Prediction> predictions;
+    svm.predict(x, predictions);     
+    annotatePredictions_(predictions, peptides, all_hits);
+  }
+
+};
+
+
 
 // stores which residues (known to give rise to immonium ions) are in the sequence
 struct ImmoniumIonsInPeptide
@@ -4034,21 +4203,18 @@ static void scoreXLIons_(
   }
 
   void convertVSSCToCCS(MSExperiment& spectra)
-  {
+  { // confirmed values with alpha and MaxQuant
     OPENMS_LOG_INFO << "Converting 1/k0 to CCS values." << std::endl;
+    constexpr double bruker_CCS_coef = 1059.62245; // constant coefficient for Bruker in the Mason-Schamp equation
+    constexpr double IM_N2_gas_mass = 28.0; // like in alpha code
     for (auto& s : spectra)
     {
-      double IM = s.getDriftTime();
-      double mz = s.getPrecursors()[0].getMZ();
-      double charge = s.getPrecursors()[0].getCharge();
-      double bruker_CCS_coef = 1059.62245; // constant coefficient for Bruker in the Mason-Schamp equation
-      double IM_N2_gas_mass = 28.0134; // 28.0 in alpha code
-      double mass = mz * charge;
-      double reduced_mass = mass * IM_N2_gas_mass / (mass + IM_N2_gas_mass);
-      double CCS = IM * charge * bruker_CCS_coef / std::sqrt(reduced_mass); // Mason-Schamp equation
-      //const double LC = 2.6867811e25; // Loschmidt Constant in m^-3
-      //double CCS = sqrt(2.0 * M_PI / (mz * charge * 28.0134 / (mz * charge + 28.0134) * 1.66053904e-27) * 1.38064852e-23 * 305.0) * (IM * 1.6021766208e-19 / LC) * 3.0 / 16.0 * 1.0e24 * charge;
-      //std::cout << "IM: " << IM << " to " << CCS << std::endl;
+      const double IM = s.getDriftTime();
+      const double mz = s.getPrecursors()[0].getMZ();
+      const double charge = s.getPrecursors()[0].getCharge();
+      const double mass = mz * charge;
+      const double reduced_mass = mass * IM_N2_gas_mass / (mass + IM_N2_gas_mass);
+      const double CCS = IM * charge * bruker_CCS_coef / std::sqrt(reduced_mass); // Mason-Schamp equation
       s.setDriftTime(CCS);
     }
   }
@@ -4193,7 +4359,17 @@ static void scoreXLIons_(
       sse.setParameters(p);
       OPENMS_LOG_INFO << "Running autotune..." << endl;
       sse.search(in_mzml, in_db, prot_ids, pep_ids);      
+      NuXLRTPrediction rt_pred;
       
+      rt_pred.train(in_mzml, pep_ids, prot_ids);
+      rt_pred.predict(pep_ids);
+
+      // add RT prediction as extra feature for percolator      
+      auto search_parameters = prot_ids[0].getSearchParameters();
+      String new_features = (String)search_parameters.getMetaValue("extra_features") + String(",RT_error,RT_predict");
+      search_parameters.setMetaValue("extra_features", new_features);
+      prot_ids[0].setSearchParameters(search_parameters);
+
 /// try to run percolator
       {    
         vector<ProteinIdentification> perc_prot_ids;
