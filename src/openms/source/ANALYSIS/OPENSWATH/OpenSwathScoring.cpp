@@ -570,7 +570,7 @@ namespace OpenMS
   SpectrumSequence OpenSwathScoring::fetchSpectrumSwath(OpenSwath::SpectrumAccessPtr swathmap, double RT, int nr_spectra_to_add, const RangeMobility& im_range)
   {
 
-    SpectrumSequence all_spectra = fetchMultipleSpectra_(swathmap, RT, nr_spectra_to_add);
+    SpectrumSequence all_spectra = swathmap->getMultipleSpectra(RT, nr_spectra_to_add);
     if (spectra_addition_method_ == SIMPLE)
     {
       return all_spectra;
@@ -599,7 +599,7 @@ namespace OpenMS
       std::vector<OpenSwath::SpectrumPtr> all_spectra;
       for (size_t i = 0; i < swath_maps.size(); ++i)
       {
-        std::vector<OpenSwath::SpectrumPtr> spectrum_vector = fetchMultipleSpectra_(swath_maps[i].sptr, RT, nr_spectra_to_add);
+        std::vector<OpenSwath::SpectrumPtr> spectrum_vector = swath_maps[i].sptr->getMultipleSpectra(RT, nr_spectra_to_add);
         OpenSwath::SpectrumPtr spec = getAddedSpectra_(spectrum_vector, im_range);
         all_spectra.push_back(spec);
       }
@@ -650,40 +650,6 @@ namespace OpenMS
       output->setIntensityArray(intens_arr_out);
       output->getDataArrays().push_back(im_arr_out);
       return output;
-  }
-
-  std::vector<OpenSwath::SpectrumPtr> OpenSwathScoring::fetchMultipleSpectra_(const OpenSwath::SpectrumAccessPtr& swath_map,
-                                                            double RT, int nr_spectra_to_fetch)
-  {
-    std::vector<std::size_t> indices = swath_map->getSpectraByRT(RT, 0.0);
-    std::vector<OpenSwath::SpectrumPtr> all_spectra;
-
-    if (indices.empty() )
-    {
-      return all_spectra;
-    }
-    int closest_idx = boost::numeric_cast<int>(indices[0]);
-    if (indices[0] != 0 &&
-        std::fabs(swath_map->getSpectrumMetaById(boost::numeric_cast<int>(indices[0]) - 1).RT - RT) <
-        std::fabs(swath_map->getSpectrumMetaById(boost::numeric_cast<int>(indices[0])).RT - RT))
-    {
-      closest_idx--;
-    }
-
-    all_spectra.push_back(swath_map->getSpectrumById(closest_idx));
-    for (int i = 1; i <= nr_spectra_to_fetch / 2; i++) // cast to int is intended!
-    {
-      if (closest_idx - i >= 0)
-      {
-        all_spectra.push_back(swath_map->getSpectrumById(closest_idx - i));
-      }
-      if (closest_idx + i < (int)swath_map->getNrSpectra())
-      {
-        all_spectra.push_back(swath_map->getSpectrumById(closest_idx + i));
-      }
-    }
-
-    return all_spectra;
   }
 
   OpenSwath::SpectrumPtr OpenSwathScoring::getAddedSpectra_(std::vector<OpenSwath::SpectrumPtr>& all_spectra, const RangeMobility& im_range)

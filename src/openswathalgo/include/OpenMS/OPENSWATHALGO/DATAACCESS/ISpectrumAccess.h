@@ -44,6 +44,7 @@
 namespace OpenSwath
 {
 
+  using SpectrumSequence = std::vector<OpenSwath::SpectrumPtr>;
   /**
     @brief The interface of a mass spectrometry experiment.
   */
@@ -52,6 +53,7 @@ namespace OpenSwath
 public:
     /// Destructor
     virtual ~ISpectrumAccess();
+
 
     /**
       @brief Light clone operator to produce a copy for concurrent read access.
@@ -82,7 +84,14 @@ public:
     virtual std::size_t getNrChromatograms() const = 0;
     /// Returns the native id of the chromatogram at the given id
     virtual std::string getChromatogramNativeID(int id) const = 0;
-  };
+
+    /* @breif Fetches a spectrumSequence (multiple spectra pointers) closest to the given RT
+     * @p RT = target RT
+     * @p nr_spectra_to_fetch = # spectra around target RT to fetch (length of the spectrum sequence)
+    */
+    SpectrumSequence getMultipleSpectra(double RT, int nr_spectra_to_fetch);
+
+   };
 
   typedef boost::shared_ptr<ISpectrumAccess> SpectrumAccessPtr;
 }

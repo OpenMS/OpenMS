@@ -318,10 +318,6 @@ namespace OpenMS
 
   protected:
 
-    /** @breif Fetches multiple spectrum pointers in an vector format
-    */
-    std::vector<OpenSwath::SpectrumPtr> fetchMultipleSpectra_(const OpenSwath::SpectrumAccessPtr& swath_map, double RT, int nr_spectra_to_fetch);
-
     /** @breif converts a ion mobility enhanced spectrum to a non ion mobility spectrum by filtering by drift time
      */
     OpenSwath::SpectrumPtr filterByDrift_(const OpenSwath::SpectrumPtr& input, const RangeMobility& range_im);
