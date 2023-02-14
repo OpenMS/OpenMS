@@ -123,11 +123,13 @@ endif()
 
 #------------------------------------------------------------------------------
 # HDF5
-# For MSVC use static linking to the HDF5 libraries
-if(MSVC)
-  set(HDF5_USE_STATIC_LIBRARIES ON)
+if (WITH_HDF5)
+  # For MSVC use static linking to the HDF5 libraries
+  if(MSVC)
+    set(HDF5_USE_STATIC_LIBRARIES ON)
+  endif()
+  find_package(HDF5 MODULE REQUIRED COMPONENTS C CXX)
 endif()
-find_package(HDF5 MODULE REQUIRED COMPONENTS C CXX)
 
 #------------------------------------------------------------------------------
 # Done finding contrib libraries
@@ -162,6 +164,10 @@ endif()
 #------------------------------------------------------------------------------
 # PTHREAD
 #------------------------------------------------------------------------------
+# Prefer the -pthread compiler flag to be consistent with SQLiteCpp and avoid
+# rebuilds
+# TODO Do we even need this, when OpenMP is not active?
+set(THREADS_PREFER_PTHREAD_FLAG ON)
 find_package (Threads REQUIRED)
 
 
@@ -191,6 +197,8 @@ if (WITH_GUI)
   ENDIF()
 
   ## QuickWidgets is a runtime-only dependency that we need to copy and install when WebEngine is found.
+  # https://gitlab.kitware.com/cmake/cmake/-/issues/16462
+  # https://bugreports.qt.io/browse/QTBUG-110118
   find_package(Qt5 QUIET COMPONENTS ${OpenMS_GUI_QT_COMPONENTS_OPT} QuickWidgets)
 
   # TODO only works if WebEngineWidgets is the only optional component
@@ -204,6 +212,20 @@ if (WITH_GUI)
             COMPONENT Dependencies)
   else()
     message(WARNING "Qt5WebEngineWidgets not found or disabled, disabling JS Views in TOPPView!")
+  endif()
+
+  # The following can be checked since Qt 5.12 https://github.com/qtwebkit/qtwebkit/issues/846
+  # evaluates to False if it does not exist
+  # TODO check what needs to be done for other values
+  if (${Qt5Gui_OPENGL_IMPLEMENTATION} STREQUAL GLESv2)
+      install(IMPORTED_RUNTIME_ARTIFACTS "Qt5::Gui_EGL"
+            DESTINATION "${INSTALL_LIB_DIR}"
+            RUNTIME_DEPENDENCY_SET OPENMS_GUI_DEPS
+            COMPONENT Dependencies)
+      install(IMPORTED_RUNTIME_ARTIFACTS "Qt5::Gui_GLESv2"
+            DESTINATION "${INSTALL_LIB_DIR}"
+            RUNTIME_DEPENDENCY_SET OPENMS_GUI_DEPS
+            COMPONENT Dependencies)
   endif()
 
   set(OpenMS_GUI_DEP_LIBRARIES "OpenMS")

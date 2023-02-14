@@ -33,8 +33,39 @@
 # --------------------------------------------------------------------------
 
 # path were the CTDs will be stored
-set(KNIME_PLUGIN_DIRECTORY ${PROJECT_BINARY_DIR}/ctds CACHE PATH "Directory containing the generated plugin-sources for the OpenMS KNIME package")
+set(KNIME_PROJECT_DIRECTORY ${PROJECT_BINARY_DIR}/knime CACHE PATH "Directory containing the generated plugin-sources for the OpenMS KNIME package")
+
+set(OPENMS_FEATURE_DIRECTORY ${KNIME_PROJECT_DIRECTORY}/de.openms.feature)
+set(OPENMS_TP_FEATURE_DIRECTORY ${KNIME_PROJECT_DIRECTORY}/de.openms.thirdparty.feature)
+
+set(KNIME_PLUGIN_DIRECTORY ${OPENMS_FEATURE_DIRECTORY}/de.openms.topp)
+set(KNIME_LIB_DIRECTORY ${OPENMS_FEATURE_DIRECTORY}/de.openms.lib)
+set(KNIME_TP_PLUGIN_DIRECTORY ${OPENMS_TP_FEATURE_DIRECTORY}/de.openms.thirdparty)
+set(TOP_LEVEL_DIRS ${OPENMS_FEATURE_DIRECTORY} ${OPENMS_TP_FEATURE_DIRECTORY})
+
+# create the target directory at configure time
+file(MAKE_DIRECTORY ${KNIME_PROJECT_DIRECTORY})
+
+# payload paths
+# for the topp plugin
 set(CTD_PATH ${KNIME_PLUGIN_DIRECTORY}/descriptors)
+set(PAYLOAD_PATH ${KNIME_PLUGIN_DIRECTORY}/payload)
+set(PAYLOAD_BIN_PATH ${PAYLOAD_PATH}/bin)
+
+# for the lib plugin
+set(LIB_PATH ${KNIME_LIB_DIRECTORY}/payload)
+set(PAYLOAD_LIB_PATH ${LIB_PATH}/lib)
+set(PAYLOAD_SHARE_PATH ${LIB_PATH}/share)
+
+# for the thirdparty plugin
+set(CTD_TP_PATH ${KNIME_TP_PLUGIN_DIRECTORY}/descriptors)
+set(TP_PAYLOAD_PATH ${KNIME_TP_PLUGIN_DIRECTORY}/payload)
+set(TP_PAYLOAD_BIN_PATH ${TP_PAYLOAD_PATH}/bin)
+
+set(SUB_LEVEL_DIRS ${KNIME_PLUGIN_DIRECTORY} ${KNIME_LIB_DIRECTORY} ${KNIME_TP_PLUGIN_DIRECTORY}
+    ${CTD_PATH} ${PAYLOAD_PATH} ${PAYLOAD_BIN_PATH}
+    ${LIB_PATH} ${PAYLOAD_LIB_PATH} ${PAYLOAD_SHARE_PATH}
+    ${CTD_TP_PATH} ${TP_PAYLOAD_PATH} ${TP_PAYLOAD_BIN_PATH})
 
 # path where the executables can be found
 if(CMAKE_CONFIGURATION_TYPES)
@@ -58,12 +89,6 @@ include(InstallRequiredSystemLibraries)
 if(DEFINED OLD_CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS_SKIP)
   set(CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS_SKIP ${OLD_CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS_SKIP})
 endif()
-
-# payload paths
-set(PAYLOAD_PATH ${KNIME_PLUGIN_DIRECTORY}/payload)
-set(PAYLOAD_BIN_PATH ${PAYLOAD_PATH}/bin)
-set(PAYLOAD_LIB_PATH ${PAYLOAD_PATH}/lib)
-set(PAYLOAD_SHARE_PATH ${PAYLOAD_PATH}/share)
 
 # Find Qt5 includes for KNIME packaging
 find_package(Qt5 COMPONENTS ${OpenMS_QT_COMPONENTS} REQUIRED)
@@ -91,41 +116,96 @@ else()
   set(PLATFORM "lnx")
 endif()
 
-# create the target directory
-file(MAKE_DIRECTORY ${KNIME_PLUGIN_DIRECTORY})
+# pseudo-ctd target
+add_custom_target(
+    create_knime_folders
+    DEPENDS TOPP UTILS
+)
+
+foreach (PATH IN LISTS TOP_LEVEL_DIRS)
+  # we first create the directory to make sure that the remove command does not fail
+  add_custom_command(
+      TARGET  create_knime_folders POST_BUILD
+      COMMAND ${CMAKE_COMMAND} -E make_directory ${PATH}
+      COMMAND ${CMAKE_COMMAND} -E remove_directory ${PATH}
+      COMMAND ${CMAKE_COMMAND} -E make_directory ${PATH}
+  )
+endforeach()
+
+foreach (PATH IN LISTS SUB_LEVEL_DIRS)
+  # we know the dirs are empty now
+  add_custom_command(
+      TARGET  create_knime_folders POST_BUILD
+      COMMAND ${CMAKE_COMMAND} -E make_directory ${PATH}
+  )
+endforeach()
+
+find_package(Git)
+if(GIT_FOUND)
+  file(TO_CMAKE_PATH "${CMAKE_CURRENT_LIST_DIR}" DIR)
+  execute_process(COMMAND ${GIT_EXECUTABLE} log -n 1 --simplify-by-decoration --pretty=%ai
+                  WORKING_DIRECTORY ${DIR}
+                  ERROR_QUIET
+                  OUTPUT_VARIABLE OpenMS_WC_LAST_CHANGED_DATE
+                  OUTPUT_STRIP_TRAILING_WHITESPACE)
+  
+  string(REGEX REPLACE "^([0-9]+)-([0-9]+)-([0-9]+) ([0-9]+):([0-9]+).*"
+         "\\1\\2\\3\\4\\5" KNIME_DATE "${OpenMS_WC_LAST_CHANGED_DATE}")
+  set(KNIME_OPENMS_VERSION "${OPENMS_PACKAGE_VERSION}.${KNIME_DATE}")
+else()
+  set(KNIME_OPENMS_VERSION "${OPENMS_PACKAGE_VERSION}")
+endif()
 
 add_custom_target(
   configure_plugin_properties
-  COMMAND ${CMAKE_COMMAND} -D SCRIPT_DIR=${SCRIPT_DIRECTORY} -D SOURCE_PATH=${PROJECT_SOURCE_DIR} -D TARGET_PATH=${KNIME_PLUGIN_DIRECTORY} -D OPENMS_VERSION=${CF_OPENMS_PACKAGE_VERSION} -P ${SCRIPT_DIRECTORY}configure_plugin_properties.cmake
+  COMMAND ${CMAKE_COMMAND} -D SCRIPT_DIR=${SCRIPT_DIRECTORY} -D SOURCE_PATH=${PROJECT_SOURCE_DIR} -D TARGET_PATH=${KNIME_PLUGIN_DIRECTORY} -D VERSION=${KNIME_OPENMS_VERSION} -D TYPE="TOPPPLUGIN" -P ${SCRIPT_DIRECTORY}configure_plugin_properties.cmake
+  COMMAND ${CMAKE_COMMAND} -D SCRIPT_DIR=${SCRIPT_DIRECTORY} -D SOURCE_PATH=${PROJECT_SOURCE_DIR} -D TARGET_PATH=${KNIME_TP_PLUGIN_DIRECTORY} -D VERSION=${KNIME_OPENMS_VERSION} -D TYPE="TPPLUGIN" -P ${SCRIPT_DIRECTORY}configure_plugin_properties.cmake
+  COMMAND ${CMAKE_COMMAND} -D SCRIPT_DIR=${SCRIPT_DIRECTORY} -D SOURCE_PATH=${PROJECT_SOURCE_DIR} -D TARGET_PATH=${KNIME_LIB_DIRECTORY} -D VERSION=${KNIME_OPENMS_VERSION} -D TYPE="LIBPLUGIN" -P ${SCRIPT_DIRECTORY}configure_plugin_properties.cmake
+  COMMAND ${CMAKE_COMMAND} -D SCRIPT_DIR=${SCRIPT_DIRECTORY} -D SOURCE_PATH=${PROJECT_SOURCE_DIR} -D TARGET_PATH=${OPENMS_FEATURE_DIRECTORY} -D VERSION=${KNIME_OPENMS_VERSION} -D TYPE="FEATURE" -P ${SCRIPT_DIRECTORY}configure_plugin_properties.cmake
+  COMMAND ${CMAKE_COMMAND} -D SCRIPT_DIR=${SCRIPT_DIRECTORY} -D SOURCE_PATH=${PROJECT_SOURCE_DIR} -D TARGET_PATH=${OPENMS_TP_FEATURE_DIRECTORY} -D VERSION=${KNIME_OPENMS_VERSION} -D TYPE="TPFEATURE" -P ${SCRIPT_DIRECTORY}configure_plugin_properties.cmake
+  COMMAND ${CMAKE_COMMAND} -D SCRIPT_DIR=${SCRIPT_DIRECTORY} -D SOURCE_PATH=${PROJECT_SOURCE_DIR} -D TARGET_PATH=${KNIME_PROJECT_DIRECTORY} -D VERSION=${KNIME_OPENMS_VERSION} -D TYPE="UPDATESITE" -P ${SCRIPT_DIRECTORY}configure_plugin_properties.cmake
+  DEPENDS create_knime_folders
 )
 
-# copy the icons (at configure time??)
-file(COPY        ${PROJECT_SOURCE_DIR}/cmake/knime/icons
-     DESTINATION ${KNIME_PLUGIN_DIRECTORY}
-     PATTERN ".git" EXCLUDE)
-
 # list of all tools that can generate CTDs and do not include GUI libraries
+# TODO make a new category for Adapters
 set(CTD_executables ${TOPP_TOOLS} ${UTILS_TOOLS})
 
 # remove tools that do not produce CTDs or should not be shipped (because of dependencies or specifics that can not be resolved in KNIME)
 list(REMOVE_ITEM CTD_executables OpenMSInfo Resampler ExecutePipeline INIUpdater ImageCreator GenericWrapper InspectAdapter MascotAdapter SvmTheoreticalSpectrumGeneratorTrainer OpenSwathMzMLFileCacher PepNovoAdapter)
 
-# pseudo-ctd target
+# TODO do regex with "Adapter". Safe enough?
+set(THIRDPARTY_ADAPTERS
+    "MaRaClusterAdapter"
+    "XTandemAdapter"
+    "MSGFPlusAdapter"
+    "LuciphorAdapter"
+    "CometAdapter"
+    "PercolatorAdapter"
+    "FidoAdapter"
+    "MSFraggerAdapter"
+    "SiriusAdapter"
+    "NovorAdapter"
+  )
+
 add_custom_target(
-  create_ctds
-  # we first create the directory to make sure that the remove command does not fail
-  COMMAND ${CMAKE_COMMAND} -E make_directory ${CTD_PATH}
-  COMMAND ${CMAKE_COMMAND} -E remove_directory ${CTD_PATH}
-  COMMAND ${CMAKE_COMMAND} -E make_directory ${CTD_PATH}
-  DEPENDS TOPP UTILS
+    create_ctds
+    DEPENDS create_knime_folders
 )
 
 # call the tools to write ctds
 foreach(TOOL ${CTD_executables})
-  add_custom_command(
-    TARGET  create_ctds POST_BUILD
-    COMMAND ${TOPP_BIN_PATH}/${TOOL} -write_ctd ${CTD_PATH}
-  )
+  if(${TOOL} IN_LIST THIRDPARTY_ADAPTERS)
+    add_custom_command(
+      TARGET  create_ctds POST_BUILD
+      COMMAND ${TOPP_BIN_PATH}/${TOOL} -write_ctd ${CTD_TP_PATH}
+    )
+  else()
+    add_custom_command(
+        TARGET  create_ctds POST_BUILD
+        COMMAND ${TOPP_BIN_PATH}/${TOOL} -write_ctd ${CTD_PATH}
+    )
+  endif()
 endforeach()
 
 # remove those parts of the CTDs we cannot or do not want to model in KNIME
@@ -133,77 +213,94 @@ endforeach()
 add_custom_target(
   final_ctds
   # MaRaClusterAdapter
-  COMMAND ${CMAKE_COMMAND} -D SCRIPT_DIR=${SCRIPT_DIRECTORY} -DTOOLNAME=MaRaClusterAdapter -DPARAM=maracluster_executable -D CTD_PATH=${CTD_PATH} -P ${SCRIPT_DIRECTORY}remove_parameter_from_ctd.cmake
+  COMMAND ${CMAKE_COMMAND} -D SCRIPT_DIR=${SCRIPT_DIRECTORY} -DTOOLNAME=MaRaClusterAdapter -DPARAM=maracluster_executable -D CTD_PATH=${CTD_TP_PATH} -P ${SCRIPT_DIRECTORY}remove_parameter_from_ctd.cmake
   # XTandemAdapter
-  COMMAND ${CMAKE_COMMAND} -D SCRIPT_DIR=${SCRIPT_DIRECTORY} -DTOOLNAME=XTandemAdapter -DPARAM=xtandem_executable -D CTD_PATH=${CTD_PATH} -P ${SCRIPT_DIRECTORY}remove_parameter_from_ctd.cmake
+  COMMAND ${CMAKE_COMMAND} -D SCRIPT_DIR=${SCRIPT_DIRECTORY} -DTOOLNAME=XTandemAdapter -DPARAM=xtandem_executable -D CTD_PATH=${CTD_TP_PATH} -P ${SCRIPT_DIRECTORY}remove_parameter_from_ctd.cmake
   # MSGFPlusAdapter
-  COMMAND ${CMAKE_COMMAND} -D SCRIPT_DIR=${SCRIPT_DIRECTORY} -DTOOLNAME=MSGFPlusAdapter -DPARAM=executable -D CTD_PATH=${CTD_PATH} -P ${SCRIPT_DIRECTORY}remove_parameter_from_ctd.cmake
+  COMMAND ${CMAKE_COMMAND} -D SCRIPT_DIR=${SCRIPT_DIRECTORY} -DTOOLNAME=MSGFPlusAdapter -DPARAM=executable -D CTD_PATH=${CTD_TP_PATH} -P ${SCRIPT_DIRECTORY}remove_parameter_from_ctd.cmake
   # LuciPhorAdapter
-  COMMAND ${CMAKE_COMMAND} -D SCRIPT_DIR=${SCRIPT_DIRECTORY} -DTOOLNAME=LuciphorAdapter -DPARAM=executable -D CTD_PATH=${CTD_PATH} -P ${SCRIPT_DIRECTORY}remove_parameter_from_ctd.cmake
+  COMMAND ${CMAKE_COMMAND} -D SCRIPT_DIR=${SCRIPT_DIRECTORY} -DTOOLNAME=LuciphorAdapter -DPARAM=executable -D CTD_PATH=${CTD_TP_PATH} -P ${SCRIPT_DIRECTORY}remove_parameter_from_ctd.cmake
   # CometAdapter
-  COMMAND ${CMAKE_COMMAND} -D SCRIPT_DIR=${SCRIPT_DIRECTORY} -DTOOLNAME=CometAdapter -DPARAM=comet_executable -D CTD_PATH=${CTD_PATH} -P ${SCRIPT_DIRECTORY}remove_parameter_from_ctd.cmake
+  COMMAND ${CMAKE_COMMAND} -D SCRIPT_DIR=${SCRIPT_DIRECTORY} -DTOOLNAME=CometAdapter -DPARAM=comet_executable -D CTD_PATH=${CTD_TP_PATH} -P ${SCRIPT_DIRECTORY}remove_parameter_from_ctd.cmake
   # PercolatorAdapter
-  COMMAND ${CMAKE_COMMAND} -D SCRIPT_DIR=${SCRIPT_DIRECTORY} -DTOOLNAME=PercolatorAdapter -DPARAM=percolator_executable -D CTD_PATH=${CTD_PATH} -P ${SCRIPT_DIRECTORY}remove_parameter_from_ctd.cmake
+  COMMAND ${CMAKE_COMMAND} -D SCRIPT_DIR=${SCRIPT_DIRECTORY} -DTOOLNAME=PercolatorAdapter -DPARAM=percolator_executable -D CTD_PATH=${CTD_TP_PATH} -P ${SCRIPT_DIRECTORY}remove_parameter_from_ctd.cmake
   # FidoAdapter
-  COMMAND ${CMAKE_COMMAND} -D SCRIPT_DIR=${SCRIPT_DIRECTORY} -DTOOLNAME=FidoAdapter -DPARAM=fido_executable -D CTD_PATH=${CTD_PATH} -P ${SCRIPT_DIRECTORY}remove_parameter_from_ctd.cmake
-  COMMAND ${CMAKE_COMMAND} -D SCRIPT_DIR=${SCRIPT_DIRECTORY} -DTOOLNAME=FidoAdapter -DPARAM=fidocp_executable -D CTD_PATH=${CTD_PATH} -P ${SCRIPT_DIRECTORY}remove_parameter_from_ctd.cmake
+  COMMAND ${CMAKE_COMMAND} -D SCRIPT_DIR=${SCRIPT_DIRECTORY} -DTOOLNAME=FidoAdapter -DPARAM=fido_executable -D CTD_PATH=${CTD_TP_PATH} -P ${SCRIPT_DIRECTORY}remove_parameter_from_ctd.cmake
+  COMMAND ${CMAKE_COMMAND} -D SCRIPT_DIR=${SCRIPT_DIRECTORY} -DTOOLNAME=FidoAdapter -DPARAM=fidocp_executable -D CTD_PATH=${CTD_TP_PATH} -P ${SCRIPT_DIRECTORY}remove_parameter_from_ctd.cmake
   DEPENDS create_ctds
 )
 
 # remove out_type parameters
 foreach(TOOL ${CTD_executables})
-  add_custom_command(
-    TARGET  final_ctds POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -D SCRIPT_DIR=${SCRIPT_DIRECTORY} -DTOOLNAME=${TOOL} -DPARAM=out_type -D CTD_PATH=${CTD_PATH} -P ${SCRIPT_DIRECTORY}remove_parameter_from_ctd.cmake
-  )
+  if(${TOOL} IN_LIST THIRDPARTY_ADAPTERS)
+    add_custom_command(
+      TARGET final_ctds POST_BUILD
+      COMMAND ${CMAKE_COMMAND} -D SCRIPT_DIR=${SCRIPT_DIRECTORY} -DTOOLNAME=${TOOL} -DPARAM=out_type -D CTD_PATH=${CTD_TP_PATH} -P ${SCRIPT_DIRECTORY}remove_parameter_from_ctd.cmake
+    )
+  else()
+    add_custom_command(
+        TARGET final_ctds POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -D SCRIPT_DIR=${SCRIPT_DIRECTORY} -DTOOLNAME=${TOOL} -DPARAM=out_type -D CTD_PATH=${CTD_PATH} -P ${SCRIPT_DIRECTORY}remove_parameter_from_ctd.cmake
+    )
+  endif()
 endforeach()
 
-# create final target that collects all sub-calls
+# copy the icons
+add_custom_target(
+    create_icons
+    # we first create the directory to make sure that the remove command does not fail
+    COMMAND ${CMAKE_COMMAND} -E copy ${PROJECT_SOURCE_DIR}/cmake/knime/icons ${KNIME_PLUGIN_DIRECTORY}
+    COMMAND ${CMAKE_COMMAND} -E copy ${PROJECT_SOURCE_DIR}/cmake/knime/icons ${KNIME_TP_PLUGIN_DIRECTORY}
+    DEPENDS create_knime_folders
+)
+
+# TODO in theory thirdparty does not need ALL the mimetypes. Should be ok for now.
+# TODO check why we need two files.
 add_custom_target(
   prepare_knime_descriptors
   COMMAND ${CMAKE_COMMAND} -E copy ${PROJECT_SOURCE_DIR}/cmake/knime/mimetypes.xml ${CTD_PATH}
   COMMAND ${CMAKE_COMMAND} -E copy ${PROJECT_SOURCE_DIR}/cmake/knime/mime.types ${CTD_PATH}
-  DEPENDS final_ctds
+  COMMAND ${CMAKE_COMMAND} -E copy ${PROJECT_SOURCE_DIR}/cmake/knime/mimetypes.xml ${CTD_TP_PATH}
+  COMMAND ${CMAKE_COMMAND} -E copy ${PROJECT_SOURCE_DIR}/cmake/knime/mime.types ${CTD_TP_PATH}
+  DEPENDS create_knime_folders final_ctds
 )
 
 add_custom_target(
   prepare_knime_payload_binaries
-  # 1st create the directory to make sure that the remove_directory does not fail
-  COMMAND ${CMAKE_COMMAND} -E make_directory ${PAYLOAD_PATH}
-  COMMAND ${CMAKE_COMMAND} -E remove_directory ${PAYLOAD_PATH}
-  COMMAND ${CMAKE_COMMAND} -E make_directory ${PAYLOAD_PATH}
-  COMMAND ${CMAKE_COMMAND} -E make_directory ${PAYLOAD_BIN_PATH}
-  DEPENDS TOPP UTILS
-)
-
-add_custom_target(
-  create_payload_share
-  # 1st create the directory to make sure that the remove_directory does not fail
-  COMMAND ${CMAKE_COMMAND} -E make_directory ${PAYLOAD_SHARE_PATH}
-  # remove old directory
-  COMMAND ${CMAKE_COMMAND} -E remove_directory ${PAYLOAD_SHARE_PATH}
-  # create new one and fill with the appropriate content
-  COMMAND ${CMAKE_COMMAND} -E make_directory ${PAYLOAD_SHARE_PATH}
-  COMMAND ${CMAKE_COMMAND} -D SCRIPT_DIR=${SCRIPT_DIRECTORY} -D SOURCE_PATH=${PROJECT_SOURCE_DIR} -D TARGET_DIRECTORY=${PAYLOAD_SHARE_PATH} -P ${SCRIPT_DIRECTORY}copy_share.cmake
-  DEPENDS prepare_knime_payload_binaries
+  DEPENDS create_knime_folders
 )
 
 # copy the binaries
 foreach(TOOL ${CTD_executables})
   set(tool_path ${TOPP_BIN_PATH}/${TOOL}${CMAKE_EXECUTABLE_SUFFIX})
-  add_custom_command(
-    TARGET  prepare_knime_payload_binaries POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E copy ${tool_path} "${PAYLOAD_BIN_PATH}/"
-  )
+  if(${TOOL} IN_LIST THIRDPARTY_ADAPTERS)
+    add_custom_command(
+        TARGET  prepare_knime_payload_binaries POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy ${tool_path} "${TP_PAYLOAD_BIN_PATH}/"
+    )
+  else()
+    add_custom_command(
+        TARGET  prepare_knime_payload_binaries POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy ${tool_path} "${PAYLOAD_BIN_PATH}/"
+    )
+  endif()
 endforeach()
 
 add_custom_target(
+    create_payload_share
+    # 1st create the directory to make sure that the remove_directory does not fail
+    COMMAND ${CMAKE_COMMAND} -E make_directory ${PAYLOAD_SHARE_PATH}
+    # remove old directory
+    COMMAND ${CMAKE_COMMAND} -E remove_directory ${PAYLOAD_SHARE_PATH}
+    # create new one and fill with the appropriate content
+    COMMAND ${CMAKE_COMMAND} -E make_directory ${PAYLOAD_SHARE_PATH}
+    COMMAND ${CMAKE_COMMAND} -D SCRIPT_DIR=${SCRIPT_DIRECTORY} -D SOURCE_PATH=${PROJECT_SOURCE_DIR} -D TARGET_DIRECTORY=${PAYLOAD_SHARE_PATH} -P ${SCRIPT_DIRECTORY}copy_share.cmake
+    DEPENDS create_knime_folders
+)
+
+add_custom_target(
   prepare_knime_payload_libs
-  # 1st create the directory to make sure that the remove_directory does not fail
-  COMMAND ${CMAKE_COMMAND} -E make_directory ${PAYLOAD_LIB_PATH}
-  COMMAND ${CMAKE_COMMAND} -E remove_directory ${PAYLOAD_LIB_PATH}
-  COMMAND ${CMAKE_COMMAND} -E make_directory ${PAYLOAD_LIB_PATH}
-  # we need the binaries to determine what libraries we need
+  # we may need the binaries to determine what libraries we need
   DEPENDS prepare_knime_payload_binaries
 )
 
@@ -225,8 +322,8 @@ add_custom_target(
 #)
 
 ## Assemble common required libraries for win and lnx
-## Note that we do not need QtGui libraries since we do not include GUI tools here.
-## see REMOVE_ITEM variable
+## Note that we do not need QtGui libraries since we do not include GUI tools here in KNIME.
+## see also the REMOVE_ITEM variable which removes tools with non-obvious dependencies to QtGui
 foreach (KNIME_TOOLS_DEPENDENCY OpenMS OpenSwathAlgo)
   add_custom_command(
       TARGET prepare_knime_payload_libs POST_BUILD
@@ -235,18 +332,21 @@ foreach (KNIME_TOOLS_DEPENDENCY OpenMS OpenSwathAlgo)
 endforeach()
 
 # assemble the libraries
-if (APPLE) ## On APPLE use our script because the executables need to be relinked and some rpath lookups done
+if (APPLE) ## On APPLE use our script because the executables' install_names need to be changed
   add_custom_command(
     TARGET prepare_knime_payload_libs POST_BUILD
-    COMMAND ${PROJECT_SOURCE_DIR}/cmake/MacOSX/fix_dependencies.rb -l ${PAYLOAD_LIB_PATH} -b ${PAYLOAD_BIN_PATH} -f
+    COMMAND ${PROJECT_SOURCE_DIR}/cmake/MacOSX/fix_dependencies.rb -l ${PAYLOAD_LIB_PATH} -b ${PAYLOAD_BIN_PATH} -f -e "" -n
+    COMMAND ${PROJECT_SOURCE_DIR}/cmake/MacOSX/fix_dependencies.rb -l ${PAYLOAD_LIB_PATH} -b ${PAYLOAD_TP_BIN_PATH} -f -e "" -n
   ) # -p ${PAYLOAD_LIB_PATH}/plugins not applicable for now
   add_custom_command(
           TARGET prepare_knime_payload_libs POST_BUILD
           COMMAND find ${PAYLOAD_BIN_PATH} -depth 1 -type f -exec ${CMAKE_STRIP} -S {} "\;"
+          COMMAND find ${TP_PAYLOAD_BIN_PATH} -depth 1 -type f -exec ${CMAKE_STRIP} -S {} "\;"
   )
   add_custom_command(
           TARGET prepare_knime_payload_libs POST_BUILD
           COMMAND find ${PAYLOAD_LIB_PATH} -type f -name "*.dylib" -exec ${CMAKE_STRIP} -x {} "\;"
+          COMMAND find ${PAYLOAD_LIB_PATH} -type f -name "Qt*" -exec ${CMAKE_STRIP} -x {} "\;"
   )
 elseif(WIN32)
   # on Win everything should be linked statically for distribution except Qt
@@ -273,6 +373,7 @@ else()
   add_custom_command(
           TARGET prepare_knime_payload_libs POST_BUILD
           COMMAND find ${PAYLOAD_BIN_PATH} -depth 1 -type f -exec ${CMAKE_STRIP} -s {} "\;"
+          COMMAND find ${TP_PAYLOAD_BIN_PATH} -depth 1 -type f -exec ${CMAKE_STRIP} -s {} "\;"
   )
   add_custom_command(
           TARGET prepare_knime_payload_libs POST_BUILD
@@ -287,7 +388,7 @@ add_custom_target(
   DEPENDS prepare_knime_payload_binaries
 )
 
-set(FOLDER_STRUCTURE_MESSAGE "You can clone all Thirdparty binaries from our OpenMS/THIRDPARTY Git repository but you have to flatten the folder structure such that it is only one level deep with the versions specific for your platform. Do not change the folder names.")
+set(FOLDER_STRUCTURE_MESSAGE "You can clone all Thirdparty binaries from our OpenMS/THIRDPARTY Git submodule/repository but you have to flatten the folder structure such that it is only one level deep with the versions specific for your platform. Do not change the folder names.")
 
 # check if we have valid search engines
 ## TODO check if we still need this. Maintenance. Maybe check for non-empty and otherwise just copy everything.
@@ -306,7 +407,7 @@ endif()
 
 add_custom_target(
   prepare_knime_payload_searchengines
-  COMMAND ${CMAKE_COMMAND} -D SCRIPT_DIR=${SCRIPT_DIRECTORY} -D SE_PATH=${SEARCH_ENGINES_DIRECTORY} -D TARGET_DIRECTORY=${PAYLOAD_BIN_PATH} -P ${SCRIPT_DIRECTORY}copy_searchengines.cmake
+  COMMAND ${CMAKE_COMMAND} -D SCRIPT_DIR=${SCRIPT_DIRECTORY} -D SE_PATH=${SEARCH_ENGINES_DIRECTORY} -D TARGET_DIRECTORY=${TP_PAYLOAD_BIN_PATH} -P ${SCRIPT_DIRECTORY}copy_searchengines.cmake
   # We need the folder layout from the bin target
   DEPENDS prepare_knime_payload_binaries
 )
@@ -315,6 +416,9 @@ add_custom_target(
 add_custom_target(
   prepare_knime_payload
   COMMAND ${CMAKE_COMMAND} -D SCRIPT_DIR=${SCRIPT_DIRECTORY} -D ARCH=${ARCH} -D PLATFORM=${PLATFORM} -D PAYLOAD_FOLDER=${PAYLOAD_PATH} -P ${SCRIPT_DIRECTORY}compress_payload.cmake
+  COMMAND ${CMAKE_COMMAND} -D SCRIPT_DIR=${SCRIPT_DIRECTORY} -D ARCH=${ARCH} -D PLATFORM=${PLATFORM} -D PAYLOAD_FOLDER=${TP_PAYLOAD_PATH} -P ${SCRIPT_DIRECTORY}compress_payload.cmake
+  COMMAND ${CMAKE_COMMAND} -D SCRIPT_DIR=${SCRIPT_DIRECTORY} -D ARCH=${ARCH} -D PLATFORM=${PLATFORM} -D PAYLOAD_FOLDER=${LIB_PATH} -P ${SCRIPT_DIRECTORY}compress_payload.cmake
+
   DEPENDS prepare_knime_payload_binaries prepare_knime_payload_libs create_payload_share prepare_knime_payload_ini prepare_knime_payload_searchengines
 )
 
@@ -323,7 +427,14 @@ add_custom_target(
   COMMAND ${CMAKE_COMMAND} -E copy ${PROJECT_SOURCE_DIR}/cmake/knime/LICENSE ${KNIME_PLUGIN_DIRECTORY}/
   COMMAND ${CMAKE_COMMAND} -E copy ${PROJECT_SOURCE_DIR}/cmake/knime/COPYRIGHT ${KNIME_PLUGIN_DIRECTORY}/
   COMMAND ${CMAKE_COMMAND} -E copy ${PROJECT_SOURCE_DIR}/cmake/knime/DESCRIPTION ${KNIME_PLUGIN_DIRECTORY}/
-)
+  COMMAND ${CMAKE_COMMAND} -E copy ${PROJECT_SOURCE_DIR}/cmake/knime/LICENSE ${KNIME_LIB_DIRECTORY}/
+  COMMAND ${CMAKE_COMMAND} -E copy ${PROJECT_SOURCE_DIR}/cmake/knime/COPYRIGHT ${KNIME_LIB_DIRECTORY}/
+  COMMAND ${CMAKE_COMMAND} -E copy ${PROJECT_SOURCE_DIR}/cmake/knime/DESCRIPTION ${KNIME_LIB_DIRECTORY}/
+  COMMAND ${CMAKE_COMMAND} -E copy ${PROJECT_SOURCE_DIR}/cmake/knime/TPLICENSE ${KNIME_TP_PLUGIN_DIRECTORY}/LICENSE
+  COMMAND ${CMAKE_COMMAND} -E copy ${PROJECT_SOURCE_DIR}/cmake/knime/TPCOPYRIGHT ${KNIME_TP_PLUGIN_DIRECTORY}/COPYRIGHT
+  COMMAND ${CMAKE_COMMAND} -E copy ${PROJECT_SOURCE_DIR}/cmake/knime/TPDESCRIPTION ${KNIME_TP_PLUGIN_DIRECTORY}/DESCRIPTION
+  DEPENDS create_knime_folders
+) ## TODO maybe create a separate license file for the Thirdparties on-the-fly by using the actual licenses in the THIRDPARTY submodule
 
 add_custom_target(
   prepare_knime_package

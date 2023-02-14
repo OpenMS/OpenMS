@@ -324,6 +324,14 @@ public:
       @return False, if both StringLists are different (respecting the parameters)
     */
     static bool validateMatchingFileNames(const StringList& sl1, const StringList& sl2, bool basename = true, bool ignore_extension = true, bool strict = false);
+
+    /**
+      @brief Download file from given URL into a download folder. Returns when done.
+      Throws FileNotFound exception if download failed. If a file with same filename
+      already exists, continues download and appends '.#number' to basename.
+    */
+    static void download(const std::string& url, const std::string& download_folder);
+
 private:
 
     /// get defaults for the system's Temp-path, user home directory etc.

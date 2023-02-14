@@ -70,16 +70,25 @@ set(OPENMS_LOGOSMALL ${PROJECT_SOURCE_DIR}/cmake/MacOSX/${OPENMS_LOGOSMALL_NAME}
 # We also do not need API sets. So exclude them.
 if(WIN32)
   set(EXCLUDE "api-ms" "ext-ms" "hvsi" "pdmutilities")
+  set(POST_EXCLUDE ".*WINDOWS.system32.*")
 elseif(APPLE)
   set(EXCLUDE "/usr/lib" "/System/")
+  set(POST_EXCLUDE "")
 else()
-  set(EXCLUDE)
+  set(EXCLUDE ".*/ld-linux-.*" ".*/linux-vdso.*" ".*/libm\\..*" ".*/libc\\..*" ".*/libpthread\\..*" ".*/libdl\\..*")
+  set(POST_EXCLUDE "")
 endif()
 
+# TODO check if we can reduce the permissions
 install(RUNTIME_DEPENDENCY_SET OPENMS_DEPS
         DESTINATION ${INSTALL_LIB_DIR}
+        PERMISSIONS
+          OWNER_READ OWNER_WRITE OWNER_EXECUTE
+          GROUP_READ GROUP_WRITE GROUP_EXECUTE
+          WORLD_READ WORLD_WRITE WORLD_EXECUTE
         COMPONENT Dependencies
-        PRE_EXCLUDE_REGEXES ${EXCLUDE} 
+        PRE_EXCLUDE_REGEXES ${EXCLUDE}
+        POST_EXCLUDE_REGEXES ${POST_EXCLUDE}
         DIRECTORIES $<TARGET_FILE_DIR:OpenMS>)
 
 #install(RUNTIME_DEPENDENCY_SET TOPPView_DEPS) # I think without giving DESTINATION and COMPONENT it will be inferred

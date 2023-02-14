@@ -1,5 +1,3 @@
-#!/bin/bash
-
 # --------------------------------------------------------------------------
 #                   OpenMS -- Open-Source Mass Spectrometry
 # --------------------------------------------------------------------------
@@ -30,40 +28,9 @@
 # ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 # --------------------------------------------------------------------------
-# $Maintainer: Stephan Aiche $
-# $Authors: Stephan Aiche $
+# $Maintainer: Julianus Pfeuffer $
+# $Authors: Julianus Pfeuffer $
 # --------------------------------------------------------------------------
 
-# This script finds all the required qt libs for the OpenMS installation
-
-# we assume to have 3 arguments
-# 1. an executable linking against all shipped libraries
-# 2. the path where the OpenMS libs where build
-# 3. the path were the external libs should be placed
-
-if [ ! $# == 3 ]; then
-  echo "Usage: $0 /path/to/executables /path/to/libs /target/path"
-  exit
-fi
-
-ldd_targets=$(find $1 $2 -type f)
-target_path=$3
-
-globalSOs=()
-
-for exe in $ldd_targets; do
-  currentSOs=$(ldd $exe | grep "libQt" | sed 's/.* => \(.*\) .*/\1/g')
-
-  for so in ${currentSOs}; do
-    #echo "cp ${so} ${target_path}"
-    #globalSOs$=($(printf "%s\n" "${globalSOs[@]}" | sort -u))
-    globalSOs+=($so)
-  done
-done
-
-# make list unique
-uniqSOs=$(echo "${globalSOs[@]}" | tr ' ' '\n' | sort -u | tr '\n' ' ')
-
-for so in ${uniqSOs[@]}; do
-  cp ${so} ${target_path}
-done
+add_library(Quadtree INTERFACE)
+target_include_directories(Quadtree INTERFACE "include")

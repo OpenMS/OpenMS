@@ -875,50 +875,52 @@ namespace OpenMS
 
     vector<IdentificationData::ObservationMatchRef> best_matches =
       id_data.getBestMatchPerObservation(score_ref);
+
     auto best_match_it = best_matches.begin();
-    for (auto it = id_data.observation_matches_.begin();
-         it != id_data.observation_matches_.end(); )
-    {
+
+    // predicate to compare the best match(es) to all (ordered) observation matches
+    // returns false if the current om is a best match (-> not to be removed)
+    // returns true if an inferior om was found (-> will be removed)
+    auto has_worse_score = [&best_match_it](IdentificationData::ObservationMatchRef it)->bool 
+    { 
       if (it == *best_match_it)
       {
-        ++it;
         ++best_match_it;
+        return false;
       }
-      else
-      {
-        it = id_data.observation_matches_.erase(it);
-      }
-    }
-
-    id_data.cleanup();
+      return true;
+    };
+    
+    id_data.removeObservationMatchesIf(has_worse_score);
   }
 
   void IDFilter::filterObservationMatchesByScore(
     IdentificationData& id_data, IdentificationData::ScoreTypeRef score_ref,
     double cutoff)
   {
-    id_data.removeFromSetIf_(
-      id_data.observation_matches_, [&](IdentificationData::ObservationMatchRef it) -> bool
-      {
-        pair<double, bool> score = it->getScore(score_ref);
-        return !score.second || score_ref->isBetterScore(cutoff, score.first);
-      });
-
-    id_data.cleanup();
+    // predicate to compare the score of observation matches to a cutoff
+    // returns true if the current score is worse than the cutoff
+    // returns false otherwise
+    auto is_worse_than_cutoff = [&](IdentificationData::ObservationMatchRef it)->bool 
+    { 
+      pair<double, bool> score = it->getScore(score_ref);
+      return !score.second || score_ref->isBetterScore(cutoff, score.first);
+    };
+    
+    id_data.removeObservationMatchesIf(is_worse_than_cutoff);
   }
-
 
   void IDFilter::removeDecoys(IdentificationData& id_data)
   {
-    Size n_parents = id_data.getParentSequences().size();
-    id_data.removeFromSetIf_(
-      id_data.parents_,
-      [&](IdentificationData::ParentSequenceRef it) -> bool
-      {
-        return it->is_decoy;
-      });
-
-    if (id_data.getParentSequences().size() < n_parents) id_data.cleanup();
+    // predicate to compare the target/decoy status of a parent sequence
+    // returns true if decoy
+    // returns false if target
+    auto is_decoy = [&](IdentificationData::ParentSequenceRef it)->bool 
+    { 
+      return it->is_decoy;
+    };
+    
+    id_data.removeParentSequencesIf(is_decoy);
   }
 
 } // namespace OpenMS

@@ -153,10 +153,8 @@ protected:
     setValidFormats_("lib_out", ListUtils::create<String>("traML"));
     registerOutputFile_("chrom_out", "<file>", "", "Output file: Chromatograms", false);
     setValidFormats_("chrom_out", ListUtils::create<String>("mzML"));
-    registerOutputFile_("candidates_out", "<file>", "", "Output file: Feature candidates (before filtering and model fitting)", false);
     registerOutputFile_("trafo_out", "<file>", "", "Output file: Retention times (expected vs. observed)", false);
     setValidFormats_("trafo_out", ListUtils::create<String>("trafoXML"));
-    setValidFormats_("candidates_out", ListUtils::create<String>("featureXML"));
     registerFlag_("force", "Force processing of files with no MS1 spectra", true);
 
     Param ffmetaboident_params;
@@ -251,7 +249,11 @@ protected:
 
     FeatureFinderAlgorithmMetaboIdent ff_mident;
     // copy (command line) tool parameters that match the algorithm parameters back to the algorithm
-    ff_mident.setParameters(getParam_().copySubset(FeatureFinderAlgorithmMetaboIdent().getDefaults()));
+    auto tool_parameter = getParam_().copySubset(FeatureFinderAlgorithmMetaboIdent().getDefaults());
+    tool_parameter.setValue("EMGScoring:init_mom", "true"); // overwrite defaults
+    tool_parameter.setValue("EMGScoring:max_iteration", 100); // overwrite defaults
+    tool_parameter.setValue("debug", debug_level_); // pass down debug level
+    ff_mident.setParameters(tool_parameter);
 
     OPENMS_LOG_INFO << "Loading input LC-MS data..." << endl;
     MzMLFile mzml;

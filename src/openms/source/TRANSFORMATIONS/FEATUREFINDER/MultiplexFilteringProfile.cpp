@@ -43,7 +43,7 @@
 #include <sstream>
 #include <utility>
 
-//#define DEBUG
+//#define DEBUG_FFMULTIPLEX
 
 using namespace std;
 
@@ -127,7 +127,7 @@ namespace OpenMS
     // list of filter results for each peak pattern
     std::vector<MultiplexFilteredMSExperiment> filter_results;
     
-#ifdef DEBUG
+#ifdef DEBUG_FFMULTIPLEX
     // clock for monitoring run time performance
     unsigned int start = clock();
 #endif
@@ -260,7 +260,7 @@ namespace OpenMS
         
       }
  
-#ifdef DEBUG
+#ifdef DEBUG_FFMULTIPLEX
       // write filtered peaks to debug output
       std::stringstream debug_out;
       debug_out << "filter_result_" << pattern_idx << ".consensusXML";
@@ -271,7 +271,7 @@ namespace OpenMS
       filter_results.push_back(result);
     }
     
-#ifdef DEBUG
+#ifdef DEBUG_FFMULTIPLEX
     // clock for monitoring run time performance
     OPENMS_LOG_INFO << "\nThe filtering step of the algorithm took " << (float)(clock()-start)/CLOCKS_PER_SEC << " seconds.\n\n";
 #endif

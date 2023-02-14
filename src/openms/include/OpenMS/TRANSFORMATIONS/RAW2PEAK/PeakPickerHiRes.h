@@ -134,6 +134,7 @@ public:
       @param input  input chromatogram in profile mode
       @param output  output chromatogram with picked peaks
       @param boundaries  boundaries of the picked peaks
+      @param check_spacings  check spacing constraints? (yes for spectra, no for chromatograms)
      */
     void pick(const MSChromatogram& input, MSChromatogram& output, std::vector<PeakBoundary>& boundaries, bool check_spacings = false) const;
 

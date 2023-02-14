@@ -336,20 +336,4 @@ namespace OpenMS
     PlotCanvas::intensityModeChange_();
   }
 
-  void Plot3DCanvas::translateLeft_(Qt::KeyboardModifiers /*m*/)
-  {
-  }
-
-  void Plot3DCanvas::translateRight_(Qt::KeyboardModifiers /*m*/)
-  {
-  }
-
-  void Plot3DCanvas::translateForward_()
-  {
-  }
-
-  void Plot3DCanvas::translateBackward_()
-  {
-  }
-
 } //namespace

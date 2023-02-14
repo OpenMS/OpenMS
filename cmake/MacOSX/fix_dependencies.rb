@@ -469,7 +469,9 @@ elsif !$lib_dir.nil? and !$bin_dir.nil?
   if $auto_relative
     $executableId = $executableId + $lib_dir.relative_path_from($bin_dir).to_s
   end
-  $executableId += "/"
+  if not $executableId.empty?
+    $executableId += "/"
+  end
   puts "Substituting prefix to find libs with:"
   puts $executableId
 end

@@ -11,6 +11,13 @@ cdef extern from "<OpenMS/DATASTRUCTURES/Param.h>" namespace "OpenMS::Param":
         libcpp_string name
         libcpp_string description
         ParamValue value
+
+        # The next two properties are tricky, see https://github.com/OpenMS/autowrap/issues/173
+        # Cython's autoconversion will be used here -> it accepts str and bytes and returns bytes
+        # Therefore we have a mismatch/narrowing https://github.com/python/mypy/issues/3004
+        # For now we use the narrow type bytes -> Although we could accept str the typing will suggest not to.
+        # but the output will be correctly typed.
+        
         libcpp_set[libcpp_string] tags
         libcpp_vector[libcpp_string] valid_strings
         double  max_float

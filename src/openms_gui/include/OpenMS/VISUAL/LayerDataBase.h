@@ -188,6 +188,9 @@ namespace OpenMS
 
   @ingroup PlotWidgets
   */
+#ifdef _MSC_VER
+  #pragma warning(disable : 4250) // 'class1' : inherits 'class2::member' via dominance
+#endif
   class OPENMS_GUI_DLLAPI LayerDataBase : public LayerDataDefs
   {
   public:
@@ -310,17 +313,33 @@ namespace OpenMS
     /// If you need the data range for a 1D view (i.e. only a single spec/chrom/etc), call 'LayerDataBase1D::getRange1D()'
     virtual RangeAllType getRange() const = 0;
 
-    /// compute layer statistics (via visitor)
+    /// Compute layer statistics (via visitor)
     virtual std::unique_ptr<LayerStatistics> getStats() const = 0;
 
+    /// The name of the layer, usually the basename of the file
     const String& getName() const
     {
       return name_;
     }
+    /// Set the name of the layer, usually the basename of the file
     void setName(const String& new_name)
     {
       name_ = new_name;
     }
+
+    /// get the extra annotation to the layers name, e.g. '[39]' for which chromatogram index is currently shown in 1D
+    const String& getNameSuffix() const
+    {
+      return name_suffix_;
+    }
+    /// set an extra annotation as suffix to the layers name, e.g. '[39]' for which chromatogram index is currently shown in 1D
+    void setNameSuffix(const String& decorator)
+    {
+      name_suffix_ = decorator;
+    }
+
+    /// get name augmented with attributes, e.g. '*' if modified
+    virtual String getDecoratedName() const;
 
     /// if this layer is visible
     bool visible = true;
@@ -353,16 +372,16 @@ namespace OpenMS
     int peptide_id_index = -1;
     int peptide_hit_index = -1;
 
-    /// get name augmented with attributes, e.g. '*' if modified
-    virtual String getDecoratedName() const;
-
   private:
     /// layer name
     String name_;
+    /// an extra annotation as suffix to the layers name, e.g. '[39]' for which chromatogram index is currently shown in 1D
+    String name_suffix_;
   };
 
   /// A base class to annotate layers of specific types with (identification) data
-  /// @hint Add new derived classes to getAnnotatorWhichSupports() to enable automatic annotation in TOPPView
+  /// 
+  /// @note Add new derived classes to getAnnotatorWhichSupports() to enable automatic annotation in TOPPView
   class LayerAnnotatorBase
   {
   public:
@@ -374,6 +393,9 @@ namespace OpenMS
         @param gui_lock Optional GUI element which will be locked (disabled) during call to 'annotateWorker_'; can be null_ptr
       **/
     LayerAnnotatorBase(const FileTypeList& supported_types, const String& file_dialog_text, QWidget* gui_lock);
+    
+    /// Make D'tor virtual for correct destruction from pointers to base
+    virtual ~LayerAnnotatorBase() = default;
 
     /// Annotates a @p layer, writing messages to @p log and showing QMessageBoxes on errors.
     /// The input file is selected via a file-dialog which is opened with @p current_path as initial path.

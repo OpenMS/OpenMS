@@ -535,7 +535,7 @@ namespace OpenMS
     if (ms1_only)
     {
       std::vector< MSChromatogram > ms1_chromatograms;
-      MS1Extraction_(ms1_map_, swath_maps, ms1_chromatograms, chromConsumer, ms1_cp,
+      MS1Extraction_(ms1_map_, swath_maps, ms1_chromatograms, ms1_cp,
                      transition_exp, trafo_inverse, ms1_only, ms1_isotopes);
 
       FeatureMap featureFile;
@@ -548,7 +548,7 @@ namespace OpenMS
 
       // write features to output if so desired
       std::vector< OpenMS::MSChromatogram > chromatograms;
-      writeOutFeaturesAndChroms_(chromatograms, featureFile, out_featureFile, store_features, chromConsumer);
+      writeOutFeaturesAndChroms_(chromatograms, ms1_chromatograms, featureFile, out_featureFile, store_features, chromConsumer);
     }
 
     // (iii) map transitions to individual DIA windows for cases where this is
@@ -782,7 +782,7 @@ namespace OpenMS
             if (ms1_map_ != nullptr)
             {
               OpenSwath::SpectrumAccessPtr threadsafe_ms1 = ms1_map_->lightClone();
-              MS1Extraction_(threadsafe_ms1, swath_maps, ms1_chromatograms, chromConsumer, ms1_cp,
+              MS1Extraction_(threadsafe_ms1, swath_maps, ms1_chromatograms, ms1_cp,
                   transition_exp_used, trafo_inverse, ms1_only, ms1_isotopes);
             }
 
@@ -815,7 +815,7 @@ namespace OpenMS
             // output file and one output map).
             #pragma omp critical (osw_write_out)
             {
-              writeOutFeaturesAndChroms_(chrom_exp.getChromatograms(), featureFile, out_featureFile, store_features, chromConsumer);
+              writeOutFeaturesAndChroms_(chrom_exp.getChromatograms(), ms1_chromatograms, featureFile, out_featureFile, store_features, chromConsumer);
             }
           }
 
@@ -840,11 +840,21 @@ namespace OpenMS
 
   void OpenSwathWorkflow::writeOutFeaturesAndChroms_(
     std::vector< OpenMS::MSChromatogram > & chromatograms,
+    std::vector< MSChromatogram >& ms1_chromatograms,
     const FeatureMap & featureFile,
     FeatureMap& out_featureFile,
     bool store_features,
     Interfaces::IMSDataConsumer * chromConsumer)
   {
+    // write out MS1 chromatograms to output if so desired
+    for (Size j = 0; j < ms1_chromatograms.size(); j++)
+    {
+      if (ms1_chromatograms[j].empty()) continue; // skip empty chromatograms
+      // write MS1 chromatograms to disk
+      chromConsumer->consumeChromatogram( ms1_chromatograms[j] );
+    }
+
+
     // write chromatograms to output if so desired
     for (Size chrom_idx = 0; chrom_idx < chromatograms.size(); ++chrom_idx)
     {
@@ -875,7 +885,6 @@ namespace OpenMS
   void OpenSwathWorkflowBase::MS1Extraction_(const OpenSwath::SpectrumAccessPtr& ms1_map,
                                              const std::vector< OpenSwath::SwathMap > & /* swath_maps */,
                                              std::vector< MSChromatogram >& ms1_chromatograms,
-                                             Interfaces::IMSDataConsumer* chromConsumer,
                                              const ChromExtractParams& cp,
                                              const OpenSwath::LightTargetedExperiment& transition_exp,
                                              const TransformationDescription& trafo_inverse,
@@ -893,20 +902,6 @@ namespace OpenMS
         cp.ppm, cp.im_extraction_window, cp.extraction_function);
     extractor.return_chromatogram(chrom_list, coordinates, transition_exp_used,
         SpectrumSettings(), ms1_chromatograms, true, cp.im_extraction_window);
-
-    for (Size j = 0; j < coordinates.size(); j++)
-    {
-      if (ms1_chromatograms[j].empty()) continue; // skip empty chromatograms
-
-#ifdef _OPENMP
-#pragma omp critical (osw_write_out)
-#endif
-      {
-        // write MS1 chromatograms to disk
-        chromConsumer->consumeChromatogram( ms1_chromatograms[j] );
-      }
-    } // end of for coordinates
-
   }
 
   void OpenSwathWorkflow::scoreAllChromatograms_(
@@ -1209,7 +1204,7 @@ namespace OpenMS
       std::vector< MSChromatogram > ms1_chromatograms;
       if (ms1_map_ != nullptr)
       {
-        MS1Extraction_(ms1_map_, swath_maps, ms1_chromatograms, chromConsumer, cp_ms1,
+        MS1Extraction_(ms1_map_, swath_maps, ms1_chromatograms, cp_ms1,
             transition_exp, trafo_inverse);
       }
 
@@ -1344,7 +1339,7 @@ namespace OpenMS
 #pragma omp critical (osw_write_out)
 #endif
             {
-              writeOutFeaturesAndChroms_(chrom_exp.getChromatograms(), featureFile, out_featureFile, store_features, chromConsumer);
+              writeOutFeaturesAndChroms_(chrom_exp.getChromatograms(), ms1_chromatograms, featureFile, out_featureFile, store_features, chromConsumer);
             }
           }
         }

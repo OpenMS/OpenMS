@@ -257,9 +257,9 @@ namespace OpenMS
     Size idx(0);
     Size pfg(0);
 
-    if (spectrum.metaValueExists("id_merge_index"))
+    if (spectrum.metaValueExists(Constants::UserParam::ID_MERGE_INDEX))
     {
-      idx = spectrum.getMetaValue("id_merge_index");
+      idx = spectrum.getMetaValue(Constants::UserParam::ID_MERGE_INDEX);
       auto find_it = indexToPrefractionationGroup.find(idx);
       if (find_it == indexToPrefractionationGroup.end())
       {
