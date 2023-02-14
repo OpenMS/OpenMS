@@ -107,8 +107,8 @@ namespace OpenMS
       // set visible area to visible area in 2D view
       w->canvas()->setVisibleArea(tv_->getActiveCanvas()->getVisibleArea());
       
-      String caption = layer.getName();
-      w->canvas()->setLayerName(w->canvas()->getCurrentLayerIndex(), caption);
+      w->canvas()->getCurrentLayer().setName(layer.getName());
+      w->canvas()->getCurrentLayer().setNameSuffix(layer.getNameSuffix());
 
       tv_->showPlotWidgetInWindow(w);
 
@@ -310,11 +310,11 @@ namespace OpenMS
   {
     Plot1DWidget* widget_1D = tv_->getActive1DWidget();
 
-    // return if no active 1D widget is present
+    // if no active 1D widget is present
     if (widget_1D == nullptr) 
-    {
-      std::cout << "Current widget is nullptr" << std::endl;
-      return; 
+    { // ... create one
+      showSpectrumAsNew1D(spectrum_index, peptide_id_index, peptide_hit_index);
+      return;
     }
 
     // lambda which returns the current layer. This has to be used throughout this function to ensure

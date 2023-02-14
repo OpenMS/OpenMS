@@ -34,12 +34,14 @@
 
 #pragma once
 
+#include <OpenMS/METADATA/PeptideIdentification.h>
 #include <OpenMS/METADATA/ProteinHit.h>
 #include <OpenMS/METADATA/MetaInfoInterface.h>
 #include <OpenMS/DATASTRUCTURES/DateTime.h>
 #include <OpenMS/CHEMISTRY/DigestionEnzymeProtein.h>
 #include <OpenMS/CHEMISTRY/EnzymaticDigestion.h>
 #include <OpenMS/METADATA/DataArrays.h>
+#include <OpenMS/CONCEPT/Constants.h>
 
 #include <set>
 
@@ -88,6 +90,7 @@ public:
       {
         create(prot_ids);
       }
+
       void create(const std::vector<ProteinIdentification>& prot_ids)
       {
         identifier_to_msrunpath.clear();
@@ -110,6 +113,14 @@ public:
           }
           runpath_to_identifier[filenames] = prot_id.getIdentifier();
         }
+      }
+
+      String getPrimaryMSRunPath(const PeptideIdentification& pepid) const
+      { 
+        // if a merge index n is annotated, we use the filename annotated at index n in the protein identification, otherwise the one at index 0        
+        size_t merge_index = pepid.getMetaValue(Constants::UserParam::ID_MERGE_INDEX, 0);
+        const auto& filenames = identifier_to_msrunpath.at(pepid.getIdentifier());        
+        return (merge_index < filenames.size()) ?  filenames[merge_index] : ""; // return filename or empty string if missing
       }
     };
 
@@ -482,6 +493,8 @@ public:
 
     //@}
 
+    /// Copies only metadata (no protein hits or protein groups)
+    void copyMetaDataOnly(const ProteinIdentification&);
 protected:
     ///@name General information (search engine, parameters and database)
     //@{
@@ -511,5 +524,6 @@ protected:
     void fillModMapping_(const std::vector<PeptideIdentification>& pep_ids, const StringList& skip_modifications,
                          std::unordered_map<String, std::set<std::pair<Size, ResidueModification>>>& prot2mod) const;
   };
+
 
 } //namespace OpenMS

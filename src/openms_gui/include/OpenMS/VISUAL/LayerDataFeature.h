@@ -54,10 +54,6 @@ namespace OpenMS
     LayerDataFeature(const LayerDataFeature& ld) = delete;
     /// no assignment operator (should not be needed)
     LayerDataFeature& operator=(const LayerDataFeature& ld) = delete;
-    /// move C'tor
-    LayerDataFeature(LayerDataFeature&& ld) = default;
-    /// move assignment
-    LayerDataFeature& operator=(LayerDataFeature&& ld) = default;
 
     std::unique_ptr<Painter2DBase> getPainter2D() const override;
 

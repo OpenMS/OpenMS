@@ -406,6 +406,12 @@ namespace OpenMS
         }
       }
 
+      
+      void OPENMS_DLLAPI printLastException(std::ostream& out);
+      
+      int OPENMS_DLLAPI endTestPostProcess(std::ostream& out);
+
+      void OPENMS_DLLAPI endSectionPostProcess(std::ostream& out, const int line);
     }
   }
 }
@@ -484,82 +490,12 @@ namespace TEST = OpenMS::Internal::ClassTest;
  */
 #define END_TEST                                                                          \
   /* global try block */                                                                  \
-  }                                                                                       \
-  catch (::OpenMS::Exception::BaseException& e)                                           \
-  {                                                                                       \
-    TEST::this_test = false;                                                              \
-    TEST::test = false;                                                                   \
-    TEST::all_tests = false;                                                              \
-    {                                                                                     \
-      TEST::initialNewline();                                                             \
-      stdcout << "Error: Caught unexpected OpenMS exception of type '"                  \
-                << e.getName()                                                            \
-                << "'";                                                                   \
-      if ((e.getLine() > 0) && std::strcmp(e.getFile(), ""))                       \
-      {                                                                                   \
-        stdcout << " thrown in line " << e.getLine() << " of file '" << e.getFile()     \
-                  << "' in function '" << e.getFunction() << "'";                         \
-      }                                                                                   \
-      stdcout << " - Message: " << e.what() << std::endl;                               \
     }                                                                                     \
-  }                                                                                       \
-  /* catch std:: exceptions */                                                            \
-  catch (std::exception& e)                                                               \
-  {                                                                                       \
-    TEST::this_test = false;                                                              \
-    TEST::test = false;                                                                   \
-    TEST::all_tests = false;                                                              \
+    catch (...)                                                                           \
     {                                                                                     \
-      TEST::initialNewline();                                                             \
-      stdcout << "Error: Caught unexpected std::exception\n";                             \
-      stdcout << " - Message: " << e.what() << std::endl;                                 \
+      TEST::printLastException(stdcout);                                                  \
     }                                                                                     \
-  }                                                                                       \
-  /* catch all other exceptions */                                                        \
-  catch (...)                                                                             \
-  {                                                                                       \
-    TEST::this_test = false;                                                              \
-    TEST::test = false;                                                                   \
-    TEST::all_tests = false;                                                              \
-    {                                                                                     \
-      TEST::initialNewline();                                                             \
-      stdcout << "Error: Caught unidentified and unexpected exception - No message."      \
-                << std::endl;                                                             \
-    }                                                                                     \
-  }                                                                                       \
-  /* check validity of temporary files if known */                                        \
-  if (!TEST::validate(TEST::tmp_file_list))                                               \
-  {                                                                                       \
-    TEST::all_tests = false;                                                              \
-  }                                                                                       \
-  if (TEST::verbose == 0)                                                                 \
-  {                                                                                       \
-    stdcout << "Output of successful tests were suppressed. Set the environment variable 'OPENMS_TEST_VERBOSE=True' to enable them." << std::endl; \
-  }                                                                                       \
-  /* check for exit code */                                                               \
-  if (!TEST::all_tests)                                                                   \
-  {                                                                                       \
-    stdcout << "FAILED" << std::endl;                                                   \
-    if (TEST::add_message != "") stdcout << "Message: "                                 \
-                                           << TEST::add_message                           \
-                                           << std::endl;                                  \
-    stdcout << "Failed lines: ";                                                        \
-    for (OpenMS::Size i = 0; i < TEST::failed_lines_list.size(); ++i)                     \
-    {                                                                                     \
-      stdcout << TEST::failed_lines_list[i] << " ";                                     \
-    }                                                                                     \
-    stdcout << std::endl;                                                               \
-    return 1;                                                                             \
-  }                                                                                       \
-  else                                                                                    \
-  {                                                                                       \
-    /* remove temporary files*/                                                           \
-    TEST::removeTempFiles();                                                              \
-    stdcout << "PASSED";                                                                \
-    if (TEST::add_message != "") stdcout << " (" << TEST::add_message << ")";           \
-    stdcout << std::endl;                                                               \
-    return 0;                                                                             \
-  }                                                                                       \
+    return TEST::endTestPostProcess(stdcout);                                             \
   }
 
 /**	@brief Begin of a subtest with a given name.  @sa #END_SECTION.
@@ -625,68 +561,12 @@ namespace TEST = OpenMS::Internal::ClassTest;
   break;                                                                                  \
   }                                                                                       \
   }                                                                                       \
-  catch (::OpenMS::Exception::BaseException& e)                                           \
-  {                                                                                       \
-    TEST::this_test = false;                                                              \
-    TEST::test = false;                                                                   \
-    TEST::all_tests = false;                                                              \
-    {                                                                                     \
-      TEST::initialNewline();                                                             \
-      stdcout << "Error: Caught unexpected exception of type '" << e.getName() << "'";  \
-      if ((e.getLine() > 0) && (std::strcmp(e.getFile(), "") != 0))                       \
-      {                                                                                   \
-        stdcout << " thrown in line " << e.getLine() << " of file '" << e.getFile()     \
-                  << "' in function '" << e.getFunction() << "'";                         \
-      }                                                                                   \
-      stdcout << " - Message: " << e.what() << std::endl;                               \
-    }                                                                                     \
-  }                                                                                       \
-  /* catch std:: exceptions */                                                            \
-  catch (std::exception& e)                                                               \
-  {                                                                                       \
-    TEST::this_test = false;                                                              \
-    TEST::test = false;                                                                   \
-    TEST::all_tests = false;                                                              \
-    {                                                                                     \
-      TEST::initialNewline();                                                             \
-      stdcout << "Error: Caught std::exception" << std::endl;                           \
-      stdcout << " - Message: " << e.what() << std::endl;                               \
-    }                                                                                     \
-  }                                                                                       \
-  /* catch all other exceptions */                                                        \
-  catch (...)                                                                             \
-  {                                                                                       \
-    TEST::this_test = false;                                                              \
-    TEST::test = false;                                                                   \
-    TEST::all_tests = false;                                                              \
-    {                                                                                     \
-      TEST::initialNewline();                                                             \
-      stdcout << "Error: Caught unidentified and unexpected exception - No message."    \
-                << std::endl;                                                             \
-    }                                                                                     \
-  }                                                                                       \
-  TEST::all_tests = TEST::all_tests && TEST::test;                                        \
-  {                                                                                       \
-    if (TEST::test)                                                                       \
-    {                                                                                     \
-      stdcout << ": passed\n";                                                            \
-    }                                                                                     \
-    else                                                                                  \
-    {                                                                                     \
-      stdcout << ": failed\n";                                                            \
-    }                                                                                     \
-  }                                                                                       \
-  /* issue a warning if no tests were performed (unless in destructor)*/                  \
-  if (TEST::test_count == 0)                                                              \
-  {                                                                                       \
-    if (OpenMS::String(TEST::test_name).has('~'))                                         \
-                       stdcout << "Warning: no subtests performed in '"                   \
-                               << TEST::test_name                                         \
-                               << "' (line "                                              \
-                               << __LINE__                                                \
-                               << ")!\n";                                                 \
-  }                                                                                       \
-  stdcout << std::endl;
+  catch (...)  \
+  {   \
+    TEST::printLastException(stdcout);\
+  } \
+  TEST::endSectionPostProcess(stdcout, __LINE__);
+
 
 //@}
 

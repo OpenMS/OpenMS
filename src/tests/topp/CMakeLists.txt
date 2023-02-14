@@ -739,6 +739,12 @@ add_test("TOPP_FileInfo_18" ${TOPP_BIN_PATH}/FileInfo -test -in ${DATA_DIR_TOPP}
 FileInfo_18_output.tmp)
 add_test("TOPP_FileInfo_18_out1" ${DIFF} -whitelist "File name" -in1 FileInfo_18_output.tmp -in2 ${DATA_DIR_TOPP}/FileInfo_18_output.txt )
 set_tests_properties("TOPP_FileInfo_18_out1" PROPERTIES DEPENDS "TOPP_FileInfo_18")
+add_test("TOPP_FileInfo_19" ${TOPP_BIN_PATH}/FileInfo -test -d -in ${DATA_DIR_TOPP}/FAIMS_test_data.mzML -out
+FileInfo_19_output.tmp)
+add_test("TOPP_FileInfo_19_out1" ${DIFF} -whitelist "File name" -in1 FileInfo_19_output.tmp -in2 ${DATA_DIR_TOPP}/FileInfo_19_output.txt )
+set_tests_properties("TOPP_FileInfo_19_out1" PROPERTIES DEPENDS "TOPP_FileInfo_19")
+
+
 
 #------------------------------------------------------------------------------
 # FileMerger tests

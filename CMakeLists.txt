@@ -86,6 +86,7 @@ option(ENABLE_DOCS "Indicates whether documentation should be built." ON)
 option(ENABLE_TUTORIALS "Indicates whether tutorials should be build. Note that this also depends on the availability of (pdf)latex." ON)
 option(WITH_GUI "Build GUI parts of OpenMS (TOPPView&Co). This requires QtGui." ON)
 option(NO_WEBENGINE_WIDGETS "Do not use QtWebengineWidgets. Disables Javascript views in TOPPView." OFF)
+option(WITH_HDF5 "Build HDF5 parts of OpenMS." OFF)
 
 if(MSVC)
   option(MT_ENABLE_NESTED_OPENMP "Enable nested parallelism." OFF)
@@ -114,7 +115,7 @@ set(OPENMS_PACKAGE_VERSION "${OPENMS_PACKAGE_VERSION_MAJOR}.${OPENMS_PACKAGE_VER
 
 message(STATUS "Building OpenMS ${OPENMS_PACKAGE_VERSION}")
 #------------------------------------------------------------------------------
-# retrieve detailed informations on the working copy (git)
+# retrieve detailed information on the working copy (git)
 include(GetGitRevisionDescription)
 option(GIT_TRACKING "Embedding of Git version control information into the OpenMS library (and OpenMSInfo tool). Note that if activated, every branch-switch or commit will trigger re-generation of the build system (MakeFiles, VS Solutions etc)." ON)
 if (GIT_TRACKING)

@@ -1,3 +1,10 @@
+"""Plot MSSpectrum & MSChromatogram data
+
+The MSSpectrum plotting function are adapted from:
+Wout Bittremieux. “spectrum_utils: A Python package for mass spectrometry data processing and visualization.”
+Plot a single spectrum with plot_spectrum or two with mirror_plot_spectrum, using matplotlib.
+"""
+
 # Code adopted from:
 # Wout Bittremieux. “spectrum_utils: A Python package for mass spectrometry data processing and visualization.”
 # Analytical Chemistry 92 (1) 659-661 (2020) doi:10.1021/acs.analchem.9b04884.
@@ -184,24 +191,22 @@ import math
 from typing import Dict, Optional, Tuple, Union, List, Set
 import itertools
 
-
 colors = {'a': '#388E3C', 'b': '#1976D2', 'c': '#00796B',
           'x': '#7B1FA2', 'y': '#D32F2F', 'z': '#F57C00',
           '?': '#212121', 'f': '#212121', None: '#212121'}
 zorders = {'a': 3, 'b': 4, 'c': 3, 'x': 3, 'y': 4, 'z': 3, '?': 2, 'f': 5,
            None: 1}
 
+
 # TODO switch to forward declarations via from __future__ import annotations
 # when py 3.7 is minimum. Then you can use types instead of strings
 def plot_chromatogram(c: "MSChromatogram"):
-    """
-    Plot chromatogram peaks.
+    """Plot chromatogram peaks.
 
-    Parameters
-    ----------
-    c : MSChromatogram
-        The chromatogram to be plotted.
+    :param c: The chromatogram to be plotted.
+    :type c: MSChromatogram
     """
+
     import matplotlib.pyplot as plt
     x, y = c.get_peaks()
     plt.plot(x, y)
@@ -213,33 +218,34 @@ def plot_chromatogram(c: "MSChromatogram"):
 def _annotate_ion(mz: float, intensity: float, annotation: Optional[str],
                   color_ions: bool, annotate_ions: bool, matched: Optional[bool],
                   annotation_kws: Dict[str, object], ax) -> Tuple[str, int]:
-    """
-    Annotate a specific fragment peak.
+    """Annotate a specific fragment peak.
 
-    Parameters
-    ----------
-    mz : float
-        The peak's m/z value (position of the annotation on the x axis).
-    intensity : float
-        The peak's intensity (position of the annotation on the y axis).
-    annotation : Optional[MoleculeFragmentAnnotation,
-                          PeptideFragmentAnnotation]
-        The annotation that will be plotted.
-    color_ions : bool
-        Flag whether to color the peak annotation or not.
-    annotate_ions : bool
-        Flag whether to annotation the peak or not.
-    annotation_kws : Dict
-        Keyword arguments for `ax.text` to customize peak annotations.
-    ax : plt.Axes
-        Axes instance on which to plot the annotation.
+    :param mz: The peak's m/z value (position of the annotation on the x axis).
+    :type mz: float
 
-    Returns
-    -------
-    Tuple[str, int]
-        A tuple of the annotation's color as a hex string and the annotation's
-        zorder.
+    :param intensity: The peak's intensity (position of the annotation on the y axis).
+    :type intensity: float
+
+    :param annotation: The annotation that will be plotted.
+    :type annotation: str, optional
+
+    :param color_ions: Flag whether to color the peak annotation or not.
+    :type color_ions: bool
+
+    :param annotate_ions: Flag whether to annotation the peak or not.
+    :type annotate_ions: bool
+
+    :param annotation_kws:  Keyword arguments for `ax.text` to customize peak annotations.
+    :type annotation_kws: Dict[str, object]
+
+    :param ax: Axes instance on which to plot the annotation.
+    :type ax: plt.Axes
+
+
+    :return: A tuple of the annotation's color as a hex string and the annotation's zorder.
+    :rtype: Tuple[str, int]
     """
+
     # No annotation -> Just return peak styling information.
     if annotation is None:
         return colors.get(None), zorders.get(None)
@@ -268,40 +274,41 @@ def _annotate_ion(mz: float, intensity: float, annotation: Optional[str],
 
 
 def plot_spectrum(spectrum: "MSSpectrum", color_ions: bool = True,
-             annotate_ions: bool = True, matched_peaks: Optional[Set] = None, annot_kws: Optional[Dict] = None,
-             mirror_intensity: bool = False, grid: Union[bool, str] = True, ax=None):
-    """
-    Plot an MS/MS spectrum.
+                  annotate_ions: bool = True, matched_peaks: Optional[Set] = None, annot_kws: Optional[Dict] = None,
+                  mirror_intensity: bool = False, grid: Union[bool, str] = True, ax=None):
+    """Plot an MS/MS spectrum.
 
-    Parameters
-    ----------
-    spectrum : MSSpectrum
-        The spectrum to be plotted. Reads annotations from the first StringDataArray if it has the same length as the number of peaks.
-    color_ions : bool, optional
-        Flag indicating whether or not to color annotated fragment ions. The
-        default is True.
-    annotate_ions : bool, optional
-        Flag indicating whether or not to annotate fragment ions. The default
-        is True.
-    matched_peaks : Optional[Set], optional
-        Indices of matched peaks in a spectrum alignment.
-    annot_kws : Optional[Dict], optional
-        Keyword arguments for `ax.text` to customize peak annotations.
-    mirror_intensity : bool, optional
-        Flag indicating whether to flip the intensity axis or not.
-    grid : Union[bool, str], optional
-        Draw grid lines or not. Either a boolean to enable/disable both major
-        and minor grid lines or 'major'/'minor' to enable major or minor grid
-        lines respectively.
-    ax : Optional[plt.Axes], optional
-        Axes instance on which to plot the spectrum. If None the current Axes
-        instance is used.
+    :param spectrum: The spectrum to be plotted.
+        Reads annotations from the first StringDataArray if it has the same length as the number of peaks.
+    :type spectrum: MSSpectrum
 
-    Returns
-    -------
-    plt.Axes
-        The matplotlib Axes instance on which the spectrum is plotted.
+    :param color_ions: Flag indicating whether to color annotated fragment ions. The default is True.
+    :type color_ions: bool, optional
+
+    :param annotate_ions: Flag indicating whether to annotate fragment ions. The default is True.
+    :type annotate_ions: bool, optional
+
+    :param matched_peaks: Indices of matched peaks in a spectrum alignment.
+    :type matched_peaks: Optional[Set], optional
+
+    :param annot_kws: Keyword arguments for `ax.text` to customize peak annotations.
+    :type annot_kws: Optional[Dict], optional
+
+    :param mirror_intensity: Flag indicating whether to flip the intensity axis or not.
+    :type mirror_intensity : bool, optional
+
+    :param grid: Draw grid lines or not. Either a boolean to enable/disable both major
+        and minor grid lines or 'major'/'minor' to enable major or minor grid lines respectively.
+    :type grid: Union[bool, str], optional
+
+    :param ax: Axes instance on which to plot the spectrum. If None the current Axes instance is used.
+    :type ax : Optional[plt.Axes], optional
+
+
+    :return The matplotlib Axes instance on which the spectrum is plotted.
+    :rtype: plt.Axes
     """
+
     import matplotlib.pyplot as plt
     import matplotlib.ticker as mticker
 
@@ -364,30 +371,33 @@ def plot_spectrum(spectrum: "MSSpectrum", color_ions: bool = True,
 def mirror_plot_spectrum(spec_top: "MSSpectrum", spec_bottom: "MSSpectrum", alignment: Optional[List] = None,
                          spectrum_top_kws: Optional[Dict] = None, spectrum_bottom_kws: Optional[Dict] = None,
                          ax=None):
-    """
-    Mirror plot two MS/MS spectra.
+    """Mirror plot two MS/MS spectra.
 
-    Parameters
-    ----------
-    spec_top : MSSpectrum
-        The spectrum to be plotted on the top. Reads annotations from the first StringDataArray if it has the same length as the number of peaks.
-    spec_bottom : MSSpectrum
-        The spectrum to be plotted on the bottom. Reads annotations from the first StringDataArray if it has the same length as the number of peaks.
-    alignment : Optional[List], optional
-        List of aligned peak pairs.
-    spectrum_top_kws : Optional[Dict], optional
-        Keyword arguments for `Plotting.plot_spectrum` of top spectrum.
-    spectrum_bottom_kws : Optional[Dict], optional
-        Keyword arguments for `Plotting.plot_spectrum` of bottom spectrum.
-    ax : Optional[plt.Axes], optional
-        Axes instance on which to plot the spectrum. If None the current Axes
-        instance is used.
+    :param spec_top: The spectrum to be plotted on the top.
+        Reads annotations from the first StringDataArray if it has the same length as the number of peaks.
+    :type spec_top: MSSpectrum
 
-    Returns
-    -------
-    plt.Axes
-        The matplotlib Axes instance on which the spectra are plotted.
+    :param spec_bottom: The spectrum to be plotted on the bottom.
+        Reads annotations from the first StringDataArray if it has the same length as the number of peaks.
+    :type spec_bottom: MSSpectrum
+
+    :param alignment: List of aligned peak pairs.
+    :type alignment: Optional[List], optional
+
+    :param spectrum_top_kws: Keyword arguments for `Plotting.plot_spectrum` of top spectrum.
+    :type spectrum_top_kws: Optional[Dict], optional
+
+    :param spectrum_bottom_kws: Keyword arguments for `Plotting.plot_spectrum` of bottom spectrum.
+    :type spectrum_bottom_kws: Optional[Dict], optional
+
+    :param ax: Axes instance on which to plot the spectrum. If None the current Axes instance is used.
+    :type ax: Optional[plt.Axes], optional
+
+
+    :return: The matplotlib Axes instance on which the spectra are plotted.
+    :rtype: plt.Axes
     """
+
     import matplotlib.pyplot as plt
     import matplotlib.ticker as mticker
     if ax is None:
@@ -400,9 +410,9 @@ def mirror_plot_spectrum(spec_top: "MSSpectrum", spec_bottom: "MSSpectrum", alig
         spectrum_bottom_kws = {}
 
     if alignment is not None:
-        matched_peaks_top, matched_peaks_bottom = set(zip(*alignment))
+        matched_peaks_bottom, matched_peaks_top = set(zip(*alignment))
     else:
-        matched_peaks_top, matched_peaks_bottom = None, None
+        matched_peaks_bottom, matched_peaks_top = None, None
 
     # Top spectrum.
     plot_spectrum(spec_top, mirror_intensity=False, ax=ax, matched_peaks=matched_peaks_top, **spectrum_top_kws)

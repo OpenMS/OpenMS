@@ -154,7 +154,6 @@ protected:
     void MS1Extraction_(const OpenSwath::SpectrumAccessPtr& ms1_map,
                         const std::vector< OpenSwath::SwathMap > & swath_maps,
                         std::vector< MSChromatogram >& ms1_chromatograms,
-                        Interfaces::IMSDataConsumer * chromConsumer,
                         const ChromExtractParams & cp,
                         const OpenSwath::LightTargetedExperiment& transition_exp,
                         const TransformationDescription& trafo_inverse,
@@ -493,6 +492,7 @@ protected:
      * @note This should be wrapped in an OpenMP critical block
     */
     void writeOutFeaturesAndChroms_(std::vector< OpenMS::MSChromatogram > & chromatograms,
+                                    std::vector< MSChromatogram >& ms1_chromatograms,
                                     const FeatureMap & featureFile,
                                     FeatureMap& out_featureFile,
                                     bool store_features,

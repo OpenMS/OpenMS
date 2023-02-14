@@ -59,12 +59,9 @@ namespace OpenMS
     LayerDataIonMobility();
     /// Copy-ctor
     LayerDataIonMobility(const LayerDataIonMobility& ld);
-    /// Assignment operator
-    LayerDataIonMobility& operator=(const LayerDataIonMobility& ld) = default;
-    /// move Ctor
-    LayerDataIonMobility(LayerDataIonMobility&& ld) = default;
-    /// move assignment
-    LayerDataIonMobility& operator=(LayerDataIonMobility&& ld) = default;
+    /// no assignment operator (should not be needed)
+    LayerDataIonMobility& operator=(const LayerDataIonMobility& ld) = delete;
+
 
     std::unique_ptr<Painter2DBase> getPainter2D() const override;
 

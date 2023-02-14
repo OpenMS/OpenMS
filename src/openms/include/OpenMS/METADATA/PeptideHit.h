@@ -226,8 +226,11 @@ public:
     /**	@name Accessors
     */
     //@{
-    /// returns the peptide sequence without trailing or following spaces
+    /// returns the peptide sequence
     const AASequence& getSequence() const;
+
+    /// returns the mutable peptide sequence
+    AASequence& getSequence();
 
     /// sets the peptide sequence
     void setSequence(const AASequence& sequence);

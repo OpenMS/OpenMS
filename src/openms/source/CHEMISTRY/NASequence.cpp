@@ -122,7 +122,14 @@ namespace OpenMS
     {
       throw Exception::IndexOverflow(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, length, seq_.size() - 1);
     }
-    return NASequence({seq_.end() - length, seq_.end()}, nullptr, three_prime_);
+    // handle situation where we have a thiol at the 5' of our new NASequence (necessary for calculating X and W ions)
+    ConstRibonucleotidePtr threeEnd = nullptr;
+    if (seq_[seq_.size() - length - 1]->getCode().back() == '*')
+    {
+      static RibonucleotideDB* rdb = RibonucleotideDB::getInstance();
+      threeEnd = rdb->getRibonucleotide("5'-p*");
+    }
+    return NASequence({seq_.end() - length, seq_.end()}, threeEnd, three_prime_);
   }
 
   NASequence NASequence::getSubsequence(Size start, Size length) const
@@ -136,6 +143,17 @@ namespace OpenMS
 
     const RibonucleotideChainEnd* five_prime = ((start == 0) ? five_prime_ : nullptr);
     const RibonucleotideChainEnd* three_prime = ((start + length == size()) ? three_prime_ : nullptr);
+    // handle situation where we have a thiol at the 5' of our new NASequence (necessary for calculating X and W ions)
+    if (start > 0 && seq_[start - 1]->getCode().back() == '*' )
+    {
+      cout << seq_[start - 1]->getCode();
+      static RibonucleotideDB* rdb = RibonucleotideDB::getInstance();
+      five_prime = rdb->getRibonucleotide("5'-p*");
+      if (five_prime == nullptr)
+      {
+        OPENMS_LOG_WARN << "NASequence::getSubsequence: subsequence would have both phosphorothiol and other modification at 5', discarding other mod" << endl;
+      }
+    }
     vector<const Ribonucleotide*>::const_iterator it = seq_.begin() + start;
     return NASequence({it, it + length}, five_prime, three_prime);
   }
@@ -218,10 +236,9 @@ namespace OpenMS
         return our_form + (H_form * charge) + local_five_prime + d_ion_to_full + ((seq_.back()->getCode().back() == '*') ? EmpiricalFormula("SO-1") : EmpiricalFormula(""));
 
       case WIon:
-        return our_form + (H_form * charge) + local_three_prime + w_ion_to_full; //This calculation can't work for linkages with a thiol on the 5' side
-
+        return our_form + (H_form * charge) + local_three_prime + w_ion_to_full + ((local_five_prime == EmpiricalFormula("HPO2S")) ? EmpiricalFormula("SO-1") : EmpiricalFormula(""));
       case XIon:
-        return our_form + (H_form * charge) + local_three_prime + x_ion_to_full; //This calculation can't work for linkages with a thiol on the 5' side
+        return our_form + (H_form * charge) + local_three_prime + x_ion_to_full + ((local_five_prime == EmpiricalFormula("HPO2S")) ? EmpiricalFormula("SO-1") : EmpiricalFormula(""));
 
       case YIon:
         return our_form + (H_form * charge) + local_three_prime + y_ion_to_full;
@@ -312,6 +329,10 @@ namespace OpenMS
       {
         s = "p";
       }
+      else if (code == "5'-p*")
+      {
+        s = "*";
+      }
       else
       {
         s = "[" + code + "]";
@@ -370,6 +391,11 @@ namespace OpenMS
     if (*str_it == 'p') // special case for 5' phosphate
     {
       nas.setFivePrimeMod(rdb->getRibonucleotide("5'-p"));
+      ++str_it;
+    }
+    else if (*str_it == '*') // special case for 5' phosphorothioate
+    {
+      nas.setFivePrimeMod(rdb->getRibonucleotide("5'-p*"));
       ++str_it;
     }
     String::ConstIterator stop = s.end();

@@ -365,7 +365,8 @@ public:
     /// @param chrom_annotation If OSWData was loaded, pass the shared_pointer from the LayerData. Otherwise leave empty.
     /// @param index Index of the chromatogram to show
     /// @param filename For file change watcher (can be empty, if need be)
-    /// @param caption Name of layer
+    /// @param basename Name of layer (usually the basename of the file)
+    /// @param basename_extra Optional suffix of the layer name (e.g. a peptide sequence, or an index '[39]).
     /// @return true on success, false if data was missing etc
     /// @note: this does NOT trigger layerActivated signal for efficiency-reasons. Do it manually afterwards!
     bool addChromLayer(ExperimentSharedPtrType chrom_exp_sptr,
@@ -373,7 +374,8 @@ public:
                        OSWDataSharedPtrType chrom_annotation,
                        const int index,
                        const String& filename, 
-                       const String& caption);
+                       const String& basename,
+                       const String& basename_extra);
 
     
     ///Enumerate all available paint styles
@@ -665,10 +667,9 @@ protected:
       // add 4% margin (2% left, 2% right) to all dimensions, except the current gravity axes's minimum (usually intensity)
       layer_range_1d.scaleBy(1.04);
 
-      // set minimum intensity to 0 (avoid negative intensities!)
+      // set minimum intensity to 0 (avoid negative intensities and show full height of peaks in case their common minimum is large)
       auto& gravity_range = getGravityDim().map(layer_range_1d);
-      if (gravity_range.getMin() < 0)
-        gravity_range.setMin(0);
+      gravity_range.setMin(0);
       
       // make sure that each dimension is not a single point (axis widget won't like that)
       // (this needs to be the last command to ensure this property holds when leaving the function!)

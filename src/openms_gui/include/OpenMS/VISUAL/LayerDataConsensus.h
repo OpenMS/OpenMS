@@ -55,10 +55,6 @@ namespace OpenMS
     LayerDataConsensus(const LayerDataConsensus& ld) = delete;
     /// no assignment operator (should not be needed)
     LayerDataConsensus& operator=(const LayerDataConsensus& ld) = delete;
-    /// move Ctor
-    LayerDataConsensus(LayerDataConsensus&& ld) = default;
-    /// move assignment
-    LayerDataConsensus& operator=(LayerDataConsensus&& ld) = default;
 
     std::unique_ptr<Painter2DBase> getPainter2D() const override;
 

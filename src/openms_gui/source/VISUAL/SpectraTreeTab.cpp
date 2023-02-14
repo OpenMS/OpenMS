@@ -567,6 +567,7 @@ namespace OpenMS
           }
 
           sub_item->setText(ClmnChrom::TYPE, "Transition");
+          sub_item->setData(ClmnChrom::TYPE, Qt::UserRole, vecToList({chrom_idx}));
           sub_item->setData(ClmnChrom::CHROM_INDEX, Qt::DisplayRole, (unsigned int)chrom_idx);
           sub_item->setData(ClmnChrom::MZ, Qt::DisplayRole, current_chromatogram.getProduct().getMZ());
           sub_item->setText(ClmnChrom::DESCRIPTION, chrom_description);
