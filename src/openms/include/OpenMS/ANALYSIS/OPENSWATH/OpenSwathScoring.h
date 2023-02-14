@@ -85,6 +85,8 @@ namespace OpenMS
     OpenSwath_Scores_Usage su_;
     bool use_ms1_ion_mobility_; // whether to use MS1 ion mobility extraction in DIA scores
 
+    const std::string ION_MOBILITY_DESCRIPTION = "Ion Mobility";
+
   public:
 
     /// Constructor

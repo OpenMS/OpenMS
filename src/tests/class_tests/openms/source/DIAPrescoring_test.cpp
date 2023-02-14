@@ -48,6 +48,8 @@ START_TEST(DiaPrescore2, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
+const std::string ION_MOBILITY_DESCRIPTION = "Ion Mobility";
+
 DiaPrescore* ptr = nullptr;
 DiaPrescore* nullPointer = nullptr;
 
@@ -353,10 +355,10 @@ START_SECTION ( test score function missing first transition due to different io
   data1->data = mz;
   data2->data = intensity;
   data3->data = im;
-  sptr->setMZArray(&mz);
-  sptr->setIntensityArray(&intensity) data2);
-  data3->description = "Ion Mobility";
-  sptr->getDataArrays().push_back( data3);
+  sptr->setMZArray(data1);
+  sptr->setIntensityArray(data2);
+  data3->description = ION_MOBILITY_DESCRIPTION;
+  sptr->getDataArrays().push_back(data3);
 
   std::vector<OpenSwath::LightTransition> transitions;
   transitions.push_back(mock_tr1);

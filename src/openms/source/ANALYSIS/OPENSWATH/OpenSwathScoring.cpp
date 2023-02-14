@@ -689,9 +689,9 @@ namespace OpenMS
   OpenSwath::SpectrumPtr OpenSwathScoring::getAddedSpectra_(std::vector<OpenSwath::SpectrumPtr>& all_spectra, const RangeMobility& im_range)
   {
     OpenSwath::SpectrumPtr added_spec(new OpenSwath::Spectrum);
-    added_spec->getDataArrays().push_back( OpenSwath::BinaryDataArrayPtr(new OpenSwath::BinaryDataArray) );
-    added_spec->getDataArrays().back()->description = "Ion Mobility";
 
+    added_spec->getDataArrays().push_back( OpenSwath::BinaryDataArrayPtr(new OpenSwath::BinaryDataArray) );
+    added_spec->getDataArrays().back()->description = ION_MOBILITY_DESCRIPTION;
 
     // If no spectra found return
     if (all_spectra.empty())
