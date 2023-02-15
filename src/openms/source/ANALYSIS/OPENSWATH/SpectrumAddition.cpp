@@ -41,8 +41,46 @@
 namespace OpenMS
 {
 
-  OpenSwath::SpectrumPtr SpectrumAddition::addUpSpectra(const std::vector<OpenSwath::SpectrumPtr>& all_spectra,
-      double sampling_rate, bool filter_zeros)
+  void sortSpectrumByMZ(OpenSwath::Spectrum& spec)
+  {
+    //sort index list
+    std::vector<std::pair<double, Size> > sorted_indices;
+    sorted_indices.reserve(spec.getMZArray()->data.size());
+    auto mz_it = spec.getMZArray()->data.begin();
+    for (Size i = 0; i < spec.getMZArray()->data.size(); ++i)
+    {
+      sorted_indices.emplace_back(*mz_it, i);
+      ++mz_it;
+    }
+    std::stable_sort(sorted_indices.begin(), sorted_indices.end());
+
+    // extract list of indices
+    std::vector<Size> select_indices;
+    select_indices.reserve(sorted_indices.size());
+    for (const auto& sidx : sorted_indices)
+    {
+      select_indices.push_back(sidx.second);
+    }
+
+    for (auto& da : spec.getDataArrays() )
+    {
+      if (da->data.empty()) continue;
+      OpenSwath::BinaryDataArrayPtr tmp(new OpenSwath::BinaryDataArray);
+      tmp->description = da->description;
+      tmp->data.reserve(select_indices.size());
+      for (Size i = 0; i < select_indices.size(); ++i)
+      {
+        tmp->data.push_back( da->data[ select_indices[i] ] );
+      }
+      da = tmp;
+    }
+
+    OPENMS_POSTCONDITION( std::adjacent_find(spec.getMZArray()->data.begin(),
+           spec.getMZArray()->data.end(), std::greater<double>()) == spec.getMZArray()->data.end(),
+           "Postcondition violated: m/z vector needs to be sorted!" )
+  }
+
+  OpenSwath::SpectrumPtr SpectrumAddition::addUpSpectra(const SpectrumSequence& all_spectra, double sampling_rate, bool filter_zeros)
   {
     OPENMS_PRECONDITION(all_spectra.empty() || all_spectra[0]->getDataArrays().size() == 2, "Can only resample spectra with 2 data dimensions (no ion mobility spectra)")
 
@@ -126,6 +164,12 @@ namespace OpenMS
 
     if (!filter_zeros)
     {
+
+      OPENMS_POSTCONDITION( std::adjacent_find(added_spec->getMZArray()->data.begin(),
+           added_spec->getMZArray()->data.end(), std::greater<double>()) == added_spec->getMZArray()->data.end(),
+           "Postcondition violated: m/z vector needs to be sorted!" )
+
+
       return resampled_peak_container;
     }
     else
@@ -139,11 +183,78 @@ namespace OpenMS
           master_spectrum_filtered->getMZArray()->data.push_back(resampled_peak_container->getMZArray()->data[i]);
         }
       }
+
+      OPENMS_POSTCONDITION( std::adjacent_find(added_spec->getMZArray()->data.begin(),
+           added_spec->getMZArray()->data.end(), std::greater<double>()) == added_spec->getMZArray()->data.end(),
+           "Postcondition violated: m/z vector needs to be sorted!" )
+
+
       return master_spectrum_filtered;
     }
   }
 
-  OpenMS::MSSpectrum SpectrumAddition::addUpSpectra(const std::vector<OpenMS::MSSpectrum>& all_spectra, double sampling_rate, bool filter_zeros)
+
+  OpenSwath::SpectrumPtr SpectrumAddition::addUpSpectra(const SpectrumSequence& all_spectra,
+                                             const RangeMobility& im_range,
+                                             double sampling_rate,
+                                             bool filter_zeros)
+  {
+    OPENMS_PRECONDITION(! (im_range.isEmpty() || all_spectra[0].getFloatDataArrays().empty()), "Can only resample spectra with 2 data dimensions (no ion mobility spectra)")
+    OpenSwath::SpectrumPtr added_spec(new OpenSwath::Spectrum);
+
+    // If no spectra found return
+    if (all_spectra.empty())
+    {
+      return added_spec;
+    }
+
+    if (im_range.isEmpty())
+    {
+      return addUpSpectra(all_spectra, sampling_rate, filter_zeros);
+    }
+    // since resampling is not supported on 3D data first filter by drift time (if possible) and then add
+    // (!im_range.isEmpty())
+    SpectrumSequence filteredSpectra;
+    for (auto spec: all_spectra)
+    {
+      filteredSpectra.push_back(OpenSwath::ISpectrumAccess::filterByDrift(spec, im_range.getMin(), im_range.getMax()));
+    }
+    return addUpSpectra(filteredSpectra, sampling_rate, filter_zeros);
+  }
+
+  OpenSwath::SpectrumPtr SpectrumAddition::concatenateSpectra(const SpectrumSequence& all_spectra)
+
+  {
+    OpenSwath::SpectrumPtr added_spec(new OpenSwath::Spectrum);
+    // Ensure that we have the same number of data arrays as in the input spectrum
+    // copying the extra data arrays descriptions onto the added spectra
+    if (!all_spectra.empty() && all_spectra[0]->getDataArrays().size() > 2)
+    {
+      for (Size k = 2; k < all_spectra[0]->getDataArrays().size(); k++)
+      {
+        OpenSwath::BinaryDataArrayPtr tmp (new OpenSwath::BinaryDataArray());
+        tmp->description = all_spectra[0]->getDataArrays()[k]->description;
+        added_spec->getDataArrays().push_back(tmp);
+      }
+    }
+
+    // Simply concatenate all spectra together and sort in the end
+    for (const auto& s : all_spectra)
+    {
+      for (Size k = 0; k < s->getDataArrays().size(); k++)
+      {
+        auto& v1 = added_spec->getDataArrays()[k]->data;
+        auto& v2 = s->getDataArrays()[k]->data;
+
+        v1.reserve( v1.size() + v2.size() );
+        v1.insert( v1.end(), v2.begin(), v2.end() );
+      }
+    }
+    sortSpectrumByMZ(*added_spec);
+    return added_spec;
+  }
+
+  OpenMS::MSSpectrum SpectrumAddition::addUpSpectra(const std::vector<MSSpectrum>& all_spectra, double sampling_rate, bool filter_zeros)
   {
     OPENMS_PRECONDITION(all_spectra.empty() || all_spectra[0].getFloatDataArrays().empty(), "Can only resample spectra with 2 data dimensions (no ion mobility spectra)")
 
@@ -231,6 +342,4 @@ namespace OpenMS
       return master_spectrum_filtered;
     }
   }
-
 }
-

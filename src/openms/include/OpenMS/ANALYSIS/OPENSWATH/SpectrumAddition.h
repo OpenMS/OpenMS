@@ -42,25 +42,37 @@
 namespace OpenMS
 {
   /**
-  @brief The SpectrumAddition is used to add up individual spectra 
-  
+  @brief The SpectrumAddition is used to add up individual spectra
+
   It uses the given sampling rate to resample the spectra in m/z domain and
   then add them up. This may lead to a certain inaccuracy, especially if a
   inappropriate resampling rate is chosen.
 
   */
+  using SpectrumSequence = std::vector<OpenSwath::SpectrumPtr>;
   class OPENMS_DLLAPI SpectrumAddition
   {
 
 public:
 
     /// adds up a list of Spectra by resampling them and then addition of intensities
-    static OpenSwath::SpectrumPtr addUpSpectra(const std::vector<OpenSwath::SpectrumPtr>& all_spectra,
+    static OpenSwath::SpectrumPtr addUpSpectra(const SpectrumSequence& all_spectra,
                                                double sampling_rate,
                                                bool filter_zeros);
 
+
+    /// adds up a list of ion mobility enhacned Spectra by resampling them and then addition of intensities. Currently this involves filtering to the desired IM extracion window and then performing addition across m/z and intensity.
+    static OpenSwath::SpectrumPtr addUpSpectra(const SpectrumSequence& all_spectra,
+                                               const RangeMobility& im_range,
+                                               double sampling_rate,
+                                               bool filter_zeros);
+
+    /// Concatenates a spectrum sequence into a single spectrum. Values are sorted by m/z
+    static OpenSwath::SpectrumPtr concatenateSpectra(const SpectrumSequence& all_spectra);
+
+
     /// adds up a list of Spectra by resampling them and then addition of intensities
-    static OpenMS::MSSpectrum addUpSpectra(const std::vector< OpenMS::MSSpectrum>& all_spectra,
+    static OpenMS::MSSpectrum addUpSpectra(const std::vector<MSSpectrum>& all_spectra,
                                            double sampling_rate,
                                            bool filter_zeros);
 
