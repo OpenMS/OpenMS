@@ -149,16 +149,14 @@ struct NuXLRTPrediction
 {
   SimpleSVM svm;
 
-  String allowed_characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+  String nucleotides = "CATGUXS";
+  String amino_acids = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
 
-  map<Int, double> encodeHelper_(const String& seq)
+  map<Int, double> encodeAAHist_(const String& seq)
   {
     LibSVMEncoder c;
-    int n_feature_dimensions = allowed_characters.size() + 1; // after AA hist
     vector<pair<Int, double> > encoded_vector;
-    c.encodeCompositionVector(seq, encoded_vector, allowed_characters);
-    //std::cout << encoded_vector.size() << std::endl;
-    encoded_vector.emplace_back(n_feature_dimensions, seq.size() / 100.0);
+    c.encodeCompositionVector(seq, encoded_vector, amino_acids);
 
     map<Int, double> v;
     for (auto& e : encoded_vector) 
@@ -168,8 +166,20 @@ struct NuXLRTPrediction
     return v;
   }
 
+  map<char, double> encodeNAHist_(const String& seq)
+  {
+    map<char, double> v;
+    for (auto& c : seq) 
+    {
+      if (c == '+' || c == '-') break; // e.g.: "UUA-H2O" we are only interested in UUA
+      v[c] += 1.0;
+    }
+    return v;
+  }
+
   std::tuple<SimpleSVM::PredictorMap, map<size_t, double>> buildPredictorsAndResponseFromIdentifiedFeatures_(const FeatureMap& features)
   {
+    std::cout << "Feature encoding..." << std::endl; 
     SimpleSVM::PredictorMap x;
     map<size_t, double> y; 
 
@@ -183,33 +193,56 @@ struct NuXLRTPrediction
       const auto& phits = pids[0].getHits(); 
       if (phits.empty()) continue;
 
-     
-      const String& seq = phits[0].getSequence().toUnmodifiedString();
+      const auto& ph = phits[0]; 
+      const String& seq = ph.getSequence().toUnmodifiedString();
 
-      auto v = encodeHelper_(seq);
+      auto v = encodeAAHist_(seq);
 
       // convert row vector to columns
-      for (size_t i = 0; i != allowed_characters.size(); ++i)
+      for (size_t i = 0; i != amino_acids.size(); ++i)
       {
         if (v.find(i) != v.end())
         {
-          x[allowed_characters[i]].push_back(v[i]);
+          x[amino_acids[i]].push_back(v[i]);
         }
         else
         { 
-          x[allowed_characters[i]].push_back(0.0);
+          x[amino_acids[i]].push_back(0.0);
         }    
       }
       x["AA_length"].push_back(seq.size() / 100.0); // length feature
       x["charge"].push_back(f.getCharge());
+      x["mass"].push_back(f.getCharge() * f.getMZ()); // approx mass
+
+      // nucleotide histogram      
+      auto nas = (String)ph.getMetaValue("NuXL:NA", String(""));
+      auto encoded_nas = encodeNAHist_(nas);
+      for (const auto& c : nucleotides)
+      {
+        if (auto it = encoded_nas.find(c); it != encoded_nas.end())
+        {
+          x["NA:"+String(c)].push_back(it->second);
+        }
+        else
+        {
+          x["NA:"+String(c)].push_back(0.0);
+        }
+      }
+        
       const double RT = f.getRT();
       y[index++] = RT;
     }
+
+    std::cout << "Feature vector: ";
+    for (auto f : x) cout << f.first << " (non-zero: " << std::count_if(f.second.begin(), f.second.end(), [](double v) { return v != 0.0; }) << ")" << std::endl;
+
+    std::cout << "done..." << std::endl; 
     return make_tuple(x,y);
   }
 
   std::tuple<SimpleSVM::PredictorMap, map<size_t, double>> buildPredictorsAndResponse_(const vector<PeptideIdentification>& peptides, bool all_hits)
   {
+    std::cout << "Feature encoding..." << std::endl; 
     SimpleSVM::PredictorMap x;
     map<size_t, double> y; 
 
@@ -223,30 +256,50 @@ struct NuXLRTPrediction
       {
         const String& seq = ph.getSequence().toUnmodifiedString();
 
-        auto v = encodeHelper_(seq);
+        auto v = encodeAAHist_(seq);
 
         // convert row vector to columns
-        for (size_t i = 0; i != allowed_characters.size(); ++i)
+        for (size_t i = 0; i != amino_acids.size(); ++i)
         {
           if (v.find(i) != v.end())
           {
-            x[allowed_characters[i]].push_back(v[i]);
+            x[amino_acids[i]].push_back(v[i]);
           }
           else
           { 
-            x[allowed_characters[i]].push_back(0.0);
+            x[amino_acids[i]].push_back(0.0);
           }    
         }
         x["AA_length"].push_back(seq.size() / 100.0); // length feature
         x["charge"].push_back(ph.getCharge());
+        x["mass"].push_back(ph.getCharge() * pid.getMZ()); // approx mass
+
+        // nucleotide histogram      
+        auto nas = (String)ph.getMetaValue("NuXL:NA", String(""));
+        auto encoded_nas = encodeNAHist_(nas);
+        for (const auto& c : nucleotides)
+        {
+          if (auto it = encoded_nas.find(c); it != encoded_nas.end())
+          {
+            x["NA:"+String(c)].push_back(it->second);
+          }
+          else
+          {
+            x["NA:"+String(c)].push_back(0.0);
+          }
+        }
 
         const double RT = pid.getRT();
         y[index++] = RT;
 
         if (!all_hits) break;
       }
-
     }
+
+    std::cout << "Feature vector: ";
+    for (auto f : x) cout << f.first << " (non-zero: " << std::count_if(f.second.begin(), f.second.end(), [](double v) { return v != 0.0; }) << ")" << std::endl;
+
+    std::cout << "done..." << std::endl; 
     return make_tuple(x,y);
   }
 
@@ -290,14 +343,15 @@ struct NuXLRTPrediction
         ph.setMetaValue("RT_predict", preds[i].label);
         // std::cout << preds[i].label << " " << pid.getRT() << " " << err << std::endl;
         ++i; 
+        if (!all_hits) break;
       }
-
    } 
   }
 
   // annotates the RT error on all data
   void predict(vector<PeptideIdentification>& peptides)
   {
+    std::cout << "Predicting..." << std::endl; 
     const bool all_hits{true};
     auto [x, y] = buildPredictorsAndResponse_(peptides, all_hits); // also predict for second or worse
     vector<SimpleSVM::Prediction> predictions;
@@ -612,7 +666,7 @@ protected:
     registerDoubleOption_("NuXL:marker_ions_tolerance", "<tolerance>", 0.03, "Tolerance used to determine marker ions (Da).", false, true);
   
     registerStringList_("filter", "<list>", {"filter_pc_mass_error", "autotune", "idfilter"}, "Filtering steps applied to results.", false, true);
-    setValidStrings_("filter", {"filter_pc_mass_error", "impute_decoy_medians", "filter_bad_partial_loss_scores", "autotune", "idfilter", "spectrumclusterfilter", "pcrecalibration", "optimize"}); 
+    setValidStrings_("filter", {"filter_pc_mass_error", "impute_decoy_medians", "filter_bad_partial_loss_scores", "autotune", "idfilter", "spectrumclusterfilter", "pcrecalibration", "optimize", "RTpredict"}); 
     registerDoubleOption_("window_size", "<number>", 75.0, "Peak window for spectra precprocessing.", false, true);
     registerIntOption_("peak_count", "<number>", 20, "Retained peaks in peak window.", false, true);
   }
@@ -4309,6 +4363,7 @@ static void scoreXLIons_(
     bool spectrumclusterfilter = find(filter.begin(), filter.end(), "spectrumclusterfilter") != filter.end();
     bool pcrecalibration = find(filter.begin(), filter.end(), "pcrecalibration") != filter.end();
     bool optimize = find(filter.begin(), filter.end(), "optimize") != filter.end();
+    bool RTpredict = find(filter.begin(), filter.end(), "RTpredict") != filter.end();
 
     if (pcrecalibration) 
     { // recalibrate data and store in file {input_file_name}_pc.mzML
@@ -4359,16 +4414,19 @@ static void scoreXLIons_(
       sse.setParameters(p);
       OPENMS_LOG_INFO << "Running autotune..." << endl;
       sse.search(in_mzml, in_db, prot_ids, pep_ids);      
-      NuXLRTPrediction rt_pred;
-      
-      rt_pred.train(in_mzml, pep_ids, prot_ids);
-      rt_pred.predict(pep_ids);
 
-      // add RT prediction as extra feature for percolator      
-      auto search_parameters = prot_ids[0].getSearchParameters();
-      String new_features = (String)search_parameters.getMetaValue("extra_features") + String(",RT_error,RT_predict");
-      search_parameters.setMetaValue("extra_features", new_features);
-      prot_ids[0].setSearchParameters(search_parameters);
+      if (RTpredict)
+      {
+        NuXLRTPrediction rt_pred;      
+        rt_pred.train(in_mzml, pep_ids, prot_ids);
+        rt_pred.predict(pep_ids);
+
+        // add RT prediction as extra feature for percolator      
+        auto search_parameters = prot_ids[0].getSearchParameters();
+        String new_features = (String)search_parameters.getMetaValue("extra_features") + String(",RT_error,RT_predict");
+        search_parameters.setMetaValue("extra_features", new_features);
+        prot_ids[0].setSearchParameters(search_parameters);
+      }
 
 /// try to run percolator
       {    
@@ -5694,6 +5752,12 @@ static void scoreXLIons_(
     meta_values_to_export.push_back("NuXL:pl_MIC");  
     meta_values_to_export.push_back("nr_candidates");
     meta_values_to_export.push_back("isotope_error");  
+   
+    if (RTpredict)
+    {
+      meta_values_to_export.push_back("RT_predict");
+      meta_values_to_export.push_back("RT_error");
+    }
 
     // annotate NuXL related information to hits and create report
     vector<NuXLReportRow> csv_rows = NuXLReport::annotate(spectra, peptide_ids, meta_values_to_export, marker_ions_tolerance);
@@ -6108,6 +6172,19 @@ static void scoreXLIons_(
 
 
 //      NuXLFeatureAugmentation::augment(peptide_ids, positive_weights_features, negative_weights_features); // TODO: seems to work ... scales weights but no improvement
+
+      if (RTpredict)
+      {
+        NuXLRTPrediction rt_pred;
+        rt_pred.train(in_mzml, peptide_ids, protein_ids);
+        rt_pred.predict(peptide_ids);
+
+        // add RT prediction as extra feature for percolator      
+        auto search_parameters = protein_ids[0].getSearchParameters();
+        String new_features = (String)search_parameters.getMetaValue("extra_features") + String(",RT_error,RT_predict");
+        search_parameters.setMetaValue("extra_features", new_features);
+        protein_ids[0].setSearchParameters(search_parameters);
+      }
 
       // write ProteinIdentifications and PeptideIdentifications to IdXML
       IdXMLFile().store(out_idxml, protein_ids, peptide_ids);
