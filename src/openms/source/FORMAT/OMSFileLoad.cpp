@@ -97,7 +97,7 @@ namespace OpenMS::Internal
   // {
   //   // this assumes that the "CVTerm" table exists!
   //   SQLite::Statement query(db_);
-  //   
+  //
   //   QString sql_select = "SELECT * FROM CVTerm WHERE id = " + QString(id);
   //   if (!query.exec(sql_select) || !query.executeStep())
   //   {
@@ -158,7 +158,7 @@ namespace OpenMS::Internal
   {
     if (!db_->tableExists("ID_ProcessingSoftware")) return;
 
-    
+
     SQLite::Statement query(*db_, "SELECT * FROM ID_ProcessingSoftware");
     bool have_scores = db_->tableExists("ID_ProcessingSoftware_AssignedScore");
     SQLite::Statement subquery(*db_, "");
@@ -225,11 +225,17 @@ namespace OpenMS::Internal
     String table_name = parent_table + "_MetaInfo";
     if (!db_->tableExists(table_name)) return false;
 
-    
     String sql_select =
+    "SELECT * FROM " + table_name.toQString() + " AS MI " \
+    "WHERE MI.parent_id = :id";
+
+    if (version_number_ < 4)
+    {
+      sql_select =
       "SELECT * FROM " + table_name.toQString() + " AS MI " \
       "JOIN DataValue AS DV ON MI.data_value_id = DV.id "   \
       "WHERE MI.parent_id = :id";
+    }
     query = SQLite::Statement(*db_, sql_select);
     return true;
   }
@@ -241,7 +247,7 @@ namespace OpenMS::Internal
     String table_name = parent_table + "_AppliedProcessingStep";
     if (!db_->tableExists(table_name)) return false;
 
-    // 
+    //
     String sql_select = "SELECT * FROM " + table_name.toQString() +
       " WHERE parent_id = :id ORDER BY processing_step_order ASC";
     query = SQLite::Statement(*db_, sql_select);
@@ -353,7 +359,7 @@ namespace OpenMS::Internal
   {
     if (!db_->tableExists("ID_ProcessingStep")) return;
 
-    
+
     SQLite::Statement query(*db_, "SELECT * FROM ID_ProcessingStep");
     SQLite::Statement subquery_file(*db_, "");
     bool have_input_files = db_->tableExists(
@@ -409,7 +415,7 @@ namespace OpenMS::Internal
   {
     if (!db_->tableExists("ID_Observation")) return;
 
-    
+
     SQLite::Statement query(*db_, "SELECT * FROM ID_Observation");
     SQLite::Statement subquery_info(*db_, "");
     bool have_meta_info = prepareQueryMetaInfo_(subquery_info,
@@ -436,7 +442,7 @@ namespace OpenMS::Internal
   {
     if (!db_->tableExists("ID_ParentSequence")) return;
 
-    
+
     SQLite::Statement query(*db_, "SELECT * FROM ID_ParentSequence");
     // @TODO: can we combine handling of meta info and applied processing steps?
     SQLite::Statement subquery_info(*db_, "");
@@ -477,7 +483,7 @@ namespace OpenMS::Internal
 
     // "grouping_order" column was removed in schema version 3:
     String order_by = version_number_ > 2 ? "id" : "grouping_order";
-    
+
     SQLite::Statement query(*db_, "SELECT * FROM ID_ParentGroupSet ORDER BY " + order_by + " ASC");
     // @TODO: can we combine handling of meta info and applied processing steps?
     SQLite::Statement subquery_info(*db_, "");
@@ -547,7 +553,7 @@ namespace OpenMS::Internal
   {
     if (!db_->tableExists("ID_IdentifiedCompound")) return;
 
-    
+
     SQLite::Statement query(*db_, "SELECT * FROM ID_IdentifiedMolecule JOIN ID_IdentifiedCompound " \
       "ON ID_IdentifiedMolecule.id = ID_IdentifiedCompound.molecule_id");
     // @TODO: can we combine handling of meta info and applied processing steps?
@@ -605,7 +611,7 @@ namespace OpenMS::Internal
   {
     if (!db_->tableExists("ID_IdentifiedMolecule")) return;
 
-    
+
     SQLite::Statement query(*db_, "SELECT * FROM ID_IdentifiedMolecule "          \
                   "WHERE molecule_type_id = :molecule_type_id");
     // @TODO: can we combine handling of meta info and applied processing steps?
@@ -721,7 +727,7 @@ namespace OpenMS::Internal
   {
     if (!db_->tableExists("ID_ObservationMatch")) return;
 
-    
+
     SQLite::Statement query(*db_, "SELECT * FROM ID_ObservationMatch");
     // @TODO: can we combine handling of meta info and applied processing steps?
     SQLite::Statement subquery_info(*db_, "");
@@ -736,7 +742,7 @@ namespace OpenMS::Internal
       db_->tableExists("ID_ObservationMatch_PeakAnnotation");
     if (have_peak_annotations)
     {
-      subquery_ann = SQLite::Statement(*db_, 
+      subquery_ann = SQLite::Statement(*db_,
         "SELECT * FROM ID_ObservationMatch_PeakAnnotation " \
         "WHERE parent_id = :id");
     }
