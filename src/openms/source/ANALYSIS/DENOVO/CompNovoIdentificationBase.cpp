@@ -548,11 +548,11 @@ for (const Size& pos : used_pos)
     }
 
     spec.clear(false);
-    for (const auto& spec_copy : copy)
+    for (const Peak1D& peak : copy)
     {
-      if (find(to_be_deleted.begin(), to_be_deleted.end(), spec_copy) == to_be_deleted.end())
+      if (find(to_be_deleted.begin(), to_be_deleted.end(), peak) == to_be_deleted.end())
       {
-        spec.push_back(spec_copy);
+        spec.push_back(peak);
       }
     }
 

@@ -118,7 +118,7 @@ namespace OpenMS
 
     MultiplexDeltaMassesGenerator generator;
     const Param& p = generator.getParameters();
-    for (auto& parameter : p)
+    for (const auto& parameter : p)
     {
       String label_name = "labels:";
       label_name += parameter.name;

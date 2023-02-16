@@ -109,9 +109,9 @@ namespace OpenMS
     }
     
     // spline interpolate the profile data
-    for (auto& profile : exp_profile)
+    for (const MSSpectrum& spec : exp_profile)
     {
-      exp_spline_profile_.emplace_back(profile);
+      exp_spline_profile_.emplace_back(spec);
     }
     
     // TODO: Constructing the navigators here instead in the beginning of the filter() method results in segmentation faults. Why?

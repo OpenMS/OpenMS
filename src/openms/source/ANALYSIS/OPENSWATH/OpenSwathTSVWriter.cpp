@@ -117,7 +117,7 @@ namespace OpenMS
         }
 
         // iterator over MRMFeatures
-        for (const auto& feature : output)
+        for (const Feature& feature : output)
         {
           StringList aggr_Peak_Area, aggr_Peak_Apex, aggr_Fragment_Annotation;
           StringList aggr_prec_Peak_Area, aggr_prec_Peak_Apex, aggr_prec_Fragment_Annotation;

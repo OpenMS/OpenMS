@@ -231,7 +231,7 @@ namespace OpenMS
     std::vector<double> totals(N + 2 * LEN); // pad with zeros at ends
     Int index = LEN;
     // OPENMS_LOG_DEBUG << "Summed intensities:\n";
-    for (auto& intensity : total_intensities)
+    for (const auto& intensity : total_intensities)
     {
       totals[index++] = intensity.second;
       // OPENMS_LOG_DEBUG << intensity.second << std::endl;

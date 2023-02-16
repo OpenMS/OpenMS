@@ -1036,7 +1036,7 @@ namespace OpenMS
       FeatureMap abort_map;
       abort_map.reserve(abort_reasons_.size());
       Size counter = 0;
-      for (auto& reason : abort_reasons_)
+      for (const auto& reason : abort_reasons_)
       {
         Feature f;
         f.setRT(map_[reason.first.spectrum].getRT());
