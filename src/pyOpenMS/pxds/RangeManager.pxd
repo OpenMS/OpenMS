@@ -38,3 +38,33 @@ cdef extern from "<OpenMS/KERNEL/RangeManager.h>" namespace "OpenMS":
         double getMinIntensity() nogil except + # wrap-doc:Returns the minimum intensity
         double getMaxIntensity() nogil except + # wrap-doc:Returns the maximum intensity
         void clearRanges() nogil except + # wrap-doc:Resets all range dimensions as empty
+
+    cdef cppclass RangeBase:
+        # wrap-ignore
+        # no-pxd-import
+
+        RangeBase() nogil except +
+        RangeBase(RangeBase &) nogil except +
+
+    cdef cppclass RangeMZ (RangeBase) : 
+        # wrap-inherits:
+        #   RangeBase
+
+        RangeMZ() nogil except +
+        RangeMZ(RangeMZ &) nogil except + #compiler
+
+
+    cdef cppclass RangeIntensity (RangeBase) :
+        # wrap-inherits:
+        #   RangeBase
+
+        RangeIntensity() nogil except +
+        RangeIntensity(RangeIntensity &) nogil except +
+
+
+    cdef cppclass RangeMobility (RangeBase) :
+        # wrap-inherits:
+        #   RangeBase
+
+        RangeMobility() nogil except +
+        RangeMobility(RangeMobility &) nogil except +
