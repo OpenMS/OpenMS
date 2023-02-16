@@ -392,7 +392,7 @@ namespace OpenMS
 
 
   bool FLASHDeconvQuantAlgorithm::doFWHMbordersOverlap_(const std::pair<double, double> &border1,
-                                              const std::pair<double, double> &border2) const
+                                                        const std::pair<double, double> &border2) const
   {
     if ((border1.first > border2.second) || (border2.first > border1.second))
       return false;
@@ -405,13 +405,14 @@ namespace OpenMS
     return true;
   }
 
-  bool FLASHDeconvQuantAlgorithm::doMassTraceIndicesOverlap(const FeatureGroup &fg1, const FeatureGroup &fg2) const
+  bool FLASHDeconvQuantAlgorithm::doMassTraceIndicesOverlap(const FeatureGroup &fg1, const FeatureGroup &fg2,
+                                                            const double overlap_percentage_threshold, const bool charge_specific) const
   {
     // get overlapping charge states
     int min_overlapping_charge = std::max(fg1.getMinCharge(), fg2.getMinCharge());
     int max_overlapping_charge = std::min(fg1.getMaxCharge(), fg2.getMaxCharge());
 
-    if (min_overlapping_charge > max_overlapping_charge) // no overlapping charge
+    if (charge_specific && (min_overlapping_charge > max_overlapping_charge)) // no overlapping charge
     {
       return true;
     }
@@ -423,7 +424,7 @@ namespace OpenMS
     mt_indices_2.reserve(fg2.size());
     for (Size fg1_idx = 0; fg1_idx < fg1.size(); ++fg1_idx)
     {
-      if (fg1[fg1_idx].getCharge() >= min_overlapping_charge && fg1[fg1_idx].getCharge() <= max_overlapping_charge)
+      if (!charge_specific || (fg1[fg1_idx].getCharge() >= min_overlapping_charge && fg1[fg1_idx].getCharge() <= max_overlapping_charge))
       {
         mt_indices_1.push_back(fg1[fg1_idx].getTraceIndex());
       }
@@ -434,7 +435,7 @@ namespace OpenMS
     }
     for (Size fg2_idx = 0; fg2_idx < fg2.size(); ++fg2_idx)
     {
-      if (fg2[fg2_idx].getCharge() >= min_overlapping_charge && fg2[fg2_idx].getCharge() <= max_overlapping_charge)
+      if (!charge_specific || (fg2[fg2_idx].getCharge() >= min_overlapping_charge && fg2[fg2_idx].getCharge() <= max_overlapping_charge))
       {
         mt_indices_2.push_back(fg2[fg2_idx].getTraceIndex());
       }
@@ -458,7 +459,7 @@ namespace OpenMS
 
     double overlap_percentage = static_cast<double>(inters_vec.size()) / static_cast<double>(min_vec_size);
     // TODO : change this to overlapping only major cs?
-    if (overlap_percentage < 0.5)
+    if (overlap_percentage < overlap_percentage_threshold)
     {
       return false;
     }
@@ -1122,14 +1123,163 @@ namespace OpenMS
                        << peaks + "\n";
   }
 
+  void FLASHDeconvQuantAlgorithm::filterOutIneligibleFeatureGroupsInCluster(std::vector<FeatureGroup>& feature_groups,
+                                                                            std::vector<std::vector<Size>>& shared_m_traces_indices,
+                                                                            std::set<Size>& candidate_fg_indices) const
+  {
+    /// Ineligible feature groups = harmonics OR the ones without unique feature groups
+    std::set<Size> fg_idx_to_remove;
+    for (auto fg_idx = candidate_fg_indices.begin(); fg_idx != candidate_fg_indices.end(); ++fg_idx)
+    {
+      if (std::find(fg_idx_to_remove.begin(), fg_idx_to_remove.end(), *fg_idx) != fg_idx_to_remove.end()) // if this is already removed
+      {
+        continue;
+      }
+
+      auto& fgroup = feature_groups[*fg_idx];
+      Size test_fgroup = *fg_idx;
+
+      // check if any masstrace is unique
+      bool is_this_all_sharing = true;
+      for (auto& seed_iter : fgroup)
+      {
+        auto trace_idx = seed_iter.getTraceIndex();
+        if (shared_m_traces_indices[trace_idx].size() == 1) // this masstrace is unique
+        {
+          is_this_all_sharing = false;
+          break;
+        }
+      }
+      if (is_this_all_sharing)
+      {
+        fg_idx_to_remove.insert(*fg_idx);
+        continue;
+      }
+
+      // check if this is harmonics to the other
+      std::vector<double> harmonic_masses; // harmonic mass candidates
+      const double fg_mass = fgroup.getMonoisotopicMass();
+      for (int harmonic_ratio = 2; harmonic_ratio < 8; ++harmonic_ratio)
+      {
+        for (int iso = -2; iso < 3; ++iso)
+        {
+          // high harmonics
+          double h_mass = (fg_mass + iso*iso_da_distance_) / harmonic_ratio;
+          if (h_mass > min_mass_)
+          {
+            harmonic_masses.push_back(h_mass);
+          }
+          // low harmonic
+          h_mass = (fg_mass + iso*iso_da_distance_) * harmonic_ratio;
+          if (h_mass < max_mass_)
+          {
+            harmonic_masses.push_back(h_mass);
+          }
+        }
+      }
+      std::sort(harmonic_masses.begin(), harmonic_masses.end());
+
+      for (auto fg_idx_to_compare = std::next(fg_idx); fg_idx_to_compare != candidate_fg_indices.end(); ++fg_idx_to_compare)
+      {
+        if (std::find(fg_idx_to_remove.begin(), fg_idx_to_remove.end(), *fg_idx_to_compare) != fg_idx_to_remove.end()) // if this is already removed
+        {
+          continue;
+        }
+
+        auto& fgroup_to_compare = feature_groups[*fg_idx_to_compare];
+        Size test_fgroup_to_compare = *fg_idx_to_compare;
+        const double mass_tolerance = fgroup_to_compare.getMonoisotopicMass() * 2 *  1e-5; // 20 ppm
+
+        // is harmonic or not
+        auto low_it = std::lower_bound(harmonic_masses.begin(), harmonic_masses.end(), fgroup_to_compare.getMonoisotopicMass() - mass_tolerance); // inclusive
+        auto up_it = std::upper_bound(harmonic_masses.begin(), harmonic_masses.end(), fgroup_to_compare.getMonoisotopicMass() + mass_tolerance); // exclusive
+
+        if (low_it == up_it) // if nothing is found, continue
+        {
+          continue;
+        }
+
+        Size harmonic_fg_idx = fgroup.getIntensity() < fgroup_to_compare.getIntensity() ? *fg_idx : *fg_idx_to_compare;
+        if (doMassTraceIndicesOverlap(fgroup, fgroup_to_compare, 0.5, false))
+        {
+          fg_idx_to_remove.insert(harmonic_fg_idx);
+        }
+        else
+        {
+          // how many mass traces are shared?
+          Size num_of_shared_mt = 0;
+          auto &fg_to_remove = feature_groups[harmonic_fg_idx];
+          for (auto &mt : fg_to_remove)
+          {
+            auto trace_idx = mt.getTraceIndex();
+            if (shared_m_traces_indices[trace_idx].size() > 1) // this masstrace is shared
+            {
+              num_of_shared_mt++;
+            }
+          }
+//          OPENMS_LOG_INFO << num_of_shared_mt << " out of " << feature_groups[harmonic_fg_idx].size() << " are shared with the other ---- " << harmonic_fg_idx << endl;
+
+          // if the number of unique mt are less than the range of charges, remove this feature group
+          if ((fg_to_remove.size()-num_of_shared_mt) < fg_to_remove.getChargeSet().size())
+          {
+            fg_idx_to_remove.insert(harmonic_fg_idx);
+          }
+          else
+          {
+//            OPENMS_LOG_INFO << "\t\tdebug is needed: overlap is not large enough between harmonics --- " << harmonic_fg_idx << endl;
+          }
+        }
+      }
+    }
+
+//    if (fg_idx_to_remove.size() > 0)
+//    {
+//      OPENMS_LOG_INFO << "feature group [ ";
+//    }
+    // remove feature groups for further work & update the mass trace link
+    for (auto &idx : fg_idx_to_remove)
+    {
+      // remove feature groups for further work
+      candidate_fg_indices.erase(idx);
+//      OPENMS_LOG_INFO << idx << " ";
+
+      // update the mass link
+      for (auto& seed_iter : feature_groups[idx])
+      {
+        auto trace_idx = seed_iter.getTraceIndex();
+        if (shared_m_traces_indices[trace_idx].size() > 1) // update the link
+        {
+          auto &link = shared_m_traces_indices[trace_idx];
+          link.erase(std::find(link.begin(), link.end(), idx));
+        }
+      }
+    }
+//    if (fg_idx_to_remove.size() > 0)
+//    {
+//      OPENMS_LOG_INFO << "] are removed" << endl;
+//    }
+  }
+
   void FLASHDeconvQuantAlgorithm::resolveConflictInCluster_(std::vector<FeatureGroup> &feature_groups,
                                                             std::vector<MassTrace> &input_masstraces,
                                                             std::vector<std::vector<Size>> &shared_m_traces_indices,
-                                                            const std::set<Size> &fg_indices_in_this_cluster,
+                                                            std::set<Size> &fg_indices_in_this_cluster,
                                                             std::vector<FeatureGroup> &out_featuregroups)
   {
     /// conflict resolution is done in feature level (not feature group level), starting from the most abundant shared signal
     /// input masstraces needs to be changed, if any resolution is done per FeatureGroup -> add new input_masstrace with modified intensities, and change the pointer to it.
+
+    /// remove FeatureGroups without unique masstraces (+ harmonics)
+    filterOutIneligibleFeatureGroupsInCluster(feature_groups, shared_m_traces_indices, fg_indices_in_this_cluster);
+    if (fg_indices_in_this_cluster.size() == 1)
+    {
+      auto &fg = feature_groups[*(fg_indices_in_this_cluster.begin())];
+      if (rescoreFeatureGroup_(fg))
+      {
+        out_featuregroups.push_back(fg);
+      }
+      return;
+    }
 
     /// 1. find shared MTs and corresponding "Features" (not FeatureGroup)
     std::map<Size, std::vector<std::pair<Size, int>>> shared_mt_N_features; // key: mt_idx, value: pair<feature_group_idx, charge>
@@ -1432,7 +1582,6 @@ namespace OpenMS
       }
     }
 
-
     /// 4. update FeatureGroup members and quantities
     for (auto &idx: fg_indices_in_this_cluster)
     {
@@ -1465,6 +1614,11 @@ namespace OpenMS
         {
           writeMassTracesOfFeatureGroup_(fgroup, idx, shared_m_traces_indices, false);
         }
+      }
+      else
+      {
+        // feature groups not over threshold
+        OPENMS_LOG_INFO << std::to_string(fgroup.getMonoisotopicMass()) << " with iso score " << std::to_string(fgroup.getIsotopeCosine()) << ", seed#" << fgroup.size() << endl;
       }
     }
   }

@@ -110,7 +110,7 @@ namespace OpenMS
 
     bool doFWHMbordersOverlap_(const std::pair<double, double>& border1, const std::pair<double, double>& border2) const;
 
-    bool doMassTraceIndicesOverlap(const FeatureGroup& fg1, const FeatureGroup& fg2) const;
+    bool doMassTraceIndicesOverlap(const FeatureGroup& fg1, const FeatureGroup& fg2, const double overlap_percentage_threshold = 0.5, const bool charge_specific = true) const;
 
     void clusterFeatureGroups_(std::vector<FeatureGroup>& fgroups,
                                std::vector<MassTrace>& input_mtraces);
@@ -118,8 +118,12 @@ namespace OpenMS
     void resolveConflictInCluster_(std::vector<FeatureGroup>& feature_groups,
                                    std::vector<MassTrace> &input_masstraces,
                                    std::vector<std::vector<Size> >& shared_m_traces_indices,
-                                   const std::set<Size>& hypo_indices,
+                                   std::set<Size>& hypo_indices,
                                    std::vector<FeatureGroup>& out_features);
+
+    void filterOutIneligibleFeatureGroupsInCluster(std::vector<FeatureGroup>& feature_groups,
+                                                   std::vector<std::vector<Size> >& shared_m_traces_indices,
+                                                   std::set<Size>& hypo_indices) const;
 
     void setOptionalDetailedOutput_();
 
@@ -185,7 +189,7 @@ namespace OpenMS
     Size max_nr_traces_; // calculated from iso_model_ (setAveragineModel())
 
     /// cosine threshold between observed and theoretical isotope patterns for MS1
-    double min_isotope_cosine_ = 0.90;
+    double min_isotope_cosine_ = 0.85;
 
     /// FLASHDeconvAlgorithm class for deconvolution
     FLASHDeconvAlgorithm fd_;
