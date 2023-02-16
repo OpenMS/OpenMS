@@ -86,6 +86,8 @@ protected:
     setMinInt_("rt_tol", 0);
     registerStringOption_("quant_method", "<choice>", "FeatureGroupQuantity", "Quantity value to use from FLASHDeconvQ result", false);
     setValidStrings_("quant_method", {"FeatureGroupQuantity", "AllAreaUnderTheCurve", "SumIntensity"});
+    registerStringOption_("consensus_as_input", "<choice>", "false", "Set it true when input files are consensus files", false);
+    setValidStrings_("consensus_as_input", {"false", "true"});
   }
 
   struct FeatureGroup
@@ -188,6 +190,64 @@ protected:
       fg.mass = tmp_line[header_dict.at("MonoisotopicMass")].toDouble();
       fg.apex_rt = tmp_line[header_dict.at("MedianApexRetentionTime")].toDouble();
       fg.abundance = tmp_line[header_dict.at(QUANT_METHOD_)].toDouble();
+      fgroups.push_back(fg);
+    }
+    OPENMS_LOG_INFO << ", #FeatureGroup " << fgroups.size() << std::endl;
+
+    // update out_fgroups with result
+    out_fgroups.reserve(out_fgroups.size() + distance(fgroups.begin(), fgroups.end()));
+    out_fgroups.insert(out_fgroups.end(),fgroups.begin(),fgroups.end());
+  }
+
+  void readFLASHDeconvQConsensusFile(String &filepath, std::vector<FeatureGroup> &out_fgroups, Size rep_index)
+  {
+    std::vector<FeatureGroup> fgroups;
+
+    std::ifstream data(filepath);
+    std::string line;
+    std::string tmp;
+
+    // read header
+    std::map<std::string, Size> header_dict;
+    TextFile::getLine(data, line);
+    std::stringstream tmp_lstream(line);
+    Size i = 0;
+    while (std::getline(tmp_lstream, tmp, '\t'))
+    {
+      header_dict[tmp] = i++;
+    }
+    Size fg_index = header_dict.at("ConsensusFeatureGroupIndex");
+    Size mass_index = header_dict.at("AvgMonoisotopicMass");
+    Size rt_index = header_dict.at("AvgApexRetentionTime");
+    std::set<Size> abundance_index_set;
+    for (auto const& [key, index] : header_dict)
+    {
+      if (key.find("Abundance") != std::string::npos) {
+        abundance_index_set.insert(index);
+      }
+    }
+
+    // read data
+    while(TextFile::getLine(data, line)) // iterate over lines
+    {
+      std::stringstream lstream(line);
+      std::vector<String> tmp_line;
+      while (std::getline(lstream, tmp, '\t')) // iterate over column
+      {
+        tmp_line.push_back(tmp);
+      }
+      FeatureGroup fg;
+      fg.rep_index = rep_index;
+      fg.fgroup_index = (Size) tmp_line[fg_index].toInt();
+      fg.mass = tmp_line[mass_index].toDouble();
+      fg.apex_rt = tmp_line[rt_index].toDouble();
+      std::vector<double> masses;
+      for (auto const &index : abundance_index_set)
+      {
+        masses.push_back(tmp_line[index].toDouble());
+      }
+      // average masses
+      fg.abundance = std::accumulate(masses.begin(), masses.end(), 0.0) / masses.size();
       fgroups.push_back(fg);
     }
     OPENMS_LOG_INFO << ", #FeatureGroup " << fgroups.size() << std::endl;
@@ -341,7 +401,7 @@ protected:
     RT_TOL_ = getIntOption_("rt_tol");
     QUANT_METHOD_ = getStringOption_("quant_method");
     REP_COUNT_ = ins.size();
-
+    String consensus_input = getStringOption_("consensus_as_input");
     if (MASS_TOL_UNIT_ == "ppm")
     {
       MASS_TOL_ *= 1e-6;
@@ -351,10 +411,21 @@ protected:
     // loading input
     //-------------------------------------------------------------
     std::vector<FeatureGroup> feat_groups;
-    for (Size i = 0; i < ins.size(); ++i)
+    if (consensus_input == "false")
     {
-      OPENMS_LOG_INFO << ins[i] << " as File" << i ;
-      readFLASHDeconvQResultFile(ins[i], feat_groups, i);
+      for (Size i = 0; i < ins.size(); ++i)
+      {
+        OPENMS_LOG_INFO << ins[i] << " as File" << i ;
+        readFLASHDeconvQResultFile(ins[i], feat_groups, i);
+      }
+    }
+    else
+    {
+      for (Size i = 0; i < ins.size(); ++i)
+      {
+        OPENMS_LOG_INFO << ins[i] << " as File" << i ;
+        readFLASHDeconvQConsensusFile(ins[i], feat_groups, i);
+      }
     }
 
     //-------------------------------------------------------------
