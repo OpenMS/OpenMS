@@ -283,6 +283,14 @@ START_SECTION(regression)
   vector<SimpleSVM::Prediction> predictions;
   svm.predict(predictions);
 
+  // debug code to produce prediction error
+  size_t index{};
+  for (const auto& p : predictions)
+  {
+    std::cout << "index: " << index << " y: " << y[index] << " predicted y: " << p.label << " abs. error: " << std::abs(y[index] - p.label) << std::endl;
+    ++index;
+  }  
+
   // test a few inlier
   TEST_EQUAL(std::abs(predictions[0].label - y[0]) < 0.2, true);
   TEST_EQUAL(std::abs(predictions[23].label - y[23]) < 0.2, true);
@@ -293,14 +301,6 @@ START_SECTION(regression)
   TEST_EQUAL(std::abs(predictions[15].label - y[15]) > 0.2, true);
   TEST_EQUAL(std::abs(predictions[35].label - y[35]) > 0.2, true);
 
-  /* debug code to produce prediction error
-  size_t index{};
-  for (const auto& p : predictions)
-  {
-    std::cout << "index: " << index << " y: " << y[index] << " predicted y: " << p.label << " abs. error: " << std::abs(y[index] - p.label) << std::endl;
-    ++index;
-  }
-  */
 
 }
 END_SECTION

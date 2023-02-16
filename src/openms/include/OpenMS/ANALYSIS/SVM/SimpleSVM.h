@@ -41,6 +41,7 @@
 #include <map>
 #include <vector>
 #include <utility> // for "pair"
+#include <tuple>
 
 namespace OpenMS
 {
@@ -135,8 +136,8 @@ namespace OpenMS
 
     void clear_();
 
-    /// Classification performance for different param. combinations (C/gamma):
-    typedef std::vector<std::vector<double> > SVMPerformance;
+    /// Classification performance for different param. combinations (C/gamma/p):
+    typedef std::vector<std::vector<std::vector<double>>> SVMPerformance;
 
     /// Values of predictors (LIBSVM format)
     std::vector<std::vector<struct svm_node> > nodes_;
@@ -157,7 +158,7 @@ namespace OpenMS
     Size n_parts_;
 
     /// Parameter values to try during optimization
-    std::vector<double> log2_C_, log2_gamma_;
+    std::vector<double> log2_C_, log2_gamma_, log2_p_;
 
     /// Mapping from predictor name to predictor min and max
     ScaleMap scaling_;
@@ -175,7 +176,7 @@ namespace OpenMS
     void convertData_(const PredictorMap& predictors);
 
     /// Choose best SVM parameters based on cross-validation results
-    std::pair<double, double> chooseBestParameters_() const;
+    std::tuple<double, double, double> chooseBestParameters_(bool higher_better) const;
 
     /// Run cross-validation to optimize SVM parameters
     void optimizeParameters_(bool classification);
