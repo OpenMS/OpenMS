@@ -108,7 +108,7 @@ namespace OpenMS
       const MSSpectrumType& spectrum = tmp_spectra[0];
       OpenSwath::BinaryDataArrayPtr intensity_array(new OpenSwath::BinaryDataArray);
       OpenSwath::BinaryDataArrayPtr mz_array(new OpenSwath::BinaryDataArray);
-      for (const auto& peak : spectrum)
+      for (const Peak1D& peak : spectrum)
       {
         mz_array->data.push_back(peak.getMZ());
         intensity_array->data.push_back(peak.getIntensity());

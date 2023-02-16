@@ -98,14 +98,14 @@ double ElutionModelFitter::calculateFitQuality_(const TraceFitter* fitter,
 
   for (const auto& trace : traces)
   {
-    for (const auto& peak : trace.peaks)
+    for (const auto &[r_time, peak] : trace.peaks)
     {
-      double rt = peak.first;
+      double rt = r_time;
       if ((rt >= rt_start) && (rt <= rt_end))
       {
         double model_value = fitter->getValue(rt);
         double diff = fabs(model_value * trace.theoretical_int -
-                           peak.second->getIntensity());
+                           peak->getIntensity());
         mre += diff / model_value;
         total_weights += trace.theoretical_int;
       }

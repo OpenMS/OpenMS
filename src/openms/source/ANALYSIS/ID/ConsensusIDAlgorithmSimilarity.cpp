@@ -62,26 +62,28 @@ namespace OpenMS
       }
     }
 
-    for (PeptideIdentification& id1 : ids)
+    for (vector<PeptideIdentification>::iterator id1 = ids.begin();
+         id1 != ids.end(); ++id1)
     {
-      String score_type = id1.getScoreType();
-      auto se = se_info.find(id1.getIdentifier());
+      String score_type = id1->getScoreType();
+      auto se = se_info.find(id1->getIdentifier());
       if (se != se_info.end())
       {
         score_type = se->second + "_" + score_type;
       }
 
-      for (auto& hit1 : id1.getHits())
+      for (vector<PeptideHit>::iterator hit1 = id1->getHits().begin();
+           hit1 != id1->getHits().end(); ++hit1)
       {
         // have we scored this sequence already? if yes, skip:
-        SequenceGrouping::iterator pos = results.find(hit1.getSequence());
+        SequenceGrouping::iterator pos = results.find(hit1->getSequence());
         if (pos != results.end())
         { 
-          compareChargeStates_(pos->second.charge, hit1.getCharge(),
+          compareChargeStates_(pos->second.charge, hit1->getCharge(),
                                pos->first);
-          pos->second.scores.emplace_back(hit1.getScore());
-          pos->second.types.emplace_back(id1.getScoreType());
-          for (const auto& ev : hit1.getPeptideEvidences())
+          pos->second.scores.emplace_back(hit1->getScore());
+          pos->second.types.emplace_back(id1->getScoreType());
+          for (const auto& ev : hit1->getPeptideEvidences())
           {
             pos->second.evidence.emplace(ev);
           }
@@ -91,33 +93,36 @@ namespace OpenMS
         // similarity scores and PEPs of best matches for all ID runs:
         vector<pair<double, double> > best_matches;
         best_matches.reserve(ids.size() - 1);
-        for (auto& id2 : ids)
+        for (vector<PeptideIdentification>::iterator id2 = ids.begin();
+             id2 != ids.end(); ++id2)
         {
-          if (std::addressof(id1) == std::addressof(id2)) continue; //The original iterator-based for loop compared id1 to id2, where id1 and id2 were iterators. 
+          if (id1 == id2) continue;  
           
           // similarity scores and PEPs of all matches in current ID run
           // (to get the best match, we look for highest similarity, breaking
           // ties by better PEP - so we need to transform PEP so higher scores
           // are better, same as similarity):
           vector<pair<double, double> > current_matches;
-          current_matches.reserve(id2.getHits().size());
-          for (auto& hit2 : id2.getHits())
+          current_matches.reserve(id2->getHits().size());
+          for (vector<PeptideHit>::iterator hit2 = id2->getHits().begin();
+               hit2 != id2->getHits().end(); ++hit2)
           {
-            double sim_score = getSimilarity_(hit1.getSequence(),
-                                              hit2.getSequence());
+            double sim_score = getSimilarity_(hit1->getSequence(),
+                                              hit2->getSequence());
             // use "1 - PEP" so higher scores are better (for "max_element"):
             current_matches.emplace_back(sim_score,
-                                                1.0 - hit2.getScore());
+                                                1.0 - hit2->getScore());
           }
           best_matches.push_back(*max_element(current_matches.begin(),
                                               current_matches.end()));
         }
-        double score = hit1.getScore();
+        double score = hit1->getScore();
         double sum_sim = 1.0; // sum of similarity scores
-        for (auto& match : best_matches)
+        for (vector<pair<double, double> >::iterator it = best_matches.begin();
+             it != best_matches.end(); ++it)
         {
-          score += match.first * (1.0 - match.second); // undo "1 - PEP" transform
-          sum_sim += match.first;
+          score += it->first * (1.0 - it->second); // undo "1 - PEP" transform
+          sum_sim += it->first;
         }
         score /= (sum_sim * sum_sim);
 
@@ -134,15 +139,15 @@ namespace OpenMS
           support = (sum_sim - 1.0) / n_other_ids;
         }
 
-        auto ev = hit1.getPeptideEvidences();
+        auto ev = hit1->getPeptideEvidences();
         // don't filter based on "min_score_" yet, so we don't recompute results
         // for the same peptide sequence:
-        results[hit1.getSequence()] =
+        results[hit1->getSequence()] =
             {
-              hit1.getCharge(),
-              {hit1.getScore()},
+              hit1->getCharge(),
+              {hit1->getScore()},
               {score_type},
-              hit1.getMetaValue("target_decoy").toString(),
+              hit1->getMetaValue("target_decoy").toString(),
               {std::make_move_iterator(ev.begin()), std::make_move_iterator(ev.end())},
               score,
               support

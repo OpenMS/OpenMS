@@ -78,7 +78,7 @@ namespace OpenMS
     OpenSwath::BinaryDataArrayPtr rt_array = cptr->getTimeArray();
     rt_array->data.reserve(chromatogram.size());
     intensity_array->data.reserve(chromatogram.size());
-    for (const ChromatogramPeak1D& peak : chromatogram)
+    for (const ChromatogramPeak& peak : chromatogram)
     {
       rt_array->data.push_back(peak.getRT());
       intensity_array->data.push_back(peak.getIntensity());

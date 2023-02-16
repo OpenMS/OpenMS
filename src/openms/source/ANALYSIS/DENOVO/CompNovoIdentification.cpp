@@ -928,17 +928,17 @@ namespace OpenMS
 
     double best_correlation = 0;
     Size best_charge = 0;
-    for (const auto& corr_sum : correlation_sums)
+    for (const auto& [charge, corr] : correlation_sums)
     {
-      //cerr << "Correlations z=" << it->first << ", corr=" << it->second << endl;
-      for (const auto& bci : best_corr_ints[corr_sum.first])
+      //cerr << "Correlations z=" << charge << ", corr=" << corr << endl;
+      for (const auto& bci : best_corr_ints[charge])
       {
         //cerr << "CorrelationIntensity: z=" << bci.first << ", corr=" << bci.second.first << ", m/z=" << bci.second.second << " [M+H]=" << (bci.second.second * (double)bci.first) - ((double)bci.first - 1) * Constants::NEUTRON_MASS_U  << endl;
       }
-      if (best_correlation < corr_sum.second)
+      if (best_correlation < corr)
       {
-        best_correlation = corr_sum.second;
-        best_charge = corr_sum.first;
+        best_correlation = corr;
+        best_charge = charge;
       }
     }
 

@@ -1230,9 +1230,9 @@ namespace OpenMS
 
     // print some adduct stats:
     OPENMS_LOG_INFO << "Hits by adduct: #peaks explained (# matching db entries)'\n";
-    for (const auto& stat : adduct_stats)
+    for (const auto& [name, num_entries] : adduct_stats)
     {
-      OPENMS_LOG_INFO << "  '" << stat.first << "' : " << adduct_stats_unique[stat.first].size() << " (" << stat.second << ")\n";
+      OPENMS_LOG_INFO << "  '" << name << "' : " << adduct_stats_unique[name].size() << " (" << num_entries << ")\n";
     }
     OPENMS_LOG_INFO << std::endl;
 

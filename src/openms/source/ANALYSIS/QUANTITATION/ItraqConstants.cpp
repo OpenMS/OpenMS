@@ -114,7 +114,7 @@ namespace OpenMS
     isotope_corrections[2].setMatrix<6, 4>(ItraqConstants::ISOTOPECORRECTIONS_TMT_SIXPLEX);
 
     // split the channels key:name pairs apart
-    for (const auto& ch : channels)
+    for (const String& ch : channels)
     {
       StringList result;
       ch.split(':', result);
@@ -226,7 +226,7 @@ namespace OpenMS
   void ItraqConstants::updateChannelMap(const StringList & active_channels, ChannelMapType & map)
   {
     // split the channels key:name pairs apart
-    for (const auto& ch : active_channels)
+    for (const String& ch : active_channels)
     {
       StringList result;
       ch.split(':', result);

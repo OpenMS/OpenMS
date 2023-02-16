@@ -1536,7 +1536,7 @@ namespace OpenMS
 #ifdef DEBUG_OPS
       std::cout << "Now search for matching features for " << accs.size() << " proteins." << std::endl;
 #endif
-      for (const auto& acc : accs)
+      for (const String& acc : accs)
       {
         // first enter the new feature to the corresponding proteins
         std::map<String, std::vector<Size> >::iterator prot_var_iter = protein_feature_map.find(acc);

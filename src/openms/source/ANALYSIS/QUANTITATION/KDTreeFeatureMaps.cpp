@@ -124,7 +124,7 @@ void KDTreeFeatureMaps::getNeighborhood(Size index, vector<Size>& result_indices
   {
     double int_1 = features_[index]->getIntensity();
 
-    for (const auto& result : tmp_result)
+    for (const Size& result : tmp_result)
     {
       double int_2 = features_[result]->getIntensity();
       double abs_log_fc = fabs(log10(int_2 / int_1));
@@ -156,7 +156,7 @@ void KDTreeFeatureMaps::queryRegion(double rt_low, double rt_high, double mz_low
 
   // add indices to result
   result_indices.clear();
-  for (const auto& result : tmp_result)
+  for (const KDTreeFeatureNode& result : tmp_result)
   {
     Size found_index = result.getIndex();
     if (ignored_map_index == numeric_limits<Size>::max() || map_index_[found_index] != ignored_map_index)
