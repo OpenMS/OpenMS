@@ -724,11 +724,11 @@ namespace OpenMS
     snr_ = t_denom <= 0 ? .0f: (t_nom / t_denom);
   }
 
-  float PeakGroup::getQvalue(PeakGroup::DecoyFlag flag) const
+  float PeakGroup::getQvalue(PeakGroup::DummyIndex flag) const
   {
-    if (flag == PeakGroup::DecoyFlag::target)
+    if (flag == PeakGroup::DummyIndex::target)
     {
-      return std::min(1.0f, getQvalue(PeakGroup::DecoyFlag::charge_decoy) + getQvalue(PeakGroup::DecoyFlag::noise_decoy) + getQvalue(PeakGroup::DecoyFlag::isotope_decoy));
+      return std::min(1.0f, getQvalue(PeakGroup::DummyIndex::charge_dummy) + getQvalue(PeakGroup::DummyIndex::noise_dummy) + getQvalue(PeakGroup::DummyIndex::isotope_dummy));
     }
     if (qvalue_.find(flag) == qvalue_.end())
     {
@@ -790,14 +790,14 @@ namespace OpenMS
     return is_positive_;
   }
 
-  PeakGroup::DecoyFlag PeakGroup::getDecoyFlag() const
+  PeakGroup::DummyIndex PeakGroup::getDummyIndex() const
   {
     return decoy_flag_;
   }
 
-  void PeakGroup::setDecoyFlag(const PeakGroup::DecoyFlag flag)
+  void PeakGroup::setDummyIndex(DummyIndex index)
   {
-    decoy_flag_ = flag;
+    decoy_flag_ = index;
   }
 
   void PeakGroup::setIsotopeDaDistance(const double d)
@@ -885,7 +885,7 @@ namespace OpenMS
     std::sort(logMzpeaks_.begin(), logMzpeaks_.end());
   }
 
-  void PeakGroup::setQvalue(float q, PeakGroup::DecoyFlag flag)
+  void PeakGroup::setQvalue(float q, PeakGroup::DummyIndex flag)
   {
     qvalue_[flag] = q;
   }

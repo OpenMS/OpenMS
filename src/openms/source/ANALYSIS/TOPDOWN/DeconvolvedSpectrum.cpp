@@ -274,7 +274,7 @@ namespace OpenMS
     std::sort(peak_groups_.begin(), peak_groups_.end(), [](const PeakGroup& p1, const PeakGroup& p2) { return p1.getQScore() > p2.getQScore(); });
   }
 
-  void DeconvolvedSpectrum::setPrecursorQvalue(float q, PeakGroup::DecoyFlag flag)
+  void DeconvolvedSpectrum::setPrecursorQvalue(float q, PeakGroup::DummyIndex flag)
   {
     precursor_peak_group_.setQvalue(q, flag);
   }

@@ -98,12 +98,12 @@ namespace OpenMS
                                                           const std::map<int, std::vector<std::vector<float>>>& precursor_map_for_FLASHIda)
   {
     // First prepare for decoy runs.
-    iso_da_distance_ = decoy_flag_ != PeakGroup::noise_decoy ? Constants::ISOTOPE_MASSDIFF_55K_U : Constants::ISOTOPE_MASSDIFF_55K_U * sqrt(7.0)/2.0;
+    iso_da_distance_ = decoy_flag_ != PeakGroup::noise_dummy ? Constants::ISOTOPE_MASSDIFF_55K_U : Constants::ISOTOPE_MASSDIFF_55K_U * sqrt(7.0)/2.0;
     previously_deconved_mono_masses_for_decoy.clear();
     previously_deconved_mass_bins_for_decoy.clear();
     excluded_peak_mzs_.clear();
 
-    if (decoy_flag_ == PeakGroup::charge_decoy) // charge decoy
+    if (decoy_flag_ == PeakGroup::charge_dummy) // charge decoy
     {
       for (auto& pg : targetFD_->deconvolved_spectrum_)
       {
@@ -129,7 +129,7 @@ namespace OpenMS
         }
       }
     }
-    if (decoy_flag_ == PeakGroup::noise_decoy) // noise decoy
+    if (decoy_flag_ == PeakGroup::noise_dummy) // noise decoy
     {
       getMZsToExclude(targetFD_->deconvolved_spectrum_, excluded_peak_mzs_);
     }
@@ -1019,7 +1019,7 @@ namespace OpenMS
     return deconvolved_spectrum_;
   }
 
-  void FLASHDeconvAlgorithm::setDecoyFlag(PeakGroup::DecoyFlag flag, FLASHDeconvAlgorithm& targetFD)
+  void FLASHDeconvAlgorithm::setDummyIndex(PeakGroup::DummyIndex flag, FLASHDeconvAlgorithm& targetFD)
   {
     decoy_flag_ = flag;
     targetFD_ = &targetFD;
@@ -1064,7 +1064,7 @@ namespace OpenMS
     updateMzBins_(mz_bin_number, mz_bin_intensities);
     mass_bins_ = boost::dynamic_bitset<>(mass_bin_number);
 
-    if (decoy_flag_ == PeakGroup::charge_decoy && previously_deconved_mono_masses_for_decoy.size() > 0)
+    if (decoy_flag_ == PeakGroup::charge_dummy && previously_deconved_mono_masses_for_decoy.size() > 0)
     {
       std::sort(previously_deconved_mono_masses_for_decoy.begin(), previously_deconved_mono_masses_for_decoy.end());
       previously_deconved_mass_bins_for_decoy = boost::dynamic_bitset<>(mass_bins_.size());
@@ -1114,7 +1114,7 @@ namespace OpenMS
       }
     }
 
-    if (decoy_flag_ != PeakGroup::isotope_decoy)
+    if (decoy_flag_ != PeakGroup::isotope_dummy)
     {
       auto per_mass_abs_charge_ranges = updateMassBins_(mz_bin_intensities);
       getCandidatePeakGroups_(per_mass_abs_charge_ranges);
@@ -1205,7 +1205,7 @@ namespace OpenMS
           continue;
         }
 
-        if (decoy_flag_ == PeakGroup::charge_decoy && previously_deconved_mono_masses_for_decoy.size() > 0)
+        if (decoy_flag_ == PeakGroup::charge_dummy && previously_deconved_mono_masses_for_decoy.size() > 0)
         {
           bool exclude = false;
           double delta = peak_group.getMonoMass() * tolerance_[ms_level_ - 1];
@@ -1240,7 +1240,7 @@ namespace OpenMS
         {
           continue;
         }
-        peak_group.setDecoyFlag(decoy_flag_);
+        peak_group.setDummyIndex(decoy_flag_);
         filtered_peak_groups_private.push_back(peak_group);
       }
 
@@ -1262,7 +1262,7 @@ namespace OpenMS
   }
 
   float FLASHDeconvAlgorithm::getIsotopeCosineAndDetermineIsotopeIndex(const double mono_mass, const std::vector<float>& per_isotope_intensities, int& offset, const PrecalculatedAveragine& avg,
-                                                                       int window_width, int allowed_iso_error_for_second_best_cos, PeakGroup::DecoyFlag decoyFlag)
+                                                                       int window_width, int allowed_iso_error_for_second_best_cos, PeakGroup::DummyIndex decoyFlag)
   {
     offset = 0;
     if (per_isotope_intensities.size() < min_iso_size_)
@@ -1318,7 +1318,7 @@ namespace OpenMS
       }
     }
 
-    if (decoyFlag != PeakGroup::DecoyFlag::target)
+    if (decoyFlag != PeakGroup::DummyIndex::target)
     {
       for (int tmp_offset = offset - 3; tmp_offset <= offset + 3; tmp_offset++)
       {

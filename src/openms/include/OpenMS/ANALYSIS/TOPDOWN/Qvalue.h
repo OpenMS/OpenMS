@@ -59,6 +59,8 @@ namespace OpenMS
     void static updatePeakGroupQvalues(std::vector<DeconvolvedSpectrum>& deconvolved_spectra, std::vector<DeconvolvedSpectrum>& deconvolved_decoy_spectra);
 
   private:
+    static uint getBinNumber(float qscore, uint total_bin_number);
+    static float getBinValue(uint bin_number, uint total_bin_number);
     static std::vector<float> getDistribution(const std::vector<float>& qscores, uint bin_number);
     static std::vector<float> getDistributionWeights(const std::vector<float>& mixed_dist, const  std::vector<std::vector<float>>& comp_dists, uint num_iterations = 100);
   };

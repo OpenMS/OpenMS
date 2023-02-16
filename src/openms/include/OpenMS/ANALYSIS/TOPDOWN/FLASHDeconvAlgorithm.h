@@ -140,15 +140,15 @@ namespace OpenMS
          @param offset output offset between input monoisotopic mono_mass and determined monoisotopic mono_mass
          @param avg precalculated averagine
          @param window_width isotope offset value range. If -1, set automatically.
-         @param allowed_iso_error_for_second_best_cos allowed isotope error to calculate the second best cos. If decoyFlag is not PeakGroup::DecoyFlag::target, the second best cosine and its corresponding offset will be output
-         @param decoyFlag if this is not PeakGroup::DecoyFlag::target, the second best cosine and its corresponding offset will be output.
+         @param allowed_iso_error_for_second_best_cos allowed isotope error to calculate the second best cos. If decoyFlag is not PeakGroup::DummyIndex::target, the second best cosine and its corresponding offset will be output
+         @param decoyFlag if this is not PeakGroup::DummyIndex::target, the second best cosine and its corresponding offset will be output.
          @return calculated cosine similar score
       */
      static float getIsotopeCosineAndDetermineIsotopeIndex(double mono_mass,
                                                            const std::vector<float>& per_isotope_intensities,
                                                            int& offset,
                                                            const PrecalculatedAveragine& avg,
-                                                           int window_width = -1, int allowed_iso_error_for_second_best_cos = 0, PeakGroup::DecoyFlag decoyFlag = PeakGroup::DecoyFlag::target);
+                                                           int window_width = -1, int allowed_iso_error_for_second_best_cos = 0, PeakGroup::DummyIndex decoyFlag = PeakGroup::DummyIndex::target);
 
      static void getMZsToExclude(const DeconvolvedSpectrum& dspec, std::unordered_set<double>& excluded_mzs);
 
@@ -159,7 +159,7 @@ namespace OpenMS
 
 
     /// set decoy_flag_
-    void setDecoyFlag(PeakGroup::DecoyFlag flag, FLASHDeconvAlgorithm& targetFD);
+    void setDummyIndex(PeakGroup::DummyIndex flag, FLASHDeconvAlgorithm& targetFD);
 
   protected:
     void updateMembers_() override;
@@ -202,8 +202,8 @@ namespace OpenMS
 
     FLASHDeconvAlgorithm* targetFD_;
 
-    /// PeakGroup::DecoyFlag values
-    PeakGroup::DecoyFlag decoy_flag_ = PeakGroup::DecoyFlag::target;
+    /// PeakGroup::DummyIndex values
+    PeakGroup::DummyIndex decoy_flag_ = PeakGroup::DummyIndex::target;
 
     /// precalculated averagine distributions for fast averagine generation
     FLASHDeconvHelperStructs::PrecalculatedAveragine avg_;

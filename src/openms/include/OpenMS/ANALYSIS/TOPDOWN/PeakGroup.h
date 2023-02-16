@@ -54,13 +54,13 @@ namespace OpenMS
     typedef FLASHDeconvHelperStructs::PrecalculatedAveragine PrecalculatedAveragine;
   public:
 
-    /// decoy flag. This flag specifies if a PeakGroup is a target, charge decoy, noise decoy, or isotope decoy.
-    enum DecoyFlag
+    /// dummy index. This index specifies if a PeakGroup is a target, charge dummy, noise dummy, or isotope dummy.
+    enum DummyIndex
     {
       target = 0,
-      charge_decoy,
-      noise_decoy,
-      isotope_decoy
+      charge_dummy,
+      noise_dummy,
+      isotope_dummy
     };
 
     /// default constructor
@@ -216,16 +216,16 @@ namespace OpenMS
     bool isTargeted() const;
 
     /// get the decoy flag of this
-    PeakGroup::DecoyFlag getDecoyFlag() const;
+    PeakGroup::DummyIndex getDummyIndex() const;
 
     /// for this PeakGroup, specify the decoy flag.
-    void setDecoyFlag(PeakGroup::DecoyFlag index);
+    void setDummyIndex(PeakGroup::DummyIndex index);
 
     /// get calculated qvalue
-    float getQvalue(PeakGroup::DecoyFlag flag = PeakGroup::DecoyFlag::target) const;
+    float getQvalue(PeakGroup::DummyIndex flag = PeakGroup::DummyIndex::target) const;
 
     /// set qvalue.
-    void setQvalue(float q, PeakGroup::DecoyFlag flag);
+    void setQvalue(float q, PeakGroup::DummyIndex flag);
 
     /// set distance between consecutive isotopes
     void setIsotopeDaDistance(double d);
@@ -323,7 +323,7 @@ namespace OpenMS
     double monoisotopic_mass_ = -1.0;
     float intensity_;// total intensity
     /// index to specify if this peak_group is a target (0), an isotope decoy (1), a noise (2), or a charge decoy (3)
-    PeakGroup::DecoyFlag decoy_flag_ = target;
+    PeakGroup::DummyIndex decoy_flag_ = target;
 
     /// distance between consecutive isotopes. Can be different for decoys
     double iso_da_distance_ = Constants::ISOTOPE_MASSDIFF_55K_U;
@@ -336,6 +336,6 @@ namespace OpenMS
     float avg_da_error_ = 0;
     float snr_ = 0;
     /// qvalues with different decoy flags
-    std::map<PeakGroup::DecoyFlag, float> qvalue_;
+    std::map<PeakGroup::DummyIndex, float> qvalue_;
   };
 }

@@ -168,7 +168,7 @@ protected:
 
     registerIntOption_(
       "report_FDR", "<0: Do not report 1: report>", 0,
-      "Report qvalues (roughly, mass-wise FDR) for deconvolved masses in the tsv files for deconvolved spectra. Decoy masses to calculate qvalues and FDR are also reported. Beta version.", false,
+      "Report qvalues (roughly, point-wise FDR) for deconvolved masses in the tsv files for deconvolved spectra. Dummy masses to calculate qvalues and FDR are also reported. Beta version.", false,
       false);
     setMinInt_("report_FDR", 0);
     setMaxInt_("report_FDR", 1);
@@ -263,7 +263,7 @@ protected:
     int merge = getIntOption_("merging_method");
     bool write_detail = getIntOption_("write_detail") > 0;
     int mzml_charge = getIntOption_("mzml_mass_charge");
-    bool report_decoy = getIntOption_("report_FDR") == 1;
+    bool report_dummy = getIntOption_("report_FDR") == 1;
     double min_mz = getDoubleOption_("Algorithm:min_mz");
     double max_mz = getDoubleOption_("Algorithm:max_mz");
     double min_rt = getDoubleOption_("Algorithm:min_rt");
@@ -312,7 +312,7 @@ protected:
       for (Size i = 0; i < out_spec_file.size(); i++)
       {
         out_spec_streams[i].open(out_spec_file[i], fstream::out);
-        FLASHDeconvSpectrumFile::writeDeconvolvedMassesHeader(out_spec_streams[i], i + 1, write_detail, report_decoy);
+        FLASHDeconvSpectrumFile::writeDeconvolvedMassesHeader(out_spec_streams[i], i + 1, write_detail, report_dummy);
       }
     }
 
@@ -420,7 +420,7 @@ protected:
     MSExperiment exp, exp_annotated;
 
     auto fd = FLASHDeconvAlgorithm();
-    FLASHDeconvAlgorithm fd_charge_decoy, fd_noise_decoy, fd_iso_decoy;
+    FLASHDeconvAlgorithm fd_charge_dummy, fd_noise_dummy, fd_iso_dummy;
 
     Param fd_param = getParam_().copy("Algorithm:", true);
     DoubleList tols = fd_param.getValue("tol");
@@ -472,19 +472,19 @@ protected:
     fd.calculateAveragine(use_RNA_averagine);
     auto avg = fd.getAveragine();
 
-    if (report_decoy)
+    if (report_dummy)
     {
-      fd_charge_decoy.setParameters(fd_param);
-      fd_charge_decoy.setAveragine(avg);
-      fd_charge_decoy.setDecoyFlag(PeakGroup::DecoyFlag::charge_decoy, fd); // charge
+      fd_charge_dummy.setParameters(fd_param);
+      fd_charge_dummy.setAveragine(avg);
+      fd_charge_dummy.setDummyIndex(PeakGroup::DummyIndex::charge_dummy, fd); // charge
 
-      fd_noise_decoy.setParameters(fd_param);
-      fd_noise_decoy.setAveragine(avg);
-      fd_noise_decoy.setDecoyFlag(PeakGroup::DecoyFlag::noise_decoy, fd); // noise
+      fd_noise_dummy.setParameters(fd_param);
+      fd_noise_dummy.setAveragine(avg);
+      fd_noise_dummy.setDummyIndex(PeakGroup::DummyIndex::noise_dummy, fd); // noise
 
-      fd_iso_decoy.setParameters(fd_param);
-      fd_iso_decoy.setAveragine(avg);
-      fd_iso_decoy.setDecoyFlag(PeakGroup::DecoyFlag::isotope_decoy, fd);
+      fd_iso_dummy.setParameters(fd_param);
+      fd_iso_dummy.setAveragine(avg);
+      fd_iso_dummy.setDummyIndex(PeakGroup::DummyIndex::isotope_dummy, fd);
     }
 
     auto mass_tracer = MassFeatureTrace();
@@ -621,42 +621,42 @@ protected:
         scan_rt_map[deconvolved_spectrum.getScanNumber()] = it->getRT();
       }
 
-      if (report_decoy)
+      if (report_dummy)
       {
-#pragma omp parallel sections default(none) shared(fd_charge_decoy, fd_noise_decoy, fd_iso_decoy, it, precursor_specs, scan_number, precursor_map_for_real_time_acquisition)
+#pragma omp parallel sections default(none) shared(fd_charge_dummy, fd_noise_dummy, fd_iso_dummy, it, precursor_specs, scan_number, precursor_map_for_real_time_acquisition)
         {
 #pragma omp section
-          fd_charge_decoy.performSpectrumDeconvolution(*it, precursor_specs, scan_number, precursor_map_for_real_time_acquisition);
+          fd_charge_dummy.performSpectrumDeconvolution(*it, precursor_specs, scan_number, precursor_map_for_real_time_acquisition);
 #pragma omp section
-          fd_noise_decoy.performSpectrumDeconvolution(*it, precursor_specs, scan_number, precursor_map_for_real_time_acquisition);
+          fd_noise_dummy.performSpectrumDeconvolution(*it, precursor_specs, scan_number, precursor_map_for_real_time_acquisition);
 #pragma omp section
-          fd_iso_decoy.performSpectrumDeconvolution(*it, precursor_specs, scan_number, precursor_map_for_real_time_acquisition);
+          fd_iso_dummy.performSpectrumDeconvolution(*it, precursor_specs, scan_number, precursor_map_for_real_time_acquisition);
         }
-        DeconvolvedSpectrum decoy_deconvolved_spectrum(scan_number);
-        decoy_deconvolved_spectrum.setOriginalSpectrum(*it);
+        DeconvolvedSpectrum dummy_deconvolved_spectrum(scan_number);
+        dummy_deconvolved_spectrum.setOriginalSpectrum(*it);
 
-        decoy_deconvolved_spectrum.reserve(fd_iso_decoy.getDeconvolvedSpectrum().size() + fd_charge_decoy.getDeconvolvedSpectrum().size() + fd_noise_decoy.getDeconvolvedSpectrum().size());
+        dummy_deconvolved_spectrum.reserve(fd_iso_dummy.getDeconvolvedSpectrum().size() + fd_charge_dummy.getDeconvolvedSpectrum().size() + fd_noise_dummy.getDeconvolvedSpectrum().size());
 
-        for (auto& pg : fd_charge_decoy.getDeconvolvedSpectrum())
+        for (auto& pg : fd_charge_dummy.getDeconvolvedSpectrum())
         {
-          decoy_deconvolved_spectrum.push_back(pg);
+          dummy_deconvolved_spectrum.push_back(pg);
         }
 
-        for (auto& pg : fd_iso_decoy.getDeconvolvedSpectrum())
+        for (auto& pg : fd_iso_dummy.getDeconvolvedSpectrum())
         {
-          decoy_deconvolved_spectrum.push_back(pg);
+          dummy_deconvolved_spectrum.push_back(pg);
         }
 
-        for (auto& pg : fd_noise_decoy.getDeconvolvedSpectrum())
+        for (auto& pg : fd_noise_dummy.getDeconvolvedSpectrum())
         {
-          decoy_deconvolved_spectrum.push_back(pg);
+          dummy_deconvolved_spectrum.push_back(pg);
         }
 
-        decoy_deconvolved_spectrum.sortByQScore();
+        dummy_deconvolved_spectrum.sortByQScore();
         deconvolved_spectrum.sortByQScore();
         DeconvolvedSpectrum tmp_spectrum(scan_number);
         tmp_spectrum.setOriginalSpectrum(*it);
-        for(auto& pg : decoy_deconvolved_spectrum)
+        for(auto& pg : dummy_deconvolved_spectrum)
         {
           if(pg.getQScore() < deconvolved_spectrum[deconvolved_spectrum.size() - 1].getQScore())
           {
@@ -664,12 +664,12 @@ protected:
           }
           tmp_spectrum.push_back(pg);
         }
-        decoy_deconvolved_spectrum = tmp_spectrum;
+        dummy_deconvolved_spectrum = tmp_spectrum;
 
         deconvolved_spectrum.sort();
-        decoy_deconvolved_spectrum.sort();
+        dummy_deconvolved_spectrum.sort();
 
-        dummy_deconvolved_spectra.push_back(decoy_deconvolved_spectrum);
+        dummy_deconvolved_spectra.push_back(dummy_deconvolved_spectrum);
       }
 
       qspec_cntr[ms_level - 1]++;
@@ -694,14 +694,14 @@ protected:
       }
       if (out_spec_streams.size() + 1 > ms_level)
       {
-        FLASHDeconvSpectrumFile::writeDeconvolvedMasses(deconvolved_spectrum, deconvolved_spectrum, out_spec_streams[ms_level - 1], in_file, avg, tols[ms_level-1], write_detail, report_decoy);
+        FLASHDeconvSpectrumFile::writeDeconvolvedMasses(deconvolved_spectrum, deconvolved_spectrum, out_spec_streams[ms_level - 1], in_file, avg, tols[ms_level-1], write_detail, report_dummy);
       }
       if (out_topfd_streams.size() + 1 > ms_level)
       {
         FLASHDeconvSpectrumFile::writeTopFD(deconvolved_spectrum, out_topfd_streams[ms_level - 1], topFD_SNR_threshold); //, 1, (float)rand() / (float)RAND_MAX * 10 + 10);
       }
     }
-    if (report_decoy)
+    if (report_dummy)
     {
       for (uint i=0; i < dummy_deconvolved_spectra.size(); i++)
       {
@@ -711,7 +711,7 @@ protected:
 
         if (out_spec_streams.size() + 1 > ms_level)
         {
-          FLASHDeconvSpectrumFile::writeDeconvolvedMasses(dummy_deconvolved_spectrum, deconvolved_spectrum, out_spec_streams[ms_level - 1], in_file, avg, tols[ms_level-1], write_detail, report_decoy);
+          FLASHDeconvSpectrumFile::writeDeconvolvedMasses(dummy_deconvolved_spectrum, deconvolved_spectrum, out_spec_streams[ms_level - 1], in_file, avg, tols[ms_level-1], write_detail, report_dummy);
         }
       }
     }
@@ -833,7 +833,7 @@ protected:
 
     if (DLTrain)
     {
-      QScore::writeAttCsvFromDecoyHeader(out_att_stream);
+      QScore::writeAttCsvFromDummyHeader(out_att_stream);
       vector<DeconvolvedSpectrum> false_deconvolved_spectra;
       false_deconvolved_spectra.reserve(deconvolved_spectra.size() * 3);
 
@@ -843,13 +843,13 @@ protected:
         {
           continue;
         }
-        QScore::writeAttCsvFromDecoy(deconvolved_spectrum, out_att_stream);
+        QScore::writeAttCsvFromDummy(deconvolved_spectrum, out_att_stream);
         DeconvolvedSpectrum false_deconvolved_spectrum;
         false_deconvolved_spectrum.setOriginalSpectrum(deconvolved_spectrum.getOriginalSpectrum());
         false_deconvolved_spectrum.reserve(deconvolved_spectrum.size());
         for (auto& pg : deconvolved_spectrum)
         {
-          if(pg.getDecoyFlag() == PeakGroup::DecoyFlag::charge_decoy || pg.getDecoyFlag() == PeakGroup::DecoyFlag::target)
+          if(pg.getDummyIndex() == PeakGroup::DummyIndex::charge_dummy || pg.getDummyIndex() == PeakGroup::DummyIndex::target)
           {
             continue;
           }
@@ -863,7 +863,7 @@ protected:
         {
           continue;
         }
-        QScore::writeAttCsvFromDecoy(deconvolved_spectrum, out_att_stream);
+        QScore::writeAttCsvFromDummy(deconvolved_spectrum, out_att_stream);
 
         auto false_deconvolved_spectrum(deconvolved_spectrum);
         int j = 0; //-2 -1 1 2     2 3 4 5 /2 /3 /4 /5       -2 -1 1 2
@@ -873,7 +873,7 @@ protected:
           int charge_offset = 0;
           double charge_multiple = 1;
           double mz_offset = .0;
-          PeakGroup::DecoyFlag flag = PeakGroup::DecoyFlag::charge_decoy;
+          PeakGroup::DummyIndex flag = PeakGroup::DummyIndex::charge_dummy;
           switch (k)
           {
             case 0:
@@ -907,25 +907,25 @@ protected:
               charge_multiple = 1.0 / 2.0;
               break;
             case 10:
-              flag = PeakGroup::DecoyFlag::noise_decoy;
+              flag = PeakGroup::DummyIndex::noise_dummy;
               mz_offset = 5.0;
               break;
             case 11:
-              flag = PeakGroup::DecoyFlag::noise_decoy;
+              flag = PeakGroup::DummyIndex::noise_dummy;
               mz_offset = 3.0;
               break;
             case 12:
-              flag = PeakGroup::DecoyFlag::noise_decoy;
+              flag = PeakGroup::DummyIndex::noise_dummy;
               mz_offset = -3.0;
               break;
             default:
-              flag = PeakGroup::DecoyFlag::noise_decoy;
+              flag = PeakGroup::DummyIndex::noise_dummy;
               mz_offset = -5.0;
               break;
           }
 
           pg.recruitAllPeaksInSpectrum(deconvolved_spectrum.getOriginalSpectrum(), 1e-6*tols[0], avg, pg.getMonoMass(), std::unordered_set<double>(), charge_offset, charge_multiple, mz_offset);
-          pg.setDecoyFlag(flag);
+          pg.setDummyIndex(flag);
         }
         false_deconvolved_spectra.push_back(false_deconvolved_spectrum);
       }

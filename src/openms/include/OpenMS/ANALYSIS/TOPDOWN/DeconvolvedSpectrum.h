@@ -141,7 +141,7 @@ namespace OpenMS
     void setPrecursorPeakGroup(const PeakGroup& pg);
 
     /// set precursor Qvalue
-    void setPrecursorQvalue(float q, PeakGroup::DecoyFlag flag);
+    void setPrecursorQvalue(float q, PeakGroup::DummyIndex flag);
 
     /// original spectrum setter
     void setOriginalSpectrum(const MSSpectrum& spec);

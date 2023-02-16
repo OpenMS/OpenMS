@@ -82,12 +82,12 @@ namespace OpenMS
     return fvector;
   }
 
-  void QScore::writeAttCsvFromDecoyHeader(std::fstream& f)
+  void QScore::writeAttCsvFromDummyHeader(std::fstream& f)
   {
     f << "MSLevel,ChargeCos,ChargeSNR,Cos,SNR,AvgPPMError,Class\n";
   }
 
-  void QScore::writeAttCsvFromDecoy(const DeconvolvedSpectrum& deconvolved_spectrum, std::fstream& f)
+  void QScore::writeAttCsvFromDummy(const DeconvolvedSpectrum& deconvolved_spectrum, std::fstream& f)
   {
     uint ms_level = deconvolved_spectrum.getOriginalSpectrum().getMSLevel();
     String cns[] = {"T", "D", "D", "D"};
@@ -103,7 +103,7 @@ namespace OpenMS
       {
         f << item << ",";
       }
-      f <<  cns[pg.getDecoyFlag()]<< "\n";
+      f <<  cns[pg.getDummyIndex()]<< "\n";
     }
   }
 }
