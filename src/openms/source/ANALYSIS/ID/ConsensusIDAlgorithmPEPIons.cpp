@@ -119,7 +119,7 @@ namespace OpenMS
                                                    ion1 + mass_tolerance_);
       double best_match = 0.0, best_diff = mass_tolerance_ + 1.0;
       // find ion from seq. 2 (*it2) that is closest to ion from seq. 1 (*it1):
-      for (auto& ion2 : ions2)
+      for (double ion2 : ions2)
       {
         double diff = fabs(ion1 - ion2);
         if (diff < best_diff)

@@ -989,7 +989,7 @@ namespace OpenMS
         charges.insert(handle.getCharge());
       }
       IntList i_charges;
-      for (const auto& charge : charges)
+      for (const Int& charge : charges)
       {
         i_charges.push_back(charge);
       }

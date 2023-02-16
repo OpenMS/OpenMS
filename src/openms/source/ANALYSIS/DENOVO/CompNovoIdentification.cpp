@@ -452,7 +452,7 @@ namespace OpenMS
 
     vector<PeptideHit> hits;
     Size missed_cleavages = param_.getValue("missed_cleavages");
-    for (const auto& seq : sequences)
+    for (const String& seq : sequences)
     {
 
       Size num_missed = countMissedCleavagesTryptic_(seq);
@@ -807,9 +807,9 @@ namespace OpenMS
         continue;
       }
 
-      for (const auto& s1 : seq1)
+      for (const String& s1 : seq1)
       {
-        for (const auto& s2 : seq2)
+        for (const String& s2 : seq2)
         {
           new_sequences.insert(s2 + s1);
         }
@@ -827,7 +827,7 @@ namespace OpenMS
         }
 
 #ifdef DAC_DEBUG
-        for (const auto& seq : new_sequences)
+        for (const String& seq : new_sequences)
         {
           cerr << tabs_ << seq << endl;
         }
@@ -835,14 +835,14 @@ namespace OpenMS
 #endif
       }
 
-      for (const auto& seq : new_sequences)
+      for (const String& seq : new_sequences)
       {
         sequences.insert(seq);
       }
     }
 #ifdef DAC_DEBUG
     cerr << tabs_ << "Found sequences for " << CID_spec[left].getPosition()[0] << " " << CID_spec[right].getPosition()[0] << endl;
-    for (const auto& seq : sequences)
+    for (const String& seq : sequences)
     {
       cerr << tabs_ << seq << endl;
     }

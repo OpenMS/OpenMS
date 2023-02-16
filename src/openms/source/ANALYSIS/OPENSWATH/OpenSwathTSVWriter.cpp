@@ -123,7 +123,7 @@ namespace OpenMS
           StringList aggr_prec_Peak_Area, aggr_prec_Peak_Apex, aggr_prec_Fragment_Annotation;
           StringList rt_fwhm;
           String gene_name;
-          for (const auto& sub : feature.getSubordinates())
+          for (const Feature& sub : feature.getSubordinates())
           {
             if (sub.metaValueExists("FeatureLevel"))
             {

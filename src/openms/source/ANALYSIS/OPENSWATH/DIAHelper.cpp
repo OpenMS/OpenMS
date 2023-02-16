@@ -240,7 +240,7 @@ namespace OpenMS::DIAHelpers
 
       PeakSpectrum spec;
       generator->getSpectrum(spec, a, charge, charge);
-      for (auto& peak : spec)
+      for (Peak1D& peak : spec)
       {
         masses.push_back(peak.getMZ());
       }

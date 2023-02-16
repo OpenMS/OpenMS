@@ -62,7 +62,7 @@ namespace OpenMS
       }
     }
 
-    for (auto& id1 : ids)
+    for (PeptideIdentification& id1 : ids)
     {
       String score_type = id1.getScoreType();
       auto se = se_info.find(id1.getIdentifier());
