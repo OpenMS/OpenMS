@@ -964,7 +964,7 @@ namespace OpenMS
     {
       for (Size hit_idx = 0; hit_idx < result.size(); ++hit_idx)
       {
-        std::vector<String> matching_ids = (result)[hit_idx].getMatchingHMDBids();
+        std::vector<String> matching_ids = result[hit_idx].getMatchingHMDBids();
         // iterate over multiple IDs, generate a new row for each one
         for (Size id_idx = 0; id_idx < matching_ids.size(); ++id_idx)
         {
@@ -1378,7 +1378,7 @@ namespace OpenMS
   {
     hmdb_properties_mapping_.clear();
 
-    for (const auto& s_file : db_struct_file)
+    for (const String& s_file : db_struct_file)
     {
       String filename = s_file;
 

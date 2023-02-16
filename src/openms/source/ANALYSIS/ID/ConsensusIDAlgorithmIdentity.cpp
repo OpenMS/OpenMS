@@ -52,7 +52,7 @@ namespace OpenMS
     bool higher_better = ids[0].isHigherScoreBetter();
     set<String> score_types;
 
-    for (auto& pep : ids)
+    for (PeptideIdentification& pep : ids)
     {
       if (pep.isHigherScoreBetter() != higher_better)
       {
@@ -85,7 +85,7 @@ namespace OpenMS
     preprocess_(ids);
 
     // group peptide hits by sequence:
-    for (auto& pep : ids)
+    for (PeptideIdentification& pep : ids)
     {
       String score_type = pep.getScoreType();
       auto se = se_info.find(pep.getIdentifier());
@@ -94,7 +94,7 @@ namespace OpenMS
         score_type = se->second + "_" + score_type;
       }
 
-      for (auto& hit : pep.getHits())
+      for (PeptideHit& hit : pep.getHits())
       {
         const AASequence& seq = hit.getSequence();
         auto pos = results.find(seq);

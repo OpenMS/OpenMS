@@ -655,7 +655,7 @@ for (const Size& pos : used_pos)
     ModificationDefinitionsSet mod_set(ListUtils::toStringList<std::string>(param_.getValue("fixed_modifications")), ListUtils::toStringList<std::string>(param_.getValue("variable_modifications")));
     const set<ModificationDefinition>& fixed_mods = mod_set.getFixedModifications();
 
-    for (const auto& f_mod : fixed_mods)
+    for (const ModificationDefinition& f_mod : fixed_mods)
     {
       ResidueModification mod = f_mod.getModification();
       char aa = ' ';
@@ -696,7 +696,7 @@ for (const Size& pos : used_pos)
     const StringList mod_names(ListUtils::create<String>("a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s,t,u,v,w,x,y,z"));
     vector<String>::const_iterator actual_mod_name = mod_names.begin();
     const set<ModificationDefinition>& var_mods = mod_set.getVariableModifications();
-    for (const auto& v_mod : var_mods)
+    for (const ModificationDefinition& v_mod : var_mods)
     {
       ResidueModification mod = v_mod.getModification();
       char aa = (*actual_mod_name)[0];
@@ -838,7 +838,7 @@ for (const Size& pos : used_pos)
     spec.sortByPosition();
 
     #ifdef ETD_SPECTRUM_DEBUG
-    for (const auto& s : spec)
+    for (const Peak1D& s : spec)
     {
       cerr << s.getPosition()[0] << " " << s.getIntensity() << endl;
     }

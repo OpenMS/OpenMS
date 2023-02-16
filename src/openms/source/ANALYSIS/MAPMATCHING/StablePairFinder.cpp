@@ -257,7 +257,7 @@ namespace OpenMS
     const vector<PeptideIdentification>& pep2 = feat2.getPeptideIdentifications();
 
     set<String> best1, best2;
-    for (const auto& pep : pep1)
+    for (const PeptideIdentification& pep : pep1)
     {
       if (pep.getHits().empty())
         continue; // shouldn't be the case

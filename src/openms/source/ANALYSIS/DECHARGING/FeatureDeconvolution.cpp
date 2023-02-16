@@ -169,7 +169,7 @@ namespace OpenMS
 
     // adducts might look like this:
     //   Element:Probability[:RTShift[:Label]]
-    for (auto& p_add : potential_adducts_s)
+    for (String& p_add : potential_adducts_s)
     {
       // skip disabled adducts
       if (p_add.trim().hasPrefix("#"))
@@ -179,14 +179,14 @@ namespace OpenMS
       p_add.split(':', adduct);
       if (adduct.size() != 3 && adduct.size() != 4 && adduct.size() != 5)
       {
-        String error = "FeatureDeconvolution::potential_adducts (" + (p_add) + ") does not have three, four or five entries ('Elements:Charge:Probability' or 'Elements:Charge:Probability:RTShift' or 'Elements:Charge:Probability:RTShift:Label'), but " + String(adduct.size()) + " entries!";
+        String error = "FeatureDeconvolution::potential_adducts (" + p_add + ") does not have three, four or five entries ('Elements:Charge:Probability' or 'Elements:Charge:Probability:RTShift' or 'Elements:Charge:Probability:RTShift:Label'), but " + String(adduct.size()) + " entries!";
         throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, error);
       }
       // determine probability
       float prob = adduct[2].toFloat();
       if (prob > 1.0 || prob <= 0.0)
       {
-        String error = "FeatureDeconvolution::potential_adducts (" + (p_add) + ") does not have a proper probability (" + String(prob) + ") in [0,1]!";
+        String error = "FeatureDeconvolution::potential_adducts (" + p_add + ") does not have a proper probability (" + String(prob) + ") in [0,1]!";
         throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, error);
       }
 

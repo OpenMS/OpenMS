@@ -485,7 +485,7 @@ namespace OpenMS
 
     std::unordered_map<String, double> ionseries;
 
-    for (const auto& ft : fragment_types)
+    for (const String& ft : fragment_types)
     {
       for (const auto& charge : fragment_charges)
       {

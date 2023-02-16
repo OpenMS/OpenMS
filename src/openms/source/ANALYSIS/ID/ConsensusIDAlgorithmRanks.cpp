@@ -64,10 +64,10 @@ namespace OpenMS
     current_considered_hits_ = considered_hits_;
     bool set_considered_hits = (considered_hits_ == 0);
 
-    for (auto& pep : ids)
+    for (PeptideIdentification& pep : ids)
     {
       pep.assignRanks();
-      for (auto& hit : pep.getHits())
+      for (PeptideHit& hit : pep.getHits())
       {
         // give each hit a score based on the search rank (counting from 0):
         hit.setScore(hit.getRank() - 1);
