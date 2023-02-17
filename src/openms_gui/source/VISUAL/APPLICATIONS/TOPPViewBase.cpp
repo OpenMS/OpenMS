@@ -733,16 +733,17 @@ namespace OpenMS
 
         // a mzML file may contain both, chromatogram and peak data
         // -> this is handled in PlotCanvas::addPeakLayer FIXME: No it's not!
-        if (peak_map_sptr->getNrChromatograms() > 0)
+        if (peak_map_sptr->getNrSpectra() > 0 && peak_map_sptr->getNrChromatograms() > 0)
+        {
+          OPENMS_LOG_WARN << "Your input data contains chromatograms and spectra, falling back to display spectra only." << std::endl;
+          data_type = LayerDataBase::DT_PEAK;
+        }
+        else if (peak_map_sptr->getNrChromatograms() > 0)
         {
           data_type = LayerDataBase::DT_CHROMATOGRAM;
         }
         else if (peak_map_sptr->getNrSpectra() > 0)
         {
-          if (data_type == LayerDataBase::DT_CHROMATOGRAM)
-          {
-            OPENMS_LOG_WARN << "Your input data contains chromatograms and spectra, falling back to display spectra only." << std::endl;
-          }
           data_type = LayerDataBase::DT_PEAK;
         }
         else
@@ -1755,7 +1756,7 @@ namespace OpenMS
       auto visitor_data = topp_.visible_area_only
                           ? layer.storeVisibleData(getActiveCanvas()->getVisibleArea().getAreaUnit(), layer.filters)
                           : layer.storeFullData();
-      visitor_data->saveToFile(topp_.file_name, ProgressLogger::GUI);
+      visitor_data->saveToFile(topp_.file_name + "_in", ProgressLogger::GUI);
     }
 
     // compose argument list

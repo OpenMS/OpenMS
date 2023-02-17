@@ -12,7 +12,7 @@ pluginVersion=@VERSION@
 # community = starting from KNIMEs Community Nodes "folder"
 # The plugin name will be used as the name for the added subfolder.
 # Then the tools names as noted in the Tool description (CTD).
-nodeRepositoyRoot=community
+nodeRepositoryRoot=community
 
 executor=com.genericworkflownodes.knime.execution.impl.LocalToolExecutor
 commandGenerator=com.genericworkflownodes.knime.execution.impl.OpenMSCommandGenerator

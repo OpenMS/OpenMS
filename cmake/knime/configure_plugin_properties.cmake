@@ -41,7 +41,7 @@ if(TYPE STREQUAL "LIBPLUGIN")
   configure_file(${SOURCE_PATH}/cmake/knime/libplugin.properties.in
                  ${TARGET_PATH}/plugin.properties)
 elseif(TYPE STREQUAL "TOPPPLUGIN")
-  set(ID "de.openms.topp")
+  set(ID "de.openms")
   set(NAME "OpenMS")
   # create plugin.properties file
   configure_file(${SOURCE_PATH}/cmake/knime/plugin.properties.in

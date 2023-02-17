@@ -43,7 +43,6 @@ GNPSMGFFile.h
 GNPSQuantificationFile.h
 GzipIfstream.h
 GzipInputStream.h
-HDF5Connector.h
 IBSpectraFile.h
 IdXMLFile.h
 IndentedStream.h
@@ -114,6 +113,10 @@ XMassFile.h
 XQuestResultXMLFile.h
 ZlibCompression.h
 )
+
+if (WITH_HDF5)
+  list(APPEND sources_list_h HDF5Connector.h)  
+endif()
 
 ### add path to the filenames
 set(sources_h)

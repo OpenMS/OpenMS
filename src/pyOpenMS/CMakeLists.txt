@@ -56,7 +56,10 @@ function(_copy_assets _asset_dir _regex _target_dir)
   foreach(_asset_file ${_assets})
     # make path relative
     file(RELATIVE_PATH _relative_path ${_asset_dir} ${_asset_file})
-    configure_file(${_asset_file} ${_target_dir}/${_relative_path} COPYONLY)
+    # check if the asset is a directory
+    if(NOT IS_DIRECTORY ${_asset_file})
+      configure_file(${_asset_file} ${_target_dir}/${_relative_path} COPYONLY)
+    endif()
   endforeach()
 endfunction()
 

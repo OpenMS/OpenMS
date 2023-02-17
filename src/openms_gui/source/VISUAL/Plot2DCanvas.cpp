@@ -1199,7 +1199,7 @@ namespace OpenMS
           if (result->text() == "Show all")
           {
             std::vector<int> chrom_indices;
-            for (const auto var : result->data().toList())
+            for (const auto& var : result->data().toList())
             {
               chrom_indices.push_back(var.toInt());
               cout << "chrom_indices: " << var.toInt() << std::endl;

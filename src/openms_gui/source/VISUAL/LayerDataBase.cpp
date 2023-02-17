@@ -63,18 +63,18 @@ namespace OpenMS
 
   std::ostream& operator<<(std::ostream& os, const LayerDataBase& rhs)
   {
-    os << "--LayerDataBase BEGIN--" << std::endl;
-    os << "name: " << rhs.getName() << std::endl;
-    os << "visible: " << rhs.visible << std::endl;
-    os << "--LayerDataBase END--" << std::endl;
+    os << "--LayerDataBase BEGIN--\n";
+    os << "name: " << rhs.getName() << '\n';
+    os << "visible: " << rhs.visible << '\n';
+    os << "--LayerDataBase END--\n";
     return os;
   }
 
 
-  /// get name augmented with attributes, e.g. [flipped], or '*' if modified
+  /// get name plus name_extra plus optionally augmented with attributes, e.g. '*' if modified
   String LayerDataBase::getDecoratedName() const
   {
-    String n = name_;
+    String n = name_ + name_suffix_;
     if (modified)
     {
       n += '*';
