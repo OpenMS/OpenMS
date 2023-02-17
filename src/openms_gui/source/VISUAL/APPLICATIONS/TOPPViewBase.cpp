@@ -1632,11 +1632,6 @@ namespace OpenMS
 
   QStringList TOPPViewBase::chooseFilesDialog_(const String& path_overwrite)
   {
-    // store active sub window
-    // TODO Why is this done? And why only here?
-    QMdiSubWindow* old_active = ws_.currentSubWindow();
-    RAIICleanup clean([&]() { ws_.setActiveSubWindow(old_active); });
-
     QString open_path = current_path_.toQString();
     if (!path_overwrite.empty())
     {
