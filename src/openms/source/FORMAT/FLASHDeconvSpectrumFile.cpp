@@ -32,18 +32,21 @@
 // $Authors: Kyowon Jeong $
 // --------------------------------------------------------------------------
 
+#include <OpenMS/ANALYSIS/TOPDOWN/FLASHDeconvAlgorithm.h>
 #include <OpenMS/FORMAT/FLASHDeconvSpectrumFile.h>
 #include <random>
 
 namespace OpenMS
 {
   /**
-    @brief FLASHDeconv Spectrum level output *.tsv, *.msalign (for TopPIC) file formats
+   * @brief FLASHDeconv Spectrum level output *.tsv, *.msalign (for TopPIC) file formats
      @ingroup FileIO
-**/
 
-  void FLASHDeconvSpectrumFile::writeDeconvolvedMasses(DeconvolvedSpectrum& dspec, std::fstream& fs, const String& file_name, const FLASHDeconvHelperStructs::PrecalculatedAveragine& avg,
-                                                      const bool write_detail, const bool decoy)
+   */
+
+  void FLASHDeconvSpectrumFile::writeDeconvolvedMasses(DeconvolvedSpectrum& dspec, DeconvolvedSpectrum& target_spec, std::fstream& fs, const String& file_name,
+                                                       const FLASHDeconvHelperStructs::PrecalculatedAveragine& avg, double tol,
+                                                      const bool write_detail, const bool dummy)
   {
     static std::vector<uint> indices{};
 
@@ -70,15 +73,19 @@ namespace OpenMS
 
       pg.setIndex(index);
       fs << index++ << "\t" << file_name << "\t" << pg.getScanNumber() << "\t";
-      if (decoy)
+      if (dummy)
       {
-        fs << pg.getDecoyFlag() << "\t";
+        fs << pg.getDummyIndex() << "\t";
       }
       fs << std::to_string(dspec.getOriginalSpectrum().getRT()) << "\t" << dspec.size() << "\t" << std::to_string(avg_mass) << "\t" << std::to_string(mono_mass) << "\t" << intensity << "\t"
          << min_charge << "\t" << max_charge << "\t" << pg.size() << "\t";
 
       if (write_detail)
       {
+        std::unordered_set<double> excluded_peak_mzs;
+        if(pg.getDummyIndex() == PeakGroup::DummyIndex::noise_dummy) FLASHDeconvAlgorithm::getMZsToExclude(target_spec, excluded_peak_mzs);
+        auto noisy_peaks = pg.recruitAllPeaksInSpectrum(dspec.getOriginalSpectrum(), tol * 1e-6, avg, pg.getMonoMass(), excluded_peak_mzs);
+        std::sort(noisy_peaks.begin(), noisy_peaks.end());
         fs << std::fixed << std::setprecision(2);
         for (auto& p : pg)
         {
@@ -121,44 +128,42 @@ namespace OpenMS
 
         fs << "\t";
         fs << std::fixed << std::setprecision(2);
-        for (auto iter = pg.getNoisePeakBegin(); iter<pg.getNoisePeakEnd();iter++)
+        for (auto& np: noisy_peaks)
         {
-          fs << (*iter).mz << " ";
+          fs << np.mz << " ";
         }
 
         fs << "\t";
         fs << std::fixed << std::setprecision(1);
-        for (auto iter = pg.getNoisePeakBegin(); iter<pg.getNoisePeakEnd();iter++)
+        for (auto& np: noisy_peaks)
         {
-          fs << (*iter).intensity << " ";
+          fs << np.intensity << " ";
         }
 
         fs << "\t";
         fs << std::setprecision(-1);
-        for (auto iter = pg.getNoisePeakBegin(); iter<pg.getNoisePeakEnd();iter++)
+        for (auto& np: noisy_peaks)
         {
-          auto p= (*iter);
-          fs << (p.is_positive ? p.abs_charge : -p.abs_charge) << " ";
+          fs << (np.is_positive ? np.abs_charge : -np.abs_charge) << " ";
         }
 
         fs << "\t";
-        for (auto iter = pg.getNoisePeakBegin(); iter<pg.getNoisePeakEnd();iter++)
+        for (auto& np: noisy_peaks)
         {
-          fs << (*iter).getUnchargedMass() << " ";
+          fs << np.getUnchargedMass() << " ";
         }
 
         fs << "\t";
-        for (auto iter = pg.getNoisePeakBegin(); iter<pg.getNoisePeakEnd();iter++)
+        for (auto& np: noisy_peaks)
         {
-          fs << (*iter).isotopeIndex << " ";
+          fs << np.isotopeIndex << " ";
         }
 
         fs << "\t";
-        for (auto iter = pg.getNoisePeakBegin(); iter<pg.getNoisePeakEnd();iter++)
+        for (auto& np: noisy_peaks)
         {
-          auto p = (*iter);
-          double average_mass = pg.getMonoMass() + p.isotopeIndex * pg.getIsotopeDaDistance();
-          double mass_error = (average_mass / p.abs_charge + FLASHDeconvHelperStructs::getChargeMass(p.is_positive) - p.mz) / p.mz;
+          double average_mass = pg.getMonoMass() + np.isotopeIndex * pg.getIsotopeDaDistance();
+          double mass_error = (average_mass / np.abs_charge + FLASHDeconvHelperStructs::getChargeMass(np.is_positive) - np.mz) / np.mz;
           fs << 1e6 * mass_error << " ";
         }
         fs << "\t";
@@ -171,16 +176,16 @@ namespace OpenMS
         if (dspec.getPrecursorPeakGroup().empty())
         {
           fs << "nan\tnan\tnan\t";
-          if (decoy)
+          if (dummy)
             fs << "nan\tnan\tnan\tnan\t";
         }
         else
         {
           fs << dspec.getPrecursorPeakGroup().getChargeSNR(dspec.getPrecursor().getCharge()) << "\t" << std::to_string(dspec.getPrecursorPeakGroup().getMonoMass()) << "\t"
              << dspec.getPrecursorPeakGroup().getQScore() << "\t";
-          if (decoy)
-            fs << dspec.getPrecursorPeakGroup().getQvalue() << "\t" << dspec.getPrecursorPeakGroup().getQvalue(PeakGroup::DecoyFlag::isotope_decoy) << "\t"
-               << dspec.getPrecursorPeakGroup().getQvalue(PeakGroup::DecoyFlag::noise_decoy) << "\t" << dspec.getPrecursorPeakGroup().getQvalue(PeakGroup::DecoyFlag::charge_decoy) << "\t";
+          if (dummy)
+            fs << dspec.getPrecursorPeakGroup().getQvalue() << "\t" << dspec.getPrecursorPeakGroup().getQvalue(PeakGroup::DummyIndex::isotope_dummy) << "\t"
+               << dspec.getPrecursorPeakGroup().getQvalue(PeakGroup::DummyIndex::noise_dummy) << "\t" << dspec.getPrecursorPeakGroup().getQvalue(PeakGroup::DummyIndex::charge_dummy) << "\t";
         }
       }
       fs << pg.getIsotopeCosine() << "\t" << pg.getChargeIsotopeCosine(pg.getRepAbsCharge()) << "\t" << pg.getChargeScore() << "\t";
@@ -189,10 +194,10 @@ namespace OpenMS
       fs << pg.getSNR() << "\t" << pg.getChargeSNR(pg.getRepAbsCharge()) << "\t"<< pg.getAvgPPMError() << "\t" << (pg.isPositive() ? pg.getRepAbsCharge() : -pg.getRepAbsCharge()) << "\t"
          << std::to_string(std::get<0>(max_qscore_mz_range)) << "\t" << std::to_string(std::get<1>(max_qscore_mz_range)) << "\t" << pg.getQScore();
 
-      if (decoy)
+      if (dummy)
       {
-        fs << "\t" << pg.getQvalue() << "\t" << pg.getQvalue(PeakGroup::DecoyFlag::isotope_decoy) << "\t"
-           << pg.getQvalue(PeakGroup::DecoyFlag::noise_decoy) << "\t" << pg.getQvalue(PeakGroup::DecoyFlag::charge_decoy);
+        fs << "\t" << pg.getQvalue() << "\t" << pg.getQvalue(PeakGroup::DummyIndex::isotope_dummy) << "\t"
+           << pg.getQvalue(PeakGroup::DummyIndex::noise_dummy) << "\t" << pg.getQvalue(PeakGroup::DummyIndex::charge_dummy);
       }
 
       if (write_detail)
@@ -224,48 +229,48 @@ namespace OpenMS
     }
   }
 
-  void FLASHDeconvSpectrumFile::writeDeconvolvedMassesHeader(std::fstream& fs, const uint ms_level, const bool detail, const bool decoy)
+  void FLASHDeconvSpectrumFile::writeDeconvolvedMassesHeader(std::fstream& fs, const uint ms_level, const bool detail, const bool dummy)
   {
     if (detail)
     {
       if (ms_level == 1)
       {
         fs << "Index\tFileName\tScanNum\t";
-        if (decoy)
+        if (dummy)
         {
-          fs << "Decoy\t";
+          fs << "DummyIndex\t";
         }
         fs << "RetentionTime\tMassCountInSpec\tAverageMass\tMonoisotopicMass\t"
               "SumIntensity\tMinCharge\tMaxCharge\t"
               "PeakCount\tPeakMZs\tPeakIntensities\tPeakCharges\tPeakMasses\tPeakIsotopeIndices\tPeakPPMErrors\t"
               "NoisePeakMZs\tNoisePeakIntensities\tNoisePeakCharges\tNoisePeakMasses\tNoisePeakIsotopeIndices\tNoisePeakPPMErrors\t"
               "IsotopeCosine\tChargeCosine\tChargeScore\tMassSNR\tChargeSNR\tAveragePPMError\tRepresentativeCharge\tRepresentativeMzStart\tRepresentativeMzEnd\tQScore\t";
-        if (decoy)
+        if (dummy)
         {
-          fs << "Qvalue\tQvalueWithIsotopeDecoyOnly\tQvalueWithNoiseDecoyOnly\tQvalueWithChargeDecoyOnly\t";
+          fs << "Qvalue\tQvalueWithIsotopeDummyOnly\tQvalueWithNoiseDummyOnly\tQvalueWithChargeDummyOnly\t";
         }
         fs << "PerChargeIntensity\tPerIsotopeIntensity\n";
       }
       else
       {
         fs << "Index\tFileName\tScanNum\t";
-        if (decoy)
+        if (dummy)
         {
-          fs << "Decoy\t";
+          fs << "DummyIndex\t";
         }
         fs << "RetentionTime\tMassCountInSpec\tAverageMass\tMonoisotopicMass\t"
               "SumIntensity\tMinCharge\tMaxCharge\t"
               "PeakCount\tPeakMZs\tPeakIntensities\tPeakCharges\tPeakMasses\tPeakIsotopeIndices\tPeakPPMErrors\t"
               "NoisePeakMZs\tNoisePeakIntensities\tNoisePeakCharges\tNoisePeakMasses\tNoisePeakIsotopeIndices\tNoisePeakPPMErrors\t"
               "PrecursorScanNum\tPrecursorMz\tPrecursorIntensity\tPrecursorCharge\tPrecursorSNR\tPrecursorMonoisotopicMass\tPrecursorQScore\t";
-        if (decoy)
+        if (dummy)
         {
-          fs << "PrecursorQvalue\tPrecursorQvalueWithIsotopeDecoyOnly\tPrecursorQvalueWithNoiseDecoyOnly\tPrecursorQvalueWithChargeDecoyOnly\t";
+          fs << "PrecursorQvalue\tPrecursorQvalueWithIsotopeDummyOnly\tPrecursorQvalueWithNoiseDummyOnly\tPrecursorQvalueWithChargeDummyOnly\t";
         }
         fs << "IsotopeCosine\tChargeCosine\tChargeScore\tMassSNR\tChargeSNR\tAveragePPMError\tRepresentativeCharge\tRepresentativeMzStart\tRepresentativeMzEnd\tQScore\t";
-        if (decoy)
+        if (dummy)
         {
-          fs << "Qvalue\tQvalueWithIsotopeDecoyOnly\tQvalueWithNoiseDecoyOnly\tQvalueWithChargeDecoyOnly\t";
+          fs << "Qvalue\tQvalueWithIsotopeDummyOnly\tQvalueWithNoiseDummyOnly\tQvalueWithChargeDummyOnly\t";
         }
         fs << "PerChargeIntensity\tPerIsotopeIntensity\n";
       }
@@ -275,41 +280,128 @@ namespace OpenMS
       if (ms_level == 1)
       {
         fs << "Index\tFileName\tScanNum\t";
-        if (decoy)
+        if (dummy)
         {
-          fs << "Decoy\t";
+          fs << "DummyIndex\t";
         }
         fs << "RetentionTime\tMassCountInSpec\tAverageMass\tMonoisotopicMass\t"
               "SumIntensity\tMinCharge\tMaxCharge\t"
               "PeakCount\t"
               "IsotopeCosine\tChargeCosine\tChargeScore\tMassSNR\tChargeSNR\tAveragePPMError\tRepresentativeCharge\tRepresentativeMzStart\tRepresentativeMzEnd\tQScore\t";
-        if (decoy)
+        if (dummy)
         {
-          fs << "Qvalue\tQvalueWithIsotopeDecoyOnly\tQvalueWithNoiseDecoyOnly\tQvalueWithChargeDecoyOnly";
+          fs << "Qvalue\tQvalueWithIsotopeDummyOnly\tQvalueWithNoiseDummyOnly\tQvalueWithChargeDummyOnly";
         }
         fs << "\n";
       }
       else
       {
         fs << "Index\tFileName\tScanNum\t";
-        if (decoy)
+        if (dummy)
         {
-          fs << "Decoy\t";
+          fs << "DummyIndex\t";
         }
         fs << "RetentionTime\tMassCountInSpec\tAverageMass\tMonoisotopicMass\t"
               "SumIntensity\tMinCharge\tMaxCharge\t"
               "PeakCount\t"
               "PrecursorScanNum\tPrecursorMz\tPrecursorIntensity\tPrecursorCharge\tPrecursorSNR\tPrecursorMonoisotopicMass\tPrecursorQScore\t";
-        if (decoy)
+        if (dummy)
         {
-          fs << "PrecursorQvalue\tPrecursorQvalueWithIsotopeDecoyOnly\tPrecursorQvalueWithNoiseDecoyOnly\tPrecursorQvalueWithChargeDecoyOnly\t";
+          fs << "PrecursorQvalue\tPrecursorQvalueWithIsotopeDummyOnly\tPrecursorQvalueWithNoiseDummyOnly\tPrecursorQvalueWithChargeDummyOnly\t";
         }
         fs << "IsotopeCosine\tChargeCosine\tChargeScore\tMassSNR\tChargeSNR\tAveragePPMError\tRepresentativeCharge\tRepresentativeMzStart\tRepresentativeMzEnd\tQScore\t";
-        if (decoy)
+        if (dummy)
         {
-          fs << "Qvalue\tQvalueWithIsotopeDecoyOnly\tQvalueWithNoiseDecoyOnly\tQvalueWithChargeDecoyOnly";
+          fs << "Qvalue\tQvalueWithIsotopeDummyOnly\tQvalueWithNoiseDummyOnly\tQvalueWithChargeDummyOnly";
         }
          fs << "\n";
+      }
+    }
+  }
+
+  inline const int z = 11, iso = 21;
+  void FLASHDeconvSpectrumFile::writeDLMatrixHeader(std::fstream& fs)
+  {
+    for(int i=0;i<3;i++)
+    {
+      String prefix = "Set" + std::to_string(i+1) + "_";
+      auto dlm = z*iso;
+
+      for(int j=0; j<dlm;j++)
+      {
+         fs<<prefix<<j<<",";
+      }
+    }
+    fs<<"Class\n";
+  }
+
+  template<class BidiIter >
+  BidiIter random_unique(BidiIter begin, BidiIter end, size_t num_random) {
+    size_t left = std::distance(begin, end);
+    while (num_random--) {
+      BidiIter r = begin;
+      std::advance(r, rand()%left);
+      std::swap(*begin, *r);
+      ++begin;
+      --left;
+    }
+    return begin;
+  }
+
+  void FLASHDeconvSpectrumFile::writeDLMatrix(std::vector<DeconvolvedSpectrum>& dspecs, double tol, std::fstream& fs, const FLASHDeconvHelperStructs::PrecalculatedAveragine& avg)
+  {
+    String cns[] = {"T", "D1", "D2", "D3"};
+    int count = 10000;
+    //class,ID,group,data
+    std::vector<std::vector<PeakGroup>> grouped(4);
+
+    for(auto& dspec: dspecs)
+    {
+      for(auto& pg: dspec)
+      {
+         if(pg.size() == 0)
+         {
+          continue;
+         }
+         int cl = pg.getDummyIndex();
+         if(cl<0 || cl>= (int)grouped.size())
+         {
+          continue;
+         }
+         pg.calculateDLMatrices(dspec.getOriginalSpectrum(), tol, z, iso, avg);
+         grouped[cl].push_back(pg);
+      }
+    }
+
+    for(auto& g : grouped)
+    {
+      if((int)g.size() < count)
+      {
+         continue;
+      }
+      random_unique(g.begin(), g.end(), count);
+    }
+
+    for(auto& g : grouped)
+    {
+      int cntr = 0;
+      for (auto& pg : g)
+      {
+         int cl = pg.getDummyIndex();
+
+         for (int i = 0; i < 3; i++)
+         {
+          auto dlm = pg.getDLMatrix(i).asVector();
+          for (double v : dlm)
+          {
+            fs << v << ",";
+          }
+         }
+         fs << cns[cl] << "\n";
+         if(++cntr >= count)
+         {
+          break;
+         }
       }
     }
   }

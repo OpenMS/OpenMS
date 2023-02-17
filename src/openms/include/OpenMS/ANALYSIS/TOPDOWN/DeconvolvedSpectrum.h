@@ -89,6 +89,9 @@ namespace OpenMS
     /// original spectrum getter
     const MSSpectrum& getOriginalSpectrum() const;
 
+    /// get target deconvolved spectrum
+    const DeconvolvedSpectrum getTargetSpectrum() const;
+
     /// get precursor peak group for MSn (n>1) spectrum. It returns an empty peak group if no peak group is registered (by registerPrecursor)
     const PeakGroup& getPrecursorPeakGroup() const;
 
@@ -137,13 +140,11 @@ namespace OpenMS
     /// set precursor peakGroup
     void setPrecursorPeakGroup(const PeakGroup& pg);
 
+    /// set precursor Qvalue
+    void setPrecursorQvalue(float q, PeakGroup::DummyIndex flag);
+
     /// original spectrum setter
     void setOriginalSpectrum(const MSSpectrum& spec);
-
-    /// update peak group Qvalues using target and decoy deconvolved spectra, when FDR report is necessary
-    /// @param deconvolved_spectra target deconvolved spectra
-    /// @param deconvolved_decoy_spectra decoy deconvolved spectra
-    void static updatePeakGroupQvalues(std::vector<DeconvolvedSpectrum>& deconvolved_spectra, std::vector<DeconvolvedSpectrum>& deconvolved_decoy_spectra);
 
     /// set peak groups in this spectrum
     void setPeakGroups (std::vector<PeakGroup>& x);
@@ -180,6 +181,5 @@ namespace OpenMS
     Precursor::ActivationMethod activation_method_;
     /// scan number and precursor scan number
     int scan_number_ = 0, precursor_scan_number_ = 0;
-
   };
 }
