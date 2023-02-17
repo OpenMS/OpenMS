@@ -248,6 +248,7 @@
         @note We strongly recommend the Visual Studio Generator and it should be identical to the one used for building the contrib. Other generators (such as nmake) are not supported! If you need compiling on the command line, you can use <tt>MSBuild</tt> also on VS solution files!
         Use the <tt>-A x64</tt> flag to build a 64-bit %OpenMS library and TOPP executables (32-bit does not really make any sense for LC-MS data processing)!
         The <tt>-T host=x64</tt> flag instructs Visual Studio to use a 64bit compiler and linker toolchain to avoid linker errors (<tt>LNK1210: exceeded internal ILK size limit; link with /INCREMNTAL:NO</tt>) during development (if the flag is omitted the 32bit toolchain is used to generate 64bit binaries).
+        
         Example:
         \code
         cd c:\dev\OpenMS_Win64
