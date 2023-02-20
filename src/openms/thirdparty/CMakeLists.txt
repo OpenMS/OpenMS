@@ -48,6 +48,7 @@ add_subdirectory(json)
 add_subdirectory(GTE)
 add_subdirectory(SQLiteCpp)
 add_subdirectory(Quadtree)
+
 if (WITH_HDF5)
   add_subdirectory(hdf5-blosc-1.0.0)
 endif()
