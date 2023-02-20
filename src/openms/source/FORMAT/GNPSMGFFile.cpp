@@ -176,7 +176,7 @@ namespace OpenMS
                   << "SCANS=" << scan_index << "\n"
                   << "FEATURE_ID=e_" << feature_id << "\n"
                   << "MSLEVEL=2" << "\n"
-                  << "CHARGE=" << to_string(feature_charge == 0 ? 1 : feature_charge) << "+" << "\n"
+                  << "CHARGE=" << to_string(feature_charge == 0 ? 1 : abs(feature_charge))+(feature_charge >= 0 ? "+" : "-") << "\n"
                   << "PEPMASS=" << feature_mz << "\n"
                   << "FILE_INDEX=" << spec_index << "\n"
                   << "RTINSECONDS=" << feature_rt << "\n";
