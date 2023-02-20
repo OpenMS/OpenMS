@@ -44,7 +44,7 @@ set_property(TARGET blosc_static PROPERTY IMPORTED_LOCATION ${BLOSC_INSTALL_DIR}
 add_dependencies(blosc_static project_blosc)
 include_directories(${BLOSC_INSTALL_DIR}/include)
 
-add_library(blosc_filter_static SHARED ${SOURCES})
+add_library(blosc_filter_static STATIC ${SOURCES})
 set_target_properties(
   blosc_filter_static PROPERTIES OUTPUT_NAME blosc_filter)
 target_link_libraries(blosc_filter_static blosc_static ${HDF5_LIBRARIES})
