@@ -2,17 +2,6 @@ cmake_minimum_required(VERSION 3.10)
 project(blosc_hdf5)
 include(ExternalProject)
 
-# options
-option(BUILD_TESTS
-    "Build test programs form the blosc filter" OFF)
-
-option(BUILD_PLUGIN
-    "Build dynamically loadable plugin for HDF5 version > 1.8.11" OFF)
-if(BUILD_PLUGIN)
-    set(PLUGIN_INSTALL_PATH "/usr/local/hdf5/lib/plugin" CACHE PATH 
-      "Where to install the dynamic HDF5-plugin")
-endif(BUILD_PLUGIN)
-
 set(BLOSC_PREFIX "${CMAKE_CURRENT_BINARY_DIR}/blosc")
 set(BLOSC_INSTALL_DIR "${CMAKE_CURRENT_BINARY_DIR}/blosc")
 set(BLOSC_CMAKE_ARGS -DCMAKE_INSTALL_PREFIX=${BLOSC_INSTALL_DIR})
@@ -20,7 +9,6 @@ set(BLOSC_CMAKE_ARGS -DCMAKE_INSTALL_PREFIX=${BLOSC_INSTALL_DIR})
 message("BLOSC_PREFIX='${BLOSC_PREFIX}'")
 message("BLOSC_INSTALL_DIR='${BLOSC_INSTALL_DIR}'")
 message("BLOSC_CMAKE_ARGS='${BLOSC_CMAKE_ARGS}'")
-message("GIT_EXECUTABLE='${GIT_EXECUTABLE}'")
 
 ExternalProject_Add(project_blosc
   PREFIX ${BLOSC_PREFIX}
@@ -51,38 +39,12 @@ include_directories(${HDF5_INCLUDE_DIRS})
 
 
 # add blosc libraries
-add_library(blosc_shared SHARED IMPORTED)
-set_property(TARGET blosc_shared PROPERTY IMPORTED_LOCATION ${BLOSC_INSTALL_DIR}/lib/${CMAKE_SHARED_LIBRARY_PREFIX}blosc${CMAKE_SHARED_LIBRARY_SUFFIX})
-add_dependencies(blosc_shared project_blosc)
+add_library(blosc_static STATIC IMPORTED)
+set_property(TARGET blosc_static PROPERTY IMPORTED_LOCATION ${BLOSC_INSTALL_DIR}/lib/${CMAKE_STATIC_LIBRARY_PREFIX}blosc${CMAKE_STATIC_LIBRARY_SUFFIX})
+add_dependencies(blosc_static project_blosc)
 include_directories(${BLOSC_INSTALL_DIR}/include)
 
-add_library(blosc_filter_shared SHARED ${SOURCES})
+add_library(blosc_filter_static SHARED ${SOURCES})
 set_target_properties(
-  blosc_filter_shared PROPERTIES OUTPUT_NAME blosc_filter)
-target_link_libraries(blosc_filter_shared blosc_shared ${HDF5_LIBRARIES})
-
-if(BUILD_PLUGIN)
-    add_library(blosc_plugin_shared SHARED ${PLUGIN_SOURCES})
-    set_target_properties(
-      blosc_plugin_shared PROPERTIES OUTPUT_NAME H5Zblosc)
-    target_link_libraries(blosc_plugin_shared blosc_shared ${HDF5_LIBRARIES})
-
-    install(TARGETS blosc_plugin_shared DESTINATION ${PLUGIN_INSTALL_PATH} COMPONENT HDF5_FILTER_DEV)
-endif(BUILD_PLUGIN)
-
-# install
-install(FILES src/blosc_filter.h DESTINATION include COMPONENT HDF5_FILTER_DEV)
-install(TARGETS blosc_filter_shared DESTINATION lib COMPONENT HDF5_FILTER_DEV)
-
-
-# test
-message("LINK LIBRARIES='blosc_filter_shared ${HDF5_LIBRARIES}'")
-if(BUILD_TESTS)
-    enable_testing()
-    set(CMAKE_THREAD_PREFER_PTHREAD TRUE)
-    find_package(Threads REQUIRED)
-    set(LIBS ${LIBS} ${CMAKE_THREAD_LIBS_INIT})
-    add_executable(example src/example.c)
-    target_link_libraries(example blosc_filter_shared ${HDF5_LIBRARIES} ${LIBS})
-    add_test(test_hdf5_filter example)
-endif(BUILD_TESTS)
+  blosc_filter_static PROPERTIES OUTPUT_NAME blosc_filter)
+target_link_libraries(blosc_filter_static blosc_static ${HDF5_LIBRARIES})
