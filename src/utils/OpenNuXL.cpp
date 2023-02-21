@@ -150,19 +150,20 @@ struct NuXLRTPrediction
   SimpleSVM svm;
 
   String nucleotides = "CATGUXS";
-  String amino_acids = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+  String amino_acids = "ACDEFGHIKLMNPQRSTVWYkmsty"; // all AA + modified MSTY
 
-  map<Int, double> encodeAAHist_(const String& seq)
+  map<char, double> encodeAAHist_(const AASequence& aa_seq)
   {
-    LibSVMEncoder c;
-    vector<pair<Int, double> > encoded_vector;
-    c.encodeCompositionVector(seq, encoded_vector, amino_acids);
+    const String& seq = aa_seq.toUnmodifiedString();
 
-    map<Int, double> v;
-    for (auto& e : encoded_vector) 
+    map<char, double> v;
+    for (auto& c : aa_seq) 
     {
-      v[e.first - 1] = e.second; // encoded vector is 1-based -> convert to 0-based
+      char code = c.getOneLetterCode()[0];
+      if (c.isModified()) code = tolower(code); // mark modified in lower case
+      v[code] += 1.0;
     }
+
     return v;
   }
 
@@ -196,20 +197,47 @@ struct NuXLRTPrediction
       const auto& ph = phits[0]; 
       const String& seq = ph.getSequence().toUnmodifiedString();
 
-      auto v = encodeAAHist_(seq);
-
-      // convert row vector to columns
-      for (size_t i = 0; i != amino_acids.size(); ++i)
+      auto encoded_aas = encodeAAHist_(ph.getSequence());
+      for (const auto& c : amino_acids)
       {
-        if (v.find(i) != v.end())
+        if (auto it = encoded_aas.find(c); it != encoded_aas.end())
         {
-          x[amino_acids[i]].push_back(v[i]);
+          x[String(c)].push_back(it->second);
+          x["freq_" + String(c)].push_back(it->second / seq.size());
         }
         else
-        { 
-          x[amino_acids[i]].push_back(0.0);
-        }    
+        {
+          x[String(c)].push_back(0.0);
+          x["freq_" + String(c)].push_back(0.0);
+        }
       }
+
+      // term AAs        
+      for (const auto& c : amino_acids)
+      {
+        if (c == seq[0])
+        {
+          x["Nterm_" + String(c)].push_back(1.0);
+        }
+        else
+        {
+          x["Nterm_" + String(c)].push_back(0.0);
+        }
+      }
+
+      for (const auto& c : {'R', 'K'})
+      {
+        if (c == seq[seq.size() - 1])
+        {
+          x["Cterm_" + String(c)].push_back(1.0);
+        }
+        else
+        {
+          x["Cterm_" + String(c)].push_back(0.0);
+        }
+      }
+
+
       x["AA_length"].push_back(seq.size() / 100.0); // length feature
       x["charge"].push_back(f.getCharge());
       x["mass"].push_back(f.getCharge() * f.getMZ()); // approx mass
@@ -255,21 +283,46 @@ struct NuXLRTPrediction
       for (const auto& ph : phits)
       {
         const String& seq = ph.getSequence().toUnmodifiedString();
-
-        auto v = encodeAAHist_(seq);
-
-        // convert row vector to columns
-        for (size_t i = 0; i != amino_acids.size(); ++i)
+        auto encoded_aas = encodeAAHist_(ph.getSequence());
+        for (const auto& c : amino_acids)
         {
-          if (v.find(i) != v.end())
+          if (auto it = encoded_aas.find(c); it != encoded_aas.end())
           {
-            x[amino_acids[i]].push_back(v[i]);
+            x[String(c)].push_back(it->second);
+            x["freq_" + String(c)].push_back(it->second / seq.size());
           }
           else
-          { 
-            x[amino_acids[i]].push_back(0.0);
-          }    
+          {
+            x[String(c)].push_back(0.0);
+            x["freq_" + String(c)].push_back(0.0);
+          }
         }
+
+        // term AAs        
+        for (const auto& c : amino_acids)
+        {
+          if (c == seq[0])
+          {
+            x["Nterm_" + String(c)].push_back(1.0);
+          }
+          else
+          {
+            x["Nterm_" + String(c)].push_back(0.0);
+          }
+        }
+
+        for (const auto& c : {'R', 'K'})
+        {
+        if (c == seq[seq.size() - 1])
+        {
+          x["Cterm_" + String(c)].push_back(1.0);
+        }
+        else
+        {
+          x["Cterm_" + String(c)].push_back(0.0);
+          }
+        }
+
         x["AA_length"].push_back(seq.size() / 100.0); // length feature
         x["charge"].push_back(ph.getCharge());
         x["mass"].push_back(ph.getCharge() * pid.getMZ()); // approx mass
@@ -308,10 +361,6 @@ struct NuXLRTPrediction
     vector<PeptideIdentification> peptides, 
     const vector<ProteinIdentification>& proteins)
   {
-    FalseDiscoveryRate().apply(peptides);
-    IDFilter::filterHitsByScore(peptides, 0.05);
-    IDFilter::removeDecoyHits(peptides);
-    IDFilter::keepBestPerPeptide(peptides, true, true, 1);
     // detect features for accurate (elution profile apex) retention times
     FeatureFinderIdentificationAlgorithm ffid_algo;
     MzMLFile mzml;
@@ -323,8 +372,8 @@ struct NuXLRTPrediction
     auto [x, y] = buildPredictorsAndResponseFromIdentifiedFeatures_(features);
 
     auto param = svm.getParameters();
-    //param.setValue("kernel", "RBF");
-    param.setValue("kernel", "linear");
+    param.setValue("kernel", "RBF");
+    //param.setValue("kernel", "linear");
     svm.setParameters(param);
 
     svm.setup(x, y, false); // set up regression and train
@@ -4417,8 +4466,13 @@ static void scoreXLIons_(
 
       if (RTpredict)
       {
-        NuXLRTPrediction rt_pred;      
-        rt_pred.train(in_mzml, pep_ids, prot_ids);
+        NuXLRTPrediction rt_pred;
+        auto peptides = pep_ids; 
+        FalseDiscoveryRate().apply(peptides);
+        IDFilter::filterHitsByScore(peptides, 0.05);
+        IDFilter::removeDecoyHits(peptides);
+         IDFilter::keepBestPerPeptide(peptides, true, true, 1);
+        rt_pred.train(in_mzml, peptides, prot_ids);
         rt_pred.predict(pep_ids);
 
         // add RT prediction as extra feature for percolator      
@@ -6175,9 +6229,22 @@ static void scoreXLIons_(
 
       if (RTpredict)
       {
+        NuXLFDR fdr(1); // 1=keep only top scoring per spectrum
+        vector<PeptideIdentification> pep_pi, xl_pi;
+        fdr.calculatePeptideAndXLQValueAtPSMLevel(peptide_ids, pep_pi, xl_pi);
+        IDFilter::keepNBestHits(xl_pi, 1);
+        IDFilter::filterHitsByScore(pep_pi, 0.05);
+        IDFilter::filterHitsByScore(xl_pi, 0.05);
+        IDFilter::removeEmptyIdentifications(xl_pi);
+        IDFilter::removeEmptyIdentifications(pep_pi);
+        
+        pep_pi.insert(std::end(pep_pi),
+                             std::make_move_iterator(std::begin(xl_pi)),
+                             std::make_move_iterator(std::end(xl_pi)));
+
         NuXLRTPrediction rt_pred;
-        rt_pred.train(in_mzml, peptide_ids, protein_ids);
-        rt_pred.predict(peptide_ids);
+        rt_pred.train(in_mzml, pep_pi, protein_ids); // train on best XLs and best peptides
+        rt_pred.predict(peptide_ids); // predict on all
 
         // add RT prediction as extra feature for percolator      
         auto search_parameters = protein_ids[0].getSearchParameters();
