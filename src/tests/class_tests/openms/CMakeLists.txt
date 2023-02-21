@@ -93,7 +93,7 @@ target_link_libraries(SpectraSTSimilarityScore_test Eigen3::Eigen)
 target_link_libraries(BinnedSpectrum_test Eigen3::Eigen)
 
 if (WITH_HDF5)
-  target_link_libraries(HDF5_test HDF5::HDF5)
+  target_link_libraries(HDF5_test HDF5::HDF5 blosc_filter_static)
 endif()
 
 #------------------------------------------------------------------------------

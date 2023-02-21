@@ -61,6 +61,8 @@ using namespace std;
 
 #include <string>
 #include "H5Cpp.h"
+#include "blosc_filter.h"
+
 
 using namespace H5;
 const H5std_string  FILE_NAME( "SDS.h5" );
