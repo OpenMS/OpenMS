@@ -61,7 +61,7 @@ using namespace std;
 
 #include <string>
 #include "H5Cpp.h"
-#include "blosc_filter.h"
+#include "hdf5-blosc-1.0.0/blosc_filter.h"
 
 
 using namespace H5;
