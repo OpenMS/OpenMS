@@ -25,8 +25,6 @@ ExternalProject_Add(project_blosc
   CMAKE_ARGS ${BLOSC_CMAKE_ARGS}
 )
 
-# sources
-set(SOURCES src/blosc_filter.c)
 
 # add blosc-c library
 add_library(blosc_static STATIC IMPORTED)
@@ -36,9 +34,9 @@ set_target_properties(blosc_static PROPERTIES
   INTERFACE_INCLUDE_DIRECTORIES ${BLOSC_INSTALL_DIR}/include
   )
 
-
-
 # add blosc filter library
+# sources
+set(SOURCES src/blosc_filter.c src/blosc_filter.h)
 add_library(blosc_filter_static STATIC ${SOURCES})
 set_target_properties(blosc_filter_static PROPERTIES OUTPUT_NAME blosc_filter)
 target_link_libraries(blosc_filter_static blosc_static HDF5::HDF5)
