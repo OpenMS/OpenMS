@@ -20,31 +20,16 @@ ExternalProject_Add(project_blosc
 
 # sources
 set(SOURCES src/blosc_filter.c)
-set(PLUGIN_SOURCES src/blosc_filter.c src/blosc_plugin.c )
 
-# dependencies
-if(MSVC)
-    # FindHDF5.cmake does not find Windows installations. Try to
-    # use an environment variable instead until the official "find"
-    # file can be updated for Windows.
-    #
-    # Note that you have to set this environment variable by hand.
-    file(TO_CMAKE_PATH "$ENV{HDF5_DIR}" HDF5_HINT)
-    set(HDF5_DIR ${HDF5_HINT} CACHE STRING "Path to HDF5 CMake config directory.")
-    find_package(HDF5 REQUIRED HINTS ${HDF5_DIR})
-else(MSVC)
-    find_package(HDF5 REQUIRED)
-endif(MSVC)
-include_directories(${HDF5_INCLUDE_DIRS})
-
-
-# add blosc libraries
+# add blosc-c library
 add_library(blosc_static STATIC IMPORTED)
-set_property(TARGET blosc_static PROPERTY IMPORTED_LOCATION ${BLOSC_INSTALL_DIR}/lib/${CMAKE_STATIC_LIBRARY_PREFIX}blosc${CMAKE_STATIC_LIBRARY_SUFFIX})
+set_target_properties(blosc_static PROPERTIES IMPORTED_LOCATION ${BLOSC_INSTALL_DIR}/lib/${CMAKE_STATIC_LIBRARY_PREFIX}blosc${CMAKE_STATIC_LIBRARY_SUFFIX})
+target_include_directories(blosc_static INTERFACE ${HDF5_INCLUDE_DIRS})
 add_dependencies(blosc_static project_blosc)
-include_directories(${BLOSC_INSTALL_DIR}/include)
+target_include_directories(blosc_static INTERFACE ${BLOSC_INSTALL_DIR}/include)
 
+# add blosc filter library
 add_library(blosc_filter_static STATIC ${SOURCES})
-set_target_properties(
-  blosc_filter_static PROPERTIES OUTPUT_NAME blosc_filter)
-target_link_libraries(blosc_filter_static blosc_static ${HDF5_LIBRARIES})
+set_target_properties(blosc_filter_static PROPERTIES OUTPUT_NAME blosc_filter)
+target_include_directories(blosc_filter_static INTERFACE ${HDF5_INCLUDE_DIRS})
+target_link_libraries(blosc_filter_static blosc_static HDF5::HDF5)
