@@ -41,6 +41,8 @@
 #include <OpenMS/MATH/STATISTICS/StatisticFunctions.h>
 #include <OpenMS/MATH/MISC/GridSearch.h>
 
+#include <cstdlib>
+
 using namespace OpenMS;
 using namespace std;
 
@@ -249,7 +251,7 @@ void scaleDataUsingTrainingRanges(SimpleSVM::PredictorMap& predictors, const map
     {
       if (scaling.count(pred_it->first) == 0)
       {
-        //std::cout << "Predictor: '" << pred_it->first << "' not found in scale map because it is uninformative." << std::endl; 
+        //std::cout << "Predictor: '" << pred_it->first << "' not found in scale map because it was uninformative during training." << std::endl;
         continue;
       }      
       auto [min, max] = scaling.at(pred_it->first);
@@ -389,11 +391,11 @@ void SimpleSVM::convertData_(const PredictorMap& predictors)
     for (Size obs_index = 0; obs_index < n_obs; ++obs_index)
     {
       double value = pred_it->second[obs_index];
-    //  if (value > 0.0) // TODO: why > 0.0?
-   //   {
+//      if (value > 0.0) // TODO: why > 0.0?
+//      {
         svm_node node = {pred_index, value};
         nodes_[obs_index].push_back(node);
-   //   }
+//      }
     }
   }
   OPENMS_LOG_DEBUG << "Number of predictors for SVM: " << pred_index << endl;
@@ -539,7 +541,7 @@ void SimpleSVM::optimizeParameters_(bool classification)
     double err{};
     for (Size i = 0; i < Size(d.l); ++i)
     {
-      err += std::pow(targets[i] - d.y[i], 2.0);      
+      err += std::pow(targets[i] - d.y[i], 2.0);
     }
     err /= (double)Size(d.l);
     err = std::sqrt(err);
@@ -587,7 +589,7 @@ void SimpleSVM::optimizeParameters_(bool classification)
       {
         svm_params_.p = pow(2.0, log2_p_[p_index]);
 
-        vector<double> targets(data_.l);
+        double* targets = (double *)malloc(sizeof(double) * data_.l);
         svm_cross_validation(&data_, &svm_params_, n_parts_, &(targets[0]));
 
         double acc = classification ? perFoldClassificationAccuracy(data_, targets) : perFoldRMSE(data_, targets);
@@ -604,6 +606,7 @@ void SimpleSVM::optimizeParameters_(bool classification)
             << ", log2_gamma = " << log2_gamma_[g_index] << ") " 
             << ", log2_p = " << log2_p_[p_index] << ") "
             << performance_type << acc << endl;
+        free(targets);
       }
     }
   }
