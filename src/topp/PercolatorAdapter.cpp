@@ -1048,7 +1048,8 @@ protected:
         
         String scan_identifier = PercolatorInfile::getScanIdentifier(pep_id, index);
         String file_identifier = pep_id.getMetaValue("file_origin", String());
-        
+        file_identifier += (String)pep_id.getMetaValue("id_merge_index", String());
+
         //check each PeptideHit for compliance with one of the PercolatorResults (by sequence)
         for (PeptideHit& hit : pep_id.getHits())
         {
