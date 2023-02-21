@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.10)
+cmake_minimum_required(VERSION 3.20)
 project(blosc_hdf5)
 include(ExternalProject)
 
@@ -16,10 +16,11 @@ message("BLOSC_PREFIX='${BLOSC_PREFIX}'")
 message("BLOSC_INSTALL_DIR='${BLOSC_INSTALL_DIR}'")
 message("BLOSC_CMAKE_ARGS='${BLOSC_CMAKE_ARGS}'")
 
+# download at build time
 ExternalProject_Add(project_blosc
   PREFIX ${BLOSC_PREFIX}
   GIT_TAG v1.21.3
-  GIT_REPOSITORY https://github.com/Blosc/c-blosc.git    
+  GIT_REPOSITORY https://github.com/Blosc/c-blosc.git 
   INSTALL_DIR ${BLOSC_INSTALL_DIR}
   CMAKE_ARGS ${BLOSC_CMAKE_ARGS}
 )
@@ -29,12 +30,16 @@ set(SOURCES src/blosc_filter.c)
 
 # add blosc-c library
 add_library(blosc_static STATIC IMPORTED)
-set_target_properties(blosc_static PROPERTIES IMPORTED_LOCATION ${BLOSC_INSTALL_DIR}/lib/${CMAKE_STATIC_LIBRARY_PREFIX}blosc${CMAKE_STATIC_LIBRARY_SUFFIX})
-target_link_libraries(blosc_static INTERFACE project_blosc)
-target_include_directories(blosc_static INTERFACE ${BLOSC_INSTALL_DIR}/include)
+file(MAKE_DIRECTORY ${BLOSC_INSTALL_DIR}/include) # cmake hack: create include folder otherwise cmake complains about it at configure time
+set_target_properties(blosc_static PROPERTIES 
+  IMPORTED_LOCATION ${BLOSC_INSTALL_DIR}/lib/${CMAKE_STATIC_LIBRARY_PREFIX}blosc${CMAKE_STATIC_LIBRARY_SUFFIX}
+  INTERFACE_INCLUDE_DIRECTORIES ${BLOSC_INSTALL_DIR}/include
+  )
+
+target_link_libraries(blosc_static INTERFACE blosc_hdf5)
 
 # add blosc filter library
 add_library(blosc_filter_static STATIC ${SOURCES})
 set_target_properties(blosc_filter_static PROPERTIES OUTPUT_NAME blosc_filter)
-
 target_link_libraries(blosc_filter_static blosc_static HDF5::HDF5)
+
