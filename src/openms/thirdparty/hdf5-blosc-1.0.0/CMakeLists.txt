@@ -40,4 +40,5 @@ set(SOURCES src/blosc_filter.c src/blosc_filter.h)
 add_library(blosc_filter_static STATIC ${SOURCES})
 set_target_properties(blosc_filter_static PROPERTIES OUTPUT_NAME blosc_filter)
 target_link_libraries(blosc_filter_static blosc_static HDF5::HDF5)
+target_include_directories(blosc_filter_static PUBLIC src/)
 

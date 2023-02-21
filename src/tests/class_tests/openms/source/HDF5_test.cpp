@@ -61,7 +61,7 @@ using namespace std;
 
 #include <string>
 #include "H5Cpp.h"
-#include "hdf5-blosc-1.0.0/blosc_filter.h"
+#include "blosc_filter.h"
 
 
 using namespace H5;
@@ -166,7 +166,7 @@ END_SECTION
 START_SECTION((HDF5_BLOSC()))
 {
   char *version, *date;
-  auto return_code = register_blosc(version, date);
+  auto return_code = register_blosc(&version, &date);
   TEST_EQUAL(return_code >= 0, true);
   std::cout << "Blosc version info: " << version << " " << date << std::endl;
 }
