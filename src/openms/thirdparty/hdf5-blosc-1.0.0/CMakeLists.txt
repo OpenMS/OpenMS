@@ -30,7 +30,7 @@ set(SOURCES src/blosc_filter.c)
 # add blosc-c library
 add_library(blosc_static STATIC IMPORTED)
 set_target_properties(blosc_static PROPERTIES IMPORTED_LOCATION ${BLOSC_INSTALL_DIR}/lib/${CMAKE_STATIC_LIBRARY_PREFIX}blosc${CMAKE_STATIC_LIBRARY_SUFFIX})
-target_link_libraries(blosc_static project_blosc)
+target_link_libraries(blosc_static INTERFACE project_blosc)
 
 # add blosc filter library
 add_library(blosc_filter_static STATIC ${SOURCES})
