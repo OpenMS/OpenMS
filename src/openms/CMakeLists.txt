@@ -92,6 +92,7 @@ set(OPENMS_DEP_PRIVATE_LIBRARIES
   GTE Quadtree ${LPTARGET} 
   Eigen3::Eigen
   $<$<BOOL:${WITH_HDF5}>:HDF5::HDF5>
+  $<$<BOOL:${WITH_HDF5}>:blosc_filter_static>
   Boost::iostreams
   Boost::date_time
   Boost::boost
