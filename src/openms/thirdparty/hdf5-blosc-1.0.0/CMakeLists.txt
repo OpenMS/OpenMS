@@ -31,12 +31,10 @@ set(SOURCES src/blosc_filter.c)
 add_library(blosc_static STATIC IMPORTED)
 set_target_properties(blosc_static PROPERTIES IMPORTED_LOCATION ${BLOSC_INSTALL_DIR}/lib/${CMAKE_STATIC_LIBRARY_PREFIX}blosc${CMAKE_STATIC_LIBRARY_SUFFIX})
 target_link_libraries(blosc_static INTERFACE project_blosc)
+target_include_directories(blosc_static INTERFACE ${BLOSC_INSTALL_DIR}/include)
 
 # add blosc filter library
 add_library(blosc_filter_static STATIC ${SOURCES})
 set_target_properties(blosc_filter_static PROPERTIES OUTPUT_NAME blosc_filter)
-target_include_directories(blosc_filter_static
-    PRIVATE
-    "$<TARGET_PROPERTY:blosc_static,INTERFACE_INCLUDE_DIRECTORIES>"
-)
+
 target_link_libraries(blosc_filter_static blosc_static HDF5::HDF5)
