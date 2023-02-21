@@ -36,7 +36,7 @@ set_target_properties(blosc_static PROPERTIES
   INTERFACE_INCLUDE_DIRECTORIES ${BLOSC_INSTALL_DIR}/include
   )
 
-target_link_libraries(blosc_static INTERFACE blosc_hdf5)
+target_link_libraries(blosc_static INTERFACE HDF5::HDF5)
 
 # add blosc filter library
 add_library(blosc_filter_static STATIC ${SOURCES})
