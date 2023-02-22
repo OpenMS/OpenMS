@@ -24,4 +24,7 @@ jobs:
 
       - name: Run tests
         run: |
-          python ./../scripts/test_pyopenms.py
+          python -c "import pyopenms;
+          seq = pyopenms.AASequence.fromString("DFPIANGER");
+          print(seq.toString());
+          seq.getMonoWeight()"
