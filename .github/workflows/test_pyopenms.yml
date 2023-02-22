@@ -24,4 +24,4 @@ jobs:
 
       - name: Run tests
         run: |
-          python .github/scripts/test_pyopenms.py
+          python ./../scripts/test_pyopenms.py
