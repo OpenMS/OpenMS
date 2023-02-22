@@ -99,12 +99,12 @@ namespace OpenMS
   }
 
   FeatureMap::FeatureMap() :
-    Base(),
     MetaInfoInterface(),
     RangeManagerContainerType(),
     DocumentIdentifier(),
     UniqueIdInterface(),
     UniqueIdIndexer<FeatureMap>(),
+    data_ {},
     protein_identifications_(),
     unassigned_peptide_identifications_(),
     data_processing_()
@@ -112,12 +112,12 @@ namespace OpenMS
   }
 
   FeatureMap::FeatureMap(const FeatureMap& source) :
-    Base(source),
     MetaInfoInterface(source),
     RangeManagerContainerType(source),
     DocumentIdentifier(source),
-    UniqueIdInterface(source),
+    UniqueIdInterface(source), 
     UniqueIdIndexer<FeatureMap>(source),
+    data_(source.data_),
     protein_identifications_(source.protein_identifications_),
     unassigned_peptide_identifications_(source.unassigned_peptide_identifications_),
     data_processing_(source.data_processing_),
@@ -141,11 +141,11 @@ namespace OpenMS
     {
       return *this;
     }
-    Base::operator=(rhs);
     MetaInfoInterface::operator=(rhs);
     RangeManagerType::operator=(rhs);
     DocumentIdentifier::operator=(rhs);
     UniqueIdInterface::operator=(rhs);
+    data_ = rhs.data_;
     protein_identifications_ = rhs.protein_identifications_;
     unassigned_peptide_identifications_ = rhs.unassigned_peptide_identifications_;
     data_processing_ = rhs.data_processing_;
@@ -155,7 +155,7 @@ namespace OpenMS
 
   bool FeatureMap::operator==(const FeatureMap& rhs) const
   {
-    return std::operator==(*this, rhs) &&
+    return data_ == rhs.data_ &&
            MetaInfoInterface::operator==(rhs) &&
            RangeManagerType::operator==(rhs) &&
            DocumentIdentifier::operator==(rhs) &&
@@ -219,7 +219,7 @@ namespace OpenMS
     }
     catch (Exception::Postcondition&) // assign new UID's for conflicting entries
     {
-      Size replaced_uids =  UniqueIdIndexer<FeatureMap>::resolveUniqueIdConflicts();
+      Size replaced_uids = UniqueIdIndexer<FeatureMap>::resolveUniqueIdConflicts();
       OPENMS_LOG_INFO << "Replaced " << replaced_uids << " invalid uniqueID's\n";
     }
 
@@ -292,7 +292,7 @@ namespace OpenMS
   void FeatureMap::swapFeaturesOnly(FeatureMap& from)
   {
     // TODO used by FeatureFinderAlgorithmPicked -- could it also use regular swap?
-    Base::swap(from);
+    data_.swap(from.data_);
 
     // swap range information (otherwise its false in both maps)
     FeatureMap tmp;
@@ -422,7 +422,7 @@ namespace OpenMS
 
   void FeatureMap::clear(bool clear_meta_data)
   {
-    Base::clear();
+    data_.clear();
 
     if (clear_meta_data)
     {

@@ -47,12 +47,12 @@
 namespace OpenMS
 {
   ConsensusMap::ConsensusMap() :
-    Base(),
     MetaInfoInterface(),
     RangeManagerContainerType(),
     DocumentIdentifier(),
     UniqueIdInterface(),
     UniqueIdIndexer<ConsensusMap>(),
+    data_(),
     column_description_(),
     experiment_type_("label-free"),
     protein_identifications_(),
@@ -62,12 +62,12 @@ namespace OpenMS
   }
 
   ConsensusMap::ConsensusMap(const ConsensusMap& source) :
-    Base(source),
     MetaInfoInterface(source),
     RangeManagerContainerType(source),
     DocumentIdentifier(source),
     UniqueIdInterface(source),
     UniqueIdIndexer<ConsensusMap>(source),
+    data_(source.data_),
     column_description_(source.column_description_),
     experiment_type_(source.experiment_type_),
     protein_identifications_(source.protein_identifications_),
@@ -79,11 +79,11 @@ namespace OpenMS
   ConsensusMap::~ConsensusMap() = default;
 
   ConsensusMap::ConsensusMap(Base::size_type n) :
-    Base(n),
     MetaInfoInterface(),
     RangeManagerContainerType(),
     DocumentIdentifier(),
     UniqueIdInterface(),
+    data_(n),
     column_description_(),
     experiment_type_("label-free"),
     protein_identifications_(),
@@ -99,11 +99,11 @@ namespace OpenMS
       return *this;
     }
 
-    Base::operator=(source);
     MetaInfoInterface::operator=(source);
     RangeManagerContainerType::operator=(source);
     DocumentIdentifier::operator=(source);
     UniqueIdInterface::operator=(source);
+    data_ = source.data_;
     column_description_ = source.column_description_;
     experiment_type_ = source.experiment_type_;
     protein_identifications_ = source.protein_identifications_;
@@ -296,7 +296,7 @@ namespace OpenMS
 
   void ConsensusMap::clear(bool clear_meta_data)
   {
-    Base::clear();
+    data_.clear();
 
     if (clear_meta_data)
     {
@@ -349,49 +349,49 @@ namespace OpenMS
   {
     if (reverse)
     {
-      std::stable_sort(Base::begin(), Base::end(), [](auto &left, auto &right) {ConsensusFeature::IntensityLess cmp; return cmp(right, left);});
+      std::stable_sort(begin(), end(), [](auto &left, auto &right) {ConsensusFeature::IntensityLess cmp; return cmp(right, left);});
     }
     else
     {
-      std::stable_sort(Base::begin(), Base::end(), ConsensusFeature::IntensityLess());
+      std::stable_sort(begin(), end(), ConsensusFeature::IntensityLess());
     }
   }
 
   void ConsensusMap::sortByRT()
   {
-    std::stable_sort(Base::begin(), Base::end(), ConsensusFeature::RTLess()); 
+    std::stable_sort(begin(), end(), ConsensusFeature::RTLess()); 
   }
 
   void ConsensusMap::sortByMZ()
   {
-    std::stable_sort(Base::begin(), Base::end(), ConsensusFeature::MZLess());
+    std::stable_sort(begin(), end(), ConsensusFeature::MZLess());
   }
 
   void ConsensusMap::sortByPosition()
   {
-    std::stable_sort(Base::begin(), Base::end(), ConsensusFeature::PositionLess());
+    std::stable_sort(begin(), end(), ConsensusFeature::PositionLess());
   }
 
   void ConsensusMap::sortByQuality(bool reverse)
   {
     if (reverse)
     {
-      std::stable_sort(Base::begin(), Base::end(), [](auto &left, auto &right) {ConsensusFeature::QualityLess cmp; return cmp(right, left);});
+      std::stable_sort(begin(), end(), [](auto &left, auto &right) {ConsensusFeature::QualityLess cmp; return cmp(right, left);});
     }
     else
     {
-      std::stable_sort(Base::begin(), Base::end(), ConsensusFeature::QualityLess());
+      std::stable_sort(begin(), end(), ConsensusFeature::QualityLess());
     }
   }
 
   void ConsensusMap::sortBySize()
   {
-    std::stable_sort(Base::begin(), Base::end(), [](auto &left, auto &right) {ConsensusFeature::SizeLess cmp; return cmp(right, left);});
+    std::stable_sort(begin(), end(), [](auto &left, auto &right) {ConsensusFeature::SizeLess cmp; return cmp(right, left);});
   }
 
   void ConsensusMap::sortByMaps()
   {
-    std::stable_sort(Base::begin(), Base::end(), ConsensusFeature::MapsLess());
+    std::stable_sort(begin(), end(), ConsensusFeature::MapsLess());
   }
 
   void ConsensusMap::sortPeptideIdentificationsByMapIndex()
@@ -425,7 +425,7 @@ namespace OpenMS
     std::transform(begin(), end(), begin(),
       [mapIndexLess](ConsensusFeature& c) 
       { 
-        vector<PeptideIdentification> & pids = c.getPeptideIdentifications();
+        auto& pids = c.getPeptideIdentifications();
         stable_sort(pids.begin(), pids.end(), mapIndexLess);
         return c;
       });
@@ -441,7 +441,7 @@ namespace OpenMS
     from.RangeManagerType::operator=(tmp);
 
     //swap consensus features
-    Base::swap(from);
+    data_.swap(from.data_);
 
     // swap DocumentIdentifier
     DocumentIdentifier::swap(from);
@@ -578,7 +578,7 @@ namespace OpenMS
   /// Equality operator
   bool ConsensusMap::operator==(const ConsensusMap& rhs) const
   {
-    return std::operator==(*this, rhs) &&
+    return data_ == rhs.data_ &&
            MetaInfoInterface::operator==(rhs) &&
            RangeManagerType::operator==(rhs) &&
            DocumentIdentifier::operator==(rhs) &&
@@ -615,7 +615,7 @@ namespace OpenMS
   {
     clearRanges();
     // enlarge the range by the internal points of each feature
-    for (const auto& cf : (privvec&) *this)
+    for (const auto& cf : data_)
     {
       extendRT(cf.getRT());
       extendMZ(cf.getMZ());
