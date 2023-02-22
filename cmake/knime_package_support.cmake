@@ -419,7 +419,7 @@ add_custom_target(
   COMMAND ${CMAKE_COMMAND} -D SCRIPT_DIR=${SCRIPT_DIRECTORY} -D ARCH=${ARCH} -D PLATFORM=${PLATFORM} -D PAYLOAD_FOLDER=${TP_PAYLOAD_PATH} -P ${SCRIPT_DIRECTORY}compress_payload.cmake
   COMMAND ${CMAKE_COMMAND} -D SCRIPT_DIR=${SCRIPT_DIRECTORY} -D ARCH=${ARCH} -D PLATFORM=${PLATFORM} -D PAYLOAD_FOLDER=${LIB_PATH} -P ${SCRIPT_DIRECTORY}compress_payload.cmake
 
-  DEPENDS prepare_knime_payload_binaries prepare_knime_payload_libs create_payload_share prepare_knime_payload_ini prepare_knime_payload_searchengines
+  DEPENDS prepare_knime_payload_binaries prepare_knime_payload_libs create_payload_share create_icons prepare_knime_payload_ini prepare_knime_payload_searchengines
 )
 
 add_custom_target(
