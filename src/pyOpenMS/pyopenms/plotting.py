@@ -193,9 +193,10 @@ import itertools
 
 colors = {'a': '#388E3C', 'b': '#1976D2', 'c': '#00796B',
           'x': '#7B1FA2', 'y': '#D32F2F', 'z': '#F57C00',
-          '?': '#212121', 'f': '#212121', None: '#212121'}
-zorders = {'a': 3, 'b': 4, 'c': 3, 'x': 3, 'y': 4, 'z': 3, '?': 2, 'f': 5,
-           None: 1}
+          'p': '#512DA8', '?': '#212121', 'f': '#212121', None: '#212121'}
+zorders = {'a': 3, 'b': 4, 'c': 3, 'x': 3, 'y': 4, 'z': 3,
+           'p': 3, '?': 2, 'f': 5, None: 1}
+
 
 
 # TODO switch to forward declarations via from __future__ import annotations
@@ -251,6 +252,8 @@ def _annotate_ion(mz: float, intensity: float, annotation: Optional[str],
         return colors.get(None), zorders.get(None)
     # Else: Add the textual annotation.
     ion_type = annotation[0]
+    if ion_type == '[': # precursor ion
+        ion_type = 'p'
     if ion_type not in colors and color_ions:
         raise ValueError('Ion type not supported')
 
