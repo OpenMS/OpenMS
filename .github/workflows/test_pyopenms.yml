@@ -25,6 +25,6 @@ jobs:
       - name: Run tests
         run: |
           python -c "import pyopenms;
-          seq = pyopenms.AASequence.fromString("DFPIANGER");
+          seq = pyopenms.AASequence.fromString('DFPIANGER');
           print(seq.toString());
           seq.getMonoWeight()"
