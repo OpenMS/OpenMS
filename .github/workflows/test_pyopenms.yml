@@ -2,20 +2,12 @@ name: Test nightly pyOpenMS on different platforms
 
 on:
   workflow_dispatch: # Trigger manually
-#  workflow_run:
-#    workflows: [ "pyopenms-wheels" ]
-#    types:
-#      - completed
 
 jobs:
-  test:
-#    if: ${{ github.event_name != 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success' }}
-    runs-on: ${{ matrix.os }}
-    strategy:
-      matrix:
-        os: [ubuntu-latest, windows-latest, macos-latest]
-        python-version: ${{ fromJSON(steps.python_versions.outputs.content) }}
-
+  read-python-versions:
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.python_versions.outputs.content }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
@@ -27,10 +19,18 @@ jobs:
           path: .github/workflows/python_versions.json
 
       - name: Echo python_versions.json
-        run: echo "${{ fromJSON(steps.python_versions.outputs.content) }}"
+        run: echo "${{ steps.python_versions.outputs.content }}"
 
+  test:
+    needs: read-python-versions
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ ubuntu-latest, windows-latest, macos-latest ]
+        python-version: ${{ fromJson(needs.read-python-versions.outputs.matrix) }}
+    steps:
       - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v2
         with:
           python-version: ${{ matrix.python-version }}
 
