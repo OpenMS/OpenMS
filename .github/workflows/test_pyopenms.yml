@@ -14,7 +14,10 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest, windows-latest, macos-latest]
-        python-version: ${{ fromJSON(file('python_versions.json')) }}
+        python-version: ${{ fromJSON(env.PYTHON_VERSIONS) }}
+
+    env:
+      PYTHON_VERSIONS: ${{ github.workspace }}/python_versions.json
 
     steps:
       - name: Set up Python ${{ matrix.python-version }}
