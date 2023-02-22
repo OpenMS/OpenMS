@@ -2,14 +2,14 @@ name: Test nightly pyOpenMS on different platforms
 
 on:
   workflow_dispatch: # Trigger manually
-  workflow_run:
-    workflows: [ "pyopenms-wheels" ]
-    types:
-      - completed
+#  workflow_run:
+#    workflows: [ "pyopenms-wheels" ]
+#    types:
+#      - completed
 
 jobs:
   test:
-    if: ${{ github.event_name != 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success' }}
+#    if: ${{ github.event_name != 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success' }}
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
