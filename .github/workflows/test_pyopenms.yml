@@ -8,14 +8,7 @@ on:
       - completed
 
 jobs:
-  test:
-    if: ${{ github.event.workflow_run.conclusion == 'success' }}
-    runs-on: ${{ matrix.os }}
-    strategy:
-      matrix:
-        os: [ubuntu-latest, windows-latest, macos-latest]
-        python-version: ${{ steps.python_versions.outputs.content }}
-
+  read-python-versions:
     steps:
       - name: Get values from python_versions.json
         id: python_versions
@@ -24,6 +17,14 @@ jobs:
           path: "pyton_versions.json"
 
       - run: echo "name - ${{ steps.packageJson.outputs }}"
+
+#  test:
+#    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+#    runs-on: ${{ matrix.os }}
+#    strategy:
+#      matrix:
+#        os: [ubuntu-latest, windows-latest, macos-latest]
+#        python-version: ${{ steps.python_versions.outputs.content }}
 
 #      - name: Set up Python ${{ steps.python_versions.outputs.content }}
 #        uses: actions/setup-python@v4
