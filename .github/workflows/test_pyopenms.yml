@@ -14,7 +14,7 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest, windows-latest, macos-latest]
-        python-version: ["3.9", "3.10", "3.11"]
+        python-version: ${{ fromJSON(file('python_versions.json')) }}
 
     steps:
       - name: Set up Python ${{ matrix.python-version }}
