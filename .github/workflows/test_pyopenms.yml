@@ -23,7 +23,7 @@ jobs:
         id: python_versions
         uses: juliangruber/read-file-action@v1
         with:
-          path: python_versions.json
+          path: .github/workflows/python_versions.json
 
       - name: Echo python_versions.json
         run: echo "${{ steps.python_versions.outputs.content }}"
