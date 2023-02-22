@@ -1,0 +1,27 @@
+name: Test package installation on multiple platforms
+
+on:
+  workflow_dispatch: # Trigger manually
+
+jobs:
+  test:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+        python-version: [3.9, 3.10, 3.11]
+
+    steps:
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v2
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install --index-url https://pypi.cs.uni-tuebingen.de/simple/ pyopenms-nightly
+
+      - name: Run tests
+        run: |
+          python .github/scripts/
