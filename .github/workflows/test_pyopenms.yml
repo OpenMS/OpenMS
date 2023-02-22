@@ -26,7 +26,7 @@ jobs:
           path: .github/workflows/python_versions.json
 
       - name: Echo python_versions.json
-        run: echo "${{ steps.python_versions.outputs.content }}"
+        run: echo "${{ fromJSON(steps.python_versions.outputs.content) }}"
 
       - name: Set up Python ${{ fromJSON(steps.python_versions.outputs.content) }}
         uses: actions/setup-python@v4
