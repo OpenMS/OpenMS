@@ -238,7 +238,6 @@ public:
     ///@name Type definitions
     //@{
     typedef ConsensusFeature FeatureType;
-    typedef std::vector<ConsensusFeature> Base;
     typedef RangeManagerContainer<RangeRT, RangeMZ, RangeIntensity> RangeManagerContainerType;
     typedef RangeManager<RangeRT, RangeMZ, RangeIntensity> RangeManagerType;
     typedef std::map<UInt64, ColumnHeader> ColumnHeaders;
