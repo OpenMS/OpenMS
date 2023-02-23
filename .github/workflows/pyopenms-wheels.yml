@@ -32,10 +32,10 @@ jobs:
         run: echo "${{ steps.python_versions.outputs.content }}"
 
   build-win:
+    needs: read-python-versions
     runs-on: windows-latest
-    strategy:
-      matrix:
-        python-version: ${{ fromJson(needs.read-python-versions.outputs.matrix) }}
+    env:
+      PYTHON_VERSION: ${{ fromJson(needs.read-python-versions.outputs.matrix) }}
     steps:
     - uses: actions/checkout@v3
       with:
@@ -97,7 +97,7 @@ jobs:
           # Note: multiple --targets only supported by CMake 3.15+
           cmake --build . --config Release --target OpenMS
 
-          echo $python-version
+          echo $PYTHON_VERSION
 
           mkdir pyopenms_whls
 
@@ -105,7 +105,7 @@ jobs:
           # We will store the PATH variable in the beginning and reset it with every iteration.
           RESET_PATH=$PATH
 
-          for py in $python-version
+          for py in $PYTHON_VERSION
           do
             # reset the path
             PATH=$RESET_PATH
@@ -151,10 +151,11 @@ jobs:
         path: bld/pyopenms_whls
 
   build-macos:
+    needs: read-python-versions
     runs-on: macos-latest
     strategy:
-      matrix:
-        python-version: ${{ fromJson(needs.read-python-versions.outputs.matrix) }}
+    env:
+      PYTHON_VERSION: ${{ fromJson(needs.read-python-versions.outputs.matrix) }}
     steps:
     - uses: actions/checkout@v3
       with:
@@ -246,11 +247,11 @@ jobs:
           cmake -DCMAKE_BUILD_TYPE="Release" -DOPENMS_CONTRIB_LIBS="$GITHUB_WORKSPACE/contribbld" -DCMAKE_PREFIX_PATH="$(echo $Qt5_Dir)/lib/cmake;${Qt5_Dir};$GITHUB_WORKSPACE/contribbld/lib/" -DCMAKE_OSX_DEPLOYMENT_TARGET=10.9 -DBOOST_USE_STATIC=ON ../OpenMS
           make -j4 OpenMS
 
-          echo $python-version
+          echo $PYTHON_VERSION
 
           mkdir pyopenms_whls
 
-          for py in $python-version
+          for py in $PYTHON_VERSION
           do
             conda create -n pyoms-bld-$py python=$py
             source activate pyoms-bld-$py
@@ -303,7 +304,10 @@ jobs:
         path: bld/pyopenms_whls
 
   build-lnx:
+    needs: read-python-versions
     runs-on: ubuntu-latest
+    env:
+      PYTHON_VERSION: ${{ fromJson(needs.read-python-versions.outputs.matrix) }}
     container: ghcr.io/openms/contrib_manylinux2014:latest
 
     steps:
@@ -327,13 +331,6 @@ jobs:
       shell: bash
       run: |
             cmake --version
-            # build an array based the python versions in /opt/python
-            py_paths=()
-            echo "Available python versions:"
-            for PYBIN in /opt/python/cp*
-            do
-              echo $PYBIN
-            done
 
             mkdir -p $GITHUB_WORKSPACE/data/wheelhouse/
             mkdir -p $GITHUB_WORKSPACE/data/wheelhouse/before_fix/
@@ -347,7 +344,7 @@ jobs:
 
             # compile and configure OpenMS
             # since string sorting does not work with 9,10,11+ we need to specify manually.
-            for PYBIN in $python-version
+            for PYBIN in $PYTHON_VERSION
             do
               "$PYBIN/bin/pip" install -U pip
               "$PYBIN/bin/pip" install -U Cython
@@ -392,7 +389,8 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest, macos-latest, windows-latest]
-
+    env:
+      PYTHON_VERSION: ${{ fromJson(needs.read-python-versions.outputs.matrix) }}
     steps:
     - name: Install Miniconda
       shell: bash
@@ -425,9 +423,9 @@ jobs:
     - name: Test
       shell: bash 
       run: |
-        echo $python-version
+        echo $PYTHON_VERSION
 
-        for py in $python-version
+        for py in $PYTHON_VERSION
         do
           conda create -n pyoms-bld-$py python=$py
           source activate pyoms-bld-$py
