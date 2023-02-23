@@ -173,17 +173,19 @@ public:
       }
 
       text = "<font color=\"" + color_.name() + "\">" + text + "</font>";
-      QTextDocument td;
-      td.setHtml(text);
 
       // draw html text
-      painter.save();
-      double w = td.size().width();
-      double h = td.size().height();
-      painter.translate(position_widget.x() - w / 2, position_widget.y() - h / 2);
-      td.drawContents(&painter);
-      painter.restore();
-
+      {
+        QTextDocument td;
+        td.setHtml(text);
+        painter.save();
+        double w = td.size().width();
+        double h = td.size().height();
+        painter.translate(position_widget.x() - w / 2, position_widget.y() - h / 2);
+        td.drawContents(&painter);
+        painter.restore();
+      }
+      
       if (selected_)
       {
         drawBoundingBox_(painter);
