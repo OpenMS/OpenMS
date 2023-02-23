@@ -246,11 +246,11 @@ jobs:
           cmake -DCMAKE_BUILD_TYPE="Release" -DOPENMS_CONTRIB_LIBS="$GITHUB_WORKSPACE/contribbld" -DCMAKE_PREFIX_PATH="$(echo $Qt5_Dir)/lib/cmake;${Qt5_Dir};$GITHUB_WORKSPACE/contribbld/lib/" -DCMAKE_OSX_DEPLOYMENT_TARGET=10.9 -DBOOST_USE_STATIC=ON ../OpenMS
           make -j4 OpenMS
 
-          echo $python-versions
+          echo $python-version
 
           mkdir pyopenms_whls
 
-          for py in $python-versions
+          for py in $python-version
           do
             conda create -n pyoms-bld-$py python=$py
             source activate pyoms-bld-$py
@@ -347,7 +347,7 @@ jobs:
 
             # compile and configure OpenMS
             # since string sorting does not work with 9,10,11+ we need to specify manually.
-            for PYBIN in $python-versions
+            for PYBIN in $python-version
             do
               "$PYBIN/bin/pip" install -U pip
               "$PYBIN/bin/pip" install -U Cython
@@ -425,9 +425,9 @@ jobs:
     - name: Test
       shell: bash 
       run: |
-        echo $python-versions
+        echo $python-version
 
-        for py in $python-versions
+        for py in $python-version
         do
           conda create -n pyoms-bld-$py python=$py
           source activate pyoms-bld-$py
