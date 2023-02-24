@@ -90,7 +90,7 @@ void SimpleSVM::clear_()
   delete[] data_.y;
 }
 
-void SimpleSVM::setup(PredictorMap& predictors, const map<Size, double>& labels, bool classification)
+void SimpleSVM::setup(PredictorMap& predictors, const map<Size, double>& outcomes, bool classification)
 {
   if (predictors.empty() || predictors.begin()->second.empty())
   {
@@ -108,16 +108,16 @@ void SimpleSVM::setup(PredictorMap& predictors, const map<Size, double>& labels,
   scaleData_(predictors);
   convertData_(predictors);
 
-  data_.l = labels.size();
+  data_.l = outcomes.size();
   data_.x = new svm_node*[data_.l];
   data_.y = new double[data_.l];
   map<double, Size> label_table;
   Size index = 0;
-  for (auto it = labels.cbegin(); it != labels.cend();
+  for (auto it = outcomes.cbegin(); it != outcomes.cend();
        ++it, ++index)
   {
     const Size& training_index = it->first;
-    const double& label = it->second;
+    const double& outcome = it->second;
     if (it->first >= n_obs)
     {
       String msg = "Invalid training index; there are only " + String(n_obs) +
@@ -126,8 +126,8 @@ void SimpleSVM::setup(PredictorMap& predictors, const map<Size, double>& labels,
                                     msg, String(it->first));
     }
     data_.x[index] = &(nodes_[training_index][0]);
-    data_.y[index] = label;
-    label_table[label]++;
+    data_.y[index] = outcome;
+    label_table[outcome]++;
   }
 
   if (classification)
@@ -206,8 +206,8 @@ void SimpleSVM::predict(vector<Prediction>& predictions, vector<Size> indexes) c
     for (Size i = 0; i < n_obs; indexes.push_back(i++)){};
   }
   Size n_classes = svm_get_nr_class(model_);
-  vector<int> labels(n_classes);
-  svm_get_labels(model_, &(labels[0]));
+  vector<int> outcomes(n_classes);
+  svm_get_labels(model_, &(outcomes[0]));
   vector<double> probabilities(n_classes);
   predictions.clear();
   predictions.reserve(indexes.size());
@@ -221,17 +221,16 @@ void SimpleSVM::predict(vector<Prediction>& predictions, vector<Size> indexes) c
                                     msg, String(*it));
     }
     Prediction pred;
-    pred.label = svm_predict_probability(model_, &(nodes_[*it][0]), 
+    pred.outcome = svm_predict_probability(model_, &(nodes_[*it][0]), 
                                              &(probabilities[0]));
     for (Size i = 0; i < n_classes; ++i)
     {
-      pred.probabilities[labels[i]] = probabilities[i];
+      pred.probabilities[outcomes[i]] = probabilities[i];
     }
     predictions.push_back(pred);
   }
 }
 
-// only works in classification mode
 void SimpleSVM::getFeatureWeights(map<String, double>& feature_weights) const
 {
   if (model_ == nullptr)
