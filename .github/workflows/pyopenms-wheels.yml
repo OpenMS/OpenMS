@@ -14,28 +14,8 @@ on:
 
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
-  read-python-versions:
-    runs-on: ubuntu-latest
-    outputs:
-      matrix: ${{ steps.python_versions.outputs.content }}
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v3
-
-      - name: Read python_versions.json
-        id: python_versions
-        uses: juliangruber/read-file-action@v1
-        with:
-          path: .github/workflows/python_versions.json
-
-      - name: Echo python_versions.json
-        run: echo "${{ steps.python_versions.outputs.content }}"
-
   build-win:
-    needs: read-python-versions
     runs-on: windows-latest
-    env:
-      PYTHON_VERSION: ${{ fromJson(needs.read-python-versions.outputs.matrix) }}
     steps:
     - uses: actions/checkout@v3
       with:
@@ -96,8 +76,10 @@ jobs:
           cmake -G "Visual Studio 17 2022" -A x64 -DOPENMS_CONTRIB_LIBS="$GITHUB_WORKSPACE/contribbld" -DCMAKE_PREFIX_PATH="$(echo $Qt5_Dir)/lib/cmake;${Qt5_Dir}" ../OpenMS
           # Note: multiple --targets only supported by CMake 3.15+
           cmake --build . --config Release --target OpenMS
-
-          echo $PYTHON_VERSION
+        
+          PYTHON_VERSIONS=$(cat python_versions.json | jq -r '.[] | @sh')
+        
+          echo $PYTHON_VERSIONS
 
           mkdir pyopenms_whls
 
@@ -105,7 +87,7 @@ jobs:
           # We will store the PATH variable in the beginning and reset it with every iteration.
           RESET_PATH=$PATH
 
-          for py in $PYTHON_VERSION
+          for py in $PYTHON_VERSIONS
           do
             # reset the path
             PATH=$RESET_PATH
@@ -151,11 +133,7 @@ jobs:
         path: bld/pyopenms_whls
 
   build-macos:
-    needs: read-python-versions
     runs-on: macos-latest
-    strategy:
-    env:
-      PYTHON_VERSION: ${{ fromJson(needs.read-python-versions.outputs.matrix) }}
     steps:
     - uses: actions/checkout@v3
       with:
@@ -246,12 +224,14 @@ jobs:
           # Use -DCMAKE_FIND_DEBUG_MODE=ON for debug
           cmake -DCMAKE_BUILD_TYPE="Release" -DOPENMS_CONTRIB_LIBS="$GITHUB_WORKSPACE/contribbld" -DCMAKE_PREFIX_PATH="$(echo $Qt5_Dir)/lib/cmake;${Qt5_Dir};$GITHUB_WORKSPACE/contribbld/lib/" -DCMAKE_OSX_DEPLOYMENT_TARGET=10.9 -DBOOST_USE_STATIC=ON ../OpenMS
           make -j4 OpenMS
+        
+          PYTHON_VERSIONS=$(cat python_versions.json | jq -r '.[] | @sh')
 
-          echo $PYTHON_VERSION
+          echo $PYTHON_VERSIONS
 
           mkdir pyopenms_whls
 
-          for py in $PYTHON_VERSION
+          for py in $PYTHON_VERSIONS
           do
             conda create -n pyoms-bld-$py python=$py
             source activate pyoms-bld-$py
@@ -304,10 +284,7 @@ jobs:
         path: bld/pyopenms_whls
 
   build-lnx:
-    needs: read-python-versions
     runs-on: ubuntu-latest
-    env:
-      PYTHON_VERSION: ${{ fromJson(needs.read-python-versions.outputs.matrix) }}
     container: ghcr.io/openms/contrib_manylinux2014:latest
 
     steps:
@@ -330,6 +307,7 @@ jobs:
     - name: Build on manylinux2014
       shell: bash
       run: |
+            sudo apt install -y jq
             cmake --version
 
             mkdir -p $GITHUB_WORKSPACE/data/wheelhouse/
@@ -341,10 +319,12 @@ jobs:
             cd openms-build
             cmake -DCMAKE_BUILD_TYPE="Release" -DOPENMS_CONTRIB_LIBS="/contrib-build/" -DCMAKE_PREFIX_PATH="/contrib-build/" $GITHUB_WORKSPACE/OpenMS
             make -j4 OpenMS
+        
+            PYTHON_VERSIONS=$(cat python_versions.json | jq -r '.[] | @sh')
 
             # compile and configure OpenMS
             # since string sorting does not work with 9,10,11+ we need to specify manually.
-            for PYBIN in $PYTHON_VERSION
+            for PYBIN in $PYTHON_VERSIONS
             do
               "$PYBIN/bin/pip" install -U pip
               "$PYBIN/bin/pip" install -U Cython
@@ -389,8 +369,6 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest, macos-latest, windows-latest]
-    env:
-      PYTHON_VERSION: ${{ fromJson(needs.read-python-versions.outputs.matrix) }}
     steps:
     - name: Install Miniconda
       shell: bash
@@ -423,9 +401,10 @@ jobs:
     - name: Test
       shell: bash 
       run: |
-        echo $PYTHON_VERSION
+        PYTHON_VERSIONS=$(cat python_versions.json | jq -r '.[] | @sh')
+        echo $PYTHON_VERSIONS
 
-        for py in $PYTHON_VERSION
+        for py in $PYTHON_VERSIONS
         do
           conda create -n pyoms-bld-$py python=$py
           source activate pyoms-bld-$py
