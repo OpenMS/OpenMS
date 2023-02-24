@@ -70,7 +70,6 @@ public:
 
 
   using ITEM = Dummy;
-  using Base = typename std::vector<Dummy>;
   typename Base::iterator begin() noexcept
   {
     return data_.begin();
