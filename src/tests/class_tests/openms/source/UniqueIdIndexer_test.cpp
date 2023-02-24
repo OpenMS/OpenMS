@@ -37,6 +37,7 @@
 
 ///////////////////////////
 #include <OpenMS/CONCEPT/UniqueIdIndexer.h>
+#include <OpenMS/DATASTRUCTURES/ExposedVector.h>
 #include <OpenMS/MATH/MISC/MathFunctions.h>
 
 #include <vector>
@@ -60,122 +61,12 @@ struct Dummy
 };
 
 
-class DummyVectorIndexed : 
+class DummyVectorIndexed :
+  public ExposedVector<Dummy>,
   public UniqueIdIndexer<DummyVectorIndexed>
 {
 public:
 
-  using Base = std::vector<Dummy>;
-  Base data_;
-
-
-  using ITEM = Dummy;
-  typename Base::iterator begin() noexcept
-  {
-    return data_.begin();
-  }
-  typename Base::iterator end() noexcept
-  {
-    return data_.end();
-  }
-  typename Base::const_iterator begin() const noexcept
-  {
-    return data_.begin();
-  }
-  typename Base::const_iterator end() const noexcept
-  {
-    return data_.end();
-  }
-  typename Base::const_iterator cbegin() const noexcept
-  {
-    return data_.cbegin();
-  }
-  typename Base::const_iterator cend() const noexcept
-  {
-    return data_.cend();
-  }
-  size_t size() const noexcept
-  {
-    return data_.size();
-  }
-  void resize(const size_t new_size)
-  {
-    data_.resize(new_size);
-  }
-  void reserve(const size_t new_size)
-  {
-    data_.reserve(new_size);
-  }
-  bool empty() const noexcept
-  {
-    return data_.empty();
-  }
-  ITEM& operator[](size_t i) noexcept
-  {
-    return data_[i];
-  }
-  const ITEM& operator[](size_t i) const noexcept
-  {
-    return data_[i];
-  }
-  ITEM& at(size_t i)
-  {
-    return data_.at(i);
-  }
-  const ITEM& at(size_t i) const
-  {
-    return data_.at(i);
-  }
-  ITEM& back() noexcept
-  {
-    return data_.back();
-  }
-  const ITEM& back() const noexcept
-  {
-    return data_.back();
-  }
-  void push_back(const ITEM& f)
-  {
-    data_.push_back(f);
-  }
-  void push_back(ITEM&& f)
-  {
-    data_.push_back(std::move(f));
-  }
-  template<typename... Args>
-  decltype(auto) emplace_back(Args&&... args)
-  {
-    return data_.emplace_back(std::forward<Args>(args)...);
-  }
-  void pop_back() noexcept
-  {
-    data_.pop_back();
-  }
-  typename Base::iterator erase(typename Base::const_iterator where) noexcept
-  {
-    return data_.erase(where);
-  }
-  typename Base::iterator erase(typename Base::const_iterator from, typename Base::const_iterator to) noexcept
-  {
-    return data_.erase(from, to);
-  }
-  template<typename T>
-  typename Base::iterator insert(typename Base::const_iterator where, T from, T to)
-  {
-    return data_.insert(where, from, to);
-  }
-
-  
-
-  // types
-  using value_type = typename Base::value_type;
-  using iterator = typename Base::iterator;
-  using const_iterator = typename Base::const_iterator;
-  using size_type = typename Base::size_type;
-  using pointer = typename Base::pointer;                 // ConstRefVector
-  using reference = typename Base::reference;             // ConstRefVector
-  using const_reference = typename Base::const_reference; // ConstRefVector
-  using difference_type = typename Base::difference_type; // ConstRefVector
 };
 
 // this is used for testing purposes only

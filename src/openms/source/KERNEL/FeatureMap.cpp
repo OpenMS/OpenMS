@@ -102,9 +102,9 @@ namespace OpenMS
     MetaInfoInterface(),
     RangeManagerContainerType(),
     DocumentIdentifier(),
+    ExposedVector<Feature>(),
     UniqueIdInterface(),
     UniqueIdIndexer<FeatureMap>(),
-    data_ {},
     protein_identifications_(),
     unassigned_peptide_identifications_(),
     data_processing_()
@@ -115,9 +115,9 @@ namespace OpenMS
     MetaInfoInterface(source),
     RangeManagerContainerType(source),
     DocumentIdentifier(source),
+    ExposedVector<Feature>(source),
     UniqueIdInterface(source), 
     UniqueIdIndexer<FeatureMap>(source),
-    data_(source.data_),
     protein_identifications_(source.protein_identifications_),
     unassigned_peptide_identifications_(source.unassigned_peptide_identifications_),
     data_processing_(source.data_processing_),
@@ -268,7 +268,7 @@ namespace OpenMS
   void FeatureMap::updateRanges()
   {
     clearRanges();
-    for (const auto& f : (Base&) *this)
+    for (const auto& f : *this)
     {
       extendRT(f.getRT());
       extendMZ(f.getMZ());

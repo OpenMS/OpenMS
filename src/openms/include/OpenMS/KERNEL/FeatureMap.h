@@ -46,13 +46,13 @@
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/CONCEPT/UniqueIdInterface.h>
 #include <OpenMS/CONCEPT/UniqueIdIndexer.h>
+#include <OpenMS/DATASTRUCTURES/ExposedVector.h>
 #include <OpenMS/DATASTRUCTURES/Utils/MapUtilities.h>
 
 #include <OpenMS/KERNEL/BaseFeature.h>
 #include <OpenMS/OpenMSConfig.h>
 
 #include <exception>
-#include <vector>
 
 namespace OpenMS
 {
@@ -99,123 +99,12 @@ namespace OpenMS
       public MetaInfoInterface,
       public RangeManagerContainer<RangeRT, RangeMZ, RangeIntensity>,
       public DocumentIdentifier,
+      public ExposedVector<Feature>,
       public UniqueIdInterface,
       public UniqueIdIndexer<FeatureMap>,
       public MapUtilities<FeatureMap>
   {
   public:
-    using Base = std::vector<Feature>;
-    friend UniqueIdIndexer<FeatureMap>; /// allow access to our 'data_' member
-
-    /**
-      @name Type definitions
-    */
-
-    Base::iterator begin() noexcept
-    {
-      return data_.begin();
-    }
-    Base::iterator end() noexcept
-    {
-      return data_.end();
-    }
-    Base::const_iterator begin() const noexcept
-    {
-      return data_.begin();
-    }
-    Base::const_iterator end() const noexcept
-    {
-      return data_.end();
-    }
-    Base::const_iterator cbegin() const noexcept
-    {
-      return data_.cbegin();
-    }
-    Base::const_iterator cend() const noexcept
-    {
-      return data_.cend();
-    }
-    size_t size() const noexcept
-    {
-      return data_.size();
-    }
-    void resize(const size_t new_size)
-    {
-      data_.resize(new_size);
-    }
-    void reserve(const size_t new_size)
-    {
-      data_.reserve(new_size);
-    }
-    bool empty() const noexcept
-    {
-      return data_.empty();
-    }
-    Feature& operator[](size_t i) noexcept
-    {
-      return data_[i];
-    }
-    const Feature& operator[](size_t i) const noexcept
-    {
-      return data_[i];
-    }
-    Feature& at(size_t i)
-    {
-      return data_.at(i);
-    }
-    const Feature& at(size_t i) const
-    {
-      return data_.at(i);
-    }
-    Feature& back() noexcept
-    {
-      return data_.back();
-    }
-    const Feature& back() const noexcept
-    {
-      return data_.back();
-    }
-    void push_back(const Feature& f)
-    {
-      data_.push_back(f);
-    }
-    void push_back(Feature&& f)
-    {
-      data_.push_back(std::move(f));
-    }
-    template <typename ...Args>
-    decltype(auto) emplace_back(Args&&... args)
-    {
-      return data_.emplace_back(std::forward<Args>(args)...);
-    }
-    void pop_back() noexcept
-    {
-      data_.pop_back();
-    }
-    Base::iterator erase(Base::const_iterator where) noexcept
-    {
-      return data_.erase(where);
-    }
-    Base::iterator erase(Base::const_iterator from, Base::const_iterator to) noexcept
-    {
-      return data_.erase(from, to);
-    }
-    template<typename T>
-    Base::iterator insert(Base::const_iterator where, T from, T to)
-    {
-      return data_.insert(where, from, to);
-    }
-
-    // types
-    using value_type = Base::value_type;
-    using iterator = Base::iterator;
-    using const_iterator = Base::const_iterator;
-    using size_type = Base::size_type;
-    using pointer = Base::pointer; // ConstRefVector
-    using reference = Base::reference; // ConstRefVector
-    using const_reference = Base::const_reference; // ConstRefVector
-    using difference_type = Base::difference_type; // ConstRefVector
-
     //@{
     typedef RangeManagerContainer<RangeRT, RangeMZ, RangeIntensity> RangeManagerContainerType;
     typedef RangeManager<RangeRT, RangeMZ, RangeIntensity> RangeManagerType;
@@ -409,9 +298,6 @@ namespace OpenMS
     ///@}
 
 protected:
-    /// vector of Features
-    Base data_;
-
     /// protein identifications
     std::vector<ProteinIdentification> protein_identifications_;
 
