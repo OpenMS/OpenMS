@@ -124,6 +124,15 @@ namespace OpenMS
     void predict(std::vector<Prediction>& predictions,
                  std::vector<Size> indexes = std::vector<Size>()) const;
 
+    /**
+       @brief Predict class labels or regression values (and probabilities).
+
+       @param predictors Mapping from predictor name to vector of predictor values (for different observations). All vectors should have the same length; values will be changed by scaling applied to training data in setup.
+       @param predictions Output vector of prediction results (same order as @p indexes).
+       
+       @throw Exception::Precondition if no model has been trained
+       @throw Exception::InvalidValue if an invalid index is used in @p indexes
+    **/
     void predict(PredictorMap& predictors, std::vector<Prediction>& predictions) const;
 
     /**
