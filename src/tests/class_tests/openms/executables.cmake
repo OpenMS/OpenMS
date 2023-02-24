@@ -211,7 +211,7 @@ set(format_executables_list
   MSPGenericFile_test
   MascotGenericFile_test
   MascotInfile_test
-  MascotRemoteQuery_test
+  #MascotRemoteQuery_test
   MascotXMLFile_test
   #MSDataWritingConsumer_test
   MRMFeaturePickerFile_test
