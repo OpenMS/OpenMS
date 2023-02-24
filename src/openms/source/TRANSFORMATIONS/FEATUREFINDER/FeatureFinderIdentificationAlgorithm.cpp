@@ -1630,7 +1630,7 @@ namespace OpenMS
                          "SVM predictions for all features expected");
     for (Size i = 0; i < features.size(); ++i)
     {
-      features[i].setMetaValue("predicted_class", predictions[i].label);
+      features[i].setMetaValue("predicted_class", predictions[i].outcome);
       double prob_positive = predictions[i].probabilities[1];
       features[i].setMetaValue("predicted_probability", prob_positive);
       // @TODO: store previous (OpenSWATH) overall quality in a meta value?
