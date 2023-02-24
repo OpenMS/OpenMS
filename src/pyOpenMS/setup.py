@@ -248,8 +248,14 @@ share_data.append("License.txt")
 if sys.platform == "darwin":
     os.environ['ARCHFLAGS'] = "-arch x86_64"
 
-setup(
+	
+extras_reqs={
+	'dataframes': ['pandas'],
+	'plotting': ['matplotlib>=3.5']	
+}
+extras_reqs['full'] = extras_reqs['dataframes'] + extras_reqs['plotting']
 
+setup(
     name=package_name,
     packages=["pyopenms"],
     ext_package="pyopenms",
@@ -258,10 +264,8 @@ setup(
     },
 	install_requires=[
           'numpy',
-          'pandas',
-          'matplotlib>=3.5'
     ],
-
+	extras_require=extras_reqs,
     version=package_version,
 
     maintainer="The OpenMS team",
