@@ -307,7 +307,7 @@ jobs:
     - name: Build on manylinux2014
       shell: bash
       run: |
-            sudo apt install -y jq
+            sudo yum install -y jq
             cmake --version
 
             mkdir -p $GITHUB_WORKSPACE/data/wheelhouse/
