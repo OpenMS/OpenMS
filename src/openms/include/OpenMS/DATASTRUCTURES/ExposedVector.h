@@ -55,14 +55,13 @@ namespace OpenMS
   template<class VectorElement>
   class ExposedVector
   {
-    template<class T> friend class UniqueIdIndexer; ///< accesses data_ but is not derived from ExposedVector
-
-    using Base = std::vector<VectorElement>;
-
   protected:
-    Base data_;  ///< the container which holds all the data
+    Base data_; ///< the container which holds all the data
 
   public:
+    template<class T>
+    friend class UniqueIdIndexer; ///< accesses data_ but is not derived from ExposedVector
+    using Base = std::vector<VectorElement>;
 
     ExposedVector() = default;
     explicit ExposedVector(const size_t n)
