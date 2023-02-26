@@ -151,7 +151,7 @@ public:
     ~ConsensusMap() override;
 
     /// Creates a ConsensusMap with n elements
-    explicit ConsensusMap(Base::size_type n);
+    explicit ConsensusMap(size_type n);
 
     /// Assignment operator
     ConsensusMap& operator=(const ConsensusMap& source);

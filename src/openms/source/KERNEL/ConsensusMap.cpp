@@ -78,7 +78,7 @@ namespace OpenMS
 
   ConsensusMap::~ConsensusMap() = default;
 
-  ConsensusMap::ConsensusMap(Base::size_type n) :
+  ConsensusMap::ConsensusMap(size_type n) :
     MetaInfoInterface(),
     RangeManagerContainerType(),
     ExposedVector<ConsensusFeature>(n),

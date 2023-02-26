@@ -42,34 +42,34 @@ namespace OpenMS
 
 
 #define EXPOSED_VECTOR_INTERFACE(InnerElement) \
-    using Base = typename ExposedVector< InnerElement >;                     \
-    using Base::ExposedVector;                                               \
-    using Base::begin;                                                       \
-    using Base::cbegin;                                                      \
-    using Base::end;                                                         \
-    using Base::cend;                                                        \
-    using Base::size;                                                        \
-    using Base::resize;                                                      \
-    using Base::reserve;                                                     \
-    using Base::empty;                                                       \
-    using Base::operator[];                                                  \
-    using Base::at;                                                          \
-    using Base::back;                                                        \
-    using Base::push_back;                                                   \
-    using Base::emplace_back;                                                \
-    using Base::pop_back;                                                    \
-    using Base::erase;                                                       \
-    using Base::insert;                                                      \
-    using value_type = typename Base::value_type;                            \
-    using iterator = typename Base::iterator;                                \
-    using const_iterator = typename Base::const_iterator;                    \
-    using reverse_iterator = typename Base::reverse_iterator;                \
-    using const_reverse_iterator = typename Base::const_reverse_iterator;    \
-    using size_type = typename Base::size_type;                              \
-    using pointer = typename Base::pointer;                                  \
-    using reference = typename Base::reference;                              \
-    using const_reference = typename Base::const_reference;                  \
-    using difference_type = typename Base::difference_type;                  \
+    using ExpVec = ExposedVector< InnerElement >;                     \
+    using ExpVec::ExposedVector;                                               \
+    using ExpVec::begin;                                                       \
+    using ExpVec::cbegin;                                                      \
+    using ExpVec::end;                                                         \
+    using ExpVec::cend;                                                        \
+    using ExpVec::size;                                                        \
+    using ExpVec::resize;                                                      \
+    using ExpVec::reserve;                                                     \
+    using ExpVec::empty;                                                       \
+    using ExpVec::operator[];                                                  \
+    using ExpVec::at;                                                          \
+    using ExpVec::back;                                                        \
+    using ExpVec::push_back;                                                   \
+    using ExpVec::emplace_back;                                                \
+    using ExpVec::pop_back;                                                    \
+    using ExpVec::erase;                                                       \
+    using ExpVec::insert;                                                      \
+    using value_type = typename ExpVec::value_type;                            \
+    using iterator = typename ExpVec::iterator;                                \
+    using const_iterator = typename ExpVec::const_iterator;                    \
+    using reverse_iterator = typename ExpVec::reverse_iterator;                \
+    using const_reverse_iterator = typename ExpVec::const_reverse_iterator;    \
+    using size_type = typename ExpVec::size_type;                              \
+    using pointer = typename ExpVec::pointer;                                  \
+    using reference = typename ExpVec::reference;                              \
+    using const_reference = typename ExpVec::const_reference;                  \
+    using difference_type = typename ExpVec::difference_type;                  \
  
 
   /**
@@ -92,23 +92,23 @@ namespace OpenMS
     template<class T>
     friend class UniqueIdIndexer; ///< accesses data_ but is not derived from ExposedVector
 
-    using Base = std::vector<VectorElement>;
+    using VecMember = std::vector<VectorElement>;
 
 
     // types
-    using value_type = typename Base::value_type;
-    using iterator = typename Base::iterator;
-    using const_iterator = typename Base::const_iterator;
-    using reverse_iterator = typename Base::reverse_iterator;
-    using const_reverse_iterator = typename Base::const_reverse_iterator;
-    using size_type = typename Base::size_type;
-    using pointer = typename Base::pointer;
-    using reference = typename Base::reference;
-    using const_reference = typename Base::const_reference;
-    using difference_type = typename Base::difference_type;
+    using value_type = typename VecMember::value_type;
+    using iterator = typename VecMember::iterator;
+    using const_iterator = typename VecMember::const_iterator;
+    using reverse_iterator = typename VecMember::reverse_iterator;
+    using const_reverse_iterator = typename VecMember::const_reverse_iterator;
+    using size_type = typename VecMember::size_type;
+    using pointer = typename VecMember::pointer;
+    using reference = typename VecMember::reference;
+    using const_reference = typename VecMember::const_reference;
+    using difference_type = typename VecMember::difference_type;
 
   protected:
-    Base data_; ///< the container which holds all the data
+    VecMember data_; ///< the container which holds all the data
 
   public:
     ExposedVector() = default;
@@ -214,16 +214,16 @@ namespace OpenMS
     {
       data_.pop_back();
     }
-    iterator erase(typename const_iterator where) noexcept
+    iterator erase(const_iterator where) noexcept
     {
       return data_.erase(where);
     }
-    iterator erase(typename const_iterator from, typename const_iterator to) noexcept
+    iterator erase(const_iterator from, const_iterator to) noexcept
     {
       return data_.erase(from, to);
     }
     template<typename T>
-    typename iterator insert(typename const_iterator where, T from, T to)
+    iterator insert(const_iterator where, T from, T to)
     {
       return data_.insert(where, from, to);
     }
