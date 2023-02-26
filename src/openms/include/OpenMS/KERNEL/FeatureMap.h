@@ -105,13 +105,15 @@ namespace OpenMS
       public MapUtilities<FeatureMap>
   {
   public:
+    EXPOSED_VECTOR_INTERFACE(Feature)
+
     //@{
     typedef RangeManagerContainer<RangeRT, RangeMZ, RangeIntensity> RangeManagerContainerType;
     typedef RangeManager<RangeRT, RangeMZ, RangeIntensity> RangeManagerType;
-    typedef Base::iterator Iterator;
-    typedef Base::const_iterator ConstIterator;
-    typedef Base::reverse_iterator ReverseIterator;
-    typedef Base::const_reverse_iterator ConstReverseIterator;
+    typedef iterator Iterator;
+    typedef const_iterator ConstIterator;
+    typedef reverse_iterator ReverseIterator;
+    typedef const_reverse_iterator ConstReverseIterator;
     //@}
 
     /**

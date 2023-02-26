@@ -39,6 +39,39 @@
 
 namespace OpenMS
 {
+
+
+#define EXPOSED_VECTOR_INTERFACE(InnerElement) \
+    using Base = typename ExposedVector< InnerElement >;                     \
+    using Base::ExposedVector;                                               \
+    using Base::begin;                                                       \
+    using Base::cbegin;                                                      \
+    using Base::end;                                                         \
+    using Base::cend;                                                        \
+    using Base::size;                                                        \
+    using Base::resize;                                                      \
+    using Base::reserve;                                                     \
+    using Base::empty;                                                       \
+    using Base::operator[];                                                  \
+    using Base::at;                                                          \
+    using Base::back;                                                        \
+    using Base::push_back;                                                   \
+    using Base::emplace_back;                                                \
+    using Base::pop_back;                                                    \
+    using Base::erase;                                                       \
+    using Base::insert;                                                      \
+    using value_type = typename Base::value_type;                            \
+    using iterator = typename Base::iterator;                                \
+    using const_iterator = typename Base::const_iterator;                    \
+    using reverse_iterator = typename Base::reverse_iterator;                \
+    using const_reverse_iterator = typename Base::const_reverse_iterator;    \
+    using size_type = typename Base::size_type;                              \
+    using pointer = typename Base::pointer;                                  \
+    using reference = typename Base::reference;                              \
+    using const_reference = typename Base::const_reference;                  \
+    using difference_type = typename Base::difference_type;                  \
+ 
+
   /**
     @brief Makes a vector<VectorElement> available in the derived class and exposed commonly
            used vector member functions at class level.
@@ -55,14 +88,29 @@ namespace OpenMS
   template<class VectorElement>
   class ExposedVector
   {
+  public: 
+    template<class T>
+    friend class UniqueIdIndexer; ///< accesses data_ but is not derived from ExposedVector
+
+    using Base = std::vector<VectorElement>;
+
+
+    // types
+    using value_type = typename Base::value_type;
+    using iterator = typename Base::iterator;
+    using const_iterator = typename Base::const_iterator;
+    using reverse_iterator = typename Base::reverse_iterator;
+    using const_reverse_iterator = typename Base::const_reverse_iterator;
+    using size_type = typename Base::size_type;
+    using pointer = typename Base::pointer;
+    using reference = typename Base::reference;
+    using const_reference = typename Base::const_reference;
+    using difference_type = typename Base::difference_type;
+
   protected:
     Base data_; ///< the container which holds all the data
 
   public:
-    template<class T>
-    friend class UniqueIdIndexer; ///< accesses data_ but is not derived from ExposedVector
-    using Base = std::vector<VectorElement>;
-
     ExposedVector() = default;
     explicit ExposedVector(const size_t n)
       : data_(n)
@@ -85,27 +133,27 @@ namespace OpenMS
     /// Move Assignment
     ExposedVector& operator=(ExposedVector&& rhs) noexcept = default;
 
-    typename Base::iterator begin() noexcept
+    iterator begin() noexcept
     {
       return data_.begin();
     }
-    typename Base::iterator end() noexcept
+    iterator end() noexcept
     {
       return data_.end();
     }
-    typename Base::const_iterator begin() const noexcept
+    const_iterator begin() const noexcept
     {
       return data_.begin();
     }
-    typename Base::const_iterator end() const noexcept
+    const_iterator end() const noexcept
     {
       return data_.end();
     }
-    typename Base::const_iterator cbegin() const noexcept
+    const_iterator cbegin() const noexcept
     {
       return data_.cbegin();
     }
-    typename Base::const_iterator cend() const noexcept
+    const_iterator cend() const noexcept
     {
       return data_.cend();
     }
@@ -166,29 +214,20 @@ namespace OpenMS
     {
       data_.pop_back();
     }
-    typename Base::iterator erase(typename Base::const_iterator where) noexcept
+    iterator erase(typename const_iterator where) noexcept
     {
       return data_.erase(where);
     }
-    typename Base::iterator erase(typename Base::const_iterator from, typename Base::const_iterator to) noexcept
+    iterator erase(typename const_iterator from, typename const_iterator to) noexcept
     {
       return data_.erase(from, to);
     }
     template<typename T>
-    typename Base::iterator insert(typename Base::const_iterator where, T from, T to)
+    typename iterator insert(typename const_iterator where, T from, T to)
     {
       return data_.insert(where, from, to);
     }
 
-    // types
-    using value_type = typename Base::value_type;
-    using iterator = typename Base::iterator;
-    using const_iterator = typename Base::const_iterator;
-    using size_type = typename Base::size_type;
-    using pointer = typename Base::pointer;                 // ConstRefVector
-    using reference = typename Base::reference;             // ConstRefVector
-    using const_reference = typename Base::const_reference; // ConstRefVector
-    using difference_type = typename Base::difference_type; // ConstRefVector
   };
 
 } // namespace OpenMS

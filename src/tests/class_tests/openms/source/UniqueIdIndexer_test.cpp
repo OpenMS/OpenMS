@@ -66,7 +66,7 @@ class DummyVectorIndexed :
   public UniqueIdIndexer<DummyVectorIndexed>
 {
 public:
-
+  EXPOSED_VECTOR_INTERFACE(Dummy)
 };
 
 // this is used for testing purposes only

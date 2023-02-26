@@ -90,6 +90,8 @@ namespace OpenMS
     public MapUtilities<ConsensusMap>
   {
 public:
+    EXPOSED_VECTOR_INTERFACE(ConsensusFeature)
+
     enum class SplitMeta
     {
       DISCARD,                ///< do not copy any meta values
@@ -129,17 +131,14 @@ public:
     ///@name Type definitions
     //@{
     typedef ConsensusFeature FeatureType;
+    typedef std::map<UInt64, ColumnHeader> ColumnHeaders;
+
     typedef RangeManagerContainer<RangeRT, RangeMZ, RangeIntensity> RangeManagerContainerType;
     typedef RangeManager<RangeRT, RangeMZ, RangeIntensity> RangeManagerType;
-    typedef std::map<UInt64, ColumnHeader> ColumnHeaders;
-    /// Mutable iterator
-    typedef std::vector<ConsensusFeature>::iterator Iterator;
-    /// Non-mutable iterator
-    typedef std::vector<ConsensusFeature>::const_iterator ConstIterator;
-    /// Mutable reverse iterator
-    typedef std::vector<ConsensusFeature>::reverse_iterator ReverseIterator;
-    /// Non-mutable reverse iterator
-    typedef std::vector<ConsensusFeature>::const_reverse_iterator ConstReverseIterator;
+    typedef iterator Iterator;
+    typedef const_iterator ConstIterator;
+    typedef reverse_iterator ReverseIterator;
+    typedef const_reverse_iterator ConstReverseIterator;
     //@}
 
     /// Default constructor
