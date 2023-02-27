@@ -152,7 +152,8 @@ namespace OpenMS
 
     return *this;
   }
-  //FeatureMap& FeatureMap::operator=(FeatureMap&&) =default; // TODO: cannot be defaulted since OpenMS::IdentificationData is missing operator=
+  
+  //FeatureMap& FeatureMap::operator=(FeatureMap&&) = default; // TODO: cannot be defaulted since OpenMS::IdentificationData is missing operator=
 
 
   bool FeatureMap::operator==(const FeatureMap& rhs) const

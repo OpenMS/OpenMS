@@ -130,17 +130,20 @@ namespace OpenMS
     /// Move constructor
     FeatureMap(FeatureMap&& source);
 
+    /// Assignment operator
+    FeatureMap& operator=(const FeatureMap& rhs);
+
+    /// Move assignment
+    //FeatureMap& FeatureMap::operator=(FeatureMap&&);
+
     /// Destructor
     ~FeatureMap() override;
     //@}
 
-    /// Assignment operator
-    FeatureMap& operator=(const FeatureMap& rhs);
-
     /// Equality operator
     bool operator==(const FeatureMap& rhs) const;
 
-    /// Equality operator
+    /// Inequality operator
     bool operator!=(const FeatureMap& rhs) const;
 
     /**
