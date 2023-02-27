@@ -36,9 +36,9 @@ div.node span.node_description {
 	display: table-cell;
 }
 
-div.item {
-	display: table;
-	border-bottom:1px dashed;
+div.ini_global > div.item {
+	display: table-row;
+	border-bottom: 5px solid transparent;
 }
 
 .item_advanced {
