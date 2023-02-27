@@ -53,6 +53,7 @@ using namespace Internal;
 void convertINI2HTML(const Param& p, ostream& os)
 {
   // the .css file is included via the Header.html (see doc/doxygen/common/Header.html)
+  // TODO add some general description on how to handle subsections, what each column means, what the tags mean, etc.
   os << "<div class=\"ini_global\">\n";
   os << "<div class=\"legend\">\n";
   os << "<b>Legend:</b><br>\n";
@@ -77,6 +78,7 @@ void convertINI2HTML(const Param& p, ostream& os)
         d.substitute("\n", "<br>");
         os << indentation
            << R"(<div class="node"><span class="node_name">)"
+           // TODO replace/remove weird "(TOPPAS) instance 1" nodes that only confuse people.
            << (String().fillLeft('+', (UInt) indentation.size() / 2) + it2->name)
            << "</span><span class=\"node_description\">"
            << (d)

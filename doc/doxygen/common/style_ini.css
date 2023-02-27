@@ -4,6 +4,7 @@ div.ini_global {
 	font-size: 12px;
 	padding-top: 5px;
 	font-family: Lucida Grande, Verdana, Geneva, Arial, sans-serif;
+	border-collapse: collapse;
 }
 
 div.legend {
@@ -42,6 +43,8 @@ div.ini_global > div.item {
 }
 
 .item_advanced {
+	/* we are kind of abusing an unrelated variable here */
+	/* TODO maybe redefine? */
 	color: var(--nav-menu-foreground-color)
 }
 

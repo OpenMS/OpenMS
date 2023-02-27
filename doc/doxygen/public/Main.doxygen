@@ -35,10 +35,8 @@
 /**
   @mainpage %OpenMS / TOPP documentation
 
-  <TABLE width="100%" border="0">
-    <TR style="
-        background-color: var(--table-header-background-color);
-        color: var(--table-header-foreground-color);">
+  <TABLE width="100%" border="0" class="doxtable">
+    <TR valign="top">
       <TH width="50%">
         <H3>The %OpenMS PiPeline (TOPP)</H3>
         Information for TOPP users.
