@@ -44,22 +44,6 @@ namespace OpenMS
 #define EXPOSED_VECTOR_INTERFACE(InnerElement) \
     using ExpVec = ExposedVector< InnerElement >;                     \
     using ExpVec::ExposedVector;                                               \
-    using ExpVec::begin;                                                       \
-    using ExpVec::cbegin;                                                      \
-    using ExpVec::end;                                                         \
-    using ExpVec::cend;                                                        \
-    using ExpVec::size;                                                        \
-    using ExpVec::resize;                                                      \
-    using ExpVec::reserve;                                                     \
-    using ExpVec::empty;                                                       \
-    using ExpVec::operator[];                                                  \
-    using ExpVec::at;                                                          \
-    using ExpVec::back;                                                        \
-    using ExpVec::push_back;                                                   \
-    using ExpVec::emplace_back;                                                \
-    using ExpVec::pop_back;                                                    \
-    using ExpVec::erase;                                                       \
-    using ExpVec::insert;                                                      \
     using value_type = typename ExpVec::value_type;                            \
     using iterator = typename ExpVec::iterator;                                \
     using const_iterator = typename ExpVec::const_iterator;                    \
