@@ -35,18 +35,20 @@
 /**
   @mainpage %OpenMS / TOPP documentation
 
-  <TABLE width="100%" bgcolor="#e8eef2" border="0">
-    <TR>
-      <TD width="50%" bgcolor="#cccccc">
+  <TABLE width="100%" border="0">
+    <TR style="
+        background-color: var(--table-header-background-color);
+        color: var(--table-header-foreground-color);">
+      <TH width="50%">
         <H3>The %OpenMS PiPeline (TOPP)</H3>
         Information for TOPP users.
         <BR>&nbsp;
-      </TD>
-      <TD width="50%" bgcolor="#cccccc">
+      </TH>
+      <TH width="50%">
         <H3>%OpenMS library</H3>
           Information for developers (please make sure to read the Developer Quickstart Guide).
         <BR>&nbsp;
-      </TD>
+      </TH>
     </TR>
 
     <TR>
