@@ -46,71 +46,20 @@
 
 namespace OpenMS
 {
-  ConsensusMap::ConsensusMap() :
-    MetaInfoInterface(),
-    RangeManagerContainerType(),
-    DocumentIdentifier(),
-    ExposedVector<ConsensusFeature>(),
-    UniqueIdInterface(),
-    UniqueIdIndexer<ConsensusMap>(),
-    column_description_(),
-    experiment_type_("label-free"),
-    protein_identifications_(),
-    unassigned_peptide_identifications_(),
-    data_processing_()
-  {
-  }
+  ConsensusMap::ConsensusMap() = default;
 
-  ConsensusMap::ConsensusMap(const ConsensusMap& source) :
-    MetaInfoInterface(source),
-    RangeManagerContainerType(source),
-    DocumentIdentifier(source),
-    ExposedVector<ConsensusFeature>(source),
-    UniqueIdInterface(source),
-    UniqueIdIndexer<ConsensusMap>(source),
-    column_description_(source.column_description_),
-    experiment_type_(source.experiment_type_),
-    protein_identifications_(source.protein_identifications_),
-    unassigned_peptide_identifications_(source.unassigned_peptide_identifications_),
-    data_processing_(source.data_processing_)
-  {
-  }
+  ConsensusMap::ConsensusMap(const ConsensusMap& source) = default;
+  
+  ConsensusMap::ConsensusMap(ConsensusMap&& source) = default;
 
   ConsensusMap::~ConsensusMap() = default;
 
   ConsensusMap::ConsensusMap(size_type n) :
-    MetaInfoInterface(),
-    RangeManagerContainerType(),
-    ExposedVector<ConsensusFeature>(n),
-    UniqueIdInterface(),
-    column_description_(),
-    experiment_type_("label-free"),
-    protein_identifications_(),
-    unassigned_peptide_identifications_(),
-    data_processing_()
+    ExposedVector<ConsensusFeature>(n)
   {
   }
 
-  ConsensusMap& ConsensusMap::operator=(const ConsensusMap& source)
-  {
-    if (this == &source)
-    {
-      return *this;
-    }
-
-    MetaInfoInterface::operator=(source);
-    RangeManagerContainerType::operator=(source);
-    DocumentIdentifier::operator=(source);
-    UniqueIdInterface::operator=(source);
-    data_ = source.data_;
-    column_description_ = source.column_description_;
-    experiment_type_ = source.experiment_type_;
-    protein_identifications_ = source.protein_identifications_;
-    unassigned_peptide_identifications_ = source.unassigned_peptide_identifications_;
-    data_processing_ = source.data_processing_;
-
-    return *this;
-  }
+  ConsensusMap& ConsensusMap::operator=(const ConsensusMap& source) = default;
 
   ConsensusMap& ConsensusMap::appendRows(const ConsensusMap& rhs)
   {

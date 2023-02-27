@@ -146,6 +146,8 @@ public:
 
     /// Copy constructor
     ConsensusMap(const ConsensusMap& source);
+    /// Move constructor
+    ConsensusMap(ConsensusMap&& source);
 
     /// Destructor
     ~ConsensusMap() override;
@@ -155,6 +157,8 @@ public:
 
     /// Assignment operator
     ConsensusMap& operator=(const ConsensusMap& source);
+    /// MoveAssignment operator
+    ConsensusMap& operator=(ConsensusMap&& source) = default;
 
     /**
       @brief Add consensus map entries as new rows.
