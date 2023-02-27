@@ -60,10 +60,17 @@ namespace OpenMS
     @brief Makes a vector<VectorElement> available in the derived class and exposed commonly
            used vector member functions at class level.
 
-    This saves writing repetitive code which exposes 'data_.begin()' as a member function 
-    and makes private inheritance from vector<VectorElement> obsolete. The latter is problematic
-    for many reasons (read up on 'prefer composition over inheritance'). In our case, even linking
+    This saves writing repetitive code which forwards commonly used functions of a data member, e.g. 'data_.begin()' 
+    as a member function of the class. Also it makes private inheritance from vector<VectorElement> obsolete.
+    The latter is problematic for many reasons (read up on 'prefer composition over inheritance'). In our case, even linking
     can be problematic with private inheritance once you require RTTI (which some tools do, e.g. softwipe).
+
+    To fully utilize this class (i.e. access the 'iterator' type), call 
+\code
+    EXPOSED_VECTOR_INTERFACE(VectorElement)
+\endcode
+
+   in your derived class, where @p VectorElement is identical to the template argument of ExposedVector, e.g. 'Feature' for FeatureMap.
 
 
     @ingroup Datastructures
@@ -77,7 +84,6 @@ namespace OpenMS
     friend class UniqueIdIndexer; ///< accesses data_ but is not derived from ExposedVector
 
     using VecMember = std::vector<VectorElement>;
-
 
     // types
     using value_type = typename VecMember::value_type;
