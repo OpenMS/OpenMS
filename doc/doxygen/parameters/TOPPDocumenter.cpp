@@ -128,7 +128,7 @@ void convertINI2HTML(const Param& p, ostream& os)
       if (*tag_it == "required")
         continue;
       if (!list.empty())
-        list += ",";
+        list += ", ";
       list += *tag_it;
     }
     os << "<span class=\"item_tags\">" << (list) << "</span>";
@@ -140,6 +140,8 @@ void convertINI2HTML(const Param& p, ostream& os)
     case ParamValue::INT_VALUE:
     case ParamValue::INT_LIST:
     {
+      // TODO think about doing the same infinity replacement
+      // for default values. A single ":" looks weird.
       bool min_set = (it->min_int != -numeric_limits<Int>::max());
       bool max_set = (it->max_int != numeric_limits<Int>::max());
       if (max_set || min_set)
@@ -181,7 +183,11 @@ void convertINI2HTML(const Param& p, ostream& os)
     case ParamValue::STRING_LIST:
       if (!it->valid_strings.empty())
       {
-        restrictions.concatenate(it->valid_strings.begin(), it->valid_strings.end(), ",");
+        // make sure browsers can word wrap with additional whitespace
+        // TODO: If param name is *modification* just add a link to 
+        //  a page with all modifications otherwise you get a HUGE list.
+        //  Also think about a different separator, in case the restrictions have commas.
+        restrictions.concatenate(it->valid_strings.begin(), it->valid_strings.end(), ", ");
       }
       break;
 
