@@ -42,7 +42,7 @@ div.item {
 }
 
 .item_advanced {
-	color: #555555
+	color: var(--nav-menu-foreground-color)
 }
 
 div.item span.item_name {
