@@ -135,7 +135,7 @@ namespace OpenMS
 
   FeatureMap::~FeatureMap() = default;
 
-  FeatureMap& FeatureMap::operator=(const FeatureMap& rhs)
+  FeatureMap& FeatureMap::operator=(const FeatureMap& rhs)  // TODO: cannot be defaulted since OpenMS::IdentificationData is missing operator=
   {
     if (&rhs == this)
     {
@@ -152,6 +152,8 @@ namespace OpenMS
 
     return *this;
   }
+  //FeatureMap& FeatureMap::operator=(FeatureMap&&) =default; // TODO: cannot be defaulted since OpenMS::IdentificationData is missing operator=
+
 
   bool FeatureMap::operator==(const FeatureMap& rhs) const
   {
@@ -291,7 +293,6 @@ namespace OpenMS
 
   void FeatureMap::swapFeaturesOnly(FeatureMap& from)
   {
-    // TODO used by FeatureFinderAlgorithmPicked -- could it also use regular swap?
     data_.swap(from.data_);
 
     // swap range information (otherwise its false in both maps)
