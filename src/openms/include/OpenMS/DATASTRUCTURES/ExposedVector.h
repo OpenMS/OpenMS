@@ -214,6 +214,16 @@ namespace OpenMS
       return data_.insert(where, from, to);
     }
 
+    /// read-only access to the underlying data
+    const VecMember& getData() const
+    {
+      return data_;
+    }
+    /// read access to the underlying data
+    VecMember& getData()
+    {
+      return data_;
+    }
   };
 
 } // namespace OpenMS

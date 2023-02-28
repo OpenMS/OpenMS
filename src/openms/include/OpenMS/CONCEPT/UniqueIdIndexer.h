@@ -213,7 +213,7 @@ protected:
     const auto& getBase_() const
     {
       const T& derived = static_cast<const T&>(*this);  // using CRTP
-      return derived.data_;
+      return derived.getData();
     }
 
     /**@brief A little helper to get access to the base (!) class RandomAccessContainer.
@@ -221,7 +221,7 @@ protected:
     auto& getBase_()
     {
       T& derived = static_cast<T&>(*this);  // using CRTP
-      return derived.data_;
+      return derived.getData();
     }
 
     /**@brief hash map from unique id to index of features
