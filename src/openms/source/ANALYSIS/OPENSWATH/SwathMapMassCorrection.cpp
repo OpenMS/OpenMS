@@ -64,7 +64,7 @@ namespace OpenMS
   }
 
   std::vector<OpenSwath::SwathMap> findSwathMaps(const OpenMS::MRMFeatureFinderScoring::MRMTransitionGroupType& transition_group,
-                                                 const std::vector< OpenSwath::SwathMap > & swath_maps) 
+                                                 const std::vector< OpenSwath::SwathMap > & swath_maps)
   {
     // Get the corresponding SWATH map(s), for SONAR there will be more than one map
     std::vector<OpenSwath::SwathMap> used_maps;
@@ -84,6 +84,7 @@ namespace OpenMS
   std::vector<OpenSwath::SwathMap> SwathMapMassCorrection::findSwathMapsPasef(const OpenMS::MRMFeatureFinderScoring::MRMTransitionGroupType& transition_group,
                                                  const std::vector< OpenSwath::SwathMap > & swath_maps)
   {
+    OPENMS_PRECONDITION(transition_group.getTransitions()[0].precursor_im != -1, "All transitions must have a valid IM value (not -1)");
     // Although theoretically there can be more than one map, for this case, just use the "best" map, best map is defined as the one in which the IM is closest to the center of the window
     std::vector<OpenSwath::SwathMap> used_maps;
     for (const auto& m : swath_maps)
@@ -215,6 +216,11 @@ namespace OpenMS
       // If pasef then have to check for overlap across IM
       else
       {
+        // Before calling, ensure we have IM data
+        if (transition_group->getTransitions()[0].precursor_im == -1)
+        {
+          throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Error: Transition" + transition_group->getTransitions()[0].getNativeID() +  "does not have a valid IM value, this must be set to use the -pasef flag");
+        }
         used_maps = findSwathMapsPasef(*transition_group, swath_maps);
       }
 
