@@ -40,7 +40,7 @@
 namespace OpenMS
 {
 
-
+/// Macro to expose common dependent types, such as @p iterator in the derived class
 #define EXPOSED_VECTOR_INTERFACE(InnerElement) \
     using ExpVec = ExposedVector< InnerElement >;                     \
     using ExpVec::ExposedVector;                                               \
@@ -65,24 +65,20 @@ namespace OpenMS
     The latter is problematic for many reasons (read up on 'prefer composition over inheritance'). In our case, even linking
     can be problematic with private inheritance once you require RTTI (which some tools do, e.g. softwipe).
 
-    To fully utilize this class (i.e. access the 'iterator' type), call 
+    To fully utilize this class (i.e. access the 'iterator' type), insert
 \code
     EXPOSED_VECTOR_INTERFACE(VectorElement)
 \endcode
 
    in your derived class, where @p VectorElement is identical to the template argument of ExposedVector, e.g. 'Feature' for FeatureMap.
 
-
-    @ingroup Datastructures
+   @ingroup Datastructures
   */
 
   template<class VectorElement>
   class ExposedVector
   {
   public: 
-    template<class T>
-    friend class UniqueIdIndexer; ///< accesses data_ but is not derived from ExposedVector
-
     using VecMember = std::vector<VectorElement>;
 
     // types

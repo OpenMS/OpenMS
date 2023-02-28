@@ -57,11 +57,10 @@ namespace OpenMS
  * This adds functionality to convert a unique id into an index into the container.
  * 
  * The derived class needs a data member called @p data_ which holds the actual elements derived from UniqueIdInterface.
- * This is classical CRTP with the additional requirement that the derived class needs to declare its base a friend,
- * i.e. 'friend UniqueIdIndexer<T>' such that we can access the @p data_ member.
+ * This is classical CRTP with the additional requirement that the derived class needs to declare a .getData() member function.
  *
  * See FeatureMap and ConsensusMap for living examples.
- * The RandomAccessContainer @p data_ must support operator[], at(), and size().
+ * The RandomAccessContainer returned by .getData() must support operator[], at(), and size().
  */
   template<typename T>
   class UniqueIdIndexer
