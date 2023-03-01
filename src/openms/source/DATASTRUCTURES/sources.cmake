@@ -23,6 +23,7 @@ Date.cpp
 DateTime.cpp
 DefaultParamHandler.cpp
 DistanceMatrix.cpp
+ExposedVector.cpp
 FASTAContainer.cpp
 FlagSet.cpp
 GridFeature.cpp
