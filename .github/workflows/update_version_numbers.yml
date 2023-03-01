@@ -1,0 +1,57 @@
+name: Update OpenMS version numbers
+
+# Trigger this action manually
+
+variables: 
+  package_version_major: 3
+  package_version_minor: 0
+  package_version_patch: 0 
+  package_version: "$version_major.$version_minor.$version_patch"
+
+
+jobs:
+  updating_versions: # checking if the package versions in the files are not updated
+    - runs-on: macos-latest
+    - run:
+      # update main cmakelist
+      sed -i '' "s#.*set(OPENMS_PACKAGE_VERSION_MAJOR.*#set(OPENMS_PACKAGE_VERSION_MAJOR \"$package_version_major\")#" ./CMakeLists.txt
+      sed -i '' "s#.*set(OPENMS_PACKAGE_VERSION_MINOR.*#set(OPENMS_PACKAGE_VERSION_MINOR \"$package_version_minor\")#" ./CMakeLists.txt
+      sed -i '' "s#.*set(OPENMS_PACKAGE_VERSION_PATCH.*#set(OPENMS_PACKAGE_VERSION_PATCH \"$package_version_patch\")#" ./CMakeLists.txt
+
+      # update version info test
+      sed -i '' "s#.*detail.version_major =.*#\tdetail.version_major = $package_version_major;#" ./src/tests/class_tests/openms/source/VersionInfo_test.cpp
+      sed -i '' "s#.*detail.version_minor =.*#\tdetail.version_major = $package_version_minor;#" ./src/tests/class_tests/openms/source/VersionInfo_test.cpp
+      sed -i '' "s#.*detail.version_patch =.*#\tdetail.version_major = $package_version_patch;#" ./src/tests/class_tests/openms/source/VersionInfo_test.cpp
+
+      # update test write ini out:
+      sed -i '' "s#<ITEM name=\"version\" value=\".*\" type=\"string\"#<ITEM name=\"version\" value=\"$package_version\" type=\"string\"#g" ./src/tests/topp/WRITE_INI_OUT.ini
+
+      # update INIs in tests topp:
+      find ./src/tests/topp/ -type f -name '*.ini' -exec grep "<ITEM name=\"version\" value=\".*\" type=\"string\"" {} \; -exec sed -i '' "s#<ITEM name=\"version\" value=\".*\" type=\"string\"#<ITEM name=\"version\" value=\"$package_version\" type=\"string\"#g" {} \;
+
+
+  commit_updated_files: # if any file is not updated, update files and push a commit
+    needs: updating_versions
+
+    steps:
+# Get updated files
+      - name: Get changed files
+        id: changed-files
+        uses: tj-actions/changed-files@v34.6.1
+        with:
+          files: |
+             ./CMakeLists.txt
+             ./src/tests/class_tests/openms/source/VersionInfo_test.cpp
+             ./src/tests/topp/WRITE_INI_OUT.ini
+             ./src/tests/topp/*.ini
+
+# Commit updated files
+      - name: Commit updated files
+        if: steps.changed-files.outputs.files_changed == 'true'
+        run: |
+          git config --global user.email "openms@github.com"
+          git config --global user.name "openms"
+          git commit -am "Updated OpenMS package version number"
+          git push
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
