@@ -11,8 +11,8 @@ variables:
 
 jobs:
   updating_versions: # checking if the package versions in the files are not updated
-    - runs-on: macos-latest
-    - run: |
+    runs-on: macos-latest
+    run: |
       # update main cmakelist
       sed -i '' "s#.*set(OPENMS_PACKAGE_VERSION_MAJOR.*#set(OPENMS_PACKAGE_VERSION_MAJOR \"$package_version_major\")#" ./CMakeLists.txt
       sed -i '' "s#.*set(OPENMS_PACKAGE_VERSION_MINOR.*#set(OPENMS_PACKAGE_VERSION_MINOR \"$package_version_minor\")#" ./CMakeLists.txt
@@ -30,28 +30,29 @@ jobs:
       find ./src/tests/topp/ -type f -name '*.ini' -exec grep "<ITEM name=\"version\" value=\".*\" type=\"string\"" {} \; -exec sed -i '' "s#<ITEM name=\"version\" value=\".*\" type=\"string\"#<ITEM name=\"version\" value=\"$package_version\" type=\"string\"#g" {} \;
 
 
-  commit_updated_files: # if any file is not updated, update files and push a commit
+  pull_request_updated_files: 
     needs: updating_versions
 
     steps:
-# Get updated files
-      - name: Get changed files
+# Check for changes
+      - name: check for changed files
         id: changed-files
-        uses: tj-actions/changed-files@v34.6.1
-        with:
-          files: |
-             ./CMakeLists.txt
-             ./src/tests/class_tests/openms/source/VersionInfo_test.cpp
-             ./src/tests/topp/WRITE_INI_OUT.ini
-             ./src/tests/topp/*.ini
-
-# Commit updated files
-      - name: Commit updated files
-        if: steps.changed-files.outputs.files_changed == 'true'
         run: |
-          git config --global user.email "openms@github.com"
-          git config --global user.name "openms"
-          git commit -am "Updated OpenMS package version number"
-          git push
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          if git diff --exit-code; then
+            echo "::set-env name=changes_exist::false"
+          else
+            echo "::set-env name=changes_exist::true"
+          fi
+
+      - uses: actions/checkout@v3
+
+# Commit and PR updated files
+      - name: Commit and PR updated files
+        if: env.changes_exist == 'true'
+        uses: peter-evans/create-pull-request@v4
+        with:
+          commit-message: Updated OpenMS package version number
+          committer: OpenMS <OpenMS@github.com>
+          branch: update_package_number
+          delete-branch: true
+          title: '[ByGitAction] Updated OpenMS package version number'
