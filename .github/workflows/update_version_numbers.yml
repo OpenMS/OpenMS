@@ -2,10 +2,10 @@ name: Update OpenMS version numbers
 
 # Trigger this action manually
 
-variables: 
+variables:
   package_version_major: 3
   package_version_minor: 0
-  package_version_patch: 0 
+  package_version_patch: 0
   package_version: "$version_major.$version_minor.$version_patch"
 
 
