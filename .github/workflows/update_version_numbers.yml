@@ -13,11 +13,11 @@ variables:
 
 jobs:
   updating_package_version_number:
+    runs-on: macos-latest
     steps:
-      
+
 # Update files with new package version numbers
       - name: update files
-        runs-on: macos-latest
         run: |
           # update main cmakelist
           sed -i '' "s#.*set(OPENMS_PACKAGE_VERSION_MAJOR.*#set(OPENMS_PACKAGE_VERSION_MAJOR \"$package_version_major\")#" ./CMakeLists.txt
