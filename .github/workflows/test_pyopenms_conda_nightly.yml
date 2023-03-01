@@ -1,0 +1,58 @@
+# Installs pyOpenMS from the conda nightly channel on Linux, macOS and Windows
+# on the python versions defined in the file python_versions.json
+# and runs a simple test
+
+name: test_pyopenms_conda_nightly
+
+on:
+  workflow_dispatch: # Trigger manually
+  workflow_run:
+    workflows: [ pyopenms-wheels ]
+    types:
+        - completed
+
+jobs:
+  test:
+    needs: read-python-versions
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ ubuntu-latest, windows-latest, macos-latest ]
+    steps:     
+      - name: Install Miniconda
+        shell: bash
+        run: |
+            if [[ "${{ runner.os }}" == "Linux" ]]; then
+              MINICONDA_FILENAME=Miniconda3-latest-Linux-x86_64.sh
+              curl -o $MINICONDA_FILENAME "https://repo.anaconda.com/miniconda/$MINICONDA_FILENAME"
+              bash ${MINICONDA_FILENAME} -b -f -p $HOME/miniconda3
+            elif [[ "${{ runner.os }}" == "macOS" ]]; then
+              MINICONDA_FILENAME=Miniconda3-latest-MacOSX-x86_64.sh
+              curl -o $MINICONDA_FILENAME "https://repo.anaconda.com/miniconda/$MINICONDA_FILENAME"
+              bash ${MINICONDA_FILENAME} -b -f -p $HOME/miniconda3
+            elif [[ "${{ runner.os }}" == "Windows" ]]; then
+              MINICONDA_FILENAME=Miniconda3-latest-Windows-x86_64.exe
+              curl -o $MINICONDA_FILENAME "https://repo.anaconda.com/miniconda/$MINICONDA_FILENAME"
+              ./Miniconda3-latest-Windows-x86_64.exe //InstallationType=JustMe //RegisterPython=0 //S
+            fi
+          
+      - name: Setup conda paths
+        shell: bash
+        run: |
+          echo "$HOME/miniconda3/bin" >> $GITHUB_PATH
+          echo "$HOME/miniconda3/Scripts" >> $GITHUB_PATH
+          
+      - name: Run tests
+        run: |
+          PYTHON_VERSIONS=$(cat python_versions.json | jq -r '.[] | @sh')
+          for py in $PYTHON_VERSIONS
+          do
+            conda create -n pyoms-$py python=$py
+            source activate pyoms-$py
+            conda install -c openms pyopenms
+            python -c "import sys;
+            import pyopenms;
+            print(sys.version);
+            seq = pyopenms.AASequence.fromString('DFPIANGER');
+            print(seq.toString());
+            seq.getMonoWeight()"
