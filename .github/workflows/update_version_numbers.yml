@@ -12,7 +12,7 @@ variables:
 jobs:
   updating_versions: # checking if the package versions in the files are not updated
     - runs-on: macos-latest
-    - run:
+    - run: |
       # update main cmakelist
       sed -i '' "s#.*set(OPENMS_PACKAGE_VERSION_MAJOR.*#set(OPENMS_PACKAGE_VERSION_MAJOR \"$package_version_major\")#" ./CMakeLists.txt
       sed -i '' "s#.*set(OPENMS_PACKAGE_VERSION_MINOR.*#set(OPENMS_PACKAGE_VERSION_MINOR \"$package_version_minor\")#" ./CMakeLists.txt
