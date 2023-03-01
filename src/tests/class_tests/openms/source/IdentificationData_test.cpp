@@ -63,8 +63,8 @@ START_SECTION((IdentificationData()))
 END_SECTION
 
 START_SECTION((movable))
-  TEST_EQUAL(std::is_nothrow_move_constructible<IdentificationData>::value, true);
-  TEST_EQUAL(std::is_nothrow_move_assignable<IdentificationData>::value, true);  
+  TEST_TRUE(std::is_nothrow_move_constructible_v<IdentificationData>);
+  TEST_TRUE(std::is_nothrow_move_assignable_v<IdentificationData>);  
 END_SECTION
 
 
