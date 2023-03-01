@@ -258,7 +258,8 @@ setup(
     },
 	install_requires=[
           'numpy',
-          'pandas'
+          'pandas',
+          'matplotlib>=3.5'
     ],
 
     version=package_version,
