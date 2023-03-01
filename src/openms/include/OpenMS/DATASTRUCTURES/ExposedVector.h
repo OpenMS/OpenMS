@@ -35,6 +35,7 @@
 #pragma once
 
 
+#include <cstddef>   // for size_t
 #include <vector>
 
 namespace OpenMS
