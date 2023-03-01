@@ -1257,7 +1257,7 @@ namespace OpenMS
   }
 
   // move constructor
-  IdentificationData::IdentificationData(IdentificationData&& other) noexcept :
+  IdentificationData::IdentificationData(IdentificationData&& other) noexcept
   {
     *this = std::move(other);
   }
