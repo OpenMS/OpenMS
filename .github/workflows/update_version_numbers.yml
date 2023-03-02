@@ -24,7 +24,7 @@ jobs:
       - name: update files
         run: |
           # Setting variable
-          package_version="${env.version_major}.${env.version_minor}.${env.version_patch}"
+          package_version="$version_major.$env.version_minor.$env.version_patch"
           echo $package_version
 
           # update main cmakelist
