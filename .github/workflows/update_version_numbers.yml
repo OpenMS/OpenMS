@@ -3,12 +3,13 @@ name: Update OpenMS version numbers
 # Trigger this action manually
 on:
   workflow_dispatch:
-
-# Update these variables before triggering this action
-env:
-  package_version_major: 3
-  package_version_minor: 0
-  package_version_patch: 0
+    inputs:
+      major:
+        required: true
+      minor:
+        required: true
+      patch:
+        required: true
 
 jobs:
   updating_package_version_number:
@@ -20,9 +21,12 @@ jobs:
 # Update files with new package version numbers
       - name: update files
         run: |
-          # setting variable
-          package_version="$package_version_major.$package_version_minor.$package_version_patch"
-          echo $package_version
+          # setting variables
+          package_version_major="${{ github.event.inputs.major }}"
+          package_version_minor="${{ github.event.inputs.minor }}"
+          pacakge_version_patch="${{ github.event.inputs.patch }}"
+          package_version="${{ github.event.inputs.major }}.${{ github.event.inputs.minor }}.${{ github.event.inputs.patch }}"
+          echo "Setting version $package_version"
 
           # update main cmakelist
           sed -i '' "s#.*set(OPENMS_PACKAGE_VERSION_MAJOR.*#set(OPENMS_PACKAGE_VERSION_MAJOR \"$package_version_major\")#" CMakeLists.txt
@@ -52,11 +56,11 @@ jobs:
 
 # Commit and PR updated files
       - name: Commit and PR updated files
-        if: env.changes_exist == 'true'
+        if: env.changes_exist
         uses: peter-evans/create-pull-request@v4
         with:
-          commit-message: Updated OpenMS package version number
-          committer: OpenMS <OpenMS@github.com>
+          commit-message: 'Updated OpenMS package version number'
+          committer: ${{ github.actor	}}
           branch: update_package_number
           delete-branch: true
           title: '[ByGitAction] Updated OpenMS package version number'
