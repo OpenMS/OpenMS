@@ -345,14 +345,27 @@ namespace FLASHDeconvQuantHelper
   }
 
   // TODO: need to find a smarter way
-  FeatureSeed* FeatureGroup::getApexLMTofCharge(int charge) const
+  bool FeatureGroup::doesThisChargeExist(int charge) const
+  {
+    bool exist = false;
+    for (auto lmt_iter = feature_seeds_.begin(); lmt_iter != feature_seeds_.end(); ++lmt_iter)
+    {
+      if (lmt_iter->getCharge() == charge)
+      {
+        exist = true;
+      }
+    }
+    return exist;
+  }
+
+  FeatureSeed* FeatureGroup::getApexLMT() const
   {
     FeatureSeed* apex_lmt = nullptr;
     double max_intensity = 0.0;
 
     for (auto lmt_iter = feature_seeds_.begin(); lmt_iter != feature_seeds_.end(); ++lmt_iter)
     {
-      if (lmt_iter->getCharge() == charge && lmt_iter->getIntensity() > max_intensity)
+      if (lmt_iter->getIntensity() > max_intensity)
       {
         max_intensity = lmt_iter->getIntensity();
         apex_lmt = (FeatureSeed*) &(*lmt_iter);
@@ -360,44 +373,4 @@ namespace FLASHDeconvQuantHelper
     }
     return apex_lmt;
   }
-
-  //    std::pair<double, double> getSummedIntensityOfMostAbundantMTperCS() const
-//    {
-//      auto per_cs_max_area = std::vector<double>(1 + max_abs_charge_, .0);
-//      auto per_cs_max_inty = std::vector<double>(1 + max_abs_charge_, .0);
-//
-//      for (auto &lmt: *this)
-//      {
-//        double sum_inty = 0;
-//        for (auto &p : *(lmt.getMassTrace()))
-//        {
-//          sum_inty += p.getIntensity();
-//        }
-//        if(per_cs_max_inty[lmt.getCharge()] < sum_inty)
-//        {
-//          per_cs_max_inty[lmt.getCharge()] = sum_inty;
-//        }
-//
-//        if (per_cs_max_area[lmt.getCharge()] < lmt.getIntensity())
-//        {
-//          per_cs_max_area[lmt.getCharge()] = lmt.getIntensity();
-//        }
-//      }
-//
-//      return std::make_pair(std::accumulate(per_cs_max_area.begin(), per_cs_max_area.end(), .0),
-//                            std::accumulate(per_cs_max_inty.begin(), per_cs_max_inty.end(), .0));
-//    }
-
-//    double getAvgFwhmLength() const
-//    {
-//      std::vector<double> fwhm_len_arr;
-//      fwhm_len_arr.reserve(this->size());
-//
-//      for (auto &l_trace: *this)
-//      {
-//        double tmp_fwhm_len = l_trace.getFwhmEnd() - l_trace.getFwhmStart();
-//        fwhm_len_arr.push_back(tmp_fwhm_len);
-//      }
-//      return accumulate(fwhm_len_arr.begin(), fwhm_len_arr.end(), 0.0) / (this->size());
-//    }
 }

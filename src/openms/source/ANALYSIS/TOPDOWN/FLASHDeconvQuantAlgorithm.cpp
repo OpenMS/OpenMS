@@ -735,6 +735,11 @@ namespace OpenMS
 
       // add extra masstraces to candidate_feature
       FeatureGroup final_candidate_fg(*candidate_fg); // copy of candidate_feature
+      double mono_mass = final_candidate_fg.getMonoisotopicMass();
+      int max_isotope = (int)iso_model_.getLastIndex(mono_mass);
+      int min_isotope = (int)(iso_model_.getApexIndex(mono_mass) - iso_model_.getLeftCountFromApex(mono_mass));
+      FeatureSeed* apex_of_this_fg = final_candidate_fg.getApexLMT();
+      double rt_of_apex = (apex_of_this_fg->getFwhmEnd() + apex_of_this_fg->getFwhmStart())/2;
       for (auto &new_mt: mts_to_add)
       {
         // to skip duplicated masstraces that are included
@@ -744,36 +749,57 @@ namespace OpenMS
         }
         mt_indices_to_add.erase(new_mt->getTraceIndex());
 
-        FeatureSeed *apex_lmt_in_this_cs = final_candidate_fg.getApexLMTofCharge(new_mt->getCharge());
         // if this mt is introducing new charge
-        if (apex_lmt_in_this_cs == nullptr)
+        if (!final_candidate_fg.doesThisChargeExist(new_mt->getCharge()))
         {
           final_candidate_fg.push_back(*new_mt);
           continue;
         }
 
-        /// re-calculate isotope index (from FLASHDeconvAlgorithm::getCandidatePeakGroups_)
-        double apex_lmt_mass = apex_lmt_in_this_cs->getUnchargedMass();
-        double new_lmt_mass = new_mt->getUnchargedMass();
+        /// re-calculate isotope index (from FLASHDeconvAlgorithm::recruitAllPeaksInSpectrum)
+        double cmz = (mono_mass) / new_mt->getCharge() + Constants::PROTON_MASS_U; // mono mz
+        const double iso_delta = iso_da_distance_ / (double)new_mt->getCharge();
+        int iso_index = (int)round((new_mt->getCentroidMz() - cmz) / iso_delta);
+        if (iso_index > max_isotope)
+        {
+          break;
+        }
+        if (iso_index < min_isotope)
+        {
+          continue;
+        }
 
-        int tmp_iso_idx = round((new_lmt_mass - apex_lmt_mass) / iso_da_distance_);
-        if (abs(apex_lmt_mass - new_lmt_mass + iso_da_distance_ * tmp_iso_idx) >
-            apex_lmt_mass * mz_tolerance_)
+        new_mt->setIsotopeIndex(iso_index);
+
+        // checking if this mt is colliding with the existing mt (iso index)
+        bool introduce_new_mt = true;
+        for (Size i = 0; i < final_candidate_fg.size(); ++i)
         {
-          continue;
+          const FeatureSeed& seed = final_candidate_fg[i];
+          if (seed.getCharge() != new_mt->getCharge())
+          {
+            continue;
+          }
+          if (seed.getIsotopeIndex() == iso_index) // if this isotope exist in feature group,
+          {
+            // the one with closer apex retention time to the max peak of feature group wins.
+            double diff_to_new_mt = abs((new_mt->getFwhmEnd()+new_mt->getFwhmStart())/2 - rt_of_apex);
+            double diff_to_org_mt = abs((seed.getFwhmEnd()+seed.getFwhmStart())/2 - rt_of_apex);
+            if (diff_to_new_mt >= diff_to_org_mt)
+            {
+              introduce_new_mt = false;
+            }
+            else
+            {
+              final_candidate_fg.erase(final_candidate_fg.begin() + i);
+            }
+            break;
+          }
         }
-        if (apex_lmt_in_this_cs->getIsotopeIndex() + tmp_iso_idx < 0)
+        if (introduce_new_mt)
         {
-          // if new iso_idx is not within iso_range (too small)
-          continue;
+          final_candidate_fg.push_back(*new_mt);
         }
-        if (apex_lmt_in_this_cs->getIsotopeIndex() + tmp_iso_idx >= (int) candidate_fg->getMaxIsotopeIndex())
-        {
-          // if new iso_idx is not within iso_range (too large)
-          continue;
-        }
-        new_mt->setIsotopeIndex(apex_lmt_in_this_cs->getIsotopeIndex() + tmp_iso_idx);
-        final_candidate_fg.push_back(*new_mt);
       }
 
       // don't merge when it failed to exceed filtering threshold
@@ -1137,7 +1163,6 @@ namespace OpenMS
       }
 
       auto& fgroup = feature_groups[*fg_idx];
-      Size test_fgroup = *fg_idx;
 
       // check if any masstrace is unique
       bool is_this_all_sharing = true;
@@ -1187,7 +1212,6 @@ namespace OpenMS
         }
 
         auto& fgroup_to_compare = feature_groups[*fg_idx_to_compare];
-        Size test_fgroup_to_compare = *fg_idx_to_compare;
         const double mass_tolerance = fgroup_to_compare.getMonoisotopicMass() * 2 *  1e-5; // 20 ppm
 
         // is harmonic or not
@@ -1217,25 +1241,16 @@ namespace OpenMS
               num_of_shared_mt++;
             }
           }
-//          OPENMS_LOG_INFO << num_of_shared_mt << " out of " << feature_groups[harmonic_fg_idx].size() << " are shared with the other ---- " << harmonic_fg_idx << endl;
 
           // if the number of unique mt are less than the range of charges, remove this feature group
           if ((fg_to_remove.size()-num_of_shared_mt) < fg_to_remove.getChargeSet().size())
           {
             fg_idx_to_remove.insert(harmonic_fg_idx);
           }
-          else
-          {
-//            OPENMS_LOG_INFO << "\t\tdebug is needed: overlap is not large enough between harmonics --- " << harmonic_fg_idx << endl;
-          }
         }
       }
     }
 
-//    if (fg_idx_to_remove.size() > 0)
-//    {
-//      OPENMS_LOG_INFO << "feature group [ ";
-//    }
     // remove feature groups for further work & update the mass trace link
     for (auto &idx : fg_idx_to_remove)
     {
@@ -1254,10 +1269,6 @@ namespace OpenMS
         }
       }
     }
-//    if (fg_idx_to_remove.size() > 0)
-//    {
-//      OPENMS_LOG_INFO << "] are removed" << endl;
-//    }
   }
 
   void FLASHDeconvQuantAlgorithm::resolveConflictInCluster_(std::vector<FeatureGroup> &feature_groups,
@@ -1614,11 +1625,6 @@ namespace OpenMS
         {
           writeMassTracesOfFeatureGroup_(fgroup, idx, shared_m_traces_indices, false);
         }
-      }
-      else
-      {
-        // feature groups not over threshold
-        OPENMS_LOG_INFO << std::to_string(fgroup.getMonoisotopicMass()) << " with iso score " << std::to_string(fgroup.getIsotopeCosine()) << ", seed#" << fgroup.size() << endl;
       }
     }
   }

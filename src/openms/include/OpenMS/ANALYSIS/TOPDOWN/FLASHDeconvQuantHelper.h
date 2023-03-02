@@ -279,8 +279,9 @@ namespace FLASHDeconvQuantHelper
     void updateMembersForScoring(); // update primitively for scoring
     void updateIsotopeIndices(const int offset);
 
-    /// find the Apex seed with specific charge
-    FeatureSeed* getApexLMTofCharge(int charge) const;
+    /// checking the information within FeatureGroup
+    bool doesThisChargeExist(int charge) const;
+    FeatureSeed* getApexLMT() const;
 
     /// iterator settings
     std::vector<FeatureSeed>::const_iterator begin() const noexcept;
