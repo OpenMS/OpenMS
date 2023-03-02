@@ -20,14 +20,12 @@ jobs:
 # Getting files (OpenMS)
       - uses: actions/checkout@v3
 
-# Setting variable (out of env variable)
-      - name: set variable
-        with:
-          package_version: "$version_major.$version_minor.$version_patch"
-
 # Update files with new package version numbers
       - name: update files
         run: |
+          # Setting variable
+          package_version="$version_major.$version_minor.$version_patch"
+
           # update main cmakelist
           sed -i '' "s#.*set(OPENMS_PACKAGE_VERSION_MAJOR.*#set(OPENMS_PACKAGE_VERSION_MAJOR \"$package_version_major\")#" CMakeLists.txt
           sed -i '' "s#.*set(OPENMS_PACKAGE_VERSION_MINOR.*#set(OPENMS_PACKAGE_VERSION_MINOR \"$package_version_minor\")#" CMakeLists.txt
