@@ -19,11 +19,13 @@ jobs:
   updating_package_version_number:
     runs-on: macos-latest
     steps:
+      - uses: actions/checkout@v3
 
 # Update files with new package version numbers
       - name: update files
         run: |
           # update main cmakelist
+          ls
           sed -i '' "s#.*set(OPENMS_PACKAGE_VERSION_MAJOR.*#set(OPENMS_PACKAGE_VERSION_MAJOR \"$package_version_major\")#" CMakeLists.txt
           sed -i '' "s#.*set(OPENMS_PACKAGE_VERSION_MINOR.*#set(OPENMS_PACKAGE_VERSION_MINOR \"$package_version_minor\")#" CMakeLists.txt
           sed -i '' "s#.*set(OPENMS_PACKAGE_VERSION_PATCH.*#set(OPENMS_PACKAGE_VERSION_PATCH \"$package_version_patch\")#" CMakeLists.txt
@@ -48,8 +50,6 @@ jobs:
           else
             echo "::set-env name=changes_exist::true"
           fi
-
-      - uses: actions/checkout@v3
 
 # Commit and PR updated files
       - name: Commit and PR updated files
