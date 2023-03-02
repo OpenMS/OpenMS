@@ -24,7 +24,8 @@ jobs:
       - name: update files
         run: |
           # Setting variable
-          package_version="${version_major}.${version_minor}.${version_patch}"
+          package_version="${env.version_major}.${env.version_minor}.${env.version_patch}"
+          echo $package_version
 
           # update main cmakelist
           sed -i '' "s#.*set(OPENMS_PACKAGE_VERSION_MAJOR.*#set(OPENMS_PACKAGE_VERSION_MAJOR \"$package_version_major\")#" CMakeLists.txt
@@ -33,8 +34,8 @@ jobs:
 
           # update version info test
           sed -i '' "s#detail.version_major =.*#detail.version_major = $package_version_major;#" ./src/tests/class_tests/openms/source/VersionInfo_test.cpp
-          sed -i '' "s#detail.version_minor =.*#detail.version_major = $package_version_minor;#" ./src/tests/class_tests/openms/source/VersionInfo_test.cpp
-          sed -i '' "s#detail.version_patch =.*#detail.version_major = $package_version_patch;#" ./src/tests/class_tests/openms/source/VersionInfo_test.cpp
+          sed -i '' "s#detail.version_minor =.*#detail.version_minor = $package_version_minor;#" ./src/tests/class_tests/openms/source/VersionInfo_test.cpp
+          sed -i '' "s#detail.version_patch =.*#detail.version_patch = $package_version_patch;#" ./src/tests/class_tests/openms/source/VersionInfo_test.cpp
 
           # update test write ini out:
           sed -i '' "s#<ITEM name=\"version\" value=\".*\" type=\"string\"#<ITEM name=\"version\" value=\"$package_version\" type=\"string\"#g" ./src/tests/topp/WRITE_INI_OUT.ini
