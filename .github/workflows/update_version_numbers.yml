@@ -23,8 +23,8 @@ jobs:
 # Update files with new package version numbers
       - name: update files
         run: |
-          # Setting variable
-          package_version="$version_major.$env.version_minor.$env.version_patch"
+          # setting variable
+          package_version="$package_version_major.$package_version_minor.$package_version_patch"
           echo $package_version
 
           # update main cmakelist
