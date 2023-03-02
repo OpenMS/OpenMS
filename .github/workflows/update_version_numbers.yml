@@ -8,7 +8,7 @@ on: push
   #   types:
   #     - completed
 
-variables:
+env:
   package_version_major: 3
   package_version_minor: 0
   package_version_patch: 0
