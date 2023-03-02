@@ -1,12 +1,12 @@
 name: Update OpenMS version numbers
 
 # Trigger this action manually
-on:
-  workflow_dispatch:
-  workflow_run: # for testing
-    workflows: [ "cppcheck-action-test" ]
-    types:
-      - completed
+on: push
+  # workflow_dispatch:
+  # workflow_run: # for testing
+  #   workflows: [ "cppcheck-action-test" ]
+  #   types:
+  #     - completed
 
 variables:
   package_version_major: 3
