@@ -67,8 +67,14 @@ public:
     /// default constructor
     OPENMS_DLLAPI MascotRemoteQuery(QObject* parent = 0);
 
+    /// assignment operator
+    OPENMS_DLLAPI MascotRemoteQuery& operator=(const MascotRemoteQuery& rhs) = delete;
+
+    /// copy constructor
+    OPENMS_DLLAPI MascotRemoteQuery(const MascotRemoteQuery& rhs) = delete;
+
     /// destructor
-    OPENMS_DLLAPI ~MascotRemoteQuery() override ;
+    OPENMS_DLLAPI ~MascotRemoteQuery() override;
     //@}
 
     /// sets the query spectra, given in MGF file format
@@ -76,6 +82,9 @@ public:
 
     /// returns the Mascot XML response which contains the identifications
     OPENMS_DLLAPI const QByteArray& getMascotXMLResponse() const;
+
+    /// returns the Mascot XML response which contains the decoy identifications (note: setExportDecoys must be set to true, otherwise result will be empty)
+    OPENMS_DLLAPI const QByteArray& getMascotXMLDecoyResponse() const;
 
     /// predicate which returns true if an error occurred during the query
     OPENMS_DLLAPI bool hasError() const;
@@ -89,11 +98,9 @@ public:
     /// request export of decoy summary and decoys (note: internal decoy search must be enabled in the MGF file passed to mascot)
     OPENMS_DLLAPI void setExportDecoys(const bool b);
 
-    /// returns the Mascot XML response which contains the decoy identifications (note: setExportDecoys must be set to true, otherwise result will be empty)
-    OPENMS_DLLAPI const QByteArray& getMascotXMLDecoyResponse() const;
 protected:
 
-    OPENMS_DLLAPI void updateMembers_() override ;
+    OPENMS_DLLAPI void updateMembers_() override;
 
 public slots:
 
@@ -134,12 +141,6 @@ private:
 
     /// download result file
     void getResults(const QString& results_path);
-
-    /// assignment operator
-    OPENMS_DLLAPI MascotRemoteQuery& operator=(const MascotRemoteQuery& rhs);
-
-    /// copy constructor
-    OPENMS_DLLAPI MascotRemoteQuery(const MascotRemoteQuery& rhs);
 
     /// finish a run and emit "done"
     OPENMS_DLLAPI void endRun_();

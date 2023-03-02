@@ -37,6 +37,7 @@
 
 ///////////////////////////
 #include <OpenMS/CONCEPT/UniqueIdIndexer.h>
+#include <OpenMS/DATASTRUCTURES/ExposedVector.h>
 #include <OpenMS/MATH/MISC/MathFunctions.h>
 
 #include <vector>
@@ -59,10 +60,13 @@ struct Dummy
     Size dummy;
 };
 
-class DummyVectorIndexed
-: public vector<Dummy>,
+
+class DummyVectorIndexed :
+  public ExposedVector<Dummy>,
   public UniqueIdIndexer<DummyVectorIndexed>
 {
+public:
+  EXPOSED_VECTOR_INTERFACE(Dummy)
 };
 
 // this is used for testing purposes only
