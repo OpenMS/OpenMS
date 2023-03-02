@@ -53,17 +53,19 @@
 namespace OpenMS
 {
 
-/**@brief A base class for random access containers for classes derived from UniqueIdInterface
- * that adds functionality to convert a unique id into an index into the container.
+/**@brief A base class for containers with elements derived from UniqueIdInterface.
+ * This adds functionality to convert a unique id into an index into the container.
+ * 
+ * The derived class needs a data member called @p data_ which holds the actual elements derived from UniqueIdInterface.
+ * This is classical CRTP with the additional requirement that the derived class needs to declare a .getData() member function.
  *
  * See FeatureMap and ConsensusMap for living examples.
- * The RandomAccessContainer must support operator[], at(), and size().
+ * The RandomAccessContainer returned by .getData() must support operator[], at(), and size().
  */
-  template <typename RandomAccessContainer>
+  template<typename T>
   class UniqueIdIndexer
   {
 public:
-
     typedef std::unordered_map<UInt64, Size> UniqueIdMap;
 
     /**
@@ -207,23 +209,19 @@ public:
 protected:
 
     /**@brief A little helper to get access to the base (!) class RandomAccessContainer.
-     *
-     * This is just a static_cast and probably not interesting elsewhere, so we make it a protected member.
      */
-    const RandomAccessContainer &
-    getBase_() const
+    const auto& getBase_() const
     {
-      return *static_cast<const RandomAccessContainer *>(this);
+      const T& derived = static_cast<const T&>(*this);  // using CRTP
+      return derived.getData();
     }
 
     /**@brief A little helper to get access to the base (!) class RandomAccessContainer.
-     *
-     * This is just a static_cast and probably not interesting elsewhere, so we make it a protected member.
      */
-    RandomAccessContainer &
-    getBase_()
+    auto& getBase_()
     {
-      return *static_cast<RandomAccessContainer *>(this);
+      T& derived = static_cast<T&>(*this);  // using CRTP
+      return derived.getData();
     }
 
     /**@brief hash map from unique id to index of features
