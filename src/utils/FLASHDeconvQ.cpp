@@ -88,6 +88,9 @@ protected:
     registerOutputFile_("out_feat", "<file>", "", "featureXML format feature level quantification output file", false);
     setValidFormats_("out_feat", ListUtils::create<String>("featureXML"));
 
+    registerOutputFile_("out_detail", "<file>", "", "Mass trace information per feature group in tsv format", false);
+    setValidFormats_("out_detail", ListUtils::create<String>("tsv"));
+
     addEmptyLine_();
     registerSubsection_("algorithm", "Algorithm parameters section");
   }
@@ -309,6 +312,44 @@ protected:
     out_stream.close();
   }
 
+  void writeFeaturSeedsOfFeatureGroupInTsvFile(std::vector<FeatureGroup> &fgroups, String outfile_path) const
+  {
+    std::fstream out_stream;
+    out_stream.open(outfile_path, std::fstream::out);
+    out_stream << "FeatureGroupID\tMass\tCharge\tIsotopeIndex\tQuantValue\tCentroidMz\tRTs\tMZs\tIntensities\n"; // header
+
+    Size fg_index = 0;
+    for (const auto &fgroup : fgroups)
+    {
+      for (const auto &trace : fgroup)
+      {
+        stringstream rts;
+        stringstream mzs;
+        stringstream intys;
+        for (const auto &peak: trace.getMassTrace())
+        {
+          mzs << std::to_string(peak.getMZ()) << ",";
+          rts << std::to_string(peak.getRT()) << ",";
+          intys << std::to_string(peak.getIntensity()) << ",";
+        }
+        std::string peaks = rts.str();
+        peaks.pop_back();
+        peaks = peaks + "\t" + mzs.str();
+        peaks.pop_back();
+        peaks = peaks + "\t" + intys.str();
+        peaks.pop_back();
+
+        out_stream << fg_index << "\t" << std::to_string(fgroup.getMonoisotopicMass()) << "\t"
+                   << trace.getCharge() << "\t" << trace.getIsotopeIndex() << "\t"
+                   << std::to_string(trace.getIntensity()) << "\t" << std::to_string(trace.getCentroidMz()) << "\t"
+                   << peaks + "\n";
+      }
+      ++fg_index;
+      out_stream.flush();
+    }
+    out_stream.close();
+  }
+
 public:
   ExitCodes main_(int, const char**) override
   {
@@ -318,6 +359,7 @@ public:
     String in = getStringOption_("in");
     String out = getStringOption_("out");
     String out_feat = getStringOption_("out_feat");
+    String out_detail = getStringOption_("out_detail");
 
     MzMLFile mz_data_file;
     mz_data_file.setLogType(log_type_);
@@ -417,6 +459,11 @@ public:
       out_map.setPrimaryMSRunPath({in});
       addDataProcessing_(out_map, getProcessingInfo_(DataProcessing::QUANTITATION));
       FeatureXMLFile().store(out_feat, out_map);
+    }
+    if (!out_detail.empty())
+    {
+      OPENMS_LOG_INFO << "writing output..." << out_detail << endl;
+      writeFeaturSeedsOfFeatureGroupInTsvFile(out_fgroups, out_detail);
     }
     OPENMS_LOG_INFO << "----- output writing done -----" << endl;
 
