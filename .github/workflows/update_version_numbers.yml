@@ -48,9 +48,9 @@ jobs:
         id: changed-files
         run: |
           if git diff --exit-code; then
-            echo "::set-env name=changes_exist::false"
+            echo "changes_exist=false" >> $GITHUB_ENV
           else
-            echo "::set-env name=changes_exist::true"
+            echo "changes_exist=true" >> $GITHUB_ENV
           fi
 
 # Commit and PR updated files
