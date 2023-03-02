@@ -17,12 +17,16 @@ jobs:
   updating_package_version_number:
     runs-on: macos-latest
     steps:
+# Getting files (OpenMS)
       - uses: actions/checkout@v3
+
+# Setting variable (out of env variable)
+      - name: set variable
+        with:
+          package_version: "$version_major.$version_minor.$version_patch"
 
 # Update files with new package version numbers
       - name: update files
-        with:
-          package_version: "$version_major.$version_minor.$version_patch"
         run: |
           # update main cmakelist
           sed -i '' "s#.*set(OPENMS_PACKAGE_VERSION_MAJOR.*#set(OPENMS_PACKAGE_VERSION_MAJOR \"$package_version_major\")#" CMakeLists.txt
