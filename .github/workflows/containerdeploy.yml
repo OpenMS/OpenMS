@@ -4,7 +4,6 @@ on:
   push:
     branches:
       - nightly
-      - feat/singularity
       - 'release/**'
 
 jobs:
@@ -44,8 +43,8 @@ jobs:
         uses: docker/login-action@v2
         with:
           registry: ghcr.io
-          username: jpfeuffer
-          password: ${{ secrets.GH_REGISTRY_TOKEN }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
       - name: Build and Push Docker Library Image
         uses: docker/build-push-action@v3
         with:
@@ -70,7 +69,7 @@ jobs:
   DeploySingularity:
     runs-on: ubuntu-latest
     container:
-      image: quay.io/singularity/singularity:v3.10.4
+      image: quay.io/singularity/singularity:v3.11.0
       options: --privileged
     steps:
       - name: Extract branch name
@@ -132,7 +131,7 @@ jobs:
       - name: Upload images to ghcr.io
         shell: bash
         run: |
-            echo ${{ secrets.GITHUB_TOKEN }} | singularity remote login -u jpfeuffer --password-stdin oras://ghcr.io
+            echo ${{ secrets.GITHUB_TOKEN }} | singularity remote login -u ${{ github.actor }} --password-stdin oras://ghcr.io
             singularity push library.sif oras://ghcr.io/${{ steps.downcase_repo.outputs.repo }}-library-sif:${{ steps.tag_name.outputs.tag }}
-            echo ${{ secrets.GITHUB_TOKEN }} | singularity remote login -u jpfeuffer --password-stdin oras://ghcr.io
+            echo ${{ secrets.GITHUB_TOKEN }} | singularity remote login -u ${{ github.actor }} --password-stdin oras://ghcr.io
             singularity push executables.sif oras://ghcr.io/${{ steps.downcase_repo.outputs.repo }}-executables-sif:${{ steps.tag_name.outputs.tag }}
