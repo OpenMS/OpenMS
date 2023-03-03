@@ -36,9 +36,5 @@
 
 namespace OpenMS
 {
-  // just to instantiate this somehow
-  class VectorWithIndex :
-    public std::vector<UniqueIdInterface>, public UniqueIdIndexer<std::vector<UniqueIdInterface> >
-  {
-  } default_vector_with_index;
+  
 }

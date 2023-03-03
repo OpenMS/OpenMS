@@ -32,7 +32,7 @@
 # $Authors: Stephan Aiche, Julianus Pfeuffer $
 # --------------------------------------------------------------------------
 
-cmake_minimum_required(VERSION 3.21 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.21 FATAL_ERROR) ## if you change this, also update doc/doxygen/install/install-<OS>.doxygen
 
 # Handle default build type
 get_property(multiConfig GLOBAL PROPERTY GENERATOR_IS_MULTI_CONFIG)
