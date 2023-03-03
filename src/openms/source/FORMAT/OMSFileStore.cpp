@@ -74,7 +74,7 @@ namespace OpenMS::Internal
     }
   }
 
-  constexpr int version_number = 3; // increase this whenever the DB schema changes!
+  constexpr int version_number = 4; // increase this whenever the DB schema changes!
 
   OMSFileStore::OMSFileStore(const String& filename, LogType log_type)
   {
@@ -119,7 +119,7 @@ namespace OpenMS::Internal
                                  ":build_date)");
     query.bind(":format_version", version_number);
     query.bind(":openms_version", VersionInfo::getVersion());
-    query.bind(":build_date", VersionInfo::getTime());     
+    query.bind(":build_date", VersionInfo::getTime());
     query.exec();
   }
 
@@ -137,8 +137,7 @@ namespace OpenMS::Internal
     db_->exec(sql_insert);
   }
 
-
-  void OMSFileStore::createTableDataValue_()
+  void OMSFileStore::createTableDataValue_DataType_()
   {
     createTable_("DataValue_DataType",
                  "id INTEGER PRIMARY KEY NOT NULL, "  \
@@ -152,40 +151,7 @@ namespace OpenMS::Internal
       "(5, 'INT_LIST'), "                      \
       "(6, 'DOUBLE_LIST')";
     db_->exec(sql_insert);
-    createTable_(
-      "DataValue",
-      "id INTEGER PRIMARY KEY NOT NULL, "                               \
-      "data_type_id INTEGER, "                                          \
-      "value TEXT, "                                                    \
-      "FOREIGN KEY (data_type_id) REFERENCES DataValue_DataType (id)");
-    // @TODO: add support for units
-    // prepare query for inserting data:
-    auto query = make_unique<SQLite::Statement>(*db_, "INSERT INTO DataValue VALUES ("           \
-                                 "NULL, "                                   \
-                                 ":data_type, "                             \
-                                 ":value)");
-    prepared_queries_.emplace("DataValue", std::move(query));
   }
-
-
-  OMSFileStore::Key OMSFileStore::storeDataValue_(const DataValue& value)
-  {
-    // this assumes the "DataValue" table exists already!
-    // @TODO: split this up and make several tables for different types?
-    auto& query =  *prepared_queries_["DataValue"];
-    if (value.isEmpty()) // use NULL as the type for empty values
-    {
-      query.bind(":data_type");
-    }
-    else
-    {
-      query.bind(":data_type", int(value.valueType()) + 1);
-    }
-    query.bind(":value", value.toString());
-    execWithExceptionAndReset(query, 1, __LINE__, OPENMS_PRETTY_FUNCTION, "error inserting data");
-    return db_->getLastInsertRowid();
-  }
-
 
   void OMSFileStore::createTableCVTerm_()
   {
@@ -253,25 +219,29 @@ namespace OpenMS::Internal
 
   void OMSFileStore::createTableMetaInfo_(const String& parent_table, const String& key_column)
   {
-    if (!db_->tableExists("DataValue")) createTableDataValue_();
+    if (!db_->tableExists("DataValue_DataType")) createTableDataValue_DataType_();
 
     String parent_ref = parent_table + " (" + key_column + ")";
     String table = parent_table + "_MetaInfo";
+    // for the data_type_id, empty values are represented using NULL
     createTable_(
       table,
       "parent_id INTEGER NOT NULL, "                            \
       "name TEXT NOT NULL, "                                    \
-      "data_value_id INTEGER NOT NULL, "                        \
+      "data_type_id INTEGER, "                                  \
+      "value TEXT, "                                            \
       "FOREIGN KEY (parent_id) REFERENCES " + parent_ref + ", " \
-      "FOREIGN KEY (data_value_id) REFERENCES DataValue (id), " \
+      "FOREIGN KEY (data_type_id) REFERENCES DataValue_DataType (id), " \
       "PRIMARY KEY (parent_id, name)");
 
+    // @TODO: add support for units
     // prepare query for inserting data:
     auto query = make_unique<SQLite::Statement>(*db_, "INSERT INTO " + table +
-                                 " VALUES ("
-                                 ":parent_id, "
-                                 ":name, "
-                                 ":data_value_id)");
+                                 " VALUES ("                    \
+                                 ":parent_id, "                 \
+                                 ":name, "                      \
+                                 ":data_type_id, "              \
+                                 ":value)");
     prepared_queries_.emplace(table, std::move(query));
   }
 
@@ -280,7 +250,7 @@ namespace OpenMS::Internal
   {
     if (info.isMetaEmpty()) return;
 
-    // this assumes the "..._MetaInfo" and "DataValue" tables exist already!
+    // this assumes the "..._MetaInfo" and "DataValue_DataType" tables exist already!
     auto& query = *prepared_queries_[parent_table + "_MetaInfo"];
     query.bind(":parent_id", parent_id);
     // this is inefficient, but MetaInfoInterface doesn't support iteration:
@@ -289,8 +259,17 @@ namespace OpenMS::Internal
     for (const String& info_key : info_keys)
     {
       query.bind(":name", info_key);
-      Key value_id = storeDataValue_(info.getMetaValue(info_key));
-      query.bind(":data_value_id", value_id);
+
+      const DataValue& value = info.getMetaValue(info_key);
+      if (value.isEmpty()) // use NULL as the type for empty values
+      {
+        query.bind(":data_type_id");
+      }
+      else
+      {
+        query.bind(":data_type_id", int(value.valueType()) + 1);
+      }
+      query.bind(":value", value.toString());
       execWithExceptionAndReset(query, 1, __LINE__, OPENMS_PRETTY_FUNCTION, "error inserting data");
     }
   }
@@ -455,7 +434,7 @@ namespace OpenMS::Internal
         "FOREIGN KEY (software_id) REFERENCES ID_ProcessingSoftware (id), " \
         "FOREIGN KEY (score_type_id) REFERENCES ID_ScoreType (id)");
 
-      SQLite::Statement query2(*db_, 
+      SQLite::Statement query2(*db_,
         "INSERT INTO ID_ProcessingSoftware_AssignedScore VALUES ("      \
         ":software_id, "                                                \
         ":score_type_id, "                                              \
@@ -1188,8 +1167,8 @@ namespace OpenMS::Internal
       nextProgress(); // 12
       storeObservationMatches_(id_data);
     };
-    
-    
+
+
     if (sqlite3_get_autocommit(db_->getHandle()) == 1)
     { // allow a transaction, otherwise another on is already in flight
       SQLite::Transaction transaction(*db_); // avoid SQLite's "implicit transactions", improve runtime

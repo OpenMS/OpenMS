@@ -896,7 +896,7 @@ namespace OpenMS
           // (optionally) check charge state
           if (!ignore_charge_)
           {
-            if (z_p != feat.getCharge()) continue;
+            if (std::abs(z_p) != std::abs(feat.getCharge())) continue;
           }
 
           DPosition<2> id_pos(rt_value, mz_p);
