@@ -4,9 +4,21 @@
 #
 # Distributed under the MIT License (MIT) (See accompanying file LICENSE.txt
 # or copy at http://opensource.org/licenses/MIT)
-cmake_minimum_required(VERSION 3.6) # for "CMAKE_CXX_STANDARD" version
+cmake_minimum_required(VERSION 3.1) # for "CMAKE_CXX_STANDARD" version
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake") # custom CMake modules like FindSQLiteCpp
-project(SQLiteCpp VERSION 3.2.0)
+project(SQLiteCpp VERSION 3.2.1)
+
+# SQLiteC++ 3.x requires C++11 features
+if (NOT CMAKE_CXX_STANDARD)
+    set(CMAKE_CXX_STANDARD 11)
+elseif (CMAKE_CXX_STANDARD LESS 11)
+    message(WARNING "CMAKE_CXX_STANDARD has been set to '${CMAKE_CXX_STANDARD}' which is lower than the minimum required standard (c++11).")
+endif ()
+message(STATUS "Using c++ standard c++${CMAKE_CXX_STANDARD}")
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
+message (STATUS "CMake version: ${CMAKE_VERSION}")
+message (STATUS "Project version: ${PROJECT_VERSION}")
 
 option(SQLITECPP_BUILD_TESTS "Build and run tests." OFF)
 
@@ -16,6 +28,75 @@ if (WIN32)
 else (WIN32) # UNIX
     set(DEV_NULL                "/dev/null")
 endif (WIN32)
+
+# then Compiler/IDE differences:
+if (MSVC)
+    set(CPPLINT_ARG_OUTPUT      "--output=vs7")
+    set(CPPCHECK_ARG_TEMPLATE   "--template=vs")
+    # disable Visual Studio warnings for fopen() used in the example
+    add_definitions(-D_CRT_SECURE_NO_WARNINGS)
+    # Flags for linking with multithread static C++ runtime, required by internal googletest
+    option(SQLITECPP_USE_STATIC_RUNTIME "Use MSVC static runtime (default for internal googletest)." ${SQLITECPP_BUILD_TESTS})
+    if (SQLITECPP_USE_STATIC_RUNTIME)
+        message(STATUS "Linking against multithread static C++ runtime")
+        set(CMAKE_C_FLAGS_RELEASE   "${CMAKE_C_FLAGS_RELEASE} /MT")
+        set(CMAKE_C_FLAGS_DEBUG     "${CMAKE_C_FLAGS_DEBUG} /MTd")
+        set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} /MT")
+        set(CMAKE_CXX_FLAGS_DEBUG   "${CMAKE_CXX_FLAGS_DEBUG} /MTd")
+    endif (SQLITECPP_USE_STATIC_RUNTIME)
+    # MSVC versions prior to 2015 are not supported anymore by SQLiteC++ 3.x
+    if (MSVC_VERSION LESS 1900) # OR MSVC_TOOLSET_VERSION LESS 140)
+      message(ERROR "Visual Studio prior to 2015 is not supported anymore.")
+    endif (MSVC_VERSION LESS 1900)
+else (MSVC) # Unix/macOS/MinGW
+    set(CPPLINT_ARG_OUTPUT      "--output=eclipse")
+    set(CPPCHECK_ARG_TEMPLATE   "--template=gcc")
+    # Useful compile flags and extra warnings
+    if (NOT MINGW)
+        # Stack protection is not supported on MinGW-W64 on Windows.
+        # Allow this flag to be turned off.
+        option(SQLITECPP_USE_STACK_PROTECTION "USE Stack Protection hardening." ON)
+        if (SQLITECPP_USE_STACK_PROTECTION)
+            message (STATUS "Using Stack Protection hardening")
+            add_compile_options(-fstack-protector)
+        endif (SQLITECPP_USE_STACK_PROTECTION)
+    endif (NOT MINGW)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -Wpedantic -Wswitch-enum -Wshadow -Wno-long-long") # C++ only, don't bother with sqlite3
+    if (CMAKE_COMPILER_IS_GNUCXX)
+        # GCC flags
+        option(SQLITECPP_USE_GCOV "USE GCov instrumentation." OFF)
+        if (SQLITECPP_USE_GCOV)
+            message (STATUS "Using GCov instrumentation")
+            add_compile_options (-coverage)
+            set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -coverage")
+        endif ()
+    endif (CMAKE_COMPILER_IS_GNUCXX)
+endif (MSVC)
+# and then common variables
+set(CPPLINT_ARG_VERBOSE "--verbose=3")
+set(CPPLINT_ARG_LINELENGTH "--linelength=120")
+
+# Print CXX compiler information
+message (STATUS "CMAKE_CXX_COMPILER '${CMAKE_CXX_COMPILER}' '${CMAKE_CXX_COMPILER_ID}' '${CMAKE_CXX_COMPILER_VERSION}'")
+
+# Print CXX FLAGS
+message (STATUS "CMAKE_CXX_FLAGS                '${CMAKE_CXX_FLAGS}'")
+if (MSVC)
+    message (STATUS "CMAKE_CXX_FLAGS_DEBUG          '${CMAKE_CXX_FLAGS_DEBUG}'")
+    message (STATUS "CMAKE_CXX_FLAGS_RELEASE        '${CMAKE_CXX_FLAGS_RELEASE}'")
+    message (STATUS "CMAKE_CXX_FLAGS_RELWITHDEBINFO '${CMAKE_CXX_FLAGS_RELWITHDEBINFO}'")
+    message (STATUS "CMAKE_CXX_FLAGS_MINSIZEREL     '${CMAKE_CXX_FLAGS_MINSIZEREL}'")
+else (NOT MSVC)
+    if     (CMAKE_BUILD_TYPE STREQUAL Debug)
+        message (STATUS "CMAKE_CXX_FLAGS_DEBUG          '${CMAKE_CXX_FLAGS_DEBUG}'")
+    elseif (CMAKE_BUILD_TYPE STREQUAL RelWithDebInfo)
+        message (STATUS "CMAKE_CXX_FLAGS_RELWITHDEBINFO '${CMAKE_CXX_FLAGS_RELWITHDEBINFO}'")
+    elseif (CMAKE_BUILD_TYPE STREQUAL MinSizeRel)
+        message (STATUS "CMAKE_CXX_FLAGS_MINSIZEREL     '${CMAKE_CXX_FLAGS_MINSIZEREL}'")
+    else ()
+        message (STATUS "CMAKE_CXX_FLAGS_RELEASE        '${CMAKE_CXX_FLAGS_RELEASE}'")
+    endif ()
+endif ()
 
 ## Build the C++ Wrapper ##
 
@@ -79,7 +160,7 @@ set(SQLITECPP_DOC
 )
 source_group(doc FILES ${SQLITECPP_DOC})
 
-option(SQLITECPP_INCLUDE_SCRIPT "Include config & script files." OFF)
+option(SQLITECPP_INCLUDE_SCRIPT "Include config & script files." ON)
 if (SQLITECPP_INCLUDE_SCRIPT)
     # list of config & script files of the library
     set(SQLITECPP_SCRIPT
@@ -102,8 +183,7 @@ if (SQLITECPP_INCLUDE_SCRIPT)
 endif()
 
 # add sources of the wrapper as a "SQLiteCpp" static library
-add_library(SQLiteCpp STATIC ${SQLITECPP_SRC} ${SQLITECPP_INC} ${SQLITECPP_DOC} ${SQLITECPP_SCRIPT})
-target_compile_features(SQLiteCpp PUBLIC cxx_std_11)
+add_library(SQLiteCpp ${SQLITECPP_SRC} ${SQLITECPP_INC} ${SQLITECPP_DOC} ${SQLITECPP_SCRIPT})
 
 # Options relative to SQLite and SQLiteC++ functions
 
@@ -217,6 +297,20 @@ else (SQLITECPP_INTERNAL_SQLITE)
     endif()
 endif (SQLITECPP_INTERNAL_SQLITE)
 
+## disable the optional support for std::filesystem (C++17)
+option(SQLITECPP_DISABLE_STD_FILESYSTEM "Disable the use of std::filesystem in SQLiteCpp." OFF)
+if (SQLITECPP_DISABLE_STD_FILESYSTEM)
+    message (STATUS "Disabling std::filesystem support")
+    target_compile_definitions(SQLiteCpp PUBLIC SQLITECPP_DISABLE_STD_FILESYSTEM)
+endif (SQLITECPP_DISABLE_STD_FILESYSTEM)
+
+## disable the optional support for sqlite3_expanded_sql (from sqlite3 3.14.0)
+option(SQLITECPP_DISABLE_EXPANDED_SQL "Disable the use of sqlite3_expanded_sql in SQLiteCpp." OFF)
+if (SQLITECPP_DISABLE_EXPANDED_SQL)
+    message (STATUS "Disabling sqlite3_expanded_sql support")
+    target_compile_definitions(SQLiteCpp PUBLIC SQLITECPP_DISABLE_EXPANDED_SQL)
+endif (SQLITECPP_DISABLE_EXPANDED_SQL)
+
 # Link target with pthread and dl for Unix
 if (UNIX)
     set(THREADS_PREFER_PTHREAD_FLAG ON)
@@ -231,24 +325,49 @@ target_include_directories(SQLiteCpp
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
     $<INSTALL_INTERFACE:include/>)
 
+# Allow the library to be installed via "make install" and found with "find_package"
+
+include(GNUInstallDirs)
+install(TARGETS SQLiteCpp
+    EXPORT ${PROJECT_NAME}Targets
+    LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+    ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+    COMPONENT libraries)
+install(DIRECTORY include/ DESTINATION ${CMAKE_INSTALL_INCLUDEDIR} COMPONENT headers FILES_MATCHING REGEX ".*\\.(hpp|h)$")
+install(EXPORT ${PROJECT_NAME}Targets DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/${PROJECT_NAME})
+install(FILES ${PROJECT_SOURCE_DIR}/package.xml DESTINATION ${CMAKE_INSTALL_DATADIR}/${PROJECT_NAME})
+
+include(CMakePackageConfigHelpers)
+write_basic_package_version_file(
+    cmake/${PROJECT_NAME}ConfigVersion.cmake
+    VERSION ${PROJECT_VERSION}
+    COMPATIBILITY AnyNewerVersion)
+configure_package_config_file(
+    cmake/${PROJECT_NAME}Config.cmake.in
+    cmake/${PROJECT_NAME}Config.cmake
+    INSTALL_DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/${PROJECT_NAME})
+install(FILES
+    ${CMAKE_CURRENT_BINARY_DIR}/cmake/${PROJECT_NAME}Config.cmake
+    ${CMAKE_CURRENT_BINARY_DIR}/cmake/${PROJECT_NAME}ConfigVersion.cmake
+    DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/${PROJECT_NAME})
+
 # Optional additional targets:
 
-# Uses ancient python find module!! DO NOT USE!
-#option(SQLITECPP_RUN_CPPLINT "Run cpplint.py tool for Google C++ StyleGuide." OFF)
-#if (SQLITECPP_RUN_CPPLINT)
-#    find_package(PythonInterp)
-#    if (PYTHONINTERP_FOUND)
-#        # add a cpplint target to the "all" target
-#        add_custom_target(SQLiteCpp_cpplint
-#         ALL
-#         COMMAND ${PYTHON_EXECUTABLE} ${PROJECT_SOURCE_DIR}/cpplint.py ${CPPLINT_ARG_OUTPUT} ${CPPLINT_ARG_VERBOSE} ${CPPLINT_ARG_LINELENGTH} ${SQLITECPP_SRC} ${SQLITECPP_INC}
-#        )
-#    endif (PYTHONINTERP_FOUND)
-#else (SQLITECPP_RUN_CPPLINT)
-#    message(STATUS "SQLITECPP_RUN_CPPLINT OFF")
-#endif (SQLITECPP_RUN_CPPLINT)
+option(SQLITECPP_RUN_CPPLINT "Run cpplint.py tool for Google C++ StyleGuide." ON)
+if (SQLITECPP_RUN_CPPLINT)
+    find_package(PythonInterp)
+    if (PYTHONINTERP_FOUND)
+        # add a cpplint target to the "all" target
+        add_custom_target(SQLiteCpp_cpplint
+         ALL
+         COMMAND ${PYTHON_EXECUTABLE} ${PROJECT_SOURCE_DIR}/cpplint.py ${CPPLINT_ARG_OUTPUT} ${CPPLINT_ARG_VERBOSE} ${CPPLINT_ARG_LINELENGTH} ${SQLITECPP_SRC} ${SQLITECPP_INC}
+        )
+    endif (PYTHONINTERP_FOUND)
+else (SQLITECPP_RUN_CPPLINT)
+    message(STATUS "SQLITECPP_RUN_CPPLINT OFF")
+endif (SQLITECPP_RUN_CPPLINT)
 
-option(SQLITECPP_RUN_CPPCHECK "Run cppcheck C++ static analysis tool." OFF)
+option(SQLITECPP_RUN_CPPCHECK "Run cppcheck C++ static analysis tool." ON)
 if (SQLITECPP_RUN_CPPCHECK)
     find_program(CPPCHECK_EXECUTABLE NAMES cppcheck)
     if (CPPCHECK_EXECUTABLE)
@@ -342,9 +461,6 @@ if (SQLITECPP_BUILD_TESTS)
 else (SQLITECPP_BUILD_TESTS)
     message(STATUS "SQLITECPP_BUILD_TESTS OFF")
 endif (SQLITECPP_BUILD_TESTS)
-
-#export(TARGETS sqlite3 NAMESPACE sqlite3:: FILE sqlite3Targets.cmake)
-#export(TARGETS SQLiteCpp NAMESPACE SQLiteCpp:: FILE SQLiteCppTargets.cmake)
 
 # API version for SQLiteCpp shared library.
 set_property(TARGET SQLiteCpp PROPERTY SOVERSION 0)
