@@ -41,6 +41,8 @@
 #include <OpenMS/METADATA/ID/IdentificationData.h>
 #include <OpenMS/CHEMISTRY/ProteaseDB.h>
 
+#include <type_traits> // to check if movable
+
 ///////////////////////////
 
 START_TEST(IdentificationData, "$Id$")
@@ -59,6 +61,12 @@ START_SECTION((IdentificationData()))
   ptr = new IdentificationData();
   TEST_NOT_EQUAL(ptr, null);
 END_SECTION
+
+START_SECTION((movable))
+  TEST_TRUE(std::is_nothrow_move_constructible_v<IdentificationData>);
+  TEST_TRUE(std::is_nothrow_move_assignable_v<IdentificationData>);  
+END_SECTION
+
 
 START_SECTION((~IdentificationData()))
   delete ptr;
