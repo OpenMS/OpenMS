@@ -16,3 +16,4 @@ nodeRepositoryRoot=community
 
 executor=com.genericworkflownodes.knime.execution.impl.LocalToolExecutor
 commandGenerator=com.genericworkflownodes.knime.execution.impl.OpenMSCommandGenerator
+extraDependencies=de.openms.lib:@VERSION@

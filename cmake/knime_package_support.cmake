@@ -248,9 +248,10 @@ endforeach()
 # copy the icons
 add_custom_target(
     create_icons
-    # we first create the directory to make sure that the remove command does not fail
-    COMMAND ${CMAKE_COMMAND} -E copy ${PROJECT_SOURCE_DIR}/cmake/knime/icons ${KNIME_PLUGIN_DIRECTORY}
-    COMMAND ${CMAKE_COMMAND} -E copy ${PROJECT_SOURCE_DIR}/cmake/knime/icons ${KNIME_TP_PLUGIN_DIRECTORY}
+    COMMAND ${CMAKE_COMMAND} -E make_directory ${KNIME_PLUGIN_DIRECTORY}/icons
+    COMMAND ${CMAKE_COMMAND} -E copy_directory ${PROJECT_SOURCE_DIR}/cmake/knime/icons ${KNIME_PLUGIN_DIRECTORY}/icons
+    COMMAND ${CMAKE_COMMAND} -E make_directory ${KNIME_TP_PLUGIN_DIRECTORY}/icons
+    COMMAND ${CMAKE_COMMAND} -E copy ${PROJECT_SOURCE_DIR}/cmake/knime/icons/category.png ${KNIME_TP_PLUGIN_DIRECTORY}/icons/
     DEPENDS create_knime_folders
 )
 
@@ -419,7 +420,7 @@ add_custom_target(
   COMMAND ${CMAKE_COMMAND} -D SCRIPT_DIR=${SCRIPT_DIRECTORY} -D ARCH=${ARCH} -D PLATFORM=${PLATFORM} -D PAYLOAD_FOLDER=${TP_PAYLOAD_PATH} -P ${SCRIPT_DIRECTORY}compress_payload.cmake
   COMMAND ${CMAKE_COMMAND} -D SCRIPT_DIR=${SCRIPT_DIRECTORY} -D ARCH=${ARCH} -D PLATFORM=${PLATFORM} -D PAYLOAD_FOLDER=${LIB_PATH} -P ${SCRIPT_DIRECTORY}compress_payload.cmake
 
-  DEPENDS prepare_knime_payload_binaries prepare_knime_payload_libs create_payload_share prepare_knime_payload_ini prepare_knime_payload_searchengines
+  DEPENDS prepare_knime_payload_binaries prepare_knime_payload_libs create_payload_share create_icons prepare_knime_payload_ini prepare_knime_payload_searchengines
 )
 
 add_custom_target(
