@@ -477,7 +477,6 @@ jobs:
             ls -la wheels/
 
     - name: Publish package to nightly PyPI
-      if: "github.ref == 'refs/heads/nightly'"
       uses: pypa/gh-action-pypi-publish@release/v1
       with:
         repository_url: https://pypi.cs.uni-tuebingen.de/
