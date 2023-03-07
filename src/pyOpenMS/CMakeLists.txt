@@ -699,7 +699,7 @@ IF(LINUX AND PY_NO_OUTPUT)
             DEPENDS prepare_pyopenms_libs pyopenms_compile
             WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/pyOpenMS )
 ELSE()
-    IF(APPLE)
+    IF(APPLE AND NOT NO_DEPENDENCIES)
         add_custom_target(pyopenms
             COMMAND ./mac_fix_dependencies.rb -l ${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms -e "@rpath/" -f -v
             #COMMAND ${Python_EXECUTABLE} setup.py bdist_egg
