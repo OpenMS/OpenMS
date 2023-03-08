@@ -15,6 +15,7 @@ FuzzyStringComparator.h
 GlobalExceptionHandler.h
 Helpers.h
 Init.h
+IteratorHelpers.h
 LogConfigHandler.h
 LogStream.h
 Macros.h

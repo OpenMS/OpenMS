@@ -40,6 +40,8 @@
 #include <OpenMS/METADATA/DataArrays.h>
 #include <OpenMS/METADATA/MetaInfoDescription.h>
 
+#include <OpenMS/CONCEPT/IteratorHelpers.h>
+
 #include <numeric>
 
 namespace OpenMS
@@ -138,6 +140,27 @@ public:
     typedef typename ContainerType::reverse_iterator ReverseIterator;
     /// Non-mutable reverse iterator
     typedef typename ContainerType::const_reverse_iterator ConstReverseIterator;
+
+    using MZIteratorType = TransformIterator<Iterator, decltype(std::mem_fn(&Peak1D::getMZ))>;
+    MZIteratorType beginMZ()
+    {
+      return make_transform_iterator(begin(), std::mem_fn(&Peak1D::getMZ));
+    }
+    MZIteratorType endMZ()
+    {
+      return make_transform_iterator(end(), std::mem_fn(&Peak1D::getMZ));
+    }
+
+    using IntensityIteratorType = TransformIterator<Iterator, decltype(std::mem_fn(&Peak1D::getIntensity))>;
+    IntensityIteratorType beginIntensity()
+    {
+      return make_transform_iterator(begin(), std::mem_fn(&Peak1D::getIntensity));
+    }
+    IntensityIteratorType endIntensity()
+    {
+      return make_transform_iterator(end(), std::mem_fn(&Peak1D::getIntensity));
+    }
+
     //@}
 
     ///@name Export methods from std::vector<Peak1D>
