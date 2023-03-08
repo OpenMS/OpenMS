@@ -276,9 +276,9 @@ protected:
   void checkNumObservations_(Size n_pos, Size n_neg, const String& note = "") const;
 
   void getUnbiasedSample_(const std::multimap<double, std::pair<Size, bool> >& valid_obs,
-                          std::map<Size, Int>& training_labels);
+                          std::map<Size, double>& training_labels);
 
-  void getRandomSample_(std::map<Size, Int>& training_labels) const;
+  void getRandomSample_(std::map<Size, double>& training_labels) const;
 
   void classifyFeatures_(FeatureMap& features);
 
