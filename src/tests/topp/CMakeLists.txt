@@ -2258,6 +2258,12 @@ ${DATA_DIR_TOPP}/IDMapper_5_input.mzML -mz_measure ppm -mz_tolerance 10
 add_test("TOPP_IDMapper_5_out1" ${DIFF} -in1 IDMapper_5_output.tmp -in2 ${DATA_DIR_TOPP}/IDMapper_5_output.featureXML )
 set_tests_properties("TOPP_IDMapper_5_out1" PROPERTIES DEPENDS "TOPP_IDMapper_5")
 
+add_test("TOPP_IDMapper_6" ${TOPP_BIN_PATH}/IDMapper -test -in
+${DATA_DIR_TOPP}/IDMapper_6_input.consensusXML -out IDMapper_6_output.tmp -id
+${DATA_DIR_TOPP}/IDMapper_6_input.idXML)
+add_test("TOPP_IDMapper_6_out1" ${DIFF} -in1 IDMapper_6_output.tmp -in2 ${DATA_DIR_TOPP}/IDMapper_6_output.consensusXML )
+set_tests_properties("TOPP_IDMapper_6_out1" PROPERTIES DEPENDS "TOPP_IDMapper_6")
+
 #------------------------------------------------------------------------------
 # IDRipper tests
 add_test("TOPP_IDRipper_1" ${TOPP_BIN_PATH}/IDRipper -test -in ${DATA_DIR_TOPP}/IDRipper_1_input.idXML -out ./ )
