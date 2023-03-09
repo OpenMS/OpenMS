@@ -1,7 +1,7 @@
 # This builds python wheels on manylinux, macOS and Windows and uploads them
-# to public pypi for release and the pypi.cs.uni-tuebingen.de for nightlies.
+# to public pypi for release and for nightlies also to pypi.cs.uni-tuebingen.de
 
-name: pyopenms-wheels
+name: pyopenms-wheels-and-packages
 
 # Controls when the action will run. Triggers the workflow on push or pull request
 # events but only for the master branch
