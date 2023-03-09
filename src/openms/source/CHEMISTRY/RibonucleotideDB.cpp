@@ -50,7 +50,7 @@ namespace OpenMS
       Ribonucleotide* ribo;
       String alternative_1;
       String alternative_2;
-      bool isAmbiguous () { return alternative_1.empty(); }
+      bool isAmbiguous () { return !alternative_1.empty(); }
     };
 
   RibonucleotideDB::RibonucleotideDB() : max_code_length_(0)
