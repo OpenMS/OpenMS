@@ -368,7 +368,7 @@ def handleDyLib(dylibPath, targetPath, rpaths)
 
   else
 
-   debug "RPath but no lib found. Assuming fixed already: #{libname}"
+   debug "RPath but no lib found. Assuming fixed already: #{dylibPath}"
    libname=File.basename(dylibPath)
    $currentIndent-=1
 
