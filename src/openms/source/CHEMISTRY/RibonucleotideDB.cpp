@@ -55,10 +55,17 @@ namespace OpenMS
 
   RibonucleotideDB::RibonucleotideDB() : max_code_length_(0)
   {
-    //TODO add JSON logic here
-    readFromJSON_("/home/samuel/git/OpenMS/share/OpenMS/CHEMISTRY/Modomics.json");
-    //readFromFile_("CHEMISTRY/Modomics.tsv");
+    readFromJSON_("CHEMISTRY/Modomics.json");
+    // We still use the old tsv format for custom mods
     readFromFile_("CHEMISTRY/Custom_RNA_modifications.tsv");
+    if (File::exists("CHEMISTRY/User_Modifications.tsv"))
+    {
+      OPENMS_LOG_INFO << "Loading user specified Modifications from TSV\n";
+    }
+    if (File::exists("CHEMISTRY/User_Modifications.json"))
+    {
+      OPENMS_LOG_INFO << "Loading user specified Modifications from JSON\n";
+    }
   }
 
   RibonucleotideDB* RibonucleotideDB::getInstance()
@@ -178,7 +185,6 @@ namespace OpenMS
     QTextStream source(&file);
     source.setCodec("UTF-8");
     Size line_count = 0;
-    //String line = source.readLine();
     json mod_obj;
     try
     {
@@ -193,10 +199,6 @@ namespace OpenMS
     for (auto& element : mod_obj)
     {
       line_count++;
-      //QString row = source.readLine();
-
-      // replace all "prime" characters with apostrophes (e.g. in "5'", "3'"):
-      //row.replace(prime, '\'');
       try
       {
         ParsedEntry_ entry = parseEntry_(element);
