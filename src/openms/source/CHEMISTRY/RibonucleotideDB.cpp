@@ -93,7 +93,8 @@ namespace OpenMS
     ribo->setName(entry.at("name"));
     String code = entry.at("short_name");
     ribo->setCode(code);
-    //FIXME NewCode doesn't exist any more
+    //NewCode doesn't exist any more, we use the same shortname for compatibility
+    ribo->setNewCode(code);
     if (entry["reference_moiety"].size() == 1 && string(entry.at("reference_moiety").at(0)).length() == 1)
     {
       ribo->setOrigin(string(entry.at("reference_moiety").at(0))[0]);
@@ -133,6 +134,10 @@ namespace OpenMS
     if (!(entry.at("mass_monoiso").is_null()))
     {
       ribo->setMonoMass(entry.at("mass_monoiso"));
+    }
+    else
+    {
+      OPENMS_LOG_WARN << "Monoisotopic mass of " << code << " is not defined.\n";
     }
     if (ribo->getMonoMass() - ribo->getFormula().getMonoWeight() >= 0.01)
     {
@@ -208,7 +213,7 @@ namespace OpenMS
           ambiguity_map_[ribo->getCode()] = make_pair(getRibonucleotide(entry.alternative_1), getRibonucleotide(entry.alternative_2));
         }
         // there are some weird exotic mods in modomics that don't have codes. We ignore them
-        if (ribo->getCode() != "") //FIXME add logic to handle lack of masses
+        if (ribo->getCode() != "") // We throw a warning for the lack of mono mass in our parsing
         {
           code_map_[ribo->getCode()] = ribonucleotides_.size();
           ribonucleotides_.push_back(ribo);
