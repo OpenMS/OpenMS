@@ -173,17 +173,19 @@ public:
       }
 
       text = "<font color=\"" + color_.name() + "\">" + text + "</font>";
-      QTextDocument td;
-      td.setHtml(text);
 
       // draw html text
-      painter.save();
-      double w = td.size().width();
-      double h = td.size().height();
-      painter.translate(position_widget.x() - w / 2, position_widget.y() - h / 2);
-      td.drawContents(&painter);
-      painter.restore();
-
+      {
+        QTextDocument td;
+        td.setHtml(text);
+        painter.save();
+        double w = td.size().width();
+        double h = td.size().height();
+        painter.translate(position_widget.x() - w / 2, position_widget.y() - h / 2);
+        td.drawContents(&painter);
+        painter.restore();
+      }
+      
       if (selected_)
       {
         drawBoundingBox_(painter);
@@ -242,15 +244,18 @@ public:
       // add new fragment annotation
       QString peak_anno = this->getText().trimmed();
 
-      // regular expression for a charge at the end of the annotation
-      QRegExp reg_exp(R"(([\+|\-]\d+)$)");
-
       // check for newlines in the label and only continue with the first line for charge determination
-      QStringList lines = peak_anno.split(QRegExp("[\r\n]"), QString::SkipEmptyParts);
+      peak_anno.remove('\r');
+      QStringList lines = peak_anno.split('\n');
+      // TODO: replace with 'peak_anno.split('\n',  Qt::SkipEmptyParts), which is only supported in Qt 5.14 and above: CONTRIB_UPDATE_Qt_5.14
+      lines.removeAll({}); // remove empty strings
       if (lines.size() > 1)
       {
         peak_anno = lines[0];
       }
+
+      // regular expression for a charge at the end of the annotation
+      QRegExp reg_exp(R"(([\+|\-]\d+)$)");
 
       // read charge and text from annotation item string
       // we support two notations for the charge suffix: '+2' or '++'

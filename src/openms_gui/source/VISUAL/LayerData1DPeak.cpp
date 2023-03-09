@@ -48,7 +48,7 @@ namespace OpenMS
 
   std::unique_ptr<LayerStoreData> LayerData1DPeak::storeVisibleData(const RangeAllType& visible_range, const DataFilters& layer_filters) const
   {
-    auto ret = std::unique_ptr<LayerStoreDataPeakMapVisible>();
+    auto ret = std::make_unique<LayerStoreDataPeakMapVisible>();
     ret->storeVisibleSpectrum(getCurrentSpectrum(), visible_range, layer_filters);
     return ret;
   }
@@ -61,12 +61,12 @@ namespace OpenMS
   QMenu* LayerData1DPeak::getContextMenuAnnotation(Annotation1DItem* annot_item, bool& need_repaint)
   {
     auto* context_menu = new QMenu("Peak1D", nullptr);
-    context_menu->addAction("Edit", [&]() {
+    context_menu->addAction("Edit", [annot_item, &need_repaint, this]() { // this capture is tricky! Copy 'annot_item' since its a local variable and will be out of scope when the menu is evaluated!
       annot_item->editText();
       synchronizePeakAnnotations();
       need_repaint = true;
     });
-    context_menu->addAction("Delete", [&]() {
+    context_menu->addAction("Delete", [annot_item, &need_repaint, this]() { // this capture is tricky! Copy 'annot_item' since its a local variable and will be out of scope when the menu is evaluated!
       vector<Annotation1DItem*> as;
       as.push_back(annot_item);
       removePeakAnnotationsFromPeptideHit(as);

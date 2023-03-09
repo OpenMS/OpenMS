@@ -77,9 +77,9 @@ using namespace std;
   <center>
     <table>
         <tr>
-            <td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. predecessor tools </td>
+            <th ALIGN = "center"> pot. predecessor tools </td>
             <td VALIGN="middle" ROWSPAN=2> &rarr; PercolatorAdapter &rarr;</td>
-            <td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. successor tools </td>
+            <th ALIGN = "center"> pot. successor tools </td>
         </tr>
         <tr>
             <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref UTILS_PSMFeatureExtractor </td>
@@ -303,8 +303,6 @@ protected:
     registerInputFile_("fasta", "<file>", "", "Provide the fasta file as the argument to this flag, which will be used for protein grouping based on an in-silico digest (only valid if option -protein_level_fdrs is active).", !is_required, is_advanced_option);
     setValidFormats_("fasta", ListUtils::create<String>("FASTA"));
     registerStringOption_("decoy_pattern", "<value>", "random", "Define the text pattern to identify the decoy proteins and/or PSMs, set this up if the label that identifies the decoys in the database is not the default (Only valid if option -protein_level_fdrs is active).", !is_required, is_advanced_option);
-    registerStringOption_("post_processing_tdc", "<value>", "true", "Use target-decoy competition to assign q-values and PEPs.", !is_required, is_advanced_option);
-    setValidStrings_("post_processing_tdc", ListUtils::create<String>("true,false"));
     registerFlag_("post_processing_tdc", "Use target-decoy competition to assign q-values and PEPs.", is_advanced_option);
     registerFlag_("train_best_positive", "Enforce that, for each spectrum, at most one PSM is included in the positive set during each training iteration. If the user only provides one PSM per spectrum, this filter will have no effect.", is_advanced_option);
 
@@ -383,7 +381,6 @@ protected:
     }
   }
 
-    
   void readPoutAsMap_(const String& pout_file, std::map<String, PercolatorResult>& pep_map)
   {
     CsvFile csv_file(pout_file, '\t');
@@ -393,7 +390,7 @@ protected:
     {
       csv_file.getRow(i, row);
       PercolatorResult res(row);
-      String spec_ref = res.PSMId + res.peptide;
+      String spec_ref = res.PSMId + res.peptide; // note: PSMid from percolator is composed of filename + spectrum native id
       writeDebug_("PSM identifier in pout file: " + spec_ref, 10);
 
       // retain only the best result in the unlikely case that a PSMId+peptide combination occurs multiple times
@@ -888,7 +885,7 @@ protected:
       {
         arguments << "-x";
       }
-      if (getStringOption_("post_processing_tdc") == "true")
+      if (getFlag_("post_processing_tdc"))
       {
         arguments << "-Y";
       }
@@ -1050,12 +1047,14 @@ protected:
         pep_id.setHigherScoreBetter(scoreType == "svm");
         
         String scan_identifier = PercolatorInfile::getScanIdentifier(pep_id, index);
-        
+        String file_identifier = pep_id.getMetaValue("file_origin", String());
+        file_identifier += (String)pep_id.getMetaValue("id_merge_index", String());
+
         //check each PeptideHit for compliance with one of the PercolatorResults (by sequence)
         for (PeptideHit& hit : pep_id.getHits())
         {
           String peptide_sequence = hit.getSequence().toBracketString(false, true);
-          String psm_identifier = scan_identifier + peptide_sequence;
+          String psm_identifier = file_identifier + scan_identifier + peptide_sequence;
 
           //Only for super debug
           writeDebug_("PSM identifier in PeptideHit: " + psm_identifier, 10);
@@ -1196,7 +1195,7 @@ protected:
         search_parameters.setMetaValue("Percolator:klammer", getFlag_("klammer"));
         search_parameters.setMetaValue("Percolator:fasta", getStringOption_("fasta"));
         search_parameters.setMetaValue("Percolator:decoy_pattern", getStringOption_("decoy_pattern"));
-        search_parameters.setMetaValue("Percolator:post_processing_tdc", getStringOption_("post_processing_tdc"));
+        search_parameters.setMetaValue("Percolator:post_processing_tdc", getFlag_("post_processing_tdc"));
         search_parameters.setMetaValue("Percolator:train_best_positive", getFlag_("train_best_positive"));
         
         prot_id_run.setSearchParameters(search_parameters);

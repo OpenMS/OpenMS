@@ -739,6 +739,12 @@ add_test("TOPP_FileInfo_18" ${TOPP_BIN_PATH}/FileInfo -test -in ${DATA_DIR_TOPP}
 FileInfo_18_output.tmp)
 add_test("TOPP_FileInfo_18_out1" ${DIFF} -whitelist "File name" -in1 FileInfo_18_output.tmp -in2 ${DATA_DIR_TOPP}/FileInfo_18_output.txt )
 set_tests_properties("TOPP_FileInfo_18_out1" PROPERTIES DEPENDS "TOPP_FileInfo_18")
+add_test("TOPP_FileInfo_19" ${TOPP_BIN_PATH}/FileInfo -test -d -in ${DATA_DIR_TOPP}/FAIMS_test_data.mzML -out
+FileInfo_19_output.tmp)
+add_test("TOPP_FileInfo_19_out1" ${DIFF} -whitelist "File name" -in1 FileInfo_19_output.tmp -in2 ${DATA_DIR_TOPP}/FileInfo_19_output.txt )
+set_tests_properties("TOPP_FileInfo_19_out1" PROPERTIES DEPENDS "TOPP_FileInfo_19")
+
+
 
 #------------------------------------------------------------------------------
 # FileMerger tests
@@ -2251,6 +2257,12 @@ ${DATA_DIR_TOPP}/IDMapper_5_input.mzML -mz_measure ppm -mz_tolerance 10
 -rt_tolerance 20 -feature:use_centroid_mz false)
 add_test("TOPP_IDMapper_5_out1" ${DIFF} -in1 IDMapper_5_output.tmp -in2 ${DATA_DIR_TOPP}/IDMapper_5_output.featureXML )
 set_tests_properties("TOPP_IDMapper_5_out1" PROPERTIES DEPENDS "TOPP_IDMapper_5")
+
+add_test("TOPP_IDMapper_6" ${TOPP_BIN_PATH}/IDMapper -test -in
+${DATA_DIR_TOPP}/IDMapper_6_input.consensusXML -out IDMapper_6_output.tmp -id
+${DATA_DIR_TOPP}/IDMapper_6_input.idXML)
+add_test("TOPP_IDMapper_6_out1" ${DIFF} -in1 IDMapper_6_output.tmp -in2 ${DATA_DIR_TOPP}/IDMapper_6_output.consensusXML )
+set_tests_properties("TOPP_IDMapper_6_out1" PROPERTIES DEPENDS "TOPP_IDMapper_6")
 
 #------------------------------------------------------------------------------
 # IDRipper tests

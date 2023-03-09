@@ -581,7 +581,7 @@ namespace OpenMS
     vector<ProteinIdentification> proteins;
     String annotate_path;
 
-    LayerDataBase::DataType data_type;
+    LayerDataBase::DataType data_type(LayerDataBase::DT_UNKNOWN);
 
     ODExperimentSharedPtrType on_disc_peaks(new OnDiscMSExperiment);
 
@@ -732,11 +732,23 @@ namespace OpenMS
         OPENMS_LOG_INFO << "INFO: done loading all " << std::endl;
 
         // a mzML file may contain both, chromatogram and peak data
-        // -> this is handled in PlotCanvas::addPeakLayer
-        data_type = LayerDataBase::DT_CHROMATOGRAM;
-        if (peak_map_sptr->containsScanOfLevel(1))
+        // -> this is handled in PlotCanvas::addPeakLayer FIXME: No it's not!
+        if (peak_map_sptr->getNrSpectra() > 0 && peak_map_sptr->getNrChromatograms() > 0)
+        {
+          OPENMS_LOG_WARN << "Your input data contains chromatograms and spectra, falling back to display spectra only." << std::endl;
+          data_type = LayerDataBase::DT_PEAK;
+        }
+        else if (peak_map_sptr->getNrChromatograms() > 0)
+        {
+          data_type = LayerDataBase::DT_CHROMATOGRAM;
+        }
+        else if (peak_map_sptr->getNrSpectra() > 0)
         {
           data_type = LayerDataBase::DT_PEAK;
+        }
+        else
+        {
+          throw Exception::FileEmpty(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "MzML filed doesn't have either spectra or chromatograms.");
         }
       }
     }
@@ -1390,6 +1402,7 @@ namespace OpenMS
   void TOPPViewBase::showPlotWidgetInWindow(PlotWidget* sw)
   {
     ws_.addSubWindow(sw);
+
     connect(sw->canvas(), &PlotCanvas::preferencesChange, this, &TOPPViewBase::updateLayerBar);
     connect(sw->canvas(), &PlotCanvas::layerActivated, this, &TOPPViewBase::layerActivated);
     connect(sw->canvas(), &PlotCanvas::layerModficationChange, this, &TOPPViewBase::updateLayerBar);
@@ -1619,11 +1632,6 @@ namespace OpenMS
 
   QStringList TOPPViewBase::chooseFilesDialog_(const String& path_overwrite)
   {
-    // store active sub window
-    // TODO Why is this done? And why only here?
-    QMdiSubWindow* old_active = ws_.currentSubWindow();
-    RAIICleanup clean([&]() { ws_.setActiveSubWindow(old_active); });
-
     QString open_path = current_path_.toQString();
     if (!path_overwrite.empty())
     {
@@ -1744,7 +1752,7 @@ namespace OpenMS
       auto visitor_data = topp_.visible_area_only
                           ? layer.storeVisibleData(getActiveCanvas()->getVisibleArea().getAreaUnit(), layer.filters)
                           : layer.storeFullData();
-      visitor_data->saveToFile(topp_.file_name, ProgressLogger::GUI);
+      visitor_data->saveToFile(topp_.file_name + "_in", ProgressLogger::GUI);
     }
 
     // compose argument list

@@ -113,13 +113,13 @@ namespace OpenMS
     /// is @p value within [min, max]?
     bool contains(const double value) const
     {
-      return (min_ <= value) & (value <= max_);
+      return uint8_t(min_ <= value) & uint8_t(value <= max_); // using && leads to branches on all compilers in Debug and in Release on MVSC
     }
 
     /// is the range @p inner_range within [min, max]?
     bool contains(const RangeBase& inner_range) const
     {
-      return contains(inner_range.min_) & contains(inner_range.max_);
+      return uint8_t(contains(inner_range.min_)) & uint8_t(contains(inner_range.max_)); // using && leads to branches on all compilers in Debug and in Release on MVSC
     }
 
     /** @name Accessors for min and max
@@ -898,6 +898,9 @@ namespace OpenMS
   {
   public:
     using ThisRangeType = typename RangeManager<RangeBases...>::ThisRangeType;
+
+    /// D'tor
+    virtual ~RangeManagerContainer() = default; // required since we have virtual methods
 
     /// implement this function to reflect the underlying data of the derived class (e.g. an MSSpectrum)
     /// Usually, call clearRanges() internally and then populate the dimensions.

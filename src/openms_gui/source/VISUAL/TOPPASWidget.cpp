@@ -96,7 +96,7 @@ namespace OpenMS
 
   void TOPPASWidget::wheelEvent(QWheelEvent * event)
   {
-    zoom(event->delta() < 0);
+    zoom(event->angleDelta().y() < 0);
   }
 
   void TOPPASWidget::dragEnterEvent(QDragEnterEvent * event)
