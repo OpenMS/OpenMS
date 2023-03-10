@@ -121,7 +121,7 @@ namespace OpenMS
   {
     String code = entry.at("short_name");
     // If we have an explicitly defined baseloss_formula
-    if (!(entry.find("baseloss_formula") == entry.cend()) && !entry.at("baseloss_formula").is_null() )
+    if (auto e = entry.find("baseloss_formula"); e != entry.cend() && !e->is_null())
     {
       return EmpiricalFormula(entry.at("baseloss_formula"));
     }
@@ -160,6 +160,8 @@ namespace OpenMS
     ribo->setCode(code);
     // NewCode doesn't exist any more, we use the same shortname for compatibility
     ribo->setNewCode(code);
+
+    // Handle moiety
     if (entry["reference_moiety"].size() == 1 && string(entry.at("reference_moiety").at(0)).length() == 1)
     {
       ribo->setOrigin(string(entry.at("reference_moiety").at(0))[0]);
@@ -185,6 +187,7 @@ namespace OpenMS
     {
       OPENMS_LOG_ERROR << "Error: we don't support bases with multiple reference moieties or multicharacter moieties." << endl;
     }
+    
     if (!(entry.find("abbrev") == entry.cend()))
     {
       ribo->setHTMLCode(entry.at("abbrev")); //This is the single letter unicode representation that only SOME mods have
@@ -199,7 +202,7 @@ namespace OpenMS
       OPENMS_LOG_WARN << "Average mass of " << code << " differs substantially from its formula mass.\n";
     }
 
-    if (!(entry.find("mass_monoiso") == entry.cend()) && !(entry.at("mass_monoiso").is_null()))
+    if (auto e = entry.find("mass_monoiso"); e != entry.cend() && !e->is_null())
     {
       ribo->setMonoMass(entry.at("mass_monoiso"));
     }
