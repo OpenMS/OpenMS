@@ -88,7 +88,8 @@ namespace OpenMS
   }
 
   // All valid JSON ribonucleotides must at minimum have elements defining name, short_name, reference_moiety, and formula
-  bool entryIsWellFormed_(const nlohmann::json::value_type& entry)
+  // @throw Exception::MissingInformation if some of the required info for the entry is missing
+  void entryIsWellFormed_(const nlohmann::json::value_type& entry)
   {
     if (entry.find("name") == entry.cend())
     {
@@ -114,7 +115,6 @@ namespace OpenMS
       throw Exception::MissingInformation(__FILE__, __LINE__,
                                               OPENMS_PRETTY_FUNCTION, msg);
     }
-    return true;
   }
   
   EmpiricalFormula getBaseLossFormula_(const nlohmann::json::value_type& entry)
@@ -123,7 +123,7 @@ namespace OpenMS
     // If we have an explicitly defined baseloss_formula
     if (auto e = entry.find("baseloss_formula"); e != entry.cend() && !e->is_null())
     {
-      return EmpiricalFormula(entry.at("baseloss_formula"));
+      return EmpiricalFormula(*e);
     }
     //TODO: Calculate base loss formula from SMILES
     else // If we don't have a defined baseloss_formula calculate it from our shortCode
@@ -185,10 +185,13 @@ namespace OpenMS
     }
     else
     {
-      OPENMS_LOG_ERROR << "Error: we don't support bases with multiple reference moieties or multicharacter moieties." << endl;
+      free(ribo);
+      String msg = "we don't support bases with multiple reference moieties or multicharacter moieties.";
+      throw Exception::InvalidValue(__FILE__, __LINE__,
+                                              OPENMS_PRETTY_FUNCTION, msg, entry["reference_moiety"]);
     }
     
-    if (!(entry.find("abbrev") == entry.cend()))
+    if (entry.find("abbrev") != entry.cend())
     {
       ribo->setHTMLCode(entry.at("abbrev")); //This is the single letter unicode representation that only SOME mods have
     }
@@ -197,21 +200,21 @@ namespace OpenMS
     {
       ribo->setAvgMass(entry.at("mass_avg"));
     }
-    if (ribo->getAvgMass() - ribo->getFormula().getAverageWeight() >= 0.01)
+    if (std::abs(ribo->getAvgMass() - ribo->getFormula().getAverageWeight()) >= 0.01)
     {
       OPENMS_LOG_WARN << "Average mass of " << code << " differs substantially from its formula mass.\n";
     }
 
     if (auto e = entry.find("mass_monoiso"); e != entry.cend() && !e->is_null())
     {
-      ribo->setMonoMass(entry.at("mass_monoiso"));
+      ribo->setMonoMass(*e);
     }
     else
     {
       OPENMS_LOG_DEBUG << "Monoisotopic mass of " << code << " is not defined. Calculating from formula\n";
       ribo->setMonoMass(ribo->getFormula().getMonoWeight());
     }
-    if (ribo->getMonoMass() - ribo->getFormula().getMonoWeight() >= 0.01)
+    if ( std::abs(ribo->getMonoMass() - ribo->getFormula().getMonoWeight()) >= 0.01)
     {
       OPENMS_LOG_WARN << "Average mass of " << code << " differs substantially from its formula mass.\n";
     }
@@ -225,6 +228,7 @@ namespace OpenMS
       if (!entry.contains("alternatives"))
       {
         String msg = "Ambiguous mod without alternative found in " + code;
+        free(ribo);
         throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, code, msg);
       }
       parsed.alternative_1 = string(entry.at("alternatives").at(0)), parsed.alternative_2 = string(entry.at("alternatives").at(1)); // we always have exactly two ambiguities
@@ -258,7 +262,7 @@ namespace OpenMS
     catch (Exception::ParseError& e)
     {
       OPENMS_LOG_ERROR << "Error: Failed to parse Modomics JSON. Reason:\n" << e.getName() << " - " << e.what() << endl;
-      throw e;
+      throw;
     }
     QChar prime(0x2032); // Unicode "prime" character
     for (auto& element : mod_obj)
@@ -266,22 +270,22 @@ namespace OpenMS
       line_count++;
       try
       {
-        if (entryIsWellFormed_(element))
+        // Throw an exception if we are straight up missing necessary elements of the JSON
+        entryIsWellFormed_(element);
+
+        ParsedEntry_ entry = parseEntry_(element);
+
+        ConstRibonucleotidePtr ribo = entry.ribo;
+        if (entry.isAmbiguous()) // Handle the ambiguity map
         {
-          ParsedEntry_ entry = parseEntry_(element);
-          
-          ConstRibonucleotidePtr ribo = entry.ribo;
-          if (entry.isAmbiguous()) // Handle the ambiguity map
-          {
-            ambiguity_map_[ribo->getCode()] = make_pair(getRibonucleotide(entry.alternative_1), getRibonucleotide(entry.alternative_2));
-          }
-          // there are some weird exotic mods in modomics that don't have codes. We ignore them
-          if (ribo->getCode() != "")
-          {
-            code_map_[ribo->getCode()] = ribonucleotides_.size();
-            ribonucleotides_.push_back(ribo);
-            max_code_length_ = max(max_code_length_, ribo->getCode().size());
-          }
+          ambiguity_map_[ribo->getCode()] = make_pair(getRibonucleotide(entry.alternative_1), getRibonucleotide(entry.alternative_2));
+        }
+        // there are some weird exotic mods in modomics that don't have codes. We ignore them
+        if (ribo->getCode() != "")
+        {
+          code_map_[ribo->getCode()] = ribonucleotides_.size();
+          ribonucleotides_.push_back(ribo);
+          max_code_length_ = max(max_code_length_, ribo->getCode().size());
         }
       }
       catch (Exception::BaseException& e)
