@@ -55,6 +55,7 @@ namespace OpenMS
 
   RibonucleotideDB::RibonucleotideDB() : max_code_length_(0)
   {
+    // Modomics mods were retreived from https://www.genesilico.pl/modomics/api/modifications
     readFromJSON_("CHEMISTRY/Modomics.json");
     // We still use the old tsv format for custom mods
     readFromFile_("CHEMISTRY/Custom_RNA_modifications.tsv");
@@ -86,6 +87,36 @@ namespace OpenMS
     }
   }
 
+  // All valid JSON ribonucleotides must at minimum have elements defining name, short_name, reference_moiety, and formula
+  bool entryIsWellFormed_(const nlohmann::json::value_type& entry)
+  {
+    if (entry.find("name") == entry.cend())
+    {
+      String msg = "\"name\" entry missing for ribonucleotide";
+      throw Exception::MissingInformation(__FILE__, __LINE__,
+                                              OPENMS_PRETTY_FUNCTION, msg);
+    }
+    if (entry.find("short_name") == entry.cend())
+    {
+      String msg = "\"short_name\" entry missing for ribonucleotide";
+      throw Exception::MissingInformation(__FILE__, __LINE__,
+                                              OPENMS_PRETTY_FUNCTION, msg);
+    }
+    if (entry.find("reference_moiety") == entry.cend())
+    {
+      String msg = "\"reference_moiety\" entry missing for ribonucleotide";
+      throw Exception::MissingInformation(__FILE__, __LINE__,
+                                              OPENMS_PRETTY_FUNCTION, msg);
+    }
+    if (entry.find("formula") == entry.cend())
+    {
+      String msg = "\"formula\" entry missing for ribonucleotide";
+      throw Exception::MissingInformation(__FILE__, __LINE__,
+                                              OPENMS_PRETTY_FUNCTION, msg);
+    }
+    return true;
+  }
+
   ParsedEntry_ parseEntry_(const nlohmann::json::value_type& entry)
   {
     ParsedEntry_ parsed;
@@ -93,7 +124,7 @@ namespace OpenMS
     ribo->setName(entry.at("name"));
     String code = entry.at("short_name");
     ribo->setCode(code);
-    //NewCode doesn't exist any more, we use the same shortname for compatibility
+    // NewCode doesn't exist any more, we use the same shortname for compatibility
     ribo->setNewCode(code);
     if (entry["reference_moiety"].size() == 1 && string(entry.at("reference_moiety").at(0)).length() == 1)
     {
@@ -120,9 +151,12 @@ namespace OpenMS
     {
       OPENMS_LOG_ERROR << "Error: we don't support bases with multiple reference moieties or multicharacter moieties." << endl;
     }
-    ribo->setHTMLCode(entry.at("abbrev")); //This is the single letter unicode representation that only SOME mods have
+    if (!(entry.find("abbrev") == entry.cend()))
+    {
+      ribo->setHTMLCode(entry.at("abbrev")); //This is the single letter unicode representation that only SOME mods have
+    }
     ribo->setFormula(EmpiricalFormula(entry.at("formula")));
-    if (!(entry.at("mass_avg").is_null()))
+    if ( !(entry.find("mass_avg") == entry.cend()) && !(entry.at("mass_avg").is_null()))
     {
       ribo->setAvgMass(entry.at("mass_avg"));
     }
@@ -131,44 +165,53 @@ namespace OpenMS
       OPENMS_LOG_WARN << "Average mass of " << code << " differs substantially from its formula mass.\n";
     }
 
-    if (!(entry.at("mass_monoiso").is_null()))
+    if (!(entry.find("mass_monoiso") == entry.cend()) && !(entry.at("mass_monoiso").is_null()))
     {
       ribo->setMonoMass(entry.at("mass_monoiso"));
     }
     else
     {
-      OPENMS_LOG_WARN << "Monoisotopic mass of " << code << " is not defined.\n";
+      OPENMS_LOG_DEBUG << "Monoisotopic mass of " << code << " is not defined. Calculating from formula\n";
+      ribo->setMonoMass(ribo->getFormula().getMonoWeight());
     }
     if (ribo->getMonoMass() - ribo->getFormula().getMonoWeight() >= 0.01)
     {
       OPENMS_LOG_WARN << "Average mass of " << code << " differs substantially from its formula mass.\n";
     }
 
+    // If we have an explicitly defined baseloss_formula
+    if (!(entry.find("baseloss_formula") == entry.cend()) && !entry.at("baseloss_formula").is_null() )
+    {
+      ribo->setBaselossFormula(EmpiricalFormula(entry.at("baseloss_formula")));
+    }
     //TODO: Calculate base loss formula from SMILES
-    if (code.hasPrefix('d')) // handle deoxyribose, possibly with methyl mod
+    else // If we don't have a defined baseloss_formula calculate it from our shortCode
     {
-      ribo->setBaselossFormula(EmpiricalFormula("C5H10O4"));
-    }
-    else if (code.hasSuffix('m')) // mod. attached to the ribose, not base
-    {
-      ribo->setBaselossFormula(EmpiricalFormula("C6H12O5"));
-    }
-    else if (code.hasSuffix("m*")) // check if we have both a sulfer and a 2'-O methyl
-    {
-      ribo->setBaselossFormula(EmpiricalFormula("C6H12O5"));
-    }
-    else if (code.hasSuffix('?') || code.hasSuffix("?*")) // ambiguity code -> fill the map
-    {
-      if (!entry.contains("alternatives"))
+      if (code.hasPrefix('d')) // handle deoxyribose, possibly with methyl mod
       {
-        String msg = "Ambiguous mod without alternative found in " + code;
-        //throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, code, msg);
+        ribo->setBaselossFormula(EmpiricalFormula("C5H10O4"));
       }
-      parsed.alternative_1 = string(entry.at("alternatives").at(0)), parsed.alternative_2 = string(entry.at("alternatives").at(1)); //we always have exactly two ambiguities
-    }
-    else if (code.hasSuffix("Ar(p)") ||  code.hasSuffix("Gr(p)"))
-    {
-      ribo->setBaselossFormula(EmpiricalFormula("C10H19O21P"));
+      else if (code.hasSuffix('m')) // mod. attached to the ribose, not base
+      {
+        ribo->setBaselossFormula(EmpiricalFormula("C6H12O5"));
+      }
+      else if (code.hasSuffix("m*")) // check if we have both a sulfer and a 2'-O methyl
+      {
+        ribo->setBaselossFormula(EmpiricalFormula("C6H12O5"));
+      }
+      else if (code.hasSuffix('?') || code.hasSuffix("?*")) // ambiguity code -> fill the map
+      {
+        if (!entry.contains("alternatives"))
+        {
+          String msg = "Ambiguous mod without alternative found in " + code;
+          //throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, code, msg);
+        }
+        parsed.alternative_1 = string(entry.at("alternatives").at(0)), parsed.alternative_2 = string(entry.at("alternatives").at(1)); //we always have exactly two ambiguities
+      }
+      else if (code.hasSuffix("Ar(p)") ||  code.hasSuffix("Gr(p)"))
+      {
+        ribo->setBaselossFormula(EmpiricalFormula("C10H19O21P"));
+      }
     }
     parsed.ribo = ribo;
     return parsed;
@@ -206,18 +249,22 @@ namespace OpenMS
       line_count++;
       try
       {
-        ParsedEntry_ entry = parseEntry_(element);
-        ConstRibonucleotidePtr ribo = entry.ribo;
-        if (entry.isAmbiguous()) // Handle the ambiguity map
+        if (entryIsWellFormed_(element))
         {
-          ambiguity_map_[ribo->getCode()] = make_pair(getRibonucleotide(entry.alternative_1), getRibonucleotide(entry.alternative_2));
-        }
-        // there are some weird exotic mods in modomics that don't have codes. We ignore them
-        if (ribo->getCode() != "") // We throw a warning for the lack of mono mass in our parsing
-        {
-          code_map_[ribo->getCode()] = ribonucleotides_.size();
-          ribonucleotides_.push_back(ribo);
-          max_code_length_ = max(max_code_length_, ribo->getCode().size());
+          ParsedEntry_ entry = parseEntry_(element);
+          
+          ConstRibonucleotidePtr ribo = entry.ribo;
+          if (entry.isAmbiguous()) // Handle the ambiguity map
+          {
+            ambiguity_map_[ribo->getCode()] = make_pair(getRibonucleotide(entry.alternative_1), getRibonucleotide(entry.alternative_2));
+          }
+          // there are some weird exotic mods in modomics that don't have codes. We ignore them
+          if (ribo->getCode() != "")
+          {
+            code_map_[ribo->getCode()] = ribonucleotides_.size();
+            ribonucleotides_.push_back(ribo);
+            max_code_length_ = max(max_code_length_, ribo->getCode().size());
+          }
         }
       }
       catch (Exception::BaseException& e)
