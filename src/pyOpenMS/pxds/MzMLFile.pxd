@@ -38,17 +38,9 @@ cdef extern from "<OpenMS/FORMAT/MzMLFile.h>" namespace "OpenMS":
         MzMLFile() nogil except +
         MzMLFile(MzMLFile &) nogil except +
 
-        void load(const String& filename, MSExperiment &) nogil except+
-            # wrap-doc:
-            #  Loads from an MzML file. Spectra and chromatograms are sorted by default (this can be disabled using PeakFileOptions)
-            #
-            # wrap-with-no-gil
+        void load(const String& filename, MSExperiment &) nogil except+ # wrap-with-no-gil wrap-doc:Loads from an MzML file. Spectra and chromatograms are sorted by default (this can be disabled using PeakFileOptions)
 
-        void store(const String& filename, MSExperiment &) nogil except+ 
-            # wrap-doc:
-            #  Stores a MSExperiment in an MzML file
-            #
-            # wrap-with-no-gil
+        void store(const String& filename, MSExperiment &) nogil except+ # wrap-with-no-gil wrap-doc:Stores a MSExperiment in an MzML file
 
         # COMMENT: store/load XML structure to/from a string
         void storeBuffer(String & output, MSExperiment exp) nogil except +
