@@ -116,6 +116,40 @@ namespace OpenMS
     }
     return true;
   }
+  
+  EmpiricalFormula getBaseLossFormula_(const nlohmann::json::value_type& entry)
+  {
+    String code = entry.at("short_name");
+    // If we have an explicitly defined baseloss_formula
+    if (!(entry.find("baseloss_formula") == entry.cend()) && !entry.at("baseloss_formula").is_null() )
+    {
+      return EmpiricalFormula(entry.at("baseloss_formula"));
+    }
+    //TODO: Calculate base loss formula from SMILES
+    else // If we don't have a defined baseloss_formula calculate it from our shortCode
+    {
+      if (code.hasPrefix('d')) // handle deoxyribose, possibly with methyl mod
+      {
+        return EmpiricalFormula("C5H10O4");
+      }
+      else if (code.hasSuffix('m')) // mod. attached to the ribose, not base
+      {
+        return EmpiricalFormula("C6H12O5");
+      }
+      else if (code.hasSuffix("m*")) // check if we have both a sulfer and a 2'-O methyl
+      {
+        return EmpiricalFormula("C6H12O5");
+      }
+      else if (code.hasSuffix("Ar(p)") ||  code.hasSuffix("Gr(p)"))
+      {
+        return EmpiricalFormula("C10H19O21P");
+      }
+      else
+      {
+        return EmpiricalFormula("C5H10O5");
+      }
+    }
+  }
 
   ParsedEntry_ parseEntry_(const nlohmann::json::value_type& entry)
   {
@@ -179,40 +213,20 @@ namespace OpenMS
       OPENMS_LOG_WARN << "Average mass of " << code << " differs substantially from its formula mass.\n";
     }
 
-    // If we have an explicitly defined baseloss_formula
-    if (!(entry.find("baseloss_formula") == entry.cend()) && !entry.at("baseloss_formula").is_null() )
+    // Handle base loss formula
+    ribo->setBaselossFormula(getBaseLossFormula_(entry));
+
+    // Handle ambiguities
+    if (code.hasSuffix('?') || code.hasSuffix("?*")) // ambiguity code -> fill the map
     {
-      ribo->setBaselossFormula(EmpiricalFormula(entry.at("baseloss_formula")));
+      if (!entry.contains("alternatives"))
+      {
+        String msg = "Ambiguous mod without alternative found in " + code;
+        throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, code, msg);
+      }
+      parsed.alternative_1 = string(entry.at("alternatives").at(0)), parsed.alternative_2 = string(entry.at("alternatives").at(1)); // we always have exactly two ambiguities
     }
-    //TODO: Calculate base loss formula from SMILES
-    else // If we don't have a defined baseloss_formula calculate it from our shortCode
-    {
-      if (code.hasPrefix('d')) // handle deoxyribose, possibly with methyl mod
-      {
-        ribo->setBaselossFormula(EmpiricalFormula("C5H10O4"));
-      }
-      else if (code.hasSuffix('m')) // mod. attached to the ribose, not base
-      {
-        ribo->setBaselossFormula(EmpiricalFormula("C6H12O5"));
-      }
-      else if (code.hasSuffix("m*")) // check if we have both a sulfer and a 2'-O methyl
-      {
-        ribo->setBaselossFormula(EmpiricalFormula("C6H12O5"));
-      }
-      else if (code.hasSuffix('?') || code.hasSuffix("?*")) // ambiguity code -> fill the map
-      {
-        if (!entry.contains("alternatives"))
-        {
-          String msg = "Ambiguous mod without alternative found in " + code;
-          //throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, code, msg);
-        }
-        parsed.alternative_1 = string(entry.at("alternatives").at(0)), parsed.alternative_2 = string(entry.at("alternatives").at(1)); //we always have exactly two ambiguities
-      }
-      else if (code.hasSuffix("Ar(p)") ||  code.hasSuffix("Gr(p)"))
-      {
-        ribo->setBaselossFormula(EmpiricalFormula("C10H19O21P"));
-      }
-    }
+
     parsed.ribo = ribo;
     return parsed;
   }
