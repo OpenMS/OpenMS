@@ -44,8 +44,8 @@ jobs:
         uses: docker/login-action@v2
         with:
           registry: ghcr.io
-          username: jpfeuffer
-          password: ${{ secrets.GH_REGISTRY_TOKEN }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
       - name: Build and Push Docker Library Image
         uses: docker/build-push-action@v3
         with:
