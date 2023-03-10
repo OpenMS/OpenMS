@@ -357,8 +357,8 @@ protected:
     }
 
     // determine charge of adduct (by number of '+' or '-')
-    Int pos_charge = parts[1].size() - parts[1].remove('+').size();
-    Int neg_charge = parts[1].size() - parts[1].remove('-').size();
+    Int pos_charge = std::count(parts[1].begin(), parts[1].end(), '+');
+    Int neg_charge = std::count(parts[1].begin(), parts[1].end(), '-');
     OPENMS_LOG_DEBUG << ": " << pos_charge - neg_charge << endl;
     if (pos_charge > 0 && neg_charge > 0)
     {
