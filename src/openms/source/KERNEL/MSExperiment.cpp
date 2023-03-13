@@ -367,7 +367,7 @@ namespace OpenMS
     // prevents uninitialized use uf ms_levels_
     if (!spectra_.empty() && ms_levels_.empty()) 
     {
-      throw Exception::InvalidSize(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, precursors.size());
+      throw Exception::InvalidSize(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, spectra_.size());
     }
     return ms_levels_;
   }
