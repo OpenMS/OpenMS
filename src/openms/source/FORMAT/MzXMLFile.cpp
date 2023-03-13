@@ -73,6 +73,7 @@ namespace OpenMS
     Internal::MzXMLHandler handler(map, filename, schema_version_, *this);
     handler.setOptions(options_);
     parse_(filename, &handler);
+    map.updateRanges();
   }
 
   void MzXMLFile::store(const String & filename, const MapType & map) const

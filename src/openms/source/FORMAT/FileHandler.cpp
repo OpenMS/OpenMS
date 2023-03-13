@@ -724,6 +724,7 @@ if (first_line.hasSubstring("File	First Scan	Last Scan	Num of Scans	Charge	Monoi
       exp.reset();
       exp.resize(1);
       DTAFile().load(filename, exp[0]);
+      exp.updateRanges();
       break;
 
     case FileTypes::DTA2D:
@@ -788,6 +789,7 @@ if (first_line.hasSubstring("File	First Scan	Last Scan	Num of Scans	Charge	Monoi
       exp.resize(1);
       XMassFile().load(filename, exp[0]);
       XMassFile().importExperimentalSettings(filename, exp);
+      exp.updateRanges();
       break;
   
     case FileTypes::MSP:
@@ -833,8 +835,6 @@ if (first_line.hasSubstring("File	First Scan	Last Scan	Num of Scans	Charge	Monoi
       exp.getSourceFiles().clear();
       exp.getSourceFiles().push_back(src_file);
     }
-
-    exp.updateRanges();
     
     return true;
   }

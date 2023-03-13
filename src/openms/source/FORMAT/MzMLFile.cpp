@@ -166,6 +166,7 @@ namespace OpenMS
     Internal::MzMLHandler handler(map, filename, getVersion(), *this);
     handler.setOptions(options_);
     safeParse_(filename, &handler);
+    map.updateRanges();
   }
 
   void MzMLFile::store(const String& filename, const PeakMap& map) const

@@ -188,6 +188,7 @@ namespace OpenMS
     }
     // To make sure a spectrum is added even if no empty line is present before EOF
     addSpectrumToLibrary(spectrum, library);
+    library.updateRanges(); 
     OPENMS_LOG_INFO << "Loading spectra from .msp file completed." << std::endl;
   }
 

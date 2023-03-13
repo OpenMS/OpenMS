@@ -188,14 +188,8 @@ public:
         spec.setNativeID(String("index=") + (spectrum_number++));
         exp.addSpectrum(spec);
       }
+      exp.updateRanges();
     }
-
-    /*
-    template <typename MapType> void store(const String& filename, MapType& map)
-    {
-
-    }
-    */
 
 protected:
 

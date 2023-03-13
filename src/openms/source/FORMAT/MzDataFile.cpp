@@ -91,6 +91,7 @@ namespace OpenMS
     Internal::MzDataHandler handler(map, filename, schema_version_, *this);
     handler.setOptions(options_);
     parse_(filename, &handler);
+    map.updateRanges();
   }
 
   void MzDataFile::store(const String & filename, const PeakMap & map) const

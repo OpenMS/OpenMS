@@ -120,6 +120,7 @@ public:
         ++spectrum_number;
       } // next spectrum
 
+      exp.updateRanges();
       endProgress();
     }
 

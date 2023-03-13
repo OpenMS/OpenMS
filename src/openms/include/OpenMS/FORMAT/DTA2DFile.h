@@ -256,6 +256,8 @@ public:
       }
 
       is.close();
+      
+      map.updateRanges();
       endProgress();
     }
 
