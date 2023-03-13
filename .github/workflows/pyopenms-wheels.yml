@@ -76,8 +76,9 @@ jobs:
           cmake -G "Visual Studio 17 2022" -A x64 -DOPENMS_CONTRIB_LIBS="$GITHUB_WORKSPACE/contribbld" -DCMAKE_PREFIX_PATH="$(echo $Qt5_Dir)/lib/cmake;${Qt5_Dir}" ../OpenMS
           # Note: multiple --targets only supported by CMake 3.15+
           cmake --build . --config Release --target OpenMS
-        
-          echo '${{ github.workspace }}/.github/workflows/python_versions.json'
+          
+          echo pwd
+          echo '${{ github.workspace }}\.github\workflows\python_versions.json'
           PYTHON_VERSIONS=$(cat  '${{ github.workspace }}/.github/workflows/python_versions.json' | jq -r '.[] | @sh')
         
           echo $PYTHON_VERSIONS
@@ -226,6 +227,7 @@ jobs:
           cmake -DCMAKE_BUILD_TYPE="Release" -DOPENMS_CONTRIB_LIBS="$GITHUB_WORKSPACE/contribbld" -DCMAKE_PREFIX_PATH="$(echo $Qt5_Dir)/lib/cmake;${Qt5_Dir};$GITHUB_WORKSPACE/contribbld/lib/" -DCMAKE_OSX_DEPLOYMENT_TARGET=10.9 -DBOOST_USE_STATIC=ON ../OpenMS
           make -j4 OpenMS
         
+          echo pwd
           echo '${{ github.workspace }}/.github/workflows/python_versions.json'
           PYTHON_VERSIONS=$(cat  '${{ github.workspace }}/.github/workflows/python_versions.json' | jq -r '.[] | @sh')
 
@@ -321,7 +323,8 @@ jobs:
             cd openms-build
             cmake -DCMAKE_BUILD_TYPE="Release" -DOPENMS_CONTRIB_LIBS="/contrib-build/" -DCMAKE_PREFIX_PATH="/contrib-build/" $GITHUB_WORKSPACE/OpenMS
             make -j4 OpenMS
-          
+        
+            echo pwd
             echo '${{ github.workspace }}/.github/workflows/python_versions.json'
             PYTHON_VERSIONS=$(cat  '${{ github.workspace }}/.github/workflows/python_versions.json' | jq -r '.[] | @sh')
 
