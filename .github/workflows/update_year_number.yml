@@ -12,10 +12,10 @@ jobs:
   updating_year_number:
     runs-on: macos-latest
     steps:
-# Getting files of OpenMS
+      # Getting files of OpenMS
       - uses: actions/checkout@v3
 
-# Find all files and replace the year number
+      # Find all files and replace the year number
       - name: Update files
         run: |
           # setting a variable for year number
