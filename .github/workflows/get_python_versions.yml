@@ -4,7 +4,7 @@ on:
 
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
-  build-win:
+  build-linx:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
@@ -15,8 +15,8 @@ jobs:
         shell: bash
         run: |
           ls
-          ls .github
-          ls .github/workflows
-          PYTHON_VERSIONS=$(cat .github/workflows/python_versions.json)
+          ls OpenMS/.github
+          ls OpenMS.github/workflows
+          PYTHON_VERSIONS=$(cat OpenMS/.github/workflows/python_versions.json)
           
           echo $PYTHON_VERSIONS
