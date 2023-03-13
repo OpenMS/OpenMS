@@ -15,5 +15,6 @@ jobs:
         shell: bash
         run: |
           PYTHON_VERSIONS=$(cat OpenMS/.github/workflows/python_versions.json)
-          
-          echo $PYTHON_VERSIONS
+          for py in $(echo "${PYTHON_VERSIONS}" | jq -r '.[]'); do
+            echo "${py}"
+          done
