@@ -104,6 +104,7 @@ namespace OpenMS
 
     MSSpectrum s = meta_ms_experiment_.getSpectrum(id);
     Internal::CachedMzMLHandler::readSpectrum(s, ifs_);
+    s.updateRanges();
     return s;
   }
 
