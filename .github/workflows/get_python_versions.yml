@@ -14,7 +14,7 @@ jobs:
       - name: Build
         shell: bash
         run: |
-          PYTHON_VERSIONS=$(cat .github/workflows/python_versions.json')
+          PYTHON_VERSIONS=$(cat .github/workflows/python_versions.json)
           
           echo $PYTHON_VERSIONS
 
