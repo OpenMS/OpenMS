@@ -15,7 +15,7 @@ jobs:
         shell: bash
         run: |
           ls
-          ls -l OpenMS
+          ls -a OpenMS
           ls OpenMS.github/workflows
           PYTHON_VERSIONS=$(cat OpenMS/.github/workflows/python_versions.json)
           
