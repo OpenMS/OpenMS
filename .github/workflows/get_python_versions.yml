@@ -14,8 +14,6 @@ jobs:
       - name: Build
         shell: bash
         run: |
-#          pwd
-#          echo '${{ github.workspace }}\.github\workflows\python_versions.json'
           PYTHON_VERSIONS=$(cat .github/workflows/python_versions.json')
           
           echo $PYTHON_VERSIONS
