@@ -128,10 +128,13 @@ protected:
 
     PeakMap exp;
     fh.loadExperiment(in, exp, in_type, log_type_);
+    if (exp.getNrSpectra() == 0)
+    {
+      throw Exception::InvalidSize(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, exp.getNrSpectra());
+    } 
     exp.sortSpectra();
 
     auto levels = exp.getMSLevels();
-    if (levels.empty()) throw Exception::InvalidSize(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, levels.size());
     int min_ms_level = levels.front();
     int max_ms_level = levels.back();
     //-------------------------------------------------------------

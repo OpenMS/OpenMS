@@ -363,6 +363,12 @@ namespace OpenMS
   /// returns an array of MS levels
   const std::vector<UInt>& MSExperiment::getMSLevels() const
   {
+    // if we have spectra enforce MS level information
+    // prevents uninitialized use uf ms_levels_
+    if (!spectra_.empty() && ms_levels_.empty()) 
+    {
+      throw Exception::InvalidSize(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, precursors.size());
+    }
     return ms_levels_;
   }
 

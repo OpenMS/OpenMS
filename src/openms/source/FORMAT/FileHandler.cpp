@@ -834,6 +834,8 @@ if (first_line.hasSubstring("File	First Scan	Last Scan	Num of Scans	Charge	Monoi
       exp.getSourceFiles().push_back(src_file);
     }
 
+    exp.updateRanges();
+    
     return true;
   }
 
