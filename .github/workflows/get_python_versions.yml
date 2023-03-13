@@ -14,6 +14,7 @@ jobs:
       - name: Build
         shell: bash
         run: |
+          pwd
           echo '${{ github.workspace }}\.github\workflows\python_versions.json'
           PYTHON_VERSIONS=$(cat  '${{ github.workspace }}\.github\workflows\python_versions.json')
           
@@ -29,9 +30,9 @@ jobs:
       - name: Build
         shell: bash
         run: |
-          echo pwd
-          echo '${{ github.workspace }}\.github\workflows\python_versions.json'
-          PYTHON_VERSIONS=$(cat  '${{ github.workspace }}\.github\workflows\python_versions.json')
+          pwd
+          echo '${{ github.workspace }}/.github/workflows/python_versions.json'
+          PYTHON_VERSIONS=$(cat  '${{ github.workspace }}/.github/workflows/python_versions.json')
 
           echo $PYTHON_VERSIONS
 
@@ -45,7 +46,8 @@ jobs:
       - name: Build
         shell: bash
         run: |
-          echo '${{ github.workspace }}\.github\workflows\python_versions.json'
-          PYTHON_VERSIONS=$(cat  '${{ github.workspace }}\.github\workflows\python_versions.json')
+          pwd
+          echo '${{ github.workspace }}/.github/workflows/python_versions.json'
+          PYTHON_VERSIONS=$(cat  '${{ github.workspace }}/.github/workflows/python_versions.json')
           
           echo $PYTHON_VERSIONS
