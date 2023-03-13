@@ -1,0 +1,51 @@
+name: test_python_versions
+on:
+  workflow_dispatch:
+
+# A workflow run is made up of one or more jobs that can run sequentially or in parallel
+jobs:
+  build-win:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          path: OpenMS
+
+      - name: Build
+        shell: bash
+        run: |
+          echo '${{ github.workspace }}\.github\workflows\python_versions.json'
+          PYTHON_VERSIONS=$(cat  '${{ github.workspace }}\.github\workflows\python_versions.json')
+          
+          echo $PYTHON_VERSIONS
+
+  build-macos:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          path: OpenMS
+
+      - name: Build
+        shell: bash
+        run: |
+          echo pwd
+          echo '${{ github.workspace }}\.github\workflows\python_versions.json'
+          PYTHON_VERSIONS=$(cat  '${{ github.workspace }}\.github\workflows\python_versions.json')
+
+          echo $PYTHON_VERSIONS
+
+  build-linx:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          path: OpenMS
+
+      - name: Build
+        shell: bash
+        run: |
+          echo '${{ github.workspace }}\.github\workflows\python_versions.json'
+          PYTHON_VERSIONS=$(cat  '${{ github.workspace }}\.github\workflows\python_versions.json')
+          
+          echo $PYTHON_VERSIONS
