@@ -305,6 +305,7 @@ START_SECTION(static void deisotopeWithAveragineModel(MSSpectrum& spectrum,
   theo1 = exp.getSpectrum(0);// for next test
   Size ori_size = theo.size();
   Deisotoper::deisotopeWithAveragineModel(theo, 10.0, true, 5000, 1, 3, true);// keep only deisotoped
+  theo.updateRanges(); 
   TEST_NOT_EQUAL(theo.size(), ori_size);
   file.load(OPENMS_GET_TEST_DATA_PATH("Deisotoper_test_out.mzML"), exp);
   TEST_EQUAL(theo, exp.getSpectrum(0));

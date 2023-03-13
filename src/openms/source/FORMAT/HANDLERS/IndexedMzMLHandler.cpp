@@ -290,6 +290,7 @@ namespace OpenMS::Internal
   {
     std::string text = IndexedMzMLHandler::getSpectrumById_helper_(id);
     MzMLSpectrumDecoder(skip_xml_checks_).domParseSpectrum(text, s);
+    s.updateRanges();
   }
 
   OpenMS::Interfaces::ChromatogramPtr IndexedMzMLHandler::getChromatogramById(int id)
@@ -304,6 +305,7 @@ namespace OpenMS::Internal
   {
     OpenMS::MSChromatogram c;
     getMSChromatogramById(id, c);
+    c.updateRanges();
     return c;
   }
 
