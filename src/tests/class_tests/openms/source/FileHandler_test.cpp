@@ -223,6 +223,9 @@ TEST_EQUAL(exp.size(), 4)
 TEST_STRING_EQUAL(exp.getSourceFiles()[0].getChecksum(), "36007593dbca0ba59a1f4fc32fb970f0e8991fa6")
 TEST_EQUAL(exp.getSourceFiles()[0].getChecksumType(), SourceFile::SHA1)
 
+auto levels = exp.getMSLevels();
+TEST_EQUAL(levels.size(), 2);
+
 tmp.getOptions() = PeakFileOptions();
 TEST_EQUAL(tmp.loadExperiment(OPENMS_GET_TEST_DATA_PATH("DTA2DFile_test_1.dta2d"), exp), true)
 TEST_REAL_SIMILAR(exp[0][0].getPosition()[0], 230.02)
