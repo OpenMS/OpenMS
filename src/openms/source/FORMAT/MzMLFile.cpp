@@ -166,7 +166,11 @@ namespace OpenMS
     Internal::MzMLHandler handler(map, filename, getVersion(), *this);
     handler.setOptions(options_);
     safeParse_(filename, &handler);
-    map.updateRanges();
+
+    if (options_.getFillData() == true) // only update range information if we read spectra/chromatograms
+    {
+      map.updateRanges();
+    }
   }
 
   void MzMLFile::store(const String& filename, const PeakMap& map) const
