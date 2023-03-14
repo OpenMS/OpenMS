@@ -89,8 +89,8 @@ jobs:
           PATH=$RESET_PATH
 
           # create and activate conda environment
-          conda create -n pyoms-bld-"${py}" python="${py}"
-          source activate pyoms-bld-"${py}"
+          conda create -n "pyoms-bld-${py}" python="${py}"
+          source activate "pyoms-bld-${py}"
 
           # set current python executable
           CURRENT_PYTHON_EXECUTABLE=$(which python)
@@ -115,7 +115,7 @@ jobs:
           cp pyOpenMS/dist/*.whl pyopenms_whls/
           # clean up
           conda deactivate
-          conda remove --name pyoms-bld-"${py}" --all
+          conda remove --name "pyoms-bld-${py}" --all
 
           # clean previous pyopenms libs
           find . -name "pyopenms*.so" -exec rm -rf {} \;
