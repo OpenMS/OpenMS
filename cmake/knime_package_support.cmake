@@ -208,6 +208,17 @@ foreach(TOOL ${CTD_executables})
   endif()
 endforeach()
 
+# Note: We expose FileConverter twice.
+# Once as FileConverter in the OpenMS (core) plugin without raw file support (see first if-case in foreach above)
+# Once in the Thirdparty plugin as RawFileConverter with raw file support (see below).
+# We rename the filename to show a different node name in KNIME but leave the tool name inside the CTD unchanged, so it finds the tool binary.
+# TODO change description and accepting file types?
+add_custom_command(
+	TARGET  create_ctds POST_BUILD
+	COMMAND ${TOPP_BIN_PATH}/FileConverter -write_ctd ${CTD_TP_PATH}
+	COMMAND ${CMAKE_COMMAND} -e rename ${CTD_TP_PATH}/FileConverter.ctd ${CTD_TP_PATH}/RawFileConverter.ctd
+)
+
 # remove those parts of the CTDs we cannot or do not want to model in KNIME
 # e.g. paths to executables that we ship and whose directories are in path environment
 add_custom_target(
@@ -389,6 +400,7 @@ endif()
 add_custom_target(
   prepare_knime_payload_ini
   COMMAND ${CMAKE_COMMAND} -D SCRIPT_DIR=${SCRIPT_DIRECTORY} -D ARCH=${ARCH} -D PLATFORM=${PLATFORM} -D TARGET_DIR=${PAYLOAD_PATH} -D TEMPLATE_FOLDER=${SCRIPT_DIRECTORY} -P ${SCRIPT_DIRECTORY}copy_binaries_ini.cmake
+  COMMAND ${CMAKE_COMMAND} -D SCRIPT_DIR=${SCRIPT_DIRECTORY} -D ARCH=${ARCH} -D PLATFORM=${PLATFORM} -D TARGET_DIR=${TP_PAYLOAD_PATH} -D TEMPLATE_FOLDER=${SCRIPT_DIRECTORY} -P ${SCRIPT_DIRECTORY}copy_binaries_ini.cmake
   DEPENDS prepare_knime_payload_binaries
 )
 
