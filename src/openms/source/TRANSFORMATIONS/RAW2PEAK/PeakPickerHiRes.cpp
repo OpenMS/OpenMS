@@ -188,11 +188,17 @@ namespace OpenMS
       }
       // MZ spacing sanity checks
       double left_to_central = 0.0, central_to_right = 0.0, min_spacing = 0.0;
+      bool no_left_neighbor = false, no_right_neighbor = false;
       if (check_spacings)
       {
         left_to_central = central_peak_mz - left_neighbor_mz;
         central_to_right = right_neighbor_mz - central_peak_mz;
         min_spacing = (left_to_central < central_to_right) ? left_to_central : central_to_right;
+        // if left or right neighbor is more than min space, we consider peak core
+        // to be missing flanking peaks
+        no_left_neighbor = left_to_central > spacing_difference_ * min_spacing;
+        no_right_neighbor = central_to_right > spacing_difference_ * min_spacing;
+
       }
 
       double act_snt = 0.0, act_snt_l1 = 0.0, act_snt_r1 = 0.0;
@@ -204,14 +210,13 @@ namespace OpenMS
       }
 
       // look for peak cores meeting MZ and intensity/SNT criteria
-      if ((central_peak_int > left_neighbor_int) && 
-        (central_peak_int > right_neighbor_int) && 
+      if ((central_peak_int > left_neighbor_int) &&
+        (central_peak_int > right_neighbor_int) &&
         (act_snt >= signal_to_noise_) && 
         (act_snt_l1 >= signal_to_noise_) && 
         (act_snt_r1 >= signal_to_noise_) &&
         (!check_spacings || 
-        ((left_to_central < spacing_difference_ * min_spacing) && 
-          (central_to_right < spacing_difference_ * min_spacing))))
+        (!no_left_neighbor || !no_right_neighbor)))
       {
         // special case: if a peak core is surrounded by more intense
         // satellite peaks (indicates oscillation rather than
@@ -242,17 +247,28 @@ namespace OpenMS
 
         std::map<double, double> peak_raw_data;
         double weighted_im = 0;
-
         peak_raw_data[central_peak_mz] = central_peak_int;
-        peak_raw_data[left_neighbor_mz] = left_neighbor_int;
-        peak_raw_data[right_neighbor_mz] = right_neighbor_int;
+        // if we determined there are no flanking peaks, don't add neighbors from one side
+        if (!no_left_neighbor) {
+          peak_raw_data[left_neighbor_mz] = left_neighbor_int;
+        }
+
+        if (!no_right_neighbor) {
+          peak_raw_data[right_neighbor_mz] = right_neighbor_int;
+        }
 
         if (has_im)
         {
           weighted_im += input.getFloatDataArrays()[im_data_index][i] * input[i].getIntensity();
-          weighted_im += input.getFloatDataArrays()[im_data_index][i-1] * input[i-1].getIntensity();
-          weighted_im += input.getFloatDataArrays()[im_data_index][i+1] * input[i+1].getIntensity();
+          // if no left or right neighbor, don't include ion mobility
+          if (!no_left_neighbor) {
+            weighted_im += input.getFloatDataArrays()[im_data_index][i-1] * input[i-1].getIntensity();
+          }
+          if (!no_right_neighbor) {
+            weighted_im += input.getFloatDataArrays()[im_data_index][i + 1] * input[i + 1].getIntensity();
+          }
         }
+
 
         // peak core found, now extend it
         // to the left
@@ -325,6 +341,7 @@ namespace OpenMS
             (input[i + k].getMZ() - peak_raw_data.rbegin()->first < spacing_difference_ * min_spacing)))
           {
             peak_raw_data[input[i + k].getMZ()] = input[i + k].getIntensity();
+
             if (has_im) weighted_im += input.getFloatDataArrays()[im_data_index][i + k] * input[i + k].getIntensity();
           }
           else
@@ -347,10 +364,21 @@ namespace OpenMS
         {
           continue;
         }
+
         CubicSpline2d peak_spline (peak_raw_data);
 
         // calculate maximum by evaluating the spline's 1st derivative
         // (bisection method)
+        // Since we included situations where left or right neighbors could not exist
+        // we could create a 'phantom' neighbor peak of equal distance from central mz to existing neighbor mz
+        // but how to handle ion mobility array? spline_bisection expects "peak_spline" to have the same mz range
+        // Introducing a 'phantom' peak extending past 'peak_spline' range will throw an error.
+        // We have to add a proper peak to peak_spline and have to decide what ion mobility value to assign to it.
+
+        // for now, simply replace mz value of missing neighbor with central mz peak.
+        left_neighbor_mz = (no_left_neighbor) ? central_peak_mz: left_neighbor_mz;
+        right_neighbor_mz = (no_right_neighbor) ? central_peak_mz: right_neighbor_mz;
+
         double max_peak_mz = central_peak_mz;
         double max_peak_int = central_peak_int;
         double threshold = 1e-6;
@@ -436,7 +464,6 @@ namespace OpenMS
         output.push_back(peak);
 
         boundaries.push_back(peak_boundary);
-
         // jump over profile data points that have been considered already
         i += k - 1;
       }
