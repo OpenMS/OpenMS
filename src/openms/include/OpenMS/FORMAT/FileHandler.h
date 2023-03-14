@@ -38,6 +38,7 @@
 #include <OpenMS/FORMAT/FileTypes.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 #include <OpenMS/FORMAT/OPTIONS/PeakFileOptions.h>
+#include <OpenMS/METADATA/MSQuantifications.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
 
@@ -236,6 +237,59 @@ public:
       @exception Exception::UnableToCreateFile is thrown if the file could not be written
     */
     bool storeTransitions(const String& filename, const TargetedExperiment& library);
+
+        /**
+      @brief Loads a file into MSQuantifications
+
+      @param filename the file name of the file to load.
+      @param msq The MSQuantification to load the data into.
+      @param force_type Forces to load the file with that file type. If no type is forced, it is determined from the extension (or from the content if that fails).
+
+      @return true if the file could be loaded, false otherwise
+
+      @exception Exception::FileNotFound is thrown if the file could not be opened
+      @exception Exception::ParseError is thrown if an error occurs during parsing
+    */
+
+
+    bool loadQuantifications(const String& filename, MSQuantifications& map, FileTypes::Type force_type = FileTypes::UNKNOWN);
+
+    /**
+      @brief Store MSQuantifications
+
+      @param filename the file name of the file to write.
+      @param map The MSQuantifications to store.
+
+      @return true if the file could be stored, false otherwise
+
+      @exception Exception::UnableToCreateFile is thrown if the file could not be written
+    */
+    bool storeQuantifications(const String& filename, const MSQuantifications& map);
+
+
+    // Overloads of load dependent on signature
+    inline bool load(const String& filename, FeatureMap& map, FileTypes::Type force_type = FileTypes::UNKNOWN)
+    {
+      return loadFeatures(filename, map, force_type);  
+    }
+    inline bool load(const String& filename, MSExperiment& exp, FileTypes::Type force_type = FileTypes::UNKNOWN, ProgressLogger::LogType log = ProgressLogger::NONE, const bool rewrite_source_file = true, const bool compute_hash = true)
+    {
+      return loadExperiment(filename, exp, force_type, log, rewrite_source_file, compute_hash);
+    }
+    inline bool load(const String& filename, ConsensusMap& map)
+    {
+      return loadConsensusFeatures(filename, map);
+    }
+    inline bool load(const String& filename, std::vector<ProteinIdentification> additional_proteins, std::vector<PeptideIdentification> additional_peptides)
+    {
+      return loadIdentifications(filename, additional_proteins, additional_peptides);
+    }
+    inline bool load(const String& filename, MSQuantifications& map, FileTypes::Type force_type = FileTypes::UNKNOWN)
+    {
+      return loadQuantifications(filename, map, force_type);
+    }
+
+
 
     /**
       @brief Computes a SHA-1 hash value for the content of the given file.

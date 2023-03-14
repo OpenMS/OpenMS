@@ -226,14 +226,14 @@ protected:
     if (in_type == FileTypes::CONSENSUSXML)
     {
       // OPENMS_LOG_DEBUG << "Processing consensus map..." << endl;
-      ConsensusXMLFile file;
+      FileHandler consensusFile;
       ConsensusMap map;
-      file.load(in, map);
+      consensusFile.loadConsensusFeatures(in, map);
 
       PeakMap exp;
       if (!spectra.empty())
       {
-        MzMLFile().load(spectra, exp);
+        FileHandler().loadExperiment(spectra, exp);
       }
 
       bool measure_from_subelements = getFlag_("consensus:use_subelements");
@@ -247,7 +247,7 @@ protected:
       // sort list of peptide identifications in each consensus feature by map index
       map.sortPeptideIdentificationsByMapIndex();
 
-      file.store(out, map);
+      consensusFile.storeConsensusFeatures(out, map);
     }
 
     //----------------------------------------------------------------
@@ -257,14 +257,14 @@ protected:
     {
       // OPENMS_LOG_DEBUG << "Processing feature map..." << endl;
       FeatureMap map;
-      FeatureXMLFile file;
-      file.load(in, map);
+      FileHandler featureFile;
+      featureFile.loadFeatures(in, map);
 
       PeakMap exp;
 
       if (!spectra.empty())
       {
-        MzMLFile().load(spectra, exp);
+        FileHandler().loadExperiment(spectra, exp);
       }
 
       mapper.annotate(map, peptide_ids, protein_ids, (getStringOption_("feature:use_centroid_rt") == "true"), (getStringOption_("feature:use_centroid_mz") == "true"), exp);
@@ -272,7 +272,7 @@ protected:
       // annotate output with data processing info
       addDataProcessing_(map, getProcessingInfo_(DataProcessing::IDENTIFICATION_MAPPING));
 
-      file.store(out, map);
+      featureFile.storeFeatures(out, map);
     }
 
     //----------------------------------------------------------------
@@ -282,8 +282,8 @@ protected:
     {
       // OPENMS_LOG_DEBUG << "Processing mzq ..." << endl;
       MSQuantifications msq;
-      MzQuantMLFile file;
-      file.load(in, msq);
+      FileHandler quantFile;
+      quantFile.loadQuantifications(in, msq);
 
       bool measure_from_subelements = getFlag_("consensus:use_subelements");
       for (ConsensusMap& cm : msq.getConsensusMaps())
@@ -296,7 +296,7 @@ protected:
       //~ writeDebug_(msq.getConsensusMaps().size(),3);
       //~ writeDebug_(msq.getConsensusMaps().back().size(),3);
       //~ writeDebug_(msq.getAnalysisSummary().quant_type_,3);
-      file.store(out, msq);
+      quantFile.storeQuantifications(out, msq);
     }
 
     // OPENMS_LOG_DEBUG << "Done." << endl;

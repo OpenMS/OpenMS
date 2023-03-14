@@ -212,7 +212,7 @@ protected:
       {
         // load feature map
         FeatureMap map;
-        FeatureXMLFile().load(include, map);
+        FileHandler().loadFeatures(include, map);
 
         if (strategy == "ALL")
         {
@@ -241,7 +241,7 @@ protected:
 
           String raw_data_path = getStringOption_("raw_data");
           PeakMap exp, ms2;
-          MzMLFile().load(raw_data_path, exp);
+          FileHandler().loadExperiment(raw_data_path, exp);
           FeatureMap out_map;
           out_map.setPrimaryMSRunPath({raw_data_path}, exp);
 
@@ -300,7 +300,7 @@ protected:
           {
             if (out.hasSuffix("featureXML"))
             {
-              FeatureXMLFile().store(out, out_map);
+              FileHandler().storeFeatures(out, out_map);
             }
             else list.writeTargets(out_map, out);
           }
@@ -340,7 +340,7 @@ protected:
           opis.createProteinSequenceBasedLPInclusionList(include, rt_model_file, pt_model_file, precursors);
           if (out.hasSuffix("featureXML"))
           {
-            FeatureXMLFile().store(out, precursors);
+            FileHandler().storeFeatures(out, precursors);
           }
           else list.writeTargets(precursors, out);
 
@@ -386,7 +386,7 @@ protected:
 
         // load feature map
         FeatureMap map;
-        FeatureXMLFile().load(exclude, map);
+        FileHandler().loadFeatures(exclude, map);
 
         // convert to targeted experiment if traML output is selected
         //            list.loadTargets(map,excl_targets,exp);
@@ -405,7 +405,7 @@ protected:
       {
         std::vector<PeptideIdentification> pep_ids;
         std::vector<ProteinIdentification> prot_ids;
-        IdXMLFile().load(exclude, prot_ids, pep_ids);
+        FileHandler().loadIdentifications(exclude, prot_ids, pep_ids);
         try
         {
           list.writeTargets(pep_ids, out, excl_charges);

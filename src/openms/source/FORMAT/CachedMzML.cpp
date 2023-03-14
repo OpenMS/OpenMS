@@ -35,6 +35,7 @@
 #include <OpenMS/FORMAT/CachedMzML.h>
 
 #include <OpenMS/FORMAT/MzMLFile.h>
+#include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
 
 #include <OpenMS/KERNEL/StandardDeclarations.h>
@@ -83,7 +84,7 @@ namespace OpenMS
     ifs_.open(filename_cached_.c_str(), std::ios::binary);
 
     // load the meta data from disk
-    MzMLFile().load(filename, meta_ms_experiment_);
+    FileHandler().loadExperiment(filename, meta_ms_experiment_);
   }
 
   MSSpectrum CachedmzML::getSpectrum(Size id)

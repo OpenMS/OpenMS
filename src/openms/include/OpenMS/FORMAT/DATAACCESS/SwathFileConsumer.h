@@ -42,6 +42,8 @@
 #include <OpenMS/FORMAT/DATAACCESS/MSDataCachedConsumer.h>
 #include <OpenMS/FORMAT/DATAACCESS/MSDataWritingConsumer.h>
 #include <OpenMS/FORMAT/DATAACCESS/MSDataTransformingConsumer.h>
+#include <OpenMS/FORMAT/FileHandler.h>
+
 
 // Helpers
 #include <OpenMS/ANALYSIS/OPENSWATH/OpenSwathHelper.h>
@@ -525,7 +527,7 @@ protected:
         String meta_file = cachedir_ + basename_ + "_ms1.mzML";
         // write metadata to disk and store the correct data processing tag
         Internal::CachedMzMLHandler().writeMetadata(*ms1_map_, meta_file, true);
-        MzMLFile().load(meta_file, *exp.get());
+        FileHandler().loadExperiment(meta_file, *exp.get());
         ms1_map_ = exp;
       }
 
@@ -538,7 +540,7 @@ protected:
         String meta_file = cachedir_ + basename_ + "_" + String(i) +  ".mzML";
         // write metadata to disk and store the correct data processing tag
         Internal::CachedMzMLHandler().writeMetadata(*swath_maps_[i], meta_file, true);
-        MzMLFile().load(meta_file, *exp.get());
+        FileHandler().loadExperiment(meta_file, *exp.get());
         swath_maps_[i] = exp;
       }
     }

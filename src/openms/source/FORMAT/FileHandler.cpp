@@ -45,6 +45,7 @@
 #include <OpenMS/FORMAT/MS2File.h>
 #include <OpenMS/FORMAT/MSPFile.h>
 #include <OpenMS/FORMAT/MSPGenericFile.h>
+#include <OpenMS/FORMAT/MzQuantMLFile.h>
 #include <OpenMS/FORMAT/SqMassFile.h>
 #include <OpenMS/FORMAT/XMassFile.h>
 #include <OpenMS/FORMAT/TraMLFile.h>
@@ -663,8 +664,8 @@ if (first_line.hasSubstring("File	First Scan	Last Scan	Num of Scans	Charge	Monoi
     }
     else
     {
-      OPENMS_LOG_WARN << "Can not store features to " << filename << ". Unknown file extension" << endl;
-      return false;
+      OPENMS_LOG_WARN << "Can't determine file type of" << filename << ". Unknown file extension. Defaulting to .featureXML" << endl;
+      FeatureXMLFile().store(filename, map);
     }
 
     return true;
@@ -896,6 +897,18 @@ if (first_line.hasSubstring("File	First Scan	Last Scan	Num of Scans	Charge	Monoi
     }
     break;
     }
+  }
+
+  bool FileHandler::loadQuantifications(const String& filename, MSQuantifications& map, FileTypes::Type force_type = FileTypes::UNKNOWN)
+  {
+    MzQuantMLFile().load(filename, map);
+    return true;
+  }
+
+  bool FileHandler::storeQuantifications(const String& filename, const MSQuantifications& map)
+  {
+    MzQuantMLFile().store(filename, map);
+    return true;
   }
 
 } // namespace OpenMS
