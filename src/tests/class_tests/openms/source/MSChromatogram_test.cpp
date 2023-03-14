@@ -962,7 +962,7 @@ START_SECTION((bool operator==(const MSChromatogram &rhs) const ))
   edit.push_back(p2);
   edit.updateRanges();
   edit.clear(false);
-  TEST_EQUAL(empty == edit, true); // ensure that ranges are not compared
+  TEST_EQUAL(empty == edit, false);
 
 }
 END_SECTION
@@ -1012,7 +1012,7 @@ START_SECTION((bool operator!=(const MSChromatogram &rhs) const ))
   edit.push_back(p2);
   edit.updateRanges();
   edit.clear(false);
-  TEST_EQUAL(edit == empty, true);  // ensure that ranges are not compared
+  TEST_EQUAL(edit == empty, false);
 }
 END_SECTION
 

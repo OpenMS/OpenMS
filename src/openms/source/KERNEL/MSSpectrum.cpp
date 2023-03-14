@@ -479,9 +479,8 @@ namespace OpenMS
     //name_ can differ => it is not checked
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wfloat-equal"
-    return std::operator==(*this, rhs) &&
-           // do not compare range manager because it depends on manual calls to updateRanges
-           // RangeManagerType::operator==(rhs) && 
+    return std::operator==(*this, rhs) &&           
+           RangeManagerType::operator==(rhs) && 
            SpectrumSettings::operator==(rhs) &&
            retention_time_ == rhs.retention_time_ &&
            drift_time_ == rhs.drift_time_ &&

@@ -122,6 +122,7 @@ namespace OpenMS
 
     MSChromatogram c = meta_ms_experiment_.getChromatogram(id);
     Internal::CachedMzMLHandler::readChromatogram(c, ifs_);
+    c.updateRanges();
     return c;
   }
 
