@@ -217,6 +217,7 @@ add_custom_command(
 	TARGET  create_ctds POST_BUILD
 	COMMAND ${TOPP_BIN_PATH}/FileConverter -write_ctd ${CTD_TP_PATH}
 	COMMAND ${CMAKE_COMMAND} -e rename ${CTD_TP_PATH}/FileConverter.ctd ${CTD_TP_PATH}/RawFileConverter.ctd
+  COMMAND ${CMAKE_COMMAND} -DSCRIPT_DIR=${SCRIPT_DIRECTORY} -DTOOLNAME=RawFileConverter -DCTD_FILE=${CTD_TP_PATH}/RawFileConverter.ctd -P ${SCRIPT_DIRECTORY}change_exec_name_in_ctd.cmake
 )
 
 # remove those parts of the CTDs we cannot or do not want to model in KNIME
