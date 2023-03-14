@@ -307,6 +307,12 @@ START_SECTION((EmpiricalFormula getFormula(NASequence::NASFragmentType type = NA
   NASequence thiolseq = NASequence::fromString("*[dA*][dA]");
   TEST_EQUAL(thiolseq.getFormula(NASequence::WIon, -1), EmpiricalFormula("C20H25N10O9P2S2"));
   TEST_EQUAL(thiolseq.getFormula(NASequence::YIon, -1), EmpiricalFormula("C20H24N10O7P1S1"));
+  // Test for a-B ions
+  thiolseq = NASequence::fromString("[dA][dA*]");
+  TEST_EQUAL(thiolseq.getFormula(NASequence::AminusB, 0), EmpiricalFormula("C15H18N5O7P1"));
+  thiolseq = NASequence::fromString("[dA][dA*][dA*]");
+  TEST_EQUAL(thiolseq.getFormula(NASequence::AminusB, 0), EmpiricalFormula("C25H30N10O11P2S1"));
+
 }
 END_SECTION
 
