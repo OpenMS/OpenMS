@@ -2,11 +2,10 @@ name: Update year number
 
 # Trigger this action manually
 on:
-#  workflow_dispatch:
-#    inputs:
-#      year_number:
-#        required: true
-  push:
+  workflow_dispatch:
+    inputs:
+      year_number:
+        required: true
 
 jobs:
   updating_year_number:
@@ -21,14 +20,14 @@ jobs:
           # setting a variable for year number
           year_number="${{ github.event.inputs.year_number }}"
           # Find and replace in all files 
-          find . -type f ! -path "./.git/*" -exec grep "Freie Universitaet Berlin 2002-20" {} \; -exec sed -i '' "s#and Freie Universitaet Berlin 2002-20.*.#and Freie Universitaet Berlin 2002-$year_number.#g" {} \;
+          find . -type f ! -path "./.git/*" -exec grep -q "Freie Universitaet Berlin 2002-20" {} \; -exec sed -i '' "s#and Freie Universitaet Berlin 2002-20.*.#and Freie Universitaet Berlin 2002-$year_number.#g" {} \;
 
 # Commit and PR updated files
       - name: Commit and PR updated files
         uses: peter-evans/create-pull-request@v4
         with:
           commit-message: 'Updated year number'
-          committer: ${{ github.actor}}
+          committer: ${{github.actor}}
           branch: update_year_number
           delete-branch: true
           title: '[ByGitAction] Updated year number in the header of files'
