@@ -89,8 +89,10 @@ jobs:
           PATH=$RESET_PATH
 
           # create and activate conda environment
-          conda create -n "pyoms-bld-${py}" python="${py}"
-          source activate "pyoms-bld-${py}"
+          py=$(echo "$py" | tr -d " \n")
+          pynodot=$(echo "$py" | tr -d ".")
+          conda create -n pyoms-bld-"${pynodot}" python="${py}"
+          source activate pyoms-bld-"${pynodot}"
 
           # set current python executable
           CURRENT_PYTHON_EXECUTABLE=$(which python)
@@ -225,8 +227,10 @@ jobs:
         mkdir pyopenms_whls
 
         for py in $(echo "${PYTHON_VERSIONS}" | jq -r '.[]'); do
-          conda create -n pyoms-bld-"${py}" python="${py}"
-          source activate pyoms-bld-"${py}"
+          py=$(echo "$py" | tr -d " \n")
+          pynodot=$(echo "$py" | tr -d ".")
+          conda create -n pyoms-bld-"${pynodot}" python="${py}"
+          source activate pyoms-bld-"${pynodot}"
 
           # set current python executable
           CURRENT_PYTHON_EXECUTABLE=$(which python)
@@ -300,7 +304,7 @@ jobs:
       shell: bash
       run: |
         PYTHON_VERSIONS=$(cat OpenMS/.github/workflows/python_versions.json)
-        sudo yum install -y jq
+        yum install -y jq
         cmake --version
 
         mkdir -p $GITHUB_WORKSPACE/data/wheelhouse/
@@ -314,8 +318,10 @@ jobs:
         make -j4 OpenMS
 
         # compile and configure OpenMS
-        # since string sorting does not work with 9,10,11+ we need to specify manually.
-        for PYBIN in $(echo "${PYTHON_VERSIONS}" | jq -r '.[]'); do
+        for py in $(echo "${PYTHON_VERSIONS}" | jq -r '.[]'); do
+          py=$(echo "$py" | tr -d " \n")
+          pynodot=$(echo "$py" | tr -d ".")
+          PYBIN=$(ls /opt/python/cp*${pynodot})
           "$PYBIN/bin/pip" install -U pip
           "$PYBIN/bin/pip" install -U Cython
           "$PYBIN/bin/pip" install -U setuptools
