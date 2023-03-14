@@ -139,6 +139,7 @@ START_SECTION(void store(const String& filename, OnDiscPeakMap& exp))
   IndexedMzMLFileLoader file;
   OnDiscPeakMap exp, exp_;
   file.load(OPENMS_GET_TEST_DATA_PATH("IndexedmzMLFile_1.mzML"),exp_);
+
   std::string tmp_filename;
   NEW_TMP_FILE(tmp_filename);
   std::cout << "Storing in file " << tmp_filename << std::endl;
@@ -162,6 +163,7 @@ START_SECTION(void store(const String& filename, OnDiscPeakMap& exp))
   }
   for (Size i = 0; i < exp.getNrChromatograms(); i++)
   {
+
     TEST_EQUAL(exp.getChromatogram(i) == exp2.getChromatograms()[i], true)
   }
 

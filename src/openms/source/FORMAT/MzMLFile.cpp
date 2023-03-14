@@ -153,6 +153,8 @@ namespace OpenMS
     Internal::MzMLHandler handler(map, "memory", getVersion(), *this);
     handler.setOptions(options_);
     parseBuffer_(buffer, &handler);
+    
+    map.updateRanges();
   }
 
   void MzMLFile::load(const String& filename, PeakMap& map)
