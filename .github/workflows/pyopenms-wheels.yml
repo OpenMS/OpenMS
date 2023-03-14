@@ -117,7 +117,7 @@ jobs:
           cp pyOpenMS/dist/*.whl pyopenms_whls/
           # clean up
           conda deactivate
-          conda remove --name "pyoms-bld-${py}" --all
+          conda remove --name "pyoms-bld-${pynodot}" --all
 
           # clean previous pyopenms libs
           find . -name "pyopenms*.so" -exec rm -rf {} \;
@@ -257,7 +257,7 @@ jobs:
 
           # clean up
           conda deactivate
-          conda remove --name pyoms-bld-"${py}" --all
+          conda remove --name pyoms-bld-"${pynodot}" --all
 
           # clean previous pyopenms libs
           find . -name "pyopenms*.so" -exec rm -rf {} \;
@@ -397,13 +397,15 @@ jobs:
     - name: Test
       shell: bash 
       run: |
-        PYTHON_VERSIONS=$(cat python_versions.json | jq -r '.[] | @sh')
+        PYTHON_VERSIONS=$(jq -r '.[]' OpenMS/.github/workflows/python_versions.json)
         echo $PYTHON_VERSIONS
 
         for py in $PYTHON_VERSIONS
         do
-          conda create -n pyoms-bld-$py python=$py
-          source activate pyoms-bld-$py
+          py=$(echo "$py" | tr -d " \n")
+          pynodot=$(echo "$py" | tr -d ".")
+          conda create -n pyoms-bld-$pynodot python=$py
+          source activate pyoms-bld-$pynodot
 
           # Find .whl for current python version
           CURRENT_VERSION=$(echo $py | sed "s/\.//g") # remove "." for find
@@ -428,7 +430,7 @@ jobs:
           conda deactivate
 
           # clean up
-          conda remove --name pyoms-bld-$py --all
+          conda remove --name pyoms-bld-$pynodot --all
 
         done
 
