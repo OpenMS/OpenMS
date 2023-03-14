@@ -12,15 +12,13 @@ jobs:
   updating_year_number:
     runs-on: macos-latest
     steps:
-      # Getting files of OpenMS
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v3 # Getting files of OpenMS
 
-      - name: Update files
+      - name: Update files # Find all files and replace the year number
         run: |
           # setting a variable for year number
           year_number="2023"
-#          year_number="${{ github.event.inputs.year_number }}"
-
+          # year_number="${{ github.event.inputs.year_number }}"
           find . -type f ! -path "./.git/*" -exec grep -q "Freie Universitaet Berlin 2002-20" {} \; -exec sed -i '' -e 's/and Freie Universitaet Berlin 2002-$year_number/and Freie Universitaet Berlin 2002-$year_number/g' {} \;
 
 ## Commit and PR updated files
