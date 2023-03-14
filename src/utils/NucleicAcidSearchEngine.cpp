@@ -49,6 +49,7 @@
 
 // file types
 #include <OpenMS/FORMAT/FASTAFile.h>
+#include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/FORMAT/MzTabFile.h>
@@ -996,13 +997,12 @@ protected:
 
     // load MS2 map
     MSExperiment spectra;
-    MzMLFile f;
-    f.setLogType(log_type_);
+    FileHandler f;
     PeakFileOptions options;
     options.clearMSLevels();
     options.addMSLevel(2);
     f.setOptions(options);
-    f.load(in_mzml, spectra);
+    f.loadExperiment(in_mzml, spectra);
     spectra.sortSpectra(true);
 
     // input file meta data:
