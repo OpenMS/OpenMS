@@ -397,6 +397,9 @@ jobs:
     - name: Test
       shell: bash 
       run: |
+        pwd
+        ls
+        ls OpenMS
         PYTHON_VERSIONS=$(cat OpenMS/.github/workflows/python_versions.json)
         echo $PYTHON_VERSIONS
 
