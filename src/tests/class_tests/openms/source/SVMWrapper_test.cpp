@@ -444,7 +444,7 @@ START_SECTION((double performCrossValidation(svm_problem *problem_ul, const SVMD
 
   TEST_NOT_EQUAL(parameters.size(), 0)
   // cv_quality is nan
-  TEST_EQUAL(cv_quality != cv_quality, true)
+  TEST_FALSE(cv_quality == cv_quality)
 END_SECTION
 
 START_SECTION((void predict(struct svm_problem *problem, std::vector< double > &predicted_labels)))
@@ -683,7 +683,7 @@ START_SECTION((void getDecisionValues(svm_problem* data, std::vector<double>& de
 	svm.predict(problem, predicted_labels);
 	TEST_NOT_EQUAL(predicted_labels.size(), 0)
 	svm.getDecisionValues(problem, decision_values);
-	TEST_EQUAL(predicted_labels == decision_values, true)
+	TEST_TRUE(predicted_labels == decision_values)
 
 	svm.setParameter(SVMWrapper::SVM_TYPE, C_SVC);
 	labels.clear();

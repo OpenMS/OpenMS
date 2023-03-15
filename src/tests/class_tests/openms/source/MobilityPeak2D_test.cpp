@@ -213,17 +213,17 @@ END_SECTION
 START_SECTION((bool operator==(const MobilityPeak2D& rhs) const))
 MobilityPeak2D p1;
 MobilityPeak2D p2(p1);
-TEST_EQUAL(p1 == p2, true)
+TEST_TRUE(p1 == p2)
 
 p1.setIntensity(5.0f);
 TEST_EQUAL(p1 == p2, false)
 p2.setIntensity(5.0f);
-TEST_EQUAL(p1 == p2, true)
+TEST_TRUE(p1 == p2)
 
 p1.getPosition()[0] = 5;
 TEST_EQUAL(p1 == p2, false)
 p2.getPosition()[0] = 5;
-TEST_EQUAL(p1 == p2, true)
+TEST_TRUE(p1 == p2)
 END_SECTION
 
 START_SECTION((bool operator!=(const MobilityPeak2D& rhs) const))
@@ -232,12 +232,12 @@ MobilityPeak2D p2(p1);
 TEST_EQUAL(p1 != p2, false)
 
 p1.setIntensity(5.0f);
-TEST_EQUAL(p1 != p2, true)
+TEST_FALSE(p1 == p2)
 p2.setIntensity(5.0f);
 TEST_EQUAL(p1 != p2, false)
 
 p1.getPosition()[0] = 5;
-TEST_EQUAL(p1 != p2, true)
+TEST_FALSE(p1 == p2)
 p2.getPosition()[0] = 5;
 TEST_EQUAL(p1 != p2, false)
 END_SECTION
