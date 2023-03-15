@@ -251,7 +251,6 @@ public:
       @exception Exception::ParseError is thrown if an error occurs during parsing
     */
 
-
     bool loadQuantifications(const String& filename, MSQuantifications& map, FileTypes::Type force_type = FileTypes::UNKNOWN);
 
     /**
@@ -265,31 +264,6 @@ public:
       @exception Exception::UnableToCreateFile is thrown if the file could not be written
     */
     bool storeQuantifications(const String& filename, const MSQuantifications& map);
-
-
-    // Overloads of load dependent on signature
-    inline bool load(const String& filename, FeatureMap& map, FileTypes::Type force_type = FileTypes::UNKNOWN)
-    {
-      return loadFeatures(filename, map, force_type);  
-    }
-    inline bool load(const String& filename, MSExperiment& exp, FileTypes::Type force_type = FileTypes::UNKNOWN, ProgressLogger::LogType log = ProgressLogger::NONE, const bool rewrite_source_file = true, const bool compute_hash = true)
-    {
-      return loadExperiment(filename, exp, force_type, log, rewrite_source_file, compute_hash);
-    }
-    inline bool load(const String& filename, ConsensusMap& map)
-    {
-      return loadConsensusFeatures(filename, map);
-    }
-    inline bool load(const String& filename, std::vector<ProteinIdentification> additional_proteins, std::vector<PeptideIdentification> additional_peptides)
-    {
-      return loadIdentifications(filename, additional_proteins, additional_peptides);
-    }
-    inline bool load(const String& filename, MSQuantifications& map, FileTypes::Type force_type = FileTypes::UNKNOWN)
-    {
-      return loadQuantifications(filename, map, force_type);
-    }
-
-
 
     /**
       @brief Computes a SHA-1 hash value for the content of the given file.

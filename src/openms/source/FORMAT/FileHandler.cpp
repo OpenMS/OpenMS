@@ -899,7 +899,7 @@ if (first_line.hasSubstring("File	First Scan	Last Scan	Num of Scans	Charge	Monoi
     }
   }
 
-  bool FileHandler::loadQuantifications(const String& filename, MSQuantifications& map, FileTypes::Type force_type = FileTypes::UNKNOWN)
+  bool FileHandler::loadQuantifications(const String& filename, MSQuantifications& map, FileTypes::Type force_type)
   {
     MzQuantMLFile().load(filename, map);
     return true;
