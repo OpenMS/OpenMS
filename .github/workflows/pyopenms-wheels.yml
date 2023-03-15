@@ -366,6 +366,11 @@ jobs:
       matrix:
         os: [ubuntu-latest, macos-latest, windows-latest]
     steps:
+    - uses: actions/checkout@v3
+      name: Checkout sources
+      with:
+        path: OpenMS
+
     - name: Install Miniconda
       shell: bash
       run: |
@@ -397,7 +402,7 @@ jobs:
     - name: Test
       shell: bash 
       run: |
-        PYTHON_VERSIONS=$(cat .github/workflows/python_versions.json)
+        PYTHON_VERSIONS=$(cat OpenMS/.github/workflows/python_versions.json)
         echo $PYTHON_VERSIONS
 
         for py in $(echo "${PYTHON_VERSIONS}" | jq -r '.[]'); do
