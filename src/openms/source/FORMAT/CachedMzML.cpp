@@ -33,8 +33,6 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/FORMAT/CachedMzML.h>
-
-#include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
 
