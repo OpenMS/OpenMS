@@ -32,41 +32,26 @@
 // $Authors: Timo Sachsenberg $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/ML/OpenMSMLWrapper.h>
-#include <torch/torch.h>
-#include "torch/script.h"
-#include "iostream"
-using namespace OpenMS;
+#pragma once
+#include <memory> 
+#include <string>
+#include <vector>
 
-MLmodelwrapper::MLmodelwrapper(const std::string& filename)
+namespace OpenMS
 {
-	model = torch::jit::load(filename);
+  class AlphaDatahandler
+  {
+      public:
+          AlphaDatahandler(const std::vector<std::string>& seq); 
+          std::vector<std::vector<long int>> get_batch_aa_indices();   
+          std::vector<std::vector<std::vector<int>>> get_batch_mod_feature(const std::vector<std::string>& mod_elements); 
+          void printAll(); //just testing purpose will remove later
+       
+      private:
+         std::vector<std::string> sequences;
+         std::vector<int> nAA;
+         std::vector<double> retention_time;
+         std::vector<std::vector<int>> mod_sites; //mode_sites e-g {3,5}
+         std::vector<std::vector<std::string>> mods; //residue e-g {Oxidation@M, Carbamidomethyl@C}
+  };
 }
-
-double MLmodelwrapper::take_predictions(std::vector<c10::IValue> data)
-{
-  c10::IValue pred =  model.forward(data);
-  return pred.toBool();
-}
-
-//example model path
-std::string model_path = "net.pt";
-
-//initialized model
-MLmodelwrapper TestModel(model_path);
-
-//take predictions
-std::vector<c10::IValue> ivector{torch::randn({1,100})};
-double predictions = TestModel.take_predictions(ivector);
-
-
-
-/*DeepLCWrapper::DeepLCWrapper(const std::string& filename)
-{
-	// TODO load the model etc.
-}
-
-std::vector<double> DeepLCWrapper::predict(const std::vector<std::string>& sequences, const std::vector<double>& obs_rt)
-{
-	// TODO make prediciton
-}*/

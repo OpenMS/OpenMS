@@ -3,7 +3,7 @@ set(directory source/ML)
 
 ### list all filenames of the directory here
 set(sources_list
-	OpenMSMLWrapper.cpp
+	AlphapeptdeepWrapper.cpp AlphaDatahandling.cpp main.cpp
 )
 
 ### add path to the filenames
