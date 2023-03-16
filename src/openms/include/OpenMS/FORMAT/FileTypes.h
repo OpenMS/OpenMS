@@ -120,18 +120,18 @@ namespace OpenMS
       SIZE_OF_TYPE        ///< No file type. Simply stores the number of types
     };
 
-    enum Feature
+    enum FileProperties
     {
-      READ,
-      WRITE,
-      CAN_MS1,
-      CAN_MS2,
+      READABLE,
+      WRITEABLE,
+      PROVIDES_MS1,
+      PROVIDES_MS2,
       SIZE_OF_FEATURES
     };
 
     union Restrictions
     {
-      Feature f;
+      FileProperties f;
       Type t;
     };
 
@@ -197,7 +197,15 @@ namespace OpenMS
     **/
     FileTypes::Type fromFileDialogFilter(const String& filter, const FileTypes::Type fallback = FileTypes::Type::UNKNOWN) const;
 
-    static FileTypeList haveFeatures(const std::unordered_set<FileTypes::Feature> features);
+
+    /**
+      @brief Get a FileTypeList with all fileTypes that support a set of features.
+
+      
+      @param features An unordered_set of features that fileTypes must support
+      @return A FileTypeList with the files that support features
+    **/
+    static FileTypeList typesWithProperties(const std::unordered_set<FileTypes::FileProperties> features);
 
   private:
     /// hold filter items (for Qt dialogs) along with their OpenMS type

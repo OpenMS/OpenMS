@@ -51,8 +51,8 @@ namespace OpenMS
     FileTypes::Type type;
     String name;
     String description;
-    std::unordered_set<FileTypes::Feature> features;
-    TypeNameBinding(FileTypes::Type ptype, String pname, String pdescription, std::unordered_set<FileTypes::Feature> pfeatures)
+    std::unordered_set<FileTypes::FileProperties> features;
+    TypeNameBinding(FileTypes::Type ptype, String pname, String pdescription, std::unordered_set<FileTypes::FileProperties> pfeatures)
       : type(ptype), name(std::move(pname)), description(std::move(pdescription)), features(pfeatures)
     {
       // Check that there are no double-spaces in the description, since Qt will replace "  " with " " in filters supplied to QFileDialog::getSaveFileName.
@@ -68,7 +68,7 @@ namespace OpenMS
     TypeNameBinding(FileTypes::DTA, "dta", "dta raw data file",{}),
     TypeNameBinding(FileTypes::DTA2D, "dta2d", "dta2d raw data file", {}),
     TypeNameBinding(FileTypes::MZDATA, "mzData", "mzData raw data file", {}),
-    TypeNameBinding(FileTypes::MZXML, "mzXML", "mzXML raw data file", {}),
+    TypeNameBinding(FileTypes::MZXML, "mzXML", "mzXML raw data file", {FileTypes::READABLE, FileTypes::WRITEABLE, FileTypes::PROVIDES_MS1, FileTypes::PROVIDES_MS2}),
     TypeNameBinding(FileTypes::FEATUREXML, "featureXML", "OpenMS feature map", {}),
     TypeNameBinding(FileTypes::IDXML, "idXML", "OpenMS peptide identification file", {}),
     TypeNameBinding(FileTypes::CONSENSUSXML, "consensusXML", "OpenMS consensus feature map", {}),
@@ -76,7 +76,7 @@ namespace OpenMS
     TypeNameBinding(FileTypes::INI, "ini", "OpenMS parameter file", {}),
     TypeNameBinding(FileTypes::TOPPAS, "toppas", "OpenMS TOPPAS pipeline", {}),
     TypeNameBinding(FileTypes::TRANSFORMATIONXML, "trafoXML", "RT transformation file", {}),
-    TypeNameBinding(FileTypes::MZML, "mzML", "mzML raw data file", {}),
+    TypeNameBinding(FileTypes::MZML, "mzML", "mzML raw data file", {FileTypes::READABLE, FileTypes::WRITEABLE, FileTypes::PROVIDES_MS1, FileTypes::PROVIDES_MS2}),
     TypeNameBinding(FileTypes::CACHEDMZML, "cachedMzML", "cachedMzML raw data file", {}),
     TypeNameBinding(FileTypes::MS2, "ms2", "ms2 file", {}),
     TypeNameBinding(FileTypes::PEPXML, "pepXML", "pepXML file", {}),
@@ -119,7 +119,7 @@ namespace OpenMS
     TypeNameBinding(FileTypes::XQUESTXML, "xquest.xml", "xquest.xml file", {}),
     TypeNameBinding(FileTypes::SPECXML, "spec.xml", "spec.xml file", {}),
     TypeNameBinding(FileTypes::JSON, "json", "JavaScript Object Notation file", {}),
-    TypeNameBinding(FileTypes::RAW, "raw", "(Thermo) Raw data file", {}),
+    TypeNameBinding(FileTypes::RAW, "raw", "(Thermo) Raw data file", {FileTypes::PROVIDES_MS1, FileTypes::PROVIDES_MS2}),
     TypeNameBinding(FileTypes::OMS, "oms", "OpenMS SQLite file", {}),
     TypeNameBinding(FileTypes::EXE, "exe", "Windows executable", {}),
     TypeNameBinding(FileTypes::BZ2, "bz2", "bzip2 compressed file", {}),
@@ -162,7 +162,7 @@ namespace OpenMS
     return r == FileTypes::Type::UNKNOWN ? fallback : r;
   }
 
-  static FileTypeList haveFeatures(std::unordered_set<FileTypes::Feature> haveFeatures)
+  static FileTypeList typesWithProperties(std::unordered_set<FileTypes::FileProperties> haveFeatures)
   {
     std::vector<FileTypes::Type> returnList;
     std::vector<TypeNameBinding> goodTypes;

@@ -40,6 +40,8 @@
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/FileTypes.h>
 
+#include <unordered_set>
+
 ///////////////////////////
 
 START_TEST(FileHandler, "Id")
@@ -145,6 +147,16 @@ START_SECTION([EXTRA] FileTypes::FileTypeList)
   TEST_EQUAL(list.fromFileDialogFilter("bzip2 compressed file (*.bz2)", FileTypes::CONSENSUSXML), FileTypes::BZ2);
   TEST_EXCEPTION(Exception::ElementNotFound, list.fromFileDialogFilter("not a valid filter", FileTypes::CONSENSUSXML));
 
+  END_SECTION
+
+  START_SECTION(static FileTypes::FileTypeList haveFeatures(const std::unordered_set<FileTypes::Feature> features))
+  {
+    unordered_set<FileTypes::FileProperties> f;
+    f.insert(FileTypes::READABLE);
+    // FIXME This causes the following linker error.
+    /*/home/samuel/git/OpenMS/src/tests/class_tests/openms/source/FileTypes_test.cpp:157: undefined reference to `OpenMS::FileTypeList::typesWithProperties(std::unordered_set<OpenMS::FileTypes::FileProperties, std::hash<OpenMS::FileTypes::FileProperties>, std::equal_to<OpenMS::FileTypes::FileProperties>, std::allocator<OpenMS::FileTypes::FileProperties> >)'*/
+    //TEST_EQUAL(FileTypeList::typesWithProperties(f).getTypes().size(), 2);
+  }
   END_SECTION
 
 END_TEST
