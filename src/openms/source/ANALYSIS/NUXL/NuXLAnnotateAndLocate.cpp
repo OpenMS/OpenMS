@@ -115,36 +115,6 @@ namespace OpenMS
         const String precursor_na_adduct = *mod_combinations_it->second.begin(); // TODO: check if it is enough to consider only first precursor adduct ????????????????????????????????????????????????????????
         const double precursor_na_mass = EmpiricalFormula(mod_combinations_it->first).getMonoWeight();
 
-        // we don't localize on non-cross-links
-        if (precursor_na_adduct == "none") { continue; }
-
-        // generate all partial loss spectra (excluding the complete loss spectrum) merged into one spectrum
-        // 1. get all possible NA fragment shifts in the MS2 (based on the precursor RNA/DNA)
-        OPENMS_LOG_DEBUG << "Precursor NA adduct: "  << precursor_na_adduct << endl;
-
-        const vector<NucleotideToFeasibleFragmentAdducts>& feasible_MS2_adducts = all_feasible_adducts.at(precursor_na_adduct).feasible_adducts;
-
-        if (feasible_MS2_adducts.empty()) { continue; } // should not be the case - check case of no nucleotide but base fragment ?
-
-        // 2. retrieve the (nucleotide specific) fragment adducts for the cross-linked nucleotide (annotated in main search)
-        auto nt_to_adducts = std::find_if(feasible_MS2_adducts.begin(), feasible_MS2_adducts.end(),
-          [&a](NucleotideToFeasibleFragmentAdducts const & item)
-          {
-            return (item.first == a.cross_linked_nucleotide);
-          });
-
-        OPENMS_POSTCONDITION(nt_to_adducts != feasible_MS2_adducts.end(), "Nucleotide not found in mapping to feasible adducts.")
-
-        const vector<NuXLFragmentAdductDefinition>& partial_loss_modification = nt_to_adducts->second;
-
-        // get marker ions (these are not specific to the cross-linked nucleotide but also depend on the whole oligo bound to the precursor)
-        const vector<NuXLFragmentAdductDefinition>& marker_ions = all_feasible_adducts.at(precursor_na_adduct).marker_ions;
-        OPENMS_LOG_DEBUG << "Marker ions used for this Precursor NA adduct: "  << endl;
-        for (auto & fa : marker_ions)
-        {
-          OPENMS_LOG_DEBUG << fa.name << " " << fa.mass << endl;
-        }
-
         // generate total loss spectrum for the fixed and variable modified peptide (without NAs) (using the settings for partial loss generation)
         // but as we also add the abundant immonium ions for charge 1 and precursor ions for all charges to get a more complete annotation
         // (these have previously not been used in the scoring of the total loss spectrum)
@@ -174,7 +144,6 @@ namespace OpenMS
             }
           }          
         }
-
         // add special immonium ions
         NuXLFragmentIonGenerator::addSpecialLysImmonumIons(
           unmodified_sequence,
@@ -182,49 +151,6 @@ namespace OpenMS
           total_loss_spectrum.getIntegerDataArrays()[NuXLConstants::IA_CHARGE_INDEX],
           total_loss_spectrum.getStringDataArrays()[0]);
         total_loss_spectrum.sortByPosition(); // need to resort after adding special immonium ions
-
-        PeakSpectrum partial_loss_spectrum;
-
-        {
-          PeakSpectrum partial_loss_template_z1, 
-                      partial_loss_template_z2, 
-                      partial_loss_template_z3;
-       
-          partial_loss_spectrum_generator.getSpectrum(partial_loss_template_z1, fixed_and_variable_modified_peptide, 1, 1);
-          partial_loss_spectrum_generator.getSpectrum(partial_loss_template_z2, fixed_and_variable_modified_peptide, 2, 2);
-          partial_loss_spectrum_generator.getSpectrum(partial_loss_template_z3, fixed_and_variable_modified_peptide, 3, 3);
-          NuXLFragmentIonGenerator::generatePartialLossSpectrum(unmodified_sequence,
-                                      fixed_and_variable_modified_peptide_weight,
-                                      precursor_na_adduct,
-                                      precursor_na_mass,
-                                      precursor_charge,
-                                      partial_loss_modification,
-                                      partial_loss_template_z1,
-                                      partial_loss_template_z2,
-                                      partial_loss_template_z3,
-                                      partial_loss_spectrum);
-        }
-
-        // add shifted marker ions
-        NuXLFragmentIonGenerator::addMS2MarkerIons(
-          marker_ions,
-          partial_loss_spectrum,
-          partial_loss_spectrum.getIntegerDataArrays()[NuXLConstants::IA_CHARGE_INDEX],
-          partial_loss_spectrum.getStringDataArrays()[0]);
-
-        partial_loss_spectrum.sortByPosition(); // need to resort after adding marker ions
-
-        // fill annotated spectrum information
-        set<Size> peak_is_annotated;  // experimental peak index
-
-        // ion centric (e.g. b and y-ion) spectrum annotation that records all shifts of specific ions (e.g. y5, y5 + U, y5 + C3O)
-        using MapIonIndexToFragmentAnnotation = map<Size, vector<NuXLFragmentAnnotationHelper::FragmentAnnotationDetail_> >;
-        MapIonIndexToFragmentAnnotation unshifted_b_ions, unshifted_y_ions, unshifted_a_ions, shifted_b_ions, shifted_y_ions, shifted_a_ions;
-        vector<PeptideHit::PeakAnnotation> shifted_immonium_ions,
-          unshifted_loss_ions,
-          annotated_marker_ions,
-          annotated_precursor_ions,
-          annotated_immonium_ions;
 
         // first annotate total loss peaks (these give no information where the actual shift occured)
         #ifdef DEBUG_OpenNuXL
@@ -246,6 +172,15 @@ namespace OpenMS
         const PeakSpectrum::StringDataArray& total_loss_annotations = total_loss_spectrum.getStringDataArrays()[0];
         const PeakSpectrum::IntegerDataArray& total_loss_charges = total_loss_spectrum.getIntegerDataArrays()[NuXLConstants::IA_CHARGE_INDEX];
 
+        // fill annotated spectrum information
+        set<Size> peak_is_annotated;  // experimental peak index
+
+        // ion centric (e.g. b and y-ion) spectrum annotation that records all shifts of specific ions (e.g. y5, y5 + U, y5 + C3O)
+        using MapIonIndexToFragmentAnnotation = map<Size, vector<NuXLFragmentAnnotationHelper::FragmentAnnotationDetail_> >;
+        MapIonIndexToFragmentAnnotation unshifted_b_ions, unshifted_y_ions, unshifted_a_ions;
+        vector<PeptideHit::PeakAnnotation> unshifted_loss_ions, annotated_immonium_ions, annotated_precursor_ions;
+
+        // create total loss annotations
         for (auto const & aligned : alignment)
         {
           // information on the experimental fragment in the alignment
@@ -405,6 +340,77 @@ namespace OpenMS
         {
           fas.insert(fas.end(), unshifted_loss_ions.begin(), unshifted_loss_ions.end());          
         }
+        
+
+        // we don't localize on non-cross-links (only annotate)
+        if (precursor_na_adduct == "none") 
+        { 
+          a.fragment_annotations = fas;
+          continue; 
+        }
+
+        // generate all partial loss spectra (excluding the complete loss spectrum) merged into one spectrum
+        // 1. get all possible NA fragment shifts in the MS2 (based on the precursor RNA/DNA)
+        OPENMS_LOG_DEBUG << "Precursor NA adduct: "  << precursor_na_adduct << endl;
+
+        const vector<NucleotideToFeasibleFragmentAdducts>& feasible_MS2_adducts = all_feasible_adducts.at(precursor_na_adduct).feasible_adducts;
+
+        if (feasible_MS2_adducts.empty()) { continue; } // should not be the case - check case of no nucleotide but base fragment ?
+
+        // 2. retrieve the (nucleotide specific) fragment adducts for the cross-linked nucleotide (annotated in main search)
+        auto nt_to_adducts = std::find_if(feasible_MS2_adducts.begin(), feasible_MS2_adducts.end(),
+          [&a](NucleotideToFeasibleFragmentAdducts const & item)
+          {
+            return (item.first == a.cross_linked_nucleotide);
+          });
+
+        OPENMS_POSTCONDITION(nt_to_adducts != feasible_MS2_adducts.end(), "Nucleotide not found in mapping to feasible adducts.")
+
+        const vector<NuXLFragmentAdductDefinition>& partial_loss_modification = nt_to_adducts->second;
+
+        // get marker ions (these are not specific to the cross-linked nucleotide but also depend on the whole oligo bound to the precursor)
+        const vector<NuXLFragmentAdductDefinition>& marker_ions = all_feasible_adducts.at(precursor_na_adduct).marker_ions;
+        OPENMS_LOG_DEBUG << "Marker ions used for this Precursor NA adduct: "  << endl;
+        for (auto & fa : marker_ions)
+        {
+          OPENMS_LOG_DEBUG << fa.name << " " << fa.mass << endl;
+        }
+
+
+        PeakSpectrum partial_loss_spectrum;
+
+        {
+          PeakSpectrum partial_loss_template_z1, 
+                      partial_loss_template_z2, 
+                      partial_loss_template_z3;
+       
+          partial_loss_spectrum_generator.getSpectrum(partial_loss_template_z1, fixed_and_variable_modified_peptide, 1, 1);
+          partial_loss_spectrum_generator.getSpectrum(partial_loss_template_z2, fixed_and_variable_modified_peptide, 2, 2);
+          partial_loss_spectrum_generator.getSpectrum(partial_loss_template_z3, fixed_and_variable_modified_peptide, 3, 3);
+          NuXLFragmentIonGenerator::generatePartialLossSpectrum(unmodified_sequence,
+                                      fixed_and_variable_modified_peptide_weight,
+                                      precursor_na_adduct,
+                                      precursor_na_mass,
+                                      precursor_charge,
+                                      partial_loss_modification,
+                                      partial_loss_template_z1,
+                                      partial_loss_template_z2,
+                                      partial_loss_template_z3,
+                                      partial_loss_spectrum);
+        }
+
+        // add shifted marker ions
+        NuXLFragmentIonGenerator::addMS2MarkerIons(
+          marker_ions,
+          partial_loss_spectrum,
+          partial_loss_spectrum.getIntegerDataArrays()[NuXLConstants::IA_CHARGE_INDEX],
+          partial_loss_spectrum.getStringDataArrays()[0]);
+
+        partial_loss_spectrum.sortByPosition(); // need to resort after adding marker ions
+        
+        // ion centric (e.g. b and y-ion) spectrum annotation that records all shifts of specific ions (e.g. y5, y5 + U, y5 + C3O)
+        MapIonIndexToFragmentAnnotation shifted_b_ions, shifted_y_ions, shifted_a_ions;
+        vector<PeptideHit::PeakAnnotation> shifted_immonium_ions, annotated_marker_ions;
 
         vector<double> sites_sum_score(aas.size(), 0);
 
