@@ -129,12 +129,6 @@ namespace OpenMS
       SIZE_OF_FEATURES
     };
 
-    union Restrictions
-    {
-      FileProperties f;
-      Type t;
-    };
-
     /// Returns the name/extension of the type.
     static String typeToName(Type type);
     
