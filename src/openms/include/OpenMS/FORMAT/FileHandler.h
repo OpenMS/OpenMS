@@ -158,7 +158,7 @@ public:
       @exception Exception::FileNotFound is thrown if the file could not be opened
       @exception Exception::ParseError is thrown if an error occurs during parsing
     */
-    bool loadExperiment(const String& filename, MSExperiment& exp, FileTypes::Type force_type = FileTypes::UNKNOWN, ProgressLogger::LogType log = ProgressLogger::NONE, const bool rewrite_source_file = true, const bool compute_hash = true);
+    bool loadExperiment(const String& filename, MSExperiment& exp, FileTypes::Type force_type = FileTypes::UNKNOWN, ProgressLogger::LogType log = ProgressLogger::NONE, const bool rewrite_source_file = false, const bool compute_hash = false);
 
     /**
       @brief Stores an MSExperiment to a file
