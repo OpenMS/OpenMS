@@ -69,62 +69,60 @@ jobs:
     - name: Build
       shell: bash
       run: |
-          mkdir bld
-          pushd bld
-          # TODO: set generator via variable, then we can share this step
+        PYTHON_VERSIONS=$(cat OpenMS/.github/workflows/python_versions.json)
+        mkdir bld
+        pushd bld
+        # TODO: set generator via variable, then we can share this step
+        cmake --version
+        cmake -G "Visual Studio 17 2022" -A x64 -DOPENMS_CONTRIB_LIBS="$GITHUB_WORKSPACE/contribbld" -DCMAKE_PREFIX_PATH="$(echo $Qt5_Dir)/lib/cmake;${Qt5_Dir}" ../OpenMS
+        # Note: multiple --targets only supported by CMake 3.15+
+        cmake --build . --config Release --target OpenMS
+      
+        mkdir pyopenms_whls
+
+        # The growing PATH leads to a failure in the last iteration of the pyopenms build process.
+        # We will store the PATH variable in the beginning and reset it with every iteration.
+        RESET_PATH=$PATH
+
+        for py in $(echo "${PYTHON_VERSIONS}" | jq -r '.[]'); do
+          # reset the path
+          PATH=$RESET_PATH
+
+          # create and activate conda environment
+          py=$(echo "$py" | tr -d " \n")
+          pynodot=$(echo "$py" | tr -d ".")
+          conda create -n pyoms-bld-"${pynodot}" python="${py}"
+          source activate pyoms-bld-"${pynodot}"
+
+          # set current python executable
+          CURRENT_PYTHON_EXECUTABLE=$(which python)
+
+          ${CURRENT_PYTHON_EXECUTABLE} -m pip install --upgrade pip
+          # pip install all the stuff
+          pip install -U setuptools
+          pip install -U pip
+          pip install -U autowrap
+          pip install -U pytest
+          pip install -U numpy
+          pip install -U wheel
+
+          echo $CURRENT_PYTHON_EXECUTABLE
+
+          # build pyopenms distribution
           cmake --version
-          cmake -G "Visual Studio 17 2022" -A x64 -DOPENMS_CONTRIB_LIBS="$GITHUB_WORKSPACE/contribbld" -DCMAKE_PREFIX_PATH="$(echo $Qt5_Dir)/lib/cmake;${Qt5_Dir}" ../OpenMS
-          # Note: multiple --targets only supported by CMake 3.15+
-          cmake --build . --config Release --target OpenMS
-        
-          PYTHON_VERSIONS=$(cat python_versions.json | jq -r '.[] | @sh')
-        
-          echo $PYTHON_VERSIONS
+          cmake -DPYTHON_EXECUTABLE:FILEPATH=$CURRENT_PYTHON_EXECUTABLE -DPYOPENMS=ON .
+          cmake --build . --config Release --target pyopenms
 
-          mkdir pyopenms_whls
+          # copy to directory
+          cp pyOpenMS/dist/*.whl pyopenms_whls/
+          # clean up
+          conda deactivate
+          conda remove --name "pyoms-bld-${pynodot}" --all
 
-          # The growing PATH leads to a failure in the last iteration of the pyopenms build process.
-          # We will store the PATH variable in the beginning and reset it with every iteration.
-          RESET_PATH=$PATH
+          # clean previous pyopenms libs
+          find . -name "pyopenms*.so" -exec rm -rf {} \;
 
-          for py in $PYTHON_VERSIONS
-          do
-            # reset the path
-            PATH=$RESET_PATH
-
-            # create and actiavte conda environment
-            conda create -n pyoms-bld-$py python=$py
-            source activate pyoms-bld-$py
-
-            # set current python executable
-            CURRENT_PYTHON_EXECUTABLE=$(which python)
-
-            ${CURRENT_PYTHON_EXECUTABLE} -m pip install --upgrade pip
-            # pip install all the stuff
-            pip install -U setuptools
-            pip install -U pip
-            pip install -U autowrap
-            pip install -U pytest
-            pip install -U numpy
-            pip install -U wheel
-
-            echo $CURRENT_PYTHON_EXECUTABLE
-
-            # build pyopenms distribution
-            cmake --version
-            cmake -DPYTHON_EXECUTABLE:FILEPATH=$CURRENT_PYTHON_EXECUTABLE -DPYOPENMS=ON .
-            cmake --build . --config Release --target pyopenms
-
-            # copy to directory
-            cp pyOpenMS/dist/*.whl pyopenms_whls/
-            # clean up
-            conda deactivate
-            conda remove --name pyoms-bld-$py --all
-
-            # clean previous pyopenms libs
-            find . -name "pyopenms*.so" -exec rm -rf {} \;
-
-          done
+        done
 
     - uses: actions/upload-artifact@v3
       name: Upload artifacts
@@ -195,78 +193,76 @@ jobs:
 
     - name: Build
       run: |
-          export CC=clang
-          export CXX=clang++
-          export MACOSX_DEPLOYMENT_TARGET=10.9
-          # Unfortunately, on macOS due to the inofficial way of enabling OpenMP on AppleClang, passing the following
-          # options to setup.py extra_compile_args does not work. See also https://gist.github.com/andyfaff/084005bee32aee83d6b59e843278ab3e
-          export CFLAGS="-Xpreprocessor -fopenmp $CFLAGS"
-          export CXXFLAGS="-Xpreprocessor -fopenmp $CXXFLAGS"
+        PYTHON_VERSIONS=$(cat OpenMS/.github/workflows/python_versions.json)
+        export CC=clang
+        export CXX=clang++
+        export MACOSX_DEPLOYMENT_TARGET=10.9
+        # Unfortunately, on macOS due to the inofficial way of enabling OpenMP on AppleClang, passing the following
+        # options to setup.py extra_compile_args does not work. See also https://gist.github.com/andyfaff/084005bee32aee83d6b59e843278ab3e
+        export CFLAGS="-Xpreprocessor -fopenmp $CFLAGS"
+        export CXXFLAGS="-Xpreprocessor -fopenmp $CXXFLAGS"
 
-          # create symlinks like brew https://github.com/Homebrew/homebrew-core/blob/master/Formula/qt.rb#L61
-          pushd $Qt5_Dir/include
-            for f in $Qt5_Dir/lib/*.framework/Headers
-            do
-              lnknm=$(basename "${f%/*}" ".framework")
-              ln -s $f $lnknm
-            done
-            for f in $Qt5_Dir/lib/*.framework/Versions/5/Qt*
-            do
-              install_name_tool -id $Qt5_Dir/lib/$(basename $f).framework/Versions/Current/$(basename $f) $f
-            done
-            for f in $Qt5_Dir/lib/*.framework/Versions/Current/Qt*
-            do
-              install_name_tool -id $f $f
-            done
-          popd
-          mkdir bld
-          pushd bld
-          # Use -DCMAKE_FIND_DEBUG_MODE=ON for debug
-          cmake -DCMAKE_BUILD_TYPE="Release" -DOPENMS_CONTRIB_LIBS="$GITHUB_WORKSPACE/contribbld" -DCMAKE_PREFIX_PATH="$(echo $Qt5_Dir)/lib/cmake;${Qt5_Dir};$GITHUB_WORKSPACE/contribbld/lib/" -DCMAKE_OSX_DEPLOYMENT_TARGET=10.9 -DBOOST_USE_STATIC=ON ../OpenMS
-          make -j4 OpenMS
-        
-          PYTHON_VERSIONS=$(cat python_versions.json | jq -r '.[] | @sh')
-
-          echo $PYTHON_VERSIONS
-
-          mkdir pyopenms_whls
-
-          for py in $PYTHON_VERSIONS
+        # create symlinks like brew https://github.com/Homebrew/homebrew-core/blob/master/Formula/qt.rb#L61
+        pushd $Qt5_Dir/include
+          for f in $Qt5_Dir/lib/*.framework/Headers
           do
-            conda create -n pyoms-bld-$py python=$py
-            source activate pyoms-bld-$py
-
-            # set current python executable
-            CURRENT_PYTHON_EXECUTABLE=$(which python)
-
-            # pip install all the stuff
-            pip install -U setuptools
-            pip install -U pip
-            pip install -U autowrap
-            pip install -U pytest
-            pip install -U numpy
-            pip install -U wheel
-            pip install -U pandas
-
-            #conda deactivate
-
-            echo $CURRENT_PYTHON_EXECUTABLE
-
-            # build pyopenms distribution (macOS)
-            cmake -DPYTHON_EXECUTABLE:FILEPATH=$CURRENT_PYTHON_EXECUTABLE -DPYOPENMS=ON .
-            make -j4 pyopenms
-
-            # copy to directory
-            cp pyOpenMS/dist/*.whl pyopenms_whls/
-
-            # clean up
-            conda deactivate
-            conda remove --name pyoms-bld-$py --all
-
-            # clean previous pyopenms libs
-            find . -name "pyopenms*.so" -exec rm -rf {} \;
-
+            lnknm=$(basename "${f%/*}" ".framework")
+            ln -s $f $lnknm
           done
+          for f in $Qt5_Dir/lib/*.framework/Versions/5/Qt*
+          do
+            install_name_tool -id $Qt5_Dir/lib/$(basename $f).framework/Versions/Current/$(basename $f) $f
+          done
+          for f in $Qt5_Dir/lib/*.framework/Versions/Current/Qt*
+          do
+            install_name_tool -id $f $f
+          done
+        popd
+        mkdir bld
+        pushd bld
+        # Use -DCMAKE_FIND_DEBUG_MODE=ON for debug
+        cmake -DCMAKE_BUILD_TYPE="Release" -DOPENMS_CONTRIB_LIBS="$GITHUB_WORKSPACE/contribbld" -DCMAKE_PREFIX_PATH="$(echo $Qt5_Dir)/lib/cmake;${Qt5_Dir};$GITHUB_WORKSPACE/contribbld/lib/" -DCMAKE_OSX_DEPLOYMENT_TARGET=10.9 -DBOOST_USE_STATIC=ON ../OpenMS
+        make -j4 OpenMS
+
+        mkdir pyopenms_whls
+
+        for py in $(echo "${PYTHON_VERSIONS}" | jq -r '.[]'); do
+          py=$(echo "$py" | tr -d " \n")
+          pynodot=$(echo "$py" | tr -d ".")
+          conda create -n pyoms-bld-"${pynodot}" python="${py}"
+          source activate pyoms-bld-"${pynodot}"
+
+          # set current python executable
+          CURRENT_PYTHON_EXECUTABLE=$(which python)
+
+          # pip install all the stuff
+          pip install -U setuptools
+          pip install -U pip
+          pip install -U autowrap
+          pip install -U pytest
+          pip install -U numpy
+          pip install -U wheel
+          pip install -U pandas
+
+          #conda deactivate
+
+          echo $CURRENT_PYTHON_EXECUTABLE
+
+          # build pyopenms distribution (macOS)
+          cmake -DPYTHON_EXECUTABLE:FILEPATH=$CURRENT_PYTHON_EXECUTABLE -DPYOPENMS=ON .
+          make -j4 pyopenms
+
+          # copy to directory
+          cp pyOpenMS/dist/*.whl pyopenms_whls/
+
+          # clean up
+          conda deactivate
+          conda remove --name pyoms-bld-"${pynodot}" --all
+
+          # clean previous pyopenms libs
+          find . -name "pyopenms*.so" -exec rm -rf {} \;
+
+        done
 
     - uses: actions/upload-artifact@v3
       name: Upload artifacts
@@ -307,54 +303,54 @@ jobs:
     - name: Build on manylinux2014
       shell: bash
       run: |
-            sudo yum install -y jq
-            cmake --version
+        PYTHON_VERSIONS=$(cat OpenMS/.github/workflows/python_versions.json)
+        yum install -y jq
+        cmake --version
 
-            mkdir -p $GITHUB_WORKSPACE/data/wheelhouse/
-            mkdir -p $GITHUB_WORKSPACE/data/wheelhouse/before_fix/
+        mkdir -p $GITHUB_WORKSPACE/data/wheelhouse/
+        mkdir -p $GITHUB_WORKSPACE/data/wheelhouse/before_fix/
 
-            LD_OLD_LIBRARY_PATH=$LD_LIBRARY_PATH
+        LD_OLD_LIBRARY_PATH=$LD_LIBRARY_PATH
 
-            mkdir openms-build
-            cd openms-build
-            cmake -DCMAKE_BUILD_TYPE="Release" -DOPENMS_CONTRIB_LIBS="/contrib-build/" -DCMAKE_PREFIX_PATH="/contrib-build/" $GITHUB_WORKSPACE/OpenMS
-            make -j4 OpenMS
-        
-            PYTHON_VERSIONS=$(cat python_versions.json | jq -r '.[] | @sh')
+        mkdir openms-build
+        cd openms-build
+        cmake -DCMAKE_BUILD_TYPE="Release" -DOPENMS_CONTRIB_LIBS="/contrib-build/" -DCMAKE_PREFIX_PATH="/contrib-build/" $GITHUB_WORKSPACE/OpenMS
+        make -j4 OpenMS
 
-            # compile and configure OpenMS
-            # since string sorting does not work with 9,10,11+ we need to specify manually.
-            for PYBIN in $PYTHON_VERSIONS
-            do
-              "$PYBIN/bin/pip" install -U pip
-              "$PYBIN/bin/pip" install -U Cython
-              "$PYBIN/bin/pip" install -U setuptools
-              "$PYBIN/bin/pip" install -U wheel==0.31.1
-              "$PYBIN/bin/pip" install -U numpy
-              "$PYBIN/bin/pip" install -U pytest
-              "$PYBIN/bin/pip" install -U autowrap
+        # compile and configure OpenMS
+        for py in $(echo "${PYTHON_VERSIONS}" | jq -r '.[]'); do
+          py=$(echo "$py" | tr -d " \n")
+          pynodot=$(echo "$py" | tr -d ".")
+          PYBIN=$(echo /opt/python/cp*${pynodot})
+          "$PYBIN/bin/pip" install -U pip
+          "$PYBIN/bin/pip" install -U Cython
+          "$PYBIN/bin/pip" install -U setuptools
+          "$PYBIN/bin/pip" install -U wheel==0.31.1
+          "$PYBIN/bin/pip" install -U numpy
+          "$PYBIN/bin/pip" install -U pytest
+          "$PYBIN/bin/pip" install -U autowrap
 
-              # configure (don't copy deps since we use auditwheel)
-              cmake -DNO_DEPENDENCIES=ON -DOPENMS_CONTRIB_LIBS="/contrib-build/" -DCMAKE_PREFIX_PATH="/contrib-build/" -DPYOPENMS=On -DPython_ROOT_DIR=$PYBIN -DPython_FIND_STRATEGY="LOCATION" $GITHUB_WORKSPACE/OpenMS
-              make -j4 pyopenms
-              
-              # ensure auditwheel can find the libraries
-              export LD_LIBRARY_PATH=$LD_OLD_LIBRARY_PATH:`pwd`/lib
+          # configure (don't copy deps since we use auditwheel)
+          cmake -DNO_DEPENDENCIES=ON -DOPENMS_CONTRIB_LIBS="/contrib-build/" -DCMAKE_PREFIX_PATH="/contrib-build/" -DPYOPENMS=On -DPython_ROOT_DIR=$PYBIN -DPython_FIND_STRATEGY="LOCATION" $GITHUB_WORKSPACE/OpenMS
+          make -j4 pyopenms
+          
+          # ensure auditwheel can find the libraries
+          export LD_LIBRARY_PATH=$LD_OLD_LIBRARY_PATH:`pwd`/lib
 
-              # strip the libraries before repairing
-              strip --strip-all lib/libOpenMS.so
-              strip --strip-all lib/libOpenSwathAlgo.so
+          # strip the libraries before repairing
+          strip --strip-all lib/libOpenMS.so
+          strip --strip-all lib/libOpenSwathAlgo.so
 
-              pushd pyOpenMS
-                # Bundle stripped plus external shared libraries into the wheels
-                for whl in dist/pyopenms*.whl; do
-                  auditwheel repair "$whl" -w wheelhouse/
-                done
-
-                mv wheelhouse/* $GITHUB_WORKSPACE/data/wheelhouse/
-              popd
-              export LD_LIBRARY_PATH=$LD_OLD_LIBRARY_PATH
+          pushd pyOpenMS
+            # Bundle stripped plus external shared libraries into the wheels
+            for whl in dist/pyopenms*.whl; do
+              auditwheel repair "$whl" -w wheelhouse/
             done
+
+            mv wheelhouse/* $GITHUB_WORKSPACE/data/wheelhouse/
+          popd
+          export LD_LIBRARY_PATH=$LD_OLD_LIBRARY_PATH
+        done
 
     - uses: actions/upload-artifact@v3
       name: Upload artifacts
@@ -370,6 +366,11 @@ jobs:
       matrix:
         os: [ubuntu-latest, macos-latest, windows-latest]
     steps:
+    - uses: actions/checkout@v3
+      name: Checkout sources
+      with:
+        path: OpenMS
+
     - name: Install Miniconda
       shell: bash
       run: |
@@ -401,13 +402,14 @@ jobs:
     - name: Test
       shell: bash 
       run: |
-        PYTHON_VERSIONS=$(cat python_versions.json | jq -r '.[] | @sh')
+        PYTHON_VERSIONS=$(cat OpenMS/.github/workflows/python_versions.json)
         echo $PYTHON_VERSIONS
 
-        for py in $PYTHON_VERSIONS
-        do
-          conda create -n pyoms-bld-$py python=$py
-          source activate pyoms-bld-$py
+        for py in $(echo "${PYTHON_VERSIONS}" | jq -r '.[]'); do
+          py=$(echo "$py" | tr -d " \n")
+          pynodot=$(echo "$py" | tr -d ".")
+          conda create -n pyoms-bld-$pynodot python=$py
+          source activate pyoms-bld-$pynodot
 
           # Find .whl for current python version
           CURRENT_VERSION=$(echo $py | sed "s/\.//g") # remove "." for find
@@ -432,7 +434,7 @@ jobs:
           conda deactivate
 
           # clean up
-          conda remove --name pyoms-bld-$py --all
+          conda remove --name pyoms-bld-$pynodot --all
 
         done
 
