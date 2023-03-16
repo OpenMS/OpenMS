@@ -240,21 +240,21 @@ private:
       case FileTypes::MZML:
       {
         PeakMap experiment;
-        MzMLFile().load(reference_file, experiment);
+        FileHandler().loadExperiment(reference_file, experiment);
         algorithm.setReference(experiment);
       }
       break;
       case FileTypes::FEATUREXML:
       {
         FeatureMap features;
-        FeatureXMLFile().load(reference_file, features);
+        FileHandler().loadFeatures(reference_file, features);
         algorithm.setReference(features);
       }
       break;
       case FileTypes::CONSENSUSXML:
       {
         ConsensusMap consensus;
-        ConsensusXMLFile().load(reference_file, consensus);
+        FileHandler().loadConsensusFeatures(reference_file, consensus);
         algorithm.setReference(consensus);
       }
       break;
@@ -262,7 +262,7 @@ private:
       {
         vector<ProteinIdentification> proteins;
         vector<PeptideIdentification> peptides;
-        IdXMLFile().load(reference_file, proteins, peptides);
+        FileHandler().loadIdentifications(reference_file, proteins, peptides);
         algorithm.setReference(peptides);
       }
       break;
