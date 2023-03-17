@@ -70,10 +70,10 @@ public:
     /**
       @brief Constructor with filename
 
-      @param filename @see load()
-      @param trim_lines @see load()
-      @param first_n @see load()
-      @param skip_empty_lines @see load()
+      @param filename The input file name
+      @param trim_lines Whether or not the lines are trimmed when reading them from file
+      @param first_n If set, only @p first_n lines the lines from the beginning of the file are read
+      @param skip_empty_lines Should empty lines be skipped? If used in conjunction with @p trim_lines, also lines with only whitespace will be skipped. Skipped lines do not count towards the total number of read lines.
 
       @exception Exception::FileNotFound is thrown if the file could not be opened.
     */
