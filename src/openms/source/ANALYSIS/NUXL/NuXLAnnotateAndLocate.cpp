@@ -50,6 +50,228 @@ using namespace std;
 
 namespace OpenMS
 {
+
+  // create total loss spectrum using new_param as template
+  static PeakSpectrum createTotalLossSpectrumForAnnotations(const AASequence& fixed_and_variable_modified_peptide, size_t precursor_charge, Param new_param)
+  {
+    PeakSpectrum total_loss_spectrum;
+    TheoreticalSpectrumGenerator tmp_generator;
+    new_param.setValue("add_all_precursor_charges", "true");
+    new_param.setValue("add_abundant_immonium_ions", "true");
+    new_param.setValue("add_losses", "true");
+    new_param.setValue("add_term_losses", "true");
+    new_param.setValue("add_a_ions", "true");
+    new_param.setValue("add_internal_fragments", "true");
+    tmp_generator.setParameters(new_param);
+    tmp_generator.getSpectrum(total_loss_spectrum, fixed_and_variable_modified_peptide, 1, precursor_charge);
+
+    const String& unmodified_sequence = fixed_and_variable_modified_peptide.toUnmodifiedString();
+    const bool contains_Methionine = unmodified_sequence.has('M');
+
+    if (contains_Methionine) // add mainly DEB + NM related precursor losses 
+    {
+      static const double M_star_pc_loss = EmpiricalFormula("CH4S").getMonoWeight(); // methionine related loss on precursor (see OpenNuXL for scoring related code)
+      for (size_t charge = 1; charge <= precursor_charge; ++charge)
+      {
+        String ion_name = (charge == 1) ? "[M+H]-CH4S" : "[M+" + String(charge) + "H]-CH4S";              
+        total_loss_spectrum.getStringDataArrays()[0].push_back(ion_name);
+        total_loss_spectrum.getIntegerDataArrays()[NuXLConstants::IA_CHARGE_INDEX].push_back(charge);      
+        double mono_pos = fixed_and_variable_modified_peptide.getMonoWeight(Residue::Full, charge) - M_star_pc_loss; // precursor peak
+        total_loss_spectrum.emplace_back(mono_pos / (double)charge, 1.0);
+      }
+    }
+    // add special immonium ions
+    NuXLFragmentIonGenerator::addSpecialLysImmonumIons(
+      unmodified_sequence,
+      total_loss_spectrum, 
+      total_loss_spectrum.getIntegerDataArrays()[NuXLConstants::IA_CHARGE_INDEX],
+      total_loss_spectrum.getStringDataArrays()[0]);
+    total_loss_spectrum.sortByPosition(); // need to resort after adding special immonium ions
+    return total_loss_spectrum;
+  }
+
+  using MapIonIndexToFragmentAnnotation = map<Size, vector<NuXLFragmentAnnotationHelper::FragmentAnnotationDetail_> >;
+
+  // ion centric (e.g. b and y-ion) spectrum annotation for unshifted ions (will later be merged with shifted) 
+  static vector<PeptideHit::PeakAnnotation> createIonCentricFragmentAnnotationsForUnshiftedIons(
+    const PeakSpectrum& total_loss_spectrum, 
+    const PeakSpectrum& exp_spectrum, 
+    const vector<pair<Size, Size>>& alignment, 
+    set<Size>& peak_is_annotated,
+    vector<PeptideHit::PeakAnnotation>& annotated_precursor_ions,
+    MapIonIndexToFragmentAnnotation& unshifted_b_ions, 
+    MapIonIndexToFragmentAnnotation& unshifted_y_ions, 
+    MapIonIndexToFragmentAnnotation& unshifted_a_ions,
+    vector<PeptideHit::PeakAnnotation>& unshifted_loss_ions, 
+    vector<PeptideHit::PeakAnnotation>& annotated_immonium_ions
+    )
+  {
+    const PeakSpectrum::StringDataArray& total_loss_annotations = total_loss_spectrum.getStringDataArrays()[0];
+    const PeakSpectrum::IntegerDataArray& total_loss_charges = total_loss_spectrum.getIntegerDataArrays()[NuXLConstants::IA_CHARGE_INDEX];
+
+    // create total loss annotations
+    for (auto const & aligned : alignment)
+    {
+      // information on the experimental fragment in the alignment
+      const Size& fragment_index = aligned.second;
+      const Peak1D& fragment = exp_spectrum[fragment_index];
+      const double fragment_intensity = fragment.getIntensity(); // in percent (%)
+      const double fragment_mz = fragment.getMZ();
+      
+
+      const String& ion_name = total_loss_annotations[aligned.first];
+      const int charge = total_loss_charges[aligned.first];
+
+      OPENMS_PRECONDITION(exp_spectrum.getIntegerDataArrays()[NuXLConstants::IA_CHARGE_INDEX][fragment_index] == charge, "Charges in alignment must match.");
+
+      // define which ion names are annotated
+      if (ion_name[0] == 'y')
+      {
+        Size loss_first = ion_name.find_first_of('-'); // start of loss
+        Size charge_pos = ion_name.find_first_of('+'); // charge indicator at end
+        const bool ion_has_neutral_loss = (loss_first != string::npos);
+
+        if (ion_has_neutral_loss) // ion with neutral loss e.g. water
+        {
+          PeptideHit::PeakAnnotation fa;
+          fa.mz = fragment_mz;
+          fa.intensity = fragment_intensity;
+          fa.charge = charge;
+          fa.annotation = ion_name;
+          unshifted_loss_ions.push_back(fa);
+          peak_is_annotated.insert(aligned.second);
+        }
+        else // no neutral loss
+        {
+          String ion_nr_string = ion_name.substr(1, charge_pos - 1);
+          Size ion_number = (Size)ion_nr_string.toInt();
+          NuXLFragmentAnnotationHelper::FragmentAnnotationDetail_ d("", charge, fragment_mz, fragment_intensity);
+          unshifted_y_ions[ion_number].push_back(d);
+          #ifdef DEBUG_OpenNuXL
+            const AASequence& peptide_sequence = fixed_and_variable_modified_peptide.getSuffix(ion_number);
+            OPENMS_LOG_DEBUG << "Annotating ion: " << ion_name << " at position: " << fragment_mz << " " << peptide_sequence.toString() << " intensity: " << fragment_intensity << endl;
+          #endif
+          peak_is_annotated.insert(aligned.second);
+        }
+      }
+      else if (ion_name[0] == 'b')
+      {
+        Size loss_first = ion_name.find_first_of('-'); // start of loss
+        Size charge_pos = ion_name.find_first_of('+'); // charge indicator at end
+        const bool ion_has_neutral_loss = (loss_first != string::npos);
+
+        if (ion_has_neutral_loss)
+        {
+          PeptideHit::PeakAnnotation fa;
+          fa.mz = fragment_mz;
+          fa.intensity = fragment_intensity;
+          fa.charge = charge;
+          fa.annotation = ion_name;
+          unshifted_loss_ions.push_back(fa);
+          peak_is_annotated.insert(aligned.second);
+        }
+        else
+        {
+          String ion_nr_string = ion_name.substr(1, charge_pos - 1);
+          Size ion_number = (Size)ion_nr_string.toInt();
+          #ifdef DEBUG_OpenNuXL
+            const AASequence& peptide_sequence = aas.getPrefix(ion_number);
+            OPENMS_LOG_DEBUG << "Annotating ion: " << ion_name << " at position: " << fragment_mz << " " << peptide_sequence.toString() << " intensity: " << fragment_intensity << endl;
+          #endif
+          NuXLFragmentAnnotationHelper::FragmentAnnotationDetail_ d("", charge, fragment_mz, fragment_intensity);
+          unshifted_b_ions[ion_number].push_back(d);
+          peak_is_annotated.insert(aligned.second);
+        }
+      }
+      else if (ion_name[0] == 'a')
+      {
+        Size loss_first = ion_name.find_first_of('-'); // start of loss
+        Size charge_pos = ion_name.find_first_of('+'); // charge indicator at end
+        const bool ion_has_neutral_loss = (loss_first != string::npos);
+
+        if (ion_has_neutral_loss)
+        {
+          PeptideHit::PeakAnnotation fa;
+          fa.mz = fragment_mz;
+          fa.intensity = fragment_intensity;
+          fa.charge = charge;
+          fa.annotation = ion_name;
+          unshifted_loss_ions.push_back(fa);
+          peak_is_annotated.insert(aligned.second);
+        }
+        else
+        {
+          String ion_nr_string = ion_name.substr(1, charge_pos - 1);
+          auto ion_number = (Size)ion_nr_string.toInt();
+          #ifdef DEBUG_OpenNuXL
+            const AASequence& peptide_sequence = aas.getPrefix(ion_number);
+            OPENMS_LOG_DEBUG << "Annotating ion: " << ion_name << " at position: " << fragment_mz << " " << peptide_sequence.toString() << " intensity: " << fragment_intensity << endl;
+          #endif
+          NuXLFragmentAnnotationHelper::FragmentAnnotationDetail_ d("", charge, fragment_mz, fragment_intensity);
+          unshifted_a_ions[ion_number].push_back(d);
+          peak_is_annotated.insert(aligned.second);
+        }
+      }
+      else if (ion_name.hasPrefix("[M+")) // precursor ion
+      {
+        PeptideHit::PeakAnnotation fa;
+        fa.mz = fragment_mz;
+        fa.intensity = fragment_intensity;
+        fa.charge = charge;
+        fa.annotation = ion_name;
+        annotated_precursor_ions.push_back(fa);
+        peak_is_annotated.insert(aligned.second);
+      }
+      else if (ion_name.hasPrefix("i")) // immonium ion
+      {
+        PeptideHit::PeakAnnotation fa;
+        fa.mz = fragment_mz;
+        fa.intensity = fragment_intensity;
+        fa.charge = charge;
+        fa.annotation = ion_name;
+        annotated_immonium_ions.push_back(fa);
+        peak_is_annotated.insert(aligned.second);
+      }
+      else if (isupper(ion_name[0])) // internal ions
+      {
+        PeptideHit::PeakAnnotation fa;
+        fa.mz = fragment_mz;
+        fa.intensity = fragment_intensity;
+        fa.charge = charge;
+        fa.annotation = ion_name;
+        annotated_immonium_ions.push_back(fa);  //TODO: add to annotated_internal_fragment_ions or rename vector
+        peak_is_annotated.insert(aligned.second);
+      }
+    }
+
+    // generate fragment annotation strings for unshifted ions
+    vector<PeptideHit::PeakAnnotation> fas;
+    if (!unshifted_b_ions.empty())
+    {
+      const vector<PeptideHit::PeakAnnotation>& fas_tmp = NuXLFragmentAnnotationHelper::fragmentAnnotationDetailsToPHFA("b", unshifted_b_ions);
+      fas.insert(fas.end(), fas_tmp.begin(), fas_tmp.end());
+    }
+    if (!unshifted_y_ions.empty())
+    {
+      const vector<PeptideHit::PeakAnnotation>& fas_tmp = NuXLFragmentAnnotationHelper::fragmentAnnotationDetailsToPHFA("y", unshifted_y_ions);
+      fas.insert(fas.end(), fas_tmp.begin(), fas_tmp.end());
+    }
+    if (!unshifted_a_ions.empty())
+    {
+      const vector<PeptideHit::PeakAnnotation>& fas_tmp = NuXLFragmentAnnotationHelper::fragmentAnnotationDetailsToPHFA("a", unshifted_a_ions);
+      fas.insert(fas.end(), fas_tmp.begin(), fas_tmp.end());
+    }
+    if (!annotated_immonium_ions.empty())
+    {
+      fas.insert(fas.end(), annotated_immonium_ions.begin(), annotated_immonium_ions.end());          
+    }
+    if (!unshifted_loss_ions.empty())
+    {
+      fas.insert(fas.end(), unshifted_loss_ions.begin(), unshifted_loss_ions.end());          
+    }
+    return fas;
+  }
+
   // static
   void NuXLAnnotateAndLocate::annotateAndLocate_(
     const PeakMap& exp, 
@@ -92,8 +314,6 @@ namespace OpenMS
         // get unmodified string
         const String unmodified_sequence = a.sequence.getString();
 
-        const bool contains_Methionine = unmodified_sequence.has('M');
-
         // initialize result fields
         a.best_localization = unmodified_sequence;
         a.best_localization_score = 0;
@@ -118,39 +338,7 @@ namespace OpenMS
         // generate total loss spectrum for the fixed and variable modified peptide (without NAs) (using the settings for partial loss generation)
         // but as we also add the abundant immonium ions for charge 1 and precursor ions for all charges to get a more complete annotation
         // (these have previously not been used in the scoring of the total loss spectrum)
-        PeakSpectrum total_loss_spectrum;
-        {
-          TheoreticalSpectrumGenerator tmp_generator;
-          Param new_param(partial_loss_spectrum_generator.getParameters());
-          new_param.setValue("add_all_precursor_charges", "true");
-          new_param.setValue("add_abundant_immonium_ions", "true");
-          new_param.setValue("add_losses", "true");
-          new_param.setValue("add_term_losses", "true");
-          new_param.setValue("add_a_ions", "true");
-          new_param.setValue("add_internal_fragments", "true");
-          tmp_generator.setParameters(new_param);
-          tmp_generator.getSpectrum(total_loss_spectrum, fixed_and_variable_modified_peptide, 1, precursor_charge);
-                    
-          if (contains_Methionine) // add mainly DEB + NM related precursor losses 
-          {
-            static const double M_star_pc_loss = EmpiricalFormula("CH4S").getMonoWeight(); // methionine related loss on precursor (see OpenNuXL for scoring related code)
-            for (size_t charge = 1; charge <= precursor_charge; ++charge)
-            {
-              String ion_name = (charge == 1) ? "[M+H]-CH4S" : "[M+" + String(charge) + "H]-CH4S";              
-              total_loss_spectrum.getStringDataArrays()[0].push_back(ion_name);
-              total_loss_spectrum.getIntegerDataArrays()[NuXLConstants::IA_CHARGE_INDEX].push_back(charge);      
-              double mono_pos = fixed_and_variable_modified_peptide.getMonoWeight(Residue::Full, charge) - M_star_pc_loss; // precursor peak
-              total_loss_spectrum.emplace_back(mono_pos / (double)charge, 1.0);
-            }
-          }          
-        }
-        // add special immonium ions
-        NuXLFragmentIonGenerator::addSpecialLysImmonumIons(
-          unmodified_sequence,
-          total_loss_spectrum, 
-          total_loss_spectrum.getIntegerDataArrays()[NuXLConstants::IA_CHARGE_INDEX],
-          total_loss_spectrum.getStringDataArrays()[0]);
-        total_loss_spectrum.sortByPosition(); // need to resort after adding special immonium ions
+        PeakSpectrum total_loss_spectrum = createTotalLossSpectrumForAnnotations(fixed_and_variable_modified_peptide, precursor_charge, partial_loss_spectrum_generator.getParameters()); // use same parameters
 
         // first annotate total loss peaks (these give no information where the actual shift occured)
         #ifdef DEBUG_OpenNuXL
@@ -169,185 +357,30 @@ namespace OpenMS
           exp_spectrum.getIntegerDataArrays()[NuXLConstants::IA_CHARGE_INDEX], 
           ppm_error_array);
 
-        const PeakSpectrum::StringDataArray& total_loss_annotations = total_loss_spectrum.getStringDataArrays()[0];
-        const PeakSpectrum::IntegerDataArray& total_loss_charges = total_loss_spectrum.getIntegerDataArrays()[NuXLConstants::IA_CHARGE_INDEX];
-
         // fill annotated spectrum information
         set<Size> peak_is_annotated;  // experimental peak index
+        vector<PeptideHit::PeakAnnotation> annotated_precursor_ions; // also used for shifted ones
 
-        // ion centric (e.g. b and y-ion) spectrum annotation that records all shifts of specific ions (e.g. y5, y5 + U, y5 + C3O)
-        using MapIonIndexToFragmentAnnotation = map<Size, vector<NuXLFragmentAnnotationHelper::FragmentAnnotationDetail_> >;
         MapIonIndexToFragmentAnnotation unshifted_b_ions, unshifted_y_ions, unshifted_a_ions;
-        vector<PeptideHit::PeakAnnotation> unshifted_loss_ions, annotated_immonium_ions, annotated_precursor_ions;
+        vector<PeptideHit::PeakAnnotation> unshifted_loss_ions, annotated_immonium_ions;
 
-        // create total loss annotations
-        for (auto const & aligned : alignment)
-        {
-          // information on the experimental fragment in the alignment
-          const Size& fragment_index = aligned.second;
-          const Peak1D& fragment = exp_spectrum[fragment_index];
-          const double fragment_intensity = fragment.getIntensity(); // in percent (%)
-          const double fragment_mz = fragment.getMZ();
-         
-
-          const String& ion_name = total_loss_annotations[aligned.first];
-          const int charge = total_loss_charges[aligned.first];
-
-          OPENMS_PRECONDITION(exp_spectrum.getIntegerDataArrays()[NuXLConstants::IA_CHARGE_INDEX][fragment_index] == charge, "Charges in alignment must match.");
-
-          // define which ion names are annotated
-          if (ion_name[0] == 'y')
-          {
-            Size loss_first = ion_name.find_first_of('-'); // start of loss
-            Size charge_pos = ion_name.find_first_of('+'); // charge indicator at end
-            const bool ion_has_neutral_loss = (loss_first != string::npos);
-
-            if (ion_has_neutral_loss) // ion with neutral loss e.g. water
-            {
-              PeptideHit::PeakAnnotation fa;
-              fa.mz = fragment_mz;
-              fa.intensity = fragment_intensity;
-              fa.charge = charge;
-              fa.annotation = ion_name;
-              unshifted_loss_ions.push_back(fa);
-              peak_is_annotated.insert(aligned.second);
-            }
-            else // no neutral loss
-            {
-              String ion_nr_string = ion_name.substr(1, charge_pos - 1);
-              Size ion_number = (Size)ion_nr_string.toInt();
-              NuXLFragmentAnnotationHelper::FragmentAnnotationDetail_ d("", charge, fragment_mz, fragment_intensity);
-              unshifted_y_ions[ion_number].push_back(d);
-              #ifdef DEBUG_OpenNuXL
-                const AASequence& peptide_sequence = fixed_and_variable_modified_peptide.getSuffix(ion_number);
-                OPENMS_LOG_DEBUG << "Annotating ion: " << ion_name << " at position: " << fragment_mz << " " << peptide_sequence.toString() << " intensity: " << fragment_intensity << endl;
-              #endif
-              peak_is_annotated.insert(aligned.second);
-            }
-          }
-          else if (ion_name[0] == 'b')
-          {
-            Size loss_first = ion_name.find_first_of('-'); // start of loss
-            Size charge_pos = ion_name.find_first_of('+'); // charge indicator at end
-            const bool ion_has_neutral_loss = (loss_first != string::npos);
-
-            if (ion_has_neutral_loss)
-            {
-              PeptideHit::PeakAnnotation fa;
-              fa.mz = fragment_mz;
-              fa.intensity = fragment_intensity;
-              fa.charge = charge;
-              fa.annotation = ion_name;
-              unshifted_loss_ions.push_back(fa);
-              peak_is_annotated.insert(aligned.second);
-            }
-            else
-            {
-              String ion_nr_string = ion_name.substr(1, charge_pos - 1);
-              Size ion_number = (Size)ion_nr_string.toInt();
-              #ifdef DEBUG_OpenNuXL
-                const AASequence& peptide_sequence = aas.getPrefix(ion_number);
-                OPENMS_LOG_DEBUG << "Annotating ion: " << ion_name << " at position: " << fragment_mz << " " << peptide_sequence.toString() << " intensity: " << fragment_intensity << endl;
-              #endif
-              NuXLFragmentAnnotationHelper::FragmentAnnotationDetail_ d("", charge, fragment_mz, fragment_intensity);
-              unshifted_b_ions[ion_number].push_back(d);
-              peak_is_annotated.insert(aligned.second);
-            }
-          }
-          else if (ion_name[0] == 'a')
-          {
-            Size loss_first = ion_name.find_first_of('-'); // start of loss
-            Size charge_pos = ion_name.find_first_of('+'); // charge indicator at end
-            const bool ion_has_neutral_loss = (loss_first != string::npos);
-
-            if (ion_has_neutral_loss)
-            {
-              PeptideHit::PeakAnnotation fa;
-              fa.mz = fragment_mz;
-              fa.intensity = fragment_intensity;
-              fa.charge = charge;
-              fa.annotation = ion_name;
-              unshifted_loss_ions.push_back(fa);
-              peak_is_annotated.insert(aligned.second);
-            }
-            else
-            {
-              String ion_nr_string = ion_name.substr(1, charge_pos - 1);
-              auto ion_number = (Size)ion_nr_string.toInt();
-              #ifdef DEBUG_OpenNuXL
-                const AASequence& peptide_sequence = aas.getPrefix(ion_number);
-                OPENMS_LOG_DEBUG << "Annotating ion: " << ion_name << " at position: " << fragment_mz << " " << peptide_sequence.toString() << " intensity: " << fragment_intensity << endl;
-              #endif
-              NuXLFragmentAnnotationHelper::FragmentAnnotationDetail_ d("", charge, fragment_mz, fragment_intensity);
-              unshifted_a_ions[ion_number].push_back(d);
-              peak_is_annotated.insert(aligned.second);
-            }
-          }
-          else if (ion_name.hasPrefix("[M+")) // precursor ion
-          {
-            PeptideHit::PeakAnnotation fa;
-            fa.mz = fragment_mz;
-            fa.intensity = fragment_intensity;
-            fa.charge = charge;
-            fa.annotation = ion_name;
-            annotated_precursor_ions.push_back(fa);
-            peak_is_annotated.insert(aligned.second);
-          }
-          else if (ion_name.hasPrefix("i")) // immonium ion
-          {
-            PeptideHit::PeakAnnotation fa;
-            fa.mz = fragment_mz;
-            fa.intensity = fragment_intensity;
-            fa.charge = charge;
-            fa.annotation = ion_name;
-            annotated_immonium_ions.push_back(fa);
-            peak_is_annotated.insert(aligned.second);
-          }
-          else if (isupper(ion_name[0])) // internal ions
-          {
-            PeptideHit::PeakAnnotation fa;
-            fa.mz = fragment_mz;
-            fa.intensity = fragment_intensity;
-            fa.charge = charge;
-            fa.annotation = ion_name;
-            annotated_immonium_ions.push_back(fa);  //TODO: add to annotated_internal_fragment_ions or rename vector
-            peak_is_annotated.insert(aligned.second);
-          }
-        }
-
-        // generate fragment annotation strings for unshifted ions
-        vector<PeptideHit::PeakAnnotation> fas;
-        if (!unshifted_b_ions.empty())
-        {
-          const vector<PeptideHit::PeakAnnotation>& fas_tmp = NuXLFragmentAnnotationHelper::fragmentAnnotationDetailsToPHFA("b", unshifted_b_ions);
-          fas.insert(fas.end(), fas_tmp.begin(), fas_tmp.end());
-        }
-        if (!unshifted_y_ions.empty())
-        {
-          const vector<PeptideHit::PeakAnnotation>& fas_tmp = NuXLFragmentAnnotationHelper::fragmentAnnotationDetailsToPHFA("y", unshifted_y_ions);
-          fas.insert(fas.end(), fas_tmp.begin(), fas_tmp.end());
-        }
-        if (!unshifted_a_ions.empty())
-        {
-          const vector<PeptideHit::PeakAnnotation>& fas_tmp = NuXLFragmentAnnotationHelper::fragmentAnnotationDetailsToPHFA("a", unshifted_a_ions);
-          fas.insert(fas.end(), fas_tmp.begin(), fas_tmp.end());
-        }
-        if (!annotated_immonium_ions.empty())
-        {
-          fas.insert(fas.end(), annotated_immonium_ions.begin(), annotated_immonium_ions.end());          
-        }
-        if (!unshifted_loss_ions.empty())
-        {
-          fas.insert(fas.end(), unshifted_loss_ions.begin(), unshifted_loss_ions.end());          
-        }
-        
-
+        auto fas = createIonCentricFragmentAnnotationsForUnshiftedIons(total_loss_spectrum, exp_spectrum, alignment, peak_is_annotated, 
+          annotated_precursor_ions,
+          unshifted_b_ions, 
+          unshifted_y_ions, 
+          unshifted_a_ions,
+          unshifted_loss_ions, 
+          annotated_immonium_ions        
+          );
+            
         // we don't localize on non-cross-links (only annotate)
         if (precursor_na_adduct == "none") 
         { 
           a.fragment_annotations = fas;
           continue; 
         }
+
+        // ion centric (e.g. b and y-ion) spectrum annotation that records all shifts of specific ions (e.g. y5, y5 + U, y5 + C3O)
 
         // generate all partial loss spectra (excluding the complete loss spectrum) merged into one spectrum
         // 1. get all possible NA fragment shifts in the MS2 (based on the precursor RNA/DNA)
