@@ -150,7 +150,7 @@ public:
         throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Could not determine type of the file. Aborting!", in_filename);
       }
       type = FileTypes::typeToName(in_type);
-      fh.loadExperiment(in_filename, exp, in_type, ProgressLogger::NONE, false, false);
+      fh.loadExperiment(in_filename, exp, {in_type}, in_type);
     }
 
     /**

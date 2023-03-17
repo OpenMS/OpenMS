@@ -308,7 +308,7 @@ protected:
       if (!mz_file.empty())
       {
         type = fh.getTypeByFileName(mz_file);
-        fh.loadExperiment(mz_file, msexperiment, type, log_type_, false, false);
+        fh.loadExperiment(mz_file, msexperiment, {type}, type, log_type_, false, false);
 
         for (PeakMap::Iterator spectra_it = msexperiment.begin(); spectra_it != msexperiment.end(); ++spectra_it)
         {
@@ -415,7 +415,7 @@ protected:
         else
         {
           PeakMap exp;
-          fh.loadExperiment(mz_file, exp, FileTypes::UNKNOWN, log_type_, false,
+          fh.loadExperiment(mz_file, exp, {}, FileTypes::UNKNOWN, log_type_, false,
                             false);
           if (mz_name.empty()) mz_name = mz_file;
           String scan_regex = getStringOption_("scan_regex");
@@ -496,7 +496,7 @@ protected:
           PeakMap exp;
           // load only MS2 spectra:
           fh.getOptions().addMSLevel(2);
-          fh.loadExperiment(mz_file, exp, FileTypes::MZML, log_type_, false,
+          fh.loadExperiment(mz_file, exp, {}, FileTypes::MZML, log_type_, false,
                             false);
           MascotXMLFile::initializeLookup(lookup, exp, scan_regex);
         }
@@ -519,7 +519,7 @@ protected:
         {
           PeakMap exp;
           fh.getOptions().addMSLevel(2);
-          fh.loadExperiment(mz_file, exp, FileTypes::MZML, log_type_, false,
+          fh.loadExperiment(mz_file, exp, {FileTypes::MZML} , FileTypes::MZML, log_type_, false,
                             false);
           for (PeptideIdentification& pep : peptide_identifications)
           {
@@ -553,7 +553,7 @@ protected:
         if (!mz_file.empty())
         {
           PeakMap experiment;
-          fh.loadExperiment(mz_file, experiment, FileTypes::UNKNOWN, log_type_, false, false);
+          fh.loadExperiment(mz_file, experiment, {}, FileTypes::UNKNOWN, log_type_, false, false);
           lookup.readSpectra(experiment.getSpectra());
         }
         String scan_regex = getStringOption_("scan_regex");

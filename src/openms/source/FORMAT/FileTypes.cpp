@@ -164,7 +164,7 @@ namespace OpenMS
     return r == FileTypes::Type::UNKNOWN ? fallback : r;
   }
 
-  FileTypeList FileTypeList::typesWithProperties(std::unordered_set<FileTypes::FileProperties> haveFeatures)
+  std::vector<FileTypes::Type> FileTypeList::typesWithProperties(std::unordered_set<FileTypes::FileProperties> haveFeatures)
   {
     std::vector<FileTypes::Type> compatible;
     // Copy our type_with_annotation__s to a list

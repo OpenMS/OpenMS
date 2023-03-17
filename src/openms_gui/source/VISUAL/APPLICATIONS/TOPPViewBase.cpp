@@ -727,7 +727,7 @@ namespace OpenMS
         // Load all data into memory if e.g. other file type than mzML
         if (!parsing_success)
         {
-          fh.loadExperiment(abs_filename, *peak_map_sptr, file_type, ProgressLogger::GUI);
+          fh.loadExperiment(abs_filename, *peak_map_sptr, {file_type}, file_type, ProgressLogger::GUI);
         }
         OPENMS_LOG_INFO << "INFO: done loading all " << std::endl;
 

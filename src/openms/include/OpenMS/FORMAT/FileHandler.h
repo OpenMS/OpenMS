@@ -148,6 +148,7 @@ public:
 
       @param filename The file name of the file to load.
       @param exp The experiment to load the data into.
+      @param allowed_types a FileTypeList containing the types of files to support. If not empty the extension, and failing that the contents are checked to make sure they match
       @param force_type Forces to load the file with that file type. If no type is forced, it is determined from the extension (or from the content if that fails).
       @param log Progress logging mode
       @param rewrite_source_file Set's the SourceFile name and path to the current file. Note that this looses the link to the primary MS run the file originated from.
@@ -158,9 +159,9 @@ public:
       @exception Exception::FileNotFound is thrown if the file could not be opened
       @exception Exception::ParseError is thrown if an error occurs during parsing
     */
-    bool loadExperiment(const String& filename, MSExperiment& exp, FileTypes::Type force_type = FileTypes::UNKNOWN,
+    bool loadExperiment(const String& filename, MSExperiment& exp, const std::vector<FileTypes::Type> allowed_types = std::vector<FileTypes::Type>(), FileTypes::Type force_type = FileTypes::UNKNOWN,
                         ProgressLogger::LogType log = ProgressLogger::NONE, const bool rewrite_source_file = false,
-                        const bool compute_hash = false, const FileTypeList allowed_types = FileTypeList(std::vector<FileTypes::Type>()));
+                        const bool compute_hash = false);
 
     /**
       @brief Stores an MSExperiment to a file

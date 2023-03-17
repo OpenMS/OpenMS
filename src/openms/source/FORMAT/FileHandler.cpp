@@ -718,13 +718,13 @@ if (first_line.hasSubstring("File	First Scan	Last Scan	Num of Scans	Charge	Monoi
     return true;
   }
 
-  bool FileHandler::loadExperiment(const String& filename, PeakMap& exp, FileTypes::Type force_type, ProgressLogger::LogType log, const bool rewrite_source_file, const bool compute_hash, const FileTypeList allowed_types)
+  bool FileHandler::loadExperiment(const String& filename, PeakMap& exp, const std::vector<FileTypes::Type> allowed_types, FileTypes::Type force_type, ProgressLogger::LogType log, const bool rewrite_source_file, const bool compute_hash)
   {
     // setting the flag for hash recomputation only works if source file entries are rewritten
     OPENMS_PRECONDITION(rewrite_source_file || !compute_hash, "Can't compute hash if no SourceFile written");
 
     // If we have a restricted set of file types check that we match them
-    if (allowed_types.getTypes().size() != 0)
+    if (allowed_types.size() != 0)
     {
       if (!check_types_(allowed_types, filename))
       {

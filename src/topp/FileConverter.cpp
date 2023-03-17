@@ -475,7 +475,7 @@ protected:
     }
     else
     {
-      fh.loadExperiment(in, exp, in_type, log_type_, true, true);
+      fh.loadExperiment(in, exp, {in_type}, in_type, log_type_, true, true);
     }
 
     //-------------------------------------------------------------

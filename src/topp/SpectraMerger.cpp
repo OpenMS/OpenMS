@@ -127,7 +127,7 @@ protected:
     FileTypes::Type in_type = fh.getType(in);
 
     PeakMap exp;
-    fh.loadExperiment(in, exp, in_type, log_type_);
+    fh.loadExperiment(in, exp, {in_type}, in_type, log_type_);
     exp.sortSpectra();
 
     auto levels = exp.getMSLevels();

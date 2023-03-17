@@ -268,7 +268,7 @@ protected:
     // keep only MS2 spectra
     FileHandler fh;
     fh.getOptions().setMSLevels({2});
-    fh.loadExperiment(in, exp, FileTypes::Type::MZML, log_type_, false, false);
+    fh.loadExperiment(in, exp, {FileTypes::Type::MZML}, FileTypes::Type::MZML, log_type_, false, false);
     writeLogInfo_("Number of spectra loaded: " + String(exp.size()));
 
 

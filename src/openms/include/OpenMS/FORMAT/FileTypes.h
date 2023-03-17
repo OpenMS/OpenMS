@@ -193,13 +193,13 @@ namespace OpenMS
 
 
     /**
-      @brief Get a FileTypeList with all fileTypes that support a set of features.
+      @brief Get a std::vector<FileTypes::Type> with all fileTypes that support a set of features.
 
       
       @param features An unordered_set of features that fileTypes must support
-      @return A FileTypeList with the files that support features
+      @return A std::vector<FileTypes::Type> with the files that support features
     **/
-    static FileTypeList typesWithProperties(const std::unordered_set<FileTypes::FileProperties> features);
+    static std::vector<FileTypes::Type> typesWithProperties(const std::unordered_set<FileTypes::FileProperties> features);
 
   private:
     /// hold filter items (for Qt dialogs) along with their OpenMS type
