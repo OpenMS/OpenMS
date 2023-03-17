@@ -243,7 +243,7 @@ TEST_EQUAL(tmp.loadExperiment(OPENMS_GET_TEST_DATA_PATH("DTA2DFile_test_1.dta2d"
 TEST_STRING_EQUAL(exp.getSourceFiles()[0].getChecksum(), "")
 TEST_EQUAL(exp.getSourceFiles()[0].getChecksumType(), SourceFile::UNKNOWN_CHECKSUM)
 // Test that we fail if given a known bogus type restriction
-TEST_EQUAL(tmp.loadExperiment(OPENMS_GET_TEST_DATA_PATH("DTA2DFile_test_1.dta2d"), exp, {FileTypes::SIZE_OF_TYPE}, FileTypes::UNKNOWN, ProgressLogger::NONE, true, false), false)
+TEST_EXCEPTION(Exception::ParseError, tmp.loadExperiment(OPENMS_GET_TEST_DATA_PATH("DTA2DFile_test_1.dta2d"), exp, {FileTypes::SIZE_OF_TYPE}, FileTypes::UNKNOWN, ProgressLogger::NONE, true, false))
 
 
 TEST_EXCEPTION(Exception::ParseError, tmp.loadExperiment(OPENMS_GET_TEST_DATA_PATH("DTAFile_test.dta"), exp, {FileTypes::DTA}, FileTypes::MZML))
@@ -298,10 +298,16 @@ PeakMap exp;
 fh.loadExperiment(OPENMS_GET_TEST_DATA_PATH("MzMLFile_1.mzML"), exp);
 
 //test mzML
-String filename;
-NEW_TMP_FILE(filename)
+String filename, filename2;
+NEW_TMP_FILE(filename);
+NEW_TMP_FILE(filename2);
 fh.storeExperiment(filename, exp);
 TEST_EQUAL(fh.getTypeByContent(filename), FileTypes::MZML)
+//fh.storeExperiment(filename2, exp, ProgressLogger::NONE, {FileTypes::MZML});
+
+
+//Test that we throw an exception when given a bogus type restriction
+TEST_EXCEPTION(Exception::UnableToCreateFile, fh.storeExperiment(filename, exp, ProgressLogger::NONE, {FileTypes::SIZE_OF_TYPE}))
 
 //other types cannot be tested, because the NEW_TMP_FILE template does not support file extensions...
 END_SECTION

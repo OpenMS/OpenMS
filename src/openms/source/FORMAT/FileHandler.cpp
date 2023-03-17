@@ -731,8 +731,7 @@ if (first_line.hasSubstring("File	First Scan	Last Scan	Num of Scans	Charge	Monoi
     {
       if (!check_types_(allowed_types, filename))
       {
-        OPENMS_LOG_WARN << "File " << filename << " type is not supported by this tool" << endl;
-        return false;
+        throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename, "type is not supported for loading experiments");
       }
     }
 

@@ -39,6 +39,7 @@
 #include <OpenMS/FORMAT/DATAACCESS/MSDataChainingConsumer.h>
 #include <OpenMS/FORMAT/DATAACCESS/SwathFileConsumer.h>
 #include <OpenMS/FORMAT/FileHandler.h>
+//TODO remove MzML after we get transform support for our handlers
 #include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/FORMAT/MzXMLFile.h>
 #include <OpenMS/FORMAT/HANDLERS/MzMLSqliteHandler.h>
@@ -90,7 +91,7 @@ namespace OpenMS
 
       if (readoptions == "normal")
       {
-        FileHandler().loadExperiment(file_list[i], *exp.get());
+        FileHandler().loadExperiment(file_list[i], *exp.get(), {FileTypes::MZML});
         spectra_ptr = SimpleOpenMSSpectraFactory::getSpectrumAccessOpenMSPtr(exp);
       }
       else if (readoptions == "cache")
@@ -226,7 +227,7 @@ namespace OpenMS
     FileHandler f;
     f.getOptions().setAlwaysAppendData(true);
     f.getOptions().setFillData(false);
-    f.loadExperiment(file, *experiment_metadata);
+    f.loadExperiment(file, *experiment_metadata, {FileTypes::MZML});
     exp_meta = experiment_metadata;
 
     // First pass through the file -> get the meta data
@@ -317,7 +318,7 @@ namespace OpenMS
     } // ensure that filestream gets closed
 
     boost::shared_ptr<PeakMap > exp(new PeakMap);
-    FileHandler().loadExperiment(meta_file, *exp.get());
+    FileHandler().loadExperiment(meta_file, *exp.get(), {FileTypes::MZML});
     return SimpleOpenMSSpectraFactory::getSpectrumAccessOpenMSPtr(exp);
   }
 

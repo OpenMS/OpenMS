@@ -82,7 +82,7 @@ namespace OpenMS
     ifs_.open(filename_cached_.c_str(), std::ios::binary);
 
     // load the meta data from disk
-    FileHandler().loadExperiment(filename, meta_ms_experiment_, {OpenMS::FileTypes::MZML}, OpenMS::FileTypes::MZML);
+    FileHandler().loadExperiment(filename, meta_ms_experiment_, {OpenMS::FileTypes::MZML});
   }
 
   MSSpectrum CachedmzML::getSpectrum(Size id)
