@@ -73,7 +73,7 @@ namespace OpenMS
     for (auto i : allowed_types.getTypes())
     {
       // Check if we match the file extension
-      if (FileTypes::nameToType(filename) == i)
+      if (FileHandler::getTypeByFileName(filename) == i)
       {
         matches = true;
         break;
