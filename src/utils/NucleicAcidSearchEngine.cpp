@@ -51,7 +51,6 @@
 #include <OpenMS/FORMAT/FASTAFile.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
-#include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/FORMAT/MzTabFile.h>
 #include <OpenMS/FORMAT/OMSFile.h>
 #include <OpenMS/FORMAT/SVOutStream.h>
@@ -1002,7 +1001,7 @@ protected:
     options.clearMSLevels();
     options.addMSLevel(2);
     f.setOptions(options);
-    f.loadExperiment(in_mzml, spectra);
+    f.loadExperiment(in_mzml, spectra, {FileTypes::MZML}, FileTypes::UNKNOWN, log_type_);
     spectra.sortSpectra(true);
 
     // input file meta data:
@@ -1378,11 +1377,11 @@ protected:
 
     if (!exp_ms2_out.empty())
     {
-      MzMLFile().store(exp_ms2_out, exp_ms2_spectra);
+      FileHandler().storeExperiment(exp_ms2_out, exp_ms2_spectra, log_type_ ,{FileTypes::MZML});
     }
     if (!theo_ms2_out.empty())
     {
-      MzMLFile().store(theo_ms2_out, theo_ms2_spectra);
+      FileHandler().storeExperiment(theo_ms2_out, theo_ms2_spectra, log_type_, {FileTypes::MZML});
     }
 
     progresslogger.startProgress(0, 1, "post-processing search hits...");

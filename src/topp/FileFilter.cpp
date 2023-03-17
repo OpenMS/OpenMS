@@ -45,7 +45,6 @@
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/FileTypes.h>
 #include <OpenMS/FORMAT/MSNumpressCoder.h>
-#include <OpenMS/FORMAT/MzMLFile.h>
 
 #include <OpenMS/FILTERING/NOISEESTIMATION/SignalToNoiseEstimatorMedian.h>
 #include <OpenMS/COMPARISON/SPECTRA/ZhangSimilarityScore.h>
@@ -707,7 +706,7 @@ protected:
       f.getOptions().setNumpressConfigurationFloatDataArray(npconfig_fda);
 
       MapType exp;
-      f.loadExperiment(in, exp);
+      f.loadExperiment(in, exp, {FileTypes::MZML}, FileTypes::UNKNOWN, log_type_);
 
       // remove spectra with meta values:
       if (remove_meta_enabled)
@@ -974,7 +973,7 @@ protected:
         bool is_blacklist = getStringOption_("spectra:blackorwhitelist:blacklist") == "true" ? true : false;
 
         PeakMap lib_file;
-        FileHandler().loadExperiment(lib_file_name, lib_file);
+        FileHandler().loadExperiment(lib_file_name, lib_file, {FileTypes::MZML});
 
         int ret = filterByBlackOrWhiteList(is_blacklist, exp, lib_file, tol_rt, tol_mz, tol_sim, is_ppm);
         if (ret != EXECUTION_OK)
@@ -991,7 +990,7 @@ protected:
 
       //annotate output with data processing info
       addDataProcessing_(exp, getProcessingInfo_(DataProcessing::FILTERING));
-      f.storeExperiment(out, exp);
+      f.storeExperiment(out, exp, log_type_ ,{FileTypes::MZML});
     }
     else if (in_type == FileTypes::FEATUREXML || in_type == FileTypes::CONSENSUSXML)
     {

@@ -38,7 +38,6 @@
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/FORMAT/FeatureXMLFile.h>
 #include <OpenMS/FORMAT/FileHandler.h>
-#include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/MATH/MISC/MathFunctions.h>
 #include <OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakPickerHiRes.h>
@@ -162,7 +161,7 @@ class TOPPHiResPrecursorMassCorrector :
       const bool highest_intensity_peak_ppm = getStringOption_("highest_intensity_peak:mz_tolerance_unit") == "ppm" ? true : false;
 
       PeakMap exp;
-      FileHandler().loadExperiment(in_mzml, exp);
+      FileHandler().loadExperiment(in_mzml, exp, {FileTypes::MZML});
 
       cout << setprecision(12);
 
@@ -202,7 +201,7 @@ class TOPPHiResPrecursorMassCorrector :
         corrected_precursors.insert(corrected_to_nearest_feature.begin(), corrected_to_nearest_feature.end());
       }
 
-      FileHandler().storeExperiment(out_mzml, exp);
+      FileHandler().storeExperiment(out_mzml, exp, log_type_, {FileTypes::MZML});
 
       if (!out_csv.empty())
       {

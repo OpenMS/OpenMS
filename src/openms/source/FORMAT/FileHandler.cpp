@@ -874,8 +874,18 @@ if (first_line.hasSubstring("File	First Scan	Last Scan	Num of Scans	Charge	Monoi
     return true;
   }
 
-  void FileHandler::storeExperiment(const String& filename, const PeakMap& exp, ProgressLogger::LogType log)
+  void FileHandler::storeExperiment(const String& filename, const PeakMap& exp, ProgressLogger::LogType log, const std::vector<FileTypes::Type> allowed_types)
   {
+    // If we have a restricted set of file types check that we match them
+    if (allowed_types.size() != 0)
+    {
+      if (!check_types_(allowed_types, filename))
+      {
+        //OPENMS_LOG_ERROR << "File " << filename << " type is not supported by this tool" << endl;
+        throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename, "file type is not supported for storing experiments");
+      }
+    }
+
     //load right file
     switch (getTypeByFileName(filename))
     {

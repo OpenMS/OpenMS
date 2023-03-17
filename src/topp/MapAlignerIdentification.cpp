@@ -35,7 +35,6 @@
 #include <OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentAlgorithmIdentification.h>
 #include <OpenMS/APPLICATIONS/MapAlignerBase.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
-#include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/FORMAT/FeatureXMLFile.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/ConsensusXMLFile.h>
@@ -240,7 +239,7 @@ private:
       case FileTypes::MZML:
       {
         PeakMap experiment;
-        FileHandler().loadExperiment(reference_file, experiment);
+        FileHandler().loadExperiment(reference_file, experiment, {FileTypes::MZML});
         algorithm.setReference(experiment);
       }
       break;

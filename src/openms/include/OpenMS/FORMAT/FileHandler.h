@@ -174,7 +174,7 @@ public:
 
       @exception Exception::UnableToCreateFile is thrown if the file could not be written
     */
-    void storeExperiment(const String& filename, const MSExperiment& exp, ProgressLogger::LogType log = ProgressLogger::NONE);
+    void storeExperiment(const String& filename, const MSExperiment& exp, ProgressLogger::LogType log = ProgressLogger::NONE, const std::vector<FileTypes::Type> allowed_types = std::vector<FileTypes::Type>());
 
     /**
       @brief Loads a file into a FeatureMap

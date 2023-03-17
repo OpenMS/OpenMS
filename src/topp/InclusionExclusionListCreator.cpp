@@ -37,7 +37,6 @@
 #include <OpenMS/ANALYSIS/TARGETED/InclusionExclusionList.h>
 #include <OpenMS/ANALYSIS/TARGETED/OfflinePrecursorIonSelection.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
-#include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/FORMAT/FeatureXMLFile.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/KERNEL/RangeUtils.h>
@@ -241,7 +240,7 @@ protected:
 
           String raw_data_path = getStringOption_("raw_data");
           PeakMap exp, ms2;
-          FileHandler().loadExperiment(raw_data_path, exp);
+          FileHandler().loadExperiment(raw_data_path, exp, {FileTypes::MZML});
           FeatureMap out_map;
           out_map.setPrimaryMSRunPath({raw_data_path}, exp);
 

@@ -41,7 +41,6 @@
 #include <OpenMS/FORMAT/FileTypes.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/FORMAT/MzIdentMLFile.h>
-#include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/FORMAT/MzQuantMLFile.h>
 #include <OpenMS/METADATA/MSQuantifications.h>
 #include <OpenMS/config.h>
@@ -233,7 +232,7 @@ protected:
       PeakMap exp;
       if (!spectra.empty())
       {
-        FileHandler().loadExperiment(spectra, exp);
+        FileHandler().loadExperiment(spectra, exp, {FileTypes::MZML});
       }
 
       bool measure_from_subelements = getFlag_("consensus:use_subelements");
@@ -264,7 +263,7 @@ protected:
 
       if (!spectra.empty())
       {
-        FileHandler().loadExperiment(spectra, exp);
+        FileHandler().loadExperiment(spectra, exp, {FileTypes::MZML});
       }
 
       mapper.annotate(map, peptide_ids, protein_ids, (getStringOption_("feature:use_centroid_rt") == "true"), (getStringOption_("feature:use_centroid_mz") == "true"), exp);
