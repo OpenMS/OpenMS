@@ -38,6 +38,7 @@
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 
 #include <array>
+#include <list>
 #include <utility>
 
 #include <cassert>
@@ -62,6 +63,7 @@ namespace OpenMS
   };
 
   /// Maps the FileType::Type to the preferred extension.
+  /// when adding new types, be sure to update the FileTypes_test typesWithProperties test to match the new files
   static const std::array<TypeNameBinding, FileTypes::SIZE_OF_TYPE> type_with_annotation__ =
   {
     TypeNameBinding(FileTypes::UNKNOWN, "unknown", "unknown file extension", {}),
@@ -162,25 +164,24 @@ namespace OpenMS
     return r == FileTypes::Type::UNKNOWN ? fallback : r;
   }
 
-  static FileTypeList typesWithProperties(std::unordered_set<FileTypes::FileProperties> haveFeatures)
+  FileTypeList FileTypeList::typesWithProperties(std::unordered_set<FileTypes::FileProperties> haveFeatures)
   {
-    std::vector<FileTypes::Type> returnList;
-    std::vector<TypeNameBinding> goodTypes;
-    // Copy our type_with_annotation__s to a vector
-    std::copy(type_with_annotation__.begin(), type_with_annotation__.end(), std::back_inserter(goodTypes));
+    std::vector<FileTypes::Type> compatible;
+    // Copy our type_with_annotation__s to a list
+    std::list<TypeNameBinding> goodTypes(type_with_annotation__.begin(), type_with_annotation__.end());
     // for each feature we are looking for
     for (auto i : haveFeatures)
     {
       // Remove any types that lack the feature
-      goodTypes.erase(std::remove_if(goodTypes.begin(), goodTypes.end(),[i](auto j) { return (j.features.find(i) != j.features.end()); }), goodTypes.end());
+      goodTypes.erase(std::remove_if(goodTypes.begin(), goodTypes.end(),[i](auto j) { return (j.features.find(i) == j.features.end()); }), goodTypes.end());
     }
     
     for (auto t : goodTypes)
     {
-      returnList.push_back(t.type);
+      compatible.push_back(t.type);
     }
 
-    return returnList;
+    return compatible;
   }
 
   
