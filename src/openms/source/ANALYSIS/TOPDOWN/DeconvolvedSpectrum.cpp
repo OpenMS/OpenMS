@@ -94,9 +94,9 @@ namespace OpenMS
       }
     }
     out_spec.sortByPosition();
-    if (!precursor_peak_group_.empty() && !precursor_peak_.empty())
+    if (!precursor_peak_group_.empty())
     {
-      Precursor precursor(spec_.getPrecursors()[0]);
+      Precursor precursor(precursor_peak_);
       precursor.setCharge(to_charge);
       precursor.setMZ(precursor_peak_group_.getMonoMass() + charge_mass_offset);
       precursor.setIntensity(precursor_peak_group_.getIntensity());
