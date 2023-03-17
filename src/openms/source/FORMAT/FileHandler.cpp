@@ -71,23 +71,26 @@ namespace OpenMS
   {
     bool matches = false;
     for (auto i : allowed_types.getTypes())
+    {
+      // Check if we match the file extension
+      if (FileTypes::nameToType(filename) == i)
       {
-        // Check if we match the file extension
-        if (FileTypes::nameToType(filename) == i)
-        {
-          matches = true;
-          break;
-        }
-        // If we still don't have a match, check the contents
-        if (!matches)
-        {
-          if (FileHandler::getTypeByContent(i))
+        matches = true;
+        break;
+      }
+    }
+    // If we still don't have a match, check the contents
+    if (!matches)
+    {
+      for (auto j : allowed_types.getTypes())
+      {
+        if (FileHandler::getTypeByContent(filename) == j)
           {
             return true;
           }
-        }
       }
-    return false;
+    }
+    return matches;
   }
 
   FileTypes::Type FileHandler::getType(const String& filename)
