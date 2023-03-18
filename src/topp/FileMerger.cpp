@@ -406,7 +406,7 @@ protected:
         // load file
         force_type = file_handler.getType(file_list[i]);
         PeakMap in;
-        file_handler.loadExperiment(filename, in, {force_type}, force_type, log_type_);
+        file_handler.loadExperiment(filename, in, {force_type}, force_type, log_type_, true, true);
 
         if (in.empty() && in.getChromatograms().empty())
         {
