@@ -227,7 +227,7 @@ namespace OpenMS
     FileHandler f;
     f.getOptions().setAlwaysAppendData(true);
     f.getOptions().setFillData(false);
-    f.loadExperiment(file, *experiment_metadata, {FileTypes::MZML});
+    f.loadExperiment(file, *experiment_metadata, {FileTypes::MZXML});
     exp_meta = experiment_metadata;
 
     // First pass through the file -> get the meta data
