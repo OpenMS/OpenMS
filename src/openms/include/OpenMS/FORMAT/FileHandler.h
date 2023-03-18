@@ -213,7 +213,7 @@ public:
     bool storeFeatures(const String& filename, const FeatureMap& map);
 
     /**
-      @brief Store a ConsensFeatureMap
+      @brief Store a ConsensusFeatureMap
 
       @param filename the file name of the file to write.
       @param map The ConsensusMap to store.
@@ -225,7 +225,7 @@ public:
     bool storeConsensusFeatures(const String& filename, const ConsensusMap& map);
 
     /**
-      @brief Loads a file into a ConsensMap
+      @brief Loads a file into a ConsensusMap
 
       @param filename the file name of the file to load.
       @param map The ConsensMap to load the data into.
@@ -237,6 +237,19 @@ public:
     */
     bool loadConsensusFeatures(const String& filename, ConsensusMap& map);
 
+
+    /**
+      @brief Loads an identification file into a into proteins and peptides
+
+      @param filename the file name of the file to load.
+      @param additional_proteins The protein vector to load the data into.
+      @param additional_peptides The peptide vector to load the data into.
+
+      @return true if the file could be loaded, false otherwise
+
+      @exception Exception::FileNotFound is thrown if the file could not be opened
+      @exception Exception::ParseError is thrown if an error occurs during parsing
+    */
     bool loadIdentifications(const String& filename, std::vector<ProteinIdentification>& additional_proteins, std::vector<PeptideIdentification>& additional_peptides);
 
     /**
