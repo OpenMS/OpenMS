@@ -990,7 +990,7 @@ protected:
 
       //annotate output with data processing info
       addDataProcessing_(exp, getProcessingInfo_(DataProcessing::FILTERING));
-      f.storeExperiment(out, exp, log_type_ ,{FileTypes::MZML});
+      f.storeExperiment(out, exp, log_type_ ,{FileTypes::MZML}, FileTypes::MZML);
     }
     else if (in_type == FileTypes::FEATUREXML || in_type == FileTypes::CONSENSUSXML)
     {
@@ -1006,9 +1006,9 @@ protected:
         FileHandler f;
         //f.setLogType(log_type_);
         // this does not work yet implicitly - not supported by FeatureXMLFile
-        f.getOptions().setRTRange(DRange<1>(rt_l, rt_u));
-        f.getOptions().setMZRange(DRange<1>(mz_l, mz_u));
-        f.getOptions().setIntensityRange(DRange<1>(it_l, it_u));
+        f.getFeatOptions().setRTRange(DRange<1>(rt_l, rt_u));
+        f.getFeatOptions().setMZRange(DRange<1>(mz_l, mz_u));
+        f.getFeatOptions().setIntensityRange(DRange<1>(it_l, it_u));
         f.loadFeatures(in, feature_map);
 
 
@@ -1024,9 +1024,9 @@ protected:
         // only keep charge ch_l:ch_u   (WARNING: feature files without charge information have charge=0, see Ctor of KERNEL/Feature.h)
         for (Feature& fm : feature_map)
         {
-          bool const rt_ok = f.getOptions().getRTRange().encloses(DPosition<1>(fm.getRT()));
-          bool const mz_ok = f.getOptions().getMZRange().encloses(DPosition<1>(fm.getMZ()));
-          bool const int_ok = f.getOptions().getIntensityRange().encloses(DPosition<1>(fm.getIntensity()));
+          bool const rt_ok = f.getFeatOptions().getRTRange().encloses(DPosition<1>(fm.getRT()));
+          bool const mz_ok = f.getFeatOptions().getMZRange().encloses(DPosition<1>(fm.getMZ()));
+          bool const int_ok = f.getFeatOptions().getIntensityRange().encloses(DPosition<1>(fm.getIntensity()));
           bool const charge_ok = ((charge_l <= fm.getCharge()) && (fm.getCharge() <= charge_u));
           bool const size_ok = ((size_l <= fm.getSubordinates().size()) && (fm.getSubordinates().size() <= size_u));
           bool const q_ok = ((q_l <= fm.getOverallQuality()) && (fm.getOverallQuality() <= q_u));

@@ -601,6 +601,21 @@ if (first_line.hasSubstring("File	First Scan	Last Scan	Num of Scans	Charge	Monoi
     options_ = options;
   }
 
+  FeatureFileOptions& FileHandler::getFeatOptions()
+  {
+    return fOptions_;
+  }
+
+  const FeatureFileOptions& FileHandler::getFeatOptions() const
+  {
+    return fOptions_;
+  }
+
+  void FileHandler::setFeatOptions(const FeatureFileOptions& fOptions)
+  {
+    fOptions_ = fOptions;
+  }
+
   String FileHandler::computeFileHash(const String& filename)
   {
     QCryptographicHash crypto(QCryptographicHash::Sha1);
@@ -636,7 +651,9 @@ if (first_line.hasSubstring("File	First Scan	Last Scan	Num of Scans	Charge	Monoi
     //load right file
     if (type == FileTypes::FEATUREXML)
     {
-      FeatureXMLFile().load(filename, map);
+      FeatureXMLFile f;
+      f.getOptions() = fOptions_;
+      f.load(filename, map);
     }
     else if (type == FileTypes::TSV)
     {
@@ -674,7 +691,9 @@ if (first_line.hasSubstring("File	First Scan	Last Scan	Num of Scans	Charge	Monoi
     //store right file
     if (type == FileTypes::FEATUREXML)
     {
-      FeatureXMLFile().store(filename, map);
+      FeatureXMLFile f;
+      f.getOptions() = fOptions_;
+      f.store(filename, map);
     }
     else if (type == FileTypes::TSV)
     {
@@ -711,7 +730,7 @@ if (first_line.hasSubstring("File	First Scan	Last Scan	Num of Scans	Charge	Monoi
     return true;
   }
 
-  bool FileHandler::loadIdentifications(const String& filename, std::vector<ProteinIdentification> additional_proteins, std::vector<PeptideIdentification> additional_peptides)
+  bool FileHandler::loadIdentifications(const String& filename, std::vector<ProteinIdentification>& additional_proteins, std::vector<PeptideIdentification>& additional_peptides)
   {
     IdXMLFile().load(filename, additional_proteins, additional_peptides);
     return true;
@@ -875,10 +894,20 @@ if (first_line.hasSubstring("File	First Scan	Last Scan	Num of Scans	Charge	Monoi
     return true;
   }
 
-  void FileHandler::storeExperiment(const String& filename, const PeakMap& exp, ProgressLogger::LogType log, const std::vector<FileTypes::Type> allowed_types)
+  void FileHandler::storeExperiment(const String& filename, const PeakMap& exp, ProgressLogger::LogType log, const std::vector<FileTypes::Type> allowed_types,  FileTypes::Type force_type)
   {
+    FileTypes::Type ftype;
+    // If we are overriding the suffix (like for testing), just force the type
+    if (force_type != FileTypes::UNKNOWN)
+    {
+      ftype = force_type;
+    }
+    else
+    {
+      ftype = getTypeByFileName(filename);
+    }
     // If we have a restricted set of file types check that we match them
-    if (allowed_types.size() != 0)
+    if (allowed_types.size() != 0 && force_type == FileTypes::UNKNOWN)
     {
       if (!check_types_(allowed_types, filename))
       {
@@ -888,7 +917,7 @@ if (first_line.hasSubstring("File	First Scan	Last Scan	Num of Scans	Charge	Monoi
     }
 
     //load right file
-    switch (getTypeByFileName(filename))
+    switch (ftype)
     {
     case FileTypes::DTA2D:
     {

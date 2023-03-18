@@ -38,6 +38,7 @@
 #include <OpenMS/FORMAT/FileTypes.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 #include <OpenMS/FORMAT/OPTIONS/PeakFileOptions.h>
+#include <OpenMS/FORMAT/OPTIONS/FeatureFileOptions.h>
 #include <OpenMS/METADATA/MSQuantifications.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
@@ -140,8 +141,17 @@ public:
     /// Non-mutable access to the options for loading/storing
     const PeakFileOptions& getOptions() const;
 
+    /// Mutable access to the feature file options for loading/storing
+    FeatureFileOptions& getFeatOptions();
+
+    /// Non-mutable access to the feature file options for loading/storing
+    const FeatureFileOptions& getFeatOptions() const;
+
     /// set options for loading/storing
     void setOptions(const PeakFileOptions&);
+
+    /// set feature file options for loading/storing
+    void setFeatOptions(const FeatureFileOptions&);
 
     /**
       @brief Loads a file into an MSExperiment
@@ -174,7 +184,7 @@ public:
 
       @exception Exception::UnableToCreateFile is thrown if the file could not be written
     */
-    void storeExperiment(const String& filename, const MSExperiment& exp, ProgressLogger::LogType log = ProgressLogger::NONE, const std::vector<FileTypes::Type> allowed_types = std::vector<FileTypes::Type>());
+    void storeExperiment(const String& filename, const MSExperiment& exp, ProgressLogger::LogType log = ProgressLogger::NONE, const std::vector<FileTypes::Type> allowed_types = std::vector<FileTypes::Type>(),  FileTypes::Type force_type = FileTypes::UNKNOWN);
 
     /**
       @brief Loads a file into a FeatureMap
@@ -227,7 +237,7 @@ public:
     */
     bool loadConsensusFeatures(const String& filename, ConsensusMap& map);
 
-    bool loadIdentifications(const String& filename, std::vector<ProteinIdentification> additional_proteins, std::vector<PeptideIdentification> additional_peptides);
+    bool loadIdentifications(const String& filename, std::vector<ProteinIdentification>& additional_proteins, std::vector<PeptideIdentification>& additional_peptides);
 
     /**
       @brief Store transitions of a spectral library
@@ -277,7 +287,7 @@ public:
 
 private:
     PeakFileOptions options_;
-
+    FeatureFileOptions fOptions_;
   };
 
 } //namespace
