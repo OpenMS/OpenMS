@@ -705,7 +705,9 @@ if (first_line.hasSubstring("File	First Scan	Last Scan	Num of Scans	Charge	Monoi
 
   bool FileHandler::loadConsensusFeatures(const String& filename, ConsensusMap& map)
   {
-    ConsensusXMLFile().load(filename, map);
+    ConsensusXMLFile f;
+    f.getOptions() = options_;
+    f.load(filename, map);
     return true;
   }
 
