@@ -45,7 +45,6 @@
 #include <OpenMS/FORMAT/MascotXMLFile.h>
 #include <OpenMS/FORMAT/MzIdentMLFile.h>
 #include <OpenMS/FORMAT/OMSFile.h>
-#include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/FORMAT/OMSSAXMLFile.h>
 #include <OpenMS/FORMAT/PepXMLFile.h>
 #include <OpenMS/FORMAT/PercolatorOutfile.h>
@@ -519,7 +518,7 @@ protected:
         {
           PeakMap exp;
           fh.getOptions().addMSLevel(2);
-          fh.loadExperiment(mz_file, exp, {FileTypes::MZML} , FileTypes::MZML, log_type_, false,
+          fh.loadExperiment(mz_file, exp, {} , FileTypes::MZML, log_type_, false,
                             false);
           for (PeptideIdentification& pep : peptide_identifications)
           {
@@ -678,8 +677,7 @@ protected:
 
         logger.startProgress(0, 1, "Storing...");
 
-        MzMLFile mz_file;
-        mz_file.store(out, exp);
+        FileHandler().storeExperiment(out, exp, ProgressLogger::NONE, {FileTypes::MZML}, FileTypes::MZML);
 
         logger.endProgress();
 

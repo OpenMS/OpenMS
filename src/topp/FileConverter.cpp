@@ -47,6 +47,7 @@
 #include <OpenMS/FORMAT/IBSpectraFile.h>
 #include <OpenMS/FORMAT/MascotGenericFile.h>
 #include <OpenMS/FORMAT/MzDataFile.h>
+// TODO: remove MZML header after we get cached and Transform working
 #include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/FORMAT/MzXMLFile.h>
 #include <OpenMS/FORMAT/SqMassFile.h>

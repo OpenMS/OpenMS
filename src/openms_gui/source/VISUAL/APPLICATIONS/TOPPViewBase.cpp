@@ -727,7 +727,7 @@ namespace OpenMS
         // Load all data into memory if e.g. other file type than mzML
         if (!parsing_success)
         {
-          fh.loadExperiment(abs_filename, *peak_map_sptr, {file_type}, file_type, ProgressLogger::GUI);
+          fh.loadExperiment(abs_filename, *peak_map_sptr, {file_type}, file_type, ProgressLogger::GUI, true, true);
         }
         OPENMS_LOG_INFO << "INFO: done loading all " << std::endl;
 
@@ -2351,7 +2351,7 @@ namespace OpenMS
       ExperimentType exp;
       try
       {
-        if (!fh.loadExperiment(*it, exp))
+        if (!fh.loadExperiment(*it, exp, {}, OpenMS::FileTypes::UNKNOWN, ProgressLogger::NONE, true, true))
         {
           QMessageBox::critical(this, "Error", "Only raw data files (mzML, DTA etc) are supported to view their meta data.");
           return;
@@ -2557,7 +2557,7 @@ namespace OpenMS
     {
       try
       {
-        FileHandler().loadExperiment(layer.filename, *lp->getPeakDataMuteable());
+        FileHandler().loadExperiment(layer.filename, *lp->getPeakDataMuteable(), {}, OpenMS::FileTypes::UNKNOWN, ProgressLogger::NONE, true, true);
       }
       catch (Exception::BaseException& e)
       {
@@ -2598,7 +2598,7 @@ namespace OpenMS
       // TODO CHROM
       try
       {
-        FileHandler().loadExperiment(layer.filename, *lp->getChromatogramData());
+        FileHandler().loadExperiment(layer.filename, *lp->getChromatogramData(), {}, OpenMS::FileTypes::UNKNOWN, ProgressLogger::NONE, true, true);
       }
       catch (Exception::BaseException& e)
       {

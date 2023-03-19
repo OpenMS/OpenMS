@@ -496,7 +496,7 @@ protected:
       FileTypes::Type in_type = fh.getType(consensus_output_file);
 
       PeakMap exp;
-      fh.loadExperiment(consensus_output_file, exp, {in_type}, in_type, log_type_);
+      fh.loadExperiment(consensus_output_file, exp, {in_type}, in_type, log_type_, true, true);
       exp.sortSpectra();
       fh.storeExperiment(consensus_output_file, exp, log_type_);
     }

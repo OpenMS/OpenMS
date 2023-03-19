@@ -41,7 +41,6 @@
 #include <OpenMS/FORMAT/FeatureXMLFile.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/FileTypes.h>
-#include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/FORMAT/TextFile.h>
 #include <OpenMS/FORMAT/TraMLFile.h>
 #include <OpenMS/FORMAT/FASTAFile.h>
@@ -506,9 +505,9 @@ protected:
       // annotate output with data processing info
       addDataProcessing_(out, getProcessingInfo_(DataProcessing::FORMAT_CONVERSION));
 
-      MzMLFile f;
-      f.setLogType(log_type_);
-      f.store(out_file, out);
+      //FileHandler f;
+      //f.setLogType(log_type_);
+      FileHandler().storeExperiment(out_file, out, ProgressLogger::NONE ,{FileTypes::MZML}, FileTypes::MZML);
     }
 
     return EXECUTION_OK;
