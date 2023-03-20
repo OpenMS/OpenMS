@@ -35,6 +35,7 @@
 #pragma once
 
 #include <OpenMS/config.h>
+#include <OpenMS/ANALYSIS/MAPMATCHING/TransformationDescription.h>
 #include <OpenMS/FORMAT/FileTypes.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 #include <OpenMS/FORMAT/OPTIONS/PeakFileOptions.h>
@@ -290,6 +291,34 @@ public:
       @exception Exception::UnableToCreateFile is thrown if the file could not be written
     */
     bool storeQuantifications(const String& filename, const MSQuantifications& map, const std::vector<FileTypes::Type> allowed_types = std::vector<FileTypes::Type>(),  FileTypes::Type force_type = FileTypes::UNKNOWN);
+
+
+        /**
+      @brief Loads a file into Transformations
+
+      @param filename the file name of the file to load.
+      @param msq The Transformations to load the data into.
+      @param force_type Forces to load the file with that file type. If no type is forced, it is determined from the extension (or from the content if that fails).
+
+      @return true if the file could be loaded, false otherwise
+
+      @exception Exception::FileNotFound is thrown if the file could not be opened
+      @exception Exception::ParseError is thrown if an error occurs during parsing
+    */
+
+    bool loadTransformations(const String& filename, TransformationDescription& map, const std::vector<FileTypes::Type> allowed_types = std::vector<FileTypes::Type>(), FileTypes::Type force_type = FileTypes::UNKNOWN);
+
+    /**
+      @brief Store Transformations
+
+      @param filename the file name of the file to write.
+      @param map The Transformations to store.
+
+      @return true if the file could be stored, false otherwise
+
+      @exception Exception::UnableToCreateFile is thrown if the file could not be written
+    */
+    bool storeTransformations(const String& filename, const TransformationDescription& map, const std::vector<FileTypes::Type> allowed_types = std::vector<FileTypes::Type>(),  FileTypes::Type force_type = FileTypes::UNKNOWN);
 
     /**
       @brief Computes a SHA-1 hash value for the content of the given file.

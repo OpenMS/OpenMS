@@ -50,6 +50,7 @@
 #include <OpenMS/FORMAT/XMassFile.h>
 #include <OpenMS/FORMAT/TraMLFile.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
+#include <OpenMS/FORMAT/TransformationXMLFile.h>
 
 #include <OpenMS/FORMAT/MsInspectFile.h>
 #include <OpenMS/FORMAT/SpecArrayFile.h>
@@ -1256,6 +1257,96 @@ if (first_line.hasSubstring("File	First Scan	Last Scan	Num of Scans	Charge	Monoi
       case FileTypes::MZQUANTML:
       {
         MzQuantMLFile().store(filename, map);
+      }
+      break;
+
+      default:
+      {
+        return false;
+      }
+    }
+    return true;
+  }
+
+    bool FileHandler::loadTransformations(const String& filename, TransformationDescription& map, const std::vector<FileTypes::Type> allowed_types, FileTypes::Type force_type)
+  {
+
+    if (allowed_types.size() != 0)
+    {
+      if (!check_types_(allowed_types, filename))
+      {
+        throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename, "type is not supported for loading quantifications");
+      }
+    }
+
+    //determine file type
+    FileTypes::Type type;
+    if (force_type != FileTypes::UNKNOWN)
+    {
+      type = force_type;
+    }
+    else
+    {
+      try
+      {
+        type = getType(filename);
+      }
+      catch ( Exception::FileNotFound& )
+      {
+        return false;
+      }
+    }
+    switch (type)
+    {
+      case FileTypes::TRANSFORMATIONXML:
+      {
+        TransformationXMLFile().load(filename, map);
+      }
+      break;
+      
+      default:
+      {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  bool FileHandler::storeTransformations(const String& filename, const TransformationDescription& map,  const std::vector<FileTypes::Type> allowed_types,  FileTypes::Type force_type)
+  {
+
+    FileTypes::Type ftype;
+    // If we are overriding the suffix (like for testing), just force the type
+    if (force_type != FileTypes::UNKNOWN)
+    {
+      ftype = force_type;
+    }
+    else
+    {
+      try
+      {
+        ftype = getTypeByFileName(filename);
+      }
+      catch ( Exception::FileNotFound& )
+      {
+        return false;
+      }
+    }
+    // If we have a restricted set of file types check that we match them
+    if (allowed_types.size() != 0 && force_type == FileTypes::UNKNOWN)
+    {
+      if (!check_types_(allowed_types, filename))
+      {
+        //OPENMS_LOG_ERROR << "File " << filename << " type is not supported by this tool" << endl;
+        throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename, "file type is not supported for storing quantifications");
+      }
+    }
+    
+    switch (ftype)
+    {
+      case FileTypes::TRANSFORMATIONXML:
+      {
+        TransformationXMLFile().store(filename, map);
       }
       break;
 
