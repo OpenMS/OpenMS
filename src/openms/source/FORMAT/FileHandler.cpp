@@ -927,6 +927,58 @@ if (first_line.hasSubstring("File	First Scan	Last Scan	Num of Scans	Charge	Monoi
     return true;
   }
 
+    bool FileHandler::loadTransitions(const String& filename,TargetedExperiment& library, const std::vector<FileTypes::Type> allowed_types,  FileTypes::Type force_type)
+  {
+    if (allowed_types.size() != 0)
+    {
+      if (!check_types_(allowed_types, filename))
+      {
+        throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename, "type is not supported for loading Consensus Features");
+      }
+    }
+
+    //determine file type
+    FileTypes::Type type;
+    if (force_type != FileTypes::UNKNOWN)
+    {
+      type = force_type;
+    }
+    else
+    {
+      try
+      {
+        type = getType(filename);
+      }
+      catch ( Exception::FileNotFound& )
+      {
+        return false;
+      }
+    }
+    // If we have a restricted set of file types check that we match them
+    if (allowed_types.size() != 0 && force_type == FileTypes::UNKNOWN)
+    {
+      if (!check_types_(allowed_types, filename))
+      {
+        //OPENMS_LOG_ERROR << "File " << filename << " type is not supported by this tool" << endl;
+        throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename, "file type is not supported for storing identifications");
+      }
+    }
+    switch (type)
+    {
+      case FileTypes::TRAML:
+      {
+        TraMLFile().load(filename, library);
+      }
+      break;
+
+      default:
+      {
+        return false;
+      }
+    }
+    return true;
+  }
+
   bool FileHandler::loadExperiment(const String& filename, PeakMap& exp, const std::vector<FileTypes::Type> allowed_types, FileTypes::Type force_type, ProgressLogger::LogType log, const bool rewrite_source_file, const bool compute_hash)
   {
     // setting the flag for hash recomputation only works if source file entries are rewritten

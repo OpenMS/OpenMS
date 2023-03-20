@@ -265,6 +265,19 @@ public:
     */
     bool storeTransitions(const String& filename, const TargetedExperiment& library, const std::vector<FileTypes::Type> allowed_types = std::vector<FileTypes::Type>(),  FileTypes::Type force_type = FileTypes::UNKNOWN);
 
+    /**
+      @brief Load transitions of a spectral library
+
+      @param filename the file name of the file to read.
+      @param map The TargetedExperiment to load.
+
+      @return true if the file could be loaded, false otherwise
+
+      @exception Exception::FileNotFound is thrown if the file could not be opened
+      @exception Exception::ParseError is thrown if an error occurs during parsing
+    */
+    bool loadTransitions(const String& filename, TargetedExperiment& library, const std::vector<FileTypes::Type> allowed_types = std::vector<FileTypes::Type>(),  FileTypes::Type force_type = FileTypes::UNKNOWN);
+
         /**
       @brief Loads a file into MSQuantifications
 
