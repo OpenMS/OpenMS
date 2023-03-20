@@ -628,8 +628,17 @@ if (first_line.hasSubstring("File	First Scan	Last Scan	Num of Scans	Charge	Monoi
     return String((QString)crypto.result().toHex());
   }
 
-  bool FileHandler::loadFeatures(const String& filename, FeatureMap& map, FileTypes::Type force_type)
+  bool FileHandler::loadFeatures(const String& filename, FeatureMap& map, FileTypes::Type force_type, const std::vector<FileTypes::Type> allowed_types)
   {
+
+    if (allowed_types.size() != 0)
+    {
+      if (!check_types_(allowed_types, filename))
+      {
+        throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename, "type is not supported for loading features");
+      }
+    }
+
     //determine file type
     FileTypes::Type type;
     if (force_type != FileTypes::UNKNOWN)
@@ -675,35 +684,52 @@ if (first_line.hasSubstring("File	First Scan	Last Scan	Num of Scans	Charge	Monoi
     return true;
   }
 
-  bool FileHandler::storeFeatures(const String& filename, const FeatureMap& map)
+  bool FileHandler::storeFeatures(const String& filename, const FeatureMap& map, const std::vector<FileTypes::Type> allowed_types,  FileTypes::Type force_type)
   {
-    //determine file type
-    FileTypes::Type type;
-    try
+
+    FileTypes::Type ftype;
+    // If we are overriding the suffix (like for testing), just force the type
+    if (force_type != FileTypes::UNKNOWN)
     {
-      type = getType(filename);
+      ftype = force_type;
     }
-    catch ( Exception::FileNotFound& )
+    else
     {
-      return false;
+      try
+      {
+        ftype = getTypeByFileName(filename);
+      }
+      catch ( Exception::FileNotFound& )
+      {
+        return false;
+      }
+    }
+    // If we have a restricted set of file types check that we match them
+    if (allowed_types.size() != 0 && force_type == FileTypes::UNKNOWN)
+    {
+      if (!check_types_(allowed_types, filename))
+      {
+        //OPENMS_LOG_ERROR << "File " << filename << " type is not supported by this tool" << endl;
+        throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename, "file type is not supported for storing features");
+      }
     }
 
     //store right file
-    if (type == FileTypes::FEATUREXML)
+    if (ftype == FileTypes::FEATUREXML)
     {
       FeatureXMLFile f;
       f.getOptions() = fOptions_;
       f.store(filename, map);
     }
-    else if (type == FileTypes::TSV)
+    else if (ftype == FileTypes::TSV)
     {
       MsInspectFile().store(filename, map);
     }
-    else if (type == FileTypes::PEPLIST)
+    else if (ftype == FileTypes::PEPLIST)
     {
       SpecArrayFile().store(filename, map);
     }
-    else if (type == FileTypes::KROENIK)
+    else if (ftype == FileTypes::KROENIK)
     {
       KroenikFile().store(filename, map);
     }
@@ -716,29 +742,176 @@ if (first_line.hasSubstring("File	First Scan	Last Scan	Num of Scans	Charge	Monoi
     return true;
   }
 
-  bool FileHandler::storeConsensusFeatures(const String& filename, const ConsensusMap& map)
+  bool FileHandler::storeConsensusFeatures(const String& filename, const ConsensusMap& map,  const std::vector<FileTypes::Type> allowed_types,  FileTypes::Type force_type)
   {
-    ConsensusXMLFile().store(filename, map);
+    FileTypes::Type ftype;
+    // If we are overriding the suffix (like for testing), just force the type
+    if (force_type != FileTypes::UNKNOWN)
+    {
+      ftype = force_type;
+    }
+    else
+    {
+      try
+      {
+        ftype = getTypeByFileName(filename);
+      }
+      catch ( Exception::FileNotFound& )
+      {
+        return false;
+      }
+    }
+    // If we have a restricted set of file types check that we match them
+    if (allowed_types.size() != 0 && force_type == FileTypes::UNKNOWN)
+    {
+      if (!check_types_(allowed_types, filename))
+      {
+        //OPENMS_LOG_ERROR << "File " << filename << " type is not supported by this tool" << endl;
+        throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename, "file type is not supported for storing Consensus Features");
+      }
+    }
+    switch (ftype)
+    {
+      case FileTypes::MZQUANTML:
+      {
+        ConsensusXMLFile().store(filename, map);
+      }
+      break;
+      
+      default:
+        return false;
+    }
+
     return true;
   }
 
-  bool FileHandler::loadConsensusFeatures(const String& filename, ConsensusMap& map)
+  bool FileHandler::loadConsensusFeatures(const String& filename, ConsensusMap& map, const std::vector<FileTypes::Type> allowed_types, FileTypes::Type force_type)
   {
-    ConsensusXMLFile f;
-    f.getOptions() = options_;
-    f.load(filename, map);
+    if (allowed_types.size() != 0)
+    {
+      if (!check_types_(allowed_types, filename))
+      {
+        throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename, "type is not supported for loading Consensus Features");
+      }
+    }
+
+    //determine file type
+    FileTypes::Type type;
+    if (force_type != FileTypes::UNKNOWN)
+    {
+      type = force_type;
+    }
+    else
+    {
+      try
+      {
+        type = getType(filename);
+      }
+      catch ( Exception::FileNotFound& )
+      {
+        return false;
+      }
+    }
+
+    switch (type)
+    {
+      case FileTypes::CONSENSUSXML:
+      {
+        ConsensusXMLFile f;
+        f.getOptions() = options_;
+        f.load(filename, map);
+      }
+      break;
+
+      default:
+        return false;
+    }
     return true;
   }
 
-  bool FileHandler::loadIdentifications(const String& filename, std::vector<ProteinIdentification>& additional_proteins, std::vector<PeptideIdentification>& additional_peptides)
+  bool FileHandler::loadIdentifications(const String& filename, std::vector<ProteinIdentification>& additional_proteins, std::vector<PeptideIdentification>& additional_peptides, const std::vector<FileTypes::Type> allowed_types, FileTypes::Type force_type)
   {
-    IdXMLFile().load(filename, additional_proteins, additional_peptides);
+    if (allowed_types.size() != 0)
+    {
+      if (!check_types_(allowed_types, filename))
+      {
+        throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename, "type is not supported for loading Consensus Features");
+      }
+    }
+
+    //determine file type
+    FileTypes::Type type;
+    if (force_type != FileTypes::UNKNOWN)
+    {
+      type = force_type;
+    }
+    else
+    {
+      try
+      {
+        type = getType(filename);
+      }
+      catch ( Exception::FileNotFound& )
+      {
+        return false;
+      }
+    }
+
+    switch (type)
+    {
+      case FileTypes::IDXML:
+      {
+        IdXMLFile().load(filename, additional_proteins, additional_peptides);
+      }
+      break;
+
+      default:
+        return false;
+    }   
     return true;
   }
 
-  bool FileHandler::storeTransitions(const String& filename, const TargetedExperiment& library)
+  bool FileHandler::storeTransitions(const String& filename, const TargetedExperiment& library, const std::vector<FileTypes::Type> allowed_types,  FileTypes::Type force_type)
   {
-    TraMLFile().store(filename, library);
+    FileTypes::Type ftype;
+    // If we are overriding the suffix (like for testing), just force the type
+    if (force_type != FileTypes::UNKNOWN)
+    {
+      ftype = force_type;
+    }
+    else
+    {
+      try
+      {
+        ftype = getTypeByFileName(filename);
+      }
+      catch ( Exception::FileNotFound& )
+      {
+        return false;
+      }
+    }
+    // If we have a restricted set of file types check that we match them
+    if (allowed_types.size() != 0 && force_type == FileTypes::UNKNOWN)
+    {
+      if (!check_types_(allowed_types, filename))
+      {
+        //OPENMS_LOG_ERROR << "File " << filename << " type is not supported by this tool" << endl;
+        throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename, "file type is not supported for storing identifications");
+      }
+    }
+    switch (ftype)
+    {
+      case FileTypes::TRAML:
+      {
+        TraMLFile().store(filename, library);
+      }
+      break;
+
+      default:
+      {
+        return false;
+      }
+    }
     return true;
   }
 
@@ -778,9 +951,11 @@ if (first_line.hasSubstring("File	First Scan	Last Scan	Num of Scans	Charge	Monoi
     switch (type)
     {
     case FileTypes::DTA:
-      exp.reset();
-      exp.resize(1);
-      DTAFile().load(filename, exp[0]);
+      {
+        exp.reset();
+        exp.resize(1);
+        DTAFile().load(filename, exp[0]);
+      }
       break;
 
     case FileTypes::DTA2D:
@@ -837,22 +1012,30 @@ if (first_line.hasSubstring("File	First Scan	Last Scan	Num of Scans	Charge	Monoi
       break;
 
     case FileTypes::SQMASS:
+    {
       SqMassFile().load(filename, exp);
+    }
       break;
 
     case FileTypes::XMASS:
+    {
       exp.reset();
       exp.resize(1);
       XMassFile().load(filename, exp[0]);
       XMassFile().importExperimentalSettings(filename, exp);
+    }
       break;
   
     case FileTypes::MSP:
+    {
       MSPGenericFile().load(filename, exp);
+    }
       break;
 
     default:
+    {
       return false;
+    }
     }
 
     if (rewrite_source_file)
@@ -894,7 +1077,7 @@ if (first_line.hasSubstring("File	First Scan	Last Scan	Num of Scans	Charge	Monoi
     return true;
   }
 
-  void FileHandler::storeExperiment(const String& filename, const PeakMap& exp, ProgressLogger::LogType log, const std::vector<FileTypes::Type> allowed_types,  FileTypes::Type force_type)
+  bool FileHandler::storeExperiment(const String& filename, const PeakMap& exp, ProgressLogger::LogType log, const std::vector<FileTypes::Type> allowed_types,  FileTypes::Type force_type)
   {
     FileTypes::Type ftype;
     // If we are overriding the suffix (like for testing), just force the type
@@ -904,7 +1087,14 @@ if (first_line.hasSubstring("File	First Scan	Last Scan	Num of Scans	Charge	Monoi
     }
     else
     {
-      ftype = getTypeByFileName(filename);
+      try
+      {
+        ftype = getTypeByFileName(filename);
+      }
+      catch ( Exception::FileNotFound& )
+      {
+        return false;
+      }
     }
     // If we have a restricted set of file types check that we match them
     if (allowed_types.size() != 0 && force_type == FileTypes::UNKNOWN)
@@ -973,17 +1163,96 @@ if (first_line.hasSubstring("File	First Scan	Last Scan	Num of Scans	Charge	Monoi
     }
     break;
     }
-  }
-
-  bool FileHandler::loadQuantifications(const String& filename, MSQuantifications& map, FileTypes::Type force_type)
-  {
-    MzQuantMLFile().load(filename, map);
     return true;
   }
 
-  bool FileHandler::storeQuantifications(const String& filename, const MSQuantifications& map)
+  bool FileHandler::loadQuantifications(const String& filename, MSQuantifications& map, const std::vector<FileTypes::Type> allowed_types, FileTypes::Type force_type)
   {
-    MzQuantMLFile().store(filename, map);
+
+    if (allowed_types.size() != 0)
+    {
+      if (!check_types_(allowed_types, filename))
+      {
+        throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename, "type is not supported for loading quantifications");
+      }
+    }
+
+    //determine file type
+    FileTypes::Type type;
+    if (force_type != FileTypes::UNKNOWN)
+    {
+      type = force_type;
+    }
+    else
+    {
+      try
+      {
+        type = getType(filename);
+      }
+      catch ( Exception::FileNotFound& )
+      {
+        return false;
+      }
+    }
+    switch (type)
+    {
+      case FileTypes::MZQUANTML:
+      {
+        MzQuantMLFile().load(filename, map);
+      }
+      break;
+      
+      default:
+      {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  bool FileHandler::storeQuantifications(const String& filename, const MSQuantifications& map,  const std::vector<FileTypes::Type> allowed_types,  FileTypes::Type force_type)
+  {
+
+    FileTypes::Type ftype;
+    // If we are overriding the suffix (like for testing), just force the type
+    if (force_type != FileTypes::UNKNOWN)
+    {
+      ftype = force_type;
+    }
+    else
+    {
+      try
+      {
+        ftype = getTypeByFileName(filename);
+      }
+      catch ( Exception::FileNotFound& )
+      {
+        return false;
+      }
+    }
+    // If we have a restricted set of file types check that we match them
+    if (allowed_types.size() != 0 && force_type == FileTypes::UNKNOWN)
+    {
+      if (!check_types_(allowed_types, filename))
+      {
+        //OPENMS_LOG_ERROR << "File " << filename << " type is not supported by this tool" << endl;
+        throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename, "file type is not supported for storing quantifications");
+      }
+    }
+    
+    switch (ftype)
+    {
+      case FileTypes::MZQUANTML:
+      {
+        MzQuantMLFile().store(filename, map);
+      }
+      break;
+
+      default:
+      {
+        return false;
+      }
+    }
     return true;
   }
 

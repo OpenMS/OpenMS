@@ -169,7 +169,7 @@ public:
       @exception Exception::FileNotFound is thrown if the file could not be opened
       @exception Exception::ParseError is thrown if an error occurs during parsing
     */
-    bool loadExperiment(const String& filename, MSExperiment& exp, const std::vector<FileTypes::Type> allowed_types = std::vector<FileTypes::Type>(), FileTypes::Type force_type = FileTypes::UNKNOWN,
+    bool loadExperiment(const String& filename, PeakMap& exp, const std::vector<FileTypes::Type> allowed_types = std::vector<FileTypes::Type>(), FileTypes::Type force_type = FileTypes::UNKNOWN,
                         ProgressLogger::LogType log = ProgressLogger::NONE, const bool rewrite_source_file = false,
                         const bool compute_hash = false);
 
@@ -184,7 +184,7 @@ public:
 
       @exception Exception::UnableToCreateFile is thrown if the file could not be written
     */
-    void storeExperiment(const String& filename, const MSExperiment& exp, ProgressLogger::LogType log = ProgressLogger::NONE, const std::vector<FileTypes::Type> allowed_types = std::vector<FileTypes::Type>(),  FileTypes::Type force_type = FileTypes::UNKNOWN);
+    bool storeExperiment(const String& filename, const PeakMap& exp, ProgressLogger::LogType log = ProgressLogger::NONE, const std::vector<FileTypes::Type> allowed_types = std::vector<FileTypes::Type>(),  FileTypes::Type force_type = FileTypes::UNKNOWN);
 
     /**
       @brief Loads a file into a FeatureMap
@@ -198,7 +198,7 @@ public:
       @exception Exception::FileNotFound is thrown if the file could not be opened
       @exception Exception::ParseError is thrown if an error occurs during parsing
     */
-    bool loadFeatures(const String& filename, FeatureMap& map, FileTypes::Type force_type = FileTypes::UNKNOWN);
+    bool loadFeatures(const String& filename, FeatureMap& map, FileTypes::Type force_type = FileTypes::UNKNOWN, const std::vector<FileTypes::Type> allowed_types = std::vector<FileTypes::Type>());
 
     /**
       @brief Store a FeatureMap
@@ -210,7 +210,7 @@ public:
 
       @exception Exception::UnableToCreateFile is thrown if the file could not be written
     */
-    bool storeFeatures(const String& filename, const FeatureMap& map);
+    bool storeFeatures(const String& filename, const FeatureMap& map, const std::vector<FileTypes::Type> allowed_types = std::vector<FileTypes::Type>(),  FileTypes::Type force_type = FileTypes::UNKNOWN);
 
     /**
       @brief Store a ConsensusFeatureMap
@@ -222,7 +222,7 @@ public:
 
       @exception Exception::UnableToCreateFile is thrown if the file could not be written
     */
-    bool storeConsensusFeatures(const String& filename, const ConsensusMap& map);
+    bool storeConsensusFeatures(const String& filename, const ConsensusMap& map, const std::vector<FileTypes::Type> allowed_types = std::vector<FileTypes::Type>(), FileTypes::Type force_type = FileTypes::UNKNOWN);
 
     /**
       @brief Loads a file into a ConsensusMap
@@ -235,7 +235,7 @@ public:
       @exception Exception::FileNotFound is thrown if the file could not be opened
       @exception Exception::ParseError is thrown if an error occurs during parsing
     */
-    bool loadConsensusFeatures(const String& filename, ConsensusMap& map);
+    bool loadConsensusFeatures(const String& filename, ConsensusMap& map, const std::vector<FileTypes::Type> allowed_types = std::vector<FileTypes::Type>(), FileTypes::Type force_type = FileTypes::UNKNOWN);
 
 
     /**
@@ -250,7 +250,7 @@ public:
       @exception Exception::FileNotFound is thrown if the file could not be opened
       @exception Exception::ParseError is thrown if an error occurs during parsing
     */
-    bool loadIdentifications(const String& filename, std::vector<ProteinIdentification>& additional_proteins, std::vector<PeptideIdentification>& additional_peptides);
+    bool loadIdentifications(const String& filename, std::vector<ProteinIdentification>& additional_proteins, std::vector<PeptideIdentification>& additional_peptides, const std::vector<FileTypes::Type> allowed_types = std::vector<FileTypes::Type>(), FileTypes::Type force_type = FileTypes::UNKNOWN);
 
     /**
       @brief Store transitions of a spectral library
@@ -262,7 +262,7 @@ public:
 
       @exception Exception::UnableToCreateFile is thrown if the file could not be written
     */
-    bool storeTransitions(const String& filename, const TargetedExperiment& library);
+    bool storeTransitions(const String& filename, const TargetedExperiment& library, const std::vector<FileTypes::Type> allowed_types = std::vector<FileTypes::Type>(),  FileTypes::Type force_type = FileTypes::UNKNOWN);
 
         /**
       @brief Loads a file into MSQuantifications
@@ -277,7 +277,7 @@ public:
       @exception Exception::ParseError is thrown if an error occurs during parsing
     */
 
-    bool loadQuantifications(const String& filename, MSQuantifications& map, FileTypes::Type force_type = FileTypes::UNKNOWN);
+    bool loadQuantifications(const String& filename, MSQuantifications& map, const std::vector<FileTypes::Type> allowed_types = std::vector<FileTypes::Type>(), FileTypes::Type force_type = FileTypes::UNKNOWN);
 
     /**
       @brief Store MSQuantifications
@@ -289,7 +289,7 @@ public:
 
       @exception Exception::UnableToCreateFile is thrown if the file could not be written
     */
-    bool storeQuantifications(const String& filename, const MSQuantifications& map);
+    bool storeQuantifications(const String& filename, const MSQuantifications& map, const std::vector<FileTypes::Type> allowed_types = std::vector<FileTypes::Type>(),  FileTypes::Type force_type = FileTypes::UNKNOWN);
 
     /**
       @brief Computes a SHA-1 hash value for the content of the given file.
