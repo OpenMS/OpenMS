@@ -1063,7 +1063,7 @@ protected:
         //annotate output with data processing info
         addDataProcessing_(map_sm, getProcessingInfo_(DataProcessing::FILTERING));
 
-        f.storeFeatures(out, map_sm);
+        f.storeFeatures(out, map_sm, {FileTypes::FEATUREXML}, FileTypes::FEATUREXML);
       }
       else if (in_type == FileTypes::CONSENSUSXML)
       {
@@ -1151,7 +1151,7 @@ protected:
 
             feature_map_filtered.applyMemberFunction(&UniqueIdInterface::setUniqueId);
 
-            ff.storeFeatures(out, feature_map_filtered);
+            ff.storeFeatures(out, feature_map_filtered, {FileTypes::FEATUREXML}, FileTypes::FEATUREXML);
           }
           else
           {
@@ -1209,14 +1209,14 @@ protected:
             //annotate output with data processing info
             addDataProcessing_(consensus_map_filtered, getProcessingInfo_(DataProcessing::FILTERING));
 
-            f.storeConsensusFeatures(out, consensus_map_filtered);
+            f.storeConsensusFeatures(out, consensus_map_filtered, {FileTypes::CONSENSUSXML}, FileTypes::CONSENSUSXML);
           }
           else
           {
             //annotate output with data processing info
             addDataProcessing_(cm_new, getProcessingInfo_(DataProcessing::FILTERING));
 
-            f.storeConsensusFeatures(out, cm_new);
+            f.storeConsensusFeatures(out, cm_new, {FileTypes::CONSENSUSXML}, FileTypes::CONSENSUSXML);
           }
         }
       }

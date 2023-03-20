@@ -505,9 +505,7 @@ protected:
       // annotate output with data processing info
       addDataProcessing_(out, getProcessingInfo_(DataProcessing::FORMAT_CONVERSION));
 
-      //FileHandler f;
-      //f.setLogType(log_type_);
-      FileHandler().storeExperiment(out_file, out, ProgressLogger::NONE ,{FileTypes::MZML}, FileTypes::MZML);
+      FileHandler().storeExperiment(out_file, out, log_type_ ,{FileTypes::MZML}, FileTypes::MZML);
     }
 
     return EXECUTION_OK;

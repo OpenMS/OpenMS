@@ -684,7 +684,7 @@ if (first_line.hasSubstring("File	First Scan	Last Scan	Num of Scans	Charge	Monoi
     return true;
   }
 
-  bool FileHandler::storeFeatures(const String& filename, const FeatureMap& map, const std::vector<FileTypes::Type> allowed_types,  FileTypes::Type force_type)
+  bool FileHandler::storeFeatures(const String& filename, const FeatureMap& map, const std::vector<FileTypes::Type> allowed_types, FileTypes::Type force_type)
   {
 
     FileTypes::Type ftype;
@@ -715,28 +715,39 @@ if (first_line.hasSubstring("File	First Scan	Last Scan	Num of Scans	Charge	Monoi
     }
 
     //store right file
-    if (ftype == FileTypes::FEATUREXML)
+    switch (ftype)
+    {
+    case FileTypes::FEATUREXML:
     {
       FeatureXMLFile f;
       f.getOptions() = fOptions_;
       f.store(filename, map);
     }
-    else if (ftype == FileTypes::TSV)
+    break;
+
+    case FileTypes::TSV:
     {
       MsInspectFile().store(filename, map);
     }
-    else if (ftype == FileTypes::PEPLIST)
+    break;
+
+    case FileTypes::PEPLIST:
     {
       SpecArrayFile().store(filename, map);
     }
-    else if (ftype == FileTypes::KROENIK)
+    break;
+
+    case FileTypes::KROENIK:
     {
       KroenikFile().store(filename, map);
     }
-    else
+    break;
+
+    default:
     {
-      OPENMS_LOG_WARN << "Can't determine file type of" << filename << ". Unknown file extension. Defaulting to .featureXML" << endl;
-      FeatureXMLFile().store(filename, map);
+      OPENMS_LOG_ERROR << "Can't determine file type of " << filename << ". Unknown file extension." << endl;
+      return false;
+    }
     }
 
     return true;
@@ -772,7 +783,7 @@ if (first_line.hasSubstring("File	First Scan	Last Scan	Num of Scans	Charge	Monoi
     }
     switch (ftype)
     {
-      case FileTypes::MZQUANTML:
+      case FileTypes::CONSENSUSXML:
       {
         ConsensusXMLFile().store(filename, map);
       }

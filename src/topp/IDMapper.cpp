@@ -271,7 +271,7 @@ protected:
       // annotate output with data processing info
       addDataProcessing_(map, getProcessingInfo_(DataProcessing::IDENTIFICATION_MAPPING));
 
-      featureFile.storeFeatures(out, map);
+      featureFile.storeFeatures(out, map, {FileTypes::FEATUREXML}, FileTypes::FEATUREXML);
     }
 
     //----------------------------------------------------------------
