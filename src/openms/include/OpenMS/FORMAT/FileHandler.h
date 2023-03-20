@@ -349,6 +349,46 @@ public:
     bool storeTransformations(const String& filename, const TransformationDescription& map, const std::vector<FileTypes::Type> allowed_types = std::vector<FileTypes::Type>(),  FileTypes::Type force_type = FileTypes::UNKNOWN);
 
     /**
+      @brief Store QC info
+
+      @brief Stores QC data in mzQC file with JSON format
+      @param input_file mzML input file name
+      @param output_file mzQC output file name
+      @param exp MSExperiment to extract QC data from, prior sortSpectra() and updateRanges() required
+      @param feature_map FeatureMap from feature file (featureXML)
+      @param prot_ids protein identifications from ID file (idXML)
+      @param pep_ids protein identifications from ID file (idXML)
+      @param consensus_map an optional consensus map to store.
+      @param contact_name name of the person creating the mzQC file
+      @param contact_address contact address (mail/e-mail or phone) of the person creating the mzQC file
+      @param description description and comments about the mzQC file contents
+      @param label unique and informative label for the run
+      @param remove_duplicate_features whether to remove duplicate features only for QCML for now
+      @param allowed_types which file types we are allowed to use
+      @param force_type which file type to force
+
+      @return true if the file could be stored, false otherwise
+
+      @exception Exception::UnableToCreateFile is thrown if the file could not be written
+    */
+    bool storeQC(const String& input_file,
+               const String& output_file,
+               const MSExperiment& exp,
+               const FeatureMap& feature_map,
+               std::vector<ProteinIdentification>& prot_ids,
+               std::vector<PeptideIdentification>& pep_ids,
+               const ConsensusMap& consensus_map = ConsensusMap(),
+               const String& contact_name = "",
+               const String& contact_address = "",
+               const String& description = "",
+               const String& label = "label",
+               const bool remove_duplicate_features = false,
+               const std::vector<FileTypes::Type> allowed_types = std::vector<FileTypes::Type>(),
+               FileTypes::Type force_type = FileTypes::UNKNOWN);
+
+
+
+    /**
       @brief Computes a SHA-1 hash value for the content of the given file.
 
       @return The SHA-1 hash of the given file.

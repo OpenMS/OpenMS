@@ -46,6 +46,8 @@
 #include <OpenMS/FORMAT/MSPFile.h>
 #include <OpenMS/FORMAT/MSPGenericFile.h>
 #include <OpenMS/FORMAT/MzQuantMLFile.h>
+#include <OpenMS/FORMAT/MzQCFile.h>
+#include <OpenMS/FORMAT/QcMLFile.h>
 #include <OpenMS/FORMAT/SqMassFile.h>
 #include <OpenMS/FORMAT/XMassFile.h>
 #include <OpenMS/FORMAT/TraMLFile.h>
@@ -1445,6 +1447,74 @@ if (first_line.hasSubstring("File	First Scan	Last Scan	Num of Scans	Charge	Monoi
       }
       break;
 
+      default:
+      {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  bool FileHandler::storeQC(const String& input_file,
+               const String& output_file,
+               const MSExperiment& exp,
+               const FeatureMap& feature_map,
+               std::vector<ProteinIdentification>& prot_ids,
+               std::vector<PeptideIdentification>& pep_ids,
+               const ConsensusMap& consensus_map,
+               const String& contact_name,
+               const String& contact_address,
+               const String& description,
+               const String& label,
+               const bool remove_duplicate_features,
+               const std::vector<FileTypes::Type> allowed_types,
+               FileTypes::Type force_type)
+  {
+    FileTypes::Type ftype;
+    // If we are overriding the suffix (like for testing), just force the type
+    if (force_type != FileTypes::UNKNOWN)
+    {
+      ftype = force_type;
+    }
+    else
+    {
+      try
+      {
+        ftype = getTypeByFileName(output_file);
+      }
+      catch ( Exception::FileNotFound& )
+      {
+        return false;
+      }
+    }
+    // If we have a restricted set of file types check that we match them
+    if (allowed_types.size() != 0 && force_type == FileTypes::UNKNOWN)
+    {
+      if (!check_types_(allowed_types, output_file))
+      {
+        //OPENMS_LOG_ERROR << "File " << filename << " type is not supported by this tool" << endl;
+        throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, output_file, "file type is not supported for storing QC data");
+      }
+    }
+
+    switch (ftype)
+    {
+      case FileTypes::QCML:
+      {
+      QcMLFile qcmlfile;
+      qcmlfile.collectQCData(prot_ids, pep_ids, feature_map,
+                    consensus_map, input_file, remove_duplicate_features, exp);
+      qcmlfile.store(output_file);
+      }
+      break;
+      
+      case FileTypes::MZQC:
+      {
+      MzQCFile().store(input_file, output_file, exp, contact_name, contact_address,
+                     description, label, feature_map, prot_ids, pep_ids);
+      }
+      break;
+      
       default:
       {
         return false;
