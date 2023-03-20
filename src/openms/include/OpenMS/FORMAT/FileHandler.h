@@ -240,6 +240,21 @@ public:
 
 
     /**
+      @brief Stores proteins and peptides into an Identification File
+
+      @param filename the file name of the file to write to.
+      @param additional_proteins The protein vector to load the data from.
+      @param additional_peptides The peptide vector to load the data from.
+
+      @return true if the file could be stored, false otherwise
+
+      @exception Exception::FileNotFound is thrown if the file could not be opened
+      @exception Exception::ParseError is thrown if an error occurs during parsing
+    */
+    bool StoreIdentifications(const String& filename, const std::vector<ProteinIdentification>& additional_proteins, const std::vector<PeptideIdentification>& additional_peptides, const std::vector<FileTypes::Type> allowed_types = std::vector<FileTypes::Type>(), FileTypes::Type force_type = FileTypes::UNKNOWN);
+
+
+    /**
       @brief Loads an identification file into a into proteins and peptides
 
       @param filename the file name of the file to load.

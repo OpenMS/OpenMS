@@ -841,6 +841,49 @@ if (first_line.hasSubstring("File	First Scan	Last Scan	Num of Scans	Charge	Monoi
     return true;
   }
 
+  bool FileHandler::StoreIdentifications(const String& filename, const std::vector<ProteinIdentification>& additional_proteins, const std::vector<PeptideIdentification>& additional_peptides, const std::vector<FileTypes::Type> allowed_types, FileTypes::Type force_type)
+  {
+ FileTypes::Type ftype;
+    // If we are overriding the suffix (like for testing), just force the type
+    if (force_type != FileTypes::UNKNOWN)
+    {
+      ftype = force_type;
+    }
+    else
+    {
+      try
+      {
+        ftype = getTypeByFileName(filename);
+      }
+      catch ( Exception::FileNotFound& )
+      {
+        return false;
+      }
+    }
+    // If we have a restricted set of file types check that we match them
+    if (allowed_types.size() != 0 && force_type == FileTypes::UNKNOWN)
+    {
+      if (!check_types_(allowed_types, filename))
+      {
+        //OPENMS_LOG_ERROR << "File " << filename << " type is not supported by this tool" << endl;
+        throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename, "file type is not supported for storing Consensus Features");
+      }
+    }
+
+    switch (ftype)
+    {
+      case FileTypes::IDXML:
+      {
+        IdXMLFile().store(filename, additional_proteins, additional_peptides);
+      }
+      break;
+
+      default:
+        return false;
+    }   
+    return true;
+  }
+
   bool FileHandler::loadIdentifications(const String& filename, std::vector<ProteinIdentification>& additional_proteins, std::vector<PeptideIdentification>& additional_peptides, const std::vector<FileTypes::Type> allowed_types, FileTypes::Type force_type)
   {
     if (allowed_types.size() != 0)
