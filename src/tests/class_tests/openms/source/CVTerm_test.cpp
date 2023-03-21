@@ -65,32 +65,32 @@ END_SECTION
 START_SECTION((bool operator==(const CVTerm &rhs) const ))
 {
 	CVTerm term1, term2;
-	TEST_EQUAL(term1 == term2, true)
+	TEST_TRUE(term1 == term2)
 	
 	term1.setAccession("acc");
 	TEST_EQUAL(term1 == term2, false)
 	term2.setAccession("acc");
-	TEST_EQUAL(term1 == term2, true)
+	TEST_TRUE(term1 == term2)
 
 	term1.setName("name");
 	TEST_EQUAL(term1 == term2, false)
 	term2.setName("name");
-	TEST_EQUAL(term1 == term2, true)
+	TEST_TRUE(term1 == term2)
 
 	term1.setCVIdentifierRef("cv_id_ref");
 	TEST_EQUAL(term1 == term2, false)
 	term2.setCVIdentifierRef("cv_id_ref");
-	TEST_EQUAL(term1 == term2, true)
+	TEST_TRUE(term1 == term2)
 
 	term1.setValue(DataValue(0.4));
 	TEST_EQUAL(term1 == term2, false)
 	term2.setValue(DataValue(0.4));
-	TEST_EQUAL(term1 == term2, true)
+	TEST_TRUE(term1 == term2)
 
 	term1.setUnit(CVTerm::Unit("u_acc", "u_name", "u_cv_ref"));
 	TEST_EQUAL(term1 == term2, false)
 	term2.setUnit(CVTerm::Unit("u_acc", "u_name", "u_cv_ref"));
-	TEST_EQUAL(term1 == term2, true)
+	TEST_TRUE(term1 == term2)
 }
 END_SECTION
 
@@ -100,27 +100,27 @@ START_SECTION((bool operator!=(const CVTerm &rhs) const ))
   TEST_EQUAL(term1 != term2, false)
 
   term1.setAccession("acc");
-  TEST_EQUAL(term1 != term2, true)
+  TEST_FALSE(term1 == term2)
   term2.setAccession("acc");
   TEST_EQUAL(term1 != term2, false)
 
   term1.setName("name");
-  TEST_EQUAL(term1 != term2, true)
+  TEST_FALSE(term1 == term2)
   term2.setName("name");
   TEST_EQUAL(term1 != term2, false)
 
   term1.setCVIdentifierRef("cv_id_ref");
-  TEST_EQUAL(term1 != term2, true)
+  TEST_FALSE(term1 == term2)
   term2.setCVIdentifierRef("cv_id_ref");
   TEST_EQUAL(term1 != term2, false)
 
   term1.setValue(DataValue(0.4));
-  TEST_EQUAL(term1 != term2, true)
+  TEST_FALSE(term1 == term2)
   term2.setValue(DataValue(0.4));
   TEST_EQUAL(term1 != term2, false)
 
   term1.setUnit(CVTerm::Unit("u_acc", "u_name", "u_cv_ref"));
-  TEST_EQUAL(term1 != term2, true)
+  TEST_FALSE(term1 == term2)
   term2.setUnit(CVTerm::Unit("u_acc", "u_name", "u_cv_ref"));
   TEST_EQUAL(term1 != term2, false)
 }
@@ -263,32 +263,32 @@ END_SECTION
 START_SECTION((CVTerm& operator=(const CVTerm &rhs)))
 {
   CVTerm term1, term2;
-  TEST_EQUAL(term1 == term2, true)
+  TEST_TRUE(term1 == term2)
   
   term1.setAccession("acc");
   TEST_EQUAL(term1 == term2, false)
 	term2 = term1;
-  TEST_EQUAL(term1 == term2, true)
+  TEST_TRUE(term1 == term2)
   
   term1.setName("name");
   TEST_EQUAL(term1 == term2, false)
 	term2 = term1;
-  TEST_EQUAL(term1 == term2, true)
+  TEST_TRUE(term1 == term2)
   
   term1.setCVIdentifierRef("cv_id_ref");
   TEST_EQUAL(term1 == term2, false)
 	term2 = term1;
-  TEST_EQUAL(term1 == term2, true)
+  TEST_TRUE(term1 == term2)
   
   term1.setValue(DataValue(0.4));
   TEST_EQUAL(term1 == term2, false)
 	term2 = term1;
-  TEST_EQUAL(term1 == term2, true)
+  TEST_TRUE(term1 == term2)
   
   term1.setUnit(CVTerm::Unit("u_acc", "u_name", "u_cv_ref"));
   TEST_EQUAL(term1 == term2, false)
 	term2 = term1;
-  TEST_EQUAL(term1 == term2, true)
+  TEST_TRUE(term1 == term2)
 }
 END_SECTION
 
@@ -353,8 +353,8 @@ START_SECTION(([CVTerm::Unit] bool operator==(const Unit &rhs) const ))
   CVTerm::Unit nu2("ACCESSION", "p_name2", "p_cv_ref");
   CVTerm::Unit nu3("ACCESSION", "p_name", "p_cv_ref2");
 
-  TEST_EQUAL(u==cu, true)
-  TEST_EQUAL(u==u, true)
+  TEST_TRUE(u == cu)
+  TEST_TRUE(u == u)
   TEST_EQUAL(u==nu, false)
   TEST_EQUAL(u==nu2, false)
   TEST_EQUAL(u==nu3, false)
@@ -372,10 +372,10 @@ START_SECTION(([CVTerm::Unit] bool operator!=(const Unit &rhs) const ))
 
   TEST_EQUAL(u!=cu, false)
   TEST_EQUAL(u!=u, false)
-  TEST_EQUAL(u!=nu, true)
-  TEST_EQUAL(u!=nu2, true)
-  TEST_EQUAL(u!=nu3, true)
-  TEST_EQUAL(cu!=nu, true)
+  TEST_FALSE(u == nu)
+  TEST_FALSE(u == nu2)
+  TEST_FALSE(u == nu3)
+  TEST_FALSE(cu == nu)
 }
 END_SECTION
 

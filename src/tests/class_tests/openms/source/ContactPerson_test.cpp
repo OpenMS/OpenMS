@@ -209,7 +209,7 @@ END_SECTION
 START_SECTION(bool operator!= (const ContactPerson& rhs) const)
 	ContactPerson tmp,tmp2;
 	
-	TEST_EQUAL(tmp==tmp2, true);
+	TEST_TRUE(tmp == tmp2);
 	
 	tmp.setEmail("ich@du.de");
 	TEST_EQUAL(tmp==tmp2, false);
@@ -249,27 +249,27 @@ START_SECTION(bool operator== (const ContactPerson& rhs) const)
 	TEST_EQUAL(tmp!=tmp2, false);
 	
 	tmp.setEmail("ich@du.de");
-	TEST_EQUAL(tmp!=tmp2, true);
+	TEST_FALSE(tmp == tmp2);
 	
 	tmp2 = tmp;
 	tmp.setFirstName("Meike");
-	TEST_EQUAL(tmp!=tmp2, true);
+	TEST_FALSE(tmp == tmp2);
 	
 	tmp2 = tmp;
 	tmp.setLastName("Meier");
-	TEST_EQUAL(tmp!=tmp2, true);
+	TEST_FALSE(tmp == tmp2);
 	
 	tmp2 = tmp;
 	tmp.setInstitution("Uni Tuebingen");
-  TEST_EQUAL(tmp!=tmp2, true);
+  TEST_FALSE(tmp == tmp2);
 	
 	tmp2 = tmp;
 	tmp.setContactInfo("doo");
-  TEST_EQUAL(tmp!=tmp2, true);
+  TEST_FALSE(tmp == tmp2);
 
 	tmp2 = tmp;
 	tmp.setMetaValue("label",String("label"));
-  TEST_EQUAL(tmp!=tmp2, true);
+  TEST_FALSE(tmp == tmp2);
 END_SECTION
 
 /////////////////////////////////////////////////////////////
