@@ -282,9 +282,33 @@ namespace OpenMS
     map<String, index> col2index;
     for (size_t i = 0; i != header.size(); ++i) col2index[header[i]] = i;
 
+    vector<PeptideIdentification> pids;
+
+    peptide_ids.clear();
+
+    String last_spec_id;
+
     for (size_t r = 1; r != n_rows; ++r)
     {
-      // TODO
+      StringList cells;
+      pin.getRow(r).split("\t", cells);
+
+      PeptideHit ph;
+      ph.setSequence(AASequence::fromString(cells[col2index["Peptide"]]));
+      ph.setScore(cells[col2index["score"]]);
+      String spec_id = cells[col2index["SpecId"]];
+      ph.setMetaValue("SpecId", spec_id);
+      ph.setMetaValue("ScanNr", cells[col2index["ScanNr"]]);
+      ph.setMetaValue("target_decoy", cells[col2index["Label"]] == 1 ? "target" : "decoy");      
+
+      if (last_spec_id != spec_id)
+      { // create new identification
+        last_spec_id = spec_id;
+        peptide_ids.emplace_back({});
+      }
+
+      // attach to current (=last) identification
+      peptide_ids.back().getHits().push_back(ph);      
     }
   }
 
