@@ -42,6 +42,7 @@
 #include <OpenMS/FORMAT/VALIDATORS/MzMLValidator.h>
 #include <OpenMS/FORMAT/TextFile.h>
 #include <OpenMS/FORMAT/DATAACCESS/MSDataTransformingConsumer.h>
+#include <OpenMS/FORMAT/HANDLERS/IndexedMzMLDecoder.h>
 #include <OpenMS/SYSTEM/File.h>
 
 #include <sstream>
@@ -70,6 +71,16 @@ namespace OpenMS
   void MzMLFile::setOptions(const PeakFileOptions& options)
   {
     options_ = options;
+  }
+
+  bool hasIndex(const String& filename)
+  {
+    auto index_offset = IndexedMzMLDecoder().findIndexListOffset(filename);
+    if (index_offset == (std::streampos)-1)
+    {
+      return false;
+    }
+    return true;
   }
 
   // reimplemented in order to handle index MzML

@@ -29,8 +29,7 @@
 //
 
 #include <OpenMS/KERNEL/MSExperiment.h>
-#include <OpenMS/FORMAT/MzXMLFile.h>
-#include <OpenMS/FORMAT/MzMLFile.h>
+#include <OpenMS/FORMAT/FileHandler.h>
 #include <iostream>
 
 using namespace OpenMS;
@@ -41,16 +40,13 @@ int main(int argc, const char** argv)
   if (argc < 2) return 1;
   // the path to the data should be given on the command line
   String tutorial_data_path(argv[1]);
-  
-  MzXMLFile mzxml;
-  MzMLFile mzml;
 
   // temporary data storage
   PeakMap map;
 
   // convert MzXML to MzML
-  mzxml.load(tutorial_data_path + "/data/Tutorial_FileIO.mzXML", map);
-  mzml.store("Tutorial_FileIO.mzML", map);
+  FileHandler().loadExperiment(tutorial_data_path + "/data/Tutorial_FileIO.mzXML", map, {FileTypes::MZXML});
+  FileHandler().store("Tutorial_FileIO.mzML", map, {FileTypes::MZML});
 
   return 0;
 } //end of main
