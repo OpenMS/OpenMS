@@ -169,7 +169,7 @@ START_SECTION((InterpolationModel(const InterpolationModel &source)))
   fp3.setCutOff(0.1);
 
   fp1 = TestModel();
-	TEST_EQUAL(fp2==fp3, true)
+	TEST_TRUE(fp2 == fp3)
 END_SECTION
 
 START_SECTION(([EXTRA]IntensityType getCutOff() const))

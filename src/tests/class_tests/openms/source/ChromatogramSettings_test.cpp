@@ -134,7 +134,7 @@ START_SECTION((bool operator==(const ChromatogramSettings &rhs) const ))
 {
   ChromatogramSettings edit, empty;
 
-  TEST_EQUAL(edit==empty, true);
+  TEST_TRUE(edit == empty);
 
   edit.getAcquisitionInfo().setMethodOfCombination("test");
   TEST_EQUAL(edit==empty, false);
@@ -190,47 +190,47 @@ START_SECTION((bool operator!=(const ChromatogramSettings &rhs) const ))
   TEST_EQUAL(edit!=empty, false);
 
   edit.getAcquisitionInfo().setMethodOfCombination("test");
-  TEST_EQUAL(edit!=empty, true);
+  TEST_FALSE(edit == empty);
 
   edit = empty;
   edit.setNativeID("nid");
-  TEST_EQUAL(edit!=empty, true)
+  TEST_FALSE(edit == empty)
 
   edit = empty;
   edit.getInstrumentSettings().getScanWindows().resize(1);
-  TEST_EQUAL(edit!=empty, true);
+  TEST_FALSE(edit == empty);
 
   edit = empty;
   edit.setComment("comment");
-  TEST_EQUAL(edit != empty, true)
+  TEST_FALSE(edit == empty)
 
   edit = empty;
   edit.setChromatogramType(ChromatogramSettings::SELECTED_REACTION_MONITORING_CHROMATOGRAM);
-  TEST_EQUAL(edit!=empty, true);
+  TEST_FALSE(edit == empty);
 
   edit = empty;
   edit.setComment("bla");
-  TEST_EQUAL(edit!=empty, true)
+  TEST_FALSE(edit == empty)
 
   edit = empty;
   Precursor prec;
   prec.setMZ(1.3);
   edit.setPrecursor(prec);
-  TEST_EQUAL(edit!=empty, true)
+  TEST_FALSE(edit == empty)
 
   edit = empty;
   Product prod;
   prod.setMZ(1.5);
   edit.setProduct(prod);
-  TEST_EQUAL(edit!=empty, true)
+  TEST_FALSE(edit == empty)
 
   edit = empty;
   edit.getDataProcessing().resize(1);
-  TEST_EQUAL(edit!=empty, true)
+  TEST_FALSE(edit == empty)
 
   edit = empty;
   edit.setMetaValue("bla","bluff");
-  TEST_EQUAL(edit!=empty, true)
+  TEST_FALSE(edit == empty)
 
 }
 END_SECTION
