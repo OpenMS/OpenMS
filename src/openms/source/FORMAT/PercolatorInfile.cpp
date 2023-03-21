@@ -267,7 +267,7 @@ namespace OpenMS
   }
 
 
-  TextFile PercolatorInfile::load(
+  void PercolatorInfile::load(
     const String& filename,
     const vector<PeptideIdentification>& peptide_ids)
   {
@@ -286,8 +286,6 @@ namespace OpenMS
     {
       // TODO
     }
-
-    return txt;
   }
 
   bool PercolatorInfile::isEnz_(const char& n, const char& c, const std::string& enz)
