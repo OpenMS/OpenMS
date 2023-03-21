@@ -49,6 +49,7 @@
 #include <OpenMS/FORMAT/MzQuantMLFile.h>
 #include <OpenMS/FORMAT/MzQCFile.h>
 #include <OpenMS/FORMAT/OMSFile.h>
+#include <OpenMS/FORMAT/ProtXMLFile.h>
 #include <OpenMS/FORMAT/QcMLFile.h>
 #include <OpenMS/FORMAT/SqMassFile.h>
 #include <OpenMS/FORMAT/XMassFile.h>
@@ -960,6 +961,13 @@ if (first_line.hasSubstring("File	First Scan	Last Scan	Num of Scans	Charge	Monoi
         IdXMLFile().load(filename, additional_proteins, additional_peptides);
       }
       break;
+
+      case FileTypes::PROTXML:
+      {
+        additional_proteins.push_back(ProteinIdentification());
+        additional_peptides.push_back(PeptideIdentification());
+        ProtXMLFile().load(filename, additional_proteins.back(), additional_peptides.back());
+      }
 
       default:
         return false;

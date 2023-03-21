@@ -428,7 +428,7 @@ protected:
 
       case FileTypes::IDXML:
       {
-        IdXMLFile().load(in, protein_identifications, peptide_identifications);
+        FileHandler().loadIdentifications(in, protein_identifications, peptide_identifications, {FileTypes::IDXML});
         // get spectrum_references from the mz data, if necessary:
         if (!mz_file.empty())
         {
@@ -452,8 +452,8 @@ protected:
       case FileTypes::MZIDENTML:
       {
         OPENMS_LOG_WARN << "Converting from mzid: you might experience loss of information depending on the capabilities of the target format." << endl;
-        MzIdentMLFile().load(in, protein_identifications,
-                             peptide_identifications);
+        FileHandler().loadIdentifications(in, protein_identifications,
+                             peptide_identifications, {FileTypes::MZIDENTML});
 
         // get retention times from the mz data, if necessary:
         if (!mz_file.empty())
@@ -472,10 +472,8 @@ protected:
 
       case FileTypes::PROTXML:
       {
-        protein_identifications.resize(1);
-        peptide_identifications.resize(1);
-        ProtXMLFile().load(in, protein_identifications[0],
-                           peptide_identifications[0]);
+        FileHandler().loadIdentifications(in, protein_identifications,
+                           peptide_identifications, {FileTypes::PROTXML});
       }
       break;
 
