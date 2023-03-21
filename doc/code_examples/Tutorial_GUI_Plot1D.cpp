@@ -28,7 +28,7 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 
-#include <OpenMS/FORMAT/DTAFile.h>
+#include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/KERNEL/OnDiscMSExperiment.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/VISUAL/LayerDataBase.h>
@@ -52,7 +52,7 @@ Int main(int argc, const char** argv)
 
   PeakMap exp;
   exp.resize(1);
-  DTAFile().load(tutorial_data_path, exp[0]);
+  FileHandler().loadExperiment(tutorial_data_path, exp[0], {FileTypes::DTA});
   LayerDataBase::ExperimentSharedPtrType exp_sptr(new PeakMap(exp));
   LayerDataBase::ODExperimentSharedPtrType on_disc_exp_sptr(new OnDiscMSExperiment());
   auto* widget = new Plot1DWidget(Param(), DIM::Y, nullptr);

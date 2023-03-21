@@ -37,10 +37,7 @@
 #include <OpenMS/ANALYSIS/ID/AccurateMassSearchEngine.h>// for AMS annotation
 #include <OpenMS/ANALYSIS/ID/IDMapper.h>
 #include <OpenMS/DATASTRUCTURES/OSWData.h>
-#include <OpenMS/FORMAT/FeatureXMLFile.h>
 #include <OpenMS/FORMAT/FileHandler.h>
-#include <OpenMS/FORMAT/IdXMLFile.h>
-#include <OpenMS/FORMAT/MzIdentMLFile.h>
 #include <OpenMS/FORMAT/OSWFile.h>
 #include <OpenMS/VISUAL/ANNOTATION/Annotation1DPeakItem.h>
 #include <OpenMS/VISUAL/LayerDataConsensus.h>
@@ -204,15 +201,7 @@ namespace OpenMS
     FileTypes::Type type = FileHandler::getType(filename);
     vector<PeptideIdentification> identifications;
     vector<ProteinIdentification> protein_identifications;
-    if (type == FileTypes::MZIDENTML)
-    {
-      MzIdentMLFile().load(filename, protein_identifications, identifications);
-    }
-    else
-    {
-      String document_id;
-      IdXMLFile().load(filename, protein_identifications, identifications, document_id);
-    }
+    FileHandler().loadIdentifications(filename, protein_identifications, identifications, {FileTypes::MZIDENTML, FileTypes::IDXML});
 
     layer.annotate(identifications, protein_identifications);
     return true;
@@ -221,7 +210,7 @@ namespace OpenMS
   bool LayerAnnotatorAMS::annotateWorker_(LayerDataBase& layer, const String& filename, LogWindow& log) const
   {
     FeatureMap fm;
-    FeatureXMLFile().load(filename, fm);
+    FileHandler().loadFeatures(filename, fm, {FileTypes::FEATUREXML});
 
     // last protein ID must be from AccurateMassSearch (it gets appended there)
     String engine = "no protein identification section found";

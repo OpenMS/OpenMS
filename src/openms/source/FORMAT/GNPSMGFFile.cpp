@@ -38,8 +38,7 @@
 #include <OpenMS/COMPARISON/SPECTRA/BinnedSpectralContrastAngle.h>
 #include <OpenMS/CONCEPT/UniqueIdInterface.h>
 #include <OpenMS/FILTERING/TRANSFORMERS/SpectraMerger.h>
-#include <OpenMS/FORMAT/ConsensusXMLFile.h>
-#include <OpenMS/FORMAT/MzMLFile.h>
+#include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
 #include <OpenMS/KERNEL/OnDiscMSExperiment.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
@@ -274,9 +273,8 @@ namespace OpenMS
     // reading input
     //-------------------------------------------------------------
     // ConsensusMap
-    ConsensusXMLFile consensus_file;
     ConsensusMap consensus_map;
-    consensus_file.load(consensus_file_path, consensus_map);
+    FileHandler().loadConsensusFeatures(consensus_file_path, consensus_map, {FileTypes::CONSENSUSXML});
 
     //-------------------------------------------------------------
     // open on-disc data (=spectra are only loaded on demand to safe memory)

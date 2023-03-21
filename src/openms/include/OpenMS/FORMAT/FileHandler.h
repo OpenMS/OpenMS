@@ -334,7 +334,7 @@ public:
       @exception Exception::ParseError is thrown if an error occurs during parsing
     */
 
-    bool loadTransformations(const String& filename, TransformationDescription& map, const std::vector<FileTypes::Type> allowed_types = std::vector<FileTypes::Type>(), FileTypes::Type force_type = FileTypes::UNKNOWN);
+    bool loadTransformations(const String& filename, TransformationDescription& map, bool fit_model=true, const std::vector<FileTypes::Type> allowed_types = std::vector<FileTypes::Type>(), FileTypes::Type force_type = FileTypes::UNKNOWN);
 
     /**
       @brief Store Transformations

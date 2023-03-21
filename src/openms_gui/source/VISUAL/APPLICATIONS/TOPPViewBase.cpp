@@ -39,15 +39,10 @@
 #include <OpenMS/CONCEPT/RAIICleanup.h>
 #include <OpenMS/CONCEPT/VersionInfo.h>
 #include <OpenMS/CONCEPT/LogStream.h>
-#include <OpenMS/FORMAT/ConsensusXMLFile.h>
-#include <OpenMS/FORMAT/FeatureXMLFile.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/FileTypes.h>
-#include <OpenMS/FORMAT/HANDLERS/IndexedMzMLHandler.h>
-#include <OpenMS/FORMAT/IdXMLFile.h>
-#include <OpenMS/FORMAT/MzIdentMLFile.h>
-#include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/FORMAT/ParamXMLFile.h>
+#include <OpenMS/FORMAT/HANDLERS/IndexedMzMLHandler.h>
 #include <OpenMS/IONMOBILITY/IMDataConverter.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
@@ -595,19 +590,17 @@ namespace OpenMS
     {
       if (file_type == FileTypes::FEATUREXML)
       {
-        FeatureXMLFile().load(abs_filename, *feature_map);
+        FileHandler().loadFeatures(abs_filename, *feature_map, {FileTypes::FEATUREXML});
         data_type = LayerDataBase::DT_FEATURE;
       }
       else if (file_type == FileTypes::CONSENSUSXML)
       {
-        ConsensusXMLFile().load(abs_filename, *consensus_map);
+        FileHandler().loadConsensusFeatures(abs_filename, *consensus_map, {FileTypes::CONSENSUSXML});
         data_type = LayerDataBase::DT_CONSENSUS;
       }
       else if (file_type == FileTypes::IDXML || file_type == FileTypes::MZIDENTML)
       {
-        if (file_type == FileTypes::IDXML) IdXMLFile().load(abs_filename, proteins, peptides);
-        else if (file_type == FileTypes::MZIDENTML) MzIdentMLFile().load(abs_filename, proteins, peptides);
-
+        FileHandler().loadIdentifications(abs_filename, proteins, peptides, {FileTypes::IDXML, FileTypes::MZIDENTML});
         if (peptides.empty())
         {
           throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "No peptide identifications found");
@@ -2584,7 +2577,7 @@ namespace OpenMS
     {
       try
       {
-        ConsensusXMLFile().load(layer.filename, *lp->getConsensusMap());
+        FileHandler().loadConsensusFeatures(layer.filename, *lp->getConsensusMap(), {FileTypes::CONSENSUSXML});
       }
       catch (Exception::BaseException& e)
       {

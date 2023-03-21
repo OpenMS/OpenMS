@@ -1365,7 +1365,7 @@ if (first_line.hasSubstring("File	First Scan	Last Scan	Num of Scans	Charge	Monoi
     return true;
   }
 
-    bool FileHandler::loadTransformations(const String& filename, TransformationDescription& map, const std::vector<FileTypes::Type> allowed_types, FileTypes::Type force_type)
+    bool FileHandler::loadTransformations(const String& filename, TransformationDescription& map, bool fit_model, const std::vector<FileTypes::Type> allowed_types, FileTypes::Type force_type)
   {
 
     if (allowed_types.size() != 0)
@@ -1397,7 +1397,7 @@ if (first_line.hasSubstring("File	First Scan	Last Scan	Num of Scans	Charge	Monoi
     {
       case FileTypes::TRANSFORMATIONXML:
       {
-        TransformationXMLFile().load(filename, map);
+        TransformationXMLFile().load(filename, map, fit_model);
       }
       break;
       

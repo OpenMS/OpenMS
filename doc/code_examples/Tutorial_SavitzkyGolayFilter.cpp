@@ -30,7 +30,7 @@
 
 #include <OpenMS/FILTERING/TRANSFORMERS/LinearResampler.h>
 #include <OpenMS/FILTERING/SMOOTHING/SavitzkyGolayFilter.h>
-#include <OpenMS/FORMAT/DTAFile.h>
+#include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <iostream>
 
@@ -45,8 +45,7 @@ int main(int argc, const char** argv)
   
   PeakSpectrum spectrum;
 
-  DTAFile dta_file;
-  dta_file.load(tutorial_data_path + "/data/Tutorial_SavitzkyGolayFilter.dta", spectrum);
+  FileHandler().loadExperiment(tutorial_data_path + "/data/Tutorial_SavitzkyGolayFilter.dta", spectrum);
 
   LinearResampler lr;
   Param param_lr;

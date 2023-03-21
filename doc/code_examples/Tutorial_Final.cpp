@@ -37,9 +37,7 @@
 //! [Includes]
 
 #include <OpenMS/FORMAT/FileHandler.h>
-#include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/FORMAT/FASTAFile.h>
-#include <OpenMS/FORMAT/MzIdentMLFile.h>
 #include <OpenMS/FORMAT/FileTypes.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
@@ -182,17 +180,9 @@ protected:
      vector<ProteinIdentification> protein_identifications;
      vector<PeptideIdentification> peptide_identifications;
 
-     if (ids_type == FileTypes::IDXML)
+     if (!FileHandler().loadIdentifications(ids, protein_identifications, peptide_identifications, {FileTypes::IDXML, FileTypes::MZIDENTML}))
      {
-       IdXMLFile().load(ids, protein_identifications, peptide_identifications);
-     }
-     else if (ids_type == FileTypes::MZIDENTML)
-     {
-       MzIdentMLFile().load(ids, protein_identifications, peptide_identifications);
-     }
-     else
-     {
-       writeLog_("Error: Unknown input file type given. Aborting!");
+      writeLog_("Error: Unknown input file type given. Aborting!");
        printUsage_();
        return ILLEGAL_PARAMETERS;
      }

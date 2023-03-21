@@ -128,9 +128,9 @@ int main()
   peptide_ids.push_back(peptide_id);
 
   // We could now store the identification data in an idXML file
-  // IdXMLFile().store(outfile, protein_ids, peptide_ids);
+  // FileHandler().storeIdentifications(outfile, protein_ids, peptide_ids);
   // And load it back with
-  // IdXMLFile().load(outfile, protein_ids, peptide_ids);
+  // FileHandler().loadIdentifications(outfile, protein_ids, peptide_ids);
 
   // Iterate over PeptideIdentification
   for (const auto& peptide_id : peptide_ids)

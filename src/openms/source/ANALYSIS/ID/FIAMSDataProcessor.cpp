@@ -36,7 +36,7 @@
 #include <OpenMS/ANALYSIS/ID/AccurateMassSearchEngine.h>
 #include <OpenMS/FILTERING/NOISEESTIMATION/SignalToNoiseEstimatorMedianRapid.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/SpectrumAddition.h>
-
+#include <OpenMS/FORMAT/FileHandler.h>
 
 namespace OpenMS {
 
@@ -207,8 +207,7 @@ namespace OpenMS {
     if (load_cached_spectrum && File::exists(filepath_picked)) {
       OPENMS_LOG_INFO << "Started loading cached picked spectrum " << filepath_picked << std::endl;
       MSExperiment exp;
-      MzMLFile mzml;
-      mzml.load(filepath_picked, exp);
+      FileHandler().loadExperiment(filepath_picked, exp, {FileTypes::MZML});
       picked_spectrum = exp.getSpectra()[0];
       OPENMS_LOG_INFO << "Finished loading cached picked spectrum " << filepath_picked << std::endl;
       is_cached = true;
@@ -236,10 +235,9 @@ namespace OpenMS {
 
   void FIAMSDataProcessor::storeSpectrum_(const MSSpectrum& input, const String& filename)
   {
-      MzMLFile mzml;
       MSExperiment exp;
       exp.addSpectrum(input);
-      mzml.store(filename, exp);
+      FileHandler().storeExperiment(filename, exp, ProgressLogger::NONE ,{FileTypes::MZML});
   }
 
   /// Get mass-to-charge ratios to base the sliding window upon

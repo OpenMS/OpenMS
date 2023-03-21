@@ -29,7 +29,7 @@
 //
 
 #include <OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakPickerCWT.h>
-#include <OpenMS/FORMAT/MzMLFile.h>
+#include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <iostream>
 
@@ -45,8 +45,7 @@ int main(int argc, const char** argv)
   PeakMap exp_raw;
   PeakMap exp_picked;
 
-  MzMLFile mzml_file;
-  mzml_file.load(tutorial_data_path + "/data/Tutorial_PeakPickerCWT.mzML", exp_raw);
+  FileHandler.loadExperiment(tutorial_data_path + "/data/Tutorial_PeakPickerCWT.mzML", exp_raw);
 
   PeakPickerCWT pp;
   Param param;

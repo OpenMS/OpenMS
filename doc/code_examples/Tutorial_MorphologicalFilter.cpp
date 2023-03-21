@@ -29,7 +29,7 @@
 //
 
 #include <OpenMS/FILTERING/BASELINE/MorphologicalFilter.h>
-#include <OpenMS/FORMAT/MzMLFile.h>
+#include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <iostream>
 
@@ -44,8 +44,7 @@ int main(int argc, const char** argv)
   
   PeakMap exp;
 
-  MzMLFile mzml_file;
-  mzml_file.load(tutorial_data_path + "/data/Tutorial_MorphologicalFilter.mzML", exp);
+  FileHandler().loadExperiment(tutorial_data_path + "/data/Tutorial_MorphologicalFilter.mzML", exp);
 
   Param parameters;
   parameters.setValue("struc_elem_length", 1.0);

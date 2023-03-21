@@ -29,7 +29,7 @@
 //
 
 #include <OpenMS/FILTERING/SMOOTHING/GaussFilter.h>
-#include <OpenMS/FORMAT/MzMLFile.h>
+#include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <iostream>
@@ -45,8 +45,7 @@ int main(int argc, const char** argv)
 
   PeakMap exp;
 
-  MzMLFile mzdata_file;
-  mzdata_file.load(tutorial_data_path + "/data/Tutorial_GaussFilter.mzML", exp);
+  FileHandler().loadExperiment(tutorial_data_path + "/data/Tutorial_GaussFilter.mzML", exp, {FileTypes::MZML});
 
   GaussFilter g;
   Param param;
