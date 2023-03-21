@@ -187,6 +187,12 @@ public:
     */
     bool storeExperiment(const String& filename, const PeakMap& exp, ProgressLogger::LogType log = ProgressLogger::NONE, const std::vector<FileTypes::Type> allowed_types = std::vector<FileTypes::Type>(),  FileTypes::Type force_type = FileTypes::UNKNOWN);
 
+    //FIXME This is useful for unifying the interface It should eventually be removed
+    inline bool storeExperiment(const String& filename, const PeakMap& exp, const std::vector<FileTypes::Type> allowed_types = std::vector<FileTypes::Type>(),  FileTypes::Type force_type = FileTypes::UNKNOWN)
+    {
+     return storeExperiment(filename, exp, ProgressLogger::NONE, allowed_types, force_type);
+    }
+
     /**
       @brief Loads a file into a FeatureMap
 

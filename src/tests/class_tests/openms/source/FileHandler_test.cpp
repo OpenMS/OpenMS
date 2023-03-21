@@ -301,7 +301,7 @@ fh.loadExperiment(OPENMS_GET_TEST_DATA_PATH("MzMLFile_1.mzML"), exp);
 String filename, filename2;
 NEW_TMP_FILE(filename);
 NEW_TMP_FILE(filename2);
-fh.storeExperiment(filename, exp);
+fh.storeExperiment(filename, exp, ProgressLogger::NONE);
 TEST_EQUAL(fh.getTypeByContent(filename), FileTypes::MZML)
 //fh.storeExperiment(filename2, exp, ProgressLogger::NONE, {FileTypes::MZML});
 

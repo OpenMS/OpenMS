@@ -189,15 +189,7 @@ protected:
     vector<ProteinIdentification> protein_ids;
     vector<PeptideIdentification> peptide_ids;
     FileTypes::Type in_type = FileHandler::getType(id);
-    if (in_type == FileTypes::IDXML)
-    {
-      IdXMLFile().load(id, protein_ids, peptide_ids);
-    }
-    else if (in_type == FileTypes::MZIDENTML)
-    {
-      MzIdentMLFile().load(id, protein_ids, peptide_ids);
-    }
-    else
+    if (!FileHandler().loadIdentifications(id, protein_ids, peptide_ids, {FileTypes::IDXML, FileTypes::MZIDENTML}))
     {
       throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "wrong id fileformat");
     }

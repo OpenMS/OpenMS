@@ -900,6 +900,11 @@ if (first_line.hasSubstring("File	First Scan	Last Scan	Num of Scans	Charge	Monoi
     {
       ftype = force_type;
     }
+    // If there is only one possible format, treat that as forced. Save my thumbs.
+    else if (allowed_types.size() == 1)
+    {
+      ftype = allowed_types[0];
+    }
     else
     {
       try
@@ -1038,6 +1043,11 @@ if (first_line.hasSubstring("File	First Scan	Last Scan	Num of Scans	Charge	Monoi
     if (force_type != FileTypes::UNKNOWN)
     {
       ftype = force_type;
+    }
+    // If there is only one possible format, treat that as forced. Save my thumbs.
+    else if (allowed_types.size() == 1)
+    {
+      ftype = allowed_types[0];
     }
     else
     {
@@ -1297,6 +1307,11 @@ if (first_line.hasSubstring("File	First Scan	Last Scan	Num of Scans	Charge	Monoi
     {
       ftype = force_type;
     }
+    // If there is only one possible format, treat that as forced. Save my thumbs.
+    else if (allowed_types.size() == 1)
+    {
+      ftype = allowed_types[0];
+    }
     else
     {
       try
@@ -1438,6 +1453,11 @@ if (first_line.hasSubstring("File	First Scan	Last Scan	Num of Scans	Charge	Monoi
     {
       ftype = force_type;
     }
+    // If there is only one possible format, treat that as forced. Save my thumbs.
+    else if (allowed_types.size() == 1)
+    {
+      ftype = allowed_types[0];
+    }
     else
     {
       try
@@ -1528,6 +1548,11 @@ if (first_line.hasSubstring("File	First Scan	Last Scan	Num of Scans	Charge	Monoi
     {
       ftype = force_type;
     }
+    // If there is only one possible format, treat that as forced. Save my thumbs.
+    else if (allowed_types.size() == 1)
+    {
+      ftype = allowed_types[0];
+    }
     else
     {
       try
@@ -1585,6 +1610,11 @@ if (first_line.hasSubstring("File	First Scan	Last Scan	Num of Scans	Charge	Monoi
     if (force_type != FileTypes::UNKNOWN)
     {
       ftype = force_type;
+    }
+    // If there is only one possible format, treat that as forced. Save my thumbs.
+    else if (allowed_types.size() == 1)
+    {
+      ftype = allowed_types[0];
     }
     else
     {

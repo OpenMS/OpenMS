@@ -38,7 +38,6 @@
 #include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/FORMAT/CsvFile.h>
-#include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/FileTypes.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
@@ -407,7 +406,7 @@ protected:
         for (const String& ss : id_in) {
           vector<PeptideIdentification> peptide_ids;
           vector<ProteinIdentification> protein_ids;
-          IdXMLFile().load(ss, protein_ids, peptide_ids);
+          FileHandler().loadIdentifications(ss, protein_ids, peptide_ids, {FileTypes::IDXML});
           for (vector<PeptideIdentification>::iterator it = peptide_ids.begin(); it != peptide_ids.end(); ++it) {
             String scan_identifier = getScanIdentifier_(it, peptide_ids.begin());
             Int scan_number = getScanNumber_(scan_identifier);
@@ -460,7 +459,7 @@ protected:
 
       writeDebug_("write idXMLFile", 1);
       writeDebug_(out, 1);// As the maracluster output file is not needed anymore, the temporary directory is going to be deleted
-      IdXMLFile().store(out, all_protein_ids, all_peptide_ids);
+      FileHandler().StoreIdentifications(out, all_protein_ids, all_peptide_ids, {FileTypes::IDXML});
     }
 
     //output consensus mzML

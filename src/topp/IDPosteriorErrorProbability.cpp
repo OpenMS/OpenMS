@@ -35,7 +35,7 @@
 
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/MATH/STATISTICS/PosteriorErrorProbabilityModel.h>
-#include <OpenMS/FORMAT/IdXMLFile.h>
+#include <OpenMS/FORMAT/FileHandler.h>
 
 using namespace OpenMS;
 using namespace Math; //PosteriorErrorProbabilityModel
@@ -164,10 +164,10 @@ protected:
     //-------------------------------------------------------------
     // reading input
     //-------------------------------------------------------------
-    IdXMLFile file;
+    FileHandler file;
     vector<ProteinIdentification> protein_ids;
     vector<PeptideIdentification> peptide_ids;
-    file.load(inputfile_name, protein_ids, peptide_ids);
+    file.loadIdentifications(inputfile_name, protein_ids, peptide_ids, {FileTypes::IDXML});
     PosteriorErrorProbabilityModel PEP_model;
     PEP_model.setParameters(fit_algorithm);
     //-------------------------------------------------------------
@@ -295,7 +295,7 @@ protected:
     //-------------------------------------------------------------
     // writing output
     //-------------------------------------------------------------
-    file.store(outputfile_name, protein_ids, peptide_ids);
+    file.StoreIdentifications(outputfile_name, protein_ids, peptide_ids, {FileTypes::IDXML}, FileTypes::IDXML);
     return EXECUTION_OK;
   }
 };

@@ -35,7 +35,7 @@
 #include <OpenMS/ANALYSIS/ID/IDRipper.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/CONCEPT/LogStream.h>
-#include <OpenMS/FORMAT/IdXMLFile.h>
+#include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/SYSTEM/File.h>
 #include <QDir>
 
@@ -142,7 +142,7 @@ protected:
 
     vector<ProteinIdentification> proteins;
     vector<PeptideIdentification> peptides;
-    IdXMLFile().load(file_name, proteins, peptides);
+    FileHandler().loadIdentifications(file_name, proteins, peptides, {FileTypes::IDXML});
 
     // ensure protein and peptide identifications are presented, otherwise we don't have to rip anything anyhow
     if (proteins.empty() || peptides.empty())
@@ -183,7 +183,7 @@ protected:
       OPENMS_LOG_INFO << "Storing file: '" << out << "'." << std::endl;
 
       QDir dir(output_directory.toQString());
-      IdXMLFile().store(out, rfc.prot_idents, rfc.pep_idents);
+      FileHandler().StoreIdentifications(out, rfc.prot_idents, rfc.pep_idents, {FileTypes::IDXML});
     }
     return EXECUTION_OK;
   }
