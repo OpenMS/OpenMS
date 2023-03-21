@@ -227,7 +227,7 @@ protected:
       // OPENMS_LOG_DEBUG << "Processing consensus map..." << endl;
       FileHandler consensusFile;
       ConsensusMap map;
-      consensusFile.loadConsensusFeatures(in, map);
+      consensusFile.loadConsensusFeatures(in, map, {FileTypes::CONSENSUSXML});
 
       PeakMap exp;
       if (!spectra.empty())
@@ -246,7 +246,7 @@ protected:
       // sort list of peptide identifications in each consensus feature by map index
       map.sortPeptideIdentificationsByMapIndex();
 
-      consensusFile.storeConsensusFeatures(out, map);
+      consensusFile.storeConsensusFeatures(out, map, {FileTypes::CONSENSUSXML}, FileTypes::CONSENSUSXML);
     }
 
     //----------------------------------------------------------------
@@ -257,7 +257,7 @@ protected:
       // OPENMS_LOG_DEBUG << "Processing feature map..." << endl;
       FeatureMap map;
       FileHandler featureFile;
-      featureFile.loadFeatures(in, map);
+      featureFile.loadFeatures(in, map, {FileTypes::FEATUREXML});
 
       PeakMap exp;
 
@@ -279,10 +279,9 @@ protected:
     //----------------------------------------------------------------
     if (in_type == FileTypes::MZQUANTML)
     {
-      // OPENMS_LOG_DEBUG << "Processing mzq ..." << endl;
       MSQuantifications msq;
       FileHandler quantFile;
-      quantFile.loadQuantifications(in, msq);
+      quantFile.loadQuantifications(in, msq, {FileTypes::MZQUANTML});
 
       bool measure_from_subelements = getFlag_("consensus:use_subelements");
       for (ConsensusMap& cm : msq.getConsensusMaps())
@@ -291,14 +290,9 @@ protected:
         // annotate output with data processing info
         addDataProcessing_(cm, getProcessingInfo_(DataProcessing::IDENTIFICATION_MAPPING));
       }
-
-      //~ writeDebug_(msq.getConsensusMaps().size(),3);
-      //~ writeDebug_(msq.getConsensusMaps().back().size(),3);
-      //~ writeDebug_(msq.getAnalysisSummary().quant_type_,3);
-      quantFile.storeQuantifications(out, msq);
+      quantFile.storeQuantifications(out, msq, {FileTypes::MZQUANTML}, FileTypes::MZQUANTML);
     }
 
-    // OPENMS_LOG_DEBUG << "Done." << endl;
     return EXECUTION_OK;
   }
 };
