@@ -96,7 +96,7 @@ START_SECTION((bool operator==(const DocumentIdentifier &rhs) const))
   DocumentIdentifier di1;
 	di1.setIdentifier("this is a test");
 	DocumentIdentifier di2(di1);
-	TEST_EQUAL(di1==di2, true)
+	TEST_TRUE(di1 == di2)
 }
 END_SECTION
 

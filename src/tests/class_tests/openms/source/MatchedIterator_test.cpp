@@ -182,7 +182,7 @@ START_SECTION(bool operator==(const MatchedIterator& rhs) const)
   TEST_EQUAL(mi.refIdx(), 0)
   ++mi;
   MIV mi2(mi);
-  TEST_EQUAL(mi == mi2, true)
+  TEST_TRUE(mi == mi2)
   
   TEST_EQUAL(mi.ref(), mi2.ref());
   TEST_EQUAL(*mi, *mi2);
@@ -199,7 +199,7 @@ START_SECTION(bool operator!=(const MatchedIterator& rhs) const)
   MIV mi2(mi);
   TEST_EQUAL(mi != mi2, false)
   ++mi;
-  TEST_EQUAL(mi != mi2, true)
+  TEST_FALSE(mi == mi2)
   MIV mi3(mi);
   TEST_EQUAL(mi != mi3, false)
 }

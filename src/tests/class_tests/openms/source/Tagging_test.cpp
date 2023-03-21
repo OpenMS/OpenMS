@@ -155,27 +155,27 @@ END_SECTION
 START_SECTION((virtual bool operator==(const SampleTreatment &rhs) const ))
 	Tagging empty,edit;
 	
-	TEST_EQUAL(edit==empty, true);
+	TEST_TRUE(edit == empty);
 	
 	edit.setMassShift(4711.2);
 	TEST_EQUAL(edit==empty, false);
 	edit = empty;
-	TEST_EQUAL(edit==empty, true);
+	TEST_TRUE(edit == empty);
 
 	edit.setVariant(Tagging::HEAVY);
 	TEST_EQUAL(edit==empty, false);
 	edit = empty;
-	TEST_EQUAL(edit==empty, true);		
+	TEST_TRUE(edit == empty);		
 
 	edit.setMass(23.4);
 	TEST_EQUAL(edit==empty, false);
 	edit = empty;
-	TEST_EQUAL(edit==empty, true);			
+	TEST_TRUE(edit == empty);			
 
 	edit.setMetaValue("color",String("red"));
 	TEST_EQUAL(edit==empty, false);
 	edit = empty;
-	TEST_EQUAL(edit==empty, true);	
+	TEST_TRUE(edit == empty);	
 	
 	Modification m;
 	TEST_EQUAL(m==empty, false);
