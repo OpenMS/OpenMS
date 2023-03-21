@@ -93,7 +93,7 @@ public:
      If you want a specific RUN::ID in the sqMass file,
      make sure to populate MSExperiment::setSqlRunID(UInt64 id) before.
     */
-    void store(const String& filename, MapType& map) const;
+    void store(const String& filename, const MapType& map) const;
 
     void transform(const String& filename_in, Interfaces::IMSDataConsumer* consumer, bool skip_full_count = false, bool skip_first_pass = false) const;
 

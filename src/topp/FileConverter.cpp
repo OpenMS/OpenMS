@@ -39,19 +39,18 @@
 #include <OpenMS/FORMAT/ConsensusXMLFile.h>
 #include <OpenMS/FORMAT/DATAACCESS/MSDataCachedConsumer.h>
 #include <OpenMS/FORMAT/DATAACCESS/MSDataWritingConsumer.h>
+// TODO add handler support for other accss
 #include <OpenMS/FORMAT/DTA2DFile.h>
-#include <OpenMS/FORMAT/EDTAFile.h>
 #include <OpenMS/FORMAT/FeatureXMLFile.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/FileTypes.h>
 #include <OpenMS/FORMAT/IBSpectraFile.h>
+// TODO add handler support for other access
 #include <OpenMS/FORMAT/MascotGenericFile.h>
-#include <OpenMS/FORMAT/MzDataFile.h>
 // TODO: remove MZML header after we get cached and Transform working
 #include <OpenMS/FORMAT/MzMLFile.h>
+// TODO: remove MZXML header after we get cached and Transform working
 #include <OpenMS/FORMAT/MzXMLFile.h>
-#include <OpenMS/FORMAT/SqMassFile.h>
-#include <OpenMS/FORMAT/OMSFile.h>
 #include <OpenMS/METADATA/ID/IdentificationDataConverter.h>
 #include <OpenMS/FORMAT/TextFile.h>
 #include <OpenMS/IONMOBILITY/IMTypes.h>
@@ -283,7 +282,7 @@ protected:
 
     if (in_type == FileTypes::CONSENSUSXML)
     {
-      ConsensusXMLFile().load(in, cm);
+      FileHandler().loadConsensusFeatures(in, cm, {FileTypes::CONSENSUSXML});
       cm.sortByPosition();
       if ((out_type != FileTypes::FEATUREXML) &&
           (out_type != FileTypes::CONSENSUSXML))
@@ -337,7 +336,7 @@ protected:
     }
     else if (in_type == FileTypes::EDTA)
     {
-      EDTAFile().load(in, cm);
+      FileHandler().loadConsensusFeatures(in, cm, {FileTypes::EDTA});
       cm.sortByPosition();
       if ((out_type != FileTypes::FEATUREXML) &&
           (out_type != FileTypes::CONSENSUSXML))
@@ -352,7 +351,7 @@ protected:
              in_type == FileTypes::PEPLIST ||
              in_type == FileTypes::KROENIK)
     {
-      fh.loadFeatures(in, fm, in_type);
+      fh.loadFeatures(in, fm, {}, in_type);
       fm.sortByPosition();
       if ((out_type != FileTypes::FEATUREXML) &&
           (out_type != FileTypes::CONSENSUSXML) &&
@@ -371,13 +370,11 @@ protected:
       {
         return ILLEGAL_PARAMETERS;
       }
-      MzMLFile f;
-      f.setLogType(log_type_);
       Internal::CachedMzMLHandler cacher;
       cacher.setLogType(log_type_);
       PeakMap tmp_exp;
 
-      f.load(in_meta, exp);
+      FileHandler().loadExperiment(in_meta, exp, {FileTypes::MZML}, FileTypes::UNKNOWN, log_type_);
       cacher.readMemdump(tmp_exp, in);
 
       // Sanity check
@@ -490,17 +487,16 @@ protected:
       //add data processing entry
       addDataProcessing_(exp, getProcessingInfo_(DataProcessing::
                                                  CONVERSION_MZML));
-      MzMLFile f;
-      f.setLogType(log_type_);
-      f.getOptions().setWriteIndex(write_scan_index);
-      f.getOptions().setForceTPPCompatability(force_TPP_compatibility);
+      FileHandler mzmlFile;
+      mzmlFile.getOptions().setWriteIndex(write_scan_index);
+      mzmlFile.getOptions().setForceTPPCompatability(force_TPP_compatibility);
       // numpress compression
       if (lossy_compression)
       {
-        f.getOptions().setNumpressConfigurationMassTime(npconfig_mz);
-        f.getOptions().setNumpressConfigurationIntensity(npconfig_int);
-        f.getOptions().setNumpressConfigurationFloatDataArray(npconfig_fda);
-        f.getOptions().setCompression(true);
+        mzmlFile.getOptions().setNumpressConfigurationMassTime(npconfig_mz);
+        mzmlFile.getOptions().setNumpressConfigurationIntensity(npconfig_int);
+        mzmlFile.getOptions().setNumpressConfigurationFloatDataArray(npconfig_fda);
+        mzmlFile.getOptions().setCompression(true);
       }
 
       if (convert_to_chromatograms)
@@ -541,29 +537,25 @@ protected:
         }
       }
       ChromatogramTools().convertSpectraToChromatograms(exp, true, convert_to_chromatograms);
-      f.store(out, exp);
+      mzmlFile.storeExperiment(out, exp, ProgressLogger::NONE , {FileTypes::MZML}, FileTypes::MZML);
     }
     else if (out_type == FileTypes::MZDATA)
     {
       //annotate output with data processing info
       addDataProcessing_(exp, getProcessingInfo_(DataProcessing::
                                                  CONVERSION_MZDATA));
-      MzDataFile f;
-      f.setLogType(log_type_);
       ChromatogramTools().convertChromatogramsToSpectra<MSExperiment>(exp);
-      f.store(out, exp);
+      FileHandler().storeExperiment(out, exp, ProgressLogger::NONE, {FileTypes::MZDATA}, FileTypes::MZDATA);
     }
     else if (out_type == FileTypes::MZXML)
     {
       //annotate output with data processing info
       addDataProcessing_(exp, getProcessingInfo_(DataProcessing::
                                                  CONVERSION_MZXML));
-      MzXMLFile f;
-      f.setLogType(log_type_);
+      FileHandler f;
       f.getOptions().setForceMQCompatability(force_MaxQuant_compatibility);
       f.getOptions().setWriteIndex(write_scan_index);
-      //ChromatogramTools().convertChromatogramsToSpectra<MSExperiment>(exp);
-      f.store(out, exp);
+      f.storeExperiment(out, exp, log_type_, {FileTypes::MZXML}, FileTypes::MZXML);
     }
     else if (out_type == FileTypes::DTA2D)
     {
@@ -615,7 +607,7 @@ protected:
       }
       else if (in_type == FileTypes::OMS)
       {
-        OMSFile().load(in, fm);
+        FileHandler().loadFeatures(in, fm, {FileTypes::OMS});
         IdentificationDataConverter::exportFeatureIDs(fm);
       }
       else // not loaded as feature map or consensus map
@@ -644,7 +636,7 @@ protected:
 
       addDataProcessing_(fm, getProcessingInfo_(DataProcessing::
                                                 FORMAT_CONVERSION));
-      FeatureXMLFile().store(out, fm);
+      FileHandler().storeFeatures(out, fm, {FileTypes::FEATUREXML}, FileTypes::FEATUREXML);
     }
     else if (out_type == FileTypes::CONSENSUSXML)
     {
@@ -676,7 +668,7 @@ protected:
 
       addDataProcessing_(cm, getProcessingInfo_(DataProcessing::
                                                 FORMAT_CONVERSION));
-      ConsensusXMLFile().store(out, cm);
+      FileHandler().storeConsensusFeatures(out, cm, {FileTypes::CONSENSUSXML}, FileTypes::CONSENSUSXML);
     }
     else if (out_type == FileTypes::EDTA)
     {
@@ -687,11 +679,11 @@ protected:
       }
       if (!fm.empty())
       {
-        EDTAFile().store(out, fm);
+        FileHandler().storeFeatures(out, fm, {FileTypes::EDTA}, FileTypes::EDTA);
       }
       else if (!cm.empty())
       {
-        EDTAFile().store(out, cm);
+        FileHandler().storeConsensusFeatures(out, cm, {FileTypes::EDTA}, FileTypes::EDTA);
       }
     }
     else if (out_type == FileTypes::CACHEDMZML)
@@ -724,8 +716,7 @@ protected:
     }
     else if (out_type == FileTypes::SQMASS)
     {
-      SqMassFile sqm;
-      sqm.store(out, exp);
+      FileHandler().storeExperiment(out, exp, ProgressLogger::NONE, {FileTypes::SQMASS}, FileTypes::SQMASS);
     }
     else if (out_type == FileTypes::OMS)
     {
@@ -735,7 +726,7 @@ protected:
         return INCOMPATIBLE_INPUT_DATA;
       }
       IdentificationDataConverter::importFeatureIDs(fm);
-      OMSFile().store(out, fm);
+      FileHandler().storeFeatures(out, fm, {FileTypes::OMS}, FileTypes::OMS);
     }
     else
     {

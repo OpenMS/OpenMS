@@ -32,8 +32,7 @@
 // $Authors:  Clemens Groepl, Marc Sturm $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/FORMAT/MzMLFile.h>
-#include <OpenMS/FORMAT/FeatureXMLFile.h>
+#include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/KERNEL/RangeUtils.h>
 #include <OpenMS/SYSTEM/File.h>
@@ -136,10 +135,7 @@ protected:
 
     //reading input data
     PeakMap exp;
-    MzMLFile f;
-    f.setLogType(log_type_);
-
-    f.load(in, exp);
+    FileHandler().loadExperiment(in, exp, {FileTypes::MZML}, FileTypes::MZML, log_type_);
 
     //no seeds supported
     FeatureMap seeds;
@@ -191,8 +187,7 @@ protected:
     //annotate output with data processing info
     addDataProcessing_(features, getProcessingInfo_(DataProcessing::QUANTITATION));
 
-    FeatureXMLFile map_file;
-    map_file.store(out, features);
+    FileHandler().storeFeatures(out, features, {FileTypes::FEATUREXML}, FileTypes::FEATUREXML);
 
     return EXECUTION_OK;
   }

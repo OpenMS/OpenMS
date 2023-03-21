@@ -36,6 +36,7 @@
 
 #include <OpenMS/FORMAT/DTAFile.h>
 #include <OpenMS/FORMAT/DTA2DFile.h>
+#include <OpenMS/FORMAT/EDTAFile.h>
 #include <OpenMS/FORMAT/MzXMLFile.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/FORMAT/FeatureXMLFile.h>
@@ -47,6 +48,7 @@
 #include <OpenMS/FORMAT/MSPGenericFile.h>
 #include <OpenMS/FORMAT/MzQuantMLFile.h>
 #include <OpenMS/FORMAT/MzQCFile.h>
+#include <OpenMS/FORMAT/OMSFile.h>
 #include <OpenMS/FORMAT/QcMLFile.h>
 #include <OpenMS/FORMAT/SqMassFile.h>
 #include <OpenMS/FORMAT/XMassFile.h>
@@ -631,7 +633,7 @@ if (first_line.hasSubstring("File	First Scan	Last Scan	Num of Scans	Charge	Monoi
     return String((QString)crypto.result().toHex());
   }
 
-  bool FileHandler::loadFeatures(const String& filename, FeatureMap& map, FileTypes::Type force_type, const std::vector<FileTypes::Type> allowed_types)
+  bool FileHandler::loadFeatures(const String& filename, FeatureMap& map, const std::vector<FileTypes::Type> allowed_types, FileTypes::Type force_type)
   {
 
     if (allowed_types.size() != 0)
@@ -661,29 +663,45 @@ if (first_line.hasSubstring("File	First Scan	Last Scan	Num of Scans	Charge	Monoi
     }
 
     //load right file
-    if (type == FileTypes::FEATUREXML)
+    switch (type)
+    {
+    case FileTypes::FEATUREXML:
     {
       FeatureXMLFile f;
       f.getOptions() = fOptions_;
       f.load(filename, map);
     }
-    else if (type == FileTypes::TSV)
+    break;
+
+    case FileTypes::TSV:
     {
       MsInspectFile().load(filename, map);
     }
-    else if (type == FileTypes::PEPLIST)
+    break;
+
+    case FileTypes::PEPLIST:
     {
       SpecArrayFile().load(filename, map);
     }
-    else if (type == FileTypes::KROENIK)
+    break;
+
+    case FileTypes::KROENIK:
     {
       KroenikFile().load(filename, map);
     }
-    else
+    break;
+
+    case FileTypes::OMS:
+    {
+      OMSFile().load(filename, map);
+    }
+    break;
+
+    default:
     {
       return false;
     }
-
+    }
     return true;
   }
 
@@ -724,6 +742,13 @@ if (first_line.hasSubstring("File	First Scan	Last Scan	Num of Scans	Charge	Monoi
     {
       FeatureXMLFile f;
       f.getOptions() = fOptions_;
+      f.store(filename, map);
+    }
+    break;
+
+    case FileTypes::EDTA:
+    {
+      EDTAFile f;
       f.store(filename, map);
     }
     break;
@@ -791,6 +816,13 @@ if (first_line.hasSubstring("File	First Scan	Last Scan	Num of Scans	Charge	Monoi
         ConsensusXMLFile().store(filename, map);
       }
       break;
+
+    case FileTypes::EDTA:
+    {
+      EDTAFile f;
+      f.store(filename, map);
+    }
+    break;
       
       default:
         return false;
@@ -833,6 +865,13 @@ if (first_line.hasSubstring("File	First Scan	Last Scan	Num of Scans	Charge	Monoi
       {
         ConsensusXMLFile f;
         f.getOptions() = options_;
+        f.load(filename, map);
+      }
+      break;
+
+      case FileTypes::EDTA:
+      {
+        EDTAFile f;
         f.load(filename, map);
       }
       break;
@@ -1242,6 +1281,13 @@ if (first_line.hasSubstring("File	First Scan	Last Scan	Num of Scans	Charge	Monoi
       {
         f.store(filename, exp);
       }
+    }
+    break;
+
+    case FileTypes::SQMASS:
+    {
+      SqMassFile f;
+      f.store(filename, exp);
     }
     break;
 
