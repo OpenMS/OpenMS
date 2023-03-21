@@ -479,9 +479,8 @@ protected:
 
       case FileTypes::OMSSAXML:
       {
-        protein_identifications.resize(1);
-        OMSSAXMLFile().load(in, protein_identifications[0],
-                            peptide_identifications, true);
+        FileHandler().loadIdentifications(in, protein_identifications,
+                            peptide_identifications);
       }
       break;
 
@@ -594,7 +593,7 @@ protected:
 
       case FileTypes::XQUESTXML:
       {
-        XQuestResultXMLFile().load(in, peptide_identifications, protein_identifications);
+        FileHandler().loadIdentifications(in, protein_identifications, peptide_identifications, {FileTypes::XQUESTXML});
       }
       break;
 
@@ -717,17 +716,17 @@ protected:
     break;
 
     case FileTypes::IDXML:
-      IdXMLFile().store(out, protein_identifications, peptide_identifications);
+      FileHandler().StoreIdentifications(out, protein_identifications, peptide_identifications, {FileTypes::IDXML}, FileTypes::IDXML);
       break;
 
     case FileTypes::MZIDENTML:
-      MzIdentMLFile().store(out, protein_identifications,
-                            peptide_identifications);
+      FileHandler().StoreIdentifications(out, protein_identifications,
+                            peptide_identifications, {FileTypes::MZIDENTML}, FileTypes::MZIDENTML);
       break;
 
     case FileTypes::XQUESTXML:
-      XQuestResultXMLFile().store(out, protein_identifications,
-                                  peptide_identifications);
+      FileHandler().StoreIdentifications(out, protein_identifications,
+                                  peptide_identifications, {FileTypes::XQUESTXML}, FileTypes::XQUESTXML);
       break;
 
     case FileTypes::FASTA:

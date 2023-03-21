@@ -46,8 +46,10 @@
 #include <OpenMS/FORMAT/MS2File.h>
 #include <OpenMS/FORMAT/MSPFile.h>
 #include <OpenMS/FORMAT/MSPGenericFile.h>
+#include <OpenMS/FORMAT/MzIdentMLFile.h>
 #include <OpenMS/FORMAT/MzQuantMLFile.h>
 #include <OpenMS/FORMAT/MzQCFile.h>
+#include <OpenMS/FORMAT/OMSSAXMLFile.h>
 #include <OpenMS/FORMAT/OMSFile.h>
 #include <OpenMS/FORMAT/ProtXMLFile.h>
 #include <OpenMS/FORMAT/QcMLFile.h>
@@ -56,6 +58,7 @@
 #include <OpenMS/FORMAT/TraMLFile.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/FORMAT/TransformationXMLFile.h>
+#include <OpenMS/FORMAT/XQuestResultXMLFile.h>
 
 #include <OpenMS/FORMAT/MsInspectFile.h>
 #include <OpenMS/FORMAT/SpecArrayFile.h>
@@ -760,6 +763,12 @@ if (first_line.hasSubstring("File	First Scan	Last Scan	Num of Scans	Charge	Monoi
     }
     break;
 
+    case FileTypes::OMS:
+    {
+      OMSFile().store(filename, map);
+    }
+    break;
+
     case FileTypes::PEPLIST:
     {
       SpecArrayFile().store(filename, map);
@@ -920,6 +929,25 @@ if (first_line.hasSubstring("File	First Scan	Last Scan	Num of Scans	Charge	Monoi
       }
       break;
 
+      case FileTypes::MZIDENTML:
+      {
+        MzIdentMLFile().store(filename, additional_proteins, additional_peptides);
+      }
+      break;
+
+      case FileTypes::OMS:
+      {
+        OPENMS_LOG_ERROR << "File " << filename << " storing Identifications is not yet supported for OMS files" << endl;
+        return false;
+      }
+    break;
+
+      case FileTypes::XQUESTXML:
+      {
+      XQuestResultXMLFile().store(filename, additional_proteins, additional_peptides);
+      }
+      break;
+
       default:
         return false;
     }   
@@ -962,12 +990,40 @@ if (first_line.hasSubstring("File	First Scan	Last Scan	Num of Scans	Charge	Monoi
       }
       break;
 
+      case FileTypes::MZIDENTML:
+      {
+        MzIdentMLFile().load(filename, additional_proteins, additional_peptides);
+      }
+      break;
+
+      case FileTypes::XQUESTXML:
+      {
+      XQuestResultXMLFile().load(filename, additional_peptides, additional_proteins);
+      }
+      break;
+
+
+      case FileTypes::OMSSAXML:
+      {
+        additional_proteins.push_back(ProteinIdentification());
+        OMSSAXMLFile().load(filename, additional_proteins[0],
+                            additional_peptides, true, true);
+      }
+      break;
+      
+      case FileTypes::MASCOTXML:
+      {
+        //We havent moved support from IDFileConverter here yet.
+        return false;
+      }
+
       case FileTypes::PROTXML:
       {
         additional_proteins.push_back(ProteinIdentification());
         additional_peptides.push_back(PeptideIdentification());
         ProtXMLFile().load(filename, additional_proteins.back(), additional_peptides.back());
       }
+      break;
 
       default:
         return false;
