@@ -87,6 +87,7 @@ PTPredict
 QualityControl
 RTModel
 RTPredict
+SageAdapter
 SeedListGenerator
 SpecLibSearcher
 SpectraFilterBernNorm
