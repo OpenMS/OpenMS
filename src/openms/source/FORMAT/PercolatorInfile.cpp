@@ -267,6 +267,29 @@ namespace OpenMS
   }
 
 
+  TextFile PercolatorInfile::load(
+    const String& filename,
+    const vector<PeptideIdentification>& peptide_ids)
+  {
+    CsvFile pin(filename, '\t');
+    size_t n_rows = pin.rowCount();
+
+    // split header row and create lookup
+    String header_row = pin.getRow(0);
+    StringList header;
+    header_row.split("\t", header);
+
+    map<String, index> col2index;
+    for (size_t i = 0; i != header.size(); ++i) col2index[header[i]] = i;
+
+    for (size_t r = 1; r != n_rows; ++r)
+    {
+      // TODO
+    }
+
+    return txt;
+  }
+
   bool PercolatorInfile::isEnz_(const char& n, const char& c, const std::string& enz)
   {
     if (enz == "trypsin")

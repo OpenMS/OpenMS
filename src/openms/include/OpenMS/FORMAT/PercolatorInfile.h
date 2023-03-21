@@ -56,6 +56,9 @@ namespace OpenMS
         int min_charge, 
         int max_charge);
 
+      static void load(const String& pin_file, 
+        const std::vector<PeptideIdentification>& peptide_ids);
+
       // uses spectrum_reference, if empty uses spectrum_id, if also empty fall back to using index
       static String getScanIdentifier(const PeptideIdentification& pid, size_t index);
       
