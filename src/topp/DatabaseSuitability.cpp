@@ -37,8 +37,7 @@
 #include <OpenMS/ANALYSIS/ID/FalseDiscoveryRate.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/FILTERING/ID/IDFilter.h>
-#include <OpenMS/FORMAT/IdXMLFile.h>
-#include <OpenMS/FORMAT/MzMLFile.h>
+#include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/QC/DBSuitability.h>
 #include <OpenMS/QC/Ms2IdentificationRate.h>
@@ -185,17 +184,17 @@ protected:
     // reading input
     //-------------------------------------------------------------
 
-    MzMLFile m;
+    FileHandler m;
     PeakFileOptions op;
     op.setMSLevels({2});// only ms2
     m.setOptions(op);
     PeakMap exp;
-    m.load(in_spec, exp);
+    m.loadExperiment(in_spec, exp, {FileTypes::MZML});
 
-    IdXMLFile x;
+    FileHandler x;
     vector<ProteinIdentification> prot_ids;
     vector<PeptideIdentification> pep_ids;
-    x.load(in_id, prot_ids, pep_ids);
+    x.loadIdentifications(in_id, prot_ids, pep_ids, {FileTypes::IDXML});
 
     if (prot_ids.empty())
     {
@@ -205,7 +204,7 @@ protected:
 
     vector<ProteinIdentification> novo_prots;
     vector<PeptideIdentification> novo_peps;
-    x.load(in_novo, novo_prots, novo_peps);
+    x.loadIdentifications(in_novo, novo_prots, novo_peps, {FileTypes::IDXML});
 
     FASTAFile f;
     vector<FASTAFile::FASTAEntry> database;

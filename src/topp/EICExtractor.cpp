@@ -37,7 +37,7 @@
 #include <OpenMS/DATASTRUCTURES/StringListUtils.h>
 #include <OpenMS/DATASTRUCTURES/ListUtilsIO.h>
 #include <OpenMS/FORMAT/EDTAFile.h>
-#include <OpenMS/FORMAT/MzMLFile.h>
+#include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/KERNEL/MSChromatogram.h>
 #include <OpenMS/FILTERING/NOISEESTIMATION/SignalToNoiseEstimatorMedian.h>
@@ -257,8 +257,7 @@ public:
     //-------------------------------------------------------------
     // loading input
     //-------------------------------------------------------------
-    MzMLFile mzml_file;
-    mzml_file.setLogType(log_type_);
+    FileHandler mzml_file;
     PeakMap exp, exp_pp;
 
     EDTAFile ed;
@@ -272,7 +271,7 @@ public:
     for (Size fi = 0; fi < in.size(); ++fi)
     {
       // load raw data
-      mzml_file.load(in[fi], exp);
+      mzml_file.loadExperiment(in[fi], exp, {FileTypes::MZML}, FileTypes::MZML, log_type_);
       exp.sortSpectra(true);
 
       if (exp.empty())
@@ -350,7 +349,7 @@ public:
           // get rid of "native-id" missing warning
           for (Size id = 0; id < out_debug.size(); ++id) out_debug[id].setNativeID(String("spectrum=") + id);
 
-          mzml_file.store(out_TIC_debug, out_debug);
+          mzml_file.storeExperiment(out_TIC_debug, out_debug, ProgressLogger::NONE ,{FileTypes::MZML}, FileTypes::MZML);
           OPENMS_LOG_DEBUG << "Storing debug AUTO-RT: " << out_TIC_debug << std::endl;
         }
 

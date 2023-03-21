@@ -36,7 +36,6 @@
 #include <OpenMS/ANALYSIS/ID/FalseDiscoveryRate.h>
 #include <OpenMS/FILTERING/ID/IDFilter.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
-#include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/FORMAT/FileTypes.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 
@@ -168,7 +167,7 @@ protected:
     vector<PeptideIdentification> pep_ids;
     vector<ProteinIdentification> prot_ids;
 
-    IdXMLFile().load(in, prot_ids, pep_ids);
+    FileHandler().loadIdentifications(in, prot_ids, pep_ids, {FileTypes::IDXML});
 
     Size n_prot_ids = prot_ids.size();
     Size n_prot_hits = IDFilter::countHits(prot_ids);
@@ -295,7 +294,7 @@ protected:
              << IDFilter::countHits(pep_ids) << " pep_ids hit(s)." << endl;
 
     OPENMS_LOG_INFO << "Writing filtered output..." << endl;
-    IdXMLFile().store(out, prot_ids, pep_ids);
+    FileHandler().StoreIdentifications(out, prot_ids, pep_ids, {FileTypes::IDXML}, FileTypes::IDXML);
     return EXECUTION_OK;
   }
 

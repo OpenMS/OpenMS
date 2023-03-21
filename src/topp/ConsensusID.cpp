@@ -43,9 +43,6 @@
 #include <OpenMS/ANALYSIS/ID/ConsensusIDAlgorithmRanks.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/FeatureGroupingAlgorithmQT.h>
 #include <OpenMS/CONCEPT/VersionInfo.h>
-#include <OpenMS/FORMAT/IdXMLFile.h>
-#include <OpenMS/FORMAT/FeatureXMLFile.h>
-#include <OpenMS/FORMAT/ConsensusXMLFile.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/FileTypes.h>
 #include <OpenMS/CHEMISTRY/ProteaseDB.h>
@@ -679,7 +676,6 @@ protected:
     {
       vector<ProteinIdentification> prot_ids;
       vector<PeptideIdentification> pep_ids;
-      String document_id;
       if (getFlag_("per_spectrum"))
       {
         map<String, unordered_map<String, vector<PeptideIdentification>>> grouping_per_file;
@@ -695,7 +691,7 @@ protected:
         {
           vector<ProteinIdentification> tmp_prot_ids;
           vector<PeptideIdentification> tmp_pep_ids;
-          IdXMLFile().load(infile, tmp_prot_ids, tmp_pep_ids, document_id);
+          FileHandler().loadIdentifications(infile, tmp_prot_ids, tmp_pep_ids, {FileTypes::IDXML});
           Size idx(0);
           for (const auto& prot : tmp_prot_ids)
           {
@@ -829,7 +825,7 @@ protected:
           "Please merge the files with IDMerger using its default settings." << std::endl;
         }
         // note: this requires a single merged idXML file.
-        IdXMLFile().load(in[0], prot_ids, pep_ids, document_id);
+        FileHandler().loadIdentifications(in[0], prot_ids, pep_ids, {FileTypes::IDXML});
 
         if (prot_ids.size() == 1)
         {
@@ -913,7 +909,7 @@ protected:
         }
       }
       // store consensus
-      IdXMLFile().store(out, prot_ids, pep_ids);
+      FileHandler().StoreIdentifications(out, prot_ids, pep_ids, {FileTypes::IDXML}, FileTypes::IDXML);
     }
 
     //----------------------------------------------------------------
@@ -922,11 +918,11 @@ protected:
     if (in_type == FileTypes::FEATUREXML)
     {
       FeatureMap map;
-      FeatureXMLFile().load(in[0], map);
+      FileHandler().loadFeatures(in[0], map, {FileTypes::FEATUREXML});
 
       processFeatureOrConsensusMap_(map, consensus);
 
-      FeatureXMLFile().store(out, map);
+      FileHandler().storeFeatures(out, map, {FileTypes::FEATUREXML}, FileTypes::FEATUREXML);
     }
 
     //----------------------------------------------------------------
@@ -935,11 +931,11 @@ protected:
     if (in_type == FileTypes::CONSENSUSXML)
     {
       ConsensusMap map;
-      ConsensusXMLFile().load(in[0], map);
+      FileHandler().loadConsensusFeatures(in[0], map, {FileTypes::CONSENSUSXML});
 
       processFeatureOrConsensusMap_(map, consensus);
 
-      ConsensusXMLFile().store(out, map);
+      FileHandler().storeConsensusFeatures(out, map, {FileTypes::CONSENSUSXML}, FileTypes::CONSENSUSXML);
     }
 
     delete consensus;

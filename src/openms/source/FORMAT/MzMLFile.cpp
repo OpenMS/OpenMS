@@ -73,7 +73,7 @@ namespace OpenMS
     options_ = options;
   }
 
-  bool hasIndex(const String& filename)
+  bool MzMLFile::hasIndex(const String& filename)
   {
     auto index_offset = IndexedMzMLDecoder().findIndexListOffset(filename);
     if (index_offset == (std::streampos)-1)
