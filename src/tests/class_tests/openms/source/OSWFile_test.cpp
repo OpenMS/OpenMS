@@ -118,7 +118,7 @@ void checkData(OSWData& res)
 	TEST_EQUAL(prec.getFeatures().size(), 5);
 	const std::vector<UInt32> tr{ 236830, 236831, 236832, 236833, 236834 };
 	const auto& trd = prec.getFeatures().back().getTransitionIDs();
-	TEST_EQUAL(trd == tr, true);
+	TEST_TRUE(trd == tr);
 	// check last transition
 	const OSWProtein& prot_last = res.getProteins().back();
 	TEST_EQUAL(prot_last.getPeptidePrecursors().back().getFeatures().back().getTransitionIDs().back(), 99);

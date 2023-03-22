@@ -1230,7 +1230,7 @@ namespace OpenMS
     return trans;
   }
 
-
+  // copy constructor
   IdentificationData::IdentificationData(const IdentificationData& other):
     MetaInfoInterface(other)
   {
@@ -1244,6 +1244,56 @@ namespace OpenMS
     no_checks_ = other.no_checks_;
   }
 
+  // copy assignment
+  IdentificationData& IdentificationData::operator=(const IdentificationData& other)
+  {
+    if (this != &other)
+    {  
+      IdentificationData tmp(other);
+      tmp.swap(*this);
+    }
+    
+    return *this;
+  }
+
+  // move constructor
+  IdentificationData::IdentificationData(IdentificationData&& other) noexcept
+  {
+    *this = std::move(other);
+  }
+
+  // move assignment
+  IdentificationData& IdentificationData::operator=(IdentificationData&& other) noexcept
+  {
+    MetaInfoInterface::operator=(std::move(other));
+    input_files_ = std::move(other.input_files_);
+    processing_softwares_ = std::move(other.processing_softwares_);
+    processing_steps_ = std::move(other.processing_steps_);
+    db_search_params_ = std::move(other.db_search_params_);
+    db_search_steps_ = std::move(other.db_search_steps_);
+    score_types_ = std::move(other.score_types_);
+    observations_ = std::move(other.observations_);
+    parents_ = std::move(other.parents_);
+    parent_groups_ = std::move(other.parent_groups_);
+    identified_peptides_ = std::move(other.identified_peptides_);
+    identified_compounds_ = std::move(other.identified_compounds_);
+    identified_oligos_ = std::move(other.identified_oligos_);
+    adducts_ = std::move(other.adducts_);
+    observation_matches_ = std::move(other.observation_matches_);
+    observation_match_groups_ = std::move(other.observation_match_groups_);
+    current_step_ref_ = std::move(other.current_step_ref_);
+    no_checks_ = std::move(other.no_checks_);
+
+    // look-up tables:
+    observation_lookup_ = std::move(other.observation_lookup_);
+    parent_lookup_ = std::move(other.parent_lookup_);
+    identified_peptide_lookup_ = std::move(other.identified_peptide_lookup_);
+    identified_compound_lookup_ = std::move(other.identified_compound_lookup_);
+    identified_oligo_lookup_ = std::move(other.identified_oligo_lookup_);
+    observation_match_lookup_ = std::move(other.observation_match_lookup_);
+
+    return *this;
+  }
 
   void IdentificationData::swap(IdentificationData& other)
   {

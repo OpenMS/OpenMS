@@ -1011,7 +1011,7 @@ START_SECTION((template <typename MapType> void store(const String& filename, co
     PeakMap exp;
     file.load(tmp_filename, exp);
     //test if everything worked
-    TEST_EQUAL(exp == exp_original, true)
+    TEST_TRUE(exp == exp_original)
     //NOTE: If it does not work, use this code to find out where the difference is
     TEST_EQUAL(exp.size() == exp_original.size(), true)
     TEST_EQUAL(exp.ExperimentalSettings::operator==(exp_original), true)

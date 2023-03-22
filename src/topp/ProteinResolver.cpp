@@ -66,9 +66,9 @@ using namespace OpenMS;
 <CENTER>
   <table>
     <tr>
-      <td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. predecessor tools </td>
+      <th ALIGN = "center"> pot. predecessor tools </td>
       <td VALIGN="middle" ROWSPAN=3> &rarr; ProteinResolver &rarr;</td>
-      <td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. successor tools </td>
+      <th ALIGN = "center"> pot. successor tools </td>
     </tr>
     <tr>
       <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_IDFilter </td>
