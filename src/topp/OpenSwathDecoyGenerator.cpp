@@ -40,7 +40,6 @@
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
-#include <OpenMS/FORMAT/TraMLFile.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/FileTypes.h>
 
@@ -249,8 +248,7 @@ protected:
       }
       else if (in_type == FileTypes::TRAML)
       {
-        TraMLFile traml;
-        traml.load(in, targeted_exp);
+        FileHandler().loadTransitions(in, targeted_exp, {FileTypes::TRAML});
       }
 
       MRMDecoy decoys = MRMDecoy();
@@ -307,8 +305,7 @@ protected:
     }
     else if (out_type == FileTypes::TRAML)
     {
-      TraMLFile traml;
-      traml.store(out, targeted_merged);
+      FileHandler().storeTransitions(out, targeted_merged, {FileTypes::TRAML});
     }
 
     return EXECUTION_OK;

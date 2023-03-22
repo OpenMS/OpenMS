@@ -41,9 +41,7 @@
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
-#include <OpenMS/FORMAT/TraMLFile.h>
-#include <OpenMS/FORMAT/MzMLFile.h>
-#include <OpenMS/FORMAT/TransformationXMLFile.h>
+#include <OpenMS/FORMAT/FileHandler.h>
 
 
 using namespace std;
@@ -222,11 +220,9 @@ protected:
     TransformationDescription trafo;
     if (!trafo_in.empty()) 
     {
-      TransformationXMLFile trafoxml;
-
       String model_type = getStringOption_("model:type");
       Param model_params = getParam_().copy("model:", true);
-      trafoxml.load(trafo_in, trafo);
+      FileHandler().loadTransformations(trafo_in, trafo, false, {FileTypes::TRANSFORMATIONXML});
       trafo.fitModel(model_type, model_params);
     }
     TransformationDescription trafo_inverse = trafo;
@@ -236,11 +232,10 @@ protected:
 
     MapType out_exp;
     std::vector< OpenMS::MSChromatogram > chromatograms;
-    TraMLFile traml;
     OpenMS::TargetedExperiment targeted_exp;
 
     std::cout << "Loading TraML file" << std::endl;
-    traml.load(tr_file, targeted_exp);
+    FileHandler().loadTransitions(tr_file, targeted_exp, {FileTypes::TRAML});
     std::cout << "Loaded TraML file" << std::endl;
 
     // Do parallelization over the different input files
@@ -249,14 +244,10 @@ protected:
     for (SignedSize i = 0; i < boost::numeric_cast<SignedSize>(file_list.size()); ++i)
     {
       boost::shared_ptr<PeakMap > exp(new PeakMap);
-      MzMLFile f;
-      // Logging and output to the console
-      // IF_MASTERTHREAD f.setLogType(log_type_); 
-
       // Find the transitions to extract and extract them
       MapType tmp_out;
       OpenMS::TargetedExperiment transition_exp_used;
-      f.load(file_list[i], *exp);
+      FileHandler().loadExperiment(file_list[i], *exp, {FileTypes::MZML});
       if (exp->empty())
       { 
         continue; // if empty, go on
@@ -332,10 +323,8 @@ protected:
     
     // store the output
     out_exp.setChromatograms(chromatograms);
-    MzMLFile mzf;
-    mzf.setLogType(log_type_); 
     addDataProcessing_(out_exp, getProcessingInfo_(DataProcessing::SMOOTHING));
-    mzf.store(out, out_exp);
+    FileHandler().storeExperiment(out, out_exp, log_type_, {FileTypes::MZML});
 
     return EXECUTION_OK;
   }

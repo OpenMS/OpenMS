@@ -637,7 +637,7 @@ if (first_line.hasSubstring("File	First Scan	Last Scan	Num of Scans	Charge	Monoi
     return String((QString)crypto.result().toHex());
   }
 
-  bool FileHandler::loadFeatures(const String& filename, FeatureMap& map, const std::vector<FileTypes::Type> allowed_types, FileTypes::Type force_type)
+  bool FileHandler::loadFeatures(const String& filename, FeatureMap& map, const std::vector<FileTypes::Type> allowed_types, FileTypes::Type force_type, ProgressLogger::LogType log)
   {
 
     if (allowed_types.size() != 0)

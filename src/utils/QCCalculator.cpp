@@ -189,7 +189,7 @@ protected:
     // collect QC data and store according to output file extension
 
     FileHandler().storeQC(inputfile_name, outputfile_name, exp, feature_map, prot_ids, pep_ids, consensus_map, contact_name, 
-    contact_address, description, label, remove_duplicate_features, {FileTypes::QCML, FileTypes::MZQC});
+    contact_address, description, label, remove_duplicate_features, {out_type});
 
 
     return EXECUTION_OK;

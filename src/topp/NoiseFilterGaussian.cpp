@@ -34,7 +34,7 @@
 #include <OpenMS/config.h>
 
 #include <OpenMS/CONCEPT/LogStream.h>
-#include <OpenMS/FORMAT/MzMLFile.h>
+#include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/FILTERING/SMOOTHING/GaussFilter.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
@@ -188,10 +188,8 @@ public:
     //-------------------------------------------------------------
     // loading input
     //-------------------------------------------------------------
-    MzMLFile mz_data_file;
-    mz_data_file.setLogType(log_type_);
     PeakMap exp;
-    mz_data_file.load(in, exp);
+    FileHandler().loadExperiment(in, exp, {FileTypes::MZML}, FileTypes::UNKNOWN, log_type_);
 
     if (exp.empty() && exp.getChromatograms().empty())
     {
@@ -245,7 +243,7 @@ public:
     //annotate output with data processing info
     addDataProcessing_(exp, getProcessingInfo_(DataProcessing::SMOOTHING));
 
-    mz_data_file.store(out, exp);
+    FileHandler().storeExperiment(out, exp, log_type_, {FileTypes::MZML});
 
     return EXECUTION_OK;
   }

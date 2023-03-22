@@ -37,7 +37,7 @@
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/DATASTRUCTURES/StringListUtils.h>
 #include <OpenMS/FILTERING/SMOOTHING/SavitzkyGolayFilter.h>
-#include <OpenMS/FORMAT/MzMLFile.h>
+#include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/DATAACCESS/MSDataWritingConsumer.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 
@@ -190,10 +190,9 @@ public:
     //-------------------------------------------------------------
     // loading input
     //-------------------------------------------------------------
-    MzMLFile mz_data_file;
-    mz_data_file.setLogType(log_type_);
+    FileHandler mz_data_file;
     PeakMap exp;
-    mz_data_file.load(in, exp);
+    mz_data_file.loadExperiment(in, exp, {FileTypes::MZML}, FileTypes::UNKNOWN, log_type_);
 
     if (exp.empty() && exp.getChromatograms().empty())
     {
@@ -239,7 +238,7 @@ public:
     //annotate output with data processing info
     addDataProcessing_(exp, getProcessingInfo_(DataProcessing::SMOOTHING));
 
-    mz_data_file.store(out, exp);
+    mz_data_file.storeExperiment(out, exp, log_type_, {FileTypes::MZML});
 
     return EXECUTION_OK;
   }
