@@ -169,6 +169,83 @@ START_SECTION((HDF5_BLOSC()))
   auto return_code = register_blosc(&version, &date);
   TEST_EQUAL(return_code >= 0, true);
   std::cout << "Blosc version info: " << version << " " << date << std::endl;
+  
+  // try to load a BLOSC compressed HDF5 file (mzMLB) in read/write mode
+  unsigned int openFlag = H5F_ACC_RDONLY;
+  const H5std_string  FILE_NAME( OPENMS_GET_TEST_DATA_PATH("test.mzMLb").c_str() );
+
+  // thread-safe way to release file handle and free pointer
+  std::unique_ptr<H5File, void(*)(H5::H5File*)> hdf5_file(new H5File(filename, openFlag /*, fcparm, faparm*/), 
+    [](H5::H5File* f) {
+      if (f)
+      {
+        f->flush(H5F_SCOPE_LOCAL);
+        f->close();
+        delete f;
+        f = nullptr;
+      }
+    });
+
+    // get a list of all objects in the hdf5_file
+    std::vector<std::string> object_names;
+    hdf5_file.iterateElems("/", NULL,
+      // a c-style call-back function that takes takes an (&object_names), and makes it available as op_data.
+      // the lambda is called for each step during iteration
+      [](hid_t loc_id, const char* name, const H5L_info_t* info, void* op_data) -> herr_t
+      {
+        std::vector<std::string>* object_names = static_cast<std::vector<std::string>*>(op_data);
+        object_names->push_back(name);
+        return 0;
+      }, &object_names);
+
+    // print the object names and types
+    for (const std::string& name : object_names) 
+    {
+      H5O_info_t object_info;
+      H5Oget_info_by_name(hdf5_file.getId(), name.c_str(), &object_info, H5P_DEFAULT);
+
+      if (object_info.type == H5O_TYPE_GROUP) 
+      {
+        std::cout << name << " (group)" << std::endl;
+      } 
+      else if (object_info.type == H5O_TYPE_DATASET) 
+      {
+        hid_t dataset_id = H5Dopen(hdf5_file.getId(), name.c_str(), H5P_DEFAULT);
+        hid_t datatype_id = H5Dget_type(dataset_id);
+        H5T_class_t datatype_class = H5Tget_class(datatype_id);
+
+        if (datatype_class == H5T_COMPOUND) 
+        {
+          std::cout << name << " (compound)" << std::endl;
+          int nmembers = H5Tget_nmembers(datatype_id);
+
+          for (int i = 0; i < nmembers; ++i) 
+          {
+            std::string member_name = H5Tget_member_name(datatype_id, i);
+            std::cout << "    " << member_name << std::endl;
+          }
+        } 
+        else if (datatype_class == H5T_INTEGER) 
+        {
+          std::cout << name << " (integer)" << std::endl;
+        } 
+        else if (datatype_class == H5T_FLOAT) 
+        {
+          std::cout << name << " (float)" << std::endl;
+        } 
+        else if (datatype_class == H5T_STRING) 
+        {
+          std::cout << name << " (string)" << std::endl;
+        }
+
+        H5Tclose(datatype_id);
+        H5Dclose(dataset_id);
+      } 
+      else 
+      {
+        std::cout << name << " (unknown)" << std::endl;
+      }
+    }  
 }
 END_SECTION
 
