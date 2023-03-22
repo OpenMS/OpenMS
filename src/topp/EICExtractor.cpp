@@ -260,9 +260,9 @@ public:
     FileHandler mzml_file;
     PeakMap exp, exp_pp;
 
-    EDTAFile ed;
+    FileHandler ed;
     ConsensusMap cm;
-    ed.load(edta, cm);
+    ed.loadConsensusFeatures(edta, cm);
 
     StringList tf_single_header0, tf_single_header1, tf_single_header2; // header content, for each column
 

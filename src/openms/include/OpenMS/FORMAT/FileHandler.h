@@ -234,7 +234,7 @@ public:
       @exception Exception::FileNotFound is thrown if the file could not be opened
       @exception Exception::ParseError is thrown if an error occurs during parsing
     */
-    bool loadConsensusFeatures(const String& filename, ConsensusMap& map, const std::vector<FileTypes::Type> allowed_types = std::vector<FileTypes::Type>());
+    bool loadConsensusFeatures(const String& filename, ConsensusMap& map, const std::vector<FileTypes::Type> allowed_types = std::vector<FileTypes::Type>(), ProgressLogger::LogType log = ProgressLogger::NONE);
 
 
     /**

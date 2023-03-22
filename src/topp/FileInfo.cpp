@@ -528,13 +528,13 @@ protected:
     }
     else if (in_type == FileTypes::FEATUREXML) //features
     {
-      FeatureXMLFile ff;
-      ff.getOptions().setLoadConvexHull(false);   // CH's currently not needed here
-      ff.getOptions().setLoadSubordinates(false); // SO's currently not needed here
+      FileHandler ff;
+      ff.getFeatOptions().setLoadConvexHull(false);   // CH's currently not needed here
+      ff.getFeatOptions().setLoadSubordinates(false); // SO's currently not needed here
 
       SysInfo::MemUsage mu;
       // reading input
-      ff.load(in, feat);
+      ff.loadFeatures(in, feat, {FileTypes::FEATUREXML});
       std::cout << "\n\n" << mu.delta("loading featureXML") << std::endl;
 
       feat.updateRanges();
@@ -585,7 +585,7 @@ protected:
 
       SysInfo::MemUsage mu;
       // reading input
-      ConsensusXMLFile().load(in, cons);
+      FileHandler().loadConsensusFeatures(in, cons, {FileTypes::CONSENSUSXML});
       std::cout << "\n\n" << mu.delta("loading consensusXML") << std::endl;
 
       cons.updateRanges();
@@ -738,7 +738,7 @@ protected:
       SysInfo::MemUsage mu;
       if (in_type == FileTypes::MZIDENTML)
       {
-        MzIdentMLFile().load(in, id_data.proteins, id_data.peptides);
+        FileHandler().loadIdentifications(in, id_data.proteins, id_data.peptides, {FileTypes::MZIDENTML});
       }
       else
       {
@@ -867,7 +867,7 @@ protected:
     else if (in_type == FileTypes::TRANSFORMATIONXML)
     {
       TransformationDescription trafo;
-      TransformationXMLFile().load(in, trafo);
+      FileHandler().loadTransformations(in, trafo, false, {FileTypes::TRANSFORMATIONXML});
       os << "\nTransformation model: " << trafo.getModelType() << '\n';
       trafo.printSummary(os);
     }

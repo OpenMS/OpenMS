@@ -818,7 +818,7 @@ if (first_line.hasSubstring("File	First Scan	Last Scan	Num of Scans	Charge	Monoi
     return true;
   }
 
-  bool FileHandler::loadConsensusFeatures(const String& filename, ConsensusMap& map, const std::vector<FileTypes::Type> allowed_types)
+  bool FileHandler::loadConsensusFeatures(const String& filename, ConsensusMap& map, const std::vector<FileTypes::Type> allowed_types, ProgressLogger::LogType log)
   {
     if (allowed_types.size() != 0)
     {
@@ -846,6 +846,7 @@ if (first_line.hasSubstring("File	First Scan	Last Scan	Num of Scans	Charge	Monoi
       {
         ConsensusXMLFile f;
         f.getOptions() = options_;
+        f.setLogType(log);
         f.load(filename, map);
       }
       break;
@@ -1269,6 +1270,13 @@ if (first_line.hasSubstring("File	First Scan	Last Scan	Num of Scans	Charge	Monoi
     //load right file
     switch (ftype)
     {
+
+    case FileTypes::DTA:
+    {
+      DTAFile().store(filename, exp[0]);
+    }
+    break;
+
     case FileTypes::DTA2D:
     {
       DTA2DFile f;
