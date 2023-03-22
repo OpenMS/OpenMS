@@ -194,10 +194,12 @@ protected:
     boost::shared_ptr<MapType> exp (new MapType());
     FeatureMap out_featureFile;
     OpenSwath::LightTargetedExperiment transition_exp;
-    TargetedExperiment transitions_exp_tmp;
     std::cout << "Loading TraML file" << std::endl;
-    FileHandler().loadTransitions(tr_file, transitions_exp_tmp, {FileTypes::TRAML});
-    OpenSwathDataAccessHelper::convertTargetedExp(transitions_exp_tmp, transition_exp);
+    {
+      TargetedExperiment transitions_exp_tmp;
+      FileHandler().loadTransitions(tr_file, transitions_exp_tmp, {FileTypes::TRAML});
+      OpenSwathDataAccessHelper::convertTargetedExp(transitions_exp_tmp, transition_exp);
+    }
     FileHandler().loadExperiment(in, *exp.get(), {FileTypes::MZML}, FileTypes::UNKNOWN, log_type_);
 
     // If there are no SWATH files, it's just regular SRM/MRM Scoring
