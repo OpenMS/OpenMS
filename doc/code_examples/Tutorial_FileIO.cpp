@@ -46,7 +46,7 @@ int main(int argc, const char** argv)
 
   // convert MzXML to MzML
   FileHandler().loadExperiment(tutorial_data_path + "/data/Tutorial_FileIO.mzXML", map, {FileTypes::MZXML});
-  FileHandler().store("Tutorial_FileIO.mzML", map, {FileTypes::MZML});
+  FileHandler().storeExperiment("Tutorial_FileIO.mzML", map, {FileTypes::MZML});
 
   return 0;
 } //end of main
