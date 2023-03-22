@@ -419,7 +419,7 @@ namespace OpenMS
 
       PeakMap experiment;
       FileHandler fh;
-      fh.loadExperiment(mz_file, experiment, {}, FileTypes::UNKNOWN, ProgressLogger::NONE, false, false);
+      fh.loadExperiment(mz_file, experiment, {}, ProgressLogger::NONE, false, false);
       lookup.readSpectra(experiment.getSpectra());
     }
     else

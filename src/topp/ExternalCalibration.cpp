@@ -144,7 +144,7 @@ protected:
 
     // Raw data
     PeakMap exp;
-    FileHandler().loadExperiment(in, exp, {FileTypes::MZML}, FileTypes::UNKNOWN, log_type_);
+    FileHandler().loadExperiment(in, exp, {FileTypes::MZML}, log_type_);
 
     MZTrafoModel tm;
     tm.setCoefficients(offset, slope, power);
@@ -160,7 +160,7 @@ protected:
     //annotate output with data processing info
     addDataProcessing_(exp, getProcessingInfo_(DataProcessing::CALIBRATION));
 
-    FileHandler().storeExperiment(out, exp, log_type_, {FileTypes::MZML}, FileTypes::MZML);
+    FileHandler().storeExperiment(out, exp, {FileTypes::MZML}, log_type_);
 
     return EXECUTION_OK;
   }

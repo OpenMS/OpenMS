@@ -194,7 +194,7 @@ protected:
     options.addMSLevel(1);
     options.addMSLevel(2);
     f.getOptions() = options;
-    f.loadExperiment(in_mzml, unprocessed_spectra, {FileTypes::MZML}, FileTypes::UNKNOWN, log_type_);
+    f.loadExperiment(in_mzml, unprocessed_spectra, {FileTypes::MZML}, log_type_);
 
     // load linked features
     ConsensusMap cfeatures;

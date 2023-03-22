@@ -271,7 +271,7 @@ public:
     for (Size fi = 0; fi < in.size(); ++fi)
     {
       // load raw data
-      mzml_file.loadExperiment(in[fi], exp, {FileTypes::MZML}, FileTypes::MZML, log_type_);
+      mzml_file.loadExperiment(in[fi], exp, {FileTypes::MZML}, log_type_);
       exp.sortSpectra(true);
 
       if (exp.empty())
@@ -349,7 +349,7 @@ public:
           // get rid of "native-id" missing warning
           for (Size id = 0; id < out_debug.size(); ++id) out_debug[id].setNativeID(String("spectrum=") + id);
 
-          mzml_file.storeExperiment(out_TIC_debug, out_debug, ProgressLogger::NONE ,{FileTypes::MZML}, FileTypes::MZML);
+          mzml_file.storeExperiment(out_TIC_debug, out_debug,{FileTypes::MZML});
           OPENMS_LOG_DEBUG << "Storing debug AUTO-RT: " << out_TIC_debug << std::endl;
         }
 

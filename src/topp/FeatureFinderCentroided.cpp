@@ -196,7 +196,7 @@ protected:
     f.getOptions() = options;
 
     PeakMap exp;
-    f.loadExperiment(in, exp, {FileTypes::MZML}, FileTypes::UNKNOWN, log_type_);
+    f.loadExperiment(in, exp, {FileTypes::MZML}, log_type_);
     exp.updateRanges();
 
     if (exp.getSpectra().empty())
@@ -291,7 +291,7 @@ protected:
       }
     }
 
-    map_file.storeFeatures(out, features, {FileTypes::FEATUREXML}, FileTypes::FEATUREXML);
+    map_file.storeFeatures(out, features, {FileTypes::FEATUREXML});
 
     if (!out_mzq.trim().empty())
     {
@@ -303,7 +303,7 @@ protected:
       MSQuantifications msq(features, exp.getExperimentalSettings(), tmp );
       msq.assignUIDs();
       FileHandler file;
-      file.storeQuantifications(out_mzq, msq, {FileTypes::MZQUANTML}, FileTypes::MZQUANTML);
+      file.storeQuantifications(out_mzq, msq, {FileTypes::MZQUANTML});
     }
 
     return EXECUTION_OK;

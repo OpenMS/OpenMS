@@ -213,7 +213,7 @@ protected:
         addDataProcessing_(features, getProcessingInfo_(
                              DataProcessing::DATA_PROCESSING));
         OPENMS_LOG_INFO << "Writing " << features.size() << " seeds to " << out[num_maps] << endl;
-        FileHandler().storeFeatures(out[num_maps], features, {FileTypes::FEATUREXML}, FileTypes::FEATUREXML);
+        FileHandler().storeFeatures(out[num_maps], features, {FileTypes::FEATUREXML});
       }
 
       return EXECUTION_OK;

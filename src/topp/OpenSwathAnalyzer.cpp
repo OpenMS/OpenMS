@@ -200,7 +200,7 @@ protected:
       FileHandler().loadTransitions(tr_file, transitions_exp_tmp, {FileTypes::TRAML});
       OpenSwathDataAccessHelper::convertTargetedExp(transitions_exp_tmp, transition_exp);
     }
-    FileHandler().loadExperiment(in, *exp.get(), {FileTypes::MZML}, FileTypes::UNKNOWN, log_type_);
+    FileHandler().loadExperiment(in, *exp.get(), {FileTypes::MZML}, log_type_);
 
     // If there are no SWATH files, it's just regular SRM/MRM Scoring
     if (file_list.empty())
@@ -235,7 +235,7 @@ protected:
       // no progress log on the console in parallel
       featureFinder.setLogType(log_type_);
 
-      FileHandler().loadExperiment(file_list[i], *swath_map.get(), {FileTypes::MZML}, FileTypes::UNKNOWN, log_type_);
+      FileHandler().loadExperiment(file_list[i], *swath_map.get(), {FileTypes::MZML}, log_type_);
 
       // Logging and output to the console
 #ifdef _OPENMP

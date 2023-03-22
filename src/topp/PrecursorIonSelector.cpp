@@ -286,13 +286,13 @@ protected:
 
       if (!next_prec.empty())
       {
-        f_file.storeFeatures(next_prec, new_precursors, {FileTypes::FEATUREXML}, FileTypes::FEATUREXML);
+        f_file.storeFeatures(next_prec, new_precursors, {FileTypes::FEATUREXML});
       }
     }
 
     if (!out.empty())
     {
-      f_file.storeFeatures(out, f_map, {FileTypes::FEATUREXML}, FileTypes::FEATUREXML);
+      f_file.storeFeatures(out, f_map, {FileTypes::FEATUREXML});
     }
     return EXECUTION_OK;
   }

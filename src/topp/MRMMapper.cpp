@@ -172,7 +172,7 @@ protected:
     }
     output.setChromatograms(chromatograms);
 
-    FileHandler().storeExperiment(out, output, ProgressLogger::NONE, {FileTypes::MZML}, FileTypes::MZML);
+    FileHandler().storeExperiment(out, output, {FileTypes::MZML});
     return EXECUTION_OK;
   }
 

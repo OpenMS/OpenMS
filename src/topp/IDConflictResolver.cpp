@@ -132,12 +132,12 @@ protected:
       }
       
       addDataProcessing_(features, getProcessingInfo_(DataProcessing::FILTERING));
-      FileHandler().storeFeatures(out, features, {FileTypes::FEATUREXML}, FileTypes::FEATUREXML);
+      FileHandler().storeFeatures(out, features, {FileTypes::FEATUREXML});
     }
     else // consensusXML
     {
       ConsensusMap consensus;
-      FileHandler().loadConsensusFeatures(in, consensus, {FileTypes::CONSENSUSXML}, FileTypes::CONSENSUSXML);
+      FileHandler().loadConsensusFeatures(in, consensus, {FileTypes::CONSENSUSXML});
       
       IDConflictResolverAlgorithm::resolve(consensus);
       
@@ -147,7 +147,7 @@ protected:
       }
       
       addDataProcessing_(consensus, getProcessingInfo_(DataProcessing::FILTERING));
-      FileHandler().storeConsensusFeatures(out, consensus, {FileTypes::CONSENSUSXML}, FileTypes::CONSENSUSXML);
+      FileHandler().storeConsensusFeatures(out, consensus, {FileTypes::CONSENSUSXML});
     }
     return EXECUTION_OK;
   }

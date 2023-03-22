@@ -354,7 +354,7 @@ namespace OpenMS
 
     // store data in temporary files
     FileHandler spectra_file;
-    spectra_file.storeExperiment(mzml_path, exp, ProgressLogger::NONE ,{FileTypes::MZML}, FileTypes::MZML);
+    spectra_file.storeExperiment(mzml_path, exp,{FileTypes::MZML});
     FASTAFile database;
     database.store(db_path, fasta_data);
 
@@ -400,7 +400,7 @@ namespace OpenMS
 
     if (keep_files)
     {
-      id_file.StoreIdentifications(tmp_dir.getPath() + "indexed_pre_FDR.idXML", prot_ids, pep_ids, {FileTypes::IDXML}, FileTypes::IDXML);
+      id_file.StoreIdentifications(tmp_dir.getPath() + "indexed_pre_FDR.idXML", prot_ids, pep_ids, {FileTypes::IDXML});
     }
 
     return pep_ids;

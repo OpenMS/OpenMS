@@ -172,7 +172,7 @@ public:
    */
   void writeFeatureMap_(const String& filename, FeatureMap& map) const
   {
-    FileHandler().storeFeatures(filename, map, {FileTypes::FEATUREXML}, FileTypes::FEATUREXML);
+    FileHandler().storeFeatures(filename, map, {FileTypes::FEATUREXML});
   }
 
   /**
@@ -187,7 +187,7 @@ public:
     {
       ch.second.filename = getStringOption_("in");
     }
-    FileHandler().storeConsensusFeatures(filename, map, {FileTypes::CONSENSUSXML}, FileTypes::CONSENSUSXML);
+    FileHandler().storeConsensusFeatures(filename, map, {FileTypes::CONSENSUSXML});
   }
 
   /**
@@ -198,7 +198,7 @@ public:
    */
   void writeBlacklist_(const String& filename, const MSExperiment& blacklist) const
   {
-    FileHandler().storeExperiment(filename, blacklist, ProgressLogger::NONE, {FileTypes::MZML}, FileTypes::MZML);
+    FileHandler().storeExperiment(filename, blacklist, {FileTypes::MZML});
   }
 
   /**
@@ -248,7 +248,7 @@ public:
     file.getOptions().setMSLevels(levels);
 
     OPENMS_LOG_DEBUG << "Loading input..." << endl;
-    file.loadExperiment(in_, exp, {FileTypes::MZML}, FileTypes::UNKNOWN, log_type_);
+    file.loadExperiment(in_, exp, {FileTypes::MZML}, log_type_);
 
     FeatureFinderMultiplexAlgorithm algorithm;
     // pass only relevant parameters to the algorithm and set the log type

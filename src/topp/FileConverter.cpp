@@ -351,7 +351,7 @@ protected:
              in_type == FileTypes::PEPLIST ||
              in_type == FileTypes::KROENIK)
     {
-      fh.loadFeatures(in, fm, {}, in_type);
+      fh.loadFeatures(in, fm, {in_type});
       fm.sortByPosition();
       if ((out_type != FileTypes::FEATUREXML) &&
           (out_type != FileTypes::CONSENSUSXML) &&
@@ -374,7 +374,7 @@ protected:
       cacher.setLogType(log_type_);
       PeakMap tmp_exp;
 
-      FileHandler().loadExperiment(in_meta, exp, {FileTypes::MZML}, FileTypes::UNKNOWN, log_type_);
+      FileHandler().loadExperiment(in_meta, exp, {FileTypes::MZML}, log_type_);
       cacher.readMemdump(tmp_exp, in);
 
       // Sanity check
@@ -473,7 +473,7 @@ protected:
     }
     else
     {
-      fh.loadExperiment(in, exp, {in_type}, in_type, log_type_, true, true);
+      fh.loadExperiment(in, exp, {in_type}, log_type_, true, true);
     }
 
     //-------------------------------------------------------------
@@ -537,7 +537,7 @@ protected:
         }
       }
       ChromatogramTools().convertSpectraToChromatograms(exp, true, convert_to_chromatograms);
-      mzmlFile.storeExperiment(out, exp, ProgressLogger::NONE , {FileTypes::MZML}, FileTypes::MZML);
+      mzmlFile.storeExperiment(out, exp, {FileTypes::MZML});
     }
     else if (out_type == FileTypes::MZDATA)
     {
@@ -545,7 +545,7 @@ protected:
       addDataProcessing_(exp, getProcessingInfo_(DataProcessing::
                                                  CONVERSION_MZDATA));
       ChromatogramTools().convertChromatogramsToSpectra<MSExperiment>(exp);
-      FileHandler().storeExperiment(out, exp, ProgressLogger::NONE, {FileTypes::MZDATA}, FileTypes::MZDATA);
+      FileHandler().storeExperiment(out, exp, {FileTypes::MZDATA});
     }
     else if (out_type == FileTypes::MZXML)
     {
@@ -555,7 +555,7 @@ protected:
       FileHandler f;
       f.getOptions().setForceMQCompatability(force_MaxQuant_compatibility);
       f.getOptions().setWriteIndex(write_scan_index);
-      f.storeExperiment(out, exp, log_type_, {FileTypes::MZXML}, FileTypes::MZXML);
+      f.storeExperiment(out, exp, {FileTypes::MZXML}, log_type_);
     }
     else if (out_type == FileTypes::DTA2D)
     {
@@ -636,7 +636,7 @@ protected:
 
       addDataProcessing_(fm, getProcessingInfo_(DataProcessing::
                                                 FORMAT_CONVERSION));
-      FileHandler().storeFeatures(out, fm, {FileTypes::FEATUREXML}, FileTypes::FEATUREXML);
+      FileHandler().storeFeatures(out, fm, {FileTypes::FEATUREXML});
     }
     else if (out_type == FileTypes::CONSENSUSXML)
     {
@@ -668,7 +668,7 @@ protected:
 
       addDataProcessing_(cm, getProcessingInfo_(DataProcessing::
                                                 FORMAT_CONVERSION));
-      FileHandler().storeConsensusFeatures(out, cm, {FileTypes::CONSENSUSXML}, FileTypes::CONSENSUSXML);
+      FileHandler().storeConsensusFeatures(out, cm, {FileTypes::CONSENSUSXML});
     }
     else if (out_type == FileTypes::EDTA)
     {
@@ -679,11 +679,11 @@ protected:
       }
       if (!fm.empty())
       {
-        FileHandler().storeFeatures(out, fm, {FileTypes::EDTA}, FileTypes::EDTA);
+        FileHandler().storeFeatures(out, fm, {FileTypes::EDTA});
       }
       else if (!cm.empty())
       {
-        FileHandler().storeConsensusFeatures(out, cm, {FileTypes::EDTA}, FileTypes::EDTA);
+        FileHandler().storeConsensusFeatures(out, cm, {FileTypes::EDTA});
       }
     }
     else if (out_type == FileTypes::CACHEDMZML)
@@ -716,7 +716,7 @@ protected:
     }
     else if (out_type == FileTypes::SQMASS)
     {
-      FileHandler().storeExperiment(out, exp, ProgressLogger::NONE, {FileTypes::SQMASS}, FileTypes::SQMASS);
+      FileHandler().storeExperiment(out, exp, {FileTypes::SQMASS});
     }
     else if (out_type == FileTypes::OMS)
     {
@@ -726,7 +726,7 @@ protected:
         return INCOMPATIBLE_INPUT_DATA;
       }
       IdentificationDataConverter::importFeatureIDs(fm);
-      FileHandler().storeFeatures(out, fm, {FileTypes::OMS}, FileTypes::OMS);
+      FileHandler().storeFeatures(out, fm, {FileTypes::OMS});
     }
     else
     {

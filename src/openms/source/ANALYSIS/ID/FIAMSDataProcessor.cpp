@@ -237,7 +237,7 @@ namespace OpenMS {
   {
       MSExperiment exp;
       exp.addSpectrum(input);
-      FileHandler().storeExperiment(filename, exp, ProgressLogger::NONE ,{FileTypes::MZML});
+      FileHandler().storeExperiment(filename, exp,{FileTypes::MZML});
   }
 
   /// Get mass-to-charge ratios to base the sliding window upon

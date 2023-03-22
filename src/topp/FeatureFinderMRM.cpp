@@ -135,7 +135,7 @@ protected:
 
     //reading input data
     PeakMap exp;
-    FileHandler().loadExperiment(in, exp, {FileTypes::MZML}, FileTypes::MZML, log_type_);
+    FileHandler().loadExperiment(in, exp, {FileTypes::MZML}, log_type_);
 
     //no seeds supported
     FeatureMap seeds;
@@ -187,7 +187,7 @@ protected:
     //annotate output with data processing info
     addDataProcessing_(features, getProcessingInfo_(DataProcessing::QUANTITATION));
 
-    FileHandler().storeFeatures(out, features, {FileTypes::FEATUREXML}, FileTypes::FEATUREXML);
+    FileHandler().storeFeatures(out, features, {FileTypes::FEATUREXML});
 
     return EXECUTION_OK;
   }

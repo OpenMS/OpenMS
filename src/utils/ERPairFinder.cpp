@@ -334,8 +334,8 @@ protected:
 
         if (debug > 9)
         {
-          FileHandler().storeExperiment(String(it->getRT()) + "_debugging_light.mzML", new_exp_light, ProgressLogger::NONE, {FileTypes::MZML});
-          FileHandler().storeExperiment(String(it->getRT()) + "_debugging_heavy.mzML", new_exp_heavy, ProgressLogger::NONE, {FileTypes::MZML});
+          FileHandler().storeExperiment(String(it->getRT()) + "_debugging_light.mzML", new_exp_light, {FileTypes::MZML});
+          FileHandler().storeExperiment(String(it->getRT()) + "_debugging_heavy.mzML", new_exp_heavy, {FileTypes::MZML});
         }
 
         writeDebug_("Spectrum-id: " + it->getNativeID() + " @ " + String(it->getRT()) + "s", 1);

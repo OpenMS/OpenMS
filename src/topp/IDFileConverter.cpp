@@ -307,7 +307,7 @@ protected:
       if (!mz_file.empty())
       {
         type = fh.getTypeByFileName(mz_file);
-        fh.loadExperiment(mz_file, msexperiment, {type}, type, log_type_, false, false);
+        fh.loadExperiment(mz_file, msexperiment, {type}, log_type_, false, false);
 
         for (PeakMap::Iterator spectra_it = msexperiment.begin(); spectra_it != msexperiment.end(); ++spectra_it)
         {
@@ -414,7 +414,7 @@ protected:
         else
         {
           PeakMap exp;
-          fh.loadExperiment(mz_file, exp, {}, FileTypes::UNKNOWN, log_type_, false,
+          fh.loadExperiment(mz_file, exp, {}, log_type_, false,
                             false);
           if (mz_name.empty()) mz_name = mz_file;
           String scan_regex = getStringOption_("scan_regex");
@@ -492,7 +492,7 @@ protected:
           PeakMap exp;
           // load only MS2 spectra:
           fh.getOptions().addMSLevel(2);
-          fh.loadExperiment(mz_file, exp, {}, FileTypes::MZML, log_type_, false,
+          fh.loadExperiment(mz_file, exp, {}, log_type_, false,
                             false);
           MascotXMLFile::initializeLookup(lookup, exp, scan_regex);
         }
@@ -515,7 +515,7 @@ protected:
         {
           PeakMap exp;
           fh.getOptions().addMSLevel(2);
-          fh.loadExperiment(mz_file, exp, {} , FileTypes::MZML, log_type_, false,
+          fh.loadExperiment(mz_file, exp, {}, log_type_, false,
                             false);
           for (PeptideIdentification& pep : peptide_identifications)
           {
@@ -549,7 +549,7 @@ protected:
         if (!mz_file.empty())
         {
           PeakMap experiment;
-          fh.loadExperiment(mz_file, experiment, {}, FileTypes::UNKNOWN, log_type_, false, false);
+          fh.loadExperiment(mz_file, experiment, {}, log_type_, false, false);
           lookup.readSpectra(experiment.getSpectra());
         }
         String scan_regex = getStringOption_("scan_regex");
@@ -674,7 +674,7 @@ protected:
 
         logger.startProgress(0, 1, "Storing...");
 
-        FileHandler().storeExperiment(out, exp, ProgressLogger::NONE, {FileTypes::MZML}, FileTypes::MZML);
+        FileHandler().storeExperiment(out, exp, {FileTypes::MZML});
 
         logger.endProgress();
 
@@ -716,17 +716,17 @@ protected:
     break;
 
     case FileTypes::IDXML:
-      FileHandler().StoreIdentifications(out, protein_identifications, peptide_identifications, {FileTypes::IDXML}, FileTypes::IDXML);
+      FileHandler().StoreIdentifications(out, protein_identifications, peptide_identifications, {FileTypes::IDXML});
       break;
 
     case FileTypes::MZIDENTML:
       FileHandler().StoreIdentifications(out, protein_identifications,
-                            peptide_identifications, {FileTypes::MZIDENTML}, FileTypes::MZIDENTML);
+                            peptide_identifications, {FileTypes::MZIDENTML});
       break;
 
     case FileTypes::XQUESTXML:
       FileHandler().StoreIdentifications(out, protein_identifications,
-                                  peptide_identifications, {FileTypes::XQUESTXML}, FileTypes::XQUESTXML);
+                                  peptide_identifications, {FileTypes::XQUESTXML});
       break;
 
     case FileTypes::FASTA:

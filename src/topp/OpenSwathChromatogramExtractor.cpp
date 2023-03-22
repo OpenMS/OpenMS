@@ -324,7 +324,7 @@ protected:
     // store the output
     out_exp.setChromatograms(chromatograms);
     addDataProcessing_(out_exp, getProcessingInfo_(DataProcessing::SMOOTHING));
-    FileHandler().storeExperiment(out, out_exp, log_type_, {FileTypes::MZML});
+    FileHandler().storeExperiment(out, out_exp, {FileTypes::MZML}, log_type_);
 
     return EXECUTION_OK;
   }

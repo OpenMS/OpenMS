@@ -164,7 +164,7 @@ protected:
     }
     if (!trafo_out.empty())
     {
-      FileHandler().storeTransformations(trafo_out, trafo, {FileTypes::TRANSFORMATIONXML}, FileTypes::TRANSFORMATIONXML);
+      FileHandler().storeTransformations(trafo_out, trafo, {FileTypes::TRANSFORMATIONXML});
     }
   }
 
@@ -248,7 +248,7 @@ protected:
       // annotate output with data processing info
       addDataProcessing_(out, getProcessingInfo_(DataProcessing::FORMAT_CONVERSION));
 
-      fh.storeFeatures(out_file, out, {FileTypes::FEATUREXML}, FileTypes::FEATUREXML);
+      fh.storeFeatures(out_file, out, {FileTypes::FEATUREXML});
     }
 
     else if (force_type == FileTypes::CONSENSUSXML)
@@ -309,7 +309,7 @@ protected:
       // annotate output with data processing info
       addDataProcessing_(out, getProcessingInfo_(DataProcessing::FORMAT_CONVERSION));
 
-      fh.storeConsensusFeatures(out_file, out,{FileTypes::CONSENSUSXML}, FileTypes::CONSENSUSXML);
+      fh.storeConsensusFeatures(out_file, out,{FileTypes::CONSENSUSXML});
     }
 
     else if (force_type == FileTypes::FASTA)
@@ -369,7 +369,7 @@ protected:
       software.setVersion(VersionInfo::getVersion());
       out.addSoftware(software);
 
-      fh.storeTransitions(out_file, out, {FileTypes::TRAML}, FileTypes::TRAML);
+      fh.storeTransitions(out_file, out, {FileTypes::TRAML});
     }
     else // raw data input (e.g. mzML)
     {
@@ -401,7 +401,7 @@ protected:
         // load file
         force_type = file_handler.getType(file_list[i]);
         PeakMap in;
-        file_handler.loadExperiment(filename, in, {force_type}, force_type, log_type_, true, true);
+        file_handler.loadExperiment(filename, in, {force_type}, log_type_, true, true);
 
         if (in.empty() && in.getChromatograms().empty())
         {
@@ -501,7 +501,7 @@ protected:
       // annotate output with data processing info
       addDataProcessing_(out, getProcessingInfo_(DataProcessing::FORMAT_CONVERSION));
 
-      FileHandler().storeExperiment(out_file, out, log_type_ ,{FileTypes::MZML}, FileTypes::MZML);
+      FileHandler().storeExperiment(out_file, out,{FileTypes::MZML}, log_type_);
     }
 
     return EXECUTION_OK;

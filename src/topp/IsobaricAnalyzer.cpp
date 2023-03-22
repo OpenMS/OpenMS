@@ -243,7 +243,7 @@ protected:
     //-------------------------------------------------------------
 
     PeakMap exp;
-    FileHandler().loadExperiment(in, exp, {FileTypes::MZML}, FileTypes::UNKNOWN, log_type_);
+    FileHandler().loadExperiment(in, exp, {FileTypes::MZML}, log_type_);
 
     //-------------------------------------------------------------
     // init quant method
@@ -287,7 +287,7 @@ protected:
     const auto empty_feat = [](const ConsensusFeature& c){return c.getPeptideIdentifications().empty() && c.metaValueExists("all_empty") && c.getMetaValue("all_empty") == "true";};
     consensus_map_quant.erase(remove_if(consensus_map_quant.begin(), consensus_map_quant.end(), empty_feat), consensus_map_quant.end());
     consensus_map_quant.ensureUniqueId();
-    FileHandler().storeConsensusFeatures(out, consensus_map_quant, {FileTypes::CONSENSUSXML});
+    FileHandler().storeConsensusFeatures(out, consensus_map_quant);
 
     return EXECUTION_OK;
   }

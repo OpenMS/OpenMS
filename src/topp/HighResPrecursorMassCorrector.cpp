@@ -201,7 +201,7 @@ class TOPPHiResPrecursorMassCorrector :
         corrected_precursors.insert(corrected_to_nearest_feature.begin(), corrected_to_nearest_feature.end());
       }
 
-      FileHandler().storeExperiment(out_mzml, exp, log_type_, {FileTypes::MZML}, FileTypes::MZML);
+      FileHandler().storeExperiment(out_mzml, exp, {FileTypes::MZML},log_type_);
 
       if (!out_csv.empty())
       {

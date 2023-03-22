@@ -154,7 +154,7 @@ protected:
     for (Size i = 0; i < ins.size(); ++i)
     {
       progresslogger.setProgress(i);
-      f.loadExperiment(ins[i], peak_maps[i], {FileTypes::MZML}, FileTypes::UNKNOWN, log_type_);
+      f.loadExperiment(ins[i], peak_maps[i], {FileTypes::MZML}, log_type_);
     }
     progresslogger.endProgress();
 
@@ -180,7 +180,7 @@ protected:
       addDataProcessing_(peak_maps[i], 
                          getProcessingInfo_(DataProcessing::ALIGNMENT));
 
-      f.storeExperiment(outs[i], peak_maps[i], log_type_, {FileTypes::MZML});
+      f.storeExperiment(outs[i], peak_maps[i],{FileTypes::MZML}, log_type_);
     }
     progresslogger.endProgress();
 

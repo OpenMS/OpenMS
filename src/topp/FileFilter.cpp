@@ -706,7 +706,7 @@ protected:
       f.getOptions().setNumpressConfigurationFloatDataArray(npconfig_fda);
 
       MapType exp;
-      f.loadExperiment(in, exp, {FileTypes::MZML}, FileTypes::UNKNOWN, log_type_);
+      f.loadExperiment(in, exp, {FileTypes::MZML}, log_type_);
 
       // remove spectra with meta values:
       if (remove_meta_enabled)
@@ -990,7 +990,7 @@ protected:
 
       //annotate output with data processing info
       addDataProcessing_(exp, getProcessingInfo_(DataProcessing::FILTERING));
-      f.storeExperiment(out, exp, log_type_ ,{FileTypes::MZML}, FileTypes::MZML);
+      f.storeExperiment(out, exp,{FileTypes::MZML}, log_type_);
     }
     else if (in_type == FileTypes::FEATUREXML || in_type == FileTypes::CONSENSUSXML)
     {
@@ -1063,7 +1063,7 @@ protected:
         //annotate output with data processing info
         addDataProcessing_(map_sm, getProcessingInfo_(DataProcessing::FILTERING));
 
-        f.storeFeatures(out, map_sm, {FileTypes::FEATUREXML}, FileTypes::FEATUREXML);
+        f.storeFeatures(out, map_sm, {FileTypes::FEATUREXML});
       }
       else if (in_type == FileTypes::CONSENSUSXML)
       {
@@ -1151,7 +1151,7 @@ protected:
 
             feature_map_filtered.applyMemberFunction(&UniqueIdInterface::setUniqueId);
 
-            ff.storeFeatures(out, feature_map_filtered, {FileTypes::FEATUREXML}, FileTypes::FEATUREXML);
+            ff.storeFeatures(out, feature_map_filtered, {FileTypes::FEATUREXML});
           }
           else
           {
@@ -1209,14 +1209,14 @@ protected:
             //annotate output with data processing info
             addDataProcessing_(consensus_map_filtered, getProcessingInfo_(DataProcessing::FILTERING));
 
-            f.storeConsensusFeatures(out, consensus_map_filtered, {FileTypes::CONSENSUSXML}, FileTypes::CONSENSUSXML);
+            f.storeConsensusFeatures(out, consensus_map_filtered, {FileTypes::CONSENSUSXML});
           }
           else
           {
             //annotate output with data processing info
             addDataProcessing_(cm_new, getProcessingInfo_(DataProcessing::FILTERING));
 
-            f.storeConsensusFeatures(out, cm_new, {FileTypes::CONSENSUSXML}, FileTypes::CONSENSUSXML);
+            f.storeConsensusFeatures(out, cm_new, {FileTypes::CONSENSUSXML});
           }
         }
       }

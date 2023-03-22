@@ -683,7 +683,7 @@ protected:
     }
 
     // write output:
-    FileHandler().StoreIdentifications(out, proteins, peptides, {FileTypes::IDXML}, FileTypes::IDXML);
+    FileHandler().StoreIdentifications(out, proteins, peptides, {FileTypes::IDXML});
 
     // clean up temporary files:
     if (debug_level_ > 1)

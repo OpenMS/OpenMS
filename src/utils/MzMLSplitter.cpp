@@ -197,7 +197,7 @@ protected:
       chrom_start += n_chrom;
 
       writeLogInfo_("Part " + String(counter) + ": " + String(n_spec) + " spectra, " + String(n_chrom) + " chromatograms");
-      FileHandler().storeExperiment(out_name.str(), part, ProgressLogger::NONE, {FileTypes::MZML}, FileTypes::MZML);
+      FileHandler().storeExperiment(out_name.str(), part, {FileTypes::MZML});
     }
 
     return EXECUTION_OK;

@@ -145,7 +145,7 @@ protected:
       {
         addDataProcessing_(experiment,
                            getProcessingInfo_(DataProcessing::FILTERING));
-        FileHandler().storeExperiment(out, experiment, ProgressLogger::NONE, {FileTypes::MZML}, FileTypes::MZML);
+        FileHandler().storeExperiment(out, experiment, {FileTypes::MZML});
       }
     }
     else if (in_type == FileTypes::FEATUREXML)
@@ -166,7 +166,7 @@ protected:
       {
         addDataProcessing_(features,
                            getProcessingInfo_(DataProcessing::FILTERING));
-        FileHandler().storeFeatures(out, features, {FileTypes::FEATUREXML}, FileTypes::FEATUREXML);
+        FileHandler().storeFeatures(out, features, {FileTypes::FEATUREXML});
       }
     }
     else         // consensusXML
@@ -187,7 +187,7 @@ protected:
       {
         addDataProcessing_(consensus,
                            getProcessingInfo_(DataProcessing::FILTERING));
-        FileHandler().storeConsensusFeatures(out, consensus, {FileTypes::CONSENSUSXML}, FileTypes::CONSENSUSXML);
+        FileHandler().storeConsensusFeatures(out, consensus, {FileTypes::CONSENSUSXML});
       }
     }
 
@@ -196,7 +196,7 @@ protected:
       // IDMapper can match a peptide ID to several overlapping features,
       // resulting in duplicates; this shouldn't be the case for peak data
       if (in_type != FileTypes::MZML) removeDuplicates_(peptides);
-      FileHandler().StoreIdentifications(id_out, proteins, peptides, {FileTypes::IDXML}, FileTypes::IDXML);
+      FileHandler().StoreIdentifications(id_out, proteins, peptides, {FileTypes::IDXML});
     }
 
     return EXECUTION_OK;

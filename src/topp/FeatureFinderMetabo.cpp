@@ -184,7 +184,7 @@ protected:
     PeakMap ms_peakmap;
     std::vector<Int> ms_level(1, 1);
     mz_data_file.getOptions().setMSLevels(ms_level);
-    mz_data_file.loadExperiment(in, ms_peakmap, {FileTypes::MZML}, FileTypes::UNKNOWN, log_type_);
+    mz_data_file.loadExperiment(in, ms_peakmap, {FileTypes::MZML}, log_type_);
 
     if (ms_peakmap.empty())
     {
@@ -334,7 +334,7 @@ protected:
                   out_exp.addChromatogram(feat_chromatograms[i][j]);
                 }
             }
-          FileHandler().storeExperiment(out_chrom, out_exp, ProgressLogger::NONE, {FileTypes::MZML}, FileTypes::MZML);
+          FileHandler().storeExperiment(out_chrom, out_exp, {FileTypes::MZML});
         }
         else
         {
@@ -378,7 +378,7 @@ protected:
       feat_map.setPrimaryMSRunPath({in}, ms_peakmap);
     }    
 
-    FileHandler().storeFeatures(out, feat_map, {FileTypes::FEATUREXML}, FileTypes::FEATUREXML);
+    FileHandler().storeFeatures(out, feat_map, {FileTypes::FEATUREXML});
   
     return EXECUTION_OK;
   }

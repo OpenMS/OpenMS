@@ -218,7 +218,7 @@ TEST_REAL_SIMILAR(exp[2][1].getPosition()[0], 130)
 TEST_REAL_SIMILAR(exp[2][2].getPosition()[0], 140)
 
 tmp.getOptions() = PeakFileOptions();
-TEST_EQUAL(tmp.loadExperiment(OPENMS_GET_TEST_DATA_PATH("MzMLFile_1.mzML"), exp, {FileTypes::MZML}, FileTypes::MZML, OpenMS::ProgressLogger::NONE, true, true), true)
+TEST_EQUAL(tmp.loadExperiment(OPENMS_GET_TEST_DATA_PATH("MzMLFile_1.mzML"), exp, {FileTypes::MZML}, OpenMS::ProgressLogger::NONE, true, true), true)
 TEST_EQUAL(exp.size(), 4)
 TEST_STRING_EQUAL(exp.getSourceFiles()[0].getChecksum(), "36007593dbca0ba59a1f4fc32fb970f0e8991fa6")
 TEST_EQUAL(exp.getSourceFiles()[0].getChecksumType(), SourceFile::SHA1)
@@ -230,7 +230,7 @@ TEST_REAL_SIMILAR(exp[0][1].getPosition()[0], 430.02)
 TEST_REAL_SIMILAR(exp[0][2].getPosition()[0], 630.02)
 
 tmp.getOptions().setMZRange(DRange<1>(300, 1000));
-TEST_EQUAL(tmp.loadExperiment(OPENMS_GET_TEST_DATA_PATH("DTA2DFile_test_1.dta2d"), exp, {FileTypes::DTA2D}, FileTypes::DTA2D, OpenMS::ProgressLogger::NONE, true, true), true)
+TEST_EQUAL(tmp.loadExperiment(OPENMS_GET_TEST_DATA_PATH("DTA2DFile_test_1.dta2d"), exp, {FileTypes::DTA2D}, OpenMS::ProgressLogger::NONE, true, true), true)
 TEST_REAL_SIMILAR(exp[0][0].getPosition()[0], 430.02)
 TEST_REAL_SIMILAR(exp[0][1].getPosition()[0], 630.02)
 TEST_STRING_EQUAL(exp.getSourceFiles()[0].getChecksum(), "d50d5144cc3805749b9e8d16f3bc8994979d8142")
@@ -239,21 +239,19 @@ TEST_EQUAL(exp.getSourceFiles()[0].getChecksumType(), SourceFile::SHA1)
 TEST_EQUAL(tmp.loadExperiment(OPENMS_GET_TEST_DATA_PATH("XMassFile_test/fid"), exp), true)
 
 // disable hash computation
-TEST_EQUAL(tmp.loadExperiment(OPENMS_GET_TEST_DATA_PATH("DTA2DFile_test_1.dta2d"), exp, {}, FileTypes::UNKNOWN, ProgressLogger::NONE, true, false), true)
+TEST_EQUAL(tmp.loadExperiment(OPENMS_GET_TEST_DATA_PATH("DTA2DFile_test_1.dta2d"), exp, {}, ProgressLogger::NONE, true, false), true)
 TEST_STRING_EQUAL(exp.getSourceFiles()[0].getChecksum(), "")
 TEST_EQUAL(exp.getSourceFiles()[0].getChecksumType(), SourceFile::UNKNOWN_CHECKSUM)
 // Test that we fail if given a known bogus type restriction
-TEST_EXCEPTION(Exception::ParseError, tmp.loadExperiment(OPENMS_GET_TEST_DATA_PATH("DTA2DFile_test_1.dta2d"), exp, {FileTypes::SIZE_OF_TYPE}, FileTypes::UNKNOWN, ProgressLogger::NONE, true, false))
+TEST_EXCEPTION(Exception::ParseError, tmp.loadExperiment(OPENMS_GET_TEST_DATA_PATH("DTA2DFile_test_1.dta2d"), exp, {FileTypes::SIZE_OF_TYPE}, ProgressLogger::NONE, true, false))
 
-
-TEST_EXCEPTION(Exception::ParseError, tmp.loadExperiment(OPENMS_GET_TEST_DATA_PATH("DTAFile_test.dta"), exp, {FileTypes::DTA}, FileTypes::MZML))
 END_SECTION
 
 START_SECTION((static String computeFileHash(const String& filename)))
 PeakMap exp;
 FileHandler tmp;
 // Test that we load with the correct file type restriction
-TEST_EQUAL(tmp.loadExperiment(OPENMS_GET_TEST_DATA_PATH("DTA2DFile_test_1.dta2d"), exp, {FileTypes::DTA2D}, FileTypes::UNKNOWN, ProgressLogger::NONE, true, true), true)
+TEST_EQUAL(tmp.loadExperiment(OPENMS_GET_TEST_DATA_PATH("DTA2DFile_test_1.dta2d"), exp, {FileTypes::DTA2D}, ProgressLogger::NONE, true, true), true)
 // compute hash
 TEST_STRING_EQUAL(exp.getSourceFiles()[0].getChecksum(), "d50d5144cc3805749b9e8d16f3bc8994979d8142")
 END_SECTION
@@ -301,13 +299,13 @@ fh.loadExperiment(OPENMS_GET_TEST_DATA_PATH("MzMLFile_1.mzML"), exp);
 String filename, filename2;
 NEW_TMP_FILE(filename);
 NEW_TMP_FILE(filename2);
-fh.storeExperiment(filename, exp, ProgressLogger::NONE);
+fh.storeExperiment(filename, exp, {}, ProgressLogger::NONE);
 TEST_EQUAL(fh.getTypeByContent(filename), FileTypes::MZML)
 //fh.storeExperiment(filename2, exp, ProgressLogger::NONE, {FileTypes::MZML});
 
 
 //Test that we throw an exception when given a bogus type restriction
-TEST_EXCEPTION(Exception::UnableToCreateFile, fh.storeExperiment(filename, exp, ProgressLogger::NONE, {FileTypes::SIZE_OF_TYPE}))
+TEST_EXCEPTION(Exception::UnableToCreateFile, fh.storeExperiment(filename, exp, {FileTypes::SIZE_OF_TYPE}))
 
 //other types cannot be tested, because the NEW_TMP_FILE template does not support file extensions...
 END_SECTION

@@ -637,7 +637,7 @@ if (first_line.hasSubstring("File	First Scan	Last Scan	Num of Scans	Charge	Monoi
     return String((QString)crypto.result().toHex());
   }
 
-  bool FileHandler::loadFeatures(const String& filename, FeatureMap& map, const std::vector<FileTypes::Type> allowed_types, FileTypes::Type force_type, ProgressLogger::LogType log)
+  bool FileHandler::loadFeatures(const String& filename, FeatureMap& map, const std::vector<FileTypes::Type> allowed_types, ProgressLogger::LogType log)
   {
 
     if (allowed_types.size() != 0)
@@ -650,20 +650,13 @@ if (first_line.hasSubstring("File	First Scan	Last Scan	Num of Scans	Charge	Monoi
 
     //determine file type
     FileTypes::Type type;
-    if (force_type != FileTypes::UNKNOWN)
+    try
     {
-      type = force_type;
+      type = getType(filename);
     }
-    else
+    catch ( Exception::FileNotFound& )
     {
-      try
-      {
-        type = getType(filename);
-      }
-      catch ( Exception::FileNotFound& )
-      {
-        return false;
-      }
+      return false;
     }
 
     //load right file
@@ -709,28 +702,20 @@ if (first_line.hasSubstring("File	First Scan	Last Scan	Num of Scans	Charge	Monoi
     return true;
   }
 
-  bool FileHandler::storeFeatures(const String& filename, const FeatureMap& map, const std::vector<FileTypes::Type> allowed_types, FileTypes::Type force_type)
+  bool FileHandler::storeFeatures(const String& filename, const FeatureMap& map, const std::vector<FileTypes::Type> allowed_types)
   {
 
     FileTypes::Type ftype;
-    // If we are overriding the suffix (like for testing), just force the type
-    if (force_type != FileTypes::UNKNOWN)
+    try
     {
-      ftype = force_type;
+      ftype = getTypeByFileName(filename);
     }
-    else
+    catch ( Exception::FileNotFound& )
     {
-      try
-      {
-        ftype = getTypeByFileName(filename);
-      }
-      catch ( Exception::FileNotFound& )
-      {
-        return false;
-      }
+      return false;
     }
     // If we have a restricted set of file types check that we match them
-    if (allowed_types.size() != 0 && force_type == FileTypes::UNKNOWN)
+    if (allowed_types.size() != 0)
     {
       if (!check_types_(allowed_types, filename))
       {
@@ -791,27 +776,19 @@ if (first_line.hasSubstring("File	First Scan	Last Scan	Num of Scans	Charge	Monoi
     return true;
   }
 
-  bool FileHandler::storeConsensusFeatures(const String& filename, const ConsensusMap& map,  const std::vector<FileTypes::Type> allowed_types,  FileTypes::Type force_type)
+  bool FileHandler::storeConsensusFeatures(const String& filename, const ConsensusMap& map,  const std::vector<FileTypes::Type> allowed_types)
   {
     FileTypes::Type ftype;
-    // If we are overriding the suffix (like for testing), just force the type
-    if (force_type != FileTypes::UNKNOWN)
+    try
     {
-      ftype = force_type;
+      ftype = getTypeByFileName(filename);
     }
-    else
+    catch ( Exception::FileNotFound& )
     {
-      try
-      {
-        ftype = getTypeByFileName(filename);
-      }
-      catch ( Exception::FileNotFound& )
-      {
-        return false;
-      }
+      return false;
     }
     // If we have a restricted set of file types check that we match them
-    if (allowed_types.size() != 0 && force_type == FileTypes::UNKNOWN)
+    if (allowed_types.size() != 0)
     {
       if (!check_types_(allowed_types, filename))
       {
@@ -841,7 +818,7 @@ if (first_line.hasSubstring("File	First Scan	Last Scan	Num of Scans	Charge	Monoi
     return true;
   }
 
-  bool FileHandler::loadConsensusFeatures(const String& filename, ConsensusMap& map, const std::vector<FileTypes::Type> allowed_types, FileTypes::Type force_type)
+  bool FileHandler::loadConsensusFeatures(const String& filename, ConsensusMap& map, const std::vector<FileTypes::Type> allowed_types)
   {
     if (allowed_types.size() != 0)
     {
@@ -853,21 +830,15 @@ if (first_line.hasSubstring("File	First Scan	Last Scan	Num of Scans	Charge	Monoi
 
     //determine file type
     FileTypes::Type type;
-    if (force_type != FileTypes::UNKNOWN)
+    try
     {
-      type = force_type;
+      type = getType(filename);
     }
-    else
+    catch ( Exception::FileNotFound& )
     {
-      try
-      {
-        type = getType(filename);
-      }
-      catch ( Exception::FileNotFound& )
-      {
-        return false;
-      }
+      return false;
     }
+
 
     switch (type)
     {
@@ -892,16 +863,10 @@ if (first_line.hasSubstring("File	First Scan	Last Scan	Num of Scans	Charge	Monoi
     return true;
   }
 
-  bool FileHandler::StoreIdentifications(const String& filename, const std::vector<ProteinIdentification>& additional_proteins, const std::vector<PeptideIdentification>& additional_peptides, const std::vector<FileTypes::Type> allowed_types, FileTypes::Type force_type)
+  bool FileHandler::StoreIdentifications(const String& filename, const std::vector<ProteinIdentification>& additional_proteins, const std::vector<PeptideIdentification>& additional_peptides, const std::vector<FileTypes::Type> allowed_types)
   {
  FileTypes::Type ftype;
-    // If we are overriding the suffix (like for testing), just force the type
-    if (force_type != FileTypes::UNKNOWN)
-    {
-      ftype = force_type;
-    }
-    // If there is only one possible format, treat that as forced. Save my thumbs.
-    else if (allowed_types.size() == 1)
+ if (allowed_types.size() == 1)
     {
       ftype = allowed_types[0];
     }
@@ -917,7 +882,7 @@ if (first_line.hasSubstring("File	First Scan	Last Scan	Num of Scans	Charge	Monoi
       }
     }
     // If we have a restricted set of file types check that we match them
-    if (allowed_types.size() != 0 && force_type == FileTypes::UNKNOWN)
+    if (allowed_types.size() != 0)
     {
       if (!check_types_(allowed_types, filename))
       {
@@ -959,7 +924,7 @@ if (first_line.hasSubstring("File	First Scan	Last Scan	Num of Scans	Charge	Monoi
     return true;
   }
 
-  bool FileHandler::loadIdentifications(const String& filename, std::vector<ProteinIdentification>& additional_proteins, std::vector<PeptideIdentification>& additional_peptides, const std::vector<FileTypes::Type> allowed_types, FileTypes::Type force_type)
+  bool FileHandler::loadIdentifications(const String& filename, std::vector<ProteinIdentification>& additional_proteins, std::vector<PeptideIdentification>& additional_peptides, const std::vector<FileTypes::Type> allowed_types)
   {
     if (allowed_types.size() != 0)
     {
@@ -971,20 +936,13 @@ if (first_line.hasSubstring("File	First Scan	Last Scan	Num of Scans	Charge	Monoi
 
     //determine file type
     FileTypes::Type type;
-    if (force_type != FileTypes::UNKNOWN)
+    try
     {
-      type = force_type;
+      type = getType(filename);
     }
-    else
+    catch ( Exception::FileNotFound& )
     {
-      try
-      {
-        type = getType(filename);
-      }
-      catch ( Exception::FileNotFound& )
-      {
-        return false;
-      }
+      return false;
     }
 
     switch (type)
@@ -1036,16 +994,10 @@ if (first_line.hasSubstring("File	First Scan	Last Scan	Num of Scans	Charge	Monoi
     return true;
   }
 
-  bool FileHandler::storeTransitions(const String& filename, const TargetedExperiment& library, const std::vector<FileTypes::Type> allowed_types,  FileTypes::Type force_type)
+  bool FileHandler::storeTransitions(const String& filename, const TargetedExperiment& library, const std::vector<FileTypes::Type> allowed_types)
   {
     FileTypes::Type ftype;
-    // If we are overriding the suffix (like for testing), just force the type
-    if (force_type != FileTypes::UNKNOWN)
-    {
-      ftype = force_type;
-    }
-    // If there is only one possible format, treat that as forced. Save my thumbs.
-    else if (allowed_types.size() == 1)
+    if (allowed_types.size() == 1)
     {
       ftype = allowed_types[0];
     }
@@ -1061,7 +1013,7 @@ if (first_line.hasSubstring("File	First Scan	Last Scan	Num of Scans	Charge	Monoi
       }
     }
     // If we have a restricted set of file types check that we match them
-    if (allowed_types.size() != 0 && force_type == FileTypes::UNKNOWN)
+    if (allowed_types.size() != 0)
     {
       if (!check_types_(allowed_types, filename))
       {
@@ -1085,7 +1037,7 @@ if (first_line.hasSubstring("File	First Scan	Last Scan	Num of Scans	Charge	Monoi
     return true;
   }
 
-    bool FileHandler::loadTransitions(const String& filename,TargetedExperiment& library, const std::vector<FileTypes::Type> allowed_types,  FileTypes::Type force_type)
+    bool FileHandler::loadTransitions(const String& filename,TargetedExperiment& library, const std::vector<FileTypes::Type> allowed_types)
   {
     if (allowed_types.size() != 0)
     {
@@ -1097,23 +1049,17 @@ if (first_line.hasSubstring("File	First Scan	Last Scan	Num of Scans	Charge	Monoi
 
     //determine file type
     FileTypes::Type type;
-    if (force_type != FileTypes::UNKNOWN)
+    try
     {
-      type = force_type;
+      type = getType(filename);
     }
-    else
+    catch ( Exception::FileNotFound& )
     {
-      try
-      {
-        type = getType(filename);
-      }
-      catch ( Exception::FileNotFound& )
-      {
-        return false;
-      }
+      return false;
     }
+  
     // If we have a restricted set of file types check that we match them
-    if (allowed_types.size() != 0 && force_type == FileTypes::UNKNOWN)
+    if (allowed_types.size() != 0)
     {
       if (!check_types_(allowed_types, filename))
       {
@@ -1137,7 +1083,7 @@ if (first_line.hasSubstring("File	First Scan	Last Scan	Num of Scans	Charge	Monoi
     return true;
   }
 
-  bool FileHandler::loadExperiment(const String& filename, PeakMap& exp, const std::vector<FileTypes::Type> allowed_types, FileTypes::Type force_type, ProgressLogger::LogType log, const bool rewrite_source_file, const bool compute_hash)
+  bool FileHandler::loadExperiment(const String& filename, PeakMap& exp, const std::vector<FileTypes::Type> allowed_types, ProgressLogger::LogType log, const bool rewrite_source_file, const bool compute_hash)
   {
     // setting the flag for hash recomputation only works if source file entries are rewritten
     OPENMS_PRECONDITION(rewrite_source_file || !compute_hash, "Can't compute hash if no SourceFile written");
@@ -1153,20 +1099,13 @@ if (first_line.hasSubstring("File	First Scan	Last Scan	Num of Scans	Charge	Monoi
 
     //determine file type
     FileTypes::Type type;
-    if (force_type != FileTypes::UNKNOWN)
+    try
     {
-      type = force_type;
+      type = getType(filename);
     }
-    else
+    catch ( Exception::FileNotFound& )
     {
-      try
-      {
-        type = getType(filename);
-      }
-      catch ( Exception::FileNotFound& )
-      {
-        return false;
-      }
+      return false;
     }
 
     // load right file
@@ -1299,16 +1238,10 @@ if (first_line.hasSubstring("File	First Scan	Last Scan	Num of Scans	Charge	Monoi
     return true;
   }
 
-  bool FileHandler::storeExperiment(const String& filename, const PeakMap& exp, ProgressLogger::LogType log, const std::vector<FileTypes::Type> allowed_types,  FileTypes::Type force_type)
+  bool FileHandler::storeExperiment(const String& filename, const PeakMap& exp, const std::vector<FileTypes::Type> allowed_types, ProgressLogger::LogType log)
   {
     FileTypes::Type ftype;
-    // If we are overriding the suffix (like for testing), just force the type
-    if (force_type != FileTypes::UNKNOWN)
-    {
-      ftype = force_type;
-    }
-    // If there is only one possible format, treat that as forced. Save my thumbs.
-    else if (allowed_types.size() == 1)
+    if (allowed_types.size() == 1)
     {
       ftype = allowed_types[0];
     }
@@ -1324,7 +1257,7 @@ if (first_line.hasSubstring("File	First Scan	Last Scan	Num of Scans	Charge	Monoi
       }
     }
     // If we have a restricted set of file types check that we match them
-    if (allowed_types.size() != 0 && force_type == FileTypes::UNKNOWN)
+    if (allowed_types.size() != 0)
     {
       if (!check_types_(allowed_types, filename))
       {
@@ -1400,7 +1333,7 @@ if (first_line.hasSubstring("File	First Scan	Last Scan	Num of Scans	Charge	Monoi
     return true;
   }
 
-  bool FileHandler::loadQuantifications(const String& filename, MSQuantifications& map, const std::vector<FileTypes::Type> allowed_types, FileTypes::Type force_type)
+  bool FileHandler::loadQuantifications(const String& filename, MSQuantifications& map, const std::vector<FileTypes::Type> allowed_types)
   {
 
     if (allowed_types.size() != 0)
@@ -1413,20 +1346,13 @@ if (first_line.hasSubstring("File	First Scan	Last Scan	Num of Scans	Charge	Monoi
 
     //determine file type
     FileTypes::Type type;
-    if (force_type != FileTypes::UNKNOWN)
+    try
     {
-      type = force_type;
+      type = getType(filename);
     }
-    else
+    catch ( Exception::FileNotFound& )
     {
-      try
-      {
-        type = getType(filename);
-      }
-      catch ( Exception::FileNotFound& )
-      {
-        return false;
-      }
+      return false;
     }
     switch (type)
     {
@@ -1444,17 +1370,11 @@ if (first_line.hasSubstring("File	First Scan	Last Scan	Num of Scans	Charge	Monoi
     return true;
   }
 
-  bool FileHandler::storeQuantifications(const String& filename, const MSQuantifications& map,  const std::vector<FileTypes::Type> allowed_types,  FileTypes::Type force_type)
+  bool FileHandler::storeQuantifications(const String& filename, const MSQuantifications& map,  const std::vector<FileTypes::Type> allowed_types)
   {
 
     FileTypes::Type ftype;
-    // If we are overriding the suffix (like for testing), just force the type
-    if (force_type != FileTypes::UNKNOWN)
-    {
-      ftype = force_type;
-    }
-    // If there is only one possible format, treat that as forced. Save my thumbs.
-    else if (allowed_types.size() == 1)
+    if (allowed_types.size() == 1)
     {
       ftype = allowed_types[0];
     }
@@ -1470,7 +1390,7 @@ if (first_line.hasSubstring("File	First Scan	Last Scan	Num of Scans	Charge	Monoi
       }
     }
     // If we have a restricted set of file types check that we match them
-    if (allowed_types.size() != 0 && force_type == FileTypes::UNKNOWN)
+    if (allowed_types.size() != 0)
     {
       if (!check_types_(allowed_types, filename))
       {
@@ -1495,7 +1415,7 @@ if (first_line.hasSubstring("File	First Scan	Last Scan	Num of Scans	Charge	Monoi
     return true;
   }
 
-    bool FileHandler::loadTransformations(const String& filename, TransformationDescription& map, bool fit_model, const std::vector<FileTypes::Type> allowed_types, FileTypes::Type force_type)
+    bool FileHandler::loadTransformations(const String& filename, TransformationDescription& map, bool fit_model, const std::vector<FileTypes::Type> allowed_types)
   {
 
     if (allowed_types.size() != 0)
@@ -1508,20 +1428,13 @@ if (first_line.hasSubstring("File	First Scan	Last Scan	Num of Scans	Charge	Monoi
 
     //determine file type
     FileTypes::Type type;
-    if (force_type != FileTypes::UNKNOWN)
+    try
     {
-      type = force_type;
+      type = getType(filename);
     }
-    else
+    catch ( Exception::FileNotFound& )
     {
-      try
-      {
-        type = getType(filename);
-      }
-      catch ( Exception::FileNotFound& )
-      {
-        return false;
-      }
+      return false;
     }
     switch (type)
     {
@@ -1539,17 +1452,11 @@ if (first_line.hasSubstring("File	First Scan	Last Scan	Num of Scans	Charge	Monoi
     return true;
   }
 
-  bool FileHandler::storeTransformations(const String& filename, const TransformationDescription& map,  const std::vector<FileTypes::Type> allowed_types,  FileTypes::Type force_type)
+  bool FileHandler::storeTransformations(const String& filename, const TransformationDescription& map,  const std::vector<FileTypes::Type> allowed_types)
   {
 
     FileTypes::Type ftype;
-    // If we are overriding the suffix (like for testing), just force the type
-    if (force_type != FileTypes::UNKNOWN)
-    {
-      ftype = force_type;
-    }
-    // If there is only one possible format, treat that as forced. Save my thumbs.
-    else if (allowed_types.size() == 1)
+    if (allowed_types.size() == 1)
     {
       ftype = allowed_types[0];
     }
@@ -1565,7 +1472,7 @@ if (first_line.hasSubstring("File	First Scan	Last Scan	Num of Scans	Charge	Monoi
       }
     }
     // If we have a restricted set of file types check that we match them
-    if (allowed_types.size() != 0 && force_type == FileTypes::UNKNOWN)
+    if (allowed_types.size() != 0)
     {
       if (!check_types_(allowed_types, filename))
       {
@@ -1602,33 +1509,20 @@ if (first_line.hasSubstring("File	First Scan	Last Scan	Num of Scans	Charge	Monoi
                const String& description,
                const String& label,
                const bool remove_duplicate_features,
-               const std::vector<FileTypes::Type> allowed_types,
-               FileTypes::Type force_type)
+               const std::vector<FileTypes::Type> allowed_types
+             )
   {
     FileTypes::Type ftype;
-    // If we are overriding the suffix (like for testing), just force the type
-    if (force_type != FileTypes::UNKNOWN)
+    try
     {
-      ftype = force_type;
+      ftype = getTypeByFileName(output_file);
     }
-    // If there is only one possible format, treat that as forced. Save my thumbs.
-    else if (allowed_types.size() == 1)
+    catch ( Exception::FileNotFound& )
     {
-      ftype = allowed_types[0];
-    }
-    else
-    {
-      try
-      {
-        ftype = getTypeByFileName(output_file);
-      }
-      catch ( Exception::FileNotFound& )
-      {
-        return false;
-      }
+      return false;
     }
     // If we have a restricted set of file types check that we match them
-    if (allowed_types.size() != 0 && force_type == FileTypes::UNKNOWN)
+    if (allowed_types.size() != 0)
     {
       if (!check_types_(allowed_types, output_file))
       {

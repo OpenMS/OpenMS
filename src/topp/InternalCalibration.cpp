@@ -256,7 +256,7 @@ protected:
     // Raw data
     PeakMap exp;
     FileHandler mz_file;
-    mz_file.loadExperiment(in, exp, {FileTypes::MZML}, FileTypes::UNKNOWN, log_type_);
+    mz_file.loadExperiment(in, exp, {FileTypes::MZML}, log_type_);
 
     InternalCalibration ic;
     ic.setLogType(log_type_);
@@ -314,14 +314,14 @@ protected:
         OPENMS_LOG_INFO << "\nWriting matched lock masses to mzML file '" << file_cal_lock_out << "'." << std::endl;
         PeakMap exp_out;
         exp_out.set2DData(ic.getCalibrationPoints(), CalibrationData::getMetaValues());
-        mz_file.storeExperiment(file_cal_lock_out, exp_out, log_type_ , {FileTypes::MZML});
+        mz_file.storeExperiment(file_cal_lock_out, exp_out, {FileTypes::MZML}, log_type_);
       }
       if (!file_cal_lock_fail_out.empty())
       {
         OPENMS_LOG_INFO << "\nWriting unmatched lock masses to mzML file '" << file_cal_lock_fail_out << "'." << std::endl;
         PeakMap exp_out;
         exp_out.set2DData(failed_points, CalibrationData::getMetaValues());
-        mz_file.storeExperiment(file_cal_lock_fail_out, exp_out, log_type_ , {FileTypes::MZML});
+        mz_file.storeExperiment(file_cal_lock_fail_out, exp_out, {FileTypes::MZML}, log_type_);
       }
     }
     
@@ -338,7 +338,7 @@ protected:
       OPENMS_LOG_ERROR << "The 'force' flag was set to true. Storing uncalibrated data to '-out'." << std::endl;
       // do not calibrate
       addDataProcessing_(exp, getProcessingInfo_(DataProcessing::CALIBRATION));
-      mz_file.storeExperiment(out, exp, log_type_ , {FileTypes::MZML});
+      mz_file.storeExperiment(out, exp, {FileTypes::MZML}, log_type_);
       return EXECUTION_OK;
     }
       
@@ -385,7 +385,7 @@ protected:
     //annotate output with data processing info
     addDataProcessing_(exp, getProcessingInfo_(DataProcessing::CALIBRATION));
 
-    mz_file.storeExperiment(out, exp, log_type_ , {FileTypes::MZML});
+    mz_file.storeExperiment(out, exp, {FileTypes::MZML}, log_type_);
 
     return EXECUTION_OK;
   }

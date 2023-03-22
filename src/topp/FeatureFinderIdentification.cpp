@@ -229,7 +229,7 @@ protected:
       OPENMS_LOG_INFO << "Loading input data..." << endl;
       FileHandler mzml;
       mzml.getOptions().addMSLevel(1);
-      mzml.loadExperiment(in, ffid_algo.getMSData(), {FileTypes::MZML}, FileTypes::UNKNOWN, log_type_);
+      mzml.loadExperiment(in, ffid_algo.getMSData(), {FileTypes::MZML}, log_type_);
 
       vector<PeptideIdentification> peptides, peptides_ext;
       vector<ProteinIdentification> proteins, proteins_ext;
@@ -255,14 +255,14 @@ protected:
       // keep assay data for output?
       if (keep_library)
       {
-        FileHandler().storeTransitions(lib_out, ffid_algo.getLibrary(), {FileTypes::TRAML}, FileTypes::TRAML);
+        FileHandler().storeTransitions(lib_out, ffid_algo.getLibrary(), {FileTypes::TRAML});
       }
 
       // keep chromatogram data for output?
       if (keep_chromatograms)
       {
         addDataProcessing_(ffid_algo.getChromatograms(), getProcessingInfo_(DataProcessing::FILTERING));
-        FileHandler().storeExperiment(chrom_out, ffid_algo.getChromatograms(), ProgressLogger::NONE, {FileTypes::MZML}, FileTypes::MZML);
+        FileHandler().storeExperiment(chrom_out, ffid_algo.getChromatograms(), {FileTypes::MZML});
         ffid_algo.getChromatograms().clear(true);
       }
 
@@ -284,7 +284,7 @@ protected:
     //-------------------------------------------------------------
 
     OPENMS_LOG_INFO << "Writing final results..." << endl;
-    FileHandler().storeFeatures(out, features, {FileTypes::FEATUREXML}, FileTypes::FEATUREXML);
+    FileHandler().storeFeatures(out, features, {FileTypes::FEATUREXML});
 
 
     return EXECUTION_OK;

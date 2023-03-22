@@ -189,7 +189,7 @@ public:
     // loading input
     //-------------------------------------------------------------
     PeakMap exp;
-    FileHandler().loadExperiment(in, exp, {FileTypes::MZML}, FileTypes::UNKNOWN, log_type_);
+    FileHandler().loadExperiment(in, exp, {FileTypes::MZML}, log_type_);
 
     if (exp.empty() && exp.getChromatograms().empty())
     {
@@ -243,7 +243,7 @@ public:
     //annotate output with data processing info
     addDataProcessing_(exp, getProcessingInfo_(DataProcessing::SMOOTHING));
 
-    FileHandler().storeExperiment(out, exp, log_type_, {FileTypes::MZML});
+    FileHandler().storeExperiment(out, exp, {FileTypes::MZML}, log_type_);
 
     return EXECUTION_OK;
   }

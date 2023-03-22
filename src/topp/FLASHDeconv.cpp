@@ -332,7 +332,7 @@ protected:
       opt.setIntensityRange(DRange<1> {min_intensity, 1e200});
     }
     mzml.setOptions(opt);
-    mzml.loadExperiment(in_file, map, {FileTypes::MZML}, FileTypes::UNKNOWN, log_type_);
+    mzml.loadExperiment(in_file, map, {FileTypes::MZML}, log_type_);
 
     uint current_max_ms_level = 0;
 
@@ -698,13 +698,13 @@ protected:
     if (!out_mzml_file.empty())
     {
       FileHandler mzml_file;
-      mzml_file.storeExperiment(out_mzml_file, exp, ProgressLogger::NONE, {FileTypes::MZML}, FileTypes::MZML);
+      mzml_file.storeExperiment(out_mzml_file, exp, {FileTypes::MZML});
     }
 
     if (!out_anno_mzml_file.empty())
     {
       FileHandler mzml_file;
-      mzml_file.storeExperiment(out_anno_mzml_file, exp_annotated, ProgressLogger::NONE, {FileTypes::MZML}, FileTypes::MZML);
+      mzml_file.storeExperiment(out_anno_mzml_file, exp_annotated, {FileTypes::MZML});
     }
 
     for (int j = 0; j < (int)current_max_ms_level; j++)

@@ -443,7 +443,7 @@ protected:
     // Somehow even our variable OpenMS::Internal::OpenMS_locale is overwritten
     // Create copy here and reset it later. TODO this needs to be fixed more thouroughly.
     String locale_before = String(OpenMS::Internal::OpenMS_locale);
-    FileHandler().loadFeatures(file_list[0], feature_map, {FileTypes::FEATUREXML}, FileTypes::UNKNOWN, log_type_);
+    FileHandler().loadFeatures(file_list[0], feature_map, {FileTypes::FEATUREXML}, log_type_);
     setlocale(LC_ALL, locale_before.c_str());
     if (feature_map.getIdentifier().empty())
     {
@@ -481,7 +481,7 @@ protected:
     // start with the second in the list (we just wrote out the first one)
     for (Size i = 1; i < file_list.size(); ++i)
     {
-      FileHandler().loadFeatures(file_list[i], feature_map, {FileTypes::FEATUREXML}, FileTypes::UNKNOWN, log_type_);
+      FileHandler().loadFeatures(file_list[i], feature_map, {FileTypes::FEATUREXML}, log_type_);
       if (feature_map.getIdentifier().empty())
       {
         feature_map.setIdentifier("run" + (String)i);

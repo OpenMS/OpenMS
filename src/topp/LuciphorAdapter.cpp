@@ -509,7 +509,7 @@ protected:
     options.clearMSLevels();
     options.addMSLevel(2);
 
-    FileHandler().loadExperiment(in, exp, {FileTypes::MZML}, FileTypes::UNKNOWN, log_type_);
+    FileHandler().loadExperiment(in, exp, {FileTypes::MZML}, log_type_);
     exp.sortSpectra(true);
 
     // convert idXML input to pepXML if necessary

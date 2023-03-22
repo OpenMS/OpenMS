@@ -265,7 +265,7 @@ protected:
           MapAlignmentTransformer::transformRetentionTimes(map, trafo);
           // annotate output with data processing info
           addDataProcessing_(map, getProcessingInfo_(DataProcessing::ALIGNMENT));
-          f_fxml_tmp.storeFeatures(out_files[i], map, {FileTypes::FEATUREXML}, FileTypes::FEATUREXML);
+          f_fxml_tmp.storeFeatures(out_files[i], map, {FileTypes::FEATUREXML});
         }
       }
       else if (in_type == FileTypes::MZML)
@@ -285,13 +285,13 @@ protected:
           MapAlignmentTransformer::transformRetentionTimes(map, trafo);
           // annotate output with data processing info
           addDataProcessing_(map, getProcessingInfo_(DataProcessing::ALIGNMENT));
-          FileHandler().storeExperiment(out_files[i], map, ProgressLogger::NONE, {FileTypes::MZML}, FileTypes::MZML);
+          FileHandler().storeExperiment(out_files[i], map, {FileTypes::MZML});
         }
       }
 
       if (!out_trafos.empty())
       {
-        FileHandler().storeTransformations(out_trafos[i], trafo, {FileTypes::TRANSFORMATIONXML}, FileTypes::TRANSFORMATIONXML);
+        FileHandler().storeTransformations(out_trafos[i], trafo, {FileTypes::TRANSFORMATIONXML});
       }
 
 #ifdef _OPENMP

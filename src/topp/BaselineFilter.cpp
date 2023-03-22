@@ -126,7 +126,7 @@ protected:
     //-------------------------------------------------------------
 
     PeakMap ms_exp;
-    FileHandler().loadExperiment(in, ms_exp, {FileTypes::MZML}, FileTypes::UNKNOWN, log_type_);
+    FileHandler().loadExperiment(in, ms_exp, {FileTypes::MZML}, log_type_);
 
     if (ms_exp.empty())
     {
@@ -171,7 +171,7 @@ protected:
     //annotate output with data processing info
     addDataProcessing_(ms_exp, getProcessingInfo_(DataProcessing::BASELINE_REDUCTION));
 
-    FileHandler().storeExperiment(out, ms_exp, log_type_, {FileTypes::MZML}, FileTypes::MZML);
+    FileHandler().storeExperiment(out, ms_exp, {FileTypes::MZML}, log_type_);
 
     return EXECUTION_OK;
   }

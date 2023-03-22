@@ -185,7 +185,7 @@ protected:
     options.addMSLevel(2);
     options.addMSLevel(1);
     f.getOptions() = options;
-    f.loadExperiment(in_mzml, unprocessed_spectra, {FileTypes::MZML}, FileTypes::UNKNOWN, log_type_);
+    f.loadExperiment(in_mzml, unprocessed_spectra, {FileTypes::MZML}, log_type_);
 
     // load linked features
     // @FIXME Orphaned code

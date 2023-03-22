@@ -882,7 +882,7 @@ protected:
     else // peaks
     {
       SysInfo::MemUsage mu;
-      if (!fh.loadExperiment(in, exp, {in_type}, in_type, log_type_, false, false))
+      if (!fh.loadExperiment(in, exp, {in_type}, log_type_, false, false))
       {
         writeLogError_("Unsupported or corrupt input file. Aborting!");
         printUsage_();

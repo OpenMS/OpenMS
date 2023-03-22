@@ -141,7 +141,7 @@ protected:
     f.getOptions() = options;
 
     PeakMap exp;
-    f.loadExperiment(in, exp, {FileTypes::MZML}, FileTypes::UNKNOWN, log_type_);
+    f.loadExperiment(in, exp, {FileTypes::MZML}, log_type_);
     exp.updateRanges();
 
     //no seeds supported
@@ -189,7 +189,7 @@ protected:
     addDataProcessing_(features, getProcessingInfo_(DataProcessing::QUANTITATION));
 
     // write features to user specified output file
-    FileHandler().storeFeatures(out, features, {FileTypes::FEATUREXML}, FileTypes::FEATUREXML);
+    FileHandler().storeFeatures(out, features, {FileTypes::FEATUREXML});
 
     return EXECUTION_OK;
   }

@@ -909,7 +909,7 @@ protected:
         }
       }
       // store consensus
-      FileHandler().StoreIdentifications(out, prot_ids, pep_ids, {FileTypes::IDXML}, FileTypes::IDXML);
+      FileHandler().StoreIdentifications(out, prot_ids, pep_ids, {FileTypes::IDXML});
     }
 
     //----------------------------------------------------------------
@@ -922,7 +922,7 @@ protected:
 
       processFeatureOrConsensusMap_(map, consensus);
 
-      FileHandler().storeFeatures(out, map, {FileTypes::FEATUREXML}, FileTypes::FEATUREXML);
+      FileHandler().storeFeatures(out, map, {FileTypes::FEATUREXML});
     }
 
     //----------------------------------------------------------------
@@ -935,7 +935,7 @@ protected:
 
       processFeatureOrConsensusMap_(map, consensus);
 
-      FileHandler().storeConsensusFeatures(out, map, {FileTypes::CONSENSUSXML}, FileTypes::CONSENSUSXML);
+      FileHandler().storeConsensusFeatures(out, map, {FileTypes::CONSENSUSXML});
     }
 
     delete consensus;

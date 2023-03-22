@@ -131,7 +131,7 @@ protected:
     FileTypes::Type in_type = fh.getType(in);
 
     PeakMap exp;
-    fh.loadExperiment(in, exp, {in_type}, in_type, ProgressLogger::NONE, false, false);
+    fh.loadExperiment(in, exp, {in_type}, ProgressLogger::NONE, false, false);
     exp.sortSpectra();
 
     FeatureMap feature_map;
@@ -266,7 +266,7 @@ protected:
     progresslogger.endProgress();
 
     // writing output
-    fh.storeExperiment(out, exp, ProgressLogger::NONE);
+    fh.storeExperiment(out, exp);
 
     return EXECUTION_OK;
   }

@@ -1001,7 +1001,7 @@ protected:
     options.clearMSLevels();
     options.addMSLevel(2);
     f.setOptions(options);
-    f.loadExperiment(in_mzml, spectra, {FileTypes::MZML}, FileTypes::UNKNOWN, log_type_);
+    f.loadExperiment(in_mzml, spectra, {FileTypes::MZML}, log_type_);
     spectra.sortSpectra(true);
 
     // input file meta data:
@@ -1377,11 +1377,11 @@ protected:
 
     if (!exp_ms2_out.empty())
     {
-      FileHandler().storeExperiment(exp_ms2_out, exp_ms2_spectra, log_type_ ,{FileTypes::MZML});
+      FileHandler().storeExperiment(exp_ms2_out, exp_ms2_spectra, {FileTypes::MZML}, log_type_);
     }
     if (!theo_ms2_out.empty())
     {
-      FileHandler().storeExperiment(theo_ms2_out, theo_ms2_spectra, log_type_, {FileTypes::MZML});
+      FileHandler().storeExperiment(theo_ms2_out, theo_ms2_spectra, {FileTypes::MZML}, log_type_);
     }
 
     progresslogger.startProgress(0, 1, "post-processing search hits...");

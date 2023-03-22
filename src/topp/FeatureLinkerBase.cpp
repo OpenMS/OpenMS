@@ -353,7 +353,7 @@ protected:
     out_map.sortPeptideIdentificationsByMapIndex();
 
     // write output
-    FileHandler().storeConsensusFeatures(out, out_map, {FileTypes::CONSENSUSXML}, FileTypes::CONSENSUSXML);
+    FileHandler().storeConsensusFeatures(out, out_map, {FileTypes::CONSENSUSXML});
 
     // some statistics
     map<Size, UInt> num_consfeat_of_size;

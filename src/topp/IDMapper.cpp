@@ -238,7 +238,7 @@ protected:
       // sort list of peptide identifications in each consensus feature by map index
       map.sortPeptideIdentificationsByMapIndex();
 
-      consensusFile.storeConsensusFeatures(out, map, {FileTypes::CONSENSUSXML}, FileTypes::CONSENSUSXML);
+      consensusFile.storeConsensusFeatures(out, map, {FileTypes::CONSENSUSXML});
     }
 
     //----------------------------------------------------------------
@@ -263,7 +263,7 @@ protected:
       // annotate output with data processing info
       addDataProcessing_(map, getProcessingInfo_(DataProcessing::IDENTIFICATION_MAPPING));
 
-      featureFile.storeFeatures(out, map, {FileTypes::FEATUREXML}, FileTypes::FEATUREXML);
+      featureFile.storeFeatures(out, map, {FileTypes::FEATUREXML});
     }
 
     //----------------------------------------------------------------
@@ -282,7 +282,7 @@ protected:
         // annotate output with data processing info
         addDataProcessing_(cm, getProcessingInfo_(DataProcessing::IDENTIFICATION_MAPPING));
       }
-      quantFile.storeQuantifications(out, msq, {FileTypes::MZQUANTML}, FileTypes::MZQUANTML);
+      quantFile.storeQuantifications(out, msq, {FileTypes::MZQUANTML});
     }
 
     return EXECUTION_OK;

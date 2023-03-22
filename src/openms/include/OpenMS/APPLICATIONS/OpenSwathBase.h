@@ -435,7 +435,7 @@ protected:
 
       if (!irt_trafo_out.empty())
       {
-        FileHandler().storeTransformations(irt_trafo_out, trafo_rtnorm, {FileTypes::TRANSFORMATIONXML}, FileTypes::TRANSFORMATIONXML);
+        FileHandler().storeTransformations(irt_trafo_out, trafo_rtnorm, {FileTypes::TRANSFORMATIONXML});
       }
     }
     return trafo_rtnorm;

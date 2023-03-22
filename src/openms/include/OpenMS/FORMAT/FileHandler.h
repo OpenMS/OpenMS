@@ -160,7 +160,6 @@ public:
       @param filename The file name of the file to load.
       @param exp The experiment to load the data into.
       @param allowed_types a FileTypeList containing the types of files to support. If not empty the extension, and failing that the contents are checked to make sure they match
-      @param force_type Forces to load the file with that file type. If no type is forced, it is determined from the extension (or from the content if that fails).
       @param log Progress logging mode
       @param rewrite_source_file Set's the SourceFile name and path to the current file. Note that this looses the link to the primary MS run the file originated from.
       @param compute_hash If source files are rewritten, this flag triggers a recomputation of hash values. A SHA1 string gets stored in the checksum member of SourceFile.
@@ -170,7 +169,7 @@ public:
       @exception Exception::FileNotFound is thrown if the file could not be opened
       @exception Exception::ParseError is thrown if an error occurs during parsing
     */
-    bool loadExperiment(const String& filename, PeakMap& exp, const std::vector<FileTypes::Type> allowed_types = std::vector<FileTypes::Type>(), FileTypes::Type force_type = FileTypes::UNKNOWN,
+    bool loadExperiment(const String& filename, PeakMap& exp, const std::vector<FileTypes::Type> allowed_types = std::vector<FileTypes::Type>(),
                         ProgressLogger::LogType log = ProgressLogger::NONE, const bool rewrite_source_file = false,
                         const bool compute_hash = false);
 
@@ -185,27 +184,20 @@ public:
 
       @exception Exception::UnableToCreateFile is thrown if the file could not be written
     */
-    bool storeExperiment(const String& filename, const PeakMap& exp, ProgressLogger::LogType log = ProgressLogger::NONE, const std::vector<FileTypes::Type> allowed_types = std::vector<FileTypes::Type>(),  FileTypes::Type force_type = FileTypes::UNKNOWN);
-
-    //FIXME This is useful for unifying the interface It should eventually be removed
-    inline bool storeExperiment(const String& filename, const PeakMap& exp, const std::vector<FileTypes::Type> allowed_types = std::vector<FileTypes::Type>(),  FileTypes::Type force_type = FileTypes::UNKNOWN)
-    {
-     return storeExperiment(filename, exp, ProgressLogger::NONE, allowed_types, force_type);
-    }
+    bool storeExperiment(const String& filename, const PeakMap& exp, const std::vector<FileTypes::Type> allowed_types = std::vector<FileTypes::Type>(), ProgressLogger::LogType log = ProgressLogger::NONE);
 
     /**
       @brief Loads a file into a FeatureMap
 
       @param filename the file name of the file to load.
       @param map The FeatureMap to load the data into.
-      @param force_type Forces to load the file with that file type. If no type is forced, it is determined from the extension (or from the content if that fails).
 
       @return true if the file could be loaded, false otherwise
 
       @exception Exception::FileNotFound is thrown if the file could not be opened
       @exception Exception::ParseError is thrown if an error occurs during parsing
     */
-    bool loadFeatures(const String& filename, FeatureMap& map, const std::vector<FileTypes::Type> allowed_types = std::vector<FileTypes::Type>(), FileTypes::Type force_type = FileTypes::UNKNOWN, ProgressLogger::LogType log = ProgressLogger::NONE);
+    bool loadFeatures(const String& filename, FeatureMap& map, const std::vector<FileTypes::Type> allowed_types = std::vector<FileTypes::Type>(), ProgressLogger::LogType log = ProgressLogger::NONE);
 
     /**
       @brief Store a FeatureMap
@@ -217,7 +209,7 @@ public:
 
       @exception Exception::UnableToCreateFile is thrown if the file could not be written
     */
-    bool storeFeatures(const String& filename, const FeatureMap& map, const std::vector<FileTypes::Type> allowed_types = std::vector<FileTypes::Type>(),  FileTypes::Type force_type = FileTypes::UNKNOWN);
+    bool storeFeatures(const String& filename, const FeatureMap& map, const std::vector<FileTypes::Type> allowed_types = std::vector<FileTypes::Type>());
 
     /**
       @brief Store a ConsensusFeatureMap
@@ -229,7 +221,7 @@ public:
 
       @exception Exception::UnableToCreateFile is thrown if the file could not be written
     */
-    bool storeConsensusFeatures(const String& filename, const ConsensusMap& map, const std::vector<FileTypes::Type> allowed_types = std::vector<FileTypes::Type>(), FileTypes::Type force_type = FileTypes::UNKNOWN);
+    bool storeConsensusFeatures(const String& filename, const ConsensusMap& map, const std::vector<FileTypes::Type> allowed_types = std::vector<FileTypes::Type>());
 
     /**
       @brief Loads a file into a ConsensusMap
@@ -242,7 +234,7 @@ public:
       @exception Exception::FileNotFound is thrown if the file could not be opened
       @exception Exception::ParseError is thrown if an error occurs during parsing
     */
-    bool loadConsensusFeatures(const String& filename, ConsensusMap& map, const std::vector<FileTypes::Type> allowed_types = std::vector<FileTypes::Type>(), FileTypes::Type force_type = FileTypes::UNKNOWN);
+    bool loadConsensusFeatures(const String& filename, ConsensusMap& map, const std::vector<FileTypes::Type> allowed_types = std::vector<FileTypes::Type>());
 
 
     /**
@@ -257,7 +249,7 @@ public:
       @exception Exception::FileNotFound is thrown if the file could not be opened
       @exception Exception::ParseError is thrown if an error occurs during parsing
     */
-    bool StoreIdentifications(const String& filename, const std::vector<ProteinIdentification>& additional_proteins, const std::vector<PeptideIdentification>& additional_peptides, const std::vector<FileTypes::Type> allowed_types = std::vector<FileTypes::Type>(), FileTypes::Type force_type = FileTypes::UNKNOWN);
+    bool StoreIdentifications(const String& filename, const std::vector<ProteinIdentification>& additional_proteins, const std::vector<PeptideIdentification>& additional_peptides, const std::vector<FileTypes::Type> allowed_types = std::vector<FileTypes::Type>());
 
 
     /**
@@ -272,7 +264,7 @@ public:
       @exception Exception::FileNotFound is thrown if the file could not be opened
       @exception Exception::ParseError is thrown if an error occurs during parsing
     */
-    bool loadIdentifications(const String& filename, std::vector<ProteinIdentification>& additional_proteins, std::vector<PeptideIdentification>& additional_peptides, const std::vector<FileTypes::Type> allowed_types = std::vector<FileTypes::Type>(), FileTypes::Type force_type = FileTypes::UNKNOWN);
+    bool loadIdentifications(const String& filename, std::vector<ProteinIdentification>& additional_proteins, std::vector<PeptideIdentification>& additional_peptides, const std::vector<FileTypes::Type> allowed_types = std::vector<FileTypes::Type>());
 
     /**
       @brief Store transitions of a spectral library
@@ -284,7 +276,7 @@ public:
 
       @exception Exception::UnableToCreateFile is thrown if the file could not be written
     */
-    bool storeTransitions(const String& filename, const TargetedExperiment& library, const std::vector<FileTypes::Type> allowed_types = std::vector<FileTypes::Type>(),  FileTypes::Type force_type = FileTypes::UNKNOWN);
+    bool storeTransitions(const String& filename, const TargetedExperiment& library, const std::vector<FileTypes::Type> allowed_types = std::vector<FileTypes::Type>());
 
     /**
       @brief Load transitions of a spectral library
@@ -297,14 +289,13 @@ public:
       @exception Exception::FileNotFound is thrown if the file could not be opened
       @exception Exception::ParseError is thrown if an error occurs during parsing
     */
-    bool loadTransitions(const String& filename, TargetedExperiment& library, const std::vector<FileTypes::Type> allowed_types = std::vector<FileTypes::Type>(),  FileTypes::Type force_type = FileTypes::UNKNOWN);
+    bool loadTransitions(const String& filename, TargetedExperiment& library, const std::vector<FileTypes::Type> allowed_types = std::vector<FileTypes::Type>());
 
         /**
       @brief Loads a file into MSQuantifications
 
       @param filename the file name of the file to load.
       @param msq The MSQuantification to load the data into.
-      @param force_type Forces to load the file with that file type. If no type is forced, it is determined from the extension (or from the content if that fails).
 
       @return true if the file could be loaded, false otherwise
 
@@ -312,7 +303,7 @@ public:
       @exception Exception::ParseError is thrown if an error occurs during parsing
     */
 
-    bool loadQuantifications(const String& filename, MSQuantifications& map, const std::vector<FileTypes::Type> allowed_types = std::vector<FileTypes::Type>(), FileTypes::Type force_type = FileTypes::UNKNOWN);
+    bool loadQuantifications(const String& filename, MSQuantifications& map, const std::vector<FileTypes::Type> allowed_types = std::vector<FileTypes::Type>());
 
     /**
       @brief Store MSQuantifications
@@ -324,7 +315,7 @@ public:
 
       @exception Exception::UnableToCreateFile is thrown if the file could not be written
     */
-    bool storeQuantifications(const String& filename, const MSQuantifications& map, const std::vector<FileTypes::Type> allowed_types = std::vector<FileTypes::Type>(),  FileTypes::Type force_type = FileTypes::UNKNOWN);
+    bool storeQuantifications(const String& filename, const MSQuantifications& map, const std::vector<FileTypes::Type> allowed_types = std::vector<FileTypes::Type>());
 
 
         /**
@@ -332,7 +323,6 @@ public:
 
       @param filename the file name of the file to load.
       @param msq The Transformations to load the data into.
-      @param force_type Forces to load the file with that file type. If no type is forced, it is determined from the extension (or from the content if that fails).
 
       @return true if the file could be loaded, false otherwise
 
@@ -340,7 +330,7 @@ public:
       @exception Exception::ParseError is thrown if an error occurs during parsing
     */
 
-    bool loadTransformations(const String& filename, TransformationDescription& map, bool fit_model=true, const std::vector<FileTypes::Type> allowed_types = std::vector<FileTypes::Type>(), FileTypes::Type force_type = FileTypes::UNKNOWN);
+    bool loadTransformations(const String& filename, TransformationDescription& map, bool fit_model=true, const std::vector<FileTypes::Type> allowed_types = std::vector<FileTypes::Type>());
 
     /**
       @brief Store Transformations
@@ -352,7 +342,7 @@ public:
 
       @exception Exception::UnableToCreateFile is thrown if the file could not be written
     */
-    bool storeTransformations(const String& filename, const TransformationDescription& map, const std::vector<FileTypes::Type> allowed_types = std::vector<FileTypes::Type>(),  FileTypes::Type force_type = FileTypes::UNKNOWN);
+    bool storeTransformations(const String& filename, const TransformationDescription& map, const std::vector<FileTypes::Type> allowed_types = std::vector<FileTypes::Type>());
 
     /**
       @brief Store QC info
@@ -371,7 +361,6 @@ public:
       @param label unique and informative label for the run
       @param remove_duplicate_features whether to remove duplicate features only for QCML for now
       @param allowed_types which file types we are allowed to use
-      @param force_type which file type to force
 
       @return true if the file could be stored, false otherwise
 
@@ -389,8 +378,7 @@ public:
                const String& description = "",
                const String& label = "label",
                const bool remove_duplicate_features = false,
-               const std::vector<FileTypes::Type> allowed_types = std::vector<FileTypes::Type>(),
-               FileTypes::Type force_type = FileTypes::UNKNOWN);
+               const std::vector<FileTypes::Type> allowed_types = std::vector<FileTypes::Type>());
 
 
 

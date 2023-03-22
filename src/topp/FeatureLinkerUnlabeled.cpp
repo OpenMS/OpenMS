@@ -295,7 +295,7 @@ protected:
       FileHandler f;
       for (Size i = 0; i < ins.size(); ++i)
       {
-        f.loadConsensusFeatures(ins[i], maps[i],  {FileTypes::CONSENSUSXML}, FileTypes::CONSENSUSXML);
+        f.loadConsensusFeatures(ins[i], maps[i],  {FileTypes::CONSENSUSXML});
         StringList ms_runs;
         maps[i].getPrimaryMSRunPath(ms_runs);
         ms_run_locations.insert(ms_run_locations.end(), ms_runs.begin(), ms_runs.end());
@@ -330,7 +330,7 @@ protected:
 
     out_map.setPrimaryMSRunPath(ms_run_locations);
     // write output
-    FileHandler().storeConsensusFeatures(out, out_map,  {FileTypes::CONSENSUSXML}, FileTypes::CONSENSUSXML);
+    FileHandler().storeConsensusFeatures(out, out_map,  {FileTypes::CONSENSUSXML});
 
     // some statistics
     map<Size, UInt> num_consfeat_of_size;

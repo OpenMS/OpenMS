@@ -65,7 +65,7 @@ namespace OpenMS
   // helper for saving a peakmap to a file
   void savePeakMapToFile(const String& path, const PeakMap& pm, const ProgressLogger::LogType lt, const FileTypes::Type /*ext*/)
   {
-    FileHandler().storeExperiment(path, pm, lt);
+    FileHandler().storeExperiment(path, pm, {}, lt);
   }
 
   void LayerStoreDataPeakMapVisible::saveToFile(const String& path, const ProgressLogger::LogType lt) const
