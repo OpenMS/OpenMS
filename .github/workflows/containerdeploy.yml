@@ -118,7 +118,7 @@ jobs:
             sed -i "s%(^OPENMS_BRANCH=)(.*)%\1${{ steps.extract_branch.outputs.branch }}%" dockerfiles/library/Singularity.def
             sed -i "s/(^OPENMS_TAG=)(.*)/\1${{ steps.tag_name.outputs.tag }}/" dockerfiles/library/Singularity.def
             cat dockerfiles/library/Singularity.def
-            singularity build library.sif dockerfiles/library/Singularity.def
+            sudo singularity build library.sif dockerfiles/library/Singularity.def
             
       - name: Build Singularity tools image
         shell: bash
@@ -127,7 +127,7 @@ jobs:
             sed -i "s%^From:.*%From: $(pwd)/library.sif%" dockerfiles/executables/Singularity.def
             sed -i "s/^Bootstrap:.*/Bootstrap: localimage/" dockerfiles/executables/Singularity.def
             cat dockerfiles/executables/Singularity.def
-            singularity build executables.sif dockerfiles/executables/Singularity.def
+            sudo singularity build executables.sif dockerfiles/executables/Singularity.def
             
       - name: Upload images to ghcr.io
         shell: bash
