@@ -32,18 +32,16 @@
 // $Authors: Andreas Bertsch, Julianus Pfeuffer $
 // --------------------------------------------------------------------------
 
+#include <algorithm>
+
 #include <OpenMS/ANALYSIS/ID/BasicProteinInferenceAlgorithm.h>
+#include <OpenMS/ANALYSIS/ID/ConsensusMapMergerAlgorithm.h>
 #include <OpenMS/ANALYSIS/ID/FalseDiscoveryRate.h>
 #include <OpenMS/ANALYSIS/ID/IDMergerAlgorithm.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/CONCEPT/VersionInfo.h>
-#include <OpenMS/FORMAT/IdXMLFile.h>
-#include <OpenMS/SYSTEM/StopWatch.h>
-
-#include <algorithm>
 #include <OpenMS/FORMAT/FileHandler.h>
-#include <OpenMS/FORMAT/ConsensusXMLFile.h>
-#include <OpenMS/ANALYSIS/ID/ConsensusMapMergerAlgorithm.h>
+#include <OpenMS/SYSTEM/StopWatch.h>
 
 
 using namespace OpenMS;
@@ -195,9 +193,8 @@ protected:
 
       ConsensusMapMergerAlgorithm cmerge;
       ConsensusMap cmap;
-      ConsensusXMLFile cxmlf;
       OPENMS_LOG_INFO << "Loading input..." << std::endl;
-      cxmlf.load(in[0], cmap);
+      FileHandler().loadConsensusFeatures(in[0], cmap, {FileTypes::CONSENSUSXML});
       OPENMS_LOG_INFO << "Loading input took " << sw.toString() << std::endl;
       sw.clear();
 
@@ -235,7 +232,7 @@ protected:
       OPENMS_LOG_INFO << "Storing output..." << std::endl;
       sw.start();
       // write output
-      cxmlf.store(out, cmap);
+      FileHandler().storeConsensusFeatures(out, cmap, {FileTypes::CONSENSUSXML});
       OPENMS_LOG_INFO << "Storing output took " << sw.toString() << std::endl;
       sw.stop();
 
@@ -245,7 +242,7 @@ protected:
       vector<ProteinIdentification> inferred_protein_ids{1};
       vector<PeptideIdentification> inferred_peptide_ids;
 
-      IdXMLFile f;
+      FileHandler f;
       if (merge_runs)
       {
         //TODO allow keep_best_pepmatch_only option during merging (Peptide-level datastructure would help a lot,
@@ -259,14 +256,14 @@ protected:
         {
           vector<ProteinIdentification> protein_ids;
           vector<PeptideIdentification> peptide_ids;
-          f.load(idfile, protein_ids, peptide_ids);
+          f.loadIdentifications(idfile, protein_ids, peptide_ids, {FileTypes::IDXML});
           merger.insertRuns(std::move(protein_ids), std::move(peptide_ids));
         }
         merger.returnResultsAndClear(inferred_protein_ids[0], inferred_peptide_ids);
       }
       else
       {
-        f.load(in[0], inferred_protein_ids, inferred_peptide_ids);
+        f.loadIdentifications(in[0], inferred_protein_ids, inferred_peptide_ids, {FileTypes::IDXML});
       }
       OPENMS_LOG_INFO << "Loading input took " << sw.toString() << std::endl;
       sw.reset();
@@ -303,7 +300,7 @@ protected:
       OPENMS_LOG_INFO << "Storing output..." << std::endl;
       sw.start();
       // write output
-      IdXMLFile().store(out, inferred_protein_ids, inferred_peptide_ids);
+      FileHandler().StoreIdentifications(out, inferred_protein_ids, inferred_peptide_ids, {FileTypes::IDXML});
       OPENMS_LOG_INFO << "Storing output took " << sw.toString() << std::endl;
       sw.stop();
     }

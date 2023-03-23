@@ -33,8 +33,6 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/FORMAT/FileHandler.h>
-// TODO remove once we've moved 3 arg loadIdentifications to handler
-#include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/ANALYSIS/TARGETED/PrecursorIonSelection.h>
 #include <OpenMS/ANALYSIS/TARGETED/PrecursorIonSelectionPreprocessing.h>
@@ -261,9 +259,7 @@ protected:
 
     std::vector<PeptideIdentification> pep_ids;
     std::vector<ProteinIdentification> prot_ids;
-    String document_id;
-    IdXMLFile idxml_file;
-    idxml_file.load(ids, prot_ids, pep_ids, document_id);
+    FileHandler().loadIdentifications(ids, prot_ids, pep_ids, {FileTypes::IDXML});
 
     //-------------------------------------------------------------
     // preprocessing, rescoring

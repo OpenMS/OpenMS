@@ -45,7 +45,7 @@ int main(int argc, const char** argv)
   FeatureMap reference;
   FeatureMap toAlign;
 
-  FeatureXMLFile xml_file;
+  FileHandler xml_file;
   xml_file.loadFeatures(tutorial_data_path + "/data/Tutorial_MapAlignment_1.featureXML", reference);
   xml_file.loadFeatures(tutorial_data_path + "/data/Tutorial_MapAlignment_2.featureXML", toAlign);
 

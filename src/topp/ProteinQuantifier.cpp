@@ -37,9 +37,6 @@
 #include <OpenMS/ANALYSIS/ID/PeptideProteinResolution.h>
 #include <OpenMS/ANALYSIS/QUANTITATION/PeptideAndProteinQuant.h>
 
-#include <OpenMS/FORMAT/ConsensusXMLFile.h>
-#include <OpenMS/FORMAT/FeatureXMLFile.h>
-#include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/FileTypes.h>
 #include <OpenMS/FORMAT/SVOutStream.h>
@@ -774,7 +771,7 @@ protected:
     if (!protein_groups.empty()) // read protein inference data
     {
       vector<ProteinIdentification> proteins;
-      IdXMLFile().load(protein_groups, proteins, peptides_);
+      FileHandler().loadIdentifications(protein_groups, proteins, peptides_, {FileTypes::IDXML});
       if (proteins.empty() || 
           proteins[0].getIndistinguishableProteins().empty())
       {
@@ -823,7 +820,7 @@ protected:
     if (in_type == FileTypes::FEATUREXML)
     {
       FeatureMap features;
-      FeatureXMLFile().load(in, features);
+      FileHandler().loadFeatures(in, features, {FileTypes::FEATUREXML});
       columns_headers_[0].filename = in;
 
       ed = getExperimentalDesignFeatureMap_(design_file, features);
@@ -844,7 +841,7 @@ protected:
       spectral_counting_ = true;
       vector<ProteinIdentification> proteins;
       vector<PeptideIdentification> peptides;
-      IdXMLFile().load(in, proteins, peptides);
+      FileHandler().loadIdentifications(in, proteins, peptides, {FileTypes::IDXML});
       for (Size i = 0; i < proteins.size(); ++i)
       {
         columns_headers_[i].filename = proteins[i].getSearchEngine() + "_" + proteins[i].getDateTime().toString();
@@ -865,7 +862,7 @@ protected:
     else // consensusXML
     {
       ConsensusMap consensus;
-      ConsensusXMLFile().load(in, consensus);
+      FileHandler().loadConsensusFeatures(in, consensus, {FileTypes::CONSENSUSXML});
       columns_headers_ = consensus.getColumnHeaders();
 
       ed = getExperimentalDesignConsensusMap_(design_file, consensus);

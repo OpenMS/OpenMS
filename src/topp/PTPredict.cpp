@@ -34,7 +34,7 @@
 
 #include <OpenMS/ANALYSIS/SVM/SVMWrapper.h>
 
-#include <OpenMS/FORMAT/IdXMLFile.h>
+#include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/LibSVMEncoder.h>
 #include <OpenMS/FORMAT/ParamXMLFile.h>
 
@@ -108,7 +108,7 @@ protected:
 
   ExitCodes main_(int, const char**) override
   {
-    IdXMLFile idXML_file;
+    FileHandler idXML_file;
     vector<ProteinIdentification> protein_identifications;
     vector<PeptideIdentification> identifications;
     vector<String> peptides;
@@ -186,8 +186,7 @@ protected:
       sigma = String(additional_parameters.getValue("sigma").toString()).toFloat();
 
     }
-    String document_id;
-    idXML_file.load(inputfile_name, protein_identifications, identifications, document_id);
+    idXML_file.loadIdentifications(inputfile_name, protein_identifications, identifications, {FileTypes::IDXML});
 
     //-------------------------------------------------------------
     // calculations
@@ -285,9 +284,10 @@ protected:
     // writing output
     //-------------------------------------------------------------
 
-    idXML_file.store(outputfile_name,
+    idXML_file.StoreIdentifications(outputfile_name,
                      protein_identifications,
-                     identifications);
+                     identifications,
+                     {FileTypes::IDXML});
     if (svm.getIntParameter(SVMWrapper::KERNEL_TYPE) == SVMWrapper::OLIGO)
     {
       LibSVMEncoder::destroyProblem(training_samples);

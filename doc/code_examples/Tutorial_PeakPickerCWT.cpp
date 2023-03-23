@@ -45,7 +45,7 @@ int main(int argc, const char** argv)
   PeakMap exp_raw;
   PeakMap exp_picked;
 
-  FileHandler.loadExperiment(tutorial_data_path + "/data/Tutorial_PeakPickerCWT.mzML", exp_raw);
+  FileHandler().loadExperiment(tutorial_data_path + "/data/Tutorial_PeakPickerCWT.mzML", exp_raw);
 
   PeakPickerCWT pp;
   Param param;

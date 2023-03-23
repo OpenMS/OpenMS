@@ -32,7 +32,6 @@
 // $Authors: Andreas Bertsch $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/FORMAT/FeatureXMLFile.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithmIsotopeWavelet.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
@@ -137,7 +136,7 @@ protected:
     FeatureMap feature_map;
     if (!feature_in.empty())
     {
-      FeatureXMLFile().load(feature_in, feature_map);
+      FileHandler().loadFeatures(feature_in, feature_map, {FileTypes::FEATUREXML});
     }
 
     // calculations

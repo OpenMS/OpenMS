@@ -36,16 +36,11 @@
 
 #include <OpenMS/ANALYSIS/ID/IDConflictResolverAlgorithm.h>
 #include <OpenMS/CONCEPT/Exception.h>
-#include <OpenMS/FORMAT/ConsensusXMLFile.h>
 #include <OpenMS/FORMAT/FileHandler.h>
-#include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/FORMAT/FASTAFile.h>
-#include <OpenMS/FORMAT/FeatureXMLFile.h>
-#include <OpenMS/FORMAT/FileTypes.h>
-#include <OpenMS/FORMAT/MzIdentMLFile.h>
-#include <OpenMS/FORMAT/MzMLFile.h>
+#include <OpenMS/FORMAT/MzTab.h>
 #include <OpenMS/FORMAT/MzTabFile.h>
-#include <OpenMS/FORMAT/TransformationXMLFile.h>
+#include <OpenMS/FORMAT/FileTypes.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
 #include <OpenMS/METADATA/MetaInfoInterfaceUtils.h>
@@ -188,7 +183,7 @@ protected:
 
     ConsensusMap cmap;
     String in_cm = getStringOption_("in_cm");
-    ConsensusXMLFile().load(in_cm, cmap);
+    FileHandler().loadConsensusFeatures(in_cm, cmap, {FileTypes::CONSENSUSXML});
     for (ConsensusFeature & cf: cmap) // make sure that the first PeptideIdentification of a ConsensusFeature is the one with the highest Score
     {
       sortVectorOfPeptideIDsbyScore_(cf.getPeptideIdentifications());
@@ -283,7 +278,6 @@ protected:
     PSMExplainedIonCurrent qc_psm_corr;
     TIC qc_tic;
     Ms2SpectrumStats qc_ms2stats;
-    MzMLFile mzml_file;
     PeakMap exp;
     QCBase::SpectraMap spec_map;
 
@@ -305,16 +299,15 @@ protected:
       //-------------------------------------------------------------
       if (i < in_raw.size())
       { // we either have 'n' or 1 mzML ... use the correct one in each iteration
-        mzml_file.load(in_raw[i], exp);
+        FileHandler().loadExperiment(in_raw[i], exp, {FileTypes::MZML});
         spec_map.calculateMap(exp);
       }
 
       ProteinIdentification::Mapping mp_f;
-      FeatureXMLFile fxml_file;
       FeatureMap fmap_local;
       if (!in_postFDR.empty())
       {
-        fxml_file.load(in_postFDR[i], fmap_local);
+        FileHandler().loadFeatures(in_postFDR[i], fmap_local, {FileTypes::FEATUREXML});
         fmap = &fmap_local;
       }
       else
@@ -327,11 +320,10 @@ protected:
       }
       mp_f.create(fmap->getProteinIdentifications());
 
-      TransformationXMLFile trafo_file;
       TransformationDescription trafo_descr;
       if (!in_trafo.empty())
       {
-        trafo_file.load(in_trafo[i], trafo_descr);
+        FileHandler().loadTransformations(in_trafo[i], trafo_descr, true, {FileTypes::TRANSFORMATIONXML});
       }
       //-------------------------------------------------------------
       // calculations
@@ -419,7 +411,7 @@ protected:
       StringList out_feat = getStringList_("out_feat");
       if (!out_feat.empty())
       {
-        FeatureXMLFile().store(out_feat[i], *fmap);
+        FileHandler().storeFeatures(out_feat[i], *fmap, {FileTypes::FEATUREXML});
       }
       //-------------------------------------------------------------
       // Annotate calculated meta values from FeatureMap to given ConsensusMap
@@ -492,7 +484,7 @@ protected:
     String out_cm = getStringOption_("out_cm");
     if (!out_cm.empty())
     {
-      ConsensusXMLFile().store(out_cm, cmap);
+      FileHandler().storeConsensusFeatures(out_cm, cmap, {FileTypes::CONSENSUSXML});
     }
 
     String out = getStringOption_("out");

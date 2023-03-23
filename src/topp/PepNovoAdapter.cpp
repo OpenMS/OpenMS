@@ -33,13 +33,9 @@
 // --------------------------------------------------------------------------
 
 
-#include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/APPLICATIONS/SearchEngineBase.h>
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
-#include <OpenMS/FORMAT/DTAFile.h>
-#include <OpenMS/FORMAT/MzMLFile.h>
-#include <OpenMS/FORMAT/MzXMLFile.h>
 #include <OpenMS/FORMAT/PepNovoInfile.h>
 #include <OpenMS/FORMAT/PepNovoOutfile.h>
 #include <OpenMS/FORMAT/MascotGenericFile.h>
@@ -208,10 +204,9 @@ class TOPPPepNovoAdapter :
       //-------------------------------------------------------------
 
       // only load msLevel 2
-      MzMLFile mzml_infile;
+      FileHandler mzml_infile;
       mzml_infile.getOptions().addMSLevel(2);
-      mzml_infile.setLogType(log_type_);
-      mzml_infile.load(inputfile_name, exp);
+      mzml_infile.loadExperiment(inputfile_name, exp, {FileTypes::MZML}, log_type_);
 
       // we map the native id to the MZ and RT to be able to
       // map the IDs back to the spectra (RT, and MZ Meta Information)
@@ -373,7 +368,7 @@ class TOPPPepNovoAdapter :
           std::vector<ProteinIdentification>prot_ids;
           p_novo_outfile.load(temp_pepnovo_outfile, peptide_identifications, protein_identification, -1e5, index_to_precursor, mods_and_keys);
           prot_ids.push_back(protein_identification);
-          IdXMLFile().store(outputfile_name, prot_ids, peptide_identifications);
+          FileHandler().StoreIdentifications(outputfile_name, prot_ids, peptide_identifications, {FileTypes::IDXML});
         }
 
         if (process.exitStatus() != 0)

@@ -34,8 +34,6 @@
 
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 
-#include <OpenMS/FORMAT/IdXMLFile.h>
-#include <OpenMS/FORMAT/ConsensusXMLFile.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/FASTAFile.h>
 #include <OpenMS/FORMAT/TextFile.h>
@@ -563,8 +561,6 @@ protected:
     //-------------------------------------------------------------
     // initialize rest
     //-------------------------------------------------------------
-    IdXMLFile idXML_file;
-    ConsensusXMLFile consensusXML_file;
     ConsensusMap consensus;
     vector<ProteinIdentification> protein_identifications;
     vector<PeptideIdentification> peptide_identifications;
@@ -647,13 +643,13 @@ protected:
           if (in_type == FileTypes::IDXML)
           {
             // load ensures that vector are cleared upon loading
-            idXML_file.load(*iter, protein_identifications, peptide_identifications);
+            FileHandler().loadIdentifications(*iter, protein_identifications, peptide_identifications, {FileTypes::IDXML});
             resolver.resolveID(peptide_identifications);
           }
           else
           {
             // load ensures that consensus map is cleared upon loading
-            consensusXML_file.load(*iter, consensus);
+            FileHandler().loadConsensusFeatures(*iter, consensus, {FileTypes::CONSENSUSXML});
             resolver.resolveConsensus(consensus);
           }
         }
