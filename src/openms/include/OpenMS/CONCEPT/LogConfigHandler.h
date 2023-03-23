@@ -118,6 +118,7 @@ public:
 
     /**
       @brief Sets a minimum @p log_level by removing all streams from loggers lower than that level.
+      order of log_level: "DEBUG", "INFO", "WARNING", "ERROR", "FATAL_ERROR"
      */
     void setLogLevel(const String & log_level);
 
