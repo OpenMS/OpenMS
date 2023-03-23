@@ -1,4 +1,8 @@
+from Param cimport *
+from String cimport *
+from StringList cimport *
 from Types cimport *
+
 from libcpp.vector cimport vector as libcpp_vector
 
 cdef extern from "<OpenMS/CONCEPT/LogConfigHandler.h>" namespace "OpenMS":
