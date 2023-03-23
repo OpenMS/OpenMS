@@ -35,7 +35,7 @@
 #include <OpenMS/ANALYSIS/ID/SimpleSearchEngineAlgorithm.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 
-#include <OpenMS/FORMAT/IdXMLFile.h>
+#include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/SYSTEM/File.h>
 
@@ -143,7 +143,7 @@ class SimpleSearchEngine :
         protein_ids[0].setPrimaryMSRunPath({"file://" + File::basename(in)});
       }
 
-      IdXMLFile().store(out, protein_ids, peptide_ids);
+      FileHandler().StoreIdentifications(out, protein_ids, peptide_ids, {FileTypes::IDXML});
 
       return EXECUTION_OK;
     }

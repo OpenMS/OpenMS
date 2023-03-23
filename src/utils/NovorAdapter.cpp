@@ -44,11 +44,11 @@
 #include <OpenMS/METADATA/SpectrumLookup.h>
 // TOOD Remove once we've moved transform to handler
 #include <OpenMS/FORMAT/MzMLFile.h>
-#include <OpenMS/FORMAT/FileHandler.h>
+// TODO remove once we have store spectrum in handler
 #include <OpenMS/FORMAT/MascotGenericFile.h>
+#include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/CsvFile.h>
 #include <OpenMS/FORMAT/DATAACCESS/MSDataTransformingConsumer.h>
-#include <OpenMS/FORMAT/IdXMLFile.h>
 
 #include <OpenMS/SYSTEM/JavaInfo.h>
 
@@ -380,7 +380,7 @@ protected:
      
     OPENMS_LOG_INFO << "NOVOR created " << peptide_ids.size() << " PSMs from " << count_written << " MS2 spectra (" << (peptide_ids.size() * 100 / count_written) << "% annotated)\n";
 
-    IdXMLFile().store(out, protein_ids, peptide_ids);
+    FileHandler().StoreIdentifications(out, protein_ids, peptide_ids, {FileTypes::IDXML});
 
     return EXECUTION_OK;
   }

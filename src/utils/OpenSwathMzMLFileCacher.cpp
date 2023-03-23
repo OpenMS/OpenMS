@@ -178,9 +178,8 @@ class TOPPOpenSwathMzMLFileCacher
     {
       MapType exp;
       SqMassFile sqfile;
-      MzMLFile f;
       sqfile.load(in, exp);
-      f.store(out, exp);
+      FileHandler().storeExperiment(out, exp, {FileTypes::MZML});
       return EXECUTION_OK;
     }
     else if (in_type == FileTypes::MZML && out_type == FileTypes::SQMASS && process_lowmemory)
@@ -203,7 +202,6 @@ class TOPPOpenSwathMzMLFileCacher
     }
     else if (in_type == FileTypes::MZML && out_type == FileTypes::SQMASS)
     {
-      MzMLFile f;
 
       SqMassFile::SqMassConfig config;
       config.write_full_meta = full_meta;
@@ -214,7 +212,7 @@ class TOPPOpenSwathMzMLFileCacher
       sqfile.setConfig(config);
 
       MapType exp;
-      f.load(in, exp);
+      FileHandler().loadExperiment(in, exp, {FileTypes::MZML});
       sqfile.store(out, exp);
       return EXECUTION_OK;
     }
@@ -241,27 +239,23 @@ class TOPPOpenSwathMzMLFileCacher
       {
         MapType exp;
         Internal::CachedMzMLHandler cacher;
-        MzMLFile f;
 
         cacher.setLogType(log_type_);
-        f.setLogType(log_type_);
 
-        f.load(in, exp);
+        FileHandler().loadExperiment(in, exp, {FileTypes::MZML}, log_type_);
         cacher.writeMemdump(exp, out_cached);
         cacher.writeMetadata(exp, out_meta, true);
       }
     }
     else
     {
-      MzMLFile f;
       MapType meta_exp;
       Internal::CachedMzMLHandler cacher;
       MapType exp_reading;
 
       cacher.setLogType(log_type_);
-      f.setLogType(log_type_);
 
-      f.load(in,meta_exp);
+      FileHandler().loadExperiment(in,meta_exp, {FileTypes::MZML}, log_type_);
       cacher.readMemdump(exp_reading, in_cached);
 
       std::cout << " read back, got " << exp_reading.size() << " spectra " << exp_reading.getChromatograms().size() << " chromats " << std::endl;
@@ -314,7 +308,7 @@ class TOPPOpenSwathMzMLFileCacher
       meta_exp.setChromatograms(old_chromatograms);
 
 
-      f.store(out_meta,meta_exp);
+      FileHandler().storeExperiment(out_meta,meta_exp, {FileTypes::MZML}, log_type_);
     }
 
     return EXECUTION_OK;

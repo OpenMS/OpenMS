@@ -37,11 +37,7 @@
 #include <OpenMS/FORMAT/CsvFile.h>
 #include <OpenMS/FORMAT/FileTypes.h>
 #include <OpenMS/FORMAT/FileHandler.h>
-#include <OpenMS/FORMAT/MzMLFile.h>
-#include <OpenMS/FORMAT/MzXMLFile.h>
-#include <OpenMS/FORMAT/MzDataFile.h>
 #include <OpenMS/CHEMISTRY/AASequence.h>
-#include <OpenMS/FORMAT/MSPFile.h>
 #include <iostream>
 
 #include <vector>
@@ -270,22 +266,7 @@ protected:
     // writing output
     //-------------------------------------------------------------
     in_type = fh.getType(out);
-    if (in_type == FileTypes::MZDATA)
-    {
-      MzDataFile f;
-      f.store(out, library);
-    }
-    else if (in_type == FileTypes::MZXML)
-    {
-      MzXMLFile f;
-      f.store(out, library);
-    }
-    else
-    {
-      MSPFile msp;
-      msp.store(out, library);
-    }
-
+    FileHandler().storeExperiment(out, library, {FileTypes::MZDATA, FileTypes::MZXML, FileTypes::MSP});
     return EXECUTION_OK;
   }
 

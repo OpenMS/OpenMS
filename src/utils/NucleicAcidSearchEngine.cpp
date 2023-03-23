@@ -50,7 +50,6 @@
 // file types
 #include <OpenMS/FORMAT/FASTAFile.h>
 #include <OpenMS/FORMAT/FileHandler.h>
-#include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/FORMAT/MzTabFile.h>
 #include <OpenMS/FORMAT/OMSFile.h>
 #include <OpenMS/FORMAT/SVOutStream.h>
@@ -1434,7 +1433,7 @@ protected:
       vector<ProteinIdentification> proteins;
       vector<PeptideIdentification> peptides;
       IdentificationDataConverter::exportIDs(id_data, proteins, peptides);
-      IdXMLFile().store(id_out, proteins, peptides);
+      FileHandler().StoreIdentifications(id_out, proteins, peptides, {FileTypes::IDXML});
     }
 
     if (!lfq_out.empty())

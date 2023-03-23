@@ -38,7 +38,7 @@
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/FORMAT/PepNovoInfile.h>
 #include <OpenMS/FORMAT/PepNovoOutfile.h>
-#include <OpenMS/FORMAT/MascotGenericFile.h>
+#include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/METADATA/ContactPerson.h>
 #include <OpenMS/SYSTEM/File.h>
@@ -233,7 +233,7 @@ class TOPPPepNovoAdapter :
       temp_data_directory  = File::getTempDirectory() + "/" + temp_data_directory; // delete later
 
       String mgf_file = temp_data_directory + "/" + File::getUniqueName() + ".mgf"; // the mzXML parser of PepNovo is somewhat broken.. don't use mzXML
-      MascotGenericFile().store(mgf_file, exp);
+      FileHandler().storeExperiment(mgf_file, exp, {FileTypes::MGF});
 
       bool error(false);
 

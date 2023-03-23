@@ -1294,6 +1294,14 @@ if (first_line.hasSubstring("File	First Scan	Last Scan	Num of Scans	Charge	Monoi
     }
     break;
 
+    case FileTypes::MGF:
+    {
+      MascotGenericFile f;
+      f.setLogType(log);
+      f.store(filename, exp);
+    }
+    break;
+
     case FileTypes::MSP:
     {
       MSPGenericFile().store(filename, exp);
