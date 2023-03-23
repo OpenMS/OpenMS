@@ -72,16 +72,29 @@ public:
     /**
       @brief Tries to determine the file type (by name or content)
 
-      First the type is determined from the file name.
+      First tries to determine the type from the file name.
       If this fails, the type is determined from the file content.
+
+      @param filename the name of the file to check
+
+      @return A FileTypes::Type corresponding to the extension, or FileTypes::UNKNOWN if not determinable
 
       @exception Exception::FileNotFound is thrown if the file is not present
     */
     static FileTypes::Type getType(const String& filename);
 
 
-    /// Determines the file type from a file name
+    /**
+      @brief Try to get the file type from the filename
+
+      @param filename the name of the file to check
+
+      @return A FileTypes::Type corresponding to the extension, or FileTypes::UNKNOWN if not determinable
+
+      @exception Exception::FileNotFound is thrown if the file is not present
+    */
     static FileTypes::Type getTypeByFileName(const String& filename);
+
 
     /**
        @brief Check if @p filename has the extension @p type 
@@ -98,8 +111,14 @@ public:
       E.g. 'experiment.featureXML' becomes 'experiment' and 'c:\\files\\data.mzML.gz' becomes 'c:\\files\\data'
       If the extension is unknown, the everything in the basename of the file after the last '.' is removed. E.g. 'future.newEnding' becomes 'future'
       If the filename does not contain '.', but the path (if any) does, nothing is removed, e.g. '/my.dotted.dir/filename' is returned unchanged.
+
+      @param filename the name to strip
+
+      @return the stripped filename
+      
     */
     static String stripExtension(const String& filename);
+
 
     /**
       @brief Tries to find and remove a known file extension, and append the new one.
@@ -107,6 +126,12 @@ public:
       Internally calls 'stripExtension()' and adds the new suffix to the result.
       E.g. 'experiment.featureXML'+ FileTypes::TRAFOXML becomes 'experiment.trafoXML' and 'c:\\files\\data.mzML.gz' + FileTypes::FEATUREXML becomes 'c:\\files\\data.featureXML'
       If the existing extension is unknown, the everything after the last '.' is removed, e.g. 'exp.tmp'+FileTypes::IDXML becomes 'exp.idXML'
+
+      @param filename the original @p filename String
+      @param new_type the @p FileTypes::Types to use to set the new extension
+
+      @return the updated string
+
     */
     static String swapExtension(const String& filename, const FileTypes::Type new_type);
 
@@ -133,25 +158,25 @@ public:
     */
     static FileTypes::Type getTypeByContent(const String& filename);
 
-    /// Returns if the file type is supported in this build of the library
+    /// @brief Returns if the file type is supported in this build of the library
     static bool isSupported(FileTypes::Type type);
 
-    /// Mutable access to the options for loading/storing
+    /// @brief Mutable access to the options for loading/storing
     PeakFileOptions& getOptions();
 
-    /// Non-mutable access to the options for loading/storing
+    /// @brief Non-mutable access to the options for loading/storing
     const PeakFileOptions& getOptions() const;
 
-    /// Mutable access to the feature file options for loading/storing
+    /// @brief Mutable access to the feature file options for loading/storing
     FeatureFileOptions& getFeatOptions();
 
-    /// Non-mutable access to the feature file options for loading/storing
+    /// @brief Non-mutable access to the feature file options for loading/storing
     const FeatureFileOptions& getFeatOptions() const;
 
-    /// set options for loading/storing
+    /// @brief set options for loading/storing
     void setOptions(const PeakFileOptions&);
 
-    /// set feature file options for loading/storing
+    /// @brief set feature file options for loading/storing
     void setFeatOptions(const FeatureFileOptions&);
 
     /**
@@ -180,6 +205,7 @@ public:
 
       @param filename The name of the file to store the data in.
       @param exp The experiment to store.
+      @param allowed_types a FileTypeList containing the types of files to support. If not empty the extension, and failing that the contents are checked to make sure they match
       @param log Progress logging mode
 
       @exception Exception::UnableToCreateFile is thrown if the file could not be written
@@ -204,6 +230,9 @@ public:
 
       @param filename the file name of the file to write.
       @param map The FeatureMap to store.
+      @param allowed_types a FileTypeList containing the types of files to support. If not empty the extension, and failing that the contents are checked to make sure they match
+      @param log Progress logging mode
+
 
       @return true if the file could be stored, false otherwise
 
@@ -212,22 +241,12 @@ public:
     bool storeFeatures(const String& filename, const FeatureMap& map, const std::vector<FileTypes::Type> allowed_types = std::vector<FileTypes::Type>(), ProgressLogger::LogType log = ProgressLogger::NONE);
 
     /**
-      @brief Store a ConsensusFeatureMap
-
-      @param filename the file name of the file to write.
-      @param map The ConsensusMap to store.
-
-      @return true if the file could be stored, false otherwise
-
-      @exception Exception::UnableToCreateFile is thrown if the file could not be written
-    */
-    bool storeConsensusFeatures(const String& filename, const ConsensusMap& map, const std::vector<FileTypes::Type> allowed_types = std::vector<FileTypes::Type>(), ProgressLogger::LogType log = ProgressLogger::NONE);
-
-    /**
       @brief Loads a file into a ConsensusMap
 
       @param filename the file name of the file to load.
       @param map The ConsensMap to load the data into.
+      @param allowed_types a FileTypeList containing the types of files to support. If not empty the extension, and failing that the contents are checked to make sure they match
+      @param log Progress logging mode
 
       @return true if the file could be loaded, false otherwise
 
@@ -236,21 +255,19 @@ public:
     */
     bool loadConsensusFeatures(const String& filename, ConsensusMap& map, const std::vector<FileTypes::Type> allowed_types = std::vector<FileTypes::Type>(), ProgressLogger::LogType log = ProgressLogger::NONE);
 
-
     /**
-      @brief Stores proteins and peptides into an Identification File
+      @brief Store a ConsensusFeatureMap
 
-      @param filename the file name of the file to write to.
-      @param additional_proteins The protein vector to load the data from.
-      @param additional_peptides The peptide vector to load the data from.
+      @param filename the file name of the file to write.
+      @param map The ConsensusMap to store.
+      @param allowed_types a FileTypeList containing the types of files to support. If not empty the extension, and failing that the contents are checked to make sure they match
+      @param log Progress logging mode
 
       @return true if the file could be stored, false otherwise
 
-      @exception Exception::FileNotFound is thrown if the file could not be opened
-      @exception Exception::ParseError is thrown if an error occurs during parsing
+      @exception Exception::UnableToCreateFile is thrown if the file could not be written
     */
-    bool StoreIdentifications(const String& filename, const std::vector<ProteinIdentification>& additional_proteins, const std::vector<PeptideIdentification>& additional_peptides, const std::vector<FileTypes::Type> allowed_types = std::vector<FileTypes::Type>(), ProgressLogger::LogType log = ProgressLogger::NONE);
-
+    bool storeConsensusFeatures(const String& filename, const ConsensusMap& map, const std::vector<FileTypes::Type> allowed_types = std::vector<FileTypes::Type>(), ProgressLogger::LogType log = ProgressLogger::NONE);
 
     /**
       @brief Loads an identification file into a into proteins and peptides
@@ -258,44 +275,66 @@ public:
       @param filename the file name of the file to load.
       @param additional_proteins The protein vector to load the data into.
       @param additional_peptides The peptide vector to load the data into.
+      @param allowed_types a FileTypeList containing the types of files to support. If not empty the extension, and failing that the contents are checked to make sure they match
+      @param log Progress logging mode      
 
       @return true if the file could be loaded, false otherwise
 
       @exception Exception::FileNotFound is thrown if the file could not be opened
       @exception Exception::ParseError is thrown if an error occurs during parsing
     */
-    bool loadIdentifications(const String& filename, std::vector<ProteinIdentification>& additional_proteins, std::vector<PeptideIdentification>& additional_peptides, const std::vector<FileTypes::Type> allowed_types = std::vector<FileTypes::Type>());
+    bool loadIdentifications(const String& filename, std::vector<ProteinIdentification>& additional_proteins, std::vector<PeptideIdentification>& additional_peptides, const std::vector<FileTypes::Type> allowed_types = std::vector<FileTypes::Type>(), ProgressLogger::LogType log = ProgressLogger::NONE);
 
     /**
-      @brief Store transitions of a spectral library
+      @brief Stores proteins and peptides into an Identification File
 
-      @param filename the file name of the file to write.
-      @param map The TargetedExperiment to store.
+      @param filename the file name of the file to write to.
+      @param additional_proteins The protein vector to load the data from.
+      @param additional_peptides The peptide vector to load the data from.
+      @param allowed_types a FileTypeList containing the types of files to support. If not empty the extension, and failing that the contents are checked to make sure they match
+      @param log Progress logging mode
 
       @return true if the file could be stored, false otherwise
 
       @exception Exception::UnableToCreateFile is thrown if the file could not be written
     */
-    bool storeTransitions(const String& filename, const TargetedExperiment& library, const std::vector<FileTypes::Type> allowed_types = std::vector<FileTypes::Type>());
+    bool StoreIdentifications(const String& filename, const std::vector<ProteinIdentification>& additional_proteins, const std::vector<PeptideIdentification>& additional_peptides, const std::vector<FileTypes::Type> allowed_types = std::vector<FileTypes::Type>(), ProgressLogger::LogType log = ProgressLogger::NONE);
 
     /**
       @brief Load transitions of a spectral library
 
       @param filename the file name of the file to read.
       @param map The TargetedExperiment to load.
-
+      @param allowed_types a FileTypeList containing the types of files to support. If not empty the extension, and failing that the contents are checked to make sure they match
+      @param log Progress logging mode
+      
       @return true if the file could be loaded, false otherwise
 
       @exception Exception::FileNotFound is thrown if the file could not be opened
       @exception Exception::ParseError is thrown if an error occurs during parsing
     */
-    bool loadTransitions(const String& filename, TargetedExperiment& library, const std::vector<FileTypes::Type> allowed_types = std::vector<FileTypes::Type>());
+    bool loadTransitions(const String& filename, TargetedExperiment& library, const std::vector<FileTypes::Type> allowed_types = std::vector<FileTypes::Type>(), ProgressLogger::LogType log = ProgressLogger::NONE);
+
+    /**
+      @brief Store transitions of a spectral library
+
+      @param filename the file name of the file to write.
+      @param map The TargetedExperiment to store.
+      @param allowed_types a FileTypeList containing the types of files to support. If not empty the extension, and failing that the contents are checked to make sure they match
+      @param log Progress logging mode
+
+      @return true if the file could be stored, false otherwise
+
+      @exception Exception::UnableToCreateFile is thrown if the file could not be written
+    */
+    bool storeTransitions(const String& filename, const TargetedExperiment& library, const std::vector<FileTypes::Type> allowed_types = std::vector<FileTypes::Type>(), ProgressLogger::LogType log = ProgressLogger::NONE);
 
         /**
       @brief Loads a file into MSQuantifications
 
       @param filename the file name of the file to load.
       @param msq The MSQuantification to load the data into.
+      @param allowed_types a FileTypeList containing the types of files to support. If not empty the extension, and failing that the contents are checked to make sure they match
 
       @return true if the file could be loaded, false otherwise
 
@@ -303,19 +342,20 @@ public:
       @exception Exception::ParseError is thrown if an error occurs during parsing
     */
 
-    bool loadQuantifications(const String& filename, MSQuantifications& map, const std::vector<FileTypes::Type> allowed_types = std::vector<FileTypes::Type>());
+    bool loadQuantifications(const String& filename, MSQuantifications& map, const std::vector<FileTypes::Type> allowed_types = std::vector<FileTypes::Type>(), ProgressLogger::LogType log = ProgressLogger::NONE);
 
     /**
       @brief Store MSQuantifications
 
       @param filename the file name of the file to write.
       @param map The MSQuantifications to store.
+      @param allowed_types a FileTypeList containing the types of files to support. If not empty the extension, and failing that the contents are checked to make sure they match
 
       @return true if the file could be stored, false otherwise
 
       @exception Exception::UnableToCreateFile is thrown if the file could not be written
     */
-    bool storeQuantifications(const String& filename, const MSQuantifications& map, const std::vector<FileTypes::Type> allowed_types = std::vector<FileTypes::Type>());
+    bool storeQuantifications(const String& filename, const MSQuantifications& map, const std::vector<FileTypes::Type> allowed_types = std::vector<FileTypes::Type>(), ProgressLogger::LogType log = ProgressLogger::NONE);
 
 
         /**
@@ -323,6 +363,7 @@ public:
 
       @param filename the file name of the file to load.
       @param msq The Transformations to load the data into.
+      @param allowed_types a FileTypeList containing the types of files to support. If not empty the extension, and failing that the contents are checked to make sure they match
 
       @return true if the file could be loaded, false otherwise
 
@@ -337,6 +378,7 @@ public:
 
       @param filename the file name of the file to write.
       @param map The Transformations to store.
+      @param allowed_types a FileTypeList containing the types of files to support. If not empty the extension, and failing that the contents are checked to make sure they match
 
       @return true if the file could be stored, false otherwise
 
@@ -360,7 +402,7 @@ public:
       @param description description and comments about the mzQC file contents
       @param label unique and informative label for the run
       @param remove_duplicate_features whether to remove duplicate features only for QCML for now
-      @param allowed_types which file types we are allowed to use
+      @param allowed_types a FileTypeList containing the types of files to support. If not empty the extension, and failing that the contents are checked to make sure they match
 
       @return true if the file could be stored, false otherwise
 
@@ -379,8 +421,6 @@ public:
                const String& label = "label",
                const bool remove_duplicate_features = false,
                const std::vector<FileTypes::Type> allowed_types = std::vector<FileTypes::Type>());
-
-
 
     /**
       @brief Computes a SHA-1 hash value for the content of the given file.

@@ -191,7 +191,7 @@ END_SECTION
 START_SECTION((template < class PeakType > bool loadExperiment(const String &filename, MSExperiment< PeakType > &exp, FileTypes::Type force_type=FileTypes::UNKNOWN, ProgressLogger::LogType log=ProgressLogger::NONE, const bool compute_hash=true)))
 FileHandler tmp;
 PeakMap exp;
-TEST_EQUAL(tmp.loadExperiment("test.bla", exp), false)
+TEST_EXCEPTION(Exception::FileNotFound, tmp.loadExperiment("test.bla", exp))
 TEST_EQUAL(tmp.loadExperiment(OPENMS_GET_TEST_DATA_PATH("DTAFile_test.dta"), exp), true)
 
 TEST_EQUAL(tmp.loadExperiment(OPENMS_GET_TEST_DATA_PATH("MzDataFile_1.mzData"), exp), true)
@@ -283,7 +283,7 @@ END_SECTION
 START_SECTION((template <class FeatureType> bool loadFeatures(const String &filename, FeatureMap<FeatureType>&map, FileTypes::Type force_type = FileTypes::UNKNOWN)))
 FileHandler tmp;
 FeatureMap map;
-TEST_EQUAL(tmp.loadFeatures("test.bla", map), false)
+TEST_EXCEPTION(Exception::FileNotFound, tmp.loadFeatures("test.bla", map))
 TEST_EQUAL(tmp.loadFeatures(OPENMS_GET_TEST_DATA_PATH("FeatureXMLFile_2_options.featureXML"), map), true)
 TEST_EQUAL(map.size(), 7);
 TEST_EQUAL(tmp.loadFeatures(OPENMS_GET_TEST_DATA_PATH("FeatureXMLFile_2_options.featureXML"), map), true)
@@ -297,12 +297,9 @@ fh.loadExperiment(OPENMS_GET_TEST_DATA_PATH("MzMLFile_1.mzML"), exp);
 
 //test mzML
 String filename, filename2;
-NEW_TMP_FILE(filename);
-NEW_TMP_FILE(filename2);
-fh.storeExperiment(filename, exp, {}, ProgressLogger::NONE);
+NEW_TMP_FILE_EXT(filename, ".mzML");
+fh.storeExperiment(filename, exp, {FileTypes::MZML}, ProgressLogger::NONE);
 TEST_EQUAL(fh.getTypeByContent(filename), FileTypes::MZML)
-//fh.storeExperiment(filename2, exp, ProgressLogger::NONE, {FileTypes::MZML});
-
 
 //Test that we throw an exception when given a bogus type restriction
 TEST_EXCEPTION(Exception::UnableToCreateFile, fh.storeExperiment(filename, exp, {FileTypes::SIZE_OF_TYPE}))

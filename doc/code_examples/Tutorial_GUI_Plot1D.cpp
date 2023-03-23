@@ -51,8 +51,7 @@ Int main(int argc, const char** argv)
   QApplication app(argc, const_cast<char**>(argv));
 
   PeakMap exp;
-  exp.resize(1);
-  FileHandler().loadExperiment(tutorial_data_path, exp[0], {FileTypes::DTA});
+  FileHandler().loadExperiment(tutorial_data_path, exp, {FileTypes::DTA});
   LayerDataBase::ExperimentSharedPtrType exp_sptr(new PeakMap(exp));
   LayerDataBase::ODExperimentSharedPtrType on_disc_exp_sptr(new OnDiscMSExperiment());
   auto* widget = new Plot1DWidget(Param(), DIM::Y, nullptr);
