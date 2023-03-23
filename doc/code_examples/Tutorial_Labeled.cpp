@@ -45,7 +45,7 @@ int main(int argc, const char** argv)
   vector<FeatureMap > maps;
   maps.resize(1);
 
-  FileHandler().loadFeatures(tutorial_data_path + "/data/Tutorial_Labeled.featureXML", maps[0], {FileTypes::FeatureXML});
+  FileHandler().loadFeatures(tutorial_data_path + "/data/Tutorial_Labeled.featureXML", maps[0], {FileTypes::FEATUREXML});
   ConsensusMap out;
   out.getColumnHeaders()[0].filename = "data/Tutorial_Labeled.mzML";
   out.getColumnHeaders()[0].size = maps[0].size();
