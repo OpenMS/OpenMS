@@ -117,9 +117,14 @@ public:
     std::ostream & getStream(const String & stream_name);
 
     /**
+      @brief Sets a minimum @p log_level by removing all streams from loggers lower than that level.
+     */
+    void setLogLevel(const String & log_level);
+
+    /**
       @brief Returns the instance of LogConfigHandler.
      */
-    static LogConfigHandler & getInstance();
+    static LogConfigHandler * getInstance();
 
     /// Destructor
     virtual ~LogConfigHandler();

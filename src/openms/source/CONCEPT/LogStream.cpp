@@ -489,6 +489,15 @@ namespace OpenMS
       }
     }
 
+    void LogStream::removeAllStreams()
+    {
+      if (!bound_())
+        return;
+
+      rdbuf()->sync();
+      rdbuf()->stream_list_.clear();
+    }
+
     void LogStream::insertNotification(std::ostream & s, LogStreamNotifier & target)
     {
       if (!bound_())
