@@ -35,8 +35,7 @@
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 
 #include <OpenMS/FILTERING/TRANSFORMERS/LinearResampler.h>
-#include <OpenMS/FORMAT/FeatureXMLFile.h>
-#include <OpenMS/FORMAT/MzMLFile.h>
+#include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/KERNEL/RangeUtils.h>
 #include <OpenMS/MATH/MISC/BilinearInterpolation.h>
@@ -283,12 +282,11 @@ protected:
     bool show_precursors = getFlag_("precursors");
 
     PeakMap exp;
-    MzMLFile f;
-    f.setLogType(log_type_);
+    FileHandler f;
     if (filter_rt) f.getOptions().setRTRange(DRange<1>(rt_min, rt_max));
     if (filter_mz) f.getOptions().setMZRange(DRange<1>(mz_min, mz_max));
     if (!show_precursors) f.getOptions().setMSLevels({1});
-    f.load(in, exp);
+    f.loadExperiment(in, exp, {FileTypes::MZML}, log_type_);
     if (filter_mz && show_precursors)
     {
       // MS2 spectra were not filtered by precursor m/z, remove them now:
@@ -421,8 +419,7 @@ protected:
     if (!in_featureXML.empty())
     {
       FeatureMap feature_map;
-      FeatureXMLFile ff;
-      ff.load(in_featureXML, feature_map);
+      FileHandler().loadFeatures(in_featureXML, feature_map, {FileTypes::FEATUREXML});
       markFeatureLocations_(feature_map, exp, image, getFlag_("transpose"), feature_color);
     }
 

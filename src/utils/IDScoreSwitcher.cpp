@@ -36,7 +36,7 @@
 
 #include <OpenMS/ANALYSIS/ID/IDScoreSwitcherAlgorithm.h>
 #include <OpenMS/CONCEPT/LogStream.h>
-#include <OpenMS/FORMAT/IdXMLFile.h>
+#include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
 
@@ -99,7 +99,7 @@ protected:
     vector<ProteinIdentification> proteins;
     vector<PeptideIdentification> peptides;
 
-    IdXMLFile().load(in, proteins, peptides);
+    FileHandler().loadIdentifications(in, proteins, peptides, {FileTypes::IDXML});
 
     Size counter = 0;
     if (do_proteins_)
@@ -117,7 +117,7 @@ protected:
       }
     }
 
-    IdXMLFile().store(out, proteins, peptides);
+    FileHandler().StoreIdentifications(out, proteins, peptides, {FileTypes::IDXML});
 
     OPENMS_LOG_INFO << "Successfully switched " << counter << " "
              << (do_proteins_ ? "protein" : "PSM") << " scores." << endl;

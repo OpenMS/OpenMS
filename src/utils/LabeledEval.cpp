@@ -32,8 +32,7 @@
 // $Authors: Marc Sturm $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/FORMAT/FeatureXMLFile.h>
-#include <OpenMS/FORMAT/ConsensusXMLFile.h>
+#include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/MATH/STATISTICS/StatisticFunctions.h>
 #include <OpenMS/KERNEL/Feature.h>
@@ -99,11 +98,11 @@ protected:
   {
     //load input features
     FeatureMap input;
-    FeatureXMLFile().load(getStringOption_("in"), input);
+    FileHandler().loadFeatures(getStringOption_("in"), input, {FileTypes::FEATUREXML});
 
     //load truth consensusXML
     ConsensusMap truth;
-    ConsensusXMLFile().load(getStringOption_("truth"), truth);
+    FileHandler().loadConsensusFeatures(getStringOption_("truth"), truth, {FileTypes::CONSENSUSXML});
 
     //parameters
     double mz_tol = getDoubleOption_("mz_tol");

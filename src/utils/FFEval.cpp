@@ -34,7 +34,7 @@
 
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/KERNEL/Feature.h>
-#include <OpenMS/FORMAT/FeatureXMLFile.h>
+#include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/TextFile.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/MATH/STATISTICS/StatisticFunctions.h>
@@ -143,14 +143,14 @@ protected:
   {
     //load data
     FeatureMap features_in, features_truth;
-    FeatureXMLFile().load(getStringOption_("in"), features_in);
+    FileHandler().loadFeatures(getStringOption_("in"), features_in, {FileTypes::FEATUREXML});
     features_in.sortByPosition();
-    FeatureXMLFile().load(getStringOption_("truth"), features_truth);
+    FileHandler().loadFeatures(getStringOption_("truth"), features_truth, {FileTypes::FEATUREXML});
     features_truth.sortByPosition();
     FeatureMap abort_reasons;
     if (!getStringOption_("abort_reasons").empty())
     {
-      FeatureXMLFile().load(getStringOption_("abort_reasons"), abort_reasons);
+      FileHandler().loadFeatures(getStringOption_("abort_reasons"), abort_reasons, {FileTypes::FEATUREXML});
     }
     double mz_tol = getDoubleOption_("mz_tol");
     writeDebug_(String("Final MZ tolerance: ") + mz_tol, 1);
@@ -382,7 +382,7 @@ protected:
     //write output
     if (!getStringOption_("out").empty())
     {
-      FeatureXMLFile().store(getStringOption_("out"), features_truth);
+      FileHandler().storeFeatures(getStringOption_("out"), features_truth, {FileTypes::FEATUREXML});
     }
 
     //ROC curve
