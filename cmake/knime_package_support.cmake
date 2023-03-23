@@ -214,9 +214,9 @@ endforeach()
 # We rename the filename to show a different node name in KNIME but leave the tool name inside the CTD unchanged, so it finds the tool binary.
 # TODO change description and accepting file types?
 add_custom_command(
-	TARGET  create_ctds POST_BUILD
-	COMMAND ${TOPP_BIN_PATH}/FileConverter -write_ctd ${CTD_TP_PATH}
-	COMMAND ${CMAKE_COMMAND} -e rename ${CTD_TP_PATH}/FileConverter.ctd ${CTD_TP_PATH}/RawFileConverter.ctd
+  TARGET  create_ctds POST_BUILD
+  COMMAND ${TOPP_BIN_PATH}/FileConverter -write_ctd ${CTD_TP_PATH}
+  COMMAND ${CMAKE_COMMAND} -E rename ${CTD_TP_PATH}/FileConverter.ctd ${CTD_TP_PATH}/RawFileConverter.ctd
   COMMAND ${CMAKE_COMMAND} -DSCRIPT_DIR=${SCRIPT_DIRECTORY} -DTOOLNAME=RawFileConverter -DCTD_FILE=${CTD_TP_PATH}/RawFileConverter.ctd -P ${SCRIPT_DIRECTORY}change_exec_name_in_ctd.cmake
 )
 

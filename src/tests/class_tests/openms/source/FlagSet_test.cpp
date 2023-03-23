@@ -121,7 +121,7 @@ START_SECTION(bool operator==(const FlagSet & stat) const)
 {
     FST gg(e_green);
     FST target = gg;
-    TEST_EQUAL(target == gg, true)
+    TEST_TRUE(target == gg)
     TEST_NOT_EQUAL(gg, FST())
 }
 END_SECTION

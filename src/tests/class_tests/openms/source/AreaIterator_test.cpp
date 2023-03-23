@@ -108,12 +108,12 @@ END_SECTION
 
 START_SECTION((bool operator==(const AreaIterator &rhs) const))
 	AI a1, a2;
-	TEST_EQUAL(a1==a1, true)
-	TEST_EQUAL(a2==a2, true)
-	TEST_EQUAL(a1==a2, true)
+	TEST_TRUE(a1 == a1)
+	TEST_TRUE(a2 == a2)
+	TEST_TRUE(a1 == a2)
 	
 	AI a3(AIP(exp.begin(),exp.RTBegin(0), exp.RTEnd(10), 1).lowMZ(500).highMZ(600));
-	TEST_EQUAL(a3==a3, true)
+	TEST_TRUE(a3 == a3)
 	TEST_EQUAL(a1==a3, false)
 	TEST_EQUAL(a2==a3, false)
 END_SECTION
@@ -126,8 +126,8 @@ START_SECTION((bool operator!=(const AreaIterator &rhs) const))
 	
 	AI a3(AIP(exp.begin(), exp.RTBegin(0), exp.RTEnd(10), 1).lowMZ(500).highMZ(600));
 	TEST_EQUAL(a3!=a3, false)
-	TEST_EQUAL(a1!=a3, true)
-	TEST_EQUAL(a2!=a3, true)
+	TEST_FALSE(a1 == a3)
+	TEST_FALSE(a2 == a3)
 END_SECTION
 
 START_SECTION((AreaIterator(const AreaIterator &rhs)))
@@ -136,12 +136,12 @@ START_SECTION((AreaIterator(const AreaIterator &rhs)))
 
 	AI a3(a2);
 	TEST_EQUAL(a3==a1, false)
-	TEST_EQUAL(a3==a2, true)
+	TEST_TRUE(a3 == a2)
 	
   // copy-constructor on end-Iterator is undefined, so the following
   // operation is invalid
   // AI a4(a1);
-  // TEST_EQUAL(a4==a1, true)
+  // TEST_TRUE(a4 == a1)
   // TEST_EQUAL(a4==a2, false)
 END_SECTION
 
@@ -150,11 +150,11 @@ START_SECTION((AreaIterator& operator=(const AreaIterator &rhs)))
   AI a3(AIP(exp.begin(), exp.RTBegin(0), exp.RTEnd(10), 1).lowMZ(500).highMZ(600));
 
 	a2 = a3;
-	TEST_EQUAL(a2==a3, true)
+	TEST_TRUE(a2 == a3)
 	TEST_EQUAL(a2==a1, false)
 	
 	a2 = a1;
-	TEST_EQUAL(a2==a1, true)
+	TEST_TRUE(a2 == a1)
 	TEST_EQUAL(a2==a3, false)
 END_SECTION
 
