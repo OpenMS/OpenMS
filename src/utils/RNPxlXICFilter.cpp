@@ -33,8 +33,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/KERNEL/StandardTypes.h>
-#include <OpenMS/FORMAT/MzMLFile.h>
-#include <OpenMS/FORMAT/FeatureXMLFile.h>
+#include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/CONCEPT/Constants.h>
@@ -226,11 +225,10 @@ protected:
 
     // load experiments
     PeakMap exp_control;
-    MzMLFile mzml_file;
-    mzml_file.load(control_mzml, exp_control);
+    FileHandler().loadExperiment(control_mzml, exp_control, {FileTypes::MZML});
 
     PeakMap exp_treatment;
-    mzml_file.load(treatment_mzml, exp_treatment);
+    FileHandler().loadExperiment(treatment_mzml, exp_treatment, {FileTypes::MZML});
 
     // extract precursor mz and rts
     vector<double> pc_mzs;
@@ -289,7 +287,7 @@ protected:
       }
     }
 
-    mzml_file.store(out_mzml, exp_out);
+    FileHandler().storeExperiment(out_mzml, exp_out, {FileTypes::MZML});
 
     return EXECUTION_OK;
   }

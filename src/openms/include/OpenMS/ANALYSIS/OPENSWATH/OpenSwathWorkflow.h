@@ -40,7 +40,7 @@
 #include <OpenMS/OPENSWATHALGO/DATAACCESS/TransitionExperiment.h>
 #include <OpenMS/INTERFACES/IMSDataConsumer.h>
 
-#include <OpenMS/FORMAT/MzMLFile.h> // debug file store only
+#include <OpenMS/FORMAT/FileHandler.h> // debug file store only
 
 // Kernel and implementations
 #include <OpenMS/KERNEL/MSExperiment.h>

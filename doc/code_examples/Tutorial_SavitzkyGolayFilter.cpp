@@ -48,7 +48,7 @@ int main(int argc, const char** argv)
   FileHandler().loadExperiment(tutorial_data_path + "/data/Tutorial_SavitzkyGolayFilter.dta", exp);
 
   // A DTA file always has exactly one Spectrum, so we get that
-  MSSpectrum spectrum = exp.getSpectrum[0];
+  MSSpectrum spectrum = exp[0];
 
   LinearResampler lr;
   Param param_lr;

@@ -32,7 +32,7 @@
 // $Authors: Nico Pfeifer $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/FORMAT/IdXMLFile.h>
+#include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FILTERING/ID/IDFilter.h>
 #include <OpenMS/FORMAT/FASTAFile.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
@@ -144,7 +144,7 @@ protected:
     //-------------------------------------------------------------
     // reading input
     //-------------------------------------------------------------
-    IdXMLFile().load(inputfile_name, protein_identifications, identifications);
+    FileHandler().loadIdentifications(inputfile_name, protein_identifications, identifications, {FileTypes::IDXML});
     if (!sequences_file_name.empty())
     {
       FASTAFile().load(sequences_file_name, sequences);

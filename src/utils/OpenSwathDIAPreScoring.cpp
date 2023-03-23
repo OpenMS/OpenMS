@@ -44,10 +44,7 @@
 
 #include <OpenMS/OPENSWATHALGO/DATAACCESS/DataFrameWriter.h>
 
-#include <OpenMS/FORMAT/FeatureXMLFile.h>
 #include <OpenMS/FORMAT/FileHandler.h>
-#include <OpenMS/FORMAT/MzMLFile.h>
-#include <OpenMS/FORMAT/TraMLFile.h>
 
 #include <OpenMS/SYSTEM/File.h>
 
@@ -130,8 +127,7 @@ protected:
     std::cout << "Loading TraML file" << std::endl;
     {
       OpenMS::TargetedExperiment transition_exp_;
-      TraMLFile t;
-      t.load(tr_file, transition_exp_);
+      FileHandler().loadTransitions(tr_file, transition_exp_, {FileTypes::TRAML});
       OpenSwathDataAccessHelper::convertTargetedExp(transition_exp_, transition_exp);
       int ltrans = transition_exp.transitions.size();
       std::cout << ltrans << std::endl;
@@ -140,13 +136,11 @@ protected:
 
     for (Size i = 0; i < file_list.size(); ++i)
     {
-      MzMLFile swath_file;
       MapTypePtr swath_map (new MapType);
       FeatureMap featureFile;
       std::cout << "Loading file " << file_list[i] << std::endl;
       String fname = outfile_list[i];
-      swath_file.setLogType(log_type_);
-      swath_file.load(file_list[i], *swath_map);
+      FileHandler().loadExperiment(file_list[i], *swath_map, {FileTypes::MZML}, log_type_);
       if (swath_map->empty() || (*swath_map)[0].getPrecursors().empty())
       {
         std::cerr << "WARNING: File " << swath_map->getLoadedFilePath()

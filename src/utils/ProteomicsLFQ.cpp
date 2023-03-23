@@ -56,15 +56,11 @@
 #include <OpenMS/FILTERING/DATAREDUCTION/MassTraceDetection.h>
 #include <OpenMS/FILTERING/ID/IDFilter.h>
 #include <OpenMS/FILTERING/TRANSFORMERS/ThresholdMower.h>
-#include <OpenMS/FORMAT/ConsensusXMLFile.h>
 #include <OpenMS/FORMAT/ExperimentalDesignFile.h>
-#include <OpenMS/FORMAT/FeatureXMLFile.h>
-#include <OpenMS/FORMAT/IdXMLFile.h>
+#include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/MSstatsFile.h>
-#include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/FORMAT/MzTabFile.h>
 #include <OpenMS/FORMAT/PeakTypeEstimator.h>
-#include <OpenMS/FORMAT/TransformationXMLFile.h>
 #include <OpenMS/FORMAT/TriqlerFile.h>
 #include <OpenMS/KERNEL/ConversionHelper.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
@@ -349,11 +345,9 @@ protected:
 
     // create scope for raw data, so it is properly freed (Note: clear() is not sufficient)
     // load raw file
-    MzMLFile mzML_file;
-    mzML_file.setLogType(log_type_);
 
     PeakMap ms_raw;
-    mzML_file.load(mz_file, ms_raw);
+    FileHandler().loadExperiment(mz_file, ms_raw, {FileTypes::MZML});
     ms_raw.clearMetaDataArrays();
 
     if (ms_raw.empty())
@@ -645,7 +639,7 @@ protected:
         {
           // plot with e.g.:
           // Rscript ../share/OpenMS/SCRIPTS/plot_trafo.R debug_trafo_1.trafoXML debug_trafo_1.pdf
-          TransformationXMLFile().store("debug_trafo_" + String(i) + ".trafoXML", transformations[i]);
+          FileHandler().storeTransformations("debug_trafo_" + String(i) + ".trafoXML", transformations[i], {FileTypes::TRANSFORMATIONXML});
         }
       }
     }
@@ -866,7 +860,7 @@ protected:
   {
 
     const String& mz_file_abs_path = File::absolutePath(mz_file);
-    IdXMLFile().load(id_file_abs_path, protein_ids, peptide_ids);
+    FileHandler().loadIdentifications(id_file_abs_path, protein_ids, peptide_ids, {FileTypes::IDXML});
 
     ExitCodes e = checkSingleRunPerID_(protein_ids, id_file_abs_path);
     if (e != EXECUTION_OK) return e;
@@ -1128,7 +1122,7 @@ protected:
         calculateSeeds_(ms_centroided, seeds, median_fwhm);
         if (debug_level_ > 666)
         {
-          FeatureXMLFile().store("debug_seeds_fraction_" + String(ms_files.first) + "_" + String(fraction_group) + ".featureXML", seeds);
+          FileHandler().storeFeatures("debug_seeds_fraction_" + String(ms_files.first) + "_" + String(fraction_group) + ".featureXML", seeds, {FileTypes::FEATUREXML});
         }
       }
 
@@ -1177,12 +1171,12 @@ protected:
       
       if (debug_level_ > 666)
       {
-        FeatureXMLFile().store("debug_fraction_" + String(ms_files.first) + "_" + String(fraction_group) + ".featureXML", feature_maps.back());
+        FileHandler().storeFeatures("debug_fraction_" + String(ms_files.first) + "_" + String(fraction_group) + ".featureXML", feature_maps.back(), {FileTypes::FEATUREXML});
       }
 
       if (debug_level_ > 670)
       {
-        MzMLFile().store("debug_fraction_" + String(ms_files.first) + "_" + String(fraction_group) + "_chroms.mzML", ffi.getChromatograms());
+        FileHandler().storeExperiment("debug_fraction_" + String(ms_files.first) + "_" + String(fraction_group) + "_chroms.mzML", ffi.getChromatograms(), {FileTypes::MZML});
       }
 
       ++fraction_group;
@@ -1252,7 +1246,7 @@ protected:
 
     if (debug_level_ >= 666)
     {
-      ConsensusXMLFile().store("debug_fraction_" + String(ms_files.first) +  ".consensusXML", consensus_fraction);
+      FileHandler().storeConsensusFeatures("debug_fraction_" + String(ms_files.first) +  ".consensusXML", consensus_fraction, {FileTypes::CONSENSUSXML});
       writeDebug_("to produce a consensus map with: " + String(consensus_fraction.getColumnHeaders().size()) + " columns.", 1);
     }
 
@@ -1676,7 +1670,7 @@ protected:
 
       if (debug_level_ >= 666)
       {
-        ConsensusXMLFile().store("debug_after_normalization.consensusXML", consensus);
+        FileHandler().storeConsensusFeatures("debug_after_normalization.consensusXML", consensus, {FileTypes::CONSENSUSXML});
       }
     }
     else if (getStringOption_("quantification_method") == "spectral_counting")
@@ -1831,7 +1825,7 @@ protected:
     {
       // Note: idXML and consensusXML doesn't support writing quantification at protein groups
       // (they are nevertheless stored and passed to mzTab for proper export)
-      ConsensusXMLFile().store(getStringOption_("out_cxml"), consensus);
+      FileHandler().storeConsensusFeatures(getStringOption_("out_cxml"), consensus, {FileTypes::CONSENSUSXML});
     }
 
     // Fill MzTab with meta data and quants annotated in identification data structure

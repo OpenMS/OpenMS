@@ -36,10 +36,7 @@
 #include <OpenMS/VISUAL/VISITORS/LayerStoreData.h>
 
 #include <OpenMS/FORMAT/ConsensusXMLFile.h>
-#include <OpenMS/FORMAT/FeatureXMLFile.h>
 #include <OpenMS/FORMAT/FileHandler.h>
-#include <OpenMS/FORMAT/IdXMLFile.h>
-#include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/KERNEL/ConsensusMap.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
@@ -182,9 +179,7 @@ namespace OpenMS
   // helper for saving a FeatureMap to a file
   void saveFeatureMapToFile(const String& path, const FeatureMap& fm, const ProgressLogger::LogType lt, const FileTypes::Type /*ext*/)
   {
-    FeatureXMLFile fh;
-    fh.setLogType(lt);
-    fh.store(path, fm);
+    FileHandler().storeFeatures(path, fm, {FileTypes::FEATUREXML}, lt);
   }
 
   void LayerStoreDataFeatureMapVisible::saveToFile(const String& path, const ProgressLogger::LogType lt) const
@@ -226,9 +221,7 @@ namespace OpenMS
   // helper for saving a ConsensusMap to a file
   void saveConsensusMapToFile(const String& path, const ConsensusMap& fm, const ProgressLogger::LogType lt, const FileTypes::Type /*ext*/)
   {
-    ConsensusXMLFile fh;
-    fh.setLogType(lt);
-    fh.store(path, fm);
+    FileHandler().storeConsensusFeatures(path, fm, {FileTypes::CONSENSUSXML}, lt);
   }
 
   void LayerStoreDataConsensusMapVisible::saveToFile(const String& path, const ProgressLogger::LogType lt) const
@@ -268,9 +261,7 @@ namespace OpenMS
     // helper for saving a PepIDs to a file
   void savePepIdsToFile(const String& path, const IPeptideIds::PepIds& ids, const ProgressLogger::LogType lt, const FileTypes::Type /*ext*/)
   {
-    IdXMLFile fh;
-    fh.setLogType(lt);
-    fh.store(path, {}, ids);
+    FileHandler().StoreIdentifications(path, {}, ids, {FileTypes::IDXML}, lt);
   }
 
   void LayerStoreDataIdentVisible::saveToFile(const String& path, const ProgressLogger::LogType lt) const

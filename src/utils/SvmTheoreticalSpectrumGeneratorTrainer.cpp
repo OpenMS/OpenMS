@@ -35,8 +35,6 @@
 #include <OpenMS/CHEMISTRY/SvmTheoreticalSpectrumGeneratorTrainer.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/FORMAT/FileHandler.h>
-// TODO remove once we've got 3 arg load into handler
-#include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/ANALYSIS/ID/IDMapper.h>
 
 #include "svm.h"
@@ -135,8 +133,7 @@ protected:
 
     std::vector<PeptideIdentification> pep_ids;
     std::vector<ProteinIdentification> prot_ids;
-    String tmp_str;
-    IdXMLFile().load(in_identifications, prot_ids, pep_ids, tmp_str);
+    FileHandler().loadIdentifications(in_identifications, prot_ids, pep_ids, {FileTypes::IDXML});
 
     IDMapper idmapper;
     Param par;

@@ -199,15 +199,9 @@ protected:
     {
       writeLogWarn_("Warning: Could not determine input file type!");
     }
-    else if (in_type == FileTypes::MZDATA)
+    else if (in_type == FileTypes::MZDATA || in_type == FileTypes::MZXML)
     {
-      MzDataFile mzData;
-      mzData.load(spec, msexperiment);
-    }
-    else if (in_type == FileTypes::MZXML)
-    {
-      MzXMLFile mzXML;
-      mzXML.load(spec, msexperiment);
+      FileHandler().loadExperiment(spec, msexperiment, {FileTypes::MZDATA, FileTypes::MZXML});
     }
     if (msexperiment.getMinRT() == 0)
     {

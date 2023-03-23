@@ -33,7 +33,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
-#include <OpenMS/FORMAT/TransformationXMLFile.h>
+#include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/MATH/MISC/MathFunctions.h>
 #include <iostream>
 
@@ -89,7 +89,7 @@ protected:
     String in = getStringOption_("in"), out = getStringOption_("out");
 
     TransformationDescription trafo_in;
-    TransformationXMLFile().load(in, trafo_in);
+    FileHandler().loadTransformations(in, trafo_in, true, {FileTypes::TRANSFORMATIONXML});
     TransformationDescription::DataPoints data;
 
     double min = getDoubleOption_("min"), max = getDoubleOption_("max"),
@@ -122,7 +122,7 @@ protected:
     {
       TransformationDescription trafo_out(trafo_in);
       trafo_out.setDataPoints(data);
-      TransformationXMLFile().store(out, trafo_out);
+      FileHandler().storeTransformations(out, trafo_out, {FileTypes::TRANSFORMATIONXML});
     }
 
     return EXECUTION_OK;

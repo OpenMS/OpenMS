@@ -1228,7 +1228,7 @@ START_SECTION(void TargetedSpectraExtractor::storeSpectraMSP(const String& filen
   spectra.push_back(spectr1);
   
   String output_filepath;
-  NEW_TMP_FILE(output_filepath)
+  NEW_TMP_FILE_EXT(output_filepath, "MSP")
 
   experiment.setSpectra(spectra);
   TargetedSpectraExtractor targeted_spectra_extractor;

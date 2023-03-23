@@ -34,7 +34,7 @@
 
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 #include <OpenMS/FORMAT/MzDataFile.h>
-#include <OpenMS/FORMAT/IdXMLFile.h>
+#include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/MascotXMLFile.h>
 #include <OpenMS/FORMAT/MascotInfile.h>
 #include <OpenMS/FORMAT/PepXMLFileMascot.h>
@@ -615,9 +615,10 @@ protected:
       // write all (!) parameters as metavalues to the search parameters
       DefaultParamHandler::writeParametersToMetaValues(this->getParam_(), protein_identifications[0].getSearchParameters(), this->getToolPrefix());
 
-      IdXMLFile().store(outputfile_name,
+      FileHandler().StoreIdentifications(outputfile_name,
                         protein_identifications,
-                        identifications);
+                        identifications,
+                        {FileTypes::IDXML});
 
       // Deletion of temporary Mascot files
       if (!mascot_out)

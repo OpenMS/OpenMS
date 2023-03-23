@@ -33,7 +33,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
-#include <OpenMS/FORMAT/FeatureXMLFile.h>
+#include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/KERNEL/Feature.h>
 
@@ -199,7 +199,7 @@ class TOPPOpenSwathRewriteToFeatureXML :
   double fdr_cutoff = getDoubleOption_("FDR_cutoff");
 
   FeatureMap feature_map;
-  FeatureXMLFile().load(feature_file, feature_map);
+  FileHandler().loadFeatures(feature_file, feature_map, {FileTypes::FEATUREXML});
 
   if (!csv.empty())
   {
@@ -213,7 +213,7 @@ class TOPPOpenSwathRewriteToFeatureXML :
 
 
   feature_map.applyMemberFunction(&UniqueIdInterface::ensureUniqueId);
-  FeatureXMLFile().store(out, feature_map);
+  FileHandler().storeFeatures(out, feature_map, {FileTypes::FEATUREXML});
 
   return EXECUTION_OK;
 

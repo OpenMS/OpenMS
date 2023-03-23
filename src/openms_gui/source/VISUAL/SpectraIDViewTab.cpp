@@ -37,8 +37,7 @@
 #include <OpenMS/CHEMISTRY/AASequence.h>
 #include <OpenMS/CHEMISTRY/TheoreticalSpectrumGenerator.h>
 #include <OpenMS/COMPARISON/SPECTRA/SpectrumAlignment.h>
-#include <OpenMS/FORMAT/IdXMLFile.h>
-#include <OpenMS/FORMAT/MzIdentMLFile.h>
+#include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/METADATA/MetaInfoInterfaceUtils.h>
 #include <OpenMS/SYSTEM/NetworkGetRequest.h>
 #include <OpenMS/VISUAL/LayerData1DPeak.h>
@@ -1001,14 +1000,7 @@ namespace OpenMS
     {
       return;
     }      
-    if (FileHandler::getTypeByFileName(filename) == FileTypes::MZIDENTML)
-    {
-      MzIdentMLFile().store(filename, prot_id, all_pep_ids);
-    }
-    else 
-    {
-      IdXMLFile().store(filename, prot_id, all_pep_ids);
-    }
+    FileHandler().StoreIdentifications(filename, prot_id, all_pep_ids, {FileTypes::IDXML, FileTypes::MZIDENTML});
   }
 
   void SpectraIDViewTab::updatedSingleProteinCell_(QTableWidgetItem* /*item*/)

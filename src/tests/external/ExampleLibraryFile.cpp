@@ -36,7 +36,7 @@
 
 #include <OpenMS/KERNEL/Feature.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
-#include <OpenMS/FORMAT/FeatureXMLFile.h>
+#include <OpenMS/FORMAT/FileHandler.h>
 
 using namespace std;
 using namespace OpenMS;
@@ -55,9 +55,9 @@ namespace OpenMSExternal
     Feature feature;
     fm.push_back(feature);
     String tmpfilename = "tmpfile.featureXML";
-    FeatureXMLFile().store(tmpfilename, fm);
+    FileHandler().storeFeatures(tmpfilename, fm, {FileTypes::FEATUREXML});
 
     FeatureMap fm2;
-    FeatureXMLFile().store(tmpfilename, fm2);
+    FileHandler().storeFeatures(tmpfilename, fm2, {FileTypes::FEATUREXML});
   }
 }

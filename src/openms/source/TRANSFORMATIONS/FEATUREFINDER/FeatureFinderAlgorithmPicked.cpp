@@ -37,7 +37,6 @@
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/EGHTraceFitter.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/GaussTraceFitter.h>
 
-#include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/TextFile.h>
 #include <OpenMS/MATH/STATISTICS/StatisticFunctions.h>
@@ -1054,7 +1053,7 @@ namespace OpenMS
       {
         s.getFloatDataArrays().erase(s.getFloatDataArrays().begin() + 2);
       }
-      MzMLFile().store("debug/input.mzML", map_);
+      FileHandler().storeExperiment("debug/input.mzML", map_, {FileTypes::MZML});
     }
 
   }

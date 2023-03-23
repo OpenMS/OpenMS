@@ -665,6 +665,7 @@ if (first_line.hasSubstring("File	First Scan	Last Scan	Num of Scans	Charge	Monoi
     case FileTypes::FEATUREXML:
     {
       FeatureXMLFile f;
+      f.setLogType(log);
       f.getOptions() = fOptions_;
       f.load(filename, map);
     }
@@ -702,7 +703,7 @@ if (first_line.hasSubstring("File	First Scan	Last Scan	Num of Scans	Charge	Monoi
     return true;
   }
 
-  bool FileHandler::storeFeatures(const String& filename, const FeatureMap& map, const std::vector<FileTypes::Type> allowed_types)
+  bool FileHandler::storeFeatures(const String& filename, const FeatureMap& map, const std::vector<FileTypes::Type> allowed_types, ProgressLogger::LogType log)
   {
 
     FileTypes::Type ftype;
@@ -730,6 +731,7 @@ if (first_line.hasSubstring("File	First Scan	Last Scan	Num of Scans	Charge	Monoi
     case FileTypes::FEATUREXML:
     {
       FeatureXMLFile f;
+      f.setLogType(log);
       f.getOptions() = fOptions_;
       f.store(filename, map);
     }
@@ -776,7 +778,7 @@ if (first_line.hasSubstring("File	First Scan	Last Scan	Num of Scans	Charge	Monoi
     return true;
   }
 
-  bool FileHandler::storeConsensusFeatures(const String& filename, const ConsensusMap& map,  const std::vector<FileTypes::Type> allowed_types)
+  bool FileHandler::storeConsensusFeatures(const String& filename, const ConsensusMap& map,  const std::vector<FileTypes::Type> allowed_types, ProgressLogger::LogType log)
   {
     FileTypes::Type ftype;
     try
@@ -800,7 +802,9 @@ if (first_line.hasSubstring("File	First Scan	Last Scan	Num of Scans	Charge	Monoi
     {
       case FileTypes::CONSENSUSXML:
       {
-        ConsensusXMLFile().store(filename, map);
+        ConsensusXMLFile f;
+        f.setLogType(log);
+        f.store(filename, map);
       }
       break;
 
@@ -864,7 +868,7 @@ if (first_line.hasSubstring("File	First Scan	Last Scan	Num of Scans	Charge	Monoi
     return true;
   }
 
-  bool FileHandler::StoreIdentifications(const String& filename, const std::vector<ProteinIdentification>& additional_proteins, const std::vector<PeptideIdentification>& additional_peptides, const std::vector<FileTypes::Type> allowed_types)
+  bool FileHandler::StoreIdentifications(const String& filename, const std::vector<ProteinIdentification>& additional_proteins, const std::vector<PeptideIdentification>& additional_peptides, const std::vector<FileTypes::Type> allowed_types, ProgressLogger::LogType log)
   {
  FileTypes::Type ftype;
  if (allowed_types.size() == 1)
@@ -896,13 +900,17 @@ if (first_line.hasSubstring("File	First Scan	Last Scan	Num of Scans	Charge	Monoi
     {
       case FileTypes::IDXML:
       {
-        IdXMLFile().store(filename, additional_proteins, additional_peptides);
+        IdXMLFile f;
+        f.setLogType(log);
+        f.store(filename, additional_proteins, additional_peptides);
       }
       break;
 
       case FileTypes::MZIDENTML:
       {
-        MzIdentMLFile().store(filename, additional_proteins, additional_peptides);
+        MzIdentMLFile f;
+        f.setLogType(log);
+        f.store(filename, additional_proteins, additional_peptides);
       }
       break;
 
@@ -1285,6 +1293,12 @@ if (first_line.hasSubstring("File	First Scan	Last Scan	Num of Scans	Charge	Monoi
       f.store(filename, exp);
     }
     break;
+
+    case FileTypes::MSP:
+    {
+      MSPGenericFile().store(filename, exp);
+    }
+      break;
 
     case FileTypes::MZXML:
     {

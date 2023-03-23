@@ -244,7 +244,7 @@ for (PeakSpectrum::ConstIterator it1 = CID_spec.begin(); it1 != CID_spec.end(); 
       p.setPosition(it->first);
       filtered_spec.push_back(p);
     }
-    DTAFile().store("spec_scored.dta", filtered_spec);
+    FileHandler().storeExperiment("spec_scored.dta", filtered_spec, {FileTypes::DTA});
 #endif
 
     set<String> sequences;

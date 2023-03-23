@@ -37,7 +37,7 @@
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
 #include <OpenMS/CHEMISTRY/ResidueDB.h>
 #include <OpenMS/CONCEPT/LogStream.h>
-#include <OpenMS/FORMAT/IdXMLFile.h>
+#include <OpenMS/FORMAT/FileHandler.h>
 
 
 #include <vector>
@@ -182,7 +182,7 @@ protected:
     // load data
     std::vector<ProteinIdentification> prot_ids;
     std::vector<PeptideIdentification> pep_ids;
-    IdXMLFile().load(in, prot_ids, pep_ids);
+    FileHandler().loadIdentifications(in, prot_ids, pep_ids, {FileTypes::IDXML});
     
     // apply mod to all PeptideHits
     for (auto& id : pep_ids)
@@ -223,7 +223,7 @@ protected:
 
 
 
-    IdXMLFile().store(out, prot_ids, pep_ids);
+    FileHandler().StoreIdentifications(out, prot_ids, pep_ids, {FileTypes::IDXML});
 
     return EXECUTION_OK;
   }
