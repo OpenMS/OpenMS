@@ -29,7 +29,9 @@ jobs:
             && mv $INSTALLATION_DIR/knime_* $INSTALLATION_DIR/knime
             
       - name: Install and start Rserve
-        run: R -e 'install.packages(c("Rserve"), repos="http://cran.rstudio.com/")'
+        run: |
+          mkdir ~/local/R_libs
+          R -e 'install.packages(c("Rserve"), repos="http://cran.rstudio.com/", lib="~/local/R_libs/")'
         
       - name: Install OpenMS plugin
         run: |
