@@ -7,13 +7,16 @@ jobs:
     env:
       KNIME_MAJOR_VERSION: 4
       KNIME_MINOR_VERSION: 7
-      KNIME_VERSION: ${KNIME_MAJOR_VERSION}.${KNIME_MINOR_VERSION}
-      DOWNLOAD_URL: https://download.knime.org/analytics-platform/linux/knime-latest${KNIME_MAJOR_VERSION}${KNIME_MINOR_VERSION}-linux.gtk.x86_64.tar.gz
       INSTALLATION_DIR: /usr/local
-      KNIME_DIR: ${INSTALLATION_DIR}/knime
       HOME_DIR: /home/knime
     runs-on: ubuntu-latest
     steps:
+      - name: Set more env
+        run: |
+          echo "KNIME_VERSION=${KNIME_MAJOR_VERSION}.${KNIME_MINOR_VERSION}" >> $GITHUB_ENV
+          echo "KNIME_DIR=${INSTALLATION_DIR}/knime" >> $GITHUB_ENV
+          echo "DOWNLOAD_URL=https://download.knime.org/analytics-platform/linux/knime-latest${KNIME_MAJOR_VERSION}${KNIME_MINOR_VERSION}-linux.gtk.x86_64.tar.gz" >> $GITHUB_ENV
+      
       - name: Install deps
         run: |
           apt-get install -y software-properties-common curl tzdata libgtk2.0-0 libxtst6 \
