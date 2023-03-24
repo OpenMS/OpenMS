@@ -4,7 +4,6 @@ on:
   push:
     branches:
       - nightly
-      - feat/singularity
       - 'release/**'
 
 jobs:
@@ -109,7 +108,6 @@ jobs:
       - name: Install spython for conversion
         shell: bash
         run: |
-            sudo apk add --no-cache py3-pip
             python3 -m pip install spython
             
       - name: Build Singularity library image
