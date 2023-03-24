@@ -92,15 +92,15 @@ START_SECTION((static float getCosine(const std::vector<float>& a,
               int b_size,
               int offset)))
 {
-  auto generator = new CoarseIsotopePatternGenerator(10, 1000);
-  IsotopeDistribution iso_array = generator->estimateFromPeptideWeight(1000);
+  CoarseIsotopePatternGenerator generator(10, 1000);
+  IsotopeDistribution iso_array = generator.estimateFromPeptideWeight(1000);
 
   std::vector<float> test_array1{571133.0, 306181.0, 95811.0, 22037.0, 4092.0, 645.0, 89.0, 11.0, 1.0, 0.0};
   std::vector<float> test_array2{100, 50, 25, 12.5, 6.25, 3.125, 1, 0, 0};
 
-  float cos_1 = fd_algo.getCosine(test_array1, 0, test_array1.size(), iso_array, iso_array.size(), 0, 0);
-  float cos_2 = fd_algo.getCosine(test_array2, 0, test_array2.size(), iso_array, iso_array.size(), -1, 0);
-  float cos_3 = fd_algo.getCosine(test_array2, 0, 1, iso_array, iso_array.size(), 0, 0);
+  float cos_1 = fd_algo.getCosine(test_array1, 0, test_array1.size(), &iso_array, &iso_array.size(), 0, 0);
+  float cos_2 = fd_algo.getCosine(test_array2, 0, test_array2.size(), &iso_array, &iso_array.size(), -1, 0);
+  float cos_3 = fd_algo.getCosine(test_array2, 0, 1, &iso_array, &iso_array.size(), 0, 0);
 
   TOLERANCE_ABSOLUTE(0.1);
   TEST_REAL_SIMILAR(cos_1, 0.65);
