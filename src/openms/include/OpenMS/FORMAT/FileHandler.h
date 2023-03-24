@@ -184,7 +184,7 @@ public:
 
       @param filename The file name of the file to load.
       @param exp The experiment to load the data into.
-      @param allowed_types a FileTypeList containing the types of files to support. If not empty the extension, and failing that the contents are checked to make sure they match
+      @param allowed_types a @p vector<FileTypes::Files> containing the types supported where this function is called. If the vector is empty, load from any type that we have a handler for. Otherwise @getType() is called internally to check the type
       @param log Progress logging mode
       @param rewrite_source_file Set's the SourceFile name and path to the current file. Note that this looses the link to the primary MS run the file originated from.
       @param compute_hash If source files are rewritten, this flag triggers a recomputation of hash values. A SHA1 string gets stored in the checksum member of SourceFile.
@@ -205,7 +205,7 @@ public:
 
       @param filename The name of the file to store the data in.
       @param exp The experiment to store.
-      @param allowed_types a FileTypeList containing the types of files to support. If not empty the extension, and failing that the contents are checked to make sure they match
+      @param allowed_types a @p vector<FileTypes::Files> containing the types supported where this function is called. If the vector is empty, load from any type that we have a handler for. Otherwise @getType() is called internally to check the type
       @param log Progress logging mode
 
       @exception Exception::UnableToCreateFile is thrown if the file could not be written
@@ -230,7 +230,7 @@ public:
 
       @param filename the file name of the file to write.
       @param map The FeatureMap to store.
-      @param allowed_types a FileTypeList containing the types of files to support. If not empty the extension, and failing that the contents are checked to make sure they match
+      @param allowed_types a @p vector<FileTypes::Files> containing the types supported where this function is called. If the vector is empty, load from any type that we have a handler for. Otherwise @getType() is called internally to check the type
       @param log Progress logging mode
 
 
@@ -245,7 +245,7 @@ public:
 
       @param filename the file name of the file to load.
       @param map The ConsensMap to load the data into.
-      @param allowed_types a FileTypeList containing the types of files to support. If not empty the extension, and failing that the contents are checked to make sure they match
+      @param allowed_types a @p vector<FileTypes::Files> containing the types supported where this function is called. If the vector is empty, load from any type that we have a handler for. Otherwise @getType() is called internally to check the type
       @param log Progress logging mode
 
       @return true if the file could be loaded, false otherwise
@@ -260,7 +260,7 @@ public:
 
       @param filename the file name of the file to write.
       @param map The ConsensusMap to store.
-      @param allowed_types a FileTypeList containing the types of files to support. If not empty the extension, and failing that the contents are checked to make sure they match
+      @param allowed_types a @p vector<FileTypes::Files> containing the types supported where this function is called. If the vector is empty, load from any type that we have a handler for. Otherwise @getType() is called internally to check the type
       @param log Progress logging mode
 
       @return true if the file could be stored, false otherwise
@@ -275,7 +275,7 @@ public:
       @param filename the file name of the file to load.
       @param additional_proteins The protein vector to load the data into.
       @param additional_peptides The peptide vector to load the data into.
-      @param allowed_types a FileTypeList containing the types of files to support. If not empty the extension, and failing that the contents are checked to make sure they match
+      @param allowed_types a @p vector<FileTypes::Files> containing the types supported where this function is called. If the vector is empty, load from any type that we have a handler for. Otherwise @getType() is called internally to check the type
       @param log Progress logging mode      
 
       @return true if the file could be loaded, false otherwise
@@ -291,7 +291,7 @@ public:
       @param filename the file name of the file to write to.
       @param additional_proteins The protein vector to load the data from.
       @param additional_peptides The peptide vector to load the data from.
-      @param allowed_types a FileTypeList containing the types of files to support. If not empty the extension, and failing that the contents are checked to make sure they match
+      @param allowed_types a @p vector<FileTypes::Files> containing the types supported where this function is called. If the vector is empty, load from any type that we have a handler for. Otherwise @getType() is called internally to check the type
       @param log Progress logging mode
 
       @return true if the file could be stored, false otherwise
@@ -305,7 +305,7 @@ public:
 
       @param filename the file name of the file to read.
       @param map The TargetedExperiment to load.
-      @param allowed_types a FileTypeList containing the types of files to support. If not empty the extension, and failing that the contents are checked to make sure they match
+      @param allowed_types a @p vector<FileTypes::Files> containing the types supported where this function is called. If the vector is empty, load from any type that we have a handler for. Otherwise @getType() is called internally to check the type
       @param log Progress logging mode
       
       @return true if the file could be loaded, false otherwise
@@ -320,7 +320,7 @@ public:
 
       @param filename the file name of the file to write.
       @param map The TargetedExperiment to store.
-      @param allowed_types a FileTypeList containing the types of files to support. If not empty the extension, and failing that the contents are checked to make sure they match
+      @param allowed_types a @p vector<FileTypes::Files> containing the types supported where this function is called. If the vector is empty, load from any type that we have a handler for. Otherwise @getType() is called internally to check the type
       @param log Progress logging mode
 
       @return true if the file could be stored, false otherwise
@@ -334,7 +334,7 @@ public:
 
       @param filename the file name of the file to load.
       @param msq The MSQuantification to load the data into.
-      @param allowed_types a FileTypeList containing the types of files to support. If not empty the extension, and failing that the contents are checked to make sure they match
+      @param allowed_types a @p vector<FileTypes::Files> containing the types supported where this function is called. If the vector is empty, load from any type that we have a handler for. Otherwise @getType() is called internally to check the type
 
       @return true if the file could be loaded, false otherwise
 
@@ -349,7 +349,7 @@ public:
 
       @param filename the file name of the file to write.
       @param map The MSQuantifications to store.
-      @param allowed_types a FileTypeList containing the types of files to support. If not empty the extension, and failing that the contents are checked to make sure they match
+      @param allowed_types a @p vector<FileTypes::Files> containing the types supported where this function is called. If the vector is empty, load from any type that we have a handler for. Otherwise @getType() is called internally to check the type
 
       @return true if the file could be stored, false otherwise
 
@@ -363,7 +363,7 @@ public:
 
       @param filename the file name of the file to load.
       @param msq The Transformations to load the data into.
-      @param allowed_types a FileTypeList containing the types of files to support. If not empty the extension, and failing that the contents are checked to make sure they match
+      @param allowed_types a @p vector<FileTypes::Files> containing the types supported where this function is called. If the vector is empty, load from any type that we have a handler for. Otherwise @getType() is called internally to check the type
 
       @return true if the file could be loaded, false otherwise
 
@@ -378,7 +378,7 @@ public:
 
       @param filename the file name of the file to write.
       @param map The Transformations to store.
-      @param allowed_types a FileTypeList containing the types of files to support. If not empty the extension, and failing that the contents are checked to make sure they match
+      @param allowed_types a @p vector<FileTypes::Files> containing the types supported where this function is called. If the vector is empty, load from any type that we have a handler for. Otherwise @getType() is called internally to check the type
 
       @return true if the file could be stored, false otherwise
 
@@ -402,7 +402,7 @@ public:
       @param description description and comments about the mzQC file contents
       @param label unique and informative label for the run
       @param remove_duplicate_features whether to remove duplicate features only for QCML for now
-      @param allowed_types a FileTypeList containing the types of files to support. If not empty the extension, and failing that the contents are checked to make sure they match
+      @param allowed_types a @p vector<FileTypes::Files> containing the types supported where this function is called. If the vector is empty, load from any type that we have a handler for. Otherwise @getType() is called internally to check the type
 
       @return true if the file could be stored, false otherwise
 
