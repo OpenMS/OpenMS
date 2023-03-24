@@ -128,6 +128,7 @@ public:
       min_[1] = miny;
       max_[0] = maxx;
       max_[1] = maxy;
+      normalize_();
     }
 
     /// Assignment operator
@@ -163,12 +164,6 @@ public:
     bool operator==(const Base& rhs) const
     {
       return Base::operator==(rhs);
-    }
-
-    /// make sure min <= max for each dimension. Otherwise swap min/max.
-    void fixMinMax()
-    {
-      normalize_();
     }
 
     /**
@@ -330,6 +325,7 @@ public:
      @brief Extends the range in all dimensions by a certain amount.
 
      Extends the range, while maintaining the original center position.
+     If a negative @p addition is given, the range shrinks and may result in min==max (but never min>max).
 
      Examples (for D=1):
        addition = 0.5 extends the range by 1 in total, i.e. 0.5 left and right.
@@ -342,7 +338,11 @@ public:
       addition /= 2;
       min_ -= addition;
       max_ += addition;
-
+      for (UInt i = 0; i != D; ++i)
+      {
+        // invalid range --> reduce to single center point
+        if (min_[i] > max_[i]) min_[i] = max_[i] = (min_[i] + max_[i]) / 2;
+      }
       return *this;
     }
 

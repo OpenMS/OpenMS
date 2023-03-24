@@ -130,6 +130,9 @@ START_SECTION(DRange(CoordinateType minx, CoordinateType miny, CoordinateType ma
 	TEST_REAL_SIMILAR(r2.minPosition()[1],2.0f);
 	TEST_REAL_SIMILAR(r2.maxPosition()[0],3.0f);
 	TEST_REAL_SIMILAR(r2.maxPosition()[1],4.0f);
+  DRange<2> r {2, 3, -2, -3}; // min > max
+  TEST_EQUAL(r.minPosition(), DPosition<2>(-2, -3))
+  TEST_EQUAL(r.maxPosition(), DPosition<2>(2, 3))
 END_SECTION
 
 START_SECTION(bool operator == (const DRange& rhs) const )
@@ -156,13 +159,6 @@ START_SECTION(bool operator == (const Base& rhs) const )
 	TEST_EQUAL(r==r2,false);
 	r2.setMaxY(r.maxPosition()[1]);
 	TEST_EQUAL(r==r2,true);
-END_SECTION
-
-START_SECTION(void fixMinMax())
-  DRange<2> r {2,3, -2, -3}; // min > max
-  r.fixMinMax();
-  TEST_EQUAL(r.minPosition(), DPosition<2>(-2,-3))
-  TEST_EQUAL(r.maxPosition(), DPosition<2>(2,3))
 END_SECTION
 
 START_SECTION(bool encloses(const PositionType& position) const)
@@ -451,6 +447,13 @@ START_SECTION(DRange<D>& extend(Base addition))
   TEST_REAL_SIMILAR(r.maxPosition()[1], 5.5f);
   TEST_REAL_SIMILAR(other.minPosition()[0], -2.0f);
   TEST_REAL_SIMILAR(other.maxPosition()[0], 4.0f);
+
+  // test shrinking to a single point
+  r.extend({-200.0, 0.0});
+  TEST_REAL_SIMILAR(r.minPosition()[0], 1.0f);
+  TEST_REAL_SIMILAR(r.maxPosition()[0], 1.0f);
+  TEST_REAL_SIMILAR(r.minPosition()[1], -3.5f);
+  TEST_REAL_SIMILAR(r.maxPosition()[1], 5.5f);
 END_SECTION
 
 START_SECTION(DRange<D>& swapDimensions())
