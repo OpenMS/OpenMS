@@ -40,6 +40,7 @@
 #include <OpenMS/ANALYSIS/ID/FIAMSDataProcessor.h>
 #include <OpenMS/ANALYSIS/ID/AccurateMassSearchEngine.h>
 #include <OpenMS/FORMAT/MzTabFile.h>
+#include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/FILTERING/NOISEESTIMATION/SignalToNoiseEstimatorMedianRapid.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/SpectrumAddition.h>
 

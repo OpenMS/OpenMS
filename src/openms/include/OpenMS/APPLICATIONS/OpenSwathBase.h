@@ -41,10 +41,6 @@
 // Files
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/FileTypes.h>
-#include <OpenMS/FORMAT/TraMLFile.h>
-#include <OpenMS/FORMAT/MzMLFile.h>
-#include <OpenMS/FORMAT/FeatureXMLFile.h>
-#include <OpenMS/FORMAT/TransformationXMLFile.h>
 #include <OpenMS/FORMAT/SwathFile.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/SwathWindowLoader.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/TransitionTSVFile.h>
@@ -417,7 +413,6 @@ protected:
     {
       // Loading iRT file
       std::cout << "Will load iRT transitions and try to find iRT peptides" << std::endl;
-      TraMLFile traml;
       FileTypes::Type tr_type = FileHandler::getType(irt_tr_file);
       Param tsv_reader_param = TransitionTSVFile().getDefaults();
       OpenSwath::LightTargetedExperiment irt_transitions = loadTransitionList(tr_type, irt_tr_file, tsv_reader_param);
