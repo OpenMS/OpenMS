@@ -158,6 +158,13 @@ START_SECTION(bool operator == (const Base& rhs) const )
 	TEST_EQUAL(r==r2,true);
 END_SECTION
 
+START_SECTION(void fixMinMax())
+  DRange<2> r {2,3, -2, -3}; // min > max
+  r.fixMinMax();
+  TEST_EQUAL(r.minPosition(), DPosition<2>(-2,-3))
+  TEST_EQUAL(r.maxPosition(), DPosition<2>(2,3))
+END_SECTION
+
 START_SECTION(bool encloses(const PositionType& position) const)
 	DRange<2> r2(p1,p2);
 	DPosition<2> p;
@@ -429,6 +436,22 @@ p2[1]=4.0f;
   TEST_REAL_SIMILAR(other.maxPosition()[0], 5.0f);
 END_SECTION
 
+START_SECTION(DRange<D>& extend(Base addition))
+  DRange<2> r(p1, p2);
+  /*
+  p1[0]=-1.0f;
+  p1[1]=-2.0f;
+  p2[0]=3.0f;
+  p2[1]=4.0f;
+  */
+  auto other = r.extend({2.0, 3.0});
+  TEST_REAL_SIMILAR(r.minPosition()[0], -2.0f);
+  TEST_REAL_SIMILAR(r.maxPosition()[0], 4.0f);
+  TEST_REAL_SIMILAR(r.minPosition()[1], -3.5f);
+  TEST_REAL_SIMILAR(r.maxPosition()[1], 5.5f);
+  TEST_REAL_SIMILAR(other.minPosition()[0], -2.0f);
+  TEST_REAL_SIMILAR(other.maxPosition()[0], 4.0f);
+END_SECTION
 
 START_SECTION(DRange<D>& swapDimensions())
 	DRange<2> r(p1, p2);

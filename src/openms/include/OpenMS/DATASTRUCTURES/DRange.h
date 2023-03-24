@@ -165,6 +165,12 @@ public:
       return Base::operator==(rhs);
     }
 
+    /// make sure min <= max for each dimension. Otherwise swap min/max.
+    void fixMinMax()
+    {
+      normalize_();
+    }
+
     /**
          @brief Checks whether this range contains a certain point.
 
@@ -317,6 +323,26 @@ public:
         min_[i] -= extra;
         max_[i] += extra;
       }
+      return *this;
+    }
+
+    /**
+     @brief Extends the range in all dimensions by a certain amount.
+
+     Extends the range, while maintaining the original center position.
+
+     Examples (for D=1):
+       addition = 0.5 extends the range by 1 in total, i.e. 0.5 left and right.
+   
+     @param addition Additive for each dimension (can be negative). Resulting invalid min/max are not fixed automatically!
+     @return A reference to self
+    */
+    DRange<D>& extend(Base::PositionType addition)
+    {
+      addition /= 2;
+      min_ -= addition;
+      max_ += addition;
+
       return *this;
     }
 
