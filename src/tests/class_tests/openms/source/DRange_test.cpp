@@ -456,6 +456,15 @@ START_SECTION(DRange<D>& extend(Base addition))
   TEST_REAL_SIMILAR(r.maxPosition()[1], 5.5f);
 END_SECTION
 
+START_SECTION(DRange<D>& ensureMinSpan(Base::PositionType min_span))
+  DRange<2> r(-0.1, 10, 0.1, 20);
+  r.ensureMinSpan({1.0, 3.0});
+  TEST_REAL_SIMILAR(r.minPosition()[0], -0.5f);
+  TEST_REAL_SIMILAR(r.maxPosition()[0], 0.5f);
+  TEST_REAL_SIMILAR(r.minPosition()[1], 10.0f);
+  TEST_REAL_SIMILAR(r.maxPosition()[1], 20.0f);
+END_SECTION
+
 START_SECTION(DRange<D>& swapDimensions())
 	DRange<2> r(p1, p2);
 	/*

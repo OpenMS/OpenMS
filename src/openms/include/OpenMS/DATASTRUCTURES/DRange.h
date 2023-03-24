@@ -346,6 +346,21 @@ public:
       return *this;
     }
 
+    DRange<D>& ensureMinSpan(Base::PositionType min_span)
+    {
+      Base::PositionType extend_by{};
+      for (UInt i = 0; i != D; ++i)
+      {
+        // invalid range --> reduce to single center point
+        if (max_[i] - min_[i] < min_span[i])
+        {
+          extend_by[i] = min_span[i] - (max_[i] - min_[i]); // add whatever is missing to get to min_span
+        }
+      }
+      extend(extend_by);
+      return *this;
+    }
+
     /// swaps dimensions for 2D data (i.e. x and y coordinates)
     DRange<D>& swapDimensions()
     {
