@@ -256,25 +256,22 @@ namespace OpenMS
           return;
         }
         // display feature with a margin
+        RangeAllType range;
         if (lf)
         {
           const FeatureMap& map = *lf->getFeatureMap();
           const DBoundingBox<2> bb = map[feature_index].getConvexHull().getBoundingBox();
-          RangeAllType range;
           range.RangeRT::operator=(RangeBase{bb.minPosition()[0], bb.maxPosition()[0]});
           range.RangeMZ::operator=(RangeBase{bb.minPosition()[1], bb.maxPosition()[1]});
-          range.RangeRT::scaleBy(2);
-          range.RangeRT::scaleBy(5);
-          canvas()->setVisibleArea(range);
         }
         else // Consensus Feature
         {
           const ConsensusFeature& cf = (*lc->getConsensusMap())[feature_index];
           auto range = canvas_->getMapper().fromXY(canvas_->getMapper().map(cf));
-          range.RangeRT::extendLeftRight(30);
-          range.RangeMZ::extendLeftRight(5);
-          canvas()->setVisibleArea(range);
         }
+        range.RangeRT::extendLeftRight(30);
+        range.RangeMZ::extendLeftRight(5);
+        canvas()->setVisibleArea(range);
 
       }
     }
