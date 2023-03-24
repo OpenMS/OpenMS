@@ -30,7 +30,7 @@ jobs:
             
       - name: Install and start Rserve
         run: |
-          mkdir ~/local/R_libs
+          mkdir -p ~/local/R_libs
           R -e 'install.packages(c("Rserve"), repos="http://cran.rstudio.com/", lib="~/local/R_libs/")'
         
       - name: Install OpenMS plugin
