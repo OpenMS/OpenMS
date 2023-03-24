@@ -7,7 +7,7 @@ jobs:
     env:
       KNIME_MAJOR_VERSION: 4
       KNIME_MINOR_VERSION: 7
-      INSTALLATION_DIR: ${{ github.workspace }}/knime
+      INSTALLATION_DIR: ${{ github.workspace }}
     runs-on: ubuntu-latest
     steps:
       - name: Set more env
