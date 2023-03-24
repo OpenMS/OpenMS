@@ -69,9 +69,6 @@ jobs:
 
   DeploySingularity:
     runs-on: ubuntu-latest
-    container:
-      image: quay.io/singularity/singularity:v3.11.0
-      options: --privileged
     steps:
       - name: Extract branch name
         shell: bash
@@ -103,6 +100,11 @@ jobs:
             then
               git checkout ${{ steps.extract_branch.outputs.branch }} || git checkout master
             fi
+
+      - name: Singularity install with defaults
+        uses: singularityhub/install-singularity@main
+        with:
+          singularity-version: 3.11.0
             
       - name: Install spython for conversion
         shell: bash
