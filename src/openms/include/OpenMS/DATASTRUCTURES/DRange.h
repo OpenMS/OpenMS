@@ -333,7 +333,7 @@ public:
      @param addition Additive for each dimension (can be negative). Resulting invalid min/max are not fixed automatically!
      @return A reference to self
     */
-    DRange<D>& extend(Base::PositionType addition)
+    DRange<D>& extend(typename Base::PositionType addition)
     {
       addition /= 2;
       min_ -= addition;
@@ -346,9 +346,9 @@ public:
       return *this;
     }
 
-    DRange<D>& ensureMinSpan(Base::PositionType min_span)
+    DRange<D>& ensureMinSpan(typename Base::PositionType min_span)
     {
-      Base::PositionType extend_by{};
+      typename Base::PositionType extend_by {};
       for (UInt i = 0; i != D; ++i)
       {
         // invalid range --> reduce to single center point
