@@ -128,7 +128,7 @@ public:
       min_[1] = miny;
       max_[0] = maxx;
       max_[1] = maxy;
-      normalize_();
+      Base::normalize_();
     }
 
     /// Assignment operator
