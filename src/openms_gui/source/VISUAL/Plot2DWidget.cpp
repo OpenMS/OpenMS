@@ -267,12 +267,11 @@ namespace OpenMS
         else // Consensus Feature
         {
           const ConsensusFeature& cf = (*lc->getConsensusMap())[feature_index];
-          auto range = canvas_->getMapper().fromXY(canvas_->getMapper().map(cf));
+          range = canvas_->getMapper().fromXY(canvas_->getMapper().map(cf));
         }
         range.RangeRT::extendLeftRight(30);
         range.RangeMZ::extendLeftRight(5);
         canvas()->setVisibleArea(range);
-
       }
     }
   }
