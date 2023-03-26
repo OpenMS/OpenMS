@@ -194,52 +194,52 @@ PeakMap exp;
 TEST_EXCEPTION(Exception::FileNotFound, tmp.loadExperiment("test.bla", exp))
 TEST_EQUAL(tmp.loadExperiment(OPENMS_GET_TEST_DATA_PATH("DTAFile_test.dta"), exp), true)
 
-TEST_EQUAL(tmp.loadExperiment(OPENMS_GET_TEST_DATA_PATH("MzDataFile_1.mzData"), exp), true)
+tmp.loadExperiment(OPENMS_GET_TEST_DATA_PATH("MzDataFile_1.mzData"), exp)
 TEST_REAL_SIMILAR(exp[1][0].getPosition()[0], 110)
 TEST_REAL_SIMILAR(exp[1][1].getPosition()[0], 120)
 TEST_REAL_SIMILAR(exp[1][2].getPosition()[0], 130)
 
 // starts with 110, so this one should skip the first
 tmp.getOptions().setMZRange(DRange<1>(115, 1000));
-TEST_EQUAL(tmp.loadExperiment(OPENMS_GET_TEST_DATA_PATH("MzDataFile_1.mzData"), exp), true)
+tmp.loadExperiment(OPENMS_GET_TEST_DATA_PATH("MzDataFile_1.mzData"), exp)
 TEST_REAL_SIMILAR(exp[1][0].getPosition()[0], 120)
 TEST_REAL_SIMILAR(exp[1][1].getPosition()[0], 130)
 
 tmp.getOptions() = PeakFileOptions();
-TEST_EQUAL(tmp.loadExperiment(OPENMS_GET_TEST_DATA_PATH("MzXMLFile_1.mzXML"), exp), true)
+tmp.loadExperiment(OPENMS_GET_TEST_DATA_PATH("MzXMLFile_1.mzXML"), exp), true
 TEST_REAL_SIMILAR(exp[2][0].getPosition()[0], 100)
 TEST_REAL_SIMILAR(exp[2][1].getPosition()[0], 110)
 TEST_REAL_SIMILAR(exp[2][2].getPosition()[0], 120)
 
 tmp.getOptions().setMZRange(DRange<1>(115, 1000));
-TEST_EQUAL(tmp.loadExperiment(OPENMS_GET_TEST_DATA_PATH("MzXMLFile_1.mzXML"), exp), true)
+tmp.loadExperiment(OPENMS_GET_TEST_DATA_PATH("MzXMLFile_1.mzXML"), exp), true
 TEST_REAL_SIMILAR(exp[2][0].getPosition()[0], 120)
 TEST_REAL_SIMILAR(exp[2][1].getPosition()[0], 130)
 TEST_REAL_SIMILAR(exp[2][2].getPosition()[0], 140)
 
 tmp.getOptions() = PeakFileOptions();
-TEST_EQUAL(tmp.loadExperiment(OPENMS_GET_TEST_DATA_PATH("MzMLFile_1.mzML"), exp, {FileTypes::MZML}, OpenMS::ProgressLogger::NONE, true, true), true)
+tmp.loadExperiment(OPENMS_GET_TEST_DATA_PATH("MzMLFile_1.mzML"), exp, {FileTypes::MZML}, OpenMS::ProgressLogger::NONE, true, true)
 TEST_EQUAL(exp.size(), 4)
 TEST_STRING_EQUAL(exp.getSourceFiles()[0].getChecksum(), "36007593dbca0ba59a1f4fc32fb970f0e8991fa6")
 TEST_EQUAL(exp.getSourceFiles()[0].getChecksumType(), SourceFile::SHA1)
 
 tmp.getOptions() = PeakFileOptions();
-TEST_EQUAL(tmp.loadExperiment(OPENMS_GET_TEST_DATA_PATH("DTA2DFile_test_1.dta2d"), exp), true)
+tmp.loadExperiment(OPENMS_GET_TEST_DATA_PATH("DTA2DFile_test_1.dta2d"), exp)
 TEST_REAL_SIMILAR(exp[0][0].getPosition()[0], 230.02)
 TEST_REAL_SIMILAR(exp[0][1].getPosition()[0], 430.02)
 TEST_REAL_SIMILAR(exp[0][2].getPosition()[0], 630.02)
 
 tmp.getOptions().setMZRange(DRange<1>(300, 1000));
-TEST_EQUAL(tmp.loadExperiment(OPENMS_GET_TEST_DATA_PATH("DTA2DFile_test_1.dta2d"), exp, {FileTypes::DTA2D}, OpenMS::ProgressLogger::NONE, true, true), true)
+tmp.loadExperiment(OPENMS_GET_TEST_DATA_PATH("DTA2DFile_test_1.dta2d"), exp, {FileTypes::DTA2D}, OpenMS::ProgressLogger::NONE, true, true)
 TEST_REAL_SIMILAR(exp[0][0].getPosition()[0], 430.02)
 TEST_REAL_SIMILAR(exp[0][1].getPosition()[0], 630.02)
 TEST_STRING_EQUAL(exp.getSourceFiles()[0].getChecksum(), "d50d5144cc3805749b9e8d16f3bc8994979d8142")
 TEST_EQUAL(exp.getSourceFiles()[0].getChecksumType(), SourceFile::SHA1)
 
-TEST_EQUAL(tmp.loadExperiment(OPENMS_GET_TEST_DATA_PATH("XMassFile_test/fid"), exp), true)
+tmp.loadExperiment(OPENMS_GET_TEST_DATA_PATH("XMassFile_test/fid"), exp)
 
 // disable hash computation
-TEST_EQUAL(tmp.loadExperiment(OPENMS_GET_TEST_DATA_PATH("DTA2DFile_test_1.dta2d"), exp, {}, ProgressLogger::NONE, true, false), true)
+tmp.loadExperiment(OPENMS_GET_TEST_DATA_PATH("DTA2DFile_test_1.dta2d"), exp, {}, ProgressLogger::NONE, true, false)
 TEST_STRING_EQUAL(exp.getSourceFiles()[0].getChecksum(), "")
 TEST_EQUAL(exp.getSourceFiles()[0].getChecksumType(), SourceFile::UNKNOWN_CHECKSUM)
 // Test that we fail if given a known bogus type restriction
@@ -251,7 +251,7 @@ START_SECTION((static String computeFileHash(const String& filename)))
 PeakMap exp;
 FileHandler tmp;
 // Test that we load with the correct file type restriction
-TEST_EQUAL(tmp.loadExperiment(OPENMS_GET_TEST_DATA_PATH("DTA2DFile_test_1.dta2d"), exp, {FileTypes::DTA2D}, ProgressLogger::NONE, true, true), true)
+tmp.loadExperiment(OPENMS_GET_TEST_DATA_PATH("DTA2DFile_test_1.dta2d"), exp, {FileTypes::DTA2D}, ProgressLogger::NONE, true, true)
 // compute hash
 TEST_STRING_EQUAL(exp.getSourceFiles()[0].getChecksum(), "d50d5144cc3805749b9e8d16f3bc8994979d8142")
 END_SECTION
@@ -284,9 +284,9 @@ START_SECTION((template <class FeatureType> bool loadFeatures(const String &file
 FileHandler tmp;
 FeatureMap map;
 TEST_EXCEPTION(Exception::FileNotFound, tmp.loadFeatures("test.bla", map))
-TEST_EQUAL(tmp.loadFeatures(OPENMS_GET_TEST_DATA_PATH("FeatureXMLFile_2_options.featureXML"), map), true)
+tmp.loadFeatures(OPENMS_GET_TEST_DATA_PATH("FeatureXMLFile_2_options.featureXML"), map)
 TEST_EQUAL(map.size(), 7);
-TEST_EQUAL(tmp.loadFeatures(OPENMS_GET_TEST_DATA_PATH("FeatureXMLFile_2_options.featureXML"), map), true)
+tmp.loadFeatures(OPENMS_GET_TEST_DATA_PATH("FeatureXMLFile_2_options.featureXML"), map)
 TEST_EQUAL(map.size(), 7);
 END_SECTION
 

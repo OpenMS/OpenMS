@@ -201,7 +201,7 @@ namespace OpenMS
     FileTypes::Type type = FileHandler::getType(filename);
     vector<PeptideIdentification> identifications;
     vector<ProteinIdentification> protein_identifications;
-    FileHandler().loadIdentifications(filename, protein_identifications, identifications, {FileTypes::MZIDENTML, FileTypes::IDXML});
+    FileHandler().loadIdentifications(filename, protein_identifications, identifications, {type});
 
     layer.annotate(identifications, protein_identifications);
     return true;
