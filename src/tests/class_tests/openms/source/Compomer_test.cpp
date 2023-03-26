@@ -122,7 +122,7 @@ START_SECTION([EXTRA] friend OPENMS_DLLAPI bool operator==(const Compomer& a, co
 	c.add(a1, Compomer::RIGHT);
 	
 	Compomer c2(c);
-	TEST_EQUAL(c==c2, true);
+	TEST_TRUE(c == c2);
 	c.setID(2);
 	TEST_EQUAL(c==c2, false);
 	

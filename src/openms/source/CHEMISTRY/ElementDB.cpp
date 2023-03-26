@@ -625,6 +625,7 @@ namespace OpenMS
         const Element* const_ele = atomic_numbers_[an];
         Element* element = const_cast<Element*>(const_ele);
         *element = *e; // copy all data from input to the existing element
+        delete e; // e can now be freed tp prevent memory leak
       }
       else
       {

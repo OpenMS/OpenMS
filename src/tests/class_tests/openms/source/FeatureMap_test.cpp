@@ -256,7 +256,7 @@ END_SECTION
 START_SECTION((bool operator == (const FeatureMap& rhs) const))
 	FeatureMap empty,edit;
 
-	TEST_EQUAL(empty==edit, true)
+	TEST_TRUE(empty == edit)
 
 	edit.setIdentifier("lsid");;
 	TEST_EQUAL(empty==edit, false)
@@ -292,23 +292,23 @@ START_SECTION((bool operator != (const FeatureMap& rhs) const))
 	TEST_EQUAL(empty!=edit, false)
 
 	edit.setIdentifier("lsid");;
-	TEST_EQUAL(empty!=edit, true)
+	TEST_FALSE(empty == edit)
 
 	edit = empty;
 	edit.push_back(feature1);
-	TEST_EQUAL(empty!=edit, true)
+	TEST_FALSE(empty == edit)
 
 	edit = empty;
 	edit.getDataProcessing().resize(1);
-	TEST_EQUAL(empty!=edit, true)
+	TEST_FALSE(empty == edit)
 
   edit = empty;
 	edit.getProteinIdentifications().resize(10);
-  TEST_EQUAL(edit!=empty, true)
+  TEST_FALSE(edit == empty)
 
 	edit = empty;
 	edit.getUnassignedPeptideIdentifications().resize(10);
-	TEST_EQUAL(empty!=edit, true)
+	TEST_FALSE(empty == edit)
 
 
 	edit = empty;
@@ -316,7 +316,7 @@ START_SECTION((bool operator != (const FeatureMap& rhs) const))
 	edit.push_back(feature2);
 	edit.updateRanges();
 	edit.clear(false);
-	TEST_EQUAL(empty!=edit, true)
+	TEST_FALSE(empty == edit)
 END_SECTION
 
 START_SECTION((FeatureMap operator + (const FeatureMap& rhs) const))
