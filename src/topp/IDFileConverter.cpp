@@ -716,16 +716,16 @@ protected:
     break;
 
     case FileTypes::IDXML:
-      FileHandler().StoreIdentifications(out, protein_identifications, peptide_identifications, {FileTypes::IDXML});
+      FileHandler().storeIdentifications(out, protein_identifications, peptide_identifications, {FileTypes::IDXML});
       break;
 
     case FileTypes::MZIDENTML:
-      FileHandler().StoreIdentifications(out, protein_identifications,
+      FileHandler().storeIdentifications(out, protein_identifications,
                             peptide_identifications, {FileTypes::MZIDENTML});
       break;
 
     case FileTypes::XQUESTXML:
-      FileHandler().StoreIdentifications(out, protein_identifications,
+      FileHandler().storeIdentifications(out, protein_identifications,
                                   peptide_identifications, {FileTypes::XQUESTXML});
       break;
 

@@ -117,7 +117,7 @@ protected:
       }
     }
 
-    FileHandler().StoreIdentifications(out, proteins, peptides, {FileTypes::IDXML});
+    FileHandler().storeIdentifications(out, proteins, peptides, {FileTypes::IDXML});
 
     OPENMS_LOG_INFO << "Successfully switched " << counter << " "
              << (do_proteins_ ? "protein" : "PSM") << " scores." << endl;

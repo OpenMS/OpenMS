@@ -1199,7 +1199,7 @@ protected:
         prot_id_run.setSearchParameters(search_parameters);
       }
       // Storing the PeptideHits with calculated q-value, pep and svm score
-      FileHandler().StoreIdentifications(out, all_protein_ids, all_peptide_ids, {FileTypes::IDXML, FileTypes::MZIDENTML});
+      FileHandler().storeIdentifications(out, all_protein_ids, all_peptide_ids, {FileTypes::IDXML, FileTypes::MZIDENTML});
     }
     else
     {

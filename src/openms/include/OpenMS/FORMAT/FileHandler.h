@@ -298,7 +298,7 @@ public:
 
       @exception Exception::UnableToCreateFile is thrown if the file could not be written
     */
-    void StoreIdentifications(const String& filename, const std::vector<ProteinIdentification>& additional_proteins, const std::vector<PeptideIdentification>& additional_peptides, const std::vector<FileTypes::Type> allowed_types = std::vector<FileTypes::Type>(), ProgressLogger::LogType log = ProgressLogger::NONE);
+    void storeIdentifications(const String& filename, const std::vector<ProteinIdentification>& additional_proteins, const std::vector<PeptideIdentification>& additional_peptides, const std::vector<FileTypes::Type> allowed_types = std::vector<FileTypes::Type>(), ProgressLogger::LogType log = ProgressLogger::NONE);
 
     /**
       @brief Load transitions of a spectral library

@@ -208,7 +208,7 @@ protected:
     prot_id.setSearchEngine("CompNovo");
     prot_ids.push_back(prot_id);
 
-    FileHandler().StoreIdentifications(out, prot_ids, pep_ids, {FileTypes::IDXML});
+    FileHandler().storeIdentifications(out, prot_ids, pep_ids, {FileTypes::IDXML});
 
     return EXECUTION_OK;
   }

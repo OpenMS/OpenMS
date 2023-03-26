@@ -400,7 +400,7 @@ namespace OpenMS
 
     if (keep_files)
     {
-      id_file.StoreIdentifications(tmp_dir.getPath() + "indexed_pre_FDR.idXML", prot_ids, pep_ids, {FileTypes::IDXML});
+      id_file.storeIdentifications(tmp_dir.getPath() + "indexed_pre_FDR.idXML", prot_ids, pep_ids, {FileTypes::IDXML});
     }
 
     return pep_ids;

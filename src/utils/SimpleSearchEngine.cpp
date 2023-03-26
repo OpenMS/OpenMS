@@ -143,7 +143,7 @@ class SimpleSearchEngine :
         protein_ids[0].setPrimaryMSRunPath({"file://" + File::basename(in)});
       }
 
-      FileHandler().StoreIdentifications(out, protein_ids, peptide_ids, {FileTypes::IDXML});
+      FileHandler().storeIdentifications(out, protein_ids, peptide_ids, {FileTypes::IDXML});
 
       return EXECUTION_OK;
     }

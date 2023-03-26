@@ -600,7 +600,7 @@ protected:
       //-------------------------------------------------------------
       // writing output
       //-------------------------------------------------------------
-      FileHandler().StoreIdentifications(*out_file, protein_ids, peptide_ids, {FileTypes::IDXML});
+      FileHandler().storeIdentifications(*out_file, protein_ids, peptide_ids, {FileTypes::IDXML});
       time_t end_time = time(nullptr);
       OPENMS_LOG_INFO << "Search time: " << difftime(end_time, start_time) << " seconds for " << *in << "\n";
     }

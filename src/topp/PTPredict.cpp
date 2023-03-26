@@ -284,7 +284,7 @@ protected:
     // writing output
     //-------------------------------------------------------------
 
-    idXML_file.StoreIdentifications(outputfile_name,
+    idXML_file.storeIdentifications(outputfile_name,
                      protein_identifications,
                      identifications,
                      {FileTypes::IDXML});

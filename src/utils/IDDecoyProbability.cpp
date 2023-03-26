@@ -176,7 +176,7 @@ protected:
       // writing output
       //-------------------------------------------------------------
 
-      FileHandler().StoreIdentifications(out, fwd_prot, out_pep, {FileTypes::IDXML});
+      FileHandler().storeIdentifications(out, fwd_prot, out_pep, {FileTypes::IDXML});
     }
     else
     {
@@ -186,7 +186,7 @@ protected:
       FileHandler().loadIdentifications(in, prot_ids, pep_ids, {FileTypes::IDXML});
 
       decoy_prob.apply(pep_ids);
-      FileHandler().StoreIdentifications(out, prot_ids, pep_ids, {FileTypes::IDXML});
+      FileHandler().storeIdentifications(out, prot_ids, pep_ids, {FileTypes::IDXML});
     }
 
     return EXECUTION_OK;

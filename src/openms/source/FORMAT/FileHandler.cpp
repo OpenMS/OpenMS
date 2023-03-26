@@ -1191,7 +1191,7 @@ namespace OpenMS
     }   
   }
 
-  void FileHandler::StoreIdentifications(const String& filename, const std::vector<ProteinIdentification>& additional_proteins, const std::vector<PeptideIdentification>& additional_peptides, const std::vector<FileTypes::Type> allowed_types, ProgressLogger::LogType log)
+  void FileHandler::storeIdentifications(const String& filename, const std::vector<ProteinIdentification>& additional_proteins, const std::vector<PeptideIdentification>& additional_peptides, const std::vector<FileTypes::Type> allowed_types, ProgressLogger::LogType log)
   {
  FileTypes::Type ftype;
  if (allowed_types.size() == 1)

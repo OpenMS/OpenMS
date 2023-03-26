@@ -220,7 +220,7 @@ protected:
         MapAlignmentTransformer::transformRetentionTimes(peptides, trafo,
                                                          store_original_rt);
         // no "data processing" section in idXML
-        FileHandler().StoreIdentifications(out, proteins, peptides, {FileTypes::IDXML});
+        FileHandler().storeIdentifications(out, proteins, peptides, {FileTypes::IDXML});
       }
     }
 

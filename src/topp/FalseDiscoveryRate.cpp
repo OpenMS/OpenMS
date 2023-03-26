@@ -294,7 +294,7 @@ protected:
              << IDFilter::countHits(pep_ids) << " pep_ids hit(s)." << endl;
 
     OPENMS_LOG_INFO << "Writing filtered output..." << endl;
-    FileHandler().StoreIdentifications(out, prot_ids, pep_ids, {FileTypes::IDXML});
+    FileHandler().storeIdentifications(out, prot_ids, pep_ids, {FileTypes::IDXML});
     return EXECUTION_OK;
   }
 

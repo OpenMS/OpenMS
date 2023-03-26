@@ -615,7 +615,7 @@ protected:
       // write all (!) parameters as metavalues to the search parameters
       DefaultParamHandler::writeParametersToMetaValues(this->getParam_(), protein_identifications[0].getSearchParameters(), this->getToolPrefix());
 
-      FileHandler().StoreIdentifications(outputfile_name,
+      FileHandler().storeIdentifications(outputfile_name,
                         protein_identifications,
                         identifications,
                         {FileTypes::IDXML});

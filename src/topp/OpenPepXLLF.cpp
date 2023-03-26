@@ -257,11 +257,11 @@ protected:
     progresslogger.startProgress(0, 1, "Writing output...");
     if (!out_idXML.empty())
     {
-      FileHandler().StoreIdentifications(out_idXML, protein_ids, peptide_ids, {FileTypes::IDXML});
+      FileHandler().storeIdentifications(out_idXML, protein_ids, peptide_ids, {FileTypes::IDXML});
     }
     if (!out_mzIdentML.empty())
     {
-      FileHandler().StoreIdentifications(out_mzIdentML, protein_ids, peptide_ids, {FileTypes::MZIDENTML});
+      FileHandler().storeIdentifications(out_mzIdentML, protein_ids, peptide_ids, {FileTypes::MZIDENTML});
     }
 
     if (!out_xquest.empty() || !out_xquest_specxml.empty())
@@ -274,7 +274,7 @@ protected:
 
       if (!out_xquest.empty())
       {
-        FileHandler().StoreIdentifications(out_xquest, protein_ids, peptide_ids, {FileTypes::XQUESTXML});
+        FileHandler().storeIdentifications(out_xquest, protein_ids, peptide_ids, {FileTypes::XQUESTXML});
       }
       if (!out_xquest_specxml.empty())
       {

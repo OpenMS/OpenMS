@@ -183,7 +183,7 @@ protected:
       OPENMS_LOG_INFO << "Storing file: '" << out << "'." << std::endl;
 
       QDir dir(output_directory.toQString());
-      FileHandler().StoreIdentifications(out, rfc.prot_idents, rfc.pep_idents, {FileTypes::IDXML});
+      FileHandler().storeIdentifications(out, rfc.prot_idents, rfc.pep_idents, {FileTypes::IDXML});
     }
     return EXECUTION_OK;
   }

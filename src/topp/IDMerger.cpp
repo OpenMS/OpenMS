@@ -349,7 +349,7 @@ protected:
     //-------------------------------------------------------------
     OPENMS_LOG_DEBUG << "protein IDs: " << proteins.size() << endl
               << "peptide IDs: " << peptides.size() << endl;
-    FileHandler().StoreIdentifications(out, proteins, peptides, {FileTypes::IDXML});
+    FileHandler().storeIdentifications(out, proteins, peptides, {FileTypes::IDXML});
 
     return EXECUTION_OK;
   }

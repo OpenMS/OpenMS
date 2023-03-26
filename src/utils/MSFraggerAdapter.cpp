@@ -915,7 +915,7 @@ protected:
     // if "reindex" parameter is set to true will perform reindexing
     if (auto ret = reindex_(protein_identifications, peptide_identifications); ret != EXECUTION_OK) return ret;
 
-    FileHandler().StoreIdentifications(output_file, protein_identifications, peptide_identifications, {FileTypes::IDXML});
+    FileHandler().storeIdentifications(output_file, protein_identifications, peptide_identifications, {FileTypes::IDXML});
 
     // remove the msfragger pepXML output from the user location
 

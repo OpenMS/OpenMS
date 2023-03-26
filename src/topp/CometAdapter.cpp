@@ -746,7 +746,7 @@ protected:
     // if "reindex" parameter is set to true will perform reindexing
     if (auto ret = reindex_(protein_identifications, peptide_identifications); ret != EXECUTION_OK) return ret;
 
-    FileHandler().StoreIdentifications(out, protein_identifications, peptide_identifications, {FileTypes::IDXML});
+    FileHandler().storeIdentifications(out, protein_identifications, peptide_identifications, {FileTypes::IDXML});
 
     //-------------------------------------------------------------
     // create (move) optional pin output

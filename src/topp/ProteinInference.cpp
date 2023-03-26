@@ -300,7 +300,7 @@ protected:
       OPENMS_LOG_INFO << "Storing output..." << std::endl;
       sw.start();
       // write output
-      FileHandler().StoreIdentifications(out, inferred_protein_ids, inferred_peptide_ids, {FileTypes::IDXML});
+      FileHandler().storeIdentifications(out, inferred_protein_ids, inferred_peptide_ids, {FileTypes::IDXML});
       OPENMS_LOG_INFO << "Storing output took " << sw.toString() << std::endl;
       sw.stop();
     }

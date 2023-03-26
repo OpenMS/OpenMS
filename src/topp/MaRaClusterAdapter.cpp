@@ -459,7 +459,7 @@ protected:
 
       writeDebug_("write idXMLFile", 1);
       writeDebug_(out, 1);// As the maracluster output file is not needed anymore, the temporary directory is going to be deleted
-      FileHandler().StoreIdentifications(out, all_protein_ids, all_peptide_ids, {FileTypes::IDXML});
+      FileHandler().storeIdentifications(out, all_protein_ids, all_peptide_ids, {FileTypes::IDXML});
     }
 
     //output consensus mzML

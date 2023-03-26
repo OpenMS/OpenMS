@@ -486,7 +486,7 @@ private:
         for (Size i = 0; i < output_files.size(); ++i)
         {
           progresslogger.setProgress(i);
-          idxml_file.StoreIdentifications(output_files[i], protein_ids[i], peptide_ids[i], {FileTypes::IDXML});
+          idxml_file.storeIdentifications(output_files[i], protein_ids[i], peptide_ids[i], {FileTypes::IDXML});
         }
         progresslogger.endProgress();
       }

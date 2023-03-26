@@ -202,7 +202,7 @@ protected:
     //-------------------------------------------------------------
     // writing output
     //-------------------------------------------------------------
-    FileHandler().StoreIdentifications(out, prot_ids, pep_ids, {FileTypes::IDXML});
+    FileHandler().storeIdentifications(out, prot_ids, pep_ids, {FileTypes::IDXML});
 
     if (indexer_exit == PeptideIndexing::DATABASE_EMPTY)
     {

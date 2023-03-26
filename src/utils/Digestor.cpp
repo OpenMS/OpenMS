@@ -252,7 +252,7 @@ protected:
     }
     else
     {
-      FileHandler().StoreIdentifications(outputfile_name,
+      FileHandler().storeIdentifications(outputfile_name,
                         protein_identifications,
                         identifications,
                         {FileTypes::IDXML});
