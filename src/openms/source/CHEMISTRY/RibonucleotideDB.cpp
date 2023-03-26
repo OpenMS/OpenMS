@@ -44,7 +44,7 @@ using namespace std;
 
 namespace OpenMS
 {
-
+  // A structure for storing a pointer to a ribo in the database, as well as the possible alternatives if it is ambiguous (eg a methyl group that for which we can't determine the localization)
   struct ParsedEntry_
     {
       Ribonucleotide* ribo;
@@ -117,6 +117,7 @@ namespace OpenMS
     }
   }
   
+  // Return the Empirical formula for the ribo with a base-loss. Ideally we store these in the JSON, otherwise its guessed from the code.
   EmpiricalFormula getBaseLossFormula_(const nlohmann::json::value_type& entry)
   {
     String code = entry.at("short_name");
@@ -151,6 +152,7 @@ namespace OpenMS
     }
   }
 
+  // Generate an entry from a JSON object.
   ParsedEntry_ parseEntry_(const nlohmann::json::value_type& entry)
   {
     ParsedEntry_ parsed;
@@ -238,6 +240,7 @@ namespace OpenMS
     return parsed;
   }
 
+   // Read from a JSON file into a RibonucleotideDB
   void RibonucleotideDB::readFromJSON_(const std::string& path)
   {
     using json = nlohmann::json;
@@ -294,7 +297,8 @@ namespace OpenMS
       }
     }
   }
-
+  
+  // Read entries from a TSV file
   void RibonucleotideDB::readFromFile_(const std::string& path)
   {
     String full_path = File::find(path);
@@ -345,7 +349,7 @@ namespace OpenMS
     }
   }
 
-
+  //Parse a row in a TSV file
   RibonucleotideDB::ConstRibonucleotidePtr RibonucleotideDB::parseRow_(const std::string& row, Size line_count)
   {
     vector<String> parts;
