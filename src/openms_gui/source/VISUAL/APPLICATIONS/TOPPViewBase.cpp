@@ -2344,11 +2344,7 @@ namespace OpenMS
       ExperimentType exp;
       try
       {
-        if (!fh.loadExperiment(*it, exp, {}, ProgressLogger::NONE, true, true))
-        {
-          QMessageBox::critical(this, "Error", "Only raw data files (mzML, DTA etc) are supported to view their meta data.");
-          return;
-        }
+        QMessageBox::critical(this, "Error", "Only raw data files (mzML, DTA etc) are supported to view their meta data.");
       }
       catch (Exception::BaseException& e)
       {

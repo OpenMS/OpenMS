@@ -882,12 +882,7 @@ protected:
     else // peaks
     {
       SysInfo::MemUsage mu;
-      if (!fh.loadExperiment(in, exp, {in_type}, log_type_, false, false))
-      {
-        writeLogError_("Unsupported or corrupt input file. Aborting!");
-        printUsage_();
-        return ILLEGAL_PARAMETERS;
-      }
+      fh.loadExperiment(in, exp, {in_type}, log_type_, false, false);
 
       // update range information and retrieve which MS levels were recorded
       exp.updateRanges();
