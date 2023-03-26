@@ -654,8 +654,7 @@ namespace OpenMS
     }
 
     // determine file type
-    FileTypes::Type type;
-    type = getType(filename);
+    FileTypes::Type type = getType(filename);
 
     // load right file
     switch (type)
@@ -908,9 +907,7 @@ namespace OpenMS
     }
 
     // determine file type
-    FileTypes::Type type;
-
-    type = getType(filename);
+    FileTypes::Type type = getType(filename);
 
     // load right file
     switch (type)
@@ -1044,8 +1041,7 @@ namespace OpenMS
     }
 
     //determine file type
-    FileTypes::Type type;
-    type = getType(filename);
+    FileTypes::Type type = getType(filename);
 
     switch (type)
     {
@@ -1127,8 +1123,7 @@ namespace OpenMS
     }
 
     //determine file type
-    FileTypes::Type type;
-    type = getType(filename);
+    FileTypes::Type type = getType(filename);
 
     switch (type)
     {
@@ -1262,9 +1257,7 @@ namespace OpenMS
     }
 
     //determine file type
-    FileTypes::Type type;
-
-    type = getType(filename);
+    FileTypes::Type type = getType(filename);
 
     switch (type)
     {
@@ -1331,8 +1324,7 @@ namespace OpenMS
     }
 
     //determine file type
-    FileTypes::Type type;
-      type = getType(filename);
+    FileTypes::Type type = getType(filename);
 
     switch (type)
     {
@@ -1401,9 +1393,7 @@ namespace OpenMS
     }
 
     //determine file type
-    FileTypes::Type type;
-
-    type = getType(filename);
+    FileTypes::Type type = getType(filename);
 
     switch (type)
     {
