@@ -638,7 +638,8 @@ namespace OpenMS
   }
 
 
-  bool FileHandler::loadExperiment(const String& filename, PeakMap& exp, const std::vector<FileTypes::Type> allowed_types, ProgressLogger::LogType log, const bool rewrite_source_file, const bool compute_hash)
+  void FileHandler::loadExperiment(const String& filename, PeakMap& exp, const std::vector<FileTypes::Type> allowed_types, ProgressLogger::LogType log, const bool rewrite_source_file,
+                                   const bool compute_hash)
   {
     // setting the flag for hash recomputation only works if source file entries are rewritten
     OPENMS_PRECONDITION(rewrite_source_file || !compute_hash, "Can't compute hash if no SourceFile written");
@@ -648,18 +649,18 @@ namespace OpenMS
     {
       if (!check_types_(allowed_types, filename))
       {
-        throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename, "type is not supported for loading experiments");
+        throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename, "type is not allowed for loading experiments");
       }
     }
 
-    //determine file type
+    // determine file type
     FileTypes::Type type;
     type = getType(filename);
 
     // load right file
     switch (type)
     {
-    case FileTypes::DTA:
+      case FileTypes::DTA: 
       {
         exp.reset();
         exp.resize(1);
@@ -667,7 +668,7 @@ namespace OpenMS
       }
       break;
 
-    case FileTypes::DTA2D:
+      case FileTypes::DTA2D: 
       {
         DTA2DFile f;
         f.getOptions() = options_;
@@ -676,7 +677,7 @@ namespace OpenMS
       }
       break;
 
-    case FileTypes::MZXML:
+      case FileTypes::MZXML: 
       {
         MzXMLFile f;
         f.getOptions() = options_;
@@ -685,7 +686,7 @@ namespace OpenMS
       }
       break;
 
-    case FileTypes::MZDATA:
+      case FileTypes::MZDATA: 
       {
         MzDataFile f;
         f.getOptions() = options_;
@@ -694,7 +695,7 @@ namespace OpenMS
       }
       break;
 
-    case FileTypes::MZML:
+      case FileTypes::MZML: 
       {
         MzMLFile f;
         f.getOptions() = options_;
@@ -704,7 +705,7 @@ namespace OpenMS
       }
       break;
 
-    case FileTypes::MGF:
+      case FileTypes::MGF: 
       {
         MascotGenericFile f;
         f.setLogType(log);
@@ -712,7 +713,7 @@ namespace OpenMS
       }
       break;
 
-    case FileTypes::MS2:
+      case FileTypes::MS2: 
       {
         MS2File f;
         f.setLogType(log);
@@ -720,34 +721,32 @@ namespace OpenMS
       }
       break;
 
-    case FileTypes::SQMASS:
-    {
-      SqMassFile().load(filename, exp);
-    }
+      case FileTypes::SQMASS: 
+      {
+        SqMassFile().load(filename, exp);
+      }
       break;
 
-    case FileTypes::XMASS:
-    {
-      exp.reset();
-      exp.resize(1);
-      XMassFile().load(filename, exp[0]);
-      XMassFile().importExperimentalSettings(filename, exp);
-    }
-      break;
-  
-    case FileTypes::MSP:
-    {
-      MSPGenericFile().load(filename, exp);
-    }
+      case FileTypes::XMASS: 
+      {
+        exp.reset();
+        exp.resize(1);
+        XMassFile().load(filename, exp[0]);
+        XMassFile().importExperimentalSettings(filename, exp);
+      }
       break;
 
-    default:
-    {
-      OPENMS_LOG_ERROR << "Can't load experiment from " << filename << "." << endl;
-      return false;
-    }
-    }
+      case FileTypes::MSP: 
+      {
+        MSPGenericFile().load(filename, exp);
+      }
+      break;
 
+      default: 
+      {
+        throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename, "type is not supported for loading experiments");
+      }
+    }
     if (rewrite_source_file)
     {
       SourceFile src_file;
@@ -755,18 +754,17 @@ namespace OpenMS
       {
         OPENMS_LOG_WARN << "No source file annotated." << endl;
       }
-      else 
+      else
       {
-        if (exp.getSourceFiles().size() > 1) 
+        if (exp.getSourceFiles().size() > 1)
         {
-          OPENMS_LOG_WARN << "Expecting a single source file in mzML. Found " << exp.getSourceFiles().size() 
-                          << " will take only first one for rewriting." << endl;
+          OPENMS_LOG_WARN << "Expecting a single source file in mzML. Found " << exp.getSourceFiles().size() << " will take only first one for rewriting." << endl;
         }
         src_file = exp.getSourceFiles()[0];
       }
-      
+
       src_file.setNameOfFile(File::basename(filename));
-      String path_to_file = File::path(File::absolutePath(filename)); //convert to absolute path and strip file name
+      String path_to_file = File::path(File::absolutePath(filename)); // convert to absolute path and strip file name
 
       // make sure we end up with at most 3 forward slashes
       String uri = path_to_file.hasPrefix("/") ? String("file://") + path_to_file : String("file:///") + path_to_file;
@@ -783,11 +781,9 @@ namespace OpenMS
       exp.getSourceFiles().clear();
       exp.getSourceFiles().push_back(src_file);
     }
-
-    return true;
   }
 
-  bool FileHandler::storeExperiment(const String& filename, const PeakMap& exp, const std::vector<FileTypes::Type> allowed_types, ProgressLogger::LogType log)
+  void FileHandler::storeExperiment(const String& filename, const PeakMap& exp, const std::vector<FileTypes::Type> allowed_types, ProgressLogger::LogType log)
   {
     FileTypes::Type ftype;
     if (allowed_types.size() == 1)
@@ -803,172 +799,165 @@ namespace OpenMS
     {
       if (!check_types_(allowed_types, filename))
       {
-        //OPENMS_LOG_ERROR << "File " << filename << " type is not supported by this tool" << endl;
+        throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename, "file type is not allowed for storing experiments");
+      }
+    }
+
+    // load right file
+    switch (ftype)
+    {
+      case FileTypes::DTA: 
+      {
+        DTAFile().store(filename, exp[0]);
+      }
+      break;
+
+      case FileTypes::DTA2D: 
+      {
+        DTA2DFile f;
+        f.getOptions() = options_;
+        f.setLogType(log);
+        f.store(filename, exp);
+      }
+      break;
+
+      case FileTypes::MGF: 
+      {
+        MascotGenericFile f;
+        f.setLogType(log);
+        f.store(filename, exp);
+      }
+      break;
+
+      case FileTypes::MSP: 
+      {
+        MSPGenericFile f;
+        // TODO add support for parameters
+        f.store(filename, exp);
+      }
+      break;
+
+      case FileTypes::MZXML: 
+      {
+        MzXMLFile f;
+        f.getOptions() = options_;
+        f.setLogType(log);
+        if (!exp.getChromatograms().empty())
+        {
+          PeakMap exp2 = exp;
+          ChromatogramTools().convertChromatogramsToSpectra<PeakMap>(exp2);
+          f.store(filename, exp2);
+        }
+        else
+        {
+          f.store(filename, exp);
+        }
+      }
+      break;
+
+      case FileTypes::SQMASS: 
+      {
+        SqMassFile f;
+        // f.setConfig()
+        f.store(filename, exp);
+      }
+      break;
+
+      case FileTypes::MZDATA: 
+      {
+        MzDataFile f;
+        f.getOptions() = options_;
+        f.setLogType(log);
+        if (!exp.getChromatograms().empty())
+        {
+          PeakMap exp2 = exp;
+          ChromatogramTools().convertChromatogramsToSpectra<PeakMap>(exp2);
+          f.store(filename, exp2);
+        }
+        else
+        {
+          f.store(filename, exp);
+        }
+      }
+      break;
+
+      case FileTypes::MZML: 
+      {
+        MzMLFile f;
+        f.getOptions() = options_;
+        f.setLogType(log);
+        f.store(filename, exp);
+      }
+      break;
+
+      default: 
+      {
         throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename, "file type is not supported for storing experiments");
       }
     }
-
-    //load right file
-    switch (ftype)
-    {
-
-    case FileTypes::DTA:
-    {
-      DTAFile().store(filename, exp[0]);
-    }
-    break;
-
-    case FileTypes::DTA2D:
-    {
-      DTA2DFile f;
-      f.getOptions() = options_;
-      f.setLogType(log);
-      f.store(filename, exp);
-    }
-    break;
-
-    case FileTypes::MGF:
-    {
-      MascotGenericFile f;
-      f.setLogType(log);
-      f.store(filename, exp);
-    }
-    break;
-
-    case FileTypes::MSP:
-    {
-      MSPGenericFile f;
-      //TODO add support for parameters
-      f.store(filename, exp);
-    }
-      break;
-
-    case FileTypes::MZXML:
-    {
-      MzXMLFile f;
-      f.getOptions() = options_;
-      f.setLogType(log);
-      if (!exp.getChromatograms().empty())
-      {
-        PeakMap exp2 = exp;
-        ChromatogramTools().convertChromatogramsToSpectra<PeakMap >(exp2);
-        f.store(filename, exp2);
-      }
-      else
-      {
-        f.store(filename, exp);
-      }
-    }
-    break;
-
-    case FileTypes::SQMASS:
-    {
-      SqMassFile f;
-      //f.setConfig()
-      f.store(filename, exp);
-    }
-    break;
-
-    case FileTypes::MZDATA:
-    {
-      MzDataFile f;
-      f.getOptions() = options_;
-      f.setLogType(log);
-      if (!exp.getChromatograms().empty())
-      {
-        PeakMap exp2 = exp;
-        ChromatogramTools().convertChromatogramsToSpectra<PeakMap >(exp2);
-        f.store(filename, exp2);
-      }
-      else
-      {
-        f.store(filename, exp);
-      }
-    }
-    break;
-
-    case FileTypes::MZML:
-    {
-      MzMLFile f;
-      f.getOptions() = options_;
-      f.setLogType(log);
-      f.store(filename, exp);
-    }
-    break;
-
-    default:
-    {
-      OPENMS_LOG_ERROR << "Can't store experiment to " << filename << "." << endl;
-      return false;
-    }
-    }
-    return true;
   }
 
-  bool FileHandler::loadFeatures(const String& filename, FeatureMap& map, const std::vector<FileTypes::Type> allowed_types, ProgressLogger::LogType log)
+  void FileHandler::loadFeatures(const String& filename, FeatureMap& map, const std::vector<FileTypes::Type> allowed_types, ProgressLogger::LogType log)
   {
-
     if (allowed_types.size() != 0)
     {
       if (!check_types_(allowed_types, filename))
       {
-        throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename, "type is not supported for loading features");
+        throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename, "type is not allowed for loading features");
       }
     }
 
-    //determine file type
+    // determine file type
     FileTypes::Type type;
 
     type = getType(filename);
 
-    //load right file
+    // load right file
     switch (type)
     {
-    case FileTypes::FEATUREXML:
-    {
-      FeatureXMLFile f;
-      f.setLogType(log);
-      f.getOptions() = fOptions_;
-      f.load(filename, map);
-    }
-    break;
+      case FileTypes::FEATUREXML: 
+      {
+        FeatureXMLFile f;
+        f.setLogType(log);
+        f.getOptions() = fOptions_;
+        f.load(filename, map);
+      }
+      break;
 
-    case FileTypes::TSV:
-    {
-      MsInspectFile().load(filename, map);
-    }
-    break;
+      case FileTypes::TSV: 
+      {
+        MsInspectFile().load(filename, map);
+      }
+      break;
 
-    case FileTypes::PEPLIST:
-    {
-      SpecArrayFile().load(filename, map);
-    }
-    break;
+      case FileTypes::PEPLIST: 
+      {
+        SpecArrayFile().load(filename, map);
+      }
+      break;
 
-    case FileTypes::KROENIK:
-    {
-      KroenikFile().load(filename, map);
-    }
-    break;
+      case FileTypes::KROENIK: 
+      {
+        KroenikFile().load(filename, map);
+      }
+      break;
 
-    case FileTypes::OMS:
-    {
-      OMSFile f;
-      f.setLogType(log);
-      f.load(filename, map);
-    }
-    break;
+      case FileTypes::OMS: 
+      {
+        OMSFile f;
+        f.setLogType(log);
+        f.load(filename, map);
+      }
+      break;
 
-    default:
-    {
-      OPENMS_LOG_ERROR << "Can't load features from " << filename << "." << endl;
-      return false;
+      default: 
+      {
+        throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename, "type is not supported for loading features");
+      }
     }
-    }
-    return true;
   }
 
-  bool FileHandler::storeFeatures(const String& filename, const FeatureMap& map, const std::vector<FileTypes::Type> allowed_types, ProgressLogger::LogType log)
+  void FileHandler::storeFeatures(const String& filename, const FeatureMap& map, const std::vector<FileTypes::Type> allowed_types, ProgressLogger::LogType log)
   {
 
     FileTypes::Type ftype;
@@ -988,73 +977,69 @@ namespace OpenMS
     {
       if (!check_types_(allowed_types, filename))
       {
-        //OPENMS_LOG_ERROR << "File " << filename << " type is not supported by this tool" << endl;
-        throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename, "file type is not supported for storing features");
+        throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename, "file type is not allowed for storing features");
       }
     }
 
     //store right file
     switch (ftype)
     {
-    case FileTypes::FEATUREXML:
-    {
-      FeatureXMLFile f;
-      f.setLogType(log);
-      f.getOptions() = fOptions_;
-      f.store(filename, map);
-    }
-    break;
+      case FileTypes::FEATUREXML:
+      {
+        FeatureXMLFile f;
+        f.setLogType(log);
+        f.getOptions() = fOptions_;
+        f.store(filename, map);
+      }
+      break;
 
-    case FileTypes::EDTA:
-    {
-      EDTAFile f;
-      f.store(filename, map);
-    }
-    break;
+      case FileTypes::EDTA:
+      {
+        EDTAFile f;
+        f.store(filename, map);
+      }
+      break;
 
-    case FileTypes::TSV:
-    {
-      MsInspectFile().store(filename, map);
-    }
-    break;
+      case FileTypes::TSV:
+      {
+        MsInspectFile().store(filename, map);
+      }
+      break;
 
-    case FileTypes::OMS:
-    {
-      OMSFile f;
-      f.setLogType(log);
-      f.store(filename, map);
-    }
-    break;
+      case FileTypes::OMS:
+      {
+        OMSFile f;
+        f.setLogType(log);
+        f.store(filename, map);
+      }
+      break;
 
-    case FileTypes::PEPLIST:
-    {
-      SpecArrayFile().store(filename, map);
-    }
-    break;
+      case FileTypes::PEPLIST:
+      {
+        SpecArrayFile().store(filename, map);
+      }
+      break;
 
-    case FileTypes::KROENIK:
-    {
-      KroenikFile().store(filename, map);
-    }
-    break;
+      case FileTypes::KROENIK:
+      {
+        KroenikFile().store(filename, map);
+      }
+      break;
 
-    default:
-    {
-      OPENMS_LOG_ERROR << "Can't store features to " << filename << "." << endl;
-      return false;
+      default:
+      {
+          throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename, "file type is not supported for storing features");
+      }
     }
-    }
-
-    return true;
   }
 
-  bool FileHandler::loadConsensusFeatures(const String& filename, ConsensusMap& map, const std::vector<FileTypes::Type> allowed_types, ProgressLogger::LogType log)
+  void FileHandler::loadConsensusFeatures(const String& filename, ConsensusMap& map, const std::vector<FileTypes::Type> allowed_types, ProgressLogger::LogType log)
   {
     if (allowed_types.size() != 0)
     {
       if (!check_types_(allowed_types, filename))
       {
-        throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename, "type is not supported for loading Consensus Features");
+        throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename, "type is not allowed for loading Consensus Features");
       }
     }
 
@@ -1081,13 +1066,13 @@ namespace OpenMS
       break;
 
       default:
-        OPENMS_LOG_ERROR << "Can't load consensus features from " << filename << "." << endl;
-        return false;
+      {
+        throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename, "type is not supported for loading consensus features");
+      }
     }
-    return true;
   }
 
-  bool FileHandler::storeConsensusFeatures(const String& filename, const ConsensusMap& map,  const std::vector<FileTypes::Type> allowed_types, ProgressLogger::LogType log)
+  void FileHandler::storeConsensusFeatures(const String& filename, const ConsensusMap& map,  const std::vector<FileTypes::Type> allowed_types, ProgressLogger::LogType log)
   {
     FileTypes::Type ftype;
     if (allowed_types.size() == 1)
@@ -1104,7 +1089,7 @@ namespace OpenMS
       if (!check_types_(allowed_types, filename))
       {
         //OPENMS_LOG_ERROR << "File " << filename << " type is not supported by this tool" << endl;
-        throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename, "file type is not supported for storing Consensus Features");
+        throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename, "file type is not allowed for storing Consensus Features");
       }
     }
     switch (ftype)
@@ -1125,20 +1110,19 @@ namespace OpenMS
       break;
       
       default:
-        OPENMS_LOG_ERROR << "Can't store consensus features to " << filename << "." << endl;
-        return false;
+      {        
+        throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename, "file type is not supported for storing consensus features");
+      }
     }
-
-    return true;
   }
 
-  bool FileHandler::loadIdentifications(const String& filename, std::vector<ProteinIdentification>& additional_proteins, std::vector<PeptideIdentification>& additional_peptides, const std::vector<FileTypes::Type> allowed_types, ProgressLogger::LogType log)
+  void FileHandler::loadIdentifications(const String& filename, std::vector<ProteinIdentification>& additional_proteins, std::vector<PeptideIdentification>& additional_peptides, const std::vector<FileTypes::Type> allowed_types, ProgressLogger::LogType log)
   {
     if (allowed_types.size() != 0)
     {
       if (!check_types_(allowed_types, filename))
       {
-        throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename, "type is not supported for loading Consensus Features");
+        throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename, "type is not allowed for loading identifications");
       }
     }
 
@@ -1164,12 +1148,12 @@ namespace OpenMS
       }
       break;
 
-      case FileTypes::OMS:
+      /*case FileTypes::OMS:
       {
         OPENMS_LOG_ERROR << "File " << filename << " Loading Identifications is not yet supported for OMS files" << endl;
         return false;
       }
-    break;
+      break;*/
 
       case FileTypes::XQUESTXML:
       {
@@ -1188,11 +1172,11 @@ namespace OpenMS
       }
       break;
       
-      case FileTypes::MASCOTXML:
+      /*case FileTypes::MASCOTXML:
       {
         OPENMS_LOG_ERROR << "File " << filename << " Loading Identifications is not yet supported for MASCOTXML files" << endl;
         return false;
-      }
+      }*/
 
       case FileTypes::PROTXML:
       {
@@ -1203,12 +1187,11 @@ namespace OpenMS
       break;
 
       default:
-        return false;
+      throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename, "type is not supported for loading identifications");
     }   
-    return true;
   }
 
-  bool FileHandler::StoreIdentifications(const String& filename, const std::vector<ProteinIdentification>& additional_proteins, const std::vector<PeptideIdentification>& additional_peptides, const std::vector<FileTypes::Type> allowed_types, ProgressLogger::LogType log)
+  void FileHandler::StoreIdentifications(const String& filename, const std::vector<ProteinIdentification>& additional_proteins, const std::vector<PeptideIdentification>& additional_peptides, const std::vector<FileTypes::Type> allowed_types, ProgressLogger::LogType log)
   {
  FileTypes::Type ftype;
  if (allowed_types.size() == 1)
@@ -1224,8 +1207,7 @@ namespace OpenMS
     {
       if (!check_types_(allowed_types, filename))
       {
-        //OPENMS_LOG_ERROR << "File " << filename << " type is not supported by this tool" << endl;
-        throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename, "file type is not supported for storing Consensus Features");
+        throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename, "file type is not allowed for storing Identifications");
       }
     }
 
@@ -1247,12 +1229,12 @@ namespace OpenMS
       }
       break;
 
-      case FileTypes::OMS:
+      /*case FileTypes::OMS:
       {
         OPENMS_LOG_ERROR << "File " << filename << " storing Identifications is not yet supported for OMS files" << endl;
         return false;
       }
-    break;
+    break;*/
 
       case FileTypes::XQUESTXML:
       {
@@ -1263,19 +1245,19 @@ namespace OpenMS
       break;
 
       default:
-        OPENMS_LOG_ERROR << "Can't store identifications to " << filename << "." << endl;
-        return false;
+      {
+        throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename, "file type is not supported for storing Identifications");
+      }
     }   
-    return true;
   }
 
-    bool FileHandler::loadTransitions(const String& filename,TargetedExperiment& library, const std::vector<FileTypes::Type> allowed_types, ProgressLogger::LogType log)
+  void FileHandler::loadTransitions(const String& filename,TargetedExperiment& library, const std::vector<FileTypes::Type> allowed_types, ProgressLogger::LogType log)
   {
     if (allowed_types.size() != 0)
     {
       if (!check_types_(allowed_types, filename))
       {
-        throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename, "type is not supported for loading Consensus Features");
+        throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename, "type is not allowed for loading transitions");
       }
     }
 
@@ -1296,14 +1278,12 @@ namespace OpenMS
 
       default:
       {
-        OPENMS_LOG_ERROR << "Can't load transitions from " << filename << "." << endl;
-        return false;
+        throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename, "type is not supported for loading transitions");
       }
     }
-    return true;
   }
 
-  bool FileHandler::storeTransitions(const String& filename, const TargetedExperiment& library, const std::vector<FileTypes::Type> allowed_types, ProgressLogger::LogType log)
+  void FileHandler::storeTransitions(const String& filename, const TargetedExperiment& library, const std::vector<FileTypes::Type> allowed_types, ProgressLogger::LogType log)
   {
     FileTypes::Type ftype;
     if (allowed_types.size() == 1)
@@ -1319,8 +1299,7 @@ namespace OpenMS
     {
       if (!check_types_(allowed_types, filename))
       {
-        //OPENMS_LOG_ERROR << "File " << filename << " type is not supported by this tool" << endl;
-        throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename, "file type is not supported for storing identifications");
+        throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename, "file type is not allowed for storing transitions");
       }
     }
     switch (ftype)
@@ -1335,21 +1314,19 @@ namespace OpenMS
 
       default:
       {
-        OPENMS_LOG_ERROR << "Can't store transitions to " << filename << "." << endl;
-        return false;
+        throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename, "file type is not supported for storing transitions"); 
       }
     }
-    return true;
   }
 
-  bool FileHandler::loadQuantifications(const String& filename, MSQuantifications& map, const std::vector<FileTypes::Type> allowed_types, ProgressLogger::LogType log)
+  void FileHandler::loadQuantifications(const String& filename, MSQuantifications& map, const std::vector<FileTypes::Type> allowed_types, ProgressLogger::LogType log)
   {
 
     if (allowed_types.size() != 0)
     {
       if (!check_types_(allowed_types, filename))
       {
-        throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename, "type is not supported for loading quantifications");
+        throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename, "type is not allowed for loading quantifications");
       }
     }
 
@@ -1369,14 +1346,12 @@ namespace OpenMS
       
       default:
       {
-        OPENMS_LOG_ERROR << "Can't load quantifications from " << filename << "." << endl;
-        return false;
+        throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename, "type is not supported for loading quantifications");
       }
     }
-    return true;
   }
 
-  bool FileHandler::storeQuantifications(const String& filename, const MSQuantifications& map,  const std::vector<FileTypes::Type> allowed_types, ProgressLogger::LogType log)
+  void FileHandler::storeQuantifications(const String& filename, const MSQuantifications& map,  const std::vector<FileTypes::Type> allowed_types, ProgressLogger::LogType log)
   {
 
     FileTypes::Type ftype;
@@ -1393,8 +1368,7 @@ namespace OpenMS
     {
       if (!check_types_(allowed_types, filename))
       {
-        //OPENMS_LOG_ERROR << "File " << filename << " type is not supported by this tool" << endl;
-        throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename, "file type is not supported for storing quantifications");
+        throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename, "file type is not allowed for storing quantifications");
       }
     }
     
@@ -1410,21 +1384,19 @@ namespace OpenMS
 
       default:
       {
-        OPENMS_LOG_ERROR << "Can't store quantifications to " << filename << "." << endl;
-        return false;
+        throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename, "file type is not supported for storing quantifications");
       }
     }
-    return true;
   }
 
-    bool FileHandler::loadTransformations(const String& filename, TransformationDescription& map, bool fit_model, const std::vector<FileTypes::Type> allowed_types)
+  void FileHandler::loadTransformations(const String& filename, TransformationDescription& map, bool fit_model, const std::vector<FileTypes::Type> allowed_types)
   {
 
     if (allowed_types.size() != 0)
     {
       if (!check_types_(allowed_types, filename))
       {
-        throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename, "type is not supported for loading quantifications");
+        throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename, "type is not allowed for loading transformations");
       }
     }
 
@@ -1443,14 +1415,12 @@ namespace OpenMS
       
       default:
       {
-        OPENMS_LOG_ERROR << "Can't load transformations from " << filename << "." << endl;
-        return false;
+        throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename, "type is not supported for loading transformations");
       }
     }
-    return true;
   }
 
-  bool FileHandler::storeTransformations(const String& filename, const TransformationDescription& map,  const std::vector<FileTypes::Type> allowed_types)
+  void FileHandler::storeTransformations(const String& filename, const TransformationDescription& map,  const std::vector<FileTypes::Type> allowed_types)
   {
 
     FileTypes::Type ftype;
@@ -1467,8 +1437,7 @@ namespace OpenMS
     {
       if (!check_types_(allowed_types, filename))
       {
-        //OPENMS_LOG_ERROR << "File " << filename << " type is not supported by this tool" << endl;
-        throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename, "file type is not supported for storing quantifications");
+        throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename, "file type is not allowed for storing transformations");
       }
     }
     
@@ -1482,14 +1451,12 @@ namespace OpenMS
 
       default:
       {
-        OPENMS_LOG_ERROR << "Can't store quantifications to " << filename << "." << endl;
-        return false;
+        throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename, "file type is not supported for storing transformations");
       }
     }
-    return true;
   }
 
-  bool FileHandler::storeQC(const String& input_file,
+  void FileHandler::storeQC(const String& input_file,
                const String& output_file,
                const MSExperiment& exp,
                const FeatureMap& feature_map,
@@ -1512,8 +1479,7 @@ namespace OpenMS
     {
       if (!check_types_(allowed_types, output_file))
       {
-        //OPENMS_LOG_ERROR << "File " << filename << " type is not supported by this tool" << endl;
-        throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, output_file, "file type is not supported for storing QC data");
+        throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, output_file, "file type is not allowed for storing QC data");
       }
     }
 
@@ -1537,11 +1503,9 @@ namespace OpenMS
       
       default:
       {
-        OPENMS_LOG_ERROR << "Can't store QC to " << output_file << "." << endl;
-        return false;
+        throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, output_file, "file type is not supported for storing QC data");
       }
     }
-    return true;
   }
 
 } // namespace OpenMS
