@@ -9,7 +9,7 @@
 		<VariableModification name="Acetyl (Protein N-term)" />
 		<VariableModification name="Carbamidomethyl (N-term)" />
 				<UserParam type="string" name="CometAdapter:1:in" value="/workspace/OpenMS/src/tests/topp/THIRDPARTY/CometAdapter_3.mzML"/>
-				<UserParam type="string" name="CometAdapter:1:out" value="CometAdapter_3_out1.tmp"/>
+				<UserParam type="string" name="CometAdapter:1:out" value="CometAdapter_3_out1.tmp.idXML"/>
 				<UserParam type="string" name="CometAdapter:1:database" value="/workspace/OpenMS/src/tests/topp/THIRDPARTY/CometAdapter_3.fasta"/>
 				<UserParam type="string" name="CometAdapter:1:comet_executable" value="/workspace/OpenMS/THIRDPARTY/Linux/64bit/Comet/comet.exe"/>
 				<UserParam type="string" name="CometAdapter:1:pin_out" value="CometAdapter_3_out2.tmp.tsv"/>
