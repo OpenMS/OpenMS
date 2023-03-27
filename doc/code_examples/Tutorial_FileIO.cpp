@@ -50,7 +50,7 @@ int main(int argc, const char** argv)
   FileHandler().storeExperiment("Tutorial_FileIO.mzML", map, {FileTypes::MZML});
 
   // we can also load an experiment from a file without any restrictions on the file type:
-  FileHandler().loadExperiment(tutorial_data_path + "/data/Tutorial_FileIO.mzML", map);
+  FileHandler().loadExperiment("/data/Tutorial_FileIO.mzML", map);
   FileHandler().loadExperiment(tutorial_data_path + "/data/Tutorial_Spectrum1D.dta", map);
 
   // We use verious FileHandler functions to load other types.
