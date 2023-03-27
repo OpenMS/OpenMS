@@ -320,7 +320,7 @@ protected:
 
     String txt_designator = File::getUniqueName();
     String input_file_list(tmp_dir.getPath() + txt_designator + ".file_list.txt");
-    String consensus_output_file(tmp_dir.getPath() + txt_designator + ".clusters_p" + String(Int(-1*pcut)) + ".mzml");
+    String consensus_output_file(tmp_dir.getPath() + txt_designator + ".clusters_p" + String(Int(-1*pcut)) + ".mzML");
 
     // Create simple text file with one file path per line
     // TODO make a bit more exception safe
