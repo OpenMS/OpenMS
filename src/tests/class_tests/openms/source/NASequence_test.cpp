@@ -249,10 +249,10 @@ START_SECTION((void setFivePrimeMod(const RibonucleotideChainEnd* r)))
 {
   NASequence aaa = NASequence::fromString("AAA");
   TEST_EQUAL(aaa.hasFivePrimeMod(), false);
-  aaa.setFivePrimeMod(db->getRibonucleotide("(pN)"));  // 5' phosphate
+  aaa.setFivePrimeMod(db->getRibonucleotide("pN"));  // 5' phosphate
   TEST_EQUAL(aaa.hasFivePrimeMod(), true);
-  TEST_EQUAL(aaa.getFivePrimeMod()->getCode(), "(pN)");
-  TEST_STRING_EQUAL(aaa.toString(), "[(pN)]AAA");
+  TEST_EQUAL(aaa.getFivePrimeMod()->getCode(), "pN");
+  TEST_STRING_EQUAL(aaa.toString(), "[pN]AAA");
 }
 END_SECTION
 
@@ -267,10 +267,10 @@ START_SECTION((void setThreePrimeMod(const RibonucleotideChainEnd* r)))
 {
   NASequence aaa = NASequence::fromString("AAA");
   TEST_EQUAL(aaa.hasThreePrimeMod(), false);
-  aaa.setThreePrimeMod(db->getRibonucleotide("(pN)"));
+  aaa.setThreePrimeMod(db->getRibonucleotide("N2'3'cp"));
   TEST_EQUAL(aaa.hasThreePrimeMod(), true);
-  TEST_EQUAL(aaa.getThreePrimeMod()->getCode(), "(pN)");
-  TEST_STRING_EQUAL(aaa.toString(), "AAA[(pN)]");
+  TEST_EQUAL(aaa.getThreePrimeMod()->getCode(), "N2'3'cp");
+  TEST_STRING_EQUAL(aaa.toString(), "AAA[N2'3'cp]");
 }
 END_SECTION
 
