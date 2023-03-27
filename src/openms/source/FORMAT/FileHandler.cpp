@@ -93,10 +93,18 @@ namespace OpenMS
     {
       for (auto j : allowed_types.getTypes())
       {
-        if (FileHandler::getTypeByContent(filename) == j)
-          {
-            return true;
-          }
+        try
+        {
+          if (FileHandler::getTypeByContent(filename) == j)
+            {
+              return true;
+            }
+        }
+        //If the file doesn't exist and we don't have an extension, we return false
+        catch (Exception::FileNotFound)
+        {
+          return false;
+        }
       }
     }
     return matches;

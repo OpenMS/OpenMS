@@ -183,7 +183,7 @@ protected:
     registerOutputFile_("out", "<file>", "", "Optional output file. If left out, the output is written to the command line.", false);
     setValidFormats_("out", {"txt"});
     registerOutputFile_("out_tsv", "<file>", "", "Second optional output file. Tab separated flat text file.", false, true);
-    setValidFormats_("out_tsv", {"csv"});
+    setValidFormats_("out_tsv", {"tsv"});
     registerFlag_("m", "Show meta information about the whole experiment");
     registerFlag_("p", "Shows data processing information");
     registerFlag_("s", "Computes a five-number statistics of intensities, qualities, and widths");

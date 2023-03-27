@@ -48,7 +48,7 @@
         <ITEM name="in" value="" type="input-file" description="input file " required="true" advanced="false" supported_formats="*.mzData,*.mzXML,*.mzML,*.dta,*.dta2d,*.mgf,*.featureXML,*.consensusXML,*.idXML,*.pepXML,*.fid,*.mzid,*.trafoXML" />
         <ITEM name="in_type" value="" type="string" description="input file type -- default: determined from file extension or content" required="false" advanced="false" restrictions="mzData,mzXML,mzML,dta,dta2d,mgf,featureXML,consensusXML,idXML,pepXML,fid,mzid,trafoXML" />
         <ITEM name="out" value="" type="output-file" description="Optional output file. If left out, the output is written to the command line." required="false" advanced="false" supported_formats="*.txt" />
-        <ITEM name="out_tsv" value="" type="output-file" description="Second optional output file. Tab separated flat text file." required="false" advanced="true" supported_formats="*.csv" />
+        <ITEM name="out_tsv" value="" type="output-file" description="Second optional output file. Tab separated flat text file." required="false" advanced="true" supported_formats="*.tsv" />
         <ITEM name="m" value="false" type="string" description="Show meta information about the whole experiment" required="false" advanced="false" restrictions="true,false" />
         <ITEM name="p" value="false" type="string" description="Shows data processing information" required="false" advanced="false" restrictions="true,false" />
         <ITEM name="s" value="false" type="string" description="Computes a five-number statistics of intensities, qualities, and widths" required="false" advanced="false" restrictions="true,false" />
@@ -75,7 +75,7 @@
         <ITEM name="in" value="" type="input-file" description="input file " required="true" advanced="false" supported_formats="*.mzData,*.mzXML,*.mzML,*.dta,*.dta2d,*.mgf,*.featureXML,*.consensusXML,*.idXML,*.pepXML,*.fid,*.mzid,*.trafoXML" />
         <ITEM name="in_type" value="" type="string" description="input file type -- default: determined from file extension or content" required="false" advanced="false" restrictions="mzData,mzXML,mzML,dta,dta2d,mgf,featureXML,consensusXML,idXML,pepXML,fid,mzid,trafoXML" />
         <ITEM name="out" value="" type="output-file" description="Optional output file. If left out, the output is written to the command line." required="false" advanced="false" supported_formats="*.txt" />
-        <ITEM name="out_tsv" value="" type="output-file" description="Second optional output file. Tab separated flat text file." required="false" advanced="true" supported_formats="*.csv" />
+        <ITEM name="out_tsv" value="" type="output-file" description="Second optional output file. Tab separated flat text file." required="false" advanced="true" supported_formats="*.tsv" />
         <ITEM name="m" value="false" type="string" description="Show meta information about the whole experiment" required="false" advanced="false" restrictions="true,false" />
         <ITEM name="p" value="false" type="string" description="Shows data processing information" required="false" advanced="false" restrictions="true,false" />
         <ITEM name="s" value="false" type="string" description="Computes a five-number statistics of intensities, qualities, and widths" required="false" advanced="false" restrictions="true,false" />
@@ -101,7 +101,7 @@
       <NODE name="parameters" description="">
         <ITEMLIST name="in" type="input-file" description="Input files separated by blank" required="true" advanced="false" supported_formats="*.mzData,*.mzXML,*.mzML,*.dta,*.dta2d,*.mgf,*.featureXML,*.consensusXML,*.fid,*.traML">
         </ITEMLIST>
-        <ITEM name="in_type" value="" type="string" description="Input file type (default: determined from file extension or content)" required="false" advanced="false" restrictions="mzData,mzXML,mzML,dta,dta2d,mgf,featureXML,consensusXML,fid,traML" />
+        <ITEM name="in_type" value="mzML" type="string" description="Input file type (default: determined from file extension or content)" required="false" advanced="false" restrictions="mzData,mzXML,mzML,dta,dta2d,mgf,featureXML,consensusXML,fid,traML" />
         <ITEM name="out" value="" type="output-file" description="Output file" required="true" advanced="false" supported_formats="*.mzML,*.featureXML,*.consensusXML,*.traML" />
         <ITEM name="annotate_file_origin" value="false" type="string" description="Store the original filename in each feature using meta value &quot;file_origin&quot; (for featureXML and consensusXML only)." required="false" advanced="false" restrictions="true,false" />
         <ITEM name="log" value="" type="string" description="Name of log file (created only when specified)" required="false" advanced="true" />
