@@ -73,7 +73,6 @@ ok   PeakPickerWavelet.cpp
 x    PepNovoAdapter.cpp   # 300 lines
 x    PeptideIndexer.cpp   # 500 lines
 xx   PhosphoScoring.cpp # AScore.pxd TODO , RichPeakSpectrum doesn't work
-n    PrecursorIonSelector.cpp
 x    PrecursorMassCorrector.cpp #Isotope Wavelet is wrapped, 200 lines
 x    ProteinInference.cpp    # 200 lines
 x    ProteinQuantifier.cpp # PeptideAndProteinQuant is wrapped, 600 lines
@@ -122,7 +121,6 @@ n    INIUpdater.cpp
 n    LabeledEval.cpp
 n    MassCalculator.cpp
 n    MRMPairFinder.cpp
-?    MSSimulator.cpp  # 250 lines =
 n    OpenMSInfo.cpp
 n    OpenSwathDIAPreScoring.cpp
 ?    OpenSwathMzMLFileCacher.cpp
@@ -218,7 +216,6 @@ x   ProteinInference - Infer proteins from a list of (high-confidence) peptides.
 Targeted Experiments
 
 x   InclusionExclusionListCreator - Creates inclusion and/or exclusion lists for LC-MS/MS experiments. # most in TOPP tools except OfflinePrecursorSelection
-x   PrecursorIonSelector - A tool for precursor ion selection based on identification results.
 
 
 Peptide Property Prediction

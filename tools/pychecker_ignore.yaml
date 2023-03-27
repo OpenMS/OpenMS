@@ -340,13 +340,6 @@ PyOpenMSChecker:
     OpenMS::IsobaricQuantifierStatistics:
         # STL attributes
         - empty_channels
-    OpenMS::PrecursorIonSelectionPreprocessing:
-        # TODO STL map
-        - getProtMasses
-        - getProteinRTMap
-        - getProteinPTMap
-        - getProteinPeptideSequenceMap
-        - getFixedModifications
     OpenMS::CompNovoIonScoringCID:
         - scoreSpectrum
     OpenMS::DIAScoring:

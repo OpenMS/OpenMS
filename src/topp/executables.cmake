@@ -77,7 +77,6 @@ PepNovoAdapter
 PeptideIndexer
 PercolatorAdapter
 PhosphoScoring
-PrecursorIonSelector
 PrecursorMassCorrector
 ProteinInference
 ProteinQuantifier

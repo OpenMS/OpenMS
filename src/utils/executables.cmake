@@ -31,7 +31,6 @@ MetaboliteSpectralMatcher
 MetaProSIP
 MRMPairFinder
 MSFraggerAdapter
-MSSimulator
 MSstatsConverter
 MultiplexResolver
 MzMLSplitter

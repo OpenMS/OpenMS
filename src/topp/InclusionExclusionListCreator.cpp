@@ -35,7 +35,6 @@
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 
 #include <OpenMS/ANALYSIS/TARGETED/InclusionExclusionList.h>
-#include <OpenMS/ANALYSIS/TARGETED/OfflinePrecursorIonSelection.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/FORMAT/FeatureXMLFile.h>

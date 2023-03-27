@@ -35,9 +35,6 @@ Ribonucleotide.h
 RibonucleotideDB.h
 SimpleTSGXLMS.h
 SpectrumAnnotator.h
-SvmTheoreticalSpectrumGenerator.h
-SvmTheoreticalSpectrumGeneratorSet.h
-SvmTheoreticalSpectrumGeneratorTrainer.h
 Tagger.h
 TheoreticalSpectrumGenerator.h
 TheoreticalSpectrumGeneratorXLMS.h

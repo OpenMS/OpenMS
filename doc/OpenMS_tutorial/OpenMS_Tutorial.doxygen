@@ -270,7 +270,6 @@ The extensible %OpenMS library implements common mass spectrometric data process
  <tr><td>KERNEL</td><td>Core data structures</td></tr>
  <tr><td>MATH</td><td>Source code for math functions and classes</td></tr>
  <tr><td>METADATA</td><td>Source code for classes that capture metadata about a MS or HPLC-MS experiment</td></tr>
- <tr><td>SIMULATION</td><td>Source code of MS simulator</td></tr>
  <tr><td>SYSTEM</td><td>Source code for basic functionality (file system, stopwatch)</td></tr>
  <tr><td>TRANSFORMATIONS</td><td>Feature detection (MS1 label-free and isotopic labelling) and PeakPickers (centroiding algorithms)</td></tr>
 </table>

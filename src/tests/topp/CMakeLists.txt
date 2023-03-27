@@ -2335,15 +2335,6 @@ add_test("TOPP_ConsensusID_8_out1" ${DIFF} -whitelist "?xml-stylesheet" "Identif
 set_tests_properties("TOPP_ConsensusID_8_out1" PROPERTIES DEPENDS "TOPP_ConsensusID_8")
 
 #------------------------------------------------------------------------------
-# PrecursorIonSelector tests
-add_test("TOPP_PrecursorIonSelector_1" ${TOPP_BIN_PATH}/PrecursorIonSelector -test -in ${DATA_DIR_TOPP}/PrecursorIonSelector_features.featureXML -sim_results PrecursorIonSelector_1_output.tmp -ini ${DATA_DIR_TOPP}/PrecursorIonSelector_1_parameters.ini -db_path ${DATA_DIR_TOPP}/PrecursorIonSelector_db.fasta -ids ${DATA_DIR_TOPP}/PrecursorIonSelector_ids.idXML)
-add_test("TOPP_PrecursorIonSelector_1_out1" ${DIFF} -in1 PrecursorIonSelector_1_output.tmp -in2 ${DATA_DIR_TOPP}/PrecursorIonSelector_1_output.txt )
-set_tests_properties("TOPP_PrecursorIonSelector_1_out1" PROPERTIES DEPENDS "TOPP_PrecursorIonSelector_1")
-add_test("TOPP_PrecursorIonSelector_2" ${TOPP_BIN_PATH}/PrecursorIonSelector -test -in ${DATA_DIR_TOPP}/PrecursorIonSelector_features.featureXML -out PrecursorIonSelector_2_output.tmp -ini ${DATA_DIR_TOPP}/PrecursorIonSelector_2_parameters.ini -db_path ${DATA_DIR_TOPP}/PrecursorIonSelector_db.fasta -ids ${DATA_DIR_TOPP}/PrecursorIonSelector_ids.idXML)
-add_test("TOPP_PrecursorIonSelector_2_out1" ${DIFF} -in1 PrecursorIonSelector_2_output.tmp -in2 ${DATA_DIR_TOPP}/PrecursorIonSelector_2_output.featureXML )
-set_tests_properties("TOPP_PrecursorIonSelector_2_out1" PROPERTIES DEPENDS "TOPP_PrecursorIonSelector_2")
-
-#------------------------------------------------------------------------------
 # CompNovo tests
 add_test("TOPP_CompNovo_1" ${TOPP_BIN_PATH}/CompNovo -test -in ${DATA_DIR_TOPP}/CompNovo_1_input.mzML -ini ${DATA_DIR_TOPP}/CompNovo_1.ini -out CompNovo_1_output.tmp)
 add_test("TOPP_CompNovo_1_out1" ${DIFF} -whitelist "?xml-stylesheet" "IdentificationRun date" -in1 CompNovo_1_output.tmp -in2 ${DATA_DIR_TOPP}/CompNovo_1_output.idXML )
