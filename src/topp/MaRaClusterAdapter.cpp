@@ -320,7 +320,7 @@ protected:
 
     String txt_designator = File::getUniqueName();
     String input_file_list(tmp_dir.getPath() + txt_designator + ".file_list.txt");
-    String consensus_output_file(tmp_dir.getPath() + txt_designator + ".clusters_p" + String(Int(-1*pcut)) + ".mzML");
+    String consensus_output_file(tmp_dir.getPath() + txt_designator + ".clusters_p" + String(Int(-1*pcut)) + ".tsv");
 
     // Create simple text file with one file path per line
     // TODO make a bit more exception safe
@@ -471,7 +471,7 @@ protected:
         arguments_consensus << "consensus";
         arguments_consensus << "-l" << consensus_output_file.toQString();
         arguments_consensus << "-f" << tmp_dir.getPath().toQString();
-        arguments_consensus << "-o" << consensus_out.toQString();
+        arguments_consensus << "-o" <<  consensus_out.toQString();
         Int min_cluster_size = getIntOption_("min_cluster_size");
         arguments_consensus << "-M" << String(min_cluster_size).toQString();
 
@@ -492,12 +492,12 @@ protected:
 
       // sort mzML
       FileHandler fh;
-      FileTypes::Type in_type = fh.getType(consensus_output_file);
-
+      FileTypes::Type in_type = fh.getType(consensus_out);
+      OPENMS_LOG_DEBUG << "Input type" << FileTypes::typeToName(in_type) << ". " << std::endl;
       PeakMap exp;
-      fh.loadExperiment(consensus_output_file, exp, {in_type}, log_type_, true, true);
+      fh.loadExperiment(FileHandler::stripExtension(consensus_out) + ".part1." + FileTypes::typeToName(in_type), exp, {in_type}, log_type_, true, true);
       exp.sortSpectra();
-      fh.storeExperiment(consensus_output_file, exp, {FileTypes::MZML}, log_type_);
+      fh.storeExperiment(consensus_out, exp, {FileTypes::MZML}, log_type_);
     }
 
     writeLogInfo_("MaRaClusterAdapter finished successfully!");
