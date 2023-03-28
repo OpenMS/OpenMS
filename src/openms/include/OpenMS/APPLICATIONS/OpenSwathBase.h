@@ -405,7 +405,7 @@ protected:
     if (!trafo_in.empty())
     {
       // get read RT normalization file
-      FileHandler().loadTransformations(trafo_in, trafo_rtnorm, false, {FileTypes::TRANSFORMATIONXML});
+      FileHandler().loadTransformations(trafo_in, trafo_rtnorm, true, {FileTypes::TRANSFORMATIONXML});
       Param model_params = getParam_().copy("model:", true);
       model_params.setValue("symmetric_regression", "false");
       model_params.setValue("span", irt_detection_param.getValue("lowess:span"));

@@ -867,7 +867,7 @@ protected:
     else if (in_type == FileTypes::TRANSFORMATIONXML)
     {
       TransformationDescription trafo;
-      FileHandler().loadTransformations(in, trafo, false, {FileTypes::TRANSFORMATIONXML});
+      FileHandler().loadTransformations(in, trafo, true, {FileTypes::TRANSFORMATIONXML});
       os << "\nTransformation model: " << trafo.getModelType() << '\n';
       trafo.printSummary(os);
     }
