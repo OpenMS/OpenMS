@@ -38,8 +38,10 @@
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/CHEMISTRY/Element.h>
+
 #include <iostream>
 #include <cmath>
+#include <memory>
 
 using namespace std;
 
