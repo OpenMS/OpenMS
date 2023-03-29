@@ -679,7 +679,7 @@ protected:
                       << "We will add an index by writing a temporary file. If you run this analysis more often, consider indexing your mzML in advance!" << std::endl;
       // Low memory conversion
       // write mzML with index again
-      auto tmp_file = File::getTemporaryFile();
+      auto tmp_file = File::getTemporaryFile() + ".mzML";
       PlainMSDataWritingConsumer consumer(tmp_file);
       consumer.getOptions().addMSLevel(ms_level); // only load msLevel 2
       bool skip_full_count = true;
