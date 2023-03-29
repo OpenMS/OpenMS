@@ -35,6 +35,7 @@
 #pragma once
 
 #include <OpenMS/CONCEPT/ProgressLogger.h>
+#include <OpenMS/KERNEL/ConsensusMap.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/METADATA/ID/IdentificationData.h>
 
@@ -68,6 +69,13 @@ namespace OpenMS
      * @param features The feature map
      */
     void store(const String& filename, const FeatureMap& features);
+
+    /** @brief Write out a consensus map to SQL-based OMS file
+     *
+     * @param filename The output file
+     * @param consensus The consensus map
+     */
+    void store(const String& filename, const ConsensusMap& consensus);
 
     /** @brief Read in an OMS file and construct an IdentificationData object
      *

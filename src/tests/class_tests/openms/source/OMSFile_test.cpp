@@ -39,6 +39,7 @@
 ///////////////////////////
 
 #include <OpenMS/METADATA/ID/IdentificationDataConverter.h>
+#include <OpenMS/FORMAT/ConsensusXMLFile.h>
 #include <OpenMS/FORMAT/FeatureXMLFile.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/FORMAT/OMSFile.h>
@@ -186,6 +187,24 @@ START_SECTION(void load(const String& filename, FeatureMap& features))
   fsc.setWhitelist(sl);
 
   TEST_EQUAL(fsc.compareFiles(fxml_tmp, OPENMS_GET_TEST_DATA_PATH("OMSFile_test_2.featureXML")), true);
+}
+END_SECTION
+
+START_SECTION(void store(const String& filename, const ConsensusMap& consensus))
+{
+  ConsensusMap consensus;
+  ConsensusXMLFile().load(OPENMS_GET_TEST_DATA_PATH("ConsensusXMLFile_1.consensusXML"), consensus);
+  // protein and peptide IDs use same score type (name) with different orientations;
+  // IdentificationData doesn't allow this, so change it here:
+  for (auto& run : consensus.getProteinIdentifications())
+  {
+    run.setScoreType(run.getScoreType() + "_protein");
+  }
+  IdentificationDataConverter::importConsensusIDs(consensus);
+
+  NEW_TMP_FILE(oms_tmp);
+  OMSFile().store(oms_tmp, consensus);
+  TEST_EQUAL(File::empty(oms_tmp), false);
 }
 END_SECTION
 

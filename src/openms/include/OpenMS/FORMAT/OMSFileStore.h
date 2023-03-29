@@ -35,6 +35,7 @@
 #pragma once
 
 #include <OpenMS/CONCEPT/ProgressLogger.h>
+#include <OpenMS/KERNEL/ConsensusMap.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/METADATA/ID/IdentificationData.h>
 
@@ -106,9 +107,47 @@ namespace OpenMS
       /// Write data from a FeatureMap object to database
       void store(const FeatureMap& features);
 
+      /// Write data from a ConsensusMap object to database
+      void store(const ConsensusMap& consensus);
+
     private:
+      void createTable_(const String& name, const String& definition, bool may_exist = false);
+
+      void createTableDataValue_DataType_();
+
+      void createTableCVTerm_();
+
+      void createTableMetaInfo_(const String& parent_table,
+                                const String& key_column = "id");
+
       void storeVersionAndDate_();
 
+      Key storeCVTerm_(const CVTerm& cv_term);
+
+      void storeMetaInfo_(const MetaInfoInterface& info, const String& parent_table,
+                          Key parent_id);
+
+      template<class MetaInfoInterfaceContainer, class DBKeyTable>
+      void storeMetaInfos_(const MetaInfoInterfaceContainer& container,
+                           const String& parent_table, const DBKeyTable& db_keys)
+      {
+        bool table_created = false;
+        for (const auto& element : container)
+        {
+          if (!element.isMetaEmpty())
+          {
+            if (!table_created)
+            {
+              createTableMetaInfo_(parent_table);
+              table_created = true;
+            }
+            storeMetaInfo_(element, parent_table, db_keys.at(&element));
+          }
+        }
+      }
+
+      /// @name Helper functions for storing identification data
+      ///@{
       void storeScoreTypes_(const IdentificationData& id_data);
 
       void storeInputFiles_(const IdentificationData& id_data);
@@ -133,24 +172,7 @@ namespace OpenMS
 
       void storeObservationMatches_(const IdentificationData& id_data);
 
-      void storeFeatures_(const FeatureMap& features);
-
-      void createTable_(const String& name, const String& definition,
-                        bool may_exist = false);
-
       void createTableMoleculeType_();
-
-      void createTableDataValue_DataType_();
-
-      void createTableCVTerm_();
-
-      Key storeCVTerm_(const CVTerm& cv_term);
-
-      void createTableMetaInfo_(const String& parent_table,
-                                const String& key_column = "id");
-
-      void storeMetaInfo_(const MetaInfoInterface& info, const String& parent_table,
-                          Key parent_id);
 
       void createTableAppliedProcessingStep_(const String& parent_table);
 
@@ -166,25 +188,6 @@ namespace OpenMS
 
       void storeParentMatches_(
         const IdentificationData::ParentMatches& matches, Key molecule_id);
-
-      template<class MetaInfoInterfaceContainer, class DBKeyTable>
-      void storeMetaInfos_(const MetaInfoInterfaceContainer& container,
-                           const String& parent_table, const DBKeyTable& db_keys)
-      {
-        bool table_created = false;
-        for (const auto& element : container)
-        {
-          if (!element.isMetaEmpty())
-          {
-            if (!table_created)
-            {
-              createTableMetaInfo_(parent_table);
-              table_created = true;
-            }
-            storeMetaInfo_(element, parent_table, db_keys.at(&element));
-          }
-        }
-      }
 
       template<class ScoredProcessingResultContainer, class DBKeyTable>
       void storeScoredProcessingResults_(const ScoredProcessingResultContainer& container,
@@ -209,8 +212,15 @@ namespace OpenMS
         }
         storeMetaInfos_(container, parent_table, db_keys);
       }
+      ///@}
 
-      void storeFeature_(const FeatureMap& features);
+      /// @name Helper functions for storing (consensus) feature data
+      ///@{
+      void createTableBaseFeature_(bool with_metainfo, bool with_idmatches);
+
+      void storeBaseFeature_(const BaseFeature& feature, int feature_id, int parent_id);
+
+      void storeFeatures_(const FeatureMap& features);
 
       void storeFeatureAndSubordinates_(
         const Feature& feature, int& feature_id, int parent_id);
@@ -228,9 +238,15 @@ namespace OpenMS
         return false;
       }
 
-      void storeMapMetaData_(const FeatureMap& features);
+      template <class MapType>
+      void storeMapMetaData_(const MapType& features, const String& experiment_type = "");
 
-      void storeDataProcessing_(const FeatureMap& features);
+      void storeDataProcessing_(const std::vector<DataProcessing>& data_processing);
+
+      void storeConsensusFeatures_(const ConsensusMap& consensus);
+
+      void storeConsensusColumnHeaders_(const ConsensusMap& consensus);
+      ///@}
 
       /// The database connection (read/write)
       std::unique_ptr<SQLite::Database> db_;
@@ -255,7 +271,7 @@ namespace OpenMS
       std::map<const IdentificationData::IdentifiedOligo*, Key> identified_oligo_keys_;
       std::map<const AdductInfo*, Key> adduct_keys_;
       std::map<const IdentificationData::ObservationMatch*, Key> observation_match_keys_;
-      // for feature maps:
+      // for feature/consensus maps:
       std::map<const DataProcessing*, Key> feat_processing_keys_;
     };
   }

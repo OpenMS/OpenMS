@@ -56,6 +56,12 @@ namespace OpenMS
     helper.store(features);
   }
 
+  void OMSFile::store(const String& filename, const ConsensusMap& consensus)
+  {
+    OpenMS::Internal::OMSFileStore helper(filename, log_type_);
+    helper.store(consensus);
+  }
+
   void OMSFile::load(const String& filename, IdentificationData& id_data)
   {
     OpenMS::Internal::OMSFileLoad helper(filename, log_type_);
