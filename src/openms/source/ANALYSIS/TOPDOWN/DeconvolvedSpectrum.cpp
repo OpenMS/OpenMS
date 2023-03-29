@@ -113,10 +113,6 @@ namespace OpenMS
 
   const PeakGroup& DeconvolvedSpectrum::getPrecursorPeakGroup() const
   {
-    if (precursor_peak_group_.empty())
-    {
-      return *(new PeakGroup());
-    }
     return precursor_peak_group_;
   }
 
