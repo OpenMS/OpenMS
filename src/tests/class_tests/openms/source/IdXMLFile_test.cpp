@@ -276,8 +276,8 @@ START_SECTION(([EXTRA] No protein identification bug))
     pep.setIdentifier(peptide_ids[0].getIdentifier());
   }
 
-  TEST_EQUAL(protein_ids == protein_ids2, true)
-  TEST_EQUAL(peptide_ids == peptide_ids2, true)
+  TEST_TRUE(protein_ids == protein_ids2)
+  TEST_TRUE(peptide_ids == peptide_ids2)
 
 END_SECTION
 

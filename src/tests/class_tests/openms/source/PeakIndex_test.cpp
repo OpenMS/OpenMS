@@ -105,15 +105,15 @@ END_SECTION
 START_SECTION((bool operator==(const PeakIndex &rhs) const))
 {
   PeakIndex i1, i2;
-	TEST_EQUAL(i1==i2, true)
+	TEST_TRUE(i1 == i2)
 	i1.peak = 1;
 	TEST_EQUAL(i1==i2, false)
 	i2.peak = 1;
-	TEST_EQUAL(i1==i2, true)
+	TEST_TRUE(i1 == i2)
 	i1.spectrum = 2;
 	TEST_EQUAL(i1==i2, false)
 	i2.spectrum = 2;
-	TEST_EQUAL(i1==i2, true)
+	TEST_TRUE(i1 == i2)
 }
 END_SECTION
 
@@ -122,11 +122,11 @@ START_SECTION((bool operator!=(const PeakIndex &rhs) const))
   PeakIndex i1, i2;
 	TEST_EQUAL(i1!=i2, false)
 	i1.peak = 1;
-	TEST_EQUAL(i1!=i2, true)
+	TEST_FALSE(i1 == i2)
 	i2.peak = 1;
 	TEST_EQUAL(i1!=i2, false)
 	i1.spectrum = 2;
-	TEST_EQUAL(i1!=i2, true)
+	TEST_FALSE(i1 == i2)
 	i2.spectrum = 2;
 	TEST_EQUAL(i1!=i2, false)
 }

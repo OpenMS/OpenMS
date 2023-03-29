@@ -180,7 +180,7 @@ START_SECTION((bool operator!=(const FeatureHandle &i) const))
   FeatureHandle it1(1,e);
   FeatureHandle it2(2,e);
 
-  TEST_EQUAL(it1 != it2, true)
+  TEST_FALSE(it1 == it2)
 END_SECTION
 
 START_SECTION((bool operator==(const FeatureHandle &i) const))
@@ -189,7 +189,7 @@ START_SECTION((bool operator==(const FeatureHandle &i) const))
   FeatureHandle it1(2,e);
   FeatureHandle it2(2,e);
 
-  TEST_EQUAL(it1 == it2, true)
+  TEST_TRUE(it1 == it2)
 END_SECTION
 
 START_SECTION((UInt64 getMapIndex() const))

@@ -24,7 +24,7 @@ jobs:
           # setting variables
           package_version_major="${{ github.event.inputs.major }}"
           package_version_minor="${{ github.event.inputs.minor }}"
-          pacakge_version_patch="${{ github.event.inputs.patch }}"
+          package_version_patch="${{ github.event.inputs.patch }}"
           package_version="${{ github.event.inputs.major }}.${{ github.event.inputs.minor }}.${{ github.event.inputs.patch }}"
           echo "Setting version $package_version"
 

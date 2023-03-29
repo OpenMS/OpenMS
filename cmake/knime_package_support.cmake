@@ -208,6 +208,18 @@ foreach(TOOL ${CTD_executables})
   endif()
 endforeach()
 
+# Note: We expose FileConverter twice.
+# Once as FileConverter in the OpenMS (core) plugin without raw file support (see first if-case in foreach above)
+# Once in the Thirdparty plugin as RawFileConverter with raw file support (see below).
+# We rename the filename to show a different node name in KNIME but leave the tool name inside the CTD unchanged, so it finds the tool binary.
+# TODO change description and accepting file types?
+add_custom_command(
+  TARGET  create_ctds POST_BUILD
+  COMMAND ${TOPP_BIN_PATH}/FileConverter -write_ctd ${CTD_TP_PATH}
+  COMMAND ${CMAKE_COMMAND} -E rename ${CTD_TP_PATH}/FileConverter.ctd ${CTD_TP_PATH}/RawFileConverter.ctd
+  COMMAND ${CMAKE_COMMAND} -DSCRIPT_DIR=${SCRIPT_DIRECTORY} -DTOOLNAME=RawFileConverter -DCTD_FILE=${CTD_TP_PATH}/RawFileConverter.ctd -P ${SCRIPT_DIRECTORY}change_exec_name_in_ctd.cmake
+)
+
 # remove those parts of the CTDs we cannot or do not want to model in KNIME
 # e.g. paths to executables that we ship and whose directories are in path environment
 add_custom_target(
@@ -333,11 +345,14 @@ foreach (KNIME_TOOLS_DEPENDENCY OpenMS OpenSwathAlgo)
 endforeach()
 
 # assemble the libraries
-if (APPLE) ## On APPLE use our script because the executables' install_names need to be changed
+if (APPLE) ## On APPLE use our script because the executables' install_names need to be changed. Probably can be changed as soon as all
+  ## of our dynamically built dependencies build with rpath enabled on brew. Qt recently did the switch for example. This is because if the default install_name of
+  ## Qt is /usr/local/qt5/QtCore, then this will be hardcoded in our libOpenMS and tools, even if we use @rpath throughout all of our
+  ## cmake build system. See e.g., https://discourse.cmake.org/t/how-to-get-an-lc-rpath-and-rpath-prefix-on-a-dylib-on-macos/5540
   add_custom_command(
     TARGET prepare_knime_payload_libs POST_BUILD
-    COMMAND ${PROJECT_SOURCE_DIR}/cmake/MacOSX/fix_dependencies.rb -l ${PAYLOAD_LIB_PATH} -b ${PAYLOAD_BIN_PATH} -f -e "" -n
-    COMMAND ${PROJECT_SOURCE_DIR}/cmake/MacOSX/fix_dependencies.rb -l ${PAYLOAD_LIB_PATH} -b ${PAYLOAD_TP_BIN_PATH} -f -e "" -n
+    COMMAND ${PROJECT_SOURCE_DIR}/cmake/MacOSX/fix_dependencies.rb -l ${PAYLOAD_LIB_PATH} -b ${PAYLOAD_BIN_PATH} -f -e "@rpath" -n
+    COMMAND ${PROJECT_SOURCE_DIR}/cmake/MacOSX/fix_dependencies.rb -l ${PAYLOAD_LIB_PATH} -b ${TP_PAYLOAD_BIN_PATH} -f -e "@rpath" -n
   ) # -p ${PAYLOAD_LIB_PATH}/plugins not applicable for now
   add_custom_command(
           TARGET prepare_knime_payload_libs POST_BUILD
@@ -386,6 +401,7 @@ endif()
 add_custom_target(
   prepare_knime_payload_ini
   COMMAND ${CMAKE_COMMAND} -D SCRIPT_DIR=${SCRIPT_DIRECTORY} -D ARCH=${ARCH} -D PLATFORM=${PLATFORM} -D TARGET_DIR=${PAYLOAD_PATH} -D TEMPLATE_FOLDER=${SCRIPT_DIRECTORY} -P ${SCRIPT_DIRECTORY}copy_binaries_ini.cmake
+  COMMAND ${CMAKE_COMMAND} -D SCRIPT_DIR=${SCRIPT_DIRECTORY} -D ARCH=${ARCH} -D PLATFORM=${PLATFORM} -D TARGET_DIR=${TP_PAYLOAD_PATH} -D TEMPLATE_FOLDER=${SCRIPT_DIRECTORY} -P ${SCRIPT_DIRECTORY}copy_binaries_ini.cmake
   DEPENDS prepare_knime_payload_binaries
 )
 

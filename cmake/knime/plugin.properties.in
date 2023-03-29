@@ -14,6 +14,6 @@ pluginVersion=@VERSION@
 # Then the tools names as noted in the Tool description (CTD).
 nodeRepositoryRoot=community
 
-executor=com.genericworkflownodes.knime.execution.impl.LocalToolExecutor
+executor=com.genericworkflownodes.knime.execution.impl.OpenMSToolExecutor
 commandGenerator=com.genericworkflownodes.knime.execution.impl.OpenMSCommandGenerator
 extraDependencies=de.openms.lib:@VERSION@
