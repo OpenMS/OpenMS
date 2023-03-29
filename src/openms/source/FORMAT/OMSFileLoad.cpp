@@ -808,10 +808,10 @@ namespace OpenMS::Internal
     // @TODO: load input match groups
   }
 
-
-  void OMSFileLoad::loadMapMetaData_(FeatureMap& features)
+  template <class MapType>
+  String OMSFileLoad::loadMapMetaDataTemplate_(MapType& features)
   {
-    if (!db_->tableExists("FEAT_MapMetaData")) return;
+    if (!db_->tableExists("FEAT_MapMetaData")) return "";
 
     SQLite::Statement query(*db_, "SELECT * FROM FEAT_MapMetaData");
     query.executeStep(); // there should be only one row
@@ -826,10 +826,27 @@ namespace OpenMS::Internal
     {
       handleQueryMetaInfo_(query_meta, features, id);
     }
+    return query.getColumn("experiment_type").getString(); // for consensus map only
+  }
+
+  // template specializations:
+  template String OMSFileLoad::loadMapMetaDataTemplate_<FeatureMap>(FeatureMap&);
+  template String OMSFileLoad::loadMapMetaDataTemplate_<ConsensusMap>(ConsensusMap&);
+
+
+  void OMSFileLoad::loadMapMetaData_(FeatureMap& features)
+  {
+    loadMapMetaDataTemplate_(features);
+  }
+
+  void OMSFileLoad::loadMapMetaData_(ConsensusMap& consensus)
+  {
+    String experiment_type = loadMapMetaDataTemplate_(consensus);
+    consensus.setExperimentType(experiment_type);
   }
 
 
-  void OMSFileLoad::loadDataProcessing_(FeatureMap& features)
+  void OMSFileLoad::loadDataProcessing_(vector<DataProcessing>& data_processing)
   {
     if (!db_->tableExists("FEAT_DataProcessing")) return;
 
@@ -870,7 +887,7 @@ namespace OpenMS::Internal
         Key id = query.getColumn("id").getInt64();
         handleQueryMetaInfo_(subquery_info, proc, id);
       }
-      features.getDataProcessing().push_back(proc);
+      data_processing.push_back(proc);
     }
   }
 
@@ -886,7 +903,7 @@ namespace OpenMS::Internal
     feature.setIntensity(query_feat.getColumn("intensity").getDouble());
     feature.setCharge(query_feat.getColumn("charge").getInt());
     feature.setWidth(query_feat.getColumn("width").getDouble());
-    feature.setOverallQuality(query_feat.getColumn("overall_quality").getDouble());
+    feature.setOverallQuality(query_feat.getColumn("quality").getDouble());
     feature.setQuality(0, query_feat.getColumn("rt_quality").getDouble());
     feature.setQuality(1, query_feat.getColumn("mz_quality").getDouble());
     feature.setUniqueId(query_feat.getColumn("unique_id").getInt64());
@@ -931,7 +948,7 @@ namespace OpenMS::Internal
       query_match->reset(); // get ready for new executeStep()
     }
     // subordinates:
-    SQLite::Statement query_sub(*db_, "SELECT * FROM FEAT_Feature WHERE subordinate_of = " + String(id) + " ORDER BY id ASC");
+    SQLite::Statement query_sub(*db_, "SELECT * FROM FEAT_BaseFeature JOIN FEAT_Feature ON id = feature_id WHERE subordinate_of = " + String(id) + " ORDER BY id ASC");
     while (query_sub.executeStep())
     {
       Feature sub = loadFeatureAndSubordinates_(query_sub, query_meta,
@@ -944,13 +961,13 @@ namespace OpenMS::Internal
 
   void OMSFileLoad::loadFeatures_(FeatureMap& features)
   {
-    if (!db_->tableExists("FEAT_Feature")) return;
+    if (!db_->tableExists("FEAT_BaseFeature")) return;
 
     // start with top-level features only:
-    SQLite::Statement query_feat(*db_, "SELECT * FROM FEAT_Feature WHERE subordinate_of IS NULL ORDER BY id ASC");
+    SQLite::Statement query_feat(*db_, "SELECT * FROM FEAT_BaseFeature JOIN FEAT_Feature ON id = feature_id WHERE subordinate_of IS NULL ORDER BY id ASC");
     // prepare sub-queries (optional - corresponding tables may not be present):
     std::optional<SQLite::Statement> query_meta = SQLite::Statement(*db_, "");
-    if (!prepareQueryMetaInfo_(*query_meta, "FEAT_Feature"))
+    if (!prepareQueryMetaInfo_(*query_meta, "FEAT_BaseFeature"))
     {
       query_meta = std::nullopt;
     }
@@ -958,7 +975,7 @@ namespace OpenMS::Internal
     if (db_->tableExists("FEAT_ConvexHull"))
     {
       query_hull = SQLite::Statement(*db_, "SELECT * FROM FEAT_ConvexHull WHERE feature_id = :id " \
-                         "ORDER BY hull_index DESC, point_index ASC");
+                                     "ORDER BY hull_index DESC, point_index ASC");
     }
     std::optional<SQLite::Statement> query_match;
     if (db_->tableExists("FEAT_ObservationMatch"))
@@ -981,18 +998,27 @@ namespace OpenMS::Internal
     startProgress(0, 3, "Reading feature data from file");
     loadMapMetaData_(features);
     nextProgress();
-    loadDataProcessing_(features);
+    loadDataProcessing_(features.getDataProcessing());
     nextProgress();
     loadFeatures_(features);
     endProgress();
   }
 
-
-  void OMSFileLoad::createView_(const String& name, const String& select)
+/*
+  void OMSFileLoad::load(ConsensusMap& consensus)
   {
-    SQLite::Statement query(*db_, "CREATE TEMP VIEW " + name + " AS " + select);
+    load(consensus.getIdentificationData()); // load IDs, if any
+    startProgress(0, 4, "Reading feature data from file");
+    loadMapMetaData_(consensus);
+    nextProgress();
+    loadConsensusColumnHeaders_(consensus);
+    nextProgress();
+    loadDataProcessing_(consensus.getDataProcessing());
+    nextProgress();
+    loadConsensusFeatures_(consensus);
+    endProgress();
   }
-
+*/
 
   QJsonArray OMSFileLoad::exportTableToJSON_(const QString& table, const QString& order_by)
   {
@@ -1013,14 +1039,17 @@ namespace OpenMS::Internal
       {
         // @TODO: this will repeat field names for every row -
         // avoid this with separate "header" and "rows" (array)?
-        switch (query.getColumn(i).getType()) // sqlite stores each cell based on the actual value, not the declared column type
-        {                                     //, thus, we could use query.getColumnDeclaredType(i), but it would incur conversion
-          break; case SQLITE_INTEGER: record.insert(query.getColumnName(i), qint64(query.getColumn(i).getInt64()));
-          break; case SQLITE_FLOAT: record.insert(query.getColumnName(i), query.getColumn(i).getDouble());
-          break; case SQLITE_BLOB: record.insert(query.getColumnName(i), query.getColumn(i).getText());
-          break; case SQLITE_NULL: record.insert(query.getColumnName(i), "");
-          break; case SQLITE3_TEXT: record.insert(query.getColumnName(i), query.getColumn(i).getText());
-          break; default:
+
+        // sqlite stores each cell based on the actual value, not the declared column type;
+        // thus, we could use query.getColumnDeclaredType(i), but it would incur conversion
+        switch (query.getColumn(i).getType())
+        {
+          case SQLITE_INTEGER: record.insert(query.getColumnName(i), qint64(query.getColumn(i).getInt64())); break;
+          case SQLITE_FLOAT: record.insert(query.getColumnName(i), query.getColumn(i).getDouble()); break;
+          case SQLITE_BLOB: record.insert(query.getColumnName(i), query.getColumn(i).getText()); break;
+          case SQLITE_NULL: record.insert(query.getColumnName(i), ""); break;
+          case SQLITE3_TEXT: record.insert(query.getColumnName(i), query.getColumn(i).getText()); break;
+          default:
             throw Exception::NotImplemented(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
         }
       }
