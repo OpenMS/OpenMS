@@ -153,7 +153,7 @@ START_SECTION(void load(const String& filename, FeatureMap& features))
   OMSFile().load(oms_tmp, features);
 
   TEST_EQUAL(features.size(), 2);
-  TEST_EQUAL(features[0].getSubordinates().size(), 2);
+  TEST_EQUAL(features.at(0).getSubordinates().size(), 2);
 
   IdentificationDataConverter::exportFeatureIDs(features);
 

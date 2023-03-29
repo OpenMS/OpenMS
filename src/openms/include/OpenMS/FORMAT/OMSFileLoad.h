@@ -35,6 +35,7 @@
 #pragma once
 
 #include <OpenMS/CONCEPT/ProgressLogger.h>
+#include <OpenMS/KERNEL/ConsensusMap.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/METADATA/ID/IdentificationData.h>
 #include <OpenMS/FORMAT/OMSFileStore.h>
@@ -115,9 +116,13 @@ namespace OpenMS
 
       void loadObservationMatches_(IdentificationData& id_data);
 
+      template <class MapType> String loadMapMetaDataTemplate_(MapType& features);
+
       void loadMapMetaData_(FeatureMap& features);
 
-      void loadDataProcessing_(FeatureMap& features);
+      void loadMapMetaData_(ConsensusMap& consensus);
+
+      void loadDataProcessing_(std::vector<DataProcessing>& data_processing);
 
       void loadFeatures_(FeatureMap& features);
 
@@ -148,8 +153,6 @@ namespace OpenMS
       void handleQueryPeakAnnotation_(
         SQLite::Statement& query, IdentificationData::ObservationMatch& match,
         Key parent_id);
-
-      void createView_(const String& name, const String& select);
 
       QJsonArray exportTableToJSON_(const QString& table, const QString& order_by);
 
