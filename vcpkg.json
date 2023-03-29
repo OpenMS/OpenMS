@@ -1,5 +1,5 @@
 {
-  "name": "OpenMS",
+  "name": "openms",
   "version-string": "3.0.0",
   "dependencies": [  
     "boost",
@@ -9,7 +9,7 @@
     "qt5-svg",
     "zlib",
     "coin-or-cgl",
-    "coin-or-cpl",
+    "coin-or-clp",
     "coin-or-buildtools",
     "eigen3",
     "bzip2"
