@@ -47,7 +47,7 @@ namespace OpenMS
   // A structure for storing a pointer to a ribo in the database, as well as the possible alternatives if it is ambiguous (eg a methyl group that for which we can't determine the localization)
   struct ParsedEntry_
     {
-      Ribonucleotide* ribo;
+      unique_ptr<Ribonucleotide> ribo;
       String alternative_1;
       String alternative_2;
       bool isAmbiguous () { return !alternative_1.empty(); }
@@ -77,14 +77,6 @@ namespace OpenMS
       db_ = new RibonucleotideDB;
     }
     return db_;
-  }
-
-  RibonucleotideDB::~RibonucleotideDB()
-  {
-    for (auto& r : ribonucleotides_)
-    {
-      delete (r);
-    }
   }
 
   // All valid JSON ribonucleotides must at minimum have elements defining name, short_name, reference_moiety, and formula
@@ -156,7 +148,7 @@ namespace OpenMS
   ParsedEntry_ parseEntry_(const nlohmann::json::value_type& entry)
   {
     ParsedEntry_ parsed;
-    Ribonucleotide* ribo = new Ribonucleotide();
+    unique_ptr<Ribonucleotide> ribo (new Ribonucleotide());
     ribo->setName(entry.at("name"));
     String code = entry.at("short_name");
     ribo->setCode(code);
@@ -187,7 +179,6 @@ namespace OpenMS
     }
     else
     {
-      free(ribo);
       String msg = "we don't support bases with multiple reference moieties or multicharacter moieties.";
       throw Exception::InvalidValue(__FILE__, __LINE__,
                                               OPENMS_PRETTY_FUNCTION, msg, entry["reference_moiety"]);
@@ -230,13 +221,12 @@ namespace OpenMS
       if (!entry.contains("alternatives"))
       {
         String msg = "Ambiguous mod without alternative found in " + code;
-        free(ribo);
         throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, code, msg);
       }
       parsed.alternative_1 = string(entry.at("alternatives").at(0)), parsed.alternative_2 = string(entry.at("alternatives").at(1)); // we always have exactly two ambiguities
     }
 
-    parsed.ribo = ribo;
+    parsed.ribo = std::move(ribo);
     return parsed;
   }
 
@@ -278,7 +268,7 @@ namespace OpenMS
 
         ParsedEntry_ entry = parseEntry_(element);
 
-        ConstRibonucleotidePtr ribo = entry.ribo;
+        unique_ptr<Ribonucleotide> ribo = std::move(entry.ribo);
         if (entry.isAmbiguous()) // Handle the ambiguity map
         {
           ambiguity_map_[ribo->getCode()] = make_pair(getRibonucleotide(entry.alternative_1), getRibonucleotide(entry.alternative_2));
@@ -287,8 +277,8 @@ namespace OpenMS
         if (ribo->getCode() != "")
         {
           code_map_[ribo->getCode()] = ribonucleotides_.size();
-          ribonucleotides_.push_back(ribo);
           max_code_length_ = max(max_code_length_, ribo->getCode().size());
+          ribonucleotides_.push_back(std::move(ribo));
         }
       }
       catch (Exception::BaseException& e)
@@ -337,10 +327,10 @@ namespace OpenMS
       row.replace(prime, '\'');
       try
       {
-        ConstRibonucleotidePtr ribo = parseRow_(row.toStdString(), line_count);
+        unique_ptr<Ribonucleotide> ribo = parseRow_(row.toStdString(), line_count);
         code_map_[ribo->getCode()] = ribonucleotides_.size();
-        ribonucleotides_.push_back(ribo);
         max_code_length_ = max(max_code_length_, ribo->getCode().size());
+        ribonucleotides_.push_back(std::move(ribo));
       }
       catch (Exception::BaseException& e)
       {
@@ -350,7 +340,7 @@ namespace OpenMS
   }
 
   //Parse a row in a TSV file
-  RibonucleotideDB::ConstRibonucleotidePtr RibonucleotideDB::parseRow_(const std::string& row, Size line_count)
+  const unique_ptr<Ribonucleotide> RibonucleotideDB::parseRow_(const std::string& row, Size line_count)
   {
     vector<String> parts;
     String(row).split('\t', parts);
@@ -359,7 +349,7 @@ namespace OpenMS
       String msg = "9 tab-separated fields expected, found " + String(parts.size()) + " in line " + String(line_count);
       throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, row, msg);
     }
-    Ribonucleotide* ribo = new Ribonucleotide();
+    unique_ptr<Ribonucleotide> ribo (new Ribonucleotide());
     ribo->setName(parts[0]);
     if (parts[1].hasSuffix("QtRNA")) // use just "Q" instead of "QtRNA"
     {
@@ -452,7 +442,7 @@ namespace OpenMS
     {
       throw Exception::ElementNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, code);
     }
-    return ribonucleotides_[pos->second];
+    return ribonucleotides_[pos->second].get();
   }
 
 
@@ -464,7 +454,7 @@ namespace OpenMS
       auto pos = code_map_.find(prefix);
       if (pos != code_map_.end())
       {
-        return ribonucleotides_[pos->second];
+        return ribonucleotides_[pos->second].get();
       }
       prefix = prefix.substr(0, prefix.size() - 1);
     }
