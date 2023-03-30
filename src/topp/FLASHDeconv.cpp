@@ -355,6 +355,7 @@ protected:
     mzml.load(in_file, map);
 
     uint current_max_ms_level = 0;
+    uint current_min_ms_level = 1000;
 
     auto spec_cntr = std::vector<size_t>(max_ms_level, 0);
     // spectrum number with at least one deconvolved mass per ms level per input file
@@ -395,7 +396,7 @@ protected:
 
       uint ms_level = it.getMSLevel();
       current_max_ms_level = current_max_ms_level < ms_level ? ms_level : current_max_ms_level;
-
+      current_min_ms_level = current_min_ms_level > ms_level ? ms_level : current_min_ms_level;
       if (min_rt > 0 && it.getRT() < min_rt)
       {
         continue;
@@ -407,7 +408,6 @@ protected:
     }
     // Max MS Level is adjusted according to the input dataset
     current_max_ms_level = current_max_ms_level > max_ms_level ? max_ms_level : current_max_ms_level;
-
     // Run FLASHDeconv here
 
     int num_last_deconvolved_spectra = getIntOption_("preceding_MS1_count");
@@ -417,7 +417,9 @@ protected:
     }
 
     auto last_deconvolved_spectra = std::unordered_map<UInt, std::vector<DeconvolvedSpectrum>>();
-    MSExperiment exp, exp_annotated;
+    MSExperiment exp(map), exp_annotated(map);
+    exp.clear(false);
+    exp_annotated.clear(false);
 
     auto fd = FLASHDeconvAlgorithm();
     FLASHDeconvAlgorithm fd_charge_dummy, fd_noise_dummy, fd_iso_dummy;
@@ -519,7 +521,9 @@ protected:
 
     for (auto it = map.begin(); it != map.end(); ++it)
     {
-      int scan_number = SpectrumLookup::extractScanNumber(it->getNativeID(), map.getSourceFiles()[0].getNativeIDTypeAccession());
+
+      int scan_number =  map.getSourceFiles().empty()? -1: SpectrumLookup::extractScanNumber(it->getNativeID(),
+                                                          map.getSourceFiles()[0].getNativeIDTypeAccession());
 
       if (scan_number < 0)
       {
@@ -549,6 +553,7 @@ protected:
       {
         precursor_specs = (last_deconvolved_spectra[ms_level - 1]);
       }
+
       fd.performSpectrumDeconvolution(*it, precursor_specs, scan_number, precursor_map_for_real_time_acquisition);
       auto& deconvolved_spectrum = fd.getDeconvolvedSpectrum();
 
@@ -556,7 +561,6 @@ protected:
       {
         continue;
       }
-
       if (it->getMSLevel() > 1 && !deconvolved_spectrum.getPrecursorPeakGroup().empty())
       {
         precursor_peak_groups[scan_number] = deconvolved_spectrum.getPrecursorPeakGroup();
@@ -581,7 +585,8 @@ protected:
 
       if (!out_anno_mzml_file.empty())
       {
-        auto anno_spec(*it);
+        auto anno_spec = MSSpectrum(*it);
+
         if (!deconvolved_spectrum.empty())
         {
           std::stringstream val {};
@@ -592,7 +597,9 @@ protected:
             for (size_t k = 0; k < pg.size(); k++)
             {
               auto& p = pg[k];
-              auto pindex = it->findNearest(p.mz);
+              auto pindex = anno_spec.findNearest(p.mz);
+              //if(abs(anno_spec[pindex].getMZ() - p.mz)<.1)
+              //  std::cout<< anno_spec[pindex].getMZ()  << " vs. " << p.mz << std::endl;
               val << pindex;
               if (k < pg.size() - 1)
               {
@@ -603,7 +610,6 @@ protected:
           }
           anno_spec.setMetaValue("DeconvMassPeakIndices", val.str());
         }
-
         exp_annotated.addSpectrum(anno_spec);
       }
 
@@ -698,7 +704,8 @@ protected:
       }
       if (out_topfd_streams.size() + 1 > ms_level)
       {
-        FLASHDeconvSpectrumFile::writeTopFD(deconvolved_spectrum, out_topfd_streams[ms_level - 1], topFD_SNR_threshold); //, 1, (float)rand() / (float)RAND_MAX * 10 + 10);
+        FLASHDeconvSpectrumFile::writeTopFD(deconvolved_spectrum, out_topfd_streams[ms_level - 1], topFD_SNR_threshold
+                                            , false, false); //, 1, (float)rand() / (float)RAND_MAX * 10 + 10);
       }
     }
     if (report_dummy)

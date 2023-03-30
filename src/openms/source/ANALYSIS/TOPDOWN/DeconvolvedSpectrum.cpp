@@ -40,11 +40,12 @@ namespace OpenMS
   {
   }
 
-  MSSpectrum DeconvolvedSpectrum::toSpectrum(const int to_charge, double tol, bool retain_undeconvolved)
+  MSSpectrum DeconvolvedSpectrum::toSpectrum(const int to_charge,  uint min_ms_level, double tol, bool retain_undeconvolved)
   {
+
     auto out_spec = MSSpectrum(spec_);
     out_spec.clear(false);
-    if ((spec_.getMSLevel() > 1 && precursor_peak_group_.empty()) || empty())
+    if ((spec_.getMSLevel() > min_ms_level && precursor_peak_group_.empty()) || empty())
     {
       return out_spec;
     }
@@ -52,8 +53,18 @@ namespace OpenMS
     std::unordered_set<double> deconvolved_mzs;
     std::stringstream val {};
 
-    val << "tol=" << tol << ";massoffset=" << std::to_string(charge_mass_offset) << ";chargemass=" << std::to_string(FLASHDeconvHelperStructs::getChargeMass(peak_groups_[0].isPositive()))
-        << ";peaks=";
+    val << "tol=" << tol << ";massoffset=" << std::to_string(charge_mass_offset) << ";chargemass="
+        << std::to_string(FLASHDeconvHelperStructs::getChargeMass(peak_groups_[0].isPositive()));
+    if(!precursor_peak_group_.empty())
+    {
+      val << ";precursorscan=" << precursor_scan_number_ << ";precursormass=" << precursor_peak_group_.getMonoMass();
+    }
+    else
+    {
+      val << ";precursorscan=0;precursormass=0";
+    }
+
+    val<<";peaks=";
     for (auto& pg : *this)
     {
       if (pg.empty())
@@ -80,6 +91,46 @@ namespace OpenMS
         }
       }
     }
+
+    val<<"cos=";
+    for (auto& pg : *this)
+    {
+      if (pg.empty())
+      {
+        continue;
+      }
+      val << pg.getIsotopeCosine() << ",";
+    }
+
+    val<<";snr=";
+    for (auto& pg : *this)
+    {
+      if (pg.empty())
+      {
+        continue;
+      }
+      val << pg.getSNR() << ",";
+    }
+
+    val<<";qscore=";
+    for (auto& pg : *this)
+    {
+      if (pg.empty())
+      {
+        continue;
+      }
+      val << pg.getQScore() << ",";
+    }
+
+    val<<";qvalue=";
+    for (auto& pg : *this)
+    {
+      if (pg.empty())
+      {
+        continue;
+      }
+      val << pg.getQScore() << ",";
+    }
     out_spec.setMetaValue("DeconvMassInfo", val.str());
 
     if (retain_undeconvolved)
@@ -100,6 +151,7 @@ namespace OpenMS
       precursor.setCharge(to_charge);
       precursor.setMZ(precursor_peak_group_.getMonoMass() + charge_mass_offset);
       precursor.setIntensity(precursor_peak_group_.getIntensity());
+
       out_spec.getPrecursors().clear();
       out_spec.getPrecursors().emplace_back(precursor);
     }
@@ -113,10 +165,6 @@ namespace OpenMS
 
   const PeakGroup& DeconvolvedSpectrum::getPrecursorPeakGroup() const
   {
-    if (precursor_peak_group_.empty())
-    {
-      return *(new PeakGroup());
-    }
     return precursor_peak_group_;
   }
 

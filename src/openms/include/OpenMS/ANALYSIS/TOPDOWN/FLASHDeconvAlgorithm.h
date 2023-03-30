@@ -44,6 +44,10 @@
 
 #include <boost/dynamic_bitset.hpp>
 #include <iostream>
+#undef slots
+#include <torch/torch.h>
+#include <torch/script.h>
+#define slots Q_SLOTS
 
 namespace OpenMS
 {
@@ -195,8 +199,8 @@ namespace OpenMS
     const static int min_support_peak_count_ = 2;
     /// tolerance in ppm for each MS level
     DoubleList tolerance_;
-    /// bin size for first stage of mass selection - for fast convolution, binning is used
-    DoubleList bin_width_;
+    /// bin multiplication factor (log mz * bin_mul_factors_ = bin number) - for fast convolution, binning is used
+    DoubleList bin_mul_factors_;
     /// cosine threshold between observed and theoretical isotope patterns for each MS level
     DoubleList min_isotope_cosine_;
 
@@ -249,25 +253,26 @@ namespace OpenMS
     /// current ms Level
     uint ms_level_;
 
-
     /// default precursor isolation window size.
     double isolation_window_size_;
+
+    torch::jit::script::Module module_;
 
     /** @brief static function that converts bin to value
         @param bin bin number
         @param min_value minimum value (corresponding to bin number = 0)
-        @param bin_width bin width
+        @param bin_mul_factor bin multiplication factor (log mz * bin_mul_factors_ = bin number)
         @return value corresponding to bin
      */
-    static double getBinValue_(Size bin, double min_value, double bin_width);
+    static double getBinValue_(Size bin, double min_value, double bin_mul_factor);
 
     /** @brief static function that converts value to bin
         @param value value
         @param min_value minimum value (corresponding to bin number = 0)
-        @param bin_width bin width
+        @param bin_mul_factor bin multiplication factor (log mz * bin_mul_factors_ = bin number)
         @return bin corresponding to value
      */
-    static Size getBinNumber_(double value, double min_value, double bin_width);
+    static Size getBinNumber_(double value, double min_value, double bin_mul_factor);
 
     ///generate log mz peaks from the input spectrum
     void updateLogMzPeaks_();
@@ -280,10 +285,10 @@ namespace OpenMS
 
 
     ///get mass value for input mass bin
-    double getMassFromMassBin_(Size mass_bin, double bin_width) const;
+    double getMassFromMassBin_(Size mass_bin, double bin_mul_factor) const;
 
     ///get mz value for input mz bin
-    double getMzFromMzBin_(Size mass_bin, double bin_width) const;
+    double getMzFromMzBin_(Size mass_bin, double bin_mul_factor) const;
 
     ///Generate peak groups from the input spectrum
     void generatePeakGroupsFromSpectrum_();

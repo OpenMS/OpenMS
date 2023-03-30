@@ -197,17 +197,34 @@ namespace OpenMS
 
     intensity_threshold_ = param_.getValue("min_intensity");
 
-    bin_width_.clear();
+    bin_mul_factors_.clear();
     tolerance_ = param_.getValue("tol");
 
     for (double& j : tolerance_)
     {
       j *= 1e-6;
-      bin_width_.push_back(.5 / j);
+      bin_mul_factors_.push_back(.5 / j);
     }
 
     min_isotope_cosine_ = param_.getValue("min_isotope_cosine");
     allowed_iso_error_ = param_.getValue("allowed_isotope_error");
+
+    try {
+      // Deserialize the ScriptModule from a file using torch::jit::load().
+      auto file = "/Users/kyowonjeong/Library/CloudStorage/"
+                  "GoogleDrive-kyowonjeong@gmail.com/My Drive/JeongLab/Projects/"
+                  "DL based Deconvolution scoring/Training/CNN/5_11_CNN.pt";
+      if (!std::filesystem::exists(file))
+      {
+        std::cerr << file << " does not exists!" << std::endl;
+        return;
+      }
+      module_ = torch::jit::load(file, c10::kCPU);
+    }
+    catch (const c10::Error& e) {
+      std::cerr << e.what()<<  " error loading the model\n";
+      return;
+    }
   }
 
   const FLASHDeconvHelperStructs::PrecalculatedAveragine& FLASHDeconvAlgorithm::getAveragine()
@@ -287,29 +304,29 @@ namespace OpenMS
   }
 
   // from bin to raw value
-  double FLASHDeconvAlgorithm::getBinValue_(const Size bin, const double min_value, const double bin_width)
+  double FLASHDeconvAlgorithm::getBinValue_(const Size bin, const double min_value, const double bin_mul_factor)
   {
-    return min_value + (double)bin / bin_width;
+    return min_value + (double)bin / bin_mul_factor;
   }
 
   // from value to bin number
-  Size FLASHDeconvAlgorithm::getBinNumber_(const double value, const double min_value, const double bin_width)
+  Size FLASHDeconvAlgorithm::getBinNumber_(const double value, const double min_value, const double bin_mul_factor)
   {
     if (value < min_value)
     {
       return 0;
     }
-    return (Size)(((value - min_value) * bin_width) + .5);
+    return (Size)(((value - min_value) * bin_mul_factor) + .5);
   }
 
   // From log mz to mz bins.
   void FLASHDeconvAlgorithm::updateMzBins_(const Size bin_number, std::vector<float>& mz_bin_intensities)
   {
     mz_bins_ = boost::dynamic_bitset<>(bin_number);
-    double bin_width = bin_width_[ms_level_ - 1];
+    double bin_mul_factor = bin_mul_factors_[ms_level_ - 1];
     for (auto& p : log_mz_peaks_)
     {
-      Size bi = getBinNumber_(p.logMz, mz_bin_min_value_, bin_width);
+      Size bi = getBinNumber_(p.logMz, mz_bin_min_value_, bin_mul_factor);
       if (bi >= bin_number)
       {
         continue;
@@ -344,7 +361,7 @@ namespace OpenMS
     // not just charges but intensities are stored to see the intensity fold change
     auto prev_intensities = std::vector<float>(mass_bins_.size(), 1.0f);
 
-    double bin_width = bin_width_[ms_level_ - 1];
+    double bin_mul_factor = bin_mul_factors_[ms_level_ - 1];
     std::vector<float> sub_max_h_intensity(h_charge_size, .0f);
 
     for (int i = (int)mz_bin_index_reverse.size() - 1; i >= 0; i--)
@@ -353,7 +370,7 @@ namespace OpenMS
       float intensity = mz_intensities[mz_bin_index];
       double mz = -1.0, log_mz = 0;
 
-      log_mz = getBinValue_(mz_bin_index, mz_bin_min_value_, bin_width);
+      log_mz = getBinValue_(mz_bin_index, mz_bin_min_value_, bin_mul_factor);
       mz = exp(log_mz);
       // scan through charges
       for (int j = 0; j < charge_range; j++)
@@ -418,7 +435,7 @@ namespace OpenMS
           {
             bool iso_exist = false;
             double diff = d * iso_da_distance_ / abs_charge / mz;
-            Size next_iso_bin = getBinNumber_(log_mz + diff, mz_bin_min_value_, bin_width);
+            Size next_iso_bin = getBinNumber_(log_mz + diff, mz_bin_min_value_, bin_mul_factor);
             if (next_iso_bin > 0 && next_iso_bin < mz_bins_.size() && mz_bins_[next_iso_bin])
             {
               iso_exist = true;
@@ -438,7 +455,7 @@ namespace OpenMS
                 }
                 double hdiff = diff / hc;
                 {
-                  Size next_harmonic_iso_bin = getBinNumber_(log_mz + hdiff, mz_bin_min_value_, bin_width);
+                  Size next_harmonic_iso_bin = getBinNumber_(log_mz + hdiff, mz_bin_min_value_, bin_mul_factor);
                   float harmonic_intensity = mz_intensities[next_harmonic_iso_bin];
                   if (next_harmonic_iso_bin < mz_bins_.size() && mz_bins_[next_harmonic_iso_bin] && harmonic_intensity > h_threshold / 2.0 // no perfect filtration. Just obvious ones are filtered out
                   )
@@ -534,7 +551,7 @@ namespace OpenMS
   Matrix<int> FLASHDeconvAlgorithm::filterMassBins_(const std::vector<float>& mass_intensities)
   {
     int charge_range = current_max_charge_;
-    double bin_width = bin_width_[ms_level_ - 1];
+    double bin_mul_factor = bin_mul_factors_[ms_level_ - 1];
     Matrix<int> abs_charge_ranges(2, mass_bins_.size(), INT_MAX);
     for (Size i = 0; i < mass_bins_.size(); i++)
     {
@@ -601,7 +618,7 @@ namespace OpenMS
           {
             bool artifact = false;
 
-            double original_log_mass = getBinValue_(mass_bin_index, mass_bin_min_value_, bin_width);
+            double original_log_mass = getBinValue_(mass_bin_index, mass_bin_min_value_, bin_mul_factor);
             double mass = exp(original_log_mass);
             {
               double log_mass = log(mass);
@@ -619,7 +636,7 @@ namespace OpenMS
                 for (int f : {-1, 1})
                 {
                   double hmass = log_mass - log(h) * f;
-                  Size hmass_index = getBinNumber_(hmass, mass_bin_min_value_, bin_width);
+                  Size hmass_index = getBinNumber_(hmass, mass_bin_min_value_, bin_mul_factor);
                   if (hmass_index > 0 && hmass_index < mass_bins_.size() - 1)
                   {
                     if (mass_intensities[hmass_index] >= t)
@@ -646,7 +663,7 @@ namespace OpenMS
                       continue;
                     }
                     double hmass = log_mass - log(abs_charge) + log(abs_charge + f * coff);
-                    Size hmass_index = getBinNumber_(hmass, mass_bin_min_value_, bin_width);
+                    Size hmass_index = getBinNumber_(hmass, mass_bin_min_value_, bin_mul_factor);
                     if (hmass_index > 0 && hmass_index < mass_bins_.size() - 1)
                     {
                       if (mass_intensities[hmass_index] >= t)
@@ -702,7 +719,7 @@ namespace OpenMS
   // With mass_bins_ from updateMassBins_ function, select peaks from the same mass in the original input spectrum
   void FLASHDeconvAlgorithm::getCandidatePeakGroups_(const Matrix<int>& per_mass_abs_charge_ranges)
   {
-    double bin_width = bin_width_[ms_level_ - 1];
+    double bin_mul_factor = bin_mul_factors_[ms_level_ - 1];
     double tol = tolerance_[ms_level_ - 1];
     int charge_range = current_max_charge_;
     Size mass_bin_size = mass_bins_.size();
@@ -716,7 +733,7 @@ namespace OpenMS
     // per peak, store the m/z bin number for fast processing
     for (int i = 0; i < log_mz_peak_size; i++)
     {
-      peak_bin_numbers[i] = getBinNumber_(log_mz_peaks_[i].logMz, mz_bin_min_value_, bin_width);
+      peak_bin_numbers[i] = getBinNumber_(log_mz_peaks_[i].logMz, mz_bin_min_value_, bin_mul_factor);
     }
     std::vector<double> total_harmonic_intensity(harmonic_charges_.size(), .0);
     std::vector<int> h_prev_iso(harmonic_charges_.size(), 0);
@@ -725,7 +742,7 @@ namespace OpenMS
     // main iteration. per_mass_abs_charge_ranges gives the range of charges for each mass bin
     while (mass_bin_index != mass_bins_.npos)
     {
-      double log_m = getBinValue_(mass_bin_index, mass_bin_min_value_, bin_width);
+      double log_m = getBinValue_(mass_bin_index, mass_bin_min_value_, bin_mul_factor);
       double mass = exp(log_m);
 
       PeakGroup pg(1, per_mass_abs_charge_ranges.getValue(1, mass_bin_index) + 1, // make an empty peakGroup (mass)
@@ -1035,19 +1052,19 @@ namespace OpenMS
     tmp_peak_cntr = tmp_peak_cntr < 0 ? 0 : tmp_peak_cntr;
     double mass_bin_max_value = std::min(log_mz_peaks_[log_mz_peaks_.size() - 1].logMz - filter_[tmp_peak_cntr], log(current_max_mass_ + (double)avg_.getRightCountFromApex(current_max_mass_) + 1.0));
 
-    double bin_width = bin_width_[ms_level_ - 1];
+    double bin_mul_factor = bin_mul_factors_[ms_level_ - 1];
 
     mass_bin_min_value_ = log(std::max(1.0, current_min_mass_ - avg_.getAverageMassDelta(current_min_mass_)));
     mz_bin_min_value_ = log_mz_peaks_[0].logMz;
 
     double mz_bin_max_value = log_mz_peaks_[log_mz_peaks_.size() - 1].logMz;
-    Size mass_bin_number = getBinNumber_(mass_bin_max_value, mass_bin_min_value_, bin_width) + 1;
+    Size mass_bin_number = getBinNumber_(mass_bin_max_value, mass_bin_min_value_, bin_mul_factor) + 1;
     bin_offsets_.clear();
     harmonic_bin_offset_matrix_.clear();
 
     for (int i = 0; i < current_charge_range; i++)
     {
-      bin_offsets_.push_back((int)round((mz_bin_min_value_ - filter_[i] - mass_bin_min_value_) * bin_width));
+      bin_offsets_.push_back((int)round((mz_bin_min_value_ - filter_[i] - mass_bin_min_value_) * bin_mul_factor));
     }
 
     harmonic_bin_offset_matrix_.resize(harmonic_charges_.size(), current_charge_range);
@@ -1055,11 +1072,11 @@ namespace OpenMS
     {
       for (int i = 0; i < current_charge_range; i++)
       {
-        harmonic_bin_offset_matrix_.setValue(k, i, (int)round((mz_bin_min_value_ - harmonic_filter_matrix_.getValue(k, i) - mass_bin_min_value_) * bin_width));
+        harmonic_bin_offset_matrix_.setValue(k, i, (int)round((mz_bin_min_value_ - harmonic_filter_matrix_.getValue(k, i) - mass_bin_min_value_) * bin_mul_factor));
       }
     }
 
-    Size mz_bin_number = getBinNumber_(mz_bin_max_value, mz_bin_min_value_, bin_width) + 1;
+    Size mz_bin_number = getBinNumber_(mz_bin_max_value, mz_bin_min_value_, bin_mul_factor) + 1;
     auto mz_bin_intensities = std::vector<float>(mz_bin_number, .0f);
     updateMzBins_(mz_bin_number, mz_bin_intensities);
     mass_bins_ = boost::dynamic_bitset<>(mass_bin_number);
@@ -1075,7 +1092,7 @@ namespace OpenMS
         {
           continue;
         }
-        Size j = getBinNumber_(log(m), mass_bin_min_value_, bin_width_[ms_level_ - 1]);
+        Size j = getBinNumber_(log(m), mass_bin_min_value_, bin_mul_factors_[ms_level_ - 1]);
 
         if (j > 0 && j < previously_deconved_mass_bins_for_decoy.size() - 1)
         {
@@ -1096,7 +1113,7 @@ namespace OpenMS
           double m = tm + off * iso_da_distance_;
           double mass_delta = avg_.getMostAbundantMassDelta(m);
 
-          Size j = getBinNumber_(log(m + mass_delta), mass_bin_min_value_, bin_width_[ms_level_ - 1]);
+          Size j = getBinNumber_(log(m + mass_delta), mass_bin_min_value_, bin_mul_factors_[ms_level_ - 1]);
           if (j < 1)
           {
             continue;
@@ -1259,6 +1276,82 @@ namespace OpenMS
 
     removeOverlappingPeakGroups_(deconvolved_spectrum_);
     removeChargeErrorPeakGroups_(deconvolved_spectrum_); //
+
+    if(false)
+    {
+      for(auto& peak_group: deconvolved_spectrum_)
+      {
+        uint cr = 5;
+        uint ir = 11;
+
+        peak_group.calculateDLMatrices(deconvolved_spectrum_.getOriginalSpectrum(), tol, cr, ir, avg_);
+        std::vector<torch::jit::IValue> inputs;
+
+        auto mat1 = peak_group.getDLMatrix(0);
+        std::vector<float> vec1;
+        for (int r = 0; r < mat1.rows(); r++)
+        {
+          for (int c = 0; c < mat1.cols(); c++)
+          {
+            vec1.push_back(mat1.getValue(r, c));
+          }
+        }
+
+        torch::Tensor t1 = torch::from_blob(vec1.data(), {1, 1, cr, ir});
+
+        auto mat2 = peak_group.getDLMatrix(1);
+        std::vector<float> vec2;
+        for (int r = 0; r < mat2.rows(); r++)
+        {
+          for (int c = 0; c < mat2.cols(); c++)
+          {
+            vec2.push_back(mat2.getValue(r, c));
+          }
+        }
+
+        torch::Tensor t2 = torch::from_blob(vec2.data(), {1, 1, cr, ir});
+
+        auto mat3 = peak_group.getDLMatrix(2);
+        std::vector<float> vec3;
+        for (int r = 0; r < mat3.rows(); r++)
+        {
+          for (int c = 0; c < mat3.cols(); c++)
+          {
+            vec3.push_back(mat3.getValue(r, c));
+          }
+        }
+
+        torch::Tensor t3 = torch::from_blob(vec3.data(), {1, 1, cr, ir});
+
+        inputs.emplace_back(t1);
+        inputs.emplace_back(t2);
+        inputs.emplace_back(t3);
+        //std::cout<<mat1<<"\n**\n"<<inputs[0]<<std::endl;
+        at::Tensor output = module_.forward(inputs).toTensor(); // output[1][2].item<double>()
+
+        auto d1 = output[0][0].item<double>();
+        auto d2 = output[0][1].item<double>();
+        auto d3 = output[0][2].item<double>();
+        auto d4 = output[0][3].item<double>();
+
+        //if (d1 > d2 && d1 > d3 && d1 > d4) //
+        if(//abs(peak_group.getMonoMass() - 12221.1) < .1 &&
+            peak_group.getQScore() > .7)
+        {
+          //std::cout<< peak_group.getDLMatrix(0) <<std::endl;
+          //std::cout<<"S\n";
+          //std::cout << t1 << std::endl;
+          //std::cout<<"N\n";
+         // std::cout<< peak_group.getDLMatrix(1) <<std::endl;
+          //std::cout << t2 << std::endl;
+          //std::cout<<"Tol\n";
+         // std::cout<< peak_group.getDLMatrix(2) <<std::endl;
+          //std::cout << t3 << std::endl;
+          std::cout<<"Classification\n";
+          std::cout << peak_group.getMonoMass() << "," << peak_group.getQScore() << " vs. T " << d1  << " C " << d2 << " N " << d3 << " I " << d4<<  '\n';
+        }
+      }
+    }
   }
 
   float FLASHDeconvAlgorithm::getIsotopeCosineAndDetermineIsotopeIndex(const double mono_mass, const std::vector<float>& per_isotope_intensities, int& offset, const PrecalculatedAveragine& avg,
@@ -1719,7 +1812,6 @@ namespace OpenMS
                   deconvolved_spectrum_.setPrecursorPeakGroup(pg);
                 }
               }
-
               return true;
             }
           }
@@ -1807,14 +1899,14 @@ namespace OpenMS
   {
     avg_ = avg;
   }
-  double FLASHDeconvAlgorithm::getMassFromMassBin_(Size mass_bin, double bin_width) const
+  double FLASHDeconvAlgorithm::getMassFromMassBin_(Size mass_bin, double bin_mul_factor) const
   {
-    return exp(getBinValue_(mass_bin, mass_bin_min_value_, bin_width));
+    return exp(getBinValue_(mass_bin, mass_bin_min_value_, bin_mul_factor));
   }
 
-  double FLASHDeconvAlgorithm::getMzFromMzBin_(Size mass_bin, double bin_width) const
+  double FLASHDeconvAlgorithm::getMzFromMzBin_(Size mass_bin, double bin_mul_factor) const
   {
-    return exp(getBinValue_(mass_bin, mz_bin_min_value_, bin_width));
+    return exp(getBinValue_(mass_bin, mz_bin_min_value_, bin_mul_factor));
   }
 
 }

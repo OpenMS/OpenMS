@@ -892,10 +892,10 @@ namespace OpenMS
 
   void PeakGroup::calculateDLMatrices(const MSSpectrum& spec, double tol, int charge_range, int iso_range, const PrecalculatedAveragine& avg)
   {
+    dl_matrices_.clear();
     int iso_index_diff = -(int)avg.getApexIndex(getMonoMass()) + (int)(iso_range / 2);
     auto max_charge_iter = std::max_element(per_charge_int_.begin(), per_charge_int_.end());
     int charge_index_diff = -(int)std::distance(per_charge_int_.begin(), max_charge_iter) + (int)(charge_range / 2);
-
     auto iso = avg.get(getMonoMass());
 
     float base = iso.getMostAbundant().getIntensity() / 100.0f;
@@ -927,9 +927,8 @@ namespace OpenMS
 
     noise.resize(charge_range, iso_range, .0);
     std::unordered_set<double> excluded_peak_mzs;
-    auto noisy_peaks = recruitAllPeaksInSpectrum(spec, tol * 1e-6, avg, getMonoMass(), excluded_peak_mzs);
+    std::vector<LogMzPeak> noisy_peaks = recruitAllPeaksInSpectrum(spec, tol, avg, getMonoMass(), excluded_peak_mzs);
     std::sort(noisy_peaks.begin(), noisy_peaks.end());
-
     for (auto& p : noisy_peaks)
     {
       int iso_index = p.isotopeIndex + iso_index_diff;
@@ -948,6 +947,7 @@ namespace OpenMS
       }
       noise.setValue(charge_index, iso_index, p.intensity);
     }
+    /*
     for (size_t c = 0; c < sig.cols(); c++)
     {
       int index = (int)(c - iso_index_diff);
@@ -961,7 +961,7 @@ namespace OpenMS
         sig.setValue(r, c, sig.getValue(r, c) / factor);
         noise.setValue(r, c, noise.getValue(r, c) / factor);
       }
-    }
+    }*/
 
     float apex_sum = *std::max_element(sig.asVector().begin(), sig.asVector().end());
     if (apex_sum > 0)
@@ -984,6 +984,16 @@ namespace OpenMS
         v /= apex_sum;
       }
     }
+
+//    if(abs(getMonoMass() - 12221.1) < .1)
+//    {
+//      std::cout<<"* " << iso_index_diff << " " << (int)avg.getApexIndex(getMonoMass()) << std::endl;
+//      std::cout<< sig <<std::endl;
+//    }
+    //if(abs(getMonoMass() - 12221.1) < .1)
+    //{
+    //  std::cout<< sig <<std::endl;
+    //}
     dl_matrices_.push_back(sig);
     dl_matrices_.push_back(noise);
     dl_matrices_.push_back(sigtol);

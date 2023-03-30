@@ -319,7 +319,7 @@ namespace OpenMS
     }
   }
 
-  inline const int z = 11, iso = 21;
+  inline const int z = 5, iso = 11;
   void FLASHDeconvSpectrumFile::writeDLMatrixHeader(std::fstream& fs)
   {
     for(int i=0;i<3;i++)
@@ -351,7 +351,7 @@ namespace OpenMS
   void FLASHDeconvSpectrumFile::writeDLMatrix(std::vector<DeconvolvedSpectrum>& dspecs, double tol, std::fstream& fs, const FLASHDeconvHelperStructs::PrecalculatedAveragine& avg)
   {
     String cns[] = {"T", "D1", "D2", "D3"};
-    int count = 10000;
+    int count = 20000;
     //class,ID,group,data
     std::vector<std::vector<PeakGroup>> grouped(4);
 
@@ -359,16 +359,29 @@ namespace OpenMS
     {
       for(auto& pg: dspec)
       {
-         if(pg.size() == 0)
+         if (pg.size() == 0)
          {
           continue;
          }
          int cl = pg.getDummyIndex();
-         if(cl<0 || cl>= (int)grouped.size())
+         if (cl < 0 || cl >= (int)grouped.size())
          {
           continue;
          }
          pg.calculateDLMatrices(dspec.getOriginalSpectrum(), tol, z, iso, avg);
+
+         auto dlmatrix = pg.getDLMatrix(0).asVector();
+         if(*std::max_element(dlmatrix.begin(), dlmatrix.end()) <= 0)
+         {
+          continue;
+         }
+         if (false)
+         {
+           std::cout<<pg.getDummyIndex() << " S \n" << pg.getDLMatrix(0);
+           std::cout<<pg.getDummyIndex() << " N \n"  << pg.getDLMatrix(1);
+           std::cout<<pg.getDummyIndex() << " T \n"  << pg.getDLMatrix(2);
+         }
+
          grouped[cl].push_back(pg);
       }
     }
@@ -407,11 +420,11 @@ namespace OpenMS
   }
 
   void FLASHDeconvSpectrumFile::writeTopFD(const DeconvolvedSpectrum& dspec, std::fstream& fs,
-                                           const double snr_threshold, const double decoy_harmonic_factor,
-                                           const double decoy_precursor_offset) 
+                                           const double snr_threshold,
+                                           const bool randomize_precursor_mass,
+                                           const bool randomize_fragment_mass)
   {
     UInt ms_level = dspec.getOriginalSpectrum().getMSLevel();
-
     if (ms_level > 1)
     {
       if (dspec.getPrecursorPeakGroup().empty() || dspec.getPrecursorPeakGroup().getChargeSNR(dspec.getPrecursor().getCharge()) < snr_threshold)
@@ -433,14 +446,16 @@ namespace OpenMS
        << "RETENTION_TIME=" << dspec.getOriginalSpectrum().getRT() << "\n"
        << "LEVEL=" << dspec.getOriginalSpectrum().getMSLevel() << "\n";
 
+
     if (ms_level > 1)
     {
+
       fs << "ACTIVATION=" << Precursor::NamesOfActivationMethodShort[dspec.getActivationMethod()] << "\n";
       fs << "MS_ONE_ID=" << dspec.getPrecursorScanNumber() << "\n"
          << "MS_ONE_SCAN=" << dspec.getPrecursorScanNumber() << "\n"
          << "PRECURSOR_MZ=" << std::to_string(dspec.getPrecursor().getMZ()) << "\n"
-         << "PRECURSOR_CHARGE=" << (int)(dspec.getPrecursor().getCharge() * decoy_harmonic_factor) << "\n"
-         << "PRECURSOR_MASS=" << std::to_string(dspec.getPrecursorPeakGroup().getMonoMass() * decoy_harmonic_factor + decoy_precursor_offset) << "\n"
+         << "PRECURSOR_CHARGE=" << (int)(dspec.getPrecursor().getCharge()) << "\n"
+         << "PRECURSOR_MASS=" << std::to_string(dspec.getPrecursorPeakGroup().getMonoMass() + (randomize_precursor_mass ? (((double) rand() / (RAND_MAX)) * 200.0 - 100.0) : .0)) << "\n"
          << "PRECURSOR_INTENSITY=" << dspec.getPrecursor().getIntensity() << "\n";
     }
 
@@ -470,7 +485,7 @@ namespace OpenMS
       }
 
       fs << std::fixed << std::setprecision(2);
-      fs << std::to_string(pg.getMonoMass()) << "\t" << pg.getIntensity() << "\t" << (pg.isPositive() ? std::get<1>(pg.getAbsChargeRange()) : -std::get<1>(pg.getAbsChargeRange())) << "\n";
+      fs << std::to_string(pg.getMonoMass() + (randomize_fragment_mass ? (((double) rand() / (RAND_MAX)) * 200.0 - 100.0) : .0)) << "\t" << pg.getIntensity() << "\t" << (pg.isPositive() ? std::get<1>(pg.getAbsChargeRange()) : -std::get<1>(pg.getAbsChargeRange())) << "\n";
       fs << std::setprecision(-1);
       if (++size >= topFD_max_peak_count_)
       {
