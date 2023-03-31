@@ -29,36 +29,43 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Timo Sachsenberg $
-// $Authors: Timo Sachsenberg $
-//  --------------------------------------------------------------------------
+// $Authors: Andreas Bertsch $
+// --------------------------------------------------------------------------
+//
 
-#pragma once
-#include <memory> 
-#include <string>
+#include <OpenMS/CONCEPT/ClassTest.h>
+
+#include <torch/torch.h>
+#include <torch/script.h>
 #include <vector>
-#include <OpenMS/ML/OpenMS_MLConfig.h>
- 
-namespace OpenMS
+#include <iostream>
+#include <OpenMS/ML/AlphapeptdeepWrapper.h>
+#include <OpenMS/ML/AlphaDatahandling.h>
+using namespace OpenMS;
+
+#include <test_config.h>
+
+START_TEST(Torch_Integration, "$Id$")
+
+//for Testing purposes
+
+std::string model_path =OPENMS_ML_GET_TEST_DATA_PATH("models/serialized_model_script.zip");
+std::string model_config_path =OPENMS_ML_GET_TEST_DATA_PATH("/models/model.model_const.txt");
+
+Alphapeptdeepwrapper TestModel(model_path, model_config_path);
+
+//seq should be the same size and pass modified sequence so, can extract everything in constructor of handler
+std::vector<std::string> seq_array;
+seq_array.push_back("AAAALAGGKKSK");
+seq_array.push_back("EMMSQVTLQHMN");
+
+std::vector<float> rt_pred = TestModel.predict(seq_array);
+
+std::cout<<"Predictions.. \n";
+for (float res: rt_pred) 
 {
-  struct config_param {
-      std::vector<std::string> mod_elements;
-      std::vector<std::string> instruments;
-      int max_instrument_num;
-      int aa_embedding_size;  
-  };
-  
-  class OPENMS_ML_DLLAPI Alphapeptdeepwrapper
-  {
-    public:
-     
-        ~Alphapeptdeepwrapper();
-        Alphapeptdeepwrapper(const std::string& model_path, const std::string& model_config_path); 
-        std::vector<float> predict(const std::vector<std::string>& seq);     
-        static config_param set_config_param(const std::string& model_config_path);
-     
-    private:
-       class Impl;
-  
-   std::unique_ptr<Impl> pimpl;
-  };
+    std::cout<<res<<" ";
 }
+
+
+END_TEST
