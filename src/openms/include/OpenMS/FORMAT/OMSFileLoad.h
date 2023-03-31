@@ -86,10 +86,15 @@ namespace OpenMS
       /// Load data from database and populate a FeatureMap object
       void load(FeatureMap& features);
 
+      /// Load data from database and populate a ConsensusMap object
+      void load(ConsensusMap& consensus);
+
       /// Export database contents in JSON format, write to stream
       void exportToJSON(std::ostream& output);
 
     private:
+      static DataValue makeDataValue_(const SQLite::Statement& query);
+
       // static CVTerm loadCVTerm_(int id);
 
       void loadScoreTypes_(IdentificationData& id_data);
@@ -128,10 +133,19 @@ namespace OpenMS
 
       Feature loadFeatureAndSubordinates_(SQLite::Statement& query_feat,
                                           std::optional<SQLite::Statement>& query_meta,
-                                          std::optional<SQLite::Statement>& query_hull,
-                                          std::optional<SQLite::Statement>& query_match);
+                                          std::optional<SQLite::Statement>& query_match,
+                                          std::optional<SQLite::Statement>& query_hull);
 
-      static DataValue makeDataValue_(const SQLite::Statement& query);
+      void loadConsensusColumnHeaders_(ConsensusMap& consensus);
+
+      void loadConsensusFeatures_(ConsensusMap& consensus);
+
+      void fillBaseFeature_(BaseFeature& feature, int id, SQLite::Statement& query_feat,
+                            std::optional<SQLite::Statement>& query_meta,
+                            std::optional<SQLite::Statement>& query_match);
+
+      void prepareQueriesBaseFeature_(std::optional<SQLite::Statement>& query_meta,
+                                      std::optional<SQLite::Statement>& query_match);
 
       bool prepareQueryMetaInfo_(SQLite::Statement& query, const String& parent_table);
 

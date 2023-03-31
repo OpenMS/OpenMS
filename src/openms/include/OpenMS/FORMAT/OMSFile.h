@@ -91,6 +91,13 @@ namespace OpenMS
      */
     void load(const String& filename, FeatureMap& features);
 
+    /** @brief Read in an OMS file and construct a consensus map
+     *
+     * @param filename The input file
+     * @param consensus The consensus map
+     */
+    void load(const String& filename, ConsensusMap& consensus);
+
     /** @brief Read in an OMS file and write out the contents in JSON format
      *
      * @param filename_in The input file (OMS)

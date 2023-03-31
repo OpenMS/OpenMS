@@ -74,6 +74,12 @@ namespace OpenMS
     helper.load(features);
   }
 
+  void OMSFile::load(const String& filename, ConsensusMap& consensus)
+  {
+    OpenMS::Internal::OMSFileLoad helper(filename, log_type_);
+    helper.load(consensus);
+  }
+
   void OMSFile::exportToJSON(const String& filename_in, const String& filename_out)
   {
     OpenMS::Internal::OMSFileLoad helper(filename_in, log_type_);
