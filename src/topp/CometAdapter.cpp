@@ -482,6 +482,7 @@ protected:
     os << "output_sqtfile = " << 0 << "\n";                      // 0=no, 1=yes  write sqt file
     os << "output_txtfile = " << 0 << "\n";                     // 0=no, 1=yes  write tab-delimited txt file
     os << "output_pepxmlfile = " << 1 << "\n";                   // 0=no, 1=yes  write pep.xml file
+    os << "export_additional_pepxml_scores = " << 1 << "\n";     // Hidden parameter of comet that adds additional comet scores to the pep.xml
 
     os << "output_percolatorfile = " << !getStringOption_("pin_out").empty() << "\n";              // 0=no, 1=yes  write Percolator tab-delimited input file
     os << "print_expect_score = " << 1 << "\n";                  // 0=no, 1=yes to replace Sp with expect in out & sqt
