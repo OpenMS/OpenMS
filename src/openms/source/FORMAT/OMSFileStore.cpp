@@ -1554,7 +1554,7 @@ namespace OpenMS::Internal
     {
       createTable_("FEAT_ConsensusRatio",
                    "feature_id INTEGER NOT NULL, "                      \
-                   "ratio_index INTEGER NOT NULL CHECK (hull_index >= 0), " \
+                   "ratio_index INTEGER NOT NULL CHECK (ratio_index >= 0), " \
                    "ratio_value REAL, "                                 \
                    "denominator_ref TEXT, "                             \
                    "numerator_ref TEXT, "                               \
