@@ -891,11 +891,11 @@ namespace OpenMS::Internal
   }
 
 
-  void OMSFileLoad::fillBaseFeature_(BaseFeature& feature, int id,
-                                     SQLite::Statement& query_feat,
-                                     std::optional<SQLite::Statement>& query_meta,
-                                     std::optional<SQLite::Statement>& query_match)
+  BaseFeature OMSFileLoad::makeBaseFeature_(int id, SQLite::Statement& query_feat,
+                                            std::optional<SQLite::Statement>& query_meta,
+                                            std::optional<SQLite::Statement>& query_match)
   {
+    BaseFeature feature;
     feature.setRT(query_feat.getColumn("rt").getDouble());
     feature.setMZ(query_feat.getColumn("mz").getDouble());
     feature.setIntensity(query_feat.getColumn("intensity").getDouble());
@@ -903,7 +903,7 @@ namespace OpenMS::Internal
     feature.setWidth(query_feat.getColumn("width").getDouble());
     feature.setQuality(query_feat.getColumn("quality").getDouble());
     feature.setUniqueId(query_feat.getColumn("unique_id").getInt64());
-    if (id == -1) return; // stop here for feature handles (in consensus maps)
+    if (id == -1) return feature; // stop here for feature handles (in consensus maps)
 
     auto primary_id = query_feat.getColumn("primary_molecule_id"); // optional
     if (!primary_id.isNull())
@@ -926,6 +926,7 @@ namespace OpenMS::Internal
       }
       query_match->reset(); // get ready for new executeStep()
     }
+    return feature;
   }
 
 
@@ -947,9 +948,8 @@ namespace OpenMS::Internal
     SQLite::Statement& query_feat, std::optional<SQLite::Statement>& query_meta,
     std::optional<SQLite::Statement>& query_match, std::optional<SQLite::Statement>& query_hull)
   {
-    Feature feature;
     int id = query_feat.getColumn("id").getInt();
-    fillBaseFeature_(feature, id, query_feat, query_meta, query_match);
+    Feature feature(makeBaseFeature_(id, query_feat, query_meta, query_match));
     // Feature-specific attributes:
     feature.setQuality(0, query_feat.getColumn("rt_quality").getDouble());
     feature.setQuality(1, query_feat.getColumn("mz_quality").getDouble());
@@ -1044,9 +1044,8 @@ namespace OpenMS::Internal
     {
       if (query_feat.getColumn("subordinate_of").isNull()) // ConsensusFeature
       {
-        ConsensusFeature feature;
         int id = query_feat.getColumn("id").getInt();
-        fillBaseFeature_(feature, id, query_feat, query_meta, query_match);
+        ConsensusFeature feature(makeBaseFeature_(id, query_feat, query_meta, query_match));
         consensus.push_back(feature);
         if (query_ratio)
         {
@@ -1070,8 +1069,7 @@ namespace OpenMS::Internal
       }
       else // FeatureHandle
       {
-        BaseFeature feature;
-        fillBaseFeature_(feature, -1, query_feat, query_meta, query_match);
+        BaseFeature feature(makeBaseFeature_(-1, query_feat, query_meta, query_match));
         UInt64 map_index = query_feat.getColumn("map_index").getInt64();
         FeatureHandle handle(map_index, feature);
         consensus.back().insert(handle);
