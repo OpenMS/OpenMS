@@ -57,7 +57,6 @@ START_TEST(OMSFile, "$Id$")
 /////////////////////////////////////////////////////////////
 
 String oms_tmp;
-String fxml_tmp;
 IdentificationData ids;
 
 START_SECTION(void store(const String& filename, const IdentificationData& id_data))
@@ -156,9 +155,6 @@ START_SECTION(void load(const String& filename, FeatureMap& features))
   TEST_EQUAL(features.at(0).getSubordinates().size(), 2);
 
   IdentificationDataConverter::exportFeatureIDs(features);
-
-  features.sortByPosition();
-
   // sort for reproducibility
   auto& proteins = features.getProteinIdentifications();
   for (auto& protein : proteins)
@@ -170,11 +166,11 @@ START_SECTION(void load(const String& filename, FeatureMap& features))
   {
     un_pep.sort();
   }
-
   //features.setProteinIdentifications(proteins);
   //features.setUnassignedPeptideIdentifications(un_peptides);
   features.sortByPosition();
 
+  String fxml_tmp;
   NEW_TMP_FILE(fxml_tmp);
   FeatureXMLFile().store(fxml_tmp, features);
 
@@ -205,6 +201,48 @@ START_SECTION(void store(const String& filename, const ConsensusMap& consensus))
   NEW_TMP_FILE(oms_tmp);
   OMSFile().store(oms_tmp, consensus);
   TEST_EQUAL(File::empty(oms_tmp), false);
+}
+END_SECTION
+
+START_SECTION(void load(const String& filename, ConsensusMap& consensus))
+{
+  ConsensusMap consensus;
+  OMSFile().load(oms_tmp, consensus);
+
+  TEST_EQUAL(consensus.size(), 6);
+  TEST_EQUAL(consensus.at(0).getFeatures().size(), 1);
+  TEST_EQUAL(consensus.at(1).getFeatures().size(), 2);
+
+  IdentificationDataConverter::exportConsensusIDs(consensus);
+  // sort for reproducibility
+  auto& proteins = consensus.getProteinIdentifications();
+  for (auto& protein : proteins)
+  {
+    protein.sort();
+  }
+  auto& un_peptides = consensus.getUnassignedPeptideIdentifications();
+  for (auto& un_pep : un_peptides)
+  {
+    un_pep.sort();
+  }
+  consensus.sortByPosition();
+
+  String cxml_tmp;
+  NEW_TMP_FILE(cxml_tmp);
+  ConsensusXMLFile().store(cxml_tmp, consensus);
+  TEST_EQUAL(File::empty(cxml_tmp), false);
+
+  /*
+  FuzzyStringComparator fsc;
+  fsc.setAcceptableRelative(1.001);
+  fsc.setAcceptableAbsolute(1);
+  StringList sl;
+  sl.push_back("xml-stylesheet");
+  sl.push_back("UnassignedPeptideIdentification");
+  fsc.setWhitelist(sl);
+
+  TEST_EQUAL(fsc.compareFiles(cxml_tmp, OPENMS_GET_TEST_DATA_PATH("OMSFile_test_2.consensusXML")), true);
+  */
 }
 END_SECTION
 
