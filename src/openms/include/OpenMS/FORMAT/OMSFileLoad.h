@@ -93,6 +93,8 @@ namespace OpenMS
       void exportToJSON(std::ostream& output);
 
     private:
+      static bool isEmpty_(const SQLite::Statement& query);
+
       static DataValue makeDataValue_(const SQLite::Statement& query);
 
       // static CVTerm loadCVTerm_(int id);
@@ -132,20 +134,20 @@ namespace OpenMS
       void loadFeatures_(FeatureMap& features);
 
       Feature loadFeatureAndSubordinates_(SQLite::Statement& query_feat,
-                                          std::optional<SQLite::Statement>& query_meta,
-                                          std::optional<SQLite::Statement>& query_match,
-                                          std::optional<SQLite::Statement>& query_hull);
+                                          SQLite::Statement& query_meta,
+                                          SQLite::Statement& query_match,
+                                          SQLite::Statement& query_hull);
 
       void loadConsensusColumnHeaders_(ConsensusMap& consensus);
 
       void loadConsensusFeatures_(ConsensusMap& consensus);
 
       BaseFeature makeBaseFeature_(int id, SQLite::Statement& query_feat,
-                                   std::optional<SQLite::Statement>& query_meta,
-                                   std::optional<SQLite::Statement>& query_match);
+                                   SQLite::Statement& query_meta,
+                                   SQLite::Statement& query_match);
 
-      void prepareQueriesBaseFeature_(std::optional<SQLite::Statement>& query_meta,
-                                      std::optional<SQLite::Statement>& query_match);
+      void prepareQueriesBaseFeature_(SQLite::Statement& query_meta,
+                                      SQLite::Statement& query_match);
 
       bool prepareQueryMetaInfo_(SQLite::Statement& query, const String& parent_table);
 
