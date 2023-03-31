@@ -140,9 +140,9 @@ namespace OpenMS
 
       void loadConsensusFeatures_(ConsensusMap& consensus);
 
-      void fillBaseFeature_(BaseFeature& feature, int id, SQLite::Statement& query_feat,
-                            std::optional<SQLite::Statement>& query_meta,
-                            std::optional<SQLite::Statement>& query_match);
+      BaseFeature makeBaseFeature_(int id, SQLite::Statement& query_feat,
+                                   std::optional<SQLite::Statement>& query_meta,
+                                   std::optional<SQLite::Statement>& query_match);
 
       void prepareQueriesBaseFeature_(std::optional<SQLite::Statement>& query_meta,
                                       std::optional<SQLite::Statement>& query_match);
