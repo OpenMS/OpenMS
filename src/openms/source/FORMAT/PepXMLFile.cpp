@@ -1259,6 +1259,31 @@ namespace OpenMS
           value = attributeAsDouble_(attributes, "value");
           peptide_hit_.setMetaValue("MS:1002254", value); // name: Comet:deltacnstar
         }
+        else if (name == "lnrSp")
+        {
+          value = attributeAsDouble_(attributes, "value");
+          peptide_hit_.setMetaValue("Comet:lnrSp", value); // name: Comet:lnrSp
+        }
+        else if (name == "deltLCn")
+        {
+          value = attributeAsDouble_(attributes, "value");
+          peptide_hit_.setMetaValue("Comet:deltLCn", value); // name: Comet:deltLCn
+        }
+        else if (name == "lnExpect")
+        {
+          value = attributeAsDouble_(attributes, "value");
+          peptide_hit_.setMetaValue("Comet:lnExpect", value); // name: Comet:lnExpect
+        }
+        else if (name == "IonFrac")
+        {
+          value = attributeAsDouble_(attributes, "value");
+          peptide_hit_.setMetaValue("Comet:IonFrac", value); // name: Comet:IonFrac
+        }
+        else if (name == "lnNumSP")
+        {
+          value = attributeAsDouble_(attributes, "value");
+          peptide_hit_.setMetaValue("Comet:lnNumSP", value); // name: Comet:lnNumSP
+        }        
       }
       else if (parse_unknown_scores_)
       {
