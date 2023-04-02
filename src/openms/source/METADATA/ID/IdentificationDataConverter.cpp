@@ -1047,7 +1047,7 @@ namespace OpenMS
             feat_ptr = &feat_ptr->getSubordinates()[indexes[i]];
           }
           feat_ptr->addIDMatch(ref);
-          // @TODO: remove meta value
+          id_data.removeMetaValue(ref, key);
         }
       }
     }
@@ -1256,7 +1256,7 @@ namespace OpenMS
           Size index = ref->getMetaValue(key);
           ConsensusFeature* feat_ptr = &consensus.at(index);
           feat_ptr->addIDMatch(ref);
-          // @TODO: remove meta value
+          id_data.removeMetaValue(ref, key);
         }
       }
     }
