@@ -831,6 +831,7 @@ namespace OpenMS::Internal
     {
       handleQueryMetaInfo_(query_meta, features, id);
     }
+    if (version_number_ < 5) return ""; // "experiment_type" column doesn't exist yet
     return query.getColumn("experiment_type").getString(); // for consensus map only
   }
 
@@ -907,7 +908,8 @@ namespace OpenMS::Internal
     feature.setIntensity(query_feat.getColumn("intensity").getDouble());
     feature.setCharge(query_feat.getColumn("charge").getInt());
     feature.setWidth(query_feat.getColumn("width").getDouble());
-    feature.setQuality(query_feat.getColumn("quality").getDouble());
+    string quality_column = (version_number_ < 5) ? "overall_quality" : "quality";
+    feature.setQuality(query_feat.getColumn(quality_column.c_str()).getDouble());
     feature.setUniqueId(query_feat.getColumn("unique_id").getInt64());
     if (id == -1) return feature; // stop here for feature handles (in consensus maps)
 
@@ -940,7 +942,8 @@ namespace OpenMS::Internal
                                                SQLite::Statement& query_match)
   {
     // the "main" query is different for Feature/ConsensusFeature, so don't include it here
-    prepareQueryMetaInfo_(query_meta, "FEAT_BaseFeature");
+    string main_table = (version_number_ < 5) ? "FEAT_Feature" : "FEAT_BaseFeature";
+    prepareQueryMetaInfo_(query_meta, main_table);
     if (db_->tableExists("FEAT_ObservationMatch"))
     {
       query_match = SQLite::Statement(*db_, "SELECT * FROM FEAT_ObservationMatch WHERE feature_id = :id");
@@ -977,7 +980,8 @@ namespace OpenMS::Internal
       query_hull.reset(); // get ready for new executeStep()
     }
     // subordinates:
-    SQLite::Statement query_sub(*db_, "SELECT * FROM FEAT_BaseFeature JOIN FEAT_Feature ON id = feature_id WHERE subordinate_of = " + String(id) + " ORDER BY id ASC");
+    string from = (version_number_ < 5) ? "FEAT_Feature" : "FEAT_BaseFeature JOIN FEAT_Feature ON id = feature_id";
+    SQLite::Statement query_sub(*db_, "SELECT * FROM " + from + " WHERE subordinate_of = " + String(id) + " ORDER BY id ASC");
     while (query_sub.executeStep())
     {
       Feature sub = loadFeatureAndSubordinates_(query_sub, query_meta,
@@ -990,10 +994,11 @@ namespace OpenMS::Internal
 
   void OMSFileLoad::loadFeatures_(FeatureMap& features)
   {
-    if (!db_->tableExists("FEAT_BaseFeature")) return;
+    if (!db_->tableExists("FEAT_Feature")) return;
 
     // start with top-level features only:
-    SQLite::Statement query_feat(*db_, "SELECT * FROM FEAT_BaseFeature JOIN FEAT_Feature ON id = feature_id WHERE subordinate_of IS NULL ORDER BY id ASC");
+    string from = (version_number_ < 5) ? "FEAT_Feature" : "FEAT_BaseFeature JOIN FEAT_Feature ON id = feature_id";
+    SQLite::Statement query_feat(*db_, "SELECT * FROM " + from + " WHERE subordinate_of IS NULL ORDER BY id ASC");
     // prepare sub-queries (optional - corresponding tables may not be present):
     SQLite::Statement query_meta(*db_, "");
     SQLite::Statement query_match(*db_, "");
@@ -1029,7 +1034,7 @@ namespace OpenMS::Internal
 
   void OMSFileLoad::loadConsensusFeatures_(ConsensusMap& consensus)
   {
-    if (!db_->tableExists("FEAT_BaseFeature")) return;
+    if (!db_->tableExists("FEAT_FeatureHandle")) return;
 
     // start with top-level features only:
     SQLite::Statement query_feat(*db_, "SELECT * FROM FEAT_BaseFeature LEFT JOIN FEAT_FeatureHandle ON id = feature_id ORDER BY id ASC");
