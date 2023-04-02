@@ -71,7 +71,7 @@
 				<UserParam type="string" name="CometAdapter:1:specificity" value="auto"/>
 				<UserParam name="EnzymeTermSpecificity" type="string" value="full" />
 	</SearchParameters>
-	<IdentificationRun date="2023-03-31T19:31:19" search_engine="Comet" search_engine_version="# comet_version 2023.01 rev. 2 (7c9150d)" search_parameters_ref="SP_0" >
+	<IdentificationRun date="2023-04-02T17:46:00" search_engine="Comet" search_engine_version="# comet_version 2023.01 rev. 2 (7c9150d)" search_parameters_ref="SP_0" >
 		<ProteinIdentification score_type="" higher_score_better="true" significance_threshold="0" >
 			<ProteinHit id="PH_0" accession="prot1" score="0.0" sequence="" >
 				<UserParam type="string" name="target_decoy" value="target"/>
@@ -107,6 +107,11 @@
 				<UserParam type="float" name="MS:1002255" value="418.800000000000011"/>
 				<UserParam type="float" name="MS:1002256" value="1.0"/>
 				<UserParam type="float" name="MS:1002257" value="1.34"/>
+				<UserParam type="float" name="Comet:lnrSp" value="0.0"/>
+				<UserParam type="float" name="Comet:deltLCn" value="0.6411"/>
+				<UserParam type="float" name="Comet:lnExpect" value="0.2924"/>
+				<UserParam type="float" name="Comet:IonFrac" value="1.0"/>
+				<UserParam type="float" name="Comet:lnNumSP" value="1.6094"/>
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="string" name="protein_references" value="unique"/>
 			</PeptideHit>
@@ -120,6 +125,11 @@
 				<UserParam type="float" name="MS:1002255" value="78.200000000000003"/>
 				<UserParam type="float" name="MS:1002256" value="2.0"/>
 				<UserParam type="float" name="MS:1002257" value="42.100000000000001"/>
+				<UserParam type="float" name="Comet:lnrSp" value="0.6931"/>
+				<UserParam type="float" name="Comet:deltLCn" value="0.3282"/>
+				<UserParam type="float" name="Comet:lnExpect" value="3.74"/>
+				<UserParam type="float" name="Comet:IonFrac" value="0.4"/>
+				<UserParam type="float" name="Comet:lnNumSP" value="1.6094"/>
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="string" name="protein_references" value="unique"/>
 			</PeptideHit>
@@ -133,6 +143,11 @@
 				<UserParam type="float" name="MS:1002255" value="60.600000000000001"/>
 				<UserParam type="float" name="MS:1002256" value="4.0"/>
 				<UserParam type="float" name="MS:1002257" value="47.600000000000001"/>
+				<UserParam type="float" name="Comet:lnrSp" value="1.3863"/>
+				<UserParam type="float" name="Comet:deltLCn" value="0.3066"/>
+				<UserParam type="float" name="Comet:lnExpect" value="3.8633"/>
+				<UserParam type="float" name="Comet:IonFrac" value="0.4"/>
+				<UserParam type="float" name="Comet:lnNumSP" value="1.6094"/>
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="string" name="protein_references" value="unique"/>
 			</PeptideHit>
@@ -146,6 +161,11 @@
 				<UserParam type="float" name="MS:1002255" value="64.599999999999994"/>
 				<UserParam type="float" name="MS:1002256" value="3.0"/>
 				<UserParam type="float" name="MS:1002257" value="63.299999999999997"/>
+				<UserParam type="float" name="Comet:lnrSp" value="1.0986"/>
+				<UserParam type="float" name="Comet:deltLCn" value="0.2509"/>
+				<UserParam type="float" name="Comet:lnExpect" value="4.1483"/>
+				<UserParam type="float" name="Comet:IonFrac" value="0.5"/>
+				<UserParam type="float" name="Comet:lnNumSP" value="1.6094"/>
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="string" name="protein_references" value="unique"/>
 			</PeptideHit>
@@ -159,6 +179,11 @@
 				<UserParam type="float" name="MS:1002255" value="27.399999999999999"/>
 				<UserParam type="float" name="MS:1002256" value="5.0"/>
 				<UserParam type="float" name="MS:1002257" value="154.0"/>
+				<UserParam type="float" name="Comet:lnrSp" value="1.6094"/>
+				<UserParam type="float" name="Comet:deltLCn" value="0.0"/>
+				<UserParam type="float" name="Comet:lnExpect" value="5.0382"/>
+				<UserParam type="float" name="Comet:IonFrac" value="0.3333"/>
+				<UserParam type="float" name="Comet:lnNumSP" value="1.6094"/>
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="string" name="protein_references" value="unique"/>
 			</PeptideHit>
@@ -174,6 +199,11 @@
 				<UserParam type="float" name="MS:1002255" value="140.199999999999989"/>
 				<UserParam type="float" name="MS:1002256" value="1.0"/>
 				<UserParam type="float" name="MS:1002257" value="1.19"/>
+				<UserParam type="float" name="Comet:lnrSp" value="0.0"/>
+				<UserParam type="float" name="Comet:deltLCn" value="0.226"/>
+				<UserParam type="float" name="Comet:lnExpect" value="0.1751"/>
+				<UserParam type="float" name="Comet:IonFrac" value="0.3125"/>
+				<UserParam type="float" name="Comet:lnNumSP" value="0.6931"/>
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="string" name="protein_references" value="unique"/>
 			</PeptideHit>
@@ -187,6 +217,11 @@
 				<UserParam type="float" name="MS:1002255" value="104.799999999999997"/>
 				<UserParam type="float" name="MS:1002256" value="2.0"/>
 				<UserParam type="float" name="MS:1002257" value="9.949999999999999"/>
+				<UserParam type="float" name="Comet:lnrSp" value="0.6931"/>
+				<UserParam type="float" name="Comet:deltLCn" value="0.0"/>
+				<UserParam type="float" name="Comet:lnExpect" value="2.2976"/>
+				<UserParam type="float" name="Comet:IonFrac" value="0.2812"/>
+				<UserParam type="float" name="Comet:lnNumSP" value="0.6931"/>
 				<UserParam type="string" name="target_decoy" value="target"/>
 				<UserParam type="string" name="protein_references" value="unique"/>
 			</PeptideHit>
