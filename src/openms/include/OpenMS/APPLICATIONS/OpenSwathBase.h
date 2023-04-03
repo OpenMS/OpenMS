@@ -77,7 +77,6 @@
 #include <limits>
 
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
-
 namespace OpenMS
 {
 
@@ -422,6 +421,20 @@ protected:
       FileTypes::Type tr_type = FileHandler::getType(irt_tr_file);
       Param tsv_reader_param = TransitionTSVFile().getDefaults();
       OpenSwath::LightTargetedExperiment irt_transitions = loadTransitionList(tr_type, irt_tr_file, tsv_reader_param);
+
+      // If pasef flag is set, validate that IM is present
+      if (pasef)
+      {
+        auto transitions = irt_transitions.getTransitions();
+
+        for ( Size k=0; k < (Size)transitions.size(); k++ )
+        {
+          if (transitions[k].precursor_im == -1)
+          {
+            throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Error: iRT Transition " + transitions[k].getNativeID() +  " does not have a valid IM value, this must be set to use the -pasef flag");
+          }
+        }
+      }
 
       // perform extraction
       OpenSwathCalibrationWorkflow wf;
