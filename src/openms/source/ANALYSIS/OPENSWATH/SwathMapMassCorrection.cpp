@@ -195,6 +195,21 @@ namespace OpenMS
     TransformationDescription::DataPoints data_im;
     std::vector<double> exp_im;
     std::vector<double> theo_im;
+
+
+    // if pasef is enabled, before calling loop iterate through all transitions and ensure that contains IM
+    // We do this beforehand because exception throwing is not allowed in a for loop with parallelism
+    if (pasef)
+    {
+      for (SignedSize k = 0; k < (SignedSize)trgr_ids.size(); k++)
+      {
+        if (transition_group->getTransitions()[0].precursor_im == -1)
+        {
+          throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Error: Transition" + transition_group->getTransitions()[0].getNativeID() +  "does not have a valid IM value, this must be set to use the -pasef flag");
+        }
+      }
+    }
+
 #ifdef _OPENMP
 #pragma omp parallel for
 #endif
@@ -216,11 +231,6 @@ namespace OpenMS
       // If pasef then have to check for overlap across IM
       else
       {
-        // Before calling, ensure we have IM data
-        if (transition_group->getTransitions()[0].precursor_im == -1)
-        {
-          throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Error: Transition" + transition_group->getTransitions()[0].getNativeID() +  "does not have a valid IM value, this must be set to use the -pasef flag");
-        }
         used_maps = findSwathMapsPasef(*transition_group, swath_maps);
       }
 
