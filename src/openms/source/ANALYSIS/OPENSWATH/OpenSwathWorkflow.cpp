@@ -328,7 +328,6 @@ namespace OpenMS
         const OpenSwath::LightTransition& tr = irt_transitions.transitions[k];
         if (tr.getPrecursorIM() == -1)
         {
-          auto tr_id = tr.getNativeID();
           throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Transition " + tr.getNativeID() +  " does not have a valid IM value, this must be set to use the -pasef flag");
         }
       }

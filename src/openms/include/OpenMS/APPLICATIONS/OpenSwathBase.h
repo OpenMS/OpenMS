@@ -425,7 +425,7 @@ protected:
       // If pasef flag is set, validate that IM is present
       if (pasef)
       {
-        auto transitions = irt_transitions.getTransitions();
+        const auto& transitions = irt_transitions.getTransitions();
 
         for ( Size k=0; k < (Size)transitions.size(); k++ )
         {
