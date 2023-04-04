@@ -106,7 +106,11 @@ namespace OpenMS
     for (const PeptideIdentification& pep_id : peptide_ids)
     {
       index++;
+      // try to make a file and scan unique identifier
       String scan_identifier = getScanIdentifier(pep_id, index);
+      String file_identifier = pep_id.getMetaValue("file_origin", String());
+      file_identifier += (String)pep_id.getMetaValue("id_merge_index", String());
+
       Int scan_number = SpectrumLookup::extractScanNumber(scan_identifier, scan_regex, true);
       
       double exp_mass = pep_id.getMZ();
@@ -121,7 +125,7 @@ namespace OpenMS
           continue;
         }
         PeptideHit hit(psm); // make a copy of the hit to store temporary features
-        hit.setMetaValue("SpecId", scan_identifier);
+        hit.setMetaValue("SpecId", file_identifier + scan_identifier);
         hit.setMetaValue("ScanNr", scan_number);
         
         if (!hit.metaValueExists("target_decoy") 

@@ -201,13 +201,15 @@ namespace OpenMS
 
   void Plot2DWidget::showGoToDialog()
   {
-    Plot2DGoToDialog goto_dialog(this);
+    Plot2DGoToDialog goto_dialog(this,
+      canvas_->getMapper().getDim(DIM::X).getDimNameShort(),
+      canvas_->getMapper().getDim(DIM::Y).getDimNameShort());
     //set range
     const auto& area = canvas()->getVisibleArea().getAreaXY();
-    goto_dialog.setRange(area.minY(), area.maxY(), area.minX(), area.maxX());
+    goto_dialog.setRange(area);
 
     auto all_area_xy = canvas_->getMapper().mapRange(canvas_->getDataRange());
-    goto_dialog.setMinMaxOfRange(all_area_xy.minX(), all_area_xy.maxX(), all_area_xy.minY(), all_area_xy.maxY());
+    goto_dialog.setMinMaxOfRange(all_area_xy);
     // feature numbers only for consensus&feature maps
     goto_dialog.enableFeatureNumber(canvas()->getCurrentLayer().type == LayerDataBase::DT_FEATURE || canvas()->getCurrentLayer().type == LayerDataBase::DT_CONSENSUS);
     // execute
@@ -215,9 +217,7 @@ namespace OpenMS
     {
       if (goto_dialog.showRange())
       {
-        goto_dialog.fixRange();
-        PlotCanvas::AreaXYType area_new(goto_dialog.getMinRT(), goto_dialog.getMinMZ(), goto_dialog.getMaxRT(), goto_dialog.getMaxMZ());
-        canvas()->setVisibleArea(area_new);
+        canvas()->setVisibleArea(goto_dialog.getRange());
       }
       else
       {
@@ -256,26 +256,22 @@ namespace OpenMS
           return;
         }
         // display feature with a margin
+        RangeAllType range;
         if (lf)
         {
           const FeatureMap& map = *lf->getFeatureMap();
           const DBoundingBox<2> bb = map[feature_index].getConvexHull().getBoundingBox();
-          RangeAllType range;
           range.RangeRT::operator=(RangeBase{bb.minPosition()[0], bb.maxPosition()[0]});
           range.RangeMZ::operator=(RangeBase{bb.minPosition()[1], bb.maxPosition()[1]});
-          range.RangeRT::scaleBy(2);
-          range.RangeRT::scaleBy(5);
-          canvas()->setVisibleArea(range);
         }
         else // Consensus Feature
         {
           const ConsensusFeature& cf = (*lc->getConsensusMap())[feature_index];
-          auto range = canvas_->getMapper().fromXY(canvas_->getMapper().map(cf));
-          range.RangeRT::extendLeftRight(30);
-          range.RangeMZ::extendLeftRight(5);
-          canvas()->setVisibleArea(range);
+          range = canvas_->getMapper().fromXY(canvas_->getMapper().map(cf));
         }
-
+        range.RangeRT::extendLeftRight(30);
+        range.RangeMZ::extendLeftRight(5);
+        canvas()->setVisibleArea(range);
       }
     }
   }

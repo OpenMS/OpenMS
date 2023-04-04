@@ -930,6 +930,9 @@ namespace OpenMS
   public:
     using ThisRangeType = typename RangeManager<RangeBases...>::ThisRangeType;
 
+    /// D'tor
+    virtual ~RangeManagerContainer() = default; // required since we have virtual methods
+
     /// implement this function to reflect the underlying data of the derived class (e.g. an MSSpectrum)
     /// Usually, call clearRanges() internally and then populate the dimensions.
     virtual void updateRanges() = 0;
