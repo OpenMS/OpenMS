@@ -55,7 +55,6 @@
 //logging
 #include <OpenMS/CONCEPT/LogStream.h>
 
-
 namespace OpenMS
 {
   /** @brief A class that calls the scoring routines
@@ -76,7 +75,6 @@ namespace OpenMS
       RESAMPLE
     };
 
-
     double rt_normalization_factor_;
     double spacing_for_spectra_resampling_;
     int add_up_spectra_;
@@ -84,7 +82,6 @@ namespace OpenMS
     double im_drift_extra_pcnt_;
     OpenSwath_Scores_Usage su_;
     bool use_ms1_ion_mobility_; // whether to use MS1 ion mobility extraction in DIA scores
-
     const std::string ION_MOBILITY_DESCRIPTION = "Ion Mobility";
 
   public:
@@ -262,7 +259,7 @@ namespace OpenMS
     void getNormalized_library_intensities_(const std::vector<TransitionType> & transitions,
                                             std::vector<double>& normalized_library_intensity);
 
-     /** @brief Prepares a spectrum for DIA analysis (single map)
+    /** @brief Prepares a spectrum for DIA analysis (single map)
      *
      * This function will fetch a vector of spectrum pointers to be used in DIA analysis.
      * If nr_spectra_to_add == 1, than a vector of length 1 will be returned
@@ -290,7 +287,7 @@ namespace OpenMS
 
    /** @brief Prepares a spectrum for DIA analysis (multiple map)
      *
-     * This function will fetch a vector of spectrum pointers to be used in DIA analysis.
+     * This function will fetch a SpectrumSequence to be used in DIA analysis.
      * If nr_spectra_to_add == 1, than a vector of length 1 will be returned.
      * Spectra are prepared differently based on the condition
      * Case #1: Non SONAR data and "simple" addition selected - Array of length "nr_spectra_to_add" returned corresponding with "nr_spectra_to_add" spectra

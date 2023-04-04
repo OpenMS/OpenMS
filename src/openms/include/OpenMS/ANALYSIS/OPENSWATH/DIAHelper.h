@@ -95,7 +95,7 @@ namespace OpenMS
                                         double width,
                                         std::vector<double>& integrated_windows_intensity,
                                         std::vector<double>& integrated_windows_mz,
-					std::vector<double>& integrated_windows_im,
+                                        std::vector<double>& integrated_windows_im,
                                         const RangeMobility& im_range,
                                         bool remove_zero = false);
     /**

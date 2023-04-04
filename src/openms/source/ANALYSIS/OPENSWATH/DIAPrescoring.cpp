@@ -102,9 +102,8 @@ namespace OpenMS
 
     for (UInt i = 0; i < swath_ptr->getNrSpectra(); ++i)
     {
-
       OpenSwath::SpectrumPtr s = swath_ptr->getSpectrumById(i);
-      std::vector<OpenSwath::SpectrumPtr> spec;
+      SpectrumSequence spec;
       spec.push_back(s);
       OpenSwath::SpectrumMeta specmeta = swath_ptr->getSpectrumMetaById(i);
       std::cout << "Processing Spectrum  " << i << "RT " << specmeta.RT << std::endl;

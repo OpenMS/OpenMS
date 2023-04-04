@@ -219,77 +219,13 @@ namespace OpenMS
     }
   }
 
- /*
- void integrateDriftSpectrum(const OpenSwath::SpectrumPtr& spectrum,
-                              double mz_start,
-                              double mz_end,
-                              double & im,
-                              double & intensity,
-                              IonMobilogram& res,
-                              double eps,
-                              double drift_start,
-                              double drift_end)
-  {
-    OPENMS_PRECONDITION(spectrum->getDriftTimeArray() != nullptr, "Cannot filter by drift time if no drift time is available.");
-
-    // rounding multiplier for the ion mobility value
-    // TODO: how to improve this -- will work up to 42949.67296
-    double IM_IDX_MULT = 1/eps;
-
-    // We need to store all values that map to the same ion mobility in the
-    // same spot in the ion mobilogram (they are not sorted by ion mobility in
-    // the input data), therefore create a map to map to bins.
-    std::map< int, double> im_chrom;
-    auto mz_arr_end = spectrum->getMZArray()->data.end();
-    auto int_it = spectrum->getIntensityArray()->data.begin();
-    auto im_it = spectrum->getDriftTimeArray()->data.begin();
-
-    // this assumes that the spectra are sorted!
-    auto mz_it = std::lower_bound(spectrum->getMZArray()->data.begin(), mz_arr_end, mz_start);
-    auto mz_it_end = std::lower_bound(mz_it, mz_arr_end, mz_end);
-
-    // also advance intensity and ion mobility iterator now
-    auto iterator_pos = std::distance(spectrum->getMZArray()->data.begin(), mz_it);
-    std::advance(int_it, iterator_pos);
-    std::advance(im_it, iterator_pos);
-
-    // Iterate from mz start to end, only storing ion mobility values that are in the range
-    for (; mz_it != mz_it_end; ++mz_it, ++int_it, ++im_it)
-    {
-      if ( *im_it >= drift_start && *im_it <= drift_end)
-      {
-        // std::cout << "IM " << *im_it << " mz " << *mz_it << " int " << *int_it << std::endl;
-        im_chrom[ int((*im_it)*IM_IDX_MULT) ] += *int_it;
-        intensity += (*int_it);
-        im += (*int_it) * (*im_it);
-      }
-    }
-
-    if (intensity > 0.)
-    {
-      im /= intensity;
-    }
-    else
-    {
-      im = -1;
-      intensity = 0;
-    }
-
-    res.reserve(res.size() + im_chrom.size());
-    for (const auto& k : im_chrom)
-    {
-      res.emplace_back(k.first / IM_IDX_MULT, k.second );
-    }
-  }
-  */
-
   /// Constructor
   IonMobilityScoring::IonMobilityScoring() = default;
 
   /// Destructor
   IonMobilityScoring::~IonMobilityScoring() = default;
 
-  void IonMobilityScoring::driftScoringMS1Contrast(const SpectrumSequence& spectra, const std::vector<OpenSwath::SpectrumPtr>& ms1spectrum,
+  void IonMobilityScoring::driftScoringMS1Contrast(const SpectrumSequence& spectra, const SpectrumSequence& ms1spectrum,
                                                    const std::vector<TransitionType> & transitions,
                                                    OpenSwath_Scores & scores,
                                                    RangeMobility im_range,

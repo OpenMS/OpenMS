@@ -43,6 +43,7 @@
 #include <cassert>
 #include <iosfwd>  // for std::ostream
 #include <iostream>
+
 namespace OpenMS
 {
   /// Dimensions of data acquisition for MS data
@@ -241,9 +242,7 @@ namespace OpenMS
           shift(sandbox.max_ - max_);
         }
       }
-
     }
-
 
     /**
        @brief Scale the range of the dimension by a @p factor. A factor > 1 increases the range; factor < 1 decreases it.

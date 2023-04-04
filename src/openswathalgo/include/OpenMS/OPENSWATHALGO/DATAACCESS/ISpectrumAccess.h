@@ -54,7 +54,6 @@ public:
     /// Destructor
     virtual ~ISpectrumAccess();
 
-
     /**
       @brief Light clone operator to produce a copy for concurrent read access.
 

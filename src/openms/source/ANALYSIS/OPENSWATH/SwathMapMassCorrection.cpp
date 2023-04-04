@@ -161,7 +161,6 @@ namespace OpenMS
 
     if (im_extraction_win < 0)
     {
-      std::cout << "no im reutrining" << std::endl;
       return;
     }
 

@@ -90,11 +90,10 @@ namespace OpenMS
     /// Destructor
     ~IonMobilityScoring();
 
-
     /**
       @brief Performs scoring of the ion mobility dimension in MS2
 
-      @param spectra spectrum sequence of segments of the DIA MS2 spectrum found at (and around) the peak apex
+      @param spectrum sequence of segments of the DIA MS2 spectrum found at (and around) the peak apex
       @param transitions The transitions used for scoring
       @param scores The output scores
       @param drift_target Ion Mobility extraction target
@@ -160,7 +159,7 @@ namespace OpenMS
       @return Populates additional scores in the @p scores object
 
     */
-    static void driftScoringMS1Contrast(const SpectrumSequence& spectra, const std::vector<OpenSwath::SpectrumPtr>& ms1spectrum,
+    static void driftScoringMS1Contrast(const SpectrumSequence& spectra, const SpectrumSequence& ms1spectrum,
                                         const std::vector<TransitionType> & transitions,
                                         OpenSwath_Scores & scores,
                                         RangeMobility im_range,

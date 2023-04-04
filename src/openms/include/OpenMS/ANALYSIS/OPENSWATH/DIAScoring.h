@@ -139,7 +139,7 @@ public:
                                 double& ppm_score) const;
 
     /// Precursor isotope scores for precursors (peptides and metabolites)
-    void dia_ms1_isotope_scores_averagine(double precursor_mz, const std::vector<SpectrumPtrType>& spectrum, int charge_state, RangeMobility& im_range,
+    void dia_ms1_isotope_scores_averagine(double precursor_mz, const SpectrumSequence& spectrum, int charge_state, RangeMobility& im_range,
                                           double& isotope_corr, double& isotope_overlap) const;
     void dia_ms1_isotope_scores(double precursor_mz, const std::vector<SpectrumPtrType>& spectrum, RangeMobility& im_range,
                                 double& isotope_corr, double& isotope_overlap, const EmpiricalFormula& sum_formula) const;
@@ -150,7 +150,7 @@ public:
                           int charge, const RangeMobility& im_range, double& bseries_score, double& yseries_score) const;
 
     /// Dotproduct / Manhattan score with theoretical spectrum
-    void score_with_isotopes(std::vector<SpectrumPtrType>& spectrum,
+    void score_with_isotopes(SpectrumSequence& spectrum,
                              const std::vector<TransitionType>& transitions,
                              const RangeMobility& im_range,
                              double& dotprod,
@@ -170,7 +170,7 @@ private:
 
     /// Subfunction of dia_isotope_scores
     void diaIsotopeScoresSub_(const std::vector<TransitionType>& transitions,
-                              const std::vector<SpectrumPtrType>& spectrum,
+                              const SpectrumSequence& spectrum,
                               std::map<std::string, double>& intensities,
                               const RangeMobility& im_range,
                               double& isotope_corr,

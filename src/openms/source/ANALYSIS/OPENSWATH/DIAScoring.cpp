@@ -83,8 +83,6 @@ namespace OpenMS
     defaults_.setValue("peak_before_mono_max_ppm_diff", 20.0, "DIA maximal difference in ppm to count a peak at lower m/z when searching for evidence that a peak might not be monoisotopic.");
     defaults_.setMinFloat("peak_before_mono_max_ppm_diff", 0.0);
 
-    //TODO can I add im extraction window as parameters here
-
     // write defaults into Param object param_
     defaultsToParam_();
 
@@ -240,7 +238,7 @@ namespace OpenMS
     }
   }
 
-  void DIAScoring::dia_ms1_isotope_scores_averagine(double precursor_mz, const std::vector<SpectrumPtrType>& spectrum, int charge_state, RangeMobility& im_range,
+  void DIAScoring::dia_ms1_isotope_scores_averagine(double precursor_mz, const SpectrumSequence& spectrum, int charge_state, RangeMobility& im_range,
                                                     double& isotope_corr, double& isotope_overlap) const
   {
     std::vector<double> exp_isotopes_int;
@@ -295,8 +293,7 @@ namespace OpenMS
     }
   }
 
-  void DIAScoring::score_with_isotopes(SpectrumSequence& spectrum, const std::vector<TransitionType>& transitions, const RangeMobility& im_range,
-                                       double& dotprod, double& manhattan) const
+  void DIAScoring::score_with_isotopes(SpectrumSequence& spectrum, const std::vector<TransitionType>& transitions, const RangeMobility& im_range, double& dotprod, double& manhattan) const
   {
     OpenMS::DiaPrescore dp(dia_extract_window_, dia_nr_isotopes_, dia_nr_charges_);
     dp.score(spectrum, transitions, im_range, dotprod, manhattan);
@@ -318,7 +315,7 @@ namespace OpenMS
     }
   }
 
-  void DIAScoring::diaIsotopeScoresSub_(const std::vector<TransitionType>& transitions, const std::vector<SpectrumPtrType>& spectrum,
+  void DIAScoring::diaIsotopeScoresSub_(const std::vector<TransitionType>& transitions, const SpectrumSequence& spectrum,
                                         std::map<std::string, double>& intensities, //relative intensities
                                         const RangeMobility& im_range,
                                         double& isotope_corr,
