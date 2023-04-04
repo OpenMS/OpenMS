@@ -427,7 +427,7 @@ namespace OpenMS
      * Unit of min_span is in ppm
      * @note range min_ cannot be negative, will autocorrect to 0 if have a negative value
      */
-    void minSpanIfSingular(const double initial_min_span, const bool ppm)
+    void minSpanIfSingular(const double initial_min_span, const bool ppm=false)
     {
       if (ppm & (min_ == max_) )
       {
