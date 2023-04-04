@@ -649,25 +649,22 @@ namespace OpenMS
 
   void ElementDB::addElementToMaps_(const string& name, const string& symbol, const unsigned int an, const Element* e)
   {
-    #pragma omp critical(OpenMS_ElementDB)
+    // overwrite existing element if it already exists
+    // find() has to be protected here in a parallel context
+    if (atomic_numbers_.find(an) != atomic_numbers_.end())
     {
-      // overwrite existing element if it already exists
-      // find() has to be protected here in a parallel context
-      if (atomic_numbers_.find(an) != atomic_numbers_.end())
-      {
-        // in order to ensure that existing elements are still valid and memory
-        // addresses do not change, we have to modify the Element in place
-        // instead of replacing it.
-        unique_ptr<const Element> pe;
-        pe.reset(e);
-        overwrite(atomic_numbers_[an], pe);
-      }
-      else
-      {
-        checkedAddNoReplace(names_, name, e);
-        checkedAddNoReplace(symbols_, symbol, e);
-        checkedAddNoReplace(atomic_numbers_, an, e);
-      }
+      // in order to ensure that existing elements are still valid and memory
+      // addresses do not change, we have to modify the Element in place
+      // instead of replacing it.
+      unique_ptr<const Element> pe;
+      pe.reset(e);
+      overwrite(atomic_numbers_[an], pe);
+    }
+    else
+    {
+      checkedAddNoReplace(names_, name, e);
+      checkedAddNoReplace(symbols_, symbol, e);
+      checkedAddNoReplace(atomic_numbers_, an, e);
     }
   }
 
