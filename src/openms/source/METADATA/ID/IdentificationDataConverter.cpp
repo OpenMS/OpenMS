@@ -1218,6 +1218,11 @@ namespace OpenMS
   void IdentificationDataConverter::importConsensusIDs(ConsensusMap& consensus,
                                                        bool clear_original)
   {
+    // copy identification information in old format to new format;
+    // i.e. from 'protein_identifications_'/'unassigned_peptide_identifications_' (consensus map)
+    // and 'peptides_' (features) to 'id_data_' (consensus map) and 'primary_id_'/'id_matches_' (features);
+    // use meta values to temporarily store which features IDs are assigned to
+
     // collect all peptide IDs:
     vector<PeptideIdentification> peptides = consensus.getUnassignedPeptideIdentifications();
     // get peptide IDs from each consensus feature, add meta values:
@@ -1254,8 +1259,8 @@ namespace OpenMS
         if (key.hasPrefix("IDConverter_trace_"))
         {
           Size index = ref->getMetaValue(key);
-          ConsensusFeature* feat_ptr = &consensus.at(index);
-          feat_ptr->addIDMatch(ref);
+          ConsensusFeature& feat = consensus.at(index);
+          feat.addIDMatch(ref);
           id_data.removeMetaValue(ref, key);
         }
       }
@@ -1271,6 +1276,12 @@ namespace OpenMS
   void IdentificationDataConverter::exportConsensusIDs(ConsensusMap& consensus,
                                                        bool clear_original)
   {
+    // copy identification information in new format to old format;
+    // i.e. from 'id_data_' (consensus map) and 'primary_id_'/'id_matches_' (features)
+    // to 'protein_identifications_'/'unassigned_peptide_identifications_' (consensus map)
+    // and 'peptides_' (features);
+    // use meta values to temporarily store which features IDs are assigned to
+
     Size id_counter = 0;
     IdentificationData& id_data = consensus.getIdentificationData();
     // Adds dummy Obs.Match for features with ID but no matches.
