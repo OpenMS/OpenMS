@@ -646,7 +646,7 @@ namespace OpenMS
       throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, new_e->getSymbol(),
                                     "Replacing element with atomic number " + String(old->getAtomicNumber()) + " has different new atomic number: " + String(new_e->getAtomicNumber()));
     }
-    // ... overwrite and free
+    // ... overwrite
     *(const_cast<Element*>(old)) = *new_e;
   }
 
