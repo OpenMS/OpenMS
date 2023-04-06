@@ -260,7 +260,7 @@ namespace OpenMS
   int FLASHIda::getPeakGroups(const double* mzs, const double* ints,
                               const int length, const double rt, const int ms_level, const char* name)
   {
-    int ret[2] = {0,0};
+    //int ret[2] = {0,0};
     auto spec = makeMSSpectrum_(mzs, ints, length, rt, ms_level, name);
     // selected_peak_groups_ = DeconvolvedSpectrum(spec, 1);
     if (ms_level == 1)
@@ -346,7 +346,7 @@ namespace OpenMS
       {
         int nominal_mass = FLASHDeconvAlgorithm::getNominalMass(mass);
         auto qscores = target_mass_qscore_map_[mass];
-        for (int i = 0; i < rts.size(); i++)
+        for (uint i = 0; i < rts.size(); i++)
         {
           double prt = rts[i];
           double qscore = qscores[i];
@@ -396,7 +396,7 @@ namespace OpenMS
       }
       new_all_mass_rt_map_[item.first] = item.second;
 
-      auto inter = new_mass_qscore_map_.find(item.first);
+      //auto inter = new_mass_qscore_map_.find(item.first);
 
       new_mass_qscore_map_[item.first] = mass_qscore_map_[item.first];
 

@@ -128,7 +128,18 @@ protected:
                           "When FLASHIda log file is used, this parameter is ignored. Applied only for topFD msalign outputs.",
                           false, false);
 
-    registerIntOption_("mzml_mass_charge", "<0:uncharged 1: +1 charged -1: -1 charged>", 0, "Charge status of deconvolved masses in mzml output (specified by out_mzml)", false);
+    registerIntOption_("target_precursor_charge", "<Target precursor charge>", 0,
+                       "Charge state of the target precursor. All precursor charge is fixed to this value. "
+                       "This parameter is useful for targeted studies where MS2 spectra are generated from a fixed precursor (e.g., Native-MS). "
+                       "This option also gives the maximum charge and masses (together with precursor m/z) of fragment ions, which overrides -Algorithm:max_charge and -Algorithm:max_mass.", false, false);
+
+    registerDoubleOption_("target_precursor_mz", "<m/z value>", 0.0,
+                          "Target precursor m/z value. This option must be used with -target_precursor_charge option. Otherwise it will be ignored."
+                          "If -target_precursor_charge option is used but this option is not used, the precursor m/z value written in MS2 spectra will be used by default."
+                          "Together with -target_precursor_charge, this option overrides -Algorithm:max_mass.",
+                          false, false);
+
+    registerIntOption_("mzml_mass_charge", "<0:uncharged 1: +1 charged -1: -1 charged>", 0, "Charge state of deconvolved masses in mzml output (specified by out_mzml)", false);
 
     setMinInt_("mzml_mass_charge", -1);
     setMaxInt_("mzml_mass_charge", 1);
@@ -269,6 +280,9 @@ protected:
     double min_rt = getDoubleOption_("Algorithm:min_rt");
     double max_rt = getDoubleOption_("Algorithm:max_rt");
     double min_intensity = getDoubleOption_("Algorithm:min_intensity");
+    int target_precursor_charge = getIntOption_("target_precursor_charge");
+    double target_precursor_mz = target_precursor_charge != 0 ? getDoubleOption_("target_precursor_mz") : .0;
+    double target_precursor_mass;
 
     fstream out_stream, out_train_stream, out_promex_stream, out_att_stream, out_dl_stream;
     std::vector<fstream> out_spec_streams, out_topfd_streams, out_topfd_feature_streams;
@@ -369,7 +383,6 @@ protected:
 
     // read input dataset once to count spectra
     double gradient_rt = .0;
-    int max_precursor_c = 0;
     for (auto& it : map)
     {
       gradient_rt = std::max(gradient_rt, it.getRT());
@@ -389,14 +402,15 @@ protected:
         continue;
       }
 
-      if (it.getMSLevel() == 2)
-      {
-        max_precursor_c = std::max(max_precursor_c, it.getPrecursors()[0].getCharge());
-      }
-
       uint ms_level = it.getMSLevel();
       current_max_ms_level = current_max_ms_level < ms_level ? ms_level : current_max_ms_level;
       current_min_ms_level = current_min_ms_level > ms_level ? ms_level : current_min_ms_level;
+
+      if(ms_level > 1 && target_precursor_charge != 0 && target_precursor_mz == .0)
+      {
+        target_precursor_mz = it.getPrecursors()[0].getMZ();
+      }
+
       if (min_rt > 0 && it.getRT() < min_rt)
       {
         continue;
@@ -427,6 +441,15 @@ protected:
     Param fd_param = getParam_().copy("Algorithm:", true);
     DoubleList tols = fd_param.getValue("tol");
 
+    if(target_precursor_mz > 0)
+    {
+      fd_param.setValue("max_charge", target_precursor_charge);
+      fd_param.setValue("max_mass", std::abs(target_precursor_charge) * target_precursor_mz);
+    }
+    else if(target_precursor_charge != 0){
+      OPENMS_LOG_INFO << "Target precursor charge is set but no precursor m/z is found in MS2 spectra. Specify target precursor m/z with -target_precursor_mz option" << std::endl;
+      return EXTERNAL_PROGRAM_ERROR;
+    }
     filterLowPeaks(map, max_peak_count_);
 
     // if a merged spectrum is analyzed, replace the input dataset with the merged one
@@ -473,6 +496,12 @@ protected:
     fd.setParameters(fd_param);
     fd.calculateAveragine(use_RNA_averagine);
     auto avg = fd.getAveragine();
+
+    if(target_precursor_mz > 0)
+    {
+      target_precursor_mass = (target_precursor_mz - FLASHDeconvHelperStructs::getChargeMass(target_precursor_charge > 0)) * std::abs(target_precursor_charge);
+      target_precursor_mass -= avg.getAverageMassDelta(target_precursor_mass);
+    }
 
     if (report_dummy)
     {
@@ -561,10 +590,25 @@ protected:
       {
         continue;
       }
+
+      if(target_precursor_mass > 0)
+      {
+        auto precursor = it->getPrecursors()[0];
+        precursor.setCharge(target_precursor_charge);
+        PeakGroup precursorPeakGroup(1, std::abs(target_precursor_charge), target_precursor_charge > 0);
+        precursorPeakGroup.push_back(FLASHDeconvHelperStructs::LogMzPeak());
+        precursorPeakGroup.setMonoisotopicMass(target_precursor_mass);
+        precursorPeakGroup.setSNR(1.0);
+        precursorPeakGroup.setChargeSNR(std::abs(target_precursor_charge), 1.0);
+        precursorPeakGroup.setQScore(1.0);
+        deconvolved_spectrum.setPrecursor(precursor);
+        deconvolved_spectrum.setPrecursorPeakGroup(precursorPeakGroup);
+      }
+
       if (it->getMSLevel() > 1 && !deconvolved_spectrum.getPrecursorPeakGroup().empty())
       {
         precursor_peak_groups[scan_number] = deconvolved_spectrum.getPrecursorPeakGroup();
-        if (deconvolved_spectrum.getPrecursorPeakGroup().getChargeSNR(deconvolved_spectrum.getPrecursorCharge()) > topFD_SNR_threshold)
+        if (deconvolved_spectrum.getPrecursorPeakGroup().getChargeSNR(std::abs(deconvolved_spectrum.getPrecursorCharge())) >= topFD_SNR_threshold)
         {
           expected_identification_count += deconvolved_spectrum.getPrecursorPeakGroup().getQScore();
         }
@@ -574,7 +618,7 @@ protected:
       {
         if (!deconvolved_spectrum.empty())
         {
-          auto dspec = deconvolved_spectrum.toSpectrum(mzml_charge, tols[ms_level - 1], false);
+          auto dspec = deconvolved_spectrum.toSpectrum(mzml_charge, current_min_ms_level, tols[ms_level - 1], false);
 
           if (dspec.size() > 0)
           {
@@ -704,8 +748,8 @@ protected:
       }
       if (out_topfd_streams.size() + 1 > ms_level)
       {
-        FLASHDeconvSpectrumFile::writeTopFD(deconvolved_spectrum, out_topfd_streams[ms_level - 1], topFD_SNR_threshold
-                                            , false, false); //, 1, (float)rand() / (float)RAND_MAX * 10 + 10);
+        FLASHDeconvSpectrumFile::writeTopFD(deconvolved_spectrum, out_topfd_streams[ms_level - 1],
+                                            topFD_SNR_threshold, false, false); //, 1, (float)rand() / (float)RAND_MAX * 10 + 10);
       }
     }
     if (report_dummy)
@@ -938,8 +982,8 @@ protected:
       }
 
       FLASHDeconvSpectrumFile::writeDLMatrixHeader(out_dl_stream);
-      FLASHDeconvSpectrumFile::writeDLMatrix(deconvolved_spectra, tols[0],out_dl_stream, avg);
-      FLASHDeconvSpectrumFile::writeDLMatrix(false_deconvolved_spectra, tols[0], out_dl_stream, avg);
+      FLASHDeconvSpectrumFile::writeDLMatrix(deconvolved_spectra, 1e-6*tols[0],out_dl_stream, avg);
+      FLASHDeconvSpectrumFile::writeDLMatrix(false_deconvolved_spectra, 1e-6*tols[0], out_dl_stream, avg);
       out_dl_stream.close();
       out_att_stream.close();
     }

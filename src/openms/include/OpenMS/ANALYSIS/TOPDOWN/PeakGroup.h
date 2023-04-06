@@ -63,6 +63,7 @@ namespace OpenMS
       isotope_dummy
     };
 
+
     /// default constructor
     PeakGroup() = default;
 
@@ -239,15 +240,16 @@ namespace OpenMS
     /// get index of this peak group
     uint getIndex() const;
 
+    int getChargeRangeForDL_() {return charge_range_for_DL_;};
+    int getIsotopeRangeForDL_() {return iso_range_for_DL_;};
+
     /**
      * @brief calculate the matrices for DL training and scoring
      * @param spec original raw spectrum
      * @param tol mass tolerance
-     * @param charge_range charge range to be considered, corresponding to the row number of the matrix
-     * @param iso_range isotope range to be considered, corresponding to the column number of the matrix
      * @param avg averagine to normalize the observed isotope pattern
      */
-    void calculateDLMatrices(const MSSpectrum& spec, double tol, int charge_range, int iso_range, const PrecalculatedAveragine& avg);
+    void calculateDLMatrices(const MSSpectrum& spec, double tol, const PrecalculatedAveragine& avg);
 
     /// get the calcualted DL matrix
     Matrix<float> getDLMatrix(int index) const;
@@ -325,6 +327,8 @@ namespace OpenMS
     /// index to specify if this peak_group is a target (0), an isotope decoy (1), a noise (2), or a charge decoy (3)
     PeakGroup::DummyIndex decoy_flag_ = target;
 
+    int charge_range_for_DL_ = 11;
+    int iso_range_for_DL_ = 21;
     /// distance between consecutive isotopes. Can be different for decoys
     double iso_da_distance_ = Constants::ISOTOPE_MASSDIFF_55K_U;
     /// scoring variables

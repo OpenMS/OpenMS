@@ -319,13 +319,13 @@ namespace OpenMS
     }
   }
 
-  inline const int z = 5, iso = 11;
   void FLASHDeconvSpectrumFile::writeDLMatrixHeader(std::fstream& fs)
   {
     for(int i=0;i<3;i++)
     {
       String prefix = "Set" + std::to_string(i+1) + "_";
-      auto dlm = z*iso;
+      PeakGroup peak_group;
+      auto dlm = peak_group.getIsotopeRangeForDL_() * peak_group.getChargeRangeForDL_();
 
       for(int j=0; j<dlm;j++)
       {
@@ -368,7 +368,7 @@ namespace OpenMS
          {
           continue;
          }
-         pg.calculateDLMatrices(dspec.getOriginalSpectrum(), tol, z, iso, avg);
+         pg.calculateDLMatrices(dspec.getOriginalSpectrum(), tol, avg);
 
          auto dlmatrix = pg.getDLMatrix(0).asVector();
          if(*std::max_element(dlmatrix.begin(), dlmatrix.end()) <= 0)
@@ -405,6 +405,7 @@ namespace OpenMS
          for (int i = 0; i < 3; i++)
          {
           auto dlm = pg.getDLMatrix(i).asVector();
+
           for (double v : dlm)
           {
             fs << v << ",";
@@ -449,13 +450,16 @@ namespace OpenMS
 
     if (ms_level > 1)
     {
-
-      fs << "ACTIVATION=" << Precursor::NamesOfActivationMethodShort[dspec.getActivationMethod()] << "\n";
+      double precursor_mass = dspec.getPrecursorPeakGroup().getMonoMass();
+      if(dspec.getActivationMethod() < Precursor::ActivationMethod::SIZE_OF_ACTIVATIONMETHOD)
+      {
+        fs << "ACTIVATION=" << Precursor::NamesOfActivationMethodShort[dspec.getActivationMethod()] << "\n";
+      }
       fs << "MS_ONE_ID=" << dspec.getPrecursorScanNumber() << "\n"
          << "MS_ONE_SCAN=" << dspec.getPrecursorScanNumber() << "\n"
          << "PRECURSOR_MZ=" << std::to_string(dspec.getPrecursor().getMZ()) << "\n"
          << "PRECURSOR_CHARGE=" << (int)(dspec.getPrecursor().getCharge()) << "\n"
-         << "PRECURSOR_MASS=" << std::to_string(dspec.getPrecursorPeakGroup().getMonoMass() + (randomize_precursor_mass ? (((double) rand() / (RAND_MAX)) * 200.0 - 100.0) : .0)) << "\n"
+         << "PRECURSOR_MASS=" << std::to_string( precursor_mass + (randomize_precursor_mass ? (((double) rand() / (RAND_MAX)) * 200.0 - 100.0) : .0)) << "\n"
          << "PRECURSOR_INTENSITY=" << dspec.getPrecursor().getIntensity() << "\n";
     }
 

@@ -890,29 +890,29 @@ namespace OpenMS
     qvalue_[flag] = q;
   }
 
-  void PeakGroup::calculateDLMatrices(const MSSpectrum& spec, double tol, int charge_range, int iso_range, const PrecalculatedAveragine& avg)
+  void PeakGroup::calculateDLMatrices(const MSSpectrum& spec, double tol, const PrecalculatedAveragine& avg)
   {
     dl_matrices_.clear();
-    int iso_index_diff = -(int)avg.getApexIndex(getMonoMass()) + (int)(iso_range / 2);
+    int iso_index_diff = -(int)avg.getApexIndex(getMonoMass()) + (int)(iso_range_for_DL_ / 2);
     auto max_charge_iter = std::max_element(per_charge_int_.begin(), per_charge_int_.end());
-    int charge_index_diff = -(int)std::distance(per_charge_int_.begin(), max_charge_iter) + (int)(charge_range / 2);
+    int charge_index_diff = -(int)std::distance(per_charge_int_.begin(), max_charge_iter) + (int)(charge_range_for_DL_ / 2);
     auto iso = avg.get(getMonoMass());
 
-    float base = iso.getMostAbundant().getIntensity() / 100.0f;
+    //float base = iso.getMostAbundant().getIntensity() / 100.0f;
 
     Matrix<float> sig, sigtol, noise;
-    sig.resize(charge_range, iso_range, .0);
-    sigtol.resize(charge_range, iso_range, .0);
+    sig.resize(charge_range_for_DL_, iso_range_for_DL_, .0);
+    sigtol.resize(charge_range_for_DL_, iso_range_for_DL_, .0);
 
     for (auto& p : logMzpeaks_)
     {
       int iso_index = p.isotopeIndex + iso_index_diff;
       int charge_index = p.abs_charge + charge_index_diff;
-      if (iso_index < 0 || iso_index >= iso_range)
+      if (iso_index < 0 || iso_index >= iso_range_for_DL_)
       {
         continue;
       }
-      if (charge_index < 0 || charge_index >= charge_range)
+      if (charge_index < 0 || charge_index >= charge_range_for_DL_)
       {
         continue;
       }
@@ -925,19 +925,21 @@ namespace OpenMS
       sigtol.setValue(charge_index, iso_index, getAbsDaError_(p));
     }
 
-    noise.resize(charge_range, iso_range, .0);
+    noise.resize(charge_range_for_DL_, iso_range_for_DL_, .0);
     std::unordered_set<double> excluded_peak_mzs;
+
     std::vector<LogMzPeak> noisy_peaks = recruitAllPeaksInSpectrum(spec, tol, avg, getMonoMass(), excluded_peak_mzs);
+    //std::cout<<spec.size()<<std::endl;
     std::sort(noisy_peaks.begin(), noisy_peaks.end());
     for (auto& p : noisy_peaks)
     {
       int iso_index = p.isotopeIndex + iso_index_diff;
       int charge_index = p.abs_charge + charge_index_diff;
-      if (iso_index < 0 || iso_index >= iso_range)
+      if (iso_index < 0 || iso_index >= iso_range_for_DL_)
       {
         continue;
       }
-      if (charge_index < 0 || charge_index >= charge_range)
+      if (charge_index < 0 || charge_index >= charge_range_for_DL_)
       {
         continue;
       }
