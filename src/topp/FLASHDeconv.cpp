@@ -282,7 +282,7 @@ protected:
     double min_intensity = getDoubleOption_("Algorithm:min_intensity");
     int target_precursor_charge = getIntOption_("target_precursor_charge");
     double target_precursor_mz = target_precursor_charge != 0 ? getDoubleOption_("target_precursor_mz") : .0;
-    double target_precursor_mass;
+    double target_precursor_mass = .0;
 
     fstream out_stream, out_train_stream, out_promex_stream, out_att_stream, out_dl_stream;
     std::vector<fstream> out_spec_streams, out_topfd_streams, out_topfd_feature_streams;
@@ -550,7 +550,6 @@ protected:
 
     for (auto it = map.begin(); it != map.end(); ++it)
     {
-
       int scan_number =  map.getSourceFiles().empty()? -1: SpectrumLookup::extractScanNumber(it->getNativeID(),
                                                           map.getSourceFiles()[0].getNativeIDTypeAccession());
 
@@ -585,12 +584,10 @@ protected:
 
       fd.performSpectrumDeconvolution(*it, precursor_specs, scan_number, precursor_map_for_real_time_acquisition);
       auto& deconvolved_spectrum = fd.getDeconvolvedSpectrum();
-
       if (deconvolved_spectrum.empty())
       {
         continue;
       }
-
       if(target_precursor_mass > 0)
       {
         auto precursor = it->getPrecursors()[0];
@@ -599,6 +596,7 @@ protected:
         precursorPeakGroup.push_back(FLASHDeconvHelperStructs::LogMzPeak());
         precursorPeakGroup.setMonoisotopicMass(target_precursor_mass);
         precursorPeakGroup.setSNR(1.0);
+
         precursorPeakGroup.setChargeSNR(std::abs(target_precursor_charge), 1.0);
         precursorPeakGroup.setQScore(1.0);
         deconvolved_spectrum.setPrecursor(precursor);
@@ -613,7 +611,6 @@ protected:
           expected_identification_count += deconvolved_spectrum.getPrecursorPeakGroup().getQScore();
         }
       }
-
       if (!out_mzml_file.empty())
       {
         if (!deconvolved_spectrum.empty())
@@ -642,8 +639,6 @@ protected:
             {
               auto& p = pg[k];
               auto pindex = anno_spec.findNearest(p.mz);
-              //if(abs(anno_spec[pindex].getMZ() - p.mz)<.1)
-              //  std::cout<< anno_spec[pindex].getMZ()  << " vs. " << p.mz << std::endl;
               val << pindex;
               if (k < pg.size() - 1)
               {
@@ -656,7 +651,6 @@ protected:
         }
         exp_annotated.addSpectrum(anno_spec);
       }
-
       if (ms_level < current_max_ms_level)
       {
         if ((int)last_deconvolved_spectra[ms_level].size() >= num_last_deconvolved_spectra)
@@ -701,7 +695,6 @@ protected:
         {
           dummy_deconvolved_spectrum.push_back(pg);
         }
-
         dummy_deconvolved_spectrum.sortByQScore();
         deconvolved_spectrum.sortByQScore();
         DeconvolvedSpectrum tmp_spectrum(scan_number);
@@ -721,7 +714,6 @@ protected:
 
         dummy_deconvolved_spectra.push_back(dummy_deconvolved_spectrum);
       }
-
       qspec_cntr[ms_level - 1]++;
       mass_cntr[ms_level - 1] += deconvolved_spectrum.size();
       deconvolved_spectra.push_back(deconvolved_spectrum);
