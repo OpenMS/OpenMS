@@ -342,7 +342,8 @@ namespace OpenMS
           case MT_QUANT_AREA:
             return computeFwhmAreaSmooth();
           case MT_QUANT_MEDIAN:
-            throw Exception::NotImplemented(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
+            // median quantification (e.g. for direct infusion data) should work indepentently from smoothing
+            return computeMedianIntensity_();
           case MT_QUANT_HEIGHT:
             return getMaxIntensity(true);
           default:

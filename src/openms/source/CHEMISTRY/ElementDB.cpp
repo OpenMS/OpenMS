@@ -121,7 +121,7 @@ namespace OpenMS
                              bool replace_existing)
   {
     if (hasElement(an) && !replace_existing)
-    {
+    {      
       throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String("Element with atomic number ") + an + " already exists");
     }
     buildElement_(name, symbol, an, abundance, mass);
@@ -164,7 +164,8 @@ namespace OpenMS
     auto elem = container.find(key);
     if (elem != container.end())
     {
-      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String(key), "Already exists!");
+      delete replacement;
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String(key), "Already exists!");      
     }
     container[key] = replacement;
   }
@@ -626,48 +627,47 @@ namespace OpenMS
     storeIsotopes_(name, symbol, an, mass, isotopes);
   }
 
-  void overwrite(const Element* old, std::unique_ptr<const Element>& new_e)
+  void overwrite(const Element* old, const Element* new_e)
   {
     if (old->getSymbol() != new_e->getSymbol())
     { // -- this would invalidate the lookup, since e_ptr->getSymbols().at("O")->getSymbol() == 'P'
+      delete(new_e);
       throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, new_e->getSymbol(),
                                     "Replacing element with name " + old->getName() + " and symbol " + old->getSymbol() + " has different new symbol: " + new_e->getSymbol());
     }
     if (old->getName() != new_e->getName())
     { // -- this would invalidate the lookup, since e_ptr->getName().at("Oxygen")->getName() == 'Something'
+      delete(new_e);
       throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, new_e->getSymbol(), "Replacing element with name " + old->getName() + " has different new name: " + new_e->getName());
     }
     if (old->getAtomicNumber() != new_e->getAtomicNumber())
     { // -- this would invalidate the lookup, since e_ptr->getAtomicNumbers().at(12)->getAtomicNumber() == 14
+      delete(new_e);
       throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, new_e->getSymbol(),
                                     "Replacing element with atomic number " + String(old->getAtomicNumber()) + " has different new atomic number: " + String(new_e->getAtomicNumber()));
     }
     // ... overwrite
     *(const_cast<Element*>(old)) = *new_e;
-    new_e.release();
   }
 
   void ElementDB::addElementToMaps_(const string& name, const string& symbol, const unsigned int an, const Element* e)
   {
-    #pragma omp critical(OpenMS_ElementDB)
+    // overwrite existing element if it already exists
+    // find() has to be protected here in a parallel context
+    if (atomic_numbers_.find(an) != atomic_numbers_.end())
     {
-      // overwrite existing element if it already exists
-      // find() has to be protected here in a parallel context
-      if (atomic_numbers_.find(an) != atomic_numbers_.end())
-      {
-        // in order to ensure that existing elements are still valid and memory
-        // addresses do not change, we have to modify the Element in place
-        // instead of replacing it.
-        unique_ptr<const Element> pe;
-        pe.reset(e);
-        overwrite(atomic_numbers_[an], pe);
-      }
-      else
-      {
-        checkedAddNoReplace(names_, name, e);
-        checkedAddNoReplace(symbols_, symbol, e);
-        checkedAddNoReplace(atomic_numbers_, an, e);
-      }
+      // in order to ensure that existing elements are still valid and memory
+      // addresses do not change, we have to modify the Element in place
+      // instead of replacing it.
+
+      overwrite(atomic_numbers_[an], e);
+      delete(e);
+    }
+    else
+    {
+      checkedAddNoReplace(names_, name, e);
+      checkedAddNoReplace(symbols_, symbol, e);
+      checkedAddNoReplace(atomic_numbers_, an, e);
     }
   }
 
@@ -688,14 +688,14 @@ namespace OpenMS
       iso_container.push_back(Peak1D(atomic_mass, 1.0));
       iso_isotopes.set(iso_container);  
 
-      auto iso_e = make_unique<const Element>(iso_name, iso_symbol, an, iso_avg_weight, iso_mono_weight, iso_isotopes);
       if (auto has_elem = names_.find(iso_name); has_elem != names_.end())
       { // already exists: overwrite (affects all maps, since they all point to the same thing)
-        overwrite(has_elem->second, iso_e);
+        Element iso_e(iso_name, iso_symbol, an, iso_avg_weight, iso_mono_weight, iso_isotopes);
+        overwrite(has_elem->second, &iso_e);
       }
       else
       {
-        auto ele = iso_e.release();
+        auto* ele = new Element(iso_name, iso_symbol, an, iso_avg_weight, iso_mono_weight, iso_isotopes);
         checkedAddNoReplace(names_, iso_name, ele);
         checkedAddNoReplace(symbols_, iso_symbol, ele);
       }
