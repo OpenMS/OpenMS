@@ -289,6 +289,13 @@ namespace OpenMS
     if (reference_.empty())
     {
       OPENMS_LOG_WARN << "No reference RT information left after filtering!" << endl;
+      for (Int i = 0; i < size + 1; ++i)
+      {
+        TransformationDescription trafo;
+        trafo.fitModel("identity");
+        transforms.push_back(trafo);
+      }                
+      return;
     }
 
     double max_rt_shift = (double)param_.getValue("max_rt_shift");
@@ -330,6 +337,7 @@ namespace OpenMS
                  << i + 1 << " (reference)\n";
         offset = 1;
       }
+
       if (i >= size) break;
 
       // to be useful for the alignment, a peptide sequence has to occur in the
