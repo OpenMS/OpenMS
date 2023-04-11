@@ -122,7 +122,7 @@ namespace OpenMS
         pids.back().setHigherScoreBetter(higher_score_better);
       }
 
-      const String& sScanNr = row[to_idx.at("ScanNr")];
+      int sScanNr = row[to_idx.at("ScanNr")].toInt();
 
       const String& sPeptide = row[to_idx.at("Peptide")];
       const double score = row[to_idx.at("score")].toDouble();
