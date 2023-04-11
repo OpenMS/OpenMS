@@ -637,11 +637,11 @@ protected:
 
     if (separation_prediction)
     {
-      FileHandler().StoreIdentifications(outputfile_name_positive,
+      FileHandler().storeIdentifications(outputfile_name_positive,
                        protein_identifications,
                        identifications_positive,
                        {FileTypes::IDXML});
-      idXML_file.StoreIdentifications(outputfile_name_negative,
+      idXML_file.storeIdentifications(outputfile_name_negative,
                        protein_identifications,
                        identifications_negative,
                        {FileTypes::IDXML});
@@ -654,7 +654,7 @@ protected:
       }
       if (!output_id.empty()) // idXML
       {
-        idXML_file.StoreIdentifications(output_id,
+        idXML_file.storeIdentifications(output_id,
                          protein_identifications,
                          identifications,
                          {FileTypes::IDXML});

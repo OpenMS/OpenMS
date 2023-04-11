@@ -178,7 +178,7 @@ protected:
     // writing output
     //-------------------------------------------------------------
 
-    file.StoreIdentifications(out_file,
+    file.storeIdentifications(out_file,
                protein_identifications,
                identifications, {FileTypes::IDXML});
 

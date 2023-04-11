@@ -189,10 +189,7 @@ protected:
     vector<ProteinIdentification> protein_ids;
     vector<PeptideIdentification> peptide_ids;
     FileTypes::Type in_type = FileHandler::getType(id);
-    if (!FileHandler().loadIdentifications(id, protein_ids, peptide_ids, {FileTypes::IDXML, FileTypes::MZIDENTML}))
-    {
-      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "wrong id fileformat");
-    }
+    FileHandler().loadIdentifications(id, protein_ids, peptide_ids, {FileTypes::IDXML, FileTypes::MZIDENTML});
 
     String in = getStringOption_("in");
     String spectra = getStringOption_("spectra:in");

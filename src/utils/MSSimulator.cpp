@@ -357,7 +357,7 @@ protected:
         origin = "SIMULATED";
       }
       proteins[0].setPrimaryMSRunPath({origin});
-      FileHandler().StoreIdentifications(id_out, proteins, peptides, {FileTypes::IDXML});
+      FileHandler().storeIdentifications(id_out, proteins, peptides, {FileTypes::IDXML});
     }
 
     return EXECUTION_OK;

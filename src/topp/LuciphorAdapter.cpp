@@ -672,7 +672,7 @@ protected:
     {
       p.getSearchParameters().setMetaValue(Constants::UserParam::LOCALIZED_MODIFICATIONS_USERPARAM, getStringList_("target_modifications"));
     }
-    FileHandler().StoreIdentifications(out, prot_ids, pep_out, {FileTypes::IDXML});
+    FileHandler().storeIdentifications(out, prot_ids, pep_out, {FileTypes::IDXML});
 
     return EXECUTION_OK;
   }

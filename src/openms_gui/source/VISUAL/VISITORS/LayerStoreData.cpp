@@ -261,7 +261,7 @@ namespace OpenMS
     // helper for saving a PepIDs to a file
   void savePepIdsToFile(const String& path, const IPeptideIds::PepIds& ids, const ProgressLogger::LogType lt, const FileTypes::Type /*ext*/)
   {
-    FileHandler().StoreIdentifications(path, {}, ids, {FileTypes::IDXML}, lt);
+    FileHandler().storeIdentifications(path, {}, ids, {FileTypes::IDXML}, lt);
   }
 
   void LayerStoreDataIdentVisible::saveToFile(const String& path, const ProgressLogger::LogType lt) const

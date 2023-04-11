@@ -463,7 +463,7 @@ protected:
              const ProteinIdentification::ProteinGroup& g)
           {return f.accessions < g.accessions;});
 
-      FileHandler().StoreIdentifications(out_file, mergedprots, mergedpeps, {FileTypes::IDXML});
+      FileHandler().storeIdentifications(out_file, mergedprots, mergedpeps, {FileTypes::IDXML});
     }
     return ExitCodes::EXECUTION_OK;
   }

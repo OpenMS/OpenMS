@@ -153,8 +153,6 @@ START_SECTION([EXTRA] FileTypes::FileTypeList)
   {
     std::unordered_set<FileTypes::FileProperties> f;
     f.insert(FileTypes::READABLE);
-    // FIXME This causes the following linker error.
-    /*/home/samuel/git/OpenMS/src/tests/class_tests/openms/source/FileTypes_test.cpp:157: undefined reference to `OpenMS::FileTypeList::typesWithProperties(std::unordered_set<OpenMS::FileTypes::FileProperties, std::hash<OpenMS::FileTypes::FileProperties>, std::equal_to<OpenMS::FileTypes::FileProperties>, std::allocator<OpenMS::FileTypes::FileProperties> >)'*/
     FileTypeList g = FileTypeList::typesWithProperties(f);
     TEST_EQUAL(g.getTypes().size(), 2);
   }

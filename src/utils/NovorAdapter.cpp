@@ -380,7 +380,7 @@ protected:
      
     OPENMS_LOG_INFO << "NOVOR created " << peptide_ids.size() << " PSMs from " << count_written << " MS2 spectra (" << (peptide_ids.size() * 100 / count_written) << "% annotated)\n";
 
-    FileHandler().StoreIdentifications(out, protein_ids, peptide_ids, {FileTypes::IDXML});
+    FileHandler().storeIdentifications(out, protein_ids, peptide_ids, {FileTypes::IDXML});
 
     return EXECUTION_OK;
   }

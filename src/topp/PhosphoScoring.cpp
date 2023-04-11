@@ -338,7 +338,7 @@ protected:
     // writing output
     //-------------------------------------------------------------
 
-    FileHandler().StoreIdentifications(out, prot_ids, pep_out, {FileTypes::IDXML});
+    FileHandler().storeIdentifications(out, prot_ids, pep_out, {FileTypes::IDXML});
     return EXECUTION_OK;
   }
 };

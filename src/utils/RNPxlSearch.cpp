@@ -2359,7 +2359,7 @@ protected:
     }
 
     // write ProteinIdentifications and PeptideIdentifications to IdXML
-    FileHandler().StoreIdentifications(out_idxml, protein_ids, peptide_ids, {FileTypes::IDXML});
+    FileHandler().storeIdentifications(out_idxml, protein_ids, peptide_ids, {FileTypes::IDXML});
 
     // save report
     if (!out_csv.empty())

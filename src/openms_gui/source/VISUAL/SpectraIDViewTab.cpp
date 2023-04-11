@@ -1000,7 +1000,7 @@ namespace OpenMS
     {
       return;
     }      
-    FileHandler().StoreIdentifications(filename, prot_id, all_pep_ids, {FileTypes::IDXML, FileTypes::MZIDENTML});
+    FileHandler().storeIdentifications(filename, prot_id, all_pep_ids, {FileTypes::IDXML, FileTypes::MZIDENTML});
   }
 
   void SpectraIDViewTab::updatedSingleProteinCell_(QTableWidgetItem* /*item*/)

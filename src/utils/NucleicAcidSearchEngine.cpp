@@ -1433,7 +1433,7 @@ protected:
       vector<ProteinIdentification> proteins;
       vector<PeptideIdentification> peptides;
       IdentificationDataConverter::exportIDs(id_data, proteins, peptides);
-      FileHandler().StoreIdentifications(id_out, proteins, peptides, {FileTypes::IDXML});
+      FileHandler().storeIdentifications(id_out, proteins, peptides, {FileTypes::IDXML});
     }
 
     if (!lfq_out.empty())

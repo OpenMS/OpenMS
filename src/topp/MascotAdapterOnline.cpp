@@ -470,7 +470,7 @@ protected:
     // write all (!) parameters as metavalues to the search parameters
     DefaultParamHandler::writeParametersToMetaValues(this->getParam_(), all_prot_ids[0].getSearchParameters(), this->getToolPrefix());
 
-    FileHandler().StoreIdentifications(out, all_prot_ids, all_pep_ids, {FileTypes::IDXML});
+    FileHandler().storeIdentifications(out, all_prot_ids, all_pep_ids, {FileTypes::IDXML});
     
     return EXECUTION_OK;
   }

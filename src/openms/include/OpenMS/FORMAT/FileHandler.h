@@ -194,7 +194,7 @@ public:
       @exception Exception::FileNotFound is thrown if the file could not be opened
       @exception Exception::ParseError is thrown if an error occurs during parsing
     */
-    bool loadExperiment(const String& filename, PeakMap& exp, const std::vector<FileTypes::Type> allowed_types = std::vector<FileTypes::Type>(),
+    void loadExperiment(const String& filename, PeakMap& exp, const std::vector<FileTypes::Type> allowed_types = std::vector<FileTypes::Type>(),
                         ProgressLogger::LogType log = ProgressLogger::NONE, const bool rewrite_source_file = false,
                         const bool compute_hash = false);
 
@@ -210,7 +210,7 @@ public:
 
       @exception Exception::UnableToCreateFile is thrown if the file could not be written
     */
-    bool storeExperiment(const String& filename, const PeakMap& exp, const std::vector<FileTypes::Type> allowed_types = std::vector<FileTypes::Type>(), ProgressLogger::LogType log = ProgressLogger::NONE);
+    void storeExperiment(const String& filename, const PeakMap& exp, const std::vector<FileTypes::Type> allowed_types = std::vector<FileTypes::Type>(), ProgressLogger::LogType log = ProgressLogger::NONE);
 
     /**
       @brief Loads a file into a FeatureMap
@@ -223,7 +223,7 @@ public:
       @exception Exception::FileNotFound is thrown if the file could not be opened
       @exception Exception::ParseError is thrown if an error occurs during parsing
     */
-    bool loadFeatures(const String& filename, FeatureMap& map, const std::vector<FileTypes::Type> allowed_types = std::vector<FileTypes::Type>(), ProgressLogger::LogType log = ProgressLogger::NONE);
+    void loadFeatures(const String& filename, FeatureMap& map, const std::vector<FileTypes::Type> allowed_types = std::vector<FileTypes::Type>(), ProgressLogger::LogType log = ProgressLogger::NONE);
 
     /**
       @brief Store a FeatureMap
@@ -238,7 +238,7 @@ public:
 
       @exception Exception::UnableToCreateFile is thrown if the file could not be written
     */
-    bool storeFeatures(const String& filename, const FeatureMap& map, const std::vector<FileTypes::Type> allowed_types = std::vector<FileTypes::Type>(), ProgressLogger::LogType log = ProgressLogger::NONE);
+    void storeFeatures(const String& filename, const FeatureMap& map, const std::vector<FileTypes::Type> allowed_types = std::vector<FileTypes::Type>(), ProgressLogger::LogType log = ProgressLogger::NONE);
 
     /**
       @brief Loads a file into a ConsensusMap
@@ -253,7 +253,7 @@ public:
       @exception Exception::FileNotFound is thrown if the file could not be opened
       @exception Exception::ParseError is thrown if an error occurs during parsing
     */
-    bool loadConsensusFeatures(const String& filename, ConsensusMap& map, const std::vector<FileTypes::Type> allowed_types = std::vector<FileTypes::Type>(), ProgressLogger::LogType log = ProgressLogger::NONE);
+    void loadConsensusFeatures(const String& filename, ConsensusMap& map, const std::vector<FileTypes::Type> allowed_types = std::vector<FileTypes::Type>(), ProgressLogger::LogType log = ProgressLogger::NONE);
 
     /**
       @brief Store a ConsensusFeatureMap
@@ -267,7 +267,7 @@ public:
 
       @exception Exception::UnableToCreateFile is thrown if the file could not be written
     */
-    bool storeConsensusFeatures(const String& filename, const ConsensusMap& map, const std::vector<FileTypes::Type> allowed_types = std::vector<FileTypes::Type>(), ProgressLogger::LogType log = ProgressLogger::NONE);
+    void storeConsensusFeatures(const String& filename, const ConsensusMap& map, const std::vector<FileTypes::Type> allowed_types = std::vector<FileTypes::Type>(), ProgressLogger::LogType log = ProgressLogger::NONE);
 
     /**
       @brief Loads an identification file into a into proteins and peptides
@@ -283,7 +283,7 @@ public:
       @exception Exception::FileNotFound is thrown if the file could not be opened
       @exception Exception::ParseError is thrown if an error occurs during parsing
     */
-    bool loadIdentifications(const String& filename, std::vector<ProteinIdentification>& additional_proteins, std::vector<PeptideIdentification>& additional_peptides, const std::vector<FileTypes::Type> allowed_types = std::vector<FileTypes::Type>(), ProgressLogger::LogType log = ProgressLogger::NONE);
+    void loadIdentifications(const String& filename, std::vector<ProteinIdentification>& additional_proteins, std::vector<PeptideIdentification>& additional_peptides, const std::vector<FileTypes::Type> allowed_types = std::vector<FileTypes::Type>(), ProgressLogger::LogType log = ProgressLogger::NONE);
 
     /**
       @brief Stores proteins and peptides into an Identification File
@@ -298,7 +298,7 @@ public:
 
       @exception Exception::UnableToCreateFile is thrown if the file could not be written
     */
-    bool StoreIdentifications(const String& filename, const std::vector<ProteinIdentification>& additional_proteins, const std::vector<PeptideIdentification>& additional_peptides, const std::vector<FileTypes::Type> allowed_types = std::vector<FileTypes::Type>(), ProgressLogger::LogType log = ProgressLogger::NONE);
+    void storeIdentifications(const String& filename, const std::vector<ProteinIdentification>& additional_proteins, const std::vector<PeptideIdentification>& additional_peptides, const std::vector<FileTypes::Type> allowed_types = std::vector<FileTypes::Type>(), ProgressLogger::LogType log = ProgressLogger::NONE);
 
     /**
       @brief Load transitions of a spectral library
@@ -313,7 +313,7 @@ public:
       @exception Exception::FileNotFound is thrown if the file could not be opened
       @exception Exception::ParseError is thrown if an error occurs during parsing
     */
-    bool loadTransitions(const String& filename, TargetedExperiment& library, const std::vector<FileTypes::Type> allowed_types = std::vector<FileTypes::Type>(), ProgressLogger::LogType log = ProgressLogger::NONE);
+    void loadTransitions(const String& filename, TargetedExperiment& library, const std::vector<FileTypes::Type> allowed_types = std::vector<FileTypes::Type>(), ProgressLogger::LogType log = ProgressLogger::NONE);
 
     /**
       @brief Store transitions of a spectral library
@@ -327,7 +327,7 @@ public:
 
       @exception Exception::UnableToCreateFile is thrown if the file could not be written
     */
-    bool storeTransitions(const String& filename, const TargetedExperiment& library, const std::vector<FileTypes::Type> allowed_types = std::vector<FileTypes::Type>(), ProgressLogger::LogType log = ProgressLogger::NONE);
+    void storeTransitions(const String& filename, const TargetedExperiment& library, const std::vector<FileTypes::Type> allowed_types = std::vector<FileTypes::Type>(), ProgressLogger::LogType log = ProgressLogger::NONE);
 
         /**
       @brief Loads a file into MSQuantifications
@@ -342,7 +342,7 @@ public:
       @exception Exception::ParseError is thrown if an error occurs during parsing
     */
 
-    bool loadQuantifications(const String& filename, MSQuantifications& map, const std::vector<FileTypes::Type> allowed_types = std::vector<FileTypes::Type>(), ProgressLogger::LogType log = ProgressLogger::NONE);
+    void loadQuantifications(const String& filename, MSQuantifications& map, const std::vector<FileTypes::Type> allowed_types = std::vector<FileTypes::Type>(), ProgressLogger::LogType log = ProgressLogger::NONE);
 
     /**
       @brief Store MSQuantifications
@@ -355,7 +355,7 @@ public:
 
       @exception Exception::UnableToCreateFile is thrown if the file could not be written
     */
-    bool storeQuantifications(const String& filename, const MSQuantifications& map, const std::vector<FileTypes::Type> allowed_types = std::vector<FileTypes::Type>(), ProgressLogger::LogType log = ProgressLogger::NONE);
+    void storeQuantifications(const String& filename, const MSQuantifications& map, const std::vector<FileTypes::Type> allowed_types = std::vector<FileTypes::Type>(), ProgressLogger::LogType log = ProgressLogger::NONE);
 
 
         /**
@@ -371,7 +371,7 @@ public:
       @exception Exception::ParseError is thrown if an error occurs during parsing
     */
 
-    bool loadTransformations(const String& filename, TransformationDescription& map, bool fit_model=true, const std::vector<FileTypes::Type> allowed_types = std::vector<FileTypes::Type>());
+    void loadTransformations(const String& filename, TransformationDescription& map, bool fit_model=true, const std::vector<FileTypes::Type> allowed_types = std::vector<FileTypes::Type>());
 
     /**
       @brief Store Transformations
@@ -384,7 +384,7 @@ public:
 
       @exception Exception::UnableToCreateFile is thrown if the file could not be written
     */
-    bool storeTransformations(const String& filename, const TransformationDescription& map, const std::vector<FileTypes::Type> allowed_types = std::vector<FileTypes::Type>());
+    void storeTransformations(const String& filename, const TransformationDescription& map, const std::vector<FileTypes::Type> allowed_types = std::vector<FileTypes::Type>());
 
     /**
       @brief Store QC info
@@ -408,7 +408,7 @@ public:
 
       @exception Exception::UnableToCreateFile is thrown if the file could not be written
     */
-    bool storeQC(const String& input_file,
+    void storeQC(const String& input_file,
                const String& output_file,
                const MSExperiment& exp,
                const FeatureMap& feature_map,

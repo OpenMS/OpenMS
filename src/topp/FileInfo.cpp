@@ -183,7 +183,7 @@ protected:
     registerOutputFile_("out", "<file>", "", "Optional output file. If left out, the output is written to the command line.", false);
     setValidFormats_("out", {"txt"});
     registerOutputFile_("out_tsv", "<file>", "", "Second optional output file. Tab separated flat text file.", false, true);
-    setValidFormats_("out_tsv", {"csv"});
+    setValidFormats_("out_tsv", {"tsv"});
     registerFlag_("m", "Show meta information about the whole experiment");
     registerFlag_("p", "Shows data processing information");
     registerFlag_("s", "Computes a five-number statistics of intensities, qualities, and widths");
@@ -867,7 +867,7 @@ protected:
     else if (in_type == FileTypes::TRANSFORMATIONXML)
     {
       TransformationDescription trafo;
-      FileHandler().loadTransformations(in, trafo, false, {FileTypes::TRANSFORMATIONXML});
+      FileHandler().loadTransformations(in, trafo, true, {FileTypes::TRANSFORMATIONXML});
       os << "\nTransformation model: " << trafo.getModelType() << '\n';
       trafo.printSummary(os);
     }
@@ -882,12 +882,7 @@ protected:
     else // peaks
     {
       SysInfo::MemUsage mu;
-      if (!fh.loadExperiment(in, exp, {in_type}, log_type_, false, false))
-      {
-        writeLogError_("Unsupported or corrupt input file. Aborting!");
-        printUsage_();
-        return ILLEGAL_PARAMETERS;
-      }
+      fh.loadExperiment(in, exp, {in_type}, log_type_, false, false);
 
       // update range information and retrieve which MS levels were recorded
       exp.updateRanges();

@@ -295,7 +295,7 @@ protected:
     //-------------------------------------------------------------
     // writing output
     //-------------------------------------------------------------
-    file.StoreIdentifications(outputfile_name, protein_ids, peptide_ids, {FileTypes::IDXML});
+    file.storeIdentifications(outputfile_name, protein_ids, peptide_ids, {FileTypes::IDXML});
     return EXECUTION_OK;
   }
 };

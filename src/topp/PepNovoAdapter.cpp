@@ -368,7 +368,7 @@ class TOPPPepNovoAdapter :
           std::vector<ProteinIdentification>prot_ids;
           p_novo_outfile.load(temp_pepnovo_outfile, peptide_identifications, protein_identification, -1e5, index_to_precursor, mods_and_keys);
           prot_ids.push_back(protein_identification);
-          FileHandler().StoreIdentifications(outputfile_name, prot_ids, peptide_identifications, {FileTypes::IDXML});
+          FileHandler().storeIdentifications(outputfile_name, prot_ids, peptide_identifications, {FileTypes::IDXML});
         }
 
         if (process.exitStatus() != 0)

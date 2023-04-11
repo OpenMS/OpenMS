@@ -775,7 +775,7 @@ protected:
 
     if (infiletype == FileTypes::IDXML)
     {
-      FileHandler().StoreIdentifications(outputfile_name, proteins, peptides, {FileTypes::IDXML});
+      FileHandler().storeIdentifications(outputfile_name, proteins, peptides, {FileTypes::IDXML});
     }
     else if (infiletype == FileTypes::CONSENSUSXML)
     {

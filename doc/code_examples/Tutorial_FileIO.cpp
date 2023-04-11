@@ -44,9 +44,20 @@ int main(int argc, const char** argv)
   // temporary data storage
   PeakMap map;
 
-  // convert MzXML to MzML
+  // convert MzXML to MzML we use FileHandler to do the actual work.
+  // Here we limit the input type to be MZXML only
   FileHandler().loadExperiment(tutorial_data_path + "/data/Tutorial_FileIO.mzXML", map, {FileTypes::MZXML});
   FileHandler().storeExperiment("Tutorial_FileIO.mzML", map, {FileTypes::MZML});
+
+  // we can also load an experiment from a file without any restrictions on the file type:
+  FileHandler().loadExperiment(tutorial_data_path + "/data/Tutorial_Spectrum1D.dta", map);
+
+  // We use verious FileHandler functions to load other types.
+  FeatureMap feat;
+  FileHandler().loadFeatures(tutorial_data_path + "/data/Tutorial_Labeled.featureXML", feat);
+
+  // If we try to load something from a file that can't store that info (for example trying to get an experiment from a idXML file)
+  // An error gets thrown at run time. Check out @p FileHandler class for more info
 
   return 0;
 } //end of main

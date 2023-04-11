@@ -459,7 +459,7 @@ protected:
 
       writeDebug_("write idXMLFile", 1);
       writeDebug_(out, 1);// As the maracluster output file is not needed anymore, the temporary directory is going to be deleted
-      FileHandler().StoreIdentifications(out, all_protein_ids, all_peptide_ids, {FileTypes::IDXML});
+      FileHandler().storeIdentifications(out, all_protein_ids, all_peptide_ids, {FileTypes::IDXML});
     }
 
     //output consensus mzML
@@ -471,7 +471,7 @@ protected:
         arguments_consensus << "consensus";
         arguments_consensus << "-l" << consensus_output_file.toQString();
         arguments_consensus << "-f" << tmp_dir.getPath().toQString();
-        arguments_consensus << "-o" << consensus_out.toQString();
+        arguments_consensus << "-o" <<  consensus_out.toQString();
         Int min_cluster_size = getIntOption_("min_cluster_size");
         arguments_consensus << "-M" << String(min_cluster_size).toQString();
 
@@ -492,12 +492,12 @@ protected:
 
       // sort mzML
       FileHandler fh;
-      FileTypes::Type in_type = fh.getType(consensus_output_file);
-
+      FileTypes::Type in_type = fh.getType(consensus_out);
+      OPENMS_LOG_DEBUG << "Input type" << FileTypes::typeToName(in_type) << ". " << std::endl;
       PeakMap exp;
-      fh.loadExperiment(consensus_output_file, exp, {in_type}, log_type_, true, true);
+      fh.loadExperiment(FileHandler::stripExtension(consensus_out) + ".part1." + FileTypes::typeToName(in_type), exp, {in_type}, log_type_, true, true);
       exp.sortSpectra();
-      fh.storeExperiment(consensus_output_file, exp, {FileTypes::MZML}, log_type_);
+      fh.storeExperiment(consensus_out, exp, {FileTypes::MZML}, log_type_);
     }
 
     writeLogInfo_("MaRaClusterAdapter finished successfully!");

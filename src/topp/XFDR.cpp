@@ -171,19 +171,19 @@ protected:
     // write idXML
     if (! arg_out_idXML_.empty())
     {
-      FileHandler().StoreIdentifications(arg_out_idXML_, protein_ids, peptide_ids, {FileTypes::IDXML});
+      FileHandler().storeIdentifications(arg_out_idXML_, protein_ids, peptide_ids, {FileTypes::IDXML});
     }
 
     // write mzid file
     if (! arg_out_mzid_.empty())
     {
-      FileHandler().StoreIdentifications(arg_out_mzid_, protein_ids, peptide_ids, {FileTypes::MZIDENTML});
+      FileHandler().storeIdentifications(arg_out_mzid_, protein_ids, peptide_ids, {FileTypes::MZIDENTML});
     }
 
     // write xquest.xml file
     if (! arg_out_xquest_.empty())
     {
-      FileHandler().StoreIdentifications(arg_out_xquest_, protein_ids, peptide_ids, {FileTypes::XQUESTXML});
+      FileHandler().storeIdentifications(arg_out_xquest_, protein_ids, peptide_ids, {FileTypes::XQUESTXML});
     }
     return EXECUTION_OK;
   }

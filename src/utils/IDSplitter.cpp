@@ -196,7 +196,7 @@ protected:
       // IDMapper can match a peptide ID to several overlapping features,
       // resulting in duplicates; this shouldn't be the case for peak data
       if (in_type != FileTypes::MZML) removeDuplicates_(peptides);
-      FileHandler().StoreIdentifications(id_out, proteins, peptides, {FileTypes::IDXML});
+      FileHandler().storeIdentifications(id_out, proteins, peptides, {FileTypes::IDXML});
     }
 
     return EXECUTION_OK;

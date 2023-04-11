@@ -222,7 +222,7 @@ protected:
     {
       String model_type = getStringOption_("model:type");
       Param model_params = getParam_().copy("model:", true);
-      FileHandler().loadTransformations(trafo_in, trafo, false, {FileTypes::TRANSFORMATIONXML});
+      FileHandler().loadTransformations(trafo_in, trafo, true, {FileTypes::TRANSFORMATIONXML});
       trafo.fitModel(model_type, model_params);
     }
     TransformationDescription trafo_inverse = trafo;

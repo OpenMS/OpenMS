@@ -38,6 +38,7 @@
 #include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
 
 #include <OpenMS/CONCEPT/Types.h>
+#include <OpenMS/VISUAL/PlotCanvas.h> // for AreaXYType
 
 #include <QtWidgets/QDialog>
 
@@ -62,33 +63,31 @@ namespace OpenMS
     Q_OBJECT
 
 public:
+    using AreaXYType = PlotCanvas::AreaXYType;
+
     ///Constructor
-    Plot2DGoToDialog(QWidget * parent = nullptr);
+    /// @param parent Parent widget
+    /// @param x_name Name of the x_axis dimension
+    /// @param y_name Name of the y_axis dimension
+    Plot2DGoToDialog(QWidget* parent, std::string_view x_name, std::string_view y_name);
     ///Destructor
     ~Plot2DGoToDialog() override;
 
-    /// Returns if a range should be display (true) or if a feature should be displayed (false)
+    /// Returns if a feature UID was set an a feature should be displayed (false), otherwise, show a range (true)
     bool showRange() const;
-
-    /// Fixes the currently stored range (i.e. ensure correct order of min-max; enforce minimum of 1 Da (or 1 sec for RT) window IFF min==max
-    void fixRange();
 
     bool checked();
 
     ///@name Methods for ranges
     //@{
     ///Sets the data range to display initially
-    void setRange(float min_rt, float max_rt, float min_mz, float max_mz);
+    void setRange(const AreaXYType& range);
     ///Sets the data range of the complete experiment for better navigation with the dialog
-    void setMinMaxOfRange(float min_rt, float max_rt, float min_mz, float max_mz);
-    ///Returns the lower RT bound
-    float getMinRT() const;
-    ///Returns the upper RT bound
-    float getMaxRT() const;
-    ///Returns the lower m/z bound
-    float getMinMZ() const;
-    ///Returns the upper m/z bound
-    float getMaxMZ() const;
+    void setMinMaxOfRange(const AreaXYType& max_range);
+
+    /// Query the range set by the user.
+    /// If any dimension is <1, it is extended to at least 1 to ensure proper displaying.
+    AreaXYType getRange();
     //@}
 
     ///@name Methods for feature numbers

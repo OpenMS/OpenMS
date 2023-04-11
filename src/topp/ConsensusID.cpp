@@ -909,7 +909,7 @@ protected:
         }
       }
       // store consensus
-      FileHandler().StoreIdentifications(out, prot_ids, pep_ids, {FileTypes::IDXML});
+      FileHandler().storeIdentifications(out, prot_ids, pep_ids, {FileTypes::IDXML});
     }
 
     //----------------------------------------------------------------

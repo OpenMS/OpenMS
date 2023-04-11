@@ -223,7 +223,7 @@ protected:
 
 
 
-    FileHandler().StoreIdentifications(out, prot_ids, pep_ids, {FileTypes::IDXML});
+    FileHandler().storeIdentifications(out, prot_ids, pep_ids, {FileTypes::IDXML});
 
     return EXECUTION_OK;
   }

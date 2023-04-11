@@ -322,6 +322,15 @@ namespace OpenMS
     std::vector<int> tr_win_map; // maps transition k to dia map i from which it should be extracted, only used if pasef flag is on
     if (pasef)
     {
+      // Before calling this function, check to ensure that precursors actually have IM data
+      for (Size k = 0; k < irt_transitions.transitions.size(); k++)
+      {
+        const OpenSwath::LightTransition& tr = irt_transitions.transitions[k];
+        if (tr.getPrecursorIM() == -1)
+        {
+          throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Transition " + tr.getNativeID() +  " does not have a valid IM value, this must be set to use the -pasef flag");
+        }
+      }
       OpenSwathHelper::selectSwathTransitionsPasef(irt_transitions, tr_win_map, cp.min_upper_edge_dist, swath_maps);
     }
 
@@ -348,7 +357,7 @@ namespace OpenMS
                const OpenSwath::LightTransition& tr = irt_transitions.transitions[k];
                transition_exp_used.transitions.push_back(tr);
                matching_compounds.insert(tr.getPeptideRef());
-               OPENMS_LOG_DEBUG << "Adding Precursor with m/z " << tr.getPrecursorMZ() << " and IM of " << tr.getPrecursorIM() <<  " to swath with mz upper of " << swath_maps[map_idx].upper << " im lower of " << swath_maps[map_idx].imLower << " and im upper of " << swath_maps[map_idx].imUpper << std::endl;
+               OPENMS_LOG_DEBUG << "Adding Precursor with m/z " << tr.getPrecursorMZ() << " and IM of " << tr.getPrecursorIM() <<  " to swath with mz lower of " << swath_maps[map_idx].lower << " m/z upper of " << swath_maps[map_idx].upper << " im lower of " << swath_maps[map_idx].imLower << " and im upper of " << swath_maps[map_idx].imUpper << std::endl;
             }
           }
 

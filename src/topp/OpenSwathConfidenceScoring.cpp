@@ -184,7 +184,7 @@ public:
     }
     else
     {
-      FileHandler().loadTransformations(trafo, rt_trafo_, false, {FileTypes::TRANSFORMATIONXML});
+      FileHandler().loadTransformations(trafo, rt_trafo_, true, {FileTypes::TRANSFORMATIONXML});
       if (rt_trafo_.getModelType() == "none") // fit a linear model now
       {
         rt_trafo_.fitModel("linear");
