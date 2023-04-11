@@ -285,9 +285,10 @@ namespace OpenMS
       temp.swap(medians_per_seq);
       computeMedians_(medians_per_seq, reference_);
     }
+
     if (reference_.empty())
     {
-      throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "No reference RT information left after filtering");
+      OPENMS_LOG_WARN << "No reference RT information left after filtering!" << endl;
     }
 
     double max_rt_shift = (double)param_.getValue("max_rt_shift");
