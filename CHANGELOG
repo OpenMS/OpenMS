@@ -39,6 +39,9 @@ documentation.
 - Add support for user defined ribonucleotides with phosphorothioate linkages
 - Add support for JSON based ribonucleotides and updated to latest Modomics database
 
+Library:
+- Extend FileHandler to replace file specific load and store operations with datatype specific operations
+
 New Tools:
 - FLASHDeconv -- Ultra-fast high-quality deconvolution enables online processing of top-down MS data (TOPP)
 
