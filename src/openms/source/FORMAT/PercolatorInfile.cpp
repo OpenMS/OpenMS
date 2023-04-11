@@ -37,6 +37,7 @@
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/METADATA/SpectrumLookup.h>
+#include <OpenMS/FORMAT/CsvFile.h>
 
 namespace OpenMS
 {
@@ -93,40 +94,56 @@ namespace OpenMS
     return make_tuple(min_charge, max_charge);
   }
 
-  vector<PeptideIdentification> PercolatorInfile::load(const String& pin_file)
+  vector<PeptideIdentification> PercolatorInfile::load(const String& pin_file, bool higher_score_better)
   {
     CsvFile csv(pin_file, '\t');
     StringList header;
     csv.getRow(0, header);
     unordered_map<String, size_t> to_idx; // map column name to column index
-    for (int idx{}; const auto& h : header) { to_idx[h] = idx++; }
+    {
+      int idx{}; 
+      for (const auto& h : header) { to_idx[h] = idx++; }
+    }
 
     auto [lowest_charge, highest_charge] = extractHighestChargeFromHeader_(header);
     auto n_rows = csv.rowCount();
     
-    vector<PeptideIdentification> pids;
-    PeptideIdentification* pid = new PeptideIdentification();
+    vector<PeptideIdentification> pids(n_rows);
     String spec_id;
     size_t rank{1};
-    for (auto i = 1; i != n_rows; ++i)
+    for (size_t i = 1; i != n_rows; ++i)
     {
       StringList row;
       csv.getRow(i, row);
-      const String& sSpecId = row[to_idx["SpecId"]];
-      const String& sPeptide = row[to_idx["Peptide"]];
-      const double score = row[to_idx["score"]].toDouble();
+      const String& sSpecId = row[to_idx.at("SpecId")];
+      if (sSpecId != spec_id)
+      {
+        pids.resize(pids.size() + 1);
+        pids.back().setHigherScoreBetter(higher_score_better);
+      }
+
+      const String& sScanNr = row[to_idx.at("ScanNr")];
+
+      const String& sPeptide = row[to_idx.at("Peptide")];
+      const double score = row[to_idx.at("score")].toDouble();
+      // extract charge state from 1-hot encoded charge columns
       int charge{};
       for (int z = lowest_charge; z <= highest_charge; ++z)
       {
-        if (row[to_idx["charge" + String(z)]] == "1")
+        if (row[to_idx.at("charge" + String(z))] == "1")
         {
           charge = z;
           break;
         }
       }
-      
-      PeptideHit ph(score, rank, charge, std::move(sequence));
-      pid->addHit(ph);
+      OPENMS_POSTCONDITION(charge != 0, "charge annotation missing")
+
+      // TODO: handle modifications
+      AASequence aa_seq = AASequence::fromString(sPeptide);
+      PeptideHit ph(score, rank, charge, std::move(aa_seq));
+      ph.setMetaValue("SpecId", sSpecId);
+      ph.setMetaValue("ScanNr", sScanNr);
+      pids.back().insertHit(std::move(ph));
     }
     return pids;
 
