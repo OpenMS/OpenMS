@@ -3235,21 +3235,21 @@ add_test("UTILS_ProteomicsLFQ_8" ${TOPP_BIN_PATH}/ProteomicsLFQ
          -targeted_only true
          -transfer_ids false
          -mass_recalibration false
-         -out_cxml BSA_sub.consensusXML.tmp
-         -out_msstats BSA_sub.csv.tmp
-         -out BSA_sub.mzTab.tmp
-         -out_triqler BSA_sub.tsv.tmp
+         -out_cxml BSA_sub_8.consensusXML.tmp
+         -out_msstats BSA_sub_8.csv.tmp
+         -out BSA_sub_8.mzTab.tmp
+         -out_triqler BSA_sub_8.tsv.tmp
          -threads 1
          -proteinFDR 0.8
          -test
          )
-add_test("UTILS_ProteomicsLFQ_8_out_1" ${DIFF} -whitelist "spectra_data" "map id=" "InferenceEngineVersion" -in1 BSA_sub.consensusXML.tmp -in2 ${DATA_DIR_TOPP}/ProteomicsLFQ_8_out.consensusXML )
+add_test("UTILS_ProteomicsLFQ_8_out_1" ${DIFF} -whitelist "spectra_data" "map id=" "InferenceEngineVersion" -in1 BSA_sub_8.consensusXML.tmp -in2 ${DATA_DIR_TOPP}/ProteomicsLFQ_8_out.consensusXML )
 set_tests_properties("UTILS_ProteomicsLFQ_8_out_1" PROPERTIES DEPENDS "UTILS_ProteomicsLFQ_8")
-add_test("UTILS_ProteomicsLFQ_8_out_2" ${DIFF}  -whitelist "software" "location" -in1 BSA_sub.csv.tmp -in2 ${DATA_DIR_TOPP}/ProteomicsLFQ_8_out.csv )
+add_test("UTILS_ProteomicsLFQ_8_out_2" ${DIFF}  -whitelist "software" "location" -in1 BSA_sub_8.csv.tmp -in2 ${DATA_DIR_TOPP}/ProteomicsLFQ_8_out.csv )
 set_tests_properties("UTILS_ProteomicsLFQ_8_out_2" PROPERTIES DEPENDS "UTILS_ProteomicsLFQ_8")
-add_test("UTILS_ProteomicsLFQ_8_out_3" ${DIFF} -whitelist "software" "location" "InferenceEngineVersion" "TOPPProteinInference q-value" -in1 BSA_sub.mzTab.tmp -in2 ${DATA_DIR_TOPP}/ProteomicsLFQ_8_out.mzTab )
+add_test("UTILS_ProteomicsLFQ_8_out_3" ${DIFF} -whitelist "software" "location" "InferenceEngineVersion" "TOPPProteinInference q-value" -in1 BSA_sub_8.mzTab.tmp -in2 ${DATA_DIR_TOPP}/ProteomicsLFQ_8_out.mzTab )
 set_tests_properties("UTILS_ProteomicsLFQ_8_out_3" PROPERTIES DEPENDS "UTILS_ProteomicsLFQ_8")
-add_test("UTILS_ProteomicsLFQ_8_out_4" ${DIFF} -in1 BSA_sub.tsv.tmp -in2 ${DATA_DIR_TOPP}/ProteomicsLFQ_8_out.tsv )
+add_test("UTILS_ProteomicsLFQ_8_out_4" ${DIFF} -in1 BSA_sub_8.tsv.tmp -in2 ${DATA_DIR_TOPP}/ProteomicsLFQ_8_out.tsv )
 set_tests_properties("UTILS_ProteomicsLFQ_8_out_4" PROPERTIES DEPENDS "UTILS_ProteomicsLFQ_8")
 
 
