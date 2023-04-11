@@ -76,6 +76,74 @@ namespace OpenMS
     return scan_identifier.removeWhitespaces();
   }
 
+  std::tuple<int,int> extractHighestChargeFromHeader_(const StringList& header)
+  {
+    int max_charge{INT_MIN}, min_charge{INT_MAX};
+    for (auto h : header)
+    {
+      if (h.hasPrefix("charge"))
+      {
+        h = h.substr(0, 6); // chop off "charge"
+        int z = h.toInt();
+        max_charge = z > max_charge ? z : max_charge;
+        min_charge = z < min_charge ? z : min_charge;
+      }
+    }
+    OPENMS_POSTCONDITION(max_charge != INT_MIN, "No charge column found!");
+    return make_tuple(min_charge, max_charge);
+  }
+
+  vector<PeptideIdentification> PercolatorInfile::load(const String& pin_file)
+  {
+    CsvFile csv(pin_file, '\t');
+    StringList header;
+    csv.getRow(0, header);
+    unordered_map<String, size_t> to_idx; // map column name to column index
+    for (int idx{}; const auto& h : header) { to_idx[h] = idx++; }
+
+    auto [lowest_charge, highest_charge] = extractHighestChargeFromHeader_(header);
+    auto n_rows = csv.rowCount();
+    
+    vector<PeptideIdentification> pids;
+    PeptideIdentification* pid = new PeptideIdentification();
+    String spec_id;
+    size_t rank{1};
+    for (auto i = 1; i != n_rows; ++i)
+    {
+      StringList row;
+      csv.getRow(i, row);
+      const String& sSpecId = row[to_idx["SpecId"]];
+      const String& sPeptide = row[to_idx["Peptide"]];
+      const double score = row[to_idx["score"]].toDouble();
+      int charge{};
+      for (int z = lowest_charge; z <= highest_charge; ++z)
+      {
+        if (row[to_idx["charge" + String(z)]] == "1")
+        {
+          charge = z;
+          break;
+        }
+      }
+      
+      PeptideHit ph(score, rank, charge, std::move(sequence));
+      pid->addHit(ph);
+    }
+    return pids;
+
+    /* StringList headers = {"SpecId", "Label", "ScanNr", "ExpMass", "CalcMass", "mass", "peplen"}  
+    for (int i = min_charge; i <= max_charge; ++i)
+    {
+      feature_set.push_back("charge" + String(i));
+    }
+    feature_set.push_back("enzN");
+    feature_set.push_back("enzC");
+    feature_set.push_back("enzInt");
+    feature_set.push_back("dm");
+    feature_set.push_back("absdm");
+    */    
+
+  }
+
 
   TextFile PercolatorInfile::preparePin_(
     const vector<PeptideIdentification>& peptide_ids, 
