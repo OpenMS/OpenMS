@@ -289,13 +289,6 @@ namespace OpenMS
     if (reference_.empty())
     {
       OPENMS_LOG_WARN << "No reference RT information left after filtering!" << endl;
-      for (Int i = 0; i < size + 1; ++i)
-      {
-        TransformationDescription trafo;
-        trafo.fitModel("identity");
-        transforms.push_back(trafo);
-      }                
-      return;
     }
 
     double max_rt_shift = (double)param_.getValue("max_rt_shift");
@@ -340,6 +333,14 @@ namespace OpenMS
 
       if (i >= size) break;
 
+      if (reference_.empty())
+      {
+        TransformationDescription trafo;
+        trafo.fitModel("identity");
+        transforms.push_back(trafo);
+        continue;
+      }
+                
       // to be useful for the alignment, a peptide sequence has to occur in the
       // current run ("medians_per_run[i]"), but also in at least one other run
       // ("medians_overall"):
@@ -367,7 +368,7 @@ namespace OpenMS
       OPENMS_LOG_INFO << "- " << data.size() << " data points for sample "
                << i + offset + 1;
       if (n_outliers) OPENMS_LOG_INFO << " (" << n_outliers << " outliers removed)";
-      OPENMS_LOG_INFO << "\n";
+      OPENMS_LOG_INFO << "\n";    
     }
     OPENMS_LOG_INFO << endl;
 
