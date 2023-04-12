@@ -466,21 +466,26 @@ namespace OpenMS
     }
 
     // static
-    ExperimentalDesign ExperimentalDesignFile::load(const String &tsv_file, const bool require_spectra_file)
+    ExperimentalDesign ExperimentalDesignFile::load(const TextFile &text_file, const bool require_spectra_file, String filename = "--no design file provided--")
     {
-      const TextFile text_file(tsv_file, true);
-
       // check if we have information stored in one or two files
       bool has_one_table = isOneTableFile_(text_file);
 
       if (has_one_table)
       {
-        return parseOneTableFile_(text_file, tsv_file, require_spectra_file);
+        return parseOneTableFile_(text_file, filename, require_spectra_file);
       }
       else // two tables
       {
-        return parseTwoTableFile_(text_file, tsv_file, require_spectra_file);
+        return parseTwoTableFile_(text_file, filename, require_spectra_file);
       }
     }
+
+    ExperimentalDesign ExperimentalDesignFile::load(const String &tsv_file, const bool require_spectra_file)
+    {
+      const TextFile text_file(tsv_file, true);
+      return load(text_file, require_spectra_file, tsv_file);
+    }
+
 }
 
