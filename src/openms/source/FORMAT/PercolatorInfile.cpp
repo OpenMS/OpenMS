@@ -126,6 +126,8 @@ namespace OpenMS
 
       const String& sPeptide = row[to_idx.at("Peptide")];
       const double score = row[to_idx.at("score")].toDouble();
+      const String& target_decoy = row[to_idx.at("Label")] == 1 ? "target" : "decoy");
+      
       // extract charge state from 1-hot encoded charge columns
       int charge{};
       for (int z = lowest_charge; z <= highest_charge; ++z)
@@ -143,6 +145,7 @@ namespace OpenMS
       PeptideHit ph(score, rank, charge, std::move(aa_seq));
       ph.setMetaValue("SpecId", sSpecId);
       ph.setMetaValue("ScanNr", sScanNr);
+      ph.setMetaValue("target_decoy", target_decoy);
       pids.back().insertHit(std::move(ph));
     }
     return pids;
@@ -194,6 +197,7 @@ namespace OpenMS
       // try to make a file and scan unique identifier
       String scan_identifier = getScanIdentifier(pep_id, index);
       String file_identifier = pep_id.getMetaValue("file_origin", String());
+
       file_identifier += (String)pep_id.getMetaValue("id_merge_index", String());
 
       Int scan_number = SpectrumLookup::extractScanNumber(scan_identifier, scan_regex, true);
