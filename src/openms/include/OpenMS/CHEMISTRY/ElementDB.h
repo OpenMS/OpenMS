@@ -39,6 +39,7 @@
 #include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/IsotopeDistribution.h>
 
 #include <map>
+#include <memory>
 #include <unordered_map>
 #include <string>
 
