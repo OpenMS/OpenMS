@@ -86,9 +86,9 @@ START_SECTION((template <typename ConstIterT, typename IterT> bool filter(ConstI
   gauss.initialize(1.0 * 8 /* gaussian_width */, 0.01 /* spacing */, 10.0 /* ppm_tolerance */, false /* use_ppm_tolerance */);
   gauss.filter(mz.begin(), mz.end(), intensities.begin(), mz_out.begin(), intensities_out.begin());
 
-  for (int in : intensities_out)
+  for (double intensity : intensities_out)
   {
-    TEST_REAL_SIMILAR(in, 1.0)
+    TEST_REAL_SIMILAR(intensity, 1.0)
   }
 END_SECTION 
 
