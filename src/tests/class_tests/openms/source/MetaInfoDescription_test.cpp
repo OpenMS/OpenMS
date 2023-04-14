@@ -121,7 +121,7 @@ END_SECTION
 START_SECTION((bool operator== (const MetaInfoDescription& rhs) const))
   MetaInfoDescription edit, empty;
   
-  TEST_EQUAL(edit==empty, true);
+  TEST_TRUE(edit == empty);
   
   edit = empty;
   edit.setName("bla2");

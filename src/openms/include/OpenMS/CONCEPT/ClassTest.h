@@ -829,13 +829,17 @@ namespace TEST = OpenMS::Internal::ClassTest;
       TEST::exception = 2;                                                                \
       TEST::exception_name = e.getName();                                                 \
     }                                                                                     \
-    catch (...)                                                                           \
+    catch (const std::exception& e)                                                       \
     {                                                                                     \
       TEST::exception = 3;                                                                \
+      TEST::exception_name = e.what();                                                    \
+    }                                                                                     \
+    catch (...)                                                                           \
+    {                                                                                     \
+      TEST::exception = 4;                                                                \
     }                                                                                     \
     TEST::this_test = (TEST::exception == 1);                                             \
     TEST::test = TEST::test && TEST::this_test;                                           \
-                                                                                          \
     {                                                                                     \
       TEST::initialNewline();                                                             \
       switch (TEST::exception)                                                            \
@@ -864,13 +868,20 @@ namespace TEST = OpenMS::Internal::ClassTest;
       case 3:                                                                             \
         stdcout << " -  line " << TEST::test_line <<                                    \
           ":  TEST_EXCEPTION(" # exception_type "," # command                               \
+          "): wrong exception thrown!  \""                                                  \
+                  << TEST::exception_name << "\"\n";                                     \
+        TEST::failed_lines_list.push_back(TEST::test_line);                               \
+        break;                                                                            \
+      case 4:                                                                             \
+        stdcout << " -  line " << TEST::test_line <<                                    \
+          ":  TEST_EXCEPTION(" # exception_type "," # command                               \
           "): wrong exception thrown!\n";                                                 \
         TEST::failed_lines_list.push_back(TEST::test_line);                               \
         break;                                                                            \
       }                                                                                   \
     }                                                                                     \
   }
-
+  
 /** @brief Precondition test macro
 
   This macro checks if a precondition violation is detected while executing the command,

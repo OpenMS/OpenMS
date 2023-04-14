@@ -189,12 +189,12 @@ START_SECTION((bool operator== (const SampleTreatment& rhs) const))
 	edit.setComment("bla");
 	TEST_EQUAL(edit==empty, false);
 	edit = empty;
-	TEST_EQUAL(edit==empty, true);
+	TEST_TRUE(edit == empty);
 
 	edit.setMetaValue("color",String("red"));
 	TEST_EQUAL(edit==empty, false);
 	edit = empty;
-	TEST_EQUAL(edit==empty, true);
+	TEST_TRUE(edit == empty);
 
 	Tagging t;
 	TEST_EQUAL(t==empty, false);

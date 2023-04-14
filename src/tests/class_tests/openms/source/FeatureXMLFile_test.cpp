@@ -379,7 +379,7 @@ START_SECTION([EXTRA])
   FeatureMap e2;
   f.load(filename, e2);
   e.updateRanges();
-  TEST_EQUAL(e == e2, true);
+  TEST_TRUE(e == e2);
   String filename2;
   NEW_TMP_FILE(filename2);
   f.store(filename2, e2);

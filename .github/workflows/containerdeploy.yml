@@ -4,7 +4,6 @@ on:
   push:
     branches:
       - nightly
-      - feat/singularity
       - 'release/**'
 
 jobs:
@@ -69,9 +68,6 @@ jobs:
 
   DeploySingularity:
     runs-on: ubuntu-latest
-    container:
-      image: quay.io/singularity/singularity:v3.11.0
-      options: --privileged
     steps:
       - name: Extract branch name
         shell: bash
@@ -103,31 +99,35 @@ jobs:
             then
               git checkout ${{ steps.extract_branch.outputs.branch }} || git checkout master
             fi
+
+      - name: Singularity install with defaults
+        uses: singularityhub/install-singularity@main
+        with:
+          singularity-version: 3.11.0
             
       - name: Install spython for conversion
         shell: bash
         run: |
-            sudo apk add --no-cache py3-pip
             python3 -m pip install spython
             
       - name: Build Singularity library image
         shell: bash
         run: |
             spython recipe dockerfiles/library/Dockerfile &> dockerfiles/library/Singularity.def
-            sed -i "s/(^From:.*:)(.*)/\1${{ steps.tag_name.outputs.tag }}/" dockerfiles/library/Singularity.def
-            sed -i "s%(^OPENMS_BRANCH=)(.*)%\1${{ steps.extract_branch.outputs.branch }}%" dockerfiles/library/Singularity.def
-            sed -i "s/(^OPENMS_TAG=)(.*)/\1${{ steps.tag_name.outputs.tag }}/" dockerfiles/library/Singularity.def
+            sed -E -i "s/(^From:.*:)(.*)/\1${{ steps.tag_name.outputs.tag }}/" dockerfiles/library/Singularity.def
+            sed -E -i "s%(^OPENMS_BRANCH=)(.*)%\1${{ steps.extract_branch.outputs.branch }}%" dockerfiles/library/Singularity.def
+            sed -E -i "s/(^OPENMS_TAG=)(.*)/\1${{ steps.tag_name.outputs.tag }}/" dockerfiles/library/Singularity.def
             cat dockerfiles/library/Singularity.def
-            singularity build library.sif dockerfiles/library/Singularity.def
+            sudo singularity build library.sif dockerfiles/library/Singularity.def
             
       - name: Build Singularity tools image
         shell: bash
         run: |
             spython recipe dockerfiles/executables/Dockerfile &> dockerfiles/executables/Singularity.def
-            sed -i "s%^From:.*%From: $(pwd)/library.sif%" dockerfiles/executables/Singularity.def
-            sed -i "s/^Bootstrap:.*/Bootstrap: localimage/" dockerfiles/executables/Singularity.def
+            sed -E -i "s%^From:.*%From: $(pwd)/library.sif%" dockerfiles/executables/Singularity.def
+            sed -E -i "s/^Bootstrap:.*/Bootstrap: localimage/" dockerfiles/executables/Singularity.def
             cat dockerfiles/executables/Singularity.def
-            singularity build executables.sif dockerfiles/executables/Singularity.def
+            sudo singularity build executables.sif dockerfiles/executables/Singularity.def
             
       - name: Upload images to ghcr.io
         shell: bash

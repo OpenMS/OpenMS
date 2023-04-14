@@ -413,7 +413,7 @@ END_SECTION
 
 START_SECTION((bool operator==(const RangeManager& rhs) const))
   RM rm0 , rm;
-  TEST_EQUAL(rm==rm0, true);
+  TEST_TRUE(rm == rm0);
   rm0.updateRanges();
   TEST_EQUAL(rm==rm0, false);
 END_SECTION
@@ -422,7 +422,7 @@ START_SECTION((bool operator!=(const RangeManager& rhs) const))
   RM rm0 , rm;
   TEST_EQUAL(rm!=rm0, false);
   rm0.updateRanges();
-  TEST_EQUAL(rm!=rm0, true);
+  TEST_FALSE(rm == rm0);
 END_SECTION
 
 START_SECTION((virtual void updateRanges()=0))
