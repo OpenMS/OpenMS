@@ -126,7 +126,7 @@ namespace OpenMS
       int sScanNr = row[to_idx.at("ScanNr")].toInt();
 
       String sPeptide = row[to_idx.at("Peptide")];
-      const double score = row[to_idx.at("score")].toDouble();
+      const double score = row[to_idx.at(score_name)].toDouble();
       String target_decoy = row[to_idx.at("Label")].toInt() == 1 ? "target" : "decoy";
       const String& sProteins = row[to_idx.at("Proteins")];
       StringList accessions;
