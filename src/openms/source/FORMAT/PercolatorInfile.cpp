@@ -94,7 +94,7 @@ namespace OpenMS
     return make_tuple(min_charge, max_charge);
   }
 
-  vector<PeptideIdentification> PercolatorInfile::load(const String& pin_file, bool higher_score_better)
+  vector<PeptideIdentification> PercolatorInfile::load(const String& pin_file, bool higher_score_better, const String& score_name, String decoy_prefix)
   {
     CsvFile csv(pin_file, '\t');
     StringList header;
@@ -120,14 +120,24 @@ namespace OpenMS
       {
         pids.resize(pids.size() + 1);
         pids.back().setHigherScoreBetter(higher_score_better);
+        pids.back().setScoreType(score_name);
       }
 
       int sScanNr = row[to_idx.at("ScanNr")].toInt();
 
-      const String& sPeptide = row[to_idx.at("Peptide")];
+      String sPeptide = row[to_idx.at("Peptide")];
       const double score = row[to_idx.at("score")].toDouble();
-      const String& target_decoy = row[to_idx.at("Label")] == 1 ? "target" : "decoy");
-      
+      String target_decoy = row[to_idx.at("Label")].toInt() == 1 ? "target" : "decoy";
+      const String& sProteins = row[to_idx.at("Proteins")];
+      StringList accessions;
+      sProteins.split(';', accessions);
+
+      // deduce decoy state from accessions if decoy_prefix is set
+      if (!decoy_prefix.empty())
+      {
+        target_decoy = std::all_of(accessions.begin(), accessions.end(), [&decoy_prefix](const String& acc) { return acc.hasPrefix(decoy_prefix); }) ? "decoy" : "target" ;
+      }
+            
       // extract charge state from 1-hot encoded charge columns
       int charge{};
       for (int z = lowest_charge; z <= highest_charge; ++z)
@@ -140,28 +150,23 @@ namespace OpenMS
       }
       OPENMS_POSTCONDITION(charge != 0, "charge annotation missing")
 
-      // TODO: handle modifications
+      // needs to handle strings like: [+42]-MVLVQDLLHPTAASEAR, [+304.207]-ETC[+57.0215]RQLGLGTNIYNAER
+      sPeptide.substitute("]-", "]."); // we can parse [+42].MVLVQDLLHPTAASEAR
       AASequence aa_seq = AASequence::fromString(sPeptide);
       PeptideHit ph(score, rank, charge, std::move(aa_seq));
       ph.setMetaValue("SpecId", sSpecId);
       ph.setMetaValue("ScanNr", sScanNr);
       ph.setMetaValue("target_decoy", target_decoy);
+
+      // add link to protein (we only know the accession but not start/end, aa_before/after in protein at this point)
+      for (const String& accession : accessions)
+      {
+        ph.addPeptideEvidence({accession, PeptideEvidence::UNKNOWN_POSITION, PeptideEvidence::UNKNOWN_POSITION, PeptideEvidence::UNKNOWN_AA, PeptideEvidence::UNKNOWN_AA});
+      }
+      
       pids.back().insertHit(std::move(ph));
     }
     return pids;
-
-    /* StringList headers = {"SpecId", "Label", "ScanNr", "ExpMass", "CalcMass", "mass", "peplen"}  
-    for (int i = min_charge; i <= max_charge; ++i)
-    {
-      feature_set.push_back("charge" + String(i));
-    }
-    feature_set.push_back("enzN");
-    feature_set.push_back("enzC");
-    feature_set.push_back("enzInt");
-    feature_set.push_back("dm");
-    feature_set.push_back("absdm");
-    */    
-
   }
 
 

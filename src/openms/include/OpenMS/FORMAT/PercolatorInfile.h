@@ -56,7 +56,10 @@ namespace OpenMS
         int min_charge, 
         int max_charge);
 
-      static std::vector<PeptideIdentification> load(const String& pin_file, bool higher_score_better);
+      /** @brief load pin file and convert to PeptideIdentification using the given score name and orientation.
+          If a decoy prefix is provided, the decoy status is set from the protein accessions.
+          Otherwise, it assumes that the pin file already contains the correctly annotated decoy status. **/
+      static std::vector<PeptideIdentification> load(const String& pin_file, bool higher_score_better, const String& score_name, String decoy_prefix = "");
 
       // uses spectrum_reference, if empty uses spectrum_id, if also empty fall back to using index
       static String getScanIdentifier(const PeptideIdentification& pid, size_t index);
