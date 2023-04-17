@@ -68,6 +68,7 @@ START_SECTION(vector<PeptideIdentification> PercolatorInfile::load(const String&
 {
   auto pids = PercolatorInfile::load(OPENMS_GET_TEST_DATA_PATH("sage.pin"), true, "hyperscore", "DECOY_");
   TEST_EQUAL(pids.size(), 9);
+  TEST_FALSE(pids[6].getMetaValue("target_decoy").toBool()) // 7th entry is annotated as target in pin file but only maps to decoy proteins with prefix "DECOY_" -> set to decoy
 }
 END_SECTION
 
