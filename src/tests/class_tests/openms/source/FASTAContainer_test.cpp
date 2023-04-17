@@ -148,7 +148,7 @@ START_SECTION(size_t size() const)
   FASTAFile::FASTAEntry pe, pe2;
   TEST_EQUAL(f.readAt(pe, 0), true);
   pe2 = f.chunkAt(0);
-  TEST_TRUE(pe == pe2)
+  TEST_EQUAL(pe == pe2, true)
   TEST_EQUAL(pe.description, "This is the description of the first protein")
   pe2 = f.chunkAt(1);
   TEST_EQUAL(pe == pe2, false)
@@ -168,7 +168,7 @@ START_SECTION(size_t size() const)
   pe = f.chunkAt(1);
   TEST_EQUAL(pe.description, " ##0")
   TEST_EQUAL(f.readAt(pe2, 4), true);
-  TEST_TRUE(pe == pe2)
+  TEST_EQUAL(pe == pe2, true)
   
   // reached the end after 5 entries
   TEST_EQUAL(f.cacheChunk(3), false)
@@ -198,7 +198,7 @@ START_SECTION(size_t size() const)
   FASTAFile::FASTAEntry pe3, pe4;
   TEST_EQUAL(f.readAt(pe3, 0), true);
   pe4 = f.chunkAt(0);
-  TEST_TRUE(pe3 == pe4)
+  TEST_EQUAL(pe3 == pe4, true)
   TEST_EQUAL(pe3.description, "This is the description of the first protein")
   pe4 = f.chunkAt(1);
   TEST_EQUAL(pe3 == pe4, false)
@@ -212,7 +212,7 @@ START_SECTION(size_t size() const)
   FASTAFile::FASTAEntry pe5, pe6;
   TEST_EQUAL(f.readAt(pe5, 0), true);
   pe6 = f.chunkAt(0);
-  TEST_TRUE(pe5 == pe6)
+  TEST_EQUAL(pe5 == pe6, true)
   TEST_EQUAL(pe5.description, "This is the description of the first protein")
   pe6 = f.chunkAt(1);
   TEST_EQUAL(pe5 == pe6, false)

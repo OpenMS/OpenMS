@@ -94,7 +94,7 @@ START_SECTION((static ChargeDistribution getChargeDistribution(const std::vector
   auto cd = SwathQC::getChargeDistribution(swath_maps, 10, 0.04);
   SwathQC::ChargeDistribution cde = { {1,17}, {2,4}, {5,1}, {6,2}, {8,2}, {9,1}, {10,5} };
   TEST_EQUAL(cd.size(), cde.size());
-  TEST_TRUE(cd == cde)
+  TEST_EQUAL(cd == cde, true)
 }
 END_SECTION
 

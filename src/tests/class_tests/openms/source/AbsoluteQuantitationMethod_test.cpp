@@ -146,10 +146,10 @@ END_SECTION
 START_SECTION(inline bool operator==(const AbsoluteQuantitationMethod& other) const)
 {
   AbsoluteQuantitationMethod aqm1, aqm2;
-  TEST_TRUE(aqm1 == aqm2);
+  TEST_EQUAL(aqm1 == aqm2, true);
   aqm1.setLLOD(1.0);
   aqm2.setLLOD(1.0);
-  TEST_TRUE(aqm1 == aqm2);
+  TEST_EQUAL(aqm1 == aqm2, true);
   aqm2.setLLOD(2.0);
   TEST_EQUAL(aqm1 == aqm2, false);
 }
@@ -163,7 +163,7 @@ START_SECTION(inline bool operator!=(const AbsoluteQuantitationMethod& other) co
   aqm2.setLLOD(1.0);
   TEST_EQUAL(aqm1 != aqm2, false);
   aqm2.setLLOD(2.0);
-  TEST_FALSE(aqm1 == aqm2);
+  TEST_EQUAL(aqm1 != aqm2, true);
 }
 END_SECTION
 

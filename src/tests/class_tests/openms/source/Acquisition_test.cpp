@@ -85,12 +85,12 @@ START_SECTION(Acquisition(Acquisition&&) = default)
   Acquisition ef(e);
   Acquisition ef2(e);
 
-  TEST_FALSE(ef == empty)
+  TEST_EQUAL(ef != empty, true)
 
   // the move target should be equal, while the move source should be empty
   Acquisition ef_mv(std::move(ef));
-  TEST_TRUE(ef_mv == ef2)
-  TEST_TRUE(ef == empty)
+  TEST_EQUAL(ef_mv == ef2, true)
+  TEST_EQUAL(ef == empty, true)
   TEST_EQUAL(ef.getIdentifier().empty(), true)
 END_SECTION
 
@@ -112,7 +112,7 @@ END_SECTION
 START_SECTION(bool operator== (const Acquisition& rhs) const)
 	Acquisition tmp,tmp2;
 	
-	TEST_TRUE(tmp == tmp2);
+	TEST_EQUAL(tmp==tmp2, true);
 	
 	tmp2.setIdentifier("5");
 	TEST_EQUAL(tmp==tmp2, false);
@@ -128,11 +128,11 @@ START_SECTION(bool operator!= (const Acquisition& rhs) const)
 	TEST_EQUAL(tmp!=tmp2, false);
 	
 	tmp2.setIdentifier("5");
-	TEST_FALSE(tmp == tmp2);
+	TEST_EQUAL(tmp!=tmp2, true);
 	
 	tmp2 = tmp;
 	tmp.setMetaValue("label",String("label"));
-	TEST_FALSE(tmp == tmp2);
+	TEST_EQUAL(tmp!=tmp2, true);
 END_SECTION
 
 /////////////////////////////////////////////////////////////

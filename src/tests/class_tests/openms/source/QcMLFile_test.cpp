@@ -306,7 +306,7 @@ START_SECTION(([QcMLFile::QualityParameter] bool operator==(const QualityParamet
   qp1.name = "somename"; ///< Name
   
   QcMLFile::QualityParameter qp2 = QcMLFile::QualityParameter(qp1);
-  TEST_TRUE(qp1 == qp2)
+  TEST_EQUAL(qp1==qp2, true)
 }
 END_SECTION
 

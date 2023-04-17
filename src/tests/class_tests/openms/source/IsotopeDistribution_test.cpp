@@ -128,10 +128,10 @@ END_SECTION
 
 START_SECTION(bool operator==(const IsotopeDistribution &isotope_distribution) const)
   IsotopeDistribution iso1, iso2;
-  TEST_TRUE(iso1 == iso2)
+  TEST_EQUAL(iso1 == iso2, true)
   IsotopeDistribution iso3(EmpiricalFormula("C4").getIsotopeDistribution(CoarseIsotopePatternGenerator(11))),
     iso4(EmpiricalFormula("C4").getIsotopeDistribution(CoarseIsotopePatternGenerator(11)));
-  TEST_TRUE(iso3 == iso4)
+  TEST_EQUAL(iso3 == iso4, true)
 
   IsotopeDistribution iso5(EmpiricalFormula("C4").getIsotopeDistribution(CoarseIsotopePatternGenerator(11, true))),
     iso6(EmpiricalFormula("C4").getIsotopeDistribution(CoarseIsotopePatternGenerator(11)));
@@ -145,7 +145,7 @@ START_SECTION(void set(const ContainerType &distribution))
   IsotopeDistribution::ContainerType container = iso1.getContainer();
   iso2.set(container);
   TEST_EQUAL(iso1.getContainer() == iso2.getContainer(), true)
-  TEST_TRUE(iso1 == iso2)
+  TEST_EQUAL(iso1 == iso2, true)
 END_SECTION
 
 START_SECTION(const ContainerType& getContainer() const)
@@ -242,7 +242,7 @@ START_SECTION(bool operator!=(const IsotopeDistribution &isotope_distribution) c
   IsotopeDistribution iso3(EmpiricalFormula("C4").getIsotopeDistribution(CoarseIsotopePatternGenerator(11))),
                       iso4(EmpiricalFormula("C4").getIsotopeDistribution(CoarseIsotopePatternGenerator(11)));
   TEST_EQUAL(iso3 != iso4, false)
-  TEST_FALSE(iso2 == iso3)
+  TEST_EQUAL(iso2 != iso3, true)
 END_SECTION
 
 START_SECTION(Iterator begin())

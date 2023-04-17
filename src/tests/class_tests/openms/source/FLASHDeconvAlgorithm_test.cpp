@@ -92,8 +92,8 @@ START_SECTION((static float getCosine(const std::vector<float>& a,
               int b_size,
               int offset)))
 {
-  CoarseIsotopePatternGenerator generator(10, 1000);
-  IsotopeDistribution iso_array = generator.estimateFromPeptideWeight(1000);
+  auto generator = new CoarseIsotopePatternGenerator(10, 1000);
+  IsotopeDistribution iso_array = generator->estimateFromPeptideWeight(1000);
 
   std::vector<float> test_array1{571133.0, 306181.0, 95811.0, 22037.0, 4092.0, 645.0, 89.0, 11.0, 1.0, 0.0};
   std::vector<float> test_array2{100, 50, 25, 12.5, 6.25, 3.125, 1, 0, 0};

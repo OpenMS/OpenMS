@@ -78,7 +78,7 @@ START_SECTION((TwoDOptimization& operator=(const TwoDOptimization& opt)))
   TEST_REAL_SIMILAR(penalties.rWidth,penalties_copy.rWidth)
   TEST_REAL_SIMILAR(penalties.height,penalties_copy.height)
     
-  TEST_TRUE(number == 10)
+  TEST_EQUAL(number == 10, true)
 END_SECTION
 
 START_SECTION((TwoDOptimization(const TwoDOptimization& opt)))
@@ -96,7 +96,7 @@ START_SECTION((TwoDOptimization(const TwoDOptimization& opt)))
   TEST_REAL_SIMILAR(penalties.rWidth,penalties_copy.rWidth)
   TEST_REAL_SIMILAR(penalties.height,penalties_copy.height)
     
-  TEST_TRUE(number == 10)
+  TEST_EQUAL(number == 10, true)
 END_SECTION
 
 

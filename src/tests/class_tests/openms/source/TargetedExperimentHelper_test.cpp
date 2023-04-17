@@ -54,7 +54,7 @@ START_SECTION(TargetedExperimentHelper::Configuration())
   TEST_EQUAL(noexcept(TargetedExperimentHelper::Configuration(std::declval<TargetedExperimentHelper::Configuration&&>())), true)
 
   auto ptr = new TargetedExperimentHelper::Configuration();
-  TEST_FALSE(ptr == nullptr)
+  TEST_EQUAL(ptr != nullptr, true)
   delete ptr;
 }
 END_SECTION
@@ -66,7 +66,7 @@ START_SECTION(TargetedExperimentHelper::CV())
   TEST_EQUAL(noexcept(TargetedExperimentHelper::CV(std::declval<TargetedExperimentHelper::CV&&>())), true)
 
   auto ptr = new TargetedExperimentHelper::CV("", "", "", "");
-  TEST_FALSE(ptr == nullptr)
+  TEST_EQUAL(ptr != nullptr, true)
   delete ptr;
 }
 END_SECTION
@@ -78,7 +78,7 @@ START_SECTION(TargetedExperimentHelper::Protein())
   TEST_EQUAL(noexcept(TargetedExperimentHelper::Protein(std::declval<TargetedExperimentHelper::Protein&&>())), true)
 
   auto ptr = new TargetedExperimentHelper::Protein();
-  TEST_FALSE(ptr == nullptr)
+  TEST_EQUAL(ptr != nullptr, true)
   delete ptr;
 }
 END_SECTION
@@ -90,7 +90,7 @@ START_SECTION(TargetedExperimentHelper::RetentionTime())
   TEST_EQUAL(noexcept(TargetedExperimentHelper::RetentionTime(std::declval<TargetedExperimentHelper::RetentionTime&&>())), true)
 
   auto ptr = new TargetedExperimentHelper::RetentionTime();
-  TEST_FALSE(ptr == nullptr)
+  TEST_EQUAL(ptr != nullptr, true)
   delete ptr;
 }
 END_SECTION
@@ -102,7 +102,7 @@ START_SECTION(TargetedExperimentHelper::PeptideCompound())
   TEST_EQUAL(noexcept(TargetedExperimentHelper::PeptideCompound(std::declval<TargetedExperimentHelper::PeptideCompound&&>())), true)
 
   auto ptr = new TargetedExperimentHelper::PeptideCompound();
-  TEST_FALSE(ptr == nullptr)
+  TEST_EQUAL(ptr != nullptr, true)
   delete ptr;
 }
 END_SECTION
@@ -114,7 +114,7 @@ START_SECTION(TargetedExperimentHelper::Peptide())
   TEST_EQUAL(noexcept(TargetedExperimentHelper::Peptide(std::declval<TargetedExperimentHelper::Peptide&&>())), true)
 
   auto ptr = new TargetedExperimentHelper::Peptide();
-  TEST_FALSE(ptr == nullptr)
+  TEST_EQUAL(ptr != nullptr, true)
   delete ptr;
 }
 END_SECTION
@@ -126,7 +126,7 @@ START_SECTION(TargetedExperimentHelper::Compound())
   TEST_EQUAL(noexcept(TargetedExperimentHelper::Compound(std::declval<TargetedExperimentHelper::Compound&&>())), true)
 
   auto ptr = new TargetedExperimentHelper::Compound();
-  TEST_FALSE(ptr == nullptr)
+  TEST_EQUAL(ptr != nullptr, true)
   delete ptr;
 }
 END_SECTION
@@ -138,7 +138,7 @@ START_SECTION(TargetedExperimentHelper::Contact())
   TEST_EQUAL(noexcept(TargetedExperimentHelper::Contact(std::declval<TargetedExperimentHelper::Contact&&>())), true)
 
   auto ptr = new TargetedExperimentHelper::Contact();
-  TEST_FALSE(ptr == nullptr)
+  TEST_EQUAL(ptr != nullptr, true)
   delete ptr;
 }
 END_SECTION
@@ -150,7 +150,7 @@ START_SECTION(TargetedExperimentHelper::Publication())
   TEST_EQUAL(noexcept(TargetedExperimentHelper::Publication(std::declval<TargetedExperimentHelper::Publication&&>())), true)
 
   auto ptr = new TargetedExperimentHelper::Publication();
-  TEST_FALSE(ptr == nullptr)
+  TEST_EQUAL(ptr != nullptr, true)
   delete ptr;
 }
 END_SECTION
@@ -162,7 +162,7 @@ START_SECTION(TargetedExperimentHelper::Instrument())
   TEST_EQUAL(noexcept(TargetedExperimentHelper::Instrument(std::declval<TargetedExperimentHelper::Instrument&&>())), true)
 
   auto ptr = new TargetedExperimentHelper::Instrument();
-  TEST_FALSE(ptr == nullptr)
+  TEST_EQUAL(ptr != nullptr, true)
   delete ptr;
 }
 END_SECTION
@@ -174,7 +174,7 @@ START_SECTION(TargetedExperimentHelper::Prediction())
   TEST_EQUAL(noexcept(TargetedExperimentHelper::Prediction(std::declval<TargetedExperimentHelper::Prediction&&>())), true)
 
   auto ptr = new TargetedExperimentHelper::Prediction();
-  TEST_FALSE(ptr == nullptr)
+  TEST_EQUAL(ptr != nullptr, true)
   delete ptr;
 }
 END_SECTION
@@ -186,7 +186,7 @@ START_SECTION(TargetedExperimentHelper::Interpretation())
   TEST_EQUAL(noexcept(TargetedExperimentHelper::Interpretation(std::declval<TargetedExperimentHelper::Interpretation&&>())), true)
 
   auto ptr = new TargetedExperimentHelper::Interpretation();
-  TEST_FALSE(ptr == nullptr)
+  TEST_EQUAL(ptr != nullptr, true)
   delete ptr;
 }
 END_SECTION
@@ -198,7 +198,7 @@ START_SECTION(TargetedExperimentHelper::TraMLProduct())
   TEST_EQUAL(noexcept(TargetedExperimentHelper::TraMLProduct(std::declval<TargetedExperimentHelper::TraMLProduct&&>())), true)
 
   auto ptr = new TargetedExperimentHelper::TraMLProduct();
-  TEST_FALSE(ptr == nullptr)
+  TEST_EQUAL(ptr != nullptr, true)
   delete ptr;
 }
 END_SECTION

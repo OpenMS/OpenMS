@@ -79,7 +79,7 @@ struct OptimizationFunctions::PenaltyFactorsIntensity penalties_copy = opt_decon
   TEST_REAL_SIMILAR(penalties.height,penalties_copy.height)
     
 
-	TEST_TRUE(charge == 2)
+	TEST_EQUAL(charge == 2, true)
  
 END_SECTION
 
@@ -99,7 +99,7 @@ START_SECTION((OptimizePeakDeconvolution(const OptimizePeakDeconvolution& opt)))
   TEST_REAL_SIMILAR(penalties.rWidth,penalties_copy.rWidth)
   TEST_REAL_SIMILAR(penalties.height,penalties_copy.height)
     
-	TEST_TRUE(charge == 2)
+	TEST_EQUAL(charge == 2, true)
  
 END_SECTION
 

@@ -144,12 +144,12 @@ START_SECTION((bool operator != (const CVMappingRule& rhs) const))
 {
   CVMappingRule cvmr, cvmr_copy;
   cvmr.setIdentifier("my_test_identifier");
-	TEST_FALSE(cvmr == cvmr_copy)
+	TEST_EQUAL(cvmr != cvmr_copy, true)
 	cvmr_copy = cvmr;
 	TEST_EQUAL(cvmr != cvmr_copy, false)
 
   cvmr.setElementPath("my_test_elementpath");
-	TEST_FALSE(cvmr == cvmr_copy)
+	TEST_EQUAL(cvmr != cvmr_copy, true)
 	cvmr_copy = cvmr;
 	TEST_EQUAL(cvmr != cvmr_copy, false)
 
@@ -158,21 +158,21 @@ START_SECTION((bool operator != (const CVMappingRule& rhs) const))
 	cvmr_copy = cvmr;
 	TEST_EQUAL(cvmr != cvmr_copy, false)
   cvmr.setRequirementLevel(CVMappingRule::SHOULD);
-	TEST_FALSE(cvmr == cvmr_copy)
+	TEST_EQUAL(cvmr != cvmr_copy, true)
 	cvmr_copy = cvmr;
 	TEST_EQUAL(cvmr != cvmr_copy, false)
 
   cvmr.setCombinationsLogic(CVMappingRule::AND);
-	TEST_FALSE(cvmr == cvmr_copy)
+	TEST_EQUAL(cvmr != cvmr_copy, true)
 	cvmr_copy = cvmr;
 	TEST_EQUAL(cvmr != cvmr_copy, false)
   cvmr.setCombinationsLogic(CVMappingRule::XOR);
-	TEST_FALSE(cvmr == cvmr_copy)
+	TEST_EQUAL(cvmr != cvmr_copy, true)
 	cvmr_copy = cvmr;
 	TEST_EQUAL(cvmr != cvmr_copy, false)
 
   cvmr.setScopePath("my_test_scopepath");
-	TEST_FALSE(cvmr == cvmr_copy)
+	TEST_EQUAL(cvmr != cvmr_copy, true)
 	cvmr_copy = cvmr;
 	TEST_EQUAL(cvmr != cvmr_copy, false)
 
@@ -183,7 +183,7 @@ START_SECTION((bool operator != (const CVMappingRule& rhs) const))
   terms.push_back(term1);
   terms.push_back(term2);
   cvmr.setCVTerms(terms);
-	TEST_FALSE(cvmr == cvmr_copy)
+	TEST_EQUAL(cvmr != cvmr_copy, true)
 	cvmr_copy = cvmr;
 	TEST_EQUAL(cvmr != cvmr_copy, false)
 }
@@ -195,35 +195,35 @@ START_SECTION((bool operator == (const CVMappingRule& rhs) const))
   cvmr.setIdentifier("my_test_identifier");
   TEST_EQUAL(cvmr == cvmr_copy, false)
   cvmr_copy = cvmr;
-  TEST_TRUE(cvmr == cvmr_copy)
+  TEST_EQUAL(cvmr == cvmr_copy, true)
 
   cvmr.setElementPath("my_test_elementpath");
   TEST_EQUAL(cvmr == cvmr_copy, false)
   cvmr_copy = cvmr;
-  TEST_TRUE(cvmr == cvmr_copy)
+  TEST_EQUAL(cvmr == cvmr_copy, true)
 
   cvmr.setRequirementLevel(CVMappingRule::MUST); // default
-  TEST_TRUE(cvmr == cvmr_copy)
+  TEST_EQUAL(cvmr == cvmr_copy, true)
   cvmr_copy = cvmr;
-  TEST_TRUE(cvmr == cvmr_copy)
+  TEST_EQUAL(cvmr == cvmr_copy, true)
   cvmr.setRequirementLevel(CVMappingRule::SHOULD);
   TEST_EQUAL(cvmr == cvmr_copy, false)
   cvmr_copy = cvmr;
-  TEST_TRUE(cvmr == cvmr_copy)
+  TEST_EQUAL(cvmr == cvmr_copy, true)
 
   cvmr.setCombinationsLogic(CVMappingRule::AND);
   TEST_EQUAL(cvmr == cvmr_copy, false)
   cvmr_copy = cvmr;
-  TEST_TRUE(cvmr == cvmr_copy)
+  TEST_EQUAL(cvmr == cvmr_copy, true)
   cvmr.setCombinationsLogic(CVMappingRule::XOR);
   TEST_EQUAL(cvmr == cvmr_copy, false)
   cvmr_copy = cvmr;
-  TEST_TRUE(cvmr == cvmr_copy)
+  TEST_EQUAL(cvmr == cvmr_copy, true)
 
   cvmr.setScopePath("my_test_scopepath");
   TEST_EQUAL(cvmr == cvmr_copy, false)
   cvmr_copy = cvmr;
-  TEST_TRUE(cvmr == cvmr_copy)
+  TEST_EQUAL(cvmr == cvmr_copy, true)
 
   CVMappingTerm term1, term2;
   term1.setAccession("BLA:1");
@@ -234,7 +234,7 @@ START_SECTION((bool operator == (const CVMappingRule& rhs) const))
   cvmr.setCVTerms(terms);
   TEST_EQUAL(cvmr == cvmr_copy, false)
   cvmr_copy = cvmr;
-  TEST_TRUE(cvmr == cvmr_copy)
+  TEST_EQUAL(cvmr == cvmr_copy, true)
 }
 END_SECTION
 

@@ -466,7 +466,7 @@ START_SECTION((template <typename MapType> void load(const String &filename, Map
   //load a second time to make sure everything is re-initialized correctly
   PeakMap e2;
   file.load(OPENMS_GET_TEST_DATA_PATH("MzDataFile_1.mzData"), e2);
-  TEST_TRUE(e == e2)
+  TEST_EQUAL(e == e2, true)
 
   //loading a minimal file containing one spectrum  - with whitespaces inside the base64 data
   PeakMap e3;
@@ -687,7 +687,7 @@ START_SECTION((template <typename MapType> void store(const String &filename, co
   e2[0].getDataProcessing()[0]->getSoftware().setMetaValue("comment", String("SoftwareComment"));
   e2[1].getDataProcessing()[0]->getSoftware().setMetaValue("comment", String("SoftwareComment"));
   e2[2].getDataProcessing()[0]->getSoftware().setMetaValue("comment", String("SoftwareComment"));
-  TEST_TRUE(e1 == e2);
+  TEST_EQUAL(e1 == e2, true);
 }
 END_SECTION
 

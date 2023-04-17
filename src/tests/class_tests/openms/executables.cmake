@@ -283,10 +283,6 @@ set(format_executables_list
   SiriusFragmentAnnotation_test
 )
 
-if(WITH_HDF5)
-  list(APPEND format_executables_list HDF5_test)
-endif()
-
 set(math_executables_list
   AsymmetricStatistics_test
   AveragePosition_test
@@ -324,7 +320,6 @@ set(filtering_executables_list
   Deisotoper_test
   ElutionPeakDetection_test
   FeatureFindingMetabo_test
-  FeatureOverlapFilter_test
   FilterFunctor_test
   FastLowessSmoothing_test
   GaussFilter_test
@@ -717,6 +712,7 @@ if(NOT DISABLE_OPENSWATH)
     IonMobilityScoring_test
     CachedMzML_test
     CachedMzMLHandler_test
+    HDF5_test
   )
 endif(NOT DISABLE_OPENSWATH)
 

@@ -563,14 +563,14 @@ START_SECTION((bool operator== (const MSSpectrum& rhs) const))
   //name is not checked => no change
   edit = empty;
   edit.setName("bla");
-  TEST_TRUE(empty == edit);
+  TEST_EQUAL(empty==edit, true);
 
   edit = empty;
   edit.push_back(p1);
   edit.push_back(p2);
   edit.updateRanges();
   edit.clear(false);
-  TEST_TRUE(empty == edit);
+  TEST_EQUAL(empty==edit, true);
 }
 END_SECTION
 

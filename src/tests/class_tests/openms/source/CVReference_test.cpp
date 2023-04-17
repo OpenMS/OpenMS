@@ -98,19 +98,19 @@ END_SECTION
 START_SECTION((bool operator == (const CVReference& rhs) const))
 {
   CVReference cvr, cvr_copy;
-	TEST_TRUE(cvr == cvr_copy)
+	TEST_EQUAL(cvr == cvr_copy, true)
   cvr_copy = cvr;
-	TEST_TRUE(cvr == cvr_copy)
+	TEST_EQUAL(cvr == cvr_copy, true)
 
   cvr.setName("my_test_name");
 	TEST_EQUAL(cvr == cvr_copy, false)
   cvr_copy = cvr;
-	TEST_TRUE(cvr == cvr_copy)
+	TEST_EQUAL(cvr == cvr_copy, true)
 
   cvr.setIdentifier("my_test_identifier");
 	TEST_EQUAL(cvr == cvr_copy, false)
   cvr_copy = cvr;
-	TEST_TRUE(cvr == cvr_copy)
+	TEST_EQUAL(cvr == cvr_copy, true)
 }
 END_SECTION
 
@@ -122,12 +122,12 @@ START_SECTION((bool operator != (const CVReference& rhs) const))
   TEST_EQUAL(cvr != cvr_copy, false)
 
   cvr.setName("my_test_name");
-  TEST_FALSE(cvr == cvr_copy)
+  TEST_EQUAL(cvr != cvr_copy, true)
   cvr_copy = cvr;
   TEST_EQUAL(cvr != cvr_copy, false)
 
   cvr.setIdentifier("my_test_identifier");
-  TEST_FALSE(cvr == cvr_copy)
+  TEST_EQUAL(cvr != cvr_copy, true)
   cvr_copy = cvr;
   TEST_EQUAL(cvr != cvr_copy, false)
 }

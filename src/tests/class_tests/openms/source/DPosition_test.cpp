@@ -273,22 +273,22 @@ END_SECTION
 
 START_SECTION((bool operator==(const DPosition &point) const))
 	DPosition<3> p1,p2;
-	TEST_TRUE(p1 == p2)
+	TEST_EQUAL(p1==p2, true)
 
 	p1[0]=1.234;
 	TEST_EQUAL(p1==p2, false)
 	p2[0]=1.234;
-	TEST_TRUE(p1 == p2)
+	TEST_EQUAL(p1==p2, true)
 
 	p1[1]=1.345;
 	TEST_EQUAL(p1==p2, false)
 	p2[1]=1.345;
-	TEST_TRUE(p1 == p2)
+	TEST_EQUAL(p1==p2, true)
 
 	p1[2]=1.456;
 	TEST_EQUAL(p1==p2, false)
 	p2[2]=1.456;
-	TEST_TRUE(p1 == p2)
+	TEST_EQUAL(p1==p2, true)
 END_SECTION
 
 START_SECTION((bool operator!=(const DPosition &point) const))
@@ -296,17 +296,17 @@ START_SECTION((bool operator!=(const DPosition &point) const))
 	TEST_EQUAL(p1!=p2, false)
 
 	p1[0]=1.234;
-	TEST_FALSE(p1 == p2)
+	TEST_EQUAL(p1!=p2, true)
 	p2[0]=1.234;
 	TEST_EQUAL(p1!=p2, false)
 
 	p1[1]=1.345;
-	TEST_FALSE(p1 == p2)
+	TEST_EQUAL(p1!=p2, true)
 	p2[1]=1.345;
 	TEST_EQUAL(p1!=p2, false)
 
 	p1[2]=1.456;
-	TEST_FALSE(p1 == p2)
+	TEST_EQUAL(p1!=p2, true)
 	p2[2]=1.456;
 	TEST_EQUAL(p1!=p2, false)
 END_SECTION
@@ -370,9 +370,9 @@ START_SECTION((DPosition operator-() const))
   DPosition<3> p1, p2;
   p1[0] = 5.0;
 	p2 = -p1;
-  TEST_FALSE(p1 == p2);
+  TEST_EQUAL(p1!=p2, true);
 	p2 = -p2;
-	TEST_TRUE(p1 == p2);
+	TEST_EQUAL(p1==p2, true);
 END_SECTION
 
 START_SECTION((DPosition operator-(const DPosition &point) const))
@@ -567,9 +567,9 @@ START_SECTION(([EXTRA] Test char DPosition))
   DPosition<3,char> pb2;
   pa1[0] = 'a';
   pb2 = -pa1;
-  TEST_FALSE(pa1 == pb2)
+  TEST_EQUAL(pa1!=pb2, true)
   pb2 = -pb2;
-  TEST_TRUE(pa1 == pb2)
+  TEST_EQUAL(pa1==pb2, true)
 
   DPosition<1,char> pa('a');
   DPosition<1,char> pb('b');

@@ -118,7 +118,7 @@ START_SECTION(( [EXTRA] testCaching))
       tmp2.getDataProcessing().clear();
       tmp1.getFloatDataArrays().clear(); // clear for now, see test below
       tmp2.getFloatDataArrays().clear(); // clear for now, see test below
-      TEST_TRUE(tmp1 == tmp2)
+      TEST_EQUAL(tmp1 == tmp2, true)
     }
 
     // test spec 1
@@ -173,7 +173,7 @@ START_SECTION(( [EXTRA] testCaching))
       auto tmp2 = exp.getChromatogram(i);
       tmp1.getDataProcessing().clear();
       tmp2.getDataProcessing().clear();
-      TEST_TRUE(tmp1 == tmp2)
+      TEST_EQUAL(tmp1 == tmp2, true)
     }
 
   }
@@ -204,7 +204,7 @@ START_SECTION(( const MSExperiment& getMetaData() const ))
     SpectrumSettings tmp2 = exp.getSpectrum(i);
     tmp1.getDataProcessing().clear();
     tmp2.getDataProcessing().clear();
-    TEST_TRUE(tmp1 == tmp2)
+    TEST_EQUAL(tmp1 == tmp2, true)
   }
 
   TEST_EQUAL(cache_example.getNrChromatograms(), cache_example.getMetaData().getNrChromatograms())
@@ -215,7 +215,7 @@ START_SECTION(( const MSExperiment& getMetaData() const ))
     ChromatogramSettings tmp2 = exp.getChromatogram(i);
     tmp1.getDataProcessing().clear();
     tmp2.getDataProcessing().clear();
-    TEST_TRUE(tmp1 == tmp2)
+    TEST_EQUAL(tmp1 == tmp2, true)
   }
 }
 END_SECTION

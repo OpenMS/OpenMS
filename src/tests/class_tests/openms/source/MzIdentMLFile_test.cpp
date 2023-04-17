@@ -388,8 +388,8 @@ START_SECTION(([EXTRA] compability issues))
 //  vector<PeptideIdentification> peptide_ids2;
 //  mzidfile.load(filename, protein_ids2, peptide_ids2);
 
-//  TEST_TRUE(protein_ids == protein_ids2)
-//  TEST_TRUE(peptide_ids == peptide_ids2)
+//  TEST_EQUAL(protein_ids == protein_ids2, true)
+//  TEST_EQUAL(peptide_ids == peptide_ids2, true)
 
 //  Misplaced Elements ignored in ParamGroup
 

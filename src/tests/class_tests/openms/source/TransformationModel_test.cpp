@@ -439,7 +439,7 @@ START_SECTION(([EXTRA] bool DataPoint::operator==(const DataPoint& other) const)
   TransformationModel::DataPoint p2(make_pair(1.0, 2.0));
   TEST_EQUAL(p1 == p2, false);
   p2.note = "abc";
-  TEST_TRUE(p1 == p2);
+  TEST_EQUAL(p1 == p2, true);
 }
 END_SECTION
 

@@ -62,23 +62,10 @@ START_SECTION(virtual ~RibonucleotideDB())
   NOT_TESTABLE
 END_SECTION
 
-START_SECTION(void readFromJSON_(void const std::string& path))
-  // Reading from the JSON gets tested as part of the constructor above.
-  // We check the contents below in begin() and getRibonucleotide
-  NOT_TESTABLE
-END_SECTION
-
-START_SECTION(void readFromFile_(void const std::string& path))
-  // Reading from the TSV gets tested as part of the constructor above.
-  // We check the contents below in getRibonucleotide and getRibonucleotideAlternatives
-  NOT_TESTABLE
-END_SECTION
-
 START_SECTION(ConstIterator begin())
 {
-  //Loading of the JSON and TSV files gets tested during the 
   RibonucleotideDB::ConstIterator it = ptr->begin();
-  TEST_STRING_EQUAL((*it)->getCode(), "io6A");
+  TEST_STRING_EQUAL((*it)->getCode(), "m1Am");
 }
 END_SECTION
 
@@ -91,24 +78,11 @@ END_SECTION
 
 START_SECTION((const Ribonucleotide& getRibonucleotide(const String& code)))
 {
-  // These three load from the Modomics.json
   const Ribonucleotide * ribo = ptr->getRibonucleotide("Am");
   TEST_STRING_EQUAL(ribo->getCode(), "Am");
   TEST_STRING_EQUAL(ribo->getName(), "2'-O-methyladenosine");
-  // This loads from Custom_RNA_modifications.tsv
-  const Ribonucleotide * customRibo = ptr->getRibonucleotide("msU?");
-
   TEST_EXCEPTION(Exception::ElementNotFound,
                  ptr->getRibonucleotide("bla"));
-}
-END_SECTION
-
-START_SECTION( (pair<RibonucleotideDB::ConstRibonucleotidePtr, RibonucleotideDB::ConstRibonucleotidePtr> RibonucleotideDB::getRibonucleotideAlternatives(const std::string& code)))
-{
-  // THis also tests that loading from the TSV went well
-  const pair<RibonucleotideDB::ConstRibonucleotidePtr, RibonucleotideDB::ConstRibonucleotidePtr> alts = ptr->getRibonucleotideAlternatives("msU?");
-  TEST_STRING_EQUAL(alts.first->getCode(), "m5s2U");
-  TEST_STRING_EQUAL(alts.second->getCode(), "s2Um");
 }
 END_SECTION
 

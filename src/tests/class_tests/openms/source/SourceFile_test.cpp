@@ -178,7 +178,7 @@ END_SECTION
 START_SECTION((bool operator== (const SourceFile& rhs) const))
 	SourceFile tmp,tmp2;
 	
-	TEST_TRUE(tmp == tmp2);
+	TEST_EQUAL(tmp==tmp2, true);
 	
 	tmp2.setFileType("PARAMETERSFILE");
 	TEST_EQUAL(tmp==tmp2, false);
@@ -206,23 +206,23 @@ START_SECTION((bool operator!= (const SourceFile& rhs) const))
 	TEST_EQUAL(tmp!=tmp2, false);
 	
 	tmp2.setFileType("MISC");
-	TEST_FALSE(tmp == tmp2);
+	TEST_EQUAL(tmp!=tmp2, true);
 	
 	tmp2 = tmp;
 	tmp.setNameOfFile("The White Stripes - Ball and Biscuit");
-	TEST_FALSE(tmp == tmp2);
+	TEST_EQUAL(tmp!=tmp2, true);
 	
 	tmp2 = tmp;
 	tmp.setChecksum("2fd4e1c67a2d28fced849ee1bb76e7391b93eb12", SourceFile::UNKNOWN_CHECKSUM);
-	TEST_FALSE(tmp == tmp2);
+	TEST_EQUAL(tmp!=tmp2, true);
 
 	tmp2 = tmp;
 	tmp.setMetaValue("bla",4.0);
-	TEST_FALSE(tmp == tmp2);	
+	TEST_EQUAL(tmp!=tmp2, true);	
 
 	tmp2 = tmp;	
 	tmp.setPathToFile("/misc/sturm/mp3/");
-	TEST_FALSE(tmp == tmp2);
+	TEST_EQUAL(tmp!=tmp2, true);
 END_SECTION
 
 /////////////////////////////////////////////////////////////

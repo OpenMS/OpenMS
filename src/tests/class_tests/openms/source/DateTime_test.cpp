@@ -80,7 +80,7 @@ START_SECTION((DateTime(const DateTime& date)))
 
   date1.set("2006-12-12 11:59:59");
   date2 = DateTime(date1);
-  TEST_TRUE(date1 == date2)
+  TEST_EQUAL(date1 == date2, true)
 }
 END_SECTION
 
@@ -126,7 +126,7 @@ START_SECTION((void clear()))
   DateTime date2;
   date1.set("2006-12-12 11:59:59");
   date1.clear();
-  TEST_TRUE(date1 == date2)
+  TEST_EQUAL(date1 == date2, true)
   TEST_EQUAL(date1.isNull(), true)
 }
 END_SECTION

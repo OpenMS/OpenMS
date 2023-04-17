@@ -191,7 +191,7 @@ START_SECTION((DataValue(const StringList &)))
   StringList sl;
   sl << "test string" << "test String 2";
   DataValue d(sl);
-  TEST_TRUE(d == sl)
+  TEST_EQUAL(d == sl, true)
 END_SECTION
 
 START_SECTION((DataValue(const IntList &)))
@@ -199,7 +199,7 @@ START_SECTION((DataValue(const IntList &)))
   il.push_back(1);
   il.push_back(2);
   DataValue d(il);
-  TEST_TRUE(d == il)
+  TEST_EQUAL(d == il, true)
 END_SECTION
 
 START_SECTION((DataValue(const DoubleList &)))
@@ -208,7 +208,7 @@ START_SECTION((DataValue(const DoubleList &)))
   dl.push_back(22.3333);
   DataValue d(dl);
   DoubleList dldv = d;
-  TEST_TRUE(dldv == dl);
+  TEST_EQUAL(dldv == dl, true);
 END_SECTION
 
 // copy ctor
@@ -299,16 +299,16 @@ START_SECTION((DataValue(DataValue&&) noexcept))
   TEST_EQUAL( copy_of_p10 == ListUtils::create<Int>("1,2,3,4,5"), true)
   TEST_EQUAL( copy_of_p11 == ListUtils::create<double>("1.2,2.3,3.4"), true)
 
-  TEST_TRUE(p1 == empty)
-  TEST_TRUE(p3 == empty)
-  TEST_TRUE(p4 == empty)
-  TEST_TRUE(p5 == empty)
-  TEST_TRUE(p6 == empty)
-  TEST_TRUE(p7 == empty)
-  TEST_TRUE(p8 == empty)
-  TEST_TRUE(p9 == empty)
-  TEST_TRUE(p10 == empty)
-  TEST_TRUE(p11 == empty)
+  TEST_EQUAL(p1 == empty, true)
+  TEST_EQUAL(p3 == empty, true)
+  TEST_EQUAL(p4 == empty, true)
+  TEST_EQUAL(p5 == empty, true)
+  TEST_EQUAL(p6 == empty, true)
+  TEST_EQUAL(p7 == empty, true)
+  TEST_EQUAL(p8 == empty, true)
+  TEST_EQUAL(p9 == empty, true)
+  TEST_EQUAL(p10 == empty, true)
+  TEST_EQUAL(p11 == empty, true)
 
   DataValue val;
   {
@@ -318,7 +318,7 @@ START_SECTION((DataValue(DataValue&&) noexcept))
   }
   DataValue val2(std::move(val));
 
-  TEST_TRUE(val == empty)
+  TEST_EQUAL(val == empty, true)
   TEST_REAL_SIMILAR( (double) val2, 1.23)
   TEST_EQUAL( val2.getUnit(), 8)
 }
@@ -414,16 +414,16 @@ START_SECTION(( DataValue& operator=(DataValue&&) noexcept ))
   copy_of_p = std::move(p11);
   TEST_EQUAL(copy_of_p == ListUtils::create<double>("1.2,2.3,3.4"), true)
 
-  TEST_TRUE(p1 == empty)
-  TEST_TRUE(p3 == empty)
-  TEST_TRUE(p4 == empty)
-  TEST_TRUE(p5 == empty)
-  TEST_TRUE(p6 == empty)
-  TEST_TRUE(p7 == empty)
-  TEST_TRUE(p8 == empty)
-  TEST_TRUE(p9 == empty)
-  TEST_TRUE(p10 == empty)
-  TEST_TRUE(p11 == empty)
+  TEST_EQUAL(p1 == empty, true)
+  TEST_EQUAL(p3 == empty, true)
+  TEST_EQUAL(p4 == empty, true)
+  TEST_EQUAL(p5 == empty, true)
+  TEST_EQUAL(p6 == empty, true)
+  TEST_EQUAL(p7 == empty, true)
+  TEST_EQUAL(p8 == empty, true)
+  TEST_EQUAL(p9 == empty, true)
+  TEST_EQUAL(p10 == empty, true)
+  TEST_EQUAL(p11 == empty, true)
 
   DataValue val;
   {
@@ -433,7 +433,7 @@ START_SECTION(( DataValue& operator=(DataValue&&) noexcept ))
   }
   DataValue val2 = std::move(val);
 
-  TEST_TRUE(val == empty)
+  TEST_EQUAL(val == empty, true)
   TEST_REAL_SIMILAR( (double) val2, 1.23)
   TEST_EQUAL( val2.getUnit(), 8)
 }
@@ -506,7 +506,7 @@ START_SECTION((operator StringList() const))
   sl << "test string list";
   DataValue d(sl);
   StringList sl_op = d;
-  TEST_TRUE(sl_op == d)
+  TEST_EQUAL(sl_op == d, true)
 END_SECTION
 
 START_SECTION((StringList toStringList() const))
@@ -514,7 +514,7 @@ START_SECTION((StringList toStringList() const))
   sl << "test string list";
   DataValue d(sl);
   StringList sl_op = d.toStringList();
-  TEST_TRUE(sl_op == d)
+  TEST_EQUAL(sl_op == d, true)
 END_SECTION
 
 START_SECTION((operator IntList() const))
@@ -523,7 +523,7 @@ START_SECTION((operator IntList() const))
   il.push_back(2);
   DataValue d(il);
   IntList il_op = d;
-  TEST_TRUE(il_op == il)
+  TEST_EQUAL(il_op == il, true)
   TEST_EXCEPTION(Exception::ConversionError, StringList sl = DataValue("abc,ab");)
 END_SECTION
 
@@ -533,7 +533,7 @@ START_SECTION((IntList toIntList() const))
   il.push_back(2);
   DataValue d(il);
   IntList il_op = d.toIntList();
-  TEST_TRUE(il_op == il)
+  TEST_EQUAL(il_op == il, true)
   TEST_EXCEPTION(Exception::ConversionError, StringList sl = DataValue("abc,ab").toStringList();)
 END_SECTION
 
@@ -543,7 +543,7 @@ START_SECTION((operator DoubleList() const))
   dl.push_back(22.34455);
   DataValue d(dl);
   DoubleList dl_op = d;
-  TEST_TRUE(dl_op == d);
+  TEST_EQUAL(dl_op == d, true);
 END_SECTION
 
 START_SECTION((DoubleList toDoubleList() const))
@@ -552,7 +552,7 @@ START_SECTION((DoubleList toDoubleList() const))
   dl.push_back(22.34455);
   DataValue d(dl);
   DoubleList dl_op = d.toDoubleList();
-  TEST_TRUE(dl_op == d);
+  TEST_EQUAL(dl_op == d, true);
 END_SECTION
 
 START_SECTION((operator long double() const))

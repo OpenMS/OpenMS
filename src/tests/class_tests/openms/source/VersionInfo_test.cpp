@@ -117,7 +117,7 @@ START_SECTION(([VersionInfo::VersionDetails] bool operator==(const VersionDetail
   c.version_major = 1;
   c.version_minor = 9;
   c.version_patch = 2;
-  TEST_TRUE(detail == c)
+  TEST_EQUAL(detail == c, true)
   c.version_patch = 3;
   TEST_EQUAL(detail == c, false)
   c.version_patch = 1;
@@ -157,31 +157,31 @@ START_SECTION(([VersionInfo::VersionDetails] static VersionDetails create(const 
   c.version_major = 1;
   c.version_minor = 9;
   c.version_patch = 2;
-  TEST_TRUE(detail == c)
+  TEST_EQUAL(detail == c, true)
 
   detail = VersionInfo::VersionDetails::create("1.9");
   c.version_major = 1;
   c.version_minor = 9;
   c.version_patch = 0;
-  TEST_TRUE(detail == c)
+  TEST_EQUAL(detail == c, true)
 
   detail = VersionInfo::VersionDetails::create("1.0");
   c.version_major = 1;
   c.version_minor = 0;
   c.version_patch = 0;
-  TEST_TRUE(detail == c)
+  TEST_EQUAL(detail == c, true)
 
   detail = VersionInfo::VersionDetails::create("somestring");
   c.version_major = 0;
   c.version_minor = 0;
   c.version_patch = 0;
-  TEST_TRUE(detail == c)
+  TEST_EQUAL(detail == c, true)
 
   detail = VersionInfo::VersionDetails::create("1.2a.bla");
   c.version_major = 0;
   c.version_minor = 0;
   c.version_patch = 0;
-  TEST_TRUE(detail == c)
+  TEST_EQUAL(detail == c, true)
 
   detail = VersionInfo::VersionDetails::create("1.2.1-bla");
   c.version_major = 1;
@@ -192,7 +192,7 @@ START_SECTION(([VersionInfo::VersionDetails] static VersionDetails create(const 
   TEST_EQUAL(detail.version_minor, c.version_minor)
   TEST_EQUAL(detail.version_patch, c.version_patch)
   TEST_EQUAL(detail.pre_release_identifier, c.pre_release_identifier)
-  TEST_TRUE(detail == c)
+  TEST_EQUAL(detail == c, true)
 }
 END_SECTION
 

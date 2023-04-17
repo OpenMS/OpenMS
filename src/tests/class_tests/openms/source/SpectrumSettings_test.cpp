@@ -302,7 +302,7 @@ END_SECTION
 START_SECTION((bool operator== (const SpectrumSettings& rhs) const))
   SpectrumSettings edit, empty;
   
-  TEST_TRUE(edit == empty);
+  TEST_EQUAL(edit==empty, true);
   
 	edit.getAcquisitionInfo().setMethodOfCombination("test");
 	TEST_EQUAL(edit==empty, false);
@@ -356,48 +356,48 @@ START_SECTION((bool operator!= (const SpectrumSettings& rhs) const))
   TEST_EQUAL(edit!=empty, false);
   
 	edit.getAcquisitionInfo().setMethodOfCombination("test");
-	TEST_FALSE(edit == empty);
+	TEST_EQUAL(edit!=empty, true);
 	
 	edit = empty;
 	edit.setNativeID("nid");
-	TEST_FALSE(edit == empty);
+	TEST_EQUAL(edit!=empty, true);
 	
 	edit = empty;
 	edit.getInstrumentSettings().getScanWindows().resize(1);
-	TEST_FALSE(edit == empty);
+	TEST_EQUAL(edit!=empty, true);
 	
 	edit = empty;
 	edit.getPrecursors().resize(1);
-	TEST_FALSE(edit == empty);
+	TEST_EQUAL(edit!=empty, true);
 	
 	edit = empty;
 	edit.setType(SpectrumSettings::CENTROID);
-	TEST_FALSE(edit == empty);
+	TEST_EQUAL(edit!=empty, true);
 	
 	edit = empty;
 	edit.setComment("bla");
-	TEST_FALSE(edit == empty);
+	TEST_EQUAL(edit!=empty, true);
 
 	edit = empty;
 	edit.getPrecursors().resize(1);
-	TEST_FALSE(edit == empty);
+	TEST_EQUAL(edit!=empty, true);
 
 	edit = empty;
 	edit.getProducts().resize(1);
-	TEST_FALSE(edit == empty);
+	TEST_EQUAL(edit!=empty, true);
 
 	edit = empty;
 	edit.getPeptideIdentifications().resize(1);
-	TEST_FALSE(edit == empty);
+	TEST_EQUAL(edit!=empty, true);
 
 	edit = empty;
     DataProcessingPtr dp = boost::shared_ptr<DataProcessing>(new DataProcessing); 
 	edit.getDataProcessing().push_back(dp);
-	TEST_FALSE(edit == empty);
+	TEST_EQUAL(edit!=empty, true);
 
 	edit = empty;
 	edit.setMetaValue("bla","bluff");
-	TEST_FALSE(edit == empty);
+	TEST_EQUAL(edit!=empty, true);
 
 
 END_SECTION

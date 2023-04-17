@@ -188,7 +188,7 @@ namespace OpenMS
       }
       // MZ spacing sanity checks
       double left_to_central = 0.0, central_to_right = 0.0, min_spacing = 0.0;
-      bool no_left_neighbor = false, no_right_neighbor = false;
+      bool has_left_neighbor = false, has_right_neighbor = false;
       if (check_spacings)
       {
         left_to_central = central_peak_mz - left_neighbor_mz;
@@ -196,8 +196,8 @@ namespace OpenMS
         min_spacing = (left_to_central < central_to_right) ? left_to_central : central_to_right;
         // if left or right neighbor is more than min space, we consider peak core
         // to be missing flanking peaks
-        no_left_neighbor = left_to_central > spacing_difference_ * min_spacing;
-        no_right_neighbor = central_to_right > spacing_difference_ * min_spacing;
+        has_left_neighbor = left_to_central <= spacing_difference_ * min_spacing;
+        has_right_neighbor = central_to_right <= spacing_difference_ * min_spacing;
 
       }
 
@@ -216,7 +216,7 @@ namespace OpenMS
         (act_snt_l1 >= signal_to_noise_) && 
         (act_snt_r1 >= signal_to_noise_) &&
         (!check_spacings || 
-        (!no_left_neighbor || !no_right_neighbor)))
+        (has_left_neighbor || has_right_neighbor)))
       {
         // special case: if a peak core is surrounded by more intense
         // satellite peaks (indicates oscillation rather than
@@ -249,11 +249,11 @@ namespace OpenMS
         double weighted_im = 0;
         peak_raw_data[central_peak_mz] = central_peak_int;
         // if we determined there are no flanking peaks, don't add neighbors from one side
-        if (!no_left_neighbor) {
+        if (has_left_neighbor) {
           peak_raw_data[left_neighbor_mz] = left_neighbor_int;
         }
 
-        if (!no_right_neighbor) {
+        if (has_right_neighbor) {
           peak_raw_data[right_neighbor_mz] = right_neighbor_int;
         }
 
@@ -261,10 +261,10 @@ namespace OpenMS
         {
           weighted_im += input.getFloatDataArrays()[im_data_index][i] * input[i].getIntensity();
           // if no left or right neighbor, don't include ion mobility
-          if (!no_left_neighbor) {
+          if (has_left_neighbor) {
             weighted_im += input.getFloatDataArrays()[im_data_index][i-1] * input[i-1].getIntensity();
           }
-          if (!no_right_neighbor) {
+          if (has_right_neighbor) {
             weighted_im += input.getFloatDataArrays()[im_data_index][i + 1] * input[i + 1].getIntensity();
           }
         }
@@ -376,8 +376,8 @@ namespace OpenMS
         // We have to add a proper peak to peak_spline and have to decide what ion mobility value to assign to it.
 
         // for now, simply replace mz value of missing neighbor with central mz peak.
-        left_neighbor_mz = (no_left_neighbor) ? central_peak_mz: left_neighbor_mz;
-        right_neighbor_mz = (no_right_neighbor) ? central_peak_mz: right_neighbor_mz;
+        left_neighbor_mz = (has_left_neighbor) ? left_neighbor_mz: central_peak_mz;
+        right_neighbor_mz = (has_right_neighbor) ? right_neighbor_mz: central_peak_mz;
 
         double max_peak_mz = central_peak_mz;
         double max_peak_int = central_peak_int;

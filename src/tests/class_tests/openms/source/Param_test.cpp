@@ -539,9 +539,9 @@ END_SECTION
 START_SECTION(([Param::ParamIterator] bool operator==(const ParamIterator& rhs) const))
 	Param::ParamIterator begin(root), begin2(root), end;
 	TEST_EQUAL(begin==end, false)
-	TEST_TRUE(begin == begin)
-	TEST_TRUE(begin == begin2)
-	TEST_TRUE(end == end)
+	TEST_EQUAL(begin==begin, true)
+	TEST_EQUAL(begin==begin2, true)
+	TEST_EQUAL(end==end, true)
 
 	++begin;
 	TEST_EQUAL(begin==begin2, false)
@@ -549,17 +549,7 @@ START_SECTION(([Param::ParamIterator] bool operator==(const ParamIterator& rhs) 
 	TEST_EQUAL(begin2==end, false)
 
 	++begin2;
-	TEST_TRUE(begin == begin2)
-	TEST_EQUAL(begin==end, false)
-	TEST_EQUAL(begin2==end, false)
-
-	++begin;
-	TEST_EQUAL(begin==begin2, false)
-	TEST_EQUAL(begin==end, false)
-	TEST_EQUAL(begin2==end, false)
-
-	++begin2;
-	TEST_TRUE(begin == begin2)
+	TEST_EQUAL(begin==begin2, true)
 	TEST_EQUAL(begin==end, false)
 	TEST_EQUAL(begin2==end, false)
 
@@ -569,29 +559,39 @@ START_SECTION(([Param::ParamIterator] bool operator==(const ParamIterator& rhs) 
 	TEST_EQUAL(begin2==end, false)
 
 	++begin2;
-	TEST_TRUE(begin == begin2)
+	TEST_EQUAL(begin==begin2, true)
 	TEST_EQUAL(begin==end, false)
 	TEST_EQUAL(begin2==end, false)
 
 	++begin;
 	TEST_EQUAL(begin==begin2, false)
-	TEST_TRUE(begin == end)
+	TEST_EQUAL(begin==end, false)
 	TEST_EQUAL(begin2==end, false)
 
 	++begin2;
-	TEST_TRUE(begin == begin2)
-	TEST_TRUE(begin == end)
-	TEST_TRUE(begin2 == end)
+	TEST_EQUAL(begin==begin2, true)
+	TEST_EQUAL(begin==end, false)
+	TEST_EQUAL(begin2==end, false)
+
+	++begin;
+	TEST_EQUAL(begin==begin2, false)
+	TEST_EQUAL(begin==end, true)
+	TEST_EQUAL(begin2==end, false)
+
+	++begin2;
+	TEST_EQUAL(begin==begin2, true)
+	TEST_EQUAL(begin==end, true)
+	TEST_EQUAL(begin2==end, true)
 END_SECTION
 
 START_SECTION(([Param::ParamIterator] bool operator!=(const ParamIterator& rhs) const))
 	Param::ParamIterator begin(root), begin2(root), end;
 	TEST_EQUAL(begin==end, false)
 	TEST_EQUAL(begin2==end, false)
-	TEST_TRUE(begin == begin2)
-	TEST_TRUE(begin == begin)
-	TEST_TRUE(begin2 == begin2)
-	TEST_TRUE(end == end)
+	TEST_EQUAL(begin==begin2, true)
+	TEST_EQUAL(begin==begin, true)
+	TEST_EQUAL(begin2==begin2, true)
+	TEST_EQUAL(end==end, true)
 END_SECTION
 
 
@@ -1096,7 +1096,7 @@ END_SECTION
 
 START_SECTION((bool operator == (const Param& rhs) const))
 	Param p2(p_src);
-	TEST_TRUE(p_src == p2)
+	TEST_EQUAL(p_src==p2, true)
 	p2.setValue("test:float",17.5f);
 	TEST_EQUAL(p_src==p2, false)
 	p2 = p_src;
@@ -1112,7 +1112,7 @@ START_SECTION((bool operator == (const Param& rhs) const))
 	p3.setValue("2",2);
 	p4.setValue("2",2);
 	p4.setValue("1",1);
-	TEST_TRUE(p3 == p4)
+	TEST_EQUAL(p3==p4, true)
 
 	//it should be independent of node order
 	Param p5,p6;
@@ -1120,7 +1120,7 @@ START_SECTION((bool operator == (const Param& rhs) const))
 	p5.setValue("2:1",1);
 	p6.setValue("2:1",1);
 	p6.setValue("1:1",1);
-	TEST_TRUE(p5 == p6)
+	TEST_EQUAL(p5==p6, true)
 
 END_SECTION
 

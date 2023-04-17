@@ -149,13 +149,13 @@ END_SECTION
 
 START_SECTION((const std::vector<DataProcessing>& getDataProcessing() const))
   FeatureMap tmp;
-  TEST_EQUAL(tmp.getDataProcessing().size(),0)
+  TEST_EQUAL(tmp.getDataProcessing().size(),0);
 END_SECTION
 
 START_SECTION((std::vector<DataProcessing>& getDataProcessing()))
   FeatureMap tmp;
   tmp.getDataProcessing().resize(1);
-  TEST_EQUAL(tmp.getDataProcessing().size(),1)
+  TEST_EQUAL(tmp.getDataProcessing().size(),1);
 END_SECTION
 
 START_SECTION((void setDataProcessing(const std::vector< DataProcessing > &processing_method)))
@@ -256,26 +256,26 @@ END_SECTION
 START_SECTION((bool operator == (const FeatureMap& rhs) const))
 	FeatureMap empty,edit;
 
-	TEST_TRUE(empty == edit)
+	TEST_EQUAL(empty==edit, true);
 
 	edit.setIdentifier("lsid");;
-	TEST_EQUAL(empty==edit, false)
+	TEST_EQUAL(empty==edit, false);
 
 	edit = empty;
 	edit.push_back(feature1);
-	TEST_EQUAL(empty==edit, false)
+	TEST_EQUAL(empty==edit, false);
 
 	edit = empty;
 	edit.getDataProcessing().resize(1);
-	TEST_EQUAL(empty==edit, false)
+	TEST_EQUAL(empty==edit, false);
 
   edit = empty;
 	edit.getProteinIdentifications().resize(1);
-  TEST_EQUAL(edit==empty, false)
+  TEST_EQUAL(edit==empty, false);
 
 	edit = empty;
 	edit.getUnassignedPeptideIdentifications().resize(10);
-	TEST_EQUAL(empty==edit, false)
+	TEST_EQUAL(empty==edit, false);
 
 
 	edit = empty;
@@ -283,32 +283,32 @@ START_SECTION((bool operator == (const FeatureMap& rhs) const))
 	edit.push_back(feature2);
 	edit.updateRanges();
 	edit.clear(false);
-	TEST_EQUAL(empty==edit, false)
+	TEST_EQUAL(empty==edit, false);
 END_SECTION
 
 START_SECTION((bool operator != (const FeatureMap& rhs) const))
 	FeatureMap empty,edit;
 
-	TEST_EQUAL(empty!=edit, false)
+	TEST_EQUAL(empty!=edit, false);
 
 	edit.setIdentifier("lsid");;
-	TEST_FALSE(empty == edit)
+	TEST_EQUAL(empty!=edit, true);
 
 	edit = empty;
 	edit.push_back(feature1);
-	TEST_FALSE(empty == edit)
+	TEST_EQUAL(empty!=edit, true);
 
 	edit = empty;
 	edit.getDataProcessing().resize(1);
-	TEST_FALSE(empty == edit)
+	TEST_EQUAL(empty!=edit, true);
 
   edit = empty;
 	edit.getProteinIdentifications().resize(10);
-  TEST_FALSE(edit == empty)
+  TEST_EQUAL(edit!=empty, true);
 
 	edit = empty;
 	edit.getUnassignedPeptideIdentifications().resize(10);
-	TEST_FALSE(empty == edit)
+	TEST_EQUAL(empty!=edit, true);
 
 
 	edit = empty;
@@ -316,20 +316,20 @@ START_SECTION((bool operator != (const FeatureMap& rhs) const))
 	edit.push_back(feature2);
 	edit.updateRanges();
 	edit.clear(false);
-	TEST_FALSE(empty == edit)
+	TEST_EQUAL(empty!=edit, true);
 END_SECTION
 
 START_SECTION((FeatureMap operator + (const FeatureMap& rhs) const))
 	// just some basic testing... most is done in operator +=()
 	FeatureMap m1, m2, m3;
 
-	TEST_EQUAL(m1+m2, m3)
+	TEST_EQUAL(m1+m2, m3);
 
 	Feature f1;
 	f1.setMZ(100.12);
 	m1.push_back(f1);
 	m3 = m1;
-	TEST_EQUAL(m1+m2, m3)
+	TEST_EQUAL(m1+m2, m3);
 
 END_SECTION
 
@@ -338,7 +338,7 @@ START_SECTION((FeatureMap& operator+= (const FeatureMap& rhs)))
 
 	// adding empty maps has no effect:
 	m1+=m2;
-	TEST_EQUAL(m1, m3)
+	TEST_EQUAL(m1, m3);
 
 	// with content:
 	Feature f1;
@@ -346,7 +346,7 @@ START_SECTION((FeatureMap& operator+= (const FeatureMap& rhs)))
 	m1.push_back(f1);
 	m3 = m1;
 	m1+=m2;
-	TEST_EQUAL(m1, m3)
+	TEST_EQUAL(m1, m3);
 
 	// test basic classes
 	m1.setIdentifier ("123");
@@ -364,11 +364,11 @@ START_SECTION((FeatureMap& operator+= (const FeatureMap& rhs)))
 
 
 	m1+=m2;
-	TEST_EQUAL(m1.getIdentifier(), "")
-	TEST_EQUAL(UniqueIdInterface::isValid(m1.getUniqueId()), false)
-	TEST_EQUAL(m1.getDataProcessing().size(), 3)
-	TEST_EQUAL(m1.getProteinIdentifications().size(),3)
-	TEST_EQUAL(m1.getUnassignedPeptideIdentifications().size(),3)
+	TEST_EQUAL(m1.getIdentifier(), "");
+	TEST_EQUAL(UniqueIdInterface::isValid(m1.getUniqueId()), false);
+	TEST_EQUAL(m1.getDataProcessing().size(), 3);
+	TEST_EQUAL(m1.getProteinIdentifications().size(),3);
+	TEST_EQUAL(m1.getUnassignedPeptideIdentifications().size(),3);
 	TEST_EQUAL(m1.size(),3);
 
 
@@ -392,15 +392,16 @@ START_SECTION((void sortByIntensity(bool reverse=false)))
 
 	to_be_sorted.sortByIntensity();
 
-	TEST_EQUAL(to_be_sorted[0].getIntensity(),3)
-	TEST_EQUAL(to_be_sorted[1].getIntensity(),5)
-	TEST_EQUAL(to_be_sorted[2].getIntensity(),10)
+	TEST_EQUAL(to_be_sorted[0].getIntensity(),3);
+	TEST_EQUAL(to_be_sorted[1].getIntensity(),5);
+	TEST_EQUAL(to_be_sorted[2].getIntensity(),10);
+
 
 	to_be_sorted.sortByIntensity(true);
 
-	TEST_EQUAL(to_be_sorted[0].getIntensity(),10)
-	TEST_EQUAL(to_be_sorted[1].getIntensity(),5)
-	TEST_EQUAL(to_be_sorted[2].getIntensity(),3)
+	TEST_EQUAL(to_be_sorted[0].getIntensity(),10);
+	TEST_EQUAL(to_be_sorted[1].getIntensity(),5);
+	TEST_EQUAL(to_be_sorted[2].getIntensity(),3);
 
 END_SECTION
 
@@ -422,9 +423,9 @@ START_SECTION((void sortByPosition()))
 
 	to_be_sorted.sortByPosition();
 
-	TEST_EQUAL(to_be_sorted[0].getPosition()[0],3)
-	TEST_EQUAL(to_be_sorted[1].getPosition()[0],5)
-	TEST_EQUAL(to_be_sorted[2].getPosition()[0],10)
+	TEST_EQUAL(to_be_sorted[0].getPosition()[0],3);
+	TEST_EQUAL(to_be_sorted[1].getPosition()[0],5);
+	TEST_EQUAL(to_be_sorted[2].getPosition()[0],10);
 
 END_SECTION
 
@@ -449,9 +450,9 @@ START_SECTION((void sortByMZ()))
 
 	to_be_sorted.sortByMZ();
 
-	TEST_EQUAL(to_be_sorted[0].getPosition()[1],10)
-	TEST_EQUAL(to_be_sorted[1].getPosition()[1],15)
-	TEST_EQUAL(to_be_sorted[2].getPosition()[1],25)
+	TEST_EQUAL(to_be_sorted[0].getPosition()[1],10);
+	TEST_EQUAL(to_be_sorted[1].getPosition()[1],15);
+	TEST_EQUAL(to_be_sorted[2].getPosition()[1],25);
 
 END_SECTION
 
@@ -476,9 +477,9 @@ START_SECTION((void sortByRT()))
 
 	to_be_sorted.sortByRT();
 
-	TEST_EQUAL(to_be_sorted[0].getPosition()[0],3)
-	TEST_EQUAL(to_be_sorted[1].getPosition()[0],5)
-	TEST_EQUAL(to_be_sorted[2].getPosition()[0],10)
+	TEST_EQUAL(to_be_sorted[0].getPosition()[0],3);
+	TEST_EQUAL(to_be_sorted[1].getPosition()[0],5);
+	TEST_EQUAL(to_be_sorted[2].getPosition()[0],10);
 
 END_SECTION
 
@@ -499,15 +500,15 @@ START_SECTION((void swap(FeatureMap& from)))
 	TEST_EQUAL(map1.size(),0)
   TEST_EQUAL(map1.hasRange() == HasRangeType::NONE, true)
   TEST_EQUAL(map1.getDataProcessing().size(),0)
-	TEST_EQUAL(map1.getProteinIdentifications().size(),0)
-	TEST_EQUAL(map1.getUnassignedPeptideIdentifications().size(),0)
+	TEST_EQUAL(map1.getProteinIdentifications().size(),0);
+	TEST_EQUAL(map1.getUnassignedPeptideIdentifications().size(),0);
 
 	TEST_EQUAL(map2.getIdentifier(),"stupid comment")
 	TEST_EQUAL(map2.size(),2)
 	TEST_REAL_SIMILAR(map2.getMinIntensity(),0.5)
   TEST_EQUAL(map2.getDataProcessing().size(),1)
-	TEST_EQUAL(map2.getProteinIdentifications().size(),1)
-	TEST_EQUAL(map2.getUnassignedPeptideIdentifications().size(),1)
+	TEST_EQUAL(map2.getProteinIdentifications().size(),1);
+	TEST_EQUAL(map2.getUnassignedPeptideIdentifications().size(),1);
 }
 END_SECTION
 
@@ -528,15 +529,15 @@ START_SECTION((void swapFeaturesOnly(FeatureMap& from)))
 	TEST_EQUAL(map1.size(),0)
   TEST_EQUAL(map1.hasRange() == HasRangeType::NONE, true)
   TEST_EQUAL(map1.getDataProcessing().size(),1)
-	TEST_EQUAL(map1.getProteinIdentifications().size(),1)
-	TEST_EQUAL(map1.getUnassignedPeptideIdentifications().size(),1)
+	TEST_EQUAL(map1.getProteinIdentifications().size(),1);
+	TEST_EQUAL(map1.getUnassignedPeptideIdentifications().size(),1);
 
 	TEST_EQUAL(map2.getIdentifier(),"")
 	TEST_EQUAL(map2.size(),2)
 	TEST_REAL_SIMILAR(map2.getMinIntensity(),0.5)
   TEST_EQUAL(map2.getDataProcessing().size(),0)
-	TEST_EQUAL(map2.getProteinIdentifications().size(),0)
-	TEST_EQUAL(map2.getUnassignedPeptideIdentifications().size(),0)
+	TEST_EQUAL(map2.getProteinIdentifications().size(),0);
+	TEST_EQUAL(map2.getUnassignedPeptideIdentifications().size(),0);
 }
 END_SECTION
 
@@ -564,23 +565,23 @@ START_SECTION((void sortByOverallQuality(bool reverse=false)))
 
 	to_be_sorted.sortByOverallQuality();
 
-	TEST_EQUAL(to_be_sorted[0].getPosition()[0],1)
-	TEST_EQUAL(to_be_sorted[1].getPosition()[0],3)
-	TEST_EQUAL(to_be_sorted[2].getPosition()[0],2)
+	TEST_EQUAL(to_be_sorted[0].getPosition()[0],1);
+	TEST_EQUAL(to_be_sorted[1].getPosition()[0],3);
+	TEST_EQUAL(to_be_sorted[2].getPosition()[0],2);
 
-	TEST_EQUAL(to_be_sorted[0].getOverallQuality(),10)
-	TEST_EQUAL(to_be_sorted[1].getOverallQuality(),20)
-	TEST_EQUAL(to_be_sorted[2].getOverallQuality(),30)
+	TEST_EQUAL(to_be_sorted[0].getOverallQuality(),10);
+	TEST_EQUAL(to_be_sorted[1].getOverallQuality(),20);
+	TEST_EQUAL(to_be_sorted[2].getOverallQuality(),30);
 
 	to_be_sorted.sortByOverallQuality(true);
 
-	TEST_EQUAL(to_be_sorted[0].getPosition()[0],2)
-	TEST_EQUAL(to_be_sorted[1].getPosition()[0],3)
-	TEST_EQUAL(to_be_sorted[2].getPosition()[0],1)
+	TEST_EQUAL(to_be_sorted[0].getPosition()[0],2);
+	TEST_EQUAL(to_be_sorted[1].getPosition()[0],3);
+	TEST_EQUAL(to_be_sorted[2].getPosition()[0],1);
 
-	TEST_EQUAL(to_be_sorted[0].getOverallQuality(),30)
-	TEST_EQUAL(to_be_sorted[1].getOverallQuality(),20)
-	TEST_EQUAL(to_be_sorted[2].getOverallQuality(),10)
+	TEST_EQUAL(to_be_sorted[0].getOverallQuality(),30);
+	TEST_EQUAL(to_be_sorted[1].getOverallQuality(),20);
+	TEST_EQUAL(to_be_sorted[2].getOverallQuality(),10);
 
 END_SECTION
 
@@ -622,7 +623,7 @@ START_SECTION(([EXTRA] void uniqueIdToIndex()))
 	  }
     for ( Size i = 0; i < num_features; ++i )
     {
-      TEST_EQUAL(fm.uniqueIdToIndex(pairs[i].second),pairs[i].first)
+      TEST_EQUAL(fm.uniqueIdToIndex(pairs[i].second),pairs[i].first);
     }
     STATUS("shuffling ...");
     Math::RandomShuffler r{0};
@@ -631,17 +632,17 @@ START_SECTION(([EXTRA] void uniqueIdToIndex()))
     for ( Size i = 0; i < num_features; ++i )
     {
       STATUS("pairs[i]:  " << pairs[i].first << ", " << pairs[i].second )
-      TEST_EQUAL(fm.uniqueIdToIndex(fm[pairs[i].first].getUniqueId()),pairs[i].first)
-      TEST_EQUAL(fm[fm.uniqueIdToIndex(pairs[i].second)].getUniqueId(),pairs[i].second)
+      TEST_EQUAL(fm.uniqueIdToIndex(fm[pairs[i].first].getUniqueId()),pairs[i].first);
+      TEST_EQUAL(fm[fm.uniqueIdToIndex(pairs[i].second)].getUniqueId(),pairs[i].second);
     }
 
     f.setRT(98765421);
     f.setUniqueId();
     pairs.push_back(make_pair(987654321,f.getUniqueId()));
 
-    TEST_EQUAL(fm.uniqueIdToIndex(pairs.back().second),Size(-1))
+    TEST_EQUAL(fm.uniqueIdToIndex(pairs.back().second),Size(-1));
     fm.push_back(f);
-    TEST_EQUAL(fm.uniqueIdToIndex(pairs.back().second),fm.size()-1)
+    TEST_EQUAL(fm.uniqueIdToIndex(pairs.back().second),fm.size()-1);
 
     fm.push_back(Feature());
     fm.push_back(f);
@@ -662,15 +663,15 @@ START_SECTION((template < typename Type > Size applyMemberFunction(Size(Type::*m
   fm.push_back(Feature());
   fm.back().getSubordinates().push_back(Feature());
 
-  TEST_EQUAL(fm.applyMemberFunction(&UniqueIdInterface::hasInvalidUniqueId),4)
+  TEST_EQUAL(fm.applyMemberFunction(&UniqueIdInterface::hasInvalidUniqueId),4);
   fm.setUniqueId();
-  TEST_EQUAL(fm.applyMemberFunction(&UniqueIdInterface::hasInvalidUniqueId),3)
+  TEST_EQUAL(fm.applyMemberFunction(&UniqueIdInterface::hasInvalidUniqueId),3);
   fm.applyMemberFunction(&UniqueIdInterface::setUniqueId);
-  TEST_EQUAL(fm.applyMemberFunction(&UniqueIdInterface::hasValidUniqueId),4)
-  TEST_EQUAL(fm.applyMemberFunction(&UniqueIdInterface::hasInvalidUniqueId),0)
+  TEST_EQUAL(fm.applyMemberFunction(&UniqueIdInterface::hasValidUniqueId),4);
+  TEST_EQUAL(fm.applyMemberFunction(&UniqueIdInterface::hasInvalidUniqueId),0);
   fm.begin()->clearUniqueId();
-  TEST_EQUAL(fm.applyMemberFunction(&UniqueIdInterface::hasValidUniqueId),3)
-  TEST_EQUAL(fm.applyMemberFunction(&UniqueIdInterface::hasInvalidUniqueId),1)
+  TEST_EQUAL(fm.applyMemberFunction(&UniqueIdInterface::hasValidUniqueId),3);
+  TEST_EQUAL(fm.applyMemberFunction(&UniqueIdInterface::hasInvalidUniqueId),1);
 }
 END_SECTION
 
@@ -682,15 +683,15 @@ START_SECTION((template < typename Type > Size applyMemberFunction(Size(Type::*m
   fm.push_back(Feature());
   fm.back().getSubordinates().push_back(Feature());
 
-  TEST_EQUAL(fmc.applyMemberFunction(&UniqueIdInterface::hasInvalidUniqueId),4)
+  TEST_EQUAL(fmc.applyMemberFunction(&UniqueIdInterface::hasInvalidUniqueId),4);
   fm.setUniqueId();
-  TEST_EQUAL(fmc.applyMemberFunction(&UniqueIdInterface::hasInvalidUniqueId),3)
+  TEST_EQUAL(fmc.applyMemberFunction(&UniqueIdInterface::hasInvalidUniqueId),3);
   fm.applyMemberFunction(&UniqueIdInterface::setUniqueId);
-  TEST_EQUAL(fmc.applyMemberFunction(&UniqueIdInterface::hasValidUniqueId),4)
-  TEST_EQUAL(fm.applyMemberFunction(&UniqueIdInterface::hasInvalidUniqueId),0)
+  TEST_EQUAL(fmc.applyMemberFunction(&UniqueIdInterface::hasValidUniqueId),4);
+  TEST_EQUAL(fm.applyMemberFunction(&UniqueIdInterface::hasInvalidUniqueId),0);
   fm.begin()->clearUniqueId();
-  TEST_EQUAL(fmc.applyMemberFunction(&UniqueIdInterface::hasValidUniqueId),3)
-  TEST_EQUAL(fmc.applyMemberFunction(&UniqueIdInterface::hasInvalidUniqueId),1)
+  TEST_EQUAL(fmc.applyMemberFunction(&UniqueIdInterface::hasValidUniqueId),3);
+  TEST_EQUAL(fmc.applyMemberFunction(&UniqueIdInterface::hasInvalidUniqueId),1);
 }
 END_SECTION
 
@@ -699,52 +700,41 @@ START_SECTION((  AnnotationStatistics getAnnotationStatistics() const ))
 
   AnnotationStatistics stats, res;
   stats = fm.getAnnotationStatistics();
-  TEST_TRUE(stats == res)
+  TEST_EQUAL(stats == res, true)
 
   fm.push_back(feature1); // single hit
   stats = fm.getAnnotationStatistics();
   ++res.states[BaseFeature::FEATURE_ID_SINGLE];
   std::cout << res;
-  TEST_TRUE(stats == res)
+  TEST_EQUAL(stats == res, true)
 
   fm.push_back(feature4); // single hit + no hit
   stats = fm.getAnnotationStatistics();
   ++res.states[BaseFeature::FEATURE_ID_NONE];
   std::cout << res;
-  TEST_TRUE(stats == res)
+  TEST_EQUAL(stats == res, true)
 
   fm.push_back(feature4); // single hit + 2x no hit
   stats = fm.getAnnotationStatistics();
   ++res.states[BaseFeature::FEATURE_ID_NONE];
   std::cout << res;
-  TEST_TRUE(stats == res)
+  TEST_EQUAL(stats == res, true)
 
   fm.push_back(feature2); // single hit + 2x no hit + multi-hit (same)
   stats = fm.getAnnotationStatistics();
   ++res.states[BaseFeature::FEATURE_ID_MULTIPLE_SAME];
   std::cout << res;
-  TEST_TRUE(stats == res)
+  TEST_EQUAL(stats == res, true)
 
   fm.push_back(feature3); // single hit + 2x no hit + multi-hit (same) + multi (divergent)
   stats = fm.getAnnotationStatistics();
   ++res.states[BaseFeature::FEATURE_ID_MULTIPLE_DIVERGENT];
   std::cout << res;
   std::cout << stats;
-  TEST_TRUE(stats == res)
+  TEST_EQUAL(stats == res, true)
 
 END_SECTION
 
-START_SECTION([EXTRA] ExposedVector Ctor)
-  FeatureMap fm(10);
-  TEST_EQUAL(fm.size(), 10);
-  
-  Feature f4;
-  f4.getPosition()[0] = 5.25;
-  FeatureMap fm2(10, f4);
-  TEST_EQUAL(fm2.size(), 10)
-  TEST_EQUAL(fm2[6].getPosition()[0], 5.25)
-END_SECTION
-  
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST

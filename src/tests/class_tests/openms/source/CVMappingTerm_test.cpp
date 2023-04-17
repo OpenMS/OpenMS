@@ -152,53 +152,53 @@ START_SECTION((bool operator == (const CVMappingTerm& rhs) const))
   cvmt.setAccession("my_test_accession");
 	TEST_EQUAL(cvmt_copy == cvmt, false)
   cvmt_copy = cvmt;
-	TEST_TRUE(cvmt_copy == cvmt)
+	TEST_EQUAL(cvmt_copy == cvmt, true)
 
   cvmt.setUseTermName(true);
 	TEST_EQUAL(cvmt_copy == cvmt, false)
   cvmt_copy = cvmt;
-	TEST_TRUE(cvmt_copy == cvmt)
+	TEST_EQUAL(cvmt_copy == cvmt, true)
   cvmt.setUseTermName(false);
 	TEST_EQUAL(cvmt_copy == cvmt, false)
   cvmt_copy = cvmt;
-	TEST_TRUE(cvmt_copy == cvmt)
+	TEST_EQUAL(cvmt_copy == cvmt, true)
 
   cvmt.setUseTerm(true);
 	TEST_EQUAL(cvmt_copy == cvmt, false)
   cvmt_copy = cvmt;
-	TEST_TRUE(cvmt_copy == cvmt)
+	TEST_EQUAL(cvmt_copy == cvmt, true)
   cvmt.setUseTerm(false);
 	TEST_EQUAL(cvmt_copy == cvmt, false)
   cvmt_copy = cvmt;
-	TEST_TRUE(cvmt_copy == cvmt)
+	TEST_EQUAL(cvmt_copy == cvmt, true)
 
   cvmt.setTermName("my_test_termname");
 	TEST_EQUAL(cvmt_copy == cvmt, false)
   cvmt_copy = cvmt;
-	TEST_TRUE(cvmt_copy == cvmt)
+	TEST_EQUAL(cvmt_copy == cvmt, true)
   
 	cvmt.setIsRepeatable(true);
 	TEST_EQUAL(cvmt_copy == cvmt, false)
   cvmt_copy = cvmt;
-	TEST_TRUE(cvmt_copy == cvmt)
+	TEST_EQUAL(cvmt_copy == cvmt, true)
   cvmt.setIsRepeatable(false);
 	TEST_EQUAL(cvmt_copy == cvmt, false)
   cvmt_copy = cvmt;
-	TEST_TRUE(cvmt_copy == cvmt)
+	TEST_EQUAL(cvmt_copy == cvmt, true)
 
   cvmt.setAllowChildren(true);
 	TEST_EQUAL(cvmt_copy == cvmt, false)
   cvmt_copy = cvmt;
-	TEST_TRUE(cvmt_copy == cvmt)
+	TEST_EQUAL(cvmt_copy == cvmt, true)
   cvmt.setAllowChildren(false);
 	TEST_EQUAL(cvmt_copy == cvmt, false)
   cvmt_copy = cvmt;
-	TEST_TRUE(cvmt_copy == cvmt)
+	TEST_EQUAL(cvmt_copy == cvmt, true)
 
   cvmt.setCVIdentifierRef("my_test_cvidentifierref");
 	TEST_EQUAL(cvmt_copy == cvmt, false)
   cvmt_copy = cvmt;
-	TEST_TRUE(cvmt_copy == cvmt)
+	TEST_EQUAL(cvmt_copy == cvmt, true)
 }
 END_SECTION
 
@@ -209,53 +209,53 @@ START_SECTION((bool operator != (const CVMappingTerm& rhs) const))
   cvmt.setAccession("my_test_accession");
   TEST_EQUAL(cvmt_copy == cvmt, false)
   cvmt_copy = cvmt;
-  TEST_TRUE(cvmt_copy == cvmt)
+  TEST_EQUAL(cvmt_copy == cvmt, true)
 
   cvmt.setUseTermName(true);
   TEST_EQUAL(cvmt_copy == cvmt, false)
   cvmt_copy = cvmt;
-  TEST_TRUE(cvmt_copy == cvmt)
+  TEST_EQUAL(cvmt_copy == cvmt, true)
   cvmt.setUseTermName(false);
   TEST_EQUAL(cvmt_copy == cvmt, false)
   cvmt_copy = cvmt;
-  TEST_TRUE(cvmt_copy == cvmt)
+  TEST_EQUAL(cvmt_copy == cvmt, true)
 
   cvmt.setUseTerm(true);
   TEST_EQUAL(cvmt_copy == cvmt, false)
   cvmt_copy = cvmt;
-  TEST_TRUE(cvmt_copy == cvmt)
+  TEST_EQUAL(cvmt_copy == cvmt, true)
   cvmt.setUseTerm(false);
   TEST_EQUAL(cvmt_copy == cvmt, false)
   cvmt_copy = cvmt;
-  TEST_TRUE(cvmt_copy == cvmt)
+  TEST_EQUAL(cvmt_copy == cvmt, true)
 
   cvmt.setTermName("my_test_termname");
   TEST_EQUAL(cvmt_copy == cvmt, false)
   cvmt_copy = cvmt;
-  TEST_TRUE(cvmt_copy == cvmt)
+  TEST_EQUAL(cvmt_copy == cvmt, true)
 
   cvmt.setIsRepeatable(true);
   TEST_EQUAL(cvmt_copy == cvmt, false)
   cvmt_copy = cvmt;
-  TEST_TRUE(cvmt_copy == cvmt)
+  TEST_EQUAL(cvmt_copy == cvmt, true)
   cvmt.setIsRepeatable(false);
   TEST_EQUAL(cvmt_copy == cvmt, false)
   cvmt_copy = cvmt;
-  TEST_TRUE(cvmt_copy == cvmt)
+  TEST_EQUAL(cvmt_copy == cvmt, true)
 
   cvmt.setAllowChildren(true);
   TEST_EQUAL(cvmt_copy == cvmt, false)
   cvmt_copy = cvmt;
-  TEST_TRUE(cvmt_copy == cvmt)
+  TEST_EQUAL(cvmt_copy == cvmt, true)
   cvmt.setAllowChildren(false);
   TEST_EQUAL(cvmt_copy == cvmt, false)
   cvmt_copy = cvmt;
-  TEST_TRUE(cvmt_copy == cvmt)
+  TEST_EQUAL(cvmt_copy == cvmt, true)
 
   cvmt.setCVIdentifierRef("my_test_cvidentifierref");
   TEST_EQUAL(cvmt_copy == cvmt, false)
   cvmt_copy = cvmt;
-  TEST_TRUE(cvmt_copy == cvmt)
+  TEST_EQUAL(cvmt_copy == cvmt, true)
 }
 END_SECTION
 

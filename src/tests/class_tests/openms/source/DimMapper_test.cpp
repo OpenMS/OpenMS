@@ -166,7 +166,7 @@ START_SECTION(DimMapper(const DimMapper& rhs))
 {
   DimMapper3 d1(unitsIMR);
   auto d2(d1);
-  TEST_TRUE(d2 == d1);
+  TEST_EQUAL(d2 == d1, true);
 }
 END_SECTION
 
@@ -177,7 +177,7 @@ START_SECTION(DimMapper& operator=(const DimMapper& rhs))
   DimMapper3 d2(unitsRMI);
   TEST_EQUAL(d2 == d1, false);
   d1 = d2;
-  TEST_TRUE(d2 == d1);
+  TEST_EQUAL(d2 == d1, true);
 }
 END_SECTION
 

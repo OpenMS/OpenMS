@@ -67,7 +67,7 @@ Histogram<float,float> d(0, 10, 1);
 
 START_SECTION((Histogram(const Histogram& histogram)))
 	Histogram<float, float> d2(d);
-	TEST_TRUE(d == d2)
+	TEST_EQUAL(d == d2, true)
 END_SECTION
 
 START_SECTION((BinSizeType minBound() const))
@@ -200,18 +200,18 @@ END_SECTION
 
 START_SECTION((bool operator == (const Histogram& histogram) const))
 	Histogram<float, float> dist(1, 11, 2);
-	TEST_TRUE(d == dist)
+	TEST_EQUAL(d == dist, true)
 END_SECTION
 
 START_SECTION((bool operator != (const Histogram& histogram) const))
 	Histogram<float, float> dist(1, 12, 2);
-	TEST_FALSE(d == dist)
+	TEST_EQUAL(d != dist, true)
 END_SECTION
 
 START_SECTION((Histogram& operator = (const Histogram& histogram)))
 	Histogram<float, float> dist;
 	dist = d;
-	TEST_TRUE(d == dist)
+	TEST_EQUAL(d == dist, true)
 END_SECTION
 
 START_SECTION((void applyLogTransformation(BinSizeType multiplier)))

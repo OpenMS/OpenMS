@@ -89,9 +89,9 @@ START_SECTION((bool operator== (const OnDiscMSExperiment& rhs) const))
   OnDiscPeakMap same; same.openFile(OPENMS_GET_TEST_DATA_PATH("IndexedmzMLFile_1.mzML"));
   OnDiscPeakMap failed; failed.openFile(OPENMS_GET_TEST_DATA_PATH("MzMLFile_1.mzML"));
 
-  TEST_TRUE(tmp == same);
+  TEST_EQUAL(tmp==same, true);
   TEST_EQUAL(tmp2==same, false);
-  TEST_TRUE(tmp2 == tmp2);
+  TEST_EQUAL(tmp2==tmp2, true);
   TEST_EQUAL((*tmp.getExperimentalSettings())==(*same.getExperimentalSettings()), true);
   TEST_EQUAL(tmp==failed, false);
 }
@@ -105,8 +105,8 @@ START_SECTION((bool operator!= (const OnDiscMSExperiment& rhs) const))
   OnDiscPeakMap failed; failed.openFile(OPENMS_GET_TEST_DATA_PATH("MzMLFile_1.mzML"));
 
   TEST_EQUAL(tmp!=same, false);
-  TEST_FALSE(tmp2 == same);
-  TEST_FALSE(tmp == failed);
+  TEST_EQUAL(tmp2!=same, true);
+  TEST_EQUAL(tmp!=failed, true);
 }
 END_SECTION
 
@@ -198,7 +198,7 @@ START_SECTION((boost::shared_ptr<const ExperimentalSettings> getExperimentalSett
   TEST_EQUAL(settings->getInstrument().getMassAnalyzers().size(), 1)
 
   settings = tmp2.getExperimentalSettings();
-  TEST_TRUE(settings == nullptr)
+  TEST_EQUAL(settings == nullptr, true)
 }
 END_SECTION
 

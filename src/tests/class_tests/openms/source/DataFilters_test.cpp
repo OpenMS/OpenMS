@@ -141,9 +141,9 @@ END_SECTION
 
 START_SECTION(([EXTRA]bool DataFilter::operator==(const DataFilter& rhs) const))
 
-	TEST_TRUE(filter_10 == filter_7)
+	TEST_EQUAL(filter_10 == filter_7, true)
 	TEST_EQUAL(filter_1 == filter_2, false)
-	TEST_TRUE(filter_3 == filter_3)
+	TEST_EQUAL(filter_3 == filter_3, true)
 
 END_SECTION
 
@@ -151,7 +151,7 @@ END_SECTION
 START_SECTION(([EXTRA]bool DataFilter::operator!=(const DataFilter& rhs) const))
 
 	TEST_EQUAL(filter_10 != filter_7, false)
-	TEST_FALSE(filter_3 == filter_4)
+	TEST_EQUAL(filter_3 != filter_4, true)
 	TEST_EQUAL(filter_4 != filter_4, false)
 	
 END_SECTION
@@ -500,7 +500,7 @@ START_SECTION(([DataFilters::DataFilter] bool operator==(const DataFilter &rhs) 
 {
   DataFilters::DataFilter df1,df2,df3;
 
-  TEST_TRUE(df1 == df2)
+  TEST_EQUAL(df1==df2, true)
 
   // field
   df1.field = DataFilters::CHARGE;
@@ -555,7 +555,7 @@ START_SECTION(([DataFilters::DataFilter] bool operator!=(const DataFilter &rhs) 
 {
   DataFilters::DataFilter df1,df2,df3;
 
-  TEST_TRUE(df1 == df2)
+  TEST_EQUAL(df1==df2, true)
 
   // field
   df1.field = DataFilters::CHARGE;

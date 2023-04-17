@@ -309,8 +309,7 @@ START_SECTION(batchMRMFeaturesQMIP() continuous) // continuous variable type
   sort(output_selected.begin(), output_selected.end(), [](const Feature& a, const Feature& b){
     return a.getMetaValue("PeptideRef").toString() < b.getMetaValue("PeptideRef").toString(); });
 
-  /// @todo WARNING: This test is flaky on clang vs gcc. Deactivated.
-  //TEST_EQUAL(output_selected.size(), 11);
+  TEST_EQUAL(output_selected.size(), 11);
 
   const Feature* f = &output_selected[0].getSubordinates()[0];
   TEST_REAL_SIMILAR(f->getMetaValue("peak_apex_int"), 0.0);
@@ -327,11 +326,10 @@ START_SECTION(batchMRMFeaturesQMIP() continuous) // continuous variable type
   TEST_STRING_EQUAL(f->getMetaValue("native_id"), "Lcystin.Lcystin_1.Heavy");
   TEST_REAL_SIMILAR(f->getRT(), 0.796409679158529);
 
-  /// @todo WARNING: This test is flaky on clang vs gcc. Deactivated.
-  //f = &output_selected[10].getSubordinates()[0];
-  //TEST_REAL_SIMILAR(f->getMetaValue("peak_apex_int"), 0.0);
-  //TEST_STRING_EQUAL(f->getMetaValue("native_id"), "cytd.cytd_1.Heavy");
-  //TEST_REAL_SIMILAR(f->getRT(), 1.4385963780721);
+  f = &output_selected[10].getSubordinates()[0];
+  TEST_REAL_SIMILAR(f->getMetaValue("peak_apex_int"), 0.0);
+  TEST_STRING_EQUAL(f->getMetaValue("native_id"), "cytd.cytd_1.Heavy");
+  TEST_REAL_SIMILAR(f->getRT(), 1.4385963780721);
 
   // // DEBUG
   // // sort(output_selected.begin(), output_selected.end(), [](const Feature& a, const Feature& b){ return a.getRT() < b.getRT(); });

@@ -385,7 +385,7 @@ END_SECTION
 
 START_SECTION(bool operator!=(const EmpiricalFormula& rhs) const)
   EmpiricalFormula ef1("C2H5"), ef2(*e_ptr);
-  TEST_FALSE(ef1 == ef2)
+  TEST_EQUAL(ef1 != ef2, true)
   TEST_EQUAL(ef1 != ef1, false)
   ef2.setCharge(1);
   TEST_EQUAL(ef2 != *e_ptr, true)
@@ -394,7 +394,7 @@ END_SECTION
 START_SECTION(bool operator==(const EmpiricalFormula& rhs) const)
   EmpiricalFormula ef1("C2H5"), ef2(*e_ptr);
   TEST_EQUAL(ef1 == ef2, false)
-  TEST_TRUE(ef1 == ef1)
+  TEST_EQUAL(ef1 == ef1, true)
   ef2.setCharge(1);
   TEST_EQUAL(ef2 == *e_ptr, false)
 

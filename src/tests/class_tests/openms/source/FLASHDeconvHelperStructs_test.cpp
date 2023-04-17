@@ -93,7 +93,6 @@ START_SECTION(([FLASHDeconvHelperStructs::LogMzPeak] LogMzPeak()=default))
   LogMzPeak* lmp_null_ptr = 0;
 
   TEST_NOT_EQUAL(lmp_ptr, lmp_null_ptr);
-  delete lmp_ptr;
 }
 END_SECTION
 
@@ -160,7 +159,6 @@ START_SECTION(([FLASHDeconvHelperStructs::PrecalculatedAveragine] PrecalculatedA
   PrecalculatedAveragine* p_avg_null_ptr = 0;
 
   TEST_NOT_EQUAL(p_avg_ptr, p_avg_null_ptr)
-  delete p_avg_ptr;
 }
 END_SECTION
 

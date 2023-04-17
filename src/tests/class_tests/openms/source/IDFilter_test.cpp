@@ -336,7 +336,7 @@ START_SECTION((bool updateProteinGroups(vector<ProteinIdentification::ProteinGro
   bool valid = IDFilter::updateProteinGroups(groups_copy, hits);
   TEST_EQUAL(valid, true);
   TEST_EQUAL(groups_copy.size(), 2);
-  TEST_TRUE(groups_copy == groups);
+  TEST_EQUAL(groups_copy == groups, true);
 
   // remove full protein group:
   hits.pop_back();
@@ -700,7 +700,7 @@ START_SECTION((static void removePeptidesWithMatchingModifications(vector<Peptid
   set<String> mods;
   mods.insert("Carbamidomethyl (C)"); // not present in the data
   IDFilter::removePeptidesWithMatchingModifications(peptides, mods);
-  TEST_TRUE(peptides == global_peptides); // no changes
+  TEST_EQUAL(peptides == global_peptides, true); // no changes
 
   mods.clear(); // filter any mod.
   IDFilter::removePeptidesWithMatchingModifications(peptides, mods);
@@ -729,7 +729,7 @@ START_SECTION((static void removePeptidesWithMatchingRegEx(vector<PeptideIdentif
   String re{"[BJXZ]"};
 
   IDFilter::removePeptidesWithMatchingRegEx(peptides, re);
-  TEST_TRUE(peptides == global_peptides); // no changes
+  TEST_EQUAL(peptides == global_peptides, true); // no changes
 
   PeptideHit aaa_hit1;
   aaa_hit1.setSequence(AASequence::fromString("BBBBB"));
@@ -746,7 +746,7 @@ START_SECTION((static void removePeptidesWithMatchingRegEx(vector<PeptideIdentif
 
   IDFilter::removePeptidesWithMatchingRegEx(peptides, re);
   /// aaa peptides should now be removed
-  TEST_TRUE(peptides == global_peptides);
+  TEST_EQUAL(peptides == global_peptides, true);
   TEST_EQUAL(peptides[0].getHits().size(), 11);
 }
 END_SECTION

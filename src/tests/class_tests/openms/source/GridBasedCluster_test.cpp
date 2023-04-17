@@ -114,7 +114,7 @@ START_SECTION(bool operator>(GridBasedCluster other) const)
 END_SECTION
 
 START_SECTION(bool operator==(GridBasedCluster other) const)
-    TEST_TRUE(cluster1 == cluster1);
+    TEST_EQUAL(cluster1 == cluster1, true);
 END_SECTION
 
 END_TEST

@@ -182,7 +182,7 @@ END_SECTION
 START_SECTION((bool operator==(const ModificationDefinition& rhs) const))
 {
   ModificationDefinition m1, m2;
-  TEST_TRUE(m1 == m2)
+  TEST_EQUAL(m1 == m2, true)
   m1.setFixedModification(false);
   TEST_EQUAL(m1 == m2, false)
   m1.setFixedModification(true);
@@ -192,7 +192,7 @@ START_SECTION((bool operator==(const ModificationDefinition& rhs) const))
   m1.setModification("Oxidation (M)");
   TEST_EQUAL(m1 == m2, false)
   m2.setModification("Oxidation (M)");
-  TEST_TRUE(m1 == m2)
+  TEST_EQUAL(m1 == m2, true)
 }
 END_SECTION
 
@@ -201,13 +201,13 @@ START_SECTION((bool operator!=(const ModificationDefinition& rhs) const))
   ModificationDefinition m1, m2;
   TEST_EQUAL(m1 != m2, false)
   m1.setFixedModification(false);
-  TEST_FALSE(m1 == m2)
+  TEST_EQUAL(m1 != m2, true)
   m1.setFixedModification(true);
   m1.setMaxOccurrences(15);
-  TEST_FALSE(m1 == m2)
+  TEST_EQUAL(m1 != m2, true)
   m1.setMaxOccurrences(0);
   m1.setModification("Oxidation (M)");
-  TEST_FALSE(m1 == m2)
+  TEST_EQUAL(m1 != m2, true)
   m2.setModification("Oxidation (M)");
   TEST_EQUAL(m1 != m2, false)
 }

@@ -86,7 +86,7 @@ START_SECTION([FASTAFile::FASTAEntry] bool operator==(const FASTAEntry &rhs) con
   FASTAFile::FASTAEntry entry1("ID", "DESC", "DAV*LDELNER");
   FASTAFile::FASTAEntry entry2("ID", "DESC", "DAV*LDELNER");
   FASTAFile::FASTAEntry entry3("ID2", "DESC", "DAV*LDELNER");
-  TEST_TRUE(entry1 == entry2)
+  TEST_EQUAL(entry1 == entry2, true)
   TEST_EQUAL(entry1 == entry3, false)
 END_SECTION
 
@@ -194,7 +194,7 @@ START_SECTION((void
 
   file.load(tmp_filename, data2);
 
-  TEST_TRUE(data == data2);
+  TEST_EQUAL(data == data2, true);
 END_SECTION
 
 

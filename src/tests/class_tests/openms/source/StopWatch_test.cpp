@@ -70,18 +70,18 @@ START_SECTION((StopWatch(const StopWatch& stop_watch)))
   StopWatch s1, s2;
   s1.start();
   wait(0.01);
-  TEST_FALSE(s1 == s2) // before stop
+  TEST_EQUAL(s1 != s2, true) // before stop
   s1.stop();
-  TEST_FALSE(s1 == s2)
+  TEST_EQUAL(s1 != s2, true)
   s2 = s1;
-  TEST_TRUE(s1 == s2)
+  TEST_EQUAL(s1 == s2, true)
 
   StopWatch s3(s1);
-  TEST_TRUE(s1 == s3)
+  TEST_EQUAL(s1==s3, true)
   
   StopWatch s4;
   s1.reset();
-  TEST_TRUE(s1 == s4)
+  TEST_EQUAL(s1 == s4, true)
 
   s1.start();
   s2.start();
@@ -91,7 +91,7 @@ START_SECTION((StopWatch(const StopWatch& stop_watch)))
   wait(0.01);
   s2.stop();
 
-  TEST_FALSE(s1 == s2)
+  TEST_EQUAL(s1 != s2, true)
   TEST_EQUAL(s1 <= s2, true)
   TEST_EQUAL(s2 >= s1, true)
 END_SECTION

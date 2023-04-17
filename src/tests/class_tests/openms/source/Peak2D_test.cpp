@@ -213,17 +213,17 @@ END_SECTION
 START_SECTION((bool operator == (const Peak2D& rhs) const))
 	Peak2D p1;
 	Peak2D p2(p1);
-	TEST_TRUE(p1 == p2)
+	TEST_EQUAL(p1==p2, true)
 	
 	p1.setIntensity(5.0f);
 	TEST_EQUAL(p1==p2, false)
 	p2.setIntensity(5.0f);
-	TEST_TRUE(p1 == p2)
+	TEST_EQUAL(p1==p2, true)
 	
 	p1.getPosition()[0]=5;
 	TEST_EQUAL(p1==p2, false)
 	p2.getPosition()[0]=5;
-	TEST_TRUE(p1 == p2)
+	TEST_EQUAL(p1==p2, true)
 END_SECTION
 
 START_SECTION((bool operator != (const Peak2D& rhs) const))
@@ -232,12 +232,12 @@ START_SECTION((bool operator != (const Peak2D& rhs) const))
 	TEST_EQUAL(p1!=p2, false)
 	
 	p1.setIntensity(5.0f);
-	TEST_FALSE(p1 == p2)
+	TEST_EQUAL(p1!=p2, true)
 	p2.setIntensity(5.0f);
 	TEST_EQUAL(p1!=p2, false)
 	
 	p1.getPosition()[0]=5;
-	TEST_FALSE(p1 == p2)
+	TEST_EQUAL(p1!=p2, true)
 	p2.getPosition()[0]=5;
 	TEST_EQUAL(p1!=p2, false)
 END_SECTION

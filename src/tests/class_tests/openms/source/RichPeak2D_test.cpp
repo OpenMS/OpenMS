@@ -141,17 +141,17 @@ END_SECTION
     
 START_SECTION((bool operator == (const RichPeak2D& rhs) const))
   RichPeak2D p1, p2;
-  TEST_TRUE(p1 == p2)
+  TEST_EQUAL(p1==p2, true)
   
   p1.setIntensity(5.0f);
   TEST_EQUAL(p1==p2, false)
   p2.setIntensity(5.0f);
-  TEST_TRUE(p1 == p2)
+  TEST_EQUAL(p1==p2, true)
 
   p1.setMetaValue("cluster_id",4711);
   TEST_EQUAL(p1==p2, false)
   p1.removeMetaValue("cluster_id");
-  TEST_TRUE(p1 == p2)    
+  TEST_EQUAL(p1==p2, true)    
 END_SECTION
 
 START_SECTION((bool operator != (const RichPeak2D& rhs) const))
@@ -159,12 +159,12 @@ START_SECTION((bool operator != (const RichPeak2D& rhs) const))
   TEST_EQUAL(p1!=p2, false)
   
   p1.setIntensity(5.0f);
-  TEST_FALSE(p1 == p2)
+  TEST_EQUAL(p1!=p2, true)
   p2.setIntensity(5.0f);
   TEST_EQUAL(p1!=p2, false)
 
   p1.setMetaValue("cluster_id",4711);
-  TEST_FALSE(p1 == p2)
+  TEST_EQUAL(p1!=p2, true)
   p1.removeMetaValue("cluster_id");
   TEST_EQUAL(p1!=p2, false)  
 END_SECTION

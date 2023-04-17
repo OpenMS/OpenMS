@@ -67,7 +67,6 @@ START_SECTION((static String typeToName(Type type)))
   TEST_EQUAL(FileTypes::typeToName(FileTypes::PNG), "png");
   TEST_EQUAL(FileTypes::typeToName(FileTypes::TXT), "txt");
   TEST_EQUAL(FileTypes::typeToName(FileTypes::CSV), "csv");
-  TEST_EQUAL(FileTypes::typeToName(FileTypes::MZTAB), "mzTab");
 
   // try them all, just to make sure they are all there
   for (int i = 0; i < (int)FileTypes::SIZE_OF_TYPE; ++i)
