@@ -739,6 +739,11 @@ add_test("TOPP_FileInfo_18" ${TOPP_BIN_PATH}/FileInfo -test -in ${DATA_DIR_TOPP}
 FileInfo_18_output.tmp)
 add_test("TOPP_FileInfo_18_out1" ${DIFF} -whitelist "File name" -in1 FileInfo_18_output.tmp -in2 ${DATA_DIR_TOPP}/FileInfo_18_output.txt )
 set_tests_properties("TOPP_FileInfo_18_out1" PROPERTIES DEPENDS "TOPP_FileInfo_18")
+add_test("TOPP_FileInfo_19" ${TOPP_BIN_PATH}/FileInfo -test -d -in ${DATA_DIR_TOPP}/FAIMS_test_data.mzML -out
+        FileInfo_19_output.tmp)
+add_test("TOPP_FileInfo_19_out1" ${DIFF} -whitelist "File name" -in1 FileInfo_19_output.tmp -in2 ${DATA_DIR_TOPP}/FileInfo_19_output.txt )
+set_tests_properties("TOPP_FileInfo_19_out1" PROPERTIES DEPENDS "TOPP_FileInfo_19")
+
 
 #------------------------------------------------------------------------------
 # FileMerger tests
@@ -2255,6 +2260,11 @@ ${DATA_DIR_TOPP}/IDMapper_5_input.mzML -mz_measure ppm -mz_tolerance 10
 -rt_tolerance 20 -feature:use_centroid_mz false)
 add_test("TOPP_IDMapper_5_out1" ${DIFF} -in1 IDMapper_5_output.tmp -in2 ${DATA_DIR_TOPP}/IDMapper_5_output.featureXML )
 set_tests_properties("TOPP_IDMapper_5_out1" PROPERTIES DEPENDS "TOPP_IDMapper_5")
+add_test("TOPP_IDMapper_6" ${TOPP_BIN_PATH}/IDMapper -test -in
+ ${DATA_DIR_TOPP}/IDMapper_6_input.consensusXML -out IDMapper_6_output.tmp -id
+ ${DATA_DIR_TOPP}/IDMapper_6_input.idXML)
+ add_test("TOPP_IDMapper_6_out1" ${DIFF} -in1 IDMapper_6_output.tmp -in2 ${DATA_DIR_TOPP}/IDMapper_6_output.consensusXML )
+ set_tests_properties("TOPP_IDMapper_6_out1" PROPERTIES DEPENDS "TOPP_IDMapper_6")
 
 #------------------------------------------------------------------------------
 # IDRipper tests
@@ -3210,7 +3220,67 @@ add_test("UTILS_ProteomicsLFQ_7_out_3" ${DIFF} -whitelist "software" "location" 
 set_tests_properties("UTILS_ProteomicsLFQ_7_out_3" PROPERTIES DEPENDS "UTILS_ProteomicsLFQ_7")
 add_test("UTILS_ProteomicsLFQ_7_out_4" ${DIFF} -in1 BSA_sub.tsv.tmp -in2 ${DATA_DIR_TOPP}/ProteomicsLFQ_7_out.tsv )
 set_tests_properties("UTILS_ProteomicsLFQ_7_out_4" PROPERTIES DEPENDS "UTILS_ProteomicsLFQ_7")
+# test empty id
+ add_test("UTILS_ProteomicsLFQ_8" ${TOPP_BIN_PATH}/ProteomicsLFQ
+          -in
+          ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA1_F2.mzML
+          ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA2_F2.mzML
+          -ids
+          ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA1_F2.idXML
+          ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA2_F2_empty.idXML
+          -design
+          ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA_design.tsv
+          -Alignment:align_algorithm:max_rt_shift 0
+          -fasta
+          ${DATA_DIR_SHARE}/examples/TOPPAS/data/BSA_Identification/18Protein_SoCe_Tr_detergents_trace_target_decoy.fasta
+          -targeted_only true
+          -transfer_ids false
+          -mass_recalibration false
+          -out_cxml BSA_sub_8.consensusXML.tmp
+          -out_msstats BSA_sub_8.csv.tmp
+          -out BSA_sub_8.mzTab.tmp
+          -out_triqler BSA_sub_8.tsv.tmp
+          -threads 1
+          -proteinFDR 0.8
+          -test
+          )
+ add_test("UTILS_ProteomicsLFQ_8_out_1" ${DIFF} -whitelist "spectra_data" "map id=" "InferenceEngineVersion" -in1 BSA_sub_8.consensusXML.tmp -in2 ${DATA_DIR_TOPP}/ProteomicsLFQ_8_out.consensusXML )
+ set_tests_properties("UTILS_ProteomicsLFQ_8_out_1" PROPERTIES DEPENDS "UTILS_ProteomicsLFQ_8")
+ add_test("UTILS_ProteomicsLFQ_8_out_2" ${DIFF}  -whitelist "software" "location" -in1 BSA_sub_8.csv.tmp -in2 ${DATA_DIR_TOPP}/ProteomicsLFQ_8_out.csv )
+ set_tests_properties("UTILS_ProteomicsLFQ_8_out_2" PROPERTIES DEPENDS "UTILS_ProteomicsLFQ_8")
+ add_test("UTILS_ProteomicsLFQ_8_out_3" ${DIFF} -whitelist "software" "location" "InferenceEngineVersion" "TOPPProteinInference q-value" -in1 BSA_sub_8.mzTab.tmp -in2 ${DATA_DIR_TOPP}/ProteomicsLFQ_8_out.mzTab )
+ set_tests_properties("UTILS_ProteomicsLFQ_8_out_3" PROPERTIES DEPENDS "UTILS_ProteomicsLFQ_8")
+ add_test("UTILS_ProteomicsLFQ_8_out_4" ${DIFF} -in1 BSA_sub_8.tsv.tmp -in2 ${DATA_DIR_TOPP}/ProteomicsLFQ_8_out.tsv )
+ set_tests_properties("UTILS_ProteomicsLFQ_8_out_4" PROPERTIES DEPENDS "UTILS_ProteomicsLFQ_8")
 
+ # test single file, no experimental design (regression)
+ add_test("UTILS_ProteomicsLFQ_9" ${TOPP_BIN_PATH}/ProteomicsLFQ
+          -in
+          ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA1_F2.mzML
+          -ids
+          ${DATA_DIR_SHARE}/examples/FRACTIONS/BSA1_F2.idXML
+          -Alignment:align_algorithm:max_rt_shift 0
+          -fasta
+          ${DATA_DIR_SHARE}/examples/TOPPAS/data/BSA_Identification/18Protein_SoCe_Tr_detergents_trace_target_decoy.fasta
+          -targeted_only false
+          -transfer_ids false
+          -mass_recalibration false
+          -out_cxml BSA_sub_9.consensusXML.tmp
+          -out_msstats BSA_sub_9.csv.tmp
+          -out BSA_sub_9.mzTab.tmp
+          -out_triqler BSA_sub_9.tsv.tmp
+          -threads 1
+          -proteinFDR 0.8
+          -test
+          )
+ add_test("UTILS_ProteomicsLFQ_9_out_1" ${DIFF} -whitelist "spectra_data" "map id=" "InferenceEngineVersion" -in1 BSA_sub_9.consensusXML.tmp -in2 ${DATA_DIR_TOPP}/ProteomicsLFQ_9_out.consensusXML )
+ set_tests_properties("UTILS_ProteomicsLFQ_9_out_1" PROPERTIES DEPENDS "UTILS_ProteomicsLFQ_9")
+ add_test("UTILS_ProteomicsLFQ_9_out_2" ${DIFF}  -whitelist "software" "location" -in1 BSA_sub_9.csv.tmp -in2 ${DATA_DIR_TOPP}/ProteomicsLFQ_9_out.csv )
+ set_tests_properties("UTILS_ProteomicsLFQ_9_out_2" PROPERTIES DEPENDS "UTILS_ProteomicsLFQ_9")
+ add_test("UTILS_ProteomicsLFQ_9_out_3" ${DIFF} -whitelist "software" "location" "InferenceEngineVersion" "TOPPProteinInference q-value" -in1 BSA_sub_9.mzTab.tmp -in2 ${DATA_DIR_TOPP}/ProteomicsLFQ_9_out.mzTab )
+ set_tests_properties("UTILS_ProteomicsLFQ_9_out_3" PROPERTIES DEPENDS "UTILS_ProteomicsLFQ_9")
+ add_test("UTILS_ProteomicsLFQ_9_out_4" ${DIFF} -in1 BSA_sub_9.tsv.tmp -in2 ${DATA_DIR_TOPP}/ProteomicsLFQ_9_out.tsv )
+ set_tests_properties("UTILS_ProteomicsLFQ_9_out_4" PROPERTIES DEPENDS "UTILS_ProteomicsLFQ_9")
 
 #------------------------------------------------------------------------------
 # NucleicAcidSearchEngine:
