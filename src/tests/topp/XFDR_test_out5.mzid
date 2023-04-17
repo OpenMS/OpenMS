@@ -6179,7 +6179,7 @@
 			<userParam name="decoy_prefix" unitName="xsd:integer" value="1"/>
 			<userParam name="decoy_string" unitName="xsd:string" value="decoy_reverse_"/>
 			<userParam name="fragment:mass_tolerance_xlinks" unitName="xsd:double" value="10.0"/>
-			<userParam name="cross_link:mass_mass" unitName="xsd:double" value="138.068079600000004"/>
+			<userParam name="cross_link:mass_mass" unitName="xsd:double" value="-138.068079600000004"/>
 			<userParam name="cross_link:name" unitName="xsd:string" value=""/>
 			<userParam name="cross_link:mass_isoshift" unitName="xsd:double" value="0.0"/>
 			<userParam name="cross_link:residue1" unitName="xsd:string" value="[K]"/>
