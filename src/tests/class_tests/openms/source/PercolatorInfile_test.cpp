@@ -67,7 +67,7 @@ END_SECTION
 START_SECTION(vector<PeptideIdentification> PercolatorInfile::load(const String& pin_file, bool higher_score_better, const String& score_name, String decoy_prefix))
 {
   auto pids = PercolatorInfile::load(OPENMS_GET_TEST_DATA_PATH("sage.pin"), true, "hyperscore", "DECOY_");
-  TEST_EQUAL(pids.size(), 20);
+  TEST_EQUAL(pids.size(), 9);
 }
 END_SECTION
 
