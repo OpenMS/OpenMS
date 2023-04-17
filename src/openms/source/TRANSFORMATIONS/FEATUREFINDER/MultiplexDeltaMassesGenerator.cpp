@@ -36,6 +36,7 @@
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexDeltaMassesGenerator.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/CONCEPT/Exception.h>
+#include <OpenMS/CONCEPT/LogStream.h>
 
 #include <boost/algorithm/string/classification.hpp>
 #include <boost/algorithm/string/replace.hpp>
@@ -133,32 +134,44 @@ namespace OpenMS
     // What kind of labelling do we have?
     // SILAC, Leu, Dimethyl, ICPL, numeric labelling or no labelling ??
 
+    bool no_label = (samples_labels_.size() == 1) && 
+      (samples_labels_[0].size() == 1) && 
+      samples_labels_[0][0] == "no_label";
     bool labelling_SILAC = ((labels_.find("Arg") != std::string::npos) || (labels_.find("Lys") != std::string::npos));
     bool labelling_Leu = (labels_.find("Leu") != std::string::npos);
     bool labelling_Dimethyl = (labels_.find("Dimethyl") != std::string::npos);
     bool labelling_ICPL = (labels_.find("ICPL") != std::string::npos);
-    // Check whether each label string represents a double. If yes, use these doubles as mass shifts.
-    bool labelling_numeric = true;
-    for (size_t i = 0; i < samples_labels_.size(); i++)
-    {
-      for (size_t j = 0; j < samples_labels_[i].size(); j++)
-      {
-        try
-        {
-          double mass_shift = std::stod(samples_labels_[i][j]);
 
-          // For numeric mass shifts, long and short label names as well as the numerical mass shift are trivial.
-          // For example, long label name ("3.1415"), short label name ("3.1415") and numerical mass shift (3.1415).
-          label_delta_mass_.insert(make_pair(samples_labels_[i][j], mass_shift));
-          label_short_long_.insert(make_pair(samples_labels_[i][j], samples_labels_[i][j]));
-          label_long_short_.insert(make_pair(samples_labels_[i][j], samples_labels_[i][j]));
-        }
-        catch(...)
+    bool labelling_numeric = false;
+    if (!(no_label || labelling_SILAC || labelling_Leu || labelling_Dimethyl || labelling_ICPL))
+    {
+      bool all_numeric = true;
+      // Check whether each label string represents a double. If yes, use these doubles as mass shifts.
+      for (size_t i = 0; i < samples_labels_.size(); i++)
+      {
+        for (size_t j = 0; j < samples_labels_[i].size(); j++)
         {
-          labelling_numeric = false;
+          try
+          {
+            double mass_shift = std::stod(samples_labels_[i][j]);
+
+            // For numeric mass shifts, long and short label names as well as the numerical mass shift are trivial.
+            // For example, long label name ("3.1415"), short label name ("3.1415") and numerical mass shift (3.1415).
+            label_delta_mass_.insert(make_pair(samples_labels_[i][j], mass_shift));
+            label_short_long_.insert(make_pair(samples_labels_[i][j], samples_labels_[i][j]));
+            label_long_short_.insert(make_pair(samples_labels_[i][j], samples_labels_[i][j]));
+          }
+          catch(...)
+          {
+            OPENMS_LOG_WARN << "Unrecognized non-numeric label found. Assuming label-free." << std::endl;
+            all_numeric = false;
+            break;
+          }          
         }
       }
+      labelling_numeric = all_numeric;
     }
+
     bool labelling_none = labels_.empty() || (labels_ == "[]") || (labels_ == "()") || (labels_ == "{}");
 
     bool SILAC = (labelling_SILAC && !labelling_Leu && !labelling_Dimethyl && !labelling_ICPL && !labelling_numeric && !labelling_none);

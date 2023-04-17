@@ -38,8 +38,10 @@
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/CHEMISTRY/Element.h>
+
 #include <iostream>
 #include <cmath>
+#include <memory>
 
 using namespace std;
 
@@ -119,7 +121,7 @@ namespace OpenMS
                              bool replace_existing)
   {
     if (hasElement(an) && !replace_existing)
-    {
+    {      
       throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String("Element with atomic number ") + an + " already exists");
     }
     buildElement_(name, symbol, an, abundance, mass);
@@ -153,6 +155,18 @@ namespace OpenMS
 
     if (highest_abundance_isotope != -1) return mass.at(highest_abundance_isotope);
     else return 0.0;
+  }
+
+  
+  template<class CONT, class KEY>
+  void addIfUniqueOrThrow(CONT& container, const KEY& key, unique_ptr<const Element>& replacement)
+  {
+    auto elem = container.find(key);
+    if (elem != container.end())
+    {
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String(key), "Already exists!");
+    }
+    container[key] = replacement.get();
   }
 
   void ElementDB::storeElements_()
@@ -590,7 +604,7 @@ namespace OpenMS
     map<unsigned int, double> uranium_mass = {{234u,  234.040950}, {235u,  235.043928}, {238u,   238.05079}};
     buildElement_("Uranium", "U", 92u, uranium_abundance, uranium_mass);
 
-    // special case for deuterium and tritium
+    // special case for deuterium and tritium: add symbol alias
     const Element* deuterium = getElement("(2)H");
     symbols_["D"] = deuterium;
     const Element* tritium = getElement("(3)H");
@@ -600,38 +614,55 @@ namespace OpenMS
 
   }
 
+
   void ElementDB::buildElement_(const string& name, const string& symbol, const unsigned int an, const map<unsigned int, double>& abundance, const map<unsigned int, double>& mass)
   {
     IsotopeDistribution isotopes = parseIsotopeDistribution_(abundance, mass);
     double avg_weight = calculateAvgWeight_(abundance, mass);
     double mono_weight = calculateMonoWeight_(abundance, mass);
 
-    Element* e = new Element(name, symbol, an, avg_weight, mono_weight, isotopes);
-    addElementToMaps_(name, symbol, an, e);
+    addElementToMaps_(name, symbol, an, make_unique<const Element>(name, symbol, an, avg_weight, mono_weight, isotopes));
     storeIsotopes_(name, symbol, an, mass, isotopes);
   }
 
-  void ElementDB::addElementToMaps_(const string& name, const string& symbol, const unsigned int an, const Element* e)
+  void overwrite(const Element* old, unique_ptr<const Element>& new_e)
   {
-    #pragma omp critical(OpenMS_ElementDB)
+    if (old->getSymbol() != new_e->getSymbol())
+    { // -- this would invalidate the lookup, since e_ptr->getSymbols().at("O")->getSymbol() == 'P'
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, new_e->getSymbol(),
+                                    "Replacing element with name " + old->getName() + " and symbol " + old->getSymbol() + " has different new symbol: " + new_e->getSymbol());
+    }
+    if (old->getName() != new_e->getName())
+    { // -- this would invalidate the lookup, since e_ptr->getName().at("Oxygen")->getName() == 'Something'
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, new_e->getSymbol(), "Replacing element with name " + old->getName() + " has different new name: " + new_e->getName());
+    }
+    if (old->getAtomicNumber() != new_e->getAtomicNumber())
+    { // -- this would invalidate the lookup, since e_ptr->getAtomicNumbers().at(12)->getAtomicNumber() == 14
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, new_e->getSymbol(),
+                                    "Replacing element with atomic number " + String(old->getAtomicNumber()) + " has different new atomic number: " + String(new_e->getAtomicNumber()));
+    }
+    // ... overwrite
+    *(const_cast<Element*>(old)) = *new_e;
+  }
+
+  void ElementDB::addElementToMaps_(const string& name, const string& symbol, const unsigned int an, unique_ptr<const Element> e)
+  {
+    // overwrite existing element if it already exists
+    // find() has to be protected here in a parallel context
+    if (atomic_numbers_.find(an) != atomic_numbers_.end())
     {
-      // overwrite existing element if it already exists
-      // find() has to be protected here in a parallel context
-      if (atomic_numbers_.find(an) != atomic_numbers_.end())
-      {
-        // in order to ensure that existing elements are still valid and memory
-        // addresses do not change, we have to modify the Element in place
-        // instead of replacing it.
-        const Element* const_ele = atomic_numbers_[an];
-        Element* element = const_cast<Element*>(const_ele);
-        *element = *e; // copy all data from input to the existing element
-      }
-      else
-      {
-        names_[name] = e;
-        symbols_[symbol] = e;
-        atomic_numbers_[an] = e;
-      }
+      // in order to ensure that existing elements are still valid and memory
+      // addresses do not change, we have to modify the Element in place
+      // instead of replacing it.
+      overwrite(atomic_numbers_[an], e);
+      // do not release 'e' here; it needs to be deleted when it goes out if scope
+    }
+    else
+    {
+      addIfUniqueOrThrow(names_, name, e);
+      addIfUniqueOrThrow(symbols_, symbol, e);
+      addIfUniqueOrThrow(atomic_numbers_, an, e);
+      e.release(); // allocation will be cleaned up by ~ElementDB now
     }
   }
 
@@ -652,9 +683,18 @@ namespace OpenMS
       iso_container.push_back(Peak1D(atomic_mass, 1.0));
       iso_isotopes.set(iso_container);  
 
-      Element* iso_e = new Element(iso_name, iso_symbol, an, iso_avg_weight, iso_mono_weight, iso_isotopes);
-      names_[iso_name] = iso_e;
-      symbols_[iso_symbol] = iso_e;
+      auto iso_element = make_unique<const Element>(iso_name, iso_symbol, an, iso_avg_weight, iso_mono_weight, iso_isotopes);
+      if (auto has_elem = names_.find(iso_name); has_elem != names_.end())
+      { // already exists: overwrite (affects all maps, since they all point to the same thing)
+        overwrite(has_elem->second, iso_element);
+        // do not release 'iso_element' here; it needs to be deleted when it goes out if scope
+      }
+      else
+      {
+        addIfUniqueOrThrow(names_, iso_name, iso_element);
+        addIfUniqueOrThrow(symbols_, iso_symbol, iso_element);
+        iso_element.release(); // allocation will be cleaned up by ~ElementDB now
+      }
     } 
   }
 

@@ -90,7 +90,7 @@ START_SECTION([EXTRA] friend OPENMS_DLLAPI bool operator==(const Adduct& a, cons
 	Adduct a(123,  3, 123.456f, "S", -0.3453f, 0);
 	Adduct b(a);
 
-	TEST_EQUAL(a==b, true);
+	TEST_TRUE(a == b);
 	a.setAmount(22);
 	TEST_EQUAL(a==b, false);
 	
