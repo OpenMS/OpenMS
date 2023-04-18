@@ -65,9 +65,11 @@ END_SECTION
 
 START_SECTION(vector<PeptideIdentification> PercolatorInfile::load(const String& pin_file, bool higher_score_better, const String& score_name, String decoy_prefix))
 {
+  StringList filenames;
   // test loading of pin file with automatic update of target/decoy annotation based on decoy prefix in protein accessions
-  auto pids = PercolatorInfile::load(OPENMS_GET_TEST_DATA_PATH("sage.pin"), true, "ln(hyperscore)", "DECOY_");
+  auto pids = PercolatorInfile::load(OPENMS_GET_TEST_DATA_PATH("sage.pin"), true, "ln(hyperscore)", filenames, "DECOY_");
   TEST_EQUAL(pids.size(), 9);
+  TEST_EQUAL(filenames.size(), 1);
   TEST_FALSE(pids[6].getMetaValue("target_decoy") == "decoy") // 7th entry is annotated as target in pin file but only maps to decoy proteins with prefix "DECOY_" -> set to decoy
 }
 END_SECTION

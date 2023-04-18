@@ -91,6 +91,10 @@ using namespace std;
 /// @cond TOPPCLASSES
 
 
+/*
+./bin/SageAdapter -in /nfs/wsi/abi/projects/proteomics/yasset_iPRG2015/JD_06232014_sample1_A.mzML -out ~/tmp -sage_executable ~/OMS/sage/sage-v0.11.2-x86_64-unknown-linux-musl/sage -percolator_executable ~/OMS/OpenMS/THIRDPARTY/Linux/64bit/Percolator/percolator -database /nfs/wsi/abi/projects/proteomics/yasset_iPRG2015/iPRG2015_decoy.fasta -config_file ~/OMS/sage/sage-v0.11.2-x86_64-unknown-linux-musl/config.json
+*/
+
 class TOPPSageAdapter :
   public SearchEngineBase
 {
@@ -114,7 +118,7 @@ std::tuple<std::string, std::string, std::string> getVersionNumber_(const std::s
 
     std::sregex_iterator it(multi_line_input.begin(), multi_line_input.end(), version_regex);
     std::smatch match = *it;
-    std::cout << "Found version " << match.str() << std::endl;      
+    std::cout << "Found version string: " << match.str() << std::endl;      
         
     return make_tuple(it->str(1), it->str(2), it->str(3)); // major, minor, patch
 }
@@ -134,10 +138,15 @@ std::tuple<std::string, std::string, std::string> getVersionNumber_(const std::s
       "sage", // this is the name on ALL platforms currently...
       "The Sage executable. Provide a full or relative path, or make sure it can be found in your PATH environment.", true, false, {"is_executable"});
 
-    registerInputFile_("config_file", "<file>", "", "Default Sage config file.", false, false, ListUtils::create<String>("skipexists"));
+    registerInputFile_("percolator_executable", "<executable>",
+      // choose the default value according to the platform where it will be executed
+      "percolator", // this is the name on ALL platforms currently...
+      "The percolator executable. Provide a full or relative path, or make sure it can be found in your PATH environment.", true, false, {"is_executable"});
+
+    registerInputFile_("config_file", "<file>", "", "Default Sage config file.", true, false, ListUtils::create<String>("skipexists"));
     setValidFormats_("config_file", ListUtils::create<String>("json"));
 
-    registerStringOption_("decoy_prefix", "<prefix>", "DECOY_", "Prefix on protein accession used to distinguish decoy from target proteins.");
+    registerStringOption_("decoy_prefix", "<prefix>", "DECOY_", "Prefix on protein accession used to distinguish decoy from target proteins.", false, false);
     registerIntOption_("batch_size", "<int>", 0, "Number of files to load and search in parallel (default = # of CPUs/2)", false, false);
   }
 
@@ -159,10 +168,12 @@ std::tuple<std::string, std::string, std::string> getVersionNumber_(const std::s
     //-------------------------------------------------------------
     StringList input_files = getStringList_("in");
     String output_file = getStringOption_("out");
-    String output_folder = File::path(output_file);
+    String output_folder = File::isDirectory(output_file) ? output_file : File::path(output_file);
     String fasta_file = getStringOption_("database");
     String config = getStringOption_("config_file");
     int batch = getIntOption_("batch_size");
+    String decoy_prefix = getStringOption_("decoy_prefix");
+    String percolator_executable = getStringOption_("percolator_executable");
 
     QStringList arguments;
     arguments << config.toQString() << "-f" << fasta_file.toQString() << "-o" << output_folder.toQString() << "--write-pin";
@@ -176,11 +187,33 @@ std::tuple<std::string, std::string, std::string> getVersionNumber_(const std::s
       return exit_code;
     }
     
+    if (!percolator_executable.empty())
+    {
+      QString perc_in = output_folder.toQString() + "/results.sage.pin";
+      QString perc_out = output_folder.toQString() + "/results.sage.pout";
+
+      QStringList process_params;
+      process_params << "--tab-in" << perc_in
+                     << "--results-psms" << perc_out                    
+                     << "--train-best-positive" 
+                     << "--post-processing-tdc"
+                     << "--subset-max-train" << "100000";
+                  
+      TOPPBase::ExitCodes exit_code = runExternalProcess_(percolator_executable.toQString(), process_params);
+
+      if (exit_code != EXECUTION_OK)
+      {
+        OPENMS_LOG_FATAL_ERROR << "Percolator execution failed." << std::endl;
+        return exit_code;
+      }
+    }
+
+
     //-------------------------------------------------------------
     // writing IdXML output
     //-------------------------------------------------------------
 
-    // read the sage pin and pout
+    // read the sage output
     StringList filenames;
     vector<PeptideIdentification> peptide_identifications = PercolatorInfile::load("results.sage.pin", true, "ln(hyperscore)", filenames, decoy_prefix);
 

@@ -93,7 +93,7 @@ namespace OpenMS
     }
 
     int file_name_column_index{-1};
-    if (auto it = std::find(header.begin(), header.end(), "filename"); it != header.end())
+    if (auto it = std::find(header.begin(), header.end(), "FileName"); it != header.end())
     {
       file_name_column_index = it - header.begin();
     }
