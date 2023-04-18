@@ -92,6 +92,12 @@ namespace OpenMS
       for (const auto& h : header) { to_idx[h] = idx++; }
     }
 
+    int file_name_column_index{-1};
+    if (auto it = std::find(header.begin(), header.end(), "filename"); it != header.end())
+    {
+      file_name_column_index = it - header.begin();
+    }
+
     // charge columns are not standardized so we check for the format and create hash to lookup column name to charge mapping
     std::regex charge_one_hot_pattern("^charge\\d+$");
     std::regex sage_one_hot_pattern("^z=\\d+$");
@@ -120,6 +126,9 @@ namespace OpenMS
     vector<PeptideIdentification> pids;
     pids.reserve(n_rows);
     String spec_id;
+    int raw_file_index{-1};
+    String raw_file_name;
+    StringList raw_file_names;
     for (size_t i = 1; i != n_rows; ++i)
     {
       StringList row;      
@@ -130,12 +139,24 @@ namespace OpenMS
         throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Error: line " + String(i) + " of file '" + pin_file + "' does not have the same number of columns as the header!", String(i));
       }
 
+      if (file_name_column_index >= 0)
+      {
+        const auto& current_raw_file_name = row[file_name_column_index];
+        if (current_raw_file_name != raw_file_name)
+        {
+          raw_file_name = current_raw_file_name;
+          ++raw_file_index;
+          raw_file_names.push_back(current_raw_file_name);
+        }
+      }   
+
       const String& sSpecId = row[to_idx.at("SpecId")];
       if (sSpecId != spec_id)
       {
         pids.resize(pids.size() + 1);
         pids.back().setHigherScoreBetter(higher_score_better);
         pids.back().setScoreType(score_name);
+        pids.back().setMetaValue("map_index", raw_file_index);
       }
 
       int sScanNr = row[to_idx.at("ScanNr")].toInt();
