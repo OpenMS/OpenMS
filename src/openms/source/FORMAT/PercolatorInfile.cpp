@@ -80,28 +80,12 @@ namespace OpenMS
     return scan_identifier.removeWhitespaces();
   }
 
-  std::tuple<int,int> extractHighestChargeFromHeader_(const StringList& header)
-  {
-    int max_charge{INT_MIN}, min_charge{INT_MAX};
-    for (auto h : header)
-    {
-      if (h.hasPrefix("charge"))
-      {
-        h = h.substr(0, 6); // chop off "charge"
-        int z = h.toInt();
-        max_charge = z > max_charge ? z : max_charge;
-        min_charge = z < min_charge ? z : min_charge;
-      }
-    }
-    OPENMS_POSTCONDITION(max_charge != INT_MIN, "No charge column found!");
-    return make_tuple(min_charge, max_charge);
-  }
-
   vector<PeptideIdentification> PercolatorInfile::load(const String& pin_file, bool higher_score_better, const String& score_name, String decoy_prefix)
   {
     CsvFile csv(pin_file, '\t');
     StringList header;
     csv.getRow(0, header);
+
     unordered_map<String, size_t> to_idx; // map column name to column index
     {
       int idx{}; 
@@ -134,12 +118,19 @@ namespace OpenMS
 
     auto n_rows = csv.rowCount();
     
-    vector<PeptideIdentification> pids(n_rows);
+    vector<PeptideIdentification> pids;
+    pids.reserve(n_rows);
     String spec_id;
     for (size_t i = 1; i != n_rows; ++i)
     {
-      StringList row;
+      StringList row;      
       csv.getRow(i, row);
+
+      if (row.size() != header.size())
+      {
+        throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Error: line " + String(i) + " of file '" + pin_file + "' does not have the same number of columns as the header!", String(i));
+      }
+
       const String& sSpecId = row[to_idx.at("SpecId")];
       if (sSpecId != spec_id)
       {
