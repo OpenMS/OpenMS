@@ -92,8 +92,7 @@ namespace OpenMS
       for (const auto& h : header) { to_idx[h] = idx++; }
     }
 
-    // charge columns are not standardized so we check for the format and create a custom function to extract the charge depending on the format
-    std::function<int(StringList)> charge_extractor;
+    // charge columns are not standardized so we check for the format and create hash to lookup column name to charge mapping
     std::regex charge_one_hot_pattern("^charge\\d+$");
     std::regex sage_one_hot_pattern("^z=\\d+$");
     String charge_prefix;
