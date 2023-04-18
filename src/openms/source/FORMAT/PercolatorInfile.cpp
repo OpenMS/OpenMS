@@ -88,7 +88,7 @@ namespace OpenMS
 
     unordered_map<String, size_t> to_idx; // map column name to column index
     {
-      int idx{}; 
+      size_t idx{};
       for (const auto& h : header) { to_idx[h] = idx++; }
     }
 
