@@ -80,7 +80,7 @@ namespace OpenMS
     return scan_identifier.removeWhitespaces();
   }
 
-  vector<PeptideIdentification> PercolatorInfile::load(const String& pin_file, bool higher_score_better, const String& score_name, String decoy_prefix)
+  vector<PeptideIdentification> PercolatorInfile::load(const String& pin_file, bool higher_score_better, const String& score_name, StringList& filenames, String decoy_prefix)
   {
     CsvFile csv(pin_file, '\t');
     StringList header;
@@ -128,7 +128,7 @@ namespace OpenMS
     String spec_id;
     int raw_file_index{-1};
     String raw_file_name;
-    StringList raw_file_names;
+    
     for (size_t i = 1; i != n_rows; ++i)
     {
       StringList row;      
@@ -146,7 +146,7 @@ namespace OpenMS
         {
           raw_file_name = current_raw_file_name;
           ++raw_file_index;
-          raw_file_names.push_back(current_raw_file_name);
+          filenames.push_back(current_raw_file_name);
         }
       }   
 

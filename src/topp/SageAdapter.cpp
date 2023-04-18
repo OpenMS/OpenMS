@@ -39,6 +39,7 @@
 #include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/FORMAT/PepXMLFile.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
+#include <OpenMS/FORMAT/PercolatorInfile.h>
 #include <OpenMS/FORMAT/HANDLERS/IndexedMzMLDecoder.h>
 #include <OpenMS/FORMAT/DATAACCESS/MSDataWritingConsumer.h>
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
@@ -180,22 +181,18 @@ std::tuple<std::string, std::string, std::string> getVersionNumber_(const std::s
     //-------------------------------------------------------------
 
     // read the sage pin and pout
-    PercolatorInfile::load("results.sage.pin", true, "ln(hyperscore)", decoy_prefix);
+    StringList filenames;
+    vector<PeptideIdentification> peptide_identifications = PercolatorInfile::load("results.sage.pin", true, "ln(hyperscore)", filenames, decoy_prefix);
 
-    // TODO: split / merge results and create idXMLs
-    vector<PeptideIdentification> peptide_identifications;
+    // TODO: split / merge results and create idXMLs    
     vector<ProteinIdentification> protein_identifications;
 
     writeDebug_("write idXMLFile", 1);    
-
-    //TODO: check if {input_files} is in the same order as in pin file
-    protein_identifications[0].setPrimaryMSRunPath( TODO ...);
-    // seems like version is not correctly parsed from pepXML. Overwrite it here.
+    
+    protein_identifications[0].setPrimaryMSRunPath(filenames);    
     protein_identifications[0].setSearchEngineVersion(sage_version);
 
     // protein_identifications[0].getSearchParameters().enzyme_term_specificity = static_cast<EnzymaticDigestion::Specificity>(num_enzyme_termini[getStringOption_("num_enzyme_termini")]);
-
-    // protein_identifications[0].getSearchParameters().charges = getStringOption_("precursor_charge");
     protein_identifications[0].getSearchParameters().db = getStringOption_("database");
 
     // write all (!) parameters as metavalues to the search parameters
@@ -207,7 +204,7 @@ std::tuple<std::string, std::string, std::string> getVersionNumber_(const std::s
     // if "reindex" parameter is set to true will perform reindexing
     if (auto ret = reindex_(protein_identifications, peptide_identifications); ret != EXECUTION_OK) return ret;
 
-    IdXMLFile().store(out, protein_identifications, peptide_identifications);
+    IdXMLFile().store(output_file, protein_identifications, peptide_identifications);
 
     return EXECUTION_OK;
   }
