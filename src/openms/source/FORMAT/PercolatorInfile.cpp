@@ -39,6 +39,9 @@
 #include <OpenMS/METADATA/SpectrumLookup.h>
 #include <OpenMS/FORMAT/CsvFile.h>
 
+#include <regex>
+#include <functional>
+
 namespace OpenMS
 {
   using namespace std;
@@ -105,12 +108,34 @@ namespace OpenMS
       for (const auto& h : header) { to_idx[h] = idx++; }
     }
 
-    auto [lowest_charge, highest_charge] = extractHighestChargeFromHeader_(header);
+    // charge columns are not standardized so we check for the format and create a custom function to extract the charge depending on the format
+    std::function<int(StringList)> charge_extractor;
+    std::regex charge_one_hot_pattern("^charge\\d+$");
+    std::regex sage_one_hot_pattern("^z=\\d+$");
+    String charge_prefix;
+    unordered_map<String, int> col_name_to_charge;
+    for (const String& c : header)
+    {
+      if (std::regex_match(c, charge_one_hot_pattern))
+      {
+        col_name_to_charge[c] = c.substr(6).toInt();
+        charge_prefix = "charge";
+      }
+      else if (std::regex_match(c, sage_one_hot_pattern))
+      {
+        col_name_to_charge[c] = c.substr(2).toInt();
+        charge_prefix = "z=";
+      }
+      else if (c == "z=other") // SAGE
+      {
+        col_name_to_charge[c] = 0;
+      }
+    }
+
     auto n_rows = csv.rowCount();
     
     vector<PeptideIdentification> pids(n_rows);
     String spec_id;
-    size_t rank{1};
     for (size_t i = 1; i != n_rows; ++i)
     {
       StringList row;
@@ -129,26 +154,26 @@ namespace OpenMS
       const double score = row[to_idx.at(score_name)].toDouble();
       String target_decoy = row[to_idx.at("Label")].toInt() == 1 ? "target" : "decoy";
       const String& sProteins = row[to_idx.at("Proteins")];
+      int rank = to_idx.count("rank") ? row[to_idx.at("rank")].toInt() : 1;
       StringList accessions;
+
+      int charge = 0;
+      for (const auto&[name, z] : col_name_to_charge)
+      {
+        if (row[to_idx.at(name)] == "1")
+        {
+          charge = z;
+          break;
+        }
+      }
+
       sProteins.split(';', accessions);
 
       // deduce decoy state from accessions if decoy_prefix is set
       if (!decoy_prefix.empty())
       {
         target_decoy = std::all_of(accessions.begin(), accessions.end(), [&decoy_prefix](const String& acc) { return acc.hasPrefix(decoy_prefix); }) ? "decoy" : "target" ;
-      }
-            
-      // extract charge state from 1-hot encoded charge columns
-      int charge{};
-      for (int z = lowest_charge; z <= highest_charge; ++z)
-      {
-        if (row[to_idx.at("charge" + String(z))] == "1")
-        {
-          charge = z;
-          break;
-        }
-      }
-      OPENMS_POSTCONDITION(charge != 0, "charge annotation missing")
+      }          
 
       // needs to handle strings like: [+42]-MVLVQDLLHPTAASEAR, [+304.207]-ETC[+57.0215]RQLGLGTNIYNAER
       sPeptide.substitute("]-", "]."); // we can parse [+42].MVLVQDLLHPTAASEAR
@@ -157,11 +182,12 @@ namespace OpenMS
       ph.setMetaValue("SpecId", sSpecId);
       ph.setMetaValue("ScanNr", sScanNr);
       ph.setMetaValue("target_decoy", target_decoy);
+      ph.setRank(rank);
 
       // add link to protein (we only know the accession but not start/end, aa_before/after in protein at this point)
       for (const String& accession : accessions)
       {
-        ph.addPeptideEvidence({accession, PeptideEvidence::UNKNOWN_POSITION, PeptideEvidence::UNKNOWN_POSITION, PeptideEvidence::UNKNOWN_AA, PeptideEvidence::UNKNOWN_AA});
+        ph.addPeptideEvidence(PeptideEvidence(accession));
       }
       
       pids.back().insertHit(std::move(ph));
