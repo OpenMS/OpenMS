@@ -107,22 +107,15 @@ public:
 
 protected:
 
-
-std::tuple<int, int, int> getVersionNumber_(const std::string& multi_line_input)
+std::tuple<std::string, std::string, std::string> getVersionNumber_(const std::string& multi_line_input)
 {
     std::regex version_regex("Version ([0-9]+)\\.([0-9]+)\\.([0-9]+)");
 
-    std::sregex_iterator it(input.begin(), input.end(), version_regex);
-    std::sregex_iterator end;
-
-    while (it != end)
-    {
-      std::smatch match = *it;
-      std::cout << "Found version " << match.str() << std::endl;
-        ++it;
-    }
-
-    return make_tuple(match[1], match[2], match[3]); // major, minor, patch
+    std::sregex_iterator it(multi_line_input.begin(), multi_line_input.end(), version_regex);
+    std::smatch match = *it;
+    std::cout << "Found version " << match.str() << std::endl;      
+        
+    return make_tuple(it->str(1), it->str(2), it->str(3)); // major, minor, patch
 }
 
   void registerOptionsAndFlags_() override
@@ -130,8 +123,8 @@ std::tuple<int, int, int> getVersionNumber_(const std::string& multi_line_input)
     registerInputFileList_("in", "<files>", StringList(), "Input files separated by blank");
     setValidFormats_("in", { "mzML" } );
 
-    registerOutputFileList_("out", "<files>", StringList(), "Output files separated by blank");
-    setValidFormats_("out", { "idXML"} );
+    registerOutputPrefix_("output_folder", "<directory>", "", "Path to the output directory.", true, false);
+
     registerInputFile_("database", "<file>", "", "FASTA file", true, false, {"skipexists"});
     setValidFormats_("database", { "FASTA" } );
     registerInputFile_("sage_executable", "<executable>",
@@ -139,8 +132,10 @@ std::tuple<int, int, int> getVersionNumber_(const std::string& multi_line_input)
       "sage", // this is the name on ALL platforms currently...
       "The Sage executable. Provide a full or relative path, or make sure it can be found in your PATH environment.", true, false, {"is_executable"});
 
-    registerInputFile_("default_params_file", "<file>", "", "Default Sage params file. All parameters of this take precedence. A template file can be generated using 'Sage.exe -p'", false, false, ListUtils::create<String>("skipexists"));
-    setValidFormats_("default_params_file", ListUtils::create<String>("txt"));
+    registerInputFile_("config_file", "<file>", "", "Default Sage config file.", false, false, ListUtils::create<String>("skipexists"));
+    setValidFormats_("config_file", ListUtils::create<String>("json"));
+
+    registerIntOption_("batch_size", "<int>", 0, "Number of files to load and search in parallel (default = # of CPUs/2)", false, false);
   }
 /*
     //Masses
@@ -616,9 +611,8 @@ std::tuple<int, int, int> getVersionNumber_(const std::string& multi_line_input)
     String proc_stdout, proc_stderr;
     TOPPBase::ExitCodes exit_code = runExternalProcess_(sage_executable.toQString(), QStringList() << "--help", proc_stdout, proc_stderr, "");
     auto major_minor_patch = getVersionNumber_(proc_stdout);
-    String sage_version = "sage (" + major_minor_patch.get<0> + "." + major_minor_patch.get<1> + "." + major_minor_patch.get<2> + ")";
-
-
+    String sage_version = "sage (" + std::get<0>(major_minor_patch) + "." + std::get<1>(major_minor_patch) + "." + std::get<2>(major_minor_patch) + ")";
+    
 /*
     //-------------------------------------------------------------
     // reading input
@@ -653,66 +647,69 @@ std::tuple<int, int, int> getVersionNumber_(const std::string& multi_line_input)
 */
     
     //-------------------------------------------------------------
-    // calculations
+    // run sage
     //-------------------------------------------------------------
     StringList input_files = getStringList_("in");
-    String paramF = "-f" + getStringOption_("database");
-    String paramO = "-o" + getStringOption_("output_folder");
+    String output_folder = getStringOption_("output_folder");
+    String fasta_file = getStringOption_("database");
+    String config = getStringOption_("config_file");
+    int batch = getIntOption_("batch_size");
+
+    // map input file to output file
+    unordered_map<String, String> infile_2_outfile;
+    for (const String& in : input_files)
+    {
+      infile_2_outfile[in] = output_folder + "/" + FileHandler::stripExtension(File::basename(in)) + ".idXML";
+    }
 
     QStringList arguments;
-    arguments << paramF.toQString() << paramO.toQString();
-    for (auto s : input_files) arguments << s;
+    arguments << config.toQString() << "-f" << fasta_file.toQString() << "-o" << output_folder.toQString() << "--write-pin";
+    if (batch >= 1) arguments << "--batch-size" << QString(batch);
+    for (auto s : input_files) arguments << s.toQString();
 
-    //-------------------------------------------------------------
-    // run Sage
-    //-------------------------------------------------------------
     // Sage execution with the executable and the arguments StringList
     exit_code = runExternalProcess_(sage_executable.toQString(), arguments);
     if (exit_code != EXECUTION_OK)
     {
       return exit_code;
     }
+
     //-------------------------------------------------------------
     // writing IdXML output
     //-------------------------------------------------------------
 
-    // read the Sage output files (similar to pin file)
+    // read the sage pin and pout
 
-/*
-
-    vector<String> fixed_modifications_names = getStringList_("fixed_modifications");
-    vector<String> variable_modifications_names = getStringList_("variable_modifications");
-    writeDebug_("load PepXMLFile", 1);
-    PepXMLFile pepfile{};
-    pepfile.setPreferredFixedModifications(getModifications_(fixed_modifications_names));
-    pepfile.setPreferredVariableModifications(getModifications_(variable_modifications_names));
-    pepfile.load(tmp_pepxml, protein_identifications, peptide_identifications);
-*/
-    vector<PeptideIdentification> peptide_identifications;
-    vector<ProteinIdentification> protein_identifications;
-
-    writeDebug_("write idXMLFile", 1);    
-
-    //Whatever the pepXML says, overwrite origin as the input mzML
-    protein_identifications[0].setPrimaryMSRunPath({inputfile_name}, exp);
-    // seems like version is not correctly parsed from pepXML. Overwrite it here.
-    protein_identifications[0].setSearchEngineVersion(sage_version);
-    // TODO let this be parsed by the pepXML parser if this info is present there.
-    protein_identifications[0].getSearchParameters().enzyme_term_specificity =
-    static_cast<EnzymaticDigestion::Specificity>(num_enzyme_termini[getStringOption_("num_enzyme_termini")]);
-    protein_identifications[0].getSearchParameters().charges = getStringOption_("precursor_charge");
-    protein_identifications[0].getSearchParameters().db = getStringOption_("database");
-
-    // write all (!) parameters as metavalues to the search parameters
-    if (!protein_identifications.empty())
+    // TODO: split / merge results and create idXMLs
+    for (const String& inputfile_name : input_files)
     {
-      DefaultParamHandler::writeParametersToMetaValues(this->getParam_(), protein_identifications[0].getSearchParameters(), this->getToolPrefix());
+      vector<PeptideIdentification> peptide_identifications;
+      vector<ProteinIdentification> protein_identifications;
+
+      writeDebug_("write idXMLFile", 1);    
+
+      //Whatever the pepXML says, overwrite origin as the input mzML
+      protein_identifications[0].setPrimaryMSRunPath(StringList(1, inputfile_name));
+      // seems like version is not correctly parsed from pepXML. Overwrite it here.
+      protein_identifications[0].setSearchEngineVersion(sage_version);
+
+      // protein_identifications[0].getSearchParameters().enzyme_term_specificity = static_cast<EnzymaticDigestion::Specificity>(num_enzyme_termini[getStringOption_("num_enzyme_termini")]);
+
+      protein_identifications[0].getSearchParameters().charges = getStringOption_("precursor_charge");
+      protein_identifications[0].getSearchParameters().db = getStringOption_("database");
+
+      // write all (!) parameters as metavalues to the search parameters
+      if (!protein_identifications.empty())
+      {
+        DefaultParamHandler::writeParametersToMetaValues(this->getParam_(), protein_identifications[0].getSearchParameters(), this->getToolPrefix());
+      }
+
+      // if "reindex" parameter is set to true will perform reindexing
+      if (auto ret = reindex_(protein_identifications, peptide_identifications); ret != EXECUTION_OK) return ret;
+
+      String out = infile_2_outfile.at(inputfile_name);
+      IdXMLFile().store(out, protein_identifications, peptide_identifications);
     }
-
-    // if "reindex" parameter is set to true will perform reindexing
-    if (auto ret = reindex_(protein_identifications, peptide_identifications); ret != EXECUTION_OK) return ret;
-
-    IdXMLFile().store(out, protein_identifications, peptide_identifications);
 
     return EXECUTION_OK;
   }

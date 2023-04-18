@@ -58,7 +58,9 @@ namespace OpenMS
 
       /** @brief load pin file and convert to a vector of PeptideIdentification using the given score column @p score_name and orientation @p higher_score_better.
           If a decoy prefix is provided, the decoy status is set from the protein accessions.
-          Otherwise, it assumes that the pin file already contains the correctly annotated decoy status. **/
+          Otherwise, it assumes that the pin file already contains the correctly annotated decoy status. 
+          TODO: implement something similar to PepXMLFile().setPreferredFixedModifications(getModifications_(fixed_modifications_names));
+          **/
       static std::vector<PeptideIdentification> load(const String& pin_file, bool higher_score_better, const String& score_name, String decoy_prefix = "");
 
       // uses spectrum_reference, if empty uses spectrum_id, if also empty fall back to using index
