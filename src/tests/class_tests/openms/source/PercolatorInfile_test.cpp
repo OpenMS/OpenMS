@@ -32,54 +32,46 @@
 // $Authors: Timo Sachsenberg $
 // --------------------------------------------------------------------------
 
-#pragma once
+#include <OpenMS/CONCEPT/ClassTest.h>
+#include <OpenMS/test_config.h>
 
-#include <OpenMS/METADATA/PeptideIdentification.h>
-#include <OpenMS/FORMAT/TextFile.h>
+///////////////////////////
+#include <OpenMS/FORMAT/PercolatorInfile.h>
+///////////////////////////
 
-#include <vector>
+using namespace OpenMS;
+using namespace std;
 
-namespace OpenMS
+START_TEST(PercolatorInfile, "$Id$")
+
+/////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////
+
+PercolatorInfile* ptr = nullptr;
+PercolatorInfile* null_pointer = nullptr;
+
+START_SECTION(PercolatorInfile())
 {
+  ptr = new PercolatorInfile();
+  TEST_NOT_EQUAL(ptr, null_pointer);
+}
+END_SECTION
 
-  /**
-     @brief Class for storing Percolator tab-delimited input files.
+START_SECTION(~PercolatorInfile())
+{
+  delete ptr;
+}
+END_SECTION
 
-  */
-  class OPENMS_DLLAPI PercolatorInfile
-  {
-    public:
-      static void store(const String& pin_file, 
-        const std::vector<PeptideIdentification>& peptide_ids, 
-        const StringList& feature_set, 
-        const std::string& enz, 
-        int min_charge, 
-        int max_charge);
+START_SECTION(vector<PeptideIdentification> PercolatorInfile::load(const String& pin_file, bool higher_score_better, const String& score_name, String decoy_prefix))
+{
+  // test loading of pin file with automatic update of target/decoy annotation based on decoy prefix in protein accessions
+  auto pids = PercolatorInfile::load(OPENMS_GET_TEST_DATA_PATH("sage.pin"), true, "ln(hyperscore)", "DECOY_");
+  TEST_EQUAL(pids.size(), 9);
+  TEST_FALSE(pids[6].getMetaValue("target_decoy") == "decoy") // 7th entry is annotated as target in pin file but only maps to decoy proteins with prefix "DECOY_" -> set to decoy
+}
+END_SECTION
 
-      /** @brief load pin file and convert to a vector of PeptideIdentification using the given score column @p score_name and orientation @p higher_score_better.
-          If a decoy prefix is provided, the decoy status is set from the protein accessions.
-          Otherwise, it assumes that the pin file already contains the correctly annotated decoy status. **/
-      static std::vector<PeptideIdentification> load(const String& pin_file, bool higher_score_better, const String& score_name, String decoy_prefix = "");
-
-      // uses spectrum_reference, if empty uses spectrum_id, if also empty fall back to using index
-      static String getScanIdentifier(const PeptideIdentification& pid, size_t index);
-      
-    protected:
-
-      //id <tab> label <tab> scannr <tab> calcmass <tab> expmass <tab> feature1 <tab> ... <tab> featureN <tab> peptide <tab> proteinId1 <tab> .. <tab> proteinIdM
-      static TextFile preparePin_(
-        const std::vector<PeptideIdentification>& peptide_ids, 
-        const StringList& feature_set, 
-        const std::string& enz, 
-        int min_charge, 
-        int max_charge);
-
-
-      static Int getScanNumber_(const String& scan_identifier);
-
-      static bool isEnz_(const char& n, const char& c, const std::string& enz);
-
-      static Size countEnzymatic_(const String& peptide, const std::string& enz);
-
-  };
-} // namespace OpenMS
+/////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////
+END_TEST
