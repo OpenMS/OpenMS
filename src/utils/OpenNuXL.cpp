@@ -144,6 +144,285 @@ using namespace OpenMS;
 using namespace OpenMS::Internal;
 using namespace std;
 
+struct NuXLLinearRescore
+{
+  /* @brief create a single main score using best and worst hits from peptides and XLs (without considering target/decoy information to prevent overfitting)
+     This effectively scales the score to the range [0,1] and allows to use the same score for both peptides and XLs without leaking target/decoy information.
+  */
+  static void apply(std::vector<PeptideIdentification>& peptide_ids)
+  {
+    StringList feature_set; // additional scores considered for score calibration
+    feature_set
+       << "NuXL:modds"
+       << "NuXL:pl_modds"
+       << "missed_cleavages"
+       << "NuXL:mass_error_p"
+       << "NuXL:tag_XLed"
+       << "NuXL:tag_unshifted"
+       << "NuXL:tag_shifted"
+       << "NuXL:isXL"
+       << "nr_candidates";
+
+    ///////////////////////////////////////// SVM score recalibration
+    // find size of minority class
+    map<double, size_t> pep;
+    map<double, size_t> XL;
+
+    // ignore target/decoy information to prevent overfitting
+    // map scores to index (sorted)
+    for (size_t index = 0; index != peptide_ids.size(); ++index)
+    {
+      if (peptide_ids[index].getHits().empty()) continue;
+      const PeptideHit& ph = peptide_ids[index].getHits()[0]; // get best match to current spectrum
+      bool is_XL = !(static_cast<int>(ph.getMetaValue("NuXL:isXL")) == 0);
+      double score = ph.getScore();
+      if (is_XL) 
+      {
+        XL[score] = index; 
+      }
+      else 
+      {
+        pep[score] = index; 
+      }
+    }
+
+    size_t minority_class = std::min({pep.size(), XL.size()});
+    cout << "Peptide (target+decoy)\t XL (target+decoy):" << endl;
+    cout << pep.size() << "\t" << XL.size() << endl; 
+
+    if (minority_class > 500) minority_class = 500;
+
+    // We don't want to use target/decoy information for training the SVM. We roughly approximate true/false by using the top and bottom of the scores
+    map<double, size_t> pep_top(pep.begin(), std::next(pep.begin(), minority_class/2));
+    map<double, size_t> pep_bottom(pep.rbegin(), std::next(pep.rbegin(), minority_class/2));
+    map<double, size_t> XL_top(XL.begin(), std::next(XL.begin(), minority_class/2));
+    map<double, size_t> XL_bottom(XL.rbegin(), std::next(XL.rbegin(), minority_class/2));
+
+    unordered_set<size_t> top_indices, bottom_indices;
+    for (auto & p : pep_top) top_indices.insert(p.second);
+    for (auto & p : pep_bottom) bottom_indices.insert(p.second);
+    for (auto & p : XL_top) top_indices.insert(p.second);
+    for (auto & p : XL_bottom) bottom_indices.insert(p.second);
+
+    pep.clear();
+    XL.clear();
+
+    if (minority_class > 10)
+    {
+      SimpleSVM::PredictorMap predictors;
+      map<Size, double> labels;
+
+      // copy all scores in predictors ("score" + all from feature_set). 
+      // Only add labels for balanced training set
+      size_t current_row(0);
+      for (size_t index = 0; index != peptide_ids.size(); ++index)
+      {
+          const vector<PeptideHit>& phits = peptide_ids[index].getHits();
+          for (size_t psm_rank = 0; psm_rank != phits.size(); ++psm_rank)
+          {
+            const PeptideHit& ph = phits[psm_rank];
+            predictors["score"].push_back(ph.getScore());
+            predictors["length"].push_back(ph.getSequence().size());
+            for (auto & f : feature_set)
+            {
+              double value = ph.getMetaValue(f);
+              predictors[f].push_back(value);
+            }
+            // only add label for training data (rank = 0 and previously selected for training)
+            if (psm_rank == 0 && top_indices.count(index) != 0)
+            {
+              labels[current_row] = 1.0;
+            }
+            else if (psm_rank == 0 && bottom_indices.count(index) != 0)
+            {
+              labels[current_row] = 0.0;
+            }
+            ++current_row;
+          }
+      }
+
+      SimpleSVM svm;
+      Param svm_param = svm.getParameters();        
+      svm_param.setValue("kernel", "linear");
+      String values = "-5,-1,1,5,7,11,15";
+      svm_param.setValue("log2_C", ListUtils::create<double>("-5,-1,1,5,7,11,15"));
+      svm_param.setValue("log2_p", ListUtils::create<double>("-15,-9,-6,-3.32192809489,0,3.32192809489,6,9,15"));
+
+      svm.setParameters(svm_param);
+      svm.setup(predictors, labels);
+      vector<SimpleSVM::Prediction> predictions;
+      OPENMS_LOG_INFO << "Predicting class probabilities:" << endl;
+      svm.predict(predictions);
+      std::map<String, double> feature_weights;
+      svm.getFeatureWeights(feature_weights);
+
+      OPENMS_LOG_DEBUG << "Feature weights:" << endl;
+      for (const auto& m : feature_weights)
+      {
+        OPENMS_LOG_DEBUG << m.first << "\t" << m.second << endl;
+      }
+
+      OPENMS_LOG_DEBUG << "Feature scaling:" << endl;
+      auto feature_scaling = svm.getScaling();
+      for (const auto& m : feature_scaling)
+      {
+        OPENMS_LOG_DEBUG << m.first << "\t" << m.second.first << "\t" << m.second.second << endl;
+      }
+
+      size_t psm_index(0);
+      for (size_t index = 0; index != peptide_ids.size(); ++index)
+      {
+          vector<PeptideHit>& phits = peptide_ids[index].getHits();
+          for (size_t psm_rank = 0; psm_rank != phits.size(); ++psm_rank, ++psm_index)
+          {
+            PeptideHit& ph = phits[psm_rank];
+            ph.setScore(1.0 - predictions[psm_index].probabilities[1]); // set probability of being a true hit as score TODO: check why 1- is needed (maybe we need to check order of classes)
+          }
+          //peptide_ids[index].assignRanks();  // TODO: check if reassigning ranks is detrimental
+      }
+    }
+    else
+    {
+      OPENMS_LOG_INFO << "Not enough data for SVM training." << std::endl;
+    }
+  }
+
+  #ifdef SVM_TD_RESCORE
+  void calculateDiscriminantScoreWithTDInfo()
+  {
+      ///////////////////////////////////////// SVM score recalibration
+      // find size of minority class
+      map<double, size_t> pep_t;
+      map<double, size_t> pep_d;
+      map<double, size_t> XL_t;
+      map<double, size_t> XL_d;
+
+      // map scores to index (sorted)
+      for (size_t index = 0; index != peptide_ids.size(); ++index)
+      {
+         if (peptide_ids[index].getHits().empty()) continue;
+         const PeptideHit& ph = peptide_ids[index].getHits()[0]; // get best match to current spectrum
+         bool is_target = ph.getMetaValue("target_decoy") == "target";
+         bool is_XL = !(static_cast<int>(ph.getMetaValue("NuXL:isXL")) == 0);
+         double score = ph.getScore();
+         if (is_target)
+         {
+           if (is_XL) 
+           {
+             XL_t[score] = index; 
+           }
+           else 
+           {
+             pep_t[score] = index; 
+           }
+         }
+         else
+         {
+           if (is_XL) 
+           {
+             XL_d[score] = index; 
+           }
+           else 
+           {
+             pep_d[score] = index; 
+           }
+         }
+      }
+      size_t minority_class = std::min({pep_t.size(), pep_d.size(), XL_t.size(), XL_d.size()});
+      cout << "Peptide (target/decoy)\t XL (target/decoy):" << endl;
+      cout << pep_t.size() << "\t" << pep_d.size() << "\t" << XL_t.size() << "\t" << XL_d.size() << endl; 
+
+      if (minority_class > 250) minority_class = 250;
+
+      // keep only top elements (=highest scoring hits) for all classes
+      pep_t.erase(pep_t.begin(), next(pep_t.begin(), pep_t.size() - minority_class));
+      pep_d.erase(pep_d.begin(), next(pep_d.begin(), pep_d.size() - minority_class));
+      XL_t.erase(XL_t.begin(), next(XL_t.begin(), XL_t.size() - minority_class));
+      XL_d.erase(XL_d.begin(), next(XL_d.begin(), XL_d.size() - minority_class));
+
+      // training indices = index of peptide id that correspond to top scoring hits (of the 4 classes)
+      set<size_t> training_indices;
+      for (auto & l : {pep_t, pep_d, XL_t, XL_d})
+      {
+        for (auto & i : l) training_indices.insert(i.second);
+      }
+
+      if (minority_class > 100)
+      {
+        SimpleSVM::PredictorMap predictors;
+        map<Size, Int> labels;
+
+        // copy all scores in predictors ("score" + all from feature_set). 
+        // Only add labels for balanced training set
+        size_t current_row(0);
+        for (size_t index = 0; index != peptide_ids.size(); ++index)
+        {
+           const vector<PeptideHit>& phits = peptide_ids[index].getHits();
+           for (size_t psm_rank = 0; psm_rank != phits.size(); ++psm_rank)
+           {
+             const PeptideHit& ph = phits[psm_rank];
+             bool is_target = ph.getMetaValue("target_decoy") == "target";
+             double score = ph.getScore();
+             // predictors["score"].push_back(score);
+             predictors["length"].push_back(ph.getSequence().size());
+             for (auto & f : feature_set_)
+             {
+               double value = ph.getMetaValue(f);
+               predictors[f].push_back(value);
+             }
+             // only add label for training data (rank = 0 and previously selected for training)
+             if (psm_rank == 0 && training_indices.count(index) > 0)
+             {
+               labels[current_row] = is_target;
+             }
+             ++current_row;
+           }
+        }
+  
+        SimpleSVM svm;
+        Param svm_param = svm.getParameters();        
+        svm_param.setValue("kernel", "linear");
+//        svm_param.setValue("kernel", "RBF");
+//        svm_param.setValue("log2_C", ListUtils::create<double>("0"));
+//        svm_param.setValue("log2_gamma", ListUtils::create<double>("1"));
+        svm.setParameters(svm_param);
+        svm.setup(predictors, labels);
+        vector<SimpleSVM::Prediction> predictions;
+        cout << "Predicting class probabilities:" << endl;
+        svm.predict(predictions);
+        std::map<String, double> feature_weights;
+        svm.getFeatureWeights(feature_weights);
+ /*
+        cout << "Feature weights:" << endl;
+        for (const auto& m : feature_weights)
+        {
+          cout << m.first << "\t" << m.second << endl;
+        }
+        cout << "Feature scaling:" << endl;
+        auto feature_scaling = svm.getScaling();
+        for (const auto& m : feature_scaling)
+        {
+          cout << m.first << "\t" << m.second.first << "\t" << m.second.second << endl;
+        }
+*/
+        size_t psm_index(0);
+        for (size_t index = 0; index != peptide_ids.size(); ++index)
+        {
+           vector<PeptideHit>& phits = peptide_ids[index].getHits();
+           for (size_t psm_rank = 0; psm_rank != phits.size(); ++psm_rank, ++psm_index)
+           {
+             PeptideHit& ph = phits[psm_rank];
+             ph.setScore(predictions[psm_index].probabilities[1]); // set probability of being a target as score
+           }
+          peptide_ids[index].assignRanks();    
+        }
+        // IdXMLFile().store(out_idxml + "_svm.idXML", protein_ids, peptide_ids);
+      }
+
+  }
+  #endif
+
+};
 
 struct NuXLRTPrediction
 {
@@ -387,9 +666,9 @@ struct NuXLRTPrediction
       auto& phits = pid.getHits();
       for (auto& ph : phits)
       {
-        double err = preds[i].label - pid.getRT();
+        double err = preds[i].outcome - pid.getRT();
         ph.setMetaValue("RT_error", err);
-        ph.setMetaValue("RT_predict", preds[i].label);
+        ph.setMetaValue("RT_predict", preds[i].outcome);
         // std::cout << preds[i].label << " " << pid.getRT() << " " << err << std::endl;
         ++i; 
         if (!all_hits) break;
@@ -6162,7 +6441,8 @@ static void scoreXLIons_(
       if (optimize)
       {
         OPENMS_LOG_INFO << "Parameter optimization." << endl;
-        optimizeFDR(peptide_ids);
+        //optimizeFDR(peptide_ids);
+        NuXLLinearRescore::apply(peptide_ids);
         OPENMS_LOG_DEBUG << "done." << endl;
       }
      

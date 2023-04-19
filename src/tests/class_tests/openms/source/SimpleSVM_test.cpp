@@ -244,11 +244,7 @@ START_SECTION((void writeXvalResults(const String& path) const))
 END_SECTION
 
 
-<<<<<<< HEAD
-START_SECTION(regression)
-=======
 START_SECTION(regression_train_and_predict_on_all)
->>>>>>> origin/develop
 {
   // create some noisy sinus data (data with clear outlier)
   // python code:
@@ -287,30 +283,6 @@ START_SECTION(regression_train_and_predict_on_all)
   vector<SimpleSVM::Prediction> predictions;
   svm.predict(predictions);
 
-<<<<<<< HEAD
-  // debug code to produce prediction error
-  size_t index{};
-  for (const auto& p : predictions)
-  {
-    std::cout << "index: " << index << " y: " << y[index] << " predicted y: " << p.label << " abs. error: " << std::abs(y[index] - p.label) << std::endl;
-    ++index;
-  }  
-
-  // test a few inlier
-  TEST_EQUAL(std::abs(predictions[0].label - y[0]) < 0.2, true);
-  TEST_EQUAL(std::abs(predictions[23].label - y[23]) < 0.2, true);
-  TEST_EQUAL(std::abs(predictions[36].label - y[36]) < 0.2, true);
-
-  // test a few outlier
-  TEST_EQUAL(std::abs(predictions[10].label - y[10]) > 0.2, true);
-  TEST_EQUAL(std::abs(predictions[15].label - y[15]) > 0.2, true);
-  TEST_EQUAL(std::abs(predictions[35].label - y[35]) > 0.2, true);
-
-
-}
-END_SECTION
-
-=======
   // test a few inlier
   TEST_EQUAL(std::abs(predictions[0].outcome - y[0]) < 0.2, true);
   TEST_EQUAL(std::abs(predictions[23].outcome - y[23]) < 0.2, true);
@@ -396,7 +368,6 @@ START_SECTION(regression_train_and_predict_on_separate)
 END_SECTION
 
 
->>>>>>> origin/develop
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST
