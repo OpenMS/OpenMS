@@ -38,6 +38,7 @@ reference and advanced developer documentation remains inside OpenMS doxygen
 documentation.
 - Add support for user defined ribonucleotides with phosphorothioate linkages
 - Add support for JSON based ribonucleotides and updated to latest Modomics database
+- fix bug in GaussFilter when using ppm as width (#6830)
 
 New Tools:
 - FLASHDeconv -- Ultra-fast high-quality deconvolution enables online processing of top-down MS data (TOPP)
