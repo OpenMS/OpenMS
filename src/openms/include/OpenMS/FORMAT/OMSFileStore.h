@@ -140,9 +140,7 @@ namespace OpenMS
 
       void createTableMoleculeType_();
 
-      void createTableDataValue_();
-
-      Key storeDataValue_(const DataValue& value);
+      void createTableDataValue_DataType_();
 
       void createTableCVTerm_();
 

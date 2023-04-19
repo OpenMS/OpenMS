@@ -85,7 +85,9 @@ public:
       Size start; ///< inclusive
       Size end; ///< not inclusive
       bool is_sorted; ///< are the Peaks in [start, end) sorted yet?
-      Chunk(Size start, Size end, bool sorted) : start(start), end(end), is_sorted(sorted) {}
+      Chunk(Size p_start, Size p_end, bool p_sorted) : start(p_start), end(p_end), is_sorted(p_sorted)
+      {
+      }
     };
 
     struct Chunks {

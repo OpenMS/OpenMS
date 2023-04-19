@@ -77,9 +77,9 @@ using namespace std;
   <center>
     <table>
         <tr>
-            <td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. predecessor tools </td>
+            <th ALIGN = "center"> pot. predecessor tools </td>
             <td VALIGN="middle" ROWSPAN=2> &rarr; PercolatorAdapter &rarr;</td>
-            <td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. successor tools </td>
+            <th ALIGN = "center"> pot. successor tools </td>
         </tr>
         <tr>
             <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref UTILS_PSMFeatureExtractor </td>
@@ -390,7 +390,7 @@ protected:
     {
       csv_file.getRow(i, row);
       PercolatorResult res(row);
-      String spec_ref = res.PSMId + res.peptide;
+      String spec_ref = res.PSMId + res.peptide; // note: PSMid from percolator is composed of filename + spectrum native id
       writeDebug_("PSM identifier in pout file: " + spec_ref, 10);
 
       // retain only the best result in the unlikely case that a PSMId+peptide combination occurs multiple times
@@ -1047,12 +1047,14 @@ protected:
         pep_id.setHigherScoreBetter(scoreType == "svm");
         
         String scan_identifier = PercolatorInfile::getScanIdentifier(pep_id, index);
-        
+        String file_identifier = pep_id.getMetaValue("file_origin", String());
+        file_identifier += (String)pep_id.getMetaValue("id_merge_index", String());
+
         //check each PeptideHit for compliance with one of the PercolatorResults (by sequence)
         for (PeptideHit& hit : pep_id.getHits())
         {
           String peptide_sequence = hit.getSequence().toBracketString(false, true);
-          String psm_identifier = scan_identifier + peptide_sequence;
+          String psm_identifier = file_identifier + scan_identifier + peptide_sequence;
 
           //Only for super debug
           writeDebug_("PSM identifier in PeptideHit: " + psm_identifier, 10);

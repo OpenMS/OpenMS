@@ -545,8 +545,8 @@ namespace OpenMS
       getCurrentLayer().getCurrentAnnotations().removeSelectedItems();
       update_(OPENMS_PRETTY_FUNCTION);
     }
-    // 'a' pressed && in zoom mode (Ctrl pressed) => select all annotation items
-    else if ((e->modifiers() & Qt::ControlModifier) && (e->key() == Qt::Key_A))
+    // 'b' pressed && in zoom mode (Ctrl pressed) => select all annotation items
+    else if ((e->modifiers() & Qt::ControlModifier) && (e->key() == Qt::Key_B))
     {
       e->accept();
       getCurrentLayer().getCurrentAnnotations().selectAll();

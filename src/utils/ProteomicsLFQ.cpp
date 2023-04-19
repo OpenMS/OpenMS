@@ -355,6 +355,7 @@ protected:
     PeakMap ms_raw;
     mzML_file.load(mz_file, ms_raw);
     ms_raw.clearMetaDataArrays();
+    ms_raw.updateRanges();
 
     if (ms_raw.empty())
     {
@@ -1500,21 +1501,16 @@ protected:
                       << "Assuming a label-free experiment without fractionation.\n"
                       << endl;
 
-      // default to unfractionated design
-      ExperimentalDesign::MSFileSection msfs;
+      TextFile design_table;
+      design_table.addLine("Fraction_Group\tFraction\tSpectra_Filepath\tLabel\tSample\tMSstats_Condition\tMSstats_BioReplicate");
+
       Size count{1};
       for (String & s : in)
       {
-        ExperimentalDesign::MSFileSectionEntry e;
-        e.fraction = 1;
-        e.fraction_group = count;
-        e.label = 1;
-        e.path = s;
-        e.sample = count;
-        msfs.push_back(e);
+        design_table.addLine(String(count) + "\t1\t" + s +"\t1\tSample" + String(count) + "\t" + String(count)+ "\t" + String(count));
         ++count;
       }      
-      design_.setMSFileSection(msfs);
+      design_ = ExperimentalDesignFile::load(design_table, "--no design file--", false);
     }
 
     // some sanity checks

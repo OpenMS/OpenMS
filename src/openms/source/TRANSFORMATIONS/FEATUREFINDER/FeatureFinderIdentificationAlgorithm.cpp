@@ -621,6 +621,8 @@ namespace OpenMS
     filterFeatures_(features, with_external_ids);
     OPENMS_LOG_INFO << features.size() << " features left after filtering." << endl;
 
+    if (features.empty()) return; // elution model fit throws on empty features
+
     if (!svm_probs_internal_.empty())
     {
       calculateFDR_(features);
@@ -1655,7 +1657,7 @@ namespace OpenMS
                          "SVM predictions for all features expected");
     for (Size i = 0; i < features.size(); ++i)
     {
-      features[i].setMetaValue("predicted_class", predictions[i].label);
+      features[i].setMetaValue("predicted_class", predictions[i].outcome);
       double prob_positive = predictions[i].probabilities[1];
       features[i].setMetaValue("predicted_probability", prob_positive);
       // @TODO: store previous (OpenSWATH) overall quality in a meta value?

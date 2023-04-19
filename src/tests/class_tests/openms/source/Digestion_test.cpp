@@ -196,32 +196,32 @@ END_SECTION
 START_SECTION((virtual bool operator==(const SampleTreatment &rhs) const ))
 	Digestion empty,edit;
 	
-	TEST_EQUAL(edit==empty, true);
+	TEST_TRUE(edit == empty);
 	
 	edit.setEnzyme("TTEST");
 	TEST_EQUAL(edit==empty, false);
 	edit = empty;
-	TEST_EQUAL(edit==empty, true);
+	TEST_TRUE(edit == empty);
 
 	edit.setDigestionTime(4711.2);
 	TEST_EQUAL(edit==empty, false);
 	edit = empty;
-	TEST_EQUAL(edit==empty, true);		
+	TEST_TRUE(edit == empty);		
 
 	edit.setTemperature(4711.3);
 	TEST_EQUAL(edit==empty, false);
 	edit = empty;
-	TEST_EQUAL(edit==empty, true);			
+	TEST_TRUE(edit == empty);			
 
 	edit.setPh(4711.4);
 	TEST_EQUAL(edit==empty, false);
 	edit = empty;
-	TEST_EQUAL(edit==empty, true);		
+	TEST_TRUE(edit == empty);		
 
 	edit.setMetaValue("color",String("red"));
 	TEST_EQUAL(edit==empty, false);
 	edit = empty;
-	TEST_EQUAL(edit==empty, true);	
+	TEST_TRUE(edit == empty);	
 	
 	Modification m;
 	TEST_EQUAL(m==empty, false);
