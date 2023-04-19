@@ -155,8 +155,10 @@ signals:
     void aboutToBeDestroyed(int window_id);
     /// Shows the main preferences dialog
     void openPreferences();
-    /// Signal that is emitted, when a drag-and-drop action ends on this widget
-    void dropReceived(const QMimeData* data, QWidget* source, int id);
+    /// Signal that is emitted, when a drag-and-drop action ends on this widget -- we send QList<QUrl> instead of QMimeData*,
+    /// because the connection may be queued and Qt copies the data into the queue, but the QMimeData underlying the QMimeData* might
+    /// be deleted once the receiver fires (and QMimeData's copy c'tor is deleted for some reason)
+    void dropReceived(const QList<QUrl> data, QWidget* source, int id);
 
 public slots:
     /// Shows statistics about the data (count, min, max, avg of intensity, charge, quality and meta data)

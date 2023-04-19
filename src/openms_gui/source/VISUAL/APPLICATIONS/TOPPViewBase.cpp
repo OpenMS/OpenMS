@@ -152,8 +152,8 @@ namespace OpenMS
     tab_bar_.removeId(4710);
     connect(&tab_bar_, &EnhancedTabBar::currentIdChanged, this, &TOPPViewBase::showWindow);
     connect(&tab_bar_, &EnhancedTabBar::closeRequested, this, &TOPPViewBase::closeByTab);
-    connect(&tab_bar_, &EnhancedTabBar::dropOnWidget, [this](const QMimeData* data, QWidget* source){ copyLayer(data, source); });
-    connect(&tab_bar_, &EnhancedTabBar::dropOnTab, this, &TOPPViewBase::copyLayer);
+    connect(&tab_bar_, &EnhancedTabBar::dropOnWidget, [this](const QMimeData* data, QWidget* source) { copyLayer(data->urls(), source); });
+    connect(&tab_bar_, &EnhancedTabBar::dropOnTab, [this](const QMimeData* data, QWidget* source, int id) { copyLayer(data->urls(), source, id); });
     box_layout->addWidget(&tab_bar_);
 
     // Trigger updates only when the active subWindow changes and update it
@@ -161,7 +161,8 @@ namespace OpenMS
       if (window && lastActiveSubwindow_ != window) /* 0 upon terminate */ updateBarsAndMenus();
       lastActiveSubwindow_ = window;
     });
-    connect(&ws_, &EnhancedWorkspace::dropReceived, this, &TOPPViewBase::copyLayer);
+    connect(&ws_, &EnhancedWorkspace::dropReceived, [this](const QMimeData* data, QWidget* source, int id) { copyLayer(data->urls(), source, id);
+  });
     box_layout->addWidget(&ws_);
 
     //################## STATUS #################
@@ -1409,7 +1410,8 @@ namespace OpenMS
     connect(sw->canvas(), &PlotCanvas::layerZoomChanged, this, &TOPPViewBase::zoomOtherWindows);
     connect(sw, &PlotWidget::sendStatusMessage, this, &TOPPViewBase::showStatusMessage);
     connect(sw, &PlotWidget::sendCursorStatus, this, &TOPPViewBase::showCursorStatus);
-    connect(sw, &PlotWidget::dropReceived, this, &TOPPViewBase::copyLayer);
+    connect(sw, &PlotWidget::dropReceived, this, &TOPPViewBase::copyLayer, Qt::QueuedConnection); // QueuedConnection, otherwise we block the sender, e.g. Explorer, until loading of files is done
+
 
     auto base_name = sw->canvas()->getCurrentLayer().getDecoratedName();
 
@@ -2374,7 +2376,7 @@ namespace OpenMS
     getActiveCanvas()->showMetaData(true, spectrum_index);
   }
 
-  void TOPPViewBase::copyLayer(const QMimeData* data, QWidget* source, int id)
+  void TOPPViewBase::copyLayer(const QList<QUrl> urls, QWidget* source, int id)
   {
     SpectraTreeTab* spec_view = (source ? qobject_cast<SpectraTreeTab*>(source->parentWidget()) : nullptr);
     try
@@ -2443,9 +2445,8 @@ namespace OpenMS
       else if (source == nullptr)
       {
         // drag source is external
-        if (data->hasUrls())
+        if (!urls.empty())
         {
-          QList<QUrl> urls = data->urls();
           for (QList<QUrl>::const_iterator it = urls.begin(); it != urls.end(); ++it)
           {
             addDataFile(it->toLocalFile(), false, true, "", new_id);

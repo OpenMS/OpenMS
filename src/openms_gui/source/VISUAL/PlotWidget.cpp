@@ -319,7 +319,7 @@ namespace OpenMS
 
   void PlotWidget::dropEvent(QDropEvent* event)
   {
-    emit dropReceived(event->mimeData(), dynamic_cast<QWidget*>(event->source()), this->getWindowId());
+    emit dropReceived((event->mimeData()->urls()), dynamic_cast<QWidget*>(event->source()), getWindowId());
     event->acceptProposedAction();
   }
 
