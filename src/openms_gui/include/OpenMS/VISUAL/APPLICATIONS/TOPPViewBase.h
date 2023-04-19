@@ -401,7 +401,7 @@ protected slots:
     /// Raises the window corresponding to the data of the tab with identifier @p id
     void showWindow(int id);
     /// Slot for drag-and-drop of layer manager to tabbar
-    void copyLayer(const QList<QUrl> data, QWidget* source, int id = -1);
+    void copyLayer(const QMimeData* data, QWidget* source, int id = -1);
     //@}
 
     /// Appends process output to log window
