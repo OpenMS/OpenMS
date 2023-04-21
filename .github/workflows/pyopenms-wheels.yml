@@ -122,7 +122,7 @@ jobs:
             conda remove --name pyoms-bld-$py --all
 
             # clean previous pyopenms libs
-            find . -name "pyopenms*.so" -exec rm -rf {} \;
+            rm pyopenms/_pyopenms*.so
 
           done
 
@@ -264,7 +264,7 @@ jobs:
             conda remove --name pyoms-bld-$py --all
 
             # clean previous pyopenms libs
-            find . -name "pyopenms*.so" -exec rm -rf {} \;
+            rm pyopenms/_pyopenms*.so
 
           done
 
@@ -326,6 +326,9 @@ jobs:
             # since string sorting does not work with 9,10,11+ we need to specify manually.
             for PYBIN in $PYTHON_VERSIONS
             do
+              ls
+              ls pyopenms
+              rm pyopenms/_pyopenms*.so
               "$PYBIN/bin/pip" install -U pip
               "$PYBIN/bin/pip" install -U Cython
               "$PYBIN/bin/pip" install -U setuptools
