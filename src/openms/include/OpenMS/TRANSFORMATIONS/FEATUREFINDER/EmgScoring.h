@@ -146,12 +146,12 @@ namespace OpenMS
       // typedef Peak1D LocalPeakType;
       PeakSpectrum filter_spec;
       // first smooth the data to prevent outliers from destroying the fit
-      for (ConvexHull2D::PointArrayType::const_iterator it = current_section.begin(); it != current_section.end(); it++)
+      for (const auto& pa : current_section)
       {
         LocalPeakType p;
         using IntensityType = typename LocalPeakType::IntensityType;
-        p.setMZ(it->getX());
-        p.setIntensity(IntensityType(it->getY()));
+        p.setMZ(pa.getX());
+        p.setIntensity(IntensityType(pa.getY()));
         filter_spec.push_back(p);
       }
 
