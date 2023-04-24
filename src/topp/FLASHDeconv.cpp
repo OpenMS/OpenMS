@@ -250,7 +250,7 @@ protected:
   // the main_ function is called after all parameters are read
   ExitCodes main_(int, const char**) override
   {
-    bool DLTrain = false;
+    bool DLTrain = true;
     OPENMS_LOG_INFO << "Initializing ... " << endl;
     //-------------------------------------------------------------
     // parsing parameters
@@ -912,7 +912,7 @@ protected:
         int j = 0; //-2 -1 1 2     2 3 4 5 /2 /3 /4 /5       -2 -1 1 2
         for (auto& pg : false_deconvolved_spectrum)
         {
-          int k = j++ % 13;
+          int k = j++ % 10;
           int charge_offset = 0;
           double charge_multiple = 1;
           double mz_offset = .0;
@@ -949,22 +949,22 @@ protected:
             case 9:
               charge_multiple = 1.0 / 2.0;
               break;
-            case 10:
-              flag = PeakGroup::DummyIndex::noise_dummy;
-              mz_offset = 5.0;
-              break;
-            case 11:
-              flag = PeakGroup::DummyIndex::noise_dummy;
-              mz_offset = 3.0;
-              break;
-            case 12:
-              flag = PeakGroup::DummyIndex::noise_dummy;
-              mz_offset = -3.0;
-              break;
-            default:
-              flag = PeakGroup::DummyIndex::noise_dummy;
-              mz_offset = -5.0;
-              break;
+//            case 10:
+//              flag = PeakGroup::DummyIndex::noise_dummy;
+//              mz_offset = 5.0;
+//              break;
+//            case 11:
+//              flag = PeakGroup::DummyIndex::noise_dummy;
+//              mz_offset = 3.0;
+//              break;
+//            case 12:
+//              flag = PeakGroup::DummyIndex::noise_dummy;
+//              mz_offset = -3.0;
+//              break;
+//            default:
+//              flag = PeakGroup::DummyIndex::noise_dummy;
+//              mz_offset = -5.0;
+//              break;
           }
 
           pg.recruitAllPeaksInSpectrum(deconvolved_spectrum.getOriginalSpectrum(), 1e-6*tols[0], avg, pg.getMonoMass(), std::unordered_set<double>(), charge_offset, charge_multiple, mz_offset);

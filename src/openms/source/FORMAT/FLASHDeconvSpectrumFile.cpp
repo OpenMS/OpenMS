@@ -371,10 +371,10 @@ namespace OpenMS
          pg.calculateDLMatrices(dspec.getOriginalSpectrum(), tol, avg);
 
          auto dlmatrix = pg.getDLMatrix(0).asVector();
-         if(*std::max_element(dlmatrix.begin(), dlmatrix.end()) <= 0)
-         {
-          continue;
-         }
+//         if(*std::max_element(dlmatrix.begin(), dlmatrix.end()) <= 0)
+//         {
+//          continue;
+//         }
          if (false)
          {
            std::cout<<pg.getDummyIndex() << " S \n" << pg.getDLMatrix(0);

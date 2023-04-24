@@ -209,14 +209,14 @@ namespace OpenMS
 
     min_isotope_cosine_ = param_.getValue("min_isotope_cosine");
     allowed_iso_error_ = param_.getValue("allowed_isotope_error");
-    if(useDL)
+
+    /*if(useDL)
     {
       try
       {
-        // Deserialize the ScriptModule from a file using torch::jit::load().
         auto file = "/Users/kyowonjeong/Library/CloudStorage/"
                     "GoogleDrive-kyowonjeong@gmail.com/My Drive/JeongLab/Projects/"
-                    "DL based Deconvolution scoring/Training/CNN/5_11_CNN.pt";
+                    "DL based Deconvolution scoring/Training/CNN/230421_C11_I11.pt";
         if (!std::filesystem::exists(file))
         {
           std::cerr << file << " does not exists!" << std::endl;
@@ -229,7 +229,7 @@ namespace OpenMS
         std::cerr << e.what() << " error loading the model\n";
         return;
       }
-    }
+    }*/
   }
 
   const FLASHDeconvHelperStructs::PrecalculatedAveragine& FLASHDeconvAlgorithm::getAveragine()
@@ -1281,7 +1281,7 @@ namespace OpenMS
 
     removeOverlappingPeakGroups_(deconvolved_spectrum_);
     removeChargeErrorPeakGroups_(deconvolved_spectrum_); //
-
+/*
     if(useDL)
     {
       for(auto& peak_group: deconvolved_spectrum_)
@@ -1340,20 +1340,25 @@ namespace OpenMS
 
         //if (d1 > d2 && d1 > d3 && d1 > d4) //
         if(//abs(peak_group.getMonoMass() - 12221.1) < .1 &&
-            peak_group.getQScore() > .7)
+            peak_group.getQScore() > .2)
         {
 //          auto dlm = peak_group.getDLMatrix(0).asVector();
 //          for (double v : dlm)
 //          {
 //            std::cout << v << ",";
 //          }
-//          std::cout<<" V"<<std::endl;
-          std::cout<< peak_group.getDLMatrix(1) <<std::endl;
-          std::cout<<"N\n";
-          std::cout<<t2<<std::endl;
-          std::cout<< peak_group.getDLMatrix(2) <<std::endl;
-          std::cout<<"T\n";
-          std::cout<<t3<<std::endl;
+//          std::cout<<" vector \n"<<std::endl;
+//          std::cout<< peak_group.getDLMatrix(1) <<std::endl;
+//          std::cout<<"N\n";
+//          std::cout<<t1<<std::endl;
+//          std::cout<<" m1 \n";
+//          std::cout<<t2<<std::endl;
+//          std::cout<<" m2 \n";
+//          std::cout<<t3<<std::endl;
+//          std::cout<<" m3 \n";
+//          std::cout<< peak_group.getDLMatrix(2) <<std::endl;
+//          std::cout<<"T\n";
+//          std::cout<<t3<<std::endl;
 
           //std::cout << t1 << std::endl;
           //std::cout<<"N\n";
@@ -1367,6 +1372,7 @@ namespace OpenMS
         }
       }
     }
+    */
   }
 
   float FLASHDeconvAlgorithm::getIsotopeCosineAndDetermineIsotopeIndex(const double mono_mass, const std::vector<float>& per_isotope_intensities, int& offset, const PrecalculatedAveragine& avg,
