@@ -295,7 +295,7 @@ namespace OpenMS
                            double mean = std::numeric_limits<double>::max())
     {
       checkIteratorsNotNULL(begin, end);
-      double sum = 0.0;
+      double sum_value = 0.0;
       if (mean == std::numeric_limits<double>::max())
       {
         mean = Math::mean(begin, end);
@@ -303,15 +303,15 @@ namespace OpenMS
       for (IteratorType iter=begin; iter!=end; ++iter)
       {
         double diff = *iter - mean;
-        sum += diff * diff;
+        sum_value += diff * diff;
       }
-      return sum / (std::distance(begin, end)-1);
+      return sum_value / (std::distance(begin, end)-1);
     }
 
     /**
        @brief Calculates the standard deviation of a range of values.
 
-  The @p mean can be provided explicitly to save computation time. If left at default, it will be computed internally.
+       The @p mean can be provided explicitly to save computation time. If left at default, it will be computed internally.
 
        @exception Exception::InvalidRange is thrown if the range is empty
 
