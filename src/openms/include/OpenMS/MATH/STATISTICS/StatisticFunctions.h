@@ -337,16 +337,16 @@ namespace OpenMS
                          double mean = std::numeric_limits<double>::max())
     {
       checkIteratorsNotNULL(begin, end);
-      double sum = 0.0;
+      double sum_value = 0.0;
       if (mean == std::numeric_limits<double>::max())
       {
         mean = Math::mean(begin, end);
       }
       for (IteratorType iter=begin; iter!=end; ++iter)
       {
-        sum += *iter - mean;
+        sum_value += *iter - mean;
       }
-      return sum / std::distance(begin, end);
+      return sum_value / std::distance(begin, end);
     }
 
     /**
