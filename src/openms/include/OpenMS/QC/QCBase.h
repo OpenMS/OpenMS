@@ -145,7 +145,7 @@ namespace OpenMS
     {
       if (!fmap.getUnassignedPeptideIdentifications().empty()) return true;
 
-      return (std::any_of(fmap.cbegin(), fmap.cend(), [](const Feature& f) 
+      return std::any_of(fmap.cbegin(), fmap.cend(), [](const Feature& f) 
               { return !f.getPeptideIdentifications().empty();});
     }
   };
