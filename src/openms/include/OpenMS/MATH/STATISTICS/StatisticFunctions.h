@@ -365,7 +365,7 @@ namespace OpenMS
       //no data or different lengths
       checkIteratorsNotNULL(begin_a, end_a);
 
-      double sum = 0.0;
+      double sum_value = 0.0;
       double mean_a = Math::mean(begin_a, end_a);
       double mean_b = Math::mean(begin_b, end_b);
       IteratorType1 iter_a = begin_a;
@@ -374,12 +374,12 @@ namespace OpenMS
       {
         /* assure both ranges have the same number of elements */
         checkIteratorsAreValid(begin_b, end_b, begin_a, end_a);
-        sum += (*iter_a - mean_a) * (*iter_b - mean_b);
+        sum_value += (*iter_a - mean_a) * (*iter_b - mean_b);
       }
       /* assure both ranges have the same number of elements */
       checkIteratorsEqual(iter_b, end_b);
       Size n = std::distance(begin_a, end_a);
-      return sum / (n-1);
+      return sum_value / (n-1);
     }
 
     /**
