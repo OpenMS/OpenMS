@@ -350,6 +350,9 @@ jobs:
             mv wheelhouse/* $GITHUB_WORKSPACE/data/wheelhouse/
           popd
           export LD_LIBRARY_PATH=$LD_OLD_LIBRARY_PATH
+        
+          # clean previous pyopenms libs
+          find . -name "pyopenms*.so" -exec rm -rf {} \;
         done
 
     - uses: actions/upload-artifact@v3
