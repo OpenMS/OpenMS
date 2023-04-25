@@ -152,6 +152,22 @@ struct NuXLLinearRescore
   static void apply(std::vector<PeptideIdentification>& peptide_ids)
   {
     StringList feature_set; // additional scores considered for score calibration
+    
+    /*
+      feature_set
+       << "missed_cleavages"
+       << "isotope_error"
+       << "NuXL:modds"
+       << "NuXL:pl_modds"
+       << "NuXL:mass_error_p"
+       << "NuXL:tag_XLed"
+       << "NuXL:tag_unshifted"
+       << "NuXL:tag_shifted"
+       << "NuXL:isXL"
+       << "NuXL:total_MIC"
+       << "-ln(poisson)"
+       << "nr_candidates";
+    */
     feature_set
        << "NuXL:modds"
        << "NuXL:pl_modds"
@@ -164,12 +180,12 @@ struct NuXLLinearRescore
        << "nr_candidates";
 
     ///////////////////////////////////////// SVM score recalibration
-    // find size of minority class
-    map<double, size_t> pep;
-    map<double, size_t> XL;
+    // find size of minority class and create map with highest score at the top/beginning
+    map<double, size_t, std::greater<double>> pep;
+    map<double, size_t, std::greater<double>> XL;
 
     // ignore target/decoy information to prevent overfitting
-    // map scores to index (sorted)
+    // build map from cross-link scores and peptide scores to the PeptideIdentification index
     for (size_t index = 0; index != peptide_ids.size(); ++index)
     {
       if (peptide_ids[index].getHits().empty()) continue;
@@ -213,12 +229,12 @@ struct NuXLLinearRescore
       map<Size, double> labels;
 
       // copy all scores in predictors ("score" + all from feature_set). 
-      // Only add labels for balanced training set
+      // Only add labels for top hits (rank = 0)
       size_t current_row(0);
       for (size_t index = 0; index != peptide_ids.size(); ++index)
       {
           const vector<PeptideHit>& phits = peptide_ids[index].getHits();
-          for (size_t psm_rank = 0; psm_rank != phits.size(); ++psm_rank)
+          for (size_t psm_rank = 0; psm_rank != phits.size(); ++psm_rank, ++current_row)
           {
             const PeptideHit& ph = phits[psm_rank];
             predictors["score"].push_back(ph.getScore());
@@ -237,14 +253,12 @@ struct NuXLLinearRescore
             {
               labels[current_row] = 0.0;
             }
-            ++current_row;
           }
       }
 
       SimpleSVM svm;
       Param svm_param = svm.getParameters();        
       svm_param.setValue("kernel", "linear");
-      String values = "-5,-1,1,5,7,11,15";
       svm_param.setValue("log2_C", ListUtils::create<double>("-5,-1,1,5,7,11,15"));
       svm_param.setValue("log2_p", ListUtils::create<double>("-15,-9,-6,-3.32192809489,0,3.32192809489,6,9,15"));
 
@@ -259,7 +273,7 @@ struct NuXLLinearRescore
       OPENMS_LOG_DEBUG << "Feature weights:" << endl;
       for (const auto& m : feature_weights)
       {
-        OPENMS_LOG_DEBUG << m.first << "\t" << m.second << endl;
+        OPENMS_LOG_DEBUG << "w: " << m.first << "\t" << m.second << endl;
       }
 
       OPENMS_LOG_DEBUG << "Feature scaling:" << endl;
@@ -276,7 +290,7 @@ struct NuXLLinearRescore
           for (size_t psm_rank = 0; psm_rank != phits.size(); ++psm_rank, ++psm_index)
           {
             PeptideHit& ph = phits[psm_rank];
-            ph.setScore(1.0 - predictions[psm_index].probabilities[1]); // set probability of being a true hit as score TODO: check why 1- is needed (maybe we need to check order of classes)
+            ph.setScore(predictions[psm_index].probabilities[1]); // set probability of being a true hit as score
           }
           //peptide_ids[index].assignRanks();  // TODO: check if reassigning ranks is detrimental
       }
@@ -1026,6 +1040,7 @@ protected:
        << "NuXL:aminoacid_max_tag"
        << "NuXL:aminoacid_id_to_max_tag_ratio"
        << "nr_candidates"
+       << "-ln(poisson)"
        << "NuXL:explained_peak_fraction"
        << "NuXL:theo_peak_fraction"
 #ifdef ANNOTATED_QUANTILES
@@ -3526,7 +3541,9 @@ static void scoreXLIons_(
     const Size scan_index, 
     const MSSpectrum& spec,
     const map<String, PrecursorPurity::PurityScores>& purities,
-    const vector<size_t>& nr_candidates/*,
+    const vector<size_t>& nr_candidates,
+    const vector<size_t>& matched_peaks
+    /*,
     const String& can_cross_link*/)
   {
     pi.setMetaValue("scan_index", static_cast<unsigned int>(scan_index));
@@ -3695,6 +3712,14 @@ static void scoreXLIons_(
       const double id2maxtag = maxtag == 0 ? 0 : (double)std::max(ah.tag_unshifted, ah.tag_shifted) / (double)maxtag; // longest shift of this peptide vs. longest tag found
       ph.setMetaValue("NuXL:aminoacid_id_to_max_tag_ratio", id2maxtag);
       ph.setMetaValue("nr_candidates", nr_candidates[scan_index]);
+      
+      // calculate -ln(poisson) for the number of matched peaks
+      double lambda = (double)matched_peaks[scan_index]/(double)nr_candidates[scan_index];
+      double k = (size_t)ah.Morph + (size_t)ah.pl_Morph;
+      double ln_poisson = k * std::log(lambda) - lambda - std::lgamma(k + 1);
+      ln_poisson = !isfinite(ln_poisson) ? 315 : -ln_poisson;
+
+      ph.setMetaValue("-ln(poisson)", ln_poisson);
       ph.setMetaValue("NuXL:explained_peak_fraction", ah.explained_peak_fraction);
       ph.setMetaValue("NuXL:theo_peak_fraction", ah.matched_theo_fraction);
       ph.setMetaValue("NuXL:wTop50", ah.wTop50);
@@ -3740,7 +3765,9 @@ static void scoreXLIons_(
     const ModifiedPeptideGenerator::MapToResidueType& variable_modifications, 
     Size max_variable_mods_per_peptide,
     const map<String, PrecursorPurity::PurityScores>& purities,
-    const vector<size_t>& nr_candidates/*,
+    const vector<size_t>& nr_candidates,
+    const vector<size_t>& matched_peaks
+    /*,
     const String& can_cross_link*/)
   {
     assert(annotated_XL_hits.size() == annotated_peptide_hits.size());
@@ -3769,7 +3796,9 @@ static void scoreXLIons_(
           scan_index, 
           spec,
           purities,
-          nr_candidates/*,
+          nr_candidates, 
+          matched_peaks
+          /*,
           can_cross_link*/);
       }
 
@@ -3785,7 +3814,9 @@ static void scoreXLIons_(
           scan_index, 
           spec,
           purities,
-          nr_candidates/*,
+          nr_candidates,
+          matched_peaks
+          /*,
           can_cross_link*/);
       }
     }
@@ -5265,6 +5296,7 @@ static void scoreXLIons_(
 
     // preallocate storage for PSMs
     vector<size_t> nr_candidates(spectra.size(), 0);
+    vector<size_t> matched_peaks(spectra.size(), 0);
     vector<vector<NuXLAnnotatedHit> > annotated_XLs(spectra.size(), vector<NuXLAnnotatedHit>());
     for (auto & a : annotated_XLs) { a.reserve(2 * report_top_hits); }
     vector<vector<NuXLAnnotatedHit> > annotated_peptides(spectra.size(), vector<NuXLAnnotatedHit>());
@@ -5609,6 +5641,15 @@ static void scoreXLIons_(
                     // combined score
                     //const double tags = exp_spectrum.getFloatDataArrays()[2][0];
                     ah.n_theoretical_peaks = n_theoretical_peaks;
+
+  #ifdef _OPENMP
+                      omp_set_lock(&(annotated_peptides_lock[scan_index]));
+                      omp_set_lock(&(annotated_XLs_lock[scan_index]));
+                      // count matched peaks for spectrum
+                      matched_peaks[scan_index] += (size_t)ah.Morph ;
+                      omp_unset_lock(&(annotated_XLs_lock[scan_index]));
+                      omp_unset_lock(&(annotated_peptides_lock[scan_index]));
+  #endif                                 
                     ah.score = OpenNuXL::calculateCombinedScore(ah/*false, tags*/);
                     //ah.score = OpenNuXL::calculateFastScore(ah); does this work too
 
@@ -5874,6 +5915,15 @@ static void scoreXLIons_(
                       // combined score
                       //const double tags = exp_spectrum.getFloatDataArrays()[2][0];
                       ah.n_theoretical_peaks = n_theoretical_peaks;
+
+  #ifdef _OPENMP
+                      omp_set_lock(&(annotated_peptides_lock[scan_index]));
+                      omp_set_lock(&(annotated_XLs_lock[scan_index]));
+                      // count matched peaks for spectrum
+                      matched_peaks[scan_index] += (size_t)ah.Morph + (size_t)ah.pl_Morph ;
+                      omp_unset_lock(&(annotated_XLs_lock[scan_index]));
+                      omp_unset_lock(&(annotated_peptides_lock[scan_index]));
+  #endif                      
                       ah.score = OpenNuXL::calculateCombinedScore(ah/*, true,tags*/ );
 
   #ifdef DEBUG_OpenNuXL
@@ -6037,7 +6087,8 @@ static void scoreXLIons_(
                      variable_modifications, 
                      max_variable_mods_per_peptide,
                      purities,
-                     nr_candidates);
+                     nr_candidates,
+                     matched_peaks);
 
     progresslogger.endProgress();
 
@@ -6084,6 +6135,7 @@ static void scoreXLIons_(
     meta_values_to_export.push_back("NuXL:pl_pc_MIC");  
     meta_values_to_export.push_back("NuXL:pl_MIC");  
     meta_values_to_export.push_back("nr_candidates");
+    meta_values_to_export.push_back("-ln(poisson)");
     meta_values_to_export.push_back("isotope_error");  
    
     if (RTpredict)
