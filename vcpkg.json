@@ -1,7 +1,17 @@
 {
-  "name": "OpenMS",
+  "name": "openms",
   "version-string": "3.0.0",
   "dependencies": [  
-    "boost"
+    "boost",
+    "xerces-c",
+    "qt5",
+    "libsvm",
+    "qt5-svg",
+    "zlib",
+    "coin-or-cgl",
+    "coin-or-clp",
+    "coin-or-buildtools",
+    "eigen3",
+    "bzip2"
   ]
 }

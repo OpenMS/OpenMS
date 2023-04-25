@@ -178,7 +178,7 @@ START_SECTION((bool operator== (const MSExperiment& rhs) const))
 {
   PeakMap edit,empty;
 
-  TEST_EQUAL(edit==empty, true);
+  TEST_TRUE(edit == empty);
 
   edit.getContacts().resize(1);
   TEST_EQUAL(edit==empty, false);
@@ -196,11 +196,11 @@ START_SECTION((bool operator!= (const MSExperiment& rhs) const))
   TEST_EQUAL(edit!=empty, false);
 
   edit.getContacts().resize(1);
-  TEST_EQUAL(edit!=empty, true);
+  TEST_FALSE(edit == empty);
 
   edit = empty;
   edit.resize(1);
-  TEST_EQUAL(edit!=empty, true);
+  TEST_FALSE(edit == empty);
 }
 END_SECTION
 
@@ -349,7 +349,7 @@ START_SECTION((template <bool add_mass_traces, class Container> void set2DData(c
   // retrieve data again and check for changes
   std::vector<Peak2D> outputr;
   exp.get2DData(outputr);
-  TEST_EQUAL(outputr==input, true); // we compare to non-meta output, since floatdata is not converted back to metavalues
+  TEST_TRUE(outputr == input); // we compare to non-meta output, since floatdata is not converted back to metavalues
   // check for meta data
   TEST_EQUAL(exp[0].getFloatDataArrays().size(), 2);
   TEST_EQUAL(exp[0].getFloatDataArrays()[0][0], 111.1);

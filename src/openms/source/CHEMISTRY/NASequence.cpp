@@ -221,7 +221,7 @@ namespace OpenMS
         //   return our_form - five_prime_to_full + OH_form + (H_form * charge) + local_three_prime;
 
       case AminusB:
-        return our_form + (H_form * charge) + local_five_prime + aminusB_ion_to_full - seq_.back()->getFormula() + seq_.back()->getBaselossFormula() - ((seq_.back()->getCode().back() == '*') ? EmpiricalFormula("SO-1") : EmpiricalFormula("") );
+        return our_form + (H_form * charge) + local_five_prime + aminusB_ion_to_full - seq_.back()->getFormula() + seq_.back()->getBaselossFormula();
 
       case AIon:
         return our_form + (H_form * charge) + local_five_prime + a_ion_to_full;

@@ -37,6 +37,10 @@
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/METADATA/SpectrumLookup.h>
+#include <OpenMS/FORMAT/CsvFile.h>
+
+#include <regex>
+#include <functional>
 
 namespace OpenMS
 {
@@ -76,6 +80,111 @@ namespace OpenMS
     return scan_identifier.removeWhitespaces();
   }
 
+  vector<PeptideIdentification> PercolatorInfile::load(const String& pin_file, bool higher_score_better, const String& score_name, String decoy_prefix)
+  {
+    CsvFile csv(pin_file, '\t');
+    StringList header;
+    csv.getRow(0, header);
+
+    unordered_map<String, size_t> to_idx; // map column name to column index
+    {
+      size_t idx{};
+      for (const auto& h : header) { to_idx[h] = idx++; }
+    }
+
+    // charge columns are not standardized so we check for the format and create hash to lookup column name to charge mapping
+    std::regex charge_one_hot_pattern("^charge\\d+$");
+    std::regex sage_one_hot_pattern("^z=\\d+$");
+    String charge_prefix;
+    unordered_map<String, int> col_name_to_charge;
+    for (const String& c : header)
+    {
+      if (std::regex_match(c, charge_one_hot_pattern))
+      {
+        col_name_to_charge[c] = c.substr(6).toInt();
+        charge_prefix = "charge";
+      }
+      else if (std::regex_match(c, sage_one_hot_pattern))
+      {
+        col_name_to_charge[c] = c.substr(2).toInt();
+        charge_prefix = "z=";
+      }
+      else if (c == "z=other") // SAGE
+      {
+        col_name_to_charge[c] = 0;
+      }
+    }
+
+    auto n_rows = csv.rowCount();
+    
+    vector<PeptideIdentification> pids;
+    pids.reserve(n_rows);
+    String spec_id;
+    for (size_t i = 1; i != n_rows; ++i)
+    {
+      StringList row;      
+      csv.getRow(i, row);
+
+      if (row.size() != header.size())
+      {
+        throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Error: line " + String(i) + " of file '" + pin_file + "' does not have the same number of columns as the header!", String(i));
+      }
+
+      const String& sSpecId = row[to_idx.at("SpecId")];
+      if (sSpecId != spec_id)
+      {
+        pids.resize(pids.size() + 1);
+        pids.back().setHigherScoreBetter(higher_score_better);
+        pids.back().setScoreType(score_name);
+      }
+
+      int sScanNr = row[to_idx.at("ScanNr")].toInt();
+
+      String sPeptide = row[to_idx.at("Peptide")];
+      const double score = row[to_idx.at(score_name)].toDouble();
+      String target_decoy = row[to_idx.at("Label")].toInt() == 1 ? "target" : "decoy";
+      const String& sProteins = row[to_idx.at("Proteins")];
+      int rank = to_idx.count("rank") ? row[to_idx.at("rank")].toInt() : 1;
+      StringList accessions;
+
+      int charge = 0;
+      for (const auto&[name, z] : col_name_to_charge)
+      {
+        if (row[to_idx.at(name)] == "1")
+        {
+          charge = z;
+          break;
+        }
+      }
+
+      sProteins.split(';', accessions);
+
+      // deduce decoy state from accessions if decoy_prefix is set
+      if (!decoy_prefix.empty())
+      {
+        target_decoy = std::all_of(accessions.begin(), accessions.end(), [&decoy_prefix](const String& acc) { return acc.hasPrefix(decoy_prefix); }) ? "decoy" : "target" ;
+      }          
+
+      // needs to handle strings like: [+42]-MVLVQDLLHPTAASEAR, [+304.207]-ETC[+57.0215]RQLGLGTNIYNAER
+      sPeptide.substitute("]-", "]."); // we can parse [+42].MVLVQDLLHPTAASEAR
+      AASequence aa_seq = AASequence::fromString(sPeptide);
+      PeptideHit ph(score, rank, charge, std::move(aa_seq));
+      ph.setMetaValue("SpecId", sSpecId);
+      ph.setMetaValue("ScanNr", sScanNr);
+      ph.setMetaValue("target_decoy", target_decoy);
+      ph.setRank(rank);
+
+      // add link to protein (we only know the accession but not start/end, aa_before/after in protein at this point)
+      for (const String& accession : accessions)
+      {
+        ph.addPeptideEvidence(PeptideEvidence(accession));
+      }
+      
+      pids.back().insertHit(std::move(ph));
+    }
+    return pids;
+  }
+
 
   TextFile PercolatorInfile::preparePin_(
     const vector<PeptideIdentification>& peptide_ids, 
@@ -109,6 +218,7 @@ namespace OpenMS
       // try to make a file and scan unique identifier
       String scan_identifier = getScanIdentifier(pep_id, index);
       String file_identifier = pep_id.getMetaValue("file_origin", String());
+
       file_identifier += (String)pep_id.getMetaValue("id_merge_index", String());
 
       Int scan_number = SpectrumLookup::extractScanNumber(scan_identifier, scan_regex, true);

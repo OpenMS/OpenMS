@@ -78,22 +78,17 @@ namespace OpenMS
 
   void Plot3DWidget::showGoToDialog()
   {
-    Plot2DGoToDialog goto_dialog(this);
-    auto va = canvas()->getVisibleArea().getAreaUnit();
-    goto_dialog.setRange(va.getMinRT(), va.getMaxRT(), va.getMinMZ(), va.getMaxMZ());
+    Plot2DGoToDialog goto_dialog(this, canvas_->getMapper().getDim(DIM::X).getDimNameShort(), canvas_->getMapper().getDim(DIM::Y).getDimNameShort());
+    auto va = canvas()->getVisibleArea().getAreaXY();
+    goto_dialog.setRange(va);
 
-    const auto& full_range = canvas_->getDataRange();
-    goto_dialog.setMinMaxOfRange(full_range.getMinRT(), full_range.getMaxRT(), full_range.getMinMZ(), full_range.getMaxMZ());
-
+    auto all_area_xy = canvas_->getMapper().mapRange(canvas_->getDataRange());
+    goto_dialog.setMinMaxOfRange(all_area_xy);
+    
     goto_dialog.enableFeatureNumber(false);
     if (goto_dialog.exec())
     {
-      goto_dialog.fixRange(); // in case user did something invalid
-      va.setMinRT(goto_dialog.getMinRT());
-      va.setMaxRT(goto_dialog.getMaxRT());
-      va.setMinMZ(goto_dialog.getMinMZ());
-      va.setMaxMZ(goto_dialog.getMaxMZ());
-      canvas()->setVisibleArea(va);
+      canvas()->setVisibleArea(goto_dialog.getRange());
     }
   }
 

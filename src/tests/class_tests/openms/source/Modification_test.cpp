@@ -191,27 +191,27 @@ END_SECTION
 START_SECTION((virtual bool operator==(const SampleTreatment &rhs) const ))
 	Modification empty,edit;
 	
-	TEST_EQUAL(edit==empty, true);
+	TEST_TRUE(edit == empty);
 
 	edit.setMass(11.9);
 	TEST_EQUAL(edit==empty, false);
 	edit = empty;
-	TEST_EQUAL(edit==empty, true);
+	TEST_TRUE(edit == empty);
 
 	edit.setSpecificityType(Modification::CTERM);
 	TEST_EQUAL(edit==empty, false);
 	edit = empty;
-	TEST_EQUAL(edit==empty, true);		
+	TEST_TRUE(edit == empty);		
 
 	edit.setAffectedAminoAcids("ABCDE");
 	TEST_EQUAL(edit==empty, false);
 	edit = empty;
-	TEST_EQUAL(edit==empty, true);			
+	TEST_TRUE(edit == empty);			
 
 	edit.setMetaValue("color",String("red"));
 	TEST_EQUAL(edit==empty, false);
 	edit = empty;
-	TEST_EQUAL(edit==empty, true);	
+	TEST_TRUE(edit == empty);	
 	
 	Tagging m;
 	TEST_EQUAL(m==empty, false);

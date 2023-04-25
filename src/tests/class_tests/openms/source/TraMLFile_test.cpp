@@ -89,7 +89,7 @@ START_SECTION((void store(const String &filename, const TargetedExperiment &id) 
   file.load(tmp_filename, exp);
 
   //test if everything worked
-  TEST_EQUAL(exp == exp_original, true)
+  TEST_TRUE(exp == exp_original)
 
   // Test storing a minimal example
   {
@@ -106,7 +106,7 @@ START_SECTION((void store(const String &filename, const TargetedExperiment &id) 
     // added that are not present in the newly instantiated object but get
     // added to the object when loaded.
     minimal_exp.setCVs(newexp.getCVs());
-    TEST_EQUAL(newexp == minimal_exp, true)
+    TEST_TRUE(newexp == minimal_exp)
   }
 
   // Test storing a minimal example (with one protein/peptide/transition)
@@ -130,7 +130,7 @@ START_SECTION((void store(const String &filename, const TargetedExperiment &id) 
     // added that are not present in the newly instantiated object but get
     // added to the object when loaded.
     minimal_exp.setCVs(newexp.getCVs()); 
-    TEST_EQUAL(newexp == minimal_exp, true)
+    TEST_TRUE(newexp == minimal_exp)
   }
 }
 END_SECTION
@@ -144,7 +144,7 @@ START_SECTION((void equal()))
   file.load(OPENMS_GET_TEST_DATA_PATH("ToyExample1.traML"), exp_original);
   file.load(OPENMS_GET_TEST_DATA_PATH("ToyExample1.traML"), exp_second);
 
-  TEST_EQUAL(exp_second == exp_original, true)
+  TEST_TRUE(exp_second == exp_original)
 }
 END_SECTION
 
@@ -164,7 +164,7 @@ START_SECTION((void assign()))
   TEST_EQUAL(exp_original.getTargetCVTerms().getCVTerms().size(), 1)
   TEST_EQUAL(exp_added.getTargetCVTerms().getCVTerms().size(), 1)
 
-  TEST_EQUAL(exp_added == exp_original, true)
+  TEST_TRUE(exp_added == exp_original)
 }
 END_SECTION
 
@@ -182,7 +182,7 @@ START_SECTION((void add()))
   NEW_TMP_FILE(tmp_filename);
   exp_added += exp_original;
 
-  TEST_EQUAL(exp_added == exp_original, true)
+  TEST_TRUE(exp_added == exp_original)
 }
 END_SECTION
 

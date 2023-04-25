@@ -90,7 +90,7 @@ START_SECTION((TargetedExperiment(const TargetedExperiment &rhs)))
 
   TargetedExperiment t2(t); 
     
-  TEST_EQUAL(t2 == t, true)
+  TEST_TRUE(t2 == t)
 }
 END_SECTION
 
@@ -121,7 +121,7 @@ START_SECTION((bool operator==(const TargetedExperiment &rhs) const ))
   TargetedExperiment t2; 
   t2 = t;
     
-  TEST_EQUAL(t2 == t, true)
+  TEST_TRUE(t2 == t)
 }
 END_SECTION
 
@@ -387,7 +387,7 @@ START_SECTION((TargetedExperiment& operator=(const TargetedExperiment &rhs)))
   TargetedExperiment t2; 
   t2 = t;
     
-  TEST_EQUAL(t2 == t, true)
+  TEST_TRUE(t2 == t)
 }
 END_SECTION
 

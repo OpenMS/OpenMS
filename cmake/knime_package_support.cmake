@@ -214,9 +214,9 @@ endforeach()
 # We rename the filename to show a different node name in KNIME but leave the tool name inside the CTD unchanged, so it finds the tool binary.
 # TODO change description and accepting file types?
 add_custom_command(
-	TARGET  create_ctds POST_BUILD
-	COMMAND ${TOPP_BIN_PATH}/FileConverter -write_ctd ${CTD_TP_PATH}
-	COMMAND ${CMAKE_COMMAND} -e rename ${CTD_TP_PATH}/FileConverter.ctd ${CTD_TP_PATH}/RawFileConverter.ctd
+  TARGET  create_ctds POST_BUILD
+  COMMAND ${TOPP_BIN_PATH}/FileConverter -write_ctd ${CTD_TP_PATH}
+  COMMAND ${CMAKE_COMMAND} -E rename ${CTD_TP_PATH}/FileConverter.ctd ${CTD_TP_PATH}/RawFileConverter.ctd
   COMMAND ${CMAKE_COMMAND} -DSCRIPT_DIR=${SCRIPT_DIRECTORY} -DTOOLNAME=RawFileConverter -DCTD_FILE=${CTD_TP_PATH}/RawFileConverter.ctd -P ${SCRIPT_DIRECTORY}change_exec_name_in_ctd.cmake
 )
 
@@ -352,7 +352,7 @@ if (APPLE) ## On APPLE use our script because the executables' install_names nee
   add_custom_command(
     TARGET prepare_knime_payload_libs POST_BUILD
     COMMAND ${PROJECT_SOURCE_DIR}/cmake/MacOSX/fix_dependencies.rb -l ${PAYLOAD_LIB_PATH} -b ${PAYLOAD_BIN_PATH} -f -e "@rpath" -n
-    COMMAND ${PROJECT_SOURCE_DIR}/cmake/MacOSX/fix_dependencies.rb -l ${PAYLOAD_LIB_PATH} -b ${PAYLOAD_TP_BIN_PATH} -f -e "@rpath" -n
+    COMMAND ${PROJECT_SOURCE_DIR}/cmake/MacOSX/fix_dependencies.rb -l ${PAYLOAD_LIB_PATH} -b ${TP_PAYLOAD_BIN_PATH} -f -e "@rpath" -n
   ) # -p ${PAYLOAD_LIB_PATH}/plugins not applicable for now
   add_custom_command(
           TARGET prepare_knime_payload_libs POST_BUILD

@@ -517,7 +517,7 @@ END_SECTION
 START_SECTION((bool operator == (const ConsensusMap& rhs) const))
 	ConsensusMap empty,edit;
 
-	TEST_EQUAL(empty==edit, true);
+	TEST_TRUE(empty == edit);
 
 	edit.setIdentifier("lsid");;
 	TEST_EQUAL(empty==edit, false);
@@ -568,42 +568,42 @@ START_SECTION((bool operator != (const ConsensusMap& rhs) const))
 	TEST_EQUAL(empty!=edit, false);
 
 	edit.setIdentifier("lsid");;
-	TEST_EQUAL(empty!=edit, true);
+	TEST_FALSE(empty == edit);
 
 	edit = empty;
 	edit.push_back(ConsensusFeature(feature1));
-	TEST_EQUAL(empty!=edit, true);
+	TEST_FALSE(empty == edit);
 
 	edit = empty;
 	edit.getDataProcessing().resize(1);
-	TEST_EQUAL(empty!=edit, true);
+	TEST_FALSE(empty == edit);
 
 	edit = empty;
 	edit.setMetaValue("bla", 4.1);
-	TEST_EQUAL(empty!=edit, true);
+	TEST_FALSE(empty == edit);
 
 	edit = empty;
 	edit.getColumnHeaders()[0].filename = "bla";
-	TEST_EQUAL(empty!=edit, true)
+	TEST_FALSE(empty == edit)
 
 	edit = empty;
 	edit.setExperimentType("labeled_MS2");
-	TEST_EQUAL(empty!=edit, true);
+	TEST_FALSE(empty == edit);
 
 	edit = empty;
 	edit.getProteinIdentifications().resize(10);
-	TEST_EQUAL(empty!=edit, true);
+	TEST_FALSE(empty == edit);
 
 	edit = empty;
 	edit.getUnassignedPeptideIdentifications().resize(10);
-	TEST_EQUAL(empty!=edit, true);
+	TEST_FALSE(empty == edit);
 
 	edit = empty;
 	edit.push_back(ConsensusFeature(feature1));
 	edit.push_back(ConsensusFeature(feature2));
 	edit.updateRanges();
 	edit.clear(false);
-	TEST_EQUAL(empty!=edit, true);
+	TEST_FALSE(empty == edit);
 END_SECTION
 
 
