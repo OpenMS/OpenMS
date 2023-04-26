@@ -38,6 +38,7 @@
 #include <OpenMS/DATASTRUCTURES/FlagSet.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
 
+#include <algorithm>
 #include <map>
 
 namespace OpenMS
