@@ -193,7 +193,6 @@ END_SECTION
 START_SECTION((map<String, pair<double, double>> void getScaling()
                const))
 {
-  map<String, double> feat_weights;
   auto scaling = svm.getScaling();
    
   TEST_REAL_SIMILAR(scaling["main_var_xx_swath_prelim_score"].first, -8.88447);

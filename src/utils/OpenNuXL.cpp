@@ -168,16 +168,21 @@ struct NuXLLinearRescore
        << "-ln(poisson)"
        << "nr_candidates";
     */
+
+    // TODO: try to we make the size of the feature set dependend on the number of samples according to https://academic.oup.com/bioinformatics/article/21/8/1509/249540
+
     feature_set
        << "NuXL:modds"
        << "NuXL:pl_modds"
-       << "missed_cleavages"
+       << "NuXL:isXL"
        << "NuXL:mass_error_p"
        << "NuXL:tag_XLed"
        << "NuXL:tag_unshifted"
-       << "NuXL:tag_shifted"
-       << "NuXL:isXL"
-       << "nr_candidates";
+       << "NuXL:tag_shifted"       
+       << "missed_cleavages"
+       << "NuXL:ladder_score"
+       << "variable_modifications"; // TODO: eval
+       //<< "nr_candidates";
 
     ///////////////////////////////////////// SVM score recalibration
     // find size of minority class and create map with highest score at the top/beginning
@@ -239,6 +244,7 @@ struct NuXLLinearRescore
             const PeptideHit& ph = phits[psm_rank];
             predictors["score"].push_back(ph.getScore());
             predictors["length"].push_back(ph.getSequence().size());
+            //predictors["charge"].push_back(ph.getCharge()); // did not improve training
             for (auto & f : feature_set)
             {
               double value = ph.getMetaValue(f);
