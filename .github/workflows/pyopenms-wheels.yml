@@ -352,7 +352,7 @@ jobs:
           export LD_LIBRARY_PATH=$LD_OLD_LIBRARY_PATH
         
           # clean previous pyopenms libs
-          find . -name "_pyopenms*.so" -exec rm -rf {} \;
+          rm pyopenms/_pyopenms*.so
         done
 
     - uses: actions/upload-artifact@v3
