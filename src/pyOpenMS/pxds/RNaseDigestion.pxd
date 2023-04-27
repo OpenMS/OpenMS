@@ -1,7 +1,7 @@
 from Types cimport *
 from String cimport *
 from NASequence cimport *
-from IdentificationData cimport *
+#from IdentificationData cimport *
 from EnzymaticDigestion cimport *
 
 cdef extern from "<OpenMS/CHEMISTRY/RNaseDigestion.h>" namespace "OpenMS":
