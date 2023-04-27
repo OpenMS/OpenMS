@@ -78,7 +78,7 @@ namespace OpenMS
         return true;
       }
 
-      bool operator==(const ObservationMatchGroup rhs) const
+      bool operator==(const ObservationMatchGroup& rhs) const
       {
         return ((rhs.observation_match_refs == observation_match_refs) &&
                 (rhs.steps_and_scores == steps_and_scores));

@@ -57,10 +57,10 @@ namespace OpenMS
 
       explicit ProcessingStep(
         ProcessingSoftwareRef software_ref,
-        const std::vector<InputFileRef>& input_file_refs =
-        std::vector<InputFileRef>(), const DateTime& date_time =
-        DateTime::now(), std::set<DataProcessing::ProcessingAction> actions =
-        std::set<DataProcessing::ProcessingAction>()):
+        const std::vector<InputFileRef>& input_file_refs = std::vector<InputFileRef>(),
+        const DateTime& date_time = DateTime::now(),
+        const std::set<DataProcessing::ProcessingAction>& actions = std::set<DataProcessing::ProcessingAction>())
+        :
         software_ref(software_ref), input_file_refs(input_file_refs),
         date_time(date_time), actions(actions)
       {

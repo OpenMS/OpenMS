@@ -118,7 +118,7 @@ protected:
      * @param rt        The position where the EGH function should be evaluated. Note that this is the position without the RT offset, meaning that the EGH apex is at position 0
      * @param egh_value The computed value
      */
-    inline void evaluateEGH_(CoordinateType & rt, CoordinateType & egh_value) const
+    inline void evaluateEGH_(const CoordinateType & rt, CoordinateType & egh_value) const
     {
       CoordinateType denominator = sigma_square_2_ + tau_ * rt;
 

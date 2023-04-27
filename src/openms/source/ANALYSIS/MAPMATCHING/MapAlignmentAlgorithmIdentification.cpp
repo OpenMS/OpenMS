@@ -138,7 +138,7 @@ namespace OpenMS
   IdentificationData::ScoreTypeRef
   MapAlignmentAlgorithmIdentification::handleIdDataScoreType_(const IdentificationData& id_data)
   {
-    IdentificationData::ScoreTypeRef score_ref = id_data.getScoreTypes().end();
+    IdentificationData::ScoreTypeRef score_ref;
     if (score_type_.empty()) // choose a score type
     {
       score_ref = id_data.pickScoreType(id_data.getObservationMatches());
