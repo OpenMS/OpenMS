@@ -611,6 +611,7 @@ protected:
           expected_identification_count += deconvolved_spectrum.getPrecursorPeakGroup().getQScore();
         }
       }
+      bool deconved_mzML_written = false;
       if (!out_mzml_file.empty())
       {
         if (!deconvolved_spectrum.empty())
@@ -620,36 +621,39 @@ protected:
           if (dspec.size() > 0)
           {
             exp.addSpectrum(dspec);
+            deconved_mzML_written = true;
           }
         }
       }
 
       if (!out_anno_mzml_file.empty())
       {
-        auto anno_spec = MSSpectrum(*it);
+        if (out_mzml_file.empty() || deconved_mzML_written) {
+          auto anno_spec = MSSpectrum(*it);
 
-        if (!deconvolved_spectrum.empty())
-        {
-          std::stringstream val {};
-
-          for (auto& pg : deconvolved_spectrum)
+          if (!deconvolved_spectrum.empty())
           {
-            val << std::to_string(pg.getMonoMass()) << ":";
-            for (size_t k = 0; k < pg.size(); k++)
+            std::stringstream val {};
+
+            for (auto& pg : deconvolved_spectrum)
             {
-              auto& p = pg[k];
-              auto pindex = anno_spec.findNearest(p.mz);
-              val << pindex;
-              if (k < pg.size() - 1)
+              val << std::to_string(pg.getMonoMass()) << ":";
+              for (size_t k = 0; k < pg.size(); k++)
               {
-                val << ",";
+                auto& p = pg[k];
+                auto pindex = anno_spec.findNearest(p.mz);
+                val << pindex;
+                if (k < pg.size() - 1)
+                {
+                  val << ",";
+                }
               }
+              val << ";";
             }
-            val << ";";
+            anno_spec.setMetaValue("DeconvMassPeakIndices", val.str());
+            exp_annotated.addSpectrum(anno_spec);
           }
-          anno_spec.setMetaValue("DeconvMassPeakIndices", val.str());
         }
-        exp_annotated.addSpectrum(anno_spec);
       }
       if (ms_level < current_max_ms_level)
       {
