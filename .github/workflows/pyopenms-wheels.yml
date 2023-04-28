@@ -319,10 +319,6 @@ jobs:
 
         # compile and configure OpenMS
         for py in $(echo "${PYTHON_VERSIONS}" | jq -r '.[]'); do
-        
-          # clean previous pyopenms libs
-          rm pyOpenMS/pyopenms/_pyopenms*.so
-          
           py=$(echo "$py" | tr -d " \n")
           pynodot=$(echo "$py" | tr -d ".")
           PYBIN=$(echo /opt/python/cp*${pynodot})
@@ -354,6 +350,9 @@ jobs:
             mv wheelhouse/* $GITHUB_WORKSPACE/data/wheelhouse/
           popd
           export LD_LIBRARY_PATH=$LD_OLD_LIBRARY_PATH
+          
+          # clean previous pyopenms libs
+          rm pyOpenMS/pyopenms/_pyopenms*.so
         
         done
 
