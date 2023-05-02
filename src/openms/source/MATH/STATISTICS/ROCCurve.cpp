@@ -200,13 +200,13 @@ namespace OpenMS::Math
       sort();
       count();
       UInt truePos = 0;
-      for (std::vector<std::pair<double, bool> >::const_iterator cit = score_clas_pairs_.begin(); cit != score_clas_pairs_.end(); ++cit)
+      for (const auto& scp : score_clas_pairs_)
       {
-        if (cit->second)
+        if (scp.second)
         {
           if ((double)truePos++ / pos_ > fraction)
           {
-            return cit->first;
+            return scp.first;
           }
         }
       }
@@ -218,13 +218,13 @@ namespace OpenMS::Math
       sort();
       count();
       UInt trueNeg = 0;
-      for (std::vector<std::pair<double, bool> >::const_iterator cit = score_clas_pairs_.begin(); cit != score_clas_pairs_.end(); ++cit)
+      for (const auto& scp : score_clas_pairs_)
       {
-        if (cit->second)
+        if (scp.second)
         {
           if ((double)trueNeg++ / neg_ > 1 - fraction)
           {
-            return cit->first;
+            return scp.first;
           }
         }
       }

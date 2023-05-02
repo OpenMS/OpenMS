@@ -157,26 +157,26 @@ namespace OpenMS
       AASequence temp_aa_sequence = AASequence::fromString(actual_sequence_);
 
       // modification position is 1-based
-      for (vector<pair<String, UInt> >::const_iterator it = actual_modifications_.begin(); it != actual_modifications_.end(); ++it)
+      for (const auto& mod : actual_modifications_)
       {
         // e.g. Carboxymethyl (C)
         vector<String> mod_split;
-        it->first.split(' ', mod_split);
-        if (it->first.hasSubstring("C-term"))
+        mod.first.split(' ', mod_split);
+        if (mod.first.hasSubstring("C-term"))
         {
-          temp_aa_sequence.setCTerminalModification(it->first);
+          temp_aa_sequence.setCTerminalModification(mod.first);
         }
-        else if (it->first.hasSubstring("N-term"))
+        else if (mod.first.hasSubstring("N-term"))
         {
-          temp_aa_sequence.setNTerminalModification(it->first);
+          temp_aa_sequence.setNTerminalModification(mod.first);
         }
         if (mod_split.size() == 2)
         {
-          temp_aa_sequence.setModification(it->second - 1, mod_split[0]);
+          temp_aa_sequence.setModification(mod.second - 1, mod_split[0]);
         }
         else
         {
-          error(LOAD, String("Cannot parse modification '") + it->first + "@" + it->second + "'");
+          error(LOAD, String("Cannot parse modification '") + mod.first + "@" + mod.second + "'");
         }
       }
 

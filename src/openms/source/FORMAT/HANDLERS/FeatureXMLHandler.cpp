@@ -119,9 +119,9 @@ namespace OpenMS::Internal
       const DataProcessing& processing = feature_map.getDataProcessing()[i];
       os << "\t<dataProcessing completion_time=\"" << processing.getCompletionTime().getDate() << 'T' << processing.getCompletionTime().getTime() << "\">\n";
       os << "\t\t<software name=\"" << processing.getSoftware().getName() << "\" version=\"" << processing.getSoftware().getVersion() << "\" />\n";
-      for (set<DataProcessing::ProcessingAction>::const_iterator it = processing.getProcessingActions().begin(); it != processing.getProcessingActions().end(); ++it)
+      for (const auto& action : processing.getProcessingActions())
       {
-        os << "\t\t<processingAction name=\"" << DataProcessing::NamesOfProcessingAction[*it] << "\" />\n";
+        os << "\t\t<processingAction name=\"" << DataProcessing::NamesOfProcessingAction[action] << "\" />\n";
       }
       writeUserParam_("UserParam", os, processing, 2);
       os << "\t</dataProcessing>\n";
@@ -635,9 +635,9 @@ namespace OpenMS::Internal
         {
           accessions.push_back(accession_string);
         }
-        for (vector<String>::const_iterator it = accessions.begin(); it != accessions.end(); ++it)
+        for (const String& acc : accessions)
         {
-          std::map<String, String>::const_iterator it2 = proteinid_to_accession_.find(*it);
+          std::map<String, String>::const_iterator it2 = proteinid_to_accession_.find(acc);
           if (it2 != proteinid_to_accession_.end())
           {
             PeptideEvidence pe;
@@ -646,7 +646,7 @@ namespace OpenMS::Internal
           }
           else
           {
-            fatalError(LOAD, String("Invalid protein reference '") + *it + "'");
+            fatalError(LOAD, String("Invalid protein reference '") + acc + "'");
           }
         }
       }
@@ -1021,13 +1021,13 @@ namespace OpenMS::Internal
       IdXMLFile::createPositionXMLString_(pes, os);
 
       String accs;
-      for (vector<PeptideEvidence>::const_iterator pe = pes.begin(); pe != pes.end(); ++pe)
+      for (const auto& pe : pes)
       {
         if (!accs.empty())
         {
           accs += " ";
         }
-        String protein_accession = pe->getProteinAccession();
+        String protein_accession = pe.getProteinAccession();
 
         // empty accessions are not written out (legacy code)
         if (!protein_accession.empty())

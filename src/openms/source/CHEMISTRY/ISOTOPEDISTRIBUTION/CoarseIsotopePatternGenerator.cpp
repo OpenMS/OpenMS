@@ -474,12 +474,12 @@ namespace OpenMS
     //
     for (Size i = 0; i < fragment_isotope_dist.size(); ++i)
     {
-      for (std::set<UInt>::const_iterator precursor_itr = precursor_isotopes.begin(); precursor_itr != precursor_isotopes.end(); ++precursor_itr)
+      for (const auto& prec : precursor_isotopes)
       {
-        if (*precursor_itr >= i &&
-            (*precursor_itr-i) < comp_fragment_isotope_dist.size())
+        if (prec >= i &&
+            (prec-i) < comp_fragment_isotope_dist.size())
         {
-          result[i].setIntensity( result[i].getIntensity() + comp_fragment_isotope_dist[*precursor_itr-i].getIntensity());
+          result[i].setIntensity( result[i].getIntensity() + comp_fragment_isotope_dist[prec-i].getIntensity());
         }
       }
       result[i].setIntensity(result[i].getIntensity() * fragment_isotope_dist[i].getIntensity());

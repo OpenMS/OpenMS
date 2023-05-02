@@ -185,18 +185,18 @@ namespace OpenMS
         replacement = "$";
       }
       std::vector<String> copy = colTypes;
-      for (std::vector<String>::iterator it = copy.begin(); it != copy.end(); ++it)
+      for (auto& c : copy)
       {
-        it->substitute(separator, replacement);
+        c.substitute(separator, replacement);
       }
       s += ListUtils::concatenate(copy, separator).trim();
       s += "\n";
-      for (std::vector<std::vector<String> >::const_iterator it = tableRows.begin(); it != tableRows.end(); ++it)
+      for (const auto& row : tableRows)
       {
-        std::vector<String> copy_row = *it;
-        for (std::vector<String>::iterator sit = copy_row.begin(); sit != copy_row.end(); ++sit)
+        std::vector<String> copy_row = row;
+        for (auto& r : copy_row)
         {
-          sit->substitute(separator, replacement);
+          r.substitute(separator, replacement);
         }
         s += ListUtils::concatenate(copy_row, separator).trim();
         s += "\n";
@@ -250,17 +250,17 @@ namespace OpenMS
 
       s += ListUtils::concatenate(copy, " ").trim();
       s += "</tableColumnTypes>\n";
-      for (std::vector<std::vector<String> >::const_iterator it = tableRows.begin(); it != tableRows.end(); ++it)
+      for (const auto& row : tableRows)
       {
         s += indent + "\t" + "<tableRowValues>";
 
-        std::vector<String> copy_row = *it;
+        std::vector<String> copy_row = row;
         for (String& sit : copy_row)
         {
           sit.substitute(String(" "), String("_"));
         }
 
-        s += ListUtils::concatenate(*it, " ").trim();
+        s += ListUtils::concatenate(row, " ").trim();
         s += "</tableRowValues>\n";
       }
       s += "</table>";
@@ -393,11 +393,11 @@ namespace OpenMS
     }
     if (qpsit != runQualityQPs_.end())
     {
-      for (std::vector<QcMLFile::QualityParameter>::const_iterator qit = qpsit->second.begin(); qit != qpsit->second.end(); ++qit)
+      for (const auto& qp : qpsit->second)
       {
-        if (qpname == qit->cvAcc)
+        if (qpname == qp.cvAcc)
         {
-          ids.push_back(qit->id);
+          ids.push_back(qp.id);
         }
       }
     }
@@ -417,13 +417,13 @@ namespace OpenMS
     }
     if (qpsit != setQualityQPs_.end())
     {
-      for (std::vector<QcMLFile::QualityParameter>::const_iterator qit = qpsit->second.begin(); qit != qpsit->second.end(); ++qit)
+      for (const auto& qp : qpsit->second)
       {
         //~ std::cout << qit->name << "setexists" << std::endl;
         //~ std::cout << qpname << "qpname" << std::endl;
-        if (qpname == qit->cvAcc)
+        if (qpname == qp.cvAcc)
         {
-          ids.push_back(qit->id);
+          ids.push_back(qp.id);
         }
       }
     }
@@ -531,9 +531,9 @@ namespace OpenMS
 
   void QcMLFile::removeAllAttachments(const String& at)
   {
-    for (std::map<String, std::vector<Attachment> >::iterator it = runQualityAts_.begin(); it != runQualityAts_.end(); ++it)
+    for (auto& attachment : runQualityAts_)
     {
-      removeAttachment(it->first, at);
+      removeAttachment(attachment.first, at);
     }
   }
 
@@ -555,41 +555,41 @@ namespace OpenMS
   void QcMLFile::merge(const QcMLFile& addendum, const String& setname)
   {
     //~ runs (and create set if setname not empty)
-    for (std::map<String, std::vector<QualityParameter> >::const_iterator it = addendum.runQualityQPs_.begin(); it != addendum.runQualityQPs_.end(); ++it)
+    for (const auto& qp : addendum.runQualityQPs_)
     {
-      runQualityQPs_[it->first].insert(runQualityQPs_[it->first].end(), it->second.begin(), it->second.end());
-      std::sort(runQualityQPs_[it->first].begin(), runQualityQPs_[it->first].end());
-      runQualityQPs_[it->first].erase(std::unique(runQualityQPs_[it->first].begin(), runQualityQPs_[it->first].end()), runQualityQPs_[it->first].end());
+      runQualityQPs_[qp.first].insert(runQualityQPs_[qp.first].end(), qp.second.begin(), qp.second.end());
+      std::sort(runQualityQPs_[qp.first].begin(), runQualityQPs_[qp.first].end());
+      runQualityQPs_[qp.first].erase(std::unique(runQualityQPs_[qp.first].begin(), runQualityQPs_[qp.first].end()), runQualityQPs_[qp.first].end());
       if (!setname.empty())
       {
-        setQualityQPs_members_[setname].insert(it->first);
+        setQualityQPs_members_[setname].insert(qp.first);
       }
     }
-    for (std::map<String, std::vector<Attachment> >::const_iterator it = addendum.runQualityAts_.begin(); it != addendum.runQualityAts_.end(); ++it)
+    for (const auto& att : addendum.runQualityAts_)
     {
-      runQualityAts_[it->first].insert(runQualityAts_[it->first].end(), it->second.begin(), it->second.end());
-      std::sort(runQualityAts_[it->first].begin(), runQualityAts_[it->first].end());
-      runQualityAts_[it->first].erase(std::unique(runQualityAts_[it->first].begin(), runQualityAts_[it->first].end()), runQualityAts_[it->first].end());
+      runQualityAts_[att.first].insert(runQualityAts_[att.first].end(), att.second.begin(), att.second.end());
+      std::sort(runQualityAts_[att.first].begin(), runQualityAts_[att.first].end());
+      runQualityAts_[att.first].erase(std::unique(runQualityAts_[att.first].begin(), runQualityAts_[att.first].end()), runQualityAts_[att.first].end());
       if (!setname.empty())
       {
-        setQualityQPs_members_[setname].insert(it->first);
+        setQualityQPs_members_[setname].insert(att.first);
       }
     }
 
     // sets
     //~ TODO sets are not supposed to overlap - throw error if so
     setQualityQPs_members_.insert(addendum.setQualityQPs_members_.begin(), addendum.setQualityQPs_members_.end());
-    for (std::map<String, std::vector<QualityParameter> >::const_iterator it = addendum.setQualityQPs_.begin(); it != addendum.setQualityQPs_.end(); ++it)
+    for (const auto& qp : addendum.setQualityQPs_)
     {
-      setQualityQPs_[it->first].insert(setQualityQPs_[it->first].end(), it->second.begin(), it->second.end());
-      std::sort(setQualityQPs_[it->first].begin(), setQualityQPs_[it->first].end());
-      setQualityQPs_[it->first].erase(std::unique(setQualityQPs_[it->first].begin(), setQualityQPs_[it->first].end()), setQualityQPs_[it->first].end());
+      setQualityQPs_[qp.first].insert(setQualityQPs_[qp.first].end(), qp.second.begin(), qp.second.end());
+      std::sort(setQualityQPs_[qp.first].begin(), setQualityQPs_[qp.first].end());
+      setQualityQPs_[qp.first].erase(std::unique(setQualityQPs_[qp.first].begin(), setQualityQPs_[qp.first].end()), setQualityQPs_[qp.first].end());
     }
-    for (std::map<String, std::vector<Attachment> >::const_iterator it = addendum.setQualityAts_.begin(); it != addendum.setQualityAts_.end(); ++it)
+    for (const auto& att : addendum.setQualityAts_)
     {
-      setQualityAts_[it->first].insert(setQualityAts_[it->first].end(), it->second.begin(), it->second.end());
-      std::sort(setQualityAts_[it->first].begin(), setQualityAts_[it->first].end());
-      setQualityAts_[it->first].erase(std::unique(setQualityAts_[it->first].begin(), setQualityAts_[it->first].end()), setQualityAts_[it->first].end());
+      setQualityAts_[att.first].insert(setQualityAts_[att.first].end(), att.second.begin(), att.second.end());
+      std::sort(setQualityAts_[att.first].begin(), setQualityAts_[att.first].end());
+      setQualityAts_[att.first].erase(std::unique(setQualityAts_[att.first].begin(), setQualityAts_[att.first].end()), setQualityAts_[att.first].end());
     }
   }
 
@@ -606,11 +606,11 @@ namespace OpenMS
     }
     if (qpsit != runQualityAts_.end())
     {
-      for (std::vector<QcMLFile::Attachment>::const_iterator qit = qpsit->second.begin(); qit != qpsit->second.end(); ++qit)
+      for (const auto& qp : qpsit->second)
       {
-        if ((qpname == qit->name) || (qpname == qit->cvAcc))
+        if ((qpname == qp.name) || (qpname == qp.cvAcc))
         {
-          return qit->toCSVString("\t");
+          return qp.toCSVString("\t");
           //~ return qit->toXMLString(1);
         }
       }
@@ -628,12 +628,12 @@ namespace OpenMS
     }
     if (qpsit != setQualityAts_.end())
     {
-      for (std::vector<QcMLFile::Attachment>::const_iterator qit = qpsit->second.begin(); qit != qpsit->second.end(); ++qit)
+      for (const auto& qp : qpsit->second)
       {
-        if ((qpname == qit->name) || (qpname == qit->cvAcc))
+        if ((qpname == qp.name) || (qpname == qp.cvAcc))
         {
-          return qit->toCSVString("\t");
-          //~ return qit->toXMLString(1);
+          return qp.toCSVString("\t");
+          //~ return qp.toXMLString(1);
         }
       }
     }
@@ -654,11 +654,11 @@ namespace OpenMS
     }
     if (qpsit != runQualityQPs_.end())
     {
-      for (std::vector<QcMLFile::QualityParameter>::const_iterator qit = qpsit->second.begin(); qit != qpsit->second.end(); ++qit)
+      for (const auto& qp : qpsit->second)
       {
-        if (qpname == qit->cvAcc)
+        if (qpname == qp.cvAcc)
         {
-          return /* "\""+ */ qit->value /* +"\"" */;
+          return /* "\""+ */ qp.value /* +"\"" */;
         }
       }
     }
@@ -675,11 +675,11 @@ namespace OpenMS
     }
     if (qpsit != setQualityQPs_.end())
     {
-      for (std::vector<QcMLFile::QualityParameter>::const_iterator qit = qpsit->second.begin(); qit != qpsit->second.end(); ++qit)
+      for (const auto& qp : qpsit->second)
       {
-        if (qpname == qit->name)
+        if (qpname == qp.name)
         {
-          return /* "\""+ */ qit->value /* +"\"" */;
+          return /* "\""+ */ qp.value /* +"\"" */;
         }
       }
     }
@@ -690,9 +690,9 @@ namespace OpenMS
   String QcMLFile::exportQPs(const String& filename, const StringList& qpnames) const
   {
     String ret = "";
-    for (StringList::const_iterator qit = qpnames.begin(); qit != qpnames.end(); ++qit)
+    for (const auto& qp : qpnames)
     {
-      ret += exportQP(filename, *qit);
+      ret += exportQP(filename, qp);
       ret += ",";
     }
     return ret;
@@ -704,26 +704,26 @@ namespace OpenMS
     std::vector<String> cols;
     if (!cvs_table.empty())
     {
-      for (std::map<String, String>::const_iterator it = cvs_table.begin()->second.begin(); it != cvs_table.begin()->second.end(); ++it)
+      for (const auto& cvs : cvs_table.begin()->second)
       {
-        cols.push_back(it->first);
+        cols.push_back(cvs.first);
       }
       ret += "qp";
       ret += separator;
-      for (std::vector<String>::const_iterator jt = cols.begin(); jt != cols.end(); ++jt)
+      for (const auto& col : cols)
       {
-        ret += *jt;
+        ret += col;
         ret += separator;
       }
       ret += "\n";
-      for (std::map<String, std::map<String, String> >::const_iterator it = cvs_table.begin(); it != cvs_table.end(); ++it)
+      for (const auto& cvs : cvs_table)
       {
-        ret += it->first;
+        ret += cvs.first;
         ret += separator;
-        for (std::vector<String>::const_iterator jt = cols.begin(); jt != cols.end(); ++jt)
+        for (const auto& col : cols)
         {
-          std::map<String, String>::const_iterator found = it->second.find(*jt);
-          if (found != it->second.end())
+          std::map<String, String>::const_iterator found = cvs.second.find(col);
+          if (found != cvs.second.end())
           {
             ret += found->second;
             ret += separator;
@@ -771,9 +771,9 @@ namespace OpenMS
 
   void QcMLFile::collectSetParameter(const String& setname, const String& qp, std::vector<String>& ret)
   {
-    for (std::set<String>::const_iterator it = setQualityQPs_members_[setname].begin(); it != setQualityQPs_members_[setname].end(); ++it)
+    for (const auto& QPsetname : setQualityQPs_members_[setname])
     {
-      for (const QualityParameter& jt : runQualityQPs_[*it])
+      for (const QualityParameter& jt : runQualityQPs_[QPsetname])
       {
         if (jt.cvAcc == qp)
         {
@@ -1542,9 +1542,9 @@ namespace OpenMS
             }
           }
         }
-        for (set<String>::iterator it = peptides.begin(); it != peptides.end(); ++it)
+        for (auto& pep : peptides)
         {
-          for (String::const_iterator st = it->begin(); st != it->end() - 1; ++st)
+          for (String::const_iterator st = pep.begin(); st != pep.end() - 1; ++st)
           {
             if (*st == 'K' || *st == 'R')
             {
@@ -1966,19 +1966,17 @@ namespace OpenMS
         at.colTypes.emplace_back("Feature_MZ_(Th)");
         at.colTypes.emplace_back("Feature_Intensity");
         at.colTypes.emplace_back("Feature_Charge");
-        for (ConsensusMap::const_iterator cmit = consensus_map.begin(); cmit != consensus_map.end(); ++cmit)
-        {
-          const ConsensusFeature& CF = *cmit;
-          for (ConsensusFeature::const_iterator cfit = CF.begin(); cfit != CF.end(); ++cfit)
+        for (const auto& cmap : consensus_map)
+        { 
+          for (const auto& feature : cmap)  
           {
             std::vector<String> row;
-            FeatureHandle FH = *cfit;
-            row.emplace_back(CF.getMetaValue("spectrum_native_id"));
-            row.emplace_back(CF.getRT()); row.emplace_back(CF.getMZ());
-            row.emplace_back(CF.getIntensity());
-            row.emplace_back(FH.getRT());
-            row.emplace_back(FH.getMZ());
-            row.emplace_back(FH.getCharge());
+            row.emplace_back(cmap.getMetaValue("spectrum_native_id"));
+            row.emplace_back(cmap.getRT()); row.emplace_back(cmap.getMZ());
+            row.emplace_back(cmap.getIntensity());
+            row.emplace_back(feature.getRT());
+            row.emplace_back(feature.getMZ());
+            row.emplace_back(feature.getCharge());
             at.tableRows.push_back(row);
           }
         }
@@ -2037,34 +2035,34 @@ namespace OpenMS
 
     //content runs
     std::set<String> keys;
-    for (std::map<String, std::vector<QualityParameter> >::const_iterator it = runQualityQPs_.begin(); it != runQualityQPs_.end(); ++it)
+    for (const auto& qp : runQualityQPs_)
     {
-      keys.insert(it->first);
+      keys.insert(qp.first);
     }
-    for (std::map<String, std::vector<Attachment> >::const_iterator it = runQualityAts_.begin(); it != runQualityAts_.end(); ++it)
+    for (const auto& att : runQualityAts_)
     {
-      keys.insert(it->first);
+      keys.insert(att.first);
     }
 
     if (!keys.empty())
     {
-      for (std::set<String>::const_iterator it = keys.begin(); it != keys.end(); ++it)
+      for (const auto& key : keys)
       {
-        os << "\t<runQuality ID=\"" << String(*it) << "\">\n";
-        std::map<String, std::vector<QualityParameter> >::const_iterator qpsit = runQualityQPs_.find(*it);
+        os << "\t<runQuality ID=\"" << String(key) << "\">\n";
+        std::map<String, std::vector<QualityParameter> >::const_iterator qpsit = runQualityQPs_.find(key);
         if (qpsit != runQualityQPs_.end())
         {
-          for (std::vector<QcMLFile::QualityParameter>::const_iterator qit = qpsit->second.begin(); qit != qpsit->second.end(); ++qit)
+          for (const auto& qp : qpsit->second)
           {
-            os << qit->toXMLString(4);
+            os << qp.toXMLString(4);
           }
         }
-        std::map<String, std::vector<Attachment> >::const_iterator attit = runQualityAts_.find(*it);
+        std::map<String, std::vector<Attachment> >::const_iterator attit = runQualityAts_.find(key);
         if (attit != runQualityAts_.end())
         {
-          for (std::vector<QcMLFile::Attachment>::const_iterator ait = attit->second.begin(); ait != attit->second.end(); ++ait)
+          for (const auto& att : attit->second)
           {
-            os << ait->toXMLString(4); //TODO check integrity of reference to qp!
+            os << att.toXMLString(4); //TODO check integrity of reference to qp!
           }
         }
         os << "\t</runQuality>\n";
@@ -2073,34 +2071,34 @@ namespace OpenMS
 
     //content sets
     keys.clear();
-    for (std::map<String, std::vector<QualityParameter> >::const_iterator it = setQualityQPs_.begin(); it != setQualityQPs_.end(); ++it)
+    for (const auto& qp : setQualityQPs_)
     {
-      keys.insert(it->first);
+      keys.insert(qp.first);
     }
-    for (std::map<String, std::vector<Attachment> >::const_iterator it = setQualityAts_.begin(); it != setQualityAts_.end(); ++it)
+    for (const auto& att : setQualityAts_)
     {
-      keys.insert(it->first);
+      keys.insert(att.first);
     }
 
     if (!keys.empty())
     {
-      for (std::set<String>::const_iterator it = keys.begin(); it != keys.end(); ++it)
+      for (const auto& key : keys)
       {
-        os << "\t<setQuality ID=\"" << String(*it) << "\">\n";
+        os << "\t<setQuality ID=\"" << String(key) << "\">\n";
         //~ TODO warn if key has no entries in members_
 
         //document set members
-        std::map<String, std::set<String> >::const_iterator jt = setQualityQPs_members_.find(*it);
+        std::map<String, std::set<String> >::const_iterator jt = setQualityQPs_members_.find(key);
 
         if (jt != setQualityQPs_members_.end())
         {
-          for (std::set<String>::const_iterator kt = jt->second.begin(); kt != jt->second.end(); ++kt)
+          for (const auto& k : jt->second)
           {
-            std::map<String, std::vector<QualityParameter> >::const_iterator rq = runQualityQPs_.find(*kt);
+            std::map<String, std::vector<QualityParameter> >::const_iterator rq = runQualityQPs_.find(k);
             if (rq != runQualityQPs_.end())
             {
                 QcMLFile::QualityParameter qp;
-                qp.id = *kt; ///< Identifier
+                qp.id = k; ///< Identifier
                 qp.name = "set name"; ///< Name
                 qp.cvRef = "QC"; ///< cv reference
                 qp.cvAcc = "QC:0000005";
@@ -2120,7 +2118,7 @@ namespace OpenMS
           }
         }
 
-        std::map<String, std::vector<QualityParameter> >::const_iterator qpsit = setQualityQPs_.find(*it);
+        std::map<String, std::vector<QualityParameter> >::const_iterator qpsit = setQualityQPs_.find(key);
         if (qpsit != setQualityQPs_.end())
         {
           for (const QcMLFile::QualityParameter& qit : qpsit->second)
@@ -2129,7 +2127,7 @@ namespace OpenMS
           }
         }
 
-        std::map<String, std::vector<Attachment> >::const_iterator attit = setQualityAts_.find(*it);
+        std::map<String, std::vector<Attachment> >::const_iterator attit = setQualityAts_.find(key);
         if (attit != setQualityAts_.end())
         {
           for (const QcMLFile::Attachment& ait : attit->second)

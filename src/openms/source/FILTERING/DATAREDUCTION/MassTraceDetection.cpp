@@ -172,10 +172,10 @@ namespace OpenMS
     {
       double denom(0.0), weights_sum(0.0);
 
-      for (std::list<PeakType>::const_iterator l_it = tmp.begin(); l_it != tmp.end(); ++l_it)
+      for (const auto& peak : tmp)
       {
-        denom += l_it->getIntensity() * (l_it->getMZ() - mean_t) * (l_it->getMZ() - mean_t);
-        weights_sum += l_it->getIntensity();
+        denom += peak.getIntensity() * (peak.getMZ() - mean_t) * (peak.getMZ() - mean_t);
+        weights_sum += peak.getIntensity();
       }
 
       double tmp_sd = std::sqrt(denom / (weights_sum));

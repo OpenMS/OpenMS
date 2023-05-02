@@ -186,13 +186,13 @@ namespace OpenMS
 
     double rt = (rt_left + rt_right) / 2;
 
-    for (std::set<int>::const_iterator it_group = groups_.begin(); it_group!= groups_.end(); ++it_group)
+    for (const auto& group : groups_)
     { 
       std::vector<double> mzs, ints;
       double mz_ref(0);
       for (Size j = i; j < ie; ++j)
       {
-        if (getGroup(j) == *it_group)
+        if (getGroup(j) == group)
         {
           mzs.push_back(data_[j].getMZ());
           ints.push_back(data_[j].getIntensity());

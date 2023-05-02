@@ -197,9 +197,9 @@ namespace OpenMS
     IntensityType factor = scaling_ / interpolation_step_ /
                            std::accumulate(result.begin(), result.end(), IntensityType(0));
 
-    for (ContainerType::iterator iter = result.begin(); iter != result.end(); ++iter)
+    for (auto& value : result)
     {
-      *iter *= factor;
+      value *= factor;
     }
 
   }

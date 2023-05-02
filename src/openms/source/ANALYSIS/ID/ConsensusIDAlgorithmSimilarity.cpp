@@ -50,16 +50,15 @@ namespace OpenMS
     const map<String, String>& se_info,
     SequenceGrouping& results)
   {
-    for (vector<PeptideIdentification>::iterator id = ids.begin();
-         id != ids.end(); ++id)
+    for (auto& id : ids)
     {
-      if (id->getScoreType() != "Posterior Error Probability" &&
-          id->getScoreType() != "pep" &&
-          id->getScoreType() != "MS:1001493")
+      if (id.getScoreType() != "Posterior Error Probability" &&
+          id.getScoreType() != "pep" &&
+          id.getScoreType() != "MS:1001493")
       {
         String msg = "Score type must be 'Posterior Error Probability'";
         throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                      msg, id->getScoreType());
+                                      msg, id.getScoreType());
       }
     }
 
@@ -97,7 +96,7 @@ namespace OpenMS
         for (vector<PeptideIdentification>::iterator id2 = ids.begin();
              id2 != ids.end(); ++id2)
         {
-          if (id1 == id2) continue;
+          if (id1 == id2) continue;  
           
           // similarity scores and PEPs of all matches in current ID run
           // (to get the best match, we look for highest similarity, breaking

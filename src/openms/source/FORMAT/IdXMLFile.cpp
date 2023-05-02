@@ -136,11 +136,11 @@ namespace OpenMS
 
     // look up different search parameters
     std::vector<ProteinIdentification::SearchParameters> params;
-    for (std::vector<ProteinIdentification>::const_iterator it = protein_ids.begin(); it != protein_ids.end(); ++it)
+    for (const ProteinIdentification& id : protein_ids)
     {
-      if (find(params.begin(), params.end(), it->getSearchParameters()) == params.end())
+      if (find(params.begin(), params.end(), id.getSearchParameters()) == params.end())
       {
-        params.push_back(it->getSearchParameters());
+        params.push_back(id.getSearchParameters());
       }
     }
 
@@ -355,9 +355,9 @@ namespace OpenMS
           // (for peptides matching multiple times in the same protein)
 
           protein_accessions.clear();
-          for (vector<PeptideEvidence>::const_iterator pe = pes.begin(); pe != pes.end(); ++pe)
+          for (const PeptideEvidence& pe : pes)
           {
-            const String& protein_accession = pe->getProteinAccession();
+            const String& protein_accession = pe.getProteinAccession();
 
             // empty accessions are not written out (legacy code)
             if (!protein_accession.empty())
@@ -392,19 +392,18 @@ namespace OpenMS
           // write out the (optional) peptide prophet / interprophet results as UserParams
           {
             int k = 0;
-            for (std::vector<PeptideHit::PepXMLAnalysisResult>::const_iterator ar_it = p_hit.getAnalysisResults().begin();
-                ar_it != p_hit.getAnalysisResults().end(); ++ar_it, ++k)
+            for (const PeptideHit::PepXMLAnalysisResult& ar : p_hit.getAnalysisResults())
             {
-              os << "\t\t\t\t<UserParam type=\"string\" name=\"_ar_" << String(k) << "_score_type\" value=\"" << ar_it->score_type << "\"/>" << "\n";
-              os << "\t\t\t\t<UserParam type=\"float\" name=\"_ar_" << String(k) << "_score\" value=\"" << String(ar_it->main_score) << "\"/>" << "\n";
-              if (!ar_it->sub_scores.empty())
+              os << "\t\t\t\t<UserParam type=\"string\" name=\"_ar_" << String(k) << "_score_type\" value=\"" << ar.score_type << "\"/>" << "\n";
+              os << "\t\t\t\t<UserParam type=\"float\" name=\"_ar_" << String(k) << "_score\" value=\"" << String(ar.main_score) << "\"/>" << "\n";
+              if (!ar.sub_scores.empty())
               {
-                for (std::map<String, double>::const_iterator subscore_it = ar_it->sub_scores.begin();
-                    subscore_it != ar_it->sub_scores.end(); ++subscore_it)
+                for (const auto& subscore : ar.sub_scores)
                 {
-                  os << "\t\t\t\t<UserParam type=\"float\" name=\"_ar_" << String(k) << "_subscore_" << subscore_it->first <<"\" value=\"" << String(subscore_it->second) << "\"/>" << "\n";
+                  os << "\t\t\t\t<UserParam type=\"float\" name=\"_ar_" << String(k) << "_subscore_" << subscore.first <<"\" value=\"" << String(subscore.second) << "\"/>" << "\n";
                 }
               }
+              ++k;
             }
 
           }
@@ -681,9 +680,9 @@ namespace OpenMS
           accessions.push_back(accession_string);
         }
 
-        for (std::vector<String>::const_iterator it = accessions.begin(); it != accessions.end(); ++it)
+        for (const String& acc : accessions)
         {
-          const auto it2 = proteinid_to_accession_.find(*it);
+          const auto it2 = proteinid_to_accession_.find(acc);
           if (it2 != proteinid_to_accession_.end())
           {
             PeptideEvidence pe;
@@ -692,7 +691,7 @@ namespace OpenMS
           }
           else
           {
-            fatalError(LOAD, String("Invalid protein reference '") + *it + "'");
+            fatalError(LOAD, String("Invalid protein reference '") + acc + "'");
           }
         }
       }

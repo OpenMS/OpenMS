@@ -896,15 +896,15 @@ namespace OpenMS
     info_outfile.addLine(lower);
     info_outfile.addLine("</ScalingLower>");
     info_outfile.addLine("<MaxFeatures>");
-    for (std::vector<double>::const_iterator maxFeatIt = max_features.begin(); maxFeatIt != max_features.end(); ++maxFeatIt)
+    for (const double& maxFeat : max_features)
     {
-      info_outfile.addLine(*maxFeatIt);
+      info_outfile.addLine(maxFeat);
     }
     info_outfile.addLine("</MaxFeatures>");
     info_outfile.addLine("<MinFeatures>");
-    for (std::vector<double>::const_iterator minFeatIt = min_features.begin(); minFeatIt != min_features.end(); ++minFeatIt)
+    for (const double& minFeat : min_features)
     {
-      info_outfile.addLine(*minFeatIt);
+      info_outfile.addLine(minFeat);
     }
     info_outfile.addLine("</MinFeatures>");
 

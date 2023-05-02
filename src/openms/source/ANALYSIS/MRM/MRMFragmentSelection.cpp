@@ -114,9 +114,9 @@ namespace OpenMS
     {
       StringList allowed_types = ListUtils::toStringList<std::string>(param_.getValue("allowed_ion_types"));
       bool type_found(false);
-      for (StringList::const_iterator it = allowed_types.begin(); it != allowed_types.end(); ++it)
+      for (const String& t : allowed_types)
       {
-        if (name.hasSubstring(*it))
+        if (name.hasSubstring(t))
         {
           type_found = true;
         }

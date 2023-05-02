@@ -116,9 +116,9 @@ namespace OpenMS::Internal
                 };
 
                 bool found_unit(false);
-                for (set<String>::const_iterator it = term.units.begin(); it != term.units.end(); ++it)
+                for (const auto& unit : term.units)
                 {
-                  if (cv_.iterateAllChildren(*it, lambda))
+                  if (cv_.iterateAllChildren(unit, lambda))
                   {
                     found_unit = true;
                     break;

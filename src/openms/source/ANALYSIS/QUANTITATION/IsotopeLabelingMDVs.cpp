@@ -241,9 +241,9 @@ namespace OpenMS
     
     // Generate theoretical values with the exact same length as fragment_isotopomer_measured
     IsotopeDistribution theoretical_iso(EmpiricalFormula(fragment_isotopomer_theoretical_formula).getIsotopeDistribution(CoarseIsotopePatternGenerator(fragment_isotopomer_measured.size())));
-    for (IsotopeDistribution::ConstIterator it = theoretical_iso.begin(); it != theoretical_iso.end(); ++it)
+    for (const auto& dist : theoretical_iso)
     {
-      fragment_isotopomer_theoretical.push_back( it->getIntensity() );
+      fragment_isotopomer_theoretical.push_back( dist.getIntensity() );
     }
     
     std::vector<double> fragment_isotopomer_abs_diff;

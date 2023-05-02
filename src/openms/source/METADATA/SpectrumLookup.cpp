@@ -134,10 +134,9 @@ namespace OpenMS
   {
     // does the reg. exp. contain any of the recognized group names?
     bool found = false;
-    for (vector<String>::iterator it = regexp_name_list_.begin();
-         it != regexp_name_list_.end(); ++it)
+    for (const auto& name : regexp_name_list_)
     {
-      if (regexp.hasSubstring("?<" + (*it) + ">"))
+      if (regexp.hasSubstring("?<" + (name) + ">"))
       {
         found = true;
         break;

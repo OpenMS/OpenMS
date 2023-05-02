@@ -96,20 +96,18 @@ double ElutionModelFitter::calculateFitQuality_(const TraceFitter* fitter,
   double rt_end = min(fitter->getUpperRTBound(),
                       traces[0].peaks.back().first);
 
-  for (MassTraces::const_iterator tr_it = traces.begin();
-       tr_it != traces.end(); ++tr_it)
+  for (const auto& trace : traces)
   {
-    for (vector<pair<double, const Peak1D*> >::const_iterator p_it =
-           tr_it->peaks.begin(); p_it != tr_it->peaks.end(); ++p_it)
+    for (const auto &[r_time, peak] : trace.peaks)
     {
-      double rt = p_it->first;
+      double rt = r_time;
       if ((rt >= rt_start) && (rt <= rt_end))
       {
         double model_value = fitter->getValue(rt);
-        double diff = fabs(model_value * tr_it->theoretical_int -
-                           p_it->second->getIntensity());
+        double diff = fabs(model_value * trace.theoretical_int -
+                           peak->getIntensity());
         mre += diff / model_value;
-        total_weights += tr_it->theoretical_int;
+        total_weights += trace.theoretical_int;
       }
     }
   }
@@ -265,18 +263,16 @@ void ElutionModelFitter::fitElutionModels(FeatureMap& features)
       MassTrace trace;
       trace.peaks.reserve(points_per_hull);
       const ConvexHull2D& hull = sub.getConvexHulls()[0];
-      for (ConvexHull2D::PointArrayTypeConstIterator point_it =
-             hull.getHullPoints().begin(); point_it !=
-             hull.getHullPoints().end(); ++point_it)
+      for (const ConvexHull2D::PointType& point : hull.getHullPoints())
       {
-        double intensity = point_it->getY();
+        double intensity = point.getY();
         if (intensity > 0.0) // only use non-zero intensities for fitting
         {
           Peak1D peak;
           peak.setMZ(sub.getMZ());
           peak.setIntensity(intensity);
           peaks.push_back(peak);
-          trace.peaks.emplace_back(point_it->getX(), &peaks.back());
+          trace.peaks.emplace_back(point.getX(), &peaks.back());
         }
       }
       trace.updateMaximum();
@@ -465,11 +461,10 @@ void ElutionModelFitter::fitElutionModels(FeatureMap& features)
     double x_datum_min, x_datum_max, y_datum_min, y_datum_max;
     lm.getParameters(slope, intercept, x_weight, y_weight, x_datum_min, x_datum_max, y_datum_min, y_datum_max);
     OPENMS_LOG_INFO << "Imputing model failures with a linear model based on log(rawIntensities). Slope: " << slope << ", Intercept: " << intercept << endl;
-    for (vector<FeatureMap::Iterator>::iterator it = failed_models.begin();
-         it != failed_models.end(); ++it)
+    for (auto& model : failed_models)
     {
-      double area = exp(lm.evaluate(log((*it)->getIntensity())));
-      (*it)->setIntensity(area);
+      double area = exp(lm.evaluate(log((model)->getIntensity())));
+      (model)->setIntensity(area);
     }
   }
 }

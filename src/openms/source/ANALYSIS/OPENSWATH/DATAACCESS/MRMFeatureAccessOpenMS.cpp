@@ -45,18 +45,18 @@ namespace OpenMS
   {
     std::vector<String> ids;
     mrmfeature.getFeatureIDs(ids);
-    for (std::vector<String>::iterator it = ids.begin(); it != ids.end(); ++it)
+    for (String& id : ids)
     {
-      boost::shared_ptr<FeatureOpenMS> ptr = boost::shared_ptr<FeatureOpenMS>(new FeatureOpenMS(mrmfeature.getFeature(*it)));
-      features_[*it] = ptr;
+      boost::shared_ptr<FeatureOpenMS> ptr = boost::shared_ptr<FeatureOpenMS>(new FeatureOpenMS(mrmfeature.getFeature(id)));
+      features_[id] = ptr;
     }
 
     std::vector<String> p_ids;
     mrmfeature.getPrecursorFeatureIDs(p_ids);
-    for (std::vector<String>::iterator it = p_ids.begin(); it != p_ids.end(); ++it)
+    for (String& id : p_ids)
     {
-      boost::shared_ptr<FeatureOpenMS> ptr = boost::shared_ptr<FeatureOpenMS>(new FeatureOpenMS(mrmfeature.getPrecursorFeature(*it)));
-      precursor_features_[*it] = ptr;
+      boost::shared_ptr<FeatureOpenMS> ptr = boost::shared_ptr<FeatureOpenMS>(new FeatureOpenMS(mrmfeature.getPrecursorFeature(id)));
+      precursor_features_[id] = ptr;
     }
   }
 
@@ -71,9 +71,9 @@ namespace OpenMS
   {
     OPENMS_PRECONDITION(feature_->getConvexHulls().size() == 1, "There needs to exactly one convex hull per feature.");
     ConvexHull2D::PointArrayType data_points = feature_->getConvexHulls()[0].getHullPoints();
-    for (ConvexHull2D::PointArrayType::iterator it = data_points.begin(); it != data_points.end(); ++it)
+    for (ConvexHull2D::PointType& point : data_points)
     {
-      rt.push_back(it->getX());
+      rt.push_back(point.getX());
     }
   }
 
@@ -81,9 +81,9 @@ namespace OpenMS
   {
     OPENMS_PRECONDITION(feature_->getConvexHulls().size() == 1, "There needs to exactly one convex hull per feature.");
     ConvexHull2D::PointArrayType data_points = feature_->getConvexHulls()[0].getHullPoints();
-    for (ConvexHull2D::PointArrayType::iterator it = data_points.begin(); it != data_points.end(); ++it)
+    for (ConvexHull2D::PointType& point : data_points)
     {
-      intens.push_back(it->getY());
+      intens.push_back(point.getY());
     }
   }
 
@@ -114,9 +114,9 @@ namespace OpenMS
   std::vector<std::string> MRMFeatureOpenMS::getNativeIDs() const
   {
     std::vector<std::string> v;
-    for (std::map<std::string, boost::shared_ptr<FeatureOpenMS> >::const_iterator it = features_.begin(); it != features_.end(); ++it)
+    for (const auto& feat : features_)
     {
-      v.push_back(it->first);
+      v.push_back(feat.first);
     }
     return v;
   }
@@ -124,9 +124,9 @@ namespace OpenMS
   std::vector<std::string> MRMFeatureOpenMS::getPrecursorIDs() const
   {
     std::vector<std::string> v;
-    for (std::map<std::string, boost::shared_ptr<FeatureOpenMS> >::const_iterator it = precursor_features_.begin(); it != precursor_features_.end(); ++it) 
+    for (const auto& feat : precursor_features_)
     {
-      v.push_back(it->first);
+      v.push_back(feat.first);
     }
     return v;
   }

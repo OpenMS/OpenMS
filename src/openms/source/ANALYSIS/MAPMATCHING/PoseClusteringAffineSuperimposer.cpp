@@ -1054,20 +1054,20 @@ namespace OpenMS
                                              TransformationDescription& transformation)
   {
     std::vector<Peak2D> c_map_model, c_map_scene;
-    for (ConsensusMap::const_iterator it = map_model.begin(); it != map_model.end(); ++it)
+    for (const auto& model : map_model)
     {
       Peak2D c;
-      c.setIntensity( it->getIntensity() );
-      c.setRT( it->getRT() );
-      c.setMZ( it->getMZ() );
+      c.setIntensity( model.getIntensity() );
+      c.setRT( model.getRT() );
+      c.setMZ( model.getMZ() );
       c_map_model.push_back(c);
     }
-    for (ConsensusMap::const_iterator it = map_scene.begin(); it != map_scene.end(); ++it)
+    for (const auto& scene : map_scene)
     {
       Peak2D c;
-      c.setIntensity( it->getIntensity() );
-      c.setRT( it->getRT() );
-      c.setMZ( it->getMZ() );
+      c.setIntensity( scene.getIntensity() );
+      c.setRT( scene.getRT() );
+      c.setMZ( scene.getMZ() );
       c_map_scene.push_back(c);
     }
 

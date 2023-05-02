@@ -133,22 +133,22 @@ namespace OpenMS
 
     double best_pscore = 0.0;
 
-    for (vector<PeakSpectrum>::const_iterator theo_spectra_it = theo_spectra.begin(); theo_spectra_it != theo_spectra.end(); ++theo_spectra_it)
+    for (const auto& theo_spec : theo_spectra)
     {
-      const PeakSpectrum& theo_spectrum = *theo_spectra_it;
+      const PeakSpectrum& theo_spectrum = theo_spec;
 
       // number of theoretical ions for current spectrum
       Size N = theo_spectrum.size();
 
-      for (map<Size, PeakSpectrum>::const_iterator l_it = peak_level_spectra.begin(); l_it != peak_level_spectra.end(); ++l_it)
+      for (const auto& spec : peak_level_spectra)
       {
-        const double level = static_cast<double>(l_it->first);
-        const PeakSpectrum& exp_spectrum = l_it->second;
+        const double level = static_cast<double>(spec.first);
+        const PeakSpectrum& exp_spectrum = spec.second;
 
         Size matched_peaks(0);
-        for (PeakSpectrum::ConstIterator theo_peak_it = theo_spectrum.begin(); theo_peak_it != theo_spectrum.end(); ++theo_peak_it)
+        for (const auto& theo_peak : theo_spectrum)
         {
-          const double& theo_mz = theo_peak_it->getMZ();
+          const double& theo_mz = theo_peak.getMZ();
 
           double max_dist_dalton = fragment_mass_tolerance_unit_ppm ? theo_mz * fragment_mass_tolerance * 1e-6 : fragment_mass_tolerance;
 
@@ -185,10 +185,10 @@ namespace OpenMS
     // number of theoretical ions for current spectrum
     Size N = theo_spectrum.size();
 
-    for (map<Size, PeakSpectrum>::const_iterator l_it = peak_level_spectra.begin(); l_it != peak_level_spectra.end(); ++l_it)
+    for (const auto& spec : peak_level_spectra)
     {
-      const double level = static_cast<double>(l_it->first);
-      const PeakSpectrum& exp_spectrum = l_it->second;
+      const double level = static_cast<double>(spec.first);
+      const PeakSpectrum& exp_spectrum = spec.second;
 
       Size matched_peaks(0);
       if (fragment_mass_tolerance_unit_ppm)

@@ -439,9 +439,9 @@ namespace OpenMS
 
     TheoreticalIsotopePattern isotopes;
 
-    for (IsotopeDistribution::ConstIterator it = isotope_dist.begin(); it != isotope_dist.end(); ++it)
+    for (const auto& dist : isotope_dist)
     {
-      isotopes.intensity.push_back(it->getIntensity());
+      isotopes.intensity.push_back(dist.getIntensity());
     }
     isotopes.optional_begin = 0;
     isotopes.optional_end = dia_nr_isotopes_;

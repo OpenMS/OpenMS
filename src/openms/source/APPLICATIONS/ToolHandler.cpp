@@ -156,15 +156,15 @@ namespace OpenMS
     // INTERNAL tools
     // this operation is expensive, as we need to parse configuration files (*.ttd)
     std::vector<Internal::ToolDescription> internal_tools = getInternalTools_();
-    for (std::vector<Internal::ToolDescription>::const_iterator it = internal_tools.begin(); it != internal_tools.end(); ++it)
+    for (const auto& tool : internal_tools)
     {
-      if (tools_map.find(it->name) == tools_map.end())
+      if (tools_map.find(tool.name) == tools_map.end())
       {
-        tools_map[it->name] = *it;
+        tools_map[tool.name] = tool;
       }
       else
       {
-        throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Duplicate tool name error: Trying to add internal tool '" + it->name, it->name);
+        throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Duplicate tool name error: Trying to add internal tool '" + tool.name, tool.name);
       }
     }
 

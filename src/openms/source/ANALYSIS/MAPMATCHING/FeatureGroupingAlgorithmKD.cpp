@@ -97,9 +97,9 @@ namespace OpenMS
     // LOWESS defaults
     Param lowess_defaults;
     TransformationModelLowess::getDefaultParameters(lowess_defaults);
-    for (Param::ParamIterator it = lowess_defaults.begin(); it != lowess_defaults.end(); ++it)
+    for (auto& parameter : lowess_defaults)
     {
-      const_cast<Param::ParamEntry&>(*it).tags.insert("advanced");
+      const_cast<Param::ParamEntry&>(parameter).tags.insert("advanced");
     }
     defaults_.insert("LOWESS:", lowess_defaults);
     defaults_.setSectionDescription("LOWESS", "LOWESS parameters for internal RT transformations (only relevant if 'warp:enabled' is set to 'true')");
@@ -320,23 +320,23 @@ namespace OpenMS
       addConsensusFeature_(cf_indices, kd_data, out);
 
       // mark selected sub features assigned and delete them from potential_clusters
-      for (vector<Size>::const_iterator f_it = cf_indices.begin(); f_it != cf_indices.end(); ++f_it)
+      for (const Size& feat : cf_indices)
       {
-        assigned[*f_it] = true;
-        potential_clusters.erase(cluster_for_idx[*f_it]);
+        assigned[feat] = true;
+        potential_clusters.erase(cluster_for_idx[feat]);
       }
 
       // compile set of all points whose neighborhoods will need updating
       update_these = set<Size>();
-      for (vector<Size>::const_iterator f_it = cf_indices.begin(); f_it != cf_indices.end(); ++f_it)
+      for (const Size& feat : cf_indices)
       {
         vector<Size> f_neighbors;
-        kd_data.getNeighborhood(*f_it, f_neighbors, rt_tol_secs_, mz_tol_, mz_ppm_, true);
-        for (vector<Size>::const_iterator it = f_neighbors.begin(); it != f_neighbors.end(); ++it)
+        kd_data.getNeighborhood(feat, f_neighbors, rt_tol_secs_, mz_tol_, mz_ppm_, true);
+        for (const Size& nb : f_neighbors)
         {
-          if (!assigned[*it])
+          if (!assigned[nb])
           {
-            update_these.insert(*it);
+            update_these.insert(nb);
           }
         }
       }
@@ -354,9 +354,9 @@ namespace OpenMS
                                                          const vector<Int>& assigned,
                                                          const KDTreeFeatureMaps& kd_data)
   {
-    for (set<Size>::const_iterator it = update_these.begin(); it != update_these.end(); ++it)
+    for (const Size& item_to_update : update_these)
     {
-      Size i = *it;
+      Size i = item_to_update;
       const ClusterProxyKD& old_proxy = cluster_for_idx[i];
       vector<Size> unused;
       ClusterProxyKD new_proxy = computeBestClusterForCenter_(i, unused, assigned, kd_data);
@@ -384,17 +384,17 @@ namespace OpenMS
     kd_data.getNeighborhood(i, neighbors, rt_tol_secs_, mz_tol_, mz_ppm_, true);
     Int charge_i = kd_data.charge(i);
     const BaseFeature* f_i = kd_data.feature(i);
-    for (vector<Size>::const_iterator it = neighbors.begin(); it != neighbors.end(); ++it)
+    for (const Size& nb : neighbors)
     {
       // If the feature was already assigned, don't consider it at all!
-      if (assigned[*it])
+      if (assigned[nb])
       {
         continue;
       }
 
       if (merge_charge == "Identical")
       {
-        if (kd_data.charge(*it) != charge_i)
+        if (kd_data.charge(nb) != charge_i)
         {
           continue;
         }
@@ -402,7 +402,7 @@ namespace OpenMS
       // what to consider for linking with existing features _that have charge_. This ensures that we won't collect different non-zero charges.
       else if (merge_charge == "With_charge_zero")
       {
-        if ((kd_data.charge(*it) != charge_i) && (kd_data.charge(*it) != 0))
+        if ((kd_data.charge(nb) != charge_i) && (kd_data.charge(nb) != 0))
         {
           continue;
         }
@@ -416,14 +416,14 @@ namespace OpenMS
       if (merge_adduct == "Identical")
       {
         // subcase 1: one has adduct, other not
-        if (kd_data.feature(*it)->metaValueExists(Constants::UserParam::DC_CHARGE_ADDUCTS) != f_i->metaValueExists(Constants::UserParam::DC_CHARGE_ADDUCTS))
+        if (kd_data.feature(nb)->metaValueExists(Constants::UserParam::DC_CHARGE_ADDUCTS) != f_i->metaValueExists(Constants::UserParam::DC_CHARGE_ADDUCTS))
         {
           continue;
         }
         // subcase 2: both have adduct, but is it the same?
-        if (kd_data.feature(*it)->metaValueExists(Constants::UserParam::DC_CHARGE_ADDUCTS))
+        if (kd_data.feature(nb)->metaValueExists(Constants::UserParam::DC_CHARGE_ADDUCTS))
         {
-          if (EmpiricalFormula(kd_data.feature(*it)->getMetaValue(Constants::UserParam::DC_CHARGE_ADDUCTS)) != EmpiricalFormula(f_i->getMetaValue(Constants::UserParam::DC_CHARGE_ADDUCTS)))
+          if (EmpiricalFormula(kd_data.feature(nb)->getMetaValue(Constants::UserParam::DC_CHARGE_ADDUCTS)) != EmpiricalFormula(f_i->getMetaValue(Constants::UserParam::DC_CHARGE_ADDUCTS)))
           {
             continue;
           }  
@@ -434,16 +434,16 @@ namespace OpenMS
       else if (merge_adduct == "With_unknown_adducts")
       {
         // subcase1: *it has adduct, but i not. don't want to collect potentially different adducts to previous without adduct 
-        if ((kd_data.feature(*it)->metaValueExists(Constants::UserParam::DC_CHARGE_ADDUCTS)) && (!f_i->metaValueExists(Constants::UserParam::DC_CHARGE_ADDUCTS)))
+        if ((kd_data.feature(nb)->metaValueExists(Constants::UserParam::DC_CHARGE_ADDUCTS)) && (!f_i->metaValueExists(Constants::UserParam::DC_CHARGE_ADDUCTS)))
         {
           continue;
         }
         // subcase2: both have adduct
-        if ((kd_data.feature(*it)->metaValueExists(Constants::UserParam::DC_CHARGE_ADDUCTS)) && (f_i->metaValueExists(Constants::UserParam::DC_CHARGE_ADDUCTS)))
+        if ((kd_data.feature(nb)->metaValueExists(Constants::UserParam::DC_CHARGE_ADDUCTS)) && (f_i->metaValueExists(Constants::UserParam::DC_CHARGE_ADDUCTS)))
         {
           // cheaper string check first, only check EF extensively if strings differ (might be just different element orders)
-          if ((kd_data.feature(*it)->getMetaValue(Constants::UserParam::DC_CHARGE_ADDUCTS) != f_i->getMetaValue(Constants::UserParam::DC_CHARGE_ADDUCTS)) &&
-              (EmpiricalFormula(kd_data.feature(*it)->getMetaValue(Constants::UserParam::DC_CHARGE_ADDUCTS)) != EmpiricalFormula(f_i->getMetaValue(Constants::UserParam::DC_CHARGE_ADDUCTS))))
+          if ((kd_data.feature(nb)->getMetaValue(Constants::UserParam::DC_CHARGE_ADDUCTS) != f_i->getMetaValue(Constants::UserParam::DC_CHARGE_ADDUCTS)) &&
+              (EmpiricalFormula(kd_data.feature(nb)->getMetaValue(Constants::UserParam::DC_CHARGE_ADDUCTS)) != EmpiricalFormula(f_i->getMetaValue(Constants::UserParam::DC_CHARGE_ADDUCTS))))
           {
             continue;
           }
@@ -455,31 +455,29 @@ namespace OpenMS
       //}
 
       // if everything is OK, add feature
-      points_for_map_index[kd_data.mapIndex(*it)].push_back(*it);
+      points_for_map_index[kd_data.mapIndex(nb)].push_back(nb);
     }
     // center i is always part of CF, no other points from i's map can be contained
     points_for_map_index[kd_data.mapIndex(i)] = vector<Size>(1, i);
 
     // compile list of sub feature indices and corresponding average distance
     double avg_distance = 0.0;
-    for (map<Size, vector<Size> >::const_iterator it = points_for_map_index.begin();
-         it != points_for_map_index.end();
-         ++it)
+    for (const auto& point : points_for_map_index)
     {
-      const vector<Size>& candidates = it->second;
+      const vector<Size>& candidates = point.second;
 
       // choose a point j with minimal distance to center i
       double min_dist = numeric_limits<double>::max();
       Size best_index = numeric_limits<Size>::max();
-      for (vector<Size>::const_iterator c_it = candidates.begin(); c_it != candidates.end(); ++c_it)
+      for (const Size& cand : candidates)
       {
-        double dist = const_cast<FeatureDistance&>(feature_distance_)(*(kd_data.feature(*c_it)),
+        double dist = const_cast<FeatureDistance&>(feature_distance_)(*(kd_data.feature(cand)),
                                                                       *(kd_data.feature(i))).second;
 
         if (dist < min_dist)
         {
           min_dist = dist;
-          best_index = *c_it;
+          best_index = cand;
         }
       }
       cf_indices.push_back(best_index);
@@ -500,9 +498,9 @@ namespace OpenMS
     size_t best_quality_index = 0;
     // collect the "Group" MetaValues of Features in a ConsensusFeature MetaValue (Constant::UserParam::IIMN_LINKED_GROUPS)
     vector<String> linked_groups;
-    for (vector<Size>::const_iterator it = indices.begin(); it != indices.end(); ++it)
+    for (const Size& idx : indices)
     {
-      Size i = *it;
+      Size i = idx;
       cf.insert(kd_data.mapIndex(i), *(kd_data.feature(i)));
       avg_quality += kd_data.feature(i)->getQuality();
       if (kd_data.feature(i)->metaValueExists(Constants::UserParam::DC_CHARGE_ADDUCTS) &&

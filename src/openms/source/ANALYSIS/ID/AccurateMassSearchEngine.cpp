@@ -960,11 +960,11 @@ namespace OpenMS
 
     bool isotope_export = param_.getValue("mzTab:exportIsotopeIntensities").toString() == "true";
 
-    for (QueryResultsTable::const_iterator tab_it = overall_results.begin(); tab_it != overall_results.end(); ++tab_it)
+    for (const auto& result : overall_results)
     {
-      for (Size hit_idx = 0; hit_idx < tab_it->size(); ++hit_idx)
+      for (Size hit_idx = 0; hit_idx < result.size(); ++hit_idx)
       {
-        std::vector<String> matching_ids = (*tab_it)[hit_idx].getMatchingHMDBids();
+        std::vector<String> matching_ids = result[hit_idx].getMatchingHMDBids();
         // iterate over multiple IDs, generate a new row for each one
         for (Size id_idx = 0; id_idx < matching_ids.size(); ++id_idx)
         {
@@ -984,7 +984,7 @@ namespace OpenMS
 
             // set the chemical formula field
             MzTabString chem_form;
-            String form_temp = (*tab_it)[hit_idx].getFormulaString();
+            String form_temp = (result)[hit_idx].getFormulaString();
             chem_form.set(form_temp);
 
             mztab_row_record.chemical_formula = chem_form;
@@ -1012,26 +1012,26 @@ namespace OpenMS
 
             // set the calc_mass_to_charge field (theoretical mass)
             MzTabDouble mass_to_charge;
-            mass_to_charge.set((*tab_it)[hit_idx].getCalculatedMZ());
+            mass_to_charge.set((result)[hit_idx].getCalculatedMZ());
             mztab_row_record.calc_mass_to_charge = mass_to_charge;
 
             // set charge field
             MzTabInteger mcharge;
-            mcharge.set((*tab_it)[hit_idx].getCharge());
+            mcharge.set((result)[hit_idx].getCharge());
             mztab_row_record.charge = mcharge;
           }
 
           // experimental RT, m/z, database field and version, search engine and (null) score is also set if no db entry was matched
           // set RT field
           MzTabDouble rt_temp;
-          rt_temp.set((*tab_it)[hit_idx].getObservedRT());
+          rt_temp.set((result)[hit_idx].getObservedRT());
           std::vector<MzTabDouble> rt_temp3(1, rt_temp);
           MzTabDoubleList observed_rt;
           observed_rt.set(rt_temp3);
           mztab_row_record.retention_time = observed_rt;
 
           MzTabDouble exp_mass_to_charge;
-          exp_mass_to_charge.set((*tab_it)[hit_idx].getObservedMZ());
+          exp_mass_to_charge.set((result)[hit_idx].getObservedMZ());
           mztab_row_record.exp_mass_to_charge = exp_mass_to_charge;
 
           // set database field
@@ -1052,7 +1052,7 @@ namespace OpenMS
 
           // same score for all files since it used the mass-to-charge of the ConsensusFeature
           // for identification -> set as best_search_engine_score
-          mztab_row_record.best_search_engine_score[1] = MzTabDouble((*tab_it)[hit_idx].getMZErrorPPM());
+          mztab_row_record.best_search_engine_score[1] = MzTabDouble((result)[hit_idx].getMZErrorPPM());
 
           // set search_engine_score per hit -> null
           MzTabDouble null_score;
@@ -1062,13 +1062,13 @@ namespace OpenMS
           }
 
           // check if we deal with a feature or consensus feature
-          std::vector<double> indiv_ints(tab_it->at(hit_idx).getIndividualIntensities());
+          std::vector<double> indiv_ints(result.at(hit_idx).getIndividualIntensities());
           std::vector<MzTabDouble> int_temp3;
 
           bool single_intensity = (indiv_ints.empty());
           if (single_intensity)
           {
-            double int_temp((*tab_it)[hit_idx].getObservedIntensity());
+            double int_temp((result)[hit_idx].getObservedIntensity());
             MzTabDouble int_temp2;
             int_temp2.set(int_temp);
             int_temp3.push_back(int_temp2);
@@ -1140,7 +1140,7 @@ namespace OpenMS
           MzTabString ppmerr;
           if (db_hit)
           {
-            ppmerr.set(String((*tab_it)[hit_idx].getMZErrorPPM()));
+            ppmerr.set(String((result)[hit_idx].getMZErrorPPM()));
           }
           MzTabOptionalColumnEntry col0;
           col0.first = "opt_global_mz_ppm_error";
@@ -1151,7 +1151,7 @@ namespace OpenMS
           MzTabString addion;
           if (db_hit)
           {
-            String addion_temp((*tab_it)[hit_idx].getFoundAdduct());
+            String addion_temp((result)[hit_idx].getFoundAdduct());
             addion.set(addion_temp);
             ++adduct_stats[addion_temp]; // just some stats
             adduct_stats_unique[addion_temp].insert(id_group); // stats ...
@@ -1165,7 +1165,7 @@ namespace OpenMS
           MzTabString sim_score;
           if (db_hit)
           {
-            double sim_score_temp((*tab_it)[hit_idx].getIsotopesSimScore());
+            double sim_score_temp((result)[hit_idx].getIsotopesSimScore());
             std::stringstream read_in;
             read_in << sim_score_temp;
             String sim_score_temp2(read_in.str());
@@ -1182,7 +1182,7 @@ namespace OpenMS
           {
               MzTabString trace_int; // implicitly NULL
 
-              std::vector<double> mt_int = (*tab_it)[hit_idx].getMasstraceIntensities();
+              std::vector<double> mt_int = (result)[hit_idx].getMasstraceIntensities();
               std::vector<std::string> mt_int_strlist;
               std::transform(std::begin(mt_int),
                              std::end(mt_int),
@@ -1202,7 +1202,7 @@ namespace OpenMS
           MzTabString neutral_mass_string;
           if (db_hit)
           {
-            String neutral_mass((*tab_it)[hit_idx].getQueryMass());
+            String neutral_mass((result)[hit_idx].getQueryMass());
             neutral_mass_string.fromCellString(neutral_mass);
           }
 
@@ -1230,9 +1230,9 @@ namespace OpenMS
 
     // print some adduct stats:
     OPENMS_LOG_INFO << "Hits by adduct: #peaks explained (# matching db entries)'\n";
-    for (std::map<String, UInt>::const_iterator it = adduct_stats.begin(); it != adduct_stats.end(); ++it)
+    for (const auto& [name, num_entries] : adduct_stats)
     {
-      OPENMS_LOG_INFO << "  '" << it->first << "' : " << adduct_stats_unique[it->first].size() << " (" << it->second << ")\n";
+      OPENMS_LOG_INFO << "  '" << name << "' : " << adduct_stats_unique[name].size() << " (" << num_entries << ")\n";
     }
     OPENMS_LOG_INFO << std::endl;
 
@@ -1273,9 +1273,9 @@ namespace OpenMS
     database_location_ = ListUtils::concatenate(db_mapping_file, '|');
 
     // load map_fname mapping file
-    for (StringList::const_iterator it_f = db_mapping_file.begin(); it_f != db_mapping_file.end(); ++it_f)
+    for (const auto& m_file : db_mapping_file)
     {
-      String filename = *it_f;
+      String filename = m_file;
       // load map_fname mapping file
       if (!File::readable(filename))
       {
@@ -1378,9 +1378,9 @@ namespace OpenMS
   {
     hmdb_properties_mapping_.clear();
 
-    for (StringList::const_iterator it_f = db_struct_file.begin(); it_f != db_struct_file.end(); ++it_f)
+    for (const String& s_file : db_struct_file)
     {
-      String filename = *it_f;
+      String filename = s_file;
 
       // load map_fname mapping file
       if (!File::readable(filename))
@@ -1434,9 +1434,9 @@ namespace OpenMS
       fname = File::find(filename);
     }
     TextFile tf(fname, true, -1, true); // trim & skip_empty
-    for (TextFile::ConstIterator it = tf.begin(); it != tf.end(); ++it)
+    for (const auto& text : tf)
     {
-      result.push_back(AdductInfo::parseAdductString(*it));
+      result.push_back(AdductInfo::parseAdductString(text));
     }
 
     OPENMS_LOG_INFO << "Read " << result.size() << " entries from adduct file '" << fname << "'." << std::endl;

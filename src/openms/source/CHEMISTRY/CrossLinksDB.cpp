@@ -55,9 +55,9 @@ namespace OpenMS
   CrossLinksDB::~CrossLinksDB()
   {
     modification_names_.clear();
-    for (vector<ResidueModification*>::iterator it = mods_.begin(); it != mods_.end(); ++it)
+    for (auto& mod : mods_)
     {
-      delete *it;
+      delete mod;
     }
   }
 
@@ -99,12 +99,12 @@ namespace OpenMS
           vector<String>::iterator unique_end = unique(origins.begin(), origins.end());
           origins.resize(distance(origins.begin(), unique_end));
 
-          for (vector<String>::iterator orig_it = origins.begin(); orig_it != origins.end(); ++orig_it)
+          for (String& orig : origins)
           {
             // we don't allow modifications with ambiguity codes as origin (except "X"):
-            if ((orig_it->size() == 1) && (*orig_it != "B") && (*orig_it != "J") && (*orig_it != "Z"))
+            if ((orig.size() == 1) && (orig != "B") && (orig != "J") && (orig != "Z"))
             {
-              mod.setOrigin((*orig_it)[0]);
+              mod.setOrigin((orig)[0]);
               all_mods.insert(make_pair(id, mod));
             }
           }
@@ -285,12 +285,12 @@ namespace OpenMS
       vector<String>::iterator unique_end = unique(origins.begin(), origins.end());
       origins.resize(distance(origins.begin(), unique_end));
 
-      for (vector<String>::iterator orig_it = origins.begin(); orig_it != origins.end(); ++orig_it)
+      for (String& orig : origins)
       {
         // we don't allow modifications with ambiguity codes as origin (except "X"):
-        if ((orig_it->size() == 1) && (*orig_it != "B") && (*orig_it != "J") && (*orig_it != "Z"))
+        if ((orig.size() == 1) && (orig != "B") && (orig != "J") && (orig != "Z"))
         {
-          mod.setOrigin((*orig_it)[0]);
+          mod.setOrigin((orig)[0]);
           all_mods.insert(make_pair(id, mod));
         }
       }
@@ -314,45 +314,45 @@ namespace OpenMS
     }
 
     // now use the term and all synonyms to build the database
-    for (multimap<String, ResidueModification>::const_iterator it = all_mods.begin(); it != all_mods.end(); ++it)
+    for (const auto& mod : all_mods)
     {
 
       // check whether a unimod definition already exists, then simply add synonyms to it
-      if (it->second.getUniModRecordId() > 0)
+      if (mod.second.getUniModRecordId() > 0)
       {
-        //cerr << "Found UniMod PSI-MOD mapping: " << it->second.getPSIMODAccession() << " " << it->second.getUniModAccession() << endl;
-        set<const ResidueModification*> mods = modification_names_[it->second.getUniModAccession()];
-        for (set<const ResidueModification*>::const_iterator mit = mods.begin(); mit != mods.end(); ++mit)
+        //cerr << "Found UniMod PSI-MOD mapping: " << mod.second.getPSIMODAccession() << " " << mod.second.getUniModAccession() << endl;
+        set<const ResidueModification*> mods = modification_names_[mod.second.getUniModAccession()];
+        for (const auto& m : mods)
         {
           //cerr << "Adding PSIMOD accession: " << it->second.getPSIMODAccession() << " " << it->second.getUniModAccession() << endl;
-          modification_names_[it->second.getPSIMODAccession()].insert(*mit);
+          modification_names_[mod.second.getPSIMODAccession()].insert(m);
         }
       }
       else
       {
         // the mod has so far not been mapped to a unimod mod
         // first check whether the mod is specific
-        if ((it->second.getOrigin() != 'X') ||
-            ((it->second.getTermSpecificity() != ResidueModification::ANYWHERE) &&
-             (it->second.getDiffMonoMass() != 0)))
+        if ((mod.second.getOrigin() != 'X') ||
+            ((mod.second.getTermSpecificity() != ResidueModification::ANYWHERE) &&
+             (mod.second.getDiffMonoMass() != 0)))
         {
-          mods_.push_back(new ResidueModification(it->second));
+          mods_.push_back(new ResidueModification(mod.second));
 
-          set<String> synonyms = it->second.getSynonyms();
-          synonyms.insert(it->first);
-          synonyms.insert(it->second.getFullName());
-          //synonyms.insert(it->second.getUniModAccession());
-          synonyms.insert(it->second.getPSIMODAccession());
+          set<String> synonyms = mod.second.getSynonyms();
+          synonyms.insert(mod.first);
+          synonyms.insert(mod.second.getFullName());
+          //synonyms.insert(mod.second.getUniModAccession());
+          synonyms.insert(mod.second.getPSIMODAccession());
           // full ID is auto-generated based on (short) ID, but we want the name instead:
-          mods_.back()->setId(it->second.getFullName());
+          mods_.back()->setId(mod.second.getFullName());
           mods_.back()->setFullId();
-          mods_.back()->setId(it->second.getId());
+          mods_.back()->setId(mod.second.getId());
           synonyms.insert(mods_.back()->getFullId());
 
           // now check each of the names and link it to the residue modification
-          for (set<String>::const_iterator nit = synonyms.begin(); nit != synonyms.end(); ++nit)
+          for (const String& name : synonyms)
           {
-            modification_names_[*nit].insert(mods_.back());
+            modification_names_[name].insert(mods_.back());
           }
         }
       }
@@ -363,11 +363,11 @@ namespace OpenMS
   {
     modifications.clear();
 
-    for (vector<ResidueModification*>::const_iterator it = mods_.begin(); it != mods_.end(); ++it)
+    for (const auto& mod : mods_)
     {
-      if (!(*it)->getPSIMODAccession().empty())
+      if (!(*mod).getPSIMODAccession().empty())
       {
-        modifications.push_back((*it)->getFullId());
+        modifications.push_back((*mod).getFullId());
       }
     }
     sort(modifications.begin(), modifications.end());

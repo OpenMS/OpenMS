@@ -178,11 +178,10 @@ namespace OpenMS
 
   void TransformationDescription::invert()
   {
-    for (TransformationDescription::DataPoints::iterator it = data_.begin();
-         it != data_.end(); ++it)
+    for (auto& point : data_)
     {
-      *it = TransformationDescription::DataPoint(it->second, it->first,
-                                                 it->note);
+      point = TransformationDescription::DataPoint(point.second, point.first,
+                                                 point.note);
     }
     // ugly hack for linear model with explicit slope/intercept parameters:
     if ((model_type_ == "linear") && data_.empty())
@@ -204,11 +203,11 @@ namespace OpenMS
   {
     diffs.clear();
     diffs.reserve(data_.size());
-    for (DataPoints::const_iterator it = data_.begin(); it != data_.end(); ++it)
+    for (const auto& point : data_)
     {
-      double x = it->first;
+      double x = point.first;
       if (do_apply) x = apply(x);
-      diffs.push_back(abs(x - it->second));
+      diffs.push_back(abs(x - point.second));
     }
     if (do_sort) sort(diffs.begin(), diffs.end());
   }

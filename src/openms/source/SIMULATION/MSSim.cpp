@@ -58,38 +58,32 @@ namespace OpenMS
 
     Size map_count = 1;
     StringList keys;
-    for (SimTypes::FeatureMapSimVector::iterator map_iter = feature_maps.begin(); map_iter != feature_maps.end(); ++map_iter)
+    for (auto& map : feature_maps)
     {
       cout << "FEATURE MAP #" << map_count << endl;
 
       cout << "contained proteins" << endl;
-      ProteinIdentification protIdent = (*map_iter).getProteinIdentifications()[0];
-      for (vector<ProteinHit>::iterator proteinHit = protIdent.getHits().begin();
-           proteinHit != protIdent.getHits().end();
-           ++proteinHit)
+      ProteinIdentification protIdent = map.getProteinIdentifications()[0];
+      for (auto& proteinHit : protIdent.getHits())
       {
-        cout << "- " << proteinHit->getAccession() << endl;
+        cout << "- " << proteinHit.getAccession() << endl;
       }
       cout << "----------------------------------------------" << endl;
-      for (SimTypes::FeatureMapSim::const_iterator feat = (*map_iter).begin();
-           feat != (*map_iter).end();
-           ++feat)
+      for (const auto& feat : map)
       {
-        (*feat).getKeys(keys);
-        cout << " RT: " << (*feat).getRT()
-             << " MZ: " << (*feat).getMZ()
-             << " INT: " << (*feat).getIntensity()
-             << " CHARGE: " << (*feat).getCharge()
-             << " Det: " << (*feat).getMetaValue("detectibility") << endl
-             << " Pep: " << feat->getPeptideIdentifications()[0].getHits()[0].getSequence().toString() << endl
-             << " ID: " << feat->getUniqueId() << endl
+        feat.getKeys(keys);
+        cout << " RT: " << feat.getRT()
+             << " MZ: " << feat.getMZ()
+             << " INT: " << feat.getIntensity()
+             << " CHARGE: " << feat.getCharge()
+             << " Det: " << feat.getMetaValue("detectibility") << endl
+             << " Pep: " << feat.getPeptideIdentifications()[0].getHits()[0].getSequence().toString() << endl
+             << " ID: " << feat.getUniqueId() << endl
              << " Meta: " << keys.concatenate(",") << endl;
         cout << "derived from protein(s): ";
-        for (vector<String>::const_iterator it = (*feat).getPeptideIdentifications()[0].getHits()[0].getProteinAccessions().begin();
-             it != (*feat).getPeptideIdentifications()[0].getHits()[0].getProteinAccessions().end();
-             ++it)
+        for (const auto& f : feat.getPeptideIdentifications()[0].getHits()[0].getProteinAccessions())
         {
-          cout << (*it) << " ";
+          cout << f << " ";
         }
         cout << endl << "----------------------------------------------" << endl;
       }
@@ -139,23 +133,23 @@ namespace OpenMS
     tmp.setValue("Labeling:type", "labelfree", "Select the labeling type you want for your experiment");
     tmp.setValidStrings("Labeling:type", ListUtils::create<std::string>(products));
 
-    for (vector<String>::iterator product_name = products.begin(); product_name != products.end(); ++product_name)
+    for (String& product_name : products)
     {
-      BaseLabeler* labeler = Factory<BaseLabeler>::create(*product_name);
+      BaseLabeler* labeler = Factory<BaseLabeler>::create(product_name);
       if (labeler)
       {
-        tmp.insert("Labeling:" + *product_name + ":", labeler->getDefaultParameters());
-        if (!tmp.copy("Labeling:" + *product_name).empty())
+        tmp.insert("Labeling:" + product_name + ":", labeler->getDefaultParameters());
+        if (!tmp.copy("Labeling:" + product_name).empty())
         {
           // if parameters of labeler are empty, the section will not exist and
           // the command below would fail
-          tmp.setSectionDescription("Labeling:" + *product_name, labeler->getDescription());
+          tmp.setSectionDescription("Labeling:" + product_name, labeler->getDescription());
         }
         delete(labeler);
       }
       else
       {
-        throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "This labeler returned by the Factory is invalid!", product_name->c_str()); 
+        throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "This labeler returned by the Factory is invalid!", product_name.c_str()); 
       }
     }
 
@@ -214,10 +208,10 @@ namespace OpenMS
     labeler_->preCheck(param_);
 
     // convert sample proteins into an empty FeatureMap with ProteinHits
-    for (SimTypes::SampleChannels::const_iterator channel_iterator = channels.begin(); channel_iterator != channels.end(); ++channel_iterator)
+    for (const SimTypes::SampleProteins& channel : channels)
     {
       SimTypes::FeatureMapSim map;
-      createFeatureMap_(*channel_iterator, map, feature_maps_.size());
+      createFeatureMap_(channel, map, feature_maps_.size());
       feature_maps_.push_back(map);
     }
 

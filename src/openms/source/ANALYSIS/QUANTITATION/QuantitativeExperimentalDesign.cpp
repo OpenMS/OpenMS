@@ -83,10 +83,10 @@ namespace OpenMS
       vector<ProteinIdentification> proteins;
       vector<PeptideIdentification> peptides;
 
-      for (map<String, StringList>::iterator iter =  design2FilePath.begin(); iter != design2FilePath.end(); ++iter)
+      for (auto& d2fp : design2FilePath)
       {
         // merge the respective files
-        mergeIDFiles_(proteins, peptides, iter->first, iter->second);
+        mergeIDFiles_(proteins, peptides, d2fp.first, d2fp.second);
       }
 
       resolver.resolveID(peptides);
@@ -95,9 +95,9 @@ namespace OpenMS
     {
       ConsensusMap consensus;
 
-      for (map<String, StringList>::iterator iter =  design2FilePath.begin(); iter != design2FilePath.end(); ++iter)
+      for (auto& d2fp : design2FilePath)
       {
-        mergeConsensusMaps_(consensus, iter->first, iter->second);
+        mergeConsensusMaps_(consensus, d2fp.first, d2fp.second);
       }
 
       resolver.resolveConsensus(consensus);
@@ -110,15 +110,16 @@ namespace OpenMS
 
     OPENMS_LOG_INFO << "Merge consensus maps: " << endl;
     UInt counter = 1;
-    for (StringList::iterator file_it = file_paths.begin(); file_it != file_paths.end(); ++file_it, ++counter)
+    for (String& fp : file_paths)
     {
       //load should clear the map
-      FileHandler().loadConsensusFeatures(*file_it, map);
-      for (ConsensusMap::iterator it = map.begin(); it != map.end(); ++it)
+      FileHandler().loadConsensusFeatures(fp, map);
+      for (ConsensusFeature& feat : map)
       {
-        it->setMetaValue("experiment", DataValue(experiment));
+        feat.setMetaValue("experiment", DataValue(experiment));
       }
       out.appendRows(map);
+      ++counter;
     }
     OPENMS_LOG_INFO << endl;
   }
@@ -130,36 +131,32 @@ namespace OpenMS
     vector<PeptideIdentification> additional_peptides;
 
     OPENMS_LOG_INFO << "Merge idXML-files:" << endl;
-    for (StringList::iterator file_it = file_paths.begin(); file_it != file_paths.end(); ++file_it)
+    for (String& fp : file_paths)
     {
       // load should clear the vectors
-      FileHandler().loadIdentifications(*file_it, additional_proteins, additional_peptides);
+      FileHandler().loadIdentifications(fp, additional_proteins, additional_peptides);
 
-      for (vector<ProteinIdentification>::iterator prot_it =
-             additional_proteins.begin(); prot_it !=
-           additional_proteins.end(); ++prot_it)
+      for (ProteinIdentification& prot : additional_proteins)
       {
-        prot_it->setMetaValue("experiment", DataValue(experiment));
+        prot.setMetaValue("experiment", DataValue(experiment));
       }
 
-      for (vector<PeptideIdentification>::iterator pep_it =
-             additional_peptides.begin(); pep_it !=
-           additional_peptides.end(); ++pep_it)
+      for (PeptideIdentification& pep : additional_peptides)
       {
-        pep_it->setMetaValue("experiment", DataValue(experiment));
+        pep.setMetaValue("experiment", DataValue(experiment));
       }
 
       UInt counter = 1;
-      for (vector<ProteinIdentification>::iterator prot_it = additional_proteins.begin(); prot_it != additional_proteins.end(); ++prot_it, ++counter)
+      for (ProteinIdentification& prot : additional_proteins)
       {
-        String id = prot_it->getIdentifier();
+        String id = prot.getIdentifier();
         if (used_ids.find(id) != used_ids.end()) // ID used previously
         {
           OPENMS_LOG_INFO << "Warning: The identifier '" + id + "' was used before!" << endl;
           // generate a new ID:
-          DateTime date_time = prot_it->getDateTime();
+          DateTime date_time = prot.getDateTime();
           String new_id;
-          String search_engine = prot_it->getSearchEngine();          
+          String search_engine = prot.getSearchEngine();          
           do
           {
             date_time = date_time.addSecs(1);
@@ -168,17 +165,18 @@ namespace OpenMS
 
           OPENMS_LOG_INFO << "New identifier '" + new_id + "' generated as replacement." << endl;
           // update fields:
-          prot_it->setIdentifier(new_id);
-          prot_it->setDateTime(date_time);
-          for (vector<PeptideIdentification>::iterator pep_it = additional_peptides.begin(); pep_it != additional_peptides.end(); ++pep_it)
+          prot.setIdentifier(new_id);
+          prot.setDateTime(date_time);
+          for (PeptideIdentification& pep : additional_peptides)
           {
-            if (pep_it->getIdentifier() == id)
-              pep_it->setIdentifier(new_id);
+            if (pep.getIdentifier() == id)
+              pep.setIdentifier(new_id);
           }
           used_ids.insert(new_id);
         }
         else
           used_ids.insert(id);
+        ++counter;
       }
 
       proteins.insert(proteins.end(), additional_proteins.begin(), additional_proteins.end());
@@ -192,31 +190,31 @@ namespace OpenMS
     // files without a mapping are ignored
 
     // for every experimental setup
-    for (map<String, StringList>::iterator iter =  design2FileBaseName.begin(); iter != design2FileBaseName.end(); ++iter)
+    for (auto& d2fbn : design2FileBaseName)
     {
-      StringList& files_base_name_design = iter->second;
+      StringList& files_base_name_design = d2fbn.second;
 
       StringList existing_files_input;
 
       // for every base file name
-      for (StringList::iterator it = files_base_name_design.begin(); it != files_base_name_design.end(); ++it)
+      for (String& base_name : files_base_name_design)
       {
         // search against all files from the user input
-        for (StringList::iterator it2 = filePaths.begin(); it2 != filePaths.end(); ++it2)
+        for (String& fp : filePaths)
         {
           // QFileInfo fi("/tmp/archive.tar.gz");
           // QString name = fi.baseName(); --> name = "archive"
-          const String file_ = QFileInfo(it2->toQString()).baseName().toStdString();
+          const String file_ = QFileInfo(fp.toQString()).baseName().toStdString();
           // if given store file path in string list
-          if (it->compare(file_) == 0)
+          if (base_name.compare(file_) == 0)
           {
-            existing_files_input.push_back(*it2);
+            existing_files_input.push_back(fp);
           }
         }
       }
       // iff files are provided for an setup, create a map entry
       if (!existing_files_input.empty())
-        design2FilePath.insert(make_pair(iter->first, existing_files_input));
+        design2FilePath.insert(make_pair(d2fbn.first, existing_files_input));
     }
   }
 
@@ -228,12 +226,13 @@ namespace OpenMS
 
     // iterate through header strings to look for matching identifier
     UInt col = 0;
-    for (StringList::iterator iter = header.begin(); iter != header.end(); ++iter, ++col)
+    for (String& hdr : header)
     {
-      if (experiment.compare(*iter) == 0)
+      if (experiment.compare(hdr) == 0)
         expCol = col;
-      if (fileName.compare(*iter) == 0)
+      if (fileName.compare(hdr) == 0)
         fileCol = col;
+      ++col;
     }
 
     // in case one or all identifier could not be found throw an exception
@@ -297,11 +296,11 @@ namespace OpenMS
     // map all file names to the respective experimental setting
     map<String, StringList>::iterator it;
 
-    for (vector<StringList>::iterator liter = rows.begin(); liter != rows.end(); ++liter)
+    for (StringList& row : rows)
     {
       // get experimental setting and file name
-      String experiment = liter->at(expCol);
-      String fileName = liter->at(fileCol);
+      String experiment = row.at(expCol);
+      String fileName = row.at(fileCol);
 
       // search for experimental setting
       it = experiments.find(experiment);

@@ -162,15 +162,15 @@ namespace OpenMS
   {
     // differentiate between neutral and charged adducts
     AdductsType adduct_neutral, adduct_charged;
-    for (AdductsType::const_iterator it = adduct_base_.begin(); it != adduct_base_.end(); ++it)
+    for (const auto& ad : adduct_base_)
     {
-      if (it->getCharge() == 0)
+      if (ad.getCharge() == 0)
       {
-        adduct_neutral.push_back(*it);
+        adduct_neutral.push_back(ad);
       }
       else
       {
-        adduct_charged.push_back(*it);
+        adduct_charged.push_back(ad);
       }
     }
 
@@ -180,15 +180,15 @@ namespace OpenMS
     Int max_pq = q_max_; //maximal number of positive adduct-charges for a compomer
     //Int max_nq = q_max_; //maximal number of negative adduct-charges for a compomer
 
-    for (AdductsType::const_iterator it = adduct_charged.begin(); it != adduct_charged.end(); ++it)
+    for (const auto& ad : adduct_charged)
     {
       std::vector<Adduct> new_adducts;
       //create new compomers
       Int i = 1;
       //warning: the following code assumes that max_nq == max_pq!!
-      while (abs(i * it->getCharge()) <= max_pq)
+      while (abs(i * ad.getCharge()) <= max_pq)
       {
-        Adduct a(*it);
+        Adduct a(ad);
         // positive amount
         a.setAmount(i);
         // this might not be a valid compomer (e.g. due to net_charge excess)
@@ -228,7 +228,7 @@ namespace OpenMS
         explanations_.push_back(cmpr);
       }
 
-      OPENMS_LOG_DEBUG << "valid explanations: " << explanations_.size() << " after " << it->getFormula() << std::endl;
+      OPENMS_LOG_DEBUG << "valid explanations: " << explanations_.size() << " after " << ad.getFormula() << std::endl;
 
     } // END adduct add
 
@@ -245,18 +245,18 @@ namespace OpenMS
 
     // add neutral adducts
     Size size_of_explanations = explanations_.size();
-    for (AdductsType::const_iterator it_neutral = adduct_neutral.begin(); it_neutral != adduct_neutral.end(); ++it_neutral)
+    for (const auto& ad : adduct_neutral)
     {
-      std::cout << "Adding neutral: " << *it_neutral << "\n";
+      std::cout << "Adding neutral: " << ad << "\n";
       for (Int n = 1; n <= (SignedSize)max_neutrals_; ++n)
       {
         // neutral itself:
         Compomer cmpr1;
-        cmpr1.add((*it_neutral) * n, Compomer::RIGHT);
+        cmpr1.add((ad) * n, Compomer::RIGHT);
         explanations_.push_back(cmpr1);
 
         Compomer cmpr2;
-        cmpr2.add((*it_neutral) * n, Compomer::LEFT);
+        cmpr2.add((ad) * n, Compomer::LEFT);
         explanations_.push_back(cmpr2);
 
 
@@ -265,12 +265,12 @@ namespace OpenMS
         {
           {
             Compomer cmpr(explanations_[i]);
-            cmpr.add((*it_neutral) * n, Compomer::RIGHT);
+            cmpr.add((ad) * n, Compomer::RIGHT);
             explanations_.push_back(cmpr);
           }
           {
             Compomer cmpr(explanations_[i]);
-            cmpr.add((*it_neutral) * n, Compomer::LEFT);
+            cmpr.add((ad) * n, Compomer::LEFT);
             explanations_.push_back(cmpr);
           }
         }

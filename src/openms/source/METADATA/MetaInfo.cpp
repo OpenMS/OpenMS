@@ -139,9 +139,9 @@ namespace OpenMS
   {
     keys.resize(index_to_value_.size());
     UInt i = 0;
-    for (MapType::const_iterator it = index_to_value_.begin(); it != index_to_value_.end(); ++it)
+    for (const auto& map : index_to_value_)
     {
-      keys[i++] = registry_.getName(it->first);
+      keys[i++] = registry_.getName(map.first);
     }
   }
 
@@ -149,9 +149,9 @@ namespace OpenMS
   {
     keys.resize(index_to_value_.size());
     UInt i = 0;
-    for (MapType::const_iterator it = index_to_value_.begin(); it != index_to_value_.end(); ++it)
+    for (const auto& map : index_to_value_)
     {
-      keys[i++] = it->first;
+      keys[i++] = map.first;
     }
   }
 

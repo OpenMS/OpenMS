@@ -52,12 +52,12 @@ namespace OpenMS::Internal
     void PTMXMLHandler::writeTo(std::ostream & os)
     {
       os << "<PTMs>" << "\n";
-      for (map<String, pair<String, String> >::const_iterator ptm_i = ptm_informations_.begin(); ptm_i != ptm_informations_.end(); ++ptm_i)
+      for (const auto& ptm_i : ptm_informations_)
       {
         os << "\t<PTM>" << "\n";
-        os << "\t\t<name>" << ptm_i->first << "</name>" << "\n";             // see header
-        os << "\t\t<composition>" << ptm_i->second.first << "</composition>" << "\n";
-        os << "\t\t<possible_amino_acids>" << ptm_i->second.second << "</possible_amino_acids>" << "\n";
+        os << "\t\t<name>" << ptm_i.first << "</name>" << "\n";             // see header
+        os << "\t\t<composition>" << ptm_i.second.first << "</composition>" << "\n";
+        os << "\t\t<possible_amino_acids>" << ptm_i.second.second << "</possible_amino_acids>" << "\n";
         os << "\t</PTM>" << "\n";
       }
       os << "</PTMs>" << "\n";

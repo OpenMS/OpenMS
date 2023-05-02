@@ -485,7 +485,7 @@ namespace OpenMS
 
     std::unordered_map<String, double> ionseries;
 
-    for (std::vector<String>::const_iterator ft_it = fragment_types.begin(); ft_it != fragment_types.end(); ++ft_it)
+    for (const String& ft : fragment_types)
     {
       for (const auto& charge : fragment_charges)
       {
@@ -499,32 +499,32 @@ namespace OpenMS
           double pos = 0;
           AASequence ion;
 
-          if (*ft_it == "a")
+          if (ft == "a")
           {
             ion = sequence.getPrefix(i);
             pos = ion.getMZ(charge, Residue::AIon);
           }
-          else if (*ft_it == "b")
+          else if (ft == "b")
           {
             ion = sequence.getPrefix(i);
             pos = ion.getMZ(charge, Residue::BIon);
           }
-          else if (*ft_it == "c")
+          else if (ft == "c")
           {
             ion = sequence.getPrefix(i);
             pos = ion.getMZ(charge, Residue::CIon);
           }
-          else if (*ft_it == "x")
+          else if (ft == "x")
           {
             ion = sequence.getSuffix(i);
             pos = ion.getMZ(charge, Residue::XIon);
           }
-          else if (*ft_it == "y")
+          else if (ft == "y")
           {
             ion = sequence.getSuffix(i);
             pos = ion.getMZ(charge, Residue::YIon);
           }
-          else if (*ft_it == "z")
+          else if (ft== "z")
           {
             ion = sequence.getSuffix(i);
             pos = ion.getMZ(charge, Residue::ZIon);
@@ -532,11 +532,11 @@ namespace OpenMS
           else
           {
             throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                *ft_it + " ion series for peptide sequence \"" + sequence.toString() +
+                ft + " ion series for peptide sequence \"" + sequence.toString() +
                 "\" with precursor charge +" + String(precursor_charge) + " could not be generated.");
           }
           
-          ionseries[*ft_it + String(i) + "^" + String(charge)] = Math::roundDecimal(pos, round_decPow);
+          ionseries[ft + String(i) + "^" + String(charge)] = Math::roundDecimal(pos, round_decPow);
 
           for (Size j = 0; j < ion.size(); ++j)
           {
@@ -550,7 +550,7 @@ namespace OpenMS
                     lit != CN2 &&
                     lit != CNO)
                 {
-                  ionseries[*ft_it + String(i) + "-" + lit.toString() + "^" + String(charge)] =
+                  ionseries[ft + String(i) + "-" + lit.toString() + "^" + String(charge)] =
                     Math::roundDecimal(pos - lit.getMonoWeight() / charge, round_decPow);
                 }
                 else if (enable_unspecific_losses && (
@@ -559,7 +559,7 @@ namespace OpenMS
                     lit == CN2 ||
                     lit == CNO))
                 {
-                  ionseries[*ft_it + String(i) + "-" + lit.toString() + "^" + String(charge)] =
+                  ionseries[ft + String(i) + "-" + lit.toString() + "^" + String(charge)] =
                     Math::roundDecimal(pos - lit.getMonoWeight() / charge, round_decPow);
                 }
               }

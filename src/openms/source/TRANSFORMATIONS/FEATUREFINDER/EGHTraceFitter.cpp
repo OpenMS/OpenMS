@@ -353,11 +353,10 @@ namespace OpenMS
     std::vector<double> totals(N + 2 * LEN);   // pad with zeros at ends
     Int index = LEN;
     // OPENMS_LOG_DEBUG << "Summed intensities:\n";
-    for (std::list<std::pair<double, double> >::iterator it =
-           total_intensities.begin(); it != total_intensities.end(); ++it)
+    for (auto& intensity : total_intensities)
     {
-      totals[index++] = it->second;
-      // OPENMS_LOG_DEBUG << it->second << std::endl;
+      totals[index++] = intensity.second;
+      // OPENMS_LOG_DEBUG << intensity.second << std::endl;
     }
 
     std::vector<double> smoothed(N);

@@ -194,9 +194,9 @@ namespace OpenMS
     // get basic residues from params
     basic_residues_.clear();
     const std::vector<std::string>& basic_residues = param_.getValue("esi:ionized_residues");
-    for (std::vector<std::string>::const_iterator it = basic_residues.begin(); it != basic_residues.end(); ++it)
+    for (const std::string& res : basic_residues)
     {
-      basic_residues_.insert(*it);
+      basic_residues_.insert(res);
     }
 
     // parse possible ESI adducts
@@ -431,20 +431,20 @@ public:
         if (power_factor_2 > 0)
         {
           UInt factor = 1 << power_factor_2;
-          for (std::map<Compomer, UInt, CompareCmpByEF_>::const_iterator it_m = charge_states.begin(); it_m != charge_states.end(); ++it_m)
+          for (const auto& cs : charge_states)
           {
-            charge_states[it_m->first] *= factor;
+            charge_states[cs.first] *= factor;
           }
         }
 
         // transform into a set (for sorting by abundance)
         Int max_observed_charge(0);
         std::set<std::pair<UInt, Compomer> > charge_states_sorted;
-        for (std::map<Compomer, UInt, CompareCmpByEF_>::const_iterator it_m = charge_states.begin(); it_m != charge_states.end(); ++it_m) // create set of pair(abundance, Compomer)
+        for (const auto& cs : charge_states) // create set of pair(abundance, Compomer)
         {
-          charge_states_sorted.insert(charge_states_sorted.begin(), std::make_pair(it_m->second, it_m->first));
+          charge_states_sorted.insert(charge_states_sorted.begin(), std::make_pair(cs.second, cs.first));
           // update maximal observed charge
-          max_observed_charge = std::max(max_observed_charge, it_m->first.getNetCharge());
+          max_observed_charge = std::max(max_observed_charge, cs.first.getNetCharge());
         }
 
         Int max_compomer_types = param_.getValue("esi:max_impurity_set_size");

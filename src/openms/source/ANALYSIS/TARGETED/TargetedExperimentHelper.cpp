@@ -71,14 +71,13 @@ namespace OpenMS::TargetedExperimentHelper
 
       // Populate the AASequence with the correct modifications derived from
       // the Peptide::Modification objects.
-      for (std::vector<Peptide::Modification>::const_iterator it = peptide.mods.begin(); 
-          it != peptide.mods.end(); ++it)
+      for (const auto& pep_mod : peptide.mods)
       {
         // Step 1: First look whether the UniMod ID is set (we don't use a CVTerm any more but a member)
-        if (it->unimod_id != -1)
+        if (pep_mod.unimod_id != -1)
         {
-          setModification(it->location, boost::numeric_cast<int>(peptide.sequence.size()), 
-              "UniMod:" + String(it->unimod_id), aas);
+          setModification(pep_mod.location, boost::numeric_cast<int>(peptide.sequence.size()), 
+              "UniMod:" + String(pep_mod.unimod_id), aas);
           continue;
         }
 
@@ -90,17 +89,17 @@ namespace OpenMS::TargetedExperimentHelper
         // Step 2: If the above step fails, try to find the correct
         // modification by using the mass difference
         const ResidueModification* mod = mod_db->getBestModificationByDiffMonoMass(
-          it->mono_mass_delta, 1.0, peptide.sequence[it->location]);
+          pep_mod.mono_mass_delta, 1.0, peptide.sequence[pep_mod.location]);
         if (mod != nullptr)
         {
-          setModification(it->location, boost::numeric_cast<int>(peptide.sequence.size()), mod->getId(), aas);
+          setModification(pep_mod.location, boost::numeric_cast<int>(peptide.sequence.size()), mod->getId(), aas);
         }
         else
         {
           // could not find any modification ...
           std::cerr << "Warning: Could not determine modification with delta mass " <<
-            it->mono_mass_delta << " for peptide " << peptide.sequence <<
-            " at position " << it->location << std::endl;
+            pep_mod.mono_mass_delta << " for peptide " << peptide.sequence <<
+            " at position " << pep_mod.location << std::endl;
           std::cerr << "Skipping this modification" << std::endl;
         }
       }

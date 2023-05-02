@@ -154,10 +154,10 @@ namespace OpenMS
     }
 
     // Step 1: Identify maxima
-    for (std::multimap<double, Size>::const_iterator c_it = intensity_indices.begin(); c_it != intensity_indices.end(); ++c_it)
+    for (const auto& int_ind : intensity_indices)
     {
-      double ref_int = c_it->first;
-      Size ref_idx = c_it->second;
+      double ref_int = int_ind.first;
+      Size ref_idx = int_ind.second;
 
       if (!(used_idx[ref_idx]) && ref_int > 0.0) 
       { // only allow unused points as seeds (potential local maximum)
@@ -375,12 +375,12 @@ namespace OpenMS
     Size count_mt(0);
 
     // filter out mass traces below lower quartile and above upper quartile
-    for (std::multimap<double, Size>::const_iterator m_it = sorted_by_peakwidth.begin(); m_it != sorted_by_peakwidth.end(); ++m_it)
+    for (const auto& mt : sorted_by_peakwidth)
     {
       if (count_mt >= lower_quartile_idx && count_mt <= upper_quartile_idx)
       {
-        // std::cout << "pw added " << m_it->first << std::endl;
-        filt_mtraces.push_back(mt_vec[m_it->second]);
+        // std::cout << "pw added " << mt.first << std::endl;
+        filt_mtraces.push_back(mt_vec[mt.second]);
       }
       ++count_mt;
     }
@@ -409,9 +409,9 @@ namespace OpenMS
     std::cout << "   finding elution peaks in mass traces RT "  << mt.getCentroidRT()  << " / mz " << mt.getCentroidMZ() << std::endl;
     std::cout << "   used for smoothing: win_size "  << win_size << " FWHM scan num " /* << mt.getFWHMScansNum() */ << std::endl;
     std::cout << "*****" << std::endl;
-    for (MassTrace::const_iterator mt_it = mt.begin(); mt_it != mt.end(); ++mt_it)
+    for (const auto& peak : mt)
     {
-      // std::cout << mt_it->getIntensity() << " " << mt.getSmoothedIntensities()[i] << std::endl;
+      // std::cout << peak.getIntensity() << " " << mt.getSmoothedIntensities()[i] << std::endl;
       ++i;
     }
     std::cout << "*****" << std::endl;
@@ -602,10 +602,10 @@ namespace OpenMS
     // use one global window size for all mass traces to smooth
     //  std::vector<double> rts, ints;
     //
-    //  for (MassTrace::const_iterator c_it = mt.begin(); c_it != mt.end(); ++c_it)
+    //  for (const auto& peak : mt)
     //  {
-    //      rts.push_back(c_it->getRT());
-    //      ints.push_back(c_it->getIntensity());
+    //      rts.push_back(peak.>getRT());
+    //      ints.push_back(peak.getIntensity());
     //  }
     //  LowessSmoothing lowess_smooth;
     //  Param lowess_params;

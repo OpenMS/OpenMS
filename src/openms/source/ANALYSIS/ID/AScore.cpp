@@ -152,7 +152,7 @@ namespace OpenMS
 
     Int rank = 1;
     double best_Ascore = std::numeric_limits<double>::max(); // the lower the better
-    for (vector<ProbablePhosphoSites>::iterator s_it = phospho_sites.begin(); s_it != phospho_sites.end(); ++s_it)
+    for (auto& site : phospho_sites)
     {
       double Ascore = 0;
       if (peptide1_score == peptide2_score) // set Ascore = 0 for each phosphorylation site
@@ -163,21 +163,21 @@ namespace OpenMS
       {
         vector<PeakSpectrum> site_determining_ions;
 
-        computeSiteDeterminingIons_(th_spectra, *s_it, site_determining_ions);
+        computeSiteDeterminingIons_(th_spectra, site, site_determining_ions);
         Size N = site_determining_ions[0].size(); // all possibilities have the same number so take the first one
-        double p = static_cast<double>(s_it->peak_depth) * base_match_probability_;
+        double p = static_cast<double>(site.peak_depth) * base_match_probability_;
 
         Size n_first = 0; // number of matching peaks for first peptide
         for (Size window_idx = 0; window_idx != windows_top10.size(); ++window_idx) // for each 100 m/z window
         {
-          n_first += numberOfMatchedIons_(site_determining_ions[0], windows_top10[window_idx], s_it->peak_depth);        
+          n_first += numberOfMatchedIons_(site_determining_ions[0], windows_top10[window_idx], site.peak_depth);        
         }
         double P_first = computeCumulativeScore_(N, n_first, p);
 
         Size n_second = 0; // number of matching peaks for second peptide
         for (Size window_idx = 0; window_idx <  windows_top10.size(); ++window_idx) //each 100 m/z window
         {
-          n_second += numberOfMatchedIons_(site_determining_ions[1], windows_top10[window_idx], s_it->peak_depth);        
+          n_second += numberOfMatchedIons_(site_determining_ions[1], windows_top10[window_idx], site.peak_depth);        
         }
         Size N2 = site_determining_ions[1].size(); // all possibilities have the same number so take the first one
         double P_second = computeCumulativeScore_(N2, n_second, p);
@@ -458,10 +458,10 @@ namespace OpenMS
       
       tail = computePermutations_(tupel_left, tail_phospho_sites);
       
-      for (vector<vector<Size>>::iterator it = tail.begin(); it != tail.end(); ++it)
+      for (auto& t : tail)
       {
         vector<Size> temp(head);
-        temp.insert(temp.end(), it->begin(), it->end());
+        temp.insert(temp.end(), t.begin(), t.end());
         permutations.push_back(temp);
       }
 
@@ -568,17 +568,17 @@ namespace OpenMS
     vector<vector<double>>::iterator site_score = permutation_peptide_scores.begin();
     
     // for each phospho site assignment
-    for (vector<PeakSpectrum>::iterator it = th_spectra.begin(); it != th_spectra.end(); ++it, ++site_score)
+    for (auto& spec : th_spectra)
     {
       // the number of theoretical peaks (all b- and y-ions) correspond to the number of trials N
-      Size N = it->size();
+      Size N = spec.size();
       site_score->resize(10);
       for (Size i = 1; i <= 10; ++i)
       {
         Size n = 0;
         for (Size current_win = 0; current_win < windows_top10.size(); ++current_win) // count matched ions over all 100 Da windows
         {
-          n += numberOfMatchedIons_(*it, windows_top10[current_win], i);
+          n += numberOfMatchedIons_(spec, windows_top10[current_win], i);
         }
         double p = static_cast<double>(i) * base_match_probability_;
         double cumulative_score = computeCumulativeScore_(N, n, p);
@@ -586,6 +586,7 @@ namespace OpenMS
         //abs is used to avoid -0 score values
         (*site_score)[i - 1] = abs((-10.0 * log10(cumulative_score)));
       }
+      ++site_score;
     }
     return permutation_peptide_scores;
   }

@@ -88,15 +88,15 @@ namespace OpenMS
       throw Exception::NotImplemented(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
     }
 
-    for (const Peak1D& it1 : s1)
+    for (const Peak1D& peak1 : s1)
     {
-      sum1 += it1.getIntensity();
+      sum1 += peak1.getIntensity();
       /*
-for (PeakSpectrum::ConstIterator it2 = s1.begin(); it2 != s1.end(); ++it2)
+for (const Peak1D& peak2 : s1)
 {
-  if (abs(it1->getPosition()[0] - it2->getPosition()[0]) <= 2 * tolerance)
+  if (abs(peak1.getPosition()[0] - peak2.getPosition()[0]) <= 2 * tolerance)
   {
-    squared_sum1 += it1->getIntensity() * it2->getIntensity();
+    squared_sum1 += peak1.getIntensity() * peak2.getIntensity();
   }
 }*/
     }
@@ -153,15 +153,15 @@ for (PeakSpectrum::ConstIterator it2 = s1.begin(); it2 != s1.end(); ++it2)
       }
     }*/
 
-    for (const Peak1D& it1 : s2)
+    for (const Peak1D& peak1 : s2)
     {
-      sum2 += it1.getIntensity();
+      sum2 += peak1.getIntensity();
       /*
-for (PeakSpectrum::ConstIterator it2 = s2.begin(); it2 != s2.end(); ++it2)
+for (const Peak1D& peak2 : s2)
 {
-  if (abs(it1->getPosition()[0] - it2->getPosition()[0]) <= 2 * tolerance)
+  if (abs(peak1.getPosition()[0] - peak2.getPosition()[0]) <= 2 * tolerance)
   {
-    squared_sum2 += it1->getIntensity() * it2->getIntensity();
+    squared_sum2 += peak1.getIntensity() * peak2.getIntensity();
   }
 }
       */
@@ -200,13 +200,13 @@ for (PeakSpectrum::ConstIterator it2 = s2.begin(); it2 != s2.end(); ++it2)
 
 
     /*
-for (PeakSpectrum::ConstIterator it1 = s1.begin(); it1 != s1.end(); ++it1)
+for (const Peak1D& peak1 : s1)
 {
-  for (PeakSpectrum::ConstIterator it2 = s2.begin(); it2 != s2.end(); ++it2)
+  for (const Peak1D& peak2 : s2)
   {
-    if (abs(it1->getPosition()[0] - it2->getPosition()[0]) <= 2 * tolerance)
+    if (abs(peak1.getPosition()[0] - peak2.getPosition()[0]) <= 2 * tolerance)
     {
-      sum += sqrt(it1->getIntensity() * it2->getIntensity());
+      sum += sqrt(peak1.getIntensity() * peak2.getIntensity());
     }
   }
 }*/

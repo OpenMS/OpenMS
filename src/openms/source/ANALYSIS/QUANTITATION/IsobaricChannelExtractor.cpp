@@ -216,11 +216,9 @@ namespace OpenMS
 
   bool IsobaricChannelExtractor::hasLowIntensityReporter_(const ConsensusFeature& cf) const
   {
-    for (ConsensusFeature::const_iterator cf_it = cf.begin();
-         cf_it != cf.end();
-         ++cf_it)
+    for (const auto& feature : cf)
     {
-      if (cf_it->getIntensity() == 0.0)
+      if (feature.getIntensity() == 0.0)
       {
         return true;
       }
@@ -473,30 +471,30 @@ namespace OpenMS
     // only the highest level will be used for quantification (e.g. MS3, if present)
     std::map<UInt, UInt> ms_level;
     std::map<String, int> activation_modes;
-    for (PeakMap::ConstIterator it = ms_exp_data.begin(); it != ms_exp_data.end(); ++it)
+    for (const auto& spec : ms_exp_data)
     {
-      if (it->getMSLevel() == 1) continue; // never report MS1
-      ++activation_modes[getActivationMethod_(*it)]; // count HCD, CID, ...
-      if (selected_activation_ == "any" || isValidActivation(*it))
+      if (spec.getMSLevel() == 1) continue; // never report MS1
+      ++activation_modes[getActivationMethod_(spec)]; // count HCD, CID, ...
+      if (selected_activation_ == "any" || isValidActivation(spec))
       {
-        ++ms_level[it->getMSLevel()];
+        ++ms_level[spec.getMSLevel()];
       }
     }
     if (ms_level.empty())
     {
       OPENMS_LOG_WARN << "Filtering by MS/MS(/MS) and activation mode: no spectra pass activation mode filter!\n"
                << "Activation modes found:\n";
-      for (std::map<String, int>::const_iterator it = activation_modes.begin(); it != activation_modes.end(); ++it)
+      for (const auto& mode : activation_modes)
       {
-        OPENMS_LOG_WARN << "  mode " << (it->first.empty() ? "<none>" : it->first) << ": " << it->second << " scans\n";
+        OPENMS_LOG_WARN << "  mode " << (mode.first.empty() ? "<none>" : mode.first) << ": " << mode.second << " scans\n";
       }
       OPENMS_LOG_WARN << "Result will be empty!" << std::endl;
       return;
     }
     OPENMS_LOG_INFO << "Filtering by MS/MS(/MS) and activation mode:\n";
-    for (std::map<UInt, UInt>::const_iterator it = ms_level.begin(); it != ms_level.end(); ++it)
+    for (const auto& level : ms_level)
     {
-      OPENMS_LOG_INFO << "  level " << it->first << ": " << it->second << " scans\n";
+      OPENMS_LOG_INFO << "  level " << level.first << ": " << level.second << " scans\n";
     }
     UInt quant_ms_level = ms_level.rbegin()->first;
     OPENMS_LOG_INFO << "Using MS-level " << quant_ms_level << " for quantification." << std::endl;
@@ -597,41 +595,39 @@ namespace OpenMS
       UInt64 map_index = 0;
       Peak2D::IntensityType overall_intensity = 0;
 
-      for (IsobaricQuantitationMethod::IsobaricChannelList::const_iterator cl_it = quant_method_->getChannelInformation().begin();
-            cl_it != quant_method_->getChannelInformation().end();
-            ++cl_it)
+      for (const auto& cl : quant_method_->getChannelInformation())
       {
         // set mz-position of channel
-        channel_value.setMZ(cl_it->center);
+        channel_value.setMZ(cl.center);
         // reset intensity
         channel_value.setIntensity(0);
 
         // as every evaluation requires time, we cache the MZEnd iterator
-        const PeakMap::SpectrumType::ConstIterator mz_end = it->MZEnd(cl_it->center + qc_dist_mz);
+        const PeakMap::SpectrumType::ConstIterator mz_end = it->MZEnd(cl.center + qc_dist_mz);
 
         // search for the non-zero signal closest to theoretical position
         // & check for closest signal within reasonable distance (0.5 Da) -- might find neighbouring TMT channel, but that should not confuse anyone
         int peak_count(0); // count peaks in user window -- should be only one, otherwise Window is too large
         PeakMap::SpectrumType::ConstIterator idx_nearest(mz_end);
-        for (PeakMap::SpectrumType::ConstIterator mz_it = it->MZBegin(cl_it->center - qc_dist_mz);
+        for (PeakMap::SpectrumType::ConstIterator mz_it = it->MZBegin(cl.center - qc_dist_mz);
               mz_it != mz_end;
               ++mz_it)
         {
           if (mz_it->getIntensity() == 0) continue; // ignore 0-intensity shoulder peaks -- could be detrimental when de-calibrated
-          double dist_mz = fabs(mz_it->getMZ() - cl_it->center);
+          double dist_mz = fabs(mz_it->getMZ() - cl.center);
           if (dist_mz < reporter_mass_shift_) ++peak_count;
           if (idx_nearest == mz_end // first peak
-              || ((dist_mz < fabs(idx_nearest->getMZ() - cl_it->center)))) // closer to best candidate
+              || ((dist_mz < fabs(idx_nearest->getMZ() - cl.center)))) // closer to best candidate
           {
             idx_nearest = mz_it;
           }
         }
         if (idx_nearest != mz_end)
         {
-          double mz_delta = cl_it->center - idx_nearest->getMZ();
+          double mz_delta = cl.center - idx_nearest->getMZ();
           // stats: we don't care what shift the user specified
-          channel_mz_delta[cl_it->name].mz_deltas.push_back(mz_delta);
-          if (peak_count > 1) ++channel_mz_delta[cl_it->name].signal_not_unique;
+          channel_mz_delta[cl.name].mz_deltas.push_back(mz_delta);
+          if (peak_count > 1) ++channel_mz_delta[cl.name].signal_not_unique;
           // pass user threshold
           if (std::fabs(mz_delta) < reporter_mass_shift_)
           {
@@ -690,27 +686,25 @@ namespace OpenMS
     // print stats about m/z calibration / presence of signal
     OPENMS_LOG_INFO << "Calibration stats: Median distance of observed reporter ions m/z to expected position (up to " << qc_dist_mz << " Th):\n";
     bool impurities_found(false);
-    for (IsobaricQuantitationMethod::IsobaricChannelList::const_iterator cl_it = quant_method_->getChannelInformation().begin();
-      cl_it != quant_method_->getChannelInformation().end();
-      ++cl_it)
+    for (const auto& cl : quant_method_->getChannelInformation())
     {
-      OPENMS_LOG_INFO << "  ch " << String(cl_it->name).fillRight(' ', 4) << " (~" << String(cl_it->center).substr(0, 7).fillRight(' ', 7) << "): ";
-      if (channel_mz_delta.find(cl_it->name) != channel_mz_delta.end())
+      OPENMS_LOG_INFO << "  ch " << String(cl.name).fillRight(' ', 4) << " (~" << String(cl.center).substr(0, 7).fillRight(' ', 7) << "): ";
+      if (channel_mz_delta.find(cl.name) != channel_mz_delta.end())
       {
         // sort
-        double median = Math::median(channel_mz_delta[cl_it->name].mz_deltas.begin(), channel_mz_delta[cl_it->name].mz_deltas.end(), false);
+        double median = Math::median(channel_mz_delta[cl.name].mz_deltas.begin(), channel_mz_delta[cl.name].mz_deltas.end(), false);
         if (((number_of_channels == 10) || (number_of_channels == 11)) &&
             (fabs(median) > TMT_10AND11PLEX_CHANNEL_TOLERANCE) &&
-            (int(cl_it->center) != 126 && int(cl_it->center) != 131)) // these two channels have ~1 Th spacing.. so they do not suffer from the tolerance problem
+            (int(cl.center) != 126 && int(cl.center) != 131)) // these two channels have ~1 Th spacing.. so they do not suffer from the tolerance problem
         { // the channel was most likely empty, and we picked up the neighbouring channel's data (~0.006 Th apart). So reporting median here is misleading.
           OPENMS_LOG_INFO << "<invalid data (>" << TMT_10AND11PLEX_CHANNEL_TOLERANCE << " Th channel tolerance)>\n";
         }
         else
         {
           OPENMS_LOG_INFO << median << " Th";
-          if (channel_mz_delta[cl_it->name].signal_not_unique > 0) 
+          if (channel_mz_delta[cl.name].signal_not_unique > 0) 
           {
-            OPENMS_LOG_INFO << " [MSn impurity (within " << reporter_mass_shift_ << " Th): " << channel_mz_delta[cl_it->name].signal_not_unique << " windows|spectra]";
+            OPENMS_LOG_INFO << " [MSn impurity (within " << reporter_mass_shift_ << " Th): " << channel_mz_delta[cl.name].signal_not_unique << " windows|spectra]";
             impurities_found = true;
           }
           OPENMS_LOG_INFO << "\n";
@@ -734,22 +728,20 @@ namespace OpenMS
   {
     // register the individual channels in the output consensus map
     Int index = 0;
-    for (IsobaricQuantitationMethod::IsobaricChannelList::const_iterator cl_it = quant_method_->getChannelInformation().begin();
-         cl_it != quant_method_->getChannelInformation().end();
-         ++cl_it)
+    for (const auto& cl : quant_method_->getChannelInformation())
     {
       ConsensusMap::ColumnHeader channel_as_map;
       // label is the channel + description provided in the Params
-      channel_as_map.label = quant_method_->getMethodName() + "_" + cl_it->name;
+      channel_as_map.label = quant_method_->getMethodName() + "_" + cl.name;
 
       // TODO(aiche): number of features need to be set later
       channel_as_map.size = consensus_map.size();
 
       // add some more MetaInfo
-      channel_as_map.setMetaValue("channel_name", cl_it->name);
-      channel_as_map.setMetaValue("channel_id", cl_it->id);
-      channel_as_map.setMetaValue("channel_description", cl_it->description);
-      channel_as_map.setMetaValue("channel_center", cl_it->center);
+      channel_as_map.setMetaValue("channel_name", cl.name);
+      channel_as_map.setMetaValue("channel_id", cl.id);
+      channel_as_map.setMetaValue("channel_description", cl.description);
+      channel_as_map.setMetaValue("channel_center", cl.center);
       consensus_map.getColumnHeaders()[index] = channel_as_map;
       ++index;
     }

@@ -107,12 +107,12 @@ namespace OpenMS
     }
 
     // add variable for each protein:
-    for (set<String>::const_iterator p = all_accs.begin(); p != all_accs.end(); ++p)
+    for (const String& p : all_accs)
     {
       // create column with boundaries 0-1 and integer/binary variable
       Int index = problem.addColumn();
       problem.setColumnBounds(index, 0., 1., LPWrapper::DOUBLE_BOUNDED);
-      problem.setColumnName(index, *p);
+      problem.setColumnName(index, p);
       problem.setColumnType(index, LPWrapper::BINARY);
       problem.setObjective(index, 1.);
     }
@@ -132,9 +132,9 @@ namespace OpenMS
 
       const std::set<String> accs = peptide_ids[p].getHits()[0].extractProteinAccessionsSet();
 
-      for (std::set<String>::const_iterator accs_it = accs.begin(); accs_it != accs.end(); ++accs_it)
+      for (const String& acc : accs)
       {
-        indices.push_back((Int)problem.getColumnIndex(*accs_it));
+        indices.push_back((Int)problem.getColumnIndex(acc));
       }
       vector<double> values(indices.size(), 1.);
 
@@ -178,12 +178,12 @@ namespace OpenMS
       String seq = ids[i].getHits()[0].getSequence().toUnmodifiedString();
       double score = ids[i].getHits()[0].getScore();
       bool higher_better = ids[i].isHigherScoreBetter();
-      for (std::set<String>::const_iterator a_it = accs.begin(); a_it != accs.end(); ++a_it)
+      for (const String& acc : accs)
       {
         // first check if protein has already a peptide with the same sequence stored
-        std::vector<PeptideIdentification>::iterator it = pep_prot_map[*a_it].begin();
+        std::vector<PeptideIdentification>::iterator it = pep_prot_map[acc].begin();
         bool insert = true;
-        for (; it != pep_prot_map[*a_it].end(); ++it)
+        for (; it != pep_prot_map[acc].end(); ++it)
         {
           if (it->getHits()[0].getSequence().toUnmodifiedString() == seq) // find peptide sequence
           {
@@ -205,7 +205,7 @@ namespace OpenMS
           }
         }
         if (insert)
-          pep_prot_map[*a_it].push_back(ids[i]);
+          pep_prot_map[acc].push_back(ids[i]);
       }
     }
 

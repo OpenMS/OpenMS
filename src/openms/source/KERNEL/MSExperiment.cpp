@@ -273,32 +273,32 @@ namespace OpenMS
     }
 
     // update
-    for (Base::iterator it = spectra_.begin(); it != spectra_.end(); ++it)
+    for (auto& spec : spectra_)
     {
-      if (ms_level < Int(0) || Int(it->getMSLevel()) == ms_level)
+      if (ms_level < Int(0) || Int(spec.getMSLevel()) == ms_level)
       {
         //ms levels
-        if (std::find(ms_levels_.begin(), ms_levels_.end(), it->getMSLevel()) == ms_levels_.end())
+        if (std::find(ms_levels_.begin(), ms_levels_.end(), spec.getMSLevel()) == ms_levels_.end())
         {
-          ms_levels_.push_back(it->getMSLevel());
+          ms_levels_.push_back(spec.getMSLevel());
         }
 
         // calculate size
-        total_size_ += it->size();
+        total_size_ += spec.size();
 
         // ranges
-        this->extendRT(it->getRT()); // RT
-        this->extendMobility(it->getDriftTime()); // IM
-        it->updateRanges();
-        this->extend(*it);           // m/z and intensity from spectrum's range
+        this->extendRT(spec.getRT()); // RT
+        this->extendMobility(spec.getDriftTime()); // IM
+        spec.updateRanges();
+        this->extend(spec);           // m/z and intensity from spectrum's range
       }
       // for MS level = 1 we extend the range for all the MS2 precursors
-      if (ms_level == 1 && it->getMSLevel() == 2)
+      if (ms_level == 1 && spec.getMSLevel() == 2)
       {
-        if (!it->getPrecursors().empty())
+        if (!spec.getPrecursors().empty())
         {
-          this->extendRT(it->getRT());
-          this->extendMZ(it->getPrecursors()[0].getMZ());
+          this->extendRT(spec.getRT());
+          this->extendMZ(spec.getPrecursors()[0].getMZ());
         }
       }
 
@@ -844,10 +844,10 @@ namespace OpenMS
     SpectrumType* spectrum = createSpec_(rt);
     // create metadata arrays
     spectrum->getFloatDataArrays().reserve(metadata_names.size());
-    for (StringList::const_iterator itm = metadata_names.begin(); itm != metadata_names.end(); ++itm)
+    for (const auto& mdname : metadata_names)
     {
       spectrum->getFloatDataArrays().push_back(MSSpectrum::FloatDataArray());
-      spectrum->getFloatDataArrays().back().setName(*itm);
+      spectrum->getFloatDataArrays().back().setName(mdname);
     }
     return spectrum;
   }

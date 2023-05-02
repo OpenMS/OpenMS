@@ -169,24 +169,24 @@ namespace OpenMS
 
     // adducts might look like this:
     //   Element:Probability[:RTShift[:Label]]
-    for (StringList::iterator it = potential_adducts_s.begin(); it != potential_adducts_s.end(); ++it)
+    for (String& p_add : potential_adducts_s)
     {
       // skip disabled adducts
-      if (it->trim().hasPrefix("#"))
+      if (p_add.trim().hasPrefix("#"))
         continue;
 
       StringList adduct;
-      it->split(':', adduct);
+      p_add.split(':', adduct);
       if (adduct.size() != 3 && adduct.size() != 4 && adduct.size() != 5)
       {
-        String error = "FeatureDeconvolution::potential_adducts (" + (*it) + ") does not have three, four or five entries ('Elements:Charge:Probability' or 'Elements:Charge:Probability:RTShift' or 'Elements:Charge:Probability:RTShift:Label'), but " + String(adduct.size()) + " entries!";
+        String error = "FeatureDeconvolution::potential_adducts (" + p_add + ") does not have three, four or five entries ('Elements:Charge:Probability' or 'Elements:Charge:Probability:RTShift' or 'Elements:Charge:Probability:RTShift:Label'), but " + String(adduct.size()) + " entries!";
         throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, error);
       }
       // determine probability
       float prob = adduct[2].toFloat();
       if (prob > 1.0 || prob <= 0.0)
       {
-        String error = "FeatureDeconvolution::potential_adducts (" + (*it) + ") does not have a proper probability (" + String(prob) + ") in [0,1]!";
+        String error = "FeatureDeconvolution::potential_adducts (" + p_add + ") does not have a proper probability (" + String(prob) + ") in [0,1]!";
         throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, error);
       }
 
@@ -884,9 +884,9 @@ namespace OpenMS
           else //** conflict: the two elements of the pair already have separate CFs --> merge
           { // take every feature from second CF and: #1 put into first CF, #2 change registration with map
             ConsensusFeature::HandleSetType hst = cons_map[target_cf1].getFeatures();
-            for (ConsensusFeature::HandleSetType::const_iterator it = hst.begin(); it != hst.end(); ++it) //** update cf_index
+            for (const auto& handle : hst) //** update cf_index
             {
-              clique_register[fm_out.uniqueIdToIndex(it->getUniqueId())] = target_cf0;
+              clique_register[fm_out.uniqueIdToIndex(handle.getUniqueId())] = target_cf0;
             }
             // insert features from cf1 to cf0
             cons_map[target_cf0].insert(hst);
@@ -950,43 +950,43 @@ namespace OpenMS
     // remove empty ConsensusFeatures from map
     ConsensusMap cons_map_tmp(cons_map);
     cons_map_tmp.clear(false); // keep other meta information (like ProteinIDs & Map)
-    for (ConsensusMap::Iterator it = cons_map.begin(); it != cons_map.end(); ++it)
+    for (auto& cmap : cons_map)
     {
       // skip if empty
-      if (it->getFeatures().empty())
+      if (cmap.getFeatures().empty())
         continue;
 
       // skip if no backbone
       Size backbone_count = 0;
-      ConsensusFeature::HandleSetType hst = it->getFeatures();
-      for (ConsensusFeature::HandleSetType::const_iterator it_h = hst.begin(); it_h != hst.end(); ++it_h) //** check if feature in CF has backbone
+      ConsensusFeature::HandleSetType hst = cmap.getFeatures();
+      for (const auto& handle : hst) //** check if feature in CF has backbone
       {
-        backbone_count += (Size)fm_out[fm_out.uniqueIdToIndex(it_h->getUniqueId())].getMetaValue("is_backbone");
+        backbone_count += (Size)fm_out[fm_out.uniqueIdToIndex(handle.getUniqueId())].getMetaValue("is_backbone");
       }
       if (backbone_count == 0)
       {
-        for (ConsensusFeature::HandleSetType::const_iterator it_h = hst.begin(); it_h != hst.end(); ++it_h) //** remove cluster members from registry (they will become single features)
+        for (const auto& handle : hst) //** remove cluster members from registry (they will become single features)
         {
-          clique_register.erase(fm_out.uniqueIdToIndex(it_h->getUniqueId()));
+          clique_register.erase(fm_out.uniqueIdToIndex(handle.getUniqueId()));
         }
         continue;
       }
 
       // store number of distinct charges
       std::set<Int> charges;
-      for (ConsensusFeature::HandleSetType::const_iterator it_h = hst.begin(); it_h != hst.end(); ++it_h)
+      for (const auto& handle : hst)
       {
-        charges.insert(it_h->getCharge());
+        charges.insert(handle.getCharge());
       }
       IntList i_charges;
-      for (std::set<Int>::const_iterator it_q = charges.begin(); it_q != charges.end(); ++it_q)
+      for (const Int charge : charges)
       {
-        i_charges.push_back(*it_q);
+        i_charges.push_back(charge);
       }
-      it->setMetaValue("distinct_charges", i_charges);
-      it->setMetaValue("distinct_charges_size", i_charges.size());
+      cmap.setMetaValue("distinct_charges", i_charges);
+      cmap.setMetaValue("distinct_charges_size", i_charges.size());
 
-      cons_map_tmp.push_back(*it);
+      cons_map_tmp.push_back(cmap);
       // set a centroid
       cons_map_tmp.back().computeDechargeConsensus(fm_out);
       cons_map_tmp.back().setMetaValue("pure_proton_features", backbone_count);
@@ -1093,9 +1093,9 @@ namespace OpenMS
       {
         Compomer::CompomerSide to_add = edges[result_it->idx_cp].getCompomer().removeAdduct(default_adduct).getComponent()[result_it->side_cp];
         // we currently do not punish additional two-side adducts
-        for (Compomer::CompomerSide::iterator it = to_add.begin(); it != to_add.end(); ++it)
+        for (auto& edge : to_add)
         {
-          it->second.setLogProb(0);
+          edge.second.setLogProb(0);
         }
         ChargePair cp(edges[i]); // make a copy
         Compomer new_cmp = cp.getCompomer().removeAdduct(default_adduct);

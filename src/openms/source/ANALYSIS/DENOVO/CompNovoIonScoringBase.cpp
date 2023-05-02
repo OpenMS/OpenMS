@@ -126,9 +126,9 @@ namespace OpenMS
           // infer this peak as single charged variant
           double mz_comp = it->getPosition()[0] * 2.0 - Constants::PROTON_MASS_U;
           bool found(false);
-          for (PeakSpectrum::ConstIterator it1 = CID_spec.begin(); it1 != CID_spec.end(); ++it1)
+          for (const auto& spec : CID_spec)
           {
-            if (fabs(mz_comp - it1->getPosition()[0]) < fragment_mass_tolerance_)
+            if (fabs(mz_comp - spec.getPosition()[0]) < fragment_mass_tolerance_)
             {
               found = true;
               break;
@@ -226,14 +226,14 @@ namespace OpenMS
 
     // normalize the intensity to a sum of one
     double sum(0);
-    for (vector<double>::const_iterator it1 = iso_pattern.begin(); it1 != iso_pattern.end(); ++it1)
+    for (const auto& pattern : iso_pattern)
     {
-      sum += *it1;
+      sum += pattern;
     }
 
-    for (vector<double>::iterator it1 = iso_pattern.begin(); it1 != iso_pattern.end(); ++it1)
+    for (auto& pattern : iso_pattern)
     {
-      *it1 /= sum;
+      pattern /= sum;
     }
 
     // get the theoretical isotope distribution
@@ -326,14 +326,14 @@ namespace OpenMS
     // normalize the intensity to a sum of one
     /*
   double sum(0);
-  for (vector<double>::const_iterator it1 = iso_pattern.begin(); it1 != iso_pattern.end(); ++it1)
+  for (const auto& pattern : iso_pattern)
   {
-    sum += *it1;
+    sum += pattern;
   }
 
-  for (vector<double>::iterator it1 = iso_pattern.begin(); it1 != iso_pattern.end(); ++it1)
+  for (auto& pattern : iso_pattern)
   {
-    *it1 /= sum;
+    pattern /= sum;
   }*/
 
 

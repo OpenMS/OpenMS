@@ -255,19 +255,19 @@ namespace OpenMS
     picked_chrom.getFloatDataArrays()[IDX_ABUNDANCE].setName("IntegratedIntensity");
     picked_chrom.getFloatDataArrays()[IDX_LEFTBORDER].setName("leftWidth");
     picked_chrom.getFloatDataArrays()[IDX_RIGHTBORDER].setName("rightWidth");
-    for (std::vector<crawpeaks::SlimCrawPeak>::iterator it = result.begin(); it != result.end(); ++it)
+    for (auto& res : result)
     {
       ChromatogramPeak p;
-      p.setRT(chromatogram[it->peak_rt_idx].getRT());
-      p.setIntensity(it->peak_area); //chromatogram[it->peak_rt_idx].getIntensity() );
+      p.setRT(chromatogram[res.peak_rt_idx].getRT());
+      p.setIntensity(res.peak_area); //chromatogram[res.peak_rt_idx].getIntensity() );
 
-      picked_chrom.getFloatDataArrays()[IDX_ABUNDANCE].push_back(it->peak_area);
-      picked_chrom.getFloatDataArrays()[IDX_LEFTBORDER].push_back(chromatogram[it->start_rt_idx].getRT());
-      picked_chrom.getFloatDataArrays()[IDX_RIGHTBORDER].push_back(chromatogram[it->stop_rt_idx].getRT());
+      picked_chrom.getFloatDataArrays()[IDX_ABUNDANCE].push_back(res.peak_area);
+      picked_chrom.getFloatDataArrays()[IDX_LEFTBORDER].push_back(chromatogram[res.start_rt_idx].getRT());
+      picked_chrom.getFloatDataArrays()[IDX_RIGHTBORDER].push_back(chromatogram[res.stop_rt_idx].getRT());
 
-      OPENMS_LOG_DEBUG << "Found peak at " << p.getRT() << " and "  << chromatogram[it->peak_rt_idx].getIntensity()
-                << " with borders " << chromatogram[it->start_rt_idx].getRT() << " " << chromatogram[it->stop_rt_idx].getRT()  <<  " (" << chromatogram[it->start_rt_idx].getRT() - chromatogram[it->stop_rt_idx].getRT() << ") "
-                << it->peak_area << " weighted RT " << /* weighted_mz << */ std::endl;
+      OPENMS_LOG_DEBUG << "Found peak at " << p.getRT() << " and "  << chromatogram[res.peak_rt_idx].getIntensity()
+                << " with borders " << chromatogram[res.start_rt_idx].getRT() << " " << chromatogram[res.stop_rt_idx].getRT()  <<  " (" << chromatogram[res.start_rt_idx].getRT() - chromatogram[res.stop_rt_idx].getRT() << ") "
+                << res.peak_area << " weighted RT " << /* weighted_mz << */ std::endl;
 
       picked_chrom.push_back(p);
 

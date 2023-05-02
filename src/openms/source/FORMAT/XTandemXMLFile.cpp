@@ -77,15 +77,15 @@ namespace OpenMS
 
     // convert mapping id -> peptide_hits into peptide hits list
     peptide_ids.clear();
-    for (map<UInt, vector<PeptideHit> >::iterator it = peptide_hits_.begin(); it != peptide_hits_.end(); ++it)
+    for (auto& pep_hit : peptide_hits_)
     {
       PeptideIdentification id;
       id.setScoreType("XTandem");
       id.setHigherScoreBetter(true);
       id.setIdentifier(identifier);
-      id.setMetaValue("spectrum_reference", spectrum_ids_[it->first]);
+      id.setMetaValue("spectrum_reference", spectrum_ids_[pep_hit.first]);
 
-      id.getHits().swap(it->second);
+      id.getHits().swap(pep_hit.second);
       id.assignRanks();
       peptide_ids.push_back(id);
     }
@@ -164,15 +164,15 @@ namespace OpenMS
         String ions = "abcxyz";
         String ion_score = " _score";
         String ion_count = " _ions";
-        for (String::iterator it = ions.begin(); it != ions.end(); ++it)
+        for (auto& ion : ions)
         {
-          ion_score[0] = *it;
+          ion_score[0] = ion;
           double score;
           if (optionalAttributeAsDouble_(score, attributes, ion_score.c_str()))
           {
             hit.setMetaValue(ion_score, score);
           }
-          ion_count[0] = *it;
+          ion_count[0] = ion;
           UInt count;
           if (optionalAttributeAsUInt_(count, attributes, ion_count.c_str()))
           {

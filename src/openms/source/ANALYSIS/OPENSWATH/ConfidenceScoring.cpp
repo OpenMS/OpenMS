@@ -117,11 +117,10 @@ namespace OpenMS
       }
       // fill output list ordered by m/z:
       intensities.clear();
-      for (BimapType::left_map::iterator int_it = intensity_map.left.begin();
-           int_it != intensity_map.left.end(); ++int_it)
+      for (auto& int_map : intensity_map.left)
       {
         // missing values might be "-1"
-        intensities.push_back(max(0.0, int_it->second));
+        intensities.push_back(max(0.0, int_map.second));
       }
     }
 
@@ -138,11 +137,10 @@ namespace OpenMS
 
       // collect transition intensities:
       BimapType intensity_map;
-      for (IntList::iterator trans_it = transition_map_[assay.id].begin();
-           trans_it != transition_map_[assay.id].end(); ++trans_it)
+      for (const Int& trans : transition_map_[assay.id])
       {
         const ReactionMonitoringTransition& transition = 
-          library_.getTransitions()[*trans_it];
+          library_.getTransitions()[trans];
         // for the "true" assay, we need to choose the same transitions as for the
         // feature:
         if (!transition_ids.empty() && 
@@ -193,13 +191,12 @@ namespace OpenMS
       // for the "true" assay, we need to make sure we compare based on the same
       // transitions, so keep track of them:
       std::map<double, String> trans_id_map; // Q3 m/z -> transition ID
-      for (vector<Feature>::iterator sub_it = feature.getSubordinates().begin();
-           sub_it != feature.getSubordinates().end(); ++sub_it)
+      for (auto& sub : feature.getSubordinates())
       {
         // seems like Boost's Bimap doesn't support "operator[]"...
-        intensity_map.left.insert(make_pair(sub_it->getMZ(), 
-                                            sub_it->getIntensity()));
-        trans_id_map[sub_it->getMZ()] = sub_it->getMetaValue("native_id");
+        intensity_map.left.insert(make_pair(sub.getMZ(), 
+                                            sub.getIntensity()));
+        trans_id_map[sub.getMZ()] = sub.getMetaValue("native_id");
       }
       DoubleList feature_intensities;
       extractIntensities_(intensity_map, n_transitions_, feature_intensities);
@@ -211,10 +208,9 @@ namespace OpenMS
       }
       // "intensity_map" now only contains the transitions we need later:
       std::set<String> transition_ids;
-      for (BimapType::left_map::iterator int_it = intensity_map.left.begin();
-           int_it != intensity_map.left.end(); ++int_it)
+      for (auto& int_map : intensity_map.left)
       {
-        transition_ids.insert(trans_id_map[int_it->first]);
+        transition_ids.insert(trans_id_map[int_map.first]);
       }
 
       DoubleList scores; // "true" score is in "scores[0]", decoy scores follow
@@ -233,11 +229,10 @@ namespace OpenMS
       // compare to decoy assays:
       chooseDecoys_();
       Size counter = 0;
-      for (IntList::iterator decoy_it = decoy_index_.begin(); 
-           decoy_it != decoy_index_.end(); ++decoy_it)
+      for (Int& decoy : decoy_index_)
       {
         const TargetedExperiment::Peptide& decoy_assay = 
-          library_.getPeptides()[*decoy_it];
+          library_.getPeptides()[decoy];
 
         // skip the "true" assay and assays with too few transitions:
         // TODO: maybe add an option to include assays with too few transitions?

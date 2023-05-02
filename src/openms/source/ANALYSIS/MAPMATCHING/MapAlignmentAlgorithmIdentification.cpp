@@ -106,12 +106,11 @@ namespace OpenMS
                                                             bool sorted)
   {
     medians.clear();
-    for (SeqToList::iterator rt_it = rt_data.begin();
-         rt_it != rt_data.end(); ++rt_it)
+    for (auto& rt : rt_data)
     {
-      double median = Math::median(rt_it->second.begin(),
-                                   rt_it->second.end(), sorted);
-      medians.insert(medians.end(), make_pair(rt_it->first, median));
+      double median = Math::median(rt.second.begin(),
+                                   rt.second.end(), sorted);
+      medians.insert(medians.end(), make_pair(rt.first, median));
     }
   }
 
@@ -119,16 +118,15 @@ namespace OpenMS
   bool MapAlignmentAlgorithmIdentification::getRetentionTimes_(
       vector<PeptideIdentification>& peptides, SeqToList& rt_data)
   {
-    for (vector<PeptideIdentification>::iterator pep_it = peptides.begin();
-         pep_it != peptides.end(); ++pep_it)
+    for (PeptideIdentification& pep : peptides)
     {
-      if (!pep_it->getHits().empty())
+      if (!pep.getHits().empty())
       {
-        pep_it->sort();
-        if (better_(pep_it->getHits()[0].getScore(), min_score_))
+        pep.sort();
+        if (better_(pep.getHits()[0].getScore(), min_score_))
         {
-          const String& seq = pep_it->getHits()[0].getSequence().toString();
-          rt_data[seq].push_back(pep_it->getRT());
+          const String& seq = pep.getHits()[0].getSequence().toString();
+          rt_data[seq].push_back(pep.getRT());
         }
       }
     }
@@ -206,10 +204,9 @@ namespace OpenMS
   bool MapAlignmentAlgorithmIdentification::getRetentionTimes_(
       PeakMap& experiment, SeqToList& rt_data)
   {
-    for (PeakMap::Iterator exp_it = experiment.begin();
-         exp_it != experiment.end(); ++exp_it)
+    for (auto& exp : experiment)
     {
-      getRetentionTimes_(exp_it->getPeptideIdentifications(), rt_data);
+      getRetentionTimes_(exp.getPeptideIdentifications(), rt_data);
     }
     // duplicate annotations should not be possible -> no need to remove them
     return false;
@@ -233,13 +230,11 @@ namespace OpenMS
       computeMedians_(rt_data[i], medians_per_run[i], sorted);
     }
     SeqToList medians_per_seq;
-    for (vector<SeqToValue>::iterator run_it = medians_per_run.begin();
-         run_it != medians_per_run.end(); ++run_it)
+    for (auto& run : medians_per_run)
     {
-      for (SeqToValue::iterator med_it = run_it->begin();
-           med_it != run_it->end(); ++med_it)
+      for (auto& med : run)
       {
-        medians_per_seq[med_it->first].push_back(med_it->second);
+        medians_per_seq[med.first].push_back(med.second);
       }
     }
 
@@ -251,14 +246,13 @@ namespace OpenMS
       // remove peptides that don't occur in enough runs:
       OPENMS_LOG_DEBUG << "Removing peptides that occur in too few runs..." << endl;
       SeqToValue temp;
-      for (SeqToValue::iterator ref_it = reference_.begin();
-           ref_it != reference_.end(); ++ref_it)
+      for (auto& ref : reference_)
       {
-        SeqToList::iterator med_it = medians_per_seq.find(ref_it->first);
+        SeqToList::iterator med_it = medians_per_seq.find(ref.first);
         if ((med_it != medians_per_seq.end()) &&
             (med_it->second.size() + 1 >= min_run_occur_))
         {
-          temp.insert(temp.end(), *ref_it); // new items should go at the end
+          temp.insert(temp.end(), ref); // new items should go at the end
         }
       }
       OPENMS_LOG_DEBUG << "Removed " << reference_.size() - temp.size() << " of "
@@ -272,12 +266,11 @@ namespace OpenMS
       // remove peptides that don't occur in enough runs (at least two):
       OPENMS_LOG_DEBUG << "Removing peptides that occur in too few runs..." << endl;
       SeqToList temp;
-      for (SeqToList::iterator med_it = medians_per_seq.begin();
-           med_it != medians_per_seq.end(); ++med_it)
+      for (auto& med : medians_per_seq)
       {
-        if (med_it->second.size() >= min_run_occur_)
+        if (med.second.size() >= min_run_occur_)
         {
-          temp.insert(temp.end(), *med_it);
+          temp.insert(temp.end(), med);
         }
       }
       OPENMS_LOG_DEBUG << "Removed " << medians_per_seq.size() - temp.size() << " of "
@@ -295,11 +288,10 @@ namespace OpenMS
     {
       // compute max. allowed shift from overall retention time range:
       double rt_min = numeric_limits<double>::infinity(), rt_max = -rt_min;
-      for (SeqToValue::iterator it = reference_.begin(); it != reference_.end();
-           ++it)
+      for (auto& ref : reference_)
       {
-        rt_min = min(rt_min, it->second);
-        rt_max = max(rt_max, it->second);
+        rt_min = min(rt_min, ref.second);
+        rt_max = max(rt_max, ref.second);
       }
       double rt_range = rt_max - rt_min;
       max_rt_shift *= rt_range;
@@ -336,15 +328,14 @@ namespace OpenMS
       // ("medians_overall"):
       TransformationDescription::DataPoints data;
       Size n_outliers = 0;
-      for (SeqToValue::iterator med_it = medians_per_run[i].begin();
-           med_it != medians_per_run[i].end(); ++med_it)
+      for (auto& med : medians_per_run[i])
       {
-        SeqToValue::const_iterator pos = reference_.find(med_it->first);
+        SeqToValue::const_iterator pos = reference_.find(med.first);
         if (pos != reference_.end())
         {
-          if (abs(med_it->second - pos->second) <= max_rt_shift)
+          if (abs(med.second - pos->second) <= max_rt_shift)
           { // found, and satisfies "max_rt_shift" condition!
-            TransformationDescription::DataPoint point(med_it->second,
+            TransformationDescription::DataPoint point(med.second,
                                                        pos->second, pos->first);
             data.push_back(point);
           }

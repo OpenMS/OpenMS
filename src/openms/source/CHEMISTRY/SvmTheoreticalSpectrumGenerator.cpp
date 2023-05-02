@@ -886,25 +886,25 @@ namespace OpenMS
         }
 
         //now generate all secondary types for the primary one
-        for (std::vector<IonType>::iterator it = mp_.secondary_types[mp_.ion_types[type_nr]].begin(); it != mp_.secondary_types[mp_.ion_types[type_nr]].end(); ++it)
+        for (auto& i_type : mp_.secondary_types[mp_.ion_types[type_nr]])
         {
-          if (hide_type_[*it] || (!add_losses && !it->loss.isEmpty()))
+          if (hide_type_[i_type] || (!add_losses && !i_type.loss.isEmpty()))
           {
             continue;
           }
 
           if (simulation_type == 0)
           {
-            if (predicted_class[i] != 0 && mp_.static_intensities[it->residue] != 0  && hide_type_[*it] == false) //no secondary ion if primary is classified as missing
+            if (predicted_class[i] != 0 && mp_.static_intensities[i_type.residue] != 0  && hide_type_[i_type] == false) //no secondary ion if primary is classified as missing
             {
-              double intens = mp_.static_intensities[it->residue];
-              if (!it->loss.isEmpty())
+              double intens = mp_.static_intensities[i_type.residue];
+              if (!i_type.loss.isEmpty())
               {
                 intens = intens * relative_loss_intens;
               }
               if (intens > 0)
               {
-                peaks_to_generate.emplace_back(std::make_pair(*it, intens), i);
+                peaks_to_generate.emplace_back(std::make_pair(i_type, intens), i);
               }
             }
           }
@@ -912,7 +912,7 @@ namespace OpenMS
           {
             //sample intensities for secondary types
             Size region = std::min(mp_.number_regions - 1, (Size)floor(mp_.number_regions * prefix.getMonoWeight(Residue::Internal) / peptide.getMonoWeight()));
-            std::vector<double>& props = mp_.conditional_prob[std::make_pair(*it, region)][bin];
+            std::vector<double>& props = mp_.conditional_prob[std::make_pair(i_type, region)][bin];
             std::vector<double> weights;
             std::transform(props.begin(), props.end(), std::back_inserter(weights), [](auto && PH1) { return std::multiplies<double>()(std::forward<decltype(PH1)>(PH1), 10); });
             boost::random::discrete_distribution<Size> ddist(weights.begin(), weights.end());
@@ -920,7 +920,7 @@ namespace OpenMS
 
             if (binned_int != 0)
             {
-              peaks_to_generate.emplace_back(std::make_pair(*it, mp_.intensity_bin_values[binned_int - 1]), i);
+              peaks_to_generate.emplace_back(std::make_pair(i_type, mp_.intensity_bin_values[binned_int - 1]), i);
             }
           }
         }
@@ -957,14 +957,15 @@ namespace OpenMS
       {
         IsotopeDistribution dist = ion_formula.getIsotopeDistribution(CoarseIsotopePatternGenerator((Int)max_isotope));
         Size j = 0;
-        for (IsotopeDistribution::ConstIterator it = dist.begin(); it != dist.end(); ++it, ++j)
+        for (const auto& peak : dist)
         {
-          spectrum.push_back(Peak1D(mz_pos + (double)j * Constants::C13C12_MASSDIFF_U / charge, intensity * it->getIntensity()));
+          spectrum.push_back(Peak1D(mz_pos + (double)j * Constants::C13C12_MASSDIFF_U / charge, intensity * peak.getIntensity()));
           if (add_metainfo)
           {
             spectrum.getStringDataArrays()[0].push_back(ion_name);
             spectrum.getIntegerDataArrays()[0].push_back(charge);
           }
+          ++j;
         }
       }
       else

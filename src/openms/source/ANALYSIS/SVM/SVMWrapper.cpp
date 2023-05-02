@@ -1876,15 +1876,13 @@ namespace OpenMS
   {
     Size counter = 0;
 
-    for (vector<pair<double, double> >::const_iterator it = points.begin();
-         it != points.end();
-         ++it)
+    for (const auto& point : points)
     {
-      double upper_bound = intercept + it->first * slope;
-      double lower_bound = -intercept + it->first * (1 / slope);
+      double upper_bound = intercept + point.first * slope;
+      double lower_bound = -intercept + point.first * (1 / slope);
 
-      if (it->second >= lower_bound
-         && it->first <= upper_bound)
+      if (point.second >= lower_bound
+         && point.first <= upper_bound)
       {
         ++counter;
       }

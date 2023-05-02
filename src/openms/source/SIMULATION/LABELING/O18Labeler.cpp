@@ -200,9 +200,9 @@ namespace OpenMS
     }
 
     // add remaining feature from first channel
-    for (std::map<AASequence, Feature>::iterator remaining_features_iter = unlabeled_features_index.begin(); remaining_features_iter != unlabeled_features_index.end(); ++remaining_features_iter)
+    for (auto& remaining_features : unlabeled_features_index)
     {
-      final_feature_map.push_back(remaining_features_iter->second);
+      final_feature_map.push_back(remaining_features.second);
     }
 
     features_to_simulate.clear();

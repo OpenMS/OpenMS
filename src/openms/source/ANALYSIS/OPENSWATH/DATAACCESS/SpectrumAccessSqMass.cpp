@@ -108,10 +108,10 @@ namespace OpenMS
       const MSSpectrumType& spectrum = tmp_spectra[0];
       OpenSwath::BinaryDataArrayPtr intensity_array(new OpenSwath::BinaryDataArray);
       OpenSwath::BinaryDataArrayPtr mz_array(new OpenSwath::BinaryDataArray);
-      for (MSSpectrumType::const_iterator it = spectrum.begin(); it != spectrum.end(); ++it)
+      for (const Peak1D& peak : spectrum)
       {
-        mz_array->data.push_back(it->getMZ());
-        intensity_array->data.push_back(it->getIntensity());
+        mz_array->data.push_back(peak.getMZ());
+        intensity_array->data.push_back(peak.getIntensity());
       }
 
       OpenSwath::SpectrumPtr sptr(new OpenSwath::Spectrum);
@@ -170,10 +170,10 @@ namespace OpenMS
         const MSSpectrumType& spectrum = tmp_spectra[k];
         OpenSwath::BinaryDataArrayPtr intensity_array(new OpenSwath::BinaryDataArray);
         OpenSwath::BinaryDataArrayPtr mz_array(new OpenSwath::BinaryDataArray);
-        for (MSSpectrumType::const_iterator it = spectrum.begin(); it != spectrum.end(); ++it)
+        for (const auto& peak : spectrum)
         {
-          mz_array->data.push_back(it->getMZ());
-          intensity_array->data.push_back(it->getIntensity());
+          mz_array->data.push_back(peak.getMZ());
+          intensity_array->data.push_back(peak.getIntensity());
         }
 
         OpenSwath::SpectrumMeta m;

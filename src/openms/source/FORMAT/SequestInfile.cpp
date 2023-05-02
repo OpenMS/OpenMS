@@ -201,41 +201,41 @@ namespace OpenMS
     // compute the masses for the amino acids, divided into fixed and optional modifications
     float mass(0.0);
     String residues, dyn_mods_string;
-    for (map<String, vector<String> >::const_iterator mods_i = PTMname_residues_mass_type_.begin(); mods_i != PTMname_residues_mass_type_.end(); ++mods_i)
+    for (const auto& mods : PTMname_residues_mass_type_)
     {
-      if (mods_i->second[0] == "CTERM")
+      if (mods.second[0] == "CTERM")
       {
-        if (mods_i->second[2] == "OPT")
+        if (mods.second[2] == "OPT")
         {
-          dyn_c_term_mod += mods_i->second[1].toFloat();
+          dyn_c_term_mod += mods.second[1].toFloat();
         }
-        if (mods_i->second[2] == "FIX")
+        if (mods.second[2] == "FIX")
         {
-          stat_c_term_mod += mods_i->second[1].toFloat();
-        }
-      }
-      else if (mods_i->second[0] == "NTERM")
-      {
-        if (mods_i->second[2] == "OPT")
-        {
-          dyn_n_term_mod += mods_i->second[1].toFloat();
-        }
-        if (mods_i->second[2] == "FIX")
-        {
-          stat_n_term_mod += mods_i->second[1].toFloat();
+          stat_c_term_mod += mods.second[1].toFloat();
         }
       }
-      else if (mods_i->second[0] == "CTERM_PROT")
+      else if (mods.second[0] == "NTERM")
       {
-        stat_c_term_prot_mod += mods_i->second[1].toFloat();
+        if (mods.second[2] == "OPT")
+        {
+          dyn_n_term_mod += mods.second[1].toFloat();
+        }
+        if (mods.second[2] == "FIX")
+        {
+          stat_n_term_mod += mods.second[1].toFloat();
+        }
       }
-      else if (mods_i->second[0] == "NTERM_PROT")
+      else if (mods.second[0] == "CTERM_PROT")
       {
-        stat_n_term_prot_mod += mods_i->second[1].toFloat();
+        stat_c_term_prot_mod += mods.second[1].toFloat();
+      }
+      else if (mods.second[0] == "NTERM_PROT")
+      {
+        stat_n_term_prot_mod += mods.second[1].toFloat();
       }
       else
       {
-        if (mods_i->second[2] == "FIX")
+        if (mods.second[2] == "FIX")
         {
           mods_p = &stat_mods;
         }
@@ -243,18 +243,20 @@ namespace OpenMS
         {
           mods_p = &dyn_mods;
         }
-        mass = mods_i->second[1].toFloat();
-        residues = mods_i->second[0];
-        for (String::const_iterator residue_i = residues.begin(); residue_i != residues.end(); ++residue_i)
-          (*mods_p)[*residue_i] += mass;
+        mass = mods.second[1].toFloat();
+        residues = mods.second[0];
+        for (const char& residue : residues)
+        {
+          (*mods_p)[residue] += mass;
+        }      
       }
     }
 
     // now put together all optional modifications with the same mass change
     map<float, String> dyn_mods_masses;
-    for (map<char, float>::const_iterator dyn_mod_i = dyn_mods.begin(); dyn_mod_i != dyn_mods.end(); ++dyn_mod_i)
+    for (const auto& dyn_mod : dyn_mods)
     {
-      dyn_mods_masses[dyn_mod_i->second].append(1, dyn_mod_i->first);
+      dyn_mods_masses[dyn_mod.second].append(1, dyn_mod.first);
     }
     // and write them down
     if (dyn_mods_masses.empty())
@@ -263,9 +265,9 @@ namespace OpenMS
     }
     else
     {
-      for (map<float, String>::const_iterator dyn_mod_i = dyn_mods_masses.begin(); dyn_mod_i != dyn_mods_masses.end(); ++dyn_mod_i)
+      for (const auto& dyn_mod : dyn_mods_masses)
       {
-        dyn_mods_string.append(String(dyn_mod_i->first) + " " + dyn_mod_i->second + " ");
+        dyn_mods_string.append(String(dyn_mod.first) + " " + dyn_mod.second + " ");
       }
       dyn_mods_string.erase(dyn_mods_string.length() - 1);
     }
@@ -388,15 +390,16 @@ namespace OpenMS
     String::size_type max_cut_before_length(0);
     String::size_type max_doesnt_cut_after_length(0);
     ss << "[SEQUEST_ENZYME_INFO]" << "\n";
-    for (map<String, vector<String> >::const_iterator einfo_i = enzyme_info_.begin(); einfo_i != enzyme_info_.end(); ++einfo_i)
+    for (const auto& einfo : enzyme_info_)
     {
-      max_name_length = max(max_name_length, einfo_i->first.length());
-      max_cut_before_length = max(max_cut_before_length, einfo_i->second[1].length());
-      max_doesnt_cut_after_length = max(max_doesnt_cut_after_length, einfo_i->second[2].length());
+      max_name_length = max(max_name_length, einfo.first.length());
+      max_cut_before_length = max(max_cut_before_length, einfo.second[1].length());
+      max_doesnt_cut_after_length = max(max_doesnt_cut_after_length, einfo.second[2].length());
     }
-    for (map<String, vector<String> >::const_iterator einfo_i = enzyme_info_.begin(); einfo_i != enzyme_info_.end(); ++einfo_i, ++i)
+    for (const auto& einfo : enzyme_info_)
     {
-      ss << i << ".  " << einfo_i->first << String(max_name_length + 5 - einfo_i->first.length(), ' ') << einfo_i->second[0] << "     " << einfo_i->second[1] << String(max_cut_before_length + 5 - einfo_i->second[1].length(), ' ') << einfo_i->second[2] << "\n";
+      ss << i << ".  " << einfo.first << String(max_name_length + 5 - einfo.first.length(), ' ') << einfo.second[0] << "     " << einfo.second[1] << String(max_cut_before_length + 5 - einfo.second[1].length(), ' ') << einfo.second[2] << "\n";
+      ++i;
     }
     return String(ss.str());
   }
@@ -406,17 +409,17 @@ namespace OpenMS
   {
     // remove duplicates from the concerned amino acids
     set<char> aas;
-    for (String::const_iterator s_i = enzyme_info[2].begin(); s_i != enzyme_info[2].end(); ++s_i)
+    for (const char& s : enzyme_info[2])
     {
-      aas.insert(*s_i);
+      aas.insert(s);
     }
     if (enzyme_info[2].length() != aas.size())
     {
       enzyme_info[2].clear();
       enzyme_info[2].reserve(aas.size());
-      for (set<char>::const_iterator aa_i = aas.begin(); aa_i != aas.end(); ++aa_i)
+      for (const char& aa : aas)
       {
-        enzyme_info[2].append(1, *aa_i);
+        enzyme_info[2].append(1, aa);
       }
     }
 
@@ -424,10 +427,11 @@ namespace OpenMS
     enzyme_info.erase(enzyme_info.begin());
     enzyme_info_[enzyme_name] = enzyme_info;
     enzyme_number_ = 0;
-    for (std::map<String, std::vector<String> >::const_iterator einfo_i = enzyme_info_.begin(); einfo_i != enzyme_info_.end(); ++einfo_i, ++enzyme_number_)
+    for (const auto& einfo : enzyme_info_)
     {
-      if (einfo_i->first == enzyme_name)
+      if (einfo.first == enzyme_name)
         break;
+      ++enzyme_number_;
     }
   }
 

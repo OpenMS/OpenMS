@@ -132,18 +132,18 @@ namespace OpenMS
 
     UInt elu_index(0), time_index(0);
     //look up eluents index
-    for (std::vector<String>::iterator it = eluents_.begin(); it != eluents_.end(); ++it)
+    for (const String& elu : eluents_)
     {
-      if (*it == eluent)
+      if (elu == eluent)
       {
         break;
       }
       ++elu_index;
     }
     //look up timepoint index
-    for (std::vector<Int>::iterator it = times_.begin(); it != times_.end(); ++it)
+    for (Int& t : times_)
     {
-      if (*it == timepoint)
+      if (t == timepoint)
       {
         break;
       }
@@ -181,18 +181,18 @@ namespace OpenMS
 
     UInt elu_index(0), time_index(0);
     //look up eluents index
-    for (std::vector<String>::const_iterator it = eluents_.begin(); it != eluents_.end(); ++it)
+    for (const String& elu : eluents_)
     {
-      if (*it == eluent)
+      if (elu == eluent)
       {
         break;
       }
       ++elu_index;
     }
     //look up timepoint index
-    for (std::vector<Int>::const_iterator it = times_.begin(); it != times_.end(); ++it)
+    for (const Int& t : times_)
     {
-      if (*it == timepoint)
+      if (t == timepoint)
       {
         break;
       }

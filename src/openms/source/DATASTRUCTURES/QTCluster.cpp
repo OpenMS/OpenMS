@@ -424,19 +424,17 @@ namespace OpenMS
     std::set<AASequence>& annotations_ = data_->annotations_;
 
     neighbors_.clear();
-    for (NeighborMapMulti::const_iterator n_it = tmp_neighbors_.begin();
-         n_it != tmp_neighbors_.end(); ++n_it)
+    for (const auto& nb : tmp_neighbors_)
     {
-      for (std::multimap<double, const GridFeature*>::const_iterator df_it =
-             n_it->second.begin(); df_it != n_it->second.end(); ++df_it)
+      for (const auto& df : nb.second)
       {
         std::set<AASequence> intersect;
-        const std::set<AASequence>& current = df_it->second->getAnnotations();
+        const std::set<AASequence>& current = df.second->getAnnotations();
         std::set_intersection(current.begin(), current.end(), annotations_.begin(), annotations_.end(), std::inserter(intersect, intersect.begin()));
         // if no overlap with the re-calculated IDs in the center, do not re-add neighbor to the updated neighbors anymore.
         if (!intersect.empty() || current.empty())
         {
-          neighbors_[n_it->first] = Neighbor{df_it->first, df_it->second};
+          neighbors_[nb.first] = Neighbor{df.first, df.second};
           break; // found the best element for this input map
         }
       }
@@ -449,17 +447,15 @@ namespace OpenMS
     NeighborMapMulti& tmp_neighbors_ = data_->tmp_neighbors_;
 
     // for all maps contributing to this cluster
-    for (NeighborMapMulti::iterator n_it = tmp_neighbors_.begin();
-         n_it != tmp_neighbors_.end(); ++n_it)
+    for (const auto& nb : tmp_neighbors_)
     {
       //for all neighbors relevant for this cluster in this map
-      Size map_index = n_it->first;
-      for (NeighborList::iterator df_it = n_it->second.begin();
-          df_it != n_it->second.end(); ++df_it)
+      Size map_index = nb.first;
+      for (const auto& df : nb.second)
       {
-        double dist = df_it->first;
+        double dist = df.first;
         // for all IDs/annotations of the neighboring feature (skipped if empty)
-        for (const auto& current : df_it->second->getAnnotations())
+        for (const auto& current : df.second->getAnnotations())
         {
           auto seqit_inserted = seq_table.emplace(current, map<Size,double>{{map_index, dist}});
           // check if a minimum distance was already set for this ID
@@ -478,7 +474,7 @@ namespace OpenMS
           }
         }
 
-        if (df_it->second->getAnnotations().empty()) // unannotated feature
+        if (df.second->getAnnotations().empty()) // unannotated feature
         {
           auto seqit_inserted = seq_table.emplace(AASequence(), map<Size,double>{{map_index, dist}});
           // check if a minimum distance was already set for empty ID = unannotated

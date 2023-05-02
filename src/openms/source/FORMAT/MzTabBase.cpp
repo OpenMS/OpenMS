@@ -398,13 +398,13 @@ namespace OpenMS
       StringList fields;
       String field;
       bool in_quotes = false;
-      for (String::const_iterator sit = s.begin(); sit != s.end(); ++sit)
+      for (const char& ch : s)
       {
-        if (*sit == '\"') // start or end of quotes
+        if (ch == '\"') // start or end of quotes
         {
           in_quotes = !in_quotes;
         }
-        else if (*sit == ',') // , encountered
+        else if (ch == ',') // , encountered
         {
           if (in_quotes) // case 1: , in quote
           {
@@ -416,14 +416,14 @@ namespace OpenMS
             field.clear();
           }
         }
-        else if (*sit != '[' && *sit != ']')
+        else if (ch != '[' && ch != ']')
         {
           // skip leading ws
-          if (*sit == ' ' && field.empty())
+          if (ch == ' ' && field.empty())
           {
             continue;
           }
-          field += *sit;
+          field += ch;
         }
       }
 

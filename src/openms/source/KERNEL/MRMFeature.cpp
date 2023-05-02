@@ -122,9 +122,9 @@ namespace OpenMS
 
   void MRMFeature::getFeatureIDs(std::vector<String> & result) const
   {
-    for (std::map<String, int>::const_iterator it = feature_map_.begin(); it != feature_map_.end(); ++it)
+    for (const auto& feature : feature_map_)
     {
-      result.push_back(it->first);
+      result.push_back(feature.first);
     }
   }
 
@@ -142,9 +142,9 @@ namespace OpenMS
 
   void MRMFeature::getPrecursorFeatureIDs(std::vector<String> & result) const
   {
-    for (std::map<String, int>::const_iterator it = precursor_feature_map_.begin(); it != precursor_feature_map_.end(); ++it)
+    for (const auto& pf : precursor_feature_map_)
     {
-      result.push_back(it->first);
+      result.push_back(pf.first);
     }
   }
 

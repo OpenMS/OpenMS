@@ -172,15 +172,15 @@ namespace OpenMS
 
     // fixed modifications
     std::set<String> fixed_modifications = mods_.getFixedModificationNames();
-    for (std::set<String>::const_iterator it = fixed_modifications.begin(); it != fixed_modifications.end(); ++it)
+    for (const auto& mod : fixed_modifications)
     {
-      ptm_file_.addLine(handlePTMs_(*it, false));
+      ptm_file_.addLine(handlePTMs_(mod, false));
     }
     // variable modifications
     std::set<String> variable_modifications = mods_.getVariableModificationNames();
-    for (std::set<String>::const_iterator it = variable_modifications.begin(); it != variable_modifications.end(); ++it)
+    for (const auto& mod : variable_modifications)
     {
-      ptm_file_.addLine(handlePTMs_(*it, true));
+      ptm_file_.addLine(handlePTMs_(mod, true));
     }
   }
 

@@ -233,9 +233,9 @@ namespace OpenMS
 
 #ifdef DEBUG_MRMRTNORMALIZER
     std::cout << "=======STARTPOINTS=======" << std::endl;
-    for (std::vector<std::pair<double, double> >::iterator it = pairs_corrected.begin(); it != pairs_corrected.end(); ++it)
+    for (auto& pair : pairs_corrected)
     {
-      std::cout << it->first << "\t" << it->second << std::endl;
+      std::cout << pair.first << "\t" << pair.second << std::endl;
     }
     std::cout << "=======ENDPOINTS=======" << std::endl;
 #endif
@@ -272,9 +272,9 @@ namespace OpenMS
       int minPeptidesPerBin, int minBinsFilled)
   {
     std::vector<int> binCounter(nrBins, 0);
-    for (std::vector<std::pair<double, double> >::const_iterator pair_it = pairs.begin(); pair_it != pairs.end(); ++pair_it)
+    for (const auto& pair : pairs)
     {
-      double normRT = (pair_it->second - rtRange.first) / (rtRange.second - rtRange.first); // compute a value between [0,1)
+      double normRT = (pair.second - rtRange.first) / (rtRange.second - rtRange.first); // compute a value between [0,1)
       normRT *= nrBins;
       int bin = (int)normRT;
       if (bin >= nrBins)

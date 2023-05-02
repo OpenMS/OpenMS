@@ -87,11 +87,11 @@ namespace OpenMS
     for (Size i = 0; i < maps.size(); ++i)
     {
       const ConsensusMap& consensus = maps[i];
-      for (ConsensusMap::ColumnHeaders::const_iterator desc_it = consensus.getColumnHeaders().begin(); desc_it != consensus.getColumnHeaders().end(); ++desc_it)
+      for (const auto& desc : consensus.getColumnHeaders())
       {
         Size counter = mapid_table.size();
-        mapid_table[make_pair(i, desc_it->first)] = counter;
-        out.getColumnHeaders()[counter] = desc_it->second;
+        mapid_table[make_pair(i, desc.first)] = counter;
+        out.getColumnHeaders()[counter] = desc.second;
       }
     }
 
@@ -112,26 +112,26 @@ namespace OpenMS
     }
     // adjust the consensus features:
     // cout << "Adjusting consensus features..." << endl;
-    for (ConsensusMap::iterator cons_it = out.begin(); cons_it != out.end(); ++cons_it)
+    for (auto& cons : out)
     {
       ConsensusFeature adjusted = ConsensusFeature(
-        static_cast<BaseFeature>(*cons_it)); // remove sub-features
-      for (ConsensusFeature::HandleSetType::const_iterator sub_it = cons_it->getFeatures().begin(); sub_it != cons_it->getFeatures().end(); ++sub_it)
+        static_cast<BaseFeature>(cons)); // remove sub-features
+      for (const auto& sub : cons.getFeatures())
       {
-        UInt64 id = sub_it->getUniqueId();
-        Size map_index = sub_it->getMapIndex();
+        UInt64 id = sub.getUniqueId();
+        Size map_index = sub.getMapIndex();
         ConsensusMap::ConstIterator origin = feat_lookup[map_index][id];
-        for (ConsensusFeature::HandleSetType::const_iterator handle_it = origin->getFeatures().begin(); handle_it != origin->getFeatures().end(); ++handle_it)
+        for (const auto& hdl : origin->getFeatures())
         {
-          FeatureHandle handle = *handle_it;
+          FeatureHandle handle = hdl;
           Size new_id = mapid_table[make_pair(map_index, handle.getMapIndex())];
           handle.setMapIndex(new_id);
           adjusted.insert(handle);
         }
       }
-      *cons_it = adjusted;
+      cons = adjusted;
 
-      for (auto& id : cons_it->getPeptideIdentifications())
+      for (auto& id : cons.getPeptideIdentifications())
       {
         // if old_map_index is not present, there was no map_index in the beginning,
         // therefore the newly assigned map_index cannot be "corrected"

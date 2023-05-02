@@ -59,11 +59,11 @@ namespace OpenMS
     }
 
     // marker ions
-    for (RNPxlMarkerIonExtractor::MarkerIonsType::const_iterator it = marker_ions.begin(); it != marker_ions.end(); ++it)
+    for (const auto& ion : marker_ions)
     {
-      for (Size i = 0; i != it->second.size(); ++i)
+      for (Size i = 0; i != ion.second.size(); ++i)
       {
-        sl << String::number(it->second[i].second * 100.0, 2);
+        sl << String::number(ion.second[i].second * 100.0, 2);
       }
     }
 
@@ -216,11 +216,11 @@ namespace OpenMS
           ph.setMetaValue("RNPxl:peptide_mass_z0", DataValue(peptide_weight));
           ph.setMetaValue("RNPxl:xl_mass_z0", xl_weight);
 
-          for (RNPxlMarkerIonExtractor::MarkerIonsType::const_iterator it = marker_ions.begin(); it != marker_ions.end(); ++it)
+          for (const auto& ion : marker_ions)
           {
-            for (Size i = 0; i != it->second.size(); ++i)
+            for (Size i = 0; i != ion.second.size(); ++i)
             {
-              ph.setMetaValue(it->first + "_" + it->second[i].first, static_cast<double>(it->second[i].second * 100.0));
+              ph.setMetaValue(ion.first + "_" + ion.second[i].first, static_cast<double>(ion.second[i].second * 100.0));
             }
           }
 
