@@ -274,7 +274,11 @@ namespace OpenMS
       Size line_number = 1;
       for (const String& txt : tf)
       {
-        if (txt.empty() || txt.hasPrefix("#")) continue; // skip comments
+        if (txt.empty() || txt.hasPrefix("#")) 
+        {
+          ++line_number;
+          continue; // skip comments
+        }
 
         String line = txt;
         StringList cols;
@@ -751,6 +755,7 @@ namespace OpenMS
 
         if (point.getIntensity() <= 0.0)
         {
+          ++iso_pos;
           continue;
         }
         exp_ct_iter->push_back(point);

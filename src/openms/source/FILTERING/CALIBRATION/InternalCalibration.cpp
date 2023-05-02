@@ -352,6 +352,7 @@ namespace OpenMS
         if (!(ListUtils::contains(target_mslvl, spec.getMSLevel()) ||     // scan m/z needs correction
               ListUtils::contains(target_mslvl, spec.getMSLevel() - 1)))  // precursor m/z needs correction
         {
+          ++i;
           continue;
         }
 
