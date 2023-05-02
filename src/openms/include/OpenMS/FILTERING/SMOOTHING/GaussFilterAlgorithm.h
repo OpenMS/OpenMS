@@ -37,6 +37,8 @@
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/INTERFACES/DataStructures.h>
+#include <OpenMS/MATH/MISC/MathFunctions.h>
+
 #include <cmath>
 #include <vector>
 
@@ -124,7 +126,7 @@ public:
     }
 
     /**
-      @brief Smoothes an two data arrays containing data.
+      @brief Smoothes two data arrays.
 
       Convolutes the filter and the profile data and writes the results into the output iterators mz_out and int_out. 
     */
@@ -145,7 +147,7 @@ public:
         // if ppm tolerance is used, calculate a reasonable width value for this m/z
         if (use_ppm_tolerance_)
         {
-          initialize((*mz_it) * ppm_tolerance_ * 10e-6, spacing_, ppm_tolerance_, use_ppm_tolerance_ );
+          initialize(Math::ppmToMass(ppm_tolerance_, *mz_it), spacing_, ppm_tolerance_, use_ppm_tolerance_);
         }
 
         double new_int = integrate_(mz_it, int_it, mz_in_start, mz_in_end);

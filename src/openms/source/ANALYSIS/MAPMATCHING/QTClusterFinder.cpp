@@ -202,7 +202,7 @@ namespace OpenMS
       // we calculate minRT (instead of starting first bin at 0) since RTs may start in the "negative" region after alignment.
       double start_rt = minRT;
       double min_tolerance = 20;
-      double tol, q2, q3 = 0.;
+      double tol, q2, q3;
       OPENMS_LOG_INFO << "Calculating RT linking tolerance bins...\n";
       OPENMS_LOG_INFO << "RT_bin_start, Tolerance" << std::endl;
 
@@ -752,7 +752,7 @@ void QTClusterFinder::createConsensusFeature_(ConsensusFeature& feature,
     }
 
     {
-      std::set<AASequence> a = cluster.getAnnotations();
+      std::set<AASequence> ax = cluster.getAnnotations();
       std::cout << " FINAL with annotations: ";
       for (auto& anno : a)
       {

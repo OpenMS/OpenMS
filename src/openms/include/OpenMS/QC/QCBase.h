@@ -38,6 +38,7 @@
 #include <OpenMS/DATASTRUCTURES/FlagSet.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
 
+#include <algorithm>
 #include <map>
 
 namespace OpenMS
@@ -145,11 +146,8 @@ namespace OpenMS
     {
       if (!fmap.getUnassignedPeptideIdentifications().empty()) return true;
 
-      for (const auto& features : fmap)
-      {
-        if (!features.getPeptideIdentifications().empty()) return true;
-      }
-      return false;
+      return std::any_of(fmap.cbegin(), fmap.cend(), [](const auto& f) 
+              { return !f.getPeptideIdentifications().empty();});
     }
   };
 }

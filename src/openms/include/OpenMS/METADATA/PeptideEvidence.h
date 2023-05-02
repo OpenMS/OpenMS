@@ -64,7 +64,7 @@ public:
     PeptideEvidence();
 
     /// Constructor
-    PeptideEvidence(const String& accession, Int start, Int end, char aa_before, char aa_after);
+    explicit PeptideEvidence(const String& accession, Int start=UNKNOWN_POSITION, Int end=UNKNOWN_POSITION, char aa_before=UNKNOWN_AA, char aa_after=UNKNOWN_AA);
 
     /// Copy constructor
     PeptideEvidence(const PeptideEvidence&) = default;

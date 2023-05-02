@@ -198,6 +198,19 @@ START_SECTION(AASequence fromString(const String& s, bool permissive = true))
     TEST_STRING_EQUAL(seq16.getNTerminalModification()->getId(), "Gln->pyro-Glu");
     TEST_STRING_EQUAL(seq16.getNTerminalModification()->getFullId(), "Gln->pyro-Glu (N-term Q)");
     TEST_STRING_EQUAL(seq16.getNTerminalModificationName(), "Gln->pyro-Glu");
+
+
+    AASequence seq17 = AASequence::fromString("[+42].MVLVQDLLHPTAASEAR");
+    TEST_EQUAL(seq17.hasNTerminalModification(), true)
+    TEST_STRING_EQUAL(seq17.getNTerminalModification()->getId(), "Acetyl");
+    TEST_STRING_EQUAL(seq17.getNTerminalModification()->getFullId(), "Acetyl (N-term)");
+    TEST_STRING_EQUAL(seq17.getNTerminalModificationName(), "Acetyl");
+
+    AASequence seq18 = AASequence::fromString("[+304.207].ETC[+57.0215]RQLGLGTNIYNAER");
+    TEST_EQUAL(seq18.hasNTerminalModification(), true)
+    TEST_STRING_EQUAL(seq18.getNTerminalModification()->getId(), "TMTpro");
+    TEST_STRING_EQUAL(seq18.getNTerminalModification()->getFullId(), "TMTpro (N-term)");
+    TEST_STRING_EQUAL(seq18.getNTerminalModificationName(), "TMTpro");    
   }
 
   // invalid test case: "Pyro-carbamidomethyl" is only defined as N-terminal

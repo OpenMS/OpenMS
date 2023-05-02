@@ -621,6 +621,8 @@ namespace OpenMS
     filterFeatures_(features, with_external_ids);
     OPENMS_LOG_INFO << features.size() << " features left after filtering." << endl;
 
+    if (features.empty()) return; // elution model fit throws on empty features
+
     if (!svm_probs_internal_.empty())
     {
       calculateFDR_(features);
