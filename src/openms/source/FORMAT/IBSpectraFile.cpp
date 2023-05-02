@@ -208,9 +208,8 @@ namespace OpenMS
     TextFile textFile;
     textFile.addLine(ListUtils::concatenate(constructHeader_(*quantMethod), "\t"));
 
-    for (const ConsensusFeature& cf : cm)
+    for (const ConsensusFeature& cFeature : cm)
     {
-      const ConsensusFeature& cFeature = cf;
       std::vector<IdCSV> entries;
 
       /// 1st we extract the identification information from the consensus feature
