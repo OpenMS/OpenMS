@@ -227,9 +227,9 @@ namespace OpenMS
     vector<Size> fwd_bins(number_of_bins, 0), rev_bins(number_of_bins, 0);
     double min(all_trafo.min_score), diff(all_trafo.diff_score);
     Size max_bin(0);
-    for (vector<double>::const_iterator it = fwd_scores.begin(); it != fwd_scores.end(); ++it)
+    for (const double& score : fwd_scores)
     {
-      Size bin = (Size)((*it - min) / diff * (double)(number_of_bins - 1));
+      Size bin = (Size)((score - min) / diff * (double)(number_of_bins - 1));
       ++fwd_bins[bin];
       if (fwd_bins[bin] > max_bin)
       {
@@ -240,9 +240,9 @@ namespace OpenMS
     Size max_reverse_bin(0), max_reverse_bin_value(0);
     //min = rev_trafo.min_score;
     //diff = rev_trafo.diff_score;
-    for (vector<double>::const_iterator it = rev_scores.begin(); it != rev_scores.end(); ++it)
+    for (const double& score : rev_scores)
     {
-      Size bin = (Size)((*it - min) / diff * (double)number_of_bins);
+      Size bin = (Size)((score - min) / diff * (double)number_of_bins);
       ++rev_bins[bin];
       if (rev_bins[bin] > max_bin)
       {
@@ -403,15 +403,15 @@ namespace OpenMS
     Size number_of_bins(param_.getValue("number_of_bins"));
     // get the range of the scores
     double max(numeric_limits<double>::min()), min(numeric_limits<double>::max());
-    for (vector<double>::const_iterator it = scores.begin(); it != scores.end(); ++it)
+    for (const double& score : scores)
     {
-      if (*it > max)
+      if (score > max)
       {
-        max = *it;
+        max = score;
       }
-      if (*it < min)
+      if (score < min)
       {
-        min = *it;
+        min = score;
       }
     }
 
@@ -423,9 +423,9 @@ namespace OpenMS
     double diff = max - min;
     Size max_bin_number(0);
     double max_bin(0);
-    for (vector<double>::const_iterator it = scores.begin(); it != scores.end(); ++it)
+    for (const double& score : scores)
     {
-      Size bin = (Size)((*it - min) / diff * (double)(number_of_bins - 1));
+      Size bin = (Size)((score - min) / diff * (double)(number_of_bins - 1));
       binned[bin] += 1;
 
       if (binned[bin] > max_bin)
@@ -437,9 +437,9 @@ namespace OpenMS
 
 
     // normalize to \sum = 1
-    for (vector<double>::iterator it = binned.begin(); it != binned.end(); ++it)
+    for (double& bin : binned)
     {
-      *it /= (double)max_bin / 4.0;   // 4 is best value for the gamma distribution
+      bin /= (double)max_bin / 4.0;   // 4 is best value for the gamma distribution
     }
 
 

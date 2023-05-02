@@ -119,11 +119,10 @@ namespace OpenMS::ims
           bool to_erase = false;
           if (!constraints.empty())
           {
-            for (constraints_type::const_iterator it =
-                   constraints.begin(); it != constraints.end(); ++it)
-              {
-              if ((*pos)[it->first] < it->second.first ||
-                  (*pos)[it->first] > it->second.second)
+            for (const auto& constraint : constraints)
+            {
+              if ((*pos)[constraint.first] < constraint.second.first ||
+                  (*pos)[constraint.first] > constraint.second.second)
               {
                 to_erase = true;
                 break;
@@ -168,10 +167,9 @@ namespace OpenMS::ims
     {
       decompositions_type decompositions =
         decomposer_->getAllDecompositions(integer_mass);
-      for (decompositions_type::iterator pos = decompositions.begin();
-           pos != decompositions.end(); ++pos)
+      for (auto& pos : decompositions)
       {
-        double parent_mass = weights_.getParentMass(*pos);
+        double parent_mass = weights_.getParentMass(pos);
         if (fabs(parent_mass - mass) <= error)
         {
           ++number_of_decompositions;

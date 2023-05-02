@@ -60,12 +60,11 @@ namespace OpenMS
     msexp.clearRanges();
 
     // Transform spectra
-    for (PeakMap::iterator mse_iter = msexp.begin();
-         mse_iter != msexp.end(); ++mse_iter)
+    for (auto& mse : msexp)
     {
-      double rt = mse_iter->getRT();
-      if (store_original_rt) storeOriginalRT_(*mse_iter, rt);
-      mse_iter->setRT(trafo.apply(rt));
+      double rt = mse.getRT();
+      if (store_original_rt) storeOriginalRT_(mse, rt);
+      mse.setRT(trafo.apply(rt));
     }
 
     // Also transform chromatograms
@@ -94,10 +93,9 @@ namespace OpenMS
     FeatureMap& fmap, const TransformationDescription& trafo,
     bool store_original_rt)
   {
-    for (vector<Feature>::iterator fmit = fmap.begin(); fmit != fmap.end();
-         ++fmit)
+    for (Feature& fm : fmap)
     {
-      applyToFeature_(*fmit, trafo, store_original_rt);
+      applyToFeature_(fm, trafo, store_original_rt);
     }
 
     // adapt RT values of unassigned peptides:
@@ -135,26 +133,23 @@ namespace OpenMS
 
     // loop over all convex hulls
     vector<ConvexHull2D>& convex_hulls = feature.getConvexHulls();
-    for (vector<ConvexHull2D>::iterator chiter = convex_hulls.begin();
-         chiter != convex_hulls.end(); ++chiter)
+    for (ConvexHull2D& ch : convex_hulls)
     {
       // transform all hull point positions within convex hull
-      ConvexHull2D::PointArrayType points = chiter->getHullPoints();
-      chiter->clear();
-      for (ConvexHull2D::PointArrayType::iterator points_iter = points.begin();
-           points_iter != points.end(); ++points_iter)
+      ConvexHull2D::PointArrayType points = ch.getHullPoints();
+      ch.clear();
+      for (ConvexHull2D::PointType& point : points)
       {
-        double rt = (*points_iter)[Feature::RT];
-        (*points_iter)[Feature::RT] = trafo.apply(rt);
+        double rt = point[Feature::RT];
+        point[Feature::RT] = trafo.apply(rt);
       }
-      chiter->setHullPoints(points);
+      ch.setHullPoints(points);
     }
 
     // recurse into subordinates
-    for (vector<Feature>::iterator subiter = feature.getSubordinates().begin();
-         subiter != feature.getSubordinates().end(); ++subiter)
+    for (Feature& sub : feature.getSubordinates())
     {
-      applyToFeature_(*subiter, trafo, store_original_rt);
+      applyToFeature_(sub, trafo, store_original_rt);
     }
   }
 
@@ -163,9 +158,9 @@ namespace OpenMS
     ConsensusMap& cmap, const TransformationDescription& trafo,
     bool store_original_rt)
   {
-    for (ConsensusMap::Iterator cmit = cmap.begin(); cmit != cmap.end(); ++cmit)
+    for (ConsensusFeature& cm : cmap)
     {
-      applyToConsensusFeature_(*cmit, trafo, store_original_rt);
+      applyToConsensusFeature_(cm, trafo, store_original_rt);
     }
 
     // adapt RT values of unassigned peptides:
@@ -184,12 +179,10 @@ namespace OpenMS
     applyToBaseFeature_(feature, trafo, store_original_rt);
 
     // apply to grouped features (feature handles):
-    for (ConsensusFeature::HandleSetType::const_iterator it =
-           feature.getFeatures().begin(); it != feature.getFeatures().end();
-         ++it)
+    for (const FeatureHandle& handle : feature.getFeatures())
     {
-      double rt = it->getRT();
-      it->asMutable().setRT(trafo.apply(rt));
+      double rt = handle.getRT();
+      handle.asMutable().setRT(trafo.apply(rt));
     }
   }
 
@@ -198,14 +191,13 @@ namespace OpenMS
     vector<PeptideIdentification>& pep_ids,
     const TransformationDescription& trafo, bool store_original_rt)
   {
-    for (vector<PeptideIdentification>::iterator pep_it = pep_ids.begin();
-         pep_it != pep_ids.end(); ++pep_it)
+    for (PeptideIdentification& pepid : pep_ids)
     {
-      if (pep_it->hasRT())
+      if (pepid.hasRT())
       {
-        double rt = pep_it->getRT();
-        if (store_original_rt) storeOriginalRT_(*pep_it, rt);
-        pep_it->setRT(trafo.apply(rt));
+        double rt = pepid.getRT();
+        if (store_original_rt) storeOriginalRT_(pepid, rt);
+        pepid.setRT(trafo.apply(rt));
       }
     }
   }

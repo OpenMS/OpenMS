@@ -46,9 +46,9 @@ namespace OpenMS
     StringList sl;
     sl.reserve(rhs.size());
 
-    for (QStringList::const_iterator it = rhs.begin(); it != rhs.end(); ++it)
+    for (const auto& r : rhs)
     {
-      sl.push_back(it->toStdString());
+      sl.push_back(r.toStdString());
     }
 
     return sl;

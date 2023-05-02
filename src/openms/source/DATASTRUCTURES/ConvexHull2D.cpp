@@ -69,11 +69,11 @@ namespace OpenMS
       return false;
     }
     //different points now => return false
-    for (HullPointType::const_iterator it = rhs.map_points_.begin(); it !=   rhs.map_points_.end(); ++it)
+    for (const auto& point : rhs.map_points_)
     {
-      if (map_points_.find(it->first) != map_points_.end())
+      if (map_points_.find(point.first) != map_points_.end())
       {
-        if (map_points_.at(it->first) != it->second)
+        if (map_points_.at(point.first) != point.second)
         {
           return false;
         }
@@ -112,11 +112,11 @@ namespace OpenMS
       outer_points_.reserve(map_points_.size() * 2);
 
       // traverse lower m/z's of RT scans
-      for (HullPointType::const_iterator it = map_points_.begin(); it != map_points_.end(); ++it)
+      for (const auto& point : map_points_)
       {
         PointType p;
-        p.setX(it->first);
-        p.setY(it->second.minPosition()[0]);
+        p.setX(point.first);
+        p.setY(point.second.minPosition()[0]);
         outer_points_.push_back(p);
       }
 
@@ -167,17 +167,17 @@ namespace OpenMS
     // the internal structure might not be defined, but we try it first
     if (!map_points_.empty())
     {
-      for (HullPointType::const_iterator it = map_points_.begin(); it != map_points_.end(); ++it)
+      for (const auto& point : map_points_)
       {
-        bb.enlarge(it->first, it->second.minPosition()[0]);
-        bb.enlarge(it->first, it->second.maxPosition()[0]);
+        bb.enlarge(point.first, point.second.minPosition()[0]);
+        bb.enlarge(point.first, point.second.maxPosition()[0]);
       }
     }
     else if (!outer_points_.empty())
     {
-      for (PointArrayType::const_iterator it = outer_points_.begin(); it != outer_points_.end(); ++it)
+      for (const auto& point : outer_points_)
       {
-        bb.enlarge((*it)[0], (*it)[1]);
+        bb.enlarge(point[0], point[1]);
       }
     }
 

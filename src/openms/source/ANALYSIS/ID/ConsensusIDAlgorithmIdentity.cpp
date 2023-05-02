@@ -52,20 +52,19 @@ namespace OpenMS
     bool higher_better = ids[0].isHigherScoreBetter();
     set<String> score_types;
 
-    for (vector<PeptideIdentification>::iterator pep_it = ids.begin();
-         pep_it != ids.end(); ++pep_it)
+    for (PeptideIdentification& pep : ids)
     {
-      if (pep_it->isHigherScoreBetter() != higher_better)
+      if (pep.isHigherScoreBetter() != higher_better)
       {
         // scores with different orientations definitely aren't comparable:
         String hi_lo = higher_better ? "higher/lower" : "lower/higher";
         String msg = "Score types '" + ids[0].getScoreType() + "' and '" +
-          pep_it->getScoreType() + "' have different orientations (" + hi_lo +
+          pep.getScoreType() + "' have different orientations (" + hi_lo +
           " is better) and cannot be compared meaningfully.";
         throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                       msg, higher_better ? "false" : "true");
       }
-      score_types.insert(pep_it->getScoreType());
+      score_types.insert(pep.getScoreType());
     }
 
     if (score_types.size() > 1)
@@ -86,29 +85,27 @@ namespace OpenMS
     preprocess_(ids);
 
     // group peptide hits by sequence:
-    for (vector<PeptideIdentification>::iterator pep_it = ids.begin();
-         pep_it != ids.end(); ++pep_it)
+    for (PeptideIdentification& pep : ids)
     {
-      String score_type = pep_it->getScoreType();
-      auto se = se_info.find(pep_it->getIdentifier());
+      String score_type = pep.getScoreType();
+      auto se = se_info.find(pep.getIdentifier());
       if (se != se_info.end())
       {
         score_type = se->second + "_" + score_type;
       }
 
-      for (vector<PeptideHit>::iterator hit_it = pep_it->getHits().begin();
-           hit_it != pep_it->getHits().end(); ++hit_it)
+      for (PeptideHit& hit : pep.getHits())
       {
-        const AASequence& seq = hit_it->getSequence();
+        const AASequence& seq = hit.getSequence();
         auto pos = results.find(seq);
         if (pos == results.end()) // new sequence
         {
-          auto ev = hit_it->getPeptideEvidences();
+          auto ev = hit.getPeptideEvidences();
           results[seq] = HitInfo{
-              hit_it->getCharge(),
-              {hit_it->getScore()},
+              hit.getCharge(),
+              {hit.getScore()},
               {score_type},
-              hit_it->getMetaValue("target_decoy").toString(),
+              hit.getMetaValue("target_decoy").toString(),
               {std::make_move_iterator(ev.begin()), std::make_move_iterator(ev.end())},
               0.,
               0.
@@ -116,11 +113,11 @@ namespace OpenMS
         }
         else // previously seen sequence
         {
-          compareChargeStates_(pos->second.charge, hit_it->getCharge(),
+          compareChargeStates_(pos->second.charge, hit.getCharge(),
                                pos->first);
-          pos->second.scores.emplace_back(hit_it->getScore());
+          pos->second.scores.emplace_back(hit.getScore());
           pos->second.types.emplace_back(score_type);
-          for (const auto& ev : hit_it->getPeptideEvidences())
+          for (const auto& ev : hit.getPeptideEvidences())
           {
             pos->second.evidence.emplace(ev);
           }
@@ -131,19 +128,18 @@ namespace OpenMS
     // calculate score and support, and update results with them:
     bool higher_better = ids[0].isHigherScoreBetter();
     Size n_other_ids = (count_empty_ ? number_of_runs_ : ids.size()) - 1;
-    for (SequenceGrouping::iterator res_it = results.begin(); 
-         res_it != results.end(); ++res_it)
+    for (auto& res : results)
     {
-      double score = getAggregateScore_(res_it->second.scores, higher_better);
+      double score = getAggregateScore_(res.second.scores, higher_better);
       // if 'count_empty' is false, 'n_other_ids' may be zero, in which case
       // we define the support to be one to avoid a NaN:
       double support = 1.0;
       if (n_other_ids > 0) // the normal case
       {
-        support = (res_it->second.scores.size() - 1.0) / n_other_ids;
+        support = (res.second.scores.size() - 1.0) / n_other_ids;
       }
-      res_it->second.final_score = score;
-      res_it->second.support = support;
+      res.second.final_score = score;
+      res.second.support = support;
     }
   }
 

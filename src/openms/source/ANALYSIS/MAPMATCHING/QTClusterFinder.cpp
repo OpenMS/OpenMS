@@ -491,10 +491,9 @@ namespace OpenMS
 
 #ifdef DEBUG_QTCLUSTERFINDER
     std::cout << " create new consensus feature " << feature.getRT() << " " << feature.getMZ() << " from " << best->getCenterPoint()->getFeature().getUniqueId() << std::endl;
-    for (OpenMSBoost::unordered_map<Size, OpenMS::GridFeature*>::const_iterator
-         it = elements.begin(); it != elements.end(); ++it)
+    for (const auto& elem : elements)
     {
-      std::cout << "   = element id : " << it->second->getFeature().getUniqueId() << std::endl;
+      std::cout << "   = element id : " << elem.second->getFeature().getUniqueId() << std::endl;
     }
 #endif
 
@@ -680,7 +679,10 @@ void QTClusterFinder::createConsensusFeature_(ConsensusFeature& feature,
     std::cout << " Compute Clustering: "<< x << " " << y << " with id " << center_feature->getFeature().getUniqueId() << std::endl;
     std::set<AASequence> a = cluster.getAnnotations();
     std::cout << " with annotations: ";
-    for (std::set<AASequence>::iterator it = a.begin(); it != a.end(); ++it) std::cout << " " << *it;
+    for (auto& anno : a)
+    {
+      std::cout << " " << anno;
+    }
     std::cout << std::endl;
 #endif
 
@@ -698,10 +700,9 @@ void QTClusterFinder::createConsensusFeature_(ConsensusFeature& feature,
 
         if (act_pos != grid.grid_end())
         {
-          for (Grid::const_cell_iterator it_cell = act_pos->second.begin();
-               it_cell != act_pos->second.end(); ++it_cell)
+          for (const auto& cell : act_pos->second)
           {
-            OpenMS::GridFeature* neighbor_feature = it_cell->second;
+            OpenMS::GridFeature* neighbor_feature = cell.second;
 
 #ifdef DEBUG_QTCLUSTERFINDER
             std::cout << " considering to add feature " << neighbor_feature->getFeature().getUniqueId() << " to cluster " <<  center_feature->getFeature().getUniqueId()<< std::endl;
@@ -745,16 +746,18 @@ void QTClusterFinder::createConsensusFeature_(ConsensusFeature& feature,
 #ifdef DEBUG_QTCLUSTERFINDER
     QTCluster::Elements elements = cluster.getElements();
     std::cout << " Done with cluster -> get quality " << cluster.getQuality() << " and nr elements " << elements.size() << std::endl;
-    for (OpenMSBoost::unordered_map<Size, OpenMS::GridFeature*>::const_iterator
-         it = elements.begin(); it != elements.end(); ++it)
+    for (const auto& elem : elements)
     {
-      std::cout << "   = element id : " << it->second->getFeature().getUniqueId() << std::endl;
+      std::cout << "   = element id : " << elem.second->getFeature().getUniqueId() << std::endl;
     }
 
     {
       std::set<AASequence> a = cluster.getAnnotations();
       std::cout << " FINAL with annotations: ";
-      for (std::set<AASequence>::iterator it = a.begin(); it != a.end(); ++it) std::cout << " " << *it;
+      for (auto& anno : a)
+      {
+        std::cout << " " << anno;
+      }
       std::cout << std::endl;
     }
 #endif

@@ -168,16 +168,16 @@ namespace OpenMS
     ptr->searchModifications(modifiable_nterm, modification, "", ResidueModification::N_TERM);
     std::set<const ResidueModification*> modifiable_cterm;
     ptr->searchModifications(modifiable_cterm, modification, "", ResidueModification::C_TERM);
-    for (std::vector<OpenMS::AASequence>::const_iterator sq_it = sequences.begin(); sq_it != sequences.end(); ++sq_it)
+    for (const auto& seq : sequences)
     {
-      for (std::vector<std::vector<size_t> >::const_iterator mc_it = mods_combs.begin(); mc_it != mods_combs.end(); ++mc_it)
+      for (const auto& mc : mods_combs)
       {
         multi_mod_switch = false;
         skip_invalid_mod_seq = false;
-        OpenMS::AASequence temp_sequence = *sq_it;
-        for (std::vector<size_t>::const_iterator pos_it = mc_it->begin(); pos_it != mc_it->end(); ++pos_it)
+        OpenMS::AASequence temp_sequence = seq;
+        for (const auto& pos : mc)
         {
-          if (*pos_it == 0)
+          if (pos == 0)
           {
             // Check first to make sure ending residue is NTerm modifiable
             if ( !modifiable_nterm.empty() && (temp_sequence[0].getOneLetterCode() == OpenMS::String((*modifiable_nterm.begin())->getOrigin()) || (*modifiable_nterm.begin())->getOrigin() == 'X') ) 
@@ -193,7 +193,7 @@ namespace OpenMS
               skip_invalid_mod_seq = true;
             }
           }
-          else if (*pos_it == temp_sequence.size() + 1)
+          else if (pos == temp_sequence.size() + 1)
           {
             // Check first to make sure ending residue is CTerm modifiable
             if ( !modifiable_cterm.empty() && (temp_sequence.toUnmodifiedString().back() == (*modifiable_cterm.begin())->getOrigin() || (*modifiable_cterm.begin())->getOrigin() == 'X') )
@@ -211,9 +211,9 @@ namespace OpenMS
           }
           else
           {
-            if (!temp_sequence[*pos_it - 1].isModified())
+            if (!temp_sequence[pos - 1].isModified())
             {
-              temp_sequence.setModification(*pos_it - 1, modification);
+              temp_sequence.setModification(pos - 1, modification);
             }
             else
             {
@@ -754,10 +754,9 @@ namespace OpenMS
 
     Size progress = 0;
     startProgress(0, exp.getTransitions().size(), "Annotating transitions");
-    for (MRMAssay::PeptideTransitionMapType::iterator pep_it = peptide_trans_map.begin();
-         pep_it != peptide_trans_map.end(); ++pep_it)
+    for (auto& pep : peptide_trans_map)
     {
-      String peptide_ref = pep_it->first;
+      String peptide_ref = pep.first;
 
       TargetedExperiment::Peptide target_peptide = exp.getPeptideByRef(peptide_ref);
       OpenMS::AASequence target_peptide_sequence = TargetedExperimentHelper::getAASequence(target_peptide);
@@ -774,10 +773,10 @@ namespace OpenMS
       double precursor_mz = target_peptide_sequence.getMZ(precursor_charge);
       precursor_mz = Math::roundDecimal(precursor_mz, round_decPow);
 
-      for (Size i = 0; i < pep_it->second.size(); i++)
+      for (Size i = 0; i < pep.second.size(); i++)
       {
         setProgress(++progress);
-        ReactionMonitoringTransition tr = *(pep_it->second[i]);
+        ReactionMonitoringTransition tr = *(pep.second[i]);
 
         // Annotate transition from theoretical ion series
         std::pair<String, double> targetion = mrmis.annotateIon(target_ionseries, tr.getProductMZ(), product_mz_threshold);
@@ -903,18 +902,17 @@ namespace OpenMS
 
     Size progress = 0;
     startProgress(0, TransitionsMap.size() + exp.getPeptides().size() + exp.getProteins().size(), "Select detecting transitions");
-    for (std::map<String, TransitionVectorType>::iterator m = TransitionsMap.begin();
-         m != TransitionsMap.end(); ++m)
+    for (auto& map : TransitionsMap)
     {
       setProgress(++progress);
       // Ensure that all precursors have the minimum number of transitions
-      if (m->second.size() >= (Size)min_transitions)
+      if (map.second.size() >= (Size)min_transitions)
       {
         // LibraryIntensity stores all reference transition intensities of a precursor
         std::vector<double> LibraryIntensity;
-        for (TransitionVectorType::iterator tr_it = m->second.begin(); tr_it != m->second.end(); ++tr_it)
+        for (auto& transition : map.second)
         {
-          LibraryIntensity.push_back(boost::lexical_cast<double>(tr_it->getLibraryIntensity()));
+          LibraryIntensity.push_back(boost::lexical_cast<double>(transition.getLibraryIntensity()));
         }
 
         // Sort by intensity, reverse and delete all elements after max_transitions to find the best candidates
@@ -930,9 +928,9 @@ namespace OpenMS
         // Check if transitions are among the ones with maximum intensity
         // If several transitions have the same intensities ensure restriction max_transitions
         Size j = 0; // transition number index
-        for (TransitionVectorType::iterator tr_it = m->second.begin(); tr_it != m->second.end(); ++tr_it)
+        for (auto& transition : map.second)
         {
-          ReactionMonitoringTransition tr = *tr_it;
+          ReactionMonitoringTransition tr = transition;
 
           if (
               (std::find(LibraryIntensity.begin(), LibraryIntensity.end(), boost::lexical_cast<double>(tr.getLibraryIntensity())) != LibraryIntensity.end()) &&
@@ -1067,17 +1065,16 @@ namespace OpenMS
       TransitionsMap[tr.getCompoundRef()].push_back(tr);
     }
 
-    for (std::map<String, TransitionVectorType>::iterator m = TransitionsMap.begin();
-         m != TransitionsMap.end(); ++m)
+    for (auto& map : TransitionsMap)
     {
         // Ensure that all precursors have the minimum number of transitions or are a decoy transitions
-        if (m->second.size() >= (Size)min_transitions || m->second[0].getDecoyTransitionType() == ReactionMonitoringTransition::DECOY)
+        if (map.second.size() >= (Size)min_transitions || map.second[0].getDecoyTransitionType() == ReactionMonitoringTransition::DECOY)
         {
         // LibraryIntensity stores all reference transition intensities of a precursor
         std::vector<double> LibraryIntensity;
-        for (TransitionVectorType::iterator tr_it = m->second.begin(); tr_it != m->second.end(); ++tr_it)
+        for (auto& transition : map.second)
         {
-          LibraryIntensity.push_back(boost::lexical_cast<double>(tr_it->getLibraryIntensity()));
+          LibraryIntensity.push_back(boost::lexical_cast<double>(transition.getLibraryIntensity()));
         }
 
         // Reverse-sort by intensity and delete all elements after max_transitions to find the best candidates
@@ -1090,9 +1087,9 @@ namespace OpenMS
         // Check if transitions are among the ones with maximum intensity
         // If several transitions have the same intensities ensure restriction max_transitions
         Size j = 0; // transition number index
-        for (TransitionVectorType::iterator tr_it = m->second.begin(); tr_it != m->second.end(); ++tr_it)
+        for (auto& transition : map.second)
         {
-          ReactionMonitoringTransition tr = *tr_it;
+          ReactionMonitoringTransition tr = transition;
           if ((std::find(LibraryIntensity.begin(), LibraryIntensity.end(), boost::lexical_cast<double>(tr.getLibraryIntensity())) != LibraryIntensity.end()) && j < (Size)max_transitions)
           {
             // Set meta value tag for detecting transition

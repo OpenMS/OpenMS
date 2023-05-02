@@ -211,10 +211,10 @@ namespace OpenMS
 
       // add singletons from light-labeled channel
       // clean up light-labeled_index
-      for (std::map<String, Feature>::iterator light_labeled_index_iter = light_labeled_features_index.begin(); light_labeled_index_iter != light_labeled_features_index.end(); ++light_labeled_index_iter)
+      for (auto& lli : light_labeled_features_index)
       {
         // the single ones from c0
-        final_feature_map.push_back(light_labeled_index_iter->second);
+        final_feature_map.push_back(lli.second);
       }
     }
     else if (features_to_simulate.size() == 3) // merge_mode for three Channels
@@ -336,9 +336,9 @@ namespace OpenMS
       }
 
       // clean up medium-labeled_index
-      for (std::map<String, Feature>::iterator medium_labeled_index_iter = medium_labeled_features_index.begin(); medium_labeled_index_iter != medium_labeled_features_index.end(); ++medium_labeled_index_iter)
+      for (auto& med_idx : medium_labeled_features_index)
       {
-        Feature& medium_labeled_feature = medium_labeled_index_iter->second;
+        Feature& medium_labeled_feature = med_idx.second;
         medium_labeled_feature.ensureUniqueId();
 
         String medium_labeled_feature_unmodified_sequence = medium_labeled_feature.getPeptideIdentifications()[0].getHits()[0].getSequence().toUnmodifiedString();
@@ -375,10 +375,10 @@ namespace OpenMS
       }
 
       // clean up light-labeled_index
-      for (std::map<String, Feature>::iterator light_labeled_index_iter = light_labeled_features_index.begin(); light_labeled_index_iter != light_labeled_features_index.end(); ++light_labeled_index_iter)
+      for (auto& lli : light_labeled_features_index)
       {
         // the single ones from c0
-        final_feature_map.push_back(light_labeled_index_iter->second);
+        final_feature_map.push_back(lli.second);
       }
     }
 
@@ -452,9 +452,9 @@ namespace OpenMS
         // check if these features are still available and were not removed during RT sim
         bool complete = true;
 
-        for (ConsensusFeature::iterator cfit = cf.begin(); cfit != cf.end(); ++cfit)
+        for (auto& feat : cf)
         {
-          complete &= id_map.find(cfit->getUniqueId()) != id_map.end();
+          complete &= id_map.find(feat.getUniqueId()) != id_map.end();
         }
 
         if (complete)

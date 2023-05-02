@@ -93,10 +93,10 @@ namespace OpenMS
 
   void CVMappings::setCVReferences(const vector<CVReference>& cv_references)
   {
-    for (vector<CVReference>::const_iterator it = cv_references.begin(); it != cv_references.end(); ++it)
+    for (const auto& ref : cv_references)
     {
-      cv_references_[it->getIdentifier()] = *it;
-      cv_references_vector_.push_back(*it);
+      cv_references_[ref.getIdentifier()] = ref;
+      cv_references_vector_.push_back(ref);
     }
   }
 

@@ -262,10 +262,10 @@ namespace OpenMS
 
       //remove modifications (small characters and anything that's not in the alphabet)
       sequence_with_mods = substrings[peptide_column].substr(start, end - start);
-      for (String::ConstIterator c_i = sequence_with_mods.begin(); c_i != sequence_with_mods.end(); ++c_i)
+      for (const char& c : sequence_with_mods)
       {
-        if ((bool) isalpha(*c_i) && (bool) isupper(*c_i))
-          sequence.append(1, *c_i);
+        if ((bool) isalpha(c) && (bool) isupper(c))
+          sequence.append(1, c);
       }
 
       peptide_hit.setSequence(AASequence::fromString(sequence));
@@ -304,9 +304,11 @@ namespace OpenMS
 
       // set the retrieved sequences
       vector<String>::const_iterator s_i = sequences.begin();
-      for (map<Size, Size>::const_iterator rn_i = rn_position_map.begin(); rn_i != rn_position_map.end(); ++rn_i, ++s_i)
-        protein_hits[rn_i->second].setSequence(*s_i);
-
+      for (const auto& rn : rn_position_map)
+      {
+        protein_hits[rn.second].setSequence(*s_i);
+        ++s_i;
+      }
       sequences.clear();
       rn_position_map.clear();
       protein_identification.setHits(protein_hits);
@@ -341,9 +343,9 @@ namespace OpenMS
     streampos sp = database.tellg();
     database.seekg(0, ios::beg);
 
-    for (map<Size, Size>::const_iterator wr_i = wanted_records.begin(); wr_i !=  wanted_records.end(); ++wr_i)
+    for (const auto& wr : wanted_records)
     {
-      for (; seen_records < wr_i->first; ++seen_records)
+      for (; seen_records < wr.first; ++seen_records)
       {
         database.ignore(sp, trie_delimiter_);
       }
@@ -351,7 +353,7 @@ namespace OpenMS
       sequences.emplace_back(sequence.str());
       if (sequences.back().empty())
       {
-        not_found.push_back(wr_i->first);
+        not_found.push_back(wr.first);
       }
       sequence.str("");
     }
@@ -567,19 +569,19 @@ namespace OpenMS
     PeakMap experiment;
     String type;
 
-    for (vector<pair<String, vector<pair<Size, Size> > > >::const_iterator fs_i = files_and_peptide_identification_with_scan_number.begin(); fs_i != files_and_peptide_identification_with_scan_number.end(); ++fs_i)
+    for (const auto& fs : files_and_peptide_identification_with_scan_number)
     {
-      getExperiment(experiment, type, fs_i->first); // may throw an exception if the filetype could not be determined
+      getExperiment(experiment, type, fs.first); // may throw an exception if the filetype could not be determined
 
-      if (experiment.size() < fs_i->second.back().second)
+      if (experiment.size() < fs.second.back().second)
       {
-        throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Not enough scans in file! (" + String(experiment.size()) + " available, should be at least " + String(fs_i->second.back().second) + ")", fs_i->first);
+        throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Not enough scans in file! (" + String(experiment.size()) + " available, should be at least " + String(fs.second.back().second) + ")", fs.first);
       }
 
-      for (vector<pair<Size, Size> >::const_iterator pi_scan_i = fs_i->second.begin(); pi_scan_i != fs_i->second.end(); ++pi_scan_i)
+      for (const auto& pi_scan : fs.second)
       {
-        ids[pi_scan_i->first].setMZ(experiment[pi_scan_i->second - 1].getPrecursors()[0].getMZ());
-        ids[pi_scan_i->first].setRT(experiment[pi_scan_i->second - 1].getRT());
+        ids[pi_scan.first].setMZ(experiment[pi_scan.second - 1].getPrecursors()[0].getMZ());
+        ids[pi_scan.first].setRT(experiment[pi_scan.second - 1].getRT());
       }
     }
   }
@@ -669,10 +671,10 @@ namespace OpenMS
     Size database_pos(0), snd_database_pos(0); // their sizes HAVE TO BE 4 bytes
     stringbuf sequence;
 
-    for (vector<Size>::const_iterator wr_i = wanted_records.begin(); wr_i != wanted_records.end(); ++wr_i)
+    for (const Size& wr : wanted_records)
     {
       // get the according record in the index file
-      if (index_length < Int((*wr_i + 1) * record_length_)) // if the file is too short
+      if (index_length < Int((wr + 1) * record_length_)) // if the file is too short
       {
         delete[] index_record;
         database.close();
@@ -685,7 +687,7 @@ namespace OpenMS
         snd_index.clear();
         throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "index file is too short!", index_filename);
       }
-      index.seekg((*wr_i) * record_length_);
+      index.seekg(wr * record_length_);
       index.read(index_record, record_length_);
 
       // all but the first sequence are preceded by an asterisk
@@ -1136,9 +1138,9 @@ namespace OpenMS
     result_file.close();
     result_file.clear();
 
-    for (set<Size>::const_iterator rn_i = wanted_records_set.begin(); rn_i != wanted_records_set.end(); ++rn_i)
+    for (const Size& rn : wanted_records_set)
     {
-      wanted_records.push_back(*rn_i);
+      wanted_records.push_back(rn);
     }
 
     return wanted_records;

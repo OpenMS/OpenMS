@@ -67,9 +67,9 @@ namespace OpenMS
 
   void CompNovoIonScoringCID::scoreSpectrum(std::map<double, IonScore> & ion_scores, PeakSpectrum & CID_spec, double precursor_weight, Size charge)
   {
-    for (PeakSpectrum::ConstIterator it = CID_spec.begin(); it != CID_spec.end(); ++it)
+    for (const auto& spec : CID_spec)
     {
-      double it_pos(it->getPosition()[0]);
+      double it_pos(spec.getPosition()[0]);
       IonScore ion_score;
       ion_scores[it_pos] = ion_score;
     }
@@ -77,9 +77,9 @@ namespace OpenMS
     // adds single charged variants of putative single charged ions
     //addSingleChargedIons_(ion_scores, CID_spec);
 
-    for (PeakSpectrum::ConstIterator it = CID_spec.begin(); it != CID_spec.end(); ++it)
+    for (const auto& spec : CID_spec)
     {
-      double it_pos(it->getPosition()[0]);
+      double it_pos(spec.getPosition()[0]);
       IonScore ion_score;
       ion_scores[it_pos] = ion_score;
     }
@@ -100,9 +100,9 @@ namespace OpenMS
     // combine the features and give y-ion scores
     scoreWitnessSet_(charge, precursor_weight, ion_scores, CID_spec);
 
-    for (std::map<double, IonScore>::iterator it = ion_scores.begin(); it != ion_scores.end(); ++it)
+    for (auto& i_score : ion_scores)
     {
-      it->second.score = it->second.s_witness;
+      i_score.second.score = i_score.second.s_witness;
     }
 
 
@@ -116,18 +116,18 @@ namespace OpenMS
     // check whether a PRMNode_ can be decomposed into amino acids
     // rescore the peaks that cannot be possible y-ion candidates
     double max_decomp_weight(param_.getValue("max_decomp_weight"));
-    for (std::map<double, IonScore>::iterator it = ion_scores.begin(); it != ion_scores.end(); ++it)
+    for (auto& i_score : ion_scores)
     {
-      if (it->first > y_offset && (it->first - y_offset) < max_decomp_weight)
+      if (i_score.first > y_offset && (i_score.first - y_offset) < max_decomp_weight)
       {
         vector<MassDecomposition> decomps;
-        decomp_algo.getDecompositions(decomps, it->first - y_offset);
+        decomp_algo.getDecompositions(decomps, i_score.first - y_offset);
 #ifdef ION_SCORING_DEBUG
-        cerr << "Decomps: " << it->first <<  " " << it->first - y_offset << " " << decomps.size() << " " << it->second.score << endl;
+        cerr << "Decomps: " << i_score.first <<  " " << i_score.first - y_offset << " " << decomps.size() << " " << i_score.second.score << endl;
 #endif
         if (decomps.empty())
         {
-          it->second.score = 0;
+          i_score.second.score = 0;
         }
       }
     }
@@ -135,18 +135,18 @@ namespace OpenMS
     decomp_param.setValue("tolerance", (double)param_.getValue("precursor_mass_tolerance"));
     decomp_algo.setParameters(decomp_param);
     // now the upper part with different tolerance
-    for (std::map<double, IonScore>::iterator it = ion_scores.begin(); it != ion_scores.end(); ++it)
+    for (auto& i_score : ion_scores)
     {
-      if (it->first < precursor_weight && precursor_weight - it->first < max_decomp_weight)
+      if (i_score.first < precursor_weight && precursor_weight - i_score.first < max_decomp_weight)
       {
         vector<MassDecomposition> decomps;
-        decomp_algo.getDecompositions(decomps, precursor_weight - it->first);
+        decomp_algo.getDecompositions(decomps, precursor_weight - i_score.first);
 #ifdef ION_SCORING_DEBUG
-        cerr << "Decomps: " << it->first << " " << precursor_weight - it->first << " " << decomps.size() << " " << it->second.score << endl;
+        cerr << "Decomps: " << i_score.first << " " << precursor_weight - i_score.first << " " << decomps.size() << " " << i_score.second.score << endl;
 #endif
         if (decomps.empty())
         {
-          it->second.score = 0;
+          i_score.second.score = 0;
         }
       }
     }
@@ -164,15 +164,15 @@ namespace OpenMS
     diffs.push_back(EmpiricalFormula("H2O").getMonoWeight());
 
     // witnesses of CID spec (diffs)
-    for (PeakSpectrum::ConstIterator it1 = CID_spec.begin(); it1 != CID_spec.end(); ++it1)
+    for (const auto& spec1 : CID_spec)
     {
       //Size num_wit(0);
       double wit_score(0.0);
-      double pos1(it1->getPosition()[0]);
-      wit_score += it1->getIntensity();
-      for (PeakSpectrum::ConstIterator it2 = CID_spec.begin(); it2 != CID_spec.end(); ++it2)
+      double pos1(spec1.getPosition()[0]);
+      wit_score += spec1.getIntensity();
+      for (const auto& spec2 : CID_spec)
       {
-        double pos2(it2->getPosition()[0]);
+        double pos2(spec2.getPosition()[0]);
 
         // direct ++
         if (charge > 1)
@@ -184,13 +184,13 @@ namespace OpenMS
 #ifdef SCORE_WITNESSSET_DEBUG
             cerr << "scoreWitnessSet: ++ion " << pos1 << " " << pos2 << " (factor=" << factor << ") " << wit_score << " -> ";
 #endif
-            if (ion_scores[it2->getPosition()[0]].s_isotope_pattern_2 < 0.2)
+            if (ion_scores[spec2.getPosition()[0]].s_isotope_pattern_2 < 0.2)
             {
-              wit_score += it2->getIntensity() * 0.2 * factor;
+              wit_score += spec2.getIntensity() * 0.2 * factor;
             }
             else
             {
-              wit_score += it2->getIntensity() * ion_scores[it2->getPosition()[0]].s_isotope_pattern_2 * factor;
+              wit_score += spec2.getIntensity() * ion_scores[spec2.getPosition()[0]].s_isotope_pattern_2 * factor;
             }
 #ifdef SCORE_WITNESSSET_DEBUG
             cerr << wit_score << endl;
@@ -199,16 +199,16 @@ namespace OpenMS
         }
 
         // diffs?
-        for (vector<double>::const_iterator it = diffs.begin(); it != diffs.end(); ++it)
+        for (const auto& diff : diffs)
         {
           // pos1 is ion, pos2 loss peak
-          if (fabs(pos1 - pos2 - *it) < precursor_mass_tolerance)
+          if (fabs(pos1 - pos2 - diff) < precursor_mass_tolerance)
           {
-            double factor((fragment_mass_tolerance_ - fabs(pos1 - pos2 - *it)) / fragment_mass_tolerance_);
+            double factor((fragment_mass_tolerance_ - fabs(pos1 - pos2 - diff)) / fragment_mass_tolerance_);
 #ifdef SCORE_WITNESSSET_DEBUG
-            cerr << "scoreWitnessSet: diff " << pos1 << " (" << pos2 << ") " << *it << " (factor=" << factor << ") " << wit_score << " -> ";
+            cerr << "scoreWitnessSet: diff " << pos1 << " (" << pos2 << ") " << diff << " (factor=" << factor << ") " << wit_score << " -> ";
 #endif
-            wit_score += it2->getIntensity() / 5.0 * factor;
+            wit_score += spec2.getIntensity() / 5.0 * factor;
 #ifdef SCORE_WITNESSSET_DEBUG
             cerr << wit_score << endl;
 #endif
@@ -224,24 +224,24 @@ namespace OpenMS
           cerr << "scoreWitnessSet: complementary " << pos1 << " (" << pos2 << ") (factor=" << factor << ") " << wit_score << " -> ";
 #endif
           // found complementary ion
-          if (ion_scores[it2->getPosition()[0]].s_isotope_pattern_1 < 0.5 || ion_scores[it2->getPosition()[0]].is_isotope_1_mono != 1)
+          if (ion_scores[spec2.getPosition()[0]].s_isotope_pattern_1 < 0.5 || ion_scores[spec2.getPosition()[0]].is_isotope_1_mono != 1)
           {
-            wit_score += it2->getIntensity() * 0.5 * factor;
+            wit_score += spec2.getIntensity() * 0.5 * factor;
           }
           else
           {
-            wit_score += it2->getIntensity() * ion_scores[it2->getPosition()[0]].s_isotope_pattern_1 * factor;
+            wit_score += spec2.getIntensity() * ion_scores[spec2.getPosition()[0]].s_isotope_pattern_1 * factor;
           }
 #ifdef SCORE_WITNESSSET_DEBUG
           cerr << wit_score << endl;
 #endif
 
-          if (ion_scores[it2->getPosition()[0]].s_bion != 0)
+          if (ion_scores[spec2.getPosition()[0]].s_bion != 0)
           {
 #ifdef SCORE_WITNESSSET_DEBUG
             cerr << "scoreWitnessSet: complementary is b-ion " << pos1 << "(" << pos2 << ")" << wit_score << " -> ";
 #endif
-            wit_score += ion_scores[it2->getPosition()[0]].s_bion * factor;
+            wit_score += ion_scores[spec2.getPosition()[0]].s_bion * factor;
 #ifdef SCORE_WITNESSSET_DEBUG
             cerr << wit_score << endl;
 #endif
@@ -251,36 +251,36 @@ namespace OpenMS
       }
 
       // isotope pattern ok?
-      if (ion_scores[it1->getPosition()[0]].s_isotope_pattern_1 > 0 && ion_scores[it1->getPosition()[0]].is_isotope_1_mono == 1)
+      if (ion_scores[spec1.getPosition()[0]].s_isotope_pattern_1 > 0 && ion_scores[spec1.getPosition()[0]].is_isotope_1_mono == 1)
       {
 #ifdef SCORE_WITNESSSET_DEBUG
         cerr << "scoreWitnessSet: isotope pattern: " << pos1 << " " << wit_score << " -> ";
 #endif
-        wit_score += ion_scores[it1->getPosition()[0]].s_isotope_pattern_1 * wit_score;
+        wit_score += ion_scores[spec1.getPosition()[0]].s_isotope_pattern_1 * wit_score;
 #ifdef SCORE_WITNESSSET_DEBUG
         cerr << wit_score << endl;
 #endif
       }
 
-      if (ion_scores[it1->getPosition()[0]].s_yion > 0)
+      if (ion_scores[spec1.getPosition()[0]].s_yion > 0)
       {
 #ifdef SCORE_WITNESSSET_DEBUG
         cerr << "scoreWitnessSet: is y-ion: " << pos1 << " " << wit_score << " -> ";
 #endif
-        wit_score += ion_scores[it1->getPosition()[0]].s_yion;
+        wit_score += ion_scores[spec1.getPosition()[0]].s_yion;
 #ifdef SCORE_WITNESSSET_DEBUG
         cerr << wit_score << endl;
 #endif
       }
 
-      if (ion_scores[it1->getPosition()[0]].s_bion > 0)
+      if (ion_scores[spec1.getPosition()[0]].s_bion > 0)
       {
 #ifdef SCORE_WITNESSSET_DEBUG
         cerr << "scoreWitnessSet: is b-ion: " << pos1 << " " << wit_score << " -> ";
 #endif
-        if (ion_scores[it1->getPosition()[0]].s_bion < wit_score)
+        if (ion_scores[spec1.getPosition()[0]].s_bion < wit_score)
         {
-          wit_score -= ion_scores[it1->getPosition()[0]].s_bion;
+          wit_score -= ion_scores[spec1.getPosition()[0]].s_bion;
         }
         else
         {
@@ -288,7 +288,7 @@ namespace OpenMS
         }
       }
 
-      ion_scores[it1->getPosition()[0]].s_witness = wit_score;
+      ion_scores[spec1.getPosition()[0]].s_witness = wit_score;
     }
     return;
   }

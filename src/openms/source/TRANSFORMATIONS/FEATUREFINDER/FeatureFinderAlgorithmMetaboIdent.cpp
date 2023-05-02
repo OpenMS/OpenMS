@@ -453,26 +453,25 @@ namespace OpenMS
     iso_dist.renormalize();
 
     // go through different charge states:
-    for (vector<Int>::const_iterator z_it = charges.begin();
-         z_it != charges.end(); ++z_it)
+    for (const Int& z : charges)
     {
-      if (*z_it == 0)
+      if (z == 0)
       {
         OPENMS_LOG_ERROR << "Error: Invalid charge 0 for target '" << name
                          << "' - skipping this charge." << endl;
         continue;
       }
-      target.setChargeState(*z_it);
+      target.setChargeState(z);
       double mz = 0.0;
       if (!mass_given) // calculate m/z from formula
       {
-        emp_formula.setCharge(*z_it);
+        emp_formula.setCharge(z);
         // "EmpiricalFormula::getMonoWeight()" already includes charges:
-        mz = abs(emp_formula.getMonoWeight() / *z_it);
+        mz = abs(emp_formula.getMonoWeight() / z);
       }
       else
       {
-        mz = calculateMZ_(mass, *z_it);
+        mz = calculateMZ_(mass, z);
       }
 
       // recycle to one range entry per RT:
@@ -487,7 +486,7 @@ namespace OpenMS
 
       for (Size i = 0; i < rts.size(); ++i)
       {
-        target.id = target_id + "_z" + String(*z_it) + "_rt" +
+        target.id = target_id + "_z" + String(z) + "_rt" +
           String(float(rts[i]));
         target.setMetaValue("expected_rt", rts[i]);
         target_rts_[target.id] = rts[i];
@@ -502,7 +501,7 @@ namespace OpenMS
         addTargetRT_(target, rts[i] - rt_tol);
         addTargetRT_(target, rts[i] + rt_tol);
         library_.addCompound(target);
-        generateTransitions_(target.id, mz, *z_it, iso_dist);
+        generateTransitions_(target.id, mz, z, iso_dist);
       }
     }
   }
@@ -670,31 +669,29 @@ namespace OpenMS
   {
     Size n_shared = 0;
     set<String> found_refs;
-    for (FeatureMap::Iterator it = features.begin(); it != features.end(); ++it)
+    for (Feature& feat : features)
     {
-      found_refs.insert(it->getMetaValue("PeptideRef"));
-      if (it->metaValueExists("alt_PeptideRef"))
+      found_refs.insert(feat.getMetaValue("PeptideRef"));
+      if (feat.metaValueExists("alt_PeptideRef"))
       {
         n_shared++;
-        StringList alt_refs = it->getMetaValue("alt_PeptideRef");
+        StringList alt_refs = feat.getMetaValue("alt_PeptideRef");
         found_refs.insert(alt_refs.begin(), alt_refs.end());
       }
     }
     // targets without features:
     size_t n_missing = library_.getCompounds().size() - found_refs.size();
     features.getUnassignedPeptideIdentifications().reserve(n_missing);
-    for (vector<TargetedExperiment::Compound>::const_iterator it =
-           library_.getCompounds().begin(); it != library_.getCompounds().end();
-         ++it)
+    for (const TargetedExperiment::Compound& cmpd : library_.getCompounds())
     {
-      if (!found_refs.count(it->id))
+      if (!found_refs.count(cmpd.id))
       {
         PeptideIdentification peptide;
         peptide.setIdentifier("id");
-        peptide.setMetaValue("label", it->getMetaValue("name"));
-        peptide.setMetaValue("PeptideRef", it->id);
-        peptide.setRT(it->getMetaValue("expected_rt"));
-        peptide.setMZ(calculateMZ_(it->theoretical_mass, it->getChargeState()));
+        peptide.setMetaValue("label", cmpd.getMetaValue("name"));
+        peptide.setMetaValue("PeptideRef", cmpd.id);
+        peptide.setRT(cmpd.getMetaValue("expected_rt"));
+        peptide.setMZ(calculateMZ_(cmpd.theoretical_mass, cmpd.getChargeState()));
         features.getUnassignedPeptideIdentifications().push_back(peptide);
       }
       if (features.getUnassignedPeptideIdentifications().size() >= n_missing)

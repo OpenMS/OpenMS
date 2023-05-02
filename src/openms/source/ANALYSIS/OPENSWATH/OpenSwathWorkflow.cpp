@@ -194,12 +194,12 @@ namespace OpenMS
 
     // Create pairs vector and store peaks
     std::map<String, OpenMS::MRMFeatureFinderScoring::MRMTransitionGroupType *> trgrmap_allpeaks; // store all peaks above cutoff
-    for (std::map<std::string, double>::iterator it = best_features.begin(); it != best_features.end(); ++it)
+    for (auto& bf : best_features)
     {
-      pairs.emplace_back(it->second, PeptideRTMap[it->first]); // pair<exp_rt, theor_rt>
-      if (transition_group_map.find(it->first) != transition_group_map.end())
+      pairs.emplace_back(bf.second, PeptideRTMap[bf.first]); // pair<exp_rt, theor_rt>
+      if (transition_group_map.find(bf.first) != transition_group_map.end())
       {
-        trgrmap_allpeaks[ it->first ] = &transition_group_map[ it->first];
+        trgrmap_allpeaks[ bf.first ] = &transition_group_map[ bf.first];
       }
     }
 
@@ -462,12 +462,12 @@ namespace OpenMS
         chr_map[ chromatograms[i].getNativeID() ].push_back(i);
       }
 
-      for (std::map<std::string, std::vector<int> >::iterator it = chr_map.begin(); it != chr_map.end(); ++it)
+      for (auto& cm : chr_map)
       {
         MSChromatogram chrom_acc; // accumulator
-        for (Size i = 0; i < it->second.size(); i++)
+        for (Size i = 0; i < cm.second.size(); i++)
         {
-          addChromatograms(chrom_acc, chromatograms[ it->second[i] ] );
+          addChromatograms(chrom_acc, chromatograms[ cm.second[i] ] );
         }
         chromatograms_new.push_back(chrom_acc);
       }
@@ -876,17 +876,13 @@ namespace OpenMS
     // write features to output if so desired
     if (store_features)
     {
-      for (FeatureMap::const_iterator feature_it = featureFile.begin();
-           feature_it != featureFile.end(); ++feature_it)
+      for (const Feature& feat : featureFile)
       {
-        out_featureFile.push_back(*feature_it);
+        out_featureFile.push_back(feat);
       }
-      for (std::vector<ProteinIdentification>::const_iterator protid_it =
-             featureFile.getProteinIdentifications().begin();
-           protid_it != featureFile.getProteinIdentifications().end();
-           ++protid_it)
+      for (const ProteinIdentification& protid : featureFile.getProteinIdentifications())
       {
-        out_featureFile.getProteinIdentifications().push_back(*protid_it);
+        out_featureFile.getProteinIdentifications().push_back(protid);
       }
     }
   }
@@ -996,10 +992,10 @@ namespace OpenMS
     // Start of main function
     // Iterating over all the assays
     ///////////////////////////////////
-    for (AssayMapT::iterator assay_it = assay_map.begin(); assay_it != assay_map.end(); ++assay_it)
+    for (auto& assay : assay_map)
     {
       // Create new MRMTransitionGroup
-      String id = assay_it->first;
+      String id = assay.first;
       MRMTransitionGroupType transition_group;
       transition_group.setTransitionGroupID(id);
       double expected_rt = transition_exp.getCompounds()[ assay_peptide_map[id] ].rt;
@@ -1007,7 +1003,7 @@ namespace OpenMS
       // 1. Go through all transitions, for each transition get
       // the chromatogram and the assay to the MRMTransitionGroup
       const TransitionType* detection_assay_it = nullptr; // store last detecting transition
-      for (const TransitionType* transition : assay_it->second)
+      for (const TransitionType* transition : assay.second)
       {
         if (transition->isDetectingTransition())
         {
@@ -1166,10 +1162,10 @@ namespace OpenMS
       // Use an rt extraction window of 0.0 which will just write the retention time in start / end positions
       // Then correct the start/end positions and add the extra_rt_extract parameter
       ChromatogramExtractor::prepare_coordinates(chrom_list, coordinates, transition_exp_used, 0.0, ms1, ms1_isotopes);
-      for (std::vector< ChromatogramExtractor::ExtractionCoordinates >::iterator it = coordinates.begin(); it != coordinates.end(); ++it)
+      for (ChromatogramExtractorAlgorithm::ExtractionCoordinates& coord : coordinates)
       {
-        it->rt_start = trafo_inverse.apply(it->rt_start) - (cp.rt_extraction_window + cp.extra_rt_extract)/ 2.0;
-        it->rt_end = trafo_inverse.apply(it->rt_end) + (cp.rt_extraction_window + cp.extra_rt_extract)/ 2.0;
+        coord.rt_start = trafo_inverse.apply(coord.rt_start) - (cp.rt_extraction_window + cp.extra_rt_extract)/ 2.0;
+        coord.rt_end = trafo_inverse.apply(coord.rt_end) + (cp.rt_extraction_window + cp.extra_rt_extract)/ 2.0;
       }
     }
   }

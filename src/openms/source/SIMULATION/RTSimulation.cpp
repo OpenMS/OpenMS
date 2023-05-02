@@ -434,15 +434,15 @@ namespace OpenMS
       // sidechains ...
       std::map<String, Size> frequency_table;
       features[i].getPeptideIdentifications()[0].getHits()[0].getSequence().getAAFrequencies(frequency_table);
-      for (std::map<String, Size>::const_iterator it = frequency_table.begin(); it != frequency_table.end(); ++it)
+      for (const auto& freq : frequency_table)
       {
-        if (q_aa_basic.find(it->first) != q_aa_basic.end())
+        if (q_aa_basic.find(freq.first) != q_aa_basic.end())
         {
-          charge +=  q_aa_basic[it->first] * it->second;
+          charge +=  q_aa_basic[freq.first] * freq.second;
         }
-        if (q_aa_acidic.find(it->first) != q_aa_acidic.end())
+        if (q_aa_acidic.find(freq.first) != q_aa_acidic.end())
         {
-          charge +=  q_aa_acidic[it->first] * it->second;
+          charge +=  q_aa_acidic[freq.first] * freq.second;
         }
       }
 

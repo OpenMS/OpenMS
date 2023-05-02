@@ -270,9 +270,9 @@ namespace OpenMS
     //if (sequence[0] == 'Q' && prefix == 0 && suffix == 0)
     //{
       /*
-      for (PeakSpectrum::Iterator it = spec.begin(); it != spec.end(); ++it)
+      for (Peak1D& peak : spec)
       {
-          it->setIntensity(it->getIntensity() * 0.5);
+          peak.setIntensity(peak.getIntensity() * 0.5);
       }*/
 
       /*
@@ -290,18 +290,18 @@ namespace OpenMS
   void CompNovoIdentificationBase::filterPermuts_(set<String> & permut) const
   {
     set<String> tmp;
-    for (set<String>::const_iterator it = permut.begin(); it != permut.end(); ++it)
+    for (const String& pm : permut)
     {
       if (tryptic_only_)
       {
-        if ((*it)[it->size() - 1] == 'K' || (*it)[it->size() - 1] == 'R')
+        if (pm[pm.size() - 1] == 'K' || pm[pm.size() - 1] == 'R')
         {
-          tmp.insert(*it);
+          tmp.insert(pm);
         }
       }
       else
       {
-        tmp.insert(*it);
+        tmp.insert(pm);
       }
     }
     permut = tmp;
@@ -430,9 +430,9 @@ namespace OpenMS
             // now check if a very similar ion is already selected +/- 3Da
             //bool has_similar(false);
             /*
-for (set<Size>::const_iterator it = used_pos.begin(); it != used_pos.end(); ++it)
+for (const Size& pos : used_pos)
 {
-    if (fabs(CID_spec[*it].getPosition()[0] - CID_spec[i].getPosition()[0]) < 1.5)
+    if (fabs(CID_spec[pos].getPosition()[0] - CID_spec[i].getPosition()[0]) < 1.5)
     {
     has_similar = true;
     }
@@ -548,11 +548,11 @@ for (set<Size>::const_iterator it = used_pos.begin(); it != used_pos.end(); ++it
     }
 
     spec.clear(false);
-    for (PeakSpectrum::ConstIterator it = copy.begin(); it != copy.end(); ++it)
+    for (const Peak1D& peak : copy)
     {
-      if (find(to_be_deleted.begin(), to_be_deleted.end(), *it) == to_be_deleted.end())
+      if (find(to_be_deleted.begin(), to_be_deleted.end(), peak) == to_be_deleted.end())
       {
-        spec.push_back(*it);
+        spec.push_back(peak);
       }
     }
 
@@ -564,11 +564,11 @@ for (set<Size>::const_iterator it = used_pos.begin(); it != used_pos.end(); ++it
   {
     Size max_number_aa_per_decomp(param_.getValue("max_number_aa_per_decomp"));
     vector<MassDecomposition> tmp;
-    for (vector<MassDecomposition>::const_iterator it = decomps.begin(); it != decomps.end(); ++it)
+    for (const auto& dc : decomps)
     {
-      if (it->getNumberOfMaxAA() <= max_number_aa_per_decomp)
+      if (dc.getNumberOfMaxAA() <= max_number_aa_per_decomp)
       {
-        tmp.push_back(*it);
+        tmp.push_back(dc);
       }
     }
     decomps = tmp;
@@ -594,15 +594,15 @@ for (set<Size>::const_iterator it = used_pos.begin(); it != used_pos.end(); ++it
   AASequence CompNovoIdentificationBase::getModifiedAASequence_(const String & sequence)
   {
     AASequence seq;
-    for (String::ConstIterator it = sequence.begin(); it != sequence.end(); ++it)
+    for (const auto& s : sequence)
     {
-      if (name_to_residue_.find(*it) != name_to_residue_.end())
+      if (name_to_residue_.find(s) != name_to_residue_.end())
       {
-        seq += name_to_residue_[*it];
+        seq += name_to_residue_[s];
       }
       else
       {
-        seq += AASequence::fromString(*it);
+        seq += AASequence::fromString(s);
       }
     }
 
@@ -632,9 +632,9 @@ for (set<Size>::const_iterator it = used_pos.begin(); it != used_pos.end(); ++it
     String residue_set(param_.getValue("residue_set").toString());
 
     set<const Residue *> residues = ResidueDB::getInstance()->getResidues(residue_set);
-    for (set<const Residue *>::const_iterator it = residues.begin(); it != residues.end(); ++it)
+    for (const auto& res : residues)
     {
-      aa_to_weight_[(*it)->getOneLetterCode()[0]] = (*it)->getMonoWeight(Residue::Internal);
+      aa_to_weight_[res->getOneLetterCode()[0]] = res->getMonoWeight(Residue::Internal);
     }
 
     max_number_aa_per_decomp_ = param_.getValue("max_number_aa_per_decomp");
@@ -655,9 +655,9 @@ for (set<Size>::const_iterator it = used_pos.begin(); it != used_pos.end(); ++it
     ModificationDefinitionsSet mod_set(ListUtils::toStringList<std::string>(param_.getValue("fixed_modifications")), ListUtils::toStringList<std::string>(param_.getValue("variable_modifications")));
     const set<ModificationDefinition>& fixed_mods = mod_set.getFixedModifications();
 
-    for (set<ModificationDefinition>::const_iterator it = fixed_mods.begin(); it != fixed_mods.end(); ++it)
+    for (const ModificationDefinition& f_mod : fixed_mods)
     {
-      ResidueModification mod = it->getModification();
+      ResidueModification mod = f_mod.getModification();
       char aa = ' ';
       if (mod.getOrigin() == 'X')
       {
@@ -686,9 +686,9 @@ for (set<Size>::const_iterator it = used_pos.begin(); it != used_pos.end(); ++it
         }
       }
 
-      //cerr << "Setting fixed modification " << it->getModification() << " of amino acid '" << aa << "'; weight = " << aa_to_weight_[aa] << endl;
+      //cerr << "Setting fixed modification " << f_mod.getModification() << " of amino acid '" << aa << "'; weight = " << aa_to_weight_[aa] << endl;
 
-      const Residue* res = ResidueDB::getInstance()->getModifiedResidue(it->getModificationName());
+      const Residue* res = ResidueDB::getInstance()->getModifiedResidue(f_mod.getModificationName());
       name_to_residue_[aa] = res;
       residue_to_name_[res] = aa;
     }
@@ -696,9 +696,9 @@ for (set<Size>::const_iterator it = used_pos.begin(); it != used_pos.end(); ++it
     const StringList mod_names(ListUtils::create<String>("a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s,t,u,v,w,x,y,z"));
     vector<String>::const_iterator actual_mod_name = mod_names.begin();
     const set<ModificationDefinition>& var_mods = mod_set.getVariableModifications();
-    for (set<ModificationDefinition>::const_iterator it = var_mods.begin(); it != var_mods.end(); ++it)
+    for (const ModificationDefinition& v_mod : var_mods)
     {
-      ResidueModification mod = it->getModification();
+      ResidueModification mod = v_mod.getModification();
       char aa = (*actual_mod_name)[0];
       char origin_aa = ' ';
       ++actual_mod_name;
@@ -730,8 +730,8 @@ for (set<Size>::const_iterator it = used_pos.begin(); it != used_pos.end(); ++it
         }
       }
 
-      //cerr << "Mapping variable modification " << it->getModification() << " to letter '" << aa << "' (@" << origin_aa << "); weight = " << aa_to_weight_[aa] << endl;
-      const Residue* res = ResidueDB::getInstance()->getModifiedResidue(it->getModificationName());
+      //cerr << "Mapping variable modification " << v_mod.getModification() << " to letter '" << aa << "' (@" << origin_aa << "); weight = " << aa_to_weight_[aa] << endl;
+      const Residue* res = ResidueDB::getInstance()->getModifiedResidue(v_mod.getModificationName());
       name_to_residue_[aa] = res;
       residue_to_name_[res] = aa;
     }
@@ -739,9 +739,9 @@ for (set<Size>::const_iterator it = used_pos.begin(); it != used_pos.end(); ++it
     /*
     cerr << "Following masses are used for identification: " << endl;
 
-    for (Map<char, double>::const_iterator it = aa_to_weight_.begin(); it != aa_to_weight_.end(); ++it)
+    for (const auto& aa : aa_to_weight_)
     {
-        cerr << it->first << " " << precisionWrapper(it->second) << endl;
+        cerr << aa.first << " " << precisionWrapper(aa.second) << endl;
     }*/
 
     Param decomp_param(mass_decomp_algorithm_.getParameters());
@@ -751,11 +751,11 @@ for (set<Size>::const_iterator it = used_pos.begin(); it != used_pos.end(); ++it
     mass_decomp_algorithm_.setParameters(decomp_param);
 
     min_aa_weight_ = numeric_limits<double>::max();
-    for (std::map<char, double>::const_iterator it = aa_to_weight_.begin(); it != aa_to_weight_.end(); ++it)
+    for (const auto& weight : aa_to_weight_)
     {
-      if (min_aa_weight_ > it->second)
+      if (min_aa_weight_ > weight.second)
       {
-        min_aa_weight_ = it->second;
+        min_aa_weight_ = weight.second;
       }
     }
   }
@@ -838,9 +838,9 @@ for (set<Size>::const_iterator it = used_pos.begin(); it != used_pos.end(); ++it
     spec.sortByPosition();
 
     #ifdef ETD_SPECTRUM_DEBUG
-    for (PeakSpectrum::ConstIterator it = spec.begin(); it != spec.end(); ++it)
+    for (const Peak1D& s : spec)
     {
-      cerr << it->getPosition()[0] << " " << it->getIntensity() << endl;
+      cerr << s.getPosition()[0] << " " << s.getIntensity() << endl;
     }
     #endif
 

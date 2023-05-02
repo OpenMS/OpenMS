@@ -337,7 +337,7 @@ namespace OpenMS
     getLeftAndRightGBValues_(peptide, gb_left_n_term, gb_right_n_term, 0);
     gb_bb.push_back(gb_left_n_term + gb_right_n_term);
     Size count(1);
-    for (AASequence::ConstIterator it = peptide.begin(); it != peptide.end(); ++it, ++count)
+    for (const Residue& pep : peptide)
     {
       double gb_left(0), gb_right(0);
       getLeftAndRightGBValues_(peptide, gb_left, gb_right, count);
@@ -345,7 +345,8 @@ namespace OpenMS
       double gb = gb_left + gb_right;
       gb_bb.push_back(gb);
 
-      gb_sc.push_back(it->getSideChainBasicity());
+      gb_sc.push_back(pep.getSideChainBasicity());
+      ++count;
     }
 
     // now distribute the charges until no site has more than 1.0 proton
@@ -358,47 +359,50 @@ namespace OpenMS
       vector<double> k_bb(peptide.size() + 1, 0.0), k_sc(peptide.size(), 0.0);
       count = 0;
       double sum_k(0);
-      for (vector<double>::const_iterator it = gb_bb.begin(); it != gb_bb.end(); ++it, ++count)
+      for (const double& gb : gb_bb)
       {
         if (bb_sites.find(count) == bb_sites.end())
         {
-          k_bb[count] = exp((*it - bb_coulomb[count]) * 1000.0 / Constants::R / 500.0);
+          k_bb[count] = exp((gb - bb_coulomb[count]) * 1000.0 / Constants::R / 500.0);
           sum_k += k_bb[count];
           //cerr << k_bb[count] << endl;
         }
+        ++count;
       }
 
       count = 0;
-      for (vector<double>::const_iterator it = gb_sc.begin(); it != gb_sc.end(); ++it, ++count)
+      for (const double& gb : gb_sc)
       {
         if (sc_sites.find(count) == sc_sites.end())
         {
-          k_sc[count] = exp((*it - sc_coulomb[count]) * 1000.0 / Constants::R / 500.0);
+          k_sc[count] = exp((gb - sc_coulomb[count]) * 1000.0 / Constants::R / 500.0);
           sum_k += k_sc[count];
           //cerr << k_sc[count] << endl;
         }
+        ++count;
       }
 
       //cerr << "sum_k: " << sum_k << endl;
 
       vector<double> p_bb(peptide.size() + 1, 1.0), p_sc(peptide.size(), 1.0);
       count = 0;
-      for (vector<double>::const_iterator it = k_bb.begin(); it != k_bb.end(); ++it, ++count)
+      for (const double& k : k_bb)
       {
         if (bb_sites.find(count) == bb_sites.end())
         {
-          p_bb[count] = (double)actual_charge * *it / sum_k;
+          p_bb[count] = (double)actual_charge * k / sum_k;
           bb_charge_[count] = p_bb[count];
         }
         //cerr << "BB" << count << ": " << p_bb[count] << endl;
+        ++count;
       }
 
       count = 0;
-      for (vector<double>::const_iterator it = k_sc.begin(); it != k_sc.end(); ++it, ++count)
+      for (const double& k : k_sc)
       {
         if (sc_sites.find(count) == sc_sites.end())
         {
-          p_sc[count] = (double)actual_charge * *it / sum_k;
+          p_sc[count] = (double)actual_charge * k / sum_k;
           sc_charge_[count] = p_sc[count];
         }
         //cerr << "SC" << count << ": " << p_sc[count] << endl;
@@ -433,18 +437,18 @@ namespace OpenMS
         if (bb_sites.find(i) == bb_sites.end())
         {
           double coulomb_sum(0);
-          for (set<Size>::const_iterator it = bb_sites.begin(); it != bb_sites.end(); ++it)
+          for (const Size& site : bb_sites)
           {
             // calculate the distance between occupied site and this backbone site
-            Size pos = *it;
+            Size pos = site;
             Size diff = (pos > i) ? pos - i : i - pos;
             coulomb_sum += COULOMB_REPULSION2 / (double)diff;
           }
 
-          for (set<Size>::const_iterator it = sc_sites.begin(); it != sc_sites.end(); ++it)
+          for (const Size& site : sc_sites)
           {
             // calculate the distance between occupied side chain and this backbone site
-            Size pos = *it;
+            Size pos = site;
             Size diff = (pos > i) ? pos - i : i - pos;
             ++diff;             // bond to the side chain counts extra
             coulomb_sum += COULOMB_REPULSION2 / (double)diff;
@@ -458,16 +462,16 @@ namespace OpenMS
         if (sc_sites.find(i) == sc_sites.end())
         {
           double coulomb_sum(0);
-          for (set<Size>::const_iterator it = bb_sites.begin(); it != bb_sites.end(); ++it)
+          for (const Size& site : bb_sites)
           {
-            Size pos = *it;
+            Size pos = site;
             Size diff = (pos > i) ? pos - i : i - pos;
             ++diff;
             coulomb_sum += COULOMB_REPULSION2 / (double)diff;
           }
-          for (set<Size>::const_iterator it = sc_sites.begin(); it != sc_sites.end(); ++it)
+          for (const Size& site : sc_sites)
           {
-            Size pos = *it;
+            Size pos = site;
             Size diff = (pos > i) ? pos - i : i - pos;
             diff += 2;
             coulomb_sum += COULOMB_REPULSION2 / (double)diff;

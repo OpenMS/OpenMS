@@ -87,14 +87,14 @@ namespace OpenMS
 
   void ProteinResolver::clearResult()
   {
-    for (vector<ResolverResult>::iterator it = resolver_result_.begin(); it != resolver_result_.end(); ++it)
+    for (auto& res : resolver_result_)
     {
-      delete it->isds;
-      delete it->msds;
-      delete it->peptide_entries;
-      delete it->protein_entries;
-      delete it->reindexed_peptides;
-      delete it->reindexed_proteins;
+      delete res.isds;
+      delete res.msds;
+      delete res.peptide_entries;
+      delete res.protein_entries;
+      delete res.reindexed_peptides;
+      delete res.reindexed_proteins;
     }
     resolver_result_.clear();
   }
@@ -187,51 +187,51 @@ namespace OpenMS
   void ProteinResolver::computeIntensityOfMSD_(vector<MSDGroup> & msd_groups)
   {
     // iterates msd_groups
-    for (vector<MSDGroup>::iterator group = msd_groups.begin(); group != msd_groups.end(); ++group)
+    for (auto& group : msd_groups)
     {
       std::vector<float> intensities;
       // iterates peptide entry (peptide identification), intensity (sum)
-      for (list<PeptideEntry *>::iterator pep = group->peptides.begin(); pep != group->peptides.end(); ++pep)
+      for (auto& pep : group.peptides)
       {
-        intensities.push_back((*pep)->intensity);
+        intensities.push_back((pep)->intensity);
       }
       // median of the list is used as intensity of the msd_group
-      group->intensity = Math::median(intensities.begin(), intensities.end());
+      group.intensity = Math::median(intensities.begin(), intensities.end());
     }
   }
 
   void ProteinResolver::countTargetDecoy(vector<MSDGroup> & msd_groups, ConsensusMap & consensus)
   {
-    for (vector<MSDGroup>::iterator group = msd_groups.begin(); group != msd_groups.end(); ++group)
+    for (auto& group : msd_groups)
     {
-      for (list<PeptideEntry *>::iterator pep = group->peptides.begin(); pep != group->peptides.end(); ++pep)
+      for (auto& pep : group.peptides)
       {
-        String tmp = getPeptideHit(consensus, *pep).getMetaValue("target_decoy");
+        String tmp = getPeptideHit(consensus, pep).getMetaValue("target_decoy");
 
         if (tmp == "target")
-          ++(group->number_of_target);
+          ++(group.number_of_target);
         else if (tmp == "decoy")
-          ++(group->number_of_decoy);
+          ++(group.number_of_decoy);
         else /*if(tmp == "target+decoy")*/
-          ++(group->number_of_target_plus_decoy);
+          ++(group.number_of_target_plus_decoy);
       }
     }
   }
 
   void ProteinResolver::countTargetDecoy(vector<MSDGroup> & msd_groups, vector<PeptideIdentification> & peptide_nodes)
   {
-    for (vector<MSDGroup>::iterator group = msd_groups.begin(); group != msd_groups.end(); ++group)
+    for (auto& group : msd_groups)
     {
-      for (list<PeptideEntry *>::iterator pep = group->peptides.begin(); pep != group->peptides.end(); ++pep)
+      for (auto& pep : group.peptides)
       {
-        String tmp = getPeptideHit(peptide_nodes, *pep).getMetaValue("target_decoy");
+        String tmp = getPeptideHit(peptide_nodes, pep).getMetaValue("target_decoy");
 
         if (tmp == "target")
-          ++(group->number_of_target);
+          ++(group.number_of_target);
         else if (tmp == "decoy")
-          ++(group->number_of_decoy);
+          ++(group.number_of_decoy);
         else /*if(tmp == "target+decoy")*/
-          ++(group->number_of_target_plus_decoy);
+          ++(group.number_of_target_plus_decoy);
       }
     }
   }
@@ -241,16 +241,16 @@ namespace OpenMS
   {
     group.proteins.push_back(prot_node);
     prot_node->msd_group = group.index;
-    for (list<PeptideEntry *>::iterator i = prot_node->peptides.begin(); i != prot_node->peptides.end(); ++i)
+    for (auto& node : prot_node->peptides)
     {
-      if ((*i)->experimental)
+      if ((node)->experimental)
         ++(prot_node->number_of_experimental_peptides);
-      if ((*i)->traversed)
+      if ((node)->traversed)
       {
-        (*i)->traversed = false;
-        if ((*i)->experimental)
+        (node)->traversed = false;
+        if ((node)->experimental)
         {
-          traversePeptide_((*i), group);
+          traversePeptide_((node), group);
         }
       }
     }
@@ -260,12 +260,12 @@ namespace OpenMS
   {
     group.peptides.push_back(pep_node);
     pep_node->msd_group = group.index;
-    for (list<ProteinEntry *>::iterator i = pep_node->proteins.begin(); i != pep_node->proteins.end(); ++i)
+    for (auto& node : pep_node->proteins)
     {
-      if ((*i)->traversed)
+      if ((node)->traversed)
       {
-        (*i)->traversed = false;
-        traverseProtein_((*i), group);
+        (node)->traversed = false;
+        traverseProtein_((node), group);
       }
     }
   }
@@ -404,19 +404,19 @@ namespace OpenMS
   {
     Size new_prot_index(0);
     Size new_pep_index(0);
-    for (vector<MSDGroup>::iterator msd = msd_groups.begin(); msd != msd_groups.end(); ++msd)
+    for (auto& group : msd_groups)
     {
-      for (list<ProteinEntry *>::iterator prot = msd->proteins.begin(); prot != msd->proteins.end(); ++prot)
+      for (auto& prot : group.proteins)
       {
-        reindexed_proteins.push_back((*prot)->index);
-        (*prot)->index = new_prot_index;
+        reindexed_proteins.push_back((prot)->index);
+        (prot)->index = new_prot_index;
         ++new_prot_index;
       }
 
-      for (list<PeptideEntry *>::iterator pep = msd->peptides.begin(); pep != msd->peptides.end(); ++pep)
+      for (auto& pep : group.peptides)
       {
-        reindexed_peptides.push_back((*pep)->index);
-        (*pep)->index = new_pep_index;
+        reindexed_peptides.push_back((pep)->index);
+        (pep)->index = new_pep_index;
         ++new_pep_index;
       }
     }
@@ -427,12 +427,12 @@ namespace OpenMS
   {
     //primary proteins
     Size pc = 0;
-    for (vector<Size>::iterator pep = reindexed_peptides.begin(); pep != reindexed_peptides.end(); ++pep)
+    for (auto& pep : reindexed_peptides)
     {
       ++pc;
-      if (peptide_nodes[*pep].proteins.size() == 1)
+      if (peptide_nodes[pep].proteins.size() == 1)
       {
-        peptide_nodes[*pep].proteins.front()->protein_type = ProteinEntry::primary;
+        peptide_nodes[pep].proteins.front()->protein_type = ProteinEntry::primary;
       }
     }
   }
@@ -478,28 +478,30 @@ namespace OpenMS
     vector<PeptideEntry>::iterator pep_node = peptide_nodes.begin();
     Size peptide_counter = 0;
 
-    for (map<String, set<Size> >::iterator i  = peptides.begin(); i != peptides.end(); ++i, ++pep_node, ++peptide_counter)
+    for (auto& pep : peptides)
     {
       pep_node->index = peptide_counter;
       pep_node->traversed = false;
-      pep_node->sequence = (*i).first;
+      pep_node->sequence = (pep).first;
       pep_node->experimental = false;
-      for (set<Size>::iterator j = (*i).second.begin(); j != (*i).second.end(); ++j)
+      for (auto& pep2 : pep.second)
       { // this builds the bipartite graph
-        pep_node->proteins.push_back(&protein_nodes[*j]);
-        protein_nodes[*j].peptides.push_back(&*pep_node);
+        pep_node->proteins.push_back(&protein_nodes[pep2]);
+        protein_nodes[pep2].peptides.push_back(&*pep_node);
       }
+      ++pep_node;
+      ++peptide_counter;
     }
     // ISDGraph construction (find connected components)
     Size isd_group_counter = 0;
     Size i = 0;
-    for (vector<ProteinEntry>::iterator prot_node = protein_nodes.begin(); prot_node != protein_nodes.end(); ++prot_node)
+    for (auto& prot_node : protein_nodes)
     {
       ++i;
       std::vector<ProteinEntry*> q_prot;
       std::vector<PeptideEntry*> q_pep;
       // initial node
-      q_prot.push_back(&*prot_node);
+      q_prot.push_back(&prot_node);
 
       ISDGroup group;
       group.index = isd_group_counter;
@@ -515,11 +517,11 @@ namespace OpenMS
             prot->traversed = true;
             group.proteins.push_back(prot);
             prot->isd_group = group.index;
-            for (list<PeptideEntry *>::iterator itp = prot->peptides.begin(); itp != prot->peptides.end(); ++itp)
+            for (auto& pep : prot->peptides)
             {
-              if (!(*itp)->traversed)
+              if (!(pep)->traversed)
               {
-                q_pep.push_back(*itp);
+                q_pep.push_back(pep);
               }
             }
           }
@@ -533,11 +535,11 @@ namespace OpenMS
             pep->traversed = true;
             group.peptides.push_back(pep);
             pep->isd_group = group.index;
-            for (list<ProteinEntry *>::iterator itp = pep->proteins.begin(); itp != pep->proteins.end(); ++itp)
+            for (auto& prot : pep->proteins)
             {
-              if (!(*itp)->traversed)
+              if (!(prot)->traversed)
               {
-                q_prot.push_back(*itp);
+                q_prot.push_back(prot);
               }
             }
           }
@@ -555,9 +557,9 @@ namespace OpenMS
     Size msd_group_counter = 0;
     for (Size isd_group = 0; isd_group != isd_groups.size(); ++isd_group)
     {
-      for (list<ProteinEntry *>::iterator prot = isd_groups[isd_group].proteins.begin(); prot != isd_groups[isd_group].proteins.end(); ++prot)
+      for (auto& prot : isd_groups[isd_group].proteins)
       {
-        ProteinEntry * prot_node = (*prot);
+        ProteinEntry * prot_node = (prot);
         if (prot_node->traversed)
         {
           prot_node->traversed = false;

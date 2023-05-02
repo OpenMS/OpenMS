@@ -119,21 +119,19 @@ void SimpleSVM::setup(PredictorMap& predictors, const map<Size, double>& outcome
   data_.y = new double[data_.l];
   map<double, Size> label_table;
   Size index = 0;
-  for (auto it = outcomes.cbegin(); it != outcomes.cend();
-       ++it, ++index)
+  for (const auto& label : label_table)
   {
-    const Size& training_index = it->first;
-    const double& outcome = it->second;
-    if (it->first >= n_obs)
+    if (label.first >= n_obs)
     {
       String msg = "Invalid training index; there are only " + String(n_obs) +
         " observations.";
       throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                    msg, String(it->first));
+                                    msg, String(label.first));
     }
-    data_.x[index] = &(nodes_[training_index][0]);
-    data_.y[index] = outcome;
-    label_table[outcome]++;
+    data_.x[index] = &(nodes_[label.first][0]);
+    data_.y[index] = double(label.second);
+    label_table[label.second]++;
+    ++index;
   }
 
   if (classification)
@@ -147,17 +145,16 @@ void SimpleSVM::setup(PredictorMap& predictors, const map<Size, double>& outcome
     }
 
     String msg = "Training SVM on " + String(data_.l) + " observations. Classes:";
-    for (map<double, Size>::iterator it = label_table.begin(); 
-        it != label_table.end(); ++it)
+    for (auto& label : label_table)
     {
-      if (it->second < n_parts_)
+      if (label.second < n_parts_)
       {
-        msg = "Not enough observations of class " + String(it->first) + " for " +
+        msg = "Not enough observations of class " + String(label.first) + " for " +
           String(n_parts_) + "-fold cross-validation.";
         throw Exception::MissingInformation(__FILE__, __LINE__, 
                                             OPENMS_PRETTY_FUNCTION, msg);
       }
-      msg += "\n- '" + String(it->first) + "': " + String(it->second) +
+      msg += "\n- '" + String(label.first) + "': " + String(label.second) +
         " observations";
     }
     OPENMS_LOG_INFO << msg << endl;
@@ -218,17 +215,17 @@ void SimpleSVM::predict(vector<Prediction>& predictions, vector<Size> indexes) c
   vector<double> probabilities(n_classes);
   predictions.clear();
   predictions.reserve(indexes.size());
-  for (vector<Size>::iterator it = indexes.begin(); it != indexes.end(); ++it)
+  for (Size& idx : indexes)
   {
-    if (*it >= n_obs)
+    if (idx >= n_obs)
     {
       String msg = "Invalid index for prediction; there are only " + 
         String(n_obs) + " observations.";
       throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                    msg, String(*it));
+                                    msg, String(idx));
     }
     Prediction pred;
-    pred.outcome = svm_predict_probability(model_, &(nodes_[*it][0]), 
+    pred.outcome = svm_predict_probability(model_, &(nodes_[idx][0]), 
                                              &(probabilities[0]));
     for (Size i = 0; i < n_classes; ++i)
     {
@@ -346,19 +343,18 @@ void SimpleSVM::getFeatureWeights(map<String, double>& feature_weights) const
 void SimpleSVM::scaleData_(PredictorMap& predictors)
 {
   scaling_.clear();
-  for (PredictorMap::iterator pred_it = predictors.begin();
-       pred_it != predictors.end(); ++pred_it)
+  for (auto& pred : predictors)
   {
-    // if (pred_it->second.empty()) continue;
-    vector<double>::iterator val_begin = pred_it->second.begin();
-    vector<double>::iterator val_end = pred_it->second.end();
+    // if (pred.second.empty()) continue;
+    vector<double>::iterator val_begin = pred.second.begin();
+    vector<double>::iterator val_end = pred.second.end();
     double vmin = *min_element(val_begin, val_end);
     double vmax = *max_element(val_begin, val_end);
     if (vmin == vmax)
     {
-      OPENMS_LOG_INFO << "Predictor '" + pred_it->first + "' is uninformative. Ignoring." 
+      OPENMS_LOG_INFO << "Predictor '" + pred.first + "' is uninformative. Ignoring." 
                << endl;
-      pred_it->second.clear();
+      pred.second.clear();
       continue;
     }
     double range = vmax - vmin;
@@ -366,7 +362,7 @@ void SimpleSVM::scaleData_(PredictorMap& predictors)
     {
       *val_begin = (*val_begin - vmin) / range;
     }
-    scaling_[pred_it->first] = make_pair(vmin, vmax); // store old range
+    scaling_[pred.first] = make_pair(vmin, vmax); // store old range
   }
 }
 
@@ -382,15 +378,14 @@ void SimpleSVM::convertData_(const PredictorMap& predictors)
   nodes_.resize(n_obs);
   predictor_names_.clear();
   int pred_index = 0; // "int" for use by LIBSVM
-  for (PredictorMap::const_iterator pred_it = predictors.begin();
-       pred_it != predictors.end(); ++pred_it)
+  for (const auto& pred : predictors)
   {
-    if (pred_it->second.empty()) continue; // uninformative predictor
+    if (pred.second.empty()) continue; // uninformative predictor
     pred_index++; // LIBSVM counts observations from 1
-    predictor_names_.push_back(pred_it->first);
+    predictor_names_.push_back(pred.first);
     for (Size obs_index = 0; obs_index < n_obs; ++obs_index)
     {
-      double value = pred_it->second[obs_index];
+      double value = pred.second[obs_index];
 //      if (value > 0.0) // TODO: why > 0.0?
 //      {
         svm_node node = {pred_index, value};
@@ -400,9 +395,9 @@ void SimpleSVM::convertData_(const PredictorMap& predictors)
   }
   OPENMS_LOG_DEBUG << "Number of predictors for SVM: " << pred_index << endl;
   svm_node sentinel = {-1, 0.0};
-  for (auto node_it = nodes_.begin(); node_it != nodes_.end(); ++node_it)
+  for (std::vector<svm_node>& node : nodes_)
   {
-    node_it->push_back(sentinel);
+    node.push_back(sentinel);
   }
 }
 

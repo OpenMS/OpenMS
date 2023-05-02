@@ -546,9 +546,9 @@ namespace OpenMS
 
   std::ostream& operator<<(std::ostream& os, const ConsensusMap& cons_map)
   {
-    for (ConsensusMap::ColumnHeaders::const_iterator it = cons_map.getColumnHeaders().begin(); it != cons_map.getColumnHeaders().end(); ++it)
+    for (const auto& col : cons_map.getColumnHeaders())
     {
-      os << "Map " << it->first << ": " << it->second.filename << " - " << it->second.label << " - " << it->second.size << std::endl;
+      os << "Map " << col.first << ": " << col.second.filename << " - " << col.second.label << " - " << col.second.size << std::endl;
     }
 
     for (Size i = 0; i < cons_map.size(); ++i)
@@ -585,9 +585,9 @@ namespace OpenMS
     // check file descriptions
     std::set<String> maps;
     String all_maps; // for output later
-    for (ColumnHeaders::const_iterator it = column_description_.begin(); it != column_description_.end(); ++it)
+    for (const auto& desc : column_description_)
     {
-      String s = String("  file: ") + it->second.filename + " label: " + it->second.label;
+      String s = String("  file: ") + desc.second.filename + " label: " + desc.second.label;
       maps.insert(s);
       all_maps += s;
     }
@@ -607,26 +607,26 @@ OPENMS_THREAD_CRITICAL(LOGSTREAM)
     for (Size i = 0; i < size(); ++i)
     {
       const ConsensusFeature& elem = (*this)[i];
-      for (ConsensusFeature::HandleSetType::const_iterator it = elem.begin(); it != elem.end(); ++it)
+      for (const auto& feat : elem)
       {
-        if (column_description_.find(it->getMapIndex()) == column_description_.end())
+        if (column_description_.find(feat.getMapIndex()) == column_description_.end())
         {
           ++stats_wrongMID;
-          ++wrong_ID_count[it->getMapIndex()];
+          ++wrong_ID_count[feat.getMapIndex()];
         }
       }
     }
 
     if (stats_wrongMID > 0)
     {
-      if (stream != nullptr)
+      if (stream != nullptr) 
       {
 OPENMS_THREAD_CRITICAL(LOGSTREAM)
         *stream << "ConsensusMap contains " << stats_wrongMID << " invalid references to maps:\n";
-        for (std::map<Size, Size>::const_iterator it = wrong_ID_count.begin(); it != wrong_ID_count.end(); ++it)
+        for (const auto& id : wrong_ID_count)
         {
 OPENMS_THREAD_CRITICAL(LOGSTREAM)
-          *stream << "  wrong id=" << it->first << " (occurred " << it->second << "x)\n";
+          *stream << "  wrong id=" << id.first << " (occurred " << id.second << "x)\n";
         }
 OPENMS_THREAD_CRITICAL(LOGSTREAM)
         *stream << std::endl;

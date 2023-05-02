@@ -241,11 +241,11 @@ print s
     QByteArray base64_uncompressed;
     decodeSingleString(in, base64_uncompressed, zlib_compression);
     QList<QByteArray> null_strings = base64_uncompressed.split('\0');
-    for (QList<QByteArray>::iterator it = null_strings.begin(); it < null_strings.end(); ++it)
+    for (auto& ns : null_strings)
     {
-      if (!it->isEmpty())
+      if (!ns.isEmpty())
       {
-        out.emplace_back(QString(*it).toStdString());
+        out.emplace_back(QString(ns).toStdString());
       }
     }
   }

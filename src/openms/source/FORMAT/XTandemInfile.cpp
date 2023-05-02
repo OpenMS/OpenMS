@@ -93,14 +93,13 @@ namespace OpenMS
     // check if both "Glu->pyro-Glu (N-term E)" and "Gln->pyro-Glu (N-term Q)"
     // are specified:
     bool has_pyroglu_e = false, has_pyroglu_q = false;
-    for (set<ModificationDefinition>::const_iterator it = mods.begin();
-         it != mods.end(); ++it)
+    for (const auto& mod : mods)
     {
-      if (it->getModificationName() == "Glu->pyro-Glu (N-term E)")
+      if (mod.getModificationName() == "Glu->pyro-Glu (N-term E)")
       {
         has_pyroglu_e = true;
       }
-      else if (it->getModificationName() == "Gln->pyro-Glu (N-term Q)")
+      else if (mod.getModificationName() == "Gln->pyro-Glu (N-term Q)")
       {
         has_pyroglu_q = true;
       }
@@ -112,28 +111,27 @@ namespace OpenMS
 
     map<String, double> origin_set;
     StringList xtandem_mods;
-    for (set<ModificationDefinition>::const_iterator it = mods.begin();
-         it != mods.end(); ++it)
+    for (const auto& mod : mods)
     {
       if (!force_default_mods_ &&
           // @TODO: change Acetyl spec. to "protein N-term" once it's supported
-          ((it->getModificationName() == "Acetyl (N-term)") ||
+          ((mod.getModificationName() == "Acetyl (N-term)") ||
            // for the pyro-Glus, only skip if both are present:
-           ((it->getModificationName() == "Gln->pyro-Glu (N-term Q)") &&
+           ((mod.getModificationName() == "Gln->pyro-Glu (N-term Q)") &&
             has_pyroglu_e) ||
-           ((it->getModificationName() == "Glu->pyro-Glu (N-term E)") &&
+           ((mod.getModificationName() == "Glu->pyro-Glu (N-term E)") &&
             has_pyroglu_q)))
       {
         continue;
       }
 
-      double mod_mass = it->getModification().getDiffMonoMass();
+      double mod_mass = mod.getModification().getDiffMonoMass();
 
-      String orig = it->getModification().getOrigin();
-      ResidueModification::TermSpecificity ts = it->getModification().getTermSpecificity();
+      String orig = mod.getModification().getOrigin();
+      ResidueModification::TermSpecificity ts = mod.getModification().getTermSpecificity();
       if ((ts != ResidueModification::ANYWHERE) && !orig.empty())
       {
-        OPENMS_LOG_WARN << "Warning: X! Tandem doesn't support modifications with both residue and terminal specificity. Using only terminal specificity for modification '" << it->getModificationName() << "'." << endl;
+        OPENMS_LOG_WARN << "Warning: X! Tandem doesn't support modifications with both residue and terminal specificity. Using only terminal specificity for modification '" << mod.getModificationName() << "'." << endl;
       }
 
       if (ts == ResidueModification::C_TERM)
@@ -332,12 +330,11 @@ namespace OpenMS
       set<String> var_mods = modifications_.getVariableModificationNames();
       // Ron Beavis: "If a variable modification is set for the peptide N-terminus, the 'quick acetyl' and 'quick pyrolidone' are turned off so that they don't interfere with the specified variable modification." -> check for that
       boost::regex re(" \\(N-term( .)?\\)$");
-      for (set<String>::iterator vm_it = var_mods.begin();
-           vm_it != var_mods.end(); ++vm_it)
+      for (const String& vm : var_mods)
       {
-        if (boost::regex_search(*vm_it, re) && (*vm_it != "Acetyl (N-term)") &&
-            (*vm_it != "Gln->pyro-Glu (N-term Q)") &&
-            (*vm_it != "Glu->pyro-Glu (N-term E)"))
+        if (boost::regex_search(vm, re) && (vm != "Acetyl (N-term)") &&
+            (vm != "Gln->pyro-Glu (N-term Q)") &&
+            (vm != "Glu->pyro-Glu (N-term E)"))
         {
           force_default_mods_ = true;
         }

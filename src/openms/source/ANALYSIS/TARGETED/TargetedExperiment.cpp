@@ -196,11 +196,11 @@ namespace OpenMS
     exclude_targets_.insert(exclude_targets_.end(), rhs.exclude_targets_.begin(), rhs.exclude_targets_.end());
     source_files_.insert(source_files_.end(), rhs.source_files_.begin(), rhs.source_files_.end());
 
-    for (std::map<String, std::vector<CVTerm> >::const_iterator targ_it = rhs.targets_.getCVTerms().begin(); targ_it != rhs.targets_.getCVTerms().end(); ++targ_it)
+    for (const auto& targ : rhs.targets_.getCVTerms())
     {
-      for (std::vector<CVTerm>::const_iterator term_it = targ_it->second.begin(); term_it != targ_it->second.end(); ++term_it)
+      for (const CVTerm& term : targ.second)
       {
-        targets_.addCVTerm(*term_it);
+        targets_.addCVTerm(term);
       }
     }
 
@@ -231,11 +231,11 @@ namespace OpenMS
     appendRVector(std::move(rhs.exclude_targets_), exclude_targets_);
     appendRVector(std::move(rhs.source_files_), source_files_);
 
-    for (std::map<String, std::vector<CVTerm> >::const_iterator targ_it = rhs.targets_.getCVTerms().begin(); targ_it != rhs.targets_.getCVTerms().end(); ++targ_it)
+    for (const auto& targ : rhs.targets_.getCVTerms())
     {
-      for (std::vector<CVTerm>::const_iterator term_it = targ_it->second.begin(); term_it != targ_it->second.end(); ++term_it)
+      for (const CVTerm& term : targ.second)
       {
-        targets_.addCVTerm(*term_it);
+        targets_.addCVTerm(term);
       }
     }
 
@@ -601,71 +601,71 @@ namespace OpenMS
 
   bool TargetedExperiment::containsInvalidReferences() const
   {
-    typedef std::vector<OpenMS::TargetedExperiment::Protein> ProteinVectorType;
-    typedef std::vector<OpenMS::TargetedExperiment::Peptide> PeptideVectorType;
-    typedef std::vector<OpenMS::TargetedExperiment::Compound> CompoundVectorType;
-    typedef std::vector<OpenMS::ReactionMonitoringTransition> TransitionVectorType;
+    //typedef std::vector<OpenMS::TargetedExperiment::Protein> ProteinVectorType;
+    //typedef std::vector<OpenMS::TargetedExperiment::Peptide> PeptideVectorType;
+    //typedef std::vector<OpenMS::TargetedExperiment::Compound> CompoundVectorType;
+    //typedef std::vector<OpenMS::ReactionMonitoringTransition> TransitionVectorType;
 
     // check that all proteins ids are unique
     std::map<String, int> unique_protein_map;
-    for (ProteinVectorType::const_iterator prot_it = getProteins().begin(); prot_it != getProteins().end(); ++prot_it)
+    for (const Protein& prot : getProteins())
     {
       // Create new transition group if it does not yet exist
-      if (unique_protein_map.find(prot_it->id) != unique_protein_map.end())
+      if (unique_protein_map.find(prot.id) != unique_protein_map.end())
       {
-        OPENMS_LOG_ERROR << "Found duplicate protein id (must be unique): " + String(prot_it->id) << std::endl;
+        OPENMS_LOG_ERROR << "Found duplicate protein id (must be unique): " + String(prot.id) << std::endl;
         return true;
       }
-      unique_protein_map[prot_it->id] = 0;
+      unique_protein_map[prot.id] = 0;
     }
 
     // check that all peptide ids are unique
     std::map<String, int> unique_peptide_map;
-    for (PeptideVectorType::const_iterator pep_it = getPeptides().begin(); pep_it != getPeptides().end(); ++pep_it)
+    for (const Peptide& pep : getPeptides())
     {
       // Create new transition group if it does not yet exist
-      if (unique_peptide_map.find(pep_it->id) != unique_peptide_map.end())
+      if (unique_peptide_map.find(pep.id) != unique_peptide_map.end())
       {
-        OPENMS_LOG_ERROR << "Found duplicate peptide id (must be unique): " + String(pep_it->id) << std::endl;
+        OPENMS_LOG_ERROR << "Found duplicate peptide id (must be unique): " + String(pep.id) << std::endl;
         return true;
       }
-      unique_peptide_map[pep_it->id] = 0;
+      unique_peptide_map[pep.id] = 0;
     }
 
     // check that all compound ids are unique
     std::map<String, int> unique_compounds_map;
-    for (CompoundVectorType::const_iterator comp_it = getCompounds().begin(); comp_it != getCompounds().end(); ++comp_it)
+    for (const Compound& comp : getCompounds())
     {
       // Create new transition group if it does not yet exist
-      if (unique_compounds_map.find(comp_it->id) != unique_compounds_map.end())
+      if (unique_compounds_map.find(comp.id) != unique_compounds_map.end())
       {
-        OPENMS_LOG_ERROR << "Found duplicate compound id (must be unique): " + String(comp_it->id) << std::endl;
+        OPENMS_LOG_ERROR << "Found duplicate compound id (must be unique): " + String(comp.id) << std::endl;
         return true;
       }
-      unique_compounds_map[comp_it->id] = 0;
+      unique_compounds_map[comp.id] = 0;
     }
 
     // check that all transition ids are unique
     std::map<String, int> unique_transition_map;
-    for (TransitionVectorType::const_iterator tr_it = getTransitions().begin(); tr_it != getTransitions().end(); ++tr_it)
+    for (const ReactionMonitoringTransition& tr : getTransitions())
     {
       // Create new transition group if it does not yet exist
-      if (unique_transition_map.find(tr_it->getNativeID()) != unique_transition_map.end())
+      if (unique_transition_map.find(tr.getNativeID()) != unique_transition_map.end())
       {
-        OPENMS_LOG_ERROR << "Found duplicate transition id (must be unique): " + String(tr_it->getNativeID()) << std::endl;
+        OPENMS_LOG_ERROR << "Found duplicate transition id (must be unique): " + String(tr.getNativeID()) << std::endl;
         return true;
       }
-      unique_transition_map[tr_it->getNativeID()] = 0;
+      unique_transition_map[tr.getNativeID()] = 0;
     }
 
     // Check that each peptide has only valid proteins
     for (Size i = 0; i < getPeptides().size(); i++)
     {
-      for (std::vector<String>::const_iterator prot_it = getPeptides()[i].protein_refs.begin(); prot_it != getPeptides()[i].protein_refs.end(); ++prot_it)
+      for (const String& prot : getPeptides()[i].protein_refs)
       {
-        if (unique_protein_map.find(*prot_it) == unique_protein_map.end()) 
+        if (unique_protein_map.find(prot) == unique_protein_map.end()) 
         {
-          OPENMS_LOG_ERROR << "Protein " << *prot_it << " is not present in the provided data structure." << std::endl;
+          OPENMS_LOG_ERROR << "Protein " << prot << " is not present in the provided data structure." << std::endl;
           return true;
         }
       }

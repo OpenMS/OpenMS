@@ -599,15 +599,15 @@ namespace OpenMS
     String current_TOPP_subsection("");
 
     // PRINT parameters && description, restrictions and default
-    for (vector<ParameterInformation>::const_iterator it = parameters_.begin(); it != parameters_.end(); ++it)
+    for (const ParameterInformation& param : parameters_)
     {
-      if (it->advanced && !verbose)
+      if (param.advanced && !verbose)
       {
         continue;
       }
 
       // new subsection?
-      String subsection = getSubsection_(it->name);
+      String subsection = getSubsection_(param.name);
       if (!subsection.empty() && current_TOPP_subsection != subsection)
       {
         current_TOPP_subsection = subsection;
@@ -634,22 +634,22 @@ namespace OpenMS
 
       //NAME + ARGUMENT
       String str_tmp = "  -";
-      str_tmp += it->name + " " + it->argument;
-      if (it->required)
+      str_tmp += param.name + " " + param.argument;
+      if (param.required)
         str_tmp += '*';
-      if (it->type == ParameterInformation::NEWLINE)
+      if (param.type == ParameterInformation::NEWLINE)
         str_tmp = "";
 
       //OFFSET
       str_tmp.fillRight(' ', offset);
-      if (it->type == ParameterInformation::TEXT)
+      if (param.type == ParameterInformation::TEXT)
         str_tmp = "";
 
       //DESCRIPTION
-      String desc_tmp = String(it->description).firstToUpper();
+      String desc_tmp = String(param.description).firstToUpper();
       //DEFAULT
       StringList addons;
-      switch (it->type)
+      switch (param.type)
       {
       case ParameterInformation::STRING:
       case ParameterInformation::DOUBLE:
@@ -658,7 +658,7 @@ namespace OpenMS
       case ParameterInformation::INTLIST:
       case ParameterInformation::DOUBLELIST:
       {
-        String tmp_s = ((String)it->default_value.toString()).substitute(", ", " ");
+        String tmp_s = ((String)param.default_value.toString()).substitute(", ", " ");
         if (!tmp_s.empty() && tmp_s != "[]")
         {
           addons.push_back(String("default: '") + tmp_s + "'");
@@ -672,7 +672,7 @@ namespace OpenMS
 
       //RESTRICTIONS
       StringList restrictions;
-      switch (it->type)
+      switch (param.type)
       {
       case ParameterInformation::STRING:
       case ParameterInformation::INPUT_FILE:
@@ -681,21 +681,20 @@ namespace OpenMS
       case ParameterInformation::STRINGLIST:
       case ParameterInformation::INPUT_FILE_LIST:
       case ParameterInformation::OUTPUT_FILE_LIST:
-        if (!it->valid_strings.empty())
+        if (!param.valid_strings.empty())
         {
-          StringList copy = it->valid_strings;
-          for (StringList::iterator str_it = copy.begin();
-               str_it != copy.end(); ++str_it)
+          StringList copy = param.valid_strings;
+          for (String& str : copy)
           {
-            str_it->quote('\'');
+            str.quote('\'');
           }
 
           String add = "";
-          if (it->type == ParameterInformation::INPUT_FILE
-            || it->type == ParameterInformation::OUTPUT_FILE
-            || it->type == ParameterInformation::OUTPUT_PREFIX
-            || it->type == ParameterInformation::INPUT_FILE_LIST
-            || it->type == ParameterInformation::OUTPUT_FILE_LIST)
+          if (param.type == ParameterInformation::INPUT_FILE
+            || param.type == ParameterInformation::OUTPUT_FILE
+            || param.type == ParameterInformation::OUTPUT_PREFIX
+            || param.type == ParameterInformation::INPUT_FILE_LIST
+            || param.type == ParameterInformation::OUTPUT_FILE_LIST)
             add = " formats";
 
           restrictions.push_back(String("valid") + add + ": " + ListUtils::concatenate(copy, ", ")); // concatenate restrictions by comma
@@ -704,25 +703,25 @@ namespace OpenMS
 
       case ParameterInformation::INT:
       case ParameterInformation::INTLIST:
-        if (it->min_int != -std::numeric_limits<Int>::max())
+        if (param.min_int != -std::numeric_limits<Int>::max())
         {
-          restrictions.push_back(String("min: '") + it->min_int + "'");
+          restrictions.push_back(String("min: '") + param.min_int + "'");
         }
-        if (it->max_int != std::numeric_limits<Int>::max())
+        if (param.max_int != std::numeric_limits<Int>::max())
         {
-          restrictions.push_back(String("max: '") + it->max_int + "'");
+          restrictions.push_back(String("max: '") + param.max_int + "'");
         }
         break;
 
       case ParameterInformation::DOUBLE:
       case ParameterInformation::DOUBLELIST:
-        if (it->min_float != -std::numeric_limits<double>::max())
+        if (param.min_float != -std::numeric_limits<double>::max())
         {
-          restrictions.push_back(String("min: '") + it->min_float + "'");
+          restrictions.push_back(String("min: '") + param.min_float + "'");
         }
-        if (it->max_float != std::numeric_limits<double>::max())
+        if (param.max_float != std::numeric_limits<double>::max())
         {
-          restrictions.push_back(String("max: '") + it->max_float + "'");
+          restrictions.push_back(String("max: '") + param.max_float + "'");
         }
         break;
 
@@ -743,14 +742,14 @@ namespace OpenMS
         restrict_concat = String(" (") + ListUtils::concatenate(restrictions, " ") + ")";
       }
 
-      if (it->type == ParameterInformation::TEXT)
+      if (param.type == ParameterInformation::TEXT)
       {
         is << str_tmp << desc_tmp; // no indentation for text
       }
       else
       {
         is << is.indent(offset);
-        if (it->required)
+        if (param.required)
           is << green(str_tmp);
         else
           is << str_tmp;
@@ -767,20 +766,20 @@ namespace OpenMS
     {
       //determine indentation of description
       UInt indent = 0;
-      for (map<String, String>::const_iterator it = subsections_.begin(); it != subsections_.end(); ++it)
+      for (const auto& sub : subsections_)
       {
-        indent = max((UInt)it->first.size(), indent);
+        indent = max((UInt)sub.first.size(), indent);
       }
       indent += 6;
 
       //output
       is << "\n"
          << "The following configuration subsections are valid:\n";
-      for (map<String, String>::const_iterator it = subsections_.begin(); it != subsections_.end(); ++it)
+      for (const auto& sub : subsections_)
       {
-        String tmp = String(" - ") + it->first;
+        String tmp = String(" - ") + sub.first;
         tmp.fillRight(' ', indent);
-        is << ConsoleUtils::breakString(tmp + it->second, indent, 10);
+        is << ConsoleUtils::breakString(tmp + sub.second, indent, 10);
         is << "\n";
       }
       is << "\n"
@@ -1515,9 +1514,9 @@ namespace OpenMS
       throw RequiredParameterNotGiven(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, name);
     }
 
-    for (DoubleList::iterator it = tmp_list.begin(); it < tmp_list.end(); ++it)
+    for (double& tl : tmp_list)
     {
-      double tmp = *it;
+      double tmp = tl;
       writeDebug_(String("Value of string option '") + name + "': " + String(tmp), 1);
 
       //check if in valid range
@@ -2030,55 +2029,55 @@ namespace OpenMS
     Param tmp;
     String loc = this->getToolPrefix();
     //parameters
-    for (vector<ParameterInformation>::const_iterator it = parameters_.begin(); it != parameters_.end(); ++it)
+    for (const ParameterInformation& param : parameters_)
     {
-      if (it->name == "ini" || it->name == "-help" || it->name == "-helphelp" || it->name == "instance" || it->name == "write_ini" || it->name == "write_ctd") // do not store those params in ini file
+      if (param.name == "ini" || param.name == "-help" || param.name == "-helphelp" || param.name == "instance" || param.name == "write_ini" || param.name == "write_ctd") // do not store those params in ini file
       {
         continue;
       }
-      String name = loc + it->name;
+      String name = loc + param.name;
       std::vector<std::string> tags;
-      if (it->advanced)
+      if (param.advanced)
       {
         tags.emplace_back("advanced");
       }
-      if (it->required)
+      if (param.required)
       {
         tags.emplace_back("required");
       }
 
-      if (it->type == ParameterInformation::INPUT_FILE || it->type == ParameterInformation::INPUT_FILE_LIST)
+      if (param.type == ParameterInformation::INPUT_FILE || param.type == ParameterInformation::INPUT_FILE_LIST)
       {
         tags.emplace_back("input file");
       }
 
-      if (it->type == ParameterInformation::OUTPUT_FILE || it->type == ParameterInformation::OUTPUT_FILE_LIST)
+      if (param.type == ParameterInformation::OUTPUT_FILE || param.type == ParameterInformation::OUTPUT_FILE_LIST)
       {
         tags.emplace_back("output file");
       }
 
-      if (it->type == ParameterInformation::OUTPUT_PREFIX)
+      if (param.type == ParameterInformation::OUTPUT_PREFIX)
       {
         tags.emplace_back("output prefix");
       }
 
-      switch (it->type)
+      switch (param.type)
       {
       case ParameterInformation::STRING:
-        tmp.setValue(name, (String)it->default_value.toString(), it->description, tags);
-        if (!it->valid_strings.empty())
+        tmp.setValue(name, (String)param.default_value.toString(), param.description, tags);
+        if (!param.valid_strings.empty())
         {
-          tmp.setValidStrings(name, ListUtils::create<std::string>(it->valid_strings));
+          tmp.setValidStrings(name, ListUtils::create<std::string>(param.valid_strings));
         }
         break;
 
       case ParameterInformation::INPUT_FILE:
       case ParameterInformation::OUTPUT_FILE:
       case ParameterInformation::OUTPUT_PREFIX:
-        tmp.setValue(name, (String)it->default_value.toString(), it->description, tags);
-        if (!it->valid_strings.empty())
+        tmp.setValue(name, (String)param.default_value.toString(), param.description, tags);
+        if (!param.valid_strings.empty())
         {
-          StringList vss_tmp = it->valid_strings;
+          StringList vss_tmp = param.valid_strings;
           std::vector<std::string> vss;
           foreach(std::string vs, vss_tmp)
           {
@@ -2089,74 +2088,74 @@ namespace OpenMS
         break;
 
       case ParameterInformation::DOUBLE:
-        tmp.setValue(name, it->default_value, it->description, tags);
-        if (it->min_float != -std::numeric_limits<double>::max())
+        tmp.setValue(name, param.default_value, param.description, tags);
+        if (param.min_float != -std::numeric_limits<double>::max())
         {
-          tmp.setMinFloat(name, it->min_float);
+          tmp.setMinFloat(name, param.min_float);
         }
-        if (it->max_float != std::numeric_limits<double>::max())
+        if (param.max_float != std::numeric_limits<double>::max())
         {
-          tmp.setMaxFloat(name, it->max_float);
+          tmp.setMaxFloat(name, param.max_float);
         }
         break;
 
       case ParameterInformation::INT:
-        tmp.setValue(name, (Int)it->default_value, it->description, tags);
-        if (it->min_int != -std::numeric_limits<Int>::max())
+        tmp.setValue(name, (Int)param.default_value, param.description, tags);
+        if (param.min_int != -std::numeric_limits<Int>::max())
         {
-          tmp.setMinInt(name, it->min_int);
+          tmp.setMinInt(name, param.min_int);
         }
-        if (it->max_int != std::numeric_limits<Int>::max())
+        if (param.max_int != std::numeric_limits<Int>::max())
         {
-          tmp.setMaxInt(name, it->max_int);
+          tmp.setMaxInt(name, param.max_int);
         }
         break;
 
       case ParameterInformation::FLAG:
-        tmp.setValue(name, "false", it->description, tags);
+        tmp.setValue(name, "false", param.description, tags);
         tmp.setValidStrings(name, {"true","false"});
         break;
 
       case ParameterInformation::INPUT_FILE_LIST:
       case ParameterInformation::OUTPUT_FILE_LIST:
-        tmp.setValue(name, it->default_value, it->description, tags);
-        if (!it->valid_strings.empty())
+        tmp.setValue(name, param.default_value, param.description, tags);
+        if (!param.valid_strings.empty())
         {
-          std::vector<std::string> vss = ListUtils::create<std::string>(it->valid_strings);
+          std::vector<std::string> vss = ListUtils::create<std::string>(param.valid_strings);
           std::transform(vss.begin(), vss.end(), vss.begin(), [](const std::string& s) {return "*." + s;});
           tmp.setValidStrings(name, vss);
         }
         break;
 
       case ParameterInformation::STRINGLIST:
-        tmp.setValue(name, it->default_value, it->description, tags);
-        if (!it->valid_strings.empty())
+        tmp.setValue(name, param.default_value, param.description, tags);
+        if (!param.valid_strings.empty())
         {
-          tmp.setValidStrings(name, ListUtils::create<std::string>(it->valid_strings));
+          tmp.setValidStrings(name, ListUtils::create<std::string>(param.valid_strings));
         }
         break;
 
       case ParameterInformation::INTLIST:
-        tmp.setValue(name, it->default_value, it->description, tags);
-        if (it->min_int != -std::numeric_limits<Int>::max())
+        tmp.setValue(name, param.default_value, param.description, tags);
+        if (param.min_int != -std::numeric_limits<Int>::max())
         {
-          tmp.setMinInt(name, it->min_int);
+          tmp.setMinInt(name, param.min_int);
         }
-        if (it->max_int != std::numeric_limits<Int>::max())
+        if (param.max_int != std::numeric_limits<Int>::max())
         {
-          tmp.setMaxInt(name, it->max_int);
+          tmp.setMaxInt(name, param.max_int);
         }
         break;
 
       case ParameterInformation::DOUBLELIST:
-        tmp.setValue(name, it->default_value, it->description, tags);
-        if (it->min_float != -std::numeric_limits<double>::max())
+        tmp.setValue(name, param.default_value, param.description, tags);
+        if (param.min_float != -std::numeric_limits<double>::max())
         {
-          tmp.setMinFloat(name, it->min_float);
+          tmp.setMinFloat(name, param.min_float);
         }
-        if (it->max_float != std::numeric_limits<double>::max())
+        if (param.max_float != std::numeric_limits<double>::max())
         {
-          tmp.setMaxFloat(name, it->max_float);
+          tmp.setMaxFloat(name, param.max_float);
         }
         break;
 
@@ -2166,9 +2165,9 @@ namespace OpenMS
     }
 
     //subsections intrinsic to TOPP tool (i.e. a command line param with a ':')
-    for (map<String, String>::const_iterator it = subsections_TOPP_.begin(); it != subsections_TOPP_.end(); ++it)
+    for (const auto& sub : subsections_TOPP_)
     {
-      tmp.setSectionDescription(loc + it->first, it->second);
+      tmp.setSectionDescription(loc + sub.first, sub.second);
     }
 
     // set tool version
@@ -2204,13 +2203,13 @@ namespace OpenMS
     Param tmp;
 
     // Subsections
-    for (map<String, String>::const_iterator it = subsections_.begin(); it != subsections_.end(); ++it)
+    for (const auto& sub : subsections_)
     {
-      Param tmp2 = getSubsectionDefaults_(it->first);
+      Param tmp2 = getSubsectionDefaults_(sub.first);
       if (!tmp2.empty())
       {
-        tmp.insert(it->first + ":", tmp2);
-        tmp.setSectionDescription(it->first, it->second);
+        tmp.insert(sub.first + ":", tmp2);
+        tmp.setSectionDescription(sub.first, sub.second);
       }
     }
 
@@ -2483,9 +2482,9 @@ namespace OpenMS
             case ParameterInformation::INTLIST:
             {
               IntList arg_list;
-              for (list<String>::iterator it = queue.begin(); it != queue.end(); ++it)
+              for (String& arg : queue)
               {
-                arg_list.push_back(it->toInt());
+                arg_list.push_back(arg.toInt());
               }
               value = arg_list;
               queue.clear();
@@ -2495,9 +2494,9 @@ namespace OpenMS
             case ParameterInformation::DOUBLELIST:
             {
               DoubleList arg_list;
-              for (list<String>::iterator it = queue.begin(); it != queue.end(); ++it)
+              for (String& arg : queue)
               {
-                arg_list.push_back(it->toDouble());
+                arg_list.push_back(arg.toDouble());
               }
               value = arg_list;
               queue.clear();
@@ -2532,21 +2531,20 @@ namespace OpenMS
     misc_list.insert(misc_list.begin(), queue.begin(), queue.end());
 
     // store "misc"/"unknown" items, if there were any:
-    for (map<std::string, std::vector<std::string> >::iterator it = misc_unknown.begin();
-         it != misc_unknown.end(); ++it)
+    for (auto& item : misc_unknown)
     {
-      if (it->second.empty())
+      if (item.second.empty())
         continue;
 
-      if (!cmd_params.exists(it->first))
+      if (!cmd_params.exists(item.first))
       {
-        cmd_params.setValue(it->first, it->second);
+        cmd_params.setValue(item.first, item.second);
       }
       else
       {
-        std::vector<std::string> new_value = cmd_params.getValue(it->first);
-        new_value.insert(new_value.end(), it->second.begin(), it->second.end());
-        cmd_params.setValue(it->first, new_value);
+        std::vector<std::string> new_value = cmd_params.getValue(item.first);
+        new_value.insert(new_value.end(), item.second.begin(), item.second.end());
+        cmd_params.setValue(item.first, new_value);
       }
     }
 

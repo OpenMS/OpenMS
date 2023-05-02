@@ -235,9 +235,9 @@ namespace OpenMS
     // scale data so that integral over distribution equals one
     // multiply sum by interpolation_step_ -> rectangular approximation of integral
     IntensityType factor = scaling_ / (interpolation_step_ * std::accumulate(result.begin(), result.end(), IntensityType(0)));
-    for (ContainerType::iterator iter = result.begin(); iter != result.end(); ++iter)
+    for (auto& value : result)
     {
-      *iter *= factor;
+      value *= factor;
     }
   }
 

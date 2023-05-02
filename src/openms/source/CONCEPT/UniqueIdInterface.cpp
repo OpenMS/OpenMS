@@ -63,9 +63,9 @@ namespace OpenMS
     String::size_type last_underscore = rhs.rfind('_');
     String s = rhs.substr(last_underscore + 1);
 
-    for (String::const_iterator s_i = s.begin(); s_i < s.end(); ++s_i)
+    for (const auto& s_i : s)
     {
-      int i = (*s_i - '0');
+      int i = (s_i - '0');
       if (i < 0 || i > 9)
       {
         clearUniqueId();

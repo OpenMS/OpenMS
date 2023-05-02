@@ -302,28 +302,26 @@ namespace OpenMS
     {
       return true;
     }
-    for (StringList::const_iterator slit = whitelist_.begin();
-         slit != whitelist_.end(); ++slit)
+    for (const String& str : whitelist_)
     {
-      if (line_str_1.find(*slit) != String::npos &&
-          line_str_2.find(*slit) != String::npos)
+      if (line_str_1.find(str) != String::npos &&
+          line_str_2.find(str) != String::npos)
       {
-        ++whitelist_cases_[*slit];
-        // *log_dest_ << "whitelist_ case: " << *slit << '\n';
+        ++whitelist_cases_[str];
+        // *log_dest_ << "whitelist_ case: " << str << '\n';
         return is_status_success_;
       }
     }
 
     // check matched whitelist
     // If file 1 contains element 1 and file 2 contains element 2, they are skipped over.
-    for (std::vector< std::pair<std::string, std::string> >::const_iterator pair_it = matched_whitelist_.begin(); 
-         pair_it != matched_whitelist_.end(); ++pair_it)
+    for (const auto& pair : matched_whitelist_)
     {
-      if ((line_str_1.find(pair_it->first) != String::npos &&
-           line_str_2.find(pair_it->second) != String::npos
+      if ((line_str_1.find(pair.first) != String::npos &&
+           line_str_2.find(pair.second) != String::npos
           ) ||
-          (line_str_1.find(pair_it->second) != String::npos &&
-           line_str_2.find(pair_it->first) != String::npos
+          (line_str_1.find(pair.second) != String::npos &&
+           line_str_2.find(pair.first) != String::npos
           )
          )
       {
@@ -664,21 +662,19 @@ namespace OpenMS
         prefix << '\n' <<
         prefix << "  whitelist cases:\n";
       Size length = 0;
-      for (std::map<String, UInt>::const_iterator wlcit = whitelist_cases_.begin();
-           wlcit != whitelist_cases_.end(); ++wlcit)
+      for (const auto& wlc : whitelist_cases_)
       {
-        if (wlcit->first.size() > length)
+        if (wlc.first.size() > length)
         {
-          length = wlcit->first.size();
+          length = wlc.first.size();
         }
       }
-      for (std::map<String, UInt>::const_iterator wlcit = whitelist_cases_.begin();
-           wlcit != whitelist_cases_.end(); ++wlcit)
+      for (const auto& wlc : whitelist_cases_)
       {
         *log_dest_ <<
           prefix << "    " << std::setw(length + 3) << std::left <<
-          ("\"" + wlcit->first + "\"") << std::setw(3) << std::right <<
-          wlcit->second << "x\n";
+          ("\"" + wlc.first + "\"") << std::setw(3) << std::right <<
+          wlc.second << "x\n";
       }
     }
   }
@@ -769,11 +765,11 @@ namespace OpenMS
   {
     prefix = prefix.prefix(size_t(input_line.line_position_));
     prefix_whitespaces = prefix;
-    for (String::iterator iter = prefix_whitespaces.begin(); iter != prefix_whitespaces.end(); ++iter)
+    for (char& ch : prefix_whitespaces)
     {
-      if (*iter != '\t')
+      if (ch != '\t')
       {
-        *iter = ' ';
+        ch = ' ';
         ++line_column;
       }
       else

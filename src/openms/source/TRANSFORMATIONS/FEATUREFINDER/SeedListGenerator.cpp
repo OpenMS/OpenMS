@@ -88,23 +88,20 @@ namespace OpenMS
   {
     seed_lists.clear();
     // iterate over all consensus features...
-    for (ConsensusMap::ConstIterator cons_it = consensus.begin();
-         cons_it != consensus.end(); ++cons_it)
+    for (const auto& cons : consensus)
     {
-      DPosition<2> point(cons_it->getRT(), cons_it->getMZ());
+      DPosition<2> point(cons.getRT(), cons.getMZ());
       // for each sub-map in the consensus map, add a seed at the position of
       // this consensus feature:
-      for (ConsensusMap::ColumnHeaders::const_iterator file_it =
-             consensus.getColumnHeaders().begin(); file_it !=
-           consensus.getColumnHeaders().end(); ++file_it)
-        seed_lists[file_it->first].push_back(point);
+      for (const auto& file : consensus.getColumnHeaders())
+      {
+        seed_lists[file.first].push_back(point);
+      }
       // for each feature contained in the consensus feature, remove the seed of
       // the corresponding map:
-      for (ConsensusFeature::HandleSetType::const_iterator feat_it =
-             cons_it->getFeatures().begin(); feat_it !=
-           cons_it->getFeatures().end(); ++feat_it)
+      for (const auto& feat : cons.getFeatures())
       {
-        seed_lists[feat_it->getMapIndex()].pop_back();
+        seed_lists[feat.getMapIndex()].pop_back();
       }
       // this leaves seeds for maps where no feature was found near the
       // consensus position
@@ -116,14 +113,14 @@ namespace OpenMS
   {
     features.clear(true); // "true" should really be a default value here...
     Size counter = 0;
-    for (SeedList::const_iterator seed_it = seeds.begin();
-         seed_it != seeds.end(); ++seed_it, ++counter)
+    for (const auto& seed : seeds)
     {
       Feature feature;
-      feature.setRT(seed_it->getX());
-      feature.setMZ(seed_it->getY());
+      feature.setRT(seed.getX());
+      feature.setMZ(seed.getY());
       feature.setUniqueId(counter);
       features.push_back(feature);
+      ++counter;
     }
     // // assign unique ids:
     // features.applyMemberFunction(&UniqueIdInterface::setUniqueId);

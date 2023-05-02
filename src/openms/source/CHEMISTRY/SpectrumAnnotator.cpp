@@ -141,10 +141,10 @@ namespace OpenMS
     error_annotations.setName("IonMatchError");
     type_annotations.resize(spec.size());
     error_annotations.resize(spec.size());
-    for (vector<pair<Size, Size > >::const_iterator it = al.begin(); it != al.end(); ++it)
+    for (const auto& a : al)
     {
-        error_annotations[it->second] = std::fabs(spec[it->second].getMZ() - theoretical_spec[it->first].getMZ());
-        type_annotations[it->second] = theo_annot[it->first];
+        error_annotations[a.second] = std::fabs(spec[a.second].getMZ() - theoretical_spec[a.first].getMZ());
+        type_annotations[a.second] = theo_annot[a.first];
     }
     const Param& sap = sa.getParameters();
     spec.setMetaValue("fragment_mass_tolerance", sap.getValue("tolerance"));
@@ -157,9 +157,9 @@ namespace OpenMS
   {
     if (!spec.empty())
     {
-      for (vector<PeptideHit>::iterator ph = pi.getHits().begin(); ph != pi.getHits().end(); ++ph)
+      for (PeptideHit& ph : pi.getHits())
       {
-        annotateMatches(spec, *ph, tg, sa);
+        annotateMatches(spec, ph, tg, sa);
         spec.sortByIntensity();
 
         StringList ions;
@@ -175,22 +175,22 @@ namespace OpenMS
 
         StringList allowed_types = ListUtils::create<String>("y,b,a,c,x,z");
         map<String, vector<bool> > ion_series;
-        for (StringList::iterator st = allowed_types.begin(); st != allowed_types.end(); ++st)
+        for (String& st : allowed_types)
         {
-          ion_series.insert(make_pair(*st, vector<bool>(ph->getSequence().size()-1, false)));
+          ion_series.insert(make_pair(st, vector<bool>(ph.getSequence().size()-1, false)));
         }
 
         PeakSpectrum::StringDataArray type_annotations = PeakSpectrum::StringDataArray();
         PeakSpectrum::FloatDataArray error_annotations = PeakSpectrum::FloatDataArray();
-        for (PeakSpectrum::StringDataArrays::iterator it = spec.getStringDataArrays().begin(); it != spec.getStringDataArrays().end(); ++it)
+        for (auto& strdata : spec.getStringDataArrays())
         {
-          if (it->getName() == "IonName")
-            type_annotations = *it;
+          if (strdata.getName() == "IonName")
+            type_annotations = strdata;
         }
-        for (PeakSpectrum::FloatDataArrays::iterator it = spec.getFloatDataArrays().begin(); it != spec.getFloatDataArrays().end(); ++it)
+        for (auto& fltdata : spec.getFloatDataArrays())
         {
-          if (it->getName() == "IonMatchError")
-            error_annotations = *it;
+          if (fltdata.getName() == "IonMatchError")
+            error_annotations = fltdata;
         }
 
         for (size_t i = 0; i < spec.size(); ++i)
@@ -233,7 +233,7 @@ namespace OpenMS
                   catch (std::out_of_range&)
                   {
                     OPENMS_LOG_WARN << "Note: Ions of " << ion_type << ion_name.substr(1).remove('+').toInt()
-                             << " will be ignored for max_series " << ph->getSequence().toString() << endl;
+                             << " will be ignored for max_series " << ph.getSequence().toString() << endl;
                     continue;
                   }
                 }
@@ -243,26 +243,26 @@ namespace OpenMS
         }
         if (basic_statistics_)
         {
-          ph->setMetaValue("matched_ions", ListUtils::concatenate(ions, ","));
-          ph->setMetaValue("matched_intensity", match_intensity);
-          ph->setMetaValue("matched_ion_number", ions.size());
-          ph->setMetaValue("peak_number", spec.size());
-          ph->setMetaValue("sum_intensity", sum_intensity);
+          ph.setMetaValue("matched_ions", ListUtils::concatenate(ions, ","));
+          ph.setMetaValue("matched_intensity", match_intensity);
+          ph.setMetaValue("matched_ion_number", ions.size());
+          ph.setMetaValue("peak_number", spec.size());
+          ph.setMetaValue("sum_intensity", sum_intensity);
         }
         if (terminal_series_match_ratio_)
         {
-          ph->setMetaValue("NTermIonCurrentRatio", nint/match_intensity);
-          ph->setMetaValue("CTermIonCurrentRatio", cint/match_intensity);
+          ph.setMetaValue("NTermIonCurrentRatio", nint/match_intensity);
+          ph.setMetaValue("CTermIonCurrentRatio", cint/match_intensity);
         }
         if (topNmatch_fragmenterrors_)
         {
           if (fragmenterrors.empty())
           {
-            ph->setMetaValue("median_fragment_error", 0);
-            ph->setMetaValue("IQR_fragment_error", 0);
-            ph->setMetaValue("topN_meanfragmenterror", 0);
-            ph->setMetaValue("topN_MSEfragmenterror", 0);
-            ph->setMetaValue("topN_stddevfragmenterror", 0);
+            ph.setMetaValue("median_fragment_error", 0);
+            ph.setMetaValue("IQR_fragment_error", 0);
+            ph.setMetaValue("topN_meanfragmenterror", 0);
+            ph.setMetaValue("topN_MSEfragmenterror", 0);
+            ph.setMetaValue("topN_stddevfragmenterror", 0);
           }
           else
           {
@@ -273,18 +273,18 @@ namespace OpenMS
             std::nth_element(fe.begin(), fe.begin()+mid, fe.end());
             if (fe.size() % 2 != 0)
             {
-              ph->setMetaValue("median_fragment_error", fe[mid]);
+              ph.setMetaValue("median_fragment_error", fe[mid]);
             }
             else
             {
               double right2mid = fe[mid];
               std::nth_element(fe.begin(), fe.begin() + mid-1, fe.end());
-              ph->setMetaValue("median_fragment_error", (right2mid + fe[mid-1]) / 2.0);
+              ph.setMetaValue("median_fragment_error", (right2mid + fe[mid-1]) / 2.0);
             }
             std::nth_element(fe.begin(),          fe.begin() + lq, fe.end());
             std::nth_element(fe.begin() + lq + 1, fe.begin() + mid, fe.end());
             std::nth_element(fe.begin() + mid + 1, fe.begin() + uq, fe.end());
-            ph->setMetaValue("IQR_fragment_error", fe[uq]-fe[lq]);
+            ph.setMetaValue("IQR_fragment_error", fe[uq]-fe[lq]);
 
             vector<double> topn_fe;
             topn_fe.resize(fragmenterrors.size());
@@ -295,25 +295,25 @@ namespace OpenMS
             double stdev = Math::sd(topn_fe.begin(), topn_fe.end(), mean);
 
             double sq_sum = 0;
-            for (std::vector<double>::iterator it = topn_fe.begin(); it != topn_fe.end(); ++it)
+            for (double& topn : topn_fe)
             {
-              sq_sum += *it * *it;
+              sq_sum += topn * topn;
             }
             double m_sq_sum = (sq_sum / topn_fe.size());
 
-            ph->setMetaValue("topN_meanfragmenterror", mean);
-            ph->setMetaValue("topN_MSEfragmenterror", m_sq_sum);
-            ph->setMetaValue("topN_stddevfragmenterror", stdev);
+            ph.setMetaValue("topN_meanfragmenterror", mean);
+            ph.setMetaValue("topN_MSEfragmenterror", m_sq_sum);
+            ph.setMetaValue("topN_stddevfragmenterror", stdev);
           }
         }
         if (max_series_)
         {
           String max_series;
           int max_stretch = 0;
-          for (map<String, vector<bool> >::iterator tt = ion_series.begin(); tt != ion_series.end(); ++tt)
+          for (auto& series : ion_series)
           {
             int stretch = 0;
-            for (vector<bool>::iterator it = tt->second.begin(); it != tt->second.end(); ++it)
+            for (vector<bool>::iterator it = series.second.begin(); it != series.second.end(); ++it)
             {
               if (*it)
               {
@@ -326,12 +326,12 @@ namespace OpenMS
               if (stretch > max_stretch)
               {
                 max_stretch = stretch;
-                max_series = tt->first;
+                max_series = series.first;
               }
             }
           }
-          ph->setMetaValue("max_series_type", max_series);
-          ph->setMetaValue("max_series_size", max_stretch);
+          ph.setMetaValue("max_series_type", max_series);
+          ph.setMetaValue("max_series_size", max_stretch);
         }
         //TODO parent peak intensity complement pairs number
         if (SN_statistics_)
@@ -342,7 +342,7 @@ namespace OpenMS
           {
             sn_by_matched_intensity = 0;
           }
-          ph->setMetaValue("sn_by_matched_intensity", sn_by_matched_intensity);
+          ph.setMetaValue("sn_by_matched_intensity", sn_by_matched_intensity);
 
           float median = 0;
           // spec is already in sorted order of intensity
@@ -354,17 +354,17 @@ namespace OpenMS
           float nois_int = 0;
           size_t sign_count= 0;
           size_t nois_count = 0;
-          for (MSSpectrum::const_iterator pt = spec.begin(); pt != spec.end(); ++pt)
+          for (const Peak1D& peak : spec)
           {
-            if (pt->getIntensity() <= median)
+            if (peak.getIntensity() <= median)
             {
               ++nois_count;
-              nois_int += pt->getIntensity();
+              nois_int += peak.getIntensity();
             }
             else
             {
               ++sign_count;
-              sign_int += pt->getIntensity();
+              sign_int += peak.getIntensity();
             }
           }
           float sn_by_median_intensity = (sign_int / sign_count) / (nois_int / nois_count);
@@ -372,23 +372,23 @@ namespace OpenMS
           {
             sn_by_median_intensity = 0;
           }
-          ph->setMetaValue("sn_by_median_intensity", sn_by_median_intensity);
+          ph.setMetaValue("sn_by_median_intensity", sn_by_median_intensity);
         }
         //TODO charge related features might be worth looking at in the future
         if (precursor_statistics_)
         {
           bool precursor = false;
-          for (std::vector<Precursor>::const_iterator pit = spec.getPrecursors().begin(); pit != spec.getPrecursors().end(); ++pit)
+          for (const Precursor& pc : spec.getPrecursors())
           {
             spec.sortByPosition();
             //TODO what about precursor_H2O_loss and precursor_NH3_loss
-            if (spec.findNearest(pit->getMZ(),sa.getParameters().getValue("tolerance"),
+            if (spec.findNearest(pc.getMZ(),sa.getParameters().getValue("tolerance"),
                                  sa.getParameters().getValue("tolerance")) > -1)
             {
               precursor = true;
             }
           }
-          ph->setMetaValue("precursor_in_ms2", precursor);
+          ph.setMetaValue("precursor_in_ms2", precursor);
         }
         //TODO add "FragmentArray"s
 

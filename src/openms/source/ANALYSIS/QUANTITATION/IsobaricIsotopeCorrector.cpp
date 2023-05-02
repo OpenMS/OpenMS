@@ -125,18 +125,16 @@ namespace OpenMS
   IsobaricIsotopeCorrector::fillInputVector_(Eigen::VectorXd& b,
                                              Matrix<double>& m_b, const ConsensusFeature& cf, const ConsensusMap& cm)
   {
-    for (ConsensusFeature::HandleSetType::const_iterator it_elements = cf.getFeatures().begin();
-         it_elements != cf.getFeatures().end();
-         ++it_elements)
+    for (const auto& element : cf.getFeatures())
     {
       //find channel_id of current element
-      Int index = Int(cm.getColumnHeaders().find(it_elements->getMapIndex())->second.getMetaValue("channel_id"));
+      Int index = Int(cm.getColumnHeaders().find(element.getMapIndex())->second.getMetaValue("channel_id"));
 #ifdef ISOBARIC_QUANT_DEBUG
-      std::cout << "  map_index " << it_elements->getMapIndex() << "-> id " << index << " with intensity " << it_elements->getIntensity() << "\n" << std::endl;
+      std::cout << "  map_index " << element.getMapIndex() << "-> id " << index << " with intensity " << element.getIntensity() << "\n" << std::endl;
 #endif
       // this is deprecated, but serves as quality measurement
-      b(index) = it_elements->getIntensity();
-      m_b(index, 0) = it_elements->getIntensity();
+      b(index) = element.getIntensity();
+      m_b(index, 0) = element.getIntensity();
     }
   }
 
@@ -197,20 +195,18 @@ namespace OpenMS
     ConsensusMap::size_type current_cf, const Matrix<double>& m_x)
   {
     float cf_intensity(0);
-    for (ConsensusFeature::HandleSetType::const_iterator it_elements = consensus_map_in[current_cf].begin();
-         it_elements != consensus_map_in[current_cf].end();
-         ++it_elements)
+    for (const auto& element : consensus_map_in[current_cf])
     {
-      FeatureHandle handle = *it_elements;
+      FeatureHandle handle = element;
       //find channel_id of current element
-      Int index = Int(consensus_map_out.getColumnHeaders()[it_elements->getMapIndex()].getMetaValue("channel_id"));
+      Int index = Int(consensus_map_out.getColumnHeaders()[element.getMapIndex()].getMetaValue("channel_id"));
       handle.setIntensity(float(m_x(index, 0)));
 
       consensus_map_out[current_cf].insert(handle);
       cf_intensity += handle.getIntensity(); // sum up all channels for CF
 
 #ifdef ISOBARIC_QUANT_DEBUG
-      std::cout <<  it_elements->getIntensity() << " -> " << handle.getIntensity() << std::endl;
+      std::cout <<  element.getIntensity() << " -> " << handle.getIntensity() << std::endl;
 #endif
     }
     consensus_map_out[current_cf].setIntensity(cf_intensity); // set overall intensity of CF (sum of all channels)

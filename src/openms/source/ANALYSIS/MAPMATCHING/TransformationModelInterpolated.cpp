@@ -179,22 +179,19 @@ private:
   {
     // need monotonically increasing x values (can't have the same value twice):
     std::map<double, std::vector<double> > mapping;
-    for (TransformationModel::DataPoints::const_iterator it = data.begin();
-         it != data.end();
-         ++it)
+    for (const auto& point : data)
     {
-      mapping[it->first].push_back(it->second);
+      mapping[point.first].push_back(point.second);
     }
     x_.resize(mapping.size());
     y_.resize(mapping.size());
     size_t i = 0;
-    for (std::map<double, std::vector<double> >::const_iterator it = mapping.begin();
-         it != mapping.end();
-         ++it, ++i)
+    for (const auto& map : mapping)
     {
-      x_[i] = it->first;
+      x_[i] = map.first;
       // use average y value:
-      y_[i] = std::accumulate(it->second.begin(), it->second.end(), 0.0) / it->second.size();
+      y_[i] = std::accumulate(map.second.begin(), map.second.end(), 0.0) / map.second.size();
+      ++i;
     }
 
     // ensure that we have enough points for an interpolation
@@ -209,22 +206,19 @@ private:
   {
     // need monotonically increasing x values (can't have the same value twice):
     std::map<double, std::vector<double> > mapping;
-    for (std::vector<std::pair<double,double>>::const_iterator it = data.begin();
-         it != data.end();
-         ++it)
+    for (const auto& point : data)
     {
-      mapping[it->first].push_back(it->second);
+      mapping[point.first].push_back(point.second);
     }
     x_.resize(mapping.size());
     y_.resize(mapping.size());
     size_t i = 0;
-    for (std::map<double, std::vector<double> >::const_iterator it = mapping.begin();
-         it != mapping.end();
-         ++it, ++i)
+    for (const auto& map : mapping)
     {
-      x_[i] = it->first;
+      x_[i] = map.first;
       // use average y value:
-      y_[i] = std::accumulate(it->second.begin(), it->second.end(), 0.0) / it->second.size();
+      y_[i] = std::accumulate(map.second.begin(), map.second.end(), 0.0) / map.second.size();
+      ++i;
     }
 
     // ensure that we have enough points for an interpolation

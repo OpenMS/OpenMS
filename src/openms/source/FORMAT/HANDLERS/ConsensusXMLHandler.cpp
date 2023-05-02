@@ -522,9 +522,9 @@ namespace OpenMS::Internal
           accessions.push_back(std::move(accession_string));
         }
 
-        for (vector<String>::const_iterator it = accessions.begin(); it != accessions.end(); ++it)
+        for (const String& acc : accessions)
         {
-          std::map<String, String>::const_iterator it2 = proteinid_to_accession_.find(*it);
+          std::map<String, String>::const_iterator it2 = proteinid_to_accession_.find(acc);
           if (it2 != proteinid_to_accession_.end())
           {
             PeptideEvidence pe;
@@ -533,7 +533,7 @@ namespace OpenMS::Internal
           }
           else
           {
-            fatalError(LOAD, String("Invalid protein reference '") + *it + "'");
+            fatalError(LOAD, String("Invalid protein reference '") + acc + "'");
           }
         }
       }
@@ -665,9 +665,9 @@ namespace OpenMS::Internal
       const DataProcessing& processing = consensus_map.getDataProcessing()[i];
       os << "\t<dataProcessing completion_time=\"" << processing.getCompletionTime().getDate() << 'T' << processing.getCompletionTime().getTime() << "\">\n";
       os << "\t\t<software name=\"" << processing.getSoftware().getName() << "\" version=\"" << processing.getSoftware().getVersion() << "\" />\n";
-      for (set<DataProcessing::ProcessingAction>::const_iterator it = processing.getProcessingActions().begin(); it != processing.getProcessingActions().end(); ++it)
+      for (const DataProcessing::ProcessingAction& action : processing.getProcessingActions())
       {
-        os << "\t\t<processingAction name=\"" << DataProcessing::NamesOfProcessingAction[*it] << "\" />\n";
+        os << "\t\t<processingAction name=\"" << DataProcessing::NamesOfProcessingAction[action] << "\" />\n";
       }
       writeUserParam_("UserParam", os, processing, 2);
       os << "\t</dataProcessing>\n";
@@ -783,18 +783,18 @@ namespace OpenMS::Internal
     //file descriptions
     const ConsensusMap::ColumnHeaders& description_vector = consensus_map.getColumnHeaders();
     os << "\t<mapList count=\"" << description_vector.size() << "\">\n";
-    for (ConsensusMap::ColumnHeaders::const_iterator it = description_vector.begin(); it != description_vector.end(); ++it)
+    for (const auto& desc : description_vector)
     {
       setProgress(++progress_);
-      os << "\t\t<map id=\"" << it->first;
-      os << "\" name=\"" << it->second.filename;
-      if (UniqueIdInterface::isValid(it->second.unique_id))
+      os << "\t\t<map id=\"" << desc.first;
+      os << "\" name=\"" << desc.second.filename;
+      if (UniqueIdInterface::isValid(desc.second.unique_id))
       {
-        os << "\" unique_id=\"" << it->second.unique_id;
+        os << "\" unique_id=\"" << desc.second.unique_id;
       }
-      os << "\" label=\"" << it->second.label;
-      os << "\" size=\"" << it->second.size << "\">\n";
-      writeUserParam_("UserParam", os, it->second, 3);
+      os << "\" label=\"" << desc.second.label;
+      os << "\" size=\"" << desc.second.size << "\">\n";
+      writeUserParam_("UserParam", os, desc.second, 3);
       os << "\t\t</map>\n";
     }
     os << "\t</mapList>\n";
@@ -817,17 +817,17 @@ namespace OpenMS::Internal
         elem.getIntensity()) << "\"/>\n";
       // write groupedElementList
       os << "\t\t\t<groupedElementList>\n";
-      for (ConsensusFeature::HandleSetType::const_iterator it = elem.begin(); it != elem.end(); ++it)
+      for (const FeatureHandle& handle : elem)
       {
         os << "\t\t\t\t<element"
-              " map=\"" << it->getMapIndex() << "\""
-                                                " id=\"" << it->getUniqueId() << "\""
-                                                                                 " rt=\"" << precisionWrapper(it->getRT()) << "\""
-                                                                                                                              " mz=\"" << precisionWrapper(it->getMZ()) << "\""
-                                                                                                                                                                           " it=\"" << precisionWrapper(it->getIntensity()) << "\"";
-        if (it->getCharge() != 0)
+              " map=\"" << handle.getMapIndex() << "\""
+              " id=\"" << handle.getUniqueId() << "\""
+              " rt=\"" << precisionWrapper(handle.getRT()) << "\""
+              " mz=\"" << precisionWrapper(handle.getMZ()) << "\""
+              " it=\"" << precisionWrapper(handle.getIntensity()) << "\"";
+        if (handle.getCharge() != 0)
         {
-          os << " charge=\"" << it->getCharge() << "\"";
+          os << " charge=\"" << handle.getCharge() << "\"";
         }
         os << "/>\n";
       }
@@ -900,13 +900,13 @@ namespace OpenMS::Internal
       IdXMLFile::createPositionXMLString_(pes, os);
 
       String accs;
-      for (vector<PeptideEvidence>::const_iterator pe = pes.begin(); pe != pes.end(); ++pe)
+      for (const PeptideEvidence& pe : pes)
       {
         if (!accs.empty())
         {
           accs += " ";
         }
-        String protein_accession = pe->getProteinAccession();
+        String protein_accession = pe.getProteinAccession();
 
         // empty accessions are not written out (legacy code)
         if (!protein_accession.empty())

@@ -325,9 +325,9 @@ namespace OpenMS
       String entry = String(f.getRT()) + "\t" + f.getMZ() + "\t" + f.getIntensity() + "\t" + f.getCharge();
       // sub-features
       const ConsensusFeature::HandleSetType& handle = f.getFeatures();
-      for (ConsensusFeature::HandleSetType::const_iterator it = handle.begin(); it != handle.end(); ++it)
+      for (const auto& h : handle)
       {
-        entry += String("\t") + it->getRT() + "\t" + it->getMZ() + "\t" + it->getIntensity() + "\t" + it->getCharge();
+        entry += String("\t") + h.getRT() + "\t" + h.getMZ() + "\t" + h.getIntensity() + "\t" + h.getCharge();
       }
       // missing sub-features
       for (Size j = handle.size(); j < max_sub; ++j)

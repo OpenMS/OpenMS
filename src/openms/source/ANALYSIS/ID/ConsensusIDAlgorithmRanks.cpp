@@ -64,24 +64,22 @@ namespace OpenMS
     current_considered_hits_ = considered_hits_;
     bool set_considered_hits = (considered_hits_ == 0);
 
-    for (vector<PeptideIdentification>::iterator pep_it = ids.begin();
-         pep_it != ids.end(); ++pep_it)
+    for (PeptideIdentification& pep : ids)
     {
-      pep_it->assignRanks();
-      for (vector<PeptideHit>::iterator hit_it = pep_it->getHits().begin();
-           hit_it != pep_it->getHits().end(); ++hit_it)
+      pep.assignRanks();
+      for (PeptideHit& hit : pep.getHits())
       {
         // give each hit a score based on the search rank (counting from 0):
-        hit_it->setScore(hit_it->getRank() - 1);
+        hit.setScore(hit.getRank() - 1);
       }
-      pep_it->setScoreType("ConsensusID_ranks");
-      pep_it->setHigherScoreBetter(true); // not true now, but after normalizing
+      pep.setScoreType("ConsensusID_ranks");
+      pep.setHigherScoreBetter(true); // not true now, but after normalizing
 
       // if "considered_hits" wasn't set, we find the max. number of hits:
       if (set_considered_hits &&
-          (pep_it->getHits().size() > current_considered_hits_))
+          (pep.getHits().size() > current_considered_hits_))
       {
-        current_considered_hits_ = pep_it->getHits().size();
+        current_considered_hits_ = pep.getHits().size();
       }
     }
   }

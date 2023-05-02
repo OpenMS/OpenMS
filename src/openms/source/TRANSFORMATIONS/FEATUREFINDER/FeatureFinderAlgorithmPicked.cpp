@@ -1036,15 +1036,16 @@ namespace OpenMS
       FeatureMap abort_map;
       abort_map.reserve(abort_reasons_.size());
       Size counter = 0;
-      for (std::map<Seed, String>::iterator it2 = abort_reasons_.begin(); it2 != abort_reasons_.end(); ++it2, ++counter)
+      for (const auto& reason : abort_reasons_)
       {
         Feature f;
-        f.setRT(map_[it2->first.spectrum].getRT());
-        f.setMZ(map_[it2->first.spectrum][it2->first.peak].getMZ());
-        f.setIntensity(map_[it2->first.spectrum][it2->first.peak].getIntensity());
-        f.setMetaValue("label", it2->second);
+        f.setRT(map_[reason.first.spectrum].getRT());
+        f.setMZ(map_[reason.first.spectrum][reason.first.peak].getMZ());
+        f.setIntensity(map_[reason.first.spectrum][reason.first.peak].getIntensity());
+        f.setMetaValue("label", reason.second);
         f.setUniqueId(counter); // ID = index
         abort_map.push_back(f);
+        ++counter;
       }
       abort_map.setUniqueId();
       FileHandler().storeFeatures("debug/abort_reasons.featureXML", abort_map);

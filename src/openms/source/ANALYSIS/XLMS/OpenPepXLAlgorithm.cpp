@@ -278,20 +278,20 @@ using namespace OpenMS;
     vector< double > spectrum_precursors;
 
     // find pairs of MS2 spectra, that correspond to MS1 features linked by the consensus map / FeatureFinderMultiplex
-    for (ConsensusMap::const_iterator cit = cfeatures.begin(); cit != cfeatures.end(); ++cit)
+    for (const auto& cf : cfeatures)
     {
-      if (cit->getFeatures().size() == 2 && cit->getPeptideIdentifications().size() >= 2)
+      if (cf.getFeatures().size() == 2 && cf.getPeptideIdentifications().size() >= 2)
       {
-        for (Size x = 0; x < cit->getPeptideIdentifications().size(); ++x)
+        for (Size x = 0; x < cf.getPeptideIdentifications().size(); ++x)
         {
-          if (static_cast<Size>(cit->getPeptideIdentifications()[x].getMetaValue("map_index")) == 0)
+          if (static_cast<Size>(cf.getPeptideIdentifications()[x].getMetaValue("map_index")) == 0)
           {
-            for (Size y = 0; y < cit->getPeptideIdentifications().size(); ++y)
+            for (Size y = 0; y < cf.getPeptideIdentifications().size(); ++y)
             {
-              if (static_cast<Size>(cit->getPeptideIdentifications()[y].getMetaValue("map_index")) == 1)
+              if (static_cast<Size>(cf.getPeptideIdentifications()[y].getMetaValue("map_index")) == 1)
               {
-                const PeptideIdentification& pi_0 = cit->getPeptideIdentifications()[x];
-                const PeptideIdentification& pi_1 = cit->getPeptideIdentifications()[y];
+                const PeptideIdentification& pi_0 = cf.getPeptideIdentifications()[x];
+                const PeptideIdentification& pi_1 = cf.getPeptideIdentifications()[y];
                 spectrum_pairs.emplace_back(pi_0.getMetaValue("spectrum_index"), pi_1.getMetaValue("spectrum_index"));
                 double current_precursor_mz0 = spectra[pi_0.getMetaValue("spectrum_index")].getPrecursors()[0].getMZ();
                 double current_precursor_mz1 = spectra[pi_1.getMetaValue("spectrum_index")].getPrecursors()[0].getMZ();

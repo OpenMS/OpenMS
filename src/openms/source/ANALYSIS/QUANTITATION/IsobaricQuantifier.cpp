@@ -137,13 +137,11 @@ namespace OpenMS
       if (consensus_map_out[i].getIntensity() == 0) ++stats_.number_ms2_empty;
 
       // look at single reporters
-      for (ConsensusFeature::HandleSetType::const_iterator it_elements = consensus_map_out[i].begin();
-           it_elements != consensus_map_out[i].end();
-           ++it_elements)
+      for (const auto& element : consensus_map_out[i])
       {
-        if (it_elements->getIntensity() == 0)
+        if (element.getIntensity() == 0)
         {
-          String ch_index = consensus_map_out.getColumnHeaders()[it_elements->getMapIndex()].getMetaValue("channel_name");
+          String ch_index = consensus_map_out.getColumnHeaders()[element.getMapIndex()].getMetaValue("channel_name");
           ++stats_.empty_channels[ch_index];
         }
       }
@@ -153,17 +151,16 @@ namespace OpenMS
     consensus_map_out.setMetaValue("isoquant:scans_total", consensus_map_out.size());
 
     OPENMS_LOG_INFO << "IsobaricQuantifier: channels with signal\n";
-    for (IsobaricQuantitationMethod::IsobaricChannelList::const_iterator cl_it = quant_method_->getChannelInformation().begin();
-      cl_it != quant_method_->getChannelInformation().end();
-      ++cl_it) // use the same iteration method for printing stats as in IsobaricChannelExtractor which have the same order, so user can make 1:1 comparison
+    // use the same iteration method for printing stats as in IsobaricChannelExtractor which have the same order, so user can make 1:1 comparison
+    for (const auto& cl : quant_method_->getChannelInformation())
     {
-      std::map<String, Size>::const_iterator it_m = stats_.empty_channels.find(cl_it->name);
+      std::map<String, Size>::const_iterator it_m = stats_.empty_channels.find(cl.name);
       if (it_m == stats_.empty_channels.end()) 
       { // should not happen
-        OPENMS_LOG_WARN << "Warning: no stats for channel '" << cl_it->name << "'" << std::endl;
+        OPENMS_LOG_WARN << "Warning: no stats for channel '" << cl.name << "'" << std::endl;
         continue;
       }
-      OPENMS_LOG_INFO << "  ch " << String(cl_it->name).fillRight(' ', 4) << ": " << (consensus_map_out.size() - it_m->second) << " / " << consensus_map_out.size() << " (" << ((consensus_map_out.size() - it_m->second) * 100 / consensus_map_out.size()) << "%)\n";
+      OPENMS_LOG_INFO << "  ch " << String(cl.name).fillRight(' ', 4) << ": " << (consensus_map_out.size() - it_m->second) << " / " << consensus_map_out.size() << " (" << ((consensus_map_out.size() - it_m->second) * 100 / consensus_map_out.size()) << "%)\n";
       consensus_map_out.setMetaValue(String("isoquant:quantifyable_ch") + it_m->first, (consensus_map_out.size() - it_m->second));
     }
   }

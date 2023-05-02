@@ -111,9 +111,9 @@ namespace OpenMS
     SimTypes::FeatureMapSim final_map;
     ProteinIdentification protIdent;
 
-    for (std::map<String, ProteinHit>::iterator prot_hit_iter = prot_hits.begin(); prot_hit_iter != prot_hits.end(); ++prot_hit_iter)
+    for (auto& prot_hit : prot_hits)
     {
-      protIdent.insertHit(prot_hit_iter->second);
+      protIdent.insertHit(prot_hit.second);
     }
     std::vector<ProteinIdentification> protIdents;
     protIdents.push_back(protIdent);
@@ -132,10 +132,10 @@ namespace OpenMS
 
     PeptideHit pepHit(target.getPeptideIdentifications()[0].getHits()[0]);
 
-    for (std::set<String>::const_iterator a_it = target_acc.begin(); a_it != target_acc.end(); ++a_it)
+    for (const String& acc : target_acc)
     {
       PeptideEvidence pe;
-      pe.setProteinAccession(*a_it);
+      pe.setProteinAccession(acc);
       pepHit.addPeptideEvidence(pe);
     }
 
@@ -171,19 +171,19 @@ namespace OpenMS
       }
     }
 
-    for (std::map<String, IntList>::iterator it = id_map.begin(); it != id_map.end(); ++it)
+    for (auto& id : id_map)
     {
-      OPENMS_LOG_DEBUG << it->first << " " << it->second << std::endl;
+      OPENMS_LOG_DEBUG << id.first << " " << id.second << std::endl;
     }
 
     // new consensus map
     ConsensusMap new_cm;
 
     // initialize sub maps in consensus map
-    for (std::map<UInt64, Size>::iterator it = features_per_labeled_map.begin(); it != features_per_labeled_map.end(); ++it)
+    for (auto& fplm : features_per_labeled_map)
     {
-      new_cm.getColumnHeaders()[it->first].size = it->second;
-      new_cm.getColumnHeaders()[it->first].unique_id = simulated_features.getUniqueId();
+      new_cm.getColumnHeaders()[fplm.first].size = fplm.second;
+      new_cm.getColumnHeaders()[fplm.first].unique_id = simulated_features.getUniqueId();
     }
 
     for (ConsensusFeature& cm : consensus_)
@@ -233,20 +233,18 @@ namespace OpenMS
         }
 
         // create new consensus feature from derived features (separated by charge, if charge != 0)
-        for (std::map<String, std::set<FeatureHandle, FeatureHandle::IndexLess> >::const_iterator charge_group_it = charge_mapping.begin();
-             charge_group_it != charge_mapping.end();
-             ++charge_group_it)
+        for (const auto& charge_group : charge_mapping)
         {
           ConsensusFeature cf;
-          cf.setCharge((*(*charge_group_it).second.begin()).getCharge());
-          cf.setMetaValue("charge_adducts", charge_group_it->first);
+          cf.setCharge((*(charge_group).second.begin()).getCharge());
+          cf.setMetaValue("charge_adducts", charge_group.first);
 
           std::vector<PeptideIdentification> ids;
-          for (std::set<FeatureHandle, FeatureHandle::IndexLess>::const_iterator fh_it = (charge_group_it->second).begin(); fh_it != (charge_group_it->second).end(); ++fh_it)
+          for (const auto& fh : charge_group.second)
           {
-            cf.insert(*fh_it);
+            cf.insert(fh);
             // append identifications
-            Size f_index = simulated_features.uniqueIdToIndex(fh_it->getUniqueId());
+            Size f_index = simulated_features.uniqueIdToIndex(fh.getUniqueId());
             std::vector<PeptideIdentification> ids_feature = simulated_features[f_index].getPeptideIdentifications();
             ids.insert(ids.end(), ids_feature.begin(), ids_feature.end());
           }

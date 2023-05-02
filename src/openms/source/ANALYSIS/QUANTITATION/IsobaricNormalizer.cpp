@@ -88,43 +88,39 @@ namespace OpenMS
     map_to_vec_index_.clear();
 
     Size index = 0;
-    for (ConsensusMap::ColumnHeaders::const_iterator file_it = consensus_map.getColumnHeaders().begin();
-         file_it != consensus_map.getColumnHeaders().end();
-         ++file_it)
+    for (const auto& file : consensus_map.getColumnHeaders())
     {
-      if (file_it->second.getMetaValue("channel_name") == reference_channel_name_)
+      if (file.second.getMetaValue("channel_name") == reference_channel_name_)
       {
-        ref_map_id_ = file_it->first;
+        ref_map_id_ = file.first;
       }
-      map_to_vec_index_[file_it->first] = index;
+      map_to_vec_index_[file.first] = index;
       ++index;
     }
   }
 
   void IsobaricNormalizer::collectRatios_(const ConsensusFeature& cf, const Peak2D::IntensityType& ref_intensity)
   {
-    for (ConsensusFeature::HandleSetType::const_iterator it_elements = cf.begin();
-         it_elements != cf.end();
-         ++it_elements)
+    for (const auto& element : cf)
     {
       if (ref_intensity == 0) //avoid nan's and inf's
       {
-        if (it_elements->getIntensity() == 0) // 0/0 will give 'nan'
+        if (element.getIntensity() == 0) // 0/0 will give 'nan'
         {
           //so leave it out completely (there is no information to be gained)
         }
         else // x/0 is 'inf' but std::sort() has problems with that
         {
-          peptide_ratios_[map_to_vec_index_[it_elements->getMapIndex()]].push_back(std::numeric_limits<Peak2D::IntensityType>::max());
+          peptide_ratios_[map_to_vec_index_[element.getMapIndex()]].push_back(std::numeric_limits<Peak2D::IntensityType>::max());
         }
       }
       else // everything seems fine
       {
-        peptide_ratios_[map_to_vec_index_[it_elements->getMapIndex()]].push_back(it_elements->getIntensity() / ref_intensity);
+        peptide_ratios_[map_to_vec_index_[element.getMapIndex()]].push_back(element.getIntensity() / ref_intensity);
       }
 
       // control
-      peptide_intensities_[map_to_vec_index_[it_elements->getMapIndex()]].push_back(it_elements->getIntensity());
+      peptide_intensities_[map_to_vec_index_[element.getMapIndex()]].push_back(element.getIntensity());
     }
 
   }
@@ -139,10 +135,10 @@ namespace OpenMS
     Peak2D::IntensityType max_deviation_from_control = 0;
 
     // find MEDIAN of ratios for each channel (store as 0th element in sorted vector)
-    for (std::map<Size, Size>::const_iterator it_map = map_to_vec_index_.begin(); it_map != map_to_vec_index_.end(); ++it_map)
+    for (const auto& map : map_to_vec_index_)
     {
       // this is solely for readability reasons, the compiler should optimize this anyway
-      const Size vec_idx = it_map->second;
+      const Size vec_idx = map.second;
 
       // sort vector (partial_sort might improve performance here)
       std::sort(peptide_ratios_[vec_idx].begin(), peptide_ratios_[vec_idx].end());
@@ -157,7 +153,7 @@ namespace OpenMS
       peptide_intensities_[vec_idx][0] = peptide_intensities_[vec_idx][peptide_intensities_[vec_idx].size() / 2] /
                                          peptide_intensities_[ref_map_id_][peptide_intensities_[ref_map_id_].size() / 2];
 
-      OPENMS_LOG_INFO << "IsobaricNormalizer:  map-id " << (it_map->first) << " has factor " << (normalization_factors[vec_idx]) << " (control: " << (peptide_intensities_[vec_idx][0]) << ")" << std::endl;
+      OPENMS_LOG_INFO << "IsobaricNormalizer:  map-id " << (map.first) << " has factor " << (normalization_factors[vec_idx]) << " (control: " << (peptide_intensities_[vec_idx][0]) << ")" << std::endl;
 
       Peak2D::IntensityType dev = (peptide_ratios_[vec_idx][0] - peptide_intensities_[vec_idx][0]) / normalization_factors[vec_idx];
       if (fabs(max_deviation_from_control) < fabs(dev))

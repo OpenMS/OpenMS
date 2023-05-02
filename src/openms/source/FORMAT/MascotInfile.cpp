@@ -185,17 +185,17 @@ namespace OpenMS
     fputs(mass_type_.c_str(), fp);
 
     //fixed modifications
-    for (vector<String>::iterator it = mods_.begin(); it != mods_.end(); ++it)
+    for (String& mod : mods_)
     {
       writeParameterHeader_("MODS", fp);
-      fputs(it->c_str(), fp);
+      fputs(mod.c_str(), fp);
     }
 
     //variable modifications
-    for (vector<String>::iterator it = variable_mods_.begin(); it != variable_mods_.end(); ++it)
+    for (String& vmod : variable_mods_)
     {
       writeParameterHeader_("IT_MODS", fp);
-      fputs(it->c_str(), fp);
+      fputs(vmod.c_str(), fp);
     }
 
     //instrument
@@ -268,16 +268,16 @@ namespace OpenMS
       ss << precisionWrapper(retention_time_);
       fputs(String("RTINSECONDS=" + ss.str() + "\n").c_str(), fp);
 
-      for (PeakSpectrum::const_iterator it = peaks.begin(); it != peaks.end(); ++it)
+      for (const auto& peak : peaks)
       {
         //mass
         ss.str("");
-        ss << precisionWrapper(it->getMZ());
+        ss << precisionWrapper(peak.getMZ());
         fputs(ss.str().c_str(), fp);
         fputs(" ", fp);
         //intensity
         ss.str("");
-        ss << precisionWrapper(it->getIntensity());
+        ss << precisionWrapper(peak.getIntensity());
         fputs(ss.str().c_str(), fp);
         fputs("\n", fp);
       }
@@ -357,18 +357,16 @@ namespace OpenMS
           }
           fputs("\n", fp);
 
-          for (PeakSpectrum::iterator it = peaks.begin();
-               it != peaks.end();
-               ++it)
+          for (auto& peak : peaks)
           {
             //mass
             ss.str("");
-            ss << precisionWrapper(it->getMZ());
+            ss << precisionWrapper(peak.getMZ());
             fputs(ss.str().c_str(), fp);
             fputs(" ", fp);
             //intensity
             ss.str("");
-            ss << precisionWrapper(it->getIntensity());
+            ss << precisionWrapper(peak.getIntensity());
             fputs(ss.str().c_str(), fp);
             fputs("\n", fp);
           }

@@ -100,18 +100,18 @@ namespace OpenMS
           slash_split.push_back(element_path);
         }
         element_path = "";
-        for (vector<String>::const_iterator it = slash_split.begin(); it != slash_split.end(); ++it)
+        for (const auto& slsp : slash_split)
         {
-          if (it->empty())
+          if (slsp.empty())
           {
             continue;
           }
 
           vector<String> split;
-          it->split(':', split);
+          slsp.split(':', split);
           if (split.empty())
           {
-            element_path += "/" + *it;
+            element_path += "/" + slsp;
           }
           else
           {

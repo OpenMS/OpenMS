@@ -60,18 +60,18 @@ namespace OpenMS
       feature_set.push_back("MSGF:sqMeanErrorTop7");
       feature_set.push_back("MSGF:StdevErrorTop7");
       
-      for (vector<PeptideIdentification>::iterator it = peptide_ids.begin(); it != peptide_ids.end(); ++it)
+      for (PeptideIdentification& pepid : peptide_ids)
       {
-        for (vector<PeptideHit>::iterator hit = it->getHits().begin(); hit != it->getHits().end(); ++hit)
+        for (PeptideHit& hit : pepid.getHits())
         {
           // Some Hits have no NumMatchedMainIons, and MeanError, etc. values. Have to ignore them!
-          if (hit->metaValueExists("NumMatchedMainIons"))
+          if (hit.metaValueExists("NumMatchedMainIons"))
           {
             // only take features from first ranked entries and only with meanerrortop7 != 0.0
-            if (hit->getMetaValue("MeanErrorTop7").toString().toDouble() != 0.0)
+            if (hit.getMetaValue("MeanErrorTop7").toString().toDouble() != 0.0)
             {
-              double raw_score = hit->getMetaValue("MS:1002049").toString().toDouble();
-              double denovo_score = hit->getMetaValue("MS:1002050").toString().toDouble();
+              double raw_score = hit.getMetaValue("MS:1002049").toString().toDouble();
+              double denovo_score = hit.getMetaValue("MS:1002050").toString().toDouble();
               
               double energy = denovo_score - raw_score;
               double score_ratio = raw_score * 10000;
@@ -79,29 +79,29 @@ namespace OpenMS
               {
                 score_ratio = (raw_score / denovo_score);
               }
-              hit->setMetaValue("MSGF:ScoreRatio", score_ratio);
-              hit->setMetaValue("MSGF:Energy", energy);
+              hit.setMetaValue("MSGF:ScoreRatio", score_ratio);
+              hit.setMetaValue("MSGF:Energy", energy);
               
-              double ln_eval = -log(hit->getMetaValue("MS:1002053").toString().toDouble());
-              hit->setMetaValue("MSGF:lnEValue", ln_eval);
+              double ln_eval = -log(hit.getMetaValue("MS:1002053").toString().toDouble());
+              hit.setMetaValue("MSGF:lnEValue", ln_eval);
               
-              double ln_explained_ion_current_ratio = log(hit->getMetaValue("ExplainedIonCurrentRatio").toString().toDouble() + 0.0001);
-              double ln_NTerm_ion_current_ratio = log(hit->getMetaValue("NTermIonCurrentRatio").toString().toDouble() + 0.0001);
-              double ln_CTerm_ion_current_ratio = log(hit->getMetaValue("CTermIonCurrentRatio").toString().toDouble() + 0.0001);
-              hit->setMetaValue("MSGF:lnExplainedIonCurrentRatio", ln_explained_ion_current_ratio);
-              hit->setMetaValue("MSGF:lnNTermIonCurrentRatio", ln_NTerm_ion_current_ratio);
-              hit->setMetaValue("MSGF:lnCTermIonCurrentRatio", ln_CTerm_ion_current_ratio);
+              double ln_explained_ion_current_ratio = log(hit.getMetaValue("ExplainedIonCurrentRatio").toString().toDouble() + 0.0001);
+              double ln_NTerm_ion_current_ratio = log(hit.getMetaValue("NTermIonCurrentRatio").toString().toDouble() + 0.0001);
+              double ln_CTerm_ion_current_ratio = log(hit.getMetaValue("CTermIonCurrentRatio").toString().toDouble() + 0.0001);
+              hit.setMetaValue("MSGF:lnExplainedIonCurrentRatio", ln_explained_ion_current_ratio);
+              hit.setMetaValue("MSGF:lnNTermIonCurrentRatio", ln_NTerm_ion_current_ratio);
+              hit.setMetaValue("MSGF:lnCTermIonCurrentRatio", ln_CTerm_ion_current_ratio);
               
-              double ln_MS2_ion_current = log(hit->getMetaValue("MS2IonCurrent").toString().toDouble());
-              hit->setMetaValue("MSGF:lnMS2IonCurrent", ln_MS2_ion_current);
+              double ln_MS2_ion_current = log(hit.getMetaValue("MS2IonCurrent").toString().toDouble());
+              hit.setMetaValue("MSGF:lnMS2IonCurrent", ln_MS2_ion_current);
               
-              double mean_error_top7 = hit->getMetaValue("MeanErrorTop7").toString().toDouble();
-              int num_matched_main_ions =  hit->getMetaValue("NumMatchedMainIons").toString().toInt();
+              double mean_error_top7 = hit.getMetaValue("MeanErrorTop7").toString().toDouble();
+              int num_matched_main_ions =  hit.getMetaValue("NumMatchedMainIons").toString().toInt();
 
               double stdev_error_top7 = 0.0;
-              if (hit->getMetaValue("StdevErrorTop7").toString() != "NaN")
+              if (hit.getMetaValue("StdevErrorTop7").toString() != "NaN")
               {
-                stdev_error_top7 = hit->getMetaValue("StdevErrorTop7").toString().toDouble();
+                stdev_error_top7 = hit.getMetaValue("StdevErrorTop7").toString().toDouble();
                 if (stdev_error_top7 == 0.0)
                 {
                   stdev_error_top7 = mean_error_top7;
@@ -116,9 +116,9 @@ namespace OpenMS
               mean_error_top7 = rescaleFragmentFeature_(mean_error_top7, num_matched_main_ions);
               double sq_mean_error_top7 = rescaleFragmentFeature_(mean_error_top7 * mean_error_top7, num_matched_main_ions);
               stdev_error_top7 = rescaleFragmentFeature_(stdev_error_top7, num_matched_main_ions);
-              hit->setMetaValue("MSGF:MeanErrorTop7", mean_error_top7);
-              hit->setMetaValue("MSGF:sqMeanErrorTop7", sq_mean_error_top7);
-              hit->setMetaValue("MSGF:StdevErrorTop7", stdev_error_top7);
+              hit.setMetaValue("MSGF:MeanErrorTop7", mean_error_top7);
+              hit.setMetaValue("MSGF:sqMeanErrorTop7", sq_mean_error_top7);
+              hit.setMetaValue("MSGF:StdevErrorTop7", stdev_error_top7);
             }
           }
           else OPENMS_LOG_WARN << "MS-GF+ PSM with missing NumMatchedMainIons skipped." << endl;
@@ -132,37 +132,37 @@ namespace OpenMS
       // Find out which ions are in XTandem-File and take only these as features
       StringList ion_types = ListUtils::create<String>("a,b,c,x,y,z");
       StringList ion_types_found;
-      for (StringList::const_iterator ion = ion_types.begin(); ion != ion_types.end(); ++ion)
+      for (const String& ion : ion_types)
       {
-        if (!peptide_ids.front().getHits().front().getMetaValue(*ion + "_score").toString().empty() &&
-            !peptide_ids.front().getHits().front().getMetaValue(*ion + "_ions").toString().empty())
+        if (!peptide_ids.front().getHits().front().getMetaValue(ion + "_score").toString().empty() &&
+            !peptide_ids.front().getHits().front().getMetaValue(ion + "_ions").toString().empty())
         {
-          feature_set.push_back("XTANDEM:frac_ion_" + *ion);
-          ion_types_found.push_back(*ion);
+          feature_set.push_back("XTANDEM:frac_ion_" + ion);
+          ion_types_found.push_back(ion);
         }
       }
       feature_set.push_back("XTANDEM:hyperscore");
       feature_set.push_back("XTANDEM:deltascore");
       
-      for (vector<PeptideIdentification>::iterator it = peptide_ids.begin(); it != peptide_ids.end(); ++it)
+      for (PeptideIdentification& pepid : peptide_ids)
       {
-        double hyper_score = it->getHits().front().getScore();
-        double delta_score = hyper_score - it->getHits().front().getMetaValue("nextscore").toString().toDouble();
-        it->getHits().front().setMetaValue("XTANDEM:hyperscore", hyper_score);
-        it->getHits().front().setMetaValue("XTANDEM:deltascore", delta_score);
+        double hyper_score = pepid.getHits().front().getScore();
+        double delta_score = hyper_score - pepid.getHits().front().getMetaValue("nextscore").toString().toDouble();
+        pepid.getHits().front().setMetaValue("XTANDEM:hyperscore", hyper_score);
+        pepid.getHits().front().setMetaValue("XTANDEM:deltascore", delta_score);
         
-        String sequence = it->getHits().front().getSequence().toUnmodifiedString();
+        String sequence = pepid.getHits().front().getSequence().toUnmodifiedString();
         int length = sequence.length();
 
         // Find out correct ion types and get its Values
-        for (StringList::const_iterator ion = ion_types_found.begin(); ion != ion_types_found.end(); ++ion)
+        for (const String& ion : ion_types_found)
         {
-          if (!peptide_ids.front().getHits().front().getMetaValue(*ion + "_score").toString().empty() &&
-              !peptide_ids.front().getHits().front().getMetaValue(*ion + "_ions").toString().empty())
+          if (!peptide_ids.front().getHits().front().getMetaValue(ion + "_score").toString().empty() &&
+              !peptide_ids.front().getHits().front().getMetaValue(ion + "_ions").toString().empty())
           {
             // recalculate ion score
-            double ion_score = it->getHits().front().getMetaValue(*ion + "_ions").toString().toDouble() / length;
-            it->getHits().front().setMetaValue("XTANDEM:frac_ion_" + *ion, ion_score);
+            double ion_score = pepid.getHits().front().getMetaValue(ion + "_ions").toString().toDouble() / length;
+            pepid.getHits().front().setMetaValue("XTANDEM:frac_ion_" + ion, ion_score);
           }
         }
       }
@@ -189,65 +189,65 @@ namespace OpenMS
       feature_set.push_back("COMET:lnRankSP"); // log(rank based on Sp score)
       feature_set.push_back("COMET:IonFrac"); // matched_ions / total_ions
       
-      for (vector<PeptideIdentification>::iterator it = peptide_ids.begin(); it != peptide_ids.end(); ++it)
+      for (PeptideIdentification& pepid : peptide_ids)
       {
         double worst_xcorr = 0, second_xcorr = 0;
         Int cnt = 0;
-        for (vector<PeptideHit>::iterator hit = it->getHits().begin(); hit != it->getHits().end(); ++hit)
+        for (PeptideHit& hit : pepid.getHits())
         {
-          double xcorr = hit->getMetaValue("MS:1002252").toString().toDouble();
+          double xcorr = hit.getMetaValue("MS:1002252").toString().toDouble();
           worst_xcorr = xcorr;
           if (cnt == 1) { second_xcorr = xcorr; }
           ++cnt;
         }
         
-        for (vector<PeptideHit>::iterator hit = it->getHits().begin(); hit != it->getHits().end(); ++hit)
+        for (PeptideHit& hit : pepid.getHits())
         {
 
-          double xcorr = hit->getMetaValue("MS:1002252").toString().toDouble();
+          double xcorr = hit.getMetaValue("MS:1002252").toString().toDouble();
 
-          if (!hit->metaValueExists("COMET:deltaCn"))
+          if (!hit.metaValueExists("COMET:deltaCn"))
           {
             double delta_cn = (xcorr - second_xcorr) / max(1.0, xcorr);
-            hit->setMetaValue("COMET:deltaCn", delta_cn);
+            hit.setMetaValue("COMET:deltaCn", delta_cn);
           }
 
-          if (!hit->metaValueExists("COMET:deltaLCn"))
+          if (!hit.metaValueExists("COMET:deltaLCn"))
           {
             double delta_last_cn = (xcorr - worst_xcorr) / max(1.0, xcorr);
-            hit->setMetaValue("COMET:deltaLCn", delta_last_cn);
+            hit.setMetaValue("COMET:deltaLCn", delta_last_cn);
           }
           
-          double ln_expect = log(hit->getMetaValue("MS:1002257").toString().toDouble());
-          hit->setMetaValue("COMET:lnExpect", ln_expect);
+          double ln_expect = log(hit.getMetaValue("MS:1002257").toString().toDouble());
+          hit.setMetaValue("COMET:lnExpect", ln_expect);
 
-          if (!hit->metaValueExists("COMET:lnNumSP"))
+          if (!hit.metaValueExists("COMET:lnNumSP"))
           {
             double ln_num_sp;   
-            if (hit->metaValueExists("num_matched_peptides"))
+            if (hit.metaValueExists("num_matched_peptides"))
             {
-              double num_sp = hit->getMetaValue("num_matched_peptides").toString().toDouble();
+              double num_sp = hit.getMetaValue("num_matched_peptides").toString().toDouble();
               ln_num_sp = log(max(1.0, num_sp));  // if recorded, one can be safely assumed
             }
             else // fallback TODO: remove?
             {
-              ln_num_sp = hit->getMetaValue("MS:1002255").toString().toDouble();
+              ln_num_sp = hit.getMetaValue("MS:1002255").toString().toDouble();
             }  
-            hit->setMetaValue("COMET:lnNumSP", ln_num_sp);
+            hit.setMetaValue("COMET:lnNumSP", ln_num_sp);
           }
 
-          if (!hit->metaValueExists("COMET:lnRankSP"))
+          if (!hit.metaValueExists("COMET:lnRankSP"))
           {          
-            double ln_rank_sp = log(max(1.0, hit->getMetaValue("MS:1002256").toString().toDouble()));
-            hit->setMetaValue("COMET:lnRankSP", ln_rank_sp);
+            double ln_rank_sp = log(max(1.0, hit.getMetaValue("MS:1002256").toString().toDouble()));
+            hit.setMetaValue("COMET:lnRankSP", ln_rank_sp);
           }
 
-          if (!hit->metaValueExists("COMET:IonFrac"))
+          if (!hit.metaValueExists("COMET:IonFrac"))
           {
-            double num_matched_ions = hit->getMetaValue("MS:1002258").toString().toDouble();
-            double num_total_ions = hit->getMetaValue("MS:1002259").toString().toDouble();
+            double num_matched_ions = hit.getMetaValue("MS:1002258").toString().toDouble();
+            double num_total_ions = hit.getMetaValue("MS:1002259").toString().toDouble();
             double ion_frac = num_matched_ions / num_total_ions;
-            hit->setMetaValue("COMET:IonFrac", ion_frac);
+            hit.setMetaValue("COMET:IonFrac", ion_frac);
           }
         }
       }
@@ -287,38 +287,39 @@ namespace OpenMS
       feature_set.push_back("MASCOT:uniqueToProt"); // bool: peptide unique to protein
       feature_set.push_back("MASCOT:hasMod"); // bool: has post translational modification
       
-      for (vector<PeptideIdentification>::iterator it = peptide_ids.begin(); it != peptide_ids.end(); ++it)
+      for (PeptideIdentification& pepid : peptide_ids)
       {
-        it->sort();
-        it->assignRanks();
-        std::vector<PeptideHit> hits = it->getHits();
+        pepid.sort();
+        pepid.assignRanks();
+        std::vector<PeptideHit> hits = pepid.getHits();
         assignDeltaScore_(hits, "MS:1001171", "MASCOT:delta_score");
         
-        for (vector<PeptideHit>::iterator hit = hits.begin(); hit != hits.end(); ++hit)
+        for (PeptideHit& hit : hits)
         {
-          bool unique_to_protein = (String(hit->getMetaValue("protein_references")) == "unique");
-          bool has_mod = hit->getSequence().isModified();
-          hit->setMetaValue("MASCOT:uniqueToProt", unique_to_protein);
-          hit->setMetaValue("MASCOT:hasMod", has_mod);
+          bool unique_to_protein = (String(hit.getMetaValue("protein_references")) == "unique");
+          bool has_mod = hit.getSequence().isModified();
+          hit.setMetaValue("MASCOT:uniqueToProt", unique_to_protein);
+          hit.setMetaValue("MASCOT:hasMod", has_mod);
         }
       }
     }
 
     void PercolatorFeatureSetHelper::addCONCATSEFeatures(vector<PeptideIdentification>& peptide_ids, StringList& search_engines_used, StringList& feature_set)
     {     
-      for (StringList::iterator it = search_engines_used.begin(); it != search_engines_used.end(); ++it) {
-        feature_set.push_back("CONCAT:" + *it);
+      for (String& engine : search_engines_used)
+      {
+        feature_set.push_back("CONCAT:" + engine);
       }
       OPENMS_LOG_INFO << "Using " << ListUtils::concatenate(search_engines_used, ", ") << " as source for search engine specific features." << endl;
       feature_set.push_back("CONCAT:lnEvalue");
       feature_set.push_back("CONCAT:deltaLnEvalue");
       
       // feature values have been set in concatMULTISEids
-      for (vector<PeptideIdentification>::iterator it = peptide_ids.begin(); it != peptide_ids.end(); ++it)
+      for (PeptideIdentification& pepid : peptide_ids)
       {
-        it->sort();
-        it->assignRanks();
-        assignDeltaScore_(it->getHits(), "CONCAT:lnEvalue", "CONCAT:deltaLnEvalue");
+        pepid.sort();
+        pepid.assignRanks();
+        assignDeltaScore_(pepid.getHits(), "CONCAT:lnEvalue", "CONCAT:deltaLnEvalue");
       }
     }
 
@@ -346,7 +347,7 @@ namespace OpenMS
         PeptideIdentification ins = *pit;
         String st = pit->getScoreType();
         //prepare for merge
-        for (vector<PeptideHit>::iterator hit = ins.getHits().begin(); hit != ins.getHits().end(); ++hit)
+        for (PeptideHit& hit : ins.getHits())
         {
           // keep the hit score as meta value
           if (st == "MS-GF:RawScore")
@@ -366,29 +367,29 @@ namespace OpenMS
             st = "MS:1002257";
           }
 
-          if (!hit->metaValueExists(st))
+          if (!hit.metaValueExists(st))
           {
-            hit->setMetaValue(st, hit->getScore());
+            hit.setMetaValue(st, hit.getScore());
           }
 
-          hit->setScore(1);  // new 'multiple' score is just the number of times identified by different SE
+          hit.setScore(1);  // new 'multiple' score is just the number of times identified by different SE
 
           // rename ambiguous meta value names to PSI cv term ids
-          if (search_engine == "MS-GF+" && hit->metaValueExists("EValue"))  // MS-GF should have all values as PSI cv terms available anyway
+          if (search_engine == "MS-GF+" && hit.metaValueExists("EValue"))  // MS-GF should have all values as PSI cv terms available anyway
           {
-            hit->setMetaValue("MS:1002053", hit->getMetaValue("EValue"));
+            hit.setMetaValue("MS:1002053", hit.getMetaValue("EValue"));
           }
-          if (search_engine == "Mascot" && hit->metaValueExists("EValue"))
+          if (search_engine == "Mascot" && hit.metaValueExists("EValue"))
           {
-            hit->setMetaValue("MS:1001172", hit->getMetaValue("EValue"));
+            hit.setMetaValue("MS:1001172", hit.getMetaValue("EValue"));
           }
-          if (search_engine == "Comet" && hit->metaValueExists("xcorr"))
+          if (search_engine == "Comet" && hit.metaValueExists("xcorr"))
           {
-            hit->setMetaValue("MS:1002252", hit->getMetaValue("xcorr"));
+            hit.setMetaValue("MS:1002252", hit.getMetaValue("xcorr"));
           }
-          if (search_engine == "XTandem" && hit->metaValueExists("E-Value"))
+          if (search_engine == "XTandem" && hit.metaValueExists("E-Value"))
           {
-            hit->setMetaValue("MS:1001330", hit->getMetaValue("E-Value"));
+            hit.setMetaValue("MS:1001330", hit.getMetaValue("E-Value"));
           }
         }
         ins.setScoreType("multiple");
@@ -405,39 +406,39 @@ namespace OpenMS
         else
         {
           //find corresponding hit (i.e. sequences must match)
-          for (vector<PeptideHit>::iterator hit = ins.getHits().begin(); hit != ins.getHits().end(); ++hit)
+          for (PeptideHit& hit : ins.getHits())
           {
-            for (vector<PeptideHit>::iterator merger = unified[spectrum_reference].getHits().begin(); merger != unified[spectrum_reference].getHits().end(); ++merger)
+            for (PeptideHit& merger : unified[spectrum_reference].getHits())
             {
-              if (hit->getSequence()==merger->getSequence())
+              if (hit.getSequence()==merger.getSequence())
               {
                 //care for peptide evidences!! set would be okay if checked for same search db in parameters,
 //                  vector<PeptideEvidence> pev;
-//                  pev.reserve(max(hit->getPeptideEvidences().size(),merger->getPeptideEvidences().size()));
+//                  pev.reserve(max(hit.getPeptideEvidences().size(),merger.getPeptideEvidences().size()));
 //                  std::vector<ProteinHit>::iterator uni;
-//                  std::sort(merger->getPeptideEvidences().begin(),merger->getPeptideEvidences().end(), TopPerc::lq_PeptideEvidence);
-//                  std::sort(hit->getPeptideEvidences().begin(),hit->getPeptideEvidences().end(), TopPerc::lq_PeptideEvidence);
+//                  std::sort(merger.getPeptideEvidences().begin(),merger.getPeptideEvidences().end(), TopPerc::lq_PeptideEvidence);
+//                  std::sort(hit.getPeptideEvidences().begin(),hit.getPeptideEvidences().end(), TopPerc::lq_PeptideEvidence);
 //                  uni = std::set_union(swop.front().getHits().begin(), swop.front().getHits().end(),
 //                                       it->front().getHits().begin(),it->front().getHits().end(), pev.begin(),
 //                                       TopPerc::lq_PeptideEvidence);
 //                  pev.resize(uni-pev.begin());
-//                  merger->setPeptideEvidences(pev);
+//                  merger.setPeptideEvidences(pev);
                 //There is no mutable getPeptideEvidences() accessor in PeptideHit - above will not work, but so long:
                 //Implying PeptideIndexer was applied (with the same search db each) will care for that all PeptideEvidences from two hits with equal AASequence are the same
 
                 //merge meta values
                 StringList keys;
-                hit->getKeys(keys);
-                for (StringList::const_iterator kt = keys.begin(); kt != keys.end(); ++kt)
+                hit.getKeys(keys);
+                for (const String& key : keys)
                 {
-                  if (!merger->metaValueExists(*kt))
+                  if (!merger.metaValueExists(key))
                   {
-                    merger->setMetaValue(*kt, hit->getMetaValue(*kt));
+                    merger.setMetaValue(key, hit.getMetaValue(key));
                   }
                 }
 
                 // adds up the number of hits, as the score of each separate (new) hit is 1
-                merger->setScore(merger->getScore() + hit->getScore());
+                merger.setScore(merger.getScore() + hit.getScore());
                 ++mc;
                 break;
               }
@@ -450,9 +451,9 @@ namespace OpenMS
       std::vector<PeptideIdentification> swip;
       swip.reserve(unified.size());
       OPENMS_LOG_DEBUG << "merging spectrum map" << endl;
-      for (std::map<String,PeptideIdentification>::iterator it = unified.begin(); it != unified.end(); ++it)
+      for (auto& unif : unified)
       {
-        swip.push_back(it->second);
+        swip.push_back(unif.second);
       }
       all_peptide_ids.swap(swip);
       OPENMS_LOG_DEBUG << "Now containing " << all_peptide_ids.size() << " spectra identifications, new: " << nc << " merged in: " << mc << endl;
@@ -556,32 +557,32 @@ namespace OpenMS
     
     void PercolatorFeatureSetHelper::concatMULTISEPeptideIds(vector<PeptideIdentification>& all_peptide_ids, vector<PeptideIdentification>& new_peptide_ids, const String& search_engine)
     {      
-      for (vector<PeptideIdentification>::iterator pit = new_peptide_ids.begin(); pit != new_peptide_ids.end(); ++pit)
+      for (PeptideIdentification& pepid : new_peptide_ids)
       {
-        for (vector<PeptideHit>::iterator hit = pit->getHits().begin(); hit != pit->getHits().end(); ++hit)
+        for (PeptideHit& hit : pepid.getHits())
         {
           double evalue = 1000.0;
           if (search_engine == "MS-GF+")
           {
-            hit->setMetaValue("CONCAT:" + search_engine, hit->getMetaValue("MS:1002049"));  // rawscore
-            evalue = hit->getMetaValue("MS:1002049").toString().toDouble();  // evalue
+            hit.setMetaValue("CONCAT:" + search_engine, hit.getMetaValue("MS:1002049"));  // rawscore
+            evalue = hit.getMetaValue("MS:1002049").toString().toDouble();  // evalue
           }
           if (search_engine == "Mascot")
           {
-            hit->setMetaValue("CONCAT:" + search_engine, hit->getMetaValue("MS:1001171")); // mscore
-            evalue = hit->getMetaValue("EValue").toString().toDouble();
+            hit.setMetaValue("CONCAT:" + search_engine, hit.getMetaValue("MS:1001171")); // mscore
+            evalue = hit.getMetaValue("EValue").toString().toDouble();
           }
           if (search_engine == "Comet")
           {
-            hit->setMetaValue("CONCAT:" + search_engine, hit->getMetaValue("MS:1002252"));  // xcorr
-            evalue = hit->getMetaValue("MS:1002257").toString().toDouble();
+            hit.setMetaValue("CONCAT:" + search_engine, hit.getMetaValue("MS:1002252"));  // xcorr
+            evalue = hit.getMetaValue("MS:1002257").toString().toDouble();
           }
           if (search_engine == "XTandem")
           {
-            hit->setMetaValue("CONCAT:" + search_engine, hit->getMetaValue("XTandem_score"));  // xtandem score
-            evalue = hit->getMetaValue("E-Value").toString().toDouble();
+            hit.setMetaValue("CONCAT:" + search_engine, hit.getMetaValue("XTandem_score"));  // xtandem score
+            evalue = hit.getMetaValue("E-Value").toString().toDouble();
           }
-          hit->setMetaValue("CONCAT:lnEvalue", log(evalue));  // log(evalue)
+          hit.setMetaValue("CONCAT:lnEvalue", log(evalue));  // log(evalue)
         }
       }
       all_peptide_ids.insert(all_peptide_ids.end(), new_peptide_ids.begin(), new_peptide_ids.end());
@@ -628,36 +629,36 @@ namespace OpenMS
       // get all the feature values
       if (!complete_only)
       {
-        for (vector<PeptideIdentification>::iterator it = peptide_ids.begin(); it != peptide_ids.end(); ++it)
+        for (PeptideIdentification& pepid : peptide_ids)
         {
-          for (vector<PeptideHit>::iterator hit = it->getHits().begin(); hit != it->getHits().end(); ++hit)
+          for (PeptideHit& hit : pepid.getHits())
           {
-            for (StringList::iterator feats = feature_set.begin(); feats != feature_set.end(); ++feats)
+            for (String& feats : feature_set)
             {
-              if (hit->metaValueExists(*feats))
+              if (hit.metaValueExists(feats))
               {
                 // TODO raise issue: MS-GF raw score values are sometimes registered as string DataValues and henceforth casted defectively
-                if (hit->getMetaValue(*feats).valueType() == DataValue::STRING_VALUE)
+                if (hit.getMetaValue(feats).valueType() == DataValue::STRING_VALUE)
                 {
-                  String recast = hit->getMetaValue(*feats);
+                  String recast = hit.getMetaValue(feats);
                   double d = boost::lexical_cast<double>(recast);
                   OPENMS_LOG_DEBUG << "recast: "
                             << recast << " "
-                            << double(hit->getMetaValue(*feats)) << "* ";
-                  hit->setMetaValue(*feats,d);
-                  OPENMS_LOG_DEBUG << hit->getMetaValue(*feats).valueType() << " "
-                            << hit->getMetaValue(*feats)
+                            << double(hit.getMetaValue(feats)) << "* ";
+                  hit.setMetaValue(feats,d);
+                  OPENMS_LOG_DEBUG << hit.getMetaValue(feats).valueType() << " "
+                            << hit.getMetaValue(feats)
                             << endl;
                 }
-                extremals[*feats].push_back(hit->getMetaValue(*feats));
+                extremals[feats].push_back(hit.getMetaValue(feats));
               }
             }
           }
         }
         // TODO : add optional manual extremal values settings for 'data imputation' instead of min/max or numeric_limits value
-        for (vector<String>::iterator maxbt = max_better.begin(); maxbt != max_better.end(); ++maxbt)
+        for (String& maxbt : max_better)
         {
-          map<String,vector<double> >::iterator fi = extremals.find(*maxbt);
+          map<String,vector<double> >::iterator fi = extremals.find(maxbt);
           if (fi != extremals.end())
           {
             vector<double>::iterator mymax = min_element(fi->second.begin(), fi->second.end());
@@ -668,9 +669,9 @@ namespace OpenMS
             }
           }
         }
-        for (vector<String>::iterator minbt = min_better.begin(); minbt != min_better.end(); ++minbt)
+        for (String& minbt : min_better)
         {
-          map<String,vector<double> >::iterator fi = extremals.find(*minbt);
+          map<String,vector<double> >::iterator fi = extremals.find(minbt);
           if (fi != extremals.end())
           {
             vector<double>::iterator mymin = max_element(fi->second.begin(), fi->second.end());
@@ -691,28 +692,28 @@ namespace OpenMS
 
       OPENMS_LOG_DEBUG << "Looking for minimum feature set:" << ListUtils::concatenate(feature_set, ", ") << "." << endl;
 
-      for (vector<PeptideIdentification>::iterator pi = peptide_ids.begin(); pi != peptide_ids.end(); ++pi)
+      for (PeptideIdentification& pi : peptide_ids)
       {
-        pi->sort();
-        pi->assignRanks();
+        pi.sort();
+        pi.assignRanks();
         vector<vector<PeptideHit>::iterator> incompletes;
 
         size_t imputed_back = imputed_values;
-        for (vector<PeptideHit>::iterator hit = pi->getHits().begin(); hit != pi->getHits().end(); ++hit)
+        for (vector<PeptideHit>::iterator hit = pi.getHits().begin(); hit != pi.getHits().end(); ++hit)
         {
           //double ion_frac = hit->getMetaValue("matched_intensity").toString().toDouble() / hit->getMetaValue("sum_intensity").toString().toDouble();  // also consider "matched_ion_number"/"peak_number"
           //hit->setMetaValue("MULTI:ionFrac", ion_frac);
           
-          for (StringList::iterator feats = feature_set.begin(); feats != feature_set.end(); ++feats)
+          for (String& feats : feature_set)
           {
-            if (complete_only && !hit->metaValueExists(*feats))
+            if (complete_only && !hit->metaValueExists(feats))
             {
               incompletes.push_back(hit);  // mark for removal
               break;
             }
-            else if (!hit->metaValueExists(*feats))
+            else if (!hit->metaValueExists(feats))
             {
-              hit->setMetaValue(*feats, extremals[*feats].front());  // imputation
+              hit->setMetaValue(feats, extremals[feats].front());  // imputation
               ++imputed_values;
             }
             else
@@ -728,7 +729,7 @@ namespace OpenMS
           // remove incompletes
           for (vector<vector<PeptideHit>::iterator>::reverse_iterator rit = incompletes.rbegin(); rit != incompletes.rend(); ++rit)
           {
-            pi->getHits().erase(*rit);
+            pi.getHits().erase(*rit);
           }
           sum_removed += incompletes.size();
         }
@@ -757,11 +758,11 @@ namespace OpenMS
     void PercolatorFeatureSetHelper::checkExtraFeatures(const vector<PeptideHit>& psms, StringList& extra_features)
     {
       set<StringList::iterator> unavail;
-      for (vector<PeptideHit>::const_iterator hit = psms.begin(); hit != psms.end(); ++hit)
+      for (const PeptideHit& hit : psms)
       {
         for (StringList::iterator ef = extra_features.begin(); ef != extra_features.end(); ++ef)
         {
-          if (!hit->metaValueExists(*ef))
+          if (!hit.metaValueExists(*ef))
           {
             unavail.insert(ef);
           }
@@ -826,17 +827,17 @@ namespace OpenMS
       
       Int scan = 0;
       StringList fields = ListUtils::create<String>(scan_identifier);
-      for (StringList::const_iterator it = fields.begin(); it != fields.end(); ++it)
+      for (const String& field : fields)
       {
         Size idx = 0;
-        if ((idx = it->find("scan=")) != String::npos)
+        if ((idx = field.find("scan=")) != String::npos)
         {
-          scan = it->substr(idx + 5).toInt();
+          scan = field.substr(idx + 5).toInt();
           break;
         }  // only if scan number is not available, use the scan index
-        else if ((idx = it->find("index=")) != String::npos)
+        else if ((idx = field.find("index=")) != String::npos)
         {
-          scan = it->substr(idx + 6).toInt();
+          scan = field.substr(idx + 6).toInt();
         }
       }
       return String(scan);

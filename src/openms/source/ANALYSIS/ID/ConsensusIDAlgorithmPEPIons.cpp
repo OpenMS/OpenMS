@@ -109,29 +109,27 @@ namespace OpenMS
     set<double> matches; // each best-matching ion counts only once
     vector<double>::iterator start = ions2.begin();
     // for each fragment in seq. 1...
-    for (vector<double>::iterator it1 = ions1.begin(); it1 != ions1.end();
-         ++it1)
+    for (auto& ion1 : ions1)
     {
       // ...find fragments from seq. 2 that are within the mass tolerance:
       vector<double>::iterator lower = lower_bound(start, ions2.end(),
-                                                   *it1 - mass_tolerance_);
+                                                   ion1 - mass_tolerance_);
       if (lower == ions2.end()) break; // all values are too low
-      vector<double>::iterator upper = upper_bound(lower, ions2.end(),
-                                                   *it1 + mass_tolerance_);
+
       double best_match = 0.0, best_diff = mass_tolerance_ + 1.0;
       // find ion from seq. 2 (*it2) that is closest to ion from seq. 1 (*it1):
-      for (vector<double>::iterator it2 = lower; it2 != upper; ++it2)
+      for (double ion2 : ions2)
       {
-        double diff = fabs(*it1 - *it2);
+        double diff = fabs(ion1 - ion2);
         if (diff < best_diff)
         {
           best_diff = diff;
-          best_match = *it2;
+          best_match = ion2;
         }
       }
       if (best_diff <= mass_tolerance_) matches.insert(best_match);
       
-      start = lower; // "*it1" is increasing, so lower bounds can't get lower
+      start = lower; // "ion1" is increasing, so lower bounds can't get lower
     }
 
     double score_sim = 0.0;

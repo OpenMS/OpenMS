@@ -305,15 +305,15 @@ namespace OpenMS
               sequence = substrings[columns["Sequence"]];
 
 
-              for (map<String, String>::iterator mask_it = mod_mask_map.begin(); mask_it != mod_mask_map.end(); ++mask_it)
+              for (auto& mask : mod_mask_map)
               {
-                if (mask_it->first.hasPrefix("^") && sequence.hasSubstring(mask_it->first))
+                if (mask.first.hasPrefix("^") && sequence.hasSubstring(mask.first))
                 {
-                  sequence.substitute(mask_it->first, "");
-                  sequence = mask_it->second + sequence;
+                  sequence.substitute(mask.first, "");
+                  sequence = mask.second + sequence;
                 }
-                //cout<<mask_it->first<<" "<<mask_it->second<<endl;
-                sequence.substitute(mask_it->first, mask_it->second);
+                //cout<<mask.first<<" "<<mask.second<<endl;
+                sequence.substitute(mask.first, mask.second);
               }
               peptide_hit.setSequence(AASequence::fromString(sequence));
               peptide_identification.insertHit(peptide_hit);
@@ -392,9 +392,9 @@ namespace OpenMS
       {
         line.split(':', substrings);
         substrings.erase(substrings.begin());
-        for (vector<String>::iterator ptm_it = substrings.begin(); ptm_it != substrings.end(); ++ptm_it)
+        for (String& ptm : substrings)
         {
-          ptm_it->trim();
+          ptm.trim();
         }
         if (!substrings.empty() && substrings[0] != "None")
         {

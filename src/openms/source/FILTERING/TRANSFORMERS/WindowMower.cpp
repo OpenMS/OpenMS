@@ -82,15 +82,15 @@ namespace OpenMS
   void WindowMower::filterPeakMap(PeakMap & exp)
   {
     bool sliding = param_.getValue("movetype").toString() == "slide" ? true : false;
-    for (PeakMap::Iterator it = exp.begin(); it != exp.end(); ++it)
+    for (auto& spec : exp)
     {
       if (sliding)
       {
-        filterPeakSpectrumForTopNInSlidingWindow(*it);
+        filterPeakSpectrumForTopNInSlidingWindow(spec);
       }
       else
       {
-        filterPeakSpectrumForTopNInJumpingWindow(*it);
+        filterPeakSpectrumForTopNInJumpingWindow(spec);
       }
     }
   }

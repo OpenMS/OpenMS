@@ -812,9 +812,9 @@ namespace OpenMS::Internal
       // ppxl - write spectrumidentificationresult closing tags!
       if (is_ppxl)
       {
-        for (std::map<String, String>::iterator it = ppxl_specref_2_element.begin(); it != ppxl_specref_2_element.end(); ++it)
+        for (auto& ppxl : ppxl_specref_2_element)
         {
-          it->second += "\t\t\t</SpectrumIdentificationResult>\n";
+          ppxl.second += "\t\t\t</SpectrumIdentificationResult>\n";
           std::map<String, String>::const_iterator ps_it = pp_identifier_2_sil_.begin();
 
           if (ps_it != pp_identifier_2_sil_.end())
@@ -822,11 +822,11 @@ namespace OpenMS::Internal
             std::map<String, String>::iterator sil_it = sil_map.find(ps_it->second);
             if (sil_it != sil_map.end())
             {
-              sil_it->second.append(it->second);
+              sil_it->second.append(ppxl.second);
             }
             else
             {
-              sil_map.insert(make_pair(ps_it->second,it->second));
+              sil_map.insert(make_pair(ps_it->second,ppxl.second));
             }
           }
           else
@@ -875,9 +875,9 @@ namespace OpenMS::Internal
       // AnalysisSoftwareList
       //--------------------------------------------------------------------------------------------
       os << "<AnalysisSoftwareList>\n";
-      for (std::set<String>::const_iterator sof = sof_set.begin(); sof != sof_set.end(); ++sof)
+      for (const String& sof : sof_set)
       {
-        os << *sof;
+        os << sof;
       }
 
       std::map<String, String>::iterator soit = sof_ids.find("TOPP software");
@@ -892,9 +892,9 @@ namespace OpenMS::Internal
       // SequenceCollection
       //--------------------------------------------------------------------------------------------
       os << "<SequenceCollection>\n";
-      for (std::set<String>::const_iterator sen = sen_set.begin(); sen != sen_set.end(); ++sen)
+      for (const String& sen : sen_set)
       {
-        os << *sen;
+        os << sen;
       }
       os << "</SequenceCollection>\n";
 
@@ -904,15 +904,15 @@ namespace OpenMS::Internal
       // TODO ProteinDetection
       //--------------------------------------------------------------------------------------------
       os << "<AnalysisCollection>\n";
-      for (std::map<String,String>::const_iterator pp2sil_it = pp_identifier_2_sil_.begin(); pp2sil_it != pp_identifier_2_sil_.end(); ++pp2sil_it)
+      for (const auto& pp2sil : pp_identifier_2_sil_)
       {
-          String entry = String("\t<SpectrumIdentification id=\"SI_") + pp2sil_it->first + String("\" spectrumIdentificationProtocol_ref=\"")
-                           + sil_2_sip_[pp2sil_it->second] + String("\" spectrumIdentificationList_ref=\"") + pp2sil_it->second
-                           + String("\" activityDate=\"") + sil_2_date[pp2sil_it->second]
+          String entry = String("\t<SpectrumIdentification id=\"SI_") + pp2sil.first + String("\" spectrumIdentificationProtocol_ref=\"")
+                           + sil_2_sip_[pp2sil.second] + String("\" spectrumIdentificationList_ref=\"") + pp2sil.second
+                           + String("\" activityDate=\"") + sil_2_date[pp2sil.second]
                            + String("\">\n")
                             //if crosslink +cvparam crosslink search performed
-                           + "\t\t<InputSpectra spectraData_ref=\"" + sil_2_sdat_[pp2sil_it->second] + "\"/>\n" // spd_ids.insert(std::pair<String, UInt64>(sdst, sdid));
-                           + "\t\t<SearchDatabaseRef searchDatabase_ref=\"" + sil_2_sdb_[pp2sil_it->second] + "\"/>\n"
+                           + "\t\t<InputSpectra spectraData_ref=\"" + sil_2_sdat_[pp2sil.second] + "\"/>\n" // spd_ids.insert(std::pair<String, UInt64>(sdst, sdid));
+                           + "\t\t<SearchDatabaseRef searchDatabase_ref=\"" + sil_2_sdb_[pp2sil.second] + "\"/>\n"
                            + "\t</SpectrumIdentification>\n";
           os <<   entry;
       }
@@ -923,9 +923,9 @@ namespace OpenMS::Internal
       //+ SpectrumIdentificationProtocol + SearchType + Threshold
       //--------------------------------------------------------------------------------------------
       os << "<AnalysisProtocolCollection>\n";
-      for (std::set<String>::const_iterator sip = sip_set.begin(); sip != sip_set.end(); ++sip)
+      for (const String& sip : sip_set)
       {
-        os << *sip;
+        os << sip;
       }
       os << "</AnalysisProtocolCollection>\n";
 
@@ -937,9 +937,9 @@ namespace OpenMS::Internal
       os << "<DataCollection>\n"
          << inputs_element;
       os << "\t<AnalysisData>\n";
-      for (std::map<String,String>::const_iterator sil_it = sil_map.begin(); sil_it != sil_map.end(); ++sil_it)
+      for (const auto& sil : sil_map)
       {
-        os << "\t\t<SpectrumIdentificationList id=\"" << sil_it->first << String("\">\n");
+        os << "\t\t<SpectrumIdentificationList id=\"" << sil.first << String("\">\n");
         os << "\t\t\t<FragmentationTable>\n"
            << "\t\t\t\t<Measure id=\"Measure_mz\">\n"
            << "\t\t\t\t\t<cvParam accession=\"MS:1001225\" cvRef=\"PSI-MS\" unitCvRef=\"PSI-MS\" unitName=\"m/z\" unitAccession=\"MS:1000040\" name=\"product ion m/z\"/>\n"
@@ -956,7 +956,7 @@ namespace OpenMS::Internal
             os << "<!-- userParam cross-link_ioncategory will contain a list of ion category corresponding to the indexed ion [xi|ci] -->\n";
         }
         os << "\t\t\t</FragmentationTable>\n";
-        os << sil_it->second;
+        os << sil.second;
         os << "\t\t</SpectrumIdentificationList>\n";
       }
       os << "\t</AnalysisData>\n</DataCollection>\n";
@@ -1034,31 +1034,31 @@ namespace OpenMS::Internal
     void MzIdentMLHandler::writeModParam_(String& s, const std::vector<String>& mod_names, bool fixed, UInt indent) const
     {
       String cv_ns = unimod_.name();
-      for (std::vector<String>::const_iterator it = mod_names.begin(); it != mod_names.end(); ++it)
+      for (const String& mn : mod_names)
       {
         std::set<const ResidueModification*> mods;
-        ModificationsDB::getInstance()->searchModifications(mods, *it);
+        ModificationsDB::getInstance()->searchModifications(mods, mn);
         if (!mods.empty())
         {
           // @TODO: if multiple mods match, we write all of them?
-          for (std::set<const ResidueModification*>::const_iterator mt = mods.begin(); mt != mods.end(); ++mt)
+          for (const auto& mod : mods)
           {
-            char origin = (*mt)->getOrigin();
+            char origin = mod->getOrigin();
             if (origin == 'X') origin = '.'; // terminal without res. spec.
 
-            s += String(indent + 1, '\t') + "<SearchModification fixedMod=\"" + (fixed ? "true" : "false") + "\" massDelta=\"" + String((*mt)->getDiffMonoMass()) + "\" residues=\"" + origin + "\">\n";
+            s += String(indent + 1, '\t') + "<SearchModification fixedMod=\"" + (fixed ? "true" : "false") + "\" massDelta=\"" + String(mod->getDiffMonoMass()) + "\" residues=\"" + origin + "\">\n";
 
             // @TODO: handle protein C-term/N-term
-            ResidueModification::TermSpecificity spec = (*mt)->getTermSpecificity();
+            ResidueModification::TermSpecificity spec = mod->getTermSpecificity();
             if ((spec == ResidueModification::C_TERM) || (spec == ResidueModification::N_TERM))
             {
-              const String& cv_name = "modification specificity peptide " + (*mt)->getTermSpecificityName();
+              const String& cv_name = "modification specificity peptide " + mod->getTermSpecificityName();
               s += String(indent + 2, '\t') + "<SpecificityRules>\n";
               s += String(indent + 3, '\t') + cv_.getTermByName(cv_name).toXMLString(cv_ns) + "\n";
               s += String(indent + 2, '\t') + "</SpecificityRules>\n";
             }
 
-            String ac = (*mt)->getUniModAccession();
+            String ac = mod->getUniModAccession();
             if (ac.hasPrefix("UniMod:")) ac = "UNIMOD:" + ac.suffix(':');
             if (!ac.empty())
             {
@@ -1073,7 +1073,7 @@ namespace OpenMS::Internal
         }
         else
         {
-          String message = String("Registered ") + (fixed ? "fixed" : "variable") + " modification '" + *it + "' is unknown and will be ignored.";
+          String message = String("Registered ") + (fixed ? "fixed" : "variable") + " modification '" + mn + "' is unknown and will be ignored.";
           throw Exception::ElementNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, message);
         }
       }
@@ -1146,26 +1146,24 @@ namespace OpenMS::Internal
       }
       //double map: charge + ion type; collect in StringList: index + annotations; write:
       s += String(indent, '\t') + "<Fragmentation>\n";
-      for (std::map<UInt,std::map<String,std::vector<StringList> > >::iterator i=annotation_map.begin();
-           i!=annotation_map.end(); ++i)
+      for (auto& ion : annotation_map)
       {
-        for (std::map<String,std::vector<StringList> >::iterator j=i->second.begin();
-             j!= i->second.end(); ++j)
+        for (auto& anno : ion.second)
         {
-          s += String(indent+1, '\t') + "<IonType charge=\"" + String(i->first) +"\""
-                    + " index=\"" + ListUtils::concatenate(j->second[0], " ") + "\">\n";
+          s += String(indent+1, '\t') + "<IonType charge=\"" + String(ion.first) +"\""
+                    + " index=\"" + ListUtils::concatenate(anno.second[0], " ") + "\">\n";
           s += String(indent+2, '\t') + "<FragmentArray measure_ref=\"Measure_mz\""
-                    + " values=\"" + ListUtils::concatenate(j->second[1], " ") + "\"/>\n";
+                    + " values=\"" + ListUtils::concatenate(anno.second[1], " ") + "\"/>\n";
           s += String(indent+2, '\t') + "<FragmentArray measure_ref=\"Measure_int\""
-                    + " values=\"" + ListUtils::concatenate(j->second[2], " ") + "\"/>\n";
+                    + " values=\"" + ListUtils::concatenate(anno.second[2], " ") + "\"/>\n";
           if (is_ppxl)
           {
               s += String(indent+2, '\t') + "<userParam name=\"cross-link_chain\"" + " unitName=\"xsd:string\""
-                        + " value=\"" + ListUtils::concatenate(j->second[3], " ") + "\"/>\n";
+                        + " value=\"" + ListUtils::concatenate(anno.second[3], " ") + "\"/>\n";
               s += String(indent+2, '\t') + "<userParam name=\"cross-link_ioncategory\"" + " unitName=\"xsd:string\""
-                        + " value=\"" + ListUtils::concatenate(j->second[4], " ") + "\"/>\n";
+                        + " value=\"" + ListUtils::concatenate(anno.second[4], " ") + "\"/>\n";
           }
-          s += String(indent+2, '\t') + cv_.getTermByName(j->first).toXMLString("PSI-MS") + "\n";
+          s += String(indent+2, '\t') + cv_.getTermByName(anno.first).toXMLString("PSI-MS") + "\n";
           s += String(indent+1, '\t') + "</IonType>\n";
         }
       }
@@ -1298,18 +1296,18 @@ namespace OpenMS::Internal
         {
           std::vector<PeptideEvidence> peptide_evidences = hit.getPeptideEvidences();
           // TODO idXML allows peptide hits without protein references! Fails in that case - run PeptideIndexer first
-          for (std::vector<PeptideEvidence>::const_iterator pe = peptide_evidences.begin(); pe != peptide_evidences.end(); ++pe)
+          for (const PeptideEvidence& pe : peptide_evidences)
           {
             String pevid =  "PEV_" + String(UniqueIdGenerator::getUniqueId());
             String dBSequence_ref;
-            map<String, String>::const_iterator pos = sen_ids.find(pe->getProteinAccession());
+            map<String, String>::const_iterator pos = sen_ids.find(pe.getProteinAccession());
             if (pos != sen_ids.end())
             {
               dBSequence_ref = pos->second;
             }
             else
             {
-              OPENMS_LOG_ERROR << "Error: Missing or invalid protein reference for peptide '" << pepi << "': '" << pe->getProteinAccession() << "' - skipping." << endl;
+              OPENMS_LOG_ERROR << "Error: Missing or invalid protein reference for peptide '" << pepi << "': '" << pe.getProteinAccession() << "' - skipping." << endl;
               continue;
             }
             String idec;
@@ -1322,17 +1320,17 @@ namespace OpenMS::Internal
             String nc_termini = "-";    // character for N- and C-termini as specified in mzIdentML
             e += "\t<PeptideEvidence id=\"" + pevid + "\" peptide_ref=\"" + pepid + "\" dBSequence_ref=\"" + dBSequence_ref + "\"";
 
-            if (pe->getAAAfter() != PeptideEvidence::UNKNOWN_AA)
+            if (pe.getAAAfter() != PeptideEvidence::UNKNOWN_AA)
             {
-              e += " post=\"" + (pe->getAAAfter() == PeptideEvidence::C_TERMINAL_AA ? nc_termini : String(pe->getAAAfter())) + "\"";
+              e += " post=\"" + (pe.getAAAfter() == PeptideEvidence::C_TERMINAL_AA ? nc_termini : String(pe.getAAAfter())) + "\"";
             }
-            if (pe->getAABefore() != PeptideEvidence::UNKNOWN_AA)
+            if (pe.getAABefore() != PeptideEvidence::UNKNOWN_AA)
             {
-              e += " pre=\"" + (pe->getAABefore() == PeptideEvidence::N_TERMINAL_AA ? nc_termini : String(pe->getAABefore())) + "\"";
+              e += " pre=\"" + (pe.getAABefore() == PeptideEvidence::N_TERMINAL_AA ? nc_termini : String(pe.getAABefore())) + "\"";
             }
-            if (pe->getStart() != PeptideEvidence::UNKNOWN_POSITION)
+            if (pe.getStart() != PeptideEvidence::UNKNOWN_POSITION)
             {
-              e += " start=\"" + String(pe->getStart() + 1) + "\"";
+              e += " start=\"" + String(pe.getStart() + 1) + "\"";
             }
             else if (hit.metaValueExists("start"))
             {
@@ -1342,9 +1340,9 @@ namespace OpenMS::Internal
             {
               OPENMS_LOG_WARN << "Found no start position of peptide hit in protein sequence." << std::endl;
             }
-            if (pe->getEnd() != PeptideEvidence::UNKNOWN_POSITION)
+            if (pe.getEnd() != PeptideEvidence::UNKNOWN_POSITION)
             {
-              e += " end=\"" + String(pe->getEnd() + 1) + "\"";
+              e += " end=\"" + String(pe.getEnd() + 1) + "\"";
             }
             else if (hit.metaValueExists("end"))
             {
@@ -1411,9 +1409,9 @@ namespace OpenMS::Internal
         {
           OPENMS_LOG_WARN << "PSM without peptide evidence registered in the given search database found. This will cause an invalid mzIdentML file (which OpenMS can still consume)." << std::endl;
         }
-        for (std::vector<String>::const_iterator pevref = pevid_ids.begin(); pevref != pevid_ids.end(); ++pevref)
+        for (const String& pevref : pevid_ids)
         {
-          sii_tmp += "\t\t\t\t\t<PeptideEvidenceRef peptideEvidence_ref=\"" +  String(*pevref) + "\"/>\n";
+          sii_tmp += "\t\t\t\t\t<PeptideEvidenceRef peptideEvidence_ref=\"" +  String(pevref) + "\"/>\n";
         }
 
         if (! hit.getPeakAnnotations().empty())
@@ -1846,18 +1844,18 @@ namespace OpenMS::Internal
           // TODO idXML allows peptide hits without protein references! Fails in that case - run PeptideIndexer first
 
           // TODO BETA PEPTIDE Protein Info
-          for (std::vector<PeptideEvidence>::const_iterator pe = peptide_evidences.begin(); pe != peptide_evidences.end(); ++pe)
+          for (const PeptideEvidence& pe : peptide_evidences)
           {
             String pevid =  "PEV_" + String(UniqueIdGenerator::getUniqueId());
             String dBSequence_ref;
-            map<String, String>::const_iterator pos = sen_ids.find(pe->getProteinAccession());
+            map<String, String>::const_iterator pos = sen_ids.find(pe.getProteinAccession());
             if (pos != sen_ids.end())
             {
               dBSequence_ref = pos->second;
             }
             else
             {
-              OPENMS_LOG_ERROR << "Error: Missing or invalid protein reference for peptide '" << pepi << "': '" << pe->getProteinAccession() << "' - skipping." << endl;
+              OPENMS_LOG_ERROR << "Error: Missing or invalid protein reference for peptide '" << pepi << "': '" << pe.getProteinAccession() << "' - skipping." << endl;
               continue;
             }
             String idec;
@@ -1870,17 +1868,17 @@ namespace OpenMS::Internal
             String nc_termini = "-";    // character for N- and C-termini as specified in mzIdentML
             e += "\t<PeptideEvidence id=\"" + pevid + "\" peptide_ref=\"" + pepid + "\" dBSequence_ref=\"" + dBSequence_ref + "\"";
 
-            if (pe->getAAAfter() != PeptideEvidence::UNKNOWN_AA)
+            if (pe.getAAAfter() != PeptideEvidence::UNKNOWN_AA)
             {
-              e += " post=\"" + (pe->getAAAfter() == PeptideEvidence::C_TERMINAL_AA ? nc_termini : String(pe->getAAAfter())) + "\"";
+              e += " post=\"" + (pe.getAAAfter() == PeptideEvidence::C_TERMINAL_AA ? nc_termini : String(pe.getAAAfter())) + "\"";
             }
-            if (pe->getAABefore() != PeptideEvidence::UNKNOWN_AA)
+            if (pe.getAABefore() != PeptideEvidence::UNKNOWN_AA)
             {
-              e += " pre=\"" + (pe->getAABefore() == PeptideEvidence::N_TERMINAL_AA ? nc_termini : String(pe->getAABefore())) + "\"";
+              e += " pre=\"" + (pe.getAABefore() == PeptideEvidence::N_TERMINAL_AA ? nc_termini : String(pe.getAABefore())) + "\"";
             }
-            if (pe->getStart() != PeptideEvidence::UNKNOWN_POSITION)
+            if (pe.getStart() != PeptideEvidence::UNKNOWN_POSITION)
             {
-              e += " start=\"" + String(pe->getStart() + 1) + "\"";
+              e += " start=\"" + String(pe.getStart() + 1) + "\"";
             }
             else if (hit.metaValueExists("start"))
             {
@@ -1890,9 +1888,9 @@ namespace OpenMS::Internal
             {
               OPENMS_LOG_WARN << "Found no start position of peptide hit in protein sequence." << std::endl;
             }
-            if (pe->getEnd() != PeptideEvidence::UNKNOWN_POSITION)
+            if (pe.getEnd() != PeptideEvidence::UNKNOWN_POSITION)
             {
-              e += " end=\"" + String(pe->getEnd() + 1) + "\"";
+              e += " end=\"" + String(pe.getEnd() + 1) + "\"";
             }
             else if (hit.metaValueExists("end"))
             {
@@ -2041,9 +2039,9 @@ namespace OpenMS::Internal
       {
         OPENMS_LOG_WARN << "PSM without peptide evidence registered in the given search database found. This will cause an invalid mzIdentML file (which OpenMS can still consume)." << std::endl;
       }
-      for (std::vector<String>::const_iterator pevref = pevid_ids.begin(); pevref != pevid_ids.end(); ++pevref)
+      for (const String& pevref : pevid_ids)
       {
-        sii_tmp += "\t\t\t\t\t<PeptideEvidenceRef peptideEvidence_ref=\"" +  String(*pevref) + "\"/>\n";
+        sii_tmp += "\t\t\t\t\t<PeptideEvidenceRef peptideEvidence_ref=\"" +  String(pevref) + "\"/>\n";
       }
 
       if (! hit.getPeakAnnotations().empty() && alpha_peptide)

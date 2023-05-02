@@ -109,29 +109,28 @@ namespace OpenMS
     ids.resize(1);
     ids[0].setScoreType(score_type);
     ids[0].setHigherScoreBetter(higher_better);
-    for (SequenceGrouping::iterator res_it = results.begin(); 
-         res_it != results.end(); ++res_it)
+    for (auto& result : results)
     {
       // filter by "support" value:
-      if (res_it->second.support < min_support_) continue;
+      if (result.second.support < min_support_) continue;
       PeptideHit hit;
-      hit.setMetaValue("consensus_support", res_it->second.support);
-      if (!res_it->second.target_decoy.empty())
-        hit.setMetaValue("target_decoy", res_it->second.target_decoy);
-      hit.setSequence(res_it->first);
-      hit.setCharge(res_it->second.charge);
-      hit.setScore(res_it->second.final_score);
-      for (auto& ev : res_it->second.evidence)
+      hit.setMetaValue("consensus_support", result.second.support);
+      if (!result.second.target_decoy.empty())
+        hit.setMetaValue("target_decoy", result.second.target_decoy);
+      hit.setSequence(result.first);
+      hit.setCharge(result.second.charge);
+      hit.setScore(result.second.final_score);
+      for (auto& ev : result.second.evidence)
       {
         hit.addPeptideEvidence(ev);
       }
 
       if (keep_old_scores_)
       {
-        for (Size s = 0; s < res_it->second.scores.size(); ++s)
+        for (Size s = 0; s < result.second.scores.size(); ++s)
         {
           //TODO add SE name
-          hit.setMetaValue(res_it->second.types[s]+"_score", res_it->second.scores[s]);
+          hit.setMetaValue(result.second.types[s]+"_score", result.second.scores[s]);
         }
       }
       ids[0].insertHit(hit);

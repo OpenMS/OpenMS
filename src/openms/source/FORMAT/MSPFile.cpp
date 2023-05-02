@@ -159,15 +159,15 @@ namespace OpenMS
         // slow, but we need the modifications from the header and the instrument type
         vector<String> split;
         line.split(' ', split);
-        for (vector<String>::const_iterator it = split.begin(); it != split.end(); ++it)
+        for (const String& sp : split)
         {
           if (!inst_type_correct)
           {
             break;
           }
-          if (!instrument.empty() && it->hasPrefix("Inst="))
+          if (!instrument.empty() && sp.hasPrefix("Inst="))
           {
-            String inst_type = it->suffix('=');
+            String inst_type = sp.suffix('=');
             if (instrument != inst_type)
             {
               inst_type_correct = false;
@@ -176,9 +176,9 @@ namespace OpenMS
             break;
           }
 
-          if (it->hasPrefix("Mods=") && *it != "Mods=0")
+          if (sp.hasPrefix("Mods=") && sp != "Mods=0")
           {
-            String mods = it->suffix('=');
+            String mods = sp.suffix('=');
             // e.g. Mods=2/7,K,Carbamyl/22,K,Carbamyl
             vector<String> mod_split;
             mods.split('/', mod_split);
@@ -355,10 +355,10 @@ namespace OpenMS
     vector<String> split;
     header.split(' ', split);
 
-    for (vector<String>::const_iterator it = split.begin(); it != split.end(); ++it)
+    for (const String& sp : split)
     {
       vector<String> split2;
-      String tmp = *it;
+      String tmp = sp;
       tmp.trim();
       tmp.split('=', split2);
       if (split2.size() == 2)

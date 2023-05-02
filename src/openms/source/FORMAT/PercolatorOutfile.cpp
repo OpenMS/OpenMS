@@ -323,11 +323,10 @@ namespace OpenMS
     proteins.setDateTime(DateTime::now());
     proteins.setSearchEngine("Percolator");
 
-    for (set<String>::const_iterator it = accessions.begin();
-         it != accessions.end(); ++it)
+    for (const auto& a : accessions)
     {
       ProteinHit hit;
-      hit.setAccession(*it);
+      hit.setAccession(a);
       proteins.insertHit(hit);
     }
 

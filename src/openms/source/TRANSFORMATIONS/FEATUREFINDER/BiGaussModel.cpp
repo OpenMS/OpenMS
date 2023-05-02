@@ -100,9 +100,9 @@ namespace OpenMS
     IntensityType factor = scaling_ / interpolation_step_ /
                            std::accumulate(data.begin(), data.end(), IntensityType(0));
 
-    for (LinearInterpolation::container_type::iterator it = data.begin(); it != data.end(); ++it)
+    for (auto& value : data)
     {
-      *it *= factor;
+      value *= factor;
     }
 
     interpolation_.setScale(interpolation_step_);

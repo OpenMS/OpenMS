@@ -61,11 +61,11 @@ namespace OpenMS
   StreamHandler::~StreamHandler()
   {
     // close all associated streams
-    for (map<String, ostream *>::iterator iter = name_to_stream_map_.begin(); iter != name_to_stream_map_.end(); ++iter)
+    for (auto& stream : name_to_stream_map_)
     {
-      ostream * stream_pointer = iter->second;
+      ostream * stream_pointer = stream.second;
       // file streams need to be closed before
-      if (name_to_type_map_[iter->first] == FILE)
+      if (name_to_type_map_[stream.first] == FILE)
       {
         (static_cast<ofstream *>(stream_pointer))->close();
       }
@@ -181,11 +181,11 @@ namespace OpenMS
 
   std::ostream & operator<<(std::ostream & os, StreamHandler const & stream_handler)
   {
-    for (map<String, ostream *>::const_iterator iter = stream_handler.name_to_stream_map_.begin(); iter != stream_handler.name_to_stream_map_.end(); ++iter)
+    for (const auto& stream : stream_handler.name_to_stream_map_)
     {
-      os << "[" << iter->first << "] of type";
+      os << "[" << stream.first << "] of type";
 
-      if ((stream_handler.name_to_type_map_.find(iter->first))->second == StreamHandler::FILE)
+      if ((stream_handler.name_to_type_map_.find(stream.first))->second == StreamHandler::FILE)
       {
         os << " FILE";
       }
@@ -193,7 +193,7 @@ namespace OpenMS
       {
         os << " STRING";
       }
-      os << " #" << (stream_handler.name_to_counter_map_.find(iter->first))->second << " " << iter->second << std::endl;
+      os << " #" << (stream_handler.name_to_counter_map_.find(stream.first))->second << " " << stream.second << std::endl;
     }
     return os;
   }

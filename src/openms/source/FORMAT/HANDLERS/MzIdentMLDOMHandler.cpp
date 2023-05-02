@@ -404,9 +404,9 @@ namespace OpenMS::Internal
               {
                 pepset.insert(ph->getSequence());
                 pep_map_.insert(make_pair(pepref, ph->getSequence()));
-                for (list<String>::iterator pepevref = pepevs.begin(); pepevref != pepevs.end(); ++pepevref)
+                for (String& pepevref : pepevs)
                 {
-                  p_pv_map_.insert(make_pair(*pepevref, pepref));
+                  p_pv_map_.insert(make_pair(pepevref, pepref));
                 }
               }
             }
@@ -669,27 +669,27 @@ namespace OpenMS::Internal
               {
                 set<String> software_terms;
                 cv_.getAllChildTerms(software_terms, "MS:1000531");
-                for (map<String, vector<CVTerm> >::const_iterator it = swn.first.getCVTerms().begin(); it != swn.first.getCVTerms().end(); ++it)
+                for (const auto& term : swn.first.getCVTerms())
                 {
-                  if (software_terms.find(it->first) != software_terms.end())
+                  if (software_terms.find(term.first) != software_terms.end())
                   {
-                    swname = it->second.front().getName();
+                    swname = term.second.front().getName();
                     break;
                   }
                 }
               }
               else if (!swn.second.empty())
               {
-                for (map<String, DataValue>::const_iterator up = swn.second.begin(); up != swn.second.end(); ++up)
+                for (const auto& up : swn.second)
                 {
-                  if (up->first.hasSubstring("name"))
+                  if (up.first.hasSubstring("name"))
                   {
-                    swname = up->second.toString();
+                    swname = up.second.toString();
                     break;
                   }
                   else
                   {
-                    swname = up->first;
+                    swname = up.first;
                   }
                 }
               }
@@ -1013,24 +1013,24 @@ namespace OpenMS::Internal
 
                   if (!specificity_rules.empty())
                   {
-                    for (map<String, vector<CVTerm> >::const_iterator spci = specificity_rules.getCVTerms().begin(); spci != specificity_rules.getCVTerms().end(); ++spci)
+                    for (const auto& spci : specificity_rules.getCVTerms())
                     {
-                      if (spci->second.front().getAccession() == "MS:1001189")  // nterm
+                      if (spci.second.front().getAccession() == "MS:1001189")  // nterm
                       {
                         const ResidueModification* m = ModificationsDB::getInstance()->getModification(mname, r, ResidueModification::N_TERM);
                         mod = m->getFullId();
                       }
-                      else if (spci->second.front().getAccession() == "MS:1001190")  // cterm
+                      else if (spci.second.front().getAccession() == "MS:1001190")  // cterm
                       {
                         const ResidueModification* m = ModificationsDB::getInstance()->getModification(mname, r, ResidueModification::C_TERM);
                         mod = m->getFullId();
                       }
-                      else if (spci->second.front().getAccession() == "MS:1002057")  // protein nterm
+                      else if (spci.second.front().getAccession() == "MS:1002057")  // protein nterm
                       {
                         const ResidueModification* m = ModificationsDB::getInstance()->getModification(mname,  r, ResidueModification::PROTEIN_N_TERM);
                         mod = m->getFullId();
                       }
-                      else if (spci->second.front().getAccession() == "MS:1002058")  // protein cterm
+                      else if (spci.second.front().getAccession() == "MS:1002058")  // protein cterm
                       {
                         const ResidueModification* m = ModificationsDB::getInstance()->getModification(mname,  r, ResidueModification::PROTEIN_C_TERM);
                         mod = m->getFullId();
@@ -1100,11 +1100,11 @@ namespace OpenMS::Internal
                     set<String> enzymes_terms;
                     cv_.getAllChildTerms(enzymes_terms, "MS:1001045"); // cleavage agent name
                     pair<CVTermList, map<String, DataValue> > params = parseParamGroup_(sub->getChildNodes());
-                    for (map<String, vector<CVTerm> >::const_iterator it = params.first.getCVTerms().begin(); it != params.first.getCVTerms().end(); ++it)
+                    for (const auto& term : params.first.getCVTerms())
                     {
-                      if (enzymes_terms.find(it->first) != enzymes_terms.end())
+                      if (enzymes_terms.find(term.first) != enzymes_terms.end())
                       {
-                        enzymename = it->second.front().getName();
+                        enzymename = term.second.front().getName();
                       }
                       else
                       {
@@ -1125,11 +1125,11 @@ namespace OpenMS::Internal
             {
               pair<CVTermList, map<String, DataValue> > params = parseParamGroup_(child->getChildNodes());
               //+- take the numerically greater
-              for (map<String, vector<CVTerm> >::const_iterator it = params.first.getCVTerms().begin(); it != params.first.getCVTerms().end(); ++it)
+              for (const auto& term : params.first.getCVTerms())
               {
-                f_tol = max(f_tol, it->second.front().getValue().toString().toDouble());
+                f_tol = max(f_tol, term.second.front().getValue().toString().toDouble());
                 sp.fragment_mass_tolerance = f_tol;
-                if (it->second.front().getUnit().name == "parts per million" )
+                if (term.second.front().getUnit().name == "parts per million" )
                 {
                   sp.fragment_mass_tolerance_ppm = true;
                 }
@@ -1139,11 +1139,11 @@ namespace OpenMS::Internal
             {
               pair<CVTermList, map<String, DataValue> > params = parseParamGroup_(child->getChildNodes());
               //+- take the numerically greater
-              for (map<String, vector<CVTerm> >::const_iterator it = params.first.getCVTerms().begin(); it != params.first.getCVTerms().end(); ++it)
+              for (const auto& term : params.first.getCVTerms())
               {
-                p_tol = max(p_tol, it->second.front().getValue().toString().toDouble());
+                p_tol = max(p_tol, term.second.front().getValue().toString().toDouble());
                 sp.precursor_mass_tolerance = p_tol;
-                if (it->second.front().getUnit().name == "parts per million" )
+                if (term.second.front().getUnit().name == "parts per million" )
                 {
                   sp.precursor_mass_tolerance_ppm = true;
                 }
@@ -1168,13 +1168,13 @@ namespace OpenMS::Internal
           bool use_thresh = false;
           set<String> threshold_terms;
           cv_.getAllChildTerms(threshold_terms, "MS:1002482"); //statistical threshold
-          for (map<String, vector<OpenMS::CVTerm> >::const_iterator thit = tcv.getCVTerms().begin(); thit != tcv.getCVTerms().end(); ++thit)
+          for (const auto& th : tcv.getCVTerms())
           {
-            if (threshold_terms.find(thit->first) != threshold_terms.end())
+            if (threshold_terms.find(th.first) != threshold_terms.end())
             {
-              if (thit->first != "MS:1001494") // no threshold
+              if (th.first != "MS:1001494") // no threshold
               {
-                thresh = thit->second.front().getValue().toString().toDouble(); // cast fix needed as DataValue is init with XercesString
+                thresh = th.second.front().getValue().toString().toDouble(); // cast fix needed as DataValue is init with XercesString
                 use_thresh = true;
                 break;
               }
@@ -1186,23 +1186,23 @@ namespace OpenMS::Internal
           }
 
           String search_engine, search_engine_version;
-          for (map<String, SpectrumIdentification>::const_iterator si_it = si_map_.begin(); si_it != si_map_.end(); ++si_it)
+          for (const auto& si : si_map_)
           {
-            if (si_it->second.spectrum_identification_protocol_ref == id)
+            if (si.second.spectrum_identification_protocol_ref == id)
             {
               search_engine = as_map_[swr].name;
               search_engine_version = as_map_[swr].version;
-//              String identi = search_engine+"_"+si_pro_map_[si_it->second.spectrum_identification_list_ref]->getDateTime().getDate()+"T"
-//                      +si_pro_map_[si_it->second.spectrum_identification_list_ref]->getDateTime().getTime();
-//              pro_id_->at(si_pro_map_[si_it->second.spectrum_identification_list_ref]).setIdentifier(identi);
-              pro_id_->at(si_pro_map_[si_it->second.spectrum_identification_list_ref]).setSearchEngine(search_engine);
-              pro_id_->at(si_pro_map_[si_it->second.spectrum_identification_list_ref]).setSearchEngineVersion(search_engine_version);
-              sp.db = pro_id_->at(si_pro_map_[si_it->second.spectrum_identification_list_ref]).getSearchParameters().db; // was previously set, but main parts of sp are set here
-              sp.db_version = pro_id_->at(si_pro_map_[si_it->second.spectrum_identification_list_ref]).getSearchParameters().db_version; // was previously set, but main parts of sp are set here
-              pro_id_->at(si_pro_map_[si_it->second.spectrum_identification_list_ref]).setSearchParameters(sp);
+//              String identi = search_engine+"_"+si_pro_map_[si.second.spectrum_identification_list_ref]->getDateTime().getDate()+"T"
+//                      +si_pro_map_[si.second.spectrum_identification_list_ref]->getDateTime().getTime();
+//              pro_id_->at(si_pro_map_[si.second.spectrum_identification_list_ref]).setIdentifier(identi);
+              pro_id_->at(si_pro_map_[si.second.spectrum_identification_list_ref]).setSearchEngine(search_engine);
+              pro_id_->at(si_pro_map_[si.second.spectrum_identification_list_ref]).setSearchEngineVersion(search_engine_version);
+              sp.db = pro_id_->at(si_pro_map_[si.second.spectrum_identification_list_ref]).getSearchParameters().db; // was previously set, but main parts of sp are set here
+              sp.db_version = pro_id_->at(si_pro_map_[si.second.spectrum_identification_list_ref]).getSearchParameters().db_version; // was previously set, but main parts of sp are set here
+              pro_id_->at(si_pro_map_[si.second.spectrum_identification_list_ref]).setSearchParameters(sp);
               if (use_thresh)
               {
-                pro_id_->at(si_pro_map_[si_it->second.spectrum_identification_list_ref]).setSignificanceThreshold(thresh);
+                pro_id_->at(si_pro_map_[si.second.spectrum_identification_list_ref]).setSignificanceThreshold(thresh);
               }
             }
           }
@@ -1373,7 +1373,7 @@ namespace OpenMS::Internal
               pep_id_->back().sortByRank();
 
               //adopt cv s
-              for (map<String, vector<CVTerm> >::const_iterator cvit =  params.first.getCVTerms().begin(); cvit != params.first.getCVTerms().end(); ++cvit)
+              for (const auto& cv : params.first.getCVTerms())
               {
                 // check for retention time or scan time entry
                 /* N.B.: MzIdentML does not impose the requirement to store
@@ -1385,10 +1385,10 @@ namespace OpenMS::Internal
                    spectrum (RT/precursor MZ), we provide functionality to amend
                    RT data to identifications and support reading such from mzid
                 */
-                if (cvit->first == "MS:1000894" || cvit->first == "MS:1000016") //TODO use subordinate terms which define units
+                if (cv.first == "MS:1000894" || cv.first == "MS:1000016") //TODO use subordinate terms which define units
                 {
-                  double rt = cvit->second.front().getValue().toString().toDouble();
-                  if (cvit->second.front().getUnit().accession == "UO:0000031")  // minutes
+                  double rt = cv.second.front().getValue().toString().toDouble();
+                  if (cv.second.front().getUnit().accession == "UO:0000031")  // minutes
                   {
                     rt *= 60.0;
                   }
@@ -1396,13 +1396,13 @@ namespace OpenMS::Internal
                 }
                 else
                 {
-                  pep_id_->back().setMetaValue(cvit->first, cvit->second.front().getValue()); // TODO? all DataValues - are there more then one, my guess is this is overdesigned
+                  pep_id_->back().setMetaValue(cv.first, cv.second.front().getValue()); // TODO? all DataValues - are there more then one, my guess is this is overdesigned
                 }
               }
               //adopt up s
-              for (map<String, DataValue>::const_iterator upit = params.second.begin(); upit != params.second.end(); ++upit)
+              for (const auto& up : params.second)
               {
-                pep_id_->back().setMetaValue(upit->first, upit->second);
+                pep_id_->back().setMetaValue(up.first, up.second);
               }
               if (pep_id_->back().getRT() != pep_id_->back().getRT())
               {
@@ -2059,36 +2059,36 @@ namespace OpenMS::Internal
       e_score_terms.insert(e_score_tmp.begin(),e_score_tmp.end()); //E-value for peptides
       cv_.getAllChildTerms(specific_score_terms, "MS:1001143"); //search engine specific score for PSMs
       bool scoretype = false;
-      for (map<String, vector<OpenMS::CVTerm> >::const_iterator scoreit = params.first.getCVTerms().begin(); scoreit != params.first.getCVTerms().end(); ++scoreit)
+      for (const auto& scr : params.first.getCVTerms())
       {
-        if (q_score_terms.find(scoreit->first) != q_score_terms.end() || scoreit->first == "MS:1002354")
+        if (q_score_terms.find(scr.first) != q_score_terms.end() || scr.first == "MS:1002354")
         {
-          if (scoreit->first != "MS:1002055") // do not use peptide-level q-values for now
+          if (scr.first != "MS:1002055") // do not use peptide-level q-values for now
           {
-            score = scoreit->second.front().getValue().toString().toDouble(); // cast fix needed as DataValue is init with XercesString
+            score = scr.second.front().getValue().toString().toDouble(); // cast fix needed as DataValue is init with XercesString
             spectrum_identification.setHigherScoreBetter(false);
             spectrum_identification.setScoreType("q-value"); //higherIsBetter = false
             scoretype = true;
             break;
           }
         }
-        else if (specific_score_terms.find(scoreit->first) != specific_score_terms.end())
+        else if (specific_score_terms.find(scr.first) != specific_score_terms.end())
         {
-          score = scoreit->second.front().getValue().toString().toDouble(); // cast fix needed as DataValue is init with XercesString
-          spectrum_identification.setHigherScoreBetter(ControlledVocabulary::CVTerm::isHigherBetterScore(cv_.getTerm(scoreit->first)));
-          spectrum_identification.setScoreType(scoreit->second.front().getName());
+          score = scr.second.front().getValue().toString().toDouble(); // cast fix needed as DataValue is init with XercesString
+          spectrum_identification.setHigherScoreBetter(ControlledVocabulary::CVTerm::isHigherBetterScore(cv_.getTerm(scr.first)));
+          spectrum_identification.setScoreType(scr.second.front().getName());
           scoretype = true;
           break;
         }
-        else if (e_score_terms.find(scoreit->first) != e_score_terms.end())
+        else if (e_score_terms.find(scr.first) != e_score_terms.end())
         {
-          score = scoreit->second.front().getValue().toString().toDouble(); // cast fix needed as DataValue is init with XercesString
+          score = scr.second.front().getValue().toString().toDouble(); // cast fix needed as DataValue is init with XercesString
           spectrum_identification.setHigherScoreBetter(false);
           spectrum_identification.setScoreType("E-value"); //higherIsBetter = false
           scoretype = true;
           break;
         }
-        else if (scoreit->first == "MS:1001143")
+        else if (scr.first == "MS:1001143")
         {
           spectrum_identification.setScoreType("PSM-level search engine specific statistic");
           // TODO this is just an assumption for unknown scores
@@ -2100,27 +2100,27 @@ namespace OpenMS::Internal
       {
         //build the PeptideHit from a SpectrumIdentificationItem
         PeptideHit hit(score, rank, chargeState, pep_map_[peptide_ref]);
-        for (std::map<String, vector<CVTerm> >::const_iterator cvs = params.first.getCVTerms().begin(); cvs != params.first.getCVTerms().end(); ++cvs)
+        for (const auto& cvs : params.first.getCVTerms())
         {
-          for (vector<CVTerm>::const_iterator cv = cvs->second.begin(); cv != cvs->second.end(); ++cv)
+          for (const CVTerm& cv : cvs.second)
           {
-            if (cvs->first == "MS:1002540")
+            if (cvs.first == "MS:1002540")
             {
-              hit.setMetaValue(cvs->first, cv->getValue().toString());
+              hit.setMetaValue(cvs.first, cv.getValue().toString());
             }
-            else if (cvs->first == "MS:1001143") // this is the CV term "PSM-level search engine specific statistic" and it doesn't have a value
+            else if (cvs.first == "MS:1001143") // this is the CV term "PSM-level search engine specific statistic" and it doesn't have a value
             {
               continue;
             }
             else
             {
-              hit.setMetaValue(cvs->first, cv->getValue().toString().toDouble());
+              hit.setMetaValue(cvs.first, cv.getValue().toString().toDouble());
             }
           }
         }
-        for (map<String, DataValue>::const_iterator up = params.second.begin(); up != params.second.end(); ++up)
+        for (const auto& up : params.second)
         {
-          hit.setMetaValue(up->first, up->second);
+          hit.setMetaValue(up.first, up.second);
         }
         hit.setMetaValue("calcMZ", calculatedMassToCharge);
         spectrum_identification.setMZ(experimentalMassToCharge); // TODO @ mths for next PSI meeting: why is this not in SpectrumIdentificationResult in the schema? exp. m/z for one spec should not change from one id for it to the next!
@@ -2790,31 +2790,31 @@ namespace OpenMS::Internal
 
     void MzIdentMLDOMHandler::buildSequenceCollection_(DOMElement* sequenceCollectionElements)
     {
-      for (map<String, DBSequence>::iterator dbs = db_sq_map_.begin(); dbs != db_sq_map_.end(); ++dbs)
+      for (auto& dbs : db_sq_map_)
       {
         DOMElement* current_dbs = sequenceCollectionElements->getOwnerDocument()->createElement(CONST_XMLCH("DBSequence"));
-        current_dbs->setAttribute(CONST_XMLCH("id"), StringManager::convertPtr(dbs->second.accession).get());
-        current_dbs->setAttribute(CONST_XMLCH("length"), StringManager::convertPtr(String(dbs->second.sequence.length())).get());
-        current_dbs->setAttribute(CONST_XMLCH("accession"), StringManager::convertPtr(dbs->second.accession).get());
-        current_dbs->setAttribute(CONST_XMLCH("searchDatabase_ref"), StringManager::convertPtr(dbs->second.database_ref).get()); // This is going to be wrong
+        current_dbs->setAttribute(CONST_XMLCH("id"), StringManager::convertPtr(dbs.second.accession).get());
+        current_dbs->setAttribute(CONST_XMLCH("length"), StringManager::convertPtr(String(dbs.second.sequence.length())).get());
+        current_dbs->setAttribute(CONST_XMLCH("accession"), StringManager::convertPtr(dbs.second.accession).get());
+        current_dbs->setAttribute(CONST_XMLCH("searchDatabase_ref"), StringManager::convertPtr(dbs.second.database_ref).get()); // This is going to be wrong
         DOMElement* current_seq = current_dbs->getOwnerDocument()->createElement(CONST_XMLCH("Seq"));
-        DOMText* current_seqnot = current_seq->getOwnerDocument()->createTextNode(StringManager::convertPtr(dbs->second.sequence).get());
+        DOMText* current_seqnot = current_seq->getOwnerDocument()->createTextNode(StringManager::convertPtr(dbs.second.sequence).get());
         current_seq->appendChild(current_seqnot);
         current_dbs->appendChild(current_seq);
         sequenceCollectionElements->appendChild(current_dbs);
       }
 
-      for (map<String, AASequence>::iterator peps = pep_map_.begin(); peps != pep_map_.end(); ++peps)
+      for (auto& peps : pep_map_)
       {
         DOMElement* current_pep = sequenceCollectionElements->getOwnerDocument()->createElement(CONST_XMLCH("Peptide"));
-        current_pep->setAttribute(CONST_XMLCH("id"), StringManager::convertPtr(peps->first).get());
+        current_pep->setAttribute(CONST_XMLCH("id"), StringManager::convertPtr(peps.first).get());
         DOMElement* current_seq = current_pep->getOwnerDocument()->createElement(CONST_XMLCH("PeptideSequence"));
-        DOMText* current_seqnot = current_seq->getOwnerDocument()->createTextNode(StringManager::convertPtr(peps->second.toUnmodifiedString()).get());
+        DOMText* current_seqnot = current_seq->getOwnerDocument()->createTextNode(StringManager::convertPtr(peps.second.toUnmodifiedString()).get());
         current_seq->appendChild(current_seqnot);
         current_pep->appendChild(current_seq);
-        if (peps->second.hasNTerminalModification())
+        if (peps.second.hasNTerminalModification())
         {
-          const ResidueModification* mod = peps->second.getNTerminalModification();
+          const ResidueModification* mod = peps.second.getNTerminalModification();
           DOMElement* current_mod = current_pep->getOwnerDocument()->createElement(CONST_XMLCH("Modification"));
           DOMElement* current_cv = current_pep->getOwnerDocument()->createElement(CONST_XMLCH("cvParam"));
           current_mod->setAttribute(CONST_XMLCH("location"), CONST_XMLCH("0"));
@@ -2829,12 +2829,12 @@ namespace OpenMS::Internal
           current_mod->appendChild(current_cv);
           current_pep->appendChild(current_mod);
         }
-        if (peps->second.hasCTerminalModification())
+        if (peps.second.hasCTerminalModification())
         {
-          const ResidueModification* mod = peps->second.getCTerminalModification();
+          const ResidueModification* mod = peps.second.getCTerminalModification();
           DOMElement* current_mod = current_pep->getOwnerDocument()->createElement(CONST_XMLCH("Modification"));
           DOMElement* current_cv = current_mod->getOwnerDocument()->createElement(CONST_XMLCH("cvParam"));
-          current_mod->setAttribute(CONST_XMLCH("location"), StringManager::convertPtr(String(peps->second.size() + 1)).get());
+          current_mod->setAttribute(CONST_XMLCH("location"), StringManager::convertPtr(String(peps.second.size() + 1)).get());
           current_mod->setAttribute(CONST_XMLCH("monoisotopicMassDelta"), StringManager::convertPtr(String(mod->getDiffMonoMass())).get());
           String origin = mod->getOrigin();
           if (origin == "X") origin = ".";
@@ -2846,12 +2846,12 @@ namespace OpenMS::Internal
           current_mod->appendChild(current_cv);
           current_pep->appendChild(current_mod);
         }
-        if (peps->second.isModified())
+        if (peps.second.isModified())
         {
           Size i = 0;
-          for (AASequence::ConstIterator res = peps->second.begin(); res != peps->second.end(); ++res, ++i)
+          for (const Residue& res : peps.second)
           {
-            const ResidueModification* mod = res->getModification();
+            const ResidueModification* mod = res.getModification();
             if (mod == nullptr) continue;
             DOMElement* current_mod = current_pep->getOwnerDocument()->createElement(CONST_XMLCH("Modification"));
             DOMElement* current_cv = current_pep->getOwnerDocument()->createElement(CONST_XMLCH("cvParam"));
@@ -2864,20 +2864,21 @@ namespace OpenMS::Internal
 
             current_mod->appendChild(current_cv);
             current_pep->appendChild(current_mod);
+            ++i;
           }
         }
         sequenceCollectionElements->appendChild(current_pep);
       }
 
-      for (map<String, PeptideEvidence>::iterator pevs = pe_ev_map_.begin(); pevs != pe_ev_map_.end(); ++pevs)
+      for (auto& pevs : pe_ev_map_)
       {
         DOMElement* current_pev = sequenceCollectionElements->getOwnerDocument()->createElement(CONST_XMLCH("PeptideEvidence"));
         current_pev->setAttribute(CONST_XMLCH("peptide_ref"), CONST_XMLCH("TBA"));
-        current_pev->setAttribute(CONST_XMLCH("id"), StringManager::convertPtr(pevs->first).get());
-        current_pev->setAttribute(CONST_XMLCH("start"), StringManager::convertPtr(String(pevs->second.start)).get());
-        current_pev->setAttribute(CONST_XMLCH("end"), StringManager::convertPtr(String(pevs->second.stop)).get());
-        current_pev->setAttribute(CONST_XMLCH("pre"), StringManager::convertPtr(String(pevs->second.pre)).get());
-        current_pev->setAttribute(CONST_XMLCH("post"), StringManager::convertPtr(String(pevs->second.post)).get());
+        current_pev->setAttribute(CONST_XMLCH("id"), StringManager::convertPtr(pevs.first).get());
+        current_pev->setAttribute(CONST_XMLCH("start"), StringManager::convertPtr(String(pevs.second.start)).get());
+        current_pev->setAttribute(CONST_XMLCH("end"), StringManager::convertPtr(String(pevs.second.stop)).get());
+        current_pev->setAttribute(CONST_XMLCH("pre"), StringManager::convertPtr(String(pevs.second.pre)).get());
+        current_pev->setAttribute(CONST_XMLCH("post"), StringManager::convertPtr(String(pevs.second.post)).get());
         // do not forget to annotate the decoy
         current_pev->setAttribute(CONST_XMLCH("isDecoy"), CONST_XMLCH("false"));
         sequenceCollectionElements->appendChild(current_pev);
@@ -2990,23 +2991,23 @@ namespace OpenMS::Internal
         current_sr->setAttribute(CONST_XMLCH("id"), StringManager::convertPtr(String(UniqueIdGenerator::getUniqueId())).get());
         current_sr->setAttribute(CONST_XMLCH("spectrumID"), StringManager::convertPtr(String(UniqueIdGenerator::getUniqueId())).get());
         current_sr->setAttribute(CONST_XMLCH("spectraData_ref"), CONST_XMLCH("SD1"));
-        for (vector<PeptideHit>::iterator ph = pi->getHits().begin(); ph != pi->getHits().end(); ++ph)
+        for (PeptideHit& ph : pi->getHits())
         {
           DOMElement* current_si = current_sr->getOwnerDocument()->createElement(CONST_XMLCH("SpectrumIdentificationItem"));
           current_si->setAttribute(CONST_XMLCH("id"), StringManager::convertPtr(String(UniqueIdGenerator::getUniqueId())).get());
-          current_si->setAttribute(CONST_XMLCH("calculatedMassToCharge"), StringManager::convertPtr(String(ph->getSequence().getMonoWeight(Residue::Full, ph->getCharge()))).get()); //TODO @mths : this is not correct!1elf - these interfaces are BS!
-          current_si->setAttribute(CONST_XMLCH("chargeState"), StringManager::convertPtr(String(ph->getCharge())).get());
-          current_si->setAttribute(CONST_XMLCH("experimentalMassToCharge"), StringManager::convertPtr(String(ph->getSequence().getMonoWeight(Residue::Full, ph->getCharge()))).get()); //TODO @mths : this is not correct!1elf - these interfaces are BS!
+          current_si->setAttribute(CONST_XMLCH("calculatedMassToCharge"), StringManager::convertPtr(String(ph.getSequence().getMonoWeight(Residue::Full, ph.getCharge()))).get()); //TODO @mths : this is not correct!1elf - these interfaces are BS!
+          current_si->setAttribute(CONST_XMLCH("chargeState"), StringManager::convertPtr(String(ph.getCharge())).get());
+          current_si->setAttribute(CONST_XMLCH("experimentalMassToCharge"), StringManager::convertPtr(String(ph.getSequence().getMonoWeight(Residue::Full, ph.getCharge()))).get()); //TODO @mths : this is not correct!1elf - these interfaces are BS!
           current_si->setAttribute(CONST_XMLCH("peptide_ref"), CONST_XMLCH("TBA"));
-          current_si->setAttribute(CONST_XMLCH("rank"), StringManager::convertPtr(String(ph->getRank())).get());
+          current_si->setAttribute(CONST_XMLCH("rank"), StringManager::convertPtr(String(ph.getRank())).get());
           current_si->setAttribute(CONST_XMLCH("passThreshold"), CONST_XMLCH("TBA"));
           current_si->setAttribute(CONST_XMLCH("sample_ref"), CONST_XMLCH("TBA"));
           // TODO cvs for score!
           current_sr->appendChild(current_si);
-          for (list<String>::iterator pepevref = hit_pev_.front().begin(); pepevref != hit_pev_.front().end(); ++pepevref)
+          for (String& pepevref : hit_pev_.front())
           {
             DOMElement* current_per = current_si->getOwnerDocument()->createElement(CONST_XMLCH("PeptideEvidenceRef"));
-            current_per->setAttribute(CONST_XMLCH("peptideEvidence_ref"), StringManager::convertPtr(*pepevref).get());
+            current_per->setAttribute(CONST_XMLCH("peptideEvidence_ref"), StringManager::convertPtr(pepevref).get());
             current_si->appendChild(current_per);
           }
           hit_pev_.pop_front();
@@ -3025,40 +3026,40 @@ namespace OpenMS::Internal
     ProteinIdentification::SearchParameters MzIdentMLDOMHandler::findSearchParameters_(pair<CVTermList, map<String, DataValue> > as_params)
     {
       ProteinIdentification::SearchParameters sp = ProteinIdentification::SearchParameters();
-      for (std::map<String, vector<CVTerm> >::const_iterator cvs = as_params.first.getCVTerms().begin(); cvs != as_params.first.getCVTerms().end(); ++cvs)
+      for (const auto& cvs : as_params.first.getCVTerms())
       {
-        for (vector<CVTerm>::const_iterator cvit = cvs->second.begin(); cvit != cvs->second.end(); ++cvit)
+        for (const CVTerm& cv : cvs.second)
         {
-          sp.setMetaValue(cvs->first, cvit->getValue());
+          sp.setMetaValue(cvs.first, cv.getValue());
         }
       }
       int minCharge = 0;
       int maxCharge = 0;
-      for (map<String, DataValue>::const_iterator upit = as_params.second.begin(); upit != as_params.second.end(); ++upit)
+      for (const auto& up : as_params.second)
       {
-        if (upit->first == "taxonomy")
+        if (up.first == "taxonomy")
         {
-          sp.taxonomy = upit->second.toString();
+          sp.taxonomy = up.second.toString();
         }
-        else if (upit->first == "charges")
+        else if (up.first == "charges")
         {
-          sp.charges = upit->second.toString();
+          sp.charges = up.second.toString();
         }
-        else if (upit->first == "MinCharge")
+        else if (up.first == "MinCharge")
         {
-          minCharge = upit->second.toString().toInt();
+          minCharge = up.second.toString().toInt();
         }
-        else if (upit->first == "MaxCharge")
+        else if (up.first == "MaxCharge")
         {
-          maxCharge = upit->second.toString().toInt();
+          maxCharge = up.second.toString().toInt();
         }
-        else if (upit->first == "NumTolerableTermini")
+        else if (up.first == "NumTolerableTermini")
         {
-          sp.enzyme_term_specificity = static_cast<EnzymaticDigestion::Specificity>(upit->second.toString().toInt());
+          sp.enzyme_term_specificity = static_cast<EnzymaticDigestion::Specificity>(up.second.toString().toInt());
         }
         else
         {
-          sp.setMetaValue(upit->first, upit->second);
+          sp.setMetaValue(up.first, up.second);
         }
       }
       if (minCharge != 0 || maxCharge != 0) // this means "MinCharge" and "MaxCharge" get preference over "charges"

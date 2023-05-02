@@ -94,29 +94,29 @@ namespace OpenMS
 
     // write parameters
     const Param& params = transformation.getModelParameters();
-    for (Param::ParamIterator it = params.begin(); it != params.end(); ++it)
+    for (auto& parameter : params)
     {
-      if (it->value.valueType() != ParamValue::EMPTY_VALUE)
+      if (parameter.value.valueType() != ParamValue::EMPTY_VALUE)
       {
-        switch (it->value.valueType())
+        switch (parameter.value.valueType())
         {
         case ParamValue::INT_VALUE:
-          os << "\t\t<Param  type=\"int\" name=\"" << it->name << "\" value=\"" << it->value.toString() << "\"/>\n";
+          os << "\t\t<Param  type=\"int\" name=\"" << parameter.name << "\" value=\"" << parameter.value.toString() << "\"/>\n";
           break;
 
         case ParamValue::DOUBLE_VALUE:
-          os << "\t\t<Param  type=\"float\" name=\"" << it->name << "\" value=\"" << it->value.toString() << "\"/>\n";
+          os << "\t\t<Param  type=\"float\" name=\"" << parameter.name << "\" value=\"" << parameter.value.toString() << "\"/>\n";
           break;
 
         case ParamValue::STRING_VALUE:
         case ParamValue::STRING_LIST:
         case ParamValue::INT_LIST:
         case ParamValue::DOUBLE_LIST:
-          os << "\t\t<Param  type=\"string\" name=\"" << it->name << "\" value=\"" << it->value.toString() << "\"/>\n";
+          os << "\t\t<Param  type=\"string\" name=\"" << parameter.name << "\" value=\"" << parameter.value.toString() << "\"/>\n";
           break;
 
         default:         // no other value types are supported!
-          fatalError(STORE, String("Unsupported parameter type of parameter '") + it->name + "'");
+          fatalError(STORE, String("Unsupported parameter type of parameter '") + parameter.name + "'");
           break;
         }
       }
@@ -126,13 +126,12 @@ namespace OpenMS
     if (!transformation.getDataPoints().empty())
     {
       os << "\t\t<Pairs count=\"" << transformation.getDataPoints().size() << "\">\n";
-      for (TransformationDescription::DataPoints::const_iterator it = transformation.getDataPoints().begin();
-           it != transformation.getDataPoints().end(); ++it)
+      for (const auto& point : transformation.getDataPoints())
       {
-        os << "\t\t\t<Pair from=\"" << it->first << "\" to=\"" << it->second;
-        if (!it->note.empty())
+        os << "\t\t\t<Pair from=\"" << point.first << "\" to=\"" << point.second;
+        if (!point.note.empty())
         {
-          os << "\" note=\"" << writeXMLEscape(it->note);
+          os << "\" note=\"" << writeXMLEscape(point.note);
         }
         os << "\"/>\n";
       }

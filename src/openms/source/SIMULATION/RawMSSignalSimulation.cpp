@@ -272,11 +272,11 @@ namespace OpenMS
       contaminants_.clear();
       const UInt COLS_EXPECTED = 8;
       Size line_number = 1;
-      for (TextFile::ConstIterator tf_it = tf.begin(); tf_it != tf.end(); ++tf_it, ++line_number)
+      for (const String& txt : tf)
       {
-        if (tf_it->empty() || tf_it->hasPrefix("#")) continue; // skip comments
+        if (txt.empty() || txt.hasPrefix("#")) continue; // skip comments
 
-        String line = *tf_it;
+        String line = txt;
         StringList cols;
         line.removeWhitespaces().split(',', cols, true);
         if (cols.size() != COLS_EXPECTED)
@@ -339,6 +339,7 @@ namespace OpenMS
         }
 
         contaminants_.push_back(c);
+        ++line_number;
       }
     }
     contaminants_loaded_ = true;
@@ -381,12 +382,11 @@ namespace OpenMS
     // parallelization step
     if (experiment.size() == 1) // MS only
     {
-      for (FeatureMap::iterator feature_it = features.begin();
-           feature_it != features.end();
-           ++feature_it, ++progress)
+      for (auto& feat : features)
       {
-        add1DSignal_(*feature_it, experiment, experiment_ct);
+        add1DSignal_(feat, experiment, experiment_ct);
         this->setProgress(progress);
+        ++progress;
       }
     }
     else // LC/MS
@@ -744,16 +744,17 @@ namespace OpenMS
       // centroided GT
       Size iso_pos(0);
       SimTypes::SimPointType point;
-      for (IsotopeDistribution::const_iterator iter = iso_dist.begin(); iter != iso_dist.end(); ++iter, ++iso_pos)
+      for (const auto& peak : iso_dist)
       {
         point.setMZ(mz_mono + (iso_pos * iso_peakdist / q));
-        point.setIntensity(iter->getIntensity() * rt_intensity * distortion);
+        point.setIntensity(peak.getIntensity() * rt_intensity * distortion);
 
         if (point.getIntensity() <= 0.0)
         {
           continue;
         }
         exp_ct_iter->push_back(point);
+        ++iso_pos;
       }
 
       // RAW signal (sample it on the grid)

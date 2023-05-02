@@ -180,17 +180,17 @@ namespace OpenMS
     // adducts might look like this:
     //   Element:Probability[:RTShift[:Label]]
     double summed_probs = 0.0;
-    for (StringList::iterator it = potential_adducts_s.begin(); it != potential_adducts_s.end(); ++it)
+    for (String& p_add : potential_adducts_s)
     {
       // skip disabled adducts
-      if (it->trim().hasPrefix("#"))
+      if (p_add.trim().hasPrefix("#"))
         continue;
 
       StringList adduct;
-      it->split(':', adduct);
+      p_add.split(':', adduct);
       if (adduct.size() != 3 && adduct.size() != 4 && adduct.size() != 5)
       {
-        String error = "MetaboliteFeatureDeconvolution::potential_adducts (" + (*it) + ") does not have three, four or five entries ('Elements:Charge:Probability' or 'Elements:Charge:Probability:RTShift' or 'Elements:Charge:Probability:RTShift:Label'), but " + String(adduct.size()) + " entries!";
+        String error = "MetaboliteFeatureDeconvolution::potential_adducts (" + p_add + ") does not have three, four or five entries ('Elements:Charge:Probability' or 'Elements:Charge:Probability:RTShift' or 'Elements:Charge:Probability:RTShift:Label'), but " + String(adduct.size()) + " entries!";
         throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, error);
       }
       // determine probability
@@ -198,7 +198,7 @@ namespace OpenMS
       //OPENMS_LOG_WARN << "Adduct " << *it << " prob " << String(prob) << std::endl;
       if (prob > 1.0 || prob <= 0.0)
       {
-        String error = "MetaboliteFeatureDeconvolution::potential_adducts (" + (*it) + ") does not have a proper probability (" + String(prob) + ") in [0,1]!";
+        String error = "MetaboliteFeatureDeconvolution::potential_adducts (" + p_add + ") does not have a proper probability (" + String(prob) + ") in [0,1]!";
         throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, error);
       }
       if (adduct[1] != "0")//if neutral adduct, assume separate process to ionization -> better not count it for total probs, makes everything easier
@@ -868,9 +868,9 @@ namespace OpenMS
         //remove info not wanted in pair
         std::vector<String> keys;
         cf.getKeys(keys);
-        for (std::vector<String>::const_iterator it = keys.begin(); it != keys.end(); ++it)
+        for (const String& key : keys)
         {
-          cf.removeMetaValue(*it);
+          cf.removeMetaValue(key);
         }
         cf.setMetaValue("Old_charges", String(old_q0) + ":" + String(old_q1));
         cf.setMetaValue("CP", String(fm_out[f0_idx].getCharge()) + "(" + String(fm_out[f0_idx].getMetaValue(Constants::UserParam::DC_CHARGE_ADDUCTS)) + "):"
@@ -883,9 +883,9 @@ namespace OpenMS
 
         //remove info not wanted in decharged consensus
         cf.getKeys(keys);
-        for (std::vector<String>::const_iterator it = keys.begin(); it != keys.end(); ++it)
+        for (const String& key : keys)
         {
-          cf.removeMetaValue(*it);
+          cf.removeMetaValue(key);
         }
 
         //
@@ -929,9 +929,9 @@ namespace OpenMS
           else //** conflict: the two elements of the pair already have separate CFs --> merge
           { // take every feature from second CF and: #1 put into first CF, #2 change registration with map
             ConsensusFeature::HandleSetType hst = cons_map[target_cf1].getFeatures();
-            for (ConsensusFeature::HandleSetType::const_iterator it = hst.begin(); it != hst.end(); ++it) //** update cf_index
+            for (const auto& handle: hst) //** update cf_index
             {
-              clique_register[fm_out.uniqueIdToIndex(it->getUniqueId())] = target_cf0;
+              clique_register[fm_out.uniqueIdToIndex(handle.getUniqueId())] = target_cf0;
             }
             // insert features from cf1 to cf0
             cons_map[target_cf0].insert(hst);
@@ -949,54 +949,54 @@ namespace OpenMS
     // remove empty ConsensusFeatures from map
     ConsensusMap cons_map_tmp(cons_map);
     cons_map_tmp.clear(false); // keep other meta information (like ProteinIDs & Map)
-    for (ConsensusMap::Iterator it = cons_map.begin(); it != cons_map.end(); ++it)
+    for (auto& cmap : cons_map)
     {
       // skip if empty
-      if (it->getFeatures().empty())
+      if (cmap.getFeatures().empty())
         continue;
 
       // skip if no backbone
       Size backbone_count = 0;
-      ConsensusFeature::HandleSetType hst = it->getFeatures();
-      for (ConsensusFeature::HandleSetType::const_iterator it_h = hst.begin(); it_h != hst.end(); ++it_h) //** check if feature in CF has backbone
+      ConsensusFeature::HandleSetType hst = cmap.getFeatures();
+      for (const auto& handle : hst)
       {
-        backbone_count += (Size)fm_out[fm_out.uniqueIdToIndex(it_h->getUniqueId())].getMetaValue("is_backbone");
+        backbone_count += (Size)fm_out[fm_out.uniqueIdToIndex(handle.getUniqueId())].getMetaValue("is_backbone");
       }
       if (backbone_count == 0)
       {
-        for (ConsensusFeature::HandleSetType::const_iterator it_h = hst.begin(); it_h != hst.end(); ++it_h) //** remove cluster members from registry (they will become single features)
+        for (const auto& handle : hst) //** remove cluster members from registry (they will become single features)
         {
-          clique_register.erase(fm_out.uniqueIdToIndex(it_h->getUniqueId()));
+          clique_register.erase(fm_out.uniqueIdToIndex(handle.getUniqueId()));
         }
         continue;
       }
 
       // store element adducts
-      for (ConsensusFeature::HandleSetType::const_iterator it_h = hst.begin(); it_h != hst.end(); ++it_h)
+      for (const auto& handle : hst)
       {
-        if (fm_out[fm_out.uniqueIdToIndex(it_h->getUniqueId())].metaValueExists(Constants::UserParam::DC_CHARGE_ADDUCTS))
+        if (fm_out[fm_out.uniqueIdToIndex(handle.getUniqueId())].metaValueExists(Constants::UserParam::DC_CHARGE_ADDUCTS))
         {
-          it->setMetaValue(String(it_h->getUniqueId()), fm_out[fm_out.uniqueIdToIndex(it_h->getUniqueId())].getMetaValue(Constants::UserParam::DC_CHARGE_ADDUCTS));
+          cmap.setMetaValue(String(handle.getUniqueId()), fm_out[fm_out.uniqueIdToIndex(handle.getUniqueId())].getMetaValue(Constants::UserParam::DC_CHARGE_ADDUCTS));
         }
         // also add consensusID of group to all feature_relation
-        fm_out[fm_out.uniqueIdToIndex(it_h->getUniqueId())].setMetaValue(Constants::UserParam::ADDUCT_GROUP, String(it->getUniqueId()));
+        fm_out[fm_out.uniqueIdToIndex(handle.getUniqueId())].setMetaValue(Constants::UserParam::ADDUCT_GROUP, String(cmap.getUniqueId()));
       }
 
       // store number of distinct charges
       std::set<Int> charges;
-      for (ConsensusFeature::HandleSetType::const_iterator it_h = hst.begin(); it_h != hst.end(); ++it_h)
+      for (const auto& handle : hst)
       {
-        charges.insert(it_h->getCharge());
+        charges.insert(handle.getCharge());
       }
       IntList i_charges;
-      for (std::set<Int>::const_iterator it_q = charges.begin(); it_q != charges.end(); ++it_q)
+      for (const Int& charge : charges)
       {
-        i_charges.push_back(*it_q);
+        i_charges.push_back(charge);
       }
-      it->setMetaValue("distinct_charges", i_charges);
-      it->setMetaValue("distinct_charges_size", i_charges.size());
+      cmap.setMetaValue("distinct_charges", i_charges);
+      cmap.setMetaValue("distinct_charges_size", i_charges.size());
 
-      cons_map_tmp.push_back(*it);
+      cons_map_tmp.push_back(cmap);
       // set a centroid
       cons_map_tmp.back().computeDechargeConsensus(fm_out);
       cons_map_tmp.back().setMetaValue("pure_proton_features", backbone_count);
@@ -1050,12 +1050,12 @@ namespace OpenMS
       //remove info not wanted in decharged consensus
       std::vector<String> keys;
       cf.getKeys(keys);
-      for (std::vector<String>::const_iterator it = keys.begin(); it != keys.end(); ++it)
+      for (const String& key : keys)
       {
-        if (*it == "is_ungrouped_monoisotopic" || *it == "is_ungrouped_with_charge")
+        if (key == "is_ungrouped_monoisotopic" || key == "is_ungrouped_with_charge")
           continue;
 
-        cf.removeMetaValue(*it);
+        cf.removeMetaValue(key);
       }
       // Need to set userParam Group output feature map features for singletons here
       fm_out[i].setMetaValue(Constants::UserParam::ADDUCT_GROUP, String(cf.getUniqueId()));
@@ -1142,9 +1142,9 @@ namespace OpenMS
       {
         Compomer::CompomerSide to_add = edges[result_it->idx_cp].getCompomer().removeAdduct(default_adduct).getComponent()[result_it->side_cp];
         // we currently do not punish additional two-side adducts
-        for (Compomer::CompomerSide::iterator it = to_add.begin(); it != to_add.end(); ++it)
+        for (auto& edge : to_add)
         {
-          it->second.setLogProb(0);
+          edge.second.setLogProb(0);
         }
         ChargePair cp(edges[i]); // make a copy
         Compomer new_cmp = cp.getCompomer().removeAdduct(default_adduct);
@@ -1320,13 +1320,13 @@ namespace OpenMS
     Size ladders_with_odd(0);
 
     // checking number of charge ladders which have all gapped shapes, hinting at wrong lower-bound bound (should be lower)
-    for (ConsensusMap::const_iterator it = cons_map.begin(); it != cons_map.end(); ++it)
+    for (const auto& cmap : cons_map)
     {
-      if (it->size() == 1)
+      if (cmap.size() == 1)
         continue;
 
       ++ladders_total;
-      IntList charges = it->getMetaValue("distinct_charges");
+      IntList charges = cmap.getMetaValue("distinct_charges");
 
       for (Size i = 0; i < charges.size(); ++i)
       {

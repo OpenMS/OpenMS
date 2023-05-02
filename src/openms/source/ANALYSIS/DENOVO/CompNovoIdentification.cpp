@@ -183,24 +183,26 @@ namespace OpenMS
 
     // now delete all peaks that are right of the estimated precursor weight
     Size peak_counter(0);
-    for (PeakSpectrum::ConstIterator it = new_CID_spec.begin(); it != new_CID_spec.end(); ++it, ++peak_counter)
+    for (const auto& spec : new_CID_spec)
     {
-      if (it->getPosition()[0] > precursor_weight)
+      if (spec.getPosition()[0] > precursor_weight)
       {
         break;
       }
+      ++peak_counter;
     }
     if (peak_counter < new_CID_spec.size())
     {
       new_CID_spec.resize(peak_counter);
     }
     peak_counter = 0;
-    for (PeakSpectrum::ConstIterator it = new_ETD_spec.begin(); it != new_ETD_spec.end(); ++it, ++peak_counter)
+    for (const auto& spec : new_ETD_spec)
     {
-      if (it->getPosition()[0] > precursor_weight)
+      if (spec.getPosition()[0] > precursor_weight)
       {
         break;
       }
+      ++peak_counter;
     }
     if (peak_counter < new_ETD_spec.size())
     {
@@ -211,13 +213,14 @@ namespace OpenMS
 
     // delete the precursor peaks from the ETD spec
     PeakSpectrum ETD_copy;
-    for (PeakSpectrum::ConstIterator it = new_ETD_spec.begin(); it != new_ETD_spec.end(); ++it, ++peak_counter)
+    for (const auto& spec : new_ETD_spec)
     {
       double pre_pos((precursor_weight + 1.0 * Constants::PROTON_MASS_U) / precursor_mass_tolerance);
-      if (fabs(it->getPosition()[0] - pre_pos) > precursor_mass_tolerance)
+      if (fabs(spec.getPosition()[0] - pre_pos) > precursor_mass_tolerance)
       {
-        ETD_copy.push_back(*it);
+        ETD_copy.push_back(spec);
       }
+      ++peak_counter;
     }
 
     new_ETD_spec = ETD_copy;
@@ -238,27 +241,28 @@ namespace OpenMS
     if (charge == 3)
     {
       // add complement to spectrum
-      for (PeakSpectrum::ConstIterator it1 = CID_spec.begin(); it1 != CID_spec.end(); ++it1)
+      for (const auto& spec1 : CID_spec)
       {
         // get m/z of complement
-        double mz_comp = precursor_weight - it1->getPosition()[0] + Constants::PROTON_MASS_U;
+        double mz_comp = precursor_weight - spec1.getPosition()[0] + Constants::PROTON_MASS_U;
 
         // search if peaks are available that have similar m/z values
         Size count(0);
         bool found(false);
-        for (PeakSpectrum::ConstIterator it2 = CID_spec.begin(); it2 != CID_spec.end(); ++it2, ++count)
+        for (const auto& spec2 : CID_spec)
         {
-          if (fabs(mz_comp - it2->getPosition()[0]) < fragment_mass_tolerance_)
+          if (fabs(mz_comp - spec2.getPosition()[0]) < fragment_mass_tolerance_)
           {
             // add peak intensity to corresponding peak in new_CID_spec
             new_CID_spec[count].setIntensity(new_CID_spec[count].getIntensity());
           }
+          ++count;
         }
         if (!found)
         {
           // infer this peak
           Peak1D lp;
-          lp.setIntensity(it1->getIntensity());
+          lp.setIntensity(spec1.getIntensity());
           lp.setPosition(mz_comp);
           new_CID_spec.push_back(lp);
         }
@@ -313,19 +317,19 @@ namespace OpenMS
 
     /*
     cerr << "Size of ion_scores " << ion_scores.size() << endl;
-    for (Map<double, IonScore>::const_iterator it = ion_scores.begin(); it != ion_scores.end(); ++it)
+    for (const auto& iscore : ion_scores)
     {
-        cerr << it->first << " " << it->second.score << endl;
+        cerr << iscore.first << " " << iscore.second.score << endl;
     }*/
 
 #ifdef WRITE_SCORED_SPEC
     PeakSpectrum filtered_spec(new_CID_spec);
     filtered_spec.clear();
-    for (Map<double, CompNovoIonScoring::IonScore>::const_iterator it = ion_scores.begin(); it != ion_scores.end(); ++it)
+    for (const auto& i_score : ion_scores)
     {
       Peak1D p;
-      p.setIntensity(it->second.score);
-      p.setPosition(it->first);
+      p.setIntensity(i_score.second.score);
+      p.setPosition(i_score.first);
       filtered_spec.push_back(p);
     }
     DTAFile().store("spec_scored.dta", filtered_spec);
@@ -448,18 +452,18 @@ namespace OpenMS
 
     vector<PeptideHit> hits;
     Size missed_cleavages = param_.getValue("missed_cleavages");
-    for (set<String>::const_iterator it = sequences.begin(); it != sequences.end(); ++it)
+    for (const String& seq : sequences)
     {
 
-      Size num_missed = countMissedCleavagesTryptic_(*it);
+      Size num_missed = countMissedCleavagesTryptic_(seq);
       if (missed_cleavages < num_missed)
       {
-        //cerr << "Two many missed cleavages: " << *it << ", found " << num_missed << ", allowed " << missed_cleavages << endl;
+        //cerr << "Two many missed cleavages: " << seq << ", found " << num_missed << ", allowed " << missed_cleavages << endl;
         continue;
       }
       PeakSpectrum ETD_sim_spec, CID_sim_spec;
-      getETDSpectrum_(ETD_sim_spec, *it, charge);
-      getCIDSpectrum_(CID_sim_spec, *it, charge);
+      getETDSpectrum_(ETD_sim_spec, seq, charge);
+      getCIDSpectrum_(CID_sim_spec, seq, charge);
 
       //normalizer.filterSpectrum(ETD_sim_spec);
       //normalizer.filterSpectrum(CID_sim_spec);
@@ -470,10 +474,10 @@ namespace OpenMS
       PeptideHit hit;
       hit.setScore(cid_score + etd_score);
 
-      hit.setSequence(getModifiedAASequence_(*it));
+      hit.setSequence(getModifiedAASequence_(seq));
       hit.setCharge((Int)charge);   //TODO unify charge interface: int or size?
       hits.push_back(hit);
-      //cerr << getModifiedAASequence_(*it) << " " << cid_score << " " << etd_score << " " << cid_score + etd_score << endl;
+      //cerr << getModifiedAASequence_(seq) << " " << cid_score << " " << etd_score << " " << cid_score + etd_score << endl;
     }
 
     // rescore the top hits
@@ -489,9 +493,9 @@ namespace OpenMS
     alignment_score.setParameters(align_param);
 
     /*
-    for (vector<PeptideHit>::iterator it = hits.begin(); it != hits.end(); ++it)
+    for (PeptideHit& hit : hits)
     {
-        cerr << "Pre: " << it->getRank() << " " << it->getSequence() << " " << it->getScore() << " " << endl;
+        cerr << "Pre: " << hit.getRank() << " " << hit.getSequence() << " " << hit.getScore() << " " << endl;
     }
     */
 
@@ -526,9 +530,9 @@ namespace OpenMS
     hits = id.getHits();
 
     /*
-    for (vector<PeptideHit>::iterator it = hits.begin(); it != hits.end(); ++it)
+    for (PeptideHit& hit : hits)
     {
-        cerr << "Fin: " << it->getRank() << " " << it->getSequence() << " " << it->getScore() << " " << endl;
+        cerr << "Fin: " << hit.getRank() << " " << hit.getSequence() << " " << hit.getScore() << " " << endl;
     }
     */
 
@@ -592,9 +596,9 @@ namespace OpenMS
 
 #ifdef REDUCE_PERMUTS_DEBUG
       cerr << "Subscoring: " << *it << " " << cid_score << " " << etd_score << " " << score << " (CID=";
-/*      for (PeakSpectrum::ConstIterator pit = CID_sim_spec.begin(); pit != CID_sim_spec.end(); ++pit)
+      /*for (const Peak1D& peak : CID_sim_spec)
         {
-        cerr << pit->getPosition()[0] << "|" << pit->getIntensity() << "; ";
+        cerr << peak.getPosition()[0] << "|" << peak.getIntensity() << "; ";
         }*/
       cerr << endl;
 #endif
@@ -803,11 +807,11 @@ namespace OpenMS
         continue;
       }
 
-      for (set<String>::const_iterator it1 = seq1.begin(); it1 != seq1.end(); ++it1)
+      for (const String& s1 : seq1)
       {
-        for (set<String>::const_iterator it2 = seq2.begin(); it2 != seq2.end(); ++it2)
+        for (const String& s2 : seq2)
         {
-          new_sequences.insert(*it2 + *it1);
+          new_sequences.insert(s2 + s1);
         }
       }
 
@@ -823,24 +827,24 @@ namespace OpenMS
         }
 
 #ifdef DAC_DEBUG
-        for (set<String>::const_iterator it1 = new_sequences.begin(); it1 != new_sequences.end(); ++it1)
+        for (const String& seq : new_sequences)
         {
-          cerr << tabs_ << *it1 << endl;
+          cerr << tabs_ << seq << endl;
         }
         cerr << endl;
 #endif
       }
 
-      for (set<String>::const_iterator sit = new_sequences.begin(); sit != new_sequences.end(); ++sit)
+      for (const String& seq : new_sequences)
       {
-        sequences.insert(*sit);
+        sequences.insert(seq);
       }
     }
 #ifdef DAC_DEBUG
     cerr << tabs_ << "Found sequences for " << CID_spec[left].getPosition()[0] << " " << CID_spec[right].getPosition()[0] << endl;
-    for (set<String>::const_iterator sit = sequences.begin(); sit != sequences.end(); ++sit)
+    for (const String& seq : sequences)
     {
-      cerr << tabs_ << *sit << endl;
+      cerr << tabs_ << seq << endl;
     }
 #endif
 
@@ -897,43 +901,44 @@ namespace OpenMS
     // for each possible peptide charge state
     std::map<Size, double> correlation_sums;
     std::map<Size, std::map<Size, pair<double, double> > > best_corr_ints;
-    for (std::map<Size, std::map<Size, vector<double> > >::const_iterator it1 = correlations.begin(); it1 != correlations.end(); ++it1)
+    for (const auto& corr : correlations)
     {
       double correlation_sum(0);
       // search for the best correlation
-      for (std::map<Size, vector<double> >::const_iterator it2 = it1->second.begin(); it2 != it1->second.end(); ++it2)
+      for (const auto& precs : corr.second)
       {
         double best_correlation(0);
         Size best_pos(0);
         Size i = 0;
-        for (vector<double>::const_iterator it3 = it2->second.begin(); it3 != it2->second.end(); ++it3, ++i)
+        for (const auto& mass : precs.second)
         {
-          if (best_correlation == 0 || *it3 > (best_correlation * 1.25))           // must be really better!
+          if (best_correlation == 0 || mass > (best_correlation * 1.25))           // must be really better!
           {
-            best_correlation = *it3;
+            best_correlation = mass;
             best_pos = i;
           }
+          ++i;
         }
-        best_corr_ints[it1->first][it2->first] = make_pair(best_correlation, peaks[it1->first][it2->first][best_pos].getMZ());
+        best_corr_ints[corr.first][precs.first] = make_pair(best_correlation, peaks[corr.first][precs.first][best_pos].getMZ());
         correlation_sum += best_correlation;
       }
 
-      correlation_sums[it1->first] = correlation_sum;
+      correlation_sums[corr.first] = correlation_sum;
     }
 
     double best_correlation = 0;
     Size best_charge = 0;
-    for (std::map<Size, double>::const_iterator it = correlation_sums.begin(); it != correlation_sums.end(); ++it)
+    for (const auto& [charge, corr] : correlation_sums)
     {
-      //cerr << "Correlations z=" << it->first << ", corr=" << it->second << endl;
-      for (std::map<Size, pair<double, double> >::const_iterator mit = best_corr_ints[it->first].begin(); mit != best_corr_ints[it->first].end(); ++mit)
+      //cerr << "Correlations z=" << charge << ", corr=" << corr << endl;
+      /* for (const auto& bci : best_corr_ints[charge])
       {
-        //cerr << "CorrelationIntensity: z=" << mit->first << ", corr=" << mit->second.first << ", m/z=" << mit->second.second << " [M+H]=" << (mit->second.second * (double)mit->first) - ((double)mit->first - 1) * Constants::NEUTRON_MASS_U  << endl;
-      }
-      if (best_correlation < it->second)
+        cerr << "CorrelationIntensity: z=" << bci.first << ", corr=" << bci.second.first << ", m/z=" << bci.second.second << " [M+H]=" << (bci.second.second * (double)bci.first) - ((double)bci.first - 1) * Constants::NEUTRON_MASS_U  << endl;
+      } */
+      if (best_correlation < corr)
       {
-        best_correlation = it->second;
-        best_charge = it->first;
+        best_correlation = corr;
+        best_charge = charge;
       }
     }
 
@@ -951,13 +956,13 @@ namespace OpenMS
       best_correlation = 0;
       double best_corr_mz = 0;
       Size best_corr_z = 0;
-      for (std::map<Size, pair<double, double> >::const_iterator it = best_corr_ints[best_charge].begin(); it != best_corr_ints[best_charge].end(); ++it)
+      for (const auto& best : best_corr_ints[best_charge])
       {
-        if (it->second.first > best_correlation)
+        if (best.second.first > best_correlation)
         {
-          best_correlation = it->second.first;
-          best_corr_mz = it->second.second;
-          best_corr_z = it->first;
+          best_correlation = best.second.first;
+          best_corr_mz = best.second.second;
+          best_corr_z = best.first;
         }
       }
       peptide_weight = best_corr_mz * (double)best_corr_z - (double)(best_corr_z - 1) * Constants::PROTON_MASS_U;

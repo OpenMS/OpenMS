@@ -928,9 +928,9 @@ namespace OpenMS
       return true;
     }
 
-    for (std::vector<const Residue*>::const_iterator it = peptide_.begin(); it != peptide_.end(); ++it)
+    for (const auto& pep : peptide_)
     {
-      if ((*it)->isModified())
+      if ((pep)->isModified())
       {
         return true;
       }
@@ -1427,9 +1427,9 @@ namespace OpenMS
   void AASequence::getAAFrequencies(std::map<String, Size>& frequency_table) const
   {
     frequency_table.clear();
-    for (std::vector<const Residue*>::const_iterator it = peptide_.begin(); it != peptide_.end(); ++it)
+    for (const auto& pep : peptide_)
     {
-      ++frequency_table[(*it)->getOneLetterCode()];
+      ++frequency_table[(pep)->getOneLetterCode()];
     }
   }
 

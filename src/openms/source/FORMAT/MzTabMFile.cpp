@@ -648,9 +648,9 @@ namespace OpenMS
     }
 
     TextFile tmp_out;
-    for (TextFile::ConstIterator it = out.begin(); it != out.end(); ++it)
+    for (const auto& txt : out)
     {
-      tmp_out.addLine(*it);
+      tmp_out.addLine(txt);
     }
     tmp_out.store(filename);
   }
