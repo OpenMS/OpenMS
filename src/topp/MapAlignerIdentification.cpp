@@ -211,11 +211,13 @@ private:
   void storeTransformationDescriptions_(const vector<TransformationDescription>&
                                         transformations, StringList& trafos)
   {
+    OPENMS_PRECONDITION(transformations.size() == trafos.size(), "Transformation descriptions and list of transformation files need to be equal.");
     // custom progress logger for this task:
     ProgressLogger progresslogger;
     progresslogger.setLogType(log_type_);
     progresslogger.startProgress(0, trafos.size(),
                                  "writing transformation files");
+    OPENMS_LOG_INFO << "Writing " << transformations.size() << " transformations " << " to " << trafos.size() << " files.";
     for (Size i = 0; i < transformations.size(); ++i)
     {
       TransformationXMLFile().store(trafos[i], transformations[i]);

@@ -45,7 +45,7 @@ namespace OpenMS
   const std::string MSQuantifications::NamesOfQuantTypes[] = {"MS1LABEL", "MS2LABEL", "LABELFREE"};
 
   /// Detailed Constructor
-  MSQuantifications::MSQuantifications(FeatureMap fm, ExperimentalSettings& es, std::vector<DataProcessing>& dps, std::vector<std::vector<std::pair<String, double> > > label) :
+  MSQuantifications::MSQuantifications(const FeatureMap& fm, ExperimentalSettings& es, std::vector<DataProcessing>& dps, std::vector<std::vector<std::pair<String, double> > > label) :
     ExperimentalSettings()
   {
     MSQuantifications::QUANT_TYPES quant_type = MSQuantifications::LABELFREE;
@@ -73,7 +73,7 @@ namespace OpenMS
     return !(operator==(rhs));
   }
 
-  void MSQuantifications::setDataProcessingList(std::vector<DataProcessing> & dpl)
+  void MSQuantifications::setDataProcessingList(const std::vector<DataProcessing> & dpl)
   {
     data_processings_ = dpl;
   }
