@@ -1,14 +1,13 @@
+if (window.location.hostname.includes("abibuilder")) {
+  urlrootdir = "/archive/openms/Documentation"
+} else {
+  urlrootdir = "/doxygen"
+}
+
 let patharr = window.location.pathname.replace(/\/+/g, '/').split('/');
+
 let htmlidx = patharr.indexOf("html")
 let thisvers = patharr[htmlidx - 1];
-
-if (thisvers == "nightly")
-{
-    urlrootdir = patharr.slice(0, htmlidx - 1);
-} else { // release/x.y.z
-    urlrootdir = patharr.slice(0, htmlidx - 2);
-}
-urlrootdir = urlrootdir.join("/")
 
 $('.dropbtn').html(thisvers);
 console.log(thisvers)
@@ -59,9 +58,10 @@ function parseDirectoryListing(stringOfHtml) {
         // suppress link to current version
         return (line != thisvers) &&
             (line != "Parent Directory") &&
-        (line != "latest") &&
-        // suppress hidden dirs
-        !/^[.]/.test(line);
+            // TODO decide how to display latest version
+            (line != "latest") &&
+            // suppress hidden dirs
+            !/^[.]/.test(line);
     });
 
     docs = docs.map((x) => '<a class="verslink" href="'
@@ -69,7 +69,11 @@ function parseDirectoryListing(stringOfHtml) {
         + '/release/' + x + '/' + patharr[patharr.length - 1] + '">'
         + x
         + '</a>');
-
+        
+    // This assumes that a nightly documentation folder is always present.
+    // A specific class does not necessarily need to be present there,
+    // since this will be checked later.
+    // TODO Style nightly differently to make sure users see it?
     docs.unshift('<a class="verslink" href="'
         + urlrootdir
         + '/nightly/' + patharr[patharr.length - 1] + '">'
