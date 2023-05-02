@@ -368,7 +368,7 @@ namespace OpenMS
     {
       //close remaining tags
       const std::vector<Param::ParamIterator::TraceInfo>& trace = it.getTrace();
-      for (const auto& tr : trace)
+      for ([[maybe_unused]] const auto& tr : trace)
       {
         Size ss = indentation.size();
         indentation.resize(ss - 2);

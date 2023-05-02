@@ -115,8 +115,7 @@ namespace OpenMS
       vector<double>::iterator lower = lower_bound(start, ions2.end(),
                                                    ion1 - mass_tolerance_);
       if (lower == ions2.end()) break; // all values are too low
-      vector<double>::iterator upper = upper_bound(lower, ions2.end(),
-                                                   ion1 + mass_tolerance_);
+
       double best_match = 0.0, best_diff = mass_tolerance_ + 1.0;
       // find ion from seq. 2 (*it2) that is closest to ion from seq. 1 (*it1):
       for (double ion2 : ions2)

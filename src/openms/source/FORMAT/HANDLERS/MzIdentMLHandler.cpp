@@ -1296,7 +1296,7 @@ namespace OpenMS::Internal
         {
           std::vector<PeptideEvidence> peptide_evidences = hit.getPeptideEvidences();
           // TODO idXML allows peptide hits without protein references! Fails in that case - run PeptideIndexer first
-          for (const PeptideEvidence pe : peptide_evidences)
+          for (const PeptideEvidence& pe : peptide_evidences)
           {
             String pevid =  "PEV_" + String(UniqueIdGenerator::getUniqueId());
             String dBSequence_ref;

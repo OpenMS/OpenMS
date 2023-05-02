@@ -931,10 +931,10 @@ namespace OpenMS
     for (const auto& [charge, corr] : correlation_sums)
     {
       //cerr << "Correlations z=" << charge << ", corr=" << corr << endl;
-      for (const auto& bci : best_corr_ints[charge])
+      /* for (const auto& bci : best_corr_ints[charge])
       {
-        //cerr << "CorrelationIntensity: z=" << bci.first << ", corr=" << bci.second.first << ", m/z=" << bci.second.second << " [M+H]=" << (bci.second.second * (double)bci.first) - ((double)bci.first - 1) * Constants::NEUTRON_MASS_U  << endl;
-      }
+        cerr << "CorrelationIntensity: z=" << bci.first << ", corr=" << bci.second.first << ", m/z=" << bci.second.second << " [M+H]=" << (bci.second.second * (double)bci.first) - ((double)bci.first - 1) * Constants::NEUTRON_MASS_U  << endl;
+      } */
       if (best_correlation < corr)
       {
         best_correlation = corr;

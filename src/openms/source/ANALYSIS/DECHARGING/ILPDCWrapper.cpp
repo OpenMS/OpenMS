@@ -491,10 +491,11 @@ namespace OpenMS
     if (verbose_level > 2)
       OPENMS_LOG_INFO << "Active edges: " << active_edges << " of overall " << pairs.size() << std::endl;
 
-    for (const auto& cmp : count_cmp)
+    /* for (const auto& cmp : count_cmp)
     {
-      //std::cout << "Cmp " << cmp.first << " x " << cmp.second << "\n";
-    }
+      std::cout << "Cmp " << cmp.first << " x " << cmp.second << "\n";
+    } 
+    */
 
     double opt_value = build.getObjectiveValue();
 

@@ -601,10 +601,10 @@ namespace OpenMS
 
   bool TargetedExperiment::containsInvalidReferences() const
   {
-    typedef std::vector<OpenMS::TargetedExperiment::Protein> ProteinVectorType;
-    typedef std::vector<OpenMS::TargetedExperiment::Peptide> PeptideVectorType;
-    typedef std::vector<OpenMS::TargetedExperiment::Compound> CompoundVectorType;
-    typedef std::vector<OpenMS::ReactionMonitoringTransition> TransitionVectorType;
+    //typedef std::vector<OpenMS::TargetedExperiment::Protein> ProteinVectorType;
+    //typedef std::vector<OpenMS::TargetedExperiment::Peptide> PeptideVectorType;
+    //typedef std::vector<OpenMS::TargetedExperiment::Compound> CompoundVectorType;
+    //typedef std::vector<OpenMS::ReactionMonitoringTransition> TransitionVectorType;
 
     // check that all proteins ids are unique
     std::map<String, int> unique_protein_map;

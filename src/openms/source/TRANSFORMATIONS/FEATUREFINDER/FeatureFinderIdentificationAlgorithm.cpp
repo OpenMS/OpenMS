@@ -1502,7 +1502,7 @@ namespace OpenMS
     }
     selection.resize(svm_n_samples_);
     // copy the selected subset back:
-    std::map<Size, Int> temp;
+    std::map<Size, double> temp;
     for (auto& sel : selection)
     {
       temp[sel] = training_labels[sel];

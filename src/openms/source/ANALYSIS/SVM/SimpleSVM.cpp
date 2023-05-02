@@ -119,7 +119,7 @@ void SimpleSVM::setup(PredictorMap& predictors, const map<Size, double>& outcome
   data_.y = new double[data_.l];
   map<double, Size> label_table;
   Size index = 0;
-  for (const auto& label : labels)
+  for (const auto& label : label_table)
   {
     if (label.first >= n_obs)
     {
