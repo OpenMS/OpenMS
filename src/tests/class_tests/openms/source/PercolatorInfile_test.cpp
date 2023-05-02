@@ -28,8 +28,8 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Hendrik Weisser $
-// $Authors: Hendrik Weisser $
+// $Maintainer: Timo Sachsenberg $
+// $Authors: Timo Sachsenberg $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/CONCEPT/ClassTest.h>
