@@ -119,18 +119,18 @@ void SimpleSVM::setup(PredictorMap& predictors, const map<Size, double>& outcome
   data_.y = new double[data_.l];
   map<double, Size> label_table;
   Size index = 0;
-  for (const auto& label : label_table)
+  for (const auto& outcome : outcomes)
   {
-    if (label.first >= n_obs)
+    if (outcome.first >= n_obs)
     {
       String msg = "Invalid training index; there are only " + String(n_obs) +
         " observations.";
       throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                    msg, String(label.first));
+                                    msg, String(outcome.first));
     }
-    data_.x[index] = &(nodes_[label.first][0]);
-    data_.y[index] = double(label.second);
-    label_table[label.second]++;
+    data_.x[index] = &(nodes_[outcome.first][0]);
+    data_.y[index] = double(outcome.second);
+    label_table[outcome.second]++;
     ++index;
   }
 
