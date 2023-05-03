@@ -40,7 +40,7 @@
 #include <OpenMS/KERNEL/MassTrace.h>
 
 using namespace OpenMS;
-namespace FLASHDeconvQuantHelper
+namespace FLASHQuantHelper
 {
   /**
    * @brief Internal structure to store MassTrace and its additional information
@@ -76,117 +76,42 @@ namespace FLASHDeconvQuantHelper
         charge_(-1),
         intensity_(mt.computePeakArea()),
         isotope_index_(-1),
-        mass_(0), // determined mass after deconvolution. NOT monoisotopic but only decharged
-        trace_index_(0) // index of current trace (out of all input mass traces), thus not set here but after this construction
+        trace_index_(0), // index of current trace (out of all input mass traces), thus not set here but after this construction
+        mass_(0) // determined mass after deconvolution. NOT monoisotopic but only decharged
       {
         auto fwhm = mt.getFWHMborders();
         fwhm_start_ = mt[fwhm.first].getRT();
         fwhm_end_ = mt[fwhm.second].getRT();
       }
 
-    /// getter & setter
-    const MassTrace& getMassTrace() const
-    {
-      return mass_trace_;
-    }
+    /// default getter
+    const MassTrace& getMassTrace() const;
+    double getCentroidMz() const;
+    int getCharge() const;
+    double getFwhmStart() const;
+    double getFwhmEnd() const;
+    double getIntensity() const;
+    int getIsotopeIndex() const;
+    Size getTraceIndex() const;
+    double getMass() const;
 
-    double getCentroidMz() const
-    {
-      return centroid_mz_;
-    }
+    /// default setter
+    void setMassTrace(MassTrace &mt);
+    void setCentroidMz(double &mz);
+    void setCharge(int cs);
+    void setFwhmStart(double fwhm_s);
+    void setFwhmEnd(double fwhm_e);
+    void setIntensity(double inty);
+    void setIsotopeIndex(int idx);
+    void setTraceIndex(Size i);
+    void setMass(double mass);
 
-    int getCharge() const
-    {
-      return charge_;
-    }
+    /// calculating and setting uncharged mass
+    double getUnchargedMass();
 
-    double getFwhmStart() const
-    {
-      return fwhm_start_;
-    }
-
-    double getFwhmEnd() const
-    {
-      return fwhm_end_;
-    }
-
-    double getIntensity() const
-    {
-      return intensity_;
-    }
-
-    int getIsotopeIndex() const
-    {
-      return isotope_index_;
-    }
-
-    Size getTraceIndex() const
-    {
-      return trace_index_;
-    }
-
-    double getMass() const
-    {
-      return mass_;
-    }
-
-    void setMassTrace(MassTrace &mt)
-    {
-      mass_trace_ = mt;
-    }
-
-    void setCentroidMz(double &mz)
-    {
-      centroid_mz_ = mz;
-    }
-
-    void setCharge(int cs)
-    {
-      charge_ = cs;
-    }
-
-    void setFwhmStart(double fwhm_s)
-    {
-      fwhm_start_ = fwhm_s;
-    }
-
-    void setFwhmEnd(double fwhm_e)
-    {
-      fwhm_end_ = fwhm_e;
-    }
-
-    void setIntensity(double inty)
-    {
-      intensity_ = inty;
-    }
-
-    void setIsotopeIndex(int idx)
-    {
-      isotope_index_ = idx;
-    }
-
-    void setTraceIndex(Size i)
-    {
-      trace_index_ = i;
-    }
-
-    void setMass(double mass)
-    {
-      mass_ = mass;
-    }
-
-    double getUnchargedMass()
-    {
-      if (charge_ == 0)
-      {
-        return .0;
-      }
-      if (mass_ <= 0)
-      {
-        mass_ = (centroid_mz_ - Constants::PROTON_MASS_U) * charge_;
-      }
-      return mass_;
-    }
+    /// calculating retention time of 10% maximum (Apex) and area-under-the-curve until that point  (for FeatureGroupQuantity)
+    std::pair<Size, Size> computeBulkRetentionTimeRange() const;
+    double computeBulkPeakArea() const;
 
   private:
     MassTrace mass_trace_;
@@ -197,9 +122,9 @@ namespace FLASHDeconvQuantHelper
     double fwhm_end_;
     double intensity_;
     int isotope_index_;
+    Size trace_index_;
     // determined mass after deconvolution. NOT monoisotopic but only decharged
     double mass_;
-    Size trace_index_;
   };
 
   /**

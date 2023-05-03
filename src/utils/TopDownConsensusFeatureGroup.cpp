@@ -46,7 +46,7 @@ using namespace std;
 
 /**
   @page UTILS_TopDownConsensusFeatureGroup TopDownConsensusFeatureGroup
-  @brief TopDownConsensusFeatureGroup build ConsensusFeatureGroup from FLASHDeconvQ outputs
+  @brief TopDownConsensusFeatureGroup build ConsensusFeatureGroup from FLASHQuant outputs
 **/
 
 // We do not want this class to show up in the docu:
@@ -58,7 +58,7 @@ class TopDownConsensusFeatureGroup:
 {
 public:
   TopDownConsensusFeatureGroup():
-      TOPPBase("TopDownConsensusFeatureGroup", "TopDownConsensusFeatureGroup from FLASHDeconvQ", false, {}, false),
+      TOPPBase("TopDownConsensusFeatureGroup", "TopDownConsensusFeatureGroup from FLASHQuant", false, {}, false),
       ProgressLogger()
   {
   }
@@ -84,7 +84,7 @@ protected:
     setValidStrings_("mass_tol_unit", {"ppm", "dalton"});
     registerIntOption_("rt_tol", "<integer>", 180, "Retention time tolerance for MedianApexRetentionTime in second", false);
     setMinInt_("rt_tol", 0);
-    registerStringOption_("quant_method", "<choice>", "FeatureGroupQuantity", "Quantity value to use from FLASHDeconvQ result", false);
+    registerStringOption_("quant_method", "<choice>", "FeatureGroupQuantity", "Quantity value to use from FLASHQuant result", false);
     setValidStrings_("quant_method", {"FeatureGroupQuantity", "AllAreaUnderTheCurve", "SumIntensity"});
     registerStringOption_("consensus_as_input", "<choice>", "false", "Set it true when input files are consensus files", false);
     setValidStrings_("consensus_as_input", {"false", "true"});
@@ -93,9 +93,9 @@ protected:
   struct FeatureGroup
   {
     Size rep_index; /// replicate index
-    Size fgroup_index; /// FeatureGroupIndex in FLASHDeconvQ
-    double mass; /// MonoisotopicMass from FLASHDeconvQ
-    double apex_rt; /// MedianApexRetentionTime from FLASHDeconvQ
+    Size fgroup_index; /// FeatureGroupIndex in FLASHQuant
+    double mass; /// MonoisotopicMass from FLASHQuant
+    double apex_rt; /// MedianApexRetentionTime from FLASHQuant
     double abundance; /// Abundance from quant_option
 
     bool operator<(const FeatureGroup& fg) const
@@ -106,11 +106,11 @@ protected:
 
   struct ConsensusFeatureGroup
   {
-    double avg_mass; /// median of MonoisotopicMass from FLASHDeconvQ
-    double avg_apex_rt; /// MedianApexRetentionTime from FLASHDeconvQ
+    double avg_mass; /// median of MonoisotopicMass from FLASHQuant
+    double avg_apex_rt; /// MedianApexRetentionTime from FLASHQuant
     double cv;
-    std::vector<Size> fgroup_indices; /// FeatureGroupIndex in FLASHDeconvQ. Sorted by rep_index
-    std::vector<double> abundances; /// values of QUANT_METHOD in FLASHDeconvQ. Sorted by rep_index
+    std::vector<Size> fgroup_indices; /// FeatureGroupIndex in FLASHQuant. Sorted by rep_index
+    std::vector<double> abundances; /// values of QUANT_METHOD in FLASHQuant. Sorted by rep_index
 
     void calculate_cv()
     {
@@ -157,7 +157,7 @@ protected:
     os.close();
   }
 
-  void readFLASHDeconvQResultFile(String &filepath, std::vector<FeatureGroup> &out_fgroups, Size rep_index)
+  void readFLASHQuantResultFile(String &filepath, std::vector<FeatureGroup> &out_fgroups, Size rep_index)
   {
     std::vector<FeatureGroup> fgroups;
 
@@ -199,7 +199,7 @@ protected:
     out_fgroups.insert(out_fgroups.end(),fgroups.begin(),fgroups.end());
   }
 
-  void readFLASHDeconvQConsensusFile(String &filepath, std::vector<FeatureGroup> &out_fgroups, Size rep_index)
+  void readFLASHQuantConsensusFile(String &filepath, std::vector<FeatureGroup> &out_fgroups, Size rep_index)
   {
     std::vector<FeatureGroup> fgroups;
 
@@ -416,7 +416,7 @@ protected:
       for (Size i = 0; i < ins.size(); ++i)
       {
         OPENMS_LOG_INFO << ins[i] << " as File" << i ;
-        readFLASHDeconvQResultFile(ins[i], feat_groups, i);
+        readFLASHQuantResultFile(ins[i], feat_groups, i);
       }
     }
     else
@@ -424,7 +424,7 @@ protected:
       for (Size i = 0; i < ins.size(); ++i)
       {
         OPENMS_LOG_INFO << ins[i] << " as File" << i ;
-        readFLASHDeconvQConsensusFile(ins[i], feat_groups, i);
+        readFLASHQuantConsensusFile(ins[i], feat_groups, i);
       }
     }
 

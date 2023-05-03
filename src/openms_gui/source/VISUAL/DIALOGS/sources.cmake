@@ -7,8 +7,8 @@ DataFilterDialog.cpp
 DataFilterDialog.ui
 FeatureEditDialog.cpp
 FeatureEditDialog.ui
-		FLASHDeconvQTabWidget.cpp
-		FLASHDeconvQTabWidget.ui
+FLASHQuantTabWidget.cpp
+FLASHQuantTabWidget.ui
 HistogramDialog.cpp
 LayerStatisticsDialog.cpp
 LayerStatisticsDialog.ui

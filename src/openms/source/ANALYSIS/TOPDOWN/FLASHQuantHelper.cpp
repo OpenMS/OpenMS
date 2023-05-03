@@ -32,10 +32,178 @@
 // $Authors: Jihyung Kim $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/ANALYSIS/TOPDOWN/FLASHDeconvQuantHelper.h>
+#include <OpenMS/ANALYSIS/TOPDOWN/FLASHQuantHelper.h>
 
-namespace FLASHDeconvQuantHelper
+namespace FLASHQuantHelper
 {
+  /// getter & setter
+  const MassTrace& FeatureSeed::getMassTrace() const
+  {
+    return mass_trace_;
+  }
+
+  double FeatureSeed::getCentroidMz() const
+  {
+    return centroid_mz_;
+  }
+
+  int FeatureSeed::getCharge() const
+  {
+    return charge_;
+  }
+
+  double FeatureSeed::getFwhmStart() const
+  {
+    return fwhm_start_;
+  }
+
+  double FeatureSeed::getFwhmEnd() const
+  {
+    return fwhm_end_;
+  }
+
+  double FeatureSeed::getIntensity() const
+  {
+    return intensity_;
+  }
+
+  int FeatureSeed::getIsotopeIndex() const
+  {
+    return isotope_index_;
+  }
+
+  Size FeatureSeed::getTraceIndex() const
+  {
+    return trace_index_;
+  }
+
+  double FeatureSeed::getMass() const
+  {
+    return mass_;
+  }
+
+  void FeatureSeed::setMassTrace(MassTrace &mt)
+  {
+    mass_trace_ = mt;
+  }
+
+  void FeatureSeed::setCentroidMz(double &mz)
+  {
+    centroid_mz_ = mz;
+  }
+
+  void FeatureSeed::setCharge(int cs)
+  {
+    charge_ = cs;
+  }
+
+  void FeatureSeed::setFwhmStart(double fwhm_s)
+  {
+    fwhm_start_ = fwhm_s;
+  }
+
+  void FeatureSeed::setFwhmEnd(double fwhm_e)
+  {
+    fwhm_end_ = fwhm_e;
+  }
+
+  void FeatureSeed::setIntensity(double inty)
+  {
+    intensity_ = inty;
+  }
+
+  void FeatureSeed::setIsotopeIndex(int idx)
+  {
+    isotope_index_ = idx;
+  }
+
+  void FeatureSeed::setTraceIndex(Size i)
+  {
+    trace_index_ = i;
+  }
+
+  void FeatureSeed::setMass(double mass)
+  {
+    mass_ = mass;
+  }
+
+  double FeatureSeed::getUnchargedMass()
+  {
+    if (charge_ == 0)
+    {
+      return .0;
+    }
+    if (mass_ <= 0)
+    {
+      mass_ = (centroid_mz_ - Constants::PROTON_MASS_U) * charge_;
+    }
+    return mass_;
+  }
+
+  /// referenced: MassTrace::estimateFWHM
+  std::pair<Size, Size> FeatureSeed::computeBulkRetentionTimeRange() const
+  {
+    /// TODO: add smoothed version
+    bool use_smoothed_ints = false;
+
+    /// calculating retention time of 10% of maximum (Apex)
+    Size max_idx(mass_trace_.findMaxByIntPeak(use_smoothed_ints));
+
+    std::vector<double> tmp_ints;
+    for (Size vec_idx = 0; vec_idx < mass_trace_.getSize(); ++vec_idx)
+    {
+      tmp_ints.push_back(mass_trace_[vec_idx].getIntensity());
+    }
+
+    double inty_threshold(tmp_ints[max_idx] * 0.2); // 10 % of maximum
+
+    // mass trace is empty OR no points left of apex in mass trace OR no points right of apex in mass trace
+    if (tmp_ints.empty() || max_idx == 0 || max_idx == tmp_ints.size() - 1)
+    {
+      return std::make_pair(0, 0);
+    }
+
+    Size left_border(max_idx), right_border(max_idx);
+
+    while (left_border > 0 && tmp_ints[left_border] >= inty_threshold)
+    {
+      --left_border;
+    }
+
+    while (right_border + 1 < tmp_ints.size() && tmp_ints[right_border] >= inty_threshold)
+    {
+      ++right_border;
+    }
+
+    return std::make_pair(left_border, right_border);
+  }
+
+  /// referenced: MassTrace::computeFwhmArea()
+  double FeatureSeed::computeBulkPeakArea() const
+  {
+    /// calculating retention time of 10% of maximum (Apex)
+    std::pair<double, double> rt_index_pair = computeBulkRetentionTimeRange();
+
+    /// area-under-the-curve until 10% of maximum
+    double peak_area(0.0);
+
+    if (mass_trace_.getSize()==0) // if empty
+    {
+      return peak_area;
+    }
+    double int_before = mass_trace_[rt_index_pair.first].getIntensity();
+    double rt_before = mass_trace_[rt_index_pair.first].getRT();
+    // note: '<=' operator, since rt_index_pair are all inclusive!
+    for (Size i = rt_index_pair.first + 1; i <= rt_index_pair.second; ++i)
+    {
+      peak_area += (int_before + mass_trace_[i].getIntensity())/2 * (mass_trace_[i].getRT() - rt_before);
+      int_before = mass_trace_[i].getIntensity();
+      rt_before = mass_trace_[i].getRT();
+    }
+
+    return peak_area;
+  }
+
   /// comparison operators (using monoisotopic_mass_)
   bool FeatureGroup::operator<(const FeatureGroup &a) const
   {
@@ -344,7 +512,6 @@ namespace FLASHDeconvQuantHelper
     }
   }
 
-  // TODO: need to find a smarter way
   bool FeatureGroup::doesThisChargeExist(int charge) const
   {
     bool exist = false;

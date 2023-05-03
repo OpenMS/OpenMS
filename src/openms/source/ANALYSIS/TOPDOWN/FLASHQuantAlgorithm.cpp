@@ -32,7 +32,7 @@
 // $Authors: Jihyung Kim $
 // --------------------------------------------------------------------------
 
-#include <include/OpenMS/ANALYSIS/TOPDOWN/FLASHDeconvQuantAlgorithm.h>
+#include <include/OpenMS/ANALYSIS/TOPDOWN/FLASHQuantAlgorithm.h>
 #include <queue>
 #include <include/OpenMS/DATASTRUCTURES/Matrix.h>
 #include <include/OpenMS/TRANSFORMATIONS/FEATUREFINDER/EGHTraceFitter.h>
@@ -41,9 +41,9 @@
 
 namespace OpenMS
 {
-  FLASHDeconvQuantAlgorithm::FLASHDeconvQuantAlgorithm() :
+  FLASHQuantAlgorithm::FLASHQuantAlgorithm() :
       ProgressLogger(),
-      DefaultParamHandler("FLASHDeconvQuantAlgorithm")
+      DefaultParamHandler("FLASHQuantAlgorithm")
   {
     defaults_.setValue("local_rt_range", 15.0, "RT range where to look for coeluting mass traces", {"advanced"});
     defaults_.setValue("local_mz_range",
@@ -70,7 +70,7 @@ namespace OpenMS
     this->setLogType(CMD);
   }
 
-  void FLASHDeconvQuantAlgorithm::updateMembers_()
+  void FLASHQuantAlgorithm::updateMembers_()
   {
 //    local_rt_range_ = (double) param_.getValue("local_rt_range");
     local_mz_range_ = (double) param_.getValue("local_mz_range");
@@ -89,7 +89,7 @@ namespace OpenMS
     resolving_shared_signal_ = param_.getValue("resolving_shared_signal").toBool();
   }
 
-  Param FLASHDeconvQuantAlgorithm::getFLASHDeconvParams_() const
+  Param FLASHQuantAlgorithm::getFLASHDeconvParams_() const
   {
     Param fd_defaults = FLASHDeconvAlgorithm().getDefaults();
     // overwrite algorithm default so we export everything (important for copying back MSstats results)
@@ -104,17 +104,17 @@ namespace OpenMS
     return fd_defaults;
   }
 
-  void FLASHDeconvQuantAlgorithm::run(std::vector<MassTrace> &input_mtraces, std::vector<FeatureGroup>& out_fgs)
+  void FLASHQuantAlgorithm::run(std::vector<MassTrace> &input_mtraces, std::vector<FeatureGroup>& out_fgs)
   {
     // *********************************************************** //
     // Step 1 deconvolute mass traces
     // *********************************************************** //
 //    getFLASHDeconvConsensusResult();
 
-    if (Constants::C13C12_MASSDIFF_U * max_nr_traces_ / (int)charge_lower_bound_ < local_mz_range_)
-    {
-      local_mz_range_ = Constants::C13C12_MASSDIFF_U * (int)max_nr_traces_ / charge_lower_bound_;
-    }
+//    if (Constants::C13C12_MASSDIFF_U * max_nr_traces_ / (int)charge_lower_bound_ < local_mz_range_)
+//    {
+//      local_mz_range_ = Constants::C13C12_MASSDIFF_U * (int)max_nr_traces_ / charge_lower_bound_;
+//    }
 
     // initialize input & output
     std::vector<FeatureSeed> input_seeds;
@@ -137,7 +137,7 @@ namespace OpenMS
     updated_masstraces.clear();
 
     // sort input mass traces in RT
-    std::sort(input_seeds.begin(), input_seeds.end(), FLASHDeconvQuantHelper::CmpFeatureSeedByRT());
+    std::sort(input_seeds.begin(), input_seeds.end(), FLASHQuantHelper::CmpFeatureSeedByRT());
     std::vector<FeatureGroup> features;
     features.reserve(input_mtraces.size());
 
@@ -174,6 +174,7 @@ namespace OpenMS
       {
         setFeatureGroupScore_(f);
       }
+      OPENMS_LOG_INFO << "#Final feature groups: " << features.size() << endl;
     }
 
     // output
@@ -182,7 +183,7 @@ namespace OpenMS
     features.clear();
   }
 
-   void FLASHDeconvQuantAlgorithm::makeMSSpectrum_(std::vector<FeatureSeed *> &local_traces, MSSpectrum &spec, const double &rt) const
+   void FLASHQuantAlgorithm::makeMSSpectrum_(std::vector<FeatureSeed *> &local_traces, MSSpectrum &spec, const double &rt) const
   {
     for (auto &tmp_trace : local_traces)
     {
@@ -194,9 +195,9 @@ namespace OpenMS
     spec.sortByPosition();
   }
 
-  void FLASHDeconvQuantAlgorithm::setFeatureGroupMembersForResultWriting_(std::vector<FeatureGroup> &f_groups) const
+  void FLASHQuantAlgorithm::setFeatureGroupMembersForResultWriting_(std::vector<FeatureGroup> &f_groups) const
   {
-    // this cannot be done in FeatureGroup (in FLASHDeconvQuantHelper) due to some methods to be used only in here
+    // this cannot be done in FeatureGroup (in FLASHQuantHelper) due to some methods to be used only in here
 
     for (auto &fgroup : f_groups)
     {
@@ -238,7 +239,7 @@ namespace OpenMS
     }
   }
 
-  void FLASHDeconvQuantAlgorithm::getFeatureFromSpectrum_(std::vector<FeatureSeed *> &local_traces,
+  void FLASHQuantAlgorithm::getFeatureFromSpectrum_(std::vector<FeatureSeed *> &local_traces,
                                                           std::vector<FeatureGroup> &local_fgroup,
                                                           const double &rt)
   {
@@ -294,7 +295,7 @@ namespace OpenMS
      }
   }
 
-  double FLASHDeconvQuantAlgorithm::scoreMZ_(const MassTrace& tr1, const MassTrace& tr2, Size iso_pos, Size charge) const
+  double FLASHQuantAlgorithm::scoreMZ_(const MassTrace& tr1, const MassTrace& tr2, Size iso_pos, Size charge) const
   {
     double diff_mz(std::fabs(tr2.getCentroidMZ() - tr1.getCentroidMZ()));
 
@@ -320,7 +321,7 @@ namespace OpenMS
     return mz_score;
   }
 
-  double FLASHDeconvQuantAlgorithm::scoreRT_(const MassTrace& tr1, const MassTrace& tr2) const
+  double FLASHQuantAlgorithm::scoreRT_(const MassTrace& tr1, const MassTrace& tr2) const
   {
     std::map<double, std::vector<double> > coinciding_rts;
 
@@ -368,7 +369,7 @@ namespace OpenMS
     return computeCosineSim_(x, y);
   }
 
-  double FLASHDeconvQuantAlgorithm::computeCosineSim_(const std::vector<double>& x, const std::vector<double>& y) const
+  double FLASHQuantAlgorithm::computeCosineSim_(const std::vector<double>& x, const std::vector<double>& y) const
   {
     if (x.size() != y.size())
     {
@@ -391,7 +392,7 @@ namespace OpenMS
   }
 
 
-  bool FLASHDeconvQuantAlgorithm::doFWHMbordersOverlap_(const std::pair<double, double> &border1,
+  bool FLASHQuantAlgorithm::doFWHMbordersOverlap_(const std::pair<double, double> &border1,
                                                         const std::pair<double, double> &border2) const
   {
     if ((border1.first > border2.second) || (border2.first > border1.second))
@@ -405,7 +406,7 @@ namespace OpenMS
     return true;
   }
 
-  bool FLASHDeconvQuantAlgorithm::doMassTraceIndicesOverlap(const FeatureGroup &fg1, const FeatureGroup &fg2,
+  bool FLASHQuantAlgorithm::doMassTraceIndicesOverlap(const FeatureGroup &fg1, const FeatureGroup &fg2,
                                                             const double overlap_percentage_threshold, const bool charge_specific) const
   {
     // get overlapping charge states
@@ -466,7 +467,7 @@ namespace OpenMS
     return true;
   }
 
-  bool FLASHDeconvQuantAlgorithm::rescoreFeatureGroup_(FeatureGroup &fg) const
+  bool FLASHQuantAlgorithm::rescoreFeatureGroup_(FeatureGroup &fg) const
   {
     if ((!scoreAndFilterFeatureGroup_(fg)))
     {
@@ -479,7 +480,7 @@ namespace OpenMS
     return true;
   }
 
-  bool FLASHDeconvQuantAlgorithm::scoreAndFilterFeatureGroup_(FeatureGroup &fg, double min_iso_score) const
+  bool FLASHQuantAlgorithm::scoreAndFilterFeatureGroup_(FeatureGroup &fg, double min_iso_score) const
   {
     /// based on: FLASHDeconvAlgorithm::scoreAndFilterPeakGroups_()
     /// return false when scoring is not done (filtered out)
@@ -529,7 +530,7 @@ namespace OpenMS
     return true;
   }
 
-  void FLASHDeconvQuantAlgorithm::setFeatureGroupScore_(FeatureGroup &fg) const
+  void FLASHQuantAlgorithm::setFeatureGroupScore_(FeatureGroup &fg) const
   {
     /// setting per_isotope_score
     auto iso_dist = iso_model_.get(fg.getMonoisotopicMass());
@@ -613,7 +614,7 @@ namespace OpenMS
     fg.setFeatureGroupScore(feature_score);
   }
 
-  void FLASHDeconvQuantAlgorithm::refineFeatureGroups_(std::vector<FeatureGroup> &in_features)
+  void FLASHQuantAlgorithm::refineFeatureGroups_(std::vector<FeatureGroup> &in_features)
   {
     // change min, max charges based on built FeatureGroups (for later use in scoring)
     int min_abs_charge = INT_MAX;
@@ -658,7 +659,7 @@ namespace OpenMS
       this->setProgress(initial_size - in_feature_ptrs.size());
 
       // get a feature with the highest Intensity
-      auto candidate_fg_pointer = std::max_element(in_feature_ptrs.begin(), in_feature_ptrs.end(), FLASHDeconvQuantHelper::CmpFeatureGroupByScore());
+      auto candidate_fg_pointer = std::max_element(in_feature_ptrs.begin(), in_feature_ptrs.end(), FLASHQuantHelper::CmpFeatureGroupByScore());
       auto candidate_fg = *candidate_fg_pointer;
 
       // get all features within mass_tol from candidate FeatureGroup
@@ -668,8 +669,8 @@ namespace OpenMS
       FeatureGroup lower_fg(candidate_fg->getMonoisotopicMass() - 10);
       FeatureGroup upper_fg(candidate_fg->getMonoisotopicMass() + 10);
 
-      low_it = std::lower_bound(in_feature_ptrs.begin(), in_feature_ptrs.end(), &lower_fg, FLASHDeconvQuantHelper::CmpFeatureGroupPointersByMass());
-      up_it = std::upper_bound(in_feature_ptrs.begin(), in_feature_ptrs.end(), &upper_fg, FLASHDeconvQuantHelper::CmpFeatureGroupPointersByMass());
+      low_it = std::lower_bound(in_feature_ptrs.begin(), in_feature_ptrs.end(), &lower_fg, FLASHQuantHelper::CmpFeatureGroupPointersByMass());
+      up_it = std::upper_bound(in_feature_ptrs.begin(), in_feature_ptrs.end(), &upper_fg, FLASHQuantHelper::CmpFeatureGroupPointersByMass());
 
       // no matching in features (found only candidate itself)
       if (up_it - low_it == 1)
@@ -731,7 +732,7 @@ namespace OpenMS
       }
 
       // sort mts_to_add by abundance
-      std::sort(mts_to_add.begin(), mts_to_add.end(), FLASHDeconvQuantHelper::CmpFeatureSeedByIntensity());
+      std::sort(mts_to_add.begin(), mts_to_add.end(), FLASHQuantHelper::CmpFeatureSeedByIntensity());
 
       // add extra masstraces to candidate_feature
       FeatureGroup final_candidate_fg(*candidate_fg); // copy of candidate_feature
@@ -830,7 +831,7 @@ namespace OpenMS
     in_features.swap(out_feature);
   }
 
-  void FLASHDeconvQuantAlgorithm:: buildMassTraceGroups_(std::vector<FeatureSeed> &mtraces, std::vector<FeatureGroup> &features)
+  void FLASHQuantAlgorithm:: buildMassTraceGroups_(std::vector<FeatureSeed> &mtraces, std::vector<FeatureGroup> &features)
   {
     /// FLASHDeconvAlgorithm setting
     Param fd_defaults = getFLASHDeconvParams_();
@@ -914,7 +915,7 @@ namespace OpenMS
       }
 
       // sort local traces in mz
-      sort(local_traces.begin(), local_traces.end(), FLASHDeconvQuantHelper::CmpFeatureSeedByMZ());
+      sort(local_traces.begin(), local_traces.end(), FLASHQuantHelper::CmpFeatureSeedByMZ());
 
       std::vector<FeatureGroup> local_fgroup;
       getFeatureFromSpectrum_(local_traces, local_fgroup, end_of_current_rt_window);
@@ -942,7 +943,7 @@ namespace OpenMS
   }
 
   /// cluster FeatureGroups with shared mass traces, and resolve the shared ones. If not, report as output
-  void FLASHDeconvQuantAlgorithm::clusterFeatureGroups_(std::vector<FeatureGroup> &fgroups,
+  void FLASHQuantAlgorithm::clusterFeatureGroups_(std::vector<FeatureGroup> &fgroups,
                                                         std::vector<MassTrace> &input_mtraces)
   {
     // *********************************************************** //
@@ -1049,7 +1050,7 @@ namespace OpenMS
     std::swap(out_features, fgroups);
   }
 
-  void FLASHDeconvQuantAlgorithm::setOptionalDetailedOutput_()
+  void FLASHQuantAlgorithm::setOptionalDetailedOutput_()
   {
     String out_path = output_file_path_.substr(0, output_file_path_.find_last_of(".")) + "_shared.tsv";
     shared_out_stream_.open(out_path, std::fstream::out);
@@ -1057,7 +1058,7 @@ namespace OpenMS
     // shared = 0 (false), 1 (true, before resolution), 2(true, after resolution), 3(theoretical shape)
   }
 
-  void FLASHDeconvQuantAlgorithm::writeMassTracesOfFeatureGroup_(const FeatureGroup &fgroup,
+  void FLASHQuantAlgorithm::writeMassTracesOfFeatureGroup_(const FeatureGroup &fgroup,
                                                                  const Size &fgroup_idx,
                                                                  const std::vector<std::vector<Size>> &shared_m_traces_indices,
                                                                  const bool &is_before_resolution)
@@ -1113,7 +1114,7 @@ namespace OpenMS
     }
   }
 
-  void FLASHDeconvQuantAlgorithm::writeTheoreticalShapeForConflictResolution_(const Size &fgroup_idx,
+  void FLASHQuantAlgorithm::writeTheoreticalShapeForConflictResolution_(const Size &fgroup_idx,
                                                                               const FeatureSeed &shared_mt,
                                                                               const std::vector<double> &theo_intensities,
                                                                               const double &calculated_ratio)
@@ -1149,7 +1150,7 @@ namespace OpenMS
                        << peaks + "\n";
   }
 
-  void FLASHDeconvQuantAlgorithm::filterOutIneligibleFeatureGroupsInCluster(std::vector<FeatureGroup>& feature_groups,
+  void FLASHQuantAlgorithm::filterOutIneligibleFeatureGroupsInCluster(std::vector<FeatureGroup>& feature_groups,
                                                                             std::vector<std::vector<Size>>& shared_m_traces_indices,
                                                                             std::set<Size>& candidate_fg_indices) const
   {
@@ -1271,7 +1272,7 @@ namespace OpenMS
     }
   }
 
-  void FLASHDeconvQuantAlgorithm::resolveConflictInCluster_(std::vector<FeatureGroup> &feature_groups,
+  void FLASHQuantAlgorithm::resolveConflictInCluster_(std::vector<FeatureGroup> &feature_groups,
                                                             std::vector<MassTrace> &input_masstraces,
                                                             std::vector<std::vector<Size>> &shared_m_traces_indices,
                                                             std::set<Size> &fg_indices_in_this_cluster,
@@ -1629,7 +1630,7 @@ namespace OpenMS
     }
   }
 
-  bool FLASHDeconvQuantAlgorithm::isEligibleFeatureForConflictResolution_(Feature &feat, std::vector<std::vector<Size>> &shared_m_traces_indices, FeatureGroup &feat_group) const
+  bool FLASHQuantAlgorithm::isEligibleFeatureForConflictResolution_(Feature &feat, std::vector<std::vector<Size>> &shared_m_traces_indices, FeatureGroup &feat_group) const
   {
     // check if this feature is composed of only shared mass traces
     if (feat.unique_traces.size() > 0)
@@ -1651,7 +1652,7 @@ namespace OpenMS
     return true;
   }
 
-  void FLASHDeconvQuantAlgorithm::resolveConflictRegion_(std::vector<Feature> &conflicting_features,
+  void FLASHQuantAlgorithm::resolveConflictRegion_(std::vector<Feature> &conflicting_features,
                                                          const std::vector<MassTrace> &conflicting_mts,
                                                          const std::vector<Size> &conflicting_mt_indices)
   {
@@ -1767,7 +1768,7 @@ namespace OpenMS
     components.clear();
   }
 
-  void FLASHDeconvQuantAlgorithm::updateFeatureWithFitModel(std::vector<Feature>& conflicting_features, Size mt_index,
+  void FLASHQuantAlgorithm::updateFeatureWithFitModel(std::vector<Feature>& conflicting_features, Size mt_index,
                                                             const MassTrace& obs_masstrace, const Size& org_index_of_obs_mt,
                                                             Matrix<int>& pointer_to_components, vector<std::vector<double>>& components)
   {
@@ -1865,7 +1866,7 @@ namespace OpenMS
   }
 
   // modified ElutionModelFitter::fitElutionModels
-  void FLASHDeconvQuantAlgorithm::fitTraceModelFromUniqueTraces_(FLASHDeconvQuantHelper::Feature const& tmp_feat, EGHTraceFitter* fitter) const
+  void FLASHQuantAlgorithm::fitTraceModelFromUniqueTraces_(FLASHQuantHelper::Feature const& tmp_feat, EGHTraceFitter* fitter) const
   {
     Size mass_traces_size = tmp_feat.unique_traces.size();
 
@@ -1912,7 +1913,7 @@ namespace OpenMS
   }
 
   // update MassTrace
-  MassTrace FLASHDeconvQuantAlgorithm::updateMassTrace_(const MassTrace& ref_trace, const double &ratio) const
+  MassTrace FLASHQuantAlgorithm::updateMassTrace_(const MassTrace& ref_trace, const double &ratio) const
   {
     /// reference = ElutionPeakDetection::detectElutionPeaks_ (step3)
     // if ratio = 0, return empty MassTrace
@@ -1947,7 +1948,7 @@ namespace OpenMS
   }
 
   // from ElutionModelFitter.
-  void FLASHDeconvQuantAlgorithm::runElutionModelFit_(FeatureFinderAlgorithmPickedHelperStructs::MassTraces &m_traces,
+  void FLASHQuantAlgorithm::runElutionModelFit_(FeatureFinderAlgorithmPickedHelperStructs::MassTraces &m_traces,
                                                       EGHTraceFitter *fitter) const
   {
     // find the trace with maximal intensity:
@@ -1987,7 +1988,7 @@ namespace OpenMS
     //    double upper_rt_bound = fitter->getUpperRTBound();
   }
 
-  void FLASHDeconvQuantAlgorithm::getMostAbundantMassTraceFromFeatureGroup_(const FeatureGroup &fgroup,
+  void FLASHQuantAlgorithm::getMostAbundantMassTraceFromFeatureGroup_(const FeatureGroup &fgroup,
                                                                   const int &skip_this_charge,
                                                                   FeatureSeed *&most_abundant_mt_ptr,
                                                                   const std::vector<std::vector<Size>> &shared_m_traces) const
@@ -2016,7 +2017,7 @@ namespace OpenMS
     }
   }
 
-  void FLASHDeconvQuantAlgorithm::getFLASHDeconvConsensusResult()
+  void FLASHQuantAlgorithm::getFLASHDeconvConsensusResult()
   {
     with_target_masses_ = true;
     std::fstream fin;
@@ -2035,7 +2036,7 @@ namespace OpenMS
     fin.close();
   }
 
-  bool FLASHDeconvQuantAlgorithm::isThisMassOneOfTargets_(const double &candi_mass, const double &candi_rt) const
+  bool FLASHQuantAlgorithm::isThisMassOneOfTargets_(const double &candi_mass, const double &candi_rt) const
   {
     auto low_it = std::lower_bound(target_masses_.begin(), target_masses_.end(), std::make_pair(candi_mass - 1.5, .0));
     auto up_it = std::upper_bound(target_masses_.begin(), target_masses_.end(), std::make_pair(candi_mass + 1.5, .0));

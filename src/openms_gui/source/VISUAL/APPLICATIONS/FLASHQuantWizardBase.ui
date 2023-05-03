@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>FLASHDeconvQWizardBase</class>
- <widget class="QMainWindow" name="FLASHDeconvQWizardBase">
+ <class>FLASHQuantWizardBase</class>
+ <widget class="QMainWindow" name="FLASHQuantWizardBase">
   <property name="geometry">
    <rect>
     <x>0</x>
@@ -42,7 +42,7 @@
    <attribute name="toolBarBreak">
     <bool>false</bool>
    </attribute>
-   <addaction name="actionVisit_FLASHDeconvQ_homepage"/>
+   <addaction name="actionVisit_FLASHQuant_homepage"/>
    <addaction name="separator"/>
    <addaction name="actionReport_new_issue"/>
   </widget>
@@ -65,9 +65,9 @@
     <string>Ctrl+I</string>
    </property>
   </action>
-  <action name="actionVisit_FLASHDeconvQ_homepage">
+  <action name="actionVisit_FLASHQuant_homepage">
    <property name="text">
-    <string>Visit FLASHDeconvQ homepage</string>
+    <string>Visit FLASHQuant homepage</string>
    </property>
    <property name="toolTip">
     <string>Open the homepage for tutorials, examples and latest news</string>

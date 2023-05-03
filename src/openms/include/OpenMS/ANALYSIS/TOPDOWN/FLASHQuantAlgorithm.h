@@ -34,48 +34,49 @@
 
 #pragma once
 
-#include <OpenMS/CONCEPT/ProgressLogger.h>
-#include <OpenMS/KERNEL/MassTrace.h>
-#include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/IsotopeDistribution.h>
-#include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/CoarseIsotopePatternGenerator.h>
-#include <algorithm>
-#include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
-#include <OpenMS/DATASTRUCTURES/Matrix.h>
 #include "boost/dynamic_bitset.hpp"
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithmPickedHelperStructs.h>
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/TraceFitter.h>
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/EGHTraceFitter.h>
+
 #include <OpenMS/ANALYSIS/TOPDOWN/FLASHDeconvAlgorithm.h>
 #include <OpenMS/ANALYSIS/TOPDOWN/FLASHDeconvHelperStructs.h>
+#include <OpenMS/ANALYSIS/TOPDOWN/FLASHQuantHelper.h>
+#include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/CoarseIsotopePatternGenerator.h>
+#include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/IsotopeDistribution.h>
+#include <OpenMS/CONCEPT/ProgressLogger.h>
+#include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
+#include <OpenMS/DATASTRUCTURES/Matrix.h>
+#include <OpenMS/KERNEL/MassTrace.h>
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/EGHTraceFitter.h>
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithmPickedHelperStructs.h>
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/TraceFitter.h>
+#include <algorithm>
 #include <fstream>
-#include <OpenMS/ANALYSIS/TOPDOWN/FLASHDeconvQuantHelper.h>
 
 using namespace std;
 namespace OpenMS
 {
-  class OPENMS_DLLAPI FLASHDeconvQuantAlgorithm :
+  class OPENMS_DLLAPI FLASHQuantAlgorithm :
       public ProgressLogger,
       public DefaultParamHandler
 {
   public:
-    typedef FLASHDeconvQuantHelper::FeatureSeed FeatureSeed;
-    typedef FLASHDeconvQuantHelper::FeatureGroup FeatureGroup;
-    typedef FLASHDeconvQuantHelper::Feature Feature;
+    typedef FLASHQuantHelper::FeatureSeed FeatureSeed;
+    typedef FLASHQuantHelper::FeatureGroup FeatureGroup;
+    typedef FLASHQuantHelper::Feature Feature;
 
     /// Default constructor
-    FLASHDeconvQuantAlgorithm();
+    FLASHQuantAlgorithm();
 
     /// Default destructor
-    ~FLASHDeconvQuantAlgorithm() = default;
+    ~FLASHQuantAlgorithm() = default;
 
     /// copy constructor
-    FLASHDeconvQuantAlgorithm(const FLASHDeconvQuantAlgorithm& ) = delete;
+    FLASHQuantAlgorithm(const FLASHQuantAlgorithm& ) = delete;
 
     /// move constructor
-    FLASHDeconvQuantAlgorithm(FLASHDeconvQuantAlgorithm&& other) = default;
+    FLASHQuantAlgorithm(FLASHQuantAlgorithm&& other) = default;
 
     /// assignment operator
-    FLASHDeconvQuantAlgorithm& operator=(const FLASHDeconvQuantAlgorithm& fd);
+    FLASHQuantAlgorithm& operator=(const FLASHQuantAlgorithm& fd);
 
     /// main method of FeatureFindingMetabo
     void run(std::vector<MassTrace> &input_mtraces, std::vector<FeatureGroup> &out_fgroups);

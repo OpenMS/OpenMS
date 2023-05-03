@@ -18,7 +18,7 @@ ERPairFinder
 FeatureFinderMetaboIdent
 FFEval
 FLASHDeconv2FeatureXML
-FLASHDeconvQ
+FLASHQuant
 FuzzyDiff
 IDDecoyProbability
 IDExtractor

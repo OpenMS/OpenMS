@@ -32,23 +32,20 @@
 // $Authors: Jihyung Kim $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/VISUAL/DIALOGS/FLASHDeconvQTabWidget.h>
-#include <ui_FLASHDeconvQTabWidget.h>
-
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/ParamXMLFile.h>
 #include <OpenMS/SYSTEM/File.h>
-
-#include <QtCore/QDateTime>
-#include <QtCore/QDir>
+#include <OpenMS/VISUAL/DIALOGS/FLASHQuantTabWidget.h>
+#include <QDesktopServices>
 #include <QMessageBox>
 #include <QProcess>
 #include <QProgressDialog>
 #include <QSignalBlocker>
-#include <QDesktopServices>
-
+#include <QtCore/QDateTime>
+#include <QtCore/QDir>
 #include <algorithm>
+#include <ui_FLASHQuantTabWidget.h>
 
 using namespace std;
 
@@ -57,7 +54,7 @@ namespace OpenMS
   namespace Internal
   {
 
-    FLASHDeconvQGUILock::FLASHDeconvQGUILock(FLASHDeconvQTabWidget* ftw)
+    FLASHQuantGUILock::FLASHQuantGUILock(FLASHQuantTabWidget* ftw)
       :
       ftw_(ftw),
       old_(ftw->currentWidget()),
@@ -66,19 +63,19 @@ namespace OpenMS
       ftw->setCurrentWidget(ftw->ui->tab_log);
     }
 
-    FLASHDeconvQGUILock::~FLASHDeconvQGUILock()
+    FLASHQuantGUILock::~FLASHQuantGUILock()
     {
       ftw_->setCurrentWidget(old_);
     }
 
-    String getFLASHDeconvQExe()
+    String getFLASHQuantExe()
     {
-      return File::findSiblingTOPPExecutable("FLASHDeconvQ");
+      return File::findSiblingTOPPExecutable("FLASHQuant");
     }
 
     QString getFDDefaultOutDir()
     {
-      auto dir = QDir::homePath().append("/FLASHDeconvQOut");
+      auto dir = QDir::homePath().append("/FLASHQuantOut");
       if (!QDir().exists(dir)) QDir().mkpath(dir);
       return dir;
     }
@@ -88,9 +85,9 @@ namespace OpenMS
       return File::findSiblingTOPPExecutable("TopDownConsensusFeatureGroup");
     }
 
-    FLASHDeconvQTabWidget::FLASHDeconvQTabWidget(QWidget* parent) :
+    FLASHQuantTabWidget::FLASHQuantTabWidget(QWidget* parent) :
         QTabWidget(parent),
-        ui(new Ui::FLASHDeconvQTabWidget),
+        ui(new Ui::FLASHQuantTabWidget),
         ep_([&](const String& out) {writeLog_(out.toQString());},
             [&](const String& out) {writeLog_(out.toQString());})
     {
@@ -99,7 +96,7 @@ namespace OpenMS
       writeLog_(QString("Welcome to the Wizard!"), Qt::darkGreen, true);
 
       // keep the group of input widgets in sync with respect to their current-working-dir, when browsing for new files
-      connect(ui->input_mzMLs, &InputFileList::updatedCWD, this, &FLASHDeconvQTabWidget::broadcastNewCWD_);
+      connect(ui->input_mzMLs, &InputFileList::updatedCWD, this, &FLASHQuantTabWidget::broadcastNewCWD_);
 
       // param setting
       setWidgetsfromFDDefaultParam_();
@@ -107,40 +104,40 @@ namespace OpenMS
       ui->out_dir->setDirectory(getFDDefaultOutDir());
     }
 
-    FLASHDeconvQTabWidget::~FLASHDeconvQTabWidget()
+    FLASHQuantTabWidget::~FLASHQuantTabWidget()
     {
       delete ui;
     }
 
-    QString FLASHDeconvQTabWidget::infileToFDQoutput(const String& infile, const String& extension) const
+    QString FLASHQuantTabWidget::infileToFDQoutput(const String& infile, const String& extension) const
     {
       String file_name = FileHandler::stripExtension(File::basename(infile)) + ".fdq." + extension;
       return getCurrentOutDir_() + "/" + file_name.toQString();
     }
 
-    StringList FLASHDeconvQTabWidget::getMzMLInputFiles() const
+    StringList FLASHQuantTabWidget::getMzMLInputFiles() const
     {
       return ui->input_mzMLs->getFilenames();
     }
 
-    void FLASHDeconvQTabWidget::on_run_fdq_clicked()
+    void FLASHQuantTabWidget::on_run_fdq_clicked()
     {
       if (!checkFDQInputReady_()) return;
-      
-      FLASHDeconvQGUILock lock(this); // forbid user interaction
+
+      FLASHQuantGUILock lock(this); // forbid user interaction
 
       // get parameter
-      updateFLASHDeconvQParamFromWidgets_();
+      updateFLASHQuantParamFromWidgets_();
       updateOutputParamFromWidgets_();
       Param fd_param;
-      fd_param.insert("FLASHDeconvQ:1:", flashdeconvq_param_);
+      fd_param.insert("FLASHQuant:1:", flashquant_param_);
 
       String tmp_ini = File::getTemporaryFile();
 
       StringList in_mzMLs = getMzMLInputFiles();
-      writeLog_(QString("Starting FLASHDeconvQ with %1 mzML file(s)").arg(in_mzMLs.size()), Qt::darkGreen, true);
-      
-      QProgressDialog progress("Running FLASHDeconvQ ", "Abort ...", 0, (int)in_mzMLs.size(), this);
+      writeLog_(QString("Starting FLASHQuant with %1 mzML file(s)").arg(in_mzMLs.size()), Qt::darkGreen, true);
+
+      QProgressDialog progress("Running FLASHQuant ", "Abort ...", 0, (int)in_mzMLs.size(), this);
       progress.setWindowModality(Qt::ApplicationModal);
       progress.setMinimumDuration(0); // show immediately
       progress.setValue(0);
@@ -159,7 +156,7 @@ namespace OpenMS
         }
 
         auto r = ep_.run(this,
-                         getFLASHDeconvQExe().toQString(),
+                         getFLASHQuantExe().toQString(),
                          full_param_string,
                          "",
                          true);
@@ -167,7 +164,7 @@ namespace OpenMS
         if (progress.wasCanceled()) break;
         progress.setValue(++step);
       } // mzML loop
-      
+
       progress.close();
 
       /// consensus feature group calculation
@@ -177,12 +174,12 @@ namespace OpenMS
       }
     }
 
-    void FLASHDeconvQTabWidget::on_open_output_directory_clicked()
+    void FLASHQuantTabWidget::on_open_output_directory_clicked()
     {
       QDesktopServices::openUrl( QUrl::fromLocalFile(getCurrentOutDir_()) );
     }
 
-    void FLASHDeconvQTabWidget::on_consensus_names_check_clicked()
+    void FLASHQuantTabWidget::on_consensus_names_check_clicked()
     {
       // TODO: if checkbox is checked, edit parameter part comes down...
 
@@ -226,12 +223,12 @@ namespace OpenMS
       qmsg_box.exec();
     }
 
-    void FLASHDeconvQTabWidget::updateFLASHDeconvQParamFromWidgets_()
+    void FLASHQuantTabWidget::updateFLASHQuantParamFromWidgets_()
     {
       ui->list_editor->store();
     }
 
-    void FLASHDeconvQTabWidget::updateOutputParamFromWidgets_()
+    void FLASHQuantTabWidget::updateOutputParamFromWidgets_()
     {
       // refresh output params with default values
       featurexml_output_ = false;
@@ -243,32 +240,32 @@ namespace OpenMS
       }
     }
 
-    void FLASHDeconvQTabWidget::setWidgetsfromFDDefaultParam_()
+    void FLASHQuantTabWidget::setWidgetsfromFDDefaultParam_()
     {
-      // create a default INI of FLASHDeconvQ
+      // create a default INI of FLASHQuant
       String tmp_file = File::getTemporaryFile();
-      if (ep_.run(this, getFLASHDeconvQExe().toQString(), QStringList() << "-write_ini" << tmp_file.toQString(), "", true) != ExternalProcess::RETURNSTATE::SUCCESS)
+      if (ep_.run(this, getFLASHQuantExe().toQString(), QStringList() << "-write_ini" << tmp_file.toQString(), "", true) != ExternalProcess::RETURNSTATE::SUCCESS)
       {
         exit(1);
       }
-      ParamXMLFile().load(tmp_file, flashdeconvq_param_);
-      flashdeconvq_param_ = flashdeconvq_param_.copy("FLASHDeconvQ:1:", true);
+      ParamXMLFile().load(tmp_file, flashquant_param_);
+      flashquant_param_ = flashquant_param_.copy("FLASHQuant:1:", true);
 
-      // parameters to show in default mode : flashdeconvq_param_wizard_
-      flashdeconvq_param_.remove("log");
-      flashdeconvq_param_.remove("no_progress");
-      flashdeconvq_param_.remove("debug");
-      flashdeconvq_param_.remove("in");
-      flashdeconvq_param_.remove("out");
+      // parameters to show in default mode : flashquant_param_wizard_
+      flashquant_param_.remove("log");
+      flashquant_param_.remove("no_progress");
+      flashquant_param_.remove("debug");
+      flashquant_param_.remove("in");
+      flashquant_param_.remove("out");
 
       // parameters for feature_xml
-      flashdeconvq_param_.remove("out_feat");
+      flashquant_param_.remove("out_feat");
       featurexml_output_ = false;
 
-      ui->list_editor->load(flashdeconvq_param_);
+      ui->list_editor->load(flashquant_param_);
     }
 
-    QString FLASHDeconvQTabWidget::getCurrentOutDir_() const
+    QString FLASHQuantTabWidget::getCurrentOutDir_() const
     {
       QString out_dir(ui->out_dir->dirNameValid() ?
         ui->out_dir->getDirectory() :
@@ -276,7 +273,7 @@ namespace OpenMS
       return out_dir;
     }
 
-    void FLASHDeconvQTabWidget::writeLog_(const QString& text, const QColor& color, bool new_section)
+    void FLASHQuantTabWidget::writeLog_(const QString& text, const QColor& color, bool new_section)
     {
       QColor tc = ui->log_text->textColor();
       if (new_section)
@@ -291,12 +288,12 @@ namespace OpenMS
       ui->log_text->setTextColor(tc); // restore old color
     }
 
-    void FLASHDeconvQTabWidget::writeLog_(const String& text, const QColor& color, bool new_section)
+    void FLASHQuantTabWidget::writeLog_(const String& text, const QColor& color, bool new_section)
     {
       writeLog_(text.toQString(), color, new_section);
     }
-    
-    bool FLASHDeconvQTabWidget::checkFDQInputReady_()
+
+    bool FLASHQuantTabWidget::checkFDQInputReady_()
     {
       if (ui->input_mzMLs->getFilenames().empty())
       {
@@ -307,7 +304,7 @@ namespace OpenMS
       return true;
     }
 
-    std::vector<std::vector<String>> FLASHDeconvQTabWidget::groupReplicateFiles_(String delimiter)
+    std::vector<std::vector<String>> FLASHQuantTabWidget::groupReplicateFiles_(String delimiter)
     {
       std::vector<String> candidates(ui->input_mzMLs->getFilenames());
       std::vector<std::vector<String>> file_groups;
@@ -356,7 +353,7 @@ namespace OpenMS
       return file_groups;
     }
 
-    void FLASHDeconvQTabWidget::runTopDownConsensusFeatureGroup_()
+    void FLASHQuantTabWidget::runTopDownConsensusFeatureGroup_()
     {
       writeLog_(QString("Starting TopDownConsensusFeatureGroup..."), Qt::darkGreen, true);
 
@@ -400,7 +397,7 @@ namespace OpenMS
       progress.close();
     }
 
-    void FLASHDeconvQTabWidget::broadcastNewCWD_(const QString& new_cwd)
+    void FLASHQuantTabWidget::broadcastNewCWD_(const QString& new_cwd)
     {
       // RAII to avoid infinite loop (setCWD signals updatedCWD which is connected to slot broadcastNewCWD_)
       QSignalBlocker blocker1(ui->input_mzMLs);

@@ -61,7 +61,7 @@ class QNetworkAccessManager;
 
 namespace Ui
 {
-  class FLASHDeconvQWizardBase;
+  class FLASHQuantWizardBase;
 }
 
 namespace OpenMS
@@ -70,7 +70,7 @@ namespace OpenMS
     @brief Main window of the FLASHDeconvWizard tool
 
   */
-  class OPENMS_GUI_DLLAPI FLASHDeconvQWizardBase:
+  class OPENMS_GUI_DLLAPI FLASHQuantWizardBase:
     public QMainWindow,
     public DefaultParamHandler
   {
@@ -78,9 +78,9 @@ namespace OpenMS
 
 public:
     /// Constructor
-    FLASHDeconvQWizardBase(QWidget* parent = nullptr);
+    FLASHQuantWizardBase(QWidget* parent = nullptr);
     /// Destructor
-    ~FLASHDeconvQWizardBase() override;
+    ~FLASHQuantWizardBase() override;
  
     void showAboutDialog();
 
@@ -101,11 +101,11 @@ protected:
   private slots:
     // names created by QtCreator. Do not change them.
     void on_actionExit_triggered();
-    void on_actionVisit_FLASHDeconvQ_homepage_triggered();
+    void on_actionVisit_FLASHQuant_homepage_triggered();
     void on_actionReport_new_issue_triggered();
 
   private:
-    Ui::FLASHDeconvQWizardBase* ui;
+    Ui::FLASHQuantWizardBase* ui;
   }; //class
 
 } //namespace

@@ -33,16 +33,16 @@
 // --------------------------------------------------------------------------
 
 /**
-  @page TOPP_FLASHDeconvQWizard FLASHDeconvQWizard
+  @page TOPP_FLASHQuantWizard FLASHQuantWizard
 
-  @brief An assistant for FLASHDeconvQ execution.
+  @brief An assistant for FLASHQuant execution.
 
   This Wizard is implemented based on SwathWizard.
-  The Wizard helps the user to run FLASHDeconvQ for Top-down proteomics analysis. (@ref TOPP_FLASHDeconvQ tool)
+  The Wizard helps the user to run FLASHQuant for Top-down proteomics analysis. (@ref TOPP_FLASHQuant tool)
 
   Users can enter the required input data (mzML MS/MS data) in dedicated fields, usually by drag'n'droping files from the
   operating systems' file explorer (Explorer, Nautilus, Finder...).
-  The main output of the Wizard is deconvoluted feature files (*.tsv) from FLASHDeconvQ.
+  The main output of the Wizard is deconvoluted feature files (*.tsv) from FLASHQuant.
   The optional output files in featureXML format is available as well.
 */
 
@@ -52,7 +52,7 @@
 //OpenMS
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/CONCEPT/VersionInfo.h>
-#include <OpenMS/VISUAL/APPLICATIONS/FLASHDeconvQWizardBase.h>
+#include <OpenMS/VISUAL/APPLICATIONS/FLASHQuantWizardBase.h>
 #include <OpenMS/VISUAL/APPLICATIONS/MISC/QApplicationTOPP.h>
 
 //STL
@@ -73,7 +73,7 @@ using namespace std;
 //-------------------------------------------------------------
 // command line name of this tool
 //-------------------------------------------------------------
-const char* tool_name = "FLASHDeconvQWizard";
+const char* tool_name = "FLASHQuantWizard";
 
 //-------------------------------------------------------------
 // description of the usage of this TOPP tool
@@ -82,7 +82,7 @@ const char* tool_name = "FLASHDeconvQWizard";
 void print_usage(Logger::LogStream& stream = OpenMS_Log_info)
 {
   stream << "\n"
-         << tool_name << " -- An assistant for FLASHDeconvQ." << "\n"
+         << tool_name << " -- An assistant for FLASHQuant." << "\n"
          << "\n"
          << "Usage:" << "\n"
          << " " << tool_name << " [options] [files]" << "\n"
@@ -136,7 +136,7 @@ int main(int argc, const char** argv)
   QApplicationTOPP a(argc, const_cast<char**>(argv));
   a.connect(&a, SIGNAL(lastWindowClosed()), &a, SLOT(quit()));
 
-  FLASHDeconvQWizardBase fw;
+  FLASHQuantWizardBase fw;
   fw.show();
 
 //  if (param.exists("ini"))

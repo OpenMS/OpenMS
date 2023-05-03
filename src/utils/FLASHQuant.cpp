@@ -32,19 +32,18 @@
 // $Authors: Jihyung Kim $
 // --------------------------------------------------------------------------
 
+#include <OpenMS/ANALYSIS/TOPDOWN/FLASHQuantAlgorithm.h>
+#include <OpenMS/ANALYSIS/TOPDOWN/FLASHQuantHelper.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 #include <OpenMS/CONCEPT/UniqueIdGenerator.h>
 #include <OpenMS/FILTERING/DATAREDUCTION/ElutionPeakDetection.h>
 #include <OpenMS/FILTERING/DATAREDUCTION/FeatureFindingMetabo.h>
 #include <OpenMS/FILTERING/DATAREDUCTION/MassTraceDetection.h>
-#include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/FORMAT/FeatureXMLFile.h>
+#include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/KERNEL/MassTrace.h>
-
-#include <OpenMS/ANALYSIS/TOPDOWN/FLASHDeconvQuantAlgorithm.h>
-#include <OpenMS/ANALYSIS/TOPDOWN/FLASHDeconvQuantHelper.h>
 
 
 using namespace OpenMS;
@@ -54,24 +53,24 @@ using namespace std;
 //Doxygen docu
 //-------------------------------------------------------------
 /**
-    @page TOPP_FLASHDeconvQ TOPP_FLASHDeconvQ
+    @page TOPP_FLASHQuant TOPP_FLASHQuant
 
-    @brief TOPP_FLASHDeconvQ The intact protein feature detection for quantification (centroided).
+    @brief TOPP_FLASHQuant The intact protein feature detection for quantification (centroided).
  */
 
 // We do not want this class to show up in the docu:
 /// @cond TOPPCLASSES
 
-class TOPPFLASHDeconvQ :
+class TOPPFLASHQuant :
     public TOPPBase,
     public ProgressLogger
 {
 public:
-  typedef FLASHDeconvQuantHelper::FeatureGroup FeatureGroup;
-  typedef FLASHDeconvQuantHelper::FeatureSeed FeatureSeed;
+  typedef FLASHQuantHelper::FeatureGroup FeatureGroup;
+  typedef FLASHQuantHelper::FeatureSeed FeatureSeed;
 
-  TOPPFLASHDeconvQ():
-    TOPPBase("FLASHDeconvQ", "The intact protein feature detection for quantification", false, {}, false), ProgressLogger()
+  TOPPFLASHQuant():
+    TOPPBase("FLASHQuant", "The intact protein feature detection for quantification", false, {}, false), ProgressLogger()
   {
     this->setLogType(CMD);
   }
@@ -111,9 +110,9 @@ protected:
     combined.insert("epd:", p_epd);
     combined.setSectionDescription("epd", "Elution Profile Detection (to separate isobaric Mass Traces by elution time).");
 
-    Param p_ffi = FLASHDeconvQuantAlgorithm().getDefaults();
+    Param p_ffi = FLASHQuantAlgorithm().getDefaults();
     combined.insert("fdq:", p_ffi);
-    combined.setSectionDescription("fdq", "FLASHDeconvQ parameters (assembling mass traces to charged features)");
+    combined.setSectionDescription("fdq", "FLASHQuant parameters (assembling mass traces to charged features)");
 
     return combined;
   }
@@ -223,12 +222,12 @@ protected:
                   "FeatureGroupQuantity\tAllAreaUnderTheCurve\tSumIntensity\tMinCharge\tMaxCharge\tChargeCount\tMostAbundantFeatureCharge\t"
                   "IsotopeCosineScore\tFeatureScore\n"; // mass_trace_ids\n";
 
-    bool use_smoothed_intensities = FLASHDeconvQuantAlgorithm().getDefaults().getValue("use_smoothed_intensities").toBool();
+//    bool use_smoothed_intensities = FLASHQuantuantAlgorithm().getDefaults().getValue("use_smoothed_intensities").toBool();
     int fg_index = 0;
     for (auto &fg : fgroups)
     {
       // intensities
-      double feature_quant = .0; // fwhm area under the curve
+      double feature_quant = .0; // "bulk" (until 10% of maximum) area under the curve
       double all_area = .0; // all area under the curve
 
       // centroid rt of apices from all MassTraces
@@ -253,14 +252,16 @@ protected:
         Size max_idx = lmt_ptr.findMaxByIntPeak(false);
         apex_rts.push_back(lmt_ptr[max_idx].getRT());
 
-        if (use_smoothed_intensities)
-        {
-          feature_quant += lmt_ptr.computeFwhmAreaSmooth();
-        }
-        else
-        {
-          feature_quant += lmt_ptr.computeFwhmArea();
-        }
+//        if (use_smoothed_intensities)
+//        {
+//          feature_quant += lmt_ptr.computeFwhmAreaSmooth();
+//        }
+//        else
+//        {
+//          feature_quant += lmt.computeBulkPeakArea();
+//        }
+        // calculate bulk area
+        feature_quant += lmt.computeBulkPeakArea();
 
         // to calculate area
         double previous_peak_inty = lmt_ptr[0].getIntensity();
@@ -289,15 +290,6 @@ protected:
       {
         centroid_rt_of_apices = (double) apex_rts[mts_count / 2];
       }
-
-      // MassTrace IDs
-//      stringstream labels_ss;
-//      for (auto& label : mass_trace_labels)
-//      {
-//        labels_ss << label << ";";
-//      }
-//      std::string labels_str = labels_ss.str();
-//      labels_str.pop_back();
 
       out_stream << fg_index++ << "\t" << infile_path << "\t"
                  << std::to_string(fg.getMonoisotopicMass()) << "\t" << std::to_string(fg.getAverageMass()) << "\t"
@@ -401,7 +393,7 @@ public:
     writeDebug_("Parameters passed to ElutionPeakDetection", epd_param, 3);
 
     Param fdq_param = getParam_().copy("algorithm:fdq:", true);
-    writeDebug_("Parameters passed to FLASHDeconvQ", fdq_param, 3);
+    writeDebug_("Parameters passed to FLASHQuant", fdq_param, 3);
 
     //-------------------------------------------------------------
     // Mass traces detection
@@ -436,7 +428,7 @@ public:
     //-------------------------------------------------------------
     // Feature finding
     //-------------------------------------------------------------
-    FLASHDeconvQuantAlgorithm fdq;
+    FLASHQuantAlgorithm fdq;
     fdq.setParameters(fdq_param);
     std::vector<FeatureGroup> out_fgroups;
 
@@ -473,7 +465,7 @@ public:
 
 int main(int argc, const char** argv)
 {
-  TOPPFLASHDeconvQ tool;
+  TOPPFLASHQuant tool;
   return tool.main(argc, argv);
 }
 

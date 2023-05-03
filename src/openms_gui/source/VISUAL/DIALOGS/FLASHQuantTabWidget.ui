@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>FLASHDeconvQTabWidget</class>
- <widget class="QTabWidget" name="FLASHDeconvQTabWidget">
+ <class>FLASHQuantTabWidget</class>
+ <widget class="QTabWidget" name="FLASHQuantTabWidget">
   <property name="geometry">
    <rect>
     <x>0</x>
@@ -90,7 +90,7 @@
   </widget>
   <widget class="QWidget" name="tab_run">
    <attribute name="title">
-    <string>Run FLASHDeconvQ</string>
+    <string>Run FLASHQuant</string>
    </attribute>
    <layout class="QVBoxLayout" name="verticalLayout_3" stretch="1,2,9">
     <item>
@@ -108,7 +108,7 @@
        <item>
         <widget class="QLabel" name="label_6">
          <property name="text">
-          <string>Select a directory to place the results into. Leaving this empty will place results in your $HOME/FLASHDeconvQOut directory.</string>
+          <string>Select a directory to place the results into. Leaving this empty will place results in your $HOME/FLASHQuantOut directory.</string>
          </property>
          <property name="wordWrap">
           <bool>true</bool>
@@ -228,7 +228,7 @@
        </sizepolicy>
       </property>
       <property name="title">
-       <string>Run FLASHDeconvQ</string>
+       <string>Run FLASHQuant</string>
       </property>
       <layout class="QGridLayout" name="gridLayout_2">
        <item row="1" column="0" colspan="2">

@@ -5,7 +5,7 @@ set(directory include/OpenMS/VISUAL/DIALOGS)
 set(sources_list_h
 DataFilterDialog.h
 FeatureEditDialog.h
-		FLASHDeconvQTabWidget.h
+FLASHQuantTabWidget.h
 HistogramDialog.h
 LayerStatisticsDialog.h
 ListFilterDialog.h

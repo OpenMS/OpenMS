@@ -3,7 +3,7 @@ set(directory source/VISUAL/APPLICATIONS/GUITOOLS)
 
 ### list GUI executables here
 set(GUI_executables
-		FLASHDeconvQWizard
+FLASHQuantWizard
 INIFileEditor
 SwathWizard
 TOPPAS

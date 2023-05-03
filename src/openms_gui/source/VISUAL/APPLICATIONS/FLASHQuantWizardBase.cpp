@@ -32,14 +32,13 @@
 // $Authors: Jihyung Kim $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/VISUAL/APPLICATIONS/FLASHDeconvQWizardBase.h>
-#include <ui_FLASHDeconvQWizardBase.h>
-
-#include <OpenMS/APPLICATIONS/ToolHandler.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
+#include <OpenMS/APPLICATIONS/ToolHandler.h>
 #include <OpenMS/CONCEPT/LogStream.h>
+#include <OpenMS/VISUAL/APPLICATIONS/FLASHQuantWizardBase.h>
 #include <OpenMS/VISUAL/APPLICATIONS/MISC/QApplicationTOPP.h>
-#include <OpenMS/VISUAL/DIALOGS/FLASHDeconvQTabWidget.h>
+#include <OpenMS/VISUAL/DIALOGS/FLASHQuantTabWidget.h>
+#include <ui_FLASHQuantWizardBase.h>
 
 //Qt
 #include <QtCore/QDir>
@@ -54,50 +53,50 @@ namespace OpenMS
 {
   using namespace Internal;
 
-  FLASHDeconvQWizardBase::FLASHDeconvQWizardBase(QWidget* parent) :
+  FLASHQuantWizardBase::FLASHQuantWizardBase(QWidget* parent) :
     QMainWindow(parent),
-    DefaultParamHandler("FLASHDeconvQWizardBase"),
+    DefaultParamHandler("FLASHQuantWizardBase"),
     //clipboard_scene_(nullptr),
-    ui(new Ui::FLASHDeconvQWizardBase)
+    ui(new Ui::FLASHQuantWizardBase)
   {
     ui->setupUi(this);
-    QSettings settings("OpenMS", "FLASHDeconvQWizard");
+    QSettings settings("OpenMS", "FLASHQuantWizard");
     restoreGeometry(settings.value("geometry").toByteArray());
     restoreState(settings.value("windowState").toByteArray());
-    setWindowTitle("FLASHDeconvQWizard");
+    setWindowTitle("FLASHQuantWizard");
     setWindowIcon(QIcon(":/FLASHDeconvWizard.png"));
 
-    FLASHDeconvQTabWidget* cwidget = new FLASHDeconvQTabWidget(this);
+    FLASHQuantTabWidget* cwidget = new FLASHQuantTabWidget(this);
     setCentralWidget(cwidget);
   }
 
 
-  FLASHDeconvQWizardBase::~FLASHDeconvQWizardBase()
+  FLASHQuantWizardBase::~FLASHQuantWizardBase()
   {
     delete ui;
   }
 
 
-  void FLASHDeconvQWizardBase::showAboutDialog()
+  void FLASHQuantWizardBase::showAboutDialog()
   {
-    QApplicationTOPP::showAboutDialog(this, "FLASHDeconvQWizard");
+    QApplicationTOPP::showAboutDialog(this, "FLASHQuantWizard");
   }
 
-  void OpenMS::FLASHDeconvQWizardBase::on_actionExit_triggered()
+  void OpenMS::FLASHQuantWizardBase::on_actionExit_triggered()
   {
       QApplicationTOPP::exit();
   }
 
-  void OpenMS::FLASHDeconvQWizardBase::on_actionVisit_FLASHDeconvQ_homepage_triggered()
+  void OpenMS::FLASHQuantWizardBase::on_actionVisit_FLASHQuant_homepage_triggered()
   {
-    const char* url = "https://www.openms.de/comp/flashdeconvq/";
+    const char* url = "https://www.openms.de/comp/FLASHQuant/";
     if (!QDesktopServices::openUrl(QUrl(url)))
     {
       QMessageBox::warning(0, "Cannot open browser. Please check your default browser settings.", QString(url));
     }
   }
 
-  void OpenMS::FLASHDeconvQWizardBase::on_actionReport_new_issue_triggered()
+  void OpenMS::FLASHQuantWizardBase::on_actionReport_new_issue_triggered()
   {
     const char* url = "https://github.com/OpenMS/OpenMS/issues"; // TODO: change?
     if (!QDesktopServices::openUrl(QUrl(url)))

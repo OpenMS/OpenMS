@@ -6,8 +6,8 @@ set(sources_list
 DeconvolvedSpectrum.cpp
 FLASHDeconvAlgorithm.cpp
 FLASHDeconvHelperStructs.cpp
-FLASHDeconvQuantAlgorithm.cpp
-FLASHDeconvQuantHelper.cpp
+FLASHQuantAlgorithm.cpp
+FLASHQuantHelper.cpp
 MassFeatureTrace.cpp
 PeakGroup.cpp
 QScore.cpp
