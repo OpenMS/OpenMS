@@ -167,8 +167,7 @@ namespace OpenMS
 
     bool isEligibleFeatureForConflictResolution_(Feature &new_feature, std::vector<std::vector<Size>> &shared_m_traces_indices, FeatureGroup &feat_group) const;
 
-    /// parameter stuff
-    double local_mz_range_;
+    /// default parameters
     Size charge_lower_bound_;
     Size charge_upper_bound_;
     double min_mass_;
@@ -176,8 +175,8 @@ namespace OpenMS
     double mz_tolerance_; // ppm
     bool resolving_shared_signal_;
 
-    const double mass_tolerance_da_ = 3; // Da, for feature mass collection
-    const double iso_da_distance_ = Constants::ISOTOPE_MASSDIFF_55K_U;
+    double mass_tolerance_da_; // Da, for feature mass collection
+    double iso_da_distance_ = Constants::ISOTOPE_MASSDIFF_55K_U;
 
     // advanced parameter?
     Size min_nr_mtraces_ = 3; // minimum number of consecutive bridges among mass traces to support feature
@@ -190,7 +189,7 @@ namespace OpenMS
     Size max_nr_traces_; // calculated from iso_model_ (setAveragineModel())
 
     /// cosine threshold between observed and theoretical isotope patterns for MS1
-    double min_isotope_cosine_ = 0.85;
+    double min_isotope_cosine_;
 
     /// FLASHDeconvAlgorithm class for deconvolution
     FLASHDeconvAlgorithm fd_;

@@ -45,16 +45,13 @@ namespace OpenMS
       ProgressLogger(),
       DefaultParamHandler("FLASHQuantAlgorithm")
   {
-    defaults_.setValue("local_rt_range", 15.0, "RT range where to look for coeluting mass traces", {"advanced"});
-    defaults_.setValue("local_mz_range",
-                       6.5,
-                       "MZ range where to look for isotopic mass traces",
-                       {"advanced"}); // (-> decides size of isotopes =(local_mz_range_ * lowest_charge))
     defaults_.setValue("charge_lower_bound", 5, "Lowest charge state to consider");
     defaults_.setValue("charge_upper_bound", 50, "Highest charge state to consider");
-    defaults_.setValue("min_mass", 10000, "minimim mass");
-    defaults_.setValue("max_mass", 70000, "maximum mass");
-    defaults_.setValue("mz_tol", 20, "ppm tolerance for m/z");
+    defaults_.setValue("min_mass", 10000, "Minimum mass (Da)");
+    defaults_.setValue("max_mass", 70000, "Maximum mass (Da)");
+    defaults_.setValue("mz_tol", 10, "ppm tolerance for m/z in deconvolution");
+    defaults_.setValue("mass_tol", 3, "Mass tolerance in Dalton for collecting similar feature groups into a single one");
+    defaults_.setValue("min_isotope_cosine", 0.85, "Cosine threshold between avg. and observed isotope pattern. Note that 0.8 is used for deconvolution", {"advanced"});
 
     defaults_.setValue("use_smoothed_intensities",
                        "true",
@@ -72,9 +69,6 @@ namespace OpenMS
 
   void FLASHQuantAlgorithm::updateMembers_()
   {
-//    local_rt_range_ = (double) param_.getValue("local_rt_range");
-    local_mz_range_ = (double) param_.getValue("local_mz_range");
-
     charge_lower_bound_ = (Size) param_.getValue("charge_lower_bound");
     charge_upper_bound_ = (Size) param_.getValue("charge_upper_bound");
 
@@ -82,7 +76,8 @@ namespace OpenMS
     max_mass_ = (double) param_.getValue("max_mass");
 
     mz_tolerance_ = (double) param_.getValue("mz_tol");
-    mz_tolerance_ *= 1e-6;
+    mass_tolerance_da_ = (double) param_.getValue("mass_tol");
+    min_isotope_cosine_ = (double) param_.getValue("min_isotope_cosine");
 
     use_smoothed_intensities_ = param_.getValue("use_smoothed_intensities").toBool();
     shared_output_requested_ = param_.getValue("out_shared_details").toBool();
@@ -99,7 +94,7 @@ namespace OpenMS
     fd_defaults.setValue("max_mass", max_mass_);
     fd_defaults.setValue("min_isotope_cosine", DoubleList{.8, .8});
 
-    fd_defaults.setValue("tol", DoubleList{10.0, 10.0});
+    fd_defaults.setValue("tol", DoubleList{mz_tolerance_, 10.0});
 
     return fd_defaults;
   }
