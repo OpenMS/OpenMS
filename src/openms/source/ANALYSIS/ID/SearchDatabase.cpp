@@ -37,6 +37,8 @@
 
 #include <OpenMS/CHEMISTRY/AAIndex.h>
 #include <OpenMS/CHEMISTRY/AASequence.h>
+#include <OpenMS/CHEMISTRY/ModificationsDB.h>
+#include <OpenMS/CHEMISTRY/ModifiedPeptideGenerator.h>
 #include <OpenMS/CHEMISTRY/ProteaseDB.h>
 #include <OpenMS/CHEMISTRY/ProteaseDigestion.h>
 #include <OpenMS/CHEMISTRY/TheoreticalSpectrumGenerator.h>
@@ -59,6 +61,10 @@ namespace OpenMS
 std::vector<SearchDatabase::Peptide_> SearchDatabase::generate_peptides_(const std::vector<FASTAFile::FASTAEntry>& entries) const
 {
   vector<SearchDatabase::Peptide_> all_peptides;
+
+  ModifiedPeptideGenerator::MapToResidueType fixed_modifications = ModifiedPeptideGenerator::getModifications(modifications_fixed_);
+  ModifiedPeptideGenerator::MapToResidueType variable_modifications = ModifiedPeptideGenerator::getModifications(modifications_variable_);
+
   #pragma omp parallel
   { 
     ProteaseDigestion digestor;
@@ -74,6 +80,22 @@ std::vector<SearchDatabase::Peptide_> SearchDatabase::generate_peptides_(const s
       for (const auto& pep : peptides)
       { 
         if (pep.toString().find('X') != string::npos) continue; // filtering peptide with unknown AA, can't calculate MonoWeight
+
+        vector<AASequence> modified_peptides;
+
+        AASequence modified_pep = pep;
+
+        ModifiedPeptideGenerator::applyFixedModifications(fixed_modifications, modified_pep);
+        ModifiedPeptideGenerator::applyVariableModifications(variable_modifications, modified_pep, max_variable_mods_per_peptide_, modified_peptides);
+
+        for (const auto & mod_pep : modified_peptides)
+        {
+          double mod_seq_mz = mod_pep.getMonoWeight();
+
+          if (!Math::contains(mod_seq_mz, peptide_min_mass_, peptide_max_mass_)) continue;
+
+          all_peptides_pvt.emplace_back(mod_pep, i, mod_seq_mz);
+        }
 
         double seq_mz = pep.getMonoWeight();
 
@@ -133,9 +155,11 @@ std::vector<SearchDatabase::Fragment_> SearchDatabase::generate_fragments_() con
 
 SearchDatabase::SearchDatabase(const std::vector<FASTAFile::FASTAEntry>& entries) : DefaultParamHandler("SearchDatabase")
 { 
-  vector<String> all_enzymes;
-  vector<string> tolerance_units{"Da", "ppm"};
+  vector<String> all_enzymes;  
   ProteaseDB::getInstance()->getAllNames(all_enzymes);
+  vector<String> all_mods;
+  ModificationsDB::getInstance()->getAllSearchModifications(all_mods);
+  vector<string> tolerance_units{"Da", "ppm"};
   defaults_.setValue("digestor_enzyme", "Trypsin", "Enzyme for digestion");
   defaults_.setValidStrings("digestor_enzyme", ListUtils::create<std::string>(all_enzymes));
   defaults_.setValue("missed_cleavages", 0, "missed cleavages for digestion");
@@ -151,6 +175,11 @@ SearchDatabase::SearchDatabase(const std::vector<FASTAFile::FASTAEntry>& entries
   defaults_.setValidStrings("precursor_mz_tolerance_unit", tolerance_units);
   defaults_.setValue("fragment_mz_tolerance_unit", "Da", "unit of tolerance for fragment-MZ");
   defaults_.setValidStrings("fragment_mz_tolerance_unit", tolerance_units);
+  defaults_.setValue("modifications_fixed", std::vector<std::string>{"Carbamidomethyl (C)"}, "Fixed modifications, specified using UniMod (www.unimod.org) terms, e.g. 'Carbamidomethyl (C)'");
+  defaults_.setValidStrings("modifications_fixed", ListUtils::create<std::string>(all_mods));
+  defaults_.setValue("modifications_variable", std::vector<std::string>{"Oxidation (M)"}, "Variable modifications, specified using UniMod (www.unimod.org) terms, e.g. 'Oxidation (M)'");
+  defaults_.setValidStrings("modifications_variable", ListUtils::create<std::string>(all_mods));
+  defaults_.setValue("max_variable_mods_per_peptide", 2, "Maximum number of residues carrying a variable modification per candidate peptide");  
 
   defaultsToParam_();
 
@@ -196,6 +225,9 @@ void SearchDatabase::updateMembers_()
   fragment_mz_tolerance_ = param_.getValue("fragment_mz_tolerance");
   precursor_mz_tolerance_unit_ = param_.getValue("precursor_mz_tolerance_unit").toString();
   fragment_mz_tolerance_unit_ = param_.getValue("fragment_mz_tolerance_unit").toString();
+  modifications_fixed_ = ListUtils::toStringList<std::string>(param_.getValue("modifications_fixed"));
+  modifications_variable_ = ListUtils::toStringList<std::string>(param_.getValue("modifications_variable"));
+  max_variable_mods_per_peptide_ = param_.getValue("max_variable_mods_per_peptide");
 }
 
 void SearchDatabase::search(MSSpectrum& spectrum, std::vector<SearchDatabase::Candidate>& candidates) const
