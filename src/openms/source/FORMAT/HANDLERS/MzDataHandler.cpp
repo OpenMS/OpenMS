@@ -1481,7 +1481,7 @@ namespace OpenMS::Internal
       meta.getKeys(keys);
       for (const auto& key : keys)
       {
-        if ((key)[0] != '#')             // internally used meta info start with '#'
+        if key[0] != '#')             // internally used meta info start with '#'
         {
           os << String(indent, '\t') << "<userParam name=\"" << key << "\" value=\"" << meta.getMetaValue(key) << "\"/>\n";
         }

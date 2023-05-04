@@ -781,8 +781,8 @@ namespace OpenMS::Math
       TextFile data_points;
       for (DPosition<3>& dpx : points)
       {
-        (dpx)[1] = ((dpx)[1] / ((decoy.size() + target.size())  * dividing_score));
-        (dpx)[2] = ((dpx)[2] / ((decoy.size() + target.size())  * dividing_score));
+        (dpx)[1] = dpx[1] / ((decoy.size() + target.size())  * dividing_score));
+        (dpx)[2] = dpx[2] / ((decoy.size() + target.size())  * dividing_score));
         String temp_ = (dpx)[0];
         temp_ += "\t";
         temp_ += (dpx)[1];
