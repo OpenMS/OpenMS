@@ -221,7 +221,7 @@ namespace OpenMS
         std::vector<Size> indices_passing;
         for (Size peak_idx = 0; peak_idx < it.size(); ++peak_idx)
         {
-          double tmp_peak_intit[peak_idx].getIntensity());
+          double tmp_peak_int(it[peak_idx].getIntensity());
           if (tmp_peak_int > noise_threshold_int_)
           {
             // Assume that noise_threshold_int_ contains the noise level of the
