@@ -301,7 +301,7 @@ START_SECTION((bool operator==(const Mobilogram& rhs) const))
 {
   Mobilogram edit, empty;
 
-  TEST_EQUAL(edit == empty, true);
+  TEST_TRUE(edit == empty);
 
   edit = empty;
   edit.resize(1);
@@ -320,7 +320,7 @@ START_SECTION((bool operator==(const Mobilogram& rhs) const))
   edit.push_back(p2);
   edit.updateRanges();
   edit.clear();
-  TEST_EQUAL(empty == edit, true);
+  TEST_TRUE(empty == edit);
 }
 END_SECTION
 
@@ -332,22 +332,22 @@ START_SECTION((bool operator!=(const Mobilogram& rhs) const))
 
   edit = empty;
   edit.resize(1);
-  TEST_EQUAL(edit != empty, true);
+  TEST_FALSE(edit == empty);
 
   edit = empty;
   edit.setDriftTimeUnit(DriftTimeUnit::MILLISECOND);
-  TEST_EQUAL(edit != empty, true);
+  TEST_FALSE(edit == empty);
 
   edit = empty;
   edit.setRT(5);
-  TEST_EQUAL(edit != empty, true);
+  TEST_FALSE(edit == empty);
 
   edit = empty;
   edit.push_back(p1);
   edit.push_back(p2);
   edit.updateRanges();
   edit.clear();
-  TEST_EQUAL(edit == empty, true);
+  TEST_TRUE(edit == empty);
 }
 END_SECTION
 

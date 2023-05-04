@@ -400,6 +400,11 @@ public:
       */
       void remove(std::ostream & s);
 
+      /**
+        Remove all streams associated to this LogStream, effectively silencing it.
+      */
+      void removeAllStreams();
+
       /// Add a notification target
       void insertNotification(std::ostream & s,
                               LogStreamNotifier & target);
