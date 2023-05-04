@@ -49,6 +49,9 @@
 #include <iterator>
 #include <cmath>
 #include <vector>
+#include <../thirdparty/simde/simde/x86/ssse3.h>
+#include <../thirdparty/simde/simde/x86/sse2.h>
+#include <../thirdparty/simde/simde/x86/sse.h>
 
 #include <QByteArray>
 #include <zlib.h>
@@ -165,6 +168,23 @@ private:
       UInt32 i;
     };
 
+    
+    const simde__m128i mask1 = simde_mm_set1_epi32(0x3F000000);//00111111 00000000 00000000 00000000
+    const simde__m128i mask2 = simde_mm_set1_epi32(0x003F0000);//00000000 00111111 00000000 00000000
+    const simde__m128i mask3 = simde_mm_set1_epi32(0x00003F00);//00000000 00000000 00111111 00000000
+    const simde__m128i mask4 = simde_mm_set1_epi32(0x0000003F);//00000000 00000000 00000000 00111111
+
+
+
+    const simde__m128i allA = simde_mm_set1_epi8('A');
+    const simde__m128i alla = simde_mm_set1_epi8('a' - 26);
+    const simde__m128i all0 = simde_mm_set1_epi8('0' - 52);
+    const simde__m128i allPlus = simde_mm_set1_epi8('+');
+    const simde__m128i allSlash = simde_mm_set1_epi8('/');
+
+    const simde__m128i shuffleMask = simde_mm_setr_epi8(2, 2, 1, 0, 5, 5, 4, 3, 8, 8, 7, 6, 11, 11, 10, 9);
+    const simde__m128i shuffleMask2 = simde_mm_setr_epi8(3,2,1,0,7,6,5,4,11,10,9,8,15,14,13,12);
+
     static const char encoder_[];
     static const char decoder_[];
     /// Decodes a Base64 string to a vector of floating point numbers
@@ -182,6 +202,8 @@ private:
     ///Decodes a compressed Base64 string to a vector of integer numbers
     template <typename ToType>
     static void decodeIntegersCompressed_(const String & in, ByteOrder from_byte_order, std::vector<ToType> & out);
+
+    void registerEncoder_(simde__m128i & data);
   };
 
   /// Endianizes a 32 bit type from big endian to little endian and vice versa
@@ -205,7 +227,36 @@ private:
            ((n << 40) & 0x00FF000000000000) | 
            ((n << 56) & 0xFF00000000000000);
   }
-  /////////////////////////////////////////////////add register encoder
+  /////////////////////////////////////////////////add register endianizer
+
+  void Base64::registerEncoder_(simde__m128i &data) {
+    data = simde_mm_shuffle_epi8(data, shuffleMask);
+    //by shuffling every 3 8bit ASCII Letters now take up 4 bytes, "ABC" gets shuffled to "CCBA" to match the 4 bytes of the Base64 Encoding, and deal with little Endianness.
+
+    data =   (simde_mm_srli_epi32(data, 2 ) & mask1) |
+             (simde_mm_srli_epi32(data, 4 ) & mask2) |
+             (simde_mm_srli_epi32(data, 6 ) & mask3) |
+             (data & mask4);
+
+    data = simde_mm_shuffle_epi8(data, shuffleMask2);
+
+
+    simde__m128i bigLetterMask= simde_mm_cmplt_epi8(data, _mm_set1_epi8(26)); // (a < b) ? 0xFF : 0x00
+    simde__m128i allMask= bigLetterMask;
+    simde__m128i smallLetterMask = simde_mm_andnot_si128(allMask, simde_mm_cmplt_epi8(data,simde_mm_set1_epi8(52))); //not allMask and  b where b is 0xFF if binaries are smaller than 52
+    allMask |= smallLetterMask;
+    simde__m128i numberMask = simde_mm_andnot_si128(allMask, simde_mm_cmplt_epi8(data, simde_mm_set1_epi8(62)));
+    allMask |= numberMask;
+    simde__m128i plusMask = simde_mm_andnot_si128(allMask, simde_mm_cmplt_epi8(data, simde_mm_set1_epi8(63)));
+    allMask |= plusMask;
+    simde__m128i & slashAntiMask = allMask;
+
+    data =  (bigLetterMask   & simde_mm_add_epi8(data, allA))|
+            (smallLetterMask & simde_mm_add_epi8(data, alla))|
+            (numberMask      & simde_mm_add_epi8(data, all0))|
+            (plusMask        & allPlus                      )|
+            (simde_mm_andnot_si128(slashAntiMask, allSlash));
+} 
 
   template <typename FromType>
   void Base64::encode(std::vector<FromType> & in, ByteOrder to_byte_order, String & out, bool zlib_compression)

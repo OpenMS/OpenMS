@@ -136,6 +136,7 @@ openms_add_library(TARGET_NAME  OpenMS
                    PRIVATE_INCLUDES ${EOL_BSPLINE_INCLUDE_DIRECTORY}
                                     ${ISOSPEC_INCLUDE_DIRECTORY}
                                     ${JSON_INCLUDE_DIRECTORY}
+                                    ${SIMDE_INCLUDE_DIRECTORY}
                    EXTERNAL_INCLUDES
                    LINK_LIBRARIES OpenSwathAlgo
                                   ${OPENMS_DEP_LIBRARIES}
