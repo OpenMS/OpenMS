@@ -56,7 +56,9 @@ if (CMAKE_COMPILER_IS_GNUCXX)
     -Wno-long-long 
     -Wno-unknown-pragmas
     -Wno-unused-function
-    -Wno-variadic-macros)
+    -Wno-variadic-macros
+    )
+  add_compile_options(-mssse3) #needed for simde instructions (base64 encoding)
 
   option(ENABLE_GCC_WERROR "Enable -WError on gcc compilers" OFF)
   if (ENABLE_GCC_WERROR)
@@ -112,7 +114,7 @@ elseif (MSVC)
 
   if (NOT OPENMS_64BIT_ARCHITECTURE)
     ## enable SSE1 on 32bit, on 64bit the compiler flag does not exist
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /arch:SSE")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /arch:native")
   endif()
   
 elseif ("${CMAKE_C_COMPILER_ID}" MATCHES "Clang")
@@ -152,6 +154,7 @@ elseif ("${CMAKE_C_COMPILER_ID}" MATCHES "Clang")
                   -Wno-covered-switch-default
                   -Wno-date-time
                   -Wno-missing-noreturn
+                  -mssse3 #needed for simde instructions
                   )
 else()
   set(CMAKE_COMPILER_IS_INTELCXX true CACHE INTERNAL "Is Intel C++ compiler (icpc)")
@@ -174,4 +177,3 @@ if (CXX_WARN_CONVERSION)
   endif()
 endif()
 message(STATUS "Compiler checks for conversion: ${CXX_WARN_CONVERSION}")
-

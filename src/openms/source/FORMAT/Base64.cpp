@@ -135,7 +135,7 @@ print s
     std::string compressed;
     Byte* it;
     Byte* end;
-    for (Size i = 0; i < in.size(); ++i)
+    for (Size i = 0; i < in.size(); ++i)      //////////////////////////move into compression
     {
       str = str.append(in[i]);
       if (append_null_byte)
@@ -144,7 +144,7 @@ print s
       }
     }
 
-    if (zlib_compression)
+    if (zlib_compression)                             ////////////////if compression, concatinate and do simple register encoding
     {
       unsigned long sourceLen =   (unsigned long)str.size();
       unsigned long compressed_length = //compressBound((unsigned long)str.size());
@@ -182,11 +182,14 @@ print s
       out.resize((Size)ceil(str.size() / 3.) * 4); //resize output array in order to have enough space for all characters
       it = reinterpret_cast<Byte*>(&str[0]);
       end = it + str.size();
+
+////////////////////////////////////////////////woah crazy vector encoder here
+
     }
     Byte* to = reinterpret_cast<Byte*>(&out[0]);
     Size written = 0;
 
-    while (it != end)
+    while (it != end)           ////////////////////////////////////////////////////delete while loop 
     {
       Int int_24bit = 0;
       Int padding_count = 0;
@@ -239,7 +242,7 @@ print s
     }
 
     QByteArray base64_uncompressed;
-    decodeSingleString(in, base64_uncompressed, zlib_compression);
+    decodeSingleString(in, base64_uncompressed, zlib_compression);    //////////////////////////////////////////////the magic happenes here
     QList<QByteArray> null_strings = base64_uncompressed.split('\0');
     for (QList<QByteArray>::iterator it = null_strings.begin(); it < null_strings.end(); ++it)
     {
@@ -258,7 +261,7 @@ print s
     {
       return;
     }
-
+    ////////////////////compare our decoding to QT decoding, and possibly decode first using simde, then copy into QByte Array
     QByteArray herewego = QByteArray::fromRawData(in.c_str(), (int) in.size());
     base64_uncompressed = QByteArray::fromBase64(herewego);
     if (zlib_compression)

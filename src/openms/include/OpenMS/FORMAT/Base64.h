@@ -205,6 +205,7 @@ private:
            ((n << 40) & 0x00FF000000000000) | 
            ((n << 56) & 0xFF00000000000000);
   }
+  /////////////////////////////////////////////////add register encoder
 
   template <typename FromType>
   void Base64::encode(std::vector<FromType> & in, ByteOrder to_byte_order, String & out, bool zlib_compression)
@@ -242,6 +243,7 @@ private:
           in[i] = tmp.f;
         }
       }
+      /////////////////////////endianize registerwise
     }
 
     //encode with compression
@@ -295,7 +297,7 @@ private:
 
     Size written = 0;
 
-    while (it != end)
+    while (it != end)     /////////////////////////////////////////////////replace whole while loop
     {
       Int int_24bit = 0;
       Int padding_count = 0;
@@ -333,7 +335,7 @@ private:
     out.resize(written);         //no more space is needed
   }
 
-  template <typename ToType>
+  template <typename ToType>  ////////////////////////////////////////////nothing to change here, magic happenes elsewhere
   void Base64::decode(const String & in, ByteOrder from_byte_order, std::vector<ToType> & out, bool zlib_compression)
   {
     if (zlib_compression)
@@ -356,6 +358,7 @@ private:
 
     String decompressed;
 
+    /////////////////////////////////////////////////////////////////////////////////////if faster: first encode then call fromRawData
     QByteArray qt_byte_array = QByteArray::fromRawData(in.c_str(), (int) in.size());
     QByteArray bazip = QByteArray::fromBase64(qt_byte_array);
     QByteArray czip;
@@ -399,6 +402,8 @@ private:
         UInt64 * p = reinterpret_cast<UInt64 *>(byte_buffer);
         std::transform(p, p + float_count, p, endianize64);
       }
+
+      ////////////////////////////////use faster register endianizer
     }
 
     // copy values
@@ -700,33 +705,9 @@ private:
         const Int64 * float_buffer = reinterpret_cast<const Int64 *>(byte_buffer);
 
         if (buffer_size % element_size != 0)
-          throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Bad BufferCount?");
-
-        Size float_count = buffer_size / element_size;
-
-        UInt64 * p = reinterpret_cast<UInt64 *>(byte_buffer);
-        std::transform(p, p + float_count, p, endianize64);
-
-        out.resize(float_count);
-        // do NOT use assign here, as it will give a lot of type conversion warnings on VS compiler
-        for (Size i = 0; i < float_count; ++i)
-        {
-          out[i] = (ToType) * float_buffer;
-          ++float_buffer;
+          throw Exception::ConversionError(__FILE__, __LINE_256
         }
-      }
-    }
-    else
-    {
-      if (element_size == 4)
-      {
-        const Int * float_buffer = reinterpret_cast<const Int *>(byte_buffer);
-        if (buffer_size % element_size != 0)
-          throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Bad BufferCount while decoding?");
-
-        Size float_count = buffer_size / element_size;
-        out.resize(float_count);
-        // do NOT use assign here, as it will give a lot of type conversion warnings on VS compiler
+      }256 conversion warnings on VS compiler
         for (Size i = 0; i < float_count; ++i)
         {
           out[i] = (ToType) * float_buffer;
