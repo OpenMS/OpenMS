@@ -138,7 +138,7 @@ namespace OpenMS
   IdentificationData::ScoreTypeRef
   MapAlignmentAlgorithmIdentification::handleIdDataScoreType_(const IdentificationData& id_data)
   {
-    IdentificationData::ScoreTypeRef score_ref = id_data.getScoreTypes().end();
+    IdentificationData::ScoreTypeRef score_ref;
     if (score_type_.empty()) // choose a score type
     {
       score_ref = id_data.pickScoreType(id_data.getObservationMatches());
@@ -285,9 +285,10 @@ namespace OpenMS
       temp.swap(medians_per_seq);
       computeMedians_(medians_per_seq, reference_);
     }
+
     if (reference_.empty())
     {
-      throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "No reference RT information left after filtering");
+      OPENMS_LOG_WARN << "No reference RT information left after filtering!" << endl;
     }
 
     double max_rt_shift = (double)param_.getValue("max_rt_shift");
@@ -329,8 +330,17 @@ namespace OpenMS
                  << i + 1 << " (reference)\n";
         offset = 1;
       }
+
       if (i >= size) break;
 
+      if (reference_.empty())
+      {
+        TransformationDescription trafo;
+        trafo.fitModel("identity");
+        transforms.push_back(trafo);
+        continue;
+      }
+                
       // to be useful for the alignment, a peptide sequence has to occur in the
       // current run ("medians_per_run[i]"), but also in at least one other run
       // ("medians_overall"):
@@ -358,7 +368,7 @@ namespace OpenMS
       OPENMS_LOG_INFO << "- " << data.size() << " data points for sample "
                << i + offset + 1;
       if (n_outliers) OPENMS_LOG_INFO << " (" << n_outliers << " outliers removed)";
-      OPENMS_LOG_INFO << "\n";
+      OPENMS_LOG_INFO << "\n";    
     }
     OPENMS_LOG_INFO << endl;
 

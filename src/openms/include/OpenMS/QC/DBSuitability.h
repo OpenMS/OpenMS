@@ -139,7 +139,7 @@ namespace OpenMS
       /// worse databases will have less IDs than good databases
       /// this punishes worse databases more than good ones and will result in
       /// a worse suitability
-      double corr_factor;
+      double corr_factor = -1;
 
       /// number of top deNovo hits multiplied by the correction factor
       double num_top_novo_corr = 0;

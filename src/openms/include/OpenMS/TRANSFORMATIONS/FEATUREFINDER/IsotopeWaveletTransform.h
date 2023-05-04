@@ -1591,11 +1591,10 @@ protected:
       return;
     }
 
-    Int c_index = max_extension;
     Int first_index = box.begin()->second.RT_index;
     for (Int i = 1; i < max_extension; ++i)
     {
-      c_index = first_index - i;
+      Int c_index = first_index - i;
       if (c_index < 0)
       {
         break;
@@ -1727,14 +1726,13 @@ protected:
     typename Box::iterator box_iter;
     UInt best_charge_index; double best_charge_score, c_mz, c_RT; UInt c_charge;
     double av_intens = 0, av_ref_intens = 0, av_score = 0, av_mz = 0, av_RT = 0, mz_cutoff, sum_of_ref_intenses_g;
-    bool restart = false;
 
     for (iter = closed_boxes_.begin(); iter != closed_boxes_.end(); ++iter)
     {
       sum_of_ref_intenses_g = 0;
       Box& c_box = iter->second;
       std::vector<double> charge_votes(max_charge_, 0), charge_binary_votes(max_charge_, 0);
-      restart = false;
+      bool restart = false;
 
       //Let's first determine the charge
       //Therefore, we can use two types of votes: qualitative ones (charge_binary_votes) or quantitative ones (charge_votes)
@@ -1922,8 +1920,8 @@ protected:
     double real_mz, real_intens;
     if (check_PPMs)
     {
-      reals = checkPPMTheoModel_(ref, iter->getMZ(), c);
-      real_mz = reals.first; real_intens = reals.second;
+      //reals = checkPPMTheoModel_(ref, iter->getMZ(), c);
+      //real_mz = reals.first; real_intens = reals.second;
       //if (real_mz <= 0 || real_intens <= 0)
       //{
       typename MSSpectrum::const_iterator h_iter = ref_iter, hc_iter = ref_iter;

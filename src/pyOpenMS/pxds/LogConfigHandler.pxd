@@ -69,6 +69,7 @@ cdef extern from "<OpenMS/CONCEPT/LogConfigHandler.h>" namespace "OpenMS":
         void setLogLevel(const String & log_level) nogil except +
         # wrap-doc:
         #  Sets a minimum log_level by removing all streams from loggers lower than that level.
+        #  Valid levels are from low to high: "DEBUG", "INFO", "WARNING", "ERROR", "FATAL_ERROR"
 
 
 ## wrap static methods
