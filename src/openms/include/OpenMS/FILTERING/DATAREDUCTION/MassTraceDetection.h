@@ -118,6 +118,15 @@ namespace OpenMS
                   std::vector<MassTrace> & found_masstraces,
                   const Size max_traces = 0);
 
+        // Find Offset for Peak
+        double find_offset_(Size peak_index_in_apices_vec, double mass_error_ppm_, const PeakMap& input_exp, const std::vector<Apex>& apices_vec);
+
+        // calc_right_border_
+        Size calc_right_border_(Size peak_index_in_apices_vec, double mass_error_ppm_, const PeakMap& input_exp, const std::vector<Apex>& apices_vec);
+
+        // calc_left_border_
+        Size calc_left_border_(Size peak_index_in_apices_vec, double mass_error_ppm_, const PeakMap& input_exp, const std::vector<Apex>& apices_vec);
+
         // parameter stuff
         double mass_error_ppm_;
         double mass_error_da_;
