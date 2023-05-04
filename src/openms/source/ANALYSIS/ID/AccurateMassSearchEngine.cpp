@@ -1012,26 +1012,26 @@ namespace OpenMS
 
             // set the calc_mass_to_charge field (theoretical mass)
             MzTabDouble mass_to_charge;
-            mass_to_charge.setresult[hit_idx].getCalculatedMZ());
+            mass_to_charge.set(result[hit_idx].getCalculatedMZ());
             mztab_row_record.calc_mass_to_charge = mass_to_charge;
 
             // set charge field
             MzTabInteger mcharge;
-            mcharge.setresult[hit_idx].getCharge());
+            mcharge.set(result[hit_idx].getCharge());
             mztab_row_record.charge = mcharge;
           }
 
           // experimental RT, m/z, database field and version, search engine and (null) score is also set if no db entry was matched
           // set RT field
           MzTabDouble rt_temp;
-          rt_temp.setresult[hit_idx].getObservedRT());
+          rt_temp.set(result[hit_idx].getObservedRT());
           std::vector<MzTabDouble> rt_temp3(1, rt_temp);
           MzTabDoubleList observed_rt;
           observed_rt.set(rt_temp3);
           mztab_row_record.retention_time = observed_rt;
 
           MzTabDouble exp_mass_to_charge;
-          exp_mass_to_charge.setresult[hit_idx].getObservedMZ());
+          exp_mass_to_charge.set(result[hit_idx].getObservedMZ());
           mztab_row_record.exp_mass_to_charge = exp_mass_to_charge;
 
           // set database field
@@ -1052,7 +1052,7 @@ namespace OpenMS
 
           // same score for all files since it used the mass-to-charge of the ConsensusFeature
           // for identification -> set as best_search_engine_score
-          mztab_row_record.best_search_engine_score[1] = MzTabDoubleresult[hit_idx].getMZErrorPPM());
+          mztab_row_record.best_search_engine_score[1] = MzTabDouble(result[hit_idx].getMZErrorPPM());
 
           // set search_engine_score per hit -> null
           MzTabDouble null_score;
@@ -1068,7 +1068,7 @@ namespace OpenMS
           bool single_intensity = (indiv_ints.empty());
           if (single_intensity)
           {
-            double int_tempresult[hit_idx].getObservedIntensity());
+            double int_temp(result[hit_idx].getObservedIntensity());
             MzTabDouble int_temp2;
             int_temp2.set(int_temp);
             int_temp3.push_back(int_temp2);
@@ -1140,7 +1140,7 @@ namespace OpenMS
           MzTabString ppmerr;
           if (db_hit)
           {
-            ppmerr.set(Stringresult[hit_idx].getMZErrorPPM()));
+            ppmerr.set(String(result[hit_idx].getMZErrorPPM()));
           }
           MzTabOptionalColumnEntry col0;
           col0.first = "opt_global_mz_ppm_error";
@@ -1151,7 +1151,7 @@ namespace OpenMS
           MzTabString addion;
           if (db_hit)
           {
-            String addion_tempresult[hit_idx].getFoundAdduct());
+            String addion_temp(result[hit_idx].getFoundAdduct());
             addion.set(addion_temp);
             ++adduct_stats[addion_temp]; // just some stats
             adduct_stats_unique[addion_temp].insert(id_group); // stats ...
@@ -1165,7 +1165,7 @@ namespace OpenMS
           MzTabString sim_score;
           if (db_hit)
           {
-            double sim_score_tempresult[hit_idx].getIsotopesSimScore());
+            double sim_score_temp(result[hit_idx].getIsotopesSimScore());
             std::stringstream read_in;
             read_in << sim_score_temp;
             String sim_score_temp2(read_in.str());
@@ -1202,7 +1202,7 @@ namespace OpenMS
           MzTabString neutral_mass_string;
           if (db_hit)
           {
-            String neutral_massresult[hit_idx].getQueryMass());
+            String neutral_mass(result[hit_idx].getQueryMass());
             neutral_mass_string.fromCellString(neutral_mass);
           }
 

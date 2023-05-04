@@ -85,9 +85,9 @@ namespace OpenMS
       String d;
       for (ims::IMSAlphabet::size_type i = 0; i < alphabet_->size(); ++i)
       {
-        if pos[i] > 0)
+        if (pos[i] > 0)
         {
-          d += alphabet_->getName(i) + Stringpos[i]) + " ";
+          d += alphabet_->getName(i) + String(pos[i]) + " ";
         }
       }
       d.trim();

@@ -104,7 +104,7 @@ namespace OpenMS
             // we don't allow modifications with ambiguity codes as origin (except "X"):
             if ((orig.size() == 1) && (orig != "B") && (orig != "J") && (orig != "Z"))
             {
-              mod.setOriginorig[0]);
+              mod.setOrigin(orig[0]);
               all_mods.insert(make_pair(id, mod));
             }
           }
@@ -290,7 +290,7 @@ namespace OpenMS
         // we don't allow modifications with ambiguity codes as origin (except "X"):
         if ((orig.size() == 1) && (orig != "B") && (orig != "J") && (orig != "Z"))
         {
-          mod.setOriginorig[0]);
+          mod.setOrigin(orig[0]);
           all_mods.insert(make_pair(id, mod));
         }
       }
