@@ -705,9 +705,33 @@ private:
         const Int64 * float_buffer = reinterpret_cast<const Int64 *>(byte_buffer);
 
         if (buffer_size % element_size != 0)
-          throw Exception::ConversionError(__FILE__, __LINE_256
+             throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Bad BufferCount?");
+
+        Size float_count = buffer_size / element_size;
+
+        UInt64 * p = reinterpret_cast<UInt64 *>(byte_buffer);
+        std::transform(p, p + float_count, p, endianize64);
+
+        out.resize(float_count);
+        // do NOT use assign here, as it will give a lot of type conversion warnings on VS compiler
+        for (Size i = 0; i < float_count; ++i)
+        {
+          out[i] = (ToType) * float_buffer;
+          ++float_buffer;
         }
-      }256 conversion warnings on VS compiler
+      }
+    }
+    else
+    {
+      if (element_size == 4)
+      {
+        const Int * float_buffer = reinterpret_cast<const Int *>(byte_buffer);
+        if (buffer_size % element_size != 0)
+          throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Bad BufferCount while decoding?");
+
+        Size float_count = buffer_size / element_size;
+        out.resize(float_count);
+        // do NOT use assign here, as it will give a lot of type conversion warnings on VS compiler
         for (Size i = 0; i < float_count; ++i)
         {
           out[i] = (ToType) * float_buffer;
