@@ -115,15 +115,15 @@ div.item span.item_restrictions {
 	display: none;
 	position: absolute;
 	margin-left: var(--spacing-small);
-	background-color: var(--primary-lightest-color);
+	background-color: var(--page-background-color);
 	min-width: 75px;
 	box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
-	z-index: 1;
+	z-index: 103; /* search bar has 102 */
 }
 
 /* Links inside the dropdown */
 .dropdown-content a {
-	color: black;
+	color: var(--page-foreground-color);
 	padding: 4px 16px;
 	text-decoration: none;
 	display: block;
@@ -138,5 +138,5 @@ div.item span.item_restrictions {
 /* Change the background color of the dropdown button when the dropdown content is shown */
 .dropdown:hover .dropbtn {
 	color: black;
-	background-color:  var(--primary-light-color);
+	background-color: var(--primary-light-color);
 }
