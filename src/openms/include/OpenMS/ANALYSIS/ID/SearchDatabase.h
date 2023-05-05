@@ -28,7 +28,7 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer:  $
+// $Maintainer: Chris Bielow $
 // $Authors: Max Alcer, Heike Einsfeld $
 // --------------------------------------------------------------------------
 
@@ -45,8 +45,11 @@
 
 namespace OpenMS
 {
+  //class MSExperiment;
+
   /** @brief Creating a two level tree from a given FASTAFile by generating the theoretical peptides and their b-y-ions and sorting
-    * them in the outer tree by fragment-MZ and the inner tree by precursor-MZ. Search function to find candidates to experimental MS2 sepctra
+    * them in the outer tree by fragment-m/z and the inner tree by precursor-m/z. Search function to find candidates to experimental MS2 sepctra
+    * (implimented based on https://lazear.github.io/sage/)
     * @ingroup ID
    */
 class OPENMS_DLLAPI SearchDatabase : public DefaultParamHandler
@@ -57,34 +60,44 @@ class OPENMS_DLLAPI SearchDatabase : public DefaultParamHandler
    */
   struct Candidate
   {
-    const AASequence* sequence; ///< pointer to AASequence of candidate
+    const AASequence* sequence; ///< Pointer to AASequence of candidate
     size_t protein_index; ///< Index to Entry of std::vector<FASTAFile::FASTAEntry>
     Candidate(const AASequence* seq, size_t pi) : sequence(seq), protein_index(pi){}
   };
+  
+  /** @brief Storing vector of found candiates from search with the Index of the MSSpectrum in the MSExperiment
+   */
+  struct CandidatesWithIndex
+  {
+    std::vector<SearchDatabase::Candidate> candidates; ///< Vector of found candidates
+    size_t spectrum_index; ///< Index to the MSSpectrum in the MSExperiment
+    CandidatesWithIndex(const std::vector<SearchDatabase::Candidate>& cand, size_t spectrum_i): candidates(cand), spectrum_index(spectrum_i){}
+  };
   SearchDatabase() = delete;
   virtual ~SearchDatabase() = default;
-  /** @brief Builds up the Search Datastructure     
 
+  /** @brief Builds up the Search Datastructure     
      * @param entries Input vector of FASTAFile-Entries to base SearchDatastructure on
     */
-  SearchDatabase(const std::vector<FASTAFile::FASTAEntry>& entries);  
-  /** @brief Searches Peaks of every MSSpectrum of the MSExperiment in the Database       
+  SearchDatabase(const std::vector<FASTAFile::FASTAEntry>& entries);
 
-     * @param experiment Input MSExperiment containing of MS2 Spectra
+  /** @brief Searches Peaks of every MSSpectrum of the MSExperiment in the Database       
+     * @param experiment Input MSExperiment containing of MS2 Spectra (MS1 Spectra has an empty output)
      * @param candidates Output vector of found candidates with the index of MSSpectrum in experiment
     */
-  void search(MSExperiment& experiment, std::vector<std::pair<std::vector<Candidate>, size_t>>& candidates) const;
-  /** @brief Searches Peaks of the MSSpectrum in the Database       
+  void search(MSExperiment& experiment, std::vector<SearchDatabase::CandidatesWithIndex>& candidates) const;
 
-     * @param spectrum Input MS2 Spectrum
+  /** @brief Searches Peaks of the MSSpectrum in the Database       
+     * @param spectrum Input MS2 Spectrum (MS1 Spectra has an empty output)
      * @param candidates Output vector of found candidatest
     */
-  void search(MSSpectrum& spectrum, std::vector<Candidate>& candidates) const;
+  void search(MSSpectrum& spectrum, std::vector<SearchDatabase::Candidate>& candidates) const;
 
   protected:
   
   void updateMembers_() override;
   
+  //Saving b_y_ion after creating theoretical spectrum with index to precursor-peptide
   struct Fragment_
   {
     size_t peptide_index_;
@@ -93,13 +106,14 @@ class OPENMS_DLLAPI SearchDatabase : public DefaultParamHandler
     Fragment_(size_t prec, const Peak1D& frag):peptide_index_(prec), fragment_mz_(frag.getMZ()){}
   };
 
+  //Saving precursors AASequence (, index to protein and the MonoWeight) after digesting
   struct Peptide_
   {
     AASequence sequence_;
     size_t protein_index_;
     double peptide_mz_;
-    Peptide_() = default;
     Peptide_(const Peptide_&) = default;
+    Peptide_(Peptide_&&) = default;
     Peptide_(const AASequence& pep, size_t index, double mass):sequence_(pep), protein_index_(index), peptide_mz_(mass){}
     Peptide_& operator=(Peptide_&&) = default;
     Peptide_& operator=(const Peptide_&) = default;
@@ -109,11 +123,11 @@ class OPENMS_DLLAPI SearchDatabase : public DefaultParamHandler
   std::vector<SearchDatabase::Peptide_> generate_peptides_(const std::vector<FASTAFile::FASTAEntry>& entries) const;
   /// Merges presorted Chunks of Peptide-Fragments inplace
   void fragment_merge_(int first, int last, const std::vector<int>& chunks, std::vector<SearchDatabase::Fragment_>& input) const;
-  ///generates sortet vector with all theoretical Fragments for all theoretical Peptides
+  ///generates sorted vector with all theoretical Fragments for all theoretical Peptides
   std::vector<SearchDatabase::Fragment_> generate_fragments_() const;
 
   std::string digestor_enzyme_;
-  size_t missed_cleavages_;
+  size_t missed_cleavages_; ///< number of missed cleavages
   double peptide_min_mass_;
   double peptide_max_mass_;
   size_t peptide_min_length_;
@@ -129,7 +143,7 @@ class OPENMS_DLLAPI SearchDatabase : public DefaultParamHandler
   StringList modifications_variable_;
   size_t max_variable_mods_per_peptide_;
   std::vector<Peptide_> all_peptides_{};
-  std::vector<double> bucket_frags_mz_{}; ///< Minimum fragment-MZ for each other node
+  std::vector<double> bucket_frags_mz_{}; ///< Minimum fragment-m/z for each other node
   std::vector<Fragment_> all_fragments_{};
 };
 

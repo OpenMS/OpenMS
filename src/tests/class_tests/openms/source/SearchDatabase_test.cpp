@@ -28,7 +28,7 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: $
+// $Maintainer: Chris Bielow $
 // $Authors: Max Alcer, Heike Einsfeld $
 // --------------------------------------------------------------------------
 
@@ -36,17 +36,14 @@
 #include <OpenMS/test_config.h>
 #include <OpenMS/ANALYSIS/ID/SearchDatabase.h>
 
-#include <OpenMS/CHEMISTRY/AASequence.h>
+#include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/FORMAT/FASTAFile.h>
-#include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/KERNEL/Peak1D.h>
-#include <OpenMS/CHEMISTRY/ProteaseDigestion.h>
-#include <OpenMS/CHEMISTRY/TheoreticalSpectrumGenerator.h>
 #include <vector>
-#include <OpenMS/MATH/MISC/MathFunctions.h>
 
 using namespace OpenMS;
+using namespace Constants::UserParam;
 using namespace std;
 
 class SearchDatabase_test : public SearchDatabase
@@ -54,52 +51,28 @@ class SearchDatabase_test : public SearchDatabase
   public:
 
   using SearchDatabase::SearchDatabase;
-
-  void printAllFragments()
-  {
-  
-  int counter = 0;
-
-  for (auto j : all_fragments_)
-  { 
-    if(counter == bucketsize_)
-    {
-      cout << "\n";
-      counter = 0;
-    }
-
-    cout << j.fragment_mz_ << " " << all_peptides_[j.peptide_index_].peptide_mz_ << "\n";
-
-    counter++;
-  }
-
-  }
   
   std::vector<Fragment_> getAllFragments(){return all_fragments_;}
 
-  size_t getBucketsize(){return bucketsize_;}
-
-  string getDigestorEnzyme(){return digestor_enzyme_;}
-
-  size_t getMissedCleavages(){return missed_cleavages_;}
-  	
-  size_t getpeptide_minlen(){return peptide_min_length_;}
-  size_t getpeptide_maxlen(){return peptide_max_length_;}
-  double getpeptide_minMass(){return peptide_min_mass_;}
-  double getpeptide_maxMass(){return peptide_max_mass_;}
-  double getfrag_minMZ(){return fragment_min_mz_;}
-  double getfrag_maxMZ(){return fragment_max_mz_;}
-  size_t getpeptideSize(){return all_peptides_.size();}
-  vector<SearchDatabase::Peptide_> getpeptide(){return all_peptides_;}
-
-  double getFragMZ(size_t i)
+  bool isSortedBucketFragsMZ()
   {
-    return all_fragments_[i].fragment_mz_;
+    return is_sorted(bucket_frags_mz_.begin(), bucket_frags_mz_.end());
   }
 
-  double getPrecMZ(size_t i)
+  bool isSortedAllFragments()
   {
-    return all_peptides_[all_fragments_[i].peptide_index_].peptide_mz_;
+    bool test_sorted = true;
+
+    for (size_t i = 0; i < all_fragments_.size(); i += bucketsize_)
+    {
+      auto bucket_begin = all_fragments_.begin()+i;
+      auto condition = distance(all_fragments_.begin(), bucket_begin+bucketsize_) >= int(all_fragments_.size());
+
+      test_sorted &= is_sorted(bucket_begin, condition ? all_fragments_.end() : bucket_begin+bucketsize_, 
+      [&](const Fragment_& l, const Fragment_& r) -> bool 
+      {return (all_peptides_[l.peptide_index_].peptide_mz_ < all_peptides_[r.peptide_index_].peptide_mz_);});
+    }
+    return test_sorted;
   }
 
 };
@@ -115,45 +88,15 @@ START_SECTION(SearchDatabase(const std::vector<FASTAFile::FASTAEntry>& entries))
   {"test3", "test3", "KVKLQSRPAAPPAPGPGQLT"}};
 
   SearchDatabase_test sdb(entries);
+  START_SECTION(test number of fragments)
+    TEST_EQUAL(187, sdb.getAllFragments().size())
+  END_SECTION
 
-  vector<AASequence> all_peptides;
+  START_SECTION(test sortation)
+    TEST_TRUE(sdb.isSortedBucketFragsMZ())
 
-  ProteaseDigestion digestor;
-  
-  digestor.setEnzyme(sdb.getDigestorEnzyme());
-  digestor.setMissedCleavages(sdb.getMissedCleavages());
-
-  for (auto i : entries)
-  {
-    vector<AASequence> peptides;
-
-    digestor.digest(AASequence::fromString(i.sequence), peptides, sdb.getpeptide_minlen(), sdb.getpeptide_maxlen());
-    for (const auto& pep : peptides)
-    { 
-      if (pep.toString().find('X') != string::npos) continue;
-      double seq_mz = pep.getMonoWeight();
-      if (!Math::contains(seq_mz, sdb.getpeptide_minMass(), sdb.getpeptide_maxMass())) continue;
-      all_peptides.emplace_back(pep);
-        
-    }
-  }
-
-  TEST_EQUAL(all_peptides.size(), sdb.getpeptideSize())
-  TheoreticalSpectrumGenerator tsg;
-  PeakSpectrum b_y_ions;
-  int count_all_frags=0;  
-    
-  for (size_t i = 0; i < all_peptides.size(); i++)
-  { 
-    tsg.getSpectrum(b_y_ions, all_peptides[i], 1, 1);      
-    for (const auto& frag : b_y_ions)
-    { 
-      if (!Math::contains(frag.getMZ(), sdb.getfrag_minMZ(), sdb.getfrag_maxMZ())) continue;
-      count_all_frags++;        
-    }
-    b_y_ions.clear(true);
-  }
-  TEST_EQUAL(sdb.getAllFragments().size(), count_all_frags)
+    TEST_TRUE(sdb.isSortedAllFragments())
+  END_SECTION
   
 END_SECTION
 
@@ -174,11 +117,11 @@ START_SECTION(void search(MSSpectrum& spectrum, std::vector<Candidate>& candidat
 
   std::vector<SearchDatabase::Candidate> candidates;
 
-  START_SECTION(Searching 3 Fragments it should find)
+  START_SECTION(Searching 3 Fragments it should find (with Da and ppm))
 
   prec.setCharge(1);
 
-  prec.setMZ(1280.6);
+  prec.setMZ(1281.6);
 
   spec.setPrecursors({prec});
 
@@ -190,13 +133,33 @@ START_SECTION(void search(MSSpectrum& spectrum, std::vector<Candidate>& candidat
 
   TEST_EQUAL(candidates.size(), 1)
 
+  auto params = sdb.getParameters();
+
+  params.setValue("fragment_mz_tolerance_unit", UNIT_PPM);
+  params.setValue("fragment_mz_tolerance", 5.f);
+  params.setValue("precursor_mz_tolerance_unit", UNIT_PPM);
+  params.setValue("precursor_mz_tolerance", 50.f);
+
+  sdb.setParameters(params);
+
+  sdb.search(spec, candidates);
+
+  TEST_EQUAL(candidates.size(), 1)
+
   END_SECTION
 
   START_SECTION(Searching Fragment it should not find because of Fragment Mass)
 
-  spec.clear(true);
+  auto params = sdb.getParameters();
 
-  spec.setPrecursors({prec});
+  params.setValue("fragment_mz_tolerance_unit", UNIT_DA);
+  params.setValue("fragment_mz_tolerance", 0.05);
+  params.setValue("precursor_mz_tolerance_unit", UNIT_DA);
+  params.setValue("precursor_mz_tolerance", 2.0);
+
+  sdb.setParameters(params);
+
+  spec.clear(false);
 
   spec.push_back({1040, 100});
 
@@ -224,11 +187,7 @@ START_SECTION(void search(MSSpectrum& spectrum, std::vector<Candidate>& candidat
 
   START_SECTION(Searching Fragment it should not find because its smaller then all Fragments in Database)
 
-  spec.clear(true);
-
-  prec.setMZ(1500);
-
-  spec.setPrecursors({prec});
+  spec.clear(false);
 
   spec.push_back({100, 100});
 
@@ -240,11 +199,7 @@ START_SECTION(void search(MSSpectrum& spectrum, std::vector<Candidate>& candidat
 
   START_SECTION(Searching Fragment it should not find because its bigger then all Fragments in Database)
 
-  spec.clear(true);
-
-  prec.setMZ(1500);
-
-  spec.setPrecursors({prec});
+  spec.clear(false);
 
   spec.push_back({2000, 100});
 
@@ -258,7 +213,7 @@ START_SECTION(void search(MSSpectrum& spectrum, std::vector<Candidate>& candidat
 
   spec.clear(true);
 
-  prec.setMZ(1280.6);
+  prec.setMZ(1281.6);
 
   spec.setPrecursors({prec});
 
@@ -280,11 +235,9 @@ START_SECTION(void search(MSSpectrum& spectrum, std::vector<Candidate>& candidat
 
   END_SECTION
 
-  // sdb.printAllFragments();
-
 END_SECTION
 
-START_SECTION(void search(MSExperiment& experiment, std::vector<std::pair<std::vector<Candidate>, size_t>>& candidates))
+START_SECTION(void search(MSExperiment& experiment, std::vector<CandidatesWithIndex>& candidates))
 
   std::vector<FASTAFile::FASTAEntry> entries{
   {"test1", "test1", "LRLRACGLNFADLMARQGLY"},
@@ -329,7 +282,7 @@ START_SECTION(void search(MSExperiment& experiment, std::vector<std::pair<std::v
 
   exp.addSpectrum(spec);  
 
-  std::vector<std::pair<std::vector<SearchDatabase::Candidate>, size_t>> candidates;
+  std::vector<SearchDatabase::CandidatesWithIndex> candidates;
 
   sdb.search(exp, candidates);
 
