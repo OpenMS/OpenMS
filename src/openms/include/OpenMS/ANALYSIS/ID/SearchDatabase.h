@@ -100,7 +100,6 @@ class OPENMS_DLLAPI SearchDatabase : public DefaultParamHandler
   {
     size_t peptide_index_;
     double fragment_mz_;
-    Fragment_() = delete;
     Fragment_(size_t prec, const Peak1D& frag):peptide_index_(prec), fragment_mz_(frag.getMZ()){}
   };
 
