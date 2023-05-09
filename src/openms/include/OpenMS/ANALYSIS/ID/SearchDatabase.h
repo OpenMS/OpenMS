@@ -47,7 +47,7 @@ namespace OpenMS
 {
   //class MSExperiment;
 
-  /** @brief Creating a two level tree from a given FASTAFile by generating the theoretical peptides and their b-y-ions and sorting
+  /** @brief Creating a two-level tree from a given FASTAFile by generating the theoretical peptides and their b-y-ions and sorting
     * them in the outer tree by fragment-m/z and the inner tree by precursor-m/z. Search function to find candidates to experimental MS2 sepctra
     * (implementation inspired by https://lazear.github.io/sage/)
     * @ingroup ID
