@@ -328,7 +328,7 @@ void SearchDatabase::search(MSExperiment& experiment, std::vector<SearchDatabase
   }
 }
 
-} // ende namespace OpenMS
+} // end namespace OpenMS
 
 
 
