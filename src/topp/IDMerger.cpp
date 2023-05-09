@@ -54,9 +54,9 @@ using namespace std;
   <center>
   <table>
   <tr>
-  <td ALIGN = "center" BGCOLOR="#EBEBEB"> potential predecessor tools </td>
+  <th ALIGN = "center"> potential predecessor tools </td>
   <td VALIGN="middle" ROWSPAN=3> &rarr; IDMerger &rarr;</td>
-  <td ALIGN = "center" BGCOLOR="#EBEBEB"> potential successor tools </td>
+  <th ALIGN = "center"> potential successor tools </td>
   </tr>
   <tr>
   <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_MascotAdapter (or other ID engines) </td>

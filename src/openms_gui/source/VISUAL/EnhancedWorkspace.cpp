@@ -54,6 +54,16 @@ namespace OpenMS
 
   EnhancedWorkspace::~EnhancedWorkspace() = default;
 
+  QMdiSubWindow* EnhancedWorkspace::addSubWindow(QWidget* widget)
+  {
+    auto subwindow = QMdiArea::addSubWindow(widget);
+    if (subwindow)
+    {
+      subwindow->setSystemMenu(nullptr);
+    }
+    return subwindow;
+  }
+
   void EnhancedWorkspace::tileHorizontal()
   {
     // primitive horizontal tiling

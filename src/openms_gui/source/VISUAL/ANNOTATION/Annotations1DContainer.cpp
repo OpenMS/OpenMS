@@ -42,7 +42,7 @@ namespace OpenMS
   Annotations1DContainer::Annotations1DContainer() = default;
 
   Annotations1DContainer::Annotations1DContainer(const Annotations1DContainer& rhs)
-    : Base(rhs)
+    : Base() // do not copy items here. They need cloning!
   {
     // copy annotations
     for (auto item : rhs)

@@ -198,6 +198,19 @@ START_SECTION(AASequence fromString(const String& s, bool permissive = true))
     TEST_STRING_EQUAL(seq16.getNTerminalModification()->getId(), "Gln->pyro-Glu");
     TEST_STRING_EQUAL(seq16.getNTerminalModification()->getFullId(), "Gln->pyro-Glu (N-term Q)");
     TEST_STRING_EQUAL(seq16.getNTerminalModificationName(), "Gln->pyro-Glu");
+
+
+    AASequence seq17 = AASequence::fromString("[+42].MVLVQDLLHPTAASEAR");
+    TEST_EQUAL(seq17.hasNTerminalModification(), true)
+    TEST_STRING_EQUAL(seq17.getNTerminalModification()->getId(), "Acetyl");
+    TEST_STRING_EQUAL(seq17.getNTerminalModification()->getFullId(), "Acetyl (N-term)");
+    TEST_STRING_EQUAL(seq17.getNTerminalModificationName(), "Acetyl");
+
+    AASequence seq18 = AASequence::fromString("[+304.207].ETC[+57.0215]RQLGLGTNIYNAER");
+    TEST_EQUAL(seq18.hasNTerminalModification(), true)
+    TEST_STRING_EQUAL(seq18.getNTerminalModification()->getId(), "TMTpro");
+    TEST_STRING_EQUAL(seq18.getNTerminalModification()->getFullId(), "TMTpro (N-term)");
+    TEST_STRING_EQUAL(seq18.getNTerminalModificationName(), "TMTpro");    
   }
 
   // invalid test case: "Pyro-carbamidomethyl" is only defined as N-terminal
@@ -407,7 +420,7 @@ START_SECTION((double getMonoWeight(Residue::ResidueType type = Residue::Full, I
 
   // test old OpenMS NIC definition
   AASequence seq2a = AASequence::fromString("(MOD:09998)DFPIANGER");
-  TEST_EQUAL(seq2 == seq2a, true)
+  TEST_TRUE(seq2 == seq2a)
 
   // test heavy modification
   AASequence seq3 = AASequence::fromString("(dNIC)DFPIANGER");
@@ -415,7 +428,7 @@ START_SECTION((double getMonoWeight(Residue::ResidueType type = Residue::Full, I
 
   // test old OpenMS dNIC definition
   AASequence seq3a = AASequence::fromString("(MOD:09999)DFPIANGER");
-  TEST_EQUAL(seq3 == seq3a, true)
+  TEST_TRUE(seq3 == seq3a)
 
   TEST_REAL_SIMILAR(AASequence::fromString("TYQYS(Phospho)").getFormula().getMonoWeight(), AASequence::fromString("TYQYS(Phospho)").getMonoWeight());
 
@@ -670,7 +683,7 @@ START_SECTION(void setNTerminalModification(const String &modification))
   AASequence seq2 = AASequence::fromString("(MOD:00051)DFPIANGER");
   TEST_EQUAL(seq1 == seq2, false)
   seq1.setNTerminalModification("MOD:00051");
-  TEST_EQUAL(seq1 == seq2, true)
+  TEST_TRUE(seq1 == seq2)
 
   AASequence seq3 = AASequence::fromString("DABCDEF");
   AASequence seq4 = AASequence::fromString("(MOD:00051)DABCDEF");
@@ -678,7 +691,7 @@ START_SECTION(void setNTerminalModification(const String &modification))
   seq3.setNTerminalModification("MOD:00051");
   TEST_EQUAL(seq3.isModified(), true)
   TEST_EQUAL(seq4.isModified(), true)
-  TEST_EQUAL(seq3 == seq4, true)
+  TEST_TRUE(seq3 == seq4)
 
   AASequence seq5 = AASequence::fromString("DABCDEF");
   AASequence seq6 = seq5;
@@ -735,7 +748,7 @@ START_SECTION(void setCTerminalModification(const String& modification))
 
   TEST_EQUAL(seq1 == seq2, false)
   seq1.setCTerminalModification("Amidated");
-  TEST_EQUAL(seq1 == seq2, true)
+  TEST_TRUE(seq1 == seq2)
 
   AASequence seq3 = AASequence::fromString("DABCDER");
   AASequence seq4 = AASequence::fromString("DABCDER(Amidated)");
@@ -743,21 +756,21 @@ START_SECTION(void setCTerminalModification(const String& modification))
   seq3.setCTerminalModification("Amidated");
   TEST_EQUAL(seq3.isModified(), true)
   TEST_EQUAL(seq4.isModified(), true)
-  TEST_EQUAL(seq3 == seq4, true)
+  TEST_TRUE(seq3 == seq4)
 
   AASequence seq5 = AASequence::fromString("DABCDER(MOD:00177)");
   AASequence seq6 = AASequence::fromString("DABCDER(MOD:00177)(Amidated)");
   TEST_EQUAL(seq5.isModified(), true)
   TEST_EQUAL(seq6.isModified(), true)
   seq5.setCTerminalModification("Amidated");
-  TEST_EQUAL(seq5 == seq6, true)
+  TEST_TRUE(seq5 == seq6)
 
   AASequence seq7 = AASequence::fromString("DFPIANGER(MOD:00177)");
   AASequence seq8 = AASequence::fromString("DFPIANGER(MOD:00177)(Amidated)");
   TEST_EQUAL(seq7.isModified(), true)
   TEST_EQUAL(seq8.isModified(), true)
   seq7.setCTerminalModification("Amidated");
-  TEST_EQUAL(seq5 == seq6, true)
+  TEST_TRUE(seq5 == seq6)
 END_SECTION
 
 START_SECTION(const String& getCTerminalModificationName() const)

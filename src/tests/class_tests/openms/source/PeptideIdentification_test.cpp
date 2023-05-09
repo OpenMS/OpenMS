@@ -162,7 +162,7 @@ END_SECTION
 
 START_SECTION((bool operator == (const PeptideIdentification& rhs) const))
   PeptideIdentification search1, search2;
-  TEST_EQUAL(search1 == search2, true)
+  TEST_TRUE(search1 == search2)
 
   search1.setSignificanceThreshold(peptide_significance_threshold);
   TEST_EQUAL(search1 == search2, false)
@@ -191,7 +191,7 @@ START_SECTION((bool operator != (const PeptideIdentification& rhs) const))
   TEST_EQUAL(search1 != search2, false)
 
   search1.setSignificanceThreshold(peptide_significance_threshold);
-  TEST_EQUAL(search1 != search2, true)
+  TEST_FALSE(search1 == search2)
   search1 = search2;
 
   //rest does not need to be tested, as it is tested in the operator== test implicitly!

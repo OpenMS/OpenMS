@@ -41,7 +41,7 @@ import shutil
 import time
 
 if OPEN_MS_GIT_BRANCH == "nightly":
-    package_name = "pyopenms_nightly"
+    package_name = "pyopenms"
     package_version = OPEN_MS_VERSION + ".dev" + OPENMS_GIT_LC_DATE_FORMAT
 else:
     package_name = "pyopenms"
@@ -258,7 +258,8 @@ setup(
     },
 	install_requires=[
           'numpy',
-          'pandas'
+          'pandas',
+          'matplotlib>=3.5'
     ],
 
     version=package_version,
