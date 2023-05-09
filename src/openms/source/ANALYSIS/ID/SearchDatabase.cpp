@@ -213,7 +213,6 @@ SearchDatabase::SearchDatabase(const std::vector<FASTAFile::FASTAEntry>& entries
     [&](const SearchDatabase::Fragment_& l, const SearchDatabase::Fragment_& r) -> bool 
     {return (all_peptides_[l.peptide_index_].peptide_mz_ < all_peptides_[r.peptide_index_].peptide_mz_);});
   }
-  
 }
 
 void SearchDatabase::updateMembers_()
