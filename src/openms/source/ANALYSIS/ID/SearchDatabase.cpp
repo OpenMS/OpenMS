@@ -315,7 +315,7 @@ void SearchDatabase::search(MSExperiment& experiment, std::vector<SearchDatabase
     #pragma omp for 
     for (size_t i = 0; i < experiment.size(); i++)
     {
-      if (experiment[i].size() == 0) continue;
+      if (experiment[i].empty()) continue;
 
       vector<Candidate> temp_cand;
       
