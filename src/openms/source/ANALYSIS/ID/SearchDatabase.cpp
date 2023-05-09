@@ -207,7 +207,7 @@ SearchDatabase::SearchDatabase(const std::vector<FASTAFile::FASTAEntry>& entries
   for (size_t i = 0; i < all_fragments_.size(); i += bucketsize_)
   { 
     auto bucket_begin = all_fragments_.begin()+i;
-    auto condition = distance(all_fragments_.begin(), bucket_begin+bucketsize_) >= int(all_fragments_.size());
+    auto condition = distance(all_fragments_.begin(), bucket_begin + bucketsize_) >= int(all_fragments_.size());
 
     sort(bucket_begin, condition ? all_fragments_.end() : bucket_begin+bucketsize_, 
     [&](const SearchDatabase::Fragment_& l, const SearchDatabase::Fragment_& r) -> bool 
