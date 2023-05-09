@@ -238,7 +238,7 @@ void SearchDatabase::updateMembers_()
 void SearchDatabase::search(MSSpectrum& spectrum, std::vector<SearchDatabase::Candidate>& candidates) const
 { 
   candidates.clear();
-  if (spectrum.size() == 0) return;
+  if (spectrum.empty()) return;
   
   unordered_set<size_t> index_hash; // saving every candidate only once
 
