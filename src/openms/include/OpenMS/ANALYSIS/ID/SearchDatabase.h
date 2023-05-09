@@ -73,8 +73,6 @@ class OPENMS_DLLAPI SearchDatabase : public DefaultParamHandler
     size_t spectrum_index; ///< Index to the MSSpectrum in the MSExperiment
     CandidatesWithIndex(const std::vector<SearchDatabase::Candidate>& cand, size_t spectrum_i): candidates(cand), spectrum_index(spectrum_i){}
   };
-  SearchDatabase() = delete;
-  ~SearchDatabase() = default;
 
   /** @brief Builds up the Search Datastructure     
      * @param entries Input vector of FASTAFile-Entries to base SearchDatastructure on
