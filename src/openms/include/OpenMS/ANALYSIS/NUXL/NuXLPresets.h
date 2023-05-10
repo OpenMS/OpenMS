@@ -529,6 +529,31 @@ namespace OpenMS
     "d:-HPO3"
   };
 
+
+  static constexpr std::array<const char*, 14> modifications_DNA_BrU_UV
+  {
+    "T:",
+    "T:-H2O",
+
+    "B:",
+    "B:-H2O",
+
+    "G:",
+    "G:-H2O",
+    "G:-NH3",
+
+    "A:",
+    "A:-NH3",
+
+    "C:",
+    "C:-H2O",
+    "C:-NH3",
+
+    "d:", // deoxyribosephosphate (d in lower-letter = needs to be the cross-linked nt)
+    "d:-H2O"
+  };
+
+
   ///////////////////////////////////////////////////////////////////////////////////
   // fragment definitions
   ///////////////////////////////////////////////////////////////////////////////////
@@ -689,6 +714,65 @@ namespace OpenMS
     "T:C10H13N2O7P;T-H2O",
     "T:C10H14N2O5;T-HPO3",
     "T:C10H12N2O4;T-H3PO4",
+
+    "C:C9H14N3O7P;C",
+    "C:C9H11N2O7P;C-NH3",
+    "C:C9H12N3O6P;C-H2O",
+    "C:C9H9N2O6P;C-NH3-H2O",
+    "C:C9H13N3O4;C-HPO3",
+    "C:C9H11N3O3;C-H3PO4",
+    "C:C9H10N2O4;C-NH3-HPO3",
+    "C:C9H8N2O3;C-NH3-H3PO4",
+    "C:C4H5N3O;C'",
+    "C:C4H3N3;C'-H2O",
+    "C:C4H2N2O;C'-NH3",
+
+    "G:C10H14N5O7P;G",
+    "G:C10H12N5O6P;G-H2O",
+    "G:C10H11N4O7P;G-NH3",
+    "G:C10H9N4O6P;G-NH3-H2O",
+    "G:C10H13N5O4;G-HPO3",
+    "G:C10H10N4O4;G-NH3-HPO3",
+    "G:C10H11N5O3;G-H3PO4",
+    "G:C10H8N4O3;G-NH3-H3PO4",
+    "G:C5H5N5O;G'",
+    "G:C5H3N5;G'-H2O",
+    "G:C5H2N4O;G'-NH3",
+
+    "A:C10H14N5O6P;A",
+    "A:C10H12N5O5P;A-H2O",
+    "A:C10H11N4O6P;A-NH3",
+    "A:C10H9N4O5P;A-NH3-H2O",
+    "A:C10H13N5O3;A-HPO3",
+    "A:C10H11N5O2;A-H3PO4",
+    "A:C10H10N5O3;A-NH3-HPO3",
+    "A:C10H8N5O2;A-NH3-H3PO4",
+    "A:C5H5N5;A'",
+    "A:C5H2N4;A'-NH3",
+
+    // base was lost -> only dribose = C5H9O6P remains
+    "d:C5H9O6P;C5H9O6P", 
+    "d:C5H7O5P;C5H9O6P-H2O",        
+    "d:C5H8O3;C5H9O6P-HPO3",
+    "d:C5H6O2;C5H9O6P-H3PO4"
+  };
+
+  // shared by default and Extended
+  static constexpr std::array<const char*, 48> fragments_DNA_BrU_UV
+  {
+    "T:C5H6N2O2;T'",
+    "T:C5H4N2O;T'-H2O",
+    "T:C10H15N2O8P;T",
+    "T:C10H13N2O7P;T-H2O",
+    "T:C10H14N2O5;T-HPO3",
+    "T:C10H12N2O4;T-H3PO4",
+
+    "B:C4H2N2O2;B'",
+    "B:C4N2O;B'-H2O",
+    "B:C9H11N2O8P;B",
+    "B:C9H9N2O7P;B-H2O",
+    "B:C9H10N2O5;B-HPO3",
+    "B:C9H8N2O4;B-H3PO4",
 
     "C:C9H14N3O7P;C",
     "C:C9H11N2O7P;C-NH3",
@@ -1068,7 +1152,7 @@ namespace OpenMS
     static constexpr std::array<const char*, 5> DNA_mapping {"A->A", "C->C", "G->G", "T->T", "d->d"};
     static constexpr std::array<const char*, 4> RNA_mapping {"A->A", "C->C", "G->G", "U->U"};
 
-    static constexpr std::array<const char*, 23> presets_names {
+    static constexpr std::array<const char*, 24> presets_names {
       "none", 
       "RNA-UV (U)", 
       "RNA-UV (UCGA)",
@@ -1091,7 +1175,8 @@ namespace OpenMS
       "RNA-FA",
       "RNA-FA Extended",
       "DNA-FA",
-      "DNA-FA Extended"
+      "DNA-FA Extended",
+      "DNA-UV (BrU)"
    };
 
   void getPresets(const String& p, 
@@ -1165,8 +1250,9 @@ namespace OpenMS
     StringList DNA_FA_fragments(fragments_DNA_FA.begin(), fragments_DNA_FA.end());
     StringList DNA_FA_EXTENDED_modifications(modifications_DNA_FA_EXTENDED.begin(), modifications_DNA_FA_EXTENDED.end());
    
-    
-    
+    StringList DNA_UV_BrU_modifications(modifications_DNA_BrU_UV.begin(), modifications_DNA_BrU_UV.end());
+    StringList DNA_UV_BrU_fragments(fragments_DNA_BrU_UV.begin(), fragments_DNA_BrU_UV.end());
+
     const String RNA_U = "U";
     const String RNA_UCGA = "UCGA";
     const String DNA_TCGAd = "TCGAd";
@@ -1223,7 +1309,7 @@ namespace OpenMS
       fragment_adducts = RNA_UV_6SG_fragments;
       can_cross_link = "X";
       return;
-    }
+    }    
     else if (p == "DNA-UV")
     {
       modifications = DNA_UV_modifications;
@@ -1238,6 +1324,15 @@ namespace OpenMS
       can_cross_link = DNA_TCGAd;
       return;
     }
+    else if (p == "DNA-UV (BrU)")
+    {
+      nucleotides.push_back("B=C9H11N2O8P"); // include BrU
+      mapping.push_back("B->B");
+      modifications = DNA_UV_BrU_modifications;
+      fragment_adducts = DNA_UV_BrU_fragments;
+      can_cross_link = "B";
+      return;
+    }    
     else if (p == "RNA-FA")
     {
       modifications = RNA_FA_modifications;     
