@@ -100,10 +100,12 @@ namespace OpenMS
     output.clear();
     std::vector<std::pair<size_t,size_t>> idcs; // small overhead filling intermediate vector first and iterating again
     Size wrong_size = digest(protein, idcs, min_length, max_length);
-    std::transform(idcs.begin(), idcs.end(), output.begin(), 
-      [&protein](std::pair<size_t, size_t>& start_end){
-        protein.getSubsequence(start_end.first, UInt(start_end.second - start_end.first));
-        }
+    output.reserve(idcs.size());
+    std::transform(idcs.begin(), idcs.end(), std::back_inserter(output),
+      [&protein](std::pair<size_t, size_t>& start_end)
+      {
+        return protein.getSubsequence(start_end.first, UInt(start_end.second - start_end.first));
+      }
     );
     return wrong_size;
   }

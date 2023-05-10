@@ -40,23 +40,27 @@
 
 using std::vector;
 using std::pair;
+using std::map;
 
 namespace OpenMS
 {
 
- // static
- ModifiedPeptideGenerator::MapToResidueType ModifiedPeptideGenerator::getModifications(const StringList& modNames)
- {   
-   vector<const ResidueModification*> modifications;
-  
-   for (const String& modification : modNames)
-   {
-     const ResidueModification* rm = ModificationsDB::getInstance()->getModification(modification);
-     modifications.push_back(rm);
-   }
-   std::sort(modifications.begin(), modifications.end());
-   return createResidueModificationToResidueMap_(modifications);
- }
+  const int ModifiedPeptideGenerator::N_TERM_MODIFICATION_INDEX = -1; // magic constant to distinguish N_TERM only modifications from ANYWHERE modifications placed at N-term residue
+  const int ModifiedPeptideGenerator::C_TERM_MODIFICATION_INDEX = -2; // magic constant to distinguish C_TERM only modifications from ANYWHERE modifications placed at C-term residue
+
+  // static
+  ModifiedPeptideGenerator::MapToResidueType ModifiedPeptideGenerator::getModifications(const StringList& modNames)
+  {   
+    vector<const ResidueModification*> modifications;
+    
+    for (const String& modification : modNames)
+    {
+      const ResidueModification* rm = ModificationsDB::getInstance()->getModification(modification);
+      modifications.push_back(rm);
+    }
+    std::sort(modifications.begin(), modifications.end());
+    return createResidueModificationToResidueMap_(modifications);
+  }
 
 
   // static
@@ -179,7 +183,7 @@ namespace OpenMS
 
     // iterate over each residue and build compatibility mapping describing
     // which amino acid (peptide index) is compatible with which modification
-    vector<std::pair<int, vector<const ResidueModification*> > > mod_compatibility;
+    map<int, vector<const ResidueModification*> > mod_compatibility;
 
     // set terminal modifications for modifications without amino acid preference
     for (auto const& mr : var_mods.val)
@@ -190,14 +194,14 @@ namespace OpenMS
       {
         if (!peptide.hasNTerminalModification())
         {
-          mod_compatibility.emplace_back(N_TERM_MODIFICATION_INDEX, v);
+          mod_compatibility[N_TERM_MODIFICATION_INDEX].emplace_back(v);
         }
       }
       else if (v->getTermSpecificity() == ResidueModification::C_TERM)
       {
         if (!peptide.hasCTerminalModification())
         {
-          mod_compatibility.emplace_back(C_TERM_MODIFICATION_INDEX, v);
+          mod_compatibility[C_TERM_MODIFICATION_INDEX].emplace_back(v);
         }
       }
     }
@@ -229,33 +233,37 @@ namespace OpenMS
         // protein N-term)
         // TODO This is not true anymore!
         const ResidueModification::TermSpecificity& term_spec = v->getTermSpecificity();
-        // TODO why are we not checking for existing modifications like in the N/C Term case above??
         if (term_spec == ResidueModification::ANYWHERE)
         {
-          mod_compatibility.emplace_back(residue_index, v);
+          mod_compatibility[residue_index].emplace_back(v);
         }
         // TODO think about if it really is the same case as the one above.
         else if (term_spec == ResidueModification::C_TERM && residue_index == (peptide.size() - 1))
         {
-          mod_compatibility.emplace_back(C_TERM_MODIFICATION_INDEX, v);
+          mod_compatibility[C_TERM_MODIFICATION_INDEX].emplace_back(v);
         }
         else if (term_spec == ResidueModification::N_TERM && residue_index == 0)
         {
-          mod_compatibility.emplace_back(N_TERM_MODIFICATION_INDEX, v);
+          mod_compatibility[N_TERM_MODIFICATION_INDEX].emplace_back(v);
         }
       }
     }
 
     Size max_placements = std::min(max_variable_mods_per_peptide, mod_compatibility.size());
 
-    vector<pair<unsigned, vector<AASequence>>> mod_peps_w_depth = {{0, {peptide}}};
+    // stores all variants with how many modifications they already have
+    vector<pair<size_t, vector<AASequence>>> mod_peps_w_depth = {{0, {peptide}}};
     for (auto& [idx, mods] : mod_compatibility)
     {
       // copy the complete sequences from last iteration
-      for (auto prev_res : mod_peps_w_depth)
+      for (auto [old_depth, old_variants] : mod_peps_w_depth)
       {
-        // extend mod_peps_w_depth by adding variants with the next mod, if max_placements is not reached
-        addMods_(idx, mods, mod_peps_w_depth, max_placements, var_mods);
+        // extends mod_peps_w_depth by adding variants with the next mod, if max_placements is not reached
+        if (old_depth < max_placements)
+        {
+          applyAllModsAtIdxAndExtend_(old_variants, idx, mods, var_mods);
+          mod_peps_w_depth.emplace_back(old_depth + 1, old_variants);
+        }
       }
     }
     
@@ -288,7 +296,6 @@ namespace OpenMS
     for (auto residue_it = peptide.end() - 1; residue_it != peptide.begin() - 1; --residue_it)
     {
       // skip already modified residues
-      // TODO We do not do this in the n > 1 variant!!
       if (residue_it->isModified())
       {
         continue;
@@ -328,19 +335,6 @@ namespace OpenMS
           new_peptide.setModification(residue_index, mr.second); // set modified Residue          
           all_modified_peptides.push_back(std::move(new_peptide));
         }
-      }
-    }
-  }
-
-
-  void ModifiedPeptideGenerator::addMods_(int idx, vector<const ResidueModification*>& mods, vector<pair<unsigned, vector<AASequence>>> mod_peps, Size max_depth, const ModifiedPeptideGenerator::MapToResidueType& var_mods)
-  {
-    for (auto& [depth, prev_res] : mod_peps)
-    {
-      if (depth < max_depth)
-      {
-        applyAllModsAtIdxAndExtend_(prev_res, idx, mods, var_mods);
-        mod_peps.emplace_back(depth + 1, prev_res);
       }
     }
   }
