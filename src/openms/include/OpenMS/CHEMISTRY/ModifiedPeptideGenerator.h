@@ -83,6 +83,9 @@ namespace OpenMS
      bool keep_original=true);
 
   protected:
+    static const int N_TERM_MODIFICATION_INDEX = -1; // magic constant to distinguish N_TERM only modifications from ANYWHERE modifications placed at N-term residue
+    static const int C_TERM_MODIFICATION_INDEX = -2; // magic constant to distinguish C_TERM only modifications from ANYWHERE modifications placed at C-term residue
+
     // Lookup datastructure to allow lock-free generation of modified peptides
     static MapToResidueType createResidueModificationToResidueMap_(const std::vector<const ResidueModification*>& mods);
 
@@ -103,6 +106,10 @@ namespace OpenMS
       std::vector<AASequence>& all_modified_peptides, 
       bool keep_original=true);
 
+  private:
+    static void addMods_(int idx, std::vector<const ResidueModification*>& mods, std::vector<std::pair<unsigned, std::vector<AASequence>>> mod_peps, Size max_depth, const MapToResidueType& var_mods);
+    static void applyAllModsAtIdxAndExtend_(std::vector<AASequence>& original_sequences, int idx_to_modify, std::vector<const ResidueModification*>& mods, const MapToResidueType& var_mods);
+    static void applyModToPep_(AASequence& current_peptide, int current_index, const ResidueModification* m, const MapToResidueType& var_mods);
   };
 }
 
