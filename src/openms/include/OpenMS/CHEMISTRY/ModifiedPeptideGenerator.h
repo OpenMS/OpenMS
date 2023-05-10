@@ -113,5 +113,3 @@ namespace OpenMS
     static void applyModToPep_(AASequence& current_peptide, int current_index, const ResidueModification* m, const MapToResidueType& var_mods);
   };
 }
-
-
