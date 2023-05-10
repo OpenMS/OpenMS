@@ -253,10 +253,14 @@ namespace OpenMS
 
     // stores all variants with how many modifications they already have
     vector<pair<size_t, vector<AASequence>>> mod_peps_w_depth = {{0, {peptide}}};
-    for (auto& [idx, mods] : mod_compatibility)
+    auto rit = mod_compatibility.rbegin();
+    for (; rit != mod_compatibility.rend(); ++rit)
     {
+      const auto& idx = rit->first;
+      const auto& mods = rit->second;
       // copy the complete sequences from last iteration
-      for (auto [old_depth, old_variants] : mod_peps_w_depth)
+      auto tmp = mod_peps_w_depth;
+      for (auto& [old_depth, old_variants] : tmp)
       {
         // extends mod_peps_w_depth by adding variants with the next mod, if max_placements is not reached
         if (old_depth < max_placements)
@@ -340,7 +344,7 @@ namespace OpenMS
   }
 
 
-  void ModifiedPeptideGenerator::applyAllModsAtIdxAndExtend_(vector<AASequence>& original_sequences, int idx_to_modify, vector<const ResidueModification*>& mods, const ModifiedPeptideGenerator::MapToResidueType& var_mods)
+  void ModifiedPeptideGenerator::applyAllModsAtIdxAndExtend_(vector<AASequence>& original_sequences, int idx_to_modify, const vector<const ResidueModification*>& mods, const ModifiedPeptideGenerator::MapToResidueType& var_mods)
   {
     // TODO use vector resize to preallocate for the new variants
     Size end = original_sequences.size();

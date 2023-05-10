@@ -108,7 +108,7 @@ namespace OpenMS
 
   private:
     /// take a vector of AASequences @p original_sequences, and for each mod in @p mods, add a version with mod at index @p idx_to_modify. In-place, with the original sequences recieving the first mod in @p mods.
-    static void applyAllModsAtIdxAndExtend_(std::vector<AASequence>& original_sequences, int idx_to_modify, std::vector<const ResidueModification*>& mods, const MapToResidueType& var_mods);
+    static void applyAllModsAtIdxAndExtend_(std::vector<AASequence>& original_sequences, int idx_to_modify, const std::vector<const ResidueModification*>& mods, const MapToResidueType& var_mods);
     /// applies a modification @p m to the @p current_peptide at @p current_index. Overwrites mod if it exists. Looks up in var_mods for existing modified Residue pointers.
     static void applyModToPep_(AASequence& current_peptide, int current_index, const ResidueModification* m, const MapToResidueType& var_mods);
   };
