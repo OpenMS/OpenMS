@@ -94,8 +94,11 @@ std::vector<FragmentIndex::Peptide_> FragmentIndex::generate_peptides_(const std
       { 
         if (entries[i].sequence.substr(pep.first, pep.second).find('X') != string::npos)  // filtering peptide with unknown AA, can't calculate MonoWeight
         {
-          ++skipped_peptides;
-          skipped_AAs += pep.second - pep.first;
+          #pragma omp critical
+          {
+            ++skipped_peptides;
+            skipped_AAs += (pep.second - pep.first);
+          }
           continue;
         }
 
