@@ -102,22 +102,24 @@ std::vector<FragmentIndex::Peptide_> FragmentIndex::generate_peptides_(const std
           continue;
         }
 
-        vector<AASequence> modified_peptides;
-
-        AASequence modified_pep = AASequence::fromString(entries[i].sequence.substr(pep.first, pep.second));
-
-        ModifiedPeptideGenerator::applyFixedModifications(fixed_modifications, modified_pep);
-        ModifiedPeptideGenerator::applyVariableModifications(variable_modifications, modified_pep, max_variable_mods_per_peptide_, modified_peptides);
-
-        for (const auto & mod_pep : modified_peptides)
+        if(!(modifications_fixed_.empty() && modifications_variable_.empty()))
         {
-          double mod_seq_mz = mod_pep.getMonoWeight();
+          vector<AASequence> modified_peptides;
 
-          if (!contains(mod_seq_mz, peptide_min_mass_, peptide_max_mass_)) continue; // Skip peptides out of mass range
+          AASequence modified_pep = AASequence::fromString(entries[i].sequence.substr(pep.first, pep.second));
 
-          all_peptides_pvt.push_back({pep.first, pep.second, i, mod_seq_mz});
+          ModifiedPeptideGenerator::applyFixedModifications(fixed_modifications, modified_pep);
+          ModifiedPeptideGenerator::applyVariableModifications(variable_modifications, modified_pep, max_variable_mods_per_peptide_, modified_peptides);
+
+          for (const auto & mod_pep : modified_peptides)
+          {
+            double mod_seq_mz = mod_pep.getMonoWeight();
+
+            if (!contains(mod_seq_mz, peptide_min_mass_, peptide_max_mass_)) continue; // Skip peptides out of mass range
+
+            all_peptides_pvt.push_back({pep.first, pep.second, i, mod_seq_mz});
+          }
         }
-
         double seq_mz = AASequence::fromString(entries[i].sequence.substr(pep.first, pep.second)).getMonoWeight();
 
         if (!contains(seq_mz, peptide_min_mass_, peptide_max_mass_)) continue; // Skip peptides out of mass range
