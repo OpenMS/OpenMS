@@ -49,12 +49,17 @@
 #include <iterator>
 #include <cmath>
 #include <vector>
-#include <../thirdparty/simde/simde/x86/ssse3.h>
-#include <../thirdparty/simde/simde/x86/sse2.h>
-#include <../thirdparty/simde/simde/x86/sse.h>
+
+#include <simde/x86/ssse3.h>
+#include <simde/x86/sse2.h>
+#include <simde/x86/sse.h>
 
 #include <QByteArray>
 #include <zlib.h>
+
+
+#include <string>
+#include <iostream>
 
 #ifdef OPENMS_COMPILER_MSVC
 #pragma comment(linker, "/export:compress")
@@ -169,10 +174,10 @@ private:
     };
 
     
-    const simde__m128i mask1 = simde_mm_set1_epi32(0x3F000000);//00111111 00000000 00000000 00000000
-    const simde__m128i mask2 = simde_mm_set1_epi32(0x003F0000);//00000000 00111111 00000000 00000000
-    const simde__m128i mask3 = simde_mm_set1_epi32(0x00003F00);//00000000 00000000 00111111 00000000
-    const simde__m128i mask4 = simde_mm_set1_epi32(0x0000003F);//00000000 00000000 00000000 00111111
+     const simde__m128i mask1 = simde_mm_set1_epi32(0x3F000000);//00111111 00000000 00000000 00000000
+     const simde__m128i mask2 = simde_mm_set1_epi32(0x003F0000);//00000000 00111111 00000000 00000000
+     const simde__m128i mask3 = simde_mm_set1_epi32(0x00003F00);//00000000 00000000 00111111 00000000
+     const simde__m128i mask4 = simde_mm_set1_epi32(0x0000003F);//00000000 00000000 00000000 00111111
 
 
 
@@ -203,7 +208,7 @@ private:
     template <typename ToType>
     static void decodeIntegersCompressed_(const String & in, ByteOrder from_byte_order, std::vector<ToType> & out);
 
-    void registerEncoder_(simde__m128i & data);
+    inline void registerEncoder_(simde__m128i & data);
   };
 
   /// Endianizes a 32 bit type from big endian to little endian and vice versa
@@ -256,6 +261,20 @@ private:
             (numberMask      & simde_mm_add_epi8(data, all0))|
             (plusMask        & allPlus                      )|
             (simde_mm_andnot_si128(slashAntiMask, allSlash));
+
+    std::string s;
+    s.resize(16);
+    simde_mm_storeu_si128((simde__m128*) & s[0], data);
+    std::cout << s << std::endl;
+
+    String ss;
+    ss.resize(16);
+    simde_mm_storeu_si128((simde__m128*) & ss[0], data);
+    std::cout << ss << std::endl;
+
+
+  
+    
 } 
 
   template <typename FromType>

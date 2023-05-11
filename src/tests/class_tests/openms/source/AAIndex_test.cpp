@@ -38,6 +38,8 @@
 #include <OpenMS/CHEMISTRY/AAIndex.h>
 #include <OpenMS/FORMAT/Base64.h>
 
+#include <iostream>
+
 using namespace OpenMS;
 using namespace std;
 
@@ -45,25 +47,32 @@ using namespace std;
 
 int main(){
 
-  std::vector<String> vec;
+  std::cout << "start" << std::endl;
+  std::vector<String> vec = {"abcdefghijklmnopqrstuvwxyz","ABCDEFGHIJKLMNOPQRSTUVWXYZZ","1234567890"};
 
-  vec.resize(3);
-  vec[0] = "abcdefghijklmnopqrstuvwxyz";
-  vec[1] = "ABCDEFGHIJKLMNOPQRSTUVWXYZZ";
-  vec[2] = "1234567890";
+  String s = "abc";
+  s.push_back('\0');
+  s.push_back('=');
+
+std::cout << s << std::endl;
+  //vec.resize(3);
+  //vec[0] = "abcdefghijklmnopqrstuvwxyz";
+  //vec[1] = "ABCDEFGHIJKLMNOPQRSTUVWXYZZ";
+  //vec[2] = "1234567890";
 
   String ausgabe;
 
   Base64 codingmachine;
-
+  std::cout << "created variables in main" << std::endl;
   codingmachine.encodeStrings(vec, ausgabe, true , true);
+  std::cout << "magic happened" <<std::endl;
 
   std::cout << ausgabe << std::endl;
-
-  codingmachine.encodeStrings(vec, ausgabe, false , true);
-
-  std::cout << ausgabe << std::endl;
-
 // should be : "eJxLTEpOSU1Lz8jMys7JzcsvKCwqLiktK6+orGJwdHJ2cXVz9/D08vbx9fMPCAwKDgkNC4+IjIpiMDQyNjE1M7ewNGAAACpTFWY="
+  //codingmachine.encodeStrings(vec, ausgabe, false , true);
+
+  //std::cout << ausgabe << std::endl;
+
+//should be : "YWJjZGVmZ2hpamtsbW5vcHFyc3R1dnd4eXoAQUJDREVGR0hJSktMTU5PUFFSU1RVVldYWVpaADEyMzQ1Njc4OTAA"
 
 }

@@ -37,9 +37,6 @@ cmake_minimum_required(VERSION 2.8.3 FATAL_ERROR)
 
 # export include directory
 set(SIMDE_INCLUDE_DIRECTORY
-simde/x86/sse.h
-simde/x86/sse2.h  
-simde/x86/ssse3.h
 ${PROJECT_SOURCE_DIR}
   CACHE
   INTERNAL "simde include directories" FORCE
