@@ -80,15 +80,17 @@ class FragmentIndex_test : public FragmentIndex
 START_TEST(FragmentIndex, "$Id:$")
 
 
-START_SECTION(FragmentIndex(const std::vector<FASTAFile::FASTAEntry>& entries))
+START_SECTION(build(const std::vector<FASTAFile::FASTAEntry>& entries))
 
   std::vector<FASTAFile::FASTAEntry> entries{
   {"test1", "test1", "LRLRACGLNFADLMARQGLY"},
   {"test2", "test2", "AAASPPLLRCLVLTGFGGYD"},
   {"test3", "test3", "KVKLQSRPAAPPAPGPGQLT"}};
 
-  FragmentIndex_test sdb(entries);
+  FragmentIndex_test sdb;
+  
   START_SECTION(test number of fragments)
+    sdb.build(entries);
     TEST_EQUAL(187, sdb.getAllFragments().size())
   END_SECTION
 
@@ -96,6 +98,48 @@ START_SECTION(FragmentIndex(const std::vector<FASTAFile::FASTAEntry>& entries))
     TEST_TRUE(sdb.isSortedBucketFragsMZ())
 
     TEST_TRUE(sdb.isSortedAllFragments())
+  END_SECTION
+
+  START_SECTION(test without modifications)
+
+  auto params = sdb.getParameters();
+
+  params.setValue("modifications_fixed", std::vector<std::string>{});
+  params.setValue("modifications_variable", std::vector<std::string>{});
+
+  sdb.setParameters(params);
+
+  sdb.build(entries);
+  TEST_NOT_EQUAL(187, sdb.getAllFragments().size());
+
+  END_SECTION
+
+  START_SECTION(test peptide mz bounds)
+
+  auto params = sdb.getParameters();
+
+  params.setValue("peptide_min_mass", 2000);
+  params.setValue("peptide_max_mass", 2000);
+
+  sdb.setParameters(params);
+
+  sdb.build(entries);
+  TEST_EQUAL(0, sdb.getAllFragments().size());
+
+  END_SECTION
+
+  START_SECTION(test fragment mz bounds)
+
+  auto params = sdb.getParameters();
+
+  params.setValue("fragment_min_mz", 500);
+  params.setValue("fragment_max_mz", 500);
+
+  sdb.setParameters(params);
+
+  sdb.build(entries);
+  TEST_EQUAL(0, sdb.getAllFragments().size());
+
   END_SECTION
   
 END_SECTION
@@ -109,13 +153,33 @@ START_SECTION(void search(MSSpectrum& spectrum, std::vector<Candidate>& candidat
   {"test2", "test2", "AAASPPLLRCLVLTGFGGYD"},
   {"test3", "test3", "KVKLQSRPAAPPAPGPGQLT"}};
 
-  FragmentIndex_test sdb(entries);
+  FragmentIndex_test sdb;
+  std::vector<FragmentIndex::Candidate> candidates;
 
   MSSpectrum spec;
 
   Precursor prec{};
 
-  std::vector<FragmentIndex::Candidate> candidates;
+  START_SECTION(searching without building)
+
+  prec.setCharge(1);
+
+  prec.setMZ(1281.6);
+
+  spec.setPrecursors({prec});
+  spec.setMSLevel(2);
+
+  spec.push_back({605.308, 100});
+  spec.push_back({676.345, 100});
+  spec.push_back({823.413, 100});  
+
+  sdb.search(spec, candidates);
+
+  TEST_EQUAL(candidates.size(), 0)
+
+  END_SECTION
+
+  sdb.build(entries);
 
   START_SECTION(Searching 3 Fragments it should find (with Da and ppm))
 
@@ -247,7 +311,9 @@ START_SECTION(void search(MSExperiment& experiment, std::vector<CandidatesWithIn
   {"test2", "test2", "AAASPPLLRCLVLTGFGGYD"},
   {"test3", "test3", "KVKLQSRPAAPPAPGPGQLT"}};
 
-  FragmentIndex_test sdb(entries);
+  FragmentIndex_test sdb;
+
+  sdb.build(entries);
 
   MSExperiment exp;
 

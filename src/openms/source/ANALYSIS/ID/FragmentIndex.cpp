@@ -76,7 +76,6 @@ std::vector<FragmentIndex::Peptide_> FragmentIndex::generate_peptides_(const std
   ModifiedPeptideGenerator::MapToResidueType variable_modifications = ModifiedPeptideGenerator::getModifications(modifications_variable_);
 
   size_t skipped_peptides = 0;
-  size_t skipped_AAs = 0;
 
   #pragma omp parallel
   { 
@@ -94,11 +93,9 @@ std::vector<FragmentIndex::Peptide_> FragmentIndex::generate_peptides_(const std
       { 
         if (entries[i].sequence.substr(pep.first, pep.second).find('X') != string::npos)  // filtering peptide with unknown AA, can't calculate MonoWeight
         {
-          #pragma omp critical
-          {
-            ++skipped_peptides;
-            skipped_AAs += (pep.second - pep.first);
-          }
+          #pragma omp atomic
+          ++skipped_peptides;
+
           continue;
         }
 
@@ -131,7 +128,7 @@ std::vector<FragmentIndex::Peptide_> FragmentIndex::generate_peptides_(const std
     #pragma omp critical
     all_peptides.insert(all_peptides.end(), all_peptides_pvt.begin(), all_peptides_pvt.end());
   }
-  if (skipped_peptides > 0) OPENMS_LOG_WARN << skipped_peptides << " peptides with total length of " << skipped_AAs << " skipped due to unkown AA \n";
+  if (skipped_peptides > 0) OPENMS_LOG_WARN << skipped_peptides << " peptides skipped due to unkown AA \n";
   return all_peptides;
 }
 
@@ -181,12 +178,13 @@ std::vector<FragmentIndex::Fragment_> FragmentIndex::generate_fragments_(const s
   return all_frags;
 }
 
-FragmentIndex::FragmentIndex(const std::vector<FASTAFile::FASTAEntry>& entries) : DefaultParamHandler("FragmentIndex")
+FragmentIndex::FragmentIndex() : DefaultParamHandler("FragmentIndex")
 { 
   vector<String> all_enzymes;  
   ProteaseDB::getInstance()->getAllNames(all_enzymes);
   vector<String> all_mods;
   ModificationsDB::getInstance()->getAllSearchModifications(all_mods);
+  all_mods.push_back({});
   vector<string> tolerance_units{UNIT_DA, UNIT_PPM};
   defaults_.setValue("digestor_enzyme", "Trypsin", "Enzyme for digestion");
   defaults_.setValidStrings("digestor_enzyme", ListUtils::create<std::string>(all_enzymes));
@@ -214,6 +212,11 @@ FragmentIndex::FragmentIndex(const std::vector<FASTAFile::FASTAEntry>& entries) 
 
   defaultsToParam_();
 
+  is_build_ = false;
+}
+
+void FragmentIndex::build(const std::vector<FASTAFile::FASTAEntry>& entries)
+{
   if (entries.empty()) return;
 
   all_peptides_ = generate_peptides_(entries);
@@ -237,6 +240,8 @@ FragmentIndex::FragmentIndex(const std::vector<FASTAFile::FASTAEntry>& entries) 
     [&](const FragmentIndex::Fragment_& l, const FragmentIndex::Fragment_& r) -> bool 
     {return (all_peptides_[l.peptide_index_].peptide_mz_ < all_peptides_[r.peptide_index_].peptide_mz_);});
   }
+
+  is_build_ = true;
 }
 
 void FragmentIndex::updateMembers_()
@@ -262,7 +267,12 @@ void FragmentIndex::updateMembers_()
 }
 
 void FragmentIndex::search(MSSpectrum& spectrum, std::vector<FragmentIndex::Candidate>& candidates) const
-{ 
+{
+  if(!is_build_)
+  {
+    OPENMS_LOG_WARN << "FragmentIndex not yet build \n";
+    return;
+  }
   candidates.clear();
   if (spectrum.empty() || (spectrum.getMSLevel() != 2)) return;
   
@@ -335,8 +345,13 @@ void FragmentIndex::search(MSSpectrum& spectrum, std::vector<FragmentIndex::Cand
 
 void FragmentIndex::search(MSExperiment& experiment, std::vector<FragmentIndex::CandidatesWithIndex>& candidates) const
 {
+  if(!is_build_)
+  {
+    OPENMS_LOG_WARN << "FragmentIndex not yet build \n";
+    return;
+  }
   candidates.clear();
-  if (experiment.size() == 0) return;  
+  if (experiment.empty()) return;  
   
   #pragma omp parallel
   { 

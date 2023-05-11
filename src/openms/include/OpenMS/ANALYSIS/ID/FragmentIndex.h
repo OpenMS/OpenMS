@@ -74,10 +74,15 @@ class OPENMS_DLLAPI FragmentIndex : public DefaultParamHandler
     CandidatesWithIndex(std::vector<FragmentIndex::Candidate>&& cand, size_t spectrum_i): candidates(std::move(cand)), spectrum_index(spectrum_i){}
   };
 
+
+  /** @brief Sets default parameters     
+  */
+  FragmentIndex();
+
   /** @brief Builds up the Search Datastructure     
-     * @param entries Input vector of FASTAFile-Entries to base SearchDatastructure on
-    */
-  FragmentIndex(const std::vector<FASTAFile::FASTAEntry>& entries);
+  * @param entries Input vector of FASTAFile-Entries to base SearchDatastructure on
+  */
+  void build(const std::vector<FASTAFile::FASTAEntry>& entries);
 
   /** @brief Searches Peaks of every MSSpectrum of the MSExperiment in the Database       
      * @param experiment Input MSExperiment containing of MS2 Spectra (MS1 Spectra has an empty output)
@@ -119,6 +124,7 @@ class OPENMS_DLLAPI FragmentIndex : public DefaultParamHandler
   ///generates sorted vector with all theoretical Fragments for all theoretical Peptides
   std::vector<FragmentIndex::Fragment_> generate_fragments_(const std::vector<FASTAFile::FASTAEntry>& entries) const;
 
+  bool is_build_;
   std::string digestor_enzyme_;
   size_t missed_cleavages_; ///< number of missed cleavages
   double peptide_min_mass_;
