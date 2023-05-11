@@ -41,9 +41,8 @@
 #include <OpenMS/CHEMISTRY/AASequence.h>
 #include <vector>
 #include <map>
+#include <unordered_map>
 #include <set>
-
-#include <boost/container/flat_map.hpp>
 
 namespace OpenMS
 {
@@ -55,7 +54,7 @@ namespace OpenMS
 
   public:
     // struct needed to wrap the template for pyOpenMS
-    struct MapToResidueType { boost::container::flat_map<const ResidueModification*, const Residue*> val; };
+    struct MapToResidueType { std::unordered_map<const ResidueModification*, const Residue*> val; };
 
       /**
       * @brief Retrieve modifications from strings
