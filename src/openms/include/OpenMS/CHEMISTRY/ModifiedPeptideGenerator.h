@@ -88,16 +88,6 @@ namespace OpenMS
     // Lookup datastructure to allow lock-free generation of modified peptides
     static MapToResidueType createResidueModificationToResidueMap_(const std::vector<const ResidueModification*>& mods);
 
-
-    // Recursively generate all combinatoric placements at compatible sites
-    static void recurseAndGenerateVariableModifiedPeptides_(
-      const std::vector<int>& subset_indices, 
-      const std::map<int, std::vector<const ResidueModification*> >& map_compatibility, 
-      const MapToResidueType& var_mods,
-      int depth, 
-      const AASequence& current_peptide, 
-      std::vector<AASequence>& modified_peptides);
-
     // Fast implementation of modification placement. No combinatoric placement is needed in this case - just every site is modified once by each compatible modification. Already modified residues are skipped
     static void applyAtMostOneVariableModification_(
       const MapToResidueType& var_mods, 
