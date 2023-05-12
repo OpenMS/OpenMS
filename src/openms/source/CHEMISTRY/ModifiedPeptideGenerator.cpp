@@ -291,6 +291,137 @@ namespace OpenMS
     }
   }
 
+   void ModifiedPeptideGenerator::applyVariableModificationsWithMasses(
+     const MapToResidueType& var_mods, 
+     const AASequence& peptide, 
+     Size max_variable_mods_per_peptide,
+     vector<ModifiedPeptideGenerator::AASequenceWMass>& all_modified_peptides,
+     bool keep_unmodified)
+  {
+    double orig_monomass = 0.;
+    if (peptide.size() > 0)
+    {
+      orig_monomass = peptide.getMonoWeight();
+    } else { // avoid warnings
+      if (keep_unmodified) { all_modified_peptides.push_back({peptide, orig_monomass});}
+      return;
+    }
+     
+    // no variable modifications specified or no variable mods allowed? no compatibility map needs to be build
+    if (var_mods.val.empty() || max_variable_mods_per_peptide == 0)
+    {
+      // if unmodified peptides should be kept return the original list of digested peptides
+      if (keep_unmodified) { all_modified_peptides.push_back({peptide, orig_monomass});}
+      return;
+    }
+
+    // iterate over each residue and build compatibility mapping describing
+    // which amino acid (peptide index) is compatible with which modification
+    map<int, vector<const ResidueModification*> > mod_compatibility;
+
+    // set terminal modifications for modifications without amino acid preference
+    for (auto const& mr : var_mods.val)
+    {
+      const ResidueModification* v = mr.first;
+
+      if (v->getTermSpecificity() == ResidueModification::N_TERM)
+      {
+        if (!peptide.hasNTerminalModification())
+        {
+          mod_compatibility[N_TERM_MODIFICATION_INDEX].push_back(v);
+        }
+      }
+      else if (v->getTermSpecificity() == ResidueModification::C_TERM)
+      {
+        if (!peptide.hasCTerminalModification())
+        {
+          mod_compatibility[C_TERM_MODIFICATION_INDEX].push_back(v);
+        }
+      }
+    }
+    
+    for (auto residue_it = peptide.begin(); residue_it != peptide.end(); ++residue_it)
+    {
+      // skip already modified residues
+      if (residue_it->isModified())
+      {
+        continue;
+      }
+
+      Size residue_index = residue_it - peptide.begin();
+
+      //determine compatibility of variable modifications
+      for (auto const& mr : var_mods.val)
+      {
+        const ResidueModification* v = mr.first;
+
+        // check if amino acid match between modification and current residue
+        if (residue_it->getOneLetterCode()[0] != v->getOrigin())
+        {
+          continue;
+        }
+
+        // Term specificity is ANYWHERE on the peptide, C_TERM or N_TERM
+        // (currently no explicit support in OpenMS for protein C-term and
+        // protein N-term)
+        // TODO This is not true anymore!
+        const ResidueModification::TermSpecificity& term_spec = v->getTermSpecificity();
+        if (term_spec == ResidueModification::ANYWHERE)
+        {
+          mod_compatibility[residue_index].push_back(v);
+        }
+        // TODO think about if it really is the same case as the one above.
+        else if (term_spec == ResidueModification::C_TERM && residue_index == (peptide.size() - 1))
+        {
+          mod_compatibility[C_TERM_MODIFICATION_INDEX].push_back(v);
+        }
+        else if (term_spec == ResidueModification::N_TERM && residue_index == 0)
+        {
+          mod_compatibility[N_TERM_MODIFICATION_INDEX].push_back(v);
+        }
+      }
+    }
+
+    Size max_placements = std::min(max_variable_mods_per_peptide, mod_compatibility.size());
+
+    // stores all variants with how many modifications they already have
+    vector<pair<size_t, vector<AASequenceWMass>>> mod_peps_w_depth = {{0, {{peptide, orig_monomass}}}};
+    Size num_res = 0;
+    for (Size s(0); s <= max_placements; ++s)
+    {
+      num_res += boost::math::binomial_coefficient<double>(mod_compatibility.size(), s);
+    }
+    mod_peps_w_depth.reserve(num_res);
+    auto rit = mod_compatibility.rbegin();
+    for (; rit != mod_compatibility.rend(); ++rit)
+    {
+      const auto& idx = rit->first;
+      const auto& mods = rit->second;
+      // copy the complete sequences from last iteration
+      auto tmp = mod_peps_w_depth;
+      for (auto& [old_depth, old_variants] : tmp)
+      {
+        // extends mod_peps_w_depth by adding variants with the next mod, if max_placements is not reached
+        if (old_depth < max_placements)
+        {
+          applyAllModsAtIdxAndExtend_(old_variants, idx, mods, var_mods);
+          mod_peps_w_depth.emplace_back(old_depth + 1, std::move(old_variants));
+        }
+      }
+    }
+    // move sequences from mod_peps_w_depth into result. Skip the initial peptide if desired.
+    for (auto& [depth, seqs] : mod_peps_w_depth)
+    {
+      if (depth != 0 || keep_unmodified)
+      {
+        all_modified_peptides.insert(
+          all_modified_peptides.end(), 
+          make_move_iterator(seqs.begin()), 
+          make_move_iterator(seqs.end())); 
+      }
+    }
+  }
+
   // static
   void ModifiedPeptideGenerator::applyAtMostOneVariableModification_(
     const MapToResidueType& var_mods, 
@@ -364,6 +495,24 @@ namespace OpenMS
       for (Size i(0); i < end; i++)
       {
         applyModToPep_(original_sequences[cnt * end + i], idx_to_modify, mods[cnt], var_mods);
+      }
+    }
+  }
+
+  void ModifiedPeptideGenerator::applyAllModsAtIdxAndExtend_(vector<AASequenceWMass>& original_sequences, int idx_to_modify, const vector<const ResidueModification*>& mods, const ModifiedPeptideGenerator::MapToResidueType& var_mods)
+  {
+    Size end = original_sequences.size();
+    original_sequences.reserve(end * mods.size());
+    for (Size s(1); s < mods.size(); ++s)
+    {
+      original_sequences.insert(original_sequences.end(),original_sequences.begin(), original_sequences.begin()+end);
+    }
+    for (Size cnt(0); cnt < mods.size(); ++cnt) // apply first mod later
+    {
+      for (Size i(0); i < end; i++)
+      {
+        applyModToPep_(original_sequences[cnt * end + i].first, idx_to_modify, mods[cnt], var_mods);
+        original_sequences[cnt * end + i].second += mods[cnt]->getDiffMonoMass();
       }
     }
   }
