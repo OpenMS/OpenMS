@@ -55,6 +55,7 @@
 #include <OpenMS/MATH/MISC/MathFunctions.h>
 #include <OpenMS/QC/QCBase.h>
 
+#include <limits>
 #include <omp.h>
 #include <unordered_set>
 #include <vector>
@@ -108,20 +109,20 @@ std::vector<FragmentIndex::Peptide_> FragmentIndex::generate_peptides_(const std
           ModifiedPeptideGenerator::applyFixedModifications(fixed_modifications, modified_pep);
           ModifiedPeptideGenerator::applyVariableModifications(variable_modifications, modified_pep, max_variable_mods_per_peptide_, modified_peptides);
 
-          for (const auto & mod_pep : modified_peptides)
+          for (size_t j = 0; j < modified_peptides.size(); ++j)
           {
-            double mod_seq_mz = mod_pep.getMonoWeight();
+            double mod_seq_mz = modified_peptides[j].getMonoWeight();
 
             if (!contains(mod_seq_mz, peptide_min_mass_, peptide_max_mass_)) continue; // Skip peptides out of mass range
 
-            all_peptides_pvt.push_back({pep.first, pep.second, i, mod_seq_mz});
+            all_peptides_pvt.push_back({pep.first, pep.second, i, mod_seq_mz, true, j});
           }
         }
         double seq_mz = AASequence::fromString(entries[i].sequence.substr(pep.first, pep.second)).getMonoWeight();
 
         if (!contains(seq_mz, peptide_min_mass_, peptide_max_mass_)) continue; // Skip peptides out of mass range
 
-        all_peptides_pvt.push_back({pep.first, pep.second, i, seq_mz});
+        all_peptides_pvt.push_back({pep.first, pep.second, i, seq_mz, false, ULONG_MAX});
         
       }
     }
@@ -339,7 +340,14 @@ void FragmentIndex::search(MSSpectrum& spectrum, std::vector<FragmentIndex::Cand
   
   for (size_t j : index_hash)
   {
-    candidates.push_back({all_peptides_[j].peptide_begin_, all_peptides_[j].peptide_end_, all_peptides_[j].protein_index_});
+    candidates.push_back(
+    {
+    all_peptides_[j].peptide_begin_, 
+    all_peptides_[j].peptide_end_, 
+    all_peptides_[j].protein_index_, 
+    all_peptides_[j].is_modified_, 
+    all_peptides_[j].modification_index_
+    });
   }
 }
 

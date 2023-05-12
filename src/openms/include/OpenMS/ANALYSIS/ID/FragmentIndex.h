@@ -63,6 +63,8 @@ class OPENMS_DLLAPI FragmentIndex : public DefaultParamHandler
     size_t peptide_start; ///< Start position of peptide in protein
     size_t peptide_end; ///< End position of peptide in protein
     size_t protein_index; ///< Index to Entry of std::vector<FASTAFile::FASTAEntry>
+    bool is_modified_; ///< true if candidate is modified
+    size_t modification_index_; ///< index to modified version of this peptide
   };
   
   /** @brief Storing vector of found candiates from search with the Index of the MSSpectrum in the MSExperiment
@@ -115,6 +117,8 @@ class OPENMS_DLLAPI FragmentIndex : public DefaultParamHandler
     size_t peptide_end_;
     size_t protein_index_;
     double peptide_mz_;
+    bool is_modified_;
+    size_t modification_index_;
   };
   
   /// in-silico digest protein database
