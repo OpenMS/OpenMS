@@ -422,11 +422,12 @@ namespace OpenMS
 
   void FLASHDeconvSpectrumFile::writeTopFD(const DeconvolvedSpectrum& dspec, std::fstream& fs,
                                            const double snr_threshold,
+                                           const uint min_ms_level,
                                            const bool randomize_precursor_mass,
                                            const bool randomize_fragment_mass)
   {
     UInt ms_level = dspec.getOriginalSpectrum().getMSLevel();
-    if (ms_level > 1)
+    if (ms_level > min_ms_level)
     {
       if (dspec.getPrecursorPeakGroup().empty() || dspec.getPrecursorPeakGroup().getChargeSNR(dspec.getPrecursor().getCharge()) < snr_threshold)
       {

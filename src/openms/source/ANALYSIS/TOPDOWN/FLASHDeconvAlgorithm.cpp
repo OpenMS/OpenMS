@@ -204,7 +204,7 @@ namespace OpenMS
     for (double& j : tolerance_)
     {
       j *= 1e-6;
-      bin_mul_factors_.push_back(.5 / j);
+      bin_mul_factors_.push_back(1.0 / j);
     }
 
     min_isotope_cosine_ = param_.getValue("min_isotope_cosine");
@@ -1222,7 +1222,7 @@ namespace OpenMS
           continue;
         }
 
-        if (peak_group.getQScore() <= 0 || (peak_group.getSNR() < .3 && std::get<1>(cr) <= low_charge_)) // for low charge range, snr .3 prevents extreme high harmonics
+        if (peak_group.getQScore() <= 0 || (peak_group.getSNR() < .1 && std::get<1>(cr) <= low_charge_)) // for low charge range, snr .1 prevents extreme high harmonics
         {
           continue;
         }
@@ -1537,10 +1537,11 @@ namespace OpenMS
   void FLASHDeconvAlgorithm::removeChargeErrorPeakGroups_(DeconvolvedSpectrum& dspec)
   {
     std::map<double, std::set<int>> peak_to_pgs;
-    std::set<int> to_remove_pgs;
+    //std::set<int> to_remove_pgs;
     std::vector<PeakGroup> filtered_pg_vec;
     filtered_pg_vec.reserve(dspec.size());
-
+    std::vector<Size> overlap_cntr(dspec.size(), 0);
+    Size min_overlap = 3;
     for (Size i = 0; i < dspec.size(); i++)
     {
       auto& pg = dspec[i];
@@ -1581,20 +1582,21 @@ namespace OpenMS
           }
           double snr2 = dspec[j].getSNR();
 
-          if (snr1 <= snr2)
+          if (snr1 < snr2 + .1)
           {
             continue;
           }
           bool charge_error = false; // if snr is already highly different, it is charge error..
 
-          if (snr1 > snr2 * 4 || std::max(abs(mass2 - mass1 / repz1 * repz2), abs(mass1 - mass2 / repz2 * repz1)) <= 2 * iso_da_distance_)
+          if (snr1 > snr2 * 4 || abs(mass2/repz2 - mass1 / repz1) <= 2 * iso_da_distance_ / repz1)
           {
             charge_error = true;
           }
 
           if (charge_error)
           {
-            to_remove_pgs.insert(j);
+            overlap_cntr[j]++;
+            //to_remove_pgs.insert(j);
           }
         }
 
@@ -1626,7 +1628,7 @@ namespace OpenMS
           }
           if (exclude)
           {
-            to_remove_pgs.insert(i);
+            overlap_cntr[i] = min_overlap;
           }
         }
       }
@@ -1634,7 +1636,7 @@ namespace OpenMS
 
     for (Size i = 0; i < dspec.size(); i++)
     {
-      if (!dspec[i].isTargeted() && to_remove_pgs.find((int)i) != to_remove_pgs.end())
+      if (!dspec[i].isTargeted() && overlap_cntr[i] >= min_overlap)
       {
         continue;
       }
@@ -1651,12 +1653,16 @@ namespace OpenMS
   {
     std::vector<PeakGroup> filtered_pg_vec;
     filtered_pg_vec.reserve(dspec.size());
-
+    //dspec.sort();
     for (Size i = 0; i < dspec.size(); i++)
     {
-      if (i > 0)
+      if (!dspec[i].isTargeted())
       {
-        if (!dspec[i].isTargeted() && abs(dspec[i - 1].getMonoMass() - dspec[i].getMonoMass()) < 1e-3 && dspec[i - 1].getSNR() >= dspec[i].getSNR())
+        if (i>0 && abs(dspec[i - 1].getMonoMass() - dspec[i].getMonoMass()) < 1e-3 && dspec[i - 1].getSNR() >= dspec[i].getSNR())
+        {
+          continue;
+        }
+        if (i< dspec.size() - 1 && abs(dspec[i + 1].getMonoMass() - dspec[i].getMonoMass()) < 1e-3 && dspec[i + 1].getSNR() > dspec[i].getSNR()) // should not >=
         {
           continue;
         }

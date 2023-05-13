@@ -327,8 +327,8 @@ namespace OpenMS
     /// index to specify if this peak_group is a target (0), an isotope decoy (1), a noise (2), or a charge decoy (3)
     PeakGroup::DummyIndex decoy_flag_ = target;
 
-    int charge_range_for_DL_ =  3;
-    int iso_range_for_DL_ = 5;
+    int charge_range_for_DL_ =  11;
+    int iso_range_for_DL_ = 11;
     /// distance between consecutive isotopes. Can be different for decoys
     double iso_da_distance_ = Constants::ISOTOPE_MASSDIFF_55K_U;
     /// scoring variables

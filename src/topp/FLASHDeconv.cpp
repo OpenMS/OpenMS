@@ -39,6 +39,7 @@
 #include <OpenMS/ANALYSIS/TOPDOWN/QScore.h>
 #include <OpenMS/ANALYSIS/TOPDOWN/Qvalue.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
+#include <OpenMS/CHEMISTRY/Tagger.h>
 #include <OpenMS/FILTERING/TRANSFORMERS/SpectraMerger.h>
 #include <OpenMS/FORMAT/FLASHDeconvFeatureFile.h>
 #include <OpenMS/FORMAT/FLASHDeconvSpectrumFile.h>
@@ -250,7 +251,7 @@ protected:
   // the main_ function is called after all parameters are read
   ExitCodes main_(int, const char**) override
   {
-    bool DLTrain = true;
+    bool DLTrain = false;
     OPENMS_LOG_INFO << "Initializing ... " << endl;
     //-------------------------------------------------------------
     // parsing parameters
@@ -465,7 +466,7 @@ protected:
       merger.setParameters(sm_param);
       map.sortSpectra();
 
-      for (uint tmp_ms_level = 1; tmp_ms_level <= current_max_ms_level; tmp_ms_level++)
+      for (uint tmp_ms_level = current_min_ms_level; tmp_ms_level <= current_max_ms_level; tmp_ms_level++)
       {
         merger.average(map, "gaussian", (int)tmp_ms_level);
       }
@@ -618,6 +619,24 @@ protected:
         {
           auto dspec = deconvolved_spectrum.toSpectrum(mzml_charge, current_min_ms_level, tols[ms_level - 1], false);
 
+          /*auto tagger = Tagger(7,100);
+          std::vector<std::string> tags;
+          std::vector<double> mzs;
+          for(auto &pg : deconvolved_spectrum)
+          {
+            //if(pg.getMonoMass()>6600 && pg.getMonoMass() < 7200)
+            {
+             // mzs.push_back(pg.getMonoMass() - Constants::ISOTOPE_MASSDIFF_55K_U);
+              mzs.push_back(pg.getMonoMass());
+             // mzs.push_back(pg.getMonoMass() + Constants::ISOTOPE_MASSDIFF_55K_U);
+            }
+          }
+          std::sort(mzs.begin(), mzs.end());
+          tagger.getTag(mzs,tags);
+          int q=1;
+          for(auto& tag: tags)
+            std::cout<<">" << q++ << "\n"<< tag<<std::endl;
+*/
           if (dspec.size() > 0)
           {
             exp.addSpectrum(dspec);
@@ -745,7 +764,7 @@ protected:
       if (out_topfd_streams.size() + 1 > ms_level)
       {
         FLASHDeconvSpectrumFile::writeTopFD(deconvolved_spectrum, out_topfd_streams[ms_level - 1],
-                                            topFD_SNR_threshold, false, false); //, 1, (float)rand() / (float)RAND_MAX * 10 + 10);
+                                            topFD_SNR_threshold, current_min_ms_level,false, false); //, 1, (float)rand() / (float)RAND_MAX * 10 + 10);
       }
     }
     if (report_dummy)
