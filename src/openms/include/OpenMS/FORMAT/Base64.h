@@ -190,6 +190,12 @@ private:
     const simde__m128i shuffleMask = simde_mm_setr_epi8(2, 2, 1, 0, 5, 5, 4, 3, 8, 8, 7, 6, 11, 11, 10, 9);
     const simde__m128i shuffleMask2 = simde_mm_setr_epi8(3,2,1,0,7,6,5,4,11,10,9,8,15,14,13,12);
 
+    const simde__m128i shuffleMaskBigEndian = simde_mm_setr_epi8(0,1,2,2,3,4,5,5,6,7,8,8,9,10,11,11);
+    //second shuffle doesnt need to happen
+
+
+  
+
     static const char encoder_[];
     static const char decoder_[];
     /// Decodes a Base64 string to a vector of floating point numbers
@@ -209,6 +215,8 @@ private:
     static void decodeIntegersCompressed_(const String & in, ByteOrder from_byte_order, std::vector<ToType> & out);
 
     inline void registerEncoder_(simde__m128i & data);
+
+    inline void stringSimdEncoder_(std::string & in, std::string & out);
   };
 
   /// Endianizes a 32 bit type from big endian to little endian and vice versa
@@ -234,7 +242,9 @@ private:
   }
   /////////////////////////////////////////////////add register endianizer
 
+  ///encode the first 12 bytes of a 128 bit simde integer type to base64
   void Base64::registerEncoder_(simde__m128i &data) {
+    
     data = simde_mm_shuffle_epi8(data, shuffleMask);
     //by shuffling every 3 8bit ASCII Letters now take up 4 bytes, "ABC" gets shuffled to "CCBA" to match the 4 bytes of the Base64 Encoding, and deal with little Endianness.
 
@@ -244,7 +254,6 @@ private:
              (data & mask4);
 
     data = simde_mm_shuffle_epi8(data, shuffleMask2);
-
 
     simde__m128i bigLetterMask= simde_mm_cmplt_epi8(data, _mm_set1_epi8(26)); // (a < b) ? 0xFF : 0x00
     simde__m128i allMask= bigLetterMask;
@@ -262,20 +271,56 @@ private:
             (plusMask        & allPlus                      )|
             (simde_mm_andnot_si128(slashAntiMask, allSlash));
 
-    std::string s;
-    s.resize(16);
-    simde_mm_storeu_si128((simde__m128*) & s[0], data);
-    std::cout << s << std::endl;
+  } 
 
-    String ss;
-    ss.resize(16);
-    simde_mm_storeu_si128((simde__m128*) & ss[0], data);
-    std::cout << ss << std::endl;
+  void Base64::stringSimdEncoder_(std::string & in, std::string & out){
+          // TODO check integer overflow
+      out.resize((Size)(in.size() / 3) * 4 + 16); //resize output array, so the register encoder doesnt write stuff into nirvana
+      uint8_t padding = (3 - in.size() % 3 ) % 3;
+      const size_t loop = in.size() / 12;
+     
+      in.resize(in.size() + 4, '\0');
+      //otherwise there are cases where register encoder isnt allowed to access last bytes   
+          
+      Base64 unit;
+      simde__m128i data{};
+      //loop  through input as long as it's safe to access memory
+      for(size_t i = 0; i < loop; i++){
+          //everytime the last 4 out of 16 byte string data get lost through processing, therefore jumps of 12 bytes (/characters)
+          data = simde_mm_lddqu_si128((simde__m128i*) & in[12*i] );
+          unit.registerEncoder_(data);
+          simde_mm_storeu_si128((simde__m128*) & out[i*16], data);
+      }
+      
+      size_t read = loop *12;
+      size_t written = loop * 16;
 
+      //create buffer to translate last bytes without accessing memory that hasn't been allocated 
+      std::array<char,16> buffer{};
+      memcpy(& buffer[0],& in[read],in.size()-read -4); //minus 4 because of 4 appended null bytes
+      data = simde_mm_lddqu_si128((simde__m128i*) & buffer[0]);
+      unit.registerEncoder_(data);
+      simde_mm_storeu_si128((simde__m128*) & out[written], data);
+      
+      in.resize(in.size() -4); //remove null bytes
+
+      //resizing out and add padding if necessary
+      if(padding) {   
+        std::cout <<"string before resize:" << out << '\n' << "length: " << out.size() << std::endl;
+
+        size_t newsize = ceil((double)in.size() / 3.) * 4; 
+        std::cout << newsize << std::endl;
+        out.resize(newsize );
+        for(size_t j = newsize - 1; j >= newsize -padding; j--){
+            out[j] = '=';
+        }      
+      }else{        
+          out.resize((in.size() / 3) * 4);
+      }
+    
+  }
 
   
-    
-} 
 
   template <typename FromType>
   void Base64::encode(std::vector<FromType> & in, ByteOrder to_byte_order, String & out, bool zlib_compression)

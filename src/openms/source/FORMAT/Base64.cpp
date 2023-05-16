@@ -134,12 +134,9 @@ print s
     }
     std::string str;
     std::string compressed;
-    Byte* it;
-    Byte* end;
 
+    
 
-    if (zlib_compression)                             ////////////////if compression, concatinate and do simple register encoding
-    {
       for (Size i = 0; i < in.size(); ++i){      //////////////////////////moved into compression      
         str = str.append(in[i]);
         if (append_null_byte)
@@ -148,7 +145,10 @@ print s
         }
       }
 
-      std::cout << "concatinate" << std::endl;
+    if (zlib_compression)                             ////////////////if compression, concatinate and do simple register encoding
+    {
+
+
       
       unsigned long sourceLen =   (unsigned long)str.size();
       unsigned long compressed_length = //compressBound((unsigned long)str.size());
@@ -175,120 +175,20 @@ print s
         throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Compression error?");
       }
 
-      std::cout << "compression" << std::endl;
-      it = reinterpret_cast<Byte*>(&compressed[0]);
-      const char* outPtr = out.data();
-      //end = it + compressed_length;
-      // TODO check integer overflow
-      out.resize((Size)(compressed.size() / 3) * 4 + 16); //resize output array, so the register encoder doesnt 
-      std::cout << "first resize successfull" << std::endl;
-      uint8_t padding = (3 - compressed.size() % 3 ) % 3;
-      const size_t loop = compressed.size() / 12;
-
-      std::cout << "so the problem is pushing back zero" << std::endl;
-      std::cout  << compressed.length() << " " << compressed.capacity() << " " << compressed.max_size() << std::endl;
-      
-      compressed.resize(compressed.size() + 4, '\0');
-      std::cout << out.size() << std::endl;
-        //otherwise there are cases where register encoder isnt allowed to access last bytes
-      std::cout << "pushing back zeros" << std::endl;
-      //"simple" simde encoding:
-      
       Base64 unit;
-      simde__m128i data{};
-      for(size_t i = 0; i < loop; i++){
-        std::cout << i << std::endl;
-          //everytime the last 4 out of 16 byte string data get lost through processing, therefore 12 byte jumps
-          data = simde_mm_lddqu_si128((simde__m128i*) (it + i*12) );
-          unit.registerEncoder_(data);
-          simde_mm_storeu_si128((simde__m128*) & out[i*16], data);
-          std::cout << out << std::endl;
-
-      }
-      size_t read = loop *12;
-      size_t written = loop * 16;
-
-      std::cout << "encoding basically happened (we dont get here, do we?)" << std::endl;
-      std::array<char,16> buffer{};
-      std::cout << "array created" << std::endl;
-      memcpy(& buffer[0],& compressed[read],compressed.size()-read -4); //minus 4 because of 4 appended null bytes
-      std::cout << "memcpy happened" << std::endl;
-      data = simde_mm_lddqu_si128((simde__m128i*) & buffer[0]);
-      unit.registerEncoder_(data);
-      simde_mm_storeu_si128((simde__m128*) (outPtr + written), data);
-      std::cout << "last encodng" << std::endl;
-      std::cout << out << std::endl;
-      if(padding) {
-        std::cout << "padding about to happen" << std::endl;
-        size_t newsize = (compressed.length() / 3) * 4 + 4;
-        out.resize((Size) newsize );
-        // for(auto it = out.rbegin(); it < out.crbegin() + padding; it++){
-         //   *it = '=';
-       // }
-        for(size_t j = newsize - 1; j >= newsize -padding; j--){
-            out[j] = '=';
-        }
-      std::cout << "padding" << std::endl;
-      }else{
-        std::cout << "no padding" << std::endl;
-          out.resize((in.size() / 3) * 4);
-      }
+      unit.stringSimdEncoder_(compressed, out);
 
     }
     else
     {
-      // TODO check integer overflow
-      out.resize((Size)ceil(str.size() / 3.) * 4); //resize output array in order to have enough space for all characters
-      it = reinterpret_cast<Byte*>(&str[0]);
-      end = it + str.size();
-
-////////////////////////////////////////////////woah crazy vector encoder here
-
-    }
-    //Byte* to = reinterpret_cast<Byte*>(&out[0]);
-    //Size written = 0;
-/*
-    while (it != end)           ////////////////////////////////////////////////////delete while loop 
-    {
-      Int int_24bit = 0;
-      Int padding_count = 0;
-
-      // construct 24-bit integer from 3 bytes
-      for (Size i = 0; i < 3; i++)
-      {
-        if (it != end)
-        {
-          int_24bit |= *it++ << ((2 - i) * 8);
-        }
-        else
-        {
-          padding_count++;
-        }
+      Base64 unit;
+      unit.stringSimdEncoder_(str,out);
       }
+            
 
-      // write out 4 characters
-      for (Int i = 3; i >= 0; i--)
-      {
-        to[i] = encoder_[int_24bit & 0x3F];
-        int_24bit >>= 6;
-      }
-
-      // fixup for padding
-      if (padding_count > 0)
-      {
-        to[3] = '=';
-      }
-      if (padding_count > 1)
-      {
-        to[2] = '=';
-      }
-      to += 4;
-      written += 4;
-    }
-
-    out.resize(written); //no more space is 
-    */
   }
+
+  
 
   void Base64::decodeStrings(const String& in, std::vector<String>& out, bool zlib_compression)
   {
