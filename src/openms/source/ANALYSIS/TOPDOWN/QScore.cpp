@@ -75,35 +75,8 @@ namespace OpenMS
     fvector[index++] = (log2(a + d));
     a = pg->getSNR();
     fvector[index++] = (log2(d + a / (d + a)));
-    //a = pg->getChargeScore();
-    //fvector[index++] = (log2(a + d));
     a = pg->getAvgPPMError();
     fvector[index++] = (log2(a + d));
     return fvector;
-  }
-
-  void QScore::writeAttCsvFromDummyHeader(std::fstream& f)
-  {
-    f << "MSLevel,ChargeCos,ChargeSNR,Cos,SNR,AvgPPMError,Class\n";
-  }
-
-  void QScore::writeAttCsvFromDummy(const DeconvolvedSpectrum& deconvolved_spectrum, std::fstream& f)
-  {
-    uint ms_level = deconvolved_spectrum.getOriginalSpectrum().getMSLevel();
-    String cns[] = {"T", "D", "D", "D"};
-    for(auto& pg:deconvolved_spectrum)
-    {
-      if(pg.getSNR() < 1e-2) // remove masses with too low SNRs - they act as outliers.
-      {
-        continue;
-      }
-      auto fv = toFeatureVector_(&pg, pg.getRepAbsCharge());
-      f<< ms_level<<",";
-      for (auto& item: fv)
-      {
-        f << item << ",";
-      }
-      f <<  cns[pg.getDummyIndex()]<< "\n";
-    }
   }
 }
