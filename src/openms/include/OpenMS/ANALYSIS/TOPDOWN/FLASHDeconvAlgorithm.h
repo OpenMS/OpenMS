@@ -41,13 +41,8 @@
 #include <OpenMS/DATASTRUCTURES/Matrix.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
-
 #include <boost/dynamic_bitset.hpp>
 #include <iostream>
-#undef slots
-#include <torch/torch.h>
-#include <torch/script.h>
-#define slots Q_SLOTS
 
 namespace OpenMS
 {
@@ -255,8 +250,6 @@ namespace OpenMS
 
     /// default precursor isolation window size.
     double isolation_window_size_;
-
-    torch::jit::script::Module module_;
 
     /** @brief static function that converts bin to value
         @param bin bin number
