@@ -258,6 +258,68 @@ namespace OpenMS
         return a.intensity > b.intensity;
       });
 
+      std::unordered_map<uint, uint> histo_mz;
+      std::unordered_map<uint, uint> histo_rt;
+
+      for (uint i = 0; i < 120; ++i)
+      {
+        histo_mz[i] = 0;
+        histo_rt[i] = 0;
+      }
+
+      double offset_rt = 60*5;
+      for (uint i = 0; i < chrom_apices.size(); ++i)
+      {
+        MassTraceDetection::Apex m_it = chrom_apices[i];
+        Size apex_scan_idx(m_it.scan_idx);
+        Size apex_peak_idx(m_it.peak_idx);
+        double currentApex_mz = work_exp[apex_scan_idx][apex_peak_idx].getMZ();
+        double currentApex_rt = work_exp[apex_scan_idx].getRT();
+        double offset_mz = findOffset_(currentApex_mz, mass_error_ppm_);
+        
+        RangeRT search_rt{currentApex_rt - offset_rt, currentApex_rt + offset_rt};
+        RangeMZ search_mz{currentApex_mz - offset_mz, currentApex_mz + offset_mz};
+        
+        // checking for next left apex, and how far that is
+        for (uint j = 0; (i+j+1 < 120) && (i+j+1 != chrom_apices.size()); ++j)
+        {
+          MassTraceDetection::Apex next = chrom_apices[i+j+1];
+          Size next_scan_idx(next.scan_idx);
+          Size next_peak_idx(next.peak_idx);
+          double nextApex_mz = work_exp[next_scan_idx][next_peak_idx].getMZ();
+          double nextApex_rt = work_exp[next_scan_idx].getRT();
+
+          if (search_mz.containsMZ(nextApex_mz))
+          {
+            ++histo_mz[i];
+            if (search_rt.containsRT(nextApex_rt))
+            {
+              ++histo_rt[i];
+            }
+          }
+        }
+      }
+      std::cout << "Histogramme nur mz \n";
+      std::cout << "x  :  y (nur werte die != 0 sind werden angezeigt)\n";
+      std::cout << "xter Nachbar (nach links)\n bei y vielen gefunden \n";
+      for (uint i = 0; i < chrom_apices.size(); ++i)
+      {
+        if (histo_mz[i] != 0)
+        {
+          std::cout << i << "   :   " << histo_mz[i] << "\n";
+        }
+      }
+
+      std::cout << "Histogramme mit rt \n";
+      std::cout << "x  :  y  (nur werte die != 0 sind werden angezeigt)\n";
+      std::cout << "xter Nachbar (nach links)\n bei y vielen gefunden \n";
+      for (uint i = 0; i < chrom_apices.size(); ++i)
+      {
+        if (histo_rt[i] != 0)
+        {
+          std::cout << i << "   :   " << histo_rt[i] << "\n";
+        }
+      }
       // *********************************************************************
       // Step 2: start extending mass traces beginning with the apex peak (go
       // through all peaks in order of decreasing intensity)
@@ -308,11 +370,11 @@ namespace OpenMS
       this->startProgress(0, total_peak_count, "mass trace detection");
       Size peaks_detected(0);
 
-      std::vector<RangeMZ> mz_locked{};
-      mz_locked.resize(omp_get_max_threads());
+      //std::vector<RangeMZ> mz_locked{};
+      //mz_locked.resize(omp_get_max_threads());
       boost::dynamic_bitset<> peak_visited(total_peak_count);
 
-      #pragma omp parallel for schedule(static)
+      //#pragma omp parallel for schedule(static)
       for (Size i = 0; i < chrom_apices.size(); ++i)
       {
         MassTraceDetection::Apex m_it = chrom_apices[i];
@@ -322,37 +384,37 @@ namespace OpenMS
 
         double currentApex_mz = work_exp[apex_scan_idx][apex_peak_idx].getMZ();
 
-        bool go = true;
-        bool come_back_later = false;
-        while (go)
-        {
-          // check if we already reached the (optional) maximum number of traces
-          if (come_back_later)
-          {
-            sleep(3);
-          }
+        // bool go = true;
+        // bool come_back_later = false;
+        // while (go)
+        // {
+        //   // check if we already reached the (optional) maximum number of traces
+        //   if (come_back_later)
+        //   {
+        //     sleep(3);
+        //   }
 
-          // check for curently working near it, if yes we search at a later time
-          #pragma omp critical
-          {
-            RangeMZ mz_span{};
-            mz_span.extendMZ(currentApex_mz + findOffset_(currentApex_mz, mass_error_ppm_));
-            mz_span.extendMZ(currentApex_mz - findOffset_(currentApex_mz, mass_error_ppm_));
-            mz_locked[omp_get_thread_num()] = mz_span;
+        //   // check for curently working near it, if yes we search at a later time
+        //   #pragma omp critical
+        //   {
+        //     RangeMZ mz_span{};
+        //     mz_span.extendMZ(currentApex_mz + findOffset_(currentApex_mz, mass_error_ppm_));
+        //     mz_span.extendMZ(currentApex_mz - findOffset_(currentApex_mz, mass_error_ppm_));
+        //     mz_locked[omp_get_thread_num()] = mz_span;
 
-            for (uint i=0; i < mz_locked.size(); ++i) 
-            {
-              if (mz_locked[i].containsMZ(currentApex_mz))
-              {
-                come_back_later = true;
-              }
-            }
-            if (!come_back_later)
-            {
-              go = false;
-            }
-          }
-        }
+        //     for (uint i=0; i < mz_locked.size(); ++i) 
+        //     {
+        //       if (mz_locked[i].containsMZ(currentApex_mz))
+        //       {
+        //         come_back_later = true;
+        //       }
+        //     }
+        //     if (!come_back_later)
+        //     {
+        //       go = false;
+        //     }
+        //   }
+        // }
 
         if (peak_visited[spec_offsets[apex_scan_idx] + apex_peak_idx] ||
             (max_traces > 0 && found_masstraces.size() == max_traces))
@@ -571,20 +633,20 @@ namespace OpenMS
         bool max_trace_criteria = (max_trace_length_ < 0.0 || rt_range < max_trace_length_);
         if (rt_range >= min_trace_length_ && max_trace_criteria && mt_quality >= min_sample_rate_ )
         {
-          #pragma omp critical (add_trace)
+          //#pragma omp critical (add_trace)
           {
-            bool no_thread_was_here = true;
-            for (Size i = 0; i < gathered_idx.size(); ++i)
-            {
-              if(peak_visited[spec_offsets[gathered_idx[i].first] +  gathered_idx[i].second])
-              {
-                no_thread_was_here = false;
-                break;
-              }
-            }
+            // bool no_thread_was_here = true;
+            // for (Size i = 0; i < gathered_idx.size(); ++i)
+            // {
+            //   if(peak_visited[spec_offsets[gathered_idx[i].first] +  gathered_idx[i].second])
+            //   {
+            //     no_thread_was_here = false;
+            //     break;
+            //   }
+            // }
             // create new MassTrace object and store collected peaks from list current_trace
-            if (no_thread_was_here)
-            {
+            // if (no_thread_was_here)
+            // {
               for (Size i = 0; i < gathered_idx.size(); ++i)
               {
                 peak_visited[spec_offsets[gathered_idx[i].first] +  gathered_idx[i].second] = true;
@@ -605,18 +667,18 @@ namespace OpenMS
               found_masstraces.push_back(new_trace);
               peaks_detected += new_trace.getSize();
               this->setProgress(peaks_detected);
-              mz_locked[omp_get_thread_num()] = RangeMZ{};
-            }
-        }
+             // mz_locked[omp_get_thread_num()] = RangeMZ{};
+            //}
+         }
             
             
           
           
           // check if we already reached the (optional) maximum number of traces
-          // if (max_traces > 0 && found_masstraces.size() == max_traces)
-          // {
-          //   continue;
-          // }
+          if (max_traces > 0 && found_masstraces.size() == max_traces)
+          {
+            continue;
+          }
         }
       }
         
