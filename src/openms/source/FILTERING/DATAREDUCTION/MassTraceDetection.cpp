@@ -289,13 +289,17 @@ namespace OpenMS
           double nextApex_mz = work_exp[next_scan_idx][next_peak_idx].getMZ();
           double nextApex_rt = work_exp[next_scan_idx].getRT();
 
-          if (search_mz.containsMZ(nextApex_mz))
+          bool not_foundmz = true;
+          if (not_foundmz &&
+              search_mz.containsMZ(nextApex_mz))
           {
             ++histo_mz[j];
-            if (search_rt.containsRT(nextApex_rt))
-            {
-              ++histo_rt[j];
-            }
+            not_foundmz = false;
+          }
+          if (search_rt.containsRT(nextApex_rt) &&
+              search_mz.containsMZ(nextApex_mz))
+          {
+            ++histo_rt[j];
             break;
           }
         }
@@ -303,7 +307,7 @@ namespace OpenMS
       std::cout << "Gesamtzahl Apexe: " << chrom_apices.size() << "\n";
       std::cout << "Histogramme nur mz \n";
       std::cout << "x  :  y (nur werte die != 0 sind werden angezeigt)\n";
-      std::cout << "xter Nachbar (nach links & in 10er Schritten)\n bei y vielen gefunden \n";
+      std::cout << "xter Nachbar (nach links)\n bei y vielen gefunden \n";
       for (uint i = 0; i < chrom_apices.size(); ++i)
       {
         if (histo_mz[i] != 0)
@@ -314,7 +318,7 @@ namespace OpenMS
 
       std::cout << "Histogramme mit rt \n";
       std::cout << "x  :  y  (nur werte die != 0 sind werden angezeigt)\n";
-      std::cout << "xter Nachbar (nach links & in 10er Schritten)\n bei y vielen gefunden \n";
+      std::cout << "xter Nachbar (nach links)\n bei y vielen gefunden \n";
       for (uint i = 0; i < chrom_apices.size(); ++i)
       {
         if (histo_rt[i] != 0)
