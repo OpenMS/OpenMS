@@ -267,7 +267,7 @@ namespace OpenMS
         histo_rt[i] = 0;
       }
 
-      double offset_rt = 60*5;
+      double offset_rt = 2 * 60 * 5;
       for (uint i = 0; i < chrom_apices.size(); ++i)
       {
         MassTraceDetection::Apex m_it = chrom_apices[i];
@@ -275,13 +275,13 @@ namespace OpenMS
         Size apex_peak_idx(m_it.peak_idx);
         double currentApex_mz = work_exp[apex_scan_idx][apex_peak_idx].getMZ();
         double currentApex_rt = work_exp[apex_scan_idx].getRT();
-        double offset_mz = findOffset_(currentApex_mz, mass_error_ppm_);
+        double offset_mz = 2 * findOffset_(currentApex_mz, mass_error_ppm_);
         
         RangeRT search_rt{currentApex_rt - offset_rt, currentApex_rt + offset_rt};
         RangeMZ search_mz{currentApex_mz - offset_mz, currentApex_mz + offset_mz};
         
         // checking for next left apex, and how far that is
-        for (uint j = 1; (i+j < 120) && (i+j+1 != chrom_apices.size()); ++j)
+        for (uint j = 1; (j<120) && (i+j < chrom_apices.size()); ++j)
         {
           MassTraceDetection::Apex next = chrom_apices[i+j];
           Size next_scan_idx(next.scan_idx);
