@@ -108,16 +108,25 @@ namespace OpenMS
           double intensity;
           Size scan_idx;
           Size peak_idx;
+
+          // double upperbound_();
+          // double lowerbound_();
         };
 
         /// The internal run method
-        void run_(const std::vector<Apex>& chrom_apices,
+        void run_(std::vector<Apex>& chrom_apices,
                   const Size peak_count,
                   const PeakMap & work_exp,
                   const std::vector<Size>& spec_offsets,
                   std::vector<MassTrace> & found_masstraces,
                   const Size max_traces = 0);
 
+        // Find Offset for Peak
+        double find_offset_(Size peak_index_in_apices_vec, double mass_error_ppm_, const PeakMap& input_exp, const std::vector<Apex>& apices_vec);
+        double findOffset_(double centroid_mz, double mass_error_ppm_);
+        Size calc_right_border_(Size peak_index_in_apices_vec, double mass_error_ppm_, const PeakMap& input_exp, const std::vector<Apex>& apices_vec);
+        Size calc_left_border_(Size peak_index_in_apices_vec, double mass_error_ppm_, const PeakMap& input_exp, const std::vector<Apex>& apices_vec);
+        
         // parameter stuff
         double mass_error_ppm_;
         double mass_error_da_;
