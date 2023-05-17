@@ -42,6 +42,7 @@ documentation.
 
 New Tools:
 - FLASHDeconv -- Ultra-fast high-quality deconvolution enables online processing of top-down MS data (TOPP)
+- FLASHDeconvWizard -- An GUI assistant for FLASHDeconv execution.
 
 ------------------------------------------------------------------------------------------
 ----                                OpenMS 2.8     (released 2/2022)                  ----
