@@ -258,10 +258,10 @@ namespace OpenMS
         return a.intensity > b.intensity;
       });
 
-      std::unordered_map<uint, uint> histo_mz;
-      std::unordered_map<uint, uint> histo_rt;
+      std::unordered_map<uint, double> histo_mz;
+      std::unordered_map<uint, double> histo_rt;
 
-      for (uint i = 0; i < 120; ++i)
+      for (uint i = 0; i < 60; ++i)
       {
         histo_mz[i] = 0;
         histo_rt[i] = 0;
@@ -281,7 +281,7 @@ namespace OpenMS
         RangeMZ search_mz{currentApex_mz - offset_mz, currentApex_mz + offset_mz};
         
         // checking for next left apex, and how far that is
-        for (uint j = 1; (j<120) && (i+j < chrom_apices.size()); ++j)
+        for (uint j = 1; (j<60) && (i+j<chrom_apices.size()); ++j)
         {
           MassTraceDetection::Apex next = chrom_apices[i+j];
           Size next_scan_idx(next.scan_idx);
@@ -293,14 +293,14 @@ namespace OpenMS
           if (not_foundmz &&
               search_mz.containsMZ(nextApex_mz))
           {
-            ++histo_mz[j];
-            not_foundmz = false;
+            histo_mz[j]+=1;
+            //not_foundmz = false;
           }
           if (search_rt.containsRT(nextApex_rt) &&
               search_mz.containsMZ(nextApex_mz))
           {
-            ++histo_rt[j];
-            break;
+            histo_rt[j]+=1;
+            //break;
           }
         }
       }
@@ -312,7 +312,7 @@ namespace OpenMS
       {
         if (histo_mz[i] != 0)
         {
-          std::cout << i << "   :   " << histo_mz[i] << "\n";
+          std::cout << i << "   :   " << (histo_mz[i]/chrom_apices.size())*100 << "%\n";
         }
       }
 
@@ -323,7 +323,7 @@ namespace OpenMS
       {
         if (histo_rt[i] != 0)
         {
-          std::cout << i << "   :   " << histo_rt[i] << "\n";
+          std::cout << i << "   :   " << (histo_rt[i]/chrom_apices.size()*100) << "%\n";
         }
       }
       // *********************************************************************
