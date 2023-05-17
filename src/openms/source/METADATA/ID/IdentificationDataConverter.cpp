@@ -234,9 +234,9 @@ namespace OpenMS
         {
           if (step_ref->input_file_refs.size() > 1)
           { // Undo the hack needed in the legacy id datastructure to represent merged id files. Extract the actual input file name so we can properly register it.
-            if (pep.metaValueExists(Constants::ID_MERGE_INDEX))
+            if (pep.metaValueExists(Constants::UserParam::ID_MERGE_INDEX))
             {
-              inputfile = step_ref->input_file_refs[pep.getMetaValue(Constants::ID_MERGE_INDEX)];
+              inputfile = step_ref->input_file_refs[pep.getMetaValue(Constants::UserParam::ID_MERGE_INDEX)];
             }
             else
             {
@@ -244,7 +244,7 @@ namespace OpenMS
                   __FILE__,
                   __LINE__,
                   OPENMS_PRETTY_FUNCTION,
-                  String("Multiple file origins in ProteinIdentification Run but no '") + Constants::ID_MERGE_INDEX + String("' metavalue in PeptideIdentification.")
+                  String("Multiple file origins in ProteinIdentification Run but no '") + Constants::UserParam::ID_MERGE_INDEX + String("' metavalue in PeptideIdentification.")
                   );
             }
           }
