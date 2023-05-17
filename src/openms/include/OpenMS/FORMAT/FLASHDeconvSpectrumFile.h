@@ -91,10 +91,6 @@ namespace OpenMS
                                        bool write_detail,
                                        bool record_dummy);
 
-    static void writeDLMatrixHeader(std::fstream& fs);
-
-    static void writeDLMatrix(std::vector<DeconvolvedSpectrum>& dspecs, double tol, std::fstream& fs, const FLASHDeconvHelperStructs::PrecalculatedAveragine& avg);
-
     /**
       @brief write the deconvolved masses TopFD output (*.msalign)
       @param dspec deconvolved spectrum to write
