@@ -54,7 +54,6 @@ namespace OpenMS
 
   FLASHDeconvWizardBase::FLASHDeconvWizardBase(QWidget* parent) :
       QMainWindow(parent), DefaultParamHandler("FLASHDeconvWizardBase"),
-      // clipboard_scene_(nullptr),
       ui(new Ui::FLASHDeconvWizardBase)
   {
     ui->setupUi(this);

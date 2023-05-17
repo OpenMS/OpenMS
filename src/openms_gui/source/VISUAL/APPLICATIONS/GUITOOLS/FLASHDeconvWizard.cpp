@@ -37,7 +37,7 @@
 
   @brief An assistant for FLASHDeconv execution.
 
-  This Wizard is implemented based on SwathWizard.
+  The implementation of FLASHDeconvWizard is heavily inspired by the SwathWizard.
   The Wizard helps the user to run FLASHDeconv for Top-down proteomics analysis. (@ref TOPP_FLASHDeconv tool)
 
   Users can enter the required input data (mzML MS/MS data) in dedicated fields, usually by drag'n'droping files from the
@@ -139,11 +139,6 @@ int main(int argc, const char** argv)
 
   FLASHDeconvWizardBase fw;
   fw.show();
-
-  //  if (param.exists("ini"))
-  //  {
-  //    //mw.loadPreferences((String)param.getValue("ini"));
-  //  }
 
 #ifdef OPENMS_WINDOWSPLATFORM
   FreeConsole();     // get rid of console window at this point (we will not see any console output from this point on)

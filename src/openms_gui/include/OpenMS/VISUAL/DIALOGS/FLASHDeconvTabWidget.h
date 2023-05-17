@@ -70,9 +70,12 @@ namespace OpenMS
     public:
       template <typename> friend class WizardGUILock;
 
+      /// constructor
       explicit FLASHDeconvTabWidget(QWidget* parent = nullptr);
+      /// Destructor
       ~FLASHDeconvTabWidget();
 
+      /// get all the input mzML files as a string list
       StringList getMzMLInputFiles() const;
 
     private slots:

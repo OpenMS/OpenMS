@@ -82,13 +82,7 @@ namespace OpenMS
 
     void showAboutDialog();
 
-  protected slots:
-
-
   protected:
-    /// Log output window
-    // TOPPASLogWindow* log_;
-
     /// The current path (used for loading and storing).
     /// Depending on the preferences this is static or changes with the current window/layer.
     String current_path_;
