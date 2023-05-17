@@ -281,9 +281,9 @@ namespace OpenMS
         RangeMZ search_mz{currentApex_mz - offset_mz, currentApex_mz + offset_mz};
         
         // checking for next left apex, and how far that is
-        for (uint j = 0; (i+j+1 < 120) && (i+j+1 != chrom_apices.size()); ++j)
+        for (uint j = 1; (i+j < 120) && (i+j+1 != chrom_apices.size()); ++j)
         {
-          MassTraceDetection::Apex next = chrom_apices[i+j+1];
+          MassTraceDetection::Apex next = chrom_apices[i+j];
           Size next_scan_idx(next.scan_idx);
           Size next_peak_idx(next.peak_idx);
           double nextApex_mz = work_exp[next_scan_idx][next_peak_idx].getMZ();
@@ -291,17 +291,19 @@ namespace OpenMS
 
           if (search_mz.containsMZ(nextApex_mz))
           {
-            ++histo_mz[i];
+            ++histo_mz[j];
             if (search_rt.containsRT(nextApex_rt))
             {
-              ++histo_rt[i];
+              ++histo_rt[j];
             }
+            break;
           }
         }
       }
+      std::cout << "Gesamtzahl Apexe: " << chrom_apices.size() << "\n";
       std::cout << "Histogramme nur mz \n";
       std::cout << "x  :  y (nur werte die != 0 sind werden angezeigt)\n";
-      std::cout << "xter Nachbar (nach links)\n bei y vielen gefunden \n";
+      std::cout << "xter Nachbar (nach links & in 10er Schritten)\n bei y vielen gefunden \n";
       for (uint i = 0; i < chrom_apices.size(); ++i)
       {
         if (histo_mz[i] != 0)
@@ -312,7 +314,7 @@ namespace OpenMS
 
       std::cout << "Histogramme mit rt \n";
       std::cout << "x  :  y  (nur werte die != 0 sind werden angezeigt)\n";
-      std::cout << "xter Nachbar (nach links)\n bei y vielen gefunden \n";
+      std::cout << "xter Nachbar (nach links & in 10er Schritten)\n bei y vielen gefunden \n";
       for (uint i = 0; i < chrom_apices.size(); ++i)
       {
         if (histo_rt[i] != 0)
