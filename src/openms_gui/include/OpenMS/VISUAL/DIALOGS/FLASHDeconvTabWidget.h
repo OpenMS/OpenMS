@@ -62,29 +62,13 @@ namespace OpenMS
   {
     class FLASHDeconvTabWidget;
 
-    /**
-      @brief RAII class to switch to certain TabWidget, disable the GUI and go back to the orignal Tab when this class is destroyed
-    */
-    class FLASHDeconvGUILock
-    {
-    public:
-      FLASHDeconvGUILock(FLASHDeconvTabWidget* ftw);
-
-      ~FLASHDeconvGUILock();
-
-    private:
-      FLASHDeconvTabWidget* ftw_;
-      QWidget* old_;
-      GUIHelpers::GUILock glock_;
-    };
-
     /// A multi-tabbed widget for the FLASHDeconvWizard offering setting of parameters, input-file specification and running FLASHDeconv and more
     class OPENMS_GUI_DLLAPI FLASHDeconvTabWidget : public QTabWidget
     {
       Q_OBJECT
 
     public:
-      friend class FLASHDeconvGUILock;
+      template <typename> friend class WizardGUILock;
 
       explicit FLASHDeconvTabWidget(QWidget* parent = nullptr);
       ~FLASHDeconvTabWidget();
@@ -109,7 +93,6 @@ namespace OpenMS
       void updateOutputParamFromPerInputFile(const QString& input_file_name);
 
       /// update Widgets given a param object
-
       void setWidgetsfromFDDefaultParam_();
 
       /// where to write output
