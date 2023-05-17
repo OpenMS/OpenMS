@@ -288,7 +288,7 @@ namespace OpenMS
    /** @brief Prepares a spectrum for DIA analysis (multiple map)
      *
      * This function will fetch a SpectrumSequence to be used in DIA analysis.
-     * If nr_spectra_to_add == 1, than a vector of length 1 will be returned.
+     * If nr_spectra_to_add == 1, then a vector of length 1 will be returned.
      * Spectra are prepared differently based on the condition
      * Case #1: Non SONAR data and "simple" addition selected - Array of length "nr_spectra_to_add" returned corresponding with "nr_spectra_to_add" spectra
      * Case #2: Non SONAR data and "resampling addition selected - Array of length 1 of the resampled spectrum returned
