@@ -170,6 +170,7 @@ endif()
 set(THREADS_PREFER_PTHREAD_FLAG ON)
 find_package (Threads REQUIRED)
 
+
 if (WITH_GUI)
   # --------------------------------------------------------------------------
   # Find additional Qt libs
