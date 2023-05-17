@@ -57,7 +57,7 @@ namespace OpenMS
         << std::to_string(FLASHDeconvHelperStructs::getChargeMass(peak_groups_[0].isPositive()));
     if(!precursor_peak_group_.empty())
     {
-      val << ";precursorscan=" << precursor_scan_number_ << ";precursormass=" << precursor_peak_group_.getMonoMass();
+      val << ";precursorscan=" << precursor_scan_number_ << ";precursormass=" << std::to_string(precursor_peak_group_.getMonoMass());
     }
     else
     {
