@@ -242,9 +242,9 @@ START_SECTION((std::set< String > ExperimentalDesign::SampleSection::getFactors(
   TEST_EQUAL(lfacst.size(), 3)
   TEST_EQUAL(lfacstns.size(), 3)
 
-  TEST_EQUAL(lfac == lfacst, true)
-  TEST_EQUAL(lfac == lfacstns, true)
-  TEST_EQUAL(facplex == facplexst, true)
+  TEST_TRUE(lfac == lfacst)
+  TEST_TRUE(lfac == lfacstns)
+  TEST_TRUE(facplex == facplexst)
 
   auto l = lfac.begin();
   TEST_EQUAL(*l++, "MSstats_BioReplicate")

@@ -45,7 +45,7 @@ set(filename "${CTD_PATH}/${TOOLNAME}.ctd")
 file(READ "${filename}" contents)
 string(REPLACE "[" "_OPENBRACKET_" contents "${contents}")
 string(REPLACE "]" "_CLOSEBRACKET_" contents "${contents}")
-string(REGEX REPLACE ";" "\\\\;" contents "${contents}")
+string(REPLACE ";" "\\;" contents "${contents}")
 string(REGEX REPLACE "\n" ";" contents "${contents}")
 
 set(APPEND_TO_FILE FALSE)

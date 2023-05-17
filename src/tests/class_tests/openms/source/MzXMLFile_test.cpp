@@ -604,7 +604,7 @@ START_SECTION((template<typename MapType> void store(const String& filename, con
 
     f.store(tmp_filename, e1);
   f.load(tmp_filename, e2);
-  TEST_EQUAL(e1==e2, true);
+  TEST_TRUE(e1 == e2);
 }
 END_SECTION
 

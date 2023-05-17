@@ -1402,6 +1402,7 @@ namespace OpenMS
   void TOPPViewBase::showPlotWidgetInWindow(PlotWidget* sw)
   {
     ws_.addSubWindow(sw);
+
     connect(sw->canvas(), &PlotCanvas::preferencesChange, this, &TOPPViewBase::updateLayerBar);
     connect(sw->canvas(), &PlotCanvas::layerActivated, this, &TOPPViewBase::layerActivated);
     connect(sw->canvas(), &PlotCanvas::layerModficationChange, this, &TOPPViewBase::updateLayerBar);
@@ -1631,11 +1632,6 @@ namespace OpenMS
 
   QStringList TOPPViewBase::chooseFilesDialog_(const String& path_overwrite)
   {
-    // store active sub window
-    // TODO Why is this done? And why only here?
-    QMdiSubWindow* old_active = ws_.currentSubWindow();
-    RAIICleanup clean([&]() { ws_.setActiveSubWindow(old_active); });
-
     QString open_path = current_path_.toQString();
     if (!path_overwrite.empty())
     {
@@ -2450,10 +2446,14 @@ namespace OpenMS
         if (data->hasUrls())
         {
           QList<QUrl> urls = data->urls();
-          for (QList<QUrl>::const_iterator it = urls.begin(); it != urls.end(); ++it)
-          {
-            addDataFile(it->toLocalFile(), false, true, "", new_id);
-          }
+          // use a QTimer for external sources to make the source (e.g. Windows Explorer responsive again)
+          // Using a QueuedConnection for the DragEvent does not solve the problem (Qt 5.15) -- see previous (reverted) commit
+          QTimer::singleShot(50, [this, urls, new_id]() {
+            for (const QUrl& url : urls)
+            {
+              addDataFile(url.toLocalFile(), false, true, "", new_id);
+            }
+          });
         }
       }
     }

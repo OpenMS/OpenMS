@@ -54,7 +54,10 @@ namespace OpenMS
     public:
 
     /// Loads an experimental design from a tabular separated file
-    static ExperimentalDesign load(const String &tsv_file, bool require_spectra_files);
+    static ExperimentalDesign load(const String& tsv_file, bool require_spectra_files);
+
+    /// Loads an experimental design from an already loaded or generated, tabular file
+    static ExperimentalDesign load(const TextFile& text_file, const bool require_spectra_file, String filename);
 
     private:
     static bool isOneTableFile_(const TextFile& text_file);

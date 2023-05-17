@@ -66,34 +66,34 @@ END_SECTION
 START_SECTION((bool operator==(const CVTermList &cv_term_list) const ))
 {
   CVTermList cv_term_list, cv_term_list2;
-  TEST_EQUAL(cv_term_list == cv_term_list2, true)
+  TEST_TRUE(cv_term_list == cv_term_list2)
   cv_term_list.setMetaValue("blubb", "blubber");
   TEST_EQUAL(cv_term_list == cv_term_list2, false)
   cv_term_list2.setMetaValue("blubb", "blubber");
-  TEST_EQUAL(cv_term_list == cv_term_list2, true)
+  TEST_TRUE(cv_term_list == cv_term_list2)
   CVTerm::Unit unit("my_unit_accession", "my_unit_name", "my_unit_ontology_name");
   CVTerm cv_term("my_accession", "my_name", "my_cv_identifier_ref", "3.0", unit);
   cv_term_list.addCVTerm(cv_term);
   TEST_EQUAL(cv_term_list == cv_term_list2, false)
   cv_term_list2.addCVTerm(cv_term);
-  TEST_EQUAL(cv_term_list == cv_term_list2, true)
+  TEST_TRUE(cv_term_list == cv_term_list2)
 }
 END_SECTION
 
 START_SECTION((bool operator!=(const CVTermList &cv_term_list) const ))
 {
   CVTermList cv_term_list, cv_term_list2;
-  TEST_EQUAL(cv_term_list == cv_term_list2, true)
+  TEST_TRUE(cv_term_list == cv_term_list2)
   cv_term_list.setMetaValue("blubb", "blubber");
   TEST_EQUAL(cv_term_list == cv_term_list2, false)
   cv_term_list2.setMetaValue("blubb", "blubber");
-  TEST_EQUAL(cv_term_list == cv_term_list2, true)
+  TEST_TRUE(cv_term_list == cv_term_list2)
   CVTerm::Unit unit("my_unit_accession", "my_unit_name", "my_unit_ontology_name");
   CVTerm cv_term("my_accession", "my_name", "my_cv_identifier_ref", "3.0", unit);
   cv_term_list.addCVTerm(cv_term);
   TEST_EQUAL(cv_term_list == cv_term_list2, false)
   cv_term_list2.addCVTerm(cv_term);
-  TEST_EQUAL(cv_term_list == cv_term_list2, true)
+  TEST_TRUE(cv_term_list == cv_term_list2)
 }
 END_SECTION
 
@@ -286,12 +286,12 @@ START_SECTION((CVTermList(const CVTermList &rhs)))
   CVTermList cv_term_list;
   cv_term_list.setMetaValue("blubb", "blubber");
   CVTermList cv_term_list2(cv_term_list);
-  TEST_EQUAL(cv_term_list == cv_term_list2, true)
+  TEST_TRUE(cv_term_list == cv_term_list2)
   CVTerm::Unit unit("my_unit_accession", "my_unit_name", "my_unit_ontology_name");
   CVTerm cv_term("my_accession", "my_name", "my_cv_identifier_ref", "3.0", unit);
   cv_term_list.addCVTerm(cv_term);
   CVTermList cv_term_list3(cv_term_list);
-  TEST_EQUAL(cv_term_list == cv_term_list3, true)
+  TEST_TRUE(cv_term_list == cv_term_list3)
 }
 END_SECTION
 
@@ -307,14 +307,14 @@ START_SECTION((CVTermList(CVTermList &&rhs) noexcept))
   CVTermList orig = cv_term_list;
   CVTermList cv_term_list2(std::move(cv_term_list));
 
-  TEST_EQUAL(orig == cv_term_list2, true)
+  TEST_TRUE(orig == cv_term_list2)
   CVTerm::Unit unit("my_unit_accession", "my_unit_name", "my_unit_ontology_name");
   CVTerm cv_term("my_accession", "my_name", "my_cv_identifier_ref", "3.0", unit);
   cv_term_list2.addCVTerm(cv_term);
 
   orig = cv_term_list2;
   CVTermList cv_term_list3(std::move(cv_term_list2));
-  TEST_EQUAL(orig == cv_term_list3, true)
+  TEST_TRUE(orig == cv_term_list3)
   TEST_EQUAL(cv_term_list3.getCVTerms().size(), 1)
 }
 END_SECTION
@@ -325,13 +325,13 @@ START_SECTION((CVTermList& operator=(const CVTermList &rhs)))
   cv_term_list.setMetaValue("blubb", "blubber");
   CVTermList cv_term_list2;
   cv_term_list2 = cv_term_list;
-  TEST_EQUAL(cv_term_list == cv_term_list2, true)
+  TEST_TRUE(cv_term_list == cv_term_list2)
   CVTerm::Unit unit("my_unit_accession", "my_unit_name", "my_unit_ontology_name");
   CVTerm cv_term("my_accession", "my_name", "my_cv_identifier_ref", "3.0", unit);
   cv_term_list.addCVTerm(cv_term);
   CVTermList cv_term_list3;
   cv_term_list3 = cv_term_list;
-  TEST_EQUAL(cv_term_list == cv_term_list3, true)
+  TEST_TRUE(cv_term_list == cv_term_list3)
 }
 END_SECTION
 
@@ -344,7 +344,7 @@ START_SECTION((CVTermList& operator=(CVTermList &&rhs)))
 
   CVTermList cv_term_list2;
   cv_term_list2 = std::move(cv_term_list);
-  TEST_EQUAL(orig == cv_term_list2, true)
+  TEST_TRUE(orig == cv_term_list2)
 }
 END_SECTION
 

@@ -2071,7 +2071,7 @@ protected:
 
     registerDoubleOption_("mz_tolerance_ppm", "<tol>", 10.0, "Tolerance in ppm", false);
 
-    registerDoubleOption_("rt_tolerance_s", "<tol>", 30.0, "Rolerance window around feature rt for XIC extraction", false);
+    registerDoubleOption_("rt_tolerance_s", "<tol>", 30.0, "Tolerance window around feature rt for XIC extraction", false);
 
     registerDoubleOption_("intensity_threshold", "<tol>", 10.0, "Intensity threshold to collect peaks in the MS1 spectrum.", false);
 

@@ -45,6 +45,7 @@
 
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/CONCEPT/LogStream.h>
+#include <OpenMS/DATASTRUCTURES/ExposedVector.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/DATASTRUCTURES/Utils/MapUtilities.h>
 #include <OpenMS/OpenMSConfig.h>
@@ -79,45 +80,17 @@ namespace OpenMS
 
     @ingroup Kernel
   */
-  class ConsensusMap : // no OPENMS_DLLAPI here, since the class is derived from an STL class - we do not want parts of the STL lib in OpenMS.lib, since it will cause linker errors
-    private std::vector<ConsensusFeature>,
+  class OPENMS_DLLAPI ConsensusMap :
     public MetaInfoInterface,
     public RangeManagerContainer<RangeRT, RangeMZ, RangeIntensity>,
     public DocumentIdentifier,
+    public ExposedVector<ConsensusFeature>,
     public UniqueIdInterface,
     public UniqueIdIndexer<ConsensusMap>,
     public MapUtilities<ConsensusMap>
   {
-
 public:
-    typedef std::vector<ConsensusFeature> privvec;
-
-    // types
-    using privvec::value_type;
-    using privvec::iterator;
-    using privvec::const_iterator;
-    using privvec::size_type;
-    using privvec::pointer; // ConstRefVector
-    using privvec::reference; // ConstRefVector
-    using privvec::const_reference; // ConstRefVector
-    using privvec::difference_type; // ConstRefVector
-
-    // functions
-    using privvec::begin;
-    using privvec::end;
-    using privvec::cbegin;
-    using privvec::cend;
-
-    using privvec::size;
-    using privvec::resize;
-    using privvec::empty;
-    using privvec::reserve;
-    using privvec::operator[];
-    using privvec::at;
-    using privvec::back;
-    using privvec::push_back;
-    using privvec::emplace_back;
-    using privvec::erase;
+    EXPOSED_VECTOR_INTERFACE(ConsensusFeature)
 
     enum class SplitMeta
     {
@@ -127,7 +100,7 @@ public:
     };
     
     /// Description of the columns in a consensus map
-    struct OPENMS_DLLAPI ColumnHeader :
+    struct  ColumnHeader :
       public MetaInfoInterface
     {
       /// Default constructor
@@ -158,34 +131,34 @@ public:
     ///@name Type definitions
     //@{
     typedef ConsensusFeature FeatureType;
-    typedef std::vector<ConsensusFeature> Base;
+    typedef std::map<UInt64, ColumnHeader> ColumnHeaders;
+
     typedef RangeManagerContainer<RangeRT, RangeMZ, RangeIntensity> RangeManagerContainerType;
     typedef RangeManager<RangeRT, RangeMZ, RangeIntensity> RangeManagerType;
-    typedef std::map<UInt64, ColumnHeader> ColumnHeaders;
-    /// Mutable iterator
-    typedef std::vector<ConsensusFeature>::iterator Iterator;
-    /// Non-mutable iterator
-    typedef std::vector<ConsensusFeature>::const_iterator ConstIterator;
-    /// Mutable reverse iterator
-    typedef std::vector<ConsensusFeature>::reverse_iterator ReverseIterator;
-    /// Non-mutable reverse iterator
-    typedef std::vector<ConsensusFeature>::const_reverse_iterator ConstReverseIterator;
+    typedef iterator Iterator;
+    typedef const_iterator ConstIterator;
+    typedef reverse_iterator ReverseIterator;
+    typedef const_reverse_iterator ConstReverseIterator;
     //@}
 
     /// Default constructor
-    OPENMS_DLLAPI ConsensusMap();
+    ConsensusMap();
 
     /// Copy constructor
-    OPENMS_DLLAPI ConsensusMap(const ConsensusMap& source);
+    ConsensusMap(const ConsensusMap& source);
+    /// Move constructor
+    ConsensusMap(ConsensusMap&& source);
 
     /// Destructor
-    OPENMS_DLLAPI ~ConsensusMap() override;
+    ~ConsensusMap() override;
 
     /// Creates a ConsensusMap with n elements
-    OPENMS_DLLAPI explicit ConsensusMap(Base::size_type n);
+    explicit ConsensusMap(size_type n);
 
     /// Assignment operator
-    OPENMS_DLLAPI ConsensusMap& operator=(const ConsensusMap& source);
+    ConsensusMap& operator=(const ConsensusMap& source);
+    /// MoveAssignment operator
+    ConsensusMap& operator=(ConsensusMap&& source) = default;
 
     /**
       @brief Add consensus map entries as new rows.
@@ -196,7 +169,7 @@ public:
 
       @param rhs The consensus map to be merged.
     */
-    OPENMS_DLLAPI ConsensusMap& appendRows(const ConsensusMap& rhs);
+    ConsensusMap& appendRows(const ConsensusMap& rhs);
 
     /**
       @brief Add consensus map entries as new columns.
@@ -205,7 +178,7 @@ public:
 
       @param rhs The consensus map to be merged.
     */
-    OPENMS_DLLAPI ConsensusMap& appendColumns(const ConsensusMap& rhs);
+    ConsensusMap& appendColumns(const ConsensusMap& rhs);
 
 
     /**
@@ -213,22 +186,22 @@ public:
 
       @param clear_meta_data If @em true, all meta data is cleared in addition to the data.
     */
-    OPENMS_DLLAPI void clear(bool clear_meta_data = true);
+    void clear(bool clear_meta_data = true);
 
     /// Non-mutable access to the file descriptions
-    OPENMS_DLLAPI const ColumnHeaders& getColumnHeaders() const;
+    const ColumnHeaders& getColumnHeaders() const;
 
     /// Mutable access to the file descriptions
-    OPENMS_DLLAPI ColumnHeaders& getColumnHeaders();
+    ColumnHeaders& getColumnHeaders();
 
     /// Mutable access to the file descriptions
-    OPENMS_DLLAPI void setColumnHeaders(const ColumnHeaders& column_description);
+    void setColumnHeaders(const ColumnHeaders& column_description);
 
     /// Non-mutable access to the experiment type
-    OPENMS_DLLAPI const String& getExperimentType() const;
+    const String& getExperimentType() const;
 
     /// Mutable access to the experiment type
-    OPENMS_DLLAPI void setExperimentType(const String& experiment_type);
+    void setExperimentType(const String& experiment_type);
 
     /**
       @name Sorting.
@@ -238,83 +211,83 @@ public:
     */
     //@{
     /// Sorts the peaks according to ascending intensity.
-    OPENMS_DLLAPI void sortByIntensity(bool reverse = false);
+    void sortByIntensity(bool reverse = false);
 
     /// Sorts the peaks to RT position.
-    OPENMS_DLLAPI void sortByRT();
+    void sortByRT();
 
     /// Sorts the peaks to m/z position.
-    OPENMS_DLLAPI void sortByMZ();
+    void sortByMZ();
 
     /// Lexicographically sorts the peaks by their position (First RT then m/z).
-    OPENMS_DLLAPI void sortByPosition();
+    void sortByPosition();
 
     /// Sorts the peaks according to ascending quality.
-    OPENMS_DLLAPI void sortByQuality(bool reverse = false);
+    void sortByQuality(bool reverse = false);
 
     /// Sorts with respect to the size (number of elements)
-    OPENMS_DLLAPI void sortBySize();
+    void sortBySize();
 
     /// Sorts with respect to the sets of maps covered by the consensus features (lexicographically).
-    OPENMS_DLLAPI void sortByMaps();
+    void sortByMaps();
 
     /// Sorts PeptideIdentifications of consensus features with respect to their map index.
-    OPENMS_DLLAPI void sortPeptideIdentificationsByMapIndex();
+    void sortPeptideIdentificationsByMapIndex();
     //@}
 
     // Docu in base class
-    OPENMS_DLLAPI void updateRanges() override;
+    void updateRanges() override;
 
     /// Swaps the content of this map with the content of @p from
-    OPENMS_DLLAPI void swap(ConsensusMap& from);
+    void swap(ConsensusMap& from);
 
     /// non-mutable access to the protein identifications
-    OPENMS_DLLAPI const std::vector<ProteinIdentification>& getProteinIdentifications() const;
+    const std::vector<ProteinIdentification>& getProteinIdentifications() const;
 
     /// mutable access to the protein identifications
-    OPENMS_DLLAPI std::vector<ProteinIdentification>& getProteinIdentifications();
+    std::vector<ProteinIdentification>& getProteinIdentifications();
 
     /// sets the protein identifications
-    OPENMS_DLLAPI void setProteinIdentifications(const std::vector<ProteinIdentification>& protein_identifications);
+    void setProteinIdentifications(const std::vector<ProteinIdentification>& protein_identifications);
 
     /// sets the protein identifications by moving
-    OPENMS_DLLAPI void setProteinIdentifications(std::vector<ProteinIdentification>&& protein_identifications);
+    void setProteinIdentifications(std::vector<ProteinIdentification>&& protein_identifications);
 
     /// non-mutable access to the unassigned peptide identifications
-    OPENMS_DLLAPI const std::vector<PeptideIdentification>& getUnassignedPeptideIdentifications() const;
+    const std::vector<PeptideIdentification>& getUnassignedPeptideIdentifications() const;
 
     /// mutable access to the unassigned peptide identifications
-    OPENMS_DLLAPI std::vector<PeptideIdentification>& getUnassignedPeptideIdentifications();
+    std::vector<PeptideIdentification>& getUnassignedPeptideIdentifications();
 
     /// sets the unassigned peptide identifications
-    OPENMS_DLLAPI void setUnassignedPeptideIdentifications(const std::vector<PeptideIdentification>& unassigned_peptide_identifications);
+    void setUnassignedPeptideIdentifications(const std::vector<PeptideIdentification>& unassigned_peptide_identifications);
 
     /// returns a const reference to the description of the applied data processing
-    OPENMS_DLLAPI const std::vector<DataProcessing>& getDataProcessing() const;
+    const std::vector<DataProcessing>& getDataProcessing() const;
 
     /// returns a mutable reference to the description of the applied data processing
-    OPENMS_DLLAPI std::vector<DataProcessing>& getDataProcessing();
+    std::vector<DataProcessing>& getDataProcessing();
 
     /// sets the description of the applied data processing
-    OPENMS_DLLAPI void setDataProcessing(const std::vector<DataProcessing>& processing_method);
+    void setDataProcessing(const std::vector<DataProcessing>& processing_method);
 
     /// set the file paths to the primary MS run (stored in ColumnHeaders)
-    OPENMS_DLLAPI void setPrimaryMSRunPath(const StringList& s);
+    void setPrimaryMSRunPath(const StringList& s);
 
     /// set the file path to the primary MS run using the mzML annotated in the MSExperiment @p e. 
     /// If it doesn't exist, fallback to @p s.
     /// @param s Fallback if @p e does not have a primary MS runpath
     /// @param e Use primary MS runpath from this mzML file
-    OPENMS_DLLAPI void setPrimaryMSRunPath(const StringList& s, MSExperiment & e);
+    void setPrimaryMSRunPath(const StringList& s, MSExperiment & e);
 
     /// returns the MS run path (stored in ColumnHeaders)
-    OPENMS_DLLAPI void getPrimaryMSRunPath(StringList& toFill) const;
+    void getPrimaryMSRunPath(StringList& toFill) const;
 
     /// Equality operator
-    OPENMS_DLLAPI bool operator==(const ConsensusMap& rhs) const;
+    bool operator==(const ConsensusMap& rhs) const;
 
     /// Equality operator
-    OPENMS_DLLAPI bool operator!=(const ConsensusMap& rhs) const;
+    bool operator!=(const ConsensusMap& rhs) const;
 
     /**
       @brief Applies a member function of Type to the container itself and all consensus features.
@@ -366,7 +339,7 @@ public:
               - we should restrict the user to first fill the list of maps, before any datapoints can be inserted
 
     */
-    OPENMS_DLLAPI bool isMapConsistent(Logger::LogStream* stream = nullptr) const;
+    bool isMapConsistent(Logger::LogStream* stream = nullptr) const;
 
     /**
      @brief splits ConsensusMap into its original FeatureMaps
@@ -381,10 +354,9 @@ public:
      @param mode Decide what to do with the MetaValues annotated at the ConsensusFeatures.
      @return FeatureMaps
     */
-    OPENMS_DLLAPI std::vector<FeatureMap> split(SplitMeta mode = SplitMeta::DISCARD) const;
+    std::vector<FeatureMap> split(SplitMeta mode = SplitMeta::DISCARD) const;
 
 protected:
-
     /// Map from index to file description
     ColumnHeaders column_description_;
 
@@ -399,7 +371,6 @@ protected:
 
     /// applied data processing
     std::vector<DataProcessing> data_processing_;
-
   };
 
   ///Print the contents of a ConsensusMap to a stream.

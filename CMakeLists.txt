@@ -32,7 +32,7 @@
 # $Authors: Stephan Aiche, Julianus Pfeuffer $
 # --------------------------------------------------------------------------
 
-cmake_minimum_required(VERSION 3.21 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.21 FATAL_ERROR) ## if you change this, also update doc/doxygen/install/install-<OS>.doxygen
 
 # Handle default build type
 get_property(multiConfig GLOBAL PROPERTY GENERATOR_IS_MULTI_CONFIG)
@@ -390,12 +390,20 @@ if(UNIX)
 	# (but later on when installing)
 	if(NOT DEFINED CMAKE_BUILD_WITH_INSTALL_RPATH)
 		if (ENABLE_PREPARE_KNIME_PACKAGE)
-			## Since we rely on copying instead of "installing" for KNIME packaging
-			## we need to do it during building already.
-			## In this case, make sure that QT is in a system path if you want to test it locally.
+			# Since we rely on copying instead of "installing" for KNIME packaging
+			# we need to do it during building already.
+			# In this case, make sure that e.g. Qt is in a system path if you want to test it locally.
+			
+			# bakes in "@executable_path/../lib" for all targets
 			SET(CMAKE_BUILD_WITH_INSTALL_RPATH TRUE)
+			
+			# makes sure that our libs are built in a way that their install names are:
+			# @rpath/libOpenMS.dylib
+			# such that when executables link to it, they can look it up via rpath above
+			SET(CMAKE_BUILD_WITH_INSTALL_NAME_DIR TRUE)
 		else()
 			SET(CMAKE_BUILD_WITH_INSTALL_RPATH FALSE)
+			SET(CMAKE_BUILD_WITH_INSTALL_NAME_DIR FALSE)
 		endif()
   endif()
   
@@ -410,11 +418,12 @@ if(UNIX)
   #  SET(CMAKE_INSTALL_NAME_DIR "$<INSTALL_PREFIX>/${INSTALL_LIB_DIR}")
   #endif()
   
-	# our default RPATH to be added when installing. Can be changed per-target, e.g. in app bundles
-	if(NOT DEFINED CMAKE_INSTALL_RPATH)
+# our default RPATH to be added when installing. Can be changed per-target later, e.g. in app bundles
+if(NOT DEFINED CMAKE_INSTALL_RPATH)
     if (APPLE)
       if(NOT "${PACKAGE_TYPE}" STREQUAL "pkg")
-        # currently our fix_dependencies.rb script requires our lib dir to be present in the RPATHS
+        # currently our fix_dependencies.rb script used e.g. for dmg installer,
+				# requires our lib dir to be present in the RPATHS
         # so it can find libOpenMS for one of our executables, even if it is linked as @rpath/libOpenMS.
         # Disadvantage: even on the target machine, they will have the build folder baked in.
         # Alternative: copy all our libs first so they do not need to be found.
@@ -422,7 +431,7 @@ if(UNIX)
       else()
         SET(CMAKE_INSTALL_RPATH "@executable_path/../${INSTALL_LIB_DIR}/")
       endif()
-    else()
+    else() # linux and variants
       SET(CMAKE_INSTALL_RPATH "$ORIGIN/../${INSTALL_LIB_DIR}/")
     endif()
 	endif()

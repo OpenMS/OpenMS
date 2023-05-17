@@ -41,6 +41,8 @@
 #include <xercesc/dom/DOMElement.hpp>
 #include <xercesc/dom/DOMNodeList.hpp>
 
+#include <memory>
+
 namespace OpenMS
 {
 
@@ -558,7 +560,7 @@ namespace OpenMS
     // Create parser from input string using MemBufInputSource
     //-------------------------------------------------------------
     xercesc::MemBufInputSource myxml_buf(reinterpret_cast<const unsigned char*>(in.c_str()), in.length(), "myxml (in memory)");
-    xercesc::XercesDOMParser* parser = new xercesc::XercesDOMParser();
+    std::unique_ptr<xercesc::XercesDOMParser> parser = std::make_unique<xercesc::XercesDOMParser>(); // make sure it is deleted even in case of exceptions
     parser->setDoNamespaces(false);
     parser->setDoSchema(false);
     parser->setLoadExternalDTD(false);
@@ -575,7 +577,6 @@ namespace OpenMS
     xercesc::DOMElement* elementRoot = doc->getDocumentElement();
     if (!elementRoot)
     {
-      delete parser;
       throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, in, "No root element");
     }
 
@@ -587,7 +588,6 @@ namespace OpenMS
     // chromatogram tag (but still check for it first to be safe).
     if (elementRoot->getAttributeNode(default_array_length_tag) == nullptr)
     {
-      delete parser;
       throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
           in, "Root element does not contain defaultArrayLength XML tag.");
     }
@@ -599,20 +599,13 @@ namespace OpenMS
     xercesc::DOMNodeList* li = elementRoot->getElementsByTagName(binary_data_array_tag);
     for (Size i = 0; i < li->getLength(); i++)
     {
-      // Will append one single BinaryData object to data
-      try
-      {
-        handleBinaryDataArray_(li->item(i), data);
-      } catch (OpenMS::Exception::ParseError &err) 
-      {
-        delete parser;
-        throw err;
-      }
+      // Will append one single BinaryData object to data      
+      handleBinaryDataArray_(li->item(i), data);
+      
       // Set the size correctly (otherwise MzMLHandlerHelper complains).
       data.back().size = default_array_length;
     }
 
-    delete parser;
     return id;
   }
 
