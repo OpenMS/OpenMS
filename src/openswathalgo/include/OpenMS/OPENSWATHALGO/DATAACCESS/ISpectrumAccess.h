@@ -94,7 +94,7 @@ public:
     */
     SpectrumSequence getMultipleSpectra(double RT, int nr_spectra_to_fetch);
 
-    /* @breif Fetces a spectrumSequence (multiple spectra pointers) closest to the given RT. Filters all spectra by specified @p drift_start and @p drift_end
+    /* @brief Fetches a spectrumSequence (multiple spectra pointers) closest to the given RT. Filters all spectra by specified @p drift_start and @p drift_end
      * @p RT = target RT
      * @p nr_spectra_to_fetch = # spectra around target RT to fetch (length of the spectrum sequence)
     */
