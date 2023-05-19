@@ -304,6 +304,16 @@ namespace OpenMS
           }
         }
       }
+      for (uint i = 1; i < chrom_apices.size(); ++i)
+      {
+        for (uint j = i; j < chrom_apices.size(); ++j)
+        {
+          histo_rt[j] += histo_rt[j-1]
+          histo_mz[j] += histo_mz[j-1]
+
+        }
+      }
+
       std::cout << "Gesamtzahl Apexe: " << chrom_apices.size() << "\n";
       std::cout << "Histogramme nur mz \n";
       std::cout << "x  :  y (nur werte die != 0 sind werden angezeigt)\n";
