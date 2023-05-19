@@ -310,7 +310,6 @@ namespace OpenMS
         {
           histo_rt[j] += histo_rt[j-1]
           histo_mz[j] += histo_mz[j-1]
-
         }
       }
 
