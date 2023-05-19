@@ -68,13 +68,34 @@ namespace OpenMS
       this->setLogType(CMD);
     }
 
+
     MassTraceDetection::~MassTraceDetection() = default;
 
-    MassTraceDetection::Apex::Apex(double intensity, Size scan_idx, Size peak_idx):
-      intensity(intensity),
-      scan_idx(scan_idx),
-      peak_idx(peak_idx)
+
+    MassTraceDetection::Apex::Apex(const PeakMap* map, const Size scan_idx, const Size peak_idx):
+      map_(map),
+      scan_idx_(scan_idx),
+      peak_idx_(peak_idx)
     {}
+
+
+    double MassTraceDetection::Apex::getMZ() const
+    {
+      return (*map_)[scan_idx_][peak_idx_].getMZ();
+    }
+
+
+    double MassTraceDetection::Apex::getRT() const
+    {
+      return (*map_)[scan_idx_].getRT();
+    }
+
+
+    double MassTraceDetection::Apex::getIntensity() const
+    {
+      return(*map_)[scan_idx_][peak_idx_].getIntensity();
+    }
+
 
     void MassTraceDetection::updateIterativeWeightedMeanMZ(const double& added_mz,
                                                            const double& added_int, double& centroid_mz, double& prev_counter,
@@ -91,6 +112,7 @@ namespace OpenMS
 
       return;
     }
+
 
     void MassTraceDetection::run(PeakMap::ConstAreaIterator& begin,
                                  PeakMap::ConstAreaIterator& end,
@@ -131,12 +153,14 @@ namespace OpenMS
       mean_t +=  (1.0 / ((double)t + 1.0)) * (x_t - mean_t);
     }
 
+
     void updateSDEstimate(const double& x_t, const double& mean_t, double& sd_t, Size t)
     {
       double i(t);
       sd_t = (i / (i + 1)) * sd_t + (i / (i + 1) * (i + 1)) * (x_t - mean_t) * (x_t - mean_t);
       // std::cerr << "func:  " << tmp << " " << i << std::endl;
     }
+
 
     void updateWeightedSDEstimate(const PeakType& p, const double& mean_t1, double& sd_t, double& last_weights_sum)
     {
@@ -153,6 +177,7 @@ namespace OpenMS
       last_weights_sum = weights_sum;
     }
 
+
     void updateWeightedSDEstimateRobust(const PeakType& p, const double& mean_t1, double& sd_t, double& last_weights_sum)
     {
       double denom1 = std::log(last_weights_sum) + 2 * std::log(sd_t);
@@ -168,6 +193,7 @@ namespace OpenMS
 
       last_weights_sum = weights_sum;
     }
+
 
     void computeWeightedSDEstimate(std::list<PeakType> tmp, const double& mean_t, double& sd_t, const double& /* lower_sd_bound */)
     {
@@ -228,7 +254,7 @@ namespace OpenMS
             // --> add this peak as possible chromatographic apex
             if (tmp_peak_int > chrom_peak_snr_ * noise_threshold_int_)
             {
-              chrom_apices.emplace_back(tmp_peak_int, spectra_count, indices_passing.size());
+              chrom_apices.emplace_back(&work_exp, spectra_count, indices_passing.size());
             }
             indices_passing.push_back(peak_idx);
             ++total_peak_count;
@@ -252,13 +278,12 @@ namespace OpenMS
 
       //hatten wir mal parallelisiert, but how??
       std::sort(chrom_apices.begin(), chrom_apices.end(),
-                [&work_exp](const Apex & a,
+                [&chrom_apices](const Apex & a,
                     const Apex & b) -> bool
       { 
-        return a.intensity > b.intensity;
+        return a.getIntensity() > b.getIntensity();
       });
 
-      
       // *********************************************************************
       // Step 2: start extending mass traces beginning with the apex peak (go
       // through all peaks in order of decreasing intensity)
@@ -268,11 +293,13 @@ namespace OpenMS
       return;
     } // end of MassTraceDetection::run
 
+
     double MassTraceDetection::findOffset_(double centroid_mz, double mass_error_ppm_)
     {
       double offset = Math::ppmToMass(mass_error_ppm_,centroid_mz);
       return offset;
     }
+
 
     void MassTraceDetection::run_(std::vector<Apex>& chrom_apices,
                                   const Size total_peak_count,
@@ -299,12 +326,12 @@ namespace OpenMS
           ++fwhm_meta_count;
         }
       }
+
       if (fwhm_meta_count > 0 && fwhm_meta_count != work_exp.size())
       {
         throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                       String("FWHM meta arrays are expected to be missing or present for all MS spectra [") + fwhm_meta_count + "/" + work_exp.size() + "].");
       }
-
 
       this->startProgress(0, total_peak_count, "mass trace detection");
       Size peaks_detected(0);
@@ -317,11 +344,6 @@ namespace OpenMS
       for (Size i = 0; i < chrom_apices.size(); ++i)
       {
         MassTraceDetection::Apex m_it = chrom_apices[i];
-
-        Size apex_scan_idx(m_it.scan_idx);
-        Size apex_peak_idx(m_it.peak_idx);
-
-        double currentApex_mz = work_exp[apex_scan_idx][apex_peak_idx].getMZ();
 
         // bool go = true;
         // bool come_back_later = false;
@@ -355,19 +377,19 @@ namespace OpenMS
         //   }
         // }
 
-        if (peak_visited[spec_offsets[apex_scan_idx] + apex_peak_idx] ||
+        if (peak_visited[spec_offsets[m_it.scan_idx_] + m_it.peak_idx_] ||
             (max_traces > 0 && found_masstraces.size() == max_traces))
         {
           continue;
         }
 
         Peak2D apex_peak;
-        apex_peak.setRT(work_exp[apex_scan_idx].getRT());
-        apex_peak.setMZ(work_exp[apex_scan_idx][apex_peak_idx].getMZ());
-        apex_peak.setIntensity(work_exp[apex_scan_idx][apex_peak_idx].getIntensity());
+        apex_peak.setRT(m_it.getRT());
+        apex_peak.setMZ(m_it.getMZ());
+        apex_peak.setIntensity(m_it.getIntensity());
 
-        Size trace_up_idx(apex_scan_idx);
-        Size trace_down_idx(apex_scan_idx);
+        Size trace_up_idx(m_it.scan_idx_);
+        Size trace_down_idx(m_it.scan_idx_);
 
         std::deque<PeakType> current_trace;
         current_trace.push_back(apex_peak);
@@ -381,10 +403,10 @@ namespace OpenMS
         updateIterativeWeightedMeanMZ(apex_peak.getMZ(), apex_peak.getIntensity(), centroid_mz, prev_counter, prev_denom);
 
         std::vector<std::pair<Size, Size> > gathered_idx;
-        gathered_idx.emplace_back(apex_scan_idx, apex_peak_idx);
+        gathered_idx.emplace_back(m_it.scan_idx_, m_it.peak_idx_);
         if (fwhm_meta_idx != -1)
         {
-          fwhms_mz.push_back(work_exp[apex_scan_idx].getFloatDataArrays()[fwhm_meta_idx][apex_peak_idx]);
+          fwhms_mz.push_back(work_exp[m_it.scan_idx_].getFloatDataArrays()[fwhm_meta_idx][m_it.peak_idx_]);
         }
 
         Size up_hitting_peak(0), down_hitting_peak(0);
@@ -624,84 +646,6 @@ namespace OpenMS
     this->endProgress();
     }
 
-void MassTraceDetection::histogramm (std::vector<Apex> chrom_apices, uint8_t c)
-{
-  std::unordered_map<uint, double> histo_mz;
-      std::unordered_map<uint, double> histo_rt;
-
-      for (uint i = 0; i < 60; ++i)
-      {
-        histo_mz[i] = 0;
-        histo_rt[i] = 0;
-      }
-
-      double offset_rt = 2 * 60 * 5;
-      for (uint i = 0; i < chrom_apices.size(); ++i)
-      {
-        OpenMS::MassTraceDetection::Apex m_it = chrom_apices[i];
-        Size apex_scan_idx(m_it.scan_idx);
-        Size apex_peak_idx(m_it.peak_idx);
-        double currentApex_mz = work_exp[apex_scan_idx][apex_peak_idx].getMZ();
-        double currentApex_rt = work_exp[apex_scan_idx].getRT();
-        double offset_mz = 2 * findOffset_(currentApex_mz, mass_error_ppm_);
-        
-        RangeRT search_rt{currentApex_rt - offset_rt, currentApex_rt + offset_rt};
-        RangeMZ search_mz{currentApex_mz - offset_mz, currentApex_mz + offset_mz};
-        
-        // checking for next left apex, and how far that is
-        for (uint j = 1; (j<60) && (i+j<chrom_apices.size()); ++j)
-        {
-          MassTraceDetection::Apex next = chrom_apices[i+j];
-          Size next_scan_idx(next.scan_idx);
-          Size next_peak_idx(next.peak_idx);
-          double nextApex_mz = work_exp[next_scan_idx][next_peak_idx].getMZ();
-          double nextApex_rt = work_exp[next_scan_idx].getRT();
-
-          bool not_foundmz = true;
-          if (not_foundmz &&
-              search_mz.containsMZ(nextApex_mz))
-          {
-            histo_mz[j]+=1;
-            //not_foundmz = false;
-          }
-          if (search_rt.containsRT(nextApex_rt) &&
-              search_mz.containsMZ(nextApex_mz))
-          {
-            histo_rt[j]+=1;
-            //break;
-          }
-        }
-      }
-
-      for (uint i = 1; i < 60; ++i)
-      {
-        histo_rt[i] += histo_rt[i-1];
-        histo_mz[i] += histo_mz[-1];
-      }
-
-      std::cout << "Gesamtzahl Apexe: " << chrom_apices.size() << "\n";
-      std::cout << "Histogramme nur mz \n";
-      std::cout << "x  :  y (nur werte die != 0 sind werden angezeigt)\n";
-      std::cout << "xter Nachbar (nach links)\n bei y vielen gefunden \n";
-      for (uint i = 0; i < chrom_apices.size(); ++i)
-      {
-        if (histo_mz[i] != 0)
-        {
-          std::cout << i << "   :   " << (histo_mz[i]/chrom_apices.size())*100 << "%\n";
-        }
-      }
-
-      std::cout << "Histogramme mit rt \n";
-      std::cout << "x  :  y  (nur werte die != 0 sind werden angezeigt)\n";
-      std::cout << "xter Nachbar (nach links)\n bei y vielen gefunden \n";
-      for (uint i = 0; i < chrom_apices.size(); ++i)
-      {
-        if (histo_rt[i] != 0)
-        {
-          std::cout << i << "   :   " << (histo_rt[i]/chrom_apices.size()*100) << "%\n";
-        }
-      }
-  }
 
     void MassTraceDetection::updateMembers_()
     {
@@ -718,18 +662,98 @@ void MassTraceDetection::histogramm (std::vector<Apex> chrom_apices, uint8_t c)
       reestimate_mt_sd_ = param_.getValue("reestimate_mt_sd").toBool();
     }
 
-
 }
 
 
 //notes for modularising:
 //Funktion for up, down can be the same
-//Apex is just used once and can be way shorter
-// get rid of intensity and but a pointer to the map there
-//also needs a few member functions for easier handling
-// -get intensity, get MZ, get RT
-// get rid of variables that are called and used just once
+      //Apex is just used once and can be way shorter done
+      // get rid of intensity and but a pointer to the map there done
+      //also needs a few member functions for easier handling done
+      // -get intensity, get MZ, get RT done
+  // get rid of variables that are called and used just once i.p.
+
 // function for check max traces and already visited
 // function for building the trace and adding it
 // function for check quality, because that is just wasted memory 
 // a lot of size variables are initialized that are a waste of space
+
+
+// void MassTraceDetection::histogramm (std::vector<MassTraceDetection::Apex> chrom_apices, uint8_t c)
+// {
+//   std::unordered_map<uint, double> histo_mz;
+//       std::unordered_map<uint, double> histo_rt;
+
+//       for (uint i = 0; i < 60; ++i)
+//       {
+//         histo_mz[i] = 0;
+//         histo_rt[i] = 0;
+//       }
+
+//       double offset_rt = 2 * 60 * 5;
+//       for (uint i = 0; i < chrom_apices.size(); ++i)
+//       {
+//         OpenMS::MassTraceDetection::Apex m_it = chrom_apices[i];
+//         Size apex_scan_idx(m_it.scan_idx);
+//         Size apex_peak_idx(m_it.peak_idx);
+//         double currentApex_mz = work_exp[apex_scan_idx][apex_peak_idx].getMZ();
+//         double currentApex_rt = work_exp[apex_scan_idx].getRT();
+//         double offset_mz = 2 * findOffset_(currentApex_mz, mass_error_ppm_);
+        
+//         RangeRT search_rt{currentApex_rt - offset_rt, currentApex_rt + offset_rt};
+//         RangeMZ search_mz{currentApex_mz - offset_mz, currentApex_mz + offset_mz};
+        
+//         // checking for next left apex, and how far that is
+//         for (uint j = 1; (j<60) && (i+j<chrom_apices.size()); ++j)
+//         {
+//           MassTraceDetection::Apex next = chrom_apices[i+j];
+//           Size next_scan_idx(next.scan_idx);
+//           Size next_peak_idx(next.peak_idx);
+//           double nextApex_mz = work_exp[next_scan_idx][next_peak_idx].getMZ();
+//           double nextApex_rt = work_exp[next_scan_idx].getRT();
+
+//           bool not_foundmz = true;
+//           if (not_foundmz &&
+//               search_mz.containsMZ(nextApex_mz))
+//           {
+//             histo_mz[j]+=1;
+//             //not_foundmz = false;
+//           }
+//           if (search_rt.containsRT(nextApex_rt) &&
+//               search_mz.containsMZ(nextApex_mz))
+//           {
+//             histo_rt[j]+=1;
+//             //break;
+//           }
+//         }
+//       }
+
+//       for (uint i = 1; i < 60; ++i)
+//       {
+//         histo_rt[i] += histo_rt[i-1];
+//         histo_mz[i] += histo_mz[-1];
+//       }
+
+//       std::cout << "Gesamtzahl Apexe: " << chrom_apices.size() << "\n";
+//       std::cout << "Histogramme nur mz \n";
+//       std::cout << "x  :  y (nur werte die != 0 sind werden angezeigt)\n";
+//       std::cout << "xter Nachbar (nach links)\n bei y vielen gefunden \n";
+//       for (uint i = 0; i < chrom_apices.size(); ++i)
+//       {
+//         if (histo_mz[i] != 0)
+//         {
+//           std::cout << i << "   :   " << (histo_mz[i]/chrom_apices.size())*100 << "%\n";
+//         }
+//       }
+
+//       std::cout << "Histogramme mit rt \n";
+//       std::cout << "x  :  y  (nur werte die != 0 sind werden angezeigt)\n";
+//       std::cout << "xter Nachbar (nach links)\n bei y vielen gefunden \n";
+//       for (uint i = 0; i < chrom_apices.size(); ++i)
+//       {
+//         if (histo_rt[i] != 0)
+//         {
+//           std::cout << i << "   :   " << (histo_rt[i]/chrom_apices.size()*100) << "%\n";
+//         }
+//       }
+//   }

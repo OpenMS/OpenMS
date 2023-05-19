@@ -98,7 +98,7 @@ namespace OpenMS
         /** @name Private methods and members
         */
 
-       void MassTraceDetection::histogramm (std::vector<Apex> chrom_apices, uint8_t c);
+       
     protected:
         void updateMembers_() override;
 
@@ -106,12 +106,14 @@ namespace OpenMS
 
         struct Apex
         {
-          Apex(double intensity, Size scan_idx, Size peak_idx);
-          double intensity;
-          Size scan_idx;
-          Size peak_idx;
+          Apex(const PeakMap* map, const Size scan_idx, const Size peak_idx);
+          const PeakMap *map_;
+          const Size scan_idx_;
+          const Size peak_idx_;
 
-
+          getMZ();
+          getRT();
+          getIntensity();
         };
 
         /// The internal run method
