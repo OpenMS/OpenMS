@@ -137,7 +137,8 @@ print s
 
     
 
-      for (Size i = 0; i < in.size(); ++i){      //////////////////////////moved into compression      
+      for (Size i = 0; i < in.size(); ++i)
+      {          
         str = str.append(in[i]);
         if (append_null_byte)
         {
@@ -145,11 +146,8 @@ print s
         }
       }
 
-    if (zlib_compression)                             ////////////////if compression, concatinate and do simple register encoding
-    {
-
-
-      
+    if (zlib_compression)
+    {      
       unsigned long sourceLen =   (unsigned long)str.size();
       unsigned long compressed_length = //compressBound((unsigned long)str.size());
                                         sourceLen + (sourceLen >> 12) + (sourceLen >> 14) + 11; // taken from zlib's compress.c, as we cannot use compressBound*
@@ -177,17 +175,15 @@ print s
 
       Base64 unit;
       unit.stringSimdEncoder_(compressed, out);
-
+      
     }
     else
     {
       Base64 unit;
       unit.stringSimdEncoder_(str,out);
-      }
-            
+    }
 
   }
-
   
 
   void Base64::decodeStrings(const String& in, std::vector<String>& out, bool zlib_compression)

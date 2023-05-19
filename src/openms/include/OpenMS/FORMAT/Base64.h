@@ -59,7 +59,6 @@
 
 
 #include <string>
-#include <iostream>
 
 #ifdef OPENMS_COMPILER_MSVC
 #pragma comment(linker, "/export:compress")
@@ -174,23 +173,23 @@ private:
     };
 
     
-     const simde__m128i mask1 = simde_mm_set1_epi32(0x3F000000);//00111111 00000000 00000000 00000000
-     const simde__m128i mask2 = simde_mm_set1_epi32(0x003F0000);//00000000 00111111 00000000 00000000
-     const simde__m128i mask3 = simde_mm_set1_epi32(0x00003F00);//00000000 00000000 00111111 00000000
-     const simde__m128i mask4 = simde_mm_set1_epi32(0x0000003F);//00000000 00000000 00000000 00111111
+     const simde__m128i mask1_ = simde_mm_set1_epi32(0x3F000000);//00111111 00000000 00000000 00000000
+     const simde__m128i mask2_ = simde_mm_set1_epi32(0x003F0000);//00000000 00111111 00000000 00000000
+     const simde__m128i mask3_ = simde_mm_set1_epi32(0x00003F00);//00000000 00000000 00111111 00000000
+     const simde__m128i mask4_ = simde_mm_set1_epi32(0x0000003F);//00000000 00000000 00000000 00111111
 
 
+    //difference between base64 encoding and ascii encoding, used to cast from base64 binaries to characters
+    const simde__m128i difference_A_ = simde_mm_set1_epi8('A');
+    const simde__m128i difference_a_ = simde_mm_set1_epi8('a' - 26);
+    const simde__m128i difference_0_ = simde_mm_set1_epi8('0' - 52);
+    const simde__m128i difference_plus_ = simde_mm_set1_epi8('+');
+    const simde__m128i difference_slash_ = simde_mm_set1_epi8('/');
 
-    const simde__m128i allA = simde_mm_set1_epi8('A');
-    const simde__m128i alla = simde_mm_set1_epi8('a' - 26);
-    const simde__m128i all0 = simde_mm_set1_epi8('0' - 52);
-    const simde__m128i allPlus = simde_mm_set1_epi8('+');
-    const simde__m128i allSlash = simde_mm_set1_epi8('/');
+    const simde__m128i shuffle_mask_1_ = simde_mm_setr_epi8(2, 2, 1, 0, 5, 5, 4, 3, 8, 8, 7, 6, 11, 11, 10, 9);
+    const simde__m128i shuffle_mask_2_ = simde_mm_setr_epi8(3,2,1,0,7,6,5,4,11,10,9,8,15,14,13,12);
 
-    const simde__m128i shuffleMask = simde_mm_setr_epi8(2, 2, 1, 0, 5, 5, 4, 3, 8, 8, 7, 6, 11, 11, 10, 9);
-    const simde__m128i shuffleMask2 = simde_mm_setr_epi8(3,2,1,0,7,6,5,4,11,10,9,8,15,14,13,12);
-
-    const simde__m128i shuffleMaskBigEndian = simde_mm_setr_epi8(0,1,2,2,3,4,5,5,6,7,8,8,9,10,11,11);
+    const simde__m128i shuffle_mask_big_endian_ = simde_mm_setr_epi8(0,1,2,2,3,4,5,5,6,7,8,8,9,10,11,11);
     //second shuffle doesnt need to happen
 
 
@@ -240,42 +239,54 @@ private:
            ((n << 40) & 0x00FF000000000000) | 
            ((n << 56) & 0xFF00000000000000);
   }
-  /////////////////////////////////////////////////add register endianizer
+  //TODO: add simd registerwise endianizer
 
   ///encode the first 12 bytes of a 128 bit simde integer type to base64
   void Base64::registerEncoder_(simde__m128i &data) {
     
-    data = simde_mm_shuffle_epi8(data, shuffleMask);
+    if(! OPENMS_IS_BIG_ENDIAN)
+    {
+      data = simde_mm_shuffle_epi8(data, shuffle_mask_1_);
     //by shuffling every 3 8bit ASCII Letters now take up 4 bytes, "ABC" gets shuffled to "CCBA" to match the 4 bytes of the Base64 Encoding, and deal with little Endianness.
+    }
+    else
+    {
+      data = simde_mm_shuffle_epi8(data, shuffle_mask_big_endian_);
+    }
+    //shifting and masking data, so now every 6 bit of the ASCII encoding have their own byte. 
+    //shifting over 32 bits takes endianness into account, which needs to be accounted for when shuffeling
+    data =   (simde_mm_srli_epi32(data, 2 ) & mask1_) |
+             (simde_mm_srli_epi32(data, 4 ) & mask2_) |
+             (simde_mm_srli_epi32(data, 6 ) & mask3_) |
+             (data & mask4_);
 
-    data =   (simde_mm_srli_epi32(data, 2 ) & mask1) |
-             (simde_mm_srli_epi32(data, 4 ) & mask2) |
-             (simde_mm_srli_epi32(data, 6 ) & mask3) |
-             (data & mask4);
+    if(! OPENMS_IS_BIG_ENDIAN)  //otherwise the data already is ordered correctly
+    {      
+      data = simde_mm_shuffle_epi8(data, shuffle_mask_2_);
+    }
 
-    data = simde_mm_shuffle_epi8(data, shuffleMask2);
+    //masking data and adding/substracting to match base64 codes to fitting characters
+    simde__m128i capital_mask = simde_mm_cmplt_epi8(data, _mm_set1_epi8(26)); // (a < b) ? 0xFF : 0x00
+    simde__m128i all_mask= capital_mask;
+    simde__m128i lower_case_mask = simde_mm_andnot_si128(all_mask, simde_mm_cmplt_epi8(data,simde_mm_set1_epi8(52))); //not allMask and  b where b is 0xFF if binaries are smaller than 52
+    all_mask |= lower_case_mask;
+    simde__m128i number_mask = simde_mm_andnot_si128(all_mask, simde_mm_cmplt_epi8(data, simde_mm_set1_epi8(62)));
+    all_mask |= number_mask;
+    simde__m128i plus_mask = simde_mm_andnot_si128(all_mask, simde_mm_cmplt_epi8(data, simde_mm_set1_epi8(63)));
+    all_mask |= plus_mask;
+    simde__m128i & slash_negative_mask = all_mask;
 
-    simde__m128i bigLetterMask= simde_mm_cmplt_epi8(data, _mm_set1_epi8(26)); // (a < b) ? 0xFF : 0x00
-    simde__m128i allMask= bigLetterMask;
-    simde__m128i smallLetterMask = simde_mm_andnot_si128(allMask, simde_mm_cmplt_epi8(data,simde_mm_set1_epi8(52))); //not allMask and  b where b is 0xFF if binaries are smaller than 52
-    allMask |= smallLetterMask;
-    simde__m128i numberMask = simde_mm_andnot_si128(allMask, simde_mm_cmplt_epi8(data, simde_mm_set1_epi8(62)));
-    allMask |= numberMask;
-    simde__m128i plusMask = simde_mm_andnot_si128(allMask, simde_mm_cmplt_epi8(data, simde_mm_set1_epi8(63)));
-    allMask |= plusMask;
-    simde__m128i & slashAntiMask = allMask;
-
-    data =  (bigLetterMask   & simde_mm_add_epi8(data, allA))|
-            (smallLetterMask & simde_mm_add_epi8(data, alla))|
-            (numberMask      & simde_mm_add_epi8(data, all0))|
-            (plusMask        & allPlus                      )|
-            (simde_mm_andnot_si128(slashAntiMask, allSlash));
+    data =  (capital_mask   & simde_mm_add_epi8(data, difference_A_))|
+            (lower_case_mask & simde_mm_add_epi8(data, difference_a_))|
+            (number_mask      & simde_mm_add_epi8(data, difference_0_))|
+            (plus_mask        & difference_plus_                      )|
+            (simde_mm_andnot_si128(slash_negative_mask, difference_slash_));
 
   } 
 
   void Base64::stringSimdEncoder_(std::string & in, std::string & out){
           // TODO check integer overflow
-      out.resize((Size)(in.size() / 3) * 4 + 16); //resize output array, so the register encoder doesnt write stuff into nirvana
+      out.resize((Size)(in.size() / 3) * 4 + 16); //resize output array, so the register encoder doesnt write memory to unallocated memory
       uint8_t padding = (3 - in.size() % 3 ) % 3;
       const size_t loop = in.size() / 12;
      
@@ -285,8 +296,9 @@ private:
       Base64 unit;
       simde__m128i data{};
       //loop  through input as long as it's safe to access memory
-      for(size_t i = 0; i < loop; i++){
-          //everytime the last 4 out of 16 byte string data get lost through processing, therefore jumps of 12 bytes (/characters)
+      for(size_t i = 0; i < loop; i++)
+      {
+          //each time the last 4 out of 16 byte string data get lost through processing, therefore jumps of 12 bytes (/characters)
           data = simde_mm_lddqu_si128((simde__m128i*) & in[12*i] );
           unit.registerEncoder_(data);
           simde_mm_storeu_si128((simde__m128*) & out[i*16], data);
@@ -305,22 +317,21 @@ private:
       in.resize(in.size() -4); //remove null bytes
 
       //resizing out and add padding if necessary
-      if(padding) {   
-        std::cout <<"string before resize:" << out << '\n' << "length: " << out.size() << std::endl;
-
+      if(padding) 
+      {
         size_t newsize = ceil((double)in.size() / 3.) * 4; 
-        std::cout << newsize << std::endl;
         out.resize(newsize );
-        for(size_t j = newsize - 1; j >= newsize -padding; j--){
+        for(size_t j = newsize - 1; j >= newsize -padding; j--)
+        {
             out[j] = '=';
         }      
-      }else{        
+      }
+      else
+      {        
           out.resize((in.size() / 3) * 4);
       }
     
-  }
-
-  
+  }  
 
   template <typename FromType>
   void Base64::encode(std::vector<FromType> & in, ByteOrder to_byte_order, String & out, bool zlib_compression)
@@ -395,59 +406,18 @@ private:
       }
 
       String(compressed).swap(compressed);
-      it = reinterpret_cast<Byte *>(&compressed[0]);
-      end = it + compressed_length;
-      out.resize((Size)ceil(compressed_length / 3.) * 4);     //resize output array in order to have enough space for all characters
+      Base64 unit;
+      unit.stringSimdEncoder_(compressed, out);   //resize output array in order to have enough space for all characters
     }
     //encode without compression
     else
     {
-      out.resize((Size)ceil(input_bytes / 3.) * 4);     //resize output array in order to have enough space for all characters
-      it = reinterpret_cast<Byte *>(&in[0]);
-      end = it + input_bytes;
+      String str((char*)in.data(), input_bytes);
+      Base64 unit;
+      unit.stringSimdEncoder_(str, out);
+
     }
 
-    Byte * to = reinterpret_cast<Byte *>(&out[0]);
-
-
-    Size written = 0;
-
-    while (it != end)     /////////////////////////////////////////////////replace whole while loop
-    {
-      Int int_24bit = 0;
-      Int padding_count = 0;
-
-      // construct 24-bit integer from 3 bytes
-      for (Size i = 0; i < 3; i++)
-      {
-        if (it != end)
-        {
-          int_24bit |= *it++ << ((2 - i) * 8);
-        }
-        else
-        {
-          padding_count++;
-        }
-      }
-
-      // write out 4 characters
-      for (Int i = 3; i >= 0; i--)
-      {
-        to[i] = encoder_[int_24bit & 0x3F];
-        int_24bit >>= 6;
-      }
-
-      // fixup for padding
-      if (padding_count > 0)
-        to[3] = '=';
-      if (padding_count > 1)
-        to[2] = '=';
-
-      to += 4;
-      written += 4;
-    }
-
-    out.resize(written);         //no more space is needed
   }
 
   template <typename ToType>  ////////////////////////////////////////////nothing to change here, magic happenes elsewhere
@@ -691,61 +661,19 @@ private:
         compressed.reserve(compressed_length);
       }
 
-
       String(compressed).swap(compressed);
-      it = reinterpret_cast<Byte *>(&compressed[0]);
-      end = it + compressed_length;
-      out.resize((Size)ceil(compressed_length / 3.) * 4);     //resize output array in order to have enough space for all characters
+
+      Base64 unit;
+      unit.stringSimdEncoder_(compressed,out);      
     }
     //encode without compression
     else
     {
-      out.resize((Size)ceil(input_bytes / 3.) * 4);     //resize output array in order to have enough space for all characters
-      it = reinterpret_cast<Byte *>(&in[0]);
-      end = it + input_bytes;
+      String str((char*)in.data(), input_bytes);
+      Base64 unit;
+      unit.stringSimdEncoder_(str,out);
+
     }
-
-    Byte * to = reinterpret_cast<Byte *>(&out[0]);
-
-
-    Size written = 0;
-
-    while (it != end)
-    {
-      Int int_24bit = 0;
-      Int padding_count = 0;
-
-      // construct 24-bit integer from 3 bytes
-      for (Size i = 0; i < 3; i++)
-      {
-        if (it != end)
-        {
-          int_24bit |= *it++ << ((2 - i) * 8);
-        }
-        else
-        {
-          padding_count++;
-        }
-      }
-
-      // write out 4 characters
-      for (Int i = 3; i >= 0; i--)
-      {
-        to[i] = encoder_[int_24bit & 0x3F];
-        int_24bit >>= 6;
-      }
-
-      // fixup for padding
-      if (padding_count > 0)
-        to[3] = '=';
-      if (padding_count > 1)
-        to[2] = '=';
-
-      to += 4;
-      written += 4;
-    }
-
-    out.resize(written);         //no more space is needed
   }
 
   template <typename ToType>
