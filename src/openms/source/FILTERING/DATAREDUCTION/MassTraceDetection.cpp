@@ -72,7 +72,7 @@ namespace OpenMS
     MassTraceDetection::~MassTraceDetection() = default;
 
 
-    MassTraceDetection::Apex::Apex(const PeakMap* map, const Size scan_idx, const Size peak_idx):
+    MassTraceDetection::Apex::Apex(PeakMap* map, Size scan_idx, Size peak_idx):
       map_(map),
       scan_idx_(scan_idx),
       peak_idx_(peak_idx)
@@ -98,18 +98,18 @@ namespace OpenMS
 
 
     void MassTraceDetection::updateIterativeWeightedMeanMZ(const double& added_mz,
-                                                           const double& added_int, double& centroid_mz, double& prev_counter,
+                                                           const double& added_int,
+                                                           double& centroid_mz,
+                                                           double& prev_counter,
                                                            double& prev_denom)
     {
-      double new_weight(added_int);
-      double new_mz(added_mz);
-
-      double counter_tmp(1 + (new_weight * new_mz) / prev_counter);
-      double denom_tmp(1 + (new_weight) / prev_denom);
-      centroid_mz *= (counter_tmp / denom_tmp);
-      prev_counter *= counter_tmp;
-      prev_denom *= denom_tmp;
-
+      centroid_mz *=
+      (
+        (1 + (added_int * added_mz) / prev_counter) / 
+        (1 + (added_int) / prev_denom)
+      );
+      prev_counter *= 1 + (added_int * added_mz) / prev_counter;
+      prev_denom *= 1 + (added_int) / prev_denom;
       return;
     }
 
@@ -118,15 +118,15 @@ namespace OpenMS
                                  PeakMap::ConstAreaIterator& end,
                                  std::vector<MassTrace>& found_masstraces)
     {
-      PeakMap map;
-      MSSpectrum current_spectrum;
-
       if (begin == end)
       {
         return;
       }
 
-      for (; begin != end; ++begin)
+      PeakMap map;
+      MSSpectrum current_spectrum;
+
+      while (begin != end)
       {
         // AreaIterator points on novel spectrum?
         if (begin.getRT() != current_spectrum.getRT())
@@ -139,50 +139,55 @@ namespace OpenMS
           current_spectrum.clear(false);
           current_spectrum.setRT(begin.getRT());
         }
+
         current_spectrum.push_back(*begin);
+        ++begin;
       }
+
       map.addSpectrum(current_spectrum);
 
       run(map, found_masstraces);
     }
 
 // update function for FTL method
+//not used
+    // void updateMeanEstimate(const double& x_t, double& mean_t, Size t)
+    // {
+    //   mean_t +=  (1.0 / ((double)t + 1.0)) * (x_t - mean_t);
+    // }
 
-    void updateMeanEstimate(const double& x_t, double& mean_t, Size t)
-    {
-      mean_t +=  (1.0 / ((double)t + 1.0)) * (x_t - mean_t);
-    }
+//not used
+    // void updateSDEstimate(const double& x_t, const double& mean_t, double& sd_t, Size t)
+    // {
+    //   double i(t);
+    //   sd_t = (i / (i + 1)) * sd_t + (i / (i + 1) * (i + 1)) * (x_t - mean_t) * (x_t - mean_t);
+    //   // std::cerr << "func:  " << tmp << " " << i << std::endl;
+    // }
 
+//not used
+    // void updateWeightedSDEstimate(const PeakType& p, const double& mean_t1, double& sd_t, double& last_weights_sum)
+    // {
+    //   double denom = last_weights_sum * sd_t * sd_t + p.getIntensity() * (p.getMZ() - mean_t1) * (p.getMZ() - mean_t1);
+    //   double weights_sum = last_weights_sum + p.getIntensity();
 
-    void updateSDEstimate(const double& x_t, const double& mean_t, double& sd_t, Size t)
-    {
-      double i(t);
-      sd_t = (i / (i + 1)) * sd_t + (i / (i + 1) * (i + 1)) * (x_t - mean_t) * (x_t - mean_t);
-      // std::cerr << "func:  " << tmp << " " << i << std::endl;
-    }
+    //   double tmp_sd = std::sqrt(denom / weights_sum);
 
+    //   if (tmp_sd > std::numeric_limits<double>::epsilon())
+    //   {
+    //     sd_t = tmp_sd;
+    //   }
 
-    void updateWeightedSDEstimate(const PeakType& p, const double& mean_t1, double& sd_t, double& last_weights_sum)
-    {
-      double denom = last_weights_sum * sd_t * sd_t + p.getIntensity() * (p.getMZ() - mean_t1) * (p.getMZ() - mean_t1);
-      double weights_sum = last_weights_sum + p.getIntensity();
-
-      double tmp_sd = std::sqrt(denom / weights_sum);
-
-      if (tmp_sd > std::numeric_limits<double>::epsilon())
-      {
-        sd_t = tmp_sd;
-      }
-
-      last_weights_sum = weights_sum;
-    }
+    //   last_weights_sum = weights_sum;
+    // }
 
 
     void updateWeightedSDEstimateRobust(const PeakType& p, const double& mean_t1, double& sd_t, double& last_weights_sum)
     {
-      double denom1 = std::log(last_weights_sum) + 2 * std::log(sd_t);
-      double denom2 = std::log(p.getIntensity()) + 2 * std::log(std::abs(p.getMZ() - mean_t1));
-      double denom = std::sqrt(std::exp(denom1) + std::exp(denom2));
+      double denom = std::sqrt
+      (
+        std::exp(std::log(last_weights_sum) + 2 * std::log(sd_t)) +
+        std::exp(std::log(p.getIntensity()) + 2 * std::log(std::abs(p.getMZ() - mean_t1)))
+      );
       double weights_sum = last_weights_sum + p.getIntensity();
       double tmp_sd = denom / std::sqrt(weights_sum);
 
@@ -190,30 +195,29 @@ namespace OpenMS
       {
         sd_t = tmp_sd;
       }
-
       last_weights_sum = weights_sum;
     }
 
+//not used
+    // void computeWeightedSDEstimate(std::list<PeakType> tmp, const double& mean_t, double& sd_t, const double& /* lower_sd_bound */)
+    // {
+    //   double denom(0.0), weights_sum(0.0);
 
-    void computeWeightedSDEstimate(std::list<PeakType> tmp, const double& mean_t, double& sd_t, const double& /* lower_sd_bound */)
-    {
-      double denom(0.0), weights_sum(0.0);
+    //   for (std::list<PeakType>::const_iterator l_it = tmp.begin(); l_it != tmp.end(); ++l_it)
+    //   {
+    //     denom += l_it->getIntensity() * (l_it->getMZ() - mean_t) * (l_it->getMZ() - mean_t);
+    //     weights_sum += l_it->getIntensity();
+    //   }
 
-      for (std::list<PeakType>::const_iterator l_it = tmp.begin(); l_it != tmp.end(); ++l_it)
-      {
-        denom += l_it->getIntensity() * (l_it->getMZ() - mean_t) * (l_it->getMZ() - mean_t);
-        weights_sum += l_it->getIntensity();
-      }
+    //   double tmp_sd = std::sqrt(denom / (weights_sum));
 
-      double tmp_sd = std::sqrt(denom / (weights_sum));
+    //   if (tmp_sd > std::numeric_limits<double>::epsilon())
+    //   {
+    //     sd_t = tmp_sd;
+    //   }
 
-      if (tmp_sd > std::numeric_limits<double>::epsilon())
-      {
-        sd_t = tmp_sd;
-      }
-
-      return;
-    }
+    //   return;
+    // }
 
 
     void MassTraceDetection::run(const PeakMap& input_exp, std::vector<MassTrace>& found_masstraces, const Size max_traces)
@@ -226,16 +230,17 @@ namespace OpenMS
       //   - store potential apices in chrom_apices
       PeakMap work_exp;
       std::vector<Apex> chrom_apices;
+      std::vector<Size> spec_offsets;
 
       Size total_peak_count(0);
-      std::vector<Size> spec_offsets;
-      spec_offsets.push_back(0);
-
       Size spectra_count(0);
+
+      spec_offsets.push_back(0);
 
       // *********************************************************** //
       //  Step 1: Detecting potential chromatographic apices
       // *********************************************************** //
+
       for (const MSSpectrum& it : input_exp)
       {
         // check if this is a MS1 survey scan
@@ -244,21 +249,21 @@ namespace OpenMS
           continue;
         }
         std::vector<Size> indices_passing;
-        for (Size peak_idx = 0; peak_idx < it.size(); ++peak_idx)
+        
+        for(Size peak_idx = 0; 
+            (it[peak_idx].getIntensity() > noise_threshold_int_) && 
+            (peak_idx < it.size());
+            ++peak_idx)
         {
-          double tmp_peak_int((it)[peak_idx].getIntensity());
-          if (tmp_peak_int > noise_threshold_int_)
+          // Assume that noise_threshold_int_ contains the noise level of the
+          // data and we want to be chrom_peak_snr times above the noise level
+          // --> add this peak as possible chromatographic apex
+          if (it[peak_idx].getIntensity() > chrom_peak_snr_ * noise_threshold_int_)
           {
-            // Assume that noise_threshold_int_ contains the noise level of the
-            // data and we want to be chrom_peak_snr times above the noise level
-            // --> add this peak as possible chromatographic apex
-            if (tmp_peak_int > chrom_peak_snr_ * noise_threshold_int_)
-            {
-              chrom_apices.emplace_back(&work_exp, spectra_count, indices_passing.size());
-            }
-            indices_passing.push_back(peak_idx);
-            ++total_peak_count;
+            chrom_apices.emplace_back(&work_exp, spectra_count, indices_passing.size());
           }
+          indices_passing.push_back(peak_idx);
+          ++total_peak_count;
         }
         PeakMap::SpectrumType tmp_spec(it);
         tmp_spec.select(indices_passing);
@@ -276,7 +281,6 @@ namespace OpenMS
       // discard last spectrum's offset
       spec_offsets.pop_back();
 
-      //hatten wir mal parallelisiert, but how??
       std::sort(chrom_apices.begin(), chrom_apices.end(),
                 [&chrom_apices](const Apex & a,
                     const Apex & b) -> bool
@@ -296,8 +300,37 @@ namespace OpenMS
 
     double MassTraceDetection::findOffset_(double centroid_mz, double mass_error_ppm_)
     {
-      double offset = Math::ppmToMass(mass_error_ppm_,centroid_mz);
-      return offset;
+      return 2* Math::ppmToMass(mass_error_ppm_,centroid_mz);
+    }
+
+
+    bool MassTraceDetection::check_FWHM_meta_data(const PeakMap& work_exp)
+    {
+      Size fwhm_meta_count(0);
+
+      for (Size i = 0; 
+          (i < work_exp.size()) &&
+          (!work_exp[i].getFloatDataArrays().empty()) &&
+          (work_exp[i].getFloatDataArrays()[0].getName() == "FWHM_ppm");
+          ++i)
+      {
+        if (work_exp[i].getFloatDataArrays()[0].size() != work_exp[i].size())
+        { // float data should always have the same size as the corresponding array
+          throw Exception::InvalidSize(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, work_exp[i].size());
+        }
+        ++fwhm_meta_count;
+      }
+
+      if (fwhm_meta_count > 0) 
+      {
+        if (fwhm_meta_count == work_exp.size()) return true;
+        else 
+        {
+          throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+            String("FWHM meta arrays are expected to be missing or present for all MS spectra [") + fwhm_meta_count + "/" + work_exp.size() + "].");
+        }
+      }
+      else return false;
     }
 
 
@@ -308,78 +341,58 @@ namespace OpenMS
                                   std::vector<MassTrace>& found_masstraces,
                                   const Size max_traces)
     {
-      Size trace_number(1);
+      ///check for FWHM meta data & corrupted data
+      bool fwhm_meta_idx = check_FWHM_meta_data(work_exp);
 
-      // check presence of FWHM meta data
-      int fwhm_meta_idx(-1);
-      Size fwhm_meta_count(0);
-      for (Size i = 0; i < work_exp.size(); ++i)
-      {
-        if (!work_exp[i].getFloatDataArrays().empty() &&
-            work_exp[i].getFloatDataArrays()[0].getName() == "FWHM_ppm")
-        {
-          if (work_exp[i].getFloatDataArrays()[0].size() != work_exp[i].size())
-          { // float data should always have the same size as the corresponding array
-            throw Exception::InvalidSize(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, work_exp[i].size());
-          }
-          fwhm_meta_idx = 0;
-          ++fwhm_meta_count;
-        }
-      }
-
-      if (fwhm_meta_count > 0 && fwhm_meta_count != work_exp.size())
-      {
-        throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                      String("FWHM meta arrays are expected to be missing or present for all MS spectra [") + fwhm_meta_count + "/" + work_exp.size() + "].");
-      }
-
-      this->startProgress(0, total_peak_count, "mass trace detection");
-      Size peaks_detected(0);
-
-      //std::vector<RangeMZ> mz_locked{};
-      //mz_locked.resize(omp_get_max_threads());
+      ///used variables
       boost::dynamic_bitset<> peak_visited(total_peak_count);
-
-      //#pragma omp parallel for schedule(static)
+      std::vector<RangeMZ> mz_locked{};
+      mz_locked.resize(omp_get_max_threads());
+      Size trace_number(1);
+      Size peaks_detected(0);
+      
+      this->startProgress(0, total_peak_count, "mass trace detection");
+      
+      #pragma omp parallel for schedule(static)
       for (Size i = 0; i < chrom_apices.size(); ++i)
       {
         MassTraceDetection::Apex m_it = chrom_apices[i];
 
-        // bool go = true;
-        // bool come_back_later = false;
-        // while (go)
-        // {
-        //   // check if we already reached the (optional) maximum number of traces
-        //   if (come_back_later)
-        //   {
-        //     sleep(3);
-        //   }
+        bool go = true;
+        bool come_back_later = false;
+        while (go)
+        {
+          // check if we already reached the (optional) maximum number of traces
+          if (come_back_later)
+          {
+            sleep(3);
+          }
 
         //   // check for curently working near it, if yes we search at a later time
-        //   #pragma omp critical
-        //   {
-        //     RangeMZ mz_span{};
-        //     mz_span.extendMZ(currentApex_mz + findOffset_(currentApex_mz, mass_error_ppm_));
-        //     mz_span.extendMZ(currentApex_mz - findOffset_(currentApex_mz, mass_error_ppm_));
-        //     mz_locked[omp_get_thread_num()] = mz_span;
-
-        //     for (uint i=0; i < mz_locked.size(); ++i) 
-        //     {
-        //       if (mz_locked[i].containsMZ(currentApex_mz))
-        //       {
-        //         come_back_later = true;
-        //       }
-        //     }
-        //     if (!come_back_later)
-        //     {
-        //       go = false;
-        //     }
-        //   }
-        // }
+          #pragma omp critical
+          {
+            for (uint i=0; i < mz_locked.size(); ++i) 
+            {
+              if (mz_locked[i].containsMZ(m_it.getMZ()))
+              {
+                come_back_later = true;
+              }
+            }
+            if (!come_back_later)
+            {
+              RangeMZ mz_span{};
+              mz_span.extendMZ(m_it.getMZ() + findOffset_(m_it.getMZ(), mass_error_ppm_));
+              mz_span.extendMZ(m_it.getMZ() - findOffset_(m_it.getMZ(), mass_error_ppm_));
+              mz_locked[omp_get_thread_num()] = mz_span;
+              go = false;
+            }
+          }
+        }
 
         if (peak_visited[spec_offsets[m_it.scan_idx_] + m_it.peak_idx_] ||
             (max_traces > 0 && found_masstraces.size() == max_traces))
         {
+          mz_locked[omp_get_thread_num()] = RangeMZ{};
           continue;
         }
 
@@ -404,9 +417,9 @@ namespace OpenMS
 
         std::vector<std::pair<Size, Size> > gathered_idx;
         gathered_idx.emplace_back(m_it.scan_idx_, m_it.peak_idx_);
-        if (fwhm_meta_idx != -1)
+        if (fwhm_meta_idx)
         {
-          fwhms_mz.push_back(work_exp[m_it.scan_idx_].getFloatDataArrays()[fwhm_meta_idx][m_it.peak_idx_]);
+          fwhms_mz.push_back(work_exp[m_it.scan_idx_].getFloatDataArrays()[0][m_it.peak_idx_]);
         }
 
         Size up_hitting_peak(0), down_hitting_peak(0);
@@ -455,9 +468,9 @@ namespace OpenMS
 
                 current_trace.push_front(next_peak);
                 // FWHM average
-                if (fwhm_meta_idx != -1)
+                if (fwhm_meta_idx)
                 {
-                  fwhms_mz.push_back(spec_trace_down.getFloatDataArrays()[fwhm_meta_idx][next_down_peak_idx]);
+                  fwhms_mz.push_back(spec_trace_down.getFloatDataArrays()[0][next_down_peak_idx]);
                 }
                 // Update the m/z mean of the current trace as we added a new peak
                 updateIterativeWeightedMeanMZ(next_down_peak_mz, next_down_peak_int, centroid_mz, prev_counter, prev_denom);
@@ -531,9 +544,9 @@ namespace OpenMS
                 next_peak.setIntensity(next_up_peak_int);
 
                 current_trace.push_back(next_peak);
-                if (fwhm_meta_idx != -1)
+                if (fwhm_meta_idx)
                 {
-                  fwhms_mz.push_back(spec_trace_up.getFloatDataArrays()[fwhm_meta_idx][next_up_peak_idx]);
+                  fwhms_mz.push_back(spec_trace_up.getFloatDataArrays()[0][next_up_peak_idx]);
                 }
                 // Update the m/z mean of the current trace as we added a new peak
                 updateIterativeWeightedMeanMZ(next_up_peak_mz, next_up_peak_int, centroid_mz, prev_counter, prev_denom);
@@ -594,20 +607,20 @@ namespace OpenMS
         bool max_trace_criteria = (max_trace_length_ < 0.0 || rt_range < max_trace_length_);
         if (rt_range >= min_trace_length_ && max_trace_criteria && mt_quality >= min_sample_rate_ )
         {
-          //#pragma omp critical (add_trace)
+          #pragma omp critical (add_trace)
           {
-            // bool no_thread_was_here = true;
-            // for (Size i = 0; i < gathered_idx.size(); ++i)
-            // {
-            //   if(peak_visited[spec_offsets[gathered_idx[i].first] +  gathered_idx[i].second])
-            //   {
-            //     no_thread_was_here = false;
-            //     break;
-            //   }
-            // }
-            // create new MassTrace object and store collected peaks from list current_trace
-            // if (no_thread_was_here)
-            // {
+            bool no_thread_was_here = true;
+            for (Size i = 0; i < gathered_idx.size(); ++i)
+            {
+              if(peak_visited[spec_offsets[gathered_idx[i].first] +  gathered_idx[i].second])
+              {
+                no_thread_was_here = false;
+                break;
+              }
+            }
+            //create new MassTrace object and store collected peaks from list current_trace
+            if (no_thread_was_here)
+            {
               for (Size i = 0; i < gathered_idx.size(); ++i)
               {
                 peak_visited[spec_offsets[gathered_idx[i].first] +  gathered_idx[i].second] = true;
@@ -628,9 +641,9 @@ namespace OpenMS
               found_masstraces.push_back(new_trace);
               peaks_detected += new_trace.getSize();
               this->setProgress(peaks_detected);
-             // mz_locked[omp_get_thread_num()] = RangeMZ{};
-            //}
-         }
+              mz_locked[omp_get_thread_num()] = RangeMZ{};
+            }
+          }
 
           // check if we already reached the (optional) maximum number of traces
           if (max_traces > 0 && found_masstraces.size() == max_traces)
@@ -642,7 +655,6 @@ namespace OpenMS
         
     this->endProgress();
     }
-
 
     void MassTraceDetection::updateMembers_()
     {

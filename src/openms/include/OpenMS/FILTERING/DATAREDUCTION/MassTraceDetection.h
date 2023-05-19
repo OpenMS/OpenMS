@@ -84,7 +84,12 @@ namespace OpenMS
         */
 
         /// Allows the iterative computation of the intensity-weighted mean of a mass trace's centroid m/z.
-        void updateIterativeWeightedMeanMZ(const double &, const double &, double &, double &, double &);
+        void updateIterativeWeightedMeanMZ(const double& added_mz,
+                                           const double& added_int,
+                                           double& centroid_mz,
+                                           double& prev_counter,
+                                           double& prev_denom
+                                          );
 
         /** @name Main computation methods
         */
@@ -106,15 +111,18 @@ namespace OpenMS
 
         struct Apex
         {
-          Apex(const PeakMap* map, const Size scan_idx, const Size peak_idx);
-          const PeakMap *map_;
-          const Size scan_idx_;
-          const Size peak_idx_;
+          Apex(PeakMap* map, Size scan_idx, Size peak_idx);
+          PeakMap *map_;
+          Size scan_idx_;
+          Size peak_idx_;
 
           double getMZ() const;
           double getRT() const;
           double getIntensity() const;
         };
+
+        /// internal check for FWHM meta data
+        bool check_FWHM_meta_data(const PeakMap& work_exp);
 
         /// The internal run method
         void run_(std::vector<Apex>& chrom_apices,
