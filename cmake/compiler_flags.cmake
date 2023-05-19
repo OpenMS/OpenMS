@@ -58,9 +58,17 @@ if (CMAKE_COMPILER_IS_GNUCXX)
     -Wno-unused-function
     -Wno-variadic-macros
     )
-  add_compile_options(-mssse3) #needed for simde instructions (base64 encoding)
-
-  option(ENABLE_GCC_WERROR "Enable -WError on gcc compilers" OFF)
+  ## enable 'ssse3' on x86, 'neon' on arm, 'sse1' else, to achive faster base64 en-/decoding
+  if(${CMAKE_SYSTEM_PROCESSOR} MATCHES "x86") 
+    add_compile_options(-mssse3)#needed for simde instructions
+  elseif (${CMAKE_SYSTEM_PROCESSOR} MATCHES "arm")
+    add_compile_options(-neon)  
+  else()
+    add_compile_options(-sse1)
+  endif() 
+  
+  
+  option(ENABLE_GCC_WERROR "Enable -Werror on gcc compilers" OFF)
   if (ENABLE_GCC_WERROR)
     add_compile_options(-Werror)
     message(STATUS "Enable -Werror for gcc - note that this may not work on all compilers and system settings!")
@@ -112,9 +120,13 @@ elseif (MSVC)
 	## use multiple CPU cores (if available)
 	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /MP")
 
-  if (NOT OPENMS_64BIT_ARCHITECTURE)
-    ## enable SSE1 on 32bit, on 64bit the compiler flag does not exist
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /arch:native")
+  ## enable 'ssse3' on x86, 'neon' on arm, 'sse1' else, to achive faster base64 en-/decoding
+  if(${CMAKE_SYSTEM_PROCESSOR} MATCHES "x86") 
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /arch:ssse3")
+  elseif (${CMAKE_SYSTEM_PROCESSOR} MATCHES "arm")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /arch:neon")
+  else()
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /arch:sse1")
   endif()
   
 elseif ("${CMAKE_C_COMPILER_ID}" MATCHES "Clang")
@@ -154,8 +166,16 @@ elseif ("${CMAKE_C_COMPILER_ID}" MATCHES "Clang")
                   -Wno-covered-switch-default
                   -Wno-date-time
                   -Wno-missing-noreturn
-                  -mssse3 #needed for simde instructions
+                  
                   )
+  ## enable 'ssse3' on x86, 'neon' on arm, 'sse1' else, to achive faster base64 en-/decoding
+  if(${CMAKE_SYSTEM_PROCESSOR} MATCHES "x86") 
+    add_compile_options(-mssse3)#needed for simde instructions
+  elseif (${CMAKE_SYSTEM_PROCESSOR} MATCHES "arm")
+    add_compile_options(-neon)  
+  else()
+    add_compile_options(-sse1)
+  endif()                
 else()
   set(CMAKE_COMPILER_IS_INTELCXX true CACHE INTERNAL "Is Intel C++ compiler (icpc)")
 endif()
