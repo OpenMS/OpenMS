@@ -232,6 +232,8 @@ namespace OpenMS
     boost::dynamic_bitset<> mass_bins_;
     /// mz_bins_ stores the binned log mz peaks
     boost::dynamic_bitset<> mz_bins_;
+    /// mz_bin to peak index mz_bin_peak_index_[mz_bin] = peak index
+    //std::vector<int> mz_bin_peak_index_;
 
     /// This stores the "universal pattern"
     std::vector<double> filter_;

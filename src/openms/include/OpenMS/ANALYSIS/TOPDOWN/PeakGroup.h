@@ -103,8 +103,9 @@ namespace OpenMS
            @brief Update isotope cosine sore and qscore. Mono mass is also updated one last time. SNR, per charge SNR, and avg errors are updated here.
            @param avg precalculated averagine
            @param min_cos the peak groups with cosine score less than this will have QScore 0.
+           @return returns isotope offset after isotope cosine calculation
       */
-    void updateIsotopeCosineSNRAvgErrorAndQScore(const FLASHDeconvHelperStructs::PrecalculatedAveragine& avg, double min_cos);
+    int updateIsotopeCosineSNRAvgErrorAndQScore(const FLASHDeconvHelperStructs::PrecalculatedAveragine& avg, double min_cos);
 
     /**
      * @brief given a monoisotopic mass, recruit raw peaks from the raw input spectrum and add to this peakGroup. This is a bit time-consuming and is done for only a small number of selected high-quality peakgroups.
@@ -237,7 +238,10 @@ namespace OpenMS
     /// set index of this peak group
     void setIndex(uint i);
 
-    /// get index of this peak group
+    /// update per charge cosine values
+    void updatePerChargeCos(const FLASHDeconvHelperStructs::PrecalculatedAveragine& avg);
+
+      /// get index of this peak group
     uint getIndex() const;
 
     int getChargeRangeForDL_() {return charge_range_for_DL_;};
