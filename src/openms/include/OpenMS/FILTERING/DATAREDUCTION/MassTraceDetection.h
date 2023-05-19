@@ -97,6 +97,8 @@ namespace OpenMS
 
         /** @name Private methods and members
         */
+
+       void MassTraceDetection::histogramm (std::vector<Apex> chrom_apices, uint8_t c);
     protected:
         void updateMembers_() override;
 
@@ -109,8 +111,7 @@ namespace OpenMS
           Size scan_idx;
           Size peak_idx;
 
-          // double upperbound_();
-          // double lowerbound_();
+
         };
 
         /// The internal run method
