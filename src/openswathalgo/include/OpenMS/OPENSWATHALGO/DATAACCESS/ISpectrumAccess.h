@@ -88,7 +88,7 @@ public:
     /// Returns the native id of the chromatogram at the given id
     virtual std::string getChromatogramNativeID(int id) const = 0;
 
-    /* @breif Fetches a spectrumSequence (multiple spectra pointers) closest to the given RT
+    /* @brief Fetches a spectrumSequence (multiple spectra pointers) closest to the given RT
      * @p RT = target RT
      * @p nr_spectra_to_fetch = # spectra around target RT to fetch (length of the spectrum sequence)
     */
