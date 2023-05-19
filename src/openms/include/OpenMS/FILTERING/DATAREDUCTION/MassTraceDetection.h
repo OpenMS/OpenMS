@@ -111,9 +111,9 @@ namespace OpenMS
           const Size scan_idx_;
           const Size peak_idx_;
 
-          getMZ();
-          getRT();
-          getIntensity();
+          double getMZ() const;
+          double getRT() const;
+          double getIntensity() const;
         };
 
         /// The internal run method

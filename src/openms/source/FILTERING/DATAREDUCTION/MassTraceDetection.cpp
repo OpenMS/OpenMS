@@ -631,10 +631,7 @@ namespace OpenMS
              // mz_locked[omp_get_thread_num()] = RangeMZ{};
             //}
          }
-            
-            
-          
-          
+
           // check if we already reached the (optional) maximum number of traces
           if (max_traces > 0 && found_masstraces.size() == max_traces)
           {
@@ -661,6 +658,7 @@ namespace OpenMS
       max_trace_length_ = (double)param_.getValue("max_trace_length");
       reestimate_mt_sd_ = param_.getValue("reestimate_mt_sd").toBool();
     }
+
 
 }
 
