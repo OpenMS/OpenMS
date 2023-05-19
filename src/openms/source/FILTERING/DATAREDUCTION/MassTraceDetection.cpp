@@ -308,8 +308,8 @@ namespace OpenMS
       {
         for (uint j = i; j < chrom_apices.size(); ++j)
         {
-          histo_rt[j] += histo_rt[j-1]
-          histo_mz[j] += histo_mz[j-1]
+          histo_rt[j] += histo_rt[j-1];
+          histo_mz[j] += histo_mz[j-1];
         }
       }
 
