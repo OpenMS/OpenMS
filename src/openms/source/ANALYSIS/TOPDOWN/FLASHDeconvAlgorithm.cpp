@@ -1051,7 +1051,6 @@ namespace OpenMS
         }
       }
 
-
       if (total_signal_intensity > *std::max_element(total_harmonic_intensity.begin(), total_harmonic_intensity.end()) * 2 )
       {
         if(debug)
@@ -1285,14 +1284,15 @@ namespace OpenMS
 
         peak_group.setIsotopeCosine(cos);
 
-        if (cos < min_isotope_cosine_[ms_level_ - 1] - .4)
+        if (cos < .45)
         {
           continue;
         }
 
-        for(int k = 0;k<3;k++)
+        for(int k = 0;k<5;k++)
         {
-          auto noise = peak_group.recruitAllPeaksInSpectrum(deconvolved_spectrum_.getOriginalSpectrum(), tol, avg_, peak_group.getMonoMass() + offset * iso_da_distance_, excluded_peak_mzs_);
+          auto noise = peak_group.recruitAllPeaksInSpectrum(deconvolved_spectrum_.getOriginalSpectrum(), tol, avg_,
+                                                            peak_group.getMonoMass() + offset * iso_da_distance_, excluded_peak_mzs_);
           // min cosine is checked in here. mono mass is also updated one last time. SNR, per charge SNR, and avg errors are updated here.
           offset = peak_group.updateIsotopeCosineSNRAvgErrorAndQScore(avg_, min_isotope_cosine_[ms_level_ - 1]);
           if(offset == 0)
@@ -1339,8 +1339,6 @@ namespace OpenMS
           }
         }
 
-
-
         if(debug)
         {
           //auto m = peak_group.getMonoMass();
@@ -1350,7 +1348,6 @@ namespace OpenMS
             std::cout<<z1<<" " << z2<<std::endl;
           }
         }
-
 
         auto cr = peak_group.getAbsChargeRange();
 
@@ -1417,8 +1414,8 @@ namespace OpenMS
     deconvolved_spectrum_.setPeakGroups(filtered_peak_groups);
     deconvolved_spectrum_.sort();
 
-    removeOverlappingPeakGroups_(deconvolved_spectrum_);
-    removeChargeErrorPeakGroups_(deconvolved_spectrum_); //
+    removeOverlappingPeakGroups_(deconvolved_spectrum_, tol);
+    removeChargeErrorPeakGroups_(deconvolved_spectrum_);
 
     if(useDL)
     {
@@ -1675,7 +1672,7 @@ namespace OpenMS
   void FLASHDeconvAlgorithm::removeChargeErrorPeakGroups_(DeconvolvedSpectrum& dspec)
   {
     std::map<double, std::set<int>> peak_to_pgs;
-    std::map<double, double> mz_to_intensities;
+    std::map<double, float> mz_to_intensities;
     //std::set<int> to_remove_pgs;
     std::vector<PeakGroup> filtered_pg_vec;
     filtered_pg_vec.reserve(dspec.size());
@@ -1695,7 +1692,7 @@ namespace OpenMS
     {
       auto& pg_is = e.second;
       double pmz = e.first;
-      double pint = mz_to_intensities[pmz];
+      float pint = mz_to_intensities[pmz];
 
       if (pg_is.size() == 1)
       {
@@ -1704,94 +1701,31 @@ namespace OpenMS
 
       for (auto i : pg_is)
       {
+        bool is_overlap = false;
         double mass1 = dspec[i].getMonoMass();
-        // int iso_length = avg_.getRightCountFromApex(mass1) + avg_.getLeftCountFromApex(mass1) + 1;
-
-        int repz1 = (int)round(mass1 / pmz);
-
-        double snr1 = dspec[i].getChargeSNR(repz1); //
+        int repz1 = (int)round(mass1 / (pmz - FLASHDeconvHelperStructs::getChargeMass(is_positive_)));
         for (auto j : pg_is)
         {
-          if (i == j)
+          if(i==j)
           {
             continue;
           }
           double mass2 = dspec[j].getMonoMass();
-          int repz2 = (int)round(mass2 / pmz);
-
-          if(repz1%repz2 != 0 && repz2%repz1 != 0 && abs(repz1-repz2)> 4)
+          int repz2 = (int)round(mass2 / (pmz - FLASHDeconvHelperStructs::getChargeMass(is_positive_)));
+          if(repz1 == repz2)
           {
             continue;
           }
-
-          if (repz2 != dspec[j].getRepAbsCharge())
-          {
-            continue;
-          }
-          double snr2 = dspec[j].getChargeSNR(repz2);
-
-          if (snr1 < snr2 + .1)
-          {
-            continue;
-          }
-          bool charge_error = false; // if snr is already highly different, it is charge error..
-
-          if (snr1 > snr2 * 4 || abs(mass2/repz2 - mass1 / repz1) <= 3 * iso_da_distance_ / repz1)
-          {
-            if(debug)
-            {
-              if(mass2 > debug_mass_min && mass2<debug_mass_max)
-              {
-                std::cout << "removeChargeErrorPeakGroups_  m1 " << mass1 << " m2 " << mass2 << " z1 " << repz1 << " z2 " << repz2 << " sn1 " << snr1 << " snr2 " << snr2 << std::endl;
-              }
-            }
-            charge_error = true;
-          }
-
-          if (charge_error)
-          {
-            overlap_intensity[j]+= pint;//dspec[j].getIntensity();
-            //to_remove_pgs.insert(j);
-          }
+          is_overlap = true;
+          break;
         }
-
-        // lastly check if it is excluded
-        if (excluded_masses_.size() > 0)
-        {
-          auto& peak_group = dspec[i];
-          double delta = peak_group.getMonoMass() * tolerance_[ms_level_ - 1] * 2;
-          auto upper = std::upper_bound(excluded_masses_.begin(), excluded_masses_.end(), peak_group.getMonoMass() + delta);
-          bool exclude = false;
-          while (!exclude)
-          {
-            if (upper != excluded_masses_.end())
-            {
-              if (std::abs(*upper - peak_group.getMonoMass()) < delta)
-              {
-                exclude = true;
-              }
-              if (peak_group.getMonoMass() - *upper > delta)
-              {
-                break;
-              }
-            }
-            if (upper == excluded_masses_.begin())
-            {
-              break;
-            }
-            --upper;
-          }
-          if (exclude)
-          {
-            overlap_intensity[i] = dspec[i].getIntensity();
-          }
-        }
+        if(is_overlap) overlap_intensity[i] += pint;
       }
     }
 
     for (Size i = 0; i < dspec.size(); i++)
     {
-      if (!dspec[i].isTargeted() && overlap_intensity[i] >= dspec[i].getIntensity()*.1)
+      if (!dspec[i].isTargeted() && overlap_intensity[i] >= dspec[i].getIntensity() * .5)
       {
         if(debug)
         {
@@ -1811,26 +1745,50 @@ namespace OpenMS
     dspec.setPeakGroups(filtered_pg_vec);
   }
 
-  void FLASHDeconvAlgorithm::removeOverlappingPeakGroups_(DeconvolvedSpectrum& dspec)
+  void FLASHDeconvAlgorithm::removeOverlappingPeakGroups_(DeconvolvedSpectrum& dspec, double tol)
   {
-    std::vector<PeakGroup> filtered_pg_vec;
+    if(dspec.size() == 0)
+    {
+      return;
+    }
+    std::vector<PeakGroup> filtered_pg_vec;//
     filtered_pg_vec.reserve(dspec.size());
-    //dspec.sort();
+    double start_mass = dspec[0].getMonoMass();
+    float local_max_SNR = 0;
+    Size local_max_index = 0;
+
     for (Size i = 0; i < dspec.size(); i++)
     {
-      if (!dspec[i].isTargeted())
+      double mass = dspec[i].getMonoMass();
+      if(mass - start_mass > mass * tol)
       {
-        if (i>0 && abs(dspec[i - 1].getMonoMass() - dspec[i].getMonoMass()) < 1e-3 && dspec[i - 1].getSNR() >= dspec[i].getSNR())
+        if(!dspec[local_max_index].isTargeted()) // targeted ones were already push_backed.
         {
-          continue;
+          filtered_pg_vec.push_back(dspec[local_max_index]);
         }
-        if (i< dspec.size() - 1 && abs(dspec[i + 1].getMonoMass() - dspec[i].getMonoMass()) < 1e-3 && dspec[i + 1].getSNR() > dspec[i].getSNR()) // should not >=
-        {
-          continue;
-        }
+        start_mass = mass;
+        local_max_SNR = 0;
       }
-      filtered_pg_vec.push_back(dspec[i]);
+
+      if(local_max_SNR < dspec[i].getSNR())
+      {
+        local_max_SNR = dspec[i].getSNR();
+        local_max_index = i;
+      }
+      if(dspec[i].isTargeted())
+      {
+        filtered_pg_vec.push_back(dspec[i]);
+      }
     }
+
+    if(local_max_SNR > 0)
+    {
+      if(!dspec[local_max_index].isTargeted()) // targeted ones were already push_backed.
+      {
+        filtered_pg_vec.push_back(dspec[local_max_index]);
+      }
+    }
+
     dspec.setPeakGroups(filtered_pg_vec);
     std::vector<PeakGroup>().swap(filtered_pg_vec);
   }

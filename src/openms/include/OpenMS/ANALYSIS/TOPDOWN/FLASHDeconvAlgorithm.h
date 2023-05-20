@@ -328,7 +328,7 @@ namespace OpenMS
     void removeChargeErrorPeakGroups_(DeconvolvedSpectrum& dspec);
 
     /// filter out overlapping masses
-    static void removeOverlappingPeakGroups_(DeconvolvedSpectrum& dspec);
+    static void removeOverlappingPeakGroups_(DeconvolvedSpectrum& dspec, double tol);
 
     /**
     @brief register the precursor peak as well as the precursor peak group (or mass) if possible for MSn (n>1) spectrum.

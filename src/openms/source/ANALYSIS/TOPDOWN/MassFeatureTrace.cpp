@@ -109,6 +109,7 @@ namespace OpenMS
 
       auto per_isotope_intensity = std::vector<float>(averagine.getMaxIsotopeIndex(), .0f);
       auto per_charge_intensity = std::vector<float>(charge_range + min_abs_charge + 1, .0f);
+
       double mass = mt.getCentroidMZ();
       double max_iso = 0;
       int max_iso_off = 0;

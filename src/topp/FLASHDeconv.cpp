@@ -260,7 +260,7 @@ protected:
     //-------------------------------------------------------------
     // parsing parameters
     //-------------------------------------------------------------
-    const Size max_peak_count_ = 5e4;3e4;// 30000;
+    const Size max_peak_count_ = 8e4;3e4;// 30000;
     String in_file = getStringOption_("in");
     String out_file = getStringOption_("out");
     String in_train_file {};
