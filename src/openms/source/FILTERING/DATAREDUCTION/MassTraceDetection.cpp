@@ -72,29 +72,50 @@ namespace OpenMS
     MassTraceDetection::~MassTraceDetection() = default;
 
 
-    MassTraceDetection::Apex::Apex(PeakMap* map, Size scan_idx, Size peak_idx):
+    MassTraceDetection::Apex::Apex(const PeakMap* map, const Size scan_idx, const Size peak_idx):
       map_(map),
       scan_idx_(scan_idx),
       peak_idx_(peak_idx)
     {}
-
 
     double MassTraceDetection::Apex::getMZ() const
     {
       return (*map_)[scan_idx_][peak_idx_].getMZ();
     }
 
-
     double MassTraceDetection::Apex::getRT() const
     {
       return (*map_)[scan_idx_].getRT();
     }
 
-
     double MassTraceDetection::Apex::getIntensity() const
     {
       return(*map_)[scan_idx_][peak_idx_].getIntensity();
     }
+
+        //   /// Get the next free apex index which is not in the neighbourhood of a currently processing apex (in another thread)
+        //   /// (Internally adds the apex's m/z to a blacklist which prevents other threads from obtaining an apex nearby)
+        //   /// This function blocks until the next free apex is not conflicting anymore - i.e. another thread called setApexAsProcessed()
+        //   Apex getNextFreeApex();
+          
+        //   /// If an apex was successfully processed, call this function to remove the apex from the blacklist
+        //   void setApexAsProcessed();
+
+        //   std::vector<std::pair<double,double>> blacklist;  ///< vector of size 'nr_of_threads' where each position corresponds to a thread id
+        // };
+    MassTraceDetection::NextIndex::NextIndex(const Size nr_threads, const std::vector<Apex>& data, const Size total_peak_count):
+      
+    {
+      lock_list_.resize(nr_threads);
+      boost::dynamic_bitset<> peak_visited(total_peak_count)
+    }
+
+
+    void MassTraceDetection::NextIndex::setApexAsProcessed(int thread_num)
+    {
+      lock_list_[thread_num] = std::make_pair(RangeMZ{},RangeRT{});
+    }
+    //} 
 
 
     void MassTraceDetection::updateIterativeWeightedMeanMZ(const double& added_mz,
@@ -300,7 +321,7 @@ namespace OpenMS
 
     double MassTraceDetection::findOffset_(double centroid_mz, double mass_error_ppm_)
     {
-      return 2* Math::ppmToMass(mass_error_ppm_,centroid_mz);
+      return (2 * Math::ppmToMass(mass_error_ppm_,centroid_mz));
     }
 
 
@@ -346,53 +367,18 @@ namespace OpenMS
 
       ///used variables
       boost::dynamic_bitset<> peak_visited(total_peak_count);
-      std::vector<RangeMZ> mz_locked{};
-      mz_locked.resize(omp_get_max_threads());
+
       Size trace_number(1);
       Size peaks_detected(0);
       
       this->startProgress(0, total_peak_count, "mass trace detection");
       
-      #pragma omp parallel for schedule(static)
-      for (Size i = 0; i < chrom_apices.size(); ++i)
+      for (const Apex& m_it : chrom_apices)
+      //for (Size i = 0; i < chrom_apices.size(); ++i)
       {
-        MassTraceDetection::Apex m_it = chrom_apices[i];
-
-        bool go = true;
-        bool come_back_later = false;
-        while (go)
-        {
-          // check if we already reached the (optional) maximum number of traces
-          if (come_back_later)
-          {
-            sleep(3);
-          }
-
-        //   // check for curently working near it, if yes we search at a later time
-          #pragma omp critical
-          {
-            for (uint i=0; i < mz_locked.size(); ++i) 
-            {
-              if (mz_locked[i].containsMZ(m_it.getMZ()))
-              {
-                come_back_later = true;
-              }
-            }
-            if (!come_back_later)
-            {
-              RangeMZ mz_span{};
-              mz_span.extendMZ(m_it.getMZ() + findOffset_(m_it.getMZ(), mass_error_ppm_));
-              mz_span.extendMZ(m_it.getMZ() - findOffset_(m_it.getMZ(), mass_error_ppm_));
-              mz_locked[omp_get_thread_num()] = mz_span;
-              go = false;
-            }
-          }
-        }
-
         if (peak_visited[spec_offsets[m_it.scan_idx_] + m_it.peak_idx_] ||
             (max_traces > 0 && found_masstraces.size() == max_traces))
         {
-          mz_locked[omp_get_thread_num()] = RangeMZ{};
           continue;
         }
 
@@ -438,13 +424,16 @@ namespace OpenMS
         double intensity_so_far(apex_peak.getIntensity());
 
         while (((trace_down_idx > 0) && toggle_down) ||
-              ((trace_up_idx < work_exp.size() - 1) && toggle_up)
+              ((trace_up_idx < work_exp.size() - 1) && toggle_up) 
                 )
         {
           // *********************************************************** //
           // Step 2.1 MOVE DOWN in RT dim
           // *********************************************************** //
-          if ((trace_down_idx > 0) && toggle_down)
+          if ((trace_down_idx > 0) && 
+              toggle_down &&
+              (!peak_visited[spec_offsets[m_it.scan_idx_] + m_it.peak_idx_])
+              )
           {
             const MSSpectrum& spec_trace_down = work_exp[trace_down_idx - 1];
             if (!spec_trace_down.empty())
@@ -522,7 +511,10 @@ namespace OpenMS
           // *********************************************************** //
           // Step 2.2 MOVE UP in RT dim
           // *********************************************************** //
-          if ((trace_up_idx < work_exp.size() - 1) && toggle_up)
+          if ((trace_up_idx < work_exp.size() - 1) && 
+              toggle_up &&
+              (!peak_visited[spec_offsets[m_it.scan_idx_] + m_it.peak_idx_])
+              )
           {
             const MSSpectrum& spec_trace_up = work_exp[trace_up_idx + 1];
             if (!spec_trace_up.empty())
@@ -607,20 +599,8 @@ namespace OpenMS
         bool max_trace_criteria = (max_trace_length_ < 0.0 || rt_range < max_trace_length_);
         if (rt_range >= min_trace_length_ && max_trace_criteria && mt_quality >= min_sample_rate_ )
         {
-          #pragma omp critical (add_trace)
-          {
-            bool no_thread_was_here = true;
-            for (Size i = 0; i < gathered_idx.size(); ++i)
-            {
-              if(peak_visited[spec_offsets[gathered_idx[i].first] +  gathered_idx[i].second])
-              {
-                no_thread_was_here = false;
-                break;
-              }
-            }
+
             //create new MassTrace object and store collected peaks from list current_trace
-            if (no_thread_was_here)
-            {
               for (Size i = 0; i < gathered_idx.size(); ++i)
               {
                 peak_visited[spec_offsets[gathered_idx[i].first] +  gathered_idx[i].second] = true;
@@ -641,8 +621,7 @@ namespace OpenMS
               found_masstraces.push_back(new_trace);
               peaks_detected += new_trace.getSize();
               this->setProgress(peaks_detected);
-              mz_locked[omp_get_thread_num()] = RangeMZ{};
-            }
+            
           }
 
           // check if we already reached the (optional) maximum number of traces
@@ -650,7 +629,7 @@ namespace OpenMS
           {
             continue;
           }
-        }
+        
       }
         
     this->endProgress();
@@ -680,7 +659,6 @@ namespace OpenMS
       //Apex is just used once and can be way shorter done
       // get rid of intensity and but a pointer to the map there done
       //also needs a few member functions for easier handling done
-      // -get intensity, get MZ, get RT done
   // get rid of variables that are called and used just once i.p.
 
 // function for check max traces and already visited
