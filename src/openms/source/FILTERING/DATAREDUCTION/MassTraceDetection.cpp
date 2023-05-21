@@ -72,7 +72,7 @@ namespace OpenMS
     MassTraceDetection::~MassTraceDetection() = default;
 
 
-    MassTraceDetection::Apex::Apex(const PeakMap* map, const Size scan_idx, const Size peak_idx):
+    MassTraceDetection::Apex::Apex(const PeakMap& map, const Size scan_idx, const Size peak_idx):
       map_(map),
       scan_idx_(scan_idx),
       peak_idx_(peak_idx)
@@ -80,42 +80,50 @@ namespace OpenMS
 
     double MassTraceDetection::Apex::getMZ() const
     {
-      return (*map_)[scan_idx_][peak_idx_].getMZ();
+      return map_[scan_idx_][peak_idx_].getMZ();
     }
 
     double MassTraceDetection::Apex::getRT() const
     {
-      return (*map_)[scan_idx_].getRT();
+      return map_[scan_idx_].getRT();
     }
 
     double MassTraceDetection::Apex::getIntensity() const
     {
-      return(*map_)[scan_idx_][peak_idx_].getIntensity();
+      return map_[scan_idx_][peak_idx_].getIntensity();
     }
 
-        //   /// Get the next free apex index which is not in the neighbourhood of a currently processing apex (in another thread)
-        //   /// (Internally adds the apex's m/z to a blacklist which prevents other threads from obtaining an apex nearby)
-        //   /// This function blocks until the next free apex is not conflicting anymore - i.e. another thread called setApexAsProcessed()
-        //   Apex getNextFreeApex();
-          
-        //   /// If an apex was successfully processed, call this function to remove the apex from the blacklist
-        //   void setApexAsProcessed();
-
-        //   std::vector<std::pair<double,double>> blacklist;  ///< vector of size 'nr_of_threads' where each position corresponds to a thread id
-        // };
-    MassTraceDetection::NextIndex::NextIndex(const Size nr_threads, const std::vector<Apex>& data, const Size total_peak_count):
-      
+ 
+    MassTraceDetection::NextIndex::NextIndex(const Size nr_threads, const std::vector<Apex>& data, const Size total_peak_count, const std::vector<Size>& spec_offsets):
+      data_(data),
+      spec_offsets_(spec_offsets),
+      current_Apex_(0)
     {
       lock_list_.resize(nr_threads);
-      boost::dynamic_bitset<> peak_visited(total_peak_count)
+      boost::dynamic_bitset<> peak_visited(total_peak_count);
     }
 
+    MassTraceDetection::Apex MassTraceDetection::NextIndex::getNextFreeApex()
+    {
+      for (Size i = current_Apex_; current_Apex_ < data_.size(); ++i)
+      {
+        
+      }
+    }
 
     void MassTraceDetection::NextIndex::setApexAsProcessed(int thread_num)
     {
       lock_list_[thread_num] = std::make_pair(RangeMZ{},RangeRT{});
     }
-    //} 
+    
+    void MassTraceDetection::NextIndex::setApexAsProcessed(int thread_num, const std::vector<std::pair<Size, Size> >& gathered_idx)
+    {
+      lock_list_[thread_num] = std::make_pair(RangeMZ{},RangeRT{});
+      for (Size i = 0; i < gathered_idx.size(); ++i)
+      {
+        peak_visited_[spec_offsets_[gathered_idx[i].first] +  gathered_idx[i].second] = true;
+      }
+    }
 
 
     void MassTraceDetection::updateIterativeWeightedMeanMZ(const double& added_mz,

@@ -111,8 +111,8 @@ namespace OpenMS
 
         struct Apex
         {
-          Apex(const PeakMap* map, const Size scan_idx, const Size peak_idx);
-          PeakMap *map_;
+          Apex(const PeakMap& map, const Size scan_idx, const Size peak_idx);
+          PeakMap map_;
           Size scan_idx_;
           Size peak_idx_;
 
@@ -125,7 +125,7 @@ namespace OpenMS
         struct NextIndex
         {
           /// C'tor: init with number of threads in parallel region
-          NextIndex(const Size nr_threads, const std::vector<Apex>& data, const Size total_peak_count);
+          NextIndex(const Size nr_threads, const std::vector<Apex>& data, const Size total_peak_count, const std::vector<Size>& spec_offsets);
 
           /// Get the next free apex index which is not in the neighbourhood of a currently processing apex (in another thread)
           /// (Internally adds the apex's m/z to a blacklist which prevents other threads from obtaining an apex nearby)
@@ -135,11 +135,14 @@ namespace OpenMS
           /// If an apex was successfully processed, call this function to remove the apex from the blacklist
           void setApexAsProcessed(int thread_num);
 
-          bool peak_visited();
+          void setApexAsProcessed(int thread_num, const std::vector<std::pair<Size, Size> >& gathered_idx);
 
           ///< vector of size 'nr_of_threads' where each position corresponds to a thread id
           std::vector<std::pair<RangeMZ,RangeRT>> lock_list_;
+          std::vector<Apex> data_;
           boost::dynamic_bitset<> peak_visited_;
+          std::vector<Size> spec_offsets_;
+          Size current_Apex_;
         };
 
         /// internal check for FWHM meta data
