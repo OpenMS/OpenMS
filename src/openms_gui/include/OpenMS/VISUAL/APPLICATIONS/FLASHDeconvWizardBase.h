@@ -28,65 +28,76 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Hendrik Weisser $
-// $Authors: Hendrik Weisser $
+// $Maintainer: Jihyung Kim $
+// $Authors: Jihyung Kim $
 // --------------------------------------------------------------------------
 
 #pragma once
 
-#include <OpenMS/METADATA/DataProcessing.h>
-#include <OpenMS/METADATA/ID/ProcessingSoftware.h>
-#include <OpenMS/METADATA/ID/InputFile.h>
+// OpenMS_GUI config
+#include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
+
+// OpenMS
+#include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
+
+// QT
+#include <QtCore/QProcess>
+#include <QtNetwork/QNetworkReply>
+#include <QtWidgets/QButtonGroup>
+#include <QtWidgets/QMainWindow>
+#include <QtWidgets/QMdiArea>
+#include <QtWidgets/QSplashScreen>
+
+class QToolBar;
+class QListWidget;
+class QTextEdit;
+class QMdiArea;
+class QLabel;
+class QWidget;
+class QTreeWidget;
+class QTreeWidgetItem;
+class QWebView;
+class QNetworkAccessManager;
+
+namespace Ui
+{
+  class FLASHDeconvWizardBase;
+}
 
 namespace OpenMS
 {
-  namespace IdentificationDataInternal
+  /**
+    @brief Main window of the FLASHDeconvWizard tool
+
+  */
+  class OPENMS_GUI_DLLAPI FLASHDeconvWizardBase : public QMainWindow, public DefaultParamHandler
   {
-    /** @brief Data processing step that is applied to the data (e.g. database search, PEP calculation, filtering, ConsensusID).
-    */
-    struct ProcessingStep: public MetaInfoInterface
-    {
-      ProcessingSoftwareRef software_ref;
+    Q_OBJECT
 
-      std::vector<InputFileRef> input_file_refs;
+  public:
+    /// Constructor
+    FLASHDeconvWizardBase(QWidget* parent = nullptr);
+    /// Destructor
+    ~FLASHDeconvWizardBase() override;
 
-      DateTime date_time;
+    void showAboutDialog();
 
-      // @TODO: add processing actions that are relevant for ID data
-      std::set<DataProcessing::ProcessingAction> actions;
+  protected:
+    /// The current path (used for loading and storing).
+    /// Depending on the preferences this is static or changes with the current window/layer.
+    String current_path_;
 
-      explicit ProcessingStep(
-        ProcessingSoftwareRef software_ref,
-        const std::vector<InputFileRef>& input_file_refs = std::vector<InputFileRef>(),
-        const DateTime& date_time = DateTime::now(),
-        const std::set<DataProcessing::ProcessingAction>& actions = std::set<DataProcessing::ProcessingAction>())
-        :
-        software_ref(software_ref), input_file_refs(input_file_refs),
-        date_time(date_time), actions(actions)
-      {
-      }
+    /// The path for temporary files
+    String tmp_path_;
 
-      ProcessingStep(const ProcessingStep& other) = default;
+  private slots:
+    // names created by QtCreator. Do not change them.
+    void on_actionExit_triggered();
+    void on_actionVisit_FLASHDeconv_homepage_triggered();
+    void on_actionReport_new_issue_triggered();
 
-      // order by date/time first, don't compare meta data (?):
-      bool operator<(const ProcessingStep& other) const
-      {
-        return (std::tie(date_time, software_ref, input_file_refs, actions) <
-                std::tie(other.date_time, other.software_ref,
-                         other.input_file_refs, other.actions));
-      }
+  private:
+    Ui::FLASHDeconvWizardBase* ui;
+  }; // class
 
-      // don't compare meta data (?):
-      bool operator==(const ProcessingStep& other) const
-      {
-        return (std::tie(software_ref, input_file_refs, date_time, actions) ==
-                std::tie(other.software_ref, other.input_file_refs,
-                         other.date_time, other.actions));
-      }
-    };
-
-    typedef std::set<ProcessingStep> ProcessingSteps;
-    typedef IteratorWrapper<ProcessingSteps::iterator> ProcessingStepRef;
-
-  }
-}
+} // namespace OpenMS
