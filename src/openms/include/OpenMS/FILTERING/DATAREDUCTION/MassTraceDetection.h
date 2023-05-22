@@ -85,8 +85,8 @@ namespace OpenMS
         */
 
         /// Allows the iterative computation of the intensity-weighted mean of a mass trace's centroid m/z.
-        void updateIterativeWeightedMeanMZ(const double& added_mz,
-                                           const double& added_int,
+        void updateIterativeWeightedMeanMZ(const double added_mz,
+                                           const double added_int,
                                            double& centroid_mz,
                                            double& prev_counter,
                                            double& prev_denom
@@ -113,9 +113,9 @@ namespace OpenMS
         struct Apex
         {
           Apex(const PeakMap& map, const Size scan_idx, const Size peak_idx);
-          PeakMap map_;
-          Size scan_idx_;
-          Size peak_idx_;
+          const PeakMap& map_;
+          const Size scan_idx_;
+          const Size peak_idx_;
 
           ///get's the corresponding values
           double getMZ() const;
@@ -131,27 +131,32 @@ namespace OpenMS
           /// Get the next free apex index which is not in the neighbourhood of a currently processing apex (in another thread)
           /// (Internally adds the apex's m/z to a blacklist which prevents other threads from obtaining an apex nearby)
           /// This function blocks until the next free apex is not conflicting anymore - i.e. another thread called setApexAsProcessed()
-          Size getNextFreeApex();
+          Size getNextFreeIndex();
           
-          /// If an apex was successfully processed, call this function to remove the apex from the blacklist
-          void setApexAsProcessed(int thread_num);
+          /// If an apex was processed call this function to remove the apex from the blacklist and increase the current_apex_
+          /// ... doesn't create a feature
+          void setApexAsProcessed();
+          /// ... does create a feature
+          void setApexAsProcessed(const std::vector<std::pair<Size, Size> >& gathered_idx);
 
-          void setApexAsProcessed(const int thread_num, const std::vector<std::pair<Size, Size> >& gathered_idx);
+          bool isConflictingApex(const Apex a) const;
 
-          bool checkApex(const Apex a) const;
+          bool isVisited(const Size scan_idx, const Size peak_idx) const;
 
-          bool checkVisited(const Size scan_idx, const Size peak_idx) const;
 
-          ///< vector of size 'nr_of_threads' where each position corresponds to a thread id
-          std::vector<std::pair<RangeMZ,RangeRT>> lock_list_;
-          std::vector<Apex> data_;
+          /// reference for usage
+          const std::vector<Apex>& data_;
+          const std::vector<Size>& spec_offsets_;
+        
+          /// own datastructure
           boost::dynamic_bitset<> peak_visited_;
-          std::vector<Size> spec_offsets_;
           Size current_Apex_;
+          std::vector<std::pair<RangeMZ,RangeRT>> lock_list_;
+          double mass_error_ppm_;
         };
 
         /// internal check for FWHM meta data
-        bool check_FWHM_meta_data(const PeakMap& work_exp);
+        bool checkFWHMMetaData_(const PeakMap& work_exp);
 
         /// The internal run method
         void run_(std::vector<Apex>& chrom_apices,
@@ -162,10 +167,9 @@ namespace OpenMS
                   const Size max_traces = 0);
 
         // Find Offset for Peak
-        double find_offset_(Size peak_index_in_apices_vec, double mass_error_ppm_, const PeakMap& input_exp, const std::vector<Apex>& apices_vec);
-        double findOffset_(double centroid_mz, double mass_error_ppm_);
-        Size calc_right_border_(Size peak_index_in_apices_vec, double mass_error_ppm_, const PeakMap& input_exp, const std::vector<Apex>& apices_vec);
-        Size calc_left_border_(Size peak_index_in_apices_vec, double mass_error_ppm_, const PeakMap& input_exp, const std::vector<Apex>& apices_vec);
+        double findOffset_(const double centroid_mz, const double mass_error_ppm_);
+        Size calc_right_border_(Size peak_index_in_apices_vec, const PeakMap& input_exp, const std::vector<Apex>& apices_vec);
+        Size calc_left_border_(Size peak_index_in_apices_vec, const PeakMap& input_exp, const std::vector<Apex>& apices_vec);
         
         // parameter stuff
         double mass_error_ppm_;

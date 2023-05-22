@@ -92,18 +92,18 @@ namespace OpenMS
     {
       return map_[scan_idx_][peak_idx_].getIntensity();
     }
-
  
-    MassTraceDetection::NextIndex::NextIndex(const Size nr_threads, const std::vector<Apex>& data, const Size total_peak_count, const std::vector<Size>& spec_offsets):
+    MassTraceDetection::NextIndex::NextIndex(const Size nr_threads, const std::vector<Apex>& data, const Size total_peak_count, const std::vector<Size>& spec_offsets, const double mass_error_ppm):
       data_(data),
       spec_offsets_(spec_offsets),
-      current_Apex_(0)
+      peak_visited_(total_peak_count),
+      current_Apex_(0),
+      mass_error_ppm_(mass_error_ppm)
     {
       lock_list_.resize(nr_threads);
-      boost::dynamic_bitset<> peak_visited_(total_peak_count);
     }
 
-    bool MassTraceDetection::NextIndex::checkApex(const MassTraceDetection::Apex a) const
+    bool MassTraceDetection::NextIndex::isConflictingApex(const MassTraceDetection::Apex a) const
     {
       for (const std::pair<RangeMZ, RangeRT>& i : lock_list_)
       {
@@ -115,37 +115,50 @@ namespace OpenMS
       return false;
     }
 
-    bool MassTraceDetection::NextIndex::checkVisited(const Size scan_idx, const Size peak_idx) const
+    bool MassTraceDetection::NextIndex::isVisited(const Size scan_idx, const Size peak_idx) const
     {
       return peak_visited_[spec_offsets_[scan_idx] +  peak_idx];
     }
-
-    Size MassTraceDetection::NextIndex::getNextFreeApex()
+    
+    Size MassTraceDetection::NextIndex::getNextFreeIndex()
     {
-      try
+      //isConflictingApex muss anders behandelt werden als isVisited
+      Size result{};
+      #pragma omp critical (look_for_lock)
       {
-        Size i;
-        while((*this).checkApex(data_[i]) &&
-              (*this).checkVisited(data_[i].scan_idx_, data_[i].peak_idx_))
+        while((current_Apex_ < data_.size()) &&
+              (*this).isVisited(data_[current_Apex_].scan_idx_, data_[current_Apex_].peak_idx_))
         {
-          ++i;
+          ++current_Apex_;
         }
-        return i;
+        if (current_Apex_ == data_.size())
+        {
+          result = current_Apex_;
+        }
+        else
+        {
+          while((*this).isConflictingApex(data_[current_Apex_]))
+          {}
+          //offset reinhauen
+          double offset_mz = 1.0;
+          double offset_rt = 2*5*60;
+          RangeMZ tmp_mz(data_[current_Apex_].getMZ() - offset_mz, data_[current_Apex_].getMZ() + offset_mz);
+          RangeRT tmp_rt(data_[current_Apex_].getRT() - offset_rt, data_[current_Apex_].getMZ() + offset_rt);
+          lock_list_[omp_get_thread_num()] = std::make_pair(tmp_mz, tmp_rt);
+          ++current_Apex_;
+        }
       }
-      catch(...)
-      {
-        return (data_.size() + 1);
-      }
+      return result;
     }
 
-    void MassTraceDetection::NextIndex::setApexAsProcessed(int thread_num)
+    void MassTraceDetection::NextIndex::setApexAsProcessed()
     {
-      lock_list_[thread_num] = std::make_pair(RangeMZ{},RangeRT{});
+      lock_list_[omp_get_thread_num()] = std::make_pair(RangeMZ{},RangeRT{});
     }
     
-    void MassTraceDetection::NextIndex::setApexAsProcessed(int thread_num, const std::vector<std::pair<Size, Size> >& gathered_idx)
+    void MassTraceDetection::NextIndex::setApexAsProcessed(const std::vector<std::pair<Size, Size> >& gathered_idx)
     {
-      lock_list_[thread_num] = std::make_pair(RangeMZ{},RangeRT{});
+      (*this).setApexAsProcessed();
       for (Size i = 0; i < gathered_idx.size(); ++i)
       {
         peak_visited_[spec_offsets_[gathered_idx[i].first] +  gathered_idx[i].second] = true;
@@ -153,19 +166,19 @@ namespace OpenMS
     }
 
 
-    void MassTraceDetection::updateIterativeWeightedMeanMZ(const double& added_mz,
-                                                           const double& added_int,
+    void MassTraceDetection::updateIterativeWeightedMeanMZ(const double added_mz,
+                                                           const double added_int,
                                                            double& centroid_mz,
                                                            double& prev_counter,
                                                            double& prev_denom)
     {
-      centroid_mz *=
-      (
-        (1 + (added_int * added_mz) / prev_counter) / 
-        (1 + (added_int) / prev_denom)
-      );
-      prev_counter *= 1 + (added_int * added_mz) / prev_counter;
-      prev_denom *= 1 + (added_int) / prev_denom;
+      const double nominater = 1 + (added_int * added_mz) / prev_counter;
+      const double denominator = 1 + (added_int) / prev_denom;
+
+      centroid_mz *= nominater / denominator;
+      prev_counter *= nominater;
+      prev_denom *= denominator;
+
       return;
     }
 
@@ -200,7 +213,7 @@ namespace OpenMS
         ++begin;
       }
 
-      map.addSpectrum(current_spectrum);
+      map.addSpectrum(std::move(current_spectrum));
 
       run(map, found_masstraces);
     }
@@ -274,7 +287,6 @@ namespace OpenMS
 
     //   return;
     // }
-
 
     void MassTraceDetection::run(const PeakMap& input_exp, std::vector<MassTrace>& found_masstraces, const Size max_traces)
     {
@@ -354,13 +366,13 @@ namespace OpenMS
     } // end of MassTraceDetection::run
 
 
-    double MassTraceDetection::findOffset_(double centroid_mz, double mass_error_ppm_)
+    double MassTraceDetection::findOffset_(const double centroid_mz, const double mass_error_ppm_)
     {
-      return (2 * Math::ppmToMass(mass_error_ppm_,centroid_mz));
+      return (3 * Math::ppmToMass(mass_error_ppm_,centroid_mz));
     }
 
 
-    bool MassTraceDetection::check_FWHM_meta_data(const PeakMap& work_exp)
+    bool MassTraceDetection::checkFWHMMetaData_(const PeakMap& work_exp)
     {
       Size fwhm_meta_count(0);
 
@@ -398,7 +410,7 @@ namespace OpenMS
                                   const Size max_traces)
     {
       ///check for FWHM meta data & corrupted data
-      bool fwhm_meta_idx = check_FWHM_meta_data(work_exp);
+      bool fwhm_meta_idx = checkFWHMMetaData_(work_exp);
 
       ///used variables
       boost::dynamic_bitset<> peak_visited(total_peak_count);
@@ -664,9 +676,7 @@ namespace OpenMS
           {
             continue;
           }
-        
       }
-        
     this->endProgress();
     }
 
