@@ -126,7 +126,7 @@ namespace OpenMS
         struct NextIndex
         {
           /// C'tor: init with number of threads in parallel region
-          NextIndex(const Size nr_threads, const std::vector<Apex>& data, const Size total_peak_count, const std::vector<Size>& spec_offsets);
+          NextIndex(const std::vector<Apex>& data, const Size total_peak_count, const std::vector<Size>& spec_offsets, const double mass_error_ppm);
 
           /// Get the next free apex index which is not in the neighbourhood of a currently processing apex (in another thread)
           /// (Internally adds the apex's m/z to a blacklist which prevents other threads from obtaining an apex nearby)

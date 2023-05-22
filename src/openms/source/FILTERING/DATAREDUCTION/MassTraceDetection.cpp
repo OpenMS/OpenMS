@@ -93,14 +93,14 @@ namespace OpenMS
       return map_[scan_idx_][peak_idx_].getIntensity();
     }
  
-    MassTraceDetection::NextIndex::NextIndex(const Size nr_threads, const std::vector<Apex>& data, const Size total_peak_count, const std::vector<Size>& spec_offsets, const double mass_error_ppm):
+    MassTraceDetection::NextIndex::NextIndex(const std::vector<Apex>& data, const Size total_peak_count, const std::vector<Size>& spec_offsets, const double mass_error_ppm):
       data_(data),
       spec_offsets_(spec_offsets),
       peak_visited_(total_peak_count),
       current_Apex_(0),
       mass_error_ppm_(mass_error_ppm)
     {
-      lock_list_.resize(nr_threads);
+      lock_list_.resize(omp_get_num_threads());
     }
 
     bool MassTraceDetection::NextIndex::isConflictingApex(const MassTraceDetection::Apex a) const
@@ -164,7 +164,6 @@ namespace OpenMS
         peak_visited_[spec_offsets_[gathered_idx[i].first] +  gathered_idx[i].second] = true;
       }
     }
-
 
     void MassTraceDetection::updateIterativeWeightedMeanMZ(const double added_mz,
                                                            const double added_int,
@@ -401,7 +400,6 @@ namespace OpenMS
       else return false;
     }
 
-
     void MassTraceDetection::run_(std::vector<Apex>& chrom_apices,
                                   const Size total_peak_count,
                                   const PeakMap& work_exp,
@@ -420,22 +418,28 @@ namespace OpenMS
       
       this->startProgress(0, total_peak_count, "mass trace detection");
       
+      NextIndex relevant(chrom_apices, total_peak_count, spec_offsets, mass_error_ppm_);
+
       for (const Apex& m_it : chrom_apices)
-      //for (Size i = 0; i < chrom_apices.size(); ++i)
       {
-        if (peak_visited[spec_offsets[m_it.scan_idx_] + m_it.peak_idx_] ||
-            (max_traces > 0 && found_masstraces.size() == max_traces))
+        if (max_traces > 0 && found_masstraces.size() == max_traces)
         {
           continue;
         }
 
+        Size i = relevant.getNextFreeIndex();
+        if (i == chrom_apices.size())
+        {
+          continue;
+        }
+        
         Peak2D apex_peak;
-        apex_peak.setRT(m_it.getRT());
-        apex_peak.setMZ(m_it.getMZ());
-        apex_peak.setIntensity(m_it.getIntensity());
+        apex_peak.setRT(chrom_apices[i].getRT());
+        apex_peak.setMZ(chrom_apices[i].getMZ());
+        apex_peak.setIntensity(chrom_apices[i].getIntensity());
 
-        Size trace_up_idx(m_it.scan_idx_);
-        Size trace_down_idx(m_it.scan_idx_);
+        Size trace_up_idx(chrom_apices[i].scan_idx_);
+        Size trace_down_idx(chrom_apices[i].scan_idx_);
 
         std::deque<PeakType> current_trace;
         current_trace.push_back(apex_peak);
@@ -472,7 +476,7 @@ namespace OpenMS
 
         while (((trace_down_idx > 0) && toggle_down) ||
               ((trace_up_idx < work_exp.size() - 1) && toggle_up) 
-                )
+              )
         {
           // *********************************************************** //
           // Step 2.1 MOVE DOWN in RT dim
