@@ -131,8 +131,8 @@ protected:
                        "This option also gives the maximum charge and masses (together with precursor m/z) of fragment ions, which overrides -Algorithm:max_charge and -Algorithm:max_mass.", false, false);
 
     registerDoubleOption_("target_precursor_mz", "<m/z value>", 0.0,
-                          "Target precursor m/z value. This option must be used with -target_precursor_charge option. Otherwise it will be ignored."
-                          "If -target_precursor_charge option is used but this option is not used, the precursor m/z value written in MS2 spectra will be used by default."
+                          "Target precursor m/z value. This option must be used with -target_precursor_charge option. Otherwise it will be ignored. "
+                          "If -target_precursor_charge option is used but this option is not used, the precursor m/z value written in MS2 spectra will be used by default. "
                           "Together with -target_precursor_charge, this option overrides -Algorithm:max_mass.",
                           false, false);
 
@@ -229,12 +229,17 @@ protected:
 
   static void filterLowPeaks(MSExperiment& map, Size count)
   {
+    if(count == 0)
+    {
+      return;
+    }
     for (auto& it : map)
     {
       if (it.size() <= count)
       {
         continue;
       }
+
       it.sortByIntensity(true);
       while (it.size() > count)
       {
@@ -251,7 +256,7 @@ protected:
     //-------------------------------------------------------------
     // parsing parameters
     //-------------------------------------------------------------
-    const Size max_peak_count_ = 30000;
+    const Size max_peak_count_ = 8e4;3e4;// 30000;
     String in_file = getStringOption_("in");
     String out_file = getStringOption_("out");
     String in_log_file = getStringOption_("in_log");
@@ -395,9 +400,31 @@ protected:
       current_max_ms_level = current_max_ms_level < ms_level ? ms_level : current_max_ms_level;
       current_min_ms_level = current_min_ms_level > ms_level ? ms_level : current_min_ms_level;
 
-      if(ms_level > 1 && target_precursor_charge != 0 && target_precursor_mz == .0)
+      if(ms_level > 1 && target_precursor_charge != 0)
       {
-        target_precursor_mz = it.getPrecursors()[0].getMZ();
+        if(it.getPrecursors().size() == 0)
+        {
+          if(target_precursor_mz == 0)
+          {
+            OPENMS_LOG_INFO << "Target precursor charge is set but no precursor is found in MS2 spectra. Specify target precursor m/z with -target_precursor_mz option" << std::endl;
+            return EXTERNAL_PROGRAM_ERROR;
+          }
+          else
+          {
+            Precursor precursor;
+            precursor.setCharge(target_precursor_charge);
+            precursor.setMZ(target_precursor_mz);
+            it.setPrecursors({precursor});
+          }
+        }
+        else
+        {
+          it.getPrecursors()[0].setCharge(target_precursor_charge);
+          if(target_precursor_mz != 0)
+          {
+            it.getPrecursors()[0].setMZ(target_precursor_mz);
+          }
+        }
       }
 
       if (min_rt > 0 && it.getRT() < min_rt)
@@ -430,15 +457,15 @@ protected:
     Param fd_param = getParam_().copy("Algorithm:", true);
     DoubleList tols = fd_param.getValue("tol");
 
-    if(target_precursor_mz > 0)
+    if(target_precursor_charge != 0)
     {
       fd_param.setValue("max_charge", target_precursor_charge);
-      fd_param.setValue("max_mass", std::abs(target_precursor_charge) * target_precursor_mz);
+      if (target_precursor_mz != 0)
+      {
+        fd_param.setValue("max_mass", std::abs(target_precursor_charge) * (target_precursor_mz - FLASHDeconvHelperStructs::getChargeMass(target_precursor_charge > 0)));
+      }
     }
-    else if(target_precursor_charge != 0){
-      OPENMS_LOG_INFO << "Target precursor charge is set but no precursor m/z is found in MS2 spectra. Specify target precursor m/z with -target_precursor_mz option" << std::endl;
-      return EXTERNAL_PROGRAM_ERROR;
-    }
+
     filterLowPeaks(map, max_peak_count_);
 
     // if a merged spectrum is analyzed, replace the input dataset with the merged one
@@ -485,12 +512,6 @@ protected:
     fd.setParameters(fd_param);
     fd.calculateAveragine(use_RNA_averagine);
     auto avg = fd.getAveragine();
-
-    if(target_precursor_mz > 0)
-    {
-      target_precursor_mass = (target_precursor_mz - FLASHDeconvHelperStructs::getChargeMass(target_precursor_charge > 0)) * std::abs(target_precursor_charge);
-      target_precursor_mass -= avg.getAverageMassDelta(target_precursor_mass);
-    }
 
     if (report_dummy)
     {
@@ -559,6 +580,13 @@ protected:
       {
         continue;
       }
+
+      if(ms_level > 1 && target_precursor_charge != 0 && it->getPrecursors().size() == 0)
+      {
+        OPENMS_LOG_INFO << "Target precursor charge is set but no precursor m/z is found in MS2 spectra. Specify target precursor m/z with -target_precursor_mz option" << std::endl;
+        return EXTERNAL_PROGRAM_ERROR;
+      }
+
       spec_cntr[ms_level - 1]++;
       auto deconv_begin = clock();
       auto deconv_t_start = chrono::high_resolution_clock::now();
@@ -577,10 +605,12 @@ protected:
       {
         continue;
       }
-      if(target_precursor_mass > 0)
+
+      if(target_precursor_charge != 0)
       {
         auto precursor = it->getPrecursors()[0];
-        precursor.setCharge(target_precursor_charge);
+        target_precursor_mass = (precursor.getMZ() - FLASHDeconvHelperStructs::getChargeMass(target_precursor_charge > 0)) * std::abs(target_precursor_charge);
+        //precursor.setCharge(target_precursor_charge);
         PeakGroup precursorPeakGroup(1, std::abs(target_precursor_charge), target_precursor_charge > 0);
         precursorPeakGroup.push_back(FLASHDeconvHelperStructs::LogMzPeak());
         precursorPeakGroup.setMonoisotopicMass(target_precursor_mass);

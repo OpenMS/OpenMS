@@ -227,6 +227,8 @@ namespace OpenMS
     boost::dynamic_bitset<> mass_bins_;
     /// mz_bins_ stores the binned log mz peaks
     boost::dynamic_bitset<> mz_bins_;
+    /// mz_bin to peak index mz_bin_peak_index_[mz_bin] = peak index
+    //std::vector<int> mz_bin_peak_index_;
 
     /// This stores the "universal pattern"
     std::vector<double> filter_;
@@ -319,7 +321,7 @@ namespace OpenMS
     void removeChargeErrorPeakGroups_(DeconvolvedSpectrum& dspec);
 
     /// filter out overlapping masses
-    static void removeOverlappingPeakGroups_(DeconvolvedSpectrum& dspec);
+    static void removeOverlappingPeakGroups_(DeconvolvedSpectrum& dspec, double tol);
 
     /**
     @brief register the precursor peak as well as the precursor peak group (or mass) if possible for MSn (n>1) spectrum.
