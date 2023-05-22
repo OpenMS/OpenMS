@@ -82,7 +82,7 @@ namespace OpenMS
     return (int)(mass * 0.999497 + .5);
   }
 
-  void FLASHDeconvAlgorithm::getMZsToExclude(const DeconvolvedSpectrum& dspec, std::unordered_set<double>& excluded_mzs)
+  void FLASHDeconvAlgorithm::addMZsToExcludsionList(const DeconvolvedSpectrum& dspec, std::unordered_set<double>& excluded_mzs)
   {
     for (auto& pg : dspec)
     {
@@ -131,7 +131,7 @@ namespace OpenMS
     }
     if (decoy_flag_ == PeakGroup::noise_dummy) // noise decoy
     {
-      getMZsToExclude(targetFD_->deconvolved_spectrum_, excluded_peak_mzs_);
+      addMZsToExcludsionList(targetFD_->deconvolved_spectrum_, excluded_peak_mzs_);
     }
 
     ms_level_ = spec.getMSLevel();

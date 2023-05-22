@@ -606,7 +606,7 @@ protected:
         continue;
       }
 
-      if(target_precursor_charge != 0)
+      if(ms_level > 1  && target_precursor_charge != 0)
       {
         auto precursor = it->getPrecursors()[0];
         target_precursor_mass = (precursor.getMZ() - FLASHDeconvHelperStructs::getChargeMass(target_precursor_charge > 0)) * std::abs(target_precursor_charge);

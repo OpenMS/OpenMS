@@ -54,7 +54,7 @@ namespace OpenMS
     typedef FLASHDeconvHelperStructs::PrecalculatedAveragine PrecalculatedAveragine;
   public:
 
-    /// dummy index. This index specifies if a PeakGroup is a target, charge dummy, noise dummy, or isotope dummy.
+    /// dummy index. This index specifies if a PeakGroup is a target (0), charge dummy (1), noise dummy (2), or isotope dummy (3).
     enum DummyIndex
     {
       target = 0,
@@ -223,10 +223,17 @@ namespace OpenMS
     /// for this PeakGroup, specify the decoy flag.
     void setDummyIndex(PeakGroup::DummyIndex index);
 
-    /// get calculated qvalue
-    float getQvalue(PeakGroup::DummyIndex flag = PeakGroup::DummyIndex::target) const;
+    /**
+     * get calculated qvalue
+     * @param  dummy_index  This index specifies if a PeakGroup is a target (0), charge dummy (1), noise dummy (2), or isotope dummy (3)
+     * @return Q value of the peakGroup
+     */
+    float getQvalue(PeakGroup::DummyIndex dummy_index = PeakGroup::DummyIndex::target) const;
 
-    /// set qvalue.
+    /**
+     * set peakGroup qvalue
+     * @param  dummy_index  This index specifies if a PeakGroup is a target (0), charge dummy (1), noise dummy (2), or isotope dummy (3)
+     */
     void setQvalue(float q, PeakGroup::DummyIndex flag);
 
     /// set distance between consecutive isotopes

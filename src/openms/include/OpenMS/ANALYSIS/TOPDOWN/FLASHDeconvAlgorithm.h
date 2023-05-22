@@ -140,25 +140,28 @@ namespace OpenMS
          @param avg precalculated averagine
          @param window_width isotope offset value range. If -1, set automatically.
          @param allowed_iso_error_for_second_best_cos allowed isotope error to calculate the second best cos. If decoyFlag is not PeakGroup::DummyIndex::target, the second best cosine and its corresponding offset will be output
-         @param decoyFlag if this is not PeakGroup::DummyIndex::target, the second best cosine and its corresponding offset will be output.
+         @param dummy_index  This index specifies if a PeakGroup is a target (0), charge dummy (1), noise dummy (2), or isotope dummy (3)
          @return calculated cosine similar score
       */
      static float getIsotopeCosineAndDetermineIsotopeIndex(double mono_mass,
                                                            const std::vector<float>& per_isotope_intensities,
                                                            int& offset,
                                                            const PrecalculatedAveragine& avg,
-                                                           int window_width = -1, int allowed_iso_error_for_second_best_cos = 0, PeakGroup::DummyIndex decoyFlag = PeakGroup::DummyIndex::target);
+                                                           int window_width = -1, int allowed_iso_error_for_second_best_cos = 0, PeakGroup::DummyIndex dummy_index = PeakGroup::DummyIndex::target);
 
-     static void getMZsToExclude(const DeconvolvedSpectrum& dspec, std::unordered_set<double>& excluded_mzs);
+     /**
+      * add m/zs in input DeconvolvedSpectrum into exclusion list. The exclusion list is used to generate noise dummy masses.
+      * @param dspec input DeconvolvedSpectrum
+      * @param excluded_mzs mz exclusion list to be updated
+      */
+     static void addMZsToExcludsionList(const DeconvolvedSpectrum& dspec, std::unordered_set<double>& excluded_mzs);
 
-
-
-    static float getAccurateIsotopeCosine(PeakGroup& pg, const PrecalculatedAveragine& avg, double tol, int bin_factor,
-                                          double iso_distance = Constants::ISOTOPE_MASSDIFF_55K_U);
-
-
-    /// set decoy_flag_
-    void setDummyIndex(PeakGroup::DummyIndex flag, FLASHDeconvAlgorithm& targetFD);
+    /**
+     *  set dummy index for the FLASHDeconvAlgorithm run. All masses from the target FLASHDeconvAlgorithm run will have the dummy index.
+     * @param dummy_index  This index specifies if a PeakGroup is a target (0), charge dummy (1), noise dummy (2), or isotope dummy (3)
+     * @param targetFD targe FLASHDeconvAlgorithm
+     */
+    void setDummyIndex(PeakGroup::DummyIndex dummy_index, FLASHDeconvAlgorithm& targetFD);
 
   protected:
     void updateMembers_() override;
@@ -256,7 +259,7 @@ namespace OpenMS
     /** @brief static function that converts bin to value
         @param bin bin number
         @param min_value minimum value (corresponding to bin number = 0)
-        @param bin_mul_factor bin multiplication factor (log mz * bin_mul_factors_ = bin number)
+        @param bin_mul_factor bin multiplication factor: bin_value = (min_value + bin_number/ bin_mul_factors_)
         @return value corresponding to bin
      */
     static double getBinValue_(Size bin, double min_value, double bin_mul_factor);
@@ -264,12 +267,12 @@ namespace OpenMS
     /** @brief static function that converts value to bin
         @param value value
         @param min_value minimum value (corresponding to bin number = 0)
-        @param bin_mul_factor bin multiplication factor (log mz * bin_mul_factors_ = bin number)
+        @param bin_mul_factor bin multiplication factor: bin_number = (bin_value * bin_mul_factors_ - min_value)
         @return bin corresponding to value
      */
     static Size getBinNumber_(double value, double min_value, double bin_mul_factor);
 
-    ///generate log mz peaks from the input spectrum
+    /// generate log mz peaks from the input spectrum
     void updateLogMzPeaks_();
 
     /** @brief generate mz bins and intensity per mz bin from log mz peaks
@@ -279,13 +282,13 @@ namespace OpenMS
     void updateMzBins_(Size bin_number, std::vector<float>& mz_bin_intensities);
 
 
-    ///get mass value for input mass bin
+    /// get mass value for input mass bin
     double getMassFromMassBin_(Size mass_bin, double bin_mul_factor) const;
 
-    ///get mz value for input mz bin
+    /// get mz value for input mz bin
     double getMzFromMzBin_(Size mass_bin, double bin_mul_factor) const;
 
-    ///Generate peak groups from the input spectrum
+    /// Generate peak groups from the input spectrum
     void generatePeakGroupsFromSpectrum_();
 
     /** @brief Update mass_bins_. It select candidate mass bins using the universal pattern, eliminate possible harmonic masses. This function does not perform deisotoping

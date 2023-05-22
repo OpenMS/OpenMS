@@ -83,7 +83,8 @@ namespace OpenMS
       if (write_detail)
       {
         std::unordered_set<double> excluded_peak_mzs;
-        if(pg.getDummyIndex() == PeakGroup::DummyIndex::noise_dummy) FLASHDeconvAlgorithm::getMZsToExclude(target_spec, excluded_peak_mzs);
+        if(pg.getDummyIndex() == PeakGroup::DummyIndex::noise_dummy)
+          FLASHDeconvAlgorithm::addMZsToExcludsionList(target_spec, excluded_peak_mzs);
         auto noisy_peaks = pg.recruitAllPeaksInSpectrum(dspec.getOriginalSpectrum(), tol * 1e-6, avg, pg.getMonoMass(), excluded_peak_mzs);
         std::sort(noisy_peaks.begin(), noisy_peaks.end());
         fs << std::fixed << std::setprecision(2);
