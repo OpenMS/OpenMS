@@ -82,7 +82,7 @@ namespace OpenMS
     ~FLASHDeconvAlgorithm() = default;
 
     /**
-      @brief main deconvolution function that generates the deconvolved target and decoy spectrum based on the original spectrum.
+      @brief main deconvolution function that generates the deconvolved target and dummy spectrum based on the original spectrum.
       @param spec the original spectrum
       @param survey_scans the survey scans to assign precursor mass to the deconvolved spectrum.
       @param scan_number scan number from input spectrum.
@@ -139,15 +139,15 @@ namespace OpenMS
          @param offset output offset between input monoisotopic mono_mass and determined monoisotopic mono_mass
          @param avg precalculated averagine
          @param window_width isotope offset value range. If -1, set automatically.
-         @param allowed_iso_error_for_second_best_cos allowed isotope error to calculate the second best cos. If decoyFlag is not PeakGroup::DummyIndex::target, the second best cosine and its corresponding offset will be output
-         @param dummy_index  This index specifies if a PeakGroup is a target (0), charge dummy (1), noise dummy (2), or isotope dummy (3)
+         @param allowed_iso_error_for_second_best_cos allowed isotope error to calculate the second best cos. If target_dummy_type is not PeakGroup::TargetDummyType::target, the second best cosine and its corresponding offset will be output
+         @param target_dummy_type  This target_dummy_type specifies if a PeakGroup is a target (0), charge dummy (1), noise dummy (2), or isotope dummy (3)
          @return calculated cosine similar score
       */
      static float getIsotopeCosineAndDetermineIsotopeIndex(double mono_mass,
                                                            const std::vector<float>& per_isotope_intensities,
                                                            int& offset,
                                                            const PrecalculatedAveragine& avg,
-                                                           int window_width = -1, int allowed_iso_error_for_second_best_cos = 0, PeakGroup::DummyIndex dummy_index = PeakGroup::DummyIndex::target);
+                                                           int window_width = -1, int allowed_iso_error_for_second_best_cos = 0, PeakGroup::TargetDummyType target_dummy_type = PeakGroup::TargetDummyType::target);
 
      /**
       * add m/zs in input DeconvolvedSpectrum into exclusion list. The exclusion list is used to generate noise dummy masses.
@@ -157,11 +157,11 @@ namespace OpenMS
      static void addMZsToExcludsionList(const DeconvolvedSpectrum& dspec, std::unordered_set<double>& excluded_mzs);
 
     /**
-     *  set dummy index for the FLASHDeconvAlgorithm run. All masses from the target FLASHDeconvAlgorithm run will have the dummy index.
-     * @param dummy_index  This index specifies if a PeakGroup is a target (0), charge dummy (1), noise dummy (2), or isotope dummy (3)
-     * @param targetFD targe FLASHDeconvAlgorithm
+     *  set target dummy type for the FLASHDeconvAlgorithm run. All masses from the target FLASHDeconvAlgorithm run will have the target_dummy_type_.
+     * @param target_dummy_type  This target_dummy_type_ specifies if a PeakGroup is a target (0), charge dummy (1), noise dummy (2), or isotope dummy (3)
+     * @param targetFD target FLASHDeconvAlgorithm
      */
-    void setDummyIndex(PeakGroup::DummyIndex dummy_index, FLASHDeconvAlgorithm& targetFD);
+    void setTargetDummyType(PeakGroup::TargetDummyType target_dummy_type, FLASHDeconvAlgorithm& targetFD);
 
   protected:
     void updateMembers_() override;
@@ -204,8 +204,8 @@ namespace OpenMS
 
     FLASHDeconvAlgorithm* targetFD_;
 
-    /// PeakGroup::DummyIndex values
-    PeakGroup::DummyIndex decoy_flag_ = PeakGroup::DummyIndex::target;
+    /// PeakGroup::TargetDummyType values
+    PeakGroup::TargetDummyType target_dummy_type_ = PeakGroup::TargetDummyType::target;
 
     /// precalculated averagine distributions for fast averagine generation
     FLASHDeconvHelperStructs::PrecalculatedAveragine avg_;
@@ -217,9 +217,9 @@ namespace OpenMS
     /// mass bins that are excluded for FLASHIda global targeting mode
     std::vector<double> excluded_masses_;
 
-    /// mass bins that are previsouly deconvolved and excluded for decoy mass generation
-    boost::dynamic_bitset<> previously_deconved_mass_bins_for_decoy;
-    std::vector<double> previously_deconved_mono_masses_for_decoy;
+    /// mass bins that are previsouly deconvolved and excluded for dummy mass generation
+    boost::dynamic_bitset<> previously_deconved_mass_bins_for_dummy_;
+    std::vector<double> previously_deconved_mono_masses_for_dummy_;
     std::unordered_set<double> excluded_peak_mzs_;
 
     /// Stores log mz peaks

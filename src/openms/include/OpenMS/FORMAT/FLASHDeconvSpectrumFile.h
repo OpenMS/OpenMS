@@ -72,7 +72,7 @@ namespace OpenMS
           @param write_detail if this is set, more detailed information on each mass will be written in the output file.
           @param dummy if set true, dummy and qvalue information will be written.
           Default MS1 headers are:
-            FileName, ScanNum, DummyIndex, RetentionTime, MassCountInSpec, AverageMass, MonoisotopicMass,
+            FileName, ScanNum, TargetDummyType, RetentionTime, MassCountInSpec, AverageMass, MonoisotopicMass,
             SumIntensity, MinCharge, MaxCharge,
             PeakCount, IsotopeCosine, ChargeScore, MassSNR, ChargeSNR, RepresentativeCharge, RepresentativeMzStart, RepresentativeMzEnd, QScore, PerChargeIntensity, PerIsotopeIntensity
 

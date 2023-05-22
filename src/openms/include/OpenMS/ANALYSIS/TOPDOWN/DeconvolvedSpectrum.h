@@ -141,7 +141,7 @@ namespace OpenMS
      * @param q Q value
      * @param dummy_index  This index specifies if a PeakGroup is a target (0), charge dummy (1), noise dummy (2), or isotope dummy (3)
      */
-    void setPrecursorQvalue(float q, PeakGroup::DummyIndex dummy_index);
+    void setPrecursorQvalue(float q, PeakGroup::TargetDummyType dummy_index);
 
     /// original spectrum setter
     void setOriginalSpectrum(const MSSpectrum& spec);

@@ -380,7 +380,7 @@ END_SECTION
 
 /// TODOs
 /// - updateIsotopeCosineAndQScore, recruitAllPeaksInSpectrum, isSignalMZ, setTargeted, getIsotopeIntensities
-/// - isTargeted, getDummyIndex, setDummyIndex, getQvalue, setQvalue, getQvalueWithChargeDecoyOnly, setQvalueWithChargeDecoyOnly
+/// - isTargeted, getTargetDummyType, setTargetDummyType, getQvalue, setQvalue, getQvalueWithChargeDecoyOnly, setQvalueWithChargeDecoyOnly
 
 
 /////////////////////////////////////////////////////////////

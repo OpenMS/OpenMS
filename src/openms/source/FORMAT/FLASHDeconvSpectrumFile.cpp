@@ -75,7 +75,7 @@ namespace OpenMS
       fs << index++ << "\t" << file_name << "\t" << pg.getScanNumber() << "\t";
       if (dummy)
       {
-        fs << pg.getDummyIndex() << "\t";
+        fs << pg.getTargetDummyType() << "\t";
       }
       fs << std::to_string(dspec.getOriginalSpectrum().getRT()) << "\t" << dspec.size() << "\t" << std::to_string(avg_mass) << "\t" << std::to_string(mono_mass) << "\t" << intensity << "\t"
          << min_charge << "\t" << max_charge << "\t" << pg.size() << "\t";
@@ -83,7 +83,7 @@ namespace OpenMS
       if (write_detail)
       {
         std::unordered_set<double> excluded_peak_mzs;
-        if(pg.getDummyIndex() == PeakGroup::DummyIndex::noise_dummy)
+        if(pg.getTargetDummyType() == PeakGroup::TargetDummyType::noise_dummy)
           FLASHDeconvAlgorithm::addMZsToExcludsionList(target_spec, excluded_peak_mzs);
         auto noisy_peaks = pg.recruitAllPeaksInSpectrum(dspec.getOriginalSpectrum(), tol * 1e-6, avg, pg.getMonoMass(), excluded_peak_mzs);
         std::sort(noisy_peaks.begin(), noisy_peaks.end());
@@ -185,8 +185,8 @@ namespace OpenMS
           fs << dspec.getPrecursorPeakGroup().getChargeSNR(dspec.getPrecursor().getCharge()) << "\t" << std::to_string(dspec.getPrecursorPeakGroup().getMonoMass()) << "\t"
              << dspec.getPrecursorPeakGroup().getQScore() << "\t";
           if (dummy)
-            fs << dspec.getPrecursorPeakGroup().getQvalue() << "\t" << dspec.getPrecursorPeakGroup().getQvalue(PeakGroup::DummyIndex::isotope_dummy) << "\t"
-               << dspec.getPrecursorPeakGroup().getQvalue(PeakGroup::DummyIndex::noise_dummy) << "\t" << dspec.getPrecursorPeakGroup().getQvalue(PeakGroup::DummyIndex::charge_dummy) << "\t";
+            fs << dspec.getPrecursorPeakGroup().getQvalue() << "\t" << dspec.getPrecursorPeakGroup().getQvalue(PeakGroup::TargetDummyType::isotope_dummy) << "\t"
+               << dspec.getPrecursorPeakGroup().getQvalue(PeakGroup::TargetDummyType::noise_dummy) << "\t" << dspec.getPrecursorPeakGroup().getQvalue(PeakGroup::TargetDummyType::charge_dummy) << "\t";
         }
       }
       fs << pg.getIsotopeCosine() << "\t" << pg.getChargeIsotopeCosine(pg.getRepAbsCharge()) << "\t" << pg.getChargeScore() << "\t";
@@ -197,8 +197,8 @@ namespace OpenMS
 
       if (dummy)
       {
-        fs << "\t" << pg.getQvalue() << "\t" << pg.getQvalue(PeakGroup::DummyIndex::isotope_dummy) << "\t"
-           << pg.getQvalue(PeakGroup::DummyIndex::noise_dummy) << "\t" << pg.getQvalue(PeakGroup::DummyIndex::charge_dummy);
+        fs << "\t" << pg.getQvalue() << "\t" << pg.getQvalue(PeakGroup::TargetDummyType::isotope_dummy) << "\t"
+           << pg.getQvalue(PeakGroup::TargetDummyType::noise_dummy) << "\t" << pg.getQvalue(PeakGroup::TargetDummyType::charge_dummy);
       }
 
       if (write_detail)
@@ -239,7 +239,7 @@ namespace OpenMS
         fs << "Index\tFileName\tScanNum\t";
         if (dummy)
         {
-          fs << "DummyIndex\t";
+          fs << "TargetDummyType\t";
         }
         fs << "RetentionTime\tMassCountInSpec\tAverageMass\tMonoisotopicMass\t"
               "SumIntensity\tMinCharge\tMaxCharge\t"
@@ -257,7 +257,7 @@ namespace OpenMS
         fs << "Index\tFileName\tScanNum\t";
         if (dummy)
         {
-          fs << "DummyIndex\t";
+          fs << "TargetDummyType\t";
         }
         fs << "RetentionTime\tMassCountInSpec\tAverageMass\tMonoisotopicMass\t"
               "SumIntensity\tMinCharge\tMaxCharge\t"
@@ -283,7 +283,7 @@ namespace OpenMS
         fs << "Index\tFileName\tScanNum\t";
         if (dummy)
         {
-          fs << "DummyIndex\t";
+          fs << "TargetDummyType\t";
         }
         fs << "RetentionTime\tMassCountInSpec\tAverageMass\tMonoisotopicMass\t"
               "SumIntensity\tMinCharge\tMaxCharge\t"
@@ -300,7 +300,7 @@ namespace OpenMS
         fs << "Index\tFileName\tScanNum\t";
         if (dummy)
         {
-          fs << "DummyIndex\t";
+          fs << "TargetDummyType\t";
         }
         fs << "RetentionTime\tMassCountInSpec\tAverageMass\tMonoisotopicMass\t"
               "SumIntensity\tMinCharge\tMaxCharge\t"

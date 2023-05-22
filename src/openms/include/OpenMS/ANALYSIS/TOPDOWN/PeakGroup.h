@@ -54,8 +54,8 @@ namespace OpenMS
     typedef FLASHDeconvHelperStructs::PrecalculatedAveragine PrecalculatedAveragine;
   public:
 
-    /// dummy index. This index specifies if a PeakGroup is a target (0), charge dummy (1), noise dummy (2), or isotope dummy (3).
-    enum DummyIndex
+    /// target dummy type of PeakGroup. This specifies if a PeakGroup is a target (0), charge dummy (1), noise dummy (2), or isotope dummy (3).
+    enum TargetDummyType
     {
       target = 0,
       charge_dummy,
@@ -113,7 +113,7 @@ namespace OpenMS
      * @param tol mass tolerance
      * @param avg precalculated averagine
      * @param mono_mass monoisotopic mass
-     * @param excluded_peak_mzs mzs that will be included - only for decoy generation
+     * @param excluded_peak_mzs mzs that will be included - only for dummy generation
      * @param charge_offset charge offset from peaks to recruited peaks
      * @param charge_multiple charge multiplication factor for recruited peaks
      * @param mz_off mz offset for recruited peaks
@@ -217,24 +217,24 @@ namespace OpenMS
     /// get if it is targeted
     bool isTargeted() const;
 
-    /// get the decoy flag of this
-    PeakGroup::DummyIndex getDummyIndex() const;
+    /// get the target dummy type of this
+    PeakGroup::TargetDummyType getTargetDummyType() const;
 
-    /// for this PeakGroup, specify the decoy flag.
-    void setDummyIndex(PeakGroup::DummyIndex index);
+    /// for this PeakGroup, specify the target dummy type.
+    void setTargetDummyType(PeakGroup::TargetDummyType index);
 
     /**
-     * get calculated qvalue
-     * @param  dummy_index  This index specifies if a PeakGroup is a target (0), charge dummy (1), noise dummy (2), or isotope dummy (3)
+     * Get q values for different target_dummy_type. For charge, noise, isotope dummy types, q values corresponding to the type will be returned. For target (default), the final q value is calculated by summing the q values of all dummy types and returned.
+     * @param  target_dummy_type  This target_dummy_type_ specifies if a PeakGroup is a target (0), charge dummy (1), noise dummy (2), or isotope dummy (3)
      * @return Q value of the peakGroup
      */
-    float getQvalue(PeakGroup::DummyIndex dummy_index = PeakGroup::DummyIndex::target) const;
+    float getQvalue(PeakGroup::TargetDummyType target_dummy_type = PeakGroup::TargetDummyType::target) const;
 
     /**
-     * set peakGroup qvalue
-     * @param  dummy_index  This index specifies if a PeakGroup is a target (0), charge dummy (1), noise dummy (2), or isotope dummy (3)
+     * set peakGroup q value for different TargetDummyType. Q values are stored per TargetDummyType and later used for final q value calculation.
+     * @param  target_dummy_type  This target_dummy_type_ specifies if a PeakGroup is a target (0), charge dummy (1), noise dummy (2), or isotope dummy (3)
      */
-    void setQvalue(float q, PeakGroup::DummyIndex flag);
+    void setQvalue(float q, PeakGroup::TargetDummyType target_dummy_type);
 
     /// set distance between consecutive isotopes
     void setIsotopeDaDistance(double d);
@@ -319,10 +319,10 @@ namespace OpenMS
     /// information on the deconvolved mass
     double monoisotopic_mass_ = -1.0;
     float intensity_;// total intensity
-    /// index to specify if this peak_group is a target (0), an isotope decoy (1), a noise (2), or a charge decoy (3)
-    PeakGroup::DummyIndex decoy_flag_ = target;
+    /// index to specify if this peak_group is a target (0), an isotope dummy (1), a noise (2), or a charge dummy (3)
+    PeakGroup::TargetDummyType target_dummy_type_ = target;
 
-    /// distance between consecutive isotopes. Can be different for decoys
+    /// distance between consecutive isotopes. Can be different for dummys
     double iso_da_distance_ = Constants::ISOTOPE_MASSDIFF_55K_U;
     /// scoring variables
     int max_qscore_abs_charge_ = -1;
@@ -332,7 +332,7 @@ namespace OpenMS
     float avg_ppm_error_ = 0;
     float avg_da_error_ = 0;
     float snr_ = 0;
-    /// qvalues with different decoy flags
-    std::map<PeakGroup::DummyIndex, float> qvalue_;
+    /// q values with different dummy types
+    std::map<PeakGroup::TargetDummyType, float> qvalue_;
   };
 }
