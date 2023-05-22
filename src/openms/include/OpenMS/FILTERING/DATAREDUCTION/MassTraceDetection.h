@@ -34,6 +34,7 @@
 
 #pragma once
 
+#include <boost/dynamic_bitset.hpp>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 #include <OpenMS/KERNEL/MassTrace.h>
@@ -130,12 +131,16 @@ namespace OpenMS
           /// Get the next free apex index which is not in the neighbourhood of a currently processing apex (in another thread)
           /// (Internally adds the apex's m/z to a blacklist which prevents other threads from obtaining an apex nearby)
           /// This function blocks until the next free apex is not conflicting anymore - i.e. another thread called setApexAsProcessed()
-          Apex getNextFreeApex();
+          Size getNextFreeApex();
           
           /// If an apex was successfully processed, call this function to remove the apex from the blacklist
           void setApexAsProcessed(int thread_num);
 
-          void setApexAsProcessed(int thread_num, const std::vector<std::pair<Size, Size> >& gathered_idx);
+          void setApexAsProcessed(const int thread_num, const std::vector<std::pair<Size, Size> >& gathered_idx);
+
+          bool checkApex(const Apex a) const;
+
+          bool checkVisited(const Size scan_idx, const Size peak_idx) const;
 
           ///< vector of size 'nr_of_threads' where each position corresponds to a thread id
           std::vector<std::pair<RangeMZ,RangeRT>> lock_list_;

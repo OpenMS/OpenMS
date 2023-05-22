@@ -100,14 +100,41 @@ namespace OpenMS
       current_Apex_(0)
     {
       lock_list_.resize(nr_threads);
-      boost::dynamic_bitset<> peak_visited(total_peak_count);
+      boost::dynamic_bitset<> peak_visited_(total_peak_count);
     }
 
-    MassTraceDetection::Apex MassTraceDetection::NextIndex::getNextFreeApex()
+    bool MassTraceDetection::NextIndex::checkApex(const MassTraceDetection::Apex a) const
     {
-      for (Size i = current_Apex_; current_Apex_ < data_.size(); ++i)
+      for (const std::pair<RangeMZ, RangeRT>& i : lock_list_)
       {
-        
+        if (i.first.containsMZ(a.getMZ()) && i.second.containsRT(a.getRT()))
+        {
+          return true;
+        }
+      }
+      return false;
+    }
+
+    bool MassTraceDetection::NextIndex::checkVisited(const Size scan_idx, const Size peak_idx) const
+    {
+      return peak_visited_[spec_offsets_[scan_idx] +  peak_idx];
+    }
+
+    Size MassTraceDetection::NextIndex::getNextFreeApex()
+    {
+      try
+      {
+        Size i;
+        while((*this).checkApex(data_[i]) &&
+              (*this).checkVisited(data_[i].scan_idx_, data_[i].peak_idx_))
+        {
+          ++i;
+        }
+        return i;
+      }
+      catch(...)
+      {
+        return (data_.size() + 1);
       }
     }
 
@@ -289,7 +316,7 @@ namespace OpenMS
           // --> add this peak as possible chromatographic apex
           if (it[peak_idx].getIntensity() > chrom_peak_snr_ * noise_threshold_int_)
           {
-            chrom_apices.emplace_back(&work_exp, spectra_count, indices_passing.size());
+            chrom_apices.emplace_back(work_exp, spectra_count, indices_passing.size());
           }
           indices_passing.push_back(peak_idx);
           ++total_peak_count;
