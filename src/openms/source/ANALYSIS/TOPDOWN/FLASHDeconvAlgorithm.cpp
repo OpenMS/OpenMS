@@ -495,7 +495,7 @@ namespace OpenMS
                     }
                   }
                 }
-                if(harmonic_cntr > 1)
+                if(harmonic_cntr > 0)
                 {
                   pass_first_check = false;
                 }
@@ -536,10 +536,6 @@ namespace OpenMS
             {
               for (int t=-1;t<2;t++)
               {
-                if(abs_charge > low_charge_ && t != 0)
-                {
-                  continue;
-                }
                 long hmz_bin_index = mass_bin_index - harmonic_bin_offset_matrix_.getValue(k, j) + t;
                 std::vector<int> offsets;
 
@@ -581,7 +577,7 @@ namespace OpenMS
         }
         else if (abs_charge <= low_charge_) // if, for low charge, no isotope peak exists or is harmonic
         {
-          mass_intensities[mass_bin_index] -= intensity + max_h_intensity;
+          mass_intensities[mass_bin_index] -= intensity;// + max_h_intensity;
         }
         prev_intensity = intensity;
         prev_charge = j;
@@ -691,13 +687,16 @@ namespace OpenMS
                   for (int f : {-1, 1})
                   {
                     double hmass = log_mass - log(h) * f;
-                    Size hmass_index = getBinNumber_(hmass, mass_bin_min_value_, bin_mul_factor);
-                    if (hmass_index > 0 && hmass_index < mass_bins_.size() - 1)
+                    for (int iso_off : { -1, 0, 1})
                     {
-                      if (mass_intensities[hmass_index] >= t)
+                      Size hmass_index = getBinNumber_(hmass, mass_bin_min_value_, bin_mul_factor) + iso_off;
+                      if (hmass_index > 0 && hmass_index < mass_bins_.size() - 1)
                       {
-                        artifact = true;
-                        break;
+                        if (mass_intensities[hmass_index] >= t)
+                        {
+                          artifact = true;
+                          break;
+                        }
                       }
                     }
                   }
@@ -1051,7 +1050,7 @@ namespace OpenMS
         }
       }
 
-      if (total_signal_intensity > *std::max_element(total_harmonic_intensity.begin(), total_harmonic_intensity.end()) * 2 )
+      if (total_signal_intensity > *std::max_element(total_harmonic_intensity.begin(), total_harmonic_intensity.end()) * 2.0) //
       {
         if(debug)
         {
@@ -1716,6 +1715,10 @@ namespace OpenMS
           {
             continue;
           }
+          if(dspec[i].getChargeSNR(repz1) > dspec[j].getChargeSNR(repz2) * 4.0)// if ith is way better than jth, jth is overlapped not ith
+          {
+            continue;
+          }
           is_overlap = true;
           break;
         }
@@ -1725,7 +1728,7 @@ namespace OpenMS
 
     for (Size i = 0; i < dspec.size(); i++)
     {
-      if (!dspec[i].isTargeted() && overlap_intensity[i] >= dspec[i].getIntensity() * .5)
+      if (!dspec[i].isTargeted() && overlap_intensity[i] >= dspec[i].getIntensity() * .5) // the smaller, the harsher
       {
         if(debug)
         {
