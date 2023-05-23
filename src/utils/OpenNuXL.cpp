@@ -2832,7 +2832,7 @@ static void scoreXLIons_(
 
     for (auto & spec : exp)
     {
-      if (spec.getMSLevel() != 2) continue;
+      if (spec.getMSLevel() != 2 || spec.empty()) continue;
       // faster
       vector<double> mzs;
       vector<double> charges;
@@ -3143,6 +3143,9 @@ static void scoreXLIons_(
 
     filterPeakInterference_(exp, purities);
 
+    // remove empty spectra as they can cause trouble downstream
+    auto& sp = exp.getSpectra();
+    sp.erase(std::remove_if(sp.begin(), sp.end(), [](const MSSpectrum& s) { return s.empty(); }), exp.end());
 /*
     SqrtMower sqrt_mower_filter;
     sqrt_mower_filter.filterPeakMap(exp);
@@ -3178,6 +3181,7 @@ static void scoreXLIons_(
       { 
         // set Unknown charge to z=1. Otherwise we get a lot of spurious matches 
         // to highly charged fragments in the low m/z region
+        if (spec.empty()) continue; // TODO: maybe add empty integerdataarray in deisotoping? seems to be missing here
         DataArrays::IntegerDataArray& ia = spec.getIntegerDataArrays()[NuXLConstants::IA_CHARGE_INDEX]; // charge array
         for (int & z : ia) { if (z == 0) { z = 1; } }
       } 
@@ -5212,6 +5216,7 @@ static void scoreXLIons_(
     f.getOptions() = options;
     f.load(in_mzml, spectra);
     spectra.sortSpectra(true);
+    for (const auto& s : spectra) { if (!s.getIntegerDataArrays().empty()) throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Input spectra must not contain integer data arrays."); } 
 
     // determine IM format (if any)
     auto [IM_format, IM_unit] =  getMS2IMType(spectra);

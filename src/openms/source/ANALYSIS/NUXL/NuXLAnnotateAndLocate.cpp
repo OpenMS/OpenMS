@@ -106,6 +106,8 @@ namespace OpenMS
     vector<PeptideHit::PeakAnnotation>& annotated_immonium_ions
     )
   {
+    if (exp_spectrum.empty()) return {};
+
     const PeakSpectrum::StringDataArray& total_loss_annotations = total_loss_spectrum.getStringDataArrays()[0];
     const PeakSpectrum::IntegerDataArray& total_loss_charges = total_loss_spectrum.getIntegerDataArrays()[NuXLConstants::IA_CHARGE_INDEX];
 
@@ -121,6 +123,12 @@ namespace OpenMS
 
       const String& ion_name = total_loss_annotations[aligned.first];
       const int charge = total_loss_charges[aligned.first];
+
+      if (exp_spectrum.getIntegerDataArrays()[NuXLConstants::IA_CHARGE_INDEX][fragment_index] != charge)
+      {
+        OPENMS_LOG_WARN << "Charges in alignment do not match. Skipping annotation of fragment " << fragment_index << " with ion " << ion_name << " at " << fragment_mz << " m/z." << endl;
+        continue;
+      }
 
       OPENMS_PRECONDITION(exp_spectrum.getIntegerDataArrays()[NuXLConstants::IA_CHARGE_INDEX][fragment_index] == charge, "Charges in alignment must match.");
 

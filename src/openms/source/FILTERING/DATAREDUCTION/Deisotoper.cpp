@@ -71,7 +71,23 @@ void Deisotoper::deisotopeWithAveragineModel(MSSpectrum& spec,
       "Minimum/maximum number of isotopic peaks must be at least 2 (and min_isopeaks <= max_isopeaks).");
   }
 
-  if (spec.empty()) { return; }
+  if (spec.empty()) 
+  { 
+    if (annotate_charge)
+    {
+      // expand to hold one additional integer data array to hold the charge
+      spec.getIntegerDataArrays().resize(spec.getIntegerDataArrays().size() + 1);
+      spec.getIntegerDataArrays().back().setName("charge");
+    }
+    // reserve integer data array to store number of isotopic peaks for each isotopic pattern
+    if (annotate_iso_peak_count)
+    {
+      spec.getIntegerDataArrays().resize(spec.getIntegerDataArrays().size() + 1);
+      spec.getIntegerDataArrays().back().setName("iso_peak_count");
+    }
+
+    return; 
+  }
 
   // remove 0 intensity peaks
   ThresholdMower threshold_mower_filter;
