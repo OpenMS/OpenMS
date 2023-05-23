@@ -1556,7 +1556,7 @@ OPENMS_THREAD_CRITICAL(LOGSTREAM)
           //std::cout << " - descended to: " << node->name << std::endl;
 
           //track changes (leave a node)
-          if (trace_.back().name == last->name && trace_.back().opened) // was empty subnode
+          if (!trace_.empty() && trace_.back().name == last->name && trace_.back().opened) // was empty subnode
           {
             trace_.pop_back();
           }
