@@ -32,6 +32,7 @@
 // $Authors: Ruben Grünberg $
 // --------------------------------------------------------------------------
 
+#include <cstdint>
 #include <fstream>
 #include <iostream>
 #include <limits>
