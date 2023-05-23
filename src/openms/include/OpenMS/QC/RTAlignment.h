@@ -81,7 +81,7 @@ namespace OpenMS
     const String& getName() const override;
     
     /// define the required input file: featureXML before map alignment (=POSTFDRFEAT), trafoXML after map alignment (=TRAFOALIGN)
-    Status requires() const override;
+    Status requirements() const override;
     
   private:
     /// name of the metric

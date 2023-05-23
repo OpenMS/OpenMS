@@ -227,9 +227,9 @@ START_TEST(MissedCleavages, "$Id$")
   END_SECTION
   
 
-  START_SECTION(QCBase::Status requires() const override)
+  START_SECTION(QCBase::Status requirements() const override)
   {
-    TEST_EQUAL(QCBase::Status(QCBase::Requires::POSTFDRFEAT) == mc.requires(), true)
+    TEST_EQUAL(QCBase::Status(QCBase::Requires::POSTFDRFEAT) == mc.requirements(), true)
   }
   END_SECTION
 

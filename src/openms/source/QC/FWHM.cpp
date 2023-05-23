@@ -68,7 +68,7 @@ namespace OpenMS
     return name;
   }
   
-  QCBase::Status FWHM::requires() const
+  QCBase::Status FWHM::requirements() const
   {
     return QCBase::Status() | QCBase::Requires::POSTFDRFEAT;
   }

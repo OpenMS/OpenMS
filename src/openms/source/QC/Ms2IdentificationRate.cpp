@@ -97,7 +97,7 @@ namespace OpenMS
   }
 
 
-  QCBase::Status Ms2IdentificationRate::requires() const
+  QCBase::Status Ms2IdentificationRate::requirements() const
   {
     return QCBase::Status() | QCBase::Requires::RAWMZML | QCBase::Requires::POSTFDRFEAT;
   }

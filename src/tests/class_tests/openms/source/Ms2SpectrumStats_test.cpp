@@ -76,9 +76,9 @@ START_SECTION(const String& getName() const override)
 }
 END_SECTION
 
-START_SECTION(QCBase::Status requires() const override)
+START_SECTION(QCBase::Status requirements() const override)
 {
-  TEST_EQUAL(top.requires() == (QCBase::Status() | QCBase::Requires::RAWMZML | QCBase::Requires::POSTFDRFEAT), true);
+  TEST_EQUAL(top.requirements() == (QCBase::Status() | QCBase::Requires::RAWMZML | QCBase::Requires::POSTFDRFEAT), true);
 }
 END_SECTION
 

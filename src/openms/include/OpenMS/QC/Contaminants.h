@@ -105,7 +105,7 @@ namespace OpenMS
      * @brief Returns the input data requirements of the compute(...) function
      * @return Status for POSTFDRFEAT and CONTAMINANTS
      */
-    Status requires() const override;
+    Status requirements() const override;
     
   private:
     /// name of the metric

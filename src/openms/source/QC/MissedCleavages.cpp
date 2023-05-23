@@ -164,7 +164,7 @@ namespace OpenMS
   }
 
 
-  QCBase::Status MissedCleavages::requires() const
+  QCBase::Status MissedCleavages::requirements() const
   {
     return QCBase::Status() | QCBase::Requires::POSTFDRFEAT;
   }

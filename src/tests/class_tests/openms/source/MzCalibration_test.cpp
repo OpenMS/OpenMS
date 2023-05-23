@@ -59,10 +59,10 @@ START_SECTION(~MzCalibration())
 delete ptr;
 END_SECTION
 
-START_SECTION(QCBase::Status requires() const override)
+START_SECTION(QCBase::Status requirements() const override)
 {
     MzCalibration mzCal;
-    TEST_EQUAL(mzCal.requires() == (QCBase::Status() | QCBase::Requires::POSTFDRFEAT), true);
+    TEST_EQUAL(mzCal.requirements() == (QCBase::Status() | QCBase::Requires::POSTFDRFEAT), true);
 }
 END_SECTION
 

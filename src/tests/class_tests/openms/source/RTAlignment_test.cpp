@@ -69,9 +69,9 @@ START_SECTION(~RTAlignment())
 END_SECTION
 
 RTAlignment rtA;
-START_SECTION(QCBase::Status requires() const override)
+START_SECTION(QCBase::Status requirements() const override)
 {
-  TEST_EQUAL(rtA.requires() == (QCBase::Status() | QCBase::Requires::TRAFOALIGN | QCBase::Requires::POSTFDRFEAT), true);
+  TEST_EQUAL(rtA.requirements() == (QCBase::Status() | QCBase::Requires::TRAFOALIGN | QCBase::Requires::POSTFDRFEAT), true);
 }
 END_SECTION
 

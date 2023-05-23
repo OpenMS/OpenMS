@@ -233,9 +233,9 @@ START_TEST(Contaminants, "$Id$")
   END_SECTION
   
   
-  START_SECTION(Status requires() const override)
+  START_SECTION(Status requirements() const override)
   {
-    TEST_EQUAL(temp.requires() == (QCBase::Status(QCBase::Requires::POSTFDRFEAT) | QCBase::Requires::CONTAMINANTS), true);
+    TEST_EQUAL(temp.requirements() == (QCBase::Status(QCBase::Requires::POSTFDRFEAT) | QCBase::Requires::CONTAMINANTS), true);
   }
   END_SECTION
 END_TEST

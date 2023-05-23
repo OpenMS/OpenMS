@@ -347,7 +347,7 @@ namespace OpenMS
   }
 
 
-  QCBase::Status FragmentMassError::requires() const
+  QCBase::Status FragmentMassError::requirements() const
   {
     return QCBase::Status() | QCBase::Requires::RAWMZML | QCBase::Requires::POSTFDRFEAT;
   }

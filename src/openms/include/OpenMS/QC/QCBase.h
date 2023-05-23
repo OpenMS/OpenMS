@@ -130,7 +130,7 @@ namespace OpenMS
     /**
      *@brief Returns the input data requirements of the compute(...) function
      */
-    virtual Status requires() const = 0;
+    virtual Status requirements() const = 0;
 
 
     /// tests if a metric has the required input files

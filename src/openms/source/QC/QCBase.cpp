@@ -86,13 +86,13 @@ namespace OpenMS
   // gives a warning with the name of the metric that can not be performed
   bool QCBase::isRunnable(const Status& s) const
   {
-    if (s.isSuperSetOf(this->requires()))
+    if (s.isSuperSetOf(this->requirements()))
     {
       return true;
     }
     for (Size i = 0; i < (UInt64)QCBase::Requires::SIZE_OF_REQUIRES; ++i)
     {
-      if (this->requires().isSuperSetOf(QCBase::Requires(i)) && !s.isSuperSetOf(QCBase::Requires(i)) )
+      if (this->requirements().isSuperSetOf(QCBase::Requires(i)) && !s.isSuperSetOf(QCBase::Requires(i)) )
       {
         OPENMS_LOG_WARN << "Note: Metric '" << this->getName() << "' cannot run because input data '" << QCBase::names_of_requires[i] << "' is missing!\n";
       }

@@ -92,7 +92,7 @@ namespace OpenMS
 
     const std::vector<MSChromatogram>& getResults() const ;
 
-    QCBase::Status requires() const override;
+    QCBase::Status requirements() const override;
 
     /// append QC data for given metrics to mzTab's MTD section
     void addMetaDataMetricsToMzTab(MzTabMetaData& meta, std::vector<Result>& tics);

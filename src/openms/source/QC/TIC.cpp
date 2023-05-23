@@ -103,7 +103,7 @@ namespace OpenMS
 
   /// Returns required file input i.e. MzML.
   /// This is encoded as a bit in a Status object.
-  QCBase::Status TIC::requires() const
+  QCBase::Status TIC::requirements() const
   {
     return QCBase::Status(QCBase::Requires::RAWMZML);
   }

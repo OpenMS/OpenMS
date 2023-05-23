@@ -97,7 +97,7 @@ namespace OpenMS
     /// returns the name of the metric
     const String& getName() const override;
     /// define the required input file: featureXML after FDR (=POSTFDRFEAT), MzML-file (MSExperiment) with all MS2-Spectra (=RAWMZML)
-    Status requires() const override;
+    Status requirements() const override;
 
   private:
     /// name of the metric

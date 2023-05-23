@@ -165,7 +165,7 @@ namespace OpenMS
   }
 
   // required input files
-  QCBase::Status Ms2SpectrumStats::requires() const
+  QCBase::Status Ms2SpectrumStats::requirements() const
   {
     return QCBase::Status() | QCBase::Requires::RAWMZML | QCBase::Requires::POSTFDRFEAT;
   }

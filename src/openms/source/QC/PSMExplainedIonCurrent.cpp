@@ -285,7 +285,7 @@ namespace OpenMS
   }
 
 
-  QCBase::Status PSMExplainedIonCurrent::requires() const
+  QCBase::Status PSMExplainedIonCurrent::requirements() const
   {
     return QCBase::Status() | QCBase::Requires::RAWMZML | QCBase::Requires::POSTFDRFEAT;
   }

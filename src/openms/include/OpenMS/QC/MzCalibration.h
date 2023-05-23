@@ -77,7 +77,7 @@ namespace OpenMS
 
       /// define the required input files
       /// only FeatureXML after FDR is ultimately necessary
-      Status requires() const override;
+      Status requirements() const override;
 
       /// Returns the name of the metric.
       const String& getName() const override;

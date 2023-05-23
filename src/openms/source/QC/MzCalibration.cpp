@@ -151,7 +151,7 @@ namespace OpenMS
   }
 
   // required input files
-  QCBase::Status MzCalibration::requires() const
+  QCBase::Status MzCalibration::requirements() const
   {
     return QCBase::Status() | QCBase::Requires::POSTFDRFEAT;
   }

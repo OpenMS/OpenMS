@@ -65,8 +65,8 @@ START_SECTION(const String& getName() const override)
   TEST_EQUAL(tic.getName(), "TIC")
 END_SECTION
 
-START_SECTION(Status requires() const override)
-  TEST_EQUAL((tic.requires() == QCBase::Status(QCBase::Requires::RAWMZML)),true);
+START_SECTION(Status requirements() const override)
+  TEST_EQUAL((tic.requirements() == QCBase::Status(QCBase::Requires::RAWMZML)),true);
 END_SECTION
 
 START_SECTION(void compute(const MSExperiment &exp, float bin_size))

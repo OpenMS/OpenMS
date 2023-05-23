@@ -101,7 +101,7 @@ namespace OpenMS
   }
 
   // required input files
-  QCBase::Status RTAlignment::requires() const
+  QCBase::Status RTAlignment::requirements() const
   {
     return QCBase::Status() | QCBase::Requires::TRAFOALIGN | QCBase::Requires::POSTFDRFEAT;
   }

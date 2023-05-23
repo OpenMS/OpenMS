@@ -286,10 +286,10 @@ START_SECTION(const String& getName() const override)
 END_SECTION
 
 
-START_SECTION(QCBase::Status requires() const override)
+START_SECTION(QCBase::Status requirements() const override)
 {
   QCBase::Status stat = QCBase::Status() | QCBase::Requires::RAWMZML | QCBase::Requires::POSTFDRFEAT;
-  TEST_EQUAL(stat == ms2ir.requires(), true)
+  TEST_EQUAL(stat == ms2ir.requirements(), true)
 }
 END_SECTION
 

@@ -115,7 +115,7 @@ namespace OpenMS
     * @brief Returns the input data requirements of the compute(...) function
     * @return Status for RAWMZML and POSTFDRFEAT
     */
-    QCBase::Status requires() const override;
+    QCBase::Status requirements() const override;
 
   private:
     /// container that stores results

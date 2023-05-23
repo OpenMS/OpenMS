@@ -97,7 +97,7 @@ namespace OpenMS
 
     const String& getName() const override;
 
-    QCBase::Status requires() const override;
+    QCBase::Status requirements() const override;
 
   private:
     const String name_ = "Summary of detected Proteins and Peptides from idXML file";

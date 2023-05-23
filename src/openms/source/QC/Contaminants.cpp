@@ -202,7 +202,7 @@ namespace OpenMS
     pep_hit.setMetaValue("is_contaminant", 1);
   }
 
-  QCBase::Status Contaminants::requires() const
+  QCBase::Status Contaminants::requirements() const
   {
     return (QCBase::Status(QCBase::Requires::POSTFDRFEAT) | QCBase::Requires::CONTAMINANTS);
   }

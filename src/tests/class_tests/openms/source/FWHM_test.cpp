@@ -79,10 +79,10 @@ START_SECTION(void compute(FeatureMap& features))
 }
 END_SECTION
 
-START_SECTION(QCBase::Status requires() const override)
+START_SECTION(QCBase::Status requirements() const override)
 {
   FWHM fw;
-  TEST_EQUAL(fw.requires() == (QCBase::Status() | QCBase::Requires::POSTFDRFEAT), true);
+  TEST_EQUAL(fw.requirements() == (QCBase::Status() | QCBase::Requires::POSTFDRFEAT), true);
 }
 END_SECTION
 

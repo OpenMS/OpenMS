@@ -57,7 +57,7 @@ namespace OpenMS
     return name;
   }
 
-  QCBase::Status PeptideMass::requires() const
+  QCBase::Status PeptideMass::requirements() const
   {
     return QCBase::Status() | QCBase::Requires::POSTFDRFEAT;
   }

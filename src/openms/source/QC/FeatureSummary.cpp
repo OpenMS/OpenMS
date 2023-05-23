@@ -81,7 +81,7 @@ namespace OpenMS
 
   /// Returns required file input i.e. MzML.
   /// This is encoded as a bit in a Status object.
-  QCBase::Status FeatureSummary::requires() const
+  QCBase::Status FeatureSummary::requirements() const
   {
     return QCBase::Status(QCBase::Requires::PREFDRFEAT);
   }
