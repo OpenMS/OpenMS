@@ -258,7 +258,7 @@ namespace OpenMS
       auto target = result.emplace(run_id, vector<ProteinHit>{});
       const unordered_set<String>& accessions = run_to_accessions[run_id];
       struct HasMatchingAccessionUnordered<ProteinHit> acc_filter(accessions);
-      moveMatchingItems(prot.getHits(), std::not1(acc_filter), target.first->second);
+      moveMatchingItems(prot.getHits(), std::not_fn(acc_filter), target.first->second);
     }
     return result;
   }
@@ -377,7 +377,7 @@ namespace OpenMS
         remove_copy_if(hit.getPeptideEvidences().begin(),
                        hit.getPeptideEvidences().end(),
                        back_inserter(evidences),
-                       not1(acc_filter));
+                       std::not_fn(acc_filter));
         hit.setPeptideEvidences(evidences);
       }
 
@@ -418,7 +418,7 @@ namespace OpenMS
             remove_copy_if(hit.getPeptideEvidences().begin(),
                            hit.getPeptideEvidences().end(),
                            back_inserter(evidences),
-                           not1(acc_filter));
+                           std::not_fn(acc_filter));
             hit.setPeptideEvidences(evidences);
           }
 
@@ -461,7 +461,7 @@ namespace OpenMS
         remove_copy_if(hit.getPeptideEvidences().begin(),
                        hit.getPeptideEvidences().end(),
                        back_inserter(evidences),
-                       not1(acc_filter));
+                       std::not_fn(acc_filter));
         hit.setPeptideEvidences(evidences);
       }
 
@@ -529,7 +529,7 @@ namespace OpenMS
     }
 
     hits.erase(
-        std::remove_if(hits.begin(), hits.end(), std::not1(HasMatchingAccessionUnordered<ProteinHit>(valid_accessions))),
+        std::remove_if(hits.begin(), hits.end(), std::not_fn(HasMatchingAccessionUnordered<ProteinHit>(valid_accessions))),
         hits.end()
         );
   }

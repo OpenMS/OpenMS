@@ -48,10 +48,11 @@
 
 #include <algorithm>
 #include <climits>
-#include <vector>
-#include <set>
+#include <functional>
 #include <map>
+#include <set>
 #include <unordered_set>
+#include <vector>
 
 namespace OpenMS
 {
@@ -540,7 +541,7 @@ public:
     template <class Container, class Predicate>
     static void keepMatchingItems(Container& items, const Predicate& pred)
     {
-      items.erase(std::remove_if(items.begin(), items.end(), std::not1(pred)),
+      items.erase(std::remove_if(items.begin(), items.end(), std::not_fn(pred)),
                   items.end());
     }
 
@@ -548,7 +549,7 @@ public:
     template <class Container, class Predicate>
     static void moveMatchingItems(Container& items, const Predicate& pred, Container& target)
     {
-        auto part = std::partition(items.begin(), items.end(), std::not1(pred));
+        auto part = std::partition(items.begin(), items.end(), std::not_fn(pred));
         std::move(part, items.end(), std::back_inserter(target));
         items.erase(part, items.end());
     }
@@ -725,7 +726,7 @@ public:
           remove_copy_if(hit_it->getPeptideEvidences().begin(),
                          hit_it->getPeptideEvidences().end(),
                          back_inserter(evidences),
-                         std::not1(filter));
+                         std::not_fn(filter));
           hit_it->setPeptideEvidences(evidences);
         }
       }
