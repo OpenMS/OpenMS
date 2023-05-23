@@ -58,8 +58,7 @@ namespace OpenMS
         @note This iterator iterates over spectra with same MS level as the MS level of the begin() spectrum in Param! You can explicitly set another MS level as well.
     */
     template <class ValueT, class ReferenceT, class PointerT, class SpectrumIteratorT, class PeakIteratorT>
-    class AreaIterator :
-      public std::iterator<std::forward_iterator_tag, ValueT>
+    class AreaIterator
     {
 public:
       typedef double CoordinateType;
@@ -143,9 +142,11 @@ public:
 
 
 
-      /** @name Typedefs for STL compliance
+      /** @name Typedefs for STL compliance, these replace std::iterator
       */
       //@{
+      /// The iterator's category type
+      typedef std::forward_iterator_tag iterator_category;
       /// The iterator's value type
       typedef ValueT value_type;
       /// The reference type as returned by operator*()

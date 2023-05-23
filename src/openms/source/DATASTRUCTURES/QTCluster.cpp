@@ -47,7 +47,6 @@ using std::vector;
 using std::make_pair;
 using std::min;
 using std::set;
-using std::iterator;
 
 namespace OpenMS
 {

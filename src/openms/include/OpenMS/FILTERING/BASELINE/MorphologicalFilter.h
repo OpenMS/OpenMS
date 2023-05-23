@@ -56,10 +56,10 @@ namespace OpenMS
         iterator concept, it can only do what is needed for MorphologicalFilter.
     */
     template <typename IteratorT>
-    class /* OPENMS_DLLAPI */ IntensityIteratorWrapper :
-      public std::iterator<std::forward_iterator_tag, typename IteratorT::value_type::IntensityType>
+    class /* OPENMS_DLLAPI */ IntensityIteratorWrapper
     {
 public:
+      typedef std::forward_iterator_tag iterator_category;
       typedef typename IteratorT::value_type::IntensityType value_type;
       typedef typename IteratorT::value_type::IntensityType & reference;
       typedef typename IteratorT::value_type::IntensityType * pointer;

@@ -91,14 +91,29 @@ private:
     /**
      * @brief Element iterator for the hash grid.
      */
-    class Iterator :
-      public std::iterator<std::input_iterator_tag, value_type>
+    class Iterator
     {
 private:
       friend class HashGrid;
 
       typedef typename Grid::iterator grid_iterator;
       typedef typename CellContent::iterator cell_iterator;
+
+      /** @name Typedefs for STL compliance, these replace std::iterator
+      */
+      //@{
+      /// The iterator's category type
+      using iterator_category = std::input_iterator_tag;
+      /// The iterator's value type
+      using value_type = HashGrid::value_type;
+      /// The reference type as returned by operator*()
+      using reference = value_type&;
+      /// The pointer type as returned by operator->()
+      using pointer = value_type*;
+      /// The difference type
+      using difference_type = std::ptrdiff_t;
+      //@}
+
 
       Grid & grid_;
       grid_iterator grid_it_;
@@ -169,14 +184,28 @@ public:
     /**
      * @brief Constant element iterator for the hash grid.
      */
-    class ConstIterator :
-      public std::iterator<std::input_iterator_tag, const value_type>
+    class ConstIterator
     {
 private:
       friend class HashGrid;
 
       typedef typename Grid::const_iterator grid_iterator;
       typedef typename CellContent::const_iterator cell_iterator;
+
+      /** @name Typedefs for STL compliance, these replace std::iterator
+      */
+      //@{
+      /// The iterator's category type
+      using iterator_category = std::input_iterator_tag;
+      /// The iterator's value type
+      using value_type = HashGrid::value_type;
+      /// The reference type as returned by operator*()
+      using reference = value_type&;
+      /// The pointer type as returned by operator->()
+      using pointer = value_type*;
+      /// The difference type
+      using difference_type = std::ptrdiff_t;
+      //@}
 
       const Grid & grid_;
       grid_iterator grid_it_;
