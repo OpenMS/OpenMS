@@ -102,7 +102,7 @@ public:
     virtual ~DefaultParamHandler();
 
     /// Assignment operator.
-    virtual DefaultParamHandler& operator=(const DefaultParamHandler& rhs);
+    DefaultParamHandler& operator=(const DefaultParamHandler& rhs);
 
     /// Equality operator
     virtual bool operator==(const DefaultParamHandler& rhs) const;

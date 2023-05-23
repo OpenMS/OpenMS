@@ -80,7 +80,7 @@ public:
     }
 
     /// assignment operator
-    virtual BaseModel & operator=(const BaseModel & source)
+    BaseModel & operator=(const BaseModel & source)
     {
       if (&source == this) return *this;
 

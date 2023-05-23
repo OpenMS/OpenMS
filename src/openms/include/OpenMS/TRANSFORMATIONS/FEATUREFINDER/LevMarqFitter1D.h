@@ -106,7 +106,7 @@ public:
     }
 
     /// assignment operator
-    virtual LevMarqFitter1D & operator=(const LevMarqFitter1D & source)
+    LevMarqFitter1D & operator=(const LevMarqFitter1D & source)
     {
       if (&source == this) return *this;
 

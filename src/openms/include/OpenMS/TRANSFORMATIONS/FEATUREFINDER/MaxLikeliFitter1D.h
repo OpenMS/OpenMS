@@ -67,7 +67,7 @@ public:
     }
 
     /// assignment operator
-    virtual MaxLikeliFitter1D & operator=(const MaxLikeliFitter1D & source)
+    MaxLikeliFitter1D & operator=(const MaxLikeliFitter1D & source)
     {
       if (&source == this) return *this;
 

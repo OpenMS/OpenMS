@@ -87,7 +87,7 @@ public:
     ~Fitter1D() override;
 
     /// assignment operator
-    virtual Fitter1D& operator=(const Fitter1D& source);
+    Fitter1D& operator=(const Fitter1D& source);
 
     /// return interpolation model
     virtual QualityType fit1d(const RawDataArrayType& /* range */, std::unique_ptr<InterpolationModel>& /* model */);

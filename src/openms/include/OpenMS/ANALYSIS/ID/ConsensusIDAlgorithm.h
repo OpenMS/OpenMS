@@ -139,11 +139,11 @@ namespace OpenMS
                               const AASequence& peptide);
 
   private:
-   /// Not implemented
-    ConsensusIDAlgorithm(const ConsensusIDAlgorithm&);
+    /// Not implemented
+    ConsensusIDAlgorithm(const ConsensusIDAlgorithm&) = delete;
 
     /// Not implemented
-    ConsensusIDAlgorithm& operator=(const ConsensusIDAlgorithm&);
+    ConsensusIDAlgorithm& operator=(const ConsensusIDAlgorithm&) = delete;
 
   };
 
