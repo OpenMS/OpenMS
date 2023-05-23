@@ -34,7 +34,9 @@
 
 #include <OpenMS/ANALYSIS/TOPDOWN/DeconvolvedSpectrum.h>
 #include <OpenMS/ANALYSIS/TOPDOWN/FLASHDeconvAlgorithm.h>
+#include <OpenMS/ANALYSIS/TOPDOWN/FLASHIda.h>
 #include <OpenMS/ANALYSIS/TOPDOWN/MassFeatureTrace.h>
+#include <OpenMS/ANALYSIS/TOPDOWN/QScore.h>
 #include <OpenMS/ANALYSIS/TOPDOWN/Qvalue.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/CHEMISTRY/Tagger.h>
@@ -229,10 +231,6 @@ protected:
 
   static void filterLowPeaks(MSExperiment& map, Size count)
   {
-    if(count == 0)
-    {
-      return;
-    }
     for (auto& it : map)
     {
       if (it.size() <= count)
@@ -241,7 +239,34 @@ protected:
       }
 
       it.sortByIntensity(true);
-      while (it.size() > count)
+      double max_intensity = log10(it[0].getIntensity());
+      double min_intensity = 0;
+      int non_zero_size = 0;
+      for(auto&p : it)
+      {
+        if(p.getIntensity() <= 0)
+        {
+          break;
+        }
+        non_zero_size++;
+        min_intensity = log10(p.getIntensity());;
+      }
+      Size bin_size = std::max(200, non_zero_size/200);
+      std::vector<int> freq(bin_size + 1, 0);
+      for(auto&p : it)
+      {
+        if(p.getIntensity() <= 0)
+        {
+          break;
+        }
+        Size bin = round((log10(p.getIntensity()) - min_intensity)/(max_intensity - min_intensity) * bin_size);
+        freq[bin]++;
+      }
+
+      int mod_bin = std::distance(freq.begin(), std::max_element(freq.begin(), freq.end()));
+
+      double threshold = 4.0 * (pow(10.0, (double)mod_bin / bin_size * (max_intensity - min_intensity) + min_intensity));
+      while (it.size() > 0 && it[it.size() - 1].getIntensity() < threshold)
       {
         it.pop_back();
       }
@@ -252,13 +277,15 @@ protected:
   // the main_ function is called after all parameters are read
   ExitCodes main_(int, const char**) override
   {
+    bool DLTrain = false;
     OPENMS_LOG_INFO << "Initializing ... " << endl;
     //-------------------------------------------------------------
     // parsing parameters
     //-------------------------------------------------------------
-    const Size max_peak_count_ = 8e4;3e4;// 30000;
+    const Size max_peak_count_ = 5e4;3e4;// 223248;
     String in_file = getStringOption_("in");
     String out_file = getStringOption_("out");
+    String in_train_file {};
     String in_log_file = getStringOption_("in_log");
 
     auto out_spec_file = getStringList_("out_spec");
@@ -284,10 +311,15 @@ protected:
     double target_precursor_mz = target_precursor_charge != 0 ? getDoubleOption_("target_precursor_mz") : .0;
     double target_precursor_mass = .0;
 
-    fstream out_stream, out_promex_stream;
+    fstream out_stream, out_train_stream, out_promex_stream, out_att_stream, out_dl_stream;
     std::vector<fstream> out_spec_streams, out_topfd_streams, out_topfd_feature_streams;
 
     out_stream.open(out_file, fstream::out);
+    if (DLTrain)
+    {
+      out_dl_stream.open(out_file + "_dl.csv", fstream::out);
+      out_att_stream.open(out_file + "_qscore.csv", fstream::out);
+    }
 
     FLASHDeconvFeatureFile::writeHeader(out_stream);
 
@@ -325,7 +357,8 @@ protected:
       }
     }
 
-    std::map<int, std::vector<std::vector<float>>> precursor_map_for_real_time_acquisition; // ms1 scan -> mass, charge ,score, mz range, precursor int, mass int, color
+    std::map<int, std::vector<std::vector<float>>> precursor_map_for_real_time_acquisition =
+      FLASHIda::parseFLASHIdaLog(in_log_file); // ms1 scan -> mass, charge ,score, mz range, precursor int, mass int, color
 
     if(!precursor_map_for_real_time_acquisition.empty())
     {
@@ -466,11 +499,12 @@ protected:
       }
     }
 
-    filterLowPeaks(map, max_peak_count_);
+
 
     // if a merged spectrum is analyzed, replace the input dataset with the merged one
     if (merge == 1)
     {
+      filterLowPeaks(map, max_peak_count_);
       OPENMS_LOG_INFO << "Merging spectra using gaussian averaging... " << std::endl;
       SpectraMerger merger;
       merger.setLogType(log_type_);
@@ -488,6 +522,7 @@ protected:
     }
     else if (merge == 2)
     {
+      filterLowPeaks(map, max_peak_count_);
       OPENMS_LOG_INFO << "Merging spectra into a single spectrum per MS level... " << std::endl;
       SpectraMerger merger;
       merger.setLogType(log_type_);
@@ -894,6 +929,114 @@ protected:
         j++;
       }
     }
+
+
+    if (DLTrain)
+    {
+      QScore::writeAttCsvFromDummyHeader(out_att_stream);
+      vector<DeconvolvedSpectrum> false_deconvolved_spectra;
+      false_deconvolved_spectra.reserve(deconvolved_spectra.size() * 3);
+
+      for (auto& deconvolved_spectrum : dummy_deconvolved_spectra)
+      {
+        if (deconvolved_spectrum.getOriginalSpectrum().getMSLevel() != 1)
+        {
+          continue;
+        }
+        QScore::writeAttCsvFromDummy(deconvolved_spectrum, out_att_stream);
+        DeconvolvedSpectrum false_deconvolved_spectrum;
+        false_deconvolved_spectrum.setOriginalSpectrum(deconvolved_spectrum.getOriginalSpectrum());
+        false_deconvolved_spectrum.reserve(deconvolved_spectrum.size());
+        for (auto& pg : deconvolved_spectrum)
+        {
+          if(pg.getTargetDummyType() == PeakGroup::TargetDummyType::charge_dummy || pg.getTargetDummyType() == PeakGroup::TargetDummyType::target)
+          {
+            continue;
+          }
+          false_deconvolved_spectrum.push_back(pg);
+        }
+        false_deconvolved_spectra.push_back(false_deconvolved_spectrum);
+      }
+      for (auto& deconvolved_spectrum : deconvolved_spectra)
+      {
+        if (deconvolved_spectrum.getOriginalSpectrum().getMSLevel() != 1)
+        {
+          continue;
+        }
+        QScore::writeAttCsvFromDummy(deconvolved_spectrum, out_att_stream);
+
+        auto false_deconvolved_spectrum(deconvolved_spectrum);
+        int j = 0; //-2 -1 1 2     2 3 4 5 /2 /3 /4 /5       -2 -1 1 2
+        for (auto& pg : false_deconvolved_spectrum)
+        {
+          int k = j++ % 10;
+          int charge_offset = 0;
+          double charge_multiple = 1;
+          double mz_offset = .0;
+          PeakGroup::TargetDummyType flag = PeakGroup::TargetDummyType::charge_dummy;
+          switch (k)
+          {
+            case 0:
+              charge_offset = -2;
+              break;
+            case 1:
+              charge_offset = -1;
+              break;
+            case 2:
+              charge_offset = 1;
+              break;
+            case 3:
+              charge_offset = 2;
+              break;
+            case 4:
+              charge_multiple = 2.0;
+              break;
+            case 5:
+              charge_multiple = 3.0;
+              break;
+            case 6:
+              charge_multiple = 5.0;
+              break;
+            case 7:
+              charge_multiple = 1.0 / 5.0;
+              break;
+            case 8:
+              charge_multiple = 1.0 / 3.0;
+              break;
+            case 9:
+              charge_multiple = 1.0 / 2.0;
+              break;
+//            case 10:
+//              flag = PeakGroup::DummyIndex::noise_dummy;
+//              mz_offset = 5.0;
+//              break;
+//            case 11:
+//              flag = PeakGroup::DummyIndex::noise_dummy;
+//              mz_offset = 3.0;
+//              break;
+//            case 12:
+//              flag = PeakGroup::DummyIndex::noise_dummy;
+//              mz_offset = -3.0;
+//              break;
+//            default:
+//              flag = PeakGroup::DummyIndex::noise_dummy;
+//              mz_offset = -5.0;
+//              break;
+          }
+
+          pg.recruitAllPeaksInSpectrum(deconvolved_spectrum.getOriginalSpectrum(), 1e-6*tols[0], avg, pg.getMonoMass(), std::unordered_set<double>(), charge_offset, charge_multiple, mz_offset);
+          pg.setTargetDummyType(flag);
+        }
+        false_deconvolved_spectra.push_back(false_deconvolved_spectrum);
+      }
+
+      FLASHDeconvSpectrumFile::writeDLMatrixHeader(out_dl_stream);
+      FLASHDeconvSpectrumFile::writeDLMatrix(deconvolved_spectra, 1e-6*tols[0],out_dl_stream, avg);
+      FLASHDeconvSpectrumFile::writeDLMatrix(false_deconvolved_spectra, 1e-6*tols[0], out_dl_stream, avg);
+      out_dl_stream.close();
+      out_att_stream.close();
+    }
+
     return EXECUTION_OK;
   }
 };

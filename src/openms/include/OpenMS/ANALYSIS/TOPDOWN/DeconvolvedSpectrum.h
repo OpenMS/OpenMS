@@ -139,9 +139,9 @@ namespace OpenMS
 
     /** set precursor Q value. Q value can be retrieved by getPrecursorPeakGroup().GetQvalue()
      * @param q Q value
-     * @param dummy_index  This index specifies if a PeakGroup is a target (0), charge dummy (1), noise dummy (2), or isotope dummy (3)
+     * @param target_dummy_type  This target_dummy_type specifies if a PeakGroup is a target (0), charge dummy (1), noise dummy (2), or isotope dummy (3)
      */
-    void setPrecursorQvalue(float q, PeakGroup::TargetDummyType dummy_index);
+    void setPrecursorQvalue(float q, PeakGroup::TargetDummyType target_dummy_type);
 
     /// original spectrum setter
     void setOriginalSpectrum(const MSSpectrum& spec);

@@ -127,6 +127,12 @@ if (WITH_CRAWDAD) ## TODO check if still necessary
   list(APPEND OPENMS_DEP_LIBRARIES ${Crawdad_LIBRARY})
 endif()
 
+if(Torch_FOUND)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${TORCH_CXX_FLAGS}")
+    list(APPEND OPENMS_DEP_LIBRARIES "${TORCH_LIBRARIES}")
+    list(APPEND OPENMS_DEP_LIBRARIES "${TORCH_CUDA_LIBRARIES}")
+endif()
+
 openms_add_library(TARGET_NAME  OpenMS
                    SOURCE_FILES  ${OpenMS_sources}
                    HEADER_FILES  ${OpenMS_sources_h}

@@ -3,14 +3,16 @@ set(directory source/ANALYSIS/TOPDOWN)
 
 ### list all filenames of the directory here
 set(sources_list
-DeconvolvedSpectrum.cpp
-FLASHDeconvAlgorithm.cpp
-FLASHDeconvHelperStructs.cpp
-MassFeatureTrace.cpp
-PeakGroup.cpp
-QScore.cpp
-Qvalue.cpp
-)
+	DeconvolvedSpectrum.cpp
+	FLASHDeconvAlgorithm.cpp
+	FLASHDeconvHelperStructs.cpp
+	FLASHIda.cpp
+	FLASHIdaBridgeFunctions.cpp
+	MassFeatureTrace.cpp
+	PeakGroup.cpp
+	QScore.cpp
+	Qvalue.cpp
+	)
 
 ### add path to the filenames
 set(sources)

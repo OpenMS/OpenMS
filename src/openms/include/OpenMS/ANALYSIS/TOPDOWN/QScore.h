@@ -62,6 +62,10 @@ namespace OpenMS
     /// get QScore for a peak group of specific abs_charge
     static float getQScore(const PeakGroup *pg, int abs_charge);
 
+    static void writeAttCsvFromDummy(const DeconvolvedSpectrum&  deconvolved_spectrum, std::fstream& f);
+
+    static void writeAttCsvFromDummyHeader(std::fstream& f);
+
   private:
     /// convert a peak group to a feature vector for QScore calculation
     static std::vector<double> toFeatureVector_(const PeakGroup *pg, int abs_charge);

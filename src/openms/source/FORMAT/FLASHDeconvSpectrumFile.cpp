@@ -320,6 +320,22 @@ namespace OpenMS
     }
   }
 
+  void FLASHDeconvSpectrumFile::writeDLMatrixHeader(std::fstream& fs)
+  {
+    for(int i=0;i<3;i++)
+    {
+      String prefix = "Set" + std::to_string(i+1) + "_";
+      PeakGroup peak_group;
+      auto dlm = peak_group.getIsotopeRangeForDL_() * peak_group.getChargeRangeForDL_();
+
+      for(int j=0; j<dlm;j++)
+      {
+         fs<<prefix<<j<<",";
+      }
+    }
+    fs<<"Class\n";
+  }
+
   template<class BidiIter >
   BidiIter random_unique(BidiIter begin, BidiIter end, size_t num_random) {
     size_t left = std::distance(begin, end);
@@ -331,6 +347,78 @@ namespace OpenMS
       --left;
     }
     return begin;
+  }
+
+  void FLASHDeconvSpectrumFile::writeDLMatrix(std::vector<DeconvolvedSpectrum>& dspecs, double tol, std::fstream& fs, const FLASHDeconvHelperStructs::PrecalculatedAveragine& avg)
+  {
+    String cns[] = {"T", "D1", "D2", "D3"};
+    int count = 20000;
+    //class,ID,group,data
+    std::vector<std::vector<PeakGroup>> grouped(4);
+
+    for(auto& dspec: dspecs)
+    {
+      for(auto& pg: dspec)
+      {
+         if (pg.size() == 0)
+         {
+          continue;
+         }
+         int cl = pg.getTargetDummyType();
+         if (cl < 0 || cl >= (int)grouped.size())
+         {
+          continue;
+         }
+         pg.calculateDLMatrices(dspec.getOriginalSpectrum(), tol, avg);
+
+         auto dlmatrix = pg.getDLMatrix(0).asVector();
+//         if(*std::max_element(dlmatrix.begin(), dlmatrix.end()) <= 0)
+//         {
+//          continue;
+//         }
+         if (false)
+         {
+           std::cout<<pg.getTargetDummyType() << " S \n" << pg.getDLMatrix(0);
+           std::cout<<pg.getTargetDummyType() << " N \n"  << pg.getDLMatrix(1);
+           std::cout<<pg.getTargetDummyType() << " T \n"  << pg.getDLMatrix(2);
+         }
+
+         grouped[cl].push_back(pg);
+      }
+    }
+
+    for(auto& g : grouped)
+    {
+      if((int)g.size() < count)
+      {
+         continue;
+      }
+      random_unique(g.begin(), g.end(), count);
+    }
+
+    for(auto& g : grouped)
+    {
+      int cntr = 0;
+      for (auto& pg : g)
+      {
+         int cl = pg.getTargetDummyType();
+
+         for (int i = 0; i < 3; i++)
+         {
+          auto dlm = pg.getDLMatrix(i).asVector();
+
+          for (double v : dlm)
+          {
+            fs << v << ",";
+          }
+         }
+         fs << cns[cl] << "\n";
+         if(++cntr >= count)
+         {
+          break;
+         }
+      }
+    }
   }
 
   void FLASHDeconvSpectrumFile::writeTopFD(const DeconvolvedSpectrum& dspec, std::fstream& fs,

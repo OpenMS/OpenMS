@@ -169,7 +169,7 @@ endif()
 # TODO Do we even need this, when OpenMP is not active?
 set(THREADS_PREFER_PTHREAD_FLAG ON)
 find_package (Threads REQUIRED)
-
+find_package (Torch)
 
 if (WITH_GUI)
   # --------------------------------------------------------------------------
