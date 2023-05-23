@@ -33,22 +33,23 @@
 // $Authors: Chris Bielow $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/QC/PeptideMass.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
+#include <OpenMS/QC/PeptideMass.h>
 
 namespace OpenMS
 {
   void PeptideMass::compute(FeatureMap& features)
   {
-    features.applyFunctionOnPeptideIDs([](PeptideIdentification& pi)
-    {
-      if (pi.getHits().empty())
-      {
-        return;
-      }
-      auto& hit = pi.getHits()[0];
-      hit.setMetaValue("mass", (pi.getMZ() - Constants::PROTON_MASS_U) * hit.getCharge());
-    }, true);
+    features.applyFunctionOnPeptideIDs(
+      [](PeptideIdentification& pi) {
+        if (pi.getHits().empty())
+        {
+          return;
+        }
+        auto& hit = pi.getHits()[0];
+        hit.setMetaValue("mass", (pi.getMZ() - Constants::PROTON_MASS_U) * hit.getCharge());
+      },
+      true);
   }
 
   const String& PeptideMass::getName() const
@@ -61,4 +62,4 @@ namespace OpenMS
   {
     return QCBase::Status() | QCBase::Requires::POSTFDRFEAT;
   }
-}
+} // namespace OpenMS

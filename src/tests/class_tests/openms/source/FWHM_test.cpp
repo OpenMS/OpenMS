@@ -35,9 +35,8 @@
 #include <OpenMS/CONCEPT/ClassTest.h>
 #include <OpenMS/test_config.h>
 ///////////////////////////
-#include <OpenMS/QC/FWHM.h>
-
 #include <OpenMS/KERNEL/FeatureMap.h>
+#include <OpenMS/QC/FWHM.h>
 
 ///////////////////////////
 
@@ -71,7 +70,7 @@ START_SECTION(void compute(FeatureMap& features))
   fm.push_back(f);
   f.clearMetaInfo();
   f.setMetaValue("model_FWHM", 98.1);
-  fm.push_back(f); 
+  fm.push_back(f);
   FWHM fw;
   fw.compute(fm);
   TEST_EQUAL(fm[0].getPeptideIdentifications()[0].getMetaValue("FWHM"), 123.4)
@@ -86,7 +85,7 @@ START_SECTION(QCBase::Status requirements() const override)
 }
 END_SECTION
 
-START_SECTION(const String & getName() const)
+START_SECTION(const String& getName() const)
 {
   TEST_EQUAL(FWHM().getName(), "FWHM");
 }

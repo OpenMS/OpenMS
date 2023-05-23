@@ -33,8 +33,8 @@
 // --------------------------------------------------------------------------
 
 
-#include <OpenMS/QC/SpectrumCount.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
+#include <OpenMS/QC/SpectrumCount.h>
 using namespace std;
 
 namespace OpenMS
@@ -46,7 +46,7 @@ namespace OpenMS
     for (const auto& spectrum : exp)
     {
       const Size level = spectrum.getMSLevel();
-      ++counts[level];  // count MS level
+      ++counts[level]; // count MS level
     }
     return counts;
   }
@@ -63,4 +63,4 @@ namespace OpenMS
   {
     return QCBase::Status(QCBase::Requires::RAWMZML);
   }
-}
+} // namespace OpenMS

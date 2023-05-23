@@ -35,9 +35,8 @@
 #include <OpenMS/CONCEPT/ClassTest.h>
 #include <OpenMS/test_config.h>
 ///////////////////////////
-#include <OpenMS/QC/PeptideMass.h>
-
 #include <OpenMS/KERNEL/FeatureMap.h>
+#include <OpenMS/QC/PeptideMass.h>
 
 ///////////////////////////
 

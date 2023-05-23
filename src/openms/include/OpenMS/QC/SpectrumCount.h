@@ -69,4 +69,4 @@ namespace OpenMS
   private:
     const String name_ = "SpectrumCount";
   };
-}
+} // namespace OpenMS
