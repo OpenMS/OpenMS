@@ -41,7 +41,7 @@ namespace OpenMS
   void Qvalue::updatePeakGroupQvalues(std::vector<DeconvolvedSpectrum>& deconvolved_spectra,
                                                    std::vector<DeconvolvedSpectrum>& deconvolved_decoy_spectra) // per ms level + precursor update as well.
   {
-    uint bin_number = 50;
+    uint bin_number = 100; // 100 is enough resolution for qvalue calculation. In most cases FDR 5% will be used.
     std::map<uint, std::vector<float>> tscore_map; // per ms level
 
     std::map<uint, std::vector<float>> dscore_iso_decoy_map;
@@ -53,24 +53,16 @@ namespace OpenMS
     std::map<uint, std::vector<float>> dscore_charge_decoy_map;
     std::map<uint, std::map<float, float>> qscore_charge_decoy_map; // maps for charge decoy only qvalues
 
+    // to calculate qvalues per ms level, store QScores per ms level
     for (auto& deconvolved_spectrum : deconvolved_spectra)
     {
       uint ms_level = deconvolved_spectrum.getOriginalSpectrum().getMSLevel();
-      if (tscore_map.find(ms_level) == tscore_map.end())
-      {
-        tscore_map[ms_level] = std::vector<float>();
-        dscore_noise_decoy_map[ms_level] = std::vector<float>();
-        qscore_noise_decoy_map[ms_level] = std::map<float, float>();
-        dscore_iso_decoy_map[ms_level] = std::vector<float>();
-        qscore_iso_decoy_map[ms_level] = std::map<float, float>();
-        dscore_charge_decoy_map[ms_level] = std::vector<float>();
-        qscore_charge_decoy_map[ms_level] = std::map<float, float>();
-      }
       for (auto& pg : deconvolved_spectrum)
       {
         tscore_map[ms_level].push_back(pg.getQScore());
       }
     }
+
     for (auto& decoy_deconvolved_spectrum : deconvolved_decoy_spectra)
     {
       uint ms_level = decoy_deconvolved_spectrum.getOriginalSpectrum().getMSLevel();
@@ -101,8 +93,8 @@ namespace OpenMS
       auto charge_dist = getDistribution(dscore_charge, bin_number);
       auto noise_dist = getDistribution(dscore_noise, bin_number);
       auto iso_dist = getDistribution(dscore_iso, bin_number);
-
       float iso_threshold = 1.0f;
+
       for (int i = (int)bin_number - 1; i >= 0; i--)
       {
         if ((iso_dist[i] > 0 && iso_dist[i] < charge_dist[i]))
@@ -119,14 +111,17 @@ namespace OpenMS
         if(q < iso_threshold) continue;
         dscore_iso.push_back(q);
       }
+
       iso_dist = getDistribution(dscore_iso, bin_number);
 
       std::vector<float> weights(4, .25f);
       std::vector<float> target_dist(bin_number, .0f);
+
       for(uint iteration = 0; iteration<100;iteration++)
       {
         std::fill(target_dist.begin(), target_dist.end(), .0f);
         float max_t = .0;
+
         for (int i = (int)bin_number - 1; i >= 0; i--)
         {
           float fp = (charge_dist[i] * weights[0] + noise_dist[i] * weights[1] + iso_dist[i] * weights[2]);
@@ -141,9 +136,11 @@ namespace OpenMS
           }
           max_t = std::max(max_t, target_dist[i]);
         }
-       // target_dist = smoothByMovingAvg(target_dist);
+
         float csum = .0f;
+
         for(auto r : target_dist) csum += r;
+
         if(csum > 0)
         {
           for (auto& r : target_dist)
@@ -165,9 +162,9 @@ namespace OpenMS
         weights = tmp_weight;
       }
 
-      weights[0] *= dscore_charge.size() == 0 ? .0 : ((double)qscores.size() / dscore_charge.size());
-      weights[1] *= dscore_noise.size() == 0 ? .0 : ((double)qscores.size() / dscore_noise.size());
-      weights[2] *= dscore_iso.size() == 0 ? .0 : ((double)qscores.size() / dscore_iso.size());
+      weights[0] *= dscore_charge.empty() ? .0 : ((double)qscores.size() / dscore_charge.size());
+      weights[1] *= dscore_noise.empty() ? .0 : ((double)qscores.size() / dscore_noise.size());
+      weights[2] *= dscore_iso.empty() ? .0 : ((double)qscores.size() / dscore_iso.size());
 
       std::sort(qscores.begin(), qscores.end());
       std::sort(dscore_iso.begin(), dscore_iso.end());
@@ -176,6 +173,8 @@ namespace OpenMS
 
       auto& map_charge = qscore_charge_decoy_map[ms_level];
       float tmp_q_charge = 1;
+
+      // calculate q values using targets and charge dummies
       for (size_t i = 0; i < qscores.size(); i++)
       {
         float ts = qscores[i];
@@ -189,6 +188,8 @@ namespace OpenMS
 
       auto& map_iso = qscore_iso_decoy_map[ms_level];
       float tmp_q_iso = 1;
+
+      // calculate q values using targets and isotope dummies
       for (size_t i = 0; i < qscores.size(); i++)
       {
         float ts = qscores[i];
@@ -196,13 +197,14 @@ namespace OpenMS
         size_t tindex = qscores.size() - i;
         float nom = weights[2] * (float)dindex;
         float denom = (float)(tindex);
-        tmp_q_iso = std::min(tmp_q_iso, (nom / denom));//* (1.0f - map_charge[ts])
+        tmp_q_iso = std::min(tmp_q_iso, (nom / denom));
         map_iso[ts] = tmp_q_iso;
       }
 
       auto& map_noise = qscore_noise_decoy_map[ms_level];
       float tmp_q_noise = 1;
 
+      // calculate q values using targets and noise dummies
       for (size_t i = 0; i < qscores.size(); i++)
       {
         float ts = qscores[i];

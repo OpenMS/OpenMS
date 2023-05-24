@@ -263,7 +263,7 @@ namespace OpenMS
           continue;
         }
         // if excluded_peak_mzs_ is not empty, these mzs should be ignored in this raw spectrum for this peak group! But they can be included in noisy peaks.
-        bool excluded = excluded_peak_mzs.size()>0 && excluded_peak_mzs.find(pmz) != excluded_peak_mzs.end();
+        bool excluded = excluded_peak_mzs.size() > 0 && excluded_peak_mzs.find(pmz) != excluded_peak_mzs.end();
 
         if (!excluded && abs(pmz - cmz - iso_index * iso_delta) <= pmz * tol)
         {
@@ -314,9 +314,9 @@ namespace OpenMS
 
         setChargePowers_(c, charge_sig_pwr, charge_noise_pwr, charge_intensity);
 
-        if (max_sig < charge_sig_pwr/(1+charge_noise_pwr))
+        if (max_sig < charge_sig_pwr / (1+charge_noise_pwr))
         {
-          max_sig = charge_sig_pwr/(1+charge_noise_pwr);
+          max_sig = charge_sig_pwr / (1+charge_noise_pwr);
           max_sig_charge = c;
         }
       }

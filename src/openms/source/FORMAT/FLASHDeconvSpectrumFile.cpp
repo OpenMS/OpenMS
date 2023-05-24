@@ -185,8 +185,10 @@ namespace OpenMS
           fs << dspec.getPrecursorPeakGroup().getChargeSNR(dspec.getPrecursor().getCharge()) << "\t" << std::to_string(dspec.getPrecursorPeakGroup().getMonoMass()) << "\t"
              << dspec.getPrecursorPeakGroup().getQScore() << "\t";
           if (dummy)
+          {
             fs << dspec.getPrecursorPeakGroup().getQvalue() << "\t" << dspec.getPrecursorPeakGroup().getQvalue(PeakGroup::TargetDummyType::isotope_dummy) << "\t"
                << dspec.getPrecursorPeakGroup().getQvalue(PeakGroup::TargetDummyType::noise_dummy) << "\t" << dspec.getPrecursorPeakGroup().getQvalue(PeakGroup::TargetDummyType::charge_dummy) << "\t";
+          }
         }
       }
       fs << pg.getIsotopeCosine() << "\t" << pg.getChargeIsotopeCosine(pg.getRepAbsCharge()) << "\t" << pg.getChargeScore() << "\t";
@@ -320,19 +322,6 @@ namespace OpenMS
     }
   }
 
-  template<class BidiIter >
-  BidiIter random_unique(BidiIter begin, BidiIter end, size_t num_random) {
-    size_t left = std::distance(begin, end);
-    while (num_random--) {
-      BidiIter r = begin;
-      std::advance(r, rand()%left);
-      std::swap(*begin, *r);
-      ++begin;
-      --left;
-    }
-    return begin;
-  }
-
   void FLASHDeconvSpectrumFile::writeTopFD(const DeconvolvedSpectrum& dspec, std::fstream& fs,
                                            const double snr_threshold,
                                            const uint min_ms_level,
@@ -373,7 +362,7 @@ namespace OpenMS
          << "MS_ONE_SCAN=" << dspec.getPrecursorScanNumber() << "\n"
          << "PRECURSOR_MZ=" << std::to_string(dspec.getPrecursor().getMZ()) << "\n"
          << "PRECURSOR_CHARGE=" << (int)(dspec.getPrecursor().getCharge()) << "\n"
-         << "PRECURSOR_MASS=" << std::to_string( precursor_mass + (randomize_precursor_mass ? (((double) rand() / (RAND_MAX)) * 200.0 - 100.0) : .0)) << "\n"
+         << "PRECURSOR_MASS=" << std::to_string( precursor_mass + (randomize_precursor_mass ? (((double) rand() / (RAND_MAX)) * 200.0 - 100.0) : .0)) << "\n" // random number between 0 to 100.
          << "PRECURSOR_INTENSITY=" << dspec.getPrecursor().getIntensity() << "\n";
     }
 

@@ -55,7 +55,7 @@ namespace OpenMS
 
     val << "tol=" << tol << ";massoffset=" << std::to_string(charge_mass_offset) << ";chargemass="
         << std::to_string(FLASHDeconvHelperStructs::getChargeMass(peak_groups_[0].isPositive()));
-    if(!precursor_peak_group_.empty())
+    if (!precursor_peak_group_.empty())
     {
       val << ";precursorscan=" << precursor_scan_number_ << ";precursormass=" << std::to_string(precursor_peak_group_.getMonoMass());
     }
@@ -64,7 +64,7 @@ namespace OpenMS
       val << ";precursorscan=0;precursormass=0";
     }
 
-    val<<";peaks=";
+    val << ";peaks=";
     for (auto& pg : *this)
     {
       if (pg.empty())
@@ -92,7 +92,7 @@ namespace OpenMS
       }
     }
 
-    val<<"cos=";
+    val << "cos=";
     for (auto& pg : *this)
     {
       if (pg.empty())
@@ -102,7 +102,7 @@ namespace OpenMS
       val << pg.getIsotopeCosine() << ",";
     }
 
-    val<<";snr=";
+    val << ";snr=";
     for (auto& pg : *this)
     {
       if (pg.empty())
@@ -112,7 +112,7 @@ namespace OpenMS
       val << pg.getSNR() << ",";
     }
 
-    val<<";qscore=";
+    val << ";qscore=";
     for (auto& pg : *this)
     {
       if (pg.empty())
@@ -122,7 +122,7 @@ namespace OpenMS
       val << pg.getQScore() << ",";
     }
 
-    val<<";qvalue=";
+    val << ";qvalue=";
     for (auto& pg : *this)
     {
       if (pg.empty())

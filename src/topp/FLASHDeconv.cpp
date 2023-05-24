@@ -229,10 +229,6 @@ protected:
 
   static void filterLowPeaks(MSExperiment& map, Size count)
   {
-    if(count == 0)
-    {
-      return;
-    }
     for (auto& it : map)
     {
       if (it.size() <= count)
@@ -241,10 +237,39 @@ protected:
       }
 
       it.sortByIntensity(true);
-      while (it.size() > count)
+      double max_intensity = log10(it[0].getIntensity());
+      double min_intensity = 0;
+      int non_zero_size = 0;
+      for(auto&p : it)
+      {
+        if(p.getIntensity() <= 0)
+        {
+          break;
+        }
+        non_zero_size++;
+        min_intensity = log10(p.getIntensity());;
+      }
+      Size bin_size = 500;
+      std::vector<int> freq(bin_size + 1, 0);
+      for(auto&p : it)
+      {
+        if(p.getIntensity() <= 0)
+        {
+          break;
+        }
+        Size bin = round((log10(p.getIntensity()) - min_intensity)/(max_intensity - min_intensity) * bin_size);
+        freq[bin]++;
+      }
+
+      int mod_bin = std::distance(freq.begin(), std::max_element(freq.begin(), freq.end())); // most frequent intensity is the threshold to distinguish between signal and noise
+      double threshold = 3.0 * (pow(10.0, (double)mod_bin / bin_size * (max_intensity - min_intensity) + min_intensity)); // multiply by 3 to the most frequent intensity to make sure more signal component remains. Later this could be determined to use signal-to-noise ratio.
+
+      // pop back the low intensity peaks using threshold
+      while (it.size() > 0 && it[it.size() - 1].getIntensity() <= threshold)
       {
         it.pop_back();
       }
+
       it.sortByPosition();
     }
   }
@@ -256,7 +281,7 @@ protected:
     //-------------------------------------------------------------
     // parsing parameters
     //-------------------------------------------------------------
-    const Size max_peak_count_ = 8e4;3e4;// 30000;
+    const Size max_peak_count_ = 5e4;3e4;// 223248;
     String in_file = getStringOption_("in");
     String out_file = getStringOption_("out");
     String in_log_file = getStringOption_("in_log");
@@ -466,11 +491,12 @@ protected:
       }
     }
 
-    filterLowPeaks(map, max_peak_count_);
+
 
     // if a merged spectrum is analyzed, replace the input dataset with the merged one
     if (merge == 1)
     {
+      filterLowPeaks(map, max_peak_count_);
       OPENMS_LOG_INFO << "Merging spectra using gaussian averaging... " << std::endl;
       SpectraMerger merger;
       merger.setLogType(log_type_);
@@ -488,6 +514,7 @@ protected:
     }
     else if (merge == 2)
     {
+      filterLowPeaks(map, max_peak_count_);
       OPENMS_LOG_INFO << "Merging spectra into a single spectrum per MS level... " << std::endl;
       SpectraMerger merger;
       merger.setLogType(log_type_);
