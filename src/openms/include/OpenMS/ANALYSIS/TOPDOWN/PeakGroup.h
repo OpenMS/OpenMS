@@ -35,7 +35,7 @@
 #pragma once
 
 #include <OpenMS/ANALYSIS/TOPDOWN/FLASHDeconvHelperStructs.h>
-#include <OpenMS/DATASTRUCTURES //Matrix.h>
+#include <OpenMS/DATASTRUCTURES/Matrix.h>
 
 namespace OpenMS
 {
