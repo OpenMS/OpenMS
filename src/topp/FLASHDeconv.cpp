@@ -583,7 +583,7 @@ protected:
     deconvolved_spectra.reserve(map.size());
 
     std::vector<DeconvolvedSpectrum> dummy_deconvolved_spectra;
-    dummy_deconvolved_spectra.reserve(map.size() * 3);
+    dummy_deconvolved_spectra.reserve(map.size() * 3); // there are 3 different kinds of dummy spectra. And we reserve for them.
 
     for (auto it = map.begin(); it != map.end(); ++it)
     {

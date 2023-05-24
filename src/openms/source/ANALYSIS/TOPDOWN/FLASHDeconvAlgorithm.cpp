@@ -1547,7 +1547,7 @@ namespace OpenMS
 
     for (Size i = 0; i < dspec.size(); i++)
     {
-      if (!dspec[i].isTargeted() && overlap_intensity[i] >= dspec[i].getIntensity() * .5) // the smaller, the harsher
+      if (!dspec[i].isTargeted() && overlap_intensity[i] >= dspec[i].getIntensity() * .5) // If the overlapeed intensity takes more than 50% total intensity then it is a peakgroup with a charge error. the smaller, the harsher
       {
         continue;
       }
