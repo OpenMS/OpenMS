@@ -1,17 +1,5 @@
 {
-  "name": "openms",
-  "version-string": "3.0.0",
-  "dependencies": [  
-    "boost",
-    "xerces-c",
-    "qt5",
-    "libsvm",
-    "qt5-svg",
-    "zlib",
-    "coin-or-cgl",
-    "coin-or-clp",
-    "coin-or-buildtools",
-    "eigen3",
-    "bzip2"
-  ]
+  "name" : "openms",
+  "version-string" : "3.0.0",
+  "dependencies" : [ {"name": "boost-iostreams", "default-features": false, "features": ["zlib","bzip2"]}, "boost", "xerces-c", {"name": "qt5", "default-features": false, "features": ["svg","imageformats"]}, "libsvm", "zlib", "coin-or-cgl", "coin-or-clp", "coin-or-buildtools", "eigen3", "bzip2" ]
 }

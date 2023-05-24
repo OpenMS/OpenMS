@@ -257,7 +257,6 @@ namespace OpenMS
       OPENMS_LOG_ERROR << "Error: Failed to parse Modomics JSON. Reason:\n" << e.getName() << " - " << e.what() << endl;
       throw;
     }
-    QChar prime(0x2032); // Unicode "prime" character
     for (auto& element : mod_obj)
     {
       line_count++;
