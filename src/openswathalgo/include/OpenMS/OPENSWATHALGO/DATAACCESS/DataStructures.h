@@ -167,6 +167,11 @@ public:
       return binaryDataArrayPtrs;
     }
 
+    void setDataArrays(std::vector<BinaryDataArrayPtr>& val)
+    {
+      binaryDataArrayPtrs = val;
+    }
+
   };
   typedef OSChromatogram Chromatogram;
   typedef boost::shared_ptr<Chromatogram> ChromatogramPtr;
@@ -289,6 +294,11 @@ public:
     std::vector<BinaryDataArrayPtr> & getDataArrays()
     {
       return binaryDataArrayPtrs;
+    }
+
+    void setDataArrays(std::vector<BinaryDataArrayPtr>& val)
+    {
+      binaryDataArrayPtrs = val;
     }
 
   };
