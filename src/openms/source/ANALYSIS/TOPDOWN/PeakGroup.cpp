@@ -163,7 +163,7 @@ namespace OpenMS
       return 0;
     }
 
-    if(h_offset != 0)
+    if (h_offset != 0)
     {
       return h_offset;
     }
@@ -190,8 +190,9 @@ namespace OpenMS
     return h_offset;
   }
 
-  std::vector<FLASHDeconvHelperStructs::LogMzPeak> PeakGroup::recruitAllPeaksInSpectrum(const MSSpectrum& spec, const double tol, const FLASHDeconvHelperStructs::PrecalculatedAveragine& avg, double mono_mass,
-                                            const std::unordered_set<double>& excluded_peak_mzs, int charge_offset, double charge_multiple, double mz_off)
+  std::vector<FLASHDeconvHelperStructs::LogMzPeak> PeakGroup::recruitAllPeaksInSpectrum(const MSSpectrum& spec, const double tol, const FLASHDeconvHelperStructs::PrecalculatedAveragine& avg,
+                                                                                        double mono_mass, const std::unordered_set<double>& excluded_peak_mzs, int charge_offset,
+                                                                                        double charge_multiple, double mz_off)
   {
     std::vector<LogMzPeak> noisy_peaks;
     if (mono_mass < 0)
@@ -220,7 +221,7 @@ namespace OpenMS
     reserve((max_isotope) * (max_abs_charge_ - min_abs_charge_ + 1) * 2);
     noisy_peaks.reserve(max_isotope * (max_abs_charge_ - min_abs_charge_ + 1) * 2);
 
-    int new_max_abs_charge = -1; // new max abs charge after peak recruiting. The original max_abs_charge is replaced by this after recruiting.
+    int new_max_abs_charge = -1;              // new max abs charge after peak recruiting. The original max_abs_charge is replaced by this after recruiting.
     int new_min_abs_charge = min_abs_charge_; // new min abs charge after peak recruiting. The original min_abs_charge is replaced by this after recruiting.
     int max_sig_charge = 0;
     float max_sig = 0;
@@ -295,7 +296,8 @@ namespace OpenMS
           new_max_abs_charge = c;
         }
         new_min_abs_charge = c;
-        for (auto& p:noisy_peaks){
+        for (auto& p : noisy_peaks)
+        {
           if (p.abs_charge != c)
           {
             continue;
@@ -314,9 +316,9 @@ namespace OpenMS
 
         setChargePowers_(c, charge_sig_pwr, charge_noise_pwr, charge_intensity);
 
-        if (max_sig < charge_sig_pwr / (1+charge_noise_pwr))
+        if (max_sig < charge_sig_pwr / (1 + charge_noise_pwr))
         {
-          max_sig = charge_sig_pwr / (1+charge_noise_pwr);
+          max_sig = charge_sig_pwr / (1 + charge_noise_pwr);
           max_sig_charge = c;
         }
       }
@@ -335,10 +337,10 @@ namespace OpenMS
       int t_nmin_abs_charge = new_min_abs_charge;
       new_max_abs_charge = new_min_abs_charge = max_sig_charge;
       int c_zero = 0;
-      float threshold = std::min(max_sig/10 , 1.0f);
+      float threshold = std::min(max_sig / 10, 1.0f);
       for (int z = max_sig_charge; z <= t_nmax_abs_charge; z++)
       {
-        if((per_charge_signal_pwr_[z]/(1+per_charge_noise_pwr_[z])) <threshold)
+        if ((per_charge_signal_pwr_[z] / (1 + per_charge_noise_pwr_[z])) < threshold)
         {
           break;
         }
@@ -356,12 +358,11 @@ namespace OpenMS
         {
           break;
         }
-
       }
       c_zero = 0;
       for (int z = max_sig_charge; z >= t_nmin_abs_charge; z--)
       {
-        if((per_charge_signal_pwr_[z]/(1+per_charge_noise_pwr_[z])) <threshold)
+        if ((per_charge_signal_pwr_[z] / (1 + per_charge_noise_pwr_[z])) < threshold)
         {
           break;
         }
@@ -399,11 +400,11 @@ namespace OpenMS
       }
       for (const auto& p : noisy_peaks)
       {
-          if (p.abs_charge < new_min_abs_charge || p.abs_charge > new_max_abs_charge)
-          {
-              continue;
-          }
-          new_noisy_peaks.push_back(p);
+        if (p.abs_charge < new_min_abs_charge || p.abs_charge > new_max_abs_charge)
+        {
+          continue;
+        }
+        new_noisy_peaks.push_back(p);
       }
 
       new_logMzpeaks.swap(logMzpeaks_);
@@ -482,7 +483,7 @@ namespace OpenMS
 
   void PeakGroup::updateMonomassAndIsotopeIntensities()
   {
-    if(logMzpeaks_.size() == 0)
+    if (logMzpeaks_.size() == 0)
     {
       return;
     }
@@ -716,7 +717,7 @@ namespace OpenMS
     float t_nom = cos_squred * signal;
     float t_denom = 1 + noise + (1 - cos_squred) * signal;
 
-    snr_ = t_denom <= 0 ? .0f: (t_nom / t_denom);
+    snr_ = t_denom <= 0 ? .0f : (t_nom / t_denom);
   }
 
   float PeakGroup::getQvalue(PeakGroup::TargetDummyType flag) const

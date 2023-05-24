@@ -66,6 +66,6 @@ namespace OpenMS
     /// get the QScore distribution
     static std::vector<float> getDistribution(const std::vector<float>& qscores, uint bin_number);
     /// get the weights of different dummy types.
-    static std::vector<float> getDistributionWeights(const std::vector<float>& mixed_dist, const  std::vector<std::vector<float>>& comp_dists, uint num_iterations = 100);
+    static std::vector<float> getDistributionWeights(const std::vector<float>& mixed_dist, const std::vector<std::vector<float>>& comp_dists, uint num_iterations = 100);
   };
-}
+} // namespace OpenMS

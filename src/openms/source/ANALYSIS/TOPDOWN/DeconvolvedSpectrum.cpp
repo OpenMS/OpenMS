@@ -40,9 +40,8 @@ namespace OpenMS
   {
   }
 
-  MSSpectrum DeconvolvedSpectrum::toSpectrum(const int to_charge,  uint min_ms_level, double tol, bool retain_undeconvolved)
+  MSSpectrum DeconvolvedSpectrum::toSpectrum(const int to_charge, uint min_ms_level, double tol, bool retain_undeconvolved)
   {
-
     auto out_spec = MSSpectrum(spec_);
     out_spec.clear(false);
     if ((spec_.getMSLevel() > min_ms_level && precursor_peak_group_.empty()) || empty())
@@ -53,8 +52,7 @@ namespace OpenMS
     std::unordered_set<double> deconvolved_mzs;
     std::stringstream val {};
 
-    val << "tol=" << tol << ";massoffset=" << std::to_string(charge_mass_offset) << ";chargemass="
-        << std::to_string(FLASHDeconvHelperStructs::getChargeMass(peak_groups_[0].isPositive()));
+    val << "tol=" << tol << ";massoffset=" << std::to_string(charge_mass_offset) << ";chargemass=" << std::to_string(FLASHDeconvHelperStructs::getChargeMass(peak_groups_[0].isPositive()));
     if (!precursor_peak_group_.empty())
     {
       val << ";precursorscan=" << precursor_scan_number_ << ";precursormass=" << std::to_string(precursor_peak_group_.getMonoMass());
@@ -326,4 +324,4 @@ namespace OpenMS
   {
     precursor_peak_group_.setQvalue(q, flag);
   }
-}
+} // namespace OpenMS

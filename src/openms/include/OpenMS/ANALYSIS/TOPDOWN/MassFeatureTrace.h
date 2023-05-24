@@ -39,9 +39,8 @@
 #include <OpenMS/ANALYSIS/TOPDOWN/PeakGroup.h>
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 #include <OpenMS/FILTERING/DATAREDUCTION/MassTraceDetection.h>
-
-#include <iostream>
 #include <iomanip>
+#include <iostream>
 
 namespace OpenMS
 {
@@ -56,8 +55,7 @@ namespace OpenMS
   @ingroup Topdown
   */
 
-  class OPENMS_DLLAPI MassFeatureTrace :
-      public DefaultParamHandler
+  class OPENMS_DLLAPI MassFeatureTrace : public DefaultParamHandler
   {
   public:
     typedef FLASHDeconvHelperStructs::PrecalculatedAveragine PrecalculatedAveragine;
@@ -70,7 +68,7 @@ namespace OpenMS
     ~MassFeatureTrace() override = default;
 
     /// copy constructor
-    MassFeatureTrace(const MassFeatureTrace& ) = default;
+    MassFeatureTrace(const MassFeatureTrace&) = default;
 
     /// move constructor
     MassFeatureTrace(MassFeatureTrace&& other) = default;
@@ -96,6 +94,5 @@ namespace OpenMS
     double min_isotope_cosine_;
     /// peak group information is stored in here for tracing
     std::map<double, std::map<double, PeakGroup>> peak_group_map_; // rt , mono mass, peakgroup
-
   };
-}
+} // namespace OpenMS

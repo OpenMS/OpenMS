@@ -150,7 +150,7 @@ namespace OpenMS
         auto iso_int = pg.getIsotopeIntensities();
         for (size_t i = 0; i < per_isotope_intensity.size() - iso_off; i++)
         {
-          if((int)i + iso_off < 0 || i>= iso_int.size())
+          if ((int)i + iso_off < 0 || i >= iso_int.size())
           {
             continue;
           }

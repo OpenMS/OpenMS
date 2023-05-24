@@ -45,21 +45,20 @@ namespace OpenMS
    */
 
   void FLASHDeconvSpectrumFile::writeDeconvolvedMasses(DeconvolvedSpectrum& dspec, DeconvolvedSpectrum& target_spec, std::fstream& fs, const String& file_name,
-                                                       const FLASHDeconvHelperStructs::PrecalculatedAveragine& avg, double tol,
-                                                      const bool write_detail, const bool dummy)
+                                                       const FLASHDeconvHelperStructs::PrecalculatedAveragine& avg, double tol, const bool write_detail, const bool dummy)
   {
-    static std::vector<uint> indices{};
+    static std::vector<uint> indices {};
 
     if (dspec.empty())
     {
       return;
     }
 
-    while(indices.size() <= dspec.getOriginalSpectrum().getMSLevel())
+    while (indices.size() <= dspec.getOriginalSpectrum().getMSLevel())
     {
       indices.push_back(1);
     }
-    uint& index = indices[dspec.getOriginalSpectrum().getMSLevel()-1];
+    uint& index = indices[dspec.getOriginalSpectrum().getMSLevel() - 1];
 
     for (auto& pg : dspec)
     {
@@ -83,7 +82,7 @@ namespace OpenMS
       if (write_detail)
       {
         std::unordered_set<double> excluded_peak_mzs;
-        if(pg.getTargetDummyType() == PeakGroup::TargetDummyType::noise_dummy)
+        if (pg.getTargetDummyType() == PeakGroup::TargetDummyType::noise_dummy)
           FLASHDeconvAlgorithm::addMZsToExcludsionList(target_spec, excluded_peak_mzs);
         auto noisy_peaks = pg.recruitAllPeaksInSpectrum(dspec.getOriginalSpectrum(), tol * 1e-6, avg, pg.getMonoMass(), excluded_peak_mzs);
         std::sort(noisy_peaks.begin(), noisy_peaks.end());
@@ -129,39 +128,39 @@ namespace OpenMS
 
         fs << "\t";
         fs << std::fixed << std::setprecision(2);
-        for (auto& np: noisy_peaks)
+        for (auto& np : noisy_peaks)
         {
           fs << np.mz << " ";
         }
 
         fs << "\t";
         fs << std::fixed << std::setprecision(1);
-        for (auto& np: noisy_peaks)
+        for (auto& np : noisy_peaks)
         {
           fs << np.intensity << " ";
         }
 
         fs << "\t";
         fs << std::setprecision(-1);
-        for (auto& np: noisy_peaks)
+        for (auto& np : noisy_peaks)
         {
           fs << (np.is_positive ? np.abs_charge : -np.abs_charge) << " ";
         }
 
         fs << "\t";
-        for (auto& np: noisy_peaks)
+        for (auto& np : noisy_peaks)
         {
           fs << np.getUnchargedMass() << " ";
         }
 
         fs << "\t";
-        for (auto& np: noisy_peaks)
+        for (auto& np : noisy_peaks)
         {
           fs << np.isotopeIndex << " ";
         }
 
         fs << "\t";
-        for (auto& np: noisy_peaks)
+        for (auto& np : noisy_peaks)
         {
           double average_mass = pg.getMonoMass() + np.isotopeIndex * pg.getIsotopeDaDistance();
           double mass_error = (average_mass / np.abs_charge + FLASHDeconvHelperStructs::getChargeMass(np.is_positive) - np.mz) / np.mz;
@@ -194,13 +193,13 @@ namespace OpenMS
       fs << pg.getIsotopeCosine() << "\t" << pg.getChargeIsotopeCosine(pg.getRepAbsCharge()) << "\t" << pg.getChargeScore() << "\t";
 
       auto max_qscore_mz_range = pg.getRepMzRange();
-      fs << pg.getSNR() << "\t" << pg.getChargeSNR(pg.getRepAbsCharge()) << "\t"<< pg.getAvgPPMError() << "\t" << (pg.isPositive() ? pg.getRepAbsCharge() : -pg.getRepAbsCharge()) << "\t"
+      fs << pg.getSNR() << "\t" << pg.getChargeSNR(pg.getRepAbsCharge()) << "\t" << pg.getAvgPPMError() << "\t" << (pg.isPositive() ? pg.getRepAbsCharge() : -pg.getRepAbsCharge()) << "\t"
          << std::to_string(std::get<0>(max_qscore_mz_range)) << "\t" << std::to_string(std::get<1>(max_qscore_mz_range)) << "\t" << pg.getQScore();
 
       if (dummy)
       {
-        fs << "\t" << pg.getQvalue() << "\t" << pg.getQvalue(PeakGroup::TargetDummyType::isotope_dummy) << "\t"
-           << pg.getQvalue(PeakGroup::TargetDummyType::noise_dummy) << "\t" << pg.getQvalue(PeakGroup::TargetDummyType::charge_dummy);
+        fs << "\t" << pg.getQvalue() << "\t" << pg.getQvalue(PeakGroup::TargetDummyType::isotope_dummy) << "\t" << pg.getQvalue(PeakGroup::TargetDummyType::noise_dummy) << "\t"
+           << pg.getQvalue(PeakGroup::TargetDummyType::charge_dummy);
       }
 
       if (write_detail)
@@ -317,15 +316,12 @@ namespace OpenMS
         {
           fs << "Qvalue\tQvalueWithIsotopeDummyOnly\tQvalueWithNoiseDummyOnly\tQvalueWithChargeDummyOnly";
         }
-         fs << "\n";
+        fs << "\n";
       }
     }
   }
 
-  void FLASHDeconvSpectrumFile::writeTopFD(const DeconvolvedSpectrum& dspec, std::fstream& fs,
-                                           const double snr_threshold,
-                                           const uint min_ms_level,
-                                           const bool randomize_precursor_mass,
+  void FLASHDeconvSpectrumFile::writeTopFD(const DeconvolvedSpectrum& dspec, std::fstream& fs, const double snr_threshold, const uint min_ms_level, const bool randomize_precursor_mass,
                                            const bool randomize_fragment_mass)
   {
     UInt ms_level = dspec.getOriginalSpectrum().getMSLevel();
@@ -354,7 +350,7 @@ namespace OpenMS
     if (ms_level > 1)
     {
       double precursor_mass = dspec.getPrecursorPeakGroup().getMonoMass();
-      if(dspec.getActivationMethod() < Precursor::ActivationMethod::SIZE_OF_ACTIVATIONMETHOD)
+      if (dspec.getActivationMethod() < Precursor::ActivationMethod::SIZE_OF_ACTIVATIONMETHOD)
       {
         fs << "ACTIVATION=" << Precursor::NamesOfActivationMethodShort[dspec.getActivationMethod()] << "\n";
       }
@@ -362,7 +358,7 @@ namespace OpenMS
          << "MS_ONE_SCAN=" << dspec.getPrecursorScanNumber() << "\n"
          << "PRECURSOR_MZ=" << std::to_string(dspec.getPrecursor().getMZ()) << "\n"
          << "PRECURSOR_CHARGE=" << (int)(dspec.getPrecursor().getCharge()) << "\n"
-         << "PRECURSOR_MASS=" << std::to_string( precursor_mass + (randomize_precursor_mass ? (((double) rand() / (RAND_MAX)) * 200.0 - 100.0) : .0)) << "\n" // random number between 0 to 100.
+         << "PRECURSOR_MASS=" << std::to_string(precursor_mass + (randomize_precursor_mass ? (((double)rand() / (RAND_MAX)) * 200.0 - 100.0) : .0)) << "\n" // random number between 0 to 100.
          << "PRECURSOR_INTENSITY=" << dspec.getPrecursor().getIntensity() << "\n";
     }
 
@@ -392,7 +388,8 @@ namespace OpenMS
       }
 
       fs << std::fixed << std::setprecision(2);
-      fs << std::to_string(pg.getMonoMass() + (randomize_fragment_mass ? (((double) rand() / (RAND_MAX)) * 200.0 - 100.0) : .0)) << "\t" << pg.getIntensity() << "\t" << (pg.isPositive() ? std::get<1>(pg.getAbsChargeRange()) : -std::get<1>(pg.getAbsChargeRange())) << "\n";
+      fs << std::to_string(pg.getMonoMass() + (randomize_fragment_mass ? (((double)rand() / (RAND_MAX)) * 200.0 - 100.0) : .0)) << "\t" << pg.getIntensity() << "\t"
+         << (pg.isPositive() ? std::get<1>(pg.getAbsChargeRange()) : -std::get<1>(pg.getAbsChargeRange())) << "\n";
       fs << std::setprecision(-1);
       if (++size >= topFD_max_peak_count_)
       {

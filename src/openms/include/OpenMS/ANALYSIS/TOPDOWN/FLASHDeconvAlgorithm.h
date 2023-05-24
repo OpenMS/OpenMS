@@ -56,8 +56,7 @@ namespace OpenMS
   @ingroup Topdown
 */
 
-  class OPENMS_DLLAPI FLASHDeconvAlgorithm :
-      public DefaultParamHandler
+  class OPENMS_DLLAPI FLASHDeconvAlgorithm : public DefaultParamHandler
   {
   public:
     typedef FLASHDeconvHelperStructs::PrecalculatedAveragine PrecalculatedAveragine;
@@ -67,7 +66,7 @@ namespace OpenMS
     FLASHDeconvAlgorithm();
 
     /// copy constructor
-    FLASHDeconvAlgorithm(const FLASHDeconvAlgorithm& ) = default;
+    FLASHDeconvAlgorithm(const FLASHDeconvAlgorithm&) = default;
 
     /// move constructor
     FLASHDeconvAlgorithm(FLASHDeconvAlgorithm&& other) = default;
@@ -88,9 +87,7 @@ namespace OpenMS
       @param scan_number scan number from input spectrum.
       @param precursor_map_for_FLASHIda deconvolved precursor information from FLASHIda
  */
-    void performSpectrumDeconvolution(const MSSpectrum& spec,
-                                      const std::vector<DeconvolvedSpectrum>& survey_scans,
-                                      int scan_number,
+    void performSpectrumDeconvolution(const MSSpectrum& spec, const std::vector<DeconvolvedSpectrum>& survey_scans, int scan_number,
                                       const std::map<int, std::vector<std::vector<float>>>& precursor_map_for_FLASHIda);
 
     /// return deconvolved spectrum
@@ -124,37 +121,29 @@ namespace OpenMS
      * @param offset element index offset between a and b
      * @param min_iso_size minimum isotope size. If isotope size is less than this, return 0
      */
-    static float getCosine(const std::vector<float>& a,
-                             int a_start,
-                             int a_end,
-                             const IsotopeDistribution& b,
-                             int b_size,
-                             int offset,
-                             int min_iso_size);
+    static float getCosine(const std::vector<float>& a, int a_start, int a_end, const IsotopeDistribution& b, int b_size, int offset, int min_iso_size);
 
 
-     /** @brief Examine intensity distribution over isotope indices. Also determines the most plausible isotope index or, monoisotopic mono_mass
-         @param mono_mass monoisotopic mass
-         @param per_isotope_intensities vector of intensities associated with each isotope - aggregated through charges
-         @param offset output offset between input monoisotopic mono_mass and determined monoisotopic mono_mass
-         @param avg precalculated averagine
-         @param window_width isotope offset value range. If -1, set automatically.
-         @param allowed_iso_error_for_second_best_cos allowed isotope error to calculate the second best cos. If target_dummy_type is not PeakGroup::TargetDummyType::target, the second best cosine and its corresponding offset will be output
-         @param target_dummy_type  This target_dummy_type specifies if a PeakGroup is a target (0), charge dummy (1), noise dummy (2), or isotope dummy (3)
-         @return calculated cosine similar score
-      */
-     static float getIsotopeCosineAndDetermineIsotopeIndex(double mono_mass,
-                                                           const std::vector<float>& per_isotope_intensities,
-                                                           int& offset,
-                                                           const PrecalculatedAveragine& avg,
-                                                           int window_width = -1, int allowed_iso_error_for_second_best_cos = 0, PeakGroup::TargetDummyType target_dummy_type = PeakGroup::TargetDummyType::target);
+    /** @brief Examine intensity distribution over isotope indices. Also determines the most plausible isotope index or, monoisotopic mono_mass
+        @param mono_mass monoisotopic mass
+        @param per_isotope_intensities vector of intensities associated with each isotope - aggregated through charges
+        @param offset output offset between input monoisotopic mono_mass and determined monoisotopic mono_mass
+        @param avg precalculated averagine
+        @param window_width isotope offset value range. If -1, set automatically.
+        @param allowed_iso_error_for_second_best_cos allowed isotope error to calculate the second best cos. If target_dummy_type is not PeakGroup::TargetDummyType::target, the second best cosine and
+       its corresponding offset will be output
+        @param target_dummy_type  This target_dummy_type specifies if a PeakGroup is a target (0), charge dummy (1), noise dummy (2), or isotope dummy (3)
+        @return calculated cosine similar score
+     */
+    static float getIsotopeCosineAndDetermineIsotopeIndex(double mono_mass, const std::vector<float>& per_isotope_intensities, int& offset, const PrecalculatedAveragine& avg, int window_width = -1,
+                                                          int allowed_iso_error_for_second_best_cos = 0, PeakGroup::TargetDummyType target_dummy_type = PeakGroup::TargetDummyType::target);
 
-     /**
-      * add m/zs in input DeconvolvedSpectrum into exclusion list. The exclusion list is used to generate noise dummy masses.
-      * @param dspec input DeconvolvedSpectrum
-      * @param excluded_mzs mz exclusion list to be updated
-      */
-     static void addMZsToExcludsionList(const DeconvolvedSpectrum& dspec, std::unordered_set<double>& excluded_mzs);
+    /**
+     * add m/zs in input DeconvolvedSpectrum into exclusion list. The exclusion list is used to generate noise dummy masses.
+     * @param dspec input DeconvolvedSpectrum
+     * @param excluded_mzs mz exclusion list to be updated
+     */
+    static void addMZsToExcludsionList(const DeconvolvedSpectrum& dspec, std::unordered_set<double>& excluded_mzs);
 
     /**
      *  set target dummy type for the FLASHDeconvAlgorithm run. All masses from the target FLASHDeconvAlgorithm run will have the target_dummy_type_.
@@ -231,7 +220,7 @@ namespace OpenMS
     /// mz_bins_ stores the binned log mz peaks
     boost::dynamic_bitset<> mz_bins_;
     /// mz_bin to peak index mz_bin_peak_index_[mz_bin] = peak index
-    //std::vector<int> mz_bin_peak_index_;
+    // std::vector<int> mz_bin_peak_index_;
 
     /// This stores the "universal pattern"
     std::vector<double> filter_;
@@ -307,7 +296,7 @@ namespace OpenMS
         @param mass_intensities mass bin intensities which are updated in this function
         @param mz_intensities mz bin intensities
      */
-    void updateCandidateMassBins_(std::vector<float>&  mass_intensities, const std::vector<float>& mz_intensities);
+    void updateCandidateMassBins_(std::vector<float>& mass_intensities, const std::vector<float>& mz_intensities);
 
     /** @brief For selected masses in mass_bins_, select the peaks from the original spectrum. Also isotopic peaks are clustered in this function.
         @param per_mass_abs_charge_ranges charge range per mass
@@ -334,8 +323,6 @@ namespace OpenMS
     @param survey_scans the candidate precursor spectra - the user may allow search of previous N survey scans.
     @param precursor_map_for_real_time_acquisition this contains the deconvolved mass information from FLASHIda runs.
     */
-    bool registerPrecursor_(const std::vector<DeconvolvedSpectrum>& survey_scans,
-                                  const std::map<int, std::vector<std::vector<float>>>& precursor_map_for_real_time_acquisition);
-
+    bool registerPrecursor_(const std::vector<DeconvolvedSpectrum>& survey_scans, const std::map<int, std::vector<std::vector<float>>>& precursor_map_for_real_time_acquisition);
   };
-}
+} // namespace OpenMS

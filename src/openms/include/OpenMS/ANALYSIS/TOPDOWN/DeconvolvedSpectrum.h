@@ -70,7 +70,7 @@ namespace OpenMS
     ~DeconvolvedSpectrum() = default;
 
     /// copy constructor
-    DeconvolvedSpectrum(const DeconvolvedSpectrum& ) = default;
+    DeconvolvedSpectrum(const DeconvolvedSpectrum&) = default;
 
     /// move constructor
     DeconvolvedSpectrum(DeconvolvedSpectrum&& other) noexcept = default;
@@ -147,7 +147,7 @@ namespace OpenMS
     void setOriginalSpectrum(const MSSpectrum& spec);
 
     /// set peak groups in this spectrum
-    void setPeakGroups (std::vector<PeakGroup>& x);
+    void setPeakGroups(std::vector<PeakGroup>& x);
 
     /// iterators and vector operators for std::vector<PeakGroup> peak_groups_ in this spectrum
     std::vector<PeakGroup>::const_iterator begin() const noexcept;
@@ -158,16 +158,17 @@ namespace OpenMS
 
     const PeakGroup& operator[](Size i) const;
     PeakGroup& operator[](Size i);
-    void push_back (const PeakGroup& pg);
+    void push_back(const PeakGroup& pg);
     Size size() const noexcept;
     void clear();
-    void reserve (Size n);
+    void reserve(Size n);
     bool empty() const;
 
     /// sort by deconvolved monoisotopic masses
     void sort();
     /// sort by QScore of peakGroups
     void sortByQScore();
+
   private:
     /// peak groups (deconvolved masses)
     std::vector<PeakGroup> peak_groups_;
@@ -182,4 +183,4 @@ namespace OpenMS
     /// scan number and precursor scan number
     int scan_number_ = 0, precursor_scan_number_ = 0;
   };
-}
+} // namespace OpenMS

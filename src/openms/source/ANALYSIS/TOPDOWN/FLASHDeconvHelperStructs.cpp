@@ -38,13 +38,10 @@
 
 namespace OpenMS
 {
-  FLASHDeconvHelperStructs::PrecalculatedAveragine::PrecalculatedAveragine(const double min_mass,
-                                                                           const double max_mass,
-                                                                           const double delta,
-                                                                           CoarseIsotopePatternGenerator& generator,
-                                                                           const bool use_RNA_averagine)
-      :
-      mass_interval_(delta), min_mass_(min_mass)
+  FLASHDeconvHelperStructs::PrecalculatedAveragine::PrecalculatedAveragine(const double min_mass, const double max_mass, const double delta, CoarseIsotopePatternGenerator& generator,
+                                                                           const bool use_RNA_averagine) :
+      mass_interval_(delta),
+      min_mass_(min_mass)
   {
     int i = 0;
     while (true)
@@ -60,9 +57,7 @@ namespace OpenMS
         break;
       }
 
-      auto iso = use_RNA_averagine ?
-                 generator.estimateFromRNAMonoWeight(mass) :
-                 generator.estimateFromPeptideMonoWeight(mass);
+      auto iso = use_RNA_averagine ? generator.estimateFromRNAMonoWeight(mass) : generator.estimateFromPeptideMonoWeight(mass);
 
       const double min_pwr = .9999;
       const Size min_iso_length = 2;
@@ -88,7 +83,7 @@ namespace OpenMS
       int right_count = (int)iso.size() - 1;
       int trim_count = 0;
 
-      while (iso.size() - trim_count > min_iso_length && left_count<right_count)
+      while (iso.size() - trim_count > min_iso_length && left_count < right_count)
       {
         double lint = iso[left_count].getIntensity();
         double rint = iso[right_count].getIntensity();
@@ -124,7 +119,7 @@ namespace OpenMS
       right_count = right_count - (int)most_abundant_index_;
       iso.trimRight(1e-10);
 
-      for (auto & k : iso)
+      for (auto& k : iso)
       {
         float ori_int = k.getIntensity();
         k.setIntensity(ori_int / (float)sqrt(total_pwr));
@@ -143,7 +138,7 @@ namespace OpenMS
 
   Size FLASHDeconvHelperStructs::PrecalculatedAveragine::massToIndex_(const double mass) const
   {
-    Size i = (Size) round(std::max(.0, mass - min_mass_) / mass_interval_);
+    Size i = (Size)round(std::max(.0, mass - min_mass_) / mass_interval_);
     i = std::min(i, isotopes_.size() - 1);
     return i;
   }
@@ -160,7 +155,7 @@ namespace OpenMS
 
   Size FLASHDeconvHelperStructs::PrecalculatedAveragine::getLeftCountFromApex(const double mass) const
   {
-    return (Size) left_count_from_apex_[massToIndex_(mass)];
+    return (Size)left_count_from_apex_[massToIndex_(mass)];
   }
 
   double FLASHDeconvHelperStructs::PrecalculatedAveragine::getAverageMassDelta(const double mass) const
@@ -175,7 +170,7 @@ namespace OpenMS
 
   Size FLASHDeconvHelperStructs::PrecalculatedAveragine::getRightCountFromApex(const double mass) const
   {
-    return (Size) right_count_from_apex_[massToIndex_(mass)];
+    return (Size)right_count_from_apex_[massToIndex_(mass)];
   }
 
   Size FLASHDeconvHelperStructs::PrecalculatedAveragine::getApexIndex(const double mass) const
@@ -195,12 +190,7 @@ namespace OpenMS
   }
 
   FLASHDeconvHelperStructs::LogMzPeak::LogMzPeak(const Peak1D& peak, const bool positive) :
-      mz(peak.getMZ()),
-      intensity(peak.getIntensity()),
-      logMz(getLogMz(peak.getMZ(), positive)),
-      abs_charge(0),
-      is_positive(positive),
-      isotopeIndex(0)
+      mz(peak.getMZ()), intensity(peak.getIntensity()), logMz(getLogMz(peak.getMZ(), positive)), abs_charge(0), is_positive(positive), isotopeIndex(0)
   {
   }
 
@@ -219,7 +209,7 @@ namespace OpenMS
 
   bool FLASHDeconvHelperStructs::LogMzPeak::operator<(const LogMzPeak& a) const
   {
-    if(this->logMz == a.logMz)
+    if (this->logMz == a.logMz)
     {
       return this->intensity < a.intensity;
     }
@@ -228,7 +218,7 @@ namespace OpenMS
 
   bool FLASHDeconvHelperStructs::LogMzPeak::operator>(const LogMzPeak& a) const
   {
-    if(this->logMz == a.logMz)
+    if (this->logMz == a.logMz)
     {
       return this->intensity > a.intensity;
     }
@@ -249,4 +239,4 @@ namespace OpenMS
   {
     return std::log(mz - getChargeMass(positive));
   }
-}
+} // namespace OpenMS
