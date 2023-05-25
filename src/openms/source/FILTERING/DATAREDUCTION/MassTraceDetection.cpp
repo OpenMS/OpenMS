@@ -209,19 +209,20 @@ namespace OpenMS
       return;
     }
 
+
     void MassTraceDetection::run(PeakMap::ConstAreaIterator& begin,
                                  PeakMap::ConstAreaIterator& end,
                                  std::vector<MassTrace>& found_masstraces)
     {
-      PeakMap map;
-      MSSpectrum current_spectrum;
-
       if (begin == end)
       {
         return;
       }
 
-      for (; begin != end; ++begin)
+      PeakMap map;
+      MSSpectrum current_spectrum;
+
+      while (begin != end)
       {
         // AreaIterator points on novel spectrum?
         if (begin.getRT() != current_spectrum.getRT())
@@ -234,65 +235,33 @@ namespace OpenMS
           current_spectrum.clear(false);
           current_spectrum.setRT(begin.getRT());
         }
+
         current_spectrum.push_back(*begin);
+        ++begin;
       }
-      map.addSpectrum(current_spectrum);
+
+      map.addSpectrum(std::move(current_spectrum));
 
       run(map, found_masstraces);
     }
 
-    // void MassTraceDetection::run(PeakMap::ConstAreaIterator& begin,
-    //                              PeakMap::ConstAreaIterator& end,
-    //                              std::vector<MassTrace>& found_masstraces)
-    // {
-    //   if (begin == end)
-    //   {
-    //     return;
-    //   }
 
-    //   PeakMap map;
-    //   MSSpectrum current_spectrum;
+    void updateWeightedSDEstimateRobust(const PeakType& p, const double& mean_t1, double& sd_t, double& last_weights_sum)
+    {
+      double denom = std::sqrt
+      (
+        std::exp(std::log(last_weights_sum) + 2 * std::log(sd_t)) +
+        std::exp(std::log(p.getIntensity()) + 2 * std::log(std::abs(p.getMZ() - mean_t1)))
+      );
+      double weights_sum = last_weights_sum + p.getIntensity();
+      double tmp_sd = denom / std::sqrt(weights_sum);
 
-    //   while (begin != end)
-    //   {
-    //     // AreaIterator points on novel spectrum?
-    //     if (begin.getRT() != current_spectrum.getRT())
-    //     {
-    //       // save new spectrum in map
-    //       if (current_spectrum.getRT() != -1)
-    //       {
-    //         map.addSpectrum(current_spectrum);
-    //       }
-    //       current_spectrum.clear(false);
-    //       current_spectrum.setRT(begin.getRT());
-    //     }
-
-    //     current_spectrum.push_back(*begin);
-    //     ++begin;
-    //   }
-
-    //   map.addSpectrum(std::move(current_spectrum));
-
-    //   run(map, found_masstraces);
-    // }
-
-
-    // void updateWeightedSDEstimateRobust(const PeakType& p, const double& mean_t1, double& sd_t, double& last_weights_sum)
-    // {
-    //   double denom = std::sqrt
-    //   (
-    //     std::exp(std::log(last_weights_sum) + 2 * std::log(sd_t)) +
-    //     std::exp(std::log(p.getIntensity()) + 2 * std::log(std::abs(p.getMZ() - mean_t1)))
-    //   );
-    //   double weights_sum = last_weights_sum + p.getIntensity();
-    //   double tmp_sd = denom / std::sqrt(weights_sum);
-
-    //   if (tmp_sd > std::numeric_limits<double>::epsilon())
-    //   {
-    //     sd_t = tmp_sd;
-    //   }
-    //   last_weights_sum = weights_sum;
-    // }
+      if (tmp_sd > std::numeric_limits<double>::epsilon())
+      {
+        sd_t = tmp_sd;
+      }
+      last_weights_sum = weights_sum;
+    }
 
     void MassTraceDetection::run(const PeakMap& input_exp, std::vector<MassTrace>& found_masstraces, const Size max_traces)
     {
@@ -382,29 +351,31 @@ namespace OpenMS
     {
       Size fwhm_meta_count(0);
 
-      for (Size i = 0; 
-          (i < work_exp.size()) &&
-          (!work_exp[i].getFloatDataArrays().empty()) &&
-          (work_exp[i].getFloatDataArrays()[0].getName() == "FWHM_ppm");
-          ++i)
+      for (Size i = 0; (i < work_exp.size()); ++i)
       {
-        if (work_exp[i].getFloatDataArrays()[0].size() != work_exp[i].size())
-        { // float data should always have the same size as the corresponding array
-          throw Exception::InvalidSize(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, work_exp[i].size());
-        }
-        ++fwhm_meta_count;
-      }
-
-      if (fwhm_meta_count > 0) 
-      {
-        if (fwhm_meta_count == work_exp.size()) return true;
-        else 
+        if ((!work_exp[i].getFloatDataArrays().empty()) &&
+            (work_exp[i].getFloatDataArrays()[0].getName() == "FWHM_ppm"))
         {
-          throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-            String("FWHM meta arrays are expected to be missing or present for all MS spectra [") + fwhm_meta_count + "/" + work_exp.size() + "].");
+          if (work_exp[i].getFloatDataArrays()[0].size() != work_exp[i].size())
+          { // float data should always have the same size as the corresponding array
+            throw Exception::InvalidSize(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, work_exp[i].size());
+          }
+          ++fwhm_meta_count;
         }
       }
-      else return false;
+      if (fwhm_meta_count == 0) 
+      {
+        return false;
+      }
+      else if (fwhm_meta_count == work_exp.size())
+      {
+        return true;
+      }
+      else 
+      {
+        throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+          String("FWHM meta arrays are expected to be missing or present for all MS spectra [") + fwhm_meta_count + "/" + work_exp.size() + "].");
+      }
     }
 
     void MassTraceDetection::run_(std::vector<Apex>& chrom_apices,
@@ -440,7 +411,7 @@ namespace OpenMS
       // Size index{};
 
       #pragma omp parallel
-      while(true)
+      while((max_traces < 1) || (found_masstraces.size() <max_traces))
       {
         Size index{};
 
@@ -758,73 +729,6 @@ namespace OpenMS
 
 // SA1_subset_verysmall 
 
-
-
-
-    void updateMeanEstimate(const double& x_t, double& mean_t, Size t)
-    {
-      mean_t +=  (1.0 / ((double)t + 1.0)) * (x_t - mean_t);
-    }
-
-    void updateSDEstimate(const double& x_t, const double& mean_t, double& sd_t, Size t)
-    {
-      double i(t);
-      sd_t = (i / (i + 1)) * sd_t + (i / (i + 1) * (i + 1)) * (x_t - mean_t) * (x_t - mean_t);
-      // std::cerr << "func:  " << tmp << " " << i << std::endl;
-    }
-
-    void updateWeightedSDEstimate(const PeakType& p, const double& mean_t1, double& sd_t, double& last_weights_sum)
-    {
-      double denom = last_weights_sum * sd_t * sd_t + p.getIntensity() * (p.getMZ() - mean_t1) * (p.getMZ() - mean_t1);
-      double weights_sum = last_weights_sum + p.getIntensity();
-
-      double tmp_sd = std::sqrt(denom / weights_sum);
-
-      if (tmp_sd > std::numeric_limits<double>::epsilon())
-      {
-        sd_t = tmp_sd;
-      }
-
-      last_weights_sum = weights_sum;
-    }
-
-    void updateWeightedSDEstimateRobust(const PeakType& p, const double& mean_t1, double& sd_t, double& last_weights_sum)
-    {
-      double denom1 = std::log(last_weights_sum) + 2 * std::log(sd_t);
-      double denom2 = std::log(p.getIntensity()) + 2 * std::log(std::abs(p.getMZ() - mean_t1));
-      double denom = std::sqrt(std::exp(denom1) + std::exp(denom2));
-      double weights_sum = last_weights_sum + p.getIntensity();
-      double tmp_sd = denom / std::sqrt(weights_sum);
-
-      if (tmp_sd > std::numeric_limits<double>::epsilon())
-      {
-        sd_t = tmp_sd;
-      }
-
-      last_weights_sum = weights_sum;
-    }
-
-    void computeWeightedSDEstimate(std::list<PeakType> tmp, const double& mean_t, double& sd_t, const double& /* lower_sd_bound */)
-    {
-      double denom(0.0), weights_sum(0.0);
-
-      for (std::list<PeakType>::const_iterator l_it = tmp.begin(); l_it != tmp.end(); ++l_it)
-      {
-        denom += l_it->getIntensity() * (l_it->getMZ() - mean_t) * (l_it->getMZ() - mean_t);
-        weights_sum += l_it->getIntensity();
-      }
-
-      double tmp_sd = std::sqrt(denom / (weights_sum));
-
-      // std::cout << "tmp_sd" << tmp_sd << std::endl;
-
-      if (tmp_sd > std::numeric_limits<double>::epsilon())
-      {
-        sd_t = tmp_sd;
-      }
-
-      return;
-    }
 
 
 //       // *********************************************************************
