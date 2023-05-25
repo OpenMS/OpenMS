@@ -411,7 +411,7 @@ namespace OpenMS
       // Size index{};
 
       #pragma omp parallel
-      while((max_traces < 1) || (found_masstraces.size() <max_traces))
+      while((max_traces < 1) || (found_masstraces.size() < max_traces))
       {
         Size index{};
 
