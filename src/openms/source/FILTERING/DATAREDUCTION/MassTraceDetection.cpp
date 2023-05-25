@@ -409,14 +409,48 @@ namespace OpenMS
       // }
 
       // Size index{};
-
+      std::cout << chrom_apices.size() << "|||\n";
       #pragma omp parallel
       while((max_traces < 1) || (found_masstraces.size() < max_traces))
       {
         Size index{};
 
+        if (index == 0)
         index = relevant.getNextFreeIndex();
-        // std::cout << "Index: " << index << '\n';
+
+        if (index == 0)
+        {
+        std::cout 
+          << index << " :\n " 
+          << chrom_apices[index].scan_idx_ << " : " 
+          << chrom_apices[index].peak_idx_ << " : "
+          << chrom_apices[index].getMZ() << " : "
+          << chrom_apices[index].getRT() << " : "
+          << chrom_apices[index].getIntensity() << "\n";
+        } 
+
+        if (index == 300)
+        {
+        std::cout 
+          << index << " :\n " 
+          << chrom_apices[index].scan_idx_ << " : " 
+          << chrom_apices[index].peak_idx_ << " : "
+          << chrom_apices[index].getMZ() << " : "
+          << chrom_apices[index].getRT() << " : "
+          << chrom_apices[index].getIntensity() << "\n";
+        } 
+
+        if (index+1 == chrom_apices.size())
+        {
+        std::cout 
+          << index << " :\n " 
+          << chrom_apices[index].scan_idx_ << " : " 
+          << chrom_apices[index].peak_idx_ << " : "
+          << chrom_apices[index].getMZ() << " : "
+          << chrom_apices[index].getRT() << " : "
+          << chrom_apices[index].getIntensity() << "\n";
+        } 
+
 
         if(index >= chrom_apices.size()) break;
 
@@ -695,6 +729,17 @@ namespace OpenMS
                 // std::cout << new_trace.getSize() << " " << trace_number << '\n';
                 this->setProgress(peaks_detected);
               }
+        if (index == 0)
+        {
+        std::cout 
+          << index << " :\n " 
+          << trace_number-1 << " : " 
+          << new_trace.getSize() << " : "
+          << found_masstraces.size() << "\n"
+          << found_masstraces[found_masstraces.size() -1].getCentroidMZ() << " : "
+          << found_masstraces[found_masstraces.size() -1].getCentroidRT() << " : "
+          << found_masstraces[found_masstraces.size() -1].getCentroidSD() << " \n";
+        } 
           } 
           else
           {
