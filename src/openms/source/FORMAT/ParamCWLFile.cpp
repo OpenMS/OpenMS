@@ -76,6 +76,11 @@ namespace OpenMS
       auto node = child.value();
       if (node.is_null())
         continue; // No value given
+      if (!param.exists(key))
+      {
+        OPENMS_LOG_WARN << "Unknown (or deprecated) Parameter '" << key << "' given in outdated parameter file! Ignoring parameter." << std::endl;
+        continue;
+      }
       auto const& entry = param.getEntry(key);
       auto value = entry.value;
       if (entry.value.valueType() == ParamValue::ValueType::STRING_VALUE)
