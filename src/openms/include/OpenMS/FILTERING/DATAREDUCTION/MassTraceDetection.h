@@ -29,7 +29,7 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Timo Sachsenberg $
-// $Authors: Erhan Kenar, Holger Franken $
+// $Authors: Erhan Kenar, Holger Franken, Tristan Aretz, Manuel Zschaebitz $
 // --------------------------------------------------------------------------
 
 #pragma once
@@ -112,10 +112,26 @@ namespace OpenMS
 
         struct Apex
         {
-          Apex(const PeakMap& map, const Size scan_idx, const Size peak_idx);
-          const PeakMap& map_;
-          const Size scan_idx_;
-          const Size peak_idx_;
+          Apex(PeakMap& map, const Size scan_idx, const Size peak_idx);
+          // Default constructors
+          Apex() = default;
+          Apex(const Apex& other) = default;
+          Apex(Apex&& other) = default;
+
+          // Move assignment operator
+          Apex& operator=(Apex&& other) 
+          {
+            if (this != &other) {
+              map_ = other.map_;
+              scan_idx_ = other.scan_idx_;
+              peak_idx_ = other.peak_idx_;
+            }
+            return *this;
+          }
+
+          PeakMap& map_;
+          Size scan_idx_;
+          Size peak_idx_;
 
           ///get's the corresponding values
           double getMZ() const;
@@ -143,15 +159,18 @@ namespace OpenMS
 
           bool isVisited(const Size scan_idx, const Size peak_idx) const;
 
+          void setNumberOfThreads(const Size thread_num);
+
 
           /// reference for usage
           const std::vector<Apex>& data_;
           const std::vector<Size>& spec_offsets_;
         
           /// own datastructure
-          boost::dynamic_bitset<> peak_visited_;
+          std::vector<bool> peak_visited_;
           Size current_Apex_;
           std::vector<std::pair<RangeMZ,RangeRT>> lock_list_;
+          std::vector<double> lock_list_2_;
           double mass_error_ppm_;
         };
 
@@ -167,7 +186,7 @@ namespace OpenMS
                   const Size max_traces = 0);
 
         // Find Offset for Peak
-        double findOffset_(const double centroid_mz, const double mass_error_ppm_);
+        static double findOffset_(const double centroid_mz, const double mass_error_ppm_);
         Size calc_right_border_(Size peak_index_in_apices_vec, const PeakMap& input_exp, const std::vector<Apex>& apices_vec);
         Size calc_left_border_(Size peak_index_in_apices_vec, const PeakMap& input_exp, const std::vector<Apex>& apices_vec);
         

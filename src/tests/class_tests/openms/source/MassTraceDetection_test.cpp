@@ -65,7 +65,7 @@ END_SECTION
 
 MassTraceDetection test_mtd;
 
-START_SECTION((void updateIterativeWeightedMeanMZ(const double &, const double &, double &, double &, double &)))
+START_SECTION((void updateIterativeWeightedMeanMZ(const double, const double , double&, double&, double&)))
 {
     double centroid_mz(150.22), centroid_int(25000000);
     double new_mz1(150.34), new_int1(23043030);
@@ -85,14 +85,14 @@ START_SECTION((void updateIterativeWeightedMeanMZ(const double &, const double &
     double wmean1((centroid_mz * centroid_int + new_mz1 * new_int1)/total_weight1);
     double wmean2((centroid_mz * centroid_int + new_mz1 * new_int1 + new_mz2 * new_int2)/total_weight2);
 
-    double prev_count(centroid_mz * centroid_int);
-    double prev_denom(centroid_int);
+    double prev_nominator(centroid_mz * centroid_int);
+    double prev_denomominator(centroid_int);
 
-    test_mtd.updateIterativeWeightedMeanMZ(new_mz1, new_int1, centroid_mz, prev_count, prev_denom);
+    test_mtd.updateIterativeWeightedMeanMZ(new_mz1, new_int1, centroid_mz, prev_nominator, prev_denomominator);
 
     TEST_REAL_SIMILAR(centroid_mz, wmean1);
 
-    test_mtd.updateIterativeWeightedMeanMZ(new_mz2, new_int2, centroid_mz, prev_count, prev_denom);
+    test_mtd.updateIterativeWeightedMeanMZ(new_mz2, new_int2, centroid_mz, prev_nominator, prev_denomominator);
 
     TEST_REAL_SIMILAR(centroid_mz, wmean2);
 
