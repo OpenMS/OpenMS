@@ -236,7 +236,11 @@ START_SECTION((void run(PeakMap::ConstAreaIterator &begin, PeakMap::ConstAreaIte
 }
 END_SECTION
 
+// #ifdef _OPENMP
+//     omp_set_num_threads(8);
+// #endif
 
+   // run MTD here... 
 
 
 /////////////////////////////////////////////////////////////

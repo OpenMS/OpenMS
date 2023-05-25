@@ -209,20 +209,19 @@ namespace OpenMS
       return;
     }
 
-
     void MassTraceDetection::run(PeakMap::ConstAreaIterator& begin,
                                  PeakMap::ConstAreaIterator& end,
                                  std::vector<MassTrace>& found_masstraces)
     {
+      PeakMap map;
+      MSSpectrum current_spectrum;
+
       if (begin == end)
       {
         return;
       }
 
-      PeakMap map;
-      MSSpectrum current_spectrum;
-
-      while (begin != end)
+      for (; begin != end; ++begin)
       {
         // AreaIterator points on novel spectrum?
         if (begin.getRT() != current_spectrum.getRT())
@@ -235,33 +234,65 @@ namespace OpenMS
           current_spectrum.clear(false);
           current_spectrum.setRT(begin.getRT());
         }
-
         current_spectrum.push_back(*begin);
-        ++begin;
       }
-
-      map.addSpectrum(std::move(current_spectrum));
+      map.addSpectrum(current_spectrum);
 
       run(map, found_masstraces);
     }
 
+    // void MassTraceDetection::run(PeakMap::ConstAreaIterator& begin,
+    //                              PeakMap::ConstAreaIterator& end,
+    //                              std::vector<MassTrace>& found_masstraces)
+    // {
+    //   if (begin == end)
+    //   {
+    //     return;
+    //   }
 
-    void updateWeightedSDEstimateRobust(const PeakType& p, const double& mean_t1, double& sd_t, double& last_weights_sum)
-    {
-      double denom = std::sqrt
-      (
-        std::exp(std::log(last_weights_sum) + 2 * std::log(sd_t)) +
-        std::exp(std::log(p.getIntensity()) + 2 * std::log(std::abs(p.getMZ() - mean_t1)))
-      );
-      double weights_sum = last_weights_sum + p.getIntensity();
-      double tmp_sd = denom / std::sqrt(weights_sum);
+    //   PeakMap map;
+    //   MSSpectrum current_spectrum;
 
-      if (tmp_sd > std::numeric_limits<double>::epsilon())
-      {
-        sd_t = tmp_sd;
-      }
-      last_weights_sum = weights_sum;
-    }
+    //   while (begin != end)
+    //   {
+    //     // AreaIterator points on novel spectrum?
+    //     if (begin.getRT() != current_spectrum.getRT())
+    //     {
+    //       // save new spectrum in map
+    //       if (current_spectrum.getRT() != -1)
+    //       {
+    //         map.addSpectrum(current_spectrum);
+    //       }
+    //       current_spectrum.clear(false);
+    //       current_spectrum.setRT(begin.getRT());
+    //     }
+
+    //     current_spectrum.push_back(*begin);
+    //     ++begin;
+    //   }
+
+    //   map.addSpectrum(std::move(current_spectrum));
+
+    //   run(map, found_masstraces);
+    // }
+
+
+    // void updateWeightedSDEstimateRobust(const PeakType& p, const double& mean_t1, double& sd_t, double& last_weights_sum)
+    // {
+    //   double denom = std::sqrt
+    //   (
+    //     std::exp(std::log(last_weights_sum) + 2 * std::log(sd_t)) +
+    //     std::exp(std::log(p.getIntensity()) + 2 * std::log(std::abs(p.getMZ() - mean_t1)))
+    //   );
+    //   double weights_sum = last_weights_sum + p.getIntensity();
+    //   double tmp_sd = denom / std::sqrt(weights_sum);
+
+    //   if (tmp_sd > std::numeric_limits<double>::epsilon())
+    //   {
+    //     sd_t = tmp_sd;
+    //   }
+    //   last_weights_sum = weights_sum;
+    // }
 
     void MassTraceDetection::run(const PeakMap& input_exp, std::vector<MassTrace>& found_masstraces, const Size max_traces)
     {
@@ -293,20 +324,20 @@ namespace OpenMS
         }
         std::vector<Size> indices_passing;
         
-        for(Size peak_idx = 0; 
-            (peak_idx < it.size()) &&
-            (it[peak_idx].getIntensity() > noise_threshold_int_);
-            ++peak_idx)
+        for(Size peak_idx = 0; peak_idx < it.size(); ++peak_idx)
         {
-          // Assume that noise_threshold_int_ contains the noise level of the
-          // data and we want to be chrom_peak_snr times above the noise level
-          // --> add this peak as possible chromatographic apex
-          if (it[peak_idx].getIntensity() > chrom_peak_snr_ * noise_threshold_int_)
+          if (it[peak_idx].getIntensity() > noise_threshold_int_)
           {
-            chrom_apices.emplace_back(work_exp, spectra_count, indices_passing.size());
+            // Assume that noise_threshold_int_ contains the noise level of the
+            // data and we want to be chrom_peak_snr times above the noise level
+            // --> add this peak as possible chromatographic apex
+            if (it[peak_idx].getIntensity() > chrom_peak_snr_ * noise_threshold_int_)
+            {
+              chrom_apices.emplace_back(work_exp, spectra_count, indices_passing.size());
+            }
+            indices_passing.push_back(peak_idx);
+            ++total_peak_count;
           }
-          indices_passing.push_back(peak_idx);
-          ++total_peak_count;
         }
         PeakMap::SpectrumType tmp_spec(it);
         tmp_spec.select(indices_passing);
@@ -730,189 +761,71 @@ namespace OpenMS
 
 
 
+    void updateMeanEstimate(const double& x_t, double& mean_t, Size t)
+    {
+      mean_t +=  (1.0 / ((double)t + 1.0)) * (x_t - mean_t);
+    }
 
-//     void MassTraceDetection::updateIterativeWeightedMeanMZ(const double& added_mz,
-//                                                            const double& added_int, double& centroid_mz, double& prev_counter,
-//                                                            double& prev_denom)
-//     {
-//       double new_weight(added_int);
-//       double new_mz(added_mz);
+    void updateSDEstimate(const double& x_t, const double& mean_t, double& sd_t, Size t)
+    {
+      double i(t);
+      sd_t = (i / (i + 1)) * sd_t + (i / (i + 1) * (i + 1)) * (x_t - mean_t) * (x_t - mean_t);
+      // std::cerr << "func:  " << tmp << " " << i << std::endl;
+    }
 
-//       double counter_tmp(1 + (new_weight * new_mz) / prev_counter);
-//       double denom_tmp(1 + (new_weight) / prev_denom);
-//       centroid_mz *= (counter_tmp / denom_tmp);
-//       prev_counter *= counter_tmp;
-//       prev_denom *= denom_tmp;
+    void updateWeightedSDEstimate(const PeakType& p, const double& mean_t1, double& sd_t, double& last_weights_sum)
+    {
+      double denom = last_weights_sum * sd_t * sd_t + p.getIntensity() * (p.getMZ() - mean_t1) * (p.getMZ() - mean_t1);
+      double weights_sum = last_weights_sum + p.getIntensity();
 
-//       return;
-//     }
+      double tmp_sd = std::sqrt(denom / weights_sum);
 
-//     void MassTraceDetection::run(PeakMap::ConstAreaIterator& begin,
-//                                  PeakMap::ConstAreaIterator& end,
-//                                  std::vector<MassTrace>& found_masstraces)
-//     {
-//       PeakMap map;
-//       MSSpectrum current_spectrum;
+      if (tmp_sd > std::numeric_limits<double>::epsilon())
+      {
+        sd_t = tmp_sd;
+      }
 
-//       if (begin == end)
-//       {
-//         return;
-//       }
+      last_weights_sum = weights_sum;
+    }
 
-//       for (; begin != end; ++begin)
-//       {
-//         // AreaIterator points on novel spectrum?
-//         if (begin.getRT() != current_spectrum.getRT())
-//         {
-//           // save new spectrum in map
-//           if (current_spectrum.getRT() != -1)
-//           {
-//             map.addSpectrum(current_spectrum);
-//           }
-//           current_spectrum.clear(false);
-//           current_spectrum.setRT(begin.getRT());
-//         }
-//         current_spectrum.push_back(*begin);
-//       }
-//       map.addSpectrum(current_spectrum);
+    void updateWeightedSDEstimateRobust(const PeakType& p, const double& mean_t1, double& sd_t, double& last_weights_sum)
+    {
+      double denom1 = std::log(last_weights_sum) + 2 * std::log(sd_t);
+      double denom2 = std::log(p.getIntensity()) + 2 * std::log(std::abs(p.getMZ() - mean_t1));
+      double denom = std::sqrt(std::exp(denom1) + std::exp(denom2));
+      double weights_sum = last_weights_sum + p.getIntensity();
+      double tmp_sd = denom / std::sqrt(weights_sum);
 
-//       run(map, found_masstraces);
-//     }
+      if (tmp_sd > std::numeric_limits<double>::epsilon())
+      {
+        sd_t = tmp_sd;
+      }
 
-// // update function for FTL method
+      last_weights_sum = weights_sum;
+    }
 
-//     void updateMeanEstimate(const double& x_t, double& mean_t, Size t)
-//     {
-//       mean_t +=  (1.0 / ((double)t + 1.0)) * (x_t - mean_t);
-//     }
+    void computeWeightedSDEstimate(std::list<PeakType> tmp, const double& mean_t, double& sd_t, const double& /* lower_sd_bound */)
+    {
+      double denom(0.0), weights_sum(0.0);
 
-//     void updateSDEstimate(const double& x_t, const double& mean_t, double& sd_t, Size t)
-//     {
-//       double i(t);
-//       sd_t = (i / (i + 1)) * sd_t + (i / (i + 1) * (i + 1)) * (x_t - mean_t) * (x_t - mean_t);
-//       // std::cerr << "func:  " << tmp << " " << i << std::endl;
-//     }
+      for (std::list<PeakType>::const_iterator l_it = tmp.begin(); l_it != tmp.end(); ++l_it)
+      {
+        denom += l_it->getIntensity() * (l_it->getMZ() - mean_t) * (l_it->getMZ() - mean_t);
+        weights_sum += l_it->getIntensity();
+      }
 
-//     void updateWeightedSDEstimate(const PeakType& p, const double& mean_t1, double& sd_t, double& last_weights_sum)
-//     {
-//       double denom = last_weights_sum * sd_t * sd_t + p.getIntensity() * (p.getMZ() - mean_t1) * (p.getMZ() - mean_t1);
-//       double weights_sum = last_weights_sum + p.getIntensity();
+      double tmp_sd = std::sqrt(denom / (weights_sum));
 
-//       double tmp_sd = std::sqrt(denom / weights_sum);
+      // std::cout << "tmp_sd" << tmp_sd << std::endl;
 
-//       if (tmp_sd > std::numeric_limits<double>::epsilon())
-//       {
-//         sd_t = tmp_sd;
-//       }
+      if (tmp_sd > std::numeric_limits<double>::epsilon())
+      {
+        sd_t = tmp_sd;
+      }
 
-//       last_weights_sum = weights_sum;
-//     }
+      return;
+    }
 
-//     void updateWeightedSDEstimateRobust(const PeakType& p, const double& mean_t1, double& sd_t, double& last_weights_sum)
-//     {
-//       double denom1 = std::log(last_weights_sum) + 2 * std::log(sd_t);
-//       double denom2 = std::log(p.getIntensity()) + 2 * std::log(std::abs(p.getMZ() - mean_t1));
-//       double denom = std::sqrt(std::exp(denom1) + std::exp(denom2));
-//       double weights_sum = last_weights_sum + p.getIntensity();
-//       double tmp_sd = denom / std::sqrt(weights_sum);
-
-//       if (tmp_sd > std::numeric_limits<double>::epsilon())
-//       {
-//         sd_t = tmp_sd;
-//       }
-
-//       last_weights_sum = weights_sum;
-//     }
-
-//     void computeWeightedSDEstimate(std::list<PeakType> tmp, const double& mean_t, double& sd_t, const double& /* lower_sd_bound */)
-//     {
-//       double denom(0.0), weights_sum(0.0);
-
-//       for (std::list<PeakType>::const_iterator l_it = tmp.begin(); l_it != tmp.end(); ++l_it)
-//       {
-//         denom += l_it->getIntensity() * (l_it->getMZ() - mean_t) * (l_it->getMZ() - mean_t);
-//         weights_sum += l_it->getIntensity();
-//       }
-
-//       double tmp_sd = std::sqrt(denom / (weights_sum));
-
-//       // std::cout << "tmp_sd" << tmp_sd << std::endl;
-
-//       if (tmp_sd > std::numeric_limits<double>::epsilon())
-//       {
-//         sd_t = tmp_sd;
-//       }
-
-//       return;
-//     }
-
-
-//     void MassTraceDetection::run(const PeakMap& input_exp, std::vector<MassTrace>& found_masstraces, const Size max_traces)
-//     {
-//       // make sure the output vector is empty
-//       found_masstraces.clear();
-
-//       // gather all peaks that are potential chromatographic peak apices
-//       //   - use work_exp for actual work (remove peaks below noise threshold)
-//       //   - store potential apices in chrom_apices
-//       PeakMap work_exp;
-//       std::vector<Apex> chrom_apices;
-
-//       Size total_peak_count(0);
-//       std::vector<Size> spec_offsets;
-//       spec_offsets.push_back(0);
-
-//       Size spectra_count(0);
-
-//       // *********************************************************** //
-//       //  Step 1: Detecting potential chromatographic apices
-//       // *********************************************************** //
-//       for (const MSSpectrum& it : input_exp)
-//       {
-//         // check if this is a MS1 survey scan
-//         if (it.getMSLevel() != 1)
-//         {
-//           continue;
-//         }
-//         std::vector<Size> indices_passing;
-//         for (Size peak_idx = 0; peak_idx < it.size(); ++peak_idx)
-//         {
-//           double tmp_peak_int((it)[peak_idx].getIntensity());
-//           if (tmp_peak_int > noise_threshold_int_)
-//           {
-//             // Assume that noise_threshold_int_ contains the noise level of the
-//             // data and we want to be chrom_peak_snr times above the noise level
-//             // --> add this peak as possible chromatographic apex
-//             if (tmp_peak_int > chrom_peak_snr_ * noise_threshold_int_)
-//             {
-//               chrom_apices.emplace_back(tmp_peak_int, spectra_count, indices_passing.size());
-//             }
-//             indices_passing.push_back(peak_idx);
-//             ++total_peak_count;
-//           }
-//         }
-//         PeakMap::SpectrumType tmp_spec(it);
-//         tmp_spec.select(indices_passing);
-//         work_exp.addSpectrum(tmp_spec);
-//         spec_offsets.push_back(spec_offsets.back() + tmp_spec.size());
-//         ++spectra_count;
-//       }
-
-//       if (spectra_count < 3)
-//       {
-//         throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-//                                       "Input map consists of too few MS1 spectra (less than 3!). Aborting...", String(spectra_count));
-//       }
-
-//       // discard last spectrum's offset
-//       spec_offsets.pop_back();
-
-//       std::sort(chrom_apices.begin(), chrom_apices.end(),
-//                 [](const Apex & a,
-//                     const Apex & b) -> bool
-//       {
-//         return a.intensity < b.intensity;
-//       });
 
 //       // *********************************************************************
 //       // Step 2: start extending mass traces beginning with the apex peak (go
