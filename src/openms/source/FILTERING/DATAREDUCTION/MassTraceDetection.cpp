@@ -409,76 +409,22 @@ namespace OpenMS
       // }
 
       // Size index{};
-      std::cout << chrom_apices.size() << "|||\n";
+    
       #pragma omp parallel
       while((max_traces < 1) || (found_masstraces.size() < max_traces))
       {
         Size index{};
 
-        if (index == 0)
+     
         index = relevant.getNextFreeIndex();
-
-        if (index == 0)
-        {
-        std::cout 
-          << index << " :\n " 
-          << chrom_apices[index].scan_idx_ << " : " 
-          << chrom_apices[index].peak_idx_ << " : "
-          << chrom_apices[index].getMZ() << " : "
-          << chrom_apices[index].getRT() << " : "
-          << chrom_apices[index].getIntensity() << "\n";
-        } 
-
-        if (index == 300)
-        {
-        std::cout 
-          << index << " :\n " 
-          << chrom_apices[index].scan_idx_ << " : " 
-          << chrom_apices[index].peak_idx_ << " : "
-          << chrom_apices[index].getMZ() << " : "
-          << chrom_apices[index].getRT() << " : "
-          << chrom_apices[index].getIntensity() << "\n";
-        } 
-
-        if (index+1 == chrom_apices.size())
-        {
-        std::cout 
-          << index << " :\n " 
-          << chrom_apices[index].scan_idx_ << " : " 
-          << chrom_apices[index].peak_idx_ << " : "
-          << chrom_apices[index].getMZ() << " : "
-          << chrom_apices[index].getRT() << " : "
-          << chrom_apices[index].getIntensity() << "\n";
-        } 
-
 
         if(index >= chrom_apices.size()) break;
 
-        // #pragma omp critical (visited)
-        // {
         if(relevant.isVisited(chrom_apices[index].scan_idx_, chrom_apices[index].peak_idx_)) 
         {
           relevant.setApexAsProcessed();
           continue;
         }
-        // }
-        // std::cout << omp_get_thread_num() << '\n';
-        // std::cout << "Get here index\n";
-
-        // std::cout << "Start run\n";
-
-        // if (max_traces > 0 && found_masstraces.size() == max_traces)
-        // {
-        //   continue;
-        // } // I think there is not max_traces
-
-        // index = relevant.getNextFreeIndex();
-
-        // if (i == chrom_apices.size())
-        // {
-        //   continue;
-        // }
-
         
         Peak2D apex_peak;
         apex_peak.setRT(chrom_apices[index].getRT());
@@ -525,7 +471,7 @@ namespace OpenMS
               ((trace_up_idx < work_exp.size() - 1) && toggle_up) 
               )
         {
-          // std::cout << "Get here0\n";
+  
           // *********************************************************** //
           // Step 2.1 MOVE DOWN in RT dim
           // *********************************************************** //
@@ -534,7 +480,7 @@ namespace OpenMS
               (!relevant.isVisited(relevant.data_[index].scan_idx_, relevant.data_[index].peak_idx_))
               )
           {
-            // std::cout << "Get here1\n";
+
             const MSSpectrum& spec_trace_down = work_exp[trace_down_idx - 1];
             if (!spec_trace_down.empty())
             {
@@ -603,7 +549,6 @@ namespace OpenMS
                                     (double)(down_scan_counter + up_scan_counter + 1);
               if (down_scan_counter > min_scans_to_consider && current_sample_rate < min_sample_rate_)
               {
-                // std::cout << "stopping down..." << std::endl;
                 toggle_down = false;
               }
             }
@@ -682,19 +627,18 @@ namespace OpenMS
 
               if (up_scan_counter > min_scans_to_consider && current_sample_rate < min_sample_rate_)
               {
-                // std::cout << "stopping up" << std::endl;
                 toggle_up = false;
               }
             }
           }
         }
 
-        // std::cout << "Get here\n";
+
 
         double num_scans(down_scan_counter + up_scan_counter + 1 - conseq_missed_peak_down - conseq_missed_peak_up);
 
         double mt_quality((double)current_trace.size() / (double)num_scans);
-        // std::cout << "mt quality: " << mt_quality << std::endl;
+
         double rt_range(std::fabs(current_trace.rbegin()->getRT() - current_trace.begin()->getRT()));
 
         // *********************************************************** //
@@ -726,20 +670,9 @@ namespace OpenMS
                 ++trace_number;
                 found_masstraces.push_back(new_trace);
                 peaks_detected += new_trace.getSize();
-                // std::cout << new_trace.getSize() << " " << trace_number << '\n';
+                
                 this->setProgress(peaks_detected);
               }
-        if (index == 0)
-        {
-        std::cout 
-          << index << " :\n " 
-          << trace_number-1 << " : " 
-          << new_trace.getSize() << " : "
-          << found_masstraces.size() << "\n"
-          << found_masstraces[found_masstraces.size() -1].getCentroidMZ() << " : "
-          << found_masstraces[found_masstraces.size() -1].getCentroidRT() << " : "
-          << found_masstraces[found_masstraces.size() -1].getCentroidSD() << " \n";
-        } 
           } 
           else
           {
@@ -753,6 +686,32 @@ namespace OpenMS
           // }
 
       }
+        // if (index == 0)
+        // {
+        // std::cout 
+        //   << index << " :\n " 
+        //   << trace_number-1 << " : " 
+        //   << new_trace.getSize() << " : "
+        //   << found_masstraces.size() << "\n"
+        //   << found_masstraces[found_masstraces.size() -1].getCentroidMZ() << " : "
+        //   << found_masstraces[found_masstraces.size() -1].getCentroidRT() << " : "
+        //   << found_masstraces[found_masstraces.size() -1].getCentroidSD() << " \n";
+        // } 
+
+    Size ca = chrom_apices.size()/2;
+    Size fm = found_masstraces.size()/2;
+    std::cout << "Daten zum testen \n"
+      << "Anzahl an chrom apices: " << chrom_apices.size()
+      << "\n Anzahl an Traces: " << found_masstraces.size()
+      << "\n Einzelne Peaks zum ueberpruefen RT|MZ|IN|scan_id|peak_id \n"
+      << "\nPeak index: 0 " << chrom_apices[0].getRT() << "|" << chrom_apices[0].getMZ() << "|" << chrom_apices[0].getIntensity() << "|" << chrom_apices[0].scan_idx_ << "|" << chrom_apices[0].peak_idx_
+      << "\nPeak index: " << ca << " " << chrom_apices[ca].getRT() << "|" << chrom_apices[ca].getMZ() << "|" << chrom_apices[ca].getIntensity() << "|" << chrom_apices[ca].scan_idx_ << "|" << chrom_apices[ca].peak_idx_
+      << "\nPeak index: " << chrom_apices.size()-1 << " " << chrom_apices[chrom_apices.size()-1].getRT() << "|" << chrom_apices[chrom_apices.size()-1].getMZ() << "|" << chrom_apices[chrom_apices.size()-1].getIntensity() << "|" << chrom_apices[chrom_apices.size()-1].scan_idx_ << "|" << chrom_apices[chrom_apices.size()-1].peak_idx_
+      << "\n Einzelne Traces zum ueberpruefen RT|MZ|SD|Size|Label \n"
+      << "\nPeak index: 0 " << found_masstraces[0].getCentroidRT() << "|" << found_masstraces[0].getCentroidMZ() << "|" << found_masstraces[0].getCentroidSD() << "|" << found_masstraces[0].getSize() << "|" << found_masstraces[0].getLabel()
+      << "\nPeak index: " << fm << " " << found_masstraces[fm].getCentroidRT() << "|" << found_masstraces[fm].getCentroidMZ() << "|" << found_masstraces[fm].getCentroidSD() << "|" << found_masstraces[fm].getSize() << "|" << found_masstraces[fm].getLabel()
+      << "\nPeak index: " << found_masstraces.size()-1 << " " << found_masstraces[found_masstraces.size()-1].getCentroidRT() << "|" << found_masstraces[found_masstraces.size()-1].getCentroidMZ() << "|" << found_masstraces[found_masstraces.size()-1].getCentroidSD() << "|" << found_masstraces[found_masstraces.size()-1].getSize() << "|" << found_masstraces[found_masstraces.size()-1].getLabel()
+    << std::endl;
     this->endProgress();
     }
 
