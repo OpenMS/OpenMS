@@ -71,9 +71,7 @@ namespace OpenMS
       this->setLogType(CMD);
     }
 
-
     MassTraceDetection::~MassTraceDetection() = default;
-
 
     MassTraceDetection::Apex::Apex(PeakMap& map, const Size scan_idx, const Size peak_idx):
       map_(map),
@@ -698,20 +696,20 @@ namespace OpenMS
         //   << found_masstraces[found_masstraces.size() -1].getCentroidSD() << " \n";
         // } 
 
-    Size ca = chrom_apices.size()/2;
-    Size fm = found_masstraces.size()/2;
-    std::cout << "Daten zum testen \n"
-      << "Anzahl an chrom apices: " << chrom_apices.size()
-      << "\n Anzahl an Traces: " << found_masstraces.size()
-      << "\n Einzelne Peaks zum ueberpruefen RT|MZ|IN|scan_id|peak_id \n"
-      << "\nPeak index: 0 " << chrom_apices[0].getRT() << "|" << chrom_apices[0].getMZ() << "|" << chrom_apices[0].getIntensity() << "|" << chrom_apices[0].scan_idx_ << "|" << chrom_apices[0].peak_idx_
-      << "\nPeak index: " << ca << " " << chrom_apices[ca].getRT() << "|" << chrom_apices[ca].getMZ() << "|" << chrom_apices[ca].getIntensity() << "|" << chrom_apices[ca].scan_idx_ << "|" << chrom_apices[ca].peak_idx_
-      << "\nPeak index: " << chrom_apices.size()-1 << " " << chrom_apices[chrom_apices.size()-1].getRT() << "|" << chrom_apices[chrom_apices.size()-1].getMZ() << "|" << chrom_apices[chrom_apices.size()-1].getIntensity() << "|" << chrom_apices[chrom_apices.size()-1].scan_idx_ << "|" << chrom_apices[chrom_apices.size()-1].peak_idx_
-      << "\n Einzelne Traces zum ueberpruefen RT|MZ|SD|Size|Label \n"
-      << "\nPeak index: 0 " << found_masstraces[0].getCentroidRT() << "|" << found_masstraces[0].getCentroidMZ() << "|" << found_masstraces[0].getCentroidSD() << "|" << found_masstraces[0].getSize() << "|" << found_masstraces[0].getLabel()
-      << "\nPeak index: " << fm << " " << found_masstraces[fm].getCentroidRT() << "|" << found_masstraces[fm].getCentroidMZ() << "|" << found_masstraces[fm].getCentroidSD() << "|" << found_masstraces[fm].getSize() << "|" << found_masstraces[fm].getLabel()
-      << "\nPeak index: " << found_masstraces.size()-1 << " " << found_masstraces[found_masstraces.size()-1].getCentroidRT() << "|" << found_masstraces[found_masstraces.size()-1].getCentroidMZ() << "|" << found_masstraces[found_masstraces.size()-1].getCentroidSD() << "|" << found_masstraces[found_masstraces.size()-1].getSize() << "|" << found_masstraces[found_masstraces.size()-1].getLabel()
-    << std::endl;
+    // Size ca = chrom_apices.size()/2;
+    // Size fm = found_masstraces.size()/2;
+    // std::cout << "Daten zum testen \n"
+    //   << "Anzahl an chrom apices: " << chrom_apices.size()
+    //   << "\n Anzahl an Traces: " << found_masstraces.size()
+    //   << "\n Einzelne Peaks zum ueberpruefen RT|MZ|IN|scan_id|peak_id \n"
+    //   << "\nPeak index: 0 " << chrom_apices[0].getRT() << "|" << chrom_apices[0].getMZ() << "|" << chrom_apices[0].getIntensity() << "|" << chrom_apices[0].scan_idx_ << "|" << chrom_apices[0].peak_idx_
+    //   << "\nPeak index: " << ca << " " << chrom_apices[ca].getRT() << "|" << chrom_apices[ca].getMZ() << "|" << chrom_apices[ca].getIntensity() << "|" << chrom_apices[ca].scan_idx_ << "|" << chrom_apices[ca].peak_idx_
+    //   << "\nPeak index: " << chrom_apices.size()-1 << " " << chrom_apices[chrom_apices.size()-1].getRT() << "|" << chrom_apices[chrom_apices.size()-1].getMZ() << "|" << chrom_apices[chrom_apices.size()-1].getIntensity() << "|" << chrom_apices[chrom_apices.size()-1].scan_idx_ << "|" << chrom_apices[chrom_apices.size()-1].peak_idx_
+    //   << "\n Einzelne Traces zum ueberpruefen RT|MZ|SD|Size|Label \n"
+    //   << "\nPeak index: 0 " << found_masstraces[0].getIntensity(false) << "|" << found_masstraces[0].getCentroidMZ() << "|" << found_masstraces[0].getCentroidSD() << "|" << found_masstraces[0].getSize() << "|" << found_masstraces[0].getLabel()
+    //   << "\nPeak index: " << fm << " " << found_masstraces[fm].getCentroidRT() << "|" << found_masstraces[fm].getCentroidMZ() << "|" << found_masstraces[fm].getCentroidSD() << "|" << found_masstraces[fm].getSize() << "|" << found_masstraces[fm].getLabel()
+    //   << "\nPeak index: " << found_masstraces.size()-1 << " " << found_masstraces[found_masstraces.size()-1].getCentroidRT() << "|" << found_masstraces[found_masstraces.size()-1].getCentroidMZ() << "|" << found_masstraces[found_masstraces.size()-1].getCentroidSD() << "|" << found_masstraces[found_masstraces.size()-1].getSize() << "|" << found_masstraces[found_masstraces.size()-1].getLabel()
+    // << std::endl;
     this->endProgress();
     }
 
