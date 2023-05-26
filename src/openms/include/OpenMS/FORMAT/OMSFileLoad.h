@@ -94,7 +94,7 @@ namespace OpenMS
       void exportToJSON(std::ostream& output);
 
     private:
-      /// Does the query contain an empty SQL statement (signifying that it shouldn't be executed)?
+      /// Does the @p query contain an empty SQL statement (signifying that it shouldn't be executed)?
       static bool isEmpty_(const SQLite::Statement& query);
 
       /// Generate a DataValue with information returned by an SQL query
