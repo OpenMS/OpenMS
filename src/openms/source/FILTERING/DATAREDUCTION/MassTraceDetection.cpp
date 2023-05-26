@@ -34,6 +34,9 @@
 
 #include <omp.h>
 
+
+#include <OpenMS/CONCEPT/FuzzyStringComparator.h>
+
 #include <OpenMS/FILTERING/DATAREDUCTION/MassTraceDetection.h>
 #include <OpenMS/MATH/MISC/MathFunctions.h>
 #include <OpenMS/MATH/STATISTICS/StatisticFunctions.h>
@@ -695,6 +698,24 @@ namespace OpenMS
         //   << found_masstraces[found_masstraces.size() -1].getCentroidRT() << " : "
         //   << found_masstraces[found_masstraces.size() -1].getCentroidSD() << " \n";
         // } 
+      String file1="../featurefindermetabo/test/test_parallel1.featureXML";
+      String file2="../featurefindermetabo/test/test_parallel2.featureXML";
+      String file3="../featurefindermetabo/test/test_parallel3.featureXML";
+      FuzzyStringComparator fsc;
+      fsc.setVerboseLevel(3);
+      if (fsc.compareFiles(file2, file1))
+      {
+        std::cout << "1 & 2 are the same" << std::endl;
+      }
+      if (fsc.compareFiles(file3, file1))
+      {
+        std::cout << "1 & 3 are the same" << std::endl;
+      }
+      if (fsc.compareFiles(file2, file3))
+      {
+        std::cout << "3 & 2 are the same" << std::endl;
+      }
+
 
     // Size ca = chrom_apices.size()/2;
     // Size fm = found_masstraces.size()/2;
@@ -710,6 +731,15 @@ namespace OpenMS
     //   << "\nPeak index: " << fm << " " << found_masstraces[fm].getCentroidRT() << "|" << found_masstraces[fm].getCentroidMZ() << "|" << found_masstraces[fm].getCentroidSD() << "|" << found_masstraces[fm].getSize() << "|" << found_masstraces[fm].getLabel()
     //   << "\nPeak index: " << found_masstraces.size()-1 << " " << found_masstraces[found_masstraces.size()-1].getCentroidRT() << "|" << found_masstraces[found_masstraces.size()-1].getCentroidMZ() << "|" << found_masstraces[found_masstraces.size()-1].getCentroidSD() << "|" << found_masstraces[found_masstraces.size()-1].getSize() << "|" << found_masstraces[found_masstraces.size()-1].getLabel()
     // << std::endl;
+    // for (auto& i : found_masstraces)
+    // {
+    //   std::cout 
+    //     << i.getCentroidMZ() << "|" << i.getCentroidRT() << "|" 
+    //     << i.getCentroidSD() << "|" << i.getIntensity(false) 
+    //     << "|" << i.getSize() << "|" << i.getTraceLength() 
+    //     << "|" << i.getLabel() 
+    //   << std::endl;
+    // }
     this->endProgress();
     }
 

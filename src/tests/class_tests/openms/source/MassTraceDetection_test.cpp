@@ -51,9 +51,8 @@ START_TEST(MassTraceDetection, "$Id$")
 
 
 ///Classtests
-{
-  MassTraceDetection* ptr = nullptr;
-  MassTraceDetection* null_ptr = nullptr;
+MassTraceDetection* ptr = nullptr;
+MassTraceDetection* null_ptr = nullptr;
 
   START_SECTION(MassTraceDetection())
   {
@@ -67,12 +66,9 @@ START_TEST(MassTraceDetection, "$Id$")
     delete ptr;
   }
   END_SECTION
-}
-
 
 
 ///Help funtions test
-{
   START_SECTION((void updateIterativeWeightedMeanMZ(const double, const double , double&, double&, double&)))
   {
     MassTraceDetection test_mtd;
@@ -111,18 +107,18 @@ START_TEST(MassTraceDetection, "$Id$")
   }
   END_SECTION
 
-  //later
-  // START_SECTION(void updateWeightedSDEstimateRobust(const PeakType&, const double&, double&, double& ))
-  // {
+  ///later
+  START_SECTION(void updateWeightedSDEstimateRobust(const PeakType&, const double&, double&, double& ))
+  {
+    NOT_TESTABLE;
+  }
+  END_SECTION
 
-  // }
-  // END_SECTION
-}
 
 ///run tests aka the real work
-{
-  MassTraceDetection test_mtd;
-  std::vector<MassTrace> output_mt;
+
+MassTraceDetection test_mtd;
+std::vector<MassTrace> output_mt;
 
   START_SECTION((void run(const PeakMap &, std::vector< MassTrace > &)))
   {
@@ -199,29 +195,29 @@ START_TEST(MassTraceDetection, "$Id$")
 
 
 
-  // START_SECTION((void run(PeakMap::ConstAreaIterator &begin, PeakMap::ConstAreaIterator &end, std::vector< MassTrace > &found_masstraces)))
-  // {
-  //   /// load data with threads, so it will be faster
-  //   #ifdef _OPENMP
-  //     omp_set_num_threads(8);
-  //   #endif
+  START_SECTION((void run(PeakMap::ConstAreaIterator &begin, PeakMap::ConstAreaIterator &end, std::vector< MassTrace > &found_masstraces)))
+  {
+    /// load data with threads, so it will be faster
+    #ifdef _OPENMP
+      omp_set_num_threads(8);
+    #endif
 
-  //   //input2 is for testing correctness of dense data points
-  //   PeakMap input2;
-  //   MzMLFile().load(OPENMS_GET_TEST_DATA_PATH("MapAlignmentAlgorithmPoseClustering_in2.mzML.gz"),input2);
+    //input2 is for testing correctness of dense data points
+    PeakMap input2;
+    MzMLFile().load(OPENMS_GET_TEST_DATA_PATH("MapAlignmentAlgorithmPoseClustering_in2.mzML.gz"),input2);
 
-  //   #ifdef _OPENMP
-  //     omp_set_num_threads(1);
-  //   #endif
+    #ifdef _OPENMP
+      omp_set_num_threads(1);
+    #endif
+
+    std::vector<MassTrace> found_mtraces;
+
+    PeakMap::ConstAreaIterator mt_it1 = input2.areaBeginConst(335.0, 385.0, 437.1, 437.4);
+    PeakMap::ConstAreaIterator mt_end = input2.areaEndConst();
+
+    std::vector<MassTrace> found_mtraces;
 
 
-  //   std::vector<MassTrace> filt;
-
-  //   PeakMap::ConstAreaIterator mt_it1 = input2.areaBeginConst(335.0, 385.0, 437.1, 437.4);
-
-  //   std::vector<MassTrace> found_mtraces;
-
-  //   PeakMap::ConstAreaIterator mt_end = input2.areaEndConst();
 
   //   found_mtraces.clear();
 
@@ -269,13 +265,10 @@ START_TEST(MassTraceDetection, "$Id$")
   //   TEST_REAL_SIMILAR(found_mtraces[0].computePeakArea(), exp_mt_ints[0]);
 
   //   found_mtraces.clear();
-  // }
-  // END_SECTION
-}
+  }
+  END_SECTION
+
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST
-
-
-

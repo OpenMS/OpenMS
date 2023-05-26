@@ -133,10 +133,7 @@ START_SECTION((void run(std::vector< MassTrace > &, FeatureMap &, chromatograms 
 }
 END_SECTION
 
-// for (const auto& i: outout)
-// {
-//   std::cout << i;
-// }
+
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST
