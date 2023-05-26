@@ -47,7 +47,7 @@ namespace OpenMS
    * Three structures are defined: PrecalculatedAveragine, TopPicItem, and LogMzPeak
    * i) PrecalculatedAveragine - to match observed isotopic envelope against theoretical one, theoretical envelope from
    * averagine model should be quickly calculated. To do so, precalculate averagines for different masses at the beginning of FLASHDeconv runs
-   * ii) TopPicItem - represent TopPic identification. Currently used for QScore training. TopPic is the top-down proteomics identification tool (https://www.toppic.org/).
+   * ii) TopPicItem - represent TopPic identification. Currently used for Qscore training. TopPic is the top-down proteomics identification tool (https://www.toppic.org/).
    * iii) LogMzPeak - Log transformed peak from original peak. Contains information such as charge, isotope index, and uncharged mass.
    * @see FLASHDeconvAlgorithm
    * @reference: FeatureFinderAlgorithmPickedHelperStructs

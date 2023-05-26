@@ -117,7 +117,7 @@ namespace OpenMS
       {
         continue;
       }
-      val << pg.getQScore() << ",";
+      val << pg.getQscore() << ",";
     }
 
     val << ";qvalue=";
@@ -127,7 +127,7 @@ namespace OpenMS
       {
         continue;
       }
-      val << pg.getQScore() << ",";
+      val << pg.getQvalue() << ",";
     }
     out_spec.setMetaValue("DeconvMassInfo", val.str());
 
@@ -161,7 +161,7 @@ namespace OpenMS
     return spec_;
   }
 
-  const PeakGroup& DeconvolvedSpectrum::getPrecursorPeakGroup() const
+  PeakGroup& DeconvolvedSpectrum::getPrecursorPeakGroup()
   {
     return precursor_peak_group_;
   }
@@ -315,13 +315,8 @@ namespace OpenMS
     std::sort(peak_groups_.begin(), peak_groups_.end());
   }
 
-  void DeconvolvedSpectrum::sortByQScore()
+  void DeconvolvedSpectrum::sortByQscore()
   {
-    std::sort(peak_groups_.begin(), peak_groups_.end(), [](const PeakGroup& p1, const PeakGroup& p2) { return p1.getQScore() > p2.getQScore(); });
-  }
-
-  void DeconvolvedSpectrum::setPrecursorQvalue(float q, PeakGroup::TargetDummyType flag)
-  {
-    precursor_peak_group_.setQvalue(q, flag);
+    std::sort(peak_groups_.begin(), peak_groups_.end(), [](const PeakGroup& p1, const PeakGroup& p2) { return p1.getQscore() > p2.getQscore(); });
   }
 } // namespace OpenMS

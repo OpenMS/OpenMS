@@ -34,7 +34,7 @@
 
 #include <OpenMS/ANALYSIS/TOPDOWN/FLASHDeconvAlgorithm.h>
 #include <OpenMS/ANALYSIS/TOPDOWN/PeakGroup.h>
-#include <OpenMS/ANALYSIS/TOPDOWN/QScore.h>
+#include <OpenMS/ANALYSIS/TOPDOWN/Qscore.h>
 
 namespace OpenMS
 {
@@ -135,7 +135,7 @@ namespace OpenMS
     }
   }
 
-  int PeakGroup::updateIsotopeCosineSNRAvgErrorAndQScore(const FLASHDeconvHelperStructs::PrecalculatedAveragine& avg, double min_cos)
+  int PeakGroup::updateIsotopeCosineSNRAvgErrorAndQscore(const FLASHDeconvHelperStructs::PrecalculatedAveragine& avg, double min_cos)
   {
     qscore_ = 0;
     if (empty())
@@ -179,7 +179,7 @@ namespace OpenMS
         continue;
       }
 
-      float q_score = QScore::getQScore(this, abs_charge);
+      float q_score = Qscore::getQscore(this, abs_charge);
       if (qscore_ > q_score)
       {
         continue;
@@ -610,9 +610,9 @@ namespace OpenMS
     avg_ppm_error_ = error;
   }
 
-  void PeakGroup::setQScore(const float q)
+  void PeakGroup::Qscore(const float qscore)
   {
-    qscore_ = q;
+    qscore_ = qscore;
   }
 
   std::tuple<double, double> PeakGroup::getRepMzRange() const
@@ -681,7 +681,7 @@ namespace OpenMS
     return max_qscore_abs_charge_;
   }
 
-  float PeakGroup::getQScore() const
+  float PeakGroup::getQscore() const
   {
     return qscore_;
   }

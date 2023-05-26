@@ -53,13 +53,13 @@ namespace OpenMS
     std::map<uint, std::vector<float>> dscore_charge_decoy_map;
     std::map<uint, std::map<float, float>> qscore_charge_decoy_map; // maps for charge decoy only qvalues
 
-    // to calculate qvalues per ms level, store QScores per ms level
+    // to calculate qvalues per ms level, store Qscores per ms level
     for (auto& deconvolved_spectrum : deconvolved_spectra)
     {
       uint ms_level = deconvolved_spectrum.getOriginalSpectrum().getMSLevel();
       for (auto& pg : deconvolved_spectrum)
       {
-        tscore_map[ms_level].push_back(pg.getQScore());
+        tscore_map[ms_level].push_back(pg.getQscore());
       }
     }
 
@@ -70,15 +70,15 @@ namespace OpenMS
       {
         if (pg.getTargetDummyType() == PeakGroup::TargetDummyType::isotope_dummy)
         {
-          dscore_iso_decoy_map[ms_level].push_back(pg.getQScore());
+          dscore_iso_decoy_map[ms_level].push_back(pg.getQscore());
         }
         else if (pg.getTargetDummyType() == PeakGroup::TargetDummyType::noise_dummy)
         {
-          dscore_noise_decoy_map[ms_level].push_back(pg.getQScore());
+          dscore_noise_decoy_map[ms_level].push_back(pg.getQscore());
         }
         else if (pg.getTargetDummyType() == PeakGroup::TargetDummyType::charge_dummy)
         {
-          dscore_charge_decoy_map[ms_level].push_back(pg.getQScore());
+          dscore_charge_decoy_map[ms_level].push_back(pg.getQscore());
         }
       }
     }
@@ -233,19 +233,19 @@ namespace OpenMS
 
         for (auto& pg : deconvolved_spectrum)
         {
-          pg.setQvalue(map_charge[pg.getQScore()], PeakGroup::TargetDummyType::charge_dummy);
-          pg.setQvalue(map_noise[pg.getQScore()], PeakGroup::TargetDummyType::noise_dummy);
-          pg.setQvalue(map_iso[pg.getQScore()], PeakGroup::TargetDummyType::isotope_dummy);
+          pg.setQvalue(map_charge[pg.getQscore()], PeakGroup::TargetDummyType::charge_dummy);
+          pg.setQvalue(map_noise[pg.getQscore()], PeakGroup::TargetDummyType::noise_dummy);
+          pg.setQvalue(map_iso[pg.getQscore()], PeakGroup::TargetDummyType::isotope_dummy);
 
           if (deconvolved_spectrum.getOriginalSpectrum().getMSLevel() > 1 && !deconvolved_spectrum.getPrecursorPeakGroup().empty())
           {
-            float qs = deconvolved_spectrum.getPrecursorPeakGroup().getQScore();
+            float qs = deconvolved_spectrum.getPrecursorPeakGroup().getQscore();
             auto& pmap_iso = qscore_iso_decoy_map[ms_level - 1];
             auto& pmap_charge = qscore_charge_decoy_map[ms_level - 1];
             auto& pmap_noise = qscore_noise_decoy_map[ms_level - 1];
-            deconvolved_spectrum.setPrecursorQvalue(pmap_iso[qs], PeakGroup::TargetDummyType::isotope_dummy);
-            deconvolved_spectrum.setPrecursorQvalue(pmap_noise[qs], PeakGroup::TargetDummyType::noise_dummy);
-            deconvolved_spectrum.setPrecursorQvalue(pmap_charge[qs], PeakGroup::TargetDummyType::charge_dummy);
+            deconvolved_spectrum.getPrecursorPeakGroup().setQvalue(pmap_iso[qs], PeakGroup::TargetDummyType::isotope_dummy);
+            deconvolved_spectrum.getPrecursorPeakGroup().setQvalue(pmap_noise[qs], PeakGroup::TargetDummyType::noise_dummy);
+            deconvolved_spectrum.getPrecursorPeakGroup().setQvalue(pmap_charge[qs], PeakGroup::TargetDummyType::charge_dummy);
           }
         }
       }

@@ -43,7 +43,7 @@ namespace OpenMS
 @brief  Class describing a deconvolved mass.
    A mass contains multiple (LogMz) peaks of different charges and isotope indices.
    PeakGroup is the set of such peaks representing a single monoisotopic mass.
-   PeakGroup also contains features that define the quality of it. It is used by QScore calculation.
+   PeakGroup also contains features that define the quality of it. It is used by Qscore calculation.
    DeconvolvedSpectrum consists of PeakGroups.
 @ingroup Topdown
 */
@@ -102,10 +102,10 @@ namespace OpenMS
     /**
            @brief Update isotope cosine sore and qscore. Mono mass is also updated one last time. SNR, per charge SNR, and avg errors are updated here.
            @param avg precalculated averagine
-           @param min_cos the peak groups with cosine score less than this will have QScore 0.
+           @param min_cos the peak groups with cosine score less than this will have Qscore 0.
            @return returns isotope offset after isotope cosine calculation
       */
-    int updateIsotopeCosineSNRAvgErrorAndQScore(const FLASHDeconvHelperStructs::PrecalculatedAveragine& avg, double min_cos);
+    int updateIsotopeCosineSNRAvgErrorAndQscore(const FLASHDeconvHelperStructs::PrecalculatedAveragine& avg, double min_cos);
 
     /**
      * @brief given a monoisotopic mass, recruit raw peaks from the raw input spectrum and add to this peakGroup. This is a bit time-consuming and is done for only a small number of selected
@@ -145,7 +145,7 @@ namespace OpenMS
     void setMonoisotopicMass(double mono_mass);
 
     /// set Q score - for FLASHIda log file parsing
-    void setQScore(float qscore);
+    void Qscore(float qscore);
 
     /// set charge score - for FLASHIda log file parsing
     void setChargeScore(float charge_score);
@@ -180,7 +180,7 @@ namespace OpenMS
     /// get per abs_charge intenstiy
     float getChargeIntensity(int abs_charge) const;
 
-    /// get mz range that results in max QScore
+    /// get mz range that results in max Qscore
     std::tuple<double, double> getRepMzRange() const;
 
     /// get mz range of the charge
@@ -199,7 +199,7 @@ namespace OpenMS
     int getRepAbsCharge() const;
 
     /// get Q score
-    float getQScore() const;
+    float getQscore() const;
 
     /// get total SNR
     float getSNR() const;

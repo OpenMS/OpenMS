@@ -74,10 +74,10 @@ namespace OpenMS
           Default MS1 headers are:
             FileName, ScanNum, TargetDummyType, RetentionTime, MassCountInSpec, AverageMass, MonoisotopicMass,
             SumIntensity, MinCharge, MaxCharge,
-            PeakCount, IsotopeCosine, ChargeScore, MassSNR, ChargeSNR, RepresentativeCharge, RepresentativeMzStart, RepresentativeMzEnd, QScore, PerChargeIntensity, PerIsotopeIntensity
+            PeakCount, IsotopeCosine, ChargeScore, MassSNR, ChargeSNR, RepresentativeCharge, RepresentativeMzStart, RepresentativeMzEnd, Qscore, PerChargeIntensity, PerIsotopeIntensity
 
           Default MS2 headers include MS1 headers plus:
-            PrecursorScanNum, PrecursorMz, PrecursorIntensity, PrecursorCharge, PrecursorSNR, PrecursorMonoisotopicMass, PrecursorQScore
+            PrecursorScanNum, PrecursorMz, PrecursorIntensity, PrecursorCharge, PrecursorSNR, PrecursorMonoisotopicMass, PrecursorQscore
 
           Detailed MS1 and MS2 headers include all corresponding headers above plus:
             PeakMZs, PeakIntensities, PeakCharges, PeakMasses, PeakIsotopeIndices, PeakPPMErrors
@@ -101,7 +101,7 @@ namespace OpenMS
       @param randomize_fragment_mass if set, a random number between -100 to 100 is added to fragment mass
     */
     //      @param avg averagine information to calculate monoisotopic and average mass difference
-    static void writeTopFD(const DeconvolvedSpectrum& dspec, std::fstream& fs,
+    static void writeTopFD(DeconvolvedSpectrum& dspec, std::fstream& fs,
                            double snr_threshold = 1.0,
                            const uint min_ms_level = 1,
                            bool randomize_precursor_mass = false,

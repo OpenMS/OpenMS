@@ -548,15 +548,15 @@ protected:
     {
       fd_charge_dummy.setParameters(fd_param);
       fd_charge_dummy.setAveragine(avg);
-      fd_charge_dummy.setTargetDummyType(PeakGroup::TargetDummyType::charge_dummy, fd); // charge
+      fd_charge_dummy.setTargetDummyType(PeakGroup::TargetDummyType::charge_dummy, fd.getDeconvolvedSpectrum()); // charge
 
       fd_noise_dummy.setParameters(fd_param);
       fd_noise_dummy.setAveragine(avg);
-      fd_noise_dummy.setTargetDummyType(PeakGroup::TargetDummyType::noise_dummy, fd); // noise
+      fd_noise_dummy.setTargetDummyType(PeakGroup::TargetDummyType::noise_dummy, fd.getDeconvolvedSpectrum()); // noise
 
       fd_iso_dummy.setParameters(fd_param);
       fd_iso_dummy.setAveragine(avg);
-      fd_iso_dummy.setTargetDummyType(PeakGroup::TargetDummyType::isotope_dummy, fd);
+      fd_iso_dummy.setTargetDummyType(PeakGroup::TargetDummyType::isotope_dummy, fd.getDeconvolvedSpectrum());
     }
 
     auto mass_tracer = MassFeatureTrace();
@@ -647,7 +647,7 @@ protected:
         precursorPeakGroup.setSNR(1.0);
 
         precursorPeakGroup.setChargeSNR(std::abs(target_precursor_charge), 1.0);
-        precursorPeakGroup.setQScore(1.0);
+        precursorPeakGroup.Qscore(1.0);
         deconvolved_spectrum.setPrecursor(precursor);
         deconvolved_spectrum.setPrecursorPeakGroup(precursorPeakGroup);
       }
@@ -657,7 +657,7 @@ protected:
         precursor_peak_groups[scan_number] = deconvolved_spectrum.getPrecursorPeakGroup();
         if (deconvolved_spectrum.getPrecursorPeakGroup().getChargeSNR(std::abs(deconvolved_spectrum.getPrecursorCharge())) >= topFD_SNR_threshold)
         {
-          expected_identification_count += deconvolved_spectrum.getPrecursorPeakGroup().getQScore();
+          expected_identification_count += deconvolved_spectrum.getPrecursorPeakGroup().getQscore();
         }
       }
       bool deconved_mzML_written = false;
@@ -748,13 +748,13 @@ protected:
         {
           dummy_deconvolved_spectrum.push_back(pg);
         }
-        dummy_deconvolved_spectrum.sortByQScore();
-        deconvolved_spectrum.sortByQScore();
+        dummy_deconvolved_spectrum.sortByQscore();
+        deconvolved_spectrum.sortByQscore();
         DeconvolvedSpectrum tmp_spectrum(scan_number);
         tmp_spectrum.setOriginalSpectrum(*it);
         for (auto& pg : dummy_deconvolved_spectrum)
         {
-          if (pg.getQScore() < deconvolved_spectrum[deconvolved_spectrum.size() - 1].getQScore())
+          if (pg.getQscore() < deconvolved_spectrum[deconvolved_spectrum.size() - 1].getQscore())
           {
             break;
           }

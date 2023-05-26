@@ -90,7 +90,7 @@ namespace OpenMS
     const MSSpectrum& getOriginalSpectrum() const;
 
     /// get precursor peak group for MSn (n>1) spectrum. It returns an empty peak group if no peak group is registered (by registerPrecursor)
-    const PeakGroup& getPrecursorPeakGroup() const;
+    PeakGroup& getPrecursorPeakGroup();
 
     /// precursor charge getter (set in registerPrecursor)
     int getPrecursorCharge() const;
@@ -137,12 +137,6 @@ namespace OpenMS
     /// set precursor peakGroup
     void setPrecursorPeakGroup(const PeakGroup& pg);
 
-    /** set precursor Q value. Q value can be retrieved by getPrecursorPeakGroup().GetQvalue()
-     * @param q Q value
-     * @param dummy_index  This index specifies if a PeakGroup is a target (0), charge dummy (1), noise dummy (2), or isotope dummy (3)
-     */
-    void setPrecursorQvalue(float q, PeakGroup::TargetDummyType dummy_index);
-
     /// original spectrum setter
     void setOriginalSpectrum(const MSSpectrum& spec);
 
@@ -166,8 +160,8 @@ namespace OpenMS
 
     /// sort by deconvolved monoisotopic masses
     void sort();
-    /// sort by QScore of peakGroups
-    void sortByQScore();
+    /// sort by Qscore of peakGroups
+    void sortByQscore();
 
   private:
     /// peak groups (deconvolved masses)

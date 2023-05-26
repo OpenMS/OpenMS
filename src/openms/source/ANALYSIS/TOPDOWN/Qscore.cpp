@@ -34,12 +34,12 @@
 
 #include <OpenMS/ANALYSIS/TOPDOWN/FLASHDeconvHelperStructs.h>
 #include <OpenMS/ANALYSIS/TOPDOWN/PeakGroup.h>
-#include <OpenMS/ANALYSIS/TOPDOWN/QScore.h>
+#include <OpenMS/ANALYSIS/TOPDOWN/Qscore.h>
 #include <iomanip>
 
 namespace OpenMS
 {
-  float QScore::getQScore(const PeakGroup* pg, const int abs_charge)
+  float Qscore::getQscore(const PeakGroup* pg, const int abs_charge)
   {
     if (pg->empty())
     { // all zero
@@ -60,7 +60,7 @@ namespace OpenMS
     return qscore;
   }
 
-  std::vector<double> QScore::toFeatureVector_(const PeakGroup* pg, const int abs_charge)
+  std::vector<double> Qscore::toFeatureVector_(const PeakGroup* pg, const int abs_charge)
   {
     std::vector<double> fvector(5); // length of weights vector - 1, excluding the intercept weight.
 

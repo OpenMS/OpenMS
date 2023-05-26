@@ -157,7 +157,7 @@ namespace OpenMS
           per_isotope_intensity[i + iso_off] += iso_int[i];
         }
 
-        max_qscore = max_qscore < pg.getQScore() ? pg.getQScore() : max_qscore;
+        max_qscore = max_qscore < pg.getQscore() ? pg.getQscore() : max_qscore;
       }
 
       int offset = 0;

@@ -108,7 +108,7 @@ namespace OpenMS
 
     if (target_dummy_type_ == PeakGroup::charge_dummy) // charge decoy
     {
-      for (auto& pg : targetFD_->deconvolved_spectrum_)
+      for (auto& pg : *target_dspec_for_dummy_calcualtion_)
       {
         auto [m, M] = pg.getAbsChargeRange();
         int min_iso = -1, max_iso = 0;
@@ -134,7 +134,7 @@ namespace OpenMS
     }
     if (target_dummy_type_ == PeakGroup::noise_dummy) // noise decoy
     {
-      addMZsToExcludsionList(targetFD_->deconvolved_spectrum_, excluded_peak_mzs_);
+      addMZsToExcludsionList(*target_dspec_for_dummy_calcualtion_, excluded_peak_mzs_);
     }
 
     ms_level_ = spec.getMSLevel();
@@ -899,7 +899,7 @@ namespace OpenMS
               prev_iso = tmp_i;
             }
           }
-          else // if(abs_charge > low_charge_)
+          else
           {
             for (Size l = 0; l < harmonic_charges_.size(); l++)
             {
@@ -980,7 +980,7 @@ namespace OpenMS
               prev_iso = tmp_i;
             }
           }
-          else // if(abs_charge > low_charge_)
+          else
           {
             for (Size l = 0; l < harmonic_charges_.size(); l++)
             {
@@ -1079,10 +1079,10 @@ namespace OpenMS
     return deconvolved_spectrum_;
   }
 
-  void FLASHDeconvAlgorithm::setTargetDummyType(PeakGroup::TargetDummyType target_dummy_type, FLASHDeconvAlgorithm& targetFD)
+  void FLASHDeconvAlgorithm::setTargetDummyType(PeakGroup::TargetDummyType target_dummy_type, DeconvolvedSpectrum& target_dspec_for_dummy_calcualtion)
   {
     target_dummy_type_ = target_dummy_type;
-    targetFD_ = &targetFD;
+    target_dspec_for_dummy_calcualtion_ = &target_dspec_for_dummy_calcualtion;
   }
 
   // spectral deconvolution main function
@@ -1181,7 +1181,7 @@ namespace OpenMS
     }
     else
     {
-      deconvolved_spectrum_ = targetFD_->deconvolved_spectrum_;
+      deconvolved_spectrum_ = *target_dspec_for_dummy_calcualtion_;
     }
     scoreAndFilterPeakGroups_();
   }
@@ -1214,7 +1214,7 @@ namespace OpenMS
         {
           auto noise = peak_group.recruitAllPeaksInSpectrum(deconvolved_spectrum_.getOriginalSpectrum(), tol, avg_, peak_group.getMonoMass() + offset * iso_da_distance_, excluded_peak_mzs_);
           // min cosine is checked in here. mono mass is also updated one last time. SNR, per charge SNR, and avg errors are updated here.
-          offset = peak_group.updateIsotopeCosineSNRAvgErrorAndQScore(avg_, min_isotope_cosine_[ms_level_ - 1]);
+          offset = peak_group.updateIsotopeCosineSNRAvgErrorAndQscore(avg_, min_isotope_cosine_[ms_level_ - 1]);
           if (offset == 0)
           {
             break;
@@ -1267,7 +1267,7 @@ namespace OpenMS
           continue;
         }
 
-        if (peak_group.getQScore() <= 0 || (peak_group.getSNR() < .01 && std::get<1>(cr) <= low_charge_)) // for low charge range, snr .1 prevents extreme high harmonics
+        if (peak_group.getQscore() <= 0 || (peak_group.getSNR() < .01 && std::get<1>(cr) <= low_charge_)) // for low charge range, snr .1 prevents extreme high harmonics
         {
           continue;
         }
@@ -1303,7 +1303,7 @@ namespace OpenMS
           }
         }
 
-        if (peak_group.getQScore() <= 0)
+        if (peak_group.getQscore() <= 0)
         {
           continue;
         }
@@ -1564,7 +1564,7 @@ namespace OpenMS
 
   void FLASHDeconvAlgorithm::removeOverlappingPeakGroups_(DeconvolvedSpectrum& dspec, double tol)
   {
-    if (dspec.size() == 0)
+    if (dspec.empty())
     {
       return;
     }
@@ -1707,7 +1707,7 @@ namespace OpenMS
               precursor_pg.setSNR(smap[12]);
               precursor_pg.setChargeScore(smap[13]);
               precursor_pg.setAvgPPMError(smap[14]);
-              precursor_pg.setQScore(smap[2]);
+              precursor_pg.Qscore(smap[2]);
               precursor_pg.setRepAbsCharge((int)smap[1]);
               precursor_pg.updateMonomassAndIsotopeIntensities();
               precursor_pg.setScanNumber(map->first);
