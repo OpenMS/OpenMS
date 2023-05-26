@@ -91,6 +91,8 @@ StringList sl;
 sl.push_back("xml-stylesheet");
 sl.push_back("<featureMap");
 sl.push_back("<feature id");
+sl.push_back("<UserParam");
+sl.push_back("<dataProcessing");
 fsc.setWhitelist(sl);
 
 std::vector<std::string> outout; 

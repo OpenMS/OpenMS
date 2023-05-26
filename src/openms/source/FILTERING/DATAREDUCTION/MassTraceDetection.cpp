@@ -698,23 +698,33 @@ namespace OpenMS
         //   << found_masstraces[found_masstraces.size() -1].getCentroidRT() << " : "
         //   << found_masstraces[found_masstraces.size() -1].getCentroidSD() << " \n";
         // } 
-      String file1="../featurefindermetabo/test/test_parallel1.featureXML";
-      String file2="../featurefindermetabo/test/test_parallel2.featureXML";
-      String file3="../featurefindermetabo/test/test_parallel3.featureXML";
-      FuzzyStringComparator fsc;
-      fsc.setVerboseLevel(3);
-      if (fsc.compareFiles(file2, file1))
-      {
-        std::cout << "1 & 2 are the same" << std::endl;
-      }
-      if (fsc.compareFiles(file3, file1))
-      {
-        std::cout << "1 & 3 are the same" << std::endl;
-      }
-      if (fsc.compareFiles(file2, file3))
-      {
-        std::cout << "3 & 2 are the same" << std::endl;
-      }
+      // String file1="../featurefindermetabo/test/test_parallel1.featureXML";
+      // String file2="../featurefindermetabo/test/test_parallel2.featureXML";
+      // String file3="../featurefindermetabo/test/test_parallel3.featureXML";
+      // FuzzyStringComparator fsc;
+      // fsc.setVerboseLevel(3);
+      // fsc.setAcceptableRelative(1.001);
+      // fsc.setAcceptableAbsolute(1);
+      // StringList sl;
+      // sl.push_back("xml-stylesheet");
+      // sl.push_back("<featureMap");
+      // sl.push_back("<feature id");
+      // sl.push_back("<UserParam");
+      // sl.push_back("<dataProcessing");
+
+      // fsc.setWhitelist(sl);
+      // if (fsc.compareFiles(file2, file1))
+      // {
+      //   std::cout << "1 & 2 are the same" << std::endl;
+      // }
+      // if (fsc.compareFiles(file3, file1))
+      // {
+      //   std::cout << "1 & 3 are the same" << std::endl;
+      // }
+      // if (fsc.compareFiles(file2, file3))
+      // {
+      //   std::cout << "3 & 2 are the same" << std::endl;
+      // }
 
 
     // Size ca = chrom_apices.size()/2;
