@@ -285,7 +285,9 @@ protected:
       ConsensusXMLFile().load(in, cm);
       cm.sortByPosition();
       if ((out_type != FileTypes::FEATUREXML) &&
-          (out_type != FileTypes::CONSENSUSXML))
+          (out_type != FileTypes::CONSENSUSXML) &&
+          (out_type != FileTypes::OMS)
+          )
       {
         // You you will lose information and waste memory. Enough reasons to issue a warning!
         writeLogWarn_("Warning: Converting consensus features to peaks. You will lose information!");
@@ -728,13 +730,21 @@ protected:
     }
     else if (out_type == FileTypes::OMS)
     {
-      if (in_type != FileTypes::FEATUREXML)
+      if (in_type == FileTypes::FEATUREXML)
       {
-        OPENMS_LOG_ERROR << "Incompatible input data: FileConverter can only convert featureXML files to oms format.";
-        return INCOMPATIBLE_INPUT_DATA;
+        IdentificationDataConverter::importFeatureIDs(fm);
+        OMSFile().store(out, fm);
       }
-      IdentificationDataConverter::importFeatureIDs(fm);
-      OMSFile().store(out, fm);
+      else if (in_type == FileTypes::CONSENSUSXML)
+      {
+        IdentificationDataConverter::importConsensusIDs(cm);
+        OMSFile().store(out, cm);        
+      }
+      else
+      {        
+        OPENMS_LOG_ERROR << "Incompatible input data: FileConverter can only convert featureXML and consensusXML files to oms format.";
+        return INCOMPATIBLE_INPUT_DATA;
+      }      
     }
     else
     {

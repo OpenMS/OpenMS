@@ -107,7 +107,8 @@ namespace OpenMS
     UniqueIdIndexer<FeatureMap>(),
     protein_identifications_(),
     unassigned_peptide_identifications_(),
-    data_processing_()
+    data_processing_(),
+    id_data_()
   {
   }
 
@@ -116,7 +117,7 @@ namespace OpenMS
     RangeManagerContainerType(source),
     DocumentIdentifier(source),
     ExposedVector<Feature>(source),
-    UniqueIdInterface(source), 
+    UniqueIdInterface(source),
     UniqueIdIndexer<FeatureMap>(source),
     protein_identifications_(source.protein_identifications_),
     unassigned_peptide_identifications_(source.unassigned_peptide_identifications_),
@@ -150,9 +151,17 @@ namespace OpenMS
     unassigned_peptide_identifications_ = rhs.unassigned_peptide_identifications_;
     data_processing_ = rhs.data_processing_;
 
+    // copy ID data and update references in features:
+    id_data_.clear();
+    IdentificationData::RefTranslator trans = id_data_.merge(rhs.id_data_);
+    for (Feature& feature : *this)
+    {
+      feature.updateAllIDReferences(trans);
+    }
+
     return *this;
   }
-  
+
   //FeatureMap& FeatureMap::operator=(FeatureMap&&) = default; // TODO: cannot be defaulted since OpenMS::IdentificationData is missing operator=
 
 
@@ -466,8 +475,8 @@ namespace OpenMS
     }
     std::set<IdentificationData::ObservationMatchRef> result;
     std::set_difference(all_matches.begin(), all_matches.end(),
-                   assigned_matches.begin(), assigned_matches.end(),
-                   inserter(result, result.end()));
+                        assigned_matches.begin(), assigned_matches.end(),
+                        inserter(result, result.end()));
     return result;
   }
 
