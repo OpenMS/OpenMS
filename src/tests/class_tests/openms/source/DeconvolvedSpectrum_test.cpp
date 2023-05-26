@@ -139,8 +139,8 @@ END_SECTION
 
 START_SECTION((MSSpectrum toSpectrum(const int mass_charge)))
 {
-  MSSpectrum peakgroup_spec = prec_deconv_spec_1.toSpectrum(9);
-  TEST_EQUAL(peakgroup_spec.size(), 2);
+  MSSpectrum peakgroup_spec = prec_deconv_spec_1.toSpectrum(9, 1);
+  TEST_EQUAL(peakgroup_spec.size(), 1);
   TEST_REAL_SIMILAR(peakgroup_spec.getRT(), 251.72280736002);
 }
 END_SECTION
@@ -149,10 +149,10 @@ START_SECTION((PeakGroup getPrecursorPeakGroup() const))
 {
   PeakGroup tmp_precursor_pgs = ms2_deconv_spec.getPrecursorPeakGroup();
 
-  TEST_EQUAL(tmp_precursor_pgs.size(), 64);
+  TEST_EQUAL(tmp_precursor_pgs.size(), 70);
   TOLERANCE_ABSOLUTE(5);
   TEST_REAL_SIMILAR(tmp_precursor_pgs.getMonoMass(), 13674.2798657377);
-  TEST_REAL_SIMILAR(tmp_precursor_pgs.getIntensity(), 230572);
+  TEST_REAL_SIMILAR(tmp_precursor_pgs.getIntensity(), 238813);
   TEST_EQUAL(tmp_precursor_pgs.getScanNumber(), 4);
 }
 END_SECTION

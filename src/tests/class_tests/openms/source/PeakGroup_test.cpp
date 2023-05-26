@@ -242,17 +242,17 @@ START_SECTION((int getRepAbsCharge() const))
 END_SECTION
 
 
-START_SECTION((void setQScore(const float qscore)))
+START_SECTION((void setQscore(const float qscore)))
 {
-  sample_pg.setQScore(0.1);
-  double temp_score = sample_pg.getQScore();
+  sample_pg.Qscore(0.1);
+  double temp_score = sample_pg.getQscore();
   TEST_REAL_SIMILAR(temp_score, 0.1);
 }
 END_SECTION
 
-START_SECTION((float getQScore() const))
+START_SECTION((float getQscore() const))
 {
-  double temp_score = sample_pg.getQScore();
+  double temp_score = sample_pg.getQscore();
   TEST_REAL_SIMILAR(temp_score, 0.1);
 }
 END_SECTION
@@ -379,8 +379,8 @@ END_SECTION
 
 
 /// TODOs
-/// - updateIsotopeCosineAndQScore, recruitAllPeaksInSpectrum, isSignalMZ, setTargeted, getIsotopeIntensities
-/// - isTargeted, getDecoyFlag, setDecoyFlag, getQvalue, setQvalue, getQvalueWithChargeDecoyOnly, setQvalueWithChargeDecoyOnly
+/// - updateIsotopeCosineAndQscore, recruitAllPeaksInSpectrum, isSignalMZ, setTargeted, getIsotopeIntensities
+/// - isTargeted, getTargetDummyType, setTargetDummyType, getQvalue, setQvalue, getQvalueWithChargeDecoyOnly, setQvalueWithChargeDecoyOnly
 
 
 /////////////////////////////////////////////////////////////

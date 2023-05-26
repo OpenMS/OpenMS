@@ -35,12 +35,11 @@
 
 #pragma once
 
-#include <OpenMS/config.h>
 #include <OpenMS/ANALYSIS/TOPDOWN/FLASHDeconvHelperStructs.h>
 #include <OpenMS/ANALYSIS/TOPDOWN/PeakGroup.h>
-
-#include <iostream>
+#include <OpenMS/config.h>
 #include <iomanip>
+#include <iostream>
 
 
 namespace OpenMS
@@ -50,7 +49,8 @@ namespace OpenMS
      @ingroup FileIO
 **/
 
-  class OPENMS_DLLAPI FLASHDeconvFeatureFile {
+  class OPENMS_DLLAPI FLASHDeconvFeatureFile
+  {
   public:
     /// write header line for regular file output
     static void writeHeader(std::fstream& fs);
@@ -74,8 +74,7 @@ namespace OpenMS
      * @param fs file stream
      */
 
-    static void writeTopFDFeatures(const std::vector<FLASHDeconvHelperStructs::MassFeature>& mass_features,
-                                   const std::map<int, PeakGroup>& precursor_peak_groups,
+    static void writeTopFDFeatures(const std::vector<FLASHDeconvHelperStructs::MassFeature>& mass_features, const std::map<int, PeakGroup>& precursor_peak_groups,
                                    const std::map<int, double>& scan_rt_map, const String& file_name, std::vector<std::fstream>& fs);
 
     /**
@@ -87,12 +86,7 @@ namespace OpenMS
      * @param fs file stream
      */
 
-    static void writePromexFeatures(const std::vector<FLASHDeconvHelperStructs::MassFeature>& mass_features,
-                                    const std::map<int, PeakGroup>& precursor_peak_groups,
-                                    const std::map<int, double>& scan_rt_map,
-                                    const FLASHDeconvHelperStructs::PrecalculatedAveragine& avg,
-                                    std::fstream& fs);
-
-
+    static void writePromexFeatures(const std::vector<FLASHDeconvHelperStructs::MassFeature>& mass_features, const std::map<int, PeakGroup>& precursor_peak_groups,
+                                    const std::map<int, double>& scan_rt_map, const FLASHDeconvHelperStructs::PrecalculatedAveragine& avg, std::fstream& fs);
   };
-}
+} // namespace OpenMS
