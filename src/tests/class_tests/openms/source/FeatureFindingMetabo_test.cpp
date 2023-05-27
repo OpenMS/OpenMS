@@ -91,8 +91,10 @@ StringList sl;
 sl.push_back("xml-stylesheet");
 sl.push_back("<featureMap");
 sl.push_back("<feature id");
+//// is new; 
 sl.push_back("<UserParam");
 sl.push_back("<dataProcessing");
+////these values differ now because of the parallelization of MassTraceDetection
 fsc.setWhitelist(sl);
 
 std::vector<std::string> outout; 

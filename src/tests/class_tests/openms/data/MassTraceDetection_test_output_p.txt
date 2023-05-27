@@ -1,0 +1,2 @@
+MassTraceDetection_test_output should be: 
+ Label | CentroidMZ | CentroidRT | Intensity | TraceLength | Size
