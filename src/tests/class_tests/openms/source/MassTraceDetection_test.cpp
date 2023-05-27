@@ -57,18 +57,18 @@ START_TEST(MassTraceDetection, "$Id$")
 MassTraceDetection* ptr = nullptr;
 MassTraceDetection* null_ptr = nullptr;
 
-  START_SECTION(MassTraceDetection())
-  {
-    ptr = new MassTraceDetection();
-    TEST_NOT_EQUAL(ptr, null_ptr)
-  }
-  END_SECTION
+START_SECTION(MassTraceDetection())
+{
+  ptr = new MassTraceDetection();
+  TEST_NOT_EQUAL(ptr, null_ptr)
+}
+END_SECTION
 
-  START_SECTION(~MassTraceDetection())
-  {
-    delete ptr;
-  }
-  END_SECTION
+START_SECTION(~MassTraceDetection())
+{
+  delete ptr;
+}
+END_SECTION
 
 
 
@@ -198,7 +198,7 @@ START_SECTION((void run(PeakMap::ConstAreaIterator &begin, PeakMap::ConstAreaIte
 {
   MassTraceDetection test_mtd;
   std::vector<MassTrace> output_mtd;
-  std::string ground_truth = OPENMS_GET_TEST_DATA_PATH("MassTraceDetection_test_output.txt");
+  std::string ground_truth = OPENMS_GET_TEST_DATA_PATH("MassTraceDetection_test_output.tsv");
 
   /// load data with threads, so it will a bit faster
   #ifdef _OPENMP
@@ -225,28 +225,28 @@ START_SECTION((void run(PeakMap::ConstAreaIterator &begin, PeakMap::ConstAreaIte
   std::sort(output_mtd.begin(), output_mtd.end(), 
     [&output_mtd] (const MassTrace& a, const MassTrace& b) -> bool
     {
-      return a.getCentroidRT() > b.getCentroidRT();
+      return a.getCentroidRT() < b.getCentroidRT();
     });
   
-  std::string file_single = OPENMS_GET_TEST_DATA_PATH("MassTraceDetection_test_output_s.txt");
-  //NEW_TMP_FILE(file_single);
+  std::string file_single = OPENMS_GET_TEST_DATA_PATH("MassTraceDetection_test_output_s.tsv");
+  NEW_TMP_FILE(file_single);
+  std::ofstream os_single;
 
-  std::ofstream os_single(file_single);
-  os_single << "MassTraceDetection_test_output should be: CentroidRT | CentroidMZ | CentroidSD | PeakArea |TraceLength | Size" << "\n";
+  os_single.open(file_single);
+  os_single << "CentroidRT\tCentroidMZ\tCentroidSD\tPeakArea\tTraceLength\tSize\n";
   for (const MassTrace& i : output_mtd)
   {
     os_single 
-      << i.getCentroidRT() << " | "
-      << i.getCentroidMZ() << " | "
-      << i.getCentroidSD() << " | "
-      << i.computePeakArea() << " | "
-      << i.getTraceLength() << " | "
+      << i.getCentroidRT() << "\t"
+      << i.getCentroidMZ() << "\t"
+      << i.getCentroidSD() << "\t"
+      << i.computePeakArea() << "\t"
+      << i.getTraceLength() << "\t"
       << i.getSize() << "\n";
   }
   os_single.close();
 
-  // TEST_FILE_SIMILAR(file_single, ground_truth);
-
+  TEST_FILE_SIMILAR(file_single, ground_truth);
 
   //second run: parallel
   #ifdef _OPENMP
@@ -264,33 +264,28 @@ START_SECTION((void run(PeakMap::ConstAreaIterator &begin, PeakMap::ConstAreaIte
     std::sort(output_mtd.begin(), output_mtd.end(),
       [&output_mtd](const MassTrace & a, const MassTrace & b) -> bool
       { 
-      return a.getCentroidRT() > b.getCentroidRT();
+      return a.getCentroidRT() < b.getCentroidRT();
       });
 
-    bool test_rt = false;
-    for (uint i = 1; i<output_mtd.size()< ++i)
-    {
-      test_rt |= output_mtd[i] == output_mtd[i-1];
-    }
-    TEST_EQUAL(test_rt, false);
-    std::string file_parallel = OPENMS_GET_TEST_DATA_PATH("MassTraceDetection_test_output_p.txt");
-    // NEW_TMP_FILE(file_parallel);
+    std::string file_parallel = OPENMS_GET_TEST_DATA_PATH("MassTraceDetection_test_output_p.tsv");
+    NEW_TMP_FILE(file_parallel);
+    std::ofstream os_parallel;
 
-    std::ofstream os_parallel(file_parallel);
-    os_parallel << "MassTraceDetection_test_output should be: CentroidRT | CentroidMZ | CentroidSD | PeakArea |TraceLength | Size" << "\n";
+    os_parallel.open(file_parallel);
+    os_parallel << "CentroidRT\tCentroidMZ\tCentroidSD\tPeakArea\tTraceLength\tSize\n";
     for (const MassTrace& i : output_mtd)
     {
       os_parallel
-      << i.getCentroidRT() << " | "
-      << i.getCentroidMZ() << " | "
-      << i.getCentroidSD() << " | "
-      << i.computePeakArea() << " | "
-      << i.getTraceLength() << " | "
+      << i.getCentroidRT() << "\t"
+      << i.getCentroidMZ() << "\t"
+      << i.getCentroidSD() << "\t"
+      << i.computePeakArea() << "\t"
+      << i.getTraceLength() << "\t"
       << i.getSize() << "\n";
     }
     os_parallel.close();
 
-    TEST_FILE_SIMILAR(file_parallel, file_single);
+    TEST_FILE_SIMILAR(file_parallel, ground_truth);
 
   #ifdef _OPENMP
     omp_set_num_threads(1);

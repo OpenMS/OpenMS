@@ -33,10 +33,6 @@
 // --------------------------------------------------------------------------
 
 #include <omp.h>
-#include <fstream>
-#include <iostream>
-
-#include <OpenMS/CONCEPT/FuzzyStringComparator.h>
 
 #include <OpenMS/FILTERING/DATAREDUCTION/MassTraceDetection.h>
 #include <OpenMS/MATH/MISC/MathFunctions.h>
@@ -118,7 +114,7 @@ namespace OpenMS
       for (const double & i : lock_list_2_)
       {
         // std::cout << "Here2?\n";
-        if (isInRange(i, a.getMZ() - (3 * findOffset_(a.getMZ(), mass_error_ppm_)), a.getMZ() + (3 * findOffset_(a.getMZ(), mass_error_ppm_))))
+        if (isInRange(i, a.getMZ() - (2 * findOffset_(a.getMZ(), mass_error_ppm_)), a.getMZ() + (2 * findOffset_(a.getMZ(), mass_error_ppm_))))
         {
           // std::cout << "Here3?\n";
           return true;
@@ -183,12 +179,14 @@ namespace OpenMS
     
     void MassTraceDetection::NextIndex::setApexAsProcessed(const std::vector<std::pair<Size, Size> >& gathered_idx)
     {
-      #pragma omp critical (remove_lock_from_vec)
+      #pragma omp critical (remove_lock_from_vec_2)
       {
         for (Size i = 0; i < gathered_idx.size(); ++i)
         {
+          // Size peaks_index = spec_offsets_[gathered_idx[i].first] +  gathered_idx[i].second;
+          // peak_visited_.at(spec_offsets_[ gathered_idx[i].first ] +  gathered_idx[i].second) = true;
           peak_visited_[spec_offsets_[gathered_idx[i].first] +  gathered_idx[i].second] = true;
-        }
+        } // reihenfolge wichtig
         (*this).setApexAsProcessed();
       }
     }
@@ -697,29 +695,6 @@ namespace OpenMS
         //   << found_masstraces[found_masstraces.size() -1].getCentroidRT() << " : "
         //   << found_masstraces[found_masstraces.size() -1].getCentroidSD() << " \n";
         // } 
-    // std::ofstream os_single;
-    // os_single.precision(2);
-    // os_single.open("../featurefindermetabo/test/compare/MassTraceDetection_test_output_p1.txt");
-    // os_single << "MassTraceDetection_test_output: should be Label | CentroidMZ | CentroidRT | Intensity | TraceLength | Size\n";
-    // for (MassTrace& i : found_masstraces)
-    // {
-    //   os_single 
-    //     << i.getLabel() << " | "
-    //     << i.getCentroidMZ() << " | "
-    //     << i.getCentroidRT() << " | "
-    //     << i.getIntensity(false) << " | "
-    //     << i.getTraceLength() << " | "
-    //     << i.getSize() << "\n";
-    // }
-
-    // FuzzyStringComparator fsc;
-    // fsc.setVerboseLevel(2);
-    // fsc.setAcceptableRelative(1.001);
-    // fsc.setAcceptableAbsolute(1);
-    // fsc.compareFiles("../featurefindermetabo/test/compare/MassTraceDetection_test_output_p1.txt", "../featurefindermetabo/test/compare/MassTraceDetection_test_output_s1.txt");
-
-
-
 
     // Size ca = chrom_apices.size()/2;
     // Size fm = found_masstraces.size()/2;
@@ -735,15 +710,6 @@ namespace OpenMS
     //   << "\nPeak index: " << fm << " " << found_masstraces[fm].getCentroidRT() << "|" << found_masstraces[fm].getCentroidMZ() << "|" << found_masstraces[fm].getCentroidSD() << "|" << found_masstraces[fm].getSize() << "|" << found_masstraces[fm].getLabel()
     //   << "\nPeak index: " << found_masstraces.size()-1 << " " << found_masstraces[found_masstraces.size()-1].getCentroidRT() << "|" << found_masstraces[found_masstraces.size()-1].getCentroidMZ() << "|" << found_masstraces[found_masstraces.size()-1].getCentroidSD() << "|" << found_masstraces[found_masstraces.size()-1].getSize() << "|" << found_masstraces[found_masstraces.size()-1].getLabel()
     // << std::endl;
-    // for (auto& i : found_masstraces)
-    // {
-    //   std::cout 
-    //     << i.getCentroidMZ() << "|" << i.getCentroidRT() << "|" 
-    //     << i.getCentroidSD() << "|" << i.getIntensity(false) 
-    //     << "|" << i.getSize() << "|" << i.getTraceLength() 
-    //     << "|" << i.getLabel() 
-    //   << std::endl;
-    // }
     this->endProgress();
     }
 
