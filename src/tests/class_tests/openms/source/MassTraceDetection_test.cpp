@@ -135,6 +135,12 @@ START_SECTION((void run(const PeakMap &, std::vector< MassTrace > &)))
   test_mtd.run(input1_mtd, output_mtd);
   TEST_EQUAL(output_mtd.size(), 3);
 
+  std::sort(output_mtd.begin(), output_mtd.end(),
+    [&output_mtd](const MassTrace & a, const MassTrace & b) -> bool
+    { 
+    return a.getCentroidMZ() < b.getCentroidMZ();
+    });
+  
   for (Size i = 0; i < output_mtd.size(); ++i)
   {
     TEST_EQUAL(output_mtd[i].getSize(), exp_mt_lengths[i]);
@@ -171,6 +177,12 @@ START_SECTION((void run(const PeakMap &, std::vector< MassTrace > &)))
   test_mtd.run(input_new, output_mtd);
   TEST_EQUAL(output_mtd.size(), 3);
 
+  std::sort(output_mtd.begin(), output_mtd.end(),
+    [&output_mtd](const MassTrace & a, const MassTrace & b) -> bool
+    { 
+    return a.getCentroidMZ() < b.getCentroidMZ();
+    });
+
   for (Size i = 0; i < output_mtd.size(); ++i)
   {
     TEST_EQUAL(output_mtd[i].getSize(), exp_mt_lengths[i]);
@@ -182,139 +194,109 @@ START_SECTION((void run(const PeakMap &, std::vector< MassTrace > &)))
 END_SECTION
 
 
+START_SECTION((void run(PeakMap::ConstAreaIterator &begin, PeakMap::ConstAreaIterator &end, std::vector< MassTrace > &found_masstraces)))
+{
+  MassTraceDetection test_mtd;
+  std::vector<MassTrace> output_mtd;
+  std::string ground_truth = OPENMS_GET_TEST_DATA_PATH("MassTraceDetection_test_output.txt");
 
-  START_SECTION((void run(PeakMap::ConstAreaIterator &begin, PeakMap::ConstAreaIterator &end, std::vector< MassTrace > &found_masstraces)))
+  /// load data with threads, so it will a bit faster
+  #ifdef _OPENMP
+    omp_set_num_threads(8);
+  #endif
+
+    //input2 is for testing correctness of dense data points
+    PeakMap input2;
+    MzMLFile().load(OPENMS_GET_TEST_DATA_PATH("MapAlignmentAlgorithmPoseClustering_in2.mzML.gz"),input2);
+
+  #ifdef _OPENMP
+    omp_set_num_threads(1);
+  #endif
+
+  PeakMap::ConstAreaIterator cai_begin = input2.areaBeginConst(2000, 4000, 500, 750, 1);
+  PeakMap::ConstAreaIterator cai_end = input2.areaEndConst();
+
+
+  //first run: single thread
+  output_mtd.clear();
+  test_mtd.run(cai_begin, cai_end, output_mtd);
+  
+  //has to be sorted, because of parallelization the order is different
+  std::sort(output_mtd.begin(), output_mtd.end(), 
+    [&output_mtd] (const MassTrace& a, const MassTrace& b) -> bool
+    {
+      return a.getCentroidRT() > b.getCentroidRT();
+    });
+  
+  std::string file_single = OPENMS_GET_TEST_DATA_PATH("MassTraceDetection_test_output_s.txt");
+  //NEW_TMP_FILE(file_single);
+
+  std::ofstream os_single(file_single);
+  os_single << "MassTraceDetection_test_output should be: CentroidRT | CentroidMZ | CentroidSD | PeakArea |TraceLength | Size" << "\n";
+  for (const MassTrace& i : output_mtd)
   {
-    MassTraceDetection test_mtd;
-    std::vector<MassTrace> output_mtd;
+    os_single 
+      << i.getCentroidRT() << " | "
+      << i.getCentroidMZ() << " | "
+      << i.getCentroidSD() << " | "
+      << i.computePeakArea() << " | "
+      << i.getTraceLength() << " | "
+      << i.getSize() << "\n";
+  }
+  os_single.close();
 
-    /// load data with threads, so it will be faster
-    #ifdef _OPENMP
-      omp_set_num_threads(8);
-    #endif
+  // TEST_FILE_SIMILAR(file_single, ground_truth);
 
-      //input2 is for testing correctness of dense data points
-      PeakMap input2;
-      MzMLFile().load(OPENMS_GET_TEST_DATA_PATH("MapAlignmentAlgorithmPoseClustering_in2.mzML.gz"),input2);
 
-    #ifdef _OPENMP
-      omp_set_num_threads(1);
-    #endif
+  //second run: parallel
+  #ifdef _OPENMP
+    omp_set_num_threads(8);
+  #endif
 
-    PeakMap::ConstAreaIterator cai_begin = input2.areaBeginConst(2000, 4000, 500, 750, 1);
-    PeakMap::ConstAreaIterator cai_end = input2.areaEndConst();
+    //where const?
+    cai_begin = input2.areaBeginConst(2000, 4000, 500, 750, 1);
+    cai_end = input2.areaEndConst();
 
     output_mtd.clear();
     test_mtd.run(cai_begin, cai_end, output_mtd);
+
+    //has to be sorted, because of parallelization the order is different
     std::sort(output_mtd.begin(), output_mtd.end(),
-                [&output_mtd](const MassTrace & a,
-                    const MassTrace & b) -> bool
+      [&output_mtd](const MassTrace & a, const MassTrace & b) -> bool
       { 
-          return a.getCentroidRT() > b.getCentroidRT();
+      return a.getCentroidRT() > b.getCentroidRT();
       });
-    std::ofstream os_single(OPENMS_GET_TEST_DATA_PATH("MassTraceDetection_test_output_s1.txt"));
-    os_single.precision(2);
-    // os_single.open("../featurefindermetabo/test/compare/MassTraceDetection_test_output_s1.txt");
-    os_single << "MassTraceDetection_test_output should be: Label | CentroidMZ | CentroidRT | Intensity | TraceLength | Size" << "\n";
+
+    bool test_rt = false;
+    for (uint i = 1; i<output_mtd.size()< ++i)
+    {
+      test_rt |= output_mtd[i] == output_mtd[i-1];
+    }
+    TEST_EQUAL(test_rt, false);
+    std::string file_parallel = OPENMS_GET_TEST_DATA_PATH("MassTraceDetection_test_output_p.txt");
+    // NEW_TMP_FILE(file_parallel);
+
+    std::ofstream os_parallel(file_parallel);
+    os_parallel << "MassTraceDetection_test_output should be: CentroidRT | CentroidMZ | CentroidSD | PeakArea |TraceLength | Size" << "\n";
     for (const MassTrace& i : output_mtd)
     {
-      os_single 
-        << i.getCentroidMZ() << " | "
-        << i.getCentroidRT() << " | "
-        << i.getTraceLength() << " | "
-        << i.getSize() << "\n";
+      os_parallel
+      << i.getCentroidRT() << " | "
+      << i.getCentroidMZ() << " | "
+      << i.getCentroidSD() << " | "
+      << i.computePeakArea() << " | "
+      << i.getTraceLength() << " | "
+      << i.getSize() << "\n";
     }
-    os_single.close();
+    os_parallel.close();
 
-    #ifdef _OPENMP
-      omp_set_num_threads(8);
-    #endif
+    TEST_FILE_SIMILAR(file_parallel, file_single);
 
-      cai_begin = input2.areaBeginConst(2000, 4000, 500, 750, 1);
-      cai_end = input2.areaEndConst();
-
-      output_mtd.clear();
-      test_mtd.run(cai_begin, cai_end, output_mtd);
-      std::sort(output_mtd.begin(), output_mtd.end(),
-                  [&output_mtd](const MassTrace & a,
-                      const MassTrace & b) -> bool
-        { 
-          return a.getCentroidRT() > b.getCentroidRT();
-        });
-
-      std::ofstream os_parallel(OPENMS_GET_TEST_DATA_PATH("MassTraceDetection_test_output_p1.txt"));
-      os_parallel.precision(2);
-      // os_parallel.open("../featurefindermetabo/test/compare/MassTraceDetection_test_output_p1.txt");
-      os_parallel << "MassTraceDetection_test_output should be: Label | CentroidMZ | CentroidRT | Intensity | TraceLength | Size" << "\n";
-      for (const MassTrace& i : output_mtd)
-      {
-        os_parallel 
-          << i.getCentroidMZ() << " | "
-          << i.getCentroidRT() << " | "
-          << i.getTraceLength() << " | "
-          << i.getSize() << "\n";
-      }
-      os_parallel.close();
-
-    #ifdef _OPENMP
-      omp_set_num_threads(1);
-    #endif
-
-    FuzzyStringComparator fsc;
-    fsc.setVerboseLevel(2);
-    fsc.setAcceptableRelative(1.001);
-    fsc.setAcceptableAbsolute(1);
-
-    TEST_EQUAL(fsc.compareFiles(
-    OPENMS_GET_TEST_DATA_PATH("MassTraceDetection_test_output_s1.txt"), 
-    OPENMS_GET_TEST_DATA_PATH("MassTraceDetection_test_output_p1.txt")), true);
-    // TEST_EQUAL(test1, test2);
-  //   test_mtd.run(mt_it1, mt_end, found_mtraces);
-  //   TEST_EQUAL(found_mtraces.size(), 1);
-  //   TEST_EQUAL(found_mtraces[0].getSize(), exp_mt_lengths[0]);
-
-  //   TEST_REAL_SIMILAR(found_mtraces[0].getCentroidRT(), exp_mt_rts[0]);
-  //   TEST_REAL_SIMILAR(found_mtraces[0].getCentroidMZ(), exp_mt_mzs[0]);
-  //   TEST_REAL_SIMILAR(found_mtraces[0].computePeakArea(), exp_mt_ints[0]);
-
-  //   found_mtraces.clear();
-
-  //   test_mtd.run(mt_it2, mt_end, found_mtraces);
-  //   TEST_EQUAL(found_mtraces.size(), 1);
-  //   TEST_EQUAL(found_mtraces[0].getSize(), exp_mt_lengths[1]);
-
-  //   TEST_REAL_SIMILAR(found_mtraces[0].getCentroidRT(), exp_mt_rts[1]);
-  //   TEST_REAL_SIMILAR(found_mtraces[0].getCentroidMZ(), exp_mt_mzs[1]);
-  //   TEST_REAL_SIMILAR(found_mtraces[0].computePeakArea(), exp_mt_ints[1]);
-
-  //   found_mtraces.clear();
-
-  //   test_mtd.run(mt_it3, mt_end, found_mtraces);
-  //   TEST_EQUAL(found_mtraces.size(), 1);
-  //   TEST_EQUAL(found_mtraces[0].getSize(), exp_mt_lengths[0]);
-
-  //   TEST_REAL_SIMILAR(found_mtraces[0].getCentroidRT(), exp_mt_rts[2]);
-  //   TEST_REAL_SIMILAR(found_mtraces[0].getCentroidMZ(), exp_mt_mzs[2]);
-  //   TEST_REAL_SIMILAR(found_mtraces[0].computePeakArea(), exp_mt_ints[2]);
-
-  //   found_mtraces.clear();
-
-
-  //   //running test1 again with threads
-  //   #ifdef _OPENMP
-  //       omp_set_num_threads(8);
-  //   #endif
-  //   test_mtd.run(mt_it1, mt_end, found_mtraces);
-  //   TEST_EQUAL(found_mtraces.size(), 1);
-  //   TEST_EQUAL(found_mtraces[0].getSize(), exp_mt_lengths[0]);
-
-  //   TEST_REAL_SIMILAR(found_mtraces[0].getCentroidRT(), exp_mt_rts[0]);
-  //   TEST_REAL_SIMILAR(found_mtraces[0].getCentroidMZ(), exp_mt_mzs[0]);
-  //   TEST_REAL_SIMILAR(found_mtraces[0].computePeakArea(), exp_mt_ints[0]);
-
-  //   found_mtraces.clear();
-  }
-  END_SECTION
+  #ifdef _OPENMP
+    omp_set_num_threads(1);
+  #endif
+}
+END_SECTION
 
 
 /////////////////////////////////////////////////////////////
