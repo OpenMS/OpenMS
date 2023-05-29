@@ -103,9 +103,10 @@ namespace OpenMS
            @brief Update isotope cosine sore and qscore. Mono mass is also updated one last time. SNR, per charge SNR, and avg errors are updated here.
            @param avg precalculated averagine
            @param min_cos the peak groups with cosine score less than this will have Qscore 0.
+           @param allowed_isotope_error this set the allowed isotope error in dummy mass generation.
            @return returns isotope offset after isotope cosine calculation
       */
-    int updateIsotopeCosineSNRAvgErrorAndQscore(const FLASHDeconvHelperStructs::PrecalculatedAveragine& avg, double min_cos);
+    int updateIsotopeCosineSNRAvgErrorAndQscore(const FLASHDeconvHelperStructs::PrecalculatedAveragine& avg, double min_cos, int allowed_isotope_error = 1);
 
     /**
      * @brief given a monoisotopic mass, recruit raw peaks from the raw input spectrum and add to this peakGroup. This is a bit time-consuming and is done for only a small number of selected
@@ -295,8 +296,11 @@ namespace OpenMS
     float getAbsDaError_(LogMzPeak& p) const;
     /// using signal and total (signal + noise) power, update SNR value
     void updateSNR_();
-
+    /// clear peaks
     void clear_();
+
+    /// calculate noisy peak power. The goal of this function is to group noisy peaks that are possibly from the same molecule and sum their intensities before calculate power
+    float getNoisePeakPower_(std::vector<LogMzPeak>& noisy_peaks) const;
 
     /// log Mz peaks
     std::vector<FLASHDeconvHelperStructs::LogMzPeak> logMzpeaks_;
