@@ -65,8 +65,8 @@ namespace OpenMS
     json jsonNode = json::parse(std::ifstream {filename});
     if (!jsonNode.is_object())
     {
-      OPENMS_LOG_WARN << "Ignoring JSON file '" << filename << "' because of unexpected data type. Expecting a dictionary as root type." << std::endl;
-      return;
+      std::string msg = "Ignoring JSON file '" + filename + "' because of unexpected data type. Expecting a dictionary as root type.";
+      throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "", msg);
     }
     for (auto child : jsonNode.items())
     {
@@ -85,7 +85,8 @@ namespace OpenMS
       auto value = entry.value;
       if (entry.value.valueType() == ParamValue::ValueType::STRING_VALUE)
       {
-        if (entry.valid_strings.size() == 2 && entry.valid_strings[0] == "true" && entry.valid_strings[1] == "false")
+        if ((entry.valid_strings.size() == 2 && entry.valid_strings[0] == "true" && entry.valid_strings[1] == "false")
+           || (entry.valid_strings.size() == 2 && entry.valid_strings[0] == "false" && entry.valid_strings[1] == "true"))
         {
           value = node.get<bool>() ? "true" : "false";
         }
@@ -108,40 +109,22 @@ namespace OpenMS
       }
       else if (entry.value.valueType() == ParamValue::ValueType::STRING_LIST)
       {
-        std::vector<std::string> list;
         if (entry.tags.count("input file") || entry.tags.count("output file"))
         {
-          for (auto child : node)
-          {
-            list.push_back(child["path"].get<std::string>());
-          }
+          value = node["path"].get<std::vector<std::string>>();
         }
         else
         {
-          for (auto child : node)
-          {
-            list.push_back(child.get<std::string>());
-          }
+          value = node.get<std::vector<std::string>>();
         }
-        value = list;
       }
       else if (entry.value.valueType() == ParamValue::ValueType::INT_LIST)
       {
-        std::vector<int> list;
-        for (auto child : node)
-        {
-          list.push_back(child.get<int>());
-        }
-        value = list;
+        value = node.get<std::vector<int>>();
       }
       else if (entry.value.valueType() == ParamValue::ValueType::DOUBLE_LIST)
       {
-        std::vector<double> list;
-        for (auto child : node)
-        {
-          list.push_back(child.get<double>());
-        }
-        value = list;
+        value = node.get<std::vector<double>>();
       }
       else if (entry.value.valueType() == ParamValue::ValueType::EMPTY_VALUE)
       {

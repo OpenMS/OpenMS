@@ -55,7 +55,7 @@ namespace OpenMS
 
         param value names match the command line option without the leading '-'. Optionally the ':'
         can be replaced with a double underscore "__".
-```
+@code
 {
     "in": {
         "class": "File",
@@ -65,10 +65,10 @@ namespace OpenMS
     "algorithm:threshold": 5,
     "algorithm:score_type": "ID"
 }
-```
+@endcode
 
 Same file with "__" instead of ':' as the section separator.
-```
+@code
 {
     "in": {
         "class": "File",
@@ -78,14 +78,14 @@ Same file with "__" instead of ':' as the section separator.
     "algorithm__threshold": 5,
     "algorithm__score_type": "ID"
 }
-```
+@endcode
 */
   class OPENMS_DLLAPI ParamCWLFile
   {
   public:
-    ParamCWLFile() = default; /// Constructor
+    ParamCWLFile() = default; ///< Constructor
 
-    ~ParamCWLFile() = default; /// Destructor
+    ~ParamCWLFile() = default; ///< Destructor
 
     /**
       @brief Read JSON file that is formatted in CWL conforming style.
