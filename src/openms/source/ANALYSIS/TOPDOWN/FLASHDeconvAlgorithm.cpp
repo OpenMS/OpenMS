@@ -647,90 +647,15 @@ namespace OpenMS
 
           if (max_intensity < t)
           {
-            bool artifact = false;
-            if (abs_charge > low_charge_)
+            max_intensity = t;
+            // store best values after shift by 1.
+            for (int i = select_top_N - 1; i > 0; i--)
             {
-              double original_log_mass = getBinValue_(mass_bin_index, mass_bin_min_value_, bin_mul_factor);
-              double mass = exp(original_log_mass);
-              {
-                double log_mass = log(mass);
-                if (log_mass < 1)
-                {
-                  continue;
-                }
-
-                for (int h : harmonic_charges_)
-                {
-                  if (h * abs_charge > current_max_charge_)
-                  {
-                    break;
-                  }
-                  for (int f : {-1, 1})
-                  {
-                    double hmass = log_mass - log(h) * f;
-                    for (int bin_off : {-1, 0, 1})
-                    {
-                      Size hmass_index = getBinNumber_(hmass, mass_bin_min_value_, bin_mul_factor) + bin_off;
-                      if (hmass_index > 0 && hmass_index < mass_bins_.size() - 1)
-                      {
-                        if (mass_intensities[hmass_index] >= t)
-                        {
-                          artifact = true;
-                          break;
-                        }
-                      }
-                    }
-                  }
-                  if (artifact)
-                  {
-                    break;
-                  }
-                }
-                // max_intensity_abs_charge off by one here
-                if (!artifact)
-                {
-                  for (int coff = 1; coff <= 2 && !artifact; coff++)
-                  {
-                    for (int f : {-1, 1})
-                    {
-                      if (abs_charge + f * coff <= 0)
-                      {
-                        continue;
-                      }
-                      double hmass = log_mass - log(abs_charge) + log(abs_charge + f * coff);
-                      Size hmass_index = getBinNumber_(hmass, mass_bin_min_value_, bin_mul_factor);
-                      if (hmass_index > 0 && hmass_index < mass_bins_.size() - 1)
-                      {
-                        if (mass_intensities[hmass_index] >= t)
-                        {
-                          artifact = true;
-                          break;
-                        }
-                      }
-                    }
-                  }
-                }
-              }
+              max_indices[i] = max_indices[i - 1];
+              max_intensity_abs_charge_ranges[i] = max_intensity_abs_charge_ranges[i - 1];
             }
-
-            if (!artifact)
-            {
-              max_intensity = t;
-              // store best values after shift by 1.
-              for (int i = select_top_N - 1; i > 0; i--)
-              {
-                max_indices[i] = max_indices[i - 1];
-                max_intensity_abs_charge_ranges[i] = max_intensity_abs_charge_ranges[i - 1];
-              }
-
-              max_indices[0] = mass_bin_index;
-              max_intensity_abs_charge_ranges[0] = j;
-            }
-            else
-            {
-              to_skip[mass_bin_index] = true;
-              mass_bins_[mass_bin_index] = false;
-            }
+            max_indices[0] = mass_bin_index;
+            max_intensity_abs_charge_ranges[0] = j;
           }
         }
       }
@@ -1538,7 +1463,7 @@ namespace OpenMS
           {
             continue;
           }
-          if (dspec[i].getChargeSNR(repz1) > dspec[j].getChargeSNR(repz2) * 4.0) // if ith is way better than jth, jth is overlapped not ith
+          if (dspec[i].getSNR() > dspec[j].getSNR() * 3.0) // if ith is way better than jth, jth is overlapped not ith
           {
             continue;
           }
