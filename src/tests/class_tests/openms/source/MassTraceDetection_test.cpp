@@ -198,7 +198,7 @@ START_SECTION((void run(PeakMap::ConstAreaIterator &begin, PeakMap::ConstAreaIte
 {
   MassTraceDetection test_mtd;
   std::vector<MassTrace> output_mtd;
-  std::string ground_truth = OPENMS_GET_TEST_DATA_PATH("MassTraceDetection_test_output.tsv");
+  std::string ground_truth = OPENMS_GET_TEST_DATA_PATH("MassTraceDetection_test_output1.tsv");
 
   /// load data with threads, so it will a bit faster
   #ifdef _OPENMP
@@ -240,7 +240,7 @@ START_SECTION((void run(PeakMap::ConstAreaIterator &begin, PeakMap::ConstAreaIte
       << i.getCentroidRT() << "\t"
       << i.getCentroidMZ() << "\t"
       << i.getCentroidSD() << "\t"
-      << i.computePeakArea() << "\t"
+      // << i.computePeakArea() << "\t" //<-- takes a bit longer, can be tested with MassTraceDetection_test_output2
       << i.getTraceLength() << "\t"
       << i.getSize() << "\n";
   }
@@ -279,7 +279,7 @@ START_SECTION((void run(PeakMap::ConstAreaIterator &begin, PeakMap::ConstAreaIte
       << i.getCentroidRT() << "\t"
       << i.getCentroidMZ() << "\t"
       << i.getCentroidSD() << "\t"
-      << i.computePeakArea() << "\t"
+      // << i.computePeakArea() << "\t"
       << i.getTraceLength() << "\t"
       << i.getSize() << "\n";
     }
