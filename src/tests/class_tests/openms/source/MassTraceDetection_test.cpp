@@ -246,7 +246,7 @@ START_SECTION((void run(PeakMap::ConstAreaIterator &begin, PeakMap::ConstAreaIte
   }
   os_single.close();
 
-  // TEST_FILE_SIMILAR(file_single, ground_truth);
+  TEST_FILE_SIMILAR(file_single, ground_truth);
 
   //second run: parallel
   #ifdef _OPENMP
