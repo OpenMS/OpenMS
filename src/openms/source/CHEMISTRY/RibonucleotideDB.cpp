@@ -57,8 +57,12 @@ namespace OpenMS
   {
     // Modomics mods were retreived from https://www.genesilico.pl/modomics/api/modifications
     readFromJSON_("CHEMISTRY/Modomics.json");
+    OPENMS_LOG_DEBUG << "Loading modomics RNA Modifications from"<<  File::find("CHEMISTRY/Modomics.json") <<"\n";
+    
     // We still use the old tsv format for custom mods
     readFromFile_("CHEMISTRY/Custom_RNA_modifications.tsv");
+    OPENMS_LOG_DEBUG << "Loading custom RNA Modifications from"<<  File::find("CHEMISTRY/Custom_RNA_modifications.tsv") <<"\n";
+    
     if (File::exists("CHEMISTRY/User_Modifications.tsv"))
     {
       OPENMS_LOG_INFO << "Loading user specified Modifications from TSV\n";
@@ -195,7 +199,7 @@ namespace OpenMS
     }
     if (std::abs(ribo->getAvgMass() - ribo->getFormula().getAverageWeight()) >= 0.01)
     {
-      OPENMS_LOG_WARN << "Average mass of " << code << " differs substantially from its formula mass.\n";
+      OPENMS_LOG_DEBUG << "Average mass of " << code << " differs substantially from its formula mass.\n";
     }
 
     if (auto e = entry.find("mass_monoiso"); e != entry.cend() && !e->is_null())
