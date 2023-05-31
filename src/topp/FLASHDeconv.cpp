@@ -240,16 +240,13 @@ protected:
       it.sortByIntensity(true);
       double max_intensity = log10(it[0].getIntensity());
       double min_intensity = 0;
-      int non_zero_size = 0;
       for (auto& p : it)
       {
         if (p.getIntensity() <= 0)
         {
           break;
         }
-        non_zero_size++;
         min_intensity = log10(p.getIntensity());
-        ;
       }
       Size bin_size = 500;
       std::vector<int> freq(bin_size + 1, 0);
@@ -286,7 +283,6 @@ protected:
     // parsing parameters
     //-------------------------------------------------------------
     const Size max_peak_count_ = 5e4;
-    3e4; // 223248;
     String in_file = getStringOption_("in");
     String out_file = getStringOption_("out");
     String in_log_file = getStringOption_("in_log");

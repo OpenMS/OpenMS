@@ -190,11 +190,13 @@ namespace OpenMS
     return h_offset;
   }
 
-  float PeakGroup::getNoisePeakPower_(std::vector<FLASHDeconvHelperStructs::LogMzPeak>& noisy_peaks) const
+  float PeakGroup::getNoisePeakPower_(const std::vector<FLASHDeconvHelperStructs::LogMzPeak>& noisy_peaks) const
   {
     const Size max_noisy_peaks = 50; // too many noise peaks will slow down the process
-    const Size max_bin_number = 55;  // .02 Da bin + a bit of margin
+    const Size max_bin_number = 25;  // .05 Da bin + 5 extra bin
     float threshold = 0;
+
+    // get intensity threshold
     if (noisy_peaks.size() > max_noisy_peaks)
     {
       std::vector<float> intensities(noisy_peaks.size(), .0f);
@@ -205,68 +207,114 @@ namespace OpenMS
       std::sort(intensities.begin(), intensities.end());
       threshold = intensities[intensities.size() - max_noisy_peaks];
     }
-
     float charge_noise_pwr = 0;
-    std::vector<std::vector<Size>> mz_bin_mz_indices(max_bin_number);
-    for (auto& mz_indices : mz_bin_mz_indices)
+
+    std::vector<std::vector<Size>> per_bin_edges(max_bin_number);
+    std::vector<int> per_bin_start_index(max_bin_number, -2); // -2 means bin is empty. -1 means bin is used. zero or positive = edge index
+    std::map<float, Size> max_intensity_sum_to_bin;
+
+    for(Size k = 0; k< max_bin_number; k++)
     {
-      mz_indices.reserve(max_noisy_peaks);
+      per_bin_edges[k] = std::vector<Size>(noisy_peaks.size(), 0);
     }
-    for (Size i = 0; i < noisy_peaks.size(); i++)
+
+    for(Size i = 0; i < noisy_peaks.size(); i++)
     {
-      auto& p1 = noisy_peaks[i];
-      if (p1.intensity < threshold)
+      auto p1 = noisy_peaks[i];
+      if(p1.intensity < threshold)
       {
         continue;
       }
-      for (Size j = i + 1; j < noisy_peaks.size(); j++)
+      for(Size j = i + 1; j < noisy_peaks.size(); j++)
       {
-        auto& p2 = noisy_peaks[j];
-        if (p2.intensity < threshold)
+        auto p2 = noisy_peaks[j];
+        if(p2.intensity < threshold)
         {
           continue;
         }
-        double diff = std::abs(p1.mz - p2.mz);
-
-        Size bin = (Size)round(diff * (max_bin_number - 5)); // if distance exceeds 1.0 dalton + alpha, break.
-        if (bin >= mz_bin_mz_indices.size())
+        Size bin = (Size)round((p2.mz - p1.mz) * (max_bin_number - 5));
+        if(bin == 0)
+        {
+          continue;
+        }
+        if(bin >= max_bin_number)
         {
           break;
         }
-
-        auto& mz_indices = mz_bin_mz_indices[bin];
-
-        if (!mz_indices.empty() && mz_indices[mz_indices.size() - 1] != i)
+        double intensity_diff = std::abs(log10(p1.intensity / p2.intensity));
+        if(intensity_diff > 1)
         {
-          mz_indices.clear();
+          continue;
         }
-        if (mz_indices.empty())
-        {
-          mz_indices.push_back(i);
-        }
-        mz_bin_mz_indices[bin].push_back(j);
+        per_bin_edges[bin][i] = j;
+        per_bin_start_index[bin] = -1;
       }
     }
-
-    std::vector<bool> used(noisy_peaks.size(), false);
-    for (auto& mz_indices : mz_bin_mz_indices)
+    for(Size k = 0; k< max_bin_number; k++)
     {
-      if (mz_indices.size() < 4) // at least four peaks should have the same distance...
+      if(per_bin_start_index[k] == -2)
       {
         continue;
       }
-      float summed_intensity = .0;
-      for (Size i : mz_indices)
+      auto edges = per_bin_edges[k];
+      float max_sum_intensity = 0;
+      for(Size i = 0; i < edges.size() ; i++)
       {
-        used[i] = true;
-        summed_intensity += noisy_peaks[i].intensity;
+        if(edges[i] == 0)
+        {
+          continue;
+        }
+        float sum_intensity = noisy_peaks[i].intensity;
+        int cntr = 1;
+        Size j = edges[i];
+        while(j != 0)
+        {
+          sum_intensity += noisy_peaks[j].intensity;
+          cntr ++;
+          j = edges[j];
+        }
+        if(cntr > 2 && max_sum_intensity < sum_intensity)
+        {
+          max_sum_intensity = sum_intensity;
+          per_bin_start_index[k] = (int)i;
+        }
       }
-      charge_noise_pwr += summed_intensity * summed_intensity;
+      max_intensity_sum_to_bin[max_sum_intensity] = k;
     }
 
-    for (Size i = 0; i < noisy_peaks.size(); i++)
+    auto used = boost::dynamic_bitset<>(noisy_peaks.size());
+
+    for(auto it = max_intensity_sum_to_bin.rbegin(); it != max_intensity_sum_to_bin.rend(); ++it)
     {
-      if (used[i])
+      Size bin = it->second;
+      int index = per_bin_start_index[bin];
+
+      if(index < 0)
+      {
+        continue;
+      }
+
+      auto edges = per_bin_edges[bin];
+      float sum_intensity = .0;
+      while(true)
+      {
+        if(!used[index])
+        {
+          sum_intensity += noisy_peaks[index].intensity;
+        }
+
+        index = edges[index];
+        if(index == 0)
+        {
+          break;
+        }
+        used[index] = true;
+      }
+      charge_noise_pwr += sum_intensity * sum_intensity;
+    }
+    for(Size i = 0; i < noisy_peaks.size(); i++)
+    {
+      if(used[i])
       {
         continue;
       }
@@ -360,7 +408,6 @@ namespace OpenMS
           p.abs_charge = c;
           push_back(p);
 
-          // charge_sig_pwr += pint * pint;
           charge_intensity += pint;
           if (max_charge_signal_intensity < p.intensity)
           {
@@ -396,8 +443,13 @@ namespace OpenMS
           {
             continue;
           }
+          if(p.intensity < max_charge_signal_intensity / 10.0)
+          {
+            continue;
+          }
           charge_noisy_peaks.push_back(p);
         }
+        std::sort(charge_noisy_peaks.begin(), charge_noisy_peaks.end());
         charge_noise_pwr = getNoisePeakPower_(charge_noisy_peaks);
         setChargePowers_(c, charge_sig_pwr, charge_noise_pwr, charge_intensity);
 
@@ -778,7 +830,7 @@ namespace OpenMS
 
   void PeakGroup::updateSNR_()
   {
-    float cos_squred = isotope_cosine_score_ * isotope_cosine_score_;
+    float cos_squared = isotope_cosine_score_ * isotope_cosine_score_;
     float signal = 0, noise = 0;
     per_charge_snr_ = std::vector<float>(1 + max_abs_charge_, .0);
 
@@ -799,8 +851,8 @@ namespace OpenMS
 
     per_charge_signal_pwr_.clear();
     per_charge_noise_pwr_.clear();
-    float t_nom = cos_squred * signal;
-    float t_denom = 1 + noise + (1 - cos_squred) * signal;
+    float t_nom = cos_squared * signal;
+    float t_denom = 1 + noise + (1 - cos_squared) * signal;
 
     snr_ = t_denom <= 0 ? .0f : (t_nom / t_denom);
   }

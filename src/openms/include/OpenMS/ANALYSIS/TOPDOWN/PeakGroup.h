@@ -299,8 +299,12 @@ namespace OpenMS
     /// clear peaks
     void clear_();
 
-    /// calculate noisy peak power. The goal of this function is to group noisy peaks that are possibly from the same molecule and sum their intensities before calculate power
-    float getNoisePeakPower_(std::vector<LogMzPeak>& noisy_peaks) const;
+    /**
+     * calculate noisy peak power. The goal of this function is to group noisy peaks that are possibly from the same molecule and sum their intensities before calculate power
+     * @param noisy_peaks noisy peaks to calculate power
+     * @return calculated noise power
+     */
+    float getNoisePeakPower_(const std::vector<LogMzPeak>& noisy_peaks) const;
 
     /// log Mz peaks
     std::vector<FLASHDeconvHelperStructs::LogMzPeak> logMzpeaks_;

@@ -140,7 +140,7 @@ END_SECTION
 START_SECTION((MSSpectrum toSpectrum(const int mass_charge)))
 {
   MSSpectrum peakgroup_spec = prec_deconv_spec_1.toSpectrum(9, 1);
-  TEST_EQUAL(peakgroup_spec.size(), 4);
+  TEST_EQUAL(peakgroup_spec.size(), 2);
   TEST_REAL_SIMILAR(peakgroup_spec.getRT(), 251.72280736002);
 }
 END_SECTION

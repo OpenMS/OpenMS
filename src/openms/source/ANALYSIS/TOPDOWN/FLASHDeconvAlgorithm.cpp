@@ -103,7 +103,7 @@ namespace OpenMS
         Constants::ISOTOPE_MASSDIFF_55K_U :
         Constants::ISOTOPE_MASSDIFF_55K_U * sqrt(7.0) / 2.0; // sqrt(7.0)/2.0 Da is used instead of C13 - C12 to make sure masses detected with this nonsensical mass difference are not true.
     previously_deconved_mono_masses_for_dummy_.clear();
-    previously_deconved_mass_bins_for_dummy_.clear();
+    previously_deconved_mass_bins_for_dummy_.reset();
     excluded_peak_mzs_.clear();
 
     if (target_dummy_type_ == PeakGroup::charge_dummy) // charge decoy
@@ -569,7 +569,6 @@ namespace OpenMS
   Matrix<int> FLASHDeconvAlgorithm::filterMassBins_(const std::vector<float>& mass_intensities)
   {
     int charge_range = current_max_charge_;
-    double bin_mul_factor = bin_mul_factors_[ms_level_ - 1];
     Matrix<int> abs_charge_ranges(2, mass_bins_.size(), INT_MAX);
     for (Size i = 0; i < mass_bins_.size(); i++)
     {
@@ -643,8 +642,6 @@ namespace OpenMS
             continue;
           }
 
-          int abs_charge = (j + 1);
-
           if (max_intensity < t)
           {
             max_intensity = t;
@@ -701,7 +698,7 @@ namespace OpenMS
     deconvolved_spectrum_.reserve(mass_bins_.count());
     Size mass_bin_index = mass_bins_.find_first();
     auto peak_bin_numbers = std::vector<Size>(log_mz_peak_size);
-    const double max_signal_mz_delta = .16;
+    const double max_mass_dalton_tolerance = .16; // this is additional mass tolerance in Da to get more high signal-to-ratio peaks in this candidate peakgroup finding
     // per peak, store the m/z bin number for fast processing
     for (int i = 0; i < log_mz_peak_size; i++)
     {
@@ -781,7 +778,7 @@ namespace OpenMS
         // now we have a matching peak for this mass of charge  abs_charge. From here, isotope peaks are collected
         const double mz = log_mz_peaks_[max_peak_index].mz; // charged mz
         const double iso_delta = iso_da_distance_ / (double)abs_charge;
-        double mz_delta = std::min(max_signal_mz_delta / (double)abs_charge, tol * mz);
+        double mz_delta = std::min(max_mass_dalton_tolerance / (double)abs_charge, tol * mz);
 
         double max_mz = mz;
         float max_peak_intensity = log_mz_peaks_[max_peak_index].intensity;
@@ -836,12 +833,12 @@ namespace OpenMS
               double hiso_delta = iso_delta / hc;
               int tmp_hi = (int)round(mz_diff / hiso_delta);
 
-              if ((double)tmp_hi / hc < tmp_i + max_signal_mz_delta)
+              if ((double)tmp_hi / hc < tmp_i + max_mass_dalton_tolerance)
               {
                 continue;
               }
 
-              if ((double)tmp_hi / hc >= tmp_i + 1 - max_signal_mz_delta)
+              if ((double)tmp_hi / hc >= tmp_i + 1 - max_mass_dalton_tolerance)
               {
                 break;
               }
@@ -918,12 +915,12 @@ namespace OpenMS
               double hiso_delta = iso_delta / hc;
               int tmp_hi = (int)round(mz_diff / hiso_delta);
 
-              if ((double)tmp_hi / hc > tmp_i - max_signal_mz_delta)
+              if ((double)tmp_hi / hc > tmp_i - max_mass_dalton_tolerance)
               {
                 continue;
               }
 
-              if ((double)tmp_hi / hc <= tmp_i - 1 + max_signal_mz_delta)
+              if ((double)tmp_hi / hc <= tmp_i - 1 + max_mass_dalton_tolerance)
               {
                 break;
               }
@@ -951,7 +948,7 @@ namespace OpenMS
         }
       }
 
-      if (total_signal_intensity > 1.0 * *std::max_element(total_harmonic_intensity.begin(), total_harmonic_intensity.end())) //
+      if (total_signal_intensity > *std::max_element(total_harmonic_intensity.begin(), total_harmonic_intensity.end())) //
       {
         double max_intensity = -1.0;
         double t_mass = .0;
@@ -1074,7 +1071,7 @@ namespace OpenMS
 
     if (target_mono_masses_.size() > 0)
     {
-      target_mass_bins_.clear();
+      target_mass_bins_.reset();
       target_mass_bins_ = boost::dynamic_bitset<>(mass_bins_.size());
       for (Size i = 0; i < target_mono_masses_.size(); i++)
       {
@@ -1189,7 +1186,6 @@ namespace OpenMS
           }
         }
 
-
         auto cr = peak_group.getAbsChargeRange();
 
         if (std::get<0>(cr) > low_charge_ && (std::get<1>(cr) - std::get<0>(cr)) < min_support_peak_count_)
@@ -1197,7 +1193,7 @@ namespace OpenMS
           continue;
         }
 
-        if (peak_group.getQscore() <= 0 || (peak_group.getSNR() < .5)) // Snr .5 prevents harmonics or noise
+        if (peak_group.getQscore() <= 0 || (peak_group.getSNR() < .5)) // snr check prevents harmonics or noise
         {
           continue;
         }
