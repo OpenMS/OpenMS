@@ -1514,12 +1514,12 @@ OPENMS_THREAD_CRITICAL(LOGSTREAM)
     {
       const Param::ParamNode* node = stack_.back();
 
-      //cout << "############ operator++ #### " << node->name << " ## " << current_ <<endl;
+      //std::cout << "############ operator++ #### " << node->name << " ## " << current_ << std::endl;
 
       //check if there is a next entry in the current node
       if (current_ + 1 < (int)node->entries.size())
       {
-        //cout << " - next entry" <<endl;
+        //std::cout << " - next entry" << std::endl;
         ++current_;
         return *this;
       }
@@ -1528,7 +1528,7 @@ OPENMS_THREAD_CRITICAL(LOGSTREAM)
       {
         current_ = -1;
         stack_.push_back(&(node->nodes[0]));
-        //cout << " - entering into: " << node->nodes[0].name <<endl;
+        //std::cout << " - entering into: " << node->nodes[0].name << std::endl;
         //track changes (enter a node)
         trace_.emplace_back(node->nodes[0].name, node->nodes[0].description, true);
 
@@ -1542,21 +1542,28 @@ OPENMS_THREAD_CRITICAL(LOGSTREAM)
         {
           const Param::ParamNode* last = node;
           stack_.pop_back();
-          //cout << " - stack size: " << stack_.size() << endl;
+          //std::cout << " - stack size: " << stack_.size() << std::endl;
           //we have reached the end
           if (stack_.empty())
           {
-            //cout << " - reached the end" << endl;
+            //std::cout << " - reached the end" << std::endl;
             root_ = nullptr;
             return *this;
           }
           node = stack_.back();
 
-          //cout << " - last was: " << last->name << endl;
-          //cout << " - descended to: " << node->name << endl;
+          //std::cout << " - last was: " << last->name << std::endl;
+          //std::cout << " - descended to: " << node->name << std::endl;
 
           //track changes (leave a node)
-          trace_.emplace_back(last->name, last->description, false);
+          if (!trace_.empty() && trace_.back().name == last->name && trace_.back().opened) // was empty subnode
+          {
+            trace_.pop_back();
+          }
+          else
+          {
+            trace_.emplace_back(last->name, last->description, false);
+          }
 
           //check of new subtree is accessible
           unsigned int next_index = (last - &(node->nodes[0])) + 1;

@@ -42,6 +42,7 @@
 
 #include <OpenMS/METADATA/DocumentIdentifier.h>
 #include <OpenMS/METADATA/MetaInfoInterface.h>
+#include <OpenMS/METADATA/ID/IdentificationData.h>
 
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/CONCEPT/LogStream.h>
@@ -76,7 +77,7 @@ namespace OpenMS
     The map is implemented as a vector of elements of type ConsensusFeature.
 
     To be consistent, all maps who are referenced by ConsensusFeature objects
-    (through a unique id) need to be registered in this class. 
+    (through a unique id) need to be registered in this class.
 
     @ingroup Kernel
   */
@@ -98,7 +99,7 @@ public:
       COPY_ALL,               ///< copy all meta values to all feature maps
       COPY_FIRST              ///< copy all meta values to first feature map
     };
-    
+
     /// Description of the columns in a consensus map
     struct  ColumnHeader :
       public MetaInfoInterface
@@ -115,7 +116,7 @@ public:
       /// File name of the mzML file
       String filename;
 
-      /// Label e.g. 'heavy' and 'light' for ICAT, or 'sample1' and 'sample2' for label-free quantitation    
+      /// Label e.g. 'heavy' and 'light' for ICAT, or 'sample1' and 'sample2' for label-free quantitation
       String label;
 
       /// @brief Number of elements (features, peaks, ...).
@@ -174,7 +175,7 @@ public:
     /**
       @brief Add consensus map entries as new columns.
 
-      The number of columns (maximum map index) is the sum of both maps.     
+      The number of columns (maximum map index) is the sum of both maps.
 
       @param rhs The consensus map to be merged.
     */
@@ -274,7 +275,7 @@ public:
     /// set the file paths to the primary MS run (stored in ColumnHeaders)
     void setPrimaryMSRunPath(const StringList& s);
 
-    /// set the file path to the primary MS run using the mzML annotated in the MSExperiment @p e. 
+    /// set the file path to the primary MS run using the mzML annotated in the MSExperiment @p e.
     /// If it doesn't exist, fallback to @p s.
     /// @param s Fallback if @p e does not have a primary MS runpath
     /// @param e Use primary MS runpath from this mzML file
@@ -356,7 +357,25 @@ public:
     */
     std::vector<FeatureMap> split(SplitMeta mode = SplitMeta::DISCARD) const;
 
-protected:
+    /// @name Functions for dealing with identifications in new format
+    ///@{
+    /*!
+      @brief Return observation matches (e.g. PSMs) from the identification data that are not assigned to any feature in the map
+
+      Only top-level features are considered, i.e. no subordinates.
+
+      @see BaseFeature::getIDMatches()
+    */
+    std::set<IdentificationData::ObservationMatchRef> getUnassignedIDMatches() const;
+
+    /// Immutable access to the contained identification data
+    const IdentificationData& getIdentificationData() const;
+
+    /// Mutable access to the contained identification data
+    IdentificationData& getIdentificationData();
+    ///@}
+
+  protected:
     /// Map from index to file description
     ColumnHeaders column_description_;
 
@@ -371,10 +390,12 @@ protected:
 
     /// applied data processing
     std::vector<DataProcessing> data_processing_;
+
+    /// general identification results (peptides/proteins, RNA, compounds)
+    IdentificationData id_data_;
   };
 
   ///Print the contents of a ConsensusMap to a stream.
   OPENMS_DLLAPI std::ostream& operator<<(std::ostream& os, const ConsensusMap& cons_map);
 
 } // namespace OpenMS
-

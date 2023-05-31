@@ -45,7 +45,7 @@ namespace OpenMS
   {
     fs << "FeatureIndex\tFileName\tMonoisotopicMass\tAverageMass\tMassCount\tStartRetentionTime"
           "\tEndRetentionTime\tRetentionTimeDuration\tApexRetentionTime"
-          "\tSumIntensity\tMaxIntensity\tFeatureQuantity\tMinCharge\tMaxCharge\tChargeCount\tIsotopeCosineScore\tMaxQScore\tPerChargeIntensity\tPerIsotopeIntensity"
+          "\tSumIntensity\tMaxIntensity\tFeatureQuantity\tMinCharge\tMaxCharge\tChargeCount\tIsotopeCosineScore\tMaxQscore\tPerChargeIntensity\tPerIsotopeIntensity"
           "\n";
   }
 
@@ -111,7 +111,7 @@ namespace OpenMS
         {
           continue;
         }
-        iso_end_index = (int) i;
+        iso_end_index = (int)i;
       }
       for (int i = 0; i <= iso_end_index; i++)
       {
@@ -126,8 +126,7 @@ namespace OpenMS
     }
   }
 
-  void FLASHDeconvFeatureFile::writeTopFDFeatures(const std::vector<FLASHDeconvHelperStructs::MassFeature>& mass_features,
-                                                  const std::map<int, PeakGroup>& precursor_peak_groups,
+  void FLASHDeconvFeatureFile::writeTopFDFeatures(const std::vector<FLASHDeconvHelperStructs::MassFeature>& mass_features, const std::map<int, PeakGroup>& precursor_peak_groups,
                                                   const std::map<int, double>& scan_rt_map, const String& file_name, std::vector<std::fstream>& fs)
   {
     int topid = 1;
@@ -145,8 +144,8 @@ namespace OpenMS
       {
         if (i == 0)
         {
-          fs[i] << "0\t" << topid << "\t" << mass_feature.mt.getCentroidMZ() << "\t" << sum_intensity << "\t" << mass_feature.mt.begin()->getRT() << "\t" << mass_feature.mt.rbegin()->getRT() << "\t" << mass_feature.mt[mass_feature.mt.findMaxByIntPeak()].getRT()<< "\t"
-                << mass_feature.min_charge << "\t" << mass_feature.max_charge << "\t0\t0\n";
+          fs[i] << "0\t" << topid << "\t" << mass_feature.mt.getCentroidMZ() << "\t" << sum_intensity << "\t" << mass_feature.mt.begin()->getRT() << "\t" << mass_feature.mt.rbegin()->getRT() << "\t"
+                << mass_feature.mt[mass_feature.mt.findMaxByIntPeak()].getRT() << "\t" << mass_feature.min_charge << "\t" << mass_feature.max_charge << "\t0\t0\n";
           mtid_topid[(int)l] = topid;
         }
       }
@@ -173,7 +172,7 @@ namespace OpenMS
           continue;
         }
         selected = true;
-        selected_index = (int) l;
+        selected_index = (int)l;
         break;
       }
 
@@ -187,7 +186,8 @@ namespace OpenMS
             sum_intensity += m.getIntensity();
           }
           fs[i] << ms2_scan_number << "\t0\t" << file_name << "\t" << ms2_scan_number << "\t" << ms1_scan_number << "\t" << ms1_scan_number << "\t" << precursor.second.getMonoMass() << "\t"
-                << precursor.second.getIntensity() << "\t" << mtid_topid[selected_index] << "\t" << sum_intensity << "\t-1000\t" << mass_features[selected_index].mt[mass_features[selected_index].mt.findMaxByIntPeak()].getRT()<< "\t"  << topid << "\t" << sum_intensity << "\n";
+                << precursor.second.getIntensity() << "\t" << mtid_topid[selected_index] << "\t" << sum_intensity << "\t-1000\t"
+                << mass_features[selected_index].mt[mass_features[selected_index].mt.findMaxByIntPeak()].getRT() << "\t" << topid << "\t" << sum_intensity << "\n";
         }
         continue;
       }
@@ -198,30 +198,27 @@ namespace OpenMS
       {
         if (i == 0)
         {
-          fs[i] << "0\t" << topid << "\t" << precursor.second.getMonoMass() << "\t" << precursor.second.getIntensity() << "\t" << rt - 1 << "\t" << rt + 1 << "\t" << rt<< "\t"
-                 << (precursor.second.isPositive() ? std::get<0>(crange) : -std::get<1>(crange)) << "\t" << (precursor.second.isPositive() ? std::get<1>(crange) : -std::get<0>(crange)) << "\t0\t0\n";
+          fs[i] << "0\t" << topid << "\t" << precursor.second.getMonoMass() << "\t" << precursor.second.getIntensity() << "\t" << rt - 1 << "\t" << rt + 1 << "\t" << rt << "\t"
+                << (precursor.second.isPositive() ? std::get<0>(crange) : -std::get<1>(crange)) << "\t" << (precursor.second.isPositive() ? std::get<1>(crange) : -std::get<0>(crange)) << "\t0\t0\n";
         }
         else
         {
           fs[i] << ms2_scan_number << "\t0\t" << file_name << "\t" << ms2_scan_number << "\t" << ms1_scan_number << "\t" << ms1_scan_number << "\t" << precursor.second.getMonoMass() << "\t"
-                 << precursor.second.getIntensity() << "\t" << topid << "\t" << precursor.second.getIntensity() << "\t-1000\t" << rt << "\t" <<  topid << "\t" << precursor.second.getIntensity() << "\n";
+                << precursor.second.getIntensity() << "\t" << topid << "\t" << precursor.second.getIntensity() << "\t-1000\t" << rt << "\t" << topid << "\t" << precursor.second.getIntensity() << "\n";
         }
       }
       topid++;
     }
   }
 
-  void FLASHDeconvFeatureFile::writePromexFeatures(const std::vector<FLASHDeconvHelperStructs::MassFeature>& mass_features,
-                                                   const std::map<int, PeakGroup>& precursor_peak_groups,
-                                                   const std::map<int, double>& scan_rt_map,
-                                                   const FLASHDeconvHelperStructs::PrecalculatedAveragine& avg,
-                                                   std::fstream& fs)
+  void FLASHDeconvFeatureFile::writePromexFeatures(const std::vector<FLASHDeconvHelperStructs::MassFeature>& mass_features, const std::map<int, PeakGroup>& precursor_peak_groups,
+                                                   const std::map<int, double>& scan_rt_map, const FLASHDeconvHelperStructs::PrecalculatedAveragine& avg, std::fstream& fs)
   {
     int promexid = 1;
 
     auto per_isotope_intensity = std::vector<double>(avg.getMaxIsotopeIndex(), .0);
     std::map<double, int> rt_scan_map;
-    for(auto const& item : scan_rt_map)
+    for (auto const& item : scan_rt_map)
     {
       rt_scan_map[item.second] = item.first;
     }
@@ -234,13 +231,13 @@ namespace OpenMS
       int min_scan_num = -1;
       int max_scan_num = 0;
 
-      for(auto& m : mt)
+      for (auto& m : mt)
       {
         auto iter = rt_scan_map.lower_bound(m.getRT());
-        if(iter != rt_scan_map.end())
+        if (iter != rt_scan_map.end())
         {
           int scan = iter->second;
-          if(min_scan_num < 0)
+          if (min_scan_num < 0)
           {
             min_scan_num = scan;
           }
@@ -250,10 +247,9 @@ namespace OpenMS
         sum_intensity += m.getIntensity();
       }
 
-      fs << promexid << "\t" << min_scan_num << "\t" << max_scan_num << "\t" << mass_feature.min_charge << "\t"
-         << mass_feature.max_charge << "\t" << std::to_string(mt.getCentroidMZ()) << "\t" << std::fixed << std::setprecision(2) << mass_feature.scan_number << "\t"
-         << mass_feature.rep_charge  << "\t" << mass_feature.rep_mz << "\t" << sum_intensity << "\t" << mass_feature.scan_number << "\t" << sum_intensity << "\t" << mt.begin()->getRT() / 60.0
-         << "\t" << mt.rbegin()->getRT() / 60.0 << "\t" << mt.getTraceLength() / 60.0 << "\t";
+      fs << promexid << "\t" << min_scan_num << "\t" << max_scan_num << "\t" << mass_feature.min_charge << "\t" << mass_feature.max_charge << "\t" << std::to_string(mt.getCentroidMZ()) << "\t"
+         << std::fixed << std::setprecision(2) << mass_feature.scan_number << "\t" << mass_feature.rep_charge << "\t" << mass_feature.rep_mz << "\t" << sum_intensity << "\t"
+         << mass_feature.scan_number << "\t" << sum_intensity << "\t" << mt.begin()->getRT() / 60.0 << "\t" << mt.rbegin()->getRT() / 60.0 << "\t" << mt.getTraceLength() / 60.0 << "\t";
 
       int iso_end_index = 0;
 
@@ -263,11 +259,11 @@ namespace OpenMS
         {
           continue;
         }
-        iso_end_index = (int) i;
+        iso_end_index = (int)i;
       }
       for (int i = 0; i <= iso_end_index; i++)
       {
-        fs <<  i << "," << mass_feature.per_isotope_intensity[i];
+        fs << i << "," << mass_feature.per_isotope_intensity[i];
 
         if (i < iso_end_index)
         {

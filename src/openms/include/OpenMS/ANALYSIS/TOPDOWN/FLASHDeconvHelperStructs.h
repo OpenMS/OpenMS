@@ -47,7 +47,7 @@ namespace OpenMS
    * Three structures are defined: PrecalculatedAveragine, TopPicItem, and LogMzPeak
    * i) PrecalculatedAveragine - to match observed isotopic envelope against theoretical one, theoretical envelope from
    * averagine model should be quickly calculated. To do so, precalculate averagines for different masses at the beginning of FLASHDeconv runs
-   * ii) TopPicItem - represent TopPic identification. Currently used for QScore training. TopPic is the top-down proteomics identification tool (https://www.toppic.org/).
+   * ii) TopPicItem - represent TopPic identification. Currently used for Qscore training. TopPic is the top-down proteomics identification tool (https://www.toppic.org/).
    * iii) LogMzPeak - Log transformed peak from original peak. Contains information such as charge, isotope index, and uncharged mass.
    * @see FLASHDeconvAlgorithm
    * @reference: FeatureFinderAlgorithmPickedHelperStructs
@@ -184,7 +184,7 @@ namespace OpenMS
 
       /**
         @brief constructor from Peak1D.
-        @param positive determines the charge carrier mass
+        @param positive determines the charge carrier mass. Can be obtained by getChargeMass(true) for positive mode (Constants::PROTON_MASS_U) and getChargeMass(false) for negative mode (-Constants::PROTON_MASS_U)
       */
       explicit LogMzPeak(const Peak1D& peak, bool positive);
 
@@ -204,14 +204,14 @@ namespace OpenMS
     };
 
     /**
-        @brief calculate log mzs from mzs
-        @param mz mz
-        @param positive determines the charge carrier mass. If positive it is + proton mass. If negative - proton mass. Used to calculate uncharged mass of a peak
-    */
+       @brief calculate log mzs from mzs
+       @param mz mz
+       @param positive determines the charge carrier mass
+     */
     static double getLogMz(double mz, bool positive);
 
     /**
-       @brief get charge carrier mass
+       @brief get charge carrier mass : positive mode mass of (Constants::PROTON_MASS_U) and negative mode mass of (-Constants::PROTON_MASS_U)
        @param ioniziation_mode Determines the charge carrier mass (true = positive or false = negative)
     */
     static float getChargeMass(bool positive_ioniziation_mode);

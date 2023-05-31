@@ -55,9 +55,9 @@ namespace OpenMS
   /*!
     @brief Representation of spectrum identification results and associated data
 
-    This class provides capabilities for storing spectrum identification results from different 
+    This class provides capabilities for storing spectrum identification results from different
     types of experiments/molecules (proteomics: peptides/proteins, metabolomics: small molecules, "nucleomics": RNA).
-    
+
     The class design has the following goals:
     - Provide one structure for storing all relevant data for spectrum identification results.
     - Store data non-redundantly.
@@ -524,7 +524,7 @@ namespace OpenMS
     void applyToObservations(PredicateType&& func)
     {
       for (auto it = observations_.begin(); it != observations_.end(); ++it)
-        observations_.modify(it, func);   
+        observations_.modify(it, func);
     }
 
     /*!
@@ -628,16 +628,20 @@ namespace OpenMS
       return pos->first;
     }
 
-    /// Set a meta value on a stored input match
+    /// Set a meta value on a stored observation match (e.g. PSM)
     void setMetaValue(const ObservationMatchRef ref, const String& key, const DataValue& value);
 
-    /// Set a meta value on a stored input item
+    /// Set a meta value on a stored observation
     void setMetaValue(const ObservationRef ref, const String& key, const DataValue& value);
 
     /// Set a meta value on a stored identified molecule (variant)
     void setMetaValue(const IdentifiedMolecule& var, const String& key, const DataValue& value);
 
     // @TODO: add overloads for other data types derived from MetaInfoInterface
+
+    /// Remove a meta value (if it exists) from a stored observation match (e.g. PSM)
+    /// @TODO: return whether value existed? (requires changes in MetaInfo[Interface])
+    void removeMetaValue(const ObservationMatchRef ref, const String& key);
 
   protected:
 
@@ -736,5 +740,5 @@ namespace OpenMS
       AddressLookup& lookup);
 
   };
-  
+
 }

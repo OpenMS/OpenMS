@@ -87,7 +87,8 @@ namespace OpenMS
   /// Helper function to add a meta value to an element in a multi-index container
   template <typename RefType, typename ContainerType>
   void setMetaValue_(const RefType ref, const String& key, const DataValue& value,
-                      ContainerType& container, bool no_checks, const IdentificationData::AddressLookup& lookup = IdentificationData::AddressLookup())
+                     ContainerType& container, bool no_checks,
+                     const IdentificationData::AddressLookup& lookup = IdentificationData::AddressLookup())
   {
     if (!no_checks && ((lookup.empty() && !isValidReference_(ref, container)) ||
                         (!lookup.empty() && !isValidHashedReference_(ref, lookup))))
@@ -147,7 +148,7 @@ namespace OpenMS
     }
 
     ProcessingStepRef step_ref;
-  };  
+  };
 
   template <typename ElementType>
   struct IdentificationData::ModifyMultiIndexAddScore
@@ -168,7 +169,7 @@ namespace OpenMS
         element.addScore(score_type_ref, value,
                           element.steps_and_scores.back().processing_step_opt);
       }
-    }  
+    }
     ScoreTypeRef score_type_ref;
     double value;
   };
@@ -1248,11 +1249,11 @@ namespace OpenMS
   IdentificationData& IdentificationData::operator=(const IdentificationData& other)
   {
     if (this != &other)
-    {  
+    {
       IdentificationData tmp(other);
       tmp.swap(*this);
     }
-    
+
     return *this;
   }
 
@@ -1352,7 +1353,7 @@ namespace OpenMS
     switch (var.getMoleculeType())
     {
       case MoleculeType::PROTEIN:
-        setMetaValue_(var.getIdentifiedPeptideRef(), key, value, 
+        setMetaValue_(var.getIdentifiedPeptideRef(), key, value,
                       identified_peptides_, no_checks_, identified_peptide_lookup_);
         break;
       case MoleculeType::COMPOUND:
@@ -1364,6 +1365,22 @@ namespace OpenMS
                       identified_oligos_, no_checks_, identified_oligo_lookup_);
     }
   }
+
+
+  void IdentificationData::removeMetaValue(const ObservationMatchRef ref, const String& key)
+  {
+    if (!no_checks_ && ((observation_match_lookup_.empty() && !isValidReference_(ref, observation_matches_)) ||
+                       (!observation_match_lookup_.empty() && !isValidHashedReference_(ref, observation_match_lookup_))))
+    {
+      String msg = "invalid reference to an observation match";
+      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, msg);
+    }
+    observation_matches_.modify(ref, [&key](ObservationMatch& element)
+    {
+      element.removeMetaValue(key);
+    });
+  }
+
 
   IdentificationData::IdentifiedMolecule IdentificationData::RefTranslator::translate(IdentifiedMolecule old) const
   {

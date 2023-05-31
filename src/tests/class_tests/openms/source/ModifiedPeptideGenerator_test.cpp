@@ -286,7 +286,7 @@ START_SECTION([EXTRA] multithreaded example)
   int nr_iterations (1e5);
   int test = 0;
   // many modifications
-  vector<String> all_mods = {"Carbamidomethyl (C)", "Oxidation (M)", "Phospho (S)", "Phospho (T)", "Phospho (Y)", "Carbamyl (K)", "Carbamyl (N-term)"};
+  vector<String> all_mods = {"Carbamidomethyl (C)", "Oxidation (M)", "Carbamyl (M)", "Phospho (S)", "Phospho (T)", "Carbamyl (T)", "Phospho (Y)", "Carbamyl (K)", "Carbamyl (N-term)"};
 
   ModifiedPeptideGenerator::MapToResidueType variable_mods = ModifiedPeptideGenerator::getModifications(all_mods);
 
@@ -297,18 +297,14 @@ START_SECTION([EXTRA] multithreaded example)
   for (int i = 0; i < nr_iterations; ++i)
   {
     vector<AASequence> modified_peptides;
-    modified_peptides.reserve(29);
-    ModifiedPeptideGenerator::applyVariableModifications(variable_mods, seq, 2, modified_peptides, true);
+    modified_peptides.reserve(199);
+    ModifiedPeptideGenerator::applyVariableModifications(variable_mods, seq, 4, modified_peptides, true);
     test += modified_peptides.size();
   }
-  TEST_EQUAL(test, 29 * nr_iterations)
+  TEST_EQUAL(test, 199 * nr_iterations)
 #endif
 }
-
-
 END_SECTION
-
-
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////

@@ -145,6 +145,7 @@ public:
         return *this;
       }
 
+      // @TODO: members are public, names shouldn't end in underscores
       double ratio_value_;
       String denominator_ref_;
       String numerator_ref_;
@@ -352,4 +353,3 @@ private:
   OPENMS_DLLAPI std::ostream& operator<<(std::ostream& os, const ConsensusFeature& cons);
 
 } // namespace OpenMS
-
