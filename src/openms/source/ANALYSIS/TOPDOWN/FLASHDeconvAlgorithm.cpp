@@ -42,7 +42,7 @@
 namespace OpenMS
 {
   /// harmonic charge factors that will be considered for harmonic mass reduction.
-  inline const std::vector<int> harmonic_charges_ {2, 3, 5, 7};
+  inline const std::vector<int> harmonic_charges_ {2, 3, 5, 7, 11};
   /// high and low charges are differently deconvolved. This value determines the (inclusive) threshold for low charge.
   inline const int low_charge_ = 8; // 8 inclusive
 
@@ -426,7 +426,7 @@ namespace OpenMS
             int next_iso_bin = 0;
             for (int t = -1; t < 2; t++)
             {
-              int nib = getBinNumber_(log_mz + diff, mz_bin_min_value_, bin_mul_factor);
+              int nib = getBinNumber_(log_mz + diff, mz_bin_min_value_, bin_mul_factor) + t;
 
               if (nib > 0 && nib < mz_bins_.size() && mz_bins_[nib])
               {
@@ -1137,9 +1137,9 @@ namespace OpenMS
         }
 
         peak_group.setTargetDummyType(target_dummy_type_);
-        for (int k = 0; k < 5; k++)
+        for (int k = 0; k < 10; k++)
         {
-          auto noise = peak_group.recruitAllPeaksInSpectrum(deconvolved_spectrum_.getOriginalSpectrum(), tol, avg_, peak_group.getMonoMass() + offset * iso_da_distance_, excluded_peak_mzs_);
+          peak_group.recruitAllPeaksInSpectrum(deconvolved_spectrum_.getOriginalSpectrum(), tol, avg_, peak_group.getMonoMass() + offset * iso_da_distance_, excluded_peak_mzs_, true);
           // min cosine is checked in here. mono mass is also updated one last time. SNR, per charge SNR, and avg errors are updated here.
           offset = peak_group.updateIsotopeCosineSNRAvgErrorAndQscore(avg_, min_isotope_cosine_[ms_level_ - 1]);
           if (offset == 0)
@@ -1459,7 +1459,7 @@ namespace OpenMS
           {
             continue;
           }
-          if (dspec[i].getSNR() > dspec[j].getSNR() * 3.0) // if ith is way better than jth, jth is overlapped not ith
+          if (dspec[i].getSNR() > dspec[j].getSNR() * 4.0) // if ith is way better than jth, jth is overlapped not ith
           {
             continue;
           }

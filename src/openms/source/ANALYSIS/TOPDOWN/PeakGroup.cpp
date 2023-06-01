@@ -190,59 +190,94 @@ namespace OpenMS
     return h_offset;
   }
 
-  float PeakGroup::getNoisePeakPower_(const std::vector<FLASHDeconvHelperStructs::LogMzPeak>& noisy_peaks) const
+  float PeakGroup::getNoisePeakPower_(const std::vector<FLASHDeconvHelperStructs::LogMzPeak>& noisy_peaks, const std::vector<FLASHDeconvHelperStructs::LogMzPeak>& signal_peaks) const
   {
     const Size max_noisy_peaks = 50; // too many noise peaks will slow down the process
-    const Size max_bin_number = 25;  // .05 Da bin + 5 extra bin
+    const Size max_bin_number = 29;  // 24 bin + 5 extra bin
     float threshold = 0;
 
+    std::vector<FLASHDeconvHelperStructs::LogMzPeak> all_peaks;
+    std::map<double, bool> is_signal;
+
+    all_peaks.reserve(noisy_peaks.size() + signal_peaks.size());
+    int z = 0;
     // get intensity threshold
-    if (noisy_peaks.size() > max_noisy_peaks)
+    if (noisy_peaks.size() + signal_peaks.size() > max_noisy_peaks)
     {
-      std::vector<float> intensities(noisy_peaks.size(), .0f);
-      for (Size i = 0; i < noisy_peaks.size(); i++)
+      std::vector<float> intensities(noisy_peaks.size() + signal_peaks.size(), .0f);
+      for (const auto& noisy_peak : noisy_peaks)
       {
-        intensities[i] = noisy_peaks[i].intensity;
+        intensities.push_back(noisy_peak.intensity);
       }
+
       std::sort(intensities.begin(), intensities.end());
       threshold = intensities[intensities.size() - max_noisy_peaks];
     }
+
+    for (auto& p : noisy_peaks)
+    {
+      if (p.intensity < threshold)
+      {
+        continue;
+      }
+      all_peaks.push_back(p);
+      is_signal[p.mz] = false;
+    }
+
+    for (auto& p : signal_peaks)
+    {
+      z = p.abs_charge;
+      if (p.intensity < threshold)
+      {
+        continue;
+      }
+      all_peaks.push_back(p);
+      is_signal[p.mz] = true;
+    }
+    if (z == 0)
+    {
+      return 0;
+    }
+    std::sort(all_peaks.begin(), all_peaks.end());
+    boost::dynamic_bitset<> is_signal_bitset(all_peaks.size());
+    for (Size i = 0; i < all_peaks.size(); i++)
+    {
+      if (is_signal[all_peaks[i].mz])
+      {
+        is_signal_bitset[i] = true;
+      }
+    }
+
     float charge_noise_pwr = 0;
 
     std::vector<std::vector<Size>> per_bin_edges(max_bin_number);
     std::vector<int> per_bin_start_index(max_bin_number, -2); // -2 means bin is empty. -1 means bin is used. zero or positive = edge index
     std::map<float, Size> max_intensity_sum_to_bin;
 
-    for(Size k = 0; k< max_bin_number; k++)
+    for (Size k = 0; k < max_bin_number; k++)
     {
-      per_bin_edges[k] = std::vector<Size>(noisy_peaks.size(), 0);
+      per_bin_edges[k] = std::vector<Size>(all_peaks.size(), 0);
     }
 
-    for(Size i = 0; i < noisy_peaks.size(); i++)
+    // first collect all possible edges
+    for (Size i = 0; i < all_peaks.size(); i++)
     {
-      auto p1 = noisy_peaks[i];
-      if(p1.intensity < threshold)
+      auto p1 = all_peaks[i];
+      bool p1_signal = is_signal_bitset[i];
+      for (Size j = i + 1; j < all_peaks.size(); j++)
       {
-        continue;
-      }
-      for(Size j = i + 1; j < noisy_peaks.size(); j++)
-      {
-        auto p2 = noisy_peaks[j];
-        if(p2.intensity < threshold)
+        auto p2 = all_peaks[j];
+        Size bin = (Size)round((p2.mz - p1.mz) * z * (max_bin_number - 5));
+        if (bin == 0)
         {
           continue;
         }
-        Size bin = (Size)round((p2.mz - p1.mz) * (max_bin_number - 5));
-        if(bin == 0)
-        {
-          continue;
-        }
-        if(bin >= max_bin_number)
+        if (bin >= max_bin_number)
         {
           break;
         }
-        double intensity_diff = std::abs(log10(p1.intensity / p2.intensity));
-        if(intensity_diff > 1)
+
+        if (p1_signal && is_signal_bitset[j]) // if both are signal do not connect
         {
           continue;
         }
@@ -250,30 +285,32 @@ namespace OpenMS
         per_bin_start_index[bin] = -1;
       }
     }
-    for(Size k = 0; k< max_bin_number; k++)
+
+    // then from each bin find the longest path
+    for (Size k = 0; k < max_bin_number; k++)
     {
-      if(per_bin_start_index[k] == -2)
+      if (per_bin_start_index[k] == -2)
       {
         continue;
       }
       auto edges = per_bin_edges[k];
       float max_sum_intensity = 0;
-      for(Size i = 0; i < edges.size() ; i++)
+      for (Size i = 0; i < edges.size(); i++)
       {
-        if(edges[i] == 0)
+        if (edges[i] == 0)
         {
           continue;
         }
-        float sum_intensity = noisy_peaks[i].intensity;
-        int cntr = 1;
+        float sum_intensity = all_peaks[i].intensity;
         Size j = edges[i];
-        while(j != 0)
+        int cntr = 0; // how many edges?
+        while (j != 0 && j < edges.size())
         {
-          sum_intensity += noisy_peaks[j].intensity;
-          cntr ++;
+          cntr++;
+          sum_intensity += all_peaks[j].intensity;
           j = edges[j];
         }
-        if(cntr > 2 && max_sum_intensity < sum_intensity)
+        if (cntr > 2 && max_sum_intensity < sum_intensity)
         {
           max_sum_intensity = sum_intensity;
           per_bin_start_index[k] = (int)i;
@@ -282,43 +319,56 @@ namespace OpenMS
       max_intensity_sum_to_bin[max_sum_intensity] = k;
     }
 
-    auto used = boost::dynamic_bitset<>(noisy_peaks.size());
+    auto used = boost::dynamic_bitset<>(all_peaks.size());
 
-    for(auto it = max_intensity_sum_to_bin.rbegin(); it != max_intensity_sum_to_bin.rend(); ++it)
+    for (auto it = max_intensity_sum_to_bin.rbegin(); it != max_intensity_sum_to_bin.rend(); ++it)
     {
       Size bin = it->second;
       int index = per_bin_start_index[bin];
 
-      if(index < 0)
+      if (index < 0)
       {
         continue;
       }
 
       auto edges = per_bin_edges[bin];
-      float sum_intensity = .0;
-      while(true)
+      float sum_intensity = .0, sum_squared_intensity = .0;
+      int skiped_peak_cntr = 0;
+      while (true)
       {
-        if(!used[index])
+        if (!used[index])
         {
-          sum_intensity += noisy_peaks[index].intensity;
+          sum_intensity += all_peaks[index].intensity;
+        }
+        else
+        {
+          sum_squared_intensity += all_peaks[index].intensity * all_peaks[index].intensity;
+          skiped_peak_cntr++;
         }
 
+        used[index] = true;
         index = edges[index];
-        if(index == 0)
+        if (index == 0 || index >= used.size())
         {
           break;
         }
-        used[index] = true;
       }
-      charge_noise_pwr += sum_intensity * sum_intensity;
+      if (skiped_peak_cntr < 2)
+      {
+        charge_noise_pwr += sum_intensity * sum_intensity;
+      }
+      else
+      {
+        charge_noise_pwr += sum_squared_intensity;
+      }
     }
-    for(Size i = 0; i < noisy_peaks.size(); i++)
+    for (Size i = 0; i < all_peaks.size(); i++)
     {
-      if(used[i])
+      if (used[i] || is_signal_bitset[i])
       {
         continue;
       }
-      charge_noise_pwr += noisy_peaks[i].intensity * noisy_peaks[i].intensity;
+      charge_noise_pwr += all_peaks[i].intensity * all_peaks[i].intensity;
     }
 
     return charge_noise_pwr;
@@ -326,7 +376,7 @@ namespace OpenMS
 
 
   std::vector<FLASHDeconvHelperStructs::LogMzPeak> PeakGroup::recruitAllPeaksInSpectrum(const MSSpectrum& spec, const double tol, const FLASHDeconvHelperStructs::PrecalculatedAveragine& avg,
-                                                                                        double mono_mass, const std::unordered_set<double>& excluded_peak_mzs, int charge_offset,
+                                                                                        double mono_mass, const std::unordered_set<double>& excluded_peak_mzs, bool cal_snr, int charge_offset,
                                                                                         double charge_multiple, double mz_off)
   {
     std::vector<LogMzPeak> noisy_peaks;
@@ -372,13 +422,12 @@ namespace OpenMS
       {
         break;
       }
-      float charge_noise_pwr = .0, charge_sig_pwr = .0;
+      float charge_noise_pwr = 1.0, charge_sig_pwr = .0;
       float charge_intensity = .0;
       double cmz = (mono_mass) / c + FLASHDeconvHelperStructs::getChargeMass(is_positive_) + mz_off;
       double left_mz = (mono_mass - iso_margin * iso_da_distance_) / c + FLASHDeconvHelperStructs::getChargeMass(is_positive_) + mz_off;
       Size index = spec.findNearest(left_mz * (1 - tol));
       double iso_delta = iso_da_distance_ / c;
-      float max_charge_signal_intensity = .0;
 
       for (; index < spec.size(); index++)
       {
@@ -409,10 +458,7 @@ namespace OpenMS
           push_back(p);
 
           charge_intensity += pint;
-          if (max_charge_signal_intensity < p.intensity)
-          {
-            max_charge_signal_intensity = p.intensity;
-          }
+
         }
         else
         {
@@ -433,6 +479,9 @@ namespace OpenMS
         new_min_abs_charge = c;
         std::vector<LogMzPeak> charge_noisy_peaks;
         charge_noisy_peaks.reserve(noisy_peaks.size());
+        std::vector<LogMzPeak> charge_signal_peaks;
+        charge_signal_peaks.reserve(size());
+
         for (auto& p : noisy_peaks)
         {
           if (p.abs_charge != c)
@@ -443,14 +492,30 @@ namespace OpenMS
           {
             continue;
           }
-          if(p.intensity < max_charge_signal_intensity / 10.0)
+
+          charge_noisy_peaks.push_back(p);
+        }
+
+        for (auto& p : *this)
+        {
+          if (p.abs_charge != c)
           {
             continue;
           }
-          charge_noisy_peaks.push_back(p);
+          if (p.isotopeIndex < min_isotope - 1 || p.isotopeIndex > max_isotope)
+          {
+            continue;
+          }
+          charge_signal_peaks.push_back(p);
         }
+
         std::sort(charge_noisy_peaks.begin(), charge_noisy_peaks.end());
-        charge_noise_pwr = getNoisePeakPower_(charge_noisy_peaks);
+        std::sort(charge_signal_peaks.begin(), charge_signal_peaks.end());
+
+        if (cal_snr)
+        {
+          charge_noise_pwr = getNoisePeakPower_(charge_noisy_peaks, charge_signal_peaks);
+        }
         setChargePowers_(c, charge_sig_pwr, charge_noise_pwr, charge_intensity);
 
         if (max_sig < charge_sig_pwr / (1 + charge_noise_pwr))
@@ -466,6 +531,10 @@ namespace OpenMS
       }
     }
 
+    if (!cal_snr)
+    {
+      return noisy_peaks;
+    }
     // determine the final charge ranges based on per charge power.
     // If more than two consecutive charges do not contain any signal peak, the charge range stops at that charge.
     if (max_sig_charge > 0)
