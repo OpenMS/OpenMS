@@ -119,17 +119,9 @@ namespace OpenMS
           Apex(Apex&& other) = default;
 
           // Move assignment operator
-          Apex& operator=(Apex&& other) 
-          {
-            if (this != &other) {
-              map_ = other.map_;
-              scan_idx_ = other.scan_idx_;
-              peak_idx_ = other.peak_idx_;
-            }
-            return *this;
-          }
+          Apex& operator=(Apex&& other) = default;
 
-          PeakMap& map_;
+          std::reference_wrapper<PeakMap> map_;
           Size scan_idx_;
           Size peak_idx_;
 
@@ -169,8 +161,7 @@ namespace OpenMS
           /// own datastructure
           std::vector<bool> peak_visited_;
           Size current_Apex_;
-          std::vector<std::pair<RangeMZ,RangeRT>> lock_list_;
-          std::vector<double> lock_list_2_;
+          std::vector<double> lock_list_;
           double mass_error_ppm_;
         };
 
@@ -187,8 +178,6 @@ namespace OpenMS
 
         // Find Offset for Peak
         static double findOffset_(const double centroid_mz, const double mass_error_ppm_);
-        Size calc_right_border_(Size peak_index_in_apices_vec, const PeakMap& input_exp, const std::vector<Apex>& apices_vec);
-        Size calc_left_border_(Size peak_index_in_apices_vec, const PeakMap& input_exp, const std::vector<Apex>& apices_vec);
         
         // parameter stuff
         double mass_error_ppm_;
