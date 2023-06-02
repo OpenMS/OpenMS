@@ -267,7 +267,7 @@ namespace OpenMS
       for (Size j = i + 1; j < all_peaks.size(); j++)
       {
         auto p2 = all_peaks[j];
-        Size bin = (Size)round((p2.mz - p1.mz) * z * (max_bin_number - 5));
+        Size bin = (Size)round((p2.mz - p1.mz) * z / iso_da_distance_ * (max_bin_number - 5));
         if (bin == 0)
         {
           continue;
@@ -277,7 +277,7 @@ namespace OpenMS
           break;
         }
 
-        if (p1_signal && is_signal_bitset[j]) // if both are signal do not connect
+        if (p1_signal && is_signal_bitset[j] && (p2.mz - p1.mz) * z / iso_da_distance_ >= .75) // if both are signal and they are different from each other by ~ 1Da, do not connect
         {
           continue;
         }
@@ -301,16 +301,18 @@ namespace OpenMS
         {
           continue;
         }
-        float sum_intensity = all_peaks[i].intensity;
+        float sum_intensity = is_signal_bitset[i]? 0 : all_peaks[i].intensity;
         Size j = edges[i];
+
         int cntr = 0; // how many edges?
         while (j != 0 && j < edges.size())
         {
           cntr++;
-          sum_intensity += all_peaks[j].intensity;
+          if(!is_signal_bitset[j])
+            sum_intensity += all_peaks[j].intensity;
           j = edges[j];
         }
-        if (cntr > 2 && max_sum_intensity < sum_intensity)
+        if (cntr > 2 && max_sum_intensity < sum_intensity) // at least two edges should be there.
         {
           max_sum_intensity = sum_intensity;
           per_bin_start_index[k] = (int)i;
@@ -332,22 +334,25 @@ namespace OpenMS
       }
 
       auto edges = per_bin_edges[bin];
+      float intensity = is_signal_bitset[index]? 0 : all_peaks[index].intensity;
       float sum_intensity = .0, sum_squared_intensity = .0;
       int skiped_peak_cntr = 0;
       while (true)
       {
         if (!used[index])
         {
-          sum_intensity += all_peaks[index].intensity;
+          sum_intensity += intensity;
         }
         else
         {
-          sum_squared_intensity += all_peaks[index].intensity * all_peaks[index].intensity;
+          sum_squared_intensity += intensity * intensity;
           skiped_peak_cntr++;
         }
 
         used[index] = true;
         index = edges[index];
+        intensity = is_signal_bitset[index]? 0 : all_peaks[index].intensity;
+
         if (index == 0 || index >= used.size())
         {
           break;

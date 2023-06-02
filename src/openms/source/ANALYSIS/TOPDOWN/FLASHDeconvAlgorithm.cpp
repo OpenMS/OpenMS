@@ -206,6 +206,7 @@ namespace OpenMS
     for (double& j : tolerance_)
     {
       j *= 1e-6;
+      j /= 2.5; // finder bins are far better.
       bin_mul_factors_.push_back(1.0 / j);
     }
 
@@ -1193,7 +1194,7 @@ namespace OpenMS
           continue;
         }
 
-        if (peak_group.getQscore() <= 0 || (peak_group.getSNR() < .5)) // snr check prevents harmonics or noise
+        if (peak_group.getQscore() <= 0 || (peak_group.getSNR() < .9)) // snr check prevents harmonics or noise.
         {
           continue;
         }
@@ -1249,9 +1250,8 @@ namespace OpenMS
     }
     deconvolved_spectrum_.setPeakGroups(filtered_peak_groups);
     deconvolved_spectrum_.sort();
-
-    removeOverlappingPeakGroups_(deconvolved_spectrum_, tol);
     removeChargeErrorPeakGroups_(deconvolved_spectrum_);
+    removeOverlappingPeakGroups_(deconvolved_spectrum_, tol);
   }
 
   float FLASHDeconvAlgorithm::getIsotopeCosineAndDetermineIsotopeIndex(const double mono_mass, const std::vector<float>& per_isotope_intensities, int& offset, const PrecalculatedAveragine& avg,
@@ -1459,7 +1459,7 @@ namespace OpenMS
           {
             continue;
           }
-          if (dspec[i].getSNR() > dspec[j].getSNR() * 4.0) // if ith is way better than jth, jth is overlapped not ith
+          if (dspec[i].getSNR() > dspec[j].getSNR() * 2.0) // if ith is way better than jth, jth is overlapped not ith
           {
             continue;
           }
