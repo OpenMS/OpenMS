@@ -505,12 +505,9 @@ void SimpleSearchEngineAlgorithm::postProcessHits_(const PeakMap& exp,
     vector<FASTAFile::FASTAEntry> fasta_db;
     FASTAFile().load(in_db, fasta_db);
 
-    ProteaseDigestion digestor;
-    digestor.setEnzyme(enzyme_);
     // generate decoy protein sequences by reversing them
     if (decoys_)
     {
-      digestor.setMissedCleavages(0);
       startProgress(0, 1, "Generate decoys...");
 
       DecoyGenerator decoy_generator;
@@ -529,8 +526,10 @@ void SimpleSearchEngineAlgorithm::postProcessHits_(const PeakMap& exp,
       Math::RandomShuffler shuffler;
       shuffler.portable_random_shuffle(fasta_db.begin(), fasta_db.end());
       endProgress();
-      digestor.setMissedCleavages(peptide_missed_cleavages_);
     }
+    ProteaseDigestion digestor;
+    digestor.setEnzyme(enzyme_);
+    digestor.setMissedCleavages(peptide_missed_cleavages_);
     startProgress(0, fasta_db.size(), "Scoring peptide models against spectra...");
 
     // lookup for processed peptides. must be defined outside of omp section and synchronized
