@@ -321,7 +321,7 @@ namespace OpenMS
 
   void FLASHIda::filterPeakGroupsUsingMassExclusion_(const int ms_level, const double rt)
   {
-    deconvolved_spectrum_.sortByQScore();
+    deconvolved_spectrum_.sortByQscore();
     Size mass_count = (Size)mass_count_[ms_level - 1];
     trigger_charges.clear();
     trigger_charges.reserve(mass_count);
@@ -427,7 +427,7 @@ namespace OpenMS
           }
 
           int charge = pg.getRepAbsCharge();
-          double qscore = pg.getQScore();
+          double qscore = pg.getQscore();
           double mass = pg.getMonoMass();
           auto [mz1, mz2] = pg.getRepMzRange();
           double center_mz = (mz1 + mz2) / 2.0;
@@ -680,7 +680,7 @@ namespace OpenMS
       wstart[i] = trigger_left_isolation_mzs_[i]; // std::get<0>(mz_range) - min_isolation_window_half_;
       wend[i] = trigger_right_isolation_mzs_[i];  // std::get<1>(mz_range) + min_isolation_window_half_;
 
-      qscores[i] = QScore::getQScore(&peakgroup, charges[i]);
+      qscores[i] = Qscore::getQscore(&peakgroup, charges[i]);
       mono_masses[i] = peakgroup.getMonoMass();
       chare_cos[i] = peakgroup.getChargeIsotopeCosine(charges[i]);
       charge_snrs[i] = peakgroup.getChargeSNR(charges[i]);

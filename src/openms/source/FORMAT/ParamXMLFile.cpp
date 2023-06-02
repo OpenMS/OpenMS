@@ -80,9 +80,10 @@ namespace OpenMS
 
   void ParamXMLFile::writeXMLToStream(std::ostream* os_ptr, const Param& param) const
   {
-    // hint: the handling of 'getTrace()' is vulnerable to an unpruned tree (a path of nodes, but no entries in them), i.e.
+    // Note: For a long time the handling of 'getTrace()' was vulnerable to an unpruned tree (a path of nodes, but no entries in them), i.e.
     //       too many closing tags are written to the INI file, but no opening ones.
-    //       This currently cannot happen, as removeAll() was fixed to prune the tree, just keep it in mind.
+    //       This never mattered here, as removeAll() was fixed to prune the tree.
+    // TODO: Nowadays this should be fixed and removeAll() might not be necessary.
 
     std::ostream& os = *os_ptr;
 

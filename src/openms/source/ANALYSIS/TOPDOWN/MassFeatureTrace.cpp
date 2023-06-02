@@ -150,14 +150,14 @@ namespace OpenMS
         auto iso_int = pg.getIsotopeIntensities();
         for (size_t i = 0; i < per_isotope_intensity.size() - iso_off; i++)
         {
-          if((int)i + iso_off < 0 || i>= iso_int.size())
+          if ((int)i + iso_off < 0 || i >= iso_int.size())
           {
             continue;
           }
           per_isotope_intensity[i + iso_off] += iso_int[i];
         }
 
-        max_qscore = max_qscore < pg.getQScore() ? pg.getQScore() : max_qscore;
+        max_qscore = max_qscore < pg.getQscore() ? pg.getQscore() : max_qscore;
       }
 
       int offset = 0;

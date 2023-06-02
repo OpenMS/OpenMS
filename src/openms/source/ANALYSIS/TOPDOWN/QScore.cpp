@@ -34,20 +34,19 @@
 
 #include <OpenMS/ANALYSIS/TOPDOWN/FLASHDeconvHelperStructs.h>
 #include <OpenMS/ANALYSIS/TOPDOWN/PeakGroup.h>
-#include <OpenMS/ANALYSIS/TOPDOWN/QScore.h>
-
+#include <OpenMS/ANALYSIS/TOPDOWN/Qscore.h>
 #include <iomanip>
 
 namespace OpenMS
 {
-  float QScore::getQScore(const PeakGroup *pg, const int abs_charge)
+  float Qscore::getQscore(const PeakGroup* pg, const int abs_charge)
   {
     if (pg->empty())
     { // all zero
       return .0f;
     }
     // the weights for per charge cosine, per charge SNR, cosine, SNR, PPM error, and intercept.
-    const std::vector<double> weights({ -8.9686, 0.7105, -8.0507, -0.4402, 0.1983, 15.0979});
+    const std::vector<double> weights({-8.9686, 0.7105, -8.0507, -0.4402, 0.1983, 15.0979});
 
     double score = weights.back();
     auto fv = toFeatureVector_(pg, abs_charge);
@@ -61,7 +60,7 @@ namespace OpenMS
     return qscore;
   }
 
-  std::vector<double> QScore::toFeatureVector_(const PeakGroup *pg, const int abs_charge)
+  std::vector<double> Qscore::toFeatureVector_(const PeakGroup* pg, const int abs_charge)
   {
     std::vector<double> fvector(5); // length of weights vector - 1, excluding the intercept weight.
 
@@ -80,12 +79,12 @@ namespace OpenMS
     return fvector;
   }
 
-  void QScore::writeAttCsvFromDummyHeader(std::fstream& f)
+  void Qscore::writeAttCsvFromDummyHeader(std::fstream& f)
   {
     f << "MSLevel,ChargeCos,ChargeSNR,Cos,SNR,AvgPPMError,Class\n";
   }
 
-  void QScore::writeAttCsvFromDummy(const DeconvolvedSpectrum& deconvolved_spectrum, std::fstream& f)
+  void Qscore::writeAttCsvFromDummy(const DeconvolvedSpectrum& deconvolved_spectrum, std::fstream& f)
   {
     uint ms_level = deconvolved_spectrum.getOriginalSpectrum().getMSLevel();
     String cns[] = {"T", "D", "D", "D"};
@@ -104,4 +103,4 @@ namespace OpenMS
       f <<  cns[pg.getTargetDummyType()]<< "\n";
     }
   }
-}
+} // namespace OpenMS

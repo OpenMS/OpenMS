@@ -36,7 +36,7 @@
 #include <OpenMS/ANALYSIS/TOPDOWN/FLASHDeconvAlgorithm.h>
 #include <OpenMS/ANALYSIS/TOPDOWN/FLASHIda.h>
 #include <OpenMS/ANALYSIS/TOPDOWN/MassFeatureTrace.h>
-#include <OpenMS/ANALYSIS/TOPDOWN/QScore.h>
+#include <OpenMS/ANALYSIS/TOPDOWN/Qscore.h>
 #include <OpenMS/ANALYSIS/TOPDOWN/Qvalue.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/CHEMISTRY/Tagger.h>
@@ -130,7 +130,8 @@ protected:
     registerIntOption_("target_precursor_charge", "<Target precursor charge>", 0,
                        "Charge state of the target precursor. All precursor charge is fixed to this value. "
                        "This parameter is useful for targeted studies where MS2 spectra are generated from a fixed precursor (e.g., Native-MS). "
-                       "This option also gives the maximum charge and masses (together with precursor m/z) of fragment ions, which overrides -Algorithm:max_charge and -Algorithm:max_mass.", false, false);
+                       "This option also gives the maximum charge and masses (together with precursor m/z) of fragment ions, which overrides -Algorithm:max_charge and -Algorithm:max_mass.",
+                       false, false);
 
     registerDoubleOption_("target_precursor_mz", "<m/z value>", 0.0,
                           "Target precursor m/z value. This option must be used with -target_precursor_charge option. Otherwise it will be ignored. "
@@ -241,35 +242,37 @@ protected:
       it.sortByIntensity(true);
       double max_intensity = log10(it[0].getIntensity());
       double min_intensity = 0;
-      int non_zero_size = 0;
-      for(auto&p : it)
+      for (auto& p : it)
       {
-        if(p.getIntensity() <= 0)
+        if (p.getIntensity() <= 0)
         {
           break;
         }
-        non_zero_size++;
-        min_intensity = log10(p.getIntensity());;
+        min_intensity = log10(p.getIntensity());
       }
-      Size bin_size = std::max(200, non_zero_size/200);
+      Size bin_size = 500;
       std::vector<int> freq(bin_size + 1, 0);
-      for(auto&p : it)
+      for (auto& p : it)
       {
-        if(p.getIntensity() <= 0)
+        if (p.getIntensity() <= 0)
         {
           break;
         }
-        Size bin = round((log10(p.getIntensity()) - min_intensity)/(max_intensity - min_intensity) * bin_size);
+        Size bin = round((log10(p.getIntensity()) - min_intensity) / (max_intensity - min_intensity) * bin_size);
         freq[bin]++;
       }
 
-      int mod_bin = std::distance(freq.begin(), std::max_element(freq.begin(), freq.end()));
+      int mod_bin = std::distance(freq.begin(), std::max_element(freq.begin(), freq.end())); // most frequent intensity is the threshold to distinguish between signal and noise
+      double threshold =
+        3.0 * (pow(10.0, (double)mod_bin / bin_size * (max_intensity - min_intensity) +
+                           min_intensity)); // multiply by 3 to the most frequent intensity to make sure more signal component remains. Later this could be determined to use signal-to-noise ratio.
 
-      double threshold = 4.0 * (pow(10.0, (double)mod_bin / bin_size * (max_intensity - min_intensity) + min_intensity));
-      while (it.size() > 0 && it[it.size() - 1].getIntensity() < threshold)
+      // pop back the low intensity peaks using threshold
+      while (it.size() > 0 && it[it.size() - 1].getIntensity() <= threshold)
       {
         it.pop_back();
       }
+
       it.sortByPosition();
     }
   }
@@ -282,7 +285,7 @@ protected:
     //-------------------------------------------------------------
     // parsing parameters
     //-------------------------------------------------------------
-    const Size max_peak_count_ = 5e4;3e4;// 223248;
+    const Size max_peak_count_ = 5e4;
     String in_file = getStringOption_("in");
     String out_file = getStringOption_("out");
     String in_train_file {};
@@ -360,7 +363,7 @@ protected:
     std::map<int, std::vector<std::vector<float>>> precursor_map_for_real_time_acquisition =
       FLASHIda::parseFLASHIdaLog(in_log_file); // ms1 scan -> mass, charge ,score, mz range, precursor int, mass int, color
 
-    if(!precursor_map_for_real_time_acquisition.empty())
+    if (!precursor_map_for_real_time_acquisition.empty())
     {
       topFD_SNR_threshold = .0;
     }
@@ -433,11 +436,11 @@ protected:
       current_max_ms_level = current_max_ms_level < ms_level ? ms_level : current_max_ms_level;
       current_min_ms_level = current_min_ms_level > ms_level ? ms_level : current_min_ms_level;
 
-      if(ms_level > 1 && target_precursor_charge != 0)
+      if (ms_level > 1 && target_precursor_charge != 0)
       {
-        if(it.getPrecursors().size() == 0)
+        if (it.getPrecursors().size() == 0)
         {
-          if(target_precursor_mz == 0)
+          if (target_precursor_mz == 0)
           {
             OPENMS_LOG_INFO << "Target precursor charge is set but no precursor is found in MS2 spectra. Specify target precursor m/z with -target_precursor_mz option" << std::endl;
             return EXTERNAL_PROGRAM_ERROR;
@@ -453,7 +456,7 @@ protected:
         else
         {
           it.getPrecursors()[0].setCharge(target_precursor_charge);
-          if(target_precursor_mz != 0)
+          if (target_precursor_mz != 0)
           {
             it.getPrecursors()[0].setMZ(target_precursor_mz);
           }
@@ -490,7 +493,7 @@ protected:
     Param fd_param = getParam_().copy("Algorithm:", true);
     DoubleList tols = fd_param.getValue("tol");
 
-    if(target_precursor_charge != 0)
+    if (target_precursor_charge != 0)
     {
       fd_param.setValue("max_charge", target_precursor_charge);
       if (target_precursor_mz != 0)
@@ -498,7 +501,6 @@ protected:
         fd_param.setValue("max_mass", std::abs(target_precursor_charge) * (target_precursor_mz - FLASHDeconvHelperStructs::getChargeMass(target_precursor_charge > 0)));
       }
     }
-
 
 
     // if a merged spectrum is analyzed, replace the input dataset with the merged one
@@ -552,15 +554,15 @@ protected:
     {
       fd_charge_dummy.setParameters(fd_param);
       fd_charge_dummy.setAveragine(avg);
-      fd_charge_dummy.setTargetDummyType(PeakGroup::TargetDummyType::charge_dummy, fd); // charge
+      fd_charge_dummy.setTargetDummyType(PeakGroup::TargetDummyType::charge_dummy, fd.getDeconvolvedSpectrum()); // charge
 
       fd_noise_dummy.setParameters(fd_param);
       fd_noise_dummy.setAveragine(avg);
-      fd_noise_dummy.setTargetDummyType(PeakGroup::TargetDummyType::noise_dummy, fd); // noise
+      fd_noise_dummy.setTargetDummyType(PeakGroup::TargetDummyType::noise_dummy, fd.getDeconvolvedSpectrum()); // noise
 
       fd_iso_dummy.setParameters(fd_param);
       fd_iso_dummy.setAveragine(avg);
-      fd_iso_dummy.setTargetDummyType(PeakGroup::TargetDummyType::isotope_dummy, fd);
+      fd_iso_dummy.setTargetDummyType(PeakGroup::TargetDummyType::isotope_dummy, fd.getDeconvolvedSpectrum());
     }
 
     auto mass_tracer = MassFeatureTrace();
@@ -591,12 +593,11 @@ protected:
     deconvolved_spectra.reserve(map.size());
 
     std::vector<DeconvolvedSpectrum> dummy_deconvolved_spectra;
-    dummy_deconvolved_spectra.reserve(map.size() * 3);
+    dummy_deconvolved_spectra.reserve(map.size() * 3); // there are 3 different kinds of dummy spectra. And we reserve for them.
 
     for (auto it = map.begin(); it != map.end(); ++it)
     {
-      int scan_number =  map.getSourceFiles().empty()? -1: SpectrumLookup::extractScanNumber(it->getNativeID(),
-                                                          map.getSourceFiles()[0].getNativeIDTypeAccession());
+      int scan_number = map.getSourceFiles().empty() ? -1 : SpectrumLookup::extractScanNumber(it->getNativeID(), map.getSourceFiles()[0].getNativeIDTypeAccession());
 
       if (scan_number < 0)
       {
@@ -616,7 +617,7 @@ protected:
         continue;
       }
 
-      if(ms_level > 1 && target_precursor_charge != 0 && it->getPrecursors().size() == 0)
+      if (ms_level > 1 && target_precursor_charge != 0 && it->getPrecursors().size() == 0)
       {
         OPENMS_LOG_INFO << "Target precursor charge is set but no precursor m/z is found in MS2 spectra. Specify target precursor m/z with -target_precursor_mz option" << std::endl;
         return EXTERNAL_PROGRAM_ERROR;
@@ -641,18 +642,18 @@ protected:
         continue;
       }
 
-      if(ms_level > 1  && target_precursor_charge != 0)
+      if (ms_level > 1 && target_precursor_charge != 0)
       {
         auto precursor = it->getPrecursors()[0];
         target_precursor_mass = (precursor.getMZ() - FLASHDeconvHelperStructs::getChargeMass(target_precursor_charge > 0)) * std::abs(target_precursor_charge);
-        //precursor.setCharge(target_precursor_charge);
+        // precursor.setCharge(target_precursor_charge);
         PeakGroup precursorPeakGroup(1, std::abs(target_precursor_charge), target_precursor_charge > 0);
         precursorPeakGroup.push_back(FLASHDeconvHelperStructs::LogMzPeak());
         precursorPeakGroup.setMonoisotopicMass(target_precursor_mass);
         precursorPeakGroup.setSNR(1.0);
 
         precursorPeakGroup.setChargeSNR(std::abs(target_precursor_charge), 1.0);
-        precursorPeakGroup.setQScore(1.0);
+        precursorPeakGroup.Qscore(1.0);
         deconvolved_spectrum.setPrecursor(precursor);
         deconvolved_spectrum.setPrecursorPeakGroup(precursorPeakGroup);
       }
@@ -662,7 +663,7 @@ protected:
         precursor_peak_groups[scan_number] = deconvolved_spectrum.getPrecursorPeakGroup();
         if (deconvolved_spectrum.getPrecursorPeakGroup().getChargeSNR(std::abs(deconvolved_spectrum.getPrecursorCharge())) >= topFD_SNR_threshold)
         {
-          expected_identification_count += deconvolved_spectrum.getPrecursorPeakGroup().getQScore();
+          expected_identification_count += deconvolved_spectrum.getPrecursorPeakGroup().getQscore();
         }
       }
       bool deconved_mzML_written = false;
@@ -681,7 +682,8 @@ protected:
 
       if (!out_anno_mzml_file.empty())
       {
-        if (out_mzml_file.empty() || deconved_mzML_written) {
+        if (out_mzml_file.empty() || deconved_mzML_written)
+        {
           auto anno_spec = MSSpectrum(*it);
 
           if (!deconvolved_spectrum.empty())
@@ -752,13 +754,13 @@ protected:
         {
           dummy_deconvolved_spectrum.push_back(pg);
         }
-        dummy_deconvolved_spectrum.sortByQScore();
-        deconvolved_spectrum.sortByQScore();
+        dummy_deconvolved_spectrum.sortByQscore();
+        deconvolved_spectrum.sortByQscore();
         DeconvolvedSpectrum tmp_spectrum(scan_number);
         tmp_spectrum.setOriginalSpectrum(*it);
-        for(auto& pg : dummy_deconvolved_spectrum)
+        for (auto& pg : dummy_deconvolved_spectrum)
         {
-          if(pg.getQScore() < deconvolved_spectrum[deconvolved_spectrum.size() - 1].getQScore())
+          if (pg.getQscore() < deconvolved_spectrum[deconvolved_spectrum.size() - 1].getQscore())
           {
             break;
           }
@@ -793,17 +795,17 @@ protected:
       }
       if (out_spec_streams.size() + 1 > ms_level)
       {
-        FLASHDeconvSpectrumFile::writeDeconvolvedMasses(deconvolved_spectrum, deconvolved_spectrum, out_spec_streams[ms_level - 1], in_file, avg, tols[ms_level-1], write_detail, report_dummy);
+        FLASHDeconvSpectrumFile::writeDeconvolvedMasses(deconvolved_spectrum, deconvolved_spectrum, out_spec_streams[ms_level - 1], in_file, avg, tols[ms_level - 1], write_detail, report_dummy);
       }
       if (out_topfd_streams.size() + 1 > ms_level)
       {
-        FLASHDeconvSpectrumFile::writeTopFD(deconvolved_spectrum, out_topfd_streams[ms_level - 1],
-                                            topFD_SNR_threshold, current_min_ms_level,false, false); //, 1, (float)rand() / (float)RAND_MAX * 10 + 10);
+        FLASHDeconvSpectrumFile::writeTopFD(deconvolved_spectrum, out_topfd_streams[ms_level - 1], topFD_SNR_threshold, current_min_ms_level, false,
+                                            false); //, 1, (float)rand() / (float)RAND_MAX * 10 + 10);
       }
     }
     if (report_dummy)
     {
-      for (uint i=0; i < dummy_deconvolved_spectra.size(); i++)
+      for (uint i = 0; i < dummy_deconvolved_spectra.size(); i++)
       {
         auto dummy_deconvolved_spectrum = dummy_deconvolved_spectra[i];
         auto deconvolved_spectrum = deconvolved_spectra[i];
@@ -811,7 +813,8 @@ protected:
 
         if (out_spec_streams.size() + 1 > ms_level)
         {
-          FLASHDeconvSpectrumFile::writeDeconvolvedMasses(dummy_deconvolved_spectrum, deconvolved_spectrum, out_spec_streams[ms_level - 1], in_file, avg, tols[ms_level-1], write_detail, report_dummy);
+          FLASHDeconvSpectrumFile::writeDeconvolvedMasses(dummy_deconvolved_spectrum, deconvolved_spectrum, out_spec_streams[ms_level - 1], in_file, avg, tols[ms_level - 1], write_detail,
+                                                          report_dummy);
         }
       }
     }
@@ -933,7 +936,7 @@ protected:
 
     if (DLTrain)
     {
-      QScore::writeAttCsvFromDummyHeader(out_att_stream);
+      Qscore::writeAttCsvFromDummyHeader(out_att_stream);
       vector<DeconvolvedSpectrum> false_deconvolved_spectra;
       false_deconvolved_spectra.reserve(deconvolved_spectra.size() * 3);
 
@@ -943,7 +946,7 @@ protected:
         {
           continue;
         }
-        QScore::writeAttCsvFromDummy(deconvolved_spectrum, out_att_stream);
+        Qscore::writeAttCsvFromDummy(deconvolved_spectrum, out_att_stream);
         DeconvolvedSpectrum false_deconvolved_spectrum;
         false_deconvolved_spectrum.setOriginalSpectrum(deconvolved_spectrum.getOriginalSpectrum());
         false_deconvolved_spectrum.reserve(deconvolved_spectrum.size());
@@ -963,7 +966,7 @@ protected:
         {
           continue;
         }
-        QScore::writeAttCsvFromDummy(deconvolved_spectrum, out_att_stream);
+        Qscore::writeAttCsvFromDummy(deconvolved_spectrum, out_att_stream);
 
         auto false_deconvolved_spectrum(deconvolved_spectrum);
         int j = 0; //-2 -1 1 2     2 3 4 5 /2 /3 /4 /5       -2 -1 1 2

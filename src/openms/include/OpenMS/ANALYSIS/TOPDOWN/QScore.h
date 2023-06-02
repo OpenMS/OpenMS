@@ -45,29 +45,29 @@ namespace OpenMS
   class PeakGroup;
 
   /**
-@brief   QScore : quality score for PeakGroup. This class is being updated.
-   For now, simply it calculate the QScore using a fixed weight vector.
+@brief   Qscore : quality score for PeakGroup. This class is being updated.
+   For now, simply it calculate the Qscore using a fixed weight vector.
    The weight vector has been determined by logistic regression.
-   But afterwards, the training part for the QScore should be added in here.
+   But afterwards, the training part for the Qscore should be added in here.
    Or other technique such as deep learning would be used.
    This class also contains tsv output function. The tsv file contains features of PeakGroups which are used for training.
 @ingroup Topdown
 */
 
-  class OPENMS_DLLAPI QScore
+  class OPENMS_DLLAPI Qscore
   {
   public:
     typedef FLASHDeconvHelperStructs::LogMzPeak LogMzPeak;
 
     /// get QScore for a peak group of specific abs_charge
-    static float getQScore(const PeakGroup *pg, int abs_charge);
+    static float getQscore(const PeakGroup *pg, int abs_charge);
 
     static void writeAttCsvFromDummy(const DeconvolvedSpectrum&  deconvolved_spectrum, std::fstream& f);
 
     static void writeAttCsvFromDummyHeader(std::fstream& f);
 
   private:
-    /// convert a peak group to a feature vector for QScore calculation
+    /// convert a peak group to a feature vector for Qscore calculation
     static std::vector<double> toFeatureVector_(const PeakGroup *pg, int abs_charge);
   };
 }
