@@ -723,8 +723,8 @@ namespace OpenMS
             }
           }
         }
-        mz_bin_index = mz_bins_.find_next(mz_bin_index);
       }
+      mz_bin_index = mz_bins_.find_next(mz_bin_index);
     }
 
     if(debug)
@@ -1343,7 +1343,7 @@ namespace OpenMS
           continue;
         }
 
-        if (peak_group.getQscore() <= 0 || (peak_group.getSNR() < .5)) // snr check prevents harmonics or noise.
+        if (peak_group.getQscore() <= 0 || (peak_group.getSNR() < .9)) // snr check prevents harmonics or noise.
         {
           continue;
         }
