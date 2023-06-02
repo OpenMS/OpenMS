@@ -34,21 +34,18 @@
 
 #pragma once
 
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/Fitter1D.h>
-
-
-#include <algorithm>
-
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/Fitter1D.h>
+#include <algorithm>
 
 // forward decl
 namespace Eigen
 {
-    template<typename _Scalar, int _Rows, int _Cols, int _Options, int _MaxRows, int _MaxCols>
-    class Matrix;
-    using MatrixXd = Matrix<double, -1, -1, 0, -1, -1>;
-    using VectorXd = Matrix<double, -1, 1, 0, -1, 1>;
-}
+  template<typename _Scalar, int _Rows, int _Cols, int _Options, int _MaxRows, int _MaxCols>
+  class Matrix;
+  using MatrixXd = Matrix<double, -1, -1, 0, -1, -1>;
+  using VectorXd = Matrix<double, -1, 1, 0, -1, 1>;
+} // namespace Eigen
 
 namespace OpenMS
 {
@@ -56,47 +53,50 @@ namespace OpenMS
   /**
     @brief Abstract class for 1D-model fitter using Levenberg-Marquardt algorithm for parameter optimization.
       */
-  class OPENMS_DLLAPI LevMarqFitter1D :
-    public Fitter1D
+  class OPENMS_DLLAPI LevMarqFitter1D : public Fitter1D
   {
-
-public:
-
+  public:
     typedef std::vector<double> ContainerType;
 
     /** Generic functor for LM-Optimization */
-    //TODO: This is copy and paste from TraceFitter.h. Make a generic wrapper for LM optimization
+    // TODO: This is copy and paste from TraceFitter.h. Make a generic wrapper for LM optimization
     class GenericFunctor
     {
     public:
-      int inputs() const { return m_inputs; }
-      int values() const { return m_values; }
+      int inputs() const
+      {
+        return m_inputs;
+      }
+      int values() const
+      {
+        return m_values;
+      }
 
-      GenericFunctor(int dimensions, int num_data_points)
-      : m_inputs(dimensions), m_values(num_data_points) {}
+      GenericFunctor(int dimensions, int num_data_points) : m_inputs(dimensions), m_values(num_data_points)
+      {
+      }
 
-      virtual ~GenericFunctor() {}
+      virtual ~GenericFunctor()
+      {
+      }
 
-      virtual int operator()(const Eigen::VectorXd &x, Eigen::VectorXd &fvec) const = 0;
+      virtual int operator()(const Eigen::VectorXd& x, Eigen::VectorXd& fvec) const = 0;
 
       // compute Jacobian matrix for the different parameters
-      virtual int df(const Eigen::VectorXd &x, Eigen::MatrixXd &J) const = 0;
+      virtual int df(const Eigen::VectorXd& x, Eigen::MatrixXd& J) const = 0;
 
     protected:
       const int m_inputs, m_values;
     };
 
     /// Default constructor
-    LevMarqFitter1D() :
-      Fitter1D()
+    LevMarqFitter1D() : Fitter1D()
     {
       this->defaults_.setValue("max_iteration", 500, "Maximum number of iterations using by Levenberg-Marquardt algorithm.", {"advanced"});
     }
 
     /// copy constructor
-    LevMarqFitter1D(const LevMarqFitter1D & source) :
-      Fitter1D(source),
-      max_iteration_(source.max_iteration_)
+    LevMarqFitter1D(const LevMarqFitter1D& source) : Fitter1D(source), max_iteration_(source.max_iteration_)
     {
     }
 
@@ -106,9 +106,10 @@ public:
     }
 
     /// assignment operator
-    virtual LevMarqFitter1D & operator=(const LevMarqFitter1D & source)
+    LevMarqFitter1D& operator=(const LevMarqFitter1D& source)
     {
-      if (&source == this) return *this;
+      if (&source == this)
+        return *this;
 
       Fitter1D::operator=(source);
       max_iteration_ = source.max_iteration_;
@@ -116,8 +117,7 @@ public:
       return *this;
     }
 
-protected:
-
+  protected:
     /// Parameter indicates symmetric peaks
     bool symmetric_;
     /// Maximum number of iterations
@@ -131,7 +131,5 @@ protected:
     void optimize_(Eigen::VectorXd& x_init, GenericFunctor& functor) const;
 
     void updateMembers_() override;
-
   };
-}
-
+} // namespace OpenMS

@@ -32,12 +32,11 @@
 // $Authors: Dominik Schmitz, Chris Bielow$
 // --------------------------------------------------------------------------
 
-#include <OpenMS/QC/Contaminants.h>
-
 #include <OpenMS/CONCEPT/LogStream.h>
+#include <OpenMS/QC/Contaminants.h>
+#include <algorithm>
 #include <include/OpenMS/CHEMISTRY/ProteaseDigestion.h>
 #include <include/OpenMS/METADATA/ProteinIdentification.h>
-#include <algorithm>
 
 using namespace std;
 
@@ -49,7 +48,8 @@ namespace OpenMS
     // empty FeatureMap
     if (features.empty())
     {
-      OPENMS_LOG_WARN << "FeatureMap is empty" << "\n";
+      OPENMS_LOG_WARN << "FeatureMap is empty"
+                      << "\n";
     }
     // empty contaminants database
     if (contaminants.empty())
@@ -135,7 +135,7 @@ namespace OpenMS
     // Additionally save the unassigned contaminants ratio and add the is_contaminant = 0/1 to the first hit of the unassigned peptideidentifications.
     for (auto& fu : features.getUnassignedPeptideIdentifications())
     {
-      if ( fu.getHits().empty())
+      if (fu.getHits().empty())
       {
         continue;
       }
@@ -166,27 +166,21 @@ namespace OpenMS
     // add the object to the results vector
     results_.push_back(final);
   }
-  
+
   const String& Contaminants::getName() const
   {
     return name_;
   }
-  
+
   const std::vector<Contaminants::ContaminantsSummary>& Contaminants::getResults()
   {
     return results_;
   }
-  
+
 
   // Check if peptide is in contaminants database or not and add the is_contaminant = 0/1.
   // If so, raise the contaminant ratio.
-  void Contaminants::compare_(const String& key,
-                              PeptideHit& pep_hit,
-                              Int64& total,
-                              Int64& cont,
-                              double& sum_total,
-                              double& sum_cont,
-                              double intensity)
+  void Contaminants::compare_(const String& key, PeptideHit& pep_hit, Int64& total, Int64& cont, double& sum_total, double& sum_cont, double intensity)
   {
     ++total;
     sum_total += intensity;
@@ -202,10 +196,10 @@ namespace OpenMS
     pep_hit.setMetaValue("is_contaminant", 1);
   }
 
-  QCBase::Status Contaminants::requires() const
+  QCBase::Status Contaminants::requirements() const
   {
     return (QCBase::Status(QCBase::Requires::POSTFDRFEAT) | QCBase::Requires::CONTAMINANTS);
   }
 
 
-}
+} // namespace OpenMS

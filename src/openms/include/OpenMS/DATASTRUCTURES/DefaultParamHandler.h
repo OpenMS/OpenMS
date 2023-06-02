@@ -37,7 +37,6 @@
 #include <OpenMS/DATASTRUCTURES/Param.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/OpenMSConfig.h>
-
 #include <vector>
 
 namespace OpenMS
@@ -91,7 +90,7 @@ namespace OpenMS
   */
   class OPENMS_DLLAPI DefaultParamHandler
   {
-public:
+  public:
     /// Constructor with name that is displayed in error messages
     DefaultParamHandler(const String& name);
 
@@ -102,7 +101,7 @@ public:
     virtual ~DefaultParamHandler();
 
     /// Assignment operator.
-    virtual DefaultParamHandler& operator=(const DefaultParamHandler& rhs);
+    DefaultParamHandler& operator=(const DefaultParamHandler& rhs);
 
     /// Equality operator
     virtual bool operator==(const DefaultParamHandler& rhs) const;
@@ -134,18 +133,18 @@ public:
     const std::vector<String>& getSubsections() const;
 
     /**
-    * @brief Writes all parameters to meta values
-    *
-    * Parameters are written with 'name' as key and 'value' as value
-    *
-    * @param write_this  Params to be written
-    * @param write_here  a MetaInfoInterface object into which the meta values will be written
-    * @param key_prefix  Will be added in front of the parameter name for the meta value key.
-    *                    If the prefix isn't empty and doesn't end with a colon one will be added.
-    */
+     * @brief Writes all parameters to meta values
+     *
+     * Parameters are written with 'name' as key and 'value' as value
+     *
+     * @param write_this  Params to be written
+     * @param write_here  a MetaInfoInterface object into which the meta values will be written
+     * @param key_prefix  Will be added in front of the parameter name for the meta value key.
+     *                    If the prefix isn't empty and doesn't end with a colon one will be added.
+     */
     static void writeParametersToMetaValues(const Param& write_this, MetaInfoInterface& write_here, const String& key_prefix = "");
 
-protected:
+  protected:
     /**
         @brief This method is used to update extra member variables at the end of the setParameters() method.
 
@@ -162,7 +161,7 @@ protected:
     */
     void defaultsToParam_();
 
-    ///Container for current parameters
+    /// Container for current parameters
     Param param_;
 
     /**
@@ -199,10 +198,10 @@ protected:
           */
     bool warn_empty_defaults_;
 
-private:
+  private:
     /// Hidden default C'tor (class name parameter is required!)
     DefaultParamHandler();
 
-  }; //class
+  }; // class
 
-} // namespace OPENMS
+} // namespace OpenMS

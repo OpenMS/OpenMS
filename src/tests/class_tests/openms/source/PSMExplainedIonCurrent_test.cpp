@@ -36,11 +36,10 @@
 #include <OpenMS/test_config.h>
 
 ///////////////////////////
-#include <OpenMS/QC/PSMExplainedIonCurrent.h>
-
 #include <OpenMS/CHEMISTRY/TheoreticalSpectrumGenerator.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/MATH/MISC/MathFunctions.h>
+#include <OpenMS/QC/PSMExplainedIonCurrent.h>
 #include <cmath>
 #include <random>
 //////////////////////////
@@ -55,7 +54,7 @@ void addRandomPeaks(MSSpectrum& spec, double total_intensity = 1.0, Int number_o
 {
   double peak_intensity = total_intensity / number_of_peaks;
   spec.sortByPosition();
-  std::uniform_real_distribution<> distr((*spec.begin()).getMZ(), (*(spec.end()-1)).getMZ());
+  std::uniform_real_distribution<> distr((*spec.begin()).getMZ(), (*(spec.end() - 1)).getMZ());
   for (Int i = 0; i < number_of_peaks; ++i)
   {
     spec.emplace_back(distr(gen), peak_intensity);
@@ -80,7 +79,8 @@ const MSSpectrum createMSSpectrum(UInt ms_level, double rt, const String& id, Pr
 }
 
 // create a MSSpectrum with Precursor, MSLevel, RT and fill it with Peaks
-const MSSpectrum createMSSpectrum(UInt ms_level, double rt, const String& id, const AASequence& seq, Int charge, const Param& theo_gen_params, Precursor::ActivationMethod precursor_method = Precursor::ActivationMethod::CID)
+const MSSpectrum createMSSpectrum(UInt ms_level, double rt, const String& id, const AASequence& seq, Int charge, const Param& theo_gen_params,
+                                  Precursor::ActivationMethod precursor_method = Precursor::ActivationMethod::CID)
 {
   MSSpectrum ms_spec;
   ms_spec.setRT(rt);
@@ -88,7 +88,8 @@ const MSSpectrum createMSSpectrum(UInt ms_level, double rt, const String& id, co
   ms_spec.setNativeID(id);
 
   TheoreticalSpectrumGenerator t;
-  if (!theo_gen_params.empty()) t.setParameters(theo_gen_params);
+  if (!theo_gen_params.empty())
+    t.setParameters(theo_gen_params);
 
   t.getSpectrum(ms_spec, seq, 1, charge <= 2 ? 1 : 2);
   std::set<Precursor::ActivationMethod> am;
@@ -140,7 +141,7 @@ addRandomPeaks(ms_spec_2_alabama, 5.0); // add 5 to 10 -> correctness should be 
 MSSpectrum empty_spec;
 
 MSExperiment exp;
-exp.setSpectra({ empty_spec, ms_spec_2_alabama, ms_spec_2_himalaya });
+exp.setSpectra({empty_spec, ms_spec_2_alabama, ms_spec_2_himalaya});
 
 // MSExperiment with no given fragmentation method (falls back to CID)
 MSExperiment exp_no_pc(exp);
@@ -216,7 +217,7 @@ START_SECTION(void compute(FeatureMap& fmap, const MSExperiment& exp, const QCBa
   psm_corr.compute(fmap, exp, spectra_map);
   std::vector<PSMExplainedIonCurrent::Statistics> result = psm_corr.getResults();
 
-  TEST_REAL_SIMILAR(result[0].average_correctness, (13./20 + 10./15) / 2.)
+  TEST_REAL_SIMILAR(result[0].average_correctness, (13. / 20 + 10. / 15) / 2.)
   TEST_REAL_SIMILAR(result[0].variance_correctness, 0.000138)
 
   //--------------------------------------------------------------------
@@ -300,7 +301,8 @@ START_SECTION(void compute(FeatureMap& fmap, const MSExperiment& exp, const QCBa
 }
 END_SECTION
 
-START_SECTION(compute(std::vector<PeptideIdentification>& pep_ids, const ProteinIdentification::SearchParameters& search_params, const MSExperiment& exp, const QCBase::SpectraMap& map_to_spectrum, ToleranceUnit tolerance_unit = ToleranceUnit::AUTO, double tolerance = 20))
+START_SECTION(compute(std::vector<PeptideIdentification>& pep_ids, const ProteinIdentification::SearchParameters& search_params, const MSExperiment& exp, const QCBase::SpectraMap& map_to_spectrum,
+                      ToleranceUnit tolerance_unit = ToleranceUnit::AUTO, double tolerance = 20))
 {
   spectra_map.calculateMap(exp);
   //--------------------------------------------------------------------
@@ -400,14 +402,13 @@ START_SECTION(const std::vector<Statistics>& getResults() const)
 }
 END_SECTION
 
-START_SECTION(QCBase::Status requires() const override)
+START_SECTION(QCBase::Status requirements() const override)
 {
   QCBase::Status stat = QCBase::Status() | QCBase::Requires::RAWMZML | QCBase::Requires::POSTFDRFEAT;
-  TEST_EQUAL(psm_corr.requires() == stat, true)
+  TEST_EQUAL(psm_corr.requirements() == stat, true)
 }
 END_SECTION
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST
-

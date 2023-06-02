@@ -37,7 +37,6 @@
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/DATASTRUCTURES/FlagSet.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
-
 #include <algorithm>
 #include <map>
 
@@ -58,8 +57,7 @@ namespace OpenMS
     /**
      * @brief Enum to encode a file type as a bit.
      */
-    enum class Requires 
-      : UInt64 // 64 bit unsigned type for bitwise and/or operations (see below)
+    enum class Requires : UInt64 // 64 bit unsigned type for bitwise and/or operations (see below)
     {
       NOTHING,      //< default, does not require anything
       RAWMZML,      //< mzML file is required
@@ -86,7 +84,7 @@ namespace OpenMS
 
     /**
      * @brief Map to find a spectrum via its NativeID
-    */
+     */
     class OPENMS_DLLAPI SpectraMap
     {
     public:
@@ -108,10 +106,10 @@ namespace OpenMS
 
       /// clear the map
       void clear();
-      
+
       /// check if empty
       bool empty() const;
-      
+
       /// get size of map
       Size size() const;
 
@@ -120,17 +118,17 @@ namespace OpenMS
     };
 
     using Status = FlagSet<Requires>;
-    
+
 
     /**
-    * @brief Returns the name of the metric
-    */
+     * @brief Returns the name of the metric
+     */
     virtual const String& getName() const = 0;
-    
+
     /**
      *@brief Returns the input data requirements of the compute(...) function
      */
-    virtual Status requires() const = 0;
+    virtual Status requirements() const = 0;
 
 
     /// tests if a metric has the required input files
@@ -141,13 +139,13 @@ namespace OpenMS
     static bool isLabeledExperiment(const ConsensusMap& cm);
 
     /// does the container have a PeptideIdentification in its members or as unassignedPepID ?
-    template <typename MAP>
+    template<typename MAP>
     static bool hasPepID(const MAP& fmap)
     {
-      if (!fmap.getUnassignedPeptideIdentifications().empty()) return true;
+      if (!fmap.getUnassignedPeptideIdentifications().empty())
+        return true;
 
-      return std::any_of(fmap.cbegin(), fmap.cend(), [](const auto& f) 
-              { return !f.getPeptideIdentifications().empty();});
+      return std::any_of(fmap.cbegin(), fmap.cend(), [](const auto& f) { return !f.getPeptideIdentifications().empty(); });
     }
   };
-}
+} // namespace OpenMS
