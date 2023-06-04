@@ -45,8 +45,13 @@ namespace OpenMS
     { // all zero
       return .0f;
     }
-    // the weights for per charge cosine, per charge SNR, cosine, SNR, PPM error, and intercept.
-    const std::vector<double> weights({-8.9686, 0.7105, -8.0507, -0.4402, 0.1983, 15.0979});
+    // the weights for per cosine, SNR, PPM error, charge score, and intercept.
+    // Cos    -8.9494
+    // SNR    -2.2977
+    // PPM error           0.3269
+    // charge score        -3.1663
+    // Intercept    12.3131
+    const std::vector<double> weights({-8.9494, -2.2977, 0.3269, -3.1663, 12.3131});
 
     double score = weights.back();
     auto fv = toFeatureVector_(pg, abs_charge);
@@ -62,20 +67,22 @@ namespace OpenMS
 
   std::vector<double> Qscore::toFeatureVector_(const PeakGroup* pg, const int abs_charge)
   {
-    std::vector<double> fvector(5); // length of weights vector - 1, excluding the intercept weight.
+    std::vector<double> fvector(4); // length of weights vector - 1, excluding the intercept weight.
 
-    double a = pg->getChargeIsotopeCosine(abs_charge);
+    double a = pg->getIsotopeCosine();
     double d = 1;
     int index = 0;
     fvector[index++] = (log2(a + d));
-    a = pg->getChargeSNR(abs_charge);
-    fvector[index++] = (log2(d + a / (d + a)));
-    a = pg->getIsotopeCosine();
-    fvector[index++] = (log2(a + d));
+
     a = pg->getSNR();
     fvector[index++] = (log2(d + a / (d + a)));
+
     a = pg->getAvgPPMError();
     fvector[index++] = (log2(a + d));
+
+    a = pg->getChargeScore();
+    fvector[index++] = (log2(a + d));
+
     return fvector;
   }
 } // namespace OpenMS

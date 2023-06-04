@@ -180,12 +180,15 @@ namespace OpenMS
       }
 
       float q_score = Qscore::getQscore(this, abs_charge);
-      if (qscore_ > q_score)
+      if (qscore_ < q_score)
       {
-        continue;
+        qscore_ = q_score;
       }
-      max_qscore_abs_charge_ = abs_charge;
-      qscore_ = q_score;
+
+      if(getChargeSNR(abs_charge) > getChargeSNR(max_snr_abs_charge_))
+      {
+        max_snr_abs_charge_ = abs_charge;
+      }
     }
     return h_offset;
   }
@@ -267,7 +270,12 @@ namespace OpenMS
       for (Size j = i + 1; j < all_peaks.size(); j++)
       {
         auto p2 = all_peaks[j];
-        Size bin = (Size)round((p2.mz - p1.mz) * z / iso_da_distance_ * (max_bin_number - 5));
+        double normalized_dist = (p2.mz - p1.mz) * z / iso_da_distance_;
+        if(normalized_dist > .9 && normalized_dist < 1.1) // if the distance is too close to the isotope distance, skip
+        {
+          continue;
+        }
+        Size bin = (Size)round(normalized_dist * (max_bin_number - 5));
         if (bin == 0)
         {
           continue;
@@ -277,7 +285,7 @@ namespace OpenMS
           break;
         }
 
-        if (p1_signal && is_signal_bitset[j] && (p2.mz - p1.mz) * z / iso_da_distance_ >= .75) // if both are signal and they are different from each other by ~ 1Da, do not connect
+        if (p1_signal && is_signal_bitset[j] && normalized_dist >= .75) // if both are signal and they are different from each other by ~ one isotope distance, do not connect
         {
           continue;
         }
@@ -542,6 +550,7 @@ namespace OpenMS
     }
     // determine the final charge ranges based on per charge power.
     // If more than two consecutive charges do not contain any signal peak, the charge range stops at that charge.
+
     if (max_sig_charge > 0)
     {
       int t_nmax_abs_charge = new_max_abs_charge;
@@ -638,15 +647,27 @@ namespace OpenMS
 
   void PeakGroup::updateChargeFitScoreAndChargeIntensities_()
   {
+    if(max_abs_charge_ == min_abs_charge_)
+    {
+      charge_score_ = 1;
+      return;
+    }
     float max_per_charge_intensity = .0;
     float summed_intensity = .0;
     int max_index = -1;
     int first_index = -1;
     int last_index = -1;
-
+    float min_intensity = -1;
     for (int c = min_abs_charge_; c <= max_abs_charge_; c++)
     {
-      summed_intensity += per_charge_int_[c];
+      if(min_intensity < 0 || min_intensity > per_charge_int_[c])
+      {
+        min_intensity = per_charge_int_[c];
+      }
+    }
+    for (int c = min_abs_charge_; c <= max_abs_charge_; c++)
+    {
+      summed_intensity += per_charge_int_[c] - min_intensity;
       if (per_charge_int_[c] > 0)
       {
         if (first_index < 0)
@@ -663,7 +684,7 @@ namespace OpenMS
       max_per_charge_intensity = per_charge_int_[c];
       max_index = c;
     }
-    if (max_index < 0 || summed_intensity <= 0)
+    if (max_index < 0)
     {
       charge_score_ = 0;
       return;
@@ -806,9 +827,9 @@ namespace OpenMS
     monoisotopic_mass_ = mono_mass;
   }
 
-  void PeakGroup::setRepAbsCharge(const int max_qscore_charge)
+  void PeakGroup::setRepAbsCharge(const int max_snr_abs_charge)
   {
-    max_qscore_abs_charge_ = max_qscore_charge;
+    max_snr_abs_charge_ = max_snr_abs_charge;
   }
 
   void PeakGroup::setChargeScore(const float score)
@@ -889,7 +910,7 @@ namespace OpenMS
 
   int PeakGroup::getRepAbsCharge() const
   {
-    return max_qscore_abs_charge_;
+    return max_snr_abs_charge_;
   }
 
   float PeakGroup::getQscore() const
