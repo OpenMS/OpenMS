@@ -179,7 +179,7 @@ namespace OpenMS
         continue;
       }
 
-      float q_score = Qscore::getQscore(this, abs_charge);
+      float q_score = Qscore::getQscore(this);
       if (qscore_ < q_score)
       {
         qscore_ = q_score;

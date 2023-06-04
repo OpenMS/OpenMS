@@ -39,7 +39,7 @@
 
 namespace OpenMS
 {
-  float Qscore::getQscore(const PeakGroup* pg, const int abs_charge)
+  float Qscore::getQscore(const PeakGroup* pg)
   {
     if (pg->empty())
     { // all zero
@@ -54,7 +54,7 @@ namespace OpenMS
     const std::vector<double> weights({-8.9494, -2.2977, 0.3269, -3.1663, 12.3131});
 
     double score = weights.back();
-    auto fv = toFeatureVector_(pg, abs_charge);
+    auto fv = toFeatureVector_(pg);
 
     for (Size i = 0; i < weights.size() - 1; i++)
     {
@@ -65,7 +65,7 @@ namespace OpenMS
     return qscore;
   }
 
-  std::vector<double> Qscore::toFeatureVector_(const PeakGroup* pg, const int abs_charge)
+  std::vector<double> Qscore::toFeatureVector_(const PeakGroup* pg)
   {
     std::vector<double> fvector(4); // length of weights vector - 1, excluding the intercept weight.
 
