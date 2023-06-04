@@ -324,7 +324,7 @@ namespace OpenMS
     /// peak group index
     uint index_ = 0;
     /// scan number
-    int scan_number_;
+    int scan_number_ = 0;
     /// is positive or not
     bool is_positive_;
     /// if this peak group has been targeted
