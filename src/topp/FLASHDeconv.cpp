@@ -123,7 +123,7 @@ protected:
     setValidFormats_("out_topFD_feature", ListUtils::create<String>("feature"), false);
 
     registerDoubleOption_("min_precursor_snr", "<SNR value>", 1.0,
-                          "Minimum precursor SNR (SNR within the precursor envelope range) for identification. Similar to precursor interference level, but more stringent."
+                          "Minimum precursor SNR (SNR within the precursor envelope range) for identification. Similar to precursor interference level, but far more stringent as it also considers the isotope distribution shape of signal."
                           "When FLASHIda log file is used, this parameter is ignored. Applied only for topFD msalign outputs.",
                           false, false);
 
@@ -280,7 +280,7 @@ protected:
   // the main_ function is called after all parameters are read
   ExitCodes main_(int, const char**) override
   {
-    bool DLTrain = false;
+    bool DLTrain = true;
     OPENMS_LOG_INFO << "Initializing ... " << endl;
     //-------------------------------------------------------------
     // parsing parameters
@@ -952,7 +952,7 @@ protected:
         false_deconvolved_spectrum.reserve(deconvolved_spectrum.size());
         for (auto& pg : deconvolved_spectrum)
         {
-          if(pg.getTargetDummyType() == PeakGroup::TargetDummyType::charge_dummy || pg.getTargetDummyType() == PeakGroup::TargetDummyType::target)
+          if(pg.getTargetDummyType() == PeakGroup::TargetDummyType::target)
           {
             continue;
           }
@@ -968,8 +968,9 @@ protected:
         }
         Qscore::writeAttCsvFromDummy(deconvolved_spectrum, out_att_stream);
 
+        /*
         auto false_deconvolved_spectrum(deconvolved_spectrum);
-        int j = 0; //-2 -1 1 2     2 3 4 5 /2 /3 /4 /5       -2 -1 1 2
+        int j = 0; //-2 -1 1 2     2 3 5 /2 /3 /5
         for (auto& pg : false_deconvolved_spectrum)
         {
           int k = j++ % 10;
@@ -1009,28 +1010,15 @@ protected:
             case 9:
               charge_multiple = 1.0 / 2.0;
               break;
-//            case 10:
-//              flag = PeakGroup::DummyIndex::noise_dummy;
-//              mz_offset = 5.0;
-//              break;
-//            case 11:
-//              flag = PeakGroup::DummyIndex::noise_dummy;
-//              mz_offset = 3.0;
-//              break;
-//            case 12:
-//              flag = PeakGroup::DummyIndex::noise_dummy;
-//              mz_offset = -3.0;
-//              break;
-//            default:
-//              flag = PeakGroup::DummyIndex::noise_dummy;
-//              mz_offset = -5.0;
-//              break;
           }
 
           pg.recruitAllPeaksInSpectrum(deconvolved_spectrum.getOriginalSpectrum(), 1e-6*tols[0], avg, pg.getMonoMass(), std::unordered_set<double>(), charge_offset, charge_multiple, mz_offset);
+          pg.updateIsotopeCosineSNRAvgErrorAndQscore(avg, .85);
+
           pg.setTargetDummyType(flag);
         }
         false_deconvolved_spectra.push_back(false_deconvolved_spectrum);
+         */
       }
 
       FLASHDeconvSpectrumFile::writeDLMatrixHeader(out_dl_stream);

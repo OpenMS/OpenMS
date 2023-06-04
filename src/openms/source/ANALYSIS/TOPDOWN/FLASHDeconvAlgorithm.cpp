@@ -383,7 +383,6 @@ namespace OpenMS
       float intensity = mz_intensities[mz_bin_index];
       double mz = -1.0, log_mz = 0;
 
-
       log_mz = getBinValue_(mz_bin_index, mz_bin_min_value_, bin_mul_factor); // uncharged log mz
       mz = exp(log_mz);                                                       // uncharged mz
       // scan through charges
@@ -453,8 +452,7 @@ namespace OpenMS
             for (int t = -1; t < 2; t++)
             {
               int nib = getBinNumber_(log_mz + diff, mz_bin_min_value_, bin_mul_factor) + t;
-
-              if (nib > 0 && nib < mz_bins_.size() && mz_bins_[nib])
+              if (nib != mz_bin_index && nib > 0 && nib < mz_bins_.size() && mz_bins_[nib])
               {
                 iso_exist = true;
                 pass_first_check = true;
@@ -489,7 +487,7 @@ namespace OpenMS
 
                   // no perfect filtration. Just obvious ones are filtered out by checking if a peak is in the harmonic position and the intensity ratio is within two folds from the current peak
                   // (specified by mz_bin_index)
-                  if (next_harmonic_iso_bin >= 0 && next_harmonic_iso_bin < mz_bins_.size() && mz_bins_[next_harmonic_iso_bin] && mz_intensities[next_harmonic_iso_bin] > h_threshold / 2 &&
+                  if (next_harmonic_iso_bin != mz_bin_index && next_harmonic_iso_bin >= 0 && next_harmonic_iso_bin < mz_bins_.size() && mz_bins_[next_harmonic_iso_bin] && mz_intensities[next_harmonic_iso_bin] > h_threshold / 2 &&
                       mz_intensities[next_harmonic_iso_bin] < h_threshold * 2)
                   {
                     harmonic_cntr++;
@@ -584,6 +582,7 @@ namespace OpenMS
           mass_intensities[mass_bin_index] -= intensity; // + max_h_intensity;
         }
         prev_intensity = intensity;
+
         prev_charge = j;
 
         if(debug)
@@ -594,7 +593,6 @@ namespace OpenMS
             std::cout<<"updateCandidateMassBins_ "<< std::to_string(m)<< " " << abs_charge <<std::endl;
           }
         }
-
       }
     }
     if(debug)
@@ -606,7 +604,6 @@ namespace OpenMS
         distinct_masses.insert(getNominalMass(getMassFromMassBin_(b, bin_mul_factor)));
         b = mass_bins_.find_next(b);
       }
-
       std::cout<<"Mass bin count after updateCandidateMassBins_: " << mass_bins_.count() << " distinct mass count: " << distinct_masses.size() <<std::endl;
     }
 
@@ -629,7 +626,7 @@ namespace OpenMS
     auto to_skip = mass_bins_.flip();
     mass_bins_.reset();
 
-    int select_top_N = 2; // select top N charges per peak. We allow 2 just to consider frequent coelution
+    int select_top_N = 3; // select top N charges per peak. We allow up to 3 just to consider frequent coelution
     std::vector<long> max_indices(select_top_N, -1);
     std::vector<int> max_intensity_abs_charge_ranges(select_top_N, -1);
 
@@ -1250,7 +1247,7 @@ namespace OpenMS
           }
         }
 
-
+        peak_group.setTargetDummyType(target_dummy_type_);
         float cos = getIsotopeCosineAndDetermineIsotopeIndex(peak_group.getMonoMass(), peak_group.getIsotopeIntensities(), offset, avg_, -1, allowed_iso_error_);
 
         auto m = peak_group.getMonoMass();
@@ -1273,7 +1270,6 @@ namespace OpenMS
           continue;
         }
 
-        peak_group.setTargetDummyType(target_dummy_type_);
         for (int k = 0; k < 10; k++)
         {
           peak_group.recruitAllPeaksInSpectrum(deconvolved_spectrum_.getOriginalSpectrum(), tol, avg_, peak_group.getMonoMass() + offset * iso_da_distance_, excluded_peak_mzs_, true);
@@ -1335,7 +1331,6 @@ namespace OpenMS
           }
         }
 
-
         auto cr = peak_group.getAbsChargeRange();
 
         if (std::get<0>(cr) > low_charge_ && (std::get<1>(cr) - std::get<0>(cr)) < min_support_peak_count_)
@@ -1343,7 +1338,7 @@ namespace OpenMS
           continue;
         }
 
-        if (peak_group.getQscore() <= 0 || (peak_group.getSNR() < .9)) // snr check prevents harmonics or noise.
+        if (peak_group.getSNR() < 0.5) // snr check prevents harmonics or noise.
         {
           continue;
         }
