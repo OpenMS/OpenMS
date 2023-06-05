@@ -1,0 +1,19 @@
+{
+  "algorithm__check_width_internally": false,
+  "algorithm__clear_meta_data": false,
+  "algorithm__ms1_only": false,
+  "algorithm__nr_iterations_": 5,
+  "algorithm__peak_width": 0.04,
+  "algorithm__signal_to_noise_": 1.0,
+  "algorithm__sn_bin_count_": 30,
+  "algorithm__sn_win_len_": 20.0,
+  "algorithm__spacing_difference": 1.5,
+  "debug": 0,
+  "force": false,
+  "in": "",
+  "log": "",
+  "no_progress": false,
+  "out": "",
+  "test": false,
+  "threads": 1
+}

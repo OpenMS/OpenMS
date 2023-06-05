@@ -837,6 +837,46 @@ START_SECTION(([EXTRA] test subsection parameters))
 }
 END_SECTION
 
+std::string temp_a31(OPENMS_GET_TEST_DATA_PATH("TOPPBaseCmdParseSubsectionsTest.ini.json"));
+const char* a31 = temp_a31.c_str();
+
+START_SECTION(([EXTRA] test subsection parameters with json))
+{
+  const char* string_cl_1[4] = {a1, a10, a12, test}; //command line: "TOPPBaseTest -stringoption commandline"
+  TOPPBaseCmdParseSubsectionsTest tmp1;
+  TOPPBase::ExitCodes ec1 = tmp1.run(4, string_cl_1);
+  TEST_EQUAL(ec1, TOPPBase::EXECUTION_OK)
+  TEST_EQUAL(tmp1.getStringOption("stringoption"), "commandline");
+  TEST_EQUAL(tmp1.getParam().getValue("algorithm:param1"), "param1_value");
+  TEST_EQUAL(tmp1.getParam().getValue("algorithm:param2"), "param2_value");
+  TEST_EQUAL(tmp1.getParam().getValue("other:param3"), "param3_value");
+  TEST_EQUAL(tmp1.getParam().getValue("other:param4"), "param4_value");
+
+  // overwrite from cmd
+  const char* string_cl_2[12] = {a1, a10, a12, a22, a26, a23, a27, a24, a28, a25, a29, test}; //command line: "TOPPBaseTest -algorithm:param1 val1 -algorithm:param2 val2 -algorithm:param3 val3 -algorithm:param4 val4 -stringoption commandline"
+  TOPPBaseCmdParseSubsectionsTest tmp2;
+  TOPPBase::ExitCodes ec2 = tmp2.run(12, string_cl_2);
+  TEST_EQUAL(ec2, TOPPBase::EXECUTION_OK)
+  TEST_EQUAL(tmp2.getStringOption("stringoption"), "commandline");
+  TEST_EQUAL(tmp2.getParam().getValue("algorithm:param1"), "val1");
+  TEST_EQUAL(tmp2.getParam().getValue("algorithm:param2"), "val2");
+  TEST_EQUAL(tmp2.getParam().getValue("other:param3"), "val3");
+  TEST_EQUAL(tmp2.getParam().getValue("other:param4"), "val4");
+
+  // overwrite ini values from cmd
+  const char* string_cl_3[10] = {a1, a3, a31, a22, a26, a25, a29, a10, a12, test }; //command line: "TOPPBaseTest -ini TOPPBaseCmdParseSubsectionsTest.ini.json -algorithm:param1 val1 -algorithm:param4 val4"
+  TOPPBaseCmdParseSubsectionsTest tmp3;
+  TOPPBase::ExitCodes ec3 = tmp3.run(10, string_cl_3);
+  TEST_EQUAL(ec3, TOPPBase::EXECUTION_OK)
+  TEST_EQUAL(tmp3.getStringOption("stringoption"), "commandline");
+  TEST_EQUAL(tmp3.getParam().getValue("algorithm:param1"), "val1");
+  TEST_EQUAL(tmp3.getParam().getValue("algorithm:param2"), "param2_ini_value");
+  TEST_EQUAL(tmp3.getParam().getValue("other:param3"), "param3_ini_value");
+  TEST_EQUAL(tmp3.getParam().getValue("other:param4"), "val4");
+}
+END_SECTION
+
+
 delete [] a7;
 delete [] a8;
 

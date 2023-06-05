@@ -1,0 +1,25 @@
+{
+  "algorithm__mrm": false,
+  "algorithm__mz_dev": 0.1,
+  "algorithm__mz_pair_dists": [
+    4.0
+  ],
+  "algorithm__rt_dev_high": 123.3965,
+  "algorithm__rt_dev_low": 123.3965,
+  "algorithm__rt_estimate": true,
+  "algorithm__rt_pair_dist": -121.0382,
+  "debug": 0,
+  "force": false,
+  "in": {
+    "class": "File",
+    "path": ""
+  },
+  "log": "TOPP.log",
+  "no_progress": false,
+  "out": {
+    "class": "File",
+    "path": ""
+  },
+  "test": false,
+  "threads": 1
+}

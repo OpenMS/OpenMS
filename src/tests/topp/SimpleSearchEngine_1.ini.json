@@ -1,0 +1,28 @@
+{
+  "Search__fragment__mass_tolerance": 0.3,
+  "Search__fragment__mass_tolerance_unit": "Da",
+  "Search__modifications__fixed": [],
+  "Search__modifications__variable": [
+    "Oxidation (M)"
+  ],
+  "Search__modifications__variable_max_per_peptide": 2,
+  "Search__peptide__min_size": 7,
+  "Search__peptide__missed_cleavages": 1,
+  "Search__precursor__isotopes": [
+    0,
+    1
+  ],
+  "Search__precursor__mass_tolerance": 5.0,
+  "Search__precursor__mass_tolerance_unit": "ppm",
+  "Search__precursor__max_charge": 5,
+  "Search__precursor__min_charge": 2,
+  "Search__report__top_hits": 1,
+  "database": "",
+  "debug": 0,
+  "in": "",
+  "log": "",
+  "no_progress": false,
+  "out": "",
+  "test": false,
+  "threads": 1
+}

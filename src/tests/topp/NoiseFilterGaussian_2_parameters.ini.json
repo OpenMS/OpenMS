@@ -1,0 +1,18 @@
+{
+  "algorithm__gaussian_width": 50.0,
+  "algorithm__ppm_tolerance": 10.0,
+  "algorithm__use_ppm_tolerance": false,
+  "debug": 0,
+  "in": {
+    "class": "File",
+    "path": ""
+  },
+  "log": "",
+  "no_progress": false,
+  "out": {
+    "class": "File",
+    "path": ""
+  },
+  "test": false,
+  "threads": 1
+}

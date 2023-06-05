@@ -1,0 +1,55 @@
+{
+  "additive_cv": false,
+  "border_length": 22,
+  "c": 0.1,
+  "cv__c_start": 1.0,
+  "cv__c_step_size": 10.0,
+  "cv__c_stop": 1000.0,
+  "cv__degree_start": 1,
+  "cv__degree_step_size": 2,
+  "cv__degree_stop": 4,
+  "cv__nu_start": 0.3,
+  "cv__nu_step_size": 1.2,
+  "cv__nu_stop": 0.7,
+  "cv__number_of_partitions": 10,
+  "cv__number_of_runs": 10,
+  "cv__p_start": 1.0,
+  "cv__p_step_size": 10.0,
+  "cv__p_stop": 1000.0,
+  "cv__sigma_start": 1.0,
+  "cv__sigma_step_size": 1.3,
+  "cv__sigma_stop": 15.0,
+  "cv__skip_cv": true,
+  "debug": 0,
+  "degree": 1,
+  "first_dim_rt": false,
+  "force": false,
+  "in": {
+    "class": "File",
+    "path": "input.idXML"
+  },
+  "in_negative": {
+    "class": "File",
+    "path": ""
+  },
+  "in_positive": {
+    "class": "File",
+    "path": ""
+  },
+  "k_mer_length": 1,
+  "kernel_type": "POLY",
+  "log": "TOPP.log",
+  "max_std": 10.0,
+  "no_progress": false,
+  "nu": 0.5,
+  "out": {
+    "class": "File",
+    "path": "svm.model"
+  },
+  "p": 0.1,
+  "sigma": 5.0,
+  "svm_type": "NU_SVR",
+  "test": false,
+  "threads": 1,
+  "total_gradient_time": 3000.0
+}

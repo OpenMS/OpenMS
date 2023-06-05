@@ -1,0 +1,22 @@
+{
+  "algorithm__min_num_peaks_per_feature": 5,
+  "algorithm__min_rt_distance": 10.0,
+  "algorithm__min_signal_to_noise_ratio": 2.0,
+  "algorithm__resample_traces": false,
+  "algorithm__write_debug_files": false,
+  "algorithm__write_debuginfo": false,
+  "debug": 0,
+  "force": false,
+  "in": {
+    "class": "File",
+    "path": ""
+  },
+  "log": "TOPP.log",
+  "no_progress": false,
+  "out": {
+    "class": "File",
+    "path": ""
+  },
+  "test": false,
+  "threads": 1
+}

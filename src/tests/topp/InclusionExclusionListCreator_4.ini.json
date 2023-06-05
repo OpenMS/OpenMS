@@ -1,0 +1,33 @@
+{
+  "algorithm__InclusionExclusionList__RT__unit": "seconds",
+  "algorithm__InclusionExclusionList__RT__use_relative": true,
+  "algorithm__InclusionExclusionList__RT__window_absolute": 90.0,
+  "algorithm__InclusionExclusionList__RT__window_relative": 0.05,
+  "algorithm__InclusionExclusionList__merge__mz_tol": 10.0,
+  "algorithm__InclusionExclusionList__merge__mz_tol_unit": "ppm",
+  "algorithm__InclusionExclusionList__merge__rt_tol": 1.1,
+  "algorithm__InclusionExclusionList__missed_cleavages": 1,
+  "debug": 0,
+  "exclude": {
+    "class": "File",
+    "path": ""
+  },
+  "exclusion_charges": [],
+  "include": {
+    "class": "File",
+    "path": ""
+  },
+  "inclusion_charges": [],
+  "log": "",
+  "no_progress": false,
+  "out": {
+    "class": "File",
+    "path": ""
+  },
+  "rt_model": {
+    "class": "File",
+    "path": ""
+  },
+  "test": false,
+  "threads": 1
+}

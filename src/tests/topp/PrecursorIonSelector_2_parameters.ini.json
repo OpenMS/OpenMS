@@ -1,0 +1,13 @@
+{
+  "algorithm__MIPFormulation__thresholds__min_peptide_ids": 2,
+  "algorithm__MIPFormulation__thresholds__use_peptide_rule": true,
+  "algorithm__Preprocessing__missed_cleavages": 1,
+  "algorithm__Preprocessing__precursor_mass_tolerance": 0.9,
+  "algorithm__Preprocessing__precursor_mass_tolerance_unit": "Da",
+  "algorithm__max_iteration": 10,
+  "algorithm__type": "IPS",
+  "load_preprocessing": false,
+  "num_precursors": 1,
+  "simulation": false,
+  "store_preprocessing": false
+}

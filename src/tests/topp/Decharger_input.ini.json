@@ -1,0 +1,41 @@
+{
+  "algorithm__FeatureDeconvolution__charge_max": 10,
+  "algorithm__FeatureDeconvolution__charge_min": 1,
+  "algorithm__FeatureDeconvolution__charge_span_max": 4,
+  "algorithm__FeatureDeconvolution__default_map_label": "decharged features",
+  "algorithm__FeatureDeconvolution__intensity_filter": false,
+  "algorithm__FeatureDeconvolution__mass_max_diff": 0.1,
+  "algorithm__FeatureDeconvolution__max_minority_bound": 2,
+  "algorithm__FeatureDeconvolution__max_neutrals": 0,
+  "algorithm__FeatureDeconvolution__min_rt_overlap": 0.66,
+  "algorithm__FeatureDeconvolution__potential_adducts": [
+    "H:+:0.7",
+    "Na:+:0.1",
+    "(2)H4H-4:0:0.1:-2:heavy"
+  ],
+  "algorithm__FeatureDeconvolution__q_try": "feature",
+  "algorithm__FeatureDeconvolution__retention_max_diff": 1.0,
+  "algorithm__FeatureDeconvolution__retention_max_diff_local": 1.0,
+  "algorithm__FeatureDeconvolution__verbose_level": 0,
+  "debug": 0,
+  "in": {
+    "class": "File",
+    "path": ""
+  },
+  "log": "TOPP.log",
+  "no_progress": false,
+  "out_cm": {
+    "class": "File",
+    "path": ""
+  },
+  "out_fm": {
+    "class": "File",
+    "path": ""
+  },
+  "outpairs": {
+    "class": "File",
+    "path": ""
+  },
+  "test": false,
+  "threads": 1
+}

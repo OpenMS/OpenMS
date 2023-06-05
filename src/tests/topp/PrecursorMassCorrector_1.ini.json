@@ -1,0 +1,18 @@
+{
+  "debug": 0,
+  "in": {
+    "class": "File",
+    "path": ""
+  },
+  "intensity_threshold": -1.0,
+  "log": "TOPP.log",
+  "max_charge": 3,
+  "no_progress": false,
+  "out": {
+    "class": "File",
+    "path": ""
+  },
+  "precursor_mass_tolerance": 1.5,
+  "test": false,
+  "threads": 1
+}

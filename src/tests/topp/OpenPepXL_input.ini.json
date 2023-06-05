@@ -1,0 +1,90 @@
+{
+  "algorithm__deisotope": "auto",
+  "algorithm__number_top_hits": 5,
+  "consensus": {
+    "class": "File",
+    "path": ""
+  },
+  "cross_linker__mass_iso_shift": 12.075321,
+  "cross_linker__mass_light": 138.0680796,
+  "cross_linker__mass_mono_link": [
+    156.07864431,
+    155.094628715
+  ],
+  "cross_linker__name": "DSS",
+  "cross_linker__residue1": [
+    "K",
+    "N-term"
+  ],
+  "cross_linker__residue2": [
+    "K",
+    "N-term"
+  ],
+  "database": {
+    "class": "File",
+    "path": ""
+  },
+  "debug": 0,
+  "decoy_database": {
+    "class": "File",
+    "path": ""
+  },
+  "decoy_prefix": true,
+  "decoy_string": "decoy_",
+  "force": false,
+  "fragment__mass_tolerance": 0.2,
+  "fragment__mass_tolerance_unit": "Da",
+  "fragment__mass_tolerance_xlinks": 0.3,
+  "in": {
+    "class": "File",
+    "path": ""
+  },
+  "ions__a_ions": false,
+  "ions__b_ions": true,
+  "ions__c_ions": false,
+  "ions__neutral_losses": true,
+  "ions__x_ions": false,
+  "ions__y_ions": true,
+  "ions__z_ions": false,
+  "log": "",
+  "modifications__fixed": [
+    "Carbamidomethyl (C)"
+  ],
+  "modifications__variable": [
+    "Oxidation (M)"
+  ],
+  "modifications__variable_max_per_peptide": 3,
+  "no_progress": false,
+  "out_idXML": {
+    "class": "File",
+    "path": ""
+  },
+  "out_mzIdentML": {
+    "class": "File",
+    "path": ""
+  },
+  "out_xquest_specxml": {
+    "class": "File",
+    "path": ""
+  },
+  "out_xquestxml": {
+    "class": "File",
+    "path": ""
+  },
+  "peptide__enzyme": "Trypsin",
+  "peptide__min_size": 5,
+  "peptide__missed_cleavages": 3,
+  "precursor__corrections": [
+    4,
+    3,
+    2,
+    1,
+    0
+  ],
+  "precursor__mass_tolerance": 10.0,
+  "precursor__mass_tolerance_unit": "ppm",
+  "precursor__max_charge": 8,
+  "precursor__min_charge": 2,
+  "test": false,
+  "threads": 1
+}

@@ -1,0 +1,78 @@
+{
+  "RNPxl__CysteineAdduct": false,
+  "RNPxl__can_cross_link": "U",
+  "RNPxl__carbon_labeled_fragments": false,
+  "RNPxl__filter_fractional_mass": false,
+  "RNPxl__filter_small_peptide_mass": 600.0,
+  "RNPxl__fragment_adducts": [
+    "U:C9H10N2O5;U-H3PO4",
+    "U:C4H4N2O2;U'",
+    "U:C4H2N2O1;U'-H2O",
+    "U:C3O;C3O",
+    "U:C9H13N2O9P1;U",
+    "U:C9H11N2O8P1;U-H2O",
+    "U:C9H12N2O6;U-HPO3"
+  ],
+  "RNPxl__length": 2,
+  "RNPxl__mapping": [
+    "A->A",
+    "C->C",
+    "G->G",
+    "U->U"
+  ],
+  "RNPxl__marker_ions_tolerance": 0.05,
+  "RNPxl__modifications": [
+    "U:",
+    "U:-H2O",
+    "U:-H2O-HPO3",
+    "U:-HPO3"
+  ],
+  "RNPxl__sequence": "GUA",
+  "RNPxl__target_nucleotides": [
+    "A=C10H14N5O7P",
+    "C=C9H14N3O8P",
+    "G=C10H14N5O8P",
+    "U=C9H13N2O9P"
+  ],
+  "database": {
+    "class": "File",
+    "path": ""
+  },
+  "debug": 0,
+  "force": false,
+  "fragment__mass_tolerance": 20.0,
+  "fragment__mass_tolerance_unit": "ppm",
+  "in": {
+    "class": "File",
+    "path": ""
+  },
+  "log": "",
+  "modifications__fixed": [],
+  "modifications__variable": [
+    "Oxidation (M)"
+  ],
+  "modifications__variable_max_per_peptide": 2,
+  "no_progress": false,
+  "out": {
+    "class": "File",
+    "path": ""
+  },
+  "out_tsv": {
+    "class": "File",
+    "path": ""
+  },
+  "peptide__enzyme": "Trypsin",
+  "peptide__min_size": 6,
+  "peptide__missed_cleavages": 1,
+  "precursor__isotopes": [
+    0,
+    1
+  ],
+  "precursor__mass_tolerance": 20.0,
+  "precursor__mass_tolerance_unit": "ppm",
+  "precursor__max_charge": 5,
+  "precursor__min_charge": 2,
+  "report__top_hits": 1,
+  "test": false,
+  "threads": 1
+}

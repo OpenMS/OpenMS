@@ -1,0 +1,32 @@
+{
+  "debug": 0,
+  "force": false,
+  "in_cm": {
+    "class": "File",
+    "path": ""
+  },
+  "in_mzml": {
+    "class": "File",
+    "path": []
+  },
+  "log": "",
+  "merged_spectra__cos_similarity": 0.85,
+  "ms2_bin_size": 2.0,
+  "no_progress": false,
+  "out": {
+    "class": "File",
+    "path": ""
+  },
+  "out_pairs": {
+    "class": "File",
+    "path": ""
+  },
+  "out_quantification": {
+    "class": "File",
+    "path": ""
+  },
+  "output_type": "merged_spectra",
+  "peptide_cutoff": 10,
+  "test": false,
+  "threads": 1
+}

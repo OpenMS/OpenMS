@@ -1,0 +1,6 @@
+{
+  "algorithm__PeakPicker__centroid_percentage": 0.6,
+  "algorithm__PeakPicker__signal_to_noise": 3.0,
+  "algorithm__PeakPicker__thresholds__correlation": 0.0,
+  "algorithm__PeakPicker__thresholds__peak_bound": 400.0
+}

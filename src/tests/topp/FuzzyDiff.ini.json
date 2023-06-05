@@ -1,0 +1,25 @@
+{
+  "absdiff": 0.01,
+  "debug": 0,
+  "first_column": 1,
+  "force": false,
+  "in1": {
+    "class": "File",
+    "path": ""
+  },
+  "in2": {
+    "class": "File",
+    "path": ""
+  },
+  "log": "",
+  "matched_whitelist": [],
+  "no_progress": true,
+  "ratio": 1.01,
+  "tab_width": 8,
+  "test": false,
+  "threads": 1,
+  "verbose": 1,
+  "whitelist": [
+    "<?xml-stylesheet"
+  ]
+}

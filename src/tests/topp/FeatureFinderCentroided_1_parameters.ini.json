@@ -1,0 +1,46 @@
+{
+  "algorithm__debug": false,
+  "algorithm__debug__pseudo_rt_shift": 500.0,
+  "algorithm__feature__max_intersection": 0.35,
+  "algorithm__feature__max_rt_span": 2.5,
+  "algorithm__feature__min_isotope_fit": 0.8,
+  "algorithm__feature__min_rt_span": 0.333,
+  "algorithm__feature__min_score": 0.7,
+  "algorithm__feature__min_trace_score": 0.5,
+  "algorithm__feature__reported_mz": "monoisotopic",
+  "algorithm__feature__rt_shape": "symmetric",
+  "algorithm__fit__max_iterations": 500,
+  "algorithm__intensity__bins": 1,
+  "algorithm__isotopic_pattern__charge_high": 2,
+  "algorithm__isotopic_pattern__charge_low": 2,
+  "algorithm__isotopic_pattern__intensity_percentage": 10.0,
+  "algorithm__isotopic_pattern__intensity_percentage_optional": 0.1,
+  "algorithm__isotopic_pattern__mass_window_width": 100.0,
+  "algorithm__isotopic_pattern__mz_tolerance": 0.02,
+  "algorithm__isotopic_pattern__optional_fit_improvement": 2.0,
+  "algorithm__mass_trace__max_missing": 1,
+  "algorithm__mass_trace__min_spectra": 14,
+  "algorithm__mass_trace__mz_tolerance": 0.02,
+  "algorithm__mass_trace__slope_bound": 0.1,
+  "algorithm__seed__min_score": 0.8,
+  "algorithm__user-seed__min_score": 0.5,
+  "algorithm__user-seed__mz_tolerance": 1.1,
+  "algorithm__user-seed__rt_tolerance": 5.0,
+  "debug": 0,
+  "in": {
+    "class": "File",
+    "path": ""
+  },
+  "log": "TOPP.log",
+  "no_progress": false,
+  "out": {
+    "class": "File",
+    "path": ""
+  },
+  "seeds": {
+    "class": "File",
+    "path": ""
+  },
+  "test": false,
+  "threads": 1
+}

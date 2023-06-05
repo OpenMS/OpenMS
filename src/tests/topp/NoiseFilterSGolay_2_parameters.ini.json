@@ -1,0 +1,17 @@
+{
+  "algorithm__frame_length": 11,
+  "algorithm__polynomial_order": 4,
+  "debug": 0,
+  "in": {
+    "class": "File",
+    "path": ""
+  },
+  "log": "",
+  "no_progress": false,
+  "out": {
+    "class": "File",
+    "path": ""
+  },
+  "test": false,
+  "threads": 1
+}

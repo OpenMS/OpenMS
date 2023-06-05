@@ -1,0 +1,45 @@
+{
+  "algorithm__LOWESS__delta": -1.0,
+  "algorithm__LOWESS__extrapolation_type": "four-point-linear",
+  "algorithm__LOWESS__interpolation_type": "cspline",
+  "algorithm__LOWESS__num_iterations": 3,
+  "algorithm__LOWESS__span": 0.666666666666667,
+  "algorithm__distance_MZ__exponent": 2.0,
+  "algorithm__distance_MZ__weight": 1.0,
+  "algorithm__distance_RT__exponent": 1.0,
+  "algorithm__distance_RT__weight": 1.0,
+  "algorithm__distance_intensity__exponent": 1.0,
+  "algorithm__distance_intensity__log_transform": "enabled",
+  "algorithm__distance_intensity__weight": 1.0,
+  "algorithm__link__adduct_merging": "None",
+  "algorithm__link__charge_merging": "None",
+  "algorithm__link__mz_tol": 10.0,
+  "algorithm__link__rt_tol": 30.0,
+  "algorithm__mz_unit": "ppm",
+  "algorithm__nr_partitions": 100,
+  "algorithm__warp__enabled": true,
+  "algorithm__warp__max_nr_conflicts": 0,
+  "algorithm__warp__max_pairwise_log_fc": 0.5,
+  "algorithm__warp__min_rel_cc_size": 0.5,
+  "algorithm__warp__mz_tol": 5.0,
+  "algorithm__warp__rt_tol": 100.0,
+  "debug": 0,
+  "design": {
+    "class": "File",
+    "path": ""
+  },
+  "force": false,
+  "in": {
+    "class": "File",
+    "path": []
+  },
+  "keep_subelements": false,
+  "log": "",
+  "no_progress": false,
+  "out": {
+    "class": "File",
+    "path": ""
+  },
+  "test": false,
+  "threads": 1
+}

@@ -1,0 +1,42 @@
+{
+  "algorithm__common__chrom_fwhm": 100.0,
+  "algorithm__common__chrom_peak_snr": 0.0,
+  "algorithm__common__noise_threshold_int": 100.0,
+  "algorithm__epd__enabled": false,
+  "algorithm__epd__masstrace_snr_filtering": false,
+  "algorithm__epd__max_fwhm": 80.0,
+  "algorithm__epd__min_fwhm": 10.0,
+  "algorithm__epd__width_filtering": "off",
+  "algorithm__ffm__charge_lower_bound": 1,
+  "algorithm__ffm__charge_upper_bound": 3,
+  "algorithm__ffm__enable_RT_filtering": false,
+  "algorithm__ffm__isotope_filtering_model": "none",
+  "algorithm__ffm__local_mz_range": 4.5,
+  "algorithm__ffm__local_rt_range": 10.0,
+  "algorithm__ffm__mz_scoring_13C": false,
+  "algorithm__ffm__quant_method": "median",
+  "algorithm__ffm__report_convex_hulls": true,
+  "algorithm__ffm__report_summed_ints": false,
+  "algorithm__ffm__use_smoothed_intensities": false,
+  "algorithm__mtd__mass_error_ppm": 5.0,
+  "algorithm__mtd__max_trace_length": 3000.0,
+  "algorithm__mtd__min_sample_rate": 0.01,
+  "algorithm__mtd__min_trace_length": 30.0,
+  "algorithm__mtd__reestimate_mt_sd": true,
+  "algorithm__mtd__trace_termination_criterion": "sample_rate",
+  "algorithm__mtd__trace_termination_outliers": 2,
+  "debug": 0,
+  "force": false,
+  "in": {
+    "class": "File",
+    "path": ""
+  },
+  "log": "",
+  "no_progress": false,
+  "out": {
+    "class": "File",
+    "path": ""
+  },
+  "test": false,
+  "threads": 1
+}

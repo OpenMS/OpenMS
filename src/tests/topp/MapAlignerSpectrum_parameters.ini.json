@@ -1,0 +1,30 @@
+{
+  "algorithm__affinegapcost": 0.5,
+  "algorithm__anchorpoints": 100,
+  "algorithm__bucketsize": 100,
+  "algorithm__cutoff_score": 0.7,
+  "algorithm__debug": false,
+  "algorithm__gapcost": 1.0,
+  "algorithm__mismatchscore": -5.0,
+  "algorithm__scorefunction": "SteinScottImproveScore",
+  "debug": 0,
+  "in": {
+    "class": "File",
+    "path": []
+  },
+  "log": "TOPP.log",
+  "model__interpolated__interpolation_type": "cspline",
+  "model__linear__symmetric_regression": false,
+  "model__type": "interpolated",
+  "no_progress": false,
+  "out": {
+    "class": "File",
+    "path": []
+  },
+  "test": false,
+  "threads": 1,
+  "trafo_out": {
+    "class": "File",
+    "path": []
+  }
+}

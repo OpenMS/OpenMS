@@ -1,0 +1,54 @@
+{
+  "algorithm__averagine_similarity": 0.7,
+  "algorithm__averagine_similarity_scaling": 0.95,
+  "algorithm__averagine_type": "peptide",
+  "algorithm__charge": "1:4",
+  "algorithm__intensity_cutoff": 1000.0,
+  "algorithm__isotopes_per_peptide": "3:6",
+  "algorithm__knock_out": false,
+  "algorithm__labels": "[]",
+  "algorithm__missed_cleavages": 0,
+  "algorithm__mz_tolerance": 10.0,
+  "algorithm__mz_unit": "ppm",
+  "algorithm__peptide_similarity": 0.5,
+  "algorithm__rt_band": 0.0,
+  "algorithm__rt_min": 0.0,
+  "algorithm__rt_typical": 1e-05,
+  "algorithm__spectrum_type": "automatic",
+  "debug": 0,
+  "force": false,
+  "in": {
+    "class": "File",
+    "path": ""
+  },
+  "labels__Arg10": 10.0082686,
+  "labels__Arg6": 6.0201290268,
+  "labels__Dimethyl0": 28.0313,
+  "labels__Dimethyl4": 32.056407,
+  "labels__Dimethyl6": 34.063117,
+  "labels__Dimethyl8": 36.07567,
+  "labels__ICPL0": 105.021464,
+  "labels__ICPL10": 115.0667,
+  "labels__ICPL4": 109.046571,
+  "labels__ICPL6": 111.041593,
+  "labels__Leu3": 3.01883,
+  "labels__Lys4": 4.0251069836,
+  "labels__Lys6": 6.0201290268,
+  "labels__Lys8": 8.0141988132,
+  "log": "",
+  "no_progress": false,
+  "out": {
+    "class": "File",
+    "path": ""
+  },
+  "out_blacklist": {
+    "class": "File",
+    "path": ""
+  },
+  "out_multiplets": {
+    "class": "File",
+    "path": ""
+  },
+  "test": false,
+  "threads": 1
+}

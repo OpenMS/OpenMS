@@ -1,0 +1,38 @@
+{
+  "compare_function": "ZhangSimilarityScore",
+  "debug": 0,
+  "filter__cut_peaks_below": 1000,
+  "filter__max_peaks": 150,
+  "filter__min_peaks": 5,
+  "filter__remove_peaks_below_threshold": 2.01,
+  "force": false,
+  "fragment__mass_tolerance": 10.0,
+  "in": {
+    "class": "File",
+    "path": []
+  },
+  "lib": {
+    "class": "File",
+    "path": ""
+  },
+  "log": "",
+  "modifications__fixed": [],
+  "modifications__variable": [],
+  "modifications__variable_max_per_peptide": 2,
+  "no_progress": false,
+  "out": {
+    "class": "File",
+    "path": []
+  },
+  "precursor__isotopes": [
+    0,
+    1
+  ],
+  "precursor__mass_tolerance": 3.0,
+  "precursor__mass_tolerance_unit": "Da",
+  "precursor__max_charge": 5,
+  "precursor__min_charge": 1,
+  "report__top_hits": 10,
+  "test": false,
+  "threads": 1
+}

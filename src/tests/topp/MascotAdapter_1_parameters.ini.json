@@ -1,0 +1,27 @@
+{
+  "boundary": "ABCDEFGHIJKMNOPQRSTUVWXYZ",
+  "charges": [
+    "1+",
+    "2+",
+    "3+"
+  ],
+  "cleavage": "Trypsin",
+  "db": "MSDB",
+  "hits": "AUTO",
+  "in": "input.mzData",
+  "instrument": "ESI-TRAP",
+  "mascot_directory": "/local/mascot/",
+  "mass_type": "Monoisotopic",
+  "missed_cleavages": 1,
+  "modifications": [
+    "Carboxymethyl (C)"
+  ],
+  "out": "output.idXML",
+  "peak_mass_tolerance": 0.3,
+  "precursor_mass_tolerance": 1.3,
+  "taxonomy": ". . . . . . Chordata (vertebrates and relatives)",
+  "temp_data_directory": "/local/mascot/tmp/",
+  "variable_modifications": [
+    "Variable_Modifications_TEST_1"
+  ]
+}

@@ -1,0 +1,12 @@
+{
+  "algorithm__param1": "param1_ini_value",
+  "algorithm__param2": "param2_ini_value",
+  "debug": 0,
+  "log": "",
+  "no_progress": false,
+  "other__param3": "param3_ini_value",
+  "other__param4": "param4_ini_value",
+  "stringoption": "",
+  "test": false,
+  "threads": 1
+}

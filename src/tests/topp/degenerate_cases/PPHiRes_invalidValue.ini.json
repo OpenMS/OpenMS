@@ -1,0 +1,36 @@
+{
+  "algorithm__SignalToNoise__auto_max_percentile": 95,
+  "algorithm__SignalToNoise__auto_max_stdev_factor": 3.0,
+  "algorithm__SignalToNoise__auto_mode": 0,
+  "algorithm__SignalToNoise__bin_count": 30,
+  "algorithm__SignalToNoise__max_intensity": -1,
+  "algorithm__SignalToNoise__min_required_elements": 10,
+  "algorithm__SignalToNoise__noise_for_empty_window": 1e+20,
+  "algorithm__SignalToNoise__win_len": 200.0,
+  "algorithm__SignalToNoise__write_log_messages": true,
+  "algorithm__missing": 1,
+  "algorithm__ms_levels": [
+    1,
+    2
+  ],
+  "algorithm__report_FWHM": false,
+  "algorithm__report_FWHM_unit": "relative",
+  "algorithm__signal_to_noise": 1.0,
+  "algorithm__spacing_difference": 1.5,
+  "algorithm__spacing_difference_gap": 4.0,
+  "debug": 0,
+  "force": false,
+  "in": {
+    "class": "File",
+    "path": ""
+  },
+  "log": "",
+  "no_progress": false,
+  "out": {
+    "class": "File",
+    "path": ""
+  },
+  "processOption": "THISVALUEISINVALID",
+  "test": false,
+  "threads": 1
+}

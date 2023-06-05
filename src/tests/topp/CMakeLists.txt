@@ -3355,3 +3355,828 @@ set_tests_properties("UTILS_PSMFeatureExtractor_2_out" PROPERTIES DEPENDS "UTILS
 add_test("UTILS_PSMFeatureExtractor_3" ${TOPP_BIN_PATH}/PSMFeatureExtractor -test -in ${DATA_DIR_TOPP}/THIRDPARTY/MSGFPlusAdapter_1_out.idXML -out_type idXML -out PSMFeatureExtractor_3_out.tmp)
 add_test("UTILS_PSMFeatureExtractor_3_out" ${DIFF} -whitelist "InferenceEngineVersion" "date=" -in1 PSMFeatureExtractor_3_out.tmp -in2 ${DATA_DIR_TOPP}/PSMFeatureExtractor_3_out.idXML)
 set_tests_properties("UTILS_PSMFeatureExtractor_3_out" PROPERTIES DEPENDS "UTILS_PSMFeatureExtractor_3")
+
+#------------------------------------------------------------------------------
+# TOPP tests with json
+#------------------------------------------------------------------------------
+
+# FuzzyDiff tests
+add_test("UTILS_FuzzyDiff_1_json" ${TOPP_BIN_PATH}/FuzzyDiff -test -ini ${DATA_DIR_TOPP}/FuzzyDiff.ini.json -in1 ${DATA_DIR_TOPP}/FuzzyDiff_1_in1.featureXML -in2 ${DATA_DIR_TOPP}/FuzzyDiff_1_in1.featureXML)
+add_test("UTILS_FuzzyDiff_2_json" ${TOPP_BIN_PATH}/FuzzyDiff -test -ini ${DATA_DIR_TOPP}/FuzzyDiff.ini.json -in1 ${DATA_DIR_TOPP}/FuzzyDiff_1_in1.featureXML -in2 ${DATA_DIR_TOPP}/FuzzyDiff_1_in2.featureXML)
+add_test("UTILS_FuzzyDiff_3_json" ${TOPP_BIN_PATH}/FuzzyDiff -test -ini ${DATA_DIR_TOPP}/FuzzyDiff.ini.json -in1 ${DATA_DIR_TOPP}/FuzzyDiff_3_in1.featureXML -in2 ${DATA_DIR_TOPP}/FuzzyDiff_3_in2.featureXML)
+add_test("UTILS_FuzzyDiff_4_json" ${TOPP_BIN_PATH}/FuzzyDiff -test -ini ${DATA_DIR_TOPP}/FuzzyDiff.ini.json -in1 ${DATA_DIR_TOPP}/lorem_ipsum.featureXML -in2 ${DATA_DIR_TOPP}/FuzzyDiff_3_in2.featureXML)
+set_tests_properties("UTILS_FuzzyDiff_1_json" PROPERTIES WILL_FAIL 1) ## needs to fail due to different numbers
+set_tests_properties("UTILS_FuzzyDiff_2_json" PROPERTIES WILL_FAIL 1) ## needs to fail (cheating)
+set_tests_properties("UTILS_FuzzyDiff_4_json" PROPERTIES WILL_FAIL 1) ## needs to fail (file does not exist)
+
+#------------------------------------------------------------------------------
+# Decharger tests
+add_test("TOPP_Decharger_1_json" ${TOPP_BIN_PATH}/Decharger -test -in ${DATA_DIR_TOPP}/Decharger_input.featureXML -ini ${DATA_DIR_TOPP}/Decharger_input.ini.json -out_fm Decharger_output_fm.tmp.featureXML -out_cm Decharger_output.tmp -outpairs Decharger_p_output.tmp)
+add_test("TOPP_Decharger_1_out1_json" ${DIFF} -whitelist "id=" "href=" -in1 Decharger_output.tmp -in2 ${DATA_DIR_TOPP}/Decharger_output.consensusXML )
+set_tests_properties("TOPP_Decharger_1_out1_json" PROPERTIES DEPENDS "TOPP_Decharger_1_json" )
+add_test("TOPP_Decharger_1_out2_json" ${DIFF} -whitelist "id=" "href=" "completion_time=" "version=" -in1 Decharger_p_output.tmp -in2 ${DATA_DIR_TOPP}/Decharger_output_pairs.consensusXML )
+set_tests_properties("TOPP_Decharger_1_out2_json" PROPERTIES DEPENDS "TOPP_Decharger_1_json" )
+add_test("TOPP_Decharger_1_out3_json" ${DIFF} -whitelist "id=" -in1 Decharger_output_fm.tmp.featureXML -in2 ${DATA_DIR_TOPP}/Decharger_output.featureXML )
+set_tests_properties("TOPP_Decharger_1_out3_json" PROPERTIES DEPENDS "TOPP_Decharger_1_json" )
+
+#------------------------------------------------------------------------------
+# MassTraceExtractor test
+add_test("TOPP_MassTraceExtractor_1_json" ${TOPP_BIN_PATH}/MassTraceExtractor -test -ini ${DATA_DIR_TOPP}/MassTraceExtractor.ini.json -in ${DATA_DIR_TOPP}/MassTraceExtractor_1_input.mzML -out MassTraceExtractor_1_json.tmp)
+add_test("TOPP_MassTraceExtractor_1_out_json" ${DIFF} -whitelist "id=" -in1 MassTraceExtractor_1_json.tmp -in2 ${DATA_DIR_TOPP}/MassTraceExtractor_1_output.featureXML )
+set_tests_properties("TOPP_MassTraceExtractor_1_out_json" PROPERTIES DEPENDS "TOPP_MassTraceExtractor_1_json")
+add_test("TOPP_MassTraceExtractor_2_json" ${TOPP_BIN_PATH}/MassTraceExtractor -test -ini ${DATA_DIR_TOPP}/MassTraceExtractor_2.ini.json -in ${DATA_DIR_TOPP}/MassTraceExtractor_1_input.mzML -out MassTraceExtractor_2_json.tmp)
+add_test("TOPP_MassTraceExtractor_2_out_json" ${DIFF} -whitelist "id=" -in1 MassTraceExtractor_2_json.tmp -in2 ${DATA_DIR_TOPP}/MassTraceExtractor_2_output.featureXML )
+set_tests_properties("TOPP_MassTraceExtractor_2_out_json" PROPERTIES DEPENDS "TOPP_MassTraceExtractor_2_json")
+
+#------------------------------------------------------------------------------
+# FeatureFinderMetabo test
+add_test("TOPP_FeatureFinderMetabo_1_json" ${TOPP_BIN_PATH}/FeatureFinderMetabo -test -ini ${DATA_DIR_TOPP}/FeatureFinderMetabo.ini.json -in ${DATA_DIR_TOPP}/FeatureFinderMetabo_1_input.mzML -out FeatureFinderMetabo_1.tmp)
+add_test("TOPP_FeatureFinderMetabo_1_out_json" ${DIFF} -whitelist "id=" -in1 FeatureFinderMetabo_1.tmp -in2 ${DATA_DIR_TOPP}/FeatureFinderMetabo_1_output.featureXML)
+set_tests_properties("TOPP_FeatureFinderMetabo_1_out_json" PROPERTIES DEPENDS "TOPP_FeatureFinderMetabo_1_json")
+add_test("TOPP_FeatureFinderMetabo_2_json" ${TOPP_BIN_PATH}/FeatureFinderMetabo -test -ini ${DATA_DIR_TOPP}/FeatureFinderMetabo_2_noEPD.ini.json -in ${DATA_DIR_TOPP}/FeatureFinderMetabo_2_input.mzML -out FeatureFinderMetabo_2.tmp)
+add_test("TOPP_FeatureFinderMetabo_2_out_json" ${DIFF} -whitelist "id=" "completion_time" -in1 FeatureFinderMetabo_2.tmp -in2 ${DATA_DIR_TOPP}/FeatureFinderMetabo_2_noEPD_output.featureXML)
+set_tests_properties("TOPP_FeatureFinderMetabo_2_out_json" PROPERTIES DEPENDS "TOPP_FeatureFinderMetabo_2_json")
+add_test("TOPP_FeatureFinderMetabo_3_json" ${TOPP_BIN_PATH}/FeatureFinderMetabo -test -ini ${DATA_DIR_TOPP}/FeatureFinderMetabo_3.ini.json -in ${DATA_DIR_TOPP}/FeatureFinderMetabo_3_input.mzML -out FeatureFinderMetabo_3.tmp -out_chrom FeatureFinderMetabo_3_chrom.tmp)
+add_test("TOPP_FeatureFinderMetabo_3_chrom_out_json" ${DIFF} -whitelist "<chromatogram id=" "<offset" "<userParam name=" -in1 FeatureFinderMetabo_3_chrom.tmp -in2 ${DATA_DIR_TOPP}/FeatureFinderMetabo_3_chrom_output.mzML)
+set_tests_properties("TOPP_FeatureFinderMetabo_3_chrom_out_json" PROPERTIES DEPENDS "TOPP_FeatureFinderMetabo_3_json")
+add_test("TOPP_FeatureFinderMetabo_4_json" ${TOPP_BIN_PATH}/FeatureFinderMetabo -test -ini ${DATA_DIR_TOPP}/FeatureFinderMetabo_4.ini.json -in ${DATA_DIR_TOPP}/FeatureFinderMetabo_3_input.mzML -out FeatureFinderMetabo_4.tmp -out_chrom FeatureFinderMetabo_4_chrom.tmp)
+add_test("TOPP_FeatureFinderMetabo_4_out_json" ${DIFF} -whitelist "id=" -in1 FeatureFinderMetabo_4.tmp -in2 ${DATA_DIR_TOPP}/FeatureFinderMetabo_4_output.featureXML)
+add_test("TOPP_FeatureFinderMetabo_4_chrom_out_json" ${DIFF} -whitelist "<chromatogram id=" "<offset" "<userParam name=" -in1 FeatureFinderMetabo_4_chrom.tmp -in2 ${DATA_DIR_TOPP}/FeatureFinderMetabo_4_chrom_output.mzML)
+set_tests_properties("TOPP_FeatureFinderMetabo_4_chrom_out_json" PROPERTIES DEPENDS "TOPP_FeatureFinderMetabo_4_json")
+add_test("TOPP_FeatureFinderMetabo_5_json" ${TOPP_BIN_PATH}/FeatureFinderMetabo -test -ini ${DATA_DIR_TOPP}/FeatureFinderMetabo.ini.json -in ${DATA_DIR_TOPP}/FeatureFinderMetabo_1_input.mzML -out FeatureFinderMetabo_5.tmp -algorithm:mtd:quant_method max_height)
+add_test("TOPP_FeatureFinderMetabo_5_out_json" ${DIFF} -whitelist "id=" -in1 FeatureFinderMetabo_5.tmp -in2 ${DATA_DIR_TOPP}/FeatureFinderMetabo_5_output.featureXML)
+set_tests_properties("TOPP_FeatureFinderMetabo_5_out_json" PROPERTIES DEPENDS "TOPP_FeatureFinderMetabo_5_json")
+
+
+#------------------------------------------------------------------------------
+# FeatureFinderCentroided test
+add_test("TOPP_FeatureFinderCentroided_1_json" ${TOPP_BIN_PATH}/FeatureFinderCentroided -test -ini ${DATA_DIR_TOPP}/FeatureFinderCentroided_1_parameters.ini.json -in ${DATA_DIR_TOPP}/FeatureFinderCentroided_1_input.mzML -out FeatureFinderCentroided_1.tmp)
+add_test("TOPP_FeatureFinderCentroided_1_out1_json" ${DIFF} -whitelist "id=" -in1 FeatureFinderCentroided_1.tmp -in2 ${DATA_DIR_TOPP}/FeatureFinderCentroided_1_1_output.featureXML )
+set_tests_properties("TOPP_FeatureFinderCentroided_1_out1_json" PROPERTIES DEPENDS "TOPP_FeatureFinderCentroided_1_json")
+
+#------------------------------------------------------------------------------
+# FeatureFinderMRM test
+add_test("TOPP_FeatureFinderMRM_1_json" ${TOPP_BIN_PATH}/FeatureFinderMRM -test -in ${DATA_DIR_TOPP}/FeatureFinderMRM_1_input.mzML -ini ${DATA_DIR_TOPP}/FeatureFinderMRM_1_parameters.ini.json -out FeatureFinderMRM_1.tmp)
+add_test("TOPP_FeatureFinderMRM_1_out1_json" ${DIFF} -whitelist "id=" -in1 FeatureFinderMRM_1.tmp -in2 ${DATA_DIR_TOPP}/FeatureFinderMRM_1_output.featureXML )
+set_tests_properties("TOPP_FeatureFinderMRM_1_out1_json" PROPERTIES DEPENDS "TOPP_FeatureFinderMRM_1_json")
+
+#------------------------------------------------------------------------------
+# FeatureFinderMultiplex test
+add_test("TOPP_FeatureFinderMultiplex_1_json" ${TOPP_BIN_PATH}/FeatureFinderMultiplex -test -in ${DATA_DIR_TOPP}/FeatureFinderMultiplex_1_input.mzML -ini ${DATA_DIR_TOPP}/FeatureFinderMultiplex_1_parameters.ini.json -out FeatureFinderMultiplex_1.tmp -out_multiplets FeatureFinderMultiplex_2.tmp)
+add_test("TOPP_FeatureFinderMultiplex_1_out1_json" ${DIFF} -whitelist "id=" "href=" "spectra_data" -in1 FeatureFinderMultiplex_1.tmp -in2 ${DATA_DIR_TOPP}/FeatureFinderMultiplex_1_output.featureXML )
+set_tests_properties("TOPP_FeatureFinderMultiplex_1_out1_json" PROPERTIES DEPENDS "TOPP_FeatureFinderMultiplex_1_json")
+add_test("TOPP_FeatureFinderMultiplex_1_out2_json" ${DIFF} -whitelist "id=" "href=" -in1 FeatureFinderMultiplex_2.tmp -in2 ${DATA_DIR_TOPP}/FeatureFinderMultiplex_1_output.consensusXML )
+set_tests_properties("TOPP_FeatureFinderMultiplex_1_out2_json" PROPERTIES DEPENDS "TOPP_FeatureFinderMultiplex_1_json")
+
+add_test("TOPP_FeatureFinderMultiplex_2_json" ${TOPP_BIN_PATH}/FeatureFinderMultiplex -test -in ${DATA_DIR_TOPP}/FeatureFinderMultiplex_2_input.mzML -ini ${DATA_DIR_TOPP}/FeatureFinderMultiplex_2_parameters.ini.json -out FeatureFinderMultiplex_3.tmp -out_multiplets FeatureFinderMultiplex_4.tmp)
+add_test("TOPP_FeatureFinderMultiplex_2_out1_json" ${DIFF} -whitelist "id=" "href=" "spectra_data" -in1 FeatureFinderMultiplex_3.tmp -in2 ${DATA_DIR_TOPP}/FeatureFinderMultiplex_2_output.featureXML )
+set_tests_properties("TOPP_FeatureFinderMultiplex_2_out1_json" PROPERTIES DEPENDS "TOPP_FeatureFinderMultiplex_2_json")
+add_test("TOPP_FeatureFinderMultiplex_2_out2_json" ${DIFF} -whitelist "id=" "href=" -in1 FeatureFinderMultiplex_4.tmp -in2 ${DATA_DIR_TOPP}/FeatureFinderMultiplex_2_output.consensusXML )
+set_tests_properties("TOPP_FeatureFinderMultiplex_2_out2_json" PROPERTIES DEPENDS "TOPP_FeatureFinderMultiplex_2_json")
+
+add_test("TOPP_FeatureFinderMultiplex_3_json" ${TOPP_BIN_PATH}/FeatureFinderMultiplex -test -in ${DATA_DIR_TOPP}/FeatureFinderMultiplex_3_input.mzML -ini ${DATA_DIR_TOPP}/FeatureFinderMultiplex_3_parameters.ini.json -out FeatureFinderMultiplex_5.tmp -out_multiplets FeatureFinderMultiplex_6.tmp)
+add_test("TOPP_FeatureFinderMultiplex_3_out1_json" ${DIFF} -whitelist "id=" "href=" "spectra_data" -in1 FeatureFinderMultiplex_5.tmp -in2 ${DATA_DIR_TOPP}/FeatureFinderMultiplex_3_output.featureXML )
+set_tests_properties("TOPP_FeatureFinderMultiplex_3_out1_json" PROPERTIES DEPENDS "TOPP_FeatureFinderMultiplex_3_json")
+add_test("TOPP_FeatureFinderMultiplex_3_out2_json" ${DIFF} -whitelist "id=" "href=" -in1 FeatureFinderMultiplex_6.tmp -in2 ${DATA_DIR_TOPP}/FeatureFinderMultiplex_3_output.consensusXML )
+set_tests_properties("TOPP_FeatureFinderMultiplex_3_out2_json" PROPERTIES DEPENDS "TOPP_FeatureFinderMultiplex_3_json")
+
+add_test("TOPP_FeatureFinderMultiplex_4_json" ${TOPP_BIN_PATH}/FeatureFinderMultiplex -test -in ${DATA_DIR_TOPP}/FeatureFinderMultiplex_4_input.mzML -ini ${DATA_DIR_TOPP}/FeatureFinderMultiplex_4_parameters.ini.json -out FeatureFinderMultiplex_7.tmp -out_multiplets FeatureFinderMultiplex_8.tmp)
+add_test("TOPP_FeatureFinderMultiplex_4_out1_json" ${DIFF} -whitelist "id=" "href=" "spectra_data" -in1 FeatureFinderMultiplex_7.tmp -in2 ${DATA_DIR_TOPP}/FeatureFinderMultiplex_4_output.featureXML )
+set_tests_properties("TOPP_FeatureFinderMultiplex_4_out1_json" PROPERTIES DEPENDS "TOPP_FeatureFinderMultiplex_4_json")
+add_test("TOPP_FeatureFinderMultiplex_4_out2_json" ${DIFF} -whitelist "id=" "href=" -in1 FeatureFinderMultiplex_8.tmp -in2 ${DATA_DIR_TOPP}/FeatureFinderMultiplex_4_output.consensusXML )
+set_tests_properties("TOPP_FeatureFinderMultiplex_4_out2_json" PROPERTIES DEPENDS "TOPP_FeatureFinderMultiplex_4_json")
+
+add_test("TOPP_FeatureFinderMultiplex_5_json" ${TOPP_BIN_PATH}/FeatureFinderMultiplex -test -in ${DATA_DIR_TOPP}/FeatureFinderMultiplex_5_input.mzML -ini ${DATA_DIR_TOPP}/FeatureFinderMultiplex_5_parameters.ini.json -out FeatureFinderMultiplex_9.tmp -out_multiplets FeatureFinderMultiplex_10.tmp)
+add_test("TOPP_FeatureFinderMultiplex_5_out1_json" ${DIFF} -whitelist "id=" "href=" "spectra_data" -in1 FeatureFinderMultiplex_9.tmp -in2 ${DATA_DIR_TOPP}/FeatureFinderMultiplex_5_output.featureXML )
+set_tests_properties("TOPP_FeatureFinderMultiplex_5_out1_json" PROPERTIES DEPENDS "TOPP_FeatureFinderMultiplex_5_json")
+add_test("TOPP_FeatureFinderMultiplex_5_out2_json" ${DIFF} -whitelist "id=" "href=" -in1 FeatureFinderMultiplex_10.tmp -in2 ${DATA_DIR_TOPP}/FeatureFinderMultiplex_5_output.consensusXML )
+set_tests_properties("TOPP_FeatureFinderMultiplex_5_out2_json" PROPERTIES DEPENDS "TOPP_FeatureFinderMultiplex_5_json")
+
+add_test("TOPP_FeatureFinderMultiplex_6_json" ${TOPP_BIN_PATH}/FeatureFinderMultiplex -test -in ${DATA_DIR_TOPP}/FeatureFinderMultiplex_6_input.mzML -ini ${DATA_DIR_TOPP}/FeatureFinderMultiplex_6_parameters.ini.json -out FeatureFinderMultiplex_11.tmp -out_multiplets FeatureFinderMultiplex_12.tmp)
+add_test("TOPP_FeatureFinderMultiplex_6_out1_json" ${DIFF} -whitelist "id=" "href=" "spectra_data" -in1 FeatureFinderMultiplex_11.tmp -in2 ${DATA_DIR_TOPP}/FeatureFinderMultiplex_6_output.featureXML )
+set_tests_properties("TOPP_FeatureFinderMultiplex_6_out1_json" PROPERTIES DEPENDS "TOPP_FeatureFinderMultiplex_6_json")
+add_test("TOPP_FeatureFinderMultiplex_6_out2_json" ${DIFF} -whitelist "id=" "href=" -in1 FeatureFinderMultiplex_12.tmp -in2 ${DATA_DIR_TOPP}/FeatureFinderMultiplex_6_output.consensusXML )
+set_tests_properties("TOPP_FeatureFinderMultiplex_6_out2_json" PROPERTIES DEPENDS "TOPP_FeatureFinderMultiplex_6_json")
+
+add_test("TOPP_FeatureFinderMultiplex_7_json" ${TOPP_BIN_PATH}/FeatureFinderMultiplex -test -in ${DATA_DIR_TOPP}/FeatureFinderMultiplex_7_input.mzML -ini ${DATA_DIR_TOPP}/FeatureFinderMultiplex_7_parameters.ini.json -out FeatureFinderMultiplex_13.tmp -out_multiplets FeatureFinderMultiplex_14.tmp)
+add_test("TOPP_FeatureFinderMultiplex_7_out1_json" ${DIFF} -whitelist "id=" "href=" "spectra_data" -in1 FeatureFinderMultiplex_13.tmp -in2 ${DATA_DIR_TOPP}/FeatureFinderMultiplex_7_output.featureXML )
+set_tests_properties("TOPP_FeatureFinderMultiplex_7_out1_json" PROPERTIES DEPENDS "TOPP_FeatureFinderMultiplex_7_json")
+add_test("TOPP_FeatureFinderMultiplex_7_out2_json" ${DIFF} -whitelist "id=" "href=" -in1 FeatureFinderMultiplex_14.tmp -in2 ${DATA_DIR_TOPP}/FeatureFinderMultiplex_7_output.consensusXML )
+
+add_test("TOPP_FeatureFinderMultiplex_8_json" ${TOPP_BIN_PATH}/FeatureFinderMultiplex -test -in ${DATA_DIR_TOPP}/FeatureFinderMultiplex_8_input.mzML -ini ${DATA_DIR_TOPP}/FeatureFinderMultiplex_8_parameters.ini.json -out FeatureFinderMultiplex_15.tmp -out_multiplets FeatureFinderMultiplex_16.tmp)
+add_test("TOPP_FeatureFinderMultiplex_8_out1_json" ${DIFF} -whitelist "id=" "href=" "spectra_data" -in1 FeatureFinderMultiplex_15.tmp -in2 ${DATA_DIR_TOPP}/FeatureFinderMultiplex_8_output.featureXML )
+set_tests_properties("TOPP_FeatureFinderMultiplex_8_out1_json" PROPERTIES DEPENDS "TOPP_FeatureFinderMultiplex_8_json")
+add_test("TOPP_FeatureFinderMultiplex_8_out2_json" ${DIFF} -whitelist "id=" "href=" -in1 FeatureFinderMultiplex_16.tmp -in2 ${DATA_DIR_TOPP}/FeatureFinderMultiplex_8_output.consensusXML )
+set_tests_properties("TOPP_FeatureFinderMultiplex_8_out2_json" PROPERTIES DEPENDS "TOPP_FeatureFinderMultiplex_8_json")
+
+add_test("TOPP_FeatureFinderMultiplex_9_json" ${TOPP_BIN_PATH}/FeatureFinderMultiplex -test -in ${DATA_DIR_TOPP}/FeatureFinderMultiplex_9_input.mzML -ini ${DATA_DIR_TOPP}/FeatureFinderMultiplex_9_parameters.ini.json -out FeatureFinderMultiplex_17.tmp -out_multiplets FeatureFinderMultiplex_18.tmp)
+add_test("TOPP_FeatureFinderMultiplex_9_out1_json" ${DIFF} -whitelist "id=" "href=" "spectra_data" -in1 FeatureFinderMultiplex_17.tmp -in2 ${DATA_DIR_TOPP}/FeatureFinderMultiplex_9_output.featureXML )
+set_tests_properties("TOPP_FeatureFinderMultiplex_9_out1_json" PROPERTIES DEPENDS "TOPP_FeatureFinderMultiplex_9_json")
+add_test("TOPP_FeatureFinderMultiplex_9_out2_json" ${DIFF} -whitelist "id=" "href=" -in1 FeatureFinderMultiplex_18.tmp -in2 ${DATA_DIR_TOPP}/FeatureFinderMultiplex_9_output.consensusXML )
+set_tests_properties("TOPP_FeatureFinderMultiplex_9_out2_json" PROPERTIES DEPENDS "TOPP_FeatureFinderMultiplex_9_json")
+
+add_test("TOPP_FeatureFinderMultiplex_10_json" ${TOPP_BIN_PATH}/FeatureFinderMultiplex -test -in ${DATA_DIR_TOPP}/FeatureFinderMultiplex_10_input.mzML -ini ${DATA_DIR_TOPP}/FeatureFinderMultiplex_10_parameters.ini.json -out FeatureFinderMultiplex_19.tmp -out_multiplets FeatureFinderMultiplex_20.tmp)
+add_test("TOPP_FeatureFinderMultiplex_10_out1_json" ${DIFF} -whitelist "id=" "href=" "spectra_data" -in1 FeatureFinderMultiplex_19.tmp -in2 ${DATA_DIR_TOPP}/FeatureFinderMultiplex_10_output.featureXML )
+set_tests_properties("TOPP_FeatureFinderMultiplex_10_out1_json" PROPERTIES DEPENDS "TOPP_FeatureFinderMultiplex_10_json")
+add_test("TOPP_FeatureFinderMultiplex_10_out2_json" ${DIFF} -whitelist "id=" "href=" -in1 FeatureFinderMultiplex_20.tmp -in2 ${DATA_DIR_TOPP}/FeatureFinderMultiplex_10_output.consensusXML )
+set_tests_properties("TOPP_FeatureFinderMultiplex_10_out2_json" PROPERTIES DEPENDS "TOPP_FeatureFinderMultiplex_10_json")
+
+add_test("TOPP_FeatureFinderMultiplex_11_json" ${TOPP_BIN_PATH}/FeatureFinderMultiplex -test -in ${DATA_DIR_TOPP}/FeatureFinderMultiplex_11_input.mzML -ini ${DATA_DIR_TOPP}/FeatureFinderMultiplex_11_parameters.ini.json -out FeatureFinderMultiplex_21.tmp)
+add_test("TOPP_FeatureFinderMultiplex_11_out1_json" ${DIFF} -whitelist "id=" "href=" "spectra_data" -in1 FeatureFinderMultiplex_21.tmp -in2 ${DATA_DIR_TOPP}/FeatureFinderMultiplex_11_output.featureXML )
+set_tests_properties("TOPP_FeatureFinderMultiplex_11_out1_json" PROPERTIES DEPENDS "TOPP_FeatureFinderMultiplex_11_json")
+
+#------------------------------------------------------------------------------
+# GNPSExport tests
+# test mostintense output
+add_test("TOPP_GNPSExport_1_json" ${TOPP_BIN_PATH}/GNPSExport -test -ini ${DATA_DIR_TOPP}/GNPSExport_1_mostint.ini.json -in_cm ${DATA_DIR_TOPP}/GNPSExport_cons1.consensusXML -in_mzml ${DATA_DIR_TOPP}/GNPSExport_mzml1.mzML ${DATA_DIR_TOPP}/GNPSExport_mzml2.mzML -out GNPSExport_1_out.tmp -out_quantification GNPSExport_1_out_quant.tmp)
+add_test("TOPP_GNPSExport_1_out_json" ${DIFF} -in1 GNPSExport_1_out.tmp -in2 ${DATA_DIR_TOPP}/GNPSExport_1_out.mgf)
+set_tests_properties("TOPP_GNPSExport_1_out_json" PROPERTIES DEPENDS "TOPP_GNPSExport_1_json")
+add_test("TOPP_GNPSExport_1_out_QuantificationTable_json" ${DIFF} -in1 GNPSExport_1_out_quant.tmp -in2 ${DATA_DIR_TOPP}/GNPSExport_1_out_quant.txt)
+set_tests_properties("TOPP_GNPSExport_1_out_QuantificationTable_json" PROPERTIES DEPENDS "TOPP_GNPSExport_1_json")
+# test mergedspectra test
+add_test("TOPP_GNPSExport_2_json" ${TOPP_BIN_PATH}/GNPSExport -test -ini ${DATA_DIR_TOPP}/GNPSExport_2_merged.ini.json -in_cm ${DATA_DIR_TOPP}/GNPSExport_cons1.consensusXML -in_mzml ${DATA_DIR_TOPP}/GNPSExport_mzml1.mzML ${DATA_DIR_TOPP}/GNPSExport_mzml2.mzML -out GNPSExport_2_out.tmp -out_quantification GNPSExport_2_out_quant.tmp)
+add_test("TOPP_GNPSExport_2_out_json" ${DIFF} -in1 GNPSExport_2_out.tmp -in2 ${DATA_DIR_TOPP}/GNPSExport_2_out.mgf)
+set_tests_properties("TOPP_GNPSExport_2_out_json" PROPERTIES DEPENDS "TOPP_GNPSExport_2_json")
+# test ms2_bin_size
+add_test("TOPP_GNPSExport_3_json" ${TOPP_BIN_PATH}/GNPSExport -test -ini ${DATA_DIR_TOPP}/GNPSExport_3_binsize.ini.json -in_cm ${DATA_DIR_TOPP}/GNPSExport_cons1.consensusXML -in_mzml ${DATA_DIR_TOPP}/GNPSExport_mzml1.mzML ${DATA_DIR_TOPP}/GNPSExport_mzml2.mzML -out GNPSExport_3_out.tmp -out_quantification GNPSExport_3_out_quant.tmp)
+add_test("TOPP_GNPSExport_3_out_json" ${DIFF} -in1 GNPSExport_3_out.tmp -in2 ${DATA_DIR_TOPP}/GNPSExport_3_out.mgf)
+set_tests_properties("TOPP_GNPSExport_3_out_json" PROPERTIES DEPENDS "TOPP_GNPSExport_3_json")
+# test output for IonIdentityMolecularNetworking
+add_test("TOPP_GNPSExport_4_json" ${TOPP_BIN_PATH}/GNPSExport -test -in_cm ${DATA_DIR_TOPP}/GNPSExport_cons2.consensusXML -in_mzml ${DATA_DIR_TOPP}/GNPSExport_mzml1.mzML ${DATA_DIR_TOPP}/GNPSExport_mzml2.mzML -out GNPSExport_4_out.tmp -out_quantification GNPSExport_4_out_quant.tmp -out_pairs GNPSExport_4_out_pairs.tmp -out_meta_values GNPSExport_4_out_meta_values.tmp)
+add_test("TOPP_GNPSExport_4_out_quant_json" ${DIFF} -in1 GNPSExport_4_out_quant.tmp -in2 ${DATA_DIR_TOPP}/GNPSExport_4_out_quant.txt)
+set_tests_properties("TOPP_GNPSExport_4_out_quant_json" PROPERTIES DEPENDS "TOPP_GNPSExport_4_json")
+add_test("TOPP_GNPSExport_4_out_pairs_json" ${DIFF} -in1 GNPSExport_4_out_pairs.tmp -in2 ${DATA_DIR_TOPP}/GNPSExport_4_out_pairs.csv)
+set_tests_properties("TOPP_GNPSExport_4_out_pairs_json" PROPERTIES DEPENDS "TOPP_GNPSExport_4_json")
+add_test("TOPP_GNPSExport_4_out_meta_values_json" ${DIFF} -in1 GNPSExport_4_out_meta_values.tmp -in2 ${DATA_DIR_TOPP}/GNPSExport_4_out_meta_values.tsv)
+set_tests_properties("TOPP_GNPSExport_4_out_meta_values_json" PROPERTIES DEPENDS "TOPP_GNPSExport_4_json")
+
+#------------------------------------------------------------------------------
+# IsobaricAnalyzer tests
+add_test("TOPP_IsobaricAnalyzer_1_json" ${TOPP_BIN_PATH}/IsobaricAnalyzer -test -in ${DATA_DIR_TOPP}/IsobaricAnalyzer_input_1.mzML -ini ${DATA_DIR_TOPP}/IsobaricAnalyzer.ini.json -out IsobaricAnalyzer_output_1.tmp)
+add_test("TOPP_IsobaricAnalyzer_1_out1_json" ${DIFF} -whitelist "id=" "<map" "?xml-stylesheet" -in1 IsobaricAnalyzer_output_1.tmp -in2 ${DATA_DIR_TOPP}/IsobaricAnalyzer_output_1.consensusXML )
+set_tests_properties("TOPP_IsobaricAnalyzer_1_out1_json" PROPERTIES DEPENDS "TOPP_IsobaricAnalyzer_1_json")
+
+add_test("TOPP_IsobaricAnalyzer_TMTTenPlexMethod_1_json" ${TOPP_BIN_PATH}/IsobaricAnalyzer -test -in ${DATA_DIR_TOPP}/TMTTenPlexMethod_test.mzML -ini ${DATA_DIR_TOPP}/TMTTenPlexMethod_test.ini.json -out TMTTenPlexMethod_output.tmp)
+add_test("TOPP_IsobaricAnalyzer_TMTTenPlexMethod_1_out1_json" ${DIFF} -whitelist "id=" "<map" "?xml-stylesheet" -in1 TMTTenPlexMethod_output.tmp -in2 ${DATA_DIR_TOPP}/TMTTenPlexMethod_test.consensusXML )
+set_tests_properties("TOPP_IsobaricAnalyzer_TMTTenPlexMethod_1_out1_json" PROPERTIES DEPENDS "TOPP_IsobaricAnalyzer_TMTTenPlexMethod_1_json")
+
+add_test("TOPP_IsobaricAnalyzer_TMTElevenPlexMethod_1_json" ${TOPP_BIN_PATH}/IsobaricAnalyzer -test -in ${DATA_DIR_TOPP}/TMTTenPlexMethod_test.mzML -ini ${DATA_DIR_TOPP}/TMTElevenPlexMethod_test.ini.json -out TMTElevenPlexMethod_output.tmp)
+add_test("TOPP_IsobaricAnalyzer_TMTElevenPlexMethod_1_out1_json" ${DIFF} -whitelist "id=" "<map" "?xml-stylesheet" -in1 TMTElevenPlexMethod_output.tmp -in2 ${DATA_DIR_TOPP}/TMTElevenPlexMethod_test.consensusXML )
+set_tests_properties("TOPP_IsobaricAnalyzer_TMTElevenPlexMethod_1_out1_json" PROPERTIES DEPENDS "TOPP_IsobaricAnalyzer_TMTElevenPlexMethod_1_json")
+
+add_test("TOPP_IsobaricAnalyzer_MS3TMT10Plex_1_json" ${TOPP_BIN_PATH}/IsobaricAnalyzer -test -in ${DATA_DIR_TOPP}/MS3_nonHierarchical.mzML -extraction:select_activation "Collision-induced dissociation" -type tmt10plex -out MS3TMT10Plex_output.tmp)
+add_test("TOPP_IsobaricAnalyzer_MS3TMT10Plex_1_out1_json" ${DIFF} -whitelist "id=" "<map" "?xml-stylesheet" -in1 MS3TMT10Plex_output.tmp -in2 ${DATA_DIR_TOPP}/MS3TMT10Plex_test.consensusXML )
+set_tests_properties("TOPP_IsobaricAnalyzer_MS3TMT10Plex_1_out1_json" PROPERTIES DEPENDS "TOPP_IsobaricAnalyzer_MS3TMT10Plex_1_json")
+
+#------------------------------------------------------------------------------
+# IDFileConverter tests
+# Mascot XML to idXML (with user-defined regular expression):
+add_test("TOPP_IDFileConverter_5_json" ${TOPP_BIN_PATH}/IDFileConverter -test -in ${DATA_DIR_TOPP}/IDFileConverter_1_input1.mascotXML -mz_file ${DATA_DIR_TOPP}/IDFileConverter_1_input2.mzML -out IDFileConverter_5_output.tmp -ini ${DATA_DIR_TOPP}/IDFileConverter_5_parameters.ini.json)
+add_test("TOPP_IDFileConverter_5_out1_json" ${DIFF} -in1 IDFileConverter_5_output.tmp -in2 ${DATA_DIR_TOPP}/IDFileConverter_5_output.idXML )
+set_tests_properties("TOPP_IDFileConverter_5_out1_json" PROPERTIES DEPENDS "TOPP_IDFileConverter_5_json")
+
+#-----------------------------------------------------------------------------
+# MapAlignerPoseClustering tests
+# featureXML input:
+add_test("TOPP_MapAlignerPoseClustering_1_json" ${TOPP_BIN_PATH}/MapAlignerPoseClustering -test -ini ${DATA_DIR_TOPP}/MapAlignerPoseClustering_1_parameters.ini -in ${DATA_DIR_TOPP}/MapAlignerPoseClustering_1_input1.featureXML ${DATA_DIR_TOPP}/MapAlignerPoseClustering_1_input2.featureXML ${DATA_DIR_TOPP}/MapAlignerPoseClustering_1_input3.featureXML -out MapAlignerPoseClustering_1_output1.tmp MapAlignerPoseClustering_1_output2.tmp MapAlignerPoseClustering_1_output3.tmp -trafo_out MapAlignerPoseClustering_1_trafo1.tmp MapAlignerPoseClustering_1_trafo2.tmp MapAlignerPoseClustering_1_trafo3.tmp)
+add_test("TOPP_MapAlignerPoseClustering_1_out1_json" ${DIFF} -in1 MapAlignerPoseClustering_1_output1.tmp -in2 ${DATA_DIR_TOPP}/MapAlignerPoseClustering_1_output1.featureXML )
+set_tests_properties("TOPP_MapAlignerPoseClustering_1_out1_json" PROPERTIES DEPENDS "TOPP_MapAlignerPoseClustering_1_json")
+add_test("TOPP_MapAlignerPoseClustering_1_out2_json" ${DIFF} -in1 MapAlignerPoseClustering_1_output2.tmp -in2 ${DATA_DIR_TOPP}/MapAlignerPoseClustering_1_output2.featureXML )
+set_tests_properties("TOPP_MapAlignerPoseClustering_1_out2_json" PROPERTIES DEPENDS "TOPP_MapAlignerPoseClustering_1_json")
+add_test("TOPP_MapAlignerPoseClustering_1_out3_json" ${DIFF} -in1 MapAlignerPoseClustering_1_output3.tmp -in2 ${DATA_DIR_TOPP}/MapAlignerPoseClustering_1_output3.featureXML )
+set_tests_properties("TOPP_MapAlignerPoseClustering_1_out3_json" PROPERTIES DEPENDS "TOPP_MapAlignerPoseClustering_1_json")
+add_test("TOPP_MapAlignerPoseClustering_1_out4_json" ${DIFF} -in1 MapAlignerPoseClustering_1_trafo1.tmp -in2 ${DATA_DIR_TOPP}/MapAlignerPoseClustering_1_trafo1.trafoXML )
+set_tests_properties("TOPP_MapAlignerPoseClustering_1_out4_json" PROPERTIES DEPENDS "TOPP_MapAlignerPoseClustering_1_json")
+add_test("TOPP_MapAlignerPoseClustering_1_out5_json" ${DIFF} -in1 MapAlignerPoseClustering_1_trafo2.tmp -in2 ${DATA_DIR_TOPP}/MapAlignerPoseClustering_1_trafo2.trafoXML )
+set_tests_properties("TOPP_MapAlignerPoseClustering_1_out5_json" PROPERTIES DEPENDS "TOPP_MapAlignerPoseClustering_1_json")
+add_test("TOPP_MapAlignerPoseClustering_1_out6_json" ${DIFF} -in1 MapAlignerPoseClustering_1_trafo3.tmp -in2 ${DATA_DIR_TOPP}/MapAlignerPoseClustering_1_trafo3.trafoXML )
+set_tests_properties("TOPP_MapAlignerPoseClustering_1_out6_json" PROPERTIES DEPENDS "TOPP_MapAlignerPoseClustering_1_json")
+# mzML input:
+add_test("TOPP_MapAlignerPoseClustering_2_json" ${TOPP_BIN_PATH}/MapAlignerPoseClustering -test -ini ${DATA_DIR_TOPP}/MapAlignerPoseClustering_2_parameters.ini -in ${DATA_DIR_TOPP}/MapAlignerPoseClustering_2_input1.mzML ${DATA_DIR_TOPP}/MapAlignerPoseClustering_2_input2.mzML ${DATA_DIR_TOPP}/MapAlignerPoseClustering_2_input3.mzML -out MapAlignerPoseClustering_2_output1.tmp MapAlignerPoseClustering_2_output2.tmp MapAlignerPoseClustering_2_output3.tmp)
+add_test("TOPP_MapAlignerPoseClustering_2_out1_json" ${DIFF} -whitelist ${INDEX_WHITELIST} -in1 MapAlignerPoseClustering_2_output1.tmp -in2 ${DATA_DIR_TOPP}/MapAlignerPoseClustering_2_output1.mzML )
+set_tests_properties("TOPP_MapAlignerPoseClustering_2_out1_json" PROPERTIES DEPENDS "TOPP_MapAlignerPoseClustering_2_json")
+add_test("TOPP_MapAlignerPoseClustering_2_out2_json" ${DIFF} -whitelist ${INDEX_WHITELIST} -in1 MapAlignerPoseClustering_2_output2.tmp -in2 ${DATA_DIR_TOPP}/MapAlignerPoseClustering_2_output2.mzML )
+set_tests_properties("TOPP_MapAlignerPoseClustering_2_out2_json" PROPERTIES DEPENDS "TOPP_MapAlignerPoseClustering_2_json")
+add_test("TOPP_MapAlignerPoseClustering_2_out3_json" ${DIFF} -whitelist ${INDEX_WHITELIST} -in1 MapAlignerPoseClustering_2_output3.tmp -in2 ${DATA_DIR_TOPP}/MapAlignerPoseClustering_2_output3.mzML )
+set_tests_properties("TOPP_MapAlignerPoseClustering_2_out3_json" PROPERTIES DEPENDS "TOPP_MapAlignerPoseClustering_2_json")
+# "reference:file" option:
+add_test("TOPP_MapAlignerPoseClustering_3_json" ${TOPP_BIN_PATH}/MapAlignerPoseClustering -test -ini ${DATA_DIR_TOPP}/MapAlignerPoseClustering_1_parameters.ini -in ${DATA_DIR_TOPP}/MapAlignerPoseClustering_1_input2.featureXML ${DATA_DIR_TOPP}/MapAlignerPoseClustering_1_input3.featureXML -out MapAlignerPoseClustering_3_output1.tmp MapAlignerPoseClustering_3_output2.tmp -reference:file ${DATA_DIR_TOPP}/MapAlignerPoseClustering_1_input1.featureXML)
+add_test("TOPP_MapAlignerPoseClustering_3_out1_json" ${DIFF} -in1 MapAlignerPoseClustering_3_output1.tmp -in2 ${DATA_DIR_TOPP}/MapAlignerPoseClustering_1_output2.featureXML )
+set_tests_properties("TOPP_MapAlignerPoseClustering_3_out1_json" PROPERTIES DEPENDS "TOPP_MapAlignerPoseClustering_3_json")
+add_test("TOPP_MapAlignerPoseClustering_3_out2_json" ${DIFF} -in1 MapAlignerPoseClustering_3_output2.tmp -in2 ${DATA_DIR_TOPP}/MapAlignerPoseClustering_1_output3.featureXML )
+set_tests_properties("TOPP_MapAlignerPoseClustering_3_out2_json" PROPERTIES DEPENDS "TOPP_MapAlignerPoseClustering_3_json")
+# "reference:index" option:
+add_test("TOPP_MapAlignerPoseClustering_4_json" ${TOPP_BIN_PATH}/MapAlignerPoseClustering -test -ini ${DATA_DIR_TOPP}/MapAlignerPoseClustering_1_parameters.ini -in ${DATA_DIR_TOPP}/MapAlignerPoseClustering_1_input1.featureXML ${DATA_DIR_TOPP}/MapAlignerPoseClustering_1_input2.featureXML -trafo_out MapAlignerPoseClustering_4_trafo1.tmp MapAlignerPoseClustering_4_trafo2.tmp -reference:index 2)
+add_test("TOPP_MapAlignerPoseClustering_4_out1_json" ${DIFF} -in1 MapAlignerPoseClustering_4_trafo1.tmp -in2 ${DATA_DIR_TOPP}/MapAlignerPoseClustering_4_trafo1.trafoXML )
+set_tests_properties("TOPP_MapAlignerPoseClustering_4_out1_json" PROPERTIES DEPENDS "TOPP_MapAlignerPoseClustering_4_json")
+add_test("TOPP_MapAlignerPoseClustering_4_out2_json" ${DIFF} -in1 MapAlignerPoseClustering_4_trafo2.tmp -in2 ${DATA_DIR_TOPP}/MapAlignerPoseClustering_1_trafo1.trafoXML )
+set_tests_properties("TOPP_MapAlignerPoseClustering_4_out2_json" PROPERTIES DEPENDS "TOPP_MapAlignerPoseClustering_4_json")
+
+#------------------------------------------------------------------------------
+# MapAlignerIdentification tests:
+add_test("TOPP_MapAlignerIdentification_1_json" ${TOPP_BIN_PATH}/MapAlignerIdentification -test -ini ${DATA_DIR_TOPP}/MapAlignerIdentification_parameters.ini -in ${DATA_DIR_TOPP}/MapAlignerIdentification_1_input1.featureXML ${DATA_DIR_TOPP}/MapAlignerIdentification_1_input2.featureXML -out MapAlignerIdentification_1_output1.tmp MapAlignerIdentification_1_output2.tmp)
+add_test("TOPP_MapAlignerIdentification_1_out1_json" ${DIFF} -in1 MapAlignerIdentification_1_output1.tmp -in2 ${DATA_DIR_TOPP}/MapAlignerIdentification_1_output1.featureXML )
+set_tests_properties("TOPP_MapAlignerIdentification_1_out1_json" PROPERTIES DEPENDS "TOPP_MapAlignerIdentification_1_json")
+add_test("TOPP_MapAlignerIdentification_1_out2_json" ${DIFF} -in1 MapAlignerIdentification_1_output2.tmp -in2 ${DATA_DIR_TOPP}/MapAlignerIdentification_1_output2.featureXML )
+set_tests_properties("TOPP_MapAlignerIdentification_1_out2_json" PROPERTIES DEPENDS "TOPP_MapAlignerIdentification_1_json")
+# "reference:file" option:
+add_test("TOPP_MapAlignerIdentification_2_json" ${TOPP_BIN_PATH}/MapAlignerIdentification -test -ini ${DATA_DIR_TOPP}/MapAlignerIdentification_parameters.ini -in ${DATA_DIR_TOPP}/MapAlignerIdentification_1_input1.featureXML -out MapAlignerIdentification_2_output1.tmp -reference:file ${DATA_DIR_TOPP}/MapAlignerIdentification_1_input2.featureXML)
+add_test("TOPP_MapAlignerIdentification_2_out1_json" ${DIFF} -in1 MapAlignerIdentification_2_output1.tmp -in2 ${DATA_DIR_TOPP}/MapAlignerIdentification_2_output1.featureXML )
+set_tests_properties("TOPP_MapAlignerIdentification_2_out1_json" PROPERTIES DEPENDS "TOPP_MapAlignerIdentification_2_json")
+# "reference:index" option:
+add_test("TOPP_MapAlignerIdentification_3_json" ${TOPP_BIN_PATH}/MapAlignerIdentification -test -ini ${DATA_DIR_TOPP}/MapAlignerIdentification_parameters.ini -in ${DATA_DIR_TOPP}/MapAlignerIdentification_1_input2.featureXML ${DATA_DIR_TOPP}/MapAlignerIdentification_1_input1.featureXML -out MapAlignerIdentification_3_output1.tmp MapAlignerIdentification_3_output2.tmp -reference:index 1)
+add_test("TOPP_MapAlignerIdentification_3_out1_json" ${DIFF} -in1 MapAlignerIdentification_3_output1.tmp -in2 ${DATA_DIR_TOPP}/MapAlignerIdentification_3_output1.featureXML )
+set_tests_properties("TOPP_MapAlignerIdentification_3_out1_json" PROPERTIES DEPENDS "TOPP_MapAlignerIdentification_3_json")
+add_test("TOPP_MapAlignerIdentification_3_out2_json" ${DIFF} -in1 MapAlignerIdentification_3_output2.tmp -in2 ${DATA_DIR_TOPP}/MapAlignerIdentification_2_output1.featureXML )
+set_tests_properties("TOPP_MapAlignerIdentification_3_out2_json" PROPERTIES DEPENDS "TOPP_MapAlignerIdentification_3_json")
+add_test("TOPP_MapAlignerIdentification_4_json" ${TOPP_BIN_PATH}/MapAlignerIdentification -test -ini ${DATA_DIR_TOPP}/MapAlignerIdentification_parameters.ini -in  ${DATA_DIR_TOPP}/MapAlignerIdentification_1_input1.featureXML ${DATA_DIR_TOPP}/MapAlignerIdentification_1_input2.featureXML -out MapAlignerIdentification_4_output1.tmp MapAlignerIdentification_4_output2.tmp -reference:index 2)
+add_test("TOPP_MapAlignerIdentification_4_out1_json" ${DIFF} -in1 MapAlignerIdentification_4_output1.tmp -in2 ${DATA_DIR_TOPP}/MapAlignerIdentification_2_output1.featureXML )
+set_tests_properties("TOPP_MapAlignerIdentification_4_out1_json" PROPERTIES DEPENDS "TOPP_MapAlignerIdentification_4_json")
+add_test("TOPP_MapAlignerIdentification_4_out2_json" ${DIFF} -in1 MapAlignerIdentification_4_output2.tmp -in2 ${DATA_DIR_TOPP}/MapAlignerIdentification_3_output1.featureXML )
+set_tests_properties("TOPP_MapAlignerIdentification_4_out2_json" PROPERTIES DEPENDS "TOPP_MapAlignerIdentification_4_json")
+# consensusXML input:
+add_test("TOPP_MapAlignerIdentification_5_json" ${TOPP_BIN_PATH}/MapAlignerIdentification -test -ini ${DATA_DIR_TOPP}/MapAlignerIdentification_parameters.ini -in ${DATA_DIR_TOPP}/MapAlignerIdentification_5_input1.consensusXML ${DATA_DIR_TOPP}/MapAlignerIdentification_5_input2.consensusXML -out MapAlignerIdentification_5_output1.tmp MapAlignerIdentification_5_output2.tmp)
+add_test("TOPP_MapAlignerIdentification_5_out1_json" ${DIFF} -in1 MapAlignerIdentification_5_output1.tmp -in2 ${DATA_DIR_TOPP}/MapAlignerIdentification_5_output1.consensusXML )
+set_tests_properties("TOPP_MapAlignerIdentification_5_out1_json" PROPERTIES DEPENDS "TOPP_MapAlignerIdentification_5_json")
+add_test("TOPP_MapAlignerIdentification_5_out2_json" ${DIFF} -in1 MapAlignerIdentification_5_output2.tmp -in2 ${DATA_DIR_TOPP}/MapAlignerIdentification_5_output2.consensusXML )
+set_tests_properties("TOPP_MapAlignerIdentification_5_out2_json" PROPERTIES DEPENDS "TOPP_MapAlignerIdentification_5_json")
+# trafoXML output:
+add_test("TOPP_MapAlignerIdentification_6_json" ${TOPP_BIN_PATH}/MapAlignerIdentification -test -ini ${DATA_DIR_TOPP}/MapAlignerIdentification_parameters.ini -in ${DATA_DIR_TOPP}/MapAlignerIdentification_1_input1.featureXML -trafo_out MapAlignerIdentification_6_output1.tmp -reference:file ${DATA_DIR_TOPP}/MapAlignerIdentification_1_input2.featureXML)
+add_test("TOPP_MapAlignerIdentification_6_out1_json" ${DIFF} -in1 MapAlignerIdentification_6_output1.tmp -in2 ${DATA_DIR_TOPP}/MapAlignerIdentification_6_output1.trafoXML )
+set_tests_properties("TOPP_MapAlignerIdentification_6_out1_json" PROPERTIES DEPENDS "TOPP_MapAlignerIdentification_6_json")
+# "force" option (not enough RT data):
+add_test("TOPP_MapAlignerIdentification_7_json" ${TOPP_BIN_PATH}/MapAlignerIdentification -test -in ${DATA_DIR_TOPP}/MapAlignerIdentification_7_input1.idXML -out MapAlignerIdentification_7_output1.tmp -trafo_out MapAlignerIdentification_7_output2.tmp -reference:file ${DATA_DIR_TOPP}/MapAlignerIdentification_7_input2.idXML -force)
+add_test("TOPP_MapAlignerIdentification_7_out1_json" ${DIFF} -in1 MapAlignerIdentification_7_output1.tmp -in2 ${DATA_DIR_TOPP}/MapAlignerIdentification_7_input1.idXML)
+add_test("TOPP_MapAlignerIdentification_7_out2_json" ${DIFF} -in1 MapAlignerIdentification_7_output2.tmp -in2 ${DATA_DIR_TOPP}/MapAlignerIdentification_7_output2.trafoXML -whitelist "TrafoXML version=")
+set_tests_properties("TOPP_MapAlignerIdentification_7_out1_json" PROPERTIES DEPENDS "TOPP_MapAlignerIdentification_7_json")
+set_tests_properties("TOPP_MapAlignerIdentification_7_out2_json" PROPERTIES DEPENDS "TOPP_MapAlignerIdentification_7_json")
+# oms (database file) input - files based on BSA example data, generated like this:
+# IDFileConverter -in share/OpenMS/examples/BSA/BSA2_OMSSA.idXML -out src/tests/topp/MapAlignerIdentification_8_input2.oms
+# IDFileConverter -in share/OpenMS/examples/BSA/BSA3_OMSSA.idXML -out src/tests/topp/MapAlignerIdentification_8_input1.oms
+add_test("TOPP_MapAlignerIdentification_8_json" ${TOPP_BIN_PATH}/MapAlignerIdentification -test -in ${DATA_DIR_TOPP}/MapAlignerIdentification_8_input1.oms -trafo_out MapAlignerIdentification_8_output1.tmp -out MapAlignerIdentification_8_output2.tmp -reference:file ${DATA_DIR_TOPP}/MapAlignerIdentification_8_input2.oms -store_original_rt)
+# don't compare binary SQLite files
+add_test("TOPP_MapAlignerIdentification_8_out1_json" ${DIFF} -in1 MapAlignerIdentification_8_output1.tmp -in2 ${DATA_DIR_TOPP}/MapAlignerIdentification_8_output1.trafoXML)
+set_tests_properties("TOPP_MapAlignerIdentification_8_out1_json" PROPERTIES DEPENDS "TOPP_MapAlignerIdentification_8_json")
+
+#------------------------------------------------------------------------------
+# MapAlignerSpectrum tests:
+add_test("TOPP_MapAlignerSpectrum_1_json" ${TOPP_BIN_PATH}/MapAlignerSpectrum -test -ini ${DATA_DIR_TOPP}/MapAlignerSpectrum_parameters.ini -in ${DATA_DIR_TOPP}/MapAlignerSpectrum_1_input1.mzML ${DATA_DIR_TOPP}/MapAlignerSpectrum_1_input2.mzML ${DATA_DIR_TOPP}/MapAlignerSpectrum_1_input3.mzML -out MapAlignerSpectrum_1_output1.tmp MapAlignerSpectrum_1_output2.tmp MapAlignerSpectrum_1_output3.tmp)
+add_test("TOPP_MapAlignerSpectrum_1_out1_json" ${DIFF} -whitelist ${INDEX_WHITELIST} -in1 MapAlignerSpectrum_1_output1.tmp -in2 ${DATA_DIR_TOPP}/MapAlignerSpectrum_1_output1.mzML )
+set_tests_properties("TOPP_MapAlignerSpectrum_1_out1_json" PROPERTIES DEPENDS "TOPP_MapAlignerSpectrum_1_json")
+add_test("TOPP_MapAlignerSpectrum_1_out2_json" ${DIFF} -whitelist ${INDEX_WHITELIST} -in1 MapAlignerSpectrum_1_output2.tmp -in2 ${DATA_DIR_TOPP}/MapAlignerSpectrum_1_output2.mzML )
+set_tests_properties("TOPP_MapAlignerSpectrum_1_out2_json" PROPERTIES DEPENDS "TOPP_MapAlignerSpectrum_1_json")
+add_test("TOPP_MapAlignerSpectrum_1_out3_json" ${DIFF} -whitelist ${INDEX_WHITELIST} -in1 MapAlignerSpectrum_1_output3.tmp -in2 ${DATA_DIR_TOPP}/MapAlignerSpectrum_1_output3.mzML )
+set_tests_properties("TOPP_MapAlignerSpectrum_1_out3_json" PROPERTIES DEPENDS "TOPP_MapAlignerSpectrum_1_json")
+
+#------------------------------------------------------------------------------
+# MapAlignerTreeGuided tests:
+add_test("TOPP_MapAlignerTreeGuided_1_json" ${TOPP_BIN_PATH}/MapAlignerTreeGuided -test -ini ${DATA_DIR_TOPP}/MapAlignerTreeGuided_parameters.ini -in ${DATA_DIR_TOPP}/MapAlignerTreeGuided_1_input1.featureXML ${DATA_DIR_TOPP}/MapAlignerTreeGuided_1_input2.featureXML ${DATA_DIR_TOPP}/MapAlignerTreeGuided_1_input3.featureXML -out MapAlignerTreeGuided_1_output1.tmp MapAlignerTreeGuided_1_output2.tmp MapAlignerTreeGuided_1_output3.tmp)
+add_test("TOPP_MapAlignerTreeGuided_1_out1_json" ${DIFF} -in1 MapAlignerTreeGuided_1_output1.tmp -in2 ${DATA_DIR_TOPP}/MapAlignerTreeGuided_1_output1.featureXML )
+set_tests_properties("TOPP_MapAlignerTreeGuided_1_out1_json" PROPERTIES DEPENDS "TOPP_MapAlignerTreeGuided_1_json")
+add_test("TOPP_MapAlignerTreeGuided_1_out2_json" ${DIFF} -in1 MapAlignerTreeGuided_1_output2.tmp -in2 ${DATA_DIR_TOPP}/MapAlignerTreeGuided_1_output2.featureXML )
+set_tests_properties("TOPP_MapAlignerTreeGuided_1_out2_json" PROPERTIES DEPENDS "TOPP_MapAlignerTreeGuided_1_json")
+add_test("TOPP_MapAlignerTreeGuided_1_out3_json" ${DIFF} -in1 MapAlignerTreeGuided_1_output3.tmp -in2 ${DATA_DIR_TOPP}/MapAlignerTreeGuided_1_output3.featureXML )
+set_tests_properties("TOPP_MapAlignerTreeGuided_1_out3_json" PROPERTIES DEPENDS "TOPP_MapAlignerTreeGuided_1_json")
+# trafoXML output:
+add_test("TOPP_MapAlignerTreeGuided_2_json" ${TOPP_BIN_PATH}/MapAlignerTreeGuided -test -ini ${DATA_DIR_TOPP}/MapAlignerTreeGuided_parameters.ini -in ${DATA_DIR_TOPP}/MapAlignerTreeGuided_1_input1.featureXML ${DATA_DIR_TOPP}/MapAlignerTreeGuided_1_input2.featureXML ${DATA_DIR_TOPP}/MapAlignerTreeGuided_1_input3.featureXML -trafo_out MapAlignerTreeGuided_2_output1.tmp MapAlignerTreeGuided_2_output2.tmp MapAlignerTreeGuided_2_output3.tmp)
+add_test("TOPP_MapAlignerTreeGuided_2_out1_json" ${DIFF} -in1 MapAlignerTreeGuided_2_output1.tmp -in2 ${DATA_DIR_TOPP}/MapAlignerTreeGuided_2_output1.trafoXML )
+set_tests_properties("TOPP_MapAlignerTreeGuided_2_out1_json" PROPERTIES DEPENDS "TOPP_MapAlignerTreeGuided_2_json")
+add_test("TOPP_MapAlignerTreeGuided_2_out2_json" ${DIFF} -in1 MapAlignerTreeGuided_2_output2.tmp -in2 ${DATA_DIR_TOPP}/MapAlignerTreeGuided_2_output2.trafoXML )
+set_tests_properties("TOPP_MapAlignerTreeGuided_2_out2_json" PROPERTIES DEPENDS "TOPP_MapAlignerTreeGuided_2_json")
+add_test("TOPP_MapAlignerTreeGuided_2_out3_json" ${DIFF} -in1 MapAlignerTreeGuided_2_output3.tmp -in2 ${DATA_DIR_TOPP}/MapAlignerTreeGuided_2_output3.trafoXML )
+set_tests_properties("TOPP_MapAlignerTreeGuided_2_out3_json" PROPERTIES DEPENDS "TOPP_MapAlignerTreeGuided_2_json")
+# loading files twice option
+add_test("TOPP_MapAlignerTreeGuided_3_json" ${TOPP_BIN_PATH}/MapAlignerTreeGuided -test -ini ${DATA_DIR_TOPP}/MapAlignerTreeGuided_parameters2.ini -in ${DATA_DIR_TOPP}/MapAlignerTreeGuided_1_input1.featureXML ${DATA_DIR_TOPP}/MapAlignerTreeGuided_1_input2.featureXML ${DATA_DIR_TOPP}/MapAlignerTreeGuided_1_input3.featureXML -out MapAlignerTreeGuided_3_output1.tmp MapAlignerTreeGuided_3_output2.tmp MapAlignerTreeGuided_3_output3.tmp)
+add_test("TOPP_MapAlignerTreeGuided_3_out1_json" ${DIFF} -in1 MapAlignerTreeGuided_3_output1.tmp -in2 ${DATA_DIR_TOPP}/MapAlignerTreeGuided_1_output1.featureXML )
+set_tests_properties("TOPP_MapAlignerTreeGuided_3_out1_json" PROPERTIES DEPENDS "TOPP_MapAlignerTreeGuided_3_json")
+add_test("TOPP_MapAlignerTreeGuided_3_out2_json" ${DIFF} -in1 MapAlignerTreeGuided_3_output2.tmp -in2 ${DATA_DIR_TOPP}/MapAlignerTreeGuided_1_output2.featureXML )
+set_tests_properties("TOPP_MapAlignerTreeGuided_3_out2_json" PROPERTIES DEPENDS "TOPP_MapAlignerTreeGuided_3_json")
+add_test("TOPP_MapAlignerTreeGuided_3_out3_json" ${DIFF} -in1 MapAlignerTreeGuided_3_output3.tmp -in2 ${DATA_DIR_TOPP}/MapAlignerTreeGuided_1_output3.featureXML )
+set_tests_properties("TOPP_MapAlignerTreeGuided_3_out3_json" PROPERTIES DEPENDS "TOPP_MapAlignerTreeGuided_3_json")
+
+#------------------------------------------------------------------------------
+# MascotAdapter tests
+add_test("TOPP_MascotAdapter_1_json" ${TOPP_BIN_PATH}/MascotAdapter -test -ini ${DATA_DIR_TOPP}/MascotAdapter_1_parameters.ini -in ${DATA_DIR_TOPP}/MascotAdapter_1_input.mzData -out MascotAdapter_1_output.tmp -out_type mgf)
+add_test("TOPP_MascotAdapter_1_out1_json" ${DIFF} -in1 MascotAdapter_1_output.tmp -in2 ${DATA_DIR_TOPP}/MascotAdapter_1_output.mascot_in )
+set_tests_properties("TOPP_MascotAdapter_1_out1_json" PROPERTIES DEPENDS "TOPP_MascotAdapter_1_json")
+add_test("TOPP_MascotAdapter_2_json" ${TOPP_BIN_PATH}/MascotAdapter -test -in ${DATA_DIR_TOPP}/MascotAdapter_2_input.mascotXML -out MascotAdapter_2_output.tmp -out_type idXML)
+add_test("TOPP_MascotAdapter_2_out1_json" ${DIFF} -in1 MascotAdapter_2_output.tmp -in2 ${DATA_DIR_TOPP}/MascotAdapter_2_output.idXML -whitelist "UserParam type=\"string\" name=\"MascotAdapter:1:in\" value=")
+set_tests_properties("TOPP_MascotAdapter_2_out1_json" PROPERTIES DEPENDS "TOPP_MascotAdapter_2_json")
+
+#------------------------------------------------------------------------------
+# MSstatsConverter tests
+
+### SpecLibSearcher tests
+add_test("TOPP_SpecLibSearcher_1_json" ${TOPP_BIN_PATH}/SpecLibSearcher -test -ini ${DATA_DIR_TOPP}/SpecLibSearcher_1_parameters.ini -in ${DATA_DIR_TOPP}/SpecLibSearcher_1.mzML -lib ${DATA_DIR_TOPP}/SpecLibSearcher_1.MSP -out SpecLibSearcher_1.tmp)
+add_test("TOPP_SpecLibSearcher_1_out1_json" ${DIFF} -in1 SpecLibSearcher_1.tmp  -in2 ${DATA_DIR_TOPP}/SpecLibSearcher_1.idXML -whitelist "?xml-stylesheet" "IdentificationRun date" "db=")
+set_tests_properties("TOPP_SpecLibSearcher_1_out1_json" PROPERTIES DEPENDS "TOPP_SpecLibSearcher_1_json")
+
+if(NOT DISABLE_OPENSWATH)
+  #------------------------------------------------------------------------------
+  add_test("TOPP_OpenSwathAnalyzer_test_1_json" ${TOPP_BIN_PATH}/OpenSwathAnalyzer -in ${DATA_DIR_TOPP}/OpenSwathAnalyzer_1_input_chrom.mzML -tr ${DATA_DIR_TOPP}/OpenSwathAnalyzer_1_input.TraML -out OpenSwathAnalyzer_1_output.featureXML.tmp -rt_norm ${DATA_DIR_TOPP}/OpenSwathAnalyzer_input.trafoXML -algorithm:TransitionGroupPicker:PeakPickerMRM:peak_width 40.0 -algorithm:TransitionGroupPicker:PeakPickerMRM:method legacy -test)
+  add_test("TOPP_OpenSwathAnalyzer_test_1_out1_json" ${DIFF} -whitelist "id="  -in1 OpenSwathAnalyzer_1_output.featureXML.tmp -in2 ${DATA_DIR_TOPP}/OpenSwathAnalyzer_1_output.featureXML)
+  set_tests_properties("TOPP_OpenSwathAnalyzer_test_1_out1_json" PROPERTIES DEPENDS "TOPP_OpenSwathAnalyzer_test_1_json")
+  add_test("TOPP_OpenSwathAnalyzer_test_2_json" ${TOPP_BIN_PATH}/OpenSwathAnalyzer -in ${DATA_DIR_TOPP}/OpenSwathAnalyzer_1_input_chrom.mzML -tr ${DATA_DIR_TOPP}/OpenSwathAnalyzer_1_input.TraML -out OpenSwathAnalyzer_2_output.featureXML.tmp -swath_files ${DATA_DIR_TOPP}/OpenSwathAnalyzer_2_swathfile.mzML -algorithm:TransitionGroupPicker:PeakPickerMRM:peak_width 40.0 -algorithm:TransitionGroupPicker:PeakPickerMRM:method legacy -test)
+  add_test("TOPP_OpenSwathAnalyzer_test_2_out1_json" ${DIFF} -whitelist "id="  -in1 OpenSwathAnalyzer_2_output.featureXML.tmp -in2 ${DATA_DIR_TOPP}/OpenSwathAnalyzer_2_output.featureXML)
+  set_tests_properties("TOPP_OpenSwathAnalyzer_test_2_out1_json" PROPERTIES DEPENDS "TOPP_OpenSwathAnalyzer_test_2_json")
+  add_test("TOPP_OpenSwathAnalyzer_test_5_mod_json" ${TOPP_BIN_PATH}/OpenSwathAnalyzer -in ${DATA_DIR_TOPP}/OpenSwathAnalyzer_1_input_chrom.mzML -tr ${DATA_DIR_TOPP}/OpenSwathAnalyzer_mod_input.TraML -out OpenSwathAnalyzer_5_output.featureXML.tmp -swath_files ${DATA_DIR_TOPP}/OpenSwathAnalyzer_2_swathfile.mzML -ini ${DATA_DIR_TOPP}/OpenSwathAnalyzer_5.ini -test)
+  add_test("TOPP_OpenSwathAnalyzer_test_5_mod_out1_json" ${DIFF} -whitelist "id="  -in1 OpenSwathAnalyzer_5_output.featureXML.tmp -in2 ${DATA_DIR_TOPP}/OpenSwathAnalyzer_5_output.featureXML)
+  set_tests_properties("TOPP_OpenSwathAnalyzer_test_5_mod_out1_json" PROPERTIES DEPENDS "TOPP_OpenSwathAnalyzer_test_5_mod_json")
+  add_test("TOPP_OpenSwathAnalyzer_test_6_nomod_json" ${TOPP_BIN_PATH}/OpenSwathAnalyzer -in ${DATA_DIR_TOPP}/OpenSwathAnalyzer_1_input_chrom.mzML -tr ${DATA_DIR_TOPP}/OpenSwathAnalyzer_1_input.TraML -out OpenSwathAnalyzer_6_output.featureXML.tmp -swath_files ${DATA_DIR_TOPP}/OpenSwathAnalyzer_2_swathfile.mzML -ini ${DATA_DIR_TOPP}/OpenSwathAnalyzer_5.ini -test)
+  add_test("TOPP_OpenSwathAnalyzer_test_6_nomod_out1_json" ${DIFF} -whitelist "id="  -in1 OpenSwathAnalyzer_6_output.featureXML.tmp -in2 ${DATA_DIR_TOPP}/OpenSwathAnalyzer_6_output.featureXML)
+  set_tests_properties("TOPP_OpenSwathAnalyzer_test_6_nomod_out1_json" PROPERTIES DEPENDS "TOPP_OpenSwathAnalyzer_test_6_nomod_json")
+  #// TODO write test with TrafoXML
+
+
+  add_test("TOPP_OpenSwathAnalyzer_test_7_backgroundSubtraction_json" ${TOPP_BIN_PATH}/OpenSwathAnalyzer -in ${DATA_DIR_TOPP}/OpenSwathAnalyzer_1_input_chrom.mzML -tr ${DATA_DIR_TOPP}/OpenSwathAnalyzer_1_input.TraML -out OpenSwathAnalyzer_7_output.featureXML.tmp -ini ${DATA_DIR_TOPP}/OpenSwathAnalyzer_7_backgroundSubtraction.ini -test)
+  add_test("TOPP_OpenSwathAnalyzer_test_7_backgroundSubtraction_out1_json" ${DIFF} -whitelist "id=" -in1 OpenSwathAnalyzer_7_output.featureXML.tmp -in2 ${DATA_DIR_TOPP}/OpenSwathAnalyzer_7_output.featureXML)
+  set_tests_properties("TOPP_OpenSwathAnalyzer_test_7_backgroundSubtraction_out1_json" PROPERTIES DEPENDS "TOPP_OpenSwathAnalyzer_test_7_backgroundSubtraction_json")
+  add_test("TOPP_OpenSwathAnalyzer_test_8_json" ${TOPP_BIN_PATH}/OpenSwathAnalyzer -in ${DATA_DIR_TOPP}/OpenSwathAnalyzer_1_input_chrom.mzML -tr ${DATA_DIR_TOPP}/OpenSwathAnalyzer_1_input.TraML -out OpenSwathAnalyzer_8_output.featureXML.tmp -rt_norm ${DATA_DIR_TOPP}/OpenSwathAnalyzer_input.trafoXML -algorithm:TransitionGroupPicker:PeakPickerMRM:peak_width 40.0 -algorithm:TransitionGroupPicker:PeakPickerMRM:method legacy -algorithm:Scores:use_ms1_mi -algorithm:Scores:use_mi_score -algorithm:Scores:use_total_mi_score -test)
+  add_test("TOPP_OpenSwathAnalyzer_test_8_out1_json" ${DIFF} -whitelist "id="  -in1 OpenSwathAnalyzer_8_output.featureXML.tmp -in2 ${DATA_DIR_TOPP}/OpenSwathAnalyzer_8_output.featureXML)
+  set_tests_properties("TOPP_OpenSwathAnalyzer_test_8_out1_json" PROPERTIES DEPENDS "TOPP_OpenSwathAnalyzer_test_8_json")
+endif(NOT DISABLE_OPENSWATH)
+
+#------------------------------------------------------------------------------
+# NoiseFilter tests
+add_test("TOPP_NoiseFilterGaussian_1_json" ${TOPP_BIN_PATH}/NoiseFilterGaussian -test -ini ${DATA_DIR_TOPP}/NoiseFilterGaussian_1_parameters.ini -in ${DATA_DIR_TOPP}/NoiseFilterGaussian_1_input.mzML -out NoiseFilterGaussian_1.tmp)
+add_test("TOPP_NoiseFilterGaussian_1_out1_json" ${DIFF} -whitelist ${INDEX_WHITELIST} -in1 NoiseFilterGaussian_1.tmp -in2 ${DATA_DIR_TOPP}/NoiseFilterGaussian_1_output.mzML )
+set_tests_properties("TOPP_NoiseFilterGaussian_1_out1_json" PROPERTIES DEPENDS "TOPP_NoiseFilterGaussian_1_json")
+add_test("TOPP_NoiseFilterGaussian_2_json" ${TOPP_BIN_PATH}/NoiseFilterGaussian -test -ini ${DATA_DIR_TOPP}/NoiseFilterGaussian_2_parameters.ini -in ${DATA_DIR_TOPP}/NoiseFilterGaussian_2_input.chrom.mzML -out NoiseFilterGaussian_2.tmp)
+add_test("TOPP_NoiseFilterGaussian_2_out1_json" ${DIFF} -whitelist ${INDEX_WHITELIST} -in1 NoiseFilterGaussian_2.tmp -in2 ${DATA_DIR_TOPP}/NoiseFilterGaussian_2_output.chrom.mzML )
+set_tests_properties("TOPP_NoiseFilterGaussian_2_out1_json" PROPERTIES DEPENDS "TOPP_NoiseFilterGaussian_2_json")
+
+# lowmem variation of the algorithm
+add_test("TOPP_NoiseFilterGaussian_3_json" ${TOPP_BIN_PATH}/NoiseFilterGaussian -test -ini ${DATA_DIR_TOPP}/NoiseFilterGaussian_1_parameters.ini -in ${DATA_DIR_TOPP}/NoiseFilterGaussian_1_input.mzML -out NoiseFilterGaussian_3.tmp -processOption lowmemory)
+add_test("TOPP_NoiseFilterGaussian_3_out1_json" ${DIFF} -whitelist ${INDEX_WHITELIST} -in1 NoiseFilterGaussian_3.tmp -in2 ${DATA_DIR_TOPP}/NoiseFilterGaussian_1_output.mzML )
+set_tests_properties("TOPP_NoiseFilterGaussian_3_out1_json" PROPERTIES DEPENDS "TOPP_NoiseFilterGaussian_3_json")
+add_test("TOPP_NoiseFilterGaussian_4_json" ${TOPP_BIN_PATH}/NoiseFilterGaussian -test -ini ${DATA_DIR_TOPP}/NoiseFilterGaussian_2_parameters.ini -in ${DATA_DIR_TOPP}/NoiseFilterGaussian_2_input.chrom.mzML -out NoiseFilterGaussian_4.tmp -processOption lowmemory)
+add_test("TOPP_NoiseFilterGaussian_4_out1_json" ${DIFF} -whitelist ${INDEX_WHITELIST} -in1 NoiseFilterGaussian_4.tmp -in2 ${DATA_DIR_TOPP}/NoiseFilterGaussian_2_output.chrom.mzML )
+set_tests_properties("TOPP_NoiseFilterGaussian_4_out1_json" PROPERTIES DEPENDS "TOPP_NoiseFilterGaussian_4_json")
+
+add_test("TOPP_NoiseFilterSGolay_1_json" ${TOPP_BIN_PATH}/NoiseFilterSGolay -test -ini ${DATA_DIR_TOPP}/NoiseFilterSGolay_1_parameters.ini -in ${DATA_DIR_TOPP}/NoiseFilterSGolay_1_input.mzML -out NoiseFilterSGolay_1.tmp)
+add_test("TOPP_NoiseFilterSGolay_1_out1_json" ${DIFF} -whitelist ${INDEX_WHITELIST} -in1 NoiseFilterSGolay_1.tmp -in2 ${DATA_DIR_TOPP}/NoiseFilterSGolay_1_output.mzML )
+set_tests_properties("TOPP_NoiseFilterSGolay_1_out1_json" PROPERTIES DEPENDS "TOPP_NoiseFilterSGolay_1_json")
+add_test("TOPP_NoiseFilterSGolay_2_json" ${TOPP_BIN_PATH}/NoiseFilterSGolay -test -ini ${DATA_DIR_TOPP}/NoiseFilterSGolay_2_parameters.ini -in ${DATA_DIR_TOPP}/NoiseFilterSGolay_2_input.chrom.mzML -out NoiseFilterSGolay_2.tmp)
+add_test("TOPP_NoiseFilterSGolay_2_out1_json" ${DIFF} -whitelist ${INDEX_WHITELIST} -in1 NoiseFilterSGolay_2.tmp -in2 ${DATA_DIR_TOPP}/NoiseFilterSGolay_2_output.chrom.mzML )
+set_tests_properties("TOPP_NoiseFilterSGolay_2_out1_json" PROPERTIES DEPENDS "TOPP_NoiseFilterSGolay_2_json")
+
+# lowmem variation of the algorithm
+add_test("TOPP_NoiseFilterSGolay_3_json" ${TOPP_BIN_PATH}/NoiseFilterSGolay -test -ini ${DATA_DIR_TOPP}/NoiseFilterSGolay_1_parameters.ini -in ${DATA_DIR_TOPP}/NoiseFilterSGolay_1_input.mzML -out NoiseFilterSGolay_3.tmp -processOption lowmemory)
+add_test("TOPP_NoiseFilterSGolay_3_out1_json" ${DIFF} -whitelist ${INDEX_WHITELIST} -in1 NoiseFilterSGolay_3.tmp -in2 ${DATA_DIR_TOPP}/NoiseFilterSGolay_1_output.mzML )
+set_tests_properties("TOPP_NoiseFilterSGolay_3_out1_json" PROPERTIES DEPENDS "TOPP_NoiseFilterSGolay_3_json")
+add_test("TOPP_NoiseFilterSGolay_4_json" ${TOPP_BIN_PATH}/NoiseFilterSGolay -test -ini ${DATA_DIR_TOPP}/NoiseFilterSGolay_2_parameters.ini -in ${DATA_DIR_TOPP}/NoiseFilterSGolay_2_input.chrom.mzML -out NoiseFilterSGolay_4.tmp -processOption lowmemory)
+add_test("TOPP_NoiseFilterSGolay_4_out1_json" ${DIFF} -whitelist ${INDEX_WHITELIST} -in1 NoiseFilterSGolay_4.tmp -in2 ${DATA_DIR_TOPP}/NoiseFilterSGolay_2_output.chrom.mzML )
+set_tests_properties("TOPP_NoiseFilterSGolay_4_out1_json" PROPERTIES DEPENDS "TOPP_NoiseFilterSGolay_4_json")
+
+#------------------------------------------------------------------------------
+# PeakPicker tests
+add_test("TOPP_PeakPickerWavelet_1_json" ${TOPP_BIN_PATH}/PeakPickerWavelet  -test -ini ${DATA_DIR_TOPP}/PeakPickerWavelet_parameters.ini -in ${DATA_DIR_TOPP}/PeakPickerWavelet_input.mzML -out PeakPickerWavelet_1.tmp)
+add_test("TOPP_PeakPickerWavelet_1_out1_json" ${DIFF} -whitelist ${INDEX_WHITELIST} -in1 PeakPickerWavelet_1.tmp -in2 ${DATA_DIR_TOPP}/PeakPickerWavelet_output.mzML )
+set_tests_properties("TOPP_PeakPickerWavelet_1_out1_json" PROPERTIES DEPENDS "TOPP_PeakPickerWavelet_1_json")
+add_test("TOPP_PeakPickerWavelet_2_json" ${TOPP_BIN_PATH}/PeakPickerWavelet  -test -ini ${DATA_DIR_TOPP}/PeakPickerWavelet_deconv_parameters.ini -in ${DATA_DIR_TOPP}/PeakPickerWavelet_deconv_input.mzML -out PeakPickerWavelet_2.tmp)
+add_test("TOPP_PeakPickerWavelet_2_out1_json" ${DIFF} -whitelist ${INDEX_WHITELIST} -in1 PeakPickerWavelet_2.tmp -in2 ${DATA_DIR_TOPP}/PeakPickerWavelet_deconv_output.mzML)
+set_tests_properties("TOPP_PeakPickerWavelet_2_out1_json" PROPERTIES DEPENDS "TOPP_PeakPickerWavelet_2_json")
+add_test("TOPP_PeakPickerWavelet_4_json" ${TOPP_BIN_PATH}/PeakPickerWavelet  -test -ini ${DATA_DIR_TOPP}/PeakPickerWavelet_parameters.ini -in ${DATA_DIR_TOPP}/PeakPickerWavelet_input.mzML -out PeakPickerWavelet_4.tmp -threads 2)
+add_test("TOPP_PeakPickerWavelet_4_out1_json" ${DIFF} -whitelist ${INDEX_WHITELIST} -in1 PeakPickerWavelet_4.tmp -in2 ${DATA_DIR_TOPP}/PeakPickerWavelet_output.mzML)
+set_tests_properties("TOPP_PeakPickerWavelet_4_out1_json" PROPERTIES DEPENDS "TOPP_PeakPickerWavelet_4_json")
+add_test("TOPP_PeakPickerWavelet_5_json" ${TOPP_BIN_PATH}/PeakPickerWavelet  -test -ini ${DATA_DIR_TOPP}/PeakPickerWavelet_parameters_noMetaData.ini -in ${DATA_DIR_TOPP}/PeakPickerWavelet_input.mzML -out PeakPickerWavelet_5.tmp -threads 2)
+add_test("TOPP_PeakPickerWavelet_5_out1_json" ${DIFF} -whitelist ${INDEX_WHITELIST} -in1 PeakPickerWavelet_5.tmp -in2 ${DATA_DIR_TOPP}/PeakPickerWavelet_output_noMetaData.mzML)
+set_tests_properties("TOPP_PeakPickerWavelet_5_out1_json" PROPERTIES DEPENDS "TOPP_PeakPickerWavelet_5_json")
+
+# "high_res" algorithm with "ms_levels" option set to only 1:
+# .. spectra
+add_test("TOPP_PeakPickerHiRes_1_json" ${TOPP_BIN_PATH}/PeakPickerHiRes -test -ini ${DATA_DIR_TOPP}/PeakPickerHiRes_parameters.ini -in ${DATA_DIR_TOPP}/PeakPickerHiRes_input.mzML -out PeakPickerHiRes_1.tmp)
+add_test("TOPP_PeakPickerHiRes_1_out1_json" ${DIFF} -whitelist ${INDEX_WHITELIST} -in1 PeakPickerHiRes_1.tmp -in2 ${DATA_DIR_TOPP}/PeakPickerHiRes_output.mzML)
+set_tests_properties("TOPP_PeakPickerHiRes_1_out1_json" PROPERTIES DEPENDS "TOPP_PeakPickerHiRes_1_json")
+# .. chromatogram
+add_test("TOPP_PeakPickerHiRes_2_json" ${TOPP_BIN_PATH}/PeakPickerHiRes -test -ini ${DATA_DIR_TOPP}/PeakPickerHiRes_parameters.ini -in ${DATA_DIR_TOPP}/PeakPickerHiRes_2_input.mzML -out PeakPickerHiRes_2.tmp)
+add_test("TOPP_PeakPickerHiRes_2_out1_json" ${DIFF} -whitelist ${INDEX_WHITELIST} -in1 PeakPickerHiRes_2.tmp -in2 ${DATA_DIR_TOPP}/PeakPickerHiRes_2_output.mzML)
+set_tests_properties("TOPP_PeakPickerHiRes_2_out1_json" PROPERTIES DEPENDS "TOPP_PeakPickerHiRes_2_json")
+
+# "high_res" peakpicker with the lowmemory option
+# .. spectra
+add_test("TOPP_PeakPickerHiRes_3_json" ${TOPP_BIN_PATH}/PeakPickerHiRes -test -ini ${DATA_DIR_TOPP}/PeakPickerHiRes_parameters.ini -in ${DATA_DIR_TOPP}/PeakPickerHiRes_input.mzML -out PeakPickerHiRes_3.tmp -processOption lowmemory)
+## Note: the output SHOULD be identical to 'PeakPickerHiRes_output.mzML', but due to a missing 'Dataprocessing' entry (which is not known when writing the mzML header), we need an extra output file
+add_test("TOPP_PeakPickerHiRes_3_out1_json" ${DIFF} -whitelist ${INDEX_WHITELIST} -in1 PeakPickerHiRes_3.tmp -in2 ${DATA_DIR_TOPP}/PeakPickerHiRes_output_lowMem.mzML)
+set_tests_properties("TOPP_PeakPickerHiRes_3_out1_json" PROPERTIES DEPENDS "TOPP_PeakPickerHiRes_3_json")
+# .. chromatogram
+add_test("TOPP_PeakPickerHiRes_4_json" ${TOPP_BIN_PATH}/PeakPickerHiRes -test -ini ${DATA_DIR_TOPP}/PeakPickerHiRes_parameters.ini -in ${DATA_DIR_TOPP}/PeakPickerHiRes_2_input.mzML -out PeakPickerHiRes_4.tmp -processOption lowmemory)
+add_test("TOPP_PeakPickerHiRes_4_out1_json" ${DIFF} -whitelist ${INDEX_WHITELIST} -in1 PeakPickerHiRes_4.tmp -in2 ${DATA_DIR_TOPP}/PeakPickerHiRes_2_output.mzML)
+set_tests_properties("TOPP_PeakPickerHiRes_4_out1_json" PROPERTIES DEPENDS "TOPP_PeakPickerHiRes_4_json")
+
+# peak picking of a smoothed chromatogram (like in PeakPickerMRM; requires disabling of spacing constraints):
+add_test("TOPP_PeakPickerHiRes_5_json" ${TOPP_BIN_PATH}/PeakPickerHiRes -test -in ${DATA_DIR_TOPP}/PeakPickerHiRes_5_input.mzML -out PeakPickerHiRes_5.tmp)
+add_test("TOPP_PeakPickerHiRes_5_out1_json" ${DIFF} -whitelist ${INDEX_WHITELIST} -in1 PeakPickerHiRes_5.tmp -in2 ${DATA_DIR_TOPP}/PeakPickerHiRes_5_output.mzML)
+set_tests_properties("TOPP_PeakPickerHiRes_5_out1_json" PROPERTIES DEPENDS "TOPP_PeakPickerHiRes_5_json")
+
+#------------------------------------------------------------------------------
+# UTILS_PeakPickerIterative
+add_test("UTILS_PeakPickerIterative_1_json" ${TOPP_BIN_PATH}/PeakPickerIterative -in ${DATA_DIR_TOPP}/PeakPickerIterative_1_input.mzML -ini ${DATA_DIR_TOPP}/PeakPickerIterative_1.ini -out PeakPickerIterative.mzML.tmp -test)
+add_test("UTILS_PeakPickerIterative_1_out1_json" ${DIFF} -whitelist ${INDEX_WHITELIST} -in1 PeakPickerIterative.mzML.tmp -in2 ${DATA_DIR_TOPP}/PeakPickerIterative_1_output.mzML)
+set_tests_properties("UTILS_PeakPickerIterative_1_out1_json" PROPERTIES DEPENDS "UTILS_PeakPickerIterative_1_json")
+add_test("UTILS_PeakPickerIterative_2_json" ${TOPP_BIN_PATH}/PeakPickerIterative -in ${DATA_DIR_TOPP}/PeakPickerIterative_2_input.mzML -ini ${DATA_DIR_TOPP}/PeakPickerIterative_2.ini -out PeakPickerIterative_2.mzML.tmp -test)
+add_test("UTILS_PeakPickerIterative_2_out1_json" ${DIFF} -whitelist ${INDEX_WHITELIST} -in1 PeakPickerIterative_2.mzML.tmp -in2 ${DATA_DIR_TOPP}/PeakPickerIterative_2_output.mzML)
+set_tests_properties("UTILS_PeakPickerIterative_2_out1_json" PROPERTIES DEPENDS "UTILS_PeakPickerIterative_2_json")
+
+#------------------------------------------------------------------------------
+# RNPxlSearch
+add_test("TOPP_RNPxlSearch_1_json" ${TOPP_BIN_PATH}/RNPxlSearch -test -in
+${DATA_DIR_TOPP}/RNPxlSearch_1_input.mzML -database ${DATA_DIR_TOPP}/RNPxlSearch_1_input.fasta -out RNPxlSearch_1_output.tmp -ini ${DATA_DIR_TOPP}/RNPxlSearch_1_parameters.ini)
+add_test("TOPP_RNPxlSearch_1_out1_json" ${DIFF} -whitelist "IdentificationRun date"
+"db=" -in1 RNPxlSearch_1_output.tmp -in2 ${DATA_DIR_TOPP}/RNPxlSearch_1_output.idXML )
+set_tests_properties("TOPP_RNPxlSearch_1_out1_json" PROPERTIES DEPENDS "TOPP_RNPxlSearch_1_json")
+# test internal decoy generation
+add_test("TOPP_RNPxlSearch_2_json" ${TOPP_BIN_PATH}/RNPxlSearch -test -in
+${DATA_DIR_TOPP}/RNPxlSearch_1_input.mzML -database ${DATA_DIR_TOPP}/RNPxlSearch_1_input.fasta -out RNPxlSearch_2_output.tmp -RNPxl:decoys -ini ${DATA_DIR_TOPP}/RNPxlSearch_1_parameters.ini)
+add_test("TOPP_RNPxlSearch_2_out1_json" ${DIFF} -whitelist "IdentificationRun date"
+"db=" -in1 RNPxlSearch_2_output.tmp -in2 ${DATA_DIR_TOPP}/RNPxlSearch_2_output.idXML )
+set_tests_properties("TOPP_RNPxlSearch_2_out1_json" PROPERTIES DEPENDS "TOPP_RNPxlSearch_2_json")
+
+#------------------------------------------------------------------------------
+# RTModel tests
+add_test("TOPP_RTModel_1_json" ${TOPP_BIN_PATH}/RTModel -test -in ${DATA_DIR_TOPP}/RTModel_1_input.idXML -out RTModel_1_output.tmp -ini ${DATA_DIR_TOPP}/RTModel_1_parameters.ini)
+add_test("TOPP_RTModel_1_out1_json" ${DIFF} -in1 RTModel_1_output.tmp -in2 ${DATA_DIR_TOPP}/RTModel_1_output.model )
+set_tests_properties("TOPP_RTModel_1_out1_json" PROPERTIES DEPENDS "TOPP_RTModel_1_json")
+add_test("TOPP_RTModel_2_json" ${TOPP_BIN_PATH}/RTModel -test -in_positive ${DATA_DIR_TOPP}/RTModel_2_input_positive.idXML -in_negative ${DATA_DIR_TOPP}/RTModel_2_input_negative.idXML -out RTModel_2_output.tmp -ini ${DATA_DIR_TOPP}/RTModel_2_parameters.ini)
+add_test("TOPP_RTModel_2_out1_json" ${DIFF} -in1 RTModel_2_output.tmp -in2 ${DATA_DIR_TOPP}/RTModel_2_output.model )
+set_tests_properties("TOPP_RTModel_2_out1_json" PROPERTIES DEPENDS "TOPP_RTModel_2_json")
+add_test("TOPP_RTModel_2_out2_json" ${DIFF} -in1 RTModel_2_output.tmp_samples -in2 ${DATA_DIR_TOPP}/RTModel_2_output.samples )
+set_tests_properties("TOPP_RTModel_2_out2_json" PROPERTIES DEPENDS "TOPP_RTModel_2_json")
+add_test("TOPP_RTModel_2_out3_json" ${DIFF} -in1 RTModel_2_output.tmp_additional_parameters -in2 ${DATA_DIR_TOPP}/RTModel_2_output.additional_parameters )
+set_tests_properties("TOPP_RTModel_2_out3_json" PROPERTIES DEPENDS "TOPP_RTModel_2_json")
+add_test("TOPP_RTModel_3_json" ${TOPP_BIN_PATH}/RTModel -test -in ${DATA_DIR_TOPP}/RTModel_3_input.idXML -out RTModel_3_output.tmp -ini ${DATA_DIR_TOPP}/RTModel_3_parameters.ini)
+add_test("TOPP_RTModel_3_out1_json" ${DIFF} -in1 RTModel_3_output.tmp -in2 ${DATA_DIR_TOPP}/RTModel_3_output.model )
+set_tests_properties("TOPP_RTModel_3_out1_json" PROPERTIES DEPENDS "TOPP_RTModel_3_json")
+add_test("TOPP_RTModel_3_out2_json" ${DIFF} -in1 RTModel_3_output.tmp_samples -in2 ${DATA_DIR_TOPP}/RTModel_3_output.samples )
+set_tests_properties("TOPP_RTModel_3_out2_json" PROPERTIES DEPENDS "TOPP_RTModel_3_json")
+add_test("TOPP_RTModel_4_json" ${TOPP_BIN_PATH}/RTModel -test -in ${DATA_DIR_TOPP}/RTModel_4_input.txt -out RTModel_4_output.tmp -ini ${DATA_DIR_TOPP}/RTModel_4_parameters.ini)
+add_test("TOPP_RTModel_4_out1_json" ${DIFF} -in1 RTModel_4_output.tmp -in2 ${DATA_DIR_TOPP}/RTModel_4_output.model )
+set_tests_properties("TOPP_RTModel_4_out1_json" PROPERTIES DEPENDS "TOPP_RTModel_4_json")
+add_test("TOPP_RTModel_4_out2_json" ${DIFF} -in1 RTModel_4_output.tmp_samples -in2 ${DATA_DIR_TOPP}/RTModel_4_output.samples )
+set_tests_properties("TOPP_RTModel_4_out2_json" PROPERTIES DEPENDS "TOPP_RTModel_4_json")
+
+#------------------------------------------------------------------------------
+# PTModel tests
+add_test("TOPP_PTModel_1_json" ${TOPP_BIN_PATH}/PTModel -test -in_positive ${DATA_DIR_TOPP}/PTModel_1_input_positive.idXML -in_negative ${DATA_DIR_TOPP}/PTModel_1_input_negative.idXML -out PTModel_1_output.tmp -ini ${DATA_DIR_TOPP}/PTModel_1_parameters.ini)
+add_test("TOPP_PTModel_1_out1_json" ${DIFF} -whitelist "probA" "probB" -in1 PTModel_1_output.tmp -in2 ${DATA_DIR_TOPP}/PTModel_1_output.model )
+set_tests_properties("TOPP_PTModel_1_out1_json" PROPERTIES DEPENDS "TOPP_PTModel_1_json")
+add_test("TOPP_PTModel_1_out2_json" ${DIFF} -in1 PTModel_1_output.tmp_samples -in2 ${DATA_DIR_TOPP}/PTModel_1_output.samples )
+set_tests_properties("TOPP_PTModel_1_out2_json" PROPERTIES DEPENDS "TOPP_PTModel_1_json")
+add_test("TOPP_PTModel_1_out3_json" ${DIFF} -in1 PTModel_1_output.tmp_additional_parameters -in2 ${DATA_DIR_TOPP}/PTModel_1_output.additional_parameters )
+set_tests_properties("TOPP_PTModel_1_out3_json" PROPERTIES DEPENDS "TOPP_PTModel_1_json")
+
+#------------------------------------------------------------------------------
+# SpectraFilter tests
+add_test("TOPP_SpectraFilterSqrtMower_1_json" ${TOPP_BIN_PATH}/SpectraFilterSqrtMower -test -in ${DATA_DIR_TOPP}/SpectraFilterSqrtMower_1_input.mzML -out SpectraFilterSqrtMower.tmp)
+add_test("TOPP_SpectraFilterSqrtMower_1_out1_json" ${DIFF} -whitelist ${INDEX_WHITELIST} -in1 SpectraFilterSqrtMower.tmp -in2 ${DATA_DIR_TOPP}/SpectraFilterSqrtMower_1_output.mzML )
+set_tests_properties("TOPP_SpectraFilterSqrtMower_1_out1_json" PROPERTIES DEPENDS "TOPP_SpectraFilterSqrtMower_1_json")
+add_test("TOPP_SpectraFilterWindowMower_1_json" ${TOPP_BIN_PATH}/SpectraFilterWindowMower -test -in ${DATA_DIR_TOPP}/SpectraFilterWindowMower_1_input.mzML -out SpectraFilterWindowMower_1.tmp)
+add_test("TOPP_SpectraFilterWindowMower_1_out1_json" ${DIFF} -whitelist ${INDEX_WHITELIST} -in1 SpectraFilterWindowMower_1.tmp -in2 ${DATA_DIR_TOPP}/SpectraFilterWindowMower_1_output.mzML )
+set_tests_properties("TOPP_SpectraFilterWindowMower_1_out1_json" PROPERTIES DEPENDS "TOPP_SpectraFilterWindowMower_1_json")
+add_test("TOPP_SpectraFilterWindowMower_2_json" ${TOPP_BIN_PATH}/SpectraFilterWindowMower -test -in ${DATA_DIR_TOPP}/SpectraFilterWindowMower_2_input.mzML -out SpectraFilterWindowMower_2.tmp -ini ${DATA_DIR_TOPP}/SpectraFilterWindowMower_2_parameters.ini)
+add_test("TOPP_SpectraFilterWindowMower_2_out1_json" ${DIFF} -whitelist ${INDEX_WHITELIST} -in1 SpectraFilterWindowMower_2.tmp -in2 ${DATA_DIR_TOPP}/SpectraFilterWindowMower_2_output.mzML )
+set_tests_properties("TOPP_SpectraFilterWindowMower_2_out1_json" PROPERTIES DEPENDS "TOPP_SpectraFilterWindowMower_2_json")
+
+#------------------------------------------------------------------------------
+# TOFCalibration tests
+add_test("TOPP_TOFCalibration_1_json" ${TOPP_BIN_PATH}/TOFCalibration -test -in ${DATA_DIR_TOPP}/TOFCalibration_1_input.mzML -out TOFCalibration.tmp -ref_masses ${DATA_DIR_TOPP}/TOFCalibration_ref_masses.tsv -ini ${DATA_DIR_TOPP}/TOFCalibration_parameters.ini -tof_const ${DATA_DIR_TOPP}/TOFCalibration_const.tsv -ext_calibrants ${DATA_DIR_TOPP}/TOFCalibration_1_calibrants.mzML)
+#add_test("TOPP_TOFCalibration_1_out1_json" ${DIFF} -in1 TOFCalibration.tmp -in2 ${DATA_DIR_TOPP}/TOFCalibration_1_output.mzML )
+#set_tests_properties("TOPP_TOFCalibration_1_out1_json" PROPERTIES DEPENDS "TOPP_TOFCalibration_1_json")
+add_test("TOPP_TOFCalibration_2_json" ${TOPP_BIN_PATH}/TOFCalibration -test -in ${DATA_DIR_TOPP}/TOFCalibration_2_input.mzML -out TOFCalibration_2.tmp -ref_masses ${DATA_DIR_TOPP}/TOFCalibration_ref_masses.tsv -ini ${DATA_DIR_TOPP}/TOFCalibration_parameters.ini -tof_const ${DATA_DIR_TOPP}/TOFCalibration_const.tsv -ext_calibrants ${DATA_DIR_TOPP}/TOFCalibration_2_calibrants.mzML -peak_data)
+#add_test("TOPP_TOFCalibration_2_out1_json" ${DIFF} -in1 TOFCalibration_2.tmp -in2 ${DATA_DIR_TOPP}/TOFCalibration_2_output.mzML )
+#set_tests_properties("TOPP_TOFCalibration_2_out1_json" PROPERTIES DEPENDS "TOPP_TOFCalibration_2_json")
+
+#------------------------------------------------------------------------------
+# TextExporter tests
+add_test("TOPP_TextExporter_1_json" ${TOPP_BIN_PATH}/TextExporter -test -in ${DATA_DIR_TOPP}/TextExporter_1_input.featureXML -no_progress -out TextExporter_1_output.tmp)
+add_test("TOPP_TextExporter_1_out1_json" ${DIFF} -in1 TextExporter_1_output.tmp -in2 ${DATA_DIR_TOPP}/TextExporter_1_output.txt )
+set_tests_properties("TOPP_TextExporter_1_out1_json" PROPERTIES DEPENDS "TOPP_TextExporter_1_json")
+
+add_test("TOPP_TextExporter_2_json" ${TOPP_BIN_PATH}/TextExporter -test -in ${DATA_DIR_TOPP}/TextExporter_2_input.consensusXML -ini ${DATA_DIR_TOPP}/TextExporter_2_parameters.ini)
+add_test("TOPP_TextExporter_2_out1_json" ${DIFF} -whitelist "extracted from" -in1 TextExporter_2_consensus_centroids.tmp -in2 ${DATA_DIR_TOPP}/TextExporter_2_consensus_centroids.wsv )
+set_tests_properties("TOPP_TextExporter_2_out1_json" PROPERTIES DEPENDS "TOPP_TextExporter_2_json")
+add_test("TOPP_TextExporter_2_out2_json" ${DIFF} -whitelist "extracted from" -in1 TextExporter_2_consensus_elements.tmp -in2 ${DATA_DIR_TOPP}/TextExporter_2_consensus_elements.wsv )
+set_tests_properties("TOPP_TextExporter_2_out2_json" PROPERTIES DEPENDS "TOPP_TextExporter_2_json")
+add_test("TOPP_TextExporter_2_out3_json" ${DIFF} -whitelist "extracted from" -in1 TextExporter_2_consensus_features.tmp -in2 ${DATA_DIR_TOPP}/TextExporter_2_consensus_features.wsv )
+set_tests_properties("TOPP_TextExporter_2_out3_json" PROPERTIES DEPENDS "TOPP_TextExporter_2_json")
+add_test("TOPP_TextExporter_2_out4_json" ${DIFF} -whitelist "extracted from" -in1 TextExporter_2_consensus_tsv.tmp -in2 ${DATA_DIR_TOPP}/TextExporter_2_consensus_tsv.tsv )
+set_tests_properties("TOPP_TextExporter_2_out4_json" PROPERTIES DEPENDS "TOPP_TextExporter_2_json")
+
+add_test("TOPP_TextExporter_3_json" ${TOPP_BIN_PATH}/TextExporter -test -in ${DATA_DIR_TOPP}/TextExporter_3_input.idXML -no_progress -out TextExporter_3_output.tmp)
+add_test("TOPP_TextExporter_3_out1_json" ${DIFF} -in1 TextExporter_3_output.tmp -in2 ${DATA_DIR_TOPP}/TextExporter_3_output.txt )
+set_tests_properties("TOPP_TextExporter_3_out1_json" PROPERTIES DEPENDS "TOPP_TextExporter_3_json")
+
+add_test("TOPP_TextExporter_4_json" ${TOPP_BIN_PATH}/TextExporter -test -in ${DATA_DIR_TOPP}/TextExporter_3_input.idXML -no_progress -out TextExporter_4_output.tmp -id:proteins_only)
+add_test("TOPP_TextExporter_4_out1_json" ${DIFF} -in1 TextExporter_4_output.tmp -in2 ${DATA_DIR_TOPP}/TextExporter_4_output_proteins.txt )
+set_tests_properties("TOPP_TextExporter_4_out1_json" PROPERTIES DEPENDS "TOPP_TextExporter_4_json")
+
+add_test("TOPP_TextExporter_5_json" ${TOPP_BIN_PATH}/TextExporter -test -in ${DATA_DIR_TOPP}/TextExporter_5_input.idXML -no_progress -out TextExporter_5_output.tmp -id:peptides_only -id:first_dim_rt)
+add_test("TOPP_TextExporter_5_out1_json" ${DIFF} -in1 TextExporter_5_output.tmp -in2 ${DATA_DIR_TOPP}/TextExporter_5_output_peptides.txt )
+set_tests_properties("TOPP_TextExporter_5_out1_json" PROPERTIES DEPENDS "TOPP_TextExporter_5_json")
+
+add_test("TOPP_TextExporter_6_json" ${TOPP_BIN_PATH}/TextExporter -test -in ${DATA_DIR_TOPP}/TextExporter_6_input.featureXML -no_progress -out TextExporter_6_output.tmp -no_ids)
+add_test("TOPP_TextExporter_6_out1_json" ${DIFF} -in1 TextExporter_6_output.tmp -in2 ${DATA_DIR_TOPP}/TextExporter_6_output.txt )
+set_tests_properties("TOPP_TextExporter_6_out1_json" PROPERTIES DEPENDS "TOPP_TextExporter_6_json")
+
+add_test("TOPP_TextExporter_7_json" ${TOPP_BIN_PATH}/TextExporter -test -in ${DATA_DIR_TOPP}/TextExporter_7_input.consensusXML -ini ${DATA_DIR_TOPP}/TextExporter_7_parameters.ini)
+add_test("TOPP_TextExporter_7_out1_json" ${DIFF} -whitelist "extracted from" -in1 TextExporter_7_consensus_tsv.tmp -in2 ${DATA_DIR_TOPP}/TextExporter_7_consensus_tsv.tsv )
+set_tests_properties("TOPP_TextExporter_7_out1_json" PROPERTIES DEPENDS "TOPP_TextExporter_7_json")
+
+add_test("TOPP_TextExporter_8_json" ${TOPP_BIN_PATH}/TextExporter -test -in ${DATA_DIR_TOPP}/TextExporter_1_input.featureXML -no_ids -no_progress -out TextExporter_8_output.tmp)
+add_test("TOPP_TextExporter_8_out1_json" ${DIFF} -in1 TextExporter_8_output.tmp -in2 ${DATA_DIR_TOPP}/TextExporter_8_output.txt )
+set_tests_properties("TOPP_TextExporter_8_out1_json" PROPERTIES DEPENDS "TOPP_TextExporter_8_json")
+
+add_test("TOPP_TextExporter_9_json" ${TOPP_BIN_PATH}/TextExporter -test -in ${DATA_DIR_TOPP}/TextExporter_9_input.idXML -no_progress -out TextExporter_9_output.tmp -id:add_metavalues 0 -id:add_hit_metavalues 0)
+add_test("TOPP_TextExporter_9_out1_json" ${DIFF} -in1 TextExporter_9_output.tmp -in2 ${DATA_DIR_TOPP}/TextExporter_9_output.txt )
+set_tests_properties("TOPP_TextExporter_9_out1_json" PROPERTIES DEPENDS "TOPP_TextExporter_9_json")
+
+#------------------------------------------------------------------------------
+# FeatureLinker tests
+# "labeled" algorithm:
+add_test("TOPP_FeatureLinkerLabeled_1_json" ${TOPP_BIN_PATH}/FeatureLinkerLabeled -test -ini ${DATA_DIR_TOPP}/FeatureLinkerLabeled_1_parameters.ini -in ${DATA_DIR_TOPP}/FeatureLinkerLabeled_1_input.featureXML -out FeatureLinkerLabeled_1_output.tmp)
+add_test("TOPP_FeatureLinkerLabeled_1_out1_json" ${DIFF} -whitelist "id=" "href=" -in1 FeatureLinkerLabeled_1_output.tmp -in2 ${DATA_DIR_TOPP}/FeatureLinkerLabeled_1_output.consensusXML )
+set_tests_properties("TOPP_FeatureLinkerLabeled_1_out1_json" PROPERTIES DEPENDS "TOPP_FeatureLinkerLabeled_1_json")
+add_test("TOPP_FeatureLinkerLabeled_2_json" ${TOPP_BIN_PATH}/FeatureLinkerLabeled -test -ini ${DATA_DIR_TOPP}/FeatureLinkerLabeled_2_parameters.ini -in ${DATA_DIR_TOPP}/FeatureLinkerLabeled_2_input.featureXML -out FeatureLinkerLabeled_2_output.tmp)
+add_test("TOPP_FeatureLinkerLabeled_2_out1_json" ${DIFF} -whitelist "id=" "href=" -in1 FeatureLinkerLabeled_2_output.tmp -in2 ${DATA_DIR_TOPP}/FeatureLinkerLabeled_2_output.consensusXML )
+set_tests_properties("TOPP_FeatureLinkerLabeled_2_out1_json" PROPERTIES DEPENDS "TOPP_FeatureLinkerLabeled_2_json")
+# "unlabelled" algorithm:
+add_test("TOPP_FeatureLinkerUnlabeled_1_json" ${TOPP_BIN_PATH}/FeatureLinkerUnlabeled -test -ini ${DATA_DIR_TOPP}/FeatureLinkerUnlabeled_1_parameters.ini -in ${DATA_DIR_TOPP}/FeatureLinkerUnlabeled_1_input1.featureXML ${DATA_DIR_TOPP}/FeatureLinkerUnlabeled_1_input2.featureXML ${DATA_DIR_TOPP}/FeatureLinkerUnlabeled_1_input3.featureXML -out FeatureLinkerUnlabeled_1_output.tmp)
+add_test("TOPP_FeatureLinkerUnlabeled_1_out1_json" ${DIFF} -whitelist "id=" "href=" -in1 FeatureLinkerUnlabeled_1_output.tmp -in2 ${DATA_DIR_TOPP}/FeatureLinkerUnlabeled_1_output.consensusXML )
+set_tests_properties("TOPP_FeatureLinkerUnlabeled_1_out1_json" PROPERTIES DEPENDS "TOPP_FeatureLinkerUnlabeled_1_json")
+add_test("TOPP_FeatureLinkerUnlabeled_2_json" ${TOPP_BIN_PATH}/FeatureLinkerUnlabeled -test -ini ${DATA_DIR_TOPP}/FeatureLinkerUnlabeled_2_parameters.ini -in ${DATA_DIR_TOPP}/FeatureLinkerUnlabeled_2_input1.featureXML ${DATA_DIR_TOPP}/FeatureLinkerUnlabeled_2_input2.featureXML ${DATA_DIR_TOPP}/FeatureLinkerUnlabeled_2_input3.featureXML -out FeatureLinkerUnlabeled_2_output.tmp)
+add_test("TOPP_FeatureLinkerUnlabeled_2_out1_json" ${DIFF} -whitelist "id=" "href=" -in1 FeatureLinkerUnlabeled_2_output.tmp -in2 ${DATA_DIR_TOPP}/FeatureLinkerUnlabeled_2_output.consensusXML)
+set_tests_properties("TOPP_FeatureLinkerUnlabeled_2_out1_json" PROPERTIES DEPENDS "TOPP_FeatureLinkerUnlabeled_2_json")
+add_test("TOPP_FeatureLinkerUnlabeled_3_json" ${TOPP_BIN_PATH}/FeatureLinkerUnlabeled -test -ini ${DATA_DIR_TOPP}/FeatureLinkerUnlabeled_3_parameters.ini -in ${DATA_DIR_TOPP}/FeatureLinkerUnlabeled_3_input1.featureXML ${DATA_DIR_TOPP}/FeatureLinkerUnlabeled_3_input2.featureXML -out FeatureLinkerUnlabeled_3_output.tmp)
+add_test("TOPP_FeatureLinkerUnlabeled_3_out1_json" ${DIFF} -whitelist "id=" "href=" -in1 FeatureLinkerUnlabeled_3_output.tmp -in2 ${DATA_DIR_TOPP}/FeatureLinkerUnlabeled_3_output.consensusXML)
+set_tests_properties("TOPP_FeatureLinkerUnlabeled_3_out1_json" PROPERTIES DEPENDS "TOPP_FeatureLinkerUnlabeled_3_json")
+# "unlabeled" algorithm with "use_identifications" option:
+add_test("TOPP_FeatureLinkerUnlabeled_4_json" ${TOPP_BIN_PATH}/FeatureLinkerUnlabeled -test -ini ${DATA_DIR_TOPP}/FeatureLinkerUnlabeled_4_parameters.ini -in ${DATA_DIR_TOPP}/FeatureLinkerUnlabeled_1_input1.featureXML ${DATA_DIR_TOPP}/FeatureLinkerUnlabeled_1_input2.featureXML ${DATA_DIR_TOPP}/FeatureLinkerUnlabeled_1_input3.featureXML -out FeatureLinkerUnlabeled_4_output.tmp)
+add_test("TOPP_FeatureLinkerUnlabeled_4_out1_json" ${DIFF} -whitelist "id=" "href=" -in1 FeatureLinkerUnlabeled_4_output.tmp -in2 ${DATA_DIR_TOPP}/FeatureLinkerUnlabeled_4_output.consensusXML)
+set_tests_properties("TOPP_FeatureLinkerUnlabeled_4_out1_json" PROPERTIES DEPENDS "TOPP_FeatureLinkerUnlabeled_4_json")
+# "unlabeled_qt" algorithm:
+add_test("TOPP_FeatureLinkerUnlabeledQT_1_json" ${TOPP_BIN_PATH}/FeatureLinkerUnlabeledQT -test -ini ${DATA_DIR_TOPP}/FeatureLinkerUnlabeledQT_1_parameters.ini -in ${DATA_DIR_TOPP}/FeatureLinkerUnlabeled_1_input1.featureXML ${DATA_DIR_TOPP}/FeatureLinkerUnlabeled_1_input2.featureXML ${DATA_DIR_TOPP}/FeatureLinkerUnlabeled_1_input3.featureXML -out FeatureLinkerUnlabeledQT_1_output.tmp)
+add_test("TOPP_FeatureLinkerUnlabeledQT_1_out1_json" ${DIFF} -whitelist "id=" "href=" -in1 FeatureLinkerUnlabeledQT_1_output.tmp -in2 ${DATA_DIR_TOPP}/FeatureLinkerUnlabeledQT_1_output.consensusXML )
+set_tests_properties("TOPP_FeatureLinkerUnlabeledQT_1_out1_json" PROPERTIES DEPENDS "TOPP_FeatureLinkerUnlabeledQT_1_json")
+# "unlabeled_qt" algorithm with consensusXML input and "keep_subelements" flag:
+add_test("TOPP_FeatureLinkerUnlabeledQT_2_json" ${TOPP_BIN_PATH}/FeatureLinkerUnlabeledQT -test -ini ${DATA_DIR_TOPP}/FeatureLinkerUnlabeledQT_2_parameters.ini -in ${DATA_DIR_TOPP}/FeatureLinkerUnlabeledQT_1_output.consensusXML ${DATA_DIR_TOPP}/FeatureLinkerUnlabeledQT_1_output.consensusXML -out FeatureLinkerUnlabeledQT_2_output.tmp)
+add_test("TOPP_FeatureLinkerUnlabeledQT_2_out1_json" ${DIFF} -whitelist "id=" "href=" -in1 FeatureLinkerUnlabeledQT_2_output.tmp -in2 ${DATA_DIR_TOPP}/FeatureLinkerUnlabeledQT_2_output.consensusXML )
+set_tests_properties("TOPP_FeatureLinkerUnlabeledQT_2_out1_json" PROPERTIES DEPENDS "TOPP_FeatureLinkerUnlabeledQT_2_json")
+add_test("TOPP_FeatureLinkerUnlabeledQT_3_json" ${TOPP_BIN_PATH}/FeatureLinkerUnlabeledQT -test -ini ${DATA_DIR_TOPP}/FeatureLinkerUnlabeledQT_3_parameters.ini -in ${DATA_DIR_TOPP}/FeatureLinkerUnlabeledQT_3_input1.featureXML ${DATA_DIR_TOPP}/FeatureLinkerUnlabeledQT_3_input2.featureXML -out FeatureLinkerUnlabeledQT_3_output.tmp)
+add_test("TOPP_FeatureLinkerUnlabeledQT_3_out1_json" ${DIFF} -whitelist "id=" "href=" -in1 FeatureLinkerUnlabeledQT_3_output.tmp -in2 ${DATA_DIR_TOPP}/FeatureLinkerUnlabeledQT_3_output.consensusXML )
+set_tests_properties("TOPP_FeatureLinkerUnlabeledQT_3_out1_json" PROPERTIES DEPENDS "TOPP_FeatureLinkerUnlabeledQT_3_json")
+# use_identifications turned on
+add_test("TOPP_FeatureLinkerUnlabeledQT_4_json" ${TOPP_BIN_PATH}/FeatureLinkerUnlabeledQT -test -ini ${DATA_DIR_TOPP}/FeatureLinkerUnlabeledQT_1_parameters.ini -in ${DATA_DIR_TOPP}/FeatureLinkerUnlabeled_1_input1.featureXML ${DATA_DIR_TOPP}/FeatureLinkerUnlabeled_1_input2.featureXML ${DATA_DIR_TOPP}/FeatureLinkerUnlabeled_1_input3.featureXML -out FeatureLinkerUnlabeledQT_4_output.tmp -algorithm:use_identifications)
+add_test("TOPP_FeatureLinkerUnlabeledQT_4_out1_json" ${DIFF} -whitelist "id=" "href=" -in1 FeatureLinkerUnlabeledQT_4_output.tmp -in2 ${DATA_DIR_TOPP}/FeatureLinkerUnlabeledQT_4_output.consensusXML )
+set_tests_properties("TOPP_FeatureLinkerUnlabeledQT_4_out1_json" PROPERTIES DEPENDS "TOPP_FeatureLinkerUnlabeledQT_4_json")
+add_test("TOPP_FeatureLinkerUnlabeledQT_5_json" ${TOPP_BIN_PATH}/FeatureLinkerUnlabeledQT -test -ini ${DATA_DIR_TOPP}/FeatureLinkerUnlabeledQT_1_parameters.ini -in ${DATA_DIR_TOPP}/FeatureLinkerUnlabeledQT_5_input1.featureXML ${DATA_DIR_TOPP}/FeatureLinkerUnlabeledQT_5_input2.featureXML ${DATA_DIR_TOPP}/FeatureLinkerUnlabeledQT_5_input3.featureXML -out FeatureLinkerUnlabeledQT_5_output.tmp -algorithm:distance_RT:max_difference 200)
+add_test("TOPP_FeatureLinkerUnlabeledQT_5_out1_json" ${DIFF} -whitelist "id=" "href=" -in1 FeatureLinkerUnlabeledQT_5_output.tmp -in2 ${DATA_DIR_TOPP}/FeatureLinkerUnlabeledQT_5_output.consensusXML)
+set_tests_properties("TOPP_FeatureLinkerUnlabeledQT_5_out1_json" PROPERTIES DEPENDS "TOPP_FeatureLinkerUnlabeledQT_5_json")
+add_test("TOPP_FeatureLinkerUnlabeledQT_6_json" ${TOPP_BIN_PATH}/FeatureLinkerUnlabeledQT -test -in ${DATA_DIR_TOPP}/FeatureLinkerUnlabeledQT_5_input1.featureXML ${DATA_DIR_TOPP}/FeatureLinkerUnlabeledQT_5_input2.featureXML ${DATA_DIR_TOPP}/FeatureLinkerUnlabeledQT_5_input3.featureXML -out FeatureLinkerUnlabeledQT_6_output.tmp -algorithm:use_identifications -algorithm:distance_RT:max_difference 200)
+add_test("TOPP_FeatureLinkerUnlabeledQT_6_out1_json" ${DIFF} -whitelist "id=" "href=" -in1 FeatureLinkerUnlabeledQT_6_output.tmp -in2 ${DATA_DIR_TOPP}/FeatureLinkerUnlabeledQT_6_output.consensusXML )
+set_tests_properties("TOPP_FeatureLinkerUnlabeledQT_6_out1_json" PROPERTIES DEPENDS "TOPP_FeatureLinkerUnlabeledQT_6_json")
+# FeatureLinkerUnlabeledKD
+add_test("TOPP_FeatureLinkerUnlabeledKD_1_json" ${TOPP_BIN_PATH}/FeatureLinkerUnlabeledKD -test -ini ${DATA_DIR_TOPP}/FeatureLinkerUnlabeledKD_1_parameters.ini -in ${DATA_DIR_TOPP}/FeatureLinkerUnlabeled_1_input1.featureXML ${DATA_DIR_TOPP}/FeatureLinkerUnlabeled_1_input2.featureXML ${DATA_DIR_TOPP}/FeatureLinkerUnlabeled_1_input3.featureXML -out FeatureLinkerUnlabeledKD_1_output.tmp)
+add_test("TOPP_FeatureLinkerUnlabeledKD_1_out1_json" ${DIFF} -whitelist "id=" "href=" -in1 FeatureLinkerUnlabeledKD_1_output.tmp -in2 ${DATA_DIR_TOPP}/FeatureLinkerUnlabeledKD_1_output.consensusXML )
+set_tests_properties("TOPP_FeatureLinkerUnlabeledKD_1_out1_json" PROPERTIES DEPENDS "TOPP_FeatureLinkerUnlabeledKD_1_json")
+add_test("TOPP_FeatureLinkerUnlabeledKD_2_json" ${TOPP_BIN_PATH}/FeatureLinkerUnlabeledKD -test -ini ${DATA_DIR_TOPP}/FeatureLinkerUnlabeledKD_2_parameters.ini -in ${DATA_DIR_TOPP}/FeatureLinkerUnlabeledKD_1_output.consensusXML ${DATA_DIR_TOPP}/FeatureLinkerUnlabeledKD_1_output.consensusXML -out FeatureLinkerUnlabeledKD_2_output.tmp)
+add_test("TOPP_FeatureLinkerUnlabeledKD_2_out1_json" ${DIFF} -whitelist "id=" "href=" -in1 FeatureLinkerUnlabeledKD_2_output.tmp -in2 ${DATA_DIR_TOPP}/FeatureLinkerUnlabeledKD_2_output.consensusXML )
+set_tests_properties("TOPP_FeatureLinkerUnlabeledKD_2_out1_json" PROPERTIES DEPENDS "TOPP_FeatureLinkerUnlabeledKD_2_json")
+add_test("TOPP_FeatureLinkerUnlabeledKD_3_json" ${TOPP_BIN_PATH}/FeatureLinkerUnlabeledKD -test -ini ${DATA_DIR_TOPP}/FeatureLinkerUnlabeledKD_3_parameters.ini -in ${DATA_DIR_TOPP}/FeatureLinkerUnlabeledQT_3_input1.featureXML ${DATA_DIR_TOPP}/FeatureLinkerUnlabeledQT_3_input2.featureXML -out FeatureLinkerUnlabeledKD_3_output.tmp)
+add_test("TOPP_FeatureLinkerUnlabeledKD_3_out1_json" ${DIFF} -whitelist "id=" "href=" -in1 FeatureLinkerUnlabeledKD_3_output.tmp -in2 ${DATA_DIR_TOPP}/FeatureLinkerUnlabeledKD_3_output.consensusXML )
+set_tests_properties("TOPP_FeatureLinkerUnlabeledKD_3_out1_json" PROPERTIES DEPENDS "TOPP_FeatureLinkerUnlabeledKD_3_json")
+# use charge/adduct information different ways
+add_test("TOPP_FeatureLinkerUnlabeledKD_4_json" ${TOPP_BIN_PATH}/FeatureLinkerUnlabeledKD -test -ini ${DATA_DIR_TOPP}/FeatureLinkerUnlabeledKD_4_parameters.ini -in ${DATA_DIR_TOPP}/FeatureLinkerUnlabeledKD_dc_input1.featureXML ${DATA_DIR_TOPP}/FeatureLinkerUnlabeledKD_dc_input2.featureXML ${DATA_DIR_TOPP}/FeatureLinkerUnlabeledKD_dc_input3.featureXML ${DATA_DIR_TOPP}/FeatureLinkerUnlabeledKD_dc_input1.featureXML ${DATA_DIR_TOPP}/FeatureLinkerUnlabeledKD_dc_input2.featureXML -out FeatureLinkerUnlabeledKD_4_output.tmp -algorithm:link:charge_merging Identical -algorithm:link:adduct_merging Any)
+ add_test("TOPP_FeatureLinkerUnlabeledKD_4_out1_json" ${DIFF} -whitelist "id=" "href=" -in1 FeatureLinkerUnlabeledKD_4_output.tmp -in2 ${DATA_DIR_TOPP}/FeatureLinkerUnlabeledKD_4_output.consensusXML )
+set_tests_properties("TOPP_FeatureLinkerUnlabeledKD_4_out1_json" PROPERTIES DEPENDS "TOPP_FeatureLinkerUnlabeledKD_4_json")
+add_test("TOPP_FeatureLinkerUnlabeledKD_5_json" ${TOPP_BIN_PATH}/FeatureLinkerUnlabeledKD -test -ini ${DATA_DIR_TOPP}/FeatureLinkerUnlabeledKD_4_parameters.ini -in ${DATA_DIR_TOPP}/FeatureLinkerUnlabeledKD_dc_input1.featureXML ${DATA_DIR_TOPP}/FeatureLinkerUnlabeledKD_dc_input2.featureXML ${DATA_DIR_TOPP}/FeatureLinkerUnlabeledKD_dc_input3.featureXML ${DATA_DIR_TOPP}/FeatureLinkerUnlabeledKD_dc_input1.featureXML ${DATA_DIR_TOPP}/FeatureLinkerUnlabeledKD_dc_input2.featureXML -out FeatureLinkerUnlabeledKD_5_output.tmp -algorithm:link:charge_merging With_charge_zero -algorithm:link:adduct_merging Any)
+ add_test("TOPP_FeatureLinkerUnlabeledKD_5_out1_json" ${DIFF} -whitelist "id=" "href=" -in1 FeatureLinkerUnlabeledKD_5_output.tmp -in2 ${DATA_DIR_TOPP}/FeatureLinkerUnlabeledKD_5_output.consensusXML )
+set_tests_properties("TOPP_FeatureLinkerUnlabeledKD_5_out1_json" PROPERTIES DEPENDS "TOPP_FeatureLinkerUnlabeledKD_5_json")
+add_test("TOPP_FeatureLinkerUnlabeledKD_6_json" ${TOPP_BIN_PATH}/FeatureLinkerUnlabeledKD -test -ini ${DATA_DIR_TOPP}/FeatureLinkerUnlabeledKD_4_parameters.ini -in ${DATA_DIR_TOPP}/FeatureLinkerUnlabeledKD_dc_input1.featureXML ${DATA_DIR_TOPP}/FeatureLinkerUnlabeledKD_dc_input2.featureXML ${DATA_DIR_TOPP}/FeatureLinkerUnlabeledKD_dc_input3.featureXML ${DATA_DIR_TOPP}/FeatureLinkerUnlabeledKD_dc_input1.featureXML ${DATA_DIR_TOPP}/FeatureLinkerUnlabeledKD_dc_input2.featureXML -out FeatureLinkerUnlabeledKD_6_output.tmp -algorithm:link:charge_merging Any -algorithm:link:adduct_merging With_unknown_adducts)
+ add_test("TOPP_FeatureLinkerUnlabeledKD_6_out1_json" ${DIFF} -whitelist "id=" "href=" -in1 FeatureLinkerUnlabeledKD_6_output.tmp -in2 ${DATA_DIR_TOPP}/FeatureLinkerUnlabeledKD_6_output.consensusXML )
+set_tests_properties("TOPP_FeatureLinkerUnlabeledKD_6_out1_json" PROPERTIES DEPENDS "TOPP_FeatureLinkerUnlabeledKD_6_json")
+add_test("TOPP_FeatureLinkerUnlabeledKD_7_json" ${TOPP_BIN_PATH}/FeatureLinkerUnlabeledKD -test -ini ${DATA_DIR_TOPP}/FeatureLinkerUnlabeledKD_4_parameters.ini -in ${DATA_DIR_TOPP}/FeatureLinkerUnlabeledKD_dc_input1.featureXML ${DATA_DIR_TOPP}/FeatureLinkerUnlabeledKD_dc_input2.featureXML ${DATA_DIR_TOPP}/FeatureLinkerUnlabeledKD_dc_input3.featureXML ${DATA_DIR_TOPP}/FeatureLinkerUnlabeledKD_dc_input1.featureXML ${DATA_DIR_TOPP}/FeatureLinkerUnlabeledKD_dc_input2.featureXML -out FeatureLinkerUnlabeledKD_7_output.tmp -algorithm:link:charge_merging Any -algorithm:link:adduct_merging Identical)
+ add_test("TOPP_FeatureLinkerUnlabeledKD_7_out1_json" ${DIFF} -whitelist "id=" "href=" -in1 FeatureLinkerUnlabeledKD_7_output.tmp -in2 ${DATA_DIR_TOPP}/FeatureLinkerUnlabeledKD_7_output.consensusXML )
+set_tests_properties("TOPP_FeatureLinkerUnlabeledKD_7_out1_json" PROPERTIES DEPENDS "TOPP_FeatureLinkerUnlabeledKD_7_json")
+
+
+
+#------------------------------------------------------------------------------
+# PrecursorIonSelector tests
+add_test("TOPP_PrecursorIonSelector_1_json" ${TOPP_BIN_PATH}/PrecursorIonSelector -test -in ${DATA_DIR_TOPP}/PrecursorIonSelector_features.featureXML -sim_results PrecursorIonSelector_1_output.tmp -ini ${DATA_DIR_TOPP}/PrecursorIonSelector_1_parameters.ini -db_path ${DATA_DIR_TOPP}/PrecursorIonSelector_db.fasta -ids ${DATA_DIR_TOPP}/PrecursorIonSelector_ids.idXML)
+add_test("TOPP_PrecursorIonSelector_1_out1_json" ${DIFF} -in1 PrecursorIonSelector_1_output.tmp -in2 ${DATA_DIR_TOPP}/PrecursorIonSelector_1_output.txt )
+set_tests_properties("TOPP_PrecursorIonSelector_1_out1_json" PROPERTIES DEPENDS "TOPP_PrecursorIonSelector_1_json")
+add_test("TOPP_PrecursorIonSelector_2_json" ${TOPP_BIN_PATH}/PrecursorIonSelector -test -in ${DATA_DIR_TOPP}/PrecursorIonSelector_features.featureXML -out PrecursorIonSelector_2_output.tmp -ini ${DATA_DIR_TOPP}/PrecursorIonSelector_2_parameters.ini -db_path ${DATA_DIR_TOPP}/PrecursorIonSelector_db.fasta -ids ${DATA_DIR_TOPP}/PrecursorIonSelector_ids.idXML)
+add_test("TOPP_PrecursorIonSelector_2_out1_json" ${DIFF} -in1 PrecursorIonSelector_2_output.tmp -in2 ${DATA_DIR_TOPP}/PrecursorIonSelector_2_output.featureXML )
+set_tests_properties("TOPP_PrecursorIonSelector_2_out1_json" PROPERTIES DEPENDS "TOPP_PrecursorIonSelector_2_json")
+
+#------------------------------------------------------------------------------
+# CompNovo tests
+add_test("TOPP_CompNovo_1_json" ${TOPP_BIN_PATH}/CompNovo -test -in ${DATA_DIR_TOPP}/CompNovo_1_input.mzML -ini ${DATA_DIR_TOPP}/CompNovo_1.ini -out CompNovo_1_output.tmp)
+add_test("TOPP_CompNovo_1_out1_json" ${DIFF} -whitelist "?xml-stylesheet" "IdentificationRun date" -in1 CompNovo_1_output.tmp -in2 ${DATA_DIR_TOPP}/CompNovo_1_output.idXML )
+set_tests_properties("TOPP_CompNovo_1_out1_json" PROPERTIES DEPENDS "TOPP_CompNovo_1_json")
+add_test("TOPP_CompNovoCID_1_json" ${TOPP_BIN_PATH}/CompNovoCID -test -in ${DATA_DIR_TOPP}/CompNovoCID_1_input.mzML -ini ${DATA_DIR_TOPP}/CompNovoCID_1.ini -out CompNovoCID_1_output.tmp)
+add_test("TOPP_CompNovoCID_1_out1_json" ${DIFF} -whitelist "?xml-stylesheet" "IdentificationRun date" -in1 CompNovoCID_1_output.tmp -in2 ${DATA_DIR_TOPP}/CompNovoCID_1_output.idXML )
+set_tests_properties("TOPP_CompNovoCID_1_out1_json" PROPERTIES DEPENDS "TOPP_CompNovoCID_1_json")
+
+#------------------------------------------------------------------------------
+# PrecursorMassCorrector tests
+add_test("TOPP_PrecursorMassCorrector_1_json" ${TOPP_BIN_PATH}/PrecursorMassCorrector -test -in ${DATA_DIR_TOPP}/PrecursorMassCorrector_1_input.mzML -ini ${DATA_DIR_TOPP}/PrecursorMassCorrector_1.ini -out PrecursorMassCorrector_1_output.tmp)
+add_test("TOPP_PrecursorMassCorrector_1_out1_json" ${DIFF} -whitelist ${INDEX_WHITELIST} "location=" -in1 PrecursorMassCorrector_1_output.tmp -in2 ${DATA_DIR_TOPP}/PrecursorMassCorrector_1_output.mzML )
+set_tests_properties("TOPP_PrecursorMassCorrector_1_out1_json" PROPERTIES DEPENDS "TOPP_PrecursorMassCorrector_1_json")
+
+#------------------------------------------------------------------------------
+# InclusionExclusionListCreator tests
+add_test("TOPP_InclusionExclusionListCreator_1_json" ${TOPP_BIN_PATH}/InclusionExclusionListCreator -test -include ${DATA_DIR_TOPP}/InclusionExclusionListCreator.featureXML -out InclusionExclusionListCreator_1_output.tmp)
+add_test("TOPP_InclusionExclusionListCreator_1_out1_json" ${DIFF} -in1 InclusionExclusionListCreator_1_output.tmp -in2 ${DATA_DIR_TOPP}/InclusionExclusionListCreator_1_output.txt )
+set_tests_properties("TOPP_InclusionExclusionListCreator_1_out1_json" PROPERTIES DEPENDS "TOPP_InclusionExclusionListCreator_1_json")
+add_test("TOPP_InclusionExclusionListCreator_2_json" ${TOPP_BIN_PATH}/InclusionExclusionListCreator -test -exclude ${DATA_DIR_TOPP}/InclusionExclusionListCreator.featureXML -out InclusionExclusionListCreator_2_output.tmp -ini ${DATA_DIR_TOPP}/InclusionExclusionListCreator_2.ini)
+add_test("TOPP_InclusionExclusionListCreator_2_out1_json" ${DIFF} -in1 InclusionExclusionListCreator_2_output.tmp -in2 ${DATA_DIR_TOPP}/InclusionExclusionListCreator_2_output.txt )
+set_tests_properties("TOPP_InclusionExclusionListCreator_2_out1_json" PROPERTIES DEPENDS "TOPP_InclusionExclusionListCreator_2_json")
+add_test("TOPP_InclusionExclusionListCreator_3_json" ${TOPP_BIN_PATH}/InclusionExclusionListCreator -test -include ${DATA_DIR_TOPP}/InclusionExclusionListCreator.fasta -out InclusionExclusionListCreator_3_output.tmp -inclusion_charges 1 2 -rt_model ${DATA_DIR_TOPP}/InclusionExclusionListCreator_rt.model)
+add_test("TOPP_InclusionExclusionListCreator_3_out1_json" ${DIFF} -in1 InclusionExclusionListCreator_3_output.tmp -in2 ${DATA_DIR_TOPP}/InclusionExclusionListCreator_3_output.txt )
+set_tests_properties("TOPP_InclusionExclusionListCreator_3_out1_json" PROPERTIES DEPENDS "TOPP_InclusionExclusionListCreator_3_json")
+add_test("TOPP_InclusionExclusionListCreator_4_json" ${TOPP_BIN_PATH}/InclusionExclusionListCreator -test -exclude ${DATA_DIR_TOPP}/InclusionExclusionListCreator.fasta -out InclusionExclusionListCreator_4_output.tmp -exclusion_charges 1 2 -rt_model ${DATA_DIR_TOPP}/InclusionExclusionListCreator_rt.model  -ini ${DATA_DIR_TOPP}/InclusionExclusionListCreator_4.ini)
+add_test("TOPP_InclusionExclusionListCreator_4_out1_json" ${DIFF} -in1 InclusionExclusionListCreator_4_output.tmp -in2 ${DATA_DIR_TOPP}/InclusionExclusionListCreator_4_output.txt )
+set_tests_properties("TOPP_InclusionExclusionListCreator_4_out1_json" PROPERTIES DEPENDS "TOPP_InclusionExclusionListCreator_4_json")
+add_test("TOPP_InclusionExclusionListCreator_5_json" ${TOPP_BIN_PATH}/InclusionExclusionListCreator -test -exclude ${DATA_DIR_TOPP}/InclusionExclusionListCreator.idXML -out InclusionExclusionListCreator_5_output.tmp -exclusion_charges 1 2 -rt_model ${DATA_DIR_TOPP}/InclusionExclusionListCreator_rt.model)
+add_test("TOPP_InclusionExclusionListCreator_5_out1_json" ${DIFF} -in1 InclusionExclusionListCreator_5_output.tmp -in2 ${DATA_DIR_TOPP}/InclusionExclusionListCreator_5_output.txt )
+set_tests_properties("TOPP_InclusionExclusionListCreator_5_out1_json" PROPERTIES DEPENDS "TOPP_InclusionExclusionListCreator_5_json")
+add_test("TOPP_InclusionExclusionListCreator_6_json" ${TOPP_BIN_PATH}/InclusionExclusionListCreator -test -exclude ${DATA_DIR_TOPP}/InclusionExclusionListCreator.idXML -out InclusionExclusionListCreator_6_output.tmp -exclusion_charges 1 2 -rt_model ${DATA_DIR_TOPP}/InclusionExclusionListCreator_rt.model  -ini ${DATA_DIR_TOPP}/InclusionExclusionListCreator_6.ini)
+add_test("TOPP_InclusionExclusionListCreator_6_out1_json" ${DIFF} -in1 InclusionExclusionListCreator_6_output.tmp -in2 ${DATA_DIR_TOPP}/InclusionExclusionListCreator_6_output.txt )
+set_tests_properties("TOPP_InclusionExclusionListCreator_6_out1_json" PROPERTIES DEPENDS "TOPP_InclusionExclusionListCreator_6_json")
+
+#------------------------------------------------------------------------------
+# PeptideIndexer tests
+add_test("TOPP_PeptideIndexer_1_json" ${TOPP_BIN_PATH}/PeptideIndexer -test -fasta ${DATA_DIR_TOPP}/PeptideIndexer_1.fasta -in ${DATA_DIR_TOPP}/PeptideIndexer_1.idXML -out PeptideIndexer_1_out.tmp.idXML -unmatched_action warn -enzyme:specificity none -aaa_max 4)
+add_test("TOPP_PeptideIndexer_1_out_json" ${DIFF} -in1 PeptideIndexer_1_out.tmp.idXML -in2 ${DATA_DIR_TOPP}/PeptideIndexer_1_out.idXML )
+set_tests_properties("TOPP_PeptideIndexer_1_out_json" PROPERTIES DEPENDS "TOPP_PeptideIndexer_1_json")
+add_test("TOPP_PeptideIndexer_2_json" ${TOPP_BIN_PATH}/PeptideIndexer -test -fasta ${DATA_DIR_TOPP}/PeptideIndexer_1.fasta -in ${DATA_DIR_TOPP}/PeptideIndexer_1.idXML -out PeptideIndexer_2_out.tmp.idXML -unmatched_action warn -write_protein_sequence -enzyme:specificity none -aaa_max 4)
+add_test("TOPP_PeptideIndexer_2_out_json" ${DIFF} -in1 PeptideIndexer_2_out.tmp.idXML -in2 ${DATA_DIR_TOPP}/PeptideIndexer_2_out.idXML )
+set_tests_properties("TOPP_PeptideIndexer_2_out_json" PROPERTIES DEPENDS "TOPP_PeptideIndexer_2_json")
+add_test("TOPP_PeptideIndexer_3_json" ${TOPP_BIN_PATH}/PeptideIndexer -test -fasta ${DATA_DIR_TOPP}/PeptideIndexer_1.fasta -in ${DATA_DIR_TOPP}/PeptideIndexer_1.idXML -out PeptideIndexer_3_out.tmp.idXML -unmatched_action warn -keep_unreferenced_proteins -enzyme:specificity none -aaa_max 4)
+add_test("TOPP_PeptideIndexer_3_out_json" ${DIFF} -in1 PeptideIndexer_3_out.tmp.idXML -in2 ${DATA_DIR_TOPP}/PeptideIndexer_3_out.idXML )
+set_tests_properties("TOPP_PeptideIndexer_3_out_json" PROPERTIES DEPENDS "TOPP_PeptideIndexer_3_json")
+add_test("TOPP_PeptideIndexer_4_json" ${TOPP_BIN_PATH}/PeptideIndexer -test -fasta ${DATA_DIR_TOPP}/PeptideIndexer_1.fasta -in ${DATA_DIR_TOPP}/PeptideIndexer_1.idXML -out PeptideIndexer_4_out.tmp.idXML -unmatched_action warn -aaa_max 0 -write_protein_sequence -enzyme:specificity none -aaa_max 4)
+add_test("TOPP_PeptideIndexer_4_out_json" ${DIFF} -in1 PeptideIndexer_4_out.tmp.idXML -in2 ${DATA_DIR_TOPP}/PeptideIndexer_4_out.idXML )
+set_tests_properties("TOPP_PeptideIndexer_4_out_json" PROPERTIES DEPENDS "TOPP_PeptideIndexer_4_json")
+add_test("TOPP_PeptideIndexer_5_json" ${TOPP_BIN_PATH}/PeptideIndexer -test -fasta ${DATA_DIR_TOPP}/PeptideIndexer_1.fasta -in ${DATA_DIR_TOPP}/PeptideIndexer_1.idXML -out PeptideIndexer_5_out.tmp.idXML -unmatched_action warn -enzyme:specificity none -aaa_max 4)
+add_test("TOPP_PeptideIndexer_5_out_json" ${DIFF} -in1 PeptideIndexer_5_out.tmp.idXML -in2 ${DATA_DIR_TOPP}/PeptideIndexer_5_out.idXML )
+set_tests_properties("TOPP_PeptideIndexer_5_out_json" PROPERTIES DEPENDS "TOPP_PeptideIndexer_5_json")
+add_test("TOPP_PeptideIndexer_6_json" ${TOPP_BIN_PATH}/PeptideIndexer -test -fasta ${DATA_DIR_TOPP}/PeptideIndexer_1.fasta -in ${DATA_DIR_TOPP}/PeptideIndexer_2.idXML -out PeptideIndexer_6_out.tmp.idXML -unmatched_action warn -enzyme:specificity none -aaa_max 3)
+add_test("TOPP_PeptideIndexer_6_out_json" ${DIFF} -in1 PeptideIndexer_6_out.tmp.idXML -in2 ${DATA_DIR_TOPP}/PeptideIndexer_6_out.idXML )
+set_tests_properties("TOPP_PeptideIndexer_6_out_json" PROPERTIES DEPENDS "TOPP_PeptideIndexer_6_json")
+# specificity tests
+add_test("TOPP_PeptideIndexer_7_json" ${TOPP_BIN_PATH}/PeptideIndexer -test -fasta ${DATA_DIR_TOPP}/PeptideIndexer_1.fasta -in ${DATA_DIR_TOPP}/PeptideIndexer_3.idXML -out PeptideIndexer_7_out.tmp.idXML -unmatched_action warn -aaa_max 4 -enzyme:specificity full -decoy_string DECOY_)
+add_test("TOPP_PeptideIndexer_7_out_json" ${DIFF} -in1 PeptideIndexer_7_out.tmp.idXML -in2 ${DATA_DIR_TOPP}/PeptideIndexer_7_out.idXML )
+set_tests_properties("TOPP_PeptideIndexer_7_out_json" PROPERTIES DEPENDS "TOPP_PeptideIndexer_7_json")
+add_test("TOPP_PeptideIndexer_8_json" ${TOPP_BIN_PATH}/PeptideIndexer -test -fasta ${DATA_DIR_TOPP}/PeptideIndexer_1.fasta -in ${DATA_DIR_TOPP}/PeptideIndexer_3.idXML -out PeptideIndexer_8_out.tmp.idXML -unmatched_action warn -enzyme:specificity semi -aaa_max 4)
+add_test("TOPP_PeptideIndexer_8_out_json" ${DIFF} -in1 PeptideIndexer_8_out.tmp.idXML -in2 ${DATA_DIR_TOPP}/PeptideIndexer_8_out.idXML )
+set_tests_properties("TOPP_PeptideIndexer_8_out_json" PROPERTIES DEPENDS "TOPP_PeptideIndexer_8_json")
+add_test("TOPP_PeptideIndexer_9_json" ${TOPP_BIN_PATH}/PeptideIndexer -test -fasta ${DATA_DIR_TOPP}/PeptideIndexer_1.fasta -in ${DATA_DIR_TOPP}/PeptideIndexer_3.idXML -out PeptideIndexer_9_out.tmp.idXML -unmatched_action remove -enzyme:specificity none -aaa_max 4)
+add_test("TOPP_PeptideIndexer_9_out_json" ${DIFF} -in1 PeptideIndexer_9_out.tmp.idXML -in2 ${DATA_DIR_TOPP}/PeptideIndexer_9_out.idXML)
+set_tests_properties("TOPP_PeptideIndexer_9_out_json" PROPERTIES DEPENDS "TOPP_PeptideIndexer_9_json")
+# "IL_equivalent" option (and 1) make sure that I/L does not count towards ambiguous AAs; 2) that the original protein and peptide sequence (no I/L substitutions) are reported
+add_test("TOPP_PeptideIndexer_10_json" ${TOPP_BIN_PATH}/PeptideIndexer -test -fasta ${DATA_DIR_TOPP}/PeptideIndexer_10_input.fasta -in ${DATA_DIR_TOPP}/PeptideIndexer_10_input.idXML -out PeptideIndexer_10_output.tmp.idXML -IL_equivalent -aaa_max 3 -write_protein_sequence)
+add_test("TOPP_PeptideIndexer_10_out_json" ${DIFF} -in1 PeptideIndexer_10_output.tmp.idXML -in2 ${DATA_DIR_TOPP}/PeptideIndexer_10_output.idXML )
+set_tests_properties("TOPP_PeptideIndexer_10_out_json" PROPERTIES DEPENDS "TOPP_PeptideIndexer_10_json")
+# empty FASTA
+add_test("TOPP_PeptideIndexer_11_json" ${TOPP_BIN_PATH}/PeptideIndexer -test -fasta ${DATA_DIR_TOPP}/degenerate_cases/empty.fasta -in ${DATA_DIR_TOPP}/PeptideIndexer_1.idXML -out PeptideIndexer_11_out.tmp.idXML)
+set_tests_properties("TOPP_PeptideIndexer_11_json" PROPERTIES WILL_FAIL 1)
+# with "annotate_proteins" (target/decoy):
+add_test("TOPP_PeptideIndexer_12_json" ${TOPP_BIN_PATH}/PeptideIndexer -test -fasta ${DATA_DIR_TOPP}/PeptideIndexer_1.fasta -in ${DATA_DIR_TOPP}/PeptideIndexer_1.idXML -out PeptideIndexer_12_out.tmp.idXML -unmatched_action warn -enzyme:specificity none -aaa_max 4)
+add_test("TOPP_PeptideIndexer_12_out_json" ${DIFF} -in1 PeptideIndexer_12_out.tmp.idXML -in2 ${DATA_DIR_TOPP}/PeptideIndexer_12_out.idXML)
+set_tests_properties("TOPP_PeptideIndexer_12_out_json" PROPERTIES DEPENDS "TOPP_PeptideIndexer_12_json")
+# empty input
+add_test("TOPP_PeptideIndexer_13_json" ${TOPP_BIN_PATH}/PeptideIndexer -test -fasta ${DATA_DIR_TOPP}/PeptideIndexer_1.fasta -in ${DATA_DIR_TOPP}/degenerate_cases/empty.idXML -out PeptideIndexer_13_out.tmp.idXML -aaa_max 4)
+add_test("TOPP_PeptideIndexer_13_out_json" ${DIFF} -in1 PeptideIndexer_13_out.tmp.idXML -in2 ${DATA_DIR_TOPP}/degenerate_cases/empty.idXML )
+set_tests_properties("TOPP_PeptideIndexer_13_out_json" PROPERTIES DEPENDS "TOPP_PeptideIndexer_13_json")
+# FASTA with X, overlapping peptides and some * in protein sequences (which should be removed internally)
+add_test("TOPP_PeptideIndexer_14_json" ${TOPP_BIN_PATH}/PeptideIndexer -test -fasta ${DATA_DIR_TOPP}/PeptideIndexer_2.fasta -in ${DATA_DIR_TOPP}/PeptideIndexer_14.idXML -out PeptideIndexer_14_out.tmp.idXML -enzyme:specificity none -aaa_max 4 -write_protein_sequence)
+add_test("TOPP_PeptideIndexer_14_out_json" ${DIFF} -in1 PeptideIndexer_14_out.tmp.idXML -in2 ${DATA_DIR_TOPP}/PeptideIndexer_14_out.idXML )
+set_tests_properties("TOPP_PeptideIndexer_14_out_json" PROPERTIES DEPENDS "TOPP_PeptideIndexer_14_json")
+
+#------------------------------------------------------------------------------
+# MzTabExporter tests
+add_test("TOPP_MzTabExporter_1_json" ${TOPP_BIN_PATH}/MzTabExporter -test -in ${DATA_DIR_TOPP}/MzTabExporter_1_input.consensusXML -out MzTabExporter_1_output.tmp)
+add_test("TOPP_MzTabExporter_1_out_json" ${DIFF} -in1 MzTabExporter_1_output.tmp -in2 ${DATA_DIR_TOPP}/MzTabExporter_1_output.mzTab -whitelist "MTD\turi[1]" "MS:1000752" "MTD\tsoftware")
+set_tests_properties("TOPP_MzTabExporter_1_out_json" PROPERTIES DEPENDS "TOPP_MzTabExporter_1_json")
+
+add_test("TOPP_MzTabExporter_2_json" ${TOPP_BIN_PATH}/MzTabExporter -test -in ${DATA_DIR_TOPP}/MzTabExporter_2_input.idXML -out MzTabExporter_2_output.tmp)
+add_test("TOPP_MzTabExporter_2_out_json" ${DIFF} -in1 MzTabExporter_2_output.tmp -in2 ${DATA_DIR_TOPP}/MzTabExporter_2_output.mzTab -whitelist "MTD\turi[1]" "MS:1000752" "MTD\tsoftware")
+set_tests_properties("TOPP_MzTabExporter_2_out_json" PROPERTIES DEPENDS "TOPP_MzTabExporter_2_json")
+
+add_test("TOPP_MzTabExporter_3_json" ${TOPP_BIN_PATH}/MzTabExporter -test -in ${DATA_DIR_TOPP}/MzTabExporter_3_input.featureXML -out MzTabExporter_3_output.tmp)
+add_test("TOPP_MzTabExporter_3_out_json" ${DIFF} -in1 MzTabExporter_3_output.tmp -in2 ${DATA_DIR_TOPP}/MzTabExporter_3_output.mzTab -whitelist "MTD\turi[1]" "MS:1000752" "MTD\tsoftware")
+set_tests_properties("TOPP_MzTabExporter_3_out_json" PROPERTIES DEPENDS "TOPP_MzTabExporter_3_json")
+
+add_test("TOPP_MzTabExporter_4_json" ${TOPP_BIN_PATH}/MzTabExporter -test -in ${DATA_DIR_TOPP}/Epifany_2_out.consensusXML -out MzTabExporter_4_output.tmp)
+add_test("TOPP_MzTabExporter_4_out_json" ${DIFF} -in1 MzTabExporter_4_output.tmp -in2 ${DATA_DIR_TOPP}/MzTabExporter_4_output.mzTab -whitelist "MTD\turi[1]" "MS:1000752" "MTD\tsoftware" "protein_search_engine_score")
+set_tests_properties("TOPP_MzTabExporter_4_out_json" PROPERTIES DEPENDS "TOPP_MzTabExporter_4_json")
+
+add_test("TOPP_MzTabExporter_5_json" ${TOPP_BIN_PATH}/MzTabExporter -test -in ${DATA_DIR_TOPP}/MzTabExporter_5_in.consensusXML -out MzTabExporter_5_output.tmp -first_run_inference_only)
+add_test("TOPP_MzTabExporter_5_out_json" ${DIFF} -in1 MzTabExporter_5_output.tmp -in2 ${DATA_DIR_TOPP}/MzTabExporter_5_output.mzTab -whitelist "MTD\turi[1]" "MS:1000752" "MTD\tsoftware" "protein_search_engine_score")
+set_tests_properties("TOPP_MzTabExporter_5_out_json" PROPERTIES DEPENDS "TOPP_MzTabExporter_5_json")
+
+add_test("TOPP_MzTabExporter_6_json" ${TOPP_BIN_PATH}/MzTabExporter -test -in ${DATA_DIR_TOPP}/MzTabExporter_6_input.idXML -out MzTabExporter_6_output.tmp)
+add_test("TOPP_MzTabExporter_6_out_json" ${DIFF} -in1 MzTabExporter_6_output.tmp -in2 ${DATA_DIR_TOPP}/MzTabExporter_6_output.mzTab -whitelist "MTD\turi[1]" "MS:1000752" "MTD\tsoftware" "protein_search_engine_score")
+set_tests_properties("TOPP_MzTabExporter_6_out_json" PROPERTIES DEPENDS "TOPP_MzTabExporter_6_json")
+
+add_test("TOPP_MzTabExporter_7_json" ${TOPP_BIN_PATH}/MzTabExporter -test -in ${DATA_DIR_TOPP}/MzTabExporter_7_input.consensusXML -out MzTabExporter_7_output.tmp)
+add_test("TOPP_MzTabExporter_7_out_json" ${DIFF} -in1 MzTabExporter_7_output.tmp -in2 ${DATA_DIR_TOPP}/MzTabExporter_7_output.mzTab -whitelist "MTD\turi[1]" "MS:1000752" "MTD\tsoftware" "protein_search_engine_score")
+set_tests_properties("TOPP_MzTabExporter_7_out_json" PROPERTIES DEPENDS "TOPP_MzTabExporter_7_json")
+
+add_test("TOPP_MzTabExporter_8_json" ${TOPP_BIN_PATH}/MzTabExporter -test -in ${DATA_DIR_TOPP}/MzTabExporter_6_input.idXML -export_all_psms -out MzTabExporter_8_output.tmp)
+add_test("TOPP_MzTabExporter_8_out_json" ${DIFF} -in1 MzTabExporter_8_output.tmp -in2 ${DATA_DIR_TOPP}/MzTabExporter_8_output.mzTab -whitelist "MTD\turi[1]" "MS:1000752" "MTD\tsoftware" "protein_search_engine_score")
+set_tests_properties("TOPP_MzTabExporter_8_out_json" PROPERTIES DEPENDS "TOPP_MzTabExporter_8_json")
+#------------------------------------------------------------------------------
+# OpenPepXL test
+add_test("TOPP_OpenPepXL_1_json" ${TOPP_BIN_PATH}/OpenPepXL -test -ini ${DATA_DIR_TOPP}/OpenPepXL_input.ini -in ${DATA_DIR_TOPP}/OpenPepXL_input.mzML -consensus ${DATA_DIR_TOPP}/OpenPepXL_input.consensusXML -database ${DATA_DIR_TOPP}/OpenPepXL_input.fasta -out_xquestxml OpenPepXL_output.xquest.xml.tmp -out_xquest_specxml OpenPepXL_output.spec.xml.tmp -out_mzIdentML OpenPepXL_output.mzid.tmp -out_idXML OpenPepXL_output.idXML.tmp)
+add_test("TOPP_OpenPepXL_1_out_1_json" ${DIFF} -whitelist "date=" -in1 OpenPepXL_output.xquest.xml.tmp -in2 ${DATA_DIR_TOPP}/OpenPepXL_output.xquest.xml )
+# unstable due to differences in double to string conversion, caused by different boost versions (between 1.71.0 and 1.78.0)
+# this file format is only important for compatibility with the xQuest pipeline's result visualization and not essential
+#add_test("TOPP_OpenPepXL_1_out_2" ${DIFF} -in1 OpenPepXL_output.spec.xml.tmp -in2 ${DATA_DIR_TOPP}/OpenPepXL_output.spec.xml )
+add_test("TOPP_OpenPepXL_1_out_3_json" ${DIFF} -whitelist "creationDate=" "id=" "spectraData_ref=" "searchDatabase_ref=" "OpenPepXL_input" -in1 OpenPepXL_output.mzid.tmp -in2 ${DATA_DIR_TOPP}/OpenPepXL_output.mzid )
+add_test("TOPP_OpenPepXL_1_out_4_json" ${DIFF} -whitelist "db=" "input_consensusXML" "input_mzML" "date" "OpenPepXL_input" -in1 OpenPepXL_output.idXML.tmp -in2 ${DATA_DIR_TOPP}/OpenPepXL_output.idXML )
+set_tests_properties("TOPP_OpenPepXL_1_out_1_json" PROPERTIES DEPENDS "TOPP_OpenPepXL_1_json")
+#set_tests_properties("TOPP_OpenPepXL_1_out_2_json" PROPERTIES DEPENDS "TOPP_OpenPepXL_1_json")
+set_tests_properties("TOPP_OpenPepXL_1_out_3_json" PROPERTIES DEPENDS "TOPP_OpenPepXL_1_json")
+set_tests_properties("TOPP_OpenPepXL_1_out_4_json" PROPERTIES DEPENDS "TOPP_OpenPepXL_1_json")
+
+#------------------------------------------------------------------------------
+# OpenPepXLLF test
+add_test("TOPP_OpenPepXLLF_1_json" ${TOPP_BIN_PATH}/OpenPepXLLF -test -decoy_string "decoy" -in ${DATA_DIR_TOPP}/OpenPepXLLF_input.mzML -database ${DATA_DIR_TOPP}/OpenPepXLLF_input.fasta -out_xquestxml OpenPepXLLF_output.xquest.xml.tmp -out_xquest_specxml OpenPepXLLF_output.spec.xml.tmp -out_mzIdentML OpenPepXLLF_output.mzid.tmp -out_idXML OpenPepXLLF_output.idXML.tmp)
+add_test("TOPP_OpenPepXLLF_1_out_1_json" ${DIFF} -whitelist "date=" -in1 OpenPepXLLF_output.xquest.xml.tmp -in2 ${DATA_DIR_TOPP}/OpenPepXLLF_output.xquest.xml )
+# unstable due to differences in double to string conversion, caused by different boost versions (between 1.71.0 and 1.78.0)
+# this file format is only important for compatibility with the xQuest pipeline's result visualization and not essential
+#add_test("TOPP_OpenPepXLLF_1_out_2" ${DIFF} -in1 OpenPepXLLF_output.spec.xml.tmp -in2 ${DATA_DIR_TOPP}/OpenPepXLLF_output.spec.xml )
+add_test("TOPP_OpenPepXLLF_1_out_3_json" ${DIFF} -whitelist "creationDate=" "id=" "spectraData_ref=" "searchDatabase_ref=" "input_mzML" "OpenPepXLLF_input" -in1 OpenPepXLLF_output.mzid.tmp -in2 ${DATA_DIR_TOPP}/OpenPepXLLF_output.mzid )
+add_test("TOPP_OpenPepXLLF_1_out_4_json" ${DIFF} -whitelist "db=" "input_consensusXML" "input_mzML" "date" "OpenPepXLLF_input" -in1 OpenPepXLLF_output.idXML.tmp -in2 ${DATA_DIR_TOPP}/OpenPepXLLF_output.idXML )
+set_tests_properties("TOPP_OpenPepXLLF_1_out_1_json" PROPERTIES DEPENDS "TOPP_OpenPepXLLF_1_json")
+#set_tests_properties("TOPP_OpenPepXLLF_1_out_2" PROPERTIES DEPENDS "TOPP_OpenPepXLLF_1_json")
+set_tests_properties("TOPP_OpenPepXLLF_1_out_3_json" PROPERTIES DEPENDS "TOPP_OpenPepXLLF_1_json")
+set_tests_properties("TOPP_OpenPepXLLF_1_out_4_json" PROPERTIES DEPENDS "TOPP_OpenPepXLLF_1_json")
+add_test("TOPP_OpenPepXLLF_2_json" ${TOPP_BIN_PATH}/OpenPepXLLF -test -ini ${DATA_DIR_TOPP}/OpenPepXLLF_input2.ini -in ${DATA_DIR_TOPP}/OpenPepXLLF_input2.mzML -database ${DATA_DIR_TOPP}/OpenPepXLLF_input2.fasta -out_idXML OpenPepXLLF_output2.idXML.tmp)
+add_test("TOPP_OpenPepXLLF_2_out_1_json" ${DIFF} -whitelist "db=" "input_consensusXML" "input_mzML" "date" "OpenPepXLLF_input" -in1 OpenPepXLLF_output2.idXML.tmp -in2 ${DATA_DIR_TOPP}/OpenPepXLLF_output2.idXML )
+set_tests_properties("TOPP_OpenPepXLLF_2_out_1_json" PROPERTIES DEPENDS "TOPP_OpenPepXLLF_2_json")
+
+#------------------------------------------------------------------------------
+# MultiplexResolver test
+add_test("UTILS_MultiplexResolver_1_json" ${TOPP_BIN_PATH}/MultiplexResolver -test -in ${DATA_DIR_TOPP}/MultiplexResolver_1_input.consensusXML -ini ${DATA_DIR_TOPP}/MultiplexResolver_1_parameters.ini -out MultiplexResolver_1.tmp -out_conflicts MultiplexResolver_1_conflicts.tmp)
+add_test("UTILS_MultiplexResolver_1_out1_json" ${DIFF} -whitelist "id=" "href=" -in1 MultiplexResolver_1.tmp -in2 ${DATA_DIR_TOPP}/MultiplexResolver_1_output.consensusXML )
+set_tests_properties("UTILS_MultiplexResolver_1_out1_json" PROPERTIES DEPENDS "UTILS_MultiplexResolver_1_json")
+add_test("UTILS_MultiplexResolver_1_out2_json" ${DIFF} -whitelist "id=" "href=" -in1 MultiplexResolver_1_conflicts.tmp -in2 ${DATA_DIR_TOPP}/MultiplexResolver_1_output_conflicts.consensusXML )
+set_tests_properties("UTILS_MultiplexResolver_1_out2_json" PROPERTIES DEPENDS "UTILS_MultiplexResolver_1_json")
+
+add_test("UTILS_MultiplexResolver_2_json" ${TOPP_BIN_PATH}/MultiplexResolver -test -in ${DATA_DIR_TOPP}/MultiplexResolver_2_input.consensusXML -ini ${DATA_DIR_TOPP}/MultiplexResolver_2_parameters.ini -out MultiplexResolver_2.tmp -out_conflicts MultiplexResolver_2_conflicts.tmp)
+add_test("UTILS_MultiplexResolver_2_out1_json" ${DIFF} -whitelist "id=" "href=" -in1 MultiplexResolver_2.tmp -in2 ${DATA_DIR_TOPP}/MultiplexResolver_2_output.consensusXML )
+set_tests_properties("UTILS_MultiplexResolver_2_out1_json" PROPERTIES DEPENDS "UTILS_MultiplexResolver_2_json")
+add_test("UTILS_MultiplexResolver_2_out2_json" ${DIFF} -whitelist "id=" "href=" -in1 MultiplexResolver_2_conflicts.tmp -in2 ${DATA_DIR_TOPP}/MultiplexResolver_2_output_conflicts.consensusXML )
+set_tests_properties("UTILS_MultiplexResolver_2_out2_json" PROPERTIES DEPENDS "UTILS_MultiplexResolver_2_json")
+
+add_test("UTILS_MultiplexResolver_3_json" ${TOPP_BIN_PATH}/MultiplexResolver -test -in ${DATA_DIR_TOPP}/MultiplexResolver_3_input.consensusXML -ini ${DATA_DIR_TOPP}/MultiplexResolver_3_parameters.ini -out MultiplexResolver_3.tmp -out_conflicts MultiplexResolver_3_conflicts.tmp)
+add_test("UTILS_MultiplexResolver_3_out1_json" ${DIFF} -whitelist "id=" "href=" -in1 MultiplexResolver_3.tmp -in2 ${DATA_DIR_TOPP}/MultiplexResolver_3_output.consensusXML )
+set_tests_properties("UTILS_MultiplexResolver_3_out1_json" PROPERTIES DEPENDS "UTILS_MultiplexResolver_3_json")
+add_test("UTILS_MultiplexResolver_3_out3_json" ${DIFF} -whitelist "id=" "href=" -in1 MultiplexResolver_3_conflicts.tmp -in2 ${DATA_DIR_TOPP}/MultiplexResolver_3_output_conflicts.consensusXML )
+set_tests_properties("UTILS_MultiplexResolver_3_out3_json" PROPERTIES DEPENDS "UTILS_MultiplexResolver_3_json")
+
+add_test("UTILS_MultiplexResolver_4_json" ${TOPP_BIN_PATH}/MultiplexResolver -test -in ${DATA_DIR_TOPP}/MultiplexResolver_4_input.consensusXML -in_blacklist ${DATA_DIR_TOPP}/MultiplexResolver_4_input.mzML -ini ${DATA_DIR_TOPP}/MultiplexResolver_4_parameters.ini -out MultiplexResolver_4.tmp -out_conflicts MultiplexResolver_4_conflicts.tmp)
+add_test("UTILS_MultiplexResolver_4_out1_json" ${DIFF} -whitelist "id=" "href=" -in1 MultiplexResolver_4.tmp -in2 ${DATA_DIR_TOPP}/MultiplexResolver_4_output.consensusXML )
+set_tests_properties("UTILS_MultiplexResolver_4_out1_json" PROPERTIES DEPENDS "UTILS_MultiplexResolver_4_json")
+add_test("UTILS_MultiplexResolver_4_out3_json" ${DIFF} -whitelist "id=" "href=" -in1 MultiplexResolver_4_conflicts.tmp -in2 ${DATA_DIR_TOPP}/MultiplexResolver_4_output_conflicts.consensusXML )
+set_tests_properties("UTILS_MultiplexResolver_4_out3_json" PROPERTIES DEPENDS "UTILS_MultiplexResolver_4_json")
+
+# SimpleSearchEngine:
+add_test("UTILS_SimpleSearchEngine_1_json" ${TOPP_BIN_PATH}/SimpleSearchEngine -test
+-ini ${DATA_DIR_TOPP}/SimpleSearchEngine_1.ini -in
+${DATA_DIR_TOPP}/SimpleSearchEngine_1.mzML -out SimpleSearchEngine_1_out.tmp
+-database ${DATA_DIR_TOPP}/SimpleSearchEngine_1.fasta)
+add_test("UTILS_SimpleSearchEngine_1_out_json" ${DIFF} -in1 SimpleSearchEngine_1_out.tmp -in2 ${DATA_DIR_TOPP}/SimpleSearchEngine_1_out.idXML -whitelist "IdentificationRun date" "SearchParameters id=\"SP_0\" db=")
+set_tests_properties("UTILS_SimpleSearchEngine_1_out_json" PROPERTIES DEPENDS
+"UTILS_SimpleSearchEngine_1_json")
+
+# extra percolator features
+add_test("UTILS_SimpleSearchEngine_2_json" ${TOPP_BIN_PATH}/SimpleSearchEngine -test
+-ini ${DATA_DIR_TOPP}/SimpleSearchEngine_2.ini -in
+${DATA_DIR_TOPP}/SimpleSearchEngine_1.mzML -out SimpleSearchEngine_2_out.tmp
+-database ${DATA_DIR_TOPP}/SimpleSearchEngine_1.fasta)
+add_test("UTILS_SimpleSearchEngine_2_out_json" ${DIFF} -in1 SimpleSearchEngine_2_out.tmp -in2 ${DATA_DIR_TOPP}/SimpleSearchEngine_2_out.idXML -whitelist "IdentificationRun date" "SearchParameters id=\"SP_0\" db=")
+set_tests_properties("UTILS_SimpleSearchEngine_2_out_json" PROPERTIES DEPENDS
+"UTILS_SimpleSearchEngine_2_json")
+
+
+#------------------------------------------------------------------------------
+# NucleicAcidSearchEngine:
+add_test("UTILS_NucleicAcidSearchEngine_1_json" ${TOPP_BIN_PATH}/NucleicAcidSearchEngine -test -ini ${DATA_DIR_TOPP}/NucleicAcidSearchEngine_1.ini -in ${DATA_DIR_TOPP}/NucleicAcidSearchEngine_1.mzML -id_out NucleicAcidSearchEngine_11_out.tmp -out NucleicAcidSearchEngine_12_out.tmp -db_out NucleicAcidSearchEngine_13_out.tmp -digest_out NucleicAcidSearchEngine_1_digest.oms -database ${DATA_DIR_TOPP}/NucleicAcidSearchEngine_1.fasta)
+add_test("UTILS_NucleicAcidSearchEngine_11_out_json" ${DIFF} -in1 NucleicAcidSearchEngine_11_out.tmp -in2 ${DATA_DIR_TOPP}/NucleicAcidSearchEngine_11_out.idXML -whitelist "IdentificationRun date" "SearchParameters id=\"SP_0\" db=")
+add_test("UTILS_NucleicAcidSearchEngine_12_out_json" ${DIFF} -in1 NucleicAcidSearchEngine_12_out.tmp -in2 ${DATA_DIR_TOPP}/NucleicAcidSearchEngine_12_out.mzTab -whitelist "ms_run[1]-location")
+# don't compare binary .oms (SQLite) output file (NucleicAcidSearchEngine_13_out.tmp)
+set_tests_properties("UTILS_NucleicAcidSearchEngine_11_out_json" PROPERTIES DEPENDS "UTILS_NucleicAcidSearchEngine_1_json")
+set_tests_properties("UTILS_NucleicAcidSearchEngine_12_out_json" PROPERTIES DEPENDS "UTILS_NucleicAcidSearchEngine_1_json")
+# use pre-digested sequence data:
+add_test("UTILS_NucleicAcidSearchEngine_2_json" ${TOPP_BIN_PATH}/NucleicAcidSearchEngine -test -ini ${DATA_DIR_TOPP}/NucleicAcidSearchEngine_1.ini -in ${DATA_DIR_TOPP}/NucleicAcidSearchEngine_1.mzML -id_out NucleicAcidSearchEngine_21_out.tmp -out NucleicAcidSearchEngine_22_out.tmp -db_out NucleicAcidSearchEngine_23_out.tmp -digest NucleicAcidSearchEngine_1_digest.oms)
+set_tests_properties("UTILS_NucleicAcidSearchEngine_2_json" PROPERTIES DEPENDS "UTILS_NucleicAcidSearchEngine_1_json")
+add_test("UTILS_NucleicAcidSearchEngine_21_out_json" ${DIFF} -in1 NucleicAcidSearchEngine_21_out.tmp -in2 ${DATA_DIR_TOPP}/NucleicAcidSearchEngine_11_out.idXML -whitelist "IdentificationRun date" "SearchParameters id=\"SP_0\" db=")
+add_test("UTILS_NucleicAcidSearchEngine_22_out_json" ${DIFF} -in1 NucleicAcidSearchEngine_22_out.tmp -in2 ${DATA_DIR_TOPP}/NucleicAcidSearchEngine_12_out.mzTab -whitelist "ms_run[1]-location")
+# don't compare binary .oms (SQLite) output file (NucleicAcidSearchEngine_23_out.tmp)
+set_tests_properties("UTILS_NucleicAcidSearchEngine_21_out_json" PROPERTIES DEPENDS "UTILS_NucleicAcidSearchEngine_2_json")
+set_tests_properties("UTILS_NucleicAcidSearchEngine_22_out_json" PROPERTIES DEPENDS "UTILS_NucleicAcidSearchEngine_2_json")

@@ -1,0 +1,8 @@
+{
+  "algorithm__centroid_percentage": 0.6,
+  "algorithm__fwhm_lower_bound_factor": 0.5,
+  "algorithm__peak_width": 0.2,
+  "algorithm__signal_to_noise": 3.0,
+  "algorithm__thresholds__peak_bound": 100.0,
+  "write_peak_meta_data": true
+}

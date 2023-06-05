@@ -1,0 +1,39 @@
+{
+  "consensus__add_metavalues": true,
+  "consensus__centroids": {
+    "class": "File",
+    "path": "TextExporter_2_consensus_centroids.tmp"
+  },
+  "consensus__elements": {
+    "class": "File",
+    "path": "TextExporter_2_consensus_elements.tmp"
+  },
+  "consensus__features": {
+    "class": "File",
+    "path": "TextExporter_2_consensus_features.tmp"
+  },
+  "consensus__sort_by_maps": true,
+  "consensus__sort_by_size": true,
+  "consensus__sorting_method": "RT_then_MZ",
+  "debug": 0,
+  "feature__minimal": false,
+  "id__first_dim_rt": false,
+  "id__peptides_only": false,
+  "id__proteins_only": false,
+  "in": {
+    "class": "File",
+    "path": ""
+  },
+  "log": "TOPP.log",
+  "no_ids": true,
+  "no_progress": true,
+  "out": {
+    "class": "File",
+    "path": "TextExporter_2_consensus_tsv.tmp"
+  },
+  "out_type": "",
+  "quoting": "none",
+  "replacement": "_",
+  "test": false,
+  "threads": 1
+}

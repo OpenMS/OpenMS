@@ -1,0 +1,28 @@
+{
+  "algorithm__distance_MZ__exponent": 2.0,
+  "algorithm__distance_MZ__max_difference": 0.5,
+  "algorithm__distance_MZ__unit": "Da",
+  "algorithm__distance_MZ__weight": 1.0,
+  "algorithm__distance_RT__exponent": 2.0,
+  "algorithm__distance_RT__max_difference": 200.0,
+  "algorithm__distance_RT__weight": 1.0,
+  "algorithm__distance_intensity__exponent": 1.0,
+  "algorithm__distance_intensity__weight": 0.0,
+  "algorithm__ignore_charge": true,
+  "algorithm__second_nearest_gap": 2.0,
+  "algorithm__use_identifications": true,
+  "debug": 0,
+  "in": {
+    "class": "File",
+    "path": []
+  },
+  "keep_subelements": false,
+  "log": "TOPP.log",
+  "no_progress": false,
+  "out": {
+    "class": "File",
+    "path": ""
+  },
+  "test": false,
+  "threads": 1
+}

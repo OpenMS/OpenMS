@@ -1,0 +1,26 @@
+{
+  "debug": 0,
+  "force": false,
+  "ignore_proteins_per_peptide": false,
+  "in": {
+    "class": "File",
+    "path": ""
+  },
+  "log": "",
+  "mz_file": {
+    "class": "File",
+    "path": ""
+  },
+  "mz_name": "",
+  "no_progress": false,
+  "out": {
+    "class": "File",
+    "path": ""
+  },
+  "out_type": "idXML",
+  "peptideprophet_analyzed": false,
+  "scan_regex": "scan=(?<SCAN>\\d+)",
+  "score_type": "qvalue",
+  "test": true,
+  "threads": 1
+}

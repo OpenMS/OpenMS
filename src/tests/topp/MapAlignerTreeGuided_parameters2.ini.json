@@ -1,0 +1,47 @@
+{
+  "algorithm__align_algorithm__max_rt_shift": 0.5,
+  "algorithm__align_algorithm__min_run_occur": 2,
+  "algorithm__align_algorithm__min_score": 0.05,
+  "algorithm__align_algorithm__score_cutoff": false,
+  "algorithm__align_algorithm__use_feature_rt": true,
+  "algorithm__align_algorithm__use_unassigned_peptides": true,
+  "algorithm__model__b_spline__boundary_condition": 2,
+  "algorithm__model__b_spline__extrapolate": "linear",
+  "algorithm__model__b_spline__num_nodes": 5,
+  "algorithm__model__b_spline__wavelength": 0.0,
+  "algorithm__model__interpolated__extrapolation_type": "two-point-linear",
+  "algorithm__model__interpolated__interpolation_type": "cspline",
+  "algorithm__model__linear__symmetric_regression": false,
+  "algorithm__model__linear__x_datum_max": 1e+15,
+  "algorithm__model__linear__x_datum_min": 1e-15,
+  "algorithm__model__linear__x_weight": "x",
+  "algorithm__model__linear__y_datum_max": 1e+15,
+  "algorithm__model__linear__y_datum_min": 1e-15,
+  "algorithm__model__linear__y_weight": "y",
+  "algorithm__model__lowess__delta": -1.0,
+  "algorithm__model__lowess__extrapolation_type": "four-point-linear",
+  "algorithm__model__lowess__interpolation_type": "cspline",
+  "algorithm__model__lowess__num_iterations": 3,
+  "algorithm__model__lowess__span": 0.666666666666667,
+  "algorithm__model__type": "b_spline",
+  "algorithm__model_type": "b_spline",
+  "copy_data": true,
+  "debug": 0,
+  "force": false,
+  "in": {
+    "class": "File",
+    "path": []
+  },
+  "log": "",
+  "no_progress": false,
+  "out": {
+    "class": "File",
+    "path": []
+  },
+  "test": false,
+  "threads": 1,
+  "trafo_out": {
+    "class": "File",
+    "path": []
+  }
+}

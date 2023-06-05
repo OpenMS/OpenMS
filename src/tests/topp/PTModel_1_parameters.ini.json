@@ -1,0 +1,8 @@
+{
+  "border_length": 22,
+  "c": 0.5,
+  "k_mer_length": 1,
+  "kernel_type": "OLIGO",
+  "sigma": 5.0,
+  "skip_cv": "true"
+}

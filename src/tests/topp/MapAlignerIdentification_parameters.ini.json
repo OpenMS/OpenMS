@@ -1,0 +1,37 @@
+{
+  "algorithm__max_rt_shift": 0.0,
+  "algorithm__min_run_occur": 2,
+  "algorithm__use_feature_rt": false,
+  "algorithm__use_unassigned_peptides": true,
+  "debug": 0,
+  "force": false,
+  "in": {
+    "class": "File",
+    "path": []
+  },
+  "log": "",
+  "model__b_spline__boundary_condition": 2,
+  "model__b_spline__extrapolate": "linear",
+  "model__b_spline__num_nodes": 5,
+  "model__b_spline__wavelength": 0.0,
+  "model__interpolated__extrapolation_type": "two-point-linear",
+  "model__interpolated__interpolation_type": "cspline",
+  "model__linear__symmetric_regression": false,
+  "model__type": "b_spline",
+  "no_progress": false,
+  "out": {
+    "class": "File",
+    "path": []
+  },
+  "reference__file": {
+    "class": "File",
+    "path": ""
+  },
+  "reference__index": 0,
+  "test": false,
+  "threads": 1,
+  "trafo_out": {
+    "class": "File",
+    "path": []
+  }
+}

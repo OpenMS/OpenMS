@@ -1,0 +1,10 @@
+{
+  "algorithm__gaussian_width": 1.0,
+  "algorithm__ppm_tolerance": 10.0,
+  "algorithm__use_ppm_tolerance": false,
+  "debug": 0,
+  "in": "",
+  "log": "TOPP.log",
+  "no_progress": false,
+  "out": ""
+}
