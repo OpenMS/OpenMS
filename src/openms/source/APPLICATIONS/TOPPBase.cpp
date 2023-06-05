@@ -299,7 +299,7 @@ namespace OpenMS
           in_ini = param_cmdline_.getValue("ini");
           Param ini_params;
           std::string in_ini_path = in_ini.toString();
-          if (FileHandler::hasValidExtension(in_ini_path, FileTypes::Type::JSON))
+          if (FileHandler::getTypeByFileName(in_ini_path) == FileTypes::Type::JSON)
           {
             // The JSON file doesn't carry any information about the parameter tree structure.
             // We prepopulate the param object with the default values, so we have information
@@ -343,7 +343,7 @@ namespace OpenMS
           writeDebug_("INI file: " + value_ini, 1);
           writeDebug_("INI location: " + getIniLocation_(), 1);
 
-          if (FileHandler::hasValidExtension(value_ini, FileTypes::Type::JSON))
+          if (FileHandler::getTypeByFileName(value_ini) == FileTypes::Type::JSON)
           {
             writeDebug_("Assuming INI is a cwl file", 1);
             // The JSON file doesn't carry any information about the parameter tree structure.
