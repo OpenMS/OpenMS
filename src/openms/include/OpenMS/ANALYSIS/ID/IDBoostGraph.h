@@ -49,6 +49,8 @@
 #include <queue>
 
 #include <boost/function.hpp>
+#include <boost/blank.hpp>
+#include <boost/serialization/strong_typedef.hpp>
 #include <boost/graph/adjacency_list.hpp>
 #include <boost/graph/depth_first_search.hpp>
 #include <boost/graph/filtered_graph.hpp>
@@ -87,7 +89,7 @@ namespace OpenMS
     #pragma clang diagnostic ignored "-Wextra-semi"
 
     /// placeholder for peptides with the same parent proteins or protein groups
-    BOOST_STRONG_TYPEDEF(boost::blank, PeptideCluster)
+    BOOST_STRONG_TYPEDEF(boost::blank, PeptideCluster);
 
     /// indistinguishable protein groups (size, nr targets, score)
     struct ProteinGroup
@@ -98,13 +100,13 @@ namespace OpenMS
     };
 
     /// an (currently unmodified) peptide sequence
-    BOOST_STRONG_TYPEDEF(String, Peptide)
+    BOOST_STRONG_TYPEDEF(String, Peptide);
 
     /// in which run a PSM was observed
-    BOOST_STRONG_TYPEDEF(Size, RunIndex)
+    BOOST_STRONG_TYPEDEF(Size, RunIndex);
 
     /// in which charge state a PSM was observed
-    BOOST_STRONG_TYPEDEF(int, Charge)
+    BOOST_STRONG_TYPEDEF(int, Charge);
 
     #pragma clang diagnostic pop
 
