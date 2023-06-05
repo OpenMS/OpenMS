@@ -319,6 +319,204 @@ namespace OpenMS
     os << convertToCWL(tdl_tool_info);
   }
 
+  void ParamCWLFile::storeJSON(const std::string& filename, const Param& param) const
+  {
+    std::ofstream os;
+    std::ostream* os_ptr;
+    if (filename != "-")
+    {
+      os.open(filename.c_str(), std::ofstream::out);
+      if (!os)
+      {
+        // Replace the OpenMS specific exception with a std exception
+        // Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename);
+        throw std::ios::failure("Unable to create file: " + filename);
+      }
+      os_ptr = &os;
+    }
+    else
+    {
+      os_ptr = &std::cout;
+    }
+
+    writeJSONToStream(os_ptr, param);
+  }
+
+  void ParamCWLFile::writeJSONToStream(std::ostream* os_ptr, const Param& param) const
+  {
+    std::ostream& os = *os_ptr;
+
+    // discover the name of the first nesting Level
+    // this is expected to result in something like "ToolName:1:"
+    auto traces = param.begin().getTrace();
+    std::string toolNamespace = traces.front().name + ":1:";
+
+    std::vector<tdl::Node> stack;
+    stack.push_back(tdl::Node {});
+
+    json jsonDoc{};
+
+
+    auto param_it = param.begin();
+    for (auto last = param.end(); param_it != last; ++param_it)
+    {
+      for (auto& trace : param_it.getTrace())
+      {
+        if (trace.opened)
+        {
+          stack.push_back(tdl::Node {trace.name, trace.description, {}, tdl::Node::Children {}});
+        }
+        else // these nodes must be closed
+        {
+          auto top = stack.back();
+          stack.pop_back();
+          auto& children = std::get<tdl::Node::Children>(stack.back().value);
+          children.push_back(top);
+        }
+      }
+
+      // converting trags to tdl compatible tags
+      std::set<std::string> tags;
+      for (auto const& t : param_it->tags)
+      {
+        if (t == "input file")
+        {
+          tags.insert("file");
+        }
+        else if (t == "output file")
+        {
+          tags.insert("file");
+          tags.insert("output");
+        }
+        else if (t == "output prefix")
+        {
+          tags.insert("output");
+          tags.insert("prefixed");
+        }
+        else
+        {
+          tags.insert(t);
+        }
+      }
+
+      // Sets a single value into the tdl library
+/*      auto setValue = [&](auto value) {
+        jsonDoc[stack.back().valu] = value.toInt();
+      };*/
+      auto name = param_it->name;
+      if (stack.size() > 2) {
+        for (size_t i{0}; i < stack.size()-3; ++i) {
+          auto const& e = stack[stack.size()-1-i];
+          name = e.name + "__" + name;
+        }
+        switch (param_it->value.valueType())
+        {
+          case ParamValue::INT_VALUE:
+            jsonDoc[name] = static_cast<int64_t>(param_it->value);
+            break;
+          case ParamValue::DOUBLE_VALUE:
+            jsonDoc[name] = static_cast<double>(param_it->value);
+            break;
+          case ParamValue::STRING_VALUE:
+            if ((param_it->valid_strings.size() == 2 && param_it->valid_strings[0] == "true" && param_it->valid_strings[1] == "false")
+               || (param_it->valid_strings.size() == 2 && param_it->valid_strings[0] == "false" && param_it->valid_strings[1] == "true"))
+            {
+                jsonDoc[name] = param_it->value.toBool();
+            } else {
+                if (tags.count("file")) {
+                    jsonDoc[name]["class"] = "File";
+                    jsonDoc[name]["path"] = param_it->value.toString();
+                } else {
+                    jsonDoc[name] = param_it->value.toString();
+                }
+            }
+            break;
+          case ParamValue::INT_LIST:
+            jsonDoc[name] = param_it->value.toIntVector();
+            break;
+          case ParamValue::DOUBLE_LIST:
+            jsonDoc[name] = param_it->value.toDoubleVector();
+            break;
+          case ParamValue::STRING_LIST:
+            if (tags.count("file")) {
+                jsonDoc[name]["class"] = "File";
+                jsonDoc[name]["path"] = param_it->value.toStringVector();
+            } else {
+                jsonDoc[name] = param_it->value.toStringVector();
+            }
+            break;
+          default:
+            break;
+        }
+      }
+    }
+
+    while (stack.size() > 1)
+    {
+      auto top = stack.back();
+      stack.pop_back();
+      auto& children = std::get<tdl::Node::Children>(stack.back().value);
+      children.push_back(top);
+    }
+    assert(stack.size() == 1);
+
+#if 0
+    // fix naming of all children, by appending their parents name
+    // skipping the first two levels, since they are always the "ToolName:1:" keys
+    auto renameNodes = std::function<void(tdl::Node&, tdl::Node const*, int)> {};
+    renameNodes = [&](tdl::Node& element, tdl::Node const* parent, int level) {
+      if (parent != nullptr && !parent->name.empty())
+      {
+        element.name = parent->name + ":" + element.name;
+      }
+
+      if (auto children = std::get_if<tdl::Node::Children>(&element.value))
+      {
+        for (auto& child : *children)
+        {
+          renameNodes(child, &element, level+1);
+        }
+      }
+    };
+    renameNodes(stack.back(), nullptr, 0);
+#endif
+#if 0
+    tdl_tool_info.params.push_back(stack.back());
+
+    // Removing the fake cli methods
+    tdl::post_process_cwl = [&](YAML::Node node) {
+      node["requirements"] = YAML::Load(R"-(
+            InlineJavascriptRequirement: {}
+            InitialWorkDirRequirement:
+              listing:
+                - entryname: cwl_inputs.json
+                  entry: $(JSON.stringify(inputs))
+        )-");
+      node["arguments"] = YAML::Load(R"-(
+            - -ini
+            - cwl_inputs.json
+        )-");
+
+      // Remove All fake cli prefix bindings
+      for (auto in : node["inputs"])
+      {
+        if (in.second["inputBinding"].IsMap() && in.second["inputBinding"]["prefix"].IsScalar())
+        {
+          auto prefix = in.second["inputBinding"]["prefix"].as<std::string>();
+          if (prefix.size() > 6 and prefix.substr(0, 6) == "--fake")
+          {
+            in.second.remove("inputBinding");
+          }
+        }
+      }
+    };
+    os << convertToCWL(tdl_tool_info);
+    #endif
+    os << jsonDoc.dump(2);
+  }
+
+
+
   bool ParamCWLFile::load(const std::string& filename, Param& param)
   {
     // discover the name of the first nesting Level

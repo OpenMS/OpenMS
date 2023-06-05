@@ -109,6 +109,17 @@ Same file with "__" instead of ':' as the section separator.
     void writeCWLToStream(std::ostream* os_ptr, const Param& param, const ToolInfo& tool_info) const;
 
     /**
+       @brief Write Json file with set values
+
+       @param filename The name of the file the param data structure should be stored in.
+       @param param The param data structure that should be stored.
+
+       @exception std::ios::failure is thrown if the file could not be created
+     */
+    void storeJSON(const std::string& filename, const Param& param) const;
+    void writeJSONToStream(std::ostream* os_ptr, const Param& param) const;
+
+    /**
       @brief Read JSON file that is formatted in CWL conforming style.
 
       @param filename The file from where to read the Param object.

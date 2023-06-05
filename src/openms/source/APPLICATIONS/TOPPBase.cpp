@@ -312,6 +312,7 @@ namespace OpenMS
             }
           } else {
             ParamXMLFile().load(in_ini_path, ini_params);
+//            ParamCWLFile().storeJSON(in_ini_path+".json", ini_params);
           }
 
           // check if ini parameters are applicable to this tool
@@ -372,6 +373,7 @@ namespace OpenMS
 
           } else {
             ParamXMLFile().load(value_ini, param_inifile_);
+//            ParamCWLFile().storeJSON(value_ini+".json", param_inifile_);
           }
           checkIfIniParametersAreApplicable_(param_inifile_);
 
