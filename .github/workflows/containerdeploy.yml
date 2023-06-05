@@ -36,8 +36,7 @@ jobs:
         uses: docker/build-push-action@v3
         with:
           push: false
-          context: contrib
-          file: dockerfiles/Dockerfile
+          context: contrib/dockerfiles
           tags: |
             ghcr.io/contrib:${{ steps.tag_name.outputs.tag }}
         if: startsWith(steps.extract_branch.outputs.branch, 'release/')        
