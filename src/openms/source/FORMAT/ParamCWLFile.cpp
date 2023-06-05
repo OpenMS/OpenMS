@@ -55,7 +55,7 @@ static std::string replaceAll(std::string str, const std::string& pattern, const
 
 namespace OpenMS
 {
-  void ParamCWLFile::load(const std::string& filename, Param& param)
+  bool ParamCWLFile::load(const std::string& filename, Param& param)
   {
     // discover the name of the first nesting Level
     // this is expected to result in something like "ToolName:1:"
@@ -78,8 +78,8 @@ namespace OpenMS
         continue; // No value given
       if (!param.exists(key))
       {
-        OPENMS_LOG_WARN << "Unknown (or deprecated) Parameter '" << key << "' given in outdated parameter file! Ignoring parameter." << std::endl;
-        continue;
+        OPENMS_LOG_ERROR << "Parameter " << key << " passed to '" << traces.front().name << "' is invalid. To prevent usage of wrong defaults, please update/fix the parameters!" << std::endl;
+        return false;
       }
       auto const& entry = param.getEntry(key);
       auto value = entry.value;
@@ -133,6 +133,7 @@ namespace OpenMS
       }
       param.setValue(key, value);
     }
+    return true;
   }
 
 } // namespace OpenMS
