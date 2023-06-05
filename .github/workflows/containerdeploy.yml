@@ -101,6 +101,18 @@ jobs:
         shell: bash
         run: echo "repo=${GITHUB_REPOSITORY,,}" >> $GITHUB_OUTPUT
         id: downcase_repo
+      - name: Checkout repository because we need to build contrib
+        uses: actions/checkout@v3
+        if: startsWith(steps.extract_branch.outputs.branch, 'release/')
+      - name: Build contrib container using the correct submodule hash
+        uses: docker/build-push-action@v3
+        with:
+          push: false
+          context: contrib
+          file: dockerfiles/Dockerfile
+          tags: |
+            ghcr.io/contrib:${{ steps.tag_name.outputs.tag }}
+        if: startsWith(steps.extract_branch.outputs.branch, 'release/')                
       - name: Checkout Dockerfiles
         shell: bash
         run: |
