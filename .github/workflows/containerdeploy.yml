@@ -31,6 +31,8 @@ jobs:
         id: downcase_repo
       - name: Checkout repository because we need to build contrib
         uses: actions/checkout@v3
+        with:
+          submodules: true
         if: startsWith(steps.extract_branch.outputs.branch, 'release/')
       - name: Build contrib container using the correct submodule hash
         uses: docker/build-push-action@v3
@@ -102,6 +104,8 @@ jobs:
         id: downcase_repo
       - name: Checkout repository because we need to build contrib
         uses: actions/checkout@v3
+        with:
+          submodules: true
         if: startsWith(steps.extract_branch.outputs.branch, 'release/')
       - name: Build contrib container using the correct submodule hash
         uses: docker/build-push-action@v3
