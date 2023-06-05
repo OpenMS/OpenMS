@@ -47,7 +47,7 @@ jobs:
           context: contrib
           file: contrib/dockerfiles/Dockerfile
           tags: |
-            ghcr.io/contrib:${{ steps.tag_name.outputs.tag }}
+            ghcr.io/openms/contrib:${{ steps.tag_name.outputs.tag }}
         if: startsWith(steps.extract_branch.outputs.branch, 'release/')        
       - name: Checkout Library and Executable Dockerfiles
         shell: bash # uses git bash on windows
@@ -121,7 +121,7 @@ jobs:
           context: contrib
           file: contrib/dockerfiles/Dockerfile
           tags: |
-            ghcr.io/contrib:${{ steps.tag_name.outputs.tag }}
+            ghcr.io/openms/contrib:${{ steps.tag_name.outputs.tag }}
         if: startsWith(steps.extract_branch.outputs.branch, 'release/')                
       - name: Checkout Dockerfiles
         shell: bash
