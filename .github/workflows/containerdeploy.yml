@@ -38,7 +38,7 @@ jobs:
         uses: docker/build-push-action@v3
         with:
           push: false
-          context: OpenMS/contrib/dockerfiles
+          context: contrib/dockerfiles
           tags: |
             ghcr.io/contrib:${{ steps.tag_name.outputs.tag }}
         if: startsWith(steps.extract_branch.outputs.branch, 'release/')        
@@ -111,7 +111,7 @@ jobs:
         uses: docker/build-push-action@v3
         with:
           push: false
-          context: OpenMS/contrib/dockerfiles
+          context: contrib/dockerfiles
           tags: |
             ghcr.io/contrib:${{ steps.tag_name.outputs.tag }}
         if: startsWith(steps.extract_branch.outputs.branch, 'release/')                
