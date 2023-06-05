@@ -302,10 +302,13 @@ namespace OpenMS
           if (FileHandler::getTypeByFileName(in_ini_path) == FileTypes::Type::JSON)
           {
             // The JSON file doesn't carry any information about the parameter tree structure.
-            // We prepopulate the param object with the default values, so we have information
+            // We hand an additional parameter object with the default values, so we have information
             // about the tree when parsing the JSON file.
-            ini_params = this->getDefaultParameters_();
-            ParamCWLFile().load(in_ini_path, ini_params);
+            ini_params = getDefaultParameters_();
+            if (!ParamCWLFile().load(in_ini_path, ini_params))
+            {
+              return ILLEGAL_PARAMETERS;
+            }
           } else {
             ParamXMLFile().load(in_ini_path, ini_params);
           }
@@ -349,8 +352,12 @@ namespace OpenMS
             // The JSON file doesn't carry any information about the parameter tree structure.
             // We prepopulate the param object with the default values, so we have information
             // about the tree when parsing the JSON file.
-            param_inifile_ = this->getDefaultParameters_();
-            ParamCWLFile().load(value_ini, param_inifile_);
+            param_inifile_ = getDefaultParameters_();
+            if (!ParamCWLFile().load(value_ini, param_inifile_))
+            {
+              return ILLEGAL_PARAMETERS;
+            }
+
           } else {
             ParamXMLFile().load(value_ini, param_inifile_);
           }

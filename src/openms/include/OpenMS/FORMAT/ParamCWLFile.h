@@ -92,10 +92,11 @@ Same file with "__" instead of ':' as the section separator.
 
       @param filename The file from where to read the Param object.
       @param param The param object where the read data should be stored.
+      @return returns true if file was successfully loaded.
 
       @exception Exception::FileNotFound is thrown if the file could not be found
       @exception Exception::ParseError is thrown if an error occurs during parsing
     */
-    void load(const std::string& filename, Param& param);
+    bool load(const std::string& filename, Param& param);
   };
 } // namespace OpenMS
