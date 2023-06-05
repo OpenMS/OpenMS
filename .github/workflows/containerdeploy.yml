@@ -39,7 +39,7 @@ jobs:
         with:
           push: false
           context: contrib
-          file: dockerfiles/Dockerfile
+          file: contrib/dockerfiles/Dockerfile
           tags: |
             ghcr.io/contrib:${{ steps.tag_name.outputs.tag }}
         if: startsWith(steps.extract_branch.outputs.branch, 'release/')        
@@ -113,7 +113,7 @@ jobs:
         with:
           push: false
           context: contrib
-          file: dockerfiles/Dockerfile
+          file: contrib/dockerfiles/Dockerfile
           tags: |
             ghcr.io/contrib:${{ steps.tag_name.outputs.tag }}
         if: startsWith(steps.extract_branch.outputs.branch, 'release/')                
