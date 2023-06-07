@@ -316,7 +316,7 @@ namespace OpenMS
     void scoreAndFilterPeakGroups_();
 
     /// filter out charge error masses
-    void removeChargeErrorPeakGroups_(DeconvolvedSpectrum& dspec);
+    void removeChargeErrorPeakGroups_(DeconvolvedSpectrum& dspec) const;
 
     /// filter out overlapping masses
     static void removeOverlappingPeakGroups_(DeconvolvedSpectrum& dspec, double tol);

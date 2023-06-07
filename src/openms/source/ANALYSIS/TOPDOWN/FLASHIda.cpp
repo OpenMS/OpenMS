@@ -680,7 +680,7 @@ namespace OpenMS
       wstart[i] = trigger_left_isolation_mzs_[i]; // std::get<0>(mz_range) - min_isolation_window_half_;
       wend[i] = trigger_right_isolation_mzs_[i];  // std::get<1>(mz_range) + min_isolation_window_half_;
 
-      qscores[i] = Qscore::getQscore(&peakgroup, charges[i]);
+      qscores[i] = Qscore::getQscore(&peakgroup);
       mono_masses[i] = peakgroup.getMonoMass();
       chare_cos[i] = peakgroup.getChargeIsotopeCosine(charges[i]);
       charge_snrs[i] = peakgroup.getChargeSNR(charges[i]);

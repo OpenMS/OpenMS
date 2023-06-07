@@ -341,14 +341,14 @@ namespace OpenMS
     /// peak group index
     uint index_ = 0;
     /// scan number
-    int scan_number_;
+    int scan_number_ = 0;
     /// is positive or not
     bool is_positive_;
     /// if this peak group has been targeted
     bool is_targeted_ = false;
     /// information on the deconvolved mass
     double monoisotopic_mass_ = -1.0;
-    float intensity_; // total intensity
+    float intensity_ = 0; // total intensity
     /// index to specify if this peak_group is a target (0), an isotope dummy (1), a noise (2), or a charge dummy (3)
     PeakGroup::TargetDummyType target_dummy_type_ = target;
 
@@ -363,7 +363,6 @@ namespace OpenMS
     float qscore_ = .0f;
     float avg_ppm_error_ = 0;
     float avg_da_error_ = 0;
-
     float snr_ = 0;
     /// q values with different dummy types
     std::map<PeakGroup::TargetDummyType, float> qvalue_;
