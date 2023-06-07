@@ -522,9 +522,6 @@ namespace OpenMS
           charge_signal_peaks.push_back(p);
         }
 
-        std::sort(charge_noisy_peaks.begin(), charge_noisy_peaks.end());
-        std::sort(charge_signal_peaks.begin(), charge_signal_peaks.end());
-
         if (cal_snr)
         {
           charge_noise_pwr = getNoisePeakPower_(charge_noisy_peaks, charge_signal_peaks);
@@ -544,10 +541,6 @@ namespace OpenMS
       }
     }
 
-    if (!cal_snr)
-    {
-      return noisy_peaks;
-    }
     // determine the final charge ranges based on per charge power.
     // If more than two consecutive charges do not contain any signal peak, the charge range stops at that charge.
 
