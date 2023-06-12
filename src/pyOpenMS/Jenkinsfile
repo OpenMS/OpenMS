@@ -5,6 +5,7 @@ pipeline {
         stage('Checkout') {
             steps {
                 dir("OpenMS") {
+                    deleteDir()
                     checkout scm: [
                         $class: 'GitSCM',
                         branches: scm.branches,
@@ -28,7 +29,7 @@ pipeline {
                 sh """
                     echo 'Building..'
                     mkdir -p contrib-build && pushd contrib-build
-                      CC=/usr/bin/clang CXX=/usr/bin/clang++ cmake -DBUILD_TYPE=ALL -DNUMBER_OF_JOBS=4 ../OpenMS/contrib
+                      CC=clang CXX=clang++ cmake -DBUILD_TYPE=ALL -DNUMBER_OF_JOBS=4 ../OpenMS/contrib
                     popd
                     mkdir -p OpenMS-build && pushd OpenMS-build
                       cmake -G Ninja -DOPENMS_CONTRIB_LIBS="$WORKSPACE/contrib-build" -DPYOPENMS=ON ../OpenMS
