@@ -1,5 +1,5 @@
 pipeline {
-    agent "macos && silicon"
+    agent {label "macos && silicon"}
 
     stages {
         stage('Build') {
