@@ -3,8 +3,10 @@ pipeline {
 
     stages {
         stage('Checkout') {
-            dir("OpenMS") {
-                checkout scm
+            steps {
+                dir("OpenMS") {
+                    checkout scm
+                }
             }
         }
         stage('Build') {
