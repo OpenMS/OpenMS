@@ -2,9 +2,16 @@ pipeline {
     agent {label "macos && silicon"}
 
     stages {
+        stage('Checkout') {
+            dir("OpenMS") {
+                checkout scm
+            }
+        }
         stage('Build') {
             steps {
                 echo 'Building..'
+                mkdir -p OpenMS-build && cd OpenMS-build
+                cmake -DPYOPENMS=ON ../OpenMS
             }
         }
         stage('Test') {
