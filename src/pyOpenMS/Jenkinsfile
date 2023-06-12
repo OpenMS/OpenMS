@@ -9,9 +9,11 @@ pipeline {
         }
         stage('Build') {
             steps {
-                echo 'Building..'
-                mkdir -p OpenMS-build && cd OpenMS-build
-                cmake -DPYOPENMS=ON ../OpenMS
+                sh """
+                    echo 'Building..'
+                    mkdir -p OpenMS-build && cd OpenMS-build
+                    cmake -DPYOPENMS=ON ../OpenMS
+                """
             }
         }
         stage('Test') {
