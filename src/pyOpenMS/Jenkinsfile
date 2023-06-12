@@ -35,7 +35,7 @@ pipeline {
                     . "/Users/builder/mambaforge/etc/profile.d/conda.sh"
                     conda activate pyopenms-build
                     mkdir -p OpenMS-build && pushd OpenMS-build
-                      cmake -G Ninja -DOPENMS_CONTRIB_LIBS="$WORKSPACE/contrib-build" -DPYOPENMS=ON ../OpenMS
+                      cmake -G Ninja -DQt5_DIR="/opt/homebrew/opt/qt@5/lib/cmake/Qt5" -DOPENMS_CONTRIB_LIBS="$WORKSPACE/contrib-build" -DPYOPENMS=ON ../OpenMS
                       ninja pyopenms
                     popd
                 """
