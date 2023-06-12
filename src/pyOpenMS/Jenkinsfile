@@ -5,7 +5,21 @@ pipeline {
         stage('Checkout') {
             steps {
                 dir("OpenMS") {
-                    checkout scm
+                    checkout scm: [
+                        $class: 'GitSCM',
+                        branches: scm.branches,
+                        extensions: [
+                            [$class: 'SubmoduleOption',
+                            disableSubmodules: false,
+                            parentCredentials: false,
+                            recursiveSubmodules: true,
+                            reference: 'https://github.com/OpenMS/OpenMS.git',
+                            shallow: true,
+                            trackingSubmodules: false]
+                        ],
+                        submoduleCfg: [],
+                        userRemoteConfigs: scm.userRemoteConfigs
+                    ]
                 }
             }
         }
