@@ -12,10 +12,14 @@ pipeline {
         stage('Build') {
             steps {
                 sh """
-                    echo $PATH
                     echo 'Building..'
-                    mkdir -p OpenMS-build && cd OpenMS-build
-                    cmake -DPYOPENMS=ON ../OpenMS
+                    mkdir -p contrib-build && pushd contrib-build
+                      cmake -DBUILD_TYPE=ALL -DNUMBER_OF_JOBS=4 ../OpenMS/contrib
+                    popd
+                    mkdir -p OpenMS-build && pushd OpenMS-build
+                      cmake -G Ninja -DOPENMS_CONTRIB_LIBS="$WORKSPACE/contrib-build" -DPYOPENMS=ON ../OpenMS
+                      ninja pyopenms
+                    popd
                 """
             }
         }
