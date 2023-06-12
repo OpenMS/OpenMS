@@ -1,5 +1,5 @@
 pipeline {
-    agent abibuilder9
+    agent {"macos && silicon"}
 
     stages {
         stage('Build') {
