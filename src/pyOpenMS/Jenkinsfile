@@ -27,6 +27,7 @@ pipeline {
         stage('Build') {
             steps {
                 sh """
+                    #!/bin/zsh
                     echo 'Building..'
                     mkdir -p contrib-build && pushd contrib-build
                       CC=clang CXX=clang++ cmake -DBUILD_TYPE=ALL -DNUMBER_OF_JOBS=4 ../OpenMS/contrib
