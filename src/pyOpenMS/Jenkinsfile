@@ -3,9 +3,8 @@ pipeline {
 
     stages {
         stage('Checkout') {
-            steps {
+                deleteDir()
                 dir("OpenMS") {
-                    deleteDir()
                     checkout scm: [
                         $class: 'GitSCM',
                         branches: scm.branches,
