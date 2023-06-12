@@ -12,6 +12,7 @@ pipeline {
         stage('Build') {
             steps {
                 sh """
+                    echo $PATH
                     echo 'Building..'
                     mkdir -p OpenMS-build && cd OpenMS-build
                     cmake -DPYOPENMS=ON ../OpenMS
