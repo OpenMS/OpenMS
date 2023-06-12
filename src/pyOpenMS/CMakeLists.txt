@@ -702,6 +702,10 @@ ELSE()
     IF(APPLE AND NOT NO_DEPENDENCIES)
         add_custom_target(pyopenms
             COMMAND ./mac_fix_dependencies.rb -l ${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms -e "@rpath/" -f -v
+            # ad hoc signature is represented by a dash
+            # https://developer.apple.com/documentation/security/seccodesignatureflags/kseccodesignatureadhoc
+            COMMAND codesign --force --sign "-" ${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms/Qt*
+            COMMAND codesign --force --sign "-" ${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms/*.dylib
             #COMMAND ${Python_EXECUTABLE} setup.py bdist_egg
             COMMAND ${Python_EXECUTABLE} -m pip wheel -w dist --no-deps --no-binary=pyopenms .
             #COMMAND ${Python_EXECUTABLE} setup.py bdist --format=zip
