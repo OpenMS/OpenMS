@@ -1,15 +1,24 @@
+/**
+ * Jenkinsfile for building, testing, and deploying pyOpenMS
+ */
+
 pipeline {
-    agent {label "macos && silicon"}
+    agent {
+        // Specifies the label for the Jenkins agent
+        label "macos && silicon"
+    }
 
     stages {
         stage('Checkout') {
-            steps{
+            steps {
+                // Deletes the workspace directory and checks out the OpenMS repository
                 deleteDir()
                 dir("OpenMS") {
                     checkout scm: [
                         $class: 'GitSCM',
                         branches: scm.branches,
                         extensions: [
+                            // Configures the Git submodule options
                             [$class: 'SubmoduleOption',
                             disableSubmodules: false,
                             parentCredentials: false,
@@ -24,39 +33,50 @@ pipeline {
                 }
             }
         }
+
         stage('Build') {
             steps {
                 sh """
                     #!/bin/zsh
                     echo 'Building..'
+                    
+                    # Creates a contrib-build directory and builds the dependencies
                     mkdir -p contrib-build && pushd contrib-build
-                      CC=clang CXX=clang++ cmake -DBUILD_TYPE=ALL -DNUMBER_OF_JOBS=4 ../OpenMS/contrib
+                    CC=clang CXX=clang++ cmake -DBUILD_TYPE=ALL -DNUMBER_OF_JOBS=4 ../OpenMS/contrib
                     popd
+                    
+                    # Activates the conda environment and builds pyOpenMS
                     . "/Users/builder/mambaforge/etc/profile.d/conda.sh"
                     conda activate pyopenms-build
                     mkdir -p OpenMS-build && pushd OpenMS-build
-                      cmake -G Ninja -DQt5_DIR="/opt/homebrew/opt/qt@5/lib/cmake/Qt5" -DOPENMS_CONTRIB_LIBS="$WORKSPACE/contrib-build" -DPYOPENMS=ON ../OpenMS
-                      ninja pyopenms
+                    cmake -G Ninja -DQt5_DIR="/opt/homebrew/opt/qt@5/lib/cmake/Qt5" -DOPENMS_CONTRIB_LIBS="$WORKSPACE/contrib-build" -DPYOPENMS=ON ../OpenMS
+                    ninja pyopenms
                     popd
                 """
             }
         }
+
         stage('Test') {
             steps {
                 sh """
                     echo 'Testing..'
+                    
+                    # Executes the tests for pyopenms
                     pushd OpenMS-build
-                        ctest -R pyopenms
+                    ctest -R pyopenms
                     popd
                 """
             }
         }
+
         stage('Deploy') {
             steps {
                 withCredentials([usernamePassword(credentialsId: 'pypi_ut', usernameVariable: 'USERNAME', passwordVariable: 'PASSWORD')]) {
                     sh '''
                         . "/Users/builder/mambaforge/etc/profile.d/conda.sh"
                         conda activate pyopenms-build
+                        
+                        # Uploads the pyOpenMS distribution to our PyPI repository
                         twine upload OpenMS-build/pyOpenMS/dist/* --repository-url https://pypi.cs.uni-tuebingen.de/ -u $USERNAME -p $PASSWORD
                     '''
                 }
