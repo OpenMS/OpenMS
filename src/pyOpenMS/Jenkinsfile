@@ -54,7 +54,11 @@ pipeline {
         stage('Deploy') {
             steps {
                 withCredentials([usernamePassword(credentialsId: 'pypi_ut', usernameVariable: 'USERNAME', passwordVariable: 'PASSWORD')]) {
-                    sh 'twine upload OpenMS-build/pyOpenMS/dist/* --repository-url https://pypi.cs.uni-tuebingen.de/ -u $USERNAME -p $PASSWORD'
+                    sh """
+                        . "/Users/builder/mambaforge/etc/profile.d/conda.sh"
+                        conda activate pyopenms-build
+                        twine upload OpenMS-build/pyOpenMS/dist/* --repository-url https://pypi.cs.uni-tuebingen.de/ -u $USERNAME -p $PASSWORD
+                    """
                 }
             }
         }
