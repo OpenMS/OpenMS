@@ -148,7 +148,7 @@ namespace OpenMS
     /**
      *  set target dummy type for the FLASHDeconvAlgorithm run. All masses from the target FLASHDeconvAlgorithm run will have the target_dummy_type_.
      * @param target_dummy_type  This target_dummy_type_ specifies if a PeakGroup is a target (0), charge dummy (1), noise dummy (2), or isotope dummy (3)
-     * @param targetFD target FLASHDeconvAlgorithm
+     * @param target_dspec_for_dummy_calcualtion target masses from normal deconvolution
      */
     void setTargetDummyType(PeakGroup::TargetDummyType target_dummy_type, DeconvolvedSpectrum& target_dspec_for_dummy_calcualtion);
 
@@ -313,7 +313,7 @@ namespace OpenMS
     void removeChargeErrorPeakGroups_(DeconvolvedSpectrum& dspec) const;
 
     /// filter out overlapping masses
-    static void removeOverlappingPeakGroups_(DeconvolvedSpectrum& dspec, double tol);
+    void removeOverlappingPeakGroups_(DeconvolvedSpectrum& dspec, double tol);
 
     /**
     @brief register the precursor peak as well as the precursor peak group (or mass) if possible for MSn (n>1) spectrum.

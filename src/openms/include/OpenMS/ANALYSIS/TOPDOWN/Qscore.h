@@ -59,11 +59,11 @@ namespace OpenMS
   public:
     typedef FLASHDeconvHelperStructs::LogMzPeak LogMzPeak;
 
-    /// get Qscore for a peak group of specific abs_charge
-    static float getQscore(const PeakGroup *pg);
+    /// get QScore for a peak group of specific abs_charge
+    static float getQscore(const PeakGroup* pg, const int abs_charge);
 
   private:
     /// convert a peak group to a feature vector for Qscore calculation
-    static std::vector<double> toFeatureVector_(const PeakGroup *pg);
+    static std::vector<double> toFeatureVector_(const PeakGroup* pg, const int abs_charge);
   };
-}
+} // namespace OpenMS

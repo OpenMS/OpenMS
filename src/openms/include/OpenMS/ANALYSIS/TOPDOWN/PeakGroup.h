@@ -123,7 +123,8 @@ namespace OpenMS
      * @return returns the noisy peaks for this peakgroup - i.e., the raw peaks within the range of this peakGroup that are not matched to any istope of this peakGroup mass.
      */
     std::vector<LogMzPeak> recruitAllPeaksInSpectrum(const MSSpectrum& spec, double tol, const FLASHDeconvHelperStructs::PrecalculatedAveragine& avg, double mono_mass,
-                                                     const std::unordered_set<double>& excluded_peak_mzs, bool cal_snr = false, int charge_offset = 0, double charge_multiple = 1.0, double mz_off = .0);
+                                                     const std::unordered_set<double>& excluded_peak_mzs, bool cal_snr = false, int charge_offset = 0, double charge_multiple = 1.0,
+                                                     double mz_off = .0);
 
     /// determine is an mz is a signal of this peakgroup. Input tol is ppm tolerance (e.g., 10.0 for 10ppm tolerance). Assume logMzPeaks are sorted.
     bool isSignalMZ(double mz, double tol) const;
@@ -284,7 +285,7 @@ namespace OpenMS
 
   private:
     /// set per abs_charge signal power
-    void setChargePowers_(int abs_charge, float signal_pwr, float noise_pwr, float intensity);
+    void setChargePowers_(int abs_charge, float sum_signal_squared, float noise_pwr, float intensity);
     /// update chargefit score and also update per charge intensities here.
     void updateChargeFitScoreAndChargeIntensities_();
     /// update avg ppm error
@@ -312,7 +313,7 @@ namespace OpenMS
     std::vector<FLASHDeconvHelperStructs::LogMzPeak> logMzpeaks_;
 
     /// per charge SNR, isotope cosine, and intensity vectors
-    std::vector<float> per_charge_signal_pwr_;
+    std::vector<float> per_charge_sum_signal_squared_;
     std::vector<float> per_charge_noise_pwr_;
     std::vector<float> per_charge_cos_;
     std::vector<float> per_charge_int_;
