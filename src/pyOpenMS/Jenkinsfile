@@ -40,7 +40,7 @@ pipeline {
 
         stage('Build and Test') {
             steps {
-                sh """
+                sh '''
                     #!/bin/zsh
                     echo 'Building..'
                     
@@ -91,7 +91,7 @@ pipeline {
                             conda remove --name pyoms-bld-"${pynodot}" --all
                         done
                     popd
-                """
+                '''
             }
         }
 
