@@ -113,7 +113,7 @@ pipeline {
                         elif [[ "${BRANCH_NAME}" == *"Release"* ]]
                         then
                             # Like above but with default repository pypi.org and corresponding credentials
-                            twine upload pyopenms_whls/* --repository-url https://pypi.cs.uni-tuebingen.de/ -u $USERNAME_RELEASE -p $PASSWORD_RELEASE
+                            twine upload pyopenms_whls/* -u $USERNAME_RELEASE -p $PASSWORD_RELEASE
                         else
                             echo "Not uploading for experimental branch ${BRANCH_NAME}"
                         fi
