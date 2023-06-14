@@ -149,13 +149,9 @@ namespace OpenMS
         weights = tmp_weight;
       }
 
-      std::cout<<weights[0]<< " " << weights[1] << " " << weights[2] << " " << weights[3] <<std::endl;
-
       weights[0] *= dscore_charge.empty() ? .0 : (((double)qscores.size()) / dscore_charge.size());
       weights[1] *= dscore_noise.empty() ? .0 : (((double)qscores.size()) / dscore_noise.size());
       weights[2] *= dscore_iso.empty() ? .0 : (((double)qscores.size()) / dscore_iso.size());
-
-      std::cout<<weights[0]<< " " << weights[1] << " " << weights[2] <<std::endl;
 
       std::sort(qscores.begin(), qscores.end());
       std::sort(dscore_iso.begin(), dscore_iso.end());
