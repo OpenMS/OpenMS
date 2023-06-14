@@ -241,22 +241,12 @@ START_SECTION((int getRepAbsCharge() const))
 }
 END_SECTION
 
-
-START_SECTION((void setQScore(const float qscore)))
+START_SECTION((float getQscore() const))
 {
-  sample_pg.setQScore(0.1);
-  double temp_score = sample_pg.getQScore();
+  double temp_score = sample_pg.getQscore();
   TEST_REAL_SIMILAR(temp_score, 0.1);
 }
 END_SECTION
-
-START_SECTION((float getQScore() const))
-{
-  double temp_score = sample_pg.getQScore();
-  TEST_REAL_SIMILAR(temp_score, 0.1);
-}
-END_SECTION
-
 
 START_SECTION((void setChargeScore(const float charge_score)))
 {

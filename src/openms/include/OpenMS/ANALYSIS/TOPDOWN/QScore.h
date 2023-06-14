@@ -60,7 +60,7 @@ namespace OpenMS
     typedef FLASHDeconvHelperStructs::LogMzPeak LogMzPeak;
 
     /// get QScore for a peak group of specific abs_charge
-    static float getQscore(const PeakGroup *pg);
+    static float getQscore(const PeakGroup *pg, const int abs_charge);
 
     static void writeAttCsvFromDummy(const DeconvolvedSpectrum&  deconvolved_spectrum, std::fstream& f);
 
@@ -68,6 +68,6 @@ namespace OpenMS
 
   private:
     /// convert a peak group to a feature vector for Qscore calculation
-    static std::vector<double> toFeatureVector_(const PeakGroup *pg);
+    static std::vector<double> toFeatureVector_(const PeakGroup *pg, const int abs_charge);
   };
 }

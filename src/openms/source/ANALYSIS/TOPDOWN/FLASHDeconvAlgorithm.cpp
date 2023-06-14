@@ -1222,30 +1222,20 @@ namespace OpenMS
       std::vector<PeakGroup> filtered_peak_groups_private;
       filtered_peak_groups_private.reserve(deconvolved_spectrum_.size());
 #pragma omp for nowait schedule(static)
+
       for (auto & peak_group : deconvolved_spectrum_)
       {
         int offset = 0;
-
-        if(debug)
-        {
-          auto m = peak_group.getMonoMass();
-          if(m>debug_mass_min && m<debug_mass_max)
-          {
-            std::cout<<"scoreAndFilterPeakGroups_before_anything "<< std::to_string(m) << " " <<std::endl;
-            auto [z1, z2] = peak_group.getAbsChargeRange();
-            std::cout<<z1<<" " << z2<<std::endl;
-          }
-        }
-
         peak_group.setTargetDummyType(target_dummy_type_);
-        float cos = getIsotopeCosineAndDetermineIsotopeIndex(peak_group.getMonoMass(), peak_group.getIsotopeIntensities(), offset, avg_, -1, allowed_iso_error_);
+        float prev_cos = peak_group.getIsotopeCosine();
+        float cos = getIsotopeCosineAndDetermineIsotopeIndex(peak_group.getMonoMass(), peak_group.getIsotopeIntensities(), offset, avg_, -1, allowed_iso_error_, target_dummy_type_);
+        auto prev_mono_mass = peak_group.getMonoMass() + offset * iso_da_distance_;
 
-        auto m = peak_group.getMonoMass();
         if(debug)
         {
-          if(m>debug_mass_min && m<debug_mass_max)
+          if(prev_mono_mass>debug_mass_min && prev_mono_mass<debug_mass_max)
           {
-            std::cout<<"scoreAndFilterPeakGroups_after_1st cosine "<< std::to_string(m) << " cos " <<cos<<std::endl;
+            std::cout<<"scoreAndFilterPeakGroups_after_1st cosine "<< std::to_string(prev_mono_mass) << " cos " <<cos<<std::endl;
             for(auto inten : peak_group.getIsotopeIntensities())
             {
               std::cout<<inten<<std::endl;
@@ -1261,8 +1251,7 @@ namespace OpenMS
           continue;
         }
 
-        int prev_offset = offset;
-        for (int k = 0; k < 10; k++) // TODO do not let it move too much!!
+        for (int k = 0; k < 10; k++)
         {
           peak_group.recruitAllPeaksInSpectrum(deconvolved_spectrum_.getOriginalSpectrum(), tol, avg_, peak_group.getMonoMass() + offset * iso_da_distance_, excluded_peak_mzs_, true);
           // min cosine is checked in here. mono mass is also updated one last time. SNR, per charge SNR, and avg errors are updated here.
@@ -1273,17 +1262,18 @@ namespace OpenMS
           }
         }
 
-        if(std::abs(prev_offset - offset) > 3) // if they are off by more than 3, they are different envelopes.
+        if(target_dummy_type_ == PeakGroup::TargetDummyType::isotope_dummy)
         {
-          continue;
+          if(peak_group.getIsotopeCosine() < prev_cos * .98)
+            continue;
         }
 
         peak_group.setTargetDummyType(target_dummy_type_);
-        if(peak_group.getTargetDummyType() == PeakGroup::TargetDummyType::isotope_dummy) // for isotope dummy, find the next best monoisotopic mass
-        {
-          offset = peak_group.updateIsotopeCosineSNRAvgErrorAndQscore(avg_, min_isotope_cosine_[ms_level_ - 1]);
-        }
 
+        if (std::abs(prev_mono_mass - peak_group.getMonoMass()) > 3) // if they are off by more than 3, they are different envelopes.
+        {
+          continue;
+        }
 
         auto [z1, z2] = peak_group.getAbsChargeRange();
 
@@ -1323,12 +1313,10 @@ namespace OpenMS
           }
         }
 
-
-
         if(debug)
         {
           //auto m = peak_group.getMonoMass();
-          if(m>debug_mass_min && m<debug_mass_max)
+          if(prev_mono_mass>debug_mass_min && prev_mono_mass<debug_mass_max)
           {
             std::cout<<"scoreAndFilterPeakGroups_after recruiting "<< std::to_string(peak_group.getMonoMass()) << " cos " << peak_group.getIsotopeCosine() << " snr " <<  peak_group.getSNR() << std::endl;
             std::cout<<z1<<" " << z2<<std::endl;
@@ -1342,7 +1330,8 @@ namespace OpenMS
           continue;
         }
 
-        if (peak_group.getQscore() <= 0 || (peak_group.getSNR() < .5)) // snr check prevents harmonics or noise. TODO control this and DL
+        float snr_threshold = .5;
+        if (peak_group.getQscore() <= 0 || peak_group.getSNR() < snr_threshold) // snr check prevents harmonics or noise.
         {
           continue;
         }
@@ -1398,9 +1387,9 @@ namespace OpenMS
     }
     deconvolved_spectrum_.setPeakGroups(filtered_peak_groups);
     deconvolved_spectrum_.sort();
+
     removeChargeErrorPeakGroups_(deconvolved_spectrum_);
     removeOverlappingPeakGroups_(deconvolved_spectrum_, tol);
-
     if(debug)
     {
       std::set<int> distinct_masses;
@@ -1409,7 +1398,6 @@ namespace OpenMS
       {
         distinct_masses.insert(getNominalMass(pg.getMonoMass()));
       }
-
       std::cout<<"Mass count after final filtration: " <<  deconvolved_spectrum_.size()  << " distinct mass count: " << distinct_masses.size() <<std::endl;
     }
 
@@ -1711,7 +1699,7 @@ namespace OpenMS
           {
             continue;
           }
-          if (dspec[i].getSNR() > dspec[j].getSNR() * 2.0) // if ith is way better than jth, jth is overlapped not ith
+          if (dspec[i].getChargeSNR(repz1) > dspec[j].getChargeSNR(repz2) * 2.0) // if ith is way better than jth, jth is overlapped not ith
           {
             continue;
           }
@@ -1725,6 +1713,10 @@ namespace OpenMS
 
     for (Size i = 0; i < dspec.size(); i++)
     {
+      if(dspec[i].getTargetDummyType() != target_dummy_type_)
+      {
+        continue;
+      }
       if (!dspec[i].isTargeted() &&
           overlap_intensity[i] >= dspec[i].getIntensity() * .5) // If the overlapped intensity takes more than 50% total intensity then it is a peakgroup with a charge error. the smaller, the harsher
       {
@@ -1765,7 +1757,8 @@ namespace OpenMS
       {
         if (!dspec[local_max_index].isTargeted()) // targeted ones were already push_backed.
         {
-          filtered_pg_vec.push_back(dspec[local_max_index]);
+          if(dspec[local_max_index].getTargetDummyType() == target_dummy_type_)
+            filtered_pg_vec.push_back(dspec[local_max_index]);
         }
         start_mass = mass;
         local_max_SNR = 0;
@@ -1778,7 +1771,8 @@ namespace OpenMS
       }
       if (dspec[i].isTargeted())
       {
-        filtered_pg_vec.push_back(dspec[i]);
+        if(dspec[i].getTargetDummyType() == target_dummy_type_)
+          filtered_pg_vec.push_back(dspec[i]);
       }
     }
 
@@ -1786,7 +1780,8 @@ namespace OpenMS
     {
       if (!dspec[local_max_index].isTargeted()) // targeted ones were already push_backed.
       {
-        filtered_pg_vec.push_back(dspec[local_max_index]);
+        if(dspec[local_max_index].getTargetDummyType() == target_dummy_type_)
+          filtered_pg_vec.push_back(dspec[local_max_index]);
       }
     }
 

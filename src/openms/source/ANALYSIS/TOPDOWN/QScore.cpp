@@ -39,7 +39,7 @@
 
 namespace OpenMS
 {
-  float Qscore::getQscore(const PeakGroup* pg)
+  float Qscore::getQscore(const PeakGroup* pg, const int abs_charge)
   {
     if (pg->empty())
     { // all zero
@@ -51,10 +51,10 @@ namespace OpenMS
     // PPM error           0.3269
     // charge score        -3.1663
     // Intercept    12.3131
-    const std::vector<double> weights({-8.9494, -2.2977, 0.3269, -3.1663, 12.3131});
-
+    //const std::vector<double> weights({-8.9494, -2.2977, 0.3269, -3.1663, 12.3131});
+    const std::vector<double> weights({-2.2833, -3.2881, 0, 0, 4.5425});
     double score = weights.back();
-    auto fv = toFeatureVector_(pg);
+    auto fv = toFeatureVector_(pg, abs_charge);
 
     for (Size i = 0; i < weights.size() - 1; i++)
     {
@@ -65,7 +65,7 @@ namespace OpenMS
     return qscore;
   }
 
-  std::vector<double> Qscore::toFeatureVector_(const PeakGroup* pg)
+  std::vector<double> Qscore::toFeatureVector_(const PeakGroup* pg, const int abs_charge)
   {
     std::vector<double> fvector(4); // length of weights vector - 1, excluding the intercept weight.
 
@@ -78,7 +78,7 @@ namespace OpenMS
     fvector[index++] = (log2(d + a / (d + a)));
 
     a = pg->getAvgPPMError();
-    fvector[index++] = (log2(a + d));
+    fvector[index++] = (log2(d + a / (d + a)));
 
     a = pg->getChargeScore();
     fvector[index++] = (log2(a + d));
@@ -86,9 +86,10 @@ namespace OpenMS
     return fvector;
   }
 
+
   void Qscore::writeAttCsvFromDummyHeader(std::fstream& f)
   {
-    f << "MSLevel,ChargeCos,ChargeSNR,Cos,SNR,AvgPPMError,Class\n";
+    f << "MSLevel,Cos,SNR,AvgPPMError,ChargeScore,Class\n";
   }
 
   void Qscore::writeAttCsvFromDummy(const DeconvolvedSpectrum& deconvolved_spectrum, std::fstream& f)
@@ -97,11 +98,16 @@ namespace OpenMS
     String cns[] = {"T", "D", "D", "D"};
     for(auto& pg:deconvolved_spectrum)
     {
-      if(pg.getSNR() < 1e-2) // remove masses with too low SNRs - they act as outliers.
+      if(pg.getChargeSNR(pg.getRepAbsCharge()) < .5) // remove masses with too low SNRs - they act as outliers.
       {
         continue;
       }
-      auto fv = toFeatureVector_(&pg);
+      if(pg.getChargeIsotopeCosine(pg.getRepAbsCharge()) < .85) // remove masses with too low SNRs - they act as outliers.
+      {
+        continue;
+      }
+
+      auto fv = toFeatureVector_(&pg, pg.getRepAbsCharge());
       f<< ms_level<<",";
       for (auto& item: fv)
       {

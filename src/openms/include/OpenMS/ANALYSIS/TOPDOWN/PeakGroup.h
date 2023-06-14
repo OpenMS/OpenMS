@@ -298,7 +298,7 @@ namespace OpenMS
 
   private:
     /// set per abs_charge signal power
-    void setChargePowers_(int abs_charge, float signal_pwr, float noise_pwr, float intensity);
+    void setChargePowers_(int abs_charge, float sum_signal_squared, float noise_pwr, float intensity);
     /// update chargefit score and also update per charge intensities here.
     void updateChargeFitScoreAndChargeIntensities_();
     /// update avg ppm error
@@ -329,7 +329,7 @@ namespace OpenMS
     std::vector<FLASHDeconvHelperStructs::LogMzPeak> logMzpeaks_;
 
     /// per charge SNR, isotope cosine, and intensity vectors
-    std::vector<float> per_charge_signal_pwr_;
+    std::vector<float> per_charge_sum_signal_squared_;
     std::vector<float> per_charge_noise_pwr_;
     std::vector<float> per_charge_cos_;
     std::vector<float> per_charge_int_;
