@@ -97,7 +97,12 @@ pipeline {
 
         stage('Deploy') {
             steps {
-                withCredentials([usernamePassword(credentialsId: 'pypi_ut', usernameVariable: 'USERNAME', passwordVariable: 'PASSWORD')]) {
+                withCredentials(
+                    [
+                        usernamePassword(credentialsId: 'pypi_ut', usernameVariable: 'USERNAME', passwordVariable: 'PASSWORD'),
+                        usernamePassword(credentialsId: 'pypiorg_api_token_pyopenms', usernameVariable: 'USERNAME_RELEASE', passwordVariable: 'PASSWORD_RELEASE')
+                    ]
+                    ) {
                     sh '''
                         echo "Branch: ${BRANCH_NAME}"
                         
@@ -107,7 +112,8 @@ pipeline {
                             twine upload pyopenms_whls/* --repository-url https://pypi.cs.uni-tuebingen.de/ -u $USERNAME -p $PASSWORD
                         elif [[ "${BRANCH_NAME}" == *"Release"* ]]
                         then
-                            echo "We should upload to pypi."
+                            # Like above but with default repository pypi.org and corresponding credentials
+                            twine upload pyopenms_whls/* --repository-url https://pypi.cs.uni-tuebingen.de/ -u $USERNAME_RELEASE -p $PASSWORD_RELEASE
                         else
                             echo "Not uploading for experimental branch ${BRANCH_NAME}"
                         fi
