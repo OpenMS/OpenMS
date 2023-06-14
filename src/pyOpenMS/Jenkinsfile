@@ -63,7 +63,7 @@ pipeline {
                             py=$(echo "$py" | tr -d " \n")
                             pynodot=$(echo "$py" | tr -d ".")
                             conda create -n pyoms-bld-"${pynodot}" python="${py}"
-                            source activate pyoms-bld-"${pynodot}"
+                            conda activate pyoms-bld-"${pynodot}"
 
                             # set current python executable
                             CURRENT_PYTHON_EXECUTABLE=$(which python)
