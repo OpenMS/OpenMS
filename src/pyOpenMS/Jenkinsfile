@@ -99,9 +99,6 @@ pipeline {
             steps {
                 withCredentials([usernamePassword(credentialsId: 'pypi_ut', usernameVariable: 'USERNAME', passwordVariable: 'PASSWORD')]) {
                     sh '''
-                        . "/Users/builder/mambaforge/etc/profile.d/conda.sh"
-                        conda activate pyopenms-build
-
                         echo "Branch: ${BRANCH_NAME}"
                         
                         if [[ "${BRANCH_NAME}" == "nightly" || "${BRANCH_NAME}" == "develop" ]]
