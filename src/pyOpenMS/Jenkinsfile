@@ -78,7 +78,7 @@ pipeline {
                             pip install -U pandas
 
                             # build pyopenms distribution (macOS)
-                            cmake -DPYTHON_EXECUTABLE:FILEPATH=$CURRENT_PYTHON_EXECUTABLE -DPYOPENMS=ON .
+                            cmake -DPYTHON_EXECUTABLE:FILEPATH="$CURRENT_PYTHON_EXECUTABLE" -DPYOPENMS=ON .
                             ninja pyopenms
 
                             ctest -R pyopenms
