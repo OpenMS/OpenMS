@@ -29,7 +29,8 @@ pipeline {
                             recursiveSubmodules: true,
                             reference: 'https://github.com/OpenMS/OpenMS.git',
                             shallow: true,
-                            trackingSubmodules: false]
+                            trackingSubmodules: false],
+                            [$class: 'LocalBranch']
                         ],
                         submoduleCfg: [],
                         userRemoteConfigs: scm.userRemoteConfigs
