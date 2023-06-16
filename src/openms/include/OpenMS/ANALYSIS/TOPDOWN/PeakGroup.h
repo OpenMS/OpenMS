@@ -95,24 +95,36 @@ namespace OpenMS
     PeakGroup& operator=(const PeakGroup& t) = default;
 
     /**
-           @brief Update isotope cosine sore and qscore. SNR, per charge SNR, and avg errors are updated here.
+           @brief add monoisotopic indices of peaks by offset and discard negative isotope peaks. Total intensity is also updated
+      */
+    void updateMonomassAndIsotopeIntensities();
+
+    /**
+           @brief Update isotope cosine sore and qscore. Mono mass is also updated one last time. SNR, per charge SNR, and avg errors are updated here.
            @param avg precalculated averagine
            @param min_cos the peak groups with cosine score less than this will have Qscore 0.
+           @param allowed_isotope_error this set the allowed isotope error in dummy mass generation.
+           @return returns isotope offset after isotope cosine calculation
       */
-    void updateQscore(const FLASHDeconvHelperStructs::PrecalculatedAveragine& avg, double min_cos, std::vector<LogMzPeak>& noisy_peaks);
+    int updateIsotopeCosineSNRAvgErrorAndQscore(const FLASHDeconvHelperStructs::PrecalculatedAveragine& avg, double min_cos, int allowed_isotope_error = 1);
 
-    void updatePerChargeIntensities_(std::vector<LogMzPeak>& noisy_peaks);
     /**
-     * @brief Recruit raw peaks from the raw input spectrum and add to this peakGroup. This is a bit time-consuming and is done for only a small number of selected
+     * @brief given a monoisotopic mass, recruit raw peaks from the raw input spectrum and add to this peakGroup. This is a bit time-consuming and is done for only a small number of selected
      * high-quality peakgroups.
      * @param spec raw spectrum
      * @param tol mass tolerance
      * @param avg precalculated averagine
+     * @param mono_mass monoisotopic mass
      * @param excluded_peak_mzs mzs that will be included - only for dummy generation
+     * @param cal_snr if set, calculate SNR
+     * @param charge_offset charge offset from peaks to recruited peaks
+     * @param charge_multiple charge multiplication factor for recruited peaks
+     * @param mz_off mz offset for recruited peaks
      * @return returns the noisy peaks for this peakgroup - i.e., the raw peaks within the range of this peakGroup that are not matched to any istope of this peakGroup mass.
      */
-    std::vector<LogMzPeak> recruitAllPeaksInSpectrum(const MSSpectrum& spec, double tol, const FLASHDeconvHelperStructs::PrecalculatedAveragine& avg,
-                                                     const std::unordered_set<double>& excluded_peak_mzs);
+    std::vector<LogMzPeak> recruitAllPeaksInSpectrum(const MSSpectrum& spec, double tol, const FLASHDeconvHelperStructs::PrecalculatedAveragine& avg, double mono_mass,
+                                                     const std::unordered_set<double>& excluded_peak_mzs, bool cal_snr = false, int charge_offset = 0, double charge_multiple = 1.0,
+                                                     double mz_off = .0);
 
     /// determine is an mz is a signal of this peakgroup. Input tol is ppm tolerance (e.g., 10.0 for 10ppm tolerance). Assume logMzPeaks are sorted.
     bool isSignalMZ(double mz, double tol) const;
@@ -198,10 +210,10 @@ namespace OpenMS
     /// get charge score
     float getChargeScore() const;
 
-    /// get average mass ppm error
+    /// get average mass ppm error;
     float getAvgPPMError() const;
 
-    /// get average mass Da error
+    /// get average mass ppm error;
     float getAvgDaError() const;
 
     /// get if it is positive mode
@@ -216,19 +228,6 @@ namespace OpenMS
     /// for this PeakGroup, specify the target dummy type.
     void setTargetDummyType(PeakGroup::TargetDummyType index);
 
-
-    /** calculate cosine between two vectors a and b with additional parameters for fast calculation
-     * @param a vector a
-     * @param a_start non zero start index of a
-     * @param a_end non zero end index of a (exclusive)
-     * @param b vector b
-     * @param b_size size of b
-     * @param offset element index offset between a and b
-     * @param min_iso_size minimum isotope size. If isotope size is less than this, return 0
-     */
-    static float getCosine(const std::vector<float>& a, int a_start, int a_end, const IsotopeDistribution& b, int b_size, int offset, int min_iso_size);
-
-
     /**
      * Get q values for different target_dummy_type. For charge, noise, isotope dummy types, q values corresponding to the type will be returned. For target (default), the final q value is calculated
      * by summing the q values of all dummy types and returned.
@@ -236,19 +235,6 @@ namespace OpenMS
      * @return Q value of the peakGroup
      */
     float getQvalue(PeakGroup::TargetDummyType target_dummy_type = PeakGroup::TargetDummyType::target) const;
-
-    /** @brief Examine intensity distribution over isotope indices. Also determines the most plausible isotope index or, monoisotopic mono_mass
-       @param avg precalculated averagine
-       @param window_width isotope offset value range. If -1, set automatically.
-       @param allowed_iso_error_for_second_best_cos allowed isotope error to calculate the second best cos. If target_dummy_type is not PeakGroup::TargetDummyType::target, the second best cosine and
-       @param noisy_peaks noisy peaks. If peaks have negative isotope index, they are moved to noisy_peaks within this function
-      its corresponding offset will be output
-    */
-    void updateIsotopeCosineAndDetermineMonoMass(const PrecalculatedAveragine& avg, int window_width, int allowed_iso_error_for_second_best_cos, std::vector<LogMzPeak>& noisy_peaks);
-
-    /// adjust abs charge range. Start with the max intensity charge and stop if charge intensity is less than 1/10 the max charge intensity
-    void adjustChargeRange(int max_abs_charge);
-
 
     /**
      * set peakGroup q value for different TargetDummyType. Q values are stored per TargetDummyType and later used for final q value calculation.
@@ -294,21 +280,14 @@ namespace OpenMS
     void reserve(Size n);
     bool empty() const;
     void swap(std::vector<FLASHDeconvHelperStructs::LogMzPeak>& x);
+    void shrink_to_fit();
     void sort();
 
   private:
-
-    /// minimum isotopologue count in a peak group
-    const static int min_iso_size_ = 2;
-    /// calculate total, per charge, and per isotope intensities. Min max isotope indices and charge abs ranges are updated as well.
-    void calculatePerIsotopeIntensities_();
-
-
-
     /// set per abs_charge signal power
     void setChargePowers_(int abs_charge, float sum_signal_squared, float noise_pwr, float intensity);
     /// update chargefit score and also update per charge intensities here.
-    void updateChargeFitScore_();
+    void updateChargeFitScoreAndChargeIntensities_();
     /// update avg ppm error
     void updateAvgPPMError_();
     /// update avg Da error
@@ -321,10 +300,6 @@ namespace OpenMS
     void updateSNR_();
     /// clear peaks
     void clear_();
-
-    ///Determin monoisotopic mass by weighted average of the peak uncharged masses
-    void determineMonoMassByPeakMasses_();
-
 
     /**
      * calculate noisy peak power. The goal of this function is to group noisy peaks that are possibly from the same molecule and sum their intensities before calculate power
@@ -345,11 +320,8 @@ namespace OpenMS
     std::vector<float> per_charge_snr_;
     /// per isotope intensity.
     std::vector<float> per_isotope_int_;
-
-    /// charge range, inclusive
+    /// charge range
     int min_abs_charge_ = 0, max_abs_charge_ = -1;
-    /// isotope index range, inclusive
-    int min_isotope_index_ = 0, max_isotope_index_ = -1;
     /// peak group index
     uint index_ = 0;
     /// scan number

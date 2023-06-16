@@ -112,6 +112,33 @@ namespace OpenMS
     /// convert double to nominal mass
     static int getNominalMass(double mass);
 
+    /** calculate cosine between two vectors a and b with additional parameters for fast calculation
+     * @param a vector a
+     * @param a_start non zero start index of a
+     * @param a_end non zero end index of a (exclusive)
+     * @param b vector b
+     * @param b_size size of b
+     * @param offset element index offset between a and b
+     * @param min_iso_size minimum isotope size. If isotope size is less than this, return 0
+     */
+    static float getCosine(const std::vector<float>& a, int a_start, int a_end, const IsotopeDistribution& b, int b_size, int offset, int min_iso_size);
+
+
+    /** @brief Examine intensity distribution over isotope indices. Also determines the most plausible isotope index or, monoisotopic mono_mass
+        @param mono_mass monoisotopic mass
+        @param per_isotope_intensities vector of intensities associated with each isotope - aggregated through charges
+        @param offset output offset between input monoisotopic mono_mass and determined monoisotopic mono_mass
+        @param avg precalculated averagine
+        @param window_width isotope offset value range. If -1, set automatically.
+        @param min_isotope_index minimum isotope index. Can be negative.
+        @param allowed_iso_error_for_second_best_cos allowed isotope error to calculate the second best cos. If target_dummy_type is not PeakGroup::TargetDummyType::target, the second best cosine and
+       its corresponding offset will be output
+        @param target_dummy_type  This target_dummy_type specifies if a PeakGroup is a target (0), charge dummy (1), noise dummy (2), or isotope dummy (3)
+        @return calculated cosine similar score
+     */
+    static float getIsotopeCosineAndDetermineIsotopeIndex(double mono_mass, const std::vector<float>& per_isotope_intensities, int& offset, const PrecalculatedAveragine& avg, int window_width = -1,
+                                                          int allowed_iso_error_for_second_best_cos = 0, PeakGroup::TargetDummyType target_dummy_type = PeakGroup::TargetDummyType::target);
+
     /**
      * add m/zs in input DeconvolvedSpectrum into exclusion list. The exclusion list is used to generate noise dummy masses.
      * @param dspec input DeconvolvedSpectrum
@@ -131,6 +158,9 @@ namespace OpenMS
 
   private:
     /// FLASHDeconv parameters
+
+    /// minimum isotopologue count in a peak group
+    const static int min_iso_size_ = 2;
 
     /// allowed isotope error in deconvolved mass to calculate qvalue
     int allowed_iso_error_ = 1;

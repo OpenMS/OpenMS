@@ -109,7 +109,6 @@ namespace OpenMS
 
       auto per_isotope_intensity = std::vector<float>(averagine.getMaxIsotopeIndex(), .0f);
       auto per_charge_intensity = std::vector<float>(charge_range + min_abs_charge + 1, .0f);
-      int min_isotope_index = per_isotope_intensity.size(), max_isotope_index = 0;
 
       double mass = mt.getCentroidMZ();
       double max_iso = 0;
@@ -149,23 +148,20 @@ namespace OpenMS
         int iso_off = int(.5 + (pg.getMonoMass() - mass) / pg.getIsotopeDaDistance());
         max_iso_off = std::max(max_iso_off, abs(iso_off));
         auto iso_int = pg.getIsotopeIntensities();
-        for (int i = 0; i < per_isotope_intensity.size() - iso_off; i++)
+        for (size_t i = 0; i < per_isotope_intensity.size() - iso_off; i++)
         {
-          if (i + iso_off < 0 || i >= iso_int.size())
+          if ((int)i + iso_off < 0 || i >= iso_int.size())
           {
             continue;
           }
           per_isotope_intensity[i + iso_off] += iso_int[i];
-          if(per_isotope_intensity[i + iso_off] > 0)
-          {
-            min_isotope_index = std::min(min_isotope_index, i + iso_off);
-            max_isotope_index = std::max(max_isotope_index, i + iso_off);
-          }
         }
+
         max_qscore = max_qscore < pg.getQscore() ? pg.getQscore() : max_qscore;
       }
 
-      double isotope_score = PeakGroup::getCosine(per_isotope_intensity, min_isotope_index, max_isotope_index, averagine.get(mass), averagine.get(mass).size(), 0, 0);
+      int offset = 0;
+      double isotope_score = FLASHDeconvAlgorithm::getIsotopeCosineAndDetermineIsotopeIndex(mass, per_isotope_intensity, offset, averagine, 0);
 
       if (isotope_score < min_isotope_cosine_)
       {
@@ -173,6 +169,8 @@ namespace OpenMS
       }
 
       FLASHDeconvHelperStructs::MassFeature mass_feature;
+      mass_feature.iso_offset = offset;
+      mass += offset * Constants::ISOTOPE_MASSDIFF_55K_U;
 
       mass_feature.avg_mass = averagine.getAverageMassDelta(mass) + mass;
       mass_feature.mt = mt;
