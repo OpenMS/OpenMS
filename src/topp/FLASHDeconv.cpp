@@ -492,6 +492,7 @@ protected:
     exp_annotated.clear(false);
 
     auto fd = FLASHDeconvAlgorithm();
+
     FLASHDeconvAlgorithm fd_charge_dummy, fd_noise_dummy, fd_iso_dummy;
 
     Param fd_param = getParam_().copy("Algorithm:", true);
@@ -741,7 +742,7 @@ protected:
         }
         DeconvolvedSpectrum dummy_deconvolved_spectrum(scan_number);
         deconvolved_spectrum.sortByQscore();
-        float qscore_threshold_for_dummy = deconvolved_spectrum[deconvolved_spectrum.size() - 1].getQscore();
+        float qscore_threshold_for_dummy = 0;//deconvolved_spectrum[deconvolved_spectrum.size() - 1].getQscore();
         dummy_deconvolved_spectrum.setOriginalSpectrum(*it);
         dummy_deconvolved_spectrum.reserve(fd_iso_dummy.getDeconvolvedSpectrum().size() + fd_charge_dummy.getDeconvolvedSpectrum().size() + fd_noise_dummy.getDeconvolvedSpectrum().size());
 

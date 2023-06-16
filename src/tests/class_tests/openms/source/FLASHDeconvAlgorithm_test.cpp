@@ -85,30 +85,6 @@ START_SECTION((static int getNominalMass(const double mass)))
 }
 END_SECTION
 
-START_SECTION((static float getCosine(const std::vector<float>& a,
-              int a_start,
-              int a_end,
-              const IsotopeDistribution& b,
-              int b_size,
-              int offset)))
-{
-  CoarseIsotopePatternGenerator generator(10, 1000);
-  IsotopeDistribution iso_array = generator.estimateFromPeptideWeight(1000);
-
-  std::vector<float> test_array1{571133.0, 306181.0, 95811.0, 22037.0, 4092.0, 645.0, 89.0, 11.0, 1.0, 0.0};
-  std::vector<float> test_array2{100, 50, 25, 12.5, 6.25, 3.125, 1, 0, 0};
-
-  float cos_1 = fd_algo.getCosine(test_array1, 0, test_array1.size(), iso_array, iso_array.size(), 0, 0);
-  float cos_2 = fd_algo.getCosine(test_array2, 0, test_array2.size(), iso_array, iso_array.size(), -1, 0);
-  float cos_3 = fd_algo.getCosine(test_array2, 0, 1, iso_array, iso_array.size(), 0, 0);
-
-  TOLERANCE_ABSOLUTE(0.1);
-  TEST_REAL_SIMILAR(cos_1, 0.65);
-  TEST_REAL_SIMILAR(cos_2, 0.3);
-  TEST_REAL_SIMILAR(cos_3, 0.5);
-}
-END_SECTION
-
 START_SECTION((void calculateAveragine(const bool use_RNA_averagine)))
 {
   fd_param.setValue("max_mass", 2000.);
@@ -141,29 +117,6 @@ START_SECTION((PrecalculatedAveragine& getAveragine()))
   TEST_EQUAL(precalculated_avg.getMaxIsotopeIndex(), 8);
   TEST_EQUAL(precalculated_avg.getApexIndex(50), 0);
   TEST_REAL_SIMILAR(precalculated_avg.getAverageMassDelta(50), 0.0296591659229435);
-}
-END_SECTION
-
-START_SECTION((static double getIsotopeCosineAndDetermineIsotopeIndex(const double mono_mass, const std::vector< double > &per_isotope_intensities, int &offset, const PrecalculatedAveragine &avg, bool use_shape_diff=true)))
-{
-  std::vector<float> tmp_iso_inty;
-  tmp_iso_inty.push_back(8713.53089);
-  tmp_iso_inty.push_back(4671.26697);
-  tmp_iso_inty.push_back(1461.74729);
-  tmp_iso_inty.push_back(336.206555);
-  tmp_iso_inty.push_back(62.4324335);
-
-  int offset = 0;
-  double tmp_iso_1 = fd_algo.getIsotopeCosineAndDetermineIsotopeIndex(1000., tmp_iso_inty, offset, fd_algo.getAveragine(), -1);
-
-  double tmp_iso_2 = fd_algo.getIsotopeCosineAndDetermineIsotopeIndex(1000., tmp_iso_inty, offset, fd_algo.getAveragine(), -1);
-
-  offset = 3;
-  double tmp_iso_3 = fd_algo.getIsotopeCosineAndDetermineIsotopeIndex(1500., tmp_iso_inty, offset, fd_algo.getAveragine(), -1);
-
-  TEST_REAL_SIMILAR(tmp_iso_1, 0.99999997024829767);
-  TEST_REAL_SIMILAR(tmp_iso_2, 0.99999997024829767);
-  TEST_REAL_SIMILAR(tmp_iso_3, 0.96541073936218491);
 }
 END_SECTION
 

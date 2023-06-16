@@ -320,7 +320,6 @@ START_SECTION((float getChargeSNR(const int abs_charge) const))
 }
 END_SECTION
 
-sample_pg.updateMonomassAndIsotopeIntensities();
 START_SECTION((double getMonoMass() const))
 {
   double tmp_mass = sample_pg.getMonoMass();
@@ -342,7 +341,6 @@ sample_pg2.push_back(tmp_peak4);
 
 START_SECTION((void updateMonomassAndIsotopeIntensities()))
 {
-  sample_pg2.updateMonomassAndIsotopeIntensities();
   double temp_mass = sample_pg2.getMonoMass();
   double temp_inty = sample_pg2.getIntensity();
   TEST_REAL_SIMILAR(temp_mass, 2249.0101025181098);

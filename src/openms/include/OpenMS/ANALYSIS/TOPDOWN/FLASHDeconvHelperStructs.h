@@ -152,7 +152,6 @@ namespace OpenMS
       MassTrace mt;
       std::vector<float> per_charge_intensity;
       std::vector<float> per_isotope_intensity;
-      int iso_offset;
       int scan_number, rep_charge;
       double avg_mass;
       int min_charge, max_charge, charge_count;
