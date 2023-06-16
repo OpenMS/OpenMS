@@ -97,16 +97,17 @@ namespace OpenMS
     /**
            @brief add monoisotopic indices of peaks by offset and discard negative isotope peaks. Total intensity is also updated
       */
-    void updateMonomassAndIsotopeIntensities();
+    void updateMonoMassAndIsotopeIntensities();
 
     /**
            @brief Update isotope cosine sore and qscore. Mono mass is also updated one last time. SNR, per charge SNR, and avg errors are updated here.
+           @param noisy_peaks noisy peaks to calculate Qscore
            @param avg precalculated averagine
            @param min_cos the peak groups with cosine score less than this will have Qscore 0.
-           @param allowed_isotope_error this set the allowed isotope error in dummy mass generation.
+           @param allowed_iso_error this set the allowed isotope error in dummy mass generation.
            @return returns isotope offset after isotope cosine calculation
       */
-    int updateIsotopeCosineSNRAvgErrorAndQscore(const FLASHDeconvHelperStructs::PrecalculatedAveragine& avg, double min_cos, int allowed_isotope_error = 1);
+    int updateQscore(std::vector<LogMzPeak>& noisy_peaks, const FLASHDeconvHelperStructs::PrecalculatedAveragine& avg, double min_cos, int allowed_iso_error = 1);
 
     /**
      * @brief given a monoisotopic mass, recruit raw peaks from the raw input spectrum and add to this peakGroup. This is a bit time-consuming and is done for only a small number of selected
@@ -116,15 +117,10 @@ namespace OpenMS
      * @param avg precalculated averagine
      * @param mono_mass monoisotopic mass
      * @param excluded_peak_mzs mzs that will be included - only for dummy generation
-     * @param cal_snr if set, calculate SNR
-     * @param charge_offset charge offset from peaks to recruited peaks
-     * @param charge_multiple charge multiplication factor for recruited peaks
-     * @param mz_off mz offset for recruited peaks
      * @return returns the noisy peaks for this peakgroup - i.e., the raw peaks within the range of this peakGroup that are not matched to any istope of this peakGroup mass.
      */
     std::vector<LogMzPeak> recruitAllPeaksInSpectrum(const MSSpectrum& spec, double tol, const FLASHDeconvHelperStructs::PrecalculatedAveragine& avg, double mono_mass,
-                                                     const std::unordered_set<double>& excluded_peak_mzs, bool cal_snr = false, int charge_offset = 0, double charge_multiple = 1.0,
-                                                     double mz_off = .0);
+                                                     const std::unordered_set<double>& excluded_peak_mzs);
 
     /// determine is an mz is a signal of this peakgroup. Input tol is ppm tolerance (e.g., 10.0 for 10ppm tolerance). Assume logMzPeaks are sorted.
     bool isSignalMZ(double mz, double tol) const;
@@ -251,9 +247,6 @@ namespace OpenMS
     /// set index of this peak group
     void setIndex(uint i);
 
-    /// update per charge cosine values
-    void updatePerChargeCos(const FLASHDeconvHelperStructs::PrecalculatedAveragine& avg);
-
     /// get index of this peak group
     uint getIndex() const;
 
@@ -285,8 +278,6 @@ namespace OpenMS
     static const int isotope_int_shift = 1;
 
   private:
-    /// set per abs_charge signal power
-    void setChargePowers_(int abs_charge, float sum_signal_squared, float noise_pwr, float intensity);
     /// update chargefit score and also update per charge intensities here.
     void updateChargeFitScoreAndChargeIntensities_();
     /// update avg ppm error
@@ -301,6 +292,12 @@ namespace OpenMS
     void updateSNR_();
     /// clear peaks
     void clear_();
+    /// update per charge intensities, noise power, and squared intensities. used for SNR estimation
+    void updatePerChargeInformation_(const std::vector<LogMzPeak>& noisy_peaks);
+    /// update the charge range using the calculated per charge information
+    void updateChargeRange_(std::vector<LogMzPeak>& noisy_peaks);
+    /// update per charge cosine values
+    void updatePerChargeCos_(const FLASHDeconvHelperStructs::PrecalculatedAveragine& avg);
 
     /**
      * calculate noisy peak power. The goal of this function is to group noisy peaks that are possibly from the same molecule and sum their intensities before calculate power

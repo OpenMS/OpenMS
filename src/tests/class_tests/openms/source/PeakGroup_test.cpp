@@ -89,6 +89,7 @@ sample_pg.push_back(tmp_peak2);
 
 LogMzPeak tmp_peak3 = fillPeak(1127.0168377586081, 7506.6767578125, 2, 3);
 sample_pg.push_back(tmp_peak3);
+sample_pg.updateMonoMassAndIsotopeIntensities();
 
 /// detailed constructor test
 START_SECTION((PeakGroup(const int min_abs_charge, const int max_abs_charge, const bool is_positive)))
@@ -338,13 +339,13 @@ END_SECTION
 PeakGroup sample_pg2(sample_pg);
 LogMzPeak tmp_peak4 = fillPeak(1127.5185151766082, 2504.3433, 2, 4);
 sample_pg2.push_back(tmp_peak4);
-
-START_SECTION((void updateMonomassAndIsotopeIntensities()))
+sample_pg2.updateMonoMassAndIsotopeIntensities();
+START_SECTION((void updateMonom assAndIsotopeIntensities()))
 {
   double temp_mass = sample_pg2.getMonoMass();
   double temp_inty = sample_pg2.getIntensity();
   TEST_REAL_SIMILAR(temp_mass, 2249.0101025181098);
-  TEST_REAL_SIMILAR(temp_inty, 12880886.145019531);
+  TEST_REAL_SIMILAR(temp_inty, 12880881);
 }
 END_SECTION
 
