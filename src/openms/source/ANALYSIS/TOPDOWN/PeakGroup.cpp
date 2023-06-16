@@ -101,7 +101,7 @@ namespace OpenMS
   {
     auto iso_dist = avg.get(monoisotopic_mass_);
     int iso_size = (int)iso_dist.size();
-    auto current_per_isotope_intensities = std::vector<float>(getIsotopeIntensities().size(), .0f);
+    auto current_per_isotope_intensities = std::vector<float>(getIsotopeIntensities().size() - isotope_int_shift, .0f);
 
     for (int abs_charge = min_abs_charge_; abs_charge <= max_abs_charge_; abs_charge++)
     {
@@ -156,7 +156,7 @@ namespace OpenMS
     }
 
     int h_offset;
-    isotope_cosine_score_ = FLASHDeconvAlgorithm::getIsotopeCosineAndDetermineIsotopeIndex(monoisotopic_mass_, per_isotope_int_, h_offset, avg, -1, allowed_iso_error, target_dummy_type_);
+    isotope_cosine_score_ = FLASHDeconvAlgorithm::getIsotopeCosineAndDetermineIsotopeIndex(monoisotopic_mass_, per_isotope_int_, h_offset, avg,  isotope_int_shift, -1, allowed_iso_error, target_dummy_type_);
 
     if (isotope_cosine_score_ < min_cos)
     {
@@ -433,12 +433,13 @@ namespace OpenMS
     max_abs_charge_ = std::max(max_abs_charge_, 1);
     monoisotopic_mass_ = mono_mass;
 
-    int iso_margin = 3; // how many isotopes do we want to scan before the monoisotopic mass?
+    int iso_margin = 3; // how many isotopes do we want to scan before the monoisotopic mass? TODO
     int max_isotope = (int)avg.getLastIndex(mono_mass);
     int min_isotope = (int)(avg.getApexIndex(mono_mass) - avg.getLeftCountFromApex(mono_mass) - iso_margin);
-    min_isotope = std::max(0, min_isotope);
+    min_isotope = std::max(-isotope_int_shift, min_isotope);
 
     clear_(); // clear logMzPeaks
+    negative_iso_peaks_.clear();
 
     reserve((max_isotope) * (max_abs_charge_ - min_abs_charge_ + 1) * 2);
     noisy_peaks.reserve(max_isotope * (max_abs_charge_ - min_abs_charge_ + 1) * 2);
@@ -492,11 +493,18 @@ namespace OpenMS
           auto p = LogMzPeak(spec[index], is_positive_);
           p.isotopeIndex = iso_index;
           p.abs_charge = c;
-          push_back(p);
-          sum_signal_squared += pint * pint;
-          charge_intensity += pint;
+          if(iso_index < 0)
+          {
+            negative_iso_peaks_.push_back(p);
+          }
+          else
+          {
+            push_back(p);
+            sum_signal_squared += pint * pint;
+            charge_intensity += pint;
+          }
         }
-        else
+        else if(iso_index >= 0)
         {
           auto p = LogMzPeak(spec[index], is_positive_);
           p.isotopeIndex = iso_index;
@@ -715,7 +723,7 @@ namespace OpenMS
       max_isotope_index = max_isotope_index < p.isotopeIndex ? p.isotopeIndex : max_isotope_index;
     }
 
-    per_isotope_int_ = std::vector<float>(max_isotope_index + 1, .0f);
+    per_isotope_int_ = std::vector<float>(max_isotope_index + 1 + isotope_int_shift, .0f);
     intensity_ = .0;
     double nominator = .0;
 
@@ -726,10 +734,17 @@ namespace OpenMS
       {
         continue;
       }
-
-      per_isotope_int_[p.isotopeIndex] += p.intensity;
+      per_isotope_int_[p.isotopeIndex + isotope_int_shift] += pi;
       nominator += pi * (p.getUnchargedMass() - p.isotopeIndex * iso_da_distance_);
       intensity_ += pi;
+    }
+    for (auto& p : negative_iso_peaks_)
+    {
+      if (p.isotopeIndex + isotope_int_shift < 0)
+      {
+        continue;
+      }
+      per_isotope_int_[p.isotopeIndex + isotope_int_shift] += p.intensity;
     }
 
     monoisotopic_mass_ = nominator / intensity_;

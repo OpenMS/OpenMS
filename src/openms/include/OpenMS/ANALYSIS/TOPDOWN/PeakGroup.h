@@ -280,8 +280,9 @@ namespace OpenMS
     void reserve(Size n);
     bool empty() const;
     void swap(std::vector<FLASHDeconvHelperStructs::LogMzPeak>& x);
-    void shrink_to_fit();
     void sort();
+
+    static const int isotope_int_shift = 1;
 
   private:
     /// set per abs_charge signal power
@@ -311,7 +312,8 @@ namespace OpenMS
 
     /// log Mz peaks
     std::vector<FLASHDeconvHelperStructs::LogMzPeak> logMzpeaks_;
-
+    /// negative isotope index peaks
+    std::vector<FLASHDeconvHelperStructs::LogMzPeak> negative_iso_peaks_;
     /// per charge SNR, isotope cosine, and intensity vectors
     std::vector<float> per_charge_sum_signal_squared_;
     std::vector<float> per_charge_noise_pwr_;

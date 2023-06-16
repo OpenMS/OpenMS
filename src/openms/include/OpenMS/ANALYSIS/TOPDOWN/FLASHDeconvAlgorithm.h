@@ -129,6 +129,7 @@ namespace OpenMS
         @param per_isotope_intensities vector of intensities associated with each isotope - aggregated through charges
         @param offset output offset between input monoisotopic mono_mass and determined monoisotopic mono_mass
         @param avg precalculated averagine
+        @param iso_int_shift isotope shift in per_isotope_intensities.
         @param window_width isotope offset value range. If -1, set automatically.
         @param min_isotope_index minimum isotope index. Can be negative.
         @param allowed_iso_error_for_second_best_cos allowed isotope error to calculate the second best cos. If target_dummy_type is not PeakGroup::TargetDummyType::target, the second best cosine and
@@ -136,7 +137,7 @@ namespace OpenMS
         @param target_dummy_type  This target_dummy_type specifies if a PeakGroup is a target (0), charge dummy (1), noise dummy (2), or isotope dummy (3)
         @return calculated cosine similar score
      */
-    static float getIsotopeCosineAndDetermineIsotopeIndex(double mono_mass, const std::vector<float>& per_isotope_intensities, int& offset, const PrecalculatedAveragine& avg, int window_width = -1,
+    static float getIsotopeCosineAndDetermineIsotopeIndex(double mono_mass, const std::vector<float>& per_isotope_intensities, int& offset, const PrecalculatedAveragine& avg, int iso_int_shift = 0, int window_width = -1,
                                                           int allowed_iso_error_for_second_best_cos = 0, PeakGroup::TargetDummyType target_dummy_type = PeakGroup::TargetDummyType::target);
 
     /**

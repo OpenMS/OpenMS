@@ -1120,7 +1120,7 @@ namespace OpenMS
         int offset = 0;
         peak_group.setTargetDummyType(target_dummy_type_);
         float prev_cos = peak_group.getIsotopeCosine();
-        float cos = getIsotopeCosineAndDetermineIsotopeIndex(peak_group.getMonoMass(), peak_group.getIsotopeIntensities(), offset, avg_, -1, allowed_iso_error_, target_dummy_type_);
+        float cos = getIsotopeCosineAndDetermineIsotopeIndex(peak_group.getMonoMass(), peak_group.getIsotopeIntensities(), offset, avg_, PeakGroup::isotope_int_shift, -1, allowed_iso_error_, target_dummy_type_);
         auto prev_mono_mass = peak_group.getMonoMass() + offset * iso_da_distance_;
 
         peak_group.setIsotopeCosine(cos);
@@ -1261,11 +1261,11 @@ namespace OpenMS
     removeOverlappingPeakGroups_(deconvolved_spectrum_, tol * 4);
   }
 
-  float FLASHDeconvAlgorithm::getIsotopeCosineAndDetermineIsotopeIndex(const double mono_mass, const std::vector<float>& per_isotope_intensities, int& offset, const PrecalculatedAveragine& avg,
+  float FLASHDeconvAlgorithm::getIsotopeCosineAndDetermineIsotopeIndex(const double mono_mass, const std::vector<float>& per_isotope_intensities, int& offset, const PrecalculatedAveragine& avg, int iso_int_shift,
                                                                        int window_width, int allowed_iso_error_for_second_best_cos, PeakGroup::TargetDummyType target_dummy_type)
   {
     offset = 0;
-    if (per_isotope_intensities.size() < min_iso_size_)
+    if (per_isotope_intensities.size() < min_iso_size_ + iso_int_shift)
     {
       return .0;
     }
@@ -1281,12 +1281,14 @@ namespace OpenMS
       left = std::min(left, window_width);
     }
 
+    left -= iso_int_shift;
+    right += iso_int_shift;
+
     float max_cos = -1000;
     float second_max_cos = -1000;
     int second_max_offset = -1000;
-    // int isotope_length = 0;
     int max_isotope_index = (int)per_isotope_intensities.size(); // exclusive
-    int min_isotope_index = -1;                                  // inclusive
+    int min_isotope_index = - 1;                                  // inclusive
 
     for (int i = 0; i < max_isotope_index; i++)
     {
@@ -1344,6 +1346,7 @@ namespace OpenMS
       offset = second_max_offset;
     }
 
+    offset -= iso_int_shift;
     return max_cos;
   }
 
