@@ -430,7 +430,6 @@ namespace OpenMS
     std::vector<LogMzPeak> charge_noisy_peaks;
     std::vector<LogMzPeak> charge_signal_peaks;
 
-
     for (int z = min_abs_charge_; z <= max_abs_charge_; z++)
     {
       charge_noisy_peaks.clear();

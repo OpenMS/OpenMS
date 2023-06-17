@@ -45,6 +45,7 @@ namespace OpenMS
   inline const std::vector<int> harmonic_charges_ {2, 3, 5, 7, 11};
   /// high and low charges are differently deconvolved. This value determines the (inclusive) threshold for low charge.
   inline const int low_charge_ = 10; // 10 inclusive
+  inline const double tol_div_factor = 2.5; // use narrow tolerance for deconvolution and at the end use the input tolerance to filter out overlapping masses.
 
   FLASHDeconvAlgorithm::FLASHDeconvAlgorithm() : DefaultParamHandler("FLASHDeconvAlgorithm")
   {
@@ -110,25 +111,12 @@ namespace OpenMS
     {
       for (auto& pg : *target_dspec_for_dummy_calcualtion_)
       {
-        auto [m, M] = pg.getAbsChargeRange();
         int min_iso = -1, max_iso = 0;
         for (auto& p : pg)
         {
           previously_deconved_mono_masses_for_dummy_.push_back(p.getUnchargedMass());
           min_iso = min_iso < 0 ? p.isotopeIndex : std::min(min_iso, p.isotopeIndex);
           max_iso = std::max(max_iso, p.isotopeIndex);
-        }
-        for (int i = -2 * M; i <= 0; i++)
-        {
-          previously_deconved_mono_masses_for_dummy_.push_back(pg.getMonoMass() + (min_iso + i) * iso_da_distance_);
-        }
-        for (int i = 0; i <= 2 * M; i++)
-        {
-          previously_deconved_mono_masses_for_dummy_.push_back(pg.getMonoMass() + (max_iso + i) * iso_da_distance_);
-        }
-        for (int i = -1; i <= 1; i++)
-        {
-          previously_deconved_mono_masses_for_dummy_.push_back(pg.getMonoMass() + i * iso_da_distance_);
         }
       }
     }
@@ -206,7 +194,7 @@ namespace OpenMS
     for (double& j : tolerance_)
     {
       j *= 1e-6;
-      j /= 2.5; // finder bins are far better.
+      j /= tol_div_factor; // finder bins are far better.
       bin_mul_factors_.push_back(1.0 / j);
     }
 
@@ -771,7 +759,7 @@ namespace OpenMS
         // now we have a matching peak for this mass of charge  abs_charge. From here, isotope peaks are collected
         const double mz = log_mz_peaks_[max_peak_index].mz; // charged mz
         const double iso_delta = iso_da_distance_ / (double)abs_charge;
-        double mz_delta = std::min(max_mass_dalton_tolerance / (double)abs_charge, tol * mz);
+        double mz_delta = std::min(max_mass_dalton_tolerance / (double)abs_charge, 2.0 * tol * mz);
 
         double max_mz = mz;
         float max_peak_intensity = log_mz_peaks_[max_peak_index].intensity;
@@ -1054,10 +1042,11 @@ namespace OpenMS
           continue;
         }
         Size j = getBinNumber_(log(m), mass_bin_min_value_, bin_mul_factors_[ms_level_ - 1]);
-
-        if (j > 0 && j < previously_deconved_mass_bins_for_dummy_.size() - 1)
+        int bin_offset = (int)round(tol_div_factor);
+        if (j >= bin_offset && j < previously_deconved_mass_bins_for_dummy_.size() - bin_offset - 1)
         {
-          previously_deconved_mass_bins_for_dummy_[j] = true;
+          for (int k = -bin_offset; k <= bin_offset; k++)
+            previously_deconved_mass_bins_for_dummy_[j + k] = true;
         }
       }
     }
@@ -1247,10 +1236,12 @@ namespace OpenMS
       filtered_peak_groups = filtered_peak_groups_private;
 #endif
     }
+
     deconvolved_spectrum_.setPeakGroups(filtered_peak_groups);
     deconvolved_spectrum_.sort();
+
     removeChargeErrorPeakGroups_(deconvolved_spectrum_);
-    removeOverlappingPeakGroups_(deconvolved_spectrum_, tol * 4);
+    removeOverlappingPeakGroups_(deconvolved_spectrum_, tol * tol_div_factor * 1.5);
   }
 
   float FLASHDeconvAlgorithm::getIsotopeCosineAndDetermineIsotopeIndex(const double mono_mass, const std::vector<float>& per_isotope_intensities, int& offset, const PrecalculatedAveragine& avg,
@@ -1273,14 +1264,14 @@ namespace OpenMS
       left = std::min(left, window_width);
     }
 
-    left -= iso_int_shift;
-    right += iso_int_shift;
-
     float max_cos = -1000;
     float second_max_cos = -1000;
     int second_max_offset = -1000;
     int max_isotope_index = (int)per_isotope_intensities.size(); // exclusive
     int min_isotope_index = -1;                                  // inclusive
+
+    left -= iso_int_shift;
+    right += iso_int_shift;
 
     for (int i = 0; i < max_isotope_index; i++)
     {
