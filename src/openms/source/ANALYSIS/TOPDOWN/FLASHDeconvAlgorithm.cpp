@@ -1114,10 +1114,10 @@ namespace OpenMS
       std::vector<PeakGroup> filtered_peak_groups_private;
       filtered_peak_groups_private.reserve(deconvolved_spectrum_.size());
 #pragma omp for nowait schedule(static)
-
-      for (auto& peak_group : deconvolved_spectrum_)
+      for (int i = 0; i < (int)deconvolved_spectrum_.size(); i++)
       {
         int offset = 0;
+        auto peak_group = deconvolved_spectrum_[i];
         peak_group.setTargetDummyType(target_dummy_type_);
         float prev_cos = peak_group.getIsotopeCosine();
         float cos = getIsotopeCosineAndDetermineIsotopeIndex(peak_group.getMonoMass(), peak_group.getIsotopeIntensities(), offset, avg_, PeakGroup::isotope_int_shift, -1, allowed_iso_error_,
