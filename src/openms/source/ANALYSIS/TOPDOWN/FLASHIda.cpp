@@ -34,7 +34,7 @@
 
 #include <OpenMS/ANALYSIS/TOPDOWN/FLASHDeconvAlgorithm.h>
 #include <OpenMS/ANALYSIS/TOPDOWN/FLASHIda.h>
-#include <OpenMS/ANALYSIS/TOPDOWN/QScore.h>
+#include <OpenMS/ANALYSIS/TOPDOWN/Qscore.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
 #include <sstream>
 #ifdef _OPENMP
@@ -680,7 +680,7 @@ namespace OpenMS
       wstart[i] = trigger_left_isolation_mzs_[i]; // std::get<0>(mz_range) - min_isolation_window_half_;
       wend[i] = trigger_right_isolation_mzs_[i];  // std::get<1>(mz_range) + min_isolation_window_half_;
 
-      qscores[i] = Qscore::getQscore(&peakgroup, peakgroup.getRepAbsCharge());
+      qscores[i] = Qscore::getQscore(&peakgroup);
       mono_masses[i] = peakgroup.getMonoMass();
       chare_cos[i] = peakgroup.getChargeIsotopeCosine(charges[i]);
       charge_snrs[i] = peakgroup.getChargeSNR(charges[i]);

@@ -10,7 +10,7 @@ set(sources_list_h
     FLASHIdaBridgeFunctions.h
     MassFeatureTrace.h
     PeakGroup.h
-    QScore.h
+    Qscore.h
 	Qvalue.h
     )
 

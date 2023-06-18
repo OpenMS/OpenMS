@@ -139,7 +139,7 @@ namespace OpenMS
         @param target_dummy_type  This target_dummy_type specifies if a PeakGroup is a target (0), charge dummy (1), noise dummy (2), or isotope dummy (3)
         @return calculated cosine similar score
      */
-    static float getIsotopeCosineAndDetermineIsotopeIndex(double mono_mass, const std::vector<float>& per_isotope_intensities, int& offset, const PrecalculatedAveragine& avg, int window_width = -1,
+    static float getIsotopeCosineAndDetermineIsotopeIndex(double mono_mass, const std::vector<float>& per_isotope_intensities, int& offset, const PrecalculatedAveragine& avg, int iso_int_shift = 0, int window_width = -1,
                                                           int allowed_iso_error_for_second_best_cos = 0, PeakGroup::TargetDummyType target_dummy_type = PeakGroup::TargetDummyType::target);
 
     /**

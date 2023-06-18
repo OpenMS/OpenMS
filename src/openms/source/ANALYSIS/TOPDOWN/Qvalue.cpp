@@ -40,7 +40,7 @@ namespace OpenMS
   void Qvalue::updatePeakGroupQvalues(std::vector<DeconvolvedSpectrum>& deconvolved_spectra,
                                       std::vector<DeconvolvedSpectrum>& deconvolved_decoy_spectra) // per ms level + precursor update as well.
   {
-    uint bin_number = 100;                         // 100 is enough resolution for qvalue calculation. In most cases FDR 5% will be used.
+    uint bin_number = 25;                         // 25 is enough resolution for qvalue calculation. In most cases FDR 5% will be used.
     std::map<uint, std::vector<float>> tscore_map; // per ms level
 
     std::map<uint, std::vector<float>> dscore_iso_decoy_map;
@@ -109,7 +109,7 @@ namespace OpenMS
         {
           float fp = (charge_dist[i] * weights[0] + noise_dist[i] * weights[1] + iso_dist[i] * weights[2]);
           target_dist[i] = std::max(.0f, mixed_dist[i] - fp);
-          if(mixed_dist[i] > 0 && mixed_dist[i] < charge_dist[i] * weight_limit[0] + noise_dist[i] * weight_limit[1] + iso_dist[i] * weight_limit[2])
+          if (mixed_dist[i] > 0 && mixed_dist[i] < charge_dist[i] * weight_limit[0] + noise_dist[i] * weight_limit[1] + iso_dist[i] * weight_limit[2])
           {
             break;
           }
@@ -201,7 +201,7 @@ namespace OpenMS
         size_t tindex = qscores.size() - i;
         float nom = weights[1] * (float)dindex;
         float denom = (float)(tindex);
-        //tmp_q_noise = std::min(tmp_q_noise, (nom / denom));
+        // tmp_q_noise = std::min(tmp_q_noise, (nom / denom));
         tmp_q_noise = (nom / denom);
         map_noise[ts] = tmp_q_noise;
       }

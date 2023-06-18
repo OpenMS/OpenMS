@@ -161,7 +161,7 @@ namespace OpenMS
       }
 
       int offset = 0;
-      double isotope_score = FLASHDeconvAlgorithm::getIsotopeCosineAndDetermineIsotopeIndex(mass, per_isotope_intensity, offset, averagine, 0);
+      double isotope_score = FLASHDeconvAlgorithm::getIsotopeCosineAndDetermineIsotopeIndex(mass, per_isotope_intensity, offset, averagine, 0, 0);
 
       if (isotope_score < min_isotope_cosine_)
       {
