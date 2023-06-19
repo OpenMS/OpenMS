@@ -1,0 +1,34 @@
+{
+  "algorithm__decomp_weights_precision": 0.01,
+  "algorithm__double_charged_iso_threshold": 0.6,
+  "algorithm__fixed_modifications": [],
+  "algorithm__fragment_mass_tolerance": 0.3,
+  "algorithm__max_decomp_weight": 450.0,
+  "algorithm__max_isotope": 3,
+  "algorithm__max_isotope_to_score": 3,
+  "algorithm__max_mz": 2000.0,
+  "algorithm__max_number_aa_per_decomp": 4,
+  "algorithm__max_number_pivot": 9,
+  "algorithm__max_subscore_number": 40,
+  "algorithm__min_mz": 200.0,
+  "algorithm__missed_cleavages": 1,
+  "algorithm__number_of_hits": 1,
+  "algorithm__number_of_prescoring_hits": 250,
+  "algorithm__precursor_mass_tolerance": 0.3,
+  "algorithm__residue_set": "Natural19WithoutI",
+  "algorithm__tryptic_only": true,
+  "algorithm__variable_modifications": [],
+  "debug": 0,
+  "in": {
+    "class": "File",
+    "path": ""
+  },
+  "log": "TOPP.log",
+  "no_progress": false,
+  "out": {
+    "class": "File",
+    "path": ""
+  },
+  "test": false,
+  "threads": 1
+}
