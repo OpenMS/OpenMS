@@ -244,10 +244,6 @@ jobs:
           pip install -U wheel
           pip install -U pandas
 
-          #conda deactivate
-
-          echo $CURRENT_PYTHON_EXECUTABLE
-
           # build pyopenms distribution (macOS)
           cmake -DPYTHON_EXECUTABLE:FILEPATH=$CURRENT_PYTHON_EXECUTABLE -DPYOPENMS=ON .
           make -j4 pyopenms
@@ -472,6 +468,7 @@ jobs:
             ls -la wheels/
 
     - name: Publish package to nightly PyPI
+      if: "contains(github.ref, 'develop') || contains(github.ref, 'nightly')"
       uses: pypa/gh-action-pypi-publish@release/v1
       with:
         repository_url: https://pypi.cs.uni-tuebingen.de/

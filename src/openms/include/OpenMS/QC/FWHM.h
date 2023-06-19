@@ -72,7 +72,7 @@ namespace OpenMS
 
     const String& getName() const override;
 
-    Status requires() const override;
+    Status requirements() const override;
   };
 
 } // namespace OpenMS

@@ -38,7 +38,7 @@
 using namespace std;
 
 namespace OpenMS
-{ 
+{
   FeatureSummary::Result FeatureSummary::compute(const FeatureMap& feature_map)
   {
     FeatureSummary::Result result;
@@ -63,14 +63,13 @@ namespace OpenMS
     {
       result.rt_shift_mean = 0;
     }
-    
+
     return result;
   }
 
   bool FeatureSummary::Result::operator==(const Result& rhs) const
   {
-    return feature_count == rhs.feature_count
-          && rt_shift_mean == rhs.rt_shift_mean;
+    return feature_count == rhs.feature_count && rt_shift_mean == rhs.rt_shift_mean;
   }
 
   /// Returns the name of the metric
@@ -81,8 +80,8 @@ namespace OpenMS
 
   /// Returns required file input i.e. MzML.
   /// This is encoded as a bit in a Status object.
-  QCBase::Status FeatureSummary::requires() const
+  QCBase::Status FeatureSummary::requirements() const
   {
     return QCBase::Status(QCBase::Requires::PREFDRFEAT);
   }
-}
+} // namespace OpenMS

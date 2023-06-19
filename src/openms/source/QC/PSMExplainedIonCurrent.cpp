@@ -32,11 +32,6 @@
 // $Authors: Tom Waschischeck$
 // --------------------------------------------------------------------------
 
-#include <OpenMS/QC/PSMExplainedIonCurrent.h>
-
-#include <cfloat>
-#include <numeric>
-
 #include <OpenMS/CHEMISTRY/TheoreticalSpectrumGenerator.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/DATASTRUCTURES/MatchedIterator.h>
@@ -44,10 +39,13 @@
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/MATH/STATISTICS/StatisticFunctions.h>
+#include <OpenMS/QC/PSMExplainedIonCurrent.h>
+#include <cfloat>
+#include <numeric>
 
 namespace OpenMS
 {
-  template <typename MIV>
+  template<typename MIV>
   double sumOfMatchedIntensities(MIV& mi)
   {
     double sum = 0;
@@ -59,7 +57,8 @@ namespace OpenMS
     return sum;
   }
 
-  double PSMExplainedIonCurrent::annotatePSMExplainedIonCurrent_(PeptideIdentification& pep_id, const MSExperiment& exp, const QCBase::SpectraMap& map_to_spectrum, WindowMower& filter, PSMExplainedIonCurrent::ToleranceUnit tolerance_unit, double tolerance)
+  double PSMExplainedIonCurrent::annotatePSMExplainedIonCurrent_(PeptideIdentification& pep_id, const MSExperiment& exp, const QCBase::SpectraMap& map_to_spectrum, WindowMower& filter,
+                                                                 PSMExplainedIonCurrent::ToleranceUnit tolerance_unit, double tolerance)
   {
     if (pep_id.getHits().empty())
     {
@@ -70,13 +69,13 @@ namespace OpenMS
     //---------------------------------------------------------------------
     // FIND DATA FOR THEORETICAL SPECTRUM
     //---------------------------------------------------------------------
-    
+
     // sequence
     const AASequence& seq = pep_id.getHits()[0].getSequence();
 
     // charge: re-calculated from masses since much more robust this way (PepID annotation of pep_id.getHits()[0].getCharge() could be wrong)
     Int charge = static_cast<Int>(round(seq.getMonoWeight() / pep_id.getMZ()));
-    
+
     //-----------------------------------------------------------------------
     // GET EXPERIMENTAL SPECTRUM MATCHING TO PEPTIDEIDENTIFICATION
     //-----------------------------------------------------------------------
@@ -112,7 +111,8 @@ namespace OpenMS
     //-----------------------------------------------------------------------
     if (exp_spectrum.empty() || theo_spectrum.empty())
     {
-      OPENMS_LOG_WARN << "The spectrum with RT: " + String(exp_spectrum.getRT()) + " is empty." << "\n";
+      OPENMS_LOG_WARN << "The spectrum with RT: " + String(exp_spectrum.getRT()) + " is empty."
+                      << "\n";
       return DBL_MAX;
     }
 
@@ -125,10 +125,11 @@ namespace OpenMS
     {
       sum_of_intensities += peak.getIntensity();
     }
-     
+
     if (sum_of_intensities <= 0)
     {
-      OPENMS_LOG_WARN << "The spectrum with RT: " + String(exp_spectrum.getRT()) + " has only peaks with intensity 0." << "\n";
+      OPENMS_LOG_WARN << "The spectrum with RT: " + String(exp_spectrum.getRT()) + " has only peaks with intensity 0."
+                      << "\n";
       return DBL_MAX;
     }
 
@@ -182,21 +183,21 @@ namespace OpenMS
     {
       if (fmap.getProteinIdentifications().empty())
       {
-        throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "No information about fragment mass tolerance given in the FeatureMap. Please choose a fragment_mass_unit and tolerance manually.");
+        throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                            "No information about fragment mass tolerance given in the FeatureMap. Please choose a fragment_mass_unit and tolerance manually.");
       }
       tolerance_unit = fmap.getProteinIdentifications()[0].getSearchParameters().fragment_mass_tolerance_ppm ? ToleranceUnit::PPM : ToleranceUnit::DA;
       tolerance = fmap.getProteinIdentifications()[0].getSearchParameters().fragment_mass_tolerance;
       if (tolerance <= 0.0)
       { // some engines, e.g. MSGF+ have no fragment tolerance parameter. It will be 0.0.
-        throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "No information about fragment mass tolerance given in the FeatureMap. Please choose a fragment_mass_unit and tolerance manually.");
+        throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                            "No information about fragment mass tolerance given in the FeatureMap. Please choose a fragment_mass_unit and tolerance manually.");
       }
     }
 
     std::vector<double> correctnesses;
 
-    std::function<void(PeptideIdentification&)> fCorrectness =
-      [&exp, &map_to_spectrum, &correctnesses, &wm_filter, tolerance, tolerance_unit](PeptideIdentification& pep_id)
-    {
+    std::function<void(PeptideIdentification&)> fCorrectness = [&exp, &map_to_spectrum, &correctnesses, &wm_filter, tolerance, tolerance_unit](PeptideIdentification& pep_id) {
       double correctness = annotatePSMExplainedIonCurrent_(pep_id, exp, map_to_spectrum, wm_filter, tolerance_unit, tolerance);
       if (correctness != DBL_MAX)
       {
@@ -217,7 +218,8 @@ namespace OpenMS
     results_.push_back(result);
   }
 
-  void PSMExplainedIonCurrent::compute(std::vector<PeptideIdentification>& pep_ids, const ProteinIdentification::SearchParameters& search_params, const MSExperiment& exp, const QCBase::SpectraMap& map_to_spectrum, ToleranceUnit tolerance_unit, double tolerance)
+  void PSMExplainedIonCurrent::compute(std::vector<PeptideIdentification>& pep_ids, const ProteinIdentification::SearchParameters& search_params, const MSExperiment& exp,
+                                       const QCBase::SpectraMap& map_to_spectrum, ToleranceUnit tolerance_unit, double tolerance)
   {
     Statistics result;
 
@@ -247,7 +249,8 @@ namespace OpenMS
       tolerance = search_params.fragment_mass_tolerance;
       if (tolerance <= 0.0)
       { // some engines, e.g. MSGF+ have no fragment tolerance parameter. It will be 0.0.
-        throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "No information about fragment mass tolerance given. Please choose a fragment_mass_unit and tolerance manually.");
+        throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                            "No information about fragment mass tolerance given. Please choose a fragment_mass_unit and tolerance manually.");
       }
     }
 
@@ -273,7 +276,7 @@ namespace OpenMS
     results_.push_back(result);
   }
 
-	const String& PSMExplainedIonCurrent::getName() const
+  const String& PSMExplainedIonCurrent::getName() const
   {
     static const String& name = "PSMExplainedIonCurrent";
     return name;
@@ -285,10 +288,9 @@ namespace OpenMS
   }
 
 
-  QCBase::Status PSMExplainedIonCurrent::requires() const
+  QCBase::Status PSMExplainedIonCurrent::requirements() const
   {
     return QCBase::Status() | QCBase::Requires::RAWMZML | QCBase::Requires::POSTFDRFEAT;
   }
 
-};
-
+}; // namespace OpenMS

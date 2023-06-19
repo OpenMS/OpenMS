@@ -32,23 +32,21 @@
 // $Authors: Juliane Schmachtenberg $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/QC/MzCalibration.h>
-
-#include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/CONCEPT/LogStream.h>
+#include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/MATH/MISC/MathFunctions.h>
 #include <OpenMS/METADATA/DataProcessing.h>
+#include <OpenMS/QC/MzCalibration.h>
 
 using namespace std;
- 
+
 namespace OpenMS
 {
-  MzCalibration::MzCalibration() :
-      mz_raw_{}, mz_ref_{}, no_mzml_(false)
+  MzCalibration::MzCalibration() : mz_raw_ {}, mz_ref_ {}, no_mzml_(false)
   {
   }
 
@@ -64,10 +62,7 @@ namespace OpenMS
     {
       no_mzml_ = false;
       // check for Calibration
-      auto is_not_elem = [](const boost::shared_ptr<const OpenMS::DataProcessing> &dp)
-      {
-        return (dp->getProcessingActions().count(DataProcessing::CALIBRATION) == 0);
-      };
+      auto is_not_elem = [](const boost::shared_ptr<const OpenMS::DataProcessing>& dp) { return (dp->getProcessingActions().count(DataProcessing::CALIBRATION) == 0); };
       auto vdp = exp[0].getDataProcessing(); // get a copy to avoid calling .begin() and .end() on two different temporaries
       if (all_of(vdp.begin(), vdp.end(), is_not_elem))
       {
@@ -77,28 +72,26 @@ namespace OpenMS
     }
 
     // set meta values for the first hit of all PeptideIdentifications of all features
-    for (Feature &feature : features)
+    for (Feature& feature : features)
     {
       if (feature.getPeptideIdentifications().empty())
       {
         continue;
       }
 
-      for (PeptideIdentification &peptide_ID : feature.getPeptideIdentifications())
+      for (PeptideIdentification& peptide_ID : feature.getPeptideIdentifications())
       {
         addMzMetaValues_(peptide_ID, exp, map_to_spectrum);
       }
     }
     // set meta values for the first hit of all unasssigned PeptideIdentifications
-    for (PeptideIdentification &unassigned_ID : features.getUnassignedPeptideIdentifications())
+    for (PeptideIdentification& unassigned_ID : features.getUnassignedPeptideIdentifications())
     {
       addMzMetaValues_(unassigned_ID, exp, map_to_spectrum);
     }
   }
 
-  void MzCalibration::addMzMetaValues_(PeptideIdentification &peptide_ID,
-                                       const PeakMap &exp,
-                                       const QCBase::SpectraMap &map_to_spectrum)
+  void MzCalibration::addMzMetaValues_(PeptideIdentification& peptide_ID, const PeakMap& exp, const QCBase::SpectraMap& map_to_spectrum)
   {
     if (peptide_ID.getHits().empty())
     {
@@ -115,10 +108,7 @@ namespace OpenMS
     {
       if (!peptide_ID.metaValueExists("spectrum_reference"))
       {
-        throw Exception::InvalidParameter(__FILE__,
-                                          __LINE__,
-                                          OPENMS_PRETTY_FUNCTION,
-                                          "No spectrum reference annotated at peptide identification!");
+        throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "No spectrum reference annotated at peptide identification!");
       }
 
       // get spectrum from mapping and meta value
@@ -136,10 +126,7 @@ namespace OpenMS
       }
       else
       {
-        throw Exception::IllegalArgument(__FILE__,
-                                         __LINE__,
-                                         OPENMS_PRETTY_FUNCTION,
-                                         "The matching spectrum of the mzML is not an MS2 Spectrum.");
+        throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "The matching spectrum of the mzML is not an MS2 Spectrum.");
       }
 
       // set meta values
@@ -151,14 +138,14 @@ namespace OpenMS
   }
 
   // required input files
-  QCBase::Status MzCalibration::requires() const
+  QCBase::Status MzCalibration::requirements() const
   {
     return QCBase::Status() | QCBase::Requires::POSTFDRFEAT;
   }
 
-  const String &MzCalibration::getName() const
+  const String& MzCalibration::getName() const
   {
     static const String& name = "MzCalibration";
     return name;
   }
-}
+} // namespace OpenMS

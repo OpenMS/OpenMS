@@ -46,13 +46,10 @@ namespace OpenMS
     Every derived class has to implement the static functions
     "T* create()" and "const String getProductName()" (see DefaultParamHandler for details)
   */
-  template <UInt D>
-  class BaseModel :
-    public DefaultParamHandler
+  template<UInt D>
+  class BaseModel : public DefaultParamHandler
   {
-
-public:
-
+  public:
     typedef double IntensityType;
     typedef double CoordinateType;
     typedef DPosition<D> PositionType;
@@ -61,16 +58,13 @@ public:
 
 
     /// Default constructor.
-    BaseModel() :
-      DefaultParamHandler("BaseModel")
+    BaseModel() : DefaultParamHandler("BaseModel")
     {
       defaults_.setValue("cutoff", 0.0, "Low intensity cutoff of the model.  Peaks below this intensity are not considered part of the model.");
     }
 
     /// copy constructor
-    BaseModel(const BaseModel & source) :
-      DefaultParamHandler(source),
-      cut_off_(source.cut_off_)
+    BaseModel(const BaseModel& source) : DefaultParamHandler(source), cut_off_(source.cut_off_)
     {
     }
 
@@ -80,9 +74,10 @@ public:
     }
 
     /// assignment operator
-    virtual BaseModel & operator=(const BaseModel & source)
+    BaseModel& operator=(const BaseModel& source)
     {
-      if (&source == this) return *this;
+      if (&source == this)
+        return *this;
 
       DefaultParamHandler::operator=(source);
       cut_off_ = source.cut_off_;
@@ -94,10 +89,10 @@ public:
     static void registerChildren();
 
     /// access model predicted intensity at position @p pos
-    virtual IntensityType getIntensity(const PositionType & pos) const = 0;
+    virtual IntensityType getIntensity(const PositionType& pos) const = 0;
 
     /// check if position @p pos is part of the model regarding the models cut-off.
-    virtual bool isContained(const PositionType & pos) const
+    virtual bool isContained(const PositionType& pos) const
     {
       return getIntensity(pos) >= cut_off_;
     }
@@ -106,8 +101,8 @@ public:
     predicted intensity at its current position, calling virtual void
     getIntensity().
     */
-    template <typename PeakType>
-    void fillIntensity(PeakType & peak) const
+    template<typename PeakType>
+    void fillIntensity(PeakType& peak) const
     {
       peak.setIntensity(getIntensity(peak.getPosition()));
     }
@@ -115,7 +110,7 @@ public:
     /**@brief Convenience function that applies fillIntensity() to an iterator
     range.
     */
-    template <class PeakIterator>
+    template<class PeakIterator>
     void fillIntensities(PeakIterator begin, PeakIterator end) const
     {
       for (PeakIterator it = begin; it != end; ++it)
@@ -138,10 +133,10 @@ public:
     }
 
     /// get reasonable set of samples from the model (i.e. for printing)
-    virtual void getSamples(SamplesType & cont) const = 0;
+    virtual void getSamples(SamplesType& cont) const = 0;
 
     /// fill stream with reasonable set of samples from the model (i.e. for printing)
-    virtual void getSamples(std::ostream & os)
+    virtual void getSamples(std::ostream& os)
     {
       SamplesType samples;
       getSamples(samples);
@@ -151,14 +146,12 @@ public:
       }
     }
 
-protected:
+  protected:
     IntensityType cut_off_;
 
     void updateMembers_() override
     {
       cut_off_ = (double)param_.getValue("cutoff");
     }
-
   };
-}
-
+} // namespace OpenMS

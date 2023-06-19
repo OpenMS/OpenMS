@@ -31,12 +31,11 @@
 // $Authors: Juliane Schmachtenberg, Chris Bielow $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/QC/Ms2SpectrumStats.h>
-
-#include <OpenMS/QC/QCBase.h>
+#include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
-#include <OpenMS/CONCEPT/Exception.h>
+#include <OpenMS/QC/Ms2SpectrumStats.h>
+#include <OpenMS/QC/QCBase.h>
 
 using namespace std;
 
@@ -53,26 +52,23 @@ namespace OpenMS
 
     setScanEventNumber_(exp);
     // if MS2-spectrum PeptideIdentifications found ->  ms2_included_ nullptr to PepID pointer
-    std::function<void(PeptideIdentification&)> l_f = [&exp,this,&map_to_spectrum] (PeptideIdentification& pep_id)
-    {
-      setPresenceAndScanEventNumber_(pep_id, exp, map_to_spectrum);
-    };
+    std::function<void(PeptideIdentification&)> l_f = [&exp, this, &map_to_spectrum](PeptideIdentification& pep_id) { setPresenceAndScanEventNumber_(pep_id, exp, map_to_spectrum); };
     features.applyFunctionOnPeptideIDs(l_f);
-    
+
     // if Ms2-spectrum not identified, add to unassigned PeptideIdentification without ID, contains only RT, mz and some meta values
     return getUnassignedPeptideIdentifications_(exp);
   }
-  
+
 
   void Ms2SpectrumStats::setScanEventNumber_(const MSExperiment& exp)
   {
     ms2_included_.clear();
     ms2_included_.reserve(exp.size());
-    UInt32 scan_event_number{ 0 };
+    UInt32 scan_event_number {0};
     for (const MSSpectrum& spec : exp.getSpectra())
     {
       if (spec.getMSLevel() == 1)
-      { // reset 
+      { // reset
         scan_event_number = 0;
         ms2_included_.emplace_back(scan_event_number, false);
       }
@@ -103,7 +99,7 @@ namespace OpenMS
     {
       throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "No spectrum reference annotated at peptide identification!");
     }
-    
+
     UInt64 index = map_to_spectrum.at(peptide_ID.getMetaValue("spectrum_reference").toString());
     const MSSpectrum& spectrum = exp[index];
 
@@ -149,7 +145,7 @@ namespace OpenMS
   // calculate maximal and summed intensity
   MSSpectrum::PeakType::IntensityType Ms2SpectrumStats::getBPI_(const MSSpectrum& spec)
   {
-    PeakSpectrum::PeakType::IntensityType bpi{ 0 };
+    PeakSpectrum::PeakType::IntensityType bpi {0};
     auto it = spec.getBasePeak();
     if (it != spec.end())
     {
@@ -165,9 +161,9 @@ namespace OpenMS
   }
 
   // required input files
-  QCBase::Status Ms2SpectrumStats::requires() const
+  QCBase::Status Ms2SpectrumStats::requirements() const
   {
     return QCBase::Status() | QCBase::Requires::RAWMZML | QCBase::Requires::POSTFDRFEAT;
   }
 
-}
+} // namespace OpenMS

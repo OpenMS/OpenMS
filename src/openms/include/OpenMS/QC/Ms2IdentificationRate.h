@@ -34,8 +34,9 @@
 
 #pragma once
 
-#include <OpenMS/CONCEPT/Types.h>
 #include "OpenMS/QC/QCBase.h"
+
+#include <OpenMS/CONCEPT/Types.h>
 #include <string>
 #include <vector>
 
@@ -48,7 +49,7 @@ namespace OpenMS
 
   /**
    @brief This class is a metric for the QualityControl-ToppTool.
-   
+
    This class computes the MS2 Identification Rate (as #identified PSMs divided by total number of MS2 scans) given a FeatureMap and an MSExperiment.
    Only pep-ids with FDR metavalue 'target_decoy' equal to 'target' are counted, unless assume_all_target flag is set (assumes all pep-ids are target peptides)
 
@@ -57,8 +58,7 @@ namespace OpenMS
   {
   public:
     /// Structure for storing results
-    struct IdentificationRateData
-    {
+    struct IdentificationRateData {
       Size num_peptide_identification = 0;
       Size num_ms2_spectra = 0;
       double identification_rate = 0.;
@@ -67,7 +67,7 @@ namespace OpenMS
   private:
     /// name of the metric
     const String name_ = "Ms2IdentificationRate";
-    
+
     /// container that stores results
     std::vector<IdentificationRateData> rate_result_;
 
@@ -75,24 +75,24 @@ namespace OpenMS
     Size getMS2Count_(const MSExperiment& exp);
 
     /*
-    * @brief Checks pepID for target/decoy
-    *
-    * Only checks the first (!) hit, all other hits are ignored
-    * Is static so that it can be used with MapUtilities::applyFunctionOnPeptideIDs() without creating a new object for each ID
-    *
-    * @param id             pepID to be checked
-    * @param all_targets    always returns true (if the hits aren't empty)
-    * @return               true/false
-    * @throws               MissingInformation if target/decoy annotation is missing
-    */
+     * @brief Checks pepID for target/decoy
+     *
+     * Only checks the first (!) hit, all other hits are ignored
+     * Is static so that it can be used with MapUtilities::applyFunctionOnPeptideIDs() without creating a new object for each ID
+     *
+     * @param id             pepID to be checked
+     * @param all_targets    always returns true (if the hits aren't empty)
+     * @return               true/false
+     * @throws               MissingInformation if target/decoy annotation is missing
+     */
     static bool isTargetPeptide_(const PeptideIdentification& id, bool all_targets);
 
     /*
-    * @brief Calculates id-rate and writes the result into a IdentificationRateData object which is appended to rate_result_
-    *
-    * @param ms2_spectra_count  number of found ms2 spectra
-    * @param pep_ids_count      number of found (target) peptide identifications
-    */
+     * @brief Calculates id-rate and writes the result into a IdentificationRateData object which is appended to rate_result_
+     *
+     * @param ms2_spectra_count  number of found ms2 spectra
+     * @param pep_ids_count      number of found (target) peptide identifications
+     */
     void writeResults_(Size pep_ids_count, Size ms2_spectra_count);
 
   public:
@@ -134,7 +134,7 @@ namespace OpenMS
 
     /// returns the name of the metric
     const String& getName() const override;
-    
+
     /// returns results
     const std::vector<IdentificationRateData>& getResults() const;
 
@@ -142,7 +142,7 @@ namespace OpenMS
      * @brief Returns the input data requirements of the compute(...) function
      * @return Status for RAWMZML and POSTFDRFEAT
      */
-    QCBase::Status requires() const override;
+    QCBase::Status requirements() const override;
 
     void addMetaDataMetricsToMzTab(MzTabMetaData& meta) const;
   };

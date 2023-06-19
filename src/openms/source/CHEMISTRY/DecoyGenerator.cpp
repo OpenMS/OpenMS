@@ -55,7 +55,7 @@ void DecoyGenerator::setSeed(UInt64 seed)
 
 AASequence DecoyGenerator::reverseProtein(const AASequence& protein) const
 {
-  OPENMS_PRECONDITION(!protein.isModified(), "Decoy generation only supports unmodified proteins.");
+  OPENMS_PRECONDITION(!protein.isModified(), "Decoy generation only supports unmodified proteins.")
   String s = protein.toUnmodifiedString();
   std::reverse(s.begin(), s.end());
   return AASequence::fromString(s);
@@ -63,7 +63,7 @@ AASequence DecoyGenerator::reverseProtein(const AASequence& protein) const
 
 AASequence DecoyGenerator::reversePeptides(const AASequence& protein, const String& protease) const
 {
-  OPENMS_PRECONDITION(!protein.isModified(), "Decoy generation only supports unmodified proteins.");
+  OPENMS_PRECONDITION(!protein.isModified(), "Decoy generation only supports unmodified proteins.")
   std::vector<AASequence> peptides;
   ProteaseDigestion ed;
   ed.setMissedCleavages(0); // important as we want to reverse between all cutting sites
@@ -90,7 +90,7 @@ AASequence DecoyGenerator::shufflePeptides(
         const String& protease,
         const int max_attempts)
 {
-  OPENMS_PRECONDITION(!protein.isModified(), "Decoy generation only supports unmodified proteins.");
+  OPENMS_PRECONDITION(!protein.isModified(), "Decoy generation only supports unmodified proteins.")
 
   std::vector<AASequence> peptides;
   ProteaseDigestion ed;
