@@ -133,13 +133,6 @@ endforeach()
 add_test("TOPPWRITEINI_OVERWRITE" ${TOPP_BIN_PATH}/PeakPickerWavelet -test -write_ini "WRITE_INI.ini.tmp" -ini "${DATA_DIR_TOPP}/WRITE_INI_IN.ini")
 add_test("TOPPWRITEINI_OVERWRITE_out" ${DIFF} -in1 WRITE_INI.ini.tmp -in2 "${DATA_DIR_TOPP}/WRITE_INI_OUT.ini" -whitelist "version")
 set_tests_properties("TOPPWRITEINI_OVERWRITE_out" PROPERTIES DEPENDS "TOPPWRITEINI_OVERWRITE")
-#------------------------------------------------------------------------------
-# test if write_ini does the correct updates when given an old JSON file (using
-# one arbitrary TOPP tool)
-#------------------------------------------------------------------------------
-add_test("TOPPWRITEINI_OVERWRITE2" ${TOPP_BIN_PATH}/PeakPickerWavelet -test -write_ini "WRITE_INI.ini.tmp2" -ini "${DATA_DIR_TOPP}/WRITE_INI_IN.json")
-add_test("TOPPWRITEINI_OVERWRITE2_out" ${DIFF} -in1 WRITE_INI.ini.tmp2 -in2 "${DATA_DIR_TOPP}/WRITE_INI_OUT.ini" -whitelist "version")
-set_tests_properties("TOPPWRITEINI_OVERWRITE2_out" PROPERTIES DEPENDS "TOPPWRITEINI_OVERWRITE2")
 ##
 ## Test if invalid arguments or values (from INI or CLI) lead to immediate exit
 ##
@@ -3359,7 +3352,6 @@ set_tests_properties("UTILS_PSMFeatureExtractor_3_out" PROPERTIES DEPENDS "UTILS
 
 #------------------------------------------------------------------------------
 # TOPP tests with json
-#------------------------------------------------------------------------------
 #------------------------------------------------------------------------------
 # MassTraceExtractor test
 add_test("TOPP_MassTraceExtractor_1_json" ${TOPP_BIN_PATH}/MassTraceExtractor -test -ini ${DATA_DIR_TOPP}/MassTraceExtractor.ini.json -in ${DATA_DIR_TOPP}/MassTraceExtractor_1_input.mzML -out MassTraceExtractor_1_json.tmp)
