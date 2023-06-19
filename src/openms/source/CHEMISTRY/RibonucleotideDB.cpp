@@ -61,7 +61,7 @@ namespace OpenMS
     
     // We still use the old tsv format for custom mods
     readFromFile_("CHEMISTRY/Custom_RNA_modifications.tsv");
-    OPENMS_LOG_DEBUG << "Loading custom RNA Modifications from"<<  File::find("CHEMISTRY/Custom_RNA_modifications.tsv") <<"\n";
+    OPENMS_LOG_DEBUG << "Loading custom RNA Modifications from "<< File::find("CHEMISTRY/Custom_RNA_modifications.tsv") <<"\n";
     
     if (File::exists("CHEMISTRY/User_Modifications.tsv"))
     {
