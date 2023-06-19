@@ -57,7 +57,7 @@ namespace OpenMS
   {
     // Modomics mods were retreived from https://www.genesilico.pl/modomics/api/modifications
     readFromJSON_("CHEMISTRY/Modomics.json");
-    OPENMS_LOG_DEBUG << "Loading modomics RNA Modifications from"<<  File::find("CHEMISTRY/Modomics.json") <<"\n";
+    OPENMS_LOG_DEBUG << "Loading modomics RNA Modifications from "<<  File::find("CHEMISTRY/Modomics.json") <<"\n";
     
     // We still use the old tsv format for custom mods
     readFromFile_("CHEMISTRY/Custom_RNA_modifications.tsv");
