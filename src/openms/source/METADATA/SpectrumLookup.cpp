@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -33,12 +33,13 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/METADATA/SpectrumLookup.h>
+#include <boost/regex/v4/regex_match.hpp>
 
 using namespace std;
 
 namespace OpenMS
 {
-  const String& SpectrumLookup::default_scan_regexp = "=(?<SCAN>\\d+)$";
+  const String& SpectrumLookup::default_scan_regexp = R"(=(?<SCAN>\d+)$)";
 
   const String& SpectrumLookup::regexp_names_ = "INDEX0 INDEX1 SCAN ID RT";
 
@@ -48,8 +49,7 @@ namespace OpenMS
   {}
 
 
-  SpectrumLookup::~SpectrumLookup()
-  {}
+  SpectrumLookup::~SpectrumLookup() = default;
 
 
   bool SpectrumLookup::empty() const
@@ -77,8 +77,10 @@ namespace OpenMS
     {
       return lower->second;
     }
-    if (upper_diff <= rt_tolerance) return upper->second;
-
+    if (upper_diff <= rt_tolerance)
+    {
+      return upper->second;
+    }
     String element = "spectrum with RT " + String(rt);
     throw Exception::ElementNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                      element);
@@ -101,7 +103,10 @@ namespace OpenMS
   Size SpectrumLookup::findByIndex(Size index, bool count_from_one) const
   {
     Size adjusted_index = index;
-    if (count_from_one) --adjusted_index; // overflow (index = 0) handled below
+    if (count_from_one)
+    {
+      --adjusted_index; // overflow (index = 0) handled below
+    }
     if (adjusted_index >= n_spectra_)
     {
       String element = "spectrum with index " + String(index);
@@ -205,17 +210,15 @@ namespace OpenMS
                                         msg);
   }
 
-
   Size SpectrumLookup::findByReference(const String& spectrum_ref) const
   {
-    for (vector<boost::regex>::const_iterator it = reference_formats.begin();
-         it != reference_formats.end(); ++it)
+    for (const boost::regex& reg : reference_formats)
     {
       boost::smatch match;
-      bool found = boost::regex_search(spectrum_ref, match, *it);
+      bool found = boost::regex_search(spectrum_ref, match, reg);
       if (found)
       {
-        return findByRegExpMatch_(spectrum_ref, it->str(), match);
+        return findByRegExpMatch_(spectrum_ref, reg.str(), match);
       }
     }
     String msg = "Spectrum reference doesn't match any known format";
@@ -224,18 +227,51 @@ namespace OpenMS
   }
 
 
+  bool SpectrumLookup::isNativeID(const String& id)
+  {
+    return id.hasPrefix("scan=") || id.hasPrefix("scanID=") || id.hasPrefix("controllerType=") || id.hasPrefix("function=") || id.hasPrefix("sample=") || id.hasPrefix("index=") || id.hasPrefix("spectrum=");
+  }
+  
+  std::string SpectrumLookup::getRegExFromNativeID(const String& id)
+  {
+    // "scan=NUMBER" e.g. Bruker/Agilent
+    // "controllerType=0 controllerNumber=1 scan=NUMBER" for Thermo
+    // "function= process= scan=NUMBER" for Waters
+    if (id.hasPrefix("scan=") 
+     || id.hasPrefix("controllerType=")
+     || id.hasPrefix("function=")) return std::string(R"(scan=(?<GROUP>\d+))");
+
+    // "index=NUMBER" 
+    if (id.hasPrefix("index=")) return std::string(R"(index=(?<GROUP>\d+))");
+
+    // "scanId=NUMBER" - MS_Agilent_MassHunter_nativeID_format
+    if (id.hasPrefix("scanId=")) return std::string(R"(scanId=(?<GROUP>\d+))");
+
+    // "spectrum=NUMBER"
+    if (id.hasPrefix("spectrum=")) return std::string(R"(spectrum=(?<GROUP>\d+))");
+
+    // "file=NUMBER" Bruker FID or single peak list 
+    if (id.hasPrefix("file=")) return std::string(R"(file=(?<GROUP>\d+))");
+
+    // NUMBER 
+    return std::string(R"((?<GROUP>\d+))");        
+  }
+
   Int SpectrumLookup::extractScanNumber(const String& native_id,
                                         const boost::regex& scan_regexp, 
                                         bool no_error)
   {
-    boost::smatch match;
-    bool found = boost::regex_search(native_id, match, scan_regexp);
-    if (found && match["SCAN"].matched)
+    vector<string> matches;
+    boost::sregex_token_iterator current_begin(native_id.begin(), native_id.end(), scan_regexp, 1);
+    boost::sregex_token_iterator current_end(native_id.end(), native_id.end(), scan_regexp, 1);
+    matches.insert(matches.end(), current_begin, current_end);
+    if (!matches.empty())
     {
-      String value = match["SCAN"].str();
+      // always use the last possible matching subgroup
+      String last_value = String(matches.back());
       try
       {
-        return value.toInt();
+        return last_value.toInt();
       }
       catch (Exception::ConversionError&)
       {
@@ -258,72 +294,115 @@ namespace OpenMS
     std::vector<String> scan = {"MS:1000768","MS:1000769","MS:1000771","MS:1000772","MS:1000776"};
     // list of CV accession with native id format "file=NUMBER"
     std::vector<String> file = {"MS:1000773","MS:1000775"};
+    // expected number of subgroups
+    vector<int> subgroups = {1};
     
     // "scan=NUMBER" 
     if (std::find(scan.begin(), scan.end(), native_id_type_accession) != scan.end())
     {
-      regexp = std::string("scan=(?<GROUP>\\d+)");
+      regexp = std::string(R"(scan=(?<GROUP>\d+))");
     }
-    // "experiment=NUMBER"
-    else if (native_id_type_accession == "MS:1000770")
+    // id="sample=1 period=1 cycle=96 experiment=1" - this will be described by a combination of (cycle * 1000 + experiment)
+    else if (native_id_type_accession == "MS:1000770") // WIFF nativeID format
     {
-      regexp = std::string("experiment=(?<GROUP>\\d+)");
+      regexp = std::string(R"(cycle=(?<GROUP>\d+)\s+experiment=(?<GROUP>\d+))"); 
+      subgroups = {1, 2};
     }
     // "file=NUMBER"
     else if (std::find(file.begin(), file.end(), native_id_type_accession) != file.end())
     {
-      regexp = std::string("file=(?<GROUP>\\d+)");
+      regexp = std::string(R"(file=(?<GROUP>\d+))");
     }
     // "index=NUMBER"
     else if (native_id_type_accession == "MS:1000774")
     {
-      regexp = std::string("index=(?<GROUP>\\d+)");
+      regexp = std::string(R"(index=(?<GROUP>\d+))");
+    }
+    // "scanId=NUMBER" - MS_Agilent_MassHunter_nativeID_format
+    else if (native_id_type_accession == "MS:1001508")
+    {
+      regexp = std::string(R"(scanId=(?<GROUP>\d+))");
     }
     // "spectrum=NUMBER"
     else if (native_id_type_accession == "MS:1000777")
     {
-      regexp = std::string("spectrum=(?<GROUP>\\d+)");
+      regexp = std::string(R"(spectrum=(?<GROUP>\d+))");
     }
     // NUMBER 
     else if (native_id_type_accession == "MS:1001530")  
     {
-      regexp = std::string("(?<GROUP>\\d+)");
+      regexp = std::string(R"((?<GROUP>\d+))");
     }
     else
     {
-      LOG_WARN << "native_id: " << native_id << " accession: " << native_id_type_accession << " Could not extract scan number - no valid native_id_type_accession was provided" << std::endl;
+      OPENMS_LOG_WARN << "native_id: " << native_id << " accession: " << native_id_type_accession << " Could not extract scan number - no valid native_id_type_accession was provided" << std::endl;
     }
 
     if (!regexp.empty()) 
     {
-      boost::smatch match;
-      bool found = boost::regex_search(native_id, match, regexp);
-      if (found && match["GROUP"].matched)
-      { 
+      vector<string> matches;
+      boost::sregex_token_iterator current_begin(native_id.begin(), native_id.end(), regexp, subgroups);
+      boost::sregex_token_iterator current_end(native_id.end(), native_id.end(), regexp, subgroups);
+      matches.insert(matches.end(), current_begin, current_end);
+      if (matches.size() == 1) // default case: one native identifier
+      {
         try
         {
-          String value = match["GROUP"].str();
-          return value.toInt();
+          String value = String(matches[0]);
+          if (native_id_type_accession == "MS:1000774")
+          {
+            return value.toInt() + 1; // if the native ID is index=.., the scan number is usually considered index+1 (especially for pepXML)
+          }
+          else
+          {
+            return value.toInt();
+          }
         }
         catch (Exception::ConversionError&)
         {
-          LOG_WARN << "Value could not be converted to int" << std::endl;
+          OPENMS_LOG_WARN << "Value: '" << String(matches[0]) << "' could not be converted to int in string. Native ID='" << native_id << "'" << std::endl;
           return -1;
         }
+      }
+      else if (matches.size() == 2) // special case: wiff file with two native identifiers
+      {
+        try
+        {
+          if (String(matches[1]).toInt() < 1000) // checks if value of experiment is smaller than 1000 (cycle * 1000 + experiment)
+          {
+            int value = String(matches[0]).toInt() * 1000 + String(matches[1]).toInt();
+            return value; 
+          }
+          else
+          {
+            throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "The value of experiment is too large and can not be handled properly.", String(matches[1]));
+          }
+        }
+        catch (Exception::ConversionError&)
+        {
+          OPENMS_LOG_WARN << "Value: '" << String(matches[0]) << "' could not be converted to int in string. Native ID='" 
+            << native_id << "' accession='" << native_id_type_accession << "'" << std::endl;
+          return -1;
+        }
+      }
+      else
+      {
+        return -1;
       }
     }
     return -1;
   } 
-
 
   void SpectrumLookup::addEntry_(Size index, double rt, Int scan_number,
                                  const String& native_id)
   {
     rts_[rt] = index;
     ids_[native_id] = index;
-    if (scan_number != -1) scans_[scan_number] = index;
+    if (scan_number != -1)
+    {
+      scans_[scan_number] = index;
+    }
   }
-
 
   void SpectrumLookup::setScanRegExp_(const String& scan_regexp)
   {
@@ -340,3 +419,4 @@ namespace OpenMS
   }
 
 } // namespace OpenMS
+

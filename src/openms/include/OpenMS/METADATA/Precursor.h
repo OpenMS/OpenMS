@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -37,6 +37,7 @@
 #include <OpenMS/KERNEL/Peak1D.h>
 #include <OpenMS/METADATA/CVTermList.h>
 #include <OpenMS/CONCEPT/Constants.h>
+#include <OpenMS/IONMOBILITY/IMTypes.h>
 
 #include <set>
 
@@ -60,6 +61,24 @@ namespace OpenMS
   {
 
 public:
+    /// Constructor
+    Precursor() = default;
+    /// Copy constructor
+    Precursor(const Precursor&) = default;
+
+    // note: we implement the move constructor ourselves due to a bug in MSVS
+    // 2015/2017 which cannot produce a default move constructor for classes
+    // that contain STL containers (other than vector).
+
+    /// Move constructor
+    Precursor(Precursor&&) noexcept;
+    /// Destructor
+    ~Precursor() override = default;
+
+    /// Assignment operator
+    Precursor& operator=(const Precursor&) = default;
+    /// Move assignment operator
+    Precursor& operator=(Precursor&&) & = default;
 
     /// Method of activation
     enum ActivationMethod
@@ -68,41 +87,36 @@ public:
       PSD,                      ///< Post-source decay
       PD,                       ///< Plasma desorption
       SID,                      ///< Surface-induced dissociation
-      BIRD,                             ///< Blackbody infrared radiative dissociation
-      ECD,                              ///< Electron capture dissociation
-      IMD,                              ///< Infrared multiphoton dissociation
-      SORI,                             ///< Sustained off-resonance irradiation
-      HCID,                             ///< High-energy collision-induced dissociation
-      LCID,                             ///< Low-energy collision-induced dissociation
-      PHD,                              ///< Photodissociation
-      ETD,                              ///< Electron transfer dissociation
-      PQD,                              ///< Pulsed q dissociation
+      BIRD,                     ///< Blackbody infrared radiative dissociation
+      ECD,                      ///< Electron capture dissociation
+      IMD,                      ///< Infrared multiphoton dissociation
+      SORI,                     ///< Sustained off-resonance irradiation
+      HCID,                     ///< High-energy collision-induced dissociation
+      LCID,                     ///< Low-energy collision-induced dissociation
+      PHD,                      ///< Photodissociation
+      ETD,                      ///< Electron transfer dissociation
+      PQD,                      ///< Pulsed q dissociation
+      TRAP,                     ///< trap-type collision-induced dissociation (MS:1002472)
+      HCD,                     ///< beam-type collision-induced dissociation (MS:1000422) "HCD"
+      INSOURCE,                 ///< in-source collision-induced dissociation (MS:1001880)
+      LIFT,                     ///< Bruker proprietary method (MS:1002000)
       SIZE_OF_ACTIVATIONMETHOD
     };
-
     /// Names of activation methods
     static const std::string NamesOfActivationMethod[SIZE_OF_ACTIVATIONMETHOD];
     static const std::string NamesOfActivationMethodShort[SIZE_OF_ACTIVATIONMETHOD];
-
-    /// Constructor
-    Precursor();
-    /// Copy constructor
-    Precursor(const Precursor & source);
-    /// Destructor
-    ~Precursor() override;
-
-    /// Assignment operator
-    Precursor & operator=(const Precursor & source);
 
     /// Equality operator
     bool operator==(const Precursor & rhs) const;
     /// Equality operator
     bool operator!=(const Precursor & rhs) const;
-
+  
     /// returns a const reference to the activation methods
-    const std::set<ActivationMethod> & getActivationMethods() const;
+    const std::set<ActivationMethod>& getActivationMethods() const;
     /// returns a mutable reference to the activation methods
-    std::set<ActivationMethod> & getActivationMethods();
+    std::set<ActivationMethod>& getActivationMethods();
+    /// convenience function, returning string representation of getActivationMethods()
+    StringList getActivationMethodsAsString() const;    
     /// sets the activation methods
     void setActivationMethods(const std::set<ActivationMethod> & activation_methods);
 
@@ -151,6 +165,17 @@ public:
     void setDriftTime(double drift_time);
 
     /**
+      @brief Returns the ion mobility drift time unit
+    */
+    DriftTimeUnit getDriftTimeUnit() const;
+
+    /**
+      @brief Sets the ion mobility drift time unit
+    */
+    void setDriftTimeUnit(DriftTimeUnit dt);
+
+
+    /**
      * @brief Returns the lower offset from the target ion mobility in milliseconds
      *
      * @note This is an offset relative to the target ion mobility. The start
@@ -183,14 +208,14 @@ public:
     /// Mutable access to the charge
     void setCharge(Int charge);
 
-    ///Mutable access to possible charge states
-    std::vector<Int> & getPossibleChargeStates();
-    ///Non-mutable access to possible charge states
-    const std::vector<Int> & getPossibleChargeStates() const;
-    ///Sets the possible charge states
+    /// Mutable access to possible charge states
+    std::vector<Int>& getPossibleChargeStates();
+    /// Non-mutable access to possible charge states
+    const std::vector<Int>& getPossibleChargeStates() const;
+    /// Sets the possible charge states
     void setPossibleChargeStates(const std::vector<Int> & possible_charge_states);
 
-    /// Returns the uncharged mass of the precursor, if charge is unknown, i.e. 0 best guess is its doubly charged
+    /// Returns the uncharged mass of the precursor, if charge is unknown, i.e. 0, our best guess is doubly charged
     inline double getUnchargedMass() const
     {
       int c = charge_;
@@ -201,13 +226,14 @@ public:
 protected:
 
     std::set<ActivationMethod> activation_methods_;
-    double activation_energy_;
-    double window_low_;
-    double window_up_;
-    double drift_time_;
-    double drift_window_low_;
-    double drift_window_up_;
-    Int charge_;
+    double activation_energy_{};
+    double window_low_{};
+    double window_up_{};
+    double drift_time_{-1};
+    double drift_window_low_{};
+    double drift_window_up_{};
+    DriftTimeUnit drift_time_unit_{DriftTimeUnit::NONE};
+    Int charge_{};
     std::vector<Int> possible_charge_states_;
   };
 } // namespace OpenMS

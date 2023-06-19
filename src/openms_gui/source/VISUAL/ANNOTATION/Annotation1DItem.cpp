@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -54,9 +54,7 @@ namespace OpenMS
     text_ = rhs.getText();
   }
 
-  Annotation1DItem::~Annotation1DItem()
-  {
-  }
+  Annotation1DItem::~Annotation1DItem() = default;
 
   void Annotation1DItem::drawBoundingBox_(QPainter & painter)
   {
@@ -67,7 +65,7 @@ namespace OpenMS
     painter.fillRect((int)(bounding_box_.bottomLeft().x()) - 3, (int)(bounding_box_.bottomLeft().y()), 3, 3, painter.pen().color());
   }
 
-  const QRectF & Annotation1DItem::boundingBox() const
+  const QRectF& Annotation1DItem::boundingBox() const
   {
     return bounding_box_;
   }
@@ -98,7 +96,10 @@ namespace OpenMS
     QString text = QInputDialog::getText(nullptr, "Edit text", "Enter text:", QLineEdit::Normal, this->getText(), &ok);
     if (ok && !text.isEmpty())
     {
-      if (text == getText()) return false;
+      if (text == getText())
+      {
+        return false;
+      }
       this->setText(text);
       return true;
     }

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -37,7 +37,11 @@
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/OpenMSConfig.h>
 
-#include <QtCore/QDate>
+#include <memory> // unique_ptr
+#include <string>
+
+// foward declarations
+class QDateTime; 
 
 namespace OpenMS
 {
@@ -51,8 +55,7 @@ namespace OpenMS
 
       @ingroup Datastructures
   */
-  class OPENMS_DLLAPI DateTime :
-    public QDateTime
+  class OPENMS_DLLAPI DateTime
   {
 public:
 
@@ -62,13 +65,30 @@ public:
         Fills the object with an undefined date: 00/00/0000
     */
     DateTime();
+
     /// Copy constructor
     DateTime(const DateTime& date);
-    /// Copy constructor from Qt base class
-    DateTime(const QDateTime& date);
+
+    /// Move constructor
+    DateTime(DateTime&&) noexcept;
 
     /// Assignment operator
     DateTime& operator=(const DateTime& source);
+
+    /// Move assignment operator
+    DateTime& operator=(DateTime&&) & noexcept;
+
+    /// Destructor
+    ~DateTime();
+
+    /// equal operator
+    bool operator==(const DateTime& rhs) const;
+
+    /// not-equal operator
+    bool operator!=(const DateTime& rhs) const;
+
+    /// less operator
+    bool operator<(const DateTime& rhs) const;
 
     /**
         @brief sets date from a string
@@ -143,6 +163,9 @@ public:
     */
     void getTime(UInt& hour, UInt& minute, UInt& second) const;
 
+    // add @param s seconds to date time
+    DateTime& addSecs(int s);
+
     /**
         @brief Returns the time as string
 
@@ -153,17 +176,33 @@ public:
     /// Returns the current date and time
     static DateTime now();
 
-    ///Sets the undefined date: 00/00/0000 00:00:00
+    /// Returns true if the date time is valid
+    bool isValid() const;
+
+    /// return true if the date and time is null
+    bool isNull() const;
+
+    /// Sets the undefined date: 00/00/0000 00:00:00
     void clear();
 
-    /**
-        @brief Returns a string representation of the date and time
+    /* @brief Returns a string representation of the DateTime object.
+       @param format "yyyy-MM-ddThh:mm:ss" corresponds to ISO 8601 and should be preferred.
+	  */
+	  String toString(const std::string& format = "yyyy-MM-ddThh:mm:ss") const;
 
-        The format of the string will be yyyy-MM-dd hh:mm:ss
-    */
-    String get() const;
+    /* @brief Creates a DateTime object from string representation.
+       @param format "yyyy-MM-ddThh:mm:ss" corresponds to ISO 8601 and should be preferred.
+	  */
+      static DateTime fromString(const std::string& date, const std::string& format = "yyyy-MM-ddThh:mm:ss");
 
-    /**
+      /**
+          @brief Returns a string representation of the date and time
+
+          The format of the string will be yyyy-MM-dd hh:mm:ss
+      */
+      String get() const;
+
+      /**
         @brief Sets date and time
 
         The following formats are supported:
@@ -175,11 +214,11 @@ public:
         - yyyy-MM-dd+hh:mm (ISO 8601 format)
 
         @exception Exception::ParseError
-    */
-    void set(const String& date);
+      */
+      void set(const String& date);
 
-protected:
+    private:
+      std::unique_ptr<QDateTime> dt_; // use PImpl, to avoid costly #include
   };
 
 } // namespace OPENMS
-

@@ -1,3 +1,4 @@
+from libcpp.map cimport map as libcpp_map
 
 
     def getModifications(self):

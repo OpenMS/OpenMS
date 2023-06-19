@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry               
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 // 
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -32,12 +32,20 @@
 // $Authors: Andreas Bertsch $
 // --------------------------------------------------------------------------
 
+#ifndef OPENMS_WINDOWSPLATFORM
+#pragma clang diagnostic push
+// Ignore -Wpessimizing-move, becuase it's intentional
+#pragma clang diagnostic ignored "-Wpessimizing-move"
+#endif
+
 #include <OpenMS/CONCEPT/ClassTest.h>
 #include <OpenMS/test_config.h>
 
 ///////////////////////////
 #include <OpenMS/KERNEL/MSChromatogram.h>
 ///////////////////////////
+
+#include <sstream>
 
 using namespace OpenMS;
 using namespace std;
@@ -51,14 +59,14 @@ MSChromatogram* ptr = nullptr;
 MSChromatogram* nullPointer = nullptr;
 START_SECTION(MSChromatogram())
 {
-	ptr = new MSChromatogram();
-	TEST_NOT_EQUAL(ptr, nullPointer)
+  ptr = new MSChromatogram();
+  TEST_NOT_EQUAL(ptr, nullPointer)
 }
 END_SECTION
 
 START_SECTION(virtual ~MSChromatogram())
 {
-	delete ptr;
+  delete ptr;
 }
 END_SECTION
 
@@ -75,12 +83,21 @@ ChromatogramPeak p3;
 p3.setIntensity(3.0f);
 p3.setRT(30.0);
 
+ChromatogramPeak p4;
+p4.setIntensity(6.0f);
+p4.setRT(30);
+
+ChromatogramPeak p5;
+p5.setIntensity(3.0f);
+p5.setRT(30.0001);
+
 
 START_SECTION((const String& getName() const ))
 {
   TEST_STRING_EQUAL(ptr->getName(), "")
-	ptr->setName("my_fancy_name");
-	TEST_STRING_EQUAL(ptr->getName(), "my_fancy_name")
+  ptr->setName("my_fancy_name");
+  TEST_STRING_EQUAL(ptr->getName(), "my_fancy_name")
+  delete ptr;
 }
 END_SECTION
 
@@ -93,15 +110,15 @@ END_SECTION
 START_SECTION((const FloatDataArrays& getFloatDataArrays() const ))
 {
   MSChromatogram chrom;
-	TEST_EQUAL(chrom.getFloatDataArrays().size(),0)
+  TEST_EQUAL(chrom.getFloatDataArrays().size(),0)
 }
 END_SECTION
 
 START_SECTION((FloatDataArrays& getFloatDataArrays()))
 {
-	MSChromatogram chrom;
-	chrom.getFloatDataArrays().resize(2);
-	TEST_EQUAL(chrom.getFloatDataArrays().size(), 2)
+  MSChromatogram chrom;
+  chrom.getFloatDataArrays().resize(2);
+  TEST_EQUAL(chrom.getFloatDataArrays().size(), 2)
 }
 END_SECTION
 
@@ -122,14 +139,14 @@ END_SECTION
 
 START_SECTION((const IntegerDataArrays& getIntegerDataArrays() const ))
 {
-	MSChromatogram chrom;
+  MSChromatogram chrom;
   TEST_EQUAL(chrom.getIntegerDataArrays().size(), 0)
 }
 END_SECTION
 
 START_SECTION((IntegerDataArrays& getIntegerDataArrays()))
 {
-	MSChromatogram chrom;
+  MSChromatogram chrom;
   chrom.getIntegerDataArrays().resize(2);
   TEST_EQUAL(chrom.getIntegerDataArrays().size(), 2)
 }
@@ -158,7 +175,7 @@ START_SECTION((void sortByIntensity(bool reverse=false)))
   for (Size i = 0; i < rts.size(); ++i)
   {
     p.setIntensity(intensities[i]); 
-		p.setRT(rts[i]);
+    p.setRT(rts[i]);
     ds.push_back(p);
   }
   ds.sortByIntensity();
@@ -175,11 +192,11 @@ START_SECTION((void sortByIntensity(bool reverse=false)))
     ++it_ds;
   }
   
-	ds.clear(true);
+  ds.clear(true);
   for (Size i = 0; i < rts.size(); ++i)
   {
     p.setIntensity(intensities[i]); 
-		p.setRT(rts[i]);
+    p.setRT(rts[i]);
     ds.push_back(p);
   }
   intensities_copy = intensities;
@@ -752,14 +769,17 @@ START_SECTION((ConstIterator PosEnd(ConstIterator begin, CoordinateType rt, Cons
 }
 END_SECTION
 
+/////////////////////////////////////////////////////////////
+// Copy constructor, move constructor, assignment operator, move assignment operator, equality
+
 START_SECTION((MSChromatogram(const MSChromatogram &source)))
 {
   MSChromatogram tmp;
   tmp.getInstrumentSettings().getScanWindows().resize(1);
   tmp.setMetaValue("label",5.0);
-	Product prod;
-	prod.setMZ(7.0);
-	tmp.setProduct(prod);
+  Product prod;
+  prod.setMZ(7.0);
+  tmp.setProduct(prod);
   tmp.setName("bla");
   //peaks
   MSChromatogram::PeakType peak;
@@ -778,13 +798,51 @@ START_SECTION((MSChromatogram(const MSChromatogram &source)))
 }
 END_SECTION
 
+START_SECTION((MSChromatogram(const MSChromatogram &&source)))
+{
+  // Ensure that MSChromatogram has a no-except move constructor (otherwise
+  // std::vector is inefficient and will copy instead of move).
+  TEST_EQUAL(noexcept(MSChromatogram(std::declval<MSChromatogram&&>())), true)
+
+  MSChromatogram tmp;
+  tmp.getInstrumentSettings().getScanWindows().resize(1);
+  tmp.setMetaValue("label",5.0);
+  Product prod;
+  prod.setMZ(7.0);
+  tmp.setProduct(prod);
+  tmp.setName("bla");
+  //peaks
+  MSChromatogram::PeakType peak;
+  peak.getPosition()[0] = 47.11;
+  tmp.push_back(peak);
+
+  //copy tmp so we can move one of them
+  MSChromatogram orig = tmp;
+  MSChromatogram tmp2(std::move(tmp));
+
+  TEST_EQUAL(tmp2, orig); // should be equal to the original
+
+  TEST_EQUAL(tmp2.getInstrumentSettings().getScanWindows().size(),1);
+  TEST_REAL_SIMILAR(tmp2.getMetaValue("label"), 5.0)
+  TEST_REAL_SIMILAR(tmp2.getMZ(), 7.0)
+  TEST_EQUAL(tmp2.getName(),"bla")
+  //peaks
+  TEST_EQUAL(tmp2.size(),1);
+  TEST_REAL_SIMILAR(tmp2[0].getPosition()[0],47.11);
+
+  // test move
+  TEST_EQUAL(tmp.size(),0);
+  TEST_EQUAL(tmp.metaValueExists("label"), false);
+}
+END_SECTION
+
 START_SECTION((MSChromatogram& operator=(const MSChromatogram &source)))
 {
   MSChromatogram tmp;
   tmp.setMetaValue("label",5.0);
-	Product prod;
-	prod.setMZ(7.0);
-	tmp.setProduct(prod);
+  Product prod;
+  prod.setMZ(7.0);
+  tmp.setProduct(prod);
   tmp.setName("bla");
   //peaks
   MSChromatogram::PeakType peak;
@@ -811,6 +869,58 @@ START_SECTION((MSChromatogram& operator=(const MSChromatogram &source)))
 }
 END_SECTION
 
+START_SECTION((MSChromatogram& operator=(const MSChromatogram &&source)))
+{
+  MSChromatogram tmp;
+  tmp.setMetaValue("label",5.0);
+  Product prod;
+  prod.setMZ(7.0);
+  tmp.setProduct(prod);
+  tmp.setName("bla");
+  //peaks
+  MSChromatogram::PeakType peak;
+  peak.getPosition()[0] = 47.11;
+  tmp.push_back(peak);
+
+  //copy tmp so we can move one of them
+  MSChromatogram orig = tmp;
+
+  //move assignment
+  MSChromatogram tmp2;
+  tmp2 = std::move(tmp);
+
+  TEST_EQUAL(tmp2, orig); // should be equal to the original
+
+  //normal assignment
+  TEST_REAL_SIMILAR(tmp2.getMetaValue("label"), 5.0)
+  TEST_REAL_SIMILAR(tmp2.getMZ(), 7.0)
+  TEST_EQUAL(tmp2.getName(),"bla")
+  TEST_EQUAL(tmp2.size(),1);
+  TEST_REAL_SIMILAR(tmp2[0].getPosition()[0],47.11);
+
+  // test move
+  TEST_EQUAL(tmp.size(),0);
+  TEST_EQUAL(tmp.metaValueExists("label"), false);
+
+  //Assignment of empty object
+  //normal assignment
+#ifndef OPENMS_WINDOWSPLATFORM
+#pragma clang diagnostic push
+// Ignore -Wpessimizing-move, because we want to test the move assignment operator.
+#pragma clang diagnostic ignored "-Wpessimizing-move"
+#endif
+  tmp2 = std::move(MSChromatogram());
+#ifndef OPENMS_WINDOWSPLATFORM
+#pragma clang diagnostic pop
+#endif
+  TEST_EQUAL(tmp2.getInstrumentSettings().getScanWindows().size(),0);
+  TEST_EQUAL(tmp2.metaValueExists("label"), false)
+  TEST_REAL_SIMILAR(tmp2.getMZ(), 0.0)
+  TEST_EQUAL(tmp2.getName(),"")
+  TEST_EQUAL(tmp2.size(),0);
+}
+END_SECTION
+
 START_SECTION((bool operator==(const MSChromatogram &rhs) const ))
 {
   MSChromatogram edit, empty;
@@ -825,9 +935,9 @@ START_SECTION((bool operator==(const MSChromatogram &rhs) const ))
   edit.setMetaValue("label",String("bla"));
   TEST_EQUAL(empty==edit, false);
 
-	Product prod;
-	prod.setMZ(5);
-	edit.setProduct(prod);
+  Product prod;
+  prod.setMZ(5);
+  edit.setProduct(prod);
   TEST_EQUAL(empty==edit, false);
 
   edit = empty;
@@ -845,7 +955,7 @@ START_SECTION((bool operator==(const MSChromatogram &rhs) const ))
   //name is not checked => no change
   edit = empty;
   edit.setName("bla");
-  TEST_EQUAL(empty==edit, true);
+  TEST_TRUE(empty == edit);
 
   edit = empty;
   edit.push_back(p1);
@@ -875,8 +985,8 @@ START_SECTION((bool operator!=(const MSChromatogram &rhs) const ))
   edit.setMetaValue("label",String("bla"));
   TEST_EQUAL(edit!=empty,true);
 
-	Product prod;
-	prod.setMZ(5);
+  Product prod;
+  prod.setMZ(5);
   edit.setProduct(prod);
   TEST_EQUAL(edit!=empty,true);
 
@@ -916,24 +1026,25 @@ START_SECTION((virtual void updateRanges()))
   s.updateRanges();
   s.updateRanges(); //second time to check the initialization
 
-  TEST_REAL_SIMILAR(s.getMaxInt(),2)
-  TEST_REAL_SIMILAR(s.getMinInt(),1)
-  TEST_REAL_SIMILAR(s.getMax()[0],10)
-  TEST_REAL_SIMILAR(s.getMin()[0],2)
+  TEST_REAL_SIMILAR(s.getMaxIntensity(),2)
+  TEST_REAL_SIMILAR(s.getMinIntensity(), 1)
+  TEST_REAL_SIMILAR(s.getMaxRT(),10)
+  TEST_REAL_SIMILAR(s.getMinRT(),2)
 
   //test with only one peak
 
   s.clear(true);
   s.push_back(p1);
   s.updateRanges();
-  TEST_REAL_SIMILAR(s.getMaxInt(),1)
-  TEST_REAL_SIMILAR(s.getMinInt(),1)
-  TEST_REAL_SIMILAR(s.getMax()[0],2)
-  TEST_REAL_SIMILAR(s.getMin()[0],2)
+  TEST_REAL_SIMILAR(s.getMaxIntensity(), 1)
+  TEST_REAL_SIMILAR(s.getMinIntensity(), 1)
+  TEST_REAL_SIMILAR(s.getMaxRT(),2)
+  TEST_REAL_SIMILAR(s.getMinRT(),2)
 }
 END_SECTION
 
 START_SECTION(void clear(bool clear_meta_data))
+{
   MSChromatogram edit;
   edit.getInstrumentSettings().getScanWindows().resize(1);
   edit.resize(1);
@@ -945,19 +1056,25 @@ START_SECTION(void clear(bool clear_meta_data))
 
   edit.clear(false);
   TEST_EQUAL(edit.size(),0)
-  TEST_EQUAL(edit==MSChromatogram(),false)
+  TEST_EQUAL(edit.empty(),true)
+  TEST_EQUAL(edit == MSChromatogram(),false)
 
   edit.clear(true);
-  TEST_EQUAL(edit==MSChromatogram(),true)
+  TEST_EQUAL(edit.size(),0)
+  TEST_EQUAL(edit.empty(),true)
+  TEST_EQUAL(edit == MSChromatogram(),true)
+}
 END_SECTION
 
 START_SECTION((double getMZ() const))
-	MSChromatogram tmp;
-	Product prod;
-	prod.setMZ(0.1);
-	TEST_REAL_SIMILAR(tmp.getMZ(), 0.0)
-	tmp.setProduct(prod);
-	TEST_REAL_SIMILAR(tmp.getMZ(), 0.1)
+{
+  MSChromatogram tmp;
+  Product prod;
+  prod.setMZ(0.1);
+  TEST_REAL_SIMILAR(tmp.getMZ(), 0.0)
+    tmp.setProduct(prod);
+  TEST_REAL_SIMILAR(tmp.getMZ(), 0.1)
+}
 END_SECTION
 
 START_SECTION(([MSChromatogram::MZLess] bool operator()(const MSChromatogram &a, const MSChromatogram &b) const))
@@ -979,9 +1096,49 @@ START_SECTION(([MSChromatogram::MZLess] bool operator()(const MSChromatogram &a,
 }
 END_SECTION
 
+START_SECTION(void mergePeaks(MSChromatogram & other) )
+{
+  MSChromatogram a, b, c;
+  a.push_back(p1);
+  b.push_back(p2);
+  a.push_back(p3);
+  b.push_back(p5);
+  c.push_back(p1);
+  c.push_back(p2);
+  c.push_back(p4);
+  a.sortByPosition();
+  b.sortByPosition();
+  c.sortByPosition();
+  a.mergePeaks(b, true);
+  DoubleList dl = { b.getMZ() };
+  c.setMetaValue(Constants::UserParam::MERGED_CHROMATOGRAM_MZS, dl);
+  TEST_EQUAL(a, c)
+}
+END_SECTION
+
+START_SECTION( std::ostream& operator<<(std::ostream& os, const MSChromatogram& chrom)) 
+{
+  MSChromatogram a;
+  Product pa;
+  pa.setMZ(1000.0);
+  a.setProduct(pa);
+
+  MSChromatogram::PeakType peak;
+  peak.getPosition()[0] = 47.11;
+  a.push_back(peak);
+
+  std::ostringstream os;
+  os << a;
+
+  TEST_EQUAL(String(os.str()).hasSubstring("MSCHROMATOGRAM BEGIN"), true);
+  TEST_EQUAL(String(os.str()).hasSubstring("47.11"), true);
+}
+END_SECTION
+
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST
 
-
-
+#ifndef OPENMS_WINDOWSPLATFORM
+#pragma clang diagnostic pop
+#endif

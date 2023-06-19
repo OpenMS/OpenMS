@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -34,7 +34,6 @@
 
 
 #include <OpenMS/ANALYSIS/XLMS/XQuestScores.h>
-#include <OpenMS/MATH/STATISTICS/CumulativeBinomial.h>
 #include <OpenMS/MATH/STATISTICS/StatisticFunctions.h>
 #include <boost/math/distributions/binomial.hpp>
 #include <numeric>
@@ -116,7 +115,57 @@ namespace OpenMS
 
     binomial flip(theo_size, a_priori_p);
     // min double number to avoid 0 values, causing scores with the value "inf"
-    match_odds = -log(1 - cdf(flip, matched_size) + std::numeric_limits<double>::min());
+    match_odds = -log(cdf(complement(flip, matched_size)) + std::numeric_limits<double>::min());
+
+    // score lower than 0 does not make sense, but can happen if cfd = 0, -log( 1 + min() ) < 0
+    if (match_odds >= 0.0)
+    {
+      return match_odds;
+    }
+    else
+    {
+      return 0;
+    }
+  }
+
+  double XQuestScores::matchOddsScoreSimpleSpec(const std::vector< SimpleTSGXLMS::SimplePeak >& theoretical_spec,  const Size matched_size, double fragment_mass_tolerance, bool fragment_mass_tolerance_unit_ppm, bool is_xlink_spectrum, Size n_charges)
+  {
+    using boost::math::binomial;
+    Size theo_size = theoretical_spec.size();
+
+    if (matched_size < 1 || theo_size < 1)
+    {
+      return 0;
+    }
+
+    double range = theoretical_spec[theo_size-1].mz - theoretical_spec[0].mz;
+
+    // Compute fragment tolerance in Da for the mean of MZ values, if tolerance in ppm (rough approximation)
+    double mean = 0.0;
+    for (Size i = 0; i < theo_size; ++i)
+    {
+      mean += theoretical_spec[i].mz;
+    }
+    mean = mean / theo_size;
+    double tolerance_Th = fragment_mass_tolerance_unit_ppm ? mean * 1e-6 * fragment_mass_tolerance : fragment_mass_tolerance;
+
+    // A priori probability of a random match given info about the theoretical spectrum
+    double a_priori_p = 0;
+
+    if (is_xlink_spectrum)
+    {
+      a_priori_p = (1 - ( pow( (1 - 2 * tolerance_Th / (0.5 * range)),  (static_cast<double>(theo_size) / static_cast<double>(n_charges)))));
+    }
+    else
+    {
+      a_priori_p = (1 - ( pow( (1 - 2 * tolerance_Th / (0.5 * range)),  static_cast<int>(theo_size))));
+    }
+
+    double match_odds = 0;
+
+    binomial flip(theo_size, a_priori_p);
+    // min double number to avoid 0 values, causing scores with the value "inf"
+    match_odds = -log(cdf(complement(flip, matched_size)) + std::numeric_limits<double>::min());
 
     // score lower than 0 does not make sense, but can happen if cfd = 0, -log( 1 + min() ) < 0
     if (match_odds >= 0.0)
@@ -160,7 +209,7 @@ namespace OpenMS
     double log_occu_prob = 0;
     binomial flip(theo_size, a_priori_p);
     // min double number to avoid 0 values, causing scores with the value "inf"
-    log_occu_prob = -log(1 - cdf(flip, matched_size) + std::numeric_limits<double>::min());
+    log_occu_prob = -log(cdf(complement(flip, matched_size)) + std::numeric_limits<double>::min());
 
     // score lower than 0 does not make sense, but can happen, if cfd = 0, then -log( 1 + <double>::min() ) < 0
     if (log_occu_prob >= 0.0)
@@ -281,7 +330,7 @@ namespace OpenMS
     std::vector< double > results(maxshift * 2 + 1, 0);
 
     // return 0 = no correlation, when one of the spectra is empty
-    if (spec1.size() == 0 || spec2.size() == 0) {
+    if (spec1.empty() || spec2.empty()) {
       return results;
     }
 
@@ -339,7 +388,7 @@ namespace OpenMS
   double XQuestScores::xCorrelationPrescore(const PeakSpectrum & spec1, const PeakSpectrum & spec2, double tolerance)
   {
     // return 0 = no correlation, when one of the spectra is empty
-    if (spec1.size() == 0 || spec2.size() == 0) {
+    if (spec1.empty() || spec2.empty()) {
       return 0.0;
     }
 

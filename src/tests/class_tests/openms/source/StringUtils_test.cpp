@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry               
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 // 
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -46,16 +46,16 @@ START_TEST(StringUtils, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-StringUtils* ptr = nullptr;
-StringUtils* null_ptr = nullptr;
-START_SECTION(StringUtils())
+StringUtilsHelper* ptr = nullptr;
+StringUtilsHelper* null_ptr = nullptr;
+START_SECTION(StringUtilsHelper())
 {
-	ptr = new StringUtils();
+	ptr = new StringUtilsHelper();
 	TEST_NOT_EQUAL(ptr, null_ptr)
 }
 END_SECTION
 
-START_SECTION(~StringUtils())
+START_SECTION(~StringUtilsHelper())
 {
 	delete ptr;
 }
@@ -217,20 +217,48 @@ START_SECTION((static QString toQString(const String &this_s)))
 }
 END_SECTION
 
-START_SECTION((static Int toInt(const String &this_s)))
+
+START_SECTION((static Int32 toInt32(const String &this_s)))
 {
   // easy case
-  TEST_EQUAL(StringUtils::toInt("1234"), 1234)
+  TEST_EQUAL(StringUtils::toInt32("2147483647"), 2147483647)
   // with spaces (allowed)
-  TEST_EQUAL(StringUtils::toInt("  1234"), 1234)
-  TEST_EQUAL(StringUtils::toInt("1234 "), 1234)
-  TEST_EQUAL(StringUtils::toInt("   1234  "), 1234)
+  TEST_EQUAL(StringUtils::toInt32("  2147483647"), 2147483647)
+  TEST_EQUAL(StringUtils::toInt32("2147483647 "), 2147483647)
+  TEST_EQUAL(StringUtils::toInt32("   2147483647  "), 2147483647)
+  //
+  TEST_EXCEPTION(Exception::ConversionError, StringUtils::toInt32("2147483648")) // +1 too large
+  TEST_EXCEPTION(Exception::ConversionError, StringUtils::toInt32("-2147483649")) // -1 too small
+
   // with trailing chars (unexplained) --> error (because it means the input was not split correctly beforehand)!!!
-  TEST_EXCEPTION(Exception::ConversionError, StringUtils::toInt("1234  moreText"))  // 'moreText' is not explained...
-  TEST_EXCEPTION(Exception::ConversionError, StringUtils::toInt(" 1234 911.0"))     // '911.0' is not explained...
+  TEST_EXCEPTION(Exception::ConversionError, StringUtils::toInt32("1234  moreText")) // 'moreText' is not explained...
+  TEST_EXCEPTION(Exception::ConversionError, StringUtils::toInt32(" 1234 911.0"))    // '911.0' is not explained...
   // incorrect type
-  TEST_EXCEPTION(Exception::ConversionError, StringUtils::toInt(" abc "))
-  TEST_EXCEPTION(Exception::ConversionError, StringUtils::toInt(" 123.45 "))
+  TEST_EXCEPTION(Exception::ConversionError, StringUtils::toInt32(" abc "))
+  TEST_EXCEPTION(Exception::ConversionError, StringUtils::toInt32(" 123.45 "))
+}
+END_SECTION
+
+
+
+START_SECTION((static Int64 toInt64(const String &this_s)))
+{
+  // easy case
+  TEST_EQUAL(StringUtils::toInt64("9223372036854775807"), 9223372036854775807)
+  // with spaces (allowed)
+  TEST_EQUAL(StringUtils::toInt64("  9223372036854775807"), 9223372036854775807)
+  TEST_EQUAL(StringUtils::toInt64("9223372036854775807 "), 9223372036854775807)
+  TEST_EQUAL(StringUtils::toInt64("   9223372036854775807  "), 9223372036854775807)
+  //
+  TEST_EXCEPTION(Exception::ConversionError, StringUtils::toInt64("9223372036854775808")) // +1 too large
+  TEST_EXCEPTION(Exception::ConversionError, StringUtils::toInt64("-9223372036854775809")) // -1 too small
+
+  // with trailing chars (unexplained) --> error (because it means the input was not split correctly beforehand)!!!
+  TEST_EXCEPTION(Exception::ConversionError, StringUtils::toInt64("1234  moreText"))  // 'moreText' is not explained...
+  TEST_EXCEPTION(Exception::ConversionError, StringUtils::toInt64(" 1234 911.0"))     // '911.0' is not explained...
+  // incorrect type
+  TEST_EXCEPTION(Exception::ConversionError, StringUtils::toInt64(" abc "))
+  TEST_EXCEPTION(Exception::ConversionError, StringUtils::toInt64(" 123.45 "))
 }
 END_SECTION
 
@@ -263,6 +291,76 @@ START_SECTION((static double toDouble(const String &this_s)))
   TEST_EXCEPTION(Exception::ConversionError, StringUtils::toDouble(" 1234.45 911.0"))     // '911.0' is not explained...
   // incorrect type
   TEST_EXCEPTION(Exception::ConversionError, StringUtils::toDouble(" abc "))
+}
+END_SECTION
+
+
+START_SECTION((template <typename IteratorT> static bool extractDouble(IteratorT& begin, const IteratorT& end, double& target)))
+{
+  double d;
+  {
+    std::string ss("12345.45  ");
+    auto it = ss.begin();
+    TEST_EQUAL(StringUtils::extractDouble(it, ss.end(), d), true);
+    TEST_REAL_SIMILAR(d, 12345.45)
+    TEST_EQUAL((int)std::distance(ss.begin(), it), 8); // was the iterator advanced?
+  }
+
+  {
+    std::string ss("+1234.45!");
+    auto it = ss.begin();
+    TEST_EQUAL(StringUtils::extractDouble(it, ss.end(), d), true);
+    TEST_REAL_SIMILAR(d, 1234.45)
+    TEST_EQUAL((int)std::distance(ss.begin(), it), 8); // was the iterator advanced?
+  }
+  {
+    d = 0;
+    std::string ss("  -123.45");
+    auto it = ss.begin();
+    TEST_EQUAL(StringUtils::extractDouble(it, ss.end(), d), false);
+    TEST_REAL_SIMILAR(d, 0)
+    TEST_EQUAL((int)std::distance(ss.begin(), it), 0); // was the iterator advanced?
+  }
+  {
+    std::string ss("15.0e6");
+    auto it = ss.begin();
+    TEST_EQUAL(StringUtils::extractDouble(it, ss.end(), d), true);
+    TEST_REAL_SIMILAR(d, 15.0e6)
+    TEST_EQUAL((int)std::distance(ss.begin(), it), 6); // was the iterator advanced?
+  }
+  {
+    // try two doubles in a single stream (should stop after the first)
+    std::string ss("-5.0	9.1");
+    auto it = ss.begin();
+    TEST_EQUAL(StringUtils::extractDouble(it, ss.end(), d), true);
+    TEST_REAL_SIMILAR(d, -5.0)
+    TEST_EQUAL((int)std::distance(ss.begin(), it), 4); // was the iterator advanced?
+    auto it2 = ss.begin() + 5;
+    TEST_EQUAL(StringUtils::extractDouble(it2, ss.end(), d), true);
+    TEST_REAL_SIMILAR(d, 9.1)
+    TEST_EQUAL((int)std::distance(ss.begin(), it2), 8); // was the iterator advanced?
+  }
+  {
+    // explicitly test X.FeY vs XeY since some compilers implementation of the native operator>> stop reading at 'e' if no '.F' was seen
+    std::string ss("15.0e6 x");   
+    auto it = ss.begin();
+    TEST_EQUAL(StringUtils::extractDouble(it, ss.end(), d), true);
+    TEST_REAL_SIMILAR(d, 15.0e6)
+    TEST_EQUAL((int)std::distance(ss.begin(), it), 6); // was the iterator advanced?
+  }
+  {
+    std::string ss("16e6!");
+    auto it = ss.begin();
+    TEST_EQUAL(StringUtils::extractDouble(it, ss.end(), d), true);
+    TEST_REAL_SIMILAR(d, 16e+06)
+    TEST_EQUAL((int)std::distance(ss.begin(), it), 4); // was the iterator advanced?
+  }
+  {
+    std::string ss("!noNumber");
+    auto it = ss.begin();
+    TEST_EQUAL(StringUtils::extractDouble(it, ss.end(), d), false);
+    TEST_EQUAL((int)std::distance(ss.begin(), it), 0); // was the iterator advanced?
+  }
 }
 END_SECTION
 

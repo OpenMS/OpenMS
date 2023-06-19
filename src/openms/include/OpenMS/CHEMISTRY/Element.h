@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -36,8 +36,9 @@
 #pragma once
 
 #include <OpenMS/CONCEPT/Types.h>
-#include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/IsotopeDistribution.h>
+
+#include <string>
 
 #define OPENMS_CHEMISTRY_ELEMENT_NAME_DEFAULT "unknown"
 #define OPENMS_CHEMISTRY_ELEMENT_SYMBOL_DEFAULT "??"
@@ -48,7 +49,10 @@ namespace OpenMS
 {
   /** @ingroup Chemistry
 
-          @brief Representation of an element
+      @brief Representation of an element
+
+      This contains information on an element and its isotopes, including a
+      common name, atomic symbol and mass/abundance of its isotopes.
   */
   class OPENMS_DLLAPI Element
   {
@@ -65,9 +69,9 @@ public:
     Element(const Element & element);
 
     /// detailed constructor
-    Element(const String & name,
-            const String & symbol,
-            UInt atomic_number,
+    Element(const std::string & name,
+            const std::string & symbol,
+            unsigned int atomic_number,
             double average_weight,
             double mono_weight,
             const IsotopeDistribution & isotopes);
@@ -80,10 +84,10 @@ public:
     */
     //@{
     /// sets unique atomic number
-    void setAtomicNumber(UInt atomic_number);
+    void setAtomicNumber(unsigned int atomic_number);
 
     /// returns the unique atomic number
-    UInt getAtomicNumber() const;
+    unsigned int getAtomicNumber() const;
 
     /// sets the average weight of the element
     void setAverageWeight(double weight);
@@ -104,16 +108,16 @@ public:
     const IsotopeDistribution & getIsotopeDistribution() const;
 
     /// set the name of the element
-    void setName(const String & name);
+    void setName(const std::string & name);
 
     /// returns the name of the element
-    const String & getName() const;
+    const std::string & getName() const;
 
     /// sets symbol of the element
-    void setSymbol(const String & symbol);
+    void setSymbol(const std::string & symbol);
 
     /// returns symbol of the element
-    const String & getSymbol() const;
+    const std::string & getSymbol() const;
     //@}
 
     /** @name Assignment
@@ -142,13 +146,13 @@ public:
 protected:
 
     /// name of the element
-    String name_;
+    std::string name_;
 
     /// symbol of the element
-    String symbol_;
+    std::string symbol_;
 
     /// atomic number of the element
-    UInt atomic_number_;
+    unsigned int atomic_number_;
 
     /// average weight over all isotopes
     double average_weight_;
@@ -156,7 +160,7 @@ protected:
     /// mono isotopic weight of the most frequent isotope
     double mono_weight_;
 
-    /// distribution of the isotopes
+    /// distribution of the isotopes (mass and natural frequency)
     IsotopeDistribution isotopes_;
   };
 

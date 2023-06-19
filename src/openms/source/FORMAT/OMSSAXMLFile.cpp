@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -50,9 +50,7 @@ namespace OpenMS
     readMappingFile_();
   }
 
-  OMSSAXMLFile::~OMSSAXMLFile()
-  {
-  }
+  OMSSAXMLFile::~OMSSAXMLFile() = default;
 
   void OMSSAXMLFile::load(const String& filename, ProteinIdentification& protein_identification, vector<PeptideIdentification>& peptide_identifications, bool load_proteins, bool load_empty_hits)
   {
@@ -75,18 +73,18 @@ namespace OpenMS
 
     // post-processing
     set<String> accessions;
-    for (vector<PeptideIdentification>::iterator it = peptide_identifications.begin(); it != peptide_identifications.end(); ++it)
+    for (PeptideIdentification& pep : peptide_identifications)
     {
-      it->setScoreType("OMSSA");
-      it->setHigherScoreBetter(false);
-      it->setIdentifier(identifier);
-      it->assignRanks();
+      pep.setScoreType("OMSSA");
+      pep.setHigherScoreBetter(false);
+      pep.setIdentifier(identifier);
+      pep.assignRanks();
 
       if (load_proteins)
       {
-        for (vector<PeptideHit>::const_iterator pit = it->getHits().begin(); pit != it->getHits().end(); ++pit)
+        for (const PeptideHit& pit : pep.getHits())
         {
-          set<String> hit_accessions = pit->extractProteinAccessionsSet();
+          set<String> hit_accessions = pit.extractProteinAccessionsSet();
           accessions.insert(hit_accessions.begin(), hit_accessions.end());
         }
       }
@@ -138,7 +136,7 @@ namespace OpenMS
     // end of peptide id
     else if (tag_ == "MSHitSet")
     {
-      if (actual_peptide_id_.getHits().size() > 0  || load_empty_hits_)
+      if (!actual_peptide_id_.getHits().empty()  || load_empty_hits_)
       {
         peptide_identifications_->push_back(actual_peptide_id_);
       }
@@ -155,24 +153,25 @@ namespace OpenMS
           </MSModHit_modtype>
         </MSModHit>
       */
-      if (mods_map_.has(actual_mod_type_.toInt()) && mods_map_[actual_mod_type_.toInt()].size() > 0)
+      if (mods_map_.find(actual_mod_type_.toInt()) != mods_map_.end() && !mods_map_[actual_mod_type_.toInt()].empty())
       {
         if (mods_map_[actual_mod_type_.toInt()].size() > 1)
         {
           warning(LOAD, String("Cannot determine exact type of modification of position ") + actual_mod_site_ + " in sequence " + actual_peptide_hit_.getSequence().toString() + " using modification " + actual_mod_type_ + " - using first possibility!");
         }
         AASequence pep = actual_peptide_hit_.getSequence();
-        if (mods_map_[actual_mod_type_.toInt()].begin()->getTermSpecificity() == ResidueModification::N_TERM)
+        auto mod = *(mods_map_[actual_mod_type_.toInt()].begin());
+        if (mod->getTermSpecificity() == ResidueModification::N_TERM)
         {
-          pep.setNTerminalModification(mods_map_[actual_mod_type_.toInt()].begin()->getFullId());
+          pep.setNTerminalModification(mod->getFullId());
         }
-        else if (mods_map_[actual_mod_type_.toInt()].begin()->getTermSpecificity() == ResidueModification::C_TERM)
+        else if (mod->getTermSpecificity() == ResidueModification::C_TERM)
         {
-          pep.setCTerminalModification(mods_map_[actual_mod_type_.toInt()].begin()->getFullId());
+          pep.setCTerminalModification(mod->getFullId());
         }
         else
         {
-          pep.setModification(actual_mod_site_, mods_map_[actual_mod_type_.toInt()].begin()->getFullId());
+          pep.setModification(actual_mod_site_, mod->getFullId());
         }
         actual_peptide_hit_.setSequence(pep);
       }
@@ -282,14 +281,15 @@ namespace OpenMS
         set<String> fixed_mod_names = mod_def_set_.getFixedModificationNames();
         for (set<String>::const_iterator it = fixed_mod_names.begin(); it != fixed_mod_names.end(); ++it)
         {
-          String origin = ModificationsDB::getInstance()->getModification(*it).getOrigin();
+          String origin = ModificationsDB::getInstance()->getModification(*it)->getOrigin();
           UInt position(0);
-          for (AASequence::Iterator ait = seq.begin(); ait != seq.end(); ++ait, ++position)
+          for (const Residue& ait : seq)
           {
-            if (ait->getOneLetterCode() == origin)
+            if (ait.getOneLetterCode() == origin)
             {
               seq.setModification(position, *it);
             }
+            ++position;
           }
         }
       }
@@ -304,7 +304,7 @@ namespace OpenMS
     }
     else if (tag_ == "MSHits_pepstart")
     {
-      if (value != "" && !actual_peptide_evidences_.empty())
+      if (!value.empty() && !actual_peptide_evidences_.empty())
       {
         actual_peptide_evidences_[0].setAABefore(value[0]);
       }
@@ -313,7 +313,7 @@ namespace OpenMS
     }
     else if (tag_ == "MSHits_pepstop")
     {
-      if (value != "" && !actual_peptide_evidences_.empty())
+      if (!value.empty() && !actual_peptide_evidences_.empty())
       {
         actual_peptide_evidences_[0].setAAAfter(value[0]);
       }
@@ -355,7 +355,7 @@ namespace OpenMS
     {
       // value might be  ( OMSSA 2.1.8): 359.213256835938_3000.13720000002_controllerType=0 controllerNumber=1 scan=4655
       //                 (<OMSSA 2.1.8): 359.213256835938_3000.13720000002
-      if (value.trim() != "")
+      if (!value.trim().empty())
       {
         if (value.has('_'))
         {
@@ -384,22 +384,22 @@ namespace OpenMS
       vector<String> split;
       it->split(',', split);
 
-      if (it->size() > 0 && (*it)[0] != '#')
+      if (!it->empty() && (*it)[0] != '#')
       {
         Int omssa_mod_num = split[0].trim().toInt();
         if (split.size() < 2)
         {
           fatalError(LOAD, String("Invalid mapping file line: '") + *it + "'");
         }
-        vector<ResidueModification> mods;
+        vector<const ResidueModification*> mods;
         for (Size i = 2; i != split.size(); ++i)
         {
           String tmp(split[i].trim());
           if (!tmp.empty())
           {
-            ResidueModification mod = ModificationsDB::getInstance()->getModification(tmp);
+            const ResidueModification* mod = ModificationsDB::getInstance()->getModification(tmp);
             mods.push_back(mod);
-            mods_to_num_[mod.getFullId()] = omssa_mod_num;
+            mods_to_num_[mod->getFullId()] = omssa_mod_num;
           }
         }
         mods_map_[omssa_mod_num] = mods;
@@ -414,7 +414,7 @@ namespace OpenMS
     set<String> mod_names = mod_set.getVariableModificationNames();
     for (set<String>::const_iterator it = mod_names.begin(); it != mod_names.end(); ++it)
     {
-      if (!mods_to_num_.has(*it))
+      if (!(mods_to_num_.find(*it) != mods_to_num_.end()))
       {
         mods_map_[omssa_mod_num].push_back(ModificationsDB::getInstance()->getModification(*it));
         mods_to_num_[*it] = omssa_mod_num;

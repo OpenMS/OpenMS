@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -80,8 +80,7 @@ public:
     //@}
 
     /// Compare by size(), the number of consensus elements
-    struct SizeLess :
-      std::binary_function<ConsensusFeature, ConsensusFeature, bool>
+    struct SizeLess
     {
       inline bool operator()(ConsensusFeature const& left, ConsensusFeature const& right) const
       {
@@ -106,8 +105,7 @@ public:
     };
 
     /// Compare by the sets of consensus elements (lexicographically)
-    struct MapsLess :
-      std::binary_function<ConsensusFeature, ConsensusFeature, bool>
+    struct MapsLess
     {
       inline bool operator()(ConsensusFeature const& left, ConsensusFeature const& right) const
       {
@@ -147,6 +145,7 @@ public:
         return *this;
       }
 
+      // @TODO: members are public, names shouldn't end in underscores
       double ratio_value_;
       String denominator_ref_;
       String numerator_ref_;
@@ -160,7 +159,10 @@ public:
     ConsensusFeature();
 
     /// Copy constructor
-    ConsensusFeature(const ConsensusFeature& rhs);
+    ConsensusFeature(const ConsensusFeature& rhs) = default;
+
+    /// Move constructor
+    ConsensusFeature(ConsensusFeature&& rhs) = default;
 
     /// Constructor from basic feature
     explicit ConsensusFeature(const BaseFeature& feature);
@@ -182,7 +184,10 @@ public:
     ConsensusFeature(UInt64 map_index, const BaseFeature& element);
 
     /// Assignment operator
-    ConsensusFeature& operator=(const ConsensusFeature& rhs);
+    ConsensusFeature& operator=(const ConsensusFeature& rhs) = default;
+
+    /// Move Assignment operator
+    ConsensusFeature& operator=(ConsensusFeature&& rhs) = default;
 
     /// Destructor
     ~ConsensusFeature() override;
@@ -196,6 +201,7 @@ public:
       @brief Adds all feature handles (of the CF) into the consensus feature
     */
     void insert(const ConsensusFeature& cf);
+    void insert(ConsensusFeature&& cf);
 
     /**
       @brief Adds an feature handle into the consensus feature
@@ -204,9 +210,11 @@ public:
       id already exists.
     */
     void insert(const FeatureHandle& handle);
+    void insert(FeatureHandle&& handle);
 
     /// Adds all feature handles in @p handle_set to this consensus feature.
     void insert(const HandleSetType& handle_set);
+    void insert(HandleSetType&& handle_set);
 
     /**
       @brief Creates a FeatureHandle and adds it
@@ -229,6 +237,9 @@ public:
 
     /// Mutable access to a copy of the contained feature handles
     std::vector<FeatureHandle> getFeatureList() const;
+
+    /// Set the feature set to a new one
+    void setFeatures(HandleSetType h);
     //@}
 
     ///@name Accessors
@@ -266,7 +277,7 @@ public:
       @brief Computes the uncharged parent RT & mass, assuming the handles are charge variants.
 
       The position of the feature handles (decharged) is averaged (using intensity as weights if
-      @param intensity_weighted_averaging is true). Intensities are summed up. Charge is set to 0.
+      @p intensity_weighted_averaging is true). Intensities are summed up. Charge is set to 0.
       Mass calculation: If the given features contain a metavalue "dc_charge_adduct_mass" then this
       will be used as adduct mass instead of weight(H+) * charge.
 
@@ -331,12 +342,14 @@ public:
     //@}
 
 private:
+
     HandleSetType handles_;
     std::vector<Ratio> ratios_;
+
+
   };
 
   ///Print the contents of a ConsensusFeature to a stream
   OPENMS_DLLAPI std::ostream& operator<<(std::ostream& os, const ConsensusFeature& cons);
 
 } // namespace OpenMS
-

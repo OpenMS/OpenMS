@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -56,6 +56,8 @@ namespace OpenMS
 
     Example: '\#MZ MIN INT'
 
+    Keywords can be lower/upper or mixed case, e.g. 'Int' or 'mz'.
+
     The peaks of one retention time have to be in subsequent lines.
 
     @ingroup FileIO
@@ -73,7 +75,7 @@ public:
     /// Default constructor
     DTA2DFile();
     /// Destructor
-    ~DTA2DFile();
+    ~DTA2DFile() override;
     //@}
 
     /// Mutable access to the options for loading/storing
@@ -154,7 +156,7 @@ public:
         //is header line
         if (line.hasPrefix("#"))
         {
-          line = line.substr(1).trim();
+          line = line.substr(1).trim().toUpper();
           line.split(delimiter, strings);
 
           // flags to check if dimension is set correctly
@@ -318,11 +320,11 @@ public:
       // write header (Always MZ=0 for chromatograms in DTA2D.)
       os << "#SEC\tMZ\tINT\n";
 
-      typename MapType::ChromatogramType TIC = map.getTIC();
+      typename MapType::ChromatogramType TIC = map.calculateTIC();
       for (typename MapType::ChromatogramType::ConstIterator it = TIC.begin(); it != TIC.end(); ++it)
       {
-        // write rt and intensity.
-        os << precisionWrapper(it->getRT()) << "\t" << precisionWrapper(0) << "\t" << precisionWrapper(it->getIntensity()) << "\n";
+        // write rt, (mz=0) and intensity.
+        os << precisionWrapper(it->getRT()) << "\t0\t" << precisionWrapper(it->getIntensity()) << "\n";
       }
 
       os.close();

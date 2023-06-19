@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -42,7 +42,6 @@
 
 namespace OpenMS
 {
-
   template <typename MapT, typename PepT>
   bool populateMS1Transition(MapT & pep2tr,
                              const PepT & pep,
@@ -55,7 +54,7 @@ namespace OpenMS
     // Catch cases where a compound has no transitions
     if (pep2tr.count(pep.id) == 0)
     {
-      LOG_INFO << "Warning: no transitions found for compound " << pep.id << std::endl;
+      OPENMS_LOG_INFO << "Warning: no transitions found for compound " << pep.id << std::endl;
       coord.id = OpenSwathHelper::computePrecursorId(pep.id, 0);
       return false;
     }
@@ -112,7 +111,6 @@ namespace OpenMS
                                                                         Size i,
                                                                         bool do_peptides)
   {
-    OPENMS_PRECONDITION(i >= 0, "Index i must be larger than zero")
     OPENMS_PRECONDITION(IMPLIES(do_peptides, i < transition_exp_used.getPeptides().size()), "Index i must be smaller than the number of peptides")
     OPENMS_PRECONDITION(IMPLIES(!do_peptides, i < transition_exp_used.getCompounds().size()), "Index i must be smaller than the number of compounds")
 
@@ -206,8 +204,8 @@ namespace OpenMS
       }
     }
 
-    // sort result
-    std::sort(coordinates.begin(), coordinates.end(), ChromatogramExtractor::ExtractionCoordinates::SortExtractionCoordinatesByMZ);
+    // sort result, use stable_sort to ensure that ordering is preserved 
+    std::stable_sort(coordinates.begin(), coordinates.end(), ChromatogramExtractor::ExtractionCoordinates::SortExtractionCoordinatesByMZ);
   }
 
   void ChromatogramExtractor::prepare_coordinates(std::vector< OpenSwath::ChromatogramPtr > & output_chromatograms,
@@ -287,7 +285,7 @@ namespace OpenMS
           throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                            "Error: Peptide " + pep->id + " does not have retention time information which is necessary to perform an RT-limited extraction");
         }
-        else if (boost::math::isnan(rt_extraction_window)) // if 'rt_extraction_window' is NAN, we assume that RT start/end is encoded in the data
+        else if (std::isnan(rt_extraction_window)) // if 'rt_extraction_window' is NAN, we assume that RT start/end is encoded in the data
         {
           // TODO: better use a single RT entry with start/end
           if (pep->rts.size() != 2)
@@ -323,8 +321,8 @@ namespace OpenMS
 
     }
 
-    // sort result
-    std::sort(coordinates.begin(), coordinates.end(), ChromatogramExtractor::ExtractionCoordinates::SortExtractionCoordinatesByMZ);
+    // sort result, use stable_sort to ensure that ordering is preserved 
+    std::stable_sort(coordinates.begin(), coordinates.end(), ChromatogramExtractor::ExtractionCoordinates::SortExtractionCoordinatesByMZ);
   }
 
   bool ChromatogramExtractor::outsideExtractionWindow_(const ReactionMonitoringTransition& transition, double current_rt,
@@ -342,7 +340,7 @@ namespace OpenMS
     // other way round.
     double expected_rt = PeptideRTMap_[transition.getPeptideRef()];
     double de_normalized_experimental_rt = trafo.apply(expected_rt);
-    if (current_rt < de_normalized_experimental_rt - rt_extraction_window / 2.0 || 
+    if (current_rt < de_normalized_experimental_rt - rt_extraction_window / 2.0 ||
         current_rt > de_normalized_experimental_rt + rt_extraction_window / 2.0 )
     {
       return true;
@@ -388,8 +386,5 @@ namespace OpenMS
         PeptideRTMap_[pep.id] = pep.getRetentionTime();
       }
   }
-
-
-
 
 }

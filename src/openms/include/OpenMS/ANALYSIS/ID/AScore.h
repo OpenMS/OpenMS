@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -49,13 +49,15 @@ namespace OpenMS
   class PeptideHit;
   class AASequence;
   
-  struct ProbablePhosphoSites
+  class ProbablePhosphoSites
   {
+  public:
+
     Size first;
     Size second;
-    Size seq_1; // index of best permutation with site in phosphorylated state
-    Size seq_2; // index of permutation with site in unphosphorylated state
-    Size peak_depth; // filtering level that gave rise to maximum discriminatory score
+    Size seq_1; ///< index of best permutation with site in phosphorylated state
+    Size seq_2; ///< index of permutation with site in unphosphorylated state
+    Size peak_depth; ///< filtering level that gave rise to maximum discriminatory score
     Size AScore;
   };
   
@@ -83,8 +85,6 @@ namespace OpenMS
 
         @param	hit a PeptideHit
         @param real_spectrum spectrum mapped to hit
-        @param fmt fragment_mass_tolerance, when comparing real_spectrum to a theoretical spectrum of the amino acid sequence of hit.
-        @param number_of_phospho_sites which directs the method to search for this number of phosphorylated sites.
 
         @note the original sequence is saved in the PeptideHits as MetaValue Search_engine_sequence.
     */
@@ -167,14 +167,17 @@ namespace OpenMS
     */
     void determineHighestScoringPermutations_(const std::vector<std::vector<double>>& peptide_site_scores, std::vector<ProbablePhosphoSites>& sites, const std::vector<std::vector<Size>>& permutations, std::multimap<double, Size>& ranking) const;
 
+    /// Computes probability for a peak depth of one given spectra and mass_tolerance variables
+    double computeBaseProbability_(double ppm_reference_mz) const;
+
     /// Computes the cumulative binomial probabilities.
     double computeCumulativeScore_(Size N, Size n, double p) const;
     
     /// Computes number of phospho events in a sequence
-    Size numberOfPhosphoEvents_(const String sequence) const;
+    Size numberOfPhosphoEvents_(const String& sequence) const;
     
     /// Create variant of the peptide with all phosphorylations removed
-    AASequence removePhosphositesFromSequence_(const String sequence) const;
+    AASequence removePhosphositesFromSequence_(const String& sequence) const;
     
     /// Create theoretical spectra with all combinations with the number of phosphorylation events
     std::vector<PeakSpectrum> createTheoreticalSpectra_(const std::vector<std::vector<Size>>& permutations, const AASequence& seq_without_phospho) const;
@@ -197,9 +200,7 @@ namespace OpenMS
     Size max_peptide_length_; ///< Limit for peptide lengths that can be analyzed
     Size max_permutations_; ///< Limit for number of sequence permutations that can be handled
     double unambiguous_score_; ///< Score for unambiguous assignments (all sites phosphorylated)
-    
+    double base_match_probability_; ///< Probability of a match at a peak depth of 1
   };
 
 } // namespace OpenMS
-
-

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -32,17 +32,18 @@
 // $Authors: Erhan Kenar, Chris Bielow $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/FORMAT/FeatureXMLFile.h>
-#include <OpenMS/FORMAT/ConsensusXMLFile.h>
-#include <OpenMS/KERNEL/FeatureMap.h>
-#include <OpenMS/FORMAT/MzTab.h>
-#include <OpenMS/FORMAT/MzTabFile.h>
-#include <OpenMS/FORMAT/FileHandler.h>
-#include <OpenMS/FORMAT/FileTypes.h>
+#include <OpenMS/APPLICATIONS/TOPPBase.h>
 
 #include <OpenMS/ANALYSIS/ID/AccurateMassSearchEngine.h>
-
-#include <OpenMS/APPLICATIONS/TOPPBase.h>
+#include <OpenMS/FORMAT/ConsensusXMLFile.h>
+#include <OpenMS/FORMAT/FeatureXMLFile.h>
+#include <OpenMS/FORMAT/FileHandler.h>
+#include <OpenMS/FORMAT/FileTypes.h>
+#include <OpenMS/FORMAT/MzTab.h>
+#include <OpenMS/FORMAT/MzTabFile.h>
+#include <OpenMS/FORMAT/MzTabMFile.h>
+#include <OpenMS/FORMAT/OMSFile.h>
+#include <OpenMS/KERNEL/FeatureMap.h>
 
 using namespace OpenMS;
 using namespace std;
@@ -59,9 +60,9 @@ using namespace std;
   <CENTER>
   <table>
   <tr>
-  <td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. predecessor tools </td>
-  <td VALIGN="middle" ROWSPAN=3> \f$ \longrightarrow \f$ AccurateMassSearch \f$ \longrightarrow \f$</td>
-  <td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. successor tools </td>
+  <th ALIGN = "center"> pot. predecessor tools </td>
+  <td VALIGN="middle" ROWSPAN=3> &rarr; AccurateMassSearch &rarr;</td>
+  <th ALIGN = "center"> pot. successor tools </td>
   </tr>
   <tr>
   <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_FeatureFinderMetabo </td>
@@ -77,6 +78,8 @@ using namespace std;
 
   <B>The command line parameters of this tool are:</B>
   @verbinclude UTILS_AccurateMassSearch.cli
+  <B>INI file documentation of this tool:</B>
+  @htmlinclude UTILS_AccurateMassSearch.html
 */
 
 // We do not want this class to show up in the docu:
@@ -95,24 +98,24 @@ protected:
   void registerOptionsAndFlags_() override
   {
     registerInputFile_("in", "<file>", "", "featureXML or consensusXML file");
-    setValidFormats_("in", ListUtils::create<String>("featureXML,consensusXML"));
+    setValidFormats_("in", {"featureXML", "consensusXML"});
     registerOutputFile_("out", "<file>", "", "mzTab file");
     setValidFormats_("out", ListUtils::create<String>("mzTab"));
 
     registerOutputFile_("out_annotation", "<file>", "", "A copy of the input file, annotated with matching hits from the database.", false);
-    setValidFormats_("out_annotation", ListUtils::create<String>("featureXML,consensusXML"));
+    setValidFormats_("out_annotation", {"featureXML", "consensusXML", "oms"});
 
     // move some params from algorithm section to top level (to support input file functionality)
     Param p = AccurateMassSearchEngine().getDefaults();
     registerTOPPSubsection_("db", "Database files which contain the identifications");
-    registerInputFileList_("db:mapping", "<file(s)>", p.getValue("db:mapping"), p.getDescription("db:mapping"), true, false, ListUtils::create<String>("skipexists"));
-    setValidFormats_("db:mapping", ListUtils::create<String>("tsv"));
-    registerInputFileList_("db:struct", "<file(s)>", p.getValue("db:struct"), p.getDescription("db:struct"), true, false, ListUtils::create<String>("skipexists"));
-    setValidFormats_("db:struct", ListUtils::create<String>("tsv"));
-    registerInputFile_("positive_adducts", "<file>", p.getValue("positive_adducts"), p.getDescription("positive_adducts"), true, false, ListUtils::create<String>("skipexists"));
-    setValidFormats_("positive_adducts", ListUtils::create<String>("tsv"));
-    registerInputFile_("negative_adducts", "<file>", p.getValue("negative_adducts"), p.getDescription("negative_adducts"), true, false, ListUtils::create<String>("skipexists"));
-    setValidFormats_("negative_adducts", ListUtils::create<String>("tsv"));
+    registerInputFileList_("db:mapping", "<file(s)>", ListUtils::toStringList<std::string>(p.getValue("db:mapping")), p.getDescription("db:mapping"), true, false, {"skipexists"});
+    setValidFormats_("db:mapping", {"tsv"});
+    registerInputFileList_("db:struct", "<file(s)>", ListUtils::toStringList<std::string>(p.getValue("db:struct")), p.getDescription("db:struct"), true, false, {"skipexists"});
+    setValidFormats_("db:struct", {"tsv"});
+    registerInputFile_("positive_adducts", "<file>", p.getValue("positive_adducts").toString(), p.getDescription("positive_adducts"), true, false, {"skipexists"});
+    setValidFormats_("positive_adducts", {"tsv"});
+    registerInputFile_("negative_adducts", "<file>", p.getValue("negative_adducts").toString(), p.getDescription("negative_adducts"), true, false, {"skipexists"});
+    setValidFormats_("negative_adducts", {"tsv"});
     // addEmptyLine_();
     // addText_("Parameters for the accurate mass search can be given in the 'algorithm' part of INI file.");
     registerSubsection_("algorithm", "Algorithm parameters section");
@@ -140,20 +143,28 @@ protected:
 
     Param ams_param = getParam_().copy("algorithm:", true);
     // copy top-level params to algorithm
-    ams_param.setValue("db:mapping", getStringList_("db:mapping"));
-    ams_param.setValue("db:struct", getStringList_("db:struct"));
+    ams_param.setValue("db:mapping", ListUtils::create<std::string>(getStringList_("db:mapping")));
+    ams_param.setValue("db:struct", ListUtils::create<std::string>(getStringList_("db:struct")));
     ams_param.setValue("positive_adducts", getStringOption_("positive_adducts"));
     ams_param.setValue("negative_adducts", getStringOption_("negative_adducts"));
+
+    if (file_ann.hasSuffix("oms"))
+    {
+      ams_param.setValue("id_format", "ID"); // use IdentificationData to store id results
+    }
 
     writeDebug_("Parameters passed to AccurateMassSearch", ams_param, 3);
 
     // mzTAB output data structure
     MzTab mztab_output;
-    MzTabFile mztab_outfile;
+    MzTabM mztabm_output;
 
     AccurateMassSearchEngine ams;
     ams.setParameters(ams_param);
     ams.init();
+
+    std::string idf = std::string(ams.getParameters().getValue("id_format"));
+    bool id_format = idf == "ID" ? true : false;
 
     FileTypes::Type filetype = FileHandler::getType(in);
 
@@ -165,17 +176,35 @@ protected:
       //-------------------------------------------------------------
       // do the work
       //-------------------------------------------------------------
-      ams.run(ms_feat_map, mztab_output);
+      if (id_format) // if format ID is used, MzTabM output will be generated
+      {
+        ams.run(ms_feat_map, mztabm_output);
+      }
+      else
+      {
+        ams.run(ms_feat_map, mztab_output);
+      }
 
       //-------------------------------------------------------------
       // writing output
       //-------------------------------------------------------------
-      // annotate output with data processing info
-      //addDataProcessing_(ms_feat_map, getProcessingInfo_(DataProcessing::IDENTIFICATION_MAPPING));
-      if (!file_ann.empty())
+
+      if (file_ann.hasSuffix("featureXML"))
       {
         FeatureXMLFile().store(file_ann, ms_feat_map);
       }
+      else if (file_ann.hasSuffix("oms"))
+      {
+        OMSFile().store(file_ann, ms_feat_map);
+      }
+    }
+    else if (filetype == FileTypes::CONSENSUSXML && id_format)
+    {
+      throw Exception::InvalidValue(__FILE__,
+                                    __LINE__,
+                                    OPENMS_PRETTY_FUNCTION,
+                                    "FATAL: CONSENSUSXML is currently not supporting ID and its MzTabM (v2.0.0-M) output, please use legacy_id",
+                                    "");
     }
     else if (filetype == FileTypes::CONSENSUSXML)
     {
@@ -192,15 +221,22 @@ protected:
       // writing output
       //-------------------------------------------------------------
 
-      // annotate output with data processing info
-      //addDataProcessing_(ms_feat_map, getProcessingInfo_(DataProcessing::IDENTIFICATION_MAPPING));
       if (!file_ann.empty())
       {
         ConsensusXMLFile().store(file_ann, ms_cons_map);
       }
     }
 
-    mztab_outfile.store(out, mztab_output);
+    if(id_format && filetype == FileTypes::FEATUREXML)
+    {
+      MzTabMFile mztabm_file;
+      mztabm_file.store(out, mztabm_output);
+    }
+    else
+    {
+      MzTabFile mztab_file;
+      mztab_file.store(out, mztab_output);
+    }
 
     return EXECUTION_OK;
   }

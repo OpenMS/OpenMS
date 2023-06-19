@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -40,12 +40,12 @@ using namespace xercesc;
 
 namespace OpenMS
 {
-  Bzip2InputStream::Bzip2InputStream(const   String & file_name) :
+  Bzip2InputStream::Bzip2InputStream(const String & file_name) :
     bzip2_(new Bzip2Ifstream(file_name.c_str())), file_current_index_(0)
   {
   }
 
-  Bzip2InputStream::Bzip2InputStream(const   char * file_name) :
+  Bzip2InputStream::Bzip2InputStream(const char * file_name) :
     bzip2_(new Bzip2Ifstream(file_name)), file_current_index_(0)
   {
   }
@@ -61,7 +61,7 @@ namespace OpenMS
     delete bzip2_;
   }
 
-  XMLSize_t Bzip2InputStream::readBytes(XMLByte * const  to_fill, const XMLSize_t  max_to_read)
+  XMLSize_t Bzip2InputStream::readBytes(XMLByte * const to_fill, const XMLSize_t max_to_read)
   {
     //  Figure out whether we can really read.
     if (bzip2_->streamEnd())
@@ -70,7 +70,7 @@ namespace OpenMS
     }
 
     unsigned char * fill_it = static_cast<unsigned char *>(to_fill);
-    XMLSize_t actual_read = (XMLSize_t) bzip2_->read((char *)fill_it, static_cast<const size_t>(max_to_read));
+    XMLSize_t actual_read = (XMLSize_t) bzip2_->read((char *)fill_it, static_cast<size_t>(max_to_read));
     file_current_index_ += actual_read;
     return actual_read;
   }

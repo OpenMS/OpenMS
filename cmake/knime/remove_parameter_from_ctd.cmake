@@ -2,7 +2,7 @@
 #                   OpenMS -- Open-Source Mass Spectrometry
 # --------------------------------------------------------------------------
 # Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-# ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+# ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 #
 # This software is released under a three-clause BSD license:
 #  * Redistributions of source code must retain the above copyright
@@ -32,7 +32,7 @@
 # $Authors: Stephan Aiche $
 # --------------------------------------------------------------------------
 
-CMAKE_MINIMUM_REQUIRED (VERSION 2.8)
+cmake_minimum_required(VERSION 3.15 FATAL_ERROR)
 
 # include helper functions 
 include ( ${SCRIPT_DIR}common.cmake )
@@ -43,7 +43,9 @@ check_variables(required_variables)
 set(filename "${CTD_PATH}/${TOOLNAME}.ctd")
 
 file(READ "${filename}" contents)
-string(REGEX REPLACE ";" "\\\\;" contents "${contents}")
+string(REPLACE "[" "_OPENBRACKET_" contents "${contents}")
+string(REPLACE "]" "_CLOSEBRACKET_" contents "${contents}")
+string(REPLACE ";" "\\;" contents "${contents}")
 string(REGEX REPLACE "\n" ";" contents "${contents}")
 
 set(APPEND_TO_FILE FALSE)
@@ -51,7 +53,10 @@ foreach(line ${contents})
   set(pos -1) 
   if(line MATCHES ".*name=\"${PARAM}\".*") 
     string(LENGTH "${CMAKE_MATCH_1}" pos) 
-  endif() 
+  endif()
+  
+  string(REPLACE "_OPENBRACKET_" "[" line "${line}")
+  string(REPLACE "_CLOSEBRACKET_" "]" line "${line}")
   
   # we only write out line that do not contain our parameter
   if (pos EQUAL -1)

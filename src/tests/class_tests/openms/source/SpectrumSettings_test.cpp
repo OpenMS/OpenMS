@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry               
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 // 
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -92,7 +92,7 @@ END_SECTION
 
 START_SECTION((AcquisitionInfo& getAcquisitionInfo()))
 	SpectrumSettings tmp;
-	TEST_EQUAL(tmp.getAcquisitionInfo()==AcquisitionInfo(), true);
+	TEST_EQUAL(tmp.getAcquisitionInfo().empty(), true);
 END_SECTION
 
 START_SECTION((void setAcquisitionInfo(const AcquisitionInfo& acquisition_info)))
@@ -100,13 +100,13 @@ START_SECTION((void setAcquisitionInfo(const AcquisitionInfo& acquisition_info))
 	AcquisitionInfo ai;
 	ai.setMethodOfCombination("test");
 	tmp.setAcquisitionInfo(ai);
-	TEST_EQUAL(tmp.getAcquisitionInfo()==AcquisitionInfo(), false);
+	TEST_EQUAL(tmp.getAcquisitionInfo() == AcquisitionInfo(), false);
 END_SECTION
 
 START_SECTION((const AcquisitionInfo& getAcquisitionInfo() const))
 	SpectrumSettings tmp;
 	tmp.getAcquisitionInfo().setMethodOfCombination("test");
-	TEST_EQUAL(tmp.getAcquisitionInfo()==AcquisitionInfo(), false);
+	TEST_EQUAL(tmp.getAcquisitionInfo() == AcquisitionInfo(), false);
 END_SECTION
 
 START_SECTION((SourceFile& getSourceFile()))
@@ -250,7 +250,8 @@ START_SECTION((SpectrumSettings& operator= (const SpectrumSettings& source)))
 	TEST_EQUAL(tmp2.getPrecursors().size(),1);	
 	TEST_EQUAL(tmp2.getProducts().size(),1);	
 	TEST_EQUAL(tmp2.getInstrumentSettings()==InstrumentSettings(), false);
-	TEST_EQUAL(tmp2.getAcquisitionInfo()==AcquisitionInfo(), false);  
+	TEST_EQUAL(tmp2.getAcquisitionInfo()==AcquisitionInfo(), false);
+	TEST_EQUAL(tmp2.getAcquisitionInfo().empty(), true);
 	TEST_STRING_EQUAL(tmp2.getNativeID(),"nid");
 	TEST_EQUAL(tmp2.getDataProcessing().size(),1);
 	TEST_EQUAL(tmp2.getMetaValue("bla")=="bluff",true);
@@ -274,8 +275,9 @@ START_SECTION((SpectrumSettings(const SpectrumSettings& source)))
 	TEST_EQUAL(tmp2.getComment(), "bla");
 	TEST_EQUAL(tmp2.getType(), SpectrumSettings::CENTROID);
 	TEST_EQUAL(tmp2.getPrecursors().size(), 1);
-	TEST_EQUAL(tmp2.getProducts().size(),1);	
+	TEST_EQUAL(tmp2.getProducts().size(), 1)
 	TEST_EQUAL(tmp2.getInstrumentSettings()==InstrumentSettings(), false);	
+	TEST_EQUAL(tmp2.getAcquisitionInfo().empty(), true);
 	TEST_EQUAL(tmp2.getAcquisitionInfo()==AcquisitionInfo(), false);
 	TEST_EQUAL(tmp2.getPeptideIdentifications().size(), 1);	
 	TEST_STRING_EQUAL(tmp2.getNativeID(),"nid");
@@ -289,7 +291,7 @@ START_SECTION((SpectrumSettings(const SpectrumSettings& source)))
 	TEST_EQUAL(tmp2.getPrecursors().size(),0);	
 	TEST_EQUAL(tmp2.getProducts().size(),0);	
 	TEST_EQUAL(tmp2.getInstrumentSettings()==InstrumentSettings(), true);	
-	TEST_EQUAL(tmp2.getAcquisitionInfo()==AcquisitionInfo(), true);
+	TEST_EQUAL(tmp2.getAcquisitionInfo().empty(), true);
 	TEST_EQUAL(tmp2.getPeptideIdentifications().size(), 0);	
 	TEST_STRING_EQUAL(tmp2.getNativeID(),"");
 	TEST_EQUAL(tmp2.getDataProcessing().size(),0);
@@ -300,7 +302,7 @@ END_SECTION
 START_SECTION((bool operator== (const SpectrumSettings& rhs) const))
   SpectrumSettings edit, empty;
   
-  TEST_EQUAL(edit==empty, true);
+  TEST_TRUE(edit == empty);
   
 	edit.getAcquisitionInfo().setMethodOfCombination("test");
 	TEST_EQUAL(edit==empty, false);
@@ -354,48 +356,48 @@ START_SECTION((bool operator!= (const SpectrumSettings& rhs) const))
   TEST_EQUAL(edit!=empty, false);
   
 	edit.getAcquisitionInfo().setMethodOfCombination("test");
-	TEST_EQUAL(edit!=empty, true);
+	TEST_FALSE(edit == empty);
 	
 	edit = empty;
 	edit.setNativeID("nid");
-	TEST_EQUAL(edit!=empty, true);
+	TEST_FALSE(edit == empty);
 	
 	edit = empty;
 	edit.getInstrumentSettings().getScanWindows().resize(1);
-	TEST_EQUAL(edit!=empty, true);
+	TEST_FALSE(edit == empty);
 	
 	edit = empty;
 	edit.getPrecursors().resize(1);
-	TEST_EQUAL(edit!=empty, true);
+	TEST_FALSE(edit == empty);
 	
 	edit = empty;
 	edit.setType(SpectrumSettings::CENTROID);
-	TEST_EQUAL(edit!=empty, true);
+	TEST_FALSE(edit == empty);
 	
 	edit = empty;
 	edit.setComment("bla");
-	TEST_EQUAL(edit!=empty, true);
+	TEST_FALSE(edit == empty);
 
 	edit = empty;
 	edit.getPrecursors().resize(1);
-	TEST_EQUAL(edit!=empty, true);
+	TEST_FALSE(edit == empty);
 
 	edit = empty;
 	edit.getProducts().resize(1);
-	TEST_EQUAL(edit!=empty, true);
+	TEST_FALSE(edit == empty);
 
 	edit = empty;
 	edit.getPeptideIdentifications().resize(1);
-	TEST_EQUAL(edit!=empty, true);
+	TEST_FALSE(edit == empty);
 
 	edit = empty;
     DataProcessingPtr dp = boost::shared_ptr<DataProcessing>(new DataProcessing); 
 	edit.getDataProcessing().push_back(dp);
-	TEST_EQUAL(edit!=empty, true);
+	TEST_FALSE(edit == empty);
 
 	edit = empty;
 	edit.setMetaValue("bla","bluff");
-	TEST_EQUAL(edit!=empty, true);
+	TEST_FALSE(edit == empty);
 
 
 END_SECTION

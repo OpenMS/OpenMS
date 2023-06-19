@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -32,6 +32,10 @@
 // $Authors: Stephan Aiche $
 // --------------------------------------------------------------------------
 
+#include <OpenMS/CONCEPT/Exception.h>
+#include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
+
 #include <OpenMS/ANALYSIS/MAPMATCHING/TransformationModelInterpolated.h>
 
 // Spline2dInterpolator
@@ -40,8 +44,7 @@
 #include <numeric>
 
 // AkimaInterpolator
-#include <Wm5IntpAkimaNonuniform1.h>
-#include <Wm5Math.h>
+#include <Mathematics/IntpAkimaNonuniform1.h>
 
 namespace OpenMS
 {
@@ -52,10 +55,9 @@ namespace OpenMS
     public TransformationModelInterpolated::Interpolator
   {
 public:
-    Spline2dInterpolator() :
-      spline_(nullptr)
-    {
-    }
+    Spline2dInterpolator() 
+      
+    = default;
 
     void init(std::vector<double>& x, std::vector<double>& y) override
     {
@@ -77,7 +79,7 @@ public:
     }
 
 private:
-    CubicSpline2d* spline_;
+    CubicSpline2d* spline_{nullptr};
     // Spline2d<double>* spline_;
   };
 
@@ -88,15 +90,15 @@ private:
     public TransformationModelInterpolated::Interpolator
   {
 public:
-    AkimaInterpolator() :
-      interpolator_(nullptr)
-    {}
+    AkimaInterpolator() 
+      
+    = default;
 
     void init(std::vector<double>& x, std::vector<double>& y) override
     {
-      if (interpolator_ != (Wm5::IntpAkimaNonuniform1<double>*) nullptr) delete interpolator_;
+      if (interpolator_ != (gte::IntpAkimaNonuniform1<double>*) nullptr) delete interpolator_;
       // re-construct a new interpolator
-      interpolator_ = new Wm5::IntpAkimaNonuniform1<double>(static_cast<int>(x.size()), &x.front(), &y.front());
+      interpolator_ = new gte::IntpAkimaNonuniform1<double>(static_cast<int>(x.size()), &x.front(), &y.front());
     }
 
     double eval(const double& x) const override
@@ -110,7 +112,7 @@ public:
     }
 
 private:
-    Wm5::IntpAkimaNonuniform1<double>* interpolator_;
+    gte::IntpAkimaNonuniform1<double>* interpolator_{nullptr};
   };
 
   /**
@@ -121,7 +123,7 @@ private:
   {
 public:
     LinearInterpolator()
-    {}
+    = default;
 
     void init(std::vector<double>& x, std::vector<double>& y) override
     {
@@ -164,8 +166,7 @@ public:
     }
 
     ~LinearInterpolator() override
-    {
-    }
+    = default;
 
 private:
     /// x values
@@ -204,6 +205,128 @@ private:
     }
   }
 
+  void TransformationModelInterpolated::preprocessDataPoints_(const std::vector<std::pair<double,double>>& data)
+  {
+    // need monotonically increasing x values (can't have the same value twice):
+    std::map<double, std::vector<double> > mapping;
+    for (std::vector<std::pair<double,double>>::const_iterator it = data.begin();
+         it != data.end();
+         ++it)
+    {
+      mapping[it->first].push_back(it->second);
+    }
+    x_.resize(mapping.size());
+    y_.resize(mapping.size());
+    size_t i = 0;
+    for (std::map<double, std::vector<double> >::const_iterator it = mapping.begin();
+         it != mapping.end();
+         ++it, ++i)
+    {
+      x_[i] = it->first;
+      // use average y value:
+      y_[i] = std::accumulate(it->second.begin(), it->second.end(), 0.0) / it->second.size();
+    }
+
+    // ensure that we have enough points for an interpolation
+    if (x_.size() < 3)
+    {
+      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                       "Cubic spline model needs at least 3 data points (with unique x values)");
+    }
+  }
+
+  TransformationModelInterpolated::TransformationModelInterpolated(const std::vector<std::pair<double,double>>& data, const Param& params, bool preprocess = true)
+  {
+    params_ = params;
+    Param defaults;
+    getDefaultParameters(defaults);
+    params_.setDefaults(defaults);
+
+    // convert incoming data to x_ and y_
+    if (preprocess)
+    {
+      preprocessDataPoints_(data);
+    }
+    else
+    {
+      x_.resize(data.size());
+      y_.resize(data.size());
+      for (const std::pair<double,double>& pair : data)
+      {
+        x_.push_back(pair.first);
+        y_.push_back(pair.second);
+      }
+    }
+
+
+    // choose the actual interpolation type
+    const String interpolation_type = params_.getValue("interpolation_type").toString();
+    if (interpolation_type == "linear")
+    {
+      interp_ = new LinearInterpolator();
+    }
+    else if (interpolation_type == "cspline")
+    {
+      interp_ = new Spline2dInterpolator();
+    }
+    else if (interpolation_type == "akima")
+    {
+      interp_ = new AkimaInterpolator();
+    }
+    else
+    {
+      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                       "unknown/unsupported interpolation type '" + interpolation_type + "'");
+    }
+
+    // assign data
+    interp_->init(x_, y_);
+
+    // linear model for extrapolation:
+    const String extrapolation_type = params_.getValue("extrapolation_type").toString();
+    if (extrapolation_type == "global-linear")
+    {
+      std::vector<TransformationModel::DataPoint> bloated_data{};
+      bloated_data.resize(x_.size());
+      //uff... well here we go.. adding an empty string
+      for (Size s = 0; s < x_.size(); ++s)
+      {
+        bloated_data.emplace_back(TransformationModel::DataPoint(x_[s],y_[s]));
+      }
+      lm_front_ = new TransformationModelLinear(bloated_data, Param());
+      lm_back_ = new TransformationModelLinear(bloated_data, Param());
+    }
+    else if (extrapolation_type == "two-point-linear")
+    {
+      TransformationModel::DataPoints lm_data(2);
+      lm_data[0] = std::make_pair(x_.front(), y_.front());
+      lm_data[1] = std::make_pair(x_.back(), y_.back()); // last point
+      lm_front_ = new TransformationModelLinear(lm_data, Param());
+      lm_back_ = new TransformationModelLinear(lm_data, Param());
+    }
+    else if (extrapolation_type == "four-point-linear")
+    {
+      TransformationModel::DataPoints lm_data(2);
+      lm_data[0] = std::make_pair(x_[0], y_[0]);
+      lm_data[1] = std::make_pair(x_[1], y_[1]);
+      lm_front_ = new TransformationModelLinear(lm_data, Param());
+
+      lm_data[0] = std::make_pair(x_[ x_.size()-2 ], y_[ y_.size()-2] ); // second to last point
+      lm_data[1] = std::make_pair(x_.back(), y_.back()); // last point
+      lm_back_ = new TransformationModelLinear(lm_data, Param());
+    }
+    else
+    {
+      if (interp_)
+      {
+        delete interp_;
+      }
+
+      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                       "unknown/unsupported extrapolation type '" + extrapolation_type + "'");
+    }
+  }
+
   TransformationModelInterpolated::TransformationModelInterpolated(const TransformationModel::DataPoints& data, const Param& params)
   {
     params_ = params;
@@ -215,7 +338,7 @@ private:
     preprocessDataPoints_(data);
 
     // choose the actual interpolation type
-    const String interpolation_type = params_.getValue("interpolation_type");
+    const String interpolation_type = params_.getValue("interpolation_type").toString();
     if (interpolation_type == "linear")
     {
       interp_ = new LinearInterpolator();
@@ -238,7 +361,7 @@ private:
     interp_->init(x_, y_);
 
     // linear model for extrapolation:
-    const String extrapolation_type = params_.getValue("extrapolation_type");
+    const String extrapolation_type = params_.getValue("extrapolation_type").toString();
     if (extrapolation_type == "global-linear")
     {
       lm_front_ = new TransformationModelLinear(data, Param());
@@ -300,11 +423,9 @@ private:
   {
     params.clear();
     params.setValue("interpolation_type", "cspline", "Type of interpolation to apply.");
-    StringList types = ListUtils::create<String>("linear,cspline,akima");
-    params.setValidStrings("interpolation_type", types);
+    params.setValidStrings("interpolation_type", {"linear","cspline","akima"});
     params.setValue("extrapolation_type", "two-point-linear", "Type of extrapolation to apply: two-point-linear: use the first and last data point to build a single linear model, four-point-linear: build two linear models on both ends using the first two / last two points, global-linear: use all points to build a single linear model. Note that global-linear may not be continuous at the border.");
-    StringList etypes = ListUtils::create<String>("two-point-linear,four-point-linear,global-linear");
-    params.setValidStrings("extrapolation_type", etypes);
+    params.setValidStrings("extrapolation_type", {"two-point-linear","four-point-linear","global-linear"});
   }
 
 } // namespace

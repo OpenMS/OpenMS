@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -54,15 +54,15 @@ namespace OpenMS
 public:
 
     /// Default constructor
-    TOPPASInputFileListVertex();
+    TOPPASInputFileListVertex() = default;
     /// Constructor
-    TOPPASInputFileListVertex(const QStringList & files);
+    TOPPASInputFileListVertex(const QStringList& files);
     /// Copy constructor
-    TOPPASInputFileListVertex(const TOPPASInputFileListVertex & rhs);
+    TOPPASInputFileListVertex(const TOPPASInputFileListVertex& rhs) = default;
     /// Destructor
-    ~TOPPASInputFileListVertex() override;
+    ~TOPPASInputFileListVertex() override = default;
     /// Assignment operator
-    TOPPASInputFileListVertex & operator=(const TOPPASInputFileListVertex & rhs);
+    TOPPASInputFileListVertex & operator=(const TOPPASInputFileListVertex & rhs) = default;
     /// returns "InputVertex"
     String getName() const override;
     /// Sets the list of files
@@ -73,8 +73,6 @@ public:
     void paint(QPainter * painter, const QStyleOptionGraphicsItem * option, QWidget * widget) override;
     // documented in base class
     QRectF boundingRect() const override;
-    // documented in base class
-    QPainterPath shape() const override;
     /// Checks if the given list of file names is valid
     bool fileNamesValid();
     /// Shows the dialog for editing the files

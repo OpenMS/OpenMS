@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -34,14 +34,16 @@
 
 #include <OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/SpectrumAccessTransforming.h>
 
+#include <utility>
+
 namespace OpenMS
 {
 
   SpectrumAccessTransforming::SpectrumAccessTransforming(OpenSwath::SpectrumAccessPtr sptr) :
-    sptr_(sptr)
+    sptr_(std::move(sptr))
   {}
 
-  SpectrumAccessTransforming::~SpectrumAccessTransforming() {}
+  SpectrumAccessTransforming::~SpectrumAccessTransforming() = default;
 
   size_t SpectrumAccessTransforming::getNrChromatograms() const
   {

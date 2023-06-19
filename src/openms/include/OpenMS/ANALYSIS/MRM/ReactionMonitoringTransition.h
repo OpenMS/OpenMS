@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -80,12 +80,18 @@ public:
     /// copy constructor
     ReactionMonitoringTransition(const ReactionMonitoringTransition & rhs);
 
+    /// Move constructor
+    ReactionMonitoringTransition(ReactionMonitoringTransition&&) noexcept;
+
     /// destructor
     ~ReactionMonitoringTransition() override;
     //@}
 
     /// assignment operator
     ReactionMonitoringTransition & operator=(const ReactionMonitoringTransition & rhs);
+
+    /// move assignment operator
+    ReactionMonitoringTransition & operator=(ReactionMonitoringTransition && rhs) noexcept ;
 
     /** @name Accessors
     */
@@ -119,7 +125,7 @@ public:
 
     void addPrecursorCVTerm(const CVTerm & cv_term);
 
-    /* @brief Obtain the list of CV Terms for the precursor
+    /** @brief Obtain the list of CV Terms for the precursor
      *
      * @note You first need to check whether they exist using hasPrecursorCVTerms() 
     */
@@ -137,7 +143,7 @@ public:
 
     const std::vector<Product> & getIntermediateProducts() const;
 
-    void addIntermediateProduct(Product product);
+    void addIntermediateProduct(const Product& product);
 
     void setIntermediateProducts(const std::vector<Product> & products);
 
@@ -152,7 +158,7 @@ public:
 
     void addPredictionTerm(const CVTerm & prediction);
 
-    /* @brief Obtain the Prediction object 
+    /** @brief Obtain the Prediction object 
      *
      * @note You first need to check whether the object is accessible using hasPrediction() 
     */
@@ -274,14 +280,27 @@ public:
    */
     //@{
     /// Comparator by Product ion MZ
-    struct ProductMZLess :
-      std::binary_function<ReactionMonitoringTransition, ReactionMonitoringTransition, bool>
+    struct ProductMZLess
     {
       inline bool operator()(ReactionMonitoringTransition const & left, ReactionMonitoringTransition const & right) const
       {
         return left.getProductMZ() < right.getProductMZ();
       }
+    };
+    //@}
 
+    /**  @name  Comparator classes.
+    These classes implement binary predicates that can be used
+    to compare two transitions with respect to their name.
+    */
+    //@{
+    /// Comparator by name
+    struct NameLess
+    {
+      inline bool operator()(ReactionMonitoringTransition const & left, ReactionMonitoringTransition const & right) const
+      {
+        return left.getName() < right.getName();
+      }
     };
     //@}
 

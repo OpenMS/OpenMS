@@ -1,0 +1,66 @@
+MTD	mzTab-version	2.0.0-M
+MTD	mzTab-ID	local_id: 0
+MTD	software[1]	[MS, MS:1001456, analysis software, 2.7.0-pre-idf-ams-2022-01-13]
+MTD	quantification_method	null
+MTD	ms_run[1]-location	file://E:/NotARealFileJustATest.mzML
+MTD	ms_run[1]-scan_polarity[1]	[MS, MS:1000130, positive scan, ]
+MTD	assay[1]	assay_NotARealFileJustATest
+MTD	assay[1]-ms_run_ref	ms_run[1]
+MTD	study_variable[1]	study_variable_NotARealFileJustATest
+MTD	study_variable[1]-assay_refs	assay[1]
+MTD	study_variable[1]-description	study_variable_NotARealFileJustATest
+MTD	cv[1]-label	PSI-MS
+MTD	cv[1]-full_name	MS
+MTD	cv[1]-version	4.1.56
+MTD	cv[1]-uri	https://raw.githubusercontent.com/HUPO-PSI/psi-ms-CV/master/psi-ms.obo
+MTD	database[1]	[, , HMDB, ]
+MTD	database[1]-prefix	HMDB
+MTD	database[1]-version	3.5
+MTD	database[1]-uri	file:///Users/alka/Documents/work/software/openms_test/OpenMS/src/tests/class_tests/openms/data/reducedHMDBMapping.tsv
+MTD	small_molecule-quantification_unit	[MS, MS:1001844, MS1 feature area, ]
+MTD	small_molecule_feature-quantification_unit	[MS, MS:1001844, MS1 feature area, ]
+MTD	small_molecule-identification_reliability	[MS, MS:1002896, compound identification confidence level, ]
+MTD	id_confidence_measure[1]	[, , MassErrorPPMScore, ]
+MTD	id_confidence_measure[2]	[, , MassErrorDaScore, ]
+
+SMH	SML_ID	SMF_ID_REFS	database_identifier	chemical_formula	smiles	inchi	chemical_name	uri	theoretical_neutral_mass	adduct_ions	reliability	best_id_confidence_measure	best_id_confidence_value	abundance_assay[1]	abundance_study_variable[1]	abundance_variation_study_variable[1]
+SML	1	1	HMDB:HMDB39534	C17Cl1H25O2	CCCCCCCC(Cl)C(O)CC#CC#CC(O)C=C	InChI=1S/C17H25ClO2/c1-3-5-6-7-10-13-16(18)17(20)14-11-8-9-12-15(19)4-2/h4,15-17,19-20H,2-3,5-7,10,13-14H2,1H3	Panaxydol chlorohydrin	null	296.154308477499967	[M+H+Na]2+	2	null	null	3.631019921875e04	null	null
+SML	2	2	HMDB:HMDB01190	C10H9N1O1	O=CCC1=CNC2=CC=CC=C12	InChI=1S/C10H9NO/c12-6-5-8-7-11-10-4-2-1-3-9(8)10/h1-4,6-7,11H,5H2	Indoleacetaldehyde	null	159.068414287099984	[M+H]1+	2	null	null	3.02411e07	null	null
+SML	3	3	HMDB:HMDB15400	C8H8N4	NNC1=NN=CC2=CC=CC=C12	InChI=1S/C8H8N4/c9-11-8-7-4-2-1-3-6(7)5-10-12-8/h1-5H,9H2,(H,11,12)	Hydralazine	null	160.074896255200002	[M]1+	2	null	null	3.02411e07	null	null
+SML	4	4	null	null	null	null	null	null	null	null	2	null	null	2.15267e06	null	null
+SML	5	5	HMDB:HMDB32394|HMDB:HMDB36073|HMDB:HMDB41009	C10H8O2|C10H8O2|C10H8O2	CC1=CC=C2OC(=O)C=CC2=C1|CC1=COC=C2C(C=O)=CC=C12|CC1=CC=CC2=C1OC(C=O)=C2	InChI=1S/C10H8O2/c1-7-2-4-9-8(6-7)3-5-10(11)12-9/h2-6H,1H3|InChI=1S/C10H8O2/c1-7-5-12-6-10-8(4-11)2-3-9(7)10/h2-6H,1H3|InChI=1S/C10H8O2/c1-7-3-2-4-8-5-9(6-11)12-10(7)8/h2-6H,1H3	6-Methylcoumarin|Viburtinal|7-Methyl-2-benzofurancarboxaldehyde	null|null|null	160.052430255200022|160.052430255200022|160.052430255200022	[M+H]1+|[M+H]1+|[M+H]1+	2	null	null	1.76240992e08	null	null
+SML	6	6	null	null	null	null	null	null	null	null	2	null	null	1.8965900390625e04	null	null
+SML	7	7	null	null	null	null	null	null	null	null	2	null	null	1.94672e06	null	null
+SML	8	8	null	null	null	null	null	null	null	null	2	null	null	4.13215e05	null	null
+SML	9	9	null	null	null	null	null	null	null	null	2	null	null	1.81771008e08	null	null
+SML	10	10	HMDB:HMDB14564|HMDB:HMDB15202	C17H20N2S1|C17H20N2S1	CN(C)CCCN1C2=CC=CC=C2SC2=CC=CC=C12|CC(CN1C2=CC=CC=C2SC2=CC=CC=C12)N(C)C	InChI=1S/C17H20N2S/c1-18(2)12-7-13-19-14-8-3-5-10-16(14)20-17-11-6-4-9-15(17)19/h3-6,8-11H,7,12-13H2,1-2H3|InChI=1S/C17H20N2S/c1-13(18(2)3)12-19-14-8-4-6-10-16(14)20-17-11-7-5-9-15(17)19/h4-11,13H,12H2,1-3H3	Promazine|Promethazine	null|null	284.134719367999992|284.134719367999992	[M+2Na]2+|[M+2Na]2+	2	null	null	9.864879999999999e05	null	null
+SML	11	11	null	null	null	null	null	null	null	null	2	null	null	3.58375e04	null	null
+
+SFH	SMF_ID	SME_ID_REFS	SME_ID_REF_ambiguity_code	adduct_ion	isotopomer	exp_mass_to_charge	charge	retention_time_in_seconds	retention_time_in_seconds_start	retention_time_in_seconds_end	abundance_assay[1]	opt_global_FWHM	opt_global_dc_charge_adducts	opt_global_label	opt_global_masstrace_intensity	opt_global_num_of_masstraces
+SMF	1	1	null	[M+H+Na]2+	null	160.07500553925999	0	281.25	null	null	3.631019921875e04	6.25	H1Na1	T141	[3.6310164094607e04]	1
+SMF	2	2	null	[M+H]1+	null	160.075018056482008	1	308.25	null	null	3.02411e07	8.25	null	T10_T33_T94	[3.02411478621068e07, 3.42369717701255e06, 2.37974096094367e05]	3
+SMF	3	3	null	[M]1+	null	160.075018056482008	1	308.25	null	null	3.02411e07	8.25	null	T10_T33_T94	[3.02411478621068e07, 3.42369717701255e06, 2.37974096094367e05]	3
+SMF	4	4	null	null	null	160.134470512511996	1	316.5	null	null	2.15267e06	9.5	H1Na1	T43_T106_T170	[2.15267481468212e06, 1.99952370346936e05, 1.38908896083682e04]	3
+SMF	5	5|6|7	1	[M+H]1+	null	161.06023172053699	1	284.75	null	null	1.76240992e08	10.0	null	T4_T13_T49	[1.76241220640656e08, 1.93463026786891e07, 1.6623527473399e06]	3
+SMF	6	8	null	null	null	161.132412915304997	0	261.25	null	null	1.8965900390625e04	5.75	null	T160	[1.89659494716721e04]	1
+SMF	7	9	null	null	null	163.03996512782399	1	284.5	null	null	1.94672e06	8.25	null	T41_T102	[1.9467199301806e06, 1.52141576471626e05]	2
+SMF	8	10	null	null	null	163.077366639892006	1	318.75	null	null	4.13215e05	5.5	null	T69_T134	[4.13215012682643e05, 4.54567213020705e04]	2
+SMF	9	11	null	null	null	163.077368733931991	1	267.25	null	null	1.81771008e08	9.5	null	T3_T12_T48_T61_T101	[1.81771052539316e08, 1.99951640161074e07, 1.7458622245618e06, 1.03241388262815e06, 2.30932968791916e05]	5
+SMF	10	12|13	1	[M+2Na]2+	null	165.056236591301996	0	289.25	null	null	9.864879999999999e05	9.5	Na2	T59	[9.86488096925674e05]	1
+SMF	11	14	null	null	null	165.057161287125012	0	258.75	null	null	3.58375e04	3.5	Na1	T121	[3.58374671685804e04]	1
+
+SEH	SME_ID	evidence_input_id	database_identifier	chemical_formula	smiles	inchi	chemical_name	uri	derivatized_form	adduct_ion	exp_mass_to_charge	charge	theoretical_mass_to_charge	spectra_ref	identification_method	ms_level	id_confidence_measure[1]	id_confidence_measure[2]	rank	opt_global_chemical_formula	opt_global_description	opt_global_identifier	opt_global_modifications	opt_global_mz_error_Da	opt_global_mz_error_ppm
+SME	1	mass=160.07500553925999,rt=281.25	HMDB:HMDB39534	C17Cl1H25O2	CCCCCCCC(Cl)C(O)CC#CC#CC(O)C=C	InChI=1S/C17H25ClO2/c1-3-5-6-7-10-13-16(18)17(20)14-11-8-9-12-15(19)4-2/h4,15-17,19-20H,2-3,5-7,10,13-14H2,1H3	Panaxydol chlorohydrin	null	null	[M+H+Na]2+	160.07500553925999	0	296.154308477499967	ms_run[1]:6565892897288149707	[MS, MS:1000207, accurate mass, ]	[MS, MS:1000511, ms level, 1]	-2.47953607880854	-3.969127357095204e-04	1	C17H25ClO2	[Panaxydol chlorohydrin]	[HMDB:HMDB39534]	M+H+Na;2+	-3.969127357095204e-04	-2.47953607880854
+SME	2	mass=160.075018056482008,rt=308.25	HMDB:HMDB01190	C10H9N1O1	O=CCC1=CNC2=CC=CC=C12	InChI=1S/C10H9NO/c12-6-5-8-7-11-10-4-2-1-3-9(8)10/h1-4,6-7,11H,5H2	Indoleacetaldehyde	null	null	[M+H]1+	160.075018056482008	1	159.068414287099984	ms_run[1]:12112469906802307848	[MS, MS:1000207, accurate mass, ]	[MS, MS:1000511, ms level, 1]	-4.199953860450771	-6.72310513721186e-04	1	C10H9NO	[Indoleacetaldehyde]	[HMDB:HMDB01190]	M+H;1+	-6.72310513721186e-04	-4.199953860450771
+SME	3	mass=160.075018056482008,rt=308.25	HMDB:HMDB15400	C8H8N4	NNC1=NN=CC2=CC=CC=C12	InChI=1S/C8H8N4/c9-11-8-7-4-2-1-3-6(7)5-10-12-8/h1-5H,9H2,(H,11,12)	Hydralazine	null	null	[M]1+	160.075018056482008	1	160.074896255200002	ms_run[1]:12112469906802307848	[MS, MS:1000207, accurate mass, ]	[MS, MS:1000511, ms level, 1]	4.187806453331455	6.703603862945329e-04	1	C8H8N4	[Hydralazine]	[HMDB:HMDB15400]	M;1+	6.703603862945329e-04	4.187806453331455
+SME	4	mass=160.134470512511996,rt=316.5	null	null	null	null	null	null	null	null	160.134470512511996	1	0.0	ms_run[1]:5576845964105266947	[MS, MS:1000207, accurate mass, ]	[MS, MS:1000511, ms level, 1]	nan	nan	1	null	[null]	[null]	null	nan	nan
+SME	5	mass=161.06023172053699,rt=284.75	HMDB:HMDB32394	C10H8O2	CC1=CC=C2OC(=O)C=CC2=C1	InChI=1S/C10H8O2/c1-7-2-4-9-8(6-7)3-5-10(11)12-9/h2-6H,1H3	6-Methylcoumarin	null	null	[M+H]1+	161.06023172053699	1	160.052430255200022	ms_run[1]:2737147212367465006	[MS, MS:1000207, accurate mass, ]	[MS, MS:1000511, ms level, 1]	3.26443251694974	5.257685412800583e-04	1	C10H8O2	[6-Methylcoumarin]	[HMDB:HMDB32394]	M+H;1+	5.257685412800583e-04	3.26443251694974
+SME	6	mass=161.06023172053699,rt=284.75	HMDB:HMDB36073	C10H8O2	CC1=COC=C2C(C=O)=CC=C12	InChI=1S/C10H8O2/c1-7-5-12-6-10-8(4-11)2-3-9(7)10/h2-6H,1H3	Viburtinal	null	null	[M+H]1+	161.06023172053699	1	160.052430255200022	ms_run[1]:2737147212367465006	[MS, MS:1000207, accurate mass, ]	[MS, MS:1000511, ms level, 1]	3.26443251694974	5.257685412800583e-04	1	C10H8O2	[Viburtinal]	[HMDB:HMDB36073]	M+H;1+	5.257685412800583e-04	3.26443251694974
+SME	7	mass=161.06023172053699,rt=284.75	HMDB:HMDB41009	C10H8O2	CC1=CC=CC2=C1OC(C=O)=C2	InChI=1S/C10H8O2/c1-7-3-2-4-8-5-9(6-11)12-10(7)8/h2-6H,1H3	7-Methyl-2-benzofurancarboxaldehyde	null	null	[M+H]1+	161.06023172053699	1	160.052430255200022	ms_run[1]:2737147212367465006	[MS, MS:1000207, accurate mass, ]	[MS, MS:1000511, ms level, 1]	3.26443251694974	5.257685412800583e-04	1	C10H8O2	[7-Methyl-2-benzofurancarboxaldehyde]	[HMDB:HMDB41009]	M+H;1+	5.257685412800583e-04	3.26443251694974
+SME	8	mass=161.132412915304997,rt=261.25	null	null	null	null	null	null	null	null	161.132412915304997	0	0.0	ms_run[1]:12964529961937795257	[MS, MS:1000207, accurate mass, ]	[MS, MS:1000511, ms level, 1]	nan	nan	1	null	[null]	[null]	null	nan	nan
+SME	9	mass=163.03996512782399,rt=284.5	null	null	null	null	null	null	null	null	163.03996512782399	1	0.0	ms_run[1]:10893964381505000125	[MS, MS:1000207, accurate mass, ]	[MS, MS:1000511, ms level, 1]	nan	nan	1	null	[null]	[null]	null	nan	nan
+SME	10	mass=163.077366639892006,rt=318.75	null	null	null	null	null	null	null	null	163.077366639892006	1	0.0	ms_run[1]:13275112827998205361	[MS, MS:1000207, accurate mass, ]	[MS, MS:1000511, ms level, 1]	nan	nan	1	null	[null]	[null]	null	nan	nan
+SME	11	mass=163.077368733931991,rt=267.25	null	null	null	null	null	null	null	null	163.077368733931991	1	0.0	ms_run[1]:3062115439946092212	[MS, MS:1000207, accurate mass, ]	[MS, MS:1000511, ms level, 1]	nan	nan	1	null	[null]	[null]	null	nan	nan
+SME	12	mass=165.056236591301996,rt=289.25	HMDB:HMDB14564	C17H20N2S1	CN(C)CCCN1C2=CC=CC=C2SC2=CC=CC=C12	InChI=1S/C17H20N2S/c1-18(2)12-7-13-19-14-8-3-5-10-16(14)20-17-11-6-4-9-15(17)19/h3-6,8-11H,7,12-13H2,1-2H3	Promazine	null	null	[M+2Na]2+	165.056236591301996	0	284.134719367999992	ms_run[1]:11350671704726741622	[MS, MS:1000207, accurate mass, ]	[MS, MS:1000511, ms level, 1]	-2.082883898963334	-3.437936937018549e-04	1	C17H20N2S	[Promazine]	[HMDB:HMDB14564]	M+2Na;2+	-3.437936937018549e-04	-2.082883898963334
+SME	13	mass=165.056236591301996,rt=289.25	HMDB:HMDB15202	C17H20N2S1	CC(CN1C2=CC=CC=C2SC2=CC=CC=C12)N(C)C	InChI=1S/C17H20N2S/c1-13(18(2)3)12-19-14-8-4-6-10-16(14)20-17-11-7-5-9-15(17)19/h4-11,13H,12H2,1-3H3	Promethazine	null	null	[M+2Na]2+	165.056236591301996	0	284.134719367999992	ms_run[1]:11350671704726741622	[MS, MS:1000207, accurate mass, ]	[MS, MS:1000511, ms level, 1]	-2.082883898963334	-3.437936937018549e-04	1	C17H20N2S	[Promethazine]	[HMDB:HMDB15202]	M+2Na;2+	-3.437936937018549e-04	-2.082883898963334
+SME	14	mass=165.057161287125012,rt=258.75	null	null	null	null	null	null	null	null	165.057161287125012	0	0.0	ms_run[1]:425533765783660679	[MS, MS:1000207, accurate mass, ]	[MS, MS:1000511, ms level, 1]	nan	nan	1	null	[null]	[null]	null	nan	nan

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -50,7 +50,7 @@ namespace OpenMS
     DefaultParamHandler("SpectrumAnnotator")
   {
     defaults_.setValue("basic_statistics", "true", "If set, meta values for peak_number, sum_intensity, matched_ion_number, matched_intensity are added");
-    defaults_.setValidStrings("basic_statistics", ListUtils::create<String>("true,false"));
+    defaults_.setValidStrings("basic_statistics", {"true","false"});
     /** adds meta values
      peak_number
      sum_intensity
@@ -58,24 +58,24 @@ namespace OpenMS
      matched_intensity
     */
     defaults_.setValue("list_of_ions_matched", "true", "If set, meta values for matched_ions are added");
-    defaults_.setValidStrings("list_of_ions_matched", ListUtils::create<String>("true,false"));
+    defaults_.setValidStrings("list_of_ions_matched", {"true","false"});
     /** adds meta values
      matched_ions
     */
     defaults_.setValue("max_series", "true", "If set, meta values for max_series_type, max_series_size are added");
-    defaults_.setValidStrings("max_series", ListUtils::create<String>("true,false"));
+    defaults_.setValidStrings("max_series", {"true","false"});
     /** adds meta values
      max_series_type
      max_series_size
     */
     defaults_.setValue("S/N_statistics", "true", "If set to 1 isotope peaks of the product ion peaks are added");
-    defaults_.setValidStrings("S/N_statistics", ListUtils::create<String>("true,false"));
+    defaults_.setValidStrings("S/N_statistics", {"true","false"});
     /** adds meta values
      sn_by_matched_intensity
      sn_by_median_intensity
     */
     defaults_.setValue("precursor_statistics", "true", "If set, meta values for precursor_in_ms2 are added");
-    defaults_.setValidStrings("precursor_statistics", ListUtils::create<String>("true,false"));
+    defaults_.setValidStrings("precursor_statistics", {"true","false"});
     /** adds meta values
      precursor_in_ms2
     */
@@ -88,13 +88,13 @@ namespace OpenMS
     // TODO right now topN matched, but additional information would be gained if the topN would be assembled from NOT ONLY the matched (high intense peak not identified?)
 
     defaults_.setValue("fragmenterror_statistics", "true", "If set, meta values for median_fragment_error, IQR_fragment_error are added");
-    defaults_.setValidStrings("fragmenterror_statistics", ListUtils::create<String>("true,false"));
+    defaults_.setValidStrings("fragmenterror_statistics", {"true","false"});
     /** adds meta values
      median_fragment_error
      IQR_fragment_error
     */
     defaults_.setValue("terminal_series_match_ratio", "true", "If set, meta values for NTermIonCurrentRatio, CTermIonCurrentRatio are added");
-    defaults_.setValidStrings("terminal_series_match_ratio", ListUtils::create<String>("true,false"));
+    defaults_.setValidStrings("terminal_series_match_ratio", {"true","false"});
     /** adds meta values
      NTermIonCurrentRatio
      CTermIonCurrentRatio
@@ -117,9 +117,7 @@ namespace OpenMS
     return *this;
   }
 
-  SpectrumAnnotator::~SpectrumAnnotator()
-  {
-  }
+  SpectrumAnnotator::~SpectrumAnnotator() = default;
 
   void SpectrumAnnotator::annotateMatches(PeakSpectrum& spec, const PeptideHit& ph, const TheoreticalSpectrumGenerator& tg, const SpectrumAlignment& sa) const
   {
@@ -148,7 +146,7 @@ namespace OpenMS
         error_annotations[it->second] = std::fabs(spec[it->second].getMZ() - theoretical_spec[it->first].getMZ());
         type_annotations[it->second] = theo_annot[it->first];
     }
-    Param sap = sa.getParameters();
+    const Param& sap = sa.getParameters();
     spec.setMetaValue("fragment_mass_tolerance", sap.getValue("tolerance"));
     spec.setMetaValue("fragment_mass_tolerance_ppm", false);
     spec.setStringDataArrays(PeakSpectrum::StringDataArrays(1, type_annotations));
@@ -232,9 +230,9 @@ namespace OpenMS
                     int i = std::atoi(what[1].first);
                     ion_series[ion_type].at(i-1) = true;
                   }
-                  catch (std::out_of_range)
+                  catch (std::out_of_range&)
                   {
-                    LOG_WARN << "Note: Ions of " << ion_type << ion_name.substr(1).remove('+').toInt()
+                    OPENMS_LOG_WARN << "Note: Ions of " << ion_type << ion_name.substr(1).remove('+').toInt()
                              << " will be ignored for max_series " << ph->getSequence().toString() << endl;
                     continue;
                   }
@@ -394,8 +392,8 @@ namespace OpenMS
         }
         //TODO add "FragmentArray"s
 
-        Param sap = sa.getParameters();
-        pi.setMetaValue("fragment_match_tolerance", sap.getValue("tolerance"));
+        const Param& sap = sa.getParameters();
+        pi.setMetaValue("fragment_match_tolerance", (double)sap.getValue("tolerance"));
       }
     }
   }

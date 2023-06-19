@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -116,8 +116,8 @@ START_SECTION((void getParameters(Param & params) const))
   TEST_EQUAL(lm0.getParameters(), p_out);
 
   //add additional data and test without weightings
-  p_in.setValue("x_weight", "");
-  p_in.setValue("y_weight", "");
+  p_in.setValue("x_weight", "x");
+  p_in.setValue("y_weight", "y");
   p_in.setValue("x_datum_min", 10e-5);
   p_in.setValue("x_datum_max", 1e15);
   p_in.setValue("y_datum_min", 10e-8);
@@ -132,8 +132,8 @@ START_SECTION((void getParameters(Param & params) const))
   p_in.clear();
   p_in.setValue("slope", 12.3);
   p_in.setValue("intercept", -45.6);
-  p_in.setValue("x_weight", "");
-  p_in.setValue("y_weight", "");
+  p_in.setValue("x_weight", "x");
+  p_in.setValue("y_weight", "y");
   p_in.setValue("x_datum_min", 10e-5);
   p_in.setValue("x_datum_max", 1e15);
   p_in.setValue("y_datum_min", 10e-8);
@@ -149,7 +149,7 @@ START_SECTION(([EXTRA] void getParameters(double&, double&, String&, String&, do
   param.setValue("slope", 12.3);
   param.setValue("intercept", -45.6);  
   String x_weight_test, y_weight_test;
-  x_weight_test = "";
+  x_weight_test = "x";
   y_weight_test = "ln(y)";
   param.setValue("x_weight", x_weight_test);
   param.setValue("y_weight", y_weight_test);
@@ -203,16 +203,16 @@ START_SECTION((TransformationModelLinear(const DataPoints &, const Param &)))
 
   // test evaluate
   TransformationModelLinear lm(data1, param);
-  TEST_REAL_SIMILAR(lm.evaluate(2),4);
+  TEST_REAL_SIMILAR(lm.evaluate(2), 4);
 
   // test evaluate using the inverted model
   lm.invert();
-  TEST_REAL_SIMILAR(lm.evaluate(4),2);
+  TEST_REAL_SIMILAR(lm.evaluate(4), 2);
 
   // weighting/unweighting test 2
   // set-up the parameters
   x_weight_test = "1/x";
-  y_weight_test = "";
+  y_weight_test = "y";
   param.setValue("x_weight", x_weight_test);
   param.setValue("y_weight", y_weight_test);
 

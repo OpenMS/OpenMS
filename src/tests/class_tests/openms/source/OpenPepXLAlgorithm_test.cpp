@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -67,17 +67,6 @@ END_SECTION
 
 START_SECTION(ExitCodes run(PeakMap& unprocessed_spectra, ConsensusMap& cfeatures, std::vector<FASTAFile::FASTAEntry>& fasta_db, std::vector<ProteinIdentification>& protein_ids, std::vector<PeptideIdentification>& peptide_ids, OPXLDataStructs::PreprocessedPairSpectra& preprocessed_pair_spectra, std::vector< std::pair<Size, Size> >& spectrum_pairs, std::vector< std::vector< OPXLDataStructs::CrossLinkSpectrumMatch > >& all_top_csms, PeakMap& spectra))
 
-// # OpenPepXL test:
-// add_test("UTILS_OpenPepXL_1" ${TOPP_BIN_PATH}/OpenPepXL -test -in ${DATA_DIR_TOPP}/OpenPepXL_input.mzML -consensus ${DATA_DIR_TOPP}/OpenPepXL_input.consensusXML -database ${DATA_DIR_TOPP}/OpenPepXL_input.fasta -out_xquestxml OpenPepXL_output.xquest.xml.tmp -out_xquest_specxml OpenPepXL_output.spec.xml.tmp -out_mzIdentML OpenPepXL_output.mzid.tmp -out_idXML OpenPepXL_output.idXML.tmp)
-// add_test("UTILS_OpenPepXL_1_out_1" ${DIFF} -whitelist "date=" -in1 OpenPepXL_output.xquest.xml.tmp -in2 ${DATA_DIR_TOPP}/OpenPepXL_output.xquest.xml )
-// add_test("UTILS_OpenPepXL_1_out_2" ${DIFF} -in1 OpenPepXL_output.spec.xml.tmp -in2 ${DATA_DIR_TOPP}/OpenPepXL_output.spec.xml )
-// add_test("UTILS_OpenPepXL_1_out_3" ${DIFF} -whitelist "creationDate=" "id=" "spectraData_ref=" "searchDatabase_ref=" "OpenPepXL_input" -in1 OpenPepXL_output.mzid.tmp -in2 ${DATA_DIR_TOPP}/OpenPepXL_output.mzid )
-// add_test("UTILS_OpenPepXL_1_out_4" ${DIFF} -whitelist "db=" "input_consensusXML" "input_mzML" "date" "OpenPepXL_input" -in1 OpenPepXL_output.idXML.tmp -in2 ${DATA_DIR_TOPP}/OpenPepXL_output.idXML )
-// set_tests_properties("UTILS_OpenPepXL_1_out_1" PROPERTIES DEPENDS "UTILS_OpenPepXL_1")
-// set_tests_properties("UTILS_OpenPepXL_1_out_2" PROPERTIES DEPENDS "UTILS_OpenPepXL_1")
-// set_tests_properties("UTILS_OpenPepXL_1_out_3" PROPERTIES DEPENDS "UTILS_OpenPepXL_1")
-// set_tests_properties("UTILS_OpenPepXL_1_out_4" PROPERTIES DEPENDS "UTILS_OpenPepXL_1")
-
 std::vector<FASTAFile::FASTAEntry> fasta_db;
 FASTAFile file;
 file.load(OPENMS_GET_TEST_DATA_PATH("OpenPepXL_input.fasta"), fasta_db);
@@ -107,29 +96,31 @@ PeakMap spectra;
 
 OpenPepXLAlgorithm search_algorithm;
 Param algo_param = search_algorithm.getParameters();
-algo_param.setValue("modifications:fixed", ListUtils::create<String>("Carbamidomethyl (C)"));
+algo_param.setValue("modifications:fixed", std::vector<std::string>{"Carbamidomethyl (C)"});
+algo_param.setValue("fragment:mass_tolerance", 0.2, "Fragment mass tolerance");
+algo_param.setValue("fragment:mass_tolerance_xlinks", 0.3, "Fragment mass tolerance for cross-link ions");
+algo_param.setValue("fragment:mass_tolerance_unit", "Da", "Unit of fragment m");
+algo_param.setValue("algorithm:number_top_hits", 5, "Number of top hits reported for each spectrum pair");
 search_algorithm.setParameters(algo_param);
 
 // run algorithm
 OpenPepXLAlgorithm::ExitCodes exit_code = search_algorithm.run(unprocessed_spectra, cfeatures, fasta_db, protein_ids, peptide_ids, preprocessed_pair_spectra, spectrum_pairs, all_top_csms, spectra);
 
 TEST_EQUAL(exit_code, OpenPepXLAlgorithm::EXECUTION_OK)
-TEST_EQUAL(unprocessed_spectra.size(), 217)
 TEST_EQUAL(protein_ids.size(), 1)
-TEST_EQUAL(peptide_ids.size(), 74)
+TEST_EQUAL(peptide_ids.size(), 12)
 TEST_EQUAL(spectra.size(), 217)
 TEST_EQUAL(spectrum_pairs.size(), 25)
 TEST_EQUAL(preprocessed_pair_spectra.spectra_linear_peaks.size(), 25)
-TEST_EQUAL(all_top_csms.size(), 22)
+TEST_EQUAL(all_top_csms.size(), 12)
 
 for (Size i = 0; i < peptide_ids.size(); i += 10)
 {
   auto pep_hits = peptide_ids[i].getHits();
-  TEST_EQUAL(pep_hits[0].getMetaValue("xl_chain"), "MS:1002509")
-  if (pep_hits.size() == 2)
+  TEST_EQUAL(pep_hits[0].metaValueExists("xl_chain"), false)
+  if (pep_hits[0].getMetaValue("xl_type") == "cross-link")
   {
-    TEST_EQUAL(pep_hits[1].getMetaValue("xl_chain"), "MS:1002510")
-    TEST_EQUAL(pep_hits[1].getMetaValue("xl_type"), "cross-link")
+    TEST_EQUAL(pep_hits[0].metaValueExists("BetaPepEv:pre"), true)
   }
 }
 

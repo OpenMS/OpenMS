@@ -8,7 +8,7 @@ cdef extern from "<OpenMS/METADATA/AbsoluteQuantitationStandards.h>" namespace "
     cdef cppclass AbsoluteQuantitationStandards:
 
         AbsoluteQuantitationStandards() nogil except +
-        AbsoluteQuantitationStandards(AbsoluteQuantitationStandards) nogil except +
+        AbsoluteQuantitationStandards(AbsoluteQuantitationStandards &) nogil except + # compiler
 
         void getComponentFeatureConcentrations(
             libcpp_vector[AQS_runConcentration]& run_concentrations,
@@ -18,15 +18,15 @@ cdef extern from "<OpenMS/METADATA/AbsoluteQuantitationStandards.h>" namespace "
         ) nogil except +
 
         # void mapComponentsToConcentrations(libcpp_vector[ AQS_runConcentration ] run_concentrations,
-        #                                    libcpp_vector[ FeatureMap ] feature_maps,
-        #                                    libcpp_map[ String, libcpp_vector[ AQS_featureConcentration ]] & components_to_concentrations) nogil except +
+        #                                   libcpp_vector[ FeatureMap ] feature_maps,
+        #                                   libcpp_map[ String, libcpp_vector[ AQS_featureConcentration ]] & components_to_concentrations) nogil except +
 
 cdef extern from "<OpenMS/METADATA/AbsoluteQuantitationStandards.h>" namespace "OpenMS::AbsoluteQuantitationStandards":
 
     cdef cppclass AQS_runConcentration "OpenMS::AbsoluteQuantitationStandards::runConcentration":
 
         AQS_runConcentration() nogil except +
-        AQS_runConcentration(AQS_runConcentration) nogil except +
+        AQS_runConcentration(AQS_runConcentration &) nogil except + # compiler
 
         String sample_name
         String component_name
@@ -39,7 +39,7 @@ cdef extern from "<OpenMS/METADATA/AbsoluteQuantitationStandards.h>" namespace "
     cdef cppclass AQS_featureConcentration "OpenMS::AbsoluteQuantitationStandards::featureConcentration":
 
         AQS_featureConcentration() nogil except +
-        AQS_featureConcentration(AQS_featureConcentration) nogil except +
+        AQS_featureConcentration(AQS_featureConcentration &) nogil except + # compiler
 
         Feature feature
         Feature IS_feature

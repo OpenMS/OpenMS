@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -45,7 +45,7 @@ using namespace std;
 
 struct ResidueModificationOriginCmp
 {
-  bool operator() (const ResidueModification* a, const ResidueModification* b)
+  bool operator() (const ResidueModification* a, const ResidueModification* b) const
   {
     if (a->getOrigin() == b->getOrigin())
     {
@@ -75,7 +75,7 @@ START_SECTION(Size getNumberOfModifications() const)
 END_SECTION
 
 START_SECTION(const ResidueModification& getModification(Size index) const)
-        TEST_EQUAL(ptr->getModification(0).getId().size() > 0, true)
+        TEST_EQUAL(!ptr->getModification(0)->getId().empty(), true)
 END_SECTION
 
 START_SECTION((void searchModifications(std::set<const ResidueModification*>& mods, const String& mod_name, const String& residue, ResidueModification::TermSpecificity term_spec) const))
@@ -219,16 +219,16 @@ END_SECTION
 
 START_SECTION((const ResidueModification& getModification(const String& mod_name, const String& residue, ResidueModification::TermSpecificity term_spec) const))
 {
-  TEST_EQUAL(ptr->getModification("EDC (E)").getFullId(), "EDC (E)");
-  TEST_EQUAL(ptr->getModification("EDC (E)").getId(), "EDC");
+  TEST_EQUAL(ptr->getModification("EDC (E)")->getFullId(), "EDC (E)");
+  TEST_EQUAL(ptr->getModification("EDC (E)")->getId(), "EDC");
 
-  TEST_EQUAL(ptr->getModification("DSS", "S", ResidueModification::ANYWHERE).getId(), "DSS");
-  TEST_EQUAL(ptr->getModification("DSS", "S", ResidueModification::ANYWHERE).getFullId(), "DSS (S)");
+  TEST_EQUAL(ptr->getModification("DSS", "S", ResidueModification::ANYWHERE)->getId(), "DSS");
+  TEST_EQUAL(ptr->getModification("DSS", "S", ResidueModification::ANYWHERE)->getFullId(), "DSS (S)");
 
   // terminal mod:
-  TEST_EQUAL(ptr->getModification("DSS", "", ResidueModification::N_TERM).getId(), "DSS");
-  TEST_EQUAL(ptr->getModification("BS3", "", ResidueModification::N_TERM).getFullId(), "BS3 (N-term)");
-  TEST_EQUAL(ptr->getModification("EDC", "", ResidueModification::N_TERM).getFullId(), "EDC (N-term)");
+  TEST_EQUAL(ptr->getModification("DSS", "", ResidueModification::N_TERM)->getId(), "DSS");
+  TEST_EQUAL(ptr->getModification("BS3", "", ResidueModification::N_TERM)->getFullId(), "BS3 (N-term)");
+  TEST_EQUAL(ptr->getModification("EDC", "", ResidueModification::N_TERM)->getFullId(), "EDC (N-term)");
 }
 END_SECTION
 
@@ -270,9 +270,9 @@ END_SECTION
 START_SECTION((bool addModification(ResidueModification* modification)))
 {
   TEST_EQUAL(ptr->has("DSS (C-term)"), false);
-  ResidueModification* modification = new ResidueModification();
+  std::unique_ptr<ResidueModification> modification(new ResidueModification());
   modification->setFullId("DSS (C-term)");
-  ptr->addModification(modification);
+  ptr->addModification(std::move(modification));
   TEST_EQUAL(ptr->has("DSS (C-term)"), true);
 }
 END_SECTION

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -45,20 +45,28 @@ namespace OpenMS
 
       @brief Representation of a digestion enzyme for proteins (protease)
   */
-  class OPENMS_DLLAPI DigestionEnzymeProtein: public DigestionEnzyme
+  class OPENMS_DLLAPI DigestionEnzymeProtein :
+    public DigestionEnzyme
   {
   public:
 
     /** @name Constructors
     */
     //@{
-    /// default constructor
+
+    /// Default constructor
     DigestionEnzymeProtein();
 
-    /// copy constructor
-    DigestionEnzymeProtein(const DigestionEnzymeProtein& enzyme);
+    /// Constructor from base class (adding defaults for the missing stuff)
+    explicit DigestionEnzymeProtein(const DigestionEnzyme& d);
 
-    /// detailed constructor
+    /// Copy constructor
+    DigestionEnzymeProtein(const DigestionEnzymeProtein&) = default;
+
+    /// Move constructor
+    DigestionEnzymeProtein(DigestionEnzymeProtein&&) = default;
+
+    /// Detailed constructor
     explicit DigestionEnzymeProtein(const String& name,
                                     const String& cleavage_regex,
                                     const std::set<String>& synonyms = std::set<String>(),
@@ -68,59 +76,55 @@ namespace OpenMS
                                     String psi_id = "",
                                     String xtandem_id = "",
                                     Int comet_id = -1,
-                                    String crux_id = "",
                                     Int msgf_id = -1,
                                     Int omssa_id = -1);
 
-    /// destructor
+    /// Destructor
     ~DigestionEnzymeProtein() override;
     //@}
 
     /** @name Assignment
      */
     //@{
-    /// assignment operator
-    DigestionEnzymeProtein& operator=(const DigestionEnzymeProtein& enzyme);
+    /// Assignment operator
+    DigestionEnzymeProtein& operator=(const DigestionEnzymeProtein&) = default;
+
+    /// Move assignment operator
+    DigestionEnzymeProtein& operator=(DigestionEnzymeProtein&&) & = default;
     //@}
 
     /** Accessors
     */
     //@{
     /// sets the N-terminal gain
-    void setNTermGain(EmpiricalFormula value);
+    void setNTermGain(const EmpiricalFormula& value);
 
     /// returns N-terminal gain
     EmpiricalFormula getNTermGain() const;
 
     /// sets the C-terminal gain
-    void setCTermGain(EmpiricalFormula value);
+    void setCTermGain(const EmpiricalFormula& value);
 
     /// returns C-terminal gain
     EmpiricalFormula getCTermGain() const;
 
     /// sets the PSI ID
-    void setPSIID(String value);
+    void setPSIID(const String& value);
 
     /// returns the PSI ID
     String getPSIID() const;
 
     /// sets the X! Tandem enzyme ID
-    void setXTandemID(String value);
+    void setXTandemID(const String& value);
 
     /// returns the X! Tandem enzyme ID
     String getXTandemID() const;
 
-    /// returns the Comet enzyme ID
-    Int getCometID() const;
-
     /// sets the Comet enzyme ID
     void setCometID(Int value);
 
-    /// returns the Crux enzyme ID
-    String getCruxID() const;
-
-    /// sets the Crux enzyme ID
-    void setCruxID(const String& value);
+    /// returns the Comet enzyme ID
+    Int getCometID() const;
 
     /// sets the MSGFPlus enzyme id
     void setMSGFID(Int value);
@@ -145,11 +149,12 @@ namespace OpenMS
     /// inequality operator
     bool operator!=(const DigestionEnzymeProtein& enzyme) const;
 
+    // Note: comparison operator is not inherited. TODO rename and make virtual
     /// equality operator for regex
-    bool operator==(String cleavage_regex) const;
+    bool operator==(const String& cleavage_regex) const;
 
     /// equality operator for regex
-    bool operator!=(String cleavage_regex) const;
+    bool operator!=(const String& cleavage_regex) const;
 
     /// order operator
     bool operator<(const DigestionEnzymeProtein& enzyme) const;
@@ -175,8 +180,6 @@ namespace OpenMS
     String xtandem_id_;
 
     Int comet_id_;
-
-    String crux_id_;
 
     Int msgf_id_;
 

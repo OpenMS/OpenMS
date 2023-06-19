@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry               
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 // 
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -72,9 +72,9 @@ using namespace OpenMS;
   <CENTER>
       <table>
           <tr>
-              <td ALIGN = "center" BGCOLOR="#EBEBEB"> potential predecessor tools </td>
-              <td VALIGN="middle" ROWSPAN=3> \f$ \longrightarrow \f$ OpenSwathChromatogramExtractor \f$ \longrightarrow \f$</td>
-              <td ALIGN = "center" BGCOLOR="#EBEBEB"> potential successor tools </td>
+              <th ALIGN = "center"> potential predecessor tools </td>
+              <td VALIGN="middle" ROWSPAN=3> &rarr; OpenSwathChromatogramExtractor &rarr;</td>
+              <th ALIGN = "center"> potential successor tools </td>
           </tr>
           <tr>
               <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_FileFilter </td>
@@ -95,7 +95,7 @@ using namespace OpenMS;
   TraML transitions, returning as many chromatograms as input transitions were
   provided -- while for MS1 data it will extract at the precursor ion @a m/z.
 
-  The input assay library or transition list is proved through the @p -tr flag
+  The input assay library or transition list is provided via the @p -tr flag
   and needs to be in TraML format.  More information about the input filetype
   can be found in @ref OpenMS::TraMLFile "TraML".
 
@@ -130,8 +130,7 @@ using namespace OpenMS;
 
   <B>The command line parameters of this tool are:</B>
   @verbinclude TOPP_OpenSwathChromatogramExtractor.cli
- 
-  <B>The algorithm parameters for the Analyzer filter are:</B>
+  <B>INI file documentation of this tool:</B>
   @htmlinclude TOPP_OpenSwathChromatogramExtractor.html
 
 */
@@ -217,11 +216,11 @@ protected:
     String extraction_function = getStringOption_("extraction_function");
 
     // If we have a transformation file, trafo will transform the RT in the
-    // scoring according to the model. If we dont have one, it will apply the
+    // scoring according to the model. If we don't have one, it will apply the
     // null transformation.
     String trafo_in = getStringOption_("rt_norm");
     TransformationDescription trafo;
-    if (trafo_in.size() > 0) 
+    if (!trafo_in.empty()) 
     {
       TransformationXMLFile trafoxml;
 
@@ -246,9 +245,7 @@ protected:
 
     // Do parallelization over the different input files
     // Only in OpenMP 3.0 are unsigned loop variables allowed
-#ifdef _OPENMP
 #pragma omp parallel for
-#endif
     for (SignedSize i = 0; i < boost::numeric_cast<SignedSize>(file_list.size()); ++i)
     {
       boost::shared_ptr<PeakMap > exp(new PeakMap);
@@ -260,7 +257,10 @@ protected:
       MapType tmp_out;
       OpenMS::TargetedExperiment transition_exp_used;
       f.load(file_list[i], *exp);
-      if (exp->empty() ) { continue; } // if empty, go on
+      if (exp->empty())
+      { 
+        continue; // if empty, go on
+      } 
       OpenSwath::SpectrumAccessPtr expptr = SimpleOpenMSSpectraFactory::getSpectrumAccessOpenMSPtr(exp);
       bool do_continue = true;
       if (is_swath)
@@ -272,14 +272,12 @@ protected:
         transition_exp_used = targeted_exp;
       }
 
-#ifdef _OPENMP
-#pragma omp critical (OpenSwathChromatogramExtractor_metadata)
-#endif
       // after loading the first file, copy the meta data from that experiment
       // this may happen *after* chromatograms were already added to the
       // output, thus we do NOT fill the experiment here but rather store all
       // the chromatograms in the "chromatograms" array and store them in
       // out_exp afterwards.
+#pragma omp critical (OpenSwathChromatogramExtractor_metadata)
       if (i == 0) 
       {
         out_exp = *exp;
@@ -304,18 +302,16 @@ protected:
         {
           // Use an rt extraction window of 0.0 which will just write the retention time in start / end positions
           extractor.prepare_coordinates(chromatogram_ptrs, coordinates, transition_exp_used, 0.0, extract_MS1);
-          for (std::vector< ChromatogramExtractor::ExtractionCoordinates >::iterator it = coordinates.begin(); it != coordinates.end(); ++it)
+          for (ChromatogramExtractor::ExtractionCoordinates& chrom : coordinates)
           {
-            it->rt_start = trafo_inverse.apply(it->rt_start) - rt_extraction_window / 2.0;
-            it->rt_end = trafo_inverse.apply(it->rt_end) + rt_extraction_window / 2.0;
+            chrom.rt_start = trafo_inverse.apply(chrom.rt_start) - rt_extraction_window / 2.0;
+            chrom.rt_end = trafo_inverse.apply(chrom.rt_end) + rt_extraction_window / 2.0;
           }
         }
         extractor.extractChromatograms(expptr, chromatogram_ptrs, coordinates, 
             mz_extraction_window, ppm, im_window, extraction_function);
 
-#ifdef _OPENMP
 #pragma omp critical (OpenSwathChromatogramExtractor_insertMS1)
-#endif
         {
           // Remove potential meta value indicating cached data
           SpectrumSettings exp_settings = (*exp)[0];

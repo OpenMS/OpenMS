@@ -16,7 +16,7 @@ cdef extern from "<OpenMS/CONCEPT/VersionInfo.h>" namespace "OpenMS::VersionInfo
         String pre_release_identifier
 
         VersionDetails() nogil except +
-        VersionDetails(VersionDetails) nogil except +   #wrap-ignore
+        VersionDetails(VersionDetails &) nogil except +
         bool operator<(VersionDetails) nogil except +
         bool operator==(VersionDetails) nogil except +
         bool operator>(VersionDetails) nogil except +

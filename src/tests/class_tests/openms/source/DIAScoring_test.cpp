@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -246,7 +246,66 @@ START_SECTION([EXTRA] forward void dia_isotope_scores(const std::vector<Transiti
   //
   TEST_REAL_SIMILAR(isotope_corr, 0.995335798317618)
   TEST_REAL_SIMILAR(isotope_overlap, 0.0)
+  delete imrmfeature_test;
 }
+END_SECTION
+
+START_SECTION([EXTRA] forward negative charge: void dia_isotope_scores(const std::vector<TransitionType> & transitions, SpectrumType  spectrum, OpenSwath::IMRMFeature * mrmfeature, int putative_fragment_charge, double & isotope_corr, double & isotope_overlap))
+{
+  OpenSwath::SpectrumPtr sptr = prepareSpectrum();
+  MockMRMFeature * imrmfeature_test = new MockMRMFeature();
+  getMRMFeatureTest(imrmfeature_test);
+  imrmfeature_test->m_intensity = 0.7f;
+  std::vector<OpenSwath::LightTransition> transitions;
+  auto mock_tr2_copy = mock_tr2;
+  mock_tr2_copy.fragment_charge = -1;
+  // Try with transition at 600 m/z
+  transitions.push_back(mock_tr2_copy);
+
+  DIAScoring diascoring;
+  diascoring.setParameters(p_dia);
+  double isotope_corr = 0, isotope_overlap = 0;
+  diascoring.dia_isotope_scores(transitions, sptr, imrmfeature_test, isotope_corr, isotope_overlap);
+
+  // >> exp = [240, 74, 37, 15, 0]
+  // >> theo = [1, 0.325757771553019, 0.0678711748364005, 0.0105918703087134, 0.00134955223787482]
+  // >> from scipy.stats.stats import pearsonr
+  // >> pearsonr(exp, theo)
+  // (0.99536128611183172, 0.00037899006151919545)
+  //
+  TEST_REAL_SIMILAR(isotope_corr, 0.995335798317618)
+  TEST_REAL_SIMILAR(isotope_overlap, 0.0)
+  delete imrmfeature_test;
+}
+END_SECTION
+
+START_SECTION([EXTRA] forward negative charge: void dia_isotope_scores(const std::vector<TransitionType> & transitions, SpectrumType  spectrum, OpenSwath::IMRMFeature * mrmfeature, int putative_fragment_charge, double & isotope_corr, double & isotope_overlap))
+  {
+    OpenSwath::SpectrumPtr sptr = prepareSpectrum();
+    MockMRMFeature * imrmfeature_test = new MockMRMFeature();
+    getMRMFeatureTest(imrmfeature_test);
+    imrmfeature_test->m_intensity = 0.7f;
+    std::vector<OpenSwath::LightTransition> transitions;
+    auto mock_tr2_copy = mock_tr2;
+    mock_tr2_copy.fragment_charge = -2;
+    // Try with transition at 600 m/z
+    transitions.push_back(mock_tr2_copy);
+
+    DIAScoring diascoring;
+    diascoring.setParameters(p_dia);
+    double isotope_corr = 0, isotope_overlap = 0;
+    diascoring.dia_isotope_scores(transitions, sptr, imrmfeature_test, isotope_corr, isotope_overlap);
+
+    // >> exp = [240, 74, 37, 15, 0]
+    // >> theo = [1, 0.325757771553019, 0.0678711748364005, 0.0105918703087134, 0.00134955223787482]
+    // >> from scipy.stats.stats import pearsonr
+    // >> pearsonr(exp, theo)
+    // (0.99536128611183172, 0.00037899006151919545)
+    //
+    TEST_REAL_SIMILAR(isotope_corr, 0.717092518007138)
+    TEST_REAL_SIMILAR(isotope_overlap, 0.0)
+    delete imrmfeature_test;
+  }
 END_SECTION
 
 START_SECTION([EXTRA] backward void dia_isotope_scores(const std::vector<TransitionType> & transitions, SpectrumType  spectrum, OpenSwath::IMRMFeature * mrmfeature, int putative_fragment_charge, double & isotope_corr, double & isotope_overlap))
@@ -273,6 +332,7 @@ START_SECTION([EXTRA] backward void dia_isotope_scores(const std::vector<Transit
   // (0.959570883150479, 0.0096989307464742554)
   TEST_REAL_SIMILAR(isotope_corr, 0.959692139694113)
   TEST_REAL_SIMILAR(isotope_overlap, 1.0)
+  delete imrmfeature_test;
 }
 END_SECTION
 
@@ -296,7 +356,7 @@ START_SECTION ( void dia_isotope_scores(const std::vector< TransitionType > &tra
   // see above for the two individual numbers (forward and backward)
   TEST_REAL_SIMILAR(isotope_corr, 0.995335798317618 * 0.7 + 0.959692139694113 * 0.3)
   TEST_REAL_SIMILAR(isotope_overlap, 0.0 * 0.7 + 1.0 * 0.3)
-
+  delete imrmfeature_test;
 }
 END_SECTION
 
@@ -314,7 +374,8 @@ START_SECTION(void dia_ms1_isotope_scores(double precursor_mz, SpectrumPtrType s
     double precursor_mz = 500;
 
     double isotope_corr = 0, isotope_overlap = 0;
-    diascoring.dia_ms1_isotope_scores(precursor_mz, sptr, precursor_charge_state, isotope_corr, isotope_overlap);
+    diascoring
+        .dia_ms1_isotope_scores_averagine(precursor_mz, sptr, isotope_corr, isotope_overlap, precursor_charge_state);
 
     // see above for the two individual numbers (forward and backward)
     TEST_REAL_SIMILAR(isotope_corr, 0.959692139694113)
@@ -327,7 +388,8 @@ START_SECTION(void dia_ms1_isotope_scores(double precursor_mz, SpectrumPtrType s
     double precursor_mz = 500;
 
     double isotope_corr = 0, isotope_overlap = 0;
-    diascoring.dia_ms1_isotope_scores(precursor_mz, sptr, precursor_charge_state, isotope_corr, isotope_overlap);
+    diascoring
+        .dia_ms1_isotope_scores_averagine(precursor_mz, sptr, isotope_corr, isotope_overlap, precursor_charge_state);
 
     // >>> theo = [0.57277789564886, 0.305415548811564, 0.0952064968352544, 0.0218253361702587, 0.00404081869309618]
     // >>> exp = [74, 0, 39, 0, 15]
@@ -343,7 +405,8 @@ START_SECTION(void dia_ms1_isotope_scores(double precursor_mz, SpectrumPtrType s
     double precursor_mz = 499;
 
     double isotope_corr = 0, isotope_overlap = 0;
-    diascoring.dia_ms1_isotope_scores(precursor_mz, sptr, precursor_charge_state, isotope_corr, isotope_overlap);
+    diascoring
+        .dia_ms1_isotope_scores_averagine(precursor_mz, sptr, isotope_corr, isotope_overlap, precursor_charge_state);
 
     // >> exp = [240, 74, 39, 15, 0]
     // >> theo = [0.755900817146293, 0.201673974754608, 0.0367726851778834, 0.00502869795238462, 0.000564836713740715]
@@ -356,12 +419,13 @@ START_SECTION(void dia_ms1_isotope_scores(double precursor_mz, SpectrumPtrType s
 }
 END_SECTION
 
-START_SECTION ( void dia_massdiff_score(const std::vector< TransitionType > &transitions, SpectrumType spectrum, const std::vector< double > &normalized_library_intensity, double &ppm_score, double &ppm_score_weighted) )
+START_SECTION (void dia_massdiff_score(const std::vector< TransitionType > &transitions, SpectrumType spectrum, const std::vector< double > &normalized_library_intensity, double &ppm_score, double &ppm_score_weighted) )
 {
   OpenSwath::SpectrumPtr sptr = prepareShiftedSpectrum();
 
   MockMRMFeature * imrmfeature_test = new MockMRMFeature();
   getMRMFeatureTest(imrmfeature_test);
+  delete imrmfeature_test;
 
   // create transitions, e.g. library intensity
   std::vector<OpenSwath::LightTransition> transitions;
@@ -374,9 +438,10 @@ START_SECTION ( void dia_massdiff_score(const std::vector< TransitionType > &tra
   std::vector<double> normalized_library_intensity;
   normalized_library_intensity.push_back(0.7);
   normalized_library_intensity.push_back(0.3);
-  diascoring.dia_massdiff_score(transitions, sptr, normalized_library_intensity, ppm_score, ppm_score_weighted);
+  std::vector<double> ppm_errors;
+  diascoring.dia_massdiff_score(transitions, sptr, normalized_library_intensity, ppm_score, ppm_score_weighted, ppm_errors);
 
-  TEST_REAL_SIMILAR(ppm_score, 15 + 10); // 15 ppm and 10 ppm
+  TEST_REAL_SIMILAR(ppm_score, (15 + 10) / 2.0); // 15 ppm and 10 ppm
   TEST_REAL_SIMILAR(ppm_score_weighted, 15 * 0.7 + 10* 0.3); // weighted
 }
 END_SECTION
@@ -406,12 +471,8 @@ START_SECTION ( void dia_by_ion_score(SpectrumType spectrum, AASequence &sequenc
   OpenSwath::BinaryDataArrayPtr data1 = (OpenSwath::BinaryDataArrayPtr)(new OpenSwath::BinaryDataArray);
   OpenSwath::BinaryDataArrayPtr data2 = (OpenSwath::BinaryDataArrayPtr)(new OpenSwath::BinaryDataArray);
 
-  static const double arr1[] = {
-    100, 100, 100, 100,
-    100, 100, 100
-  };
-  std::vector<double> intensity (arr1, arr1 + sizeof(arr1) / sizeof(arr1[0]) );
-  static const double arr2[] = {
+  std::vector<double> intensity(6, 100);
+  std::vector<double> mz {
     // four of the naked b/y ions
     // as well as one of the modified b and y ions ion each
     350.17164, // b
@@ -421,7 +482,6 @@ START_SECTION ( void dia_by_ion_score(SpectrumType spectrum, AASequence &sequenc
     646.33133, // y
     809.39466 + 79.9657 // y + P
   };
-  std::vector<double> mz (arr2, arr2 + sizeof(arr2) / sizeof(arr2[0]) );
 
   data1->data = mz;
   data2->data = intensity;
@@ -476,8 +536,9 @@ START_SECTION( void score_with_isotopes(SpectrumType spectrum, const std::vector
 
   double dotprod, manhattan;
   diascoring.score_with_isotopes(sptr,transitions,dotprod,manhattan);
-  TEST_REAL_SIMILAR (dotprod, 0.730836983200467);
-  TEST_REAL_SIMILAR (manhattan, 0.643072639809147);
+
+  TEST_REAL_SIMILAR (dotprod, 0.43738312458795);
+  TEST_REAL_SIMILAR (manhattan, 0.55743322213368);
 }
 END_SECTION
 

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry               
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 // 
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -51,34 +51,12 @@ START_TEST(<Factory>, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-START_SECTION([EXTRA] multithreaded example)
-{
-
-  int nr_iterations (1e2), test (0);
-#ifdef _OPENMP
-#pragma omp parallel for
-#endif
-  for (int k = 1; k < nr_iterations + 1; k++)
-  {
-    FilterFunctor* p = Factory<FilterFunctor>::create("TICFilter");
-    TICFilter reducer;
-
-#ifdef _OPENMP
-#pragma omp critical (add_test)
-#endif
-    {
-      test += (*p==reducer);
-    }
-  }
-  TEST_EQUAL(test, nr_iterations)
-}
-END_SECTION
-
 // Factory is singleton, therefore we don't test the constructor
 START_SECTION(static FactoryProduct* create(const String& name))
 	FilterFunctor* p = Factory<FilterFunctor>::create("TICFilter");
 	TICFilter reducer;
 	TEST_EQUAL(*p==reducer,true);
+	delete p;
 END_SECTION
 
 START_SECTION( static void registerProduct(const String& name, const FunctionType creator) )
@@ -86,6 +64,7 @@ START_SECTION( static void registerProduct(const String& name, const FunctionTyp
 	FilterFunctor* ext = Factory<FilterFunctor>::create("TICFilter");
   FilterFunctor* nullPointer = nullptr;
   TEST_NOT_EQUAL(ext, nullPointer)
+  delete ext;
 END_SECTION
 
 START_SECTION(static bool isRegistered(const String& name))
@@ -96,6 +75,23 @@ END_SECTION
 START_SECTION(static std::vector<String> registeredProducts())
 	vector<String> list = Factory<FilterFunctor>::registeredProducts();
 	TEST_EQUAL(list.size(),6)
+END_SECTION
+
+START_SECTION([EXTRA] multithreaded example)
+{
+
+   int nr_iterations (1e2);
+   int test = 0;
+#pragma omp parallel for reduction (+: test)
+  for (int k = 1; k < nr_iterations + 1; k++)
+  {
+    FilterFunctor* p = Factory<FilterFunctor>::create("TICFilter");
+    TICFilter reducer;
+    test += (*p == reducer);
+    delete p;
+  }
+  TEST_EQUAL(test, nr_iterations)
+}
 END_SECTION
 
 /////////////////////////////////////////////////////////////

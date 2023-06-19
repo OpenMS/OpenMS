@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -42,35 +42,6 @@ namespace OpenMS
 
   namespace Internal
   {
-
-    FileMapping& FileMapping::operator=(const FileMapping& rhs)
-    {
-      if (this == &rhs) return *this;
-
-      location = rhs.location;
-      target = rhs.target;
-      return *this;
-    }
-
-    OPENMS_DLLAPI MappingParam& MappingParam::operator=(const MappingParam& rhs)
-    {
-      if (this == &rhs) return *this;
-
-      mapping = rhs.mapping;
-      pre_moves = rhs.pre_moves;
-      post_moves = rhs.post_moves;
-      return *this;
-    }
-
-    // default C'Tor
-    ToolDescriptionInternal::ToolDescriptionInternal() :
-      is_internal(false),
-      name(),
-      category(),
-      types()
-    {
-    }
-
     // C'Tor with arguments
     ToolDescriptionInternal::ToolDescriptionInternal(const bool p_is_internal, const String& p_name, const String& p_category, const StringList& p_types) :
       is_internal(p_is_internal),
@@ -81,23 +52,11 @@ namespace OpenMS
     }
 
     ToolDescriptionInternal::ToolDescriptionInternal(const String& p_name, const StringList& p_types) :
-      is_internal(false),
+      
       name(p_name),
       category(),
       types(p_types)
     {
-    }
-
-    ToolDescriptionInternal& ToolDescriptionInternal::operator=(const ToolDescriptionInternal& rhs)
-    {
-      if (this == &rhs)
-        return *this;
-
-      is_internal = rhs.is_internal;
-      name = rhs.name;
-      category = rhs.category;
-      types = rhs.types;
-      return *this;
     }
 
     bool ToolDescriptionInternal::operator==(const ToolDescriptionInternal& rhs) const
@@ -118,13 +77,7 @@ namespace OpenMS
 
       return name + "." + ListUtils::concatenate(types, ",") < rhs.name + "." + ListUtils::concatenate(rhs.types, ",");
     }
-
-    // default CTor
-    ToolDescription::ToolDescription() :
-      external_details()
-    {
-    }
-
+    
     // C'Tor for internal TOPP tools
     ToolDescription::ToolDescription(const String& p_name, const String& p_category, const StringList& p_types) :
       ToolDescriptionInternal(true, p_name, p_category, p_types)
@@ -143,8 +96,8 @@ namespace OpenMS
       if (is_internal != other.is_internal
          || name != other.name
           //|| category != other.category
-         || (is_internal && external_details.size() > 0)
-         || (other.is_internal && other.external_details.size() > 0)
+         || (is_internal && !external_details.empty())
+         || (other.is_internal && !other.external_details.empty())
          || (!is_internal && external_details.size() != types.size())
          || (!other.is_internal && other.external_details.size() != other.types.size())
           )
@@ -161,25 +114,14 @@ namespace OpenMS
       unique_check.insert(types.begin(), types.end());
       if (unique_check.size() != types.size())
       {
-        LOG_ERROR << "A type appears at least twice for the TOPP/UTIL '" << name << "'. Types given are '" << ListUtils::concatenate(types, ", ") << "'\n";
+        OPENMS_LOG_ERROR << "A type appears at least twice for the TOPP/UTIL '" << name << "'. Types given are '" << ListUtils::concatenate(types, ", ") << "'\n";
         if (name == "GenericWrapper")
         {
-          LOG_ERROR << "Check the .ttd files in your share/ folder and remove duplicate types!\n";
+          OPENMS_LOG_ERROR << "Check the .ttd files in your share/ folder and remove duplicate types!\n";
         }
         throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "see above!", "");
       }
     }
-
-    ToolDescription& ToolDescription::operator=(const ToolDescription& rhs)
-    {
-      if (this == &rhs)
-        return *this;
-
-      ToolDescriptionInternal::operator=(rhs);
-      external_details = rhs.external_details;
-      return *this;
-    }
-
   }
 
   Internal::ToolDescription bla;

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -65,24 +65,35 @@ namespace OpenMS
     components_to_concentrations.clear();
     for (const AbsoluteQuantitationStandards::runConcentration& run : run_concentrations)
     {
-      if (run.sample_name == "" || run.component_name == "")
+      if (run.sample_name.empty() || run.component_name.empty())
       {
         continue;
       }
       for (const FeatureMap& fmap : feature_maps) // not all elements are necessarily processed (break; is present inside the loop)
       {
-        StringList sample_name;
-        fmap.getPrimaryMSRunPath(sample_name);
-        if (!sample_name.size() || sample_name[0] != run.sample_name) // if the FeatureMap doesn't have a sample_name, or if it is not the one we're looking for: skip.
+        StringList filename;
+        fmap.getPrimaryMSRunPath(filename);
+        if (!filename.empty()) // if the FeatureMap doesn't have a sample_name, or if it is not the one we're looking for: skip.
         {
-          continue;
+          if (filename[0].hasSuffix(".mzML"))
+          {
+            filename[0].resize(filename[0].size() - 5);
+          }
+          else if (filename[0].hasSuffix(".txt"))
+          {
+            filename[0].resize(filename[0].size() - 4);
+          }
+          if (filename[0] != run.sample_name)
+          {
+            continue;
+          }
         }
         AbsoluteQuantitationStandards::featureConcentration fc;
         if (!findComponentFeature_(fmap, run.component_name, fc.feature)) // if there was no match: skip.
         {
           continue;
         }
-        if (run.IS_component_name != "")
+        if (!run.IS_component_name.empty())
         {
           findComponentFeature_(fmap, run.IS_component_name, fc.IS_feature);
         }

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -41,14 +41,9 @@ using namespace std;
 namespace OpenMS
 {
 
-  TextFile::TextFile()
-  {
+  TextFile::TextFile() = default;
 
-  }
-
-  TextFile::~TextFile()
-  {
-  }
+  TextFile::~TextFile() = default;
 
   TextFile::TextFile(const String& filename, bool trim_lines, Int first_n, bool skip_empty_lines)
   {
@@ -69,47 +64,24 @@ namespace OpenMS
 
     String str;
     bool had_enough = false;
-    while (getline(is, str, '\n') && !had_enough)
+    while (getLine(is, str) && !had_enough)
     {
-      // platform specific line endings:
-      // Windows LE: \r\n
-      //    we now have a line with \r at the end: get rid of it
-      if (str.size() >= 1 && *str.rbegin() == '\r')
+      if (trim_lines)
       {
-        str = str.substr(0, str.size() - 1);
+        str.trim();
       }
-
-      // Mac (OS<=9): \r
-      //    we just read the whole file into a string: split it
-      StringList lines;
-      if (str.hasSubstring("\r"))
+      // skip? (only after trimming!)
+      if (skip_empty_lines && str.empty())
       {
-        lines = ListUtils::create<String>(str, '\r');
+        continue;
       }
-      else
+      buffer_.push_back(str);
+      if (first_n > -1 && static_cast<Int>(buffer_.size()) == first_n)
       {
-        lines.push_back(str);
+        had_enough = true;
+        break;
       }
-
-      // Linux&MacOSX: \n
-      //    nothing to do
-
-      for (Size i = 0; i < lines.size(); ++i)
-      {
-        // remove leading/trailing whitespace
-        if (trim_lines) lines[i].trim();
-        // skip? (only after trimming!)
-        if (skip_empty_lines && lines[i].empty()) continue;
-
-        buffer_.push_back(lines[i]);
-
-        if (first_n > -1 && static_cast<Int>(buffer_.size()) == first_n)
-        {
-          had_enough = true;
-          break;
-        }
-      }
-    }
+    } // while
   }
 
   void TextFile::store(const String& filename)
@@ -123,26 +95,66 @@ namespace OpenMS
       throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename);
     }
 
-    for (Iterator it = buffer_.begin(); it != buffer_.end(); ++it)
+    for (const String& it : buffer_)
     {
-      if (it->hasSuffix("\n"))
+      if (it.hasSuffix("\n"))
       {
-        if (it->hasSuffix("\r\n"))
+        if (it.hasSuffix("\r\n"))
         {
-          os << it->chop(2) << "\n";
+          os << it.chop(2) << "\n";
         }
         else
         {
-          os << *it;
+          os << it;
         }
       }
       else
       {
-        os << *it << "\n";
+        os << it << "\n";
       }
     }
     os.close();
   }
+
+  std::istream& TextFile::getLine(std::istream& is, std::string& t)
+  {
+    t.clear();
+
+    // The characters in the stream are read one-by-one using a std::streambuf.
+    // That is faster than reading them one-by-one using the std::istream.
+    // Code that uses streambuf this way must be guarded by a sentry object.
+    std::istream::sentry se(is, true);
+    if (!se)
+    { // the stream has an error
+      return is;
+    }
+
+    std::streambuf* sb = is.rdbuf();
+
+    for (;;)
+    {
+        int c = sb->sbumpc(); // get and advance to next char
+        switch (c) {
+        case '\n':
+            return is;
+        case '\r': // consume next '\n' (if any) and return
+            if (sb->sgetc() == '\n') // peek current char
+            {
+              sb->sbumpc(); // consume it
+            }
+            return is;
+        case std::streambuf::traits_type::eof():
+            is.setstate(std::ios::eofbit); // still allows: while(is == true)
+            if (t.empty())
+            { // only if we just started a new line, we set the is.fail() == true, ie. is == false
+              is.setstate(std::ios::badbit);
+            }
+            return is;
+        default:
+            t += (char)c;
+        }
+    }
+}
 
   TextFile::ConstIterator TextFile::begin() const
   {

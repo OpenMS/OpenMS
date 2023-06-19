@@ -8,42 +8,30 @@ from PeptideIdentification cimport *
 
 cdef extern from "<OpenMS/KERNEL/BaseFeature.h>" namespace "OpenMS":
 
-    cdef cppclass BaseFeature(UniqueIdInterface):
+    cdef cppclass BaseFeature(UniqueIdInterface, RichPeak2D):
         # wrap-inherits:
-        #    UniqueIdInterface
+        #   UniqueIdInterface
+        #   RichPeak2D
 
         BaseFeature()  nogil except +
         BaseFeature(BaseFeature &) nogil except +
 
-        float getQuality()  nogil except +
-        void setQuality(float q) nogil except +
+        float getQuality()  nogil except + # wrap-doc:Returns the overall quality
+        void setQuality(float q) nogil except + # wrap-doc:Sets the overall quality
 
-        float getWidth() nogil except +
-        void setWidth(float q) nogil except +
+        float getWidth() nogil except + # wrap-doc:Returns the features width (full width at half max, FWHM)
+        void setWidth(float q) nogil except + # wrap-doc:Sets the width of the feature (FWHM)
 
-        Int getCharge() nogil except +
-        void setCharge(Int q) nogil except +
-        AnnotationState getAnnotationState() nogil except +
+        Int getCharge() nogil except + # wrap-doc:Returns the charge state
+        void setCharge(Int q) nogil except + # wrap-doc:Sets the charge state
+        AnnotationState getAnnotationState() nogil except + # wrap-doc:State of peptide identifications attached to this feature. If one ID has multiple hits, the output depends on the top-hit only
 
-        # returns a mutable reference to the PeptideIdentification vector
-        libcpp_vector[PeptideIdentification] getPeptideIdentifications() nogil except +
-        # sets the PeptideIdentification vector
-        void setPeptideIdentifications(libcpp_vector[PeptideIdentification] & peptides) nogil except +
+        libcpp_vector[PeptideIdentification] getPeptideIdentifications() nogil except + # wrap-doc:Returns the PeptideIdentification vector
+        
+        void setPeptideIdentifications(libcpp_vector[PeptideIdentification] & peptides) nogil except + # wrap-doc:Sets the PeptideIdentification vector
 
         bool operator==(BaseFeature) nogil except +
         bool operator!=(BaseFeature) nogil except +
-
-        void getKeys(libcpp_vector[String] & keys) nogil except +
-        void getKeys(libcpp_vector[unsigned int] & keys) nogil except + # wrap-as:getKeysAsIntegers
-        DataValue getMetaValue(unsigned int) nogil except +
-        DataValue getMetaValue(String) nogil except +
-        void setMetaValue(unsigned int, DataValue) nogil except +
-        void setMetaValue(String, DataValue) nogil except +
-        bool metaValueExists(String) nogil except +
-        bool metaValueExists(unsigned int) nogil except +
-        void removeMetaValue(String) nogil except +
-        void removeMetaValue(unsigned int) nogil except +
-        void clearMetaInfo() nogil except +
 
 cdef extern from "<OpenMS/KERNEL/BaseFeature.h>" namespace "OpenMS::BaseFeature":
     

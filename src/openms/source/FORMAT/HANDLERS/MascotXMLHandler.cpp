@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -38,10 +38,9 @@
 using namespace std;
 using namespace xercesc;
 
-namespace OpenMS
+namespace OpenMS::Internal
 {
-  namespace Internal
-  {
+
     MascotXMLHandler::MascotXMLHandler(ProteinIdentification& protein_identification, vector<PeptideIdentification>& id_data, const String& filename, map<String, vector<AASequence> >& modified_peptides, const SpectrumMetaDataLookup& lookup):
       XMLHandler(filename, ""), protein_identification_(protein_identification),
       id_data_(id_data), peptide_identification_index_(0), actual_title_(""),
@@ -51,8 +50,7 @@ namespace OpenMS
     }
 
     MascotXMLHandler::~MascotXMLHandler()
-    {
-    }
+    = default;
 
     void MascotXMLHandler::startElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname, const Attributes& attributes)
     {
@@ -148,7 +146,10 @@ namespace OpenMS
           if (!no_rt_error_) // report the error only the first time
           {
             String msg = "Could not extract RT value ";
-            if (!lookup_.empty()) msg += "or a matching spectrum reference ";
+            if (!lookup_.empty())
+            {
+              msg += "or a matching spectrum reference ";
+            }
             msg += "from <pep_scan_title> element with format '" + title + "'. Try adjusting the 'scan_regex' parameter.";
             error(LOAD, msg);
           }
@@ -254,7 +255,7 @@ namespace OpenMS
       else if (tag_ == "pep_res_before")
       {
         String temp_string = character_buffer_.trim();
-        if (temp_string != "")
+        if (!temp_string.empty())
         {
           actual_peptide_evidence_.setAABefore(temp_string[0]);
         }
@@ -262,7 +263,7 @@ namespace OpenMS
       else if (tag_ == "pep_res_after")
       {
         String temp_string = character_buffer_.trim();
-        if (temp_string != "")
+        if (!temp_string.empty())
         {
           actual_peptide_evidence_.setAAAfter(temp_string[0]);
         }
@@ -630,12 +631,14 @@ namespace OpenMS
       //   <COM>OpenMS_search</COM>
       //   <Date>
       // will trigger a characters() between </COM> and <Date>, which should be ignored
-      if (tag_.empty()) return;
-
+      if (tag_.empty())
+      {
+        return;
+      }
       character_buffer_ += String(sm_.convert(chars));
     }
     
-    vector<String> MascotXMLHandler::splitModificationBySpecifiedAA(String mod)
+    vector<String> MascotXMLHandler::splitModificationBySpecifiedAA(const String& mod)
     {
       vector<String> mods;
       vector<String> parts;
@@ -673,6 +676,4 @@ namespace OpenMS
       }
       return mods;
     }
-
-  } // namespace Internal
-} // namespace OpenMS
+} // namespace OpenMS   // namespace Internal

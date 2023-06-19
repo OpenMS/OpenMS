@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -33,7 +33,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentAlgorithmPoseClustering.h>
-#include <OpenMS/FORMAT/FeatureXMLFile.h>
+
 #include <OpenMS/FORMAT/FileHandler.h>
 
 using namespace std;
@@ -64,9 +64,7 @@ namespace OpenMS
     max_num_peaks_considered_ = param_.getValue("max_num_peaks_considered");
   }
 
-  MapAlignmentAlgorithmPoseClustering::~MapAlignmentAlgorithmPoseClustering()
-  {
-  }
+  MapAlignmentAlgorithmPoseClustering::~MapAlignmentAlgorithmPoseClustering() = default;
 
   void MapAlignmentAlgorithmPoseClustering::align(const FeatureMap& map, TransformationDescription& trafo)
   {
@@ -118,11 +116,11 @@ namespace OpenMS
     // calculate the local transformation
     si_trafo.invert(); // to undo the transformation applied above
     TransformationDescription::DataPoints data;
-    for (ConsensusMap::Iterator it = result.begin(); it != result.end(); ++it)
+    for (ConsensusFeature& cfeature : result)
     {
-      if (it->size() == 2) // two matching features
+      if (cfeature.size() == 2) // two matching features
       {
-        ConsensusFeature::iterator feat_it = it->begin();
+        ConsensusFeature::iterator feat_it = cfeature.begin();
         double y = feat_it->getRT();
         double x = si_trafo.apply((++feat_it)->getRT());
         // one feature should be from the reference map:

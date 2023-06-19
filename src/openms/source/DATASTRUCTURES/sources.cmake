@@ -23,19 +23,28 @@ Date.cpp
 DateTime.cpp
 DefaultParamHandler.cpp
 DistanceMatrix.cpp
+ExposedVector.cpp
 FASTAContainer.cpp
+FlagSet.cpp
 GridFeature.cpp
+#IsotopeCluster.h
+#KDTree.h
 ListUtils.cpp
 ListUtilsIO.cpp
 LPWrapper.cpp
-Map.cpp
-MassExplainer.cpp
+        MassExplainer.cpp
+MatchedIterator.cpp
 Matrix.cpp
+OSWData.cpp
 Param.cpp
+ParamValue.cpp
 QTCluster.cpp
 String.cpp
+StringView.cpp
 StringListUtils.cpp
 StringUtils.cpp
+StringUtilsSimple.cpp
+StringConversions.cpp
 ToolDescription.cpp
 )
 

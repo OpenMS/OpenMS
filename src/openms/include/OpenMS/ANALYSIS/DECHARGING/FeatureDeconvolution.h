@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -42,6 +42,7 @@
 #include <OpenMS/DATASTRUCTURES/MassExplainer.h>
 
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
+#include <map>
 
 namespace OpenMS
 {
@@ -63,10 +64,8 @@ public:
 
     enum CHARGEMODE {QFROMFEATURE = 1, QHEURISTIC, QALL};
 
-    typedef FeatureMap FeatureMapType;
-    typedef Feature FeatureType;
     typedef DPosition<2> ClusterPointType;
-    typedef FeatureMapType::FeatureType::CoordinateType CoordinateType;
+    typedef Feature::CoordinateType CoordinateType;
     typedef ILPDCWrapper::PairsType PairsType;
 
     /** @name Constructors and Destructor s
@@ -95,7 +94,7 @@ public:
       @param cons_map   [out] Output of grouped features belonging to a charge group
       @param cons_map_p [out] Output of paired features connected by an edge
     */
-    void compute(const FeatureMapType& fm_in, FeatureMapType& fm_out, ConsensusMap& cons_map, ConsensusMap& cons_map_p);
+    void compute(const FeatureMap& fm_in, FeatureMap& fm_out, ConsensusMap& cons_map, ConsensusMap& cons_map_p);
 
 protected:
 
@@ -122,7 +121,7 @@ protected:
     /// (more difficult explanation) supported by neighboring edges
     /// e.g. (.)   -> (H+) might be augmented to
     ///      (Na+) -> (H+Na+)
-    void inferMoreEdges_(PairsType& edges, Map<Size, std::set<CmpInfo_> >& feature_adducts);
+    void inferMoreEdges_(PairsType& edges, std::map<Size, std::set<CmpInfo_> >& feature_adducts);
 
     /// A function mostly for debugging
     void printEdgesOfConnectedFeatures_(Size idx_1, Size idx_2, const PairsType& feature_relation);
@@ -133,7 +132,7 @@ protected:
       Filter for adding an edge only when the two features connected by it, fulfill the
       intensity criterion.
     **/
-    inline bool intensityFilterPassed_(const Int q1, const Int q2, const Compomer& cmp, const FeatureType& f1, const FeatureType& f2);
+    inline bool intensityFilterPassed_(const Int q1, const Int q2, const Compomer& cmp, const Feature& f1, const Feature& f2) const;
 
     /**
       @brief determines if we should test a putative feature charge
@@ -146,9 +145,9 @@ protected:
     /// List of adducts used to explain mass differences
     MassExplainer::AdductsType potential_adducts_;
     /// labeling table
-    Map<Size, String> map_label_;
+    std::map<Size, String> map_label_;
     /// labeling table inverse
-    Map<String, Size> map_label_inverse_;
+    std::map<String, Size> map_label_inverse_;
     /// status of intensity filter for edges
     bool enable_intensity_filter_;
     /// status of charge discovery
@@ -158,4 +157,3 @@ protected:
 
   };
 } // namespace OpenMS
-

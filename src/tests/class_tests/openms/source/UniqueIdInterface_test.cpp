@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry               
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 // 
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -68,6 +68,14 @@ START_SECTION((UniqueIdInterface(const UniqueIdInterface &rhs)))
   UniqueIdInterface uii2(uii1);
   // to be continued further below
   NOT_TESTABLE
+}
+END_SECTION
+
+START_SECTION((UniqueIdInterface(UniqueIdInterface &&rhs)))
+{
+  // Ensure that UniqueIdInterface has a no-except move constructor (otherwise
+  // std::vector is inefficient and will copy instead of move).
+  TEST_EQUAL(noexcept(UniqueIdInterface(std::declval<UniqueIdInterface&&>())), true)
 }
 END_SECTION
 

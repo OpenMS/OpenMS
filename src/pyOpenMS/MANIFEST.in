@@ -3,8 +3,12 @@ prune pyopenms/share/OpenMS/examples
 include pyopenms/*.dll
 include pyopenms/*.dylib
 include pyopenms/*.so
+include pyopenms/*.pyd
+include pyopenms/*.pyi
+include pyopenms/py.typed
 include pyopenms/*.txt
-include pyopenms/Qt*/*
+graft pyopenms/*.framework
+include pyopenms/Qt*
 exclude pyopenms/*.cpp
 global-exclude pyopenms.cpp
 global-exclude HMDB2StructMapping.tsv

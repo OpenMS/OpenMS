@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -231,8 +231,6 @@ public:
           extraction_coordinates, mz_extraction_window, ppm, im_extraction_window, filter);
     }
 
-public:
-
     /**
      * @brief Prepare the extraction coordinates from a TargetedExperiment
      *
@@ -334,7 +332,7 @@ public:
           typename TransitionExpT::Transition transition = (*trans_map[coord.id]);
 
           prec.setMZ(transition.getPrecursorMZ());
-          if (settings.getPrecursors().size() > 0)
+          if (!settings.getPrecursors().empty())
           {
             prec.setIsolationWindowLowerOffset(settings.getPrecursors()[0].getIsolationWindowLowerOffset());
             prec.setIsolationWindowUpperOffset(settings.getPrecursors()[0].getIsolationWindowUpperOffset());
@@ -556,18 +554,17 @@ public:
     }
 
 private:
-
     /**
      * @brief Extracts id (peptide sequence or compound name) for a compound
      *
-     * @param transition_exp The transition experiment used as input (is constant) and either of type LightTargetedExperiment or TargetedExperiment
+     * @param transition_exp_used The transition experiment used as input (is constant) and either of type LightTargetedExperiment or TargetedExperiment
      * @param id The identifier of the compound or peptide
      * @param prec_charge The charge state of the precursor
      *
-    */
+     */
     template <typename TransitionExpT>
     static String extract_id_(TransitionExpT& transition_exp_used, const String& id, int& prec_charge);
-    
+
     /**
      * @brief This populates the chromatograms vector with empty chromatograms
      * (but sets their meta-information)

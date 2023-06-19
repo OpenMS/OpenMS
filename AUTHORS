@@ -5,12 +5,17 @@
 The following authors contributed to OpenMS at some point. For the 
 authors contributing to a specific piece of code, please refer to
 the authors tag in the respective file header.
+ - Ahmed Khalil
  - Alexandra Scherbart
+ - Axel Walter
  - Alexandra Zerck
+ - Amanda Wein
  - Andreas Bertsch
  - Andreas Simon
+ - Anton Kriese
  - Anton Pervukhin
  - Bastian Blank
+ - Chenghao Zhu
  - Chris Bauer
  - Chris Bielow
  - Christian Ehrlich
@@ -19,32 +24,48 @@ the authors tag in the respective file header.
  - Daniel Jameson
  - Darren Kessner
  - David Wojnar
+ - David Voigt
+ - Dhanmoni Nath
  - Dilek Dere
  - Dimitri Schachmann
+ - Dominik Schmitz
  - Douglas McCloskey
+ - Emil Paulitz
  - Erhan Kenar
  - Eugen Netz
  - Eva Lange
  - Fabian Aicheler
  - Fabian Kriegel
+ - Felix Droop
  - Florian Zeller
  - Frederic Lehnert
  - George Rosenberger
  - Guillaume Belz
  - Hannes Roest
+ - Hendrik Beschorner
  - Hendrik Brauer
  - Hendrik Weisser
  - Holger Franken
  - Holger Plattfaut
  - Immanuel Luhn
+ - Jang Jang Jin 
+ - Jihyung Kim
  - Johan Teleman
  - Johannes Junker
  - Johannes Veit
+ - Joshua Charkow
+ - Julia Thueringer
+ - Juliane Schmachtenberg
  - Julianus Pfeuffer
+ - Justin Sing
  - Katharina Albers
+ - Khue Nguyen
  - Knut Reinert
+ - Kyowon Jeong
  - Lars Nilse
+ - Lenny Kovac
  - Leon Bichmann
+ - Leon Kuchenbecker
  - Lucia Espona
  - Lukas Mueller
  - Lukas Zimmermann
@@ -52,24 +73,41 @@ the authors tag in the respective file header.
  - Marc Sturm
  - Markus Mueller
  - Martin Langwisch
+ - Mateusz Łącki
  - Mathias Walzer
  - Matthew The
+ - Matthias Bernt
+ - Michał Startek
  - Nico Pfeifer
  - Ole Schulz-Trieglaff
  - Oliver Alka
  - Oliver Kohlbacher
  - Pasquale Domenico Colaianni
+ - Patricia Scheil
  - Peter Kunszt
  - Petra Gutenbrunner
  - Rene Hussong
+ - Ruben Grünberg
  - Samuel Wein
  - Sandro Andreotti
  - Steffen Sass
  - Stephan Aiche
  - Sven Nahnsen
+ - Svetlana Kutuzova
+ - Swenja Wagner
+ - Taraneh Strunk
+ - Tapasweni Pathak
  - Timo Sachsenberg
+ - Tinatin Kasradze
+ - Till Englert
+ - Tom Lukas Lankenau
+ - Tom Waschischeck
  - Uwe Schmitt
+ - Valentin Noske
+ - Vincent Musch
  - Vipul Patel
+ - Virginia Rossow
  - Volker Mosthaf
  - Witold Wolski
  - Xiao Liang
+ - Radu Suciu

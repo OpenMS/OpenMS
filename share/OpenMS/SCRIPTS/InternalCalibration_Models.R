@@ -1,4 +1,6 @@
+if (!require(ggplot2)) install.packages("ggplot2")
 library("ggplot2")
+if (!require(reshape2)) install.packages("reshape2")
 library("reshape2")
 
 file.table.in = commandArgs(TRUE)[1] ## file.table.in = "models.csv"

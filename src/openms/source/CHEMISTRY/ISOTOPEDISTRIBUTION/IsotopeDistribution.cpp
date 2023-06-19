@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -31,46 +31,37 @@
 // $Maintainer: Chris Bielow $
 // $Authors: Clemens Groepl, Andreas Bertsch, Chris Bielow $
 // --------------------------------------------------------------------------
-//
+
+#include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/IsotopeDistribution.h>
 
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/CONCEPT/Exception.h>
-#include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/IsotopeDistribution.h>
 #include <OpenMS/CHEMISTRY/EmpiricalFormula.h>
 #include <OpenMS/CHEMISTRY/Element.h>
 #include <OpenMS/KERNEL/Peak1D.h>
 
-#include <cmath>
-#include <iostream>
-#include <cstdlib>
 #include <algorithm>
-#include <limits>
-#include <functional>
-#include <numeric>
+#include <cmath>
+#include <cstdlib>
 #include <fstream>
+#include <functional>
+#include <iostream>
+#include <limits>
+#include <numeric>
 #include <tuple>
+#include <utility>
 
 using namespace std;
 
 namespace OpenMS
 {
   
-  
   IsotopeDistribution::IsotopeDistribution()
   {
     distribution_.push_back(Peak1D(0, 1));
   }
 
-  IsotopeDistribution::IsotopeDistribution(const IsotopeDistribution & id) :
-    distribution_(id.distribution_)
-  {}
-
-  IsotopeDistribution::~IsotopeDistribution()
-  {
-  }
-
-  IsotopeDistribution& IsotopeDistribution::operator= 
-  (const IsotopeDistribution & iso)
+  IsotopeDistribution& IsotopeDistribution::operator=(const IsotopeDistribution & iso)
   {
     if (this != &iso)
     {
@@ -79,10 +70,14 @@ namespace OpenMS
     return *this;
   }
 
-
   void IsotopeDistribution::set(const ContainerType & distribution)
   {
     distribution_ = distribution;
+  }
+
+  void IsotopeDistribution::set(ContainerType && distribution)
+  {
+    distribution_ = std::move(distribution);
   }
 
   const IsotopeDistribution::ContainerType& IsotopeDistribution::getContainer() const
@@ -96,7 +91,7 @@ namespace OpenMS
     {
       return 0;
     }
-    return distribution_[distribution_.size() - 1].getMZ();
+    return std::max_element(begin(), end(), MassAbundance::MZLess())->getMZ();
   }
 
   Peak1D::CoordinateType IsotopeDistribution::getMin() const
@@ -105,16 +100,16 @@ namespace OpenMS
     {
       return 0;
     }
-    return distribution_[0].getMZ();
+    return std::min_element(begin(), end(), MassAbundance::MZLess())->getMZ();
   }
 
   Peak1D IsotopeDistribution::getMostAbundant() const
   {
-      if (distribution_.empty())
-      {
-          return Peak1D(0, 1);
-      }
-      return *std::max_element(begin(), end(), MassAbundance::IntensityLess());
+    if (distribution_.empty())
+    {
+        return Peak1D(0, 1);
+    }
+    return *std::max_element(begin(), end(), MassAbundance::IntensityLess());
   }
 
   Size IsotopeDistribution::size() const
@@ -146,7 +141,7 @@ namespace OpenMS
   void IsotopeDistribution::sort_(
     function<bool(const MassAbundance& p1, const MassAbundance& p2)> sorter)
   {
-    sort(distribution_.begin(), distribution_.end(), sorter);
+    sort(distribution_.begin(), distribution_.end(), std::move(sorter));
   }
 
   void IsotopeDistribution::sortByIntensity()
@@ -165,9 +160,8 @@ namespace OpenMS
 
   void IsotopeDistribution::transform_(function<void(MassAbundance&)> lambda)
   {
-    for_each(distribution_.begin(), distribution_.end(), lambda);
+    for_each(distribution_.begin(), distribution_.end(), std::move(lambda));
   }
-
 
   bool IsotopeDistribution::operator==(const IsotopeDistribution & isotope_distribution) const
   {
@@ -200,7 +194,6 @@ namespace OpenMS
     return false;
   }
 
-
   bool IsotopeDistribution::operator!=(const IsotopeDistribution & isotope_distribution) const
   {
     return !(isotope_distribution == *this);
@@ -208,7 +201,7 @@ namespace OpenMS
 
   void IsotopeDistribution::renormalize()
   {
-    if (distribution_.size() != 0)
+    if (!distribution_.empty())
     {
       double sum(0);
       // loop backwards as most distributions contains a lot of small values at the end
@@ -232,7 +225,9 @@ namespace OpenMS
     for (; riter != distribution_.rend(); ++riter)
     {
       if (riter->getIntensity() >= cutoff)
+      {
         break;
+      }
     }
     // trim the container
     distribution_.resize(riter.base() - distribution_.begin());
@@ -248,19 +243,6 @@ namespace OpenMS
         break;
       }
     }
-  }
-
-  bool IsotopeDistribution::isNormalized() const
-  {
-    return distribution_.front().getIntensity() == 1.0 && 
-      is_sorted(distribution_.begin(), distribution_.end(),[](const MassAbundance& fr1, const MassAbundance& fr2){
-          return fr1.getIntensity() > fr2.getIntensity();
-        });
-  }
-
-  bool IsotopeDistribution::isConvolutionUnit() const
-  { 
-    return distribution_.size() == 1  && distribution_.front().getMZ() == 0.0;
   }
 
   double IsotopeDistribution::averageMass() const

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -36,9 +36,11 @@
 
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 
 #include <OpenMS/KERNEL/Peak2D.h>
 
+#include <utility>
 #include <vector>
 
 namespace OpenMS
@@ -69,35 +71,22 @@ public:
       String description;
       /// The expected centroid position of the channel peak in m/z.
       Peak2D::CoordinateType center;
+      /// Ids of the affected channels. Must contain 4 or 8 entries, depending on the number of columns in the Thermo data sheet (with or without subchannels). Order has to match the ones from the correction matrix parameter.
+      std::vector<Int> affected_channels;
 
       /// C'tor
-      IsobaricChannelInformation(const String local_name,
+      IsobaricChannelInformation(String local_name,
                                  const Int local_id,
-                                 const String& local_description,
+                                 String  local_description,
                                  const Peak2D::CoordinateType& local_center,
-                                 const Int minus_2,
-                                 const Int minus_1,
-                                 const Int plus_1,
-                                 const Int plus_2) :
-        name(local_name),
-        id(local_id),
-        description(local_description),
-        center(local_center),
-        channel_id_minus_2(minus_2),
-        channel_id_minus_1(minus_1),
-        channel_id_plus_1(plus_1),
-        channel_id_plus_2(plus_2)
+                                 const std::vector<Int>& affected_channels) :
+          name(std::move(local_name)),
+          id(local_id),
+          description(std::move(local_description)),
+          center(local_center),
+          affected_channels(affected_channels)
       {
       }
-
-      /// Id of the -2 isotopic channel (== -1 -> no channel)
-      Int channel_id_minus_2;
-      /// Id of the -1 isotopic channel (== -1 -> no channel)
-      Int channel_id_minus_1;
-      /// Id of the +1 isotopic channel (== -1 -> no channel)
-      Int channel_id_plus_1;
-      // Id of the +2 isotopic channel (== -1 -> no channel)
-      Int channel_id_plus_2;
     };
 
     /// @brief c'tor setting the name for the underlying param handler
@@ -113,12 +102,12 @@ public:
 
       @return The unique name or identifier of the quantitation method.
     */
-    virtual const String& getName() const = 0;
+    virtual const String& getMethodName() const = 0;
 
     /**
       @brief Returns information on the different channels used by the quantitation method.
 
-      @return A st::vector containing the channel information for this quantitation method.
+      @return A std::vector containing the channel information for this quantitation method.
     */
     virtual const IsobaricChannelList& getChannelInformation() const = 0;
 
@@ -146,7 +135,7 @@ protected:
       @param stringlist The StringList to convert.
       @return An isotope correction matrix as Matrix<double>.
     */
-    Matrix<double> stringListToIsotopCorrectionMatrix_(const StringList& stringlist) const;
+    Matrix<double> stringListToIsotopeCorrectionMatrix_(const std::vector<String>& stringlist) const;
   };
 } // namespace
 

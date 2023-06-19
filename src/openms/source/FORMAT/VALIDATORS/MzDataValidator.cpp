@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -41,10 +41,9 @@
 using namespace xercesc;
 using namespace std;
 
-namespace OpenMS
+namespace OpenMS::Internal
 {
-  namespace Internal
-  {
+
     MzDataValidator::MzDataValidator(const CVMappings& mapping, const ControlledVocabulary& cv) :
       SemanticValidator(mapping, cv)
     {
@@ -52,8 +51,7 @@ namespace OpenMS
     }
 
     MzDataValidator::~MzDataValidator()
-    {
-    }
+    = default;
 
     void MzDataValidator::handleTerm_(const String& path, const CVTerm& parsed_term)
     {
@@ -72,21 +70,21 @@ namespace OpenMS
           if (term.getUseTerm() && term.getAccession() == parsed_term.accession) //check if the term itself is allowed
           {
             allowed = true;
-            fulfilled_[path][rules[r].getIdentifier()][term.getAccession()]++;
+            ++fulfilled_[path][rules[r].getIdentifier()][term.getAccession()];
             break;
           }
           if (term.getAllowChildren()) //check if the term's children are allowed
           {
-            set<String> child_terms;
-            cv_.getAllChildTerms(child_terms, term.getAccession());
-            for (set<String>::const_iterator it = child_terms.begin(); it != child_terms.end(); ++it)
+            auto searcher = [&parsed_term] (const String& child)
             {
-              if (*it == parsed_term.accession)
-              {
-                allowed = true;
-                fulfilled_[path][rules[r].getIdentifier()][term.getAccession()]++;
-                break;
-              }
+              return child == parsed_term.accession;
+            };
+
+            if (cv_.iterateAllChildren(term.getAccession(), searcher))
+            {
+              allowed = true;
+              ++fulfilled_[path][rules[r].getIdentifier()][term.getAccession()];
+              break;
             }
           }
         }
@@ -112,13 +110,15 @@ namespace OpenMS
               if (term.units.find(parsed_term.unit_accession) == term.units.end())
               {
                 // last chance, a child term of the units was used
-                set<String> child_terms;
+                auto lambda = [&parsed_term] (const String& child)
+                {
+                  return child == parsed_term.unit_accession;
+                };
 
                 bool found_unit(false);
                 for (set<String>::const_iterator it = term.units.begin(); it != term.units.end(); ++it)
                 {
-                  cv_.getAllChildTerms(child_terms, *it);
-                  if (child_terms.find(parsed_term.unit_accession) != child_terms.end())
+                  if (cv_.iterateAllChildren(*it, lambda))
                   {
                     found_unit = true;
                     break;
@@ -179,5 +179,4 @@ namespace OpenMS
       }
     }
 
-  } // namespace Internal
-} // namespace OpenMS
+} // namespace OpenMS // namespace Internal

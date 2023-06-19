@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -49,9 +49,10 @@ namespace OpenMS
 namespace Internal
 {
 
-/* @brief Convenience functions to construct appealing fragment annotation strings
-  *       and store them as PeptideHit::PeakAnnotation
- *
+/** 
+   @brief Convenience functions to construct appealing fragment annotation strings
+         and store them as PeptideHit::PeakAnnotation
+ 
  */
 class OPENMS_DLLAPI RNPxlFragmentAnnotationHelper
 {
@@ -87,10 +88,10 @@ class OPENMS_DLLAPI RNPxlFragmentAnnotationHelper
 
   static String getAnnotatedImmoniumIon(char c, const String& fragment_shift_name);
 
-  // conversion of RNPxl annotations to PeptideHit::PeakAnnotation
+  /// conversion of RNPxl annotations to PeptideHit::PeakAnnotation
   static std::vector<PeptideHit::PeakAnnotation> fragmentAnnotationDetailsToPHFA(
     const String& ion_type, 
-    std::map<Size, std::vector<FragmentAnnotationDetail_> > ion_annotation_details);
+    const std::map<Size, std::vector<FragmentAnnotationDetail_> >& ion_annotation_details);
 
   static std::vector<PeptideHit::PeakAnnotation> shiftedToPHFA(
     const std::map<String, 

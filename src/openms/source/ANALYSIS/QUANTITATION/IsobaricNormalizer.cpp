@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -35,7 +35,10 @@
 #include <OpenMS/ANALYSIS/QUANTITATION/IsobaricNormalizer.h>
 #include <OpenMS/ANALYSIS/QUANTITATION/IsobaricQuantitationMethod.h>
 
+#include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/KERNEL/ConsensusMap.h>
+
+#include <map>
 
 namespace OpenMS
 {
@@ -136,7 +139,7 @@ namespace OpenMS
     Peak2D::IntensityType max_deviation_from_control = 0;
 
     // find MEDIAN of ratios for each channel (store as 0th element in sorted vector)
-    for (Map<Size, Size>::const_iterator it_map = map_to_vec_index_.begin(); it_map != map_to_vec_index_.end(); ++it_map)
+    for (std::map<Size, Size>::const_iterator it_map = map_to_vec_index_.begin(); it_map != map_to_vec_index_.end(); ++it_map)
     {
       // this is solely for readability reasons, the compiler should optimize this anyway
       const Size vec_idx = it_map->second;
@@ -154,7 +157,7 @@ namespace OpenMS
       peptide_intensities_[vec_idx][0] = peptide_intensities_[vec_idx][peptide_intensities_[vec_idx].size() / 2] /
                                          peptide_intensities_[ref_map_id_][peptide_intensities_[ref_map_id_].size() / 2];
 
-      LOG_INFO << "IsobaricNormalizer:  map-id " << (it_map->first) << " has factor " << (normalization_factors[vec_idx]) << " (control: " << (peptide_intensities_[vec_idx][0]) << ")" << std::endl;
+      OPENMS_LOG_INFO << "IsobaricNormalizer:  map-id " << (it_map->first) << " has factor " << (normalization_factors[vec_idx]) << " (control: " << (peptide_intensities_[vec_idx][0]) << ")" << std::endl;
 
       Peak2D::IntensityType dev = (peptide_ratios_[vec_idx][0] - peptide_intensities_[vec_idx][0]) / normalization_factors[vec_idx];
       if (fabs(max_deviation_from_control) < fabs(dev))
@@ -163,7 +166,7 @@ namespace OpenMS
       }
     }
 
-    LOG_INFO << "IsobaricNormalizer: max ratio deviation of alternative method is " << (max_deviation_from_control * 100) << "%\n";
+    OPENMS_LOG_INFO << "IsobaricNormalizer: max ratio deviation of alternative method is " << (max_deviation_from_control * 100) << "%\n";
   }
 
   void IsobaricNormalizer::normalize(ConsensusMap& consensus_map)
@@ -187,7 +190,7 @@ namespace OpenMS
       // reference channel not found in this ConsensusFeature
       if (ref_it == cm_it->end())
       {
-        LOG_WARN << "IsobaricNormalizer::normalize() WARNING: ConsensusFeature "
+        OPENMS_LOG_WARN << "IsobaricNormalizer::normalize() WARNING: ConsensusFeature "
                  << (cm_it - consensus_map.begin())
                  << " does not have a reference channel! Skipping"
                  << std::endl;

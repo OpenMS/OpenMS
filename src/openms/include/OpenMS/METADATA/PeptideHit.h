@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -34,6 +34,7 @@
 
 #pragma once
 
+#include <iosfwd>
 #include <vector>
 
 #include <OpenMS/CONCEPT/Types.h>
@@ -49,7 +50,7 @@ namespace OpenMS
 
     It contains the fields score, score_type, rank, and sequence.
 
-        @ingroup Metadata
+    @ingroup Metadata
   */
   class OPENMS_DLLAPI PeptideHit :
     public MetaInfoInterface
@@ -81,51 +82,15 @@ public:
    */
   struct PeakAnnotation
   {
-    String annotation;  // e.g. [alpha|ci$y3-H2O-NH3]
-    int charge;
-    double mz;
-    double intensity;
+    String annotation = "";  // e.g. [alpha|ci$y3-H2O-NH3]
+    int charge = 0;
+    double mz = -1.;
+    double intensity = 0.;
 
     bool operator<(const PeptideHit::PeakAnnotation& other) const
     {
       // sensible to sort first by m/z and charge
-      if (mz < other.mz)
-      {
-        return true;
-      }
-      else if (mz > other.mz)
-      {
-        return false;
-      }
-
-      if (charge < other.charge)
-      {
-        return true;
-      }
-      else if (charge > other.charge)
-      {
-        return false;
-      }
-
-      if (annotation < other.annotation)
-      {
-        return true;
-      }
-      else if (annotation > other.annotation)
-      {
-        return false;
-      }
-
-      if (intensity < other.intensity)
-      {
-        return true;
-      }
-      else if (intensity > other.intensity)
-      {
-        return false;
-      }
-
-      return false;
+      return std::tie(mz, charge, annotation, intensity) < std::tie(other.mz, other.charge, other.annotation, other.intensity);
     }
 
     bool operator==(const PeptideHit::PeakAnnotation& other) const
@@ -210,9 +175,9 @@ public:
     class OPENMS_DLLAPI PepXMLAnalysisResult
     {
 public:
-      String score_type; // e.g. peptideprophet / interprophet
-      bool higher_is_better; // is higher score better ?
-      double main_score; // posterior probability for example
+      String score_type; /// e.g. peptideprophet / interprophet
+      bool higher_is_better; /// is higher score better ?
+      double main_score; /// posterior probability for example
       std::map<String, double> sub_scores; /// additional scores attached to the original, aggregated score
 
       bool operator==(const PepXMLAnalysisResult& rhs) const
@@ -222,39 +187,35 @@ public:
           && main_score == rhs.main_score
           && sub_scores == rhs.sub_scores;
       }
-
-      PepXMLAnalysisResult& operator=(const PepXMLAnalysisResult& source)
-      {
-        if (this == &source) return *this;
-        score_type = source.score_type;
-        higher_is_better = source.higher_is_better;
-        main_score = source.main_score;
-        sub_scores = source.sub_scores;
-        return *this;
-      }
-
     };
 
-    /** @name Constructors and Destructor */
+    /** @name Constructors and Assignment
+    */
     //@{
-    /// default constructor
+    /// Default constructor
     PeptideHit();
-
-    /// values constructor
+    /// Values constructor that copies sequence
     PeptideHit(double score,
                UInt rank,
                Int charge,
                const AASequence& sequence);
-
-    /// copy constructor
+    /// Values constructor that moves sequence R-value
+    PeptideHit(double score,
+               UInt rank,
+               Int charge,
+               AASequence&& sequence);
+    /// Copy constructor
     PeptideHit(const PeptideHit& source);
-
-    /// destructor
+    /// Move constructor
+    PeptideHit(PeptideHit&&) noexcept;
+    /// Destructor
     virtual ~PeptideHit();
-    //@}
 
-    /// assignment operator
+    /// Assignment operator
     PeptideHit& operator=(const PeptideHit& source);
+    /// Move assignment operator
+    PeptideHit& operator=(PeptideHit&&) noexcept;
+    //@}
 
     /// Equality operator
     bool operator==(const PeptideHit& rhs) const;
@@ -265,11 +226,17 @@ public:
     /**	@name Accessors
     */
     //@{
-    /// returns the peptide sequence without trailing or following spaces
+    /// returns the peptide sequence
     const AASequence& getSequence() const;
+
+    /// returns the mutable peptide sequence
+    AASequence& getSequence();
 
     /// sets the peptide sequence
     void setSequence(const AASequence& sequence);
+
+    /// sets the peptide sequence
+    void setSequence(AASequence&& sequence);
 
     /// returns the charge of the peptide
     Int getCharge() const;
@@ -282,6 +249,8 @@ public:
 
     /// set information on peptides (potentially) identified by this PSM
     void setPeptideEvidences(const std::vector<PeptideEvidence>& peptide_evidences);
+
+    void setPeptideEvidences(std::vector<PeptideEvidence>&& peptide_evidences);
 
     /// adds information on a peptide that is (potentially) identified by this PSM
     void addPeptideEvidence(const PeptideEvidence& peptide_evidence);
@@ -296,7 +265,7 @@ public:
     void setAnalysisResults(std::vector<PepXMLAnalysisResult> aresult);
 
     /// add information on (search engine) sub scores associated with this PSM
-    void addAnalysisResults(PepXMLAnalysisResult aresult);
+    void addAnalysisResults(const PepXMLAnalysisResult& aresult);
 
     /// returns information on (search engine) sub scores associated with this PSM
     const std::vector<PepXMLAnalysisResult>& getAnalysisResults() const;
@@ -308,7 +277,9 @@ public:
     void setRank(UInt newrank);
 
     /// returns the fragment annotations
-    std::vector<PeptideHit::PeakAnnotation> getPeakAnnotations() const;
+    std::vector<PeptideHit::PeakAnnotation>& getPeakAnnotations();
+    const std::vector<PeptideHit::PeakAnnotation>& getPeakAnnotations() const;
+
 
     /// sets the fragment annotations
     void setPeakAnnotations(std::vector<PeptideHit::PeakAnnotation> frag_annotations);
@@ -340,4 +311,6 @@ protected:
     std::vector<PeptideHit::PeakAnnotation> fragment_annotations_;
   };
 
+  /// Stream operator
+  OPENMS_DLLAPI std::ostream& operator<< (std::ostream& stream, const PeptideHit& hit);
 } // namespace OpenMS

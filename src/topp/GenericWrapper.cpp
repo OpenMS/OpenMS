@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -34,11 +34,16 @@
 
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 
+
+#include <OpenMS/APPLICATIONS/ToolHandler.h>
+#include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/CONCEPT/Factory.h>
+#include <OpenMS/CONCEPT/UniqueIdGenerator.h>
 #include <OpenMS/DATASTRUCTURES/Param.h>
+#include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/DATASTRUCTURES/ToolDescription.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/SYSTEM/File.h>
-
 #include <QtCore/QProcess>
 #include <QFileInfo>
 #include <QDir>
@@ -55,9 +60,9 @@ using namespace std;
 <CENTER>
     <table>
         <tr>
-            <td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. predecessor tools </td>
-            <td VALIGN="middle" ROWSPAN=2> \f$ \longrightarrow \f$ GenericWrapper \f$ \longrightarrow \f$</td>
-            <td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. successor tools </td>
+            <th ALIGN = "center"> pot. predecessor tools </td>
+            <td VALIGN="middle" ROWSPAN=2> &rarr; GenericWrapper &rarr;</td>
+            <th ALIGN = "center"> pot. successor tools </td>
         </tr>
         <tr>
             <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> any file the external tool can read </td>
@@ -65,12 +70,12 @@ using namespace std;
         </tr>
         <tr>
             <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_IDFileConverter (to produce pepXML) </td>
-            <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> \f$ \longrightarrow \f$ GenericWrapper (type 'ProteinProphet') \f$ \longrightarrow \f$</td>
+            <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> &rarr; GenericWrapper (type 'ProteinProphet') &rarr;</td>
             <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_IDFileConverter (protXML to idXML) </td>
         </tr>
         <tr>
             <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> RAW file </td>
-            <td VALIGN="middle" ROWSPAN=1> \f$ \longrightarrow \f$ GenericWrapper (type 'RAWFileConvert') \f$ \longrightarrow \f$</td>
+            <td VALIGN="middle" ROWSPAN=1> &rarr; GenericWrapper (type 'RAWFileConvert') &rarr;</td>
             <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> any tool accepting mzML </td>
         </tr>
 
@@ -174,9 +179,9 @@ protected:
   String paramToString_(const Param::ParamEntry & p)
   {
 
-    if (p.value.valueType() == DataValue::STRING_LIST) // quote each element
+    if (p.value.valueType() == ParamValue::STRING_LIST) // quote each element
     {
-      StringList val = p.value;
+      StringList val = ListUtils::toStringList<std::string>(p.value);
       if (p.tags.count("input file") || p.tags.count("output file"))
       {
         for (Size i = 0; i < val.size(); ++i)
@@ -189,11 +194,11 @@ protected:
     if (p.tags.count("input file") || p.tags.count("output file"))
     {
       // ensure that file names are formated according to system spec
-      return QDir::toNativeSeparators(p.value.toQString());
+      return QDir::toNativeSeparators(String(p.value.toString()).toQString());
     }
     else
     {
-      return p.value;
+      return p.value.toString();
     }
   }
 
@@ -202,8 +207,7 @@ protected:
     the contained strings
 
     */
-  struct StringSizeLess :
-    std::binary_function<String, String, bool>
+  struct StringSizeLess
   {
     bool operator()(String const & left, String const & right) const
     {
@@ -232,7 +236,7 @@ protected:
       param_names.push_back(it->name);
     }
     // sort by length
-    std::sort(param_names.begin(), param_names.end(), reverseComparator(StringSizeLess()));
+    std::sort(param_names.begin(), param_names.end(), [](auto &left, auto &right) {StringSizeLess cmp; return cmp(right, left);});
 
     // iterate through all input params and replace with values:
     SignedSize allowed_percent(0); // filenames might contain '%', which are allowed to remain there (and even must remain)
@@ -245,8 +249,10 @@ protected:
       //std::cerr << "IN: " << s_new << "(" << allowed_percent << "\n";
       fragment.substitute("%%" + *it, s_new);
     }
-    if (fragment.hasSubstring("%%")) throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Invalid '%%' found in '" + fragment + "' after replacing all parameters!", fragment);
-
+    if (fragment.hasSubstring("%%"))
+    {
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Invalid '%%' found in '" + fragment + "' after replacing all parameters!", fragment);
+    }
     // mapping replace> e.g.: %2
     // do it reverse, since %10 should precede %1
     for (std::map<int, std::string>::const_reverse_iterator it = optional_mappings.rbegin(); it != optional_mappings.rend(); ++it)
@@ -269,7 +275,7 @@ protected:
 
     // %DIR% replace
     {
-      QRegExp rx("%DIR\\[(.*)\\]");
+      QRegExp rx(R"(%DIR\[(.*)\])");
       rx.setMinimal(true);
       int pos = 0;
       QString t_tmp = fragment.toQString();
@@ -288,7 +294,7 @@ protected:
 
     // %BASENAME% replace
     {
-      QRegExp rx("%BASENAME\\[(.*)\\]");
+      QRegExp rx(R"(%BASENAME\[(.*)\])");
       rx.setMinimal(true);
       int pos = 0, count = 0;
       QString t_tmp = fragment.toQString();
@@ -311,20 +317,25 @@ protected:
 
     SignedSize diff = (fragment.length() - String(fragment).substitute("%", "").length()) - allowed_percent;
     //std::cerr << "allowed: " << allowed_percent << "\n" << "diff: " << diff << " in: " << fragment << "\n";
-    if (diff > 0) throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Mapping still contains '%' after substitution! Did you use % instead of %%?", fragment);
-    else if (diff < 0) throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Error: '%' from a filename where accidentally considered command tags! "
+    if (diff > 0)
+    {
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Mapping still contains '%' after substitution! Did you use % instead of %%?", fragment);
+    }
+    else if (diff < 0)
+    {
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Error: '%' from a filename where accidentally considered command tags! "
                                                                                               "This is a bug! Remove '%' from input filesnames to fix, but please report this as well!", fragment);
-
+    }
     //std::cout << fragment << "'\n";
   }
 
   Internal::ToolExternalDetails tde_;
 
-  ExitCodes wrapExit(const ExitCodes return_code)
+  ExitCodes wrapExit(const ExitCodes return_code) const
   {
     if (return_code != EXECUTION_OK)
     {
-      LOG_ERROR << "\n" << tde_.text_fail << "\n";
+      OPENMS_LOG_ERROR << "\n" << tde_.text_fail << "\n";
     }
     return return_code;
   }
@@ -366,10 +377,10 @@ protected:
     {
       if ((it->tags).count("required") > 0)
       {
-        String in = it->value.toString().trim(); // will give '[]' for empty lists (hack, but DataValue class does not offer a convenient query)
+        String in = String(it->value.toString()).trim(); // will give '[]' for empty lists (hack, but DataValue class does not offer a convenient query)
         if (in.empty() || in == "[]") // any required parameter should have a value
         {
-          LOG_ERROR << "The INI-parameter 'ETool:" << it->name << "' is required, but was not given! Aborting ..." << std::endl;
+          OPENMS_LOG_ERROR << "The INI-parameter 'ETool:" << it->name << "' is required, but was not given! Aborting ..." << std::endl;
           return wrapExit(CANNOT_WRITE_OUTPUT_FILE);
         }
         else if ((it->tags).count("input file") > 0) // any required input file should exist
@@ -377,21 +388,21 @@ protected:
           StringList ifs;
           switch (it->value.valueType())
           {
-            case DataValue::STRING_VALUE:
-              ifs.push_back(it->value); 
+            case ParamValue::STRING_VALUE:
+              ifs.push_back(it->value.toChar());
               break;
-            case DataValue::STRING_LIST:
-              ifs = it->value;
+            case ParamValue::STRING_LIST:
+              ifs = ListUtils::toStringList<std::string>(it->value);
               break;
             default:
-              LOG_ERROR << "The INI-parameter 'ETool:" << it->name << "' is tagged as input file and thus must be a string! Aborting ...";
+              OPENMS_LOG_ERROR << "The INI-parameter 'ETool:" << it->name << "' is tagged as input file and thus must be a string! Aborting ...";
               return wrapExit(ILLEGAL_PARAMETERS);
           }
           for (StringList::const_iterator itf = ifs.begin(); itf != ifs.end(); ++itf)
           {
             if (!File::exists(*itf))
             {
-              LOG_ERROR << "Input file '" << *itf << "' does not exist! Aborting ...";
+              OPENMS_LOG_ERROR << "Input file '" << *itf << "' does not exist! Aborting ...";
               return wrapExit(INPUT_FILE_NOT_FOUND);
             }
           }
@@ -405,23 +416,26 @@ protected:
       if (type == gw.types[i])
       {
         tde_ = gw.external_details[i];
-        if (tde_.working_directory.trim() == "") tde_.working_directory = ".";
+        if (tde_.working_directory.trim().empty())
+        {
+          tde_.working_directory = ".";
+        }
         break;
       }
     }
 
-    LOG_INFO << tde_.text_startup << "\n";
+    OPENMS_LOG_INFO << tde_.text_startup << "\n";
 
     String command_args = tde_.commandline;
     // check for double spaces and warn
     if (command_args.hasSubstring("  "))
     {
-      LOG_WARN << "Command line contains double spaces, which is not allowed. Condensing...\n";
+      OPENMS_LOG_WARN << "Command line contains double spaces, which is not allowed. Condensing...\n";
       while (command_args.hasSubstring("  "))
       {
         command_args.substitute("  ", " ");
       }
-      LOG_WARN << "result: " << command_args << std::endl;
+      OPENMS_LOG_WARN << "result: " << command_args << std::endl;
     }
 
     writeDebug_("CommandLine from ttd (unprocessed): " + command_args, 1);
@@ -431,23 +445,26 @@ protected:
     // - we set the value of the affected parameter to the copied tmp file, such that subsequent calls target the tmp file
     for (Size i = 0; i < tde_.tr_table.pre_moves.size(); ++i)
     {
-      const Internal::FileMapping & fm = tde_.tr_table.pre_moves[i];
+      const Internal::FileMapping& fm = tde_.tr_table.pre_moves[i];
       // find target param:
       Param p = tool_param.copy("ETool:", true);
       String target = fm.target;
-      if (!p.exists(target)) throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Cannot find target parameter '" + target + "' being mapped from external tools output!", target);
+      if (!p.exists(target))
+      {
+        throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Cannot find target parameter '" + target + "' being mapped from external tools output!", target);
+      }
       String tmp_location = fm.location;
       // fragment's placeholder evaluation:
 
       createFragment_(tmp_location, p);
 
       // check if target already exists:
-      String target_file = (String)p.getValue(target);
+      String target_file = p.getValue(target).toString();
       if (File::exists(tmp_location))
       {
         if (!File::remove(tmp_location))
         {
-          LOG_ERROR << "While writing a tmp file: Cannot remove conflicting file '" + tmp_location + "'. Check permissions! Aborting ...";
+          OPENMS_LOG_ERROR << "While writing a tmp file: Cannot remove conflicting file '" + tmp_location + "'. Check permissions! Aborting ...";
           return wrapExit(CANNOT_WRITE_OUTPUT_FILE);
         }
       }
@@ -456,7 +473,7 @@ protected:
       bool move_ok = QFile::copy(target_file.toQString(), tmp_location.toQString());
       if (!move_ok)
       {
-        LOG_ERROR << "Copying the target file '" + tmp_location + "' from '" + target_file + "' failed! Aborting ...";
+        OPENMS_LOG_ERROR << "Copying the target file '" + tmp_location + "' from '" + target_file + "' failed! Aborting ...";
         return wrapExit(CANNOT_WRITE_OUTPUT_FILE);
       }
       // set the input file's value to the temp file
@@ -492,12 +509,12 @@ protected:
 
     if (!builder.waitForFinished(-1) || builder.exitStatus() != 0 || builder.exitCode() != 0)
     {
-      LOG_ERROR << ("External tool returned with exit code (" + String(builder.exitCode()) + "), exit status (" + String(builder.exitStatus()) + ") or timed out. Aborting ...\n");
-      LOG_ERROR << ("External tool output:\n" + String(QString(builder.readAll())));
+      OPENMS_LOG_ERROR << ("External tool returned with exit code (" + String(builder.exitCode()) + "), exit status (" + String(builder.exitStatus()) + ") or timed out. Aborting ...\n");
+      OPENMS_LOG_ERROR << ("External tool output:\n" + String(QString(builder.readAll())));
       return wrapExit(EXTERNAL_PROGRAM_ERROR);
     }
 
-    LOG_INFO << ("External tool output:\n" + String(QString(builder.readAll())));
+    OPENMS_LOG_INFO << ("External tool output:\n" + String(QString(builder.readAll())));
 
 
     // post processing (file moving via 'file_post' command)
@@ -511,12 +528,15 @@ protected:
       createFragment_(source_file, p, mappings);
       // check if target already exists:
       String target = fm.target;
-      if (!p.exists(target)) throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Cannot find target parameter '" + target + "' being mapped from external tools output!", target);
-      String target_file = (String)p.getValue(target);
+      if (!p.exists(target))
+      {
+        throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Cannot find target parameter '" + target + "' being mapped from external tools output!", target);
+      }
+      String target_file = p.getValue(target).toString();
 
       if (target_file.trim().empty())   // if target was not given, we skip the copying step (usually for optional parameters)
       {
-        LOG_INFO << "Parameter '" + target + "' not given. Skipping forwarding of files.\n";
+        OPENMS_LOG_INFO << "Parameter '" + target + "' not given. Skipping forwarding of files.\n";
         continue;
       }
       // check if the target exists already (should not; if yes, delete it before overwriting it)
@@ -524,7 +544,7 @@ protected:
       {
         if (!File::remove(target_file))
         {
-          LOG_ERROR << "Cannot remove conflicting file '" + target_file + "'. Check permissions! Aborting ..." << std::endl;
+          OPENMS_LOG_ERROR << "Cannot remove conflicting file '" + target_file + "'. Check permissions! Aborting ..." << std::endl;
           return wrapExit(CANNOT_WRITE_OUTPUT_FILE);
         }
       }
@@ -532,7 +552,7 @@ protected:
       writeDebug_(String("<file_post>: moving '") + source_file + "' to '" + target_file + "'", 1);
       if (!File::exists(source_file))
       {
-        LOG_ERROR << "Moving the source file '" + source_file + "' during <file_post> failed, since it does not exist!\n"
+        OPENMS_LOG_ERROR << "Moving the source file '" + source_file + "' during <file_post> failed, since it does not exist!\n"
                   << "Make sure the external program created the file and its filename is either\n"
                   << "unique or you only run one GenericWrapper at a time to avoid overwriting of files!\n"
                   << "Ideally, (if the external program allows to specify output filenames directly) avoid <file_post>\n"
@@ -542,13 +562,13 @@ protected:
       bool move_ok = QFile::rename(source_file.toQString(), target_file.toQString());
       if (!move_ok)
       {
-        LOG_ERROR << "Moving the target file '" + target_file + "' from '" + source_file + "' failed!\n"
+        OPENMS_LOG_ERROR << "Moving the target file '" + target_file + "' from '" + source_file + "' failed!\n"
                   << "This file exists, but is either currently open for writing or otherwise blocked (concurrent process?). Aborting ..." << std::endl;
         return wrapExit(CANNOT_WRITE_OUTPUT_FILE);
       }
     }
 
-    LOG_INFO << tde_.text_finish << "\n";
+    OPENMS_LOG_INFO << tde_.text_finish << "\n";
 
     return wrapExit(EXECUTION_OK);
   }

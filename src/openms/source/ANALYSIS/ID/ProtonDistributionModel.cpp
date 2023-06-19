@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -59,19 +59,17 @@ namespace OpenMS
     E_c_term_(0),
     E_n_term_(0)
   {
-    defaults_.setValue("gb_bb_l_NH2", 916.84, "Gas-phase basicity value of N-terminus", ListUtils::create<String>("advanced"));
-    defaults_.setValue("gb_bb_r_COOH", -95.82, "Gas-phase basicity value of C-terminus", ListUtils::create<String>("advanced"));
-    defaults_.setValue("gb_bb_r_b-ion", 36.46, "Gas-phase basicity value of b-ion C-terminus", ListUtils::create<String>("advanced"));
-    defaults_.setValue("gb_bb_r_a-ion", 46.85, "Gas-phase basicity value of a-ion C-terminus", ListUtils::create<String>("advanced"));
-    defaults_.setValue("sigma", 0.5, "Width of the gaussian which distributes the mobile protons over the charge states, only for z > 3.", ListUtils::create<String>("advanced"));
-    defaults_.setValue("temperature", 500.0, "Temperature term ", ListUtils::create<String>("advanced"));
+    defaults_.setValue("gb_bb_l_NH2", 916.84, "Gas-phase basicity value of N-terminus", {"advanced"});
+    defaults_.setValue("gb_bb_r_COOH", -95.82, "Gas-phase basicity value of C-terminus", {"advanced"});
+    defaults_.setValue("gb_bb_r_b-ion", 36.46, "Gas-phase basicity value of b-ion C-terminus", {"advanced"});
+    defaults_.setValue("gb_bb_r_a-ion", 46.85, "Gas-phase basicity value of a-ion C-terminus", {"advanced"});
+    defaults_.setValue("sigma", 0.5, "Width of the gaussian which distributes the mobile protons over the charge states, only for z > 3.", {"advanced"});
+    defaults_.setValue("temperature", 500.0, "Temperature term ", {"advanced"});
 
     defaultsToParam_();
   }
 
-  ProtonDistributionModel::~ProtonDistributionModel()
-  {
-  }
+  ProtonDistributionModel::~ProtonDistributionModel() = default;
 
   ProtonDistributionModel::ProtonDistributionModel(const ProtonDistributionModel & model) :
     DefaultParamHandler(model),
@@ -161,7 +159,7 @@ namespace OpenMS
   {
     // TODO model this using one calculation for both ions
 
-    double q(0);     // Zustandsumme = state sum
+    double q(0);     // partition function = state sum
 
     double gb_bb_l_NH2 = (double)param_.getValue("gb_bb_l_NH2");
     double gb_bb_r_COOH = (double)param_.getValue("gb_bb_r_COOH");
@@ -171,7 +169,7 @@ namespace OpenMS
 
     // we calculate the distribution of only the last proton, all other protons are already distributed
 
-    // so, first calculate the Zustandssumme Q of the N-term ion
+    // so, first calculate the partition function Q of the N-term ion
     for (Size i = 0; i != cleavage_site; ++i)
     {
       // backbone energy
@@ -213,7 +211,7 @@ namespace OpenMS
 
     //cerr << "Q-N-term=" <<    q << endl;
 
-    // add the parts of the C-term ion to the Zustandssumme
+    // add the parts of the C-term ion to the partition function
     for (Size i = cleavage_site; i != peptide.size(); ++i)
     {
       // backbone energy
@@ -486,22 +484,8 @@ namespace OpenMS
       }
 
       // search for entries > 1
-      bool has_greater_one(false);
-      for (vector<double>::const_iterator it = p_bb.begin(); it != p_bb.end(); ++it)
-      {
-        if (*it > 1.0)
-        {
-          has_greater_one = true;
-        }
-      }
-
-      for (vector<double>::const_iterator it = p_sc.begin(); it != p_sc.end(); ++it)
-      {
-        if (*it > 1.0)
-        {
-          has_greater_one = true;
-        }
-      }
+      bool has_greater_one = std::any_of(p_bb.begin(), p_bb.end(), [](const double v) { return v > 1.0; });
+      has_greater_one |= std::any_of(p_sc.begin(), p_sc.end(), [](const double v) { return v > 1.0; });
 
       if (!has_greater_one)
       {
@@ -520,7 +504,7 @@ namespace OpenMS
                                                                     Size cleavage_site,
                                                                     bool use_most_basic_site)
   {
-    double q(0), sum_E(0), sum_E_n_term(0), sum_E_c_term(0);     // Zustandsumme
+    double q(0), sum_E(0), sum_E_n_term(0), sum_E_c_term(0);     // partition function
     Size most_basic_site(0);
     bool most_basic_site_sc(false);
 
@@ -771,17 +755,17 @@ namespace OpenMS
               if (peptide[i].getSideChainBasicity() != 0)
               {
                 double gb_i_sc = peptide[i].getSideChainBasicity();
-                double prob = exp(-(-gb_i_sc - gb_j + COULOMB_REPULSION / (r_ij + 1)) * 1000 / (Constants::R * T) -500) / q;
-                sc_charge_[i] += prob;
+                double probi = exp(-(-gb_i_sc - gb_j + COULOMB_REPULSION / (r_ij + 1)) * 1000 / (Constants::R * T) -500) / q;
+                sc_charge_[i] += probi;
 
-                double add_E = exp(gb_i_sc * 1000 / Constants::R / T);
+                double add_Ei = exp(gb_i_sc * 1000 / Constants::R / T);
                 if (i < fixed_site - 1)
                 {
-                  sum_E_n_term += add_E;
+                  sum_E_n_term += add_Ei;
                 }
                 else
                 {
-                  sum_E_c_term += add_E;
+                  sum_E_c_term += add_Ei;
                 }
               }
             }
@@ -814,17 +798,17 @@ namespace OpenMS
         {
           // fixed site at side chain
           Int r_ij = abs((Int)i - (Int)fixed_site);
-          double prob = exp(-(-gb_i - gb_j + COULOMB_REPULSION / (r_ij + 1)) * 1000 / (Constants::R * T) -500) / q;
-          bb_charge_[i] += prob;
+          double probi = exp(-(-gb_i - gb_j + COULOMB_REPULSION / (r_ij + 1)) * 1000 / (Constants::R * T) -500) / q;
+          bb_charge_[i] += probi;
 
-          double add_E = exp(gb_i * 1000 / Constants::R / T);
+          double add_Ei = exp(gb_i * 1000 / Constants::R / T);
           if (i <= fixed_site)
           {
-            sum_E_n_term += add_E;
+            sum_E_n_term += add_Ei;
           }
           else
           {
-            sum_E_c_term += add_E;
+            sum_E_c_term += add_Ei;
           }
 
           if (i != fixed_site && i != peptide.size())
@@ -1102,9 +1086,9 @@ namespace OpenMS
               {
                 //gb_i_sc = gb_sc_[peptide[i].getOneLetterCode()];
                 gb_i_sc = peptide[i].getSideChainBasicity();
-                double prob = exp(-(-gb_i_sc - gb_j + COULOMB_REPULSION / (r_ij + 1)) * 1000 / (Constants::R * T) -500) / q;
-                sc_charge_[i] += prob;
-                bb_charge_[j] += prob;
+                double probi = exp(-(-gb_i_sc - gb_j + COULOMB_REPULSION / (r_ij + 1)) * 1000 / (Constants::R * T) -500) / q;
+                sc_charge_[i] += probi;
+                bb_charge_[j] += probi;
               }
             }
 
@@ -1114,16 +1098,16 @@ namespace OpenMS
               {
                 //gb_j_sc = gb_sc_[peptide[j].getOneLetterCode()];
                 double gb_j_sc = peptide[j].getSideChainBasicity();
-                double prob = exp(-(-gb_i - gb_j_sc + COULOMB_REPULSION / (r_ij + 1)) * 1000 / (Constants::R * T) -500) / q;
-                bb_charge_[i] += prob;
-                sc_charge_[j] += prob;
+                double probi = exp(-(-gb_i - gb_j_sc + COULOMB_REPULSION / (r_ij + 1)) * 1000 / (Constants::R * T) -500) / q;
+                bb_charge_[i] += probi;
+                sc_charge_[j] += probi;
 
                 // both protons at sidechains
                 if (gb_i_sc != 0)
                 {
-                  double prob = exp(-(-gb_i_sc - gb_j_sc + COULOMB_REPULSION / (r_ij + 2)) * 1000 / (Constants::R * T) -500) / q;
-                  sc_charge_[i] += prob;
-                  sc_charge_[j] += prob;
+                  double prob_s = exp(-(-gb_i_sc - gb_j_sc + COULOMB_REPULSION / (r_ij + 2)) * 1000 / (Constants::R * T) -500) / q;
+                  sc_charge_[i] += prob_s;
+                  sc_charge_[j] += prob_s;
                 }
               }
             }
@@ -1197,7 +1181,7 @@ namespace OpenMS
   void ProtonDistributionModel::calculateProtonDistributionCharge1_(const AASequence & peptide, Residue::ResidueType res_type)
   {
     // single charged
-    double q(0), sum_E(0) /*, sum_E_n_term(0), sum_E_c_term(0)*/; // Zustandsumme
+    double q(0), sum_E(0) /*, sum_E_n_term(0), sum_E_c_term(0)*/; // partition function
 
     double gb_bb_l_NH2 = (double)param_.getValue("gb_bb_l_NH2");
     double gb_bb_r_COOH = (double)param_.getValue("gb_bb_r_COOH");

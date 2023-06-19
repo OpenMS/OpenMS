@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -45,10 +45,10 @@ namespace OpenMS
 
   struct OPENMS_DLLAPI RNPxlMarkerIonExtractor
   {
-    // name to mass-intensity pair
+    /// name to mass-intensity pair
     typedef std::map<String, std::vector<std::pair<double, double> > > MarkerIonsType;
   
-    // extract an annotate RNA marker ions
+    /// extract an annotate RNA marker ions
     static MarkerIonsType extractMarkerIons(const PeakSpectrum& s, const double marker_tolerance);
   };
 }

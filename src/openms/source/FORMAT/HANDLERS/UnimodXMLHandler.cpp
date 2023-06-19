@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -38,10 +38,9 @@
 using namespace std;
 using namespace xercesc;
 
-namespace OpenMS
+namespace OpenMS::Internal
 {
-  namespace Internal
-  {
+
 
     UnimodXMLHandler::UnimodXMLHandler(vector<ResidueModification*>& mods, const String& filename) :
       XMLHandler(filename, "2.0"),
@@ -53,9 +52,7 @@ namespace OpenMS
     }
 
     UnimodXMLHandler::~UnimodXMLHandler()
-    {
-
-    }
+    = default;
 
     void UnimodXMLHandler::startElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname, const Attributes& attributes)
     {
@@ -83,7 +80,8 @@ namespace OpenMS
       // which residues are allowed?
       if (tag_ == "umod:specificity" || tag_ == "specificity")
       {
-        neutral_loss_diff_formula_ = EmpiricalFormula();
+        // neutral_loss_diff_formula_ = EmpiricalFormula();
+        neutral_loss_diff_formula_.clear();
 
         // classification of mod
         // TODO do this for all mods, do not overwrite for each specificity
@@ -103,11 +101,11 @@ namespace OpenMS
         }
         else if (pos == "Protein N-term")
         {
-          position = ResidueModification::N_TERM;
+          position = ResidueModification::PROTEIN_N_TERM;
         }
         else if (pos == "Protein C-term")
         {
-          position = ResidueModification::C_TERM;
+          position = ResidueModification::PROTEIN_C_TERM;
         }
         else if (pos == "Any C-term")
         {
@@ -122,17 +120,13 @@ namespace OpenMS
           warning(LOAD, String("Don't know allowed position called: '") + pos  + "' - setting to anywhere");
         }
 
-        if (!pos.hasSubstring("Protein"))
+        was_valid_peptide_modification_ = true;
+        term_specs_.push_back(position);
+        if (site.size() > 1)
         {
-          was_valid_peptide_modification_ = true;
-          term_specs_.push_back(position);
-          if (site.size() > 1) site = "X"; // C-term/N-term
-          sites_.push_back(site[0]);
+          site = "X"; // C-term/N-term
         }
-        else
-        {
-          was_valid_peptide_modification_ = false;
-        }
+        sites_.push_back(site[0]);
         return;
       }
 
@@ -172,7 +166,7 @@ namespace OpenMS
         }
 
         String formula;
-        if (isotope != "")
+        if (!isotope.empty())
         {
           formula = '(' + isotope + ')' + tmp_symbol + String(num);
         }
@@ -199,7 +193,7 @@ namespace OpenMS
           ResidueModification* new_mod = new ResidueModification(*modification_);
           new_mod->setOrigin(sites_[i]);
           new_mod->setTermSpecificity(term_specs_[i]);
-          new_mod->setNeutralLossDiffFormula(neutral_loss_diff_formulas_[i]);
+          new_mod->setNeutralLossDiffFormulas(neutral_loss_diff_formulas_[i]);
           modifications_.push_back(new_mod);
         }
 
@@ -219,16 +213,20 @@ namespace OpenMS
         if (was_valid_peptide_modification_) // as we exclude "Protein" modifications (see above)
         {
           neutral_loss_diff_formulas_.push_back(neutral_loss_diff_formula_);
-          neutral_loss_diff_formula_ = EmpiricalFormula();
+          modification_->setNeutralLossMonoMasses(neutral_loss_mono_masses_);
+          modification_->setNeutralLossAverageMasses(neutral_loss_avg_masses_);
+          neutral_loss_diff_formula_.clear();
+          neutral_loss_mono_masses_.clear();
+          neutral_loss_avg_masses_.clear();
         }
       }
 
-      if (tag_ == "umod:NeutralLoss" || tag_ == "NeutralLoss")
+      if ( (tag_ == "umod:NeutralLoss" || tag_ == "NeutralLoss") && !diff_formula_.isEmpty() )
       {
         // now diff_formula_ contains the neutral loss diff formula
-        neutral_loss_diff_formula_ = diff_formula_;
-        modification_->setNeutralLossMonoMass(mono_mass_);
-        modification_->setNeutralLossAverageMass(avge_mass_);
+        neutral_loss_diff_formula_.push_back(diff_formula_);
+        neutral_loss_mono_masses_.push_back(mono_mass_);
+        neutral_loss_avg_masses_.push_back(avge_mass_);
         avge_mass_ = 0.0;
         mono_mass_ = 0.0;
         diff_formula_ = EmpiricalFormula();
@@ -240,5 +238,4 @@ namespace OpenMS
       // nothing to do here
     }
 
-  }   // namespace Internal
-} // namespace OpenMS
+} // namespace OpenMS    // namespace Internal

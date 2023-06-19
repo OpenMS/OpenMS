@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -32,6 +32,7 @@
 // $Authors: Nico Pfeifer, Chris Bielow $
 // --------------------------------------------------------------------------
 
+#include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/FORMAT/FASTAFile.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
@@ -164,7 +165,7 @@ protected:
         {
           if (identifications[i].getHits().size() > 1)
           {
-            LOG_ERROR << "Spectrum with more than one identification found, which is not allowed.\n"
+            OPENMS_LOG_ERROR << "Spectrum with more than one identification found, which is not allowed.\n"
                       << "Use the IDFilter with the -best_hits option to filter for best hits." << endl;
             return ILLEGAL_PARAMETERS;
           }
@@ -260,7 +261,7 @@ protected:
     String out = getStringOption_("out");
 
     TOPPBase::ExitCodes ret;
-    if (out != "")
+    if (!out.empty())
     {
       ofstream os(out.c_str());
       ret = outputTo_(os);
@@ -268,7 +269,8 @@ protected:
     }
     else
     {
-      ret = outputTo_(LOG_INFO);
+      // directly use Log_info (no need for protecting output stream in non-parallel section)
+      ret = outputTo_(OpenMS_Log_info);
     }
 
     return ret;

@@ -48,7 +48,6 @@ x    IDPosteriorErrorProbability.cpp # 300 lines PosteriorErrorProbabilityModel 
 xx   IDRipper.cpp         # TODO - not yet done on my side, needs hand-wrapping
 x    IDRTCalibration.cpp # 100 lines
 x    InclusionExclusionListCreator.cpp # TODO should we wrap this? 347 lines
-x    InspectAdapter.cpp # 750 lines
 ok   InternalCalibration.cpp
 ok   MapAlignerIdentification.cpp
 ok   MapAlignerPoseClustering.cpp
@@ -60,11 +59,9 @@ x    MascotAdapter.cpp  # 400 lines
 x    MascotAdapterOnline.cpp # 200 lines
 ok   MassTraceExtractor.cpp
 ok   MRMMapper.cpp
-x    MyriMatchAdapter.cpp  # 400 lines
 ?    MzTabExporter.cpp     # needs wrapping of depracated method in MzTabFile
 ok   NoiseFilterGaussian.cpp
 ok   NoiseFilterSGolay.cpp
-x    OMSSAAdapter.cpp      # 700 lines
 ok   OpenSwathAnalyzer.cpp
 ok   OpenSwathChromatogramExtractor.cpp
 ok   OpenSwathConfidenceScoring.cpp
@@ -75,7 +72,7 @@ ok   PeakPickerHiRes.cpp
 ok   PeakPickerWavelet.cpp
 x    PepNovoAdapter.cpp   # 300 lines
 x    PeptideIndexer.cpp   # 500 lines
-xx   PhosphoScoring.cpp # AScore.pxd TODO , RichPeakSpectrum doesnt work
+xx   PhosphoScoring.cpp # AScore.pxd TODO , RichPeakSpectrum doesn't work
 n    PrecursorIonSelector.cpp
 x    PrecursorMassCorrector.cpp #Isotope Wavelet is wrapped, 200 lines
 x    ProteinInference.cpp    # 200 lines
@@ -114,7 +111,6 @@ x    DeMeanderize.cpp  # 100 lines
 ok   Digestor.cpp
 ok   DigestorMotif.cpp
 x    ERPairFinder.cpp   # 400 lines
-ok   FeatureFinderSuperHirn.cpp
 n    FFEval.cpp
 n    FuzzyDiff.cpp
 ok   IDDecoyProbability.cpp
@@ -199,10 +195,8 @@ x   SeedListGenerator - Generates seed lists for feature detection. # needs more
 Protein/Peptide Identification
 
 ok  CompNovo - Performs a peptide/protein identification with the CompNovo engine.
-x   InspectAdapter - Identifies MS/MS spectra using Inspect (external).
 x   MascotAdapter - Identifies MS/MS spectra using Mascot (external).
 x   MascotAdapterOnline - Identifies MS/MS spectra using Mascot (external).
-x   OMSSAAdapter - Identifies MS/MS spectra using OMSSA (external).
 x   PepNovoAdapter - Identifies MS/MS spectra using PepNovo (external).
 x   XTandemAdapter - Identifies MS/MS spectra using XTandem (external).
 x   SpecLibSearcher - Identifies peptide MS/MS spectra by spectral matching with a searchable spectral library. # too much code in TOPP tool

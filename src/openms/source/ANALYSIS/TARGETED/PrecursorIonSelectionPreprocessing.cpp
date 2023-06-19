@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -35,10 +35,13 @@
 
 #include <OpenMS/ANALYSIS/TARGETED/PrecursorIonSelectionPreprocessing.h>
 #include <OpenMS/FORMAT/TextFile.h>
-#include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/CHEMISTRY/ProteaseDigestion.h>
 #include <OpenMS/SIMULATION/DetectabilitySimulation.h>
 #include <OpenMS/SIMULATION/RTSimulation.h>
+
+#include <algorithm>
+#include <cmath>
+#include <fstream>
 
 #include <boost/math/distributions/normal.hpp>
 
@@ -65,17 +68,18 @@ namespace OpenMS
     defaults_.setValue("rt_settings:gauss_mean", -1.0, "mean of the gauss curve");
     defaults_.setValue("rt_settings:gauss_sigma", 3., "std of the gauss curve");
     defaults_.setValue("precursor_mass_tolerance_unit", "ppm", "Precursor mass tolerance unit.");
-    defaults_.setValidStrings("precursor_mass_tolerance_unit", ListUtils::create<String>("ppm,Da"));
+    defaults_.setValidStrings("precursor_mass_tolerance_unit", {"ppm","Da"});
     defaults_.setValue("preprocessed_db_path", "", "Path where the preprocessed database should be stored");
     defaults_.setValue("preprocessed_db_pred_rt_path", "", "Path where the predicted rts of the preprocessed database should be stored");
     defaults_.setValue("preprocessed_db_pred_dt_path", "", "Path where the predicted rts of the preprocessed database should be stored");
-    defaults_.setValue("max_peptides_per_run", 100000, "Number of peptides for that the pt and rt are parallely predicted.");
+    defaults_.setValue("max_peptides_per_run", 100000, "Number of peptides for that the pt and rt are parallelly predicted.");
     defaults_.setMinInt("max_peptides_per_run", 1);
     defaults_.setValue("missed_cleavages", 1, "Number of allowed missed cleavages.");
     defaults_.setMinInt("missed_cleavages", 0);
     defaults_.setValue("taxonomy", "", "Taxonomy");
     defaults_.setValue("tmp_dir", "", "Absolute path to tmp data directory used to store files needed for rt and dt prediction.");
     defaults_.setValue("store_peptide_sequences", "false", "Flag if peptide sequences should be stored.");
+    defaults_.setValidStrings("store_peptide_sequences", {"true","false"});
     defaultsToParam_();
     updateMembers_();
   }
@@ -142,7 +146,7 @@ namespace OpenMS
     return prot_masses_;
   }
 
-  const std::vector<double>& PrecursorIonSelectionPreprocessing::getMasses(String acc) const
+  const std::vector<double>& PrecursorIonSelectionPreprocessing::getMasses(const String& acc) const
   {
     std::map<String, std::vector<double> >::const_iterator iter = prot_masses_.begin();
     while (iter != prot_masses_.end() && acc != iter->first)
@@ -170,9 +174,9 @@ namespace OpenMS
     return prot_peptide_seq_map_;
   }
 
-  double PrecursorIonSelectionPreprocessing::getRT(String prot_id, Size peptide_index)
+  double PrecursorIonSelectionPreprocessing::getRT(const String& prot_id, Size peptide_index)
   {
-    if (rt_prot_map_.size() > 0)
+    if (!rt_prot_map_.empty())
     {
       if (rt_prot_map_.find(prot_id) != rt_prot_map_.end())
       {
@@ -188,9 +192,9 @@ namespace OpenMS
     return -1;
   }
 
-  double PrecursorIonSelectionPreprocessing::getPT(String prot_id, Size peptide_index)
+  double PrecursorIonSelectionPreprocessing::getPT(const String& prot_id, Size peptide_index)
   {
-    if (pt_prot_map_.size() > 0)
+    if (!pt_prot_map_.empty())
     {
       if (pt_prot_map_.find(prot_id) != pt_prot_map_.end())
       {
@@ -245,7 +249,7 @@ namespace OpenMS
   void PrecursorIonSelectionPreprocessing::loadPreprocessing()
   {
     // first check if preprocessed db already exists
-    String path = param_.getValue("preprocessed_db_path");
+    String path = param_.getValue("preprocessed_db_path").toString();
 
     // check if file exists
     std::ifstream test(path.c_str());
@@ -263,7 +267,7 @@ namespace OpenMS
   {
 
 #ifdef PISP_DEBUG
-    LOG_DEBUG << "Original Entry-Identifier:" << entry.identifier << std::endl;
+    OPENMS_LOG_DEBUG << "Original Entry-Identifier:" << entry.identifier << std::endl;
 #endif
     if (entry.identifier.hasPrefix("sp|") || entry.identifier.hasPrefix("tr|") || entry.identifier.hasPrefix("gi|"))
     {
@@ -280,13 +284,13 @@ namespace OpenMS
     }
 
 #ifdef PISP_DEBUG
-    LOG_DEBUG << "Processed Entry-Identifier:" << entry.identifier << std::endl;
+    OPENMS_LOG_DEBUG << "Processed Entry-Identifier:" << entry.identifier << std::endl;
 #endif
 
   }
 
-  void PrecursorIonSelectionPreprocessing::dbPreprocessing(String db_path, String rt_model_path,
-                                                           String dt_model_path, bool save)
+  void PrecursorIonSelectionPreprocessing::dbPreprocessing(const String& db_path, const String& rt_model_path,
+                                                           const String& dt_model_path, bool save)
   {
 #ifdef PISP_DEBUG
     std::cout << "Parameters: " << param_.getValue("preprocessed_db_path")
@@ -313,7 +317,7 @@ namespace OpenMS
     {
 
       // filter for taxonomy
-      if (entries[e].description.toUpper().hasSubstring(((String)param_.getValue("taxonomy")).toUpper()))
+      if (entries[e].description.toUpper().hasSubstring(((String)param_.getValue("taxonomy").toString()).toUpper()))
       {
         // preprocess entry identifier
         filterTaxonomyIdentifier_(entries[e]);
@@ -331,32 +335,30 @@ namespace OpenMS
         digest.digest(aa_seq, vec);
 
         // enter peptide sequences in map
-        std::vector<AASequence>::iterator vec_iter = vec.begin();
-
         std::vector<String> peptide_seqs;
-        for (; vec_iter != vec.end(); ++vec_iter)
+        for (AASequence& vec_iter : vec)
         {
 
           // enter mod
           if (fixed_mods_)
           {
             // go through peptide sequence and check if AA is modified
-            for (Size aa = 0; aa < vec_iter->size(); ++aa)
+            for (Size aa = 0; aa < vec_iter.size(); ++aa)
             {
-              if (fixed_modifications_.find((vec_iter->toUnmodifiedString())[aa]) != fixed_modifications_.end())
+              if (fixed_modifications_.find((vec_iter.toUnmodifiedString())[aa]) != fixed_modifications_.end())
               {
 #ifdef DEBUG_PISP
-                std::cout << "w/o Mod " << *vec_iter << " "
-                          << vec_iter->getMonoWeight(Residue::Full, 1) << std::endl;
+                std::cout << "w/o Mod " << vec_iter << " "
+                          << vec_iter.getMonoWeight(Residue::Full, 1) << std::endl;
 #endif
-                std::vector<String>& mods = fixed_modifications_[(vec_iter->toUnmodifiedString())[aa]];
+                std::vector<String>& mods = fixed_modifications_[(vec_iter.toUnmodifiedString())[aa]];
                 for (Size m = 0; m < mods.size(); ++m)
                 {
-                  vec_iter->setModification(aa, mods[m]);
+                  vec_iter.setModification(aa, mods[m]);
                 }
 #ifdef DEBUG_PISP
-                std::cout << "set Mods " << *vec_iter << " "
-                          << vec_iter->getMonoWeight(Residue::Full, 1) << std::endl;
+                std::cout << "set Mods " << vec_iter << " "
+                          << vec_iter.getMonoWeight(Residue::Full, 1) << std::endl;
 #endif
               }
             }
@@ -364,26 +366,26 @@ namespace OpenMS
 
           // write peptide seq in temporary file, for rt prediction
           //seq_file << *vec_iter << "\n";
-          double mass = vec_iter->getMonoWeight(Residue::Full, 1);
+          double mass = vec_iter.getMonoWeight(Residue::Full, 1);
           prot_masses.push_back(mass);
-          if (tmp_peptide_map.find(vec_iter->toUnmodifiedString()) != tmp_peptide_map.end())
+          if (tmp_peptide_map.find(vec_iter.toUnmodifiedString()) != tmp_peptide_map.end())
           {
-            tmp_peptide_map[vec_iter->toUnmodifiedString()].push_back(make_pair(entries[e].identifier,
+            tmp_peptide_map[vec_iter.toUnmodifiedString()].push_back(make_pair(entries[e].identifier,
                                                                                 prot_masses.size() - 1));
           }
           else
           {
             std::vector<std::pair<String, Size> > tmp_vec;
-            tmp_vec.push_back(make_pair(entries[e].identifier, prot_masses.size() - 1));
-            tmp_peptide_map.insert(make_pair(vec_iter->toUnmodifiedString(), tmp_vec));
+            tmp_vec.emplace_back(entries[e].identifier, prot_masses.size() - 1);
+            tmp_peptide_map.insert(make_pair(vec_iter.toUnmodifiedString(), tmp_vec));
           }
-          if (sequences_.count(*vec_iter) == 0) // peptide sequences are considered only once
+          if (sequences_.count(vec_iter) == 0) // peptide sequences are considered only once
           {
-            sequences_.insert(*vec_iter);
+            sequences_.insert(vec_iter);
             masses_.push_back(mass);
           }
           if (store_pep_seqs)
-            peptide_seqs.push_back(vec_iter->toUnmodifiedString());
+            peptide_seqs.push_back(vec_iter.toUnmodifiedString());
         }
         prot_masses_.insert(make_pair(entries[e].identifier, prot_masses));
         if (store_pep_seqs)
@@ -498,7 +500,7 @@ namespace OpenMS
     }
     std::sort(masses_.begin(), masses_.end());
     // now get minimal and maximal mass and create counter_-vectors
-    // count mass occurences using bins
+    // count mass occurrences using bins
 #ifdef PISP_DEBUG
     std::cout << "min\tmax " << masses_[0] << "\t" << *(masses_.end() - 1) << std::endl;
     std::cout << "prot_masses.size() " << prot_masses_.size() << std::endl;
@@ -612,11 +614,11 @@ namespace OpenMS
     }
     if (save)
     {
-      savePreprocessedDBWithRT_(db_path, (String)param_.getValue("preprocessed_db_path"));
+      savePreprocessedDBWithRT_(db_path, param_.getValue("preprocessed_db_path").toString());
     }
   }
 
-  void PrecursorIonSelectionPreprocessing::dbPreprocessing(String db_path, bool save)
+  void PrecursorIonSelectionPreprocessing::dbPreprocessing(const String& db_path, bool save)
   {
 #ifdef PISP_DEBUG
     std::cout << "Parameters: " << param_.getValue("preprocessed_db_path")
@@ -636,7 +638,7 @@ namespace OpenMS
     for (UInt e = 0; e < entries.size(); ++e)
     {
       // filter for taxonomy
-      if (entries[e].description.toUpper().hasSubstring(((String)param_.getValue("taxonomy")).toUpper()))
+      if (entries[e].description.toUpper().hasSubstring(((String)param_.getValue("taxonomy").toString()).toUpper()))
       {
         // preprocess entry identifier
         filterTaxonomyIdentifier_(entries[e]);
@@ -654,39 +656,38 @@ namespace OpenMS
         digest.digest(aa_seq, vec);
 
         // enter peptide sequences in map
-        std::vector<AASequence>::iterator vec_iter = vec.begin();
-        for (; vec_iter != vec.end(); ++vec_iter)
+        for (AASequence& seq : vec)
         {
           // enter mod
           if (fixed_mods_)
           {
             // go through peptide sequence and check if AA is modified
-            for (Size aa = 0; aa < vec_iter->size(); ++aa)
+            for (Size aa = 0; aa < seq.size(); ++aa)
             {
-              if (fixed_modifications_.find((vec_iter->toUnmodifiedString())[aa]) != fixed_modifications_.end())
+              if (fixed_modifications_.find((seq.toUnmodifiedString())[aa]) != fixed_modifications_.end())
               {
 #ifdef DEBUG_PISP
-                std::cout << "w/o Mod " << *vec_iter << " "
-                          << vec_iter->getMonoWeight(Residue::Full, 1) << std::endl;
+                std::cout << "w/o Mod " << seq << " "
+                          << seq.getMonoWeight(Residue::Full, 1) << std::endl;
 #endif
-                std::vector<String>& mods = fixed_modifications_[(vec_iter->toUnmodifiedString())[aa]];
+                std::vector<String>& mods = fixed_modifications_[(seq.toUnmodifiedString())[aa]];
                 for (Size m = 0; m < mods.size(); ++m)
                 {
-                  vec_iter->setModification(aa, mods[m]);
+                  seq.setModification(aa, mods[m]);
                 }
 #ifdef DEBUG_PISP
-                std::cout << "set Mods " << *vec_iter << " "
-                          << vec_iter->getMonoWeight(Residue::Full, 1) << std::endl;
+                std::cout << "set Mods " << seq << " "
+                          << seq.getMonoWeight(Residue::Full, 1) << std::endl;
 #endif
               }
             }
           }
 
-          double mass = vec_iter->getMonoWeight(Residue::Full, 1);
+          double mass = seq.getMonoWeight(Residue::Full, 1);
           prot_masses.push_back(mass);
-          if (sequences_.count(*vec_iter) == 0) // peptide sequences are considered only once
+          if (sequences_.count(seq) == 0) // peptide sequences are considered only once
           {
-            sequences_.insert(*vec_iter);
+            sequences_.insert(seq);
             masses_.push_back(mass);
           }
         }
@@ -821,12 +822,12 @@ namespace OpenMS
     }
     if (save)
     {
-      savePreprocessedDB_(db_path, (String)param_.getValue("preprocessed_db_path"));
+      savePreprocessedDB_(db_path, param_.getValue("preprocessed_db_path").toString());
     }
 
   }
 
-  void PrecursorIonSelectionPreprocessing::savePreprocessedDB_(String db_path, String path)
+  void PrecursorIonSelectionPreprocessing::savePreprocessedDB_(const String& db_path, const String& path)
   {
     std::ofstream out(path.c_str());
     out.precision(10);
@@ -841,7 +842,7 @@ namespace OpenMS
     String db_name = db_path.substr(pos1, pos2 - pos1);
     out << db_name << "\t" << param_.getValue("precursor_mass_tolerance")  << "\t"
         << param_.getValue("precursor_mass_tolerance_unit")
-        << "\t" << (String)param_.getValue("taxonomy");
+        << "\t" << (std::string)param_.getValue("taxonomy");
     // first save protein_masses_map
     out << prot_masses_.size() << std::endl;
 #ifdef PISP_DEBUG
@@ -902,7 +903,7 @@ namespace OpenMS
 
   }
 
-  void PrecursorIonSelectionPreprocessing::savePreprocessedDBWithRT_(String db_path, String path)
+  void PrecursorIonSelectionPreprocessing::savePreprocessedDBWithRT_(const String& db_path, const String& path)
   {
     std::ofstream out(path.c_str());
     out.precision(10);
@@ -917,7 +918,7 @@ namespace OpenMS
     String db_name = db_path.substr(pos1, pos2 - pos1);
     out << db_name << "\t" << param_.getValue("precursor_mass_tolerance")  << "\t"
         << param_.getValue("precursor_mass_tolerance_unit")
-        << "\t" << (String)param_.getValue("taxonomy");
+        << "\t" << (std::string)param_.getValue("taxonomy");
     // first save protein_masses_map
     out << prot_masses_.size() << std::endl;
 #ifdef PISP_DEBUG
@@ -933,7 +934,7 @@ namespace OpenMS
     for (UInt e = 0; e < entries.size(); ++e)
     {
       // filter for taxonomy
-      if (entries[e].description.toUpper().hasSubstring(((String)param_.getValue("taxonomy")).toUpper()))
+      if (entries[e].description.toUpper().hasSubstring(((String)param_.getValue("taxonomy").toString()).toUpper()))
       {
         // preprocess entry identifier
         filterTaxonomyIdentifier_(entries[e]);
@@ -1012,7 +1013,7 @@ namespace OpenMS
 
   }
 
-  void PrecursorIonSelectionPreprocessing::loadPreprocessedDB_(String path)
+  void PrecursorIonSelectionPreprocessing::loadPreprocessedDB_(const String& path)
   {
     // first get protein_masses_map
     TextFile file;
@@ -1155,7 +1156,7 @@ namespace OpenMS
 
     if (obs_scan_begin == -1 || obs_scan_end == -1)
     {
-      std::cerr << "Probably an error occured during RTProb-calc: scan = -1: "
+      std::cerr << "Probably an error occurred during RTProb-calc: scan = -1: "
                 << obs_scan_begin << " " << obs_scan_end << std::endl;
       return 0.;
     }
@@ -1207,10 +1208,10 @@ namespace OpenMS
     mu_ = param_.getValue("rt_settings:gauss_mean");
   }
 
-  double PrecursorIonSelectionPreprocessing::getRTProbability(String prot_id, Size peptide_index, Feature& feature)
+  double PrecursorIonSelectionPreprocessing::getRTProbability(const String& prot_id, Size peptide_index, Feature& feature)
   {
     double theo_rt = 0.;
-    if (rt_prot_map_.size() > 0)
+    if (!rt_prot_map_.empty())
     {
       if (rt_prot_map_.find(prot_id) != rt_prot_map_.end())
       {

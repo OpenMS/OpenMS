@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -51,9 +51,9 @@ using namespace std;
 <CENTER>
     <table>
         <tr>
-            <td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. predecessor tools </td>
-            <td VALIGN="middle" ROWSPAN=2> \f$ \longrightarrow \f$ RNADigestor \f$ \longrightarrow \f$</td>
-            <td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. successor tools </td>
+            <th ALIGN = "center"> pot. predecessor tools </td>
+            <td VALIGN="middle" ROWSPAN=2> &rarr; RNADigestor &rarr;</td>
+            <th ALIGN = "center"> pot. successor tools </td>
         </tr>
         <tr>
             <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> none (FASTA input) </td>
@@ -99,6 +99,7 @@ protected:
     registerStringOption_("enzyme", "<string>", "RNase_T1", "Digestion enzyme (RNase)", false);
     setValidStrings_("enzyme", all_enzymes);
     registerFlag_("unique", "Report each unique sequence fragment only once");
+    registerFlag_("cdna", "Input file contains cDNA sequences - replace 'T' with 'U')");
   }
 
   ExitCodes main_(int, const char**) override
@@ -114,6 +115,7 @@ protected:
     Size missed_cleavages = getIntOption_("missed_cleavages");
 
     bool unique = getFlag_("unique");
+    bool cdna = getFlag_("cdna");
 
     //-------------------------------------------------------------
     // reading input
@@ -130,24 +132,25 @@ protected:
     digestor.setMissedCleavages(missed_cleavages);
 
     std::vector<FASTAFile::FASTAEntry> all_fragments;
-    set<String> unique_fragments;
+    set<NASequence> unique_fragments;
 
-    for (vector<FASTAFile::FASTAEntry>::const_iterator fa_it = seq_data.begin();
-         fa_it != seq_data.end(); ++fa_it)
+    for (FASTAFile::FASTAEntry& entry : seq_data)
     {
-      vector<String> fragments;
-      digestor.digest(fa_it->sequence, fragments, min_size, max_size);
+      vector<NASequence> fragments;
+      if (cdna) entry.sequence.toUpper().substitute('T', 'U');
+      NASequence seq = NASequence::fromString(entry.sequence);
+      digestor.digest(seq, fragments, min_size, max_size);
       Size counter = 1;
-      for (vector<String>::const_iterator frag_it = fragments.begin();
+      for (vector<NASequence>::const_iterator frag_it = fragments.begin();
            frag_it != fragments.end(); ++frag_it)
       {
         if (!unique || !unique_fragments.count(*frag_it))
         {
-          String id = fa_it->identifier + "_" + String(counter);
+          String id = entry.identifier + "_" + String(counter);
           String desc;
-          if (!fa_it->description.empty()) desc = fa_it->description + " ";
+          if (!entry.description.empty()) desc = entry.description + " ";
           desc += "(fragment " + String(counter) + ")";
-          FASTAFile::FASTAEntry fragment(id, desc, *frag_it);
+          FASTAFile::FASTAEntry fragment(id, desc, frag_it->toString());
           all_fragments.push_back(fragment);
           unique_fragments.insert(*frag_it);
           counter++;
@@ -161,7 +164,7 @@ protected:
 
     FASTAFile().store(out, all_fragments);
 
-    LOG_INFO << "Digested " << seq_data.size() << " sequence(s) into "
+    OPENMS_LOG_INFO << "Digested " << seq_data.size() << " sequence(s) into "
              << all_fragments.size()
              << " fragments meeting the length restrictions." << endl;
 

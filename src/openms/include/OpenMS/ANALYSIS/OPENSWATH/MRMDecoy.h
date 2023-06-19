@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -39,18 +39,11 @@
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 
-#include <boost/algorithm/string.hpp>
-#include <boost/lexical_cast.hpp>
-#include <boost/assign.hpp>
-#include <boost/random/mersenne_twister.hpp>
-#include <boost/random/uniform_int.hpp>
-#include <boost/random/variate_generator.hpp>
-#include <boost/unordered_map.hpp>
 
 #include <string>
+#include <utility> // for pair
 #include <vector>
 #include <map>
-#include <utility> // for pair
 
 // #define DEBUG_MRMDECOY
 
@@ -134,6 +127,14 @@ public:
                         const bool enable_specific_losses,
                         const bool enable_unspecific_losses,
                         const int round_decPow = -4) const;
+
+    /**
+       @brief Switch the final Amino Acid of a tryptic peptide.
+       E.g. If the last Amino Acid is "K" switch to "R" (and vice versa).
+
+       @note If the last Amino Acid is neither "K" or "R", the last Amino Acid is changed to a random Amino Acid .
+    */
+    void switchKR(OpenMS::TargetedExperiment::Peptide& peptide) const;
 
     typedef std::vector<OpenMS::TargetedExperiment::Protein> ProteinVectorType;
     typedef std::vector<OpenMS::TargetedExperiment::Peptide> PeptideVectorType;
@@ -223,6 +224,11 @@ protected:
     OpenMS::TargetedExperiment::Peptide reversePeptide_(
       const OpenMS::TargetedExperiment::Peptide& peptide) const;
 
+    /**
+     @brief Convert a peptide to a string which contains the peptide sequence and modifications
+    **/
+    String getModifiedPeptideSequence_(const OpenMS::TargetedExperiment::Peptide& pep) const;
+
     /// Synchronize members with param class
     void updateMembers_() override;
 
@@ -231,4 +237,3 @@ protected:
     bool keepC_;
   };
 }
-

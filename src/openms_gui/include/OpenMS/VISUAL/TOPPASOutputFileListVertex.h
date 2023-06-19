@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -28,7 +28,7 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Johannes Veit $
+// $Maintainer: Chris Bielow $
 // $Authors: Johannes Junker, Chris Bielow $
 // --------------------------------------------------------------------------
 
@@ -54,11 +54,11 @@ namespace OpenMS
 public:
 
     /// Default constructor
-    TOPPASOutputFileListVertex();
+    TOPPASOutputFileListVertex() = default;
     /// Copy constructor
     TOPPASOutputFileListVertex(const TOPPASOutputFileListVertex & rhs);
     /// Destructor
-    ~TOPPASOutputFileListVertex() override;
+    ~TOPPASOutputFileListVertex() override = default;
     /// Assignment operator
     TOPPASOutputFileListVertex & operator=(const TOPPASOutputFileListVertex & rhs);
     /// returns "OutputVertex"
@@ -68,9 +68,9 @@ public:
     // documented in base class
     QRectF boundingRect() const override;
     // documented in base class
-    QPainterPath shape() const override;
-    // documented in base class
     void reset(bool reset_all_files = false) override;
+    /// opens the folder containing the output data
+    void mouseDoubleClickEvent(QGraphicsSceneMouseEvent*) override;
     /// Called when the parent node has finished execution
     void run() override;
     /// Returns the full directory (including preceding output path as selected by user)
@@ -78,11 +78,11 @@ public:
     /// Returns the directory where the output files are stored
     String getOutputDir() const;
     /// Creates the output directory for this node
-    String createOutputDir();
+    String createOutputDir() const;
     /// Sets the topological sort number and removes invalidated tmp files
     void setTopoNr(UInt nr) override;
     /// Opens the folders of the output files
-    void openContainingFolder();
+    void openContainingFolder() const;
     /// Sets a custom output folder name, which will be integrated into 'getOutputDir()' and 'getFullOutputDirectory()' calls.
     /// @note The string is not checked for validity (avoid characters which are not allowed in directories, e.g. '{')
     void setOutputFolderName(const QString& name);
@@ -108,8 +108,8 @@ protected:
 
     static bool copy_(const QString & from, const QString & to); ///< STATIC(!) function which calls QFile::copy(); needs to be static, since we need to pass a function pointer (which does not work on member functions)
     // convenience members, not required for operation, but for progress during copying
-    int files_written_;       ///< files that were already written
-    int files_total_;     ///< total number of files from upstream
+    int files_written_ = 0;   ///< files that were already written
+    int files_total_ = 0;     ///< total number of files from upstream
   };
 }
 

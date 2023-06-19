@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -61,42 +61,7 @@ namespace OpenMS
   {
   }
 
-  ChromatogramSettings::ChromatogramSettings(const ChromatogramSettings & source) :
-    MetaInfoInterface(source),
-    native_id_(source.native_id_),
-    comment_(source.comment_),
-    instrument_settings_(source.instrument_settings_),
-    source_file_(source.source_file_),
-    acquisition_info_(source.acquisition_info_),
-    precursor_(source.precursor_),
-    product_(source.product_),
-    data_processing_(source.data_processing_),
-    type_(source.type_)
-  {
-  }
-
-  ChromatogramSettings::~ChromatogramSettings()
-  {
-  }
-
-  ChromatogramSettings & ChromatogramSettings::operator=(const ChromatogramSettings & source)
-  {
-    if (&source == this)
-      return *this;
-
-    MetaInfoInterface::operator=(source);
-    native_id_ = source.native_id_;
-    comment_ = source.comment_;
-    instrument_settings_ = source.instrument_settings_;
-    acquisition_info_ = source.acquisition_info_;
-    source_file_ = source.source_file_;
-    precursor_ = source.precursor_;
-    product_ = source.product_;
-    data_processing_ = source.data_processing_;
-    type_ = source.type_;
-
-    return *this;
-  }
+  ChromatogramSettings::~ChromatogramSettings() = default;
 
   bool ChromatogramSettings::operator==(const ChromatogramSettings & rhs) const
   {

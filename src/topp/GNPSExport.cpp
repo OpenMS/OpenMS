@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -28,346 +28,165 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: UCSD Dorrestein Lab $
-// $Authors: Abinesh Sarvepalli $
+// $Maintainer: Dorrestein Lab - University of California San Diego - https://dorresteinlab.ucsd.edu/$
+// $Authors: Abinesh Sarvepalli and Louis Felix Nothias$
+// $Contributors: Fabian Aicheler and Oliver Alka from Oliver Kohlbacher's group at Tubingen University$
 // --------------------------------------------------------------------------
+
+#include <OpenMS/APPLICATIONS/TOPPBase.h>
+#include <OpenMS/FORMAT/GNPSMetaValueFile.h>
+#include <OpenMS/FORMAT/GNPSMGFFile.h>
+#include <OpenMS/FORMAT/GNPSQuantificationFile.h>
+#include <OpenMS/ANALYSIS/ID/IonIdentityMolecularNetworking.h>
+#include <OpenMS/KERNEL/ConsensusMap.h>
+#include <OpenMS/FORMAT/ConsensusXMLFile.h>
+
+using namespace OpenMS;
+using namespace std;
 
 //----------------------------------------------------------
 // Doxygen docu
 //----------------------------------------------------------
 /**
-  @page UTILS_GNPSExport GNPSExport
+  @page TOPP_GNPSExport GNPSExport
   @brief Export MS/MS data in .MGF format for GNPS (http://gnps.ucsd.edu).
-GNPS (Global Natural Products Social Molecular Networking, http://gnps.ucsd.edu) is an open-access knowledge base for community-wide organisation and sharing of raw, processed or identified tandem mass (MS/MS) spectrometry data. The GNPS web-platform makes possible to perform spectral library search against public MS/MS spectral libraries, as well as to perform various data analysis such as MS/MS molecular networking, network annotation propagation (http://journals.plos.org/ploscompbiol/article?id=10.1371/journal.pcbi.1006089), and the Dereplicator-based annotation (https://www.nature.com/articles/nchembio.2219). The GNPS manuscript is available here: https://www.nature.com/articles/nbt.3597
+GNPS (Global Natural Products Social Molecular Networking, http://gnps.ucsd.edu) is an open-access knowledge base for community-wide organization and sharing of raw, processed or identified tandem mass (MS/MS) spectrometry data. The GNPS web-platform makes it possible to perform spectral library search against public MS/MS spectral libraries, as well as to perform various data analysis such as MS/MS molecular networking, network annotation propagation, and the Dereplicator-based annotation. The GNPS manuscript is available here: https://www.nature.com/articles/nbt.3597
+This tool was developed for the Feature Based Molecular Networking (FBMN) (https://ccms-ucsd.github.io/GNPSDocumentation/featurebasedmolecularnetworking/) and Ion Identity Molecular Networking (IIMN) (https://ccms-ucsd.github.io/GNPSDocumentation/fbmn-iin/) workflows.
 
-This tool was developed for the OpenMS-GNPS workflow. It can be accessed on GNPS (https://gnps.ucsd.edu/ProteoSAFe/static/gnps-experimental.jsp). The steps used by that workflow are as following:
-  1. Input mzML files
-  2. Run the FeatureFinderMetabo tool
-  3. Run the IDMapper tool
-  4. Run the MapAlignerPoseClustering tool
-  5. Run the FeautureLinkerUnlabeledKD tool
-  6. Run the FileConverter tool (output FeatureXML format)
-  7. Run the MetaboliteAdductDecharger
-  8. Run the GNPSExport to export an .MGF
-  9. Upload the .MGF file on http://gnps.ucsd.edu and follow the instructions here:
-https://ccms-ucsd.github.io/GNPSDocumentation/featurebasedmolecularnetworking/
+Please cite:
+Nothias, L.-F., Petras, D., Schmid, R. et al. [Feature-based molecular networking in the GNPS analysis environment](https://www.nature.com/articles/s41592-020-0933-6). Nat. Methods 17, 905–908 (2020).
 
+In brief, after running an OpenMS metabolomics pipeline, the <b>GNPSExport</b> TOPP tool can be used on the consensusXML file and the mzML files to generate the files needed for FBMN and IIMN.
+Those files are:
+- A <b>MS/MS spectral data file</b> (.MGF format).
+- A <b>feature quantification table</b> (.TXT format). (https://ccms-ucsd.github.io/GNPSDocumentation/featurebasedmolecularnetworking/#feature-quantification-table)
+- A <b>supplementary pairs table</b> (.CSV format) required for IIMN. (https://ccms-ucsd.github.io/GNPSDocumentation/fbmn-iin/#supplementary-pairs)
+- A <b>meta value table</b> (.TSV format). (https://ccms-ucsd.github.io/GNPSDocumentation/metadata/)
+
+A representative OpenMS-GNPS workflow would use the following OpenMS TOPP tools sequentially:
+- Input mzML files
+- Run the @ref TOPP_FeatureFinderMetabo tool on the mzML files.
+- Run MetaboliteAdductDecharger on the featureXML files (optional, for Ion Identity Molecular Networking).
+- Run the @ref TOPP_MapAlignerPoseClustering tool on the featureXML files.
+@code
+	MapAlignerPoseClustering -in FFM_inputFile0.featureXML FFM_inputFile1.featureXML -out MapAlignerPoseClustering_inputFile0.featureXML MapAlignerPoseClustering_inputFile1.featureXML -trafo_out MapAlignerPoseClustering_inputFile0.trafoXML MapAlignerPoseClustering_inputFile1.trafoXML
+@endcode
+- Run the @ref TOPP_MapRTTransformer tool on the mzML files to transform retention times based on the feature map alignment by @ref TOPP_MapAlignerPoseClustering.
+@code
+  MapRTTransformer -in inputFile0.mzML -out MapRTTransformer_inputFile0.mzML -trafo_in MapAlignerPoseClustering_inputFile0.trafoXML
+  MapRTTransformer -in inputFile1.mzML -out MapRTTransformer_inputFile1.mzML -trafo_in  MapAlignerPoseClustering_inputFile1.trafoXML
+@endcode
+- Run the @ref TOPP_IDMapper tool on the featureXML and mzML files.
+@code
+  IDMapper -id emptyfile.idXML -in MapAlignerPoseClustering_inputFile0.featureXML -spectra:in MapRTTransformer_inputFile0.mzML -out IDMapper_inputFile0.featureXML
+	IDMapper -id emptyfile.idXML -in MapAlignerPoseClustering_inputFile1.featureXML -spectra:in MapRTTransformer_inputFile1.mzML -out IDMapper_inputFile1.featureXML
+@endcode
+- Run the @ref UTILS_MetaboliteAdductDecharger tool on the featureXML files.
+- Run the @ref TOPP_FeatureLinkerUnlabeledKD tool or FeatureLinkerUnlabeledQT, on the featureXML files and output a consensusXML file.
+@code
+  	FeatureLinkerUnlabeledKD -in IDMapper_inputFile0.featureXML IDMapper_inputFile1.featureXML -out FeatureLinkerUnlabeledKD.consensusXML
+@endcode
+- Run the @ref TOPP_FileFilter on the consensusXML file to keep only consensusElements with at least MS/MS scan (peptide identification). 
+@code
+  	FileFilter -id:remove_unannotated_features -in FeatureLinkerUnlabeledKD.consensusXML -out FileFilter.consensusXML
+@endcode
+- Run the @ref TOPP_GNPSExport on the "filtered consensusXML file" to export an .MGF file. For each consensusElement in the consensusXML file, the GNPSExport command produces one representative consensus MS/MS spectrum (named peptide annotation in OpenMS jargon) which is appended in the MS/MS spectral file (.MGF file).
+(Note that the parameters for the spectral file generation are defined in the GNPSExport INI parameters file, available here: https://ccms-ucsd.github.io/GNPSDocumentation/openms_gnpsexport/GNPSExport.ini
+@code 
+	GNPSExport -in_cm filtered.consensusXML -in_mzml MapRTTransformer_inputFile0.mzML MapRTTransformer_inputFile1.mzML -out GNPSExport_output.mgf -out_quantification FeatureQuantificationTable.txt -out_pairs SupplementaryPairsTable.csv -out_meta_values MetaValues.tsv
+@endcode
+- Upload your files to GNPS and run the Feature-Based Molecular Networking workflow. Instructions can be found here: https://ccms-ucsd.github.io/GNPSDocumentation/featurebasedmolecularnetworking/
+
+The GitHub page for the ProteoSAFe workflow and the OpenMS python wrappers is available here: https://github.com/Bioinformatic-squad-DorresteinLab/openms-gnps-workflow
+An online version of the OpenMS-GNPS pipeline for FBMN running on CCMS server (http://proteomics.ucsd.edu/) is available here: https://ccms-ucsd.github.io/GNPSDocumentation/featurebasedmolecularnetworking-with-openms/
   <B>The command line parameters of this tool are:</B>
-  @verbinclude UTILS_SiriusAdapter.cli
+  @verbinclude TOPP_GNPSExport.cli
   <B>INI file documentation of this tool:</B>
-  @htmlinclude UTILS_SiriusAdapter.html
+  @htmlinclude TOPP_GNPSExport.html
  */
-
-#include <OpenMS/APPLICATIONS/TOPPBase.h>
-#include <OpenMS/COMPARISON/SPECTRA/BinnedSpectrum.h>
-#include <OpenMS/COMPARISON/SPECTRA/BinnedSpectralContrastAngle.h>
-#include <OpenMS/CONCEPT/UniqueIdInterface.h>
-#include <OpenMS/FILTERING/TRANSFORMERS/SpectraMerger.h>
-#include <OpenMS/FORMAT/ConsensusXMLFile.h>
-#include <OpenMS/FORMAT/MzMLFile.h>
-#include <OpenMS/METADATA/PeptideIdentification.h>
-#include <OpenMS/KERNEL/MSExperiment.h>
-#include <OpenMS/KERNEL/MSSpectrum.h>
-#include <iostream>
-#include <fstream>
-
-using namespace OpenMS;
-using namespace std;
 
 class TOPPGNPSExport : public TOPPBase
 {
 public:
-  TOPPGNPSExport() :
-  TOPPBase("GNPSExport", "Tool to export consensus features into MGF format", false) {}
-
-private:
-  double DEF_COSINE_SIMILARITY = 0.95;
-  double DEF_PRECURSOR_MZ_TOLERANCE = 0.0001;
-  double DEF_PRECURSOR_RT_TOLERANCE = 5;
+  TOPPGNPSExport() : TOPPBase(
+    "GNPSExport",
+    "Tool to export representative consensus MS/MS scan per consensusElement into a .MGF file format.\nSee the documentation on https://ccms-ucsd.github.io/GNPSDocumentation/featurebasedmolecularnetworking-with-openms",
+    true,
+    {
+      {
+        "Nothias L.F. et al.", // authors
+        "Feature-based Molecular Networking in the GNPS Analysis Environment", // title
+        "bioRxiv 812404 (2019)", // when_where
+        "10.1101/812404" // doi
+      }
+    }
+  ) {}
 
 protected:
   // this function will be used to register the tool parameters
   // it gets automatically called on tool execution
-  void registerOptionsAndFlags_()
+  void registerOptionsAndFlags_() override
   {
-    registerInputFile_("in_cm", "<file>", "", "input file containing consensus elements with \'peptide\' annotations");
-    setValidFormats_("in_cm", ListUtils::create<String>("consensusXML"));
+    registerInputFile_("in_cm", "<file>", "", "Input consensusXML file containing only consensusElements with \"peptide\" annotations.");
+    setValidFormats_("in_cm", {"consensusXML"});
 
-    registerInputFileList_("in_mzml", "<files>", ListUtils::create<String>(""), "original mzml files containing ms/ms spectrum information");
-    setValidFormats_("in_mzml", ListUtils::create<String>("mzML"));
+    registerInputFileList_("in_mzml", "<files>", ListUtils::create<String>(""), "Original mzml files containing the ms2 spectra (aka peptide annotation). \nMust be in order that the consensusXML file maps the original mzML files.");
+    setValidFormats_("in_mzml", {"mzML"});
 
-    registerOutputFile_("out", "<file>", "", "Output MGF file");
-    setValidFormats_("out", ListUtils::create<String>("mgf"));
+    registerOutputFile_("out", "<file>", "", "Output MGF file.");
+    setValidFormats_("out", {"mgf"});
 
-    registerStringOption_("output_type", "<choice>", "full_spectra", "specificity of mgf output information", false);
-    setValidStrings_("output_type", ListUtils::create<String>("full_spectra,merged_spectra"));
+    registerOutputFile_("out_quantification", "<file>", "", "Output feature quantification table.");
+    setValidFormats_("out_quantification", {"txt"});
 
-    registerDoubleOption_("precursor_mz_tolerance", "<num>", DEF_PRECURSOR_MZ_TOLERANCE, "Tolerance mz window for precursor selection", false);
-    registerDoubleOption_("precursor_rt_tolerance", "<num>", DEF_PRECURSOR_RT_TOLERANCE, "Tolerance rt window for precursor selection", false);
+    registerOutputFile_("out_pairs", "<file>", "", "Output supplementary pairs table for IIMN.", false);
+    setValidFormats_("out_pairs", {"csv"});
 
-    registerTOPPSubsection_("merged_spectra", "Options for exporting mgf file with merged spectra per feature");
-    registerDoubleOption_("merged_spectra:cos_similarity", "<num>", DEF_COSINE_SIMILARITY, "Cosine similarity threshold for merged_spectra output", false);
+    registerOutputFile_("out_meta_values", "<file>", "", "Output meta value file.", false);
+    setValidFormats_("out_meta_values", {"tsv"});
+
+    addEmptyLine_();
+
+    registerFullParam_(GNPSMGFFile().getDefaults());
   }
 
   // the main function is called after all parameters are read
-  ExitCodes main_(int, const char **)
+  ExitCodes main_(int, const char**) override
   {
-    ProgressLogger progress_logger;
-    progress_logger.setLogType(log_type_);
-
     //-------------------------------------------------------------
     // parsing parameters
     //-------------------------------------------------------------
     String consensus_file_path(getStringOption_("in_cm"));
-    StringList mzml_file_paths(getStringList_("in_mzml"));
-
+    StringList mzml_file_paths = getStringList_("in_mzml");
     String out(getStringOption_("out"));
+    String out_quantification(getStringOption_("out_quantification"));
+    String out_pairs(getStringOption_("out_pairs"));
+    String out_meta(getStringOption_("out_meta_values"));
 
-    String output_type(getStringOption_("output_type"));
+    // load ConsensusMap from file
+    ConsensusMap cm;
+    ConsensusXMLFile().load(consensus_file_path, cm);
 
-    double prec_mz_tol(getDoubleOption_("precursor_mz_tolerance"));
-    double prec_rt_tol(getDoubleOption_("precursor_rt_tolerance"));
-
-    double cos_sim(getDoubleOption_("merged_spectra:cos_similarity"));
-
-    //-------------------------------------------------------------
-    // reading input
-    //-------------------------------------------------------------
-    // ConsensusMap
-    ConsensusXMLFile consensus_file;
-    consensus_file.setLogType(log_type_);
-    ConsensusMap consensus_map;
-    consensus_file.load(consensus_file_path, consensus_map);
-
-    // MSExperiment
-    vector<MSExperiment> ms_maps;
-    for (auto mzml_file_path : mzml_file_paths)
+    // if at least one of the features has an annotation for Constants::UserParam::IIMN_LINKED_GROUPS, annotate ConsensusMap for IIMN
+    for (const auto& f: cm)
     {
-      MzMLFile mzml_file;
-      MSExperiment map;
-      mzml_file.setLogType(log_type_);
-      mzml_file.load(mzml_file_path, map);
-
-      ms_maps.push_back(map);
+      if (f.metaValueExists(Constants::UserParam::IIMN_LINKED_GROUPS))
+      {
+        IonIdentityMolecularNetworking::annotateConsensusMap(cm);
+        break;
+      }
     }
 
 
-    //-------------------------------------------------------------
-    // calculations
-    //-------------------------------------------------------------
-    progress_logger.startProgress(0, consensus_map.size(), "parsing features and ms2 identifications...");
-    std::stringstream output_stream;
-    Size feature_count = 1;
-    for (Size i = 0; i != consensus_map.size(); ++i)
-    {
-      progress_logger.setProgress(i);
-      // current feature
-      const ConsensusFeature& feature = consensus_map[i];
+    GNPSMGFFile gnps;
+    gnps.setLogType(log_type_);
+    gnps.setParameters(getParam_()); // copy tool parameter to library class/algorithm
+    gnps.store(consensus_file_path, mzml_file_paths, out);
 
-      // store "mz rt" information from each scan
-      stringstream scans_output;
-      scans_output << setprecision(2) << setfill('0') << fixed;
-
-      // determining charge and most intense feature for header
-      BaseFeature::ChargeType charge = feature.getCharge();
-      for (ConsensusFeature::HandleSetType::const_iterator feature_iter = feature.begin();
-      feature_iter != feature.end(); ++feature_iter)
-      {
-        if (feature_iter->getCharge() > charge)
-        {
-          charge = feature_iter->getCharge();
-        }
-      }
-
-      // print spectra information (PeptideIdentification tags)
-      vector<PeptideIdentification> peptide_identifications = feature.getPeptideIdentifications();
-
-
-      // clean peptide identifications outside mz rt tol ranges
-
-      // vector of <<map index, spectrum index>, most intense ms2 scan>
-      vector<pair<pair<double,PeptideIdentification>,pair<int,int>>> peptides;
-
-      bool should_skip_feature;
-      if (!(should_skip_feature = peptide_identifications.empty()))
-      {
-        for (Size peptide_index = 0; peptide_index < peptide_identifications.size(); peptide_index++)
-        {
-          auto peptide_identification = peptide_identifications[peptide_index];
-
-          // append spectra information to scans_output
-          int map_index = -1, spectrum_index = -1;
-          if (peptide_identification.metaValueExists("spectrum_index"))
-          {
-            spectrum_index = peptide_identification.getMetaValue("spectrum_index");
-          }
-          if (peptide_identification.metaValueExists("map_index"))
-          {
-            map_index = peptide_identification.getMetaValue("map_index");
-          }
-
-          if (map_index != -1 && spectrum_index != -1)
-          {
-            // TEMP: log debug map index and spectrum index values once they are found
-            LOG_DEBUG << "map index\t" << map_index << "\tspectrum index\t" << spectrum_index << endl;
-
-            // retrieve spectrum for current peptide annotation
-            auto ms2_scan = ms_maps[map_index][spectrum_index];
-            ms2_scan.sortByIntensity(true);
-
-            if (ms2_scan.getMSLevel() == 2 && !ms2_scan.empty())
-            {
-              should_skip_feature = false;
-
-              // DEBUG determine if within user rt and mz tol range
-              if (abs(feature.getMZ() - peptide_identification.getMZ()) > prec_mz_tol
-              && abs(feature.getRT() - peptide_identification.getRT()) > prec_rt_tol)
-              {
-                continue;
-              }
-
-              double similarity_index = 5 * abs(feature.getMZ() - peptide_identification.getMZ()) +
-              abs(feature.getRT() - peptide_identification.getRT());
-
-              pair<double,PeptideIdentification> first_pair = pair<double,PeptideIdentification>(similarity_index, peptide_identification);
-              pair<int,int> second_pair = pair<int,int>(map_index, spectrum_index);
-
-              peptides.push_back(pair<pair<double,PeptideIdentification>,pair<int,int>>(first_pair,second_pair));
-            }
-          }
-          else
-          {
-            should_skip_feature = true;
-          }
-        }
-      }
-
-      // peptides list of < <similarity_index, PeptideIdentification>, <map_index, feature_index> >
-
-      // with the remaining peptides left within mz/rt tol of most intense
-      if (!should_skip_feature && !peptides.empty())
-      {
-        // prepare peptides for output with highest mz value at top
-        sort (peptides.begin(), peptides.end(), [](const pair<pair<double,PeptideIdentification>,pair<int,int>> &a, const pair<pair<double,PeptideIdentification>,pair<int,int>> &b)
-        {
-          return a.first.first < b.first.first;
-        });
-
-        // tmp stream for current feature
-        stringstream feature_stream;
-        feature_stream << setprecision(4) << fixed;
-
-        // full spectra
-        if (output_type == "full_spectra")
-        {
-          for (auto peptide : peptides)
-          {
-            feature_stream << "BEGIN IONS" << endl;
-
-            feature_stream << "FEATURE_ID=" << to_string(feature_count) << endl;
-
-            string filename = mzml_file_paths[peptide.second.first];
-            Size parse_index = filename.rfind("/") + 1;
-            filename = filename.substr(parse_index);
-            feature_stream << "CONSENSUSID=e_" << feature.getUniqueId() << endl;
-
-            feature_stream << "MSLEVEL=2" << endl;
-            feature_stream << "CHARGE=" << to_string(charge == 0 ? 1 : charge) << "+" << endl;
-            feature_stream << "PEPMASS=" << peptide.first.second.getMZ() << endl;
-            feature_stream << "FILE_INDEX=" << peptide.second.second << endl;
-            feature_stream << "RTINSECOND=" << peptide.first.second.getRT() << endl;
-
-            auto ms2_scan = ms_maps[peptide.second.first][peptide.second.second];
-            // sort spectra
-            sort (ms2_scan.begin(), ms2_scan.end(), [](const Peak1D& a, const Peak1D& b)
-            {
-              return a.getMZ() > b.getMZ();
-            });
-            // ms2_scan.sortByIntensity(true);
-
-            for (Size l = 0; l < ms2_scan.size(); l++)
-            {
-              feature_stream << ms2_scan[l].getMZ() << "\t" << (int) ms2_scan[l].getIntensity() << endl;
-            }
-
-            feature_stream << "END IONS" << endl << endl;
-          }
-          feature_count++;
-        }
-        else // merged spectra
-        {
-          // map mz to intensity
-          map<double,int> ms2_block;
-
-          // MSExperiment exp;
-
-          const BinnedSpectrum binned_highest_int(ms_maps[peptides[0].second.first][peptides[0].second.second], BinnedSpectrum::DEFAULT_BIN_WIDTH_HIRES, false, 1, BinnedSpectrum::DEFAULT_BIN_OFFSET_HIRES);
-
-          for (auto peptide : peptides)
-          {
-            int map_index = peptide.second.first;
-            int spectra_index = peptide.second.second;
-            // int highest_binned_intensity = peptide.first.first;
-            // auto highest_peptide_identification = peptide.first.second;
-
-            auto spectrum = ms_maps[map_index][spectra_index];
-
-            const BinnedSpectrum binned_spectrum(spectrum, BinnedSpectrum::DEFAULT_BIN_WIDTH_HIRES, false, 1, BinnedSpectrum::DEFAULT_BIN_OFFSET_HIRES);
-
-            BinnedSpectralContrastAngle bsca;
-            double cosine_sim = bsca(binned_highest_int, binned_spectrum);
-            // LOG_DEBUG << cosine_sim << " >= " << cos_sim << endl;
-
-            // compare calculated cosine sim to binned highest int
-            if (cosine_sim >= cos_sim)
-            {
-              for (Size spectrum_index = 0; spectrum_index < spectrum.size(); ++spectrum_index)
-              {
-                // exp.addSpectrum(spectrum);
-                // exp.addSpectrum(spectrum);
-                auto curr_spectrum = spectrum[spectrum_index];
-                if (ms2_block[curr_spectrum.getMZ()] < curr_spectrum.getIntensity())
-                {
-                  ms2_block[curr_spectrum.getMZ()] = curr_spectrum.getIntensity();
-                }
-              }
-            }
-          }
-
-
-          feature_stream << "BEGIN IONS" << endl;
-
-          feature_stream << "FEATURE_ID=" << feature_count++ << endl;
-          feature_stream << "CONSENSUSID=e_" << feature.getUniqueId() << endl;
-
-          feature_stream << "MSLEVEL=2" << endl;
-          feature_stream << "CHARGE=" << std::to_string(charge == 0 ? 1 : charge) << "+" << endl;
-          feature_stream << "PEPMASS=" << peptides[0].first.second.getMZ() << endl;
-          feature_stream << "FILE_INDEX=" << peptides[0].second.second << endl;
-          feature_stream << "RTINSECOND=" << peptides[0].first.second.getRT() << endl;
-
-          for (auto ms2_iter = ms2_block.rbegin(); ms2_iter != ms2_block.rend(); ++ms2_iter)
-          {
-            feature_stream << ms2_iter->first << "\t" << (int) ms2_iter->second << endl;
-          }
-          feature_stream << "END IONS" << endl << endl;
-        }
-
-        // output feature information to general outputStream
-        output_stream << feature_stream.str() << endl;
-      }
-    }
-    progress_logger.endProgress();
-
-    //-------------------------------------------------------------
-    // writing output
-    //-------------------------------------------------------------
-    ofstream output_file(out);
-    progress_logger.startProgress(0, 1, "writing mgf file");
-    output_file << output_stream.str();
-    progress_logger.endProgress();
-    output_file.close();
-
+    if (!out_pairs.empty()) IonIdentityMolecularNetworking::writeSupplementaryPairTable(cm, out_pairs);
+    if (!out_quantification.empty()) GNPSQuantificationFile::store(cm, out_quantification);
+    if (!out_meta.empty()) GNPSMetaValueFile::store(cm, out_meta);
+    
     return EXECUTION_OK;
   }
 };

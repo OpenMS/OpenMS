@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -34,8 +34,11 @@
 
 #include <OpenMS/ANALYSIS/MAPMATCHING/FeatureGroupingAlgorithmQT.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/QTClusterFinder.h>
+#include <OpenMS/ANALYSIS/ID/IonIdentityMolecularNetworking.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
+
+#include <OpenMS/ANALYSIS/MAPMATCHING/FeatureGroupingAlgorithm.h>
 
 using namespace std;
 
@@ -50,9 +53,7 @@ namespace OpenMS
     defaultsToParam_();
   }
 
-  FeatureGroupingAlgorithmQT::~FeatureGroupingAlgorithmQT()
-  {
-  }
+  FeatureGroupingAlgorithmQT::~FeatureGroupingAlgorithmQT() = default;
 
   template <typename MapType>
   void FeatureGroupingAlgorithmQT::group_(const vector<MapType>& maps,
@@ -69,32 +70,8 @@ namespace OpenMS
     cluster_finder.setParameters(param_.copy("", true));
 
     cluster_finder.run(maps, out);
-
-    StringList ms_run_locations;
-
-    // add protein IDs and unassigned peptide IDs to the result map here,
-    // to keep the same order as the input maps (useful for output later):
-    for (typename vector<MapType>::const_iterator map_it = maps.begin();
-         map_it != maps.end(); ++map_it)
-    {      
-      // add protein identifications to result map:
-      out.getProteinIdentifications().insert(
-        out.getProteinIdentifications().end(),
-        map_it->getProteinIdentifications().begin(),
-        map_it->getProteinIdentifications().end());
-
-      // add unassigned peptide identifications to result map:
-      out.getUnassignedPeptideIdentifications().insert(
-        out.getUnassignedPeptideIdentifications().end(),
-        map_it->getUnassignedPeptideIdentifications().begin(),
-        map_it->getUnassignedPeptideIdentifications().end());
-    }
-
-    // canonical ordering for checking the results:
-    out.sortByQuality();
-    out.sortByMaps();
-    out.sortBySize();
-    return;
+    
+    postprocess_(maps, out);
   }
 
   void FeatureGroupingAlgorithmQT::group(const std::vector<FeatureMap>& maps,

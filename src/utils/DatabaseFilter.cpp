@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -32,13 +32,15 @@
 // $Authors: Oliver Alka $
 // --------------------------------------------------------------------------
 
+#include <OpenMS/APPLICATIONS/TOPPBase.h>
+
+#include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/FORMAT/FASTAFile.h>
 #include <OpenMS/FORMAT/MzIdentMLFile.h>
 #include <OpenMS/FORMAT/FileTypes.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
-#include <OpenMS/APPLICATIONS/TOPPBase.h>
 
 using namespace OpenMS;
 using namespace std;
@@ -107,7 +109,7 @@ protected:
       }
     }
 
-    LOG_INFO << "Protein accessions: " << id_accessions.size() << endl;
+    OPENMS_LOG_INFO << "Protein accessions: " << id_accessions.size() << endl;
 
     for (Size i = 0; i != db.size() ; ++i)
     {
@@ -164,12 +166,12 @@ protected:
       }
       else
       {
-        writeLog_("Error: Unknown input file type given. Aborting!");
+        writeLogError_("Error: Unknown input file type given. Aborting!");
         printUsage_();
         return ILLEGAL_PARAMETERS;
       }
 
-      LOG_INFO << "Identifications: " << ids.size() << endl;
+      OPENMS_LOG_INFO << "Identifications: " << ids.size() << endl;
 
       // run filter
       filterByProteinAccessions_(db, peptide_identifications, whitelist, db_new);
@@ -179,7 +181,7 @@ protected:
     // writing output
     //-------------------------------------------------------------
 
-    LOG_INFO << "Database entries (before / after): " << db.size() << " / " << db_new.size() << endl;
+    OPENMS_LOG_INFO << "Database entries (before / after): " << db.size() << " / " << db_new.size() << endl;
     FASTAFile().store(out, db_new);
 
     return EXECUTION_OK;

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -91,7 +91,7 @@ public:
     AbsoluteQuantitation();
 
     /// Destructor
-    ~AbsoluteQuantitation();
+    ~AbsoluteQuantitation() override;
     //@}
  
     /**
@@ -113,7 +113,7 @@ public:
       @brief This function calculates the ratio between features.
 
       @param component_1 component of the numerator
-      @param component_2 component of the denomenator
+      @param component_2 component of the denominator
       @param feature_name name of the feature to calculate the ratio on
        e.g., peak_apex, peak_area
 
@@ -258,7 +258,7 @@ public:
       @param unknowns A FeatureMap to quantify.
 
     */ 
-    void quantifyComponents(FeatureMap& unknowns);    
+    void quantifyComponents(FeatureMap& unknowns);
 
 protected:
     /**
@@ -317,7 +317,7 @@ protected:
      
 private:  
     /// Synchronize members with param class
-    void updateMembers_();
+    void updateMembers_() override;
     
     size_t min_points_;
     double max_bias_;

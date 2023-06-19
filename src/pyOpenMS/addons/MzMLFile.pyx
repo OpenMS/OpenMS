@@ -18,10 +18,10 @@
         # void transform(const String&, IMSDataConsumer[Peak1D, ChromatogramPeak] *, MSExperiment& e) nogil except + # wrap-ignore
         # void transform(const String&, IMSDataConsumer[Peak1D, ChromatogramPeak] *, MSExperiment& e, bool skip_full_count, bool skip_first_pass) nogil except + # wrap-ignore
 
-    def _transform_4(self, bytes path, transformer, MSExperiment exp, bool skip_full_count, bool skip_first_pass):
+    def _transform_4(self, path, transformer, MSExperiment exp, bool skip_full_count, bool skip_first_pass):
         assert isinstance(exp, MSExperiment), 'arg exp wrong type'
+        assert (isinstance(path, str) or isinstance(path, unicode) or isinstance(path, bytes) or isinstance(path, String)), 'arg path wrong type'
 
-        cdef _String path_string = _String(<char *>path)
         assert hasattr(transformer, "consumeSpectrum"), "expected method consumeSpectrum"
         assert hasattr(transformer, "consumeChromatogram"), "expected method consumeChromatogram"
         assert hasattr(transformer, "setExpectedSize"), "expected method setExpectedSize"
@@ -33,14 +33,14 @@
                                              _wrap_ExperimentalSettings_mzml)
 
         try:
-            self.inst.get().transform(path_string, consumer, deref(exp.inst.get()), skip_full_count, skip_first_pass)
+            self.inst.get().transform(deref((convString(path)).get()), consumer, deref(exp.inst.get()), skip_full_count, skip_first_pass)
         finally:
             del consumer
 
-    def _transform_2(self, bytes path, transformer, MSExperiment exp):
+    def _transform_2(self, path, transformer, MSExperiment exp):
         assert isinstance(exp, MSExperiment), 'arg exp wrong type'
+        assert (isinstance(path, str) or isinstance(path, unicode) or isinstance(path, bytes) or isinstance(path, String)), 'arg path wrong type'
 
-        cdef _String path_string = _String(<char *>path)
         assert hasattr(transformer, "consumeSpectrum"), "expected method consumeSpectrum"
         assert hasattr(transformer, "consumeChromatogram"), "expected method consumeChromatogram"
         assert hasattr(transformer, "setExpectedSize"), "expected method setExpectedSize"
@@ -52,13 +52,13 @@
                                              _wrap_ExperimentalSettings_mzml)
 
         try:
-            self.inst.get().transform(path_string, consumer, deref(exp.inst.get()) )
+            self.inst.get().transform(deref((convString(path)).get()), consumer, deref(exp.inst.get()) )
         finally:
             del consumer
 
-    def _transform_3(self, bytes path, transformer, bool skip_full_count, bool skip_first_pass):
+    def _transform_3(self, path, transformer, bool skip_full_count, bool skip_first_pass):
+        assert (isinstance(path, str) or isinstance(path, unicode) or isinstance(path, bytes) or isinstance(path, String)), 'arg path wrong type'
 
-        cdef _String path_string = _String(<char *>path)
         assert hasattr(transformer, "consumeSpectrum"), "expected method consumeSpectrum"
         assert hasattr(transformer, "consumeChromatogram"), "expected method consumeChromatogram"
         assert hasattr(transformer, "setExpectedSize"), "expected method setExpectedSize"
@@ -70,14 +70,14 @@
                                              _wrap_ExperimentalSettings_mzml)
 
         try:
-            self.inst.get().transform(path_string, consumer, skip_full_count, skip_first_pass)
+            self.inst.get().transform(deref((convString(path)).get()), consumer, skip_full_count, skip_first_pass)
         finally:
             del consumer
 
 
-    def _transform_1(self, bytes path, transformer):
+    def _transform_1(self, path, transformer):
+        assert (isinstance(path, str) or isinstance(path, unicode) or isinstance(path, bytes) or isinstance(path, String)), 'arg path wrong type'
 
-        cdef _String path_string = _String(<char *>path)
         assert hasattr(transformer, "consumeSpectrum"), "expected method consumeSpectrum"
         assert hasattr(transformer, "consumeChromatogram"), "expected method consumeChromatogram"
         assert hasattr(transformer, "setExpectedSize"), "expected method setExpectedSize"
@@ -89,7 +89,7 @@
                                              _wrap_ExperimentalSettings_mzml)
 
         try:
-            self.inst.get().transform(path_string, consumer)
+            self.inst.get().transform(deref((convString(path)).get()), consumer)
         finally:
             del consumer
 

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry               
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 // 
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -78,7 +78,7 @@ class TestModel : public Fitter1D
     Fitter1D::updateMembers_();
   }
 
-  QualityType fit1d(const RawDataArrayType& /*range*/, InterpolationModel*&  /*model*/) override
+  QualityType fit1d(const RawDataArrayType& /*range*/, std::unique_ptr<InterpolationModel>&  /*model*/) override
   {
 //    double center = 0.0;
 //    center = model->getCenter();
@@ -137,7 +137,7 @@ END_SECTION
 START_SECTION((virtual QualityType fit1d(const  RawDataArrayType &, InterpolationModel *&)))
 	Fitter1D f1d;
   Fitter1D::RawDataArrayType rft;
-  InterpolationModel *ipm = nullptr;
+  std::unique_ptr<InterpolationModel> ipm;
 	TEST_EXCEPTION(Exception::NotImplemented,f1d.fit1d(rft,ipm));
 END_SECTION
 

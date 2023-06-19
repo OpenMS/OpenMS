@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -39,7 +39,6 @@
 #include <OpenMS/METADATA/PeptideIdentification.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
-#include <OpenMS/DATASTRUCTURES/Map.h>
 #include <OpenMS/COMPARISON/SPECTRA/ZhangSimilarityScore.h>
 #include <OpenMS/CHEMISTRY/MASSDECOMPOSITION/MassDecomposition.h>
 #include <OpenMS/CHEMISTRY/MASSDECOMPOSITION/MassDecompositionAlgorithm.h>
@@ -47,6 +46,7 @@
 
 // stl includes
 #include <vector>
+#include <map>
 
 namespace OpenMS
 {
@@ -86,12 +86,12 @@ public:
     /** @name Accessors
      */
     //@{
-    void scoreSpectrum(Map<double, IonScore> & CID_ion_scores, PeakSpectrum & CID_spec, double precursor_weight, Size charge);
+    void scoreSpectrum(std::map<double, IonScore> & CID_ion_scores, PeakSpectrum & CID_spec, double precursor_weight, Size charge);
     //@}
 
 protected:
 
-    void scoreWitnessSet_(Size charge, double precursor_weight, Map<double, IonScore> & CID_nodes, const PeakSpectrum & CID_orig_spec) override;
+    void scoreWitnessSet_(Size charge, double precursor_weight, std::map<double, IonScore> & CID_nodes, const PeakSpectrum & CID_orig_spec) override;
   };
 
 }

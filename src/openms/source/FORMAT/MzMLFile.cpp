@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -35,11 +35,15 @@
 #include <OpenMS/FORMAT/MzMLFile.h>
 
 #include <OpenMS/FORMAT/HANDLERS/MzMLHandler.h>
+#include <OpenMS/FORMAT/HANDLERS/XMLHandler.h>
 #include <OpenMS/FORMAT/CVMappingFile.h>
 #include <OpenMS/FORMAT/VALIDATORS/XMLValidator.h>
 #include <OpenMS/FORMAT/VALIDATORS/MzMLValidator.h>
 #include <OpenMS/FORMAT/TextFile.h>
+#include <OpenMS/FORMAT/DATAACCESS/MSDataTransformingConsumer.h>
 #include <OpenMS/SYSTEM/File.h>
+
+#include <sstream>
 
 namespace OpenMS
 {
@@ -50,9 +54,7 @@ namespace OpenMS
   {
   }
 
-  MzMLFile::~MzMLFile()
-  {
-  }
+  MzMLFile::~MzMLFile() = default;
 
   PeakFileOptions& MzMLFile::getOptions()
   {
@@ -101,16 +103,8 @@ namespace OpenMS
     CVMappings mapping;
     CVMappingFile().load(File::find("/MAPPING/ms-mapping.xml"), mapping);
 
-    // load cvs
-    ControlledVocabulary cv;
-    cv.loadFromOBO("MS", File::find("/CV/psi-ms.obo"));
-    cv.loadFromOBO("PATO", File::find("/CV/quality.obo"));
-    cv.loadFromOBO("UO", File::find("/CV/unit.obo"));
-    cv.loadFromOBO("BTO", File::find("/CV/brenda.obo"));
-    cv.loadFromOBO("GO", File::find("/CV/goslim_goa.obo"));
-
     // validate
-    Internal::MzMLValidator v(mapping, cv);
+    Internal::MzMLValidator v(mapping, ControlledVocabulary::getPSIMSCV());
     bool result = v.validate(filename, errors, warnings);
 
     return result;
@@ -142,17 +136,13 @@ namespace OpenMS
     }
     catch (Exception::BaseException& e)
     {
-      std::string expr;
-      expr.append(e.getFile());
-      expr.append("@");
-      std::stringstream ss;
-      ss << e.getLine(); // we need c++11!! maybe in 2012?
-      expr.append(ss.str());
-      expr.append("-");
-      expr.append(e.getFunction());
-      std::string mess = "- due to that error of type ";
-      mess.append(e.getName());
-      throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, expr, mess);
+      String expr;
+      expr += e.getFile();
+      expr += "@";
+      expr += e.getLine();
+      expr += "-";
+      expr += e.getFunction();
+      throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, expr, String("- due to that error of type ") + e.getName());
     }
   }
 
@@ -219,8 +209,10 @@ namespace OpenMS
   void MzMLFile::transform(const String& filename_in, Interfaces::IMSDataConsumer* consumer, PeakMap& map, bool skip_full_count, bool skip_first_pass)
   {
     // First pass through the file -> get the meta-data and hand it to the consumer
-    if (!skip_first_pass) transformFirstPass_(filename_in, consumer, skip_full_count);
-
+    if (!skip_first_pass)
+    {
+      transformFirstPass_(filename_in, consumer, skip_full_count);
+    }
     // Second pass through the data, now read the spectra!
     {
       PeakFileOptions tmp_options(options_);
@@ -252,6 +244,49 @@ namespace OpenMS
     handler.getCounts(scount, ccount);
     consumer->setExpectedSize(scount, ccount);
     consumer->setExperimentalSettings(experimental_settings);
+  }
+
+  std::map<UInt, MzMLFile::SpecInfo> MzMLFile::getCentroidInfo(const String& filename, const Size first_n_spectra_only)
+  {
+    bool oldoption = options_.getFillData();
+    options_.setFillData(true); // we want the data as well (to allow estimation from data if metadata is missing)
+    std::map<UInt, SpecInfo> ret;
+    Size first_n_spectra_only_remaining = first_n_spectra_only;
+    auto f = [&ret, &first_n_spectra_only_remaining](const MSSpectrum& s)
+    {
+        UInt lvl = s.getMSLevel();
+        switch (s.getType(true))
+        {
+          case (MSSpectrum::SpectrumType::CENTROID):
+            ++ret[lvl].count_centroided;
+            --first_n_spectra_only_remaining;
+            break;
+          case (MSSpectrum::SpectrumType::PROFILE):
+            ++ret[lvl].count_profile;
+            --first_n_spectra_only_remaining;
+            break;
+          case (MSSpectrum::SpectrumType::UNKNOWN):  // this can only happen for spectra with very few peaks (or completely empty spectra)
+            ++ret[lvl].count_unknown;
+            break;
+          default:
+            // make sure we did not forget a case
+            throw Exception::NotImplemented(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
+        }
+
+        // stop parsing after 10 or so spectra
+        if (first_n_spectra_only_remaining == 0)
+        {
+          throw Internal::XMLHandler::EndParsingSoftly(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
+        }
+    };
+    MSDataTransformingConsumer c;
+    c.setSpectraProcessingFunc(f);
+    transform(filename, &c, true, true); // no first pass
+
+    // restore old state
+    options_.setFillData(oldoption);
+
+    return ret;
   }
 
 } // namespace OpenMS

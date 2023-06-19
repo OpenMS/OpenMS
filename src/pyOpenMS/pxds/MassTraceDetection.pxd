@@ -1,3 +1,4 @@
+from Types cimport *
 from MSExperiment cimport *
 from Peak1D cimport *
 from ChromatogramPeak cimport *
@@ -13,12 +14,12 @@ cdef extern from "<OpenMS/FILTERING/DATAREDUCTION/MassTraceDetection.h>" namespa
 
     cdef cppclass MassTraceDetection(ProgressLogger, DefaultParamHandler):
         # wrap-inherits:
-        #    ProgressLogger
-        #    DefaultParamHandler
+        #   ProgressLogger
+        #   DefaultParamHandler
 
-        MassTraceDetection()      nogil except +
+        MassTraceDetection() nogil except +
+        MassTraceDetection(MassTraceDetection &) nogil except + # compiler
 
         void run(MSExperiment & input_map,
-                libcpp_vector[Kernel_MassTrace] & traces
-                ) nogil except +
-
+                libcpp_vector[Kernel_MassTrace] & traces,
+                Size max_traces) nogil except +

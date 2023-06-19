@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -35,6 +35,7 @@
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/GaussFitter1D.h>
 
 #include <OpenMS/CONCEPT/Factory.h>
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/InterpolationModel.h>
 
 namespace OpenMS
 {
@@ -43,8 +44,8 @@ namespace OpenMS
   {
     setName(getProductName());
 
-    defaults_.setValue("statistics:variance", 1.0, "Variance of the model.", ListUtils::create<String>("advanced"));
-    defaults_.setValue("statistics:mean", 1.0, "Mean value of the model.", ListUtils::create<String>("advanced"));
+    defaults_.setValue("statistics:variance", 1.0, "Variance of the model.", {"advanced"});
+    defaults_.setValue("statistics:mean", 1.0, "Mean value of the model.", {"advanced"});
     defaultsToParam_();
   }
 
@@ -54,22 +55,21 @@ namespace OpenMS
     updateMembers_();
   }
 
-  GaussFitter1D::~GaussFitter1D()
-  {
-  }
+  GaussFitter1D::~GaussFitter1D() = default;
 
   GaussFitter1D& GaussFitter1D::operator=(const GaussFitter1D& source)
   {
     if (&source == this)
+    {
       return *this;
-
+    }
     MaxLikeliFitter1D::operator=(source);
     updateMembers_();
 
     return *this;
   }
 
-  GaussFitter1D::QualityType GaussFitter1D::fit1d(const RawDataArrayType& set, InterpolationModel*& model)
+  GaussFitter1D::QualityType GaussFitter1D::fit1d(const RawDataArrayType& set, std::unique_ptr<InterpolationModel>& model)
   {
     // Calculate bounding box
     CoordinateType min_bb = set[0].getPos(), max_bb = set[0].getPos();
@@ -77,9 +77,13 @@ namespace OpenMS
     {
       CoordinateType tmp = set[pos].getPos();
       if (min_bb > tmp)
+      {
         min_bb = tmp;
+      }
       if (max_bb < tmp)
+      {
         max_bb = tmp;
+      }
     }
 
     // Enlarge the bounding box by a few multiples of the standard deviation
@@ -89,7 +93,7 @@ namespace OpenMS
 
 
     // build model
-    model = static_cast<InterpolationModel*>(Factory<BaseModel<1> >::create("GaussModel"));
+    model = std::unique_ptr<InterpolationModel>(dynamic_cast<InterpolationModel*>(Factory<BaseModel<1>>::create("GaussModel")));
     model->setInterpolationStep(interpolation_step_);
 
     Param tmp;
@@ -102,9 +106,10 @@ namespace OpenMS
     // fit offset
     QualityType quality;
     quality = fitOffset_(model, set, stdev, stdev, interpolation_step_);
-    if (boost::math::isnan(quality))
+    if (std::isnan(quality))
+    {
       quality = -1.0;
-
+    }
     return quality;
   }
 

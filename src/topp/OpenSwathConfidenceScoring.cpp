@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -32,11 +32,13 @@
 // $Authors: Hannes Roest, Hendrik Weisser $
 // --------------------------------------------------------------------------
 
+#include <OpenMS/ANALYSIS/OPENSWATH/ConfidenceScoring.h> 
+
 #include <iostream> // for "cout"
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
-
-
-#include <OpenMS/ANALYSIS/OPENSWATH/ConfidenceScoring.h> 
+#include <OpenMS/FORMAT/FeatureXMLFile.h>
+#include <OpenMS/FORMAT/TraMLFile.h>
+#include <OpenMS/FORMAT/TransformationXMLFile.h>
 
 using namespace OpenMS;
 using namespace std;
@@ -54,9 +56,9 @@ using namespace std;
     <CENTER>
         <table>
             <tr>
-                <td ALIGN = "center" BGCOLOR="#EBEBEB"> potential predecessor tools </td>
-                <td VALIGN="middle" ROWSPAN=2> \f$ \longrightarrow \f$ OpenSwathConfidenceScoring \f$ \longrightarrow \f$</td>
-                <td ALIGN = "center" BGCOLOR="#EBEBEB"> potential successor tools </td>
+                <th ALIGN = "center"> potential predecessor tools </td>
+                <td VALIGN="middle" ROWSPAN=2> &rarr; OpenSwathConfidenceScoring &rarr;</td>
+                <th ALIGN = "center"> potential successor tools </td>
             </tr>
             <tr>
                 <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_OpenSwathAnalyzer </td>
@@ -162,7 +164,7 @@ public:
     Size n_transitions_; // number of transitions to consider
     TransformationDescription rt_trafo_; /// RT transformation to map measured RTs to assay RTs
 
-    LOG_DEBUG << "Reading parameters..." << endl;
+    OPENMS_LOG_DEBUG << "Reading parameters..." << endl;
     String in = getStringOption_("in");
     String lib = getStringOption_("lib");
     String out = getStringOption_("out");
@@ -170,14 +172,14 @@ public:
     n_decoys_ = getIntOption_("decoys");
     n_transitions_ = getIntOption_("transitions");
 
-    LOG_DEBUG << "Loading input files..." << endl;
+    OPENMS_LOG_DEBUG << "Loading input files..." << endl;
     FeatureMap features;
     FeatureXMLFile().load(in, features);
     TraMLFile().load(lib, library_);
 
     if (trafo.empty())
     {
-      LOG_WARN << "Warning: You have not supplied an RT transformation file "
+      OPENMS_LOG_WARN << "Warning: You have not supplied an RT transformation file "
                << "(parameter 'trafo'). You should be sure that the retention "
                << "times of your features ('in') and library ('lib') are on "
                << "the same scale." << endl;
@@ -197,7 +199,7 @@ public:
     scoring.initializeGlm(getDoubleOption_("GLM:intercept"), getDoubleOption_("GLM:delta_rt"), getDoubleOption_("GLM:dist_int"));
     scoring.scoreMap(features);
 
-    LOG_DEBUG << "Storing results..." << endl;
+    OPENMS_LOG_DEBUG << "Storing results..." << endl;
     addDataProcessing_(features, 
                        getProcessingInfo_(DataProcessing::DATA_PROCESSING));
     FeatureXMLFile().store(out, features);

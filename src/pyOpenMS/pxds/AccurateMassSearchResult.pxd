@@ -11,7 +11,7 @@ cdef extern from "<OpenMS/ANALYSIS/ID/AccurateMassSearchEngine.h>" namespace "Op
 
     cdef cppclass AccurateMassSearchResult "OpenMS::AccurateMassSearchResult":
         AccurateMassSearchResult() nogil except +
-        AccurateMassSearchResult(AccurateMassSearchResult) nogil except +
+        AccurateMassSearchResult(AccurateMassSearchResult &) nogil except + # wrap-ignore
         double getObservedMZ() nogil except +
         void setObservedMZ(double & m) nogil except +
         double getCalculatedMZ() nogil except +

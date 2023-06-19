@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry               
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 // 
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -129,7 +129,7 @@ END_SECTION
 START_SECTION((CoordinateType const& getWeight() const))
 {
 	AveragePosition<1> avg;
-	avg.add(DPosition<1>(9),2);
+	avg.add(DPosition<1>{ 9.0 }, 2);
 	TEST_REAL_SIMILAR(avg.getWeight(),2);
 	TEST_REAL_SIMILAR(avg.getPosition()[0],9);
 	avg.add(DPosition<1>(9),3);

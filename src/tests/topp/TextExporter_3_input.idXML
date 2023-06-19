@@ -9,7 +9,7 @@
 	</SearchParameters>
 	<IdentificationRun date="2006-01-12T12:13:14" search_engine="Mascot" search_parameters_ref="SP_1" search_engine_version="2.1.0">
 		<ProteinIdentification score_type="MOWSE" higher_score_better="true">
-			<ProteinHit score="34.4" id="PH_3" accession="PROT1" sequence="ABCDEFG" >
+			<ProteinHit score="34.4" id="PH_3" accession="PROT1" sequence="ABCDEFGZZZZ" >
 				<UserParam type="string" name="name" value="ProteinHit"/>
 				<UserParam type="string" name="Description" value="14-3-3 protein beta/alpha OS=Homo sapiens GN=YWHAB PE=1 SV=3"/>
 			</ProteinHit>
@@ -17,10 +17,10 @@
 			<UserParam type="string" value="ProteinIdentification" name="name"/>
 		</ProteinIdentification>
 		<PeptideIdentification score_type="MOWSE" higher_score_better="false" MZ="675.9" RT="1234.5" spectrum_reference="17">
-			<PeptideHit sequence="DEF" score="0.9" charge="1" aa_before="A" aa_after="B" protein_refs="PH_3 PH_4">
+			<PeptideHit sequence="DEF" score="0.9" charge="1" aa_before="A" aa_after="B" protein_refs="PH_3 PH_4" start="3 0" end="5 2">
 				<UserParam type="string" value="PeptideHit" name="name"/>
 			</PeptideHit>
-			<PeptideHit sequence="ZZZZ" score="1.4" charge="1" />
+			<PeptideHit sequence="ZZZZ" score="1.4" charge="1" protein_refs="PH_3"/>
 			<UserParam type="string" value="PeptideIdentification" name="name"/>
 		</PeptideIdentification>
 		<PeptideIdentification score_type="MOWSE" higher_score_better="true">

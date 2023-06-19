@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -56,13 +56,13 @@ using namespace OpenMS;
 <CENTER>
   <table>
     <tr>
-      <td ALIGN = "center" BGCOLOR="#EBEBEB"> potential predecessor tools </td>
-      <td VALIGN="middle" ROWSPAN=2> \f$ \longrightarrow \f$ RNPxlXICFilter \f$ \longrightarrow \f$</td>
-      <td ALIGN = "center" BGCOLOR="#EBEBEB"> potential successor tools </td>
+      <th ALIGN = "center"> potential predecessor tools </td>
+      <td VALIGN="middle" ROWSPAN=2> &rarr; RNPxlXICFilter &rarr;</td>
+      <th ALIGN = "center"> potential successor tools </td>
     </tr>
     <tr>
-      <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_PeakPickerHires </td>
-      <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref UTILS_RNPxl </td>
+      <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_PeakPickerHiRes </td>
+      <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref UTILS_RNPxlSearch </td>
     </tr>
   </table>
 </CENTER>
@@ -301,3 +301,5 @@ int main(int argc, const char** argv)
   TOPPRNPxlXICFilter tool;
   return tool.main(argc, argv);
 }
+
+///@endcond

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -33,11 +33,6 @@
 // --------------------------------------------------------------------------
 
 #pragma once
-
-#include <algorithm>
-#include <iterator>
-#include <boost/bind.hpp>
-#include <boost/lexical_cast.hpp>
 
 #include <OpenMS/OPENSWATHALGO/DATAACCESS/DataFrameWriter.h>
 #include <OpenMS/OPENSWATHALGO/DATAACCESS/ISpectrumAccess.h>
@@ -87,15 +82,15 @@ public:
     void score(OpenSwath::SpectrumPtr spec,
                const std::vector<OpenSwath::LightTransition>& lt,
                double& dotprod,
-               double& manhattan);
+               double& manhattan) const;
 
     /**
       @brief Compute manhattan and dotprod score for all spectra which can be accessed by
       the SpectrumAccessPtr for all transitions groups in the LightTargetedExperiment.
     */
-    void operator()(OpenSwath::SpectrumAccessPtr swath_ptr,
+    void operator()(const OpenSwath::SpectrumAccessPtr& swath_ptr,
                     OpenSwath::LightTargetedExperiment& transition_exp_used,
-                    OpenSwath::IDataFrameWriter* ivw);
+                    OpenSwath::IDataFrameWriter* ivw) const;
   };
 
 

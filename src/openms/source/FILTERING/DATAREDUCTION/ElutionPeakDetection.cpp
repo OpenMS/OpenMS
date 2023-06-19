@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -53,26 +53,23 @@ namespace OpenMS
   {
     defaults_.setValue("chrom_fwhm", 5.0, "Expected full-width-at-half-maximum of chromatographic peaks (in seconds).");
     defaults_.setValue("chrom_peak_snr", 3.0, "Minimum signal-to-noise a mass trace should have.");
-    // defaults_.setValue("noise_threshold_int", 10.0, "Intensity threshold below which peaks are regarded as noise.");
 
     // NOTE: the algorithm will only act upon the "fixed" value, if you would
     // like to use the "auto" setting, you will have to call filterByPeakWidth
     // yourself
     defaults_.setValue("width_filtering", "fixed", "Enable filtering of unlikely peak widths. The fixed setting filters out mass traces outside the [min_fwhm, max_fwhm] interval (set parameters accordingly!). The auto setting filters with the 5 and 95% quantiles of the peak width distribution.");
-    defaults_.setValidStrings("width_filtering", ListUtils::create<String>("off,fixed,auto"));
-    defaults_.setValue("min_fwhm", 3.0, "Minimum full-width-at-half-maximum of chromatographic peaks (in seconds). Ignored if parameter width_filtering is off or auto.", ListUtils::create<String>("advanced"));
-    defaults_.setValue("max_fwhm", 60.0, "Maximum full-width-at-half-maximum of chromatographic peaks (in seconds). Ignored if parameter width_filtering is off or auto.", ListUtils::create<String>("advanced"));
+    defaults_.setValidStrings("width_filtering", {"off","fixed","auto"});
+    defaults_.setValue("min_fwhm", 1.0, "Minimum full-width-at-half-maximum of chromatographic peaks (in seconds). Ignored if parameter width_filtering is off or auto.", {"advanced"});
+    defaults_.setValue("max_fwhm", 60.0, "Maximum full-width-at-half-maximum of chromatographic peaks (in seconds). Ignored if parameter width_filtering is off or auto.", {"advanced"});
 
-    defaults_.setValue("masstrace_snr_filtering", "false", "Apply post-filtering by signal-to-noise ratio after smoothing.", ListUtils::create<String>("advanced"));
-    defaults_.setValidStrings("masstrace_snr_filtering", ListUtils::create<String>("false,true"));
+    defaults_.setValue("masstrace_snr_filtering", "false", "Apply post-filtering by signal-to-noise ratio after smoothing.", {"advanced"});
+    defaults_.setValidStrings("masstrace_snr_filtering", {"true","false"});
 
     defaultsToParam_();
     this->setLogType(CMD);
   }
 
-  ElutionPeakDetection::~ElutionPeakDetection()
-  {
-  }
+  ElutionPeakDetection::~ElutionPeakDetection() = default;
 
   double ElutionPeakDetection::computeMassTraceNoise(const MassTrace& tr)
   {
@@ -129,7 +126,7 @@ namespace OpenMS
   }
 
   void ElutionPeakDetection::findLocalExtrema(const MassTrace& tr, const Size& num_neighboring_peaks,
-                                              std::vector<Size>& chrom_maxes, std::vector<Size>& chrom_mins)
+                                              std::vector<Size>& chrom_maxes, std::vector<Size>& chrom_mins) const
   {
     std::vector<double> smoothed_ints_vec(tr.getSmoothedIntensities());
 
@@ -162,8 +159,8 @@ namespace OpenMS
       double ref_int = c_it->first;
       Size ref_idx = c_it->second;
 
-      if (!(used_idx[ref_idx]) && ref_int > 0.0)
-      {
+      if (!(used_idx[ref_idx]) && ref_int > 0.0) 
+      { // only allow unused points as seeds (potential local maximum)
         bool real_max = true;
 
         // Get start_idx and end_idx based on expected peak width
@@ -184,20 +181,28 @@ namespace OpenMS
         // boundaries).
         for (Size j = start_idx; j < end_idx; ++j)
         {
-          if (used_idx[j])
-          {
-            real_max = false;
-            break;
+          if (j == ref_idx)
+          { // skip seed
+            continue;
           }
 
-          if (j == ref_idx)
-          {
-            continue;
+          if (used_idx[j])
+          { // peak has already been collected?
+            if (smoothed_ints_vec[j] > ref_int)
+            { // break if higher intensity
+              real_max = false;
+              break;
+            }
+            else
+            { // skip if only a low intensity peak (e.g. flanks of elution profile)
+              continue;
+            }
           }
 
           if (smoothed_ints_vec[j] > ref_int)
           {
             real_max = false;
+            break;
           }
         }
 
@@ -618,7 +623,7 @@ namespace OpenMS
     min_fwhm_ = (double)param_.getValue("min_fwhm");
     max_fwhm_ = (double)param_.getValue("max_fwhm");
 
-    pw_filtering_ = param_.getValue("width_filtering");
+    pw_filtering_ = param_.getValue("width_filtering").toString();
     mt_snr_filtering_ = param_.getValue("masstrace_snr_filtering").toBool();
   }
 

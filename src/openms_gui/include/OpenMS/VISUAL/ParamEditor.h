@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -117,18 +117,20 @@ signals:
       void modified(bool) const;
 
 protected:
+      /// a shortcut to calling commit(), which calls setModelData(); useful for embedded editors, but not for QDialogs etc
+      bool eventFilter(QObject* editor, QEvent* event) override;
+  
       /// Checks if a @p name is valid for the entry corresponding to @p index (checks if it would be duplicate)
-      bool exists_(QString name, QModelIndex index) const;
+      bool exists_(const QString& name, QModelIndex index) const;
 
 private slots:
-      ///For closing ListEditor and updating ParamEditor
-      void commitAndCloseListEditor_();
-      ///For closing QcomboBox and updating ParamEditor
-      void commitAndCloseComboBox_();
-      ///if cancel in ListEditor is clicked Dialog is closed and changes are rejected
-      void closeListEditor_();
-      /// ...
+      ///For closing any editor and updating ParamEditor
+      void commitAndCloseEditor_();
+      ///if cancel in any editor is clicked, the Dialog is closed and changes are rejected
+      void closeEditor_();
+      /// ... a bit special, because reset uncommited data
       void commitAndCloseLineEdit_();
+
 private:
       /// Not implemented
       ParamEditorDelegate();
@@ -163,15 +165,15 @@ protected slots:
 
   
   /**
-      @brief A GUI for editing or viewing a Param object
+    @brief A GUI for editing or viewing a Param object
 
-      It supports two display modes:
-      - normal mode: only the main parameters are displayed, advanced parameters are hidden.
-      - advanced mode: all parameters are displayed.
+    It supports two display modes:
+    - normal mode: only the main parameters are displayed, advanced parameters are hidden.
+    - advanced mode: all parameters are displayed (only available when advanced parameters are provided)
 
-      @image html ParamEditor.png
+    @image html ParamEditor.png
 
-      @ingroup Visual
+    @ingroup Visual
   */
   class OPENMS_GUI_DLLAPI ParamEditor :
     public QWidget
@@ -182,18 +184,18 @@ public:
     /// Role of the entry
     enum
     {
-      NODE,                           ///< Section
+      NODE,                     ///< Section
       NORMAL_ITEM,              ///< Item that is always shown
       ADVANCED_ITEM             ///< Item that is shown only in advanced mode
     };
 
     /// constructor
-    ParamEditor(QWidget * parent = nullptr);
+    ParamEditor(QWidget* parent = nullptr);
     /// destructor
-    virtual ~ParamEditor();
+    ~ParamEditor() override;
     
     /// load method for Param object
-    void load(Param & param);
+    void load(Param& param);
     /// store edited data in Param object
     void store();
     /// Indicates if the data changed since last save
@@ -221,9 +223,9 @@ protected:
     void storeRecursive_(QTreeWidgetItem * child, String path, std::map<String, String> & section_descriptions);
 
     /// Pointer to the tree widget
-    Internal::ParamTree * tree_;
+    Internal::ParamTree* tree_;
     /// The data to edit
-    Param * param_;
+    Param* param_;
     /// Indicates that the data was modified since last store/load operation
     bool modified_;
     /// Indicates if normal mode or advanced mode is activated

@@ -2,7 +2,7 @@
 #                   OpenMS -- Open-Source Mass Spectrometry
 # --------------------------------------------------------------------------
 # Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-# ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+# ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 #
 # This software is released under a three-clause BSD license:
 #  * Redistributions of source code must retain the above copyright
@@ -32,7 +32,7 @@
 # $Authors: Stephan Aiche $
 # --------------------------------------------------------------------------
 
-cmake_minimum_required(VERSION 3.0.0 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.15 FATAL_ERROR)
 project("OpenMS_class_tests_openms")
 
 #------------------------------------------------------------------------------
@@ -40,14 +40,6 @@ project("OpenMS_class_tests_openms")
 set(CF_OPENMS_TEST_DATA_PATH "${PROJECT_SOURCE_DIR}/data/")
 set (CONFIGURED_TEST_CONFIG_H "${PROJECT_BINARY_DIR}/include/OpenMS/test_config.h")
 configure_file(${PROJECT_SOURCE_DIR}/include/OpenMS/test_config.h.in ${CONFIGURED_TEST_CONFIG_H})
-
-#------------------------------------------------------------------------------
-# Some tests have a link dependency to boost so we find our own boost here
-find_boost(math_c99)
-
-if(NOT Boost_FOUND)
-  message(FATAL_ERROR "Boost was not found!")
-endif()
 
 #------------------------------------------------------------------------------
 # get the test executables
@@ -66,84 +58,6 @@ include_directories(SYSTEM ${OPENMS_CLASS_TESTS_EXTERNAL_INCLUDE_DIRECTORIES})
 if (CMAKE_COMPILER_IS_INTELCXX OR CMAKE_COMPILER_IS_GNUCXX OR CMAKE_COMPILER_IS_CLANG)
   set(_TMP_CMAKE_CXX_FLAGS_RELEASE ${CMAKE_CXX_FLAGS_RELEASE})
   set(CMAKE_CXX_FLAGS_RELEASE "-O0")
-endif()
-
-#------------------------------------------------------------------------------
-# CONCEPT
-add_custom_target(CONCEPT_TEST)
-add_dependencies(CONCEPT_TEST ${concept_executables_list})
-
-#------------------------------------------------------------------------------
-# DATASTRUCTURES
-add_custom_target(DATASTRUCTURES_TEST)
-add_dependencies(DATASTRUCTURES_TEST ${datastructures_executables_list})
-
-#------------------------------------------------------------------------------
-# METADATA
-add_custom_target(METADATA_TEST)
-add_dependencies(METADATA_TEST ${metadata_executables_list})
-
-#------------------------------------------------------------------------------
-# SYSTEM
-add_custom_target(SYSTEM_TEST)
-add_dependencies(SYSTEM_TEST ${system_executables_list})
-
-#------------------------------------------------------------------------------
-# KERNEL
-add_custom_target(KERNEL_TEST)
-add_dependencies(KERNEL_TEST ${kernel_executables_list})
-
-#------------------------------------------------------------------------------
-# FORMAT
-add_custom_target(FORMAT_TEST)
-add_dependencies(FORMAT_TEST ${format_executables_list})
-
-#------------------------------------------------------------------------------
-# MATH
-add_custom_target(MATH_TEST)
-add_dependencies(MATH_TEST ${math_executables_list})
-
-#------------------------------------------------------------------------------
-# FILTERING
-add_custom_target(FILTERING_TEST)
-add_dependencies(FILTERING_TEST ${filtering_executables_list})
-
-#------------------------------------------------------------------------------
-# COMPARISON
-add_custom_target(COMPARISON_TEST)
-add_dependencies(COMPARISON_TEST ${comparison_executables_list})
-
-#------------------------------------------------------------------------------
-# CHEMISTRY
-add_custom_target(CHEMISTRY_TEST)
-add_dependencies(CHEMISTRY_TEST ${chemistry_executables_list})
-
-#------------------------------------------------------------------------------
-# ANALYSIS
-add_custom_target(ANALYSIS_TEST)
-add_dependencies(ANALYSIS_TEST ${analysis_executables_list})
-
-#------------------------------------------------------------------------------
-# APPLICATIONS
-add_custom_target(APPLICATIONS_TEST)
-add_dependencies(APPLICATIONS_TEST ${applications_executables_list})
-
-#------------------------------------------------------------------------------
-# TRANSFORMATIONS
-add_custom_target(TRANSFORMATIONS_TEST)
-add_dependencies(TRANSFORMATIONS_TEST ${transformations_executables_list})
-
-#------------------------------------------------------------------------------
-# SIMULATION
-add_custom_target(SIMULATION_TEST)
-add_dependencies(SIMULATION_TEST ${simulation_executables_list})
-
-#------------------------------------------------------------------------------
-# QT dependencies
-find_package(Qt5 COMPONENTS Core Network REQUIRED)
-if (NOT Qt5Network_FOUND)
-  message(STATUS "QtNetwork module not found!")
-  message(FATAL_ERROR "To find a custom Qt installation use: cmake <..more options..> -D QT_QMAKE_EXECUTABLE='<path_to_qmake(.exe)' <src-dir>")
 endif()
 
 #------------------------------------------------------------------------------
@@ -166,10 +80,21 @@ endforeach(_class_test)
 set_tests_properties(StopWatch_test PROPERTIES RUN_SERIAL 1)
 
 #------------------------------------------------------------------------------
-# 2 - add link dependency
+# 2 - add link dependencies (TODO could be more finegrained for boost)
 foreach(t ${Boost_dependent_tests})
-  target_link_libraries(${t} ${Boost_LIBRARIES})
+  foreach(comp ${OpenMS_BOOST_COMPONENTS})
+    target_link_libraries(${t} Boost::${comp})
+  endforeach()
 endforeach()
+
+target_link_libraries(Base64_test ZLIB::ZLIB)
+target_link_libraries(LPWrapper_test CoinOR::CoinOR)
+target_link_libraries(SpectraSTSimilarityScore_test Eigen3::Eigen)
+target_link_libraries(BinnedSpectrum_test Eigen3::Eigen)
+
+if (WITH_HDF5)
+  target_link_libraries(HDF5_test HDF5::HDF5)
+endif()
 
 #------------------------------------------------------------------------------
 # restore old compiler flags

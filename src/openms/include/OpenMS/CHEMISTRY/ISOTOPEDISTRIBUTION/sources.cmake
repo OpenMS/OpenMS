@@ -5,6 +5,8 @@ set(directory include/OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION)
 ### list all header files of the directory here
 set(sources_list_h
   CoarseIsotopePatternGenerator.h
+  FineIsotopePatternGenerator.h
+  IsoSpecWrapper.h
   IsotopeDistribution.h
   IsotopePatternGenerator.h
 )

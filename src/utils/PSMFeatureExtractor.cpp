@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -67,9 +67,9 @@ using namespace std;
   <center>
     <table>
         <tr>
-            <td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. predecessor tools </td>
-            <td VALIGN="middle" ROWSPAN=2> \f$ \longrightarrow \f$ PSMFeatureExtractor \f$ \longrightarrow \f$</td>
-            <td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. successor tools </td>
+            <th ALIGN = "center"> pot. predecessor tools </td>
+            <td VALIGN="middle" ROWSPAN=2> &rarr; PSMFeatureExtractor &rarr;</td>
+            <th ALIGN = "center"> pot. successor tools </td>
         </tr>
         <tr>
             <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_PeptideIndexer</td>
@@ -112,9 +112,11 @@ protected:
   void registerOptionsAndFlags_() override
   {
     registerInputFileList_("in", "<files>", StringList(), "Input file(s)", true);
-    setValidFormats_("in", ListUtils::create<String>("mzid,idXML"));
+    setValidFormats_("in", ListUtils::create<String>("idXML,mzid"));
     registerOutputFile_("out", "<file>", "", "Output file in mzid or idXML format", true);
-    setValidFormats_("out", ListUtils::create<String>("mzid,idXML"));
+    setValidFormats_("out", ListUtils::create<String>("idXML,mzid"));    
+    registerStringOption_("out_type", "<type>", "", "Output file type -- default: determined from file extension or content.", false);
+    setValidStrings_("out_type", ListUtils::create<String>("idXML,mzid"));
     registerStringList_("extra", "<MetaData parameter>", vector<String>(), "List of the MetaData parameters to be included in a feature set for precolator.", false, false);
     // setValidStrings_("extra", ?);
     // TODO: add this MHC feature back in with TopPerc::hasMHCEnd_()
@@ -139,10 +141,10 @@ protected:
     //-------------------------------------------------------------
     const StringList in_list = getStringList_("in");
     bool multiple_search_engines = getFlag_("multiple_search_engines");
-    LOG_DEBUG << "Input file (of target?): " << ListUtils::concatenate(in_list, ",") << endl;
+    OPENMS_LOG_DEBUG << "Input file (of target?): " << ListUtils::concatenate(in_list, ",") << endl;
     if (in_list.size() > 1 && !multiple_search_engines)
     {
-      writeLog_("Fatal error: multiple input files given for -in, but -multiple_search_engines flag not specified. If the same search engine was used, feed the input files into PSMFeatureExtractor one by one.");
+      writeLogError_("Error: multiple input files given for -in, but -multiple_search_engines flag not specified. If the same search engine was used, feed the input files into PSMFeatureExtractor one by one.");
       printUsage_();
       return ILLEGAL_PARAMETERS;
     }
@@ -162,17 +164,30 @@ protected:
       String in = *fit;
       FileHandler fh;
       FileTypes::Type in_type = fh.getType(in);
-      LOG_INFO << "Loading input file: " << in << endl;
+      OPENMS_LOG_INFO << "Loading input file: " << in << endl;
       if (in_type == FileTypes::IDXML)
       {
         IdXMLFile().load(in, protein_ids, peptide_ids);
       }
       else if (in_type == FileTypes::MZIDENTML)
       {
-        LOG_WARN << "Converting from mzid: possible loss of information depending on target format." << endl;
+        OPENMS_LOG_WARN << "Converting from mzid: possible loss of information depending on target format." << endl;
         MzIdentMLFile().load(in, protein_ids, peptide_ids);
       }
       //else caught by TOPPBase:registerInput being mandatory mzid or idxml
+
+      //check and warn if merged from multiple runs
+      if (protein_ids.size() > 1)
+      {
+        throw Exception::InvalidValue(
+            __FILE__,
+            __LINE__,
+            OPENMS_PRETTY_FUNCTION,
+            "File '" + in + "' has more than one ProteinIDRun. This is currently not correctly handled."
+            "Please use the merge_proteins_add_psms option if you used IDMerger. Alternatively, pass"
+            " all original single-run idXML inputs as list to this tool.",
+            "# runs: " + String(protein_ids.size()));
+      }
 
       // will check if all ProteinIdentifications have the same search db unless it is the first, in which case all_protein_ids is empty yet.
       if (multiple_search_engines && !skip_db_check && !all_protein_ids.empty())
@@ -181,7 +196,7 @@ protected:
         ProteinIdentification::SearchParameters search_parameters = protein_ids.front().getSearchParameters();
         if (search_parameters.db != all_search_parameters.db)
         {
-          writeLog_("Input files are not searched with the same protein database, " + search_parameters.db + " vs. " + all_search_parameters.db + ". Set -skip_db_check flag to ignore this. Aborting!");
+          writeLogError_("Error: Input files are not searched with the same protein database, " + search_parameters.db + " vs. " + all_search_parameters.db + ". Set -skip_db_check flag to ignore this. Aborting!");
           return INCOMPATIBLE_INPUT_DATA;
         }
       }
@@ -214,7 +229,7 @@ protected:
     
     if (all_protein_ids.empty())
     {
-      writeLog_("No protein hits found in input file. Aborting!");
+      writeLogError_("Error: No protein hits found in input file. Aborting!");
       printUsage_();
       return INPUT_FILE_EMPTY;
     }
@@ -224,7 +239,7 @@ protected:
     //-------------------------------------------------------------
     String search_engine = all_protein_ids.front().getSearchEngine();
     if (multiple_search_engines) search_engine = "multiple";
-    LOG_DEBUG << "Registered search engine: " << search_engine << endl;
+    OPENMS_LOG_DEBUG << "Registered search engine: " << search_engine << endl;
     
     StringList extra_features = getStringList_("extra");
     StringList feature_set;
@@ -242,13 +257,29 @@ protected:
         PercolatorFeatureSetHelper::addMULTISEFeatures(all_peptide_ids, search_engines_used, feature_set, !impute, limits);
       }
     }
-    else if (search_engine == "MS-GF+") PercolatorFeatureSetHelper::addMSGFFeatures(all_peptide_ids, feature_set);
-    else if (search_engine == "Mascot") PercolatorFeatureSetHelper::addMASCOTFeatures(all_peptide_ids, feature_set);
-    else if (search_engine == "XTandem") PercolatorFeatureSetHelper::addXTANDEMFeatures(all_peptide_ids, feature_set);
-    else if (search_engine == "Comet") PercolatorFeatureSetHelper::addCOMETFeatures(all_peptide_ids, feature_set);
+    else if (search_engine == "MS-GF+") 
+    {
+      PercolatorFeatureSetHelper::addMSGFFeatures(all_peptide_ids, feature_set);
+    }
+    else if (search_engine == "Mascot") 
+    {
+      PercolatorFeatureSetHelper::addMASCOTFeatures(all_peptide_ids, feature_set);
+    }
+    else if (search_engine == "XTandem") 
+    {
+      PercolatorFeatureSetHelper::addXTANDEMFeatures(all_peptide_ids, feature_set);
+    }
+    else if (search_engine == "Comet") 
+    {
+      PercolatorFeatureSetHelper::addCOMETFeatures(all_peptide_ids, feature_set);
+    }
+    else if (search_engine == "MSFragger") 
+    {
+      PercolatorFeatureSetHelper::addMSFRAGGERFeatures(feature_set);
+    }
     else
     {
-      LOG_ERROR << "No known input to create PSM features from. Aborting" << std::endl;
+      OPENMS_LOG_ERROR << "No known input to create PSM features from. Aborting" << std::endl;
       return INCOMPATIBLE_INPUT_DATA;
     }
 
@@ -261,7 +292,7 @@ protected:
     
     if (all_protein_ids.size() > 1)
     {
-      LOG_ERROR << "Multiple identifications in one file are not supported. Please resume with separate input files. Quitting." << std::endl;
+      OPENMS_LOG_ERROR << "Multiple identifications in one file are not supported. Please resume with separate input files. Quitting." << std::endl;
       return INCOMPATIBLE_INPUT_DATA;
     }
     else
@@ -275,9 +306,20 @@ protected:
     }
     
     // Storing the PeptideHits with calculated q-value, pep and svm score
-    FileTypes::Type out_type = FileHandler::getType(out);
-    
-    LOG_INFO << "writing output file: " << out << endl;
+    FileTypes::Type out_type = FileTypes::nameToType(getStringOption_("out_type"));
+
+    if (out_type == FileTypes::UNKNOWN)
+    {
+      FileHandler fh;
+      out_type = fh.getTypeByFileName(out);
+    }
+
+    if (out_type == FileTypes::UNKNOWN)
+    {
+      writeLogError_("Error: Could not determine output file type! Set 'out_type' parameter to desired file type.");
+      return PARSE_ERROR;
+    }
+    OPENMS_LOG_INFO << "writing output file: " << out << endl;
     
     if (out_type == FileTypes::IDXML)
     {
@@ -288,7 +330,7 @@ protected:
       MzIdentMLFile().store(out, all_protein_ids, all_peptide_ids);
     }
 
-    writeLog_("PSMFeatureExtractor finished successfully!");
+    writeLogInfo_("PSMFeatureExtractor finished successfully!");
     return EXECUTION_OK;
   }
 

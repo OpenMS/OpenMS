@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -45,7 +45,8 @@ namespace OpenMS
   namespace Internal
   {
 
-    /**@brief Helper for mzML file format
+    /**
+     * @brief Helper for mzML file format
      *
      * This class provides common structures and re-useable helper functions
      * for parsing the mzML format. These are mainly used by MzMLHandler and MzMLSpectrumDecoder.
@@ -59,9 +60,10 @@ namespace OpenMS
 
     public:
 
-      /**@brief Representation for binary data in mzML
+      /**
+       * @brief Representation for binary data in mzML
        *
-       * Represents data in the <binaryDataArray> tag
+       * Represents data in the `<binaryDataArray>` tag
        *
        **/
       struct BinaryData
@@ -70,15 +72,15 @@ namespace OpenMS
 
         enum {
           PRE_NONE, ///< unknown precision
-          PRE_32, ///< 32bit precision
-          PRE_64 ///< 64bit precision
+          PRE_32,   ///< 32bit precision
+          PRE_64    ///< 64bit precision
         } precision;
 
         enum {
-          DT_NONE, ///< unknown data type
-          DT_FLOAT, ///< float data type
-          DT_INT, ///< integer data type
-          DT_STRING ///< string data type
+          DT_NONE,    ///< unknown data type
+          DT_FLOAT,   ///< float data type
+          DT_INT,     ///< integer data type
+          DT_STRING   ///< string data type
         } data_type;
 
         MSNumpressCoder::NumpressCompression np_compression; ///< numpress options
@@ -114,26 +116,35 @@ namespace OpenMS
         {
         }
 
+        BinaryData(const BinaryData&) = default;               // Copy constructor
+        BinaryData(BinaryData&&) = default;                    // Move constructor
+        BinaryData& operator=(const BinaryData&) & = default;  // Copy assignment operator
+        BinaryData& operator=(BinaryData&&) & = default;       // Move assignment operator
+        ~BinaryData() = default;                               // Destructor
+
       };
 
       /**
         @brief Returns the appropriate compression term given the PeakFileOptions and the NumpressConfig
       */
-      static String getCompressionTerm_(const PeakFileOptions& opt, MSNumpressCoder::NumpressConfig np_compression, String indent = "", bool use_numpress = false);
+      static String getCompressionTerm_(const PeakFileOptions& opt,
+                                        MSNumpressCoder::NumpressConfig np_compression,
+                                        const String& indent = "",
+                                        bool use_numpress = false);
 
       /**
         @brief Write the indexed mzML footer the appropriate compression term given the PeakFileOptions and the NumpressConfig
 
         @param os The output stream
         @param options The PeakFileOptions used for writing
-        @param spectra_offsets Binary offsets of <spectrum> tags
-        @param chromatograms_offsets Binary offsets of <chromatogram> tags
+        @param spectra_offsets Binary offsets of &lt;spectrum&gt; tags
+        @param chromatograms_offsets Binary offsets of &lt;chromatogram&gt; tags
 
       */
       static void writeFooter_(std::ostream& os,
                                const PeakFileOptions& options,
-                               const std::vector< std::pair<std::string, long> > & spectra_offsets,
-                               const std::vector< std::pair<std::string, long> > & chromatograms_offsets);
+                               const std::vector< std::pair<std::string, Int64> > & spectra_offsets,
+                               const std::vector< std::pair<std::string, Int64> > & chromatograms_offsets);
 
       /**
         @brief Decode Base64 arrays and write into data_ array

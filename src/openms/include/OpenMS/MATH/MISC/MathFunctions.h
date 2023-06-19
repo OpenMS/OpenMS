@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -35,10 +35,13 @@
 #pragma once
 
 #include <OpenMS/CONCEPT/Types.h>
+#include <OpenMS/CONCEPT/Exception.h>
+#include <OpenMS/CONCEPT/Macros.h>
 
-#include <boost/math/special_functions/gamma.hpp>
+#include <boost/random/mersenne_twister.hpp> // for mt19937_64
+#include <boost/random/uniform_int.hpp>
 #include <cmath>
-#include <utility>
+#include <utility>    // for std::pair
 
 namespace OpenMS
 {
@@ -51,6 +54,75 @@ namespace OpenMS
   */
   namespace Math
   {
+
+    /**
+      @brief Given an interval/range and a new value, extend the range to include the new value if needed
+
+      @param min The current minimum of the range
+      @param max The current maximum of the range
+      @param value The new value which may extend the range
+      @return true if the range was modified
+    */
+    template<typename T>
+    bool extendRange(T& min, T& max, const T& value)
+    {
+      if (value < min)
+      {
+        min = value;
+        return true;
+      }
+      if (value > max)
+      {
+        max = value;
+        return true;
+      }
+      return false;
+    }
+
+    /**
+     * \brief Is a @p value contained in [min, max] ?
+     * \tparam T Type, e.g. double
+     * \return True if contained, false otherwise
+     */
+    template<typename T>
+    bool contains(T value, T min, T max)
+    {
+      return min <= value && value <= max;
+    }
+
+    /**
+     * \brief Zoom into an interval [left, right], decreasing its width by @p factor (which must be in [0,inf]).
+     * 
+     * To actually zoom in, the @p factor needs to be within [0,1]. Chosing a factor > 1 actually zooms out.
+     * @p align (between [0,1]) determines where the zoom happens:
+     *   i.e. align = 0 leaves @p left the same and reduces @p right (or extends if factor>1)
+     *        whereas align = 0.5 zooms into the center of the range etc
+     * 
+     * You can do round trips, i.e. undo a zoom in, by inverting the factor:
+     * \code
+     * [a2, b2] = zoomIn(a1, b1, 0.5, al); // zoom in
+     * [a1, b1] === zoomIn(a2, b2, 2, al); // zoom out again (inverting)
+     * \endcode
+     * 
+     * \param left Start of interval
+     * \param right End of interval
+     * \param factor Number between [0,1] to shrink, or >1 to extend the span (=right-left)
+     * \param align Where to position the smaller/shrunk interval (0 = left, 1 = right, 0.5=center etc)
+     * \return [new_left, new_right] as pair
+     */
+    inline std::pair<double,double> zoomIn(const double left, const double right, const float factor, const float align)
+    {
+      OPENMS_PRECONDITION(factor >= 0, "Factor must be >=0")
+      OPENMS_PRECONDITION(align >= 0, "align must be >=0")
+      OPENMS_PRECONDITION(align <= 1, "align must be <=1")
+      std::pair<double, double> res;
+      auto old_width = right - left;
+      auto offset_left = (1.0f - factor) * old_width * align;
+      res.first = left + offset_left;
+      res.second = res.first + old_width * factor;
+      return res;
+    }
+
     /**
       @brief rounds @p x up to the next decimal power 10 ^ @p decPow
 
@@ -62,7 +134,7 @@ namespace OpenMS
 
       @ingroup MathFunctionsMisc
     */
-    inline static double ceilDecimal(double x, int decPow)
+    inline double ceilDecimal(double x, int decPow)
     {
       return (ceil(x / pow(10.0, decPow))) * pow(10.0, decPow); // decimal shift right, ceiling, decimal shift left
     }
@@ -77,7 +149,7 @@ namespace OpenMS
 
         @ingroup MathFunctionsMisc
     */
-    inline static double roundDecimal(double x, int decPow)
+    inline double roundDecimal(double x, int decPow)
     {
       if (x > 0)
         return (floor(0.5 + x / pow(10.0, decPow))) * pow(10.0, decPow);
@@ -90,7 +162,7 @@ namespace OpenMS
 
         @ingroup MathFunctionsMisc
     */
-    inline static double intervalTransformation(double x, double left1, double right1, double left2, double right2)
+    inline double intervalTransformation(double x, double left1, double right1, double left2, double right2)
     {
       return left2 + (x - left1) * (right2 - left2) / (right1 - left1);
     }
@@ -152,7 +224,7 @@ namespace OpenMS
 
         @ingroup MathFunctionsMisc
     */
-    inline static bool approximatelyEqual(double a, double b, double tol)
+    inline bool approximatelyEqual(double a, double b, double tol)
     {
       return std::fabs(a - b) <= tol;
     }
@@ -262,7 +334,7 @@ namespace OpenMS
     template <typename T>
     T ppmToMass(T ppm, T mz_ref)
     {
-      return (ppm / 1e6) * mz_ref;
+      return (ppm / T(1e6)) * mz_ref;
     }
     
     /*
@@ -293,7 +365,7 @@ namespace OpenMS
       @param ppm Whether @p tol is in ppm or absolute
       @return Tolerance window boundaries
     */
-    inline static std::pair<double, double> getTolWindow(double val, double tol, bool ppm)
+    inline std::pair<double, double> getTolWindow(double val, double tol, bool ppm)
     {
       double left, right;
 
@@ -312,18 +384,56 @@ namespace OpenMS
     }
     
     /**
-       @brief Return the ln(x!) of a value
-       
-       This functions comes handy when there are large factorials in a ratio formula.
-       
-       @param x an integer value
-       @return natural logarithm of factorial x
+       @brief Returns the value of the @p q th quantile (0-1) in a sorted non-empty vector @p x
     */
-    inline double factLn(UInt x)
+    template <typename T1> typename T1::value_type quantile(const T1 &x, double q)
     {
-      return lgamma(double(x+1));
+      if (x.empty()) throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                                       "Quantile requested from empty container.");
+      if (q < 0.0) q = 0.;
+      if (q > 1.0) q = 1.;
+
+      const auto n  = x.size();
+      const auto id = std::max(0., n * q - 1); // -1 for c++ index starting at 0
+      const auto lo = floor(id);
+      const auto hi = ceil(id);
+      const auto qs = x[lo];
+      const auto h  = (id - lo);
+
+      return (1.0 - h) * qs + h * x[hi];
     }
 
+    // portable random shuffle
+    class OPENMS_DLLAPI RandomShuffler
+    {
+    public:
+      explicit RandomShuffler(int seed):
+      rng_(boost::mt19937_64(seed))
+      {}
+
+      explicit RandomShuffler(const boost::mt19937_64& mt_rng):
+          rng_(mt_rng)
+      {}
+
+      RandomShuffler() = default;
+      ~RandomShuffler() = default;
+
+      boost::mt19937_64 rng_;
+      template <class RandomAccessIterator>
+      void portable_random_shuffle (RandomAccessIterator first, RandomAccessIterator last)
+      {
+        for (auto i = (last-first)-1; i > 0; --i) // OMS_CODING_TEST_EXCLUDE
+        {
+          boost::uniform_int<decltype(i)> d(0, i);
+          std::swap(first[i], first[d(rng_)]);
+        }
+      }
+
+      void seed(uint64_t val)
+      {
+        rng_.seed(val);
+      }
+    };
   } // namespace Math
 } // namespace OpenMS
 

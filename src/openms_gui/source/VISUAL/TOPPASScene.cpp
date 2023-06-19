@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -47,7 +47,6 @@
 
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/CONCEPT/VersionInfo.h>
-#include <OpenMS/DATASTRUCTURES/Map.h>
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/FORMAT/ParamXMLFile.h>
 
@@ -58,6 +57,8 @@
 #include <QtCore/QSet>
 #include <QtCore/QTextStream>
 #include <QtWidgets/QMessageBox>
+
+#include <map>
 
 namespace OpenMS
 {
@@ -83,6 +84,7 @@ namespace OpenMS
     out_dir_(File::getUserDirectory().toQString()),
     changed_(false),
     running_(false),
+    error_occured_(false),
     user_specified_out_dir_(false),
     clipboard_(nullptr),
     dry_run_(true),
@@ -254,7 +256,7 @@ namespace OpenMS
           Param to_old = to; // backup, to compare
 
           std::stringstream ss;
-          Logger::LogStream my_log(new Logger::LogStreamBuf());
+          Logger::LogStream my_log(new Logger::LogStreamBuf("Transfer", nullptr));
           my_log.insert(ss);
           to.update(from, false, my_log);
           if (to == to_old)
@@ -311,9 +313,11 @@ namespace OpenMS
       delete hover_edge_;
       hover_edge_ = nullptr;
     }
-
-    topoSort();
-    updateEdgeColors();
+    else
+    {  // edge was added ...
+      topoSort();
+      updateEdgeColors();
+    }
   }
 
   TOPPASVertex* TOPPASScene::getVertexAt_(const QPointF& pos)
@@ -337,7 +341,7 @@ namespace OpenMS
   void TOPPASScene::copySelected()
   {
     TOPPASScene* tmp_scene = new TOPPASScene(nullptr, this->getTempDir(), false);
-    Map<TOPPASVertex*, TOPPASVertex*> vertex_map;
+    std::map<TOPPASVertex*, TOPPASVertex*> vertex_map;
 
     foreach(TOPPASVertex* v, vertices_)
     {
@@ -403,7 +407,7 @@ namespace OpenMS
       //check if both source and target node were also selected (otherwise don't copy)
       TOPPASVertex* old_source = e->getSourceVertex();
       TOPPASVertex* old_target = e->getTargetVertex();
-      if (!(vertex_map.has(old_source) && vertex_map.has(old_target)))
+      if (vertex_map.find(old_source) == vertex_map.end())
       {
         continue;
       }
@@ -508,14 +512,20 @@ namespace OpenMS
     {
       QVector<TOPPASToolVertex::IOInfo> input_infos;
       tv->getInputParameters(input_infos);
-      if (tv->incomingEdgesCount() >= Size(input_infos.size())) return false;
+      if (tv->incomingEdgesCount() >= Size(input_infos.size()))
+      {
+        return false;
+      }
       // also, no edges from collectors to tools without input file lists:
       // @TODO: what if the input file list is already occupied by an edge?
       TOPPASMergerVertex* mv = qobject_cast<TOPPASMergerVertex*>(u);
       if (mv && !mv->roundBasedMode())
       {      
         bool any_list = TOPPASToolVertex::IOInfo::isAnyList(input_infos);
-        if (!any_list) return false;
+        if (!any_list)
+        {
+          return false;
+        }
       }
     }
     // no edges to splitters from tools without output file lists:
@@ -527,7 +537,10 @@ namespace OpenMS
         QVector<TOPPASToolVertex::IOInfo> output_infos;
         tv->getOutputParameters(output_infos);
         bool any_list = TOPPASToolVertex::IOInfo::isAnyList(output_infos);
-        if (!any_list) return false;
+        if (!any_list)
+        {
+          return false;
+        }
       }
     }
 
@@ -552,7 +565,6 @@ namespace OpenMS
     foreach(TOPPASVertex* vertex, vertices_)
     {
       vertex->setDFSColor(TOPPASVertex::DFS_WHITE);
-      vertex->setDFSParent(nullptr);
     }
     foreach(TOPPASVertex* vertex, vertices_)
     {
@@ -591,7 +603,6 @@ namespace OpenMS
       TOPPASVertex* target = (*it)->getTargetVertex();
       if (target->getDFSColor() == TOPPASVertex::DFS_WHITE)
       {
-        target->setDFSParent(vertex);
         if (dfsVisit_(target))
         {
           // back edge found
@@ -621,7 +632,6 @@ namespace OpenMS
 
   void TOPPASScene::runPipeline()
   {
-
     error_occured_ = false;
     resume_source_ = nullptr; // we are not resuming, so reset the resume node
 
@@ -692,10 +702,10 @@ namespace OpenMS
   {
     Param save_param;
 
-    save_param.setValue("info:version", DataValue(VersionInfo::getVersion()));
-    save_param.setValue("info:num_vertices", DataValue(vertices_.size()));
-    save_param.setValue("info:num_edges", DataValue(edges_.size()));
-    save_param.setValue("info:description", DataValue(String("<![CDATA[") + String(this->description_text_) + String("]]>")));
+    save_param.setValue("info:version", VersionInfo::getVersion());
+    save_param.setValue("info:num_vertices", vertices_.size());
+    save_param.setValue("info:num_edges", edges_.size());
+    save_param.setValue("info:description", String("<![CDATA[") + String(this->description_text_) + String("]]>"));
 
     // store all vertices (together with all parameters)
     foreach(TOPPASVertex * tv, vertices_)
@@ -703,7 +713,7 @@ namespace OpenMS
       String id(tv->getTopoNr() - 1);
 
       // common for all vertices
-      save_param.setValue("vertices:" + id + ":recycle_output", DataValue(tv->isRecyclingEnabled() ? "true" : "false"));
+      save_param.setValue("vertices:" + id + ":recycle_output", tv->isRecyclingEnabled() ? "true" : "false");
 
       // vertex subclasses
       TOPPASInputFileListVertex* iflv = qobject_cast<TOPPASInputFileListVertex*>(tv);
@@ -712,56 +722,56 @@ namespace OpenMS
         // store file names relative to toppas file
         QDir save_dir(File::path(file).toQString());
         const QStringList& files_qt = iflv->getFileNames();
-        StringList files;
+        std::vector<std::string> files;
         foreach(const QString &file_qt, files_qt)
         {
-          files.push_back(save_dir.relativeFilePath(file_qt));
+          files.push_back(save_dir.relativeFilePath(file_qt).toStdString());
         }
-        save_param.setValue("vertices:" + id + ":toppas_type", DataValue("input file list"));
-        save_param.setValue("vertices:" + id + ":file_names", DataValue(files));
-        save_param.setValue("vertices:" + id + ":x_pos", DataValue(tv->x()));
-        save_param.setValue("vertices:" + id + ":y_pos", DataValue(tv->y()));
+        save_param.setValue("vertices:" + id + ":toppas_type", "input file list");
+        save_param.setValue("vertices:" + id + ":file_names", files);
+        save_param.setValue("vertices:" + id + ":x_pos", tv->x());
+        save_param.setValue("vertices:" + id + ":y_pos", tv->y());
         continue;
       }
 
       TOPPASOutputFileListVertex* oflv = qobject_cast<TOPPASOutputFileListVertex*>(tv);
       if (oflv)
       {
-        save_param.setValue("vertices:" + id + ":toppas_type", DataValue("output file list"));
-        save_param.setValue("vertices:" + id + ":x_pos", DataValue(tv->x()));
-        save_param.setValue("vertices:" + id + ":y_pos", DataValue(tv->y()));
-        save_param.setValue("vertices:" + id + ":output_folder_name", oflv->getOutputFolderName());
+        save_param.setValue("vertices:" + id + ":toppas_type", "output file list");
+        save_param.setValue("vertices:" + id + ":x_pos", tv->x());
+        save_param.setValue("vertices:" + id + ":y_pos", tv->y());
+        save_param.setValue("vertices:" + id + ":output_folder_name", oflv->getOutputFolderName().toStdString());
         continue;
       }
 
       TOPPASToolVertex* ttv = qobject_cast<TOPPASToolVertex*>(tv);
       if (ttv)
       {
-        save_param.setValue("vertices:" + id + ":toppas_type", DataValue("tool"));
-        save_param.setValue("vertices:" + id + ":tool_name", DataValue(ttv->getName()));
-        save_param.setValue("vertices:" + id + ":tool_type", DataValue(ttv->getType()));
+        save_param.setValue("vertices:" + id + ":toppas_type", "tool");
+        save_param.setValue("vertices:" + id + ":tool_name", ttv->getName());
+        save_param.setValue("vertices:" + id + ":tool_type", ttv->getType());
         save_param.insert("vertices:" + id + ":parameters:", ttv->getParam());
-        save_param.setValue("vertices:" + id + ":x_pos", DataValue(tv->x()));
-        save_param.setValue("vertices:" + id + ":y_pos", DataValue(tv->y()));
+        save_param.setValue("vertices:" + id + ":x_pos", tv->x());
+        save_param.setValue("vertices:" + id + ":y_pos", tv->y());
         continue;
       }
 
       TOPPASMergerVertex* mv = qobject_cast<TOPPASMergerVertex*>(tv);
       if (mv)
       {
-        save_param.setValue("vertices:" + id + ":toppas_type", DataValue("merger"));
-        save_param.setValue("vertices:" + id + ":x_pos", DataValue(tv->x()));
-        save_param.setValue("vertices:" + id + ":y_pos", DataValue(tv->y()));
-        save_param.setValue("vertices:" + id + ":round_based", DataValue(mv->roundBasedMode() ? "true" : "false"));
+        save_param.setValue("vertices:" + id + ":toppas_type", "merger");
+        save_param.setValue("vertices:" + id + ":x_pos", tv->x());
+        save_param.setValue("vertices:" + id + ":y_pos", tv->y());
+        save_param.setValue("vertices:" + id + ":round_based", mv->roundBasedMode() ? "true" : "false");
         continue;
       }
 
       TOPPASSplitterVertex* sv = qobject_cast<TOPPASSplitterVertex*>(tv);
       if (sv)
       {
-        save_param.setValue("vertices:" + id + ":toppas_type", DataValue("splitter"));
-        save_param.setValue("vertices:" + id + ":x_pos", DataValue(tv->x()));
-        save_param.setValue("vertices:" + id + ":y_pos", DataValue(tv->y()));
+        save_param.setValue("vertices:" + id + ":toppas_type", "splitter");
+        save_param.setValue("vertices:" + id + ":x_pos", tv->x());
+        save_param.setValue("vertices:" + id + ":y_pos", tv->y());
         continue;
       }
     }
@@ -780,9 +790,9 @@ namespace OpenMS
         continue;
       }
 
-      save_param.setValue("edges:" + String(counter) + ":source/target:", DataValue(String(te->getSourceVertex()->getTopoNr() - 1) + "/" + String(te->getTargetVertex()->getTopoNr() - 1)));
-      //save_param.setValue("edges:"+String(counter)+":source_out_param:", DataValue(te->getSourceOutParam()));
-      //save_param.setValue("edges:"+String(counter)+":target_in_param:", DataValue(te->getTargetInParam()));
+      save_param.setValue("edges:" + String(counter) + ":source/target:", String(te->getSourceVertex()->getTopoNr() - 1) + "/" + String(te->getTargetVertex()->getTopoNr() - 1));
+      //save_param.setValue("edges:"+String(counter)+":source_out_param:", te->getSourceOutParam()));
+      //save_param.setValue("edges:"+String(counter)+":target_in_param:", te->getTargetInParam()));
       QVector<TOPPASToolVertex::IOInfo> files;
       String v = "__no_name__";
       if (te->getSourceOutParam() >= 0)
@@ -795,7 +805,7 @@ namespace OpenMS
           v = files[te->getSourceOutParam()].param_name;
         }
       }
-      save_param.setValue("edges:" + String(counter) + ":source_out_param:", DataValue(v));
+      save_param.setValue("edges:" + String(counter) + ":source_out_param:", v);
 
       v = "__no_name__";
       if (te->getTargetInParam() >= 0)
@@ -808,7 +818,7 @@ namespace OpenMS
           v = files[te->getTargetInParam()].param_name;
         }
       }
-      save_param.setValue("edges:" + String(counter) + ":target_in_param:", DataValue(v));
+      save_param.setValue("edges:" + String(counter) + ":target_in_param:", v);
 
       ++counter;
     }
@@ -851,7 +861,7 @@ namespace OpenMS
     String file_version = "1.8.0"; // default (were we did not have the tag)
     if (load_param.exists("info:version"))
     {
-      file_version = load_param.getValue("info:version");
+      file_version = load_param.getValue("info:version").toString();
     }
     VersionInfo::VersionDetails v_file = VersionInfo::VersionDetails::create(file_version);
     VersionInfo::VersionDetails v_this_low = VersionInfo::VersionDetails::create("1.9.0"); // last compatible TOPPAS file version
@@ -875,7 +885,7 @@ namespace OpenMS
         String extra_quotes = "";
 #endif
 
-        String cmd = extra_quotes + "\"" + File::findExecutable("INIUpdater") + "\" -in \"" + file + "\" -i " + extra_quotes;
+        String cmd = extra_quotes + "\"" + File::findSiblingTOPPExecutable("INIUpdater") + "\" -in \"" + file + "\" -i " + extra_quotes;
         std::cerr << cmd << "\n\n";
         if (std::system(cmd.c_str()))
         {
@@ -890,7 +900,9 @@ namespace OpenMS
     else if (v_file > v_this_high)
     {
       if (this->gui_ && QMessageBox::warning(nullptr, tr("TOPPAS file too new"), tr("The TOPPAS file you downloaded was created with a more recent version of TOPPAS. Shall we will try to open it?\nIf this fails, update to the new TOPPAS version.\n"), QMessageBox::Yes, QMessageBox::No) == QMessageBox::No)
+      {
         return;
+      }
     }
 
 
@@ -898,11 +910,13 @@ namespace OpenMS
     Param edges_param = load_param.copy("edges:", true);
 
     bool pre_1_9_toppas = true;
-    if (load_param.exists("info:version")) pre_1_9_toppas = false; // using param names instead of indices for connecting edges
-
+    if (load_param.exists("info:version"))
+    {
+      pre_1_9_toppas = false; // using param names instead of indices for connecting edges
+    }
     if (load_param.exists("info:description"))
     {
-      String text = String(load_param.getValue("info:description")).toQString();
+      String text = String(load_param.getValue("info:description").toString()).toQString();
       text.substitute("<![CDATA[", "");
       text.substitute("]]>", "");
       description_text_ = text.trim().toQString();
@@ -917,7 +931,7 @@ namespace OpenMS
     for (Param::ParamIterator it = vertices_param.begin(); it != vertices_param.end(); ++it)
     {
       StringList substrings;
-      it.getName().split(':', substrings);
+      String(it.getName()).split(':', substrings);
       if (substrings.back() == "toppas_type") // next node (all nodes have a "toppas_type")
       {
         current_vertex = nullptr;
@@ -927,7 +941,7 @@ namespace OpenMS
 
         if (current_type == "input file list")
         {
-          StringList file_names = vertices_param.getValue(current_id + ":file_names");
+          StringList file_names = ListUtils::toStringList<std::string>(vertices_param.getValue(current_id + ":file_names"));
           QStringList file_names_qt;
 
           for (StringList::const_iterator str_it = file_names.begin(); str_it != file_names.end(); ++str_it)
@@ -948,7 +962,7 @@ namespace OpenMS
           // custom output folder
           if (vertices_param.exists(current_id + ":output_folder_name"))
           {
-            oflv->setOutputFolderName(vertices_param.getValue(current_id + ":output_folder_name").toQString());
+            oflv->setOutputFolderName(String(vertices_param.getValue(current_id + ":output_folder_name").toString()).toQString());
           }
           
           connectOutputVertexSignals(oflv);
@@ -957,8 +971,8 @@ namespace OpenMS
         }
         else if (current_type == "tool")
         {
-          String tool_name = vertices_param.getValue(current_id + ":tool_name");
-          String tool_type = vertices_param.getValue(current_id + ":tool_type");
+          String tool_name = vertices_param.getValue(current_id + ":tool_name").toString();
+          String tool_type = vertices_param.getValue(current_id + ":tool_type").toString();
           Param param_param = vertices_param.copy(current_id + ":parameters:", true);
           TOPPASToolVertex* tv = new TOPPASToolVertex(tool_name, tool_type);
           tv->setParam(param_param);
@@ -972,7 +986,7 @@ namespace OpenMS
           String rb = "true";
           if (vertices_param.exists(current_id + ":round_based"))
           {
-            rb = vertices_param.getValue(current_id + ":round_based");
+            rb = vertices_param.getValue(current_id + ":round_based").toString();
           }
           TOPPASMergerVertex* mv = new TOPPASMergerVertex(rb == "true");
 
@@ -1001,7 +1015,7 @@ namespace OpenMS
           // vertex parameters:
           if (vertices_param.exists(current_id + ":recycle_output")) // only since TOPPAS 1.9, so does not need to exist
           {
-            String recycle = vertices_param.getValue(current_id + ":recycle_output");
+            String recycle = vertices_param.getValue(current_id + ":recycle_output").toString();
             current_vertex->setRecycling(recycle == "true" ? true : false);
           }
 
@@ -1068,8 +1082,8 @@ namespace OpenMS
 
         addEdge(edge);
 
-        String source_out_param = (++it)->value;
-        String target_in_param = (++it)->value;
+        String source_out_param = (++it)->value.toString();
+        String target_in_param = (++it)->value.toString();
         if (pre_1_9_toppas) // just indices stored - no way we can check
         {
           edge->setSourceOutParam(source_out_param.toInt());
@@ -1163,7 +1177,7 @@ namespace OpenMS
       x_offset = pos.x() - new_bounding_rect.left();
       y_offset = pos.y() - new_bounding_rect.top();
     }
-    Map<TOPPASVertex*, TOPPASVertex*> vertex_map;
+    std::map<TOPPASVertex*, TOPPASVertex*> vertex_map;
 
     for (VertexIterator it = tmp_scene->verticesBegin(); it != tmp_scene->verticesEnd(); ++it)
     {
@@ -1248,7 +1262,7 @@ namespace OpenMS
 
     // select new items (so the user can move them); edges do not need to be selected, only vertices
     unselectAll();
-    for (Map<TOPPASVertex*, TOPPASVertex*>::Iterator it = vertex_map.begin(); it != vertex_map.end(); ++it)
+    for (std::map<TOPPASVertex*, TOPPASVertex*>::iterator it = vertex_map.begin(); it != vertex_map.end(); ++it)
     {
       it->second->setSelected(true);
     }
@@ -1311,7 +1325,9 @@ namespace OpenMS
       for (VertexIterator it = verticesBegin(); it != verticesEnd(); ++it) // check if all nodes are done
       {
         if (!(*it)->isFinished())
+        {
           return;
+        }
       }
     }
 
@@ -1319,7 +1335,7 @@ namespace OpenMS
     emit entirePipelineFinished();
   }
 
-  void TOPPASScene::pipelineErrorSlot(const QString msg)
+  void TOPPASScene::pipelineErrorSlot(const QString& msg)
   {
     logTOPPOutput(msg); // print to log window or console
     error_occured_ = true;
@@ -1367,7 +1383,7 @@ namespace OpenMS
     {
       String text = tv->getName();
       String type = tv->getType();
-      if (type != "")
+      if (!type.empty())
       {
         text += " (" + type + ")";
       }
@@ -1375,7 +1391,7 @@ namespace OpenMS
 
       if (!gui_)
       {
-        std::cout << std::endl << text << std::endl;
+        std::cout << '\n' << text << std::endl;
       }
 
       writeToLogFile_(text.toQString());
@@ -1389,7 +1405,7 @@ namespace OpenMS
     {
       String text = tv->getName();
       String type = tv->getType();
-      if (type != "")
+      if (!type.empty())
       {
         text += " (" + type + ")";
       }
@@ -1397,7 +1413,7 @@ namespace OpenMS
 
       if (!gui_)
       {
-        std::cout << std::endl << text << std::endl;
+        std::cout << '\n' << text << std::endl;
       }
 
       writeToLogFile_(text.toQString());
@@ -1411,7 +1427,7 @@ namespace OpenMS
     {
       String text = tv->getName();
       String type = tv->getType();
-      if (type != "")
+      if (!type.empty())
       {
         text += " (" + type + ")";
       }
@@ -1419,7 +1435,7 @@ namespace OpenMS
 
       if (!gui_)
       {
-        std::cout << std::endl << text << std::endl;
+        std::cout << '\n' << text << std::endl;
       }
 
       writeToLogFile_(text.toQString());
@@ -1433,7 +1449,7 @@ namespace OpenMS
     {
       String text = tv->getName();
       String type = tv->getType();
-      if (type != "")
+      if (!type.empty())
       {
         text += " (" + type + ")";
       }
@@ -1441,7 +1457,7 @@ namespace OpenMS
 
       if (!gui_)
       {
-        std::cout << std::endl << text << std::endl;
+        std::cout << '\n' << text << std::endl;
       }
 
       writeToLogFile_(text.toQString());
@@ -1460,27 +1476,33 @@ namespace OpenMS
     writeToLogFile_(text.toQString());
   }
 
-  void TOPPASScene::topoSort()
+  void TOPPASScene::topoSort(bool resort_all)
   {
-    for (VertexIterator it = verticesBegin(); it != verticesEnd(); ++it)
+    UInt topo_counter {1};
+    for (TOPPASVertex* tv : vertices_)
     {
-      (*it)->setTopoSortMarked(false);
+      if (resort_all)
+      {
+        tv->setTopoSortMarked(false);
+      }
+      else if (tv->isTopoSortMarked())
+      {
+        ++topo_counter; // count number of existing/sorted vertices to get correct offset for new vertices
+      }
     }
-
-    bool topo_sort_finished = false;
-    UInt topo_counter = 1;
-    while (!topo_sort_finished)
+  
+    while (true)
     {
       bool some_vertex_not_finished = false;
-      for (VertexIterator it = verticesBegin(); it != verticesEnd(); ++it)
+      for (TOPPASVertex* tv : vertices_)
       {
-        if ((*it)->isTopoSortMarked())
+        if (tv->isTopoSortMarked())
         {
           continue;
         }
         
         bool has_unmarked_predecessors = false;
-        for (TOPPASVertex::ConstEdgeIterator e_it = (*it)->inEdgesBegin(); e_it != (*it)->inEdgesEnd(); ++e_it)
+        for (TOPPASVertex::ConstEdgeIterator e_it = tv->inEdgesBegin(); e_it != tv->inEdgesEnd(); ++e_it)
         {
           TOPPASVertex* v = (*e_it)->getSourceVertex();
           if (!(v->isTopoSortMarked()))
@@ -1496,28 +1518,31 @@ namespace OpenMS
         else
         { // mark this node
           // update name of input node
-          TOPPASInputFileListVertex* iflv = qobject_cast<TOPPASInputFileListVertex*>(*it);
+          TOPPASInputFileListVertex* iflv = qobject_cast<TOPPASInputFileListVertex*>(tv);
           if (iflv)
           {
             //check if key was modified by user. if yes, don't update it
-            QString old_topo_nr = QString::number((*it)->getTopoNr());
+            QString old_topo_nr = QString::number(tv->getTopoNr());
             if (old_topo_nr == iflv->getKey() || iflv->getKey() == "")
             {
               iflv->setKey(QString::number(topo_counter));
             }
           }
 
-          (*it)->setTopoNr(topo_counter);
-          (*it)->setTopoSortMarked(true);
+          tv->setTopoNr(topo_counter);
+          tv->setTopoSortMarked(true);
 
           ++topo_counter;
         }
       }
       if (!some_vertex_not_finished)
       {
-        topo_sort_finished = true;
+        break; // all sorted
       }
     }
+
+    // sort vertices in list by their TopoNr, so that they keep their numbering when deleting edges
+    std::sort(vertices_.begin(), vertices_.end(), [](TOPPASVertex* a, TOPPASVertex* b) { return a->getTopoNr() < b->getTopoNr();});
 
     update(sceneRect());
   }
@@ -1603,7 +1628,7 @@ namespace OpenMS
     // Save changes
     if (gui_ && changed_)
     {
-      QString name = file_name_ == "" ? "Untitled" : File::basename(file_name_).toQString();
+      QString name = file_name_.empty() ? "Untitled" : File::basename(file_name_).toQString();
       QMessageBox::StandardButton ret;
       ret = QMessageBox::warning(views().first(), "Save changes?", "'" + name + "' has been modified.\n\nDo you want to save your changes?", QMessageBox::Save | QMessageBox::Discard | QMessageBox::Cancel);
       if (ret == QMessageBox::Save)
@@ -1632,12 +1657,12 @@ namespace OpenMS
     }
   }
 
-  bool TOPPASScene::wasChanged()
+  bool TOPPASScene::wasChanged() const
   {
     return changed_;
   }
 
-  bool TOPPASScene::isPipelineRunning()
+  bool TOPPASScene::isPipelineRunning() const
   {
     return running_;
   }
@@ -1827,7 +1852,8 @@ namespace OpenMS
       {
         supported_actions_set.intersect(action_set);
       }
-      QList<QString> supported_actions = supported_actions_set.toList();
+
+      QList<QString> supported_actions = supported_actions_set.values();
       supported_actions << "Copy" << "Cut" << "Remove";
       foreach(const QString &supported_action, supported_actions)
       {
@@ -2330,11 +2356,20 @@ namespace OpenMS
     }
 
     TOPPASScene::RefreshStatus result;
-    if (!change) result = ST_REFRESH_NOCHANGE;
+    if (!change)
+    {
+      result = ST_REFRESH_NOCHANGE;
+    }
     else if (!sanityCheck_(false)) 
     {
-      if (sane_before) result = ST_REFRESH_CHANGEINVALID;
-      else result = ST_REFRESH_REMAINSINVALID;
+      if (sane_before)
+      {
+        result = ST_REFRESH_CHANGEINVALID;
+      }
+      else
+      {
+        result = ST_REFRESH_REMAINSINVALID;
+      }
     }
     else result = ST_REFRESH_CHANGED;
     
@@ -2344,8 +2379,9 @@ namespace OpenMS
   void TOPPASScene::setAllowedThreads(int num_jobs)
   {
     if (num_jobs < 1)
+    {
       return;
-
+    }
     allowed_threads_ = num_jobs;
   }
 

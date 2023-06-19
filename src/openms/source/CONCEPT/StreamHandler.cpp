@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -49,10 +49,7 @@ using std::ofstream;
 
 namespace OpenMS
 {
-  StreamHandler::StreamHandler()
-  {
-
-  }
+  StreamHandler::StreamHandler() = default;
 
   StreamHandler::StreamHandler(const StreamHandler & source)
   {
@@ -76,13 +73,7 @@ namespace OpenMS
     }
   }
 
-  StreamHandler & StreamHandler::operator=(const StreamHandler & source)
-  {
-    name_to_stream_map_ = source.name_to_stream_map_;
-    name_to_counter_map_ = source.name_to_counter_map_;
-    name_to_type_map_ = source.name_to_type_map_;
-    return *this;
-  }
+  StreamHandler & StreamHandler::operator=(const StreamHandler & source) = default;
 
   ostream & StreamHandler::getStream(StreamType const type, const String & stream_name)
   {

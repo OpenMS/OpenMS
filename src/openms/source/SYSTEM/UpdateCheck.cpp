@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -50,6 +50,7 @@
 #include <QDir>
 #include <QCoreApplication>
 #include <QtCore/QDateTime>
+#include <QtCore/QTimer>
 
 #include <OpenMS/CONCEPT/VersionInfo.h>
 
@@ -73,26 +74,42 @@ namespace OpenMS
     platform = "Win";
 #elif __APPLE__
     platform = "Mac";
-#else
+#elif __linux__
     platform = "Linux";
+#elif __unix__
+    platform = "Unix";
+#else
+    platform = "unknown";
 #endif
 
     // write to tmp + userid folder
 
     // e.g.: OpenMS_Default_Win_64_FeatureFinderCentroided_2.0.0
     String tool_version_string;
+    String config_path;
+    //Comply with https://specifications.freedesktop.org/basedir-spec/basedir-spec-latest.html on unix identifying systems
+    #ifdef __unix__
+    if (getenv("XDG_CONFIG_HOME"))
+    {
+      config_path = String(getenv("XDG_CONFIG_HOME")) + "/OpenMS";
+    }
+    else
+    {
+      config_path = File::getOpenMSHomePath() + "/.config/OpenMS";
+    }
+    #else
+    config_path =  File::getOpenMSHomePath() + "/.OpenMS";
+    #endif
     tool_version_string = String("OpenMS") + "_" + "Default_" + platform + "_" + architecture + "_" + tool_name + "_" + version;
 
-    String version_file_name = File::getOpenMSHomePath() + "/.OpenMS/" + tool_name + ".ver";
+    String version_file_name = config_path + "/" + tool_name + ".ver";
 
     // create version file if it doesn't exist yet
     bool first_run(false);
     if (!File::exists(version_file_name) || !File::readable(version_file_name))
     {
       // create OpenMS folder for .ver files
-      String home_path = File::getOpenMSHomePath();
-      String dirname = home_path + "/.OpenMS";
-      QDir dir(dirname.toQString());
+      QDir dir(config_path.toQString());
 
       if (!dir.exists())
       {
@@ -125,9 +142,9 @@ namespace OpenMS
 
         if (debug_level > 0)
         {
-          LOG_INFO << "The OpenMS team is collecting usage statistics for quality control and funding purposes." << endl;
-          LOG_INFO << "We will never give out your personal data, but you may disable this functionality by " << endl;
-          LOG_INFO << "setting the environmental variable OPENMS_DISABLE_UPDATE_CHECK to ON." << endl;
+          OPENMS_LOG_INFO << "The OpenMS team is collecting usage statistics for quality control and funding purposes." << endl;
+          OPENMS_LOG_INFO << "We will never give out your personal data, but you may disable this functionality by " << endl;
+          OPENMS_LOG_INFO << "setting the environmental variable OPENMS_DISABLE_UPDATE_CHECK to ON." << endl;
         }
       
         // We need to use a QCoreApplication to fire up the  QEventLoop to process the signals and slots.
@@ -135,7 +152,7 @@ namespace OpenMS
         int argc = 1;
         QCoreApplication event_loop(argc, const_cast<char**>(argv2));
         NetworkGetRequest* query = new NetworkGetRequest(&event_loop);
-        query->setUrl(QUrl(QString("http://openms-update.informatik.uni-tuebingen.de/check/") + tool_version_string.toQString()));
+        query->setUrl(QUrl(QString("http://openms-update.cs.uni-tuebingen.de/check/") + tool_version_string.toQString()));
         QObject::connect(query, SIGNAL(done()), &event_loop, SLOT(quit()));
         QTimer::singleShot(1000, query, SLOT(run()));          
         QTimer::singleShot(5000, query, SLOT(timeOut()));
@@ -145,7 +162,7 @@ namespace OpenMS
         {
           if (debug_level > 0)
           {
-            LOG_INFO << "Connecting to REST server successful. " << endl;
+            OPENMS_LOG_INFO << "Connecting to REST server successful. " << endl;
           }
 
           QString response = query->getResponse();
@@ -154,7 +171,7 @@ namespace OpenMS
           {
             if (VersionInfo::getVersionStruct() < server_version)
             {
-              LOG_INFO << "Version " + version + " of " + tool_name + " is available at www.OpenMS.de" << endl;
+              OPENMS_LOG_INFO << "Version " + version + " of " + tool_name + " is available at www.OpenMS.de" << endl;
             }
           }
         }
@@ -162,11 +179,12 @@ namespace OpenMS
         {
           if (debug_level > 0)
           {
-            LOG_INFO << "Connecting to REST server failed. Skipping update check." << endl;
-            LOG_INFO << "Error: " << String(query->getErrorString()) << endl;
+            OPENMS_LOG_INFO << "Connecting to REST server failed. Skipping update check." << endl;
+            OPENMS_LOG_INFO << "Error: " << String(query->getErrorString()) << endl;
           }
         }
         delete query;
+        event_loop.quit();
       }
     }
   }

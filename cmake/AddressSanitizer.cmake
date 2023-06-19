@@ -2,7 +2,7 @@
 #                   OpenMS -- Open-Source Mass Spectrometry
 # --------------------------------------------------------------------------
 # Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-# ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+# ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 #
 # This software is released under a three-clause BSD license:
 #  * Redistributions of source code must retain the above copyright
@@ -29,7 +29,7 @@
 #
 # --------------------------------------------------------------------------
 # $Maintainer: Hannes Roest $
-# $Authors: Hannes Roest $
+# $Authors: Hannes Roest, Timo Sachsenberg $
 # --------------------------------------------------------------------------
 
 #------------------------------------------------------------------------------
@@ -37,21 +37,24 @@
 # see http://clang.llvm.org/docs/AddressSanitizer.html 
 #     http://en.wikipedia.org/wiki/AddressSanitizer
 
-if ("${CMAKE_BUILD_TYPE}" STREQUAL "Debug")
-  # add compiler flag
-  # -> requires clang > 3.1 or gcc > 4.8
-  if (MSVC)
-    message(WARNING "AddressSanitizer can only be enabled for GCC and Clang")
-  else()
-    # add AddressSanitizer also for compiler
-    add_compile_options( -fsanitize=address
-                         -fno-omit-frame-pointer)
-    # add AddressSanitizer also for linker
-    set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -fsanitize=address")
-    set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -fsanitize=address")
-    set(CMAKE_STATIC_LINKER_FLAGS "${CMAKE_STATIC_LINKER_FLAGS} -fsanitize=address")
+function(add_asan_to_target TARGET_NAME_ARG)
+  if(ADDRESS_SANITIZER)
+    if ("${CMAKE_BUILD_TYPE}" STREQUAL "Debug")
+      # add compiler flag
+      if (MSVC)
+        message(WARNING "AddressSanitizer can only be enabled for GCC and Clang.")
+      else()
+        # add AddressSanitizer for compiler and linker
+        target_compile_options("${TARGET_NAME_ARG}" 
+          PUBLIC 
+            -fsanitize=address
+            -fno-omit-frame-pointer)
+        target_link_options("${TARGET_NAME_ARG}" PUBLIC -fsanitize=address)           
+        message(STATUS "AddressSanitizer is on.")
+      endif()
+    else()
+      message(WARNING "AddressSanitizer is supported for OpenMS debug mode only.")
+      message(WARNING "Build type is ${CMAKE_BUILD_TYPE}")
+    endif()
   endif()
-else()
-  message(WARNING "AddressSanitizer is supported for OpenMS debug mode only")
-endif()
-
+endfunction()

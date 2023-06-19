@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -48,6 +48,12 @@ namespace OpenMS
     std::fill(qualities_, qualities_ + 2, QualityType(0.0));
   }
 
+  Feature::Feature(const BaseFeature& base) :
+    BaseFeature(base)
+  {
+    std::fill(qualities_, qualities_ + 2, QualityType(0.0));
+  }
+
   Feature::Feature(const Feature& feature) :
     BaseFeature(feature),
     convex_hulls_(feature.convex_hulls_),
@@ -58,9 +64,18 @@ namespace OpenMS
     std::copy(feature.qualities_, feature.qualities_ + 2, qualities_);
   }
 
-  Feature::~Feature()
+  Feature::Feature(Feature&& feature) noexcept :
+    BaseFeature(std::move(feature)),
+    convex_hulls_(std::move(feature.convex_hulls_)),
+    convex_hulls_modified_(std::move(feature.convex_hulls_modified_)),
+    convex_hull_(std::move(feature.convex_hull_)),
+    subordinates_(std::move(feature.subordinates_))
   {
+    // TODO: no strong exception safety here
+    std::copy(feature.qualities_, feature.qualities_ + 2, qualities_);
   }
+
+  Feature::~Feature() = default;
 
   Feature::QualityType Feature::getOverallQuality() const
   {
@@ -114,7 +129,7 @@ namespace OpenMS
       else
       {
         convex_hull_.clear();
-        if (convex_hulls_.size() > 0)
+        if (!convex_hulls_.empty())
         {
           /*
           -- this does not work with our current approach of "non-convex"hull computation as the mass traces of features cannot be combined
@@ -149,10 +164,13 @@ namespace OpenMS
   bool Feature::encloses(double rt, double mz) const
   {
     ConvexHull2D::PointType tmp(rt, mz);
-    for (vector<ConvexHull2D>::const_iterator   it = convex_hulls_.begin(); it != convex_hulls_.end(); ++it)
+
+    for (const ConvexHull2D& hull : convex_hulls_)
     {
-      if (it->encloses(tmp))
+      if (hull.encloses(tmp))
+      {
         return true;
+      }
     }
     return false;
   }
@@ -160,14 +178,33 @@ namespace OpenMS
   Feature& Feature::operator=(const Feature& rhs)
   {
     if (this == &rhs)
+    {
       return *this;
+    }
 
     BaseFeature::operator=(rhs);
-    copy(rhs.qualities_, rhs.qualities_ + 2, qualities_);
-    convex_hulls_                       = rhs.convex_hulls_;
+    std::copy(rhs.qualities_, rhs.qualities_ + 2, qualities_);
+    convex_hulls_           = rhs.convex_hulls_;
     convex_hulls_modified_  = rhs.convex_hulls_modified_;
-    convex_hull_                = rhs.convex_hull_;
-    subordinates_                       = rhs.subordinates_;
+    convex_hull_            = rhs.convex_hull_;
+    subordinates_           = rhs.subordinates_;
+
+    return *this;
+  }
+
+  Feature& Feature::operator=(Feature&& rhs) & noexcept
+  {
+    if (this == &rhs)
+    {
+      return *this;
+    }
+
+    BaseFeature::operator=(std::move(rhs));
+    std::copy(rhs.qualities_, rhs.qualities_ + 2, qualities_);
+    convex_hulls_           = std::move(rhs.convex_hulls_);
+    convex_hulls_modified_  = std::move(rhs.convex_hulls_modified_);
+    convex_hull_            = std::move(rhs.convex_hull_);
+    subordinates_           = std::move(rhs.subordinates_);
 
     return *this;
   }
@@ -193,6 +230,15 @@ namespace OpenMS
   void Feature::setSubordinates(const std::vector<Feature>& rhs)
   {
     subordinates_ = rhs;
+  }
+
+  void Feature::updateAllIDReferences(const IdentificationData::RefTranslator& trans)
+  {
+    updateIDReferences(trans); // update the feature itself (via BaseFeature method)
+    for (Feature& sub : subordinates_) // recursively update subordinate features
+    {
+      sub.updateAllIDReferences(trans);
+    }
   }
 
 }

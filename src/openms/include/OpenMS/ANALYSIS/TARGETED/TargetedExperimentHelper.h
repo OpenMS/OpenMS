@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -67,19 +67,6 @@ namespace OpenMS
       String contact_ref;
       String instrument_ref;
       std::vector<CVTermList> validations;
-
-      Configuration & operator=(const Configuration & rhs)
-      {
-        if (this != &rhs)
-        {
-          CVTermList::operator=(rhs);
-          contact_ref = rhs.contact_ref;
-          instrument_ref = rhs.instrument_ref;
-          validations = rhs.validations;
-        }
-        return *this;
-      }
-
     };
 
     struct CV
@@ -111,31 +98,16 @@ namespace OpenMS
     struct Protein :
       public CVTermList
     {
-      Protein() :
-        CVTermList()
+      Protein() = default;
+      bool operator==(const Protein& rhs) const
       {
+        return CVTermList::operator==(rhs) &&
+          id == rhs.id &&
+          sequence == rhs.sequence;
       }
 
       String id;
       String sequence;
-
-      bool operator==(const Protein & rhs) const
-      {
-        return CVTermList::operator==(rhs) &&
-               id == rhs.id &&
-               sequence == rhs.sequence;
-      }
-
-      Protein & operator=(const Protein & rhs)
-      {
-        if (&rhs != this)
-        {
-          CVTermList::operator=(rhs);
-          id = rhs.id;
-          sequence = rhs.sequence;
-        }
-        return *this;
-      }
 
     };
 
@@ -186,33 +158,11 @@ public:
       {
       }
 
-      RetentionTime(const RetentionTime & rhs) :
-        CVTermListInterface(rhs),
-        software_ref(rhs.software_ref),
-        retention_time_unit(rhs.retention_time_unit),
-        retention_time_type(rhs.retention_time_type),
-        retention_time_set_(rhs.retention_time_set_),
-        retention_time_(rhs.retention_time_)
-      {
-      }
-
-      virtual ~RetentionTime()
-      {
-      }
-
-      RetentionTime & operator=(const RetentionTime & rhs)
-      {
-        if (&rhs != this)
-        {
-          CVTermListInterface::operator=(rhs);
-          software_ref = rhs.software_ref;
-          retention_time_unit = rhs.retention_time_unit;
-          retention_time_type = rhs.retention_time_type;
-          retention_time_set_ = rhs.retention_time_set_;
-          retention_time_ = rhs.retention_time_;
-        }
-        return *this;
-      }
+      RetentionTime(const RetentionTime &) = default;
+      RetentionTime(RetentionTime &&) noexcept = default;
+      virtual ~RetentionTime() = default;
+      RetentionTime & operator=(const RetentionTime &) & = default;
+      RetentionTime & operator=(RetentionTime &&) & = default;
 
       bool operator==(const RetentionTime & rhs) const
       {
@@ -224,7 +174,7 @@ public:
                retention_time_ == rhs.retention_time_;
       }
 
-      bool isRTset() const 
+      bool isRTset() const
       {
         return retention_time_set_;
       }
@@ -261,38 +211,11 @@ private:
       public CVTermList
     {
 public:
-
-      PeptideCompound() :
-        CVTermList(),
-        charge_(0),
-        charge_set_(false),
-        drift_time_(-1)
-      {
-      }
-
-      PeptideCompound(const PeptideCompound & rhs) :
-        CVTermList(rhs),
-        id(rhs.id),
-        rts(rhs.rts),
-        charge_(rhs.charge_),
-        charge_set_(rhs.charge_set_),
-        drift_time_(rhs.drift_time_)
-      {
-      }
-
-      PeptideCompound & operator=(const PeptideCompound & rhs)
-      {
-        if (this != &rhs)
-        {
-          CVTermList::operator=(rhs);
-          rts = rhs.rts;
-          id = rhs.id;
-          charge_ = rhs.charge_;
-          charge_set_ = rhs.charge_set_;
-          drift_time_ = rhs.drift_time_;
-        }
-        return *this;
-      }
+      PeptideCompound() = default;
+      PeptideCompound(const PeptideCompound &) = default;
+      PeptideCompound(PeptideCompound &&) noexcept = default;
+      PeptideCompound & operator=(const PeptideCompound &) & = default;
+      PeptideCompound & operator=(PeptideCompound &&) & = default;
 
       bool operator==(const PeptideCompound & rhs) const
       {
@@ -384,10 +307,9 @@ public:
       std::vector<RetentionTime> rts;
 
 protected:
-      int charge_;
-      bool charge_set_;
-      double drift_time_;
-
+      int charge_{0};
+      bool charge_set_{false};
+      double drift_time_{-1};
     };
 
     /**
@@ -406,25 +328,10 @@ public:
       {
       }
 
-      Compound(const Compound & rhs) :
-        PeptideCompound(rhs),
-        molecular_formula(rhs.molecular_formula),
-        smiles_string(rhs.smiles_string),
-        theoretical_mass(rhs.theoretical_mass)
-      {
-      }
-
-      Compound & operator=(const Compound & rhs)
-      {
-        if (this != &rhs)
-        {
-          PeptideCompound::operator=(rhs);
-          molecular_formula = rhs.molecular_formula;
-          smiles_string = rhs.smiles_string;
-          theoretical_mass = rhs.theoretical_mass;
-        }
-        return *this;
-      }
+      Compound(const Compound &) = default;
+      Compound(Compound &&) noexcept = default;
+      Compound & operator=(const Compound &) & = default;
+      Compound & operator=(Compound &&) & = default;
 
       bool operator==(const Compound & rhs) const
       {
@@ -452,7 +359,6 @@ protected:
       public PeptideCompound
     {
 public:
-
       struct Modification :
         public CVTermListInterface
       {
@@ -470,34 +376,11 @@ public:
 
       };
 
-      Peptide() :
-        PeptideCompound()
-      {
-      }
-
-      Peptide(const Peptide & rhs) :
-        PeptideCompound(rhs),
-        protein_refs(rhs.protein_refs),
-        evidence(rhs.evidence),
-        sequence(rhs.sequence),
-        mods(rhs.mods),
-        peptide_group_label_(rhs.peptide_group_label_)
-      {
-      }
-
-      Peptide & operator=(const Peptide & rhs)
-      {
-        if (this != &rhs)
-        {
-          PeptideCompound::operator=(rhs);
-          protein_refs = rhs.protein_refs;
-          evidence = rhs.evidence;
-          sequence = rhs.sequence;
-          mods = rhs.mods;
-          peptide_group_label_ = rhs.peptide_group_label_;
-        }
-        return *this;
-      }
+      Peptide() = default;
+      Peptide(const Peptide &) = default;
+      Peptide(Peptide &&) noexcept = default;
+      Peptide & operator=(const Peptide &) & = default;
+      Peptide & operator=(Peptide &&) & = default;
 
       bool operator==(const Peptide & rhs) const
       {
@@ -549,24 +432,13 @@ protected:
       {
       }
 
-      String id;
-
       bool operator==(const Contact & rhs) const
       {
         return CVTermList::operator==(rhs) &&
                id == rhs.id;
       }
 
-      Contact & operator=(const Contact & rhs)
-      {
-        if (&rhs != this)
-        {
-          CVTermList::operator=(rhs);
-          id = rhs.id;
-        }
-        return *this;
-      }
-
+      String id;
     };
 
     struct OPENMS_DLLAPI Publication :
@@ -577,24 +449,13 @@ protected:
       {
       }
 
-      String id;
-
       bool operator==(const Publication & rhs) const
       {
         return CVTermList::operator==(rhs) &&
                id == rhs.id;
       }
 
-      Publication & operator=(const Publication & rhs)
-      {
-        if (&rhs != this)
-        {
-          CVTermList::operator=(rhs);
-          id = rhs.id;
-        }
-        return *this;
-      }
-
+      String id;
     };
 
     struct OPENMS_DLLAPI Instrument :
@@ -605,24 +466,13 @@ protected:
       {
       }
 
-      String id;
-
       bool operator==(const Instrument & rhs) const
       {
         return CVTermList::operator==(rhs) &&
                id == rhs.id;
       }
 
-      Instrument & operator=(const Instrument & rhs)
-      {
-        if (&rhs != this)
-        {
-          CVTermList::operator=(rhs);
-          id = rhs.id;
-        }
-        return *this;
-      }
-
+      String id;
     };
 
     struct OPENMS_DLLAPI Prediction :
@@ -633,9 +483,6 @@ protected:
       {
       }
 
-      String software_ref;
-      String contact_ref;
-
       bool operator==(const Prediction & rhs) const
       {
         return CVTermList::operator==(rhs) &&
@@ -643,17 +490,8 @@ protected:
                software_ref == rhs.software_ref;
       }
 
-      Prediction & operator=(const Prediction & rhs)
-      {
-        if (&rhs != this)
-        {
-          CVTermList::operator=(rhs);
-          software_ref = rhs.software_ref;
-          contact_ref = rhs.contact_ref;
-        }
-        return *this;
-      }
-
+      String software_ref;
+      String contact_ref;
     };
 
     /**
@@ -705,15 +543,6 @@ protected:
       {
       }
 
-      // Copy constructor
-      Interpretation(const Interpretation & rhs) :
-        CVTermListInterface(rhs),
-        ordinal(rhs.ordinal),
-        rank(rhs.rank),
-        iontype(rhs.iontype)
-      {
-      }
-
       /** @name Operators assignment, equality, inequality
       */
       //@{
@@ -723,18 +552,6 @@ protected:
                ordinal == rhs.ordinal &&
                rank == rhs.rank &&
                iontype == rhs.iontype;
-      }
-
-      Interpretation & operator=(const Interpretation & rhs)
-      {
-        if (&rhs != this)
-        {
-          CVTermListInterface::operator=(rhs);
-          ordinal = rhs.ordinal;
-          rank = rhs.rank;
-          iontype = rhs.iontype;
-        }
-        return *this;
       }
 
       bool operator!=(const Interpretation & rhs) const
@@ -754,14 +571,7 @@ protected:
     struct OPENMS_DLLAPI TraMLProduct :
       public CVTermListInterface
     {
-      TraMLProduct() :
-        CVTermListInterface(),
-        charge_(0),
-        charge_set_(false),
-        mz_(0)
-      {
-      }
-
+      TraMLProduct() = default;
       bool operator==(const TraMLProduct & rhs) const
       {
         return CVTermListInterface::operator==(rhs) &&
@@ -770,20 +580,6 @@ protected:
                mz_ == rhs.mz_ &&
                configuration_list_ == rhs.configuration_list_ &&
                interpretation_list_ == rhs.interpretation_list_;
-      }
-
-      TraMLProduct & operator=(const TraMLProduct & rhs)
-      {
-        if (&rhs != this)
-        {
-          CVTermListInterface::operator=(rhs);
-          charge_ = rhs.charge_;
-          charge_set_ = rhs.charge_set_;
-          mz_ = rhs.mz_;
-          configuration_list_ = rhs.configuration_list_;
-          interpretation_list_ = rhs.interpretation_list_;
-        }
-        return *this;
       }
 
       void setChargeState(int charge)
@@ -819,9 +615,9 @@ protected:
         return configuration_list_;
       }
 
-      void addConfiguration(const Configuration configuration)
+      void addConfiguration(const Configuration& configuration)
       {
-        return configuration_list_.push_back(configuration);
+        configuration_list_.push_back(configuration);
       }
 
       const std::vector<Interpretation> & getInterpretationList() const
@@ -829,9 +625,9 @@ protected:
         return interpretation_list_;
       }
 
-      void addInterpretation(const Interpretation interpretation)
+      void addInterpretation(const Interpretation& interpretation)
       {
-        return interpretation_list_.push_back(interpretation);
+        interpretation_list_.push_back(interpretation);
       }
 
       void resetInterpretations()
@@ -840,19 +636,18 @@ protected:
       }
 
 private:
-      int charge_; ///< Product ion charge
-      bool charge_set_; ///< Whether product ion charge is set or not
-      double mz_; ///< Product ion m/z
+      int charge_{0}; ///< Product ion charge
+      bool charge_set_{false}; ///< Whether product ion charge is set or not
+      double mz_{0}; ///< Product ion m/z
       std::vector<Configuration> configuration_list_; ///< Product ion configurations used
-      std::vector<Interpretation> interpretation_list_;  ///< Procution ion interpretation
-
+      std::vector<Interpretation> interpretation_list_;  ///< Product ion interpretation
     };
 
     /// helper function that converts a Peptide object to a AASequence object
     OPENMS_DLLAPI OpenMS::AASequence getAASequence(const Peptide& peptide);
 
     /// helper function that sets a modification on a AASequence object
-    OPENMS_DLLAPI void setModification(int location, int max_size, String modification, OpenMS::AASequence & aas);
+    OPENMS_DLLAPI void setModification(int location, int max_size, const String& modification, OpenMS::AASequence & aas);
 
   }
 

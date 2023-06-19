@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -35,6 +35,7 @@
 #pragma once
 
 #include <OpenMS/SIMULATION/LABELING/BaseLabeler.h>
+#include <map>
 
 namespace OpenMS
 {
@@ -90,9 +91,9 @@ public:
 protected:
     void addModificationToPeptideHit_(Feature& feature, const String& modification) const;
 
-    Feature mergeFeatures_(Feature& labeled_channel_feature, const String& unmodified_sequence, Map<String, Feature>& unlabeled_features_index, Int index_channel_id, Int labeled_channel_id) const;
+    Feature mergeFeatures_(Feature& labeled_channel_feature, const String& unmodified_sequence, std::map<String, Feature>& unlabeled_features_index, Int index_channel_id, Int labeled_channel_id) const;
 
-    Feature mergeAllChannelFeatures_(Feature& heavy_channel_feature, const String& unmodified_feature_sequence, Map<String, Feature>& light_channel_feature_index, Map<String, Feature>& medium_channel_feature_index) const;
+    Feature mergeAllChannelFeatures_(Feature& heavy_channel_feature, const String& unmodified_feature_sequence, std::map<String, Feature>& light_channel_feature_index, std::map<String, Feature>& medium_channel_feature_index) const;
 
     String medium_channel_lysine_label_;
     String medium_channel_arginine_label_;

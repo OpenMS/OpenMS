@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -35,8 +35,10 @@
 #pragma once
 
 #include <OpenMS/DATASTRUCTURES/Param.h>
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/TransformationModel.h>
-#include <iostream>
+#include <iosfwd>
+#include <map>
 
 namespace OpenMS
 {
@@ -63,6 +65,32 @@ namespace OpenMS
 
 public:
 
+    /** @brief Summary statistics before/after applying the transformation.
+              For deviations before/after transformation, the percentiles 
+              100, 99, 95, 90, 75, 50, 25 are returned.
+     */ 
+    struct TransformationStatistics
+    {
+      // default constructor
+      TransformationStatistics() = default;
+
+      // copy constructor
+      TransformationStatistics(const TransformationStatistics& rhs) = default;
+
+      // copy assignment
+      TransformationStatistics& operator=(const TransformationStatistics& rhs) = default;
+
+      std::vector<Size> percents = {100, 99, 95, 90, 75, 50, 25};  // TODO: use constexpr array
+      double xmin = 0; ///< smallest x value before transformation
+      double xmax = 0; ///< largest x value before transformation
+      double ymin = 0; ///< smallest y value before transformation
+      double ymax = 0; ///< largest y value before transformation
+      
+      std::map<Size, double> percentiles_before; ///< percentiles of x/y deviations before transformation
+      std::map<Size, double> percentiles_after; ///< percentiles of x/y deviations after transformation
+    };
+    
+
     /// Coordinate pair
     typedef TransformationModel::DataPoint DataPoint;
     /// Vector of coordinate pairs
@@ -70,8 +98,10 @@ public:
 
     /// Default constructor
     TransformationDescription();
+    
     /// Constructor from data
     explicit TransformationDescription(const DataPoints& data);
+    
     /// Destructor
     ~TransformationDescription();
 
@@ -130,8 +160,11 @@ public:
     void getDeviations(std::vector<double>& diffs, bool do_apply = false,
                        bool do_sort = true) const;
 
+    /// Get summary statistics (ranges and errors before/after)
+    TransformationStatistics getStatistics() const;
+
     /// Print summary statistics for the transformation
-    void printSummary(std::ostream& os = std::cout) const;
+    void printSummary(std::ostream& os) const;
 
 protected:
     /// Data points

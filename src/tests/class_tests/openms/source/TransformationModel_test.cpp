@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -67,6 +67,7 @@ START_SECTION((TransformationModel()))
 {
   ptr = new TransformationModel();
   TEST_NOT_EQUAL(ptr, nullPointer)
+  delete ptr;
 }
 END_SECTION
 
@@ -121,8 +122,10 @@ START_SECTION((bool checkValidWeight(const string& weight, const vector<string>&
   TEST_EQUAL(dw.checkValidWeight(test,dw.getValidYWeights()), true);
   test = "1/x2";
   TEST_EQUAL(dw.checkValidWeight(test,dw.getValidXWeights()), true);
-  test = "";
+  test = "x";
   TEST_EQUAL(dw.checkValidWeight(test,dw.getValidXWeights()), true);
+  test = "y";
+  TEST_EQUAL(dw.checkValidWeight(test,dw.getValidYWeights()), true);
   test = "none";
   TEST_EQUAL(dw.checkValidWeight(test,dw.getValidXWeights()), false);
   test = "x2";
@@ -135,7 +138,7 @@ START_SECTION((double weightDatum(double& datum, const string& weight) const))
   Param param;
   TransformationModel dw(data, param);
   string test;
-  test = "";
+  test = "x";
   double inf = std::numeric_limits<double>::infinity();
   TEST_REAL_SIMILAR(dw.weightDatum(0.0,test), 0.0);
   TEST_REAL_SIMILAR(dw.weightDatum(2.0,test), 2.0);
@@ -180,7 +183,7 @@ START_SECTION((double weightDatum(double& datum, const string& weight) const))
   Param param;
   TransformationModel dw(data, param);
   string test;
-  test = "";
+  test = "x";
   TEST_REAL_SIMILAR(dw.weightDatum(0.0,test), 0.0);
   TEST_REAL_SIMILAR(dw.weightDatum(2.0,test), 2.0);
   TEST_REAL_SIMILAR(dw.weightDatum(10e13,test), 10e13);
@@ -230,7 +233,7 @@ START_SECTION((virtual void weightData(DataPoints& data, const Param& params)))
     double ymax = 10e12;
 
     param.setValue("x_weight", "ln(x)");
-    param.setValue("y_weight", "");
+    param.setValue("y_weight", "y");
     TransformationModel dw(data, param);
     test1.clear();
     point.first = std::log(xmin);
@@ -261,7 +264,7 @@ START_SECTION((virtual void weightData(DataPoints& data, const Param& params)))
   }
 
   {
-    param.setValue("x_weight", "");
+    param.setValue("x_weight", "x");
     param.setValue("y_weight", "ln(y)");
     TransformationModel dw(data, param);
     test1.clear();
@@ -299,7 +302,7 @@ START_SECTION((double unWeightDatum(double& datum, const string& weight) const))
   Param param;
   TransformationModel dw(data, param);
   string test;
-  test = "";
+  test = "x";
   TEST_REAL_SIMILAR(dw.unWeightDatum(0.0,test), 0.0);
   TEST_REAL_SIMILAR(dw.unWeightDatum(2.0,test), 2.0);
   test = "none";
@@ -337,7 +340,7 @@ START_SECTION((virtual void unWeightData(DataPoints& data, const Param& params))
     Param param;
     TransformationModel::getDefaultParameters(param);
     param.setValue("x_weight", "ln(x)");
-    param.setValue("y_weight", "");
+    param.setValue("y_weight", "y");
     TransformationModel dw(data, param);
     test1.clear();
     point.first = std::exp(0.0);
@@ -370,7 +373,7 @@ START_SECTION((virtual void unWeightData(DataPoints& data, const Param& params))
   {
     Param param;
     TransformationModel::getDefaultParameters(param);
-    param.setValue("x_weight", "");
+    param.setValue("x_weight", "x");
     param.setValue("y_weight", "ln(y)");
     TransformationModel dw(data, param);
     test1.clear();
@@ -436,7 +439,7 @@ START_SECTION(([EXTRA] bool DataPoint::operator==(const DataPoint& other) const)
   TransformationModel::DataPoint p2(make_pair(1.0, 2.0));
   TEST_EQUAL(p1 == p2, false);
   p2.note = "abc";
-  TEST_EQUAL(p1 == p2, true);
+  TEST_TRUE(p1 == p2);
 }
 END_SECTION
 

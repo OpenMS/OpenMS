@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -43,6 +43,7 @@
 #include <OpenMS/FORMAT/FeatureXMLFile.h>
 #include <OpenMS/FORMAT/MzTab.h>
 #include <OpenMS/FORMAT/MzTabFile.h>
+#include <OpenMS/FORMAT/MzTabMFile.h>
 #include <OpenMS/KERNEL/Feature.h>
 #include <OpenMS/KERNEL/ConsensusFeature.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
@@ -50,6 +51,7 @@
 
 #include <OpenMS/KERNEL/MSSpectrum.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
+#include <OpenMS/METADATA/ID/IdentificationDataConverter.h>
 
 ///////////////////////////
 
@@ -104,10 +106,10 @@ START_SECTION([EXTRA]AdductInfo)
 END_SECTION
 
 Param ams_param;
-ams_param.setValue("db:mapping", ListUtils::create<String>(String(OPENMS_GET_TEST_DATA_PATH("reducedHMDBMapping.tsv"))));
-ams_param.setValue("db:struct", ListUtils::create<String>(String(OPENMS_GET_TEST_DATA_PATH("reducedHMDB2StructMapping.tsv"))));
+ams_param.setValue("db:mapping", std::vector<std::string>{OPENMS_GET_TEST_DATA_PATH("reducedHMDBMapping.tsv")});
+ams_param.setValue("db:struct", std::vector<std::string>{OPENMS_GET_TEST_DATA_PATH("reducedHMDB2StructMapping.tsv")});
 ams_param.setValue("keep_unidentified_masses", "true");
-ams_param.setValue("mzTab:exportIsotopeIntensities", 3);
+ams_param.setValue("mzTab:exportIsotopeIntensities", "true");
 AccurateMassSearchEngine ams;
 ams.setParameters(ams_param);
 
@@ -191,7 +193,7 @@ START_SECTION((void queryByFeature(const Feature& feature, const Size& feature_i
   test_feat.setRT(300.0);
   test_feat.setMZ(399.33486);
   test_feat.setIntensity(100.0);
-  test_feat.setMetaValue("num_of_masstraces", 3);
+  test_feat.setMetaValue(Constants::UserParam::NUM_OF_MASSTRACES, 3);
   test_feat.setCharge(1.0);
 
   vector<double> masstrace_intenstiy = {100.0, 26.1, 4.0};
@@ -303,7 +305,9 @@ FuzzyStringComparator fsc;
 fsc.setAcceptableAbsolute(1e-8);
 StringList sl;
 sl.push_back("xml-stylesheet");
-sl.push_back("IdentificationRun");
+sl.push_back("IdentificationRun id=\"PI_0\" date=");
+sl.push_back("software[1]");
+sl.push_back("database[1]-uri");
 fsc.setWhitelist(sl);
 
 START_SECTION((void run(FeatureMap&, MzTab&) const))
@@ -325,10 +329,61 @@ START_SECTION((void run(FeatureMap&, MzTab&) const))
     NEW_TMP_FILE(tmp_mztab_file);
     MzTabFile().store(tmp_mztab_file, test_mztab);
     TEST_EQUAL(fsc.compareFiles(tmp_mztab_file, OPENMS_GET_TEST_DATA_PATH("AccurateMassSearchEngine_output1_featureXML.mzTab")), true);
+    
+    // test use of adduct information
+    Param ams_param_tmp = ams_param;
+    ams_param_tmp.setValue("use_feature_adducts", "true");
+      
+    AccurateMassSearchEngine ams_feat_test2;
+    ams_feat_test2.setParameters(ams_param_tmp);
+    ams_feat_test2.init();
+
+    FeatureMap exp_fm2;
+    FeatureXMLFile().load(OPENMS_GET_TEST_DATA_PATH("AccurateMassSearchEngine_input1.featureXML"), exp_fm2);
+    MzTab test_mztab2;
+    ams_feat_test2.run(exp_fm2, test_mztab2);
+
+    String tmp_mztab_file2;
+    NEW_TMP_FILE(tmp_mztab_file2);
+    MzTabFile().store(tmp_mztab_file2, test_mztab2);
+    TEST_EQUAL(fsc.compareFiles(tmp_mztab_file2, OPENMS_GET_TEST_DATA_PATH("AccurateMassSearchEngine_output2_featureXML.mzTab")), true);
   }
 }
 END_SECTION
 
+START_SECTION((void run(FeatureMap&, MzTabM&) const))
+{
+  FeatureMap exp_fm;
+  FeatureXMLFile().load(OPENMS_GET_TEST_DATA_PATH("AccurateMassSearchEngine_input1.featureXML"), exp_fm);
+  {
+    MzTabM test_mztabm;
+    ams_feat_test.run(exp_fm, test_mztabm);
+
+    String tmp_mztabm_file;
+    NEW_TMP_FILE(tmp_mztabm_file);
+    MzTabMFile().store(tmp_mztabm_file, test_mztabm);
+    TEST_EQUAL(fsc.compareFiles(tmp_mztabm_file, OPENMS_GET_TEST_DATA_PATH("AccurateMassSearchEngine_output1_mztabm_featureXML.mzTab")), true);
+
+    // test use of adduct information
+    Param ams_param_tmp = ams_param;
+    ams_param_tmp.setValue("use_feature_adducts", "true");
+
+    AccurateMassSearchEngine ams_feat_test2;
+    ams_feat_test2.setParameters(ams_param_tmp);
+    ams_feat_test2.init();
+
+    FeatureMap exp_fm2;
+    FeatureXMLFile().load(OPENMS_GET_TEST_DATA_PATH("AccurateMassSearchEngine_input1.featureXML"), exp_fm2);
+    MzTabM test_mztabm2;
+    ams_feat_test2.run(exp_fm2, test_mztabm2);
+
+    String tmp_mztabm_file2;
+    NEW_TMP_FILE(tmp_mztabm_file2);
+    MzTabMFile().store(tmp_mztabm_file2, test_mztabm2);
+    TEST_EQUAL(fsc.compareFiles(tmp_mztabm_file2, OPENMS_GET_TEST_DATA_PATH("AccurateMassSearchEngine_output2_mztabm_featureXML.mzTab")), true);
+  }
+}
+END_SECTION
 
 START_SECTION((void run(ConsensusMap&, MzTab&) const))
   ConsensusMap exp_cm;
@@ -357,19 +412,28 @@ START_SECTION([EXTRA] template <typename MAPTYPE> void resolveAutoMode_(const MA
   MzTab mzt;
   Param p;
   p.setValue("ionization_mode","auto");
-  p.setValue("db:mapping", ListUtils::create<String>(String(OPENMS_GET_TEST_DATA_PATH("reducedHMDBMapping.tsv"))));
-  p.setValue("db:struct", ListUtils::create<String>(String(OPENMS_GET_TEST_DATA_PATH("reducedHMDB2StructMapping.tsv"))));
+  p.setValue("db:mapping", std::vector<std::string>{OPENMS_GET_TEST_DATA_PATH("reducedHMDBMapping.tsv")});
+  p.setValue("db:struct", std::vector<std::string>{OPENMS_GET_TEST_DATA_PATH("reducedHMDB2StructMapping.tsv")});
   ams.setParameters(p);
   ams.init();
 
   TEST_EXCEPTION(Exception::InvalidParameter, ams.run(fm_p, mzt)); // 'fm_p' has no scan_polarity meta value
-  fm_p[0].setMetaValue("scan_polarity", "something;somethingelse");
+  for (auto& f : fm_p)
+  {
+    f.setMetaValue("scan_polarity", "something;somethingelse");
+  }
   TEST_EXCEPTION(Exception::InvalidParameter, ams.run(fm_p, mzt)); // 'fm_p' scan_polarity meta value wrong
 
-  fm_p[0].setMetaValue("scan_polarity", "positive"); // should run ok
+  for (auto& f : fm_p)
+  {
+    f.setMetaValue("scan_polarity", "positive");
+  }
   ams.run(fm_p, mzt);
 
-  fm_p[0].setMetaValue("scan_polarity", "negative"); // should run ok
+  for (auto& f : fm_p)
+  {
+    f.setMetaValue("scan_polarity", "negative");
+  }
   ams.run(fm_p, mzt);
 END_SECTION
 

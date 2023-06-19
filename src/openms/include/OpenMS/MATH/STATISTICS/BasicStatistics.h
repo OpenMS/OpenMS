@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -132,6 +132,12 @@ public:
           variance_ += *iter * diff;
         }
         variance_ /= sum_;
+
+        if (sum_ == 0 && (std::isnan(mean_) || std::isinf(mean_)) )
+        {
+          mean_ = 0;
+          variance_ = 0;
+        }
       }
 
       /// This does the actual calculation.
@@ -310,4 +316,3 @@ private:
   }   // namespace Math
 
 } // namespace OpenMS
-

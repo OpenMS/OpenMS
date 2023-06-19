@@ -3,14 +3,12 @@ set(directory include/OpenMS/ANALYSIS/RNPXL)
 
 ### list all header files of the directory here
 set(sources_list_h
-ModifiedPeptideGenerator.h
 HyperScore.h
 MorpheusScore.h
 PScore.h
-RNPxlDeisotoper.h
+RNPxlFragmentAnnotationHelper.h
 RNPxlMarkerIonExtractor.h
 RNPxlModificationsGenerator.h
-RNPxlFragmentAnnotationHelper.h
 RNPxlReport.h
 )
 

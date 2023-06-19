@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -38,11 +38,14 @@
 #include <OpenMS/CHEMISTRY/Element.h>
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/CONCEPT/Constants.h>
+#include <OpenMS/DATASTRUCTURES/Adduct.h>
+#include <OpenMS/DATASTRUCTURES/ChargePair.h>
 #include <OpenMS/FORMAT/TextFile.h>
-#include <OpenMS/FORMAT/FeatureXMLFile.h>
+#include <OpenMS/CONCEPT/LogStream.h>
 
 //DEBUG:
 #include <fstream>
+#include <map>
 
 #undef DC_DEVEL
 //#define DC_DEVEL 1
@@ -63,20 +66,19 @@ namespace OpenMS
   struct MetaboliteFeatureDeconvolution::CmpInfo_
   {
     String s_comp; ///< formula as String
-    Size idx_cp; ///< index into compomer vector
-    UInt side_cp; ///< side of parent compomer (LEFT or RIGHT)
+    Size idx_cp{}; ///< index into compomer vector
+    UInt side_cp{}; ///< side of parent compomer (LEFT or RIGHT)
 
     // C'tor
     CmpInfo_() :
-      s_comp(), idx_cp(), side_cp() {}
+      s_comp() {}
 
     // C'tor
     CmpInfo_(String& s, Size idx, UInt side) :
       s_comp(s), idx_cp(idx), side_cp(side) {}
 
     // Copy C'tor
-    CmpInfo_(const CmpInfo_& rhs) :
-      s_comp(rhs.s_comp), idx_cp(rhs.idx_cp), side_cp(rhs.side_cp) {}
+    CmpInfo_(const CmpInfo_& rhs)  = default;
 
     // Assignment
     CmpInfo_& operator=(const CmpInfo_& rhs)
@@ -117,17 +119,22 @@ namespace OpenMS
     defaults_.setMinInt("charge_span_max", 1); // will only find adduct variants of the same charge
 
     defaults_.setValue("q_try", "feature", "Try different values of charge for each feature according to the above settings ('heuristic' [does not test all charges, just the likely ones] or 'all' ), or leave feature charge untouched ('feature').");
-    defaults_.setValidStrings("q_try", ListUtils::create<String>("feature,heuristic,all"));
+    defaults_.setValidStrings("q_try", {"feature","heuristic","all"});
 
     defaults_.setValue("retention_max_diff", 1.0, "Maximum allowed RT difference between any two features if their relation shall be determined");
     defaults_.setValue("retention_max_diff_local", 1.0, "Maximum allowed RT difference between between two co-features, after adduct shifts have been accounted for (if you do not have any adduct shifts, this value should be equal to 'retention_max_diff', otherwise it should be smaller!)");
 
-    defaults_.setValue("mass_max_diff", 0.05, "Maximum allowed mass difference [in Th] for a single feature.");
+    defaults_.setValue("mass_max_diff", 0.05, "Maximum allowed mass tolerance per feature. Defines a symmetric tolerance window around the feature. When looking at possible feature pairs, the allowed feature-wise errors are combined for consideration of possible adduct shifts. For ppm tolerances, each window is based on the respective observed feature mz (instead of putative experimental mzs causing the observed one)!");
+    defaults_.setMinFloat("mass_max_diff", 0.0);
+    defaults_.setValue("unit", "Da", "Unit of the 'max_difference' parameter");
+    defaults_.setValidStrings("unit", {"Da","ppm"});
+
     // Na+:0.1 , (2)H4H-4:0.1:-2:heavy
-    defaults_.setValue("potential_adducts", ListUtils::create<String>("H:+:0.4,Na:+:0.25,NH4:+:0.25,K:+:0.1,H-2O-1:0:0.05"), "Adducts used to explain mass differences in format: 'Element:Charge(+/-/0):Probability[:RTShift[:Label]]', i.e. the number of '+' or '-' indicate the charge ('0' if neutral adduct), e.g. 'Ca:++:0.5' indicates +2. Probabilites have to be in (0,1]. RTShift param is optional and indicates the expected RT shift caused by this adduct, e.g. '(2)H4H-4:0:1:-3' indicates a 4 deuterium label, which causes early elution by 3 seconds. As a fifth parameter you can add a label which is tagged on every feature which has this adduct. This also determines the map number in the consensus file.");
+    defaults_.setValue("potential_adducts", std::vector<std::string>{"H:+:0.4","Na:+:0.25","NH4:+:0.25","K:+:0.1","H-2O-1:0:0.05"}, "Adducts used to explain mass differences in format: 'Elements:Charge(+/-/0):Probability[:RTShift[:Label]]', i.e. the number of '+' or '-' indicate the charge ('0' if neutral adduct), e.g. 'Ca:++:0.5' indicates +2. Probabilites have to be in (0,1]. The optional RTShift param indicates the expected RT shift caused by this adduct, e.g. '(2)H4H-4:0:1:-3' indicates a 4 deuterium label, which causes early elution by 3 seconds. As fifth parameter you can add a label for every feature with this adduct. This also determines the map number in the consensus file. Adduct element losses are written in the form 'H-2'. All provided adducts need to have the same charge sign or be neutral! Mixing of adducts with different charge directions is only allowed as neutral complexes. For example, 'H-1Na:0:0.05' can be used to model Sodium gains (with balancing deprotonation) in negative mode.");
     defaults_.setValue("max_neutrals", 1, "Maximal number of neutral adducts(q=0) allowed. Add them in the 'potential_adducts' section!");
 
     defaults_.setValue("use_minority_bound", "true", "Prune the considered adduct transitions by transition probabilities.");
+    defaults_.setValidStrings("use_minority_bound", {"true","false"});
     defaults_.setValue("max_minority_bound", 3, "Limits allowed adduct compositions and changes between compositions in the underlying graph optimization problem by introducing a probability-based threshold: the minority bound sets the maximum count of the least probable adduct (according to 'potential_adducts' param) within a charge variant with maximum charge only containing the most likely adduct otherwise. E.g., for 'charge_max' 4 and 'max_minority_bound' 2 with most probable adduct being H+ and least probable adduct being Na+, this will allow adduct compositions of '2(H+),2(Na+)' but not of '1(H+),3(Na+)'. Further, adduct compositions/changes less likely than '2(H+),2(Na+)' will be discarded as well.");
     defaults_.setMinInt("max_minority_bound", 0);
 
@@ -136,13 +143,14 @@ namespace OpenMS
     defaults_.setMaxFloat("min_rt_overlap", 1);
 
     defaults_.setValue("intensity_filter", "false", "Enable the intensity filter, which will only allow edges between two equally charged features if the intensity of the feature with less likely adducts is smaller than that of the other feature. It is not used for features of different charge.");
-    defaults_.setValidStrings("intensity_filter", ListUtils::create<String>("true,false"));
+    defaults_.setValidStrings("intensity_filter", {"true","false"});
 
     defaults_.setValue("negative_mode", "false", "Enable negative ionization mode.");
+    defaults_.setValidStrings("negative_mode", {"true","false"});
 
-    defaults_.setValue("default_map_label", "decharged features", "Label of map in output consensus file where all features are put by default", ListUtils::create<String>("advanced"));
+    defaults_.setValue("default_map_label", "decharged features", "Label of map in output consensus file where all features are put by default", {"advanced"});
 
-    defaults_.setValue("verbose_level", 0, "Amount of debug information given during processing.", ListUtils::create<String>("advanced"));
+    defaults_.setValue("verbose_level", 0, "Amount of debug information given during processing.", {"advanced"});
     defaults_.setMinInt("verbose_level", 0);
     defaults_.setMaxInt("verbose_level", 3);
 
@@ -153,8 +161,8 @@ namespace OpenMS
   {
     map_label_.clear();
     map_label_inverse_.clear();
-    map_label_inverse_[param_.getValue("default_map_label")] = 0; // default virtual map (for unlabeled experiments)
-    map_label_[0] = param_.getValue("default_map_label");
+    map_label_inverse_[param_.getValue("default_map_label").toString()] = 0; // default virtual map (for unlabeled experiments)
+    map_label_[0] = param_.getValue("default_map_label").toString();
 
     if (param_.getValue("q_try") == "feature")
       q_try_ = QFROMFEATURE;
@@ -164,7 +172,7 @@ namespace OpenMS
       q_try_ = QALL;
 
 
-    StringList potential_adducts_s = param_.getValue("potential_adducts");
+    StringList potential_adducts_s = ListUtils::toStringList<std::string>(param_.getValue("potential_adducts"));
     potential_adducts_.clear();
 
     bool had_nonzero_RT = false; // adducts with RT-shift > 0 ?
@@ -187,7 +195,7 @@ namespace OpenMS
       }
       // determine probability
       float prob = adduct[2].toFloat();
-      //LOG_WARN << "Adduct " << *it << " prob " << String(prob) << std::endl;
+      //OPENMS_LOG_WARN << "Adduct " << *it << " prob " << String(prob) << std::endl;
       if (prob > 1.0 || prob <= 0.0)
       {
         String error = "MetaboliteFeatureDeconvolution::potential_adducts (" + (*it) + ") does not have a proper probability (" + String(prob) + ") in [0,1]!";
@@ -197,7 +205,7 @@ namespace OpenMS
       {
         summed_probs += prob;
       }
-      //LOG_WARN << "Total prob" << String(summed_probs) << std::endl;
+      //OPENMS_LOG_WARN << "Total prob" << String(summed_probs) << std::endl;
 
       // RT Shift:
       double rt_shift(0);
@@ -218,8 +226,10 @@ namespace OpenMS
       }
 
       // determine charge of adduct (by # of '+' or '-')
-      Int pos_charge = adduct[1].size() - adduct[1].remove('+').size();
-      Int neg_charge = adduct[1].size() - adduct[1].remove('-').size();
+      Size charge_s_len = adduct[1].size();
+      Int pos_charge = charge_s_len - adduct[1].remove('+').size();
+      charge_s_len = adduct[1].size();
+      Int neg_charge = charge_s_len - adduct[1].remove('-').size();
       if (pos_charge > 0 && neg_charge > 0)
       {
         String error = "MetaboliteFeatureDeconvolution::potential_adduct mixes charges for an adduct!";
@@ -284,7 +294,7 @@ namespace OpenMS
     {
       if (rt_diff_max != rt_diff_max_local)
       {
-        LOG_WARN << "Parameters 'retention_max_diff' and 'retention_max_diff_local' are unequal, but no RT shift of adducts has been defined. Setting parameters to minimum of the two." << std::endl;
+        OPENMS_LOG_WARN << "Parameters 'retention_max_diff' and 'retention_max_diff_local' are unequal, but no RT shift of adducts has been defined. Setting parameters to minimum of the two." << std::endl;
         param_.setValue("retention_max_diff", std::min(rt_diff_max, rt_diff_max_local));
         param_.setValue("retention_max_diff_local", std::min(rt_diff_max, rt_diff_max_local));
       }
@@ -293,7 +303,7 @@ namespace OpenMS
     {
       if (rt_diff_max < rt_diff_max_local)
       {
-        LOG_WARN << "Parameters 'retention_max_diff' is smaller than 'retention_max_diff_local'. This does not make sense! Setting 'retention_max_diff_local' to 'retention_max_diff'." << std::endl;
+        OPENMS_LOG_WARN << "Parameters 'retention_max_diff' is smaller than 'retention_max_diff_local'. This does not make sense! Setting 'retention_max_diff_local' to 'retention_max_diff'." << std::endl;
         param_.setValue("retention_max_diff_local", rt_diff_max);
       }
     }
@@ -331,47 +341,25 @@ namespace OpenMS
   }
 
   /// destructor
-  MetaboliteFeatureDeconvolution::~MetaboliteFeatureDeconvolution()
-  {
-  }
+  MetaboliteFeatureDeconvolution::~MetaboliteFeatureDeconvolution() = default;
 
 
-  void MetaboliteFeatureDeconvolution::annotate_feature_(FeatureMapType& fm_out, Adduct& default_adduct, Compomer& c, const Size f_idx, const UInt comp_side, const Int new_q, const Int old_q)
+  void MetaboliteFeatureDeconvolution::annotate_feature_(FeatureMap& fm_out, Adduct& default_adduct, Compomer& c, const Size f_idx, const UInt comp_side, const Int new_q, const Int old_q)
   {
     StringList labels;
+    Adduct adduct;
     fm_out[f_idx].setMetaValue("map_idx", 0);
 
     EmpiricalFormula ef_(c.getAdductsAsString(comp_side));
-    if (fm_out[f_idx].metaValueExists("dc_charge_adducts"))
+    if (fm_out[f_idx].metaValueExists(Constants::UserParam::DC_CHARGE_ADDUCTS))
     {
-      if (ef_.toString() != fm_out[f_idx].getMetaValue("dc_charge_adducts"))
-        throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String("Decharging produced inconsistent adduct annotation! [expected: ") + String(fm_out[f_idx].getMetaValue("dc_charge_adducts")) + "]", ef_.toString());
+      if (ef_.toString() != fm_out[f_idx].getMetaValue(Constants::UserParam::DC_CHARGE_ADDUCTS))
+        throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String("Decharging produced inconsistent adduct annotation! [expected: ") + String(fm_out[f_idx].getMetaValue(Constants::UserParam::DC_CHARGE_ADDUCTS)) + "]", ef_.toString());
     }
-    else
+    else // set DC_CHARGE_ADDUCTS meta value and set it to the formula from EmpiricalFormula, also set the adduct string in "adducts" meta value
     {
-      fm_out[f_idx].setMetaValue("dc_charge_adducts", ef_.toString());
-      String charge_sign = new_q >= 0 ? "+" : "-";
-      String s("[M");
-
-      //need elements sorted canonically (by string)
-      map<String, String> sorted_elem_map;
-      for (auto element_count : ef_)
-      {
-        String e_symbol(element_count.first->getSymbol());
-        String tmp = element_count.second > 0 ? "+" : "-";
-        tmp += abs(element_count.second) > 1 ? String(abs(element_count.second)) : "";
-        tmp += e_symbol;
-        sorted_elem_map[e_symbol] = tmp;
-      }
-      for (auto sorted_e_cnt : sorted_elem_map)
-      {
-        s += sorted_e_cnt.second;
-      }
-      s += String("]");
-      s += abs(new_q) > 1 ? String(abs(new_q)) : "";
-      s += charge_sign;
-
-      StringList dc_new_adducts = ListUtils::create<String>(s);
+      fm_out[f_idx].setMetaValue(Constants::UserParam::DC_CHARGE_ADDUCTS, ef_.toString());
+      StringList dc_new_adducts = ListUtils::create<String>(adduct.toAdductString(ef_.toString(), new_q));
       fm_out[f_idx].setMetaValue("adducts", dc_new_adducts);
     }
     fm_out[f_idx].setMetaValue("dc_charge_adduct_mass", ef_.getMonoWeight());
@@ -382,14 +370,14 @@ namespace OpenMS
     labels = c.getLabels(comp_side);
     if (labels.size() > 1)
       throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String("Decharging produced inconsistent label annotation! [expected: a single label]"), ListUtils::concatenate(labels, ","));
-    if (labels.size() > 0)
+    if (!labels.empty())
     {
       fm_out[f_idx].setMetaValue("map_idx", map_label_inverse_[labels[0]]);
     }
 
   }
 
-  void MetaboliteFeatureDeconvolution::candidateEdges_(FeatureMapType& fm_out, const Adduct& default_adduct, PairsType& feature_relation, Map<Size, std::set<CmpInfo_> >& feature_adducts)
+  void MetaboliteFeatureDeconvolution::candidateEdges_(FeatureMap& fm_out, const Adduct& default_adduct, PairsType& feature_relation, std::map<Size, std::set<CmpInfo_> >& feature_adducts)
   {
     bool is_neg = (param_.getValue("negative_mode") == "true" ? true : false);
 
@@ -424,7 +412,7 @@ namespace OpenMS
     }
 
     // create mass difference list
-    LOG_INFO << "Generating Masses with threshold: " << thresh_logp << " ...\n";
+    OPENMS_LOG_INFO << "Generating Masses with threshold: " << thresh_logp << " ...\n";
 
     //make it proof for charge 1..3 and charge -3..-1
     if ((q_min * q_max) < 0)
@@ -435,7 +423,7 @@ namespace OpenMS
     int small, large;
     small = q_min;
     large = q_max;
-    //if both negative, we assume that it goes min->max: -3 -> -1, i.e. q_max woud be -1
+    //if both negative, we assume that it goes min->max: -3 -> -1, i.e. q_max would be -1
     if ((q_min < 0) &&  (q_max < 0))
     {
       small = abs(q_max);
@@ -443,7 +431,7 @@ namespace OpenMS
     }
     MassExplainer me(potential_adducts_, small, large, q_span, thresh_logp, max_neutrals);
     me.compute();
-    LOG_INFO << "done\n";
+    OPENMS_LOG_INFO << "done\n";
 
 
     // holds query results for a mass difference
@@ -468,7 +456,7 @@ namespace OpenMS
       { // ** RT-window
 
         // knock-out criterion first: RT overlap
-        // use sorted structure and use 2nd start--1stend / 1st start--2ndend
+        // use sorted structure and use 2nd start--1st end / 1st start--2nd end
         const Feature& f1 = fm_out[i_RT];
         const Feature& f2 = fm_out[i_RT_window];
 
@@ -491,7 +479,9 @@ namespace OpenMS
 
         for (Int q1 = q_min; q1 <= q_max; ++q1) // ** q1
         {
-          //We assume that ionization modes won't get mixed in pipeline -> detected features should have same charge sign as provided to decharger settings.
+          //We assume that ionization modes won't get mixed in pipeline ->
+          //detected features should have same charge sign as provided to decharger settings for positive mode.
+          //For negative mode, this requirement is relaxed.
           if (!chargeTestworthy_(f1.getCharge(), q1, true))
             continue;
 
@@ -501,14 +491,42 @@ namespace OpenMS
                ; (q2 <= q_max) && (q2 <= q1 + q_span - 1)
                ; ++q2)
           { // ** q2
-            if (!chargeTestworthy_(f2.getCharge(), q2, f1.getCharge() == q1))
+            //again, for negative mode relaxed, thus we consider the absolute of charge
+            if (!chargeTestworthy_(f2.getCharge(), q2, abs(f1.getCharge()) == abs(q1)))
               continue;
 
             ++possibleEdges; // internal count, not vital
 
-            // find possible adduct combinations
+            // Find possible adduct combinations.
+            // Masses and tolerances are multiplied with their charges to nullify charge influence on mass shift.
+            // Allows to remove compound mass M from both sides of compomer equation -> queried shift only due to different adducts.
+            // Tolerance must increase when looking at M instead of m/z, as error margins increase as well by multiplication.
             CoordinateType naive_mass_diff = mz2 * abs(q2) - m1;
-            double abs_mass_diff = mz_diff_max * abs(q1) + mz_diff_max * abs(q2); // tolerance must increase when looking at M instead of m/z, as error margins increase as well
+
+            double abs_mass_diff;
+            if (param_.getValue("unit") == "Da")
+            {
+              abs_mass_diff = mz_diff_max * abs(q1) + mz_diff_max * abs(q2);
+            }
+            else if (param_.getValue("unit") == "ppm")
+            {
+              // For the ppm case, we multiply the respective experimental feature mz by its allowed ppm error before multiplication by charge.
+              // We look at the tolerance window with a simplified way: Just use the feature mz, and assume a symmetric window around it.
+              // Instead of answering the more complex/asymmetrical question: "which experimental mz can for given tolerance cause observed mz".
+              // (In the complex case we might have to consider different queries for different tolerance windows.)
+              // The expected error of this simplification is negligible:
+              // Assuming Y > X (X > Y is analog), given causative experimental mz Y and observed mz X with
+              // X = Y*(1 - d)
+              // for allowed tolerance d, the expected Error E between experimental mz and maximal mz in the tolerance window based on experimental mz is:
+              // E = (mz_exp - (mz_obs + max tolerance))/mz_exp = (Y - X*(1 + d))/Y = 1 - X*(1 + d)/Y = 1 - Y*(1 - d)*(1 + d)/Y = 1 - 1 - d*d = - d*d
+              // As d should be ppm sized, the error is something around 10 to the power of minus 12.
+              abs_mass_diff = mz1 * mz_diff_max * 1e-6 * abs(q1)   +   mz2 * mz_diff_max * 1e-6 * abs(q2);
+            }
+            else
+            {
+              throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "WARNING! Invalid tolerance unit! " + param_.getValue("unit").toString()  + "\n");
+            }
+
             //abs charge "3" to abs charge "1" -> simply invert charge delta for negative case?
             hits = me.query(q2 - q1, naive_mass_diff, abs_mass_diff, thresh_logp, md_s, md_e);
             OPENMS_PRECONDITION(hits >= 0, "MetaboliteFeatureDeconvolution querying #hits got negative result!");
@@ -530,7 +548,7 @@ namespace OpenMS
                 if (is_neg)
                 {
                   left_charges = -md_s->getPositiveCharges();
-                  right_charges = -md_s->getNegativeCharges();//for negative, a pos charge means either losing an H-1 from the left (decreasing charge) or the Na  case. (We do H-1Na as neutral, because of the pos,negcharges)
+                  right_charges = -md_s->getNegativeCharges();//for negative, a pos charge means either losing an H-1 from the left (decreasing charge) or the Na  case. (We do H-1Na as neutral, because of the pos, neg charges)
                 }
                 else
                 {
@@ -538,7 +556,7 @@ namespace OpenMS
                   right_charges = md_s->getPositiveCharges();
                 }
 
-                if ( // compomer fits charge assignment of left & right feature. doesnt consider charge sign switch over span!
+                if ( // compomer fits charge assignment of left & right feature. doesn't consider charge sign switch over span!
                   (abs(q1)  >= abs(left_charges)) && (abs(q2) >= abs(right_charges)))
                 {
                   // compomer has better probability
@@ -566,7 +584,7 @@ namespace OpenMS
                   if (((q1 - left_charges) % default_adduct.getCharge() != 0) ||
                       ((q2 - right_charges) % default_adduct.getCharge() != 0))
                   {
-                    LOG_WARN << "Cannot add enough default adduct (" << default_adduct.getFormula() << ") to exactly fit feature charge! Next...)\n";
+                    OPENMS_LOG_WARN << "Cannot add enough default adduct (" << default_adduct.getFormula() << ") to exactly fit feature charge! Next...)\n";
                     continue;
                   }
 
@@ -588,13 +606,13 @@ namespace OpenMS
                   Compomer cmp_stripped(cmp.removeAdduct(default_adduct));
 
                   // save new adduct candidate
-                  if (cmp_stripped.getComponent()[Compomer::LEFT].size() > 0)
+                  if (!cmp_stripped.getComponent()[Compomer::LEFT].empty())
                   {
                     String tmp = cmp_stripped.getAdductsAsString(Compomer::LEFT);
                     CmpInfo_ cmp_left(tmp, feature_relation.size(), Compomer::LEFT);
                     feature_adducts[i_RT].insert(cmp_left);
                   }
-                  if (cmp_stripped.getComponent()[Compomer::RIGHT].size() > 0)
+                  if (!cmp_stripped.getComponent()[Compomer::RIGHT].empty())
                   {
                     String tmp = cmp_stripped.getAdductsAsString(Compomer::RIGHT);
                     CmpInfo_ cmp_right(tmp, feature_relation.size(), Compomer::RIGHT);
@@ -633,11 +651,11 @@ namespace OpenMS
     } // RT sweep line
 
 
-    LOG_INFO << no_cmp_hit << " of " << (no_cmp_hit + cmp_hit) << " valid net charge compomer results did not pass the feature charge constraints\n";
+    OPENMS_LOG_INFO << no_cmp_hit << " of " << (no_cmp_hit + cmp_hit) << " valid net charge compomer results did not pass the feature charge constraints\n";
 
     inferMoreEdges_(feature_relation, feature_adducts);
 
-    LOG_INFO << "Found " << feature_relation.size() << " putative edges (of " << possibleEdges << ")"
+    OPENMS_LOG_INFO << "Found " << feature_relation.size() << " putative edges (of " << possibleEdges << ")"
                << " and avg hit-size of " << (1.0 * overallHits / feature_relation.size())
                << std::endl;
 
@@ -645,7 +663,7 @@ namespace OpenMS
 
 //@}
 
-  void MetaboliteFeatureDeconvolution::compute(const FeatureMapType& fm_in, FeatureMapType& fm_out, ConsensusMap& cons_map, ConsensusMap& cons_map_p)
+  void MetaboliteFeatureDeconvolution::compute(const FeatureMap& fm_in, FeatureMap& fm_out, ConsensusMap& cons_map, ConsensusMap& cons_map_p)
   {
     bool is_neg = (param_.getValue("negative_mode") == "true" ? true : false);
     ConsensusMap cons_map_p_neg; // tmp
@@ -657,7 +675,7 @@ namespace OpenMS
     fm_out = fm_in;
     fm_out.sortByPosition();
     fm_out.applyMemberFunction(&UniqueIdInterface::ensureUniqueId);
-    FeatureMapType fm_out_untouched = fm_out;
+    FeatureMap fm_out_untouched = fm_out;
 
 
     Adduct default_adduct;
@@ -676,7 +694,7 @@ namespace OpenMS
     // edges
     PairsType feature_relation;
     // for each feature, hold the explicit adduct type induced by edges
-    Map<Size, std::set<CmpInfo_> > feature_adducts;
+    std::map<Size, std::set<CmpInfo_> > feature_adducts;
 
 
     candidateEdges_(fm_out, default_adduct, feature_relation, feature_adducts);
@@ -692,7 +710,7 @@ namespace OpenMS
       ILPDCWrapper lp_wrapper;
       // compute best solution (this will REORDER elements on feature_relation[] !) - do not rely on order afterwards!
       double ilp_score = lp_wrapper.compute(fm_out, feature_relation, this->verbose_level_);
-      LOG_INFO << "ILP score is: " << ilp_score << std::endl;
+      OPENMS_LOG_INFO << "ILP score is: " << ilp_score << std::endl;
     }
 
     // prepare output consensusMaps
@@ -703,7 +721,7 @@ namespace OpenMS
     // **       DEBUG          ** //
     // -------------------------- //
 
-    Map<Size, Size> features_aes, features_des; // count of adjacent active and dead edges
+    std::map<Size, Size> features_aes, features_des; // count of adjacent active and dead edges
     UInt agreeing_fcharge = 0;
     std::vector<Size> f_idx_v(2);
     Size aedges = 0;
@@ -755,7 +773,7 @@ namespace OpenMS
           double rt_diff =  fabs(fm_out[feature_relation[i].getElementIndex(0)].getRT() - fm_out[feature_relation[i].getElementIndex(1)].getRT());
           if (verbose_level_ > 2)
           {
-            LOG_WARN << "Conflict in f_Q! f_RT:" << fm_out[f_idx_v[f_idx]].getRT() << " f_MZ:" << fm_out[f_idx_v[f_idx]].getMZ() << " f_int:" << fm_out[f_idx_v[f_idx]].getIntensity()
+            OPENMS_LOG_WARN << "Conflict in f_Q! f_RT:" << fm_out[f_idx_v[f_idx]].getRT() << " f_MZ:" << fm_out[f_idx_v[f_idx]].getMZ() << " f_int:" << fm_out[f_idx_v[f_idx]].getIntensity()
                      << " Q:" << fm_out[f_idx_v[f_idx]].getCharge() << " PredictedQ:" << feature_relation[i].getCharge((UInt)f_idx)
                      << "[[ dRT: " << rt_diff << " dMZ: " << feature_relation[i].getMassDiff() << " score[" << i << "]:"
                      << feature_relation[i].getEdgeScore() << " f#:" << fm_out[f_idx_v[f_idx]].getUniqueId() << " " << feature_relation[i].getCompomer().getAdductsAsString((UInt)f_idx)
@@ -782,7 +800,10 @@ namespace OpenMS
       }
 
     }
-    LOG_INFO << "Agreeing charges: " << agreeing_fcharge << "/" << (aedges * 2) << std::endl;
+
+    {
+      OPENMS_LOG_INFO << "Agreeing charges: " << agreeing_fcharge << "/" << (aedges * 2) << std::endl;
+    }
 
 
     // END DEBUG
@@ -791,18 +812,18 @@ namespace OpenMS
     // ** collect related features ** //
     // ------------------------------ //
 
-    //Can we toggle here to keep metaValues from previous iteration, and modify the consistency check further down to only accept the pair if it is in agreement to old one? Probably too late then already. But we might check the metaValue and reuse the consistency code further below for evaluation further above? Should be able to compare existing annotation to the stuff we put into putativefeature_relation pairs before ILP computation itself.
+    //Can we toggle here to keep metaValues from previous iteration, and modify the consistency check further down to only accept the pair if it is in agreement to old one? Probably too late then already. But we might check the metaValue and reuse the consistency code further below for evaluation further above? Should be able to compare existing annotation to the stuff we put into putative feature_relation pairs before ILP computation itself.
     // fresh start for meta annotation
     for (Size i = 0; i < fm_out.size(); ++i)
     {
-      if (fm_out[i].metaValueExists("dc_charge_adducts"))
-        fm_out[i].removeMetaValue("dc_charge_adducts");
+      if (fm_out[i].metaValueExists(Constants::UserParam::DC_CHARGE_ADDUCTS))
+        fm_out[i].removeMetaValue(Constants::UserParam::DC_CHARGE_ADDUCTS);
     }
 
     // write groups to consensusXML (with type="charge_groups")
 
     // **find cliques from pairs
-    // find which featureIdx maps to which consensusFeatureIdx
+    // find which featureIdxmaps to which consensusFeatureId
     // if no mapping is found, make a new CF.
     // if new pair spans two existing CFs -> merge CFs
     typedef std::map<Size, Size> CliqueMap;
@@ -843,28 +864,29 @@ namespace OpenMS
         cf.setUniqueId();
         cf.insert((UInt64) fm_out[f0_idx].getMetaValue("map_idx"), fm_out[f0_idx]);
         cf.insert((UInt64) fm_out[f1_idx].getMetaValue("map_idx"), fm_out[f1_idx]);
-        cf.setMetaValue("Local", String(old_q0) + ":" + String(old_q1));
-        cf.setMetaValue("CP", String(fm_out[f0_idx].getCharge()) + "(" + String(fm_out[f0_idx].getMetaValue("dc_charge_adducts")) + "):"
-                        + String(fm_out[f1_idx].getCharge()) + "(" + String(fm_out[f1_idx].getMetaValue("dc_charge_adducts")) + ") "
+
+        //remove info not wanted in pair
+        std::vector<String> keys;
+        cf.getKeys(keys);
+        for (std::vector<String>::const_iterator it = keys.begin(); it != keys.end(); ++it)
+        {
+          cf.removeMetaValue(*it);
+        }
+        cf.setMetaValue("Old_charges", String(old_q0) + ":" + String(old_q1));
+        cf.setMetaValue("CP", String(fm_out[f0_idx].getCharge()) + "(" + String(fm_out[f0_idx].getMetaValue(Constants::UserParam::DC_CHARGE_ADDUCTS)) + "):"
+                        + String(fm_out[f1_idx].getCharge()) + "(" + String(fm_out[f1_idx].getMetaValue(Constants::UserParam::DC_CHARGE_ADDUCTS)) + ") "
                         + String("Delta M: ") + feature_relation[i].getMassDiff()
                         + String(" Score: ") + feature_relation[i].getEdgeScore());
         //cf.computeDechargeConsensus(fm_out);
 
-        //remove info not wanted in pair info nor in decharged consensus
-        cf.removeMetaValue("label");
-        cf.removeMetaValue("dc_charge_adducts");
-        cf.removeMetaValue("adducts");
-        cf.removeMetaValue("dc_charge_adduct_mass");
-        cf.removeMetaValue("is_backbone");
-        cf.removeMetaValue("old_charge");
-        cf.removeMetaValue("map_idx");
-        // print pairs only
         cons_map_p.push_back(cf);
 
         //remove info not wanted in decharged consensus
-        cf.removeMetaValue("Local");
-        cf.removeMetaValue("CP");
-
+        cf.getKeys(keys);
+        for (std::vector<String>::const_iterator it = keys.begin(); it != keys.end(); ++it)
+        {
+          cf.removeMetaValue(*it);
+        }
 
         //
         // create cliques for decharge consensus features
@@ -896,7 +918,7 @@ namespace OpenMS
           {
             cons_map[target_cf1].insert((UInt64) fm_out[f0_idx].getMetaValue("map_idx"), fm_out[f0_idx]);
             clique_register[f0_idx] = target_cf1;
-            //std::cout << "add: F" << f0_idx << " to " <<target_cf1 << " dueto F" << f1_idx << "\n";
+            //std::cout << "add: F" << f0_idx << " to " <<target_cf1 << " due to F" << f1_idx << "\n";
           }
           else if (target_cf1 == -1) //** add f1 to the already existing cf of f0
           {
@@ -949,6 +971,17 @@ namespace OpenMS
         continue;
       }
 
+      // store element adducts
+      for (ConsensusFeature::HandleSetType::const_iterator it_h = hst.begin(); it_h != hst.end(); ++it_h)
+      {
+        if (fm_out[fm_out.uniqueIdToIndex(it_h->getUniqueId())].metaValueExists(Constants::UserParam::DC_CHARGE_ADDUCTS))
+        {
+          it->setMetaValue(String(it_h->getUniqueId()), fm_out[fm_out.uniqueIdToIndex(it_h->getUniqueId())].getMetaValue(Constants::UserParam::DC_CHARGE_ADDUCTS));
+        }
+        // also add consensusID of group to all feature_relation
+        fm_out[fm_out.uniqueIdToIndex(it_h->getUniqueId())].setMetaValue(Constants::UserParam::ADDUCT_GROUP, String(it->getUniqueId()));
+      }
+
       // store number of distinct charges
       std::set<Int> charges;
       for (ConsensusFeature::HandleSetType::const_iterator it_h = hst.begin(); it_h != hst.end(); ++it_h)
@@ -980,22 +1013,67 @@ namespace OpenMS
       if (clique_register.count(i) > 0)
         continue;
 
-      FeatureMapType::FeatureType f_single = fm_out_untouched[i];
-      f_single.setMetaValue("is_single_feature", 1);
-      f_single.setMetaValue("charge", f_single.getCharge());
+      Feature f_single = fm_out_untouched[i];
+      if (f_single.getCharge() == 0)
+      {
+        f_single.setMetaValue("is_ungrouped_monoisotopic", 1);
+      }
+      else
+      {
+        f_single.setMetaValue("is_ungrouped_with_charge", 1);
+      }
+
+      if (is_neg)
+      {
+        //if negative mode, we report only negative charges. abs() for chains of negative mode dechargers.
+        f_single.setCharge(- abs(f_single.getCharge()));
+      }
+
+      //if negative mode, replace former positive charges with their negative sign version?
+      //If singleton, set dc_charge_adduct to default, and charge negative in neg mode?,
+      //first try without modifying charge, maybe already there.
+      // that should help get the correct mass for charged features at least.
+      //adduct mass can already be negative, will be multiplied in consensusfeature method with absolute charge
+      if (f_single.getCharge() != 0)
+      {
+        EmpiricalFormula default_ef(default_adduct.getFormula());
+        f_single.setMetaValue(Constants::UserParam::DC_CHARGE_ADDUCTS, (default_ef  * abs(f_single.getCharge())).toString());
+        f_single.setMetaValue("dc_charge_adduct_mass", (default_adduct.getSingleMass() * abs(f_single.getCharge())));
+      }
+
       fm_out[i] = f_single; // overwrite whatever DC has done to this feature!
 
       ConsensusFeature cf(f_single);
       cf.setQuality(0.0);
       cf.setUniqueId();
       cf.insert(0, f_single);
+      //remove info not wanted in decharged consensus
+      std::vector<String> keys;
+      cf.getKeys(keys);
+      for (std::vector<String>::const_iterator it = keys.begin(); it != keys.end(); ++it)
+      {
+        if (*it == "is_ungrouped_monoisotopic" || *it == "is_ungrouped_with_charge")
+          continue;
+
+        cf.removeMetaValue(*it);
+      }
+      // Need to set userParam Group output feature map features for singletons here
+      fm_out[i].setMetaValue(Constants::UserParam::ADDUCT_GROUP, String(cf.getUniqueId()));
+
 
       cons_map.push_back(cf);
-      cons_map.back().computeDechargeConsensus(fm_out_untouched);
+      cons_map.back().computeDechargeConsensus(fm_out);//previously used fm_out_untouched. does fm_out also work?
+      //If computing decharge mz is 0 (meaning monoisotopic singleton), we instead use the feature mz
+      if (cons_map.back().getMZ() == 0)
+      {
+        cons_map.back().setMZ(f_single.getMZ());
+      }
       ++singletons_count;
     }
-
-    LOG_INFO << "Single features without charge ladder: " << singletons_count << " of " << fm_out.size() << "\n";
+    if (verbose_level_ > 2)
+    {
+      OPENMS_LOG_INFO << "Single features without charge ladder: " << singletons_count << " of " << fm_out.size() << "\n";
+    }
 
 
     // fill the header
@@ -1027,7 +1105,7 @@ namespace OpenMS
   /// (more difficult explanation) supported by neighboring edges
   /// e.g. (.)   -> (H+) might be augmented to
   ///      (Na+) -> (H+Na+)
-  void MetaboliteFeatureDeconvolution::inferMoreEdges_(PairsType& edges, Map<Size, std::set<CmpInfo_> >& feature_adducts)
+  void MetaboliteFeatureDeconvolution::inferMoreEdges_(PairsType& edges, std::map<Size, std::set<CmpInfo_> >& feature_adducts)
   {
     Adduct default_adduct;
 
@@ -1140,7 +1218,7 @@ namespace OpenMS
       }
     } // edge for
 
-    LOG_INFO << "Inferring edges raised edge count from " << edges_size << " to " << edges.size() << "\n";
+    OPENMS_LOG_INFO << "Inferring edges raised edge count from " << edges_size << " to " << edges.size() << "\n";
   }
 
   void MetaboliteFeatureDeconvolution::printEdgesOfConnectedFeatures_(Size idx_1, Size idx_2, const PairsType& feature_relation)
@@ -1161,7 +1239,7 @@ namespace OpenMS
     return;
   }
 
-  inline bool MetaboliteFeatureDeconvolution::intensityFilterPassed_(const Int q1, const Int q2, const Compomer& cmp, const FeatureType& f1, const FeatureType& f2)
+  inline bool MetaboliteFeatureDeconvolution::intensityFilterPassed_(const Int q1, const Int q2, const Compomer& cmp, const Feature& f1, const Feature& f2) const
   {
     if (!enable_intensity_filter_)
       return true;
@@ -1189,37 +1267,48 @@ namespace OpenMS
 
   bool MetaboliteFeatureDeconvolution::chargeTestworthy_(const Int feature_charge, const Int putative_charge, const bool other_unchanged) const
   {
-    //Switches of charge signs in one ionization mode should logically not occur. The assumed decharger charge settings should fit to feature charges
-    if (feature_charge * putative_charge < 0)
+    //Switches of charge signs in one ionization mode should logically not occur.
+    //The assumed decharger charge settings should fit to feature charges.
+    //However, FFM (and other tools?) doesn't know about negative charges, thus for negative charges,
+    //we have to verify that positive Feature charges match negative adduct charges.
+    //Further, we have two scenarios: 1. The features come from FFM, then all charges are absolute.
+    // 2. We iteratively decharge negative mode, leading to decharger featureXML outputs with new negative charges.
+    //Thus, we restrict this check for test worthiness to positive mode, as for negative mode both charge signs are valid.
+    bool is_neg = (param_.getValue("negative_mode") == "true" ? true : false);
+    if (!is_neg && (feature_charge * putative_charge < 0))
     {
-      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String("feature charge and putative charge switch charge direction!"), String(feature_charge)+" "+String(putative_charge));
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String("feature charge and putative positive mode charge switch charge direction!"), String(feature_charge)+" "+String(putative_charge));
     }
 
+    //From here, we checked whether we are fine with charge signs, so for now simply look only at absolute charges.
+    const Int abs_feature_charge = abs(feature_charge);
+    const Int abs_putative_charge = abs(putative_charge);
+
     // if no charge given or all-charges is selected. Assume no charge detected -> charge 0
-    if ((feature_charge == 0) || (q_try_ == QALL))
+    if ((abs_feature_charge == 0) || (q_try_ == QALL))
     {
       return true;
     }
     else if (q_try_ == QHEURISTIC)
     {
       // do not allow two charges to change at the same time
-      if (!other_unchanged && feature_charge != putative_charge)
+      if (!other_unchanged && abs_feature_charge != abs_putative_charge)
         return false;
 
       // test two adjacent charges:
-      if (abs(feature_charge - putative_charge) <= 2)
+      if (abs(abs_feature_charge - abs_putative_charge) <= 2)
         return true;
 
       // test two multiples
-      if (feature_charge * 2 == putative_charge || feature_charge * 3 == putative_charge
-         || feature_charge == putative_charge * 2 || feature_charge == putative_charge * 3)
+      if (abs_feature_charge * 2 == abs_putative_charge || abs_feature_charge * 3 == abs_putative_charge
+         || abs_feature_charge == abs_putative_charge * 2 || abs_feature_charge == abs_putative_charge * 3)
         return true;
 
       return false;
     }
     else if (q_try_ == QFROMFEATURE)
     {
-      return feature_charge == putative_charge;
+      return abs_feature_charge == abs_putative_charge;
     }
 
     throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "q_try_ has unhandled enum value!", String((Int)q_try_));
@@ -1253,8 +1342,8 @@ namespace OpenMS
     // if more than 5% of charge ladder have only gapped, report
     if (ladders_with_odd < ladders_total * 0.95)
     {
-      LOG_WARN << ".\n..\nWarning: a significant portion of your decharged molecules have gapped, even-numbered charge ladders (" << ladders_total - ladders_with_odd << " of " << ladders_total << ")";
-      LOG_WARN <<"This might indicate a too low charge interval being tested.\n..\n.\n";
+      OPENMS_LOG_WARN << ".\n..\nWarning: a significant portion of your decharged molecules have gapped, even-numbered charge ladders (" << ladders_total - ladders_with_odd << " of " << ladders_total << ")";
+      OPENMS_LOG_WARN <<"This might indicate a too low charge interval being tested.\n..\n.\n";
     }
   }
 }

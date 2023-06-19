@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -33,18 +33,21 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/config.h>
-
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/FileTypes.h>
 #include <OpenMS/FORMAT/FeatureXMLFile.h>
 #include <OpenMS/FORMAT/ConsensusXMLFile.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/DATASTRUCTURES/StringListUtils.h>
-#include <OpenMS/DATASTRUCTURES/Map.h>
+#include <OpenMS/KERNEL/FeatureMap.h>
 
 #include <QtCore/QString>
 
 #include <OpenMS/MATH/STATISTICS/StatisticFunctions.h>
+
+#include <iomanip>     // setw
+
+#include <map>
 
 using namespace OpenMS;
 using namespace std;
@@ -59,9 +62,9 @@ using namespace std;
   <center>
   <table>
   <tr>
-  <td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. predecessor tools </td>
-  <td VALIGN="middle" ROWSPAN=2> \f$ \longrightarrow \f$ MapStatistics \f$ \longrightarrow \f$</td>
-  <td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. successor tools </td>
+  <th ALIGN = "center"> pot. predecessor tools </td>
+  <td VALIGN="middle" ROWSPAN=2> &rarr; MapStatistics &rarr;</td>
+  <th ALIGN = "center"> pot. successor tools </td>
   </tr>
   <tr>
   <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> FeatureFinder, FeatureMatcher</td>
@@ -210,7 +213,7 @@ protected:
 
     if (in_type == FileTypes::UNKNOWN)
     {
-      writeLog_("Error: Could not determine input file type!");
+      writeLogError_("Error: Could not determine input file type!");
       return PARSE_ERROR;
     }
 
@@ -276,14 +279,14 @@ protected:
         dp = cons.getDataProcessing();
       }
       int i = 0;
-      for (vector<DataProcessing>::iterator it = dp.begin(); it != dp.end(); ++it)
+      for (const DataProcessing& data : dp)
       {
         os << "Data processing " << i << endl;
-        os << "\tcompletion_time:   " << (*it).getCompletionTime().getDate() << 'T' << (*it).getCompletionTime().getTime() << endl;
-        os << "\tsoftware name:     " << (*it).getSoftware().getName() << " version " << (*it).getSoftware().getVersion() << endl;
-        for (set<DataProcessing::ProcessingAction>::const_iterator paIt = (*it).getProcessingActions().begin(); paIt != (*it).getProcessingActions().end(); ++paIt)
+        os << "\tcompletion_time:   " << data.getCompletionTime().getDate() << 'T' << data.getCompletionTime().getTime() << endl;
+        os << "\tsoftware name:     " << data.getSoftware().getName() << " version " << data.getSoftware().getVersion() << endl;
+        for (const DataProcessing::ProcessingAction& pa : data.getProcessingActions())
         {
-          os << "\t\tprocessing action: " << DataProcessing::NamesOfProcessingAction[*paIt] << endl;
+          os << "\t\tprocessing action: " << DataProcessing::NamesOfProcessingAction[pa] << endl;
         }
         i++;
       }
@@ -297,26 +300,26 @@ protected:
       //-------------------------------------------------------------
       // Content statistics
       //-------------------------------------------------------------
-      Map<String, int> meta_names;
+      std::map<String, int> meta_names;
       if (in_type == FileTypes::FEATUREXML) //features
       {
         os << "Number of features: " << feat.size() << endl
            << endl
            << "Ranges:" << endl
-           << "  retention time:  " << String::number(feat.getMin()[Peak2D::RT], 2) << " : " << String::number(feat.getMax()[Peak2D::RT], 2) << endl
-           << "  mass-to-charge:  " << String::number(feat.getMin()[Peak2D::MZ], 2) << " : " << String::number(feat.getMax()[Peak2D::MZ], 2) << endl
-           << "  intensity:       " << String::number(feat.getMinInt(), 2) << " : " << String::number(feat.getMaxInt(), 2) << endl
+           << "  retention time:  " << String::number(feat.getMinRT(), 2) << " : " << String::number(feat.getMaxRT(), 2) << endl
+           << "  mass-to-charge:  " << String::number(feat.getMinMZ(), 2) << " : " << String::number(feat.getMaxMZ(), 2) << endl
+           << "  intensity:       " << String::number(feat.getMinIntensity(), 2) << " : " << String::number(feat.getMaxIntensity(), 2) << endl
            << endl;
 
         // Charge distribution
-        Map<UInt, UInt> charges;
+        std::map<UInt, UInt> charges;
         for (Size i = 0; i < feat.size(); ++i)
         {
           charges[feat[i].getCharge()]++;
         }
 
         os << "Charge distribution" << endl;
-        for (Map<UInt, UInt>::const_iterator it = charges.begin();
+        for (std::map<UInt, UInt>::const_iterator it = charges.begin();
              it != charges.end(); ++it)
         {
           os << "charge " << it->first << ": " << it->second << endl;
@@ -339,9 +342,9 @@ protected:
         os << "  total:      " << setw(6) << cons.size() << endl << endl;
 
         os << "Ranges:" << endl
-           << "  retention time:  " << String::number(cons.getMin()[Peak2D::RT], 2) << " : " << String::number(cons.getMax()[Peak2D::RT], 2) << endl
-           << "  mass-to-charge:  " << String::number(cons.getMin()[Peak2D::MZ], 2) << " : " << String::number(cons.getMax()[Peak2D::MZ], 2) << endl
-           << "  intensity:       " << String::number(cons.getMinInt(), 2) << " : " << String::number(cons.getMaxInt(), 2) << endl;
+           << "  retention time:  " << String::number(cons.getMinRT(), 2) << " : " << String::number(cons.getMaxRT(), 2) << endl
+           << "  mass-to-charge:  " << String::number(cons.getMinMZ(), 2) << " : " << String::number(cons.getMaxMZ(), 2) << endl
+           << "  intensity:       " << String::number(cons.getMinIntensity(), 2) << " : " << String::number(cons.getMaxIntensity(), 2) << endl;
 
         // file descriptions
         const ConsensusMap::ColumnHeaders& descs = cons.getColumnHeaders();
@@ -430,19 +433,17 @@ protected:
       vector<double> it_aad_by_cfs;
       it_aad_by_cfs.reserve(size);
 
-      for (ConsensusMap::const_iterator cm_iter = cons.begin();
-           cm_iter != cons.end(); ++cm_iter)
+      for (const ConsensusFeature& cm : cons)
       {
         double rt_aad = 0;
         double mz_aad = 0;
         double it_aad = 0;
-        intensities.push_back(cm_iter->getIntensity());
-        qualities.push_back(cm_iter->getQuality());
-        widths.push_back(cm_iter->getWidth());
-        for (ConsensusFeature::HandleSetType::const_iterator hs_iter = cm_iter->begin();
-             hs_iter != cm_iter->end(); ++hs_iter)
+        intensities.push_back(cm.getIntensity());
+        qualities.push_back(cm.getQuality());
+        widths.push_back(cm.getWidth());
+        for (const FeatureHandle& hs : cm)
         {
-          double rt_diff = hs_iter->getRT() - cm_iter->getRT();
+          double rt_diff = hs.getRT() - cm.getRT();
           rt_delta_by_elems.push_back(rt_diff);
           if (rt_diff < 0)
           {
@@ -450,7 +451,7 @@ protected:
           }
           rt_aad_by_elems.push_back(rt_diff);
           rt_aad += rt_diff;
-          double mz_diff = hs_iter->getMZ() - cm_iter->getMZ();
+          double mz_diff = hs.getMZ() - cm.getMZ();
           mz_delta_by_elems.push_back(mz_diff);
           if (mz_diff < 0)
           {
@@ -458,7 +459,7 @@ protected:
           }
           mz_aad_by_elems.push_back(mz_diff);
           mz_aad += mz_diff;
-          double it_ratio = hs_iter->getIntensity() / (cm_iter->getIntensity() ? cm_iter->getIntensity() : 1.);
+          double it_ratio = hs.getIntensity() / (cm.getIntensity() ? cm.getIntensity() : 1.);
           it_delta_by_elems.push_back(it_ratio);
           if (it_ratio < 1.)
           {
@@ -467,11 +468,11 @@ protected:
           it_aad_by_elems.push_back(it_ratio);
           it_aad += it_ratio;
         }
-        if (!cm_iter->empty())
+        if (!cm.empty())
         {
-          rt_aad /= cm_iter->size();
-          mz_aad /= cm_iter->size();
-          it_aad /= cm_iter->size();
+          rt_aad /= cm.size();
+          mz_aad /= cm.size();
+          it_aad /= cm.size();
         } // otherwise rt_aad etc. are 0 anyway
         rt_aad_by_cfs.push_back(rt_aad);
         mz_aad_by_cfs.push_back(mz_aad);

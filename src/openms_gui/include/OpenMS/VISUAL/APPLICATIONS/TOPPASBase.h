@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -39,15 +39,16 @@
 
 //OpenMS
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
+#include <OpenMS/VISUAL/EnhancedWorkspace.h>
 #include <OpenMS/VISUAL/TOPPASTreeView.h>
+#include <OpenMS/VISUAL/RecentFilesMenu.h>
 
 //QT
+#include <QtWidgets/QButtonGroup>
 #include <QtWidgets/QMainWindow>
 #include <QtWidgets/QMdiArea>
-#include <QtWidgets/QButtonGroup>
-#include <QtCore/QProcess>
-#include <QtWidgets/QSplashScreen>
 #include <QtNetwork/QNetworkReply>
+#include <QtWidgets/QSplashScreen>
 
 class QToolBar;
 class QListWidget;
@@ -63,10 +64,11 @@ class QNetworkAccessManager;
 
 namespace OpenMS
 {
+  class EnhancedWorkSpace;
+  class EnhancedTabBar;
   class TOPPASWidget;
   class TOPPASScene;
-  class TOPPASTabBar;
-  class TOPPASLogWindow;
+  class LogWindow;
   class TOPPASResources;
 
   /**
@@ -96,17 +98,17 @@ If the filename is empty, the application name + ".ini" is used as filename
     /// stores the preferences (used when this window is closed)
     void savePreferences();
     /// loads the files and updates the splash screen
-    void loadFiles(const StringList& list, QSplashScreen* splash_screen);
+    void loadFiles(const std::vector<String>& list, QSplashScreen* splash_screen);
 
 public slots:
     /// opens the file in a new window
     void addTOPPASFile(const String& file_name, bool in_new_window = true);
     /// shows the dialog for opening files
-    void openFileDialog();
+    void openFilesByDialog();
     /// shows the dialog for opening example files
     void openExampleDialog();
-    /// shows the dialog for creating a new file (pass IDINITIALUNTITLED as @p id if its the first call)
-    void newPipeline(const int id = -1);
+    /// creates a new tab
+    void newPipeline();
     /// shows the dialog for including another workflow in the currently opened one
     void includePipeline();
     /// shows the dialog for saving the current file and updates the current tab caption
@@ -137,7 +139,7 @@ public slots:
       If @p time is 0 the status message is displayed until showStatusMessage is called with an empty message or a new message.
       Otherwise the message is displayed for @p time ms.
     */
-    void showStatusMessage(std::string msg, OpenMS::UInt time);
+    void showStatusMessage(const std::string& msg, OpenMS::UInt time);
     /// shows x,y coordinates in the status bar
     void showCursorStatus(double x, double y);
     /// closes the active window
@@ -171,7 +173,7 @@ public slots:
     /// Open files in a new TOPPView instance
     void openFilesInTOPPView(QStringList all_files);
     /// Opens a toppas file
-    void openToppasFile(QString filename);
+    void openToppasFile(const QString& filename);
 protected slots:
 
     /** @name Tab bar slots
@@ -185,8 +187,8 @@ protected slots:
 
     /// enable/disable menu entries depending on the current state
     void updateMenu();
-    /// Shows the widget as window in the workspace (the special_id is only used for the first untitled widget (to be able to auto-close it later)
-    void showAsWindow_(TOPPASWidget* sw, const String& caption, const int special_id = -1);
+    /// Shows the widget as window in the workspace
+    void showAsWindow_(TOPPASWidget* sw, const String& caption);
     /// Inserts a new TOPP tool in the current window at (x,y)
     void insertNewVertex_(double x, double y, QTreeWidgetItem* item = nullptr);
     /// Inserts the @p item in the middle of the current window
@@ -205,7 +207,7 @@ protected slots:
 protected:
 
     /// Log output window
-    TOPPASLogWindow* log_;
+    LogWindow* log_;
     /// Workflow Description window
     QTextEdit* desc_;
 
@@ -215,8 +217,11 @@ protected:
     QToolBar* tool_bar_;
     //@}
 
+    /// manages recent list of filenames and the menu that goes with it
+    RecentFilesMenu recent_files_menu_;  // needs to be declared before 'menu_', because its needed there
+
     /// Main workspace
-    QMdiArea* ws_;
+    EnhancedWorkspace* ws_;
 
     /// OpenMS homepage workflow browser
     QWebView* webview_;
@@ -226,7 +231,7 @@ protected:
     QNetworkReply* network_reply_;
 
     ///Tab bar. The address of the corresponding window to a tab is stored as an int in tabData()
-    TOPPASTabBar* tab_bar_;
+    EnhancedTabBar* tab_bar_;
 
     /// Tree view of all available TOPP tools
     QTreeWidget* tools_tree_view_;
@@ -266,24 +271,11 @@ protected:
     void keyPressEvent(QKeyEvent* e) override;
     //@}
 
-    ///Log message states
-    enum LogState
-    {
-      LS_NOTICE, ///< Notice
-      LS_WARNING, ///< Warning
-      LS_ERROR ///< Fatal error
-    };
-    /// Shows a log message in the log_ window
-    void showLogMessage_(LogState state, const String& heading, const String& body);
-
     /// The clipboard
     TOPPASScene* clipboard_scene_;
 
 
 public:
-    /// use this for the first call to newPipeline(), to ensure that the first empty (and unmodified) workspace is closed iff existing workflows are loaded
-    static int const IDINITIALUNTITLED = 1000;
-
     /// @name common functions used in TOPPAS and TOPPView
     //@{
     /// Creates and fills a tree widget with all available tools
@@ -291,13 +283,13 @@ public:
 
     /// Saves the workflow in the provided TOPPASWidget to a user defined location.
     /// Returns the full file name or "" if no valid one is selected.
-    static QString savePipelineAs(TOPPASWidget* w, QString current_path);
+    static QString savePipelineAs(TOPPASWidget* w, const QString& current_path);
 
     /// Loads and sets the resources of the TOPPASWidget.
-    static QString loadPipelineResourceFile(TOPPASWidget* w, QString current_path);
+    static QString loadPipelineResourceFile(TOPPASWidget* w, const QString& current_path);
 
     /// Saves the resources of the TOPPASWidget.
-    static QString savePipelineResourceFile(TOPPASWidget* w, QString current_path);
+    static QString savePipelineResourceFile(TOPPASWidget* w, const QString& current_path);
 
     /// Refreshes the TOPP tools parameters of the pipeline
     static QString refreshPipelineParameters(TOPPASWidget* tw, QString current_path);

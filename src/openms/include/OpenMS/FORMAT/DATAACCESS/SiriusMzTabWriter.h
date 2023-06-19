@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -34,6 +34,9 @@
 
 #pragma once
 
+#include <OpenMS/FORMAT/MzTabFile.h>
+#include <OpenMS/FORMAT/CsvFile.h>
+
 namespace OpenMS
 {
   class OPENMS_DLLAPI SiriusMzTabWriter
@@ -41,17 +44,19 @@ namespace OpenMS
   public:
 
     /**
-    @brief Internal structure used in @ref SiriusAdapter that is used
+    @brief Internal structure used in @ref UTILS_SiriusAdapter that is used
     for the conversion of the sirius output to an mzTab.
     @ingroup ID
 
     SiriusAdapterHit:
     formula (String) - Sumformula
     adduct (String) - Assigned adduct
+    precursor_formula (String) - Sumformula of the precursor (can be the same as formula)
     rank (int)  - Rank of the possible sumformula for a compound (spectrum) calculated by Sirius
-    score (double) - Overall score of the possible sumformula for a compound (spectrum) calculated by Sirius
-    treescore (double) - Fragmentation pattern score
-    isoscore (double) - Isotope pattern score
+    rank_score (double) - Ranking score
+    iso_score (double) - Isotope pattern score
+    tree_score (double) - Fragmentation pattern score
+    sirius_score (double) - Overall score of the possible sumformula for a compound (spectrum) calculated by Sirius
     explainedpeaks (int) - Number of explained peaks
     explainedintensity (double) - Relative amount of explained intensity
 
@@ -68,36 +73,74 @@ namespace OpenMS
     @return mzTab
     */
 
-    struct SiriusAdapterHit
+    class SiriusAdapterHit
     {
+    public:
       OpenMS::String formula;
       OpenMS::String adduct;
-      int rank;
-      double score;
-      double treescore;
-      double isoscore;
-      int explainedpeaks;
-      double explainedintensity;
+      OpenMS::String precursor_formula;
+      int rank = 0;
+      double iso_score = 0.0;
+      double tree_score = 0.0;
+      double sirius_score = 0.0;
+      int explainedpeaks = 0;
+      double explainedintensity = 0.0;
+      double median_mass_error_fragment_peaks_ppm = 0.0;
+      double median_absolute_mass_error_fragment_peaks_ppm = 0.0;
+      double mass_error_precursor_ppm = 0.0;
     };
 
-    struct SiriusAdapterIdentification
+    class SiriusAdapterIdentification
     {
-      int scan_index;
-      int scan_number;
+    public:
+      double mz = 0.;
+      double rt = 0.;
+      OpenMS::StringList native_ids;
+      int scan_index = -1;
+      int scan_number = -1;
       OpenMS::String feature_id;
       std::vector<SiriusAdapterHit> hits;
     };
 
-    struct SiriusAdapterRun
+    class SiriusAdapterRun
     {
+    public:
       std::vector<SiriusAdapterIdentification> identifications;
+    };
+
+    class SiriusSpectrumMSInfo
+    {
+    public:
+      StringList ext_n_id; // multiple possible MS2 spectra
+      double ext_mz = 0.0;
+      double ext_rt = 0.0;
     };
 
     /**
     @brief Extract scan_index from filepath
     */
-    static int extract_scan_index(const String & path);
- 
+    static int extractScanIndex(const String& path);
+
+    /**
+    @brief Extract scan_number from filepath
+    */
+    static int extractScanNumber(const String& path);
+
+    /**
+    @brief Extract feature_id from filepath
+    */
+    static String extractFeatureId(const String& path);
+
+    /**
+    @brief Extract columnname and index based in SIRIUS entries
+    */
+    static std::map< std::string, Size > extract_columnname_to_columnindex(CsvFile& csvfile);
+
+    /**
+     @brief Extract mz, rt of the precursor and the nativeID of the corresponding MS2 spectra in the spectrum.ms file
+    */
+    static SiriusSpectrumMSInfo extractSpectrumMSInfo(const String& single_sirius_path);
+
     /**
     @brief Conversion of sirius output to mzTab
     
@@ -114,6 +157,13 @@ namespace OpenMS
                      MzTab& result);
 
   };
+
+  namespace SiriusVersion
+  {
+    /** SIRIUS version
+    */
+    inline const std::string CURRENT_VERSION = "5.6.3";
+  }
 
 }
 

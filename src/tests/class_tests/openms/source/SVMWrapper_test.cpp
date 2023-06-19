@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry               
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 // 
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -78,13 +78,17 @@ START_SECTION((double getSVRProbability()))
 	vector< pair<Int, double> > temp_vector;
 	vector<svm_node*> encoded_vectors;
 	Int count = 100;
+	Int count2 = 6;
+	temp_vector.reserve(count);
+	vectors.reserve(count2);
 	vector<double> labels;
+	labels.reserve(count);
 	svm_problem* problem;
 
 	for (Int j = 0; j < count; j++)
 	{
 		temp_vector.clear();
-		for (Int i = 0; i < 6; i++)
+		for (Int i = 0; i < count2; i++)
 		{
 			temp_vector.push_back(make_pair(i * 2, ((double) i) * j * 0.3));
 		}
@@ -106,9 +110,9 @@ START_SECTION((Int getIntParameter(SVM_parameter_type type)))
 	svm.setParameter(SVMWrapper::KERNEL_TYPE, LINEAR);
 	svm.setParameter(SVMWrapper::DEGREE, 2);
 
-	TEST_EQUAL(svm.getIntParameter(SVMWrapper::SVM_TYPE)==EPSILON_SVR,true);
-	TEST_EQUAL(svm.getIntParameter(SVMWrapper::KERNEL_TYPE)==LINEAR,true);
-	TEST_EQUAL(svm.getIntParameter(SVMWrapper::DEGREE)==2,true);
+	TEST_EQUAL(svm.getIntParameter(SVMWrapper::SVM_TYPE)==EPSILON_SVR,true)
+	TEST_EQUAL(svm.getIntParameter(SVMWrapper::KERNEL_TYPE)==LINEAR,true)
+	TEST_EQUAL(svm.getIntParameter(SVMWrapper::DEGREE)==2,true)
 END_SECTION
 
 START_SECTION((Int train(struct svm_problem *problem)))
@@ -135,7 +139,9 @@ START_SECTION((Int train(SVMData &problem)))
 	SVMData problem;
 	UInt count = 4;
 	vector<double> labels;
+	labels.reserve(count);
 	vector< vector<pair<Int, double> > > sequences;
+	sequences.reserve(count);
 	vector<pair<Int, double> > sequence;
 	
 	svm2.setParameter(SVMWrapper::KERNEL_TYPE, SVMWrapper::OLIGO);
@@ -166,7 +172,9 @@ START_SECTION((static void getLabels(svm_problem *problem, std::vector< double >
 	svm_node** nodes = new svm_node*[count];
 	double* labels = new double[count];
 	std::vector<double> label_vector1;
+	label_vector1.reserve(count);
 	std::vector<double> label_vector2;
+	label_vector2.reserve(count);
 
 	for (Size i = 0; i < count; i++)
 	{
@@ -205,7 +213,7 @@ START_SECTION((static void createRandomPartitions(svm_problem *problem, Size num
 	problem->l = count;
 	problem->y = labels;
 
-	SVMWrapper::createRandomPartitions(problem, 2, partitions);
+	SVMWrapper().createRandomPartitions(problem, 2, partitions);
 	TEST_EQUAL(partitions.size(), 2)
 	TEST_EQUAL(partitions[0]->l, 2)
 	TEST_EQUAL(partitions[1]->l, 2)
@@ -215,7 +223,9 @@ START_SECTION((static void createRandomPartitions(const SVMData &problem, Size n
 	SVMData problem;
 	UInt count = 4;
 	vector<double> labels;
+	labels.reserve(count);
 	vector< vector<pair<Int, double> > > sequences;
+	sequences.reserve(count);
 	vector<pair<Int, double> > sequence;
 	std::vector< SVMData > partitions;
 	
@@ -232,7 +242,7 @@ START_SECTION((static void createRandomPartitions(const SVMData &problem, Size n
 	problem.sequences = sequences;
 	problem.labels = labels;
 
-	SVMWrapper::createRandomPartitions(problem, 2, partitions);
+  SVMWrapper().createRandomPartitions(problem, 2, partitions);
 	TEST_EQUAL(partitions.size(), 2)
 	TEST_EQUAL(partitions[0].sequences.size(), 2)
 	TEST_EQUAL(partitions[1].sequences.size(), 2)
@@ -262,7 +272,7 @@ START_SECTION((static svm_problem* mergePartitions(const std::vector< svm_proble
 	problem->l = count;
 	problem->y = labels;
 
-	SVMWrapper::createRandomPartitions(problem, number_of_partitions, partitions);
+	SVMWrapper().createRandomPartitions(problem, number_of_partitions, partitions);
 	problem2 = SVMWrapper::mergePartitions(partitions, 4);
 	UInt problem2_size = (count / number_of_partitions) * (number_of_partitions - 1);
 	UInt partition_size = count / number_of_partitions;
@@ -303,7 +313,7 @@ START_SECTION((static void mergePartitions(const std::vector< SVMData > &problem
 	problem.sequences = vectors;
 	problem.labels = labels;
 
-	SVMWrapper::createRandomPartitions(problem, number_of_partitions, partitions);
+  SVMWrapper().createRandomPartitions(problem, number_of_partitions, partitions);
 	SVMWrapper::mergePartitions(partitions, 4, problem2);
 	UInt problem2_size = (count / number_of_partitions) * (number_of_partitions - 1);
 	UInt partition_size = count / number_of_partitions;
@@ -389,7 +399,7 @@ START_SECTION((double performCrossValidation(svm_problem *problem_ul, const SVMD
   map<SVMWrapper::SVM_parameter_type, double> start_values;
 	map<SVMWrapper::SVM_parameter_type, double> step_sizes;
 	map<SVMWrapper::SVM_parameter_type, double> end_values;
-	LibSVMEncoder encoder;
+
 	UInt count = 8;
 	map<SVMWrapper::SVM_parameter_type, double> parameters;
 	double cv_quality;
@@ -434,7 +444,7 @@ START_SECTION((double performCrossValidation(svm_problem *problem_ul, const SVMD
 
   TEST_NOT_EQUAL(parameters.size(), 0)
   // cv_quality is nan
-  TEST_EQUAL(cv_quality != cv_quality, true)
+  TEST_FALSE(cv_quality == cv_quality)
 END_SECTION
 
 START_SECTION((void predict(struct svm_problem *problem, std::vector< double > &predicted_labels)))
@@ -469,7 +479,6 @@ END_SECTION
 
 START_SECTION((void predict(const SVMData &problem, std::vector< double > &results)))
 	SVMWrapper svm2;
- 	LibSVMEncoder encoder;
 	vector< vector< pair<Int, double> > > sequences;
 	vector< pair<Int, double> > sequence;
 	UInt count = 8;
@@ -518,8 +527,8 @@ START_SECTION((svm_problem* computeKernelMatrix(svm_problem* problem1, svm_probl
 	svm.setParameter(SVMWrapper::KERNEL_TYPE, SVMWrapper::OLIGO);
   labels.push_back(1);
   labels.push_back(2);
-  sequences.push_back("ACNNGTATCA");
-  sequences.push_back("AACNNGTACCA");
+  sequences.emplace_back("ACNNGTATCA");
+  sequences.emplace_back("AACNNGTACCA");
 	data = encoder.encodeLibSVMProblemWithOligoBorderVectors(sequences, labels, 1, allowed_characters, border_length);
 	kernel_matrix = svm.computeKernelMatrix(data, data);
 	svm.train(data);
@@ -540,6 +549,7 @@ START_SECTION((svm_problem* computeKernelMatrix(svm_problem* problem1, svm_probl
 	TEST_EQUAL(kernel_matrix->y[0], 1)
 	TEST_EQUAL(kernel_matrix->y[1], 2)
 
+  LibSVMEncoder::destroyProblem(kernel_matrix);
 END_SECTION
 
 START_SECTION((svm_problem* computeKernelMatrix(const SVMData &problem1, const SVMData &problem2)))
@@ -673,7 +683,7 @@ START_SECTION((void getDecisionValues(svm_problem* data, std::vector<double>& de
 	svm.predict(problem, predicted_labels);
 	TEST_NOT_EQUAL(predicted_labels.size(), 0)
 	svm.getDecisionValues(problem, decision_values);
-	TEST_EQUAL(predicted_labels == decision_values, true)
+	TEST_TRUE(predicted_labels == decision_values)
 
 	svm.setParameter(SVMWrapper::SVM_TYPE, C_SVC);
 	labels.clear();
@@ -866,10 +876,10 @@ START_SECTION((void setParameter(SVM_parameter_type type, Int value)))
 	svm.setParameter(SVMWrapper::C, 23);
 	svm.setParameter(SVMWrapper::PROBABILITY, 1);
 
-	TEST_EQUAL(svm.getIntParameter(SVMWrapper::SVM_TYPE)==EPSILON_SVR,true);
-	TEST_EQUAL(svm.getIntParameter(SVMWrapper::KERNEL_TYPE)==LINEAR,true);
-	TEST_EQUAL(svm.getIntParameter(SVMWrapper::DEGREE)==2,true);
-	TEST_EQUAL((int) svm.getDoubleParameter(SVMWrapper::C), 23);
+	TEST_EQUAL(svm.getIntParameter(SVMWrapper::SVM_TYPE)==EPSILON_SVR,true)
+	TEST_EQUAL(svm.getIntParameter(SVMWrapper::KERNEL_TYPE)==LINEAR,true)
+	TEST_EQUAL(svm.getIntParameter(SVMWrapper::DEGREE)==2,true)
+	TEST_EQUAL((int) svm.getDoubleParameter(SVMWrapper::C), 23)
 	TEST_EQUAL(svm.getIntParameter(SVMWrapper::PROBABILITY), 1)
 END_SECTION
 
@@ -1027,7 +1037,7 @@ START_SECTION((void getSVCProbabilities(struct svm_problem *problem, std::vector
 	encoder.encodeLibSVMVectors(vectors, encoded_vectors);
 
 	labels.clear();
-	labels.resize(count / 2, 1);
+	labels.resize(static_cast<UInt>(count / 2), 1);
 	labels.resize(count, -1);
 	problem = encoder.encodeLibSVMProblem(encoded_vectors, labels);
 	svm.train(problem);
@@ -1037,12 +1047,14 @@ START_SECTION((void getSVCProbabilities(struct svm_problem *problem, std::vector
 	TEST_EQUAL(predicted_labels.size() == probabilities.size(), true)
 	for (Size i = 0; i < predicted_labels.size(); ++i)
 	{
+    // At probability 0.5, LibSVM will assign the first encountered label in the training data
+    // in this case "1"
 		TEST_EQUAL((predicted_labels[i] < 0 && probabilities[i] < 0.5)
-							|| (predicted_labels[i] > 0 && probabilities[i] >= 0.5), true)
+							|| (predicted_labels[i] > 0 && probabilities[i] >= 0.4999), true)
 	}
 	labels.clear();
 	// Start with -1 as "first" label
-	labels.resize(count / 2, -1);
+	labels.resize(static_cast<UInt>(count / 2), -1);
 	labels.resize(count, 1);
 	problem = encoder.encodeLibSVMProblem(encoded_vectors, labels);
 	svm.train(problem);
@@ -1054,7 +1066,7 @@ START_SECTION((void getSVCProbabilities(struct svm_problem *problem, std::vector
 	{
 		// At probability 0.5, LibSVM will assign the first encountered label in the training data
 		// in this case "-1"
-		TEST_EQUAL((predicted_labels[i] < 0 && probabilities[i] <= 0.5)
+		TEST_EQUAL((predicted_labels[i] < 0 && probabilities[i] <= 0.5001)
 							|| (predicted_labels[i] > 0 && probabilities[i] > 0.5), true)
 	}
 

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -49,7 +49,7 @@ namespace OpenMS
     defaults_.setValue("sgolay_polynomial_order", 3, "Order of the polynomial that is fitted.");
     defaults_.setValue("gauss_width", 50.0, "Gaussian width in seconds, estimated peak size.");
     defaults_.setValue("use_gauss", "true", "Use Gaussian filter for smoothing (alternative is Savitzky-Golay filter)");
-    defaults_.setValidStrings("use_gauss", ListUtils::create<String>("false,true"));
+    defaults_.setValidStrings("use_gauss", {"false","true"});
 
     defaults_.setValue("peak_width", -1.0, "Force a certain minimal peak_width on the data (e.g. extend the peak at least by this amount on both sides) in seconds. -1 turns this feature off.");
     defaults_.setValue("signal_to_noise", 1.0, "Signal-to-noise threshold at which a peak will not be extended any more. Note that setting this too high (e.g. 1.0) can lead to peaks whose flanks are not fully captured.");
@@ -58,13 +58,13 @@ namespace OpenMS
     defaults_.setValue("sn_win_len", 1000.0, "Signal to noise window length.");
     defaults_.setValue("sn_bin_count", 30, "Signal to noise bin count.");
     defaults_.setValue("write_sn_log_messages", "false", "Write out log messages of the signal-to-noise estimator in case of sparse windows or median in rightmost histogram bin");
-    defaults_.setValidStrings("write_sn_log_messages", ListUtils::create<String>("true,false"));
+    defaults_.setValidStrings("write_sn_log_messages", {"true","false"});
 
     defaults_.setValue("remove_overlapping_peaks", "false", "Try to remove overlapping peaks during peak picking");
-    defaults_.setValidStrings("remove_overlapping_peaks", ListUtils::create<String>("false,true"));
+    defaults_.setValidStrings("remove_overlapping_peaks", {"false","true"});
 
     defaults_.setValue("method", "corrected", "Which method to choose for chromatographic peak-picking (OpenSWATH legacy on raw data, corrected picking on smoothed chromatogram or Crawdad on smoothed chromatogram).");
-    defaults_.setValidStrings("method", ListUtils::create<String>("legacy,corrected,crawdad"));
+    defaults_.setValidStrings("method", {"legacy","corrected","crawdad"});
 
     // write defaults into Param object param_
     defaultsToParam_();
@@ -76,8 +76,9 @@ namespace OpenMS
     // disable spacing constraints, since we're dealing with chromatograms
     pepi_param.setValue("spacing_difference", 0.0);
     pepi_param.setValue("spacing_difference_gap", 0.0);
+    pepi_param.setValue("report_FWHM", "true");
+    pepi_param.setValue("report_FWHM_unit", "absolute");
     pp_.setParameters(pepi_param);
-
   }
 
   void PeakPickerMRM::pickChromatogram(const MSChromatogram& chromatogram, MSChromatogram& picked_chrom)
@@ -94,17 +95,17 @@ namespace OpenMS
                                        "Chromatogram must be sorted by position");
     }
 
-    LOG_DEBUG << " ====  Picking chromatogram " << chromatogram.getNativeID() << 
-        " with " << chromatogram.size() << " peaks ";
     if (chromatogram.empty())
     {
-        LOG_DEBUG << std::endl; 
-        LOG_DEBUG << " - Error: chromatogram is empty, abort picking."  << std::endl;
-        return;
+      OPENMS_LOG_DEBUG << " ====  Chromatogram " << chromatogram.getNativeID() << "empty. Skip picking.";
+      return;
     }
-    LOG_DEBUG << "(start at RT " << chromatogram[0].getMZ() << " to RT " << chromatogram[ chromatogram.size() -1].getMZ() << ") "
+    else
+    {
+        OPENMS_LOG_DEBUG << " ====  Picking chromatogram " << chromatogram.getNativeID() << 
+        " with " << chromatogram.size() << " peaks (start at RT " << chromatogram[0].getRT() << " to RT " << chromatogram.back().getRT() << ") "
         "using method \'" << method_ << "\'" << std::endl;
-
+    }
     picked_chrom.clear(true);
     // Crawdad has its own methods, so we can call the wrapper directly
     if (method_ == "crawdad")
@@ -126,7 +127,7 @@ namespace OpenMS
 
     // Find initial seeds (peak picking)
     pp_.pick(smoothed_chrom, picked_chrom);
-    LOG_DEBUG << "Found " << picked_chrom.size() << " chromatographic peaks." << std::endl;
+    OPENMS_LOG_DEBUG << "Picked " << picked_chrom.size() << " chromatographic peaks." << std::endl;
 
     if (method_ == "legacy")
     {
@@ -148,20 +149,25 @@ namespace OpenMS
       // for peak integration, we want to use the raw data
       integratePeaks_(chromatogram);
     }
-
+	
     // Store the result in the picked_chromatogram
-    picked_chrom.getFloatDataArrays().clear();
-    picked_chrom.getFloatDataArrays().resize(3);
-    picked_chrom.getFloatDataArrays()[0].setName("IntegratedIntensity");
-    picked_chrom.getFloatDataArrays()[1].setName("leftWidth");
-    picked_chrom.getFloatDataArrays()[2].setName("rightWidth");
+    OPENMS_POSTCONDITION(picked_chrom.getFloatDataArrays().size() == 1 &&
+                         picked_chrom.getFloatDataArrays()[IDX_FWHM].getName() == "FWHM", "Swath: PeakPicking did not deliver FWHM attributes.")
+
+    picked_chrom.getFloatDataArrays().resize(SIZE_OF_FLOATINDICES);
+    picked_chrom.getFloatDataArrays()[IDX_ABUNDANCE].setName("IntegratedIntensity");
+    picked_chrom.getFloatDataArrays()[IDX_LEFTBORDER].setName("leftWidth");
+    picked_chrom.getFloatDataArrays()[IDX_RIGHTBORDER].setName("rightWidth");
+    // just copy FWHM from initial peak picking
+
+    picked_chrom.getFloatDataArrays()[IDX_ABUNDANCE].reserve(picked_chrom.size());
+    picked_chrom.getFloatDataArrays()[IDX_LEFTBORDER].reserve(picked_chrom.size());
+    picked_chrom.getFloatDataArrays()[IDX_RIGHTBORDER].reserve(picked_chrom.size());
     for (Size i = 0; i < picked_chrom.size(); i++)
     {
-      float leftborder = chromatogram[left_width_[i]].getMZ();
-      float rightborder = chromatogram[right_width_[i]].getMZ();
-      picked_chrom.getFloatDataArrays()[0].push_back(integrated_intensities_[i]);
-      picked_chrom.getFloatDataArrays()[1].push_back(leftborder);
-      picked_chrom.getFloatDataArrays()[2].push_back(rightborder);
+      picked_chrom.getFloatDataArrays()[IDX_ABUNDANCE].push_back(integrated_intensities_[i]);
+      picked_chrom.getFloatDataArrays()[IDX_LEFTBORDER].push_back((float)chromatogram[left_width_[i]].getRT());
+      picked_chrom.getFloatDataArrays()[IDX_RIGHTBORDER].push_back((float)chromatogram[right_width_[i]].getRT());
     }
   }
 
@@ -182,8 +188,8 @@ namespace OpenMS
     Size current_peak = 0;
     for (Size i = 0; i < picked_chrom.size(); i++)
     {
-      const double central_peak_mz = picked_chrom[i].getMZ();
-      current_peak = findClosestPeak_(chromatogram, central_peak_mz, current_peak);
+      const double central_peak_rt = picked_chrom[i].getRT();
+      current_peak = findClosestPeak_(chromatogram, central_peak_rt, current_peak);
       const Size min_i = current_peak;
 
       // peak core found, now extend it to the left
@@ -191,8 +197,8 @@ namespace OpenMS
       while ((min_i - k + 1) > 0
              //&& std::fabs(chromatogram[min_i-k].getMZ() - peak_raw_data.begin()->first) < spacing_difference*min_spacing
             && (chromatogram[min_i - k].getIntensity() < chromatogram[min_i - k + 1].getIntensity()
-               || (peak_width_ > 0.0 && std::fabs(chromatogram[min_i - k].getMZ() - central_peak_mz) < peak_width_))
-            && (signal_to_noise_ <= 0.0 || snt_.getSignalToNoise(chromatogram[min_i - k]) >= signal_to_noise_))
+               || (peak_width_ > 0.0 && std::fabs(chromatogram[min_i - k].getRT() - central_peak_rt) < peak_width_))
+            && (signal_to_noise_ <= 0.0 || snt_.getSignalToNoise(min_i - k) >= signal_to_noise_))
       {
         ++k;
       }
@@ -203,8 +209,8 @@ namespace OpenMS
       while ((min_i + k) < chromatogram.size()
              //&& std::fabs(chromatogram[min_i+k].getMZ() - peak_raw_data.rbegin()->first) < spacing_difference*min_spacing
             && (chromatogram[min_i + k].getIntensity() < chromatogram[min_i + k - 1].getIntensity()
-               || (peak_width_ > 0.0 && std::fabs(chromatogram[min_i + k].getMZ() - central_peak_mz) < peak_width_))
-            && (signal_to_noise_ <= 0.0 || snt_.getSignalToNoise(chromatogram[min_i + k]) >= signal_to_noise_) )
+               || (peak_width_ > 0.0 && std::fabs(chromatogram[min_i + k].getRT() - central_peak_rt) < peak_width_))
+            && (signal_to_noise_ <= 0.0 || snt_.getSignalToNoise(min_i + k) >= signal_to_noise_) )
       {
         ++k;
       }
@@ -214,9 +220,9 @@ namespace OpenMS
       right_width_.push_back(right_idx);
       integrated_intensities_.push_back(0);
 
-      LOG_DEBUG << "Found peak at " << central_peak_mz << " and "  << picked_chrom[i].getIntensity()
-                << " with borders " << chromatogram[left_width_[i]].getMZ() << " " << chromatogram[right_width_[i]].getMZ() <<
-        " (" << chromatogram[right_width_[i]].getMZ() - chromatogram[left_width_[i]].getMZ() << ") "
+      OPENMS_LOG_DEBUG << "Found peak at " << central_peak_rt << " with intensity "  << picked_chrom[i].getIntensity()
+                << " and borders " << chromatogram[left_width_[i]].getRT() << " " << chromatogram[right_width_[i]].getRT() <<
+        " (" << chromatogram[right_width_[i]].getRT() - chromatogram[left_width_[i]].getRT() << ") "
                 << 0 << " weighted RT " << /* weighted_mz << */ std::endl;
     }
   }
@@ -224,7 +230,13 @@ namespace OpenMS
 #ifdef WITH_CRAWDAD
   void PeakPickerMRM::pickChromatogramCrawdad_(const MSChromatogram& chromatogram, MSChromatogram& picked_chrom)
   {
-    LOG_DEBUG << "Picking chromatogram using crawdad " << std::endl;
+    OPENMS_LOG_DEBUG << "Picking chromatogram using crawdad " << std::endl;
+
+    // copy meta data of the input chromatogram
+    picked_chrom.clear(true);
+    picked_chrom.ChromatogramSettings::operator=(chromatogram);
+    picked_chrom.MetaInfoInterface::operator=(chromatogram);
+    picked_chrom.setName(chromatogram.getName());
 
     std::vector<double> time;
     std::vector<double> intensity;
@@ -239,38 +251,21 @@ namespace OpenMS
     std::vector<crawpeaks::SlimCrawPeak> result = crawdad_pp.CalcPeaks();
 
     picked_chrom.getFloatDataArrays().clear();
-    picked_chrom.getFloatDataArrays().resize(3);
-    picked_chrom.getFloatDataArrays()[0].setName("IntegratedIntensity");
-    picked_chrom.getFloatDataArrays()[1].setName("leftWidth");
-    picked_chrom.getFloatDataArrays()[2].setName("rightWidth");
+    picked_chrom.getFloatDataArrays().resize(SIZE_OF_FLOATINDICES);
+    picked_chrom.getFloatDataArrays()[IDX_ABUNDANCE].setName("IntegratedIntensity");
+    picked_chrom.getFloatDataArrays()[IDX_LEFTBORDER].setName("leftWidth");
+    picked_chrom.getFloatDataArrays()[IDX_RIGHTBORDER].setName("rightWidth");
     for (std::vector<crawpeaks::SlimCrawPeak>::iterator it = result.begin(); it != result.end(); ++it)
     {
       ChromatogramPeak p;
       p.setRT(chromatogram[it->peak_rt_idx].getRT());
       p.setIntensity(it->peak_area); //chromatogram[it->peak_rt_idx].getIntensity() );
 
-      picked_chrom.getFloatDataArrays()[0].push_back(it->peak_area);
-      picked_chrom.getFloatDataArrays()[1].push_back(chromatogram[it->start_rt_idx].getRT());
-      picked_chrom.getFloatDataArrays()[2].push_back(chromatogram[it->stop_rt_idx].getRT());
-      /*
-      int peak_rt_idx, start_rt_idx, stop_rt_idx, max_rt_idx;
-      int mz_idx;
-      int len;
-      float fwhm;
-      bool fwhm_calculated_ok;
-      float bg_area;
-      float raw_area; // total area under the curve, including background
-      float peak_area;
-      float bgslope;
-      ///cutoff level for extending past the peak
+      picked_chrom.getFloatDataArrays()[IDX_ABUNDANCE].push_back(it->peak_area);
+      picked_chrom.getFloatDataArrays()[IDX_LEFTBORDER].push_back(chromatogram[it->start_rt_idx].getRT());
+      picked_chrom.getFloatDataArrays()[IDX_RIGHTBORDER].push_back(chromatogram[it->stop_rt_idx].getRT());
 
-      ///maximum height, calculated above background
-      float peak_height;
-      float raw_height;
-
-      */
-
-      LOG_DEBUG << "Found peak at " << p.getRT() << " and "  << chromatogram[it->peak_rt_idx].getIntensity()
+      OPENMS_LOG_DEBUG << "Found peak at " << p.getRT() << " and "  << chromatogram[it->peak_rt_idx].getIntensity()
                 << " with borders " << chromatogram[it->start_rt_idx].getRT() << " " << chromatogram[it->stop_rt_idx].getRT()  <<  " (" << chromatogram[it->start_rt_idx].getRT() - chromatogram[it->stop_rt_idx].getRT() << ") "
                 << it->peak_area << " weighted RT " << /* weighted_mz << */ std::endl;
 
@@ -290,7 +285,7 @@ namespace OpenMS
   void PeakPickerMRM::removeOverlappingPeaks_(const MSChromatogram& chromatogram, MSChromatogram& picked_chrom)
   {
     if (picked_chrom.empty()) {return; }
-    LOG_DEBUG << "Remove overlapping peaks now (size " << picked_chrom.size() << ")" << std::endl;
+    OPENMS_LOG_DEBUG << "Remove overlapping peaks now (size " << picked_chrom.size() << ")" << std::endl;
     Size current_peak = 0;
     // Find overlapping peaks
     for (Size i = 0; i < picked_chrom.size() - 1; i++)
@@ -304,8 +299,8 @@ namespace OpenMS
         const int current_right_idx = right_width_[i];
         const int next_left_idx = left_width_[i + 1];
         const int next_right_idx = right_width_[i + 1];
-        LOG_DEBUG << " Found overlapping " << i << " : " << current_left_idx << " " << current_right_idx << std::endl;
-        LOG_DEBUG << "                   -- with  " << i + 1 << " : " << next_left_idx << " " << next_right_idx << std::endl;
+        OPENMS_LOG_DEBUG << " Found overlapping " << i << " : " << current_left_idx << " " << current_right_idx << std::endl;
+        OPENMS_LOG_DEBUG << "                   -- with  " << i + 1 << " : " << next_left_idx << " " << next_right_idx << std::endl;
 
         // Find the peak width and best RT
         double central_peak_mz = picked_chrom[i].getMZ();
@@ -338,8 +333,8 @@ namespace OpenMS
 
         }
 
-        LOG_DEBUG << "New peak l: " << chromatogram[current_left_idx].getMZ() << " " << chromatogram[new_right_border].getMZ() << " int " << integrated_intensities_[i] << std::endl;
-        LOG_DEBUG << "New peak r: " << chromatogram[new_left_border].getMZ() << " " << chromatogram[next_right_idx].getMZ() << " int " << integrated_intensities_[i + 1] << std::endl;
+        OPENMS_LOG_DEBUG << "New peak l: " << chromatogram[current_left_idx].getMZ() << " " << chromatogram[new_right_border].getMZ() << " int " << integrated_intensities_[i] << std::endl;
+        OPENMS_LOG_DEBUG << "New peak r: " << chromatogram[new_left_border].getMZ() << " " << chromatogram[next_right_idx].getMZ() << " int " << integrated_intensities_[i + 1] << std::endl;
 
 
         right_width_[i] = new_right_border;
@@ -349,17 +344,17 @@ namespace OpenMS
     }
   }
 
-  Size PeakPickerMRM::findClosestPeak_(const MSChromatogram& chromatogram, double central_peak_mz, Size current_peak)
+  Size PeakPickerMRM::findClosestPeak_(const MSChromatogram& chromatogram, double target_rt, Size current_peak)
   {
     while (current_peak < chromatogram.size())
     {
       // check if we have walked past the RT of the peak
-      if (central_peak_mz - chromatogram[current_peak].getMZ() < 0.0)
+      if (target_rt < chromatogram[current_peak].getRT())
       {
         // see which one is closer, the current one or the one before
         if (current_peak > 0 &&
-            std::fabs(central_peak_mz - chromatogram[current_peak - 1].getMZ()) <
-            std::fabs(central_peak_mz - chromatogram[current_peak].getMZ()))
+            std::fabs(target_rt - chromatogram[current_peak - 1].getRT()) <
+            std::fabs(target_rt - chromatogram[current_peak].getRT()))
         {
           current_peak--;
         }
@@ -400,7 +395,7 @@ namespace OpenMS
     use_gauss_ = (bool)param_.getValue("use_gauss").toBool();
     remove_overlapping_ = (bool)param_.getValue("remove_overlapping_peaks").toBool();
     write_sn_log_messages_ = (bool)param_.getValue("write_sn_log_messages").toBool();
-    method_ = (String)param_.getValue("method");
+    method_ = (String)param_.getValue("method").toString();
 
     if (method_ != "crawdad" && method_ != "corrected" && method_ != "legacy")
     {

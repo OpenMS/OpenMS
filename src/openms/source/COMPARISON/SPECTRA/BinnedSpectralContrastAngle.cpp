@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -35,6 +35,8 @@
 
 #include <OpenMS/COMPARISON/SPECTRA/BinnedSpectralContrastAngle.h>
 
+#include <Eigen/Sparse>
+
 using namespace std;
 
 namespace OpenMS
@@ -51,9 +53,7 @@ namespace OpenMS
   {
   }
 
-  BinnedSpectralContrastAngle::~BinnedSpectralContrastAngle()
-  {
-  }
+  BinnedSpectralContrastAngle::~BinnedSpectralContrastAngle() = default;
 
   BinnedSpectralContrastAngle& BinnedSpectralContrastAngle::operator=(const BinnedSpectralContrastAngle& source)
   {
@@ -78,9 +78,9 @@ namespace OpenMS
     OPENMS_PRECONDITION(BinnedSpectrum::isCompatible(spec1, spec2), "Binned spectra have different bin size or spread");
 
     // resulting score standardized to interval [0,1]
-    const double sum1 = spec1.getBins().dot(spec1.getBins());    
-    const double sum2 = spec2.getBins().dot(spec2.getBins());    
-    const double numerator = spec1.getBins().dot(spec2.getBins());
+    const double sum1 = spec1.getBins()->dot(*spec1.getBins());
+    const double sum2 = spec2.getBins()->dot(*spec2.getBins());
+    const double numerator = spec1.getBins()->dot(*spec2.getBins());
     const double score = numerator / (sqrt(sum1 * sum2));
 
     return score;

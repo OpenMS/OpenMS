@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -32,41 +32,33 @@
 // $Authors: Clemens Groepl, Andreas Bertsch, Chris Bielow $
 // --------------------------------------------------------------------------
 
-#ifndef OPENMS_CHEMISTRY_ISOTOPEDISTRIBUTION_ISOTOPEDISTRIBUTION_H
-#define OPENMS_CHEMISTRY_ISOTOPEDISTRIBUTION_ISOTOPEDISTRIBUTION_H
+#pragma once
 
-
-#include <OpenMS/CHEMISTRY/EmpiricalFormula.h>
 #include <OpenMS/KERNEL/Peak1D.h>
-
-#include <utility>
 #include <functional>
-
 #include <vector>
-#include <set>
-#include <map>
-
 
 namespace OpenMS
 {
   /**
-        @ingroup Chemistry
+    @ingroup Chemistry
 
-        @brief Isotope distribution class
+    @brief Isotope distribution class
 
-        A container that holds an isotope distribution. It consists from mass values and its 
-        correspondent probabilities. The container mass values does not relate to the 
-        atomic number of the of the molecule. It is a floating precision number and 
-        it maps a specific atomic mass to an abundance of an isotope.
+    A container that holds an isotope distribution. It consists of mass values
+    and their correspondent probabilities (stored in the intensity slot). 
 
-        To bypass this behavior the CoarseIsotopePatternGenerator can be used. It employs
-        an Coarse Isotopic model so the calculations happen with atomic numbers instead of
-        atomic masses.
-        The CoarseIsotopePatternGenerator solver quantizes the atomic masses to integer 
-        numbers that correspond to the atomic number. Then the calculation of the 
-        IsotopeDistribution can produce nominal isotopes with accurate or rounded masses
+    Isotope distributions can be calculated using either the
+    CoarseIsotopePatternGenerator for quantized atomic masses which group
+    isotopes with the same atomic number. Alternatively, the
+    FineIsotopePatternGenerator can be used that calculates hyperfine isotopic
+    distributions. 
 
-    */
+    @note: This class only describes the container that holds the isotopic
+    distribution, calculations are done using classes derived from
+    IsotopePatternGenerator.
+
+  */
   class Element; 
 
   class OPENMS_DLLAPI IsotopeDistribution
@@ -89,21 +81,22 @@ public:
     typedef ContainerType::const_reverse_iterator ConstReverseIterator;
     //@}
 
-
     enum Sorted {INTENSITY, MASS, UNDEFINED};
-
 
     /// @name Constructors and Destructors
     //@{
-    /** Default constructor, note max_isotope must be set later
+    /** Default constructor
     */
     IsotopeDistribution();
 
     /// Copy constructor
-    IsotopeDistribution(const IsotopeDistribution & isotope_distribution);
+    IsotopeDistribution(const IsotopeDistribution&) = default;
+
+    /// Move constructor
+    IsotopeDistribution(IsotopeDistribution&&) noexcept = default;
 
     /// Destructor
-    virtual ~IsotopeDistribution();
+    virtual ~IsotopeDistribution() = default;
     //@}
 
     /// @name Accessors
@@ -112,13 +105,16 @@ public:
     /// overwrites the container which holds the distribution using @p distribution
     void set(const ContainerType & distribution);
 
+    /// overwrites the container which holds the distribution using @p distribution
+    void set(ContainerType && distribution);
+
     /// returns the container which holds the distribution
     const ContainerType & getContainer() const;
 
-    /// returns the maximal weight isotope which is stored in the distribution
+    /// returns the isotope with the largest m/z
     Peak1D::CoordinateType getMax() const;
 
-    /// returns the minimal weight isotope which is stored in the distribution
+    /// returns the isotope with the smallest m/z
     Peak1D::CoordinateType getMin() const;
 
     /// returns the most abundant isotope which is stored in the distribution
@@ -127,7 +123,7 @@ public:
     /// returns the size of the distribution which is the number of isotopes in the distribution
     Size size() const;
 
-    /// clears the distribution and resets max isotope to 0
+    /// clears the distribution
     void clear();
 
     // resizes distribution container
@@ -142,14 +138,14 @@ public:
     /// sort isotope distribution by mass
     void sortByMass();
 
-    /** @brief re-normalizes the sum of the probabilities of the isotopes to 1
+    /** @brief Re-normalizes the sum of the probabilities of all the isotopes to 1
 
-            The re-normalisation is needed as in distributions with a lot of isotopes (and with high max isotope)
-            the calculations tend to be inexact.
+        The re-normalisation may be needed as in some distributions with a lot
+        of isotopes the calculations tend to be inexact.
     */
     void renormalize();
 
-     /** @brief Merges distributions arbitrary data points with constant defined resolution.
+     /** @brief Merges distributions of arbitrary data points with constant defined resolution.
         
         It creates a new IsotopeDistribution Container and assigns each isotope to the nearest bin.
         This function should be used to downsample the existing distribution.
@@ -158,35 +154,28 @@ public:
      */
     void merge(double resolution, double min_prob);
 
-
     /** @brief Trims the right side of the isotope distribution to isotopes with a significant contribution.
 
-            If the isotope distribution is calculated for large masses (and with high max isotope)
-            it might happen that many entries contain only small numbers. This function can be
-            used to remove these entries.
+        If the isotope distribution is calculated for large masses, it might
+        happen that many entries contain only small numbers. This function can
+        be used to remove these entries.
 
-            Do consider normalising the distribution afterwards.
+        @note Consider normalising the distribution afterwards.
     */
     void trimRight(double cutoff);
 
     /** @brief Trims the left side of the isotope distribution to isotopes with a significant contribution.
 
-            If the isotope distribution is calculated for large masses (and with high max isotope)
-            it might happen that many entries contain only small numbers. This function can be
-            used to remove these entries.
+        If the isotope distribution is calculated for large masses, it might
+        happen that many entries contain only small numbers. This function can
+        be used to remove these entries.
 
-            Do consider normalising the distribution afterwards.
+        @note Consider normalising the distribution afterwards.
     */
     void trimLeft(double cutoff);
 
-    
-    
-    bool isNormalized() const;
-
-
+    /// Compute average mass of isotope distribution (weighted average of all isotopes)
     double averageMass() const;
-
-    bool isConvolutionUnit() const;
     //@}
 
     /// @name Operators
@@ -230,16 +219,17 @@ public:
 
     /// @name Data Access Operators
     //@{
-    /// operator which access a cell of the distribution and wraps it in SpectrumFragment struct
+    /// operator to access a cell of the distribution and wraps it in SpectrumFragment struct
     Peak1D& operator[](const Size& index){ return distribution_[index];}
-
+    /// const operator to access a cell of the distribution and wraps it in SpectrumFragment struct
+    const Peak1D& operator[](const Size& index) const { return distribution_[index]; }
     //@}
-
 
 protected:   
 
     /// sort wrapper of the distribution
     void sort_(std::function<bool(const MassAbundance& p1, const MassAbundance& p2)> sorter);
+
     /// takes a function as a parameter to transform the distribution
     void transform_(std::function<void(MassAbundance&)> lambda);
 
@@ -250,4 +240,3 @@ protected:
 
 } // namespace OpenMS
 
-#endif // OPENMS_CHEMISTRY_ISOTOPEDISTRIBUTION_ISOTOPEDISTRIBUTION_H

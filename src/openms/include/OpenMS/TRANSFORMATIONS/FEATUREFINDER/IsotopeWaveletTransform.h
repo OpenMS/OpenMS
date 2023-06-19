@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -43,14 +43,16 @@
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/MATH/STATISTICS/LinearRegression.h>
 #include <OpenMS/DATASTRUCTURES/ConstRefVector.h>
+
 #include <cmath>
-#include <cmath>
-#include <boost/math/special_functions/bessel.hpp>
 #include <vector>
 #include <map>
 #include <sstream>
 #include <fstream>
 #include <iomanip>
+
+// TODO: move this to cpp and use STL once it is available in clang on Mac
+#include <boost/math/special_functions/bessel.hpp>
 
 // This code has quite a few strange things in it triggering warnings which
 // clutters the rest of the diagnostics
@@ -256,43 +258,6 @@ protected:
 
     virtual void initializeScan(const MSSpectrum& c_ref, const UInt c = 0);
 
-#ifdef OPENMS_HAS_CUDA
-    /** @brief Sets up all necessary arrays with correct boundaries and 'worst-case' sizes.
-        * @param scan The scan under consideration. */
-    virtual int initializeScanCuda(const MSSpectrum& scan, const UInt c = 0);
-
-    /** @brief Clean up. */
-    virtual void finalizeScanCuda();
-
-    /** @brief Computes The isotope wavelet transform of charge state (@p c+1) on a CUDA compatible GPU.
-        * @param c_trans Contains the reference spectrum (already by call) as well as the transformed intensities.
-        * @param c The charge state minus 1 (e.g. c=2 means charge state 3)*/
-    virtual void getTransformCuda(TransSpectrum& c_trans, const UInt c);
-
-    /** @brief Essentially the same as its namesake CPU-version, but on a CUDA compatible GPU device.
-* @param candidates A isotope wavelet transformed spectrum. Entry "number i" in this vector must correspond to the
-    * charge-"(i-1)"-transform of its mass signal. (This is exactly the output of the function @see getTransforms.)
-    * @param c The corresponding charge state minus 1 (e.g. c=2 means charge state 3)
-    * @param scan_index The index of the scan (w.r.t. to some map) currently under consideration.
-    * @param ampl_cutoff The thresholding parameter. This parameter is the only (and hence a really important)
-    * parameter of the isotope wavelet transform. On the basis of @p ampl_cutoff the program tries to distinguish between
-    * noise and signal. Please note that it is not a "simple" hard thresholding parameter in the sense of drawing a virtual
-    * line in the spectrum, which is then used as a guillotine cut. Maybe you should play around a bit with this parameter to
-    * get a feeling about its range. For peptide mass fingerprints on small data sets (like single MALDI-scans e.g.), it
-    * makes sense to start @p ampl_cutoff=0 or even @p ampl_cutoff=-1,
-    * indicating no thresholding at all. Note that also ampl_cutoff=0 triggers (a moderate) thresholding based on the
-    * average intensity in the wavelet transform.
-    * * @param check_PPMs If enabled, the algorithm will check each monoisotopic mass candidate for its plausibility
-    * by computing the ppm difference between this mass and the averagine model. */
-    virtual void identifyChargeCuda(const TransSpectrum& candidates, const UInt scan_index, const UInt c,
-                                    const double ampl_cutoff, const bool check_PPMs);
-
-    /** Sorts the associated spectrum @p by increasing intensities.
-        * @param sorted The spectrum to be sorted. */
-    virtual int sortCuda(MSSpectrum& sorted);
-#endif
-
-
     /** @brief A function keeping track of currently open and closed sweep line boxes.
         * This function is used by the isotope wavelet feature finder and must be called for each processed scan.
         * @param map The original map containing the data set to be analyzed.
@@ -301,9 +266,6 @@ protected:
         * @param RT_votes_cutoff See the IsotopeWaveletFF class. */
     void updateBoxStates(const PeakMap& map, const Size scan_index, const UInt RT_interleave,
                          const UInt RT_votes_cutoff, const Int front_bound = -1, const Int end_bound = -1);
-
-
-    void mergeFeatures(IsotopeWaveletTransform<PeakType>* later_iwt, const UInt RT_interleave, const UInt RT_votes_cutoff);
 
 
     /** @brief Filters the candidates further more and maps the internally used data structures to the OpenMS framework.
@@ -328,7 +290,7 @@ protected:
 
     /** @brief Computes a linear (intensity) interpolation.
         * @param mz_a The m/z value of the point left to the query.
-        * @param mz_a The intensity value of the point left to the query.
+        * @param intens_a The intensity value of the point left to the query.
         * @param mz_pos The query point.
         * @param mz_b The m/z value of the point right to the query.
         * @param intens_b The intensity value of the point left to the query. */
@@ -610,7 +572,7 @@ protected:
 
     for (Int my_local_pos = 0; my_local_pos < spec_size; ++my_local_pos)
     {
-      value = 0; T_boundary_left = 0, T_boundary_right = IsotopeWavelet::getMzPeakCutOffAtMonoPos(c_ref[my_local_pos].getMZ(), charge) / (double)charge;
+      value = 0; T_boundary_left = 0; T_boundary_right = IsotopeWavelet::getMzPeakCutOffAtMonoPos(c_ref[my_local_pos].getMZ(), charge) / (double)charge;
       old = 0; old_pos = (my_local_pos - from_max_to_left_ - 1 >= 0) ? c_ref[my_local_pos - from_max_to_left_ - 1].getMZ() : c_ref[0].getMZ() - min_spacing_;
       my_local_MZ = c_ref[my_local_pos].getMZ(); my_local_lambda = IsotopeWavelet::getLambdaL(my_local_MZ * charge);
       c_diff = 0;
@@ -653,7 +615,7 @@ protected:
 
     for (Int my_local_pos = 0; my_local_pos < spec_size; ++my_local_pos)
     {
-      value = 0; T_boundary_left = 0, T_boundary_right = IsotopeWavelet::getMzPeakCutOffAtMonoPos(c_ref[my_local_pos].getMZ(), charge) / (double)charge;
+      value = 0; T_boundary_left = 0; T_boundary_right = IsotopeWavelet::getMzPeakCutOffAtMonoPos(c_ref[my_local_pos].getMZ(), charge) / (double)charge;
 
 
       my_local_MZ = c_ref[my_local_pos].getMZ(); my_local_lambda = IsotopeWavelet::getLambdaL(my_local_MZ * charge);
@@ -738,7 +700,7 @@ protected:
   {
     Size scan_size(candidates.size());
     typename ConstRefVector<MSSpectrum >::iterator iter;
-    typename MSSpectrum::const_iterator iter_start, iter_end, iter_p, seed_iter, iter2;
+    typename MSSpectrum::const_iterator iter_start, iter_end, seed_iter, iter2;
     double mz_cutoff, seed_mz, c_av_intens = 0, c_score = 0, c_sd_intens = 0, threshold = 0, help_mz, share, share_pos, bwd, fwd;
     UInt MZ_start, MZ_end;
 
@@ -755,7 +717,7 @@ protected:
     {
       for (UInt i = 0; i < scan_size - 2; ++i)
       {
-        share = candidates[i + 1].getIntensity(), share_pos = candidates[i + 1].getMZ();
+        share = candidates[i + 1].getIntensity(); share_pos = candidates[i + 1].getMZ();
         bwd = (share - candidates[i].getIntensity()) / (share_pos - candidates[i].getMZ());
         fwd = (candidates[i + 2].getIntensity() - share) / (candidates[i + 2].getMZ() - share_pos);
 
@@ -773,7 +735,7 @@ protected:
     {
       for (UInt i = 0; i < scan_size - 2; ++i)
       {
-        share = candidates[i + 1].getIntensity(), share_pos = candidates[i + 1].getMZ();
+        share = candidates[i + 1].getIntensity(); share_pos = candidates[i + 1].getMZ();
         bwd = (share - candidates[i].getIntensity()) / (share_pos - candidates[i].getMZ());
         fwd = (candidates[i + 2].getIntensity() - share) / (candidates[i + 2].getMZ() - share_pos);
 
@@ -1086,13 +1048,12 @@ protected:
     double c_mz, av_score = 0, av_mz = 0, av_intens = 0, av_abs_intens = 0, count = 0;
     double virtual_av_mz = 0, virtual_av_intens = 0, virtual_av_abs_intens = 0, virtual_count = 0;
 
-    typename std::pair<double, double> c_extend;
     for (iter = tmp_boxes_->at(c).begin(); iter != tmp_boxes_->at(c).end(); ++iter)
     {
 
       Box& c_box = iter->second;
-      av_score = 0, av_mz = 0, av_intens = 0, av_abs_intens = 0, count = 0;
-      virtual_av_mz = 0, virtual_av_intens = 0, virtual_av_abs_intens = 0, virtual_count = 0;
+      av_score = 0; av_mz = 0; av_intens = 0; av_abs_intens = 0; count = 0;
+      virtual_av_mz = 0; virtual_av_intens = 0; virtual_av_abs_intens = 0; virtual_count = 0;
 
       //Now, let's get the RT boundaries for the box
       for (box_iter = c_box.begin(); box_iter != c_box.end(); ++box_iter)
@@ -1630,11 +1591,10 @@ protected:
       return;
     }
 
-    Int c_index = max_extension;
     Int first_index = box.begin()->second.RT_index;
     for (Int i = 1; i < max_extension; ++i)
     {
-      c_index = first_index - i;
+      Int c_index = first_index - i;
       if (c_index < 0)
       {
         break;
@@ -1660,12 +1620,11 @@ protected:
     double c_mz, av_score = 0, av_mz = 0, av_intens = 0, av_abs_intens = 0, count = 0;
     double virtual_av_mz = 0, virtual_av_intens = 0, virtual_av_abs_intens = 0, virtual_count = 0;
 
-    typename std::pair<double, double> c_extend;
     for (iter = tmp_boxes_->at(c).begin(); iter != tmp_boxes_->at(c).end(); ++iter)
     {
       Box& c_box = iter->second;
-      av_score = 0, av_mz = 0, av_intens = 0, av_abs_intens = 0, count = 0;
-      virtual_av_mz = 0, virtual_av_intens = 0, virtual_av_abs_intens = 0, virtual_count = 0;
+      av_score = 0; av_mz = 0; av_intens = 0; av_abs_intens = 0; count = 0;
+      virtual_av_mz = 0; virtual_av_intens = 0; virtual_av_abs_intens = 0; virtual_count = 0;
 
       for (box_iter = c_box.begin(); box_iter != c_box.end(); ++box_iter)
       {
@@ -1767,18 +1726,16 @@ protected:
     typename Box::iterator box_iter;
     UInt best_charge_index; double best_charge_score, c_mz, c_RT; UInt c_charge;
     double av_intens = 0, av_ref_intens = 0, av_score = 0, av_mz = 0, av_RT = 0, mz_cutoff, sum_of_ref_intenses_g;
-    bool restart = false;
 
-    typename std::pair<double, double> c_extend;
     for (iter = closed_boxes_.begin(); iter != closed_boxes_.end(); ++iter)
     {
       sum_of_ref_intenses_g = 0;
       Box& c_box = iter->second;
       std::vector<double> charge_votes(max_charge_, 0), charge_binary_votes(max_charge_, 0);
-      restart = false;
+      bool restart = false;
 
       //Let's first determine the charge
-      //Therefor, we can use two types of votes: qualitative ones (charge_binary_votes) or quantitative ones (charge_votes)
+      //Therefore, we can use two types of votes: qualitative ones (charge_binary_votes) or quantitative ones (charge_votes)
       for (box_iter = c_box.begin(); box_iter != c_box.end(); ++box_iter)
       {
 #ifdef OPENMS_DEBUG_ISOTOPE_WAVELET
@@ -1820,7 +1777,7 @@ protected:
 
       c_charge = best_charge_index + 1; //that's the finally predicted charge state for the pattern
 
-      av_intens = 0, av_ref_intens = 0, av_score = 0, av_mz = 0, av_RT = 0;
+      av_intens = 0; av_ref_intens = 0; av_score = 0; av_mz = 0; av_RT = 0;
       //Now, let's get the RT boundaries for the box
       std::vector<DPosition<2> > point_set;
       double sum_of_ref_intenses_l;
@@ -1918,7 +1875,7 @@ protected:
       if (intenstype_ == "corrected")
       {
         double lambda = IsotopeWavelet::getLambdaL(av_mz * c_charge);
-        av_intens /= exp(-2 * lambda) * boost::math::cyl_bessel_i(0, 2 * lambda);
+        av_intens /= exp(-2 * lambda) * boost::math::cyl_bessel_i(0.0, 2.0 * lambda);
       }
       if (intenstype_ == "ref")
       {
@@ -1963,8 +1920,8 @@ protected:
     double real_mz, real_intens;
     if (check_PPMs)
     {
-      reals = checkPPMTheoModel_(ref, iter->getMZ(), c);
-      real_mz = reals.first, real_intens = reals.second;
+      //reals = checkPPMTheoModel_(ref, iter->getMZ(), c);
+      //real_mz = reals.first; real_intens = reals.second;
       //if (real_mz <= 0 || real_intens <= 0)
       //{
       typename MSSpectrum::const_iterator h_iter = ref_iter, hc_iter = ref_iter;
@@ -1986,7 +1943,7 @@ protected:
         }
       }
       reals = checkPPMTheoModel_(ref, h_iter->getMZ(), c);
-      real_mz = reals.first, real_intens = reals.second;
+      real_mz = reals.first; real_intens = reals.second;
       if (real_mz <= 0 || real_intens <= 0)
       {
         return false;
@@ -1998,7 +1955,7 @@ protected:
     else
     {
       reals = std::pair<double, double>(seed_mz, ref_iter->getIntensity());
-      real_mz = reals.first, real_intens = reals.second;
+      real_mz = reals.first; real_intens = reals.second;
 
       if (real_mz <= 0 || real_intens <= 0)
       {
@@ -2020,7 +1977,7 @@ protected:
             return false;
           }
         }
-        real_mz = h_iter->getMZ(), real_intens = h_iter->getIntensity();
+        real_mz = h_iter->getMZ(); real_intens = h_iter->getIntensity();
         if (real_mz <= 0 || real_intens <= 0)
         {
           return false;
@@ -2082,10 +2039,10 @@ protected:
     if (check_PPMs)
     {
       reals = checkPPMTheoModel_(ref, iter->getMZ(), c);
-      real_mz = reals.first, real_intens = reals.second;
+      real_mz = reals.first; real_intens = reals.second;
       //if (real_mz <= 0 || real_intens <= 0)
       //{
-      typename MSSpectrum::const_iterator h_iter = ref_iter, hc_iter = ref_iter;
+      auto h_iter = ref_iter, hc_iter = ref_iter;
       while (h_iter != ref.begin())
       {
         --h_iter;
@@ -2105,7 +2062,7 @@ protected:
       }
       ++h_iter;
       reals = checkPPMTheoModel_(ref, h_iter->getMZ(), c);
-      real_mz = reals.first, real_intens = reals.second;
+      real_mz = reals.first; real_intens = reals.second;
 
 #ifdef OPENMS_DEBUG_ISOTOPE_WAVELET
       std::cout << "Plausibility check old_mz: " << iter->getMZ() << "\t" << real_mz << std::endl;
@@ -2122,11 +2079,11 @@ protected:
     else
     {
       reals = std::pair<double, double>(seed_mz, ref_iter->getIntensity());
-      real_mz = reals.first, real_intens = reals.second;
+      real_mz = reals.first; real_intens = reals.second;
 
       if (real_mz <= 0 || real_intens <= 0)
       {
-        typename MSSpectrum::const_iterator h_iter = ref_iter, hc_iter = ref_iter;
+        auto h_iter = ref_iter, hc_iter = ref_iter;
         while (h_iter != ref.begin())
         {
           --h_iter;
@@ -2144,7 +2101,7 @@ protected:
             return false;
           }
         }
-        real_mz = h_iter->getMZ(), real_intens = h_iter->getIntensity();
+        real_mz = h_iter->getMZ(); real_intens = h_iter->getIntensity();
         if (real_mz <= 0 || real_intens <= 0)
         {
           return false;

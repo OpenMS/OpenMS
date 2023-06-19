@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -74,9 +74,7 @@ namespace OpenMS
   {
   }
 
-  XTandemInfile::~XTandemInfile()
-  {
-  }
+  XTandemInfile::~XTandemInfile() = default;
 
   void XTandemInfile::write(const String& filename, bool ignore_member_parameters, bool force_default_mods)
   {
@@ -106,7 +104,10 @@ namespace OpenMS
       {
         has_pyroglu_q = true;
       }
-      if (has_pyroglu_e && has_pyroglu_q) break;
+      if (has_pyroglu_e && has_pyroglu_q)
+      {
+        break;
+      }
     }
 
     map<String, double> origin_set;
@@ -132,7 +133,7 @@ namespace OpenMS
       ResidueModification::TermSpecificity ts = it->getModification().getTermSpecificity();
       if ((ts != ResidueModification::ANYWHERE) && !orig.empty())
       {
-        LOG_WARN << "Warning: X! Tandem doesn't support modifications with both residue and terminal specificity. Using only terminal specificity for modification '" << it->getModificationName() << "'." << endl;
+        OPENMS_LOG_WARN << "Warning: X! Tandem doesn't support modifications with both residue and terminal specificity. Using only terminal specificity for modification '" << it->getModificationName() << "'." << endl;
       }
 
       if (ts == ResidueModification::C_TERM)
@@ -146,13 +147,13 @@ namespace OpenMS
       // check double usage
       if (origin_set.find(orig) != origin_set.end())
       {
-        LOG_WARN << "X! Tandem config file: Duplicate modification assignment to origin '" << orig << "'. "
+        OPENMS_LOG_WARN << "X! Tandem config file: Duplicate modification assignment to origin '" << orig << "'. "
                  << "X! Tandem will ignore the first modification '" << origin_set.find(orig)->second << "'!\n";
       }
       // check if already used before (i.e. we are currently looking at variable mods)
       if (affected_origins.find(orig) != affected_origins.end())
       {
-        LOG_INFO << "X! Tandem config file: Fixed modification and variable modification to origin '" << orig << "' detected. "
+        OPENMS_LOG_INFO << "X! Tandem config file: Fixed modification and variable modification to origin '" << orig << "' detected. "
                  << "Using corrected mass of " << mod_mass - affected_origins.find(orig)->second << " instead of " << mod_mass << ".\n";
         mod_mass -= affected_origins.find(orig)->second;
       }
@@ -181,7 +182,7 @@ namespace OpenMS
   void XTandemInfile::writeTo_(ostream& os, bool ignore_member_parameters)
   {
     os << "<?xml version=\"1.0\"?>" << "\n"
-       << "<?xml-stylesheet type=\"text/xsl\" href=\"tandem-input-style.xsl\"?>" << "\n"
+       << R"(<?xml-stylesheet type="text/xsl" href="tandem-input-style.xsl"?>)" << "\n"
        << "<bioml>" << "\n";
 
     writeNote_(os, "spectrum, path", input_filename_);
@@ -268,7 +269,7 @@ namespace OpenMS
       writeNote_(os, "spectrum, maximum parent charge", String(max_precursor_charge_));
 
       // <note type="input" label="spectrum, use noise suppression">yes</note>
-      //writeNote_(os, "spectrum, use noise suppression", noise_supression_);
+      //writeNote_(os, "spectrum, use noise suppression", noise_suppression_);
 
       //<note type="input" label="spectrum, minimum parent m+h">500.0</note>
       //writeNote_(os, "spectrum, minimum parent m+h", String(precursor_lower_mz_));
@@ -347,7 +348,7 @@ namespace OpenMS
           (var_mods.find("Glu->pyro-Glu (N-term E)") != var_mods.end()))
       {
         writeNote_(os, "protein, quick pyrolidone", true);
-        LOG_INFO << "Modifications 'Gln->pyro-Glu (N-term Q)' and 'Glu->pyro-Glu (N-term E)' are handled implicitly by the X! Tandem option 'protein, quick pyrolidone'. Set the 'force' flag in XTandemAdapter to force explicit inclusion of these modifications." << endl;
+        OPENMS_LOG_INFO << "Modifications 'Gln->pyro-Glu (N-term Q)' and 'Glu->pyro-Glu (N-term E)' are handled implicitly by the X! Tandem option 'protein, quick pyrolidone'. Set the 'force' flag in XTandemAdapter to force explicit inclusion of these modifications." << endl;
       }
 
       // special case for "Acetyl (N-term)" modification:
@@ -355,7 +356,7 @@ namespace OpenMS
           (var_mods.find("Acetyl (N-term)") != var_mods.end()))
       {
         writeNote_(os, "protein, quick acetyl", true);
-        LOG_INFO << "Modification 'Acetyl (N-term)' is handled implicitly by the X! Tandem option 'protein, quick acetyl'. Set the 'force' flag in XTandemAdapter to force explicit inclusion of this modification." << endl;
+        OPENMS_LOG_INFO << "Modification 'Acetyl (N-term)' is handled implicitly by the X! Tandem option 'protein, quick acetyl'. Set the 'force' flag in XTandemAdapter to force explicit inclusion of this modification." << endl;
       }
 
       ////////////////////////////////////////////////////////////////////////////////
@@ -402,7 +403,7 @@ namespace OpenMS
       //<note type="input" label="refine, tic percent">20</note>
       //writeNote_(os, "refine, tic percent", String(refine_tic_percent_));
       //<note type="input" label="refine, spectrum synthesis">yes</note>
-      //writeNote_(os, "refine, spectrum synthesis", refine_spectrum_sythesis_);
+      //writeNote_(os, "refine, spectrum synthesis", refine_spectrum_synthesis_);
       //<note type="input" label="refine, maximum valid expectation value">0.1</note>
       //writeNote_(os, "refine, maximum valid expectation value", String(refine_max_valid_evalue_));
       //<note type="input" label="refine, potential N-terminus modifications">+42.010565@[</note>
@@ -701,7 +702,7 @@ namespace OpenMS
     return number_of_missed_cleavages_;
   }
 
-  void XTandemInfile::setOutputResults(String result)
+  void XTandemInfile::setOutputResults(const String& result)
   {
     if (result == "valid" || result == "all" || result == "stochastic")
     {

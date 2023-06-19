@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -38,12 +38,10 @@
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 
-namespace OpenMS
-{
-  namespace TargetedExperimentHelper
+namespace OpenMS::TargetedExperimentHelper
   {
 
-    void setModification(int location, int max_size, String modification, OpenMS::AASequence& aas)
+    void setModification(int location, int max_size, const String& modification, OpenMS::AASequence& aas)
     {
       OPENMS_PRECONDITION(location >= -1 && location <= max_size, 
           (String("Location has invalid value") + (String)location).c_str() )
@@ -84,7 +82,7 @@ namespace OpenMS
           continue;
         }
 
-        LOG_WARN << "Warning: No UniMod id set for modification on peptide " << peptide.sequence << 
+        OPENMS_LOG_WARN << "Warning: No UniMod id set for modification on peptide " << peptide.sequence << 
           ". Will try to infer modification id by mass next." << std::endl;
 
         // compare with code in source/ANALYSIS/OPENSWATH/DATAACCESS/DataAccessHelper.cpp
@@ -103,11 +101,10 @@ namespace OpenMS
           std::cerr << "Warning: Could not determine modification with delta mass " <<
             it->mono_mass_delta << " for peptide " << peptide.sequence <<
             " at position " << it->location << std::endl;
-          std::cerr << "Skipping this modifcation" << std::endl;
+          std::cerr << "Skipping this modification" << std::endl;
         }
       }
       return aas;
     }
 
   }
-}

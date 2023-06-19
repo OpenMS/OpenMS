@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -29,25 +29,23 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Timo Sachsenberg $
-// $Authors: Andreas Bertsch $
+// $Authors: Andreas Bertsch, Timo Sachsenberg $
 // --------------------------------------------------------------------------
 
 #pragma once
 
 #include <OpenMS/CHEMISTRY/EmpiricalFormula.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
-#include <OpenMS/DATASTRUCTURES/Map.h>
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/CHEMISTRY/Residue.h>
+#include <OpenMS/CHEMISTRY/ResidueModification.h>
 
 #include <vector>
 #include <iosfwd>
+#include <map>
 
 namespace OpenMS
 {
-
-  //forward declarations
-  class ResidueModification;
 
   /**
       @brief Representation of a peptide/protein sequence
@@ -82,7 +80,7 @@ namespace OpenMS
       <tt>".(Dimethyl)DFPIAMGER."</tt> and <tt>".DFPIAMGER.(Label:18O(2))"</tt>
       represent the labelling of the N- and C-terminus respectively, but
       <tt>".DFPIAMGER(Phospho)."</tt> will be interpreted as a phosphorylation
-      of the last arginine at its side chain. 
+      of the last arginine at its side chain.
 
       Note there is a subtle difference between
       <tt>AASequence::fromString(".DFPIAM[+16]GER.")</tt> and
@@ -91,7 +89,7 @@ namespace OpenMS
       difference of 16 +/- 0.5, the latter will try to find the @e closest
       matching modification to the exact mass. This usually gives the intended
       results while the first approach may not.
-      
+
       Arbitrary/unknown amino acids (usually due to an unknown modification)
       can be specified using tags preceded by X: "X[weight]". This indicates a
       new amino acid ("X") with the specified weight, e.g. "RX[148.5]T"". Note
@@ -101,6 +99,12 @@ namespace OpenMS
       getFormula(), as tags will not be considered in this case (there exists
       no formula for them).  However, they have an influence on getMonoWeight()
       and getAverageWeight()!
+
+      @note For C/N terminal modifications, the absolute mass is assumed to be
+      1 (H) for the N-terminus and 17 (OH) for the C-terminus, therefore a
+      modification specified as absolute n[43]PEPTIDE would translate to
+      n[+42]PEPTIDE using relative masses. Note that there can be ambiguity in
+      cases where the loss includes the terminal amino acids.
 
       @ingroup Chemistry
   */
@@ -112,12 +116,11 @@ public:
 
     /** @brief ConstIterator for AASequence
 
-               AASequence constant iterator
+        AASequence constant iterator
     */
     class OPENMS_DLLAPI ConstIterator
     {
-public:
-
+    public:
       // TODO Iterator constructor for ConstIterator
 
       typedef const Residue& const_reference;
@@ -129,26 +132,20 @@ public:
       typedef std::random_access_iterator_tag iterator_category;
 
       /** @name Constructors and destructors
-      */
+       */
       //@{
       /// default constructor
-      ConstIterator()
-      {
-      }
+      ConstIterator() = default;
 
       /// detailed constructor with pointer to the vector and offset position
       ConstIterator(const std::vector<const Residue*>* vec_ptr, difference_type position)
+        : vector_{vec_ptr},
+          position_{position}
       {
-        vector_ = vec_ptr;
-        position_ = position;
       }
 
       /// copy constructor
-      ConstIterator(const ConstIterator& rhs) :
-        vector_(rhs.vector_),
-        position_(rhs.position_)
-      {
-      }
+      ConstIterator(const ConstIterator& rhs) = default;
 
       /// copy constructor from Iterator
       ConstIterator(const AASequence::Iterator& rhs) :
@@ -158,22 +155,12 @@ public:
       }
 
       /// destructor
-      virtual ~ConstIterator()
-      {
-      }
+      virtual ~ConstIterator() = default;
 
       //@}
 
       /// assignment operator
-      ConstIterator& operator=(const ConstIterator& rhs)
-      {
-        if (this != &rhs)
-        {
-          position_ = rhs.position_;
-          vector_ = rhs.vector_;
-        }
-        return *this;
-      }
+      ConstIterator& operator=(const ConstIterator& rhs) = default;
 
       /** @name Operators
       */
@@ -238,16 +225,16 @@ public:
 protected:
 
       // pointer to the AASequence vector
-      const std::vector<const Residue*>* vector_;
+      const std::vector<const Residue*>* vector_ {};
 
       // position in the AASequence vector
-      difference_type position_;
+      difference_type position_ {};
     };
 
 
     /** @brief Iterator class for AASequence
 
-            Mutable iterator for AASequence
+        Mutable iterator for AASequence
     */
     class OPENMS_DLLAPI Iterator
     {
@@ -265,28 +252,20 @@ public:
       */
       //@{
       /// default constructor
-      Iterator()
-      {
-      }
+      Iterator() = default;
 
       /// detailed constructor with pointer to the vector and offset position
       Iterator(std::vector<const Residue*>* vec_ptr, difference_type position)
+        : vector_ {vec_ptr},
+          position_{position}
       {
-        vector_ = vec_ptr;
-        position_ = position;
       }
 
       /// copy constructor
-      Iterator(const Iterator& rhs) :
-        vector_(rhs.vector_),
-        position_(rhs.position_)
-      {
-      }
+      Iterator(const Iterator& rhs) = default;
 
       /// destructor
-      virtual ~Iterator()
-      {
-      }
+      virtual ~Iterator() = default;
 
       //@}
 
@@ -370,27 +349,34 @@ public:
 protected:
 
       // pointer to the AASequence vector
-      std::vector<const Residue*>* vector_;
+      std::vector<const Residue*>* vector_ {};
 
       // position in the AASequence vector
-      difference_type position_;
+      difference_type position_ {};
     };
 
     /** @name Constructors and Destructors
     */
     //@{
-    /// default constructor
+
+    /// Default constructor
     AASequence();
 
-    /// copy constructor
-    AASequence(const AASequence& rhs);
+    /// Copy constructor
+    AASequence(const AASequence&) = default;
 
-    /// destructor
+    /// Move constructor
+    AASequence(AASequence&&) noexcept = default;
+
+    /// Destructor
     virtual ~AASequence();
     //@}
 
-    /// assignment operator
-    AASequence& operator=(const AASequence& rhs);
+    /// Assignment operator
+    AASequence& operator=(const AASequence&) = default;
+
+    /// Move assignment operator
+    AASequence& operator=(AASequence&&) = default; // TODO: add noexcept (gcc 4.8 bug)
 
     /// check if sequence is empty
     bool empty() const;
@@ -405,20 +391,23 @@ protected:
         Uses round brackets when possible (id is known) or square brackets for
         unknown modifications where only the mass is known.
 
-        i.e.: .n[43]PEPC(Carbamidomethyl)PEPM[147]PEPR.[16]
+        i.e.: .[43]PEPC(Carbamidomethyl)PEPM[147]PEPR.[-1]
+
+        @note For unknown modifications, the function will attempt to use the
+        exact same format used in the input
     */
     String toString() const;
 
-    /// returns the peptide as string without any modifications
+    /// returns the peptide as string without any modifications or (e.g., "PEPTIDER")
     String toUnmodifiedString() const;
 
     /**
         @brief returns the peptide as string with UniMod-style modifications embedded in brackets
 
-        Uses round brackets when possible (id is known) or square brackets for
-        unknown modifications where only the mass is known.
+        Annotates modification with UniMod identifier (when identifier is
+        known) and uses square brackets for unknown modifications (only mass is known).
 
-        i.e.: .n[43]PEPC(UniMod:4)PEPM[147]PEPR.[16]
+        i.e.: .[43]PEPC(UniMod:4)PEPM[147]PEPR.[16]
     */
     String toUniModString() const;
 
@@ -427,16 +416,52 @@ protected:
 
         Instead of using the modification names, it writes the modification masses in brackets
 
-        i.e.: n[35]RQLNK[162]LQHK[162]GEA
+        i.e.:
+
+         - n[43]PEPC[160]PEPM[147]PEPRc[16]
+         - n[+42]PEPC[+57]PEPM[+16]PEPRc[-1]
+
+        will be produced, depending on whether relative or absolute masses are used.
+
+        @param integer_mass Whether to use integer masses in brackets (default is true, if false, accurate masses will be written)
+        @param mass_delta Whether to write absolute masses M[147] or relative mass deltas M[+16] (default is false)
+        @param fixed_modifications Optional list of fixed modifications that should not be added to the output (they are considered to be present in all cases)
+
+        @note Using integer masses may mean that there could be multiple modifications mapping to the same mass
     */
-    String toBracketString(bool integer_mass = true, const std::vector<String> & fixed_modifications = std::vector<String>()) const;
+    String toBracketString(bool integer_mass = true,
+                           bool mass_delta = false,
+                           const std::vector<String> & fixed_modifications = std::vector<String>()) const;
 
     /// set the modification of the residue at position index.
-    /// if an empty string is passed replaces the residue with its unmodified version 
+    /// if an empty string is passed replaces the residue with its unmodified version
     void setModification(Size index, const String& modification);
 
-    /// sets the N-terminal modification
+    /// sets the modification of AA at @p index by providing an already, potentially modified residue
+    void setModification(Size index, const Residue* modification);
+
+    /// sets the modification of AA at @p index by providing a pointer to a @class ResidueModification object found in the @class ModificationsDB
+    void setModification(Size index, const ResidueModification* modification);
+
+    /// sets the modification of AA at @p index by providing a @class ResidueModification object
+    /// stricter than just looking for the name and adds the Modification to the DB if not present
+    void setModification(Size index, const ResidueModification& modification);
+
+    /// modifies the residue at @p index in the sequence and potentially in the @class ResidueDB
+    void setModificationByDiffMonoMass(Size index, double diffMonoMass);
+
+    /// sets the N-terminal modification (by lookup in the mod names of the @class ModificationsDB)
+    /// throws if nothing is found (since the name is not enough information to create a new mod)
     void setNTerminalModification(const String& modification);
+
+    /// sets the N-terminal modification
+    void setNTerminalModification(const ResidueModification* modification);
+
+    /// sets the N-terminal modification (copies and adds to database if not present)
+    void setNTerminalModification(const ResidueModification& mod);
+
+    /// sets the N-terminal modification by the monoisotopic mass difference it introduces (creates a "user-defined" mod if not present)
+    void setNTerminalModificationByDiffMonoMass(double diffMonoMass, bool protein_term);
 
     /// returns the name (ID) of the N-terminal modification, or an empty string if none is set
     const String& getNTerminalModificationName() const;
@@ -444,8 +469,18 @@ protected:
     /// returns a pointer to the N-terminal modification, or zero if none is set
     const ResidueModification* getNTerminalModification() const;
 
-    /// sets the C-terminal modification
+    /// sets the C-terminal modification (by lookup in the mod names of the @class ModificationsDB)
+    /// throws if nothing is found (since the name is not enough information to create a new mod)
     void setCTerminalModification(const String& modification);
+
+    /// sets the C-terminal modification (must be present in the database)
+    void setCTerminalModification(const ResidueModification* modification);
+
+    /// sets the C-terminal modification (copies and adds to database if not present)
+    void setCTerminalModification(const ResidueModification& mod);
+
+    /// sets the C-terminal modification by the monoisotopic mass difference it introduces (creates a "user-defined" mod if not present)
+    void setCTerminalModificationByDiffMonoMass(double diffMonoMass, bool protein_term);
 
     /// returns the name (ID) of the C-terminal modification, or an empty string if none is set
     const String& getCTerminalModificationName() const;
@@ -467,6 +502,13 @@ protected:
     /// (e.g. x/c ions for monomers) as it does not do fragmentation but rather
     /// supplementing/deduction of the sequence to its ionic form.
     double getMonoWeight(Residue::ResidueType type = Residue::Full, Int charge = 0) const;
+
+    /// returns mass-to-charge ratio of the peptide in the given ionic form
+    /// @note will not (and cannot) control whether the required ion can exist
+    /// (e.g. x/c ions for monomers) as it does not do fragmentation but rather
+    /// supplementing/deduction of the sequence to its ionic form.
+    /// @throws Exception::InvalidValue if @p charge==0
+    double getMZ(Int charge, Residue::ResidueType type = Residue::Full) const;
 
     /// returns a pointer to the residue at given position
     const Residue& operator[](Size index) const;
@@ -496,7 +538,7 @@ protected:
     AASequence getSubsequence(Size index, UInt number) const;
 
     /// compute frequency table of amino acids
-    void getAAFrequencies(Map<String, Size>& frequency_table) const;
+    void getAAFrequencies(std::map<String, Size>& frequency_table) const;
 
     //@}
 
@@ -559,7 +601,7 @@ protected:
     friend OPENMS_DLLAPI std::istream& operator>>(std::istream& is, const AASequence& peptide);
     //@}
 
-    /** 
+    /**
       @brief create AASequence object by parsing an OpenMS string
 
       @param s Input string
@@ -567,10 +609,10 @@ protected:
 
       @throws Exception::ParseError if an invalid string representation of an AA sequence is passed
     */
-    static AASequence fromString(const String& s, 
+    static AASequence fromString(const String& s,
                                  bool permissive = true);
 
-    /** 
+    /**
       @brief create AASequence object by parsing a C string (character array)
 
       @param s Input string
@@ -578,17 +620,18 @@ protected:
 
       @throws Exception::ParseError if an invalid string representation of an AA sequence is passed
     */
-    static AASequence fromString(const char* s, 
+    static AASequence fromString(const char* s,
                                  bool permissive = true);
 
   protected:
+
     std::vector<const Residue*> peptide_;
 
     const ResidueModification* n_term_mod_;
 
     const ResidueModification* c_term_mod_;
 
-    /** 
+    /**
       @brief Parses modifications in round brackets (an identifier)
 
       If dot notation is used it resolves cterm ambiguity based on the presence
@@ -597,8 +640,7 @@ protected:
       @param str_it Current position in the string to be parsed
       @param str Full input string
       @param aas Current AASequence object (will be modified with the correct residue added)
-      @param dot_notation Whether "dot notation" is used (e.g. ".PEPTIDE.")
-      @param dot_terminal Whether the previous character was a dot
+      @param specificity Whether the current modification should be interpreted as N- or C-terminal
 
       @return Position at which to continue parsing
     */
@@ -607,7 +649,7 @@ protected:
                                                         AASequence& aas,
                                                         const ResidueModification::TermSpecificity& specificity);
 
-    /** 
+    /**
       @brief Parses modifications in square brackets (a mass)
 
       If dot notation is used it resolves cterm ambiguity based on the presence

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -36,10 +36,8 @@
 
 using namespace std;
 
-namespace OpenMS
+namespace OpenMS::Internal
 {
-  namespace Internal
-  {
 
     ToolDescriptionHandler::ToolDescriptionHandler(const String & filename, const String & version) :
       ParamXMLHandler(p_, filename, version),
@@ -53,8 +51,7 @@ namespace OpenMS
     }
 
     ToolDescriptionHandler::~ToolDescriptionHandler()
-    {
-    }
+    = default;
 
     void ToolDescriptionHandler::startElement(const XMLCh * const uri, const XMLCh * const local_name, const XMLCh * const qname, const xercesc::Attributes & attributes)
     {
@@ -72,11 +69,17 @@ namespace OpenMS
       {
         String status = attributeAsString_(attributes, "status");
         if (status == "external")
+        {
           td_.is_internal = false;
+        }
         else if (status == "internal")
+        {
           td_.is_internal = true;
+        }
         else
+        {
           error(LOAD, "ToolDescriptionHandler::startElement: Element 'status' if tag 'tool' has unknown value " + status + "'.");
+        }
         return;
       }
       if (tag_ == "mapping")
@@ -111,7 +114,9 @@ namespace OpenMS
       }
 
       if (tag_ == "ttd" || tag_ == "category" || tag_ == "e_category" || tag_ == "type")
+      {
         return;
+      }
 
       if (td_.is_internal)
       {
@@ -124,10 +129,12 @@ namespace OpenMS
       {
         if (tag_ == "external" || tag_ == "cloptions" || tag_ == "path" || tag_ == "mappings" || tag_ == "mapping" || tag_ == "ini_param" ||
             tag_ == "text" || tag_ == "onstartup" || tag_ == "onfail" || tag_ == "onfinish" || tag_ == "workingdirectory")
+        {
           return;
+        }
       }
 
-      error(LOAD, "ToolDescriptionHandler::startElement(): Unkown element found: '" + tag_ + "', ignoring.");
+      error(LOAD, "ToolDescriptionHandler::startElement(): Unknown element found: '" + tag_ + "', ignoring.");
     }
 
     void ToolDescriptionHandler::characters(const XMLCh * const chars, const XMLSize_t length)
@@ -141,31 +148,53 @@ namespace OpenMS
       //std::cout << "characters '" << sm_.convert(chars) << "' in tag " << tag_ << "\n";
 
       if (tag_ == "ttd" || tag_ == "tool" || tag_ == "mappings" || tag_ == "external" || tag_ == "text")
+      {
         return;
-
+      }
       if (tag_ == "name")
+      {
         td_.name = sm_.convert(chars);
+      }
       else if (tag_ == "category")
+      {
         td_.category = sm_.convert(chars);
+      }
       else if (tag_ == "type")
+      {
         td_.types.push_back(sm_.convert(chars));
+      }
       else if (tag_ == "e_category")
+      {
         tde_.category = sm_.convert(chars);
+      }
       else if (tag_ == "cloptions")
+      {
         tde_.commandline = sm_.convert(chars);
+      }
       else if (tag_ == "path")
+      {
         tde_.path = sm_.convert(chars);
+      }
       else if (tag_ == "onstartup")
+      {
         tde_.text_startup = sm_.convert(chars);
+      }
       else if (tag_ == "onfail")
+      {
         tde_.text_fail = sm_.convert(chars);
+      }
       else if (tag_ == "onfinish")
+      {
         tde_.text_finish = sm_.convert(chars);
+      }
       else if (tag_ == "workingdirectory")
+      {
         tde_.working_directory = sm_.convert(chars);
-
+      }
       else
-        error(LOAD, "ToolDescriptionHandler::characters: Unkown character section found: '" + tag_ + "', ignoring.");
+      {
+        error(LOAD, "ToolDescriptionHandler::characters: Unknown character section found: '" + tag_ + "', ignoring.");
+      }
     }
 
     void ToolDescriptionHandler::endElement(const XMLCh * const uri, const XMLCh * const local_name, const XMLCh * const qname)
@@ -179,10 +208,11 @@ namespace OpenMS
 
       open_tags_.pop_back();
       //std::cout << "ending tag " << endtag_ << "\n";
-      if (open_tags_.size() > 0)
+      if (!open_tags_.empty())
+      {
         tag_ = open_tags_.back();
       //std::cout << " --> current Tag: " << tag_ << "\n";
-
+      }
       if (endtag_ == "ini_param")
       {
         in_ini_section_ = false;
@@ -220,5 +250,4 @@ namespace OpenMS
       return td_vec_;
     }
 
-  }   //namespace Internal
-} // namespace OpenMS
+} // namespace OpenMS   //namespace Internal

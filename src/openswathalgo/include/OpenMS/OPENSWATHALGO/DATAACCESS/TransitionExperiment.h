@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -37,7 +37,6 @@
 #include <string>
 #include <vector>
 #include <map>
-#include <boost/shared_ptr.hpp>
 
 #include <OpenMS/OPENSWATHALGO/OpenSwathAlgoConfig.h>
 
@@ -48,6 +47,7 @@ namespace OpenSwath
 public:
 
     LightTransition() :
+      precursor_im(-1),
       fragment_charge(0)
     {
     }
@@ -57,6 +57,7 @@ public:
     double library_intensity;
     double product_mz;
     double precursor_mz;
+    double precursor_im;
     int fragment_charge;
     bool decoy;
     bool detecting_transition;
@@ -71,6 +72,11 @@ public:
     bool isProductChargeStateSet() const
     {
       return !(fragment_charge == 0);
+    }
+
+    bool isPrecursorImSet() const
+    {
+      return !(precursor_im == -1);
     }
 
     std::string getNativeID() const
@@ -106,6 +112,11 @@ public:
     double getPrecursorMZ() const
     {
       return precursor_mz;
+    }
+
+    double getPrecursorIM() const
+    {
+      return precursor_im;
     }
 
     void setDetectingTransition (bool d)
@@ -162,6 +173,7 @@ public:
     std::vector<std::string> protein_refs;
     // Peptide group label (corresponds to MS:1000893, all peptides that are isotopic forms of the same peptide should be assigned the same peptide group label)
     std::string peptide_group_label;
+    std::string gene_name;
     std::string id;
 
     // for metabolites
@@ -278,5 +290,4 @@ public:
   };
 
 } //end Namespace OpenSwath
-
 

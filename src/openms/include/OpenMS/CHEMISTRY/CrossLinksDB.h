@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -46,17 +46,15 @@ namespace OpenMS
     /// Returns a pointer to the modifications DB (singleton)
     inline static CrossLinksDB* getInstance()
     {
-      static CrossLinksDB* db_ = nullptr;
-      if (db_ == nullptr)
-      {
-        db_ = new CrossLinksDB;
-      }
+      static CrossLinksDB* db_ = new CrossLinksDB;
       return db_;
     }
 
     /**
       @brief Adds modifications from a given file in OBO format
-
+      
+      @note readFromOBOFile should be called in a single threaded context with
+      no other threads accessing the CrossLinkDB
       @throw Exception::ParseError if the file cannot be parsed correctly
     */
     void readFromOBOFile(const String& filename);

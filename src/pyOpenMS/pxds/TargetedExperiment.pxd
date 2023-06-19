@@ -12,7 +12,7 @@ cdef extern from "<OpenMS/ANALYSIS/TARGETED/TargetedExperiment.h>" namespace "Op
 
     cdef cppclass TargetedExperiment:
 
-        TargetedExperiment() nogil except +
+        TargetedExperiment() nogil except + # TODO
         TargetedExperiment(TargetedExperiment &) nogil except +
 
         bool operator==(TargetedExperiment) nogil except +
@@ -94,4 +94,3 @@ cdef extern from "<OpenMS/ANALYSIS/TARGETED/TargetedExperiment.h>" namespace "Op
         void addSourceFile(SourceFile source_file) nogil except +
 
         bool containsInvalidReferences() nogil except +
-

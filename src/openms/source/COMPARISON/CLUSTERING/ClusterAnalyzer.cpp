@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -45,17 +45,13 @@
 
 namespace OpenMS
 {
-  ClusterAnalyzer::ClusterAnalyzer()
-  {
-  }
+  ClusterAnalyzer::ClusterAnalyzer() = default;
 
-  ClusterAnalyzer::~ClusterAnalyzer()
-  {
-  }
+  ClusterAnalyzer::~ClusterAnalyzer() = default;
 
   ClusterAnalyzer & ClusterAnalyzer::operator=(const ClusterAnalyzer & source)
   {
-    //ALWAYS CHECK FOR SELF ASSIGNEMT!
+    //ALWAYS CHECK FOR SELF ASSIGNMENT!
     if (this == &source)
     {
       return *this;
@@ -67,7 +63,7 @@ namespace OpenMS
   std::vector<float> ClusterAnalyzer::averageSilhouetteWidth(const std::vector<BinaryTreeNode> & tree, const DistanceMatrix<float> & original)
   {
     //throw exception if cannot be legal clustering
-    if (tree.size() < 1)
+    if (tree.empty())
     {
       throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "tree is empty but minimal clustering hirachy has at least one level");
     }
@@ -342,7 +338,7 @@ namespace OpenMS
   std::vector<float> ClusterAnalyzer::dunnIndices(const std::vector<BinaryTreeNode> & tree, const DistanceMatrix<float> & original, const bool tree_from_singlelinkage)
   {
     //throw exception if cannot be legal clustering
-    if (tree.size() < 1)
+    if (tree.empty())
     {
       throw Exception::InvalidParameter(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "tree is empty but minimal clustering hirachy has at least one level");
     }
@@ -645,7 +641,7 @@ namespace OpenMS
     clusters.reserve(tree.size() + 1);
     for (Size i = 0; i < tree.size() + 1; ++i)
     {
-      clusters.push_back(std::vector<Size>(1, i));
+      clusters.emplace_back(1, i);
     }
     //redo clustering till step (original.dimensionsize()-cluster_quantity)
     for (Size cluster_step = 0; cluster_step < tree.size() + 1 - cluster_quantity; ++cluster_step)

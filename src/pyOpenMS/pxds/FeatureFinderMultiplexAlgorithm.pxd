@@ -13,11 +13,13 @@ cdef extern from "<OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderMultiplexAl
     cdef cppclass FeatureFinderMultiplexAlgorithm(DefaultParamHandler):
 
         # wrap-inherits:
-        #    DefaultParamHandler
-        FeatureFinderMultiplexAlgorithm()      nogil except +
+        #   DefaultParamHandler
+        FeatureFinderMultiplexAlgorithm() nogil except +
 
-        void run(MSExperiment& exp, bool progress) nogil except +
+        FeatureFinderMultiplexAlgorithm(FeatureFinderMultiplexAlgorithm &) nogil except + # compiler
 
-        FeatureMap getFeatureMap() nogil except +
+        void run(MSExperiment& exp, bool progress) nogil except + # wrap-doc:Main method for feature detection
 
-        ConsensusMap getConsensusMap() nogil except +
+        FeatureMap getFeatureMap() nogil except + # TODO
+
+        ConsensusMap getConsensusMap() nogil except + # TODO

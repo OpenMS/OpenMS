@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -34,8 +34,6 @@
 
 #pragma once
 
-#include <boost/cast.hpp>
-
 // Datastructures
 #include <OpenMS/OPENSWATHALGO/DATAACCESS/DataStructures.h>
 #include <OpenMS/OPENSWATHALGO/DATAACCESS/SwathMap.h>
@@ -48,6 +46,7 @@
 // Helpers
 #include <OpenMS/ANALYSIS/OPENSWATH/OpenSwathHelper.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/SimpleOpenMSSpectraAccessFactory.h>
+#include <OpenMS/CONCEPT/LogStream.h>
 
 #include <OpenMS/INTERFACES/IMSDataConsumer.h>
 #include <OpenMS/FORMAT/HANDLERS/CachedMzMLHandler.h>
@@ -159,6 +158,8 @@ public:
         map.lower = -1;
         map.upper = -1;
         map.center = -1;
+        map.imLower = -1;
+        map.imUpper = -1;
         map.ms1 = true;
         maps.push_back(map);
       }
@@ -179,6 +180,8 @@ public:
         map.lower = swath_map_boundaries_[i].lower;
         map.upper = swath_map_boundaries_[i].upper;
         map.center = swath_map_boundaries_[i].center;
+        map.imLower = swath_map_boundaries_[i].imLower;
+        map.imUpper = swath_map_boundaries_[i].imUpper;
         map.ms1 = false;
         maps.push_back(map);
         if (map.sptr->getNrSpectra() > 0) {nonempty_maps++;}
@@ -186,7 +189,7 @@ public:
 
       if (nonempty_maps != swath_map_boundaries_.size())
       {
-        std::cout << "WARNING: The number nonempty maps found in the input file (" << nonempty_maps << ") is not equal to the number of provided swath window boundaries (" << 
+        std::cout << "WARNING: The number nonempty maps found in the input file (" << nonempty_maps << ") is not equal to the number of provided swath window boundaries (" <<
             swath_map_boundaries_.size() << "). Please check your input." << std::endl;
       }
 
@@ -205,6 +208,7 @@ public:
      */
     void consumeSpectrum(MapType::SpectrumType& s) override
     {
+
       if (!consuming_possible_)
       {
         throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
@@ -227,6 +231,17 @@ public:
         double center = prec[0].getMZ();
         double lower = prec[0].getMZ() - prec[0].getIsolationWindowLowerOffset();
         double upper = prec[0].getMZ() + prec[0].getIsolationWindowUpperOffset();
+
+        double lowerIm = -1; // these initial values assume IM is not present
+        double upperIm = -1;
+
+        // add IM if present
+        if (s.metaValueExists("ion mobility lower limit"))
+        {
+          lowerIm = s.getMetaValue("ion mobility lower limit"); // want this to be -1  if no ion mobility
+          upperIm = s.getMetaValue("ion mobility upper limit");
+        }
+
         bool found = false;
 
         // Check if enough information is present to infer the swath
@@ -241,7 +256,8 @@ public:
         {
           // We group by the precursor mz (center of the window) since this
           // should be present in all SWATH scans.
-          if (std::fabs(center - swath_map_boundaries_[i].center) < 1e-6)
+          // also specify ion mobility, if ion mobility not present will just be -1
+          if ( (std::fabs(center - swath_map_boundaries_[i].center) < 1e-6) && (std::fabs(lowerIm - swath_map_boundaries_[i].imLower) < 1e-6) && ( std::fabs(upperIm - swath_map_boundaries_[i].imUpper) < 1e-6))
           {
             found = true;
             consumeSwathSpectrum_(s, i);
@@ -267,11 +283,13 @@ public:
             boundary.lower = lower;
             boundary.upper = upper;
             boundary.center = center;
+            boundary.imLower = lowerIm;
+            boundary.imUpper = upperIm;
             swath_map_boundaries_.push_back(boundary);
 
-            LOG_DEBUG << "Adding Swath centered at " << center
+            OPENMS_LOG_DEBUG << "Adding Swath centered at " << center
               << " m/z with an isolation window of " << lower << " to " << upper
-              << " m/z." << std::endl;
+              << " m/z and IM lower limit of " <<  lowerIm << " and upper limit of " << upperIm << std::endl;
           }
         }
       }
@@ -542,6 +560,9 @@ protected:
    * map) objects of MSDataCachedConsumer which can consume the spectra and
    * write them to disk immediately.
    *
+   * Warning: no swathmaps (MS1 nor MS2) will be available when calling retrieveSwathMaps()
+   *          for downstream use.
+   *
    */
   class OPENMS_DLLAPI MzMLSwathFileConsumer :
     public FullSwathFileConsumer
@@ -552,7 +573,7 @@ public:
     typedef MapType::SpectrumType SpectrumType;
     typedef MapType::ChromatogramType ChromatogramType;
 
-    MzMLSwathFileConsumer(String cachedir, String basename, Size nr_ms1_spectra, std::vector<int> nr_ms2_spectra) :
+    MzMLSwathFileConsumer(const String& cachedir, const String& basename, Size nr_ms1_spectra, const std::vector<int>& nr_ms2_spectra) :
       ms1_consumer_(nullptr),
       swath_consumers_(),
       cachedir_(cachedir),
@@ -562,7 +583,7 @@ public:
     {}
 
     MzMLSwathFileConsumer(std::vector<OpenSwath::SwathMap> known_window_boundaries,
-            String cachedir, String basename, Size nr_ms1_spectra, std::vector<int> nr_ms2_spectra) :
+            const String& cachedir, const String& basename, Size nr_ms1_spectra, const std::vector<int>& nr_ms2_spectra) :
       FullSwathFileConsumer(known_window_boundaries),
       ms1_consumer_(nullptr),
       swath_consumers_(),
@@ -605,7 +626,7 @@ protected:
 
     void consumeSwathSpectrum_(MapType::SpectrumType& s, size_t swath_nr) override
     {
-      // only use swath_maps_ to count how many we have already added
+      // only use swath_consumers_ to count how many we have already added
       while (swath_consumers_.size() <= swath_nr)
       {
         addNewSwathMap_();
@@ -620,8 +641,6 @@ protected:
       ms1_consumer_ = new PlainMSDataWritingConsumer(mzml_file);
       ms1_consumer_->setExpectedSize(nr_ms1_spectra_, 0);
       ms1_consumer_->getOptions().setCompression(true);
-      boost::shared_ptr<PeakMap > exp(new PeakMap(settings_));
-      // ms1_map_ = exp;
     }
 
     void consumeMS1Spectrum_(MapType::SpectrumType& s) override
@@ -631,7 +650,6 @@ protected:
         addMS1Map_();
       }
       ms1_consumer_->consumeSpectrum(s);
-      s.clear(false);
     }
 
     void ensureMapsAreFilled_() override

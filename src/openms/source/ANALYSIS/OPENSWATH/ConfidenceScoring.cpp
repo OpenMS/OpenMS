@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -32,14 +32,33 @@
 // $Authors: Hannes Roest, Hendrik Weisser $
 // --------------------------------------------------------------------------
 
-#include <numeric> // for "accumulate"
-
 #include <OpenMS/ANALYSIS/OPENSWATH/ConfidenceScoring.h> 
+
+#include <OpenMS/FORMAT/TransformationXMLFile.h>
+#include <OpenMS/OPENSWATHALGO/ALGO/Scoring.h>
+#include <OpenMS/FORMAT/FeatureXMLFile.h>
+#include <OpenMS/FORMAT/TraMLFile.h>
+
+#include <boost/bimap.hpp>
+#include <boost/bimap/multiset_of.hpp>
+#include <numeric> // for "accumulate"
+#include <ctime> // for "time" (random number seed)
+#include <random>
+#include <map>
 
 using namespace std;
 
 namespace OpenMS
 {
+    /// Mapping: Q3 m/z <-> transition intensity (maybe not unique!)
+    typedef boost::bimap<double, boost::bimaps::multiset_of<double> > 
+    BimapType;
+
+    ConfidenceScoring::ConfidenceScoring(bool test_mode_)
+    {
+      if (!test_mode_) shuffler_ = Math::RandomShuffler(0);
+      else shuffler_ = Math::RandomShuffler(time(nullptr));// seed with current time
+    }
 
     /// Randomize the list of decoy indexes
     void ConfidenceScoring::chooseDecoys_()
@@ -47,7 +66,7 @@ namespace OpenMS
       if (n_decoys_ == 0) return; // list is already initialized
       // somewhat inefficient to shuffle the whole list when we only need a random
       // sample, but easy to do...
-      random_shuffle(decoy_index_.begin(), decoy_index_.end(), rand_gen_);
+      shuffler_.portable_random_shuffle(decoy_index_.begin(), decoy_index_.end());
     }
 
     // double rmsd_(DoubleList x, DoubleList y)
@@ -79,9 +98,10 @@ namespace OpenMS
       return assay.getRetentionTime();
     }
 
+
     /// Extract the @p n_transitions highest intensities from @p intensity_map,
     /// store them in @p intensities
-    void ConfidenceScoring::extractIntensities_(BimapType& intensity_map, Size n_transitions,
+    void extractIntensities_(BimapType& intensity_map, Size n_transitions,
                              DoubleList& intensities)
     {
       // keep only as many transitions as needed, remove those with lowest
@@ -157,7 +177,7 @@ namespace OpenMS
 
       double score = glm_(diff_rt, dist_int);
 
-      LOG_DEBUG << "\ndelta_RT:  " << fabs(diff_rt)
+      OPENMS_LOG_DEBUG << "\ndelta_RT:  " << fabs(diff_rt)
                 << "\ndist_int:  " << dist_int
                 << "\nGLM_score: " << score << endl;
 
@@ -172,7 +192,7 @@ namespace OpenMS
       BimapType intensity_map;
       // for the "true" assay, we need to make sure we compare based on the same
       // transitions, so keep track of them:
-      Map<double, String> trans_id_map; // Q3 m/z -> transition ID
+      std::map<double, String> trans_id_map; // Q3 m/z -> transition ID
       for (vector<Feature>::iterator sub_it = feature.getSubordinates().begin();
            sub_it != feature.getSubordinates().end(); ++sub_it)
       {
@@ -185,7 +205,7 @@ namespace OpenMS
       extractIntensities_(intensity_map, n_transitions_, feature_intensities);
       if ((n_transitions_ > 0) && (feature_intensities.size() < n_transitions_))
       {
-        LOG_WARN << "Warning: Feature '" << feature.getUniqueId() 
+        OPENMS_LOG_WARN << "Warning: Feature '" << feature.getUniqueId() 
                  << "' contains only " << feature_intensities.size()
                  << " transitions." << endl;
       }
@@ -201,7 +221,7 @@ namespace OpenMS
 
       // compare to "true" assay:
       String true_id = feature.getMetaValue("PeptideRef");
-      LOG_DEBUG << "True assay (ID '" << true_id << "')" << endl;
+      OPENMS_LOG_DEBUG << "True assay (ID '" << true_id << "')" << endl;
       if (true_id.empty())
       {
         throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
@@ -226,7 +246,7 @@ namespace OpenMS
         {
           continue;
         }
-        LOG_DEBUG << "Decoy assay " << scores.size() << " (ID '" << decoy_assay.id
+        OPENMS_LOG_DEBUG << "Decoy assay " << scores.size() << " (ID '" << decoy_assay.id
                   << "')" << endl;
 
         scores.push_back(scoreAssay_(decoy_assay, feature_rt, feature_intensities));
@@ -237,7 +257,7 @@ namespace OpenMS
       Size n_scores = scores.size();
       if (n_scores - 1 < n_decoys_)
       {
-        LOG_WARN << "Warning: Feature '" << feature.getUniqueId() 
+        OPENMS_LOG_WARN << "Warning: Feature '" << feature.getUniqueId() 
                  << "': Couldn't find enough decoy assays with at least "
                  << feature_intensities.size() << " transitions. "
                  << "Scoring based on " << n_scores - 1 << " decoys." << endl;
@@ -245,7 +265,7 @@ namespace OpenMS
       // TODO: this warning may trigger for every feature and get annoying
       if ((n_decoys_ == 0) && (n_scores < library_.getPeptides().size()))
       {
-        LOG_WARN << "Warning: Feature '" << feature.getUniqueId() 
+        OPENMS_LOG_WARN << "Warning: Feature '" << feature.getUniqueId() 
                  << "': Skipped some decoy assays with fewer than " 
                  << feature_intensities.size() << " transitions. "
                  << "Scoring based on " << n_scores - 1 << " decoys." << endl;

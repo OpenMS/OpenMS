@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -35,6 +35,8 @@
 #include <OpenMS/ANALYSIS/MRM/ReactionMonitoringTransition.h>
 
 #include <OpenMS/CONCEPT/Helpers.h>
+
+#include <utility>
 
 namespace OpenMS
 {
@@ -84,6 +86,25 @@ namespace OpenMS
     }
   }
 
+  ReactionMonitoringTransition::ReactionMonitoringTransition(ReactionMonitoringTransition && rhs) noexcept :
+    CVTermList(std::move(rhs)),
+    name_(std::move(rhs.name_)),
+    peptide_ref_(std::move(rhs.peptide_ref_)),
+    compound_ref_(std::move(rhs.compound_ref_)),
+    library_intensity_(std::move(rhs.library_intensity_)),
+    decoy_type_(std::move(rhs.decoy_type_)),
+    precursor_mz_(std::move(rhs.precursor_mz_)),
+    precursor_cv_terms_(std::move(rhs.precursor_cv_terms_)),
+    product_(std::move(rhs.product_)),
+    intermediate_products_(std::move(rhs.intermediate_products_)),
+    rts(std::move(rhs.rts)),
+    prediction_(std::move(rhs.prediction_)),
+    transition_flags_(std::move(rhs.transition_flags_))
+  {
+    rhs.precursor_cv_terms_ = nullptr;
+    rhs.prediction_ = nullptr;
+  }
+
   ReactionMonitoringTransition::~ReactionMonitoringTransition()
   {
     delete precursor_cv_terms_;
@@ -121,6 +142,34 @@ namespace OpenMS
       {
         prediction_ = new Prediction(*rhs.prediction_);
       }
+    }
+    return *this;
+  }
+
+  ReactionMonitoringTransition & ReactionMonitoringTransition::operator=(ReactionMonitoringTransition && rhs) noexcept
+  {
+    if (&rhs != this)
+    {
+      CVTermList::operator=(std::move(rhs));
+      name_ = std::move(rhs.name_);
+      peptide_ref_ = std::move(rhs.peptide_ref_);
+      compound_ref_ = std::move(rhs.compound_ref_);
+      precursor_mz_ = std::move(rhs.precursor_mz_);
+      intermediate_products_ = std::move(rhs.intermediate_products_);
+      product_ = std::move(rhs.product_);
+      rts = std::move(rhs.rts);
+      library_intensity_ = std::move(rhs.library_intensity_);
+      decoy_type_ = std::move(rhs.decoy_type_);
+      transition_flags_ = std::move(rhs.transition_flags_);
+
+      // Move the ptr-based objects to the current objects and delete them in the rhs
+      delete precursor_cv_terms_;
+      precursor_cv_terms_ = rhs.precursor_cv_terms_;
+      rhs.precursor_cv_terms_ = nullptr;
+
+      delete prediction_;
+      prediction_ = rhs.prediction_;
+      rhs.prediction_ = nullptr;
     }
     return *this;
   }
@@ -253,7 +302,7 @@ namespace OpenMS
     return intermediate_products_;
   }
 
-  void ReactionMonitoringTransition::addIntermediateProduct(ReactionMonitoringTransition::Product product)
+  void ReactionMonitoringTransition::addIntermediateProduct(const ReactionMonitoringTransition::Product& product)
   {
     intermediate_products_.push_back(product);
   }
@@ -265,7 +314,7 @@ namespace OpenMS
 
   void ReactionMonitoringTransition::setProduct(ReactionMonitoringTransition::Product product)
   {
-    product_ = product;
+    product_ = std::move(product);
   }
 
   const ReactionMonitoringTransition::Product & ReactionMonitoringTransition::getProduct() const
@@ -275,7 +324,7 @@ namespace OpenMS
 
   void ReactionMonitoringTransition::setRetentionTime(ReactionMonitoringTransition::RetentionTime rt)
   {
-    rts = rt;
+    rts = std::move(rt);
   }
 
   const ReactionMonitoringTransition::RetentionTime & ReactionMonitoringTransition::getRetentionTime() const

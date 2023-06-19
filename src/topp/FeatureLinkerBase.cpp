@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -45,6 +45,8 @@
 #include <OpenMS/KERNEL/ConversionHelper.h>
 
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
+
+#include <iomanip>     // setw
 
 using namespace OpenMS;
 using namespace std;
@@ -113,7 +115,7 @@ protected:
     {
       if (FileHandler::getType(ins[i]) != file_type)
       {
-        writeLog_("Error: All input files must be of the same type!");
+        writeLogError_("Error: All input files must be of the same type!");
         return ILLEGAL_PARAMETERS;
       }
     }
@@ -142,13 +144,13 @@ protected:
 
     if (file_type == FileTypes::CONSENSUSXML && !design_file.empty())
     {
-      writeLog_("Error: Using fractionated design with consensusXML als input is not supported!");
+      writeLogError_("Error: Using fractionated design with consensusXML als input is not supported!");
       return ILLEGAL_PARAMETERS;
     }
   
     if (file_type == FileTypes::FEATUREXML)
     {
-      LOG_INFO << "Linking " << ins.size() << " featureXMLs." << endl;
+      OPENMS_LOG_INFO << "Linking " << ins.size() << " featureXMLs." << endl;
   
       //-------------------------------------------------------------
       // Extract (optional) fraction identifiers and associate with featureXMLs
@@ -170,7 +172,7 @@ protected:
         // check if all fractions have the same number of MS runs associated
         if (!ed.sameNrOfMSFilesPerFraction())
         {
-          writeLog_("Error: Number of runs must match for every fraction!");
+          writeLogError_("Error: Number of runs must match for every fraction!");
           return ILLEGAL_PARAMETERS;
         }
       }
@@ -205,7 +207,7 @@ protected:
         // associate mzML file with map i in consensusXML
         if (ms_runs.size() > 1 || ms_runs.empty())
         {
-          LOG_WARN << "Exactly one MS runs should be associated with a FeatureMap. " 
+          OPENMS_LOG_WARN << "Exactly one MS run should be associated with a FeatureMap. "
             << ms_runs.size() 
             << " provided." << endl;
         }
@@ -220,21 +222,29 @@ protected:
         ms_run_locations.insert(ms_run_locations.end(), ms_runs.begin(), ms_runs.end());
 
         // to save memory, remove convex hulls, subordinates:
-        for (FeatureMap::Iterator it = tmp.begin(); it != tmp.end();
-             ++it)
+        for (Feature& ft : tmp)
         {
           String adduct;
+          String group;
           //exception: addduct information
-          if (it->metaValueExists("dc_charge_adducts"))
+          if (ft.metaValueExists(Constants::UserParam::DC_CHARGE_ADDUCTS))
           {
-            adduct = it->getMetaValue("dc_charge_adducts");
+            adduct = ft.getMetaValue(Constants::UserParam::DC_CHARGE_ADDUCTS);
           }
-          it->getSubordinates().clear();
-          it->getConvexHulls().clear();
-          it->clearMetaInfo();
+          if (ft.metaValueExists(Constants::UserParam::ADDUCT_GROUP))
+          {
+            group = ft.getMetaValue(Constants::UserParam::ADDUCT_GROUP);
+          }
+          ft.getSubordinates().clear();
+          ft.getConvexHulls().clear();
+          ft.clearMetaInfo();
           if (!adduct.empty())
           {
-            it->setMetaValue("dc_charge_adducts", adduct);
+            ft.setMetaValue(Constants::UserParam::DC_CHARGE_ADDUCTS, adduct);
+          }
+          if (!group.empty())
+          {
+            ft.setMetaValue("Group", group);
           }
 
         }
@@ -280,6 +290,9 @@ protected:
     }
     else
     {
+      //TODO isn't it better to have this option/functionality in the FeatureGroupingAlgorithm class?
+      // Otherwise everyone has to remember e.g. to annotate the old map_index etc.
+      bool keep_subelements = getFlag_("keep_subelements");
       vector<ConsensusMap> maps(ins.size());
       ConsensusXMLFile f;
       for (Size i = 0; i < ins.size(); ++i)
@@ -290,12 +303,29 @@ protected:
         StringList ms_runs;
         maps[i].getPrimaryMSRunPath(ms_runs);
         ms_run_locations.insert(ms_run_locations.end(), ms_runs.begin(), ms_runs.end());
+        if (keep_subelements)
+        {
+          auto saveOldMapIndex =
+            [](PeptideIdentification &p)
+            {
+              if (p.metaValueExists("map_index"))
+              {
+                p.setMetaValue("old_map_index", p.getMetaValue("map_index"));
+              }
+              else
+              {
+                OPENMS_LOG_WARN << "Warning: map_index not found in PeptideID. The tool will not be able to assign a"
+                                   "consistent one. Check the settings of previous tools." << std::endl;
+              }
+            };
+          maps[i].applyFunctionOnPeptideIDs(saveOldMapIndex, true);
+        }
       }
       // group
       algorithm->group(maps, out_map);
 
       // set file descriptions:
-      bool keep_subelements = getFlag_("keep_subelements");
+
       if (!keep_subelements)
       {
         for (Size i = 0; i < ins.size(); ++i)
@@ -329,20 +359,19 @@ protected:
 
     // some statistics
     map<Size, UInt> num_consfeat_of_size;
-    for (ConsensusMap::const_iterator cmit = out_map.begin();
-         cmit != out_map.end(); ++cmit)
+    for (const ConsensusFeature& cf : out_map)
     {
-      ++num_consfeat_of_size[cmit->size()];
+      ++num_consfeat_of_size[cf.size()];
     }
 
-    LOG_INFO << "Number of consensus features:" << endl;
+    OPENMS_LOG_INFO << "Number of consensus features:" << endl;
     for (map<Size, UInt>::reverse_iterator i = num_consfeat_of_size.rbegin();
          i != num_consfeat_of_size.rend(); ++i)
     {
-      LOG_INFO << "  of size " << setw(2) << i->first << ": " << setw(6) 
+      OPENMS_LOG_INFO << "  of size " << setw(2) << i->first << ": " << setw(6) 
                << i->second << endl;
     }
-    LOG_INFO << "  total:      " << setw(6) << out_map.size() << endl;
+    OPENMS_LOG_INFO << "  total:      " << setw(6) << out_map.size() << endl;
 
     return EXECUTION_OK;
   }

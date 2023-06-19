@@ -2,7 +2,7 @@
 #                   OpenMS -- Open-Source Mass Spectrometry
 # --------------------------------------------------------------------------
 # Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-# ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+# ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 #
 # This software is released under a three-clause BSD license:
 #  * Redistributions of source code must retain the above copyright
@@ -47,9 +47,24 @@ macro(find_boost)
   set(Boost_USE_STATIC_RUNTIME OFF)
   add_definitions(/DBOOST_ALL_NO_LIB) ## disable auto-linking of boost libs (boost tends to guess wrong lib names)
   set(Boost_COMPILER "")
+  
+  ## since boost 1.66 they add an architecture tag if you build with layout=versioned and since 1.69 even when you
+  ## build with layout=tagged (which we do in the contrib)
+  if(NOT Boost_ARCHITECTURE)
+    set(Boost_ARCHITECTURE "-x64")
+  endif()
 
   # help boost finding it's packages
   set(Boost_ADDITIONAL_VERSIONS
+    "1.78.1" "1.78.0" "1.78"
+    "1.77.1" "1.77.0" "1.77"
+    "1.76.1" "1.76.0" "1.76"
+    "1.75.1" "1.75.0" "1.75"
+    "1.74.1" "1.74.0" "1.74"
+    "1.73.1" "1.73.0" "1.73"
+    "1.72.1" "1.72.0" "1.72"
+    "1.71.1" "1.71.0" "1.71"
+    "1.70.1" "1.70.0" "1.70"
     "1.69.1" "1.69.0" "1.69"
     "1.68.1" "1.68.0" "1.68"
     "1.67.1" "1.67.0" "1.67"
@@ -73,7 +88,7 @@ macro(find_boost)
     "1.49.1" "1.49.0" "1.49"
     "1.48.1" "1.48.0" "1.48")
 
-  find_package(Boost 1.48.0 COMPONENTS ${ARGN})
+  find_package(Boost 1.48.0 COMPONENTS ${ARGN} REQUIRED)
 
 endmacro(find_boost)
 

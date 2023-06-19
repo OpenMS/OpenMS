@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -39,20 +39,13 @@ namespace OpenMS
 {
 
   // Default constructor
-  SvmTheoreticalSpectrumGeneratorSet::SvmTheoreticalSpectrumGeneratorSet()
-  {
-  }
+  SvmTheoreticalSpectrumGeneratorSet::SvmTheoreticalSpectrumGeneratorSet() = default;
 
   // Copy constructor
-  SvmTheoreticalSpectrumGeneratorSet::SvmTheoreticalSpectrumGeneratorSet(const SvmTheoreticalSpectrumGeneratorSet& source) :
-    simulators_(source.simulators_)
-  {
-  }
+  SvmTheoreticalSpectrumGeneratorSet::SvmTheoreticalSpectrumGeneratorSet(const SvmTheoreticalSpectrumGeneratorSet& source) = default;
 
   //Destructor
-  SvmTheoreticalSpectrumGeneratorSet::~SvmTheoreticalSpectrumGeneratorSet()
-  {
-  }
+  SvmTheoreticalSpectrumGeneratorSet::~SvmTheoreticalSpectrumGeneratorSet() = default;
 
   // Assignment operator
   SvmTheoreticalSpectrumGeneratorSet& SvmTheoreticalSpectrumGeneratorSet::operator=(const SvmTheoreticalSpectrumGeneratorSet& rhs)
@@ -91,8 +84,10 @@ namespace OpenMS
     TextFile file(filename);
     TextFile::ConstIterator it = file.begin();
 
-    if (it == file.end()) return; // no data to load
-
+    if (it == file.end())
+    {
+      return; // no data to load
+    }
     // skip header line
     ++it;
     // process content
@@ -118,8 +113,7 @@ namespace OpenMS
   void SvmTheoreticalSpectrumGeneratorSet::getSupportedCharges(std::set<Size>& charges)
   {
     charges.clear();
-    std::map<Size, SvmTheoreticalSpectrumGenerator>::const_iterator it;
-    for (it = simulators_.begin(); it != simulators_.end(); ++it)
+    for (std::map<Size, SvmTheoreticalSpectrumGenerator>::const_iterator it = simulators_.begin(); it != simulators_.end(); ++it)
     {
       charges.insert(it->first);
     }

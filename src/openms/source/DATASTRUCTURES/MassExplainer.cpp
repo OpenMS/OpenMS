@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -32,11 +32,16 @@
 // $Authors: Chris Bielow $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/CHEMISTRY/EmpiricalFormula.h>
-#include <OpenMS/DATASTRUCTURES/Compomer.h>
 #include <OpenMS/DATASTRUCTURES/MassExplainer.h>
 
+#include <OpenMS/CHEMISTRY/EmpiricalFormula.h>
+#include <OpenMS/DATASTRUCTURES/Compomer.h>
+#include <OpenMS/CONCEPT/LogStream.h>
+
 #include <iostream>
+#include <utility>
+
+#undef DEBUG_FD
 
 namespace OpenMS
 {
@@ -55,7 +60,7 @@ namespace OpenMS
   /// Constructor
   MassExplainer::MassExplainer(AdductsType adduct_base) :
     explanations_(),
-    adduct_base_(adduct_base),
+    adduct_base_(std::move(adduct_base)),
     q_min_(1),
     q_max_(5),
     max_span_(3),
@@ -80,7 +85,7 @@ namespace OpenMS
   /// Constructor
   MassExplainer::MassExplainer(AdductsType adduct_base, Int q_min, Int q_max, Int max_span, double thresh_logp, Size max_neutrals) :
     explanations_(),
-    adduct_base_(adduct_base),
+    adduct_base_(std::move(adduct_base)),
     q_min_(q_min),
     q_max_(q_max),
     max_span_(max_span),
@@ -133,8 +138,9 @@ namespace OpenMS
   MassExplainer& MassExplainer::operator=(const MassExplainer& rhs)
   {
     if (this == &rhs)
+    {
       return *this;
-
+    }
     explanations_ = rhs.explanations_;
     adduct_base_ = rhs.adduct_base_;
     q_min_ = rhs.q_min_;
@@ -146,9 +152,7 @@ namespace OpenMS
   }
 
   /// Destructor
-  MassExplainer::~MassExplainer()
-  {
-  }
+  MassExplainer::~MassExplainer() = default;
 
   //@}
 
@@ -161,9 +165,13 @@ namespace OpenMS
     for (AdductsType::const_iterator it = adduct_base_.begin(); it != adduct_base_.end(); ++it)
     {
       if (it->getCharge() == 0)
+      {
         adduct_neutral.push_back(*it);
+      }
       else
+      {
         adduct_charged.push_back(*it);
+      }
     }
 
     // calculate some initial boundaries that can be used to shorten the enumeration process
@@ -220,7 +228,7 @@ namespace OpenMS
         explanations_.push_back(cmpr);
       }
 
-      //std::cout << "valid explanations: " << explanations_.size() << " after " << it->getFormula() << std::endl;
+      OPENMS_LOG_DEBUG << "valid explanations: " << explanations_.size() << " after " << it->getFormula() << std::endl;
 
     } // END adduct add
 
@@ -229,7 +237,9 @@ namespace OpenMS
     for (size_t ci = 0; ci < explanations_.size(); ++ci)
     {
       if (compomerValid_(explanations_[ci]))
+      {
         valids_only.push_back(explanations_[ci]);
+      }
     }
     explanations_.swap(valids_only);
 
@@ -267,20 +277,21 @@ namespace OpenMS
       }
     }
 
-
     // sort according to (in-order) net-charge, mass, probability
     std::sort(explanations_.begin(), explanations_.end());
 
     // set Ids of compomers, which allows to uniquely identify them (for later lookup)
     for (size_t i = 0; i < explanations_.size(); ++i)
+    {
       explanations_[i].setID(i);
+    }      
 
-    //#if DEBUG_FD
+    #ifdef DEBUG_FD
     for (size_t ci = 0; ci < explanations_.size(); ++ci)
     {
       std::cerr << explanations_[ci] << " ";
     }
-    //#endif
+    #endif
 
     std::cout << "MassExplainer table size: " << explanations_.size() << "\n";
 
@@ -292,7 +303,7 @@ namespace OpenMS
   /// Sets the set of possible adducts
   void MassExplainer::setAdductBase(AdductsType adduct_base)
   {
-    adduct_base_ = adduct_base;
+    adduct_base_ = std::move(adduct_base);
   }
 
   /// Returns the set of adducts
@@ -341,22 +352,26 @@ namespace OpenMS
   }
 
   ///check if the generated compomer is valid judged by its probability, charges etc
-  bool MassExplainer::compomerValid_(const Compomer& cmp)
+  bool MassExplainer::compomerValid_(const Compomer& cmp) const
   {
     // probability ok?
     if (cmp.getLogP() < thresh_p_)
+    {
       return false;
-
+    }
     // limit the net charge by the maximal span of co-features
     if (abs(cmp.getNetCharge()) >= max_span_)
+    {
       return false;
-
+    }
     if (cmp.getNegativeCharges() > q_max_)
+    {
       return false;
-
+    }
     if (cmp.getPositiveCharges() > q_max_)
+    {
       return false;
-
+    }
     //TODO include mass?
     //if (abs(cmp.mass_) > mass_max_) return false;
 
@@ -369,6 +384,7 @@ namespace OpenMS
   {
 
     EmpiricalFormula ef(formula);
+    OPENMS_LOG_DEBUG << "createAdduct_: " << formula << " " << charge << "\n";
     //effectively subtract charge electron masses: (-H plus one Proton)*charge
     ef -= EmpiricalFormula("H" + String(charge)); // subtracts x hydrogen
     ef.setCharge(charge); // adds x protons

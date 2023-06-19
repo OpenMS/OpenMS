@@ -1,32 +1,32 @@
 // --------------------------------------------------------------------------
-//                   OpenMS -- Open-Source Mass Spectrometry               
+//                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
-// 
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
+//
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
 //    notice, this list of conditions and the following disclaimer.
 //  * Redistributions in binary form must reproduce the above copyright
 //    notice, this list of conditions and the following disclaimer in the
 //    documentation and/or other materials provided with the distribution.
-//  * Neither the name of any author or any participating institution 
-//    may be used to endorse or promote products derived from this software 
+//  * Neither the name of any author or any participating institution
+//    may be used to endorse or promote products derived from this software
 //    without specific prior written permission.
-// For a full list of authors, refer to the file AUTHORS. 
+// For a full list of authors, refer to the file AUTHORS.
 // --------------------------------------------------------------------------
 // THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
 // AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
 // IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING 
-// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, 
-// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, 
-// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; 
-// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, 
-// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR 
-// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF 
+// ARE DISCLAIMED. IN NO EVENT SHALL ANY OF THE AUTHORS OR THE CONTRIBUTING
+// INSTITUTIONS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+// EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+// PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
+// OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+// WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+// OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-// 
+//
 // --------------------------------------------------------------------------
 // $Maintainer: Timo Sachsenberg $
 // $Authors: Andreas Bertsch $
@@ -46,7 +46,7 @@ using namespace std;
 
 struct ResidueModificationOriginCmp
 {
-  bool operator() (const ResidueModification* a, const ResidueModification* b)
+  bool operator() (const ResidueModification* a, const ResidueModification* b) const
   {
     return a->getOrigin() < b->getOrigin();
   }
@@ -87,7 +87,7 @@ START_SECTION(Size getNumberOfModifications() const)
 END_SECTION
 
 START_SECTION(const ResidueModification& getModification(Size index) const)
-	TEST_EQUAL(ptr->getModification(0).getId().size() > 0, true)
+	TEST_EQUAL(!ptr->getModification(0)->getId().empty(), true)
 END_SECTION
 
   START_SECTION((void searchModifications(std::set<const ResidueModification*>& mods, const String& mod_name, const String& residue, ResidueModification::TermSpecificity term_spec) const))
@@ -222,10 +222,10 @@ START_SECTION((void searchModificationsByDiffMonoMass(std::vector<String>& mods,
   ptr->searchModificationsByDiffMonoMass(mods, 16.0, 1.0, "M");
   TEST_EQUAL(mods.empty(), false)
   TEST_EQUAL(mods[0], "Oxidation (M)")
-  ptr->searchModificationsByDiffMonoMass(mods, 1.0, 1.0, "N");
+  ptr->searchModificationsByDiffMonoMass(mods, 0.98, 0.1, "N");
   TEST_EQUAL(mods.empty(), false)
   TEST_EQUAL(mods[0], "Deamidated (N)")
-  ptr->searchModificationsByDiffMonoMass(mods, 1.0, 1.0, "Q");
+  ptr->searchModificationsByDiffMonoMass(mods, 0.98, 1.0, "Q");
   TEST_EQUAL(mods.empty(), false)
   TEST_EQUAL(mods[0], "Deamidated (Q)")
 }
@@ -233,16 +233,21 @@ END_SECTION
 
 START_SECTION((const ResidueModification& getModification(const String& mod_name, const String& residue, ResidueModification::TermSpecificity term_spec) const))
 {
-  TEST_EQUAL(ptr->getModification("Carboxymethyl (C)").getFullId(), "Carboxymethyl (C)");
-  TEST_EQUAL(ptr->getModification("Carboxymethyl (C)").getId(), "Carboxymethyl");
+  TEST_EQUAL(ptr->getModification("Carboxymethyl (C)")->getFullId(), "Carboxymethyl (C)");
+  TEST_EQUAL(ptr->getModification("Carboxymethyl (C)")->getId(), "Carboxymethyl");
 
-  TEST_EQUAL(ptr->getModification("Phosphorylation", "S", ResidueModification::ANYWHERE).getId(), "Phospho");
-  TEST_EQUAL(ptr->getModification("Phosphorylation", "S", ResidueModification::ANYWHERE).getFullId(), "Phospho (S)");
+  TEST_EQUAL(ptr->getModification("Phosphorylation", "S", ResidueModification::ANYWHERE)->getId(), "Phospho");
+  TEST_EQUAL(ptr->getModification("Phosphorylation", "S", ResidueModification::ANYWHERE)->getFullId(), "Phospho (S)");
 
   // terminal mod:
-  TEST_EQUAL(ptr->getModification("NIC", "", ResidueModification::N_TERM).getId(), "NIC");
-  TEST_EQUAL(ptr->getModification("NIC", "", ResidueModification::N_TERM).getFullId(), "NIC (N-term)");
-  TEST_EQUAL(ptr->getModification("Acetyl", "", ResidueModification::N_TERM).getFullId(), "Acetyl (N-term)");
+  TEST_EQUAL(ptr->getModification("NIC", "", ResidueModification::N_TERM)->getId(), "NIC");
+  TEST_EQUAL(ptr->getModification("NIC", "", ResidueModification::N_TERM)->getFullId(), "NIC (N-term)");
+  TEST_EQUAL(ptr->getModification("Acetyl", "", ResidueModification::N_TERM)->getFullId(), "Acetyl (N-term)");
+
+  // missing modification (exception)
+  TEST_EXCEPTION(Exception::InvalidValue, ptr->getModification("MISSING"));
+  TEST_EXCEPTION(Exception::InvalidValue, ptr->getModification("MISSING", "", ResidueModification::N_TERM));
+  TEST_EXCEPTION(Exception::InvalidValue, ptr->getModification("MISSING", "", ResidueModification::C_TERM));
 }
 END_SECTION
 
@@ -283,16 +288,68 @@ END_SECTION
 
 START_SECTION((bool addModification(ResidueModification* modification)))
 {
-  TEST_EQUAL(ptr->has("Phospho (E)"), false);
-  ResidueModification* modification = new ResidueModification();
-  modification->setFullId("Phospho (E)");
-  ptr->addModification(modification);
-  TEST_EQUAL(ptr->has("Phospho (E)"), true);
+  TEST_EQUAL(ptr->has("Phospho (A)"), false);
+  std::unique_ptr<ResidueModification> modification(new ResidueModification());
+  modification->setFullId("Phospho (A)");
+  ptr->addModification(std::move(modification));
+  TEST_EQUAL(ptr->has("Phospho (A)"), true);
 }
 END_SECTION
+
+START_SECTION([EXTRA] multithreaded example)
+{
+  // All measurements are best of three (wall time, Linux, 8 threads)
+  //
+  // Serial execution of code:
+  // 1e6 iterations -> 6.36 seconds
+  // Parallel execution of code:
+  // 1e6 iterations -> 9.79 seconds with boost::shared_mutex
+  // 1e6 iterations -> 6.28 seconds with std::mutex
+  // 1e6 iterations -> 4.64 seconds with pragma critical
+
+   static ModificationsDB* mdb = ModificationsDB::getInstance();
+
+   int nr_iterations (1e4), test (0);
+#pragma omp parallel for reduction (+: test)
+  for (int k = 1; k < nr_iterations + 1; k++)
+  {
+    int mod_id = k;
+    String modname = "mod" + String(mod_id);
+    std::unique_ptr<ResidueModification> new_mod(new ResidueModification());
+    new_mod->setFullId(modname);
+    new_mod->setMonoMass( 0.11 * mod_id);
+    new_mod->setAverageMass(1.0);
+    new_mod->setDiffMonoMass( 0.05 * mod_id);
+    mdb->addModification(std::move(new_mod));
+    int tmp = (int)mdb->getModification(modname)->getAverageMass();
+    test += tmp;
+  }
+  TEST_EQUAL(test, nr_iterations*1.0)
+
+   // Every modification is the same
+  test = 0;
+  #pragma omp parallel for reduction (+: test)
+  for (int k = 1; k < nr_iterations + 1; k++)
+  {
+    int mod_id = 42;
+    String modname = "mod" + String(mod_id);
+    if (!mdb->has(modname))
+    {
+      std::unique_ptr<ResidueModification> new_mod(new ResidueModification());
+      new_mod->setFullId(modname);
+      new_mod->setMonoMass( 0.11 * mod_id);
+      new_mod->setAverageMass(1.0);
+      new_mod->setDiffMonoMass( 0.05 * mod_id);
+      mdb->addModification(std::move(new_mod));
+    }
+    int tmp = (int)mdb->getModification(modname)->getAverageMass();
+    test += tmp;
+  }
+  TEST_EQUAL(test, nr_iterations*1.0)
+
+ }
+END_SECTION
+
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST
-
-
-

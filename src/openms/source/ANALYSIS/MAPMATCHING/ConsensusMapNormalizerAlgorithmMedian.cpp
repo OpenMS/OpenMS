@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -33,6 +33,8 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/ANALYSIS/MAPMATCHING/ConsensusMapNormalizerAlgorithmMedian.h>
+
+#include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 #include <OpenMS/MATH/STATISTICS/StatisticFunctions.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
@@ -43,14 +45,9 @@ using namespace std;
 
 namespace OpenMS
 {
-  ConsensusMapNormalizerAlgorithmMedian::ConsensusMapNormalizerAlgorithmMedian()
-  {
-  }
+  ConsensusMapNormalizerAlgorithmMedian::ConsensusMapNormalizerAlgorithmMedian() = default;
 
-  ConsensusMapNormalizerAlgorithmMedian::~ConsensusMapNormalizerAlgorithmMedian()
-  {
-
-  }
+  ConsensusMapNormalizerAlgorithmMedian::~ConsensusMapNormalizerAlgorithmMedian() = default;
 
   Size ConsensusMapNormalizerAlgorithmMedian::computeMedians(const ConsensusMap & map, vector<double>& medians, const String& acc_filter, const String& desc_filter)
   {
@@ -64,7 +61,16 @@ namespace OpenMS
     for (UInt i = 0; i < number_of_maps; i++)
     {
       ConsensusMap::ColumnHeaders::const_iterator it = map.getColumnHeaders().find(i);
-      if (it == map.getColumnHeaders().end()) throw Exception::ElementNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String(i));
+      if (it == map.getColumnHeaders().end()) 
+      {
+        throw Exception::ElementNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String(i));
+      }
+      else if (i >= feature_int.size())
+      {
+        throw Exception::ElementNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 
+          String(i) + " exceeds map number");
+      }
+       
       feature_int[i].reserve(it->second.size);
 
       if (it->second.size > map_with_most_features->second.size)
@@ -92,7 +98,7 @@ namespace OpenMS
       }
     }
 
-    LOG_INFO << endl << "Using " << pass_counter << "/" << map.size() <<  " consensus features for computing normalization coefficients" << endl << endl;
+    OPENMS_LOG_INFO << endl << "Using " << pass_counter << "/" << map.size() <<  " consensus features for computing normalization coefficients" << endl << endl;
 
     // do we have enough features passing the filters to compute the median for every map?
     bool enough_features_left = true;
@@ -110,7 +116,7 @@ namespace OpenMS
 
     if (!enough_features_left)
     {
-      LOG_WARN << endl << "Not enough features passing filters. Cannot compute normalization coefficients for all maps. Result will be unnormalized." << endl << endl;
+      OPENMS_LOG_WARN << endl << "Not enough features passing filters. Cannot compute normalization coefficients for all maps. Result will be unnormalized." << endl << endl;
       return 0;
     }
     else
@@ -130,7 +136,7 @@ namespace OpenMS
   {
     if (method == NM_SHIFT)
     {
-      LOG_WARN << endl << "WARNING: normalization using median shifting is not recommended for regular log-normal MS data. Use this only if you know exactly what you're doing!" << endl << endl;
+      OPENMS_LOG_WARN << endl << "WARNING: normalization using median shifting is not recommended for regular log-normal MS data. Use this only if you know exactly what you're doing!" << endl << endl;
     }
 
     ConsensusMap::Iterator cf_it;
@@ -179,8 +185,8 @@ namespace OpenMS
     boost::regex desc_regexp(desc_filter);
     boost::cmatch m;
 
-    if ((acc_filter == "" || boost::regex_search("", m, acc_regexp)) &&
-        (desc_filter == "" || boost::regex_search("", m, desc_regexp)))
+    if ((acc_filter.empty() || boost::regex_search("", m, acc_regexp)) &&
+        (desc_filter.empty() || boost::regex_search("", m, desc_regexp)))
     {
       // feature passes (even if it has no identification!)
       return true;
@@ -198,7 +204,7 @@ namespace OpenMS
         for (set<String>::const_iterator acc_it = accs.begin(); acc_it != accs.end(); ++acc_it)
         {
           // does accession match?
-          if (!(acc_filter == "" ||
+          if (!(acc_filter.empty() ||
                 boost::regex_search("", m, acc_regexp) ||
                 boost::regex_search(acc_it->c_str(), m, acc_regexp)))
           {
@@ -207,7 +213,7 @@ namespace OpenMS
           }
 
           // yes. does description match, too?
-          if (desc_filter == "" || boost::regex_search("", m, desc_regexp))
+          if (desc_filter.empty() || boost::regex_search("", m, desc_regexp))
           {
             return true;
           }

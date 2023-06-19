@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -37,6 +37,7 @@
 #include <OpenMS/FORMAT/ParamXMLFile.h>
 
 #include <iostream>
+#include <map>
 
 namespace OpenMS
 {
@@ -54,9 +55,7 @@ namespace OpenMS
   {
   }
 
-  TOPPASResources::~TOPPASResources()
-  {
-  }
+  TOPPASResources::~TOPPASResources() = default;
 
   TOPPASResources& TOPPASResources::operator=(const TOPPASResources& rhs)
   {
@@ -74,17 +73,17 @@ namespace OpenMS
     for (Param::ParamIterator it = load_param.begin(); it != load_param.end(); ++it)
     {
       StringList substrings;
-      it.getName().split(':', substrings);
+      String(it.getName()).split(':', substrings);
       if (substrings.size() != 2 ||
           substrings.back() != "url_list" ||
-          (it->value).valueType() != DataValue::STRING_LIST)
+          (it->value).valueType() != ParamValue::STRING_LIST)
       {
         std::cerr << "Invalid file format." << std::endl;
         return;
       }
 
       QString key = (substrings[0]).toQString();
-      StringList url_list = (it->value);
+      StringList url_list = ListUtils::toStringList<std::string>(it->value);
       QList<TOPPASResource> resource_list;
       for (StringList::const_iterator it = url_list.begin(); it != url_list.end(); ++it)
       {
@@ -104,16 +103,16 @@ namespace OpenMS
   {
     Param save_param;
 
-    for (Map<QString, QList<TOPPASResource> >::ConstIterator it = map_.begin(); it != map_.end(); ++it)
+    for (std::map<QString, QList<TOPPASResource> >::const_iterator it = map_.begin(); it != map_.end(); ++it)
     {
       const String& key = String(it->first);
       const QList<TOPPASResource>& resource_list = it->second;
-      StringList url_list;
+      std::vector<std::string> url_list;
       foreach(const TOPPASResource &res, resource_list)
       {
-        url_list.push_back(String(res.getURL().toString()));
+        url_list.push_back(String(res.getURL().toString().toStdString()));
       }
-      save_param.setValue(key + ":url_list", DataValue(url_list));
+      save_param.setValue(key + ":url_list", url_list);
     }
 
     ParamXMLFile paramFile;
@@ -122,12 +121,12 @@ namespace OpenMS
 
   const QList<TOPPASResource>& TOPPASResources::get(const QString& key) const
   {
-    if (!map_.has(key))
+    if (map_.find(key) == map_.end())
     {
       return empty_list_;
     }
 
-    return map_[key];
+    return map_.at(key);
   }
 
   void TOPPASResources::clear()

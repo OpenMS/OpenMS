@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry               
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 // 
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -44,9 +44,7 @@
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 
-
 #include <vector>
-#include <algorithm>
 
 namespace OpenMS
 {
@@ -96,6 +94,9 @@ namespace OpenMS
     Size getMatchingSpectrumIndex() const;
     void setMatchingSpectrumIndex(const Size&);
 
+    String getObservedSpectrumNativeID() const;
+    void setObservedSpectrumNativeID(const String&);
+
     String getPrimaryIdentifier() const;
     void setPrimaryIdentifier(const String&);
 
@@ -126,6 +127,7 @@ namespace OpenMS
     double matching_score_;
     Size observed_spectrum_idx_;
     Size matching_spectrum_idx_;
+    String observed_spectrum_native_id_;
 
     // further meta information
     String primary_id_;
@@ -159,13 +161,37 @@ namespace OpenMS
     ~MetaboliteSpectralMatching() override;
 
     /// hyperscore computation
-    double computeHyperScore(MSSpectrum, MSSpectrum, const double&, const double&);
+    static double computeHyperScore(
+      double fragment_mass_error,
+      bool fragment_mass_tolerance_unit_ppm,
+      const MSSpectrum& exp_spectrum,
+      const MSSpectrum& db_spectrum,
+      double mz_lower_bound = 0.0);
+
+    /// hyperscore computation (with output of peak annotations)
+    static double computeHyperScore(
+      double fragment_mass_error,
+      bool fragment_mass_tolerance_unit_ppm,
+      const MSSpectrum& exp_spectrum,
+      const MSSpectrum& db_spectrum,
+      std::vector<PeptideHit::PeakAnnotation>& annotations,
+      double mz_lower_bound = 0.0);
 
     /// main method of MetaboliteSpectralMatching
-    void run(PeakMap &, PeakMap &, MzTab &);
+    void run(PeakMap &, PeakMap &, MzTab &, String &);
 
   protected:
     void updateMembers_() override;
+
+    // we have to use a pointer for "annotations" because mutable
+    // references can't have temporary default values:
+    static double computeHyperScore_(
+      double fragment_mass_error,
+      bool fragment_mass_tolerance_unit_ppm,
+      const MSSpectrum& exp_spectrum,
+      const MSSpectrum& db_spectrum,
+      std::vector<PeptideHit::PeakAnnotation>* annotations = 0,
+      double mz_lower_bound = 0.0);
 
   private:
     /// private member functions
@@ -177,6 +203,8 @@ namespace OpenMS
     String ion_mode_;
 
     String report_mode_;
+
+    bool merge_spectra_;
   };
 
 }

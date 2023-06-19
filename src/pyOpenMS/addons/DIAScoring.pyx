@@ -1,6 +1,6 @@
 
 
-    def dia_by_ion_score(self, OSSpectrum spectrum , AASequence sequence ,  charge , float bseries_score , float yseries_score ):
+    def dia_by_ion_score(self, OSSpectrum spectrum , AASequence sequence , charge , float bseries_score , float yseries_score ):
         assert isinstance(spectrum, OSSpectrum), 'arg spectrum wrong type'
         assert isinstance(sequence, AASequence), 'arg sequence wrong type'
         assert isinstance(charge, (int, long)), 'arg charge wrong type'

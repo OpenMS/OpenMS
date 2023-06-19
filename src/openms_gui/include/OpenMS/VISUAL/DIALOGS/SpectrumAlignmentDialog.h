@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -46,7 +46,7 @@ namespace Ui
 
 namespace OpenMS
 {
-  class Spectrum1DWidget;
+  class Plot1DWidget;
 
   /**
       @brief Lets the user select two spectra and set the parameters for the spectrum alignment.
@@ -61,8 +61,8 @@ namespace OpenMS
 public:
 
     /// Constructor
-    SpectrumAlignmentDialog(Spectrum1DWidget * parent);
-    ~SpectrumAlignmentDialog();
+    SpectrumAlignmentDialog(Plot1DWidget * parent);
+    ~SpectrumAlignmentDialog() override;
   
     double getTolerance() const;
     bool isPPM() const;

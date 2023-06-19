@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -34,19 +34,16 @@
 
 #include <OpenMS/FORMAT/KroenikFile.h>
 
+#include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/CONCEPT/Constants.h>
 
 #include <OpenMS/FORMAT/TextFile.h>
 
 namespace OpenMS
 {
-  KroenikFile::KroenikFile()
-  {
-  }
+  KroenikFile::KroenikFile() = default;
 
-  KroenikFile::~KroenikFile()
-  {
-  }
+  KroenikFile::~KroenikFile() = default;
 
   void KroenikFile::load(const String& filename, FeatureMap& feature_map)
   {
@@ -58,8 +55,10 @@ namespace OpenMS
     feature_map = fmap;
 
     TextFile::ConstIterator it = input.begin();
-    if (it == input.end()) return; // no data to load
-
+    if (it == input.end())
+    {
+      return; // no data to load
+    }
     // skip header line
     ++it;
     // process content
@@ -123,7 +122,7 @@ namespace OpenMS
       feature_map.push_back(f);
     }
 
-    LOG_INFO << "Hint: The convex hulls are approximated in m/z dimension (Kroenik lacks this information)!\n";
+    OPENMS_LOG_INFO << "Hint: The convex hulls are approximated in m/z dimension (Kroenik lacks this information)!\n";
   }
 
 } // namespace OpenMS

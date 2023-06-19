@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -32,11 +32,11 @@
 // $Authors: Chris Bielow, Andreas Bertsch, Lars Nilse $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/FORMAT/MzMLFile.h>
-#include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
-#include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FILTERING/TRANSFORMERS/SpectraMerger.h>
+#include <OpenMS/FORMAT/FileHandler.h>
+#include <OpenMS/FORMAT/MzMLFile.h>
+#include <OpenMS/KERNEL/MSExperiment.h>
 
 #include <algorithm>
 
@@ -55,9 +55,9 @@ using namespace std;
   <center>
   <table>
   <tr>
-  <td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. predecessor tools </td>
-  <td VALIGN="middle" ROWSPAN=2> \f$ \longrightarrow \f$ SpectraMerger \f$ \longrightarrow \f$</td>
-  <td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. successor tools </td>
+  <th ALIGN = "center"> pot. predecessor tools </td>
+  <td VALIGN="middle" ROWSPAN=2> &rarr; SpectraMerger &rarr;</td>
+  <th ALIGN = "center"> pot. successor tools </td>
   </tr>
   <tr>
   <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> any tool operating on MS peak data @n (in mzML format) </td>
@@ -130,6 +130,10 @@ protected:
     fh.loadExperiment(in, exp, in_type, log_type_);
     exp.sortSpectra();
 
+    auto levels = exp.getMSLevels();
+    if (levels.empty()) throw Exception::InvalidSize(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, levels.size());
+    int min_ms_level = levels.front();
+    int max_ms_level = levels.back();
     //-------------------------------------------------------------
     // calculations
     //-------------------------------------------------------------
@@ -147,11 +151,33 @@ protected:
     }
     else if (merging_method == "average_gaussian")
     {
-      merger.average(exp, "gaussian");
+      int ms_level = merger.getParameters().getValue("average_gaussian:ms_level");
+      if (ms_level == 0)
+      {
+        for (int tmp_ms_level = min_ms_level; tmp_ms_level <= max_ms_level; tmp_ms_level++)
+        {
+          merger.average(exp, "gaussian", tmp_ms_level);
+        }
+      }
+      else
+      {
+        merger.average(exp, "gaussian", ms_level);
+      }
     }
     else if (merging_method == "average_tophat")
     {
-      merger.average(exp, "tophat");
+      int ms_level = merger.getParameters().getValue("average_tophat:ms_level");
+      if (ms_level == 0)
+      {
+        for (int tmp_ms_level = min_ms_level; tmp_ms_level <= max_ms_level; tmp_ms_level++)
+        {
+          merger.average(exp, "tophat", tmp_ms_level);
+        }
+      }
+      else
+      {
+        merger.average(exp, "tophat", ms_level);
+      }
     }
 
     //-------------------------------------------------------------

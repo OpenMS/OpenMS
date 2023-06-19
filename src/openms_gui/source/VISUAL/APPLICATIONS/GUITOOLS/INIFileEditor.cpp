@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -53,8 +53,6 @@
 #   include <Windows.h>
 #endif
 
-#include <OpenMS/DATASTRUCTURES/Map.h>
-
 using namespace OpenMS;
 using namespace std;
 
@@ -72,10 +70,8 @@ using namespace std;
 
 int main(int argc, const char** argv)
 {
-  Map<String, String> option_lists;
-  Map<String, String> options;
+  std::map<std::string, std::string> options, flags, option_lists;
   options["-print"] = "print";
-  Map<String, String> flags;
   flags["--help"] = "help";
   Param param;
   param.parseCommandLine(argc, argv, options, flags, option_lists);
@@ -107,7 +103,7 @@ int main(int argc, const char** argv)
     ParamXMLFile paramFile;
     try
     {
-      paramFile.load(param.getValue("print"), data);
+      paramFile.load(param.getValue("print").toString(), data);
       for (Param::ParamIterator it = data.begin(); it != data.end(); ++it)
       {
         cout << it.getName() << " = " << it->value << endl;
@@ -115,8 +111,8 @@ int main(int argc, const char** argv)
     }
     catch (Exception::BaseException& e)
     {
-      LOG_ERROR << "Error while parsing file '" << param.getValue("print") << "'\n";
-      LOG_ERROR << e << "\n";
+      OPENMS_LOG_ERROR << "Error while parsing file '" << param.getValue("print") << "'\n";
+      OPENMS_LOG_ERROR << e << "\n";
     }
 
     return 0;

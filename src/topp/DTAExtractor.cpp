@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -34,6 +34,7 @@
 
 #include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/FORMAT/DTAFile.h>
+#include <OpenMS/KERNEL/MSExperiment.h>
 
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 
@@ -45,29 +46,30 @@ using namespace std;
 //-------------------------------------------------------------
 
 /**
-    @page TOPP_DTAExtractor DTAExtractor
+@page TOPP_DTAExtractor DTAExtractor
 
-    @brief Extracts scans of an mzML file to several files in DTA format.
+@brief Extracts scans of an mzML file to several files in DTA format.
 <center>
-    <table>
-        <tr>
-            <td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. predecessor tools </td>
-            <td VALIGN="middle" ROWSPAN=2> \f$ \longrightarrow \f$ DTAExtractor \f$ \longrightarrow \f$</td>
-            <td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. successor tools </td>
-        </tr>
-        <tr>
-            <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> any signal-/preprocessing tool </td>
-            <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> - </td>
-        </tr>
-    </table>
+<table>
+    <tr>
+        <th ALIGN = "center"> pot. predecessor tools </td>
+        <td VALIGN="middle" ROWSPAN=2> &rarr; DTAExtractor &rarr;</td>
+        <th ALIGN = "center"> pot. successor tools </td>
+    </tr>
+    <tr>
+        <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> any signal-/preprocessing tool </td>
+        <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> - </td>
+    </tr>
+</table>
 </center>
-    The retention time, the m/z ratio (for MS level > 1) and the file extension are appended to the output file name.
-    You can limit the exported spectra by m/z range, retention time range or MS level.
 
-    <B>The command line parameters of this tool are:</B>
-    @verbinclude TOPP_DTAExtractor.cli
-    <B>INI file documentation of this tool:</B>
-    @htmlinclude TOPP_DTAExtractor.html
+The retention time, the m/z ratio (for MS level > 1) and the file extension are appended to the output file name.
+You can limit the exported spectra by m/z range, retention time range or MS level.
+
+<B>The command line parameters of this tool are:</B>
+@verbinclude TOPP_DTAExtractor.cli
+<B>INI file documentation of this tool:</B>
+@htmlinclude TOPP_DTAExtractor.html
 */
 
 // We do not want this class to show up in the docu:
@@ -154,7 +156,7 @@ protected:
     }
     catch (Exception::ConversionError& /*e*/)
     {
-      writeLog_(String("Invalid boundary '") + tmp + "' given. Aborting!");
+      writeLogError_(String("Invalid boundary '") + tmp + "' given. Aborting!");
       printUsage_();
       return ILLEGAL_PARAMETERS;
     }
@@ -175,28 +177,31 @@ protected:
     // calculations
     //-------------------------------------------------------------
 
-    for (PeakMap::iterator it = exp.begin(); it != exp.end(); ++it)
+    for (MSSpectrum& spec : exp)
     {
       // check for MS-level
-      if (std::find(levels.begin(), levels.end(), it->getMSLevel()) == levels.end())
+      if (std::find(levels.begin(), levels.end(), spec.getMSLevel()) == levels.end())
       {
         continue;
       }
 
       // store spectra
-      if (it->getMSLevel() > 1)
+      if (spec.getMSLevel() > 1)
       {
         double mz_value = 0.0;
-        if (!it->getPrecursors().empty()) mz_value = it->getPrecursors()[0].getMZ();
+        if (!spec.getPrecursors().empty())
+        {
+          mz_value = spec.getPrecursors()[0].getMZ();
+        }
         if (mz_value < mz_l || mz_value > mz_u)
         {
           continue;
         }
-        dta.store(out + "_RT" + String(it->getRT()) + "_MZ" + String(mz_value) + ".dta", *it);
+        dta.store(out + "_RT" + String(spec.getRT()) + "_MZ" + String(mz_value) + ".dta", spec);
       }
       else
       {
-        dta.store(out + "_RT" + String(it->getRT()) + ".dta", *it);
+        dta.store(out + "_RT" + String(spec.getRT()) + ".dta", spec);
       }
     }
 

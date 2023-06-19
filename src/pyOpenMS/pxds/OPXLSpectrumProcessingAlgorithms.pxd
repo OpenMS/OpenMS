@@ -5,14 +5,15 @@ from libcpp cimport bool
 from MSSpectrum cimport *
 from MSExperiment cimport *
 from DataArrays cimport *
+from SimpleTSGXLMS cimport SimplePeak
 
 
 cdef extern from "<OpenMS/ANALYSIS/XLMS/OPXLSpectrumProcessingAlgorithms.h>" namespace "OpenMS":
 
     cdef cppclass OPXLSpectrumProcessingAlgorithms:
 
-        OPXLSpectrumProcessingAlgorithms(OPXLSpectrumProcessingAlgorithms) nogil except +
-        OPXLSpectrumProcessingAlgorithms() nogil except +
+        OPXLSpectrumProcessingAlgorithms() nogil except + # compiler
+        OPXLSpectrumProcessingAlgorithms(OPXLSpectrumProcessingAlgorithms &) nogil except + # compiler
 
         MSSpectrum mergeAnnotatedSpectra(MSSpectrum& first_spectrum,
                                          MSSpectrum& second_spectrum) nogil except +
@@ -23,7 +24,6 @@ cdef extern from "<OpenMS/ANALYSIS/XLMS/OPXLSpectrumProcessingAlgorithms.h>" nam
                                         Size peptide_min_size,
                                         Int min_precursor_charge,
                                         Int max_precursor_charge,
-                                        libcpp_vector[ size_t ]& discarded_spectra,
                                         bool deisotope,
                                         bool labeled) nogil except +
 
@@ -37,12 +37,9 @@ cdef extern from "<OpenMS/ANALYSIS/XLMS/OPXLSpectrumProcessingAlgorithms.h>" nam
                                             FloatDataArray& ppm_error_array,
                                             double intensity_cutoff) nogil except +
 
-        MSSpectrum deisotopeAndSingleChargeMSSpectrum(MSSpectrum& old_spectrum,
-                                                      Int min_charge,
-                                                      Int max_charge,
-                                                      double fragment_tolerance,
-                                                      bool fragment_tolerance_unit_ppm,
-                                                      bool keep_only_deisotoped,
-                                                      Size min_isopeaks,
-                                                      Size max_isopeaks,
-                                                      bool make_single_charged) nogil except +
+        void getSpectrumAlignmentSimple(libcpp_vector[ libcpp_pair[ size_t, size_t ] ]& alignment,
+                                            double fragment_mass_tolerance,
+                                            bool fragment_mass_tolerance_unit_ppm,
+                                            const libcpp_vector[ SimplePeak ]& theo_spectrum,
+                                            const MSSpectrum& exp_spectrum,
+                                            const IntegerDataArray& exp_charges) nogil except +

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry               
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 // 
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -129,7 +129,7 @@ START_SECTION((QualityType fit1d(const  RawDataArrayType &range, InterpolationMo
   em.getSamples(samples);
   //fit the data
   EmgFitter1D ef = EmgFitter1D();
-	InterpolationModel* em_fitted = nullptr;
+	std::unique_ptr<InterpolationModel> em_fitted;
 	EmgFitter1D::QualityType correlation = ef.fit1d(samples, em_fitted);
 
 	//check the fitted model on the exact data
@@ -153,7 +153,7 @@ START_SECTION((QualityType fit1d(const  RawDataArrayType &range, InterpolationMo
   }
   //fit the data
   EmgFitter1D ef1 = EmgFitter1D();
-  InterpolationModel* em_fitted1 = nullptr;
+  std::unique_ptr<InterpolationModel> em_fitted1;
   EmgFitter1D::QualityType correlation1 = ef1.fit1d(unexact_samples, em_fitted1);
   TOLERANCE_RELATIVE(1.01)
 	TEST_REAL_SIMILAR(correlation1, 1);
@@ -169,6 +169,7 @@ START_SECTION((Fitter1D* create()))
   Fitter1D* ptr = EmgFitter1D::create();
   TEST_EQUAL(ptr->getName(), "EmgFitter1D")
 	TEST_NOT_EQUAL(ptr, nullPointer)
+	delete ptr;
 }
 END_SECTION
 

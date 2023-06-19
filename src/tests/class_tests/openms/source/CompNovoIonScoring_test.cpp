@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry               
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 // 
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -44,6 +44,8 @@
 #include <OpenMS/KERNEL/MSSpectrum.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 
+#include <map>
+
 using namespace OpenMS;
 using namespace std;
 
@@ -82,7 +84,7 @@ START_SECTION((void scoreSpectra(Map< double, IonScore > &CID_ion_scores, PeakSp
   TheoreticalSpectrumGenerator tsg;
   Param tsg_param(tsg.getParameters());
   tsg_param.setValue("add_losses", "true");
-  tsg_param.setValue("add_isotopes", "true");
+  tsg_param.setValue("isotope_model", "coarse");
   tsg.setParameters(tsg_param);
 
   PeakSpectrum rspec;
@@ -127,7 +129,7 @@ START_SECTION((void scoreSpectra(Map< double, IonScore > &CID_ion_scores, PeakSp
   spec.setPrecursors(precs);
   spec_ETD.setPrecursors(precs);
 
-  Map<double, CompNovoIonScoringBase::IonScore> ion_scores;
+  std::map<double, CompNovoIonScoringBase::IonScore> ion_scores;
   CompNovoIonScoring cnis;
   cnis.scoreSpectra(ion_scores, spec, spec_ETD, 1018.48, 1);
 

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -47,9 +47,7 @@ namespace OpenMS
     {"qvalue", "PEP", "score"};
 
 
-  PercolatorOutfile::PercolatorOutfile()
-  {
-  }
+  PercolatorOutfile::PercolatorOutfile() = default;
 
 
   enum PercolatorOutfile::ScoreType PercolatorOutfile::getScoreType(
@@ -78,7 +76,7 @@ namespace OpenMS
 
   void PercolatorOutfile::resolveMisassignedNTermMods_(String& peptide) const
   {
-    boost::regex re("^[A-Z]\\[(?<MOD1>-?\\d+(\\.\\d+)?)\\](\\[(?<MOD2>-?\\d+(\\.\\d+)?)\\])?");
+    boost::regex re(R"(^[A-Z]\[(?<MOD1>-?\d+(\.\d+)?)\](\[(?<MOD2>-?\d+(\.\d+)?)\])?)");
     boost::smatch match;
     bool found = boost::regex_search(peptide, match, re);
     if (found && match["MOD1"].matched)
@@ -161,19 +159,25 @@ namespace OpenMS
     // 'peptide' includes neighboring amino acids, e.g.: K.AAAR.A
     // but unclear to which protein neighboring AAs belong, so we ignore them:
     size_t len = peptide.size(), start = 0, count = std::string::npos;
-    if (peptide[1] == '.') start = 2;
-    if (peptide[len - 2] == '.') count = len - start - 2;
+    if (peptide[1] == '.')
+    {
+      start = 2;
+    }
+    if (peptide[len - 2] == '.')
+    {
+      count = len - start - 2;
+    }
     peptide = peptide.substr(start, count);
 
     // re-format modifications:
     String unknown_mod = "[unknown]";
     if (peptide.hasSubstring(unknown_mod))
     {
-      LOG_WARN << "Removing unknown modification(s) from peptide '" << peptide
+      OPENMS_LOG_WARN << "Removing unknown modification(s) from peptide '" << peptide
                << "'" << endl;
       peptide.substitute(unknown_mod, "");
     }
-    boost::regex re("\\[UNIMOD:(\\d+)\\]");
+    boost::regex re(R"(\[UNIMOD:(\d+)\])");
     std::string replacement = "(UniMod:$1)";
     peptide = boost::regex_replace(peptide, re, replacement);
     // search results from X! Tandem:
@@ -203,12 +207,12 @@ namespace OpenMS
     if (lookup.reference_formats.empty())
     {
       // MS-GF+ Percolator (mzid?) format:
-      lookup.addReferenceFormat("_SII_(?<INDEX1>\\d+)_\\d+_\\d+_(?<CHARGE>\\d+)_\\d+");
+      lookup.addReferenceFormat(R"(_SII_(?<INDEX1>\d+)_\d+_\d+_(?<CHARGE>\d+)_\d+)");
       // Mascot Percolator format (RT may be missing, e.g. for searches via
       // ProteomeDiscoverer):
-      lookup.addReferenceFormat("spectrum:[^;]+[(scans:)(scan=)(spectrum=)](?<INDEX0>\\d+)[^;]+;rt:(?<RT>\\d*(\\.\\d+)?);mz:(?<MZ>\\d+(\\.\\d+)?);charge:(?<CHARGE>-?\\d+)");
+      lookup.addReferenceFormat(R"(spectrum:[^;]+[(scans:)(scan=)(spectrum=)](?<INDEX0>\d+)[^;]+;rt:(?<RT>\d*(\.\d+)?);mz:(?<MZ>\d+(\.\d+)?);charge:(?<CHARGE>-?\d+))");
       // X! Tandem Percolator format:
-      lookup.addReferenceFormat("_(?<INDEX0>\\d+)_(?<CHARGE>\\d+)_\\d+");
+      lookup.addReferenceFormat(R"(_(?<INDEX0>\d+)_(?<CHARGE>\d+)_\d+$)");
     }
 
     vector<String> items;
@@ -239,7 +243,7 @@ namespace OpenMS
       {
         String msg = "Error: Could not extract data for spectrum reference '" +
           items[0] + "' from row " + String(row);
-        LOG_ERROR << msg << endl;
+        OPENMS_LOG_ERROR << msg << endl;
       }
 
       PeptideHit hit;
@@ -254,7 +258,7 @@ namespace OpenMS
 
       PeptideIdentification peptide;
       peptide.setIdentifier("id");
-      if (!boost::math::isnan(meta_data.rt))
+      if (!std::isnan(meta_data.rt))
       {
         peptide.setRT(meta_data.rt);
       }
@@ -262,7 +266,7 @@ namespace OpenMS
       {
         ++no_rt;
       }
-      if (!boost::math::isnan(meta_data.precursor_mz))
+      if (!std::isnan(meta_data.precursor_mz))
       {
         peptide.setMZ(meta_data.precursor_mz);
       }
@@ -335,22 +339,22 @@ namespace OpenMS
                                   params.variable_modifications);
     proteins.setSearchParameters(params);
 
-    LOG_INFO << "Created " << proteins.getHits().size() << " protein hits.\n"
+    OPENMS_LOG_INFO << "Created " << proteins.getHits().size() << " protein hits.\n"
              << "Created " << peptides.size() << " peptide hits (PSMs)."
              << endl;
     if (no_charge > 0)
     {
-      LOG_WARN << no_charge << " peptide hits without charge state information."
+      OPENMS_LOG_WARN << no_charge << " peptide hits without charge state information."
                << endl;
     }
     if (no_rt > 0)
     {
-      LOG_WARN << no_rt << " peptide hits without retention time information." 
+      OPENMS_LOG_WARN << no_rt << " peptide hits without retention time information." 
                << endl;
     }
     if (no_mz > 0)
     {
-      LOG_WARN << no_mz << " peptide hits without mass-to-charge information." 
+      OPENMS_LOG_WARN << no_mz << " peptide hits without mass-to-charge information." 
                << endl;
     }
   }

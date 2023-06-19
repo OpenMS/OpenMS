@@ -1,13 +1,13 @@
 
 
-    def transform(self, bytes path, transformer):
+    def transform(self, path, transformer):
+        assert (isinstance(path, str) or isinstance(path, unicode) or isinstance(path, bytes) or isinstance(path, String)), 'arg path wrong type'
 
         #
         # the referenced functions _wrap_MSSpectrum, _wrap_MSChromatogram and
         # _wrap_ExperimentalSettings are declared in the MzMLFile.pyx file!
         #
 
-        cdef _String path_string = _String(<char *>path)
         assert hasattr(transformer, "consumeSpectrum")
         assert hasattr(transformer, "consumeChromatogram")
         assert hasattr(transformer, "setExpectedSize")
@@ -19,7 +19,7 @@
                                              _wrap_ExperimentalSettings_mzxml)
 
         try:
-            self.inst.get().transform(path_string, consumer)
+            self.inst.get().transform(deref((convString(path)).get()), consumer)
         finally:
             del consumer
 

@@ -21,15 +21,22 @@ The most important CMake variables are:
 
     Please keep in mind that both Homebrew and MacPorts do not provide all libraries so
     you also need to specify the path to your self-build contrib via -DOPENMS_CONTRIB_LIBS
-
-</td>
+    </td>
+  </tr>
+  <tr>
+    <td valign="top">\c Qt5_DIR</td>
+    <td>Additional search path for the Qt5 CMake files. Use <tt>/PATH/TO/QT_INSTALLATION/lib/cmake/Qt5</tt> as value.</td>
   </tr>
   <tr>
     <td valign="top">\c HAS_XSERVER=On/Off</td>
-    <td>Defines if a running X Server is available when building %OpenMS.
+    <td>[Linux/MacOS only] Defines if a running X Server is available when building %OpenMS.
     As building parts of the documentation and running certain tests requires
     a running X Server, this flag can be used to disable those parts of the
     documentation and the tests that need an X Server. (Default: On)</td>
+  </tr>
+  <tr>
+    <td valign="top">\c ADDRESS_SANITIZER=On/Off</td>
+    <td>[g++/clang only] Enables/Disables Address Sanitizer (ASAN) to find access violations and other bugs.</td>
   </tr>
   <tr>
     <td valign="top">\c WITH_GUI=On/Off</td>
@@ -53,18 +60,24 @@ The most important CMake variables are:
   </tr>
   <tr>
     <td valign="top">\c ENABLE_UPDATE_CHECK=On/Off</td>
-    <td>Check online for OpenMS Updates upon invocation of any TOPP/UTIL.
+    <td>Check online for %OpenMS Updates upon invocation of any TOPP/UTIL.
     (Default: On)</td>
   </tr>
   <tr>
     <td valign="top">\c CMAKE_BUILD_TYPE</td>
-    <td>[makefiles only; does not apply for XCode or VS] Should be either 'Release' (optimization enabled) or 'Debug' (debug info and
-        precondition/postcondition checks enabled).
+    <td>[makefiles only; does not apply for XCode or VS] Should be either 'Release' (optimization enabled)
+        or 'Debug' (debug info and precondition/postcondition checks enabled).
         @n The default is 'Release'.</td>
   </tr>
   <tr>
     <td valign="top">\c CMAKE_CXX_COMPILER</td>
     <td>Defines the C++ compiler to use.</td>
+  </tr>
+  <tr>
+    <td valign="top">\c MY_CXX_FLAGS</td>
+    <td>Additional custom C++ compile options you would like to add (must fit your chosen compiler). 
+        This might be useful, for example, for adding debug symbols to a Release build, or for performance 
+        analysis (e.g. for '... -DMY_CXX_FLAGS="-Og;-ggdb;-g3;-fno-omit-frame-pointer" ...')</td>
   </tr>
   <tr>
     <td valign="top">\c CMAKE_C_COMPILER</td>
@@ -76,15 +89,15 @@ The most important CMake variables are:
   </tr>
   <tr>
     <td valign="top">\c SEARCH_ENGINES_DIRECTORY (optional)</td>
-    <td>The location where thirdparty search engines (X!Tandem, OMSSA, MyriMatch, MSGF+, Fido)
+    <td>The location where thirdparty search engines (X!Tandem, MSGF+, Fido)
     are located. This directory should have the same structure as the example
     in the search engine repository at https://github.com/OpenMS/THIRDPARTY after flattening for your platform.
     /.
     This directory is only needed to include thirdparty tools in the installer for %OpenMS.
   </tr>
   <tr>
-    <td valign="top">\c PYOPENMS</td>
-    <td>Use ON to enable the target for Python bindings, see also @ref pyOpenMS.</td>
+    <td valign="top">\c PYOPENMS=Off/On</td>
+    <td>Create Python bindings, see also @ref pyOpenMS (Default: Off)</td>
   </tr>
   <tr>
     <td valign="top">\c CMAKE_INSTALL_PREFIX</td>

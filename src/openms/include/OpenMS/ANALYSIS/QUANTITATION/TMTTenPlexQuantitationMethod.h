@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -43,7 +43,7 @@ namespace OpenMS
   /**
     @brief TMT 10plex quantitation to be used with the IsobaricQuantitation.
 
-    @htmlinclude OpenMS_TMTSixPlexQuantitationMethod.parameters
+    @htmlinclude OpenMS_TMTTenPlexQuantitationMethod.parameters
   */
   class OPENMS_DLLAPI TMTTenPlexQuantitationMethod :
     public IsobaricQuantitationMethod
@@ -53,7 +53,7 @@ public:
     TMTTenPlexQuantitationMethod();
 
     /// d'tor
-    ~TMTTenPlexQuantitationMethod() override;
+    ~TMTTenPlexQuantitationMethod() override = default;
 
     /// Copy c'tor
     TMTTenPlexQuantitationMethod(const TMTTenPlexQuantitationMethod& other);
@@ -64,7 +64,7 @@ public:
     /// @brief Methods to implement from IsobaricQuantitationMethod
     /// @{
 
-    const String& getName() const override;
+    const String& getMethodName() const override;
 
     const IsobaricChannelList& getChannelInformation() const override;
 
@@ -87,7 +87,7 @@ public:
     Size reference_channel_;
 
     /// List of available channel names as they are presented to the user
-    static const std::vector<String> channel_names_;
+    static const std::vector<std::string> channel_names_;
 
   protected:
     /// implemented for DefaultParamHandler

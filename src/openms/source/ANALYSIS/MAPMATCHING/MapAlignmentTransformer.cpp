@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -184,7 +184,7 @@ namespace OpenMS
     applyToBaseFeature_(feature, trafo, store_original_rt);
 
     // apply to grouped features (feature handles):
-    for (ConsensusFeature::HandleSetType::const_iterator it = 
+    for (ConsensusFeature::HandleSetType::const_iterator it =
            feature.getFeatures().begin(); it != feature.getFeatures().end();
          ++it)
     {
@@ -195,10 +195,10 @@ namespace OpenMS
 
 
   void MapAlignmentTransformer::transformRetentionTimes(
-    vector<PeptideIdentification>& pep_ids, 
+    vector<PeptideIdentification>& pep_ids,
     const TransformationDescription& trafo, bool store_original_rt)
   {
-    for (vector<PeptideIdentification>::iterator pep_it = pep_ids.begin(); 
+    for (vector<PeptideIdentification>::iterator pep_it = pep_ids.begin();
          pep_it != pep_ids.end(); ++pep_it)
     {
       if (pep_it->hasRT())
@@ -208,6 +208,22 @@ namespace OpenMS
         pep_it->setRT(trafo.apply(rt));
       }
     }
+  }
+
+
+  void MapAlignmentTransformer::transformRetentionTimes(
+    IdentificationData& id_data, const TransformationDescription& trafo,
+    bool store_original_rt)
+  {
+    // update RTs in-place:
+    id_data.applyToObservations([&](IdentificationData::Observation& obs)
+      {
+        if (store_original_rt)
+        {
+          storeOriginalRT_(obs, obs.rt);
+        }
+        obs.rt = trafo.apply(obs.rt);
+      });
   }
 
 }

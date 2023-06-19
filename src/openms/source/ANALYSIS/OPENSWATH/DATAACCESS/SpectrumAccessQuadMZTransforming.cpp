@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -34,20 +34,22 @@
 
 #include <OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/SpectrumAccessQuadMZTransforming.h>
 
+#include <utility>
+
 namespace OpenMS
 {
 
   SpectrumAccessQuadMZTransforming::SpectrumAccessQuadMZTransforming(
       OpenSwath::SpectrumAccessPtr sptr,
       double a, double b, double c, bool ppm) :
-        SpectrumAccessTransforming(sptr), 
+        SpectrumAccessTransforming(std::move(sptr)), 
         a_(a), 
         b_(b), 
         c_(c), 
         ppm_(ppm)
     {}
         
-    SpectrumAccessQuadMZTransforming::~SpectrumAccessQuadMZTransforming() {}
+    SpectrumAccessQuadMZTransforming::~SpectrumAccessQuadMZTransforming() = default;
 
     boost::shared_ptr<OpenSwath::ISpectrumAccess> SpectrumAccessQuadMZTransforming::lightClone() const
     {

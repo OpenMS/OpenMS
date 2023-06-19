@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -56,9 +56,9 @@ using namespace std;
 <CENTER>
     <table>
         <tr>
-            <td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. predecessor tools </td>
-            <td VALIGN="middle" ROWSPAN=2> \f$ \longrightarrow \f$ Digestor \f$ \longrightarrow \f$</td>
-            <td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. successor tools </td>
+            <th ALIGN = "center"> pot. predecessor tools </td>
+            <td VALIGN="middle" ROWSPAN=2> &rarr; Digestor &rarr;</td>
+            <th ALIGN = "center"> pot. successor tools </td>
         </tr>
         <tr>
             <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> none (FASTA input) </td>
@@ -155,7 +155,7 @@ protected:
 
     if (out_type == FileTypes::UNKNOWN)
     {
-      LOG_ERROR << ("Error: Could not determine output file type!") << std::endl;
+      OPENMS_LOG_ERROR << ("Error: Could not determine output file type!") << std::endl;
       return PARSE_ERROR;
     }
 
@@ -259,7 +259,7 @@ protected:
     }
 
     Size pep_remaining_count = (has_FASTA_output ? fasta_out_count : identifications.size());
-    LOG_INFO << "Statistics:\n"
+    OPENMS_LOG_INFO << "Statistics:\n"
              << "  file:                                    " << inputfile_name << "\n"
              << "  total #peptides after digestion:         " << pep_remaining_count + dropped_by_length << "\n"
              << "  removed #peptides (length restrictions): " << dropped_by_length << "\n"

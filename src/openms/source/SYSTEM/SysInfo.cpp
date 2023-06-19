@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -34,17 +34,20 @@
 
 #include <OpenMS/SYSTEM/SysInfo.h>
 #include <cstdlib>
-#ifdef OPENMS_WINDOWSPLATFORM
-#include "windows.h"
-#include "psapi.h"
-#elif __APPLE__
-#include <mach/mach.h>
-#include <mach/mach_init.h>
-#else
-#include <cstdio>
-#include <unistd.h>
 
-#define OMS_USELINUXMEMORYPLATFORM
+#ifdef OPENMS_WINDOWSPLATFORM
+  #include "windows.h"
+  #include "psapi.h"
+#elif __APPLE__
+  #include <mach/mach.h>
+  #include <mach/mach_init.h>
+#else
+  #define OMS_USELINUXMEMORYPLATFORM
+  #include <cstdio>
+  #include <unistd.h>
+  #ifdef OPENMS_HAS_SYS_RESOURCE_H
+    #include <sys/resource.h> // for rusage
+  #endif
 #endif
 
 namespace OpenMS
@@ -142,10 +145,22 @@ namespace OpenMS
     mem_virtual = pmc.PeakWorkingSetSize / 1024; // byte to KB
     return true;
 #elif __APPLE__
-    //todo: find a good API to do this
+    rusage ru;
+    if (getrusage(0, &ru) == 0) // success;
+    {
+      mem_virtual = ru.ru_maxrss / 1024; // reported in bytes (whereas Linux is KB!). Convert to KB
+      return true;
+    }
     return false;
 #else // Linux
-    //todo: find a good API to do this
+    #ifdef OPENMS_HAS_SYS_RESOURCE_H
+    rusage ru;
+    if (getrusage(0, &ru) == 0) // success;
+    {
+      mem_virtual = ru.ru_maxrss; // in KB already
+      return true;
+    }
+    #endif
     return false;
 #endif
   }
@@ -175,7 +190,10 @@ namespace OpenMS
 
   String SysInfo::MemUsage::delta(const String& event)
   {
-    if (mem_after == 0) after(); // collect data if missing; do not test using mem_after_peak, since it might be unsupported on the platform
+    if (mem_after == 0)
+    {
+      after(); // collect data if missing; do not test using mem_after_peak, since it might be unsupported on the platform
+    }
     String s = String("Memory usage (") + event + "): ";
     s += diff_str_(mem_before, mem_after) + " (working set delta)";
     if (mem_after_peak > 0)
@@ -187,7 +205,10 @@ namespace OpenMS
 
   String SysInfo::MemUsage::usage()
   {
-    if (mem_after == 0) after(); // collect data if missing; do not test using mem_after_peak, since it might be unsupported on the platform
+    if (mem_after == 0)
+    {
+      after(); // collect data if missing; do not test using mem_after_peak, since it might be unsupported on the platform
+    }
     String s("Memory usage: ");
     s += diff_str_(0, mem_after) + " (working set)";
     if (mem_after_peak > 0)
@@ -200,7 +221,10 @@ namespace OpenMS
   String SysInfo::MemUsage::diff_str_(size_t mem_before, size_t mem_after)
   {
     String s;
-    if (mem_after < mem_before) s += String("-");
+    if (mem_after < mem_before)
+    {
+      s += String("-");
+    }
     s = String(std::abs(((long long)mem_after - (long long)mem_before) / 1024)) + " MB";
     return s;
   }

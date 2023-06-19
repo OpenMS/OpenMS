@@ -13,10 +13,11 @@
 			<cvParam cvRef="MS" accession="MS:1000294" name="mass spectrum" />
 		</fileContent>
 		<sourceFileList count="1">
-			<sourceFile id="sf_ru_0" name="FileConverter_28_input.mzML" location="file:///home/hr/openmsall/source/OpenMS_trunk/src/tests/topp">
+			<sourceFile id="sf_ru_0" name="FileConverter_28_input.mzML" location="file:///home/sachsenb/OMS/OpenMS/src/tests/topp">
 				<cvParam cvRef="MS" accession="MS:1000569" name="SHA-1" value="fbc7be28bc7bef0b5915f623dba7b35e604fadd2" />
 				<cvParam cvRef="MS" accession="MS:1000584" name="mzML format" />
-				<cvParam cvRef="MS" accession="MS:1000777" name="spectrum identifier nativeID format" />
+				<cvParam cvRef="MS" accession="MS:1000774" name="multiple peak list nativeID format" />
+				<userParam name="name" type="xsd:string" value="sourcefile1"/>
 			</sourceFile>
 		</sourceFileList>
 		<contact>
@@ -122,8 +123,8 @@
 				<cvParam cvRef="MS" accession="MS:1000034" name="charge deconvolution" />
 				<cvParam cvRef="MS" accession="MS:1000033" name="deisotoping" />
 				<cvParam cvRef="MS" accession="MS:1000747" name="completion time" value="2001-02-03+04:05" />
-				<userParam name="low_intensity_threshold" type="xsd:double" value="5.9"/>
-				<userParam name="high_intensity_threshold" type="xsd:double" value="10.9"/>
+				<userParam name="low_intensity_threshold" type="xsd:double" value="5.9" unitAccession="MS:1000131" unitName="number of detector counts" unitCvRef="MS"/>
+				<userParam name="high_intensity_threshold" type="xsd:double" value="10.9" unitAccession="MS:1000131" unitName="number of detector counts" unitCvRef="MS"/>
 				<userParam name="p1" type="xsd:string" value="value1"/>
 			</processingMethod>
 			<processingMethod order="0" softwareRef="so_dp_sp_0_pm_1">
@@ -205,10 +206,10 @@
 </mzML>
 <indexList count="1">
 	<index name="chromatogram">
-		<offset idRef="tic native">10109</offset>
-		<offset idRef="sic native">11732</offset>
+		<offset idRef="tic native">10320</offset>
+		<offset idRef="sic native">11943</offset>
 	</index>
 </indexList>
-<indexListOffset>13313</indexListOffset>
+<indexListOffset>13524</indexListOffset>
 <fileChecksum>0</fileChecksum>
 </indexedmzML>

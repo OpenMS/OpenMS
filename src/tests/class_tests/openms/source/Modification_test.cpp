@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry               
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 // 
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -184,32 +184,34 @@ START_SECTION((virtual SampleTreatment* clone() const ))
 	TEST_EQUAL(dp->getSpecificityType(),Modification::AA)
 	TEST_EQUAL(dp->getAffectedAminoAcids(),"ABCDE")
 	TEST_EQUAL(String(dp->getMetaValue("color")),"red")
+
+	delete st;
 END_SECTION
 
 START_SECTION((virtual bool operator==(const SampleTreatment &rhs) const ))
 	Modification empty,edit;
 	
-	TEST_EQUAL(edit==empty, true);
+	TEST_TRUE(edit == empty);
 
 	edit.setMass(11.9);
 	TEST_EQUAL(edit==empty, false);
 	edit = empty;
-	TEST_EQUAL(edit==empty, true);
+	TEST_TRUE(edit == empty);
 
 	edit.setSpecificityType(Modification::CTERM);
 	TEST_EQUAL(edit==empty, false);
 	edit = empty;
-	TEST_EQUAL(edit==empty, true);		
+	TEST_TRUE(edit == empty);		
 
 	edit.setAffectedAminoAcids("ABCDE");
 	TEST_EQUAL(edit==empty, false);
 	edit = empty;
-	TEST_EQUAL(edit==empty, true);			
+	TEST_TRUE(edit == empty);			
 
 	edit.setMetaValue("color",String("red"));
 	TEST_EQUAL(edit==empty, false);
 	edit = empty;
-	TEST_EQUAL(edit==empty, true);	
+	TEST_TRUE(edit == empty);	
 	
 	Tagging m;
 	TEST_EQUAL(m==empty, false);

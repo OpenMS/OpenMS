@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -37,8 +37,6 @@
 #include <OpenMS/config.h> // OPENMS_DLLAPI
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
-#include <boost/regex.hpp>
-#include <fstream>
 
 namespace OpenMS
 {
@@ -67,6 +65,15 @@ public:
       @param[out] experiment The variable into which the extracted information will be saved
     */
     void load(const String& filename, MSExperiment& experiment) const;
+
+    /**
+      @brief Remove commas from the string (used as thousands separators) and
+      parse its value
+
+      @param[in] number A string representing a floating-point number
+      @return The value converted to `double`
+    */
+    double removeCommasAndParseDouble(String& number) const;
   };
 }
 

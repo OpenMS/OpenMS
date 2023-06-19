@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -40,6 +40,8 @@
 
 #include <OpenMS/SYSTEM/StopWatch.h>
 
+#include <utility>
+
 using namespace std;
 //#define PIS_DEBUG
 //#undef PIS_DEBUG
@@ -51,7 +53,7 @@ namespace OpenMS
     solver_(LPWrapper::SOLVER_GLPK)
   {
     defaults_.setValue("type", "IPS", "Strategy for precursor ion selection.");
-    defaults_.setValidStrings("type", ListUtils::create<String>("ILP_IPS,IPS,SPS,Upshift,Downshift,DEX"));
+    defaults_.setValidStrings("type", {"ILP_IPS","IPS","SPS","Upshift","Downshift","DEX"});
     // defaults_.setValue("min_pep_ids",2,"Minimal number of identified peptides required for a protein identification.");
     // defaults_.setMinInt("min_pep_ids",1);
     defaults_.setValue("max_iteration", 100, "Maximal number of iterations.");
@@ -63,7 +65,7 @@ namespace OpenMS
     defaults_.setValue("peptide_min_prob", 0.2, "Minimal peptide probability.");
 
     defaults_.setValue("sequential_spectrum_order", "false", "If true, precursors are selected sequentially with respect to their RT.");
-    defaults_.setValidStrings("sequential_spectrum_order", ListUtils::create<String>("true,false"));
+    defaults_.setValidStrings("sequential_spectrum_order", {"true","false"});
 
     defaults_.insert("MIPFormulation:", PSLPFormulation().getDefaults());
     defaults_.remove("MIPFormulation:mz_tolerance");
@@ -83,10 +85,7 @@ namespace OpenMS
     updateMembers_();
   }
 
-  PrecursorIonSelection::~PrecursorIonSelection()
-  {
-
-  }
+  PrecursorIonSelection::~PrecursorIonSelection() = default;
 
   const double& PrecursorIonSelection::getMaxScore() const
   {
@@ -428,7 +427,6 @@ namespace OpenMS
     std::cout << "mapped ids" << std::endl;
 #endif
     PSProteinInference protein_inference;
-    protein_inference.setSolver(solver_);
     protein_inference.findMinimalProteinList(filtered_pep_ids);
     // make the rescoring
     rescore_(features, filtered_pep_ids, preprocessed_db, protein_inference);
@@ -438,7 +436,7 @@ namespace OpenMS
   void PrecursorIonSelection::shiftDown_(FeatureMap& features, PrecursorIonSelectionPreprocessing& preprocessed_db,
                                          String protein_acc)
   {
-    const std::vector<double>& masses = preprocessed_db.getMasses(protein_acc);
+    const std::vector<double>& masses = preprocessed_db.getMasses(std::move(protein_acc));
 #ifdef PIS_DEBUG
     std::cout << protein_acc << "  shift down  " << masses.size() << " peptides" << std::endl;
 #endif
@@ -506,7 +504,7 @@ namespace OpenMS
   void PrecursorIonSelection::shiftUp_(FeatureMap& features, PrecursorIonSelectionPreprocessing& preprocessed_db,
                                        String protein_acc)
   {
-    const std::vector<double>& masses = preprocessed_db.getMasses(protein_acc);
+    const std::vector<double>& masses = preprocessed_db.getMasses(std::move(protein_acc));
 #ifdef PIS_DEBUG
     std::cout << protein_acc << "  shift up  " << masses.size() << " peptides" << std::endl;
 #endif
@@ -660,7 +658,7 @@ namespace OpenMS
   void PrecursorIonSelection::simulateRun(FeatureMap& features, std::vector<PeptideIdentification>& pep_ids,
                                           std::vector<ProteinIdentification>& prot_ids,
                                           PrecursorIonSelectionPreprocessing& preprocessed_db,
-                                          String path, PeakMap& experiment, String precursor_path)
+                                          const String& path, PeakMap& experiment, const String& precursor_path)
   {
     convertPeptideIdScores_(pep_ids);
     if (param_.getValue("type") == "ILP_IPS")
@@ -672,7 +670,7 @@ namespace OpenMS
   void PrecursorIonSelection::simulateRun_(FeatureMap& features, std::vector<PeptideIdentification>& param_pep_ids,
                                            std::vector<ProteinIdentification>& param_prot_ids,
                                            PrecursorIonSelectionPreprocessing& preprocessed_db,
-                                           String path, String precursor_path)
+                                           const String& path, const String& precursor_path)
   {
     UInt step_size(param_.getValue("step_size"));
     sortByTotalScore(features);
@@ -704,7 +702,7 @@ namespace OpenMS
     std::vector<PeptideIdentification> filtered_pep_ids = filterPeptideIds_(param_pep_ids);
 
     // annotate map with ids
-    // TODO: wirklich mit deltas? oder lieber ueber convex hulls? Anm v. Chris: IDMapper benutzt CH's + Deltas wenn CH vorhanden sind
+    // TODO: really with deltas, or better with convex hulls? Chris: IDMapper uses CH's + Deltas if CH is present
     IDMapper mapper;
     Param p = mapper.getParameters();
     p.setValue("rt_tolerance", 30.);
@@ -714,7 +712,6 @@ namespace OpenMS
     mapper.setParameters(p);
     mapper.annotate(features, filtered_pep_ids, param_prot_ids, true);
     PSProteinInference protein_inference;
-    protein_inference.setSolver(solver_);
 
     double protein_id_threshold = param_.getValue("MIPFormulation:thresholds:min_protein_id_probability");
 
@@ -739,7 +736,7 @@ namespace OpenMS
     std::cout << max_iteration_ << std::endl;
 #endif
     // while there are precursors left and the maximal number of iterations isn't arrived
-    while ((new_features.size()  > 0 && iteration < max_iteration_))
+    while ((!new_features.empty() && iteration < max_iteration_))
     {
 
       ++iteration;
@@ -810,7 +807,7 @@ namespace OpenMS
               const std::vector<ProteinHit>& prot_hits = prot_ids[prot_id].getHits();
               for (UInt prot_hit = 0; prot_hit < prot_hits.size(); ++prot_hit)
               {
-                if (find(accs.begin(), accs.end(), prot_hits[prot_hit].getAccession()) != accs.end())
+                if (accs.find(prot_hits[prot_hit].getAccession()) != accs.end())
                 {
                   //std::cout << "found "<<prot_hits[prot_hit].getAccession() << std::endl;
                   // check if protein is already in all_prot_ids
@@ -979,7 +976,7 @@ namespace OpenMS
                                                       std::vector<PeptideIdentification>& param_pep_ids,
                                                       std::vector<ProteinIdentification>& prot_ids,
                                                       PrecursorIonSelectionPreprocessing& preprocessed_db,
-                                                      String output_path, String precursor_path)
+                                                      const String& output_path, const String& precursor_path)
   {
     bool use_peptide_rule = (param_.getValue("MIPFormulation:thresholds:use_peptide_rule") == "true") ? true : false;
     Int min_peptides = param_.getValue("MIPFormulation:thresholds:min_peptide_ids");
@@ -1031,7 +1028,6 @@ namespace OpenMS
     mapper.annotate(features, filtered_pep_ids, prot_ids);
 
     PSProteinInference protein_inference;
-    protein_inference.setSolver(solver_);
 
     sortByTotalScore(features);
 
@@ -1095,7 +1091,7 @@ namespace OpenMS
     // #endif
     //    std::ofstream out_prec("precursors.txt");
     // while there are precursors left and the maximal number of iterations isn't arrived
-    while ((new_features.size()  > 0 && iteration < max_iteration_))
+    while ((!new_features.empty() && iteration < max_iteration_))
     {
       ++iteration;
 #ifdef PIS_DEBUG
@@ -1134,7 +1130,7 @@ namespace OpenMS
         std::vector<PeptideIdentification>& pep_ids = new_features[c].getPeptideIdentifications();
 
         //#ifdef PIS_DEBUG
-        if (pep_ids.size() > 0)
+        if (!pep_ids.empty())
         {
           String seq = pep_ids[0].getHits()[0].getSequence().toString();
           std::cout << "ids "   << "\t";
@@ -1350,7 +1346,7 @@ namespace OpenMS
     else
       type_ = DEX;
     min_pep_ids_ = (UInt)param_.getValue("MIPFormulation:thresholds:min_peptide_ids");
-    mz_tolerance_unit_ = (String)param_.getValue("Preprocessing:precursor_mass_tolerance_unit");
+    mz_tolerance_unit_ = param_.getValue("Preprocessing:precursor_mass_tolerance_unit").toString();
     mz_tolerance_ = (double)param_.getValue("Preprocessing:precursor_mass_tolerance");
     max_iteration_ = (UInt) param_.getValue("max_iteration");
   }

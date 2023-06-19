@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -34,64 +34,14 @@
 
 #include <OpenMS/METADATA/ExperimentalSettings.h>
 
+#include <ostream>
+
 using namespace std;
 
 namespace OpenMS
 {
 
-  ExperimentalSettings::ExperimentalSettings() :
-    MetaInfoInterface(),
-    DocumentIdentifier(),
-    sample_(),
-    source_files_(),
-    contacts_(),
-    instrument_(),
-    hplc_(),
-    datetime_(),
-    comment_(),
-    protein_identifications_(),
-    fraction_identifier_()
-  {
-  }
-
-  ExperimentalSettings::ExperimentalSettings(const ExperimentalSettings & source) :
-    MetaInfoInterface(source),
-    DocumentIdentifier(source),
-    sample_(source.sample_),
-    source_files_(source.source_files_),
-    contacts_(source.contacts_),
-    instrument_(source.instrument_),
-    hplc_(source.hplc_),
-    datetime_(source.datetime_),
-    comment_(source.comment_),
-    protein_identifications_(source.protein_identifications_),
-    fraction_identifier_(source.fraction_identifier_)
-  {
-  }
-
-  ExperimentalSettings::~ExperimentalSettings()
-  {
-  }
-
-  ExperimentalSettings & ExperimentalSettings::operator=(const ExperimentalSettings & source)
-  {
-    if (&source == this)
-      return *this;
-
-    sample_ = source.sample_;
-    source_files_ = source.source_files_;
-    contacts_ = source.contacts_;
-    instrument_ = source.instrument_;
-    hplc_ = source.hplc_;
-    datetime_ = source.datetime_;
-    comment_ = source.comment_;
-    protein_identifications_ = source.protein_identifications_;
-    fraction_identifier_ = source.fraction_identifier_;
-    MetaInfoInterface::operator=(source);
-    DocumentIdentifier::operator=(source);
-
-    return *this;
-  }
+  ExperimentalSettings::~ExperimentalSettings() = default;
 
   bool ExperimentalSettings::operator==(const ExperimentalSettings & rhs) const
   {
@@ -200,8 +150,8 @@ namespace OpenMS
 
   std::ostream & operator<<(std::ostream & os, const ExperimentalSettings & /*exp*/)
   {
-    os << "-- EXPERIMENTALSETTINGS BEGIN --" << std::endl;
-    os << "-- EXPERIMENTALSETTINGS END --" << std::endl;
+    os << "-- EXPERIMENTALSETTINGS BEGIN --\n";
+    os << "-- EXPERIMENTALSETTINGS END --\n";
     return os;
   }
 

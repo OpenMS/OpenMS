@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<?xml-stylesheet type="text/xsl" href="https://www.openms.de/xml-stylesheet/ConsensusXML.xsl" ?>
+<consensusXML version="1.7" id="cm_8248440823493741188" experiment_type="label-free" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/OpenMS/OpenMS/develop/share/OpenMS/SCHEMAS/ConsensusXML_1_7.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+	<dataProcessing completion_time="2020-04-16T22:03:17">
+		<software name="MetaboliteAdductDecharger" version="2.6.0-pre-topic-MetaboliteAdductDecharger-write-to-opt-out-2020-04-09" />
+		<processingAction name="Charge deconvolution" />
+		<UserParam type="string" name="parameter: in" value="MetaboliteAdductDecharger_input.featureXML"/>
+	</dataProcessing>
+	<mapList count="1">
+		<map id="0" name="MetaboliteAdductDecharger_input.featureXML" label="decharged features" size="24">
+		</map>
+	</mapList>
+	<consensusElementList>
+		<consensusElement id="e_3019959988858701180" quality="0.0">
+			<centroid rt="100.0" mz="299.998900014846186" it="1300.0"/>
+			<groupedElementList>
+				<element map="0" id="1" rt="100.0" mz="318.033822999999984" it="100.0" charge="1"/>
+				<element map="0" id="2" rt="100.0" mz="322.989217999999994" it="100.0" charge="1"/>
+				<element map="0" id="3" rt="100.0" mz="338.963158000000021" it="100.0" charge="1"/>
+				<element map="0" id="4" rt="100.0" mz="151.00727599999999" it="100.0" charge="2"/>
+				<element map="0" id="5" rt="100.0" mz="159.520549999999986" it="100.0" charge="2"/>
+				<element map="0" id="6" rt="100.0" mz="161.998246999999992" it="100.0" charge="2"/>
+				<element map="0" id="7" rt="100.0" mz="169.985217000000006" it="100.0" charge="2"/>
+				<element map="0" id="8" rt="100.0" mz="172.989217999999994" it="100.0" charge="2"/>
+				<element map="0" id="9" rt="100.0" mz="101.007276000000005" it="100.0" charge="3"/>
+				<element map="0" id="10" rt="100.0" mz="108.334590000000006" it="100.0" charge="3"/>
+				<element map="0" id="11" rt="100.0" mz="115.661904000000007" it="100.0" charge="3"/>
+				<element map="0" id="12" rt="100.0" mz="122.989217999999994" it="100.0" charge="3"/>
+				<element map="0" id="15" rt="100.0" mz="301.00727599999999" it="100.0" charge="1"/>
+			</groupedElementList>
+			<UserParam type="string" name="1" value="H4N1"/>
+			<UserParam type="string" name="2" value="Na1"/>
+			<UserParam type="string" name="3" value="K1"/>
+			<UserParam type="string" name="4" value="H2"/>
+			<UserParam type="string" name="5" value="H5N1"/>
+			<UserParam type="string" name="6" value="H1Na1"/>
+			<UserParam type="string" name="7" value="H1K1"/>
+			<UserParam type="string" name="8" value="Na2"/>
+			<UserParam type="string" name="9" value="H3"/>
+			<UserParam type="string" name="10" value="H2Na1"/>
+			<UserParam type="string" name="11" value="H1Na2"/>
+			<UserParam type="string" name="12" value="Na3"/>
+			<UserParam type="string" name="15" value="H1"/>
+			<UserParam type="intList" name="distinct_charges" value="[1, 2, 3]"/>
+			<UserParam type="int" name="distinct_charges_size" value="3"/>
+			<UserParam type="int" name="pure_proton_features" value="3"/>
+		</consensusElement>
+		<consensusElement id="e_4365550908806163045" quality="0.0">
+			<centroid rt="102.0" mz="295.987746628100013" it="200.0"/>
+			<groupedElementList>
+				<element map="0" id="101" rt="102.0" mz="148.99272400000001" it="100.0" charge="2"/>
+				<element map="0" id="104" rt="102.0" mz="334.969402000000002" it="100.0" charge="1"/>
+			</groupedElementList>
+			<UserParam type="intList" name="distinct_charges" value="[1, 2]"/>
+			<UserParam type="int" name="distinct_charges_size" value="2"/>
+			<UserParam type="int" name="pure_proton_features" value="1"/>
+			<UserParam type="string" name="101" value="H2"/>
+			<UserParam type="string" name="104" value="K1"/>
+		</consensusElement>
+		<consensusElement id="e_10087491015453642716" quality="0.0">
+			<centroid rt="102.0" mz="297.984761259774984" it="400.0"/>
+			<groupedElementList>
+				<element map="0" id="100" rt="102.0" mz="298.99272400000001" it="100.0" charge="1"/>
+				<element map="0" id="102" rt="102.0" mz="280.981609999999989" it="100.0" charge="1"/>
+				<element map="0" id="103" rt="102.0" mz="320.974666000000013" it="100.0" charge="1"/>
+				<element map="0" id="105" rt="102.0" mz="336.948605999999984" it="100.0" charge="1"/>
+			</groupedElementList>
+			<UserParam type="intList" name="distinct_charges" value="[1]"/>
+			<UserParam type="int" name="distinct_charges_size" value="1"/>
+			<UserParam type="int" name="pure_proton_features" value="1"/>
+			<UserParam type="string" name="100" value="H1"/>
+			<UserParam type="string" name="102" value="H-1O-1"/>
+			<UserParam type="string" name="103" value="Na1"/>
+			<UserParam type="string" name="105" value="K1"/>
+		</consensusElement>
+		<consensusElement id="e_4413413049723438427" quality="0.0">
+			<centroid rt="100.0" mz="342.033822999999984" it="100.0"/>
+			<groupedElementList>
+				<element map="0" id="13" rt="100.0" mz="342.033822999999984" it="100.0"/>
+			</groupedElementList>
+			<UserParam type="int" name="is_ungrouped_monoisotopic" value="1"/>
+		</consensusElement>
+		<consensusElement id="e_5439776886489642090" quality="0.0">
+			<centroid rt="100.0" mz="344.971159999999998" it="100.0"/>
+			<groupedElementList>
+				<element map="0" id="14" rt="100.0" mz="344.971159999999998" it="100.0"/>
+			</groupedElementList>
+			<UserParam type="int" name="is_ungrouped_monoisotopic" value="1"/>
+		</consensusElement>
+		<consensusElement id="e_5153478059265498451" quality="0.0">
+			<centroid rt="102.0" mz="98.992723999999996" it="100.0"/>
+			<groupedElementList>
+				<element map="0" id="107" rt="102.0" mz="98.992723999999996" it="100.0"/>
+			</groupedElementList>
+			<UserParam type="int" name="is_ungrouped_monoisotopic" value="1"/>
+		</consensusElement>
+		<consensusElement id="e_2820981430062431065" quality="0.0">
+			<centroid rt="102.0" mz="344.998200999999995" it="100.0"/>
+			<groupedElementList>
+				<element map="0" id="108" rt="102.0" mz="344.998200999999995" it="100.0"/>
+			</groupedElementList>
+			<UserParam type="int" name="is_ungrouped_monoisotopic" value="1"/>
+		</consensusElement>
+		<consensusElement id="e_1966598418517457993" quality="0.0">
+			<centroid rt="102.0" mz="378.918884999999989" it="100.0"/>
+			<groupedElementList>
+				<element map="0" id="106" rt="102.0" mz="378.918884999999989" it="100.0"/>
+			</groupedElementList>
+			<UserParam type="int" name="is_ungrouped_monoisotopic" value="1"/>
+		</consensusElement>
+	</consensusElementList>
+</consensusXML>

@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<featureMap version="1.9" id="fm_2691662888816210012" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/OpenMS/OpenMS/develop/share/OpenMS/SCHEMAS/FeatureXML_1_9.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+    <IdentificationRun id="PI_0" date="2009-10-28T09:03:22" search_engine="OMSSA" search_engine_version="2.2.04">
+	</IdentificationRun>
+    <featureList count="5">
+        <feature id="f_20">
+        	<position dim="0">0</position>
+            <charge>2</charge>
+            <PeptideIdentification identification_run_ref="PI_0" score_type="q-value" higher_score_better="false" significance_threshold="0" MZ="602.8154296875" RT="0" >
+                <PeptideHit score="0" sequence="ABC" charge="2">
+                </PeptideHit>
+            </PeptideIdentification>
+        </feature>
+        <feature id="f_21">
+        	<position dim="0">0.5</position>
+            <charge>2</charge>
+            <PeptideIdentification identification_run_ref="PI_0" score_type="q-value" higher_score_better="false" significance_threshold="0" MZ="421.75390625" RT="0.5" >
+                <PeptideHit score="0" sequence="GHI" charge="2">
+                </PeptideHit>
+            </PeptideIdentification>
+        </feature>
+        <feature id="f_22">
+        	<position dim="0">3</position>
+            <charge>2</charge>
+            <PeptideIdentification identification_run_ref="PI_0" score_type="q-value" higher_score_better="false" significance_threshold="0" MZ="629.343688964844" RT="3" >
+                    <PeptideHit score="0" sequence="CAA" charge="2">
+                    </PeptideHit>
+            </PeptideIdentification>
+        </feature>
+        <feature id="f_23">
+        	<position dim="0">6</position>
+            <charge>2</charge>
+            <PeptideIdentification identification_run_ref="PI_0" score_type="q-value" higher_score_better="false" significance_threshold="0" MZ="519.284912109375" RT="6" >
+                <PeptideHit score="0" sequence="BBB" charge="2">
+                </PeptideHit>
+            </PeptideIdentification>
+        </feature>
+        <feature id="f_24">
+        	<position dim="0">6.5</position>
+            <charge>2</charge>
+            <PeptideIdentification identification_run_ref="PI_0" score_type="q-value" higher_score_better="false" significance_threshold="0" MZ="696.85498046875" RT="6.5" >
+                <PeptideHit score="0" sequence="ACD" charge="2">
+                </PeptideHit>
+            </PeptideIdentification>
+        </feature>
+    </featureList>
+</featureMap>

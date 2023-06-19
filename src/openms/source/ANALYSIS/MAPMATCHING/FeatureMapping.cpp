@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -40,13 +40,13 @@ using namespace std;
 namespace OpenMS
 {
   // return map of ms2 to feature and a vector of unassigned ms2
-  FeatureMapping::FeatureToMs2Indices FeatureMapping::assignMS2IndexToFeature(OpenMS::PeakMap& spectra,
-                                                                              const OpenMS::KDTreeFeatureMaps& fp_map_kd,
+  FeatureMapping::FeatureToMs2Indices FeatureMapping::assignMS2IndexToFeature(const OpenMS::MSExperiment& spectra,
+                                                                              const FeatureMappingInfo& fm_info,
                                                                               const double& precursor_mz_tolerance,
                                                                               const double& precursor_rt_tolerance,
-                                                                              bool& ppm)
+                                                                              bool ppm)
   {
-    map<const BaseFeature*, vector<size_t>> assigned_ms2;
+    std::map<const BaseFeature*, std::vector<size_t>>  assigned_ms2;
     vector<size_t> unassigned_ms2;
 
     // map precursors to closest feature and retrieve annotated metadata (if possible)
@@ -67,7 +67,7 @@ namespace OpenMS
 
         // get mz tolerance window
         std::pair<double,double> mz_tolerance_window = Math::getTolWindow(mz, precursor_mz_tolerance, ppm);
-        fp_map_kd.queryRegion(rt - precursor_rt_tolerance, rt + precursor_rt_tolerance, mz_tolerance_window.first, mz_tolerance_window.second, matches, true);
+        fm_info.kd_tree.queryRegion(rt - precursor_rt_tolerance, rt + precursor_rt_tolerance, mz_tolerance_window.first, mz_tolerance_window.second, matches, true);
 
         // no precursor matches the feature information found
         if (matches.empty())
@@ -81,7 +81,7 @@ namespace OpenMS
         double min_distance(1e11);
         for (auto const & k_idx : matches)
         {
-          const double f_mz = fp_map_kd.mz(k_idx);
+          const double f_mz = fm_info.kd_tree.mz(k_idx);
           const double distance = fabs(f_mz - mz);
           if (distance < min_distance)
           {
@@ -89,8 +89,7 @@ namespace OpenMS
             min_distance_feature_index = k_idx;
           }
         }
-        const BaseFeature* min_distance_feature = fp_map_kd.feature(min_distance_feature_index);
-
+        const BaseFeature* min_distance_feature = fm_info.kd_tree.feature(min_distance_feature_index);
         assigned_ms2[min_distance_feature].push_back(index);
       }
     }
@@ -99,5 +98,4 @@ namespace OpenMS
     feature_mapping.unassignedMS2 = unassigned_ms2;
     return feature_mapping;
   }
-
-}
+} // namespace OpenMS

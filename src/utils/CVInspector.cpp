@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -32,14 +32,16 @@
 // $Authors: Marc Sturm $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/config.h>
+#include <OpenMS/APPLICATIONS/TOPPBase.h>
+#include <OpenMS/CONCEPT/LogStream.h>
+#include <OpenMS/DATASTRUCTURES/CVMappings.h>
+#include <OpenMS/DATASTRUCTURES/CVMappingTerm.h>
+#include <OpenMS/DATASTRUCTURES/StringListUtils.h>
 #include <OpenMS/FORMAT/CVMappingFile.h>
 #include <OpenMS/FORMAT/ControlledVocabulary.h>
-#include <OpenMS/DATASTRUCTURES/CVMappings.h>
 #include <OpenMS/FORMAT/TextFile.h>
-#include <OpenMS/APPLICATIONS/TOPPBase.h>
-#include <OpenMS/DATASTRUCTURES/StringListUtils.h>
-#include <OpenMS/DATASTRUCTURES/CVMappingTerm.h>
+
+#include <map>
 
 using namespace OpenMS;
 using namespace std;
@@ -84,7 +86,7 @@ protected:
 
     registerStringList_("cv_names", "<names>", StringList(), "List of identifiers (one for each ontology file).");
 
-    registerInputFile_("mapping_file", "<file>", "", "Mapping file in CVMapping (XML) format.", false);
+    registerInputFile_("mapping_file", "<file>", "", "Mapping file in CVMapping (XML) format.");
     setValidFormats_("mapping_file", ListUtils::create<String>("XML"));
 
     registerStringList_("ignore_cv", "<list>", ListUtils::create<String>("UO,PATO,BTO"), "A list of CV identifiers which should be ignored.", false);
@@ -102,7 +104,7 @@ protected:
       String subterm_line;
       for (Size i = 0; i < 4 * indent; ++i) subterm_line += "&nbsp;";
       String description = child_term.description;
-      if (child_term.synonyms.size() != 0)
+      if (!child_term.synonyms.empty())
       {
         description += String(" -- Synonyms: '") + ListUtils::concatenate(child_term.synonyms, ", ") + "'";
       }
@@ -116,7 +118,7 @@ protected:
       {
         tags.push_back("value-type=" + ControlledVocabulary::CVTerm::getXRefTypeName(child_term.xref_type));
       }
-      if (child_term.units.size() > 0)
+      if (!child_term.units.empty())
       {
         StringList units;
         for (set<String>::const_iterator u_it = child_term.units.begin(); u_it != child_term.units.end(); ++u_it)
@@ -125,7 +127,7 @@ protected:
         }
         tags.push_back(String("units=") + ListUtils::concatenate(units, ","));
       }
-      if (child_term.xref_binary.size() > 0)
+      if (!child_term.xref_binary.empty())
       {
         StringList types;
         for (StringList::const_iterator u_it = child_term.xref_binary.begin(); u_it != child_term.xref_binary.end(); ++u_it)
@@ -134,7 +136,7 @@ protected:
         }
         tags.push_back(String("binary-array-types=") + ListUtils::concatenate(types, ","));
       }
-      if (tags.size() != 0)
+      if (!tags.empty())
       {
         subterm_line += String("<FONT color=\"grey\"> (") + ListUtils::concatenate(tags, ", ") + ")</FONT>";
       }
@@ -159,7 +161,7 @@ protected:
     {
       cv.loadFromOBO(cv_names[i], cv_files[i]);
     }
-    Map<String, ControlledVocabulary::CVTerm> terms = cv.getTerms();
+    std::map<String, ControlledVocabulary::CVTerm> terms = cv.getTerms();
 
     // load mappings from mapping file
     String mapping_file = getStringOption_("mapping_file");
@@ -167,7 +169,7 @@ protected:
     CVMappingFile().load(mapping_file, mappings);
 
     //store HTML version of mapping and CV
-    if (getStringOption_("html") != "")
+    if (!getStringOption_("html").empty())
     {
       TextFile file;
       file.addLine("<HTML>");
@@ -260,7 +262,7 @@ protected:
             const ControlledVocabulary::CVTerm& child_term = cv.getTerm(tit->getAccession());
 
             String description = child_term.description;
-            if (child_term.synonyms.size() != 0)
+            if (!child_term.synonyms.empty())
             {
               description += String(" -- Synonyms: '") + ListUtils::concatenate(child_term.synonyms, ", ") + "'";
             }
@@ -298,7 +300,7 @@ protected:
             {
               tags.push_back("value-type=" + ControlledVocabulary::CVTerm::getXRefTypeName(term.xref_type));
             }
-            if (term.units.size() > 0)
+            if (!term.units.empty())
             {
               StringList units;
               for (set<String>::const_iterator u_it = term.units.begin(); u_it != term.units.end(); ++u_it)
@@ -307,7 +309,7 @@ protected:
               }
               tags.push_back(String("units=") + ListUtils::concatenate(units, ","));
             }
-            if (term.xref_binary.size() > 0)
+            if (!term.xref_binary.empty())
             {
               StringList types;
               for (StringList::const_iterator u_it = term.xref_binary.begin(); u_it != term.xref_binary.end(); ++u_it)
@@ -317,7 +319,7 @@ protected:
               tags.push_back(String("binary-array-types=") + ListUtils::concatenate(types, ","));
             }
           }
-          if (tags.size() != 0)
+          if (!tags.empty())
           {
             term_line += String("<FONT color=\"grey\"> (") + ListUtils::concatenate(tags, ", ") + ")</FONT>";
           }
@@ -326,7 +328,7 @@ protected:
           // check whether we need the whole tree, or just the term itself
           if (tit->getAllowChildren())
           {
-            file.addLine(String("        <div id=\"div") + term_count + "\" style=\"display: none\">");
+            file.addLine(String("        <div id=\"div") + term_count + R"(" style="display: none">)");
             if (cv.exists(tit->getAccession()))
             {
               writeTermTree_(tit->getAccession(), cv, file, 1);
@@ -412,7 +414,7 @@ protected:
 
     // find unused terms, which CANNOT be used in the XML due to the mapping file
     set<String> unused_terms;
-    for (Map<String, ControlledVocabulary::CVTerm>::ConstIterator it = terms.begin(); it != terms.end(); ++it)
+    for (std::map<String, ControlledVocabulary::CVTerm>::const_iterator it = terms.begin(); it != terms.end(); ++it)
     {
       if (used_terms.find(it->first) == used_terms.end())
       {

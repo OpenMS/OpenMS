@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -41,13 +41,9 @@ using namespace std;
 namespace OpenMS
 {
 
-  OMSSACSVFile::OMSSACSVFile()
-  {
-  }
+  OMSSACSVFile::OMSSACSVFile() = default;
 
-  OMSSACSVFile::~OMSSACSVFile()
-  {
-  }
+  OMSSACSVFile::~OMSSACSVFile() = default;
 
   void OMSSACSVFile::load(const String & filename, ProteinIdentification & /* protein_identification */, vector<PeptideIdentification> & id_data) const
   {
@@ -105,7 +101,7 @@ namespace OpenMS
       {
         // new id
         //id_data.push_back(IdentificationData());
-        id_data.push_back(PeptideIdentification());
+        id_data.emplace_back();
         id_data.back().setScoreType("OMSSA");
         actual_spectrum_number = (UInt)split[0].trim().toInt();
       }

@@ -18,8 +18,13 @@ if (!all(required_cols %in% colnames(d))) {
 
 dpm = melt(d[, grep("^mz.[ab]", colnames(d), invert = TRUE)], id.vars = c("RT", "mz.ref", "intensity"))
 head(dpm)
-## for peptide ID data, mz.ref will be mostly unique
-if (length(unique(d$mz.ref)) / nrow(d) > 0.5) {
+## for peptide ID data:
+##   - mz.ref will be mostly unique (assume oversampling of at most 3)
+##   - and RT of more than 20min
+## otherwise we assume direct-injection (and facet-wrap by each mz-ref) 
+##    - unless its more than 100 facets... which will be hard to read
+if ((length(unique(d$mz.ref)) / nrow(d) > 0.333  && diff(range(d$RT, na.rm = TRUE)) > 1200) 
+    || length(unique(d$mz.ref)) > 100 ) {
   dpm2 = dpm
   dpm2$masstrace = ""
 } else {

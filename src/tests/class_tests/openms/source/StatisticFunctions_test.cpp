@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -38,11 +38,12 @@
 #include <OpenMS/MATH/MISC/MathFunctions.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <boost/math/special_functions/fpclassify.hpp>
-#include <boost/assign/list_of.hpp>
 ///////////////////////////
 
 #include <OpenMS/CONCEPT/ClassTest.h>
 #include <OpenMS/test_config.h>
+
+#include <list>
 
 using namespace OpenMS;
 using namespace OpenMS::Math;
@@ -119,6 +120,29 @@ START_SECTION([EXTRA](template <typename IteratorType> double MAD(IteratorType b
 }
 END_SECTION
 
+START_SECTION([EXTRA](template <typename IteratorType> double MeanAbsoluteDeviation(IteratorType begin, IteratorType end, double mean_of_numbers)))
+{
+  int x1[] = {-1, 0, 1, 2, 3}; // mean = 1
+  TEST_EQUAL(Math::MeanAbsoluteDeviation(x1, x1 + 5, 1), 1.2);
+  
+  int x2[] = {-1, 0, 1, 2, 3, 4}; // mean = 1.5
+  TEST_REAL_SIMILAR(Math::MeanAbsoluteDeviation(x2, x2 + 6, 1.5), 1.5);
+  
+  // single element test
+  int x3[] = {-1}; // mean = -1
+  TEST_REAL_SIMILAR(Math::MeanAbsoluteDeviation(x3, x3 + 1, -1.0), 0.0);
+  
+  // empty range	
+  int x4[] = {1}; // mean = 1
+  TEST_EQUAL(std::isnan(Math::MeanAbsoluteDeviation(x4, x4, 1)), true); // NaN
+  
+  DoubleList z_odd = ListUtils::create<double>("-1.0, -0.5, 0.0, 0.5, 1.0, 1.5, 2.0"); // mean = 0.5
+  TEST_REAL_SIMILAR(Math::MeanAbsoluteDeviation(z_odd.begin(), z_odd.end(), 0.5), 0.857142);
+  
+  DoubleList z_even = ListUtils::create<double>("-1.5, -1.0, -0.5, 0.0, 0.5, 1.0, 1.5, 2.0"); // mean = 0.25
+  TEST_REAL_SIMILAR(Math::MeanAbsoluteDeviation(z_even.begin(), z_even.end(), 0.25), 1);
+}
+END_SECTION
 
 START_SECTION([EXTRA](template< typename IteratorType1, typename IteratorType2 > static RealType meanSquareError( IteratorType1 begin_a, const IteratorType1 end_a, IteratorType2 begin_b, const IteratorType2 end_b )))
 {
@@ -192,7 +216,7 @@ START_SECTION([EXTRA](template< typename IteratorType1, typename IteratorType2 >
 	vv2.push_back(5);
 
 	result = Math::pearsonCorrelationCoefficient(vv1.begin(), vv1.end(), vv2.begin(), vv2.end());
-	if (boost::math::isnan(result) ) result = -1.0;
+	if (std::isnan(result) ) result = -1.0;
 
 	TEST_REAL_SIMILAR(result, -1.0);
 // ************ TEST for nan *****************
@@ -379,7 +403,7 @@ START_SECTION([EXTRA](template< typename IteratorType1, typename IteratorType2 >
   result = Math::rankCorrelationCoefficient(numbers1.begin(), numbers1.end(), numbers2.begin(), numbers2.end());
   TEST_REAL_SIMILAR(result, 0.858064516129032);
 
-	result = Math::rankCorrelationCoefficient(numbers1.begin(), numbers1.end(),
+  result = Math::rankCorrelationCoefficient(numbers1.begin(), numbers1.end(),
 																						numbers2.rbegin(), numbers2.rend());
   TEST_REAL_SIMILAR(result, 0.303225806451613);
 
@@ -399,15 +423,15 @@ END_SECTION
 
 START_SECTION([EXTRA](template <typename IteratorType> static double quantile(IteratorType begin, IteratorType end, UInt quantile, bool sorted = false) ))
 {
-	std::vector<int> x = boost::assign::list_of(3)(6)(7)(8)(8)(10)(13)(15)(16)(20);
-	std::vector<int> y = boost::assign::list_of(3)(6)(7)(8)(8)(10)(13)(15)(16);
+  std::vector<int> x = {3,6,7,8,8,10,13,15,16,20};
+  std::vector<int> y = {3,6,7,8,8,10,13,15,16};
 
-	TEST_REAL_SIMILAR(Math::quantile1st(x.begin(), x.end(), true), 6.5);
-	TEST_REAL_SIMILAR(Math::median(x.begin(), x.end(), true), 9.0);
-	TEST_REAL_SIMILAR(Math::quantile3rd(x.begin(), x.end(), true), 15.5);
-	TEST_REAL_SIMILAR(Math::quantile1st(y.begin(), y.end(), true),6.5);
-	TEST_REAL_SIMILAR(Math::median(y.begin(), y.end(), true), 8.0);
-	TEST_REAL_SIMILAR(Math::quantile3rd(y.begin(), y.end(), true), 14.0);
+  TEST_REAL_SIMILAR(Math::quantile1st(x.begin(), x.end(), true), 6.5);
+  TEST_REAL_SIMILAR(Math::median(x.begin(), x.end(), true), 9.0);
+  TEST_REAL_SIMILAR(Math::quantile3rd(x.begin(), x.end(), true), 15.5);
+  TEST_REAL_SIMILAR(Math::quantile1st(y.begin(), y.end(), true),6.5);
+  TEST_REAL_SIMILAR(Math::median(y.begin(), y.end(), true), 8.0);
+  TEST_REAL_SIMILAR(Math::quantile3rd(y.begin(), y.end(), true), 14.0);
 }
 END_SECTION
 

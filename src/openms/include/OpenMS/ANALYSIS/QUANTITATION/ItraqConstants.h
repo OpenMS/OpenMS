@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -35,11 +35,12 @@
 #pragma once
 
 #include <OpenMS/CONCEPT/Types.h>
-#include <OpenMS/DATASTRUCTURES/Map.h>
 #include <OpenMS/KERNEL/Peak2D.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/DATASTRUCTURES/StringListUtils.h>
 #include <OpenMS/DATASTRUCTURES/Matrix.h>
+
+#include <map>
 
 namespace OpenMS
 {
@@ -60,15 +61,15 @@ public:
     /// stores information on an iTRAQ channel
     struct ChannelInfo
     {
-      String description;       // description given by experimentalist (e.g. lung tissue)
-      Int name;       // 114-117 or 113 to 121
-      Int id;           // 0-4 or 0-8
-      Peak2D::CoordinateType center;       // expected centroid of peak in MZ
-      bool active;       // channel actually added to the experiment?
+      String description;       ///< description given by experimentalist (e.g. lung tissue)
+      Int name;       ///< 114-117 or 113 to 121
+      Int id;           ///< 0-4 or 0-8
+      Peak2D::CoordinateType center;       ///< expected centroid of peak in MZ
+      bool active;       ///< channel actually added to the experiment?
     };
 
     /// maps iTRAQ channel (e.g. 117) to more information
-    typedef Map<Int, ChannelInfo> ChannelMapType;
+    typedef std::map<Int, ChannelInfo> ChannelMapType;
 
     /// (user defined?) isotope correction matrix in (-2, -1, +1, +2) row style
     typedef std::vector<Matrix<double> > IsotopeMatrices;

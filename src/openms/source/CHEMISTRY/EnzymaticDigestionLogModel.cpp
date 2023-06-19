@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -37,6 +37,8 @@
 #include <OpenMS/FORMAT/TextFile.h>
 #include <OpenMS/SYSTEM/File.h>
 
+#include <map>
+
 using namespace std;
 
 namespace OpenMS
@@ -69,13 +71,7 @@ namespace OpenMS
     }
   }
 
-  EnzymaticDigestionLogModel::EnzymaticDigestionLogModel(const EnzymaticDigestionLogModel& rhs) :
-    enzyme_(rhs.enzyme_),
-    log_model_threshold_(rhs.log_model_threshold_),
-    model_data_(rhs.model_data_)
-  {
-
-  }
+  EnzymaticDigestionLogModel::EnzymaticDigestionLogModel(const EnzymaticDigestionLogModel& rhs) = default;
 
   /// Assignment operator
   EnzymaticDigestionLogModel& EnzymaticDigestionLogModel::operator=(const EnzymaticDigestionLogModel& rhs)
@@ -89,7 +85,7 @@ namespace OpenMS
     return *this;
   }
 
-  void EnzymaticDigestionLogModel::setEnzyme(const String enzyme_name)
+  void EnzymaticDigestionLogModel::setEnzyme(const String& enzyme_name)
   {
     enzyme_ = ProteaseDB::getInstance()->getEnzyme(enzyme_name);
   }
@@ -128,7 +124,7 @@ namespace OpenMS
       if ((pos + i >= 0) && (pos + i < (SignedSize) protein.size()))
       {
         BindingSite_ bs(i, protein[pos + i].getOneLetterCode());
-        Map<BindingSite_, CleavageModel_>::const_iterator pos_it =
+        std::map<BindingSite_, CleavageModel_>::const_iterator pos_it =
         model_data_.find(bs);
         if (pos_it != model_data_.end()) // no data for non-std. amino acids
         {

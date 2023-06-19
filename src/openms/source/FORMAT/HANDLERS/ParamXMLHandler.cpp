@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -38,10 +38,9 @@
 using namespace xercesc;
 using namespace std;
 
-namespace OpenMS
+namespace OpenMS::Internal
 {
-  namespace Internal
-  {
+
 
     ParamXMLHandler::ParamXMLHandler(Param& param, const String& filename, const String& version) :
       XMLHandler(filename, version),
@@ -50,8 +49,7 @@ namespace OpenMS
     }
 
     ParamXMLHandler::~ParamXMLHandler()
-    {
-    }
+    = default;
 
     void ParamXMLHandler::startElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname, const Attributes& attributes)
     {
@@ -74,14 +72,14 @@ namespace OpenMS
         //tags
         String tags_string;
         optionalAttributeAsString_(tags_string, attributes, "tags");
-        StringList tags = ListUtils::create<String>(tags_string);
+        std::vector<std::string> tags = ListUtils::create<std::string>(tags_string);
 
         //advanced
         String advanced_string;
         optionalAttributeAsString_(advanced_string, attributes, "advanced");
         if (advanced_string == "true")
         {
-          tags.push_back("advanced");
+          tags.emplace_back("advanced");
         }
 
         //required
@@ -89,7 +87,7 @@ namespace OpenMS
         optionalAttributeAsString_(advanced_string, attributes, "required");
         if (advanced_string == "true")
         {
-          tags.push_back("required");
+          tags.emplace_back("required");
         }
 
         //type
@@ -97,19 +95,25 @@ namespace OpenMS
         {
           param_.setValue(name, asInt_(value), description, tags);
         }
-        else if (type == "string")
+        // since 1.7 it supports a separate bool type
+        else if (type == "bool" || type == "string")
         {
           param_.setValue(name, value, description, tags);
         }
         // since param v1.6.2 we support explicitly naming input/output files as types
         else if (type == "input-file")
         {
-          tags.push_back("input file");
+          tags.emplace_back("input file");
           param_.setValue(name, value, description, tags);
         }
         else if (type == "output-file")
         {
-          tags.push_back("output file");          
+          tags.emplace_back("output file");          
+          param_.setValue(name, value, description, tags);
+        }
+        else if (type == "output-prefix")
+        {
+          tags.emplace_back("output prefix");          
           param_.setValue(name, value, description, tags);
         }
         else if (type == "float" || type == "double")
@@ -122,59 +126,72 @@ namespace OpenMS
         }
 
         //restrictions
-        Int restrictions_index = attributes.getIndex(s_restrictions);
-        if (restrictions_index != -1)
+
+        // we internally handle bool parameters as strings with restrictions true/false
+        if (type == "bool")
         {
-          String val = sm_.convert(attributes.getValue(restrictions_index));
-          std::vector<String> parts;
-          if (type == "int")
+          param_.setValidStrings(name, {"true","false"});
+        }
+        else
+        {
+          // parse restrictions if present
+          Int restrictions_index = attributes.getIndex(s_restrictions);
+          if (restrictions_index != -1)
           {
-            val.split(':', parts);
-            if (parts.size() != 2)
-              val.split('-', parts); //for downward compatibility
-            if (parts.size() == 2)
+            String val = sm_.convert(attributes.getValue(restrictions_index));
+            std::vector<String> parts;
+            if (type == "int")
             {
-              if (parts[0] != "")
+              val.split(':', parts);
+              if (parts.size() != 2)
+                val.split('-', parts); //for downward compatibility
+              if (parts.size() == 2)
               {
-                param_.setMinInt(name, parts[0].toInt());
+                if (!parts[0].empty())
+                {
+                  param_.setMinInt(name, parts[0].toInt());
+                }
+                if (!parts[1].empty())
+                {
+                  param_.setMaxInt(name, parts[1].toInt());
+                }
               }
-              if (parts[1] != "")
+              else
               {
-                param_.setMaxInt(name, parts[1].toInt());
+                warning(LOAD, "ITEM " + name + " has an empty restrictions attribute.");
               }
             }
-            else
+            else if (type == "string")
             {
-              warning(LOAD, "ITEM " + name + " has an empty restrictions attribute.");
+              val.split(',', parts);
+              param_.setValidStrings(name, ListUtils::create<std::string>(parts));
             }
-          }
-          else if (type == "string")
-          {
-            val.split(',', parts);
-            param_.setValidStrings(name, parts);
-          }
-          else if (type == "float" || type == "double")
-          {
-            val.split(':', parts);
-            if (parts.size() != 2)
-              val.split('-', parts); //for downward compatibility
-            if (parts.size() == 2)
+            else if (type == "float" || type == "double")
             {
-              if (parts[0] != "")
+              val.split(':', parts);
+              if (parts.size() != 2)
               {
-                param_.setMinFloat(name, parts[0].toDouble());
+                val.split('-', parts); //for downward compatibility
               }
-              if (parts[1] != "")
+              if (parts.size() == 2)
               {
-                param_.setMaxFloat(name, parts[1].toDouble());
+                if (!parts[0].empty())
+                {
+                  param_.setMinFloat(name, parts[0].toDouble());
+                }
+                if (!parts[1].empty())
+                {
+                  param_.setMaxFloat(name, parts[1].toDouble());
+                }
               }
-            }
-            else
-            {
-              warning(LOAD, "ITEM " + name + " has an empty restrictions attribute.");
+              else
+              {
+                warning(LOAD, "ITEM " + name + " has an empty restrictions attribute.");
+              }
             }
           }
         }
+
 
         // check for supported_formats -> supported_formats overwrites restrictions in case of files
         if ((ListUtils::contains(tags, "input file") || ListUtils::contains(tags, "output file")) && (type == "string" || type == "input-file" || type == "output-file"))
@@ -186,7 +203,7 @@ namespace OpenMS
             std::vector<String> parts;
 
             val.split(',', parts);
-            param_.setValidStrings(name, parts);
+            param_.setValidStrings(name, ListUtils::create<std::string>(parts));
           }
         }
 
@@ -200,7 +217,7 @@ namespace OpenMS
         //parse description
         String description;
         optionalAttributeAsString_(description, attributes, "description");
-        if (description != "")
+        if (!description.empty())
         {
           description.substitute("#br#", "\n");
         }
@@ -211,21 +228,20 @@ namespace OpenMS
         //tags
         String tags_string;
         optionalAttributeAsString_(tags_string, attributes, "tags");
-        list_.tags = ListUtils::create<String>(tags_string);
-        
-        
+        list_.tags = ListUtils::create<std::string>(tags_string);
+                
         //parse name/type
         list_.type = attributeAsString_(attributes, "type");
         // handle in-/output file correctly
         if (list_.type == "input-file")
         {
           list_.type = "string";
-          list_.tags.push_back("input file");
+          list_.tags.emplace_back("input file");
         }
         else if (list_.type == "output-file")
         {
           list_.type = "string";
-          list_.tags.push_back("output file");
+          list_.tags.emplace_back("output file");
         }
 
         list_.name = path_ + attributeAsString_(attributes, "name");
@@ -240,7 +256,7 @@ namespace OpenMS
         optionalAttributeAsString_(advanced_string, attributes, "advanced");
         if (advanced_string == "true")
         {
-          list_.tags.push_back("advanced");
+          list_.tags.emplace_back("advanced");
         }
 
         //advanced
@@ -248,7 +264,7 @@ namespace OpenMS
         optionalAttributeAsString_(required_string, attributes, "required");
         if (required_string == "true")
         {
-          list_.tags.push_back("required");
+          list_.tags.emplace_back("required");
         }
         
         list_.restrictions_index = attributes.getIndex(s_restrictions);
@@ -291,8 +307,10 @@ namespace OpenMS
         optionalAttributeAsString_(file_version, attributes, "version");
 
         // default version is 1.0
-        if (file_version == "") file_version = "1.0";
-
+        if (file_version.empty())
+        {
+          file_version = "1.0";
+        }
         VersionInfo::VersionDetails file_version_details = VersionInfo::VersionDetails::create(file_version);
         VersionInfo::VersionDetails parser_version = VersionInfo::VersionDetails::create(version_);
 
@@ -326,7 +344,7 @@ namespace OpenMS
           if (list_.restrictions_index != -1)
           {
             list_.restrictions.split(',', parts);
-            param_.setValidStrings(list_.name, parts);
+            param_.setValidStrings(list_.name, ListUtils::create<std::string>(parts));
           }
         }
         else if (list_.type == "int")
@@ -336,14 +354,16 @@ namespace OpenMS
           {
             list_.restrictions.split(':', parts);
             if (parts.size() != 2)
+            {
               list_.restrictions.split('-', parts); //for downward compatibility
+            }
             if (parts.size() == 2)
             {
-              if (parts[0] != "")
+              if (!parts[0].empty())
               {
                 param_.setMinInt(list_.name, parts[0].toInt());
               }
-              if (parts[1] != "")
+              if (!parts[1].empty())
               {
                 param_.setMaxInt(list_.name, parts[1].toInt());
               }
@@ -361,14 +381,16 @@ namespace OpenMS
           {
             list_.restrictions.split(':', parts);
             if (parts.size() != 2)
+            {
               list_.restrictions.split('-', parts); //for downward compatibility
+            }
             if (parts.size() == 2)
             {
-              if (parts[0] != "")
+              if (!parts[0].empty())
               {
                 param_.setMinFloat(list_.name, parts[0].toDouble());
               }
-              if (parts[1] != "")
+              if (!parts[1].empty())
               {
                 param_.setMaxFloat(list_.name, parts[1].toDouble());
               }
@@ -389,5 +411,4 @@ namespace OpenMS
       }
     }
 
-  } // namespace Internal
-} // namespace OpenMS
+} // namespace OpenMS // namespace Internal

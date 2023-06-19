@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -46,6 +46,11 @@
 namespace OpenMS
 {
   class ExperimentalSettings;
+  namespace Interfaces
+  {
+    class IMSDataConsumer;
+  }
+  
 
   /**
    * @brief File adapter for Swath files.
@@ -66,30 +71,46 @@ public:
 
     /// Loads a Swath run from a list of split mzML files
     std::vector<OpenSwath::SwathMap> loadSplit(StringList file_list,
-                                               String tmp,
+                                               const String& tmp,
                                                boost::shared_ptr<ExperimentalSettings>& exp_meta, 
-                                               String readoptions = "normal");
+                                               const String& readoptions = "normal");
 
-    /// Loads a Swath run from a single mzML file
-    std::vector<OpenSwath::SwathMap> loadMzML(String file, 
-                                              String tmp,
+    /**
+      @brief Loads a Swath run from a single mzML file
+
+      Using the @p plugin_consumer, you can provide a custom consumer which will be chained
+      into the process of loading the data and making it available (depending on @p readoptions).
+      This is useful if you want to modify the data a priori or extract some other information using
+      MSDataTransformingConsumer (for example). Make sure it leaves the data intact, such that the 
+      returned SwathMaps are actually useful.
+
+      @param[in] file Input filename
+      @param[in] tmp Temporary directory (for cached data)
+      @param[out] exp_meta Experimental metadata from mzML file
+      @param[in] readoptions How are spectra accessed after reading - tradeoff between memory usage and time (disk caching)
+      @param[in] plugin_consumer An intermediate custom consumer
+      @return Swath maps for MS2 and MS1 (unless readoptions == split, which returns no data)
+    */
+    std::vector<OpenSwath::SwathMap> loadMzML(const String& file, 
+                                              const String& tmp,
                                               boost::shared_ptr<ExperimentalSettings>& exp_meta,
-                                              String readoptions = "normal");
+                                              const String& readoptions = "normal",
+                                              Interfaces::IMSDataConsumer* plugin_consumer = nullptr);
 
     /// Loads a Swath run from a single mzXML file
-    std::vector<OpenSwath::SwathMap> loadMzXML(String file, 
-                                               String tmp,
+    std::vector<OpenSwath::SwathMap> loadMzXML(const String& file, 
+                                               const String& tmp,
                                                boost::shared_ptr<ExperimentalSettings>& exp_meta,
-                                               String readoptions = "normal");
+                                               const String& readoptions = "normal");
 
     /// Loads a Swath run from a single sqMass file
-    std::vector<OpenSwath::SwathMap> loadSqMass(String file, boost::shared_ptr<ExperimentalSettings>& /* exp_meta */);
+    std::vector<OpenSwath::SwathMap> loadSqMass(const String& file, boost::shared_ptr<ExperimentalSettings>& /* exp_meta */);
 
 protected:
 
     /// Cache a file to disk
     OpenSwath::SpectrumAccessPtr doCacheFile_(const String& in, const String& tmp, const String& tmp_fname,
-                                              boost::shared_ptr<PeakMap > experiment_metadata);
+                                              const boost::shared_ptr<PeakMap >& experiment_metadata);
 
     /// Only read the meta data from a file and use it to populate exp_meta
     boost::shared_ptr< PeakMap > populateMetaData_(const String& file);

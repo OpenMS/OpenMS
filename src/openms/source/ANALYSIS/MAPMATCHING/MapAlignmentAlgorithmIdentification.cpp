@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -33,6 +33,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentAlgorithmIdentification.h>
+#include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/MATH/STATISTICS/StatisticFunctions.h>
 
@@ -43,8 +44,15 @@ namespace OpenMS
 
   MapAlignmentAlgorithmIdentification::MapAlignmentAlgorithmIdentification() :
     DefaultParamHandler("MapAlignmentAlgorithmIdentification"),
-    ProgressLogger(), reference_index_(-1), reference_(), min_run_occur_(0)
+    ProgressLogger(), reference_index_(-1), reference_(), min_run_occur_(0), min_score_(0.)
   {
+    defaults_.setValue("score_type", "", "Name of the score type to use for ranking and filtering (.oms input only). If left empty, a score type is picked automatically.");
+
+    defaults_.setValue("score_cutoff", "false", "Use only IDs above a score cut-off (parameter 'min_score') for alignment?");
+    defaults_.setValidStrings("score_cutoff", {"true", "false"});
+
+    defaults_.setValue("min_score", 0.05, "If 'score_cutoff' is 'true': Minimum score for an ID to be considered.\nUnless you have very few runs or identifications, increase this value to focus on more informative peptides.");
+
     defaults_.setValue("min_run_occur", 2, "Minimum number of runs (incl. reference, if any) in which a peptide must occur to be used for the alignment.\nUnless you have very few runs or identifications, increase this value to focus on more informative peptides.");
     defaults_.setMinInt("min_run_occur", 2);
 
@@ -52,36 +60,45 @@ namespace OpenMS
     defaults_.setMinFloat("max_rt_shift", 0.0);
 
     defaults_.setValue("use_unassigned_peptides", "true", "Should unassigned peptide identifications be used when computing an alignment of feature or consensus maps? If 'false', only peptide IDs assigned to features will be used.");
-    defaults_.setValidStrings("use_unassigned_peptides",
-                              ListUtils::create<String>("true,false"));
+    defaults_.setValidStrings("use_unassigned_peptides", {"true", "false"});
 
     defaults_.setValue("use_feature_rt", "false", "When aligning feature or consensus maps, don't use the retention time of a peptide identification directly; instead, use the retention time of the centroid of the feature (apex of the elution profile) that the peptide was matched to. If different identifications are matched to one feature, only the peptide closest to the centroid in RT is used.\nPrecludes 'use_unassigned_peptides'.");
-    defaults_.setValidStrings("use_feature_rt", ListUtils::create<String>("true,false"));
+    defaults_.setValidStrings("use_feature_rt", {"true", "false"});
+
+    defaults_.setValue("use_adducts", "true", "If IDs contain adducts, treat differently adducted variants of the same molecule as different.");
+    defaults_.setValidStrings("use_adducts", {"true", "false"});
 
     defaultsToParam_();
   }
 
-  MapAlignmentAlgorithmIdentification::~MapAlignmentAlgorithmIdentification()
-  {
-  }
+  MapAlignmentAlgorithmIdentification::~MapAlignmentAlgorithmIdentification() = default;
 
   void MapAlignmentAlgorithmIdentification::checkParameters_(Size runs)
   {
-    min_run_occur_ = param_.getValue("min_run_occur");
+    min_run_occur_ = (int)param_.getValue("min_run_occur");
 
     // reference is not counted as a regular run:
     if (!reference_.empty()) runs++;
 
+    use_feature_rt_ = param_.getValue("use_feature_rt").toBool();
     if (min_run_occur_ > runs)
     {
       String msg = "Warning: Value of parameter 'min_run_occur' (here: " +
         String(min_run_occur_) + ") is higher than the number of runs incl. "
         "reference (here: " + String(runs) + "). Using " + String(runs) +
         " instead.";
-      LOG_WARN << msg << endl;
+      OPENMS_LOG_WARN << msg << endl;
       min_run_occur_ = runs;
     }
-  }
+    score_cutoff_ = param_.getValue("score_cutoff").toBool();
+    // score type may have been set by reference already - don't overwrite it:
+    if (score_cutoff_ && score_type_.empty())
+    {
+      score_type_ = (std::string)param_.getValue("score_type");
+    }
+    min_score_ = param_.getValue("min_score");
+    use_adducts_ = param_.getValue("use_adducts").toBool();
+}
 
   // RT lists in "rt_data" will be sorted (unless "sorted" is true)
   void MapAlignmentAlgorithmIdentification::computeMedians_(SeqToList& rt_data,
@@ -100,7 +117,7 @@ namespace OpenMS
 
   // lists of peptide hits in "peptides" will be sorted
   bool MapAlignmentAlgorithmIdentification::getRetentionTimes_(
-    vector<PeptideIdentification>& peptides, SeqToList& rt_data)
+      vector<PeptideIdentification>& peptides, SeqToList& rt_data)
   {
     for (vector<PeptideIdentification>::iterator pep_it = peptides.begin();
          pep_it != peptides.end(); ++pep_it)
@@ -108,8 +125,78 @@ namespace OpenMS
       if (!pep_it->getHits().empty())
       {
         pep_it->sort();
-        const String& seq = pep_it->getHits()[0].getSequence().toString();
-        rt_data[seq].push_back(pep_it->getRT());
+        if (better_(pep_it->getHits()[0].getScore(), min_score_))
+        {
+          const String& seq = pep_it->getHits()[0].getSequence().toString();
+          rt_data[seq].push_back(pep_it->getRT());
+        }
+      }
+    }
+    return false;
+  }
+
+  IdentificationData::ScoreTypeRef
+  MapAlignmentAlgorithmIdentification::handleIdDataScoreType_(const IdentificationData& id_data)
+  {
+    IdentificationData::ScoreTypeRef score_ref;
+    if (score_type_.empty()) // choose a score type
+    {
+      score_ref = id_data.pickScoreType(id_data.getObservationMatches());
+      if (score_ref == id_data.getScoreTypes().end())
+      {
+        String msg = "no scores found";
+        throw Exception::MissingInformation(__FILE__, __LINE__,
+                                            OPENMS_PRETTY_FUNCTION, msg);
+      }
+      score_type_ = score_ref->cv_term.getName();
+      OPENMS_LOG_INFO << "Using score type: " << score_type_ << endl;
+    }
+    else
+    {
+      score_ref = id_data.findScoreType(score_type_);
+      if (score_ref == id_data.getScoreTypes().end())
+      {
+        String msg = "score type '" + score_type_ + "' not found";
+        throw Exception::MissingInformation(__FILE__, __LINE__,
+                                            OPENMS_PRETTY_FUNCTION, msg);
+      }
+    }
+    return score_ref;
+  }
+
+
+  bool MapAlignmentAlgorithmIdentification::getRetentionTimes_(
+    IdentificationData& id_data, SeqToList& rt_data)
+  {
+    // @TODO: should this get handled as an error?
+    if (id_data.getObservationMatches().empty()) return true;
+
+    IdentificationData::ScoreTypeRef score_ref =
+      handleIdDataScoreType_(id_data);
+
+    vector<IdentificationData::ObservationMatchRef> top_hits =
+      id_data.getBestMatchPerObservation(score_ref);
+
+    for (const auto& hit : top_hits)
+    {
+      bool include = true;
+      if (score_cutoff_)
+      {
+        pair<double, bool> result = hit->getScore(score_ref);
+        if (!result.second ||
+            score_ref->isBetterScore(min_score_, result.first))
+        {
+          include = false;
+        }
+      }
+      if (include)
+      {
+        String molecule = hit->identified_molecule_var.toString();
+        if (use_adducts_ && hit->adduct_opt)
+        {
+          molecule += "+[" + (*hit->adduct_opt)->getName() + "]";
+        }
+        rt_data[molecule].push_back(hit->observation_ref->rt);
       }
     }
     return false;
@@ -117,7 +204,7 @@ namespace OpenMS
 
   // lists of peptide hits in "maps" will be sorted
   bool MapAlignmentAlgorithmIdentification::getRetentionTimes_(
-    PeakMap& experiment, SeqToList& rt_data)
+      PeakMap& experiment, SeqToList& rt_data)
   {
     for (PeakMap::Iterator exp_it = experiment.begin();
          exp_it != experiment.end(); ++exp_it)
@@ -139,7 +226,7 @@ namespace OpenMS
     // TODO
 
     // compute RT medians:
-    LOG_DEBUG << "Computing RT medians..." << endl;
+    OPENMS_LOG_DEBUG << "Computing RT medians..." << endl;
     vector<SeqToValue> medians_per_run(size);
     for (Int i = 0; i < size; ++i)
     {
@@ -162,7 +249,7 @@ namespace OpenMS
     if (reference_given)
     {
       // remove peptides that don't occur in enough runs:
-      LOG_DEBUG << "Removing peptides that occur in too few runs..." << endl;
+      OPENMS_LOG_DEBUG << "Removing peptides that occur in too few runs..." << endl;
       SeqToValue temp;
       for (SeqToValue::iterator ref_it = reference_.begin();
            ref_it != reference_.end(); ++ref_it)
@@ -174,16 +261,16 @@ namespace OpenMS
           temp.insert(temp.end(), *ref_it); // new items should go at the end
         }
       }
-      LOG_DEBUG << "Removed " << reference_.size() - temp.size() << " of "
+      OPENMS_LOG_DEBUG << "Removed " << reference_.size() - temp.size() << " of "
                 << reference_.size() << " peptides." << endl;
       temp.swap(reference_);
     }
     else // compute overall RT median per sequence (median of medians per run)
     {
-      LOG_DEBUG << "Computing overall RT medians per sequence..." << endl;
+      OPENMS_LOG_DEBUG << "Computing overall RT medians per sequence..." << endl;
 
       // remove peptides that don't occur in enough runs (at least two):
-      LOG_DEBUG << "Removing peptides that occur in too few runs..." << endl;
+      OPENMS_LOG_DEBUG << "Removing peptides that occur in too few runs..." << endl;
       SeqToList temp;
       for (SeqToList::iterator med_it = medians_per_seq.begin();
            med_it != medians_per_seq.end(); ++med_it)
@@ -193,17 +280,18 @@ namespace OpenMS
           temp.insert(temp.end(), *med_it);
         }
       }
-      LOG_DEBUG << "Removed " << medians_per_seq.size() - temp.size() << " of "
+      OPENMS_LOG_DEBUG << "Removed " << medians_per_seq.size() - temp.size() << " of "
                 << medians_per_seq.size() << " peptides." << endl;
       temp.swap(medians_per_seq);
       computeMedians_(medians_per_seq, reference_);
     }
+
     if (reference_.empty())
     {
-      throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "No reference RT information left after filtering");
+      OPENMS_LOG_WARN << "No reference RT information left after filtering!" << endl;
     }
 
-    double max_rt_shift = param_.getValue("max_rt_shift");
+    double max_rt_shift = (double)param_.getValue("max_rt_shift");
     if (max_rt_shift <= 1)
     {
       // compute max. allowed shift from overall retention time range:
@@ -223,11 +311,11 @@ namespace OpenMS
     {
       max_rt_shift = numeric_limits<double>::max();
     }
-    LOG_DEBUG << "Max. allowed RT shift (in seconds): " << max_rt_shift << endl;
+    OPENMS_LOG_DEBUG << "Max. allowed RT shift (in seconds): " << max_rt_shift << endl;
 
     // generate RT transformations:
-    LOG_DEBUG << "Generating RT transformations..." << endl;
-    LOG_INFO << "\nAlignment based on:" << endl; // diagnostic output
+    OPENMS_LOG_DEBUG << "Generating RT transformations..." << endl;
+    OPENMS_LOG_INFO << "\nAlignment based on:" << endl; // diagnostic output
     Size offset = 0; // offset in case of internal reference
     for (Int i = 0; i < size + 1; ++i)
     {
@@ -238,12 +326,21 @@ namespace OpenMS
         TransformationDescription trafo;
         trafo.fitModel("identity");
         transforms.push_back(trafo);
-        LOG_INFO << "- " << reference_.size() << " data points for sample "
+        OPENMS_LOG_INFO << "- " << reference_.size() << " data points for sample "
                  << i + 1 << " (reference)\n";
         offset = 1;
       }
+
       if (i >= size) break;
 
+      if (reference_.empty())
+      {
+        TransformationDescription trafo;
+        trafo.fitModel("identity");
+        transforms.push_back(trafo);
+        continue;
+      }
+                
       // to be useful for the alignment, a peptide sequence has to occur in the
       // current run ("medians_per_run[i]"), but also in at least one other run
       // ("medians_overall"):
@@ -267,13 +364,13 @@ namespace OpenMS
           }
         }
       }
-      transforms.push_back(TransformationDescription(data));
-      LOG_INFO << "- " << data.size() << " data points for sample "
+      transforms.emplace_back(data);
+      OPENMS_LOG_INFO << "- " << data.size() << " data points for sample "
                << i + offset + 1;
-      if (n_outliers) LOG_INFO << " (" << n_outliers << " outliers removed)";
-      LOG_INFO << "\n";
+      if (n_outliers) OPENMS_LOG_INFO << " (" << n_outliers << " outliers removed)";
+      OPENMS_LOG_INFO << "\n";    
     }
-    LOG_INFO << endl;
+    OPENMS_LOG_INFO << endl;
 
     // delete temporary reference
     if (!reference_given) reference_.clear();

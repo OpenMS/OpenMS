@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -89,6 +89,19 @@ namespace OpenMS
   void MultiplexFilteredPeak::addSatelliteProfile(const MultiplexSatelliteProfile& satellite, size_t pattern_idx)
   {
     satellites_profile_.insert(std::make_pair(pattern_idx, satellite));
+  }
+  
+  bool MultiplexFilteredPeak::checkSatellite(size_t rt_idx, size_t mz_idx) const
+  {
+    for (const auto &satellite_it : satellites_)
+    {
+      if (((satellite_it.second).getRTidx() == rt_idx) && ((satellite_it.second).getMZidx() == mz_idx))
+      {
+        return true;
+      }
+    }
+    
+    return false;
   }
   
   const std::multimap<size_t, MultiplexSatelliteCentroided >& MultiplexFilteredPeak::getSatellites() const

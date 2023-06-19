@@ -12,13 +12,14 @@ cdef extern from "<OpenMS/DATASTRUCTURES/String.h>" namespace "OpenMS":
     # not unicode. Please use toString if you want to have encoded data.
     cdef cppclass String:
         # wrap-hash:
-        #   c_str()
+        #  c_str()
 
         String() nogil except +
         String(String) nogil except +  # wrap-ignore
         String(char *) nogil except + # wrap-ignore
+        String(char *, size_t l) nogil except + # wrap-ignore
         String(str) nogil except + # wrap-ignore
-        const_char * c_str() nogil except +
+        const_char * c_str() nogil except + # wrap-ignore
 
         # Creates a Python 2/3 unicode string (use this instead of c_str() if you
         # plan to use any non-ASCII code).
@@ -30,7 +31,7 @@ cdef extern from "<OpenMS/DATASTRUCTURES/String.h>" namespace "OpenMS":
         # Rather perform string operations in Python (you will have a bad time
         # with unicode strings otherwise).
         size_t length() nogil except + # wrap-ignore
-        # libcpp_string operator[](int) nogil except + # wrap-upper-limit:length()
+        # libcpp_string operator[](size_t) nogil except + # wrap-upper-limit:length()
 
 cdef extern from "<OpenMS/DATASTRUCTURES/String.h>" namespace "OpenMS::String":
     
@@ -41,25 +42,25 @@ cdef extern from "<OpenMS/DATASTRUCTURES/String.h>" namespace "OpenMS::String":
 
 
 #
-#   def _init_2(self, str in_0 ):
-#       assert isinstance(in_0, str), 'arg in_0 wrong type'
-#   
-#       print(b"have init 2 here")
-#       # TODO catch encoding errors ...
-#       py_byte_string = in_0.encode('UTF-8')
-#       cdef char* c_string = py_byte_string
-#       self.inst = shared_ptr[_String](new _String((<char *>c_string)))
+#  def _init_2(self, str in_0 ):
+#      assert isinstance(in_0, str), 'arg in_0 wrong type'
+#  
+#      print(b"have init 2 here")
+#      # TODO catch encoding errors ...
+#      py_byte_string = in_0.encode('UTF-8')
+#      cdef char* c_string = py_byte_string
+#      self.inst = shared_ptr[_String](new _String((<char *>c_string)))
 #
-#       # self.inst = shared_ptr[_String](new _String((<char *>in_0)))
-#   
-#   def __init__(self, *args):
-#       if not args:
-#            self._init_0(*args)
-#       elif (len(args)==1) and (isinstance(args[0], bytes)):
-#            self._init_1(*args)
-#       elif (len(args)==1) and (isinstance(args[0], str)):
-#            self._init_2(*args)
-#       else:
-#              print(b"aaaa")
-#              raise Exception('can not handle type of %s' % (args,)) 
+#      # self.inst = shared_ptr[_String](new _String((<char *>in_0)))
+#  
+#  def __init__(self, *args):
+#      if not args:
+#           self._init_0(*args)
+#      elif (len(args)==1) and (isinstance(args[0], bytes)):
+#           self._init_1(*args)
+#      elif (len(args)==1) and (isinstance(args[0], str)):
+#           self._init_2(*args)
+#      else:
+#             print(b"aaaa")
+#             raise Exception('can not handle type of %s' % (args,)) 
 #

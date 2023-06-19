@@ -14,32 +14,32 @@
 
   We are working on adding %OpenMS to the <a href=http://pkgs.org/search/openms>repositories</a> of the most popular distributions,
   but for many platforms the toolkit needs to be manually compiled on your system.
-  The same applies if you want to use the most recent source files from our git repository.
+  The same applies if you want to use the most recent source files from our Git repository.
 
-  @section checkout_and_build Checkout OpenMS
+  @section checkout_and_build Checkout OpenMS repository
 
   You can find the links to the release and development versions on the
   <a href="http://www.openms.de/downloads/">Downloads</a> page of the
   %OpenMS project.
-  All source code, including the latest development version, is on github and can be obtained via git:
+  All source code, including the latest development version, is on GitHub and can be obtained via Git:
 
     \code
     # Assuming you are in ~/Development
     git clone https://github.com/OpenMS/OpenMS.git
     \endcode
 
-  From here on, the instructions assume you have either an extracted tar.gz of a release and are inside its root, or checked out the development (git) version.
+  From here on, the instructions assume you have either an extracted tar.gz of a release and are inside its top folder, or checked out the development (Git) version.
 
-  Next, we will care for the dependencies upon which building %OpenMS from source relies.
+  Next, we will take care of the dependencies upon which building %OpenMS from source relies.
 
   @section bin_dep Dependencies obtainable in binary form
 
   %OpenMS requires several other libraries to be present on your system.
   Most of these should be available in the repositories of your GNU/Linux distribution.
 
-  For those libraries/versions often not found in the distro repositories, we provide sources and build scripts.
-  The Release tar.gz archive contains the libraries in the contrib/ folder,
-  if you build the development (git) version, you'll find an empty submodule in that folder that you have to update first with
+  For those libraries/versions often not found in the distribution's repositories, we provide sources and build scripts in a "contrib" submodule.
+  The Release tar.gz archive contains these libraries in the @p contrib/ folder.
+  If you build the development (Git) version, you will find an empty submodule in that folder that you have to update first with:
   \code
     git submodule update --init contrib
   \endcode
@@ -48,26 +48,31 @@
 
   <ul>
     <li>
-      Essential are \b GCC (> 4.0) or other ANSI C++ compiler, \b CMake (> 2.8.3), \b Qt5, \b patch, \b autoconf (> 2.60), \b automake (> 1.9), \b libtool (libtoolize/glibtoolize).
+      Essential are \b gcc/g++ (>= 7.0) or similar ANSI C++ compiler with full C++17 support,
+      \b CMake (>= 3.21), \b Qt5 (>= 5.6), \b patch, \b autoconf (> 2.60), \b automake (> 1.9), \b libtool (libtoolize/glibtoolize).
     </li>
     <li>
-      For the complete feature set to be enabled, %OpenMS needs recent versions of \b Boost (>= 1.48), \b Eigen3 (>= 3.3.2), \b WildMagic5, \b libSVM (2.91 or higher but not 3.15), \b SeqAn (>= 1.4.0 but < 2.0 needed), \b glpk (>= 4.45) or \b CoinMP (>= 1.3.3), \b zlib, \b libbz2, and \b Xerces-C (>= 3.1.1). These can be obtained via your package manager (if possible) or build through our contrib build script.
+      For the complete feature set to be enabled, %OpenMS needs recent versions of
+      \b Boost (>= 1.48), \b Eigen3 (>= 3.3.2), \b libHDF5, \b libSVM (2.91 or higher but not 3.15),
+      \b glpk (>= 4.45) or \b CoinMP (>= 1.3.3), \b zlib, \b libbz2, and \b Xerces-C (>= 3.1.1).
+      These should be built by our contrib build script in case they are not already installed via your package manager.
     </li>
     <li>
-      Building the documentation from the development version requires doxygen (recommended: >= 1.8.13, required: > 1.5.4, some might be buggy in between) and pdflatex/texlive/texlive-full.
+      Building the documentation from the development version requires Doxygen (recommended: >= 1.8.13, required: > 1.5.4, some might be buggy in between) and pdflatex/texlive/texlive-full.
     </li>
     <li>
       Building pyOpenMS, the Python bindings for %OpenMS, requires Python, Cython and a few Python packages. See \ref pyOpenMS "here" for more detailed pyOpenMS build instructions.
     </li>
   </ul>
 
-  For the most common distributions, we have compiled these commands which will install the required compatible libraries. There may be more libraries in your distributions packaging system, but beware of version incompatibilities:
+  For the most common distributions, we have compiled the commands which will install the required compatible libraries.
+  There may be different libraries in your distribution's packaging system, but beware of version incompatibilities.
 
   <table style="border-style:solid; border-collapse:collapse; border-color:#c0c0c0;" cellpadding="3px">
   <tr>
     <td><B>Fedora/RHEL/CentOS</B>
     <a href="http://koji.fedoraproject.org/koji/packages">packages</a>
-	</td>
+  </td>
     <td><pre>
     # In newer distros change yum to dnf
     sudo yum groupinstall 'Development Tools'
@@ -76,9 +81,11 @@
     sudo yum install epel-release
     # Update repo list for the thirdparty repository EPEL
     sudo yum repolist
-    # Get installable contrib libraries
-    sudo yum install qt5-qtbase-gui qt5-qtbase-devel qt5-qtsvg python-devel boost-devel \
-        libsvm-devel glpk-devel libzip-devel zlib-devel xerces-c-devel bzip2-devel
+    # Get REQUIRED installable contrib libraries
+    sudo yum install cmake3 qt5-qtbase-gui qt5-qtbase-devel qt5-qtsvg-devel python-devel
+    # Get OPTIONAL installable contrib libraries preferably from our Contrib package in the next step.
+    ## sudo yum boost-devel libsvm-devel libzip-devel zlib-devel xerces-c-devel bzip2-devel libhdf5-devel glpk-devel
+    # NOTE that you might need to use cmake3 instead of cmake in the commands of the following steps.
     </pre>
     </td>
   </tr>
@@ -86,47 +93,42 @@
       <td><B>openSUSE >= 13.2<br/></B></td>
       <td><pre>
       # register obs://build.opensuse.org/devel:libraries:c_c++
-      sudo zypper install cmake gcc-c++ autoconf libqt5-qtbase-devel \
-        libqt5-qtsvg-devel python-devel boost-devel  glpk-devel \
-        libzip-devel zlib-devel libxerces-c-devel libbz2-devel \
-        git patch automake libtool libsvm-devel
+      # tools
+      sudo zypper install cmake gcc-c++ autoconf git patch automake libtool
+      # REQUIRED dependencies
+      sudo zypper install libqt5-qtbase-devel libqt5-qtsvg-devel python-devel glpk-devel
+      # OPTIONAL dependencies, preferably installed with our Contrib package in the next step
+      ## sudo zypper install boost-devel libzip-devel zlib-devel \
+      # libxerces-c-devel libbz2-devel libsvm-devel libhdf5-10
       </pre></td>
   </tr>
   <tr>
-    <td><B>Ubuntu/Debian <br/>(16.04)</B></td>
-    <td><pre>
-    # include the ubuntu universe repository and update
-    sudo apt-get install build-essential cmake autoconf patch libtool git automake
-    sudo apt-get install qtbase5-dev libqt5svg5-dev libboost-regex-dev libboost-iostreams-dev \
-      libboost-date-time-dev libboost-math-dev libboost-random-dev libsvm-dev\
-      libglpk-dev zlib1g-dev libxerces-c-dev seqan-dev libbz2-dev coinor-libcoinmp-dev
-      # Use from contrib: EIGEN; SQLITE; WILDMAGIC (since libwildmagic-dev is buggy)
-    </pre></td>
-  </tr>
-  <tr>
-      <td><B>Ubuntu/Debian <br/>(>= 17.04)</B></td>
+      <td><B>Ubuntu/Debian <br/>(>= 20.04)</B></td>
       <td><pre>
-    # include the ubuntu universe repository and update
+    # Include the Ubuntu "universe" repository and update:
+    sudo add-apt-repository universe
+    sudo apt update
     sudo apt-get install build-essential cmake autoconf patch libtool git automake
-    sudo apt-get install qtbase5-dev libqt5svg5-dev
-    sudo apt-get install libeigen3-dev libsqlite3-dev libwildmagic-dev libboost-random1.62-dev \
-      libboost-regex1.62-dev libboost-iostreams1.62-dev libboost-date-time1.62-dev libboost-math1.62-dev \
-      libxerces-c-dev libglpk-dev zlib1g-dev libsvm-dev libbz2-dev seqan-dev coinor-libcoinmp-dev
-      # this should eliminate the need for building contrib libraries.
+    sudo apt-get install qtbase5-dev libqt5svg5-dev libqt5opengl5-dev
+    sudo apt-get install libeigen3-dev libboost-random-dev libboost-regex-dev \
+      libboost-iostreams-dev libboost-date-time-dev libboost-math-dev libxerces-c-dev \
+      zlib1g-dev libsvm-dev libbz2-dev coinor-libcoinmp-dev libhdf5-dev
+    # This should eliminate the need for building contrib libraries. Note: installing libglpk-dev is optional.
       </pre></td>
   </tr>
   </table>
 
   @section build_linux_contrib Building remaining dependencies
 
-  You can check which dependencies you still need by attempting to configure %OpenMS (see the next section),
+  You can and should check which dependencies you still need by attempting to configure %OpenMS (see the next section);
   it will complain about anything unusual/missing.
-  @note In most cases, the only dependencies left unresolved (e.g. unavailable through your distributions packaging system) at this point are SeqAn, WildMagic and maybe CoinOR.
+  @warning Do not install libraries from our contrib package if it is installed on your system in a compatible version already. If you have an incompatible version, we suggest to update or uninstall and use the contrib version.
+  @note In most cases, the only dependency left unresolved (e.g. unavailable through your distributions packaging system) at this point is CoinOR.
   Contact us if you still have trouble with the dependencies \b after these
   instructions.
 
   The tar.gz of the Release contains the scripts for building all dependencies in the contrib/ folder.
-  For the development (git) version, this so called submodule folder will be empty and has to be checked out separately.
+  For the development (Git) version, this so called submodule folder will be empty and has to be checked out separately.
 
   \code
   # Assuming you are in ~/Development/OpenMS
@@ -151,11 +153,8 @@
      \code
         cmake -DBUILD_TYPE=LIST ../OpenMS/contrib
      \endcode
-  and then build SeqAn (the other build scripts may or may not be needed to be
-  executed depending on if your distribution does not provide a package for the dependency):
+  and then build Eigen:
       \code
-          cmake -DBUILD_TYPE=SEQAN ../OpenMS/contrib
-          cmake -DBUILD_TYPE=WILDMAGIC ../OpenMS/contrib
           cmake -DBUILD_TYPE=EIGEN ../OpenMS/contrib
       \endcode
 
@@ -223,6 +222,12 @@
   -DCMAKE_PREFIX_PATH="/usr;/usr/local"
   \endcode
   to the CMake options.
+
+  If CMake has problems finding Qt5 (Qt5SvgConfig.cmake is usually the first to fail), you might consider adding:
+  \code
+  -DQt5_DIR=/PATH/TO/qt/5.9.7/gcc_64/lib/cmake/Qt5
+  \endcode
+  to the CMake options, where <tt>/PATH/TO/qt/5.9.7/gcc_64</tt> depends on your system settings and Qt version.
 
   When configuring %OpenMS, consider setting <tt>WITH_GUI=Off</tt> and
   <tt>HAS_XSERVER=Off</tt>, especially as you may not have compiled Qt with

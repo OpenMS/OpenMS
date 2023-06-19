@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -41,10 +41,14 @@
 
   @image html TOPPView.png
 
-  More information about TOPPView can be found in the @ref TOPP_tutorial.
+  More information about TOPPView can be found on the OpenMS ReadTheDocs
+  page: https://openms.readthedocs.io/en/latest/docs/tutorials/TOPP/toppview-introduction.html
 
   <B>The command line parameters of this tool are:</B>
   @verbinclude TOPP_TOPPView.cli
+  
+  Note: By default, TOPPView scans for novel TOPP tools if there has been a version update. To force a rescan you
+  can pass the --force flag. To skip the scan for tools, you can pass the --skip_tool_scan flag.
 */
 
 //QT
@@ -84,32 +88,37 @@ const char* tool_name = "TOPPView";
 void print_usage()
 {
   cerr << endl
-       << tool_name << " -- A viewer for mass spectrometry data." << endl
-       << endl
-       << "Usage:" << endl
-       << " " << tool_name << " [options] [files]" << endl
-       << endl
-       << "Options are:" << endl
-       << "  --help           Shows this help" << endl
-       << "  -ini <File>      Sets the INI file (default: ~/.TOPPView.ini)" << endl
-       << endl
-       << "Hints:" << endl
-       << " - To open several files in one window put a '+' in between the files." << endl
-       << " - '@bw' after a map file displays the dots in a white to black gradient." << endl
-       << " - '@bg' after a map file displays the dots in a grey to black gradient." << endl
-       << " - '@b'  after a map file displays the dots in black." << endl
-       << " - '@r'  after a map file displays the dots in red." << endl
-       << " - '@g'  after a map file displays the dots in green." << endl
-       << " - '@m'  after a map file displays the dots in magenta." << endl
-       << " - Example: '" << tool_name << " 1.mzML + 2.mzML @bw + 3.mzML @bg'" << endl
+       << tool_name << " -- A viewer for mass spectrometry data." << "\n"
+       << "\n"
+       << "Usage:" << "\n"
+       << " " << tool_name << " [options] [files]" << "\n"
+       << "\n"
+       << "Options are:" << "\n"
+       << "  --help           Shows this help" << "\n"
+       << "  -ini <File>      Sets the INI file (default: ~/.TOPPView.ini)" << "\n"
+       << "  --force          Forces scan for new tools/utils" << "\n"
+       << "  --skip_tool_scan Skips scan for new tools/utils" << "\n"
+       << "\n"
+       << "Hints:" << "\n"
+       << " - To open several files in one window put a '+' in between the files." << "\n"
+       << " - '@bw' after a map file displays the dots in a white to black gradient." << "\n"
+       << " - '@bg' after a map file displays the dots in a grey to black gradient." << "\n"
+       << " - '@b'  after a map file displays the dots in black." << "\n"
+       << " - '@r'  after a map file displays the dots in red." << "\n"
+       << " - '@g'  after a map file displays the dots in green." << "\n"
+       << " - '@m'  after a map file displays the dots in magenta." << "\n"
+       << " - Example: '" << tool_name << " 1.mzML + 2.mzML @bw + 3.mzML @bg'" << "\n"
        << endl;
 }
 
 int main(int argc, const char** argv)
 {
   //list of all the valid options
-  Map<String, String> valid_options, valid_flags, option_lists;
+  std::map<std::string, std::string> valid_options, valid_flags, option_lists;
   valid_flags["--help"] = "help";
+  valid_flags["--force"] = "force";
+  valid_flags["--skip_tool_scan"] = "skip_tool_scan";
+  valid_flags["--debug"] = "debug";
   valid_options["-ini"] = "ini";
 
   Param param;
@@ -128,7 +137,7 @@ int main(int argc, const char** argv)
     // if TOPPView is packed as Mac OS X bundle it will get a -psn_.. parameter by default from the OS
     // if this is the only unknown option it will be ignored .. maybe this should be solved directly
     // in Param.h
-    if (!(param.getValue("unknown").toString().hasSubstring("-psn") && !param.getValue("unknown").toString().hasSubstring(", ")))
+    if (!(String(param.getValue("unknown").toString()).hasSubstring("-psn") && !String(param.getValue("unknown").toString()).hasSubstring(", ")))
     {
       cout << "Unknown option(s) '" << param.getValue("unknown").toString() << "' given. Aborting!" << endl;
       print_usage();
@@ -138,12 +147,40 @@ int main(int argc, const char** argv)
 
   try
   {
-    QApplicationTOPP a(argc, const_cast<char**>(argv));
-    a.connect(&a, SIGNAL(lastWindowClosed()), &a, SLOT(quit()));
 
-    TOPPViewBase* mw = new TOPPViewBase();
-    a.connect(&a, SIGNAL(fileOpen(QString)), mw, SLOT(loadFile(QString)));
-    mw->show();
+#if defined(__APPLE__)
+    // see https://bugreports.qt.io/browse/QTBUG-104871
+    // if you link to QtWebEngine and the corresponding macros are enabled, it will
+    // try to default to OpenGL 4.1 on macOS (for hardware acceleration of WebGL in Chromium, which we do not need yet)
+    // but our OpenGL code for 3D View is written in OpenGL 2.x.
+    // Now we force 2.1 which is also available on all? Macs.
+    QSurfaceFormat format;
+    format.setVersion(2, 1); // the default is 2, 0
+    QSurfaceFormat::setDefaultFormat(format); // should be done before creating a QApplication
+#endif
+
+    QApplicationTOPP a(argc, const_cast<char**>(argv));
+    a.connect(&a, &QApplicationTOPP::lastWindowClosed, &a, &QApplicationTOPP::quit);
+
+    TOPPViewBase::TOOL_SCAN mode = TOPPViewBase::TOOL_SCAN::SCAN_IF_NEWER_VERSION;
+    if (param.exists("force"))
+    {
+      mode = TOPPViewBase::TOOL_SCAN::FORCE_SCAN;
+    }
+    else if (param.exists("skip_tool_scan"))
+    {
+      mode = TOPPViewBase::TOOL_SCAN::SKIP_SCAN;
+    }
+
+    TOPPViewBase::VERBOSITY verbosity = TOPPViewBase::VERBOSITY::DEFAULT;
+    if (param.exists("debug"))
+    {
+      verbosity = TOPPViewBase::VERBOSITY::VERBOSE;
+    }
+
+    TOPPViewBase tb(mode, verbosity);
+    a.connect(&a, &QApplicationTOPP::fileOpen, &tb, &TOPPViewBase::openFile);
+    tb.show();
 
     // Create the splashscreen that is displayed while the application loads (version is drawn dynamically)
     QPixmap qpm(":/TOPPView_Splashscreen.png");
@@ -151,8 +188,8 @@ int main(int argc, const char** argv)
     pt_ver.setFont(QFont("Helvetica [Cronyx]", 15, 2, true));
     pt_ver.setPen(QColor(44, 50, 152));
     pt_ver.drawText(490, 94, VersionInfo::getVersion().toQString());
-    QSplashScreen* splash_screen = new QSplashScreen(qpm);
-    splash_screen->show();
+    QSplashScreen splash_screen(qpm);
+    splash_screen.show();
 
     QApplication::processEvents();
     StopWatch stop_watch;
@@ -160,13 +197,13 @@ int main(int argc, const char** argv)
 
     if (param.exists("ini"))
     {
-      mw->loadPreferences((String)param.getValue("ini"));
+      tb.loadPreferences(param.getValue("ini").toString());
     }
 
     //load command line files
     if (param.exists("misc"))
     {
-      mw->loadFiles(param.getValue("misc"), splash_screen);
+      tb.loadFiles(ListUtils::toStringList<std::string>(param.getValue("misc")), &splash_screen);
     }
 
     // We are about to show the application.
@@ -175,17 +212,13 @@ int main(int argc, const char** argv)
     {
     }
     stop_watch.stop();
-    splash_screen->close();
-    delete splash_screen;
+    splash_screen.close();
 
 #ifdef OPENMS_WINDOWSPLATFORM
     FreeConsole(); // get rid of console window at this point (we will not see any console output from this point on)
     AttachConsole(-1); // if the parent is a console, reattach to it - so we can see debug output - a normal user will usually not use cmd.exe to start a GUI)
 #endif
-
-    int result = a.exec();
-    delete(mw);
-    return result;
+    return a.exec();
   }
   //######################## ERROR HANDLING #################################
   catch (Exception::UnableToCreateFile& e)

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -51,7 +51,7 @@ namespace OpenSwath
   OPENSWATHALGO_DLLAPI void normalize(const std::vector<double>& intensities, double normalization_factor, std::vector<double>& normalized_intensities);
 
   /**
-  @brief compute the norm of the vector
+  @brief compute the Euclidean norm of the vector
   */
   template <typename T>
   double norm(T beg, T end)
@@ -64,16 +64,6 @@ namespace OpenSwath
     }
     return sqrt(res);
   }
-
-  struct mySqrt :
-    std::unary_function<double, double>
-  {
-    double operator()(double x)
-    {
-      return sqrt(x);
-    }
-
-  };
 
   /**
   @brief compute dotprod of vectors

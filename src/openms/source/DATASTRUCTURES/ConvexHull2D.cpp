@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -47,8 +47,9 @@ namespace OpenMS
   ConvexHull2D& ConvexHull2D::operator=(const ConvexHull2D& rhs)
   {
     if (&rhs == this)
+    {
       return *this;
-
+    }
     map_points_ = rhs.map_points_;
     outer_points_ = rhs.outer_points_;
 
@@ -60,27 +61,35 @@ namespace OpenMS
   {
     // different size => return false
     if (map_points_.size() != rhs.map_points_.size())
-      return false;
-
-    if (outer_points_.size() != rhs.outer_points_.size())
-      return false;
-
-    //different points now => return false
-    for (HullPointType::ConstIterator it = rhs.map_points_.begin(); it !=   rhs.map_points_.end(); ++it)
     {
-      if (map_points_.has(it->first))
+      return false;
+    }
+    if (outer_points_.size() != rhs.outer_points_.size())
+    {
+      return false;
+    }
+    //different points now => return false
+    for (HullPointType::const_iterator it = rhs.map_points_.begin(); it !=   rhs.map_points_.end(); ++it)
+    {
+      if (map_points_.find(it->first) != map_points_.end())
       {
-        if (map_points_[it->first] != it->second)
+        if (map_points_.at(it->first) != it->second)
+        {
           return false;
+        }
       }
       else
+      {
         return false;
+      }
     }
     //different points now => return false
     for (Size i = 0; i < rhs.outer_points_.size(); ++i)
     {
       if (outer_points_[i] != rhs.outer_points_[i])
+      {
         return false;
+      }
     }
 
     return true;
@@ -97,15 +106,13 @@ namespace OpenMS
   const ConvexHull2D::PointArrayType& ConvexHull2D::getHullPoints() const
   {
     // construct outer hull if required
-    if (outer_points_.empty() && map_points_.size() > 0)
+    if (outer_points_.empty() && !map_points_.empty())
     {
-
       // walk the outer hull
-      outer_points_.clear();
       outer_points_.reserve(map_points_.size() * 2);
 
       // traverse lower m/z's of RT scans
-      for (HullPointType::ConstIterator it = map_points_.begin(); it != map_points_.end(); ++it)
+      for (HullPointType::const_iterator it = map_points_.begin(); it != map_points_.end(); ++it)
       {
         PointType p;
         p.setX(it->first);
@@ -114,17 +121,21 @@ namespace OpenMS
       }
 
       // traverse higher m/z's of RT scans
-      for (HullPointType::ConstReverseIterator it = map_points_.rbegin(); it != map_points_.rend(); ++it)
+      for (HullPointType::const_reverse_iterator it = map_points_.rbegin(); it != map_points_.rend(); ++it)
       {
         PointType p;
         p.setX(it->first);
         p.setY(it->second.maxPosition()[0]);
         // turning point (avoid listing it twice if last scan only has a single point)
         if ((it == map_points_.rbegin()) && (it->second.width() == 0))
+        {
           continue;
+        }
         // do not list first scan again if it's only a single point
         else if (it == --map_points_.rend() && (it->second.width() == 0))
+        {
           continue;
+        }
         outer_points_.push_back(p);
       }
     }
@@ -154,15 +165,15 @@ namespace OpenMS
     DBoundingBox<2> bb;
 
     // the internal structure might not be defined, but we try it first
-    if (map_points_.size() > 0)
+    if (!map_points_.empty())
     {
-      for (HullPointType::ConstIterator it = map_points_.begin(); it != map_points_.end(); ++it)
+      for (HullPointType::const_iterator it = map_points_.begin(); it != map_points_.end(); ++it)
       {
         bb.enlarge(it->first, it->second.minPosition()[0]);
         bb.enlarge(it->first, it->second.maxPosition()[0]);
       }
     }
-    else if (outer_points_.size() > 0)
+    else if (!outer_points_.empty())
     {
       for (PointArrayType::const_iterator it = outer_points_.begin(); it != outer_points_.end(); ++it)
       {
@@ -177,11 +188,12 @@ namespace OpenMS
   {
     outer_points_.clear();
 
-    if (map_points_.has(point[0]))
+    if (map_points_.find(point[0]) != map_points_.end())
     {
-      if (map_points_[point[0]].encloses(point[1]))
+      if (map_points_.at(point[0]).encloses(point[1]))
+      {
         return false;
-
+      }
       map_points_[point[0]].enlarge(point[1]);
     }
     else
@@ -206,14 +218,15 @@ namespace OpenMS
     // keep the min&max scan only
     //
     if (map_points_.size() < 3)
+    {
       return 0; // we need at least one "middle" scan
-
+    }
     HullPointType compressed_map;
 
     compressed_map[map_points_.begin()->first] = map_points_.begin()->second; // copy first scan
-    HullPointType::ConstIterator pred_it = map_points_.begin();
-    HullPointType::ConstIterator middle_it = pred_it; middle_it++;
-    HullPointType::ConstIterator succ_it = pred_it; succ_it++; succ_it++;
+    HullPointType::const_iterator pred_it = map_points_.begin();
+    HullPointType::const_iterator middle_it = pred_it; middle_it++;
+    HullPointType::const_iterator succ_it = pred_it; succ_it++; succ_it++;
 
     for (Size p = 1; p < map_points_.size() - 1; ++p)
     {
@@ -231,8 +244,9 @@ namespace OpenMS
     }
     compressed_map[middle_it->first] = middle_it->second; // copy last scan
     if (succ_it != map_points_.end())
+    {
       throw Exception::BufferOverflow(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
-
+    }
     //std::cout << "compressed CH from " << map_points_.size() << " to " << compressed_map.size() << "\n";
     Size saved_points = map_points_.size() - compressed_map.size();
     //copy
@@ -243,34 +257,41 @@ namespace OpenMS
 
   bool ConvexHull2D::encloses(const PointType& point) const
   {
-    if ((map_points_.empty()) && outer_points_.size() > 0) // we cannot answer the query as we lack the internal data structure
+    if ((map_points_.empty()) && !outer_points_.empty()) // we cannot answer the query as we lack the internal data structure
     { // (if you need this you need to augment encloses() to work on outer_points_ only)
       throw Exception::NotImplemented(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
     }
 
-    if (map_points_.has(point[0]))
+    if (map_points_.find(point[0]) != map_points_.end())
     {
-      if (map_points_[point[0]].encloses(point[1]))
+      if (map_points_.at(point[0]).encloses(point[1]))
+      {
         return true;
+      }
     }
 
     // find the two RT scans surrounding the point:
-    HullPointType::ConstIterator it_upper = map_points_.end(), it_lower = map_points_.end();
+    HullPointType::const_iterator it_upper = map_points_.end(), it_lower = map_points_.end();
     // iterate over keys (which are sorted by ascending RT)
-    for (HullPointType::ConstIterator it = map_points_.begin(); it != map_points_.end(); ++it)
+    for (HullPointType::const_iterator it = map_points_.begin(); it != map_points_.end(); ++it)
     {
       // lower bound
       if (((it->first) < (point[0])))
+      {
         it_lower = it;
+      }
       // upper bound
       if ((it_upper == map_points_.end()) && ((it->first) > (point[0])))
-        it_upper = it;
+        {
+          it_upper = it;
+        }
     }
 
     // point is not between two scans
     if ((it_lower == map_points_.end()) || (it_upper == map_points_.end()))
+    {
       return false;
-
+    }
     // check if point is within bounds
     double mz_low = it_lower->second.minPosition()[0] // m/z offset
                     + ((point[0] - (it_lower->first)) / ((it_upper->first) - (it_lower->first)))      // factor (0-1)

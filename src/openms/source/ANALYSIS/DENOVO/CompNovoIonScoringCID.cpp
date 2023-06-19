@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -34,6 +34,7 @@
 //
 
 #include <OpenMS/ANALYSIS/DENOVO/CompNovoIonScoringCID.h>
+#include <map>
 
 //#define ION_SCORING_DEBUG
 //#define SCORE_WITNESSSET_DEBUG
@@ -51,10 +52,7 @@ namespace OpenMS
     updateMembers_();
   }
 
-  CompNovoIonScoringCID::CompNovoIonScoringCID(const CompNovoIonScoringCID & rhs) :
-    CompNovoIonScoringBase(rhs)
-  {
-  }
+  CompNovoIonScoringCID::CompNovoIonScoringCID(const CompNovoIonScoringCID & rhs) = default;
 
   CompNovoIonScoringCID & CompNovoIonScoringCID::operator=(const CompNovoIonScoringCID & rhs)
   {
@@ -65,11 +63,9 @@ namespace OpenMS
     return *this;
   }
 
-  CompNovoIonScoringCID::~CompNovoIonScoringCID()
-  {
-  }
+  CompNovoIonScoringCID::~CompNovoIonScoringCID() = default;
 
-  void CompNovoIonScoringCID::scoreSpectrum(Map<double, IonScore> & ion_scores, PeakSpectrum & CID_spec, double precursor_weight, Size charge)
+  void CompNovoIonScoringCID::scoreSpectrum(std::map<double, IonScore> & ion_scores, PeakSpectrum & CID_spec, double precursor_weight, Size charge)
   {
     for (PeakSpectrum::ConstIterator it = CID_spec.begin(); it != CID_spec.end(); ++it)
     {
@@ -104,7 +100,7 @@ namespace OpenMS
     // combine the features and give y-ion scores
     scoreWitnessSet_(charge, precursor_weight, ion_scores, CID_spec);
 
-    for (Map<double, IonScore>::iterator it = ion_scores.begin(); it != ion_scores.end(); ++it)
+    for (std::map<double, IonScore>::iterator it = ion_scores.begin(); it != ion_scores.end(); ++it)
     {
       it->second.score = it->second.s_witness;
     }
@@ -120,7 +116,7 @@ namespace OpenMS
     // check whether a PRMNode_ can be decomposed into amino acids
     // rescore the peaks that cannot be possible y-ion candidates
     double max_decomp_weight(param_.getValue("max_decomp_weight"));
-    for (Map<double, IonScore>::iterator it = ion_scores.begin(); it != ion_scores.end(); ++it)
+    for (std::map<double, IonScore>::iterator it = ion_scores.begin(); it != ion_scores.end(); ++it)
     {
       if (it->first > y_offset && (it->first - y_offset) < max_decomp_weight)
       {
@@ -139,7 +135,7 @@ namespace OpenMS
     decomp_param.setValue("tolerance", (double)param_.getValue("precursor_mass_tolerance"));
     decomp_algo.setParameters(decomp_param);
     // now the upper part with different tolerance
-    for (Map<double, IonScore>::iterator it = ion_scores.begin(); it != ion_scores.end(); ++it)
+    for (std::map<double, IonScore>::iterator it = ion_scores.begin(); it != ion_scores.end(); ++it)
     {
       if (it->first < precursor_weight && precursor_weight - it->first < max_decomp_weight)
       {
@@ -159,7 +155,7 @@ namespace OpenMS
     ion_scores[(CID_spec.end() - 1)->getPosition()[0]].score = 1;
   }
 
-  void CompNovoIonScoringCID::scoreWitnessSet_(Size charge, double precursor_weight, Map<double, IonScore> & ion_scores, const PeakSpectrum & CID_spec)
+  void CompNovoIonScoringCID::scoreWitnessSet_(Size charge, double precursor_weight, std::map<double, IonScore> & ion_scores, const PeakSpectrum & CID_spec)
   {
     double precursor_mass_tolerance = (double)param_.getValue("precursor_mass_tolerance");
     vector<double> diffs;

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -38,10 +38,12 @@
 
 #include <OpenMS/DATASTRUCTURES/Utils/MatrixUtils.h>
 #include <OpenMS/KERNEL/ConsensusMap.h>
+#include <OpenMS/CONCEPT/LogStream.h>
 
 // NNLS isotope correction
 #include <OpenMS/MATH/MISC/NonNegativeLeastSquaresSolver.h>
 
+#include <Eigen/Core>
 #include <Eigen/LU>
 
 // #define ISOBARIC_QUANT_DEBUG
@@ -174,7 +176,7 @@ namespace OpenMS
 
     if (s_negative == 0 && s_different_count > 0) //some solutions are inconsistent, despite being positive
     {
-      LOG_WARN << "IsobaricIsotopeCorrector: Isotope correction values of alternative method differ!" << std::endl;
+      OPENMS_LOG_WARN << "IsobaricIsotopeCorrector: Isotope correction values of alternative method differ!" << std::endl;
     }
 
     // update global stats

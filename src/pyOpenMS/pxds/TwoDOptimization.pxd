@@ -15,15 +15,14 @@ cdef extern from "<OpenMS/TRANSFORMATIONS/RAW2PEAK/TwoDOptimization.h>" namespac
         # wrap-inherits:
         #  DefaultParamHandler
         TwoDOptimization() nogil except +
-        TwoDOptimization(TwoDOptimization) nogil except +
+        TwoDOptimization(TwoDOptimization &) nogil except +
 
-        double getMZTolerance() nogil except +
-        void setMZTolerance(double tolerance_mz) nogil except +
-        double getMaxPeakDistance() nogil except +
-        void setMaxPeakDistance(double max_peak_distance) nogil except +
-        UInt getMaxIterations() nogil except +
-        void setMaxIterations(UInt max_iteration) nogil except +
+        double getMZTolerance() nogil except + # wrap-doc:Returns the matching epsilon
+        void setMZTolerance(double tolerance_mz) nogil except + # wrap-doc:Sets the matching epsilon
+        double getMaxPeakDistance() nogil except + # wrap-doc:Returns the maximal peak distance in a cluster
+        void setMaxPeakDistance(double max_peak_distance) nogil except + # wrap-doc:Sets the maximal peak distance in a cluster
+        UInt getMaxIterations() nogil except + # wrap-doc:Returns the maximal number of iterations
+        void setMaxIterations(UInt max_iteration) nogil except + # wrap-doc:Sets the maximal number of iterations
         # NAMESPACE # OptimizationFunctions::PenaltyFactorsIntensity  getPenalties() nogil except +
         # NAMESPACE # void setPenalties(OptimizationFunctions::PenaltyFactorsIntensity & penalties) nogil except +
         # TEMPLATE # void optimize(InputSpectrumIterator first, InputSpectrumIterator last, MSExperiment & ms_exp, bool real2D) nogil except +
-

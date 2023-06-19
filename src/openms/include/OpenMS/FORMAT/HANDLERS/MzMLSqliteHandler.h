@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -83,8 +83,9 @@ public:
           @brief Constructor of sqMass file
 
           @param filename The sqMass filename
+          @param run_id Unique identifier which links the sqMass and OSW file. It is currently only used for storing and ignored when reading an sqMass file.
       */
-      MzMLSqliteHandler(String filename);
+      MzMLSqliteHandler(const String& filename, const UInt64 run_id);
 
       /**@name Functions for reading files 
        *
@@ -101,6 +102,10 @@ public:
           @param meta_only Only read the meta data
       */
       void readExperiment(MSExperiment & exp, bool meta_only = false) const;
+
+      /// extract the RUN::ID from the sqMass file
+      /// @throws Exception::SqlOperationFailed more than on run exists
+      UInt64 getRunID() const;
 
       /**
           @brief Read an set of spectra (potentially restricted to a subset)
@@ -154,7 +159,7 @@ public:
           @brief Get spectral indices around a specific retention time
 
           @param RT The retention time
-          @param deltaRT Tolerance window around RT (if zero, the first spectrum *after* RT is returned)
+          @param deltaRT Tolerance window around RT (if less or equal than zero, only the first spectrum *after* RT is returned)
           @param indices Spectra to consider (if empty, all spectra are considered)
           @return The indices of the spectra within RT +/- deltaRT
       */
@@ -170,9 +175,9 @@ protected:
 
       void populateSpectraWithData_(sqlite3 *db, std::vector<MSSpectrum>& spectra, const std::vector<int> & indices) const;
 
-      void prepareChroms_(sqlite3 *db, std::vector<MSChromatogram>& chromatograms) const;
+      void prepareChroms_(sqlite3 *db, std::vector<MSChromatogram>& chromatograms, const std::vector<int> & indices = {}) const;
 
-      void prepareSpectra_(sqlite3 *db, std::vector<MSSpectrum>& spectra) const;
+      void prepareSpectra_(sqlite3 *db, std::vector<MSSpectrum>& spectra, const std::vector<int> & indices = {}) const;
       //@}
 
 public:
@@ -197,9 +202,11 @@ public:
 
           @note It is required to call this function first before writing any
                 data to disk, otherwise the tables will not be set up!
+
+          @note Be careful with this function, calling this on an existing file
+                will delete the file!
       */
       void createTables();
-      void createIndices();
 
       /**
           @brief Writes a set of spectra to disk
@@ -223,15 +230,11 @@ public:
           @param exp The result data structure
           @param meta_only Only read the meta data
       */
-      void writeRunLevelInformation(const MSExperiment & exp, bool write_full_meta, int run_id);
+      void writeRunLevelInformation(const MSExperiment& exp, bool write_full_meta);
 
 protected:
 
-      void executeBlobBind_(sqlite3 *db, String& prepare_statement, std::vector<String>& data);
-
-      void executeSql_(sqlite3 *db, const std::stringstream& statement);
-
-      sqlite3* openDB() const;
+      void createIndices_();
       //@}
 
       String filename_;
@@ -246,7 +249,7 @@ protected:
       */
       Int spec_id_;
       Int chrom_id_;
-      Int run_id_;
+      UInt64 run_id_;
 
       bool use_lossy_compression_;
       double linear_abs_mass_acc_; 

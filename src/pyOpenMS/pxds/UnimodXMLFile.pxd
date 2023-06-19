@@ -9,8 +9,8 @@ cdef extern from "<OpenMS/FORMAT/UnimodXMLFile.h>" namespace "OpenMS":
         #  XMLFile
 
         UnimodXMLFile() nogil except +
-        UnimodXMLFile(UnimodXMLFile) nogil except + #wrap-ignore
+        # private
+        UnimodXMLFile(UnimodXMLFile) nogil except + # wrap-ignore
 
         # TODO raw ptr in vector
         # void load(const String & filename, libcpp_vector[ ResidueModification * ] & modifications) nogil except +
-

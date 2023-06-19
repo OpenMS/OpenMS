@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -70,16 +70,16 @@ public:
     /// Draws an axis
     static void paint(QPainter * painter, QPaintEvent * e, const double & min, const double & max, const GridVector & grid,
                       const Int width, const Int height, const Alignment alignment, const UInt margin,
-                      const bool show_legend, const String legend, const bool shorten_number,
+                      const bool show_legend, const String& legend, const bool shorten_number,
                       const bool is_log, const bool is_inverse_orientation);
 private:
     /// Constructor: only static methods
     AxisPainter();
 
     /// sets @p short_num to a shortened string representation ("123.4 k/M/G") of @p number
-    static void getShortenedNumber_(QString & short_num, double number);
+    static void getShortenedNumber_(QString& short_num, double number);
 
-    /// Scale axis values to correct value (i.e. reverse log, unit conversion)
+    /// Round to 8 significant digits after comma (and apply log scaling)
     static double scale_(double x, bool is_log);
   };
 }

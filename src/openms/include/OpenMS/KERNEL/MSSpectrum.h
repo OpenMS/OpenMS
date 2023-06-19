@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -35,16 +35,16 @@
 #pragma once
 
 #include <OpenMS/KERNEL/Peak1D.h>
-#include <OpenMS/KERNEL/StandardDeclarations.h>
 #include <OpenMS/METADATA/SpectrumSettings.h>
 #include <OpenMS/KERNEL/RangeManager.h>
-#include <OpenMS/KERNEL/ComparatorUtils.h>
 #include <OpenMS/METADATA/DataArrays.h>
 #include <OpenMS/METADATA/MetaInfoDescription.h>
 
+#include <numeric>
+
 namespace OpenMS
 {
-  class Peak1D;
+  enum class DriftTimeUnit;
   /**
     @brief The representation of a 1D spectrum.
 
@@ -63,17 +63,47 @@ namespace OpenMS
 
     @ingroup Kernel
   */
-  class OPENMS_DLLAPI MSSpectrum :
+  class OPENMS_DLLAPI MSSpectrum final :
     private std::vector<Peak1D>,
-    public RangeManager<1>,
+    public RangeManagerContainer<RangeMZ, RangeIntensity>,
     public SpectrumSettings
   {
 public:
 
     /// Comparator for the retention time.
-    struct OPENMS_DLLAPI RTLess : public std::binary_function<MSSpectrum, MSSpectrum, bool>
+    struct OPENMS_DLLAPI RTLess
     {
       bool operator()(const MSSpectrum& a, const MSSpectrum& b) const;
+    };
+    /// Comparator for the ion mobility.
+    struct OPENMS_DLLAPI IMLess {
+      bool operator()(const MSSpectrum& a, const MSSpectrum& b) const;
+    };
+
+    /// Used to remember what subsets in a spectrum are sorted already to allow faster sorting of the spectrum
+    struct Chunk {
+      Size start; ///< inclusive
+      Size end; ///< not inclusive
+      bool is_sorted; ///< are the Peaks in [start, end) sorted yet?
+      Chunk(Size p_start, Size p_end, bool p_sorted) : start(p_start), end(p_end), is_sorted(p_sorted)
+      {
+      }
+    };
+
+    struct Chunks {
+      public:
+        Chunks(const MSSpectrum& s) : spec_(s) {}
+        void add(bool is_sorted)
+        {
+          chunks_.emplace_back((chunks_.empty() ? 0 : chunks_.back().end), spec_.size(), is_sorted);
+        }
+        std::vector<Chunk>& getChunks()
+        {
+          return chunks_;
+        }
+      private:
+        std::vector<Chunk> chunks_;
+        const MSSpectrum& spec_;
     };
 
     ///@name Base type definitions
@@ -84,6 +114,9 @@ public:
     typedef typename PeakType::CoordinateType CoordinateType;
     /// Spectrum base type
     typedef std::vector<PeakType> ContainerType;
+    /// RangeManager
+    typedef RangeManagerContainer<RangeMZ, RangeIntensity> RangeManagerContainerType;
+    typedef RangeManager<RangeMZ, RangeIntensity> RangeManagerType;
     /// Float data array vector type
     typedef OpenMS::DataArrays::FloatDataArray FloatDataArray ;
     typedef std::vector<FloatDataArray> FloatDataArrays;
@@ -114,6 +147,8 @@ public:
     using ContainerType::rbegin;
     using ContainerType::end;
     using ContainerType::rend;
+    using ContainerType::cbegin;
+    using ContainerType::cend;
     using ContainerType::resize;
     using ContainerType::size;
     using ContainerType::push_back;
@@ -135,6 +170,7 @@ public:
     using typename ContainerType::const_reference;
     using typename ContainerType::pointer;
     using typename ContainerType::difference_type;
+
     //@}
 
 
@@ -144,12 +180,17 @@ public:
     /// Copy constructor
     MSSpectrum(const MSSpectrum& source);
 
+    /// Move constructor
+    MSSpectrum(MSSpectrum&&) = default;
+
     /// Destructor
-    ~MSSpectrum() override
-    {}
+    ~MSSpectrum() = default;
 
     /// Assignment operator
     MSSpectrum& operator=(const MSSpectrum& source);
+
+    /// Move assignment operator
+    MSSpectrum& operator=(MSSpectrum&&) & = default;
 
     /// Assignment operator
     MSSpectrum& operator=(const SpectrumSettings & source);
@@ -175,7 +216,7 @@ public:
     void setRT(double rt);
 
     /**
-      @brief Returns the ion mobility drift time in milliseconds (-1 means it is not set)
+      @brief Returns the ion mobility drift time (MSSpectrum::DRIFTTIME_NOT_SET means it is not set)
 
       @note Drift times may be stored directly as an attribute of the spectrum
       (if they relate to the spectrum as a whole). In case of ion mobility
@@ -185,9 +226,22 @@ public:
     double getDriftTime() const;
 
     /**
-      @brief Returns the ion mobility drift time in milliseconds
+      @brief Sets the ion mobility drift time
     */
     void setDriftTime(double dt);
+
+    /**
+      @brief Returns the ion mobility drift time unit
+    */
+    DriftTimeUnit getDriftTimeUnit() const;
+
+    /// returns the ion mobility drift time unit as string
+    String getDriftTimeUnitAsString() const;
+
+    /**
+      @brief Sets the ion mobility drift time unit
+    */
+    void setDriftTimeUnit(DriftTimeUnit dt);
 
     /**
       @brief Returns the MS level.
@@ -267,8 +321,46 @@ public:
     */
     void sortByPosition();
 
+    /**
+      @brief Sort the spectrum, but uses the fact, that certain chunks are presorted
+      @param chunks a Chunk is an object that contains the start and end of a sublist of peaks in the spectrum, that is or isn't sorted yet (is_sorted member)
+    */
+    void sortByPositionPresorted(const std::vector<Chunk>& chunks);
+
     /// Checks if all peaks are sorted with respect to ascending m/z
     bool isSorted() const;
+
+    /// Checks if container is sorted by a certain user-defined property.
+    /// You can pass any lambda function with <tt>[](Size index_1, Size index_2) --> bool</tt>
+    /// which given two indices into MSSpectrum (either for peaks or data arrays) returns a weak-ordering.
+    /// (you need to capture the MSSpectrum in the lambda and operate on it, based on the indices)
+    template<class Predicate>
+    bool isSorted(const Predicate& lambda) const
+    {
+      auto value_2_index_wrapper = [this, &lambda](const value_type& value1, const value_type& value2) {
+        // translate values into indices (this relies on no copies being made!)
+        const Size index1 = (&value1) - (&this->front());
+        const Size index2 = (&value2) - (&this->front());
+        // just make sure the pointers above are actually pointing to a Peak inside our container
+        assert(index1 < this->size()); 
+        assert(index2 < this->size());
+        return lambda(index1, index2);
+      }; 
+      return std::is_sorted(this->begin(), this->end(), value_2_index_wrapper);
+    }
+
+    /// Sort by a user-defined property
+    /// You can pass any @p lambda function with <tt>[](Size index_1, Size index_2) --> bool</tt>
+    /// which given two indices into MSSpectrum (either for peaks or data arrays) returns a weak-ordering.
+    /// (you need to capture the MSSpectrum in the lambda and operate on it, based on the indices)
+    template<class Predicate> 
+    void sort(const Predicate& lambda)
+    {
+      std::vector<Size> indices(this->size());
+      std::iota(indices.begin(), indices.end(), 0);
+      std::stable_sort(indices.begin(), indices.end(), lambda);
+      select(indices);
+    }
 
     //@}
 
@@ -313,6 +405,19 @@ public:
       @note Search for the left border is done using a binary search followed by a linear scan
     */
     Int findNearest(CoordinateType mz, CoordinateType tolerance_left, CoordinateType tolerance_right) const;
+
+    /**
+      @brief Search for the peak with highest intensity among the peaks near to a specific m/z given two +/- tolerance windows in Th
+
+      @param mz The searched for mass-to-charge ratio searched
+      @param tolerance The non-negative tolerance applied to both sides of mz
+
+      @return Returns the index of the peak or -1 if no peak present in tolerance window or if spectrum is empty
+
+      @note Make sure the spectrum is sorted with respect to m/z! Otherwise the result is undefined.
+      @note Peaks exactly on borders are considered in tolerance window.
+    */
+    Int findHighestInWindow(CoordinateType mz, CoordinateType tolerance_left, CoordinateType tolerance_right) const;
 
     /**
       @brief Binary search for peak range begin
@@ -442,11 +547,30 @@ public:
     */
     ConstIterator PosEnd(ConstIterator begin, CoordinateType mz, ConstIterator end) const;
 
+    /// do the names of internal float metadata arrays contain any hint of ion mobility data, i.e. they are a child of 'MS:1002893 ! ion mobility array'?
+    /// (for spectra which represent an IM-frame)
+    bool containsIMData() const;
+
+    /**
+      @brief Get the Ion mobility data array's @p index and its associated @p unit
+
+      This only works for spectra which represent an IM-frame, i.e. they have a float metadata array which is a child of 'MS:1002893 ! ion mobility array'?
+
+      @throws Exception::MissingInformation if IM data is not present
+    */
+    std::pair<Size, DriftTimeUnit> getIMData() const;
+    
     //@}
 
 
     /**
       @brief Clears all data and meta data
+
+      Will delete (clear) all peaks contained in the spectrum as well as any
+      associated data arrays (FloatDataArrays, IntegerDataArrays,
+      StringDataArrays) by default. If @em clear_meta_data is @em true, then
+      also all meta data (such as RT, drift time, ms level etc) will be
+      deleted.
 
       @param clear_meta_data If @em true, all meta data is cleared in addition to the data.
     */
@@ -461,13 +585,40 @@ public:
     */
     MSSpectrum& select(const std::vector<Size>& indices);
 
-protected:
 
+    /**
+      @brief Determine if spectrum is profile or centroided using up to three layers of information.
+
+      First, the SpectrumSettings are inquired and the type is returned unless it is unknown.
+      Second, all data processing entries are searched for a centroiding step.
+      If that is unsuccessful as well and @p query_data is true, the data is fed into PeakTypeEstimator().
+
+      @param [query_data] If SpectrumSettings and DataProcessing information are not sufficient, should the data be queried? (potentially expensive)
+      @return The spectrum type (centroided, profile or unknown)
+    */
+    SpectrumSettings::SpectrumType getType(const bool query_data) const;
+    using SpectrumSettings::getType; // expose base class function
+
+    /// return the peak with the highest intensity. If the peak is not unique, the first peak in the container is returned.
+    /// The function works correctly, even if the spectrum is unsorted.
+    ConstIterator getBasePeak() const;
+
+    /// return the peak with the highest intensity. If the peak is not unique, the first peak in the container is returned.
+    /// The function works correctly, even if the spectrum is unsorted.
+    Iterator getBasePeak();
+
+    /// compute the total ion count (sum of all peak intensities)
+    PeakType::IntensityType calculateTIC() const;
+
+protected:
     /// Retention time
     double retention_time_;
 
     /// Drift time
     double drift_time_;
+
+    /// Drift time unit
+    DriftTimeUnit drift_time_unit_;
 
     /// MS level
     UInt ms_level_;

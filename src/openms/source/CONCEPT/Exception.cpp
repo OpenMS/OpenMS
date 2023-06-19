@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -34,6 +34,7 @@
 
 #include <OpenMS/CONCEPT/Exception.h>
 
+#include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/CONCEPT/GlobalExceptionHandler.h>
 
 #include <cstdio>
@@ -56,42 +57,41 @@ namespace OpenMS
   {
 
     BaseException::BaseException() noexcept :
+      std::runtime_error("unknown error"),
       file_("?"),
       line_(-1),
       function_("?"),
-      name_("Exception"),
-      what_("unspecified error")
+      name_("Exception")
     {
-      GlobalExceptionHandler::getInstance().set(file_, line_, function_, std::string(name_), std::string(what_));
+      GlobalExceptionHandler::getInstance().set(file_, line_, function_, name_, what());
     }
 
     BaseException::BaseException(const char* file, int line, const char* function, const std::string& name, const std::string& message) noexcept :
+      std::runtime_error(message),
       file_(file),
       line_(line),
       function_(function),
-      name_(name),
-      what_(message)
+      name_(name)
     {
-      GlobalExceptionHandler::getInstance().set(file_, line_, function_, name_, what_);
+      GlobalExceptionHandler::getInstance().set(file_, line_, function_, name_, what());
     }
 
     BaseException::BaseException(const char* file, int line, const char* function) noexcept :
+      std::runtime_error("unknown error"),
       file_(file),
       line_(line),
       function_(function),
-      name_("Exception"),
-      what_("unknown error")
+      name_("Exception")
     {
-      GlobalExceptionHandler::getInstance().set(file_, line_, function_, name_, what_);
+      GlobalExceptionHandler::getInstance().set(file_, line_, function_, name_, what());
     }
 
     BaseException::BaseException(const BaseException& exception) noexcept :
-      std::exception(exception),
+      std::runtime_error(exception),
       file_(exception.file_),
       line_(exception.line_),
       function_(exception.function_),
-      name_(exception.name_),
-      what_(exception.what_)
+      name_(exception.name_)
     {
     }
 
@@ -102,11 +102,6 @@ namespace OpenMS
     const char* BaseException::getName() const noexcept
     {
       return name_.c_str();
-    }
-
-    const char* BaseException::what() const noexcept
-    {
-      return what_.c_str();
     }
 
     const char* BaseException::getFile() const noexcept
@@ -121,7 +116,7 @@ namespace OpenMS
 
     const char* BaseException::getMessage() const noexcept
     {
-      return what_.c_str();
+      return what();
     }
 
     int BaseException::getLine() const noexcept
@@ -129,57 +124,28 @@ namespace OpenMS
       return line_;
     }
 
-    void BaseException::setMessage(const std::string& message) noexcept
-    {
-      what_ = message;
-    }
-
     Precondition::Precondition(const char* file, int line, const char* function, const string& condition) noexcept :
-      BaseException(file, line, function, "Precondition failed", "")
+      BaseException(file, line, function, "Precondition failed", std::string(condition))
     {
-      what_ += std::string(condition);
-      GlobalExceptionHandler::getInstance().setMessage(what_);
+      GlobalExceptionHandler::getInstance().setMessage(what());
     }
 
     Postcondition::Postcondition(const char* file, int line, const char* function, const string& condition) noexcept :
-      BaseException(file, line, function, "Postcondition failed", "")
+      BaseException(file, line, function, "Postcondition failed", std::string(condition))
     {
-      what_ += std::string(condition);
-      GlobalExceptionHandler::getInstance().setMessage(what_);
+      GlobalExceptionHandler::getInstance().setMessage(what());
     }
 
     IndexUnderflow::IndexUnderflow(const char* file, int line, const char* function, SignedSize index, Size size) noexcept :
-      BaseException(file, line, function, "IndexUnderflow", "")
+      BaseException(file, line, function, "IndexUnderflow", "the given index was too small: " + String(index) + " (size = " + String(size) + ")")
     {
-      what_ = "the given index was too small: ";
-      char buf[40];
-
-      snprintf(buf, 40, "%ld", (long)index);
-      what_ += buf;
-      what_ += " (size = ";
-
-      snprintf(buf, 40, "%ld", (long)size);
-      what_ += buf;
-      what_ += ")";
-
-      GlobalExceptionHandler::getInstance().setMessage(what_);
+      GlobalExceptionHandler::getInstance().setMessage(what());
     }
 
     IndexOverflow::IndexOverflow(const char* file, int line, const char* function, SignedSize index, Size size) noexcept :
-      BaseException(file, line, function, "IndexOverflow", "an index was too large")
+      BaseException(file, line, function, "IndexOverflow", "the given index was too large: " + String(index) + " (size = " + String(size) + ")")
     {
-      what_ = "the given index was too large: ";
-      char buf[40];
-
-      snprintf(buf, 40, "%ld", (long)index);
-      what_ += buf;
-      what_ += " (size = ";
-
-      snprintf(buf, 40, "%ld", (long)size);
-      what_ += buf;
-      what_ += ")";
-
-      GlobalExceptionHandler::getInstance().setMessage(what_);
+      GlobalExceptionHandler::getInstance().setMessage(what());
     }
 
     FailedAPICall::FailedAPICall(const char* file, int line, const char* function, const std::string& message) noexcept :
@@ -188,129 +154,90 @@ namespace OpenMS
     }
 
     OutOfMemory::OutOfMemory(const char* file, int line, const char* function, Size size) noexcept :
-      BaseException(file, line, function, "OutOfMemory", "a memory allocation failed")
+      BaseException(file, line, function, "OutOfMemory", "unable to allocate enough memory (size = " + String(size) + " bytes) ")
     {
-      what_ = "unable to allocate enough memory (size = ";
-      char buf[40];
-
-      snprintf(buf, 40, "%ld", (long)size);
-      what_ += buf;
-      what_ += " bytes) ";
-
-      GlobalExceptionHandler::getInstance().setMessage(what_);
+      GlobalExceptionHandler::getInstance().setMessage(static_cast<std::runtime_error>(*this).what());
     }
 
     SizeUnderflow::SizeUnderflow(const char* file, int line, const char* function, Size size) noexcept :
-      BaseException(file, line, function, "SizeUnderflow", "")
+      BaseException(file, line, function, "SizeUnderflow", "the given size was too small: " + String(size))
     {
-      what_ = "the given size was too small: ";
-      char buf[40];
-      snprintf(buf, 40, "%ld", (long)size);
-
-      what_ += buf;
-      GlobalExceptionHandler::getInstance().setMessage(what_);
+      GlobalExceptionHandler::getInstance().setMessage(what());
     }
 
     InvalidSize::InvalidSize(const char* file, int line, const char* function, Size size) noexcept :
-      BaseException(file, line, function, "InvalidSize", "")
+      BaseException(file, line, function, "InvalidSize", "the given size was not expected: " + String(size))
     {
-      what_ = "the given size was not expected: ";
-      char buf[40];
-      snprintf(buf, 40, "%ld", (long)size);
-
-      what_ += buf;
-      GlobalExceptionHandler::getInstance().setMessage(what_);
+      GlobalExceptionHandler::getInstance().setMessage(what());
     }
 
     IllegalPosition::IllegalPosition(const char* file, int line, const char* function, float x, float y, float z) noexcept :
-      BaseException(file, line, function, "IllegalPosition:", "")
+      BaseException(file, line, function, "IllegalPosition:", "(" + String(x) + "," + String(y) + "," + String(z) + ")")
     {
-      char buf1[40];
-      snprintf(buf1, 40, "%f", x);
-      char buf2[40];
-      snprintf(buf2, 40, "%f", y);
-      char buf3[40];
-      snprintf(buf3, 40, "%f", z);
-
-      what_ += "(";
-      what_ += buf1;
-      what_ += ",";
-      what_ += buf2;
-      what_ += ",";
-      what_ += buf3;
-      what_ += ")";
-      GlobalExceptionHandler::getInstance().setMessage(what_);
+      GlobalExceptionHandler::getInstance().setMessage(what());
     }
 
     ParseError::ParseError(const char* file, int line, const char* function, const std::string& expression, const std::string& message) noexcept :
-      BaseException(file, line, function, "Parse Error", "")
+      BaseException(file, line, function, "Parse Error", message + " in: " + expression)
     {
-      what_ += message;
-      what_ += " in: ";
-      what_ += expression;
-      GlobalExceptionHandler::getInstance().setMessage(what_);
+      GlobalExceptionHandler::getInstance().setMessage(what());
     }
 
     FileNotFound::FileNotFound(const char* file, int line, const char* function, const std::string& filename) noexcept :
-      BaseException(file, line, function, "FileNotFound", "")
+      BaseException(file, line, function, "FileNotFound", "the file '" + filename + "' could not be found")
     {
-      what_ = "the file '" + filename + "' could not be found";
-      GlobalExceptionHandler::getInstance().setMessage(what_);
+      GlobalExceptionHandler::getInstance().setMessage(what());
     }
 
     FileNotReadable::FileNotReadable(const char* file, int line, const char* function, const std::string& filename) noexcept :
-      BaseException(file, line, function, "FileNotReadable", "")
+      BaseException(file, line, function, "FileNotReadable", "the file '" + filename + "' is not readable for the current user")
     {
-      what_ = "the file '" + filename + "' is not readable for the current user";
-      GlobalExceptionHandler::getInstance().setMessage(what_);
+      GlobalExceptionHandler::getInstance().setMessage(what());
     }
 
     FileNotWritable::FileNotWritable(const char* file, int line, const char* function, const std::string& filename) noexcept :
-      BaseException(file, line, function, "FileNotWritable", "")
+      BaseException(file, line, function, "FileNotWritable", "the file '" + filename + "' is not writable for the current user")
     {
-      what_ = "the file '" + filename + "' is not writable for the current user";
-      GlobalExceptionHandler::getInstance().setMessage(what_);
+      GlobalExceptionHandler::getInstance().setMessage(what());
     }
 
     FileNameTooLong::FileNameTooLong(const char* file, int line, const char* function, const std::string& filename, int max_length) noexcept :
-      BaseException(file, line, function, "FileNameTooLong", "")
+      BaseException(file, line, function, "FileNameTooLong", 
+        "the file '" + filename + "' is too long (" + String(filename.size()) + " chars) "
+         + "and exceeds the allowed limit of " + String(max_length) + "; "
+         + "use shorter filenames and/or fewer subdirectories.")      
     {
-      stringstream ss;
-      ss << "the file '" << filename << "' is too long (" << filename.size() << " chars) "
-         << "and exceeds the allowed limit of " << max_length << "; "
-         << "use shorter filenames and/or fewer subdirectories.";
-      what_ = ss.str();
-      GlobalExceptionHandler::getInstance().setMessage(what_);
+      GlobalExceptionHandler::getInstance().setMessage(what());
     }
 
     IOException::IOException(const char* file, int line, const char* function, const std::string& filename) noexcept :
-      BaseException(file, line, function, "IOException", "")
+      BaseException(file, line, function, "IOException", "IO error for file '" + filename + "'")
     {
-      what_ = "IO error for file '" + filename + "'";
-      GlobalExceptionHandler::getInstance().setMessage(what_);
+      GlobalExceptionHandler::getInstance().setMessage(what());
+    }
+
+    SqlOperationFailed::SqlOperationFailed(const char* file, int line, const char* function, const std::string& description) noexcept :
+      BaseException(file, line, function, "SqlOperationFailed", "an sql operation failed ('" + description + "')")
+    {
+      GlobalExceptionHandler::getInstance().setMessage(what());
     }
 
     FileEmpty::FileEmpty(const char* file, int line, const char* function, const std::string& filename) noexcept :
-      BaseException(file, line, function, "FileEmpty", "")
+      BaseException(file, line, function, "FileEmpty", "the file '" + filename + "' is empty")
     {
-      what_ = "the file '" + filename + "' is empty";
-      GlobalExceptionHandler::getInstance().setMessage(what_);
+      GlobalExceptionHandler::getInstance().setMessage(what());
     }
 
     ConversionError::ConversionError(const char* file, int line, const char* function, const std::string& error) noexcept :
-      BaseException(file, line, function, "ConversionError", "")
+      BaseException(file, line, function, "ConversionError", error)
     {
-      what_ = error;
-      GlobalExceptionHandler::getInstance().setMessage(what_);
+      GlobalExceptionHandler::getInstance().setMessage(what());
     }
 
     InvalidValue::InvalidValue(const char* file, int line, const char* function, const std::string& message, const std::string& value) noexcept :
-      BaseException(file, line, function, "InvalidValue", "")
+      BaseException(file, line, function, "InvalidValue", "the value '" + value + "' was used but is not valid; " + message)
     {
-      stringstream ss;
-      ss << "the value '" << value << "' was used but is not valid; " << message;
-      what_ = ss.str();
-      GlobalExceptionHandler::getInstance().setMessage(what_);
+      GlobalExceptionHandler::getInstance().setMessage(what());
     }
 
     InvalidParameter::InvalidParameter(const char* file, int line, const char* function, const std::string& message) noexcept :
@@ -319,15 +246,18 @@ namespace OpenMS
     }
 
     UnableToCreateFile::UnableToCreateFile(const char* file, int line, const char* function, const std::string& filename, const std::string& message) noexcept :
-      BaseException(file, line, function, "UnableToCreateFile", "")
+      BaseException(file, line, function, "UnableToCreateFile", "the file '" + filename + "' could not be created. " + message)
     {
-      what_ = "the file '" + filename + "' could not be created";
-      if (!message.empty()) what_ += "; " + message;
-      GlobalExceptionHandler::getInstance().setMessage(what_);
+      GlobalExceptionHandler::getInstance().setMessage(what());
     }
 
     IllegalArgument::IllegalArgument(const char* file, int line, const char* function, const string& error_message) noexcept :
       BaseException(file, line, function, "IllegalArgument", error_message)
+    {
+    }
+
+    InternalToolError::InternalToolError(const char* file, int line, const char* function, const std::string& error_message) noexcept:
+      BaseException(file, line, function, "InternalToolError", error_message)
     {
     }
 
@@ -337,10 +267,9 @@ namespace OpenMS
     }
 
     ElementNotFound::ElementNotFound(const char* file, int line, const char* function, const string& element)   noexcept :
-      BaseException(file, line, function, "ElementNotFound", "")
+      BaseException(file, line, function, "ElementNotFound", "the element '" + element + "' could not be found")
     {
-      what_ = "the element '" + element + "' could not be found";
-      GlobalExceptionHandler::getInstance().setMessage(what_);
+      GlobalExceptionHandler::getInstance().setMessage(what());
     }
 
     UnableToFit::UnableToFit(const char* file, int line, const char* function, const string& name, const string& message) noexcept :
@@ -358,9 +287,17 @@ namespace OpenMS
     {
     }
 
-    DEF_EXCEPTION(DivisionByZero, "a division by zero was requested")
+    InvalidRange::InvalidRange(const char* file, int line, const char* function) noexcept :
+      BaseException(file, line, function, "InvalidRange", "the range of the operation was invalid")
+    {
+    }
 
-    DEF_EXCEPTION(InvalidRange, "the range of the operation was invalid")
+    InvalidRange::InvalidRange(const char* file, int line, const char* function, const std::string& message) noexcept :
+      BaseException(file, line, function, "InvalidRange", message)
+    {
+    }
+
+    DEF_EXCEPTION(DivisionByZero, "a division by zero was requested")
 
     DEF_EXCEPTION(OutOfRange, "the argument was not in range")
 

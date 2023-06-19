@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -35,10 +35,9 @@
 #include <OpenMS/CHEMISTRY/ProteaseDigestion.h>
 #include <OpenMS/CHEMISTRY/ProteaseDB.h>
 #include <OpenMS/SYSTEM/File.h>
-#include <OpenMS/CONCEPT/LogStream.h>
+#include <algorithm>
 #include <boost/regex.hpp>
 
-#include <iostream>
 #include <limits>
 
 using namespace std;
@@ -48,7 +47,7 @@ namespace OpenMS
   void ProteaseDigestion::setEnzyme(const String& enzyme_name)
   {
     enzyme_ = ProteaseDB::getInstance()->getEnzyme(enzyme_name);
-    re_ = boost::regex(enzyme_->getRegEx());
+    re_.reset(new boost::regex(enzyme_->getRegEx()));
   }
 
   bool ProteaseDigestion::isValidProduct(const String& protein,
@@ -86,13 +85,32 @@ namespace OpenMS
     Size sum = count;
     for (Size i = 1; i < count; ++i)
     {
-      if (i > missed_cleavages_) break;
+      if (i > missed_cleavages_)
+      {
+        break;
+      }
       sum += count - i;
     }
     return sum;
   }
 
   Size ProteaseDigestion::digest(const AASequence& protein, vector<AASequence>& output, Size min_length, Size max_length) const
+  {
+    // initialization
+    output.clear();
+    std::vector<std::pair<size_t,size_t>> idcs; // small overhead filling intermediate vector first and iterating again
+    Size wrong_size = digest(protein, idcs, min_length, max_length);
+    output.reserve(idcs.size());
+    std::transform(idcs.begin(), idcs.end(), std::back_inserter(output),
+      [&protein](std::pair<size_t, size_t>& start_end)
+      {
+        return protein.getSubsequence(start_end.first, UInt(start_end.second - start_end.first));
+      }
+    );
+    return wrong_size;
+  }
+
+  Size ProteaseDigestion::digest(const AASequence& protein, vector<std::pair<size_t,size_t>>& output, Size min_length, Size max_length) const
   {
     // initialization
     output.clear();
@@ -114,8 +132,14 @@ namespace OpenMS
     for (Size i = 1; i < count; ++i)
     {
       Size l = pep_positions[i] - begin;
-      if (l >= min_length && l <= max_length) output.push_back(protein.getSubsequence(begin, l));
-      else ++wrong_size;
+      if (l >= min_length && l <= max_length)
+      {
+        output.emplace_back(begin, pep_positions[i]);
+      }
+      else
+      {
+        ++wrong_size;
+      }
       begin = pep_positions[i];
     }
 
@@ -129,8 +153,14 @@ namespace OpenMS
         for (Size j = 1; j < count - mcs; ++j)
         {
           Size l = pep_positions[j + mcs] - begin;
-          if (l >= min_length && l <= max_length) output.push_back(protein.getSubsequence(begin, l));
-          else ++wrong_size;
+          if (l >= min_length && l <= max_length)
+          {
+            output.emplace_back(begin, pep_positions[j + mcs]);
+          }
+          else
+          {
+            ++wrong_size;
+          }
           begin = pep_positions[j];
         }
       }

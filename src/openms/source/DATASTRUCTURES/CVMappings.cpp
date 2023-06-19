@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -47,20 +47,11 @@ using namespace std;
 
 namespace OpenMS
 {
-  CVMappings::CVMappings()
-  {
-  }
+  CVMappings::CVMappings() = default;
 
-  CVMappings::CVMappings(const CVMappings& rhs) :
-    mapping_rules_(rhs.mapping_rules_),
-    cv_references_(rhs.cv_references_),
-    cv_references_vector_(rhs.cv_references_vector_)
-  {
-  }
+  CVMappings::CVMappings(const CVMappings& rhs) = default;
 
-  CVMappings::~CVMappings()
-  {
-  }
+  CVMappings::~CVMappings() = default;
 
   CVMappings& CVMappings::operator=(const CVMappings& rhs)
   {

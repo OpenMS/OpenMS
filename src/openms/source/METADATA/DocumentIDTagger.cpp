@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -33,6 +33,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/METADATA/DocumentIDTagger.h>
+
 #include <OpenMS/SYSTEM/File.h>
 #include <QDir>
 
@@ -46,39 +47,22 @@
 #endif
 
 
-#include <iostream>
 #include <fstream>
+#include <iostream>
+#include <utility>
 
 using namespace std;
 
 namespace OpenMS
 {
   DocumentIDTagger::DocumentIDTagger(String toolname) :
-    toolname_(toolname),
+    toolname_(std::move(toolname)),
     pool_file_()
   {
     pool_file_ = File::getOpenMSDataPath() + ("/IDPool/IDPool.txt");
   }
 
-  DocumentIDTagger::DocumentIDTagger(const DocumentIDTagger & source) :
-    toolname_(source.toolname_),
-    pool_file_(source.pool_file_)
-  {
-  }
-
-  DocumentIDTagger::~DocumentIDTagger()
-  {
-  }
-
-  DocumentIDTagger & DocumentIDTagger::operator=(const DocumentIDTagger & source)
-  {
-    if (source == *this)
-      return *this;
-
-    toolname_ = source.toolname_;
-    pool_file_ = source.pool_file_;
-    return *this;
-  }
+  DocumentIDTagger::~DocumentIDTagger() = default;
 
   bool DocumentIDTagger::operator==(const DocumentIDTagger & rhs) const
   {
@@ -139,7 +123,7 @@ namespace OpenMS
     {
       flock.lock();
     }
-    catch (exception /*e*/)
+    catch (exception& /*e*/)
     {
       return false;
     }
@@ -165,10 +149,14 @@ namespace OpenMS
     {
       getline(in, line);
       if (line.length() == 0)
+      {
         continue;
+      }
       ++free;
       if (free == 1)
+      {
         id = line;                 // pull out first ID
+      }
       if (!idcount_only)
       {
         if (free != 1)       // delete first line
@@ -195,9 +183,13 @@ namespace OpenMS
       time(&rawtime);
       strftime(time_buffer, 80, "%x %X", localtime(&rawtime));
       if (free == 0)
+      {
         outfile << time_buffer << " :: " << toolname_ << " unsuccessfully requested ID (pool is empty!)\n";
+      }
       else
+      {
         outfile << time_buffer << " :: " << toolname_ << " requested ID '" << id << "'\n";
+      }
       outfile.close();
     }
 
@@ -229,10 +221,13 @@ namespace OpenMS
 
     String msg;
     if (free == 0)
+    {
       msg = String("Tool ") + toolname_ + String(" requested identifier from depleted ID pool '") + getPoolFile() + String("'");
+    }
     else
+    {
       msg = String("Tool ") + toolname_ + String(" requested identifier from unaccessible ID pool '") + getPoolFile() + String("'. There should be ") + String(free) + String(" identifiers available!");
-
+    }
     throw Exception::DepletedIDPool(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "IDTagger", msg);
   }
 
@@ -254,3 +249,4 @@ namespace OpenMS
   }
 
 } // namespace OpenMS
+

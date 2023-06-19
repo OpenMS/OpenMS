@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -46,6 +46,7 @@
 #include <QFileInfo>
 
 //~ #include <QIODevice>
+#include <iostream>
 #include <fstream>
 #include <vector>
 #include <map>
@@ -65,9 +66,9 @@ using namespace std;
     <CENTER>
       <table>
         <tr>
-        <td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. predecessor tools </td>
-        <td VALIGN="middle" ROWSPAN=2> \f$ \longrightarrow \f$ QCExporter \f$ \longrightarrow \f$</td>
-        <td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. successor tools </td>
+        <th ALIGN = "center"> pot. predecessor tools </td>
+        <td VALIGN="middle" ROWSPAN=2> &rarr; QCExporter &rarr;</td>
+        <th ALIGN = "center"> pot. successor tools </td>
         </tr>
         <tr>
         <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> ? </td>
@@ -128,13 +129,14 @@ protected:
     ControlledVocabulary cv;
     cv.loadFromOBO("PSI-MS", File::find("/CV/psi-ms.obo"));
     cv.loadFromOBO("QC", File::find("/CV/qc-cv.obo"));
+    cv.loadFromOBO("QC", File::find("/CV/qc-cv-legacy.obo"));
     //-------------------------------------------------------------
     // reading input
     //------------------------------------------------------------
     QcMLFile qcmlfile;
     qcmlfile.load(in);
 
-    if (mappi != "")
+    if (!mappi.empty())
     {
       CsvFile map_file(mappi);
 
@@ -181,7 +183,7 @@ protected:
         //~ }
       }
 
-      if (names.size() < 1)
+      if (names.empty())
       {
         std::vector<String> ns;
         qcmlfile.getRunIDs(ns); //n.b. names are ids

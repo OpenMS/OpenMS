@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -63,9 +63,11 @@ Int main()
   vector<double> data; // must be filled
 
   srand(333);
-  for (int i = 0; i < 12; ++i)
+  Size nr = 12;
+  data.resize(nr);
+  for (Size i = 0; i < nr; ++i)
   {
-    data.push_back((double)rand() / RAND_MAX);
+    data[i] = (double)rand() / RAND_MAX;
   }
 
   LowLevelComparator llc;

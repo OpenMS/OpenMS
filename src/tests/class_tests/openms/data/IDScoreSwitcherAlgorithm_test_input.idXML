@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="https://www.openms.de/xml-stylesheet/IdXML.xsl" ?>
+<IdXML version="1.5" xsi:noNamespaceSchemaLocation="https://www.openms.de/xml-schema/IdXML_1_5.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSche
+ma-instance">
+	<SearchParameters id="SP_0" db="" db_version="" taxonomy="" mass_type="monoisotopic" charges="" enzyme="unknown_enzyme" missed_cleavages="1"
+					  ges="0" precursor_peak_tolerance="0" precursor_peak_tolerance_ppm="false" peak_mass_tolerance="0" peak_mass_tolerance_ppm="false" >
+		<FixedModification name="Carbamidomethyl (C)" />
+		<VariableModification name="Oxidation (M)" />
+	</SearchParameters>
+	<IdentificationRun date="2020-05-12T16:36:01" search_engine="OpenMS/ConsensusID_best" search_engine_version="2.6.0-pre-develop-2020-0
+5-12" search_parameters_ref="SP_0" >
+		<ProteinIdentification score_type="" higher_score_better="true" significance_threshold="0" >
+			<ProteinHit id="PH_0" accession="P02769|ALBU_BOVIN" score="0.0" sequence="" >
+				<UserParam type="string" name="target_decoy" value="target"/>
+			</ProteinHit>
+			<UserParam type="stringList" name="spectra_data" value="[BSA1_F1.mzML]"/>
+			<UserParam type="string" name="SE:Comet" value=""/>
+			<UserParam type="string" name="Comet:db" value="18Protein_SoCe_Tr_detergents_trace_target_decoy.fasta"/>
+			<UserParam type="string" name="Comet:db_version" value=""/>
+			<UserParam type="string" name="Comet:taxonomy" value=""/>
+			<UserParam type="string" name="Comet:charges" value=""/>
+			<UserParam type="string" name="Comet:fixed_modifications" value="Carbamidomethyl (C)"/>
+			<UserParam type="string" name="Comet:variable_modifications" value="Oxidation (M)"/>
+			<UserParam type="int" name="Comet:missed_cleavages" value="2"/>
+			<UserParam type="float" name="Comet:fragment_mass_tolerance" value="0.015"/>
+			<UserParam type="string" name="Comet:fragment_mass_tolerance_unit" value="Da"/>
+			<UserParam type="float" name="Comet:precursor_mass_tolerance" value="5.0"/>
+			<UserParam type="string" name="Comet:precursor_mass_tolerance_unit" value="ppm"/>
+			<UserParam type="string" name="Comet:digestion_enzyme" value="Trypsin"/>
+			<UserParam type="string" name="SE:MS-GF+" value="Release (v2020.03.14)"/>
+			<UserParam type="string" name="MS-GF+:db" value="/local/scratch/nextflow-test-data-openms/work/61/6e4a0eff62aa6ca3b536c41ec9a0f1/18Protein_SoCe_Tr_detergents_trace_target_decoy.fasta"/>
+			<UserParam type="string" name="MS-GF+:db_version" value=""/>
+			<UserParam type="string" name="MS-GF+:taxonomy" value=""/>
+			<UserParam type="string" name="MS-GF+:charges" value=""/>
+			<UserParam type="string" name="MS-GF+:fixed_modifications" value="Carbamidomethyl (C)"/>
+			<UserParam type="string" name="MS-GF+:variable_modifications" value="Oxidation (M)"/>
+			<UserParam type="int" name="MS-GF+:missed_cleavages" value="1000"/>
+			<UserParam type="float" name="MS-GF+:fragment_mass_tolerance" value="0.0"/>
+			<UserParam type="string" name="MS-GF+:fragment_mass_tolerance_unit" value="Da"/>
+			<UserParam type="float" name="MS-GF+:precursor_mass_tolerance" value="5.0"/>
+			<UserParam type="string" name="MS-GF+:precursor_mass_tolerance_unit" value="ppm"/>
+			<UserParam type="string" name="MS-GF+:digestion_enzyme" value="Trypsin"/>
+		</ProteinIdentification>
+		<PeptideIdentification score_type="q-value" higher_score_better="false" significance_threshold="0.0" MZ="395.239898031899941" RT="1933.400000000000091" spectrum_reference="spectrum=2811" >
+			<PeptideHit score="0.0" sequence="LVTDLTK" charge="2" aa_before="K" aa_after="V" start="256" end="262" protein_refs="PH_0" >
+				<UserParam type="string" name="target_decoy" value="target"/>
+				<UserParam type="float" name="consensus_support" value="1.0"/>
+				<UserParam type="float" name="Posterior Error Probability_score" value="1.544466758592018e-16"/>
+			</PeptideHit>
+		</PeptideIdentification>
+	</IdentificationRun>
+</IdXML>

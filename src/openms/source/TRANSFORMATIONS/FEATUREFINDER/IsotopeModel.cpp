@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -47,24 +47,24 @@ namespace OpenMS
   {
     setName(getProductName());
 
-    defaults_.setValue("averagines:C", 0.04443989f, "Number of C atoms per Dalton of mass.", ListUtils::create<String>("advanced"));
-    defaults_.setValue("averagines:H", 0.06981572f, "Number of H atoms per Dalton of mass.", ListUtils::create<String>("advanced"));
-    defaults_.setValue("averagines:N", 0.01221773f, "Number of N atoms per Dalton of mass.", ListUtils::create<String>("advanced"));
-    defaults_.setValue("averagines:O", 0.01329399f, "Number of O atoms per Dalton of mass.", ListUtils::create<String>("advanced"));
-    defaults_.setValue("averagines:S", 0.00037525f, "Number of S atoms per Dalton of mass.", ListUtils::create<String>("advanced"));
-    defaults_.setValue("isotope:trim_right_cutoff", 0.001, "Cutoff in averagine distribution, trailing isotopes below this relative intensity are not considered.", ListUtils::create<String>("advanced"));
-    defaults_.setValue("isotope:maximum", 100, "Maximum isotopic rank to be considered.", ListUtils::create<String>("advanced"));
-    defaults_.setValue("isotope:distance", 1.000495, "Distance between consecutive isotopic peaks.", ListUtils::create<String>("advanced"));
+    defaults_.setValue("averagines:C", 0.04443989f, "Number of C atoms per Dalton of mass.", {"advanced"});
+    defaults_.setValue("averagines:H", 0.06981572f, "Number of H atoms per Dalton of mass.", {"advanced"});
+    defaults_.setValue("averagines:N", 0.01221773f, "Number of N atoms per Dalton of mass.", {"advanced"});
+    defaults_.setValue("averagines:O", 0.01329399f, "Number of O atoms per Dalton of mass.", {"advanced"});
+    defaults_.setValue("averagines:S", 0.00037525f, "Number of S atoms per Dalton of mass.", {"advanced"});
+    defaults_.setValue("isotope:trim_right_cutoff", 0.001, "Cutoff in averagine distribution, trailing isotopes below this relative intensity are not considered.", {"advanced"});
+    defaults_.setValue("isotope:maximum", 100, "Maximum isotopic rank to be considered.", {"advanced"});
+    defaults_.setValue("isotope:distance", 1.000495, "Distance between consecutive isotopic peaks.", {"advanced"});
 
 
-    defaults_.setValue("isotope:mode:mode", "Gaussian", "Peak Shape used around each isotope peak.", ListUtils::create<String>("advanced"));
-    defaults_.setValidStrings("isotope:mode:mode", ListUtils::create<String>("Gaussian,Lorentzian"));
-    defaults_.setValue("isotope:mode:LorentzFWHM", 0.3, "Full width of the Lorentzian (Cauchy) function applied to the averagine isotopic pattern to simulate the inaccuracy of the mass spectrometer.", ListUtils::create<String>("advanced"));
-    defaults_.setValue("isotope:mode:GaussianSD", 0.1, "Standard deviation of Gaussian applied to the averagine isotopic pattern to simulate the inaccuracy of the mass spectrometer.", ListUtils::create<String>("advanced"));
+    defaults_.setValue("isotope:mode:mode", "Gaussian", "Peak Shape used around each isotope peak.", {"advanced"});
+    defaults_.setValidStrings("isotope:mode:mode", {"Gaussian","Lorentzian"});
+    defaults_.setValue("isotope:mode:LorentzFWHM", 0.3, "Full width of the Lorentzian (Cauchy) function applied to the averagine isotopic pattern to simulate the inaccuracy of the mass spectrometer.", {"advanced"});
+    defaults_.setValue("isotope:mode:GaussianSD", 0.1, "Standard deviation of Gaussian applied to the averagine isotopic pattern to simulate the inaccuracy of the mass spectrometer.", {"advanced"});
 
 
-    defaults_.setValue("charge", 1, "Charge state of the model.", ListUtils::create<String>("advanced"));
-    defaults_.setValue("statistics:mean", 0.0, "Centroid m/z (as opposed to monoisotopic m/z).", ListUtils::create<String>("advanced"));
+    defaults_.setValue("charge", 1, "Charge state of the model.", {"advanced"});
+    defaults_.setValue("statistics:mean", 0.0, "Centroid m/z (as opposed to monoisotopic m/z).", {"advanced"});
 
     defaultsToParam_();
   }
@@ -76,15 +76,14 @@ namespace OpenMS
     updateMembers_();
   }
 
-  IsotopeModel::~IsotopeModel()
-  {
-  }
+  IsotopeModel::~IsotopeModel() = default;
 
   IsotopeModel & IsotopeModel::operator=(const IsotopeModel & source)
   {
     if (&source == this)
+    {
       return *this;
-
+    }
     InterpolationModel::operator=(source);
     setParameters(source.getParameters());
     updateMembers_();
@@ -104,16 +103,25 @@ namespace OpenMS
 
     String form;
     if (C_num)
+    {
       form.append("C").append(String(C_num));
+    }
     if (H_num)
+    {
       form.append("H").append(String(H_num));
+    }
     if (N_num)
+    {
       form.append("N").append(String(N_num));
+    }
     if (O_num)
+    {
       form.append("O").append(String(O_num));
+    }
     if (S_num)
+    {
       form.append("S").append(String(S_num));
-
+    }
     return EmpiricalFormula(form);
   }
 
@@ -136,11 +144,11 @@ namespace OpenMS
     CoordinateType isotopes_mean = 0;
     {
       Int cnt = 0;
-      for (IsotopeDistribution::iterator iter = isotope_distribution_.begin();
-           iter != isotope_distribution_.end(); ++iter, ++cnt)
+      for (Peak1D& peak : isotope_distribution_)
       {
-        isotopes_exact.push_back(iter->getIntensity());
-        isotopes_mean += iter->getIntensity() * cnt;
+        isotopes_exact.push_back(peak.getIntensity());
+        isotopes_mean += peak.getIntensity() * cnt;
+        ++cnt;
       }
       isotopes_mean *= isotope_distance_ / charge_;
     }
@@ -212,7 +220,9 @@ namespace OpenMS
     for (SignedSize i = left.size() - 1; i >= 0; --i)
     {
       if (left[i] == 0)
+      {
         continue;
+      }
       for (SignedSize j = std::min(r_max - i, SignedSize(right.size())) - 1; j >= 0; --j)
       {
         result[i + j] += left[i] * right[j];
@@ -221,8 +231,6 @@ namespace OpenMS
 
     monoisotopic_mz_ = mean_ - isotopes_mean;
     interpolation_.setMapping(interpolation_step_, peak_width / interpolation_step_, monoisotopic_mz_);
-
-    //std::cerr << "mono now: " << monoisotopic_mz_ << " mono easy: " << formula.getMonoWeight()/formula.getCharge() << "\n";
 
     // scale data so that integral over distribution equals one
     // multiply sum by interpolation_step_ -> rectangular approximation of integral
@@ -249,7 +257,7 @@ namespace OpenMS
     return getInterpolation().getOffset();
   }
 
-  UInt IsotopeModel::getCharge()
+  UInt IsotopeModel::getCharge() const
   {
     return charge_;
   }

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -34,20 +34,18 @@
 
 #include <OpenMS/METADATA/MSQuantifications.h>
 
+#include <OpenMS/CONCEPT/UniqueIdGenerator.h>
+
+#include <utility>
+
 using namespace std;
 
 namespace OpenMS
 {
   const std::string MSQuantifications::NamesOfQuantTypes[] = {"MS1LABEL", "MS2LABEL", "LABELFREE"};
 
-  /// Constructor
-  MSQuantifications::MSQuantifications() :
-    ExperimentalSettings()
-  {
-  }  
-  
   /// Detailed Constructor
-  MSQuantifications::MSQuantifications(FeatureMap fm, ExperimentalSettings& es, std::vector<DataProcessing>& dps, std::vector<std::vector<std::pair<String, double> > > label) :
+  MSQuantifications::MSQuantifications(const FeatureMap& fm, ExperimentalSettings& es, std::vector<DataProcessing>& dps, std::vector<std::vector<std::pair<String, double> > > label) :
     ExperimentalSettings()
   {
     MSQuantifications::QUANT_TYPES quant_type = MSQuantifications::LABELFREE;
@@ -55,34 +53,13 @@ namespace OpenMS
 
     //~ AssayList,InputFiles,SoftwareList
     //~ aus exp.
-    this->registerExperiment(es,dps,label);
+    this->registerExperiment(es,dps,std::move(label));
     
     this->setDataProcessingList(fm.getDataProcessing()); //TODO add dp from experiment (i.e. mzml) ?
     feature_maps_  = std::vector<FeatureMap > (1,fm);
   }
 
-  /// Copy constructor
-  MSQuantifications::MSQuantifications(const MSQuantifications & source) :
-    ExperimentalSettings(source)
-  {
-  }
-
-  MSQuantifications::~MSQuantifications()
-  {
-  }
-
-  /// Assignment operator
-  MSQuantifications & MSQuantifications::operator=(const MSQuantifications & source)
-  {
-    if (&source == this)
-      return *this;
-
-    ExperimentalSettings::operator=(source);
-
-    //~ reassign members
-
-    return *this;
-  }
+  MSQuantifications::~MSQuantifications() = default;
 
   /// Equality operator
   bool MSQuantifications::operator==(const MSQuantifications & rhs) const
@@ -96,7 +73,7 @@ namespace OpenMS
     return !(operator==(rhs));
   }
 
-  void MSQuantifications::setDataProcessingList(std::vector<DataProcessing> & dpl)
+  void MSQuantifications::setDataProcessingList(const std::vector<DataProcessing> & dpl)
   {
     data_processings_ = dpl;
   }
@@ -105,7 +82,7 @@ namespace OpenMS
   {
     std::vector<DataProcessing> list = data_processings_;
 
-    //This is one way street for dataprocessing - it probably wont get mapped back after writeout and readin
+    //This is one way street for dataprocessing - it probably wont get mapped back after write out and reading
     for (std::vector<FeatureMap >::const_iterator fit = feature_maps_.begin(); fit != feature_maps_.end(); ++fit)
     {
       list.insert(list.end(), fit->getDataProcessing().begin(), fit->getDataProcessing().end());
@@ -146,7 +123,7 @@ namespace OpenMS
 
   void MSQuantifications::setConsensusMaps(const std::vector<ConsensusMap> & consensus_maps)
   {
-      consensus_maps_ = consensus_maps;
+    consensus_maps_ = consensus_maps;
   }
 
   std::vector<ConsensusMap> & MSQuantifications::getConsensusMaps()
@@ -222,3 +199,4 @@ namespace OpenMS
   }
 
 } //namespace OpenMS
+

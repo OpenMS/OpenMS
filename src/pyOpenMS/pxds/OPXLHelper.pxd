@@ -2,6 +2,7 @@ from Types cimport *
 from libcpp.vector cimport vector as libcpp_vector
 from libcpp.pair cimport pair as libcpp_pair
 from libcpp cimport bool
+from libcpp.string cimport string as libcpp_utf8_string
 from XLPrecursor cimport *
 from AASeqWithMass cimport *
 from DoubleList cimport *
@@ -18,14 +19,15 @@ from MSSpectrum cimport *
 from MSExperiment cimport *
 from EnzymaticDigestion cimport *
 from DataArrays cimport *
+from ModifiedPeptideGenerator cimport *
 
 
 cdef extern from "<OpenMS/ANALYSIS/XLMS/OPXLHelper.h>" namespace "OpenMS":
 
     cdef cppclass OPXLHelper:
 
-        OPXLHelper(OPXLHelper) nogil except +
-        OPXLHelper() nogil except +
+        OPXLHelper() nogil except + # compiler
+        OPXLHelper(OPXLHelper &) nogil except + # compiler
 
         libcpp_vector[ XLPrecursor ] enumerateCrossLinksAndMasses(libcpp_vector[ AASeqWithMass ]  peptides,
                                                                   double cross_link_mass_light,
@@ -37,15 +39,13 @@ cdef extern from "<OpenMS/ANALYSIS/XLMS/OPXLHelper.h>" namespace "OpenMS":
                                                                   double precursor_mass_tolerance,
                                                                   bool precursor_mass_tolerance_unit_ppm)  nogil except +
 
-        libcpp_vector[ ResidueModification ] getModificationsFromStringList(StringList modNames)  nogil except +
-
         libcpp_vector[ AASeqWithMass ] digestDatabase(libcpp_vector[ FASTAEntry ] fasta_db,
                                                       EnzymaticDigestion digestor,
                                                       Size min_peptide_length,
                                                       StringList cross_link_residue1,
                                                       StringList cross_link_residue2,
-                                                      libcpp_vector[ ResidueModification ] fixed_modifications,
-                                                      libcpp_vector[ ResidueModification ] variable_modifications,
+                                                      ModifiedPeptideGenerator_MapToResidueType& fixed_modifications,
+                                                      ModifiedPeptideGenerator_MapToResidueType& variable_modifications,
                                                       Size max_variable_mods_per_peptide) nogil except +
 
         libcpp_vector[ ProteinProteinCrossLink ] buildCandidates(libcpp_vector[ XLPrecursor ]& candidates,
@@ -74,8 +74,19 @@ cdef extern from "<OpenMS/ANALYSIS/XLMS/OPXLHelper.h>" namespace "OpenMS":
                              Size scan_index,
                              Size scan_index_heavy) nogil except +
 
-
         void addProteinPositionMetaValues(libcpp_vector[ PeptideIdentification ]& peptide_ids) nogil except +
+
+        void addXLTargetDecoyMV(libcpp_vector[ PeptideIdentification ]& peptide_ids) nogil except +
+
+        void addBetaAccessions(libcpp_vector[ PeptideIdentification ]& peptide_ids) nogil except +
+
+        void removeBetaPeptideHits(libcpp_vector[ PeptideIdentification ]& peptide_ids) nogil except +
+
+        void addPercolatorFeatureList(ProteinIdentification& prot_id) nogil except +
+
+        void computeDeltaScores(libcpp_vector[ PeptideIdentification ]& peptide_ids) nogil except +
+
+        libcpp_vector[ PeptideIdentification ] combineTopRanksFromPairs(libcpp_vector[ PeptideIdentification ]& peptide_ids, Size number_top_hits) nogil except +
 
         libcpp_vector[ ProteinProteinCrossLink ] collectPrecursorCandidates(IntList precursor_correction_steps,
                                                                             double precursor_mass,
@@ -86,7 +97,9 @@ cdef extern from "<OpenMS/ANALYSIS/XLMS/OPXLHelper.h>" namespace "OpenMS":
                                                                             DoubleList cross_link_mass_mono_link,
                                                                             StringList cross_link_residue1,
                                                                             StringList cross_link_residue2,
-                                                                            String cross_link_name) nogil except +
+                                                                            String cross_link_name,
+                                                                            bool use_sequence_tags,
+                                                                            const libcpp_vector[ libcpp_utf8_string ]& tags) nogil except +
 
         double computePrecursorError(CrossLinkSpectrumMatch csm, double precursor_mz, int precursor_charge) nogil except +
 
@@ -95,4 +108,4 @@ cdef extern from "<OpenMS/ANALYSIS/XLMS/OPXLHelper.h>" namespace "OpenMS":
                           libcpp_vector[ libcpp_pair[ size_t, size_t ] ]& matched_spec_linear_alpha,
                           libcpp_vector[ libcpp_pair[ size_t, size_t ] ]& matched_spec_linear_beta,
                           libcpp_vector[ libcpp_pair[ size_t, size_t ] ]& matched_spec_xlinks_alpha,
-                          libcpp_vector[ libcpp_pair[ size_t, size_t ] ]& matched_spec_xlinks_beta)  nogil except +
+                          libcpp_vector[ libcpp_pair[ size_t, size_t ] ]& matched_spec_xlinks_beta) nogil except +

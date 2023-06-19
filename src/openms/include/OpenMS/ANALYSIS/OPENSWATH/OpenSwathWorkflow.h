@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -111,6 +111,8 @@ protected:
     OpenSwathWorkflowBase() :
       use_ms1_traces_(false),
       use_ms1_ion_mobility_(false),
+      prm_(false),
+      pasef_(false),
       threads_outer_loop_(-1)
     {
     }
@@ -127,9 +129,11 @@ protected:
      *
      *
      **/
-    OpenSwathWorkflowBase(bool use_ms1_traces, bool use_ms1_ion_mobility, int threads_outer_loop) :
+    OpenSwathWorkflowBase(bool use_ms1_traces, bool use_ms1_ion_mobility, bool prm, bool pasef, int threads_outer_loop) :
       use_ms1_traces_(use_ms1_traces),
       use_ms1_ion_mobility_(use_ms1_ion_mobility),
+      prm_(prm),
+      pasef_(pasef),
       threads_outer_loop_(threads_outer_loop)
     {
     }
@@ -147,13 +151,12 @@ protected:
      * @param ms1only If true, will only score on MS1 level and ignore MS2 level
      *
     */
-    void MS1Extraction_(const std::vector< OpenSwath::SwathMap > & swath_maps,
+    void MS1Extraction_(const OpenSwath::SpectrumAccessPtr& ms1_map,
+                        const std::vector< OpenSwath::SwathMap > & swath_maps,
                         std::vector< MSChromatogram >& ms1_chromatograms,
-                        Interfaces::IMSDataConsumer * chromConsumer,
                         const ChromExtractParams & cp,
                         const OpenSwath::LightTargetedExperiment& transition_exp,
                         const TransformationDescription& trafo_inverse,
-                        bool load_into_memory,
                         bool ms1only = false,
                         int ms1_isotopes = 0);
 
@@ -177,7 +180,7 @@ protected:
     void prepareExtractionCoordinates_(std::vector< OpenSwath::ChromatogramPtr > & chrom_list,
                                        std::vector< ChromatogramExtractorAlgorithm::ExtractionCoordinates > & coordinates,
                                        const OpenSwath::LightTargetedExperiment & transition_exp_used,
-                                       const TransformationDescription trafo_inverse,
+                                       const TransformationDescription& trafo_inverse,
                                        const ChromExtractParams & cp,
                                        const bool ms1 = false,
                                        const int ms1_isotopes = -1) const;
@@ -190,13 +193,33 @@ protected:
      * @note This pointer may be NULL if use_ms1_traces_ is set to false
      *
      */
-    OpenSwath::SpectrumAccessPtr ms1_map_;
+    OpenSwath::SpectrumAccessPtr ms1_map_ = nullptr;
 
     /// Whether to use the MS1 traces
     bool use_ms1_traces_;
 
     /// Whether to use ion mobility extraction on MS1 traces
     bool use_ms1_ion_mobility_;
+
+    /** @brief Whether data is acquired in targeted DIA (e.g. PRM mode) with potentially overlapping windows
+     *
+     * If set to true, a precursor will only be extracted from a single window
+     * that matches in m/z and whose m/z center is *closest* to the library m/z
+     * of the precursor. This is required if windows overlap in m/z as is the
+     * case for SRM / PRM data where often multiple windows with similar (or
+     * overlaping) m/z are used to target different precursors at different RT.
+    */
+    bool prm_;
+
+    /** @brief Whether data is diaPASEF data
+     *
+     * If set to true, a precursor will only be extracted from a single window
+     * that matches both in m/z and whose ion mobility (drift time) center is
+     * *closest* to the library ion mobility of the precursor. This is required
+     * if windows overlap in m/z or in ion mobility, as is the case for
+     * diaPASEF data.
+    */
+    bool pasef_;
 
     /** @brief How many threads should be used for the outer loop
      *
@@ -238,7 +261,7 @@ protected:
     }
 
     explicit OpenSwathCalibrationWorkflow(bool use_ms1_traces) :
-      OpenSwathWorkflowBase(use_ms1_traces, false, -1)
+      OpenSwathWorkflowBase(use_ms1_traces, false, false, false, -1)
     {
     }
 
@@ -258,25 +281,28 @@ protected:
      * @param feature_finder_param Parameter set for the feature finding in chromatographic dimension
      * @param cp_irt Parameter set for the chromatogram extraction
      * @param irt_detection_param Parameter set for the detection of the iRTs (outlier detection, peptides per bin etc)
-     * @param mz_correction_function If correction in m/z is desired, which function should be used
+     * @param calibration_param Parameter for the m/z and im calibration (see SwathMapMassCorrection)
      * @param debug_level Debug level (writes out the RT normalization chromatograms if larger than 1)
      * @param irt_mzml_out Output Chromatogram mzML containing the iRT peptides (if not empty,
      *        iRT chromatograms will be stored in this file)
      * @param sonar Whether the data is SONAR data
+     * @param pasef whether the data is PASEF data (should match transitions by their IM)
      * @param load_into_memory Whether to cache the current SWATH map in memory
      *
     */
     TransformationDescription performRTNormalization(const OpenSwath::LightTargetedExperiment & irt_transitions,
       std::vector< OpenSwath::SwathMap > & swath_maps,
+      TransformationDescription& im_trafo,
       double min_rsq,
       double min_coverage,
       const Param & feature_finder_param,
       const ChromExtractParams & cp_irt,
-      const Param & irt_detection_param,
-      const String & mz_correction_function,
+      const Param& irt_detection_param,
+      const Param& calibration_param,
       const String& irt_mzml_out,
       Size debug_level,
       bool sonar = false,
+      bool pasef = false,
       bool load_into_memory = false);
 
   public:
@@ -305,24 +331,22 @@ protected:
      * @param min_coverage Minimal coverage of the chromatographic space that needs to be achieved
      * @param default_ffparam Parameter set for the feature finding in chromatographic dimension
      * @param irt_detection_param Parameter set for the detection of the iRTs (outlier detection, peptides per bin etc)
-     * @param swath_maps The raw data for the m/z correction
-     * @param mz_correction_function If correction in m/z is desired, which function should be used
-     * @param mz_extraction_window Extraction window for calibration in Da or ppm (e.g. 50ppm means extraction +/- 25ppm)
-     * @param ppm Whether the extraction window is given in ppm or Da
+     * @param calibration_param Parameter for the m/z and im calibration (see SwathMapMassCorrection)
+     * @param pasef whether this data is pasef data with potentially overlapping m/z windows (differing by IM)
      *
      * @note This function is based on the algorithm inside the OpenSwathRTNormalizer tool
      *
     */
     TransformationDescription doDataNormalization_(const OpenSwath::LightTargetedExperiment& transition_exp_,
       const std::vector< OpenMS::MSChromatogram >& chromatograms,
+      TransformationDescription& im_trafo,
+      std::vector< OpenSwath::SwathMap > & swath_maps,
       double min_rsq,
       double min_coverage,
       const Param& default_ffparam,
       const Param& irt_detection_param,
-      std::vector< OpenSwath::SwathMap > & swath_maps,
-      const String & mz_correction_function,
-      double mz_extraction_window,
-      bool ppm);
+      const Param& calibration_param,
+      const bool pasef);
 
     /** @brief Simple method to extract chromatograms (for the RT-normalization peptides)
      *
@@ -333,6 +357,7 @@ protected:
      * @param cp Parameter set for the chromatogram extraction
      * @param load_into_memory Whether to cache the current SWATH map in memory
      * @param sonar Whether the data is SONAR data
+     * @param pasef whether the data is PASEF data with possible overlapping m/z windows (with different ion mobility)
      *
     */
     void simpleExtractChromatograms_(const std::vector< OpenSwath::SwathMap > & swath_maps,
@@ -341,6 +366,7 @@ protected:
                                      const TransformationDescription& trafo,
                                      const ChromExtractParams & cp,
                                      bool sonar,
+                                     bool pasef,
                                      bool load_into_memory);
 
     /** @brief Add two chromatograms
@@ -354,12 +380,16 @@ protected:
   };
 
   /**
-   * @brief Execute all steps in an OpenSwath analysis
+   * @brief Execute all steps in an \ref UTILS_OpenSwathWorkflow "OpenSwath" analysis
    *
    * The workflow will perform a complete OpenSWATH analysis. Optionally, 
    * a calibration of m/z and retention time (mapping peptides to normalized 
    * space and correcting m/z error) can be performed beforehand using the 
-   * OpenSwathCalibrationWorkflow class.
+   * OpenSwathCalibrationWorkflow class. 
+   *
+   * For diaPASEF workflows where ion mobility windows are overlapping, precursors may be found in multiple SWATHs.
+   * In this case, precursors are only extracted from the SWATH in which they are most centered across ion mobility
+   * (Provided -pasef flag is set).
    *
    * The overall execution flow in this class is as follows (see performExtraction() function)
    *
@@ -388,8 +418,10 @@ protected:
     /** @brief Constructor
      *
      *  @param use_ms1_traces Whether to use MS1 data
+     *  @param use_ms1_ion_mobility Whether to use ion mobility extraction on MS1 traces
      *  @param threads_outer_loop How many threads should be used for the outer
      *  loop (-1 will use all threads in the outer loop)
+     *  @param prm Whether data is acquired in targeted DIA (e.g. PRM mode) with potentially overlapping windows
      *
      *  @note The total number of threads should be divisible by this number
      *  (e.g. use 8 in outer loop if you have 24 threads in total and 3 will be
@@ -397,8 +429,8 @@ protected:
      *
      *
      **/
-    OpenSwathWorkflow(bool use_ms1_traces, bool use_ms1_ion_mobility, int threads_outer_loop) :
-      OpenSwathWorkflowBase(use_ms1_traces, use_ms1_ion_mobility, threads_outer_loop)
+    OpenSwathWorkflow(bool use_ms1_traces, bool use_ms1_ion_mobility, bool prm, bool pasef, int threads_outer_loop) :
+    OpenSwathWorkflowBase(use_ms1_traces, use_ms1_ion_mobility, prm, pasef, threads_outer_loop)
     {
     }
 
@@ -428,7 +460,7 @@ protected:
      *
     */
     void performExtraction(const std::vector< OpenSwath::SwathMap > & swath_maps,
-                           const TransformationDescription trafo,
+                           const TransformationDescription& trafo,
                            const ChromExtractParams & chromatogram_extraction_params,
                            const ChromExtractParams & ms1_chromatogram_extraction_params,
                            const Param & feature_finder_param,
@@ -460,6 +492,7 @@ protected:
      * @note This should be wrapped in an OpenMP critical block
     */
     void writeOutFeaturesAndChroms_(std::vector< OpenMS::MSChromatogram > & chromatograms,
+                                    std::vector< MSChromatogram >& ms1_chromatograms,
                                     const FeatureMap & featureFile,
                                     FeatureMap& out_featureFile,
                                     bool store_features,
@@ -505,9 +538,9 @@ protected:
         const std::vector< OpenMS::MSChromatogram > & ms2_chromatograms,
         const std::vector< OpenMS::MSChromatogram > & ms1_chromatograms,
         const std::vector< OpenSwath::SwathMap >& swath_maps,
-        OpenSwath::LightTargetedExperiment& transition_exp,
+        const OpenSwath::LightTargetedExperiment& transition_exp,
         const Param& feature_finder_param,
-        TransformationDescription trafo,
+        const TransformationDescription& trafo,
         const double rt_extraction_window,
         FeatureMap& output,
         OpenSwathTSVWriter & tsv_writer,
@@ -546,7 +579,6 @@ protected:
     void copyBatchTransitions_(const std::vector<OpenSwath::LightCompound>& used_compounds,
       const std::vector<OpenSwath::LightTransition>& all_transitions,
       std::vector<OpenSwath::LightTransition>& output);
-
   };
 
   /**
@@ -581,7 +613,7 @@ protected:
   public:
 
     explicit OpenSwathWorkflowSonar(bool use_ms1_traces) :
-      OpenSwathWorkflow(use_ms1_traces, false, -1)
+      OpenSwathWorkflow(use_ms1_traces, false, false, false, -1)
     {
     }
 
@@ -607,7 +639,7 @@ protected:
      *
     */
     void performExtractionSonar(const std::vector< OpenSwath::SwathMap > & swath_maps,
-                                const TransformationDescription trafo,
+                                const TransformationDescription& trafo,
                                 const ChromExtractParams & cp,
                                 const ChromExtractParams & cp_ms1,
                                 const Param & feature_finder_param,

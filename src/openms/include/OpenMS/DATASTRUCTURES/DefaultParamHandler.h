@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -37,11 +37,11 @@
 #include <OpenMS/DATASTRUCTURES/Param.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/OpenMSConfig.h>
-
 #include <vector>
 
 namespace OpenMS
 {
+  class MetaInfoInterface;
   /**
       @brief A base class for all classes handling default parameters.
 
@@ -50,8 +50,8 @@ namespace OpenMS
       - it checks for valid parameters:
           - unknown/misspelled parameter names
           - correct parameter type
-        - range restrictions of numeric parameters
-        - valid values for string parameters (enum)
+          - range restrictions of numeric parameters
+          - valid values for string parameters (enum)
       - subsections that are passed to other classes can be excluded from the check (subsections_)
       - it keeps member variables in synchronicity with the parameters stored in param_
       - it helps to automatically create a doxygen documentation page for the parameters
@@ -90,7 +90,7 @@ namespace OpenMS
   */
   class OPENMS_DLLAPI DefaultParamHandler
   {
-public:
+  public:
     /// Constructor with name that is displayed in error messages
     DefaultParamHandler(const String& name);
 
@@ -101,7 +101,7 @@ public:
     virtual ~DefaultParamHandler();
 
     /// Assignment operator.
-    virtual DefaultParamHandler& operator=(const DefaultParamHandler& rhs);
+    DefaultParamHandler& operator=(const DefaultParamHandler& rhs);
 
     /// Equality operator
     virtual bool operator==(const DefaultParamHandler& rhs) const;
@@ -132,7 +132,19 @@ public:
     /// Non-mutable access to the registered subsections
     const std::vector<String>& getSubsections() const;
 
-protected:
+    /**
+     * @brief Writes all parameters to meta values
+     *
+     * Parameters are written with 'name' as key and 'value' as value
+     *
+     * @param write_this  Params to be written
+     * @param write_here  a MetaInfoInterface object into which the meta values will be written
+     * @param key_prefix  Will be added in front of the parameter name for the meta value key.
+     *                    If the prefix isn't empty and doesn't end with a colon one will be added.
+     */
+    static void writeParametersToMetaValues(const Param& write_this, MetaInfoInterface& write_here, const String& key_prefix = "");
+
+  protected:
     /**
         @brief This method is used to update extra member variables at the end of the setParameters() method.
 
@@ -142,10 +154,14 @@ protected:
     */
     virtual void updateMembers_();
 
-    ///Updates the parameters after the defaults have been set in the constructor
+    /**
+       @brief Updates the parameters after the defaults have been set in the constructor
+
+       Also calls updateMembers_().
+    */
     void defaultsToParam_();
 
-    ///Container for current parameters
+    /// Container for current parameters
     Param param_;
 
     /**
@@ -169,24 +185,23 @@ protected:
         @brief If this member is set to false no checking if parameters in done;
 
         The only reason to set this member to false is that the derived class has no parameters!
-However, if a grand-child has defaults and you are using a base class cast, checking will
-not be done when casting back to grand-child. To just omit the warning, use 'warn_empty_defaults_'
+        However, if a grand-child has defaults and you are using a base class cast, checking will
+        not be done when casting back to grand-child. To just omit the warning, use 'warn_empty_defaults_'
     */
     bool check_defaults_;
 
     /**
-              @brief If this member is set to false no warning is emitted when defaults are empty;
+        @brief If this member is set to false no warning is emitted when defaults are empty;
 
-              The only reason to set this member to false is that the derived class has no parameters!
-      @see check_defaults_
+        The only reason to set this member to false is that the derived class has no parameters!
+        @see check_defaults_
           */
     bool warn_empty_defaults_;
 
-private:
+  private:
     /// Hidden default C'tor (class name parameter is required!)
     DefaultParamHandler();
 
-  }; //class
+  }; // class
 
-} // namespace OPENMS
-
+} // namespace OpenMS

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -40,14 +40,9 @@ using namespace std;
 
 namespace OpenMS
 {
-  ConsensusMapNormalizerAlgorithmQuantile::ConsensusMapNormalizerAlgorithmQuantile()
-  {
-  }
+  ConsensusMapNormalizerAlgorithmQuantile::ConsensusMapNormalizerAlgorithmQuantile() = default;
 
-  ConsensusMapNormalizerAlgorithmQuantile::~ConsensusMapNormalizerAlgorithmQuantile()
-  {
-
-  }
+  ConsensusMapNormalizerAlgorithmQuantile::~ConsensusMapNormalizerAlgorithmQuantile() = default;
 
   void ConsensusMapNormalizerAlgorithmQuantile::normalizeMaps(ConsensusMap& map)
   {
@@ -107,7 +102,7 @@ namespace OpenMS
       sort_pairs.reserve(feature_ints[i].size());
       for (Size j = 0; j < feature_ints[i].size(); ++j)
       {
-        sort_pairs.push_back(std::make_pair(feature_ints[i][j], j));
+        sort_pairs.emplace_back(feature_ints[i][j], j);
       }
       std::sort(sort_pairs.begin(), sort_pairs.end());
       vector<Size> sort_indices;

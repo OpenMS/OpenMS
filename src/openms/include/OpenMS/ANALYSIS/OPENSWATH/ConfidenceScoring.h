@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -35,22 +35,16 @@
 #pragma once
 
 #include <cmath> // for "exp"
-#include <ctime> // for "time" (random number seed)
 #include <limits> // for "infinity"
-#include <boost/bimap.hpp>
-#include <boost/bimap/multiset_of.hpp>
-#include <boost/random/uniform_int.hpp>
-#include <boost/random/mersenne_twister.hpp>
-#include <boost/random/variate_generator.hpp>
+#include <map>
 
-#include <OpenMS/FORMAT/FeatureXMLFile.h>
-#include <OpenMS/FORMAT/TraMLFile.h>
-#include <OpenMS/FORMAT/TransformationXMLFile.h>
+#include <OpenMS/CONCEPT/ProgressLogger.h>
+#include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
-
-#include "OpenMS/OPENSWATHALGO/ALGO/Scoring.h"
 #include <OpenMS/ANALYSIS/MAPMATCHING/TransformationDescription.h>
 #include <OpenMS/ANALYSIS/TARGETED/TargetedExperiment.h>
+
+#include <OpenMS/MATH/MISC/MathFunctions.h>
 
 namespace OpenMS
 {
@@ -61,28 +55,20 @@ namespace OpenMS
   public:
 
       /// Constructor
-      explicit ConfidenceScoring(bool test_mode_ = false) :
-        generator_(), rand_gen_(generator_, boost::uniform_int<>())
-      {
-        if (!test_mode_) rand_gen_.engine().seed(time(nullptr)); // seed with current time
-      }
+      explicit ConfidenceScoring(bool test_mode_ = false);
 
-      virtual ~ConfidenceScoring() {}
+      ~ConfidenceScoring() override {}
 
   protected:
 
-      /// Mapping: Q3 m/z <-> transition intensity (maybe not unique!)
-      typedef boost::bimap<double, boost::bimaps::multiset_of<double> > 
-      BimapType;
-
       /// Binomial GLM
-      struct
+      struct GLM_
       {
         double intercept;
         double rt_coef;
         double int_coef;
 
-        double operator()(double diff_rt, double dist_int)
+        double operator()(double diff_rt, double dist_int) const
         {
           double lm = intercept + rt_coef * diff_rt * diff_rt + 
             int_coef * dist_int;
@@ -91,34 +77,31 @@ namespace OpenMS
       } glm_;
 
       /// Helper for RT normalization (range 0-100)
-      struct
+      struct RTNorm_
       {
         double min_rt;
         double max_rt;
         
-        double operator()(double rt)
+        double operator()(double rt) const
         {
           return (rt - min_rt) / (max_rt - min_rt) * 100;
         }
       } rt_norm_;
 
-      TargetedExperiment library_; // assay library
+      TargetedExperiment library_; ///< assay library
 
-      IntList decoy_index_; // indexes of assays to use as decoys
+      IntList decoy_index_; ///< indexes of assays to use as decoys
 
-      Size n_decoys_; // number of decoys to use (per feature/true assay)
+      Size n_decoys_; ///< number of decoys to use (per feature/true assay)
 
-      Map<String, IntList> transition_map_; // assay (ID) -> transitions (indexes)
+      std::map<String, IntList> transition_map_; ///< assay (ID) -> transitions (indexes)
 
-      Size n_transitions_; // number of transitions to consider
+      Size n_transitions_; ///< number of transitions to consider
 
       /// RT transformation to map measured RTs to assay RTs
       TransformationDescription rt_trafo_;
 
-      boost::mt19937 generator_; // random number generation engine
-
-      /// Random number generator (must be initialized in init. list of c'tor!)
-      boost::variate_generator<boost::mt19937&, boost::uniform_int<> > rand_gen_;
+      Math::RandomShuffler shuffler_; ///< random shuffler for container
 
       /// Randomize the list of decoy indexes
       void chooseDecoys_();
@@ -128,11 +111,6 @@ namespace OpenMS
 
       /// Get the retention time of an assay
       double getAssayRT_(const TargetedExperiment::Peptide& assay);
-
-      /// Extract the @p n_transitions highest intensities from @p intensity_map,
-      /// store them in @p intensities
-      void extractIntensities_(BimapType& intensity_map, Size n_transitions,
-                               DoubleList& intensities);
 
       /// Score the assay @p assay against feature data (@p feature_rt,
       /// @p feature_intensities), optionally using only the specified transitions
@@ -185,7 +163,7 @@ namespace OpenMS
         }
         if (n_assays - 1 < n_decoys_)
         {
-          LOG_WARN << "Warning: Parameter 'decoys' (" << n_decoys_ 
+          OPENMS_LOG_WARN << "Warning: Parameter 'decoys' (" << n_decoys_ 
                    << ") is higher than the number of unrelated assays in the "
                    << "library (" << n_assays - 1 << "). "
                    << "Using all unrelated assays as decoys." << std::endl;
@@ -196,14 +174,14 @@ namespace OpenMS
         for (Size i = 0; i < n_assays; ++i) decoy_index_[i] = boost::numeric_cast<Int>(i);
 
         // build mapping between assays and transitions:
-        LOG_DEBUG << "Building transition map..." << std::endl;
+        OPENMS_LOG_DEBUG << "Building transition map..." << std::endl;
         for (Size i = 0; i < library_.getTransitions().size(); ++i)
         {
           const String& ref = library_.getTransitions()[i].getPeptideRef();
           transition_map_[ref].push_back(boost::numeric_cast<Int>(i));
         }
         // find min./max. RT in the library:
-        LOG_DEBUG << "Determining retention time range..." << std::endl;
+        OPENMS_LOG_DEBUG << "Determining retention time range..." << std::endl;
         rt_norm_.min_rt = std::numeric_limits<double>::infinity();
         rt_norm_.max_rt = -std::numeric_limits<double>::infinity();
         for (std::vector<TargetedExperiment::Peptide>::const_iterator it = 
@@ -217,13 +195,13 @@ namespace OpenMS
         }
 
         // log scoring progress:
-        LOG_DEBUG << "Scoring features..." << std::endl;
+        OPENMS_LOG_DEBUG << "Scoring features..." << std::endl;
         startProgress(0, features.size(), "scoring features");
 
         for (FeatureMap::Iterator feat_it = features.begin(); 
              feat_it != features.end(); ++feat_it)
         {
-          LOG_DEBUG << "Feature " << feat_it - features.begin() + 1 
+          OPENMS_LOG_DEBUG << "Feature " << feat_it - features.begin() + 1 
                     << " (ID '" << feat_it->getUniqueId() << "')"<< std::endl;
           scoreFeature_(*feat_it);
           setProgress(feat_it - features.begin());

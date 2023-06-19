@@ -2,7 +2,7 @@
 #                   OpenMS -- Open-Source Mass Spectrometry
 # --------------------------------------------------------------------------
 # Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-# ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+# ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 #
 # This software is released under a three-clause BSD license:
 #  * Redistributions of source code must retain the above copyright
@@ -37,7 +37,7 @@ set(directory source/OPENSWATHALGO)
 
 ### list all files of the directory here
 set(sources_algo_list
-  ALGO/MRMScoring.cpp
+
   ALGO/Scoring.cpp
   ALGO/StatsHelpers.cpp
 )
@@ -74,7 +74,6 @@ set(header_directory include/OpenMS/OPENSWATHALGO)
 
 ## add groups for headers
 set(header_algo_list
-  ALGO/MRMScoring.h
   ALGO/Scoring.h
   ALGO/StatsHelpers.h
 )
@@ -85,6 +84,7 @@ set(header_dataaccess_list
   DATAACCESS/ITransition.h
   DATAACCESS/MockObjects.h
   DATAACCESS/SpectrumHelpers.h
+  DATAACCESS/SwathMap.h
   DATAACCESS/TransitionExperiment.h
   DATAACCESS/TransitionHelper.h
   DATAACCESS/Transitions.h

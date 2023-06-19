@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -32,6 +32,7 @@
 // $Authors: Andreas Bertsch, Daniel Jameson, Chris Bielow $
 // --------------------------------------------------------------------------
 
+#include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/FORMAT/MascotXMLFile.h>
 #include <OpenMS/FORMAT/MascotRemoteQuery.h>
@@ -41,7 +42,7 @@
 #include <OpenMS/FORMAT/FileTypes.h>
 #include <OpenMS/SYSTEM/File.h>
 
-#include <OpenMS/APPLICATIONS/TOPPBase.h>
+#include <OpenMS/APPLICATIONS/SearchEngineBase.h>
 
 #include <sstream>
 
@@ -65,9 +66,9 @@ using namespace std;
 <CENTER>
     <table>
         <tr>
-            <td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. predecessor tools </td>
-            <td VALIGN="middle" ROWSPAN=2> \f$ \longrightarrow \f$ MascotAdapterOnline \f$ \longrightarrow \f$</td>
-            <td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. successor tools </td>
+            <th ALIGN = "center"> pot. predecessor tools </td>
+            <td VALIGN="middle" ROWSPAN=2> &rarr; MascotAdapterOnline &rarr;</td>
+            <th ALIGN = "center"> pot. successor tools </td>
         </tr>
         <tr>
             <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> any signal-/preprocessing tool @n (that writes mzML format)</td>
@@ -96,11 +97,10 @@ using namespace std;
     unknown to Mascot, might pose a problem).
 
     @note Mascot returns incomplete/incorrect protein assignments for most
-    identified peptides (due to protein-level grouping/filtering). By default
+    identified peptides (due to protein-level grouping/filtering). Thus,
     the protein associations are therefore not included in the output of this
     adapter, only the peptide sequences. @ref TOPP_PeptideIndexer should be run
-    after this tool to get correct assignments. The flag @p keep_protein_links
-    can be used to override this behavior.
+    after this tool to get correct assignments.
 
     @note Currently mzIdentML (mzid) is not directly supported as an
     input/output format of this tool. Convert mzid files to/from idXML using
@@ -122,11 +122,11 @@ using namespace std;
 
 
 class TOPPMascotAdapterOnline :
-  public TOPPBase
+  public SearchEngineBase
 {
 public:
   TOPPMascotAdapterOnline() :
-    TOPPBase("MascotAdapterOnline", "Annotates MS/MS spectra using Mascot.")
+    SearchEngineBase("MascotAdapterOnline", "Annotates MS/MS spectra using Mascot.")
   {
   }
 
@@ -141,7 +141,6 @@ protected:
 
     registerSubsection_("Mascot_server", "Mascot server details");
     registerSubsection_("Mascot_parameters", "Mascot parameters used for searching");
-    registerFlag_("keep_protein_links", "The Mascot response file usually returns incomplete/wrong protein hits, so re-indexing the peptide hits is required. To avoid confusion why there are so few protein hits and force re-indexing, no proteins should be reported. To see the original (wrong) list, enable this flag.", true);
   }
 
   Param getSubsectionDefaults_(const String& section) const override
@@ -163,6 +162,94 @@ protected:
     return Param();
   }
 
+  void parseMascotResponse_(const PeakMap& exp, bool decoy, MascotRemoteQuery* mascot_query, ProteinIdentification& prot_id, vector<PeptideIdentification>& pep_ids)
+  {   
+    String mascot_tmp_file_name = decoy ? (File::getTempDirectory() + "/" + File::getUniqueName() + "_Mascot_decoy_response") : (File::getTempDirectory() + "/" + File::getUniqueName() + "_Mascot_response");
+    QFile mascot_tmp_file(mascot_tmp_file_name.c_str());
+    mascot_tmp_file.open(QIODevice::WriteOnly);
+    if (decoy)
+    {
+      mascot_tmp_file.write(mascot_query->getMascotXMLDecoyResponse());
+    }
+    else
+    {
+      mascot_tmp_file.write(mascot_query->getMascotXMLResponse());
+    }
+    mascot_tmp_file.close();
+  
+    writeDebug_(String("\nMascot Server Response file saved to: '") + mascot_tmp_file_name + "'. If an error occurs, send this file to the OpenMS team.\n", 100);
+
+    // set up helper object for looking up spectrum meta data:
+    SpectrumMetaDataLookup lookup;
+    MascotXMLFile::initializeLookup(lookup, exp);
+
+    // read the response
+    MascotXMLFile().load(mascot_tmp_file_name, prot_id, pep_ids, lookup);
+    writeDebug_("Read " + String(pep_ids.size()) + " peptide ids and " + String(prot_id.getHits().size()) + " protein identifications from Mascot", 5);
+
+    // for debugging errors relating to unexpected response files
+    if (this->debug_level_ >= 100)
+    {
+      writeDebug_(String("\nMascot Server Response file saved to: '") + mascot_tmp_file_name + "'. If an error occurs, send this file to the OpenMS team.\n", 100);
+    }
+    else
+    {
+      mascot_tmp_file.remove(); // delete file
+    }
+  }
+
+  // merge b into a
+  void mergeIDs_(ProteinIdentification& p_a, const ProteinIdentification& p_b, vector<PeptideIdentification>& pep_a, const vector<PeptideIdentification>& pep_b)
+  {
+    // if p_a is empty use all meta values and hits from p_b to initialize p_a
+    if (p_a.getHits().empty())
+    {
+      p_a = p_b;
+    }
+    else
+    {
+      // p_a already initialized? just add proteins of b to a
+      for (const ProteinHit& p : p_b.getHits())
+      {
+        p_a.insertHit(p);
+      }
+    }
+    
+    map<String, size_t> native_id2id_index;
+    size_t index{};
+    String run_identifier;
+    for (const PeptideIdentification& pep : pep_a)
+    {
+      const String& native_id = pep.getMetaValue("spectrum_reference");
+      native_id2id_index[native_id] = index;
+      ++index;
+      if (run_identifier.empty()) run_identifier = pep.getIdentifier();
+    }
+
+    for (auto pep : pep_b) //OMS_CODING_TEST_EXCLUDE
+    {
+      auto it = native_id2id_index.find(pep.getMetaValue("spectrum_reference"));
+      if (it == native_id2id_index.end()) // spectrum not yet identified? add decoy id
+      {
+        pep.setIdentifier(run_identifier);
+        pep_a.push_back(pep);
+      }
+      else
+      { 
+        const vector<PeptideHit>& hits = pep.getHits();
+        if (hits.empty())
+        {
+          continue;
+        }
+        for (const PeptideHit& h : hits)
+        {
+          pep_a[it->second].insertHit(h);
+        }
+        pep_a[it->second].assignRanks();
+      }
+    }
+  }
+   
   ExitCodes main_(int argc, const char** argv) override
   {
     //-------------------------------------------------------------
@@ -170,9 +257,8 @@ protected:
     //-------------------------------------------------------------
 
     // input/output files
-    String in(getStringOption_("in")), out(getStringOption_("out"));
-    FileHandler fh;
-    FileTypes::Type in_type = fh.getType(in);
+    String in = getRawfileName();
+    String out(getStringOption_("out"));
 
     //-------------------------------------------------------------
     // loading input
@@ -180,25 +266,11 @@ protected:
 
     PeakMap exp;
     // keep only MS2 spectra
-    fh.getOptions().addMSLevel(2);
-    fh.loadExperiment(in, exp, in_type, log_type_, false, false);
-    writeLog_("Number of spectra loaded: " + String(exp.size()));
+    FileHandler fh;
+    fh.getOptions().setMSLevels({2});
+    fh.loadExperiment(in, exp, FileTypes::Type::MZML, log_type_, false, false);
+    writeLogInfo_("Number of spectra loaded: " + String(exp.size()));
 
-    if (exp.getSpectra().empty())
-    {
-      throw OpenMS::Exception::FileEmpty(__FILE__, __LINE__, __FUNCTION__, "Error: No MS2 spectra in input file.");
-    }
-
-    // determine type of spectral data (profile or centroided)
-    SpectrumSettings::SpectrumType spectrum_type = exp[0].getType();
-
-    if (spectrum_type == SpectrumSettings::PROFILE)
-    {
-      if (!getFlag_("force"))
-      {
-        throw OpenMS::Exception::IllegalArgument(__FILE__, __LINE__, __FUNCTION__, "Error: Profile data provided but centroided MS2 spectra expected. To enforce processing of the data set the -force flag.");
-      }
-    }
 
     //-------------------------------------------------------------
     // calculations
@@ -209,120 +281,197 @@ protected:
     // overwrite default search title with filename
     if (mascot_param.getValue("search_title") == "OpenMS_search")
     {
-      mascot_param.setValue("search_title", File::removeExtension(File::basename(in)));
+      mascot_param.setValue("search_title", FileHandler::stripExtension(File::basename(in)));
     }
 
     mascot_param.setValue("internal:HTTP_format", "true");
-    MascotGenericFile mgf_file;
-    mgf_file.setParameters(mascot_param);
 
-    // get the spectra into string stream
-    writeDebug_("Writing MGF file to stream", 1);
-    stringstream ss;
-    mgf_file.store(ss, in, exp, true); // write in compact format
+    SpectrumLookup lookup;        
+    lookup.readSpectra(exp.getSpectra());
 
-    // Usage of a QCoreApplication is overkill here (and ugly too), but we just use the
-    // QEventLoop to process the signals and slots and grab the results afterwards from
-    // the MascotRemotQuery instance
-    char** argv2 = const_cast<char**>(argv);
-    QCoreApplication event_loop(argc, argv2);
-    MascotRemoteQuery* mascot_query = new MascotRemoteQuery(&event_loop);
     Param mascot_query_param = getParam_().copy("Mascot_server:", true);
-    writeDebug_("Setting parameters for Mascot query", 1);
-    mascot_query->setParameters(mascot_query_param);
-    writeDebug_("Setting spectra for Mascot query", 1);
-    mascot_query->setQuerySpectra(ss.str());
+    size_t batch_size = (size_t)mascot_query_param.getValue("batch_size");
+    size_t chunks = (exp.size() - 1) / batch_size + 1; // Note: safe as we have at least one spectrum
 
-    // remove unnecessary spectra
-    ss.clear();
+    vector<ProteinIdentification> all_prot_ids;
+    ProteinIdentification all_prot_id;
+    vector<PeptideIdentification> all_pep_ids;
 
-    QObject::connect(mascot_query, SIGNAL(done()), &event_loop, SLOT(quit()));
-    QTimer::singleShot(1000, mascot_query, SLOT(run()));
-    writeLog_("Submitting Mascot query (now: " + DateTime::now().get() + ")...");
-    event_loop.exec();
-    writeLog_("Mascot query finished");
-
-    if (mascot_query->hasError())
+    MSExperiment current_batch;
+    for (size_t k = 0; k < chunks; ++k)
     {
-      writeLog_("An error occurred during the query: " + mascot_query->getErrorMessage());
-      delete mascot_query;
-      return EXTERNAL_PROGRAM_ERROR;
-    }
+      // get range for next set of n elements
+      auto start_itr = std::next(exp.begin(), k*batch_size);
+      auto end_itr = std::next(exp.begin(), k*batch_size + batch_size);
 
-    vector<PeptideIdentification> pep_ids;
-    ProteinIdentification prot_id;
+      // allocate memory for the current chunk
+      current_batch.resize(batch_size);
 
-    if (!mascot_query_param.exists("skip_export") ||
-        !mascot_query_param.getValue("skip_export").toBool())
-    {
-      // write Mascot response to file
-      String mascot_tmp_file_name(File::getTempDirectory() + "/" + File::getUniqueName() + "_Mascot_response");
-      QFile mascot_tmp_file(mascot_tmp_file_name.c_str());
-      mascot_tmp_file.open(QIODevice::WriteOnly);
-      mascot_tmp_file.write(mascot_query->getMascotXMLResponse());
-      mascot_tmp_file.close();
-
-      // set up helper object for looking up spectrum meta data:
-      SpectrumMetaDataLookup lookup;
-      MascotXMLFile::initializeLookup(lookup, exp);
-
-      // read the response
-      MascotXMLFile().load(mascot_tmp_file_name, prot_id, pep_ids, lookup);
-      writeDebug_("Read " + String(pep_ids.size()) + " peptide ids and " + String(prot_id.getHits().size()) + " protein identifications from Mascot", 5);
-
-      // for debugging errors relating to unexpected response files
-      if (this->debug_level_ >= 100)
+      // code to handle the last sub-vector as it might
+      // contain less elements
+      if (k*batch_size + batch_size > exp.size()) 
       {
-        writeDebug_(String("\nMascot Server Response file saved to: '") + mascot_tmp_file_name + "'. If an error occurs, send this file to the OpenMS team.\n", 100);
-      }
-      else
-      {
-        mascot_tmp_file.remove(); // delete file
+        end_itr = exp.end();
+        current_batch.resize(exp.size() - k*batch_size);
       }
 
-      // keep or delete protein identifications?!
-      if (!getFlag_("keep_protein_links"))
+      // copy elements from the input range to the sub-vector        
+      std::copy(start_itr, end_itr, current_batch.begin());
+
+      // write mgf and run search
+      MascotGenericFile mgf_file;
+      mgf_file.setParameters(mascot_param);
+      // get the spectra into string stream
+      writeDebug_("Writing MGF file to stream", 1);
+      stringstream ss;
+      mgf_file.store(ss, in, current_batch, true); // write in compact format
+
+      // Usage of a QCoreApplication is overkill here (and ugly too), but we just use the
+      // QEventLoop to process the signals and slots and grab the results afterwards from
+      // the MascotRemotQuery instance
+      char** argv2 = const_cast<char**>(argv);
+      QCoreApplication event_loop(argc, argv2);
+      MascotRemoteQuery* mascot_query = new MascotRemoteQuery(&event_loop);
+      writeDebug_("Setting parameters for Mascot query", 1);
+      mascot_query->setParameters(mascot_query_param);
+      
+      bool internal_decoys = mascot_param.getValue("decoy") == "true";
+      // We used internal decoy search. Set that we want to retrieve decoy search results during export.
+      if (internal_decoys)
       {
-        // remove protein links from peptides
-        for (vector<PeptideIdentification>::iterator pep_it = pep_ids.begin();
-             pep_it != pep_ids.end(); ++pep_it)
+        mascot_query->setExportDecoys(true);
+      }
+
+      writeDebug_("Setting spectra for Mascot query", 1);
+      mascot_query->setQuerySpectra(ss.str());
+
+      // remove unnecessary spectra
+      ss.clear();
+
+      QObject::connect(mascot_query, SIGNAL(done()), &event_loop, SLOT(quit()));
+      QTimer::singleShot(1000, mascot_query, SLOT(run()));
+      writeLogInfo_("Submitting Mascot query (now: " + DateTime::now().get() + ")...");
+      event_loop.exec();
+      writeLogInfo_("Mascot query finished");
+
+      if (mascot_query->hasError())
+      {
+        writeLogError_("An error occurred during the query: " + mascot_query->getErrorMessage());
+        delete mascot_query;
+        return EXTERNAL_PROGRAM_ERROR;
+      }
+
+      vector<PeptideIdentification> pep_ids;
+      ProteinIdentification prot_id;
+
+      if (!mascot_query_param.exists("skip_export") ||
+          !mascot_query_param.getValue("skip_export").toBool())
+      {
+        // write Mascot response to file
+        parseMascotResponse_(current_batch, false, mascot_query, prot_id, pep_ids); // targets
+
+        // reannotate proper spectrum native id if missing
+        for (auto& pep : pep_ids)
         {
-          for (vector<PeptideHit>::iterator hit_it = pep_it->getHits().begin();
-               hit_it != pep_it->getHits().end(); ++hit_it)
+          // no need to reannotate
+          if (pep.metaValueExists("spectrum_reference") 
+            && !(static_cast<String>(pep.getMetaValue("spectrum_reference")).empty()))
           {
-            hit_it->setPeptideEvidences(vector<PeptideEvidence>());
+            continue;
+          }
+            
+          try
+          { 
+            Size index = lookup.findByRT(pep.getRT());
+            pep.setMetaValue("spectrum_reference", exp[index].getNativeID());
+          }
+          catch (Exception::ElementNotFound&)
+          {
+            OPENMS_LOG_ERROR << "Error: Failed to look up spectrum native ID for peptide identification with retention time '" + String(pep.getRT()) + "'." << endl;
           }
         }
-        // remove proteins
-        prot_id.getHits().clear();
-      }
-    }
 
-    String search_number = mascot_query->getSearchIdentifier();
-    if (search_number.empty())
-    {
-      writeLog_("Error: Failed to extract the Mascot search identifier (search number).");
-      if (mascot_query_param.exists("skip_export") &&
-          mascot_query_param.getValue("skip_export").toBool())
+        if (internal_decoys)
+        {
+          vector<PeptideIdentification> decoy_pep_ids;
+          ProteinIdentification decoy_prot_id;
+          parseMascotResponse_(current_batch, true, mascot_query, decoy_prot_id, decoy_pep_ids);  // decoys
+
+          // reannotate proper spectrum native id if missing
+          for (auto& pep : decoy_pep_ids)
+          {
+            // no need to reannotate
+            if (pep.metaValueExists("spectrum_reference") 
+              && !(static_cast<String>(pep.getMetaValue("spectrum_reference")).empty()))
+            {
+              continue;
+            } 
+
+            try
+            { 
+              Size index = lookup.findByRT(pep.getRT());
+              pep.setMetaValue("spectrum_reference", exp[index].getNativeID());
+            }
+            catch (Exception::ElementNotFound&)
+            {
+              OPENMS_LOG_ERROR << "Error: Failed to look up spectrum native ID for peptide identification with retention time '" + String(pep.getRT()) + "'." << endl;
+            }
+          }
+          mergeIDs_(prot_id, decoy_prot_id, pep_ids, decoy_pep_ids);
+        }
+      }
+
+      String search_number = mascot_query->getSearchIdentifier();
+      if (search_number.empty())
       {
-        return PARSE_ERROR;
+        writeLogError_("Error: Failed to extract the Mascot search identifier (search number).");
+        if (mascot_query_param.exists("skip_export") &&
+            mascot_query_param.getValue("skip_export").toBool())
+        {
+          return PARSE_ERROR;
+        }
       }
-    }
-    else prot_id.setMetaValue("SearchNumber", search_number);
+      else 
+      {
+        prot_id.setMetaValue("SearchNumber", search_number);
+      }
 
-    // clean up
-    delete mascot_query;
+      // clean up
+      delete mascot_query;
+      
+      current_batch.clear(true); // clear meta data
+
+      mergeIDs_(all_prot_id, prot_id, all_pep_ids, pep_ids);
+    }
 
     //-------------------------------------------------------------
     // writing output
     //-------------------------------------------------------------
+    all_prot_id.setPrimaryMSRunPath({ in }, exp);
 
-    vector<ProteinIdentification> prot_ids;
-    prot_ids.push_back(prot_id);
-    StringList ms_runs;
-    exp.getPrimaryMSRunPath(ms_runs);
-    prot_id.setPrimaryMSRunPath(ms_runs);
-    IdXMLFile().store(out, prot_ids, pep_ids);
+    DateTime now = DateTime::now();
+    String date_string = now.get();
+    String run_identifier("Mascot_" + date_string);
+
+    // remove proteins as protein links seem are broken and reindexing is needed
+    all_prot_id.getHits().clear(); 
+    all_prot_id.setIdentifier(run_identifier);
+    all_prot_ids.push_back(all_prot_id);
+
+    // remove protein links from peptides as protein links seem are broken and reindexing is needed
+    for (auto& pep : all_pep_ids)
+    {
+      pep.setIdentifier(run_identifier);
+      for (auto& hit : pep.getHits())
+      {
+        hit.setPeptideEvidences({});
+      }
+    }        
+
+    // write all (!) parameters as metavalues to the search parameters
+    DefaultParamHandler::writeParametersToMetaValues(this->getParam_(), all_prot_ids[0].getSearchParameters(), this->getToolPrefix());
+
+    IdXMLFile().store(out, all_prot_ids, all_pep_ids);
     
     return EXECUTION_OK;
   }

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -64,11 +64,7 @@ public:
     {}
 
     /// Copy constructor
-    RichPeak2D(const RichPeak2D& p) :
-      Peak2D(p),
-      MetaInfoInterface(p),
-      UniqueIdInterface(p)
-    {}
+    RichPeak2D(const RichPeak2D& p) = default;
 
     /// Constructor from Peak2D
     explicit RichPeak2D(const Peak2D& p) :
@@ -84,21 +80,18 @@ public:
       MetaInfoInterface()
     {}
 
+    /// Move constructor
+    RichPeak2D(RichPeak2D&& p) = default;
+
     /// Destructor
     ~RichPeak2D() override
     {}
 
     /// Assignment operator
-    RichPeak2D & operator=(const RichPeak2D& rhs)
-    {
-      if (this == &rhs) return *this;
+    RichPeak2D & operator=(const RichPeak2D& rhs) = default;
 
-      Peak2D::operator=(rhs);
-      MetaInfoInterface::operator=(rhs);
-      UniqueIdInterface::operator=(rhs);
-
-      return *this;
-    }
+    /// Move Assignment operator
+    RichPeak2D & operator=(RichPeak2D&& rhs) & = default;
 
     /// Assignment operator
     RichPeak2D & operator=(const Peak2D& rhs)

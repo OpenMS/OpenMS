@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -34,6 +34,8 @@
 
 #include <OpenMS/METADATA/MetaInfoInterface.h>
 
+#include <OpenMS/METADATA/MetaInfo.h>
+
 using namespace std;
 
 namespace OpenMS
@@ -42,19 +44,24 @@ namespace OpenMS
   MetaInfoInterface::MetaInfoInterface() :
     meta_(nullptr)
   {
-
   }
 
-  MetaInfoInterface::MetaInfoInterface(const MetaInfoInterface & rhs)
+  /// Copy constructor
+  MetaInfoInterface::MetaInfoInterface(const MetaInfoInterface& rhs) :
+    meta_(nullptr)
   {
     if (rhs.meta_ != nullptr)
     {
       meta_ = new MetaInfo(*(rhs.meta_));
     }
-    else
-    {
-      meta_ = nullptr;
-    }
+  }
+
+  /// Move constructor
+  MetaInfoInterface::MetaInfoInterface(MetaInfoInterface&& rhs) noexcept :
+    meta_(std::move(rhs.meta_))
+  {
+    // take ownership
+    rhs.meta_ = nullptr;
   }
 
   MetaInfoInterface::~MetaInfoInterface()
@@ -62,14 +69,12 @@ namespace OpenMS
     delete(meta_);
   }
 
-  MetaInfoInterface & MetaInfoInterface::operator=(const MetaInfoInterface & rhs)
+  MetaInfoInterface& MetaInfoInterface::operator=(const MetaInfoInterface& rhs)
   {
     if (this == &rhs)
+    {
       return *this;
-
-//      std::cout << meta_ << std::endl;
-//      std::cout << rhs.meta_ << std::endl;
-//      std::cout << " " << std::endl;
+    }
 
     if (rhs.meta_ != nullptr && meta_ != nullptr)
     {
@@ -88,7 +93,31 @@ namespace OpenMS
     return *this;
   }
 
-  bool MetaInfoInterface::operator==(const MetaInfoInterface & rhs) const
+  // Move assignment
+  MetaInfoInterface& MetaInfoInterface::operator=(MetaInfoInterface&& rhs) noexcept
+  {
+    if (this == &rhs)
+    {
+      return *this;
+    }
+
+    // free memory and assign rhs memory
+    delete(meta_);
+    meta_ = rhs.meta_;
+    rhs.meta_ = nullptr;
+
+    return *this;
+  }
+
+  void MetaInfoInterface::swap(MetaInfoInterface& rhs)
+  {
+    std::swap(meta_, rhs.meta_);
+  //   MetaInfo* temp = meta_;
+  //   meta_ = rhs.meta_;
+  //   rhs.meta_ = temp;
+  }
+
+  bool MetaInfoInterface::operator==(const MetaInfoInterface& rhs) const
   {
     if (rhs.meta_ == nullptr && meta_ == nullptr)
     {
@@ -97,44 +126,64 @@ namespace OpenMS
     else if (rhs.meta_ == nullptr && meta_ != nullptr)
     {
       if (meta_->empty())
+      {
         return true;
-
+      }
       return false;
     }
     else if (rhs.meta_ != nullptr && meta_ == nullptr)
     {
       if (rhs.meta_->empty())
+      {
         return true;
-
+      }
       return false;
     }
     return *meta_ == *(rhs.meta_);
   }
 
-  bool MetaInfoInterface::operator!=(const MetaInfoInterface & rhs) const
+  bool MetaInfoInterface::operator!=(const MetaInfoInterface& rhs) const
   {
     return !(operator==(rhs));
   }
 
-  const DataValue & MetaInfoInterface::getMetaValue(const String & name) const
+  const DataValue& MetaInfoInterface::getMetaValue(const String& name) const
   {
     if (meta_ == nullptr)
     {
       return DataValue::EMPTY;
     }
-    return meta_->getValue(name);
+    return meta_->getValue(name, DataValue::EMPTY);
   }
 
-  const DataValue & MetaInfoInterface::getMetaValue(UInt index) const
+  DataValue MetaInfoInterface::getMetaValue(const String& name, const DataValue& default_value) const
+  {
+    if (meta_ == nullptr)
+    {
+      return default_value;
+    }
+    return meta_->getValue(name, default_value);
+  }
+
+  const DataValue& MetaInfoInterface::getMetaValue(UInt index) const
   {
     if (meta_ == nullptr)
     {
       return DataValue::EMPTY;
     }
-    return meta_->getValue(index);
+    return meta_->getValue(index, DataValue::EMPTY);
   }
 
-  bool MetaInfoInterface::metaValueExists(const String & name) const
+  DataValue MetaInfoInterface::getMetaValue(UInt index, const DataValue& default_value) const
+  {
+    if (meta_ == nullptr)
+    {
+      return default_value;
+    }
+    return meta_->getValue(index, default_value);
+  }
+
+  bool MetaInfoInterface::metaValueExists(const String& name) const
   {
     if (meta_ == nullptr)
     {
@@ -152,19 +201,19 @@ namespace OpenMS
     return meta_->exists(index);
   }
 
-  void MetaInfoInterface::setMetaValue(const String & name, const DataValue & value)
+  void MetaInfoInterface::setMetaValue(const String& name, const DataValue& value)
   {
     createIfNotExists_();
     meta_->setValue(name, value);
   }
 
-  void MetaInfoInterface::setMetaValue(UInt index, const DataValue & value)
+  void MetaInfoInterface::setMetaValue(UInt index, const DataValue& value)
   {
     createIfNotExists_();
     meta_->setValue(index, value);
   }
 
-  MetaInfoRegistry & MetaInfoInterface::metaRegistry()
+  MetaInfoRegistry& MetaInfoInterface::metaRegistry()
   {
     return MetaInfo::registry();
   }
@@ -177,7 +226,7 @@ namespace OpenMS
     }
   }
 
-  void MetaInfoInterface::getKeys(std::vector<String> & keys) const
+  void MetaInfoInterface::getKeys(std::vector<String>& keys) const
   {
     if (meta_ != nullptr)
     {
@@ -185,7 +234,7 @@ namespace OpenMS
     }
   }
 
-  void MetaInfoInterface::getKeys(std::vector<UInt> & keys) const
+  void MetaInfoInterface::getKeys(std::vector<UInt>& keys) const
   {
     if (meta_ != nullptr)
     {
@@ -208,7 +257,7 @@ namespace OpenMS
     meta_ = nullptr;
   }
 
-  void MetaInfoInterface::removeMetaValue(const String & name)
+  void MetaInfoInterface::removeMetaValue(const String& name)
   {
     if (meta_ != nullptr)
     {
@@ -221,6 +270,17 @@ namespace OpenMS
     if (meta_ != nullptr)
     {
       meta_->removeValue(index);
+    }
+  }
+
+  //TODO get a MetaValue list to copy only those that have been set
+  void MetaInfoInterface::addMetaValues(const MetaInfoInterface& from)
+  {
+    std::vector<String> keys;
+    from.getKeys(keys);
+    for (String& key : keys)
+    {
+      this->setMetaValue(key, from.getMetaValue(key));
     }
   }
 

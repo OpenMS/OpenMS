@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -38,9 +38,9 @@
 #include <OpenMS/DATASTRUCTURES/DBoundingBox.h>
 #include <OpenMS/DATASTRUCTURES/DPosition.h>
 #include <OpenMS/OpenMSConfig.h>
-#include <OpenMS/DATASTRUCTURES/Map.h>
 
 #include <vector>
+#include <map>
 
 namespace OpenMS
 {
@@ -77,13 +77,22 @@ public:
     typedef PointArrayType::size_type SizeType;
     typedef PointArrayType::const_iterator PointArrayTypeConstIterator;
 
-    typedef Map<PointType::CoordinateType, DBoundingBox<1> > HullPointType;
+    typedef std::map<PointType::CoordinateType, DBoundingBox<1> > HullPointType;
 
     /// default constructor
     ConvexHull2D();
 
+    /// Copy constructor
+    ConvexHull2D(const ConvexHull2D&) = default;
+
+    /// Move constructor
+    ConvexHull2D(ConvexHull2D&&) = default;
+
     /// assignment operator
     ConvexHull2D& operator=(const ConvexHull2D& rhs);
+
+    /// move assignment operator
+    ConvexHull2D& operator=(ConvexHull2D&&) & = default;
 
     /// equality operator
     bool operator==(const ConvexHull2D& rhs) const;
@@ -137,7 +146,7 @@ public:
               @brief returns if the @p point lies in the feature hull
 
               This function is only supported if the hull is created using addPoint() or addPoints(),
-              but not then suing setHullPoints().
+              but not when using setHullPoints().
               If you require the latter functionality, then augment this function.
 
               @throws Exception::NotImplemented if only hull points (outer_points_), but no internal structure (map_points_) is given

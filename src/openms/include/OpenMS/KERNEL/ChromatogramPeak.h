@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -37,7 +37,7 @@
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/DATASTRUCTURES/DPosition.h>
 
-#include <ostream>
+#include <iosfwd>
 #include <functional>
 
 namespace OpenMS
@@ -47,7 +47,6 @@ namespace OpenMS
     @brief A 1-dimensional raw data point or peak for chromatograms.
 
     This datastructure is intended for chromatograms.
-    If you want to annotated single peaks with meta data, use RichChromatogramPeak instead.
 
     @ingroup Kernel
   */
@@ -202,8 +201,7 @@ public:
     */
     //@{
     /// Comparator by intensity
-    struct IntensityLess :
-      std::binary_function<ChromatogramPeak, ChromatogramPeak, bool>
+    struct IntensityLess
     {
       inline bool operator()(ChromatogramPeak const & left, ChromatogramPeak const & right) const
       {
@@ -228,8 +226,7 @@ public:
     };
 
     /// Comparator by RT position.
-    struct RTLess :
-      public std::binary_function<ChromatogramPeak, ChromatogramPeak, bool>
+    struct RTLess
     {
       inline bool operator()(const ChromatogramPeak & left, const ChromatogramPeak & right) const
       {
@@ -254,8 +251,7 @@ public:
     };
 
     /// Comparator by position. As this class has dimension 1, this is basically an alias for RTLess.
-    struct PositionLess :
-      public std::binary_function<ChromatogramPeak, ChromatogramPeak, bool>
+    struct PositionLess
     {
       inline bool operator()(const ChromatogramPeak & left, const ChromatogramPeak & right) const
       {

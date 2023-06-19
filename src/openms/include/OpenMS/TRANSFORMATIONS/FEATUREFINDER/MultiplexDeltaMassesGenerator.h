@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -42,7 +42,8 @@
 
 #include <vector>
 #include <algorithm>
-#include <iostream>
+#include <iosfwd>
+
 
 namespace OpenMS
 {
@@ -103,7 +104,7 @@ namespace OpenMS
      * sample 1:    no_label    
      * sample 2:    Lys8    Arg10
      */
-    void printSamplesLabelsList() const;
+    void printSamplesLabelsList(std::ostream &stream) const;
     
     /**
      * @brief write the list of all mass patterns
@@ -113,12 +114,16 @@ namespace OpenMS
      * mass shift 2:    0 (no_label)    10.0083 (Arg10)    
      * mass shift 3:    0 (no_label)    16.0284 (Lys8,Lys8)    
      * mass shift 4:    0 (no_label)    18.0225 (Arg10,Lys8)    
-     * mass shift 5:    0 (no_label)    20.0165 (Arg10,Arg10)    
+     * mass shift 5:    0 (no_label)    20.0165 (Arg10,Arg10)   
+     * 
+     * @param stream    output stream 
      */
-    void printDeltaMassesList() const;
+    void printDeltaMassesList(std::ostream &stream) const;
     
     /**
      * @brief returns the list of mass shift patterns
+     * 
+     * @param stream    output stream 
      */
     std::vector<MultiplexDeltaMasses> getDeltaMassesList();
     
@@ -150,14 +155,14 @@ namespace OpenMS
      * 
      * @param label    long label, UniMod name as it appears in peptide sequences, e.g. "Label:13C(6)15N(4)"
      */
-    String getLabelShort(String label);
+    String getLabelShort(const String& label);
     
     /**
      * @brief returns the long label string
      * 
      * @param label    short label, as it appears in the "labels" parameter, e.g. "Arg10"
      */
-    String getLabelLong(String label);
+    String getLabelLong(const String& label);
     
     /**
      * @brief extract the label set from the sequence
@@ -167,7 +172,7 @@ namespace OpenMS
      * For example, the sequence VLSEEEIDDNFK(Label:13C(6)15N(2))AQR(Label:13C(6)15N(4))
      * contains a set of two labels, Lys8 and Arg10.
      */
-    MultiplexDeltaMasses::LabelSet extractLabelSet(AASequence sequence);
+    MultiplexDeltaMasses::LabelSet extractLabelSet(const AASequence& sequence);
     
     private:
    

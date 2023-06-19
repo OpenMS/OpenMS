@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -41,6 +41,8 @@
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
 
+#include <unordered_map>
+
 #ifdef OPENMS_COMPILER_MSVC
 #pragma warning( push )
 #pragma warning( disable : 4251 )     // disable MSVC dll-interface warning
@@ -73,16 +75,16 @@ namespace OpenMS
   class OPENMS_DLLAPI MetaInfoRegistry
   {
 public:
-    ///default constructor
+    /// Default constructor
     MetaInfoRegistry();
 
-    ///copy constructor
+    /// Copy constructor
     MetaInfoRegistry(const MetaInfoRegistry& rhs);
 
-    ///destructor
+    /// Destructor
     ~MetaInfoRegistry();
 
-    ///assignment operator
+    /// Assignment operator
     MetaInfoRegistry& operator=(const MetaInfoRegistry& rhs);
 
     /**
@@ -161,8 +163,8 @@ public:
 private:
     /// internal counter, that stores the next index to assign
     UInt next_index_;
-    using MapString2IndexType = std::map<String, UInt>;
-    using MapIndex2StringType = std::map<UInt, String>;
+    using MapString2IndexType = std::unordered_map<std::string, UInt>;
+    using MapIndex2StringType = std::unordered_map<UInt, std::string>;
     
     /// map from name to index
     MapString2IndexType name_to_index_;

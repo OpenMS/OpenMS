@@ -8,7 +8,7 @@
 	</IdentificationRun>
 	<featureList count="3">
 		<feature id="f_0">
-			<position dim="0">310</position>
+			<position dim="0">310.1</position>
 			<position dim="1">500.01</position>
 			<intensity>600</intensity>
 			<quality dim="0">0</quality>

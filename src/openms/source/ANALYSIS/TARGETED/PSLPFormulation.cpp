@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -36,6 +36,8 @@
 #include <OpenMS/ANALYSIS/TARGETED/PSProteinInference.h>
 #include <OpenMS/ANALYSIS/TARGETED/PrecursorIonSelectionPreprocessing.h>
 
+#undef DEBUG_OPS
+
 #ifdef DEBUG_OPS
 #include <OpenMS/SYSTEM/StopWatch.h>
 #endif
@@ -46,7 +48,7 @@ namespace OpenMS
   PSLPFormulation::PSLPFormulation() :
     DefaultParamHandler("PSLPFormulation"), solver_(LPWrapper::SOLVER_GLPK)
   {
-    //model_ = new LPWrapper();
+    model_ = nullptr;
 
     defaults_.setValue("rt:min_rt", 960., "Minimal rt in seconds.");
     defaults_.setMinFloat("rt:min_rt", 0.);
@@ -88,7 +90,7 @@ namespace OpenMS
 
 
     defaults_.setValue("thresholds:use_peptide_rule", "false", "Use peptide rule instead of minimal protein id probability");
-    defaults_.setValidStrings("thresholds:use_peptide_rule", ListUtils::create<String>("true,false"));
+    defaults_.setValidStrings("thresholds:use_peptide_rule", {"true","false"});
 
     defaults_.setValue("thresholds:min_peptide_ids", 2, "If use_peptide_rule is true, this parameter sets the minimal number of peptide ids for a protein id");
     defaults_.setMinInt("thresholds:min_peptide_ids", 1);
@@ -110,10 +112,10 @@ namespace OpenMS
     defaults_.setMinFloat("combined_ilp:k3", 0.);
     // defaults_.setMaxFloat("combined_ilp:k1",1.);
     defaults_.setValue("combined_ilp:scale_matching_probs", "true", "flag if detectability * rt_weight shall be scaled to cover all [0,1]");
-    defaults_.setValidStrings("combined_ilp:scale_matching_probs", ListUtils::create<String>("true,false"));
+    defaults_.setValidStrings("combined_ilp:scale_matching_probs", {"true","false"});
 
     defaults_.setValue("feature_based:no_intensity_normalization", "false", "Flag indicating if intensities shall be scaled to be in [0,1]. This is done for each feature separately, so that the feature's maximal intensity in a spectrum is set to 1.");
-    defaults_.setValidStrings("feature_based:no_intensity_normalization", ListUtils::create<String>("true,false"));
+    defaults_.setValidStrings("feature_based:no_intensity_normalization", {"true","false"});
 
     defaults_.setValue("feature_based:max_number_precursors_per_feature", 1, "The maximal number of precursors per feature.");
     defaults_.setMinInt("feature_based:max_number_precursors_per_feature", 1);
@@ -123,7 +125,7 @@ namespace OpenMS
 
   PSLPFormulation::~PSLPFormulation()
   {
-    //delete model_;
+    delete model_;
   }
 
   void PSLPFormulation::createAndSolveILP_(const FeatureMap& features, std::vector<std::vector<double> >& intensity_weights,
@@ -133,6 +135,7 @@ namespace OpenMS
                                            Size number_of_scans)
   {
     Int counter = 0;
+    delete model_;
     model_ = new LPWrapper();
     //#define DEBUG_OPS
 #ifdef DEBUG_OPS
@@ -440,8 +443,8 @@ namespace OpenMS
     const std::map<String, std::vector<double> >& pt_prot_map = preprocessing.getProteinPTMap();
     std::map<String, std::vector<double> >::const_iterator map_iter = pt_prot_map.begin();
 
+    delete model_;
     model_ = new LPWrapper();
-    model_->setSolver(solver_);
     model_->setObjectiveSense(LPWrapper::MAX); // maximize
 
     double min_rt = param_.getValue("rt:min_rt");
@@ -520,9 +523,8 @@ namespace OpenMS
     //model_->setColumnBounds(index,0.,1.,LPWrapper::DOUBLE_BOUNDED);
     //  cmodel_->setColumnUpper(counter,1.); // test for inclusion list protein based
 
-    //  TODO: German comment
-    //  cmodel_->setColumnIsInteger(counter,true); // testweise abgeschaltet, da er sonst, wenn nicht ausreichend
-    // Peptide da waren, um das Protein auf 1 zu setzen, gar keine Variablen f?r das Protein ausw?hlt
+    // cmodel_->setColumnIsInteger(counter,true); // partially switched off, if not enough peptides
+    // were available to set the protein to 1 (no variables choosen for the protein)
     model_->setObjective(index, 1.);
     protein_variable_index_map.insert(make_pair(map_iter->first, counter));
     ++counter;
@@ -999,8 +1001,8 @@ namespace OpenMS
         // we need to remember the index in the solution_indices
         else if (distance(solution_indices.begin(), iter) > (Int)max_sol_index)
           max_sol_index = distance(solution_indices.begin(), iter);
-        points.push_back(DPosition<2>(min_rt + variable_indices[i].scan * rt_step_size, tmp_feat.getMZ() - 0.1));
-        points.push_back(DPosition<2>(min_rt + variable_indices[i].scan * rt_step_size, tmp_feat.getMZ() + 3.));
+        points.emplace_back(min_rt + variable_indices[i].scan * rt_step_size, tmp_feat.getMZ() - 0.1);
+        points.emplace_back(min_rt + variable_indices[i].scan * rt_step_size, tmp_feat.getMZ() + 3.);
 
       }
       ConvexHull2D hull;
@@ -1033,8 +1035,8 @@ namespace OpenMS
 #ifdef DEBUG_OPS
     std::cout << "k2: " << k2 << std::endl;
 #endif
+    delete model_;
     model_ = new LPWrapper();
-    model_->setSolver(solver_);
     Int counter = 0;
 
 #ifdef DEBUG_OPS
@@ -1071,7 +1073,7 @@ namespace OpenMS
 #endif
       if (charges_set.count(features[i].getCharge()) < 1)
         continue;
-      if (mass_ranges[i].size() == 0)
+      if (mass_ranges[i].empty())
       {
         std::cout << "No mass ranges for " << features[i].getRT() << " " << features[i].getMZ() << std::endl;
       }
@@ -1348,7 +1350,7 @@ namespace OpenMS
       model_->setRowBounds(idx, 0., (double)ms2_spectra_per_rt_bin, LPWrapper::UPPER_BOUND_ONLY);
   }
 
-  void PSLPFormulation::updateObjFunction_(String acc, FeatureMap& features, PrecursorIonSelectionPreprocessing& preprocessed_db, std::vector<IndexTriple>& variable_indices)
+  void PSLPFormulation::updateObjFunction_(const String& acc, FeatureMap& features, PrecursorIonSelectionPreprocessing& preprocessed_db, std::vector<IndexTriple>& variable_indices)
   {
 #ifdef DEBUG_OPS
     std::cout << "Update Obj. function of combined ILP." << std::endl;
@@ -1488,7 +1490,7 @@ namespace OpenMS
     StopWatch timer;
     timer.start();
 #endif
-    if (new_feature.getPeptideIdentifications().size() > 0 && new_feature.getPeptideIdentifications()[0].getHits().size() > 0)
+    if (!new_feature.getPeptideIdentifications().empty() && !new_feature.getPeptideIdentifications()[0].getHits().empty())
     {
       // if a selected feature yielded a peptide id, the peptide probability needs to be considered in the protein constraint
       double pep_score = new_feature.getPeptideIdentifications()[0].getHits()[0].getScore();
@@ -1498,7 +1500,7 @@ namespace OpenMS
       // check all proteins that were already detected (only there we need to update a constraint)
       for (Size pa = 0; pa < protein_accs.size(); ++pa)
       {
-        if (find(accs.begin(), accs.end(), protein_accs[pa]) == accs.end())
+        if (accs.find(protein_accs[pa]) == accs.end())
           continue;
 
         Int row = model_->getRowIndex((String("PROT_COV_") + protein_accs[pa]).c_str());

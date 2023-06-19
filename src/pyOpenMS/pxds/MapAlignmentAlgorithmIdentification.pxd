@@ -16,10 +16,12 @@ cdef extern from "<OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentAlgorithmIdentificati
 
     cdef cppclass MapAlignmentAlgorithmIdentification(DefaultParamHandler, ProgressLogger):
         # wrap-inherits:
-        #    DefaultParamHandler
-        #    ProgressLogger
+        #   DefaultParamHandler
+        #   ProgressLogger
 
         MapAlignmentAlgorithmIdentification() nogil except +
+        # private
+        MapAlignmentAlgorithmIdentification(MapAlignmentAlgorithmIdentification &) nogil except + # wrap-ignore
         
         void align(libcpp_vector[MSExperiment]&, libcpp_vector[TransformationDescription]&, int) nogil except +
         void align(libcpp_vector[FeatureMap]&, libcpp_vector[TransformationDescription]&, int) nogil except +

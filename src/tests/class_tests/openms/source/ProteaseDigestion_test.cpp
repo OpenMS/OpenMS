@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -546,7 +546,7 @@ START_SECTION((bool isValidProduct(const AASequence& protein, int pep_pos, int p
     pd.setEnzyme("glutamyl endopeptidase");
     pd.setSpecificity(EnzymaticDigestion::SPEC_SEMI);
     //                                  |6*  |11|14*|18 |22|25 |29* |34*
-    prot = AASequence::fromString("MCABCDPLFGKACDPBCRAAAKAARPBBDPBBCDP"); // 4 real cleavages at {(0),11,18,22,25}
+    prot = AASequence::fromString("MCABCDPLFGKACDPHCRAAAKAARPHHDPHHCDP"); // 4 real cleavages at {(0),11,18,22,25}
 
     pd.setMissedCleavages(0); // redundant, by default zero, should be zero
     TEST_EQUAL(pd.isValidProduct(prot, 6, 8, true, true, true), true); // valid C and N-term
@@ -602,6 +602,64 @@ START_SECTION((bool isValidProduct(const AASequence& protein, int pep_pos, int p
     TEST_EQUAL(pd.isValidProduct(prot, 6, 28, false, true, true), true); // valid C and N-term (but 2 missed)
     TEST_EQUAL(pd.isValidProduct(prot, 6, 28, false, true, false), true); // valid C and N-term (but 2 missed)
 
+    /// no cleavage:
+    pd.setEnzyme("no cleavage");
+    pd.setSpecificity(EnzymaticDigestion::SPEC_FULL); // require both sides
+
+    prot = AASequence::fromString("MADPDE"); // something which start with 'M' to test nterm prot cleavage
+    TEST_EQUAL(pd.isValidProduct(prot, 100, 3), false); // invalid position
+    TEST_EQUAL(pd.isValidProduct(prot, 1, 300), false); // invalid length
+    TEST_EQUAL(pd.isValidProduct(prot, 3, 0), false);   // invalid size
+
+    const bool with_nterm_prot_cleavage = true;
+    const bool no_nterm_prot_cleavage = false;
+    const bool with_rnd_asppro_cleavage = true;
+    const bool no_rnd_asppro_cleavage = false;
+    TEST_EQUAL(pd.isValidProduct(prot, 0, 6, true, with_nterm_prot_cleavage), true);
+    TEST_EQUAL(pd.isValidProduct(prot, 0, 6, true, no_nterm_prot_cleavage), true);
+    TEST_EQUAL(pd.isValidProduct(prot, 1, 5, true, with_nterm_prot_cleavage), true);
+    TEST_EQUAL(pd.isValidProduct(prot, 1, 5, true, no_nterm_prot_cleavage), false);
+    TEST_EQUAL(pd.isValidProduct(prot, 0, 5, true, with_nterm_prot_cleavage), false);
+    TEST_EQUAL(pd.isValidProduct(prot, 0, 5, true, no_nterm_prot_cleavage), false);
+
+    // asppro_cleavage should make no difference
+    TEST_EQUAL(pd.isValidProduct(prot, 0, 6, true, with_nterm_prot_cleavage, with_rnd_asppro_cleavage), true);
+    TEST_EQUAL(pd.isValidProduct(prot, 0, 6, true, no_nterm_prot_cleavage, no_rnd_asppro_cleavage), true);
+    TEST_EQUAL(pd.isValidProduct(prot, 1, 5, true, with_nterm_prot_cleavage, with_rnd_asppro_cleavage), true);
+    TEST_EQUAL(pd.isValidProduct(prot, 1, 5, true, no_nterm_prot_cleavage, no_rnd_asppro_cleavage), false);
+    TEST_EQUAL(pd.isValidProduct(prot, 0, 5, true, with_nterm_prot_cleavage, with_rnd_asppro_cleavage), false);
+    TEST_EQUAL(pd.isValidProduct(prot, 0, 5, true, no_nterm_prot_cleavage, no_rnd_asppro_cleavage), false);
+    // ... unless we hit one
+    TEST_EQUAL(pd.isValidProduct(prot, 1, 2, true, no_nterm_prot_cleavage, no_rnd_asppro_cleavage), false);
+    TEST_EQUAL(pd.isValidProduct(prot, 0, 3, true, with_nterm_prot_cleavage, with_rnd_asppro_cleavage), true);
+    TEST_EQUAL(pd.isValidProduct(prot, 0, 3, true, no_nterm_prot_cleavage, no_rnd_asppro_cleavage), false);
+
+    pd.setSpecificity(EnzymaticDigestion::SPEC_SEMI); // require one side
+
+    prot = AASequence::fromString("MADPDE");            // something which starts with 'M' to test nterm prot cleavage and has a D/P cleavage
+    TEST_EQUAL(pd.isValidProduct(prot, 100, 3), false); // invalid position
+    TEST_EQUAL(pd.isValidProduct(prot, 1, 300), false); // invalid length
+    TEST_EQUAL(pd.isValidProduct(prot, 3, 0), false);   // invalid size
+
+    TEST_EQUAL(pd.isValidProduct(prot, 0, 6, true, with_nterm_prot_cleavage), true);
+    TEST_EQUAL(pd.isValidProduct(prot, 0, 6, true, no_nterm_prot_cleavage), true);
+    TEST_EQUAL(pd.isValidProduct(prot, 1, 5, true, with_nterm_prot_cleavage), true);
+    TEST_EQUAL(pd.isValidProduct(prot, 1, 5, true, no_nterm_prot_cleavage), true);
+    TEST_EQUAL(pd.isValidProduct(prot, 0, 5, true, with_nterm_prot_cleavage), true);
+    TEST_EQUAL(pd.isValidProduct(prot, 0, 5, true, no_nterm_prot_cleavage), true);
+
+    // asppro_cleavage should make no difference
+    TEST_EQUAL(pd.isValidProduct(prot, 0, 6, true, with_nterm_prot_cleavage, with_rnd_asppro_cleavage), true);
+    TEST_EQUAL(pd.isValidProduct(prot, 0, 6, true, no_nterm_prot_cleavage, no_rnd_asppro_cleavage), true);
+    TEST_EQUAL(pd.isValidProduct(prot, 1, 5, true, with_nterm_prot_cleavage, with_rnd_asppro_cleavage), true);
+    TEST_EQUAL(pd.isValidProduct(prot, 1, 5, true, no_nterm_prot_cleavage, no_rnd_asppro_cleavage), true);
+    TEST_EQUAL(pd.isValidProduct(prot, 0, 5, true, with_nterm_prot_cleavage, with_rnd_asppro_cleavage), true);
+    TEST_EQUAL(pd.isValidProduct(prot, 0, 5, true, no_nterm_prot_cleavage, no_rnd_asppro_cleavage), true);
+    // ... unless we hit one
+    TEST_EQUAL(pd.isValidProduct(prot, 1, 2, true, no_nterm_prot_cleavage, no_rnd_asppro_cleavage), false);
+    TEST_EQUAL(pd.isValidProduct(prot, 1, 2, true, no_nterm_prot_cleavage, with_rnd_asppro_cleavage), true);
+    TEST_EQUAL(pd.isValidProduct(prot, 0, 3, true, with_nterm_prot_cleavage, with_rnd_asppro_cleavage), true);
+    TEST_EQUAL(pd.isValidProduct(prot, 0, 3, true, no_nterm_prot_cleavage, no_rnd_asppro_cleavage), true);
 
 END_SECTION
 

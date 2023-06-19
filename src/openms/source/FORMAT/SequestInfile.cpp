@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -38,6 +38,7 @@
 #include <OpenMS/FORMAT/PTMXMLFile.h>
 
 #include <fstream>
+#include <sstream>
 
 using namespace std;
 
@@ -61,13 +62,13 @@ namespace OpenMS
     max_internal_cleavage_sites_(0),
     match_peak_count_(0),
     match_peak_allowed_error_(0),
-    show_fragment_ions_(1),
-    print_duplicate_references_(1),
-    remove_precursor_near_peaks_(0),
-    mass_type_parent_(0),
-    mass_type_fragment_(0),
-    normalize_xcorr_(0),
-    residues_in_upper_case_(1)
+    show_fragment_ions_(true),
+    print_duplicate_references_(true),
+    remove_precursor_near_peaks_(false),
+    mass_type_parent_(false),
+    mass_type_fragment_(false),
+    normalize_xcorr_(false),
+    residues_in_upper_case_(true)
   {
     setStandardEnzymeInfo_();
   }
@@ -187,7 +188,9 @@ namespace OpenMS
   {
     ofstream ofs(filename.c_str());
     if (!ofs)
+    {
       throw Exception::UnableToCreateFile(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename);
+    }
     stringstream file_content;
 
     float dyn_n_term_mod(0.0), dyn_c_term_mod(0.0), stat_n_term_mod(0.0), stat_c_term_mod(0.0), stat_n_term_prot_mod(0.0), stat_c_term_prot_mod(0.0);
@@ -203,27 +206,43 @@ namespace OpenMS
       if (mods_i->second[0] == "CTERM")
       {
         if (mods_i->second[2] == "OPT")
+        {
           dyn_c_term_mod += mods_i->second[1].toFloat();
+        }
         if (mods_i->second[2] == "FIX")
+        {
           stat_c_term_mod += mods_i->second[1].toFloat();
+        }
       }
       else if (mods_i->second[0] == "NTERM")
       {
         if (mods_i->second[2] == "OPT")
+        {
           dyn_n_term_mod += mods_i->second[1].toFloat();
+        }
         if (mods_i->second[2] == "FIX")
+        {
           stat_n_term_mod += mods_i->second[1].toFloat();
+        }
       }
       else if (mods_i->second[0] == "CTERM_PROT")
+      {
         stat_c_term_prot_mod += mods_i->second[1].toFloat();
+      }
       else if (mods_i->second[0] == "NTERM_PROT")
+      {
         stat_n_term_prot_mod += mods_i->second[1].toFloat();
+      }
       else
       {
         if (mods_i->second[2] == "FIX")
+        {
           mods_p = &stat_mods;
+        }
         else
+        {
           mods_p = &dyn_mods;
+        }
         mass = mods_i->second[1].toFloat();
         residues = mods_i->second[0];
         for (String::const_iterator residue_i = residues.begin(); residue_i != residues.end(); ++residue_i)
@@ -239,7 +258,9 @@ namespace OpenMS
     }
     // and write them down
     if (dyn_mods_masses.empty())
+    {
       dyn_mods_string = "0 X";
+    }
     else
     {
       for (map<float, String>::const_iterator dyn_mod_i = dyn_mods_masses.begin(); dyn_mod_i != dyn_mods_masses.end(); ++dyn_mod_i)
@@ -544,14 +565,16 @@ namespace OpenMS
     return einfo_i->first;
   }
 
-  Size SequestInfile::setEnzyme(String enzyme_name)
+  Size SequestInfile::setEnzyme(const String& enzyme_name)
   {
     enzyme_number_ = 0;
     map<String, vector<String> >::const_iterator einfo_i;
     for (einfo_i = enzyme_info_.begin(); einfo_i != enzyme_info_.end(); ++einfo_i, ++enzyme_number_)
     {
       if (einfo_i->first == enzyme_name)
+      {
         break;
+      }
     }
     return (einfo_i == enzyme_info_.end()) ? enzyme_info_.size() : 0;
   }
@@ -710,16 +733,18 @@ namespace OpenMS
       // 0 - mass; 1 - composition; 2 - ptm name
       Int mass_or_composition_or_name(-1);
 
-      for (vector<String>::const_iterator mod_i = modifications.begin(); mod_i != modifications.end(); ++mod_i)
+      for (const String& mod_i : modifications)
       {
-        if (mod_i->empty())
+        if (mod_i.empty())
+        {
           continue;
+        }
         // clear the formulae
         add_formula = substract_formula = EmpiricalFormula();
         name = residues = mass = type = "";
 
         // get the single parts of the modification string
-        mod_i->split(',', mod_parts);
+        mod_i.split(',', mod_parts);
         mass_or_composition_or_name = -1;
 
         // check whether the first part is a mass, composition or name
@@ -731,17 +756,23 @@ namespace OpenMS
           // to check whether the first part is a mass, it is converted into a float and then back into a string and compared to the given string
           // remove + signs because they don't appear in a float
           if (mass.hasPrefix("+"))
+          {
             mass.erase(0, 1);
+          }
           if (mass.hasSuffix("+"))
+          {
             mass.erase(mass.length() - 1, 1);
+          }
           if (mass.hasSuffix("-"))             // a - sign at the end will not be converted
           {
             mass.erase(mass.length() - 1, 1);
             mass.insert(0, "-");
           }
           // if it is a mass
-          if (String(mass.toFloat()) == mass)
+          if (!String(mass.toFloat()).empty()) // just check if conversion does not throw, i.e. consumes the whole string
+          {
             mass_or_composition_or_name = 0;
+          }
         }
         catch (Exception::ConversionError & /*c_e*/)
         {
@@ -778,7 +809,9 @@ namespace OpenMS
 
         // check whether it's an empirical formula / if a composition was given, get the mass
         if (mass_or_composition_or_name == -1)
+        {
           mass = mod_parts.front();
+        }
         if (mass_or_composition_or_name == -1 || mass_or_composition_or_name == 2)
         {
           // check whether there is a positive and a negative formula
@@ -796,16 +829,22 @@ namespace OpenMS
             }
             // sum up the masses
             if (monoisotopic)
+            {
               mass = String(add_formula.getMonoWeight() - substract_formula.getMonoWeight());
+            }
             else
+            {
               mass = String(add_formula.getAverageWeight() - substract_formula.getAverageWeight());
+            }
             if (mass_or_composition_or_name == -1)
+            {
               mass_or_composition_or_name = 1;
+            }
           }
           catch (Exception::ParseError & /*pe*/)
           {
             PTMname_residues_mass_type_.clear();
-            throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, *mod_i, "There's something wrong with this modification. Aborting!");
+            throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, mod_i, "There's something wrong with this modification. Aborting!");
           }
         }
 
@@ -816,7 +855,7 @@ namespace OpenMS
           if (mod_parts.empty())
           {
             PTMname_residues_mass_type_.clear();
-            throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, *mod_i, "No residues for modification given. Aborting!");
+            throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, mod_i, "No residues for modification given. Aborting!");
           }
 
           // get the residues
@@ -828,30 +867,40 @@ namespace OpenMS
 
         // get the type
         if (mod_parts.empty())
+        {
           type = "OPT";
+        }
         else
         {
           type = mod_parts.front();
           type.toUpper();
           if (types.find(type) != String::npos)
+          {
             mod_parts.erase(mod_parts.begin());
+          }
           else
+          {
             type = "OPT";
+          }
         }
 
         if (mod_parts.size() > 1)
         {
           PTMname_residues_mass_type_.clear();
-          throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, *mod_i, "There's something wrong with the type of this modification. Aborting!");
+          throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, mod_i, "There's something wrong with the type of this modification. Aborting!");
         }
 
         // get the name
         if (mass_or_composition_or_name < 2)
         {
           if (mod_parts.empty())
+          {
             name = "PTM_" + String(PTMname_residues_mass_type_.size());
+          }
           else
+          {
             name = mod_parts.front();
+          }
         }
 
         // insert the modification
@@ -866,7 +915,7 @@ namespace OpenMS
         else
         {
           PTMname_residues_mass_type_.clear();
-          throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, *mod_i, "There's already a modification with this name. Aborting!");
+          throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, mod_i, "There's already a modification with this name. Aborting!");
         }
       }
     }
@@ -876,23 +925,23 @@ namespace OpenMS
   {
     vector<String> info;
     // cuts n to c? cuts before doesn't cut after
-    info.push_back("0"); info.push_back("-"); info.push_back("-"); enzyme_info_["No_Enzyme"] = info; info.clear();
-    info.push_back("1"); info.push_back("KR"); info.push_back("-"); enzyme_info_["Trypsin_Strict"] = info; info.clear();
-    info.push_back("1"); info.push_back("KRLNH"); info.push_back("-"); enzyme_info_["Trypsin"] = info; info.clear();
-    info.push_back("1"); info.push_back("FWYL"); info.push_back("-"); enzyme_info_["Chymotrypsin"] = info; info.clear();
-    info.push_back("1"); info.push_back("FWY"); info.push_back("-"); enzyme_info_["Chymotrypsin_WYF"] = info; info.clear();
-    info.push_back("1"); info.push_back("R"); info.push_back("-"); enzyme_info_["Clostripain"] = info; info.clear();
-    info.push_back("1"); info.push_back("M"); info.push_back("-"); enzyme_info_["Cyanogen_Bromide"] = info; info.clear();
-    info.push_back("1"); info.push_back("W"); info.push_back("-"); enzyme_info_["IodosoBenzoate"] = info; info.clear();
-    info.push_back("1"); info.push_back("P"); info.push_back("-"); enzyme_info_["Proline_Endopept"] = info; info.clear();
-    info.push_back("1"); info.push_back("E"); info.push_back("-"); enzyme_info_["GluC"] = info; info.clear();
-    info.push_back("1"); info.push_back("ED"); info.push_back("-"); enzyme_info_["GluC_ED"] = info; info.clear();
-    info.push_back("1"); info.push_back("K"); info.push_back("-"); enzyme_info_["LysC"] = info; info.clear();
-    info.push_back("0"); info.push_back("D"); info.push_back("-"); enzyme_info_["AspN"] = info; info.clear();
-    info.push_back("0"); info.push_back("DE"); info.push_back("-"); enzyme_info_["AspN_DE"] = info; info.clear();
-    info.push_back("1"); info.push_back("ALIV"); info.push_back("P"); enzyme_info_["Elastase"] = info; info.clear();
-    info.push_back("1"); info.push_back("ALIVKRWFY"); info.push_back("P"); enzyme_info_["Elastase/Tryp/Chymo"] = info; info.clear();
-    info.push_back("1"); info.push_back("KRLFWYN"); info.push_back("-"); enzyme_info_["Trypsin/Chymo"] = info; info.clear();
+    info.emplace_back("0"); info.emplace_back("-"); info.emplace_back("-"); enzyme_info_["No_Enzyme"] = info; info.clear();
+    info.emplace_back("1"); info.emplace_back("KR"); info.emplace_back("-"); enzyme_info_["Trypsin_Strict"] = info; info.clear();
+    info.emplace_back("1"); info.emplace_back("KRLNH"); info.emplace_back("-"); enzyme_info_["Trypsin"] = info; info.clear();
+    info.emplace_back("1"); info.emplace_back("FWYL"); info.emplace_back("-"); enzyme_info_["Chymotrypsin"] = info; info.clear();
+    info.emplace_back("1"); info.emplace_back("FWY"); info.emplace_back("-"); enzyme_info_["Chymotrypsin_WYF"] = info; info.clear();
+    info.emplace_back("1"); info.emplace_back("R"); info.emplace_back("-"); enzyme_info_["Clostripain"] = info; info.clear();
+    info.emplace_back("1"); info.emplace_back("M"); info.emplace_back("-"); enzyme_info_["Cyanogen_Bromide"] = info; info.clear();
+    info.emplace_back("1"); info.emplace_back("W"); info.emplace_back("-"); enzyme_info_["IodosoBenzoate"] = info; info.clear();
+    info.emplace_back("1"); info.emplace_back("P"); info.emplace_back("-"); enzyme_info_["Proline_Endopept"] = info; info.clear();
+    info.emplace_back("1"); info.emplace_back("E"); info.emplace_back("-"); enzyme_info_["GluC"] = info; info.clear();
+    info.emplace_back("1"); info.emplace_back("ED"); info.emplace_back("-"); enzyme_info_["GluC_ED"] = info; info.clear();
+    info.emplace_back("1"); info.emplace_back("K"); info.emplace_back("-"); enzyme_info_["LysC"] = info; info.clear();
+    info.emplace_back("0"); info.emplace_back("D"); info.emplace_back("-"); enzyme_info_["AspN"] = info; info.clear();
+    info.emplace_back("0"); info.emplace_back("DE"); info.emplace_back("-"); enzyme_info_["AspN_DE"] = info; info.clear();
+    info.emplace_back("1"); info.emplace_back("ALIV"); info.emplace_back("P"); enzyme_info_["Elastase"] = info; info.clear();
+    info.emplace_back("1"); info.emplace_back("ALIVKRWFY"); info.emplace_back("P"); enzyme_info_["Elastase/Tryp/Chymo"] = info; info.clear();
+    info.emplace_back("1"); info.emplace_back("KRLFWYN"); info.emplace_back("-"); enzyme_info_["Trypsin/Chymo"] = info; info.clear();
   }
 
 }

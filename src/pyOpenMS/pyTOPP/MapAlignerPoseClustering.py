@@ -82,7 +82,7 @@ def align(in_files, out_files, out_trafos, reference_index,
                 algorithm.align(map_, trafo)
             if out_files:
                 pms.MapAlignmentTransformer.transformRetentionTimes(map_, trafo)
-                addDataProcessing(map_, params, pms.ProcessingAction.ALIGNMENT)
+                addDataProcessing(map_, params, pms.DataProcessing.ProcessingAction.ALIGNMENT)
                 f_fxml_tmp.store(out_files[i], map_)
         else:
             map_ = pms.MSExperiment()
@@ -93,7 +93,7 @@ def align(in_files, out_files, out_trafos, reference_index,
                 algorithm.align(map_, trafo)
             if out_files:
                 pms.MapAlignmentTransformer.transformRetentionTimes(map_, trafo)
-                addDataProcessing(map_, params, pms.ProcessingAction.ALIGNMENT)
+                addDataProcessing(map_, params, pms.DataProcessing.ProcessingAction.ALIGNMENT)
                 pms.MzMLFile().store(out_files[i], map_)
         if out_trafos:
             pms.TransformationXMLFile().store(out_trafos[i], trafo)

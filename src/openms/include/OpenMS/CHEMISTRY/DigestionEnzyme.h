@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -47,7 +47,7 @@ namespace OpenMS
   /**
      @ingroup Chemistry
 
-     @brief Abstract base class for digestion enzymes
+     @brief Base class for digestion enzymes
   */
   class OPENMS_DLLAPI DigestionEnzyme
   {
@@ -56,24 +56,38 @@ namespace OpenMS
     /** @name Constructors
     */
     //@{
-    /// copy constructor
-    DigestionEnzyme(const DigestionEnzyme& enzyme);
+    /// Copy constructor
+    DigestionEnzyme(const DigestionEnzyme&) = default;
 
-    /// detailed constructor
+    /// Move constructor
+    DigestionEnzyme(DigestionEnzyme&&) = default;
+
+    /// Detailed constructor
     explicit DigestionEnzyme(const String& name,
                              const String& cleavage_regex,
                              const std::set<String>& synonyms = std::set<String>(),
                              String regex_description = "");
 
-    /// destructor
+    /// Detailed constructor 2
+    explicit DigestionEnzyme(const String& name,
+                             String cut_before,
+                             const String& nocut_after = "",
+                             String sense = "C",
+                             const std::set<String>& synonyms = std::set<String>(),
+                             String regex_description = "");
+
+    /// Destructor
     virtual ~DigestionEnzyme();
     //@}
 
     /** @name Assignment
      */
     //@{
-    /// assignment operator
-    DigestionEnzyme& operator=(const DigestionEnzyme& enzyme);
+    /// Assignment operator
+    DigestionEnzyme& operator=(const DigestionEnzyme&) = default;
+
+    /// Move assignment operator
+    DigestionEnzyme& operator=(DigestionEnzyme&&) & = default;
     //@}
 
     /** Accessors
@@ -83,7 +97,7 @@ namespace OpenMS
     void setName(const String& name);
 
     /// returns the name of the enzyme
-    String getName() const;
+    const String& getName() const;
 
     /// sets the synonyms
     void setSynonyms(const std::set<String>& synonyms);
@@ -98,13 +112,13 @@ namespace OpenMS
     void setRegEx(const String& cleavage_regex);
 
     /// returns the cleavage regex
-    String getRegEx() const;
+    const String& getRegEx() const;
 
     /// sets the regex description
     void setRegExDescription(const String& value);
 
     /// returns the regex description
-    String getRegExDescription() const;
+    const String& getRegExDescription() const;
     //@}
 
     /** @name Predicates
@@ -137,6 +151,7 @@ namespace OpenMS
     friend OPENMS_DLLAPI std::ostream& operator<<(std::ostream& os, const DigestionEnzyme& enzyme);
 
   protected:
+
     /// default constructor
     DigestionEnzyme();
 

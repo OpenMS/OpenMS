@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -49,7 +49,7 @@ namespace OpenMS
 {
   class Annotation1DItem;
 
-  /// Container for annotations to content of Spectrum1DCanvas
+  /// Container for annotations to content of Plot1DCanvas
   class Annotations1DContainer :
     public std::list<Annotation1DItem *>
   {
@@ -66,17 +66,19 @@ public:
     /// Destructor
     virtual ~Annotations1DContainer();
 
+    using Base = std::list<Annotation1DItem *>;
+
     /// Iterator for the 1D annotations
-    typedef std::list<Annotation1DItem *>::iterator Iterator;
+    using Iterator = Base::iterator;
 
     /// Const iterator for the 1D annotations
-    typedef std::list<Annotation1DItem *>::const_iterator ConstIterator;
+    using ConstIterator = std::list<Annotation1DItem *>::const_iterator;
 
     /// Type of the Points
-    typedef DPosition<2> PointType;
+    using PointType = DPosition<2>;
 
     /// Coordinate type
-    typedef double CoordinateType;
+    using CoordinateType = double;
 
     /** @brief Returns a pointer to the item at @p pos, or 0, if not existent
 
@@ -86,10 +88,10 @@ public:
     Annotation1DItem * getItemAt(const QPoint & pos) const;
 
     /// Selects the item at @p pos on the canvas, if it exists.
-    void selectItemAt(const QPoint & pos);
+    void selectItemAt(const QPoint & pos) const;
 
     /// Deselects the item at @p pos on the canvas, if it exists.
-    void deselectItemAt(const QPoint & pos);
+    void deselectItemAt(const QPoint & pos) const;
 
     /// Selects all items
     void selectAll();
@@ -114,6 +116,10 @@ public:
 
     /// Returns the selected_pen_
     const QPen & getSelectedPen() const;
+
+  protected:
+    /// call delete on all pointers in the container, without modifying the container
+    void deleteAllItems_() const;
 
     /// The pen used to draw items
     QPen pen_;

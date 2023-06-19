@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry               
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 // 
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -61,9 +61,9 @@ using namespace OpenMS;
   <CENTER>
       <table>
           <tr>
-              <td ALIGN = "center" BGCOLOR="#EBEBEB"> potential predecessor tools </td>
-              <td VALIGN="middle" ROWSPAN=3> \f$ \longrightarrow \f$ OpenSwathRTNormalizer \f$ \longrightarrow \f$</td>
-              <td ALIGN = "center" BGCOLOR="#EBEBEB"> potential successor tools </td>
+              <th ALIGN = "center"> potential predecessor tools </td>
+              <td VALIGN="middle" ROWSPAN=3> &rarr; OpenSwathRTNormalizer &rarr;</td>
+              <th ALIGN = "center"> potential successor tools </td>
           </tr>
           <tr>
               <td VALIGN="middle" ALIGN = "center" ROWSPAN=2></td>
@@ -82,11 +82,9 @@ using namespace OpenMS;
 
  <B>The command line parameters of this tool are:</B>
  @verbinclude TOPP_OpenSwathRTNormalizer.cli
-
- <B>The algorithm parameters for the Analyzer filter are:</B>
+ <B>INI file documentation of this tool:</B>
  @htmlinclude TOPP_OpenSwathRTNormalizer.html
- 
- */
+*/
 
 // We do not want this class to show up in the docu:
 /// @cond TOPPCLASSES
@@ -151,10 +149,10 @@ protected:
     {
       Param p;
       p.setValue("outlierMethod", "iter_residual", "Which outlier detection method to use (valid: 'iter_residual', 'iter_jackknife', 'ransac', 'none'). Iterative methods remove one outlier at a time. Jackknife approach optimizes for maximum r-squared improvement while 'iter_residual' removes the datapoint with the largest residual error (removal by residual is computationally cheaper, use this with lots of peptides).");
-      p.setValidStrings("outlierMethod", ListUtils::create<String>("iter_residual,iter_jackknife,ransac,none"));
+      p.setValidStrings("outlierMethod", {"iter_residual","iter_jackknife","ransac","none"});
 
       p.setValue("useIterativeChauvenet", "false", "Whether to use Chauvenet's criterion when using iterative methods. This should be used if the algorithm removes too many datapoints but it may lead to true outliers being retained.");
-      p.setValidStrings("useIterativeChauvenet", ListUtils::create<String>("true,false"));
+      p.setValidStrings("useIterativeChauvenet", {"true","false"});
 
       p.setValue("RANSACMaxIterations", 1000, "Maximum iterations for the RANSAC outlier detection algorithm.");
       p.setValue("RANSACMaxPercentRTThreshold", 3, "Maximum threshold in RT dimension for the RANSAC outlier detection algorithm (in percent of the total gradient). Default is set to 3% which is around +/- 4 minutes on a 120 gradient.");
@@ -191,7 +189,7 @@ protected:
 
     Param pepEstimationParams = getParam_().copy("peptideEstimation:", true);
     Param RTNormParams = getParam_().copy("RTNormalization:", true);
-    String outlier_method = RTNormParams.getValue("outlierMethod");
+    String outlier_method = RTNormParams.getValue("outlierMethod").toString();
 
     // 1. Estimate the retention time range of the whole experiment
     std::pair<double,double> RTRange = OpenSwathHelper::estimateRTRange(targeted_exp);
@@ -212,7 +210,7 @@ protected:
     // If we have a transformation file, trafo will transform the RT in the
     // scoring according to the model. If we don't have one, it will apply the
     // null transformation.
-    if (getStringOption_("rt_norm").size() > 0)
+    if (!getStringOption_("rt_norm").empty())
     {
       String trafo_in = getStringOption_("rt_norm");
       String model_type = "linear"; //getStringOption_("model:type");

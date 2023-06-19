@@ -10,8 +10,9 @@ cdef extern from "<OpenMS/FORMAT/CachedMzML.h>" namespace "OpenMS":
 
     cdef cppclass CachedmzML:
 
-        CachedmzML() nogil except +
-        CachedmzML(CachedmzML) nogil except +
+        CachedmzML() nogil except + # wrap-doc:A class that uses on-disk caching to read and write spectra and chromatograms
+        CachedmzML(CachedmzML &) nogil except +
+
         CachedmzML(String filename) nogil except +
 
         Size getNrSpectra() nogil except +
@@ -29,4 +30,3 @@ cdef extern from "<OpenMS/FORMAT/CachedMzML.h>" namespace "OpenMS::CachedmzML":
     
     void store(const String& filename, MSExperiment exp) nogil except + # wrap-attach:CachedmzML
     void load(const String& filename, CachedmzML& exp) nogil except + # wrap-attach:CachedmzML
-

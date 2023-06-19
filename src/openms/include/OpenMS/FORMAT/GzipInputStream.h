@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -95,17 +95,15 @@ public:
     */
     const XMLCh* getContentType() const override;
 
+    GzipInputStream() = delete;
+    GzipInputStream(const GzipInputStream& stream) = delete;
+    GzipInputStream& operator=(const GzipInputStream& stream) = delete;
 
 private:
     ///pointer to an compression stream
-    GzipIfstream* gzip_;
+    GzipIfstream* gzip_ = nullptr;
     ///current index of the actual file
     XMLSize_t file_current_index_;
-
-    //not implemented
-    GzipInputStream();
-    GzipInputStream(const GzipInputStream& stream);
-    GzipInputStream& operator=(const GzipInputStream& stream);
   };
 
   inline XMLFilePos GzipInputStream::curPos() const

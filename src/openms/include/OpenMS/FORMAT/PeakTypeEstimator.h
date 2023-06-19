@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -75,7 +75,7 @@ public:
         return SpectrumSettings::UNKNOWN;
       }
 
-      const int max_peaks = 5; // maximal number of peaks we are looing at
+      const int max_peaks = 5; // maximal number of peaks we are looking at
       int profile_evidence = 0; // number of peaks found to be profile
       int centroid_evidence = 0; // number of peaks found to be centroided
 
@@ -254,7 +254,7 @@ public:
 
       double q1 = Math::quantile1st(distances.begin(), distances.end(), false);
       double q3 = Math::quantile3rd(distances.begin(), distances.end(), true);
-      for (auto i : distances) std::cerr << i << ";";
+      for (const auto& i : distances) std::cerr << i << ";";
       std::cerr <<"\t";
 
       if ((q3-q1) < q1*5) // q1 and q3 are roughly equal

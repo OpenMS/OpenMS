@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -50,12 +50,11 @@
 #include <OpenMS/ANALYSIS/OPENSWATH/DIAScoring.h>
 
 #include <OpenMS/ANALYSIS/OPENSWATH/MRMTransitionGroupPicker.h>
-#include <OpenMS/OPENSWATHALGO/ALGO/MRMScoring.h>
+#include <OpenMS/ANALYSIS/OPENSWATH/MRMScoring.h>
 #include <OpenMS/OPENSWATHALGO/ALGO/Scoring.h>
 
 ///////////////////////////
 
-#include <OpenMS/OPENSWATHALGO/ALGO/MRMScoring.h>
 
 ///////////////////////////
 
@@ -131,6 +130,7 @@ START_SECTION([EXTRA] test_scores())
   TEST_REAL_SIMILAR(spectral_angle, 1.483262)
   TEST_REAL_SIMILAR(rmsd, 0.6727226674)
 
+  delete imrmfeature;
 }
 END_SECTION
 
@@ -199,10 +199,13 @@ START_SECTION((virtual void test_dia_scores()))
   double isotope_corr = 0, isotope_overlap = 0;
   diascoring.dia_isotope_scores(transitions, sptr, imrmfeature, isotope_corr, isotope_overlap);
 
+  delete imrmfeature;
+
   // Mass deviation score
   double ppm_score = 0, ppm_score_weighted = 0;
+  std::vector<double> ppm_errors;
   diascoring.dia_massdiff_score(transition_group.getTransitions(),
-    sptr, normalized_library_intensity, ppm_score, ppm_score_weighted);
+    sptr, normalized_library_intensity, ppm_score, ppm_score_weighted, ppm_errors);
 
   // Presence of b/y series score
   double bseries_score = 0, yseries_score = 0;
@@ -214,8 +217,15 @@ START_SECTION((virtual void test_dia_scores()))
   TEST_REAL_SIMILAR(isotope_corr, 0.85998565339479)
   TEST_REAL_SIMILAR(isotope_overlap, 0.0599970892071724)
 
-  TEST_REAL_SIMILAR(ppm_score, 1.76388919944981)
+  TEST_REAL_SIMILAR(ppm_score, 1.76388919944981 / 3)
   TEST_REAL_SIMILAR(ppm_score_weighted, 0.484116946070573)
+
+  double ppm_expected[] = {618.30999999999995, 0.17257858483247876, 628.43499999999995, 0.79565530730866774, 628.43499999999995, 0.79565530730866774};
+  for (size_t i = 0; i < ppm_errors.size(); ++i)
+  {
+    TEST_REAL_SIMILAR(ppm_errors[i], ppm_expected[i]);
+  }
+
   TEST_EQUAL(bseries_score, 0)
   TEST_EQUAL(yseries_score, 1)
 

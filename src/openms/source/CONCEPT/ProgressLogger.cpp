@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -33,6 +33,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/CONCEPT/ProgressLogger.h>
+
 #include <OpenMS/CONCEPT/Macros.h>
 #include <OpenMS/CONCEPT/Factory.h>
 
@@ -51,10 +52,8 @@ namespace OpenMS
   {
 public:
     CMDProgressLoggerImpl() :
-      stop_watch_(),
-      begin_(0),
-      end_(0),
-      current_(0)
+      stop_watch_()
+      
     {
     }
 
@@ -100,7 +99,9 @@ public:
     }
     SignedSize nextProgress() const override
     {
-      return ++current_;
+      #pragma omp atomic
+      ++current_;
+      return current_;
     }
 
     void endProgress(const int current_recursion_depth) const override
@@ -115,9 +116,9 @@ public:
 
 private:
     mutable StopWatch stop_watch_;
-    mutable SignedSize begin_;
-    mutable SignedSize end_;
-    mutable SignedSize current_;
+    mutable SignedSize begin_{0};
+    mutable SignedSize end_{0};
+    mutable SignedSize current_{0};
   };
 
   class NoProgressLoggerImpl :
@@ -172,11 +173,17 @@ public:
     switch (type)
     {
       case NONE:
+      {
         return "NONE";
+      }
       case CMD:
+      {
         return "CMD";
+      }
       case GUI:
+      {
         return "GUI";
+      }
     }
 
 // should never happen but gcc emits a warning/error
@@ -203,7 +210,10 @@ public:
 
   ProgressLogger& ProgressLogger::operator=(const ProgressLogger& other)
   {
-    if (&other == this) return *this;
+    if (&other == this)
+    {
+      return *this;
+    }
 
     this->last_invoke_ = other.last_invoke_;
     this->type_ = other.type_;
@@ -247,8 +257,10 @@ public:
   void ProgressLogger::setProgress(SignedSize value) const
   {
     // update only if at least 1 second has passed
-    if (last_invoke_ == time(nullptr)) return;
-
+    if (last_invoke_ == time(nullptr))
+    {
+      return;
+    }
     last_invoke_ = time(nullptr);
     current_logger_->setProgress(value, recursion_depth_);
   }
@@ -256,7 +268,10 @@ public:
   {
     auto p = current_logger_->nextProgress();
     // update only if at least 1 second has passed
-    if (last_invoke_ == time(nullptr)) return;
+    if (last_invoke_ == time(nullptr))
+    {
+      return;
+    }
 
     last_invoke_ = time(nullptr);
     current_logger_->setProgress(p, recursion_depth_);

@@ -3,16 +3,20 @@ import numpy as np
 
 
 
-
     def get_peaks(self):
+        """Cython signature: numpy_vector, numpy_vector get_peaks()
+        
+        Will return a tuple of two numpy arrays (m/z, intensity) corresponding
+        to the peaks in the MSSpectrum. Provides fast access to peaks.
+        """
 
         cdef _MSSpectrum * spec_ = self.inst.get()
 
         cdef unsigned int n = spec_.size()
         cdef np.ndarray[np.float64_t, ndim=1] mzs
-        mzs = np.zeros( (n,), dtype=np.float64)
+        mzs = np.empty( (n,), dtype=np.float64)
         cdef np.ndarray[np.float32_t, ndim=1] intensities
-        intensities = np.zeros( (n,), dtype=np.float32)
+        intensities = np.empty( (n,), dtype=np.float32)
         cdef _Peak1D p
 
         cdef libcpp_vector[_Peak1D].iterator it = spec_.begin()
@@ -26,6 +30,11 @@ import numpy as np
         return mzs, intensities
 
     def set_peaks(self, peaks):
+        """Cython signature: set_peaks((numpy_vector, numpy_vector))
+        
+        Takes a tuple or list of two arrays (m/z, intensity) and populates the
+        MSSpectrum. The arrays can be numpy arrays (faster).
+        """
 
         assert isinstance(peaks, (tuple, list)), "Input for set_peaks needs to be a tuple or a list of size 2 (mz and intensity vector)"
         assert len(peaks) == 2, "Input for set_peaks needs to be a tuple or a list of size 2 (mz and intensity vector)"
@@ -52,7 +61,7 @@ import numpy as np
 
         cdef _MSSpectrum * spec_ = self.inst.get()
 
-        spec_.clear(0) # empty vector , keep meta data
+        spec_.resize(0) # empty vector, keep meta data and data arrays
         spec_.reserve(<int>len(data_mz)) # allocate space for incoming data
         cdef _Peak1D p = _Peak1D()
         cdef double mz
@@ -74,7 +83,7 @@ import numpy as np
 
         cdef _MSSpectrum * spec_ = self.inst.get()
 
-        spec_.clear(0) # empty vector , keep meta data
+        spec_.resize(0) # empty vector, keep meta data and data arrays
         spec_.reserve(<int>len(data_mz)) # allocate space for incoming data
         cdef _Peak1D p = _Peak1D()
         cdef double mz
@@ -97,7 +106,7 @@ import numpy as np
 
         cdef _MSSpectrum * spec_ = self.inst.get()
 
-        spec_.clear(0) # empty vector , keep meta data
+        spec_.resize(0) # empty vector, keep meta data and data arrays
         spec_.reserve(<int>len(mzs)) # allocate space for incoming data
         cdef _Peak1D p = _Peak1D()
         cdef double mz
@@ -116,23 +125,31 @@ import numpy as np
 
     def intensityInRange(self, float mzmin, float mzmax):
 
-        cdef int n
         cdef double I
 
         cdef _MSSpectrum * spec_ = self.inst.get()
         cdef int N = spec_.size()
 
-        I = 0
+        I = 0.0
         for i in range(N):
                 if deref(spec_)[i].getMZ() >= mzmin:
                     break
 
         cdef _Peak1D * p
         for j in range(i, N):
-                p = address(deref(spec_)[i])
+                p = address(deref(spec_)[j])
                 if p.getMZ() > mzmax:
                     break
                 I += p.getIntensity()
 
         return I
+
+    def getIMData(self):
+
+        cdef libcpp_pair[Size, _DriftTimeUnit] r = self.inst.get().getIMData()
+
+        pos = r.first
+        unit = <int>r.second
+
+        return (pos, unit)
 

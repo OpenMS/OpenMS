@@ -42,7 +42,7 @@
 			<cvParam cvRef="MS" accession="MS:1000615" name="ProteoWizard software" />
 		</software>
 		<software id="so_dp_sp_0_pm_2" version="2.1.0" >
-			<cvParam cvRef="MS" accession="MS:1000799" name="custom unreleased software tool" value="SpectrumCanvas" />
+			<cvParam cvRef="MS" accession="MS:1000799" name="custom unreleased software tool" value="PlotCanvas" />
 		</software>
 	</softwareList>
 	<instrumentConfigurationList count="1">

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry               
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 // 
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -78,6 +78,22 @@ START_SECTION(Acquisition(const Acquisition& source))
 	TEST_EQUAL((String)(tmp2.getMetaValue("label")), "label");
 END_SECTION
 
+START_SECTION(Acquisition(Acquisition&&) = default)
+  Acquisition e, empty;
+  e.setIdentifier("Ident");
+
+  Acquisition ef(e);
+  Acquisition ef2(e);
+
+  TEST_FALSE(ef == empty)
+
+  // the move target should be equal, while the move source should be empty
+  Acquisition ef_mv(std::move(ef));
+  TEST_TRUE(ef_mv == ef2)
+  TEST_TRUE(ef == empty)
+  TEST_EQUAL(ef.getIdentifier().empty(), true)
+END_SECTION
+
 START_SECTION(Acquisition& operator= (const Acquisition& source))
 	Acquisition tmp,tmp2,tmp3;
 	// assignment of a modified object
@@ -96,7 +112,7 @@ END_SECTION
 START_SECTION(bool operator== (const Acquisition& rhs) const)
 	Acquisition tmp,tmp2;
 	
-	TEST_EQUAL(tmp==tmp2, true);
+	TEST_TRUE(tmp == tmp2);
 	
 	tmp2.setIdentifier("5");
 	TEST_EQUAL(tmp==tmp2, false);
@@ -112,11 +128,11 @@ START_SECTION(bool operator!= (const Acquisition& rhs) const)
 	TEST_EQUAL(tmp!=tmp2, false);
 	
 	tmp2.setIdentifier("5");
-	TEST_EQUAL(tmp!=tmp2, true);
+	TEST_FALSE(tmp == tmp2);
 	
 	tmp2 = tmp;
 	tmp.setMetaValue("label",String("label"));
-	TEST_EQUAL(tmp!=tmp2, true);
+	TEST_FALSE(tmp == tmp2);
 END_SECTION
 
 /////////////////////////////////////////////////////////////

@@ -6,7 +6,7 @@ cdef extern from "<OpenMS/OPENSWATHALGO/DATAACCESS/TransitionExperiment.h>" name
 
     cdef cppclass LightTransition:
         LightTransition() nogil except +
-        LightTransition(LightTransition) nogil except +
+        LightTransition(LightTransition &) nogil except +
         libcpp_string transition_name
         libcpp_string peptide_ref
         double library_intensity
@@ -40,14 +40,14 @@ cdef extern from "<OpenMS/OPENSWATHALGO/DATAACCESS/TransitionExperiment.h>" name
 
     cdef cppclass LightModification:
         LightModification() nogil except +
-        LightModification(LightModification) nogil except +
+        LightModification(LightModification &) nogil except +
 
         int location
         int unimod_id
 
     cdef cppclass LightCompound:
         LightCompound() nogil except +
-        LightCompound(LightCompound) nogil except +
+        LightCompound(LightCompound &) nogil except +
 
         double rt
         double drift_time
@@ -70,7 +70,7 @@ cdef extern from "<OpenMS/OPENSWATHALGO/DATAACCESS/TransitionExperiment.h>" name
 
     cdef cppclass LightProtein:
         LightProtein() nogil except +
-        LightProtein(LightProtein) nogil except +
+        LightProtein(LightProtein &) nogil except +
         libcpp_string id
         libcpp_string sequence
 

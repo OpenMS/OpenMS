@@ -1,9 +1,9 @@
 --- src/pyOpenMS/pyopenms/__init__.py	2018-01-09 18:35:10.000000000 +0000
 +++ __init__.py	2018-05-19 01:04:57.763748929 +0000
-@@ -8,16 +8,6 @@
+@@ -30,15 +30,6 @@
  here = os.path.abspath(os.path.dirname(__file__))
  os.environ["OPENMS_DATA_PATH"] = os.path.join(here, "share/OpenMS")
- 
+
 -import sys
 -if sys.platform.startswith("linux"):
 -    # load local shared libries before we import pyopenms.so, else
@@ -12,8 +12,7 @@
 -    import ctypes
 -    ctypes.cdll.LoadLibrary(os.path.join(here, "libOpenSwathAlgo.so"))
 -    ctypes.cdll.LoadLibrary(os.path.join(here, "libOpenMS.so"))
--    ctypes.cdll.LoadLibrary(os.path.join(here, "libSuperHirn.so"))
 -
  try:
-     from .all_modules import *
-     from .python_extras import *
+    from .all_modules import *
+    from .python_extras import *

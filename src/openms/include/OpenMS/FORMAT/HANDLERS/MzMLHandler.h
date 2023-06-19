@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -48,6 +48,8 @@
 #include <OpenMS/FORMAT/OPTIONS/PeakFileOptions.h>
 #include <OpenMS/FORMAT/ControlledVocabulary.h>
 #include <OpenMS/FORMAT/VALIDATORS/SemanticValidator.h>
+
+#include <map>
 
 
 //MISSING:
@@ -188,10 +190,10 @@ public:
       //@}
 
       /// handler which support partial loading, implement this method
-      virtual LOADDETAIL getLoadDetail() const override;
+      LOADDETAIL getLoadDetail() const override;
 
       /// handler which support partial loading, implement this method
-      virtual void setLoadDetail(const LOADDETAIL d) override;
+      void setLoadDetail(const LOADDETAIL d) override;
 
 protected:
 
@@ -274,7 +276,7 @@ protected:
       void populateChromatogramsWithData_(std::vector<MzMLHandlerHelper::BinaryData>& input_data,
                                           Size& length,
                                           const PeakFileOptions& peak_file_options,
-                                          ChromatogramType& inp_chromatogram);
+                                          ChromatogramType& chromatogram);
 
       /// Fills the current chromatogram with data points and meta data
       void fillChromatogramData_();
@@ -282,14 +284,18 @@ protected:
       /// Handles CV terms
       void handleCVParam_(const String& parent_parent_tag,
                           const String& parent_tag,
-                          /*  const String & cvref, */
                           const String& accession,
                           const String& name,
                           const String& value,
                           const String& unit_accession = "");
 
       /// Handles user terms
-      void handleUserParam_(const String& parent_parent_tag, const String& parent_tag, const String& name, const String& type, const String& value);
+      void handleUserParam_(const String& parent_parent_tag,
+                            const String& parent_tag,
+                            const String& name,
+                            const String& type,
+                            const String& value,
+                            const String& unit_accession = "");
       //@}
 
       /**
@@ -320,17 +326,16 @@ protected:
                               const Internal::MzMLValidator& validator);
 
       template <typename ContainerT>
-      void writeContainerData_(std::ostream& os, const PeakFileOptions& pf_options_, const ContainerT& container, String array_type);
+      void writeContainerData_(std::ostream& os, const PeakFileOptions& pf_options_, const ContainerT& container, const String& array_type);
 
       /**
-          @brief Write a single <binaryDataArray> element to the output
+          @brief Write a single \<binaryDataArray\> element to the output
 
           @param os The stream into which to write
           @param options The PeakFileOptions which determines the compression type to use
           @param data The data to write (32bit float or 64 bit double)
           @param is32bit Whether data is 32bit
           @param array_type Which type of data array is written (mz, time, intensity or float_data)
-          @param array_name Optional array name (for float data arrays)
 
           @note The data argument may be modified by the function (see Base64 for reasons why)
 
@@ -343,7 +348,7 @@ protected:
                                  String array_type);
 
       /**
-          @brief Write a single <binaryDataArray> element for a float data array to the output
+          @brief Write a single \<binaryDataArray\> element for a float data array to the output
 
           This is only for non-standard data arrays which are treated slightly
           differently by the standard.
@@ -352,20 +357,20 @@ protected:
           @param options The PeakFileOptions which determines the compression type to use
           @param array The data to write
           @param spec_chrom_idx The index of the current spectrum or chromatogram
-          @param array_id The index of the current float data array
-          @param isSpectrum Whether data is associated with a spectrum (if false, a chromatogram is assumed)
+          @param array_idx The index of the current float data array
+          @param is_spectrum Whether data is associated with a spectrum (if false, a chromatogram is assumed)
           @param validator Validator object
       */
       void writeBinaryFloatDataArray_(std::ostream& os,
-                                      const PeakFileOptions& pf_options_,
+                                      const PeakFileOptions& options,
                                       const OpenMS::DataArrays::FloatDataArray& array,
                                       const Size spec_chrom_idx,
                                       const Size array_idx,
-                                      bool isSpectrum,
+                                      bool is_spectrum,
                                       const Internal::MzMLValidator& validator);
 
       /// Writes user terms
-      void writeUserParam_(std::ostream& os, const MetaInfoInterface& meta, UInt indent, const String& path, const Internal::MzMLValidator& validator) const;
+      void writeUserParam_(std::ostream& os, const MetaInfoInterface& meta, UInt indent, const String& path, const Internal::MzMLValidator& validator, const std::set<String>& exclude = {}) const;
 
       /// Helper method that writes a software
       void writeSoftware_(std::ostream& os, const String& id, const Software& software, const Internal::MzMLValidator& validator);
@@ -425,17 +430,19 @@ protected:
       /// Id of the current list. Used for referencing param group, source file, sample, software, ...
       String current_id_;
       /// The referencing param groups: id => array (accession, value)
-      Map<String, std::vector<SemanticValidator::CVTerm> > ref_param_;
+      std::map<String, std::vector<SemanticValidator::CVTerm> > ref_param_;
       /// The source files: id => SourceFile
-      Map<String, SourceFile> source_files_;
+      std::map<String, SourceFile> source_files_;
       /// The sample list: id => Sample
-      Map<String, Sample> samples_;
+      std::map<String, Sample> samples_;
       /// The software list: id => Software
-      Map<String, Software> software_;
+      std::map<String, Software> software_;
       /// The data processing list: id => Instrument
-      Map<String, Instrument> instruments_;
+      std::map<String, Instrument> instruments_;
+      /// CV terms-path-combinations that have been checked in validateCV_()
+      mutable std::map<std::pair<String, String>, bool> cached_terms_;
       /// The data processing list: id => Instrument
-      Map<String, std::vector< DataProcessingPtr > > processing_;
+      std::map<String, std::vector< DataProcessingPtr > > processing_;
       /// id of the default data processing (used when no processing is defined)
       String default_processing_;
       /// Count of selected ions
@@ -453,7 +460,6 @@ protected:
         std::vector<BinaryData> data;
         Size default_array_length;
         SpectrumType spectrum;
-        bool skip_data;
       };
 
       /// Vector of spectrum data stored for later parallel processing
@@ -477,15 +483,16 @@ protected:
       std::vector<ChromatogramData> chromatogram_data_;
 
       //@}
+      
       /**@name temporary data structures to hold written data
        *
        * These data structures are used to store binary offsets required by the
-       * indexedMzML format, specifically the start of each <spectrum> and
-       * <chromatogram> tag is stored and will then be stored at the end of the file.
+       * indexedMzML format, specifically the start of each \<spectrum\> and
+       * \<chromatogram\> tag is stored and will then be stored at the end of the file.
        **/
       //@{
-      std::vector<std::pair<std::string, long> > spectra_offsets_; ///< Stores binary offsets for each <spectrum> tag
-      std::vector<std::pair<std::string, long> > chromatograms_offsets_; ///< Stores binary offsets for each <chromatogram> tag
+      std::vector<std::pair<std::string, Int64> > spectra_offsets_; ///< Stores binary offsets for each \<spectrum\> tag
+      std::vector<std::pair<std::string, Int64> > chromatograms_offsets_; ///< Stores binary offsets for each \<chromatogram\> tag
       //@}
 
       /// Progress logger
@@ -502,7 +509,7 @@ protected:
       //@}
 
       ///Controlled vocabulary (psi-ms from OpenMS/share/OpenMS/CV/psi-ms.obo)
-      ControlledVocabulary cv_;
+      const ControlledVocabulary& cv_;
       CVMappings mapping_;
 
     };

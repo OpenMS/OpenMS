@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -28,13 +28,13 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Johannes Veit $
-// $Authors: Johannes Junker $
+// $Maintainer: Johannes Veit, Chris Bielow $
+// $Authors: Johannes Junker, Chris Bielow $
 // --------------------------------------------------------------------------
 
 #pragma once
 
-#include <OpenMS/DATASTRUCTURES/DPosition.h>
+#include <OpenMS/VISUAL/MISC/CommonDefs.h> // for PointXYType
 
 #include <QtCore/QRectF>
 #include <QtCore/QString>
@@ -43,7 +43,9 @@ class QPainter;
 
 namespace OpenMS
 {
-  class Spectrum1DCanvas;
+  template<int D> class DimMapper;
+  class Gravitator;
+  class Plot1DCanvas;
 
   /** @brief An abstract class acting as an interface for the different 1D annotation items.
 
@@ -58,22 +60,12 @@ namespace OpenMS
     */
   class Annotation1DItem
   {
-
-public:
-    /// Type of the Points
-    typedef DPosition<2> PointType;
-
-    /// Intensity type
-    typedef float IntensityType;
-
-    /// Coordinate type
-    typedef double CoordinateType;
-
+  public:
     /// Destructor
     virtual ~Annotation1DItem();
 
     /// Returns the current bounding box of this item on the canvas where it has last been drawn
-    const QRectF & boundingBox() const;
+    const QRectF& boundingBox() const;
 
     /// Returns true if this item is currently selected on the canvas, else false
     bool isSelected() const;
@@ -85,22 +77,25 @@ public:
     void setText(const QString & text);
 
     /// Returns the text of the item
-    const QString & getText() const;
+    const QString& getText() const;
 
     /// open a GUI input field and let the user edit the text
     /// If the text was changed, true is returned; otherwise false.
     bool editText();
 
     /// Ensures that the item has coordinates within the visible area of the canvas
-    virtual void ensureWithinDataRange(Spectrum1DCanvas * const canvas) = 0;
+    virtual void ensureWithinDataRange(Plot1DCanvas* const canvas, const int layer_index) = 0;
 
     /// Draws the item on @p painter
-    virtual void draw(Spectrum1DCanvas * const canvas, QPainter & painter, bool flipped = false) = 0;
+    virtual void draw(Plot1DCanvas* const canvas, QPainter& painter, bool flipped = false) = 0;
 
-    /// Moves the item; behaviour depends on item type and is implemented in the subclasses
-    virtual void move(const PointType & delta) = 0;
+    /// Moves the item on the drawing canvas; behavior depends on item type and is implemented in the subclasses
+    virtual void move(const PointXYType delta, const Gravitator& gr, const DimMapper<2>& dim_mapper) = 0;
 
-protected:
+    /// Creates a copy of the item on the heap and returns a pointer
+    virtual Annotation1DItem* clone() const = 0;
+
+  protected:
     /// Constructor
     Annotation1DItem(const QString & text);
 

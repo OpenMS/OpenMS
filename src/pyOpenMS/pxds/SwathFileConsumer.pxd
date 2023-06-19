@@ -14,7 +14,7 @@ cdef extern from "<OpenMS/FORMAT/DATAACCESS/SwathFileConsumer.h>" namespace "Ope
         #no-pxd-import
 
         FullSwathFileConsumer() nogil except + #wrap-ignore
-        FullSwathFileConsumer(FullSwathFileConsumer) nogil except + #wrap-ignore
+        FullSwathFileConsumer(FullSwathFileConsumer &) nogil except + # compiler
         FullSwathFileConsumer(libcpp_vector[SwathMap] swath_boundaries) nogil except +
 
         void setExpectedSize(Size s, Size c) nogil except +
@@ -29,20 +29,20 @@ cdef extern from "<OpenMS/FORMAT/DATAACCESS/SwathFileConsumer.h>" namespace "Ope
 
     cdef cppclass RegularSwathFileConsumer(FullSwathFileConsumer):
         # wrap-inherits:
-        #    FullSwathFileConsumer
+        #   FullSwathFileConsumer
 
         RegularSwathFileConsumer() nogil except +
-        RegularSwathFileConsumer(RegularSwathFileConsumer &) nogil except + # wrap-ignore
+        RegularSwathFileConsumer(RegularSwathFileConsumer &) nogil except + # compiler
 
 
 cdef extern from "<OpenMS/FORMAT/DATAACCESS/SwathFileConsumer.h>" namespace "OpenMS":
 
     cdef cppclass CachedSwathFileConsumer(FullSwathFileConsumer):
         # wrap-inherits:
-        #    FullSwathFileConsumer
+        #   FullSwathFileConsumer
 
         CachedSwathFileConsumer() nogil except + #wrap-ignore
-        CachedSwathFileConsumer(CachedSwathFileConsumer &) nogil except + # wrap-ignore
+        CachedSwathFileConsumer(CachedSwathFileConsumer &) nogil except + # compiler
         CachedSwathFileConsumer(String cachedir, String basename, 
                                 Size nr_ms1_spectra, libcpp_vector[int] nr_ms2_spectra)
 
@@ -53,7 +53,7 @@ cdef extern from "<OpenMS/FORMAT/DATAACCESS/SwathFileConsumer.h>" namespace "Ope
         #  FullSwathFileConsumer
 
         MzMLSwathFileConsumer() nogil except + # wrap-ignore
-        MzMLSwathFileConsumer(MzMLSwathFileConsumer) nogil except + #wrap-ignore
+        MzMLSwathFileConsumer(MzMLSwathFileConsumer) nogil except + # compiler
         MzMLSwathFileConsumer(String cachedir,
                               String basename, 
                               Size nr_ms1_spectra, 
@@ -63,4 +63,3 @@ cdef extern from "<OpenMS/FORMAT/DATAACCESS/SwathFileConsumer.h>" namespace "Ope
                               String basename,
                               Size nr_ms1_spectra, 
                               libcpp_vector[ int ] nr_ms2_spectra) nogil except +
-

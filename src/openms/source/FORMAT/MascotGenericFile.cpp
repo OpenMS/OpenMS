@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -41,10 +41,12 @@
 #include <OpenMS/METADATA/Precursor.h>
 #include <OpenMS/METADATA/SpectrumSettings.h>
 #include <OpenMS/METADATA/SourceFile.h>
-#include <OpenMS/METADATA/SpectrumLookup.h> 
+#include <OpenMS/METADATA/SpectrumLookup.h>
 
 #include <QFileInfo>
 #include <QtCore/QRegExp>
+
+#include <iomanip>     // setw
 
 #define HIGH_PRECISION 5
 #define LOW_PRECISION 3
@@ -58,8 +60,8 @@ namespace OpenMS
     ProgressLogger(), DefaultParamHandler("MascotGenericFile"), mod_group_map_()
   {
     defaults_.setValue("database", "MSDB", "Name of the sequence database");
-    defaults_.setValue("search_type", "MIS", "Name of the search type for the query", ListUtils::create<String>("advanced"));
-    defaults_.setValidStrings("search_type", ListUtils::create<String>("MIS,SQ,PMF"));
+    defaults_.setValue("search_type", "MIS", "Name of the search type for the query", {"advanced"});
+    defaults_.setValidStrings("search_type", {"MIS","SQ","PMF"});
     defaults_.setValue("enzyme", "Trypsin", "The enzyme descriptor to the enzyme used for digestion. (Trypsin is default, None would be best for peptide input or unspecific digestion, for more please refer to your mascot server).");
     defaults_.setValue("instrument", "Default", "Instrument definition which specifies the fragmentation rules");
     defaults_.setValue("missed_cleavages", 1, "Number of missed cleavages allowed for the enzyme");
@@ -67,59 +69,60 @@ namespace OpenMS
     defaults_.setValue("precursor_mass_tolerance", 3.0, "Tolerance of the precursor peaks");
     defaults_.setMinFloat("precursor_mass_tolerance", 0.0);
     defaults_.setValue("precursor_error_units", "Da", "Units of the precursor mass tolerance");
-    defaults_.setValidStrings("precursor_error_units", ListUtils::create<String>("%,ppm,mmu,Da"));
+    defaults_.setValidStrings("precursor_error_units", {"%","ppm","mmu","Da"});
     defaults_.setValue("fragment_mass_tolerance", 0.3, "Tolerance of the peaks in the fragment spectrum");
     defaults_.setMinFloat("fragment_mass_tolerance", 0.0);
     defaults_.setValue("fragment_error_units", "Da", "Units of the fragment peaks tolerance");
-    defaults_.setValidStrings("fragment_error_units", ListUtils::create<String>("mmu,Da"));
+    defaults_.setValidStrings("fragment_error_units", {"mmu","Da"});
     defaults_.setValue("charges", "1,2,3", "Charge states to consider, given as a comma separated list of integers (only used for spectra without precursor charge information)");
     defaults_.setValue("taxonomy", "All entries", "Taxonomy specification of the sequences");
     vector<String> all_mods;
     ModificationsDB::getInstance()->getAllSearchModifications(all_mods);
-    defaults_.setValue("fixed_modifications", ListUtils::create<String>(""), "List of fixed modifications, according to UniMod definitions.");
-    defaults_.setValidStrings("fixed_modifications", all_mods);
-    defaults_.setValue("variable_modifications", ListUtils::create<String>(""), "Variable modifications given as UniMod definitions.");
-    defaults_.setValidStrings("variable_modifications", all_mods);
+
+    defaults_.setValue("fixed_modifications", std::vector<std::string>(), "List of fixed modifications, according to UniMod definitions.");
+    defaults_.setValidStrings("fixed_modifications", ListUtils::create<std::string>(all_mods));
+    defaults_.setValue("variable_modifications", std::vector<std::string>(), "Variable modifications given as UniMod definitions.");
+    defaults_.setValidStrings("variable_modifications", ListUtils::create<std::string>(all_mods));
 
     // special modifications, see "updateMembers_" method below:
-    defaults_.setValue("special_modifications", "Cation:Na (DE),Deamidated (NQ),Oxidation (HW),Phospho (ST),Sulfo (ST)", "Modifications with specificity groups that are used by Mascot and have to be treated specially", ListUtils::create<String>("advanced"));
+    defaults_.setValue("special_modifications", "Cation:Na (DE),Deamidated (NQ),Oxidation (HW),Phospho (ST),Sulfo (ST)", "Modifications with specificity groups that are used by Mascot and have to be treated specially", {"advanced"});
     // list from Mascot 2.4; there's also "Phospho (STY)", but that can be
     // represented using "Phospho (ST)" and "Phospho (Y)"
 
     defaults_.setValue("mass_type", "monoisotopic", "Defines the mass type, either monoisotopic or average");
-    defaults_.setValidStrings("mass_type", ListUtils::create<String>("monoisotopic,average"));
+    defaults_.setValidStrings("mass_type", {"monoisotopic","average"});
     defaults_.setValue("number_of_hits", 0, "Number of hits which should be returned, if 0 AUTO mode is enabled.");
     defaults_.setMinInt("number_of_hits", 0);
     defaults_.setValue("skip_spectrum_charges", "false", "Sometimes precursor charges are given for each spectrum but are wrong, setting this to 'true' does not write any charge information to the spectrum, the general charge information is however kept.");
-    defaults_.setValidStrings("skip_spectrum_charges", ListUtils::create<String>("true,false"));
+    defaults_.setValidStrings("skip_spectrum_charges", {"true","false"});
+    defaults_.setValue("decoy", "false", "Set to true if mascot should generate the decoy database.");
+    defaults_.setValidStrings("decoy", {"true","false"});
 
-    defaults_.setValue("search_title", "OpenMS_search", "Sets the title of the search.", ListUtils::create<String>("advanced"));
-    defaults_.setValue("username", "OpenMS", "Sets the username which is mentioned in the results file.", ListUtils::create<String>("advanced"));
+    defaults_.setValue("search_title", "OpenMS_search", "Sets the title of the search.", {"advanced"});
+    defaults_.setValue("username", "OpenMS", "Sets the username which is mentioned in the results file.", {"advanced"});
     defaults_.setValue("email", "", "Sets the email which is mentioned in the results file. Note: Some server require that a proper email is provided.");
 
     // the next section should not be shown to TOPP users
     Param p;
-    p.setValue("format", "Mascot generic", "Sets the format type of the peak list, this should not be changed unless you write the header only.", ListUtils::create<String>("advanced"));
-    p.setValidStrings("format", ListUtils::create<String>("Mascot generic,mzData (.XML),mzML (.mzML)")); // Mascot's HTTP interface supports more, but we don't :)
-    p.setValue("boundary", "GZWgAaYKjHFeUaLOLEIOMq", "MIME boundary for parameter header (if using HTTP format)", ListUtils::create<String>("advanced"));
-    p.setValue("HTTP_format", "false", "Write header with MIME boundaries instead of simple key-value pairs. For HTTP submission only.", ListUtils::create<String>("advanced"));
-    p.setValidStrings("HTTP_format", ListUtils::create<String>("true,false"));
-    p.setValue("content", "all", "Use parameter header + the peak lists with BEGIN IONS... or only one of them.", ListUtils::create<String>("advanced"));
-    p.setValidStrings("content", ListUtils::create<String>("all,peaklist_only,header_only"));
+    p.setValue("format", "Mascot generic", "Sets the format type of the peak list, this should not be changed unless you write the header only.", {"advanced"});
+    p.setValidStrings("format", {"Mascot generic","mzData (.XML)","mzML (.mzML)"}); // Mascot's HTTP interface supports more, but we don't :)
+    p.setValue("boundary", "GZWgAaYKjHFeUaLOLEIOMq", "MIME boundary for parameter header (if using HTTP format)", {"advanced"});
+    p.setValue("HTTP_format", "false", "Write header with MIME boundaries instead of simple key-value pairs. For HTTP submission only.", {"advanced"});
+    p.setValidStrings("HTTP_format", {"true","false"});
+    p.setValue("content", "all", "Use parameter header + the peak lists with BEGIN IONS... or only one of them.", {"advanced"});
+    p.setValidStrings("content", {"all","peaklist_only","header_only"});
     defaults_.insert("internal:", p);
 
     defaultsToParam_();
   }
 
-  MascotGenericFile::~MascotGenericFile()
-  {
-  }
+  MascotGenericFile::~MascotGenericFile() = default;
 
   void MascotGenericFile::updateMembers_()
   {
     // special cases for specificity groups: OpenMS uses e.g. "Deamidated (N)"
     // and "Deamidated (Q)", but Mascot only understands "Deamidated (NQ)"
-    String special_mods = param_.getValue("special_modifications");
+    String special_mods = param_.getValue("special_modifications").toString();
     vector<String> mod_groups = ListUtils::create<String>(special_mods);
     for (StringList::const_iterator mod_it = mod_groups.begin();
          mod_it != mod_groups.end(); ++mod_it)
@@ -246,6 +249,13 @@ namespace OpenMS
     writeParameterHeader_("DB", os);
     os << param_.getValue("database") << "\n";
 
+    // decoys
+    if (param_.getValue("decoy").toBool() == true)
+    {
+      writeParameterHeader_("DECOY", os);
+      os << 1 << "\n";
+    }
+
     // search type
     writeParameterHeader_("SEARCH", os);
     os << param_.getValue("search_type") << "\n";
@@ -271,11 +281,11 @@ namespace OpenMS
     os << param_.getValue("mass_type") << "\n";
 
     // fixed modifications
-    vector<String> fixed_mods = param_.getValue("fixed_modifications");
+    StringList fixed_mods = ListUtils::toStringList<std::string>(param_.getValue("fixed_modifications"));
     writeModifications_(fixed_mods, os);
 
     // variable modifications
-    vector<String> var_mods = param_.getValue("variable_modifications");
+    StringList var_mods = ListUtils::toStringList<std::string>(param_.getValue("variable_modifications"));
     writeModifications_(var_mods, os, true);
 
     // instrument
@@ -303,10 +313,10 @@ namespace OpenMS
     os << param_.getValue("charges") << "\n";
   }
 
-  void MascotGenericFile::writeSpectrum_(ostream& os, const PeakSpectrum& spec, const String& filename, const String& native_id_type_accession)
+  void MascotGenericFile::writeSpectrum(ostream& os, const PeakSpectrum& spec, const String& filename, const String& native_id_type_accession)
   {
     Precursor precursor;
-    if (spec.getPrecursors().size() > 0)
+    if (!spec.getPrecursors().empty())
     {
       precursor = spec.getPrecursors()[0];
     }
@@ -335,34 +345,52 @@ namespace OpenMS
       os << "BEGIN IONS\n";
       if (!store_compact_)
       {
-        os << "TITLE=" << precisionWrapper(mz) << "_" << precisionWrapper(rt)
-           << "_" << spec.getNativeID() << "_" << filename << "\n";
+        // if a TITLE is available, it was (most likely) parsed from an MGF
+        // or generated to be written out in an MGF
+        if (spec.metaValueExists("TITLE"))
+        {
+          os << "TITLE=" << spec.getMetaValue("TITLE") << "\n";
+        }
+        else
+        {
+          os << "TITLE=" << precisionWrapper(mz) << "_" << precisionWrapper(rt)
+             << "_" << spec.getNativeID() << "_" << filename << "\n";
+        }
         os << "PEPMASS=" << precisionWrapper(mz) <<  "\n";
         os << "RTINSECONDS=" << precisionWrapper(rt) << "\n";
-  if (native_id_type_accession == "UNKNOWN")
-  {
-    os << "SCANS=" << spec.getNativeID().substr(spec.getNativeID().find_last_of("=")+1) << "\n";
-  }
-  else
-  {
+        if (native_id_type_accession == "UNKNOWN")
+        {
+          os << "SCANS=" << spec.getNativeID().substr(spec.getNativeID().find_last_of("=")+1) << "\n";
+        }
+        else
+        {
           os << "SCANS=" << SpectrumLookup::extractScanNumber(spec.getNativeID(), native_id_type_accession) << "\n";
-  }
+        }
       }
       else
       {
-        os << "TITLE=" << fixed << setprecision(HIGH_PRECISION) << mz << "_"
-           << setprecision(LOW_PRECISION) << rt << "_"
-           << spec.getNativeID() << "_" << filename << "\n";
+        // if a TITLE is available, it was (most likely) parsed from an MGF
+        // or generated to be written out in an MGF
+        if (spec.metaValueExists("TITLE"))
+        {
+          os << "TITLE=" << spec.getMetaValue("TITLE") << "\n";
+        }
+        else
+        {
+          os << "TITLE=" << fixed << setprecision(HIGH_PRECISION) << mz << "_"
+             << setprecision(LOW_PRECISION) << rt << "_"
+             << spec.getNativeID() << "_" << filename << "\n";
+        }
         os << "PEPMASS=" << setprecision(HIGH_PRECISION) << mz << "\n";
         os << "RTINSECONDS=" << setprecision(LOW_PRECISION) << rt << "\n";
-  if (native_id_type_accession == "UNKNOWN")
-  {
-    os << "SCANS=" << spec.getNativeID().substr(spec.getNativeID().find_last_of("=")+1) << "\n";
-  }
-  else
-  {
-    os << "SCANS=" << SpectrumLookup::extractScanNumber(spec.getNativeID(), native_id_type_accession) << "\n";
-  }
+        if (native_id_type_accession == "UNKNOWN")
+        {
+          os << "SCANS=" << spec.getNativeID().substr(spec.getNativeID().find_last_of("=")+1) << "\n";
+        }
+        else
+        {
+          os << "SCANS=" << SpectrumLookup::extractScanNumber(spec.getNativeID(), native_id_type_accession) << "\n";
+        }
       }
 
       int charge(precursor.getCharge());
@@ -390,7 +418,10 @@ namespace OpenMS
         for (PeakSpectrum::const_iterator it = spec.begin(); it != spec.end(); ++it)
         {
           PeakSpectrum::PeakType::IntensityType intensity = it->getIntensity();
-          if (intensity == 0.0) continue; // skip zero-intensity peaks
+          if (intensity == 0.0)
+          {
+            continue; // skip zero-intensity peaks
+          }
           os << fixed << setprecision(HIGH_PRECISION) << it->getMZ() << " "
              << setprecision(LOW_PRECISION) << intensity << "\n";
         }
@@ -402,8 +433,8 @@ namespace OpenMS
   std::pair<String, String> MascotGenericFile::getHTTPPeakListEnclosure(const String& filename) const
   {
     std::pair<String, String> r;
-    r.first = String("--" + String(param_.getValue("internal:boundary")) + "\n" + "Content-Disposition: form-data; name=\"FILE\"; filename=\"" + filename + "\"\n\n");
-    r.second = String("\n\n--" + String(param_.getValue("internal:boundary")) + "--\n");
+    r.first = String("--" + (std::string)param_.getValue("internal:boundary") + "\n" + R"(Content-Disposition: form-data; name="FILE"; filename=")" + filename + "\"\n\n");
+    r.second = String("\n\n--" + (std::string)param_.getValue("internal:boundary") + "--\n");
     return r;
   }
 
@@ -422,26 +453,34 @@ namespace OpenMS
 
 
     String native_id_type_accession;
-    vector<SourceFile> sourcefiles = experiment.getExperimentalSettings().getSourceFiles();
+    const vector<SourceFile>& sourcefiles = experiment.getSourceFiles();
     if (sourcefiles.empty())
     {
+      OPENMS_LOG_WARN << "MascotGenericFile: no native ID accession." << endl;
       native_id_type_accession = "UNKNOWN";
     }
     else
     {
-      native_id_type_accession = experiment.getExperimentalSettings().getSourceFiles()[0].getNativeIDTypeAccession();
+      native_id_type_accession = experiment.getSourceFiles()[0].getNativeIDTypeAccession();
+      if (native_id_type_accession.empty())
+      {
+        OPENMS_LOG_WARN << "MascotGenericFile: empty native ID accession." << endl;
+        native_id_type_accession = "UNKNOWN";
+      }
     }
+
+
     this->startProgress(0, experiment.size(), "storing mascot generic file");
     for (Size i = 0; i < experiment.size(); i++)
     {
       this->setProgress(i);
       if (experiment[i].getMSLevel() == 2)
       {
-        writeSpectrum_(os, experiment[i], filtered_filename, native_id_type_accession);
+        writeSpectrum(os, experiment[i], filtered_filename, native_id_type_accession);
       }
       else if (experiment[i].getMSLevel() == 0)
       {
-        LOG_WARN << "MascotGenericFile: MSLevel is set to 0, ignoring this spectrum!" << "\n";
+        OPENMS_LOG_WARN << "MascotGenericFile: MSLevel is set to 0, ignoring this spectrum!" << "\n";
       }
     }
     // close file

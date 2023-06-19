@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry               
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 // 
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -164,7 +164,7 @@ START_SECTION((QualityType fit1d(const RawDataArrayType &range, InterpolationMod
   // Set parameter for fitter
   egh_fitter.setParameters( egh_param );
 
-  InterpolationModel* fitted_egh_model = nullptr;
+  std::unique_ptr<InterpolationModel> fitted_egh_model;
 
   // Construct model for rt
   egh_quality = egh_fitter.fit1d(data_to_fit, fitted_egh_model);
@@ -182,6 +182,7 @@ START_SECTION((static Fitter1D* create()))
   Fitter1D* ptr = EGHFitter1D::create();
   TEST_EQUAL(ptr->getName(), "EGHFitter1D")
 	TEST_NOT_EQUAL(ptr, nullPointer)
+	delete ptr;
 }
 END_SECTION
 

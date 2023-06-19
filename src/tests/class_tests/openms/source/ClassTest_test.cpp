@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -37,6 +37,8 @@
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/CONCEPT/PrecisionWrapper.h>
 
+#include <fstream>
+
 using namespace OpenMS;
 
 bool intentionally_failed_tests_okay = true;
@@ -52,7 +54,7 @@ on the same line of code.  */
 		if (TEST::verbose > 1)																							\
 		{																																		\
 			TEST::initialNewline();																						\
-			std__cout << __FILE__ ":" <<  __LINE__ <<													\
+			stdcout << __FILE__ ":" <<  __LINE__ <<													\
 				": note:  The preceeding test was supposed to fail intentionally.  =>  SUCCESS" << \
 				std::endl;																											\
 		}																																		\
@@ -65,7 +67,7 @@ on the same line of code.  */
 		if (TEST::verbose > 1)																							\
 		{																																		\
 			TEST::initialNewline();																						\
-			std__cout << __FILE__ ":" <<  __LINE__ <<													\
+			stdcout << __FILE__ ":" <<  __LINE__ <<													\
 				" error:  The preceeding test was supposed to fail, but it did not.  =>  FAILURE" << \
 				std::endl;																											\
 		}																																		\
@@ -123,8 +125,23 @@ END_SECTION
 START_SECTION("NEW_TMP_FILE()")
 	std::string tmp_filename;
 	NEW_TMP_FILE(tmp_filename);
-	TEST::this_test = (tmp_filename != "");
-	TEST_EQUAL(tmp_filename != "", true);
+	TEST::this_test = (!tmp_filename.empty());
+	TEST_EQUAL(!tmp_filename.empty(), true);
+END_SECTION
+
+
+START_SECTION("TEST_TRUE()")
+{
+  TEST_TRUE(2==3); FAILURE_IS_SUCCESS;
+  TEST_TRUE(2==2);
+}
+END_SECTION
+
+START_SECTION("TEST_FALSE()")
+{
+  TEST_FALSE(2 == 2);	FAILURE_IS_SUCCESS;
+  TEST_FALSE(2 == 3);
+}
 END_SECTION
 
 START_SECTION("TEST_REAL_SIMILAR()")
@@ -145,8 +162,8 @@ START_SECTION("TEST_REAL_SIMILAR()")
 	std::ofstream tmp_file(tmp_file_name.c_str());
 	STATUS('\n' << tmp_file_name << ":0:  output of TEST_REAL_SIMILAR() elementary tests starts here");
 
-#undef std__cout
-#define std__cout tmp_file
+#undef stdcout
+#define stdcout tmp_file
 	// The many {} are intended for code folding.  Do not mess them up.
 	{
 		{
@@ -667,8 +684,8 @@ START_SECTION("TEST_REAL_SIMILAR()")
 			}
 		}
 	}
-#undef std__cout
-#define std__cout std::cout
+#undef stdcout
+#define stdcout std::cout
 
 }
 END_SECTION
@@ -842,8 +859,12 @@ END_SECTION
 
 START_SECTION("ABORT_IF")
 	TEST_EQUAL(1, 1)
-	ABORT_IF(true)
-	TEST_EQUAL(1, 0)
+	while (true)
+  {
+    ABORT_IF(true) // will 'break;' internally, but we do not want to leave the test
+	}
+  FAILURE_IS_SUCCESS;			 	
+	
 END_SECTION
 
 START_SECTION("TEST_REAL_SIMILAR : type checking")

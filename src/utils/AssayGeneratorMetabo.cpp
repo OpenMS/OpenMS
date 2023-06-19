@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -32,21 +32,30 @@
 // $Authors: Oliver Alka $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/APPLICATIONS/TOPPBase.h>
-#include <OpenMS/FORMAT/MzMLFile.h>
-#include <OpenMS/KERNEL/MSExperiment.h>
-#include <OpenMS/FORMAT/FeatureXMLFile.h>
-#include <OpenMS/KERNEL/MSSpectrum.h>
+#include <OpenMS/ANALYSIS/ID/SiriusAdapterAlgorithm.h>
+#include <OpenMS/ANALYSIS/OPENSWATH/MRMAssay.h>
+#include <OpenMS/ANALYSIS/OPENSWATH/TransitionPQPFile.h>
+#include <OpenMS/ANALYSIS/OPENSWATH/TransitionTSVFile.h>
 #include <OpenMS/ANALYSIS/QUANTITATION/KDTreeFeatureMaps.h>
-#include <OpenMS/FORMAT/TextFile.h>
-#include <OpenMS/COMPARISON/SPECTRA/BinnedSpectrum.h>
-#include <OpenMS/COMPARISON/SPECTRA/BinnedSpectralContrastAngle.h>
-#include <OpenMS/FILTERING/TRANSFORMERS/SpectraMerger.h>
-#include <OpenMS/MATH/MISC/MathFunctions.h>
+#include <OpenMS/ANALYSIS/TARGETED/MetaboTargetedAssay.h>
+#include <OpenMS/ANALYSIS/TARGETED/MetaboTargetedTargetDecoy.h>
+#include <OpenMS/APPLICATIONS/TOPPBase.h>
+#include <OpenMS/CONCEPT/Exception.h>
+#include <OpenMS/FILTERING/CALIBRATION/PrecursorCorrection.h>
+#include <OpenMS/FILTERING/DATAREDUCTION/Deisotoper.h>
+#include <OpenMS/FORMAT/DATAACCESS/SiriusFragmentAnnotation.h>
+#include <OpenMS/FORMAT/DATAACCESS/SiriusMzTabWriter.h>
+#include <OpenMS/FORMAT/FeatureXMLFile.h>
+#include <OpenMS/FORMAT/MzMLFile.h>
+#include <OpenMS/FORMAT/TraMLFile.h>
+#include <OpenMS/KERNEL/RangeUtils.h>
+#include <OpenMS/KERNEL/StandardTypes.h>
+#include <OpenMS/SYSTEM/File.h>
+#include <QDir>
+#include <algorithm>
+#include <map>
 
 using namespace OpenMS;
-using namespace std;
-
 
 //-------------------------------------------------------------
 //Doxygen docu
@@ -59,16 +68,16 @@ using namespace std;
     <CENTER>
       <table>
           <tr>
-              <td ALIGN = "center" BGCOLOR="#EBEBEB"> potential predecessor tools </td>
-              <td VALIGN="middle" ROWSPAN=2> \f$ \longrightarrow \f$ AssayGeneratorMetabo \f$ \longrightarrow \f$</td>
-              <td ALIGN = "center" BGCOLOR="#EBEBEB"> potential successor tools </td>
+              <th ALIGN = "center"> potential predecessor tools </td>
+              <td VALIGN="middle" ROWSPAN=2> &rarr; AssayGeneratorMetabo &rarr;</td>
+              <th ALIGN = "center"> potential successor tools </td>
           </tr>
           <tr>
               <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_FeatureFinderMetabo </td>
-              <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref OpenSWATH pipeline </td>
+              <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> OpenSWATH pipeline </td>
           </tr>
           <tr>
-              <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref Utils_AccurateMassSearch </td>
+              <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref UTILS_AccurateMassSearch </td>
           </tr>
       </table>
   </CENTER>
@@ -77,23 +86,23 @@ using namespace std;
   Please provide a list of features found in the data (featureXML).
 
   Features can be detected using the FeatureFinderMetabo (FFM) and identifcation information
-  can be applied using the AccurateMassSearch feautreXML output.
+  can be added using the AccurateMassSearch feautreXML output.
 
-  Note: Please set the "report_confex_hulls" parameter to "true" when using the FFM.
+  If the FFM featureXML is provided the "use_known_unknowns" flag is used automatically.
 
-  If the FFM featureXML is used the "use_known_unknowns" flag is used automatically.
-
-  Internal procedure AssayGeneratorMetabo:
-  1. Input mzML and featureXML
-  2. Annotate precursor mz and intensity
-  3. Filter feature by convexhull size
-  4. Assign precursors to specific feature
-  5. Extract feature meta information (if possible)
-  6. Find MS2 spectrum with highest intensity precursor for one feature
-  7. Dependent on the method use the MS2 with the highest intensity precursor or a consensus spectrum
-     for the transition calculation
-  8. Calculate thresholds (maximum and minimum intensity for transition peak)
-  9. Extract and write transitions
+  Internal procedure AssayGeneratorMetabo: \n
+  1. Input mzML and featureXML \n
+  2. Reannotate precursor mz and intensity \n
+  3. Filter feature by number of masstraces \n
+  4. Assign precursors to specific feature (FeatureMapping) \n
+  5. Extract feature meta information (if possible) \n
+  6. Find MS2 spectrum with highest intensity precursor for one feature \n
+  7. Dependent on the method fragment annotation via SIRIUS is used for transition
+  extraction. \n
+  If not fragment annotation is performed either the MS2 with the highest intensity precursor or a consensus spectrum
+   can be used for the transition extractuib. \n
+  8. Calculate thresholds (maximum and minimum intensity for transition peak) \n
+  9. Extract and write transitions (tsv, traml) \n
 
   <B>The command line parameters of this tool are:</B>
   @verbinclude UTILS_SiriusAdapter.cli
@@ -103,186 +112,94 @@ using namespace std;
 
 /// @cond TOPPCLASSES
 
-
-/// struct to hold assay information of one row 
-struct AssayRow
-{
-  double precursor_mz;
-  double product_mz;
-  float library_int;
-  double normalized_rt;
-  String compound_name;
-  String smiles;
-  String sumformula;
-  String adduct;
-  String transition_group_id;
-  String transition_id;
-  bool decoy; 
-};
-
 class TOPPAssayGeneratorMetabo :
-  public TOPPBase
+  public TOPPBase,
+  private TransitionTSVFile
 {
 public:
   TOPPAssayGeneratorMetabo() :
     TOPPBase("AssayGeneratorMetabo", "Assay library generation from DDA data (Metabolomics)", false)
     {}
 
+private:
+  SiriusAdapterAlgorithm algorithm;
+
 protected:
 
   void registerOptionsAndFlags_() override
   {
+    registerInputFile_("sirius_executable", "<executable>", "", "The Sirius executable. Provide a full or relative path, or make sure it can be found in your PATH environment.", false, false);
 
-    registerInputFile_("in", "<file>", "", "MzML Input file");
-    setValidFormats_("in", ListUtils::create<String>("mzml"));
+    registerInputFileList_("in", "<file(s)>", StringList(), "MzML input file(s) used for assay library generation");
+    setValidFormats_("in", ListUtils::create<String>("mzML"));
 
-    registerInputFile_("in_id", "<file>", "", "FeatureXML Input with id information (accurate mass search)");
-    setValidFormats_("in_id", ListUtils::create<String>("featurexml"));
+    registerInputFileList_("in_id", "<file(s)>", StringList(), "FeatureXML input file(s) containing identification information (e.g. AccurateMassSearch)");
+    setValidFormats_("in_id", ListUtils::create<String>("featureXML"));
 
     registerOutputFile_("out", "<file>", "", "Assay library output file");
-    setValidFormats_("out", ListUtils::create<String>("tsv"));
+    setValidFormats_("out", ListUtils::create<String>("tsv,traML,pqp"));
 
-    registerStringOption_("method", "<choice>", "highest_intensity", "",false);
+    registerStringOption_("fragment_annotation", "<choice>", "sirius", "Fragment annotation method", false);
+    setValidStrings_("fragment_annotation", ListUtils::create<String>("none,sirius"));
+
+    registerDoubleOption_("ambiguity_resolution_mz_tolerance", "<num>", 10.0, "Mz tolerance for the resolution of identification ambiguity over multiple files", false);
+    registerStringOption_("ambiguity_resolution_mz_tolerance_unit", "<choice>", "ppm", "Unit of the ambiguity_resolution_mz_tolerance", false, true);
+    setValidStrings_("ambiguity_resolution_mz_tolerance_unit", ListUtils::create<String>("ppm,Da"));
+    registerDoubleOption_("ambiguity_resolution_rt_tolerance", "<num>", 10.0, "RT tolerance in seconds for the resolution of identification ambiguity over multiple files", false);
+    registerDoubleOption_("total_occurrence_filter", "<num>", 0.1, "Filter compound based on total occurrence in analysed samples", false);
+    setMinFloat_("total_occurrence_filter", 0.0);
+    setMaxFloat_("total_occurrence_filter", 1.0);
+
+    registerDoubleOption_("fragment_annotation_score_threshold", "<num>", 0.80, "Filters annotations based on the explained intensity of the peaks in a spectrum", false);
+    setMinFloat_("fragment_annotation_score_threshold", 0.0);
+    setMaxFloat_("fragment_annotation_score_threshold", 1.0);
+
+    registerFlag_("decoy_generation", "Decoys will be generated using the fragmentation tree re-rooting approach. This option does only work in combination with the fragment annotation via Sirius.", false);
+
+    registerStringOption_("decoy_generation_method", "<choice>", "original", "Uses different methods for decoy generation. Basis for the method is the fragmentation-tree re-rooting approach ('original'). This approach can be extended by using 'resolve_overlap', which will resolve overlapping fragments of the highest intensity fragments chosen, by adding -CH2 mass to the overlapping fragments. 'Add_shift' will add a -CH2 mass shift to the target fragments and use them as additional decoys if fragmentation-tree re-rooting failed. 'Both' combines the extended methods (resolve_overlap, add_shift).",false);
+    setValidStrings_("decoy_generation_method", ListUtils::create<String>("original,resolve_overlap,add_shift,both"));
+
+    registerStringOption_("method", "<choice>", "highest_intensity", "Spectrum with the highest precursor intensity or a consensus spectrum is used for assay library construction (if no fragment annotation is used).",false);
     setValidStrings_("method", ListUtils::create<String>("highest_intensity,consensus_spectrum"));
 
-    registerDoubleOption_("precursor_mz_tolerance", "<num>", 0.005, "Tolerance window for precursor selection (Feature selection in regard to the precursor)", false);
-    registerStringOption_("precursor_mz_tolerance_unit", "<choice>", "Da", "Unit of the precursor_mz_tolerance", false);
-    setValidStrings_("precursor_mz_tolerance_unit", ListUtils::create<String>("Da,ppm"));
+    registerFlag_("use_exact_mass", "Use exact mass for precursor and fragment annotations", false);
+    registerFlag_("exclude_ms2_precursor", "Excludes precursor in ms2 from transition list", false);
 
+    // preprocessing
     registerDoubleOption_("precursor_mz_distance", "<num>", 0.0001, "Max m/z distance of the precursor entries of two spectra to be merged in [Da].", false);
-
-    registerDoubleOption_("precursor_recalibration_window", "<num>", 0.1, "Tolerance window for precursor selection (Annotation of precursor mz and intensity)", false, true);
+    registerDoubleOption_("precursor_recalibration_window", "<num>", 0.01, "Tolerance window for precursor selection (Annotation of precursor mz and intensity)", false, true);
     registerStringOption_("precursor_recalibration_window_unit", "<choice>", "Da", "Unit of the precursor_mz_tolerance_annotation", false, true);
     setValidStrings_("precursor_recalibration_window_unit", ListUtils::create<String>("Da,ppm"));
-
-    registerDoubleOption_("precursor_rt_tolerance", "<num>", 5, "Tolerance window (left and right) for precursor selection [Da]", false);
-
-    registerDoubleOption_("cosine_similarity_threshold", "<num>", 0.98, "Threshold for cosine similarity of MS2 spectras of same precursor used for consensus spectrum", false);
-
-    registerIntOption_("filter_by_convex_hulls", "<num>", 2, "Features have to have at least x MassTraces", false);
-
-    registerDoubleOption_("transition_threshold", "<num>", 10, "Further transitions need at least x% of the maximum intensity (default 10%)", false);
-
+    registerDoubleOption_("consensus_spectrum_precursor_rt_tolerance", "<num>", 5, "Tolerance window (left and right) for precursor selection [seconds], for consensus spectrum generation (only available without fragment annotation)", false);
     registerFlag_("use_known_unknowns", "Use features without identification information", false);
-  }
 
-  // map precursors to closest feature and retrieve annotated metadata (if possible)
-  // extract meta information from featureXML (MetaboliteAdductDecharger)
-  map<const BaseFeature*, std::vector<size_t>> extractMetaInformation(const PeakMap & spectra, const KDTreeFeatureMaps& fp_map_kd, const double& precursor_mz_tolerance, const double& precursor_rt_tolerance, bool ppm)
-  {
-    map<const BaseFeature*, vector<size_t>> feature_ms2_spectra_map;
+    // transition extraction 
+    registerIntOption_("min_transitions", "<int>", 3, "Minimal number of transitions", false);
+    registerIntOption_("max_transitions", "<int>", 6, "Maximal number of transitions", false);
+    registerDoubleOption_("cosine_similarity_threshold", "<num>", 0.98, "Threshold for cosine similarity of MS2 spectra from the same precursor used in consensus spectrum creation", false);
+    registerDoubleOption_("transition_threshold", "<num>", 5, "Further transitions need at least x% of the maximum intensity (default 5%)", false);
+    registerDoubleOption_("min_fragment_mz", "<num>", 0.0, "Minimal m/z of a fragment ion choosen as a transition", false, true);
+    registerDoubleOption_("max_fragment_mz", "<num>", 2000.0, "Maximal m/z of a fragment ion choosen as a transition" , false, true);
 
-    // map precursors to closest feature and retrieve annotated metadata (if possible)
-    for (size_t index = 0; index != spectra.size(); ++index)
-    {
-      if (spectra[index].getMSLevel() != 2) { continue; }
+    registerTOPPSubsection_("deisotoping", "deisotoping");
+    registerFlag_("deisotoping:use_deisotoper", "Use Deisotoper (if no fragment annotation is used)", false);
+    registerDoubleOption_("deisotoping:fragment_tolerance", "<num>", 1, "Tolerance used to match isotopic peaks", false);
+    registerStringOption_("deisotoping:fragment_unit", "<choice>", "ppm", "Unit of the fragment tolerance", false);
+    setValidStrings_("deisotoping:fragment_unit", ListUtils::create<String>("ppm,Da"));
+    registerIntOption_("deisotoping:min_charge", "<num>", 1, "The minimum charge considered", false);
+    setMinInt_("deisotoping:min_charge", 1);
+    registerIntOption_("deisotoping:max_charge", "<num>", 1, "The maximum charge considered", false);
+    setMinInt_("deisotoping:max_charge", 1);
+    registerIntOption_("deisotoping:min_isopeaks", "<num>", 2, "The minimum number of isotopic peaks (at least 2) required for an isotopic cluster", false);
+    setMinInt_("deisotoping:min_isopeaks", 2);
+    registerIntOption_("deisotoping:max_isopeaks", "<num>", 3, "The maximum number of isotopic peaks (at least 2) considered for an isotopic cluster", false);
+    setMinInt_("deisotoping:max_isopeaks", 3);
+    registerFlag_("deisotoping:keep_only_deisotoped", "Only monoisotopic peaks of fragments with isotopic pattern are retained", false);
+    registerFlag_("deisotoping:annotate_charge", "Annotate the charge to the peaks", false);
 
-      // get precursor meta data (m/z, rt)
-      const vector<Precursor> & pcs = spectra[index].getPrecursors();
-
-      if (!pcs.empty())
-      {
-        const double mz = pcs[0].getMZ();
-        const double rt = spectra[index].getRT();
-
-        // query features in tolerance window
-        vector<Size> matches;
-
-        // get mz tolerance window
-        std::pair<double,double> mz_tolerance_window = Math::getTolWindow(mz, precursor_mz_tolerance, ppm);
-        fp_map_kd.queryRegion(rt - precursor_rt_tolerance, rt + precursor_rt_tolerance, mz_tolerance_window.first, mz_tolerance_window.second, matches, true);
-
-        // no precursor matches the feature information found
-        if (matches.empty()) { continue; }
-
-        // in the case of multiple features in tolerance window, select the one closest in m/z to the precursor
-        Size min_distance_feature_index(0);
-        double min_distance(1e11);
-        for (auto const & k_idx : matches)
-        {
-          const double f_mz = fp_map_kd.mz(k_idx);
-          const double distance = fabs(f_mz - mz);
-          if (distance < min_distance)
-          {
-            min_distance = distance;
-            min_distance_feature_index = k_idx;
-          }
-        }
-        const BaseFeature* min_distance_feature = fp_map_kd.feature(min_distance_feature_index);
-
-        feature_ms2_spectra_map[min_distance_feature].push_back(index);
-      }
-    }
-    return feature_ms2_spectra_map;
-  }
-
-  // precursor correction (highest intensity)
-  Int getHighestIntensityPeakInMZRange(double test_mz, const MSSpectrum& spectrum1, double tolerance, bool ppm)
-  {
-
-    // get tolerance window and left/right iterator
-    std::pair<double,double> tolerance_window = Math::getTolWindow(test_mz, tolerance, ppm);
-    MSSpectrum::ConstIterator left = spectrum1.MZBegin(tolerance_window.first);
-    MSSpectrum::ConstIterator right = spectrum1.MZBegin(tolerance_window.second);
-
-    // no MS1 precursor peak in +- tolerance window found
-    if (left == right || left > right)
-    {
-        return -1;
-    }
-
-    MSSpectrum::ConstIterator max_intensity_it = std::max_element(left, right, Peak1D::IntensityLess());
-
-    if (max_intensity_it == right || max_intensity_it == left)
-    {
-      return -1;
-    }
-
-    return max_intensity_it - spectrum1.begin();
-  }
-
-  // annotate precursor intensity based on precursor spectrum and highest intensity peak in tolerance window
-  void annotatePrecursorIntensity(PeakMap& spectra, double tolerance, bool ppm)
-  {
-    for (PeakMap::Iterator s_it = spectra.begin(); s_it != spectra.end(); ++s_it)
-    {
-      // process only MS2 spectra
-      if (s_it->getMSLevel() != 2)
-      {
-        continue;
-      }
-
-      MSSpectrum& spectrum = *s_it;
-      vector<Precursor>& precursor = spectrum.getPrecursors();
-
-      if (precursor.empty())
-      {
-        throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Error: Invalid MS2 spectrum without precursor");
-      }
-
-      double test_mz = precursor[0].getMZ();
-
-      // find corresponding precursor spectrum
-      PeakMap::ConstIterator s_it2 = spectra.getPrecursorSpectrum(s_it);
-
-      // no precursor spectrum found
-      if (s_it2 == spectra.end())
-      {
-        LOG_WARN << "No MS1 spectrum was found to the specific precursor" << std::endl;
-        continue;
-      }
-
-      const MSSpectrum& precursor_spectrum = *s_it2;
-      Int mono_index = getHighestIntensityPeakInMZRange(test_mz, precursor_spectrum, tolerance, ppm);
-      if (mono_index == -1)
-      {
-        LOG_WARN << "No precursor peak in MS1 spectrum found, please ensure that the tolerance is set correctly." << std::endl;
-        continue;
-      }
-      const Peak1D& max_mono_peak = precursor_spectrum[mono_index];
-      precursor[0].setMZ(max_mono_peak.getMZ());
-      precursor[0].setIntensity(max_mono_peak.getIntensity());
-    }
+    // sirius
+    registerFullParam_(algorithm.getDefaults());
+    registerStringOption_("out_workspace_directory", "<directory>", "", "Output directory for SIRIUS workspace", false);
   }
 
   ExitCodes main_(int, const char **) override
@@ -291,17 +208,59 @@ protected:
     // Parsing parameters
     //-------------------------------------------------------------
 
-    String in = getStringOption_("in");
-    String id = getStringOption_("in_id");
+    // param AssayGeneratorMetabo
+    StringList in = getStringList_("in");
+    StringList id = getStringList_("in_id");
     String out = getStringOption_("out");
+    String fragment_annotation = getStringOption_("fragment_annotation");
     String method = getStringOption_("method");
+    bool use_fragment_annotation = fragment_annotation == "sirius" ? true : false;
+    double ar_mz_tol = getDoubleOption_("ambiguity_resolution_mz_tolerance");
+    String ar_mz_tol_unit_res = getStringOption_("ambiguity_resolution_mz_tolerance_unit");
+    double ar_rt_tol = getDoubleOption_("ambiguity_resolution_rt_tolerance");
+    double total_occurrence_filter = getDoubleOption_("total_occurrence_filter");
+    double score_threshold = getDoubleOption_("fragment_annotation_score_threshold");
+    bool decoy_generation = getFlag_("decoy_generation");
+    if (decoy_generation && !use_fragment_annotation)
+    {
+      decoy_generation = false;
+      OPENMS_LOG_WARN << "Warning: Decoy generation was switched off, due to the use of no or an unsupported fragment annotation method." << std::endl;
+    }
     bool method_consensus_spectrum = method == "consensus_spectrum" ? true : false;
+    bool use_exact_mass = getFlag_("use_exact_mass");
+    bool exclude_ms2_precursor = getFlag_("exclude_ms2_precursor");
 
-    double precursor_mz_tol = getDoubleOption_("precursor_mz_tolerance");
-    String unit_prec = getStringOption_("precursor_mz_tolerance_unit");
-    bool ppm_prec = unit_prec == "ppm" ? true : false;
+    String decoy_generation_method = getStringOption_("decoy_generation_method");
+    bool original = false;
+    bool resolve_overlap = false;
+    bool add_shift = false;
+    if (decoy_generation_method == "original" && decoy_generation)
+    {
+      OPENMS_LOG_INFO << "Decoy method: fragmentation tree re-rooting." << std::endl;
+      original = true;
+    }
+    else if (decoy_generation_method == "resolve_overlap" && decoy_generation)
+    {
+      OPENMS_LOG_INFO << "Decoy method: fragmentation tree re-rooting and overlap resolution." << std::endl;
+      resolve_overlap = true;
+    }
+    else if (decoy_generation_method == "add_shift" && decoy_generation)
+    {
+      OPENMS_LOG_INFO << "Decoy method: fragmentation tree re-rooting and addition of -CH2 mass shift where re-rooting was not possible." << std::endl;
+      add_shift = true;
+    }
+    else if (decoy_generation_method == "both" && decoy_generation)
+    {
+      OPENMS_LOG_INFO << "Decoy method: fragmentation tree re-rooting with overlap resolution and addition of -CH2 mass shift where re-rooting was not possible." << std::endl;
+      resolve_overlap = true;
+      add_shift = true;
+    }
+    int min_transitions = getIntOption_("min_transitions");
+    int max_transitions = getIntOption_("max_transitions");
+    double min_fragment_mz = getDoubleOption_("min_fragment_mz");
+    double max_fragment_mz = getDoubleOption_("max_fragment_mz");
 
-    double precursor_rt_tol = getDoubleOption_("precursor_rt_tolerance");
+    double consensus_spectrum_precursor_rt_tolerance = getDoubleOption_("consensus_spectrum_precursor_rt_tolerance");
     double pre_recal_win = getDoubleOption_("precursor_recalibration_window");
     String pre_recal_win_unit = getStringOption_("precursor_recalibration_window_unit");
     bool ppm_recal = pre_recal_win_unit == "ppm" ? true : false;
@@ -309,247 +268,441 @@ protected:
     double precursor_mz_distance = getDoubleOption_("precursor_mz_distance");
 
     double cosine_sim_threshold = getDoubleOption_("cosine_similarity_threshold");
-    unsigned int hull_size_filter = getIntOption_("filter_by_convex_hulls");
     double transition_threshold = getDoubleOption_("transition_threshold");
     bool use_known_unknowns = getFlag_("use_known_unknowns");
 
-    // load mzML
-    MzMLFile mzml;
-    PeakMap spectra;
-    mzml.load(in, spectra);
+    // param deisotoper
+    bool use_deisotoper = getFlag_("deisotoping:use_deisotoper");
+    double fragment_tolerance = getDoubleOption_("deisotoping:fragment_tolerance");
+    String fragment_unit = getStringOption_("deisotoping:fragment_unit");
+    bool fragment_unit_ppm = fragment_unit == "ppm" ? true : false;
+    int min_charge = getIntOption_("deisotoping:min_charge");
+    int max_charge = getIntOption_("deisotoping:max_charge");
+    unsigned int min_isopeaks = getIntOption_("deisotoping:min_isopeaks");
+    unsigned int max_isopeaks = getIntOption_("deisotoping:max_isopeaks");
+    bool keep_only_deisotoped = getFlag_("deisotoping:keep_only_deisotoped");
+    bool annotate_charge = getFlag_("deisotoping:annotate_charge");
 
-    // determine type of spectral data (profile or centroided)
-    SpectrumSettings::SpectrumType spectrum_type = spectra[0].getType();
+    // param SiriusAdapterAlgorithm
+    String sirius_executable = getStringOption_("sirius_executable");
 
-    if (spectrum_type == SpectrumSettings::PROFILE)
+    algorithm.updateExistingParameter(getParam_());
+
+    writeDebug_("Parameters passed to SiriusAdapterAlgorithm", algorithm.getParameters(), 3);
+
+    // SIRIUS workspace (currently needed for fragmentation trees)
+    String sirius_workspace_directory = getStringOption_("out_workspace_directory");
+
+    // assess the SIRIUS executable from SIRIUS_PATH or the PATH
+    if (use_fragment_annotation && sirius_executable.empty())
     {
-      if (!getFlag_("force"))
+      OPENMS_LOG_INFO << "Fragment annotation with SIRIUS should be performed, but no executable was provided via '-sirius_execuable'. \n" 
+                      << "Try to automatically assess the SIRIUS executable location." << std::endl;
+
+      if (sirius_executable.empty())
       {
-        throw OpenMS::Exception::FileEmpty(__FILE__, __LINE__, __FUNCTION__,
-                                           "Error: Profile data provided but centroided spectra expected.");
-      }
-    }
-
-    // load featurexml
-    FeatureXMLFile fxml;
-    FeatureMap feature_map;
-    fxml.load(id, feature_map);
-
-    // check if correct featureXML is given and set use_known_unkowns parameter if no id information is available
-    const std::vector<DataProcessing>& processing = feature_map.getDataProcessing();
-    for (auto it = processing.begin(); it != processing.end(); ++it)
-    {
-      if (it->getSoftware().getName() == "FeatureFinderMetabo")
-      {
-        // check if convex hulls parameter was used in the FeatureFinderMetabo
-        if (it->getMetaValue("parameter: algorithm:ffm:report_convex_hulls") != "true")
+        const char* sirius_env_var = std::getenv("SIRIUS_PATH"); // returns nullptr of not found
+        if (sirius_env_var == nullptr)
         {
-          throw Exception::InvalidParameter(__FILE__,
-                                            __LINE__,
-                                            OPENMS_PRETTY_FUNCTION,
-                                            "Please provide a valid feature XML file with reported convex hulls.");
-        }
-        // if id information is missing set use_known_unknowns to true
-        if (feature_map.getProteinIdentifications().empty())
+            OPENMS_LOG_INFO << "SIRIUS executable could not be recovered from SIRIUS_PATH." << std::endl;
+        } 
+        else
         {
-          use_known_unknowns = true;
-        }
-      }
-    }
-
-    // annotate precursor mz and intensity
-    annotatePrecursorIntensity(spectra, pre_recal_win, ppm_recal);
-
-    // filter feature by convexhull size
-    auto map_it = remove_if(feature_map.begin(), feature_map.end(),
-                                                 [&hull_size_filter](const Feature& f) -> bool
-                                                 {
-                                                   return f.getConvexHulls().size() < hull_size_filter;
-                                                 });
-    feature_map.erase(map_it, feature_map.end());
-
-    KDTreeFeatureMaps fp_map_kd;
-    vector<FeatureMap> v_fp;
-    v_fp.push_back(feature_map);
-    fp_map_kd.addMaps(v_fp);
-
-    // read FeatureMap in KDTree for feature-precursor assignment
-    // only spectra with precursors are in the map - no need to check for presence of precursors
-    map<const BaseFeature*, std::vector<size_t> > feature_ms2_spectra_map = extractMetaInformation(spectra, fp_map_kd, precursor_mz_tol, precursor_rt_tol, ppm_prec);
-
-    std::vector<AssayRow> assaylib;
-    int transition_group_counter = 0;
-
-    for (std::map<const BaseFeature*, std::vector<size_t>>::iterator it = feature_ms2_spectra_map.begin();
-         it != feature_ms2_spectra_map.end();
-         ++it)
-    {
-
-      String description("UNKNOWN"), sumformula("UNKNOWN"), adduct("UNKNOWN");
-      double feature_rt;
-      const BaseFeature* min_distance_feature = it->first;
-      feature_rt = min_distance_feature->getRT();
-
-      // extract metadata from featureXML
-      if (!(min_distance_feature->getPeptideIdentifications().empty()) &&
-          !(min_distance_feature->getPeptideIdentifications()[0].getHits().empty()))
-      {
-        description = min_distance_feature->getPeptideIdentifications()[0].getHits()[0].getMetaValue("description");
-        sumformula = min_distance_feature->getPeptideIdentifications()[0].getHits()[0].getMetaValue("chemical_formula");
-        adduct = min_distance_feature->getPeptideIdentifications()[0].getHits()[0].getMetaValue("modifications");
-
-        // change format of adduct information M+H;1+ -> [M+H]1+
-        String adduct_prefix = adduct.prefix(';').trim();
-        String adduct_suffix = adduct.suffix(';').trim();
-        adduct = "["+adduct_prefix+"]"+adduct_suffix;
-      }
-
-      // check if known unknown should be used
-      if (description == "UNKNOWN" && sumformula == "UNKNOWN" && adduct == "UNKNOWN" && !use_known_unknowns) { continue; }
-
-      double highest_precursor_mz = 0.0;
-      float highest_precursor_int = 0.0;
-      MSSpectrum highest_precursor_int_spectrum;
-      MSSpectrum transition_spectrum;
-
-      // find precursor/spectrum with highest intensity precursor
-      std::vector<size_t> index = it->second;
-      for (std::vector<size_t>::iterator index_it = index.begin(); index_it != index.end(); ++index_it)
-      {
-        const MSSpectrum &spectrum = spectra[*index_it];
-        const vector<Precursor> &precursor = spectrum.getPrecursors();
-
-        // get m/z and intensity of precursor
-        // only spectra with precursors are in the map, therefore no need to check for their presence
-        double precursor_mz = precursor[0].getMZ();
-        float precursor_int = precursor[0].getIntensity();
-
-        // spectrum with highest intensity precursor
-        if (precursor_int > highest_precursor_int)
-        {
-          highest_precursor_int = precursor_int;
-          highest_precursor_mz = precursor_mz;
-          highest_precursor_int_spectrum = spectra[*index_it];
-        }
-        transition_spectrum = highest_precursor_int_spectrum;
-      }
-
-      // if only one MS2 is available and the consensus method is used - jump right to the transition list calculation
-      // fallback: highest intensity precursor
-      if (method_consensus_spectrum && index.size() >= 2)
-      {
-        // transform to binned spectra
-        std::vector<BinnedSpectrum> binned;
-        std::vector<MSSpectrum> similar_spectra;
-        MSExperiment exp;
-        const BinnedSpectrum binned_highest_int(highest_precursor_int_spectrum, BinnedSpectrum::DEFAULT_BIN_WIDTH_HIRES, false, 1, BinnedSpectrum::DEFAULT_BIN_OFFSET_HIRES);
-
-        // calculation of contrast angle (cosine simiarity)
-        for (std::vector<size_t>::iterator index_it = index.begin(); index_it != index.end(); ++index_it)
-        {
-          const MSSpectrum &spectrum = spectra[*index_it];
-          const BinnedSpectrum binned_spectrum(spectrum, BinnedSpectrum::DEFAULT_BIN_WIDTH_HIRES, false, 1, BinnedSpectrum::DEFAULT_BIN_OFFSET_HIRES);
-
-          BinnedSpectralContrastAngle bspa;
-          double cosine_sim = bspa(binned_highest_int, binned_spectrum);
-
-          if (cosine_sim > cosine_sim_threshold)
-          {
-            similar_spectra.push_back(spectrum);
-            exp.addSpectrum(spectrum);
-          }
-        }
-        // calculate consensus spectrum
-        exp.sortSpectra();
-        SpectraMerger merger;
-        Param p;
-        p.setValue("precursor_method:mz_tolerance", precursor_mz_distance);
-        p.setValue("precursor_method:rt_tolerance", precursor_rt_tol*2);
-        merger.setParameters(p);
-
-        // all MS spectra should have the same precursor
-        merger.mergeSpectraPrecursors(exp);
-
-        // check if all precursors have been merged if not use highest intensity precursor
-        if (exp.getSpectra().size() < 2)
-        {
-          transition_spectrum = exp.getSpectra()[0];
+          const String sirius_path(sirius_env_var);
+          sirius_executable = QFileInfo(sirius_path.toQString()).canonicalFilePath().toStdString();
+          OPENMS_LOG_INFO << "Success: sirius_executable resolved to '" + sirius_executable + "'" << std::endl;
         }
       }
 
-      // transition calculations
-      // calculate max intensity peak and threshold
-      float max_int = 0.0;
-      float min_int = numeric_limits<float>::max();
-      for (MSSpectrum::const_iterator spec_it = transition_spectrum.begin(); spec_it != transition_spectrum.end(); ++spec_it)
+      // was not found in the SIRIUS_PATH
+      // assess the SIRIUS executable from the PATH
+      if (sirius_executable.empty())
       {
-        //find the max intensity peak
-        if (spec_it->getIntensity() > max_int)
+        #ifdef OPENMS_WINDOWSPLATFORM
+          sirius_executable = "sirius.bat";
+        #else
+          sirius_executable = "sirius";
+        #endif
+        if (File::findExecutable(sirius_executable))
         {
-          max_int = spec_it->getIntensity();
-        }
-        if (spec_it->getIntensity() < min_int)
-        {
-          min_int = spec_it->getIntensity();
-        }
-      }
-
-      // no peaks or all peaks have same intensity (single peak / noise)
-      if (min_int >= max_int) { continue; }
-
-      // threshold should be at x % of the maximum intensity
-      // hard minimal threshold of min_int * 1.1
-      float threshold_transition = max_int * (transition_threshold/100);
-      float threshold_noise = min_int * 1.1;
-
-      AssayRow row;
-      int transition_counter = 1;
-
-      for (MSSpectrum::iterator spec_it = transition_spectrum.begin(); spec_it != transition_spectrum.end(); ++spec_it)
-      {
-        float current_int = spec_it->getIntensity();
-        double current_mz = spec_it->getMZ();
-
-        // write row for each transistion
-        // current int has to be higher than transition thresold and should not be smaller than threshold noise
-        if (current_int > threshold_transition && current_int > threshold_noise)
-        {
-          float rel_int = current_int/max_int;
-          row.precursor_mz = highest_precursor_mz;
-          row.product_mz = current_mz;
-          row.library_int = rel_int;
-          row.normalized_rt = feature_rt;
-          row.compound_name = description;
-          row.smiles = "none"; // not in AccurateMassSearch output yet
-          row.sumformula = sumformula;
-          row.adduct = adduct;
-          // for conversion to TRAML transition_id need to be unique _ due to multiple adducts with the same sumformula -> adduct information will be appended to name
-          row.transition_group_id = String(transition_group_counter)+"_"+sumformula+"_"+adduct;
-          row.transition_id = String(transition_group_counter)+"_"+String(transition_counter)+"_"+sumformula+"_"+adduct;
-          row.decoy = 0;
-          transition_counter += 1;
+          OPENMS_LOG_INFO << "Success: sirius_executable resolved to '" + sirius_executable + "'" << std::endl;
         }
         else
         {
-          continue;
+          throw Exception::InvalidValue(__FILE__,
+                    __LINE__,
+                    OPENMS_PRETTY_FUNCTION,
+                    "FATAL: Executable of SIRIUS could not be found. Please either use SIRIUS_PATH env variable, add the Sirius directory to our PATH or provide the executable with -sirius_executable",
+                    "");
         }
-      assaylib.push_back(row);
       }
-       transition_group_counter += 1;
     }
 
-    // TODO: use TransitionTSVWriter writer for output
-    // write output
-    TextFile tf;
-    tf.addLine("PrecursorMz\tProductMz\tLibraryIntensity\tRetentionTime\tCompoundName\tSMILES\tSumFormula\ttransition_name\ttransition_group_id\tAdduct\tDecoy\n");
-    for (auto & entry : assaylib)
+    //-------------------------------------------------------------
+    // input and check
+    //-------------------------------------------------------------
+
+    // check size of .mzML & .featureXML input
+    if (in.size() != id.size())
     {
-      tf.addLine(String(entry.precursor_mz)+"\t"+String(entry.product_mz)+"\t"+String(entry.library_int)+"\t"+String(entry.normalized_rt)+
-                 "\t"+entry.compound_name+"\t"+entry.smiles+"\t"+entry.sumformula+"\t"+entry.transition_id+"\t"+entry.transition_group_id+
-                 "\t"+entry.adduct+"\t"+entry.decoy+"\n");
+      throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                          "Number of .mzML do not match to the number of .featureXML files. \n Please check and provide the corresponding files.");
     }
-    tf.store(out);
 
+    vector<MetaboTargetedAssay> v_mta;
+
+    // iterate over all the files
+    for (unsigned file_counter = 0; file_counter < in.size(); file_counter++)
+    {
+      // load mzML
+      MzMLFile mzml;
+      PeakMap spectra;
+      mzml.load(in[file_counter], spectra);
+
+      // load featurexml
+      FeatureXMLFile fxml;
+      FeatureMap feature_map;
+      fxml.load(id[file_counter], feature_map);
+
+      // check if featureXML corresponds to mzML
+      StringList featurexml_primary_path;
+      feature_map.getPrimaryMSRunPath(featurexml_primary_path);
+
+      if (in[file_counter] != featurexml_primary_path[0]) // featureXML should only have one primary path
+      {
+        OPENMS_LOG_WARN << "Warning: Original paths of the mzML files do not correspond to the featureXML files. Please check and provide the corresponding files." << std::endl;
+
+        OPENMS_LOG_WARN << "Input MzML: " << in[file_counter] << std::endl;
+
+        OPENMS_LOG_WARN << "Input FeatureXML: " << id[file_counter] << std::endl;
+
+        OPENMS_LOG_WARN << "Original paths: " << std::endl;
+                        for (const String& it_fpp : featurexml_primary_path)
+                            {
+                              OPENMS_LOG_WARN << " " << it_fpp << std::endl;
+                            }
+      }
+
+      // determine type of spectral data (profile or centroided)
+      if (!spectra[0].empty())
+      {
+        SpectrumSettings::SpectrumType spectrum_type = spectra[0].getType();
+
+        if (spectrum_type == SpectrumSettings::PROFILE)
+        {
+          if (!getFlag_("force"))
+          {
+            throw OpenMS::Exception::FileEmpty(__FILE__,
+                                               __LINE__,
+                                               __FUNCTION__,
+                                               "Error: Profile data provided but centroided spectra expected. ");
+          }
+        }
+      }
+
+      //-------------------------------------------------------------
+      // Processing
+      //-------------------------------------------------------------
+
+      // sort spectra
+      spectra.sortSpectra();
+
+      // check if correct featureXML is given and set use_known_unkowns parameter if no id information is available
+      const std::vector<DataProcessing> &processing = feature_map.getDataProcessing();
+      for (auto it = processing.begin(); it != processing.end(); ++it)
+      {
+        if (it->getSoftware().getName() == "FeatureFinderMetabo")
+        {
+          // if id information is missing set use_known_unknowns to true
+          if (feature_map.getProteinIdentifications().empty())
+          {
+            use_known_unknowns = true;
+            OPENMS_LOG_INFO << "Due to the use of data without previous identification "
+                     << "use_known_unknowns will be switched on." << std::endl;
+          }
+        }
+      }
+
+      // annotate and recalibrate precursor mz and intensity
+      vector<double> delta_mzs;
+      vector<double> mzs;
+      vector<double> rts;
+      PrecursorCorrection::correctToHighestIntensityMS1Peak(spectra, pre_recal_win, ppm_recal, delta_mzs, mzs, rts);
+
+      // always use preprocessing: 
+      // run masstrace filter and feature mapping
+      FeatureMapping::FeatureMappingInfo fm_info;
+      FeatureMapping::FeatureToMs2Indices feature_mapping; // reference to *basefeature in vector<FeatureMap>
+      algorithm.preprocessingSirius(id[file_counter],
+                                    spectra,
+                                    fm_info,
+                                    feature_mapping);
+    
+      // filter known_unkowns based on description (UNKNOWN) (AMS)
+      std::map<const BaseFeature*, std::vector<size_t>> feature_ms2_spectra_map = feature_mapping.assignedMS2;
+      std::map<const BaseFeature*, std::vector<size_t>> known_features;
+      if (!use_known_unknowns)
+      {
+        for (auto it = feature_ms2_spectra_map.begin(); it != feature_ms2_spectra_map.end(); ++it)
+        {
+          const BaseFeature *feature = it->first;
+          if (!(feature->getPeptideIdentifications().empty()) &&
+              !(feature->getPeptideIdentifications()[0].getHits().empty()))
+              {
+                String description;
+                // one hit is enough for prefiltering
+                description = feature->getPeptideIdentifications()[0].getHits()[0].getMetaValue("description");
+                // change format of description [name] to name
+                description.erase(remove_if(begin(description),
+                                            end(description),
+                                            [](char c) { return c == '[' || c == ']'; }), end(description));
+                known_features.insert({it->first, it->second});
+              }
+        }
+        feature_mapping.assignedMS2 = known_features;
+      }
+
+      vector< MetaboTargetedAssay::CompoundTargetDecoyPair > v_cmp_spec;
+
+      if (use_fragment_annotation && !sirius_executable.empty())
+      {
+        // make temporary files
+        SiriusAdapterAlgorithm::SiriusTemporaryFileSystemObjects sirius_tmp(debug_level_);
+
+        // write msfile and store the compound information in CompoundInfo Object
+        vector<SiriusMSFile::CompoundInfo> v_cmpinfo;
+        SiriusMSFile::store(spectra,
+                            sirius_tmp.getTmpMsFile(),
+                            feature_mapping,
+                            algorithm.isFeatureOnly(),
+                            algorithm.getIsotopePatternIterations(),
+                            algorithm.isNoMasstraceInfoIsotopePattern(),
+                            v_cmpinfo);
+
+        algorithm.logFeatureSpectraNumber(id[file_counter],
+                                          feature_mapping,
+                                          spectra);
+
+        // calls SIRIUS and returns vector of paths to sirius folder structure
+        std::vector<String> subdirs;
+        String out_csifingerid;
+        subdirs = algorithm.callSiriusQProcess(sirius_tmp.getTmpMsFile(),
+                                               sirius_tmp.getTmpOutDir(),
+                                               sirius_executable,
+                                               out_csifingerid,
+                                               decoy_generation);
+  
+        OPENMS_LOG_DEBUG << subdirs.size() << " spectra were annotated using SIRIUS." << std::endl;
+
+        if (subdirs.empty())
+        {
+            throw OpenMS::Exception::Postcondition(__FILE__,__LINE__, OPENMS_PRETTY_FUNCTION, "Sirius was executed, but an empty output was generated");
+        }
+
+        // sort vector path list
+        SiriusAdapterAlgorithm::sortSiriusWorkspacePathsByScanIndex(subdirs);
+
+        // extract Sirius/Passatutto FragmentAnnotation and DecoyAnnotation from subdirs
+        // and resolve ambiguous identifications in one file based on the native_id_ids and the SIRIUS IsotopeTree_Score
+        vector<SiriusFragmentAnnotation::SiriusTargetDecoySpectra> annotated_spectra =
+          SiriusFragmentAnnotation::extractAndResolveSiriusAnnotations(subdirs, score_threshold, use_exact_mass);
+
+        // combine compound information (SiriusMSFile) with annotated spectra (SiriusFragmentAnnotation)
+        v_cmp_spec = MetaboTargetedAssay::pairCompoundWithAnnotatedTDSpectraPairs(v_cmpinfo, annotated_spectra);
+
+        // should the sirius workspace be retained
+        if (!sirius_workspace_directory.empty())
+        {
+          // convert path to absolute path
+          QDir sw_dir(sirius_workspace_directory.toQString());
+          sirius_workspace_directory = String(sw_dir.absolutePath());
+
+          // move tmp folder to new location
+          bool copy_status = File::copyDirRecursively(sirius_tmp.getTmpDir().toQString(), sirius_workspace_directory.toQString());
+          if (copy_status)
+          {
+            OPENMS_LOG_INFO << "Sirius Workspace was successfully copied to " << sirius_workspace_directory << std::endl;
+          }
+          else
+          {
+            OPENMS_LOG_INFO << "Sirius Workspace could not be copied to " << sirius_workspace_directory << ". Please run AssayGeneratorMetabo with debug >= 2." << std::endl;
+          }
+        }
+      }
+      else // use heuristic
+      {
+        if (use_deisotoper)
+        {
+          bool make_single_charged = false;
+          for (auto& peakmap_it : spectra)
+          {
+            MSSpectrum& spectrum = peakmap_it;
+            if (spectrum.getMSLevel() == 1) 
+            {
+              continue;
+            }
+            else 
+            {
+              Deisotoper::deisotopeAndSingleCharge(spectrum,
+                                                  fragment_tolerance,
+                                                  fragment_unit_ppm,
+                                                  min_charge,
+                                                  max_charge,
+                                                  keep_only_deisotoped,
+                                                  min_isopeaks,
+                                                  max_isopeaks,
+                                                  make_single_charged,
+                                                  annotate_charge);
+            }
+          }
+        }
+
+        // remove peaks form MS2 which are at a higher mz than the precursor + 10 ppm
+        for (auto& peakmap_it : spectra)
+        {
+          MSSpectrum& spectrum = peakmap_it;
+          if (spectrum.getMSLevel() == 1) 
+          {
+            continue;
+          }
+          else 
+          {
+            // if peak mz higher than precursor mz set intensity to zero
+            double prec_mz = spectrum.getPrecursors()[0].getMZ();
+            double mass_diff = Math::ppmToMass(10.0, prec_mz);
+            for (auto& spec : spectrum)
+            {
+              if (spec.getMZ() > prec_mz + mass_diff)
+              {
+                spec.setIntensity(0);
+              }
+            }
+            spectrum.erase(remove_if(spectrum.begin(),
+                                     spectrum.end(),
+                                     InIntensityRange<PeakMap::PeakType>(1,
+                                                                         numeric_limits<PeakMap::PeakType::IntensityType>::max(),
+                                                                         true)), spectrum.end());
+          }
+        }
+      }
+
+      // potential transitions of one file
+      vector<MetaboTargetedAssay> tmp_mta;
+      if (use_fragment_annotation)
+      {
+        tmp_mta = MetaboTargetedAssay::extractMetaboTargetedAssayFragmentAnnotation(v_cmp_spec,
+                                                                                    transition_threshold,
+                                                                                    min_fragment_mz,
+                                                                                    max_fragment_mz,
+                                                                                    use_exact_mass,
+                                                                                    exclude_ms2_precursor,
+                                                                                    file_counter);
+
+      }
+      else // use heuristics
+      {
+        tmp_mta = MetaboTargetedAssay::extractMetaboTargetedAssay(spectra,
+                                                                  feature_mapping,
+                                                                  consensus_spectrum_precursor_rt_tolerance,
+                                                                  precursor_mz_distance,
+                                                                  cosine_sim_threshold,
+                                                                  transition_threshold,
+                                                                  min_fragment_mz,
+                                                                  max_fragment_mz,
+                                                                  method_consensus_spectrum,
+                                                                  exclude_ms2_precursor,
+                                                                  file_counter);
+      }
+      // append potential transitions of one file to vector of all files
+      v_mta.insert(v_mta.end(), tmp_mta.begin(), tmp_mta.end());
+    } // end iteration over all files
+
+    // group ambiguous identification based on precursor_mz and feature retention time
+    // Use featureMap and use FeatureGroupingAlgorithmQT
+    std::unordered_map< UInt64, vector<MetaboTargetedAssay> > ambiguity_groups = MetaboTargetedAssay::buildAmbiguityGroup(v_mta, ar_mz_tol, ar_rt_tol, ar_mz_tol_unit_res, in.size());
+
+    // resolve identification ambiguity based on highest occurrence and highest intensity
+    MetaboTargetedAssay::resolveAmbiguityGroup(ambiguity_groups, total_occurrence_filter ,in.size());
+
+    // merge possible transitions
+    vector<TargetedExperiment::Compound> v_cmp;
+    vector<ReactionMonitoringTransition> v_rmt_all;
+    for (const auto &it : ambiguity_groups)
+    {
+      for (const auto &comp_it : it.second)
+      {
+        v_cmp.push_back(comp_it.potential_cmp);
+        v_rmt_all.insert(v_rmt_all.end(), comp_it.potential_rmts.begin(), comp_it.potential_rmts.end());
+      }
+    }
+
+    // convert possible transitions to TargetedExperiment
+    TargetedExperiment t_exp;
+    t_exp.setCompounds(v_cmp);
+    t_exp.setTransitions(v_rmt_all);
+
+    // use MRMAssay methods for filtering
+    MRMAssay assay;
+
+    // sort by highest intensity - filter:  min/max transitions (targets), filter: max transitions (decoys)
+    // e.g. if only one decoy fragment is available it will not be filtered out!
+    assay.filterMinMaxTransitionsCompound(t_exp, min_transitions, max_transitions);
+
+    // remove decoys which do not have a respective target after min/max transition filtering
+    // based on the TransitionGroupID (similar for targets "0_Acephate_[M+H]+_0" and decoys "0_Acephate_decoy_[M+H]+_0")
+    if (use_fragment_annotation && decoy_generation)
+    {
+      assay.filterUnreferencedDecoysCompound(t_exp);
+    }
+
+    // resolve overlapping target and decoy masses
+    // after selection of decoy masses based on highest intensity (arbitrary, since passatutto uses
+    // the intensities based on the previous fragmentation tree), overlapping masses between targets
+    // and decoys of one respective metabolite_adduct combination can be resolved by adding a CH2 mass
+    if (use_fragment_annotation && decoy_generation && !original)
+    {
+      const double chtwo_mass = EmpiricalFormula("CH2").getMonoWeight();
+      vector<MetaboTargetedTargetDecoy::MetaboTargetDecoyMassMapping> mappings = MetaboTargetedTargetDecoy::constructTargetDecoyMassMapping(t_exp);
+      if (resolve_overlap)
+      {
+        MetaboTargetedTargetDecoy::resolveOverlappingTargetDecoyMassesByIndividualMassShift(t_exp, mappings, chtwo_mass);
+      }
+      if (add_shift)
+      {
+        MetaboTargetedTargetDecoy::generateMissingDecoysByMassShift(t_exp, mappings, chtwo_mass);
+      }
+    }
+
+    // sort TargetedExperiment by name (TransitionID)
+    t_exp.sortTransitionsByName();
+
+    //-------------------------------------------------------------
+    // writing output
+    //-------------------------------------------------------------
+
+    String extension = out.substr(out.find_last_of(".")+1);
+
+    if (extension == "tsv")
+    {
+      // validate and write
+      OpenMS::TransitionTSVFile::convertTargetedExperimentToTSV(out.c_str(), t_exp);
+    }
+    else if (extension == "traML")
+    {
+      // validate
+      OpenMS::TransitionTSVFile::validateTargetedExperiment(t_exp);
+      // write traML
+      TraMLFile traml_out;
+      traml_out.store(out, t_exp);
+    }
+    else if (extension == "pqp")
+    {
+      //validate
+      OpenMS::TransitionTSVFile::validateTargetedExperiment(t_exp);
+      // write pqp
+      TransitionPQPFile pqp_out;
+      pqp_out.convertTargetedExperimentToPQP(out.c_str(), t_exp);
+    }
     return EXECUTION_OK;
   }
 };

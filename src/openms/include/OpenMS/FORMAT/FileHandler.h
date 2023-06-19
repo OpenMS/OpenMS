@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -38,6 +38,8 @@
 #include <OpenMS/FORMAT/FileTypes.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 #include <OpenMS/FORMAT/OPTIONS/PeakFileOptions.h>
+#include <OpenMS/METADATA/ProteinIdentification.h>
+#include <OpenMS/METADATA/PeptideIdentification.h>
 
 namespace OpenMS
 {
@@ -45,6 +47,8 @@ namespace OpenMS
   class MSSpectrum;
   class MSExperiment;
   class FeatureMap;
+  class ConsensusMap;
+  class TargetedExperiment;
 
   /**
     @brief Facilitates file handling by file type recognition.
@@ -77,11 +81,47 @@ public:
     static FileTypes::Type getTypeByFileName(const String& filename);
 
     /**
-       @brief Check if the file extension of @param type matches no other known FileType
+       @brief Check if @p filename has the extension @p type 
                
-       This means that may match the extension of @type or any other unknown extension (e.g., '.tmp')
+       If the extension is not known (e.g. '.tmp') this is also allowed.
+       However, if the extension is another one (neither @p type nor unknown), false is returned.
     */
     static bool hasValidExtension(const String& filename, const FileTypes::Type type);
+
+
+    /**
+      @brief If filename contains an extension, it will be removed (including the '.'). Special extensions, known to OpenMS, e.g. '.mzML.gz' will be recognized as well.
+
+      E.g. 'experiment.featureXML' becomes 'experiment' and 'c:\\files\\data.mzML.gz' becomes 'c:\\files\\data'
+      If the extension is unknown, the everything in the basename of the file after the last '.' is removed. E.g. 'future.newEnding' becomes 'future'
+      If the filename does not contain '.', but the path (if any) does, nothing is removed, e.g. '/my.dotted.dir/filename' is returned unchanged.
+    */
+    static String stripExtension(const String& filename);
+
+    /**
+      @brief Tries to find and remove a known file extension, and append the new one.
+
+      Internally calls 'stripExtension()' and adds the new suffix to the result.
+      E.g. 'experiment.featureXML'+ FileTypes::TRAFOXML becomes 'experiment.trafoXML' and 'c:\\files\\data.mzML.gz' + FileTypes::FEATUREXML becomes 'c:\\files\\data.featureXML'
+      If the existing extension is unknown, the everything after the last '.' is removed, e.g. 'exp.tmp'+FileTypes::IDXML becomes 'exp.idXML'
+    */
+    static String swapExtension(const String& filename, const FileTypes::Type new_type);
+
+    
+    /**
+      @brief Useful function for TOPP tools which have an 'out_type' parameter and want to know what
+             output format to write.
+             This function makes sure that the type derived from @p output_filename and @p requested_type are consistent, i.e.
+             are either identical or one of them is UNKNOWN. Upon conflict, an error message is printed and the UNKNOWN type is returned.
+
+      @param output_filename A full filename (with none, absolute or relative paths) whose type is 
+                             determined using FileHandler::getTypeByFileName() internally
+      @param requested_type A type as string, usually obtained from '-out_type', e.g. "FASTA" (case insensitive).
+                            The string can be empty (yields UNKNOWN for this type)
+      @return A consistent file type or UNKNOWN upon conflict
+    */
+    static FileTypes::Type getConsistentOutputfileType(const String& output_filename, const String& requested_type);
+
 
     /**
       @brief Determines the file type of a file by parsing the first few lines
@@ -145,6 +185,57 @@ public:
       @exception Exception::ParseError is thrown if an error occurs during parsing
     */
     bool loadFeatures(const String& filename, FeatureMap& map, FileTypes::Type force_type = FileTypes::UNKNOWN);
+
+    /**
+      @brief Store a FeatureMap
+
+      @param filename the file name of the file to write.
+      @param map The FeatureMap to store.
+
+      @return true if the file could be stored, false otherwise
+
+      @exception Exception::UnableToCreateFile is thrown if the file could not be written
+    */
+    bool storeFeatures(const String& filename, const FeatureMap& map);
+
+    /**
+      @brief Store a ConsensFeatureMap
+
+      @param filename the file name of the file to write.
+      @param map The ConsensusMap to store.
+
+      @return true if the file could be stored, false otherwise
+
+      @exception Exception::UnableToCreateFile is thrown if the file could not be written
+    */
+    bool storeConsensusFeatures(const String& filename, const ConsensusMap& map);
+
+    /**
+      @brief Loads a file into a ConsensMap
+
+      @param filename the file name of the file to load.
+      @param map The ConsensMap to load the data into.
+
+      @return true if the file could be loaded, false otherwise
+
+      @exception Exception::FileNotFound is thrown if the file could not be opened
+      @exception Exception::ParseError is thrown if an error occurs during parsing
+    */
+    bool loadConsensusFeatures(const String& filename, ConsensusMap& map);
+
+    bool loadIdentifications(const String& filename, std::vector<ProteinIdentification> additional_proteins, std::vector<PeptideIdentification> additional_peptides);
+
+    /**
+      @brief Store transitions of a spectral library
+
+      @param filename the file name of the file to write.
+      @param map The TargetedExperiment to store.
+
+      @return true if the file could be stored, false otherwise
+
+      @exception Exception::UnableToCreateFile is thrown if the file could not be written
+    */
+    bool storeTransitions(const String& filename, const TargetedExperiment& library);
 
     /**
       @brief Computes a SHA-1 hash value for the content of the given file.

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -28,125 +28,76 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Johannes Veit $
-// $Authors: Johannes Junker $
+// $Maintainer: Johannes Veit, Chris Bielow $
+// $Authors: Johannes Junker, Chris Bielow $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/VISUAL/ANNOTATION/Annotation1DDistanceItem.h>
-#include <OpenMS/VISUAL/Spectrum1DCanvas.h>
 
-#include <QtCore/QPoint>
-#include <QtGui/QPainter>
+#include <OpenMS/VISUAL/Plot1DCanvas.h>
+
+#include <cmath>
 
 using namespace std;
 
 namespace OpenMS
 {
-
-  Annotation1DDistanceItem::Annotation1DDistanceItem(const QString & text, const PointType & start_point, const PointType & end_point) :
-    Annotation1DItem(text),
-    start_point_(start_point),
-    end_point_(end_point)
+  namespace
   {
+    Annotation1DDistanceItem p("test", {0, 0}, {0, 0});  
   }
 
-  Annotation1DDistanceItem::Annotation1DDistanceItem(const Annotation1DDistanceItem & rhs) :
-    Annotation1DItem(rhs)
+  Annotation1DDistanceItem::Annotation1DDistanceItem(const QString& text, const PointXYType& start_point, const PointXYType& end_point, const bool swap_ends_if_negative) :
+      Annotation1DItem(text), start_point_(start_point), end_point_(end_point)
   {
-    start_point_ = rhs.getStartPoint();
-    end_point_ = rhs.getEndPoint();
+    if (swap_ends_if_negative && start_point_ > end_point_)
+    {
+      { // make sure the distance is positive when creating the distance item
+        start_point_.swap(end_point_);
+      }
+    }
   }
 
-  Annotation1DDistanceItem::~Annotation1DDistanceItem()
+  void Annotation1DDistanceItem::ensureWithinDataRange(Plot1DCanvas* const canvas, const int layer_index)
   {
+    canvas->pushIntoDataRange(start_point_, layer_index);
+    canvas->pushIntoDataRange(end_point_, layer_index);
   }
 
-  void Annotation1DDistanceItem::draw(Spectrum1DCanvas * const canvas, QPainter & painter, bool flipped)
+  void Annotation1DDistanceItem::draw(Plot1DCanvas* const canvas, QPainter& painter, bool flipped)
   {
-    //translate mz/intensity to pixel coordinates
+    // translate mz/intensity to pixel coordinates
     QPoint start_p, end_p;
-    canvas->dataToWidget(start_point_.getX(), start_point_.getY(), start_p, flipped, true);
-    canvas->dataToWidget(end_point_.getX(), end_point_.getY(), end_p, flipped, true);
+    canvas->dataToWidget(start_point_, start_p, flipped);
+    canvas->dataToWidget(end_point_, end_p, flipped);
 
-    // compute bounding box on the specified painter
-    if (canvas->isMzToXAxis())
-    {
-      bounding_box_ = QRectF(QPointF(start_p.x(), start_p.y()), QPointF(end_p.x(), end_p.y() + 4));     // +4 for lower half of arrow heads
-    }
-    else
-    {
-      bounding_box_ = QRectF(QPointF(start_p.x() - 4, start_p.y()), QPointF(end_p.x(), end_p.y()));
-    }
+    // draw arrow heads and the ends if they won't overlap
+    const auto arrow = ((start_p - end_p).manhattanLength() > 10) ? Painter1DBase::getClosedArrow(4) : QPainterPath();
+    auto line_bb = Painter1DBase::drawLineWithArrows(&painter, painter.pen(), start_p, end_p, arrow, arrow).toRect();
 
     // find out how much additional space is needed for the text:
-    QRectF text_boundings = painter.boundingRect(QRectF(), Qt::AlignCenter, text_);
-    if (canvas->isMzToXAxis())
-    {
-      bounding_box_.setTop(bounding_box_.top() - text_boundings.height());
-    }
-    else
-    {
-      bounding_box_.setRight(bounding_box_.right() + text_boundings.width());
-    }
-    // if text doesn't fit between peaks, enlarge bounding box:
-    if (canvas->isMzToXAxis())
-    {
-      if (text_boundings.width() > bounding_box_.width())
-      {
-        float additional_space = (text_boundings.width() - bounding_box_.width()) / 2;
-        bounding_box_.setLeft(bounding_box_.left() - additional_space);
-        bounding_box_.setRight(bounding_box_.right() + additional_space);
-      }
-    }
-    else
-    {
-      if (text_boundings.height() > bounding_box_.height())
-      {
-        float additional_space = (text_boundings.height() - bounding_box_.height()) / 2;
-        bounding_box_.setTop(bounding_box_.top() - additional_space);
-        bounding_box_.setBottom(bounding_box_.bottom() + additional_space);
-      }
-    }
-
-    // draw line
-    painter.drawLine(start_p, end_p);
+    QRect text_bb = painter.boundingRect(QRect(), Qt::AlignCenter, text_);
+    // place text in the center of the line's bb, but gravitate it up
+    auto new_text_center = canvas->getGravitator().gravitateWith(line_bb.center(), {line_bb.width() / 2 + text_bb.width()/2, line_bb.height() / 2 + text_bb.height()/2});
+    text_bb.translate(new_text_center - text_bb.center());
+    painter.drawText(text_bb, Qt::AlignHCenter, text_);
 
     // draw ticks
     if (!ticks_.empty())
     {
-      for (vector<double>::iterator it = ticks_.begin(); it != ticks_.end(); ++it)
+      for (auto tick_xy : ticks_)
       {
-        QPoint tick;
-        canvas->dataToWidget(*it, start_point_.getY(), tick, flipped, true);
-        painter.drawLine(tick.x(), tick.y() - 4, tick.x(), tick.y() + 4);
+        tick_xy = canvas->getGravitator().gravitateTo(tick_xy, start_point_); // move to same level as line
+        QPoint tick_px;
+        canvas->dataToWidget(tick_xy, tick_px, flipped);
+        QPoint tick_px_start = canvas->getGravitator().gravitateWith(tick_px, {4, 4});
+        QPoint tick_px_end = canvas->getGravitator().gravitateWith(tick_px, {-8, -8});
+        painter.drawLine(tick_px_start, tick_px_end);
       }
     }
 
-    // draw arrow heads and the ends if they won't overlap
-    if ((start_p - end_p).manhattanLength() > 10)
-    {
-      if (canvas->isMzToXAxis())
-      {
-        painter.drawLine(start_p, QPoint(start_p.x() + 5, start_p.y() - 4));
-        painter.drawLine(start_p, QPoint(start_p.x() + 5, start_p.y() + 4));
-        painter.drawLine(end_p, QPoint(end_p.x() - 5, end_p.y() - 4));
-        painter.drawLine(end_p, QPoint(end_p.x() - 5, end_p.y() + 4));
-      }
-      else
-      {
-        painter.drawLine(start_p, QPoint(start_p.x() + 4, start_p.y() - 5));
-        painter.drawLine(start_p, QPoint(start_p.x() - 4, start_p.y() - 5));
-        painter.drawLine(end_p, QPoint(end_p.x() + 4, end_p.y() + 5));
-        painter.drawLine(end_p, QPoint(end_p.x() - 4, end_p.y() + 5));
-      }
-    }
-
-    if (!canvas->isMzToXAxis())
-    {
-      bounding_box_.setWidth(bounding_box_.width() + 10.0);
-    }
-
-    painter.drawText(bounding_box_, Qt::AlignHCenter, text_);
+    // overall bounding box
+    bounding_box_ = text_bb.united(line_bb);
 
     if (selected_)
     {
@@ -154,54 +105,21 @@ namespace OpenMS
     }
   }
 
-  void Annotation1DDistanceItem::move(const PointType & delta)
+  void Annotation1DDistanceItem::move(const PointXYType delta, const Gravitator& gr, const DimMapper<2>& /*dim_mapper*/)
   {
-    // shift vertical position according to y-component of delta
-    start_point_.setY(start_point_.getY() + delta.getY());
-    end_point_.setY(end_point_.getY() + delta.getY());
+    start_point_ = gr.gravitateWith(start_point_, delta); // only change the gravity axis
+    end_point_ = gr.gravitateWith(end_point_, delta);     // only change the gravity axis
   }
 
-  void Annotation1DDistanceItem::setStartPoint(const PointType & p)
+  double Annotation1DDistanceItem::getDistance() const
   {
-    start_point_ = p;
+    const auto delta = end_point_ - start_point_;
+    const auto dist = std::sqrt(delta.getX() * delta.getX() + delta.getY() * delta.getY());
+    return std::copysign(1, delta.getX() + delta.getY()) * dist;
   }
 
-  void Annotation1DDistanceItem::setEndPoint(const PointType & p)
-  {
-    end_point_ = p;
-  }
-
-  const Annotation1DDistanceItem::PointType & Annotation1DDistanceItem::getStartPoint() const
-  {
-    return start_point_;
-  }
-
-  const Annotation1DDistanceItem::PointType & Annotation1DDistanceItem::getEndPoint() const
-  {
-    return end_point_;
-  }
-
-  void Annotation1DDistanceItem::setTicks(const std::vector<double> & ticks)
+  void Annotation1DDistanceItem::setTicks(const std::vector<PointXYType>& ticks)
   {
     ticks_ = ticks;
   }
-
-  void Annotation1DDistanceItem::ensureWithinDataRange(Spectrum1DCanvas * const canvas)
-  {
-    // can only be moved vertically, so check only y-position
-    DRange<3> data_range = canvas->getDataRange();
-    CoordinateType y_pos = start_point_.getY() * canvas->getPercentageFactor();
-
-    if (y_pos < data_range.minPosition()[1])
-    {
-      start_point_.setY(data_range.minPosition()[1] / canvas->getPercentageFactor());
-      end_point_.setY(start_point_.getY());
-    }
-    if (y_pos > data_range.maxPosition()[1])
-    {
-      start_point_.setY(data_range.maxPosition()[1] / canvas->getPercentageFactor());
-      end_point_.setY(start_point_.getY());
-    }
-  }
-
-} //Namespace
+} // namespace OpenMS

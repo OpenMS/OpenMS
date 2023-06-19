@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -38,8 +38,8 @@
 #include <OpenMS/CONCEPT/Types.h>
 
 #include <iosfwd>
-#include <new>
 #include <string>
+#include <stdexcept>
 
 namespace OpenMS
 {
@@ -87,7 +87,7 @@ namespace OpenMS
       @ingroup Exceptions
     */
     class OPENMS_DLLAPI BaseException :
-      public std::exception
+      public std::runtime_error
     {
 public:
 
@@ -118,9 +118,6 @@ public:
       /// Returns the name of the exception
       const char* getName() const noexcept;
 
-      /// Returns the error message of the exception
-      const char* what() const noexcept override;
-
       /// Returns the line number where it occurred
       int getLine() const noexcept;
 
@@ -132,9 +129,6 @@ public:
 
       /// Returns the message
       const char* getMessage() const noexcept;
-
-      /// Modify the exception's error message
-      void setMessage(const std::string& message) noexcept;
 
       //@}
 
@@ -151,9 +145,6 @@ protected:
 
       /// The name of the exception.
       std::string name_;
-
-      /// A more detailed description of the exception's cause.
-      std::string what_;
     };
 
     /**
@@ -287,6 +278,7 @@ public:
     {
 public:
       InvalidRange(const char* file, int line, const char* function) noexcept;
+      InvalidRange(const char* file, int line, const char* function, const std::string& message) noexcept;
     };
 
 
@@ -464,19 +456,13 @@ public:
 
       @ingroup Exceptions
     */
-#ifdef _MSC_VER // disable some seqan warnings that distract from ours
-#   pragma warning( push ) // save warning state
-#   pragma warning( disable : 4275 )
-#endif
     class OPENMS_DLLAPI OutOfMemory :
       public BaseException, public std::bad_alloc
     {
 public:
       OutOfMemory(const char* file, int line, const char* function, Size size = 0) noexcept;
     };
-#ifdef _MSC_VER
-#   pragma warning( pop ) // restore old warning state
-#endif
+
     /**
       @brief Buffer overflow exception.
 
@@ -585,6 +571,20 @@ public:
     };
 
     /**
+      @brief SqlOperation failed exception.
+
+      E.g. when retrieving data from a table using the wrong column name or index.
+
+      @ingroup Exceptions
+    */
+    class OPENMS_DLLAPI SqlOperationFailed :
+      public BaseException
+    {
+public:
+      SqlOperationFailed(const char* file, int line, const char* function, const std::string& description)  noexcept;
+    };
+
+    /**
       @brief File is empty.
 
       A given file is empty.
@@ -650,6 +650,18 @@ public:
     {
 public:
       IllegalArgument(const char* file, int line, const char* function, const std::string& error_message) noexcept;
+    };
+
+    /**
+      @brief A tool or algorithm which was called internally raised an exception
+
+      @ingroup Exceptions
+    */
+    class OPENMS_DLLAPI InternalToolError :
+      public BaseException
+    {
+    public:
+      InternalToolError(const char* file, int line, const char* function, const std::string& error_message) noexcept;
     };
 
     /**

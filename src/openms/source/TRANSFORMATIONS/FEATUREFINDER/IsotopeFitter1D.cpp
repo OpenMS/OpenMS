@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -45,11 +45,11 @@ namespace OpenMS
   {
     setName(getProductName());
 
-    defaults_.setValue("statistics:variance", 1.0, "Variance of the model.", ListUtils::create<String>("advanced"));
-    defaults_.setValue("charge", 1, "Charge state of the model.", ListUtils::create<String>("advanced"));
-    defaults_.setValue("isotope:stdev", 1.0, "Standard deviation of gaussian applied to the averagine isotopic pattern to simulate the inaccuracy of the mass spectrometer.", ListUtils::create<String>("advanced"));
-    defaults_.setValue("isotope:maximum", 100, "Maximum isotopic rank to be considered.", ListUtils::create<String>("advanced"));
-    defaults_.setValue("interpolation_step", 0.1, "Sampling rate for the interpolation of the model function.", ListUtils::create<String>("advanced"));
+    defaults_.setValue("statistics:variance", 1.0, "Variance of the model.", {"advanced"});
+    defaults_.setValue("charge", 1, "Charge state of the model.", {"advanced"});
+    defaults_.setValue("isotope:stdev", 1.0, "Standard deviation of gaussian applied to the averagine isotopic pattern to simulate the inaccuracy of the mass spectrometer.", {"advanced"});
+    defaults_.setValue("isotope:maximum", 100, "Maximum isotopic rank to be considered.", {"advanced"});
+    defaults_.setValue("interpolation_step", 0.1, "Sampling rate for the interpolation of the model function.", {"advanced"});
 
     defaultsToParam_();
   }
@@ -60,22 +60,21 @@ namespace OpenMS
     updateMembers_();
   }
 
-  IsotopeFitter1D::~IsotopeFitter1D()
-  {
-  }
+  IsotopeFitter1D::~IsotopeFitter1D() = default;
 
   IsotopeFitter1D& IsotopeFitter1D::operator=(const IsotopeFitter1D& source)
   {
     if (&source == this)
+    {
       return *this;
-
+    }
     MaxLikeliFitter1D::operator=(source);
     updateMembers_();
 
     return *this;
   }
 
-  IsotopeFitter1D::QualityType IsotopeFitter1D::fit1d(const RawDataArrayType& set, InterpolationModel*& model)
+  IsotopeFitter1D::QualityType IsotopeFitter1D::fit1d(const RawDataArrayType& set, std::unique_ptr<InterpolationModel>& model)
   {
     // Calculate bounding box
     CoordinateType min_bb = set[0].getPos(), max_bb = set[0].getPos();
@@ -83,9 +82,13 @@ namespace OpenMS
     {
       CoordinateType tmp = set[pos].getPos();
       if (min_bb > tmp)
+      {
         min_bb = tmp;
+      }
       if (max_bb < tmp)
+      {
         max_bb = tmp;
+      }
     }
 
     // Enlarge the bounding box by a few multiples of the standard deviation
@@ -97,7 +100,7 @@ namespace OpenMS
     // build model
     if (charge_ == 0)
     {
-      model = static_cast<InterpolationModel*>(Factory<BaseModel<1> >::create("GaussModel"));
+      model = std::unique_ptr<InterpolationModel>(dynamic_cast<InterpolationModel*>(Factory<BaseModel<1>>::create("GaussModel")));
       model->setInterpolationStep(interpolation_step_);
 
       Param tmp;
@@ -109,7 +112,7 @@ namespace OpenMS
     }
     else
     {
-      model = static_cast<InterpolationModel*>(Factory<BaseModel<1> >::create("IsotopeModel"));
+      model = std::unique_ptr<InterpolationModel>(dynamic_cast<InterpolationModel*>(Factory<BaseModel<1>>::create("IsotopeModel")));
 
       Param iso_param = this->param_.copy("isotope_model:", true);
       iso_param.removeAll("stdev");
@@ -123,15 +126,16 @@ namespace OpenMS
       tmp.setValue("isotope:maximum", max_isotope_);
 
       model->setParameters(tmp);
-      (static_cast<IsotopeModel*>(model))->setSamples((static_cast<IsotopeModel*>(model))->getFormula());
+      (dynamic_cast<IsotopeModel*>(model.get()))->setSamples((dynamic_cast<IsotopeModel*>(model.get()))->getFormula());
     }
 
     // fit offset
     QualityType quality;
     quality = fitOffset_(model, set, stdev, stdev, interpolation_step_);
-    if (boost::math::isnan(quality))
+    if (std::isnan(quality))
+    {
       quality = -1.0;
-
+    }
     return quality;
   }
 

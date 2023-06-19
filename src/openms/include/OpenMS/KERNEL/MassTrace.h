@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -66,6 +66,7 @@ public:
     enum MT_QUANTMETHOD {
       MT_QUANT_AREA = 0,  ///< quantify by area
       MT_QUANT_MEDIAN,    ///< quantify by median of intensities
+      MT_QUANT_HEIGHT,    ///< quantify by peak height
       SIZE_OF_MT_QUANTMETHOD
     };
     static const std::string names_of_quantmethod[SIZE_OF_MT_QUANTMETHOD];
@@ -78,7 +79,7 @@ public:
     ///@{
 
     /// Default constructor
-    MassTrace();
+    MassTrace() = default;
 
     /// Detailed constructor 
     /// (useful, since Mass Traces are commonly assembled by prepending and appending -- which is faster using lists)
@@ -88,13 +89,13 @@ public:
     MassTrace(const std::vector<PeakType>& trace_peaks);
 
     /// Destructor
-    ~MassTrace();
+    ~MassTrace() = default;
 
     /// Copy constructor
-    MassTrace(const MassTrace &);
+    MassTrace(const MassTrace &) = default;
 
     /// Assignment operator
-    MassTrace & operator=(const MassTrace &);
+    MassTrace & operator=(const MassTrace &) = default;
 
     /// Random access operator
     PeakType& operator[](const Size & mt_idx);
@@ -315,7 +316,7 @@ public:
     ///@}
 
     /// Average FWHM of m/z peaks
-    double fwhm_mz_avg;
+    double fwhm_mz_avg = 0;
 
 private:
 
@@ -331,13 +332,13 @@ private:
     std::vector<PeakType> trace_peaks_;
 
     /// Centroid m/z
-    double centroid_mz_;
+    double centroid_mz_ = 0.0;
 
     /// intensity-weighted STD
-    double centroid_sd_;
+    double centroid_sd_ = 0.0;
 
     /// Centroid RT
-    double centroid_rt_;
+    double centroid_rt_ = 0.0;
 
     /// Trace label
     String label_;
@@ -345,12 +346,12 @@ private:
     /// Container for smoothed intensities. Smoothing must be done externally.
     std::vector<double> smoothed_intensities_;
 
-    double fwhm_; ///< FWHM of RT peak
-    Size fwhm_start_idx_; ///< index into 'trace_peaks_' vector (inclusive)
-    Size fwhm_end_idx_; ///< index into 'trace_peaks_' vector (inclusive)
+    double fwhm_ = 0.0; ///< FWHM of RT peak
+    Size fwhm_start_idx_ = 0; ///< index into 'trace_peaks_' vector (inclusive)
+    Size fwhm_end_idx_ = 0; ///< index into 'trace_peaks_' vector (inclusive)
 
     /// use area under mass trace or the median of intensities
-    MT_QUANTMETHOD quant_method_;
+    MT_QUANTMETHOD quant_method_ = MT_QUANT_AREA;
     
   };
 

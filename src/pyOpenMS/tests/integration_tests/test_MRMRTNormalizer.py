@@ -1,5 +1,6 @@
 import unittest,os
 
+## UGLY HACK!! This imports the *FILE* env.py that is configured by CMake. Even uglier since there is a module called env!!
 import env
 import pyopenms
 from collections import defaultdict
@@ -28,7 +29,8 @@ class TestMRMRTNormalizer(unittest.TestCase):
     """Emulates the behavior of OpenSwathMRMRTNormalizer"""
 
     def setUp(self):
-        self.testdirname = os.path.join(env.OPEN_MS_SRC, "src/tests/topp")
+        # TODO make the tests self-consistent to only use files under the pyOpenMS directory
+        self.testdirname = os.path.join(env.PYOPENMS_SRC_DIR, "..", "..", "src/tests/topp")
         # set up files
         self.chromatograms = os.path.join(self.testdirname, "OpenSwathRTNormalizer_1_input.mzML").encode()
         self.tramlfile = os.path.join(self.testdirname, "OpenSwathRTNormalizer_1_input.TraML").encode()
@@ -54,7 +56,7 @@ class TestMRMRTNormalizer(unittest.TestCase):
         featurefinder = pyopenms.MRMFeatureFinderScoring()
         # set the correct rt use values
         scoring_params = pyopenms.MRMFeatureFinderScoring().getDefaults();
-        scoring_params.setValue("Scores:use_rt_score".encode(), 'false'.encode(), ''.encode())
+        scoring_params.setValue(b"Scores:use_rt_score", b'false', b'')        
         featurefinder.setParameters(scoring_params);
         featurefinder.pickExperiment(chromatograms, output, targeted, trafo, empty_swath)
 

@@ -14,6 +14,13 @@
       <aminoacid_modification aminoacid="M" massdiff="15.9949" mass="147.0354" variable="Y" />
       <aminoacid_modification aminoacid="Q" massdiff="-17.0265" mass="111.0321" variable="Y" symbol="^" /><!--X! Tandem n-terminal AA variable modification-->
       <aminoacid_modification aminoacid="M" massdiff="1" mass="123.456" variable="Y" /> <!--bogus for test...-->
+      <aminoacid_modification aminoacid="M" massdiff="2" mass="123.456" variable="Y" peptide_terminus="n" /> <!--bogus for test...-->
+      <aminoacid_modification aminoacid="L" massdiff="2" mass="123.456" variable="Y" protein_terminus="c" /> <!--bogus for test...-->
+      <terminal_modification terminus="n" protein_terminus="" massdiff="2.5" mass="123.456" variable="Y" /> <!--bogus for test...-->
+      <terminal_modification terminus="n" protein_terminus="n" massdiff="2.5" mass="123.456" variable="Y" /> <!--bogus for test...-->
+      <terminal_modification terminus="n" protein_terminus="N" massdiff="-2.5" mass="123.456" variable="Y" /> <!--bogus for test...-->
+      <terminal_modification terminus="n" protein_terminus="Y" massdiff="2.5" mass="123.456" variable="Y" /> <!--bogus for test...-->
+      <terminal_modification terminus="c" protein_terminus="c" massdiff="3.4" mass="123.456" variable="Y" /> <!--bogus for test...-->
 
       <!-- Input parameters -->
       <parameter name="list path, default parameters" value="/usr/local/bin/default_input.xml"/>

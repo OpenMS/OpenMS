@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -47,9 +47,7 @@
 namespace OpenMS
 {
 
-  CachedmzML::CachedmzML()
-  {
-  }
+  CachedmzML::CachedmzML() = default;
 
   CachedmzML::CachedmzML(const String& filename)
   {
@@ -90,8 +88,7 @@ namespace OpenMS
 
   MSSpectrum CachedmzML::getSpectrum(Size id)
   {
-    OPENMS_PRECONDITION(id >= 0, "Id needs to be larger than zero");
-    // OPENMS_PRECONDITION(id < (int)getNrSpectra(), "Id cannot be larger than number of spectra");
+    OPENMS_PRECONDITION(id < getNrSpectra(), "Id cannot be larger than number of spectra");
 
     if ( !ifs_.seekg(spectra_index_[id]) )
     {
@@ -108,8 +105,7 @@ namespace OpenMS
 
   MSChromatogram CachedmzML::getChromatogram(Size id)
   {
-    OPENMS_PRECONDITION(id >= 0, "Id needs to be larger than zero");
-    OPENMS_PRECONDITION(id < (int)getNrChromatograms(), "Id cannot be larger than number of chromatograms");
+    OPENMS_PRECONDITION(id < getNrChromatograms(), "Id cannot be larger than number of chromatograms");
 
     if ( !ifs_.seekg(chrom_index_[id]) )
     {

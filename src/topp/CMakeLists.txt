@@ -2,7 +2,7 @@
 #                   OpenMS -- Open-Source Mass Spectrometry
 # --------------------------------------------------------------------------
 # Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-# ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+# ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 #
 # This software is released under a three-clause BSD license:
 #  * Redistributions of source code must retain the above copyright
@@ -33,22 +33,16 @@
 # --------------------------------------------------------------------------
 
 project("OpenMS_TOPP")
-cmake_minimum_required(VERSION 2.8.11 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.15 FATAL_ERROR)
 
 # --------------------------------------------------------------------------
 # OpenMS' TOPP tools
-
-# add OpenMS includes
-include_directories(SYSTEM ${OpenMS_INCLUDE_DIRECTORIES})
-add_definitions(/DBOOST_ALL_NO_LIB)
-
-find_package(Qt5 COMPONENTS Core Network REQUIRED)
 
 # add all the tools
 include(executables.cmake)
 foreach(i ${TOPP_executables})
   add_executable(${i} ${i}.cpp)
-  target_link_libraries(${i} ${OpenMS_LIBRARIES})
+  target_link_libraries(${i} OpenMS)
   # we also want to install each topp tool
   install_tool(${i})
   if (OPENMP_FOUND AND NOT MSVC)
@@ -58,25 +52,18 @@ endforeach(i)
 
 # some regular TOPP tools need the GUI lib, only build them when WITH_GUI is enabled
 if(WITH_GUI)
-  ## TODO Check if the find command actually does anything but double check.
-  ## Libraries are I think anyway already hardcoded in OpenMS_GUI_LIBRARIES
-  find_package(Qt5 COMPONENTS Core Network Widgets Svg OpenGL PrintSupport REQUIRED)
-  if (NOT Qt5Widgets_FOUND)
-    message(STATUS "QtWidgets module not found!")
-    message(FATAL_ERROR "To find a custom Qt installation use: cmake <..more options..> -D QT_QMAKE_EXECUTABLE='<path_to_qmake(.exe)' <src-dir>")
-  endif()
-
-  ## some regular TOPP tools need the GUI lib
-  include_directories(SYSTEM ${OpenMS_GUI_INCLUDE_DIRECTORIES})
   foreach(i ${TOPP_executables_with_GUIlib})
     add_executable(${i} ${i}.cpp)
     # we also want to install each topp tool
     install_tool(${i})
-    target_link_libraries(${i} ${OpenMS_GUI_LIBRARIES})
+    target_link_libraries(${i} OpenMS OpenMS_GUI)
   endforeach(i)
 
   set(TOPP_executables ${TOPP_executables} ${TOPP_executables_with_GUIlib})
 endif()
+
+# special requirements of some tools
+target_link_libraries(FileMerger Boost::regex)
 
 # collection target
 add_custom_target(TOPP)

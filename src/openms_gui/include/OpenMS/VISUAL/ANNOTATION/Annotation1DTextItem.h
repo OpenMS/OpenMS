@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -35,6 +35,7 @@
 #pragma once
 
 #include <OpenMS/VISUAL/ANNOTATION/Annotation1DItem.h>
+#include <OpenMS/VISUAL/Plot1DCanvas.h>
 
 namespace OpenMS
 {
@@ -47,39 +48,58 @@ namespace OpenMS
 public:
 
     /// Constructor
-    Annotation1DTextItem(const PointType & position, const QString & text, const int flags = Qt::AlignCenter);
-
+    Annotation1DTextItem(const PointXYType& position, const QString& text, const int flags = Qt::AlignCenter)
+      : Annotation1DItem(text), position_(position), flags_(flags)
+    {
+    }
     /// Copy constructor
-    Annotation1DTextItem(const Annotation1DTextItem & rhs);
+    Annotation1DTextItem(const Annotation1DTextItem & rhs) = default;
 
     /// Destructor
-    ~Annotation1DTextItem() override;
+    ~Annotation1DTextItem() override = default;
 
     // Docu in base class
-    void ensureWithinDataRange(Spectrum1DCanvas * const canvas) override;
+    void ensureWithinDataRange(Plot1DCanvas* const canvas, const int layer_index) override;
 
     // Docu in base class
-    void draw(Spectrum1DCanvas * const canvas, QPainter & painter, bool flipped = false) override;
+    void draw(Plot1DCanvas* const canvas, QPainter& painter, bool flipped = false) override;
 
     // Docu in base class
-    void move(const PointType & delta) override;
+    void move(const PointXYType delta, const Gravitator& gr, const DimMapper<2>& dim_mapper) override;
 
-    /// Sets the position of the item (in MZ / intensity coordinates)
-    void setPosition(const PointType & position);
+    /// Sets the position of the item (in X-Y coordinates)
+    void setPosition(const PointXYType& position)
+    {
+      position_ = position;
+    }
 
-    /// Returns the position of the item (in MZ / intensity coordinates)
-    const PointType & getPosition() const;
+    /// Returns the position of the item (in X-Y coordinates)
+    const PointXYType& getPosition() const
+    {
+      return position_;
+    }
 
     /// Set Qt flags (default: Qt::AlignCenter)
-    void setFlags(int flags);
+    void setFlags(int flags)
+    {
+      flags_ = flags;
+    }
 
     /// Get Qt flags
-    int getFlags() const;
+    int getFlags() const
+    {
+      return flags_;
+    }
 
-protected:
+    // Docu in base class
+    Annotation1DItem* clone() const override
+    {
+      return new Annotation1DTextItem(*this);
+    }
 
-    /// The position of the item (in MZ / intensity coordinates)
-    PointType position_;
+  protected:
+    /// The position of the item as a datatype, e.g. Peak1D
+    PointXYType position_;
 
     int flags_;
   };

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -35,6 +35,8 @@
 
 #include "FeatureLinkerBase.cpp"
 
+#include <iomanip>     // setw
+
 using namespace OpenMS;
 using namespace std;
 
@@ -50,9 +52,9 @@ using namespace std;
 <CENTER>
     <table>
         <tr>
-            <td ALIGN = "center" BGCOLOR="#EBEBEB"> potential predecessor tools </td>
-            <td VALIGN="middle" ROWSPAN=4> \f$ \longrightarrow \f$ FeatureLinkerUnlabeled \f$ \longrightarrow \f$</td>
-            <td ALIGN = "center" BGCOLOR="#EBEBEB"> potential successor tools </td>
+            <th ALIGN = "center"> potential predecessor tools </td>
+            <td VALIGN="middle" ROWSPAN=4> &rarr; FeatureLinkerUnlabeled &rarr;</td>
+            <th ALIGN = "center"> potential successor tools </td>
         </tr>
         <tr>
             <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_FeatureFinderCentroided @n (or another feature detection algorithm) </td>
@@ -133,7 +135,7 @@ protected:
     {
       if (FileHandler::getType(ins[i]) != file_type)
       {
-        writeLog_("Error: All input files must be of the same type!");
+        writeLogError_("Error: All input files must be of the same type!");
         return ILLEGAL_PARAMETERS;
       }
     }
@@ -220,14 +222,20 @@ protected:
             tmp_map.getProteinIdentifications().end());
 
           // add unassigned peptide identifications to result map
-          dummy.getUnassignedPeptideIdentifications().insert(
-            dummy.getUnassignedPeptideIdentifications().end(),
-            tmp_map.getUnassignedPeptideIdentifications().begin(),
-            tmp_map.getUnassignedPeptideIdentifications().end());
+          auto& newIDs = dummy.getUnassignedPeptideIdentifications();
+          for (const PeptideIdentification& pepID : tmp_map.getUnassignedPeptideIdentifications())
+          {
+            auto newPepID = pepID;
+            //TODO during linking of consensusMaps we have the problem that old identifications
+            // already have a map_index associated. Since we link the consensusFeatures only anyway
+            // (without keeping the subfeatures) it should be ok for now to "re"-index
+            newPepID.setMetaValue("map_index", i);
+            newIDs.push_back(newPepID);
+          }
         }
         else
         {
-          // copy the meta-data from the refernce map
+          // copy the meta-data from the reference map
           dummy.getColumnHeaders()[i].filename = ins[i];
           dummy.getColumnHeaders()[i].size = ref_size;
           dummy.getColumnHeaders()[i].unique_id = ref_id;
@@ -239,10 +247,16 @@ protected:
             ref_protids.end());
 
           // add unassigned peptide identifications to result map
-          dummy.getUnassignedPeptideIdentifications().insert(
-            dummy.getUnassignedPeptideIdentifications().end(),
-            ref_pepids.begin(),
-            ref_pepids.end());
+          auto& newIDs = dummy.getUnassignedPeptideIdentifications();
+          for (const PeptideIdentification& pepID : ref_pepids)
+          {
+            auto newPepID = pepID;
+            //TODO during linking of consensusMaps we have the problem that old identifications
+            // already have a map_index associated. Since we link the consensusFeatures only anyway
+            // (without keeping the subfeatures) it should be ok for now to "re"-index
+            newPepID.setMetaValue("map_index", i);
+            newIDs.push_back(newPepID);
+          }
         }
       }
 
@@ -318,17 +332,17 @@ protected:
 
     // some statistics
     map<Size, UInt> num_consfeat_of_size;
-    for (ConsensusMap::const_iterator cmit = out_map.begin(); cmit != out_map.end(); ++cmit)
+    for (const ConsensusFeature& cf : out_map)
     {
-      ++num_consfeat_of_size[cmit->size()];
+      ++num_consfeat_of_size[cf.size()];
     }
 
-    LOG_INFO << "Number of consensus features:" << endl;
+    OPENMS_LOG_INFO << "Number of consensus features:" << endl;
     for (map<Size, UInt>::reverse_iterator i = num_consfeat_of_size.rbegin(); i != num_consfeat_of_size.rend(); ++i)
     {
-      LOG_INFO << "  of size " << setw(2) << i->first << ": " << setw(6) << i->second << endl;
+      OPENMS_LOG_INFO << "  of size " << setw(2) << i->first << ": " << setw(6) << i->second << endl;
     }
-    LOG_INFO << "  total:      " << setw(6) << out_map.size() << endl;
+    OPENMS_LOG_INFO << "  total:      " << setw(6) << out_map.size() << endl;
 
     delete algorithm;
 

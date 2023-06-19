@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry               
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 // 
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -44,6 +44,7 @@
 #include <OpenMS/FORMAT/FeatureXMLFile.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/MATH/MISC/MathFunctions.h>
+#include <OpenMS/SYSTEM/File.h>
 
 using namespace OpenMS;
 using namespace std;
@@ -57,14 +58,14 @@ InternalCalibration* ptr = nullptr;
 InternalCalibration* nullPointer = nullptr;
 START_SECTION(InternalCalibration())
 {
-	ptr = new InternalCalibration();
-	TEST_NOT_EQUAL(ptr, nullPointer)
+  ptr = new InternalCalibration();
+  TEST_NOT_EQUAL(ptr, nullPointer)
 }
 END_SECTION
 
 START_SECTION(~InternalCalibration())
 {
-	delete ptr;
+  delete ptr;
 }
 END_SECTION
 
@@ -124,6 +125,7 @@ START_SECTION(bool calibrate(PeakMap& exp, const IntList& target_mslvl, MZTrafoM
   ic.fillCalibrants(peps, 3.0);
   PeakMap exp;
   MzMLFile().load(File::find("./examples/BSA/BSA1.mzML"), exp);
+  MZTrafoModel::setRANSACSeed(0);
   MZTrafoModel::setRANSACParams(Math::RANSACParam(2, 1000, 1.0, 30, true));
   bool success = ic.calibrate(exp, std::vector<Int>(1, 1), MZTrafoModel::LINEAR, -1, true, 1.0, 1.0);
   TEST_EQUAL(success, true)
@@ -149,6 +151,11 @@ START_SECTION(static void applyTransformation(std::vector<Precursor>& pcs, const
   InternalCalibration::applyTransformation(pcs2, trafo);
   TEST_REAL_SIMILAR(pcs2[0].getMZ(), pcs[0].getMZ() - Math::ppmToMass(-100.0, 123.0));
   TEST_REAL_SIMILAR(pcs2[1].getMZ(), pcs[1].getMZ() - Math::ppmToMass(-100.0, 456.0));
+  //test for meta value "mz_raw"
+  ABORT_IF(!pcs2[0].metaValueExists("mz_raw"));
+  TEST_REAL_SIMILAR(pcs2[0].getMetaValue("mz_raw"), 123);
+  ABORT_IF(!pcs2[1].metaValueExists("mz_raw"));
+  TEST_REAL_SIMILAR(pcs2[1].getMetaValue("mz_raw"), 456);
 
 END_SECTION
 
@@ -204,6 +211,7 @@ START_SECTION(static void applyTransformation(PeakMap& exp, const IntList& targe
   TEST_REAL_SIMILAR(exp[2][1].getMZ(), spec[1].getMZ() + Math::ppmToMass(-1 *-100.0, 500.0));
   TEST_REAL_SIMILAR(spec.getPrecursors()[0].getMZ(), exp[2].getPrecursors()[0].getMZ());
   TEST_REAL_SIMILAR(spec.getPrecursors()[1].getMZ(), exp[2].getPrecursors()[1].getMZ());
+
 END_SECTION
 
 

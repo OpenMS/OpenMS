@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -38,6 +38,9 @@
 #include <OpenMS/FORMAT/ControlledVocabulary.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/DATASTRUCTURES/ListUtilsIO.h>
+#include <OpenMS/SYSTEM/File.h>
+
+#include <map>
 
 ///////////////////////////
 
@@ -143,7 +146,7 @@ START_SECTION(const CVTerm& getTerm(const String& id) const)
 	TEST_EQUAL(term->unparsed.size(),0)
 	TEST_EQUAL(term->synonyms.size(),0)
 
-	TEST_EXCEPTION(Exception::InvalidValue , cv.getTerm("OpenMS:7"))
+	TEST_EXCEPTION(Exception::InvalidValue, cv.getTerm("OpenMS:7"))
 END_SECTION
 
 START_SECTION(bool isChildOf(const String& child, const String& parent) const)
@@ -160,15 +163,15 @@ START_SECTION(bool isChildOf(const String& child, const String& parent) const)
 END_SECTION
 
 START_SECTION((const Map<String, CVTerm>& getTerms() const))
-	Map<String, ControlledVocabulary::CVTerm> terms = cv.getTerms();
+  std::map<String, ControlledVocabulary::CVTerm> terms = cv.getTerms();
 	TEST_EQUAL(terms.size(), 6)
-	TEST_EQUAL(terms.has("OpenMS:1"), true)
-	TEST_EQUAL(terms.has("OpenMS:2"), true)
-	TEST_EQUAL(terms.has("OpenMS:3"), true)
-	TEST_EQUAL(terms.has("OpenMS:4"), true)
-	TEST_EQUAL(terms.has("OpenMS:5"), true)
-	TEST_EQUAL(terms.has("OpenMS:6"), true)
-	TEST_EQUAL(terms.has("OpenMS:7"), false)
+	TEST_EQUAL(terms.find("OpenMS:1") != terms.end(), true)
+	TEST_EQUAL(terms.find("OpenMS:2") != terms.end(), true)
+	TEST_EQUAL(terms.find("OpenMS:3") != terms.end(), true)
+	TEST_EQUAL(terms.find("OpenMS:4") != terms.end(), true)
+	TEST_EQUAL(terms.find("OpenMS:5") != terms.end(), true)
+	TEST_EQUAL(terms.find("OpenMS:6") != terms.end(), true)
+	TEST_EQUAL(terms.find("OpenMS:7") != terms.end(), false)
 
 END_SECTION
 
@@ -188,6 +191,7 @@ START_SECTION(([ControlledVocabulary::CVTerm] CVTerm()))
 {
   cvterm = new ControlledVocabulary::CVTerm();
   TEST_NOT_EQUAL(cvterm, cvtermNullPointer)
+  delete cvterm;
 }
 END_SECTION
 
@@ -222,8 +226,8 @@ START_SECTION(([ControlledVocabulary::CVTerm] String ControlledVocabulary::CVTer
 {
   ControlledVocabulary cv;
   cv.loadFromOBO("PSI-MS", File::find("/CV/psi-ms.obo"));
-  String ref = "<cvParam accession=\"MS:1001331\" cvRef=\"PSI-MS\" name=\"X\\!Tandem:hyperscore\" value=\"44.4\"/>";
-  TEST_STRING_EQUAL(cv.getTerm("MS:1001331").toXMLString("PSI-MS",String("44.4")),ref)
+  String ref = R"(<cvParam accession="MS:1001331" cvRef="PSI-MS" name="X\!Tandem:hyperscore" value="12.5"/>)";
+  TEST_STRING_EQUAL(cv.getTerm("MS:1001331").toXMLString("PSI-MS", String("12.5")),ref)
 }
 END_SECTION
 
@@ -231,8 +235,8 @@ START_SECTION(([ControlledVocabulary::CVTerm] String ControlledVocabulary::CVTer
 {
   ControlledVocabulary cv;
   cv.loadFromOBO("PSI-MS", File::find("/CV/psi-ms.obo"));
-  String ref = "<cvParam accession=\"MS:1001331\" cvRef=\"PSI-MS\" name=\"X\\!Tandem:hyperscore\" value=\"44.4\"/>";
-  OpenMS::DataValue val = 44.4;
+  String ref = R"(<cvParam accession="MS:1001331" cvRef="PSI-MS" name="X\!Tandem:hyperscore" value="12.5"/>)";
+  OpenMS::DataValue val = 12.5;
   TEST_STRING_EQUAL(cv.getTerm("MS:1001331").toXMLString("PSI-MS",val),ref)
 }
 END_SECTION
@@ -298,20 +302,6 @@ START_SECTION(([ControlledVocabulary::CVTerm] CVTerm& operator=(const CVTerm &rh
   TEST_EQUAL(b.xref_type == a.xref_type, true)
   TEST_EQUAL(b.xref_binary, a.xref_binary)
   TEST_EQUAL(b.units == a.units, true)
-
-  a = a;
-
-  TEST_STRING_EQUAL(a.name,a.name)
-  TEST_STRING_EQUAL(a.id,a.id)
-  TEST_EQUAL(a.parents == a.parents, true)
-  TEST_EQUAL(a.children == a.children, true)
-  TEST_EQUAL(a.obsolete, a.obsolete)
-  TEST_STRING_EQUAL(a.description,a.description)
-  TEST_EQUAL(a.synonyms, a.synonyms)
-  TEST_EQUAL(a.unparsed, a.unparsed)
-  TEST_EQUAL(a.xref_type == a.xref_type, true)
-  TEST_EQUAL(a.xref_binary, a.xref_binary)
-  TEST_EQUAL(a.units == a.units, true)
 }
 END_SECTION
 

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -51,12 +51,6 @@ namespace OpenMS
   {
   }
 
-/*	GzipInputStream::GzipInputStream()
-    :gzip_(NULL)
-    {
-
-    }*/
-
   GzipInputStream::~GzipInputStream()
   {
     delete gzip_;
@@ -71,7 +65,7 @@ namespace OpenMS
     }
 
     unsigned char * fill_it = static_cast<unsigned char *>(to_fill);
-    XMLSize_t actual_read = (XMLSize_t) gzip_->read((char *)fill_it, static_cast<const size_t>(max_to_read));
+    XMLSize_t actual_read = (XMLSize_t) gzip_->read((char *)fill_it, static_cast<size_t>(max_to_read));
     file_current_index_ += actual_read;
     return actual_read;
   }

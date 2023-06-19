@@ -3,6 +3,8 @@ set(directory include/OpenMS/ANALYSIS/TARGETED)
 
 ### list all header files of the directory here
 set(sources_list_h
+MetaboTargetedAssay.h
+MetaboTargetedTargetDecoy.h
 MRMMapping.h
 PrecursorIonSelectionPreprocessing.h
 PrecursorIonSelection.h

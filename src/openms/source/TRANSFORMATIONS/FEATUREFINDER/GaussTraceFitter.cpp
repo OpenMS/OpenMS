@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -35,6 +35,7 @@
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/GaussTraceFitter.h>
 
 #include <OpenMS/CONCEPT/LogStream.h>
+#include <Eigen/Core>
 
 #include <numeric> // for "accumulate"
 
@@ -70,13 +71,11 @@ namespace OpenMS
     return *this;
   }
 
-  GaussTraceFitter::~GaussTraceFitter()
-  {
-  }
+  GaussTraceFitter::~GaussTraceFitter() = default;
 
   void GaussTraceFitter::fit(FeatureFinderAlgorithmPickedHelperStructs::MassTraces& traces)
   {
-    LOG_DEBUG << "Traces length: " << traces.size() << "\n";
+    OPENMS_LOG_DEBUG << "Traces length: " << traces.size() << "\n";
     setInitialParameters_(traces);
 
     Eigen::VectorXd x_init(NUM_PARAMS_);
@@ -219,8 +218,7 @@ namespace OpenMS
 
   void GaussTraceFitter::setInitialParameters_(FeatureFinderAlgorithmPickedHelperStructs::MassTraces& traces)
   {
-    LOG_DEBUG << "GaussTraceFitter->setInitialParameters(...)" << std::endl;
-    LOG_DEBUG << "Number of traces: " << traces.size() << std::endl;
+    OPENMS_LOG_DEBUG << "Setting initial params for Fitter. Number of traces: " << traces.size() << std::endl;
 
     // aggregate data; some peaks (where intensity is zero) can be missing!
     // mapping: RT -> total intensity over all mass traces
@@ -232,12 +230,12 @@ namespace OpenMS
 
     std::vector<double> totals(N + 2 * LEN); // pad with zeros at ends
     Int index = LEN;
-    // LOG_DEBUG << "Summed intensities:\n";
+    // OPENMS_LOG_DEBUG << "Summed intensities:\n";
     for (std::list<std::pair<double, double> >::iterator it =
            total_intensities.begin(); it != total_intensities.end(); ++it)
     {
       totals[index++] = it->second;
-      // LOG_DEBUG << it->second << std::endl;
+      // OPENMS_LOG_DEBUG << it->second << std::endl;
     }
 
     std::vector<double> smoothed(N);
@@ -253,7 +251,7 @@ namespace OpenMS
     }
     else // compute moving average for smoothing
     {
-      // LOG_DEBUG << "Smoothed intensities:\n";
+      // OPENMS_LOG_DEBUG << "Smoothed intensities:\n";
       double sum = std::accumulate(&totals[LEN], &totals[2 * LEN], 0.0);
       for (Size i = 0; i < N; ++i)
       {
@@ -261,45 +259,58 @@ namespace OpenMS
         smoothed[i] = sum / (2 * LEN + 1);
         sum -= totals[i];
         if (smoothed[i] > smoothed[max_index]) max_index = i;
-        // LOG_DEBUG << smoothed[i] << std::endl;
+        // OPENMS_LOG_DEBUG << smoothed[i] << std::endl;
       }
     }
-    LOG_DEBUG << "Maximum at index " << max_index << std::endl;
+    
     height_ = smoothed[max_index] - traces.baseline;
-    LOG_DEBUG << "height: " << height_ << std::endl;
+    
     std::list<std::pair<double, double> >::iterator it = total_intensities.begin();
     std::advance(it, max_index);
     x0_ = it->first;
-    LOG_DEBUG << "x0: " << x0_ << std::endl;
     region_rt_span_ = (total_intensities.rbegin()->first -
                        total_intensities.begin()->first);
-    LOG_DEBUG << "region_rt_span: " << region_rt_span_ << std::endl;
-
+    
     // find RT values where intensity is at half-maximum:
-    index = static_cast<Int>(max_index);
-    while ((index > 0) && (smoothed[index] > height_ * 0.5))
-      --index;
-    double left_height = smoothed[index];
+    Int left_index = static_cast<Int>(max_index);
+    while ((left_index > 0) && (smoothed[left_index] > height_ * 0.5))
+    {
+      --left_index;
+    }
+    double left_height = smoothed[left_index];
     it = total_intensities.begin();
-    std::advance(it, index);
+    std::advance(it, left_index);
     double left_rt = it->first;
-    LOG_DEBUG << "Left half-maximum at index " << index << ", RT " << left_rt
-              << std::endl;
-    index = static_cast<Int>(max_index);
-    while ((index < Int(N - 1)) && (smoothed[index] > height_ * 0.5))
-      ++index;
-    double right_height = smoothed[index];
+
+    Int right_index = static_cast<Int>(max_index);
+    while ((right_index < Int(N - 1)) && (smoothed[right_index] > height_ * 0.5))
+    {
+      ++right_index;
+    }
+    double right_height = smoothed[right_index];
     it = total_intensities.end();
-    std::advance(it, index - Int(N));
+    std::advance(it, right_index - Int(N));
     double right_rt = it->first;
-    LOG_DEBUG << "Right half-maximum at index " << index << ", RT "
-              << right_rt << std::endl;
 
     double delta_x = right_rt - left_rt;
     double alpha = (left_height + right_height) * 0.5 / height_; // ~0.5
-    if (alpha >= 1) sigma_ = 1.0; // degenerate case, all values are the same
-    else sigma_ = delta_x * 0.5 / sqrt(-2.0 * log(alpha));
-    LOG_DEBUG << "sigma: " << sigma_ << std::endl;
+    if (alpha >= 1)
+    {
+      sigma_ = 1.0; // degenerate case, all values are the same
+    }
+    else
+    {
+      sigma_ = delta_x * 0.5 / sqrt(-2.0 * log(alpha));
+    }
+    #ifndef NDEBUG
+    OPENMS_LOG_DEBUG << "\nMax. idx: " << max_index
+      << "\nHeight: " << height_
+      << "\nx0: " << x0_
+      << "\nregion_rt_span: " << region_rt_span_
+      << "\nLeft half-maximum at index " << left_index << ", RT " << left_rt
+      << "\nRight half-maximum at index " << right_index << ", RT " << right_rt
+      << "\nSigma: " << sigma_ << std::endl;
+    #endif
   }
 
   void GaussTraceFitter::updateMembers_()

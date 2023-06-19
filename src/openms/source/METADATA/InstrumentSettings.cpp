@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -34,6 +34,8 @@
 
 #include <OpenMS/METADATA/InstrumentSettings.h>
 
+#include <utility>
+
 using namespace std;
 
 namespace OpenMS
@@ -49,32 +51,7 @@ namespace OpenMS
   {
   }
 
-  InstrumentSettings::InstrumentSettings(const InstrumentSettings & source) :
-    MetaInfoInterface(source),
-    scan_mode_(source.scan_mode_),
-    zoom_scan_(source.zoom_scan_),
-    polarity_(source.polarity_),
-    scan_windows_(source.scan_windows_)
-  {
-  }
-
-  InstrumentSettings::~InstrumentSettings()
-  {
-  }
-
-  InstrumentSettings & InstrumentSettings::operator=(const InstrumentSettings & source)
-  {
-    if (&source == this)
-      return *this;
-
-    scan_mode_ = source.scan_mode_;
-    zoom_scan_  = source.zoom_scan_;
-    polarity_ = source.polarity_;
-    scan_windows_ = source.scan_windows_;
-    MetaInfoInterface::operator=(source);
-
-    return *this;
-  }
+  InstrumentSettings::~InstrumentSettings() = default;
 
   bool InstrumentSettings::operator==(const InstrumentSettings & rhs) const
   {
@@ -122,7 +99,7 @@ namespace OpenMS
 
   void InstrumentSettings::setScanWindows(std::vector<ScanWindow>  scan_windows)
   {
-    scan_windows_ =  scan_windows;
+    scan_windows_ =  std::move(scan_windows);
   }
 
   bool InstrumentSettings::getZoomScan() const
@@ -136,3 +113,4 @@ namespace OpenMS
   }
 
 }
+

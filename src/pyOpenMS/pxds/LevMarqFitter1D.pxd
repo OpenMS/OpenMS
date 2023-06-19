@@ -5,6 +5,8 @@ cdef extern from "<OpenMS/TRANSFORMATIONS/FEATUREFINDER/LevMarqFitter1D.h>" name
     cdef cppclass LevMarqFitter1D(Fitter1D):
         # wrap-ignore
         # no-pxd-import
+        # wrap-doc:
+        # Abstract class for 1D-model fitter using Levenberg-Marquardt algorithm for parameter optimization
+        
         LevMarqFitter1D() nogil except +
-        LevMarqFitter1D(LevMarqFitter1D) nogil except +
-
+        LevMarqFitter1D(LevMarqFitter1D &) nogil except +

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -31,11 +31,16 @@
 // $Maintainer: Lukas Zimmermann $
 // $Authors: Lukas Zimmermann, Leon Bichmann $
 // --------------------------------------------------------------------------
+
+#include <OpenMS/ANALYSIS/ID/PeptideIndexing.h>
+#include <OpenMS/APPLICATIONS/SearchEngineBase.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
+#include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/FORMAT/PepXMLFile.h>
 #include <OpenMS/CHEMISTRY/ProteaseDB.h>
+#include <OpenMS/CHEMISTRY/ModifiedPeptideGenerator.h>
 #include <OpenMS/SYSTEM/JavaInfo.h>
 #include <QtCore/QDir>
 #include <QtCore/QProcess>
@@ -49,16 +54,16 @@ using namespace std;
 //-------------------------------------------------------------
 
 /**
-    @page TOPP_MSFraggerAdapter MSFraggerAdapter
+    @page UTILS_MSFraggerAdapter MSFraggerAdapter
 
     @brief Peptide Identification with MSFragger
 
 <CENTER>
     <table>
         <tr>
-            <td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. predecessor tools </td>
-            <td VALIGN="middle" ROWSPAN=2> \f$ \longrightarrow \f$ MSFraggerAdapter \f$ \longrightarrow \f$</td>
-            <td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. successor tools </td>
+            <th ALIGN = "center"> pot. predecessor tools </td>
+            <td VALIGN="middle" ROWSPAN=2> &rarr; MSFraggerAdapter &rarr;</td>
+            <th ALIGN = "center"> pot. successor tools </td>
         </tr>
         <tr>
             <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> any signal-/preprocessing tool @n (in mzML format)</td>
@@ -67,7 +72,8 @@ using namespace std;
     </table>
 </CENTER>
 
-    @em MSFragger must be installed before this adapter can be used.
+  @em MSFragger must be installed before this adapter can be used. This adapter is fully compatible with version 3.2 of MSFragger
+  and later versions of MSFragger were tested up to version 3.5.
 
 	All MSFragger parameters (as specified in the fragger.params file) have been transcribed to parameters of this OpenMS util.
 	It is not possible to provide an explicit fragger.params file to avoid redundancy with the ini file.
@@ -95,9 +101,11 @@ using namespace std;
 
 
 class TOPPMSFraggerAdapter final :
-  public TOPPBase
+  public SearchEngineBase
 {
 public:
+
+  static const String license;
 
   static const String java_executable;
   static const String java_heapmemory;
@@ -108,7 +116,8 @@ public:
   static const String database;
 
   // tolerance
-  static const String precursor_mass_tolerance;
+  static const String precursor_mass_tolerance_lower;
+  static const String precursor_mass_tolerance_upper;
   static const String precursor_mass_unit;
   static const String precursor_true_tolerance;
   static const String precursor_true_unit;
@@ -132,8 +141,9 @@ public:
   static const String varmod_masses;
   static const String varmod_syntax;
   static const String varmod_enable_common;
+  static const String variable_modifications_unimod;
   static const String not_allow_multiple_variable_mods_on_residue;
-  static const String max_variable_mods_per_mod;
+  static const String max_variable_mods_per_peptide;
   static const String max_variable_mods_combinations;
 
   // spectrum
@@ -156,6 +166,7 @@ public:
   static const String min_matched_fragments;
   static const String output_report_topn;
   static const String output_max_expect;
+  static const String localize_delta_mass;
 
   // statmod
   static const String add_cterm_peptide;
@@ -182,20 +193,34 @@ public:
   static const String add_R_arginine;
   static const String add_Y_tyrosine;
   static const String add_W_tryptophan;
+  static const String fixed_modifications_unimod;
 
   // Log level for verbose output
   static const int LOG_LEVEL_VERBOSE;
 
 
   TOPPMSFraggerAdapter() :
-    TOPPBase("MSFraggerAdapter", "Peptide Identification with MSFragger", false,
+    SearchEngineBase("MSFraggerAdapter",  "Peptide Identification with MSFragger.\n"
+                                  "Important note:\n"
+                                  "The Regents of the University of Michigan (“Michigan”) grants us permission to redistribute    \n"
+                                  "the MS Fragger application developed by Michigan within the OpenMS Pipeline and make available \n"
+                                  "for use on related service offerings supported by the University of Tubingen and the Center for\n"
+                                  "Integrative Bioinformatics.                                                                    \n"
+                                  "Per the license agreement the use of the pipeline and associated materials is for academic     \n"
+                                  "research, non-commercial or educational purposes. Any commercial use inquiries                 \n"
+                                  "must be directed to the University of Michigan Technology Transfer Office at                   \n"
+                                  "techtransfer@umich.edu. All right title and interest in MS Fragger shall remain with the       \n"
+                                  "University of Michigan.\n"
+                                  "\n"
+                                  "For details, please see the supplied license file or                                           \n"
+				  "https://raw.githubusercontent.com/OpenMS/THIRDPARTY/master/All/MSFragger/License.txt           \n"    
+    , false,
              {
                  {"Kong AT, Leprevost FV, Avtonomov DM, Mellacheruvu D, Nesvizhskii AI",
                   "MSFragger: ultrafast and comprehensive peptide identification in mass spectrometry–based proteomics",
                   "Nature Methods volume 14, pages 513–520 (2017)",
                   "doi:10.1038/nmeth.4256"}
              }),
-    working_directory(""),
     java_exe(""),
     exe(""),
     parameter_file_path(""),
@@ -206,21 +231,25 @@ public:
 
 
 protected:
-  void registerOptionsAndFlags_() final override
+
+  void registerOptionsAndFlags_() override
   {
     const StringList emptyStrings;
     const std::vector< double > emptyDoubles;
 
     const StringList validUnits = ListUtils::create<String>("Da,ppm");
-    const StringList isotope_error_and_enzyme_termini = ListUtils::create<String>("0,1,2");
     const StringList zero_to_five = ListUtils::create<String>("0,1,2,3,4,5");
 
+    // License agreement
+    registerStringOption_(TOPPMSFraggerAdapter::license, "<license>", "", "Set to yes, if you have read and agreed to the MSFragger license terms.", true, false);
+    setValidStrings_(TOPPMSFraggerAdapter::license, {"yes","no"});
+
     // Java executable
-    registerInputFile_(TOPPMSFraggerAdapter::java_executable, "<file>", "java", "The Java executable. Usually Java is on the system PATH. If Java is not found, use this parameter to specify the full path to Java", false, false, ListUtils::create<String>("skipexists"));
+    registerInputFile_(TOPPMSFraggerAdapter::java_executable, "<file>", "java", "The Java executable. Usually Java is on the system PATH. If Java is not found, use this parameter to specify the full path to Java", false, false, {"skipexists"});
     registerIntOption_(TOPPMSFraggerAdapter::java_heapmemory, "<num>", 3500, "Maximum Java heap size (in MB)", false);
 
     // Handle executable
-    registerInputFile_(TOPPMSFraggerAdapter::executable, "<path_to_executable>", "", "Path to the MSFragger executable to use; may be empty if the executable is globally available.", false, false, ListUtils::create<String>("skipexists"));
+    registerInputFile_(TOPPMSFraggerAdapter::executable, "<path_to_executable>", "MSFragger.jar", "Path to the MSFragger executable to use; may be empty if the executable is globally available.", false, false, {"is_executable"});
 
     // Input file
     registerInputFile_(TOPPMSFraggerAdapter::in, "<file>", "", "Input File with specta for MSFragger");
@@ -242,7 +271,8 @@ protected:
     registerTOPPSubsection_("tolerance", "Search Tolerances");
 
     // Precursor mass tolerance and unit
-    _registerNonNegativeDouble(TOPPMSFraggerAdapter::precursor_mass_tolerance, "<precursor_mass_tolerance>", 20.0, "Precursor mass tolerance (window is +/- this value)", false, false);
+    _registerNonNegativeDouble(TOPPMSFraggerAdapter::precursor_mass_tolerance_lower, "<precursor_mass_tolerance>", 20.0, "Lower precursor mass tolerance", false, false);
+    _registerNonNegativeDouble(TOPPMSFraggerAdapter::precursor_mass_tolerance_upper, "<precursor_mass_tolerance>", 20.0, "Upper precursor mass tolerance", false, false);
     registerStringOption_(TOPPMSFraggerAdapter::precursor_mass_unit, "<precursor_mass_unit>", "ppm", "Unit of precursor mass tolerance", false, false);
     setValidStrings_(TOPPMSFraggerAdapter::precursor_mass_unit, validUnits);
 
@@ -258,7 +288,7 @@ protected:
 
     // Isotope error
     registerStringOption_(TOPPMSFraggerAdapter::isotope_error, "<isotope_error>", "0", "Isotope correction for MS/MS events triggered on isotopic peaks. Should be set to 0 (disabled) for open search or 0/1/2 for correction of narrow window searches. Shifts the precursor mass window to multiples of this value multiplied by the mass of C13-C12.", false, false);
-    setValidStrings_(TOPPMSFraggerAdapter::isotope_error, isotope_error_and_enzyme_termini);
+    setValidStrings_(TOPPMSFraggerAdapter::isotope_error, ListUtils::create<String>("0,1,2,0/1/2"));
 
     // TOPP digest
     registerTOPPSubsection_("digest", "In-Silico Digestion Parameters");
@@ -304,14 +334,15 @@ protected:
     // Modifications
     registerDoubleList_(TOPPMSFraggerAdapter::varmod_masses, "<varmod1_mass .. varmod7_mass>", emptyDoubles , "Masses for variable modifications", false, false);
     registerStringList_(TOPPMSFraggerAdapter::varmod_syntax, "<varmod1_syntax .. varmod7_syntax>", emptyStrings, "Syntax Strings for variable modifications", false, false);
+    registerStringList_(TOPPMSFraggerAdapter::variable_modifications_unimod, "<varmod1_unimod .. varmod7_unimod>", emptyStrings, "Variable modifications in unimod syntax, is added to mass+syntax varmod list", false, false);
     registerFlag_(TOPPMSFraggerAdapter::varmod_enable_common, "Enable common variable modifications (15.9949 M and 42.0106 [^)", false);
 
     // allow_multiple_variable_mods_on_residue
     registerFlag_(TOPPMSFraggerAdapter::not_allow_multiple_variable_mods_on_residue, "Do not allow any one amino acid to be modified by multiple variable modifications", false);
 
     // Max variable mods per mod
-    registerStringOption_(TOPPMSFraggerAdapter::max_variable_mods_per_mod, "<max_variable_mods_per_mod>", "2", "Maximum number of residues that can be occupied by each variable modification", false, false);
-    setValidStrings_(TOPPMSFraggerAdapter::max_variable_mods_per_mod, zero_to_five);
+    registerStringOption_(TOPPMSFraggerAdapter::max_variable_mods_per_peptide, "<max_variable_mods_per_peptide>", "2", "Maximum total number of variable modifications per peptide", false, false);
+    setValidStrings_(TOPPMSFraggerAdapter::max_variable_mods_per_peptide, zero_to_five);
 
     // Max variable mods combinations
     _registerNonNegativeInt(TOPPMSFraggerAdapter::max_variable_mods_combinations, "<max_variable_mods_combinations>", 5000, "Maximum allowed number of modified variably modified peptides from each peptide sequence, (maximum of 65534). If a greater number than the maximum is generated, only the unmodified peptide is considered", false, false);
@@ -344,6 +375,7 @@ protected:
     _registerNonNegativeInt(TOPPMSFraggerAdapter::min_matched_fragments, "<min_matched_fragments>", 4, "Minimum number of matched peaks for PSM to be reported. MSFragger recommends a minimum of 4 for narrow window searching and 6 for open searches", false, false);
     _registerNonNegativeInt(TOPPMSFraggerAdapter::output_report_topn, "<output_report_topn>", 1, "Reports top N PSMs per input spectrum", false, false);
     _registerNonNegativeDouble(TOPPMSFraggerAdapter::output_max_expect, "<output_max_expect>", 50.0, "Suppresses reporting of PSM if top hit has expectation greater than this threshold", false, false);
+    _registerNonNegativeInt(TOPPMSFraggerAdapter::localize_delta_mass, "<localize_delta_mass>", 0, "Include fragment ions mass-shifted by unknown modifications (recommended for open and mass offset searches) (0 for OFF, 1 for ON)", false, false);
 
     registerTOPPSubsection_("statmod", "Static Modification Parameters");
 
@@ -372,17 +404,26 @@ protected:
     _registerNonNegativeDouble(TOPPMSFraggerAdapter::add_R_arginine,      "<add_R_arginine>",      0.0, "Statically add mass to arginine",      false, true);
     _registerNonNegativeDouble(TOPPMSFraggerAdapter::add_Y_tyrosine,      "<add_Y_tyrosine>",      0.0, "Statically add mass to tyrosine",      false, true);
     _registerNonNegativeDouble(TOPPMSFraggerAdapter::add_W_tryptophan,    "<add_W_tryptophan>",    0.0, "Statically add mass to tryptophan",    false, true);
+    registerStringList_(TOPPMSFraggerAdapter::fixed_modifications_unimod, "<fixedmod1_unimod .. fixedmod7_unimod>", emptyStrings, "Fixed modifications in unimod syntax if specific mass is unknown, e.g. Carbamidomethylation (C). When multiple different masses are given for one aminoacid this parameter (unimod) will have priority.", false, false);
+
+    // register peptide indexing parameter (with defaults for this search engine) TODO: check if search engine defaults are needed
+    registerPeptideIndexingParameter_(PeptideIndexing().getParameters());  
   }
 
+  ExitCodes main_(int, const char**) override
+  {
+    if (getStringOption_(TOPPMSFraggerAdapter::license) != "yes" && !getFlag_("test"))
+    {
+      _fatalError("MSFragger may only be used upon acceptance of license terms.");
+    }
 
-  ExitCodes main_(int, const char**) final override
-  {  
+    File::TempDir working_directory(debug_level_ >= 2);
     try
     {
       // java executable
       this->java_exe = this->getStringOption_(TOPPMSFraggerAdapter::java_executable);
 
-      if (JavaInfo::canRun(this->java_exe, true) == false)
+      if (!JavaInfo::canRun(this->java_exe, true))
       {
         _fatalError("Java executable cannot be run!");
       }
@@ -393,8 +434,7 @@ protected:
       if (this->exe.empty())
       {
         // looks for MSFRAGGER_PATH in the environment
-        QProcessEnvironment env;
-        QString qmsfragger_path = env.systemEnvironment().value("MSFRAGGER_PATH");
+        QString qmsfragger_path = QProcessEnvironment::systemEnvironment().value("MSFRAGGER_PATH");
         if (qmsfragger_path.isEmpty())
         {
           _fatalError("No executable for MSFragger could be found!");
@@ -409,7 +449,8 @@ protected:
       optional_output_file = this->getStringOption_(TOPPMSFraggerAdapter::opt_out);
 
       // tolerance
-      const double arg_precursor_mass_tolerance(this->getDoubleOption_(TOPPMSFraggerAdapter::precursor_mass_tolerance));
+      const double arg_precursor_mass_tolerance_lower(this->getDoubleOption_(TOPPMSFraggerAdapter::precursor_mass_tolerance_lower));
+      const double arg_precursor_mass_tolerance_upper(this->getDoubleOption_(TOPPMSFraggerAdapter::precursor_mass_tolerance_upper));
       const String & arg_precursor_mass_unit = this->getStringOption_(TOPPMSFraggerAdapter::precursor_mass_unit);
       const double arg_precursor_true_tolerance(this->getDoubleOption_(TOPPMSFraggerAdapter::precursor_true_tolerance));
       const String & arg_precursor_true_unit = this->getStringOption_(TOPPMSFraggerAdapter::precursor_true_unit);
@@ -441,6 +482,7 @@ protected:
       const bool arg_clip_nterm_m = this->getFlag_(clip_nterm_m);
       std::vector< double > arg_varmod_masses = this->getDoubleList_(TOPPMSFraggerAdapter::varmod_masses);
       std::vector< String > arg_varmod_syntax = this->getStringList_(TOPPMSFraggerAdapter::varmod_syntax);
+      std::vector< String > arg_varmod_unimod = this->getStringList_(TOPPMSFraggerAdapter::variable_modifications_unimod);
 
       // assignment of mass to syntax is by index, so the vectors have to be the same length
       if (arg_varmod_masses.size() != arg_varmod_syntax.size())
@@ -464,7 +506,7 @@ protected:
       }
 
       const bool arg_not_allow_multiple_variable_mods_on_residue = this->getFlag_(TOPPMSFraggerAdapter::not_allow_multiple_variable_mods_on_residue);
-      const String & arg_max_variable_mods_per_mod  = this->getStringOption_(TOPPMSFraggerAdapter::max_variable_mods_per_mod);
+      const String & arg_max_variable_mods_per_peptide  = this->getStringOption_(TOPPMSFraggerAdapter::max_variable_mods_per_peptide);
       const int arg_max_variable_mods_combinations = this->getIntOption_(TOPPMSFraggerAdapter::max_variable_mods_combinations);
 
       // spectrum
@@ -481,7 +523,7 @@ protected:
       ensureRange(arg_precursor_charge_min, arg_precursor_charge_max, "Maximum precursor charge is not allowed to be smaller than minimum precursor charge!");
 
       // ensures that the user is aware of overriding the precursoe charges
-      if ((arg_precursor_charge_min != 1 || arg_precursor_charge_max != 4) && arg_override_charge == false)
+      if ((arg_precursor_charge_min != 1 || arg_precursor_charge_max != 4) && !arg_override_charge)
       {
         _fatalError("If you want to ignore the precursor charge, please also set the -" + override_charge + " flag!");
       }
@@ -495,40 +537,41 @@ protected:
       const int arg_min_matched_fragments = this->getIntOption_(TOPPMSFraggerAdapter::min_matched_fragments);
       const int arg_output_report_topn = this->getIntOption_(TOPPMSFraggerAdapter::output_report_topn);
       const double arg_output_max_expect = this->getDoubleOption_(TOPPMSFraggerAdapter::output_max_expect);
-
+      const int arg_localize_delta_mass = this->getIntOption_(TOPPMSFraggerAdapter::localize_delta_mass);
+      
       // statmod
-      const double arg_add_cterm_peptide = this->getDoubleOption_(TOPPMSFraggerAdapter::add_cterm_peptide);
-      const double arg_add_nterm_peptide = this->getDoubleOption_(TOPPMSFraggerAdapter::add_nterm_peptide);
-      const double arg_add_cterm_protein = this->getDoubleOption_(TOPPMSFraggerAdapter::add_cterm_protein);
-      const double arg_add_nterm_protein = this->getDoubleOption_(TOPPMSFraggerAdapter::add_nterm_protein);
-      const double arg_add_G_glycine     = this->getDoubleOption_(TOPPMSFraggerAdapter::add_G_glycine);
-      const double arg_add_A_alanine     = this->getDoubleOption_(TOPPMSFraggerAdapter::add_A_alanine);
-      const double arg_add_S_serine      = this->getDoubleOption_(TOPPMSFraggerAdapter::add_S_serine);
-      const double arg_add_P_proline     = this->getDoubleOption_(TOPPMSFraggerAdapter::add_P_proline);
-      const double arg_add_V_valine      = this->getDoubleOption_(TOPPMSFraggerAdapter::add_V_valine);
-      const double arg_add_T_threonine     = this->getDoubleOption_(TOPPMSFraggerAdapter::add_T_threonine);
-      const double arg_add_C_cysteine     = this->getDoubleOption_(TOPPMSFraggerAdapter::add_C_cysteine);
-      const double arg_add_L_leucine     = this->getDoubleOption_(TOPPMSFraggerAdapter::add_L_leucine);
-      const double arg_add_I_isoleucine     = this->getDoubleOption_(TOPPMSFraggerAdapter::add_I_isoleucine);
-      const double arg_add_N_asparagine     = this->getDoubleOption_(TOPPMSFraggerAdapter::add_N_asparagine);
-      const double arg_add_D_aspartic_acid     = this->getDoubleOption_(TOPPMSFraggerAdapter::add_D_aspartic_acid);
-      const double arg_add_Q_glutamine     = this->getDoubleOption_(TOPPMSFraggerAdapter::add_Q_glutamine);
-      const double arg_add_K_lysine     = this->getDoubleOption_(TOPPMSFraggerAdapter::add_K_lysine);
-      const double arg_add_E_glutamic_acid     = this->getDoubleOption_(TOPPMSFraggerAdapter::add_E_glutamic_acid);
-      const double arg_add_M_methionine     = this->getDoubleOption_(TOPPMSFraggerAdapter::add_M_methionine);
-      const double arg_add_H_histidine     = this->getDoubleOption_(TOPPMSFraggerAdapter::add_H_histidine);
-      const double arg_add_F_phenylalanine     = this->getDoubleOption_(TOPPMSFraggerAdapter::add_F_phenylalanine);
-      const double arg_add_R_arginine     = this->getDoubleOption_(TOPPMSFraggerAdapter::add_R_arginine);
-      const double arg_add_Y_tyrosine     = this->getDoubleOption_(TOPPMSFraggerAdapter::add_Y_tyrosine);
-      const double arg_add_W_tryptophan     = this->getDoubleOption_(TOPPMSFraggerAdapter::add_W_tryptophan);
+      double arg_add_cterm_peptide = this->getDoubleOption_(TOPPMSFraggerAdapter::add_cterm_peptide);
+      double arg_add_nterm_peptide = this->getDoubleOption_(TOPPMSFraggerAdapter::add_nterm_peptide);
+      double arg_add_cterm_protein = this->getDoubleOption_(TOPPMSFraggerAdapter::add_cterm_protein);
+      double arg_add_nterm_protein = this->getDoubleOption_(TOPPMSFraggerAdapter::add_nterm_protein);
+      double arg_add_G_glycine = this->getDoubleOption_(TOPPMSFraggerAdapter::add_G_glycine);
+      double arg_add_A_alanine = this->getDoubleOption_(TOPPMSFraggerAdapter::add_A_alanine);
+      double arg_add_S_serine = this->getDoubleOption_(TOPPMSFraggerAdapter::add_S_serine);
+      double arg_add_P_proline = this->getDoubleOption_(TOPPMSFraggerAdapter::add_P_proline);
+      double arg_add_V_valine = this->getDoubleOption_(TOPPMSFraggerAdapter::add_V_valine);
+      double arg_add_T_threonine = this->getDoubleOption_(TOPPMSFraggerAdapter::add_T_threonine);
+      double arg_add_C_cysteine = this->getDoubleOption_(TOPPMSFraggerAdapter::add_C_cysteine);
+      double arg_add_L_leucine = this->getDoubleOption_(TOPPMSFraggerAdapter::add_L_leucine);
+      double arg_add_I_isoleucine = this->getDoubleOption_(TOPPMSFraggerAdapter::add_I_isoleucine);
+      double arg_add_N_asparagine = this->getDoubleOption_(TOPPMSFraggerAdapter::add_N_asparagine);
+      double arg_add_D_aspartic_acid = this->getDoubleOption_(TOPPMSFraggerAdapter::add_D_aspartic_acid);
+      double arg_add_Q_glutamine = this->getDoubleOption_(TOPPMSFraggerAdapter::add_Q_glutamine);
+      double arg_add_K_lysine = this->getDoubleOption_(TOPPMSFraggerAdapter::add_K_lysine);
+      double arg_add_E_glutamic_acid = this->getDoubleOption_(TOPPMSFraggerAdapter::add_E_glutamic_acid);
+      double arg_add_M_methionine = this->getDoubleOption_(TOPPMSFraggerAdapter::add_M_methionine);
+      double arg_add_H_histidine = this->getDoubleOption_(TOPPMSFraggerAdapter::add_H_histidine);
+      double arg_add_F_phenylalanine = this->getDoubleOption_(TOPPMSFraggerAdapter::add_F_phenylalanine);
+      double arg_add_R_arginine = this->getDoubleOption_(TOPPMSFraggerAdapter::add_R_arginine);
+      double arg_add_Y_tyrosine = this->getDoubleOption_(TOPPMSFraggerAdapter::add_Y_tyrosine);
+      double arg_add_W_tryptophan = this->getDoubleOption_(TOPPMSFraggerAdapter::add_W_tryptophan);
+      std::vector< String > arg_fixmod_unimod = this->getStringList_(TOPPMSFraggerAdapter::fixed_modifications_unimod);
 
       // parameters have been read in and verified, they are now going to be written into the fragger.params file in a temporary directory
-      QString working_directory = this->makeAutoRemoveTempDirectory_().toQString();
-      const QFileInfo tmp_param_file(this->working_directory, "fragger.params");
-      this->parameter_file_path =  String(tmp_param_file.absoluteFilePath());
+      const QFileInfo tmp_param_file(working_directory.getPath().toQString(), "fragger.params");
+      this->parameter_file_path = String(tmp_param_file.absoluteFilePath());
 
       writeDebug_("Parameter file for MSFragger: '" + this->parameter_file_path + "'", TOPPMSFraggerAdapter::LOG_LEVEL_VERBOSE);
-      writeDebug_("Working Directory: '" + String(this->working_directory) + "'", TOPPMSFraggerAdapter::LOG_LEVEL_VERBOSE);
+      writeDebug_("Working Directory: '" + working_directory.getPath() + "'", TOPPMSFraggerAdapter::LOG_LEVEL_VERBOSE);
       writeDebug_("If you want to keep the working directory and the parameter file, set the -debug to 2", 1);
       ofstream os(this->parameter_file_path.c_str());
 
@@ -536,7 +579,8 @@ protected:
       // Write all the parameters into the file
       os << "database_name = " << String(database)
                                << "\nnum_threads = " << this->getIntOption_("threads")
-                               << "\n\nprecursor_mass_tolerance = " << arg_precursor_mass_tolerance
+                               << "\n\nprecursor_mass_lower = " << (-arg_precursor_mass_tolerance_lower)
+                               << "\nprecursor_mass_upper = " << arg_precursor_mass_tolerance_upper
                                << "\nprecursor_mass_units = " << (arg_precursor_mass_unit == "Da" ? 0 : 1)
                                << "\nprecursor_true_tolerance = " << arg_precursor_true_tolerance
                                << "\nprecursor_true_units = " << (arg_precursor_true_unit == "Da" ? 0 : 1)
@@ -550,18 +594,221 @@ protected:
                                << "\nallowed_missed_cleavage = " << arg_allowed_missed_cleavage
                                << "\n\nclip_nTerm_M = " << arg_clip_nterm_m << '\n';
 
-      // Write variable modifications (and also write to log)
-      writeLog_("Variable Modifications set to:");
-      for (Size i = 0; i < arg_varmod_masses.size(); ++i)
+      // Write variable modifications from masses/syntax and unimod to unique set (and also write to log)
+      writeLogInfo_("Variable Modifications set to:");
+      std::set< std::pair< double, String > > varmods_combined;
+      Size i;
+      for (i = 0; i < arg_varmod_masses.size(); ++i)
+      { 
+        std::pair <double, String> tmp_mod = std::make_pair (arg_varmod_masses[i], arg_varmod_syntax[i]);
+        varmods_combined.insert(tmp_mod);
+      }
+
+
+      // TODO Move to Modified Peptide Generator
+      if (!arg_varmod_unimod.empty())
       {
-        const String varmod = "variable_mod_0" + String(i+1) + " = " + String(arg_varmod_masses[i]) + " " + String(arg_varmod_syntax[i]);
+        // String filter for terminal aminoacid modification, delete mod from String list, continue with other unimods
+        std::vector< String > n_terminal_aa_mods;
+        std::vector< String > c_terminal_aa_mods;
+        std::vector< int > n_terminal_aa_mods_toDel;
+        std::vector< int > c_terminal_aa_mods_toDel;
+        for (Size i=0; i<arg_varmod_unimod.size(); i++)
+        {
+          int nt = arg_varmod_unimod[i].find(" (N-term");
+          int ct = arg_varmod_unimod[i].find(" (C-term");
+
+          if (!(nt == -1 && ct == -1)) // has -term modification
+          {
+            int closed_arg = arg_varmod_unimod[i].find("term)"); // Check if the terminal argument is closed or continued with aminoacid
+            if (closed_arg == -1)
+            {
+              int j = arg_varmod_unimod[i].find("-term");
+              if (arg_varmod_unimod[i].substr(j+7)!=")")
+              {
+                _fatalError("Multiple aminoacids in terminal modification are not allowed");
+              }
+              String res = arg_varmod_unimod[i].substr(j+6, 1);
+              String mod = arg_varmod_unimod[i].substr(0, j-3);
+              String modificationString = mod.append(" (").append(res).append(")");
+              if (nt != -1)
+              {
+                n_terminal_aa_mods.push_back(modificationString);
+                n_terminal_aa_mods_toDel.push_back(i);
+              }
+              if (ct != -1)
+              {
+                c_terminal_aa_mods.push_back(modificationString);
+                c_terminal_aa_mods_toDel.push_back(i);
+              }
+            }
+          }         
+        }
+
+        // Write the variable modification in correct syntax to a combined list and delete element from parameter list
+        const ModifiedPeptideGenerator::MapToResidueType n_var_mod_temp = ModifiedPeptideGenerator::getModifications(n_terminal_aa_mods);
+        for (auto const & r : n_var_mod_temp.val)
+        {
+          const double deltamass = r.first->getDiffMonoMass();
+          const String res = r.second->getOneLetterCode();
+          std::pair <double, String> tmp_mod = std::make_pair (deltamass, "n" + res);
+          varmods_combined.insert(tmp_mod);
+        }
+        
+        for (auto const & i : n_terminal_aa_mods_toDel)
+        {
+          arg_varmod_unimod.erase(arg_varmod_unimod.begin()+i);
+        }
+
+        const ModifiedPeptideGenerator::MapToResidueType c_var_mod_temp = ModifiedPeptideGenerator::getModifications(c_terminal_aa_mods);
+        for (auto const & r : c_var_mod_temp.val)
+        {
+          const double deltamass = r.first->getDiffMonoMass();
+          const String res = r.second->getOneLetterCode();
+          std::pair <double, String> tmp_mod = std::make_pair (deltamass, "c" + res);
+          varmods_combined.insert(tmp_mod);
+        }
+        
+        for (auto const & i : c_terminal_aa_mods_toDel)
+        {
+          arg_varmod_unimod.erase(arg_varmod_unimod.begin()+i);
+        }
+
+        // Collect all other modifications and filter true terminal modifications for correct syntax in MSFragger
+        const ModifiedPeptideGenerator::MapToResidueType variable_mod = ModifiedPeptideGenerator::getModifications(arg_varmod_unimod);
+        for (auto const & r : variable_mod.val)
+        { 
+          String res;
+          const double deltamass = r.first->getDiffMonoMass();
+          if (r.first->getTermSpecificity() == ResidueModification::N_TERM)
+          {
+            res = "n^";
+          }
+          else if (r.first->getTermSpecificity() == ResidueModification::C_TERM)
+          {
+            res = "c^";
+          }
+          else if (r.first->getTermSpecificity() == ResidueModification::PROTEIN_N_TERM)
+          {
+            res = "[^";
+          }
+          else if (r.first->getTermSpecificity() == ResidueModification::PROTEIN_C_TERM)
+          {
+            res = "]^";
+          }
+          else
+          {
+            res = r.second->getOneLetterCode();
+          }
+          std::pair <double, String> tmp_mod = std::make_pair (deltamass, res);
+          varmods_combined.insert(tmp_mod);
+        }
+      }
+      i = 0;
+      for (auto const & m : varmods_combined)
+      {
+        const String varmod = "variable_mod_0" + String(i+1) + " = " + String(m.first) + " " + String(m.second);
         os << "\n" << varmod;
-        writeLog_(varmod);
+        writeLogInfo_(varmod);
+        i++;
+      }
+
+      // collect all unimod fixed modifications and specify deltamass for each aminoacid
+      if (!arg_fixmod_unimod.empty())
+      {
+        const ModifiedPeptideGenerator::MapToResidueType fixed_mod = ModifiedPeptideGenerator::getModifications(arg_fixmod_unimod);
+        for (auto const & r : fixed_mod.val)
+        {
+          const double deltamass = r.first->getDiffMonoMass();
+          if (r.first->getTermSpecificity() == ResidueModification::N_TERM)
+          {
+            arg_add_nterm_peptide = deltamass;
+          }
+          else if (r.first->getTermSpecificity() == ResidueModification::C_TERM)
+          {
+            arg_add_cterm_peptide = deltamass;
+          }
+          else if (r.first->getTermSpecificity() == ResidueModification::PROTEIN_N_TERM)
+          {
+            arg_add_nterm_protein = deltamass;
+          }
+          else if (r.first->getTermSpecificity() == ResidueModification::PROTEIN_C_TERM)
+          {
+            arg_add_cterm_protein = deltamass;
+          } 
+          else
+          {
+            const String res = r.second->getOneLetterCode();
+            switch(res[0])
+            {
+              case 'G':
+                arg_add_G_glycine = deltamass;
+                break;
+              case 'A':
+                arg_add_A_alanine = deltamass;
+                break;
+              case 'S':
+                arg_add_S_serine = deltamass;
+                break;
+              case 'P':
+                arg_add_P_proline = deltamass;
+                break;
+              case 'V':
+                arg_add_V_valine = deltamass;
+                break;
+              case 'T':
+                arg_add_T_threonine = deltamass;
+                break;
+              case 'C':
+                arg_add_C_cysteine = deltamass;
+                break;
+              case 'L':
+                arg_add_L_leucine = deltamass;
+                break;
+              case 'I':
+                arg_add_I_isoleucine = deltamass;
+                break;
+              case 'N':
+                arg_add_N_asparagine = deltamass;
+                break;
+              case 'D':
+                arg_add_D_aspartic_acid = deltamass;
+                break;
+              case 'Q':
+                arg_add_Q_glutamine = deltamass;
+                break;
+              case 'K':
+                arg_add_K_lysine = deltamass;
+                break;
+              case 'E':
+                arg_add_E_glutamic_acid = deltamass;
+                break;
+              case 'M':
+                arg_add_M_methionine = deltamass;
+                break;
+              case 'H':
+                arg_add_H_histidine = deltamass;
+                break;
+              case 'F':
+                arg_add_F_phenylalanine = deltamass;
+                break;
+              case 'R':
+                arg_add_R_arginine = deltamass;
+                break;
+              case 'Y':
+                arg_add_Y_tyrosine = deltamass;
+                break;
+              case 'W':
+                arg_add_W_tryptophan = deltamass;
+                break;
+            }
+          }
+        }
       }
 
       os << std::endl
           << "\nallow_multiple_variable_mods_on_residue = " << (arg_not_allow_multiple_variable_mods_on_residue ? 0 : 1)
-          << "\nmax_variable_mods_per_mod = " << arg_max_variable_mods_per_mod
+          << "\nmax_variable_mods_per_peptide = " << arg_max_variable_mods_per_peptide
           << "\nmax_variable_mods_combinations = " << arg_max_variable_mods_combinations
           << "\n\noutput_file_extension = " << "pepXML"
           << "\noutput_format = " << "pepXML"
@@ -579,6 +826,7 @@ protected:
           << "\nadd_topN_complementary = " << arg_add_topn_complementary
           << "\n\nminimum_peaks = " << arg_minimum_peaks
           << "\nuse_topN_peaks = " << arg_use_topn_peaks
+          << "\nlocalize_delta_mass = " << arg_localize_delta_mass
           << "\nmin_fragments_modelling = " << arg_min_fragments_modeling
           << "\nmin_matched_fragments = " << arg_min_matched_fragments
           << "\nminimum_ratio = " << arg_minimum_ratio
@@ -621,13 +869,13 @@ protected:
         << input_file;
 
     QProcess process_msfragger;
-    process_msfragger.setWorkingDirectory(this->working_directory);
+    process_msfragger.setWorkingDirectory(working_directory.getPath().toQString());
 
     if (this->debug_level_ >= TOPPMSFraggerAdapter::LOG_LEVEL_VERBOSE)
     {
       writeDebug_("COMMAND LINE CALL IS:", 1);
       String command_line = this->java_exe;
-      for (const String & process_param : process_params)
+      for (const auto& process_param : process_params)
       {
         command_line += (" " + process_param);
       }
@@ -636,29 +884,41 @@ protected:
 
     process_msfragger.start(this->java_exe.toQString(), process_params);
 
-    if (process_msfragger.waitForFinished(-1) == false || process_msfragger.exitCode() != 0)
+    if (!process_msfragger.waitForFinished(-1) || process_msfragger.exitCode() != 0)
     {
-      LOG_FATAL_ERROR << "FATAL: Invocation of MSFraggerAdapter has failed. Error code was: " << process_msfragger.exitCode() << std::endl;
+      OPENMS_LOG_FATAL_ERROR << "FATAL: Invocation of MSFraggerAdapter has failed. Error code was: " << process_msfragger.exitCode() << std::endl;
       const QString msfragger_stdout(process_msfragger.readAllStandardOutput());
       const QString msfragger_stderr(process_msfragger.readAllStandardError());
-      writeLog_(msfragger_stdout);
-      writeLog_(msfragger_stderr);
-      writeLog_(String(process_msfragger.exitCode()));
+      writeLogError_(msfragger_stdout);
+      writeLogError_(msfragger_stderr);
+      writeLogError_(String(process_msfragger.exitCode()));
       return EXTERNAL_PROGRAM_ERROR;
     }
 
     // convert from pepXML to idXML
-    String pepxmlfile = File::removeExtension(input_file) + "." + "pepXML";
+    String pepxmlfile = FileHandler::swapExtension(input_file, FileTypes::PEPXML);
     std::vector<PeptideIdentification> peptide_identifications;
     std::vector<ProteinIdentification> protein_identifications;
     PepXMLFile().load(pepxmlfile, protein_identifications, peptide_identifications);
     for (auto it = protein_identifications.begin(); it != protein_identifications.end(); it++)
     { 
         it->setSearchEngine("MSFragger");
+        //Whatever the pepXML says, overwrite origin as the input mzML
+        it->setPrimaryMSRunPath({this->getStringOption_(TOPPMSFraggerAdapter::in)}, false);
     }
+
+    // write all (!) parameters as metavalues to the search parameters
+    if (!protein_identifications.empty())
+    {
+      DefaultParamHandler::writeParametersToMetaValues(this->getParam_(), protein_identifications[0].getSearchParameters(), this->getToolPrefix());
+    }
+
+    // if "reindex" parameter is set to true will perform reindexing
+    if (auto ret = reindex_(protein_identifications, peptide_identifications); ret != EXECUTION_OK) return ret;
+
     IdXMLFile().store(output_file, protein_identifications, peptide_identifications);
 
-    // remove the msfragger pepXML output from the user lcoation
+    // remove the msfragger pepXML output from the user location
 
     if (optional_output_file.empty())
     {
@@ -666,7 +926,7 @@ protected:
     }
     else
     {
-    // rename the pepXML file to the opt_out
+      // rename the pepXML file to the opt_out
       QFile::rename(pepxmlfile.toQString(), optional_output_file.toQString()); 
     }
 
@@ -676,15 +936,10 @@ protected:
       String db_index = this->getStringOption_(TOPPMSFraggerAdapter::database) + ".1.pepindex"; 
       File::remove(db_index);
     }
-   
     return EXECUTION_OK;
   }
 
-
 private:
-
-  QString working_directory;
-
   String java_exe;
   String exe;
 
@@ -724,7 +979,7 @@ private:
 
   inline void _fatalError(const String & message)
   {
-    LOG_FATAL_ERROR << "FATAL: " << message << std::endl;
+    OPENMS_LOG_FATAL_ERROR << "FATAL: " << message << std::endl;
     throw 1;
   }
 
@@ -747,7 +1002,7 @@ private:
   {
     if (right < left)
     {
-      LOG_ERROR << "FATAL: " << message << std::endl;
+      OPENMS_LOG_ERROR << "FATAL: " << message << std::endl;
       throw 1;
     }
   }
@@ -762,7 +1017,8 @@ const String TOPPMSFraggerAdapter::opt_out = "opt_out";
 const String TOPPMSFraggerAdapter::database = "database";
 
 // tolerance
-const String TOPPMSFraggerAdapter::precursor_mass_tolerance = "tolerance:precursor_mass_tolerance";
+const String TOPPMSFraggerAdapter::precursor_mass_tolerance_lower = "tolerance:precursor_mass_tolerance_lower";
+const String TOPPMSFraggerAdapter::precursor_mass_tolerance_upper = "tolerance:precursor_mass_tolerance_upper";
 const String TOPPMSFraggerAdapter::precursor_mass_unit = "tolerance:precursor_mass_unit";
 const String TOPPMSFraggerAdapter::precursor_true_tolerance = "tolerance:precursor_true_tolerance";
 const String TOPPMSFraggerAdapter::precursor_true_unit = "tolerance:precursor_true_unit";
@@ -787,8 +1043,9 @@ const String TOPPMSFraggerAdapter::varmod_masses = "varmod:masses";
 const String TOPPMSFraggerAdapter::varmod_syntax = "varmod:syntaxes";
 const String TOPPMSFraggerAdapter::varmod_enable_common = "varmod:enable_common";
 const String TOPPMSFraggerAdapter::not_allow_multiple_variable_mods_on_residue = "varmod:not_allow_multiple_variable_mods_on_residue";
-const String TOPPMSFraggerAdapter::max_variable_mods_per_mod = "varmod:max_variable_mods_per_mod";
+const String TOPPMSFraggerAdapter::max_variable_mods_per_peptide = "varmod:max_variable_mods_per_peptide";
 const String TOPPMSFraggerAdapter::max_variable_mods_combinations = "varmod:max_variable_mods_combinations";
+const String TOPPMSFraggerAdapter::variable_modifications_unimod = "varmod:unimod";
 
 // spectrum
 const String TOPPMSFraggerAdapter::minimum_peaks = "spectrum:minimum_peaks";
@@ -810,6 +1067,7 @@ const String TOPPMSFraggerAdapter::min_fragments_modeling = "search:min_fragment
 const String TOPPMSFraggerAdapter::min_matched_fragments = "search:min_matched_fragments";
 const String TOPPMSFraggerAdapter::output_report_topn = "search:output_report_topn";
 const String TOPPMSFraggerAdapter::output_max_expect = "search:output_max_expect";
+const String TOPPMSFraggerAdapter::localize_delta_mass = "search:localize_delta_mass";
 
 // statmod
 const String TOPPMSFraggerAdapter::add_cterm_peptide = "statmod:add_cterm_peptide";
@@ -836,6 +1094,9 @@ const String TOPPMSFraggerAdapter::add_F_phenylalanine = "statmod:add_F_phenylal
 const String TOPPMSFraggerAdapter::add_R_arginine = "statmod:add_R_arginine";
 const String TOPPMSFraggerAdapter::add_Y_tyrosine = "statmod:add_Y_tyrosine";
 const String TOPPMSFraggerAdapter::add_W_tryptophan = "statmod:add_W_tryptophan";
+const String TOPPMSFraggerAdapter::license = "license";
+const String TOPPMSFraggerAdapter::fixed_modifications_unimod = "statmod:unimod";
+
 
 const int TOPPMSFraggerAdapter::LOG_LEVEL_VERBOSE = 1;
 

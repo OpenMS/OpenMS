@@ -2,7 +2,7 @@
 #                   OpenMS -- Open-Source Mass Spectrometry
 # --------------------------------------------------------------------------
 # Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-# ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+# ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 #
 # This software is released under a three-clause BSD license:
 #  * Redistributions of source code must retain the above copyright
@@ -33,16 +33,15 @@
 # --------------------------------------------------------------------------
 
 project("OpenMS_UTILS")
-cmake_minimum_required(VERSION 2.8.11 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.15 FATAL_ERROR)
 
 # --------------------------------------------------------------------------
 # OpenMS' UTILS tools
 
 # add OpenMS includes
 include_directories(SYSTEM ${OpenMS_INCLUDE_DIRECTORIES})
+# TODO this should be propagated by linking. with the correct find boost settings
 add_definitions(/DBOOST_ALL_NO_LIB)
-
-find_package(Qt5 COMPONENTS Core Network REQUIRED)
 
 # add all the tools
 set(UTILS_executables)
@@ -56,13 +55,6 @@ endforeach(i)
 
 # some regular UTILS tools need the GUI lib, only build them when WITH_GUI is enabled
 if(WITH_GUI)
-  find_package(Qt5 COMPONENTS Core Network Widgets Svg OpenGL REQUIRED)
-  if (NOT Qt5Widgets_FOUND)
-    message(STATUS "QtWidgets module not found!")
-    message(FATAL_ERROR "To find a custom Qt installation use: cmake <..more options..> -D QT_QMAKE_EXECUTABLE='<path_to_qmake(.exe)' <src-dir>")
-  endif()
-  ## some regular UTILS need the GUI lib
-  include_directories(SYSTEM ${OpenMS_GUI_INCLUDE_DIRECTORIES})
   foreach(i ${UTILS_executables_with_GUIlib})
     add_executable(${i} ${i}.cpp)
     # we also want to install each util
@@ -73,13 +65,14 @@ if(WITH_GUI)
   set(UTILS_executables ${UTILS_executables} ${UTILS_executables_with_GUIlib})
 endif()
 
+
 # collection target
 add_custom_target(UTILS)
 add_dependencies(UTILS ${UTILS_executables})
 
-# FFSuperHirn requires linking against SuperHirn
-include_directories(SYSTEM ${SuperHirn_INCLUDE_DIRECTORIES})
-target_link_libraries(FeatureFinderSuperHirn SuperHirn)
+# special requirements of some tools
+target_link_libraries(DecoyDatabase Boost::regex)
+target_link_libraries(NucleicAcidSearchEngine Boost::regex)
 
 ## export the list of UTILS tools into CACHE
 set(UTILS_TOOLS ${UTILS_executables}

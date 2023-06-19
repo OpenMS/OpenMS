@@ -14,8 +14,9 @@ set(sources_list
   MSDataTransformingConsumer.cpp
   MSDataWritingConsumer.cpp
   NoopMSDataConsumer.cpp
-  SwathFileConsumer.cpp
+  SiriusFragmentAnnotation.cpp
 	SiriusMzTabWriter.cpp
+  SwathFileConsumer.cpp
 )
 
 ### add path to the filenames

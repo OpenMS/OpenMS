@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -39,20 +39,12 @@
 #include <iostream>
 #include <fstream>
 
+#include "svm.h"
+
 using namespace std;
 
 namespace OpenMS
 {
-  LibSVMEncoder::LibSVMEncoder()
-  {
-
-  }
-
-  LibSVMEncoder::~LibSVMEncoder()
-  {
-
-  }
-
   void LibSVMEncoder::encodeCompositionVector(const String& sequence,
                                               vector<pair<Int, double> >& composition_vector,
                                               const String& allowed_characters)
@@ -82,7 +74,7 @@ namespace OpenMS
     {
       if (counts[i] > 0)
       {
-        composition_vector.push_back(make_pair(Int(i + 1), (((double) counts[i]) / total_count)));
+        composition_vector.emplace_back(Int(i + 1), (((double) counts[i]) / total_count));
       }
     }
     delete[] counts;
@@ -207,7 +199,7 @@ namespace OpenMS
     {
 
       encodeCompositionVector(sequences[i], encoded_vector, allowed_characters);
-      encoded_vector.push_back(make_pair(Int(allowed_characters.size() + 1), ((double) sequences[i].length()) / maximum_sequence_length));
+      encoded_vector.emplace_back(Int(allowed_characters.size() + 1), ((double) sequences[i].length()) / maximum_sequence_length);
       svm_node* libsvm_vector = encodeLibSVMVector(encoded_vector);
       vectors.push_back(libsvm_vector);
     }
@@ -226,8 +218,8 @@ namespace OpenMS
     {
 
       encodeCompositionVector(sequences[i], encoded_vector, allowed_characters);
-      encoded_vector.push_back(make_pair(Int(allowed_characters.size() + 1), (double) sequences[i].length()));
-      encoded_vector.push_back(make_pair(Int(allowed_characters.size() + 2), AASequence::fromString(sequences[i]).getAverageWeight()));
+      encoded_vector.emplace_back(Int(allowed_characters.size() + 1), (double) sequences[i].length());
+      encoded_vector.emplace_back(Int(allowed_characters.size() + 2), AASequence::fromString(sequences[i]).getAverageWeight());
       svm_node* libsvm_vector = encodeLibSVMVector(encoded_vector);
       vectors.push_back(libsvm_vector);
     }
@@ -347,6 +339,11 @@ namespace OpenMS
     bool                                                              wrong_characters = false;
 
     number_of_residues = allowed_characters.size();
+
+    if (number_of_residues == 0)
+    {
+      throw Exception::InvalidSize(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, number_of_residues);
+    }
 
     libsvm_vector.clear();
     sequence_length = sequence.size();
@@ -506,13 +503,13 @@ namespace OpenMS
         sort(temp_positions.begin(), temp_positions.end());
         for (Size i = 0; i < temp_positions.size(); ++i)
         {
-          libsvm_vector.push_back(make_pair(elements->first, temp_positions[i]));
+          libsvm_vector.emplace_back(elements->first, temp_positions[i]);
         }
         elements = elements_end;
       }
       if (length_encoding)
       {
-        libsvm_vector.push_back(make_pair((Int) sequence.size(), (double)pow((double)k_mer_length, (double) number_of_residues) + 1));
+        libsvm_vector.emplace_back((Int) sequence.size(), (double)pow((double)k_mer_length, (double) number_of_residues) + 1);
       }
     }
 
@@ -757,11 +754,11 @@ namespace OpenMS
     return (a.second == b.second) ? (a.first < b.first) : (a.second < b.second);
   }
 
-  void LibSVMEncoder::destroyProblem(svm_problem* problem)
+  void LibSVMEncoder::destroyProblem(svm_problem* &problem, bool free_nodes)
   {
     if (problem != nullptr)
     {
-      for (Int  i = 0; i < problem->l; i++)
+      for (Int i = 0; free_nodes && i < problem->l; i++)
       {
         delete[] problem->x[i];
       }

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -49,16 +49,6 @@
 
 #include <OpenMS/FORMAT/MzMLFile.h>
 
-void FunctionChangeSpectrum (OpenMS::MSSpectrum & s)
-{
-  s.sortByIntensity();
-}
-
-void FunctionChangeChromatogram (OpenMS::MSChromatogram & c)
-{
-  c.sortByIntensity();
-}
-
 
 START_TEST(MSDataChainingConsumer, "$Id$")
 
@@ -104,15 +94,24 @@ START_SECTION((void consumeSpectrum(SpectrumType & s)))
 
   TEST_EQUAL(first_spectrum == exp.getSpectrum(0), true) // nothing happened
 
+  for (auto& consumer : consumer_list)
+  {
+    delete consumer;
+  }
   delete chaining_consumer;
 }
 END_SECTION
 
 START_SECTION(([EXTRA] void consumeSpectrum(SpectrumType & s)))
 {
+   auto f = [](OpenMS::MSSpectrum & s)
+  {
+    s.sortByIntensity();
+  };
+
   MSDataTransformingConsumer * transforming_consumer = new MSDataTransformingConsumer();
   transforming_consumer->setExpectedSize(2,0);
-  transforming_consumer->setSpectraProcessingPtr(FunctionChangeSpectrum);
+  transforming_consumer->setSpectraProcessingFunc(f);
 
   std::vector<Interfaces::IMSDataConsumer *> consumer_list;
   consumer_list.push_back(new NoopMSDataConsumer());
@@ -132,7 +131,6 @@ START_SECTION(([EXTRA] void consumeSpectrum(SpectrumType & s)))
   TEST_EQUAL(first_spectrum.isSorted(), true)
   TEST_EQUAL(exp.getSpectrum(0).isSorted(), false)
 
-  delete chaining_consumer;
 
   // note how the transforming consumer still works as deleting the chaining
   // consumer does not take ownership of the consumers
@@ -141,7 +139,11 @@ START_SECTION(([EXTRA] void consumeSpectrum(SpectrumType & s)))
   TEST_EQUAL(first_spectrum.isSorted(), true)
   TEST_EQUAL(exp.getSpectrum(0).isSorted(), false)
 
-  delete transforming_consumer;
+  for (auto& consumer : consumer_list)
+  {
+    delete consumer;
+  }
+  delete chaining_consumer;
 }
 END_SECTION
 
@@ -163,15 +165,24 @@ START_SECTION((void consumeChromatogram(ChromatogramType & c)))
 
   TEST_EQUAL(first_chromatogram == exp.getChromatogram(0), true) // nothing happened
 
+  for (auto& consumer : consumer_list)
+  {
+    delete consumer;
+  }
   delete chaining_consumer;
 }
 END_SECTION
 
 START_SECTION(([EXTRA]void consumeChromatogram(ChromatogramType & c)))
 {
+  auto f2 = [](OpenMS::MSChromatogram & c)
+  {
+    c.sortByIntensity();
+  };
+  
   MSDataTransformingConsumer * transforming_consumer = new MSDataTransformingConsumer();
   transforming_consumer->setExpectedSize(2,0);
-  transforming_consumer->setChromatogramProcessingPtr(FunctionChangeChromatogram);
+  transforming_consumer->setChromatogramProcessingFunc(f2);
 
   std::vector<Interfaces::IMSDataConsumer *> consumer_list;
   consumer_list.push_back(new NoopMSDataConsumer());
@@ -191,6 +202,10 @@ START_SECTION(([EXTRA]void consumeChromatogram(ChromatogramType & c)))
   TEST_EQUAL(first_chromatogram.isSorted(), true)
   TEST_EQUAL(exp.getChromatogram(0).isSorted(), false)
 
+  for (auto& consumer : consumer_list)
+  {
+    delete consumer;
+  }
   delete chaining_consumer;
 }
 END_SECTION
@@ -215,8 +230,12 @@ END_SECTION
 START_SECTION(( void appendConsumer(IMSDataConsumer * consumer) ))
 {
   MSDataTransformingConsumer * transforming_consumer = new MSDataTransformingConsumer();
+  auto f = [](OpenMS::MSSpectrum & s)
+  {
+    s.sortByIntensity();
+  };
   transforming_consumer->setExpectedSize(2,0);
-  transforming_consumer->setSpectraProcessingPtr(FunctionChangeSpectrum);
+  transforming_consumer->setSpectraProcessingFunc(f);
 
   std::vector<Interfaces::IMSDataConsumer *> consumer_list;
   consumer_list.push_back(new NoopMSDataConsumer());
@@ -236,6 +255,11 @@ START_SECTION(( void appendConsumer(IMSDataConsumer * consumer) ))
   TEST_EQUAL(first_spectrum.isSorted(), true)
   TEST_EQUAL(exp.getSpectrum(0).isSorted(), false)
 
+  for (auto& consumer : consumer_list)
+  {
+    delete consumer;
+  }
+  delete transforming_consumer;
   delete chaining_consumer;
 }
 END_SECTION

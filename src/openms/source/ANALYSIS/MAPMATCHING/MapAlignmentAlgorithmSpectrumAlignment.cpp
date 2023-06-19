@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -46,24 +46,24 @@ namespace OpenMS
     DefaultParamHandler("MapAlignmentAlgorithmSpectrumAlignment"),
     ProgressLogger(), c1_(nullptr)
   {
-    defaults_.setValue("gapcost", 1.0, "This Parameter stands for the cost of opining a gap in the Alignment. A gap means that one spectrum can not be aligned directly to another spectrum in the Map. This happens, when the similarity of both spectra a too low or even not present. Imagine it as a insert or delete of the spectrum in the map (similar to sequence alignment). The gap is necessary for aligning, if we open a gap there is a possibility that an another spectrum can be correct aligned with a higher score as before without gap. But to open a gap is a negative event and needs to carry a punishment, so a gap should only be opened if the benefits outweigh the downsides. The Parameter is to giving as a positive number, the implementation convert it to a negative number.");
+    defaults_.setValue("gapcost", 1.0, "This Parameter stands for the cost of opening a gap in the Alignment. A gap means that one spectrum can not be aligned directly to another spectrum in the Map. This happens, when the similarity of both spectra a too low or even not present. Imagine it as a insert or delete of the spectrum in the map (similar to sequence alignment). The gap is necessary for aligning, if we open a gap there is a possibility that an another spectrum can be correct aligned with a higher score as before without gap. But to open a gap is a negative event and needs to carry a punishment, so a gap should only be opened if the benefits outweigh the downsides. The Parameter is to giving as a positive number, the implementation convert it to a negative number.");
     defaults_.setMinFloat("gapcost", 0.0);
-    defaults_.setValue("affinegapcost", 0.5, "This Parameter controls the cost of extension a already open gap. The idea behind the affine gapcost lies under the assumption, that it is better to get a long distance of connected gaps than to have a structure of gaps interspersed with matches (gap match gap match etc.).  Therefor the punishment for the extension of a gap generally should be lower than the normal gapcost. If the result of the alignment shows high compression, it is a good idea to lower either the affine gapcost or gap opening cost.");
+    defaults_.setValue("affinegapcost", 0.5, "This Parameter controls the cost of extension a already open gap. The idea behind the affine gapcost lies under the assumption, that it is better to get a long distance of connected gaps than to have a structure of gaps interspersed with matches (gap match gap match etc.). Therefore the punishment for the extension of a gap generally should be lower than the normal gapcost. If the result of the alignment shows high compression, it is a good idea to lower either the affine gapcost or gap opening cost.");
     defaults_.setMinFloat("affinegapcost", 0.0);
-    defaults_.setValue("cutoff_score", 0.70, "The Parameter defines the threshold which filtered spectra, these spectra are high potential candidate for deciding the interval of a sub-alignment.  Only those pair of spectra are selected, which has a score higher or same of the threshold.", ListUtils::create<String>("advanced"));
+    defaults_.setValue("cutoff_score", 0.70, "The Parameter defines the threshold which filtered spectra, these spectra are high potential candidate for deciding the interval of a sub-alignment.  Only those pair of spectra are selected, which has a score higher or same of the threshold.", {"advanced"});
     defaults_.setMinFloat("cutoff_score", 0.0);
     defaults_.setMaxFloat("cutoff_score", 1.0);
-    defaults_.setValue("bucketsize", 100, "Defines the numbers of buckets. It is a quantize of the interval of those points, which defines the main alignment (match points). These points have to filtered, to reduce the amount of points for the calculating a smoother spline curve.", ListUtils::create<String>("advanced"));
+    defaults_.setValue("bucketsize", 100, "Defines the numbers of buckets. It is a quantize of the interval of those points, which defines the main alignment (match points). These points have to filtered, to reduce the amount of points for the calculating a smoother spline curve.", {"advanced"});
     defaults_.setMinInt("bucketsize", 1);
-    defaults_.setValue("anchorpoints", 100, "Defines the percent of numbers of match points which a selected from one bucket. The high score pairs are previously selected. The reduction of match points helps to get a smoother spline curve.", ListUtils::create<String>("advanced"));
-    defaults_.setValue("debug", "false", "Activate the debug mode, there a files written starting with debug prefix.", ListUtils::create<String>("advanced"));
+    defaults_.setValue("anchorpoints", 100, "Defines the percent of numbers of match points which a selected from one bucket. The high score pairs are previously selected. The reduction of match points helps to get a smoother spline curve.", {"advanced"});
     defaults_.setMinInt("anchorpoints", 1);
     defaults_.setMaxInt("anchorpoints", 100);
-    defaults_.setValidStrings("debug", ListUtils::create<String>("true,false"));
-    defaults_.setValue("mismatchscore", -5.0, "Defines the score of two spectra if they have no similarity to each other. ", ListUtils::create<String>("advanced"));
+    defaults_.setValue("debug", "false", "Activate the debug mode, there a files written starting with debug prefix.", {"advanced"});
+    defaults_.setValidStrings("debug", {"true","false"});
+    defaults_.setValue("mismatchscore", -5.0, "Defines the score of two spectra if they have no similarity to each other. ", {"advanced"});
     defaults_.setMaxFloat("mismatchscore", 0.0);
     defaults_.setValue("scorefunction", "SteinScottImproveScore", "The score function is the core of an alignment. The success of an alignment depends mostly of the elected score function. The score function return the similarity of two spectra. The score influence defines later the way of possible traceback. There are multiple spectra similarity scores available..");
-    defaults_.setValidStrings("scorefunction", ListUtils::create<String>("SteinScottImproveScore,ZhangSimilarityScore")); //Factory<PeakSpectrumCompareFunctor>::registeredProducts());
+    defaults_.setValidStrings("scorefunction", {"SteinScottImproveScore","ZhangSimilarityScore"}); //Factory<PeakSpectrumCompareFunctor>::registeredProducts());
     defaultsToParam_();
     setLogType(CMD);
   }
@@ -91,7 +91,7 @@ namespace OpenMS
       }
       endProgress();
     }
-    catch (Exception::OutOfRange& /*e*/)
+    catch (Exception::OutOfRange&)
     {
       throw Exception::OutOfRange(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
     }
@@ -99,11 +99,11 @@ namespace OpenMS
 
   void MapAlignmentAlgorithmSpectrumAlignment::prepareAlign_(const std::vector<MSSpectrum*>& pattern, PeakMap& aligned, std::vector<TransformationDescription>& transformation)
   {
-    //tempalign ->container for holding only MSSpectrums with MS-Level 1
+    //tempalign -> container for holding only MSSpectrums with MS-Level 1
     std::vector<MSSpectrum*> tempalign;
     msFilter_(aligned, tempalign);
 
-    //if it's possible, built 4 blocks. These can be individually be aligned.
+    //if it is possible, built 4 blocks. These can be aligned individually
     std::vector<Size> alignpoint;
     //saving the first coordinates
     alignpoint.push_back(0);
@@ -173,7 +173,7 @@ namespace OpenMS
     /*
         for (Size i = 0; i< xcoordinate.size(); ++i)
         {
-            std::cout<< xcoordinate[i] << " " << ycoordinate[i] << " x  y  anchorpunkte " << std::endl;
+            std::cout<< xcoordinate[i] << " " << ycoordinate[i] << " x  y  anchorpoints " << std::endl;
         }
         std::cout << std::endl;
         */
@@ -181,7 +181,7 @@ namespace OpenMS
     /*std::cout << xcoordinate.size()<< std::endl;
             for (Size i = 0; i< xcoordinate.size(); ++i)
             {
-                std::cout<< xcoordinate[i] << " " << ycoordinate[i] << " x  y  anchorpunkte " << std::endl;
+                std::cout<< xcoordinate[i] << " " << ycoordinate[i] << " x  y  anchorpoints " << std::endl;
             }*/
 
     // store the data points defining the transformation:
@@ -191,7 +191,7 @@ namespace OpenMS
       double rt = tempalign[xcoordinate[i]]->getRT();
       data.push_back(std::make_pair(rt, double(ycoordinate[i])));
     }
-    transformation.push_back(TransformationDescription(data));
+    transformation.emplace_back(data);
   }
 
   void MapAlignmentAlgorithmSpectrumAlignment::affineGapalign_(Size xbegin, Size ybegin, Size xend, Size yend, const std::vector<MSSpectrum*>& pattern, std::vector<MSSpectrum*>& aligned, std::vector<int>& xcoordinate, std::vector<float>& ycoordinate, std::vector<int>& xcoordinatepattern)
@@ -203,9 +203,6 @@ namespace OpenMS
     Size m = std::min((xend - xbegin), (yend - ybegin)) + 1; //row
     // std::cout<< n << " n " << m << " m " <<  xbegin << " " <<xend<< " " << ybegin << " " << yend <<std::endl;
     //log the Progress of the subaligmnet
-    String temp = "sub-alignment of interval: template sequence " + String(xbegin) + " " + String(xend) + " interval: alignsequence " + String(ybegin) + " " + String(yend);
-    startProgress(0, n, temp);
-
     bool column_row_orientation = false;
     if (n != (xend - xbegin) + 1)
     {
@@ -224,7 +221,6 @@ namespace OpenMS
       traceback.clear();
       for (Size i = 0; i <= n; ++i)
       {
-        setProgress(i);
         for (Size j = 0; j <= m; ++j) //if( j >=1 && (Size)j<=m)
         {
           if (insideBand_(i, j, n, m, k_))
@@ -273,7 +269,7 @@ namespace OpenMS
                 if (insideBand_(i, j, n, m, k_))
                 {
                   mh = firstcolummatchmatrix[i][j] - gap_;
-                  //std::cout <<firstcolummatchmatrix[i][j] << " " << i << " " << j<<" firstcolumnnn "<<std::endl;
+                  //std::cout <<firstcolummatchmatrix[i][j] << " " << i << " " << j<<" first column "<<std::endl;
                   i += 1;
                 }
                 else
@@ -295,7 +291,7 @@ namespace OpenMS
                 float md = firstcolummatchmatrix[i - 1][j - 1] + s;
                 //std::cout << i << " " << j << " i j " << mv << " mv " << mh << " mh " << md << " md " << std::endl;
                 secondcolummatchmatrix[i][j] = std::max((float)md, std::max((float)(mv), (float)(mh)));
-                //std::cout << secondcolummatchmatrix[i][j] << " " << i << " "<< j << " i j zweiter colum" << std::endl;
+                //std::cout << secondcolummatchmatrix[i][j] << " " << i << " "<< j << " i j second column" << std::endl;
                 if (secondcolummatchmatrix[i][j] == mh)
                 {
                   traceback[i][j] = 1;
@@ -307,7 +303,7 @@ namespace OpenMS
                 else
                   traceback[i][j] = 0;
               }
-              catch (Exception::OutOfRange /*&e*/)
+              catch (Exception::OutOfRange& /*e*/)
               {
                 throw Exception::OutOfRange(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
               }
@@ -367,7 +363,7 @@ namespace OpenMS
           {
             if (debug_)
             {
-              debugtraceback_.push_back(std::make_pair(float(i + xbegin - 1), float(j + ybegin - 1)));
+              debugtraceback_.emplace_back(float(i + xbegin - 1), float(j + ybegin - 1));
             }
             xvar.push_back(j + (int)ybegin - 1);
             yvar.push_back((*pattern[i + xbegin - 1]).getRT());
@@ -377,7 +373,7 @@ namespace OpenMS
           {
             if (debug_)
             {
-              debugtraceback_.push_back(std::make_pair(float(j + xbegin - 1), float(i + ybegin - 1)));
+              debugtraceback_.emplace_back(float(j + xbegin - 1), float(i + ybegin - 1));
             }
             xvar.push_back(i + (int)ybegin - 1);
             yvar.push_back((*pattern[j + xbegin - 1]).getRT());
@@ -395,7 +391,7 @@ namespace OpenMS
 
     for (Size k = 0; k < xvar.size(); ++k)
     {
-      if (xcoordinate.size() > 0)
+      if (!xcoordinate.empty())
       {
         if (xvar[xvar.size() - 1 - k] != xcoordinate[xcoordinate.size() - 1])
         {
@@ -412,7 +408,6 @@ namespace OpenMS
       }
     }
     //std::cout<< xcoordinate.size()<< std::endl;
-    endProgress();
   }
 
   void MapAlignmentAlgorithmSpectrumAlignment::msFilter_(PeakMap& peakmap, std::vector<MSSpectrum*>& spectrum_pointer_container)
@@ -441,12 +436,12 @@ namespace OpenMS
   {
     if ((Int)(m - n - k_) <= (Int)(i - j) && (Int) (i - j) <= k_) //  if((Int)(-k_)<=(Int)(i-j) &&(Int) (i-j) <=(Int)(k_+n-m))
     {
-      //std::cout << i << " i " << j << " j " << " innerhalb der Bande " << std::endl;
+      //std::cout << i << " i " << j << " j " << " inside" << std::endl;
       return true;
     }
     else
     {
-      //std::cout << i << " i " << j << " j " << "NICHT innerhalb der Bande " << std::endl;
+      //std::cout << i << " i " << j << " j " << " outside" << std::endl;
       return false;
     }
   }
@@ -561,7 +556,7 @@ namespace OpenMS
         //modification only view as a possible data point if the score is higher than 0
         if (score >= threshold_)
         {
-          temp.push_back(std::make_pair(std::make_pair(xcoordinate[(i * bucketsize_) + j], ycoordinate[(i * bucketsize_) + j]), score));
+          temp.emplace_back(std::make_pair(xcoordinate[(i * bucketsize_) + j], ycoordinate[(i * bucketsize_) + j]), score);
         }
       }
       /*for(Size i=0; i < temp.size();++i)
@@ -572,7 +567,7 @@ namespace OpenMS
       */
       std::sort(temp.begin(), temp.end(), Compare(false));
       //Int anchor=(Int)(size*anchorPoints_/100);
-      float anchor = (temp.size() * anchorPoints_ / 100);
+      float anchor = temp.size() * anchorPoints_ / 100.0f;
       if (anchor <= 0 && !temp.empty())
       {
         anchor = 1;
@@ -634,12 +629,12 @@ namespace OpenMS
     //gnuplot of the traceback
     std::ofstream myfile;
     myfile.open("debugtraceback.txt", std::ios::trunc);
-    myfile << "set xrange[0:" << pattern.size() - 1 <<  "]" << "\n set yrange[0:" << aligned.size() - 1 << "] \n plot \'-\' with lines " << std::endl;
+    myfile << "set xrange[0:" << pattern.size() - 1 <<  "]" << "\n set yrange[0:" << aligned.size() - 1 << "] \n plot \'-\' with lines \n";
     std::sort(debugtraceback_.begin(), debugtraceback_.end(), Compare(false));
 
     for (Size i = 0; i < debugtraceback_.size(); ++i)
     {
-      myfile << debugtraceback_[i].first << " " << debugtraceback_[i].second << std::endl;
+      myfile << debugtraceback_[i].first << " " << debugtraceback_[i].second << "\n";
       for (Size p = 0; p < debugscorematrix_.size(); ++p)
       {
         if (debugscorematrix_[p][0] == debugtraceback_[i].first && debugscorematrix_[p][1] == debugtraceback_[i].second)
@@ -649,7 +644,7 @@ namespace OpenMS
         }
       }
     }
-    myfile << "e" << std::endl;
+    myfile << "e\n";
     myfile.close();
     //R heatplot score of both sequence
     // std::map<Size, std::map<Size, float> > debugbuffermatrix;
@@ -690,15 +685,15 @@ namespace OpenMS
     */
     for (Size i = 0; i < debugscorematrix_.size(); ++i)
     {
-      scorefile << debugscorematrix_[i][0] << " " << debugscorematrix_[i][1] << " " << debugscorematrix_[i][2] << " " << debugscorematrix_[i][3] << std::endl;
+      scorefile << debugscorematrix_[i][0] << " " << debugscorematrix_[i][1] << " " << debugscorematrix_[i][2] << " " << debugscorematrix_[i][3] << "\n";
     }
     scorefile.close();
 
     std::ofstream rscript;
     rscript.open("debugRscript.r", std::ios::trunc);
 
-    rscript << "#Name: LoadFile \n #transfer data from file into a matrix \n #Input: Filename \n #Output Matrix \n LoadFile<-function(fname){\n temp<-read.table(fname); \n temp<-as.matrix(temp); \n return(temp); \n } " << std::endl;
-    rscript << "#Name: ScoreHeatmapPlot \n #plot the score in a way of a heatmap \n #Input: Scorematrix \n #Output Heatmap \n ScoreHeatmapPlot<-function(matrix) { \n xcord<-as.vector(matrix[,1]); \n ycord<-as.vector(matrix[,2]); \n color<-rgb(as.vector(matrix[,4]),as.vector(matrix[,3]),0);\n  plot(xcord,ycord,col=color, main =\"Heatplot of scores included the traceback\" , xlab= \" Template-sequence \", ylab=\" Aligned-sequence \", type=\"p\" ,phc=22)\n } \n main<-function(filenamea) { \n a<-Loadfile(filenamea) \n X11() \n ScoreHeatmapPlot(a) \n  " << std::endl;
+    rscript << "#Name: LoadFile \n #transfer data from file into a matrix \n #Input: Filename \n #Output Matrix \n LoadFile<-function(fname){\n temp<-read.table(fname); \n temp<-as.matrix(temp); \n return(temp); \n } \n";
+    rscript << "#Name: ScoreHeatmapPlot \n #plot the score in a way of a heatmap \n #Input: Scorematrix \n #Output Heatmap \n ScoreHeatmapPlot<-function(matrix) { \n xcord<-as.vector(matrix[,1]); \n ycord<-as.vector(matrix[,2]); \n color<-rgb(as.vector(matrix[,4]),as.vector(matrix[,3]),0);\n  plot(xcord,ycord,col=color, main =\"Heatplot of scores included the traceback\" , xlab= \" Template-sequence \", ylab=\" Aligned-sequence \", type=\"p\" ,phc=22)\n } \n main<-function(filenamea) { \n a<-Loadfile(filenamea) \n X11() \n ScoreHeatmapPlot(a) \n  \n";
     rscript.close();
     /*
     float matchmaximum=-999.0;
@@ -814,9 +809,9 @@ namespace OpenMS
     e_      = (float)param_.getValue("affinegapcost");
 
     // create spectrum compare functor if it does not yet exist
-    if (c1_ == nullptr || c1_->getName() != (String)param_.getValue("scorefunction"))
+    if (c1_ == nullptr || c1_->getName() != param_.getValue("scorefunction"))
     {
-      c1_ = Factory<PeakSpectrumCompareFunctor>::create((String)param_.getValue("scorefunction"));
+      c1_ = Factory<PeakSpectrumCompareFunctor>::create(param_.getValue("scorefunction").toString());
     }
 
     cutoffScore_ = (float)param_.getValue("cutoff_score");
@@ -830,15 +825,7 @@ namespace OpenMS
       anchorPoints_ = 100;
     }
 
-    String tmp = (String)param_.getValue("debug");
-    if (tmp == "true")
-    {
-      debug_ = true;
-    }
-    else
-    {
-      debug_ = false;
-    }
+    debug_ = param_.getValue("debug").toBool();
     threshold_ = 1 - cutoffScore_;
   }
 

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -34,9 +34,13 @@
 
 #include <OpenMS/ANALYSIS/MAPMATCHING/FeatureGroupingAlgorithmKD.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentAlgorithmKD.h>
+#include <OpenMS/ANALYSIS/MAPMATCHING/FeatureGroupingAlgorithm.h>
+#include <OpenMS/ANALYSIS/ID/IonIdentityMolecularNetworking.h>
+#include <OpenMS/DATASTRUCTURES/Adduct.h>
+#include <OpenMS/CONCEPT/Constants.h>
+#include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
-#include <OpenMS/FORMAT/FeatureXMLFile.h>
 
 using namespace std;
 
@@ -50,25 +54,29 @@ namespace OpenMS
     setName("FeatureGroupingAlgorithmKD");
 
     defaults_.setValue("warp:enabled", "true", "Whether or not to internally warp feature RTs using LOWESS transformation before linking (reported RTs in results will always be the original RTs)");
-    defaults_.setValidStrings("warp:enabled", ListUtils::create<String>("true,false"));
+    defaults_.setValidStrings("warp:enabled", {"true","false"});
     defaults_.setValue("warp:rt_tol", 100.0, "Width of RT tolerance window (sec)");
     defaults_.setMinFloat("warp:rt_tol", 0.0);
     defaults_.setValue("warp:mz_tol", 5.0, "m/z tolerance (in ppm or Da)");
     defaults_.setMinFloat("warp:mz_tol", 0.0);
-    defaults_.setValue("warp:max_pairwise_log_fc", 0.5, "Maximum absolute log10 fold change between two compatible signals during compatibility graph construction. Two signals from different maps will not be connected by an edge in the compatibility graph if absolute log fold change exceeds this limit (they might still end up in the same connected component, however). Note: this does not limit fold changes in the linking stage, only during RT alignment, where we try to find high-quality alignment anchor points. Setting this to a value < 0 disables the FC check.", ListUtils::create<String>("advanced"));
-    defaults_.setValue("warp:min_rel_cc_size", 0.5, "Only connected components containing compatible features from at least max(2, (warp_min_occur * number_of_input_maps)) input maps are considered for computing the warping function", ListUtils::create<String>("advanced"));
+    defaults_.setValue("warp:max_pairwise_log_fc", 0.5, "Maximum absolute log10 fold change between two compatible signals during compatibility graph construction. Two signals from different maps will not be connected by an edge in the compatibility graph if absolute log fold change exceeds this limit (they might still end up in the same connected component, however). Note: this does not limit fold changes in the linking stage, only during RT alignment, where we try to find high-quality alignment anchor points. Setting this to a value < 0 disables the FC check.", {"advanced"});
+    defaults_.setValue("warp:min_rel_cc_size", 0.5, "Only connected components containing compatible features from at least max(2, (warp_min_occur * number_of_input_maps)) input maps are considered for computing the warping function", {"advanced"});
     defaults_.setMinFloat("warp:min_rel_cc_size", 0.0);
     defaults_.setMaxFloat("warp:min_rel_cc_size", 1.0);
-    defaults_.setValue("warp:max_nr_conflicts", 0, "Allow up to this many conflicts (features from the same map) per connected component to be used for alignment (-1 means allow any number of conflicts)", ListUtils::create<String>("advanced"));
+    defaults_.setValue("warp:max_nr_conflicts", 0, "Allow up to this many conflicts (features from the same map) per connected component to be used for alignment (-1 means allow any number of conflicts)", {"advanced"});
     defaults_.setMinInt("warp:max_nr_conflicts", -1);
 
     defaults_.setValue("link:rt_tol", 30.0, "Width of RT tolerance window (sec)");
     defaults_.setMinFloat("link:rt_tol", 0.0);
     defaults_.setValue("link:mz_tol", 10.0, "m/z tolerance (in ppm or Da)");
     defaults_.setMinFloat("link:mz_tol", 0.0);
+    defaults_.setValue("link:charge_merging","With_charge_zero","whether to disallow charge mismatches (Identical), allow to link charge zero (i.e., unknown charge state) with every charge state, or disregard charges (Any).");
+    defaults_.setValidStrings("link:charge_merging", {"Identical", "With_charge_zero", "Any"});
+    defaults_.setValue("link:adduct_merging","Any","whether to only allow the same adduct for linking (Identical), also allow linking features with adduct-free ones, or disregard adducts (Any).");
+    defaults_.setValidStrings("link:adduct_merging", {"Identical", "With_unknown_adducts", "Any"});
 
     defaults_.setValue("mz_unit", "ppm", "Unit of m/z tolerance");
-    defaults_.setValidStrings("mz_unit", ListUtils::create<String>("ppm,Da"));
+    defaults_.setValidStrings("mz_unit", {"ppm","Da"});
     defaults_.setValue("nr_partitions", 100, "Number of partitions in m/z space");
     defaults_.setMinInt("nr_partitions", 1);
 
@@ -84,6 +92,7 @@ namespace OpenMS
     defaults_.remove("distance_MZ:max_difference");
     defaults_.remove("distance_MZ:unit");
     defaults_.remove("ignore_charge");
+    defaults_.remove("ignore_adduct");      
 
     // LOWESS defaults
     Param lowess_defaults;
@@ -99,9 +108,7 @@ namespace OpenMS
     setLogType(CMD);
   }
 
-  FeatureGroupingAlgorithmKD::~FeatureGroupingAlgorithmKD()
-  {
-  }
+  FeatureGroupingAlgorithmKD::~FeatureGroupingAlgorithmKD() = default;
 
   template <typename MapType>
   void FeatureGroupingAlgorithmKD::group_(const vector<MapType>& input_maps,
@@ -222,7 +229,7 @@ namespace OpenMS
       }
       catch (Exception::BaseException& e)
       {
-        LOG_ERROR << "Error: " << e.what() << endl;
+        OPENMS_LOG_ERROR << "Error: " << e.what() << endl;
         return;
       }
 
@@ -268,34 +275,8 @@ namespace OpenMS
       setProgress(progress++);
     }
     endProgress();
-
-    // add protein IDs and unassigned peptide IDs to the result map here,
-    // to keep the same order as the input maps (useful for output later):
-    for (typename vector<MapType>::const_iterator map_it = input_maps.begin();
-         map_it != input_maps.end(); ++map_it)
-    {
-      // add protein identifications to result map:
-      out.getProteinIdentifications().insert(
-        out.getProteinIdentifications().end(),
-        map_it->getProteinIdentifications().begin(),
-        map_it->getProteinIdentifications().end());
-
-      // add unassigned peptide identifications to result map:
-      out.getUnassignedPeptideIdentifications().insert(
-        out.getUnassignedPeptideIdentifications().end(),
-        map_it->getUnassignedPeptideIdentifications().begin(),
-        map_it->getUnassignedPeptideIdentifications().end());
-    }
-
-    // canonical ordering for checking the results:
-    startProgress(0, 3, String("sorting results"));
-    out.sortByQuality();
-    setProgress(1);
-    out.sortByMaps();
-    setProgress(2);
-    out.sortBySize();
-    endProgress();
-    return;
+    
+    postprocess_(input_maps, out);
   }
 
   void FeatureGroupingAlgorithmKD::group(const std::vector<FeatureMap>& maps,
@@ -392,18 +373,89 @@ namespace OpenMS
 
   ClusterProxyKD FeatureGroupingAlgorithmKD::computeBestClusterForCenter_(Size i, vector<Size>& cf_indices, const vector<Int>& assigned, const KDTreeFeatureMaps& kd_data) const
   {
+    //Parameters how to use charge/adduct information
+    String merge_charge(param_.getValue("link:charge_merging").toString());
+    String merge_adduct(param_.getValue("link:adduct_merging").toString());
+
     // compute i's neighborhood, together with a look-up table
     // map index -> corresponding points
     map<Size, vector<Size> > points_for_map_index;
     vector<Size> neighbors;
     kd_data.getNeighborhood(i, neighbors, rt_tol_secs_, mz_tol_, mz_ppm_, true);
     Int charge_i = kd_data.charge(i);
+    const BaseFeature* f_i = kd_data.feature(i);
     for (vector<Size>::const_iterator it = neighbors.begin(); it != neighbors.end(); ++it)
     {
-      if (!assigned[*it] && kd_data.charge(*it) == charge_i)
+      // If the feature was already assigned, don't consider it at all!
+      if (assigned[*it])
       {
-        points_for_map_index[kd_data.mapIndex(*it)].push_back(*it);
+        continue;
       }
+
+      if (merge_charge == "Identical")
+      {
+        if (kd_data.charge(*it) != charge_i)
+        {
+          continue;
+        }
+      }
+      // what to consider for linking with existing features _that have charge_. This ensures that we won't collect different non-zero charges.
+      else if (merge_charge == "With_charge_zero")
+      {
+        if ((kd_data.charge(*it) != charge_i) && (kd_data.charge(*it) != 0))
+        {
+          continue;
+        }
+      }
+      // else if (merge_charge == "Any")
+      //{
+      //  //we allow to merge all
+      //}
+
+      // analogous adduct block
+      if (merge_adduct == "Identical")
+      {
+        // subcase 1: one has adduct, other not
+        if (kd_data.feature(*it)->metaValueExists(Constants::UserParam::DC_CHARGE_ADDUCTS) != f_i->metaValueExists(Constants::UserParam::DC_CHARGE_ADDUCTS))
+        {
+          continue;
+        }
+        // subcase 2: both have adduct, but is it the same?
+        if (kd_data.feature(*it)->metaValueExists(Constants::UserParam::DC_CHARGE_ADDUCTS))
+        {
+          if (EmpiricalFormula(kd_data.feature(*it)->getMetaValue(Constants::UserParam::DC_CHARGE_ADDUCTS)) != EmpiricalFormula(f_i->getMetaValue(Constants::UserParam::DC_CHARGE_ADDUCTS)))
+          {
+            continue;
+          }  
+        }
+      }
+      // what to consider for linking with existing features _that have adduct_. If one has no adduct, it's fine
+      // anyway. If one has an adduct we have to compare.
+      else if (merge_adduct == "With_unknown_adducts")
+      {
+        // subcase1: *it has adduct, but i not. don't want to collect potentially different adducts to previous without adduct 
+        if ((kd_data.feature(*it)->metaValueExists(Constants::UserParam::DC_CHARGE_ADDUCTS)) && (!f_i->metaValueExists(Constants::UserParam::DC_CHARGE_ADDUCTS)))
+        {
+          continue;
+        }
+        // subcase2: both have adduct
+        if ((kd_data.feature(*it)->metaValueExists(Constants::UserParam::DC_CHARGE_ADDUCTS)) && (f_i->metaValueExists(Constants::UserParam::DC_CHARGE_ADDUCTS)))
+        {
+          // cheaper string check first, only check EF extensively if strings differ (might be just different element orders)
+          if ((kd_data.feature(*it)->getMetaValue(Constants::UserParam::DC_CHARGE_ADDUCTS) != f_i->getMetaValue(Constants::UserParam::DC_CHARGE_ADDUCTS)) &&
+              (EmpiricalFormula(kd_data.feature(*it)->getMetaValue(Constants::UserParam::DC_CHARGE_ADDUCTS)) != EmpiricalFormula(f_i->getMetaValue(Constants::UserParam::DC_CHARGE_ADDUCTS))))
+          {
+            continue;
+          }
+        }
+      }
+      // else if (merge_adduct == "Any")
+      //{
+      //  //we allow to merge all
+      //}
+
+      // if everything is OK, add feature
+      points_for_map_index[kd_data.mapIndex(*it)].push_back(*it);
     }
     // center i is always part of CF, no other points from i's map can be contained
     points_for_map_index[kd_data.mapIndex(i)] = vector<Size>(1, i);
@@ -441,12 +493,39 @@ namespace OpenMS
   void FeatureGroupingAlgorithmKD::addConsensusFeature_(const vector<Size>& indices, const KDTreeFeatureMaps& kd_data, ConsensusMap& out) const
   {
     ConsensusFeature cf;
+    Adduct adduct;
     float avg_quality = 0;
+    // determine best quality feature for adduct ion annotation (Constanst::UserParam::IIMN_BEST_ION)
+    float best_quality = 0;
+    size_t best_quality_index = 0;
+    // collect the "Group" MetaValues of Features in a ConsensusFeature MetaValue (Constant::UserParam::IIMN_LINKED_GROUPS)
+    vector<String> linked_groups;
     for (vector<Size>::const_iterator it = indices.begin(); it != indices.end(); ++it)
     {
       Size i = *it;
       cf.insert(kd_data.mapIndex(i), *(kd_data.feature(i)));
       avg_quality += kd_data.feature(i)->getQuality();
+      if (kd_data.feature(i)->metaValueExists(Constants::UserParam::DC_CHARGE_ADDUCTS) &&
+         (kd_data.feature(i)->getQuality() > best_quality) &&
+         (kd_data.feature(i)->getCharge()))
+      {
+       best_quality = kd_data.feature(i)->getQuality();
+       best_quality_index = i;
+      }
+      if (kd_data.feature(i)->metaValueExists(Constants::UserParam::ADDUCT_GROUP))
+      {
+        linked_groups.emplace_back(kd_data.feature(i)->getMetaValue(Constants::UserParam::ADDUCT_GROUP));
+      }
+    }
+    if (kd_data.feature(best_quality_index)->metaValueExists(Constants::UserParam::DC_CHARGE_ADDUCTS))
+    {
+      cf.setMetaValue(Constants::UserParam::IIMN_BEST_ION, 
+                      adduct.toAdductString(kd_data.feature(best_quality_index)->getMetaValue(Constants::UserParam::DC_CHARGE_ADDUCTS),
+                                            kd_data.feature(best_quality_index)->getCharge()));
+    }
+    if (!linked_groups.empty())
+    {
+      cf.setMetaValue(Constants::UserParam::IIMN_LINKED_GROUPS, linked_groups);
     }
     avg_quality /= indices.size();
     cf.setQuality(avg_quality);

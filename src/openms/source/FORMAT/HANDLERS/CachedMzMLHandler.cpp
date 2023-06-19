@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -37,24 +37,18 @@
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
 
-namespace OpenMS
+namespace OpenMS::Internal
 {
-namespace Internal
-{
+  CachedMzMLHandler::CachedMzMLHandler() = default;
 
-  CachedMzMLHandler::CachedMzMLHandler()
-  {
-  }
-
-  CachedMzMLHandler::~CachedMzMLHandler()
-  {
-  }
+  CachedMzMLHandler::~CachedMzMLHandler() = default;
 
   CachedMzMLHandler& CachedMzMLHandler::operator=(const CachedMzMLHandler& rhs)
   {
     if (&rhs == this)
+    {
       return *this;
-
+    }
     spectra_index_ = rhs.spectra_index_;
     chrom_index_ = rhs.chrom_index_;
 
@@ -88,7 +82,7 @@ namespace Internal
     endProgress();
   }
 
-  void CachedMzMLHandler::readMemdump(MapType& exp_reading, String filename) const
+  void CachedMzMLHandler::readMemdump(MapType& exp_reading, const String& filename) const
   {
     std::ifstream ifs(filename.c_str(), std::ios::binary);
     if (ifs.fail())
@@ -97,7 +91,6 @@ namespace Internal
     }
 
     Size exp_size, chrom_size;
-    Peak1D current_peak;
 
     int file_identifier;
     ifs.read((char*)&file_identifier, sizeof(file_identifier));
@@ -147,7 +140,7 @@ namespace Internal
     return chrom_index_;
   }
 
-  void CachedMzMLHandler::createMemdumpIndex(String filename)
+  void CachedMzMLHandler::createMemdumpIndex(const String& filename)
   {
     std::ifstream ifs(filename.c_str(), std::ios::binary);
     if (ifs.fail())
@@ -156,7 +149,6 @@ namespace Internal
     }
 
     Size exp_size, chrom_size;
-    Peak1D current_peak;
 
     ifs.seekg(0, ifs.beg); // set file pointer to beginning, start reading
     spectra_index_.clear();
@@ -232,7 +224,7 @@ namespace Internal
     endProgress();
   }
 
-  void CachedMzMLHandler::writeMetadata(MapType exp, String out_meta, bool addCacheMetaValue)
+  void CachedMzMLHandler::writeMetadata(MapType exp, const String& out_meta, bool addCacheMetaValue)
   {
     // delete the actual data for all spectra and chromatograms, leave only metadata
     // TODO : remove copy
@@ -275,7 +267,7 @@ namespace Internal
   {
     // delete the actual data for all spectra and chromatograms, leave only metadata
     // TODO : remove copy
-    ExperimentalSettings qq = exp;
+    const ExperimentalSettings& qq = exp;
     MSExperiment out_exp;
     out_exp = qq;
     // std::vector<MSChromatogram > chromatograms = exp.getChromatograms(); // copy
@@ -342,6 +334,8 @@ namespace Internal
                                         const Size& data_size,
                                         const Size& nr_float_arrays)
   {
+    OPENMS_PRECONDITION(data.size() == 2, "Input data needs to have 2 slots.")
+
     data[0]->data.resize(data_size);
     data[1]->data.resize(data_size);
 
@@ -350,8 +344,10 @@ namespace Internal
       ifs.read((char*) &(data[0]->data)[0], data_size * sizeof(DatumSingleton));
       ifs.read((char*) &(data[1]->data)[0], data_size * sizeof(DatumSingleton));
     }
-    if (nr_float_arrays == 0) return;
-
+    if (nr_float_arrays == 0)
+    {
+      return;
+    }
     char* buffer = new(std::nothrow) char[1024];
     for (Size k = 0; k < nr_float_arrays; k++)
     {
@@ -360,8 +356,12 @@ namespace Internal
       ifs.read((char*)&len, sizeof(len));
       ifs.read((char*)&len_name, sizeof(len_name));
 
-      // We will not read data longer than 1024 length as this is user-generated input data
-      if (len_name > 1023) ifs.seekg(len_name * sizeof(char), ifs.cur);
+      // We will not read data longer than 1024 bytes as this will not fit into
+      // our buffer (and is user-generated input data)
+      if (len_name > 1023)
+      {
+        ifs.seekg(len_name * sizeof(char), ifs.cur);
+      }
       else
       {
         ifs.read(buffer, len_name);
@@ -544,7 +544,10 @@ namespace Internal
       // now go to the actual data
       tmp.clear();
       tmp.reserve(fda.size());
-      for (const auto& val : fda) {tmp.push_back(val);}
+      for (const auto& val : fda)
+      {
+        tmp.push_back(val);
+      }
       ofs.write((char*)&tmp.front(), tmp.size() * sizeof(tmp.front()));
     }
     for (const auto& ida : chromatogram.getIntegerDataArrays() )
@@ -557,11 +560,13 @@ namespace Internal
       // now go to the actual data
       tmp.clear();
       tmp.reserve(ida.size());
-      for (const auto& val : ida) {tmp.push_back(val);}
+      for (const auto& val : ida)
+      {
+        tmp.push_back(val);
+      }
       ofs.write((char*)&tmp.front(), tmp.size() * sizeof(tmp.front()));
     }
   }
 
-}
-}
+}//namespace OpenMS  //namespace Internal
 

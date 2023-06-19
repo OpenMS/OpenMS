@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -53,9 +53,9 @@ using namespace std;
     <CENTER>
     <table>
         <tr>
-            <td ALIGN = "center" BGCOLOR="#EBEBEB"> potential predecessor tools </td>
-            <td VALIGN="middle" ROWSPAN=2> \f$ \longrightarrow \f$ IDPosteriorErrorProbability \f$ \longrightarrow \f$</td>
-            <td ALIGN = "center" BGCOLOR="#EBEBEB"> potential successor tools </td>
+            <th ALIGN = "center"> potential predecessor tools </td>
+            <td VALIGN="middle" ROWSPAN=2> &rarr; IDPosteriorErrorProbability &rarr;</td>
+            <th ALIGN = "center"> potential successor tools </td>
         </tr>
         <tr>
             <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_MascotAdapter (or other ID engines) </td>
@@ -159,6 +159,7 @@ protected:
     double fdr_for_targets_smaller = getDoubleOption_("fdr_for_targets_smaller");
     bool ignore_bad_data = getFlag_("ignore_bad_data");
     bool prob_correct = getFlag_("prob_correct");
+    String outlier_handling = fit_algorithm.getValue("outlier_handling").toString();
 
     //-------------------------------------------------------------
     // reading input
@@ -199,11 +200,14 @@ protected:
 
     if (all_scores.empty())
     {
-      writeLog_("No data collected. Check whether search engine is supported.");
-      if (!ignore_bad_data) { return INPUT_FILE_EMPTY; }
+      writeLogWarn_("No data collected. Check whether search engine is supported.");
+      if (!ignore_bad_data)
+      {
+        return INPUT_FILE_EMPTY;
+      }
     }
 
-    String out_plot = fit_algorithm.getValue("out_plot").toString().trim();
+    String out_plot = String(fit_algorithm.getValue("out_plot").toString()).trim();
 
     for (auto & score : all_scores)
     {
@@ -221,12 +225,18 @@ protected:
       }
 
       // fit to score vector
-      bool return_value = PEP_model.fit(score.second[0]);
+      //TODO choose outlier handling based on search engine? If not set by user?
+      //XTandem is prone to accumulation at min values/censoring
+      //OMSSA is prone to outliers
+      bool return_value = PEP_model.fit(score.second[0], outlier_handling);
 
       if (!return_value) 
       {
-        writeLog_("Unable to fit data. Algorithm did not run through for the following search engine: " + engine);
-        if (!ignore_bad_data) { return UNEXPECTED_RESULT; }
+        writeLogWarn_("Unable to fit data. Algorithm did not run through for the following search engine: " + engine);
+        if (!ignore_bad_data)
+        { 
+          return UNEXPECTED_RESULT;
+        }
       }
 
       if (return_value)
@@ -254,13 +264,32 @@ protected:
 
         if (unable_to_fit_data)
         {
-          writeLog_(String("Unable to fit data for search engine: ") + engine);
-          if (!ignore_bad_data) return UNEXPECTED_RESULT;
+          writeLogWarn_(String("Unable to fit data for search engine: ") + engine);
+          if (!ignore_bad_data)
+          {
+            return UNEXPECTED_RESULT;
+          }
         }
         else if (data_might_not_be_well_fit) 
         {
-          writeLog_(String("Data might not be well fitted for search engine: ") + engine);
+          writeLogWarn_(String("Data might not be well fitted for search engine: ") + engine);
         }
+      }
+    }
+    // Unfortunately this cannot go into the algorithm since
+    // you would overwrite some score types before they are extracted when you
+    // do split_charge
+    for (auto& pep : peptide_ids)
+    {
+      if (prob_correct)
+      {
+        pep.setScoreType("Posterior Probability");
+        pep.setHigherScoreBetter(true);
+      }
+      else
+      {
+        pep.setScoreType("Posterior Error Probability");
+        pep.setHigherScoreBetter(false);
       }
     }
     //-------------------------------------------------------------

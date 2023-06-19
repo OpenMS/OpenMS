@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -58,9 +58,7 @@ namespace OpenMS
   {
   }
 
-  SingleLinkage::~SingleLinkage()
-  {
-  }
+  SingleLinkage::~SingleLinkage() = default;
 
   SingleLinkage & SingleLinkage::operator=(const SingleLinkage & source)
   {
@@ -83,7 +81,7 @@ namespace OpenMS
     cluster_tree.clear();
     if (threshold < 1)
     {
-      LOG_ERROR << "You tried to use Single Linkage clustering with a threshold. This is currently not supported!" << std::endl;
+      OPENMS_LOG_ERROR << "You tried to use Single Linkage clustering with a threshold. This is currently not supported!" << std::endl;
       throw Exception::NotImplemented(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
     }
 
@@ -143,7 +141,7 @@ namespace OpenMS
     for (Size i = 0; i < pi.size() - 1; ++i)
     {
       //strict order is always kept in algorithm: i < pi[i]
-      cluster_tree.push_back(BinaryTreeNode(i, pi[i], lambda[i]));
+      cluster_tree.emplace_back(i, pi[i], lambda[i]);
       //~ std::cout << i << '\n' << pi[i] << '\n' << lambda[i] << std::endl;
     }
 

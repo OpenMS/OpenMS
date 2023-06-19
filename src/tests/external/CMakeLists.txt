@@ -1,6 +1,13 @@
+## Use CMake 3.17 to correctly find OpenMP on macOS
+cmake_minimum_required(VERSION 3.15 FATAL_ERROR)
+
 ### example CMakeLists.txt to develop programs using OpenMS
 project("OpenMS_ExternalCodeTest")
-cmake_minimum_required(VERSION 2.8.3)
+
+message("Received CMAKE_PREFIX_PATH: ${CMAKE_PREFIX_PATH}")
+if (DEFINED OPENMS_CONTRIB_LIBS)
+  message("Received OPENMS_CONTRIB_LIBS: ${OPENMS_CONTRIB_LIBS}")
+endif()
 
 ## list all your executables here (a corresponding .cpp file should exist, e.g. TestExternalCode.cpp)
 set(my_executables
@@ -16,30 +23,25 @@ set(my_sources
 ## find OpenMS package and register target "OpenMS" (our library)
 ## Note: This is customized to fit the nightly test scenario. In a
 ##       regular build find_package(OpenMS) should be sufficient.
+## This will also try to find all dependencies of OpenMS, so make sure
+##  they are findable by e.g. providing CMAKE_PREFIX_PATH
 find_package(OpenMS PATHS "$ENV{OPENMS_BUILD_TREE}" NO_CMAKE_PACKAGE_REGISTRY)
 
 # check whether the OpenMS package was found
 if (OpenMS_FOUND)
 
-  ## include directories for OpenMS headers (and contrib)
-  include_directories(${OpenMS_INCLUDE_DIRECTORIES})
-
-  ## append precompiler macros specific to OpenMS
-  ## Warning: this could be harmful to your project. Check this
-  ## if problems occur
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OPENMS_ADDCXX_FLAGS}")
-  add_definitions(${OPENMS_DEFINITIONS})
-
   ## library with additional classes from above
   add_library(my_custom_lib STATIC ${my_sources})
   target_link_libraries(my_custom_lib OpenMS)
+  ## disable auto-linking of boost (mainly needed for Windows. CMake takes care of choosing the right library)
+  target_compile_definitions(my_custom_lib PUBLIC BOOST_ALL_NO_LIB)
 
   ## add targets for the executables
   foreach(i ${my_executables})
     # create the executable
     add_executable(${i} ${i}.cpp)
     ## link executables against OpenMS
-	target_link_libraries(${i} OpenMS my_custom_lib)
+    target_link_libraries(${i} OpenMS my_custom_lib)
   endforeach(i)
 
 else(OpenMS_FOUND)

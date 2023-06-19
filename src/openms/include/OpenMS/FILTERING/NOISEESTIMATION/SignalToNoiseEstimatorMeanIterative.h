@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -39,6 +39,7 @@
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <vector>
+#include <algorithm> //for std::max_element
 
 namespace OpenMS
 {
@@ -76,9 +77,6 @@ public:
     enum IntensityThresholdCalculation {MANUAL = -1, AUTOMAXBYSTDEV = 0, AUTOMAXBYPERCENT = 1};
 
     using SignalToNoiseEstimator<Container>::stn_estimates_;
-    using SignalToNoiseEstimator<Container>::first_;
-    using SignalToNoiseEstimator<Container>::last_;
-    using SignalToNoiseEstimator<Container>::is_result_valid_;
     using SignalToNoiseEstimator<Container>::defaults_;
     using SignalToNoiseEstimator<Container>::param_;
 
@@ -98,19 +96,19 @@ public:
                                               " Only provide this parameter if you know what you are doing (and change 'auto_mode' to '-1')!" \
                                               " All intensities EQUAL/ABOVE 'max_intensity' will not be added to the histogram." \
                                               " If you choose 'max_intensity' too small, the noise estimate might be too small as well." \
-                                              " If chosen too big, the bins become quite large (which you could counter by increasing 'bin_count', which increases runtime).", ListUtils::create<String>("advanced"));
+                                              " If chosen too big, the bins become quite large (which you could counter by increasing 'bin_count', which increases runtime).", {"advanced"});
       defaults_.setMinInt("max_intensity", -1);
 
-      defaults_.setValue("auto_max_stdev_factor", 3.0, "parameter for 'max_intensity' estimation (if 'auto_mode' == 0): mean + 'auto_max_stdev_factor' * stdev", ListUtils::create<String>("advanced"));
+      defaults_.setValue("auto_max_stdev_factor", 3.0, "parameter for 'max_intensity' estimation (if 'auto_mode' == 0): mean + 'auto_max_stdev_factor' * stdev", {"advanced"});
       defaults_.setMinFloat("auto_max_stdev_factor", 0.0);
       defaults_.setMaxFloat("auto_max_stdev_factor", 999.0);
 
 
-      defaults_.setValue("auto_max_percentile", 95, "parameter for 'max_intensity' estimation (if 'auto_mode' == 1): auto_max_percentile th percentile", ListUtils::create<String>("advanced"));
+      defaults_.setValue("auto_max_percentile", 95, "parameter for 'max_intensity' estimation (if 'auto_mode' == 1): auto_max_percentile th percentile", {"advanced"});
       defaults_.setMinInt("auto_max_percentile", 0);
       defaults_.setMaxInt("auto_max_percentile", 100);
 
-      defaults_.setValue("auto_mode", 0, "method to use to determine maximal intensity: -1 --> use 'max_intensity'; 0 --> 'auto_max_stdev_factor' method (default); 1 --> 'auto_max_percentile' method", ListUtils::create<String>("advanced"));
+      defaults_.setValue("auto_mode", 0, "method to use to determine maximal intensity: -1 --> use 'max_intensity'; 0 --> 'auto_max_stdev_factor' method (default); 1 --> 'auto_max_percentile' method", {"advanced"});
       defaults_.setMinInt("auto_mode", -1);
       defaults_.setMaxInt("auto_mode", 1);
 
@@ -120,14 +118,14 @@ public:
       defaults_.setValue("bin_count", 30, "number of bins for intensity values");
       defaults_.setMinInt("bin_count", 3);
 
-      defaults_.setValue("stdev_mp", 3.0, "multiplier for stdev", ListUtils::create<String>("advanced"));
+      defaults_.setValue("stdev_mp", 3.0, "multiplier for stdev", {"advanced"});
       defaults_.setMinFloat("stdev_mp", 0.01);
       defaults_.setMaxFloat("stdev_mp", 999.0);
 
       defaults_.setValue("min_required_elements", 10, "minimum number of elements required in a window (otherwise it is considered sparse)");
       defaults_.setMinInt("min_required_elements", 1);
 
-      defaults_.setValue("noise_for_empty_window", std::pow(10.0, 20), "noise value used for sparse windows", ListUtils::create<String>("advanced"));
+      defaults_.setValue("noise_for_empty_window", std::pow(10.0, 20), "noise value used for sparse windows", {"advanced"});
 
       SignalToNoiseEstimator<Container>::defaultsToParam_();
     }
@@ -164,17 +162,22 @@ protected:
 
 
     /** calculate StN values for all datapoints given, by using a sliding window approach
-                  @param scan_first_ first element in the scan
-                  @param scan_last_ last element in the scan (disregarded)
+                  @param c raw data
                   @exception Throws Exception::InvalidValue
            */
-    void computeSTN_(const PeakIterator & scan_first_, const PeakIterator & scan_last_) override
+    void computeSTN_(const Container& c) override
     {
+      //first element in the scan
+      PeakIterator scan_first_ = c.begin();
+      //last element in the scan
+      PeakIterator scan_last_ = c.end();
+
       // reset counter for sparse windows
       double sparse_window_percent = 0;
 
       // reset the results
       stn_estimates_.clear();
+      stn_estimates_.resize(c.size());
 
       // maximal range of histogram needs to be calculated first
       if (auto_mode_ == AUTOMAXBYSTDEV)
@@ -200,31 +203,22 @@ protected:
         std::vector<int> histogram_auto(100, 0);
 
         // find maximum of current scan
-        int size = 0;
-        typename PeakType::IntensityType maxInt = 0;
-        PeakIterator run = scan_first_;
-        while (run != scan_last_)
-        {
-          maxInt = std::max(maxInt, (*run).getIntensity());
-          ++size;
-          ++run;
-        }
+        auto maxIt = std::max_element(c.begin(), c.end() ,[](const PeakType& a, const PeakType& b){ return a.getIntensity() > b.getIntensity();});
+        typename PeakType::IntensityType maxInt = maxIt->getIntensity();
 
         double bin_size = maxInt / 100;
 
         // fill histogram
-        run = scan_first_;
-        while (run != scan_last_)
+        for(auto& run : c)
         {
-          ++histogram_auto[(int) (((*run).getIntensity() - 1) / bin_size)];
-          ++run;
+          ++histogram_auto[(int) (((run).getIntensity() - 1) / bin_size)];
         }
 
         // add up element counts in histogram until ?th percentile is reached
-        int elements_below_percentile = (int) (auto_max_percentile_ * size / 100);
+        int elements_below_percentile = (int) (auto_max_percentile_ * c.size() / 100);
         int elements_seen = 0;
         int i = -1;
-        run = scan_first_;
+        PeakIterator run = scan_first_;
 
         while (run != scan_last_ && elements_seen < elements_below_percentile)
         {
@@ -283,15 +277,8 @@ protected:
 
       double noise;      // noise value of a datapoint
 
-      // determine how many elements we need to estimate (for progress estimation)
-      int windows_overall = 0;
-      PeakIterator run = scan_first_;
-      while (run != scan_last_)
-      {
-        ++windows_overall;
-        ++run;
-      }
-      SignalToNoiseEstimator<Container>::startProgress(0, windows_overall, "noise estimation of data");
+      ///start progress estimation
+      SignalToNoiseEstimator<Container>::startProgress(0, c.size(), "noise estimation of data");
 
       // MAIN LOOP
       while (window_pos_center != scan_last_)
@@ -370,7 +357,7 @@ protected:
         }
 
         // store result
-        stn_estimates_[*window_pos_center] = (*window_pos_center).getIntensity() / noise;
+        stn_estimates_[window_count] = (*window_pos_center).getIntensity() / noise;
 
 
 
@@ -412,7 +399,7 @@ protected:
       stdev_                 = (double)param_.getValue("stdev_mp");
       min_required_elements_ = param_.getValue("min_required_elements");
       noise_for_empty_window_ = (double)param_.getValue("noise_for_empty_window");
-      is_result_valid_ = false;
+      stn_estimates_.clear();
     }
 
     /// maximal intensity considered during binning (values above get discarded)

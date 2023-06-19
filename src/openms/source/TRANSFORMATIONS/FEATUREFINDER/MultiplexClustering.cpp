@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -34,9 +34,7 @@
 
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/KERNEL/ConsensusMap.h>
-#include <OpenMS/FORMAT/ConsensusXMLFile.h>
 #include <OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakPickerHiRes.h>
-#include <OpenMS/FILTERING/DATAREDUCTION/SplineSpectrum.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexFiltering.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexClustering.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/PeakWidthEstimator.h>
@@ -50,8 +48,8 @@ using namespace std;
 namespace OpenMS
 {
 
-  MultiplexClustering::MultiplexClustering(const MSExperiment& exp_profile, const MSExperiment& exp_picked, const std::vector<std::vector<PeakPickerHiRes::PeakBoundary> >& boundaries, double rt_typical, double rt_minimum) :
-    rt_typical_(rt_typical), rt_minimum_(rt_minimum)
+  MultiplexClustering::MultiplexClustering(const MSExperiment& exp_profile, const MSExperiment& exp_picked, const std::vector<std::vector<PeakPickerHiRes::PeakBoundary> >& boundaries, double rt_typical) :
+    rt_typical_(rt_typical)
   {
     if (exp_picked.size() != boundaries.size())
     {
@@ -91,11 +89,11 @@ namespace OpenMS
 
     // determine RT scaling
     std::vector<double> mz;
-    MSExperiment::ConstIterator it_rt;
-    for (it_rt = exp_picked.begin(); it_rt < exp_picked.end(); ++it_rt)
+    
+    for (const MSSpectrum& spec : exp_picked)
     {
       MSSpectrum::ConstIterator it_mz;
-      for (it_mz = it_rt->begin(); it_mz < it_rt->end(); ++it_mz)
+      for (it_mz = spec.begin(); it_mz != spec.end(); ++it_mz)
       {
         mz.push_back(it_mz->getMZ());
       }
@@ -105,8 +103,8 @@ namespace OpenMS
 
   }
 
-  MultiplexClustering::MultiplexClustering(const MSExperiment& exp, double mz_tolerance, bool mz_tolerance_unit, double rt_typical, double rt_minimum) :
-    rt_typical_(rt_typical), rt_minimum_(rt_minimum)
+  MultiplexClustering::MultiplexClustering(const MSExperiment& exp, double mz_tolerance, bool mz_tolerance_unit, double rt_typical) :
+    rt_typical_(rt_typical)
   {
     // ranges of the experiment
     double mz_min = exp.getMinMZ();
@@ -150,11 +148,10 @@ namespace OpenMS
 
     // determine RT scaling
     std::vector<double> mz;
-    MSExperiment::ConstIterator it_rt;
-    for (it_rt = exp.begin(); it_rt < exp.end(); ++it_rt)
+    for (const MSSpectrum& spec : exp)
     {
       MSSpectrum::ConstIterator it_mz;
-      for (it_mz = it_rt->begin(); it_mz < it_rt->end(); ++it_mz)
+      for (it_mz = spec.begin(); it_mz != spec.end(); ++it_mz)
       {
         mz.push_back(it_mz->getMZ());
       }
@@ -205,7 +202,7 @@ namespace OpenMS
   {
   }
   
-  double MultiplexClustering::MultiplexDistance::operator()(Point p1, Point p2)
+  double MultiplexClustering::MultiplexDistance::operator()(const Point& p1, const Point& p2) const
   {
       return sqrt((p1.getX() - p2.getX())*(p1.getX() - p2.getX()) + rt_scaling_ * rt_scaling_ * (p1.getY() - p2.getY())*(p1.getY() - p2.getY()));
   }

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -43,14 +43,14 @@ namespace OpenMS
   {
     setName(getProductName());
 
-    defaults_.setValue("bounding_box:min", 0.0f, "Lower end of bounding box enclosing the data used to fit the model.", ListUtils::create<String>("advanced"));
-    defaults_.setValue("bounding_box:max", 1.0f, "Upper end of bounding box enclosing the data used to fit the model.", ListUtils::create<String>("advanced"));
-    defaults_.setValue("statistics:mean", 0.0f, "Centroid position of the model.", ListUtils::create<String>("advanced"));
-    defaults_.setValue("statistics:variance", 1.0f, "The variance of the model.", ListUtils::create<String>("advanced"));
-    defaults_.setValue("emg:height", 100000.0f, "Height of the exponentially modified Gaussian.", ListUtils::create<String>("advanced"));
-    defaults_.setValue("emg:width", 5.0f, "Width of the exponentially modified Gaussian.", ListUtils::create<String>("advanced"));
-    defaults_.setValue("emg:symmetry", 5.0f, "Symmetry of the exponentially modified Gaussian.", ListUtils::create<String>("advanced"));
-    defaults_.setValue("emg:retention", 1200.0f, "Retention time of the exponentially modified Gaussian.", ListUtils::create<String>("advanced"));
+    defaults_.setValue("bounding_box:min", 0.0f, "Lower end of bounding box enclosing the data used to fit the model.", {"advanced"});
+    defaults_.setValue("bounding_box:max", 1.0f, "Upper end of bounding box enclosing the data used to fit the model.", {"advanced"});
+    defaults_.setValue("statistics:mean", 0.0f, "Centroid position of the model.", {"advanced"});
+    defaults_.setValue("statistics:variance", 1.0f, "The variance of the model.", {"advanced"});
+    defaults_.setValue("emg:height", 100000.0f, "Height of the exponentially modified Gaussian.", {"advanced"});
+    defaults_.setValue("emg:width", 5.0f, "Width of the exponentially modified Gaussian.", {"advanced"});
+    defaults_.setValue("emg:symmetry", 5.0f, "Symmetry of the exponentially modified Gaussian.", {"advanced"});
+    defaults_.setValue("emg:retention", 1200.0f, "Retention time of the exponentially modified Gaussian.", {"advanced"});
 
     defaultsToParam_();
   }
@@ -62,15 +62,14 @@ namespace OpenMS
     updateMembers_();
   }
 
-  EmgModel::~EmgModel()
-  {
-  }
+  EmgModel::~EmgModel() = default;
 
   EmgModel & EmgModel::operator=(const EmgModel & source)
   {
     if (&source == this)
+    {
       return *this;
-
+    }
     InterpolationModel::operator=(source);
     setParameters(source.getParameters());
     updateMembers_();
@@ -83,8 +82,9 @@ namespace OpenMS
     LinearInterpolation::container_type & data = interpolation_.getData();
     data.clear();
     if (max_ == min_)
+    {
       return;
-
+    }
     data.reserve(UInt((max_ - min_) / interpolation_step_ + 1));
     CoordinateType pos = min_;
 
@@ -97,10 +97,10 @@ namespace OpenMS
     for (UInt i = 0; pos < max_; ++i)
     {
       pos = min_ + i * interpolation_step_;
-      double tmp = pos - retention_;
+      double diff = pos - retention_;
 
       // data.push_back (Simplified EMG)
-      data.push_back((part1 * sqrt_2pi * exp(part2 - (tmp / symmetry_)) / (1 + exp(term_sq2 * ((tmp / width_) - part3)))));
+      data.push_back((part1 * sqrt_2pi * exp(part2 - (diff / symmetry_)) / (1 + exp(term_sq2 * ((diff / width_) - part3)))));
     }
 
     interpolation_.setScale(interpolation_step_);

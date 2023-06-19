@@ -36,10 +36,16 @@ ExperimentalDesignFile.h
 FASTAFile.h
 FeatureXMLFile.h
 FileHandler.h
+FLASHDeconvFeatureFile.h
+FLASHDeconvSpectrumFile.h
+GNPSMetaValueFile.h
+GNPSMGFFile.h
+GNPSQuantificationFile.h
 GzipIfstream.h
 GzipInputStream.h
 IBSpectraFile.h
 IdXMLFile.h
+IndentedStream.h
 IndexedMzMLFileLoader.h
 InspectInfile.h
 InspectOutfile.h
@@ -51,6 +57,7 @@ MS2File.h
 MSNumpressCoder.h
 MSPFile.h
 MSPGenericFile.h
+MSstatsFile.h
 MascotInfile.h
 MascotGenericFile.h
 MascotRemoteQuery.h
@@ -58,12 +65,20 @@ MascotXMLFile.h
 MsInspectFile.h
 MzDataFile.h
 MzMLFile.h
+MzQCFile.h
 MzTab.h
+MzTabBase.h
+MzTabM.h
 MzTabFile.h
+MzTabMFile.h
 MzXMLFile.h
+OMSFile.h
+OMSFileLoad.h
+OMSFileStore.h
 OMSSACSVFile.h
 OMSSAXMLFile.h
 OSWFile.h
+ParamCTDFile.h
 ParamXMLFile.h
 PTMXMLFile.h
 PeakTypeEstimator.h
@@ -71,6 +86,7 @@ PepNovoInfile.h
 PepNovoOutfile.h
 PepXMLFile.h
 PepXMLFileMascot.h
+PercolatorInfile.h
 PercolatorOutfile.h
 ProtXMLFile.h
 QcMLFile.h
@@ -79,10 +95,12 @@ SequestOutfile.h
 SpecArrayFile.h
 SVOutStream.h
 SwathFile.h
+SqliteConnector.h
 SqMassFile.h
 TextFile.h
 ToolDescriptionFile.h
 TransformationXMLFile.h
+TriqlerFile.h
 UnimodXMLFile.h
 XMLFile.h
 XTandemInfile.h
@@ -95,6 +113,10 @@ XMassFile.h
 XQuestResultXMLFile.h
 ZlibCompression.h
 )
+
+if (WITH_HDF5)
+  list(APPEND sources_list_h HDF5Connector.h)  
+endif()
 
 ### add path to the filenames
 set(sources_h)

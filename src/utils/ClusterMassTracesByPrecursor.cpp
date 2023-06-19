@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry               
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 // 
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -46,7 +46,7 @@
 //-------------------------------------------------------------
 
 /**
-  @page TOPP_CorrelateMassTraces CorrelateMassTraces
+  @page UTILS_ClusterMassTracesByPrecursor ClusterMassTracesByPrecursor
 
   @brief Identifies precursor mass traces and tries to correlate them with fragment ion mass traces in SWATH maps.
 
@@ -69,8 +69,12 @@
   ETISEQ -- an algorithm for automated elution time ion sequencing of concurrently fragmented peptides for mass spectrometry-based proteomics
     BMC Bioinformatics 2009, 10:244 doi:10.1186/1471-2105-10-244 ; http://www.biomedcentral.com/1471-2105/10/244
     they use FFT to correlate and then use lag of at least 1 scan and pearson correlation of 0.7 to assign precursors to product ions
-    If one fragment matches to multiple precursors, it is assigned to all of them. If it doesnt match any, it is assigned to all
+    If one fragment matches to multiple precursors, it is assigned to all of them. If it doesn't match any, it is assigned to all
   
+  <B>The command line parameters of this tool are:</B>
+  @verbinclude UTILS_ClusterMassTracesByPrecursor.cli
+  <B>INI file documentation of this tool:</B>
+  @htmlinclude UTILS_ClusterMassTracesByPrecursor.html
 
 */
 
@@ -419,3 +423,4 @@ int main( int argc, const char** argv )
   return tool.main(argc,argv);
 }
 
+///@endcond

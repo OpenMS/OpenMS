@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -34,7 +34,6 @@
 
 #pragma once
 
-#include <boost/math/special_functions/fpclassify.hpp> // for isnan
 #include <OpenMS/CHEMISTRY/AASequence.h>
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 
@@ -112,13 +111,15 @@ public:
                             SpectrumPtrType spectrum,
                             OpenSwath::IMRMFeature* mrmfeature,
                             double& isotope_corr,
-                            double& isotope_overlap);
+                            double& isotope_overlap) const;
 
     /// Massdiff scores, see class description
     void dia_massdiff_score(const std::vector<TransitionType>& transitions,
-                            SpectrumPtrType spectrum,
+                            const SpectrumPtrType& spectrum,
                             const std::vector<double>& normalized_library_intensity,
-                            double& ppm_score, double& ppm_score_weighted);
+                            double& ppm_score,
+                            double& ppm_score_weighted,
+                            std::vector<double>& diff_ppm) const;
 
     /**
       Precursor massdifference score
@@ -129,21 +130,24 @@ public:
       @return False if no signal was found (and no sensible score calculated), true otherwise
     */
     bool dia_ms1_massdiff_score(double precursor_mz, SpectrumPtrType spectrum,
-                                double& ppm_score);
+                                double& ppm_score) const;
 
     /// Precursor isotope scores for precursors (peptides and metabolites)
-    void dia_ms1_isotope_scores(double precursor_mz, SpectrumPtrType spectrum, size_t charge_state, 
-                                double& isotope_corr, double& isotope_overlap, const std::string& sum_formula = "");
+    void dia_ms1_isotope_scores_averagine(double precursor_mz, const SpectrumPtrType& spectrum,
+                                          double& isotope_corr, double& isotope_overlap, int charge_state) const;
+    void dia_ms1_isotope_scores(double precursor_mz, const SpectrumPtrType& spectrum,
+                                double& isotope_corr, double& isotope_overlap, const EmpiricalFormula& sum_formula) const;
+
 
     /// b/y ion scores
-    void dia_by_ion_score(SpectrumPtrType spectrum, AASequence& sequence,
-                          int charge, double& bseries_score, double& yseries_score);
+    void dia_by_ion_score(const SpectrumPtrType& spectrum, AASequence& sequence,
+                          int charge, double& bseries_score, double& yseries_score) const;
 
-    /// Dotproduct / Manhatten score with theoretical spectrum
+    /// Dotproduct / Manhattan score with theoretical spectrum
     void score_with_isotopes(SpectrumPtrType spectrum,
                              const std::vector<TransitionType>& transitions,
                              double& dotprod,
-                             double& manhattan);
+                             double& manhattan) const;
     //@}
 
 private:
@@ -159,17 +163,17 @@ private:
 
     /// Subfunction of dia_isotope_scores
     void diaIsotopeScoresSub_(const std::vector<TransitionType>& transitions,
-                              SpectrumPtrType spectrum,
+                              const SpectrumPtrType& spectrum,
                               std::map<std::string, double>& intensities,
                               double& isotope_corr,
-                              double& isotope_overlap);
+                              double& isotope_overlap) const;
 
     /// retrieves intensities from MRMFeature
     /// computes a vector of relative intensities for each feature (output to intensities)
     void getFirstIsotopeRelativeIntensities_(const std::vector<TransitionType>& transitions,
                                             OpenSwath::IMRMFeature* mrmfeature,
                                             std::map<std::string, double>& intensities //experimental intensities of transitions
-                                            );
+                                            ) const;
 
 private:
 
@@ -188,33 +192,57 @@ private:
       @param nr_occurrences Will contain the maximum ratio of a peaks intensity compared to the monoisotopic peak intensity how often a peak is found at lower m/z than mono_mz with an intensity higher than mono_int. Multiple charge states are tested, see class parameter dia_nr_charges_
 
     */
-    void largePeaksBeforeFirstIsotope_(SpectrumPtrType spectrum, double mono_mz, double mono_int, int& nr_occurrences, double& max_ratio);
+    void largePeaksBeforeFirstIsotope_(const SpectrumPtrType& spectrum, double mono_mz, double mono_int, int& nr_occurrences, double& max_ratio) const;
 
     /**
       @brief Compare an experimental isotope pattern to a theoretical one
 
-      This function will take an array of isotope intensities and compare them
-      to the theoretically expected ones for the given m/z using an averagine
+      This function will take an array of isotope intensities @p isotopes_int and compare them
+      (by order only; no m/z matching) to the theoretically expected ones for the given @p product_mz using an averagine
       model. The returned value is a Pearson correlation between the
       experimental and theoretical pattern.
     */
-    double scoreIsotopePattern_(double product_mz,
-                                const std::vector<double>& isotopes_int, 
-                                int putative_fragment_charge,
-                                const std::string& sum_formula = "");
+    double scoreIsotopePattern_(const std::vector<double>& isotopes_int,
+                                double product_mz,
+                                int putative_fragment_charge) const;
+
+    /**
+    @brief Compare an experimental isotope pattern to a theoretical one
+
+    This function will take an array of isotope intensities and compare them
+    (by order only; no m/z matching) to the theoretically expected ones for the given @p sum_formula.
+    The returned value is a Pearson correlation between the experimental and theoretical pattern.
+    */
+    double scoreIsotopePattern_(const std::vector<double>& isotopes_int,
+                                const EmpiricalFormula& sum_formula) const;
+
+    /**
+    @brief Compare an experimental isotope pattern to a theoretical one
+
+    This function will take an array of isotope intensities and compare them
+    (by order only; no m/z matching) to the theoretically expected ones given by @p isotope_dist.
+    The returned value is a Pearson correlation between the experimental and theoretical pattern.
+    */
+    double scoreIsotopePattern_(const std::vector<double>& isotopes_int,
+                                const IsotopeDistribution& isotope_dist) const;
+
+    /// Get the intensities of isotopes around @p precursor_mz in experimental @p spectrum
+    /// and fill @p isotopes_int.
+    void getIsotopeIntysFromExpSpec_(double precursor_mz, const SpectrumPtrType& spectrum,
+                                     std::vector<double>& isotopes_int,
+                                     int charge_state) const;
 
     // Parameters
     double dia_extract_window_;
-    double dia_centroided_;
     double dia_byseries_intensity_min_;
     double dia_byseries_ppm_diff_;
     double dia_nr_isotopes_;
     double dia_nr_charges_;
     double peak_before_mono_max_ppm_diff_;
     bool dia_extraction_ppm_;
+    bool dia_centroided_;
 
     TheoreticalSpectrumGenerator * generator;
   };
 }
-
 

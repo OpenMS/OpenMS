@@ -7,8 +7,8 @@ from ConvexHull2D cimport *
 cdef extern from "<OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithmPickedHelperStructs.h>" namespace "OpenMS::FeatureFinderAlgorithmPickedHelperStructs":
 
     cdef cppclass TheoreticalIsotopePattern "OpenMS::FeatureFinderAlgorithmPickedHelperStructs::TheoreticalIsotopePattern":
-        TheoreticalIsotopePattern() nogil except + # wrap-ignore
-        TheoreticalIsotopePattern(TheoreticalIsotopePattern) nogil except + #wrap-ignore
+        TheoreticalIsotopePattern() nogil except + # compiler
+        TheoreticalIsotopePattern(TheoreticalIsotopePattern &) nogil except + # compiler
 
         libcpp_vector[ double ] intensity
         Size optional_begin
@@ -23,7 +23,8 @@ cdef extern from "<OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithmPi
     # Since this is a templated class, we cannot tell Cython what the C++
     # equivalent would be and we need to name it MassTrace
     cdef cppclass MassTrace:
-        MassTrace(MassTrace) nogil except + #wrap-ignore
+        MassTrace() nogil except + # compiler
+        MassTrace(MassTrace &) nogil except + # compiler
 
         # POINTER # PeakType * max_peak
         double max_rt
@@ -37,8 +38,8 @@ cdef extern from "<OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithmPi
     # Since this is a templated class, we cannot tell Cython what the C++
     # equivalent would be and we need to name it MassTraces
     cdef cppclass MassTraces:
-        MassTraces() nogil except +
-        MassTraces(MassTraces) nogil except + #wrap-ignore
+        MassTraces() nogil except + # compiler
+        MassTraces(MassTraces &) nogil except + # compiler
 
         Size max_trace
         double baseline
@@ -51,7 +52,8 @@ cdef extern from "<OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithmPi
 cdef extern from "<OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithmPickedHelperStructs.h>" namespace "OpenMS::FeatureFinderAlgorithmPickedHelperStructs":
 
     cdef cppclass Seed "OpenMS::FeatureFinderAlgorithmPickedHelperStructs::Seed":
-        Seed(Seed) nogil except + #wrap-ignore
+        Seed() nogil except + # compiler
+        Seed(Seed &) nogil except + # compiler
         Size spectrum
         Size peak
         float intensity
@@ -60,7 +62,8 @@ cdef extern from "<OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithmPi
 cdef extern from "<OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithmPickedHelperStructs.h>" namespace "OpenMS::FeatureFinderAlgorithmPickedHelperStructs":
 
     cdef cppclass IsotopePattern "OpenMS::FeatureFinderAlgorithmPickedHelperStructs::IsotopePattern":
-        IsotopePattern(IsotopePattern) nogil except + #wrap-ignore
+        IsotopePattern(Size size) nogil except +
+        IsotopePattern(IsotopePattern &) nogil except + # compiler
 
         # TODO STL attributes -- Signed size does not work either!
         # vector.from_py:33:13: 'ptrdiff_t' is not a type identifier
@@ -70,6 +73,6 @@ cdef extern from "<OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithmPi
         libcpp_vector[ double ] mz_score
         libcpp_vector[ double ] theoretical_mz
         TheoreticalIsotopePattern theoretical_pattern
-        IsotopePattern(Size size) nogil except +
+
 
 

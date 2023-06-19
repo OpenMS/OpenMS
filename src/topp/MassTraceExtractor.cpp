@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -43,6 +43,7 @@
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/MATH/MISC/MathFunctions.h>
 #include <OpenMS/FORMAT/FileHandler.h>
+#include <OpenMS/SYSTEM/File.h>
 
 using namespace OpenMS;
 using namespace std;
@@ -52,37 +53,39 @@ using namespace std;
 //-------------------------------------------------------------
 
 /**
-        @page TOPP_MassTraceExtractor MassTraceExtractor
+  @page TOPP_MassTraceExtractor MassTraceExtractor
 
-        @brief MassTraceExtractor extracts mass traces from a @ref MSExperiment map and stores them into a @ref FeatureXMLFile.
+  @brief MassTraceExtractor extracts mass traces from a MSExperiment map and stores them into a FeatureXMLFile.
 
-        <CENTER>
-        <table>
-        <tr>
-        <td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. predecessor tools </td>
-        <td VALIGN="middle" ROWSPAN=3> \f$ \longrightarrow \f$ MassTraceExtractor \f$ \longrightarrow \f$</td>
-        <td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. successor tools </td>
-        </tr>
-        <tr>
-        <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_PeakPickerHiRes </td>
-        <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_FeatureFinderMetabo</td>
-        </tr>
-        <tr>
-        <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_PeakPickerWavelet </td>
-        <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_TextExporter </td>
-        </tr>
-        </table>
-        </CENTER>
+  <CENTER>
+  <table>
+  <tr>
+  <th ALIGN = "center"> pot. predecessor tools </td>
+  <td VALIGN="middle" ROWSPAN=3> &rarr; MassTraceExtractor &rarr;</td>
+  <th ALIGN = "center"> pot. successor tools </td>
+  </tr>
+  <tr>
+  <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_PeakPickerHiRes </td>
+  <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_FeatureFinderMetabo</td>
+  </tr>
+  <tr>
+  <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_PeakPickerWavelet </td>
+  <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_TextExporter </td>
+  </tr>
+  </table>
+  </CENTER>
 
 
-        This TOPP tool detects mass traces in centroided LC-MS maps and stores them as features in
-        a @ref FeatureMap. These features may be either used directly as input for an metabolite ID approach or further
-        be assembled to aggregate features according to a theoretical isotope pattern. For metabolomics experiments,
-        the @ref TOPP_FeatureFinderMetabo tool offers both mass trace extraction and isotope pattern assembly.
-        For proteomics data, please refer to the @ref TOPP_FeatureFinderCentroided tool.
+  This TOPP tool detects mass traces in centroided LC-MS maps and stores them as features in
+  a FeatureMap. These features may be either used directly as input for an metabolite ID approach or further
+  be assembled to aggregate features according to a theoretical isotope pattern. For metabolomics experiments,
+  the @ref TOPP_FeatureFinderMetabo tool offers both mass trace extraction and isotope pattern assembly.
+  For proteomics data, please refer to the @ref TOPP_FeatureFinderCentroided tool.
 
-        <B>The command line parameters of this tool are:</B>
-        @verbinclude TOPP_MassTraceExtractor.cli
+  <B>The command line parameters of this tool are:</B>
+  @verbinclude TOPP_MassTraceExtractor.cli
+  <B>INI file documentation of this tool:</B>
+  @htmlinclude TOPP_MassTraceExtractor.html
 */
 
 // We do not want this class to show up in the docu:
@@ -135,7 +138,7 @@ protected:
     p_epd.remove("chrom_fwhm");
 
     p_epd.setValue("enabled", "true", "Enables/disables the chromatographic peak detection of mass traces");
-    p_epd.setValidStrings("enabled", ListUtils::create<String>("true,false"));
+    p_epd.setValidStrings("enabled", {"true","false"});
     combined.insert("epd:", p_epd);
 
     return combined;
@@ -167,9 +170,9 @@ protected:
     (mz_data_file.getOptions()).setMSLevels(ms_level);
     mz_data_file.load(in, ms_peakmap);
 
-    if (ms_peakmap.size() == 0)
+    if (ms_peakmap.empty())
     {
-      LOG_WARN << "The given file does not contain any conventional peak data, but might"
+      OPENMS_LOG_WARN << "The given file does not contain any conventional peak data, but might"
                   " contain chromatograms. This tool currently cannot handle them, sorry.";
       return INCOMPATIBLE_INPUT_DATA;
     }
@@ -227,7 +230,7 @@ protected:
         m_traces_final.clear();
         ep_det.filterByPeakWidth(split_mtraces, m_traces_final);
 
-        LOG_INFO << "Notice: " << split_mtraces.size() - m_traces_final.size()
+        OPENMS_LOG_INFO << "Notice: " << split_mtraces.size() - m_traces_final.size()
                  << " of total " << split_mtraces.size() 
                  << " were dropped because of too low peak width." << std::endl;
       }
@@ -243,22 +246,30 @@ protected:
     if (out_type == FileTypes::CONSENSUSXML)
     {
       ConsensusMap consensus_map;
-      StringList ms_runs;
-      ms_peakmap.getPrimaryMSRunPath(ms_runs);
-      consensus_map.setPrimaryMSRunPath(ms_runs);
-
+      if (getFlag_("test"))
+      {
+        // if test mode set, add file without path so we can compare it
+        consensus_map.setPrimaryMSRunPath({"file://" + File::basename(in)});
+      }
+      else
+      {
+        consensus_map.setPrimaryMSRunPath({in}, ms_peakmap);
+      }
+      
       for (Size i = 0; i < m_traces_final.size(); ++i)
       {
-        if (m_traces_final[i].getSize() == 0) continue;
-
+        if (m_traces_final[i].getSize() == 0)
+        {
+          continue;
+        }
         ConsensusFeature fcons;
         int k = 0;
-        for (MassTrace::const_iterator it = m_traces_final[i].begin(); it != m_traces_final[i].end(); ++it)
+        for (const Peak2D& mss : m_traces_final[i])
         {
           FeatureHandle fhandle;
-          fhandle.setRT(it->getRT());
-          fhandle.setMZ(it->getMZ());
-          fhandle.setIntensity(it->getIntensity());
+          fhandle.setRT(mss.getRT());
+          fhandle.setMZ(mss.getMZ());
+          fhandle.setIntensity(mss.getIntensity());
           fhandle.setUniqueId(++k);
           fcons.insert(fhandle);
         }
@@ -288,13 +299,23 @@ protected:
 
       std::vector<double> stats_sd;
       FeatureMap ms_feat_map;
-      StringList ms_runs;
-      ms_peakmap.getPrimaryMSRunPath(ms_runs);
-      ms_feat_map.setPrimaryMSRunPath(ms_runs);
+
+      if (getFlag_("test"))
+      {
+        // if test mode set, add file without path so we can compare it
+        ms_feat_map.setPrimaryMSRunPath({"file://" + File::basename(in)});
+      }
+      else
+      {
+        ms_feat_map.setPrimaryMSRunPath({in}, ms_peakmap);
+      }
+
       for (Size i = 0; i < m_traces_final.size(); ++i)
       {
-        if (m_traces_final[i].getSize() == 0) continue;
-
+        if (m_traces_final[i].getSize() == 0)
+        {
+          continue;
+        }
         m_traces_final[i].updateMeanMZ();
         m_traces_final[i].updateWeightedMZsd();
 
@@ -310,16 +331,19 @@ protected:
         double sd = m_traces_final[i].getCentroidSD();
         f.setMetaValue("SD", sd);
         f.setMetaValue("SD_ppm", sd / f.getMZ() * 1e6);
-        if (m_traces_final[i].fwhm_mz_avg > 0) f.setMetaValue("FWHM_mz_avg", m_traces_final[i].fwhm_mz_avg);
+        if (m_traces_final[i].fwhm_mz_avg > 0)
+        {
+          f.setMetaValue("FWHM_mz_avg", m_traces_final[i].fwhm_mz_avg);
+        }
         stats_sd.push_back(m_traces_final[i].getCentroidSD());
         ms_feat_map.push_back(f);
       }
 
       // print some stats about standard deviation of mass traces
-      if (stats_sd.size() > 0)
+      if (!stats_sd.empty())
       {
         std::sort(stats_sd.begin(), stats_sd.end());
-        LOG_INFO << "Mass trace m/z s.d.\n"
+        OPENMS_LOG_INFO << "Mass trace m/z s.d.\n"
                  << "    low quartile: " << stats_sd[stats_sd.size() * 1 / 4] << "\n"
                  << "          median: " << stats_sd[stats_sd.size() * 1 / 2] << "\n"
                  << "    upp quartile: " << stats_sd[stats_sd.size() * 3 / 4] << std::endl;

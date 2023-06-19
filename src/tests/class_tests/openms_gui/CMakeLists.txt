@@ -2,7 +2,7 @@
 #                   OpenMS -- Open-Source Mass Spectrometry
 # --------------------------------------------------------------------------
 # Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-# ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+# ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 #
 # This software is released under a three-clause BSD license:
 #  * Redistributions of source code must retain the above copyright
@@ -32,18 +32,19 @@
 # $Authors: Stephan Aiche $
 # --------------------------------------------------------------------------
 
-cmake_minimum_required(VERSION 3.0.0 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.15 FATAL_ERROR)
 project("OpenMS_class_tests_openms_gui")
 
 set(visual_executables_list
   AxisTickCalculator_test
+  GUIHelpers_test
   MultiGradient_test
 )
-
 
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
+# TODO should not be required anymore
 #------------------------------------------------------------------------------
 # required to build GUI tests (e.g., TOPPView_test)
 include_directories(SYSTEM ${OpenMS_GUI_INCLUDE_DIRECTORIES})
@@ -51,26 +52,18 @@ include_directories(SYSTEM ${OpenMS_GUI_INCLUDE_DIRECTORIES})
 # add include to find moced files
 include_directories(${PROJECT_BINARY_DIR})
 
+# required for GUI tests to find the ui_foo.h files (e.g. TSGDialog_test)
+include_directories(${CMAKE_BINARY_DIR}/src/openms_gui)
+
 #------------------------------------------------------------------------------
 # VISUAL
 add_custom_target(VISUAL_TEST)
 add_dependencies(VISUAL_TEST ${visual_executables_list})
 
-find_package(Qt5 COMPONENTS Core Network Widgets Svg OpenGL REQUIRED)
-if (NOT Qt5Widgets_FOUND)
-  message(STATUS "QtWidgets module not found!")
-  message(FATAL_ERROR "To find a custom Qt installation use: cmake <..more options..> -D QT_QMAKE_EXECUTABLE='<path_to_qmake(.exe)' <src-dir>")
-endif()
-
 foreach(_class_test ${visual_executables_list})
   add_executable(${_class_test} source/${_class_test}.cpp)
   target_link_libraries(${_class_test} ${OpenMS_GUI_LIBRARIES})
   add_test(${_class_test} ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${_class_test})
-  # only add OPENMP flags to gcc linker (execpt Mac OS X, due to compiler bug
-  # see https://sourceforge.net/apps/trac/open-ms/ticket/280 for details)
-  if (OPENMP_FOUND AND NOT MSVC AND NOT ${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
-    set_target_properties(${_class_test} PROPERTIES LINK_FLAGS ${OpenMP_CXX_FLAGS})
-  endif()
 endforeach(_class_test)
 
 #------------------------------------------------------------------------------
@@ -81,21 +74,19 @@ endforeach(_class_test)
 if(HAS_XSERVER)
   set(GUI_executables_list
     TOPPView_test
+    TSGDialog_test
   )
 
   #------------------------------------------------------------------------------
   # Use QtTest lib
 
-  find_package(Qt5 COMPONENTS Test REQUIRED)
+  find_package(Qt5 REQUIRED
+    Test
+  )
   if (NOT Qt5Test_FOUND)
     message(STATUS "QtTest module not found!")
     message(FATAL_ERROR "To find a custom Qt installation use: cmake <..more options..> -D QT_QMAKE_EXECUTABLE='<path_to_qmake(.exe)' <src-dir>")
   endif()
-
-  #------------------------------------------------------------------------------
-  # We need some special treatments of boost in moc, hence we search for boost
-  # here
-  find_boost()
 
   #------------------------------------------------------------------------------
   # Add GUI tests
@@ -108,11 +99,6 @@ if(HAS_XSERVER)
     target_link_libraries(${_gui_test} ${OpenMS_GUI_LIBRARIES} ${QT_LIBRARIES} Qt5::Test)
     # add the test
     add_test(${_gui_test} ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${_gui_test})
-    # only add OPENMP flags to gcc linker (execpt Mac OS X, due to compiler bug
-    # see https://sourceforge.net/apps/trac/open-ms/ticket/280 for details)
-    if (OPENMP_FOUND AND NOT MSVC AND NOT ${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
-        set_target_properties(${_gui_test} PROPERTIES LINK_FLAGS ${OpenMP_CXX_FLAGS})
-      endif()
   endforeach(_gui_test)
 
   #------------------------------------------------------------------------------

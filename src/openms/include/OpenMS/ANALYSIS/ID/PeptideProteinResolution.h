@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -34,7 +34,6 @@
 
 #pragma once
 
-#include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
@@ -44,19 +43,14 @@
 
 namespace OpenMS
 {
-
   /// Represents a connected component of the bipartite graph
   /// Holds indices of peptides and (indist.) protein groups in them
   struct OPENMS_DLLAPI ConnectedComponent
   {
     std::set<Size> prot_grp_indices;
     std::set<Size> pep_indices;
-    
-    // Default constructor
-    ConnectedComponent();
-
     /// Overloaded operator '<<' for ConnectedComponents
-    friend std::ostream& operator << (std::ostream& os, const ConnectedComponent& conn_comp);
+    friend std::ostream& operator<<(std::ostream& os, const ConnectedComponent& conn_comp);
   };
 
   /**
@@ -72,9 +66,8 @@ namespace OpenMS
    the peptides quantities.
    In accordance with most state-of-the-art protein inference tools, only the
    best hit (PSM) for a peptide ID is considered.  Probability ties are
-   currently resolved by taking the first occurring protein of the component.
+   currently resolved by taking the protein with larger number of peptides.
 
-   @TODO Implement probability tie resolution.
    @improvement The class could provide iterator for ConnectedComponents in the
    future. One could extend the graph to include all PeptideHits (not only the
    best). It becomes a tripartite graph with larger connected components then.
@@ -87,13 +80,16 @@ namespace OpenMS
   {
   
   private:
-    // to build bipartite graph as two maps (adjacency "lists"):
-    // ProtGroups-Indices <-> PepID-Indices
-    // so we get bidirectional connectivity
-    // We always take first PepHit from PepID, because those were used for
-    // inference in Fido
+    /// to build bipartite graph as two maps (adjacency "lists"):
+    /// ProtGroups-Indices <-> PepID-Indices
+    /// so we get bidirectional connectivity
+    /// We always take first PepHit from PepID, because those are usually used
+    /// for inference
     typedef std::map<Size, std::set<Size> > IndexMap_;
-    
+
+    /// if the protein group at index i contains a target (first) and/or decoy (second)
+    // TODO WIP for better tie resolution
+    // std::vector<std::pair<bool,bool>> indist_prot_grp_td_;
     /// mapping indist. protein group indices -> peptide identification indices
     IndexMap_ indist_prot_grp_to_pep_;
     /// mapping indist. protein group indices <- peptide identification indices
@@ -110,19 +106,44 @@ namespace OpenMS
   public:
     /// Constructor
     /// @param statistics Specifies if the class stores/outputs info about statistics    
-    PeptideProteinResolution(bool statistics=false);
-    
-    /// Initialize and store the graph (= maps)
+    PeptideProteinResolution(bool statistics = false);
+
+
+    /// A peptide-centric reimplementation of the resolution process. Can be used statically
+    /// without building a bipartite graph first.
     /// @param protein ProteinIdentification object storing IDs and groups
     /// @param peptides vector of ProteinIdentifications with links to the proteins
-    void buildGraph(const ProteinIdentification& protein,
-                    const std::vector<PeptideIdentification>& peptides);
+    /// @param resolve_ties If ties should be resolved or multiple best groups reported
+    /// @param targets_first If target groups should get picked first no matter the posterior
+    /// @todo warning: all peptides are used (not filtered for matching protein ID run yet).
+    static void resolve(ProteinIdentification& protein,
+                        std::vector<PeptideIdentification>& peptides,
+                        bool resolve_ties,
+                        bool targets_first);
+
+    /// Convenience function that performs graph building and group resolution.
+    /// After resolution, all unreferenced proteins are removed and groups updated.
+    /// @param protein ProteinIdentification object storing IDs and groups
+    /// @param peptides vector of ProteinIdentifications with links to the proteins
+    static void run(std::vector<ProteinIdentification>& inferred_protein_id, 
+                    std::vector<PeptideIdentification>& inferred_peptide_ids);
+
+    /// Initialize and store the graph (= maps), needs sorted groups for
+    /// correct functionality. Therefore sorts the indist. protein groups
+    /// if not skipped.
+    /// @param protein ProteinIdentification object storing IDs and groups
+    /// @param peptides vector of ProteinIdentifications with links to the proteins
+    /// @param skip_sort Skips sorting of groups, nothing is modified then.
+    void buildGraph(ProteinIdentification& protein,
+                    const std::vector<PeptideIdentification>& peptides,
+                    bool skip_sort = false);
       
     /// Applies resolveConnectedComponent to every component of the graph and
     /// is able to write statistics when specified. Parameters will
     /// both be mutated in this method.
     /// @param protein ProteinIdentification object storing IDs and groups
     /// @param peptides vector of ProteinIdentifications with links to the proteins
+    /// @todo warning: all peptides are used (not filtered for matching protein ID run yet).
     void resolveGraph(ProteinIdentification& protein,
                       std::vector<PeptideIdentification>& peptides);
     
@@ -133,18 +154,18 @@ namespace OpenMS
     ConnectedComponent findConnectedComponent(Size& root_prot_grp);
     
 
-    /*! Resolves connected components based on Fido probabilities and adds them
-     * as additional protein_groups to the output idXML.
-     * Thereby greedily assigns shared peptides in this component uniquely to
-     * the proteins of the current BEST INDISTINGUISHABLE protein group,
-     * ready to be used in ProteinQuantifier then.
-     * This is achieved by removing all other evidence from the input
-     * PeptideIDs and iterating until each peptide is uniquely assigned.
-     * In accordance with Fido only the best hit (PSM) for an ID is considered.
-     * Probability ties are _currently_ resolved by taking the first occurrence.
-     * @param conn_comp The component to be resolved
-     * @param protein ProteinIdentification object storing IDs and groups
-     * @param peptides vector of ProteinIdentifications with links to the proteins
+    /*! Resolves connected components based on posterior probabilities and adds them
+      as additional protein_groups to the output idXML.
+      Thereby greedily assigns shared peptides in this component uniquely to
+      the proteins of the current BEST INDISTINGUISHABLE protein group,
+      ready to be used in ProteinQuantifier then.
+      This is achieved by removing all other evidence from the input
+      PeptideIDs and iterating until each peptide is uniquely assigned.
+      In accordance with Fido only the best hit (PSM) for an ID is considered.
+      Probability ties resolved by taking protein with largest number of peptides.
+      @param conn_comp The component to be resolved
+      @param protein ProteinIdentification object storing IDs and groups
+      @param peptides vector of ProteinIdentifications with links to the proteins
      */
     void resolveConnectedComponent(ConnectedComponent& conn_comp,
                                     ProteinIdentification& protein,

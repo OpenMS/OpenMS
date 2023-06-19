@@ -9,14 +9,13 @@ cdef extern from "<OpenMS/FILTERING/TRANSFORMERS/WindowMower.h>" namespace "Open
 
     cdef cppclass WindowMower(DefaultParamHandler):
         # wrap-inherits:
-        #    DefaultParamHandler
+        #   DefaultParamHandler
 
-        WindowMower()            nogil except +
-        WindowMower(WindowMower) nogil except + #wrap-ignore
+        WindowMower() nogil except +
+        WindowMower(WindowMower &) nogil except +
 
-        void filterPeakSpectrumForTopNInSlidingWindow(MSSpectrum & spectrum) nogil except + # wrap-doc:sliding window version (slower)
-        void filterPeakSpectrumForTopNInJumpingWindow(MSSpectrum & spectrum) nogil except + # wrap-doc:jumping window version (faster)
+        void filterPeakSpectrumForTopNInSlidingWindow(MSSpectrum & spectrum) nogil except + # wrap-doc:Sliding window version (slower)
+        void filterPeakSpectrumForTopNInJumpingWindow(MSSpectrum & spectrum) nogil except + # wrap-doc:Jumping window version (faster)
 
         void filterPeakSpectrum(MSSpectrum & spec) nogil except +
         void filterPeakMap(MSExperiment & exp) nogil except +
-

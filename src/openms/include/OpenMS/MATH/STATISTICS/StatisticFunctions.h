@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -37,23 +37,10 @@
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/CONCEPT/Types.h>
 
-// array_wrapper needs to be included before it is used
-// only in boost1.64+. See issue #2790
-#if OPENMS_BOOST_VERSION_MINOR >= 64
-#include <boost/serialization/array_wrapper.hpp>
-#endif
-#include <boost/accumulators/accumulators.hpp>
-#include <boost/accumulators/statistics/covariance.hpp>
-#include <boost/accumulators/statistics/mean.hpp>
-#include <boost/accumulators/statistics/stats.hpp>
-#include <boost/accumulators/statistics/variance.hpp>
-#include <boost/accumulators/statistics/variates/covariate.hpp>
-#include <boost/function/function_base.hpp>
-#include <boost/lambda/casts.hpp>
-#include <boost/lambda/lambda.hpp>
-
-#include <iterator>
 #include <algorithm>
+#include <cmath>
+#include <iterator>
+#include <numeric>
 
 namespace OpenMS
 {
@@ -205,6 +192,35 @@ namespace OpenMS
       }
       return median(diffs.begin(), diffs.end(), false);
     }
+    
+    /**
+      @brief mean absolute deviation (MeanAbsoluteDeviation)
+
+      Computes the MeanAbsoluteDeviation, defined as
+
+      MeanAbsoluteDeviation = mean( | x_i - mean(x) | ) for a vector x with indices i in [1,n].
+
+      For efficiency, you must provide the mean separately, in order to avoid potentially duplicate efforts (usually one
+      computes the mean anyway externally).
+      
+      @param begin Start of range
+      @param end End of range (past-the-end iterator)
+      @param mean_of_numbers The precomputed mean of range @p begin - @p end.
+      @return the MeanAbsoluteDeviation
+
+      @ingroup MathFunctionsStatistics
+
+    */
+    template <typename IteratorType>
+    double MeanAbsoluteDeviation(IteratorType begin, IteratorType end, double mean_of_numbers)
+    {
+      double mean_value {0};
+      for (IteratorType it = begin; it != end; ++it)
+      {
+        mean_value += fabs(*it - mean_of_numbers);
+      }
+      return mean_value / std::distance(begin, end);
+    }
 
     /**
        @brief Calculates the first quantile of a range of values
@@ -279,7 +295,7 @@ namespace OpenMS
                            double mean = std::numeric_limits<double>::max())
     {
       checkIteratorsNotNULL(begin, end);
-      double sum = 0.0;
+      double sum_value = 0.0;
       if (mean == std::numeric_limits<double>::max())
       {
         mean = Math::mean(begin, end);
@@ -287,15 +303,15 @@ namespace OpenMS
       for (IteratorType iter=begin; iter!=end; ++iter)
       {
         double diff = *iter - mean;
-        sum += diff * diff;
+        sum_value += diff * diff;
       }
-      return sum / (std::distance(begin, end)-1);
+      return sum_value / (std::distance(begin, end)-1);
     }
 
     /**
        @brief Calculates the standard deviation of a range of values.
 
-  The @p mean can be provided explicitly to save computation time. If left at default, it will be computed internally.
+       The @p mean can be provided explicitly to save computation time. If left at default, it will be computed internally.
 
        @exception Exception::InvalidRange is thrown if the range is empty
 
@@ -321,16 +337,16 @@ namespace OpenMS
                          double mean = std::numeric_limits<double>::max())
     {
       checkIteratorsNotNULL(begin, end);
-      double sum = 0.0;
+      double sum_value = 0.0;
       if (mean == std::numeric_limits<double>::max())
       {
         mean = Math::mean(begin, end);
       }
       for (IteratorType iter=begin; iter!=end; ++iter)
       {
-        sum += *iter - mean;
+        sum_value += *iter - mean;
       }
-      return sum / std::distance(begin, end);
+      return sum_value / std::distance(begin, end);
     }
 
     /**
@@ -349,7 +365,7 @@ namespace OpenMS
       //no data or different lengths
       checkIteratorsNotNULL(begin_a, end_a);
 
-      double sum = 0.0;
+      double sum_value = 0.0;
       double mean_a = Math::mean(begin_a, end_a);
       double mean_b = Math::mean(begin_b, end_b);
       IteratorType1 iter_a = begin_a;
@@ -358,12 +374,12 @@ namespace OpenMS
       {
         /* assure both ranges have the same number of elements */
         checkIteratorsAreValid(begin_b, end_b, begin_a, end_a);
-        sum += (*iter_a - mean_a) * (*iter_b - mean_b);
+        sum_value += (*iter_a - mean_a) * (*iter_b - mean_b);
       }
       /* assure both ranges have the same number of elements */
       checkIteratorsEqual(iter_b, end_b);
       Size n = std::distance(begin_a, end_a);
-      return sum / (n-1);
+      return sum_value / (n-1);
     }
 
     /**
@@ -487,7 +503,7 @@ namespace OpenMS
       /* assure both ranges have the same number of elements */
       checkIteratorsEqual(iter_b, end_b);
 
-      return (tp * tn - fp * fn) / sqrt((tp + fp) * (tp + fn) * (tn + fp) * (tn + fn));
+      return (tp * tn - fp * fn) / std::sqrt((tp + fp) * (tp + fn) * (tn + fp) * (tn + fn));
     }
 
     /**
@@ -531,7 +547,7 @@ namespace OpenMS
       }
       /* assure both ranges have the same number of elements */
       checkIteratorsEqual(iter_b, end_b);
-      return numerator / sqrt(denominator_a * denominator_b);
+      return numerator / std::sqrt(denominator_a * denominator_b);
     }
 
     /// Replaces the elements in vector @p w by their ranks
@@ -550,8 +566,7 @@ namespace OpenMS
       }
       //sort
       std::sort(w_idx.begin(), w_idx.end(),
-                boost::lambda::ret<bool>((&boost::lambda::_1->*& std::pair<Size, Value>::second) < 
-                                         (&boost::lambda::_2->*& std::pair<Size, Value>::second)));
+                [](const auto& pair1, const auto& pair2) { return pair1.second < pair2.second; });
       //replace pairs <orig_index, value> in w_idx by pairs <orig_index, rank>
       while (i < n)
       {
@@ -649,17 +664,14 @@ namespace OpenMS
         return 0;
       }
 
-      return sum_model_data / (sqrt(sqsum_data) * sqrt(sqsum_model));
+      return sum_model_data / (std::sqrt(sqsum_data) * std::sqrt(sqsum_model));
     }
 
     /// Helper class to gather (and dump) some statistics from a e.g. vector<double>.
     template<typename T>
     struct SummaryStatistics
     {
-      SummaryStatistics()
-        :mean(0), variance(0), min(0), lowerq(0), median(0), upperq(0), max(0)
-      {
-      }
+      SummaryStatistics() = default;
 
       // Ctor with data
       SummaryStatistics(T& data)
@@ -683,9 +695,9 @@ namespace OpenMS
         }
       }
 
-      double mean, variance, lowerq, median, upperq;
-      typename T::value_type min, max;
-      size_t count;
+      double mean = 0, variance = 0 , lowerq = 0, median = 0, upperq = 0;
+      typename T::value_type min = 0, max = 0;
+      size_t count = 0;
     };
 
   }   // namespace Math

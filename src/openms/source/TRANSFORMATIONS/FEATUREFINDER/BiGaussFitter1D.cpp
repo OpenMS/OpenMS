@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -33,7 +33,9 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/BiGaussFitter1D.h>
+
 #include <OpenMS/CONCEPT/Factory.h>
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/InterpolationModel.h>
 
 namespace OpenMS
 {
@@ -42,8 +44,8 @@ namespace OpenMS
   {
     setName(getProductName());
 
-    defaults_.setValue("statistics:variance1", 1.0, "Variance of the first gaussian, used for the lower half of the model.", ListUtils::create<String>("advanced"));
-    defaults_.setValue("statistics:variance2", 1.0, "Variance of the second gaussian, used for the upper half of the model.", ListUtils::create<String>("advanced"));
+    defaults_.setValue("statistics:variance1", 1.0, "Variance of the first gaussian, used for the lower half of the model.", {"advanced"});
+    defaults_.setValue("statistics:variance2", 1.0, "Variance of the second gaussian, used for the upper half of the model.", {"advanced"});
 
     defaultsToParam_();
   }
@@ -54,22 +56,21 @@ namespace OpenMS
     updateMembers_();
   }
 
-  BiGaussFitter1D::~BiGaussFitter1D()
-  {
-  }
+  BiGaussFitter1D::~BiGaussFitter1D() = default;
 
   BiGaussFitter1D& BiGaussFitter1D::operator=(const BiGaussFitter1D& source)
   {
     if (&source == this)
+    {
       return *this;
-
+    }
     MaxLikeliFitter1D::operator=(source);    
     updateMembers_();
 
     return *this;
   }
 
-  BiGaussFitter1D::QualityType BiGaussFitter1D::fit1d(const RawDataArrayType& set, InterpolationModel*& model)
+  BiGaussFitter1D::QualityType BiGaussFitter1D::fit1d(const RawDataArrayType& set, std::unique_ptr<InterpolationModel>& model)
   {
     // Calculate bounding box
     CoordinateType min_bb = set[0].getPos(), max_bb = set[0].getPos();
@@ -77,9 +78,13 @@ namespace OpenMS
     {
       CoordinateType tmp = set[pos].getPos();
       if (min_bb > tmp)
+      {
         min_bb = tmp;
+      }
       if (max_bb < tmp)
+      {
         max_bb = tmp;
+      }
     }
 
     // Enlarge the bounding box by a few multiples of the standard deviation
@@ -90,7 +95,7 @@ namespace OpenMS
 
 
     // build model
-    model = static_cast<InterpolationModel*>(Factory<BaseModel<1> >::create("BiGaussModel"));
+    model = std::unique_ptr<InterpolationModel>(dynamic_cast<InterpolationModel*>(Factory<BaseModel<1>>::create("BiGaussModel")));
     model->setInterpolationStep(interpolation_step_);
     Param tmp;
     tmp.setValue("bounding_box:min", min_bb);
@@ -103,9 +108,10 @@ namespace OpenMS
     // fit offset
     QualityType quality;
     quality = fitOffset_(model, set, stdev1, stdev2, interpolation_step_);
-    if (boost::math::isnan(quality))
+    if (std::isnan(quality))
+    {
       quality = -1.0;
-
+    }
     return quality;
   }
 

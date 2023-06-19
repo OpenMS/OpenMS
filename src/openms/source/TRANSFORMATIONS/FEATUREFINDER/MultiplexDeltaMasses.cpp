@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -34,25 +34,26 @@
 
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexDeltaMasses.h>
 
+#include <sstream>
+#include <utility>
+
 using namespace std;
 
 namespace OpenMS
 {
 
   MultiplexDeltaMasses::DeltaMass::DeltaMass(double dm, LabelSet ls) :
-    delta_mass(dm), label_set(ls)
+    delta_mass(dm), label_set(std::move(ls))
   {
   }
   
-  MultiplexDeltaMasses::DeltaMass::DeltaMass(double dm, String l) :
+  MultiplexDeltaMasses::DeltaMass::DeltaMass(double dm, const String& l) :
     delta_mass(dm), label_set()
   {
     label_set.insert(l);
   }
 
-  MultiplexDeltaMasses::MultiplexDeltaMasses()
-  {
-  }
+  MultiplexDeltaMasses::MultiplexDeltaMasses() = default;
 
   MultiplexDeltaMasses::MultiplexDeltaMasses(const vector<MultiplexDeltaMasses::DeltaMass>& dm) :
     delta_masses_(dm)

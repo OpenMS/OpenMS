@@ -21,7 +21,7 @@ startSection <- function(file, section.identifier) {
   return (row)
 }
 
-# count the occurences of character c in string s
+# count the occurrences of character c in string s
 countOccurrences <- function(char,s) {
 	s2 <- gsub(char,"",s)
 	return (nchar(s) - nchar(s2))

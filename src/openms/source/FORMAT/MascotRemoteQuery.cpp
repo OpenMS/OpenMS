@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -51,7 +51,7 @@ namespace OpenMS
   MascotRemoteQuery::MascotRemoteQuery(QObject* parent) :
     QObject(parent),
     DefaultParamHandler("MascotRemoteQuery"),
-    manager_(NULL)
+    manager_(nullptr)
   {
     // server specifications
     defaults_.setValue("hostname", "", "Address of the host where Mascot listens, e.g. 'mascot-server' or '127.0.0.1'");
@@ -62,29 +62,31 @@ namespace OpenMS
                                         "This is NOT the whole time the search takes, but the time in between two progress steps. Some Mascot servers freeze during this (unstable network etc) and idle forever"
                                         ", the connection is killed. Set this to 0 to disable timeout!");
     defaults_.setMinInt("timeout", 0);
-    defaults_.setValue("boundary", "GZWgAaYKjHFeUaLOLEIOMq", "Boundary for the MIME section", ListUtils::create<String>("advanced"));
+    defaults_.setValue("boundary", "GZWgAaYKjHFeUaLOLEIOMq", "Boundary for the MIME section", {"advanced"});
 
     // proxy settings
-    defaults_.setValue("use_proxy", "false", "Flag which enables the proxy usage for the HTTP requests, please specify at least 'proxy_host' and 'proxy_port'", ListUtils::create<String>("advanced"));
-    defaults_.setValidStrings("use_proxy", ListUtils::create<String>("true,false"));
-    defaults_.setValue("proxy_host", "", "Host where the proxy server runs on", ListUtils::create<String>("advanced"));
-    defaults_.setValue("proxy_port", 0, "Port where the proxy server listens", ListUtils::create<String>("advanced"));
+    defaults_.setValue("use_proxy", "false", "Flag which enables the proxy usage for the HTTP requests, please specify at least 'proxy_host' and 'proxy_port'", {"advanced"});
+    defaults_.setValidStrings("use_proxy", {"true","false"});
+    defaults_.setValue("proxy_host", "", "Host where the proxy server runs on", {"advanced"});
+    defaults_.setValue("proxy_port", 0, "Port where the proxy server listens", {"advanced"});
     defaults_.setMinInt("proxy_port", 0);
-    defaults_.setValue("proxy_username", "", "Login name for the proxy server, if needed", ListUtils::create<String>("advanced"));
-    defaults_.setValue("proxy_password", "", "Login password for the proxy server, if needed", ListUtils::create<String>("advanced"));
+    defaults_.setValue("proxy_username", "", "Login name for the proxy server, if needed", {"advanced"});
+    defaults_.setValue("proxy_password", "", "Login password for the proxy server, if needed", {"advanced"});
 
     // login for Mascot security
     defaults_.setValue("login", "false", "Flag which should be set 'true' if Mascot security is enabled; also set 'username' and 'password' then.");
-    defaults_.setValidStrings("login", ListUtils::create<String>("true,false"));
+    defaults_.setValidStrings("login", {"true","false"});
     defaults_.setValue("username", "", "Name of the user if login is used (Mascot security must be enabled!)");
     defaults_.setValue("password", "", "Password of the user if login is used (Mascot security must be enabled!)");
     defaults_.setValue("use_ssl", "false", "Flag indicating whether you want to send requests to an HTTPS server or not (HTTP). Requires OpenSSL to be installed (see openssl.org)");
-    defaults_.setValidStrings("use_ssl", ListUtils::create<String>("true,false"));
+    defaults_.setValidStrings("use_ssl", {"true","false"});
 
     // Mascot export options
-    defaults_.setValue("export_params", "_ignoreionsscorebelow=0&_sigthreshold=0.99&_showsubsets=1&show_same_sets=1&report=0&percolate=0&query_master=0", "Adjustable export parameters (passed to Mascot's 'export_dat_2.pl' script). Generally only parameters that control which hits to export are safe to adjust/add. Many settings that govern what types of information to include are required by OpenMS and cannot be changed. Note that setting 'query_master' to 1 may lead to incorrect protein references for peptides.", ListUtils::create<String>("advanced"));
-    defaults_.setValue("skip_export", "false", "For use with an external Mascot Percolator (via GenericWrapper): Run the Mascot search, but do not export the results. The output file produced by MascotAdapterOnline will contain only the Mascot search number.", ListUtils::create<String>("advanced"));
-    defaults_.setValidStrings("skip_export", ListUtils::create<String>("true,false"));
+    defaults_.setValue("export_params", "_ignoreionsscorebelow=0&_sigthreshold=0.99&_showsubsets=1&show_same_sets=1&report=0&percolate=0&query_master=0", "Adjustable export parameters (passed to Mascot's 'export_dat_2.pl' script). Generally only parameters that control which hits to export are safe to adjust/add. Many settings that govern what types of information to include are required by OpenMS and cannot be changed. Note that setting 'query_master' to 1 may lead to incorrect protein references for peptides.", {"advanced"});
+    defaults_.setValue("skip_export", "false", "For use with an external Mascot Percolator (via GenericWrapper): Run the Mascot search, but do not export the results. The output file produced by MascotAdapterOnline will contain only the Mascot search number.", {"advanced"});
+    defaults_.setValidStrings("skip_export", {"true","false"});
+    defaults_.setValue("batch_size", 50000, "Number of spectra processed in one batch by Mascot (default 50000)", {"advanced"});
+    defaults_.setMinInt("batch_size", 0);
     defaultsToParam_();
   }
 
@@ -96,9 +98,9 @@ namespace OpenMS
     if (manager_) {delete manager_;}
   }
 
-  void MascotRemoteQuery::timedOut()
+  void MascotRemoteQuery::timedOut() const
   {
-    LOG_FATAL_ERROR << "Mascot request timed out after " << to_ << " seconds! See 'timeout' parameter for details!" << std::endl;
+    OPENMS_LOG_FATAL_ERROR << "Mascot request timed out after " << to_ << " seconds! See 'timeout' parameter for details!" << std::endl;
   }
 
   void MascotRemoteQuery::run()
@@ -114,7 +116,7 @@ namespace OpenMS
     // 5. Mascot 2.4: read result, check for redirect (function "readResponse")
     // 6. Mascot 2.4: request redirected (caching) page (function "getResults")
     // (5. and 6. can happen multiple times - keep following redirects)
-    // 7. Mascot 2.4: read result, check if caching's done (function "readResponse")
+    // 7. Mascot 2.4: read result, check if caching is done (function "readResponse")
     // 8. Mascot 2.4: request results again (function "getResults")
     // 9. read results, which should now contain the XML (function "readResponse")
     //
@@ -168,7 +170,7 @@ namespace OpenMS
     QUrl url = buildUrl_(server_path_ + "/cgi/login.pl");
     QNetworkRequest request(url);
 
-    QString boundary = boundary_.toQString();
+    QByteArray boundary = boundary_.toQString().toUtf8();
     request.setHeader(QNetworkRequest::ContentTypeHeader, "multipart/form-data, boundary=" + boundary);
 
     // header
@@ -178,18 +180,18 @@ namespace OpenMS
 
     // content
     QByteArray loginbytes;
-    QString boundary_string("--" + boundary + "\r\n");
+    QByteArray boundary_string("--" + boundary + "\r\n");
     loginbytes.append(boundary_string);
     loginbytes.append("Content-Disposition: ");
     loginbytes.append("form-data; name=\"username\"\r\n");
     loginbytes.append("\r\n");
-    loginbytes.append(((String)param_.getValue("username")).c_str());
+    loginbytes.append(String(param_.getValue("username").toString()).toQString().toUtf8());
     loginbytes.append("\r\n");
     loginbytes.append(boundary_string);
     loginbytes.append("Content-Disposition: ");
     loginbytes.append("form-data; name=\"password\"\r\n");
     loginbytes.append("\r\n");
-    loginbytes.append(((String)param_.getValue("password")).c_str());
+    loginbytes.append(String(param_.getValue("password").toString()).toQString().toUtf8());
     loginbytes.append("\r\n");
     loginbytes.append(boundary_string);
     loginbytes.append("Content-Disposition: ");
@@ -239,7 +241,7 @@ namespace OpenMS
 
   }
 
-  void MascotRemoteQuery::getResults(QString results_path)
+  void MascotRemoteQuery::getResults(const QString& results_path)
   {
     // Tidy up again and run another request...
 #ifdef MASCOTREMOTEQUERY_DEBUG
@@ -337,7 +339,7 @@ namespace OpenMS
 #endif
     QNetworkRequest request(url);
 
-    QString boundary = boundary_.toQString();
+    QByteArray boundary = boundary_.toQString().toUtf8();
     request.setHeader(QNetworkRequest::ContentTypeHeader, "multipart/form-data, boundary=" + boundary);
 
     // header
@@ -476,6 +478,7 @@ namespace OpenMS
 
   void MascotRemoteQuery::readResponse(QNetworkReply* reply)
   {
+    static QString dat_file_path_;
 #ifdef MASCOTREMOTEQUERY_DEBUG
     cerr << "\nvoid MascotRemoteQuery::readResponse(const QNetworkReply* reply): ";
     if (reply->error())
@@ -534,9 +537,9 @@ namespace OpenMS
     }
 
     // Successful login? fire off the search
-    if (new_bytes.contains("Logged in successfu")) // Do not use the whole string. Currently Mascot writes 'successfuly', but that might change...
+    if (new_bytes.contains("Logged in successfu")) // Do not use the whole string. Currently Mascot writes 'successfully', but that might change...
     {
-      LOG_INFO << "Login successful!" << std::endl;
+      OPENMS_LOG_INFO << "Login successful!" << std::endl;
       execQuery();
     }
     else if (new_bytes.contains("Error: You have entered an invalid password"))
@@ -556,10 +559,11 @@ namespace OpenMS
       // <A HREF="../cgi/master_results.pl?file=../data/20100728/F018032.dat">Click here to see Search Report</A>
       QString response(new_bytes);
 
-      QRegExp rx("file=(.+/\\d+/\\w+\\.dat)");
+      QRegExp rx(R"(file=(.+/\d+/\w+\.dat))");
       rx.setMinimal(true);
       rx.indexIn(response);
-      search_identifier_ = getSearchIdentifierFromFilePath(rx.cap(1));
+      dat_file_path_ = rx.cap(1);
+      search_identifier_ = getSearchIdentifierFromFilePath(dat_file_path_);
 
       if (param_.exists("skip_export") &&
           (param_.getValue("skip_export") == "true"))
@@ -571,7 +575,7 @@ namespace OpenMS
       QString results_path("");
       results_path.append(server_path_.toQString());
       results_path.append("/cgi/export_dat_2.pl?file=");
-      results_path.append(rx.cap(1));
+      results_path.append(dat_file_path_);
 
 #ifdef MASCOTREMOTEQUERY_DEBUG
       cerr << "Results path to export: " << results_path.toStdString() << "\n";
@@ -579,12 +583,14 @@ namespace OpenMS
 
       // see http://www.matrixscience.com/help/export_help.html for parameter documentation
       String required_params = "&do_export=1&export_format=XML&generate_file=1&group_family=1&peptide_master=1&protein_master=1&search_master=1&show_unassigned=1&show_mods=1&show_header=1&show_params=1&prot_score=1&pep_exp_z=1&pep_score=1&pep_seq=1&pep_homol=1&pep_ident=1&pep_expect=1&pep_var_mod=1&pep_scan_title=1&query_qualifiers=1&query_peaks=1&query_raw=1&query_title=1";
-      String adjustable_params = param_.getValue("export_params");
+    // TODO: check that export_params don't contain _show_decoy_report=1. This would add <decoy> at the top of the XML document and we can't easily distinguish the two files (target/decoy) from the search results later.
+      String adjustable_params = param_.getValue("export_params").toString();
+
       results_path.append(required_params.toQString() + "&" +
                           adjustable_params.toQString());
       // results_path.append("&show_same_sets=1&show_unassigned=1&show_queries=1&do_export=1&export_format=XML&pep_rank=1&_sigthreshold=0.99&_showsubsets=1&show_header=1&prot_score=1&pep_exp_z=1&pep_score=1&pep_seq=1&pep_homol=1&pep_ident=1&show_mods=1&pep_var_mod=1&protein_master=1&search_master=1&show_params=1&pep_scan_title=1&query_qualifiers=1&query_peaks=1&query_raw=1&query_title=1&pep_expect=1&peptide_master=1&generate_file=1&group_family=1");
 
-      //Finished search, fire off results retrieval
+      // Finished search, fire off results retrieval
       getResults(results_path);
     }
     else if (status == 303)
@@ -614,19 +620,19 @@ namespace OpenMS
     {
       // check whether Mascot responded using an error code e.g. [M00440], pipe through results else
       QString response_text = new_bytes;
-      QRegExp mascot_error_regex("\\[M[0-9][0-9][0-9][0-9][0-9]\\]");
+      QRegExp mascot_error_regex(R"(\[M[0-9][0-9][0-9][0-9][0-9]\])");
       if (response_text.contains(mascot_error_regex))
       {
-        LOG_ERROR << "Received response with Mascot error message!" << std::endl;
+        OPENMS_LOG_ERROR << "Received response with Mascot error message!" << std::endl;
         if (mascot_error_regex.cap() == "[M00380]")
         {
           // we know this error, so we give a much shorter and readable error message for the user
           error_message_ = "You must enter an email address and user name when using the Matrix Science public web site [M00380].";
-          LOG_ERROR << error_message_ << std::endl;
+          OPENMS_LOG_ERROR << error_message_ << std::endl;
         }
         else
         {
-          LOG_ERROR << "Error code: " << mascot_error_regex.cap().toStdString() << std::endl;
+          OPENMS_LOG_ERROR << "Error code: " << mascot_error_regex.cap().toStdString() << std::endl;
           error_message_ = response_text;
         }
         endRun_();
@@ -637,8 +643,36 @@ namespace OpenMS
 #ifdef MASCOTREMOTEQUERY_DEBUG
         cerr << "Get the XML File" << "\n";
 #endif
-        mascot_xml_ = new_bytes;
-        endRun_();
+        if (new_bytes.contains("<decoy>"))
+        {
+          mascot_decoy_xml_ = new_bytes;          
+          endRun_();
+        }
+        else
+        {
+          mascot_xml_ = new_bytes;
+
+          // now retrieve decos
+          if (export_decoys_)
+          {
+            QString results_path("");
+            results_path.append(server_path_.toQString());
+            results_path.append("/cgi/export_dat_2.pl?file=");
+            results_path.append(dat_file_path_); // export again from dat file (now decoys)        
+            // see http://www.matrixscience.com/help/export_help.html for parameter documentation
+            String required_params = "&do_export=1&export_format=XML&generate_file=1&group_family=1&peptide_master=1&protein_master=1&search_master=1&show_unassigned=1&show_mods=1&show_header=1&show_params=1&prot_score=1&pep_exp_z=1&pep_score=1&pep_seq=1&pep_homol=1&pep_ident=1&pep_expect=1&pep_var_mod=1&pep_scan_title=1&query_qualifiers=1&query_peaks=1&query_raw=1&query_title=1";
+            // TODO: check that export_params don't contain _show_decoy_report=1. This would add <decoy> at the top of the XML document and we can't easily distinguish the two files (target/decoy) from the search results later.
+            String adjustable_params = param_.getValue("export_params").toString();
+            results_path.append(required_params.toQString() + "&" +
+                            adjustable_params.toQString() + "&_show_decoy_report=1&show_decoy=1"); // request 
+
+            getResults(results_path); 
+          }
+          else
+          {
+            endRun_();
+          }
+        }
       }
     }
   }
@@ -653,9 +687,19 @@ namespace OpenMS
     return mascot_xml_;
   }
 
+  const QByteArray& MascotRemoteQuery::getMascotXMLDecoyResponse() const
+  {
+    return mascot_decoy_xml_;
+  }
+
+  void MascotRemoteQuery::setExportDecoys(const bool b)
+  {
+    export_decoys_ = b;
+  }
+
   bool MascotRemoteQuery::hasError() const
   {
-    return error_message_ != "";
+    return !error_message_.empty();
   }
 
   const String& MascotRemoteQuery::getErrorMessage() const
@@ -673,12 +717,13 @@ namespace OpenMS
 #ifdef MASCOTREMOTEQUERY_DEBUG
     cerr << "MascotRemoteQuery::updateMembers_()" << "\n";
 #endif
-    server_path_ = param_.getValue("server_path");
+    server_path_ = param_.getValue("server_path").toString();
     //MascotRemoteQuery_test
-    if (server_path_ != "")
+    if (!server_path_.empty())
+    {
       server_path_ = "/" + server_path_;
-
-    host_name_ = param_.getValue("hostname");
+    }
+    host_name_ = param_.getValue("hostname").toString();
     
     use_ssl_ = param_.getValue("use_ssl").toBool();
 #ifndef QT_NO_SSL
@@ -695,9 +740,10 @@ namespace OpenMS
     }
 #endif
     
-    boundary_ = param_.getValue("boundary");
+    boundary_ = param_.getValue("boundary").toString();
     cookie_ = "";
     mascot_xml_ = "";
+    mascot_decoy_xml_ = "";
 
     to_ = param_.getValue("timeout");
     timeout_.setInterval(1000 * to_);
@@ -708,16 +754,16 @@ namespace OpenMS
     {
       QNetworkProxy proxy;
       proxy.setType(QNetworkProxy::Socks5Proxy);
-      String proxy_host(param_.getValue("proxy_host"));
+      String proxy_host(param_.getValue("proxy_host").toString());
       proxy.setHostName(proxy_host.toQString());
-      String proxy_port(param_.getValue("proxy_port"));
+      String proxy_port(param_.getValue("proxy_port").toString());
       proxy.setPort(proxy_port.toInt());
 
-      String proxy_password(param_.getValue("proxy_password"));
+      String proxy_password(param_.getValue("proxy_password").toString());
       proxy.setPassword(proxy_password.toQString());
 
-      String proxy_username(param_.getValue("proxy_username"));
-      if (proxy_username != "")
+      String proxy_username(param_.getValue("proxy_username").toString());
+      if (!proxy_username.empty())
       {
         proxy.setUser(proxy_username.toQString());
       }
@@ -738,22 +784,31 @@ namespace OpenMS
 
     if (!url.startsWith(host_name_.toQString()))
     {
-      LOG_ERROR << "Invalid location returned by mascot! Abort." << std::endl;
+      OPENMS_LOG_ERROR << "Invalid location returned by mascot! Abort." << std::endl;
       endRun_();
       return;
     }
-    url.remove(host_name_.toQString());
+    
+    // makes sure that only the first occurrence in the String is replaced,
+    // in case of an equal server_name_
+    url.replace(url.indexOf(host_name_.toQString()),
+                          host_name_.toQString().size(), QString(""));
 
     // ensure path starts with /
     if (url[0] != '/') url.prepend('/');
   }
 
-  QUrl MascotRemoteQuery::buildUrl_(std::string path)
+  QUrl MascotRemoteQuery::buildUrl_(const std::string& path)
   {
     String protocol;
-    if (use_ssl_) protocol = "https";
-    else protocol = "http";
-
+    if (use_ssl_)
+    {
+      protocol = "https";
+    }
+    else
+    {
+      protocol = "http";
+    }
     return QUrl(String(protocol + "://" + host_name_ + path).c_str());
   }
 
@@ -768,7 +823,7 @@ namespace OpenMS
     cerr << "<<<< Header to " << what << " (end)." << endl;
   }
 
-  void MascotRemoteQuery::logHeader_(const QNetworkRequest header, const String& what)
+  void MascotRemoteQuery::logHeader_(const QNetworkRequest& header, const String& what)
   {
     QList<QByteArray> header_list = header.rawHeaderList();
     cerr << ">>>> Header to " << what << " (begin):\n";
@@ -784,7 +839,7 @@ namespace OpenMS
 #ifdef MASCOTREMOTEQUERY_DEBUG
     std::cerr << "MascotRemoteQuery::getSearchIdentifierFromFilePath " << path << std::endl;
 #endif
-    int pos = path.find_last_of("/\\");
+    size_t pos = path.find_last_of("/\\");
     String tmp = path.substr(pos + 1);
     pos = tmp.find_last_of(".");
     tmp = tmp.substr(1, pos - 1);

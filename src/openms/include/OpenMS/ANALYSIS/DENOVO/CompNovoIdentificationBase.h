@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -38,7 +38,6 @@
 // OpenMS includes
 #include <OpenMS/METADATA/PeptideIdentification.h>
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
-#include <OpenMS/DATASTRUCTURES/Map.h>
 #include <OpenMS/COMPARISON/SPECTRA/ZhangSimilarityScore.h>
 #include <OpenMS/CHEMISTRY/MASSDECOMPOSITION/MassDecomposition.h>
 #include <OpenMS/CHEMISTRY/MASSDECOMPOSITION/MassDecompositionAlgorithm.h>
@@ -46,6 +45,7 @@
 
 // stl includes
 #include <vector>
+#include <map>
 
 namespace OpenMS
 {
@@ -91,10 +91,10 @@ protected:
     void updateMembers_() override;
 
     /// filters the permutations
-    void filterPermuts_(std::set<String> & permut);
+    void filterPermuts_(std::set<String> & permut) const;
 
     /// selects pivot ion of the given range using the scores given in CID_nodes
-    void selectPivotIons_(std::vector<Size> & pivots, Size left, Size right, Map<double, IonScore> & CID_nodes, const PeakSpectrum & CID_orig_spec, double precursor_weight, bool full_range = false);
+    void selectPivotIons_(std::vector<Size> & pivots, Size left, Size right, std::map<double, IonScore> & CID_nodes, const PeakSpectrum & CID_orig_spec, double precursor_weight, bool full_range = false);
 
     /// filters the decomps by the amino acid frequencies
     void filterDecomps_(std::vector<MassDecomposition> & decomps);
@@ -102,8 +102,8 @@ protected:
     /// produces mass decompositions using the given mass
     void getDecompositions_(std::vector<MassDecomposition> & decomps, double mass, bool no_caching = false);
 
-    /// permuts the String s adds the prefix and stores the results in permutations
-    void permute_(String prefix, String s, std::set<String> & permutations);
+    /// permutes the String s adds the prefix and stores the results in permutations
+    static void permute_(const String& prefix, String s, std::set<String> & permutations);
 
     Size countMissedCleavagesTryptic_(const String & peptide) const;
 
@@ -113,17 +113,17 @@ protected:
     /// fills the spectrum with b,y ions, multiple charged variants; if prefix and suffix weights are given, the sequence is treated as tag
     void getCIDSpectrum_(PeakSpectrum & spec, const String & sequence, Size charge, double prefix = 0.0, double suffix = 0.0);
 
+    /// fills the spectrum with c and z type ions
+    void getETDSpectrum_(PeakSpectrum & spec, const String &sequence, Size /* charge */, double prefix = 0.0, double suffix = 0.0);
+
     /// initializes the score distribution pre-calculated for the use in spectrum generation
     void initIsotopeDistributions_();
-
-    /// estimates an exact precursor weight of the ETD spectrum, because in most of the cases the precursor is found in the MS/MS spec
-    double estimatePrecursorWeight_(const PeakSpectrum & ETD_spec, Size & charge);
 
     /// keep for each window of size windowsize in the m/z range of the spectrum exactly no_peaks
     void windowMower_(PeakSpectrum & spec, double windowsize, Size no_peaks);
 
     /// compares two spectra
-    double compareSpectra_(const PeakSpectrum & s1, const PeakSpectrum & s2);
+    double compareSpectra_(const PeakSpectrum & s1, const PeakSpectrum & s2) const;
 
     /// returns a modified AASequence from a given internal representation
     AASequence getModifiedAASequence_(const String & sequence);
@@ -132,24 +132,21 @@ protected:
     String getModifiedStringFromAASequence_(const AASequence & sequence);
 
     /// mapping for the internal representation character to the actual residue
-    Map<char, const Residue *> name_to_residue_;
+    std::map<char, const Residue *> name_to_residue_;
 
     /// mapping of the actual residue to the internal representing character
-    Map<const Residue *, char> residue_to_name_;
-
-    ///
-    Map<Size, std::vector<double> > isotope_distributions_;
+    std::map<const Residue *, char> residue_to_name_;
 
     /// masses of the amino acids
-    Map<char, double> aa_to_weight_;
+    std::map<char, double> aa_to_weight_;
 
     MassDecompositionAlgorithm mass_decomp_algorithm_;
 
-    double min_aa_weight_;
+    double min_aa_weight_{};
 
     ZhangSimilarityScore zhang_;
 
-    Map<Size, Map<Size, std::set<String> > > subspec_to_sequences_;
+    std::map<Size, std::map<Size, std::set<String> > > subspec_to_sequences_;
 
     Size max_number_aa_per_decomp_;
 
@@ -171,9 +168,13 @@ protected:
 
     Size max_isotope_;
 
-    Map<double, std::vector<MassDecomposition> > decomp_cache_;
+    std::map<double, std::vector<MassDecomposition> > decomp_cache_;
 
-    Map<String, std::set<String> > permute_cache_;
+    std::map<String, std::set<String> > permute_cache_;
+
+  private:
+    ///
+    std::map<Size, std::vector<double> > isotope_distributions_;
 
 public:
 
@@ -199,15 +200,8 @@ public:
       {
       }
 
-      Permut(const Permut & rhs) :
-        permut_(rhs.permut_),
-        score_(rhs.score_)
-      {
-      }
-
-      virtual ~Permut()
-      {
-      }
+      Permut(const Permut & rhs) = default;
+      virtual ~Permut() = default;
 
       Permut & operator=(const Permut & rhs)
       {

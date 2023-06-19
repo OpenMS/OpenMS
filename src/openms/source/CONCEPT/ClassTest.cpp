@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -33,6 +33,8 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/CONCEPT/ClassTest.h>
+
+#include <OpenMS/CONCEPT/UniqueIdGenerator.h>
 #include <OpenMS/CONCEPT/FuzzyStringComparator.h>
 #include <OpenMS/DATASTRUCTURES/StringListUtils.h>
 #include <OpenMS/DATASTRUCTURES/ListUtilsIO.h>
@@ -46,17 +48,17 @@
 #include <OpenMS/FORMAT/FeatureXMLFile.h>
 #include <OpenMS/FORMAT/TransformationXMLFile.h>
 #include <OpenMS/FORMAT/ParamXMLFile.h>
+#include <OpenMS/SYSTEM/File.h>
 
 #include <boost/math/special_functions/fpclassify.hpp>
 
+#include <iomanip>
+#include <fstream>
+
 #include <QFileInfo>
 
-namespace OpenMS
+namespace OpenMS::Internal::ClassTest
 {
-  namespace Internal
-  {
-    namespace ClassTest
-    {
       bool all_tests = true;
       bool equal_files;
       bool newline = false;
@@ -87,10 +89,139 @@ namespace OpenMS
       std::vector<std::string> tmp_file_list;
       std::vector<UInt> failed_lines_list;
       StringList whitelist;
-    }
 
-    namespace ClassTest
-    {
+      void mainInit(const char* version, const char* class_name, int argc, const char* argv0)
+      {
+        // if env var "OPENMS_TEST_VERBOSE=True" enable output of successfull line
+        char* pverbose = std::getenv("OPENMS_TEST_VERBOSE");
+        if (pverbose != nullptr)
+        {
+          if (std::string(pverbose) == "True") TEST::verbose = 2;
+        }
+
+        OpenMS::UniqueIdGenerator::setSeed(2453440375);
+        TEST::version_string = version;
+
+        if (argc > 1)
+        {
+          std::cerr
+              << "This is " << argv0 << ", the test program for the\n"
+              << class_name << " class.\n"
+                             "\n"
+                             "On successful operation it returns PASSED,\n"
+                             "otherwise FAILED is printed.\n";
+          exit(1);
+        }
+      }
+
+      void filesEqual(int line, const char* filename, const char* templatename, const char* filename_stringified, const char* templatename_stringified)
+      {
+        ++TEST::test_count;
+        TEST::test_line = line;
+
+        TEST::equal_files = true;
+        TEST::infile.open(filename, std::ios::in);
+        TEST::templatefile.open(templatename, std::ios::in);
+
+        if (TEST::infile.good() && TEST::templatefile.good())
+        {
+          std::string TEST_FILE__template_line;
+          std::string TEST_FILE__line;
+
+          while (TEST::infile.good() && TEST::templatefile.good())
+          {
+            TEST::templatefile.getline(TEST::line_buffer, 65535);
+            TEST_FILE__template_line = TEST::line_buffer;
+            TEST::infile.getline(TEST::line_buffer, 65535);
+            TEST_FILE__line = TEST::line_buffer;
+
+            TEST::equal_files &= (TEST_FILE__template_line == TEST_FILE__line);
+            if (TEST_FILE__template_line != TEST_FILE__line)
+            {
+                TEST::initialNewline();
+                stdcout << "   TEST_FILE_EQUAL: line mismatch:\n    got:      '"
+                        << TEST_FILE__line << "'\n    expected: '"
+                        << TEST_FILE__template_line << "'\n";
+            }
+          }
+        }
+        else
+        {
+          TEST::equal_files = false;
+          {
+            TEST::initialNewline();
+            stdcout << " +  line "
+                    << line
+                    << ": TEST_FILE_EQUAL("
+                    << filename_stringified
+                    << ", "
+                    << templatename_stringified;
+            stdcout << ") : "
+                    << " cannot open file: \"";
+            if (!TEST::infile.good())
+            {
+              stdcout << filename << "\" (input file) ";
+            }
+            if (!TEST::templatefile.good())
+            {
+              stdcout << templatename << "\" (template file) ";
+            }
+            stdcout << "'\n";
+          }
+        }
+        TEST::infile.close();
+        TEST::templatefile.close();
+        TEST::infile.clear();
+        TEST::templatefile.clear();
+
+        TEST::this_test = TEST::equal_files;
+        TEST::test = TEST::test && TEST::this_test;
+        {
+          TEST::initialNewline();
+          if (TEST::this_test)
+          {
+            if (TEST::verbose > 1)
+            {
+              stdcout << " +  line "
+                      << line
+                      << ": TEST_FILE_EQUAL("
+                      << filename_stringified
+                      << ", "
+                      << templatename_stringified
+                      << "): true";
+            }
+          }
+          else
+          {
+            stdcout << " -  line "
+                    << line
+                    << ": TEST_FILE_EQUAL("
+                    << filename_stringified
+                    << ", "
+                    << templatename_stringified
+                    << "): false (different files: "
+                    << filename
+                    << " "
+                    << templatename
+                    << " )\n";
+            TEST::failed_lines_list.push_back(TEST::test_line);
+          }
+        } 
+      }
+
+      void removeTempFiles()
+      {
+        for (OpenMS::Size i = 0; i < TEST::tmp_file_list.size(); ++i)
+          {
+            if (!OpenMS::File::remove(TEST::tmp_file_list[i]))
+            {
+              stdcout << "Warning: unable to remove temporary file '"
+                      << TEST::tmp_file_list[i]
+                      << "'"
+                      << std::endl;
+            }
+          }
+      }
 
       void
       setWhitelist(const char* const /* file */, const int line,
@@ -101,7 +232,7 @@ namespace OpenMS
         if ((TEST::verbose > 1) || (!TEST::this_test && (TEST::verbose > 0)))
         {
           TEST::initialNewline();
-          std__cout << " +  line " << line << ":  WHITELIST(\"" << whitelist_
+          stdcout << " +  line " << line << ":  WHITELIST(\"" << whitelist_
                     << "\"):   whitelist is: " << TEST::whitelist << std::endl;
         }
         return;
@@ -243,7 +374,7 @@ namespace OpenMS
             }
           }
         }
-        //output for all files
+        //output for all files        
         if (passed_all)
         {
           std::cout << ": passed" << std::endl << std::endl;
@@ -274,7 +405,7 @@ namespace OpenMS
         if (!number_1_is_realtype)
         {
           TEST::this_test = false;
-          std__cout << " -  line " << line << ':'
+          stdcout << " -  line " << line << ':'
                     << "TEST_REAL_SIMILAR(" << number_1_stringified << ','
                     << number_2_stringified << "):"
                                      " argument " << number_1_stringified
@@ -290,15 +421,18 @@ namespace OpenMS
           {
             if (TEST::this_test)
             {
-              std__cout << " +  line " << line << ":  TEST_REAL_SIMILAR("
-                        << number_1_stringified << ',' << number_2_stringified
-                        << "): got " << std::setprecision(number_1_written_digits)
-                        << number_1 << ", expected "
-                        << std::setprecision(number_2_written_digits) << number_2 << std::endl;
+              if (TEST::verbose > 1)
+              {
+                stdcout << " +  line " << line << ":  TEST_REAL_SIMILAR("
+                          << number_1_stringified << ',' << number_2_stringified
+                          << "): got " << std::setprecision(number_1_written_digits)
+                          << number_1 << ", expected "
+                          << std::setprecision(number_2_written_digits) << number_2 << std::endl;
+              }
             }
             else
             {
-              std__cout << " -  line " << TEST::test_line
+              stdcout << " -  line " << TEST::test_line
                         << ":  TEST_REAL_SIMILAR(" << number_1_stringified << ','
                         << number_2_stringified << "): got "
                         << std::setprecision(number_1_written_digits) << number_1
@@ -314,10 +448,8 @@ namespace OpenMS
         }
       }
 
-      bool
-      isRealSimilar(long double number_1, long double number_2)
+      bool isRealSimilar(long double number_1, long double number_2)
       {
-
         // Note: The original version of the stuff below was copied from
         // FuzzyStringComparator and then heavily modified for ClassTest.
         // But still the case distinctions should be similar.
@@ -326,12 +458,12 @@ namespace OpenMS
         ratio = 0.;
         fuzzy_message.clear();
 
-        if (boost::math::isnan(number_1))
+        if (std::isnan(number_1))
         {
           fuzzy_message = "number_1 is nan";
           return false;
         }
-        if (boost::math::isnan(number_2))
+        if (std::isnan(number_2))
         {
           fuzzy_message = "number_2 is nan";
           return false;
@@ -443,8 +575,7 @@ namespace OpenMS
         }
       }
 
-      void
-      testStringEqual(const char* /*file*/, int line,
+      void testStringEqual(const char* /*file*/, int line,
                       const std::string& string_1,
                       const char* string_1_stringified,
                       const std::string& string_2,
@@ -458,14 +589,17 @@ namespace OpenMS
           initialNewline();
           if (this_test)
           {
-            std__cout << " +  line " << line << ":  TEST_STRING_EQUAL("
-                      << string_1_stringified << ',' << string_2_stringified
-                      << "): got \"" << string_1 << "\", expected \"" << string_2
-                      << "\"" << std::endl;
+            if (TEST::verbose > 1)
+            {
+            stdcout << " +  line " << line << ":  TEST_STRING_EQUAL("
+                    << string_1_stringified << ',' << string_2_stringified
+                    << "): got \"" << string_1 << "\", expected \"" << string_2
+                    << "\"" << std::endl;            
+            }
           }
           else
           {
-            std__cout << " -  line " << line << ":  TEST_STRING_EQUAL("
+            stdcout << " -  line " << line << ":  TEST_STRING_EQUAL("
                       << string_1_stringified << ',' << string_2_stringified
                       << "): got \"" << string_1 << "\", expected \"" << string_2
                       << "\"" << std::endl;
@@ -506,28 +640,31 @@ namespace OpenMS
 
         TEST::initialNewline();
         if (TEST::this_test)
-        {
-          std__cout << " +  line " << line << ":  TEST_STRING_SIMILAR("
-                    << string_1_stringified << ',' << string_2_stringified << "):  "
-                                                                    "absolute: " << TEST::absdiff << " (" << TEST::absdiff_max_allowed
-                    << "), relative: " << TEST::ratio << " ("
-                    << TEST::ratio_max_allowed << ")    +\n";
-          std__cout << "got:\n";
-          TEST::printWithPrefix(string_1, TEST::line_num_1_max);
-          std__cout << "expected:\n";
-          TEST::printWithPrefix(string_2, TEST::line_num_2_max);
+        {          
+          if (TEST::verbose > 1)
+          {
+            stdcout << " +  line " << line << ":  TEST_STRING_SIMILAR("
+                      << string_1_stringified << ',' << string_2_stringified << "):  "
+                                                                      "absolute: " << TEST::absdiff << " (" << TEST::absdiff_max_allowed
+                      << "), relative: " << TEST::ratio << " ("
+                      << TEST::ratio_max_allowed << ")    +\n";
+            stdcout << "got:\n";
+            TEST::printWithPrefix(string_1, TEST::line_num_1_max);
+            stdcout << "expected:\n";
+            TEST::printWithPrefix(string_2, TEST::line_num_2_max);
+          }
         }
         else
         {
-          std__cout << " -  line " << TEST::test_line
+          stdcout << " -  line " << TEST::test_line
                     << ": TEST_STRING_SIMILAR(" << string_1_stringified << ','
                     << string_2_stringified << ") ...    -\n"
                                      "got:\n";
           TEST::printWithPrefix(string_1, TEST::line_num_1_max);
-          std__cout << "expected:\n";
+          stdcout << "expected:\n";
           TEST::printWithPrefix(string_2, TEST::line_num_2_max);
-          std__cout << "message: \n";
-          std__cout << TEST::fuzzy_message;
+          stdcout << "message: \n";
+          stdcout << TEST::fuzzy_message;
           failed_lines_list.push_back(line);
         }
       }
@@ -557,6 +694,103 @@ namespace OpenMS
         return result;
       }
 
-    }
+
+      void printLastException(std::ostream& out)
+      {
+        std::exception_ptr ex = std::current_exception();
+        try
+        {
+          std::rethrow_exception(ex);
+        } 
+        catch (::OpenMS::Exception::BaseException& e)
+        {
+          TEST::this_test = false;
+          TEST::test = false;
+          TEST::all_tests = false;
+          {
+            TEST::initialNewline();
+            out << "Error: Caught unexpected OpenMS exception of type '" << e.getName() << "'";
+            if ((e.getLine() > 0) && std::strcmp(e.getFile(), ""))
+            {
+              out << " thrown in line " << e.getLine() << " of file '" << e.getFile() << "' in function '" << e.getFunction() << "'";
+            }
+            out << " - Message: " << e.what() << std::endl;
+          }
+        } /* catch std:: exceptions */
+        catch (std::exception& e)
+        {
+          TEST::this_test = false;
+          TEST::test = false;
+          TEST::all_tests = false;
+          {
+            TEST::initialNewline();
+            out << "Error: Caught unexpected std::exception\n";
+            out << " - Message: " << e.what() << std::endl;
+          }
+        } /* catch all other exceptions */
+        catch (...)
+        {
+          TEST::this_test = false;
+          TEST::test = false;
+          TEST::all_tests = false;
+          {
+            TEST::initialNewline();
+            out << "Error: Caught unidentified and unexpected exception - No message." << std::endl;
+          }
+        }
+      }
+
+      int endTestPostProcess(std::ostream& out)
+      {
+        /* check validity of temporary files if known */
+        if (!TEST::validate(TEST::tmp_file_list))
+        {
+          TEST::all_tests = false;
+        }
+        if (TEST::verbose == 0)
+        {
+          out << "Output of successful tests were suppressed. Set the environment variable 'OPENMS_TEST_VERBOSE=True' to enable them." << std::endl;
+        } /* check for exit code */
+        if (!TEST::all_tests)
+        {
+          out << "FAILED\n";
+          if (TEST::add_message != "")
+            out << "Message: " << TEST::add_message << '\n';
+          out << "Failed lines: ";
+          for (OpenMS::Size i = 0; i < TEST::failed_lines_list.size(); ++i)
+          {
+            out << TEST::failed_lines_list[i] << " ";
+          }
+          out << std::endl;
+          return 1;
+        }
+        else
+        { /* remove temporary files*/
+          TEST::removeTempFiles();
+          out << "PASSED";
+          if (TEST::add_message != "")
+            out << " (" << TEST::add_message << ")";
+          out << std::endl;
+          return 0;
+        }
+      }
+      
+      void endSectionPostProcess(std::ostream& out, const int line)
+      {
+        TEST::all_tests = TEST::all_tests && TEST::test;
+        if (TEST::test)
+        {
+          out << ": passed\n";
+        }
+        else
+        {
+          out << ": failed\n";
+        }
+        if (TEST::test_count == 0)
+        {
+          if (OpenMS::String(TEST::test_name).has('~'))
+            out << "Warning: no subtests performed in '" << TEST::test_name << "' (line " << line << ")!\n";
+        }
+        stdcout << std::endl;
+      }
   }
-}

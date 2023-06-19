@@ -21,12 +21,18 @@ EDTAFile.cpp
 ExperimentalDesignFile.cpp
 FASTAFile.cpp
 FeatureXMLFile.cpp
+FLASHDeconvFeatureFile.cpp
+FLASHDeconvSpectrumFile.cpp
 FileHandler.cpp
 FileTypes.cpp
+GNPSMetaValueFile.cpp
+GNPSMGFFile.cpp
+GNPSQuantificationFile.cpp
 GzipIfstream.cpp
 GzipInputStream.cpp
 IBSpectraFile.cpp
 IdXMLFile.cpp
+IndentedStream.cpp
 IndexedMzMLFileLoader.cpp
 InspectInfile.cpp
 InspectOutfile.cpp
@@ -38,6 +44,7 @@ MS2File.cpp
 MSNumpressCoder.cpp
 MSPFile.cpp
 MSPGenericFile.cpp
+MSstatsFile.cpp
 MascotInfile.cpp
 MascotGenericFile.cpp
 MascotRemoteQuery.cpp
@@ -46,13 +53,21 @@ MsInspectFile.cpp
 MzDataFile.cpp
 MzIdentMLFile.cpp
 MzMLFile.cpp
+MzQCFile.cpp
 MzQuantMLFile.cpp
 MzTab.cpp
+MzTabBase.cpp
+MzTabM.cpp
 MzTabFile.cpp
+MzTabMFile.cpp
 MzXMLFile.cpp
+OMSFile.cpp
+OMSFileLoad.cpp
+OMSFileStore.cpp
 OMSSACSVFile.cpp
 OMSSAXMLFile.cpp
 OSWFile.cpp
+ParamCTDFile.cpp
 ParamXMLFile.cpp
 PTMXMLFile.cpp
 PeakTypeEstimator.cpp
@@ -60,12 +75,14 @@ PepNovoInfile.cpp
 PepNovoOutfile.cpp
 PepXMLFile.cpp
 PepXMLFileMascot.cpp
+PercolatorInfile.cpp
 PercolatorOutfile.cpp
 ProtXMLFile.cpp
 QcMLFile.cpp
 SequestInfile.cpp
 SequestOutfile.cpp
 SpecArrayFile.cpp
+SqliteConnector.cpp
 SqMassFile.cpp
 SwathFile.cpp
 SVOutStream.cpp
@@ -73,6 +90,7 @@ TextFile.cpp
 ToolDescriptionFile.cpp
 TraMLFile.cpp
 TransformationXMLFile.cpp
+TriqlerFile.cpp
 UnimodXMLFile.cpp
 XMassFile.cpp
 XMLFile.cpp
@@ -81,6 +99,10 @@ XTandemInfile.cpp
 XTandemXMLFile.cpp
 ZlibCompression.cpp
 )
+
+if (WITH_HDF5)
+  list(APPEND sources_list HDF5Connector.cpp)  
+endif()
 
 ### add path to the filenames
 set(sources)

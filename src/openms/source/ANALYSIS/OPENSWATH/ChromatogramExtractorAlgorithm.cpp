@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -37,6 +37,7 @@
 #include <OpenMS/DATASTRUCTURES/String.h>
 
 #include <OpenMS/CONCEPT/Exception.h>
+#include <iostream>
 
 namespace OpenMS
 {
@@ -46,7 +47,10 @@ namespace OpenMS
             std::vector<double>::const_iterator& mz_it,
       const std::vector<double>::const_iterator& mz_end,
             std::vector<double>::const_iterator& int_it,
-      const double mz, double& integrated_intensity, const double mz_extraction_window, const bool ppm)
+      const double mz,
+      double& integrated_intensity,
+      const double mz_extraction_window,
+      const bool ppm)
   {
     integrated_intensity = 0;
     if (mz_start == mz_end)
@@ -140,17 +144,18 @@ namespace OpenMS
     }
   }
 
-  void ChromatogramExtractorAlgorithm::extract_value_tophat(const std::vector<double>::const_iterator& mz_start,
-                            std::vector<double>::const_iterator& mz_it,
-                            const std::vector<double>::const_iterator& mz_end,
-                            std::vector<double>::const_iterator& int_it,
-                            std::vector<double>::const_iterator& im_it,
-                            const double mz,
-                            const double im,
-                            double& integrated_intensity,
-                            const double mz_extraction_window,
-                            const double im_extraction_window,
-                            const bool ppm)
+  void ChromatogramExtractorAlgorithm::extract_value_tophat(
+      const std::vector<double>::const_iterator& mz_start,
+            std::vector<double>::const_iterator& mz_it,
+      const std::vector<double>::const_iterator& mz_end,
+            std::vector<double>::const_iterator& int_it,
+            std::vector<double>::const_iterator& im_it,
+      const double mz,
+      const double im,
+      double& integrated_intensity,
+      const double mz_extraction_window,
+      const double im_extraction_window,
+      const bool ppm)
   {
     // Note that we have a 3D spectrum with m/z, intensity and ion mobility.
     // The spectrum is sorted by m/z but we expect to have ion mobility
@@ -262,7 +267,7 @@ namespace OpenMS
     }
   }
 
-  void ChromatogramExtractorAlgorithm::extractChromatograms(const OpenSwath::SpectrumAccessPtr input,
+  void ChromatogramExtractorAlgorithm::extractChromatograms(const OpenSwath::SpectrumAccessPtr& input,
       std::vector< OpenSwath::ChromatogramPtr >& output,
       const std::vector<ExtractionCoordinates>& extraction_coordinates,
       double mz_extraction_window,
@@ -308,7 +313,7 @@ namespace OpenMS
       std::vector<double>::const_iterator int_it = int_arr->data.begin();
       std::vector<double>::const_iterator im_it;
 
-      if (sptr->getMZArray()->data.size() == 0)
+      if (sptr->getMZArray()->data.empty())
       {
         continue;
       }
@@ -317,20 +322,15 @@ namespace OpenMS
       bool has_im = (im_extraction_window > 0.0);
       if (has_im)
       {
-        OpenSwath::BinaryDataArrayPtr im_arr = sptr->getMZArray();
-        bool found = false;
-        for (const auto& arr : sptr->getDataArrays())
+        OpenSwath::BinaryDataArrayPtr im_arr = sptr->getDriftTimeArray();
+        if (im_arr != nullptr)
         {
-          if (arr->description == "Ion Mobility")
-          {
-            im_it = arr->data.begin();
-            found = true;
-          }
+          im_it = im_arr->data.begin();
         }
-        if (!found)
+        else
         {
           throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-            "Requested ion mobility extraction but no ion mobility array found (looked for 'Ion Mobility').");
+            "Requested ion mobility extraction but no ion mobility array found.");
         }
       }
 
@@ -357,6 +357,10 @@ namespace OpenMS
         }
         else if (use_im && used_filter == 1)
         {
+          if (extraction_coordinates[k].ion_mobility < 0)
+          {
+            std::cerr << "WARNING : Drift time of ion is negative!" << std::endl;
+          }
           extract_value_tophat(mz_start, mz_it, mz_end, int_it, im_it,
                                extraction_coordinates[k].mz, extraction_coordinates[k].ion_mobility,
                                integrated_intensity, mz_extraction_window, im_extraction_window, ppm);
@@ -366,7 +370,6 @@ namespace OpenMS
           throw Exception::NotImplemented(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
         }
 
-        // Time is first, intensity is second
         output[k]->getTimeArray()->data.push_back(current_rt);
         output[k]->getIntensityArray()->data.push_back(integrated_intensity);
       }

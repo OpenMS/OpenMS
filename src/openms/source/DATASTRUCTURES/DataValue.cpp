@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -33,11 +33,13 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/DATASTRUCTURES/DataValue.h>
-#include <OpenMS/DATASTRUCTURES/ListUtilsIO.h>
 
-#include <OpenMS/CONCEPT/PrecisionWrapper.h>
+#include <OpenMS/DATASTRUCTURES/ListUtilsIO.h>
+#include <OpenMS/DATASTRUCTURES/ParamValue.h>
 
 #include <QtCore/QString>
+
+#include <sstream>
 
 using namespace std;
 
@@ -48,7 +50,9 @@ namespace OpenMS
 
   // default ctor
   DataValue::DataValue() :
-    value_type_(EMPTY_VALUE), unit_("")
+    value_type_(EMPTY_VALUE),
+    unit_type_(OTHER),
+    unit_(-1)
   {
   }
 
@@ -58,122 +62,170 @@ namespace OpenMS
     clear_();
   }
 
+  const std::string DataValue::NamesOfDataType[] = {
+    "String", 
+    "Int", 
+    "Double", 
+    "StringList", 
+    "IntList", 
+    "DoubleList", 
+    "Empty"
+    };
+
   //-------------------------------------------------------------------
   //    ctor for all supported types a DataValue object can hold
   //--------------------------------------------------------------------
   DataValue::DataValue(long double p) :
-    value_type_(DOUBLE_VALUE), unit_("")
+    value_type_(DOUBLE_VALUE), unit_type_(OTHER), unit_(-1)
   {
     data_.dou_ = p;
   }
 
   DataValue::DataValue(double p) :
-    value_type_(DOUBLE_VALUE), unit_("")
+    value_type_(DOUBLE_VALUE), unit_type_(OTHER), unit_(-1)
   {
     data_.dou_ = p;
   }
 
   DataValue::DataValue(float p) :
-    value_type_(DOUBLE_VALUE), unit_("")
+    value_type_(DOUBLE_VALUE), unit_type_(OTHER), unit_(-1)
   {
     data_.dou_ = p;
   }
 
   DataValue::DataValue(short int p) :
-    value_type_(INT_VALUE), unit_("")
+    value_type_(INT_VALUE), unit_type_(OTHER), unit_(-1)
   {
     data_.ssize_ = p;
   }
 
   DataValue::DataValue(unsigned short int p) :
-    value_type_(INT_VALUE), unit_("")
+    value_type_(INT_VALUE), unit_type_(OTHER), unit_(-1)
   {
     data_.ssize_ = p;
   }
 
   DataValue::DataValue(int p) :
-    value_type_(INT_VALUE), unit_("")
+    value_type_(INT_VALUE), unit_type_(OTHER), unit_(-1)
   {
     data_.ssize_ = p;
   }
 
   DataValue::DataValue(unsigned int p) :
-    value_type_(INT_VALUE), unit_("")
+    value_type_(INT_VALUE), unit_type_(OTHER), unit_(-1)
   {
     data_.ssize_ = p;
   }
 
   DataValue::DataValue(long int p) :
-    value_type_(INT_VALUE), unit_("")
+    value_type_(INT_VALUE), unit_type_(OTHER), unit_(-1)
   {
     data_.ssize_ = p;
   }
 
   DataValue::DataValue(unsigned long int p) :
-    value_type_(INT_VALUE), unit_("")
+    value_type_(INT_VALUE), unit_type_(OTHER), unit_(-1)
   {
     data_.ssize_ = p;
   }
 
   DataValue::DataValue(long long p) :
-    value_type_(INT_VALUE), unit_("")
+    value_type_(INT_VALUE), unit_type_(OTHER), unit_(-1)
   {
     data_.ssize_ = p;
   }
 
   DataValue::DataValue(unsigned long long p) :
-    value_type_(INT_VALUE), unit_("")
+    value_type_(INT_VALUE), unit_type_(OTHER), unit_(-1)
   {
     data_.ssize_ = p;
   }
 
   DataValue::DataValue(const char* p) :
-    value_type_(STRING_VALUE), unit_("")
+    value_type_(STRING_VALUE), unit_type_(OTHER), unit_(-1)
   {
     data_.str_ = new String(p);
   }
 
   DataValue::DataValue(const string& p) :
-    value_type_(STRING_VALUE), unit_("")
+    value_type_(STRING_VALUE), unit_type_(OTHER), unit_(-1)
   {
     data_.str_ = new String(p);
   }
 
   DataValue::DataValue(const QString& p) :
-    value_type_(STRING_VALUE), unit_("")
+    value_type_(STRING_VALUE), unit_type_(OTHER), unit_(-1)
   {
     data_.str_ = new String(p);
   }
 
   DataValue::DataValue(const String& p) :
-    value_type_(STRING_VALUE), unit_("")
+    value_type_(STRING_VALUE), unit_type_(OTHER), unit_(-1)
   {
     data_.str_ = new String(p);
   }
 
   DataValue::DataValue(const StringList& p) :
-    value_type_(STRING_LIST), unit_("")
+    value_type_(STRING_LIST), unit_type_(OTHER), unit_(-1)
   {
     data_.str_list_ = new StringList(p);
   }
 
   DataValue::DataValue(const IntList& p) :
-    value_type_(INT_LIST), unit_("")
+    value_type_(INT_LIST), unit_type_(OTHER), unit_(-1)
   {
     data_.int_list_ = new IntList(p);
   }
 
   DataValue::DataValue(const DoubleList& p) :
-    value_type_(DOUBLE_LIST), unit_("")
+    value_type_(DOUBLE_LIST), unit_type_(OTHER), unit_(-1)
   {
     data_.dou_list_ = new DoubleList(p);
   }
 
+  DataValue::DataValue(const ParamValue& p) :
+    unit_type_(OTHER), unit_(-1)
+  {
+    switch (p.valueType()) 
+    {
+    case ParamValue::EMPTY_VALUE:
+        value_type_ = EMPTY_VALUE;
+    break;
+    case ParamValue::INT_VALUE:
+        value_type_ = INT_VALUE;
+        data_.ssize_ = p;
+    break;
+    case ParamValue::DOUBLE_VALUE:
+        value_type_ = DOUBLE_VALUE;
+        data_.dou_ = p;
+    break;
+    case ParamValue::STRING_VALUE:
+        value_type_ = STRING_VALUE;
+        data_.str_ = new String(p.toChar());
+    break;
+    case ParamValue::INT_LIST:
+        value_type_ = INT_LIST;
+        data_.int_list_ = new IntList(p.toIntVector());
+    break;
+    case ParamValue::DOUBLE_LIST:
+        value_type_ = DOUBLE_LIST;
+        data_.dou_list_ = new DoubleList(p.toDoubleVector());
+    break;
+    case ParamValue::STRING_LIST:
+        value_type_ = STRING_LIST;
+        data_.str_list_ = new StringList(ListUtils::toStringList<std::string>(p));
+    break;
+    }
+  }
+
   //--------------------------------------------------------------------
-  //                       copy constructor
+  //                   copy and move constructors
   //--------------------------------------------------------------------
   DataValue::DataValue(const DataValue& p) :
-    value_type_(p.value_type_), data_(p.data_)
+    value_type_(p.value_type_),
+    unit_type_(p.unit_type_),
+    unit_(p.unit_),
+    data_(p.data_)
   {
     if (value_type_ == STRING_VALUE)
     {
@@ -191,14 +243,22 @@ namespace OpenMS
     {
       data_.dou_list_ = new DoubleList(*(p.data_.dou_list_));
     }
-
-    if (p.hasUnit())
-    {
-      unit_ = p.unit_;
-    }
   }
 
-  void DataValue::clear_()
+  DataValue::DataValue(DataValue&& rhs) noexcept :
+    value_type_(std::move(rhs.value_type_)),
+    unit_type_(std::move(rhs.unit_type_)),
+    unit_(std::move(rhs.unit_)),
+    data_(std::move(rhs.data_))
+  {
+    // clean up rhs, take ownership of data_
+    // NOTE: value_type_ == EMPTY_VALUE implies data_ is empty and can be reset
+    rhs.value_type_ = EMPTY_VALUE;
+    rhs.unit_type_ = OTHER;
+    rhs.unit_ = -1;
+  }
+
+  void DataValue::clear_() noexcept
   {
     if (value_type_ == STRING_LIST)
     {
@@ -218,17 +278,20 @@ namespace OpenMS
     }
 
     value_type_ = EMPTY_VALUE;
-    unit_ = "";
+    unit_type_ = OTHER;
+    unit_ = -1;
   }
 
   //--------------------------------------------------------------------
-  //                      assignment operator
+  //                    copy and move assignment operators
   //--------------------------------------------------------------------
   DataValue& DataValue::operator=(const DataValue& p)
   {
     // Check for self-assignment
     if (this == &p)
+    {
       return *this;
+    }
 
     // clean up
     clear_();
@@ -256,13 +319,35 @@ namespace OpenMS
     }
 
     // copy type
-    value_type_     = p.value_type_;
+    value_type_ = p.value_type_;
+    unit_type_ = p.unit_type_;
+    unit_ = p.unit_;
 
-    // copy unit if necessary
-    if (p.hasUnit())
+    return *this;
+  }
+
+  /// Move assignment operator
+  DataValue& DataValue::operator=(DataValue&& rhs) noexcept
+  {
+    // Check for self-assignment
+    if (this == &rhs)
     {
-      unit_ = p.unit_;
+      return *this;
     }
+
+    // clean up *this
+    clear_();
+
+    // assign values to *this
+    data_ = rhs.data_;
+    value_type_ = rhs.value_type_;
+    unit_type_ = rhs.unit_type_;
+    unit_ = rhs.unit_;
+
+    // clean up rhs 
+    rhs.value_type_ = EMPTY_VALUE;
+    rhs.unit_type_ = OTHER;
+    rhs.unit_ = -1;
 
     return *this;
   }
@@ -460,8 +545,9 @@ namespace OpenMS
   DataValue::operator short int() const
   {
     if (value_type_ != INT_VALUE)
-    {
-      throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Could not convert non-integer DataValue to short int");
+    {      
+      throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 
+        "Could not convert non-integer DataValue of type '" + NamesOfDataType[value_type_] + "' and value '" + this->toString(true) + "' to short int");
     }
     return data_.ssize_;
   }
@@ -470,7 +556,8 @@ namespace OpenMS
   {
     if (value_type_ != INT_VALUE)
     {
-      throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Could not convert non-integer DataValue to UInt");
+      throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 
+        "Could not convert non-integer DataValue of type '" + NamesOfDataType[value_type_] + "' and value '" + this->toString(true) + "' to unsigned short int");
     }
     if (data_.ssize_ < 0.0)
     {
@@ -483,7 +570,8 @@ namespace OpenMS
   {
     if (value_type_ != INT_VALUE)
     {
-      throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Could not convert non-integer DataValue to int");
+      throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 
+        "Could not convert non-integer DataValue of type '" + NamesOfDataType[value_type_] + "' and value '" + this->toString(true) + "' to int");
     }
     return data_.ssize_;
   }
@@ -492,7 +580,8 @@ namespace OpenMS
   {
     if (value_type_ != INT_VALUE)
     {
-      throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Could not convert non-integer DataValue to unsigned int");
+      throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 
+        "Could not convert non-integer DataValue of type '" + NamesOfDataType[value_type_] + "' and value '" + this->toString(true) + "' to unsigned int");
     }
     if (data_.ssize_ < 0.0)
     {
@@ -505,7 +594,8 @@ namespace OpenMS
   {
     if (value_type_ != INT_VALUE)
     {
-      throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Could not convert non-integer DataValue to long int");
+      throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 
+        "Could not convert non-integer DataValue of type '" + NamesOfDataType[value_type_] + "' and value '" + this->toString(true) + "' to long int");
     }
     return data_.ssize_;
   }
@@ -514,7 +604,8 @@ namespace OpenMS
   {
     if (value_type_ != INT_VALUE)
     {
-      throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Could not convert non-integer DataValue to unsigned long int");
+      throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 
+        "Could not convert non-integer DataValue of type '" + NamesOfDataType[value_type_] + "' and value '" + this->toString(true) + "' to unsigned long int");
     }
     if (data_.ssize_ < 0.0)
     {
@@ -527,7 +618,8 @@ namespace OpenMS
   {
     if (value_type_ != INT_VALUE)
     {
-      throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Could not convert non-integer DataValue to Int");
+      throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 
+        "Could not convert non-integer DataValue of type '" + NamesOfDataType[value_type_] + "' and value '" + this->toString(true) + "' to long");
     }
     return data_.ssize_;
   }
@@ -536,7 +628,8 @@ namespace OpenMS
   {
     if (value_type_ != INT_VALUE)
     {
-      throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Could not convert non-integer DataValue to UInt");
+      throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 
+        "Could not convert non-integer DataValue of type '" + NamesOfDataType[value_type_] + "' and value '" + this->toString(true) + "' to unsigned long");
     }
     if (data_.ssize_ < 0.0)
     {
@@ -545,11 +638,45 @@ namespace OpenMS
     return data_.ssize_;
   }
 
+  DataValue::operator ParamValue() const
+  {
+    switch (value_type_)
+    {
+      case EMPTY_VALUE:
+        return ParamValue();
+      case INT_VALUE:
+        return ParamValue(int(*this));
+      case DOUBLE_VALUE:
+        return ParamValue(double(*this));
+      case STRING_VALUE:
+        return ParamValue(std::string(*this));
+      case INT_LIST:
+        return ParamValue(this->toIntList());
+      case DOUBLE_LIST:
+        return ParamValue(this->toDoubleList());
+      case STRING_LIST:
+        {
+          // DataValue uses OpenMS::String while ParamValue uses std:string.
+          // Therefore the StringList isn't castable.
+          vector<std::string> v;
+          for (const String& s : this->toStringList())
+          {
+            v.push_back(s);
+          }
+          return ParamValue(v);
+        }
+      default:
+        throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Type of DataValue is unkown!");    
+    }
+    throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Type of DataValue is unkown!");
+  }
+
   DataValue::operator std::string() const
   {
     if (value_type_ != STRING_VALUE)
     {
-      throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Could not convert non-string DataValue to string");
+      throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 
+        "Could not convert non-string DataValue of type '" + NamesOfDataType[value_type_] + "' and value '" + this->toString(true) + "' to string");
     }
     return *(data_.str_);
   }
@@ -574,11 +701,15 @@ namespace OpenMS
   {
     switch (value_type_)
     {
-    case DataValue::STRING_VALUE: return const_cast<const char*>(data_.str_->c_str());
+    case DataValue::STRING_VALUE: 
+      return const_cast<const char*>(data_.str_->c_str());
 
-    case DataValue::EMPTY_VALUE: return nullptr;
+    case DataValue::EMPTY_VALUE: 
+      return nullptr;
 
-    default: throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Could not convert DataValue to char*");
+    default: 
+      throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 
+        "Could not convert DataValue of type '" + NamesOfDataType[value_type_] + "' and value '" + this->toString(true) + "' to char*");
     }
   }
 
@@ -586,7 +717,8 @@ namespace OpenMS
   {
     if (value_type_ != STRING_LIST)
     {
-      throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Could not convert non-StringList DataValue to StringList");
+      throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+        "Could not convert non-StringList DataValue of type '" + NamesOfDataType[value_type_] + "' and value '" + this->toString(true) + "' to StringList");
     }
     return *(data_.str_list_);
   }
@@ -595,7 +727,8 @@ namespace OpenMS
   {
     if (value_type_ != INT_LIST)
     {
-      throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Could not convert non-IntList DataValue to IntList");
+      throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+        "Could not convert non-IntList DataValue of type '" + NamesOfDataType[value_type_] + "' and value '" + this->toString(true) + "' to IntList");
     }
     return *(data_.int_list_);
   }
@@ -604,69 +737,66 @@ namespace OpenMS
   {
     if (value_type_ != DOUBLE_LIST)
     {
-      throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Could not convert non-DoubleList DataValue to DoubleList");
+      throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 
+        "Could not convert non-DoubleList DataValue of type '" + NamesOfDataType[value_type_] + "' and value '" + this->toString(true) + "' to DoubleList");
     }
     return *(data_.dou_list_);
   }
 
   // Convert DataValues to String
-  String DataValue::toString() const
+  String DataValue::toString(bool full_precision) const
   {
-    stringstream ss;
+    std::stringstream ss;
     switch (value_type_)
     {
-    case DataValue::EMPTY_VALUE: break;
+      case DataValue::EMPTY_VALUE: 
+        break;
+      case DataValue::STRING_VALUE: 
+        return *(data_.str_);
+      case DataValue::STRING_LIST: ss << *(data_.str_list_); 
+        break;
+      case DataValue::INT_LIST: ss << *(data_.int_list_); 
+        break;
+      case DataValue::DOUBLE_LIST: 
+        if (full_precision) 
+        {
+          ss << *(data_.dou_list_);
+        }
+        else 
+        {
+          ss << VecLowPrecision<double>(*(data_.dou_list_));
+        }
+        break;
 
-    case DataValue::STRING_VALUE: return *(data_.str_);
+      case DataValue::INT_VALUE: 
+        return String(data_.ssize_);
+      case DataValue::DOUBLE_VALUE: 
+        return String(data_.dou_, full_precision);
 
-    case DataValue::STRING_LIST: ss << *(data_.str_list_); break;
-
-    case DataValue::INT_LIST: ss << *(data_.int_list_); break;
-
-    case DataValue::DOUBLE_LIST: ss << *(data_.dou_list_); break;
-
-    case DataValue::INT_VALUE: ss << data_.ssize_; break;
-
-    case DataValue::DOUBLE_VALUE: ss << precisionWrapper(data_.dou_); break;
-
-    default: throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Could not convert DataValue to String");
+      default:
+        throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 
+          "Could not convert DataValue of type '" + NamesOfDataType[value_type_] + "' to String");
     }
     return ss.str();
   }
 
   QString DataValue::toQString() const
   {
-    QString result;
-    switch (value_type_)
-    {
-    case DataValue::EMPTY_VALUE: break;
-
-    case DataValue::STRING_VALUE: result = QString::fromStdString(*(data_.str_)); break;
-
-    case DataValue::STRING_LIST: result = QString::fromStdString(this->toString()); break;
-
-    case DataValue::INT_LIST: result = QString::fromStdString(this->toString()); break;
-
-    case DataValue::DOUBLE_LIST: result = QString::fromStdString(this->toString()); break;
-
-    case DataValue::INT_VALUE: result.setNum(data_.ssize_); break;
-
-    case DataValue::DOUBLE_VALUE: result.setNum(data_.dou_, 'f'); break;
-
-    default: throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Could not convert DataValue to QString");
-    }
-    return result;
+    return toString(true).toQString();
   }
 
   bool DataValue::toBool() const
   {
     if (value_type_ != STRING_VALUE)
     {
-      throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Could not convert non-string DataValue to bool.");
+      throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 
+        "Could not convert non-string DataValue of type '" + NamesOfDataType[value_type_] + "' and value '" + this->toString(true) + "' to bool");
     }
     else if (*(data_.str_) != "true" &&  *(data_.str_) != "false")
     {
-      throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String("Could not convert '") + *(data_.str_) + "' to bool. Valid stings are 'true' and 'false'.");
+      throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 
+        String("Could not convert non-string DataValue of type '") + NamesOfDataType[value_type_] + 
+        "' and value '" + *(data_.str_) + "' to bool. Valid stings are 'true' and 'false'.");
     }
 
     return *(data_.str_) == "true";
@@ -676,7 +806,7 @@ namespace OpenMS
 
   bool operator==(const DataValue& a, const  DataValue& b)
   {
-    if (a.value_type_ == b.value_type_)
+    if (a.value_type_ == b.value_type_ && a.unit_type_ == b.unit_type_ && a.unit_ == b.unit_)
     {
       switch (a.value_type_)
       {
@@ -693,6 +823,8 @@ namespace OpenMS
       case DataValue::INT_VALUE: return a.data_.ssize_ == b.data_.ssize_;
 
       case DataValue::DOUBLE_VALUE: return fabs(a.data_.dou_ - b.data_.dou_) < 1e-6;
+
+      default: throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Type of DataValue is unkown!");    
       }
     }
     return false;
@@ -717,6 +849,8 @@ namespace OpenMS
       case DataValue::INT_VALUE: return a.data_.ssize_ < b.data_.ssize_;
 
       case DataValue::DOUBLE_VALUE: return a.data_.dou_ < b.data_.dou_;
+
+      default: throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Type of DataValue is unkown!");    
       }
     }
     return false;
@@ -741,6 +875,9 @@ namespace OpenMS
       case DataValue::INT_VALUE: return a.data_.ssize_ > b.data_.ssize_;
 
       case DataValue::DOUBLE_VALUE: return a.data_.dou_ > b.data_.dou_;
+
+      default: throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Type of DataValue is unkown!");    
+
       }
     }
     return false;
@@ -753,6 +890,7 @@ namespace OpenMS
 
   // ----------------- Output operator ----------------------
 
+  /// for doubles or lists of doubles, you get full precision. Use DataValue::toString(false) if you only need low precision
   std::ostream& operator<<(std::ostream& os, const DataValue& p)
   {
     switch (p.value_type_)
@@ -765,23 +903,25 @@ namespace OpenMS
 
     case DataValue::DOUBLE_LIST: os << *(p.data_.dou_list_); break;
 
-    case DataValue::INT_VALUE: os << p.data_.ssize_; break;
+    case DataValue::INT_VALUE: os << String(p.data_.ssize_); break; // using our String conversion (faster than os)
 
-    case DataValue::DOUBLE_VALUE: os << precisionWrapper(p.data_.dou_); break;
+    case DataValue::DOUBLE_VALUE: os << String(p.data_.dou_); break; // using our String conversion (faster than os)
 
     case DataValue::EMPTY_VALUE: break;
+
+    default: throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Type of DataValue is unkown!");
     }
     return os;
   }
 
   // ----------------- Unit methods ----------------------
 
-  const String& DataValue::getUnit() const
+  const int32_t& DataValue::getUnit() const
   {
     return unit_;
   }
 
-  void DataValue::setUnit(const OpenMS::String& unit)
+  void DataValue::setUnit(const int32_t& unit)
   {
     unit_ = unit;
   }

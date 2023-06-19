@@ -8,28 +8,13 @@ cdef extern from "<OpenMS/METADATA/SpectrumIdentification.h>" namespace "OpenMS"
 
     cdef cppclass SpectrumIdentification(MetaInfoInterface):
         # wrap-inherits:
-        #   MetaInfoInterface
+        #  MetaInfoInterface
 
-        SpectrumIdentification()   nogil except +
-        SpectrumIdentification(SpectrumIdentification) nogil except + # wrap-ignore
+        SpectrumIdentification() nogil except +
+        SpectrumIdentification(SpectrumIdentification &) nogil except +
 
-        # /// sets the identification hits of this spectrum identification (corresponds to single peptide hit in the list)
-        void setHits(libcpp_vector[IdentificationHit] & hits) nogil except +
+        void setHits(libcpp_vector[IdentificationHit] & hits) nogil except + # wrap-doc:Sets the identification hits of this spectrum identification (corresponds to single peptide hit in the list)
 
-        # /// adds a single identification hit to the hits
-        void addHit(IdentificationHit & hit) nogil except +
+        void addHit(IdentificationHit & hit) nogil except + # wrap-doc:Adds a single identification hit to the hits
 
-        # /// returns the identificatio hits of this spectrum identification
-        libcpp_vector[IdentificationHit] getHits() nogil except +
-
-        # COPY-PASTE from MetaInfoInterface
-        void getKeys(libcpp_vector[String] & keys) nogil except +
-        void getKeys(libcpp_vector[unsigned int] & keys) nogil except + # wrap-as:getKeysAsIntegers
-        DataValue getMetaValue(unsigned int) nogil except +
-        DataValue getMetaValue(String) nogil except +
-        void setMetaValue(unsigned int, DataValue) nogil except +
-        void setMetaValue(String, DataValue) nogil except +
-        bool metaValueExists(String) nogil except +
-        bool metaValueExists(unsigned int) nogil except +
-        void removeMetaValue(String) nogil except +
-        void removeMetaValue(unsigned int) nogil except +
+        libcpp_vector[IdentificationHit] getHits() nogil except + # wrap-doc:Returns the identification hits of this spectrum identification

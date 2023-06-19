@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -125,12 +125,12 @@ protected:
     String version = "Unknown";
     if (!p.exists("info:version"))
     {
-      writeLog_("No OpenMS version information found in file " + infile + "! Assuming OpenMS 1.8 and below.");
+      writeLogWarn_("No OpenMS version information found in file " + infile + "! Assuming OpenMS 1.8 and below.");
       version = "1.8.0";
     }
     else
     {
-      version = p.getValue("info:version");
+      version = p.getValue("info:version").toString();
       // TODO: return on newer version?!
     }
 
@@ -145,7 +145,7 @@ protected:
       // check for default instance
       if (!p.exists(sec_inst + "toppas_type"))
       {
-        writeLog_("Update for file " + infile + " failed because the vertex #" + String(v) + " does not have a 'toppas_type' node. Check INI file for corruption!");
+        writeLogWarn_("Update for file " + infile + " failed because the vertex #" + String(v) + " does not have a 'toppas_type' node. Check INI file for corruption!");
         update_success = false;
         break;
       }
@@ -157,20 +157,20 @@ protected:
 
       if (!p.exists(sec_inst + "tool_name"))
       {
-        writeLog_("Update for file " + infile + " failed because the vertex #" + String(v) + " does not have a 'tool_name' node. Check INI file for corruption!");
+        writeLogWarn_("Update for file " + infile + " failed because the vertex #" + String(v) + " does not have a 'tool_name' node. Check INI file for corruption!");
         update_success = false;
         break;
       }
 
-      String old_name = p.getValue(sec_inst + "tool_name");
+      String old_name = p.getValue(sec_inst + "tool_name").toString();
       String new_tool;
       String ttype;
       // find mapping to new tool (might be the same name)
-      if (p.exists(sec_inst + "tool_type")) ttype = p.getValue(sec_inst + "tool_type");
+      if (p.exists(sec_inst + "tool_type")) ttype = p.getValue(sec_inst + "tool_type").toString();
       if (!updater.getNewToolName(old_name, ttype, new_tool))
       {
-        String type_text = ((ttype == "") ? "" : " with type '" + ttype + "' ");
-        writeLog_("Update for file " + infile + " failed because the tool '" + old_name + "'" + type_text + "is unknown. TOPPAS file seems to be corrupted!");
+        String type_text = ((ttype.empty()) ? "" : " with type '" + ttype + "' ");
+        writeLogWarn_("Update for file " + infile + " failed because the tool '" + old_name + "'" + type_text + "is unknown. TOPPAS file seems to be corrupted!");
         update_success = false;
         break;
       }
@@ -193,7 +193,7 @@ protected:
       pr.start((path + "/" + new_tool).toQString(), arguments);
       if (!pr.waitForFinished(-1))
       {
-        writeLog_("Update for file " + infile + " failed because the tool '" + new_tool + "' returned with an error! Check if the tool works properly.");
+        writeLogWarn_("Update for file " + infile + " failed because the tool '" + new_tool + "' returned with an error! Check if the tool works properly.");
         update_success = false;
         break;
       }
@@ -264,7 +264,7 @@ protected:
 
     if (sections.empty())
     {
-      writeLog_("Update for file " + infile + " failed because tool section does not exist. Check INI file for corruption!");
+      writeLogWarn_("Update for file " + infile + " failed because tool section does not exist. Check INI file for corruption!");
       failed_.push_back(infile);
       return;
     }
@@ -273,13 +273,13 @@ protected:
     String version_old = "Unknown";
     if (!p.exists(sections[0] + ":version"))
     {
-      writeLog_("No OpenMS version information found in file " + infile + "! Cannot update!");
+      writeLogWarn_("No OpenMS version information found in file " + infile + "! Cannot update!");
       failed_.push_back(infile);
       return;
     }
     else
     {
-      version_old = p.getValue(sections[0] + ":version");
+      version_old = p.getValue(sections[0] + ":version").toString();
       // TODO: return on newer version?!
     }
 
@@ -293,18 +293,18 @@ protected:
       // check for default instance
       if (!p.exists(sec_inst + "debug"))
       {
-        writeLog_("Update for file '" + infile + "' failed because the instance section '" + sec_inst + "' does not exist. Use -instance or check INI file for corruption!");
+        writeLogWarn_("Update for file '" + infile + "' failed because the instance section '" + sec_inst + "' does not exist. Use -instance or check INI file for corruption!");
         update_success = false;
         break;
       }
       String new_tool;
       String ttype;
       // find mapping to new tool (might be the same name)
-      if (p.exists(sec_inst + "type")) ttype = p.getValue(sec_inst + "type");
+      if (p.exists(sec_inst + "type")) ttype = p.getValue(sec_inst + "type").toString();
       if (!updater.getNewToolName(sections[s], ttype, new_tool))
       {
-        String type_text = ((ttype == "") ? "" : " with type '" + ttype + "' ");
-        writeLog_("Update for file '" + infile + "' failed because the tool '" + sections[s] + "'" + type_text + "is unknown. TOPPAS file seems to be corrupted!");
+        String type_text = ((ttype.empty()) ? "" : " with type '" + ttype + "' ");
+        writeLogWarn_("Update for file '" + infile + "' failed because the tool '" + sections[s] + "'" + type_text + "is unknown. TOPPAS file seems to be corrupted!");
         update_success = false;
         break;
       }
@@ -318,7 +318,7 @@ protected:
       pr.start((path + "/" + new_tool).toQString(), arguments);
       if (!pr.waitForFinished(-1))
       {
-        writeLog_("Update for file '" + infile + "' failed because the tool '" + new_tool + "' returned with an error! Check if the tool works properly.");
+        writeLogWarn_("Update for file '" + infile + "' failed because the tool '" + new_tool + "' returned with an error! Check if the tool works properly.");
         update_success = false;
         break;
       }
@@ -365,20 +365,20 @@ protected:
     // consistency checks
     if (out.empty() && !inplace)
     {
-      writeLog_("Cannot write output files, as neither -out nor -i are given. Use either of them, but not both!");
+      writeLogError_("Cannot write output files, as neither -out nor -i are given. Use either of them, but not both!");
       printUsage_();
       return ILLEGAL_PARAMETERS;
     }
-    if (out.size() > 0 && inplace)
+    if (!out.empty() && inplace)
     {
-      writeLog_("Two incompatible arguments given (-out and -i). Use either of them, but not both!");
+      writeLogError_("Two incompatible arguments given (-out and -i). Use either of them, but not both!");
       printUsage_();
       return ILLEGAL_PARAMETERS;
     }
 
     if (!inplace && out.size() != in.size())
     {
-      writeLog_("Output and input file list length must be equal!");
+      writeLogError_("Output and input file list length must be equal!");
       printUsage_();
       return ILLEGAL_PARAMETERS;
     }
@@ -399,9 +399,9 @@ protected:
     }
 
 
-    if (failed_.size() > 0)
+    if (!failed_.empty())
     {
-      writeLog_("The following INI/TOPPAS files could not be updated:\n  " + ListUtils::concatenate(failed_, "\n  "));
+      writeLogError_("The following INI/TOPPAS files could not be updated:\n  " + ListUtils::concatenate(failed_, "\n  "));
       return INPUT_FILE_CORRUPT;
     }
 

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -32,12 +32,16 @@
 // $Authors: Eva Lange, Alexandra Zerck $
 // --------------------------------------------------------------------------
 
-#include <cmath>
 #include <OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakPickerCWT.h>
 
 #include <OpenMS/FILTERING/NOISEESTIMATION/SignalToNoiseEstimatorMeanIterative.h>
 #include <OpenMS/TRANSFORMATIONS/RAW2PEAK/TwoDOptimization.h>
 #include <OpenMS/FILTERING/TRANSFORMERS/TICFilter.h>
+#include <OpenMS/KERNEL/SpectrumHelper.h>
+
+#include <boost/math/special_functions/fpclassify.hpp>
+
+#include <cmath>
 
 #ifdef _OPENMP
 #ifdef OPENMS_WINDOWSPLATFORM
@@ -62,102 +66,96 @@ namespace OpenMS
   {
     defaults_.setValue("signal_to_noise", 1.0, "Minimal signal to noise ratio for a peak to be picked.");
     defaults_.setMinFloat("signal_to_noise", 0.0);
-    defaults_.setValue("thresholds:peak_bound", 10.0, "Minimal peak intensity.", ListUtils::create<String>("advanced"));
+    defaults_.setValue("thresholds:peak_bound", 10.0, "Minimal peak intensity.", {"advanced"});
     defaults_.setMinFloat("thresholds:peak_bound", 0.0);
-    defaults_.setValue("thresholds:peak_bound_ms2_level", 10.0, "Minimal peak intensity for MS/MS peaks.", ListUtils::create<String>("advanced"));
+    defaults_.setValue("thresholds:peak_bound_ms2_level", 10.0, "Minimal peak intensity for MS/MS peaks.", {"advanced"});
     defaults_.setMinFloat("thresholds:peak_bound_ms2_level", 0.0);
 
     // if a peak picking parameter is missed in the param object the value should be substituted by a default value
     defaults_.setValue("centroid_percentage", 0.8, "Percentage of the maximum height that the raw data points must exceed to be taken into account for the calculation of the centroid. " \
-                                                   "If it is 1 the centroid position corresponds to the position of the highest intensity.", ListUtils::create<String>("advanced"));
+                                                   "If it is 1 the centroid position corresponds to the position of the highest intensity.", {"advanced"});
     defaults_.setMinFloat("centroid_percentage", 0.0);
     defaults_.setMaxFloat("centroid_percentage", 1.0);
     defaults_.setValue("thresholds:correlation", 0.5, "minimal correlation of a peak and the raw signal. " \
-                                                      "If a peak has a lower correlation it is skipped.", ListUtils::create<String>("advanced"));
+                                                      "If a peak has a lower correlation it is skipped.", {"advanced"});
     defaults_.setMinFloat("thresholds:correlation", 0.0);
     defaults_.setMaxFloat("thresholds:correlation", 1.0);
     defaults_.setValue("peak_width", 0.15, "Approximate fwhm of the peaks.");
     defaults_.setMinFloat("peak_width", 0.0);
     defaults_.setValue("estimate_peak_width", "false", "Flag if the average peak width shall be estimated. Attention: when this flag is set, the peak_width is ignored.");
-    std::vector<String> valid_opts;
-    valid_opts.push_back("true");
-    valid_opts.push_back("false");
-    defaults_.setValidStrings("estimate_peak_width", valid_opts);
+    defaults_.setValidStrings("estimate_peak_width", {"true","false"});
 
-    defaults_.setValue("fwhm_lower_bound_factor", 0.7, "Factor that calculates the minimal fwhm value from the peak_width. All peaks with width smaller than fwhm_bound_factor * peak_width are discarded.", ListUtils::create<String>("advanced"));
-    defaults_.setValue("fwhm_upper_bound_factor", 20., "Factor that calculates the maximal fwhm value from the peak_width. All peaks with width greater than fwhm_upper_bound_factor * peak_width are discarded.", ListUtils::create<String>("advanced"));
+    defaults_.setValue("fwhm_lower_bound_factor", 0.7, "Factor that calculates the minimal fwhm value from the peak_width. All peaks with width smaller than fwhm_bound_factor * peak_width are discarded.", {"advanced"});
+    defaults_.setValue("fwhm_upper_bound_factor", 20., "Factor that calculates the maximal fwhm value from the peak_width. All peaks with width greater than fwhm_upper_bound_factor * peak_width are discarded.", {"advanced"});
 
     defaults_.setMinFloat("fwhm_lower_bound_factor", 0.0);
     defaults_.setMinFloat("fwhm_upper_bound_factor", 0.0);
 
-    defaults_.setValue("wavelet_transform:spacing", 0.001, "Spacing of the CWT. Note that the accuracy of the picked peak's centroid position depends in the Raw data spacing, i.e., 50% of raw peak distance at most.", ListUtils::create<String>("advanced"));
+    defaults_.setValue("wavelet_transform:spacing", 0.001, "Spacing of the CWT. Note that the accuracy of the picked peak's centroid position depends in the Raw data spacing, i.e., 50% of raw peak distance at most.", {"advanced"});
     defaults_.setMinFloat("wavelet_transform:spacing", 0.0);
-    defaults_.setValue("thresholds:noise_level", 0.1, "noise level for the search of the peak endpoints.", ListUtils::create<String>("advanced"));
+    defaults_.setValue("thresholds:noise_level", 0.1, "noise level for the search of the peak endpoints.", {"advanced"});
     defaults_.setMinFloat("thresholds:noise_level", 0.0);
-    defaults_.setValue("thresholds:search_radius", 3, "search radius for the search of the maximum in the signal after a maximum in the cwt was found", ListUtils::create<String>("advanced"));
+    defaults_.setValue("thresholds:search_radius", 3, "search radius for the search of the maximum in the signal after a maximum in the cwt was found", {"advanced"});
     defaults_.setMinInt("thresholds:search_radius", 0);
 
     //Optimization parameters
     defaults_.setValue("optimization", "no", "If the peak parameters position, intensity and left/right width" \
-                                             "shall be optimized set optimization to one_dimensional or two_dimensional.", ListUtils::create<String>("advanced"));
-    valid_opts.clear();
-    valid_opts.push_back("no");
-    valid_opts.push_back("one_dimensional");
-    valid_opts.push_back("two_dimensional");
+                                             "shall be optimized set optimization to one_dimensional or two_dimensional.", {"advanced"});
+    std::vector<std::string> valid_opts;
+    valid_opts.emplace_back("no");
+    valid_opts.emplace_back("one_dimensional");
+    valid_opts.emplace_back("two_dimensional");
     defaults_.setValidStrings("optimization", valid_opts);
     defaults_.setValue("optimization:penalties:position", 0.0, "penalty term for the fitting of the position:" \
-                                                               "If it differs too much from the initial one it can be penalized ", ListUtils::create<String>("advanced"));
+                                                               "If it differs too much from the initial one it can be penalized ", {"advanced"});
     defaults_.setMinFloat("optimization:penalties:position", 0.0);
     defaults_.setValue("optimization:penalties:left_width", 1.0, "penalty term for the fitting of the left width:" \
-                                                                 "If the left width differs too much from the initial one during the fitting it can be penalized.", ListUtils::create<String>("advanced"));
+                                                                 "If the left width differs too much from the initial one during the fitting it can be penalized.", {"advanced"});
     defaults_.setMinFloat("optimization:penalties:left_width", 0.0);
     defaults_.setValue("optimization:penalties:right_width", 1.0, "penalty term for the fitting of the right width:" \
-                                                                  "If the right width differs too much from the initial one during the fitting it can be penalized.", ListUtils::create<String>("advanced"));
+                                                                  "If the right width differs too much from the initial one during the fitting it can be penalized.", {"advanced"});
     defaults_.setMinFloat("optimization:penalties:right_width", 0.0);
     defaults_.setValue("optimization:penalties:height", 1.0, "penalty term for the fitting of the intensity (only used in 2D Optimization):" \
-                                                             "If it gets negative during the fitting it can be penalized.", ListUtils::create<String>("advanced"));
+                                                             "If it gets negative during the fitting it can be penalized.", {"advanced"});
     defaults_.setMinFloat("optimization:penalties:height", 0.0);
-    defaults_.setValue("optimization:iterations", 400, "maximal number of iterations for the fitting step", ListUtils::create<String>("advanced"));
+    defaults_.setValue("optimization:iterations", 400, "maximal number of iterations for the fitting step", {"advanced"});
     defaults_.setMinInt("optimization:iterations", 1);
     // additional 2d optimization parameters
-    defaults_.setValue("optimization:2d:tolerance_mz", 2.2, "mz tolerance for cluster construction", ListUtils::create<String>("advanced"));
+    defaults_.setValue("optimization:2d:tolerance_mz", 2.2, "mz tolerance for cluster construction", {"advanced"});
     defaults_.setMinFloat("optimization:2d:tolerance_mz", 0.0);
-    defaults_.setValue("optimization:2d:max_peak_distance", 1.2, "maximal peak distance in mz in a cluster", ListUtils::create<String>("advanced"));
+    defaults_.setValue("optimization:2d:max_peak_distance", 1.2, "maximal peak distance in mz in a cluster", {"advanced"});
     defaults_.setMinFloat("optimization:2d:max_peak_distance", 0.0);
     // deconvolution parameters
-    defaults_.setValue("deconvolution:deconvolution", "false", "If you want heavily overlapping peaks to be separated set this value to \"true\"", ListUtils::create<String>("advanced"));
-    valid_opts.clear();
-    valid_opts.push_back("true");
-    valid_opts.push_back("false");
-    defaults_.setValidStrings("deconvolution:deconvolution", valid_opts);
-    defaults_.setValue("deconvolution:asym_threshold", 0.3, "If the symmetry of a peak is smaller than asym_thresholds it is assumed that it consists of more than one peak and the deconvolution procedure is started.", ListUtils::create<String>("advanced"));
+    defaults_.setValue("deconvolution:deconvolution", "false", "If you want heavily overlapping peaks to be separated set this value to \"true\"", {"advanced"});
+    defaults_.setValidStrings("deconvolution:deconvolution", {"true", "false"});
+    defaults_.setValue("deconvolution:asym_threshold", 0.3, "If the symmetry of a peak is smaller than asym_thresholds it is assumed that it consists of more than one peak and the deconvolution procedure is started.", {"advanced"});
     defaults_.setMinFloat("deconvolution:asym_threshold", 0.0);
-    defaults_.setValue("deconvolution:left_width", 2.0, "1/left_width is the initial value for the left width of the peaks found in the deconvolution step.", ListUtils::create<String>("advanced"));
+    defaults_.setValue("deconvolution:left_width", 2.0, "1/left_width is the initial value for the left width of the peaks found in the deconvolution step.", {"advanced"});
     defaults_.setMinFloat("deconvolution:left_width", 0.0);
-    defaults_.setValue("deconvolution:right_width", 2.0, "1/right_width is the initial value for the right width of the peaks found in the deconvolution step.", ListUtils::create<String>("advanced"));
+    defaults_.setValue("deconvolution:right_width", 2.0, "1/right_width is the initial value for the right width of the peaks found in the deconvolution step.", {"advanced"});
     defaults_.setMinFloat("deconvolution:right_width", 0.0);
-    defaults_.setValue("deconvolution:scaling", 0.12, "Initial scaling of the cwt used in the separation of heavily overlapping peaks. The initial value is used for charge 1, for higher charges it is adapted to scaling/charge.", ListUtils::create<String>("advanced"));
+    defaults_.setValue("deconvolution:scaling", 0.12, "Initial scaling of the cwt used in the separation of heavily overlapping peaks. The initial value is used for charge 1, for higher charges it is adapted to scaling/charge.", {"advanced"});
     defaults_.setMinFloat("deconvolution:scaling", 0.0);
     defaults_.setValue("deconvolution:fitting:penalties:position", 0.0, "penalty term for the fitting of the peak position:" \
                                                                         "If the position changes more than 0.5Da during the fitting it can be penalized as well as " \
-                                                                        "discrepancies of the peptide mass rule.", ListUtils::create<String>("advanced"));
+                                                                        "discrepancies of the peptide mass rule.", {"advanced"});
     defaults_.setMinFloat("deconvolution:fitting:penalties:position", 0.0);
     defaults_.setValue("deconvolution:fitting:penalties:height", 1.0, "penalty term for the fitting of the intensity:" \
-                                                                      "If it gets negative during the fitting it can be penalized.", ListUtils::create<String>("advanced"));
+                                                                      "If it gets negative during the fitting it can be penalized.", {"advanced"});
     defaults_.setMinFloat("deconvolution:fitting:penalties:height", 0.0);
     defaults_.setValue("deconvolution:fitting:penalties:left_width", 0.0, "penalty term for the fitting of the left width:" \
-                                                                          "If the left width gets too broad or negative during the fitting it can be penalized.", ListUtils::create<String>("advanced"));
+                                                                          "If the left width gets too broad or negative during the fitting it can be penalized.", {"advanced"});
     defaults_.setMinFloat("deconvolution:fitting:penalties:left_width", 0.0);
     defaults_.setValue("deconvolution:fitting:penalties:right_width", 0.0, "penalty term for the fitting of the right width:" \
-                                                                           "If the right width gets too broad or negative during the fitting it can be penalized.", ListUtils::create<String>("advanced"));
+                                                                           "If the right width gets too broad or negative during the fitting it can be penalized.", {"advanced"});
     defaults_.setMinFloat("deconvolution:fitting:penalties:right_width", 0.0);
-    defaults_.setValue("deconvolution:fitting:fwhm_threshold", 0.7, "If the FWHM of a peak is higher than 'fwhm_thresholds' it is assumed that it consists of more than one peak and the deconvolution procedure is started.", ListUtils::create<String>("advanced"));
+    defaults_.setValue("deconvolution:fitting:fwhm_threshold", 0.7, "If the FWHM of a peak is higher than 'fwhm_thresholds' it is assumed that it consists of more than one peak and the deconvolution procedure is started.", {"advanced"});
     defaults_.setMinFloat("deconvolution:fitting:fwhm_threshold", 0.0);
-    defaults_.setValue("deconvolution:fitting:eps_abs", 1e-05f, "if the absolute error gets smaller than this value the fitting is stopped.", ListUtils::create<String>("advanced"));
+    defaults_.setValue("deconvolution:fitting:eps_abs", 1e-05f, "if the absolute error gets smaller than this value the fitting is stopped.", {"advanced"});
     defaults_.setMinFloat("deconvolution:fitting:eps_abs", 0.0);
-    defaults_.setValue("deconvolution:fitting:eps_rel", 1e-05f, "if the relative error gets smaller than this value the fitting is stopped.", ListUtils::create<String>("advanced"));
+    defaults_.setValue("deconvolution:fitting:eps_rel", 1e-05f, "if the relative error gets smaller than this value the fitting is stopped.", {"advanced"});
     defaults_.setMinFloat("deconvolution:fitting:eps_rel", 0.0);
-    defaults_.setValue("deconvolution:fitting:max_iteration", 10, "maximal number of iterations for the fitting step", ListUtils::create<String>("advanced"));
+    defaults_.setValue("deconvolution:fitting:max_iteration", 10, "maximal number of iterations for the fitting step", {"advanced"});
     defaults_.setMinInt("deconvolution:fitting:max_iteration", 1);
 
     //this->subsections_.push_back("SignalToNoiseEstimationParameter");
@@ -174,9 +172,7 @@ namespace OpenMS
     defaultsToParam_();
   }
 
-  PeakPickerCWT::~PeakPickerCWT()
-  {
-  }
+  PeakPickerCWT::~PeakPickerCWT() = default;
 
   void PeakPickerCWT::updateMembers_()
   {
@@ -250,7 +246,9 @@ namespace OpenMS
       {
         max_pos = (direction > 0) ? (i - distance_from_scan_border) : i;
         if (first + max_pos < first || first + max_pos >= last)
+        {
           break;
+        }
 #ifdef DEBUG_PEAK_PICKING
         std::cout << "MAX in CWT at " << (first + max_pos)->getMZ() << " with " << wt[i]
                   << std::endl;
@@ -690,7 +688,7 @@ namespace OpenMS
 #endif
 
     // take shape with higher correlation (Sech2 can be NaN, so Lorentzian might be the only option)
-    if ((lorentz.r_value > sech.r_value) || boost::math::isnan(sech.r_value))
+    if ((lorentz.r_value > sech.r_value) || std::isnan(sech.r_value))
     {
       return lorentz;
     }
@@ -846,7 +844,7 @@ namespace OpenMS
     double dist = peak_width / (num_peaks + 1);
 
     // put peak into peak vector using default values for the widths and peak type
-    peaks_DC.push_back(PeakShape(0, 0, left_width, right_width, 0, PeakShape::SECH_PEAK));
+    peaks_DC.emplace_back(0, 0, left_width, right_width, 0, PeakShape::SECH_PEAK);
 
     // adjust the positions and get their initial intensities from the profile data
     for (Size i = 0; i < num_peaks; ++i)
@@ -910,11 +908,15 @@ namespace OpenMS
 
     //std::vector<double>::iterator checker;
     while (wt.getSignal()[start + 1].getMZ() <= first->getMZ())
+    {
       ++start;
+    }
     //k=i;
     Int offset = start;
     while (wt.getSignal()[end].getMZ() > last->getMZ())
+    {
       --end;
+    }
     for (i = start; i != end; i += direction, k += direction)
     {
 
@@ -973,8 +975,10 @@ namespace OpenMS
       }
       dif /= peaks - 1;
       charge = (Int) Math::round(1 / dif);
-      if (boost::math::isnan((double)charge) || boost::math::isinf((double)charge))
+      if (std::isnan((double)charge) || std::isinf((double)charge))
+      {
         charge = 0;
+      }
 #ifdef DEBUG_DECONV
       std::cout << "1/dif = " << 1 / dif << ";\tcharge = " << charge << std::endl;
 #endif
@@ -1000,10 +1004,13 @@ namespace OpenMS
 
     // for separate overlapping peak correlate until the max position...
     if (direction > 0)
+    {
       corr_end = area.max;
+    }
     else if (direction < 0)
+    {
       corr_begin = area.max;
-
+    }
     for (PeakIterator pi = corr_begin; pi <= corr_end; ++pi)
     {
       double data_val = pi->getIntensity();
@@ -1021,8 +1028,9 @@ namespace OpenMS
     }
 
     if (number_of_points == 0)
+    {
       return 0.;
-
+    }
     data_average /= number_of_points;
     fit_average  /= number_of_points;
 
@@ -1086,19 +1094,19 @@ namespace OpenMS
 
   void PeakPickerCWT::pick(const MSSpectrum & input, MSSpectrum & output) const
   {
+    // nearly empty spectra shouldn't be picked
+    if (input.size() < 2) return;
+
     // copy the spectrum meta data
-    output.clear(true);
-    output.SpectrumSettings::operator=(input);
-    output.MetaInfoInterface::operator=(input);
-    output.setRT(input.getRT());
-    output.setMSLevel(input.getMSLevel());
-    output.setName(input.getName());
+    copySpectrumMeta(input, output);
     //make sure the data type is set correctly
     output.setType(SpectrumSettings::CENTROID);
 
     // nearly empty spectra shouldn't be picked
     if (input.size() < 2)
+    {
       return;
+    }
 
     //set up meta data arrays
     output.getFloatDataArrays().clear();
@@ -1142,7 +1150,7 @@ namespace OpenMS
     PeakIterator it_pick_begin = raw_peak_array.begin();
     PeakIterator it_pick_end   = raw_peak_array.end();
 
-    sne.init(it_pick_begin, it_pick_end);
+    sne.init(raw_peak_array);
 
     // Upper peak width bound
     double fwhm_upper_bound = (double)param_.getValue("fwhm_upper_bound_factor") * scale_;
@@ -1179,7 +1187,7 @@ namespace OpenMS
       {
         // if the signal to noise ratio at the max position is too small
         // the peak isn't considered
-        if ((area.max != it_pick_end) && (sne.getSignalToNoise(area.max) < signal_to_noise_))
+        if ((area.max != it_pick_end) && (sne.getSignalToNoise((Size) distance(raw_peak_array.begin(),area.max)) < signal_to_noise_))
         {
           it_pick_begin = area.max;
           distance_from_scan_border = distance(raw_peak_array.begin(), it_pick_begin);
@@ -1222,7 +1230,7 @@ namespace OpenMS
              && (shape.getFWHM() >= fwhm_bound_)
              && (shape.getFWHM() <= fwhm_upper_bound))
           {
-            shape.signal_to_noise = sne.getSignalToNoise(area.max);
+            shape.signal_to_noise = sne.getSignalToNoise((Size) distance(raw_peak_array.begin(),area.max));
             peak_shapes.push_back(shape);
             ++number_of_peaks;
           }
@@ -1331,7 +1339,9 @@ namespace OpenMS
                     std::cout << " too small fwhm" << std::endl;
 #endif
                     if (deconvolutePeak_(peak_shapes[i], peak_shapes, peak_bound_ms_cwt))
+                    {
                       peaks_to_skip.insert(i);
+                    }
                   }
                 }
                 else
@@ -1340,7 +1350,9 @@ namespace OpenMS
                   std::cout << "distance not ok" << dist_left << ' ' << peak_shapes[i - 1].mz_position << std::endl;
 #endif
                   if (deconvolutePeak_(peak_shapes[i], peak_shapes, peak_bound_ms_cwt))
+                  {
                     peaks_to_skip.insert(i);
+                  }
                 }
               }
               else
@@ -1365,7 +1377,9 @@ namespace OpenMS
                       std::cout << "too small fwhm"  << std::endl;
 #endif
                       if (deconvolutePeak_(peak_shapes[i], peak_shapes, peak_bound_ms_cwt))
+                      {
                         peaks_to_skip.insert(i);
+                      }
                     }
                   }
                   else
@@ -1374,7 +1388,9 @@ namespace OpenMS
                     std::cout << "distance not ok" << dist_right << ' ' << peak_shapes[i + 1].mz_position << std::endl;
 #endif
                     if (deconvolutePeak_(peak_shapes[i], peak_shapes, peak_bound_ms_cwt))
+                    {
                       peaks_to_skip.insert(i);
+                    }
                   }
                 }
                 // no neighbor
@@ -1384,7 +1400,9 @@ namespace OpenMS
                   std::cout << "no neighbor" << std::endl;
 #endif
                   if (deconvolutePeak_(peak_shapes[i], peak_shapes, peak_bound_ms_cwt))
+                  {
                     peaks_to_skip.insert(i);
+                  }
                 }
               }
             }
@@ -1464,15 +1482,17 @@ namespace OpenMS
     }
 
     // now sort the index_tic_vec according to tic and get the three highest spectra
-    sort(index_tic_vec.begin(), index_tic_vec.end(), PairComparatorSecondElement<std::pair<Size, double> >());
+    sort(index_tic_vec.begin(), index_tic_vec.end(), [](auto& left, auto& right){return left.second < right.second;});
     
     std::vector<double> best_FWHMs;
     for (Size vec_idx = 0; vec_idx < 3 && vec_idx < index_tic_vec.size(); ++vec_idx)
     {
       std::pair<Size, double> tic = index_tic_vec[vec_idx];
       // skip empty spectra
-      if (tic.second == 0) continue;
-
+      if (tic.second == 0)
+      {
+        continue;
+      }
       std::vector<Size> peak_counts;
 #ifdef DEBUG_PEAK_PICKING2
       std::cout << "RT: " << input[tic.first].getRT() << "\n";

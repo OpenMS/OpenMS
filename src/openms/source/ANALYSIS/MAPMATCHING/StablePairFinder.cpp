@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -59,7 +59,7 @@ namespace OpenMS
     defaults_.setMinFloat("second_nearest_gap", 1.0);
 
     defaults_.setValue("use_identifications", "false", "Never link features that are annotated with different peptides (features without ID's always match; only the best hit per peptide identification is considered).");
-    defaults_.setValidStrings("use_identifications", ListUtils::create<String>("true,false"));
+    defaults_.setValidStrings("use_identifications", {"true","false"});
 
     defaults_.insert("", FeatureDistance().getDefaults());
 
@@ -71,7 +71,7 @@ namespace OpenMS
     V_("@@@ StablePairFinder::updateMembers_()");
 
     second_nearest_gap_ = param_.getValue("second_nearest_gap");
-    use_IDs_ = String(param_.getValue("use_identifications")) == "true";
+    use_IDs_ = param_.getValue("use_identifications").toBool();
   }
 
   void StablePairFinder::run(const std::vector<ConsensusMap>& input_maps,
@@ -89,8 +89,8 @@ namespace OpenMS
     checkIds_(input_maps);
 
     // set up the distance functor:
-    double max_intensity = max(input_maps[0].getMaxInt(),
-                               input_maps[1].getMaxInt());
+    double max_intensity = max(input_maps[0].getMaxIntensity(),
+                               input_maps[1].getMaxIntensity());
     Param distance_params = param_.copy("");
     distance_params.remove("use_identifications");
     distance_params.remove("second_nearest_gap");
@@ -201,14 +201,7 @@ namespace OpenMS
           ConsensusFeature& f = result_map.back();
 
           f.insert(input_maps[0][fi0]);
-          f.getPeptideIdentifications().insert(f.getPeptideIdentifications().end(),
-                                               input_maps[0][fi0].getPeptideIdentifications().begin(),
-                                               input_maps[0][fi0].getPeptideIdentifications().end());
-
           f.insert(input_maps[1][fi1]);
-          f.getPeptideIdentifications().insert(f.getPeptideIdentifications().end(),
-                                               input_maps[1][fi1].getPeptideIdentifications().begin(),
-                                               input_maps[1][fi1].getPeptideIdentifications().end());
 
           f.computeConsensus();
           double quality = 1.0 - nn_distance_0[fi0].first;

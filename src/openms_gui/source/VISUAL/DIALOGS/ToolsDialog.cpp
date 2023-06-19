@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -35,195 +35,270 @@
 // OpenMS includes
 #include <OpenMS/VISUAL/DIALOGS/ToolsDialog.h>
 
-#include <OpenMS/VISUAL/ParamEditor.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
+#include <OpenMS/APPLICATIONS/ToolHandler.h>
+#include <OpenMS/DATASTRUCTURES/Param.h>
+#include <OpenMS/FORMAT/FileTypes.h>
 #include <OpenMS/FORMAT/ParamXMLFile.h>
 #include <OpenMS/SYSTEM/File.h>
+#include <OpenMS/VISUAL/ParamEditor.h>
+#include <OpenMS/VISUAL/TVToolDiscovery.h>
+#include <OpenMS/VISUAL/MISC/CommonDefs.h>
 
+#include <QProcess>
 #include <QtCore/QStringList>
-#include <QtWidgets/QPushButton>
+#include <QtWidgets/QCheckBox>
 #include <QtWidgets/QComboBox>
+#include <QtWidgets/QFileDialog>
 #include <QtWidgets/QHBoxLayout>
-#include <QtWidgets/QGridLayout>
 #include <QtWidgets/QLabel>
 #include <QtWidgets/QMessageBox>
+#include <QtWidgets/QPushButton>
 #include <QtWidgets/QRadioButton>
-#include <QtWidgets/QFileDialog>
-#include <QtWidgets/QCheckBox>
+#include <utility>
 
-#include <OpenMS/ANALYSIS/MAPMATCHING/FeatureGroupingAlgorithm.h>
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinder.h>
 
 using namespace std;
 
 namespace OpenMS
 {
 
-  ToolsDialog::ToolsDialog(QWidget* parent, String ini_file, String default_dir, LayerData::DataType type) :
-    QDialog(parent),
-    ini_file_(ini_file),
-    default_dir_(default_dir)
+  ToolsDialog::ToolsDialog(
+          QWidget* parent,
+          const Param& params,
+          String ini_file,
+          String default_dir,
+          LayerDataBase::DataType layer_type,
+          const String& layer_name,
+          TVToolDiscovery* tool_scanner) :
+            QDialog(parent),
+            ini_file_(std::move(ini_file)),
+            default_dir_(std::move(default_dir)),
+            tool_params_(params.copy("tool_params:", true)),
+            plugin_params_(),
+            tool_scanner_(tool_scanner),
+            layer_type_(layer_type)
   {
-    QGridLayout* main_grid = new QGridLayout(this);
-    QLabel* label = new QLabel("TOPP tool:");
-    main_grid->addWidget(label, 0, 0);
-    QStringList list;
+    auto main_grid = new QGridLayout(this);
 
-    if (type == LayerData::DT_PEAK)
-    {
-      list << "FileFilter" << "FileInfo"
-           << "NoiseFilterGaussian" << "NoiseFilterSGolay"
-           << "BaselineFilter" << "PeakPickerHiRes"
-           << "PeakPickerWavelet" << "Resampler"
-           << "MapNormalizer" << "InternalCalibration"
-           << "TOFCalibration"
-           << "FeatureFinderCentroided" << "FeatureFinderIsotopeWavelet" << "FeatureFinderMultiplex"
-           << "MassTraceExtractor" << "FeatureFinderMetabo"
-           << "FeatureFinderMRM"
-           << "IsobaricAnalyzer" << "SpectraFilterWindowMower"
-           << "SpectraFilterThresholdMower" << "SpectraFilterSqrtMower"
-           << "SpectraFilterParentPeakMower" << "SpectraFilterMarkerMower"
-           << "SpectraFilterScaler" << "SpectraFilterBernNorm"
-           << "SpectraFilterNLargest" << "SpectraFilterNormalizer";
-    }
-    else if (type == LayerData::DT_FEATURE)
-    {
-      list << "FileFilter" << "FileConverter"
-           << "FileInfo" << "Decharger"
-           << "FeatureLinkerLabeled";
-    }
-    else if (type == LayerData::DT_CONSENSUS)
-    {
-      list << "FileFilter" << "FileConverter"
-           << "FileInfo";
-    }
-    else if (type == LayerData::DT_CHROMATOGRAM)
-    {
-      //TODO CHROM
-    }
-    //sort list alphabetically
-    list.sort();
-    list.push_front("<select tool>");
+    // Layer label
+    auto layer_label = new QLabel("Selected Layer:");
+    main_grid->addWidget(layer_label, 0, 0);
+    auto layer_label_name = new QLabel(layer_name.toQString());
+    main_grid->addWidget(layer_label_name, 0, 1);
+
+    auto label = new QLabel("TOPP tool:");
+    main_grid->addWidget(label, 1, 0);
+
+    // Determine all available tools compatible with the layer_type
+    tool_map_ = {
+            {FileTypes::Type::MZML, LayerDataBase::DataType::DT_PEAK},
+            {FileTypes::Type::MZXML, LayerDataBase::DataType::DT_PEAK},
+            {FileTypes::Type::FEATUREXML, LayerDataBase::DataType::DT_FEATURE},
+            {FileTypes::Type::CONSENSUSXML, LayerDataBase::DataType::DT_CONSENSUS},
+            {FileTypes::Type::IDXML, LayerDataBase::DataType::DT_IDENT}
+    };
+
+    QStringList list = createToolsList_();
+
     tools_combo_ = new QComboBox;
     tools_combo_->setMinimumWidth(150);
     tools_combo_->addItems(list);
-    connect(tools_combo_, SIGNAL(activated(int)), this, SLOT(setTool_(int)));
+    connect(tools_combo_, CONNECTCAST(QComboBox, activated, (int)), this, &ToolsDialog::setTool_);
 
-    main_grid->addWidget(tools_combo_, 0, 1);
+    main_grid->addWidget(tools_combo_, 1, 1);
+
+    reload_plugins_button_ = new QPushButton("Reload Plugins");
+    connect(reload_plugins_button_, &QPushButton::clicked, this, &ToolsDialog::reloadPlugins_);
+    main_grid->addWidget(reload_plugins_button_, 0, 2);
 
     label = new QLabel("input argument:");
-    main_grid->addWidget(label, 1, 0);
+    main_grid->addWidget(label, 2, 0);
     input_combo_ = new QComboBox;
-    main_grid->addWidget(input_combo_, 1, 1);
+    main_grid->addWidget(input_combo_, 2, 1);
 
     label = new QLabel("output argument:");
-    main_grid->addWidget(label, 2, 0);
+    main_grid->addWidget(label, 3, 0);
     output_combo_ = new QComboBox;
-    main_grid->addWidget(output_combo_, 2, 1);
+    main_grid->addWidget(output_combo_, 3, 1);
 
     // tools description label
     tool_desc_ = new QLabel;
     tool_desc_->setAlignment(Qt::AlignTop | Qt::AlignLeft);
     tool_desc_->setWordWrap(true);
-    main_grid->addWidget(tool_desc_, 0, 2, 3, 1);
+    main_grid->addWidget(tool_desc_, 1, 2, 3, 1);
 
     //Add advanced mode check box
     editor_ = new ParamEditor(this);
-    main_grid->addWidget(editor_, 3, 0, 1, 5);
+    main_grid->addWidget(editor_, 4, 0, 1, 5);
 
-    QHBoxLayout* hbox = new QHBoxLayout;
-    QPushButton* load_button = new QPushButton(tr("&Load"));
-    connect(load_button, SIGNAL(clicked()), this, SLOT(loadINI_()));
+    auto hbox = new QHBoxLayout;
+    auto load_button = new QPushButton(tr("&Load"));
+    connect(load_button, &QPushButton::clicked, this, &ToolsDialog::loadINI_);
     hbox->addWidget(load_button);
-    QPushButton* store_button = new QPushButton(tr("&Store"));
-    connect(store_button, SIGNAL(clicked()), this, SLOT(storeINI_()));
+    auto store_button = new QPushButton(tr("&Store"));
+    connect(store_button, &QPushButton::clicked, this, &ToolsDialog::storeINI_);
     hbox->addWidget(store_button);
     hbox->addStretch();
 
     ok_button_ = new QPushButton(tr("&Ok"));
-    connect(ok_button_, SIGNAL(clicked()), this, SLOT(ok_()));
+    connect(ok_button_, &QPushButton::clicked, this, &ToolsDialog::ok_);
     hbox->addWidget(ok_button_);
 
-    QPushButton* cancel_button = new QPushButton(tr("&Cancel"));
-    connect(cancel_button, SIGNAL(clicked()), this, SLOT(reject()));
+    auto cancel_button = new QPushButton(tr("&Cancel"));
+    connect(cancel_button, &QPushButton::clicked, this, &ToolsDialog::reject);
     hbox->addWidget(cancel_button);
     main_grid->addLayout(hbox, 5, 0, 1, 5);
 
     setLayout(main_grid);
 
-    setWindowTitle(tr("TOPP tools"));
+    setWindowTitle(tr("Apply TOPP tool to layer"));
     disable_();
   }
 
-  ToolsDialog::~ToolsDialog()
-  {
+  ToolsDialog::~ToolsDialog() = default;
 
+  std::vector<LayerDataBase::DataType> ToolsDialog::getTypesFromParam_(const Param& p) const
+  {
+    // Containing all types a tool is compatible with
+    std::vector<LayerDataBase::DataType> types;
+    for (const auto& entry : p)
+    {
+      if (entry.name == "in")
+      {
+        // Map all file extension to a LayerDataBase::DataType
+        for (auto& file_extension : entry.valid_strings)
+        {
+          // a file extension in valid_strings is of form "*.TYPE" -> convert to substr "TYPE".
+          const String& file_type = file_extension.substr(2, file_extension.size());
+          const auto& iter = tool_map_.find(FileTypes::nameToType(file_type));
+          // If mapping was found
+          if (iter != tool_map_.end())
+          {
+            types.push_back(iter->second);
+          }
+        }
+        break;
+      }
+    }
+    return types;
+  }
+
+  void ToolsDialog::setInputOutputCombo_(const Param &p)
+  {
+    String str;
+    QStringList input_list("<select>");
+    QStringList output_list("<select>");
+    bool outRequired = false;
+    for (Param::ParamIterator iter = p.begin(); iter != p.end(); ++iter)
+    {
+      // iter.getName() is either of form "ToolName:1:ItemName" or "ToolName:1:NodeName:[...]:ItemName".
+      // Cut off "ToolName:1:"
+      str = iter.getName().substr(iter.getName().rfind("1:") + 2, iter.getName().size());
+      // Only add items and no nodes
+      if (!str.empty() && str.find(":") == String::npos)
+      {
+        // Only add to input list if item has "input file" tag.
+        if (iter->tags.find("input file") != iter->tags.end())
+        {
+          input_list << QStringList(str.c_str());
+        }
+          // Only add to output list if item has "output file" tag.
+        else if (iter->tags.find("output file") != iter->tags.end())
+        {
+          output_list << QStringList(str.c_str());
+          // Check whether the item has a required tag i.e. is mandatory.
+          outRequired = (outRequired) || (iter->tags.find("required") != iter->tags.end());
+        }
+      }
+    }
+    // Clear and set input combo box
+    input_combo_->clear();
+    output_combo_->clear();
+    input_combo_->addItems(input_list);
+    Int pos = input_list.indexOf("in");
+    if (pos != -1)
+    {
+      input_combo_->setCurrentIndex(pos);
+    }
+    // Clear and set output combo box
+    output_combo_->addItems(output_list);
+    pos = output_list.indexOf("out");
+    if (pos != -1 && getTool() != "FileInfo" && outRequired)
+    {
+      output_combo_->setCurrentIndex(pos);
+    }
+  }
+
+  QStringList ToolsDialog::createToolsList_()
+  {
+    //Make sure the list is empty
+    QStringList list;
+
+    const auto& tools = ToolHandler::getTOPPToolList();
+    const auto& utils = ToolHandler::getUtilList();
+    plugin_params_ = tool_scanner_->getPluginParams();
+
+    for (auto& pair : tools)
+    {
+      std::vector<LayerDataBase::DataType> tool_types = getTypesFromParam_(tool_params_.copy(pair.first + ':'));
+      if (std::find(tool_types.begin(), tool_types.end(), layer_type_) != tool_types.end())
+      {
+        list << pair.first.toQString();
+      }
+    }
+    for (auto& pair : utils)
+    {
+      std::vector<LayerDataBase::DataType> tool_types = getTypesFromParam_(tool_params_.copy(pair.first + ":"));
+      if (std::find(tool_types.begin(), tool_types.end(), layer_type_) != tool_types.end())
+      {
+        list << pair.first.toQString();
+      }
+    }
+    //TODO: Plugins get added to the list just like tools/utils and can't be differentiated in the GUI
+    for (const auto& name : tool_scanner_->getPlugins())
+    {
+      std::vector<LayerDataBase::DataType> tool_types = getTypesFromParam_(plugin_params_.copy(name + ":"));
+      if (std::find(tool_types.begin(), tool_types.end(), layer_type_) != tool_types.end())
+      {
+        list << String(name).toQString();
+      }
+    }
+
+    //sort list alphabetically
+    list.sort();
+    list.push_front("<select tool>");
+    return list;
   }
 
   void ToolsDialog::createINI_()
   {
-    String call = String("\"") + File::findExecutable(getTool()) + "\"" + " -write_ini " + ini_file_ + " -log " + ini_file_ + ".log";
-
-    if (system(call.c_str()) != 0)
+    enable_();
+    if (!arg_param_.empty())
     {
-      QMessageBox::critical(this, "Error", (String("Could not execute '") + call + "'!\n\nMake sure the TOPP tools are present in '" + File::getExecutablePath() + "',  that you have permission to write to the temporary file path, and that there is space left in the temporary file path.").c_str());
+       tool_desc_->clear();
+       arg_param_.clear();
+       vis_param_.clear();
+       editor_->clear();
     }
-    else if (!File::exists(ini_file_))
+    auto tool_name = getTool();
+    arg_param_ = tool_params_.copy(tool_name + ":");
+    if (arg_param_.empty())
     {
-      QMessageBox::critical(this, "Error", (String("Could not open '") + ini_file_ + "'!").c_str());
+      arg_param_ = plugin_params_.copy(tool_name + ":");
     }
-    else
-    {
-      enable_();
-      if (!arg_param_.empty())
-      {
-        tool_desc_->clear();
-        arg_param_.clear();
-        vis_param_.clear();
-        editor_->clear();
-        arg_map_.clear();
-      }
 
-      ParamXMLFile paramFile;
-      paramFile.load((ini_file_).c_str(), arg_param_);
+    tool_desc_->setText(String(arg_param_.getSectionDescription(tool_name)).toQString());
+    vis_param_ = arg_param_.copy(tool_name + ":1:", true);
+    vis_param_.remove("log");
+    vis_param_.remove("no_progress");
+    vis_param_.remove("debug");
 
-      tool_desc_->setText(arg_param_.getSectionDescription(getTool()).toQString());
-      vis_param_ = arg_param_.copy(getTool() + ":1:", true);
-      vis_param_.remove("log");
-      vis_param_.remove("no_progress");
-      vis_param_.remove("debug");
+    editor_->load(vis_param_);
 
-      editor_->load(vis_param_);
+    setInputOutputCombo_(arg_param_);
 
-      String str;
-      QStringList arg_list;
-      for (Param::ParamIterator iter = arg_param_.begin(); iter != arg_param_.end(); ++iter)
-      {
-        str = iter.getName().substr(iter.getName().rfind("1:") + 2, iter.getName().size());
-        if (str.size() != 0 && str.find(":") == String::npos)
-        {
-          arg_map_.insert(make_pair(str, iter.getName()));
-          arg_list << QStringList(str.c_str());
-        }
-      }
-
-      arg_list.push_front("<select>");
-      input_combo_->clear();
-      output_combo_->clear();
-      input_combo_->addItems(arg_list);
-      Int pos = arg_list.indexOf("in");
-      if (pos != -1)
-      {
-        input_combo_->setCurrentIndex(pos);
-      }
-      output_combo_->addItems(arg_list);
-      pos = arg_list.indexOf("out");
-      if (pos != -1 && getTool() != "FileInfo")
-      {
-        output_combo_->setCurrentIndex(pos);
-      }
-      editor_->setFocus(Qt::MouseFocusReason);
-    }
+    editor_->setFocus(Qt::MouseFocusReason);
   }
 
   void ToolsDialog::setTool_(int i)
@@ -291,7 +366,6 @@ namespace OpenMS
       arg_param_.clear();
       vis_param_.clear();
       editor_->clear();
-      arg_map_.clear();
     }
     try
     {
@@ -300,7 +374,7 @@ namespace OpenMS
     }
     catch (Exception::BaseException& e)
     {
-      QMessageBox::critical(this, "Error", (String("Error loading INI file: ") + e.getMessage()).c_str());
+      QMessageBox::critical(this, "Error", QString("Error loading INI file: ") + e.what());
       arg_param_.clear();
       return;
     }
@@ -324,31 +398,7 @@ namespace OpenMS
     //load data into editor
     editor_->load(vis_param_);
 
-    QStringList arg_list;
-    for (Param::ParamIterator iter = arg_param_.begin(); iter != arg_param_.end(); ++iter)
-    {
-      str = iter.getName().substr(iter.getName().rfind("1:") + 2, iter.getName().size());
-      if (!str.empty() && str.find(":") == String::npos)
-      {
-        arg_map_.insert(make_pair(str, iter.getName()));
-        arg_list << QStringList(str.c_str());
-      }
-    }
-    arg_list.push_front("<select>");
-    input_combo_->clear();
-    output_combo_->clear();
-    input_combo_->addItems(arg_list);
-    pos = arg_list.indexOf("in");
-    if (pos != -1)
-    {
-      input_combo_->setCurrentIndex(pos);
-    }
-    output_combo_->addItems(arg_list);
-    pos = arg_list.indexOf("out");
-    if (pos != -1 && getTool() != "FileInfo")
-    {
-      output_combo_->setCurrentIndex(pos);
-    }
+    setInputOutputCombo_(arg_param_);
   }
 
   void ToolsDialog::storeINI_()
@@ -363,8 +413,11 @@ namespace OpenMS
     {
       return;
     }
+
     if (!filename_.endsWith(".ini"))
+    {
       filename_.append(".ini");
+    }
     editor_->store();
     arg_param_.insert(getTool() + ":1:", vis_param_);
     try
@@ -374,8 +427,33 @@ namespace OpenMS
     }
     catch (Exception::BaseException& e)
     {
-      QMessageBox::critical(this, "Error", (String("Error storing INI file: ") + e.getMessage()).c_str());
+      QMessageBox::critical(this, "Error", QString("Error storing INI file: ") + e.what());
       return;
+    }
+  }
+
+  void ToolsDialog::reloadPlugins_()
+  {
+    QStringList list = createToolsList_();
+
+    int32_t selected_index = list.indexOf(tools_combo_->currentText());
+
+    if (selected_index < 1)
+    {
+      tool_desc_->clear();
+      arg_param_.clear();
+      vis_param_.clear();
+      editor_->clear();
+      input_combo_->clear();
+      output_combo_->clear();
+      disable_();
+    }
+    tools_combo_->clear();
+    tools_combo_->addItems(list);
+    if (selected_index > 0)
+    {
+      tools_combo_->setCurrentIndex(selected_index);
+      createINI_();
     }
   }
 
@@ -394,7 +472,7 @@ namespace OpenMS
 
   String ToolsDialog::getTool()
   {
-    return tools_combo_->currentText().toStdString();
+    return tools_combo_->currentText();
   }
 
 }

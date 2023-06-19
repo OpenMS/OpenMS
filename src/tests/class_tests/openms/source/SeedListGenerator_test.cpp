@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry               
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 // 
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -34,6 +34,7 @@
 
 #include <OpenMS/CONCEPT/ClassTest.h>
 #include <OpenMS/test_config.h>
+#include <map>
 
 ///////////////////////////
 
@@ -118,7 +119,7 @@ START_SECTION((void generateSeedLists(const ConsensusMap& consensus, Map<UInt64,
 	ConsensusMap consensus;
 	String path = OPENMS_GET_TEST_DATA_PATH("ConsensusXMLFile_1.consensusXML");
 	ConsensusXMLFile().load(path, consensus);
-	Map<UInt64, SeedListGenerator::SeedList> seed_lists;
+	std::map<UInt64, SeedListGenerator::SeedList> seed_lists;
 	SeedListGenerator().generateSeedLists(consensus, seed_lists);
 	TEST_EQUAL(seed_lists.size(), 2);
 	TEST_EQUAL(seed_lists[0].size(), 0);

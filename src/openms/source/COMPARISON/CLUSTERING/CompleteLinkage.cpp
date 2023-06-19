@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -59,9 +59,7 @@ namespace OpenMS
   {
   }
 
-  CompleteLinkage::~CompleteLinkage()
-  {
-  }
+  CompleteLinkage::~CompleteLinkage() = default;
 
   CompleteLinkage & CompleteLinkage::operator=(const CompleteLinkage & source)
   {
@@ -76,7 +74,7 @@ namespace OpenMS
   void CompleteLinkage::operator()(DistanceMatrix<float> & original_distance, std::vector<BinaryTreeNode> & cluster_tree, const float threshold /*=1*/) const
   {
     // attention: clustering process is done by clustering the indices
-    // pointing to elements in inputvector and distances in inputmatrix
+    // pointing to elements in input vector and distances in input matrix
 
     // input MUST have >= 2 elements!
     if (original_distance.dimensionsize() < 2)
@@ -103,7 +101,7 @@ namespace OpenMS
     while (original_distance(min.first, min.second) < threshold)
     {
       //grow the tree
-      cluster_tree.push_back(BinaryTreeNode(*(clusters[min.second].begin()), *(clusters[min.first].begin()), original_distance(min.first, min.second)));
+      cluster_tree.emplace_back(*(clusters[min.second].begin()), *(clusters[min.first].begin()), original_distance(min.first, min.second));
       if (cluster_tree.back().left_child > cluster_tree.back().right_child)
       {
         std::swap(cluster_tree.back().left_child, cluster_tree.back().right_child);
@@ -155,7 +153,7 @@ namespace OpenMS
     Size sad(*clusters.front().begin());
     for (Size i = 1; i < clusters.size() && (cluster_tree.size() < cluster_tree.capacity()); ++i)
     {
-      cluster_tree.push_back(BinaryTreeNode(sad, *clusters[i].begin(), -1.0));
+      cluster_tree.emplace_back(sad, *clusters[i].begin(), -1.0);
     }
     //~ while(cluster_tree.size() < cluster_tree.capacity())
     //~ {

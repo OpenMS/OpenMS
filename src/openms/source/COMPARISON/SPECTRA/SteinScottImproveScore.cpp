@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -50,15 +50,10 @@ namespace OpenMS
   }
 
   /// copy constructor
-  SteinScottImproveScore::SteinScottImproveScore(const SteinScottImproveScore & source) :
-    PeakSpectrumCompareFunctor(source)
-  {
-  }
+  SteinScottImproveScore::SteinScottImproveScore(const SteinScottImproveScore & source) = default;
 
   /// destructor
-  SteinScottImproveScore::~SteinScottImproveScore()
-  {
-  }
+  SteinScottImproveScore::~SteinScottImproveScore() = default;
 
   /// assignment operator
   SteinScottImproveScore & SteinScottImproveScore::operator=(const SteinScottImproveScore & source)
@@ -103,16 +98,16 @@ namespace OpenMS
     std::cout << std::endl;
     std::cout << s2 << std::endl;*/
 
-    for (PeakSpectrum::ConstIterator it1 = s1.begin(); it1 != s1.end(); ++it1)
+    for (const Peak1D& it1 : s1)
     {
-      double temp = it1->getIntensity();
+      double temp = it1.getIntensity();
       sum1 += temp * temp;
       sum3 += temp;
     }
 
-    for (PeakSpectrum::ConstIterator it1 = s2.begin(); it1 != s2.end(); ++it1)
+    for (const Peak1D& it1 : s2)
     {
-      double temp = it1->getIntensity();
+      double temp = it1.getIntensity();
       sum2 += temp * temp;
       sum4 += temp;
     }

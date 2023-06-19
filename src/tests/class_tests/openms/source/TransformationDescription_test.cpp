@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -258,8 +258,8 @@ START_SECTION((void getModelParameters(Param& params) const))
 	TEST_EQUAL(params, Param());
 	params.setValue("slope", 2.5);
 	params.setValue("intercept", -100.0);
-  params.setValue("x_weight", "");
-  params.setValue("y_weight", "");
+  params.setValue("x_weight", "x");
+  params.setValue("y_weight", "y");
   params.setValue("x_datum_min", 1e-15);
   params.setValue("y_datum_min", 1e-15);
   params.setValue("x_datum_max", 1e15);
@@ -372,7 +372,7 @@ START_SECTION((void getDeviations(std::vector<double>& diffs, bool do_apply = fa
 }
 END_SECTION
 
-START_SECTION((void printSummary(std::ostream& os = std::cout) const))
+START_SECTION((void printSummary(std::ostream& os) const))
 {
   stringstream ss;
 	TransformationDescription td(data_nonlinear);

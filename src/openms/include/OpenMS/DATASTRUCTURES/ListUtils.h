@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -29,7 +29,7 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Timo Sachsenberg $
-// $Authors: Stephan Aiche $
+// $Authors: Stephan Aiche, Chris Bielow $
 // --------------------------------------------------------------------------
 
 #pragma once
@@ -39,13 +39,10 @@
 #include <OpenMS/OpenMSConfig.h>
 #include <OpenMS/config.h>
 
-#include <algorithm>
 #include <cmath>
 #include <iterator>
 #include <vector>
-
-#include <boost/lexical_cast.hpp>
-#include <boost/algorithm/string/trim.hpp>
+#include <algorithm>
 
 namespace OpenMS
 {
@@ -96,7 +93,7 @@ private:
         @param value The value to test.
         @return true if \| @p value - @p target \| \< @p tolerance, false otherwise.
       */
-      inline bool operator()(const double& value)
+      inline bool operator()(const double& value) const
       {
         return std::fabs(value - target_) < tolerance_;
       }
@@ -128,7 +125,7 @@ public:
 
     /**
       @brief Converts a vector of strings to a vector of the target type T.
-      @note The strings are not trimmed.
+      @note The strings are trimmed before conversion.
       @note The values get converted by boost::lexical_cast so a valid conversion from String to T needs to be available.
 
       @param s The vector of strings that should be converted.
@@ -136,6 +133,22 @@ public:
     */
     template <typename T>
     static std::vector<T> create(const std::vector<String>& s);
+
+
+    /**
+  @brief Converts a vector of T's to a vector of Strings.
+
+  @param s The vector of T's that should be converted.
+  @return A vector containing the elements of input vector converted into Strings.
+*/
+    template <typename T>
+    static std::vector<String> toStringList(const std::vector<T>& s)
+    {
+      StringList out;
+      out.reserve(s.size());
+      for (const auto& elem : s) out.push_back(elem);
+      return out;
+    }
 
     /**
       @brief Checks whether the element @p elem is contained in the given container.
@@ -163,6 +176,27 @@ public:
     static bool contains(const std::vector<double>& container, const double& elem, double tolerance = 0.00001)
     {
       return find_if(container.begin(), container.end(), DoubleTolerancePredicate_(elem, tolerance)) != container.end();
+    }
+
+
+    enum class CASE { SENSITIVE, INSENSITIVE};
+    /**
+    @brief Checks whether the String @p elem is contained in the given container (potentially case insensitive)
+
+    @param container The container of String to check.
+    @param elem The element to check whether it is in the container or not.
+    @param case_sensitive Do the comparison case sensitive or insensitive
+
+    @return True if @p elem is contained in @p container, false otherwise.
+    */
+    static bool contains(const std::vector<String>& container, String elem, const CASE cs)
+    {
+      if (cs == CASE::SENSITIVE) return contains(container, elem);
+      // case insensitive ...
+      elem.toLower();
+      return find_if(container.begin(), container.end(), [&elem](String ce) {
+        return elem == ce.toLower();
+      }) != container.end();
     }
 
     /**
@@ -217,6 +251,33 @@ public:
 
   };
 
+  namespace detail
+  {
+    template <typename T>
+    T convert(const String& s);
+  
+    template<>
+    inline Int32 convert(const String& s)
+    {
+      return s.toInt32();
+    }
+    template<>
+    inline double convert(const String& s)
+    {
+      return s.toDouble();
+    }
+    template<>
+    inline float convert(const String& s)
+    {
+      return s.toFloat();
+    }
+    template<>
+    inline std::string convert(const String& s)
+    {
+        return static_cast<std::string>(s);
+    }
+  }
+
   template <typename T>
   inline std::vector<T> ListUtils::create(const std::vector<String>& s)
   {
@@ -226,9 +287,9 @@ public:
     {
       try
       {
-        c.push_back(boost::lexical_cast<T>(boost::trim_copy(*it))); // succeeds only if the whole output can be explained, i.e. "1.3 3" will fail (which is good)
+        c.push_back(detail::convert<T>(String(*it).trim())); // succeeds only if the whole output can be explained, i.e. "1.3 3" will fail (which is good)
       }
-      catch (boost::bad_lexical_cast&)
+      catch (...)
       {
         throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String("Could not convert string '") + *it + "'");
       }

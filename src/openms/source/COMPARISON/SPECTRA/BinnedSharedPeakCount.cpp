@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -37,6 +37,8 @@
 
 using namespace std;
 
+#include <Eigen/Sparse>
+
 namespace OpenMS
 {
   BinnedSharedPeakCount::BinnedSharedPeakCount() :
@@ -51,9 +53,7 @@ namespace OpenMS
   {
   }
 
-  BinnedSharedPeakCount::~BinnedSharedPeakCount()
-  {
-  }
+  BinnedSharedPeakCount::~BinnedSharedPeakCount() = default;
 
   BinnedSharedPeakCount& BinnedSharedPeakCount::operator=(const BinnedSharedPeakCount& source)
   {
@@ -77,11 +77,11 @@ namespace OpenMS
   {
     OPENMS_PRECONDITION(BinnedSpectrum::isCompatible(spec1, spec2), "Binned spectra have different bin size or spread");
 
-    size_t denominator(max(spec1.getBins().nonZeros(), spec2.getBins().nonZeros()));
+    size_t denominator(max(spec1.getBins()->nonZeros(), spec2.getBins()->nonZeros()));
 
     // Note: keep in single expression for faster computation via expression templates
     // Calculate coefficient-wise product and count non-zero entries
-    BinnedSpectrum::SparseVectorType s = spec1.getBins().cwiseProduct(spec2.getBins());
+    BinnedSpectrum::SparseVectorType s = spec1.getBins()->cwiseProduct(*spec2.getBins());
     
     // resulting score normalized to interval [0,1]
     return static_cast<double>(s.nonZeros()) / denominator;

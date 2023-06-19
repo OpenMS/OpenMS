@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -65,24 +65,18 @@ public:
 
     struct OPENMS_DLLAPI VersionDetails
     {
-      Int version_major;
-      Int version_minor;
-      Int version_patch;
+      Int version_major = 0;
+      Int version_minor = 0;
+      Int version_patch = 0;
       String pre_release_identifier;
 
-      VersionDetails() :
-        version_major(0), version_minor(0), version_patch(0), pre_release_identifier("")
-      {
-      }
+      VersionDetails() = default;
 
+      /// Copy constructor
+      VersionDetails(const VersionDetails & other) = default;
 
-      VersionDetails(const VersionDetails & other):
-        version_major(other.version_major),
-        version_minor(other.version_minor),
-        version_patch(other.version_patch),
-        pre_release_identifier(other.pre_release_identifier)
-      {
-      }
+      /// Copy assignment
+      VersionDetails& operator=(const VersionDetails& other) = default;
 
       /**
         @brief parse String and return as proper struct

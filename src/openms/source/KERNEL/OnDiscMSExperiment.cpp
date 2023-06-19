@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -35,8 +35,29 @@
 #include <OpenMS/KERNEL/OnDiscMSExperiment.h>
 
 #include <OpenMS/FORMAT/MzMLFile.h>
+
 namespace OpenMS
 {
+  bool OnDiscMSExperiment::openFile(const String& filename, bool skipMetaData)
+  {
+    filename_ = filename;
+    indexed_mzml_file_.openFile(filename);
+    if (!filename.empty() && !skipMetaData)
+    {
+      loadMetaData_(filename);
+    }
+    return indexed_mzml_file_.getParsingSuccess();
+  }
+
+  void OnDiscMSExperiment::setSkipXMLChecks(bool skip)
+  {
+    indexed_mzml_file_.setSkipXMLChecks(skip);
+  }
+
+  OpenMS::Interfaces::ChromatogramPtr OnDiscMSExperiment::getChromatogramById(Size id)
+  {
+    return indexed_mzml_file_.getChromatogramById(id);
+  }
 
   void OnDiscMSExperiment::loadMetaData_(const String& filename)
   {
@@ -48,5 +69,70 @@ namespace OpenMS
     f.setOptions(options);
     f.load(filename, *meta_ms_experiment_.get());
   }
+
+  MSChromatogram OnDiscMSExperiment::getMetaChromatogramById_(const std::string& id)
+  {
+    if (chromatograms_native_ids_.empty())
+    {
+      for (Size k = 0; k < meta_ms_experiment_->getChromatograms().size(); k++)
+      {
+        chromatograms_native_ids_.emplace(meta_ms_experiment_->getChromatograms()[k].getNativeID(), k);
+      }
+    }
+
+    if (chromatograms_native_ids_.find(id) == chromatograms_native_ids_.end())
+    {
+      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+          String("Could not find chromatogram with id '") + id + "'.");
+    }
+    return meta_ms_experiment_->getChromatogram(chromatograms_native_ids_[id]);
+  }
+
+  MSChromatogram OnDiscMSExperiment::getChromatogramByNativeId(const std::string& id)
+  {
+    if (!meta_ms_experiment_)
+    {
+      MSChromatogram chromatogram;
+      indexed_mzml_file_.getMSChromatogramByNativeId(id, chromatogram);
+      return chromatogram;
+    }
+
+    MSChromatogram chromatogram = getMetaChromatogramById_(id);
+    indexed_mzml_file_.getMSChromatogramByNativeId(id, chromatogram);
+    return chromatogram;
+  }
+
+  MSSpectrum OnDiscMSExperiment::getMetaSpectrumById_(const std::string& id)
+  {
+    if (spectra_native_ids_.empty())
+    {
+      for (Size k = 0; k < meta_ms_experiment_->getSpectra().size(); k++)
+      {
+        spectra_native_ids_.emplace(meta_ms_experiment_->getSpectra()[k].getNativeID(), k);
+      }
+    }
+
+    if (spectra_native_ids_.find(id) == spectra_native_ids_.end())
+    {
+      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+          String("Could not find spectrum with id '") + id + "'.");
+    }
+    return meta_ms_experiment_->getSpectrum(spectra_native_ids_[id]);
+  }
+
+  MSSpectrum OnDiscMSExperiment::getSpectrumByNativeId(const std::string& id)
+  {
+    if (!meta_ms_experiment_)
+    {
+      MSSpectrum spec;
+      indexed_mzml_file_.getMSSpectrumByNativeId(id, spec);
+      return spec;
+    }
+
+    MSSpectrum spec = getMetaSpectrumById_(id);
+    indexed_mzml_file_.getMSSpectrumByNativeId(id, spec);
+    return spec;
+  }
+
 } //namespace OpenMS
 

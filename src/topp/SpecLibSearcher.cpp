@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -31,18 +31,21 @@
 // $Maintainer: Timo Sachsenberg $
 // $Authors: David Wojnar, Timo Sachsenberg $
 // --------------------------------------------------------------------------
-#include <OpenMS/KERNEL/MSExperiment.h>
-#include <OpenMS/FORMAT/MzMLFile.h>
+
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
-#include <OpenMS/METADATA/PeptideIdentification.h>
+
+#include <OpenMS/CHEMISTRY/ModificationsDB.h>
+#include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/CONCEPT/Factory.h>
-#include <OpenMS/FORMAT/MSPFile.h>
-#include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/COMPARISON/SPECTRA/BinnedSpectrum.h>
 #include <OpenMS/COMPARISON/SPECTRA/SpectraSTSimilarityScore.h>
 #include <OpenMS/COMPARISON/SPECTRA/ZhangSimilarityScore.h>
-#include <OpenMS/CHEMISTRY/ModificationsDB.h>
+#include <OpenMS/FORMAT/IdXMLFile.h>
+#include <OpenMS/FORMAT/MSPFile.h>
+#include <OpenMS/FORMAT/MzMLFile.h>
+#include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/MATH/MISC/MathFunctions.h>
+#include <OpenMS/METADATA/PeptideIdentification.h>
 
 #include <ctime>
 #include <vector>
@@ -63,9 +66,9 @@ using namespace std;
 <CENTER>
     <table>
         <tr>
-            <td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. predecessor tools </td>
-            <td VALIGN="middle" ROWSPAN=2> \f$ \longrightarrow \f$ SpecLibSearcher \f$ \longrightarrow \f$</td>
-            <td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. successor tools </td>
+            <th ALIGN = "center"> pot. predecessor tools </td>
+            <td VALIGN="middle" ROWSPAN=2> &rarr; SpecLibSearcher &rarr;</td>
+            <th ALIGN = "center"> pot. successor tools </td>
         </tr>
         <tr>
             <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref UTILS_SpecLibCreator </td>
@@ -195,7 +198,7 @@ protected:
            const Residue& mod = aaseq.getResidue(j);
            for (Size k = 0; k < fixed_modifications.size(); ++k)
            {
-             if (mod.getOneLetterCode()[0] == mdb->getModification(fixed_modifications[k]).getOrigin() && fixed_modifications[k] != mod.getModificationName())
+             if (mod.getOneLetterCode()[0] == mdb->getModification(fixed_modifications[k])->getOrigin() && fixed_modifications[k] != mod.getModificationName())
              {
                fixed_modifications_ok = false;
                break;
@@ -215,7 +218,7 @@ protected:
            const Residue& mod = aaseq.getResidue(j);
            for (Size k = 0; k < variable_modifications.size(); ++k)
            {
-             if (mod.getOneLetterCode()[0] == mdb->getModification(variable_modifications[k]).getOrigin() && variable_modifications[k] != mod.getModificationName())
+             if (mod.getOneLetterCode()[0] == mdb->getModification(variable_modifications[k])->getOrigin() && variable_modifications[k] != mod.getModificationName())
              {
                variable_modifications_ok = false;
                break;
@@ -232,11 +235,12 @@ protected:
        lib_entry.setPrecursors(lib_spec.getPrecursors());
 
        // empty array would segfault
-       if (lib_spec.getStringDataArrays().empty())
+       if (id.getHits().empty() || id.getHits()[0].getPeakAnnotations().empty())
        {
          throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Expected StringDataArray of type MSPeakInfo");
        }
- 
+
+       const vector<PeptideHit::PeakAnnotation>& pa = id.getHits()[0].getPeakAnnotations();
        // library entry transformation
        for (UInt l = 0; l < lib_spec.size(); ++l)
        {
@@ -244,7 +248,7 @@ protected:
          if (lib_spec[l].getIntensity() > remove_peaks_below_threshold)
          {
            // this is the "MSPPeakInfo" array, see MSPFile which creates a single StringDataArray
-           const String& sa = lib_spec.getStringDataArrays()[0][l];
+           const String& sa = pa[l].annotation;
 
            // TODO: check why this scaling is done for ? peaks (dubious peaks?)
            if (sa[0] == '?')
@@ -299,7 +303,7 @@ protected:
 
     if (top_hits < -1)
     {
-      writeLog_("top_hits (should be  >= -1 )");
+      writeLogError_("top_hits (should be  >= -1 )");
       return ILLEGAL_PARAMETERS;
     }
 
@@ -308,7 +312,7 @@ protected:
     // -------------------------------------------------------------
     if (out.size() != in_spec.size())
     {
-      writeLog_("out (should be as many as input files)");
+      writeLogError_("out (should be as many as input files)");
       return ILLEGAL_PARAMETERS;
     }
 
@@ -352,10 +356,10 @@ protected:
     MapLibraryPrecursorToLibrarySpectrum mslib = annotateIdentificationsToSpectra_(ids, library, variable_modifications, fixed_modifications, remove_peaks_below_threshold);
 
     time_t end_build_time = time(nullptr);
-    LOG_INFO << "Time needed for preprocessing data: " << (end_build_time - start_build_time) << "\n";
+    OPENMS_LOG_INFO << "Time needed for preprocessing data: " << (end_build_time - start_build_time) << "\n";
 
     //compare function
-    PeakSpectrumCompareFunctor* comparor = Factory<PeakSpectrumCompareFunctor>::create(compare_function);
+    std::unique_ptr<PeakSpectrumCompareFunctor> comparator(Factory<PeakSpectrumCompareFunctor>::create(compare_function));
  
    //-------------------------------------------------------------
     // calculations
@@ -409,11 +413,14 @@ protected:
         prot_id.insertHit(pr_hit);
 
         // proper MS2?
-        if (query[j].empty() || query[j].getMSLevel() != 2) {continue; }
+        if (query[j].empty() || query[j].getMSLevel() != 2)
+        {
+          continue;
+        }
 
         if (query[j].getPrecursors().empty())
         {
-          writeLog_("Warning MS2 spectrum without precursor information");
+          writeLogWarn_("Warning MS2 spectrum without precursor information");
           continue;
         }
 
@@ -447,13 +454,19 @@ protected:
           filtered_query.sortByPosition();
         }
 
-        if (filtered_query.size() < min_peaks) { continue; }
+        if (filtered_query.size() < min_peaks)
+        { 
+          continue;
+        }
 
         const double& query_rt = query[j].getRT();
         const int& query_charge = query[j].getPrecursors()[0].getCharge();
         const double query_mz = query[j].getPrecursors()[0].getMZ();
         
-        if (query_charge > 0 && (query_charge < pc_min_charge || query_charge > pc_max_charge)) { continue; } 
+        if (query_charge > 0 && (query_charge < pc_min_charge || query_charge > pc_max_charge))
+        { 
+          continue;
+        } 
 
         for (auto const & iso : isotopes)
         {
@@ -464,11 +477,17 @@ protected:
           const double precursor_mass_tolerance_mz = precursor_mass_tolerance_unit_ppm ? ic_query_mz * precursor_mass_tolerance * 1e-6 : precursor_mass_tolerance;
 
           // skip matching of isotopic misassignments if charge not annotated
-          if (iso != 0 && query_charge == 0) { continue; }
+          if (iso != 0 && query_charge == 0)
+          {
+            continue;
+          }
 
           // skip matching of isotopic misassignments if search windows around isotopic peaks would overlap (resulting in more than one report of the same hit)
           const double isotopic_peak_distance_mz = Constants::C13C12_MASSDIFF_U / query_charge;
-          if (iso != 0 && precursor_mass_tolerance_mz >= 0.5 * isotopic_peak_distance_mz) { continue; }
+          if (iso != 0 && precursor_mass_tolerance_mz >= 0.5 * isotopic_peak_distance_mz)
+          { 
+            continue;
+          }
 
           /* TODO: remove old code for charge estimation?
           bool charge_one = false;
@@ -495,7 +514,10 @@ protected:
           up_it = mslib.upper_bound(ic_query_mz + 0.5 * precursor_mass_tolerance_mz);
         
           // no matching precursor in data
-          if (low_it == up_it) { continue; }
+          if (low_it == up_it)
+          { 
+            continue;
+          }
        
           for (; low_it != up_it; ++low_it)
           {
@@ -504,28 +526,31 @@ protected:
             const int& lib_charge = hit.getCharge();  
 
             // check if charge state between library and experimental spectrum match
-            if (query_charge > 0 && lib_charge != query_charge) { continue; }
+            if (query_charge > 0 && lib_charge != query_charge)
+            {
+              continue;
+            }
 
             // Special treatment for SpectraST score as it computes a score based on the whole library
             if (compare_function == "SpectraSTSimilarityScore")
             {
-              SpectraSTSimilarityScore* sp = static_cast<SpectraSTSimilarityScore*>(comparor);
-              BinnedSpectrum quer_bin_spec = sp->transform(filtered_query);
-              BinnedSpectrum lib_bin_spec = sp->transform(lib_spec);
-              score = (*sp)(filtered_query, lib_spec); //(*sp)(quer_bin,librar_bin);
-              double dot_bias = sp->dot_bias(quer_bin_spec, lib_bin_spec, score);
+              auto& sp = dynamic_cast<SpectraSTSimilarityScore&>(*comparator);
+              BinnedSpectrum quer_bin_spec = sp.transform(filtered_query);
+              BinnedSpectrum lib_bin_spec = sp.transform(lib_spec);
+              score = sp(filtered_query, lib_spec); //(*sp)(quer_bin,librar_bin);
+              double dot_bias = sp.dot_bias(quer_bin_spec, lib_bin_spec, score);
               hit.setMetaValue("DOTBIAS", dot_bias);
             }
             else
             {
-              score = (*comparor)(filtered_query, lib_spec);
+              score = (*comparator)(filtered_query, lib_spec);
             }
 
             DataValue RT(lib_spec.getRT());
             DataValue MZ(lib_spec.getPrecursors()[0].getMZ());
             hit.setMetaValue("lib:RT", RT);
             hit.setMetaValue("lib:MZ", MZ);
-            hit.setMetaValue("isotope_error", iso);
+            hit.setMetaValue(Constants::UserParam::ISOTOPE_ERROR, iso);
             hit.setScore(score);
             PeptideEvidence pe;
             pe.setProteinAccession(pr_hit.getAccession());
@@ -543,7 +568,7 @@ protected:
           {
             vector<PeptideHit> final_hits;
             final_hits.resize(pid.getHits().size());
-            SpectraSTSimilarityScore* sp = static_cast<SpectraSTSimilarityScore*>(comparor);
+            auto& sp = dynamic_cast<SpectraSTSimilarityScore&>(*comparator);
             Size runner_up = 1;
             for (; runner_up < pid.getHits().size(); ++runner_up)
             {
@@ -553,13 +578,13 @@ protected:
                 break;
               }
             }
-            double delta_D = sp->delta_D(pid.getHits()[0].getScore(), pid.getHits()[runner_up].getScore());
+            double delta_D = sp.delta_D(pid.getHits()[0].getScore(), pid.getHits()[runner_up].getScore());
             for (Size s = 0; s < pid.getHits().size(); ++s)
             {
               final_hits[s] = pid.getHits()[s];
               final_hits[s].setMetaValue("delta D", delta_D);
               final_hits[s].setMetaValue("dot product", pid.getHits()[s].getScore());
-              final_hits[s].setScore(sp->compute_F(pid.getHits()[s].getScore(), delta_D, pid.getHits()[s].getMetaValue("DOTBIAS")));
+              final_hits[s].setScore(sp.compute_F(pid.getHits()[s].getScore(), delta_D, pid.getHits()[s].getMetaValue("DOTBIAS")));
             }
             pid.setHits(final_hits);
             pid.sort();
@@ -582,10 +607,10 @@ protected:
       IdXMLFile id_xml_file;
       id_xml_file.store(*out_file, protein_ids, peptide_ids);
       time_t end_time = time(nullptr);
-      LOG_INFO << "Search time: " << difftime(end_time, start_time) << " seconds for " << *in << "\n";
+      OPENMS_LOG_INFO << "Search time: " << difftime(end_time, start_time) << " seconds for " << *in << "\n";
     }
     time_t end_time = time(nullptr);
-    LOG_INFO << "Total time: " << difftime(end_time, prog_time) << " seconds\n";
+    OPENMS_LOG_INFO << "Total time: " << difftime(end_time, prog_time) << " seconds\n";
     return EXECUTION_OK;
   }
 

@@ -11,10 +11,13 @@ cdef extern from "<OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentAlgorithmPoseClusteri
 
     cdef cppclass MapAlignmentAlgorithmPoseClustering(DefaultParamHandler, ProgressLogger):
         # wrap-inherits:
-        #    DefaultParamHandler
-        #    ProgressLogger
+        #   DefaultParamHandler
+        #   ProgressLogger
 
         MapAlignmentAlgorithmPoseClustering() nogil except +
+
+        # private
+        MapAlignmentAlgorithmPoseClustering(MapAlignmentAlgorithmPoseClustering &) nogil except + # wrap-ignore
 
         void align(FeatureMap,
                    TransformationDescription &
@@ -24,7 +27,7 @@ cdef extern from "<OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentAlgorithmPoseClusteri
                    TransformationDescription &
                    ) nogil except +
 
-        void setReference (FeatureMap) nogil except +
+        void setReference (FeatureMap) nogil except + # wrap-doc:Sets the reference for the alignment
         void setReference (MSExperiment) nogil except +
 
 

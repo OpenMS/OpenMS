@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -51,7 +51,11 @@ namespace OpenSwath
     normalized_intensities.resize(intensities.size());
     if (normalizer > 0)
     {
-      std::transform(intensities.begin(), intensities.end(), normalized_intensities.begin(), std::bind2nd(std::divides<double>(), normalizer));
+      std::transform(intensities.begin(), intensities.end(), normalized_intensities.begin(),
+                     [&normalizer](double val)
+                     {
+                      return val / normalizer;
+                     });
     }
   }
 

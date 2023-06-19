@@ -3,13 +3,13 @@ from Types cimport *
 cdef extern from "<OpenMS/ANALYSIS/XLMS/OPXLDataStructs.h>" namespace "OpenMS":
 
     cdef cppclass OPXLDataStructs "OpenMS::OPXLDataStructs":
-        OPXLDataStructs(OPXLDataStructs) nogil except + # wrap-ignore
-        OPXLDataStructs() nogil except + # wrap-ignore
+        OPXLDataStructs() nogil except + # compiler
+        OPXLDataStructs(OPXLDataStructs &) nogil except + # compiler
 
 cdef extern from "<OpenMS/ANALYSIS/XLMS/OPXLDataStructs.h>" namespace "OpenMS::OPXLDataStructs":
     cdef enum ProteinProteinCrossLinkType "OpenMS::OPXLDataStructs::ProteinProteinCrossLinkType":
         #wrap-attach:
-        #    OPXLDataStructs
+        #   OPXLDataStructs
         CROSS
         MONO
         LOOP
@@ -18,7 +18,7 @@ cdef extern from "<OpenMS/ANALYSIS/XLMS/OPXLDataStructs.h>" namespace "OpenMS::O
 cdef extern from "<OpenMS/ANALYSIS/XLMS/OPXLDataStructs.h>" namespace "OpenMS::OPXLDataStructs":
     cdef enum PeptidePosition "OpenMS::OPXLDataStructs::PeptidePosition":
         #wrap-attach:
-        #    OPXLDataStructs
+        #   OPXLDataStructs
         INTERNAL
         C_TERM
         N_TERM

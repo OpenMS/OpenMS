@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry               
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 // 
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -96,7 +96,7 @@ START_SECTION((bool operator==(const DocumentIdentifier &rhs) const))
   DocumentIdentifier di1;
 	di1.setIdentifier("this is a test");
 	DocumentIdentifier di2(di1);
-	TEST_EQUAL(di1==di2, true)
+	TEST_TRUE(di1 == di2)
 }
 END_SECTION
 
@@ -153,9 +153,9 @@ START_SECTION((void swap(DocumentIdentifier& from)))
 	di1.setLoadedFileType( OPENMS_GET_TEST_DATA_PATH("File_test_empty.txt"));
 	DocumentIdentifier di2;
 	di1.swap(di2);
-	TEST_EQUAL(di1.getIdentifier() == "", true)
-	TEST_EQUAL(di1.getIdentifier() == "", true)
-	TEST_EQUAL(di1.getIdentifier() == "", true)
+	TEST_EQUAL(di1.getIdentifier().empty(), true)
+	TEST_EQUAL(di1.getIdentifier().empty(), true)
+	TEST_EQUAL(di1.getIdentifier().empty(), true)
 	TEST_EQUAL(di2.getIdentifier() == "this is a test", true)
   TEST_EQUAL(di2.getLoadedFilePath(), OPENMS_GET_TEST_DATA_PATH("File_test_empty.txt"))
   TEST_EQUAL(FileTypes::typeToName(di2.getLoadedFileType()) == "unknown", true)

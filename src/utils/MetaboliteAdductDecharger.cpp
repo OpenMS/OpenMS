@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -50,15 +50,15 @@ using namespace std;
 //-------------------------------------------------------------
 
 /**
-   @page UTILS_MetaboliteAdductDecharger
+   @page UTILS_MetaboliteAdductDecharger MetaboliteAdductDecharger
 
    @brief Decharges a feature map by clustering charge variants of metabolites to zero-charge entities.
 <CENTER>
     <table>
         <tr>
-            <td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. predecessor tools </td>
-            <td VALIGN="middle" ROWSPAN=2> \f$ \longrightarrow \f$ MetaboliteAdductDecharger \f$ \longrightarrow \f$</td>
-            <td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. successor tools </td>
+            <th ALIGN = "center"> pot. predecessor tools </td>
+            <td VALIGN="middle" ROWSPAN=2> &rarr; MetaboliteAdductDecharger &rarr;</td>
+            <th ALIGN = "center"> pot. successor tools </td>
         </tr>
         <tr>
       <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_FeatureFinderMetabo </td>
@@ -69,7 +69,10 @@ using namespace std;
    The Decharger uses an ILP approach to group charge variants of the same metabolite, which
    usually occur in ESI ionization mode. The resulting zero-charge metabolites, which are defined by RT and mass,
    are written to consensusXML. Intensities of charge variants are summed up. The position of the zero charge
-   variant is the average of all clustered metabolites in each dimension (m/z and RT).
+   variant is the average of all clustered metabolites in each dimension (m and RT). For clustered metabolites,
+   the reported m/z is thus their neutral mass. For unclusted features with known charge, a default adduct
+   (protonation for positive mode, deprotonation for negative mode) is assumed to compute the neutral mass.
+   For unclustered features without known charge, m/z zero is reported.
    It is also possible to include adducted species to the charge ladders (see 'potential_adducts' parameter).
    Via this mechanism it is also possible to use this tool to find pairs/triples/quadruples/... in labeled data (by specifing the mass
    tag weight as an adduct). If mass tags induce an RT shift (e.g. deuterium labeled data) you can also specify this also in the adduct list.
@@ -103,7 +106,7 @@ protected:
   {
     registerInputFile_("in", "<file>", "", "input file ");
     setValidFormats_("in", ListUtils::create<String>("featureXML"));
-    registerOutputFile_("out_cm", "<file>", "", "output consensus map");
+    registerOutputFile_("out_cm", "<file>", "", "output consensus map", false);
     registerOutputFile_("out_fm", "<file>", "", "output feature map", false);
     registerOutputFile_("outpairs", "<file>", "", "output file", false);
     setValidFormats_("out_fm", ListUtils::create<String>("featureXML"));
@@ -175,7 +178,7 @@ protected:
 
 
     ConsensusXMLFile f;
-    f.store(outfile_cm, cm);
+    if (!outfile_cm.empty()) f.store(outfile_cm, cm);
 
     if (!outfile_p.empty()) f.store(outfile_p, cm2);
     if (!outfile_fm.empty()) FeatureXMLFile().store(outfile_fm, map_out);

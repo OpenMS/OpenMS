@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry               
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 // 
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -106,7 +106,7 @@ START_SECTION((Size findByNativeID(const String&) const))
 {
   TEST_EQUAL(lookup.findByNativeID("spectrum=1"), 1);
 
-  TEST_EXCEPTION(Exception::ElementNotFound, 
+  TEST_EXCEPTION(Exception::ElementNotFound,
                  lookup.findByNativeID("spectrum=3"));
 }
 END_SECTION
@@ -171,10 +171,11 @@ START_SECTION((static Int extractScanNumber(const String&,
   TEST_EQUAL(SpectrumLookup::extractScanNumber("scan=42", "MS:1000771"), 42);
   TEST_EQUAL(SpectrumLookup::extractScanNumber("scan=42", "MS:1000772"), 42);
   TEST_EQUAL(SpectrumLookup::extractScanNumber("scan=42", "MS:1000776"), 42);
-  TEST_EQUAL(SpectrumLookup::extractScanNumber("experiment=42", "MS:1000770"), 42);
+  TEST_EQUAL(SpectrumLookup::extractScanNumber("sample=1 period=1 cycle=42 experiment=1", "MS:1000770"), 42001);
   TEST_EQUAL(SpectrumLookup::extractScanNumber("file=42", "MS:1000773"), 42);
   TEST_EQUAL(SpectrumLookup::extractScanNumber("file=42", "MS:1000775"), 42);
-  TEST_EQUAL(SpectrumLookup::extractScanNumber("index=42", "MS:1000774"), 42);
+  TEST_EQUAL(SpectrumLookup::extractScanNumber("index=42", "MS:1000774"), 43);
+  TEST_EQUAL(SpectrumLookup::extractScanNumber("scanId=42", "MS:1001508"), 42);
   TEST_EQUAL(SpectrumLookup::extractScanNumber("spectrum=42", "MS:1000777"), 42);
   TEST_EQUAL(SpectrumLookup::extractScanNumber("42", "MS:1001530"), 42);
 }

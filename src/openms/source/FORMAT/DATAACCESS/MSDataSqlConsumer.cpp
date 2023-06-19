@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -39,9 +39,9 @@
 namespace OpenMS
 {
 
-  MSDataSqlConsumer::MSDataSqlConsumer(String filename, int flush_after, bool full_meta, bool lossy_compression, double linear_mass_acc) :
+  MSDataSqlConsumer::MSDataSqlConsumer(const String& filename, UInt64 run_id, int flush_after, bool full_meta, bool lossy_compression, double linear_mass_acc) :
         filename_(filename),
-        handler_(new OpenMS::Internal::MzMLSqliteHandler(filename) ),
+        handler_(new OpenMS::Internal::MzMLSqliteHandler(filename, run_id) ),
         flush_after_(flush_after),
         full_meta_(full_meta)
   {
@@ -57,10 +57,8 @@ namespace OpenMS
     flush();
 
     // Write run level information into the file (e.g. run id, run name and mzML structure)
-    bool write_full_meta = full_meta_;
-    int run_id = 0;
     peak_meta_.setLoadedFilePath(filename_);
-    handler_->writeRunLevelInformation(peak_meta_, write_full_meta, run_id);
+    handler_->writeRunLevelInformation(peak_meta_, full_meta_);
 
     delete handler_;
   }
@@ -86,18 +84,28 @@ namespace OpenMS
   {
     spectra_.push_back(s);
     s.clear(false);
-    if (full_meta_) peak_meta_.addSpectrum(s);
-
-    if (spectra_.size() >= flush_after_) {flush();}
+    if (full_meta_)
+    {
+      peak_meta_.addSpectrum(s);
+    }
+    if (spectra_.size() >= flush_after_)
+    {
+      flush();
+    }
   }
 
   void MSDataSqlConsumer::consumeChromatogram(ChromatogramType & c)
   {
     chromatograms_.push_back(c);
     c.clear(false);
-    if (full_meta_) peak_meta_.addChromatogram(c);
-
-    if (chromatograms_.size() >= flush_after_) {flush();}
+    if (full_meta_)
+    {
+      peak_meta_.addChromatogram(c);
+    }
+    if (chromatograms_.size() >= flush_after_)
+    {
+      flush();
+    }
   }
 
   void MSDataSqlConsumer::setExpectedSize(Size /* expectedSpectra */, Size /* expectedChromatograms */) {;}

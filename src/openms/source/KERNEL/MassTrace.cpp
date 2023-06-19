@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -39,7 +39,7 @@
 namespace OpenMS
 {
     // must match MassTrace::MT_QUANTMETHOD enum!
-    const std::string MassTrace::names_of_quantmethod[] = {"area", "median"};
+    const std::string MassTrace::names_of_quantmethod[] = {"area", "median", "max_height"};
 
     MassTrace::MT_QUANTMETHOD MassTrace::getQuantMethod(const String& val)
     {
@@ -49,90 +49,26 @@ namespace OpenMS
       return (MassTrace::MT_QUANTMETHOD)std::distance(qb, qm);
     }
 
-    MassTrace::MassTrace() :
-            fwhm_mz_avg(0),
-            trace_peaks_(),
-            centroid_mz_(),
-            centroid_sd_(),
-            centroid_rt_(),
-            label_(),
-            smoothed_intensities_(),
-            fwhm_(0.0),
-            fwhm_start_idx_(0),
-            fwhm_end_idx_(0),
-            quant_method_(MT_QUANT_AREA)
-    {
-    }
-
     MassTrace::MassTrace(const std::list<PeakType>& trace_peaks) :
-            fwhm_mz_avg(0),
+            
             trace_peaks_(),
-            centroid_mz_(),
-            centroid_sd_(),
-            centroid_rt_(),
+            
             label_(),
-            smoothed_intensities_(),
-            fwhm_(0.0),
-            fwhm_start_idx_(0),
-            fwhm_end_idx_(0),
-            quant_method_(MT_QUANT_AREA)
+            smoothed_intensities_()
+            
     {
       trace_peaks_.reserve(trace_peaks.size());
       std::copy(trace_peaks.begin(), trace_peaks.end(), back_inserter(trace_peaks_));
     }
 
     MassTrace::MassTrace(const std::vector<PeakType>& trace_peaks) :
-            fwhm_mz_avg(0),
+            
             trace_peaks_(trace_peaks),
-            centroid_mz_(),
-            centroid_sd_(),
-            centroid_rt_(),
+            
             label_(),
-            smoothed_intensities_(),
-            fwhm_(0.0),
-            fwhm_start_idx_(0),
-            fwhm_end_idx_(0),
-            quant_method_(MT_QUANT_AREA)
+            smoothed_intensities_()
+            
     {
-    }
-
-    MassTrace::~MassTrace()
-    {
-    }
-
-    MassTrace::MassTrace(const MassTrace& mt) :
-            fwhm_mz_avg(mt.fwhm_mz_avg),
-            trace_peaks_(mt.trace_peaks_),
-            centroid_mz_(mt.centroid_mz_),
-            centroid_sd_(mt.centroid_sd_),
-            centroid_rt_(mt.centroid_rt_),
-            label_(mt.label_),
-            smoothed_intensities_(mt.smoothed_intensities_),
-            fwhm_(mt.fwhm_),
-            fwhm_start_idx_(mt.fwhm_start_idx_),
-            fwhm_end_idx_(mt.fwhm_end_idx_),
-            quant_method_(mt.quant_method_)
-    {
-    }
-
-    MassTrace& MassTrace::operator=(const MassTrace& rhs)
-    {
-      if (this == &rhs)
-        return *this;
-
-      fwhm_mz_avg = rhs.fwhm_mz_avg;
-      trace_peaks_ = rhs.trace_peaks_;
-      centroid_mz_ = rhs.centroid_mz_;
-      centroid_rt_ = rhs.centroid_rt_;
-      centroid_sd_ = rhs.centroid_sd_;
-      label_ = rhs.label_;
-      smoothed_intensities_ = rhs.smoothed_intensities_;
-      fwhm_ = rhs.fwhm_;
-      fwhm_start_idx_ = rhs.fwhm_start_idx_;
-      fwhm_end_idx_ = rhs.fwhm_end_idx_;
-      quant_method_ = rhs.quant_method_;
-
-      return *this;
     }
 
     PeakType& MassTrace::operator[](const Size& mt_idx)
@@ -169,15 +105,16 @@ namespace OpenMS
       double peak_area(0.0);
 
       if (trace_peaks_.empty())
+      {
         return peak_area;
-
+      }
       double int_before = trace_peaks_.begin()->getIntensity();
       double rt_before = trace_peaks_.begin()->getRT();
-      for (MassTrace::const_iterator l_it = trace_peaks_.begin() + 1; l_it != trace_peaks_.end(); ++l_it)
+      for (const Peak2D& l_it : trace_peaks_)
       {
-        peak_area += (int_before + l_it->getIntensity())/2 * (l_it->getRT() - rt_before);
-        int_before = l_it->getIntensity();
-        rt_before = l_it->getRT();
+        peak_area += (int_before + l_it.getIntensity())/2 * (l_it.getRT() - rt_before);
+        int_before = l_it.getIntensity();
+        rt_before = l_it.getRT();
       }
 
       return peak_area;
@@ -311,12 +248,12 @@ namespace OpenMS
 
     double MassTrace::linearInterpolationAtY_(double xA, double xB, double yA, double yB, double y_eval) const
     {
-      OPENMS_PRECONDITION(yA < y_eval && y_eval < yB, "y_eval is not between yA and yB")
+      OPENMS_PRECONDITION(yA <= y_eval && y_eval <= yB, "y_eval is not between yA and yB")
       // no solution -> return an estimate
       if (std::fabs(xA - xB) == 0 || std::fabs(yA - yB) == 0)  { return xA; }
 
       double xC = (xA + ((y_eval - yA) * (xB - xA) / (yB - yA)));
-      OPENMS_POSTCONDITION(xA < xC && xC < xB, "xC is not between xA and xB");
+      OPENMS_POSTCONDITION(xA <= xC && xC <= xB, "xC is not between xA and xB");
 
       return xC;
     }
@@ -340,8 +277,7 @@ namespace OpenMS
 
     double MassTrace::computeFwhmAreaSmooth() const
     {
-      if (fwhm_start_idx_ == 0 
-       && fwhm_end_idx_ == 0)
+      if (fwhm_start_idx_ == 0 && fwhm_end_idx_ == 0)
       {
         return 0;
       }
@@ -362,8 +298,7 @@ namespace OpenMS
 
     double MassTrace::computeFwhmArea() const
     {
-      if (fwhm_start_idx_ == 0 
-       && fwhm_end_idx_ == 0)
+      if (fwhm_start_idx_ == 0 && fwhm_end_idx_ == 0)
       {
         return 0;
       }
@@ -407,7 +342,10 @@ namespace OpenMS
           case MT_QUANT_AREA:
             return computeFwhmAreaSmooth();
           case MT_QUANT_MEDIAN:
-            throw Exception::NotImplemented(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
+            // median quantification (e.g. for direct infusion data) should work indepentently from smoothing
+            return computeMedianIntensity_();
+          case MT_QUANT_HEIGHT:
+            return getMaxIntensity(true);
           default:
             throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Member 'quant_method_' has unsupported value.", String(quant_method_));
         }
@@ -421,6 +359,8 @@ namespace OpenMS
             return computeFwhmArea();
           case MT_QUANT_MEDIAN:
             return computeMedianIntensity_();
+          case MT_QUANT_HEIGHT:
+            return getMaxIntensity(false);
           default:
             throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Member 'quant_method_' has unsupported value.", String(quant_method_));
 
@@ -461,10 +401,10 @@ namespace OpenMS
       ConvexHull2D::PointArrayType hull_points(trace_peaks_.size());
 
       Size i = 0;
-      for (MassTrace::const_iterator l_it = trace_peaks_.begin(); l_it != trace_peaks_.end(); ++l_it)
+      for (const Peak2D& l_it : trace_peaks_)
       {
-        hull_points[i][0] = (*l_it).getRT();
-        hull_points[i][1] = (*l_it).getMZ();
+        hull_points[i][0] = (l_it).getRT();
+        hull_points[i][1] = (l_it).getMZ();
         ++i;
       }
 
@@ -570,9 +510,9 @@ namespace OpenMS
       // copy mz values to temp vec
       std::vector<double> temp_rt;
 
-      for (MassTrace::const_iterator l_it = trace_peaks_.begin(); l_it != trace_peaks_.end(); ++l_it)
+      for (const Peak2D& l_it : trace_peaks_)
       {
-        temp_rt.push_back((*l_it).getRT());
+        temp_rt.push_back((l_it).getRT());
       }
 
       std::sort(temp_rt.begin(), temp_rt.end());
@@ -609,9 +549,9 @@ namespace OpenMS
       // copy mz values to temp vec
       std::vector<double> temp_mz;
 
-      for (MassTrace::const_iterator l_it = trace_peaks_.begin(); l_it != trace_peaks_.end(); ++l_it)
+      for (const Peak2D& l_it : trace_peaks_)
       {
-        temp_mz.push_back((*l_it).getMZ());
+        temp_mz.push_back((l_it).getMZ());
       }
 
       std::sort(temp_mz.begin(), temp_mz.end());
@@ -641,9 +581,9 @@ namespace OpenMS
 
       double sum_mz(0.0);
 
-      for (MassTrace::const_iterator l_it = trace_peaks_.begin(); l_it != trace_peaks_.end(); ++l_it)
+      for (const Peak2D& l_it : trace_peaks_)
       {
-        sum_mz += (*l_it).getMZ();
+        sum_mz += (l_it).getMZ();
       }
 
       centroid_mz_ = sum_mz / trace_size;
@@ -661,11 +601,11 @@ namespace OpenMS
       double weighted_sum(0.0);
       double total_weight(0.0);
 
-      for (MassTrace::const_iterator l_it = trace_peaks_.begin(); l_it != trace_peaks_.end(); ++l_it)
+      for (const Peak2D& l_it : trace_peaks_)
       {
-        double w_i = (*l_it).getIntensity();
+        double w_i = (l_it).getIntensity();
         total_weight += w_i;
-        weighted_sum += w_i * (*l_it).getMZ();
+        weighted_sum += w_i * (l_it).getMZ();
       }
 
       if (total_weight < std::numeric_limits<double>::epsilon())
@@ -686,11 +626,11 @@ namespace OpenMS
       double weighted_sum(0.0);
       double total_weight(0.0);
 
-      for (MassTrace::const_iterator l_it = trace_peaks_.begin(); l_it != trace_peaks_.end(); ++l_it)
+      for (const Peak2D& l_it : trace_peaks_)
       {
-        double w_i = l_it->getIntensity();
+        double w_i = l_it.getIntensity();
         total_weight += w_i;
-        weighted_sum += w_i * std::exp(2 * std::log(std::abs(l_it->getMZ() - centroid_mz_)));
+        weighted_sum += w_i * std::exp(2 * std::log(std::abs(l_it.getMZ() - centroid_mz_)));
       }
 
       if (total_weight < std::numeric_limits<double>::epsilon())

@@ -5,3 +5,9 @@ Fraction_Group	Fraction	Spectra_Filepath	Label	Sample
 2	2	BSA2_F2.mzML	1	2
 3	1	BSA3_F1.mzML	1	3
 3	2	BSA3_F2.mzML	1	3
+
+Sample	MSstats_Condition	MSstats_BioReplicate
+1	1	1
+2	2	2
+3	3	3
+

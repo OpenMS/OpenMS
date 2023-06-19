@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -35,9 +35,11 @@
 #pragma once
 
 #include <OpenMS/DATASTRUCTURES/DPosition.h>
-#include <OpenMS/MATH/STATISTICS/GumbelDistributionFitter.h>
-#include <OpenMS/MATH/STATISTICS/GaussFitter.h>
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
+#include <OpenMS/MATH/STATISTICS/GumbelDistributionFitter.h>
+#include <OpenMS/MATH/STATISTICS/GumbelMaxLikelihoodFitter.h>
+#include <OpenMS/MATH/STATISTICS/GaussFitter.h>
 
 #include <vector>
 #include <map>
@@ -59,6 +61,11 @@ namespace OpenMS
       This class fits either a Gumbel distribution and a Gauss distribution to a set of data points or two Gaussian distributions using the EM algorithm.
       One can output the fit as a gnuplot formula using getGumbelGnuplotFormula() and getGaussGnuplotFormula() after fitting.
       @note All parameters are stored in GaussFitResult. In the case of the Gumbel distribution x0 and sigma represent the local parameter alpha and the scale parameter beta, respectively.
+
+      @todo test performance and make fitGumbelGauss available via parameters.
+      @todo allow charge state based fitting
+      @todo allow semi-supervised by using decoy annotations
+      @todo allow non-parametric via kernel density estimation
 
       @htmlinclude OpenMS_Math::PosteriorErrorProbabilityModel.parameters
 
@@ -119,12 +126,24 @@ public:
         bool & data_might_not_be_well_fit);
 
       /**
-          @brief fits the distributions to the data points(search_engine_scores). Estimated parameters for the distributions are saved in member variables. computeProbability can be used afterwards.
+          @brief fits the distributions to the data points(search_engine_scores). Estimated parameters for the distributions are saved in member variables.
+          computeProbability can be used afterwards.
+          Uses two Gaussians to fit. And Gauss+Gauss or Gumbel+Gauss to plot and calculate final probabilities.
           @param search_engine_scores a vector which holds the data points
           @return true if algorithm has run through. Else false will be returned. In that case no plot and no probabilities are calculated.
           @note the vector is sorted from smallest to biggest value!
       */
-      bool fit(std::vector<double> & search_engine_scores);
+      bool fit(std::vector<double> & search_engine_scores, const String& outlier_handling);
+
+      /**
+          @brief fits the distributions to the data points(search_engine_scores). Estimated parameters for the distributions are saved in member variables.
+          computeProbability can be used afterwards.
+          Uses Gumbel+Gauss for everything. Fits Gumbel by maximizing log likelihood.
+          @param search_engine_scores a vector which holds the data points
+          @return true if algorithm has run through. Else false will be returned. In that case no plot and no probabilities are calculated.
+          @note the vector is sorted from smallest to biggest value!
+      */
+      bool fitGumbelGauss(std::vector<double>& search_engine_scores, const String& outlier_handling);
 
       /**
           @brief fits the distributions to the data points(search_engine_scores) and writes the computed probabilities into the given vector (the second one).
@@ -133,25 +152,44 @@ public:
           @return true if algorithm has run through. Else false will be returned. In that case no plot and no probabilities are calculated.
           @note the vectors are sorted from smallest to biggest value!
       */
-      bool fit(std::vector<double> & search_engine_scores, std::vector<double> & probabilities);
+      bool fit(std::vector<double> & search_engine_scores, std::vector<double> & probabilities, const String& outlier_handling);
 
       ///Writes the distributions densities into the two vectors for a set of scores. Incorrect_densities represent the incorrectly assigned sequences.
-      void fillDensities(std::vector<double> & x_scores, std::vector<double> & incorrect_density, std::vector<double> & correct_density);
-      ///computes the Maximum Likelihood with a log-likelihood function.
-      double computeMaxLikelihood(std::vector<double> & incorrect_density, std::vector<double> & correct_density);
-      ///sums (1 - posterior probabilities)
-      double one_minus_sum_post(std::vector<double> & incorrect_density, std::vector<double> & correct_density);
-      ///sums  posterior probabilities
-      double sum_post(std::vector<double> & incorrect_density, std::vector<double> & correct_density);
-      ///helper function for the EM algorithm (for fitting)
-      double sum_pos_x0(std::vector<double> & x_scores, std::vector<double> & incorrect_density, std::vector<double> & correct_density);
-      ///helper function for the EM algorithm (for fitting)
-      double sum_neg_x0(std::vector<double> & x_scores, std::vector<double> & incorrect_density, std::vector<double> & correct_density);
-      ///helper function for the EM algorithm (for fitting)
-      double sum_pos_sigma(std::vector<double> & x_scores, std::vector<double> & incorrect_density, std::vector<double> & correct_density, double positive_mean);
-      ///helper function for the EM algorithm (for fitting)
-      double sum_neg_sigma(std::vector<double> & x_scores, std::vector<double> & incorrect_density, std::vector<double> & correct_density, double positive_mean);
+      void fillDensities(const std::vector<double> & x_scores, std::vector<double> & incorrect_density, std::vector<double> & correct_density);
+      ///Writes the log distributions densities into the two vectors for a set of scores. Incorrect_densities represent the incorrectly assigned sequences.
+      void fillLogDensities(const std::vector<double> & x_scores, std::vector<double> & incorrect_density, std::vector<double> & correct_density);
+      ///Writes the log distributions of gumbel and gauss densities into the two vectors for a set of scores. Incorrect_densities represent the incorrectly assigned sequences.
+      void fillLogDensitiesGumbel(const std::vector<double> & x_scores, std::vector<double> & incorrect_density, std::vector<double> & correct_density);
+      ///computes the Likelihood with a log-likelihood function.
+      double computeLogLikelihood(const std::vector<double> & incorrect_density, const std::vector<double> & correct_density) const;
+      
+      /**computes the posteriors for the datapoints to belong to the incorrect distribution
+       * @param incorrect_posterior resulting posteriors
+       * @return the log-likelihood of the model
+       */
+      double computeLLAndIncorrectPosteriorsFromLogDensities(
+          const std::vector<double>& incorrect_log_density,
+          const std::vector<double>& correct_log_density,
+          std::vector<double>& incorrect_posterior) const;
 
+      /**
+       * @param x_scores Scores observed "on the x-axis"
+       * @param incorrect_posteriors Posteriors/responsibilities of belonging to the incorrect component
+       * @return New estimate for the mean of the correct (pair.first) and incorrect (pair.second) component
+       * @note only for Gaussian estimates
+       */
+      std::pair<double, double> pos_neg_mean_weighted_posteriors(const std::vector<double> &x_scores,
+                                                                 const std::vector<double> &incorrect_posteriors);
+
+      /**
+       * @param x_scores Scores observed "on the x-axis"
+       * @param incorrect_posteriors Posteriors/responsibilities of belonging to the incorrect component
+       * @return New estimate for the std. deviation of the correct (pair.first) and incorrect (pair.second) component
+       * @note only for Gaussian estimates
+       */
+      std::pair<double, double> pos_neg_sigma_weighted_posteriors(const std::vector<double> &x_scores,
+                                                                 const std::vector<double> &incorrect_posteriors,
+                                                                 const std::pair<double, double>& means);
 
       ///returns estimated parameters for correctly assigned sequences. Fit should be used before.
       GaussFitter::GaussFitResult getCorrectlyAssignedFitResult() const
@@ -163,6 +201,12 @@ public:
       GaussFitter::GaussFitResult getIncorrectlyAssignedFitResult() const
       {
         return incorrectly_assigned_fit_param_;
+      }
+
+      ///returns estimated parameters for correctly assigned sequences. Fit should be used before.
+      GumbelMaxLikelihoodFitter::GumbelDistributionFitResult getIncorrectlyAssignedGumbelFitResult() const
+      {
+        return incorrectly_assigned_fit_gumbel_param_;
       }
 
       ///returns the estimated negative prior probability.
@@ -200,7 +244,7 @@ public:
       void plotTargetDecoyEstimation(std::vector<double> & target, std::vector<double> & decoy);
 
       /// returns the smallest score used in the last fit
-      inline double getSmallestScore()
+      inline double getSmallestScore() const
       {
         return smallest_score_;
       }
@@ -210,7 +254,19 @@ public:
 
 private:
       /// transform different score types to a range and score orientation that the model can handle (engine string is assumed in upper-case)
-      static double transformScore_(const String & engine, const PeptideHit & hit);
+      void processOutliers_(std::vector<double>& x_scores, const String& outlier_handling) const;
+
+      /// transform different score types to a range and score orientation that the model can handle (engine string is assumed in upper-case)
+      /// @param engine the search engine name as in the SE param object
+      /// @param hit the PeptideHit to extract transformed scores from
+      /// @param current_score_type the current score type of the PeptideIdentification to take precedence
+      static double transformScore_(const String& engine, const PeptideHit& hit, const String& current_score_type);
+
+      /// gets a specific score (either main score [preferred] or metavalue)
+      /// @param requested_score_types the requested score_types in order of preference (will be tested with a "_score" suffix as well)
+      /// @param hit the PeptideHit to extract from
+      /// @param actual_score_type the current score type to take preference if matching
+      static double getScore_(const std::vector<String>& requested_score_types, const PeptideHit & hit, const String& actual_score_type);
 
       /// assignment operator (not implemented)
       PosteriorErrorProbabilityModel & operator=(const PosteriorErrorProbabilityModel & rhs);
@@ -218,6 +274,7 @@ private:
       PosteriorErrorProbabilityModel(const PosteriorErrorProbabilityModel & rhs);
       ///stores parameters for incorrectly assigned sequences. If gumbel fit was used, A can be ignored. Furthermore, in this case, x0 and sigma are the local parameter alpha and scale parameter beta, respectively.
       GaussFitter::GaussFitResult incorrectly_assigned_fit_param_;
+      GumbelMaxLikelihoodFitter::GumbelDistributionFitResult incorrectly_assigned_fit_gumbel_param_;
       ///stores gauss parameters
       GaussFitter::GaussFitResult correctly_assigned_fit_param_;
       ///stores final prior probability for negative peptides

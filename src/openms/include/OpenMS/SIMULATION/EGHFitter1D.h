@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -74,7 +74,7 @@ public:
     }
 
     /// return interpolation model
-    QualityType fit1d(const RawDataArrayType & range, InterpolationModel * & model) override;
+    QualityType fit1d(const RawDataArrayType & range, std::unique_ptr<InterpolationModel>& model) override;
 
 protected:
 
@@ -94,9 +94,9 @@ protected:
       EGHFitterFunctor(int dimensions, const EGHFitter1D::Data * data)
       : LevMarqFitter1D::GenericFunctor(dimensions, data->n), m_data(data) {}
 
-      int operator()(const Eigen::VectorXd &x, Eigen::VectorXd &fvec) override;
+      int operator()(const Eigen::VectorXd &x, Eigen::VectorXd &fvec) const override;
       // compute Jacobian matrix for the different parameters
-      int df(const Eigen::VectorXd &x, Eigen::MatrixXd &J) override;
+      int df(const Eigen::VectorXd &x, Eigen::MatrixXd &J) const override;
 
       protected:
         const EGHFitter1D::Data * m_data;

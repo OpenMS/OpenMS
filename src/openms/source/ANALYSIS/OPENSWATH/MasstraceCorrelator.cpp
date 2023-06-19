@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry               
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 // 
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -34,7 +34,7 @@
 
 #include <OpenMS/ANALYSIS/OPENSWATH/MasstraceCorrelator.h>
 
-#include <OpenMS/OPENSWATHALGO/ALGO/MRMScoring.h>
+#include <OpenMS/ANALYSIS/OPENSWATH/MRMScoring.h>
 #include <OpenMS/OPENSWATHALGO/ALGO/Scoring.h>
 #include <OpenMS/FILTERING/NOISEESTIMATION/SignalToNoiseEstimatorMedian.h>
 #include <OpenMS/MATH/STATISTICS/StatisticFunctions.h>
@@ -64,9 +64,7 @@ namespace OpenMS
     defaultsToParam_();
   }
 
-  MasstraceCorrelator::~MasstraceCorrelator()
-  {
-  }
+  MasstraceCorrelator::~MasstraceCorrelator() = default;
 
   void MasstraceCorrelator::matchMassTraces_(
       const MasstracePointsType& hull_points1,
@@ -200,7 +198,7 @@ namespace OpenMS
           max_mz  = it->getMZ();
         }
       }
-      max_intensities.push_back( std::make_pair(max_mz, max_int));
+      max_intensities.emplace_back(max_mz, max_int);
       rt_cache.push_back(map[i].getRT());
     }
     endProgress();
@@ -311,10 +309,10 @@ namespace OpenMS
           nr_peaks_added++;
 #endif
 
-          Peak1D peak;
-          peak.setMZ(max_intensities[j].first);
-          peak.setIntensity(max_intensities[j].second);
-          spectrum.push_back(peak);
+          Peak1D tmp_peak;
+          tmp_peak.setMZ(max_intensities[j].first);
+          tmp_peak.setIntensity(max_intensities[j].second);
+          spectrum.push_back(tmp_peak);
           spectrum.getFloatDataArrays()[0].push_back(map[j].getRT());
           spectrum.getFloatDataArrays()[1].push_back(fabs(map[i].getRT() - map[j].getRT()));
           spectrum.getFloatDataArrays()[2].push_back(lag);

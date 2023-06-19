@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -47,47 +47,13 @@ namespace OpenMS
     file_size_(),
     file_type_(),
     checksum_(),
-    checksum_type_(SourceFile::UNKNOWN_CHECKSUM),
+    
     native_id_type_(""),
     native_id_type_accession_("")
   {
-
   }
 
-  SourceFile::SourceFile(const SourceFile& source) :
-    CVTermList(source),
-    name_of_file_(source.name_of_file_),
-    path_to_file_(source.path_to_file_),
-    file_size_(source.file_size_),
-    file_type_(source.file_type_),
-    checksum_(source.checksum_),
-    checksum_type_(source.checksum_type_),
-    native_id_type_(source.native_id_type_),
-    native_id_type_accession_(source.native_id_type_accession_)
-  {
-  }
-
-  SourceFile::~SourceFile()
-  {
-  }
-
-  SourceFile& SourceFile::operator=(const SourceFile& source)
-  {
-    if (&source == this)
-      return *this;
-
-    CVTermList::operator=(source);
-    name_of_file_ = source.name_of_file_;
-    path_to_file_ = source.path_to_file_;
-    file_size_ = source.file_size_;
-    file_type_ = source.file_type_;
-    checksum_ = source.checksum_;
-    checksum_type_ = source.checksum_type_;
-    native_id_type_ = source.native_id_type_;
-    native_id_type_accession_ = source.native_id_type_accession_;
-
-    return *this;
-  }
+  SourceFile::~SourceFile() = default;
 
   bool SourceFile::operator==(const SourceFile& rhs) const
   {
@@ -184,3 +150,4 @@ namespace OpenMS
   }
 
 }
+

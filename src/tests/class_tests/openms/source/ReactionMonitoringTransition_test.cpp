@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry               
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 // 
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -51,12 +51,16 @@ ReactionMonitoringTransition* ptr = nullptr;
 ReactionMonitoringTransition* nullPointer = nullptr;
 
 START_SECTION(ReactionMonitoringTransition())
+{
   ptr = new ReactionMonitoringTransition();
   TEST_NOT_EQUAL(ptr, nullPointer)
+}
 END_SECTION
 
 START_SECTION(~ReactionMonitoringTransition())
+{
   delete ptr;
+}
 END_SECTION
 
 OpenMS::ReactionMonitoringTransition transition = ReactionMonitoringTransition();
@@ -68,6 +72,9 @@ charge_cv.setAccession(charge_cv_acc);
 charge_cv.setName("charge state");
 charge_cv.setValue(3);
 
+/////////////////////////////////////////////////////////////
+// Copy constructor, move constructor, assignment operator, move assignment operator, equality
+
 START_SECTION((ReactionMonitoringTransition(const ReactionMonitoringTransition &rhs)))
 {
   ReactionMonitoringTransition tr1, tr2, tr3;
@@ -75,7 +82,7 @@ START_SECTION((ReactionMonitoringTransition(const ReactionMonitoringTransition &
   tr1.addPrecursorCVTerm(charge_cv);
   tr1.setPrecursorMZ(42.0);
 	tr2 = ReactionMonitoringTransition(tr1);
-  TEST_EQUAL(tr1 == tr2, true)
+  TEST_TRUE(tr1 == tr2)
   ReactionMonitoringTransition::Prediction p;
   p.contact_ref = "dummy";
   tr1.setPrediction(p);
@@ -83,12 +90,82 @@ START_SECTION((ReactionMonitoringTransition(const ReactionMonitoringTransition &
   tr1.setDetectingTransition(false);
   tr1.setQuantifyingTransition(false);
 	tr3 = ReactionMonitoringTransition(tr1);
-  TEST_EQUAL(tr1 == tr3, true)
+  TEST_TRUE(tr1 == tr3)
   TEST_EQUAL(tr1 == tr2, false)
 
 
 }
 END_SECTION
+
+START_SECTION((ReactionMonitoringTransition(ReactionMonitoringTransition &&rhs)))
+{
+  // Ensure that ReactionMonitoringTransition has a no-except move constructor (otherwise
+  // std::vector is inefficient and will copy instead of move).
+  TEST_EQUAL(noexcept(ReactionMonitoringTransition(std::declval<ReactionMonitoringTransition&&>())), true)
+
+  ReactionMonitoringTransition tr1, tr2, tr3;
+
+  ReactionMonitoringTransition::Prediction pred;
+  pred.contact_ref = "dummy";
+  tr1.setPrediction(pred);
+  tr1.addPrecursorCVTerm(charge_cv);
+  tr1.setPrecursorMZ(42.0);
+  tr1.setCompoundRef("test_ref");
+
+  auto orig = tr1;
+	tr2 = ReactionMonitoringTransition(std::move(tr1));
+  TEST_TRUE(orig == tr2);
+
+  TEST_EQUAL(tr2.hasPrecursorCVTerms(), true);
+  TEST_EQUAL(tr2.hasPrediction(), true);
+  TEST_EQUAL(tr2.getPrediction().contact_ref, "dummy");
+  TEST_EQUAL(tr2.getPrecursorCVTermList().hasCVTerm(charge_cv_acc), true)
+  TEST_EQUAL(tr2.getCompoundRef(), "test_ref")
+
+  TEST_EQUAL(tr1.hasPrecursorCVTerms(), false); // its gone
+  TEST_EQUAL(tr1.hasPrediction(), false); // its gone
+  TEST_EQUAL(tr1.getCompoundRef(), "") // its gone
+
+  ReactionMonitoringTransition::Prediction p;
+  p.contact_ref = "dummy";
+  orig.setPrediction(p);
+  orig.setIdentifyingTransition(false);
+  orig.setDetectingTransition(false);
+  orig.setQuantifyingTransition(false);
+  tr1 = orig;
+	tr3 = ReactionMonitoringTransition(std::move(tr1));
+  TEST_TRUE(orig == tr3)
+  TEST_EQUAL(orig == tr2, false)
+
+
+}
+END_SECTION
+
+START_SECTION((ReactionMonitoringTransition& operator=(const ReactionMonitoringTransition &rhs)))
+{
+  ReactionMonitoringTransition tr1, tr2, tr3;
+
+  tr1.addPrecursorCVTerm(charge_cv);
+  tr1.setPrecursorMZ(42.0);
+	tr2 = tr1;
+  TEST_TRUE(tr1 == tr2)
+  ReactionMonitoringTransition::Prediction p;
+  p.contact_ref = "dummy";
+  tr1.setPrediction(p);
+  tr3 = tr1;
+  TEST_TRUE(tr1 == tr3)
+  TEST_EQUAL(tr1 == tr2, false)
+
+  tr1.setDetectingTransition(false);
+  TEST_EQUAL(tr1 == tr3, false)
+  tr1.setIdentifyingTransition(true);
+  tr1.setQuantifyingTransition(false);
+  TEST_EQUAL(tr1 == tr3, false)
+  tr3 = tr1;
+  TEST_TRUE(tr1 == tr3)
+}
+END_SECTION
+
 
 START_SECTION((void setName(const String &name)))
 {
@@ -209,6 +286,22 @@ START_SECTION((double getProductMZ() const ))
 }
 END_SECTION
 
+START_SECTION((void setProduct(Product product)))
+{
+  auto product = OpenMS::ReactionMonitoringTransition::Product();
+  OpenMS::ReactionMonitoringTransition tr = ReactionMonitoringTransition();
+  tr.setProduct(product);
+
+  TEST_EQUAL(tr.getProduct() == product, true)
+}
+END_SECTION
+
+START_SECTION((const Product & getProduct() const))
+{
+  TEST_EQUAL(transition.getProduct() == OpenMS::ReactionMonitoringTransition::Product(), true)
+}
+END_SECTION
+
 START_SECTION((void addProductCVTerm(const CVTerm &cv_term)))
 {
   // TODO
@@ -267,17 +360,17 @@ END_SECTION
 START_SECTION((bool operator==(const ReactionMonitoringTransition &rhs) const ))
 {
   ReactionMonitoringTransition tr1, tr2;
-  TEST_EQUAL(tr1 == tr2, true)
+  TEST_TRUE(tr1 == tr2)
 
   tr1.addPrecursorCVTerm(charge_cv);
   TEST_EQUAL(tr1 == tr2, false)
   tr2.addPrecursorCVTerm(charge_cv);
-  TEST_EQUAL(tr1 == tr2, true)
+  TEST_TRUE(tr1 == tr2)
 
   tr1.setDetectingTransition(false);
   TEST_EQUAL(tr1 == tr2, false)
   tr2.setDetectingTransition(false);
-  TEST_EQUAL(tr1 == tr2, true)
+  TEST_TRUE(tr1 == tr2)
 
 }
 END_SECTION
@@ -288,32 +381,7 @@ START_SECTION((bool operator!=(const ReactionMonitoringTransition &rhs) const ))
   TEST_EQUAL(tr1 != tr2, false)
 
   tr1.addPrecursorCVTerm(charge_cv);
-  TEST_EQUAL(tr1 != tr2, true)
-}
-END_SECTION
-
-START_SECTION((ReactionMonitoringTransition& operator=(const ReactionMonitoringTransition &rhs)))
-{
-  ReactionMonitoringTransition tr1, tr2, tr3;
-
-  tr1.addPrecursorCVTerm(charge_cv);
-  tr1.setPrecursorMZ(42.0);
-	tr2 = tr1;
-  TEST_EQUAL(tr1 == tr2, true)
-  ReactionMonitoringTransition::Prediction p;
-  p.contact_ref = "dummy";
-  tr1.setPrediction(p);
-  tr3 = tr1;
-  TEST_EQUAL(tr1 == tr3, true)
-  TEST_EQUAL(tr1 == tr2, false)
-
-  tr1.setDetectingTransition(false);
-  TEST_EQUAL(tr1 == tr3, false)
-  tr1.setIdentifyingTransition(true);
-  tr1.setQuantifyingTransition(false);
-  TEST_EQUAL(tr1 == tr3, false)
-  tr3 = tr1;
-  TEST_EQUAL(tr1 == tr3, true)
+  TEST_FALSE(tr1 == tr2)
 }
 END_SECTION
 

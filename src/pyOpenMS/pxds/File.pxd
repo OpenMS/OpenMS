@@ -34,9 +34,6 @@ cdef extern from "<OpenMS/SYSTEM/File.h>" namespace "OpenMS::File":
     # Returns the path of the file (without the file name).
     String path(String file) nogil except + # wrap-attach:File
 
-    # Returns the file name without the extension
-    String removeExtension(String file) nogil except + # wrap-attach:File
-
     # Return true if the file exists and is readable
     bool readable(String file) nogil except + # wrap-attach:File
 
@@ -50,7 +47,7 @@ cdef extern from "<OpenMS/SYSTEM/File.h>" namespace "OpenMS::File":
     String find(String filename, StringList directories) nogil except + # wrap-attach:File
 
     # @brief Retrieves a list of files matching @p file_pattern in directory
-    #        @p dir (returns filenames without paths unless @p full_path is true)
+    #       @p dir (returns filenames without paths unless @p full_path is true)
     bool fileList(String dir, String file_pattern, StringList output, bool full_path) nogil except + # wrap-attach:File
 
     # Returns a string, consisting of date, time, hostname, process id, and a incrementing number.  This can be used for temporary files.

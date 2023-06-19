@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -38,9 +38,10 @@
 #include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
 
 #include <OpenMS/CONCEPT/Types.h>
-#include <OpenMS/DATASTRUCTURES/Map.h>
 
 #include <QtWidgets/QDialog>
+
+#include <map>
 class QAbstractButton;
 
 namespace Ui
@@ -92,7 +93,7 @@ public:
 
         It is deactivated by default and can be deactivated manually by passing an empty list.
     */
-    void setMergeLayers(const Map<Size, String> & layers);
+    void setMergeLayers(const std::map<Size, String> & layers);
 
 protected slots:
     ///slot that disables 2D/3D options, when as layer is selected

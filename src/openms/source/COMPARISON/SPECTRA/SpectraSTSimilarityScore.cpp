@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -34,6 +34,8 @@
 
 #include <OpenMS/COMPARISON/SPECTRA/SpectraSTSimilarityScore.h>
 
+#include <Eigen/Sparse>
+
 using namespace std;
 using namespace Eigen;
 
@@ -45,14 +47,9 @@ namespace OpenMS
     setName(SpectraSTSimilarityScore::getProductName());
   }
 
-  SpectraSTSimilarityScore::SpectraSTSimilarityScore(const SpectraSTSimilarityScore & source) :
-    PeakSpectrumCompareFunctor(source)
-  {
-  }
+  SpectraSTSimilarityScore::SpectraSTSimilarityScore(const SpectraSTSimilarityScore & source) = default;
 
-  SpectraSTSimilarityScore::~SpectraSTSimilarityScore()
-  {
-  }
+  SpectraSTSimilarityScore::~SpectraSTSimilarityScore() = default;
 
   SpectraSTSimilarityScore & SpectraSTSimilarityScore::operator=(const SpectraSTSimilarityScore & source)
   {
@@ -75,14 +72,14 @@ namespace OpenMS
     BinnedSpectrum bin2(s2, 1, false, 1, BinnedSpectrum::DEFAULT_BIN_OFFSET_LOWRES);
 
     // normalized dot product
-    bin1.getBins() /= bin1.getBins().norm();
-    bin2.getBins() /= bin2.getBins().norm();
-    return bin1.getBins().dot(bin2.getBins());
+    *bin1.getBins() /= bin1.getBins()->norm();
+    *bin2.getBins() /= bin2.getBins()->norm();
+    return bin1.getBins()->dot(*bin2.getBins());
   }
 
   double SpectraSTSimilarityScore::operator()(const BinnedSpectrum & bin1, const BinnedSpectrum & bin2) const
   {
-    return bin1.getBins().dot(bin2.getBins());
+    return bin1.getBins()->dot(*bin2.getBins());
   }
 
   bool SpectraSTSimilarityScore::preprocess(PeakSpectrum & spec,
@@ -91,13 +88,15 @@ namespace OpenMS
                                             Size min_peak_number,
                                             Size max_peak_number)
   {
-    spec.sortByIntensity(true);
-    double min_high_intensity = 0;
+    double min_high_intensity = 0.;
     if (!spec.empty())
     {
-      min_high_intensity = (1 / cut_peaks_below) * spec[0].getIntensity();
+      double max_el = std::max_element(spec.begin(),spec.end(),Peak1D::IntensityLess())->getIntensity();
+      min_high_intensity = (1.0 / cut_peaks_below) * max_el;
     }
+
     spec.sortByPosition();
+
     PeakSpectrum tmp;
     Size s = 0;
     for (PeakSpectrum::iterator k = spec.begin(); k < spec.end() && s < max_peak_number; ++k, ++s)
@@ -121,15 +120,15 @@ namespace OpenMS
   {
     // TODO: resolution seems rather low. Check with current original implementations.
     BinnedSpectrum bin(spec, 1, false, 1, BinnedSpectrum::DEFAULT_BIN_OFFSET_LOWRES);
-    bin.getBins() /= bin.getBins().norm();
+    *bin.getBins() /= bin.getBins()->norm();
     return bin;
   }
 
   double SpectraSTSimilarityScore::dot_bias(const BinnedSpectrum & bin1, const BinnedSpectrum & bin2, double dot_product) const
   {
-    double numerator = (bin1.getBins().cwiseProduct(bin2.getBins())).norm();
+    double numerator = (bin1.getBins()->cwiseProduct(*bin2.getBins())).norm();
     
-    if (dot_product)
+    if (dot_product != 0)
     {
       return (double)numerator / dot_product;
     }

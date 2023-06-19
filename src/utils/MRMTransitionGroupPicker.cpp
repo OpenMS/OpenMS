@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry               
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 // 
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -46,6 +46,8 @@
 #include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/FORMAT/FeatureXMLFile.h>
 
+#include <OpenMS/SYSTEM/File.h>
+
 // interfaces
 #include <OpenMS/OPENSWATHALGO/DATAACCESS/ISpectrumAccess.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/SimpleOpenMSSpectraAccessFactory.h>
@@ -72,9 +74,9 @@ using namespace OpenMS;
     <CENTER>
         <table>
             <tr>
-                <td ALIGN = "center" BGCOLOR="#EBEBEB"> potential predecessor tools </td>
-                <td VALIGN="middle" ROWSPAN=3> \f$ \longrightarrow \f$ MRMTransitionGroupPicker \f$ \longrightarrow \f$</td>
-                <td ALIGN = "center" BGCOLOR="#EBEBEB"> potential successor tools </td>
+                <th ALIGN = "center"> potential predecessor tools </td>
+                <td VALIGN="middle" ROWSPAN=3> &rarr; MRMTransitionGroupPicker &rarr;</td>
+                <th ALIGN = "center"> potential successor tools </td>
             </tr>
             <tr>
                 <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_OpenSwathChromatogramExtractor </td>
@@ -90,14 +92,16 @@ using namespace OpenMS;
   This tools accepts a set of chromatograms and picks peaks in them, correctly
   grouping related transitions from the same precursor together. It will
   perform the following steps:
-  - Step 1: find features (peaks) in individual chromatograms </li>
-  - Step 2: merge these features to consensus features that span multiple chromatograms </li>
+  - Step 1: find features (peaks) in individual chromatograms
+  - Step 2: merge these features to consensus features that span multiple chromatograms
 
   Step 1 is performed by smoothing the individual chromatogram and applying the
   PeakPickerHiRes.
 
   Step 2 is performed by finding the largest peak overall and use this to
   create a feature, propagating this through all chromatograms.
+
+  This tool will not compute any scores for the peaks, in order to do peak picking please use TOPP_OpenSwathAnalyzer
 
   <B>The command line parameters of this tool are:</B>
   @verbinclude UTILS_MRMTransitionGroupPicker.cli
@@ -200,7 +204,7 @@ protected:
         const TransitionType* transition = assay_map[id][i];
         if (chromatogram_map.find(transition->getNativeID()) == chromatogram_map.end())
         {
-          LOG_DEBUG << "Found no matching chromatogram for id " << transition->getNativeID() << std::endl;
+          OPENMS_LOG_DEBUG << "Found no matching chromatogram for id " << transition->getNativeID() << std::endl;
           continue;
         }
 
@@ -286,9 +290,16 @@ protected:
     run_(input, output, transition_exp, force);
 
     output.ensureUniqueId();
-    StringList ms_runs;
-    exp->getPrimaryMSRunPath(ms_runs);
-    output.setPrimaryMSRunPath(ms_runs);
+
+    if (getFlag_("test"))
+    {
+      // if test mode set, add file without path so we can compare it
+      output.setPrimaryMSRunPath({"file://" + File::basename(in)}, *exp);
+    }
+    else
+    {
+      output.setPrimaryMSRunPath({in}, *exp);
+    }      
     FeatureXMLFile().store(out, output);
 
     return EXECUTION_OK;

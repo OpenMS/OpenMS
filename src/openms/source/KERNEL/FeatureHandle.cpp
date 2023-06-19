@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -65,29 +65,11 @@ namespace OpenMS
   {
   }
 
-  FeatureHandle::FeatureHandle(const FeatureHandle& rhs) :
-    Peak2D(rhs),
-    UniqueIdInterface(rhs),
-    map_index_(rhs.map_index_),
-    charge_(rhs.charge_),
-    width_(rhs.width_)
-  {
-  }
+  FeatureHandle::FeatureHandle(const FeatureHandle& rhs) = default;
 
-  FeatureHandle& FeatureHandle::operator=(const FeatureHandle& rhs)
-  {
-    Peak2D::operator=(rhs);
-    UniqueIdInterface::operator=(rhs);
-    map_index_ = rhs.map_index_;
-    charge_ = rhs.charge_;
-    width_ = rhs.width_;
+  FeatureHandle& FeatureHandle::operator=(const FeatureHandle& rhs) = default;
 
-    return *this;
-  }
-
-  FeatureHandle::~FeatureHandle()
-  {
-  }
+  FeatureHandle::~FeatureHandle() = default;
 
   UInt64 FeatureHandle::getMapIndex() const
   {

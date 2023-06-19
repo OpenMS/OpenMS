@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -137,6 +137,7 @@ public:
       return binaryDataArrayPtrs[0];
     }
 
+    /// set time array
     void setTimeArray(BinaryDataArrayPtr data)
     {
       binaryDataArrayPtrs[0] = data;
@@ -148,6 +149,7 @@ public:
       return binaryDataArrayPtrs[1];
     }
 
+    /// set intensity array
     void setIntensityArray(BinaryDataArrayPtr data)
     {
       binaryDataArrayPtrs[1] = data;
@@ -188,8 +190,7 @@ public:
     }
 
     ///Comparator for the retention time.
-    struct RTLess :
-      public std::binary_function<OSSpectrumMeta, OSSpectrumMeta, bool>
+    struct RTLess
     {
       inline bool operator()(const OSSpectrumMeta& a, const OSSpectrumMeta& b) const
       {
@@ -238,6 +239,7 @@ public:
       return binaryDataArrayPtrs[0];
     }
 
+    /// set m/z array
     void setMZArray(BinaryDataArrayPtr data)
     {
       binaryDataArrayPtrs[0] = data;
@@ -249,33 +251,32 @@ public:
       return binaryDataArrayPtrs[1];
     }
 
-    /// get drift time array (may be null)
-    BinaryDataArrayPtr getDriftTimeArray() const
-    {
-      if (binaryDataArrayPtrs.size() == 3 && binaryDataArrayPtrs[2]->description == "Ion Mobility")
-      {
-        return binaryDataArrayPtrs[2];
-      }
-      else if (binaryDataArrayPtrs.size() == 2)
-      {
-        return BinaryDataArrayPtr(); // return null
-      }
-      else
-      {
-        for (auto & bd : binaryDataArrayPtrs)
-        {
-          if (bd->description == "Ion Mobility")
-          {
-            return bd;
-          }
-        }
-        return BinaryDataArrayPtr(); // return null
-      }
-    }
-
+    /// set intensity array
     void setIntensityArray(BinaryDataArrayPtr data)
     {
       binaryDataArrayPtrs[1] = data;
+    }
+
+    /// get drift time array (may be null)
+    BinaryDataArrayPtr getDriftTimeArray() const
+    {
+      // The array name starts with "Ion Mobility", but may carry additional
+      // information such as the actual unit in which it was measured (seconds,
+      // milliseconds, volt-second per square centimeter). We currently ignore
+      // the unit but return the correct array.
+      // For diaPASEF data converted with proteowizard ion mobility arrays are stored in "inverse reduced ion mobility"
+      for (auto & bda : binaryDataArrayPtrs)
+      {
+        if (bda->description.find("Ion Mobility") == 0)
+        {
+          return bda;
+        }
+        else if (bda->description.find("mean inverse reduced ion mobility array") == 0)
+        {
+          return bda;
+        }
+      }
+      return BinaryDataArrayPtr(); // return null
     }
 
     /// non-mutable access to the underlying data arrays

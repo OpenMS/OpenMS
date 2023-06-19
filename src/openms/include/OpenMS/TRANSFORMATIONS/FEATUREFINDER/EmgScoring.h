@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -34,17 +34,18 @@
 
 #pragma once
 
-#include <vector>
-#include <boost/math/special_functions/fpclassify.hpp> // for isnan
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/EmgFitter1D.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/EmgModel.h>
 #include <OpenMS/FILTERING/SMOOTHING/GaussFilter.h>
 
 #include <OpenMS/KERNEL/MRMFeature.h>
 #include <OpenMS/KERNEL/MRMTransitionGroup.h>
+#include <OpenMS/KERNEL/MSSpectrum.h>
 
 #include <OpenMS/KERNEL/StandardTypes.h>
 
+#include <vector>
+#include <cmath> // for isnan
 
 namespace OpenMS
 {
@@ -61,27 +62,30 @@ namespace OpenMS
 
   public :
 
-    EmgScoring() { }
+    EmgScoring() = default;
 
-    ~EmgScoring() { }
+    ~EmgScoring() = default;
 
-    void setFitterParam(Param param)
+    /// overwrites params for the Emg1DFitter. Unspecified params will stay default.
+    /// use getDefaults to see what you can set.
+    void setFitterParam(const Param& param)
     {
-      fitter_emg1D_.setParameters(param);
+      fitter_emg1D_params_ = param;
     }
 
+    /// Get default params for the Emg1D fitting
     Param getDefaults()
     {
-      return fitter_emg1D_.getDefaults();
+      return EmgFitter1D().getDefaults();
     }
 
     /// calculate the elution profile fit score
     template<typename SpectrumType, class TransitionT>
-    double calcElutionFitScore(MRMFeature & mrmfeature, MRMTransitionGroup<SpectrumType, TransitionT> & transition_group)
+    double calcElutionFitScore(MRMFeature & mrmfeature, MRMTransitionGroup<SpectrumType, TransitionT> & transition_group) const
     {
-      std::vector<double> fit_scores;
       double avg_score = 0;
       bool smooth_data = false;
+
       for (Size k = 0; k < transition_group.size(); k++)
       {
         // get the id, then find the corresponding transition and features within this peakgroup
@@ -89,9 +93,9 @@ namespace OpenMS
         Feature f = mrmfeature.getFeature(native_id);
         OPENMS_PRECONDITION(f.getConvexHulls().size() == 1, "Convex hulls need to have exactly one hull point structure");
 
-        // TODO what if score is -1 ?? e.g. if it is undefined
+        //TODO think about penalizing aborted fits even more. Currently -1 is just the "lowest" pearson correlation to
+        // a fit that you can have.
         double fscore = elutionModelFit(f.getConvexHulls()[0].getHullPoints(), smooth_data);
-        fit_scores.push_back(fscore);
         avg_score += fscore;
       }
 
@@ -101,7 +105,7 @@ namespace OpenMS
 
     // Fxn from FeatureFinderAlgorithmMRM
     // TODO: check whether we can leave out some of the steps here, e.g. gaussian smoothing
-    double elutionModelFit(ConvexHull2D::PointArrayType current_section, bool smooth_data)
+    double elutionModelFit(const ConvexHull2D::PointArrayType& current_section, bool smooth_data) const
     {
       // We need at least 2 datapoints in order to create a fit
       if (current_section.size() < 2)
@@ -116,55 +120,38 @@ namespace OpenMS
       // -- cut line 301 of FeatureFinderAlgorithmMRM
       std::vector<LocalPeakType> data_to_fit;
       prepareFit_(current_section, data_to_fit, smooth_data);
-      InterpolationModel * model_rt = nullptr;
+      std::unique_ptr<InterpolationModel> model_rt;
       double quality = fitRT_(data_to_fit, model_rt);
       // cut line 354 of FeatureFinderAlgorithmMRM
-      delete model_rt;
 
       return quality;
-
     }
 
   protected:
     template<class LocalPeakType>
-    double fitRT_(std::vector<LocalPeakType> & rt_input_data, InterpolationModel * & model)
+    double fitRT_(std::vector<LocalPeakType>& rt_input_data, std::unique_ptr<InterpolationModel>& model) const
     {
-      double quality;
-      //Param param;
-
-      /*EmgFitter
-       param.setValue( "tolerance_stdev_bounding_box", tolerance_stdev_box_);
-       param.setValue( "statistics:mean", rt_stat_.mean() );
-       param.setValue( "statistics:variance", rt_stat_.variance() );
-       param.setValue( "interpolation_step", interpolation_step_rt_ );
-       param.setValue( "max_iteration", max_iteration_);
-       param.setValue( "deltaAbsError", deltaAbsError_);
-       param.setValue( "deltaRelError", deltaRelError_);
-       */
-
-      // Set parameter for fitter
-      //fitter_emg1D.setParameters(param);
+      EmgFitter1D fitter_emg1D;
+      fitter_emg1D.setParameters(fitter_emg1D_params_);
       // Construct model for rt
-      quality = fitter_emg1D_.fit1d(rt_input_data, model);
-
-      // Check quality
-      if (boost::math::isnan(quality)) quality = -1.0;
-      return quality;
+      // NaN is checked in fit1d: if (std::isnan(quality)) quality = -1.0;
+      return fitter_emg1D.fit1d(rt_input_data, model);
     }
 
     // Fxn from FeatureFinderAlgorithmMRM
     // TODO: check whether we can leave out some of the steps here, e.g. gaussian smoothing
     template<class LocalPeakType>
-    void prepareFit_(const ConvexHull2D::PointArrayType & current_section, std::vector<LocalPeakType> & data_to_fit, bool smooth_data)
+    void prepareFit_(const ConvexHull2D::PointArrayType & current_section, std::vector<LocalPeakType> & data_to_fit, bool smooth_data) const
     {
       // typedef Peak1D LocalPeakType;
       PeakSpectrum filter_spec;
       // first smooth the data to prevent outliers from destroying the fit
-      for (ConvexHull2D::PointArrayType::const_iterator it = current_section.begin(); it != current_section.end(); it++)
+      for (const auto& pa : current_section)
       {
         LocalPeakType p;
-        p.setMZ(it->getX());
-        p.setIntensity(it->getY());
+        using IntensityType = typename LocalPeakType::IntensityType;
+        p.setMZ(pa.getX());
+        p.setIntensity(IntensityType(pa.getY()));
         filter_spec.push_back(p);
       }
 
@@ -217,7 +204,8 @@ namespace OpenMS
       }
     }
 
-    EmgFitter1D fitter_emg1D_;
+    Param fitter_emg1D_params_;
   };
+
 }
 

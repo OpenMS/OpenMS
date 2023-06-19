@@ -22,13 +22,13 @@ class TestMSSpectrumAndRichSpectrum(unittest.TestCase):
         assert p_back.getIntensity() == 1e5
 
         spec.updateRanges()
-        assert isinstance(spec.getMin()[0], float)
-        assert isinstance(spec.getMax()[0], float)
-        assert isinstance(spec.getMinInt(), float)
-        assert isinstance(spec.getMaxInt(), float)
+        assert isinstance(spec.getMinMZ(), float)
+        assert isinstance(spec.getMaxMZ(), float)
+        assert isinstance(spec.getMinIntensity(), float)
+        assert isinstance(spec.getMaxIntensity(), float)
 
-        assert spec.getMaxInt() == 1e5
-        assert spec.getMinInt() == 1e5
+        assert spec.getMinIntensity() == 1e5
+        assert spec.getMaxIntensity() == 1e5
 
 if __name__ == '__main__':
     unittest.main()

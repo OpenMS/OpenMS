@@ -1,0 +1,14 @@
+Fraction_Group	Fraction	Spectra_Filepath	Label	MSstats_Condition	MSstats_BioReplicate
+1	1	JD_06232014_sample1-A.raw	1	1	1
+2	1	JD_06232014_sample1_B.raw	1	1	2
+3	1	JD_06232014_sample1_C.raw	1	1	3
+4	1	JD_06232014_sample2_A.raw	1	2	4
+5	1	JD_06232014_sample2_B.raw	1	2	5
+6	1	JD_06232014_sample2_C.raw	1	2	6
+7	1	JD_06232014_sample3_A.raw	1	3	7
+8	1	JD_06232014_sample3_B.raw	1	3	8
+9	1	JD_06232014_sample3_C.raw	1	3	9
+10	1	JD_06232014_sample4-A.raw	1	4	10
+11	1	JD_06232014_sample4_B.raw	1	4	11
+12	1	JD_06232014_sample4_C.raw	1	4	12
+

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -72,7 +72,6 @@
 #include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
 
 #include <OpenMS/DATASTRUCTURES/String.h>
-#include <OpenMS/DATASTRUCTURES/Map.h>
 
 #include <QPainter>
 #include <QPainterPath>
@@ -81,6 +80,7 @@
 #include <QtWidgets/QGraphicsItem>
 #include <QtCore/QProcess>
 #include <QtWidgets/QMenu>
+#include <QStringList>
 
 namespace OpenMS
 {
@@ -105,60 +105,52 @@ namespace OpenMS
     Q_INTERFACES(QGraphicsItem)
 
 public:
-
     /// The container for in/out edges
     typedef QList<TOPPASEdge *> EdgeContainer;
     /// A mutable iterator for in/out edges
     typedef EdgeContainer::iterator EdgeIterator;
     /// A const iterator for in/out edges
     typedef EdgeContainer::const_iterator ConstEdgeIterator;
-	/// A class which interfaces with QStringList for holding filenames
-	/// Incoming filenames are checked, and an exception is thrown if they are too long
-	/// to avoid issues with common filesystems (due to filesystem limits).
-	class TOPPASFilenames
-	{
-	  public:
-		TOPPASFilenames()
-		{
-		}
-	  
-		int size() const;
-		const QStringList& get() const;
-		const QString& operator[](int i) const;
 
-		///@name Setters; their all use check_() and can throw!
-		//@{
-		void set(const QStringList& filenames);
-		void set(const QString& filename, int i);
-		void push_back(const QString& filename);
-		void append(const QStringList& filenames);
-		//@}
+	  /// A class which interfaces with QStringList for holding filenames
+	  /// Incoming filenames are checked, and an exception is thrown if they are too long
+	  /// to avoid issues with common filesystems (due to filesystem limits).
+	  class TOPPASFilenames
+	  {
+	    public:
+		  TOPPASFilenames() = default;
+	    TOPPASFilenames(const QStringList& filenames);
+		  int size() const;
+		  const QStringList& get() const;
+		  const QString& operator[](int i) const;
 
-	  private:
-		/*
-		@brief Check length of filename and throw Exception::FileNotWritable() if too long
+		  ///@name Setters; their all use check_() and can throw!
+		  //@{
+		  void set(const QStringList& filenames);
+		  void set(const QString& filename, int i);
+		  void push_back(const QString& filename);
+		  void append(const QStringList& filenames);
+		  //@}
+
+      QStringList getSuffixCounts() const;
+
+	    private:
+		  /*
+		  @brief Check length of filename and throw Exception::FileNotWritable() if too long
 		
-		@param filename Full path to file (using relative paths will circumvent the effectiveness)
-		@throw Exception::FileNotWritable() if too long (>=255 chars)
-		*/
-		void check_(const QString& filename);
-		QStringList filenames_;   ///< filenames passed from upstream node in this round
-	};
-	/// Info for one edge and round, to be passed to next node
+		  @param filename Full path to file (using relative paths will circumvent the effectiveness)
+		  @throw Exception::FileNotWritable() if too long (>=255 chars)
+		  */
+		  void check_(const QString& filename);
+		  QStringList filenames_;   ///< filenames passed from upstream node in this round
+	  };
+
+	  /// Info for one edge and round, to be passed to next node
     struct VertexRoundPackage
     {
-      VertexRoundPackage() :
-        filenames(),
-        edge(nullptr)
-      {
-      }
-
-	  TOPPASFilenames filenames; ///< filenames passed from upstream node in this round
-      TOPPASEdge* edge;  ///< edge that connects the upstream node to the current one
+      TOPPASFilenames filenames; ///< filenames passed from upstream node in this round
+      TOPPASEdge* edge = nullptr; ///< edge that connects the upstream node to the current one
     };
-
-	
-
 
     /// all infos to process one round for a vertex (from all incoming vertices)
     /// indexing via "parameter_index" of adjacent edge (could later be param_name) -> filenames
@@ -182,9 +174,9 @@ public:
     /// The color of a vertex during depth-first search
     enum SUBSTREESTATUS
     {
-      TV_ALLFINISHED,  // all downstream nodes are done (including the ones which are feed by a parallel subtree)
-      TV_UNFINISHED,   // some direct downstream node is not done
-      TV_UNFINISHED_INBRANCH // a parallel subtree which merged with some downstream node A was not done (which prevented processing of the node A)
+      TV_ALLFINISHED,  ///< all downstream nodes are done (including the ones which are feed by a parallel subtree)
+      TV_UNFINISHED,   ///< some direct downstream node is not done
+      TV_UNFINISHED_INBRANCH ///< a parallel subtree which merged with some downstream node A was not done (which prevented processing of the node A)
     };
 
     /// Default Constructor
@@ -192,9 +184,11 @@ public:
     /// Copy constructor
     TOPPASVertex(const TOPPASVertex & rhs);
     /// Destructor
-    ~TOPPASVertex() override;
+    ~TOPPASVertex() override = default;
     /// Assignment operator
-    TOPPASVertex & operator=(const TOPPASVertex & rhs);
+    TOPPASVertex& operator=(const TOPPASVertex & rhs);
+    /// base paint method for all derived classes. should be called first in child-class paint
+    void paint(QPainter* painter, const QStyleOptionGraphicsItem* /*option*/, QWidget* /*widget*/, bool round_shape = true);
 
     /// get the round package for this node from upstream
     /// -- indices in 'RoundPackage' mapping are thus referring to incoming edges of this node
@@ -207,9 +201,7 @@ public:
     /// Returns the bounding rectangle of this item
     QRectF boundingRect() const override = 0;
     /// Returns a more precise shape
-    QPainterPath shape() const override = 0;
-    /// Paints the item
-    void paint(QPainter * painter, const QStyleOptionGraphicsItem * option, QWidget * widget) override = 0;
+    QPainterPath shape() const final;
     /// Returns begin() iterator of outgoing edges
     ConstEdgeIterator outEdgesBegin() const;
     /// Returns end() iterator of outgoing edges
@@ -234,18 +226,14 @@ public:
     DFS_COLOR getDFSColor();
     /// Sets the DFS color of this node
     void setDFSColor(DFS_COLOR color);
-    /// Returns the DFS parent of this node
-    TOPPASVertex * getDFSParent();
-    /// Sets the DFS parent of this node
-    void setDFSParent(TOPPASVertex * parent);
     /// Checks if all tools in the subtree below this node are finished
     TOPPASVertex::SUBSTREESTATUS getSubtreeStatus() const;
     /// Returns whether the vertex has been marked already (during topological sort)
-    bool isTopoSortMarked();
+    bool isTopoSortMarked() const;
     /// (Un)marks the vertex (during topological sort)
     void setTopoSortMarked(bool b);
     /// Returns the topological sort number
-    UInt getTopoNr();
+    UInt getTopoNr() const;
     /// Sets the topological sort number (overridden in tool and output vertices)
     virtual void setTopoNr(UInt nr);
     /// Resets the status
@@ -254,7 +242,7 @@ public:
     /// Marks this node (and everything further downstream) as unreachable. Overridden behavior in mergers.
     virtual void markUnreachable();
     /// Returns whether this node is reachable
-    bool isReachable();
+    bool isReachable() const;
     /// Returns whether this node has already been processed during the current pipeline execution
     bool isFinished() const;
     /// run the tool (either ToolVertex, Merger, or OutputNode)
@@ -285,7 +273,7 @@ public:
 
 
     /// check if all upstream nodes are finished
-    bool allInputsReady();
+    bool allInputsReady() const;
 
 
 public slots:
@@ -322,31 +310,29 @@ protected:
     /// The list of outgoing edges
     EdgeContainer out_edges_;
     /// Indicates whether a new out edge is currently being created
-    bool edge_being_created_;
+    bool edge_being_created_{false};
     /// The color of the pen
-    QColor pen_color_;
+    QColor pen_color_{Qt::black};
     /// The color of the brush
-    QColor brush_color_;
+    QColor brush_color_{ Qt::lightGray};
     /// The DFS color of this node
-    DFS_COLOR dfs_color_;
-    /// The DFS parent of this node
-    TOPPASVertex * dfs_parent_;
+    DFS_COLOR dfs_color_{DFS_WHITE};
     /// "marked" flag for topological sort
-    bool topo_sort_marked_;
+    bool topo_sort_marked_{false};
     /// The number in a topological sort of the entire graph
     UInt topo_nr_;
     /// Stores the current output file names for each output parameter
     RoundPackages output_files_;
     /// number of rounds this node will do ('Merge All' nodes will pass everything, thus do only one round)
-    int round_total_;
+    int round_total_{-1};
     /// currently finished number of rounds (TODO: do we need that?)
-    int round_counter_;
+    int round_counter_{0};
     /// Stores whether this node has already been processed during the current pipeline execution
-    bool finished_;
+    bool finished_{false};
     /// Indicates whether this node is reachable (i.e. there is an input node somewhere further upstream)
-    bool reachable_;
+    bool reachable_{true};
     /// shall subsequent tools be allowed to recycle the output of this node to match the number of rounds imposed by other parent nodes?
-    bool allow_output_recycling_;
+    bool allow_output_recycling_{false};
 
 
 #ifdef TOPPAS_DEBUG

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -71,9 +71,9 @@ namespace OpenMS
        */
       struct ProteinProteinCrossLink
       {
-        AASequence alpha; // longer peptide
-        AASequence beta; // shorter peptide (empty for mono-link), tie bracker: mass then lexicographical
-        std::pair<SignedSize, SignedSize> cross_link_position; // index in alpha, beta or between alpha, alpha in loop-links
+        const AASequence *alpha = nullptr; ///< longer peptide
+        const AASequence *beta = nullptr; ///< shorter peptide (empty for mono-link), tie breaker: mass then lexicographical
+        std::pair<SignedSize, SignedSize> cross_link_position; ///< index in alpha, beta or between alpha, alpha in loop-links
         double cross_linker_mass = 0;
         String cross_linker_name;
         ResidueModification::TermSpecificity term_spec_alpha;
@@ -82,7 +82,7 @@ namespace OpenMS
 
         ProteinProteinCrossLinkType getType() const
         {
-          if (!beta.empty()) return CROSS;
+          if (beta && !beta->empty()) return CROSS;
 
           if (cross_link_position.second == -1) return MONO;
 
@@ -189,7 +189,7 @@ namespace OpenMS
           if (a.score == b.score)
           {
             // in rare cases when the sequences are the same, multiple candidates with different cross-linked positions can have the same score
-            // that leads to ambigious sorting and may cause differences between compilers
+            // that leads to ambiguous sorting and may cause differences between compilers
             // in those cases we prefer higher positions (just like the score),
             // because the lower position might be an N-term link, which is usually less likely and all other positions are equal (because the score is equal)
             if (a.cross_link.cross_link_position.first == b.cross_link.cross_link_position.first)
@@ -217,6 +217,8 @@ namespace OpenMS
         float precursor_mass;
         unsigned int alpha_index;
         unsigned int beta_index;
+        String alpha_seq;
+        String beta_seq;
       };
 
       // comparator for sorting XLPrecursor vectors and using upper_bound and lower_bound using only a precursor mass
@@ -268,6 +270,7 @@ namespace OpenMS
         double peptide_mass;
         AASequence peptide_seq;
         PeptidePosition position;
+        String unmodified_seq;
       };
 
       /**
@@ -277,15 +280,15 @@ namespace OpenMS
        */
       struct AASeqWithMassComparator
       {
-        bool operator() (const AASeqWithMass a, const AASeqWithMass b) const
+        bool operator() (const AASeqWithMass& a, const AASeqWithMass& b) const
         {
           return a.peptide_mass < b.peptide_mass;
         }
-        bool operator() (const AASeqWithMass a, const double b) const
+        bool operator() (const AASeqWithMass& a, const double& b) const
         {
           return a.peptide_mass < b;
         }
-        bool operator() (const double a, const AASeqWithMass b) const
+        bool operator() (const double& a, const AASeqWithMass& b) const
         {
           return a < b.peptide_mass;
         }
@@ -300,8 +303,8 @@ namespace OpenMS
       struct PreprocessedPairSpectra
       {
 
-        MSExperiment spectra_linear_peaks; // merge spectrum of linear peaks (present in both spectra)
-        MSExperiment spectra_xlink_peaks; // Xlink peaks in the light spectrum (linear peaks between spectra_light_different and spectra heavy_to_light)
+        MSExperiment spectra_linear_peaks; ///< merge spectrum of linear peaks (present in both spectra)
+        MSExperiment spectra_xlink_peaks; ///< Xlink peaks in the light spectrum (linear peaks between spectra_light_different and spectra heavy_to_light)
         MSExperiment spectra_all_peaks;
 
         // pre-initialize so we can simply std::swap the spectra (no synchronization in multi-threading context needed as we get no reallocation of the PeakMaps).

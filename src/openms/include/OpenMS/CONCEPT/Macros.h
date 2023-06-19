@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -42,6 +42,36 @@
 #include <cstring>
 
 /**
+    @brief General helper macros
+
+    @{
+*/
+
+#define STRINGIFY(a) #a
+
+#ifdef _OPENMP
+
+// Pragma string literals are compiler-specific: 
+// gcc and clang use _Pragma while MSVS uses __pragma
+// the MSVS pragma does not need a string token somehow.
+#ifdef OPENMS_COMPILER_MSVC
+#define OPENMS_THREAD_CRITICAL(name) \
+    __pragma(omp critical (name))
+#else
+#define OPENMS_THREAD_CRITICAL(name) \
+    _Pragma( STRINGIFY( omp critical (name) ) )
+#endif
+
+#else
+
+#define OPENMS_THREAD_CRITICAL(name) 
+
+#endif
+
+/** @} */ // end of helpers
+
+
+/**
     @defgroup Conditions Condition macros
 
     @brief Macros used for to enforce preconditions and postconditions.
@@ -66,15 +96,7 @@
 #define OPENMS_PRECONDITION(condition, message) \
   if (!(condition)) \
   { \
-    Exception::Precondition e(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, # condition); \
-    if (std::strcmp(message, "") != 0) \
-    { \
-      ::std::string tmp(e.getMessage()); \
-      tmp += " "; \
-      tmp += ::std::string(message); \
-      e.setMessage(tmp); \
-    } \
-    throw e; \
+    throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, # condition " " # message); \
   } \
 
 /**
@@ -85,15 +107,7 @@
 #define OPENMS_POSTCONDITION(condition, message) \
   if (!(condition)) \
   { \
-    Exception::Postcondition e(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, # condition); \
-    if (std::strcmp(message, "") != 0) \
-    { \
-      std::string tmp(e.getMessage()); \
-      tmp += " "; \
-      tmp += std::string(message); \
-      e.setMessage(tmp); \
-    } \
-    throw e; \
+    throw Exception::Postcondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, # condition " " # message); \
   } \
 
 #else

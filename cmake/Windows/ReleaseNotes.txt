@@ -1,13 +1,13 @@
 Congratulations!  You have successfully installed the TOPP tools of OpenMS and
 the OpenMS library.
 
-"TOPP" is an acronym for "The OpenMS Proteomics Pipeline".  It consists of
+"TOPP" is an acronym for "The OpenMS PiPeline".  It consists of
 several small applications that can be chained to create analysis pipelines
 tailored for a specific problem.
 
 Note that the Windows binary release is meant for end-users only, rather than
 for developers who want to contribute algorithms.  Developers should download
-the source code version (see http://www.open-ms.de for details).
+the source code version (see https://www.openms.de for details).
 
 ======================
 Read the documentation
@@ -32,7 +32,7 @@ files that every TOPP tool can use to adjust its parameters.
 The Windows command line
 ========================
 
-This part is usually not neccessary for the common user, even if you are advanced.
+This part is usually not necessary for the common user, even if you are advanced.
 However, special requirements (e.g. automated conversion tools, webserver or cluster integration)
 might require you to use the command line.
 To get familiar with the Windows command line, we recommend reading one of

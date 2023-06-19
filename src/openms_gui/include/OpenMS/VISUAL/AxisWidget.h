@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -72,7 +72,7 @@ public:
     typedef std::vector<std::vector<double> > GridVector;
 
     /// constructor
-    AxisWidget(AxisPainter::Alignment alignment, const char * legend = "", QWidget * parent = nullptr);
+    AxisWidget(const AxisPainter::Alignment alignment, const char * legend = "", QWidget * parent = nullptr);
 
     /// destructor
     ~AxisWidget() override;
@@ -81,7 +81,7 @@ public:
     void setMargin(UInt size);
 
     /// returns the margin
-    UInt margin();
+    UInt margin() const;
 
     /// enable the display of the legend (default true)
     void showLegend(bool show_legend);
@@ -93,22 +93,22 @@ public:
     void setLegend(const String & legend);
 
     /// returns the actual legend text
-    const String & getLegend();
+    const String & getLegend() const;
 
     /// returns the currently used grid lines
-    const GridVector & gridLines();
+    const GridVector & gridLines() const;
 
     /// sets the axis to logarithmic scale
     void setLogScale(bool is_log);
 
     /// returns true if the axis has logarithmic scale
-    bool isLogScale();
+    bool isLogScale() const;
 
     /// set true to display the axis label in inverse order (left to right or bottom to top)
     void setInverseOrientation(bool inverse_orientation);
 
     /// returns if the axis label is displayed in inverse order
-    bool hasInverseOrientation();
+    bool hasInverseOrientation() const;
 
     /// set true to allow for shortened numbers (with k/M/G units) on the axis label
     void setAllowShortNumbers(bool short_nums);

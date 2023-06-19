@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -44,6 +44,9 @@
 #include <OpenMS/MATH/STATISTICS/StatisticFunctions.h>
 
 #include <map>
+#include <iostream>
+
+#include "svm.h"
 
 using namespace OpenMS;
 using namespace std;
@@ -224,15 +227,15 @@ protected:
     String outputfile_name_positive = getStringOption_("out_id:positive");
     String outputfile_name_negative = getStringOption_("out_id:negative");
     // for separation prediction, we require both files to be present!
-    if (outputfile_name_positive != "" || outputfile_name_negative != "")
+    if (!outputfile_name_positive.empty() || !outputfile_name_negative.empty())
     {
-      if (outputfile_name_positive != "" && outputfile_name_negative != "")
+      if (!outputfile_name_positive.empty() && !outputfile_name_negative.empty())
       {
         separation_prediction = true;
       }
       else
       {
-        writeLog_("Both files for separation prediction required. Please specify the other one as well. Aborting!");
+        writeLogError_("Both files for separation prediction required. Please specify the other one as well. Aborting!");
         return ILLEGAL_PARAMETERS;
       }
     }
@@ -240,14 +243,14 @@ protected:
     // either or
     String input_id = getStringOption_("in_id");
     String input_text = getStringOption_("in_text");
-    if (input_text != "" && input_id != "")
+    if (!input_text.empty() && !input_id.empty())
     {
-      writeLog_("Two input parameter files given, only one allowed! Use either -in_id:file or -in_text:file!");
+      writeLogError_("Two input parameter files given, only one allowed! Use either -in_id:file or -in_text:file!");
       return ILLEGAL_PARAMETERS;
     }
-    else if (input_text == "" && input_id == "")
+    else if (input_text.empty() && input_id.empty())
     {
-      writeLog_("No input file given. Aborting...");
+      writeLogError_("No input file given. Aborting...");
       return ILLEGAL_PARAMETERS;
     }
 
@@ -255,9 +258,9 @@ protected:
     // (can use both)
     String output_id = getStringOption_("out_id:file");
     String output_text = getStringOption_("out_text:file");
-    if (output_text == "" && output_id == "" && !separation_prediction)
+    if (output_text.empty() && output_id.empty() && !separation_prediction)
     {
-      writeLog_("No output files given. Aborting...");
+      writeLogError_("No output files given. Aborting...");
       return ILLEGAL_PARAMETERS;
     }
 
@@ -272,13 +275,13 @@ protected:
 
     if ((svm.getIntParameter(SVMWrapper::SVM_TYPE) == C_SVC || svm.getIntParameter(SVMWrapper::SVM_TYPE) == NU_SVC) && !separation_prediction)
     {
-      writeLog_("You cannot perform peptide separation prediction with a model trained for"
+      writeLogError_("You cannot perform peptide separation prediction with a model trained for"
                 + String("\npeptide retention time prediction. Aborting!"));
       return ILLEGAL_PARAMETERS;
     }
     if ((svm.getIntParameter(SVMWrapper::SVM_TYPE) != C_SVC && svm.getIntParameter(SVMWrapper::SVM_TYPE) != NU_SVC) && separation_prediction)
     {
-      writeLog_("You cannot perform peptide retention time prediction with a model trained for\n"
+      writeLogError_("You cannot perform peptide retention time prediction with a model trained for\n"
                 + String("peptide separation prediction. Aborting!"));
       return ILLEGAL_PARAMETERS;
     }
@@ -291,70 +294,64 @@ protected:
       if (in_params_name.empty())
       {
         in_params_name = svmfile_name + "_additional_parameters";
-        writeLog_("Warning: Using OLIGO kernel but in_oligo_params parameter is missing. Trying default filename: " + in_params_name);
+        writeLogError_("Warning: Using OLIGO kernel but in_oligo_params parameter is missing. Trying default filename: " + in_params_name);
       }
       inputFileReadable_(in_params_name, "in_oligo_params");
 
       Param additional_parameters;
       ParamXMLFile paramFile;
       paramFile.load(in_params_name, additional_parameters);
-      if (additional_parameters.exists("first_dim_rt")
-         && additional_parameters.getValue("first_dim_rt") != DataValue::EMPTY)
+      if (additional_parameters.exists("first_dim_rt") && additional_parameters.getValue("first_dim_rt") != ParamValue::EMPTY)
       {
         first_dim_rt = additional_parameters.getValue("first_dim_rt").toBool();
       }
-      if (additional_parameters.getValue("kernel_type") != DataValue::EMPTY)
+      if (additional_parameters.getValue("kernel_type") != ParamValue::EMPTY)
       {
-        svm.setParameter(SVMWrapper::KERNEL_TYPE, ((String) additional_parameters.getValue("kernel_type")).toInt());
+        svm.setParameter(SVMWrapper::KERNEL_TYPE, String(additional_parameters.getValue("kernel_type").toString()).toInt());
       }
 
-      if (additional_parameters.getValue("border_length") == DataValue::EMPTY
+      if (additional_parameters.getValue("border_length") == ParamValue::EMPTY
          && svm.getIntParameter(SVMWrapper::KERNEL_TYPE) == SVMWrapper::OLIGO)
       {
-        writeLog_("No border length saved in additional parameters file. Aborting!");
-        cout << "No border length saved in additional parameters file. Aborting!" << endl;
+        writeLogError_("No border length saved in additional parameters file. Aborting!");
         return ILLEGAL_PARAMETERS;
       }
-      border_length = ((String)additional_parameters.getValue("border_length")).toInt();
-      if (additional_parameters.getValue("k_mer_length") == DataValue::EMPTY
+      border_length = String(additional_parameters.getValue("border_length").toString()).toInt();
+      if (additional_parameters.getValue("k_mer_length") == ParamValue::EMPTY
          && svm.getIntParameter(SVMWrapper::KERNEL_TYPE) == SVMWrapper::OLIGO)
       {
-        writeLog_("No k-mer length saved in additional parameters file. Aborting!");
-        cout << "No k-mer length saved in additional parameters file. Aborting!" << endl;
+        writeLogError_("No k-mer length saved in additional parameters file. Aborting!");
         return ILLEGAL_PARAMETERS;
       }
-      k_mer_length = ((String)additional_parameters.getValue("k_mer_length")).toInt();
-      if (additional_parameters.getValue("sigma") == DataValue::EMPTY
+      k_mer_length = String(additional_parameters.getValue("k_mer_length").toString()).toInt();
+      if (additional_parameters.getValue("sigma") == ParamValue::EMPTY
          && svm.getIntParameter(SVMWrapper::KERNEL_TYPE) == SVMWrapper::OLIGO)
       {
-        writeLog_("No sigma saved in additional parameters file. Aborting!");
-        cout << "No sigma saved in additional parameters file. Aborting!" << endl;
+        writeLogError_("No sigma saved in additional parameters file. Aborting!");
         return ILLEGAL_PARAMETERS;
       }
-      sigma = ((String)additional_parameters.getValue("sigma")).toDouble();
-      if (!separation_prediction && additional_parameters.getValue("sigma_0") == DataValue::EMPTY)
+      sigma = String(additional_parameters.getValue("sigma").toString()).toDouble();
+      if (!separation_prediction && additional_parameters.getValue("sigma_0") == ParamValue::EMPTY)
       {
-        writeLog_("No sigma_0 saved in additional parameters file. Aborting!");
-        cout << "No sigma_0 length saved in additional parameters file. Aborting!" << endl;
+        writeLogError_("No sigma_0 saved in additional parameters file. Aborting!");
         return ILLEGAL_PARAMETERS;
       }
-      if (!separation_prediction && additional_parameters.getValue("sigma_0") != DataValue::EMPTY)
+      if (!separation_prediction && additional_parameters.getValue("sigma_0") != ParamValue::EMPTY)
       {
         sigma_0 = additional_parameters.getValue("sigma_0");
       }
-      if (!separation_prediction && additional_parameters.getValue("sigma_max") == DataValue::EMPTY)
+      if (!separation_prediction && additional_parameters.getValue("sigma_max") == ParamValue::EMPTY)
       {
-        writeLog_("No sigma_max saved in additional parameters file. Aborting!");
-        cout << "No sigma_max length saved in additional parameters file. Aborting!" << endl;
+        writeLogError_("No sigma_max saved in additional parameters file. Aborting!");
         return ILLEGAL_PARAMETERS;
       }
-      if (!separation_prediction && additional_parameters.getValue("sigma_max") != DataValue::EMPTY)
+      if (!separation_prediction && additional_parameters.getValue("sigma_max") != ParamValue::EMPTY)
       {
         sigma_max = additional_parameters.getValue("sigma_max");
       }
     }
 
-    if (input_text != "")
+    if (!input_text.empty())
     {
       loadStrings_(input_text, peptides);
       if (svm.getIntParameter(SVMWrapper::KERNEL_TYPE) == SVMWrapper::OLIGO)
@@ -376,7 +373,7 @@ protected:
     // calculations
     //-------------------------------------------------------------
 
-    if (input_id != "")
+    if (!input_id.empty())
     {
       for (Size i = 0; i < identifications.size(); i++)
       {
@@ -463,9 +460,9 @@ protected:
         if (in_trainset_name.empty())
         {
           in_trainset_name = svmfile_name + "_samples";
-          writeLog_("Warning: Using OLIGO kernel but in_oligo_trainset parameter is missing. Trying default filename: " + in_trainset_name);
+          writeLogWarn_("Warning: Using OLIGO kernel but in_oligo_trainset parameter is missing. Trying default filename: " + in_trainset_name);
         }
-        inputFileReadable_(in_trainset_name.c_str(), "in_oligo_trainset");
+        inputFileReadable_(in_trainset_name, "in_oligo_trainset");
 
         training_samples.load(in_trainset_name);
         svm.setTrainingSample(training_samples);
@@ -483,7 +480,7 @@ protected:
       }
       for (Size i = 0; i < temp_counter; ++i)
       {
-        if (svm.getIntParameter(SVMWrapper::KERNEL_TYPE) == SVMWrapper::OLIGO && output_text == "")
+        if (svm.getIntParameter(SVMWrapper::KERNEL_TYPE) == SVMWrapper::OLIGO && output_text.empty())
         {
           predicted_modified_data.insert(make_pair(temp_modified_peptides[i],
                                                    (predicted_retention_times[i] * total_gradient_time)));
@@ -503,7 +500,7 @@ protected:
       predicted_retention_times.clear();
     }
 
-    if (input_id != "")
+    if (!input_id.empty())
     {
       if (!separation_prediction)
       {
@@ -573,7 +570,7 @@ protected:
           {
             identifications[i].sort();
             Int charge = identifications[i].getHits().front().getCharge();
-            double mz =  identifications[i].getHits().front().getSequence().getMonoWeight(Residue::Full, charge) / double(charge);
+            double mz =  identifications[i].getHits().front().getSequence().getMZ(charge);
             double rt =  identifications[i].getHits().front().getMetaValue("predicted_RT");
 
             identifications[i].setRT(rt);
@@ -650,11 +647,11 @@ protected:
     }
     else
     {
-      if (output_text != "") // text
+      if (!output_text.empty()) // text
       {
         writeStringLabelLines_(output_text, predicted_data);
       }
-      if (output_id != "") // idXML
+      if (!output_id.empty()) // idXML
       {
         idXML_file.store(output_id,
                          protein_identifications,

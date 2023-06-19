@@ -5,7 +5,7 @@ cdef extern from "<OpenMS/OPENSWATHALGO/DATAACCESS/DataStructures.h>" namespace 
 
   cdef cppclass OSBinaryDataArray:
         OSBinaryDataArray() nogil except +
-        OSBinaryDataArray(OSBinaryDataArray) nogil except +
+        OSBinaryDataArray(OSBinaryDataArray &) nogil except + # compiler
         libcpp_vector[double] data
         libcpp_string description
       
@@ -14,7 +14,7 @@ cdef extern from "<OpenMS/OPENSWATHALGO/DATAACCESS/DataStructures.h>" namespace 
   # See ../addons/OSSpectrum.pyx
   cdef cppclass OSSpectrum:
         OSSpectrum() nogil except +
-        OSSpectrum(OSSpectrum) nogil except +
+        OSSpectrum(OSSpectrum &) nogil except + # compiler
         OSBinaryDataArrayPtr getMZArray() #wrap-ignore
         OSBinaryDataArrayPtr getIntensityArray() #wrap-ignore
         # libcpp_vector[ BinaryDataArrayPtr ]  getDataArrays() nogil except +
@@ -27,7 +27,7 @@ cdef extern from "<OpenMS/OPENSWATHALGO/DATAACCESS/DataStructures.h>" namespace 
   # See ../addons/OSChromatogram.pyx
   cdef cppclass OSChromatogram:
         OSChromatogram() nogil except +
-        OSChromatogram(OSChromatogram) nogil except +
+        OSChromatogram(OSChromatogram &) nogil except + # compiler
         OSBinaryDataArrayPtr getTimeArray() #wrap-ignore
         OSBinaryDataArrayPtr getIntensityArray() #wrap-ignore
         # libcpp_vector[ BinaryDataArrayPtr ]  getDataArrays() nogil except +

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -34,6 +34,8 @@
 
 #include <OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentTransformer.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/TransformationDescription.h>
+#include <OpenMS/ANALYSIS/TARGETED/TargetedExperiment.h>
+#include <OpenMS/CONCEPT/VersionInfo.h>
 #include <OpenMS/DATASTRUCTURES/StringListUtils.h>
 #include <OpenMS/FORMAT/ConsensusXMLFile.h>
 #include <OpenMS/FORMAT/FeatureXMLFile.h>
@@ -43,7 +45,6 @@
 #include <OpenMS/FORMAT/TextFile.h>
 #include <OpenMS/FORMAT/TraMLFile.h>
 #include <OpenMS/FORMAT/FASTAFile.h>
-#include <OpenMS/ANALYSIS/TARGETED/TargetedExperiment.h>
 #include <OpenMS/FORMAT/TransformationXMLFile.h>
 
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
@@ -60,26 +61,29 @@ using namespace std;
 /**
   @page TOPP_FileMerger FileMerger
 
-  @brief Merges several files. Multiple output format supported, depending on input format.
+  @brief Merges several files. Multiple output formats supported, depending on the input format.
 
   <center>
   <table>
   <tr>
-  <td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. predecessor tools </td>
-  <td VALIGN="middle" ROWSPAN=2> \f$ \longrightarrow \f$ FileMerger \f$ \longrightarrow \f$</td>
-  <td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. successor tools </td>
+  <th ALIGN = "center"> pot. predecessor tools </td>
+  <td VALIGN="middle" ROWSPAN=2> &rarr; FileMerger &rarr;</td>
+  <th ALIGN = "center"> pot. successor tools </td>
   </tr>
   <tr>
-  <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> any tool/instrument producing merge able files </td>
-  <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> any tool operating merged files (e.g. @ref TOPP_XTandemAdapter) </td>
+  <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> any tool/instrument producing mergeable files </td>
+  <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> any tool operating merged files (e.g. @ref TOPP_XTandemAdapter for mzML, @ref TOPP_ProteinQuantifier for consensusXML) </td>
   </tr>
   </table>
   </center>
 
-  The meta information that is valid for the whole experiment (e.g. MS instrument and sample)
-  is taken from the first file.
+  Special attention should be given to the append_method for consensusXMLs. One column corresponds to one channel/label + raw file. Rows are quantified and linked features.
+  More details on the use cases can be found at the parameter description.
+  
+  For non-consensusXML or consensusXML merging with append_rows, the meta information that is valid for the whole experiment (e.g. MS instrument and sample)
+  is taken from the first file only.
 
-  The retention times for the individual scans are taken from either:
+  For spectrum-containing formats (no feature/consensusXML), the retention times for the individual scans are taken from either:
   <ul>
   <li>the input file meta data (e.g. mzML)
   <li>from the input file names (name must contain 'rt' directly followed by a number, e.g. 'myscan_rt3892.98_MS2.dta')
@@ -113,15 +117,20 @@ protected:
 
   void registerOptionsAndFlags_() override
   {
-    StringList valid_in = ListUtils::create<String>("mzData,mzXML,mzML,dta,dta2d,mgf,featureXML,consensusXML,fid,traML,FASTA");
+    StringList valid_in = ListUtils::create<String>("mzData,mzXML,mzML,dta,dta2d,mgf,featureXML,consensusXML,fid,traML,fasta");
     registerInputFileList_("in", "<files>", StringList(), "Input files separated by blank");
     setValidFormats_("in", valid_in);
     registerStringOption_("in_type", "<type>", "", "Input file type (default: determined from file extension or content)", false);
     setValidStrings_("in_type", valid_in);
     registerOutputFile_("out", "<file>", "", "Output file");
-    setValidFormats_("out", ListUtils::create<String>("mzML,featureXML,consensusXML,traML"));
+    setValidFormats_("out", ListUtils::create<String>("mzML,featureXML,consensusXML,traML,fasta"));
 
     registerFlag_("annotate_file_origin", "Store the original filename in each feature using meta value \"file_origin\" (for featureXML and consensusXML only).");
+    registerStringOption_("append_method", "<choice>", "append_rows", "(ConsensusXML-only) Append quantitative information about features row-wise or column-wise.\n"
+    "- 'append_rows' is usually used when the inputs come from the same MS run (e.g. caused by manual splitting or multiple algorithms on the same file)\n"
+    "- 'append_cols' when you want to combine consensusXMLs from e.g. different fractions to be summarized in ProteinQuantifier or jointly exported with MzTabExporter."
+    , false);
+    setValidStrings_("append_method", ListUtils::create<String>("append_rows,append_cols"));
     
     registerTOPPSubsection_("rt_concat", "Options for concatenating files in the retention time (RT) dimension. The RT ranges of inputs are adjusted so they don't overlap in the merged file (traML input not supported)");
     registerDoubleOption_("rt_concat:gap", "<sec>", 0.0, "The amount of gap (in seconds) to insert between the RT ranges of different input files. RT concatenation is enabled if a value > 0 is set.", false);
@@ -143,13 +152,13 @@ protected:
     TransformationDescription trafo;
     if (first_file) // no transformation necessary
     {
-      rt_offset_ = map.getMax()[0] + rt_gap_;
+      rt_offset_ = map.getMaxRT() + rt_gap_;
       trafo.fitModel("identity");
     }
     else // subsequent file -> apply transformation
     {
       TransformationDescription::DataPoints points(2);
-      double rt_min = map.getMin()[0], rt_max = map.getMax()[0];
+      double rt_min = map.getMinRT(), rt_max = map.getMaxRT();
       points[0] = make_pair(rt_min, rt_offset_);
       rt_offset_ += rt_max - rt_min;
       points[1] = make_pair(rt_max, rt_offset_);
@@ -176,7 +185,7 @@ protected:
     // file type
     FileHandler file_handler;
     FileTypes::Type force_type;
-    if (getStringOption_("in_type").size() > 0)
+    if (!getStringOption_("in_type").empty())
     {
       force_type = FileTypes::nameToType(getStringOption_("in_type"));
     }
@@ -187,7 +196,13 @@ protected:
 
     // output file names and types
     String out_file = getStringOption_("out");
-
+   
+    // append method
+    bool append_rows = false;
+    bool append_cols = false;
+    String append_method = getStringOption_("append_method");
+    append_method == "append_rows" ? append_rows = true : append_cols = true; 
+   
     bool annotate_file_origin =  getFlag_("annotate_file_origin");
     rt_gap_ = getDoubleOption_("rt_concat:gap");
     vector<String> trafo_out = getStringList_("rt_concat:trafo_out");
@@ -198,7 +213,7 @@ protected:
     }
     else if (trafo_out.size() != file_list.size())
     {
-      writeLog_("Error: Number of transformation output files must equal the number of input files (parameters 'rt_concat:trafo_out'/'in')!");
+      writeLogError_("Error: Number of transformation output files must equal the number of input files (parameters 'rt_concat:trafo_out'/'in')!");
       return ILLEGAL_PARAMETERS;
     }
 
@@ -248,34 +263,48 @@ protected:
       // load the metadata from the first file
       fh.load(file_list[0], out);
       // but annotate the origins
-      if (annotate_file_origin)
-      {
-        for (ConsensusMap::iterator it = out.begin(); it != out.end(); ++it)
-        {
-          it->setMetaValue("file_origin", DataValue(file_list[0]));
-        }
-      }
 
-      // skip first file for adding
-      for (Size i = 1; i < file_list.size(); ++i)
-      {
-        ConsensusMap map;
-        fh.load(file_list[i], map);
-
-        if (annotate_file_origin)
-        {
-          for (ConsensusMap::iterator it = map.begin(); it != map.end(); ++it)
+      if (append_rows) {
+          if (annotate_file_origin)
           {
-            it->setMetaValue("file_origin", DataValue(file_list[i]));
+            for (ConsensusFeature& cm : out)
+            {
+              cm.setMetaValue("file_origin", DataValue(file_list[0]));
+            }
           }
-        }
 
-        if (rt_gap_ > 0.0) // concatenate in RT
-        {
-          adjustRetentionTimes_(map, trafo_out[i], i == 0);
-        }
+          // skip first file for adding
+          for (Size i = 1; i < file_list.size(); ++i)
+          {
+            ConsensusMap map;
+            fh.load(file_list[i], map);
 
-        out.appendRows(map);
+            if (annotate_file_origin)
+            {
+              for (ConsensusFeature& cm : map)
+              {
+                cm.setMetaValue("file_origin", DataValue(file_list[i]));
+              }  
+            } 
+
+            if (rt_gap_ > 0.0) // concatenate in RT
+            {  
+              adjustRetentionTimes_(map, trafo_out[i], i == 0);
+            }
+
+            out.appendRows(map);
+          }
+      }
+      
+      if (append_cols)
+      { 
+          // skip first file for adding
+          for (Size i = 1; i < file_list.size(); ++i)
+          {
+            ConsensusMap map;
+            fh.load(file_list[i], map);
+            out.appendColumns(map);
+          }
       }
 
       //-------------------------------------------------------------
@@ -359,7 +388,7 @@ protected:
         rt_custom = true;
         if (custom_rts.size() != file_list.size())
         {
-          writeLog_("Custom retention time list (parameter 'raw:rt_custom') must have as many elements as there are input files (parameter 'in')!");
+          writeLogError_("Error: Custom retention time list (parameter 'raw:rt_custom') must have as many elements as there are input files (parameter 'in')!");
           return ILLEGAL_PARAMETERS;
         }
       }
@@ -381,7 +410,7 @@ protected:
 
         if (in.empty() && in.getChromatograms().empty())
         {
-          writeLog_(String("Warning: Empty file '") + filename + "'!");
+          writeLogWarn_(String("Warning: Empty file '") + filename + "'!");
           continue;
         }
         out.reserve(out.size() + in.size());
@@ -389,14 +418,13 @@ protected:
         // warn if custom RT and more than one scan in input file
         if (rt_custom && in.size() > 1)
         {
-          writeLog_(String("Warning: More than one scan in file '") + filename + "'! All scans will have the same retention time!");
+          writeLogWarn_(String("Warning: More than one scan in file '") + filename + "'! All scans will have the same retention time!");
         }
 
         // handle special raw data options:
-        for (PeakMap::iterator spec_it = in.begin();
-             spec_it != in.end(); ++spec_it)
+        for (MSSpectrum& spec : in)
         {
-          float rt_final = spec_it->getRT();
+          float rt_final = spec.getRT();
           if (rt_auto_number)
           {
             rt_final = ++rt_auto;
@@ -407,7 +435,7 @@ protected:
           }
           else if (rt_filename)
           {
-            static const boost::regex re("rt(\\d+(\\.\\d+)?)");
+            static const boost::regex re(R"(rt(\d+(\.\d+)?))");
             boost::smatch match;
             bool found = boost::regex_search(filename, match, re);
             if (found)
@@ -416,21 +444,21 @@ protected:
             }
             else
             {
-              writeLog_("Warning: could not extract retention time from filename '" + filename + "'");
+              writeLogWarn_("Warning: could not extract retention time from filename '" + filename + "'");
             }
           }
 
           // none of the rt methods were successful
           if (rt_final < 0)
           {
-            writeLog_(String("Warning: No valid retention time for output scan '") + rt_auto + "' from file '" + filename + "'");
+            writeLogWarn_(String("Warning: No valid retention time for output scan '") + rt_auto + "' from file '" + filename + "'");
           }
 
-          spec_it->setRT(rt_final);
-          spec_it->setNativeID("spectrum=" + String(native_id));
+          spec.setRT(rt_final);
+          spec.setNativeID("spectrum=" + String(native_id));
           if (ms_level > 0)
           {
-            spec_it->setMSLevel(ms_level);
+            spec.setMSLevel(ms_level);
           }
           ++native_id;
         }
@@ -448,10 +476,9 @@ protected:
         }
 
         // add spectra to output
-        for (PeakMap::const_iterator spec_it = in.begin();
-             spec_it != in.end(); ++spec_it)
+        for (const MSSpectrum& spec : in)
         {
-          out.addSpectrum(*spec_it);
+          out.addSpectrum(spec);
         }
         // also add the chromatograms
         for (vector<MSChromatogram >::const_iterator

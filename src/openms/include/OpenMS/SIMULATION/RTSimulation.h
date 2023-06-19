@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -34,7 +34,6 @@
 
 #pragma once
 
-#include <OpenMS/DATASTRUCTURES/Map.h>
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 #include <OpenMS/SIMULATION/SimTypes.h>
 
@@ -121,10 +120,10 @@ private:
     */
     void calculateMT_(SimTypes::FeatureMapSim& features, std::vector<double>& predicted_retention_times);
 
-    void getChargeContribution_(Map<String, double>& q_cterm,
-                                Map<String, double>& q_nterm,
-                                Map<String, double>& q_aa_basic,
-                                Map<String, double>& q_aa_acidic);
+    void getChargeContribution_(std::map<String, double>& q_cterm,
+                                std::map<String, double>& q_nterm,
+                                std::map<String, double>& q_aa_basic,
+                                std::map<String, double>& q_aa_acidic);
 
     // MEMBERS:
 

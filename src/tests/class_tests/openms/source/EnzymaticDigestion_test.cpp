@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -38,6 +38,7 @@
 ///////////////////////////
 
 #include <OpenMS/CHEMISTRY/EnzymaticDigestion.h>
+#include <OpenMS/DATASTRUCTURES/StringView.h>
 #include <OpenMS/CHEMISTRY/ProteaseDB.h>
 #include <vector>
 using namespace OpenMS;
@@ -57,7 +58,8 @@ START_SECTION((EnzymaticDigestion()))
 END_SECTION
 
 START_SECTION([EXTRA] virtual ~EnzymaticDigestion())
-    delete ed_ptr;
+  delete ed_ptr;
+  NOT_TESTABLE
 END_SECTION
 
 START_SECTION(([EXTRA] EnzymaticDigestion(const EnzymaticDigestion& rhs)))
@@ -120,10 +122,10 @@ START_SECTION((void setSpecificity(Specificity spec)))
 END_SECTION
 
 START_SECTION((static Specificity getSpecificityByName(const String& name)))
-    TEST_EQUAL(EnzymaticDigestion::getSpecificityByName(EnzymaticDigestion::NamesOfSpecificity[0]), EnzymaticDigestion::SPEC_FULL);
+    TEST_EQUAL(EnzymaticDigestion::getSpecificityByName(EnzymaticDigestion::NamesOfSpecificity[2]), EnzymaticDigestion::SPEC_FULL);
     TEST_EQUAL(EnzymaticDigestion::getSpecificityByName(EnzymaticDigestion::NamesOfSpecificity[1]), EnzymaticDigestion::SPEC_SEMI);
-    TEST_EQUAL(EnzymaticDigestion::getSpecificityByName(EnzymaticDigestion::NamesOfSpecificity[2]), EnzymaticDigestion::SPEC_NONE);
-    TEST_EQUAL(EnzymaticDigestion::getSpecificityByName("DoesNotExist"), EnzymaticDigestion::SIZE_OF_SPECIFICITY);
+    TEST_EQUAL(EnzymaticDigestion::getSpecificityByName(EnzymaticDigestion::NamesOfSpecificity[0]), EnzymaticDigestion::SPEC_NONE);
+    TEST_EQUAL(EnzymaticDigestion::getSpecificityByName("DoesNotExist"), EnzymaticDigestion::SPEC_UNKNOWN);
 END_SECTION
 
 START_SECTION((Size digestUnmodified(const StringView sequence, std::vector<StringView>& output, Size min_length, Size max_length)))
@@ -502,6 +504,15 @@ START_SECTION([EXTRA] Size countMissedCleavages_(const std::vector<int>& cleavag
   TEST_EQUAL(ed.isValidProduct("KKKK", 0, 4, false), false); // has 3 MC's, should not be valid
   ed.setMissedCleavages(3);
   TEST_EQUAL(ed.isValidProduct("KKKK", 0, 4, false), true);  // has 3 MC's, should be valid
+END_SECTION
+
+START_SECTION(Size countInternalCleavageSites(const String& sequence) )
+  EnzymaticDigestion ed;
+  ed.setMissedCleavages(0); // setting max missed cleavages should not have any impact
+  TEST_EQUAL(ed.countInternalCleavageSites("PEEKEEKEEPKEEPK"), 3); // has 3 internal cleavage sites
+  ed.setMissedCleavages(2);
+  TEST_EQUAL(ed.countInternalCleavageSites("PEEKEEKEEPKEEPK"), 3); // has 3 internal cleavage sites
+  TEST_EQUAL(ed.countInternalCleavageSites("EEEEEEEEEEEEEEE"), 0); // has 0 internal cleavage sites
 END_SECTION
 
 /////////////////////////////////////////////////////////////

@@ -6,10 +6,10 @@ set(sources_list
 AsymmetricStatistics.cpp
 AveragePosition.cpp
 BasicStatistics.cpp
-CumulativeBinomial.cpp
 GammaDistributionFitter.cpp
 GaussFitter.cpp
 GumbelDistributionFitter.cpp
+GumbelMaxLikelihoodFitter.cpp
 Histogram.cpp
 LinearRegression.cpp
 LinearRegressionWithoutIntercept.cpp
@@ -29,4 +29,3 @@ set(OpenMS_sources ${OpenMS_sources} ${sources})
 
 ### source group definition
 source_group("Source Files\\MATH\\STATISTICS" FILES ${sources})
-

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry               
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 // 
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -77,7 +77,7 @@ namespace OpenMS
       @return 0 in case of success and -1 otherwise (failure, no offset was found)
 
     */
-    int parseOffsets(String filename, std::streampos indexoffset, OffsetVector & spectra_offsets, OffsetVector& chromatograms_offsets);
+    int parseOffsets(const String& filename, std::streampos indexoffset, OffsetVector & spectra_offsets, OffsetVector& chromatograms_offsets);
 
     /**
       @brief Tries to extract the indexList offset from an indexedmzML.
@@ -104,7 +104,7 @@ namespace OpenMS
       @throw FileNotFound is thrown if file cannot be found
       @throw ParseError if offset cannot be parsed
     */
-    std::streampos findIndexListOffset(String filename, int buffersize = 1023);
+    std::streampos findIndexListOffset(const String& filename, int buffersize = 1023);
 
   protected:
 
@@ -143,7 +143,7 @@ namespace OpenMS
       @param spectra_offsets Output vector containing the positions of all spectra in the file
       @param chromatograms_offsets Output vector containing the positions of all chromatograms in the file
     */
-    int domParseIndexedEnd_(std::string in, OffsetVector & spectra_offsets, OffsetVector& chromatograms_offsets);
+    int domParseIndexedEnd_(const std::string& in, OffsetVector & spectra_offsets, OffsetVector& chromatograms_offsets);
   };
 
 }

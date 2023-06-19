@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -29,13 +29,14 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Timo Sachsenberg $
-// $Authors: Hendrik Weisser $
+// $Authors: Hendrik Weisser, Eugen Netz $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/ANALYSIS/MAPMATCHING/TransformationModelLinear.h>
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 
-#include <Wm5Vector2.h>
-#include <Wm5ApprLineFit2.h>
+#include <Mathematics/Vector2.h>
+#include <Mathematics/ApprHeightLine2.h>
 
 namespace OpenMS
 {
@@ -59,33 +60,50 @@ namespace OpenMS
       symmetric_ = params_.getValue("symmetric_regression") == "true";
       // weight the data (if weighting is specified)
       TransformationModel::DataPoints data_weighted = data;
-      if ((params.exists("x_weight") && params.getValue("x_weight") != "") || (params.exists("y_weight") && params.getValue("y_weight") != ""))
+      // TrafoXML's prior to OpenMS 3.0 have x/y_weight = "" if unweighted 
+      if ((params.exists("x_weight") && params.getValue("x_weight") != "x" && params.getValue("x_weight") != "") ||
+          (params.exists("y_weight") && params.getValue("y_weight") != "y" && params.getValue("y_weight") != ""))
       {
         weightData(data_weighted);
       }
 
       size_t size = data_weighted.size();
-      std::vector<Wm5::Vector2d> points;
+      std::vector<gte::Vector2<double>> points;
       if (size == 0) // no data
       {
         throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                          "no data points for 'linear' model");
       }
       else if (size == 1) // degenerate case, but we can still do something
-      {               
+      {
         slope_ = 1.0;
         intercept_ = data_weighted[0].second - data_weighted[0].first;
+      }
+      else if (size == 2)
+      {
+        // if the two points are too close, gte::HeightLineFit2 can't fit a line
+        // but in the special case of two points, there is an exact solution and we don't need a least-sqaures fit
+        slope_ = (data_weighted[1].second - data_weighted[0].second) / (data_weighted[1].first - data_weighted[0].first);
+        intercept_ = data_weighted[0].second - (slope_ * data_weighted[0].first);
+
+        if (std::isinf(slope_) || std::isnan(slope_) || std::isinf(intercept_) || std::isnan(intercept_))
+        {
+          throw Exception::UnableToFit(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "TransformationModelLinear", "Unable to fit linear transformation to the two data points.");
+        }
       }
       else // compute least-squares fit
       {
         for (size_t i = 0; i < size; ++i)
         {
-          points.push_back(Wm5::Vector2d(data_weighted[i].first, data_weighted[i].second));
+          points.emplace_back(std::initializer_list<double>{data_weighted[i].first, data_weighted[i].second});
         }
-        if (!Wm5::HeightLineFit2<double>(static_cast<int>(size), &points.front(), slope_, intercept_))
+        auto line = gte::ApprHeightLine2<double>();
+        if (!line.Fit(static_cast<int>(size), &points.front()))
         {
           throw Exception::UnableToFit(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "TransformationModelLinear", "Unable to fit linear transformation to data points.");
         }
+      slope_ = line.GetParameters().second[0];
+      intercept_ = -slope_ * line.GetParameters().first[0] + line.GetParameters().first[1];
       }
       // update params
       params_.setValue("slope", slope_);
@@ -93,13 +111,9 @@ namespace OpenMS
     }
   }
 
-  TransformationModelLinear::~TransformationModelLinear()
-  {
-  }
-
   double TransformationModelLinear::evaluate(double value) const
   {
-    if (!weighting_) 
+    if (!weighting_)
     {
       return slope_ * value + intercept_;
     }
@@ -119,7 +133,7 @@ namespace OpenMS
     }
     intercept_ = -intercept_ / slope_;
     slope_ = 1.0 / slope_;
-    
+
     // invert the weights:
     std::swap(x_datum_min_,y_datum_min_);
     std::swap(x_datum_max_,y_datum_max_);
@@ -154,13 +168,13 @@ namespace OpenMS
     params.setValue("symmetric_regression", "false", "Perform linear regression"
                                                      " on 'y - x' vs. 'y + x', instead of on 'y' vs. 'x'.");
     params.setValidStrings("symmetric_regression",
-                           ListUtils::create<String>("true,false"));
-    params.setValue("x_weight", "", "Weight x values");
+                           {"true","false"});
+    params.setValue("x_weight", "x", "Weight x values");
     params.setValidStrings("x_weight",
-                           ListUtils::create<String>("1/x,1/x2,ln(x),"));
-    params.setValue("y_weight", "", "Weight y values");
+                           {"1/x","1/x2","ln(x)","x"});
+    params.setValue("y_weight", "y", "Weight y values");
     params.setValidStrings("y_weight",
-                           ListUtils::create<String>("1/y,1/y2,ln(y),"));
+                           {"1/y","1/y2","ln(y)","y"});
     params.setValue("x_datum_min", 1e-15, "Minimum x value");
     params.setValue("x_datum_max", 1e15, "Maximum x value");
     params.setValue("y_datum_min", 1e-15, "Minimum y value");

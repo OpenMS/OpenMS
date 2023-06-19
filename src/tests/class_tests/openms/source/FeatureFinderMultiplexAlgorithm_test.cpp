@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -96,9 +96,9 @@ START_SECTION((virtual void run()))
   double L = result[0].getFeatures().begin()->getIntensity();
   double H = (++(result[0].getFeatures().begin()))->getIntensity();
 
-  // Check that the HEAVY:LIGHT ratio is close to the expected 4:1 ratio
+  // Check that the HEAVY:LIGHT ratio is close to the expected 3:1 ratio
   TOLERANCE_ABSOLUTE(0.2);
-  TEST_REAL_SIMILAR(H/L, 4.0);
+  TEST_REAL_SIMILAR(H/L, 3.0);
 }
 END_SECTION
 

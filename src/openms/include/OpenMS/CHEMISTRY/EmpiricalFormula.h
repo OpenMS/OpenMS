@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -28,7 +28,7 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Chris Bielow $
+// $Maintainer: Chris Bielow, Ahmed Khalil $
 // $Authors: Andreas Bertsch, Chris Bielow $
 // --------------------------------------------------------------------------
 //
@@ -37,10 +37,9 @@
 #include <iosfwd>
 #include <map>
 #include <set>
-#include <algorithm>
+#include <string>
 
 #include <OpenMS/CONCEPT/Types.h>
-
 
 namespace OpenMS
 {
@@ -50,6 +49,7 @@ namespace OpenMS
   class IsotopeDistribution;
   class IsotopePatternGenerator;
   class CoarseIsotopePatternGenerator;
+
   /**
     @ingroup Chemistry
 
@@ -68,9 +68,12 @@ namespace OpenMS
     but a natural distribution or different isotopes. This distribution can be accessed via the
     member getIsotopeDistribution().
 
-    If one wants only use a specific isotope, it can be specified using "(",")" brackets. For example,
-    to specify 14C a heavy isotope of carbon it is expressed as "(14)C". The isotope distribution
-    of that instance contains only one isotope, 14C itself with a frequency of 100%.
+    If one wants only use a specific isotope, it can be specified using "(",")"
+    brackets. For example, to specify 13C a heavy isotope of carbon it is
+    expressed as "(13)C". The isotope distribution of that instance contains
+    only one isotope, 13C itself with a frequency of 100%. It is possible to
+    mix isotopes, for example "(13)C1CH6O" specifies an ethanol molecule with
+    one 12C and one 13C isotope.
 
     Instances EmpiricalFormula support a (limited) set of mathematical operations. Additions and subtractions
     are supported in different flavors. However, one must be careful, because this can lead to negative
@@ -99,11 +102,14 @@ public:
     /** @name Constructors and Destructors
     */
     //@{
-    /// default constructor
+    /// Default constructor
     EmpiricalFormula();
 
-    /// copy constructor
-    EmpiricalFormula(const EmpiricalFormula& rhs);
+    /// Copy constructor
+    EmpiricalFormula(const EmpiricalFormula&) = default;
+
+    /// Move constructor
+    EmpiricalFormula(EmpiricalFormula&&) = default;
 
     /**
       Constructor from an OpenMS String
@@ -112,14 +118,25 @@ public:
     */
     explicit EmpiricalFormula(const String& rhs);
 
-    /// constructor with element pointer and number
+    /// Constructor with element pointer and number
     EmpiricalFormula(SignedSize number, const Element* element, SignedSize charge = 0);
 
-    /// destructor
+    /// Destructor
     virtual ~EmpiricalFormula();
     //@}
 
+     /**
+     @brief create EmpiricalFormular object by parsing an OpenMS string
 
+     @param s Input string
+
+     @throws Exception::ParseError if the formula cannot be parsed
+   */
+    static EmpiricalFormula fromString(const String& rhs)
+    {
+      EmpiricalFormula ef(rhs);
+      return ef;
+    }
 
     /** @name Accessors
     */
@@ -149,6 +166,21 @@ public:
     bool estimateFromWeightAndComp(double average_weight, double C, double H, double N, double O, double S, double P);
 
     /**
+      @brief Fills this EmpiricalFormula with an approximate elemental composition for a given monoisotopic weight and approximate elemental stoichiometry
+
+      @param mono_weight: Monoisotopic weight to estimate an EmpiricalFormula for
+      @param C: The approximate relative stoichiometry of Carbons to other elements in this molecule
+      @param H: The approximate relative stoichiometry of Hydrogens to other elements in this molecule
+      @param N: The approximate relative stoichiometry of Nitrogens to other elements in this molecule
+      @param O: The approximate relative stoichiometry of Oxygens to other elements in this molecule
+      @param S: The approximate relative stoichiometry of Sulfurs to other elements in this molecule
+      @param P: The approximate relative stoichiometry of Phosphoruses to other elements in this molecule
+
+      @return bool flag for whether the approximation succeeded without requesting negative hydrogens. true = no problems, 1 = negative hydrogens requested.
+    */
+    bool estimateFromMonoWeightAndComp(double mono_weight, double C, double H, double N, double O, double S, double P);
+
+    /**
       @brief Fills this EmpiricalFormula with an approximate elemental composition for a given average weight,
       exact number of sulfurs, and approximate elemental stoichiometry
 
@@ -170,10 +202,10 @@ public:
       The details of the calculation of the isotope distribution
       are described in the doc to the CoarseIsotopePatternGenerator class.
 
-      @param method: the method that will be used for the calculation of the IsotopeDistribution 
+      @param method: the method that will be used for the calculation of the IsotopeDistribution
     */
-    IsotopeDistribution getIsotopeDistribution(const IsotopePatternGenerator& method) const;    
-    
+    IsotopeDistribution getIsotopeDistribution(const IsotopePatternGenerator& method) const;
+
     /**
       @brief returns the fragment isotope distribution of this given a precursor formula
       and conditioned on a set of isolated precursor isotopes.
@@ -184,7 +216,9 @@ public:
       @param method: the method that will be used for the calculation of the IsotopeDistribution
       @return the conditional IsotopeDistribution of the fragment
     */
-    IsotopeDistribution getConditionalFragmentIsotopeDist(const EmpiricalFormula& precursor, const std::set<UInt>& precursor_isotopes, const CoarseIsotopePatternGenerator& method) const;
+    IsotopeDistribution getConditionalFragmentIsotopeDist(const EmpiricalFormula& precursor,
+                                                          const std::set<UInt>& precursor_isotopes,
+                                                          const CoarseIsotopePatternGenerator& method) const;
 
     /// returns the number of atoms for a certain @p element (can be negative)
     SignedSize getNumberOf(const Element* element) const;
@@ -193,10 +227,10 @@ public:
     SignedSize getNumberOfAtoms() const;
 
     /// returns the charge
-    SignedSize getCharge() const;
+    Int getCharge() const;
 
     /// sets the charge
-    void setCharge(SignedSize charge);
+    void setCharge(Int charge);
 
     /// returns the formula as a string (charges are not included)
     String toString() const;
@@ -208,8 +242,12 @@ public:
     /** Assignment
     */
     //@{
-    /// assignment operator
-    EmpiricalFormula& operator=(const EmpiricalFormula& rhs);
+
+    /// Assignment operator
+    EmpiricalFormula& operator=(const EmpiricalFormula&) = default;
+
+    /// Move assignment operator
+    EmpiricalFormula& operator=(EmpiricalFormula&&) & = default;
 
     /// adds the elements of the given formula
     EmpiricalFormula& operator+=(const EmpiricalFormula& rhs);
@@ -241,7 +279,7 @@ public:
     bool hasElement(const Element* element) const;
 
     /// returns true if all elements from @p ef are LESS abundant (negative allowed) than the corresponding elements of this EmpiricalFormula
-    bool contains(const EmpiricalFormula& ef);
+    bool contains(const EmpiricalFormula& ef) const;
 
     /// returns true if the formulas contain equal elements in equal quantities
     bool operator==(const EmpiricalFormula& rhs) const;
@@ -263,10 +301,21 @@ public:
     inline ConstIterator begin() const { return formula_.begin(); }
 
     inline ConstIterator end() const { return formula_.end(); }
-    
+
     inline Iterator begin() { return formula_.begin(); }
 
     inline Iterator end() { return formula_.end(); }
+    //@}
+
+    /** @name Static member functions
+     */
+    // @TODO: make these static member variables instead?
+    //@{
+    /// Efficiently generates a formula for hydrogen
+    static EmpiricalFormula hydrogen(int n_atoms = 1);
+
+    /// Efficiently generates a formula for water
+    static EmpiricalFormula water(int n_molecules = 1);
     //@}
 
 protected:
@@ -276,9 +325,9 @@ protected:
 
     MapType_ formula_;
 
-    SignedSize charge_;
+    Int charge_;
 
-    SignedSize parseFormula_(std::map<const Element*, SignedSize>& ef, const String& formula) const;
+    Int parseFormula_(std::map<const Element*, SignedSize>& ef, const String& formula) const;
 
   };
 

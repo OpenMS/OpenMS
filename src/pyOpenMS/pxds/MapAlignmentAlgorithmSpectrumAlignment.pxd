@@ -11,10 +11,12 @@ cdef extern from "<OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentAlgorithmSpectrumAlig
     
     cdef cppclass MapAlignmentAlgorithmSpectrumAlignment(DefaultParamHandler, ProgressLogger):
         # wrap-inherits:
-        #    DefaultParamHandler
-        #    ProgressLogger
+        #   DefaultParamHandler
+        #   ProgressLogger
 
         MapAlignmentAlgorithmSpectrumAlignment() nogil except +
+        # private
+        MapAlignmentAlgorithmSpectrumAlignment(MapAlignmentAlgorithmSpectrumAlignment &) nogil except + # wrap-ignore
  
-        void align(libcpp_vector[MSExperiment]&, libcpp_vector[TransformationDescription]&) nogil except +
+        void align(libcpp_vector[MSExperiment]&, libcpp_vector[TransformationDescription]&) nogil except + # wrap-doc:Align peak maps
 

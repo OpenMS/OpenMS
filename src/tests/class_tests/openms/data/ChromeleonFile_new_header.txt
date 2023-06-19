@@ -1,0 +1,53 @@
+﻿File Path	chrom://aibn-gh359r2/ChromeleonLocal/Instrument Data/HPLC_2/SUG_190605_AXA_REINJ FOR ROBIN_MP.seq/629.smp/RID_Signal.channel/RID_Signal.chm
+Channel	RID_Signal
+
+Injection Information:
+Data Vault	ChromeleonLocal
+Injection	S1
+Injection Number	14
+Position	Vial:8
+Comment	
+Processing Method	SUGARS_CAL
+Instrument Method	SUGARS_MP.M
+Type	Calibration Standard
+Status	Finished
+Injection Date	13/06/2019
+Injection Time	12:11:41 AM
+Injection Volume (µL)	10.00
+Dilution Factor	1.0000
+Weight	1.0000
+
+Chromatogram Data Information:
+Time Min. (min)	0.000000
+Time Max. (min)	21.002886
+Data Points	2912
+Detector	LCSystem
+Generating Data System	Chromeleon 7.2.9.11323
+Exporting Data System	Chromeleon 7.2.9.0
+Operator	Instrument Controller
+Signal Quantity	
+Signal Unit	nRIU
+Signal Min.	-202.620000
+Signal Max.	65,603.370000
+Channel	RID_Signal
+Driver Name	ICF.dll
+Channel Type	Evaluation
+Min. Step (s)	0.43290043
+Max. Step (s)	0.43290043
+Average Step (s)	0.43290043
+
+Signal Parameter Information:
+Signal Info	
+
+Chromatogram Data:
+Time (min)	Step (s)	Value (nRIU)
+0.000000	n.a.	5.060000
+0.007215	0.43290043	5.320000
+0.014430	0.43290043	5.450000
+0.021645	0.43290043	5.510000
+0.028860	0.43290043	5.580000
+0.036075	0.43290043	5.510000
+0.043290	0.43290043	5.380000
+0.050505	0.43290043	5.190000
+0.057720	0.43290043	5.060000
+0.064935	0.43290043	4.930000

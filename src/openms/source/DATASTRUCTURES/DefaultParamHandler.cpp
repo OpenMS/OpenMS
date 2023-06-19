@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -34,6 +34,7 @@
 
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
+#include <OpenMS/METADATA/MetaInfoInterface.h>
 
 using namespace std;
 
@@ -50,21 +51,14 @@ namespace OpenMS
 
   }
 
-  DefaultParamHandler::DefaultParamHandler(const DefaultParamHandler& rhs) :
-    param_(rhs.param_),
-    defaults_(rhs.defaults_),
-    subsections_(rhs.subsections_),
-    error_name_(rhs.error_name_),
-    check_defaults_(rhs.check_defaults_),
-    warn_empty_defaults_(rhs.warn_empty_defaults_)
-  {
-  }
+  DefaultParamHandler::DefaultParamHandler(const DefaultParamHandler& rhs) = default;
 
   DefaultParamHandler& DefaultParamHandler::operator=(const DefaultParamHandler& rhs)
   {
     if (&rhs == this)
+    {
       return *this;
-
+    }
     //copy members
     param_ = rhs.param_;
     defaults_ = rhs.defaults_;
@@ -86,9 +80,7 @@ namespace OpenMS
            warn_empty_defaults_ == rhs.warn_empty_defaults_;
   }
 
-  DefaultParamHandler::~DefaultParamHandler()
-  {
-  }
+  DefaultParamHandler::~DefaultParamHandler() = default;
 
   void DefaultParamHandler::setParameters(const Param& param)
   {
@@ -101,7 +93,7 @@ namespace OpenMS
     {
       if (defaults_.empty() && warn_empty_defaults_)
       {
-        LOG_WARN << "Warning: No default parameters for DefaultParameterHandler '" << error_name_ << "' specified!" << endl;
+        OPENMS_LOG_WARN << "Warning: No default parameters for DefaultParameterHandler '" << error_name_ << "' specified!" << endl;
       }
 
       //remove registered subsections
@@ -126,7 +118,7 @@ namespace OpenMS
     for (Param::ParamIterator it = defaults_.begin(); it != defaults_.end(); ++it)
     {
       //cout << "Name: " << it->getName() << endl;
-      if (it->description == "")
+      if (it->description.empty())
       {
         description_missing = true;
         missing_parameters += it.getName() + ",";
@@ -169,6 +161,22 @@ namespace OpenMS
   const std::vector<String>& DefaultParamHandler::getSubsections() const
   {
     return subsections_;
+  }
+
+  void DefaultParamHandler::writeParametersToMetaValues(const Param& write_this, MetaInfoInterface& write_here, const String& prefix)
+  {
+    String prefix_(prefix);
+    if (!prefix_.empty())
+    {
+      if (prefix_.compare(prefix_.size() - 1, 1, ":") != 0) // ends with colon?
+      {
+        prefix_ += ":";
+      }
+    }
+    for (auto it = write_this.begin(); it != write_this.end(); it++)
+    {
+      write_here.setMetaValue(prefix_ + (*it).name, DataValue((*it).value));
+    }
   }
 
 } // namespace OpenMS

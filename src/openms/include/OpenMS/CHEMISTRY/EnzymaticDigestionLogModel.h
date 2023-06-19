@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -40,6 +40,7 @@
 
 #include <string>
 #include <vector>
+#include <map>
 
 namespace OpenMS
 {
@@ -70,7 +71,7 @@ public:
     String getEnzymeName() const;
 
     /// Sets the enzyme for the digestion
-    void setEnzyme(const String name);
+    void setEnzyme(const String& name);
 
     /// Performs the enzymatic digestion of a protein.
     void digest(const AASequence& protein, std::vector<AASequence>& output) const;
@@ -134,7 +135,7 @@ protected:
     /// Threshold to decide if position is cleaved or missed (only for the model)
     double log_model_threshold_;
     /// Holds the cleavage model
-    Map<BindingSite_, CleavageModel_> model_data_;
+    std::map<BindingSite_, CleavageModel_> model_data_;
   };
 
 } // namespace OpenMS

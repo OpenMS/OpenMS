@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -33,7 +33,6 @@
 
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithmMRM.h>
 
-
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/ProductModel.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/EmgFitter1D.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/EmgModel.h>
@@ -42,6 +41,7 @@
 #include <OpenMS/FILTERING/TRANSFORMERS/LinearResampler.h>
 
 #include <fstream>
+#include <map>
 
 namespace OpenMS
 {
@@ -50,18 +50,18 @@ namespace OpenMS
   {
     defaults_.setValue("min_rt_distance", 10.0, "Minimal distance of MRM features in seconds.");
     defaults_.setMinFloat("min_rt_distance", 0.0);
-    defaults_.setValue("min_num_peaks_per_feature", 5, "Minimal number of peaks which are needed for a single feature", ListUtils::create<String>("advanced"));
+    defaults_.setValue("min_num_peaks_per_feature", 5, "Minimal number of peaks which are needed for a single feature", {"advanced"});
     defaults_.setMinInt("min_num_peaks_per_feature", 1);
     defaults_.setValue("min_signal_to_noise_ratio", 2.0, "Minimal S/N ratio a peak must have to be taken into account. Set to zero if the MRM-traces contains mostly signals, and no noise.");
     defaults_.setMinFloat("min_signal_to_noise_ratio", 0);
-    defaults_.setValue("write_debug_files", "false", "If set to true, for each feature a plot will be created, in the subdirectory 'debug'", ListUtils::create<String>("advanced"));
-    defaults_.setValidStrings("write_debug_files", ListUtils::create<String>("true,false"));
+    defaults_.setValue("write_debug_files", "false", "If set to true, for each feature a plot will be created, in the subdirectory 'debug'", {"advanced"});
+    defaults_.setValidStrings("write_debug_files",  {"true","false"});
 
-    defaults_.setValue("resample_traces", "false", "If set to true, each trace, which is in this case a part of the MRM monitoring trace with signal is resampled, using the minimal distance of two data points in RT dimension", ListUtils::create<String>("advanced"));
-    defaults_.setValidStrings("resample_traces", ListUtils::create<String>("true,false"));
+    defaults_.setValue("resample_traces", "false", "If set to true, each trace, which is in this case a part of the MRM monitoring trace with signal is resampled, using the minimal distance of two data points in RT dimension", {"advanced"});
+    defaults_.setValidStrings("resample_traces", {"true","false"});
 
-    defaults_.setValue("write_debuginfo", "false", "If set to true, debug messages are written, the output can be somewhat lengthy.", ListUtils::create<String>("advanced"));
-    defaults_.setValidStrings("write_debuginfo", ListUtils::create<String>("true,false"));
+    defaults_.setValue("write_debuginfo", "false", "If set to true, debug messages are written, the output can be somewhat lengthy.", {"advanced"});
+    defaults_.setValidStrings("write_debuginfo", {"true","false"});
 
     this->defaultsToParam_();
   }
@@ -72,16 +72,12 @@ namespace OpenMS
     //General initialization
     //-------------------------------------------------------------------------
 
-    Map<Size, Map<Size, std::vector<std::pair<double, Peak1D> > > > traces;
-
     SignalToNoiseEstimatorMeanIterative<PeakSpectrum> sne;
     LinearResampler resampler;
 
     // Split the whole map into traces (== MRM transitions)
-    ff_->startProgress(0, traces.size(), "Finding features in traces.");
+    ff_->startProgress(0, map_->getChromatograms().size(), "Finding features in traces.");
     Size counter(0);
-    //typename Map<Size, Map<Size, std::vector<std::pair<double, Peak1D> > > >::const_iterator it1 = traces.begin();
-    //typename Map<Size, std::vector<std::pair<double, Peak1D> > >::const_iterator it2;
     double min_rt_distance(param_.getValue("min_rt_distance"));
     double min_signal_to_noise_ratio(param_.getValue("min_signal_to_noise_ratio"));
     Size min_num_peaks_per_feature(param_.getValue("min_num_peaks_per_feature"));
@@ -100,7 +96,6 @@ namespace OpenMS
     {
       // throw the peaks into a "spectrum" where the m/z values are RTs in reality (more a chromatogram)
       PeakSpectrum chromatogram;
-      //typename std::vector<std::pair<double, Peak1D> >::const_iterator it3 = it2->second.begin();
       for (MSChromatogram::const_iterator it = first_it->begin(); it != first_it->end(); ++it)
       {
         Peak1D peak;
@@ -120,18 +115,18 @@ namespace OpenMS
       {
         // resample the chromatogram, first find minimal distance and use this as resampling distance
         double min_distance(std::numeric_limits<double>::max()), old_rt(0);
-        for (PeakSpectrum::ConstIterator it = chromatogram.begin(); it != chromatogram.end(); ++it)
+        for (const Peak1D& peak : chromatogram)
         {
           if (write_debuginfo)
           {
-            std::cerr << "CHROMATOGRAM: " << it->getMZ() << " " << it->getIntensity() << std::endl;
+            std::cerr << "CHROMATOGRAM: " << peak.getMZ() << " " << peak.getIntensity() << std::endl;
           }
-          double rt_diff = it->getMZ() - old_rt;
+          double rt_diff = peak.getMZ() - old_rt;
           if (rt_diff < min_distance && rt_diff > 0)
           {
             min_distance = rt_diff;
           }
-          old_rt = it->getMZ();
+          old_rt = peak.getMZ();
         }
 
         if (write_debuginfo)
@@ -168,7 +163,7 @@ namespace OpenMS
         continue;
       }
       sne.setParameters(sne_param);
-      sne.init(chromatogram.begin(), chromatogram.end());
+      sne.init(chromatogram);
 
       if (write_debuginfo)
       {
@@ -176,17 +171,17 @@ namespace OpenMS
       }
 
       PeakSpectrum::FloatDataArray signal_to_noise;
-      for (PeakSpectrum::Iterator sit = chromatogram.begin(); sit != chromatogram.end(); ++sit)
+      for (Size i = 0; i < chromatogram.size(); ++i)
       {
-        double sn(sne.getSignalToNoise(sit));
+        double sn(sne.getSignalToNoise(i));
         signal_to_noise.push_back(sn);
         if (write_debuginfo)
         {
-          std::cerr << sit->getMZ() << " " << sit->getIntensity() << " " << sn << std::endl;
+          std::cerr << chromatogram[i].getMZ() << " " << chromatogram[i].getIntensity() << " " << sn << std::endl;
         }
         if (min_signal_to_noise_ratio == 0 || sn > min_signal_to_noise_ratio)
         {
-          sn_chrom.push_back(*sit);
+          sn_chrom.push_back(chromatogram[i]);
         }
       }
       chromatogram.getFloatDataArrays().push_back(signal_to_noise);
@@ -194,13 +189,13 @@ namespace OpenMS
       // now find sections in the chromatogram which have high s/n value
       double last_rt(0);
       std::vector<std::vector<DPosition<2> > > sections;
-      for (PeakSpectrum::Iterator sit = sn_chrom.begin(); sit != sn_chrom.end(); ++sit)
+      for (const Peak1D& sit : sn_chrom)
       {
         if (write_debuginfo)
         {
-          std::cerr << "SECTIONS: " << sit->getMZ() << " " << sit->getIntensity() << std::endl;
+          std::cerr << "SECTIONS: " << sit.getMZ() << " " << sit.getIntensity() << std::endl;
         }
-        double this_rt = sit->getMZ();
+        double this_rt = sit.getMZ();
         if (sections.empty() || (this_rt - last_rt) > min_rt_distance)
         {
           if (write_debuginfo)
@@ -209,12 +204,12 @@ namespace OpenMS
           }
           // new section
           std::vector<DPosition<2> > section;
-          section.push_back(DPosition<2>(this_rt, sit->getIntensity()));
+          section.emplace_back(this_rt, sit.getIntensity());
           sections.push_back(section);
         }
         else
         {
-          sections.back().push_back(DPosition<2>(this_rt, sit->getIntensity()));
+          sections.back().push_back(DPosition<2>(this_rt, sit.getIntensity()));
         }
         last_rt = this_rt;
       }
@@ -300,7 +295,7 @@ namespace OpenMS
             p.setIntensity(filter_spec[j].getIntensity());
             data_to_fit.push_back(p);
           }
-          InterpolationModel* model_rt = nullptr;
+          std::unique_ptr<InterpolationModel> model_rt;
           double quality = fitRT_(data_to_fit, model_rt);
 
           Feature f;
@@ -374,7 +369,6 @@ namespace OpenMS
               std::cerr << "An error occurred during the gnuplot execution" << std::endl;
             }
           }
-
           features_->push_back(f);
         }
       }
@@ -393,7 +387,7 @@ namespace OpenMS
     return "mrm";
   }
 
-  double FeatureFinderAlgorithmMRM::fitRT_(std::vector<Peak1D>& rt_input_data, InterpolationModel*& model) const
+  double FeatureFinderAlgorithmMRM::fitRT_(std::vector<Peak1D>& rt_input_data, std::unique_ptr<InterpolationModel>& model) const
   {
     double quality;
     Param param;
@@ -416,8 +410,10 @@ param.setValue( "deltaRelError", deltaRelError_);
     quality = fitter.fit1d(rt_input_data, model);
 
     // Check quality
-    if (boost::math::isnan(quality)) quality = -1.0;
-
+    if (std::isnan(quality))
+    {
+      quality = -1.0;
+    }
     return quality;
   }
 

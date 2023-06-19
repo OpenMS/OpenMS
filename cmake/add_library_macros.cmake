@@ -2,7 +2,7 @@
 #                   OpenMS -- Open-Source Mass Spectrometry
 # --------------------------------------------------------------------------
 # Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-# ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+# ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 #
 # This software is released under a three-clause BSD license:
 #  * Redistributions of source code must retain the above copyright
@@ -37,6 +37,13 @@ include(CMakeParseArguments)
 include(GenerateExportHeader)
 include(CheckLibArchitecture)
 
+
+#------------------------------------------------------------------------------
+# Enable AddressSanitizer and include some helper function to add compiler and linker flags
+#------------------------------------------------------------------------------  
+option(ADDRESS_SANITIZER "[Clang/GCC only] Enable AddressSanitizer mode (quite slow)." OFF)
+include(${PROJECT_SOURCE_DIR}/cmake/AddressSanitizer.cmake)
+
 #------------------------------------------------------------------------------
 ## export a single option indicating if libraries should be build as unity
 ## build
@@ -65,9 +72,9 @@ function(convert_to_unity_build UB_SUFFIX SOURCE_FILES_NAME)
      # we have headers in there as well, which should not be included explicitly
      if (${source_file} MATCHES "\\.cpp|\\.cxx") # cxx for moc's;
        if (IS_ABSOLUTE ${source_file})
-         file( APPEND ${unit_build_file} "#include<${source_file}>\n")
+         file(APPEND ${unit_build_file} "#include<${source_file}>\n")
        else()
-         file( APPEND ${unit_build_file} "#include<${CMAKE_CURRENT_SOURCE_DIR}/${source_file}>\n")
+         file(APPEND ${unit_build_file} "#include<${CMAKE_CURRENT_SOURCE_DIR}/${source_file}>\n")
        endif()
      endif()
    endforeach(source_file)
@@ -78,23 +85,34 @@ endfunction(convert_to_unity_build)
 #------------------------------------------------------------------------------
 ## Copy the dll produced by the given target to the test/doc binary path.
 ## @param targetname The target to modify.
-## @note This macro will do nothing with non MSVC generators.
+## @note This macro will do nothing outside of Windows since the linker will find the libs.
 macro(copy_dll_to_extern_bin targetname)
-  if(MSVC)
-    file(TO_NATIVE_PATH "${OPENMS_HOST_BINARY_DIRECTORY}/src/tests/class_tests/bin/$(ConfigurationName)/$(TargetFileName)" DLL_TEST_TARGET)
-    file(TO_NATIVE_PATH "${OPENMS_HOST_BINARY_DIRECTORY}/src/tests/class_tests/bin/$(ConfigurationName)" DLL_TEST_TARGET_PATH)
+  if (WIN32)
+    if (CMAKE_GENERATOR MATCHES "Visual Studio")
+      file(TO_NATIVE_PATH "${OPENMS_HOST_BINARY_DIRECTORY}/src/tests/class_tests/bin/$(ConfigurationName)/$(TargetFileName)" DLL_TEST_TARGET)
+      file(TO_NATIVE_PATH "${OPENMS_HOST_BINARY_DIRECTORY}/src/tests/class_tests/bin/$(ConfigurationName)" DLL_TEST_TARGET_PATH)
 
-    file(TO_NATIVE_PATH "${OPENMS_HOST_BINARY_DIRECTORY}/doc/doxygen/parameters/$(ConfigurationName)/$(TargetFileName)" DLL_DOC_TARGET)
-    file(TO_NATIVE_PATH "${OPENMS_HOST_BINARY_DIRECTORY}/doc/doxygen/parameters/$(ConfigurationName)" DLL_DOC_TARGET_PATH)
+      file(TO_NATIVE_PATH "${OPENMS_HOST_BINARY_DIRECTORY}/doc/doxygen/parameters/$(ConfigurationName)/$(TargetFileName)" DLL_DOC_TARGET)
+      file(TO_NATIVE_PATH "${OPENMS_HOST_BINARY_DIRECTORY}/doc/doxygen/parameters/$(ConfigurationName)" DLL_DOC_TARGET_PATH)
+    elseif(NOT GENERATOR_IS_MULTI_CONFIG)
+      file(TO_NATIVE_PATH "${OPENMS_HOST_BINARY_DIRECTORY}/src/tests/class_tests/bin/" DLL_TEST_TARGET)
+      file(TO_NATIVE_PATH "${OPENMS_HOST_BINARY_DIRECTORY}/src/tests/class_tests/bin/" DLL_TEST_TARGET_PATH)
 
-
+      file(TO_NATIVE_PATH "${OPENMS_HOST_BINARY_DIRECTORY}/doc/doxygen/parameters/" DLL_DOC_TARGET)
+      file(TO_NATIVE_PATH "${OPENMS_HOST_BINARY_DIRECTORY}/doc/doxygen/parameters/" DLL_DOC_TARGET_PATH)
+    else()
+      message(WARNING "Sorry, multiconfig generators on windows other than Visual Studio not supported yet.
+              Please look for the line of this error and implement some CMake Generator expressions to copy
+              DLLs to the binaries, or modify your environment for the tests to find all library DLLs.")
+    endif()
     add_custom_command(TARGET ${targetname}
-                      POST_BUILD
-                      COMMAND ${CMAKE_COMMAND} -E make_directory "${DLL_TEST_TARGET_PATH}"
-                      COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:${targetname}> ${DLL_TEST_TARGET}
-                      COMMAND ${CMAKE_COMMAND} -E make_directory "${DLL_DOC_TARGET_PATH}"
-                      COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:${targetname}> ${DLL_DOC_TARGET})
-  endif(MSVC)
+            POST_BUILD
+            COMMAND ${CMAKE_COMMAND} -E make_directory "${DLL_TEST_TARGET_PATH}"
+            COMMAND ${CMAKE_COMMAND} -E copy_if_different $<TARGET_FILE:${targetname}> ${DLL_TEST_TARGET}
+            COMMAND ${CMAKE_COMMAND} -E make_directory "${DLL_DOC_TARGET_PATH}"
+            COMMAND ${CMAKE_COMMAND} -E copy_if_different $<TARGET_FILE:${targetname}> ${DLL_DOC_TARGET}
+            )
+  endif()
 endmacro()
 
 #------------------------------------------------------------------------------
@@ -108,10 +126,11 @@ endmacro()
 #                    HEADER_FILES  <header files associated to the library>
 #                                  (will be installed with the library)
 #                    INTERNAL_INCLUDES <list of internal include directories for the library>
-#                    PRIVATE_INCLUDES <list of include directories that will used for compilate but that will not be exposed to other libraries>
+#                    PRIVATE_INCLUDES <list of include directories that will be used for compilation but that will not be exposed to other libraries>
 #                    EXTERNAL_INCLUDES <list of external include directories for the library>
 #                                      (will be added with -isystem if available)
 #                    LINK_LIBRARIES <list of libraries used when linking the library>
+#                    PRIVATE_LINK_LIBRARIES <list of internal libraries used when linking the library>
 #                    DLL_EXPORT_PATH <path to the dll export header>)
 function(openms_add_library)
   #------------------------------------------------------------------------------
@@ -119,6 +138,7 @@ function(openms_add_library)
   set(options )
   set(oneValueArgs TARGET_NAME DLL_EXPORT_PATH)
   set(multiValueArgs INTERNAL_INCLUDES PRIVATE_INCLUDES EXTERNAL_INCLUDES SOURCE_FILES HEADER_FILES LINK_LIBRARIES PRIVATE_LINK_LIBRARIES)
+  ## make above arguments available as variables, e.g. ${openms_add_library_PRIVATE_LINK_LIBRARIES}
   cmake_parse_arguments(openms_add_library "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN} )
 
   #------------------------------------------------------------------------------
@@ -129,13 +149,7 @@ function(openms_add_library)
   # merge into global exported includes
   set(${openms_add_library_TARGET_NAME}_INCLUDE_DIRECTORIES ${openms_add_library_INTERNAL_INCLUDES}
                                                             ${openms_add_library_EXTERNAL_INCLUDES}
-  CACHE INTERNAL "${openms_add_library_TARGET_NAME} include directories" FORCE)
-
-  #------------------------------------------------------------------------------
-  # Include directories
-  include_directories(${openms_add_library_INTERNAL_INCLUDES})
-  include_directories(SYSTEM ${openms_add_library_EXTERNAL_INCLUDES})
-  include_directories(SYSTEM ${openms_add_library_PRIVATE_INCLUDES})
+      CACHE INTERNAL "${openms_add_library_TARGET_NAME} include directories" FORCE)
 
   #------------------------------------------------------------------------------
   # Check if we want a unity build
@@ -147,6 +161,52 @@ function(openms_add_library)
   #------------------------------------------------------------------------------
   # Add the library
   add_library(${openms_add_library_TARGET_NAME} ${openms_add_library_SOURCE_FILES})
+
+  set_target_properties(${openms_add_library_TARGET_NAME} PROPERTIES CXX_VISIBILITY_PRESET hidden)
+  set_target_properties(${openms_add_library_TARGET_NAME} PROPERTIES VISIBILITY_INLINES_HIDDEN 1)
+  set_target_properties(${openms_add_library_TARGET_NAME} PROPERTIES AUTOMOC ON)
+
+  #------------------------------------------------------------------------------
+  # Include directories
+  # since internal includes all start with include/OpenMS and install_headers takes care of merging them in the install tree,
+  # we can reference them just by INSTALL_INCLUDE_DIR in the install tree. They are then included as usual via <OpenMS/OPENSWATHALGO/..>"
+  target_include_directories(${openms_add_library_TARGET_NAME} PUBLIC
+                             "$<BUILD_INTERFACE:${openms_add_library_INTERNAL_INCLUDES}>"
+                             "$<INSTALL_INTERFACE:${INSTALL_INCLUDE_DIR}>"  # <prefix>/include
+                             )
+
+  # TODO actually we shouldn't need to add these external includes. They should propagate through target_link_library if they are public
+  target_include_directories(${openms_add_library_TARGET_NAME} SYSTEM PUBLIC 
+                             "$<BUILD_INTERFACE:${openms_add_library_EXTERNAL_INCLUDES}>"
+                             "$<INSTALL_INTERFACE:${INSTALL_INCLUDE_DIR}>"
+                             )
+  target_include_directories(${openms_add_library_TARGET_NAME} SYSTEM PRIVATE ${openms_add_library_PRIVATE_INCLUDES})
+  
+  #TODO cxx_std_17 only requires a c++17 flag for the compiler. Not full standard support.
+  # If we want full support, we need our own try_compiles (e.g. for structured bindings first available in GCC7)
+  # or specify a min version of each compiler.
+  target_compile_features(${openms_add_library_TARGET_NAME} PUBLIC cxx_std_17)
+
+  if (CMAKE_COMPILER_IS_GNUCXX)
+    target_compile_options(${openms_add_library_TARGET_NAME} PRIVATE 
+    -Wall
+    -Wextra
+    #-fvisibility=hidden # This is now added as a target property for each library.     
+    -Wno-non-virtual-dtor
+    -Wno-unknown-pragmas
+    -Wno-long-long 
+    -Wno-unknown-pragmas
+    -Wno-unused-function
+    -Wno-variadic-macros)
+  endif()
+
+  if(ADDRESS_SANITIZER)
+    add_asan_to_target(${openms_add_library_TARGET_NAME})
+  endif()
+  
+  
+  set_target_properties(${openms_add_library_TARGET_NAME} PROPERTIES CXX_VISIBILITY_PRESET hidden)
+  set_target_properties(${openms_add_library_TARGET_NAME} PROPERTIES VISIBILITY_INLINES_HIDDEN 1)
 
   #------------------------------------------------------------------------------
   # Generate export header if requested
@@ -169,7 +229,7 @@ function(openms_add_library)
   if(openms_add_library_LINK_LIBRARIES)
     ## check for consistent lib arch (e.g. all 64bit)?
     check_lib_architecture(openms_add_library_LINK_LIBRARIES)
-    target_link_libraries(${openms_add_library_TARGET_NAME} ${openms_add_library_LINK_LIBRARIES} ${openms_add_library_PRIVATE_LINK_LIBRARIES})
+    target_link_libraries(${openms_add_library_TARGET_NAME} PUBLIC ${openms_add_library_LINK_LIBRARIES} PRIVATE ${openms_add_library_PRIVATE_LINK_LIBRARIES})
     list(LENGTH openms_add_library_LINK_LIBRARIES _library_count)
   endif()
 
@@ -194,6 +254,82 @@ function(openms_add_library)
   # copy dll to test/doc bin folder on MSVC systems
   copy_dll_to_extern_bin(${openms_add_library_TARGET_NAME})
 
+  if(${CMAKE_VERSION} VERSION_GREATER "3.20" AND WIN32)
+    # with newer CMakes we can also easily copy dependencies like Qt
+    # This stores the command as a list
+    set(has_dll_dep
+            $<BOOL:$<TARGET_RUNTIME_DLLS:${openms_add_library_TARGET_NAME}>>
+            )
+    set(none_command
+            ${CMAKE_COMMAND} -E echo
+            )
+    ## TODO check if we can use create_symlink instead
+    set(copy_dlls_to_output_folder
+            ${CMAKE_COMMAND} -E copy_if_different
+            $<TARGET_RUNTIME_DLLS:${openms_add_library_TARGET_NAME}>
+            $<TARGET_FILE_DIR:${openms_add_library_TARGET_NAME}>
+            )
+
+    if(GENERATOR_IS_MULTI_CONFIG)
+      file(TO_NATIVE_PATH "${OPENMS_HOST_BINARY_DIRECTORY}/src/tests/class_tests/bin/$<CONFIG>/" DLL_TEST_TARGET_PATH)
+      file(TO_NATIVE_PATH "${OPENMS_HOST_BINARY_DIRECTORY}/doc/doxygen/parameters/$<CONFIG>/" DLL_DOC_TARGET_PATH)
+    else()
+      file(TO_NATIVE_PATH "${OPENMS_HOST_BINARY_DIRECTORY}/src/tests/class_tests/bin/" DLL_TEST_TARGET_PATH)
+      file(TO_NATIVE_PATH "${OPENMS_HOST_BINARY_DIRECTORY}/doc/doxygen/parameters/" DLL_DOC_TARGET_PATH)
+    endif()
+
+    set(copy_dlls_to_test_folder
+            ${CMAKE_COMMAND} -E copy_if_different
+            $<TARGET_RUNTIME_DLLS:${openms_add_library_TARGET_NAME}>
+            ${DLL_TEST_TARGET_PATH}
+            )
+
+    set(copy_dlls_to_doc_folder
+            ${CMAKE_COMMAND} -E copy_if_different
+            $<TARGET_RUNTIME_DLLS:${openms_add_library_TARGET_NAME}>
+            ${DLL_DOC_TARGET_PATH}
+            )
+
+    foreach(command IN ITEMS "${copy_dlls_to_output_folder}" "${copy_dlls_to_test_folder}")# "${copy_dlls_to_doc_folder}")
+      set(if_runtime_dlls_copy
+              $<IF:${has_dll_dep},${command},${none_command}>
+              )
+      add_custom_command(TARGET ${openms_add_library_TARGET_NAME} POST_BUILD
+              COMMAND "${if_runtime_dlls_copy}"
+              COMMAND_EXPAND_LISTS
+              )
+    endforeach()
+
+    ## WARNING: HACK needed because of:
+    # https://gitlab.kitware.com/cmake/cmake/-/issues/16462
+    # https://bugreports.qt.io/browse/QTBUG-110118
+    # There is a private dependency of Qt5WebEngineWidgets to Qt5QuickWidgets.
+    # We need to copy it and all its deps, too.
+    if(Qt5WebEngineWidgets_FOUND)
+      set (genex "IMPORTED_LOCATION_$<UPPER_CASE:$<CONFIG>>")
+      add_custom_command(TARGET ${openms_add_library_TARGET_NAME} POST_BUILD
+              COMMAND ${CMAKE_COMMAND} -E copy_if_different
+              $<TARGET_PROPERTY:Qt5::QuickWidgets,${genex}>
+              $<TARGET_FILE_DIR:${openms_add_library_TARGET_NAME}>
+              )
+
+      # For now, we add Qt to the path when calling the documenters.
+      # Since the documenters depend on OpenMS_GUI
+      # they need Qt platform plugins etc. which is very hard to set up correctly.
+      # And I think the documenters are not called very often outside of CMake.
+      #add_custom_command(TARGET ${openms_add_library_TARGET_NAME} POST_BUILD
+      #        COMMAND ${CMAKE_COMMAND} -E copy_if_different
+      #        $<TARGET_PROPERTY:Qt5::QuickWidgets,${genex}>
+      #        ${DLL_DOC_TARGET_PATH}
+      #        )
+
+      add_custom_command(TARGET ${openms_add_library_TARGET_NAME} POST_BUILD
+              COMMAND ${CMAKE_COMMAND} -E copy_if_different
+              $<TARGET_PROPERTY:Qt5::QuickWidgets,${genex}>
+              ${DLL_TEST_TARGET_PATH}
+              )
+    endif()
+  endif()
   #------------------------------------------------------------------------------
   # Status message for configure output
   message(STATUS "Adding library ${openms_add_library_TARGET_NAME} - SUCCESS")

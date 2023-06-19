@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -35,6 +35,7 @@
 
 #include <OpenMS/CHEMISTRY/ModificationDefinition.h>
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
+#include <OpenMS/CONCEPT/Exception.h>
 
 using namespace std;
 
@@ -47,12 +48,7 @@ namespace OpenMS
   {
   }
 
-  ModificationDefinition::ModificationDefinition(const ModificationDefinition& rhs) :
-    mod_(rhs.mod_),
-    fixed_modification_(rhs.fixed_modification_),
-    max_occurrences_(rhs.max_occurrences_)
-  {
-  }
+  ModificationDefinition::ModificationDefinition(const ModificationDefinition& rhs) = default;
 
   ModificationDefinition::ModificationDefinition(const String& mod, bool fixed, UInt max_occur) :
     mod_(nullptr),
@@ -92,9 +88,7 @@ namespace OpenMS
     return !(*this == rhs);
   }
 
-  ModificationDefinition::~ModificationDefinition()
-  {
-  }
+  ModificationDefinition::~ModificationDefinition() = default;
 
   bool ModificationDefinition::operator<(const ModificationDefinition& rhs) const
   {
@@ -113,9 +107,7 @@ namespace OpenMS
 
   void ModificationDefinition::setModification(const String& modification)
   {
-    //cerr << "setModification(" << modification << ")" << endl;
-    mod_ = &ModificationsDB::getInstance()->getModification(modification);
-    //cerr << "setModification: id=" << mod_->getId() << ", full_id=" << mod_->getFullId() << ", UniMod=" << mod_->getUniModAccession() << ", origin=" << mod_->getOrigin() << ", PSI-MOD=" << mod_->getPSIMODAccession() << endl;
+    mod_ = ModificationsDB::getInstance()->getModification(modification);
   }
 
   const ResidueModification& ModificationDefinition::getModification() const

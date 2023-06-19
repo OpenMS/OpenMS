@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -35,21 +35,15 @@
 #include <OpenMS/INTERFACES/DataStructures.h>
 #include <OpenMS/INTERFACES/ISpectrumAccess.h>
 
-namespace OpenMS
-{
-
-/**
-  @brief Mock implementations of the interfaces (empty ones)
-*/
-namespace Interfaces
+namespace OpenMS::Interfaces
 {
 
   class OPENMS_DLLAPI MockISpectraReader :
     public ISpectraReader
   {
 public:
-    MockISpectraReader() {}
-    ~MockISpectraReader() override {}
+    MockISpectraReader() = default;
+    ~MockISpectraReader() override = default;
     /// Return a pointer to a spectrum at the given id
     SpectrumPtr getSpectrumById(int /* id */) const override
     {
@@ -86,8 +80,8 @@ public:
     public IChromatogramsReader
   {
 public:
-    MockIChromatogramsReader() {}
-    ~MockIChromatogramsReader() override {}
+    MockIChromatogramsReader() = default;
+    ~MockIChromatogramsReader() override = default;
     /// Return a pointer to a chromatogram at the given id
     ChromatogramPtr getChromatogramById(int /* id */) const override
     {
@@ -124,8 +118,8 @@ public:
     public ISpectraWriter
   {
 public:
-    MockISpectraWriter() {}
-    ~MockISpectraWriter() override {}
+    MockISpectraWriter() = default;
+    ~MockISpectraWriter() override = default;
     /// Append a spectrum to the end
     void appendSpectrum(SpectrumPtr /* spectrum */, bool /* write_through*/) override
     {
@@ -144,8 +138,8 @@ public:
     public IChromatogramsWriter
   {
 public:
-    MockIChromatogramsWriter() {}
-    ~MockIChromatogramsWriter() override {}
+    MockIChromatogramsWriter() = default;
+    ~MockIChromatogramsWriter() override = default;
     /// Append a chromatogram to the end
     void appendChromatogram(ChromatogramPtr /* chromatogram */, bool /* write_through */) override
     {
@@ -160,5 +154,4 @@ public:
   // create an instance of the mock object to test
   MockIChromatogramsWriter test_mock_chromatograms_writer;
 
-}
 }

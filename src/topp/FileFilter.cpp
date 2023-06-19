@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -34,19 +34,22 @@
 
 #include <OpenMS/KERNEL/ConsensusMap.h>
 #include <OpenMS/KERNEL/ChromatogramTools.h>
+#include <OpenMS/KERNEL/FeatureMap.h>
+#include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/KERNEL/RangeUtils.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/DATASTRUCTURES/StringListUtils.h>
+#include <OpenMS/FORMAT/ConsensusXMLFile.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
+#include <OpenMS/FORMAT/FeatureXMLFile.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/FileTypes.h>
+#include <OpenMS/FORMAT/MSNumpressCoder.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
-#include <OpenMS/FORMAT/FeatureXMLFile.h>
-#include <OpenMS/FORMAT/ConsensusXMLFile.h>
+
 #include <OpenMS/FILTERING/NOISEESTIMATION/SignalToNoiseEstimatorMedian.h>
 #include <OpenMS/COMPARISON/SPECTRA/ZhangSimilarityScore.h>
 #include <OpenMS/CONCEPT/Factory.h>
-#include <OpenMS/FORMAT/MSNumpressCoder.h>
 
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 
@@ -60,69 +63,68 @@ using namespace std;
 //-------------------------------------------------------------
 
 /**
-    @page TOPP_FileFilter FileFilter
+@page TOPP_FileFilter FileFilter
 
-    @brief Extracts portions of the data from an mzML, featureXML or consensusXML file.
+@brief Extracts portions of the data from an mzML, featureXML or consensusXML file.
 <center>
-    <table>
-        <tr>
-            <td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. predecessor tools </td>
-            <td VALIGN="middle" ROWSPAN=2> \f$ \longrightarrow \f$ FileFilter \f$ \longrightarrow \f$</td>
-            <td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. successor tools </td>
-        </tr>
-        <tr>
-            <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> any tool yielding output @n in mzML, featureXML @n or consensusXML format</td>
-            <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> any tool that profits on reduced input </td>
-        </tr>
+<table>
+    <tr>
+        <th ALIGN = "center"> pot. predecessor tools </td>
+        <td VALIGN="middle" ROWSPAN=2> &rarr; FileFilter &rarr;</td>
+        <th ALIGN = "center"> pot. successor tools </td>
+    </tr>
+    <tr>
+        <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> any tool yielding output @n in mzML, featureXML @n or consensusXML format</td>
+        <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> any tool that profits on reduced input </td>
+    </tr>
 
-    </table>
+</table>
 </center>
-    With this tool it is possible to extract m/z, retention time and intensity ranges from an input file
-    and to write all data that lies within the given ranges to an output file.
+With this tool it is possible to extract m/z, retention time and intensity ranges from an input file
+and to write all data that lies within the given ranges to an output file.
 
-    Depending on the input file type, additional specific operations are possible:
-    - mzML
-        - extract spectra of a certain MS level
-        - filter by signal-to-noise estimation
-        - filter by scan mode of the spectra
-        - filter by scan polarity of the spectra
-    - remove MS2 scans whose precursor matches identifications (from an idXML file in 'id:blacklist')
-    - featureXML
-        - filter by feature charge
-        - filter by feature size (number of subordinate features)
-        - filter by overall feature quality
-    - consensusXML
-        - filter by size (number of elements in consensus features)
-        - filter by consensus feature charge
-        - filter by map (extracts specified maps and re-evaluates consensus centroid)@n e.g. FileFilter -map 2 3 5 -in file1.consensusXML -out file2.consensusXML@n If a single map is specified, the feature itself can be extracted.@n e.g. FileFilter -map 5 -in file1.consensusXML -out file2.featureXML
-    - featureXML / consensusXML:
-    - remove items with a certain meta value annotation. Allowing for >, < and = comparisons. List types are compared by length, not content. Integer, Double and String are compared using their build-in operators.
-        - filter sequences, e.g. "LYSNLVER" or the modification "(Phospho)"@n e.g. FileFilter -id:sequences_whitelist Phospho -in file1.consensusXML -out file2.consensusXML
-        - filter accessions, e.g. "sp|P02662|CASA1_BOVIN"
-        - remove features with annotations
-        - remove features without annotations
-        - remove unassigned peptide identifications
-        - filter id with best score of features with multiple peptide identifications@n e.g. FileFilter -id:remove_unannotated_features -id:remove_unassigned_ids -id:keep_best_score_id -in file1.featureXML -out file2.featureXML
-        - remove features with id clashes (different sequences mapped to one feature)
+Depending on the input file type, additional specific operations are possible:
+- mzML
+    - extract spectra of a certain MS level
+    - filter by signal-to-noise estimation
+    - filter by scan mode of the spectra
+    - filter by scan polarity of the spectra
+- remove MS2 scans whose precursor matches identifications (from an idXML file in 'id:blacklist')
+- featureXML
+    - filter by feature charge
+    - filter by feature size (number of subordinate features)
+    - filter by overall feature quality
+- consensusXML
+    - filter by size (number of elements in consensus features)
+    - filter by consensus feature charge
+    - filter by map (extracts specified maps and re-evaluates consensus centroid)@n e.g. FileFilter -map 2 3 5 -in file1.consensusXML -out file2.consensusXML@n If a single map is specified, the feature itself can be extracted.@n e.g. FileFilter -map 5 -in file1.consensusXML -out file2.featureXML
+- featureXML / consensusXML:
+- remove items with a certain meta value annotation. Allowing for >, < and = comparisons. List types are compared by length, not content. Integer, Double and String are compared using their build-in operators.
+    - filter sequences, e.g. "LYSNLVER" or the modification "(Phospho)"@n e.g. FileFilter -id:sequences_whitelist Phospho -in file1.consensusXML -out file2.consensusXML
+    - filter accessions, e.g. "sp|P02662|CASA1_BOVIN"
+    - remove features with annotations
+    - remove features without annotations
+    - remove unassigned peptide identifications
+    - filter id with best score of features with multiple peptide identifications@n e.g. FileFilter -id:remove_unannotated_features -id:remove_unassigned_ids -id:keep_best_score_id -in file1.featureXML -out file2.featureXML
+    - remove features with id clashes (different sequences mapped to one feature)
 
-    The priority of the id-flags is (decreasing order): remove_annotated_features / remove_unannotated_features -> remove_clashes -> keep_best_score_id -> sequences_whitelist / accessions_whitelist
+The priority of the id-flags is (decreasing order): remove_annotated_features / remove_unannotated_features -> remove_clashes -> keep_best_score_id -> sequences_whitelist / accessions_whitelist
 
-    MS2 and higher spectra can be filtered according to precursor m/z (see 'peak_options:pc_mz_range'). This flag can be combined with 'rt' range to filter precursors by RT and m/z.
-    If you want to extract an MS1 region with untouched MS2 spectra included, you will need to split the dataset by MS level, then use the 'mz' option for MS1 data and 'peak_options:pc_mz_range' for MS2 data. Afterwards merge the two files again. RT can be filtered at any step.
+MS2 and higher spectra can be filtered according to precursor m/z (see 'peak_options:pc_mz_range'). This flag can be combined with 'rt' range to filter precursors by RT and m/z.
+If you want to extract an MS1 region with untouched MS2 spectra included, you will need to split the dataset by MS level, then use the 'mz' option for MS1 data and 'peak_options:pc_mz_range' for MS2 data. Afterwards merge the two files again. RT can be filtered at any step.
 
-    @note For filtering peptide/protein identification data, see the @ref TOPP_IDFilter tool.
+@note For filtering peptide/protein identification data, see the @ref TOPP_IDFilter tool.
 
-    @note Currently mzIdentML (mzid) is not directly supported as an input/output format of this tool. Convert mzid files to/from idXML using @ref TOPP_IDFileConverter if necessary.
+@note Currently mzIdentML (mzid) is not directly supported as an input/output format of this tool. Convert mzid files to/from idXML using @ref TOPP_IDFileConverter if necessary.
 
-    <B>The command line parameters of this tool are:</B>
-    @verbinclude TOPP_FileFilter.cli
-    <B>INI file documentation of this tool:</B>
-    @htmlinclude TOPP_FileFilter.html
+<B>The command line parameters of this tool are:</B>
+@verbinclude TOPP_FileFilter.cli
+<B>INI file documentation of this tool:</B>
+@htmlinclude TOPP_FileFilter.html
 
-    For the parameters of the S/N algorithm section see the class documentation there: @n
-        @ref OpenMS::SignalToNoiseEstimatorMedian "peak_options:sn"@n
+For the parameters of the S/N algorithm section see the class documentation there: @n
+    @ref OpenMS::SignalToNoiseEstimatorMedian "peak_options:sn"@n
 
-    @todo add tests for selecting modes (port remove modes) (Andreas)
 */
 
 // We do not want this class to show up in the docu:
@@ -148,9 +150,9 @@ private:
     const String& sequence_unmodified_str = peptide_hit_sequence.toUnmodifiedString();
     if (sequence_comparison_method == "substring") 
     {
-      for (StringList::const_iterator seq_it = whitelist.begin(); seq_it != whitelist.end(); ++seq_it)
+      for (const String & s : whitelist)
       {
-        if (sequence_str.hasSubstring(*seq_it) || sequence_unmodified_str.hasSubstring(*seq_it))
+        if (sequence_str.hasSubstring(s) || sequence_unmodified_str.hasSubstring(s))
         {
           return true;
         }
@@ -158,9 +160,9 @@ private:
     } 
     else if (sequence_comparison_method == "exact")
     {
-      for (StringList::const_iterator seq_it = whitelist.begin(); seq_it != whitelist.end(); ++seq_it)
+      for (const String & s : whitelist)
       {
-       if (sequence_str == *seq_it || sequence_unmodified_str ==  *seq_it)
+       if (sequence_str == s || sequence_unmodified_str == s)
        {
          return true;
        }
@@ -173,6 +175,16 @@ private:
     return false;
   }
 
+  static void replacePrecursorCharge(MSExperiment& e, int charge_in, int charge_out)
+  {
+    for (auto& s : e.getSpectra())
+    {
+      for (auto& p : s.getPrecursors())
+      {
+        if (p.getCharge() == charge_in) { p.setCharge(charge_out); }
+      }
+    }
+  }
 
   static bool checkPeptideIdentification_(BaseFeature& feature,
                                           const bool remove_annotated_features,
@@ -198,12 +210,12 @@ private:
     {
       String temp = feature.getPeptideIdentifications().begin()->getHits().begin()->getSequence().toString();
       //loop over all peptideIdentifications
-      for (vector<PeptideIdentification>::const_iterator pep_id_it = feature.getPeptideIdentifications().begin(); pep_id_it != feature.getPeptideIdentifications().end(); ++pep_id_it)
+      for (const PeptideIdentification& pep : feature.getPeptideIdentifications())
       {
         //loop over all peptideHits
-        for (vector<PeptideHit>::const_iterator pep_hit_it = pep_id_it->getHits().begin(); pep_hit_it != pep_id_it->getHits().end(); ++pep_hit_it)
+        for (const PeptideHit& pep_hit : pep.getHits())
         {
-          if (pep_hit_it->getSequence().toString() != temp)
+          if (pep_hit.getSequence().toString() != temp)
           {
             return false;
           }
@@ -215,15 +227,15 @@ private:
     {
       PeptideIdentification temp = feature.getPeptideIdentifications().front();
       //loop over all peptideIdentifications
-      for (vector<PeptideIdentification>::const_iterator pep_id_it = feature.getPeptideIdentifications().begin(); pep_id_it != feature.getPeptideIdentifications().end(); ++pep_id_it)
+      for (const PeptideIdentification& pep : feature.getPeptideIdentifications())
       {
         //loop over all peptideHits
-        for (vector<PeptideHit>::const_iterator pep_hit_it = pep_id_it->getHits().begin(); pep_hit_it != pep_id_it->getHits().end(); ++pep_hit_it)
+        for (const PeptideHit& pep_hit : pep.getHits())
         {
-          if ((pep_id_it->isHigherScoreBetter() && pep_hit_it->getScore() > temp.getHits().front().getScore()) ||
-              (!pep_id_it->isHigherScoreBetter() && pep_hit_it->getScore() < temp.getHits().front().getScore()))
+          if ((pep.isHigherScoreBetter() && pep_hit.getScore() > temp.getHits().front().getScore()) ||
+              (!pep.isHigherScoreBetter() && pep_hit.getScore() < temp.getHits().front().getScore()))
           {
-            temp = *pep_id_it;
+            temp = pep;
           }
         }
       }
@@ -235,23 +247,23 @@ private:
       }
     }
     //flag: sequences or accessions
-    if (sequences.size() > 0 || accessions.size() > 0)
+    if (!sequences.empty() || !accessions.empty())
     {
       bool sequen = false;
       bool access = false;
       //loop over all peptideIdentifications
-      for (vector<PeptideIdentification>::const_iterator pep_id_it = feature.getPeptideIdentifications().begin(); pep_id_it != feature.getPeptideIdentifications().end(); ++pep_id_it)
+      for (const PeptideIdentification& pep_id : feature.getPeptideIdentifications())
       {
         //loop over all peptideHits
-        for (vector<PeptideHit>::const_iterator pep_hit_it = pep_id_it->getHits().begin(); pep_hit_it != pep_id_it->getHits().end(); ++pep_hit_it)
+        for (const PeptideHit& pep_hit : pep_id.getHits())
         {
-          if (sequenceIsWhiteListed_(pep_hit_it->getSequence(), sequences, sequence_comparison_method)) 
+          if (sequenceIsWhiteListed_(pep_hit.getSequence(), sequences, sequence_comparison_method)) 
           {
             sequen = true;
           }
           
           //loop over all accessions of the peptideHits
-          set<String> protein_accessions = pep_hit_it->extractProteinAccessionsSet();
+          set<String> protein_accessions = pep_hit.extractProteinAccessionsSet();
           for (set<String>::const_iterator p_acc_it = protein_accessions.begin(); p_acc_it != protein_accessions.end(); ++p_acc_it)
           {
             //loop over all accessions entries of the StringList
@@ -265,11 +277,11 @@ private:
           }
         }
       }
-      if (sequences.size() > 0 && accessions.size() > 0)
+      if (!sequences.empty() && !accessions.empty())
       {
         return sequen && access;
       }
-      if (sequences.size() > 0)
+      if (!sequences.empty())
       {
         return sequen;
       }
@@ -316,6 +328,7 @@ protected:
     registerFlag_("peak_options:sort_peaks", "Sorts the peaks according to m/z");
     registerFlag_("peak_options:no_chromatograms", "No conversion to space-saving real chromatograms, e.g. from SRM scans");
     registerFlag_("peak_options:remove_chromatograms", "Removes chromatograms stored in a file");
+    registerFlag_("peak_options:remove_empty", "Removes spectra and chromatograms without peaks.");
     registerStringOption_("peak_options:mz_precision", "32 or 64", 64, "Store base64 encoded m/z data using 32 or 64 bit precision", false);
     setValidStrings_("peak_options:mz_precision", ListUtils::create<String>("32,64"));
     registerStringOption_("peak_options:int_precision", "32 or 64", 32, "Store base64 encoded intensity data using 32 or 64 bit precision", false);
@@ -374,13 +387,14 @@ protected:
     setMinFloat_("spectra:blackorwhitelist:similarity_threshold", -1.0);
     setMaxFloat_("spectra:blackorwhitelist:similarity_threshold", 1.0);
 
+    registerStringOption_("spectra:replace_pc_charge", "in_charge:out_charge", ":", "Replaces in_charge with out_charge in all precursors.", false, false);
     addEmptyLine_();
     registerTOPPSubsection_("feature", "Feature data options");
     registerStringOption_("feature:q", "[min]:[max]", ":", "Overall quality range to extract [0:1]", false);
 
     addEmptyLine_();
     registerTOPPSubsection_("consensus", "Consensus feature data options");
-    registerIntList_("consensus:map", "i j ...", ListUtils::create<Int>(""), "Maps to be extracted from a consensus", false);
+    registerIntList_("consensus:map", "i j ...", ListUtils::create<Int>(""), "Non-empty list of maps to be extracted from a consensus (indices are 0-based).", false);
     registerFlag_("consensus:map_and", "Consensus features are kept only if they contain exactly one feature from each map (as given above in 'map')");
 
     // black and white listing
@@ -408,6 +422,7 @@ protected:
     registerStringOption_("f_and_c:charge", "[min]:[max]", ":", "Charge range to extract", false);
     registerStringOption_("f_and_c:size", "[min]:[max]", ":", "Size range to extract", false);
     registerStringList_("f_and_c:remove_meta", "<name> 'lt|eq|gt' <value>", StringList(), "Expects a 3-tuple (=3 entries in the list), i.e. <name> 'lt|eq|gt' <value>; the first is the name of meta value, followed by the comparison operator (equal, less or greater) and the value to compare to. All comparisons are done after converting the given value to the corresponding data value type of the meta value (for lists, this simply compares length, not content!)!", false);
+    registerFlag_("f_and_c:remove_hull", "Remove hull from features.", false);
 
     addEmptyLine_();
     // XXX: Change description
@@ -448,17 +463,40 @@ protected:
 
   bool checkMetaOk(const MetaInfoInterface& mi, const StringList& meta_info)
   {
-    if (!mi.metaValueExists(meta_info[0])) return true; // not having the meta value means passing the test
-
+    if (!mi.metaValueExists(meta_info[0]))
+    {
+      return true; // not having the meta value means passing the test
+    }
     DataValue v_data = mi.getMetaValue(meta_info[0]);
     DataValue v_user;
-    if (v_data.valueType() == DataValue::STRING_VALUE) v_user = String(meta_info[2]);
-    else if (v_data.valueType() == DataValue::INT_VALUE) v_user = String(meta_info[2]).toInt();
-    else if (v_data.valueType() == DataValue::DOUBLE_VALUE) v_user = String(meta_info[2]).toDouble();
-    else if (v_data.valueType() == DataValue::STRING_LIST) v_user = (StringList)ListUtils::create<String>(meta_info[2]);
-    else if (v_data.valueType() == DataValue::INT_LIST) v_user = ListUtils::create<Int>(meta_info[2]);
-    else if (v_data.valueType() == DataValue::DOUBLE_LIST) v_user = ListUtils::create<double>(meta_info[2]);
-    else if (v_data.valueType() == DataValue::EMPTY_VALUE) v_user = DataValue::EMPTY;
+    if (v_data.valueType() == DataValue::STRING_VALUE)
+    {
+      v_user = String(meta_info[2]);
+    }
+    else if (v_data.valueType() == DataValue::INT_VALUE)
+    {
+      v_user = String(meta_info[2]).toInt();
+    }
+    else if (v_data.valueType() == DataValue::DOUBLE_VALUE)
+    {
+      v_user = String(meta_info[2]).toDouble();
+    }
+    else if (v_data.valueType() == DataValue::STRING_LIST)
+    {
+      v_user = (StringList)ListUtils::create<String>(meta_info[2]);
+    }
+    else if (v_data.valueType() == DataValue::INT_LIST) 
+    {
+      v_user = ListUtils::create<Int>(meta_info[2]);
+    }
+    else if (v_data.valueType() == DataValue::DOUBLE_LIST) 
+    {
+      v_user = ListUtils::create<double>(meta_info[2]);
+    }
+    else if (v_data.valueType() == DataValue::EMPTY_VALUE)
+    {
+      v_user = DataValue::EMPTY;
+    }
     if (meta_info[1] == "lt")
     {
       return !(v_data < v_user);
@@ -473,7 +511,7 @@ protected:
     }
     else
     {
-      writeLog_("Internal Error. Meta value filtering got invalid comparison operator ('" + meta_info[1] + "'), which should have been caught before! Aborting!");
+      writeLogError_("Internal Error. Meta value filtering got invalid comparison operator ('" + meta_info[1] + "'), which should have been caught before! Aborting!");
       throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Illegal meta value filtering operator!");
     }
   }
@@ -518,11 +556,11 @@ protected:
     bool no_chromatograms(getFlag_("peak_options:no_chromatograms"));
 
     //ranges
-    double mz_l, mz_u, rt_l, rt_u, it_l, it_u, charge_l, charge_u, size_l, size_u, q_l, q_u, pc_left, pc_right, select_collision_l, remove_collision_l, select_collision_u, remove_collision_u, select_isolation_width_l, remove_isolation_width_l, select_isolation_width_u, remove_isolation_width_u;
+    double mz_l, mz_u, rt_l, rt_u, it_l, it_u, charge_l, charge_u, size_l, size_u, q_l, q_u, pc_left, pc_right, select_collision_l, remove_collision_l, select_collision_u, remove_collision_u, select_isolation_width_l, remove_isolation_width_l, select_isolation_width_u, remove_isolation_width_u, replace_pc_charge_in, replace_pc_charge_out;
 
     //initialize ranges
-    mz_l = rt_l = it_l = charge_l = size_l = q_l = pc_left = select_collision_l = remove_collision_l = select_isolation_width_l = remove_isolation_width_l = -1 * numeric_limits<double>::max();
-    mz_u = rt_u = it_u = charge_u = size_u = q_u = pc_right = select_collision_u = remove_collision_u = select_isolation_width_u = remove_isolation_width_u = numeric_limits<double>::max();
+    mz_l = rt_l = it_l = charge_l = size_l = q_l = pc_left = select_collision_l = remove_collision_l = select_isolation_width_l = remove_isolation_width_l = replace_pc_charge_in = -1 * numeric_limits<double>::max();
+    mz_u = rt_u = it_u = charge_u = size_u = q_u = pc_right = select_collision_u = remove_collision_u = select_isolation_width_u = remove_isolation_width_u = replace_pc_charge_out = numeric_limits<double>::max();
 
     String rt = getStringOption_("rt");
     String mz = getStringOption_("mz");
@@ -538,6 +576,7 @@ protected:
     String select_collision_energy = getStringOption_("spectra:select_collision_energy");
     String remove_isolation_width = getStringOption_("spectra:remove_isolation_window_width");
     String select_isolation_width = getStringOption_("spectra:select_isolation_window_width");
+    String replace_pc_charge = getStringOption_("spectra:replace_pc_charge");
 
     int mz32 = getStringOption_("peak_options:mz_precision").toInt();
     int int32 = getStringOption_("peak_options:int_precision").toInt();
@@ -571,6 +610,8 @@ protected:
     StringList accessions = getStringList_("id:accessions_whitelist");
     bool keep_best_score_id = getFlag_("id:keep_best_score_id");
     bool remove_clashes = getFlag_("id:remove_clashes");
+    
+    bool remove_hulls = getFlag_("f_and_c:remove_hull");
 
     // convert bounds to numbers
     try
@@ -597,10 +638,12 @@ protected:
       parseRange_(remove_isolation_width, remove_isolation_width_l, remove_isolation_width_u);
       //select isolation window width
       parseRange_(select_isolation_width, select_isolation_width_l, select_isolation_width_u);
+      //parse precursor charge from in to out
+      parseRange_(replace_pc_charge, replace_pc_charge_in, replace_pc_charge_out);
     }
     catch (Exception::ConversionError& ce)
     {
-      writeLog_(String("Invalid boundary given: ") + ce.what() + ". Aborting!");
+      writeLogError_(String("Error: Invalid boundary given: ") + ce.what() + ". Aborting!");
       printUsage_();
       return ILLEGAL_PARAMETERS;
     }
@@ -611,16 +654,16 @@ protected:
 
     // handle remove_meta
     StringList meta_info = getStringList_("f_and_c:remove_meta");
-    bool remove_meta_enabled = (meta_info.size() > 0);
+    bool remove_meta_enabled = (!meta_info.empty());
     if (remove_meta_enabled && meta_info.size() != 3)
     {
-      writeLog_("Param 'f_and_c:remove_meta' has invalid number of arguments. Expected 3, got " + String(meta_info.size()) + ". Aborting!");
+      writeLogError_("Error: Param 'f_and_c:remove_meta' has invalid number of arguments. Expected 3, got " + String(meta_info.size()) + ". Aborting!");
       printUsage_();
       return ILLEGAL_PARAMETERS;
     }
     if (remove_meta_enabled && !(meta_info[1] == "lt" || meta_info[1] == "eq" || meta_info[1] == "gt"))
     {
-      writeLog_("Param 'f_and_c:remove_meta' has invalid second argument. Expected one of 'lt', 'eq' or 'gt'. Got '" + meta_info[1] + "'. Aborting!");
+      writeLogError_("Error: Param 'f_and_c:remove_meta' has invalid second argument. Expected one of 'lt', 'eq' or 'gt'. Got '" + meta_info[1] + "'. Aborting!");
       printUsage_();
       return ILLEGAL_PARAMETERS;
     }
@@ -639,8 +682,22 @@ protected:
       f.getOptions().setMSLevels(levels);
 
       // set precision options
-      if (mz32 == 32) { f.getOptions().setMz32Bit(true); } else if (mz32 == 64) { f.getOptions().setMz32Bit(false); }
-      if (int32 == 32) { f.getOptions().setIntensity32Bit(true); } else if (int32 == 64) { f.getOptions().setIntensity32Bit(false); }
+      if (mz32 == 32)
+      { 
+        f.getOptions().setMz32Bit(true); 
+      } 
+      else if (mz32 == 64) 
+      { 
+        f.getOptions().setMz32Bit(false);
+      }
+      if (int32 == 32)
+      {
+        f.getOptions().setIntensity32Bit(true); 
+      } 
+      else if (int32 == 64)
+      { 
+        f.getOptions().setIntensity32Bit(false);
+      }
 
       // set writing index (e.g. indexedmzML)
       f.getOptions().setWriteIndex(indexed_file);
@@ -679,14 +736,29 @@ protected:
         exp.setChromatograms(vector<MSChromatogram >());
       }
 
+      bool remove_empty = getFlag_("peak_options:remove_empty");
+      if (remove_empty)
+      {
+        auto& spectra = exp.getSpectra();
+        spectra.erase(
+          remove_if(spectra.begin(), spectra.end(), [](const MSSpectrum & s){ return s.empty();} )
+          ,spectra.end());
+        auto& chroms = exp.getChromatograms();
+        chroms.erase(
+          remove_if(chroms.begin(), chroms.end(), [](const MSChromatogram & c){ return c.empty();} )
+          ,chroms.end());
+      }
+
       //-------------------------------------------------------------
       // calculations
       //-------------------------------------------------------------
 
       // remove forbidden precursor charges
       IntList rm_pc_charge = getIntList_("peak_options:rm_pc_charge");
-      if (rm_pc_charge.size() > 0) exp.getSpectra().erase(remove_if(exp.begin(), exp.end(), HasPrecursorCharge<MapType::SpectrumType>(rm_pc_charge, false)), exp.end());
-
+      if (!rm_pc_charge.empty())
+      {
+        exp.getSpectra().erase(remove_if(exp.begin(), exp.end(), HasPrecursorCharge<MapType::SpectrumType>(rm_pc_charge, false)), exp.end());
+      }
 
       // remove precursors out of certain m/z range for all spectra with a precursor (MS2 and above)
       if (!pc_mz_range.empty())
@@ -809,6 +881,12 @@ protected:
         exp.getSpectra().erase(remove_if(exp.begin(), exp.end(), IsInIsolationWindowSizeRange<PeakMap::SpectrumType>(select_isolation_width_l, select_isolation_width_u, true)), exp.end());
       }
 
+      // reannoate precursor charge if both range values are set
+      if (replace_pc_charge_in != -1 * numeric_limits<double>::max() && replace_pc_charge_out != numeric_limits<double>::max())
+      {
+        replacePrecursorCharge(exp, (int)replace_pc_charge_in, (int)replace_pc_charge_out);
+      }        
+
       //remove empty scans
       exp.getSpectra().erase(remove_if(exp.begin(), exp.end(), IsEmptySpectrum<MapType::SpectrumType>()), exp.end());
 
@@ -818,7 +896,7 @@ protected:
         exp.sortSpectra(true);
         if (getFlag_("peak_options:sort_peaks"))
         {
-          LOG_INFO << "Info: Using 'peak_options:sort_peaks' in combination with 'sort' is redundant, since 'sort' implies 'peak_options:sort_peaks'." << std::endl;
+          OPENMS_LOG_INFO << "Info: Using 'peak_options:sort_peaks' in combination with 'sort' is redundant, since 'sort' implies 'peak_options:sort_peaks'." << std::endl;
         }
       }
       else if (getFlag_("peak_options:sort_peaks"))
@@ -835,14 +913,14 @@ protected:
         SignalToNoiseEstimatorMedian<MapType::SpectrumType> snm;
         Param const& dc_param = getParam_().copy("algorithm:SignalToNoise:", true);
         snm.setParameters(dc_param);
-        for (MapType::Iterator it = exp.begin(); it != exp.end(); ++it)
+        for (auto& spec : exp)
         {
-          snm.init(it->begin(), it->end());
-          for (MapType::SpectrumType::Iterator spec = it->begin(); spec != it->end(); ++spec)
+          snm.init(spec);
+          for (Size i = 0; i != spec.size(); ++i)
           {
-            if (snm.getSignalToNoise(spec) < sn) spec->setIntensity(0);
+            if (snm.getSignalToNoise(i) < sn) spec[i].setIntensity(0);
           }
-          it->erase(remove_if(it->begin(), it->end(), InIntensityRange<MapType::PeakType>(1, numeric_limits<MapType::PeakType::IntensityType>::max(), true)), it->end());
+          spec.erase(remove_if(spec.begin(), spec.end(), InIntensityRange<MapType::PeakType>(1, numeric_limits<MapType::PeakType::IntensityType>::max(), true)), spec.end());
         }
       }
 
@@ -850,18 +928,21 @@ protected:
       String id_blacklist = getStringOption_("id:blacklist");
       if (!id_blacklist.empty())
       {
-        LOG_INFO << "Filtering out MS2 spectra from raw file using blacklist ..." << std::endl;
+        OPENMS_LOG_INFO << "Filtering out MS2 spectra from raw file using blacklist ..." << std::endl;
         bool blacklist_imperfect = getFlag_("id:blacklist_imperfect");
 
         int ret = filterByBlackList(exp, id_blacklist, blacklist_imperfect, getDoubleOption_("id:rt"), getDoubleOption_("id:mz"));
-        if (ret != EXECUTION_OK) return (ExitCodes)ret;
+        if (ret != EXECUTION_OK)
+        {
+          return (ExitCodes)ret;
+        }
       }
 
       // check if filtering by consensus feature is enabled
       String consensus_blackorwhitelist = getStringOption_("consensus:blackorwhitelist:file");
       if (!consensus_blackorwhitelist.empty())
       {
-        LOG_INFO << "Filtering MS2 spectra from raw file using consensus features ..." << std::endl;
+        OPENMS_LOG_INFO << "Filtering MS2 spectra from raw file using consensus features ..." << std::endl;
         IntList il = getIntList_("consensus:blackorwhitelist:maps");
         set<UInt64> maps(il.begin(), il.end());
         double rt_tol = getDoubleOption_("consensus:blackorwhitelist:rt");
@@ -875,7 +956,10 @@ protected:
         consensus_map.sortByMZ();
 
         int ret = filterByBlackOrWhiteList(is_blacklist, exp, consensus_map, rt_tol, mz_tol, is_ppm, maps);
-        if (ret != EXECUTION_OK) { return (ExitCodes)ret; }
+        if (ret != EXECUTION_OK)
+        { 
+          return (ExitCodes)ret; 
+        }
       }
 
       // filter spectra if they occur in spectra:blackorwhitelist:file 
@@ -883,7 +967,7 @@ protected:
       String lib_file_name = getStringOption_("spectra:blackorwhitelist:file");
       if (!lib_file_name.empty())
       {
-        LOG_INFO << "Filtering MS2 spectra based on precursor rt, mz, and spectral similarity ..." << std::endl;
+        OPENMS_LOG_INFO << "Filtering MS2 spectra based on precursor rt, mz, and spectral similarity ..." << std::endl;
         double tol_rt = getDoubleOption_("spectra:blackorwhitelist:rt");
         double tol_mz = getDoubleOption_("spectra:blackorwhitelist:mz");
         double tol_sim = getDoubleOption_("spectra:blackorwhitelist:similarity_threshold");
@@ -894,7 +978,10 @@ protected:
         MzMLFile().load(lib_file_name, lib_file);
 
         int ret = filterByBlackOrWhiteList(is_blacklist, exp, lib_file, tol_rt, tol_mz, tol_sim, is_ppm);
-        if (ret != EXECUTION_OK) { return (ExitCodes)ret; }
+        if (ret != EXECUTION_OK)
+        { 
+          return (ExitCodes)ret;
+        }
       }
 
 
@@ -937,27 +1024,27 @@ protected:
         map_sm.clear(false);
 
         // only keep charge ch_l:ch_u   (WARNING: feature files without charge information have charge=0, see Ctor of KERNEL/Feature.h)
-        for (FeatureMap::Iterator fm_it = feature_map.begin(); fm_it != feature_map.end(); ++fm_it)
+        for (Feature& fm : feature_map)
         {
-          bool const rt_ok = f.getOptions().getRTRange().encloses(DPosition<1>(fm_it->getRT()));
-          bool const mz_ok = f.getOptions().getMZRange().encloses(DPosition<1>(fm_it->getMZ()));
-          bool const int_ok = f.getOptions().getIntensityRange().encloses(DPosition<1>(fm_it->getIntensity()));
-          bool const charge_ok = ((charge_l <= fm_it->getCharge()) && (fm_it->getCharge() <= charge_u));
-          bool const size_ok = ((size_l <= fm_it->getSubordinates().size()) && (fm_it->getSubordinates().size() <= size_u));
-          bool const q_ok = ((q_l <= fm_it->getOverallQuality()) && (fm_it->getOverallQuality() <= q_u));
-
+          bool const rt_ok = f.getOptions().getRTRange().encloses(DPosition<1>(fm.getRT()));
+          bool const mz_ok = f.getOptions().getMZRange().encloses(DPosition<1>(fm.getMZ()));
+          bool const int_ok = f.getOptions().getIntensityRange().encloses(DPosition<1>(fm.getIntensity()));
+          bool const charge_ok = ((charge_l <= fm.getCharge()) && (fm.getCharge() <= charge_u));
+          bool const size_ok = ((size_l <= fm.getSubordinates().size()) && (fm.getSubordinates().size() <= size_u));
+          bool const q_ok = ((q_l <= fm.getOverallQuality()) && (fm.getOverallQuality() <= q_u));
+          if (remove_hulls) fm.getConvexHulls().clear();
 
           if (rt_ok && mz_ok && int_ok && charge_ok && size_ok && q_ok)
           {
             if (remove_meta_enabled)
             {
-              meta_ok = checkMetaOk(*fm_it, meta_info);
+              meta_ok = checkMetaOk(fm, meta_info);
             }
-            bool const annotation_ok = checkPeptideIdentification_(*fm_it, remove_annotated_features, remove_unannotated_features, sequences, sequence_comparison_method, accessions, keep_best_score_id, remove_clashes);
-            if (annotation_ok && meta_ok) map_sm.push_back(*fm_it);
+            bool const annotation_ok = checkPeptideIdentification_(fm, remove_annotated_features, remove_unannotated_features, sequences, sequence_comparison_method, accessions, keep_best_score_id, remove_clashes);
+            if (annotation_ok && meta_ok) map_sm.push_back(fm);
           }
         }
-        //delete unassignedPeptideIdentifications
+        //delete unassigned PeptideIdentifications
         if (remove_unassigned_ids)
         {
           map_sm.getUnassignedPeptideIdentifications().clear();
@@ -1003,23 +1090,23 @@ protected:
         //.. but delete feature information
         consensus_map_filtered.resize(0);
 
-        for (ConsensusMap::Iterator cm_it = consensus_map.begin(); cm_it != consensus_map.end(); ++cm_it)
+        for (ConsensusFeature& cm : consensus_map)
         {
-          const bool charge_ok = ((charge_l <= cm_it->getCharge()) && (cm_it->getCharge() <= charge_u));
-          const bool size_ok = ((cm_it->size() >= size_l) && (cm_it->size() <= size_u));
+          const bool charge_ok = ((charge_l <= cm.getCharge()) && (cm.getCharge() <= charge_u));
+          const bool size_ok = ((cm.size() >= size_l) && (cm.size() <= size_u));
 
           if (charge_ok && size_ok)
           {
             // this is expensive, so evaluate after everything else passes the test
             if (remove_meta_enabled)
             {
-              meta_ok = checkMetaOk(*cm_it, meta_info);
+              meta_ok = checkMetaOk(cm, meta_info);
             }
-            const bool annotation_ok = checkPeptideIdentification_(*cm_it, remove_annotated_features, remove_unannotated_features, sequences, sequence_comparison_method, accessions, keep_best_score_id, remove_clashes);
-            if (annotation_ok && meta_ok) consensus_map_filtered.push_back(*cm_it);
+            const bool annotation_ok = checkPeptideIdentification_(cm, remove_annotated_features, remove_unannotated_features, sequences, sequence_comparison_method, accessions, keep_best_score_id, remove_clashes);
+            if (annotation_ok && meta_ok) consensus_map_filtered.push_back(cm);
           }
         }
-        //delete unassignedPeptideIdentifications
+        //delete unassigned PeptideIdentifications
         if (remove_unassigned_ids)
         {
           consensus_map_filtered.getUnassignedPeptideIdentifications().clear();
@@ -1070,7 +1157,7 @@ protected:
           }
           else
           {
-            writeLog_("When extracting a feature map from a consensus map, only one map ID should be specified. The 'map' parameter contains more than one. Aborting!");
+            writeLogError_("Error: When extracting a feature map from a consensus map, only one map ID should be specified. The 'map' parameter contains more than one. Aborting!");
             printUsage_();
             return ILLEGAL_PARAMETERS;
           }
@@ -1090,13 +1177,13 @@ protected:
           cm_new.setProteinIdentifications(consensus_map_filtered.getProteinIdentifications());
 
           const bool and_connective = getFlag_("consensus:map_and");
-          for (ConsensusMap::Iterator cm_it = consensus_map_filtered.begin(); cm_it != consensus_map_filtered.end(); ++cm_it) // iterate over consensuses in the original consensus map
+          for (ConsensusFeature& cm : consensus_map_filtered) // iterate over consensuses in the original consensus map
           {
-            ConsensusFeature consensus_feature_new(*cm_it); // new consensus feature
+            ConsensusFeature consensus_feature_new(cm); // new consensus feature
             consensus_feature_new.clear();
 
-            ConsensusFeature::HandleSetType::const_iterator fh_it = cm_it->getFeatures().begin();
-            ConsensusFeature::HandleSetType::const_iterator fh_it_end = cm_it->getFeatures().end();
+            ConsensusFeature::HandleSetType::const_iterator fh_it = cm.getFeatures().begin();
+            ConsensusFeature::HandleSetType::const_iterator fh_it_end = cm.getFeatures().end();
             for (; fh_it != fh_it_end; ++fh_it) // iterate over features in consensus
             {
               if (ListUtils::contains(maps, fh_it->getMapIndex()))
@@ -1137,14 +1224,14 @@ protected:
       }
       else
       {
-        writeLog_("Error: Unknown output file type given. Aborting!");
+        writeLogError_("Error: Unknown output file type given. Aborting!");
         printUsage_();
         return ILLEGAL_PARAMETERS;
       }
     }
     else
     {
-      writeLog_("Error: Unknown input file type given. Aborting!");
+      writeLogError_("Error: Unknown input file type given. Aborting!");
       printUsage_();
       return INCOMPATIBLE_INPUT_DATA;
     }
@@ -1165,7 +1252,7 @@ protected:
     {
       if (!(peptide_ids[i].hasRT() && peptide_ids[i].hasMZ()))
       {
-        LOG_ERROR << "Identifications given in 'id:blacklist' are missing RT and/or MZ coordinates. Cannot do blacklisting without. Quitting." << std::endl;
+        OPENMS_LOG_ERROR << "Identifications given in 'id:blacklist' are missing RT and/or MZ coordinates. Cannot do blacklisting without. Quitting." << std::endl;
         return INCOMPATIBLE_INPUT_DATA;
       }
       Peak2D p;
@@ -1205,18 +1292,18 @@ protected:
       }
     }
 
-    LOG_INFO << "Removing " << blacklist_idx.size() << " MS2 spectra." << endl;
+    OPENMS_LOG_INFO << "Removing " << blacklist_idx.size() << " MS2 spectra." << endl;
     if (ids_covered.size() != ids.size())
     {
       if (!blacklist_imperfect)
       {
-        LOG_ERROR << "Covered only " << ids_covered.size() << "/" << ids.size() << " IDs. Check if your input files (raw + ids) match and if your tolerances ('rt' and 'mz') are set properly.\n"
+        OPENMS_LOG_ERROR << "Covered only " << ids_covered.size() << "/" << ids.size() << " IDs. Check if your input files (raw + ids) match and if your tolerances ('rt' and 'mz') are set properly.\n"
                   << "If you are sure unmatched ids are ok, set the 'id:blacklist_imperfect' flag!" << std::endl;
         return UNEXPECTED_RESULT;
       }
       else
       {
-        LOG_WARN << "Covered only " << ids_covered.size() << "/" << ids.size() << " IDs. Check if your input files (raw + ids) match and if your tolerances ('rt' and 'mz') are set properly.\n"
+        OPENMS_LOG_WARN << "Covered only " << ids_covered.size() << "/" << ids.size() << " IDs. Check if your input files (raw + ids) match and if your tolerances ('rt' and 'mz') are set properly.\n"
                  << "Remove the 'id:blacklist_imperfect' flag of you want this to be an error!" << std::endl;
       }
     }
@@ -1227,7 +1314,7 @@ protected:
 
     for (Size i = 0; i != exp.size(); ++i)
     {
-      if (find(blacklist_idx.begin(), blacklist_idx.end(), i) ==
+      if (blacklist_idx.find(i) ==
           blacklist_idx.end())
       {
         exp2.addSpectrum(exp[i]);
@@ -1242,16 +1329,16 @@ protected:
   {
     std::vector<Peak2D> feature_pos;
     // if map_id are specified, only use these for blacklisting
-    for (ConsensusMap::const_iterator c_it = consensus_map.begin(); c_it != consensus_map.end(); ++c_it)
+    for (const ConsensusFeature& cm : consensus_map)
     {
-      for (ConsensusFeature::const_iterator f_it = c_it->begin(); f_it != c_it->end(); ++f_it)
+      for (const FeatureHandle& fh : cm)
       {
-        UInt64 map_index = f_it->getMapIndex();
+        UInt64 map_index = fh.getMapIndex();
         if (map_ids.empty() || map_ids.find(map_index) != map_ids.end())
         {
           Peak2D p;
-          p.setMZ(f_it->getMZ());
-          p.setRT(f_it->getRT());
+          p.setMZ(fh.getMZ());
+          p.setRT(fh.getRT());
           feature_pos.push_back(p);
         }
       }
@@ -1298,14 +1385,14 @@ protected:
       if (is_blacklist)
       {
         // blacklist: add all spectra not contained in list
-        if (find(list_idx.begin(), list_idx.end(), i) == list_idx.end())
+        if (list_idx.find(i) == list_idx.end())
         {
           exp2.addSpectrum(exp[i]);
         }
       }
       else   // whitelist: add all non MS2 spectra, and MS2 only if in list
       {
-        if (exp[i].getMSLevel() != 2 || find(list_idx.begin(), list_idx.end(), i) != list_idx.end())
+        if (exp[i].getMSLevel() != 2 || list_idx.find(i) != list_idx.end())
         {
           exp2.addSpectrum(exp[i]);
         }
@@ -1342,19 +1429,31 @@ protected:
           ++exp_index;
 
           // TODO: extend to other MS levels and multiple precursors
-          if (exp_spectrum.getMSLevel() != 2 || exp_spectrum.getPrecursors().empty()) { continue; }
+          if (exp_spectrum.getMSLevel() != 2 || exp_spectrum.getPrecursors().empty())
+          { 
+            continue;
+          }
 
           // skip if m/z's don't match
           const double pc_mz = exp_spectrum.getPrecursors()[0].getMZ();
           const double mz_tol_da = unit_ppm ? pc_mz * 1e-6 * mz_tol : mz_tol;
-          if (enable_mz_check && fabs(pc_mz - lib_mz) > mz_tol_da) { continue; }
+          if (enable_mz_check && fabs(pc_mz - lib_mz) > mz_tol_da)
+          {
+            continue; 
+          }
 
           // skip if rt's don't match
           const double pc_rt = exp_spectrum.getRT();
-          if (enable_rt_check && fabs(pc_rt - lib_rt) > rt_tol) { continue; }
+          if (enable_rt_check && fabs(pc_rt - lib_rt) > rt_tol)
+          {
+            continue;
+          }
 
           // skip if not similar enough
-          if (enable_sim_check && (*comp_function)(exp_spectrum, lib_spectrum) < sim_tol) { continue; }
+          if (enable_sim_check && (*comp_function)(exp_spectrum, lib_spectrum) < sim_tol)
+          {
+            continue;
+          }
 
           writeDebug_("Similarity score: " + String((*comp_function)(exp_spectrum, lib_spectrum)), 10);
 
@@ -1374,14 +1473,14 @@ protected:
       if (is_blacklist)
       {
         // blacklist: add all spectra not contained in list
-        if (find(list_idx.begin(), list_idx.end(), i) == list_idx.end())
+        if (list_idx.find(i) == list_idx.end())
         {
           exp2.addSpectrum(exp[i]);
         }
       }
       else   // whitelist: add all non-MS2 spectra + matched MS2 spectra
       {
-        if (exp[i].getMSLevel() != 2 || find(list_idx.begin(), list_idx.end(), i) != list_idx.end())
+        if (exp[i].getMSLevel() != 2 || list_idx.find(i) != list_idx.end())
         {
           exp2.addSpectrum(exp[i]);
         }

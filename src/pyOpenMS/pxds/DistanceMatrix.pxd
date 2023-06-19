@@ -6,9 +6,9 @@ cdef extern from "<OpenMS/DATASTRUCTURES/DistanceMatrix.h>" namespace "OpenMS":
     
     cdef cppclass DistanceMatrix[Value]:
         # wrap-instances:
-        #   DistanceMatrix := DistanceMatrix[float]
+        #  DistanceMatrix := DistanceMatrix[float]
         DistanceMatrix() nogil except +
-        DistanceMatrix(DistanceMatrix) nogil except +
+        DistanceMatrix(DistanceMatrix &) nogil except +
         DistanceMatrix(size_t dimensionsize, Value value) nogil except +
 
         # ValueType operator()(size_t i, size_t j) nogil except +

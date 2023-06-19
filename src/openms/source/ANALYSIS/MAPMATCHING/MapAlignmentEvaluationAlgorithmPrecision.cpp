@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -43,9 +43,7 @@ namespace OpenMS
   {
   }
 
-  MapAlignmentEvaluationAlgorithmPrecision::~MapAlignmentEvaluationAlgorithmPrecision()
-  {
-  }
+  MapAlignmentEvaluationAlgorithmPrecision::~MapAlignmentEvaluationAlgorithmPrecision() = default;
 
   void MapAlignmentEvaluationAlgorithmPrecision::evaluate(const ConsensusMap & consensus_map_in, const ConsensusMap & consensus_map_gt, const double & rt_dev, const double & mz_dev, const Peak2D::IntensityType & int_dev, const bool use_charge, double & out)
   {
@@ -66,32 +64,22 @@ namespace OpenMS
     std::vector<Size> gt_subtend_tilde_tool;        //holds the numerators of the sum
     std::vector<Size> tilde_tool;               //holds the denominators of the sum
 
-    Size gt_subtend_tilde_tool_i = 0;       //filling material for the vectors
-    Size tilde_tool_i = 0;
-
-    Size cons_tool_size = 0;            //size  of the actual consensus feature of the tool
-    Size gt_i_subtend_tool_j = 0;       //size of the intersection of the actual cons. feat. of the tool with the c.f. of GT
-
-    double precision = 0;       //holds the output
-    double sum = 0;         //intermediate step: the sum
-
     //loop over all consensus features of the ground truth
     for (Size i = 0; i < cons_map_gt.size(); ++i)      //N = cons_map_gt.size()
     {
-
       ConsensusFeature & gt_elem = cons_map_gt[i];
 
       //for every i = 1, ..., N:
-      gt_subtend_tilde_tool_i = 0;
-      tilde_tool_i = 0;
+      Size gt_subtend_tilde_tool_i = 0;         //filling material for the vectors
+      Size tilde_tool_i = 0;
 
       //loop over all consensus features of the tool's consensus map
       for (Size j = 0; j < cons_map_tool.size(); ++j)
       {
         ConsensusFeature & tool_elem = cons_map_tool[j];
-        cons_tool_size = cons_map_tool[j].size();
+        Size cons_tool_size = cons_map_tool[j].size();   //size  of the actual consensus feature of the tool
 
-        gt_i_subtend_tool_j = 0;
+        Size gt_i_subtend_tool_j = 0;                    //size of the intersection of the actual cons. feat. of the tool with the c.f. of GT
 
         //loop over all features in the ith consensus feature of the gt
         for (HandleIterator gt_it = gt_elem.begin(); gt_it != gt_elem.end(); ++gt_it)
@@ -119,18 +107,18 @@ namespace OpenMS
       gt_subtend_tilde_tool.push_back(gt_subtend_tilde_tool_i);
       tilde_tool.push_back(tilde_tool_i);
     }
+
+    double sum = 0;       // intermediate step: the sum
     for (Size k = 0; k < gt_subtend_tilde_tool.size(); ++k)
     {
       double fraction = 0;        //intermediate step: the fraction
-
       if (gt_subtend_tilde_tool[k] != 0)
       {
         fraction = double(gt_subtend_tilde_tool[k]) / double(tilde_tool[k]);
       }
       sum += fraction;
     }
-    precision = (1.0 / double(cons_map_gt.size())) * sum;
-    out = precision;
+    out = (1.0 / double(cons_map_gt.size())) * sum;
   }
 
 } // namespace OpenMS

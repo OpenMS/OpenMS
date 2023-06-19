@@ -8,6 +8,7 @@ Annotation1DItem.h
 Annotation1DPeakItem.h
 Annotation1DCaret.h
 Annotation1DTextItem.h
+Annotation1DVerticalLineItem.h
 Annotations1DContainer.h
 )
 

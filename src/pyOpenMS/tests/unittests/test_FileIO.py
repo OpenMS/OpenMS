@@ -26,7 +26,7 @@ class TestPepXML(unittest.TestCase):
         self.assertEqual( len(prots),  3)
         self.assertEqual( len(peps),  19)
 
-        self.assertEqual( peps[0].getHits()[0].getSequence().toString(), b'.(Glu->pyro-Glu)ELNKEMAAEKAKAAAG')
+        self.assertEqual( peps[0].getHits()[0].getSequence().toString(), ".(Glu->pyro-Glu)ELNKEMAAEKAKAAAG")
 
 class TestIdXML(unittest.TestCase):
 

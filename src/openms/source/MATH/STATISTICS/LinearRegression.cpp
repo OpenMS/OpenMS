@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -36,16 +36,31 @@
 #include <OpenMS/MATH/STATISTICS/LinearRegression.h>
 #include <OpenMS/MATH/STATISTICS/StatisticFunctions.h>
 
+#include <Mathematics/Vector2.h>
+#include <Mathematics/ApprHeightLine2.h>
+#include <Mathematics/LinearSystem.h>
+
 #include <boost/math/distributions/normal.hpp>
 #include <boost/math/special_functions/binomial.hpp>
 #include <boost/math/distributions.hpp>
 
+#include <iostream>
+
 using boost::math::detail::inverse_students_t;
 
-namespace OpenMS
+namespace OpenMS::Math
 {
-  namespace Math
-  {
+    static void vector2ToStdVec_(const std::vector<gte::Vector2<double>>& points, std::vector<double>& Xout, std::vector<double>& Yout){
+      unsigned N = static_cast<unsigned>(points.size());
+      Xout.clear(); Xout.reserve(N);
+      Yout.clear(); Yout.reserve(N);
+      for (unsigned i = 0; i < N; ++i)
+      {
+        Xout.push_back(points[i][0]);
+        Yout.push_back(points[i][1]);
+      }
+    }
+
     double LinearRegression::getIntercept() const
     {
       return intercept_;
@@ -106,20 +121,15 @@ namespace OpenMS
       return rsd_;
     }
 
-    void LinearRegression::computeGoodness_(const std::vector<Wm5::Vector2d>& points, double confidence_interval_P)
+    void LinearRegression::computeGoodness_(const std::vector<double>& X, const std::vector<double>& Y, double confidence_interval_P)
     {
-      OPENMS_PRECONDITION(static_cast<unsigned>(points.size()) > 2, 
+      OPENMS_PRECONDITION(static_cast<unsigned>(X.size() == Y.size()), 
+          "Fitted X and Y have different lengths.");
+      OPENMS_PRECONDITION(static_cast<unsigned>(X.size()) > 2, 
           "Cannot compute goodness of fit for regression with less than 3 data points");
       // specifically, boost throws an exception for a t-distribution with zero df
 
-      unsigned N = static_cast<unsigned>(points.size());
-      std::vector<double> X; X.reserve(N);
-      std::vector<double> Y; Y.reserve(N);
-      for (unsigned i = 0; i < N; ++i)
-      {
-        X.push_back(points[i].X());
-        Y.push_back(points[i].Y());
-      }
+      Size N = X.size();
 
       // Mean of abscissa and ordinate values
       double x_mean = Math::mean(X.begin(), X.end());
@@ -199,7 +209,7 @@ namespace OpenMS
       if (rsd_ < 0.0)
       {
         std::cout << "rsd < 0.0 " << std::endl;
-        std::cout <<   "Intercept                                " << intercept_
+        std::cout << "Intercept                                  " << intercept_
                   << "\nSlope                                    " << slope_
                   << "\nSquared pearson coefficient              " << r_squared_
                   << "\nValue of the t-distribution              " << t_star_
@@ -217,6 +227,109 @@ namespace OpenMS
       }
     }
 
-  }
-}
+    void LinearRegression::computeRegression(double confidence_interval_P,
+        std::vector<double>::const_iterator x_begin,
+        std::vector<double>::const_iterator x_end,
+        std::vector<double>::const_iterator y_begin,
+        bool compute_goodness)
+    {
+      std::vector<gte::Vector2<double>> points;
+      for(std::vector<double>::const_iterator xIter = x_begin, yIter = y_begin; xIter!=x_end; ++xIter, ++yIter)
+      {
+        points.emplace_back(std::initializer_list<double>{*xIter, *yIter});
+      }
+
+      // Compute the unweighted linear fit.
+      // Get the intercept and the slope of the regression Y_hat=intercept_+slope_*X
+      // and the value of Chi squared (sum( (y - evel(x))^2)
+      auto line = gte::ApprHeightLine2<double>();
+      bool pass = line.Fit(static_cast<int>(points.size()), &points.front());
+      slope_ = line.GetParameters().second[0];
+      intercept_ = -slope_ * line.GetParameters().first[0] + line.GetParameters().first[1];
+      chi_squared_ = computeChiSquare(x_begin, x_end, y_begin, slope_, intercept_);
+
+      if (!pass)
+      {
+        throw Exception::UnableToFit(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "UnableToFit-LinearRegression", String("Could not fit a linear model to the data (") + points.size() + " points).");
+      }
+
+      if (compute_goodness && points.size() > 2)
+      {
+        std::vector<double> X,Y;
+        vector2ToStdVec_(points, X, Y);
+        computeGoodness_(X, Y , confidence_interval_P);
+      }
+    }
+
+    void LinearRegression::computeRegressionWeighted(double confidence_interval_P, 
+        std::vector<double>::const_iterator x_begin, 
+        std::vector<double>::const_iterator x_end, 
+        std::vector<double>::const_iterator y_begin, 
+        std::vector<double>::const_iterator w_begin, 
+        bool compute_goodness)    
+     {
+      // Compute the weighted linear fit.
+      // Get the intercept and the slope of the regression Y_hat=intercept_+slope_*X
+      // and the value of Chi squared, the covariances of the intercept and the slope
+      std::vector<gte::Vector2<double>> points;
+      for(std::vector<double>::const_iterator xIter = x_begin, yIter = y_begin; xIter!=x_end; ++xIter, ++yIter)
+      {
+        points.emplace_back(std::initializer_list<double>{*xIter, *yIter});
+      }
+
+      // Compute sums for linear system. copy&paste from GeometricToolsEngine (gte) ApprHeightLine2.h
+      // and modified to allow weights
+      int numPoints = static_cast<int>(points.size());
+      double sumX = 0, sumY = 0;
+      double sumXX = 0, sumXY = 0;
+      double sumW = 0;
+      auto wIter = w_begin;
+
+      for (int i = 0; i < numPoints; ++i, ++wIter)
+      {
+        sumX += (*wIter) * points[i][0];
+        sumY += (*wIter) * points[i][1];
+        sumXX += (*wIter) * points[i][0] * points[i][0];
+        sumXY += (*wIter) * points[i][0] * points[i][1];
+        sumW += (*wIter);
+      }
+      //create matrices to solve Ax = B
+      gte::Matrix2x2<double> A
+      {
+        sumXX, sumX,
+        sumX, sumW
+      };
+
+      gte::Vector2<double> B
+      {
+        sumXY,
+        sumY
+      };
+
+      gte::Vector2<double> X;
+
+      bool nonsingular = gte::LinearSystem<double>().Solve(A, B, X);
+      if (nonsingular)
+      {
+        slope_ = X[0];
+        intercept_ = X[1];
+      }
+      chi_squared_ = computeWeightedChiSquare(x_begin, x_end, y_begin, w_begin, slope_, intercept_);
+
+      if (nonsingular)
+      {
+        if (compute_goodness && points.size() > 2)
+        {
+          std::vector<double> X,Y;
+          vector2ToStdVec_(points, X, Y);
+          computeGoodness_(X, Y, confidence_interval_P);
+        }
+      }
+      else
+      {
+        throw Exception::UnableToFit(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+            "UnableToFit-LinearRegression", "Could not fit a linear model to the data");
+      }
+    }
+} // OpenMS //Math
 

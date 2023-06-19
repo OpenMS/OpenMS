@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -35,6 +35,8 @@
 #include <OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/SpectrumAccessOpenMSInMemory.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/SpectrumAccessSqMass.h>
 
+#include <algorithm>    // std::lower_bound, std::upper_bound, std::sort
+
 namespace OpenMS
 {
 
@@ -64,7 +66,7 @@ namespace OpenMS
     OPENMS_POSTCONDITION(chromatogram_ids_.size() == chromatograms_.size(), "Chromatograms and meta data needs to match")
   }
 
-  SpectrumAccessOpenMSInMemory::~SpectrumAccessOpenMSInMemory() {}
+  SpectrumAccessOpenMSInMemory::~SpectrumAccessOpenMSInMemory() = default;
 
   SpectrumAccessOpenMSInMemory::SpectrumAccessOpenMSInMemory(const SpectrumAccessOpenMSInMemory & rhs) :
     spectra_(rhs.spectra_),
@@ -104,8 +106,8 @@ namespace OpenMS
     std::vector<std::size_t> result;
     OpenSwath::SpectrumMeta s;
     s.RT = RT - deltaRT;
-    std::vector< OpenSwath::SpectrumMeta >::const_iterator spectrum = std::upper_bound(
-        spectra_meta_.begin(), spectra_meta_.end(), s, OpenSwath::SpectrumMeta::RTLess());
+    auto spectrum = std::lower_bound(spectra_meta_.begin(), spectra_meta_.end(), s, OpenSwath::SpectrumMeta::RTLess());
+    if (spectrum == spectra_meta_.end()) return result;
 
     result.push_back(std::distance(spectra_meta_.begin(), spectrum));
     ++spectrum;

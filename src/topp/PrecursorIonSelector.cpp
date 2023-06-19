@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -53,9 +53,9 @@ using namespace OpenMS;
     <CENTER>
     <table>
         <tr>
-            <td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. predecessor tools </td>
-            <td VALIGN="middle" ROWSPAN=3> \f$ \longrightarrow \f$ PrecursorIonSelector \f$ \longrightarrow \f$</td>
-            <td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. successor tools </td>
+            <th ALIGN = "center"> pot. predecessor tools </td>
+            <td VALIGN="middle" ROWSPAN=3> &rarr; PrecursorIonSelector &rarr;</td>
+            <th ALIGN = "center"> pot. successor tools </td>
         </tr>
         <tr>
       <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_FeatureFinderCentroided </td>
@@ -152,18 +152,23 @@ protected:
     registerFlag_("load_preprocessing", "The preprocessed db is loaded from file, not calculated.");
     registerFlag_("store_preprocessing", "The preprocessed db is stored.");
     registerFlag_("simulation", "Simulate the whole LC-MS/MS run.");
-    registerStringOption_("sim_results", "<output file>", "", "File containing the results of the simulation run", false);
+    registerOutputFile_("sim_results", "<output file>", "", "File containing the results of the simulation run", false);
+    setValidFormats_("sim_results", ListUtils::create<String>("txt"));
+    
     registerInputFile_("db_path", "<db-file>", "", "db file", false);
     setValidFormats_("db_path", ListUtils::create<String>("fasta"));
 
-    registerStringOption_("rt_model", "<rt-model-file>", "", "SVM Model for RTPredict", false);
-    registerStringOption_("dt_model", "<dt-model-file>", "", "SVM Model for PTPredict", false);
+    registerInputFile_("rt_model", "<rt-model-file>", "", "SVM Model for RTPredict", false);
+    setValidFormats_("rt_model", ListUtils::create<String>("txt"));
+        
+    registerInputFile_("dt_model", "<dt-model-file>", "", "SVM Model for PTPredict", false);
+    setValidFormats_("dt_model", ListUtils::create<String>("txt"));
+    
     registerStringOption_("solver", "<solver-type>", "GLPK", "LP solver type", false, true);
     setValidStrings_("solver", ListUtils::create<String>("GLPK,COINOR"));
     registerStringList_("fixed_modifications", "<mods>", StringList(), "the modifications i.e. Carboxymethyl (C)", false);
     addEmptyLine_();
     registerSubsection_("algorithm", "Settings for the compound list creation and rescoring.");
-
   }
 
   Param getSubsectionDefaults_(const String & /* section*/) const override
@@ -210,13 +215,13 @@ protected:
     {
       pisp.loadPreprocessing();
     }
-    else if (db_path == "")
+    else if (db_path.empty())
     {
-      writeLog_("No database file specified. Aborting!");
+      writeLogError_("No database file specified. Aborting!");
       printUsage_();
       return ILLEGAL_PARAMETERS;
     }
-    else if (rt_model == "" ||  dt_model == "")
+    else if (rt_model.empty() ||  dt_model.empty())
     {
       pisp.dbPreprocessing(db_path, store_preprocessing);
     }
@@ -226,8 +231,10 @@ protected:
     }
 
     PeakMap exp;
-    if (raw_data != "") MzMLFile().load(raw_data, exp);
-
+    if (!raw_data.empty())
+    {
+      MzMLFile().load(raw_data, exp);
+    }
     //-------------------------------------------------------------
     // init pis
     //-------------------------------------------------------------
@@ -277,11 +284,16 @@ protected:
       // writing output
       //-------------------------------------------------------------
 
-      if (next_prec != "") f_file.store(next_prec, new_precursors);
+      if (!next_prec.empty())
+      {
+        f_file.store(next_prec, new_precursors);
+      }
     }
 
-    if (out != "") f_file.store(out, f_map);
-
+    if (!out.empty())
+    {
+      f_file.store(out, f_map);
+    }
     return EXECUTION_OK;
   }
 

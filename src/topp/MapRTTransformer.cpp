@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -34,6 +34,12 @@
 
 #include <OpenMS/APPLICATIONS/MapAlignerBase.h>
 
+#include <OpenMS/FORMAT/MzMLFile.h>
+#include <OpenMS/FORMAT/TransformationXMLFile.h>
+#include <OpenMS/FORMAT/FeatureXMLFile.h>
+#include <OpenMS/FORMAT/ConsensusXMLFile.h>
+#include <OpenMS/FORMAT/IdXMLFile.h>
+
 using namespace OpenMS;
 using namespace std;
 
@@ -49,9 +55,9 @@ using namespace std;
 <CENTER>
     <table>
         <tr>
-            <td ALIGN = "center" BGCOLOR="#EBEBEB"> potential predecessor tools </td>
-            <td VALIGN="middle" ROWSPAN=2> \f$ \longrightarrow \f$ MapRTTransformer \f$ \longrightarrow \f$</td>
-            <td ALIGN = "center" BGCOLOR="#EBEBEB"> potential successor tools </td>
+            <th ALIGN = "center"> potential predecessor tools </td>
+            <td VALIGN="middle" ROWSPAN=2> &rarr; MapRTTransformer &rarr;</td>
+            <th ALIGN = "center"> potential successor tools </td>
         </tr>
         <tr>
             <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_MapAlignerIdentification @n (or another alignment algorithm) </td>
@@ -110,11 +116,11 @@ protected:
     // "in" is not required, in case we only want to invert a transformation:
     registerInputFile_("in", "<file>", "", "Input file to transform (separated by blanks)", false);
     setValidFormats_("in", ListUtils::create<String>(file_formats));
-    registerOutputFile_("out", "<file>", "", "Output file (same file type as 'in'). Either this option or 'trafo_out' has to be provided; they can be used together.", false);
+    registerOutputFile_("out", "<file>", "", "Output file (same file type as 'in'). This option or 'trafo_out' has to be provided; they can be used together.", false);
     setValidFormats_("out", ListUtils::create<String>(file_formats));
     registerInputFile_("trafo_in", "<file>", "", "Transformation to apply");
     setValidFormats_("trafo_in", ListUtils::create<String>("trafoXML"));
-    registerOutputFile_("trafo_out", "<file>", "", "Transformation output file. Either this option or 'out' has to be provided; they can be used together.", false);
+    registerOutputFile_("trafo_out", "<file>", "", "Transformation output file. This option or 'out' has to be provided; they can be used together.", false);
     setValidFormats_("trafo_out", ListUtils::create<String>("trafoXML"));
     registerFlag_("invert", "Invert transformation (approximatively) before applying it");
     registerFlag_("store_original_rt", "Store the original retention times (before transformation) as meta data in the output file");
@@ -125,7 +131,7 @@ protected:
 
   Param getSubsectionDefaults_(const String& /* section */) const override
   {
-    return TOPPMapAlignerBase::getModelDefaults("none");
+    return MapAlignerBase::getModelDefaults("none");
   }
 
   template <class TFile, class TMap>
@@ -151,7 +157,7 @@ protected:
     String trafo_in = getStringOption_("trafo_in");
     String trafo_out = getStringOption_("trafo_out");
     Param model_params = getParam_().copy("model:", true);
-    String model_type = model_params.getValue("type");
+    String model_type = model_params.getValue("type").toString();
     model_params = model_params.copy(model_type + ":", true);
 
     ProgressLogger progresslogger;
@@ -162,12 +168,12 @@ protected:
     //-------------------------------------------------------------
     if (out.empty() && trafo_out.empty())
     {
-      writeLog_("Error: Either a data or a transformation output file has to be provided (parameters 'out'/'trafo_out')");
+      writeLogError_("Error: A data or a transformation output file has to be provided (parameters 'out'/'trafo_out')");
       return ILLEGAL_PARAMETERS;
     }
     if (in.empty() != out.empty())
     {
-      writeLog_("Error: Data input and output parameters ('in'/'out') must be used together");
+      writeLogError_("Error: Data input and output parameters ('in'/'out') must be used together");
       return ILLEGAL_PARAMETERS;
     }
 

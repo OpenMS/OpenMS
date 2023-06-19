@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -117,15 +117,15 @@ START_SECTION((void ionize(SimTypes::FeatureMapSim &features, ConsensusMap &char
   IonizationSimulation esi_sim(rnd_gen);
   Param esi_param = esi_sim.getParameters();
   esi_param.setValue("ionization_type","ESI");
-  esi_param.setValue("esi:ionized_residues",ListUtils::create<String>("Arg,Lys,His"));
+  esi_param.setValue("esi:ionized_residues", std::vector<std::string>{"Arg","Lys","His"});
   esi_param.setValue("esi:ionization_probability", 0.8);
-  esi_param.setValue("esi:charge_impurity", ListUtils::create<String>("H+:1,NH4+:0.2,Ca++:0.1"));
+  esi_param.setValue("esi:charge_impurity", std::vector<std::string>{"H+:1","NH4+:0.2","Ca++:0.1"});
   esi_param.setValue("esi:max_impurity_set_size", 3);
+  esi_param.setValue("mz:upper_measurement_limit", 2500.0, "Upper m/z detector limit.");
 
   esi_sim.setParameters(esi_param);
 
-  SimTypes::FeatureMapSim esi_features;
-  ConsensusMap cm;
+  SimTypes::FeatureMapSim esi_features, ef2;
   StringList peps = ListUtils::create<String>("TVQMENQFVAFVDK,ACHKKKKHHACAC,AAAAHTKLRTTIPPEFG,RYCNHKTUIKL");
   for (StringList::const_iterator it=peps.begin(); it!=peps.end(); ++it)
   {
@@ -137,9 +137,16 @@ START_SECTION((void ionize(SimTypes::FeatureMapSim &features, ConsensusMap &char
     esi_features.push_back(f);
   }
 
+  ConsensusMap cm;
   SimTypes::MSSimExperiment exp;
   SimTypes::MSSimExperiment::SpectrumType spec;
   exp.addSpectrum(spec);
+
+  /// test exception on invalid intensites
+  ef2 = esi_features;
+  // ...something large to provoke float->int conversion overflow
+  for (auto& e : ef2) e.setIntensity(std::numeric_limits<float>::max());
+  TEST_EXCEPTION(Exception::InvalidValue, esi_sim.ionize(ef2, cm, exp))
 
   esi_sim.ionize(esi_features, cm, exp);
 
@@ -335,6 +342,7 @@ boost > 1.55
   Param maldi_param = maldi_sim.getParameters();
   maldi_param.setValue("ionization_type","MALDI");
   maldi_param.setValue("maldi:ionization_probabilities", ListUtils::create<double>("0.9,0.1"));
+  maldi_param.setValue("mz:upper_measurement_limit", 2500.0, "Upper m/z detector limit.");
 
   maldi_sim.setParameters(maldi_param);
 
@@ -354,7 +362,7 @@ boost > 1.55
   expt.addSpectrum(spect);
   maldi_sim.ionize(maldi_features, cm, expt);
 
-  TEST_EQUAL(maldi_features.size(), 6)
+  ABORT_IF(maldi_features.size() != 6)
 
 
 /*

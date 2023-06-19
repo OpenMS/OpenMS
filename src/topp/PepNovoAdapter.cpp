@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry               
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 // 
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -34,7 +34,7 @@
 
 
 #include <OpenMS/FORMAT/IdXMLFile.h>
-#include <OpenMS/APPLICATIONS/TOPPBase.h>
+#include <OpenMS/APPLICATIONS/SearchEngineBase.h>
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/FORMAT/DTAFile.h>
@@ -77,9 +77,9 @@ using namespace std;
 <CENTER>
   <table>
     <tr>
-      <td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. predecessor tools </td>
-      <td VALIGN="middle" ROWSPAN=3> \f$ \longrightarrow \f$ PepNovoAdapter \f$ \longrightarrow \f$</td>
-      <td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. successor tools </td>
+      <th ALIGN = "center"> pot. predecessor tools </td>
+      <td VALIGN="middle" ROWSPAN=3> &rarr; PepNovoAdapter &rarr;</td>
+      <th ALIGN = "center"> pot. successor tools </td>
     </tr>
     <tr>
       <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> any signal-/preprocessing tool @n (in mzML format)</td>
@@ -113,11 +113,11 @@ using namespace std;
 /// @cond TOPPCLASSES
 
 class TOPPPepNovoAdapter :
-  public TOPPBase
+  public SearchEngineBase
 {
   public:
   TOPPPepNovoAdapter() :
-    TOPPBase("PepNovoAdapter", "Adapter to PepNovo supporting all PepNovo command line parameters. The results are converted from the PepNovo text outfile format into the idXML format.")
+    SearchEngineBase("PepNovoAdapter", "Adapter to PepNovo supporting all PepNovo command line parameters. The results are converted from the PepNovo text outfile format into the idXML format.")
     {
     }
 
@@ -131,7 +131,7 @@ class TOPPPepNovoAdapter :
       registerOutputFile_("out", "<file>", "", "output file ");
       setValidFormats_("out",ListUtils::create<String>("idXML"));
 
-      registerInputFile_("pepnovo_executable","<file>", "", "The \"PepNovo\" executable of the PepNovo installation", true, false, ListUtils::create<String>("skipexists"));
+      registerInputFile_("pepnovo_executable","<file>", "", "The PepNovo executable. Provide a full or relative path, or make sure it can be found in your PATH environment.", true, false, {"is_executable"});
       registerStringOption_("model_directory", "<file>", "", "Name of the directory where the model files are kept.",true);
 
       addEmptyLine_ ();
@@ -169,22 +169,18 @@ class TOPPPepNovoAdapter :
 
       PeakMap exp;
 
-      String inputfile_name = getStringOption_("in");
-      writeDebug_(String("Input file: ") + inputfile_name, 1);
+      String inputfile_name = getRawfileName();
 
       String outputfile_name = getStringOption_("out");
-      writeDebug_(String("Output file: ") + outputfile_name, 1);
 
       String model_directory = getStringOption_("model_directory");
-      writeDebug_(String("model directory: ") + model_directory, 1);
 
       String model_name = getStringOption_("model");
-      writeDebug_(String("model directory: ") + model_name, 1);
 
       double fragment_tolerance = getDoubleOption_("fragment_tolerance");
       if (fragment_tolerance!=-1.0 && (fragment_tolerance<0 || fragment_tolerance>0.75))
       {
-        writeLog_("Invalid fragment tolerance");
+        writeLogError_("Invalid fragment tolerance");
         printUsage_();
         return ILLEGAL_PARAMETERS;
       }
@@ -192,7 +188,7 @@ class TOPPPepNovoAdapter :
       double pm_tolerance = getDoubleOption_("pm_tolerance");
       if (pm_tolerance!=-1.0 && (pm_tolerance<0.0 || pm_tolerance>5.0))
       {
-        writeLog_("Invalid fragment tolerance");
+        writeLogError_("Invalid fragment tolerance");
         printUsage_();
         return ILLEGAL_PARAMETERS;
       }
@@ -200,7 +196,7 @@ class TOPPPepNovoAdapter :
       Int tag_length = getIntOption_("tag_length");
       if ( tag_length!=-1 && (tag_length<3 || tag_length>6))
       {
-        writeLog_("Invalid fragment tolerance");
+        writeLogError_("Invalid fragment tolerance");
         printUsage_();
         return ILLEGAL_PARAMETERS;
       }
@@ -230,7 +226,7 @@ class TOPPPepNovoAdapter :
       QDir qdir_models_source(model_directory.c_str());
       if (!qdir_models_source.exists())
       {
-        writeLog_("The model directory does not exist");
+        writeLogError_("The model directory does not exist");
         return INPUT_FILE_NOT_FOUND;
       }
       
@@ -256,7 +252,7 @@ class TOPPPepNovoAdapter :
 
         if (qdir_temp.cd("Models"))
         {
-          writeLog_("The temporary directory already contains \"Model\" Folder. Please delete it and re-run. Aborting!");
+          writeLogError_("The temporary directory already contains \"Model\" Folder. Please delete it and re-run. Aborting!");
           return CANNOT_WRITE_OUTPUT_FILE;
         }
         else
@@ -269,27 +265,27 @@ class TOPPPepNovoAdapter :
         QStringList pepnovo_files = qdir_models_source.entryList(QDir::Dirs | QDir::Files|QDir::NoDotAndDotDot);
         if (pepnovo_files.empty())
         {
-          writeLog_("The \"Model\" directory does not contain model files. Aborting!");
+          writeLogError_("The \"Model\" directory does not contain model files. Aborting!");
           return INPUT_FILE_NOT_FOUND;
         }
 
-        for (QStringList::ConstIterator file_it=pepnovo_files.begin(); file_it!=pepnovo_files.end(); ++file_it)
+        for (const QString& file : pepnovo_files)
         {
-          if (qdir_models_source.cd(*file_it))
+          if (qdir_models_source.cd(file))
           {
-            qdir_temp.mkdir(*file_it);
-            qdir_temp.cd(*file_it);
+            qdir_temp.mkdir(file);
+            qdir_temp.cd(file);
             QStringList subdir_files = qdir_models_source.entryList(QDir::Dirs | QDir::Files|QDir::NoDotAndDotDot);
-            for (QStringList::ConstIterator subdir_file_it=subdir_files.begin(); subdir_file_it!=subdir_files.end(); ++subdir_file_it)
+            for (const QString& subdir_file : subdir_files)
             {
-              QFile::copy(qdir_models_source.filePath(*subdir_file_it), qdir_temp.filePath(*subdir_file_it));
+              QFile::copy(qdir_models_source.filePath(subdir_file), qdir_temp.filePath(subdir_file));
             }
             qdir_temp.cdUp();
             qdir_models_source.cdUp();
           }
           else
           {
-            QFile::copy(qdir_models_source.filePath(*file_it), qdir_temp.filePath(*file_it));
+            QFile::copy(qdir_models_source.filePath(file), qdir_temp.filePath(file));
           }
         }
 
@@ -305,7 +301,7 @@ class TOPPPepNovoAdapter :
 
           for (std::map<String, String>::const_iterator key_it=mods_and_keys.begin(); key_it!=mods_and_keys.end();++key_it)
           {
-            if (ptm_command!="")
+            if (!ptm_command.empty())
             {
               ptm_command+=":";
             }
@@ -321,16 +317,40 @@ class TOPPPepNovoAdapter :
 
         arguments << "-file" << mgf_file.toQString();
         arguments << "-model" << model_name.toQString();
-        if (pm_tolerance != -1 ) arguments << "-pm_tolerance"<<String(pm_tolerance).toQString();
-        if (fragment_tolerance != -1 ) arguments << "-fragment_tolerance" <<String(fragment_tolerance).toQString();
-        if (!ptm_command.empty()) arguments <<"-PTMs" <<ptm_command.toQString();
-        if (getFlag_("correct_pm")) arguments << "-correct_pm";
-        if (getFlag_("use_spectrum_charge")) arguments << "-use_spectrum_charge";
-        if (getFlag_("use_spectrum_mz")) arguments << "-use_spectrum_mz";
-        if (getFlag_("no_quality_filter")) arguments << "-no_quality_filter";
+        if (pm_tolerance != -1 )
+        {
+          arguments << "-pm_tolerance"<<String(pm_tolerance).toQString();
+        }
+        if (fragment_tolerance != -1 )
+        {
+          arguments << "-fragment_tolerance" <<String(fragment_tolerance).toQString();
+        }
+        if (!ptm_command.empty())
+        {
+          arguments <<"-PTMs" <<ptm_command.toQString();
+        }
+        if (getFlag_("correct_pm"))
+        {
+          arguments << "-correct_pm";
+        }
+        if (getFlag_("use_spectrum_charge"))
+        {
+          arguments << "-use_spectrum_charge";
+        }
+        if (getFlag_("use_spectrum_mz"))
+        {
+          arguments << "-use_spectrum_mz";
+        }
+        if (getFlag_("no_quality_filter"))
+        {
+          arguments << "-no_quality_filter";
+        }
         arguments << "-digest" << digest.toQString();
         arguments << "-num_solutions" << String(num_solutions).toQString();
-        if (tag_length!=-1) arguments<<"-tag_length" << String(tag_length).toQString();
+        if (tag_length!=-1)
+        {
+          arguments<<"-tag_length" << String(tag_length).toQString();
+        }
         arguments<<"-model_dir" << tmp_models_dir.toQString();
         //arguments<<">" << temp_pepnovo_outfile.toQString();
 
@@ -345,9 +365,7 @@ class TOPPPepNovoAdapter :
           //if PepNovo finished successfully use PepNovoOutfile to parse the results and generate idXML
           std::vector< PeptideIdentification > peptide_identifications;
           ProteinIdentification protein_identification;
-          StringList ms_runs;
-          exp.getPrimaryMSRunPath(ms_runs);
-          protein_identification.setPrimaryMSRunPath(ms_runs);
+          protein_identification.setPrimaryMSRunPath({inputfile_name}, exp);
 
           PepNovoOutfile p_novo_outfile;
 
@@ -358,13 +376,15 @@ class TOPPPepNovoAdapter :
           IdXMLFile().store(outputfile_name, prot_ids, peptide_identifications);
         }
 
-        if (process.exitStatus() != 0)  error = true;
+        if (process.exitStatus() != 0)
+        {
+          error = true;
+        }
        
       }
       catch(Exception::BaseException &exc)
       {
-        writeLog_(exc.what());
-        LOG_ERROR << "Error occurred: " << exc.what() << std::endl;
+        writeLogError_(String("Error occurred: ") + exc.what());
         error = true;
       }
       
@@ -375,7 +395,7 @@ class TOPPPepNovoAdapter :
       }
       else
       {
-        writeLog_("PepNovo problem. Aborting! (Details can be seen in outfiles: '" + temp_data_directory + "')");
+        writeLogError_("PepNovo problem. Aborting! (Details can be seen in outfiles: '" + temp_data_directory + "')");
         return EXTERNAL_PROGRAM_ERROR;
       }
 

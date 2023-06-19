@@ -9,6 +9,7 @@ IsobaricNormalizer.cpp
 IsobaricQuantifier.cpp
 IsobaricQuantifierStatistics.cpp
 IsobaricQuantitationMethod.cpp
+IsotopeLabelingMDVs.cpp
 ItraqConstants.cpp
 ItraqEightPlexQuantitationMethod.cpp
 ItraqFourPlexQuantitationMethod.cpp
@@ -18,6 +19,8 @@ PeptideAndProteinQuant.cpp
 ProteinInference.cpp
 ProteinResolver.cpp
 QuantitativeExperimentalDesign.cpp
+TMTEighteenPlexQuantitationMethod.cpp
+TMTSixteenPlexQuantitationMethod.cpp
 TMTElevenPlexQuantitationMethod.cpp
 TMTSixPlexQuantitationMethod.cpp
 TMTTenPlexQuantitationMethod.cpp

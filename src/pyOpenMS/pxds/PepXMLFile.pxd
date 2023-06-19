@@ -12,6 +12,8 @@ cdef extern from "<OpenMS/FORMAT/PepXMLFile.h>" namespace "OpenMS":
     cdef cppclass PepXMLFile:
 
         PepXMLFile() nogil except +
+        #  copy constructor of 'PepXMLFile' is implicitly deleted because base class 'Internal::XMLHandler' has a deleted copy constructor protected Internal::XMLHandler,
+        PepXMLFile(PepXMLFile &) nogil except + # wrap-ignore
 
         # Since PepXML may not store the complete information, it may be
         # necessary to also pass a lookup structure from which retention times
@@ -45,8 +47,10 @@ cdef extern from "<OpenMS/FORMAT/PepXMLFile.h>" namespace "OpenMS":
                   libcpp_vector[PeptideIdentification] & peptide_ids,
                   String mz_file,
                   String mz_name,
-                  bool peptideprophet_analyzed
+                  bool peptideprophet_analyzed,
+                  double rt_tolerance
                   ) nogil except +
 
         void keepNativeSpectrumName(bool keep) nogil except +
+        void setParseUnknownScores(bool parse_unknown_scores) nogil except +
 

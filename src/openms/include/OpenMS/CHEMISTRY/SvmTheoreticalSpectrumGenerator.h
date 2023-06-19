@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -136,14 +136,6 @@ public:
     };
     //@}
 
-    /// A set of descriptors for a single training row
-    struct DescriptorSet
-    {
-      typedef std::vector<svm_node> DescriptorSetType;
-      DescriptorSetType descriptors;
-    };
-
-
     /// Simple container storing the model parameters required for simulation
     struct SvmModelParameterSet
     {
@@ -217,12 +209,19 @@ public:
     void load();
 
     ///return the set of ion types that are modeled by the loaded SVMs
-    const std::vector<IonType> & getIonTypes()
+    const std::vector<IonType> & getIonTypes() const
     {
       return mp_.ion_types;
     }
 
 protected:
+    /// A set of descriptors for a single training row
+    struct DescriptorSet
+    {
+      typedef std::vector<svm_node> DescriptorSetType;
+      DescriptorSetType descriptors;
+    };
+
     typedef std::map<IonType, double> IntensityMap;
 
     /// charge of the precursors used for training
@@ -253,7 +252,7 @@ protected:
     void scaleDescriptorSet_(DescriptorSet & desc, double lower, double upper);
 
     /// generate the descriptors for an input peptide and a given fragmentation position
-    Size generateDescriptorSet_(AASequence peptide, Size position, IonType type, Size precursor_charge, DescriptorSet & desc_set);
+    Size generateDescriptorSet_(const AASequence& peptide, Size position, const IonType& type, Size precursor_charge, DescriptorSet & desc_set);
 
     /// Returns the ResidueType (e.g. AIon, BIon) as string for peak annotation
     String ResidueTypeToString_(Residue::ResidueType type);

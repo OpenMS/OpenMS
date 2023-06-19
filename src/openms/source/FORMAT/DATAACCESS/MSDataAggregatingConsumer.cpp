@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -36,6 +36,7 @@
 
 #include <OpenMS/FILTERING/TRANSFORMERS/LinearResamplerAlign.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/SpectrumAddition.h>
+#include <OpenMS/KERNEL/SpectrumHelper.h>
 
 namespace OpenMS
 {
@@ -46,12 +47,7 @@ namespace OpenMS
     if (!s_list.empty())
     {
       MSSpectrum tmps = SpectrumAddition::addUpSpectra(s_list, -1, true);
-      tmps.SpectrumSettings::operator=(s_list[0]); // copy over SpectrumSettings of first spectrum
-      tmps.setName( s_list[0].getName() );
-      tmps.setRT( s_list[0].getRT() );
-      tmps.setDriftTime( s_list[0].getDriftTime() );
-      tmps.setMSLevel( s_list[0].getMSLevel() );
-
+      copySpectrumMeta(s_list[0], tmps, false);
       next_consumer_->consumeSpectrum(tmps);
     }
   }
@@ -72,12 +68,7 @@ namespace OpenMS
       if (rt_initialized_ && !s_list.empty())
       {
         MSSpectrum tmps = SpectrumAddition::addUpSpectra(s_list, -1, true);
-        tmps.SpectrumSettings::operator=(s_list[0]); // copy over SpectrumSettings of first spectrum
-        tmps.setName( s_list[0].getName() );
-        tmps.setRT( s_list[0].getRT() );
-        tmps.setDriftTime( s_list[0].getDriftTime() );
-        tmps.setMSLevel( s_list[0].getMSLevel() );
-
+        copySpectrumMeta(s_list[0], tmps, false);
         next_consumer_->consumeSpectrum(tmps);
       }
 
@@ -98,5 +89,5 @@ namespace OpenMS
     next_consumer_->consumeChromatogram(c);
   }
 
-
 } // namespace OpenMS
+

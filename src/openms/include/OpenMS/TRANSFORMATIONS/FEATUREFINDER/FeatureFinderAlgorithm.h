@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -50,11 +50,11 @@ namespace OpenMS
   /// Summary of fitting results
   struct OPENMS_DLLAPI Summary
   {
-    std::map<String, UInt> exception; //count exceptions
+    std::map<String, UInt> exception; ///<count exceptions
     UInt no_exceptions;
-    std::map<String, UInt> mz_model; //count used mz models
-    std::map<float, UInt> mz_stdev; //count used mz standard deviations
-    std::vector<UInt> charge; //count used charges
+    std::map<String, UInt> mz_model; ///<count used mz models
+    std::map<float, UInt> mz_stdev; ///<count used mz standard deviations
+    std::vector<UInt> charge; ///<count used charges
     double corr_mean, corr_max, corr_min; //boxplot for correlation
 
     /// Initial values
@@ -127,7 +127,7 @@ public:
     */
     virtual void setSeeds(const FeatureMap& seeds)
     {
-      if (seeds.size() != 0)
+      if (!seeds.empty())
       {
         throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "The used feature detection algorithm does not support user-specified seed lists!");
       }

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -36,7 +36,7 @@
 
 #include <OpenMS/METADATA/CVTerm.h>
 #include <OpenMS/METADATA/MetaInfoInterface.h>
-#include <OpenMS/DATASTRUCTURES/Map.h>
+#include <map>
 
 namespace OpenMS
 {
@@ -55,16 +55,26 @@ namespace OpenMS
 public:
 
     /// Defaults constructor
-    CVTermList();
+    CVTermList() = default;
 
     /// Copy constructor
-    CVTermList(const CVTermList& rhs);
+    CVTermList(const CVTermList&) = default;
+
+    // note: we implement the move constructor ourselves due to a bug in MSVS
+    // 2015/2017 which cannot produce a default move constructor for classes
+    // that contain STL containers (other than vector).
+
+    /// Move constructor
+    CVTermList(CVTermList&&) noexcept;
 
     /// Destructor
     virtual ~CVTermList();
 
     /// Assignment operator
-    CVTermList& operator=(const CVTermList& rhs);
+    CVTermList& operator=(const CVTermList& rhs) & = default;
+
+    /// Move assignment operator
+    CVTermList& operator=(CVTermList&&) & = default;
 
     /** @name Accessors
     */
@@ -79,13 +89,13 @@ public:
     void replaceCVTerms(const std::vector<CVTerm>& cv_terms, const String& accession);
 
     /// replaces all cv terms with a map (can be obtained via getCVTerms)
-    void replaceCVTerms(const Map<String, std::vector<CVTerm> >& cv_term_map);
+    void replaceCVTerms(const std::map<String, std::vector<CVTerm> >& cv_term_map);
 
     /// merges the given map into the member map, no duplicate checking
-    void consumeCVTerms(const Map<String, std::vector<CVTerm> >& cv_term_map);
+    void consumeCVTerms(const std::map<String, std::vector<CVTerm> >& cv_term_map);
 
     /// returns the accession string of the term
-    const Map<String, std::vector<CVTerm> >& getCVTerms() const;
+    const std::map<String, std::vector<CVTerm> >& getCVTerms() const;
 
     /// adds a CV term
     void addCVTerm(const CVTerm& term);
@@ -119,7 +129,7 @@ public:
 
 protected:
 
-    Map<String, std::vector<CVTerm> > cv_terms_;
+  std::map<String, std::vector<CVTerm> > cv_terms_;
 
   };
 

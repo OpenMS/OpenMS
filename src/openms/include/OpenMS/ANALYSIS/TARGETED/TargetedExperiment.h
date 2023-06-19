@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -64,6 +64,17 @@ namespace OpenMS
   class OPENMS_DLLAPI TargetedExperiment
   {
 public:
+    
+    struct OPENMS_DLLAPI SummaryStatistics
+    {
+      Size protein_count;
+      Size peptide_count;
+      Size compound_count;
+      Size transition_count;
+      std::map<ReactionMonitoringTransition::DecoyTransitionType, size_t> decoy_counts; ///< # target/decoy transitions
+      bool contains_invalid_references;
+    };
+
 
     typedef TargetedExperimentHelper::CV CV;
     typedef TargetedExperimentHelper::Protein Protein;
@@ -91,12 +102,18 @@ public:
     /// copy constructor
     TargetedExperiment(const TargetedExperiment & rhs);
 
+    /// move constructor
+    TargetedExperiment(TargetedExperiment && rhs) noexcept;
+
     /// destructor
     virtual ~TargetedExperiment();
     //@}
 
     /// assignment operator
     TargetedExperiment & operator=(const TargetedExperiment & rhs);
+
+    /// move assignment operator
+    TargetedExperiment & operator=(TargetedExperiment && rhs) noexcept;
 
     /** @name Predicates
     */
@@ -118,7 +135,8 @@ public:
 
       @param rhs The targeted experiment to add to this one.
     */
-    TargetedExperiment & operator+=(const TargetedExperiment & rhs);
+    TargetedExperiment& operator+=(const TargetedExperiment & rhs);
+    TargetedExperiment& operator+=(TargetedExperiment && rhs);
 
     /**
       @brief Clears all data and meta data
@@ -126,6 +144,9 @@ public:
       @param clear_meta_data If @em true, all meta data is cleared in addition to the data.
     */
     void clear(bool clear_meta_data);
+
+    /// return summary stats about this TE.
+    SummaryStatistics getSummary() const;
 
     /** @name Accessors
     */
@@ -176,6 +197,7 @@ public:
 
     // protein list
     void setProteins(const std::vector<Protein> & proteins);
+    void setProteins(std::vector<Protein> && proteins);
 
     const std::vector<Protein> & getProteins() const;
 
@@ -193,6 +215,7 @@ public:
     void addCompound(const Compound & rhs);
 
     void setPeptides(const std::vector<Peptide> & rhs);
+    void setPeptides(std::vector<Peptide> && rhs);
 
     const std::vector<Peptide> & getPeptides() const;
 
@@ -208,6 +231,7 @@ public:
 
     /// set transition list
     void setTransitions(const std::vector<ReactionMonitoringTransition> & transitions);
+    void setTransitions(std::vector<ReactionMonitoringTransition> && transitions);
 
     /// returns the transition list
     const std::vector<ReactionMonitoringTransition> & getTransitions() const;
@@ -243,6 +267,14 @@ public:
       @brief Lexicographically sorts the transitions by their product m/z.
     */
     void sortTransitionsByProductMZ();
+    //@}
+
+    ///@name Sorting peaks
+    //@{
+    /**
+      @brief Lexicographically sorts the transitions by their name.
+    */
+    void sortTransitionsByName();
     //@}
 
     /**
@@ -307,6 +339,9 @@ protected:
   namespace TargetedExperimentHelper
   {
   } // namespace TargetedExperimentHelper
+
+  /// prints out the summary statistics
+  OPENMS_DLLAPI std::ostream& operator<<(std::ostream& os, const TargetedExperiment::SummaryStatistics& s);
 
 
 } // namespace OpenMS

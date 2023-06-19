@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -34,20 +34,19 @@
 
 #pragma once
 
-#include <OpenMS/CONCEPT/UniqueIdGenerator.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
 
 namespace OpenMS
 {
 
-/** @brief A base class defining a common interface for all classes having a unique id.
+  /** @brief A base class defining a common interface for all classes having a unique id.
 
- Have a look at RichPeak2D for an example how to extend a class to support unique ids.
+   Have a look at RichPeak2D for an example how to extend a class to support unique ids.
 
- @sa UniqueIdGenerator, RichPeak2D
+   @sa UniqueIdGenerator, RichPeak2D
 
- @ingroup Concept
- */
+   @ingroup Concept
+   */
   class OPENMS_DLLAPI UniqueIdInterface
   {
 public:
@@ -61,7 +60,7 @@ public:
       INVALID = 0
     };
 
-    /**@brief Returns true if the unique_id is valid, false otherwise.
+    /** @brief Returns true if the unique_id is valid, false otherwise.
 
      Currently, an invalid unique id is represented by UInt64(0), but please prefer using this method for clarity.
      */
@@ -79,23 +78,19 @@ public:
     }
 
     /// Copy constructor - copies the unique id
-    UniqueIdInterface(const UniqueIdInterface & rhs) :
-      unique_id_(rhs.unique_id_)
-    {
-    }
+    UniqueIdInterface(const UniqueIdInterface & rhs) = default;
+
+    /// Move constructor 
+    UniqueIdInterface(UniqueIdInterface && rhs) = default;
 
     /// Assignment operator - copies the unique id
-    UniqueIdInterface &
-    operator=(UniqueIdInterface const & rhs)
-    {
-      unique_id_ = rhs.unique_id_;
-      return *this;
-    }
+    UniqueIdInterface & operator=(UniqueIdInterface const & rhs) = default;
+
+    /// Move Assignment operator - copies the unique id
+    UniqueIdInterface& operator=(UniqueIdInterface&&) & = default;
 
     /// Destructor
-    virtual ~UniqueIdInterface()
-    {
-    }
+    virtual ~UniqueIdInterface() = default;
 
     /// Equality comparison operator - the unique ids must be equal (!)
     bool
@@ -147,24 +142,11 @@ public:
 
     /// Assigns a new, valid unique id.  Always returns 1.
     Size
-    setUniqueId()
-    {
-      unique_id_ = UniqueIdGenerator::getUniqueId();
-      return 1;
-    }
+    setUniqueId();
 
     /// Assigns a valid unique id, but only if the present one is invalid.  Returns 1 if the unique id was changed, 0 otherwise.
     Size
-    ensureUniqueId()
-    {
-      if (!hasValidUniqueId())
-      {
-        unique_id_ = UniqueIdGenerator::getUniqueId();
-        return 1;
-      }
-      else
-        return 0;
-    }
+    ensureUniqueId();
 
     /// Assigns the given unique id.
     void

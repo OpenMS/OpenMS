@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -32,10 +32,8 @@
 // $Authors: Chris Bielow $
 // --------------------------------------------------------------------------
 
-
 #pragma once
 
-#include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/DATASTRUCTURES/CalibrationData.h>
 #include <OpenMS/MATH/MISC/RANSAC.h>
 
@@ -72,6 +70,7 @@ namespace OpenMS
     double rt_; ///< retention time associated to the model (i.e. where the calibrant data was taken from)
 
     static Math::RANSACParam* ransac_params_; ///< global pointer, init to NULL at startup; set class-global RANSAC params
+    static int ransac_seed_; ///< seed used for all RANSAC invocations
     static double limit_offset_; ///< acceptable boundary for the estimated offset; if estimated offset is larger (absolute) the model does not validate (isValidModel())
     static double limit_scale_; ///< acceptable boundary for the estimated scale; if estimated scale is larger (absolute) the model does not validate (isValidModel())
     static double limit_power_; ///< acceptable boundary for the estimated power; if estimated power is larger (absolute) the model does not validate (isValidModel())
@@ -124,6 +123,11 @@ namespace OpenMS
       @param p RANSAC params
     */
     static void setRANSACParams(const Math::RANSACParam& p);
+
+    /**
+      @brief Set RANSAC seed
+    */
+    static void setRANSACSeed(int seed);
 
     /**
       @brief Set coefficient boundaries for which the model coefficient must not exceed to be considered a valid model
@@ -188,8 +192,7 @@ namespace OpenMS
 
 
     /// Comparator by position. As this class has dimension 1, this is basically an alias for MZLess.
-    struct RTLess :
-      public std::binary_function<MZTrafoModel, MZTrafoModel, bool>
+    struct RTLess
     {
       inline bool operator()(const double& left, const MZTrafoModel& right) const
       {
@@ -207,7 +210,7 @@ namespace OpenMS
     /**
       @brief Train a model using calibrant data
 
-      If the CalibrationData were created using peak groups (usually corresponding to mass traces),
+      If the CalibrationData was created using peak groups (usually corresponding to mass traces),
       the median for each group is used as a group representative. This
       is more robust, and reduces the number of data points drastically, i.e. one value per group.
 

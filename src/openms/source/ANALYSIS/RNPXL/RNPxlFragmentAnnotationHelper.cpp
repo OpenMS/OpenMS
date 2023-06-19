@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -55,12 +55,12 @@ namespace OpenMS
 
   std::vector<PeptideHit::PeakAnnotation> RNPxlFragmentAnnotationHelper::fragmentAnnotationDetailsToPHFA(
     const String& ion_type, 
-    std::map<Size, std::vector<FragmentAnnotationDetail_> > ion_annotation_details)
+    const std::map<Size, std::vector<FragmentAnnotationDetail_> >& ion_annotation_details)
   {
     std::vector<PeptideHit::PeakAnnotation> fas;
-    for (auto ait : ion_annotation_details)
+    for (const auto& ait : ion_annotation_details)
     {
-      for (auto sit : ait.second)
+      for (const auto& sit : ait.second)
       {
         PeptideHit::PeakAnnotation fa;
         fa.charge = sit.charge;
@@ -75,7 +75,7 @@ namespace OpenMS
           const String annotation_text = ion_type + String(ait.first) + "+" + sit.shift; 
           fa.annotation = annotation_text;
         }
-        fas.push_back(fa);
+        fas.push_back(std::move(fa));
       }
     }
     return fas;
@@ -86,9 +86,9 @@ namespace OpenMS
     std::set<std::pair<String, double> > >& shifted_ions)
   {
     std::vector<PeptideHit::PeakAnnotation> fas;
-    for (auto ait : shifted_ions)
+    for (const auto& ait : shifted_ions)
     {
-      for (auto sit : ait.second)
+      for (const auto& sit : ait.second)
       {
         PeptideHit::PeakAnnotation fa;
         fa.charge = 1;
@@ -96,7 +96,7 @@ namespace OpenMS
         fa.intensity = 1;
         const String annotation_text = sit.first;
         fa.annotation = annotation_text;
-        fas.push_back(fa); 
+        fas.push_back(std::move(fa)); 
       }
     }
     return fas;
@@ -108,7 +108,7 @@ namespace OpenMS
     std::vector<PeptideHit::PeakAnnotation> sorted(as);
     stable_sort(sorted.begin(), sorted.end());
     String fas;
-    for (auto & a : sorted)
+    for (const auto & a : sorted)
     {
       fas += String("(") + String::number(a.mz, 3) + "," + String::number(100.0 * a.intensity, 1) + ",\"" + a.annotation + "\")";    
       if (&a != &sorted.back()) { fas += "|"; }     

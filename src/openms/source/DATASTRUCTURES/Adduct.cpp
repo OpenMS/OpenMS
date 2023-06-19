@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -34,9 +34,13 @@
 
 #include <OpenMS/DATASTRUCTURES/Adduct.h>
 
+#include <OpenMS/CHEMISTRY/Element.h>
+
 #include <OpenMS/CHEMISTRY/EmpiricalFormula.h>
 
 #include <iostream>
+
+#include <map>
 
 namespace OpenMS
 {
@@ -63,7 +67,7 @@ namespace OpenMS
   {
   }
 
-  Adduct::Adduct(Int charge, Int amount, double singleMass, String formula, double log_prob, double rt_shift, const String label) :
+  Adduct::Adduct(Int charge, Int amount, double singleMass, const String& formula, double log_prob, double rt_shift, const String& label) :
     charge_(charge),
     amount_(amount),
     singleMass_(singleMass),
@@ -72,7 +76,9 @@ namespace OpenMS
     label_(label)
   {
     if (amount < 0)
+    {
       std::cerr << "Attention: Adduct received negative amount! (" << amount << ")\n";
+    }
     formula_ = checkFormula_(formula);
   }
 
@@ -122,7 +128,9 @@ namespace OpenMS
   void Adduct::setAmount(const Int& amount)
   {
     if (amount < 0)
+    {
       std::cerr << "Warning: Adduct received negative amount! (" << amount << ")\n";
+    }
     amount_ = amount;
   }
 
@@ -164,6 +172,33 @@ namespace OpenMS
   const String& Adduct::getLabel() const
   {
     return label_;
+  }
+  
+  String Adduct::toAdductString(const String& ion_string, const Int& charge)
+  {
+    EmpiricalFormula ef(ion_string);
+    String charge_sign = charge >= 0 ? "+" : "-";
+    String s("[M");
+
+    //need elements sorted canonically (by string)
+    std::map<String, String> sorted_elem_map;
+    for (const auto& element_count : ef)
+    {
+      String e_symbol(element_count.first->getSymbol());
+      String tmp = element_count.second > 0 ? "+" : "-";
+      tmp += abs(element_count.second) > 1 ? String(abs(element_count.second)) : "";
+      tmp += e_symbol;
+      sorted_elem_map[e_symbol] = std::move(tmp);
+    }
+    for (const auto& sorted_e_cnt : sorted_elem_map)
+    {
+      s += sorted_e_cnt.second;
+    }
+    s += String("]");
+    s += abs(charge) > 1 ? String(abs(charge)) : "";
+    s += charge_sign;
+
+    return s;
   }
 
   String Adduct::checkFormula_(const String& formula)

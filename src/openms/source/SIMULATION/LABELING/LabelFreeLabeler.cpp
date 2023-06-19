@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -32,10 +32,12 @@
 // $Authors: Stephan Aiche $
 // --------------------------------------------------------------------------
 
+#include <OpenMS/SIMULATION/LABELING/LabelFreeLabeler.h>
+
 #include <map>
 #include <vector>
 
-#include <OpenMS/SIMULATION/LABELING/LabelFreeLabeler.h>
+#include <OpenMS/CONCEPT/LogStream.h>
 
 using std::map;
 using std::vector;
@@ -47,9 +49,7 @@ namespace OpenMS
   {
   }
 
-  LabelFreeLabeler::~LabelFreeLabeler()
-  {
-  }
+  LabelFreeLabeler::~LabelFreeLabeler() = default;
 
   void LabelFreeLabeler::preCheck(Param& /* param */) const
   {
@@ -61,10 +61,12 @@ namespace OpenMS
   void LabelFreeLabeler::setUpHook(SimTypes::FeatureMapSimVector& features)
   {
     if (features.size() == 1)
+    {
       return;
+    }
     else
     {
-      LOG_INFO << "Merging input FASTA files into one. Intensities will be summed up if duplicates occur.";
+      OPENMS_LOG_INFO << "Merging input FASTA files into one. Intensities will be summed up if duplicates occur.";
       SimTypes::FeatureMapSim final_map = mergeProteinIdentificationsMaps_(features);
       features.clear();
       features.push_back(final_map);

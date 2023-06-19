@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -71,7 +71,7 @@ namespace OpenMS
   {
 public:
     TargetedSpectraExtractor();
-    virtual ~TargetedSpectraExtractor() = default;
+    ~TargetedSpectraExtractor() override = default;
 
     /**
       Structure for a match against a spectral library
@@ -80,14 +80,15 @@ public:
     struct Match
     {
       Match() = default;
-      Match(MSSpectrum a, double b) : spectrum(a), score(b) {}
+      Match(MSSpectrum a, double b) : spectrum(std::move(a)), score(b) {}
       MSSpectrum spectrum;
-      double score;
+      double score = 0.0;
     };
 
-    class Comparator
+    class OPENMS_DLLAPI Comparator
     {
     public:
+      virtual ~Comparator() = default;
       virtual void generateScores(
         const MSSpectrum& spec,
         std::vector<std::pair<Size,double>>& scores,
@@ -108,14 +109,15 @@ public:
       std::vector<MSSpectrum> library_;
     };
 
-    class BinnedSpectrumComparator : public Comparator
+    class OPENMS_DLLAPI BinnedSpectrumComparator : public Comparator
     {
     public:
-      void generateScores(
+      ~BinnedSpectrumComparator() override = default;
+      void generateScores (
         const MSSpectrum& spec,
         std::vector<std::pair<Size,double>>& scores,
         double min_score
-      ) const
+      ) const override
       {
         scores.clear();
         const BinnedSpectrum in_bs(spec, bin_size_, false, peak_spread_, bin_offset_);
@@ -129,34 +131,14 @@ public:
         }
       }
 
-      void init(const std::vector<MSSpectrum>& library, const std::map<String,DataValue>& options)
-      {
-        if (options.count("bin_size"))
-        {
-          bin_size_ = options.at("bin_size");
-        }
-        if (options.count("peak_spread"))
-        {
-          peak_spread_ = options.at("peak_spread");
-        }
-        if (options.count("bin_offset"))
-        {
-          bin_offset_ = options.at("bin_offset");
-        }
-        library_ = library;
-        bs_library_.clear();
-        for (const MSSpectrum& s : library_)
-        {
-          bs_library_.emplace_back(s, bin_size_, false, peak_spread_, bin_offset_);
-        }
-        LOG_INFO << "The library contains " << bs_library_.size() << " spectra." << std::endl;
-      }
+      void init(const std::vector<MSSpectrum>& library, const std::map<String,DataValue>& options) override;
+
     private:
       BinnedSpectralContrastAngle cmp_bs_;
       std::vector<BinnedSpectrum> bs_library_;
-      double bin_size_ = 1.0;
-      double peak_spread_ = 0.0;
-      double bin_offset_ = 0.4;
+      double bin_size_ = 0.02; // Default for nominal mass: 1.0;
+      UInt peak_spread_ = 0;
+      double bin_offset_ = 0.0; // Default for nominal mass resolution: 0.4;
     };
 
     void getDefaultParameters(Param& params) const;
@@ -182,7 +164,7 @@ public:
       const TargetedExperiment& targeted_exp,
       std::vector<MSSpectrum>& annotated_spectra,
       FeatureMap& features,
-      const bool compute_features = true
+      bool compute_features = true
     ) const;
 
     /**
@@ -204,6 +186,36 @@ public:
       const TargetedExperiment& targeted_exp,
       std::vector<MSSpectrum>& annotated_spectra
     ) const;
+
+    /**
+      @brief Annotates the MS2 spectra with the likely MS1 feature that it was derived from
+
+      Annotating based on MS1 feature results from AccurateMassSearch.
+      In this case, the input will be e.g., const FeatureMap& ms1_features and the RTs and names (i.e., PeptideRef),
+      defined in the FeatureMap.
+
+      @param[in] spectra The spectra to filter
+      @param[in] ms1_features The MS1 features
+      @param[out] ms2_features The MS2 features
+      @param[out] annotated_spectra The resulting annotated spectra
+    */
+    void annotateSpectra(
+        const std::vector<MSSpectrum>& spectra,
+        const FeatureMap& ms1_features,
+        FeatureMap& ms2_features,
+        std::vector<MSSpectrum>& annotated_spectra) const;
+    
+    /**
+      @brief Search accurate masses and add identification (peptide hits) as features/sub-features
+
+      @param[in] feat_map The feature map to search in
+      @param[out] feat_map_output The output feature map, with peptide identifaction as sub features
+      @param[in] add_unidentified_features Adds unidentified features to the feature map
+    */
+    void searchSpectrum(
+        OpenMS::FeatureMap& feat_map,
+        OpenMS::FeatureMap& feat_map_output,
+        bool add_unidentified_features = false) const;
 
     /**
       @brief Picks a spectrum's peaks and saves them in picked_spectrum.
@@ -247,7 +259,7 @@ public:
       const std::vector<MSSpectrum>& picked_spectra,
       FeatureMap& features,
       std::vector<MSSpectrum>& scored_spectra,
-      const bool compute_features = true
+      bool compute_features = true
     ) const;
 
     /**
@@ -286,7 +298,7 @@ public:
       const FeatureMap& features,
       std::vector<MSSpectrum>& selected_spectra,
       FeatureMap& selected_features,
-      const bool compute_features = true
+      bool compute_features = true
     ) const;
 
     /**
@@ -322,7 +334,7 @@ public:
       const TargetedExperiment& targeted_exp,
       std::vector<MSSpectrum>& extracted_spectra,
       FeatureMap& extracted_features,
-      const bool compute_features = true
+      bool compute_features = true
     ) const;
 
     /**
@@ -343,7 +355,49 @@ public:
       const TargetedExperiment& targeted_exp,
       std::vector<MSSpectrum>& extracted_spectra
     ) const;
+    
+    /**
+      @brief Combines the functionalities given by all the other methods implemented
+      in this class.
 
+      The method expects an experiment and MS1 features in input,
+      and constructs the extracted spectra and features.
+      For each transition of the target list, the method tries to find its best
+      spectrum match. A FeatureMap is also filled with informations about the
+      extracted spectra.
+
+      @param[in] experiment The input experiment
+      @param[in] ms1_features The MS1 features map
+      @param[out] extracted_spectra The spectra related to the transitions
+    */
+    void extractSpectra(
+      const MSExperiment& experiment,
+      const FeatureMap& ms1_features,
+      std::vector<MSSpectrum>& extracted_spectra
+    ) const;
+    
+    /**
+      @brief Combines the functionalities given by all the other methods implemented
+      in this class.
+
+      The method expects an experiment and MS1 features in input,
+      and constructs the extracted spectra and features.
+      For each transition of the target list, the method tries to find its best
+      spectrum match. A FeatureMap is also filled with informations about the
+      extracted spectra.
+
+      @param[in] experiment The input experiment
+      @param[in] ms1_features The MS1 features map
+      @param[out] extracted_spectra The spectra related to the transitions
+      @param[out] extracted_features The features related to the output spectra
+    */
+    void extractSpectra(
+      const MSExperiment& experiment,
+      const FeatureMap& ms1_features,
+      std::vector<MSSpectrum>& extracted_spectra,
+      FeatureMap& extracted_features
+    ) const; 
+    
     /**
       @brief Searches the spectral library for the top scoring candidates that
       match the input spectrum.
@@ -356,7 +410,7 @@ public:
       const MSSpectrum& input_spectrum,
       const Comparator& cmp,
       std::vector<Match>& matches
-    );
+    ) const;
 
     /**
       @brief Compares a list of spectra against a spectral library and updates
@@ -413,11 +467,70 @@ public:
       FeatureMap& features
     );
 
+    /**
+      @brief compute transitions list from MS1 and the associated MS2 features
+
+      @param[in] ms1_features the MS1 features
+      @param[in] ms2_features the MS2 features
+      @param[out] t_exp the targeted experiment, containing the transitions
+    */
+    void constructTransitionsList(const OpenMS::FeatureMap& ms1_features, const OpenMS::FeatureMap& ms2_features, TargetedExperiment& t_exp) const;
+
+    /**
+      @brief store spectra in MSP format
+
+      @param[in] filename the filename of the file to write
+      @param[in] experiment the experiment to store
+    */
+    void storeSpectraMSP(const String& filename, MSExperiment& experiment) const;
+    
+    /**
+      @brief organize into a map by combining features and subordinates with the same `identifier`
+
+      @param[in] fmap_input input features map
+      @param[in] fmap_output output features map
+    */
+    void mergeFeatures(const OpenMS::FeatureMap& fmap_input, OpenMS::FeatureMap& fmap_output) const;
+
 protected:
     /// Overridden function from DefaultParamHandler to keep members up to date, when a parameter is changed
-    void updateMembers_();
+    void updateMembers_() override;
 
-private:
+    /// Deisotope MS2 spectra
+    void deisotopeMS2Spectra_(MSExperiment& experiment) const;
+
+    /// Remove peaks form MS2 which are at a higher mz than the precursor + 10 ppm
+    void removeMS2SpectraPeaks_(MSExperiment& experiment) const;
+
+    /// organize into a map by combining features and subordinates with the same `identifier`
+    void organizeMapWithSameIdentifier(const OpenMS::FeatureMap& fmap_input, std::map<OpenMS::String, std::vector<OpenMS::Feature>>& fmapmap) const;
+
+  private:
+    /**
+      @brief Combines the functionalities given by all the other methods implemented
+      in this class.
+
+      The method expects an experiment and MS1 features in input,
+      and constructs the extracted spectra and features.
+      For each transition of the target list, the method tries to find its best
+      spectrum match. A FeatureMap is also filled with informations about the
+      extracted spectra.
+
+      @param[in] experiment The input experiment
+      @param[in] ms1_features The MS1 features map
+      @param[out] extracted_spectra The spectra related to the transitions
+      @param[out] extracted_features The features related to the output spectra
+      @param[in] compute_features If false, `extracted_features` will be ignored
+    */
+    void extractSpectra(
+      const MSExperiment& experiment,
+      const FeatureMap& ms1_features,
+      std::vector<MSSpectrum>& extracted_spectra,
+      FeatureMap& extracted_features,
+      const bool compute_features
+    ) const;
+
+  private:
     /**
       Unit to use for mz_tolerance_ and fwhm_threshold_: true for Da, false for ppm.
     */
@@ -486,5 +599,22 @@ private:
 
     /// Minimum score for a match to be considered valid in `matchSpectrum()`.
     double min_match_score_;
+
+    double min_fragment_mz_;
+    double max_fragment_mz_;
+
+    double relative_allowable_product_mass_;
+
+    bool deisotoping_use_deisotoper_;
+    double deisotoping_fragment_tolerance_;
+    std::string deisotoping_fragment_unit_;
+    int deisotoping_min_charge_;
+    int deisotoping_max_charge_;
+    int deisotoping_min_isopeaks_;
+    int deisotoping_max_isopeaks_;
+    bool deisotoping_keep_only_deisotoped_;
+    bool deisotoping_annotate_charge_;
+
+    double max_precursor_mass_threashold_;
   };
 }

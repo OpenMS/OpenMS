@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -48,26 +48,74 @@ namespace OpenMS
       if (lower < tr.getPrecursorMZ() && tr.getPrecursorMZ() < upper &&
           std::fabs(upper - tr.getPrecursorMZ()) >= min_upper_edge_dist)
       {
+
+         OPENMS_LOG_DEBUG << "Adding Precursor with m/z " << tr.getPrecursorMZ() <<  " to swath with mz lower of " << lower << " m/z upper of " << upper;
         transition_exp_used.addTransition(tr);
       }
     }
   }
 
-  void OpenSwathHelper::checkSwathMap(const OpenMS::PeakMap& swath_map,
-                                      double& lower, double& upper)
+  // For PASEF experiments it is possible to have DIA windows with the same m/z however different IM.
+  // Extract from the DIA window in which the precursor is more centered across its IM.
+  // Unlike the function above, current implementation may not be parrelization safe
+  void OpenSwathHelper::selectSwathTransitionsPasef(const OpenSwath::LightTargetedExperiment& transition_exp, std::vector<int>& tr_win_map,
+                                               double min_upper_edge_dist, const std::vector< OpenSwath::SwathMap > & swath_maps)
   {
-    if (swath_map.size() == 0 || swath_map[0].getPrecursors().size() == 0)
+      OPENMS_PRECONDITION(std::any_of(transition_exp.transitions.begin(), transition_exp.transitions.end(), [](auto i){return i.getPrecursorIM()!=-1;}), "All transitions must have a valid IM value (not -1)");
+
+      tr_win_map.resize(transition_exp.transitions.size(), -1);
+      for (SignedSize i = 0; i < boost::numeric_cast<SignedSize>(swath_maps.size()); ++i)
+      {
+        for (Size k = 0; k < transition_exp.transitions.size(); k++)
+        {
+          const OpenSwath::LightTransition& tr = transition_exp.transitions[k];
+
+          // If the transition falls inside the current DIA window (both in IM and m/z axis), check
+          // if the window is potentially a better match for extraction than
+          // the one previously stored in the map:
+          if (
+             swath_maps[i].imLower < tr.getPrecursorIM() && tr.getPrecursorIM() < swath_maps[i].imUpper &&
+             swath_maps[i].lower < tr.getPrecursorMZ() && tr.getPrecursorMZ() < swath_maps[i].upper &&
+             std::fabs(swath_maps[i].upper - tr.getPrecursorMZ()) >= min_upper_edge_dist )
+          {
+            if (tr_win_map[k] == -1)
+            {
+              tr_win_map[k] = i;
+            }
+            else
+            {
+              // Check if the current window is better than the previously assigned window (across IM)
+              double imOld = std::fabs(((swath_maps[ tr_win_map[k] ].imLower + swath_maps [ tr_win_map[k] ].imUpper) / 2) - tr.getPrecursorIM() );
+              double imNew = std::fabs(((swath_maps[ i ].imLower + swath_maps [ i ].imUpper) / 2) - tr.getPrecursorIM() );
+              if (imOld > imNew)
+              {
+                // current DIA window "i" is a better match
+                OPENMS_LOG_DEBUG << "For Precursor " << tr.getPrecursorIM() << " Replacing Swath Map with IM center of " <<
+                  imOld << " with swath map of im center " << imNew << std::endl;
+                tr_win_map[k] = i;
+              }
+            }
+          }
+        }
+      }
+    }
+
+  void OpenSwathHelper::checkSwathMap(const OpenMS::PeakMap& swath_map,
+                                      double& lower, double& upper, double& center)
+  {
+    if (swath_map.empty() || swath_map[0].getPrecursors().empty())
     {
       throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Swath map has no Spectra");
     }
-    const std::vector<Precursor> first_prec = swath_map[0].getPrecursors();
+    const std::vector<Precursor>& first_prec = swath_map[0].getPrecursors();
     lower = first_prec[0].getMZ() - first_prec[0].getIsolationWindowLowerOffset();
     upper = first_prec[0].getMZ() + first_prec[0].getIsolationWindowUpperOffset();
+    center = first_prec[0].getMZ();
     UInt expected_mslevel = swath_map[0].getMSLevel();
 
     for (Size index = 0; index < swath_map.size(); index++)
     {
-      const std::vector<Precursor> prec = swath_map[index].getPrecursors();
+      const std::vector<Precursor>& prec = swath_map[index].getPrecursors();
       if (prec.size() != 1)
       {
         throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Scan " + String(index) + " does not have exactly one precursor.");
@@ -84,7 +132,6 @@ namespace OpenMS
       {
         throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Scan " + String(index) + " has a different precursor isolation window than the first scan.");
       }
-
     }
   }
 
@@ -126,7 +173,7 @@ namespace OpenMS
 
   std::pair<double,double> OpenSwathHelper::estimateRTRange(const OpenSwath::LightTargetedExperiment & exp)
   {
-    if (exp.getCompounds().empty()) 
+    if (exp.getCompounds().empty())
     {
       throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
         "Input list of targets is empty.");
@@ -142,7 +189,7 @@ namespace OpenMS
   }
 
   std::map<std::string, double> OpenSwathHelper::simpleFindBestFeature(
-      const OpenMS::MRMFeatureFinderScoring::TransitionGroupMapType & transition_group_map, 
+      const OpenMS::MRMFeatureFinderScoring::TransitionGroupMapType & transition_group_map,
       bool useQualCutoff, double qualCutoff)
   {
     std::map<std::string, double> result;
@@ -154,7 +201,7 @@ namespace OpenMS
       auto bestf = trgroup_it.second.getBestFeature();
 
       // Skip if we did not find a feature or do not exceed a certain quality
-      if (useQualCutoff && bestf.getOverallQuality() < qualCutoff ) 
+      if (useQualCutoff && bestf.getOverallQuality() < qualCutoff )
       {
         continue;
       }

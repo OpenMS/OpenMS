@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -49,10 +49,7 @@ namespace OpenMS
     defaultsToParam_();
   }
 
-  IsotopeDiffFilter::IsotopeDiffFilter(const IsotopeDiffFilter & source) :
-    FilterFunctor(source)
-  {
-  }
+  IsotopeDiffFilter::IsotopeDiffFilter(const IsotopeDiffFilter & source) = default;
 
   IsotopeDiffFilter & IsotopeDiffFilter::operator=(const IsotopeDiffFilter & source)
   {
@@ -63,8 +60,6 @@ namespace OpenMS
     return *this;
   }
 
-  IsotopeDiffFilter::~IsotopeDiffFilter()
-  {
-  }
+  IsotopeDiffFilter::~IsotopeDiffFilter() = default;
 
 }

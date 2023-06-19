@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry               
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 // 
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -122,7 +122,7 @@ START_SECTION([EXTRA] friend OPENMS_DLLAPI bool operator==(const Compomer& a, co
 	c.add(a1, Compomer::RIGHT);
 	
 	Compomer c2(c);
-	TEST_EQUAL(c==c2, true);
+	TEST_TRUE(c == c2);
 	c.setID(2);
 	TEST_EQUAL(c==c2, false);
 	

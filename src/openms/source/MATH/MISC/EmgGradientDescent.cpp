@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -35,6 +35,8 @@
 #include <OpenMS/MATH/MISC/EmgGradientDescent.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
 
+#include <numeric>
+
 namespace OpenMS
 {
   EmgGradientDescent::EmgGradientDescent() :
@@ -56,7 +58,7 @@ namespace OpenMS
     defaults.setMinInt("max_gd_iter", 0);
 
     defaults.setValue("compute_additional_points", "true", "Whether additional points should be added when fitting EMG peak model.");
-    defaults.setValidStrings("compute_additional_points", ListUtils::create<String>("true,false"));
+    defaults.setValidStrings("compute_additional_points", {"true","false"});
   }
 
   void EmgGradientDescent::updateMembers_()
@@ -285,7 +287,7 @@ namespace OpenMS
     return result;
   }
 
-  void EmgGradientDescent::emg_vector(
+  void EmgGradientDescent::applyEstimatedParameters(
     const std::vector<double>& xs,
     const double h,
     const double mu,
@@ -302,8 +304,10 @@ namespace OpenMS
       out_ys.push_back(emg_point(x, h, mu, sigma, tau));
     }
 
-    if (!compute_additional_points_) return;
-
+    if (!compute_additional_points_)
+    {
+      return;
+    }
     // Compute the sampling step for the additional points
     double avg_sampling { 0.0 };
     for (Size i = 1; i < xs.size(); ++i)
@@ -331,7 +335,10 @@ namespace OpenMS
       while (out_ys.front() > target_intensity && out_ys.front() > est_y_threshold)
       {
         const double position = out_xs.front() - avg_sampling;
-        if (position < pos_boundary) break;
+        if (position < pos_boundary)
+        {
+          break;
+        }
         out_xs.insert(out_xs.begin(), position);
         out_ys.insert(out_ys.begin(), emg_point(position, h, mu, sigma, tau));
       }
@@ -343,7 +350,10 @@ namespace OpenMS
       while (out_ys.back() > target_intensity && out_ys.back() > est_y_threshold)
       {
         const double position = out_xs.back() + avg_sampling;
-        if (position > pos_boundary) break;
+        if (position > pos_boundary)
+        {
+          break;
+        }
         out_xs.push_back(position);
         out_ys.push_back(emg_point(position, h, mu, sigma, tau));
       }
@@ -355,7 +365,7 @@ namespace OpenMS
     const std::vector<double>& ys
   ) const
   {
-    if (xs.size() == 0)
+    if (xs.empty())
     {
       throw Exception::SizeUnderflow(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 0);
     }
@@ -474,19 +484,19 @@ namespace OpenMS
     std::vector<std::pair<double,double>> points;
 
     // Add points from the LEFT side, until `intensity_threshold` is reached
-    points.push_back({xs.front(), ys.front()}); // Add FIRST point, no matter the threshold
+    points.emplace_back(xs.front(), ys.front()); // Add FIRST point, no matter the threshold
     Size i = 1;
     for (; i < xs.size() - 1 && ys[i] < intensity_threshold; ++i)
     {
-      points.push_back({xs[i], ys[i]});
+      points.emplace_back(xs[i], ys[i]);
     }
 
     // Add points from the RIGHT side, until `intensity_threshold` is reached
-    points.push_back({xs.back(), ys.back()}); // Add LAST point, no matter the threshold
+    points.emplace_back(xs.back(), ys.back()); // Add LAST point, no matter the threshold
     Size j = xs.size() - 2;
     for (; i <= j && ys[j] < intensity_threshold; --j)
     {
-      points.push_back({xs[j], ys[j]});
+      points.emplace_back(xs[j], ys[j]);
     }
 
     // Compute the derivative for points of intensity greater than `intensity_threshold`
@@ -496,7 +506,7 @@ namespace OpenMS
     std::vector<double> derivatives(xs.size() + 1); // One more element to account for derivatives from right to left
     derivatives.front() = 1.0;
     derivatives.back() = -1.0;
-    for (Size k = i - 1; k < xs.size() && k <= j + 1; ++k)
+    for (Size k = i - 1; k < xs.size() && k <= j + 1 && i > 1; ++k)
     {
       derivatives[k] = (ys[k] - ys[k - 1]) / (xs[k] - xs[k - 1]);
     }
@@ -523,7 +533,7 @@ namespace OpenMS
       ++i
     )
     {
-      points.push_back({xs[i], ys[i]});
+      points.emplace_back(xs[i], ys[i]);
     }
 
     // Starting from `j` and proceeding toward the LEFT side,
@@ -537,7 +547,7 @@ namespace OpenMS
       --j
     )
     {
-      points.push_back({xs[j], ys[j]});
+      points.emplace_back(xs[j], ys[j]);
     }
 
     // Create the output vectors containing the training set
@@ -564,7 +574,7 @@ namespace OpenMS
     return (max_pos - min_pos) * 0.35;
   }
 
-  UInt EmgGradientDescent::emg_gradient_descent(
+  UInt EmgGradientDescent::estimateEmgParameters(
     const std::vector<double>& xs,
     const std::vector<double>& ys,
     double& best_h,
@@ -761,12 +771,12 @@ namespace OpenMS
 
     // EMG parameter estimation with gradient descent
     double h, mu, sigma, tau;
-    emg_gradient_descent(xs, ys, h, mu, sigma, tau);
+    estimateEmgParameters(xs, ys, h, mu, sigma, tau);
 
     // Estimate the intensities for each point
     std::vector<double> out_xs;
     std::vector<double> out_ys;
-    emg_vector(xs, h, mu, sigma, tau, out_xs, out_ys);
+    applyEstimatedParameters(xs, h, mu, sigma, tau, out_xs, out_ys);
 
     // Prepare the output peak
     output_peak = input_peak;

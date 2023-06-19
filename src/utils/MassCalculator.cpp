@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -34,10 +34,11 @@
 
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/CHEMISTRY/AASequence.h>
+#include <OpenMS/CONCEPT/LogStream.h>
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 #include <OpenMS/FORMAT/SVOutStream.h>
 #include <OpenMS/SYSTEM/File.h>
-#include <OpenMS/DATASTRUCTURES/ListUtils.h>
-#include <iostream>
+
 #include <ostream>
 
 using namespace OpenMS;
@@ -104,12 +105,12 @@ protected:
   void registerOptionsAndFlags_() override
   {
     registerInputFile_("in", "<file>", "", "Input file with peptide sequences and optionally charge numbers (mutually exclusive to 'in_seq')", false);
-    setValidFormats_("in",ListUtils::create<String>("txt"));
+    setValidFormats_("in",ListUtils::create<String>("tsv"));
 
     registerStringList_("in_seq", "<peptide_sequences>", StringList(), "List of peptide sequences (mutually exclusive to 'in')", false, false);
 
     registerOutputFile_("out", "<file>", "", "Output file; if empty, output is written to the screen", false);
-    setValidFormats_("out",ListUtils::create<String>("txt"));
+    setValidFormats_("out",ListUtils::create<String>("csv"));
 
     registerIntList_("charge", "<numbers>", ListUtils::create<Int>("0"), "List of charge states; required if 'in_seq' is given", false);
     registerStringOption_("format", "<choice>", "list", "Output format ('list': human-readable list, 'table': CSV-like table, 'mass_only': mass values only, 'mz_only': m/z values only)\n", false);
@@ -208,7 +209,7 @@ protected:
       } 
       catch (Exception::ParseError& /*e*/)
       {
-        LOG_WARN << "Warning: '" << item << "' is not a valid peptide sequence - skipping\n";
+        OPENMS_LOG_WARN << "Warning: '" << item << "' is not a valid peptide sequence - skipping\n";
         continue;
       }
 
@@ -228,11 +229,11 @@ protected:
       }
       if (conversion_failed_count)
       {
-        LOG_WARN << "Warning: Invalid charge state specified in line:" << line_count << ".\n";
+        OPENMS_LOG_WARN << "Warning: Invalid charge state specified in line:" << line_count << ".\n";
       }
       if (local_charges.empty())
       {
-        LOG_WARN << "Warning: No charge state specified - skipping (line:" << line_count << ")\n";
+        OPENMS_LOG_WARN << "Warning: No charge state specified - skipping (line:" << line_count << ")\n";
         continue;
       }
       writeLine_(seq, local_charges);
@@ -271,13 +272,13 @@ protected:
       sv_out << "peptide" << "charge" << "mass" << "mass-to-charge" << endl;
     }
 
-    if ((in.size() > 0) && (in_seq.size() > 0))
+    if ((!in.empty()) && (!in_seq.empty()))
     {
-      LOG_ERROR << "Specifying an input file and input sequences at the same time is not allowed!";
+      OPENMS_LOG_ERROR << "Specifying an input file and input sequences at the same time is not allowed!";
       return ILLEGAL_PARAMETERS;
     }
 
-    if (in.size() > 0)
+    if (!in.empty())
     {
       readFile_(in, charges);
     }
@@ -285,7 +286,7 @@ protected:
     {
       if (charges.empty())
       {
-        LOG_ERROR << "Error: No charge state specified";
+        OPENMS_LOG_ERROR << "Error: No charge state specified";
         return ILLEGAL_PARAMETERS;
       }
       for (StringList::iterator it = in_seq.begin(); it != in_seq.end(); ++it)
@@ -297,7 +298,7 @@ protected:
         }
         catch (Exception::ParseError& /*e*/)
         {
-          LOG_WARN << "Warning: '" << *it << "' is not a valid peptide sequence - skipping\n";
+          OPENMS_LOG_WARN << "Warning: '" << *it << "' is not a valid peptide sequence - skipping\n";
           continue;
         }
 

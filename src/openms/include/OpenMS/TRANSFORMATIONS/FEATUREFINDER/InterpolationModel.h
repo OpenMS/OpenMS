@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -59,7 +59,8 @@ public:
     typedef double IntensityType;
     typedef DPosition<1> PositionType;
     typedef double CoordinateType;
-    typedef Math::LinearInterpolation<double> LinearInterpolation;
+    using KeyType = double;
+    typedef Math::LinearInterpolation<KeyType> LinearInterpolation;
 
     /// Default constructor
     InterpolationModel() :
@@ -68,6 +69,7 @@ public:
     {
       this->defaults_.setValue("interpolation_step", 0.1, "Sampling rate for the interpolation of the model function ");
       this->defaults_.setValue("intensity_scaling", 1.0, "Scaling factor used to adjust the model distribution to the intensities of the data");
+      defaultsToParam_();
     }
 
     /// copy constructor
@@ -77,15 +79,14 @@ public:
       interpolation_step_(source.interpolation_step_),
       scaling_(source.scaling_)
     {
+      updateMembers_();
     }
 
     /// destructor
-    ~InterpolationModel() override
-    {
-    }
+    ~InterpolationModel() override = default;
 
     /// assignment operator
-    virtual InterpolationModel & operator=(const InterpolationModel & source)
+    InterpolationModel & operator=(const InterpolationModel & source)
     {
       if (&source == this) return *this;
 
@@ -93,6 +94,8 @@ public:
       interpolation_step_ = source.interpolation_step_;
       interpolation_ = source.interpolation_;
       scaling_ = source.scaling_;
+
+      updateMembers_();
 
       return *this;
     }
@@ -138,15 +141,13 @@ public:
     /// get reasonable set of samples from the model (i.e. for printing)
     void getSamples(SamplesType & cont) const override
     {
-      cont = SamplesType();
-      BaseModel<1>::PeakType peak;
+      cont.clear();
+      using PeakT = BaseModel<1>::PeakType;
+      PeakT peak;
       for (Size i = 0; i < interpolation_.getData().size(); ++i)
       {
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wconversion"
-        peak.setIntensity(interpolation_.getData()[i]);
-#pragma clang diagnostic pop
-        peak.getPosition()[0] = interpolation_.index2key(i);
+        peak.getPosition()[0] = interpolation_.index2key((KeyType)i);
+        peak.setIntensity((PeakT::IntensityType)interpolation_.getData()[i]);
         cont.push_back(peak);
       }
     }

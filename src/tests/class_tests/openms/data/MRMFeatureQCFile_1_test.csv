@@ -1,0 +1,5 @@
+component_name,retention_time_l,retention_time_u,intensity_l,intensity_u,overall_quality_l,overall_quality_u,metaValue_peak_apex_int_l,metaValue_peak_apex_int_u,metaValue_sn_score_l,metaValue_sn_score_u
+component1,1.0,2.0,1000.0,1.0e06,2.0,5.0,1000.0,1.0e06,2.0,10.0
+component2,3.0,4.0,2000.0,2.0e06,3.0,6.0,2000.0,2.0e06,5.0,20.0
+component3,5.0,6.0,3000.0,3.0e06,4.0,7.0,3000.0,3.0e06,10.0,50.0
+component4,0.0,1.0e12,0.0,1.0e12,0.0,1.0e12,0.0,1.0e12,0.0,1.0e12

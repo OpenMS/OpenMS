@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -63,9 +63,9 @@ using namespace std;
     <CENTER>
       <table>
         <tr>
-        <td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. predecessor tools </td>
-        <td VALIGN="middle" ROWSPAN=3> \f$ \longrightarrow \f$ QCShrinker \f$ \longrightarrow \f$</td>
-        <td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. successor tools </td>
+        <th ALIGN = "center"> pot. predecessor tools </td>
+        <td VALIGN="middle" ROWSPAN=3> &rarr; QCShrinker &rarr;</td>
+        <th ALIGN = "center"> pot. successor tools </td>
         </tr>
         <tr>
         <td VALIGN="middle" ALIGN = "center" ROWSPAN=2> @ref UTILS_QCMerger </td>
@@ -130,7 +130,7 @@ protected:
     //-------------------------------------------------------------
     // reading input
     //------------------------------------------------------------
-    if (target_file != "")
+    if (!target_file.empty())
     {
       target_run = QFileInfo(QString::fromStdString(target_file)).baseName();
     }
@@ -150,7 +150,7 @@ protected:
     }
 
     //TODO care for QualityParameter s
-    if (target_run == "")
+    if (target_run.empty())
     {
       for (Size i = 0; i < qp_accs.size(); ++i)
       {

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -60,10 +60,11 @@ OpenSwath::SpectrumAccessPtr expptr = SimpleOpenMSSpectraFactory::getSpectrumAcc
 
 START_SECTION(SpectrumAccessSqMass(OpenMS::Internal::MzMLSqliteHandler handler))
 {
-  OpenMS::Internal::MzMLSqliteHandler handler(OPENMS_GET_TEST_DATA_PATH("SqliteMassFile_1.sqMass"));
+  OpenMS::Internal::MzMLSqliteHandler handler(OPENMS_GET_TEST_DATA_PATH("SqliteMassFile_1.sqMass"), 0);
 
   ptr = new SpectrumAccessSqMass(handler);
   TEST_NOT_EQUAL(ptr, nullPointer)
+  delete ptr;
 }
 END_SECTION
 
@@ -71,7 +72,7 @@ END_SECTION
 
 START_SECTION(SpectrumAccessSqMass(const OpenMS::Internal::MzMLSqliteHandler& handler, const std::vector<int> & indices))
 {
-  OpenMS::Internal::MzMLSqliteHandler handler(OPENMS_GET_TEST_DATA_PATH("SqliteMassFile_1.sqMass"));
+  OpenMS::Internal::MzMLSqliteHandler handler(OPENMS_GET_TEST_DATA_PATH("SqliteMassFile_1.sqMass"), 0);
 
   std::vector<int> indices;
   indices.push_back(1);
@@ -79,36 +80,39 @@ START_SECTION(SpectrumAccessSqMass(const OpenMS::Internal::MzMLSqliteHandler& ha
   TEST_NOT_EQUAL(ptr, nullPointer)
 
   TEST_EQUAL(ptr->getNrSpectra(), 1)
+  delete ptr;
 }
 END_SECTION
 
 START_SECTION(SpectrumAccessSqMass(const SpectrumAccessSqMass& sp, const std::vector<int>& indices))
 {
-  OpenMS::Internal::MzMLSqliteHandler handler(OPENMS_GET_TEST_DATA_PATH("SqliteMassFile_1.sqMass"));
+  OpenMS::Internal::MzMLSqliteHandler handler(OPENMS_GET_TEST_DATA_PATH("SqliteMassFile_1.sqMass"), 0);
 
   ptr = new SpectrumAccessSqMass(handler);
   TEST_NOT_EQUAL(ptr, nullPointer)
   TEST_EQUAL(ptr->getNrSpectra(), 2)
+  delete ptr;
+
+  SpectrumAccessSqMass sasm(handler);
 
   // select subset of the data (all two spectra)
-  ptr = new SpectrumAccessSqMass(handler);
   {
     std::vector<int> indices;
     indices.push_back(0);
     indices.push_back(1);
 
-    ptr = new SpectrumAccessSqMass(*ptr, indices);
+    ptr = new SpectrumAccessSqMass(sasm, indices);
     TEST_NOT_EQUAL(ptr, nullPointer)
     TEST_EQUAL(ptr->getNrSpectra(), 2)
+    delete ptr;
   }
 
   // select subset of the data (only second spectrum)
-  ptr = new SpectrumAccessSqMass(handler);
   {
     std::vector<int> indices;
     indices.push_back(1);
 
-    ptr = new SpectrumAccessSqMass(*ptr, indices);
+    ptr = new SpectrumAccessSqMass(sasm, indices);
     TEST_NOT_EQUAL(ptr, nullPointer)
     TEST_EQUAL(ptr->getNrSpectra(), 1)
   }
@@ -135,28 +139,30 @@ END_SECTION
 
 START_SECTION(size_t getNrSpectra() const)
 {
-  OpenMS::Internal::MzMLSqliteHandler handler(OPENMS_GET_TEST_DATA_PATH("SqliteMassFile_1.sqMass"));
+  OpenMS::Internal::MzMLSqliteHandler handler(OPENMS_GET_TEST_DATA_PATH("SqliteMassFile_1.sqMass"), 0);
 
   ptr = new SpectrumAccessSqMass(handler);
   TEST_EQUAL(ptr->getNrSpectra(), 2)
+  delete ptr;
 }
 END_SECTION
 
 START_SECTION(boost::shared_ptr<OpenSwath::ISpectrumAccess> lightClone() const)
 {
-  OpenMS::Internal::MzMLSqliteHandler handler(OPENMS_GET_TEST_DATA_PATH("SqliteMassFile_1.sqMass"));
+  OpenMS::Internal::MzMLSqliteHandler handler(OPENMS_GET_TEST_DATA_PATH("SqliteMassFile_1.sqMass"), 0);
 
   ptr = new SpectrumAccessSqMass(handler);
   TEST_EQUAL(ptr->getNrSpectra(), 2)
 
   boost::shared_ptr<OpenSwath::ISpectrumAccess> ptr2 = ptr->lightClone();
   TEST_EQUAL(ptr2->getNrSpectra(), 2)
+  delete ptr;
 }
 END_SECTION
 
 START_SECTION(void getAllSpectra(std::vector< OpenSwath::SpectrumPtr > & spectra, std::vector< OpenSwath::SpectrumMeta > & spectra_meta))
 {
-  OpenMS::Internal::MzMLSqliteHandler handler(OPENMS_GET_TEST_DATA_PATH("SqliteMassFile_1.sqMass"));
+  OpenMS::Internal::MzMLSqliteHandler handler(OPENMS_GET_TEST_DATA_PATH("SqliteMassFile_1.sqMass"), 0);
 
   {
     ptr = new SpectrumAccessSqMass(handler);
@@ -174,6 +180,7 @@ START_SECTION(void getAllSpectra(std::vector< OpenSwath::SpectrumPtr > & spectra
 
     TEST_EQUAL(spectra[1]->getMZArray()->data.size(), 19800)
     TEST_EQUAL(spectra[1]->getIntensityArray()->data.size(), 19800)
+    delete ptr;
   }
 
   {
@@ -196,6 +203,7 @@ START_SECTION(void getAllSpectra(std::vector< OpenSwath::SpectrumPtr > & spectra
 
     TEST_EQUAL(spectra[1]->getMZArray()->data.size(), 19800)
     TEST_EQUAL(spectra[1]->getIntensityArray()->data.size(), 19800)
+    delete ptr;
   }
 
   // select only 2nd spectrum 
@@ -215,6 +223,7 @@ START_SECTION(void getAllSpectra(std::vector< OpenSwath::SpectrumPtr > & spectra
 
     TEST_EQUAL(spectra[0]->getMZArray()->data.size(), 19800)
     TEST_EQUAL(spectra[0]->getIntensityArray()->data.size(), 19800)
+    delete ptr;
   }
 
   // select only 2nd spectrum iteratively
@@ -223,8 +232,8 @@ START_SECTION(void getAllSpectra(std::vector< OpenSwath::SpectrumPtr > & spectra
     std::vector<int> indices;
     indices.push_back(1);
 
-    ptr = new SpectrumAccessSqMass(handler, indices);
-    TEST_EQUAL(ptr->getNrSpectra(), 1)
+    SpectrumAccessSqMass* sasm = new SpectrumAccessSqMass(handler, indices);
+    TEST_EQUAL(sasm->getNrSpectra(), 1)
 
     // now we have an interface with a single spectrum in it, so if we select
     // the first spectrum of THAT interface, it should be the 2nd spectrum from
@@ -233,7 +242,7 @@ START_SECTION(void getAllSpectra(std::vector< OpenSwath::SpectrumPtr > & spectra
     // indices.push_back(1); // this should not work as we now have only a single spectrum (out of bounds access!)
     indices.push_back(0);
 
-    ptr = new SpectrumAccessSqMass(*ptr, indices);
+    ptr = new SpectrumAccessSqMass(*sasm, indices);
     TEST_EQUAL(ptr->getNrSpectra(), 1)
 
     std::vector< OpenSwath::SpectrumPtr > spectra;
@@ -245,6 +254,8 @@ START_SECTION(void getAllSpectra(std::vector< OpenSwath::SpectrumPtr > & spectra
 
     TEST_EQUAL(spectra[0]->getMZArray()->data.size(), 19800)
     TEST_EQUAL(spectra[0]->getIntensityArray()->data.size(), 19800)
+    delete ptr;
+    delete sasm;
   }
 }
 END_SECTION

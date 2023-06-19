@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -38,8 +38,9 @@
 #include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/CoarseIsotopePatternGenerator.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 
-#include <boost/bind.hpp>
 #include <boost/random/discrete_distribution.hpp>
+
+#include "svm.h"
 
 // #define DEBUG
 
@@ -171,45 +172,45 @@ namespace OpenMS
       initializeMaps_();
 
     defaults_.setValue("svm_mode", 1, "whether to predict abundant/missing using SVC (0) or predict intensities using SVR (1)");
-    defaults_.setValue("model_file_name", "examples/simulation/SvmMSim.model", "Name of the probabilistic Model file");
+    defaults_.setValue("model_file_name", "SIMULATION/SvmMSim.model", "Name of the probabilistic Model file");
 
     defaults_.setValue("add_isotopes", "false", "If set to 1 isotope peaks of the product ion peaks are added");
-    defaults_.setValidStrings("add_isotopes", ListUtils::create<String>("true,false"));
+    defaults_.setValidStrings("add_isotopes", {"true","false"});
 
     defaults_.setValue("max_isotope", 2, "Defines the maximal isotopic peak which is added, add_isotopes must be set to 1");
 
     defaults_.setValue("add_metainfo", "false", "Adds the type of peaks as metainfo to the peaks, like y8+, [M-H2O+2H]++");
-    defaults_.setValidStrings("add_metainfo", ListUtils::create<String>("true,false"));
+    defaults_.setValidStrings("add_metainfo", {"true","false"});
 
     defaults_.setValue("add_first_prefix_ion", "false", "If set to true e.g. b1 ions are added");
-    defaults_.setValidStrings("add_first_prefix_ion", ListUtils::create<String>("true,false"));
+    defaults_.setValidStrings("add_first_prefix_ion", {"true","false"});
 
     defaults_.setValue("hide_y_ions", "false", "Add peaks of y-ions to the spectrum");
-    defaults_.setValidStrings("hide_y_ions", ListUtils::create<String>("true,false"));
+    defaults_.setValidStrings("hide_y_ions", {"true","false"});
 
     defaults_.setValue("hide_y2_ions", "false", "Add peaks of y-ions to the spectrum");
-    defaults_.setValidStrings("hide_y2_ions", ListUtils::create<String>("true,false"));
+    defaults_.setValidStrings("hide_y2_ions", {"true","false"});
 
     defaults_.setValue("hide_b_ions", "false", "Add peaks of b-ions to the spectrum");
-    defaults_.setValidStrings("hide_b_ions", ListUtils::create<String>("true,false"));
+    defaults_.setValidStrings("hide_b_ions", {"true","false"});
 
     defaults_.setValue("hide_b2_ions", "false", "Add peaks of b-ions to the spectrum");
-    defaults_.setValidStrings("hide_b2_ions", ListUtils::create<String>("true,false"));
+    defaults_.setValidStrings("hide_b2_ions", {"true","false"});
 
     defaults_.setValue("hide_a_ions", "false", "Add peaks of a-ions to the spectrum");
-    defaults_.setValidStrings("hide_a_ions", ListUtils::create<String>("true,false"));
+    defaults_.setValidStrings("hide_a_ions", {"true","false"});
 
     defaults_.setValue("hide_c_ions", "false", "Add peaks of c-ions to the spectrum");
-    defaults_.setValidStrings("hide_c_ions", ListUtils::create<String>("true,false"));
+    defaults_.setValidStrings("hide_c_ions", {"true","false"});
 
     defaults_.setValue("hide_x_ions", "false", "Add peaks of  x-ions to the spectrum");
-    defaults_.setValidStrings("hide_x_ions", ListUtils::create<String>("true,false"));
+    defaults_.setValidStrings("hide_x_ions", {"true","false"});
 
     defaults_.setValue("hide_z_ions", "false", "Add peaks of z-ions to the spectrum");
-    defaults_.setValidStrings("hide_z_ions", ListUtils::create<String>("true,false"));
+    defaults_.setValidStrings("hide_z_ions", {"true","false"});
 
     defaults_.setValue("hide_losses", "false", "Adds common losses to those ion expect to have them, only water and ammonia loss is considered");
-    defaults_.setValidStrings("hide_losses", ListUtils::create<String>("true,false"));
+    defaults_.setValidStrings("hide_losses", {"true","false"});
 
     // intensity options of the ions
     defaults_.setValue("y_intensity", 1.0, "Intensity of the y-ions");
@@ -242,11 +243,9 @@ namespace OpenMS
     return *this;
   }
 
-  SvmTheoreticalSpectrumGenerator::~SvmTheoreticalSpectrumGenerator()
-  {
-  }
+  SvmTheoreticalSpectrumGenerator::~SvmTheoreticalSpectrumGenerator() = default;
 
-  Size SvmTheoreticalSpectrumGenerator::generateDescriptorSet_(AASequence peptide, Size position, IonType type, Size /* precursor_charge */, DescriptorSet& desc_set)
+  Size SvmTheoreticalSpectrumGenerator::generateDescriptorSet_(const AASequence& peptide, Size position, const IonType& type, Size /* precursor_charge */, DescriptorSet& desc_set)
   {
 
     std::vector<svm_node> descriptors_tmp;
@@ -269,15 +268,15 @@ namespace OpenMS
 
     double fragment_mass = (fragment.getMonoWeight(res_type, charge) - loss.getMonoWeight());
 
-    Residue res_n = peptide.getResidue(position);
-    Residue res_c = peptide.getResidue(position + 1);
+    const Residue& res_n = peptide.getResidue(position);
+    const Residue& res_c = peptide.getResidue(position + 1);
 
-    String res_n_string = res_n.getOneLetterCode();
-    String res_c_string = res_c.getOneLetterCode();
+    const String& res_n_string = res_n.getOneLetterCode();
+    const String& res_c_string = res_c.getOneLetterCode();
 
     Size num_aa = aa_to_index_.size();
     Int index = 1;
-    svm_node node;
+    svm_node node{};
 
     //RB_C
     node.index = index + (Int)aa_to_index_[peptide.getResidue(position + 1).getOneLetterCode()];
@@ -516,7 +515,7 @@ namespace OpenMS
 
   void SvmTheoreticalSpectrumGenerator::load()
   {
-    String svm_info_file = param_.getValue("model_file_name");
+    String svm_info_file = String(param_.getValue("model_file_name").toString());
     if (!File::readable(svm_info_file)) // look in OPENMS_DATA_PATH
     {
       svm_info_file = File::find(svm_info_file);
@@ -547,7 +546,7 @@ namespace OpenMS
     mp_.static_intensities.clear();
 
     TextFile info_file;
-    String path_to_models = File().path(svm_info_file) + "/";
+    String path_to_models = File::path(svm_info_file) + "/";
     info_file.load(svm_info_file);
 
     TextFile::ConstIterator left_marker = StringListUtils::searchPrefix(info_file.begin(), info_file.end(), "<PrecursorCharge>");
@@ -577,26 +576,26 @@ namespace OpenMS
       Residue::ResidueType res = (Residue::ResidueType)(*left_marker++).toInt();
       EmpiricalFormula loss(*(left_marker++));
       UInt charge = (left_marker++)->toInt();
-      mp_.ion_types.push_back(IonType(res, loss, charge));
+      mp_.ion_types.emplace_back(res, loss, charge);
 
       left_marker = StringListUtils::searchPrefix(left_marker, info_file.end(), "<SvmModelFileClass>");
       String svm_filename(*(++left_marker));
 
       boost::shared_ptr<SVMWrapper> sh_ptr_c(new SVMWrapper);
-      sh_ptr_c.get()->loadModel((path_to_models + svm_filename).c_str());
+      sh_ptr_c->loadModel((path_to_models + svm_filename).c_str());
 
       mp_.class_models.push_back(sh_ptr_c);
-      LOG_INFO << "SVM model file loaded: " << svm_filename << std::endl;
+      OPENMS_LOG_INFO << "SVM model file loaded: " << svm_filename << std::endl;
 
 
       left_marker = StringListUtils::searchPrefix(left_marker, info_file.end(), "<SvmModelFileReg>");
       svm_filename = *(++left_marker);
 
       boost::shared_ptr<SVMWrapper> sh_ptr_r(new SVMWrapper);
-      sh_ptr_r.get()->loadModel((path_to_models + svm_filename).c_str());
+      sh_ptr_r->loadModel((path_to_models + svm_filename).c_str());
 
       mp_.reg_models.push_back(sh_ptr_r);
-      LOG_INFO << "SVM model file loaded: " << svm_filename << std::endl;
+      OPENMS_LOG_INFO << "SVM model file loaded: " << svm_filename << std::endl;
 
       left_marker = StringListUtils::searchPrefix(left_marker, info_file.end(), "<IonType>");
     }
@@ -731,12 +730,12 @@ namespace OpenMS
 
     if (add_metainfo)
     {
-      if (spectrum.getIntegerDataArrays().size() == 0)
+      if (spectrum.getIntegerDataArrays().empty())
       {
         spectrum.getIntegerDataArrays().resize(1);
         spectrum.getIntegerDataArrays()[0].setName("Charges");
       }
-      if (spectrum.getStringDataArrays().size() == 0)
+      if (spectrum.getStringDataArrays().empty())
       {
         spectrum.getStringDataArrays().resize(1);
         spectrum.getStringDataArrays()[0].setName("IonNames");
@@ -818,7 +817,7 @@ namespace OpenMS
         }
         else
         {
-          LOG_ERROR << "Requested unsupported ion type" << std::endl;
+          OPENMS_LOG_ERROR << "Requested unsupported ion type" << std::endl;
         }
 
         DescriptorSet descriptor;
@@ -867,13 +866,13 @@ namespace OpenMS
             }
             if (intens > 0)
             {
-              peaks_to_generate.push_back(std::make_pair(std::make_pair(mp_.ion_types[type_nr], intens), i));
+              peaks_to_generate.emplace_back(std::make_pair(mp_.ion_types[type_nr], intens), i);
             }
           }
         }
         else if (simulation_type == 1)
         {
-          peaks_to_generate.push_back(std::make_pair(std::make_pair(mp_.ion_types[type_nr], predicted_intensity[i]), i));
+          peaks_to_generate.emplace_back(std::make_pair(mp_.ion_types[type_nr], predicted_intensity[i]), i);
 
           //binning the predicted intensity
           if (predicted_intensity[i] > 0)
@@ -905,7 +904,7 @@ namespace OpenMS
               }
               if (intens > 0)
               {
-                peaks_to_generate.push_back(std::make_pair(std::make_pair(*it, intens), i));
+                peaks_to_generate.emplace_back(std::make_pair(*it, intens), i);
               }
             }
           }
@@ -915,13 +914,13 @@ namespace OpenMS
             Size region = std::min(mp_.number_regions - 1, (Size)floor(mp_.number_regions * prefix.getMonoWeight(Residue::Internal) / peptide.getMonoWeight()));
             std::vector<double>& props = mp_.conditional_prob[std::make_pair(*it, region)][bin];
             std::vector<double> weights;
-            std::transform(props.begin(), props.end(), std::back_inserter(weights), boost::bind(std::multiplies<double>(), _1, 10));
+            std::transform(props.begin(), props.end(), std::back_inserter(weights), [](auto && PH1) { return std::multiplies<double>()(std::forward<decltype(PH1)>(PH1), 10); });
             boost::random::discrete_distribution<Size> ddist(weights.begin(), weights.end());
             Size binned_int = ddist(rng);
 
             if (binned_int != 0)
             {
-              peaks_to_generate.push_back(std::make_pair(std::make_pair(*it, mp_.intensity_bin_values[binned_int - 1]), i));
+              peaks_to_generate.emplace_back(std::make_pair(*it, mp_.intensity_bin_values[binned_int - 1]), i);
             }
           }
         }

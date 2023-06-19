@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -32,8 +32,13 @@
 // $Authors: Marc Sturm $
 // --------------------------------------------------------------------------
 
+#include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/CONCEPT/PrecisionWrapper.h>
 #include <OpenMS/DATASTRUCTURES/DataValue.h>
 #include <OpenMS/DATASTRUCTURES/StringUtils.h>
+#include <OpenMS/DATASTRUCTURES/StringConversions.h>
+
+#include <boost/functional/hash.hpp>
 
 using namespace std;
 
@@ -48,6 +53,11 @@ namespace OpenMS
 
   String::String(const string& s) :
     string(s)
+  {
+  }
+
+  String::String(const std::string_view& sv) :
+    string(sv)
   {
   }
 
@@ -79,73 +89,82 @@ namespace OpenMS
   String::String(int i) :
     string()
   {
-    string::operator=(StringConversions::toString(i));
+    StringConversions::append(i, *this);
   }
 
   String::String(unsigned int i) :
     string()
   {
-    string::operator=(StringConversions::toString(i));
+    StringConversions::append(i, *this);
   }
 
   String::String(short int i) :
     string()
   {
-    string::operator=(StringConversions::toString(i));
+    StringConversions::append(i, *this);
   }
 
   String::String(short unsigned int i) :
     string()
   {
-    string::operator=(StringConversions::toString(i));
+    StringConversions::append(i, *this);
   }
 
   String::String(long int i) :
     string()
   {
-    string::operator=(StringConversions::toString(i));
+    StringConversions::append(i, *this);
   }
 
   String::String(long unsigned int i) :
     string()
   {
-    string::operator=(StringConversions::toString(i));
+    StringConversions::append(i, *this);
   }
 
   String::String(long long unsigned int i) :
     string()
   {
-    string::operator=(StringConversions::toString(i));
+    StringConversions::append(i, *this);
   }
 
   String::String(long long signed int i) :
     string()
   {
-    string::operator=(StringConversions::toString(i));
+    StringConversions::append(i, *this);
   }
 
-  String::String(float f) :
+  String::String(float f, bool full_precision) :
     string()
   {
-    string::operator=(StringConversions::toString(f));
+    if (std::fabs(f) < std::numeric_limits<float>::min()) { *this = "0.0"; return; } // workaroud for issue https://github.com/OpenMS/OpenMS/issues/6507
+
+    full_precision ? StringConversions::append(f, *this)
+                   : StringConversions::appendLowP(f, *this);
   }
 
-  String::String(double d) :
+  String::String(double d, bool full_precision) :
     string()
   {
-    string::operator=(StringConversions::toString(d));
+    if (std::fabs(d) < std::numeric_limits<double>::min()) { *this = "0.0"; return; } // workaroud for issue https://github.com/OpenMS/OpenMS/issues/6507
+
+    full_precision ? StringConversions::append(d, *this)
+                   : StringConversions::appendLowP(d, *this);
   }
 
-  String::String(long double ld) :
+  String::String(long double ld, bool full_precision) :
     string()
   {
-    string::operator=(StringConversions::toString(ld));
+    if (std::fabs(ld) < std::numeric_limits<long double>::min()) { *this = "0.0"; return; } // workaroud for issue https://github.com/OpenMS/OpenMS/issues/6507
+
+    full_precision ? StringConversions::append(ld, *this)
+                   : StringConversions::appendLowP(ld, *this);
   }
 
-  String::String(const DataValue& d) :
+  String::String(const DataValue& d, bool full_precision) :
     string()
   {
-    string::operator=(StringConversions::toString(d));
+    StringConversions::append(d, full_precision, *this);
   }
 
   String String::numberLength(double d, UInt n)
@@ -233,6 +252,11 @@ namespace OpenMS
     return StringUtils::trim(*this);
   }
 
+  bool String::isQuoted(char q)
+  {
+    return StringUtils::isQuoted(*this, q);
+  }
+
   String& String::quote(char q, QuotingMethod method)
   {
     return StringUtils::quote(*this, q, method);
@@ -283,7 +307,24 @@ namespace OpenMS
 
   Int String::toInt() const
   {
-    return StringUtils::toInt(*this);
+    if constexpr (is_same<Int, Int32>::value)
+    {
+      return StringUtils::toInt32(*this);
+    }
+    else
+    {
+      return StringUtils::toInt64(*this);
+    }
+  }
+
+  Int32 String::toInt32() const
+  {
+    return StringUtils::toInt32(*this);
+  }
+
+  Int64 String::toInt64() const
+  {
+    return StringUtils::toInt64(*this);
   }
 
   float String::toFloat() const
@@ -342,75 +383,72 @@ namespace OpenMS
 
   String String::operator+(int i) const
   {
-    stringstream s;
-    s << *this << i;
-    return s.str();
+    String s(*this);
+    StringConversions::append(i, s);
+    return s;
   }
 
   String String::operator+(unsigned int i) const
   {
-    stringstream s;
-    s << *this << i;
-    return s.str();
+    String s(*this);
+    StringConversions::append(i, s);
+    return s;
   }
 
   String String::operator+(short int i) const
   {
-    stringstream s;
-    s << *this << i;
-    return s.str();
+    String s(*this);
+    StringConversions::append(i, s);
+    return s;
   }
 
   String String::operator+(short unsigned int i) const
   {
-    stringstream s;
-    s << *this << i;
-    return s.str();
+    String s(*this);
+    StringConversions::append(i, s);
+    return s;
   }
 
   String String::operator+(long int i) const
   {
-    stringstream s;
-    s << *this << i;
-    return s.str();
+    String s(*this);
+    StringConversions::append(i, s);
+    return s;
   }
 
   String String::operator+(long unsigned int i) const
   {
-    stringstream s;
-    s << *this << i;
-    return s.str();
+    String s(*this);
+    StringConversions::append(i, s);
+    return s;
   }
 
   String String::operator+(long long unsigned int i) const
   {
-    stringstream s;
-    s << *this << i;
-    return s.str();
+    String s(*this);
+    StringConversions::append(i, s);
+    return s;
   }
 
   String String::operator+(float f) const
   {
-    stringstream s;
-    s.precision(writtenDigits(f));
-    s << *this << f;
-    return s.str();
+    String s(*this);
+    StringConversions::append(f, s);
+    return s;
   }
 
   String String::operator+(double d) const
   {
-    stringstream s;
-    s.precision(writtenDigits(d));
-    s << *this << d;
-    return s.str();
+    String s(*this);
+    StringConversions::append(d, s);
+    return s;
   }
 
   String String::operator+(long double ld) const
   {
-    stringstream s;
-    s.precision(writtenDigits(ld));
-    s << *this << ld;
-    return s.str();
+    String s(*this);
+    StringConversions::append(ld, s);
+    return s;
   }
 
   String String::operator+(char c) const
@@ -443,61 +481,61 @@ namespace OpenMS
 
   String& String::operator+=(int i)
   {
-    this->append(String(i));
+    StringConversions::append(i, *this);
     return *this;
   }
 
   String& String::operator+=(unsigned int i)
   {
-    this->append(String(i));
+    StringConversions::append(i, *this);
     return *this;
   }
 
   String& String::operator+=(short int i)
   {
-    this->append(String(i));
+    StringConversions::append(i, *this);
     return *this;
   }
 
   String& String::operator+=(short unsigned int i)
   {
-    this->append(String(i));
+    StringConversions::append(i, *this);
     return *this;
   }
 
   String& String::operator+=(long int i)
   {
-    this->append(String(i));
+    StringConversions::append(i, *this);
     return *this;
   }
 
   String& String::operator+=(long unsigned int i)
   {
-    this->append(String(i));
+    StringConversions::append(i, *this);
     return *this;
   }
 
   String& String::operator+=(long long unsigned int i)
   {
-    this->append(String(i));
+    StringConversions::append(i, *this);
     return *this;
   }
 
   String& String::operator+=(float f)
   {
-    this->append(String(f));
+    StringConversions::append(f, *this);
     return *this;
   }
 
   String& String::operator+=(double d)
   {
-    this->append(String(d));
+    StringConversions::append(d, *this);
     return *this;
   }
 
   String& String::operator+=(long double d)
   {
-    this->append(String(d));
+    StringConversions::append(d, *this);
     return *this;
   }
 
@@ -523,6 +561,12 @@ namespace OpenMS
   {
     this->append(s);
     return *this;
+  }
+  
+  ::size_t hash_value(String const& s)
+  {
+    boost::hash<std::string> hasher;
+    return hasher(static_cast<std::string>(s));
   }
 
 } // namespace OpenMS

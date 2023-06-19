@@ -2,7 +2,7 @@
 #                   OpenMS -- Open-Source Mass Spectrometry
 # --------------------------------------------------------------------------
 # Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-# ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+# ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 #
 # This software is released under a three-clause BSD license:
 #  * Redistributions of source code must retain the above copyright
@@ -33,10 +33,8 @@
 # --------------------------------------------------------------------------
 
 project("OpenMS")
-cmake_minimum_required(VERSION 3.1 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.15 FATAL_ERROR)
 
-set(CMAKE_AUTOUIC ON)
-set(CMAKE_AUTOMOC ON)
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
 #------------------------------------------------------------------------------
@@ -48,13 +46,14 @@ set(CMAKE_INCLUDE_CURRENT_DIR ON)
 # Version should not have unescaped "_" because it is used in the Latex tutorials
 set(CF_OPENMS_PACKAGE_VERSION "${OPENMS_PACKAGE_VERSION}" CACHE INTERNAL "OpenMS VERSION" FORCE)
 set(CF_OPENMS_PACKAGE_VERSION_FULLSTRING "${OPENMS_PACKAGE_VERSION_FULLSTRING}" CACHE INTERNAL "OpenMS version with additional identifier" FORCE)
+set(CF_OPENMS_GIT_BRANCH "${OPENMS_GIT_SHORT_REFSPEC}" CACHE INTERNAL "OpenMS Git branch for pyopenms setup.py" FORCE)
 
 #------------------------------------------------------------------------------
 # En/disable assertions
 if ("${CMAKE_BUILD_TYPE}" STREQUAL "Debug")
-	set(CF_OPENMS_ASSERTIONS 1)
+    set(CF_OPENMS_ASSERTIONS 1)
 else()
-	set(CF_OPENMS_ASSERTIONS 0)
+    set(CF_OPENMS_ASSERTIONS 0)
 endif()
 set(CF_OPENMS_ASSERTIONS ${CF_OPENMS_ASSERTIONS} CACHE INTERNAL "Enables debug messages (precondition and postconditions are enabled, a bit slower) - this is NOT changing any compiler flags!" FORCE)
 
@@ -62,12 +61,14 @@ set(CF_OPENMS_ASSERTIONS ${CF_OPENMS_ASSERTIONS} CACHE INTERNAL "Enables debug m
 #------------------------------------------------------------------------------
 # third party libs shipped with OpenMS directly
 #------------------------------------------------------------------------------
+# The following library is in our public API, so create export targets
+#install(EXPORT EvergreenTarget DESTINATION ${INSTALL_LIB_DIR}/cmake/OpenMS FILE OpenMSTargets.cmake COMPONENT cmake)
 add_subdirectory(thirdparty)
 
 #------------------------------------------------------------------------------
 # external libs (contrib or system)
 #------------------------------------------------------------------------------
-include(${PROJECT_SOURCE_DIR}/cmake_findExternalLibs.cmake)
+#include(${PROJECT_SOURCE_DIR}/cmake_findExternalLibs.cmake)
 
 #------------------------------------------------------------------------------
 # At this point make a summary of where data and doc will be located:
@@ -84,20 +85,31 @@ include(${PROJECT_SOURCE_DIR}/configh.cmake)
 include (${PROJECT_SOURCE_DIR}/includes.cmake)
 
 #------------------------------------------------------------------------------
-# all the dependency libraries are linked into libOpenMS.so, except Qt
-set(OPENMS_DEP_LIBRARIES  ${COIN_LIBRARIES}
-                          ${LIBSVM_LIBRARIES}
-                          ${XercesC_LIBRARY}
-                          ${Boost_LIBRARIES}
-                          ${WM5_LIBRARIES}
-                          ${BZIP2_LIBRARIES}
-                          ${ZLIB_LIBRARIES}
-                          ${SQLite_LIBRARY}
-                          ${GLPK_LIBRARIES}
-                          ${Qt5Core_LIBRARIES}
-                          ${Qt5Network_LIBRARIES})
+# all the dependency libraries are linked into libOpenMS.so
+set(OPENMS_DEP_LIBRARIES Evergreen LibSVM::LibSVM XercesC::XercesC Qt5::Core Qt5::Network)
 
-# xerces requires linking against CoreFoundation&CoreServices
+set(OPENMS_DEP_PRIVATE_LIBRARIES 
+  GTE Quadtree ${LPTARGET} 
+  Eigen3::Eigen
+  $<$<BOOL:${WITH_HDF5}>:HDF5::HDF5>
+  Boost::iostreams
+  Boost::date_time
+  Boost::boost
+  Boost::regex
+  BZip2::BZip2
+  ZLIB::ZLIB
+  SQLiteCpp)
+
+## ----------
+## No need to for this at the moment: no Qt plugins required anymore. Left here for reference.
+## ----------
+#------------------------------------------------------------------------------
+# Install the QSQLite driver if we are not on linux so we can use oms files
+#if(WIN32 OR APPLE)
+#  install_qt5_plugin_builddir("Qt5::QSQLiteDriverPlugin" QT_SQLITE_PLUGIN "${INSTALL_PLUGIN_DIR}" Dependencies)
+#endif()
+
+# Xerces requires linking against CoreFoundation&CoreServices on macOS
 # TODO check if this is still the case
 if(APPLE)
   find_library(CoreFoundation_LIBRARY CoreFoundation )
@@ -107,62 +119,60 @@ if(APPLE)
                            ${CoreServices_LIBRARY})
 endif()
 
-if (TBB_FOUND)
- list(APPEND OPENMS_DEP_LIBRARIES ${TBB_LIBRARIES})
+if (OPENMP_FOUND)
+  list(APPEND OPENMS_DEP_LIBRARIES OpenMP::OpenMP_CXX)
 endif()
+
 if (WITH_CRAWDAD) ## TODO check if still necessary
   list(APPEND OPENMS_DEP_LIBRARIES ${Crawdad_LIBRARY})
 endif()
 
-set (OPENMS_CONTRIB_INCLUDE_DIRS "")
-if (OPENMS_CONTRIB_LIBS)
- set (OPENMS_CONTRIB_INCLUDE_DIRS ${OPENMS_CONTRIB_LIBS}/include)
-endif()
-
-foreach (includedir
-	     ${SEQAN_INCLUDE_DIRS}
-	     ${SQLite_INCLUDE_DIR}
-	     ${LIBSVM_INCLUDE_DIRS}
-	     ${EIGEN3_INCLUDE_DIR}
-	     ${WM5_INCLUDE_DIRS}
-	     ${CRAWDAD_INCLUDE_DIRS}
-	     ${COIN_INCLUDE_DIRS}
-	     ${GLPK_INCLUDE_DIRS}
-	     ${ZLIB_INCLUDE_DIRS}
-	     ${BZIP2_INCLUDE_DIR}
-	     ${XercesC_INCLUDE_DIRS}
-	     ${Boost_INCLUDE_DIRS})
-  if (${includedir} MATCHES "${OPENMS_CONTRIB_INCLUDE_DIRS}.*")
-    list(APPEND INCLUDES_FROM_CONTRIB ${includedir})
-  else()
-    list(APPEND INCLUDES_FROM_SYSTEM ${includedir})
-  endif()
-endforeach()
-
-#set(OpenMS_sources ${OpenMS_sources} openms_pch.cpp)
 openms_add_library(TARGET_NAME  OpenMS
                    SOURCE_FILES  ${OpenMS_sources}
                    HEADER_FILES  ${OpenMS_sources_h}
                                  ${OpenMS_configured_headers}
                    INTERNAL_INCLUDES ${CMAKE_CURRENT_SOURCE_DIR}/include
                                      ${CMAKE_CURRENT_BINARY_DIR}/include
-		   PRIVATE_INCLUDES ${EOL_BSPLINE_INCLUDE_DIRECTORY}
-                   EXTERNAL_INCLUDES ${OPENMS_CONTRIB_INCLUDE_DIRS}
-		                     ${OpenSwathAlgo_INCLUDE_DIRECTORIES}
-				     ${INCLUDES_FROM_CONTRIB}
-				     ${INCLUDES_FROM_SYSTEM}
-                                     ${Qt5Core_INCLUDE_DIRS}
-                                     ${Qt5Network_INCLUDE_DIRS}
+                   PRIVATE_INCLUDES ${EOL_BSPLINE_INCLUDE_DIRECTORY}
+                                    ${ISOSPEC_INCLUDE_DIRECTORY}
+                                    ${JSON_INCLUDE_DIRECTORY}
+                   EXTERNAL_INCLUDES
                    LINK_LIBRARIES OpenSwathAlgo
                                   ${OPENMS_DEP_LIBRARIES}
+                   PRIVATE_LINK_LIBRARIES ${OPENMS_DEP_PRIVATE_LIBRARIES}
                    DLL_EXPORT_PATH "OpenMS/")
-                   
+
+if (MSVC)
+  ## treat warning of unused function parameter as error, similar to -Werror=unused-variable on GCC
+  target_compile_options(OpenMS PRIVATE "/we4100")
+  ## treat warning of unused local variable as error, similar to -Werror=unused-variable on GCC
+  target_compile_options(OpenMS PRIVATE "/we4189")
+endif()
+
 #------------------------------------------------------------------------------
 # since the share basically belongs to OpenMS core we control its installation
 # here
 # Note: that slash(/) is important here, otherwise the whole directory
 #       (not its content) will be copied!
-install_directory(${OPENMS_HOST_DIRECTORY}/share/OpenMS/ ${INSTALL_SHARE_DIR} share)
+#install_directory(${OPENMS_HOST_DIRECTORY}/share/OpenMS/ ${INSTALL_SHARE_DIR} share)
+install(DIRECTORY ${OPENMS_HOST_DIRECTORY}/share/OpenMS/
+  DESTINATION ${INSTALL_SHARE_DIR}
+  COMPONENT share
+  FILE_PERMISSIONS      OWNER_WRITE OWNER_READ
+                        GROUP_READ
+                        WORLD_READ
+  DIRECTORY_PERMISSIONS OWNER_EXECUTE OWNER_WRITE OWNER_READ
+                        GROUP_EXECUTE GROUP_READ
+                        WORLD_EXECUTE WORLD_READ
+  REGEX "^\\..*" EXCLUDE ## Exclude hidden files (svn, git, DSStore)
+  REGEX ".*\\/\\..*" EXCLUDE ## Exclude hidden files in subdirectories
+  REGEX "OpenMS/examples" EXCLUDE
+)
+install_directory(${OPENMS_HOST_DIRECTORY}/share/OpenMS/examples ${INSTALL_SHARE_DIR}/examples examples)
+
+# Devs also need our custom find modules
+install_directory(${OPENMS_HOST_DIRECTORY}/cmake/Modules/ ${INSTALL_LIB_DIR}/cmake/OpenMS/Modules cmake)
+file(COPY ${OPENMS_HOST_DIRECTORY}/cmake/Modules DESTINATION ${OPENMS_HOST_BINARY_DIRECTORY})
 
 #------------------------------------------------------------------------------
 # register relevant paths for the doxygen doc generation

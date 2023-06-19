@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -34,7 +34,6 @@
 
 #include <OpenMS/METADATA/DataProcessing.h>
 
-
 using namespace std;
 
 namespace OpenMS
@@ -60,46 +59,21 @@ namespace OpenMS
     "Conversion to mzData format",
     "Conversion to mzML format",
     "Conversion to mzXML format",
-    "Conversion to DTA format"
+    "Conversion to DTA format",
+    "Identification"
   };
 
-  DataProcessing::DataProcessing() :
-    MetaInfoInterface(),
-    software_(),
-    processing_actions_(),
-    completion_time_()
-  {
+  DataProcessing::~DataProcessing() = default;
 
+  DataProcessing::DataProcessing(DataProcessing&& rhs) noexcept :
+    MetaInfoInterface(std::move(rhs)),
+    software_(std::move(rhs.software_)),
+    processing_actions_(std::move(rhs.processing_actions_)),
+    completion_time_(std::move(rhs.completion_time_))
+  {
   }
 
-  DataProcessing::DataProcessing(const DataProcessing & rhs) :
-    MetaInfoInterface(rhs),
-    software_(rhs.software_),
-    processing_actions_(rhs.processing_actions_),
-    completion_time_(rhs.completion_time_)
-  {
-
-  }
-
-  DataProcessing::~DataProcessing()
-  {
-
-  }
-
-  DataProcessing & DataProcessing::operator=(const DataProcessing & rhs)
-  {
-    if (&rhs == this)
-      return *this;
-
-    MetaInfoInterface::operator=(rhs);
-    software_ = rhs.software_;
-    processing_actions_ = rhs.processing_actions_;
-    completion_time_ = rhs.completion_time_;
-
-    return *this;
-  }
-
-  bool DataProcessing::operator==(const DataProcessing & rhs) const
+  bool DataProcessing::operator==(const DataProcessing& rhs) const
   {
     return software_ == rhs.software_ &&
            processing_actions_ == rhs.processing_actions_ &&
@@ -107,47 +81,47 @@ namespace OpenMS
            MetaInfoInterface::operator==(rhs);
   }
 
-  bool DataProcessing::operator!=(const DataProcessing & rhs) const
+  bool DataProcessing::operator!=(const DataProcessing& rhs) const
   {
     return !(operator==(rhs));
   }
 
-  const Software & DataProcessing::getSoftware() const
+  const Software& DataProcessing::getSoftware() const
   {
     return software_;
   }
 
-  Software & DataProcessing::getSoftware()
+  Software& DataProcessing::getSoftware()
   {
     return software_;
   }
 
-  void DataProcessing::setSoftware(const Software & software)
+  void DataProcessing::setSoftware(const Software& software)
   {
     software_ = software;
   }
 
-  const DateTime & DataProcessing::getCompletionTime() const
+  const DateTime& DataProcessing::getCompletionTime() const
   {
     return completion_time_;
   }
 
-  void DataProcessing::setCompletionTime(const DateTime & completion_time)
+  void DataProcessing::setCompletionTime(const DateTime& completion_time)
   {
     completion_time_ = completion_time;
   }
 
-  const set<DataProcessing::ProcessingAction> & DataProcessing::getProcessingActions() const
+  const set<DataProcessing::ProcessingAction>& DataProcessing::getProcessingActions() const
   {
     return processing_actions_;
   }
 
-  set<DataProcessing::ProcessingAction> & DataProcessing::getProcessingActions()
+  set<DataProcessing::ProcessingAction>& DataProcessing::getProcessingActions()
   {
     return processing_actions_;
   }
 
-  void DataProcessing::setProcessingActions(const set<DataProcessing::ProcessingAction> & processing_actions)
+  void DataProcessing::setProcessingActions(const set<DataProcessing::ProcessingAction>& processing_actions)
   {
     processing_actions_ = processing_actions;
   }

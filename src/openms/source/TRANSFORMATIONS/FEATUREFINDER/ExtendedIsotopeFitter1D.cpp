@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -34,6 +34,8 @@
 
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/ExtendedIsotopeFitter1D.h>
 
+#include <OpenMS/MATH/STATISTICS/StatisticFunctions.h>
+#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/InterpolationModel.h>
 #include <OpenMS/CONCEPT/Factory.h>
 
 namespace OpenMS
@@ -44,12 +46,12 @@ namespace OpenMS
   {
     setName(getProductName());
 
-    defaults_.setValue("statistics:variance", 1.0, "Variance of the model.", ListUtils::create<String>("advanced"));
-    defaults_.setValue("charge", 1, "Charge state of the model.", ListUtils::create<String>("advanced"));
-    defaults_.setValue("isotope:stdev", 0.1, "Standard deviation of gaussian applied to the averagine isotopic pattern to simulate the inaccuracy of the mass spectrometer.", ListUtils::create<String>("advanced"));
-    defaults_.setValue("isotope:monoisotopic_mz", 1.0, "Monoisotopic m/z of the model.", ListUtils::create<String>("advanced"));
-    defaults_.setValue("isotope:maximum", 100, "Maximum isotopic rank to be considered.", ListUtils::create<String>("advanced"));
-    defaults_.setValue("interpolation_step", 0.2, "Sampling rate for the interpolation of the model function.", ListUtils::create<String>("advanced"));
+    defaults_.setValue("statistics:variance", 1.0, "Variance of the model.", {"advanced"});
+    defaults_.setValue("charge", 1, "Charge state of the model.", {"advanced"});
+    defaults_.setValue("isotope:stdev", 0.1, "Standard deviation of gaussian applied to the averagine isotopic pattern to simulate the inaccuracy of the mass spectrometer.", {"advanced"});
+    defaults_.setValue("isotope:monoisotopic_mz", 1.0, "Monoisotopic m/z of the model.", {"advanced"});
+    defaults_.setValue("isotope:maximum", 100, "Maximum isotopic rank to be considered.", {"advanced"});
+    defaults_.setValue("interpolation_step", 0.2, "Sampling rate for the interpolation of the model function.", {"advanced"});
 
     defaultsToParam_();
   }
@@ -60,22 +62,21 @@ namespace OpenMS
     updateMembers_();
   }
 
-  ExtendedIsotopeFitter1D::~ExtendedIsotopeFitter1D()
-  {
-  }
+  ExtendedIsotopeFitter1D::~ExtendedIsotopeFitter1D() = default;
 
   ExtendedIsotopeFitter1D& ExtendedIsotopeFitter1D::operator=(const ExtendedIsotopeFitter1D& source)
   {
     if (&source == this)
+    {
       return *this;
-
+    }
     MaxLikeliFitter1D::operator=(source);
     updateMembers_();
 
     return *this;
   }
 
-  ExtendedIsotopeFitter1D::QualityType ExtendedIsotopeFitter1D::fit1d(const RawDataArrayType& set, InterpolationModel*& model)
+  ExtendedIsotopeFitter1D::QualityType ExtendedIsotopeFitter1D::fit1d(const RawDataArrayType& set, std::unique_ptr<InterpolationModel>& model)
   {
     // build model
     if (charge_ == 0)
@@ -86,9 +87,13 @@ namespace OpenMS
       {
         CoordinateType tmp = set[pos].getPos();
         if (min_bb > tmp)
+        {
           min_bb = tmp;
+        }
         if (max_bb < tmp)
+        {
           max_bb = tmp;
+        }
       }
 
       // Enlarge the bounding box by a few multiples of the standard deviation      
@@ -97,7 +102,7 @@ namespace OpenMS
       max_bb += stdev;
 
 
-      model = static_cast<InterpolationModel*>(Factory<BaseModel<1> >::create("GaussModel"));
+      model = std::unique_ptr<InterpolationModel>(dynamic_cast<InterpolationModel*>(Factory<BaseModel<1>>::create("GaussModel")));
       model->setInterpolationStep(interpolation_step_);
 
       Param tmp;
@@ -109,7 +114,7 @@ namespace OpenMS
     }
     else
     {
-      model = static_cast<InterpolationModel*>(Factory<BaseModel<1> >::create("ExtendedIsotopeModel"));
+      model = std::unique_ptr<InterpolationModel>(dynamic_cast<InterpolationModel*>(Factory<BaseModel<1>>::create("ExtendedIsotopeModel")));
 
       Param iso_param = this->param_.copy("isotope_model:", true);
       iso_param.removeAll("stdev");
@@ -138,9 +143,10 @@ namespace OpenMS
     }
 
     QualityType correlation = Math::pearsonCorrelationCoefficient(real_data.begin(), real_data.end(), model_data.begin(), model_data.end());
-    if (boost::math::isnan(correlation))
+    if (std::isnan(correlation))
+    {
       correlation = -1.0;
-
+    }
     return correlation;
   }
 

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -80,6 +80,7 @@ public:
       @exception IllegalArgument is thrown if there are not enough data points or if an unknown interpolation type is given.
     */
     TransformationModelInterpolated(const DataPoints& data, const Param& params);
+    TransformationModelInterpolated(const std::vector<std::pair<double,double>>& data, const Param& params, bool preprocess);
 
     /// Destructor
     ~TransformationModelInterpolated() override;
@@ -148,6 +149,9 @@ private:
 
     /// Preprocesses the incoming data and fills the (private) vectors x_ and y_
     void preprocessDataPoints_(const DataPoints& data);
+
+    /// Preprocesses the incoming data and fills the (private) vectors x_ and y_
+    void preprocessDataPoints_(const std::vector<std::pair<double,double>>& data);
   };
 
 } // namespace

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -153,13 +153,14 @@ START_SECTION((void setCharge(const ChargeType &ch)))
 END_SECTION
 
 START_SECTION((BaseFeature(const BaseFeature &feature)))
+{
   BaseFeature::PositionType pos;
   pos[0] = 21.21;
   pos[1] = 22.22;
   BaseFeature p;
   p.setIntensity(123.456f);
   p.setPosition(pos);
-  p.setMetaValue("cluster_id",4711);
+  p.setMetaValue("cluster_id", 4711);
   p.setQuality((QualityType)0.9);
 
   BaseFeature copy_of_p(p);
@@ -170,8 +171,39 @@ START_SECTION((BaseFeature(const BaseFeature &feature)))
   TEST_REAL_SIMILAR(i2, 123.456)
   TEST_REAL_SIMILAR(pos2[0], 21.21)
   TEST_REAL_SIMILAR(pos2[1], 22.22)
-  TEST_EQUAL(p.getMetaValue("cluster_id"),DataValue(4711));
+  TEST_EQUAL(copy_of_p.getMetaValue("cluster_id"), DataValue(4711));
   TEST_REAL_SIMILAR(q2, 0.9)
+}
+END_SECTION
+
+START_SECTION((BaseFeature(BaseFeature &&feature)))
+{
+  // Ensure that BaseFeature has a no-except move constructor (otherwise
+  // std::vector is inefficient and will copy instead of move).
+  TEST_EQUAL(noexcept(BaseFeature(std::declval<BaseFeature&&>())), true)
+
+  BaseFeature::PositionType pos;
+  pos[0] = 21.21;
+  pos[1] = 22.22;
+  BaseFeature p;
+  p.setIntensity(123.456f);
+  p.setPosition(pos);
+  p.setMetaValue("cluster_id",4711);
+  p.setQuality((QualityType)0.9);
+
+  BaseFeature orig = p;
+  BaseFeature copy_of_p(std::move(p));
+
+  BaseFeature::PositionType pos2 = copy_of_p.getPosition();
+  BaseFeature::IntensityType i2 = copy_of_p.getIntensity();
+  BaseFeature::QualityType q2 = copy_of_p.getQuality();
+
+  TEST_REAL_SIMILAR(i2, 123.456)
+  TEST_REAL_SIMILAR(pos2[0], 21.21)
+  TEST_REAL_SIMILAR(pos2[1], 22.22)
+  TEST_EQUAL(copy_of_p.getMetaValue("cluster_id"), DataValue(4711));
+  TEST_REAL_SIMILAR(q2, 0.9)
+}
 END_SECTION
 
 START_SECTION((BaseFeature(const Peak2D& point)))
@@ -238,25 +270,25 @@ START_SECTION((bool operator==(const BaseFeature &rhs) const))
 {
   BaseFeature p1;
   BaseFeature p2(p1);
-  TEST_EQUAL(p1 == p2, true)
+  TEST_TRUE(p1 == p2)
 
   p1.setIntensity(5.0f);
   p1.setQuality((QualityType)0.9);
   TEST_EQUAL(p1 == p2, false)
   p2.setIntensity(5.0f);
   p2.setQuality((QualityType)0.9);
-  TEST_EQUAL(p1 == p2, true)
+  TEST_TRUE(p1 == p2)
 
   p1.getPosition()[0] = 5;
   TEST_EQUAL(p1 == p2, false)
   p2.getPosition()[0] = 5;
-  TEST_EQUAL(p1 == p2, true)
+  TEST_TRUE(p1 == p2)
 
   vector<PeptideIdentification> peptides(1);
   p1.setPeptideIdentifications(peptides);
   TEST_EQUAL(p1 == p2, false);
   p2.setPeptideIdentifications(peptides);
-  TEST_EQUAL(p1 == p2, true);
+  TEST_TRUE(p1 == p2);
 }
 END_SECTION
 
@@ -266,18 +298,18 @@ START_SECTION((bool operator!=(const BaseFeature& rhs) const))
   TEST_EQUAL(p1 != p2, false)
 
   p1.setIntensity(5.0f);
-  TEST_EQUAL(p1 != p2, true)
+  TEST_FALSE(p1 == p2)
   p2.setIntensity(5.0f);
   TEST_EQUAL(p1 != p2, false)
 
   p1.getPosition()[0] = 5;
-  TEST_EQUAL(p1 != p2, true)
+  TEST_FALSE(p1 == p2)
   p2.getPosition()[0] = 5;
   TEST_EQUAL(p1 != p2, false)
 
   vector<PeptideIdentification> peptides(1);
   p1.setPeptideIdentifications(peptides);
-  TEST_EQUAL(p1 != p2, true);
+  TEST_FALSE(p1 == p2);
   p2.setPeptideIdentifications(peptides);
   TEST_EQUAL(p1 != p2, false);
 END_SECTION
@@ -378,8 +410,6 @@ END_SECTION
 START_SECTION((AnnotationState getAnnotationState() const))
   BaseFeature tmp;
   vector<PeptideIdentification> vec;
-
-
   vector<PeptideIdentification>& ids = tmp.getPeptideIdentifications();
 
   TEST_EQUAL(tmp.getAnnotationState(), BaseFeature::FEATURE_ID_NONE);
@@ -399,8 +429,32 @@ START_SECTION((AnnotationState getAnnotationState() const))
   hit.setSequence(AASequence::fromString("KRGH"));
   ids[1].setHits(std::vector<PeptideHit>(1, hit)); // different to first hit
   TEST_EQUAL(tmp.getAnnotationState(), BaseFeature::FEATURE_ID_MULTIPLE_DIVERGENT);
+END_SECTION
 
+START_SECTION((sortPeptideIdentifications()))
+    BaseFeature tmp;
+    vector<PeptideIdentification> vec;
+    vector<PeptideIdentification>& ids = tmp.getPeptideIdentifications();
 
+    ids.resize(3);
+
+    PeptideHit hit;
+    hit.setSequence(AASequence::fromString("ABCDE"));
+    hit.setScore(0.8);
+    ids[0].setHits(std::vector<PeptideHit>(1, hit));
+
+    hit.setScore(0.5);
+    ids[1].getHits().push_back(hit); // same as first hi
+
+    hit.setSequence(AASequence::fromString("KRGH"));
+    hit.setScore(0.9);
+    ids[1].getHits().push_back(hit); // different to first hit
+
+    //ids[2] is empty.
+
+    tmp.sortPeptideIdentifications();
+    TEST_EQUAL(ids[0].getHits()[0].getScore(), 0.9);
+    TEST_EQUAL(ids[2].empty(), true);
 END_SECTION
 
 /////////////////////////////////////////////////////////////

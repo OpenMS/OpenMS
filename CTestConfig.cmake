@@ -5,9 +5,5 @@
 ##   ENABLE_TESTING()
 ##   INCLUDE(CTest)
 set(CTEST_PROJECT_NAME "OpenMS")
-set(CTEST_NIGHTLY_START_TIME "23:00:00 UTC")
-
-set(CTEST_DROP_METHOD "http")
-set(CTEST_DROP_SITE "cdash.openms.de")
-set(CTEST_DROP_LOCATION "/submit.php?project=OpenMS")
-set(CTEST_DROP_SITE_CDASH TRUE)
+set(CTEST_NIGHTLY_START_TIME "23:59:59 UTC")
+set(CTEST_SUBMIT_URL "https://cdash.openms.de/submit.php?project=OpenMS")

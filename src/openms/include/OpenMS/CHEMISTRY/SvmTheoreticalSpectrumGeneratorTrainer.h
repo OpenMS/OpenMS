@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -72,7 +72,7 @@ namespace OpenMS
     /// stores the observed intensities for each sector-type combination in a vector
     void countIntensities_(const PeakSpectrum & spectrum,
                            const AASequence & annotation,
-                           IonType type,
+                           const IonType& type,
                            std::map<std::pair<IonType, Size>, std::vector<double> > & observed_intensities,
                            double tolerance,
                            Size number_of_regions
@@ -105,7 +105,7 @@ public:
     SvmTheoreticalSpectrumGeneratorTrainer & operator=(const SvmTheoreticalSpectrumGeneratorTrainer & tsg);
 
     /// trains an SVM for each ion_type and stores them in files \<filename\>_residue_loss_charge.svm
-    void trainModel(const PeakMap & spectra, const std::vector<AASequence> & annotations, String filename, Int precursor_charge);
+    void trainModel(const PeakMap & spectra, const std::vector<AASequence> & annotations, const String& filename, Int precursor_charge);
 
     /// Normalizes the intensity of the peaks in the input data
     void normalizeIntensity(PeakSpectrum & S) const;
@@ -113,7 +113,7 @@ public:
 protected:
 
     /// Write a training file that can be passed to libsvm command line tools
-    void writeTrainingFile_(std::vector<DescriptorSet> & training_input, std::vector<double> & training_output, String filename);
+    void writeTrainingFile_(std::vector<DescriptorSet> & training_input, std::vector<double> & training_output, const String& filename);
 
   };
 }

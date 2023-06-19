@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -54,10 +54,8 @@
 
 using namespace std;
 
-namespace OpenMS
+namespace OpenMS::Internal
 {
-  namespace Internal
-  {
 
     /// This class ensures that the reset() method of the XMLHandler is called when it goes out of scope.
     /// useful when used in exception handling
@@ -80,8 +78,7 @@ private:
     };
 
     XMLFile::XMLFile()
-    {
-    }
+    = default;
 
     XMLFile::XMLFile(const String & schema_location, const String & version) :
       schema_location_(schema_location),
@@ -90,8 +87,7 @@ private:
     }
 
     XMLFile::~XMLFile()
-    {
-    }
+    = default;
 
     void XMLFile::enforceEncoding_(const String& encoding)
     {
@@ -215,7 +211,7 @@ private:
       parser->setContentHandler(handler);
       parser->setErrorHandler(handler);
 
-      // TODO: handle non-plaintext
+      // TODO: handle non-plain text
       // peak ahead into the file: is it bzip2 or gzip compressed?
       // String bz = buffer.substr(0, 2);
 
@@ -277,8 +273,14 @@ private:
 
     String encodeTab(const String& to_encode)
     {
-      if (!to_encode.has('\t')) return to_encode;
-      else return String(to_encode).substitute("\t", "&#x9;");
+      if (!to_encode.has('\t'))
+      {
+        return to_encode;
+      }
+      else
+      {
+        return String(to_encode).substitute("\t", "&#x9;");
+      }
     }
 
     bool XMLFile::isValid(const String & filename, std::ostream & os)
@@ -296,5 +298,4 @@ private:
       return schema_version_;
     }
 
-  }   // namespace Internal
-} // namespace OpenMS
+} // namespace OpenMS  // namespace Internal

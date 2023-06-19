@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -35,6 +35,7 @@
 #include <OpenMS/ANALYSIS/QUANTITATION/ItraqFourPlexQuantitationMethod.h>
 
 #include <OpenMS/DATASTRUCTURES/Matrix.h>
+#include <OpenMS/DATASTRUCTURES/ListUtils.h>
 
 namespace OpenMS
 {
@@ -45,10 +46,10 @@ namespace OpenMS
     setName("ItraqFourPlexQuantitationMethod");
 
     // create the channel map
-    channels_.push_back(IsobaricChannelInformation("114", 0, "", 114.1112, -1, -1, 1, 2));
-    channels_.push_back(IsobaricChannelInformation("115", 1, "", 115.1082, -1, 0, 2, 3));
-    channels_.push_back(IsobaricChannelInformation("116", 2, "", 116.1116, 0, 1, 3, -1));
-    channels_.push_back(IsobaricChannelInformation("117", 3, "", 117.1149, 1, 2, -1, -1));
+    channels_.push_back(IsobaricChannelInformation("114", 0, "", 114.1112, {-1, -1, 1, 2}));
+    channels_.push_back(IsobaricChannelInformation("115", 1, "", 115.1082, {-1, 0, 2, 3}));
+    channels_.push_back(IsobaricChannelInformation("116", 2, "", 116.1116, {0, 1, 3, -1}));
+    channels_.push_back(IsobaricChannelInformation("117", 3, "", 117.1149, {1, 2, -1, -1}));
 
     // we assume 114 to be the reference
     reference_channel_ = 0;
@@ -56,9 +57,7 @@ namespace OpenMS
     setDefaultParams_();
   }
 
-  ItraqFourPlexQuantitationMethod::~ItraqFourPlexQuantitationMethod()
-  {
-  }
+  ItraqFourPlexQuantitationMethod::~ItraqFourPlexQuantitationMethod() = default;
 
   void ItraqFourPlexQuantitationMethod::setDefaultParams_()
   {
@@ -74,10 +73,10 @@ namespace OpenMS
 //    {0.0, 2.0, 5.6, 0.1},
 //    {0.0, 3.0, 4.5, 0.1},
 //    {0.1, 4.0, 3.5, 0.1}    //117
-    defaults_.setValue("correction_matrix", ListUtils::create<String>("0.0/1.0/5.9/0.2,"
-                                                               "0.0/2.0/5.6/0.1,"
-                                                               "0.0/3.0/4.5/0.1,"
-                                                               "0.1/4.0/3.5/0.1"),
+    defaults_.setValue("correction_matrix", std::vector<std::string>{"0.0/1.0/5.9/0.2",
+                                                                               "0.0/2.0/5.6/0.1",
+                                                                               "0.0/3.0/4.5/0.1",
+                                                                               "0.1/4.0/3.5/0.1"},
                        "Correction matrix for isotope distributions (see documentation); use the following format: <-2Da>/<-1Da>/<+1Da>/<+2Da>; e.g. '0/0.3/4/0', '0.1/0.3/3/0.2'");
 
     defaultsToParam_();
@@ -85,16 +84,17 @@ namespace OpenMS
 
   void ItraqFourPlexQuantitationMethod::updateMembers_()
   {
-    channels_[0].description = param_.getValue("channel_114_description");
-    channels_[1].description = param_.getValue("channel_115_description");
-    channels_[2].description = param_.getValue("channel_116_description");
-    channels_[3].description = param_.getValue("channel_117_description");
+    channels_[0].description = param_.getValue("channel_114_description").toString();
+    channels_[1].description = param_.getValue("channel_115_description").toString();
+    channels_[2].description = param_.getValue("channel_116_description").toString();
+    channels_[3].description = param_.getValue("channel_117_description").toString();
 
     // compute the index of the reference channel
     reference_channel_ = ((Int) param_.getValue("reference_channel")) - 114;
   }
 
-  ItraqFourPlexQuantitationMethod::ItraqFourPlexQuantitationMethod(const ItraqFourPlexQuantitationMethod& other)
+  ItraqFourPlexQuantitationMethod::ItraqFourPlexQuantitationMethod(const ItraqFourPlexQuantitationMethod& other):
+  IsobaricQuantitationMethod(other)
   {
     channels_.clear();
     channels_.insert(channels_.begin(), other.channels_.begin(), other.channels_.end());
@@ -115,7 +115,7 @@ namespace OpenMS
     return *this;
   }
 
-  const String& ItraqFourPlexQuantitationMethod::getName() const
+  const String& ItraqFourPlexQuantitationMethod::getMethodName() const
   {
     return ItraqFourPlexQuantitationMethod::name_;
   }
@@ -132,8 +132,8 @@ namespace OpenMS
 
   Matrix<double> ItraqFourPlexQuantitationMethod::getIsotopeCorrectionMatrix() const
   {
-    StringList iso_correction = getParameters().getValue("correction_matrix");
-    return stringListToIsotopCorrectionMatrix_(iso_correction);
+    StringList iso_correction = ListUtils::toStringList<std::string>(getParameters().getValue("correction_matrix"));
+    return stringListToIsotopeCorrectionMatrix_(iso_correction);
   }
 
   Size ItraqFourPlexQuantitationMethod::getReferenceChannel() const

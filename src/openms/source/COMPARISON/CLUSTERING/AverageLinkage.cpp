@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -56,14 +56,9 @@ namespace OpenMS
   {
   }
 
-  AverageLinkage::AverageLinkage(const AverageLinkage & source) :
-    ClusterFunctor(source), ProgressLogger(source)
-  {
-  }
+  AverageLinkage::AverageLinkage(const AverageLinkage & source)  = default;
 
-  AverageLinkage::~AverageLinkage()
-  {
-  }
+  AverageLinkage::~AverageLinkage() = default;
 
   AverageLinkage & AverageLinkage::operator=(const AverageLinkage & source)
   {
@@ -102,7 +97,7 @@ namespace OpenMS
     while (original_distance(min.second, min.first) < threshold)
     {
       //grow the tree
-      cluster_tree.push_back(BinaryTreeNode(*(clusters[min.second].begin()), *(clusters[min.first].begin()), original_distance(min.first, min.second)));
+      cluster_tree.emplace_back(*(clusters[min.second].begin()), *(clusters[min.first].begin()), original_distance(min.first, min.second));
       if (cluster_tree.back().left_child > cluster_tree.back().right_child)
       {
         std::swap(cluster_tree.back().left_child, cluster_tree.back().right_child);
@@ -159,7 +154,7 @@ namespace OpenMS
     Size sad(*clusters.front().begin());
     for (Size i = 1; (i < clusters.size()) && (cluster_tree.size() < cluster_tree.capacity()); ++i)
     {
-      cluster_tree.push_back(BinaryTreeNode(sad, *clusters[i].begin(), -1.0));
+      cluster_tree.emplace_back(sad, *clusters[i].begin(), -1.0);
     }
 
     endProgress();

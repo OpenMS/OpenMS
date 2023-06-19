@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -47,18 +47,21 @@
 // only declare them here
 class CoinModel;
 
-#ifndef GLP_PROB_DEFINED
-#define GLP_PROB_DEFINED
-// depending on the glpk version
-// define glp_prob as forward or struct
-#if OPENMS_GLPK_VERSION_MINOR < 48
-typedef struct
-{
-  double _opaque_prob[100];
-} glp_prob;
-#else
-class glp_prob;
-#endif
+// if GLPK was found:
+#ifndef COINOR_SOLVER
+  #ifndef GLP_PROB_DEFINED
+    #define GLP_PROB_DEFINED
+    // depending on the glpk version
+    // define glp_prob as forward or struct
+    #if OPENMS_GLPK_VERSION_MAJOR == 4 && OPENMS_GLPK_VERSION_MINOR < 48
+    typedef struct
+    {
+      double _opaque_prob[100];
+    } glp_prob;
+    #else
+    class glp_prob;
+    #endif
+  #endif
 #endif
 
 namespace OpenMS
@@ -95,7 +98,7 @@ public:
       Int output_freq;
       Int output_delay;
       bool enable_presolve;
-      bool enable_binarization; // only with presolve
+      bool enable_binarization; ///< only with presolve
     };
 
     enum Type
@@ -148,11 +151,11 @@ public:
 
     // problem creation/manipulation
     /// adds a row to the LP matrix, returns index
-    Int addRow(std::vector<Int> row_indices, std::vector<double> row_values, const String& name);
+    Int addRow(const std::vector<Int>& row_indices, const std::vector<double>& row_values, const String& name);
     /// adds an empty column to the LP matrix, returns index
     Int addColumn();
     /// adds a column to the LP matrix, returns index
-    Int addColumn(std::vector<Int> column_indices, std::vector<double> column_values, const String& name);
+    Int addColumn(const std::vector<Int>& column_indices, const std::vector<double>& column_values, const String& name);
 
     /**
       @brief Adds a row with boundaries to the LP matrix, returns index
@@ -166,7 +169,8 @@ public:
       @param upper_bound
       @param type Type of the row 1 - unbounded, 2 - only lower bound, 3 - only upper bound, 4 - double-bounded variable, 5 - fixed variable
     */
-    Int addRow(std::vector<Int>& row_indices, std::vector<double>& row_values, const String& name, double lower_bound, double upper_bound, Type type);
+    Int addRow(const std::vector<Int>& row_indices, const std::vector<double>& row_values,
+               const String& name, double lower_bound, double upper_bound, Type type);
 
     /**
       @brief Adds a column with boundaries to the LP matrix, returns index
@@ -178,7 +182,7 @@ public:
       @param upper_bound
       @param type 1 - unbounded, 2 - only lower bound, 3 - only upper bound, 4 - double-bounded variable, 5 - fixed variable
     */
-    Int addColumn(std::vector<Int>& column_indices, std::vector<double>& column_values, const String& name, double lower_bound, double upper_bound, Type type);
+    Int addColumn(const std::vector<Int>& column_indices, const std::vector<double>& column_values, const String& name, double lower_bound, double upper_bound, Type type);
 
     /// delete index-th row
     void deleteRow(Int index);
@@ -267,7 +271,7 @@ public:
       @param filename Filename where to store the LP problem.
       @param format LP, MPS or GLPK.
      */
-    void readProblem(String filename, String format);
+    void readProblem(const String& filename, const String& format);
 
     /**
       @brief Write LP formulation to a file.
@@ -303,20 +307,16 @@ public:
     Int getNumberOfNonZeroEntriesInRow(Int idx);
     void getMatrixRow(Int idx, std::vector<Int>& indexes);
 
-    /// choose solver; by default, only GLPK is available
-    /// set this only at the very beginning of building your model, as otherwise your model is incomplete
-    void setSolver(const SOLVER s);
-
     /// get currently active solver
     SOLVER getSolver() const;
 
 protected:
 #if COINOR_SOLVER == 1
-    CoinModel * model_;
+    CoinModel * model_ = nullptr;
     std::vector<double> solution_;
+#else
+    glp_prob * lp_problem_ = nullptr;
 #endif
-
-    glp_prob * lp_problem_;
 
     SOLVER solver_;
 

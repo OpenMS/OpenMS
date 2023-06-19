@@ -10,15 +10,24 @@ cdef extern from "<OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakPickerIterative.h>" names
 
     cdef cppclass PeakPickerIterative(DefaultParamHandler, ProgressLogger):
         # wrap-inherits:
-        #    DefaultParamHandler
-        #    ProgressLogger
+        #   DefaultParamHandler
+        #   ProgressLogger
 
         PeakPickerIterative() nogil except +
-        PeakPickerIterative(PeakPickerIterative) nogil except + #wrap-ignore
+        PeakPickerIterative(PeakPickerIterative &) nogil except + # compiler
 
         void pick(MSSpectrum & input,
                   MSSpectrum & output
                  ) nogil except +
+            # wrap-doc:
+                #  This will pick one single spectrum. The PeakPickerHiRes is used to
+                #  generate seeds, these seeds are then used to re-center the mass and
+                #  compute peak width and integrated intensity of the peak
+                #  
+                #  Finally, other peaks that would fall within the primary peak are
+                #  discarded
+                #  
+                #  The output are the remaining peaks
 
         void pickExperiment(MSExperiment & input,
                             MSExperiment & output
@@ -28,14 +37,14 @@ cdef extern from "<OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakPickerIterative.h>" names
 
 # cdef extern from "<OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakPickerIterative.h>" namespace "OpenMS":
 # 
-#     cdef cppclass PeakCandidate:
-#         PeakCandidate() nogil except +
-#         PeakCandidate(PeakCandidate) nogil except +
-#         int index
-#         double peak_apex_intensity
+#    cdef cppclass PeakCandidate:
+#        PeakCandidate() nogil except +
+#        PeakCandidate(PeakCandidate) nogil except + # wrap-ignore
+#        int index
+#        double peak_apex_intensity
 # 
-#         double integrated_intensity
-#         double leftWidth
-#         double rightWidth
-#         float mz
+#        double integrated_intensity
+#        double leftWidth
+#        double rightWidth
+#        float mz
 # 

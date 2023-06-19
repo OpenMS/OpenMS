@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -34,17 +34,14 @@
 
 #pragma once
 
-#include <OpenMS/CONCEPT/ProgressLogger.h>
-#include <OpenMS/FORMAT/HANDLERS/XMLHandler.h>
 #include <OpenMS/FORMAT/OPTIONS/PeakFileOptions.h>
 #include <OpenMS/FORMAT/XMLFile.h>
 #include <OpenMS/KERNEL/ConsensusMap.h>
-#include <OpenMS/METADATA/PeptideEvidence.h>
-#include <OpenMS/METADATA/ProteinIdentification.h>
-#include <OpenMS/METADATA/PeptideIdentification.h>
+#include <OpenMS/CONCEPT/ProgressLogger.h>
 
 namespace OpenMS
 {
+  class ConsensusMap;
   /**
     @brief This class provides Input functionality for ConsensusMaps and Output functionality for
     alignments and quantitation.
@@ -54,12 +51,11 @@ namespace OpenMS
 
     A documented schema for this format can be found at https://github.com/OpenMS/OpenMS/tree/develop/share/OpenMS/SCHEMAS
 
-  @todo Take care that unique ids are assigned properly by TOPP tools before calling ConsensusXMLFile::store().  There will be a message on LOG_INFO but we will make no attempt to fix the problem in this class.  (all developers)
+  @todo Take care that unique ids are assigned properly by TOPP tools before calling ConsensusXMLFile::store().  There will be a message on OPENMS_LOG_INFO but we will make no attempt to fix the problem in this class.  (all developers)
 
     @ingroup FileIO
   */
   class OPENMS_DLLAPI ConsensusXMLFile :
-    public Internal::XMLHandler,
     public Internal::XMLFile,
     public ProgressLogger
   {
@@ -68,7 +64,6 @@ public:
     ConsensusXMLFile();
     ///Destructor
     ~ConsensusXMLFile() override;
-
 
     /**
     @brief Loads a consensus map from file and calls updateRanges
@@ -96,57 +91,8 @@ public:
 
 protected:
 
-    // Docu in base class
-    void endElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname) override;
-
-    // Docu in base class
-    void startElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname, const xercesc::Attributes& attributes) override;
-
-    // Docu in base class
-    void characters(const XMLCh* const chars, const XMLSize_t length) override;
-
-
-    /// Writes a peptide identification to a stream (for assigned/unassigned peptide identifications)
-    void writePeptideIdentification_(const String& filename, std::ostream& os, const PeptideIdentification& id, const String& tag_name, UInt indentation_level);
-
-
     /// Options that can be set
     PeakFileOptions options_;
-
-    ///@name Temporary variables for parsing
-    //@{
-    ConsensusMap* consensus_map_;
-    ConsensusFeature act_cons_element_;
-    DPosition<2> pos_;
-    double it_;
-    //@}
-
-    /// Pointer to last read object as a MetaInfoInterface, or null.
-    MetaInfoInterface* last_meta_;
-    /// Temporary protein ProteinIdentification
-    ProteinIdentification prot_id_;
-    /// Temporary peptide ProteinIdentification
-    PeptideIdentification pep_id_;
-    /// Temporary protein hit
-    ProteinHit prot_hit_;
-    /// Temporary peptide hit
-    PeptideHit pep_hit_;
-    /// Temporary peptide evidences
-    std::vector<PeptideEvidence> peptide_evidences_;
-    /// Map from protein id to accession
-    Map<String, String> proteinid_to_accession_;
-    /// Map from search identifier concatenated with protein accession to id
-    Map<String, Size> accession_to_id_;
-    /// Map from identification run identifier to file xs:id (for linking peptide identifications to the corresponding run)
-    Map<String, String> identifier_id_;
-    /// Map from file xs:id to identification run identifier (for linking peptide identifications to the corresponding run)
-    Map<String, String> id_identifier_;
-    /// Temporary search parameters file
-    ProteinIdentification::SearchParameters search_param_;
-
-    UInt progress_;
-
   };
 } // namespace OpenMS
-
 

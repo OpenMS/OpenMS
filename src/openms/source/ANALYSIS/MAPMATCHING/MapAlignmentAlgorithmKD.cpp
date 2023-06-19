@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -108,12 +108,17 @@ void MapAlignmentAlgorithmKD::fitLOWESS()
   for (Size i = 0; i < num_maps; ++i)
   {
     Size n = fit_data_[i].size();
+    const Param& lowess_param = param_.copy("LOWESS:", true);
     if (n < 50)
     {
-      LOG_WARN << "Warning: Only " << n << " data points for LOWESS fit of map " << i << ". Consider adjusting RT or m/z tolerance or max_pairwise_log_fc, decreasing min_rel_cc_size, or increasing max_nr_conflicts." << endl;
+      OPENMS_LOG_WARN << "Warning: Only " << n << " data points for LOWESS fit of map " << i << ". Consider adjusting RT or m/z tolerance or max_pairwise_log_fc, decreasing min_rel_cc_size, or increasing max_nr_conflicts." << endl;
+      TransformationModel::DataPoints identity = {{0,0}, {1,1}, {1e6,1e6}};
+      transformations_[i] = new TransformationModelLowess(identity, lowess_param);
     }
-    const Param& lowess_param = param_.copy("LOWESS:", true);
-    transformations_[i] = new TransformationModelLowess(fit_data_[i], lowess_param);
+    else
+    {
+      transformations_[i] = new TransformationModelLowess(fit_data_[i], lowess_param);
+    }
   }
 }
 
@@ -265,7 +270,7 @@ void MapAlignmentAlgorithmKD::filterCCs_(const KDTreeFeatureMaps& kd_data, const
 
 void MapAlignmentAlgorithmKD::updateMembers_()
 {
-  if (param_ == Param()) return;
+  if (param_.empty()) return;
 
   rt_tol_secs_ = (double)(param_.getValue("warp:rt_tol"));
   mz_tol_ = (double)(param_.getValue("warp:mz_tol"));

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -306,7 +306,7 @@ START_SECTION(([QcMLFile::QualityParameter] bool operator==(const QualityParamet
   qp1.name = "somename"; ///< Name
   
   QcMLFile::QualityParameter qp2 = QcMLFile::QualityParameter(qp1);
-  TEST_EQUAL(qp1==qp2, true)
+  TEST_TRUE(qp1 == qp2)
 }
 END_SECTION
 

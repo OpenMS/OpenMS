@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -34,7 +34,10 @@
 //
 
 #include <OpenMS/CHEMISTRY/DigestionEnzyme.h>
+#include <OpenMS/CONCEPT/Exception.h>
+
 #include <iostream>
+#include <utility>
 
 using namespace std;
 
@@ -48,14 +51,6 @@ namespace OpenMS
   {
   }
 
-  DigestionEnzyme::DigestionEnzyme(const DigestionEnzyme& enzyme) :
-    name_(enzyme.name_),
-    cleavage_regex_(enzyme.cleavage_regex_),
-    synonyms_(enzyme.synonyms_),
-    regex_description_(enzyme.regex_description_)
-  {
-  }
-
   DigestionEnzyme::DigestionEnzyme(const String& name,
                                    const String& cleavage_regex,
                                    const std::set<String>& synonyms,
@@ -63,32 +58,70 @@ namespace OpenMS
     name_(name),
     cleavage_regex_(cleavage_regex),
     synonyms_(synonyms),
-    regex_description_(regex_description)
+    regex_description_(std::move(regex_description))
   {
   }
 
-  DigestionEnzyme::~DigestionEnzyme()
+  DigestionEnzyme::DigestionEnzyme(const String& name,
+                                   String cut_before,
+                                   const String& nocut_after,
+                                   String sense,
+                                   const std::set<String>& synonyms,
+                                   String regex_description) :
+      name_(name),
+      synonyms_(synonyms),
+      regex_description_(std::move(regex_description))
   {
-  }
-
-  DigestionEnzyme& DigestionEnzyme::operator=(const DigestionEnzyme& enzyme)
-  {
-    if (this != &enzyme)
+    //TODO check if all letters are A-Z?
+    if (cut_before.empty())
     {
-      name_ = enzyme.name_;
-      cleavage_regex_ = enzyme.cleavage_regex_;
-      synonyms_ = enzyme.synonyms_;
-      regex_description_ = enzyme.regex_description_;
+      //Maybe assertion?
+      throw Exception::MissingInformation(
+          __FILE__,
+          __LINE__,
+          OPENMS_PRETTY_FUNCTION,
+          "No cleavage position given when trying to construct a DigestionEnzyme.");
     }
-    return *this;
+    else if (!cut_before.hasSuffix("X"))
+    {
+      //TODO think about this
+      cut_before = cut_before + "X";
+    }
+    cleavage_regex_ = "";
+    if (sense.toLower() == "c")
+    {
+      cleavage_regex_ += "(?<=[" + cut_before + "]";
+      if (!nocut_after.empty())
+      {
+        cleavage_regex_ += "(?!" + nocut_after + "])";
+      }
+    }
+    else if (sense.toLower() == "n")
+    {
+      if (!nocut_after.empty())
+      {
+        cleavage_regex_ += "(?<![" + nocut_after + "])";
+      }
+      cleavage_regex_ += "(?=[" + cut_before + "]";
+    }
+    else
+    {
+      throw Exception::MissingInformation(
+          __FILE__,
+          __LINE__,
+          OPENMS_PRETTY_FUNCTION,
+          "Cannot infer cleavage sense when constructing DigestionEnzyme. Has to be N or C.");
+    }
   }
+
+  DigestionEnzyme::~DigestionEnzyme() = default;
 
   void DigestionEnzyme::setName(const String& name)
   {
     name_ = name;
   }
 
-  String DigestionEnzyme::getName() const
+  const String& DigestionEnzyme::getName() const
   {
     return name_;
   }
@@ -113,7 +146,7 @@ namespace OpenMS
     cleavage_regex_ = cleavage_regex;
   }
 
-  String DigestionEnzyme::getRegEx() const
+  const String& DigestionEnzyme::getRegEx() const
   {
     return cleavage_regex_;
   }
@@ -123,7 +156,7 @@ namespace OpenMS
     regex_description_ = value;
   }
 
-  String DigestionEnzyme::getRegExDescription() const
+  const String& DigestionEnzyme::getRegExDescription() const
   {
     return regex_description_;
   }
@@ -159,25 +192,25 @@ namespace OpenMS
   bool DigestionEnzyme::setValueFromFile(const String& key, const String& value)
   {
     if (key.hasSuffix(":Name"))
-  {
+    {
       setName(value);
       return true;
-  }
+    }
     if (key.hasSuffix(":RegEx"))
-  {
+    {
       setRegEx(value);
       return true;
-  }
+    }
     if (key.hasSuffix(":RegExDescription"))
-  {
+    {
       setRegExDescription(value);
       return true;
-  }
+    }
     if (key.hasSubstring(":Synonyms:"))
-  {
+    {
       addSynonym(value);
       return true;
-  }
+    }
     return false;
   }
 
@@ -189,3 +222,4 @@ namespace OpenMS
   }
 
 }
+

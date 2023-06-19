@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -39,6 +39,7 @@
 #include <OpenMS/ANALYSIS/TARGETED/TargetedExperiment.h>
 #include <OpenMS/OPENSWATHALGO/DATAACCESS/TransitionExperiment.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/MRMFeatureFinderScoring.h>
+#include <OpenMS/CONCEPT/LogStream.h>
 
 namespace OpenMS
 {
@@ -124,6 +125,16 @@ public:
                                        OpenSwath::LightTargetedExperiment& selected_transitions,
                                        double min_upper_edge_dist,
                                        double lower, double upper);
+    /**
+     @brief Match transitions with their "best" window across m/z and ion mobility, save results in a vector.
+
+     @param[in] transition_exp Transition list for selection
+     @param[out] selected SWATH to extract transition from
+     @param[in] min_upper_edge_dist Distance in Th to the upper edge
+     @param[in] swath_maps vector of SwathMap objects defining mz and im bounds
+    */
+    static void selectSwathTransitionsPasef(const OpenSwath::LightTargetedExperiment& transition_exp, std::vector<int>& tr_win_map,
+		                     double min_upper_edge_dist, const std::vector< OpenSwath::SwathMap > & swath_maps);
 
     /**
       @brief Get the lower / upper offset for this SWATH map and do some sanity checks
@@ -143,7 +154,7 @@ public:
       @throw throws IllegalArgument exception if the sanity checks fail.
     */
     static void checkSwathMap(const OpenMS::PeakMap& swath_map,
-                              double& lower, double& upper);
+                              double& lower, double& upper, double& center);
 
     /**
       @brief Check the map and select transition in one function
@@ -162,7 +173,7 @@ public:
                                                   TargetedExperimentT& selected_transitions,
                                                   double min_upper_edge_dist)
     {
-      if (exp.size() == 0 || exp[0].getPrecursors().size() == 0)
+      if (exp.empty() || exp[0].getPrecursors().empty())
       {
         std::cerr << "WARNING: File " << exp.getLoadedFilePath()
                   << " does not have any experiments or any precursors. Is it a SWATH map? "
@@ -170,8 +181,8 @@ public:
                   << std::endl;
         return false;
       }
-      double upper, lower;
-      OpenSwathHelper::checkSwathMap(exp, lower, upper);
+      double upper, lower, center;
+      OpenSwathHelper::checkSwathMap(exp, lower, upper, center);
       OpenSwathHelper::selectSwathTransitions(targeted_exp, selected_transitions, min_upper_edge_dist, lower, upper);
       if (selected_transitions.getTransitions().size() == 0)
       {

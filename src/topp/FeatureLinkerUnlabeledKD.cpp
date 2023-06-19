@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -83,6 +83,18 @@ using namespace std;
  retention time differences between corresponding features across different
  maps. These transformed RTs are used only internally. In the results, original
  RTs will be reported.
+
+ The linking behavior can be influenced by separately specifying how to use
+ the available charge and adduct information.  Options  allow to restrict
+ linking to features with the same adduct/charge (or lack thereof, i.e.
+ features with charge zero or no adduct annotation), additionally allowing
+ the linking of charged/adduct-annotated features with those having no
+ charge/adduct information, or allowing all features to be linked irrespective
+ of charge state/adduct information.
+ 
+ Note that the more relaxed the allowed grouping criteria, the larger internally
+ used connected components memory-wise. More stringent m/z or retention time
+ tolerances might be required then.
 
  <B>The command line parameters of this tool are:</B>
  @verbinclude TOPP_FeatureLinkerUnlabeledKD.cli

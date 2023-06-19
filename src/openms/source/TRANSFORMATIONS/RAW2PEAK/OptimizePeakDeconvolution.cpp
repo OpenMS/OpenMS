@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -34,8 +34,10 @@
 //
 
 #include <OpenMS/TRANSFORMATIONS/RAW2PEAK/OptimizePeakDeconvolution.h>
-#include <boost/math/special_functions/acosh.hpp>
 
+#include <unsupported/Eigen/NonLinearOptimization>
+#include <Eigen/Core>
+#include <boost/math/special_functions/acosh.hpp>
 
 #ifdef DEBUG_DECONV
 #include <iostream>
@@ -58,7 +60,7 @@ namespace OpenMS
       m_inputs(dimensions), m_values(numDataPoints), m_data(data)
     {}
 
-    int operator()(const Eigen::VectorXd& x, Eigen::VectorXd& fvec)
+    int operator()(const Eigen::VectorXd& x, Eigen::VectorXd& fvec) const
     {
       //TODO: holding the parameters to be optimized and additional values in the same vector is
       //      most likely not the best idea. should be split in two vectors.
@@ -151,13 +153,17 @@ namespace OpenMS
           penalty += penalty_lwidth * peaks.size() * 10000 * pow(fabs(p_width_l - old_width_l), 2);
         }
         else if (p_width_l < 1.5)
+        {
           penalty += 10000 * pow(fabs(p_width_l - old_width_l), 2);
+        }
         if (p_width_r < 0)
         {
           penalty += penalty_rwidth * peaks.size() * 10000 * pow(fabs(p_width_r - old_width_r), 2);
         }
         else if (p_width_r < 1.5)
+        {
           penalty += 10000 * pow(fabs(p_width_r - old_width_r), 2);
+        }
         if (fabs(old_position - p_position) > 0.1)
         {
           penalty += 10000* penalty_pos* pow(fabs(old_position - p_position), 2);
@@ -169,7 +175,7 @@ namespace OpenMS
     }
 
     // compute Jacobian matrix for the different parameters
-    int df(const Eigen::VectorXd& x, Eigen::MatrixXd& J)
+    int df(const Eigen::VectorXd& x, Eigen::MatrixXd& J) const
     {
       // For the conventions on x and params c.f. the commentary in residual()
       //
@@ -297,13 +303,17 @@ namespace OpenMS
           penalty_l += peaks.size() * 2 * penalties.lWidth * 10000 * (fabs(p_width_left - old_width_left));
         }
         else if (p_width_left < 1.5)
+        {
           penalty_l += 2 * penalties.lWidth * 10000 * pow(fabs(p_width_left - old_width_left), 2);
+        }
         if (p_width_right < 0)
         {
           penalty_r += peaks.size() * 2 * penalties.rWidth * 10000 * (fabs(p_width_right - old_width_right));
         }
         else if (p_width_right < 1.5)
+        {
           penalty_r += 2 * penalties.rWidth * 10000 * pow(fabs(p_width_right - old_width_right), 2);
+        }
         if (fabs(old_position - p_position) > 0.1)
         {
           penalty_p += 10000 * penalties.pos * 2 * fabs(old_position - p_position);
@@ -317,7 +327,9 @@ namespace OpenMS
       for (int i = 0; i < J.rows(); ++i)
       {
         for (int j = 0; j < J.cols(); ++j)
+        {
           std::cout << J(i, j) << " ";
+        }
         std::cout << std::endl;
       }
       std::cout << std::endl;
@@ -335,8 +347,8 @@ namespace OpenMS
   {
 
     defaults_.setValue("max_iteration", 10, "maximal number of iterations for the fitting step");
-    defaults_.setValue("eps_abs", 1e-04, "if the absolute error gets smaller than this value the fitting is stopped", ListUtils::create<String>("advanced"));
-    defaults_.setValue("eps_rel", 1e-04, "if the relative error gets smaller than this value the fitting is stopped", ListUtils::create<String>("advanced"));
+    defaults_.setValue("eps_abs", 1e-04, "if the absolute error gets smaller than this value the fitting is stopped", {"advanced"});
+    defaults_.setValue("eps_rel", 1e-04, "if the relative error gets smaller than this value the fitting is stopped", {"advanced"});
 
     defaults_.setValue("penalties:left_width", 0.0, "penalty term for the fitting of the left width:" \
                                                     "If the left width gets too broad or negative during the fitting it can be penalized.");
@@ -366,8 +378,9 @@ namespace OpenMS
   {
 
     if (peaks.empty())
+    {
       return true;
-
+    }
 
 #ifdef DEBUG_DECONV
     std::cout << "peaksanzahl:" << peaks.size();
@@ -423,7 +436,7 @@ namespace OpenMS
       // all peaks shall have the same width
       double wl = data.peaks[0].left_width;
       double wr = data.peaks[0].right_width;
-      if (boost::math::isnan(wl))
+      if (std::isnan(wl))
       {
         for (Size i = 0; i < data.peaks.size(); ++i)
         {
@@ -431,7 +444,7 @@ namespace OpenMS
         }
         wl = 1.;
       }
-      if (boost::math::isnan(wr))
+      if (std::isnan(wr))
       {
         for (Size i = 0; i < data.peaks.size(); ++i)
         {
@@ -505,8 +518,8 @@ namespace OpenMS
         else                   //It's a Sech - Peak
         {
           PeakShape p = peaks[current_peak];
-          double x_left_endpoint = p.mz_position + 1 / p.left_width * boost::math::acosh(sqrt(p.height / 0.001));
-          double x_right_endpoint = p.mz_position + 1 / p.right_width * boost::math::acosh(sqrt(p.height / 0.001));
+          double x_left_endpoint = p.mz_position + 1 / p.left_width * std::acosh(sqrt(p.height / 0.001));
+          double x_right_endpoint = p.mz_position + 1 / p.right_width * std::acosh(sqrt(p.height / 0.001));
 #ifdef DEBUG_DECONV
           std::cout << "x_left_endpoint " << x_left_endpoint << " x_right_endpoint " << x_right_endpoint << std::endl;
           std::cout << "p.height" << p.height << std::endl;

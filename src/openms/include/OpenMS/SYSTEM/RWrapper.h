@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -68,7 +68,7 @@ public:
       An exception will be thrown if the file cannot be found.
 
       @param script_file Name of the R script
-      @param verbose Print error message to LOG_ERROR upon FileNotFound
+      @param verbose Print error message to OPENMS_LOG_ERROR upon FileNotFound
       @return Full filename with absolute path
       @throw Exception::FileNotFound
     */
@@ -77,6 +77,7 @@ public:
     /**
       @brief Check for presence of 'Rscript'.
 
+      @param executable Name of the R interpreter
       @param verbose Print failure information?
       @return Success status
     */
@@ -89,7 +90,7 @@ public:
       The following checks are done before running the script:
          1) [optional] 'Rscript' executable is searched (see findR() -- set @p find_R to true)
          2) The script_file is searched in 'OpenMS/share/SCRIPTS' (see findScript()).
-         3) The script is run as $ Rscript <path/to/script> <arg1> <arg2> ...
+         3) The script is run as $ Rscript &lt;path/to/script&gt; &lt;arg1&gt; &lt;arg2&gt; ...
       
       If any of the above steps fail, an error message is printed and false is returned.
 
@@ -98,10 +99,10 @@ public:
 
       @param script_file Filename of the R script
       @param cmd_args Command line arguments to the script
+      @param executable Name of the R interpreter
       @param find_R Run findR()? May be skipped if runScript() is run repeatedly
       @param verbose Print status information; also passed internally to findR() and findScript().
       @return Success status
-
     */
     static bool runScript(const String& script_file, const QStringList& cmd_args, const QString& executable = QString("Rscript"), bool find_R = false, bool verbose = true);
 

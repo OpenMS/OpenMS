@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -75,7 +75,7 @@ START_SECTION((IsobaricChannelExtractor(const IsobaricChannelExtractor &other)))
 {
   IsobaricChannelExtractor ice(q_method);
   Param p = ice.getParameters();
-  p.setValue("select_activation", "");
+  p.setValue("select_activation", "any");
 
   ice.setParameters(p);
 
@@ -118,7 +118,7 @@ START_SECTION((void extractChannels(const PeakMap&ms_exp_data, ConsensusMap & co
 
     // disable activation filtering
     Param p = ice.getParameters();
-    p.setValue("select_activation", "");
+    p.setValue("select_activation", "any");
     ice.setParameters(p);
 
     // extract channels
@@ -256,7 +256,7 @@ START_SECTION((void extractChannels(const PeakMap&ms_exp_data, ConsensusMap & co
 
     // disable activation filtering
     Param p = ice.getParameters();
-    p.setValue("select_activation", "");
+    p.setValue("select_activation", "any");
     p.setValue("keep_unannotated_precursor", "false");
     ice.setParameters(p);
 
@@ -295,7 +295,7 @@ START_SECTION((void extractChannels(const PeakMap&ms_exp_data, ConsensusMap & co
 
     // disable activation filtering
     Param p = ice.getParameters();
-    p.setValue("select_activation", "");
+    p.setValue("select_activation", "any");
     p.setValue("min_precursor_intensity", 5300000.0);
     ice.setParameters(p);
 
@@ -329,7 +329,7 @@ START_SECTION((void extractChannels(const PeakMap&ms_exp_data, ConsensusMap & co
 
     // disable activation filtering
     Param p = ice.getParameters();
-    p.setValue("select_activation", "");
+    p.setValue("select_activation", "any");
     p.setValue("min_reporter_intensity", 200000.0);
     ice.setParameters(p);
 
@@ -414,7 +414,7 @@ START_SECTION((void extractChannels(const PeakMap&ms_exp_data, ConsensusMap & co
 
     // disable activation filtering
     Param p = ice.getParameters();
-    p.setValue("select_activation", "");
+    p.setValue("select_activation", "any");
     p.setValue("min_reporter_intensity", 200000.0);
     p.setValue("discard_low_intensity_quantifications", "true");
     ice.setParameters(p);
@@ -480,7 +480,7 @@ START_SECTION((void extractChannels(const PeakMap&ms_exp_data, ConsensusMap & co
 
     // disable activation filtering
     Param p = ice.getParameters();
-    p.setValue("select_activation", "");
+    p.setValue("select_activation", "any");
     ice.setParameters(p);
 
     // extract channels
@@ -536,7 +536,7 @@ START_SECTION(([EXTRA] purity computation without interpolation))
 
   // disable activation filtering
   Param p = ice.getParameters();
-  p.setValue("select_activation", "");
+  p.setValue("select_activation", "any");
   p.setValue("purity_interpolation", "false");
 
   ice.setParameters(p);

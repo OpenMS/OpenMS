@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<featureMap version="1.7" id="fm_6995089216872835842" xsi:noNamespaceSchemaLocation="http://open-ms.sourceforge.net/schemas/FeatureXML_1_7.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+	<featureList count="6">
+		<feature id="f_1110">
+			<position dim="0">1000</position>
+			<position dim="1">1001.007276</position>
+			<intensity>100</intensity>
+			<quality dim="0">1</quality>
+			<quality dim="1">1</quality>
+			<overallquality>1</overallquality>
+			<charge>1</charge>
+			<userParam type="string" name="label" value="M+H, perfect"/>
+		</feature>
+		<feature id="f_1111">
+			<position dim="0">1000</position>
+			<position dim="1">501.007276</position>
+			<intensity>100</intensity>
+			<quality dim="0">1</quality>
+			<quality dim="1">1</quality>
+			<overallquality>1</overallquality>
+			<charge>2</charge>
+			<userParam type="string" name="label" value="M+2H, perfect"/>
+		</feature>
+		<feature id="f_2110">
+			<position dim="0">2000</position>
+			<position dim="1">1001.057276</position>
+			<intensity>100</intensity>
+			<quality dim="0">1</quality>
+			<quality dim="1">1</quality>
+			<overallquality>1</overallquality>
+			<charge>1</charge>
+			<userParam type="string" name="label" value="M+H. Up Error lower 50 ppm"/>
+		</feature>
+		<feature id="f_2111">
+			<position dim="0">2000</position>
+			<position dim="1">500.982226</position>
+			<intensity>100</intensity>
+			<quality dim="0">1</quality>
+			<quality dim="1">1</quality>
+			<overallquality>1</overallquality>
+			<charge>2</charge>
+			<userParam type="string" name="label" value="M+2H. Down Error lower 50 ppm"/>
+		</feature>
+		<feature id="f_3110">
+			<position dim="0">3000</position>
+			<position dim="1">1001.06</position>
+			<intensity>100</intensity>
+			<quality dim="0">1</quality>
+			<quality dim="1">1</quality>
+			<overallquality>1</overallquality>
+			<charge>1</charge>
+			<userParam type="string" name="label" value="M+H. Up Error larger 50 ppm"/>
+		</feature>
+		<feature id="f_3111">
+			<position dim="0">3000</position>
+			<position dim="1">500.98</position>
+			<intensity>100</intensity>
+			<quality dim="0">1</quality>
+			<quality dim="1">1</quality>
+			<overallquality>1</overallquality>
+			<charge>2</charge>
+			<userParam type="string" name="label" value="M+2H. Down Error larger 50 ppm"/>
+		</feature>
+	</featureList>
+</featureMap>

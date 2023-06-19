@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -36,6 +36,7 @@
 
 #include <OpenMS/OpenMSConfig.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/METADATA/MetaInfoInterface.h>
 
 #include <algorithm>
 #include <map>
@@ -43,6 +44,17 @@
 
 namespace OpenMS
 {
+  namespace Detail
+  {
+    template<typename T>
+    struct MetaKeyGetter
+    {
+      static void getKeys(const T& object, std::vector<String>& keys)
+      {
+        object.getKeys(keys);
+      };
+    };
+  }
 
   /**
     @brief Utilities operating on containers inheriting from MetaInfoInterface
@@ -52,7 +64,13 @@ namespace OpenMS
   class /*OPENMS_DLLAPI -- disabled since it's template code only */ MetaInfoInterfaceUtils
   {
 public:
-    
+    /// hide c'tors to avoid instantiation of utils class
+    MetaInfoInterfaceUtils() = delete;
+    MetaInfoInterfaceUtils(const MetaInfoInterfaceUtils&) = delete;
+    MetaInfoInterfaceUtils& operator=(MetaInfoInterfaceUtils&) = delete;
+    // no Move semantics for utils class
+
+
     ///@name Methods to find key sets
     //@{
     /**
@@ -71,40 +89,34 @@ public:
       @return Returns a vector/list/set of keys passing the frequency criterion.
     */
     template<typename T_In, typename T_Out>
-    static T_Out findCommonMetaKeys(const typename T_In::const_iterator& it_start, const typename T_In::const_iterator& it_end, float min_frequency)
+    static T_Out findCommonMetaKeys(const typename T_In::const_iterator& it_start, const typename T_In::const_iterator& it_end, float min_frequency, typename Detail::MetaKeyGetter<typename T_In::value_type> getter = Detail::MetaKeyGetter<typename T_In::value_type>())
     {
       // make sure min_frequency is within [0,100]
-      min_frequency = std::min((float)100.0, std::max((float)0.0, min_frequency));
+      min_frequency = std::min(100.0f, std::max(0.0f, min_frequency));
 
-      std::map<String, uint> counter;
+      std::map<String, UInt> counter;
       typedef std::vector<String> KeysType;
       KeysType keys;
       for (typename T_In::const_iterator it = it_start; it != it_end; ++it)
       {
-        it->getKeys(keys);
+        getter.getKeys(*it, keys);
         for (KeysType::const_iterator itk = keys.begin(); itk != keys.end(); ++itk)
         {
           ++counter[*itk];
         }
       }
       // pick the keys which occur often enough
-      const uint required_counts = uint(min_frequency / 100.0 * std::distance(it_start, it_end));
+      const UInt required_counts = UInt(min_frequency / 100.0 * std::distance(it_start, it_end));
       T_Out common_keys;
-      for (std::map<String, uint>::const_iterator it = counter.begin(); it != counter.end(); ++it)
+      for (const auto& [key, count] : counter)
       {
-        if (it->second >= required_counts) 
+        if (count >= required_counts) 
         {
-          common_keys.insert(common_keys.end(), it->first);
+          common_keys.insert(common_keys.end(), key);
         }
       }
       return common_keys;
     }
-
-private:
-    /// hide c'tors to avoid instantiation of utils class
-    MetaInfoInterfaceUtils();
-    MetaInfoInterfaceUtils(const MetaInfoInterfaceUtils&);
-    MetaInfoInterfaceUtils& operator=(MetaInfoInterfaceUtils&);
   
   }; // class
 

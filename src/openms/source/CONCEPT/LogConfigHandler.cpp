@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -65,28 +65,15 @@ namespace OpenMS
     stream_type_map_ = other.stream_type_map_;
   }
 
-  LogConfigHandler::~LogConfigHandler()
-  {
-  }
+  LogConfigHandler::~LogConfigHandler() = default;
 
-  LogConfigHandler & LogConfigHandler::operator=(const LogConfigHandler & source)
-  {
-    debug_streams_ = source.debug_streams_;
-    info_streams_ = source.info_streams_;
-    warn_streams_ = source.warn_streams_;
-    error_streams_ = source.error_streams_;
-    fatal_streams_ = source.fatal_streams_;
-
-    stream_type_map_ = source.stream_type_map_;
-
-    return *this;
-  }
+  LogConfigHandler & LogConfigHandler::operator=(const LogConfigHandler & source) = default;
 
   Param LogConfigHandler::parse(const StringList & settings)
   {
     Param p;
     String suffix = " FILE";
-    StringList commands;
+    std::vector<std::string> commands;
     for (StringList::const_iterator iter = settings.begin(); iter != settings.end(); ++iter)
     {
       // split by " " to get all keywords
@@ -112,7 +99,7 @@ namespace OpenMS
 
   void LogConfigHandler::configure(const Param & param)
   {
-    StringList configurations = param.getValue(LogConfigHandler::PARAM_NAME);
+    StringList configurations = ListUtils::toStringList<std::string>(param.getValue(LogConfigHandler::PARAM_NAME));
 
     for (StringList::const_iterator iter = configurations.begin(); iter != configurations.end(); ++iter)
     {
@@ -253,29 +240,39 @@ namespace OpenMS
     }
   }
 
+  void LogConfigHandler::setLogLevel(const String & log_level)
+  {
+    std::vector<String> lvls = {"DEBUG", "INFO", "WARNING", "ERROR", "FATAL_ERROR"};
+    for (const auto& lvl : lvls)
+    {
+      if (lvl == log_level) break;
+      getLogStreamByName_(lvl).removeAllStreams();
+    }
+  }
+
   Logger::LogStream & LogConfigHandler::getLogStreamByName_(const String & stream_name)
   {
-    Logger::LogStream * log = &Log_debug; // default
+    Logger::LogStream * log = &OpenMS_Log_debug; // default
 
     if (stream_name == "DEBUG")
     {
-      log = &Log_debug;
+      log = &OpenMS_Log_debug;
     }
     else if (stream_name == "INFO")
     {
-      log = &Log_info;
+      log = &OpenMS_Log_info;
     }
     else if (stream_name == "WARNING")
     {
-      log = &Log_warn;
+      log = &OpenMS_Log_warn;
     }
     else if (stream_name == "ERROR")
     {
-      log = &Log_error;
+      log = &OpenMS_Log_error;
     }
     else if (stream_name == "FATAL_ERROR")
     {
-      log = &Log_fatal;
+      log = &OpenMS_Log_fatal;
     }
     else
     {
@@ -377,24 +374,24 @@ namespace OpenMS
   std::ostream & operator<<(std::ostream & os, LogConfigHandler const & lch)
   {
 
-    printStreamConfig_(os, "LOG_DEBUG", lch.debug_streams_, lch.stream_type_map_);
-    printStreamConfig_(os, "LOG_INFO", lch.info_streams_, lch.stream_type_map_);
-    printStreamConfig_(os, "LOG_WARNING", lch.warn_streams_, lch.stream_type_map_);
-    printStreamConfig_(os, "LOG_ERROR", lch.error_streams_, lch.stream_type_map_);
-    printStreamConfig_(os, "LOG_FATAL_ERROR", lch.fatal_streams_, lch.stream_type_map_);
+    printStreamConfig_(os, "OPENMS_LOG_DEBUG", lch.debug_streams_, lch.stream_type_map_);
+    printStreamConfig_(os, "OPENMS_LOG_INFO", lch.info_streams_, lch.stream_type_map_);
+    printStreamConfig_(os, "OPENMS_LOG_WARN", lch.warn_streams_, lch.stream_type_map_);
+    printStreamConfig_(os, "OPENMS_LOG_ERROR", lch.error_streams_, lch.stream_type_map_);
+    printStreamConfig_(os, "OPENMS_LOG_FATAL_ERROR", lch.fatal_streams_, lch.stream_type_map_);
 
     return os;
   }
 
   LogConfigHandler * LogConfigHandler::instance_ = nullptr;
 
-  LogConfigHandler & LogConfigHandler::getInstance()
+  LogConfigHandler * LogConfigHandler::getInstance()
   {
     if (LogConfigHandler::instance_ == nullptr)
     {
       LogConfigHandler::instance_ = new LogConfigHandler();
     }
-    return *LogConfigHandler::instance_;
+    return LogConfigHandler::instance_;
   }
 
 } // end namespace OpenMS

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -50,11 +50,12 @@ START_TEST(IdXMLFile, "$Id$")
 using namespace OpenMS;
 using namespace std;
 
-IdXMLFile* ptr = nullptr;
-IdXMLFile* nullPointer = nullptr;
 START_SECTION((IdXMLFile()))
+  IdXMLFile* ptr = nullptr;
+  IdXMLFile* nullPointer = nullptr;
   ptr = new IdXMLFile();
   TEST_NOT_EQUAL(ptr,nullPointer)
+  delete ptr;
 END_SECTION
 
 START_SECTION(void load(const String& filename, std::vector<ProteinIdentification>& protein_ids, std::vector<PeptideIdentification>& peptide_ids) )
@@ -84,10 +85,10 @@ START_SECTION(void load(const String& filename, std::vector<ProteinIdentificatio
   TEST_EQUAL(protein_ids[0].getSearchEngineVersion(),"2.1.0")
   TEST_EQUAL(protein_ids[0].getDateTime().getDate(),"2006-01-12")
   TEST_EQUAL(protein_ids[0].getDateTime().getTime(),"12:13:14")
-  TEST_EQUAL(protein_ids[0].getIdentifier(),"Mascot_2006-01-12T12:13:14")
+  TEST_EQUAL(protein_ids[0].getIdentifier().hasPrefix("Mascot_2006-01-12T12:13:14"), true)
   TEST_EQUAL(protein_ids[0].getSearchParameters().db,"MSDB")
   TEST_EQUAL(protein_ids[0].getSearchParameters().db_version,"1.0")
-  TEST_EQUAL(protein_ids[0].getSearchParameters().charges,"+1, +2")
+  TEST_EQUAL(protein_ids[0].getSearchParameters().charges,"1, 2")
   TEST_EQUAL(protein_ids[0].getSearchParameters().mass_type,ProteinIdentification::AVERAGE)
   TEST_REAL_SIMILAR(protein_ids[0].getSearchParameters().fragment_mass_tolerance,0.3)
   TEST_REAL_SIMILAR(protein_ids[0].getSearchParameters().precursor_mass_tolerance,1.0)
@@ -121,7 +122,7 @@ START_SECTION(void load(const String& filename, std::vector<ProteinIdentificatio
   //peptide id 1
   TEST_EQUAL(peptide_ids[0].getScoreType(),"MOWSE")
   TEST_EQUAL(peptide_ids[0].isHigherScoreBetter(),false)
-  TEST_EQUAL(peptide_ids[0].getIdentifier(),"Mascot_2006-01-12T12:13:14")
+  TEST_EQUAL(peptide_ids[0].getIdentifier().hasPrefix("Mascot_2006-01-12T12:13:14"), true)
   TEST_REAL_SIMILAR(peptide_ids[0].getMZ(),675.9)
   TEST_REAL_SIMILAR(peptide_ids[0].getRT(),1234.5)
   TEST_EQUAL((peptide_ids[0].getMetaValue("spectrum_reference")),"17")
@@ -147,7 +148,7 @@ START_SECTION(void load(const String& filename, std::vector<ProteinIdentificatio
   //peptide id 2
   TEST_EQUAL(peptide_ids[1].getScoreType(),"MOWSE")
   TEST_EQUAL(peptide_ids[1].isHigherScoreBetter(),true)
-  TEST_EQUAL(peptide_ids[1].getIdentifier(),"Mascot_2006-01-12T12:13:14")
+  TEST_EQUAL(peptide_ids[1].getIdentifier().hasPrefix("Mascot_2006-01-12T12:13:14"), true)
   TEST_EQUAL(peptide_ids[1].getHits().size(),2)
   //peptide hit 1
   TEST_REAL_SIMILAR(peptide_ids[1].getHits()[0].getScore(),44.4)
@@ -169,10 +170,10 @@ START_SECTION(void load(const String& filename, std::vector<ProteinIdentificatio
   TEST_EQUAL(protein_ids[1].getSearchEngineVersion(),"2.1.1")
   TEST_EQUAL(protein_ids[1].getDateTime().getDate(),"2007-01-12")
   TEST_EQUAL(protein_ids[1].getDateTime().getTime(),"12:13:14")
-  TEST_EQUAL(protein_ids[1].getIdentifier(),"Mascot_2007-01-12T12:13:14")
+  TEST_EQUAL(protein_ids[1].getIdentifier().hasPrefix("Mascot_2007-01-12T12:13:14"), true)
   TEST_EQUAL(protein_ids[1].getSearchParameters().db,"MSDB")
   TEST_EQUAL(protein_ids[1].getSearchParameters().db_version,"1.1")
-  TEST_EQUAL(protein_ids[1].getSearchParameters().charges,"+1, +2, +3")
+  TEST_EQUAL(protein_ids[1].getSearchParameters().charges,"1, 2, 3")
   TEST_EQUAL(protein_ids[1].getSearchParameters().mass_type,ProteinIdentification::MONOISOTOPIC)
   TEST_REAL_SIMILAR(protein_ids[1].getSearchParameters().fragment_mass_tolerance,0.3)
   TEST_REAL_SIMILAR(protein_ids[1].getSearchParameters().precursor_mass_tolerance,1.0)
@@ -190,7 +191,7 @@ START_SECTION(void load(const String& filename, std::vector<ProteinIdentificatio
   //peptide id 3
   TEST_EQUAL(peptide_ids[2].getScoreType(),"MOWSE")
   TEST_EQUAL(peptide_ids[2].isHigherScoreBetter(),true)
-  TEST_EQUAL(peptide_ids[2].getIdentifier(),"Mascot_2007-01-12T12:13:14")
+  TEST_EQUAL(peptide_ids[2].getIdentifier().hasPrefix("Mascot_2007-01-12T12:13:14"), true)
   TEST_EQUAL(peptide_ids[2].getHits().size(),1)
   //peptide hit 1
   TEST_REAL_SIMILAR(peptide_ids[2].getHits()[0].getScore(),1.4)
@@ -268,8 +269,15 @@ START_SECTION(([EXTRA] No protein identification bug))
   vector<PeptideIdentification> peptide_ids2;
   id_xmlfile.load(filename, protein_ids2, peptide_ids2);
 
-  TEST_EQUAL(protein_ids == protein_ids2, true)
-  TEST_EQUAL(peptide_ids == peptide_ids2, true)
+  // identifiers contain a random number when loaded to avoid ambiguities when merging ProtIDs; make them equal for our purposes here
+  protein_ids2[0].setIdentifier(protein_ids[0].getIdentifier());
+  for (auto& pep : peptide_ids2)
+  {
+    pep.setIdentifier(peptide_ids[0].getIdentifier());
+  }
+
+  TEST_TRUE(protein_ids == protein_ids2)
+  TEST_TRUE(peptide_ids == peptide_ids2)
 
 END_SECTION
 

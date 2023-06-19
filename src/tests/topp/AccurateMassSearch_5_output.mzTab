@@ -1,0 +1,38 @@
+MTD	mzTab-version	2.0.0-M
+MTD	mzTab-ID	local_id: 14128832103716313886
+MTD	software[1]	[MS, MS:1001456, analysis software, 2.6.0-pre-idf-ams-2021-10-07]
+MTD	software[2]	[MS, MS:1002169, TOPP FeatureFinderMetabo, 2.4.0-nightly-2019-07-17]
+MTD	software[3]	[MS, MS:1001456, analysis software, 2.4.0-nightly-2019-07-17]
+MTD	quantification_method	[MS, MS:1001834, LC-MS label-free quantitation analysis, ]
+MTD	ms_run[1]-location	file://I:/OpenSWATH_Metabolomics_data/20181121_full_data/04_PestMixes_individually_Solvent_DDA_20-50/PestMix1_1ngSolventDDA20-50.wiff
+MTD	ms_run[1]-scan_polarity[1]	[MS, MS:1000130, positive scan, ]
+MTD	assay[1]	assay_PestMix1_1ngSolventDDA20-50
+MTD	assay[1]-ms_run_ref	ms_run[1]
+MTD	study_variable[1]	study_variable_PestMix1_1ngSolventDDA20-50
+MTD	study_variable[1]-assay_refs	assay[1]
+MTD	study_variable[1]-description	study_variable_PestMix1_1ngSolventDDA20-50
+MTD	cv[1]-label	PSI-MS
+MTD	cv[1]-full_name	MS
+MTD	cv[1]-version	4.1.49
+MTD	cv[1]-uri	https://raw.githubusercontent.com/HUPO-PSI/psi-ms-CV/master/psi-ms.obo
+MTD	database[1]	[, , CustomDB, ]
+MTD	database[1]-prefix	CustomDB
+MTD	database[1]-version	0.0
+MTD	database[1]-uri	file:///Users/alka/Desktop/AMS_ID_test/AMS_test_Mapping.tsv
+MTD	small_molecule-quantification_unit	[MS, MS:1001844, MS1 feature area, ]
+MTD	small_molecule_feature-quantification_unit	[MS, MS:1001844, MS1 feature area, ]
+MTD	small_molecule-identification_reliability	[MS, MS:1002896, compound identification confidence level, ]
+MTD	id_confidence_measure[1]	[, , MassErrorPPMScore, ]
+MTD	id_confidence_measure[2]	[, , MassErrorDaScore, ]
+
+SMH	SML_ID	SMF_ID_REFS	database_identifier	chemical_formula	smiles	inchi	chemical_name	uri	theoretical_neutral_mass	adduct_ions	reliability	best_id_confidence_measure	best_id_confidence_value	abundance_assay[1]	abundance_study_variable[1]	abundance_variation_study_variable[1]
+SML	1	1	b6db36a2-5130-11e9-8f91-784f43534648	C13H18N2O2	C1CCC(CC1)n2c(=O)c3c([nH]c2=O)CCC3	"InChI=1S/C13H18N2O2/c16-12-10-7-4-8-11(10)14-13(17)15(12)9-5-2-1-3-6-9/h9H,1-8H2,(H,14,17)"	Lenacil	null	234.136828574199996	[M+H]1+	2	null	null	1.2743556640625e04	null	null
+SML	2	2	99675-03-3	C14H22N1O4P1S1	CC(C)NP(=S)(OC)Oc1ccccc1C(=O)OC(C)C	"InChI=1S/C14H22NO4PS/c1-10(2)15-20(21,17-5)19-13-9-7-6-8-12(13)14(16)18-11(3)4/h6-11H,1-5H3,(H,15,21)"	Isofenphos-methyl	null	331.100716921799972	[M+H]1+	2	null	null	7.70757109375e04	null	null
+
+SFH	SMF_ID	SME_ID_REFS	SME_ID_REF_ambiguity_code	adduct_ion	isotopomer	exp_mass_to_charge	charge	retention_time_in_seconds	retention_time_in_seconds_start	retention_time_in_seconds_end	abundance_assay[1]
+SMF	1	1	null	[M+H]1+	null	235.144546436815318	0	355.507999999979973	null	null	1.2743556640625e04
+SMF	2	2	null	[M+H]1+	null	332.108359495389948	1	518.841000000000008	null	null	7.70757109375e04
+
+SEH	SME_ID	evidence_input_id	database_identifier	chemical_formula	smiles	inchi	chemical_name	uri	derivatized_form	adduct_ion	exp_mass_to_charge	charge	theoretical_mass_to_charge	spectra_ref	identification_method	ms_level	id_confidence_measure[1]	id_confidence_measure[2]	rank
+SME	1	mass=235.144546436815318,rt=355.507999999979973	b6db36a2-5130-11e9-8f91-784f43534648	C13H18N2O2	C1CCC(CC1)n2c(=O)c3c([nH]c2=O)CCC3	"InChI=1S/C13H18N2O2/c16-12-10-7-4-8-11(10)14-13(17)15(12)9-5-2-1-3-6-9/h9H,1-8H2,(H,14,17)"	Lenacil	null	null	[M+H]1+	235.144546436815318	0	234.136828574199996	ms_run[1]:8308517420049663419	[MS, MS:1000207, accurate mass, ]	[MS, MS:1000511, ms level, 1]	1.0	1.0	1
+SME	2	mass=332.108359495389948,rt=518.841000000000008	99675-03-3	C14H22N1O4P1S1	CC(C)NP(=S)(OC)Oc1ccccc1C(=O)OC(C)C	"InChI=1S/C14H22NO4PS/c1-10(2)15-20(21,17-5)19-13-9-7-6-8-12(13)14(16)18-11(3)4/h6-11H,1-5H3,(H,15,21)"	Isofenphos-methyl	null	null	[M+H]1+	332.108359495389948	1	331.100716921799972	ms_run[1]:248283675846367528	[MS, MS:1000207, accurate mass, ]	[MS, MS:1000511, ms level, 1]	1.0	1.0	1

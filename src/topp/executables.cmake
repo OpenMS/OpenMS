@@ -9,7 +9,7 @@ CompNovo
 CompNovoCID
 ConsensusID
 ConsensusMapNormalizer
-CruxAdapter
+DatabaseSuitability
 Decharger
 DTAExtractor
 EICExtractor
@@ -30,6 +30,7 @@ FileConverter
 FileFilter
 FileInfo
 FileMerger
+FLASHDeconv
 GenericWrapper
 GNPSExport
 HighResPrecursorMassCorrector
@@ -42,13 +43,13 @@ IDPosteriorErrorProbability
 IDRipper
 IDRTCalibration
 InclusionExclusionListCreator
-InspectAdapter
 InternalCalibration
 IsobaricAnalyzer
 LuciphorAdapter
 MapAlignerIdentification
 MapAlignerPoseClustering
 MapAlignerSpectrum
+MapAlignerTreeGuided
 MapNormalizer
 MapRTTransformer
 MapStatistics
@@ -58,11 +59,11 @@ MascotAdapterOnline
 MassTraceExtractor
 MRMMapper
 MSGFPlusAdapter
-MyriMatchAdapter
 MzTabExporter
 NoiseFilterGaussian
 NoiseFilterSGolay
-OMSSAAdapter
+OpenPepXL
+OpenPepXLLF
 OpenSwathAnalyzer
 OpenSwathAssayGenerator
 OpenSwathChromatogramExtractor
@@ -83,6 +84,7 @@ ProteinQuantifier
 ProteinResolver
 PTModel
 PTPredict
+QualityControl
 RTModel
 RTPredict
 SeedListGenerator
@@ -99,6 +101,7 @@ SpectraFilterWindowMower
 SpectraMerger
 TextExporter
 TOFCalibration
+XFDR
 XTandemAdapter
 )
 

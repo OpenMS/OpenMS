@@ -4,6 +4,7 @@ set(directory include/OpenMS/FORMAT/HANDLERS)
 ### list all header files of the directory here
 set(sources_list_h
 AcqusHandler.h
+CachedMzMLHandler.h
 FidHandler.h
 IndexedMzMLDecoder.h
 IndexedMzMLHandler.h

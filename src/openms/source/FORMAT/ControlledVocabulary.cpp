@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -33,10 +33,14 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/FORMAT/ControlledVocabulary.h>
+
+#include <OpenMS/DATASTRUCTURES/DataValue.h>
 #include <OpenMS/FORMAT/HANDLERS/XMLHandler.h>
+#include <OpenMS/SYSTEM/File.h>
 
 #include <iostream>
 #include <fstream>
+#include <map>
 
 using namespace std;
 
@@ -57,20 +61,7 @@ namespace OpenMS
   {
   }
 
-  ControlledVocabulary::CVTerm::CVTerm(const CVTerm& rhs) :
-    name(rhs.name),
-    id(rhs.id),
-    parents(rhs.parents),
-    children(rhs.children),
-    obsolete(rhs.obsolete),
-    description(rhs.description),
-    synonyms(rhs.synonyms),
-    unparsed(rhs.unparsed),
-    xref_type(rhs.xref_type),
-    xref_binary(rhs.xref_binary),
-    units(rhs.units)
-  {
-  }
+  ControlledVocabulary::CVTerm::CVTerm(const CVTerm& rhs) = default;
 
   ControlledVocabulary::CVTerm& ControlledVocabulary::CVTerm::operator=(const CVTerm& rhs)
   {
@@ -162,8 +153,11 @@ namespace OpenMS
     if (value.hasUnit())
     {
       String un = *(this->units.begin());
-      //  unitAccession="UO:0000021" unitName="gram" unitCvRef="UO"
-      s += "\" unitAccession=\"" + un + "\" unitName=\"" + value.getUnit() + "\" unitCvRef=\"" + un.prefix(2);
+      s += "\" unitAccession=\"" + un + "\" unitCvRef=\"" + un.prefix(2);
+      // TODO: Currently we do not store the unit name in the CVTerm, only the
+      // accession number (we would need the ControlledVocabulary to look up
+      // the unit CVTerm).
+      // "\" unitName=\"" + unit.name
     }
     s +=  "\"/>";
     return s;
@@ -176,10 +170,7 @@ namespace OpenMS
 
   }
 
-  ControlledVocabulary::~ControlledVocabulary()
-  {
-
-  }
+  ControlledVocabulary::~ControlledVocabulary() = default;
 
   void ControlledVocabulary::loadFromOBO(const String& name, const String& filename)
   {
@@ -203,8 +194,24 @@ namespace OpenMS
       line_wo_spaces.removeWhitespaces();
 
       //do nothing for empty lines
-      if (line == "")
+      if (line.empty())
+      {
         continue;
+      }
+
+      if (line_wo_spaces.hasPrefix("data-version:"))
+      {
+        version_ = line.substr(line.find(':') + 1).trim();
+      }
+      if (line_wo_spaces.hasPrefix("default-namespace:"))
+      {
+        label_ = line.substr(line.find(':') + 1).trim();
+      }
+      if (line_wo_spaces.hasPrefix("remark:URL:"))
+      {
+        // https://
+        url_ = line.substr(line.find_first_of('/') - 7).trim();
+      }
 
       //********************************************************************************
       //stanza line
@@ -214,7 +221,7 @@ namespace OpenMS
         if (line_wo_spaces.toLower() == "[term]") //new term
         {
           in_term = true;
-          if (term.id != "") //store last term
+          if (!term.id.empty()) //store last term
           {
             terms_[term.id] = term;
           }
@@ -287,7 +294,9 @@ namespace OpenMS
             //check if the parent term name is correct
             String parent_name = line.suffix('!').trim();
             if (!checkName_(parent_id, parent_name))
+            {
               cerr << "Warning: while loading term '" << term.id << "' of CV '" << name_ << "': part_of relationship term name '" << parent_name << "' and id '" << parent_id << "' differ." << "\n";
+            }
           }
           else
           {
@@ -304,7 +313,9 @@ namespace OpenMS
             //check if the parent term name is correct
             String unit_name = line.suffix('!').trim();
             if (!checkName_(unit_id, unit_name))
+            {
               cerr << "Warning: while loading term '" << term.id << "' of CV '" << name_ << "': has_units relationship term name '" << unit_name << "' and id '" << unit_id << "' differ." << "\n";
+            }
           }
           else
           {
@@ -403,20 +414,20 @@ namespace OpenMS
           line_wo_spaces.trim();
           term.xref_binary.push_back(line_wo_spaces);
         }
-        else if (line != "")
+        else if (!line.empty())
         {
           term.unparsed.push_back(line);
         }
       }
     }
 
-    if (term.id != "") //store last term
+    if (!term.id.empty()) //store last term
     {
       terms_[term.id] = term;
     }
 
     // now build all child terms
-    for (Map<String, CVTerm>::iterator it = terms_.begin(); it != terms_.end(); ++it)
+    for (std::map<String, CVTerm>::iterator it = terms_.begin(); it != terms_.end(); ++it)
     {
       //cerr << it->first << "\n";
       for (set<String>::const_iterator pit = it->second.parents.begin(); pit != it->second.parents.end(); ++pit)
@@ -425,7 +436,7 @@ namespace OpenMS
         terms_[*pit].children.insert(it->first);
       }
 
-      Map<String, String>::iterator mit = namesToIds_.find(it->second.name);
+      std::map<String, String>::iterator mit = namesToIds_.find(it->second.name);
       if (mit == namesToIds_.end())
       {
         namesToIds_.insert(pair<String, String>(it->second.name, it->first));
@@ -441,7 +452,7 @@ namespace OpenMS
 
   const ControlledVocabulary::CVTerm& ControlledVocabulary::getTerm(const String& id) const
   {
-    Map<String, CVTerm>::const_iterator it = terms_.find(id);
+    std::map<String, CVTerm>::const_iterator it = terms_.find(id);
     if (it == terms_.end())
     {
       throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Invalid CV identifier!", id);
@@ -449,7 +460,7 @@ namespace OpenMS
     return it->second;
   }
 
-  const Map<String, ControlledVocabulary::CVTerm>& ControlledVocabulary::getTerms() const
+  const std::map<String, ControlledVocabulary::CVTerm>& ControlledVocabulary::getTerms() const
   {
     return terms_;
   }
@@ -457,19 +468,18 @@ namespace OpenMS
   void ControlledVocabulary::getAllChildTerms(set<String>& terms, const String& parent) const
   {
     //cerr << "Parent: " << parent << "\n";
-    const set<String>& children = getTerm(parent).children;
-    for (set<String>::const_iterator it = children.begin(); it != children.end(); ++it)
+    for (const auto& child : getTerm(parent).children)
     {
-      terms.insert(*it);
-      //TODO This is not save for cyclic graphs. Are they allowed in CVs?
-      getAllChildTerms(terms, *it);
+      terms.insert(child);
+      //TODO: This is not safe for cyclic graphs. Are they allowed in CVs?
+      getAllChildTerms(terms, child);
     }
   }
 
   const ControlledVocabulary::CVTerm& ControlledVocabulary::getTermByName(const String& name, const String& desc) const
   {
     //slow, but Vocabulary is very finite and this method will be called only a few times during write of a ML file using a CV
-    Map<String, String>::const_iterator it = namesToIds_.find(name);
+    std::map<String, String>::const_iterator it = namesToIds_.find(name);
     if (it == namesToIds_.end())
     {
       if (!desc.empty())
@@ -486,36 +496,43 @@ namespace OpenMS
       }
     }
 
-    return terms_[it->second];
+    return terms_.at(it->second);
   }
 
   bool ControlledVocabulary::exists(const String& id) const
   {
-    return terms_.has(id);
+    return terms_.find(id) != terms_.end();
+  }
+
+  const ControlledVocabulary::CVTerm* ControlledVocabulary::checkAndGetTermByName(const OpenMS::String& name) const
+  {
+    std::map<String, String>::const_iterator it = namesToIds_.find(name);
+    if (it == namesToIds_.end()) return nullptr;
+    return &terms_.at(it->second);
   }
 
   bool ControlledVocabulary::hasTermWithName(const OpenMS::String& name) const
   {
-    Map<String, String>::const_iterator it = namesToIds_.find(name);
+    std::map<String, String>::const_iterator it = namesToIds_.find(name);
     return it != namesToIds_.end();
   }
 
   bool ControlledVocabulary::isChildOf(const String& child, const String& parent) const
   {
-    //cout << "CHECK child:" << child << " parent: " << parent << "\n";
+    // cout << "CHECK child:" << child << " parent: " << parent << "\n";
     const CVTerm& ch = getTerm(child);
 
-    for (set<String>::const_iterator it = ch.parents.begin(); it != ch.parents.end(); ++it)
+    for (const auto & it : ch.parents)
     {
-      //cout << "Parent: " << ch.parents[i] << "\n";
+      // cout << "Parent: " << it << "\n";
 
-      //check if it is a direct parent
-      if (*it == parent)
+      // check if it is a direct parent
+      if (it == parent)
       {
         return true;
       }
-      //check if it is an indirect parent
-      else if (isChildOf(*it, parent))
+      // check if it is an indirect parent
+      else if (isChildOf(it, parent))
       {
         return true;
       }
@@ -526,14 +543,14 @@ namespace OpenMS
 
   std::ostream& operator<<(std::ostream& os, const ControlledVocabulary& cv)
   {
-    for (Map<String, ControlledVocabulary::CVTerm>::const_iterator it = cv.terms_.begin(); it != cv.terms_.end(); ++it)
+    for (const auto & it : cv.terms_)
     {
       os << "[Term]\n";
-      os << "id: '" << it->second.id << "'\n";
-      os << "name: '" << it->second.name <<  "'\n";
-      for (set<String>::const_iterator it2 = it->second.parents.begin(); it2 != it->second.parents.end(); ++it2)
+      os << "id: '" << it.second.id << "'\n";
+      os << "name: '" << it.second.name <<  "'\n";
+      for (const auto & parent_term : it.second.parents)
       {
-        cout << "is_a: '" << *it2 <<  "'\n";
+        cout << "is_a: '" << parent_term <<  "'\n";
       }
     }
     return os;
@@ -544,11 +561,41 @@ namespace OpenMS
     return name_;
   }
 
-  bool ControlledVocabulary::checkName_(const String& id, const String& name, bool ignore_case)
+  const String& ControlledVocabulary::label() const
+  {
+    return label_;
+  }
+
+  const String& ControlledVocabulary::version() const
+  {
+    return version_;
+  }
+
+  const String& ControlledVocabulary::url() const
+  {
+    return url_;
+  }
+
+  const ControlledVocabulary& ControlledVocabulary::getPSIMSCV()
+  {
+    static const ControlledVocabulary cv = []() {
+      ControlledVocabulary cv;
+      cv.loadFromOBO("MS", File::find("/CV/psi-ms.obo"));
+      cv.loadFromOBO("PATO", File::find("/CV/quality.obo"));
+      cv.loadFromOBO("UO", File::find("/CV/unit.obo"));
+      cv.loadFromOBO("BTO", File::find("/CV/brenda.obo"));
+      cv.loadFromOBO("GO", File::find("/CV/goslim_goa.obo"));
+      return cv;
+    }();
+    return cv;
+  }
+
+  bool ControlledVocabulary::checkName_(const String& id, const String& name, bool ignore_case) const
   {
     if (!exists(id))
+    {
       return true; //what?!
-
+    }
     String parent_name = name;
     String real_parent_name = getTerm(id).name;
 

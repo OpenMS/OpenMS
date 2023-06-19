@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -34,22 +34,26 @@
 
 #pragma once
 
-#include <svm.h>
-
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/FORMAT/TextFile.h>
 #include <OpenMS/SYSTEM/File.h>
+#include <OpenMS/MATH/MISC/MathFunctions.h>
 
 #include <string>
 #include <vector>
 #include <map>
 #include <cmath>
 
+// forward declare svm types
+struct svm_problem;
+struct svm_parameter;
+struct svm_model;
+struct svm_node;
+
 namespace OpenMS
 {
-
   /// Data structure used in SVMWrapper
   struct OPENMS_DLLAPI SVMData
   {
@@ -89,7 +93,7 @@ public:
     */
     enum SVM_parameter_type
     {
-      SVM_TYPE, ///< the svm type cab be NU_SVR or EPSILON_SVR
+      SVM_TYPE, ///< the svm type can be NU_SVR or EPSILON_SVR
       KERNEL_TYPE, ///< the kernel type
       DEGREE, ///< the degree for the polynomial- kernel
       C, ///< the C parameter of the svm
@@ -112,7 +116,7 @@ public:
     SVMWrapper();
 
     /// destructor
-    virtual ~SVMWrapper();
+    ~SVMWrapper() override;
 
     /**
       @brief You can set the parameters of the svm:
@@ -189,7 +193,7 @@ public:
 
       @param modelFilename The file name where the model will be saved.
     */
-    void saveModel(std::string modelFilename) const;
+    void saveModel(const std::string& modelFilename) const;
 
     /**
       @brief loads the model
@@ -199,7 +203,7 @@ public:
 
       @param modelFilename The name of the model file that should be loaded.
     */
-    void loadModel(std::string modelFilename);
+    void loadModel(const std::string& modelFilename);
 
     /**
       @brief predicts the labels using the trained model
@@ -290,15 +294,15 @@ public:
 
       This function creates 'number' equally sized random partitions and stores them in 'partitions'.
     */
-    static void createRandomPartitions(svm_problem* problem, Size number, std::vector<svm_problem*>& partitions);
+    void createRandomPartitions(svm_problem* problem, Size number, std::vector<svm_problem*>& partitions);
 
     /**
       @brief You can create 'number' equally sized random partitions
 
       This function creates 'number' equally sized random partitions and stores them in 'partitions'.
     */
-    static void createRandomPartitions(const SVMData& problem,
-                                       Size                                  number,
+    void createRandomPartitions(const SVMData& problem,
+                                       Size number,
                                        std::vector<SVMData>& problems);
     /**
       @brief You can merge partitions excluding the partition with index 'except'
@@ -341,7 +345,7 @@ public:
                                       std::map<SVM_parameter_type, double>& best_parameters,
                                       bool                                                                                            additive_step_sizes = true,
                                       bool                                                                                        output = false,
-                                      String                                                                                      performances_file_name = "performances.txt",
+                                      const String&                                                                                      performances_file_name = "performances.txt",
                                       bool                                                                                            mcc_as_performance_measure = false);
 
 
@@ -502,17 +506,18 @@ private:
     */
     static void printToVoid_(const char* /*s*/);
 
-    svm_parameter* param_; // the parameters for the svm
-    svm_model* model_; // the learned svm discriminant
-    double sigma_; // for the oligo kernel (amount of positional smearing)
-    std::vector<double> sigmas_; // for the combined oligo kernel (amount of positional smearing)
-    std::vector<double> gauss_table_; // lookup table for fast computation of the oligo kernel
-    std::vector<std::vector<double> > gauss_tables_; // lookup table for fast computation of the combined oligo kernel
-    Size kernel_type_; // the actual kernel type
-    Size  border_length_; // the actual kernel type
-    svm_problem* training_set_; // the training set
-    svm_problem* training_problem_; // the training set
-    SVMData training_data_; // the training set (different encoding)
+    svm_parameter* param_; ///< the parameters for the svm
+    svm_model* model_; ///< the learned svm discriminant
+    double sigma_; ///< for the oligo kernel (amount of positional smearing)
+    std::vector<double> sigmas_; ///< for the combined oligo kernel (amount of positional smearing)
+    std::vector<double> gauss_table_; ///< lookup table for fast computation of the oligo kernel
+    std::vector<std::vector<double> > gauss_tables_; ///< lookup table for fast computation of the combined oligo kernel
+    Size kernel_type_; ///< the actual kernel type
+    Size border_length_; ///< the actual kernel type
+    svm_problem* training_set_ = nullptr; ///< the training set
+    svm_problem* training_problem_ = nullptr; ///< the training set
+    SVMData training_data_; ///< the training set (different encoding)
+    Math::RandomShuffler shuffler_; ///< random shuffler to create training partitions
   };
 
 } // namespace OpenMS

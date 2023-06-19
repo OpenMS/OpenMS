@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -93,8 +93,7 @@ namespace OpenMS
     @ingroup RangeUtils
   */
   template <class MetaContainer>
-  class HasMetaValue :
-    std::unary_function<MetaContainer, bool>
+  class HasMetaValue
   {
 public:
     /**
@@ -129,8 +128,7 @@ protected:
     @ingroup RangeUtils
   */
   template <class SpectrumType>
-  class InRTRange :
-    std::unary_function<SpectrumType, bool>
+  class InRTRange
   {
 public:
     /**
@@ -167,8 +165,7 @@ protected:
     @ingroup RangeUtils
   */
   template <class SpectrumType>
-  class InMSLevelRange :
-    std::unary_function<SpectrumType, bool>
+  class InMSLevelRange
   {
 public:
     /**
@@ -187,7 +184,7 @@ public:
     {
       Int tmp = s.getMSLevel();
       // XOR(^): same as 'if (rev_) return !(test) else return test;' where (test) is the condition;   Speed: XOR is about 25% faster in VS10
-      return reverse_ ^ std::find(levels_.begin(), levels_.end(), tmp) != levels_.end();
+      return reverse_ ^ (std::find(levels_.begin(), levels_.end(), tmp) != levels_.end());
     }
 
 protected:
@@ -203,8 +200,7 @@ protected:
     @ingroup RangeUtils
   */
   template <class SpectrumType>
-  class HasScanMode :
-    std::unary_function<SpectrumType, bool>
+  class HasScanMode
   {
 public:
     /**
@@ -238,8 +234,7 @@ protected:
     @ingroup RangeUtils
   */
   template <class SpectrumType>
-  class HasScanPolarity :
-    std::unary_function<SpectrumType, bool>
+  class HasScanPolarity
   {
 public:
     /**
@@ -274,8 +269,7 @@ protected:
     @ingroup RangeUtils
   */
   template <class SpectrumType>
-  class IsEmptySpectrum :
-    std::unary_function<SpectrumType, bool>
+  class IsEmptySpectrum
   {
 public:
     /**
@@ -305,8 +299,7 @@ protected:
     @ingroup RangeUtils
   */
   template <class SpectrumType>
-  class IsZoomSpectrum :
-    std::unary_function<SpectrumType, bool>
+  class IsZoomSpectrum
   {
 public:
     /**
@@ -339,8 +332,7 @@ protected:
     @ingroup RangeUtils
   */
   template <class SpectrumType>
-  class HasActivationMethod :
-    std::unary_function<SpectrumType, bool>
+  class HasActivationMethod
   {
 public:
     /**
@@ -357,13 +349,11 @@ public:
 
     inline bool operator()(const SpectrumType& s) const
     {
-      for (std::vector<Precursor>::const_iterator it = s.getPrecursors().begin(); it != s.getPrecursors().end(); ++it)
+      for (const Precursor& p : s.getPrecursors())
       {
-        for (std::set<Precursor::ActivationMethod>::const_iterator it_a = it->getActivationMethods().begin();
-             it_a != it->getActivationMethods().end();
-             ++it_a)
+        for (const Precursor::ActivationMethod am : p.getActivationMethods())
         {
-          if (ListUtils::contains(methods_, Precursor::NamesOfActivationMethod[*it_a]))
+          if (ListUtils::contains(methods_, Precursor::NamesOfActivationMethod[am]))
           {
             // found matching activation method
             if (reverse_) return false;
@@ -372,8 +362,7 @@ public:
         }
       }
 
-      if (reverse_) return true;
-      else return false;
+      return reverse_;
     }
 
 protected:
@@ -391,8 +380,7 @@ protected:
     @ingroup RangeUtils
   */
   template <class SpectrumType>
-  class InPrecursorMZRange :
-    std::unary_function<SpectrumType, bool>
+  class InPrecursorMZRange
   {
 public:
     /**
@@ -440,8 +428,7 @@ protected:
     @ingroup RangeUtils
   */
   template <class SpectrumType>
-  class HasPrecursorCharge :
-    std::unary_function<SpectrumType, bool>
+  class HasPrecursorCharge
   {
 public:
     /**
@@ -485,8 +472,7 @@ protected:
     @ingroup RangeUtils
   */
   template <class PeakType>
-  class InMzRange :
-    std::unary_function<PeakType, bool>
+  class InMzRange
   {
 public:
     /**
@@ -523,8 +509,7 @@ protected:
     @ingroup RangeUtils
   */
   template <class PeakType>
-  class InIntensityRange :
-    std::unary_function<PeakType, bool>
+  class InIntensityRange
   {
 public:
     /**
@@ -560,8 +545,7 @@ protected:
     @ingroup RangeUtils
   */
   template <class SpectrumType>
-  class IsInCollisionEnergyRange :
-    std::unary_function<SpectrumType, bool>
+  class IsInCollisionEnergyRange
   {
 public:
     /**
@@ -613,8 +597,7 @@ private:
     @ingroup RangeUtils
   */
   template <class SpectrumType>
-  class IsInIsolationWindowSizeRange :
-    std::unary_function<SpectrumType, bool>
+  class IsInIsolationWindowSizeRange
   {
 
 public:
@@ -659,8 +642,7 @@ private:
     @ingroup RangeUtils
   */
   template <class SpectrumType>
-  class IsInIsolationWindow :
-    std::unary_function<SpectrumType, bool>
+  class IsInIsolationWindow
   {
 
 public:
@@ -687,7 +669,7 @@ public:
       {
         if (it->getIsolationWindowLowerOffset() == 0 || it->getIsolationWindowUpperOffset() == 0)
         {
-          LOG_WARN << "IsInIsolationWindow(): Lower/Upper Offset for Precursor Isolation Window is Zero! " << 
+          OPENMS_LOG_WARN << "IsInIsolationWindow(): Lower/Upper Offset for Precursor Isolation Window is Zero! " << 
             "Filtering will probably be too strict (unless you hit the exact precursor m/z)!" << std::endl;
         }
         const double lower_mz = it->getMZ() - it->getIsolationWindowLowerOffset();

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -53,7 +53,7 @@ START_TEST(ProteaseDB, "$Id$")
 
 ProteaseDB* ptr = nullptr;
 ProteaseDB* nullPointer = nullptr;
-String RKP("(?<=R)(?!P)");
+String RKP("(?<=[RX])(?!P)");
 START_SECTION(ProteaseDB* getInstance())
     ptr = ProteaseDB::getInstance();
     TEST_NOT_EQUAL(ptr, nullPointer)
@@ -119,36 +119,9 @@ START_SECTION((void getAllXTandemNames(std::vector<String>& all_names) const))
     vector<String> names;
     ptr->getAllXTandemNames(names);
     TEST_EQUAL(find(names.begin(), names.end(), "Trypsin") != names.end(), true)
-    TEST_EQUAL(find(names.begin(), names.end(), "no cleavage") != names.end(), false)
+    TEST_EQUAL(find(names.begin(), names.end(), "no cleavage") != names.end(), true)
     Size old_size=names.size();
     ptr->getAllXTandemNames(names);
-    TEST_EQUAL(names.size(), old_size)
-END_SECTION
-
-START_SECTION((void getAllCruxNames(std::vector<String>& all_names) const))
-    vector<String> names;
-    ptr->getAllCruxNames(names);
-    TEST_EQUAL(find(names.begin(), names.end(), "no-enzyme") != names.end(), true)
-    TEST_EQUAL(find(names.begin(), names.end(), "trypsin") != names.end(), true)
-    TEST_EQUAL(find(names.begin(), names.end(), "trypsin/p") != names.end(), true)
-    TEST_EQUAL(find(names.begin(), names.end(), "chymotrypsin") != names.end(), true)
-    TEST_EQUAL(find(names.begin(), names.end(), "elastase") != names.end(), true)
-    TEST_EQUAL(find(names.begin(), names.end(), "clostripain") != names.end(), true)
-    TEST_EQUAL(find(names.begin(), names.end(), "cyanogen-bromide") != names.end(), true)
-    TEST_EQUAL(find(names.begin(), names.end(), "iodosobenzoate") != names.end(), true)
-    TEST_EQUAL(find(names.begin(), names.end(), "proline-endopeptidase") != names.end(), true)
-    TEST_EQUAL(find(names.begin(), names.end(), "staph-protease") != names.end(), true)
-    TEST_EQUAL(find(names.begin(), names.end(), "asp-n") != names.end(), true)
-    TEST_EQUAL(find(names.begin(), names.end(), "lys-c") != names.end(), true)
-    TEST_EQUAL(find(names.begin(), names.end(), "lys-n") != names.end(), true)
-    TEST_EQUAL(find(names.begin(), names.end(), "arg-c") != names.end(), true)
-    TEST_EQUAL(find(names.begin(), names.end(), "glu-c") != names.end(), true)
-    TEST_EQUAL(find(names.begin(), names.end(), "pepsin-a") != names.end(), true)
-    TEST_EQUAL(find(names.begin(), names.end(), "elastase-trypsin-chymotrypsin") != names.end(), true)
-    TEST_EQUAL(find(names.begin(), names.end(), "custom-enzyme") != names.end(), true)
-    TEST_EQUAL(find(names.begin(), names.end(), "dummy false protease") != names.end(), false)
-    Size old_size=names.size();
-    ptr->getAllCruxNames(names);
     TEST_EQUAL(names.size(), old_size)
 END_SECTION
 
@@ -160,6 +133,25 @@ START_SECTION((void getAllOMSSANames(std::vector<String>& all_names) const))
     Size old_size=names.size();
     ptr->getAllOMSSANames(names);
     TEST_EQUAL(names.size(), old_size)
+END_SECTION
+
+START_SECTION([EXTRA] multithreaded example)
+{
+
+   int nr_iterations (1e2), test (0);
+#pragma omp parallel for reduction (+: test)
+  for (int k = 1; k < nr_iterations + 1; k++)
+  {
+    auto p = ProteaseDB::getInstance();
+    int tmp (0);
+    if (p->hasEnzyme("Trypsin"), true)
+    {
+      tmp++;
+    }
+    test += tmp;
+  }
+  TEST_EQUAL(test, nr_iterations)
+}
 END_SECTION
 
 END_TEST

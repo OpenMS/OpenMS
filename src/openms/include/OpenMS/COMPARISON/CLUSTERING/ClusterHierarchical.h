@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -158,7 +158,7 @@ public:
       float offset, 
       const ClusterFunctor & clusterer, 
       std::vector<BinaryTreeNode> & cluster_tree, 
-      DistanceMatrix<float> & original_distance)
+      DistanceMatrix<float> & original_distance) const
     {
       std::vector<BinnedSpectrum> binned_data;
       binned_data.reserve(data.size());
@@ -167,7 +167,7 @@ public:
       for (Size i = 0; i < data.size(); i++)
       {
         //double sz(2), UInt sp(1);
-        binned_data.push_back(BinnedSpectrum(data[i], sz, false, sp, offset));
+        binned_data.emplace_back(data[i], sz, false, sp, offset);
       }
 
       //create distancematrix for data with comparator
@@ -188,7 +188,7 @@ public:
     }
 
     /// get the threshold
-    double getThreshold()
+    double getThreshold() const
     {
       return threshold_;
     }

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -40,38 +40,8 @@ using namespace std;
 
 namespace OpenMS
 {
-  Gradient::Gradient() :
-    eluents_(),
-    times_(),
-    percentages_()
-  {
 
-  }
-
-  Gradient::Gradient(const Gradient & source) :
-    eluents_(source.eluents_),
-    times_(source.times_),
-    percentages_(source.percentages_)
-  {
-
-  }
-
-  Gradient::~Gradient()
-  {
-
-  }
-
-  Gradient & Gradient::operator=(const Gradient & source)
-  {
-    if (source == *this)
-      return *this;
-
-    eluents_ = source.eluents_;
-    times_ = source.times_;
-    percentages_ = source.percentages_;
-
-    return *this;
-  }
+  Gradient::~Gradient() = default;
 
   bool Gradient::operator==(const Gradient & rhs) const
   {
@@ -96,7 +66,7 @@ namespace OpenMS
 
     eluents_.push_back(eluent);
     // add zero values to percentages
-    percentages_.push_back(vector<UInt>(times_.size(), 0));
+    percentages_.emplace_back(times_.size(), 0);
   }
 
   void Gradient::clearEluents()
@@ -111,7 +81,7 @@ namespace OpenMS
 
   void Gradient::addTimepoint(Int timepoint)
   {
-    if ((times_.size() > 0) && (timepoint <= times_[times_.size() - 1]))
+    if ((!times_.empty()) && (timepoint <= times_[times_.size() - 1]))
     {
       throw Exception::OutOfRange(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
     }
@@ -165,14 +135,18 @@ namespace OpenMS
     for (std::vector<String>::iterator it = eluents_.begin(); it != eluents_.end(); ++it)
     {
       if (*it == eluent)
+      {
         break;
+      }
       ++elu_index;
     }
     //look up timepoint index
     for (std::vector<Int>::iterator it = times_.begin(); it != times_.end(); ++it)
     {
       if (*it == timepoint)
+      {
         break;
+      }
       ++time_index;
     }
 
@@ -210,14 +184,18 @@ namespace OpenMS
     for (std::vector<String>::const_iterator it = eluents_.begin(); it != eluents_.end(); ++it)
     {
       if (*it == eluent)
+      {
         break;
+      }
       ++elu_index;
     }
     //look up timepoint index
     for (std::vector<Int>::const_iterator it = times_.begin(); it != times_.end(); ++it)
     {
       if (*it == timepoint)
+      {
         break;
+      }
       ++time_index;
     }
 

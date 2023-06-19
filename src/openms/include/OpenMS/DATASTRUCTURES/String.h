@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -37,8 +37,8 @@
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/OpenMSConfig.h>
 
-#include <algorithm> // for "min"
 #include <string>
+#include <cstring>
 #include <vector>
 
 class QString;
@@ -46,7 +46,8 @@ class QString;
 namespace OpenMS
 {
   class DataValue;
-
+  template <typename FloatingPointType>
+  struct PrecisionWrapper;
   /**
       @brief A more convenient string class.
 
@@ -86,8 +87,14 @@ public:
     //@{
     /// Default constructor
     OPENMS_DLLAPI String();
+    /// Copy constructor
+    OPENMS_DLLAPI String(const String&) = default;
+    /// Move constructor
+    OPENMS_DLLAPI String(String&&) = default;
     /// Constructor from std::string
     OPENMS_DLLAPI String(const std::string& s);
+    /// Constructor from std::string_view
+    OPENMS_DLLAPI String(const std::string_view& sv);
     /// Constructor from Qt QString
     OPENMS_DLLAPI String(const QString& s);
     /// Constructor from char*
@@ -103,7 +110,6 @@ public:
     String(InputIterator first, InputIterator last) :
       std::string(first, last)
     {
-
     }
 
     /// Constructor from an integer
@@ -122,14 +128,14 @@ public:
     OPENMS_DLLAPI String(long long unsigned int i);
     /// Constructor from an unsigned integer
     OPENMS_DLLAPI String(long long signed int i);
-    /// Constructor from float
-    OPENMS_DLLAPI String(float f);
-    /// Constructor from double
-    OPENMS_DLLAPI String(double d);
-    /// Constructor from long double
-    OPENMS_DLLAPI String(long double ld);
-    /// Constructor from DataValue (casted to String)
-    OPENMS_DLLAPI String(const DataValue& d);
+    /// Constructor from float (@p full_precision controls number of fractional digits, 3 digits when false, and 6 when true)
+    OPENMS_DLLAPI String(float f, bool full_precision = true);
+    /// Constructor from double (@p full_precision controls number of fractional digits, 3 digits when false, and 15 when true)
+    OPENMS_DLLAPI String(double d, bool full_precision = true);
+    /// Constructor from long double (@p full_precision controls number of fractional digits, 3 digits when false, and 15 when true)
+    OPENMS_DLLAPI String(long double ld, bool full_precision = true);
+    /// Constructor from DataValue (@p full_precision controls number of fractional digits for all double types or lists of double, 3 digits when false, and 15 when true)
+    OPENMS_DLLAPI String(const DataValue& d, bool full_precision = true);
 
     //@}
 
@@ -149,6 +155,10 @@ public:
     OPENMS_DLLAPI bool has(Byte byte) const;
     //@}
 
+    /// Assignment operator
+    OPENMS_DLLAPI String& operator=(const String&) = default;
+    /// Move assignment operator
+    OPENMS_DLLAPI String& operator=(String&&) & = default;
 
     /** @name Accessors
     */
@@ -214,7 +224,7 @@ public:
     /**
       @brief Returns a substring where @p n characters were removed from the end of the string.
 
-  If @p n is greater than size(), the result is an empty string.
+      If @p n is greater than size(), the result is an empty string.
 
       @param n Number of characters that will be removed from the end of the string.
      */
@@ -234,6 +244,15 @@ public:
 
     /// removes whitespaces (space, tab, line feed, carriage return) at the beginning and the end of the string
     OPENMS_DLLAPI String& trim();
+
+    /**
+        @brief Checks if the string is wrapped in quotation marks
+
+        The quotation mark can be specified by parameter @p q (typically single or double quote).
+
+        @see unquote()
+    */
+    OPENMS_DLLAPI bool isQuoted(char q = '"');
 
     /**
          @brief Wraps the string in quotation marks
@@ -293,15 +312,36 @@ public:
     */
     //@{
 
+    
     /**
-        @brief Conversion to int
+        @brief Conversion to Int
 
         This method extracts only the integral part of the string.
         If you want the result rounded, use toFloat() and round the result.
 
-        @exception Exception::ConversionError is thrown if the string could not be converted to int
+        @exception Exception::ConversionError is thrown if the string could not be converted to Int
     */
     OPENMS_DLLAPI Int toInt() const;
+
+    /**
+        @brief Conversion to Int32
+
+        This method extracts only the integral part of the string.
+        If you want the result rounded, use toFloat() and round the result.
+
+        @exception Exception::ConversionError is thrown if the string could not be converted to Int32
+    */
+    OPENMS_DLLAPI Int32 toInt32() const;
+
+    /**
+    @brief Conversion to Int64
+
+    This method extracts only the integral part of the string.
+    If you want the result rounded, use toFloat() and round the result.
+
+    @exception Exception::ConversionError is thrown if the string could not be converted to Int64
+    */
+    OPENMS_DLLAPI Int64 toInt64() const;
 
     /**
       @brief Conversion to float
@@ -393,13 +433,13 @@ public:
 
     ///returns a string for @p d with exactly @p n decimal places
     OPENMS_DLLAPI static String number(double d, UInt n);
+
     /**
         @brief Returns a string with at maximum @p n characters for @p d
 
         If @p d is larger, scientific notation is used.
     */
     OPENMS_DLLAPI static String numberLength(double d, UInt n);
-
 
     /**
         @brief Splits a string into @p substrings using @p splitter as delimiter
@@ -464,86 +504,23 @@ public:
         return;
       }
 
-      std::string::operator=(* first);
+      std::string::operator=(*first);
       for (StringIterator it = ++first; it != last; ++it)
       {
         std::string::operator+=(glue + (*it));
       }
     }
-
   };
+  OPENMS_DLLAPI ::size_t hash_value(OpenMS::String const& s);
+} // namespace OpenMS
 
-  /**
-    *  Minimal replacement for boost::string_ref or std::experimental::string_view until we increase our min boost version
-    *  @brief StringView provides a non-owning view on an existing string.
-    */ 
-  class OPENMS_DLLAPI StringView
+namespace std
+{
+  template <> struct hash<OpenMS::String> //hash for String
   {
-    public:
-
-    // create view on string
-    StringView() : begin_(), size_(0) 
+    std::size_t operator()( OpenMS::String const& s) const
     {
+      return std::hash<string>()(static_cast<string>(s));
     }
-
-    // create view on string
-    StringView(const std::string& s) : begin_(s.data()), size_(s.size()) 
-    {
-    }
-
-    // construct from other view
-    StringView(const StringView& s) : begin_(s.begin_), size_(s.size_) 
-    {
-    }
-
-    /// less operator
-    bool operator<(const StringView other) const
-    {
-      if (size_ < other.size_) return true;
-
-      if (size_ > other.size_) return false;
-
-      // same size
-      const char * b = begin_;
-      const char * bo = other.begin_;
-      
-      for (Size i = 0; i != size_; ++i, ++b, ++bo)
-      {
-        if (*b < *bo) return true;
-        if (*b > *bo) return false;
-      }
- 
-      return false;
-    }
-
-    /// create view that references a substring of the original string
-    inline StringView substr(Size start, Size length) const
-    {
-      if (!size_) return *this;
-
-      StringView sv(*this);
-      sv.begin_ = begin_ + start;
-      sv.size_ = std::min(length, sv.size_ - start);
-      return sv;
-    }
-    
-    /// size of view
-    inline Size size() const
-    {
-      return size_;
-    }   
-
-    /// create String object from view
-    inline String getString() const
-    {
-      if (!size_) return String();
-      return String(begin_, begin_ + size_);
-    }
-
-    private:
-      const char* begin_;
-      Size size_;
-  }; 
-
-} // namespace OPENMS
-
+  };
+} // namespace std

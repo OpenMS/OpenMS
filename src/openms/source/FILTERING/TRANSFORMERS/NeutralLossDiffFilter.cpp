@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -47,10 +47,7 @@ namespace OpenMS
     defaultsToParam_();
   }
 
-  NeutralLossDiffFilter::NeutralLossDiffFilter(const NeutralLossDiffFilter & source) :
-    FilterFunctor(source)
-  {
-  }
+  NeutralLossDiffFilter::NeutralLossDiffFilter(const NeutralLossDiffFilter & source) = default;
 
   NeutralLossDiffFilter & NeutralLossDiffFilter::operator=(const NeutralLossDiffFilter & source)
   {
@@ -61,8 +58,6 @@ namespace OpenMS
     return *this;
   }
 
-  NeutralLossDiffFilter::~NeutralLossDiffFilter()
-  {
-  }
+  NeutralLossDiffFilter::~NeutralLossDiffFilter() = default;
 
 }

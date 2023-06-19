@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -28,15 +28,14 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Timo Sachsenberg$
-// $Authors: Marc Sturm $
+// $Maintainer: Timo Sachsenberg $
+// $Authors: Marc Sturm, Tom Waschischeck $
 // --------------------------------------------------------------------------
 
 #pragma once
 
 #include <OpenMS/KERNEL/StandardDeclarations.h>
 #include <OpenMS/CONCEPT/Exception.h>
-#include <OpenMS/DATASTRUCTURES/DRange.h>
 #include <OpenMS/KERNEL/AreaIterator.h>
 #include <OpenMS/KERNEL/MSChromatogram.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
@@ -51,10 +50,9 @@ namespace OpenMS
   class ChromatogramPeak;
 
   /**
-    @brief In-Memory representation of a mass spectrometry experiment.
+    @brief In-Memory representation of a mass spectrometry run.
 
-    Contains the data and metadata of an experiment performed with an MS (or
-    HPLC and MS). This representation of an MS experiment is organized as list
+    This representation of an MS run is organized as list
     of spectra and chromatograms and provides an in-memory representation of
     popular mass-spectrometric file formats such as mzXML or mzML. The
     meta-data associated with an experiment is contained in
@@ -63,19 +61,13 @@ namespace OpenMS
     MSSpectrum and MSChromatogram, which are accessible through the getSpectrum
     and getChromatogram functions.
 
-    Be careful when changing the order of contained MSSpectrum instances, if
-    tandem-MS data is stored in this class. The only way to find a precursor
-    spectrum of MSSpectrum x is to search for the first spectrum before x that
-    has a lower MS-level!
-
     @note For range operations, see \ref RangeUtils "RangeUtils module"!
     @note Some of the meta data is associated with the spectra directly (e.g. DataProcessing) and therefore the spectra need to be present to retain this information.
     @note For an on-disc representation of an MS experiment, see OnDiskExperiment.
 
     @ingroup Kernel
   */
-  class OPENMS_DLLAPI MSExperiment :
-    public RangeManager<2>,
+  class OPENMS_DLLAPI MSExperiment final : public RangeManagerContainer<RangeRT, RangeMZ, RangeIntensity, RangeMobility>,
     public ExperimentalSettings
   {
 
@@ -89,14 +81,14 @@ public:
     typedef PeakT PeakType;
     /// Chromatogram peak type
     typedef ChromatogramPeakT ChromatogramPeakType;
-    /// Area type
-    typedef DRange<2> AreaType;
     /// Coordinate type of peak positions
     typedef PeakType::CoordinateType CoordinateType;
     /// Intensity type of peaks
     typedef PeakType::IntensityType IntensityType;
     /// RangeManager type
-    typedef RangeManager<2> RangeManagerType;
+    typedef RangeManager<RangeRT, RangeMZ, RangeIntensity, RangeMobility> RangeManagerType;
+    /// RangeManager type
+    typedef RangeManagerContainer<RangeRT, RangeMZ, RangeIntensity, RangeMobility> RangeManagerContainerType;
     /// Spectrum Type
     typedef MSSpectrum SpectrumType;
     /// Chromatogram type
@@ -112,49 +104,82 @@ public:
     /// Non-mutable iterator
     typedef std::vector<SpectrumType>::const_iterator ConstIterator;
     /// Mutable area iterator type (for traversal of a rectangular subset of the peaks)
-    typedef Internal::AreaIterator<PeakT, PeakT &, PeakT *, Iterator, SpectrumType::Iterator> AreaIterator;
+    typedef Internal::AreaIterator<PeakT, PeakT&, PeakT*, Iterator, SpectrumType::Iterator> AreaIterator;
     /// Immutable area iterator type (for traversal of a rectangular subset of the peaks)
-    typedef Internal::AreaIterator<const PeakT, const PeakT &, const PeakT *, ConstIterator, SpectrumType::ConstIterator> ConstAreaIterator;
+    typedef Internal::AreaIterator<const PeakT, const PeakT&, const PeakT*, ConstIterator, SpectrumType::ConstIterator> ConstAreaIterator;
     //@}
 
     /// @name Delegations of calls to the vector of MSSpectra
     // Attention: these refer to the spectra vector only!
     //@{
-    typedef Base::value_type value_type; 
-    typedef Base::iterator iterator; 
-    typedef Base::const_iterator const_iterator; 
+    typedef Base::value_type value_type;
+    typedef Base::iterator iterator;
+    typedef Base::const_iterator const_iterator;
 
+    /// Constructor
+    MSExperiment();
+
+    /// Copy constructor
+    MSExperiment(const MSExperiment & source);
+
+    /// Move constructor
+    MSExperiment(MSExperiment&&) = default;
+
+    /// Assignment operator
+    MSExperiment & operator=(const MSExperiment & source);
+
+    /// Move assignment operator
+    MSExperiment& operator=(MSExperiment&&) & = default;
+
+    /// Assignment operator
+    MSExperiment & operator=(const ExperimentalSettings & source);
+
+    /// D'tor
+    ~MSExperiment() override;
+
+    /// Equality operator
+    bool operator==(const MSExperiment & rhs) const;
+
+    /// Equality operator
+    bool operator!=(const MSExperiment & rhs) const;
+    
+    /// The number of spectra
     inline Size size() const
     {
-      return spectra_.size(); 
+      return spectra_.size();
     }
 
-    inline void resize(Size s)
+    /// Resize to @p n spectra
+    inline void resize(Size n)
     {
-      spectra_.resize(s); 
+      spectra_.resize(n);
     }
 
+    /// Are there any spectra (does not consider chromatograms)
     inline bool empty() const
     {
-      return spectra_.empty(); 
+      return spectra_.empty();
     }
-
-    inline void reserve(Size s)
+    
+    /// Reserve space for @p n spectra
+    inline void reserve(Size n)
     {
-      spectra_.reserve(s); 
+      spectra_.reserve(n);
     }
 
-    inline SpectrumType& operator[] (Size n)
-    {
-      return spectra_[n];
-    }
-
-    inline const SpectrumType& operator[] (Size n) const
+    /// Random access to @p n'th spectrum
+    inline SpectrumType& operator[](Size n)
     {
       return spectra_[n];
     }
 
-    inline Iterator begin() 
+    /// Random access to @p n'th spectrum
+    inline const SpectrumType& operator[](Size n) const
+    {
+      return spectra_[n];
+    }
+
+    inline Iterator begin()
     {
       return spectra_.begin();
     }
@@ -164,7 +189,7 @@ public:
       return spectra_.begin();
     }
 
-    inline Iterator end() 
+    inline Iterator end()
     {
       return spectra_.end();
     }
@@ -179,24 +204,6 @@ public:
     void reserveSpaceSpectra(Size s);
     void reserveSpaceChromatograms(Size s);
 
-    /// Constructor
-    MSExperiment();
-
-    /// Copy constructor
-    MSExperiment(const MSExperiment & source);
-
-    /// Assignment operator
-    MSExperiment & operator=(const MSExperiment & source);
-
-    /// Assignment operator
-    MSExperiment & operator=(const ExperimentalSettings & source);
-
-    /// Equality operator
-    bool operator==(const MSExperiment & rhs) const;
-
-    /// Equality operator
-    bool operator!=(const MSExperiment & rhs) const;
-
     ///@name Conversion to/from 2D data
     //@{
     /**
@@ -206,7 +213,7 @@ public:
       supports push_back(), end() and back()
     */
     template <class Container>
-    void get2DData(Container & cont) const
+    void get2DData(Container& cont) const
     {
       for (typename Base::const_iterator spec = spectra_.begin(); spec != spectra_.end(); ++spec)
       {
@@ -214,7 +221,7 @@ public:
         {
           continue;
         }
-				typename Container::value_type s; // explicit object here, since instantiation within push_back() fails on VS<12
+        typename Container::value_type s; // explicit object here, since instantiation within push_back() fails on VS<12
         for (typename SpectrumType::const_iterator it = spec->begin(); it != spec->end(); ++it)
         {
           cont.push_back(s);
@@ -331,16 +338,59 @@ public:
     ///@name Iterating ranges and areas
     //@{
     /// Returns an area iterator for @p area
-    AreaIterator areaBegin(CoordinateType min_rt, CoordinateType max_rt, CoordinateType min_mz, CoordinateType max_mz);
+    AreaIterator areaBegin(CoordinateType min_rt, CoordinateType max_rt, CoordinateType min_mz, CoordinateType max_mz, UInt  ms_level = 1);
+
+    /// Returns a area iterator for all peaks in @p range. If a dimension is empty(), it is ignored (i.e. does not restrict the area)
+    AreaIterator areaBegin(const RangeManagerType& range, UInt ms_level = 1);
 
     /// Returns an invalid area iterator marking the end of an area
     AreaIterator areaEnd();
 
     /// Returns a non-mutable area iterator for @p area
-    ConstAreaIterator areaBeginConst(CoordinateType min_rt, CoordinateType max_rt, CoordinateType min_mz, CoordinateType max_mz) const;
+    ConstAreaIterator areaBeginConst(CoordinateType min_rt, CoordinateType max_rt, CoordinateType min_mz, CoordinateType max_mz, UInt ms_level = 1) const;
+
+    /// Returns a non-mutable area iterator for all peaks in @p range. If a dimension is empty(), it is ignored (i.e. does not restrict the area)
+    ConstAreaIterator areaBeginConst(const RangeManagerType& range, UInt ms_level = 1) const;
 
     /// Returns an non-mutable invalid area iterator marking the end of an area
     ConstAreaIterator areaEndConst() const;
+
+    // for fast pyOpenMS access to MS1 peak data in format: [rt, [mz, intensity]]
+    void get2DPeakData(CoordinateType min_rt, CoordinateType max_rt, CoordinateType min_mz, CoordinateType max_mz, 
+      std::vector<float>& rt, 
+      std::vector<std::vector<float>>& mz, 
+      std::vector<std::vector<float>>& intensity) const
+    {
+      float t = -1.0;
+      for (auto it = areaBeginConst(min_rt, max_rt, min_mz, max_mz); it != areaEndConst(); ++it)
+      {
+        if (it.getRT() != t) 
+        {
+          t = (float)it.getRT();
+          rt.emplace_back(t);
+          mz.resize(mz.size() + 1); 
+          rt.resize(rt.size() + 1);
+          intensity.resize(intensity.size() + 1);
+        }
+        mz.back().push_back((float)it->getMZ());
+        intensity.back().emplace_back(it->getIntensity());
+      }
+    }
+
+    // for fast pyOpenMS access to MS1 peak data in format: [rt, mz, intensity]
+    void get2DPeakData(CoordinateType min_rt, CoordinateType max_rt, CoordinateType min_mz, CoordinateType max_mz, 
+      std::vector<float>& rt, 
+      std::vector<float>& mz, 
+      std::vector<float>& intensity) const
+    {
+      for (auto it = areaBeginConst(min_rt, max_rt, min_mz, max_mz); it != areaEndConst(); ++it)
+      {
+        rt.push_back((float)it.getRT());
+        mz.push_back((float)it->getMZ());
+        intensity.push_back(it->getIntensity());
+      }
+    }
+
 
     /**
       @brief Fast search for spectrum range begin
@@ -374,6 +424,24 @@ public:
     */
     Iterator RTEnd(CoordinateType rt);
 
+
+    /**
+      @brief Fast search for spectrum range begin
+
+      Returns the first scan which has equal or higher (>=) ion mobility than @p rt.
+
+      @note Make sure the spectra are sorted with respect to ion mobility! Otherwise the result is undefined.
+    */
+    ConstIterator IMBegin(CoordinateType im) const;
+
+    /**
+      @brief Fast search for spectrum range end (returns the past-the-end iterator)
+
+      Returns the first scan which has higher (>) ion mobility than @p im.
+
+      @note Make sure the spectra are sorted with respect to ion mobility! Otherwise the result is undefined.
+    */
+    ConstIterator IMEnd(CoordinateType im) const;
     //@}
 
     /**
@@ -404,20 +472,20 @@ public:
     /// returns the maximal retention time value
     CoordinateType getMaxRT() const;
 
-    /**
-      @brief Returns RT and m/z range the data lies in.
-
-      RT is dimension 0, m/z is dimension 1
-    */
-    const AreaType & getDataRange() const;
-
     /// returns the total number of peaks
     UInt64 getSize() const;
 
     /// returns an array of MS levels
-    const std::vector<UInt> & getMSLevels() const;
+    const std::vector<UInt>& getMSLevels() const;
 
     ///@}
+
+    /// If the file is loaded from an sqMass file, this run-ID allows to connect to the corresponding OSW identification file
+    /// If the run-ID was not stored (older version) or this MSExperiment was not loaded from sqMass, then 0 is returned.
+    UInt64 getSqlRunID() const;
+
+    /// sets the run-ID which is used when storing an sqMass file
+    void setSqlRunID(UInt64 id);
 
     ///@name Sorting spectra and peaks
     ///@{
@@ -444,7 +512,7 @@ public:
 
     //@}
 
-    /// Resets all internal values
+    /// Clear all internal data (spectra, ranges, metadata)
     void reset();
 
     /**
@@ -455,10 +523,10 @@ public:
     bool clearMetaDataArrays();
 
     /// returns the meta information of this experiment (const access)
-    const ExperimentalSettings & getExperimentalSettings() const;
+    const ExperimentalSettings& getExperimentalSettings() const;
 
     /// returns the meta information of this experiment (mutable access)
-    ExperimentalSettings & getExperimentalSettings();
+    ExperimentalSettings& getExperimentalSettings();
 
     /// get the file path to the first MS run
     void getPrimaryMSRunPath(StringList& toFill) const;
@@ -470,40 +538,51 @@ public:
     */
     ConstIterator getPrecursorSpectrum(ConstIterator iterator) const;
 
+    /**
+      @brief Returns the index of the precursor spectrum for spectrum at index @p zero_based_index
+
+      If there is no precursor scan -1 is returned.
+    */
+    int getPrecursorSpectrum(int zero_based_index) const;
+
     /// Swaps the content of this map with the content of @p from
-    void swap(MSExperiment & from);
+    void swap(MSExperiment& from);
 
     /// sets the spectrum list
-    void setSpectra(const std::vector<MSSpectrum> & spectra);
+    void setSpectra(const std::vector<MSSpectrum>& spectra);
+    void setSpectra(std::vector<MSSpectrum>&& spectra);
 
     /// adds a spectrum to the list
-    void addSpectrum(const MSSpectrum & spectrum);
+    void addSpectrum(const MSSpectrum& spectrum);
+    void addSpectrum(MSSpectrum&& spectrum);
 
     /// returns the spectrum list
-    const std::vector<MSSpectrum> & getSpectra() const;
+    const std::vector<MSSpectrum>& getSpectra() const;
 
     /// returns the spectrum list (mutable)
-    std::vector<MSSpectrum> & getSpectra();
+    std::vector<MSSpectrum>& getSpectra();
 
     /// sets the chromatogram list
-    void setChromatograms(const std::vector<MSChromatogram > & chromatograms);
+    void setChromatograms(const std::vector<MSChromatogram>& chromatograms);
+    void setChromatograms(std::vector<MSChromatogram>&& chromatograms);
 
     /// adds a chromatogram to the list
-    void addChromatogram(const MSChromatogram & chromatogram);
+    void addChromatogram(const MSChromatogram& chromatogram);
+    void addChromatogram(MSChromatogram&& chrom);
 
     /// returns the chromatogram list
-    const std::vector<MSChromatogram > & getChromatograms() const;
+    const std::vector<MSChromatogram>& getChromatograms() const;
 
     /// returns the chromatogram list (mutable)
-    std::vector<MSChromatogram > & getChromatograms();
+    std::vector<MSChromatogram>& getChromatograms();
 
     /// @name Easy Access interface
     //@{
-    /// returns a single chromatogram 
-    MSChromatogram & getChromatogram(Size id);
+    /// returns a single chromatogram
+    MSChromatogram& getChromatogram(Size id);
 
-    /// returns a single spectrum 
-    MSSpectrum & getSpectrum(Size id);
+    /// returns a single spectrum
+    MSSpectrum& getSpectrum(Size id);
 
     /// get the total number of spectra available
     Size getNrSpectra() const;
@@ -512,8 +591,17 @@ public:
     Size getNrChromatograms() const;
     //@}
 
-    /// returns the total ion chromatogram (TIC)
-    const MSChromatogram getTIC() const;
+    /**
+    @brief Computes the total ion chromatogram (TIC) for a given MS level (use ms_level = 0 for all levels). 
+
+    By default, each MS spectrum's intensity just gets summed up. Regular RT bins can be obtained by specifying @p rt_bin_size.
+    If a bin size in RT seconds greater than 0 is given resampling is used.
+
+    @param bin_size RT bin size in seconds (0 = no resampling)
+    @param ms_level MS level of spectra for calculation (0 = all levels)
+    @return TIC Chromatogram
+    **/
+    const MSChromatogram calculateTIC(float rt_bin_size = 0, UInt ms_level = 1) const;
 
     /**
       @brief Clears all data and meta data
@@ -522,28 +610,36 @@ public:
     */
     void clear(bool clear_meta_data);
 
-protected:
+    /// returns true if at least one of the spectra has the specified level
+    bool containsScanOfLevel(size_t ms_level) const;
 
+    /// returns true if any MS spectra of trthe specified level contain at least one peak with intensity of 0.0
+    bool hasZeroIntensities(size_t ms_level) const;
 
+    /// do any of the spectra have a PeptideID?
+    bool hasPeptideIdentifications() const;
+
+    /// Are all MSSpectra in this experiment part of an IM Frame? I.e. they all have the same RT, but different drift times
+    bool isIMFrame() const;
+
+  protected:
     /// MS levels of the data
     std::vector<UInt> ms_levels_;
     /// Number of all data points
     UInt64 total_size_;
-
     /// chromatograms
     std::vector<MSChromatogram > chromatograms_;
-
     /// spectra
     std::vector<SpectrumType> spectra_;
 
 private:
-   
+
     /// Helper class to add either general data points in set2DData or use mass traces from meta values
     template<typename ContainerValueType, bool addMassTraces>
     struct ContainerAdd_
     {
       static void addData_(SpectrumType* spectrum, const ContainerValueType* item);
-      static void addData_(SpectrumType* spectrum, const ContainerValueType* item, const StringList& store_metadata_names);      
+      static void addData_(SpectrumType* spectrum, const ContainerValueType* item, const StringList& store_metadata_names);
     };
 
     template<typename ContainerValueType>
@@ -598,7 +694,7 @@ private:
     };
 
     /*
-      @brief Append a spectrum to current MSExperiment 
+      @brief Append a spectrum to current MSExperiment
 
       @param rt RT of new spectrum
       @return Pointer to newly created spectrum
@@ -606,19 +702,18 @@ private:
     SpectrumType* createSpec_(PeakType::CoordinateType rt);
 
     /*
-      @brief Append a spectrum including floatdata arrays to current MSExperiment 
+      @brief Append a spectrum including floatdata arrays to current MSExperiment
 
       @param rt RT of new spectrum
       @param metadata_names Names of floatdata arrays attached to this spectrum
       @return Pointer to newly created spectrum
     */
     SpectrumType* createSpec_(PeakType::CoordinateType rt, const StringList& metadata_names);
-  
+
   };
 
-  
   /// Print the contents to a stream.
-  std::ostream & operator<<(std::ostream & os, const MSExperiment & exp);
+  OPENMS_DLLAPI std::ostream& operator<<(std::ostream& os, const MSExperiment& exp);
 
 } // namespace OpenMS
 

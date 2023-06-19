@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2017.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -34,15 +34,22 @@
 //
 
 #include <OpenMS/FILTERING/CALIBRATION/PrecursorCorrection.h>
-#include <OpenMS/KERNEL/StandardTypes.h>
 
+#include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/METADATA/Precursor.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 
-using namespace OpenMS;
+#include <iomanip>
+#include <fstream>
+
 using namespace std;
+using namespace OpenMS;
+
+namespace OpenMS
+{
 
    const std::string PrecursorCorrection::csv_header = "RT,uncorrectedMZ,correctedMZ,deltaMZ";
+
 
    void PrecursorCorrection::getPrecursors(const MSExperiment & exp,
                                            vector<Precursor> & precursors,
@@ -68,7 +75,7 @@ using namespace std;
                                         const vector<double> & mzs,
                                         const vector<double> & rts)
     {
-      //cout << "writting data" << endl;
+      //cout << "writing data" << endl;
       ofstream csv_file(out_csv.c_str());
       csv_file << setprecision(9);
 
@@ -120,7 +127,7 @@ using namespace std;
         if (rt_it == exp.end() 
         || rt_it->getMSLevel() != 1)
         {
-          LOG_WARN << "Warning: no MS1 spectrum for this precursor" << endl;
+          OPENMS_LOG_WARN << "Warning: no MS1 spectrum for this precursor" << endl;
           continue;          
         }
 
@@ -141,7 +148,7 @@ using namespace std;
           // sanity check: do we really have the same precursor in the original and the picked spectrum
           if (fabs(exp[precursor_spectrum_idx].getPrecursors()[0].getMZ() - mz) > 0.0001)
           {
-            LOG_WARN << "Error: index is referencing different precursors in original and picked spectrum." << endl;
+            OPENMS_LOG_WARN << "Error: index is referencing different precursors in original and picked spectrum." << endl;
           }
 
           // cout << mz << " -> " << nearest_peak_mz << endl;
@@ -180,7 +187,7 @@ using namespace std;
         double rt = precursors_rt[i]; // get precursor rt        
         double mz = precursors[i].getMZ(); // get precursor MZ
 
-        // retrieves iterator of the MS2 fragment sprectrum
+        // retrieves iterator of the MS2 fragment spectrum
         MSExperiment::ConstIterator rt_it = exp.RTBegin(rt - 1e-8);
 
         // store index of MS2 spectrum
@@ -192,29 +199,24 @@ using namespace std;
         if (rt_it == exp.end() 
         || rt_it->getMSLevel() != 1)
         {
-          LOG_WARN << "Warning: no MS1 spectrum for this precursor" << endl;
+          OPENMS_LOG_WARN << "Warning: no MS1 spectrum for this precursor" << endl;
           continue;
         }
 
-        // get tolerance window and left/right iterator
+        // get tolerance window and index of highest peak
         std::pair<double,double> tolerance_window = Math::getTolWindow(mz, mz_tolerance, ppm);
-        MSSpectrum::ConstIterator left = rt_it->MZBegin(tolerance_window.first);
-        MSSpectrum::ConstIterator right = rt_it->MZEnd(tolerance_window.second);
+        int highest_peak_idx = rt_it->findHighestInWindow(mz, mz-tolerance_window.first, tolerance_window.second-mz);
 
         // no MS1 precursor peak in +- tolerance window found
-        if  (left == right || left > right)
+        if (highest_peak_idx == -1)
         {
           count_error_highest_intenstiy += 1;
           continue;
         }
 
-        MSSpectrum::ConstIterator max_intensity_it = std::max_element(left, right, Peak1D::IntensityLess());
-
-        // find peak (index) with highest intensity to expected position
-        Size highest_peak_idx = max_intensity_it - rt_it->begin();
-
-        // get actual position of highest intensity peak
+        // get actual position and intensity of highest intensity peak
         double highest_peak_mz = (*rt_it)[highest_peak_idx].getMZ();
+        double highest_peak_int = (*rt_it)[highest_peak_idx].getIntensity();
 
         // cout << mz << " -> " << nearest_peak_mz << endl;
         double delta_mz = highest_peak_mz - mz;
@@ -224,18 +226,21 @@ using namespace std;
         // correct entries
         Precursor corrected_prec = precursors[i];
         corrected_prec.setMZ(highest_peak_mz);
+        corrected_prec.setIntensity(highest_peak_int);
         exp[precursor_spectrum_idx].getPrecursors()[0] = corrected_prec;
         corrected_precursors.insert(precursor_spectrum_idx);
       }
 
       if (count_error_highest_intenstiy != 0)
       {
-        LOG_WARN << "Error: The method highest_intensity_peak failed " << count_error_highest_intenstiy << "times.";
+        OPENMS_LOG_INFO << "Correction to the highest intensity peak failed " 
+           << count_error_highest_intenstiy 
+           << " times because of missing peaks in the MS1. No changes were applied in these cases." 
+           << std::endl;
       }
 
       return corrected_precursors;
     }
-
 
     set<Size> PrecursorCorrection::correctToNearestFeature(const FeatureMap& features,
                                                            MSExperiment & exp,
@@ -258,7 +263,7 @@ using namespace std;
         // skip non-tandem mass spectra
         if (exp[scan].getMSLevel() != 2 || exp[scan].getPrecursors().empty()) continue;
 
-        // extract precusor / MS2 information
+        // extract precursor / MS2 information
         const double pc_mz = exp[scan].getPrecursors()[0].getMZ();
         const double rt = exp[scan].getRT();
         const int pc_charge = exp[scan].getPrecursors()[0].getCharge();
@@ -266,8 +271,10 @@ using namespace std;
         for (Size f = 0; f != features.size(); ++f)
         {
           // feature  is incompatible if believe_charge is set and charges don't match
-          if (believe_charge && features[f].getCharge() != pc_charge) continue;
-
+          if (believe_charge && features[f].getCharge() != pc_charge)
+          {
+            continue;
+          }
           // check if precursor/MS2 position overlap with feature
           if (overlaps_(features[f], rt, pc_mz, rt_tolerance_s))
           {
@@ -314,7 +321,7 @@ using namespace std;
 
       if (debug_level > 0)
       {
-        LOG_INFO << "Number of precursors with compatible features: " << scan_idx_to_feature_idx.size() << endl;
+        OPENMS_LOG_INFO << "Number of precursors with compatible features: " << scan_idx_to_feature_idx.size() << endl;
       }
 
       if (!all_matching_features)
@@ -394,7 +401,7 @@ using namespace std;
     {
       if (feature.getConvexHulls().empty())
       {
-        LOG_WARN << "HighResPrecursorMassCorrector warning: at least one feature has no convex hull - omitting feature for matching" << std::endl;
+        OPENMS_LOG_WARN << "HighResPrecursorMassCorrector warning: at least one feature has no convex hull - omitting feature for matching" << std::endl;
       }
 
       // get bounding box and extend by retention time tolerance
@@ -429,7 +436,7 @@ using namespace std;
       {
         if (debug_level > 1)
         {
-          LOG_INFO << "trace: " << (int)(trace + 0.5) << " feature_rt:" << feature.getRT() << " feature_mz:" << feature.getMZ() << " precursor_mz:" << pc_mz << endl;
+          OPENMS_LOG_INFO << "trace: " << (int)(trace + 0.5) << " feature_rt:" << feature.getRT() << " feature_mz:" << feature.getMZ() << " precursor_mz:" << pc_mz << endl;
         }
         return true;
       }
@@ -438,4 +445,5 @@ using namespace std;
         return false;
       }
     }
+}
 

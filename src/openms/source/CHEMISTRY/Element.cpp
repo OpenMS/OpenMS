@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -50,19 +50,11 @@ namespace OpenMS
   {
   }
 
-  Element::Element(const Element & e) :
-    name_(e.name_),
-    symbol_(e.symbol_),
-    atomic_number_(e.atomic_number_),
-    average_weight_(e.average_weight_),
-    mono_weight_(e.mono_weight_),
-    isotopes_(e.isotopes_)
-  {
-  }
+  Element::Element(const Element & e) = default;
 
-  Element::Element(const String & name,
-                   const String & symbol,
-                   UInt atomic_number,
+  Element::Element(const string & name,
+                   const string & symbol,
+                   unsigned int atomic_number,
                    double average_weight,
                    double mono_weight,
                    const IsotopeDistribution & isotopes) :
@@ -75,16 +67,14 @@ namespace OpenMS
   {
   }
 
-  Element::~Element()
-  {
-  }
+  Element::~Element() = default;
 
-  void Element::setAtomicNumber(UInt atomic_number)
+  void Element::setAtomicNumber(unsigned int atomic_number)
   {
     atomic_number_ = atomic_number;
   }
 
-  UInt Element::getAtomicNumber() const
+  unsigned int Element::getAtomicNumber() const
   {
     return atomic_number_;
   }
@@ -119,36 +109,27 @@ namespace OpenMS
     return isotopes_;
   }
 
-  void Element::setName(const String & name)
+  void Element::setName(const string & name)
   {
     name_ = name;
   }
 
-  const String & Element::getName() const
+  const string & Element::getName() const
   {
     return name_;
   }
 
-  void Element::setSymbol(const String & symbol)
+  void Element::setSymbol(const string & symbol)
   {
     symbol_ = symbol;
   }
 
-  const String & Element::getSymbol() const
+  const string & Element::getSymbol() const
   {
     return symbol_;
   }
 
-  Element & Element::operator=(const Element & element)
-  {
-    name_ = element.name_;
-    symbol_ = element.symbol_;
-    atomic_number_ = element.atomic_number_;
-    average_weight_ = element.average_weight_;
-    mono_weight_ = element.mono_weight_;
-    isotopes_ = element.isotopes_;
-    return *this;
-  }
+  Element & Element::operator=(const Element & element) = default;
 
   bool Element::operator==(const Element & element) const
   {

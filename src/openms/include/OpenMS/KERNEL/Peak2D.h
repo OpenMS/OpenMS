@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -131,10 +131,7 @@ public:
     ///@name Constructors and Destructor
     ///@{
     /// Default constructor
-    Peak2D() :
-      position_(),
-      intensity_(0)
-    {}
+    Peak2D() = default;
 
     /// Member constructor
     explicit Peak2D(const PositionType& pos, const IntensityType in) :
@@ -143,11 +140,16 @@ public:
     {}
 
     /// Copy constructor
-    Peak2D(const Peak2D & p) :
-      position_(p.position_),
-      intensity_(p.intensity_)
-    {}
+    Peak2D(const Peak2D & p) = default;
 
+    /// Move constructor
+    Peak2D(Peak2D&&) noexcept = default;
+
+    /// Assignment operator
+    Peak2D& operator=(const Peak2D& rhs) = default;
+
+    /// Move assignment operator
+    Peak2D& operator=(Peak2D&&) noexcept = default;
     /**
       @brief Destructor
 
@@ -156,8 +158,8 @@ public:
       space for a vtable pointer in each instance. Normally you should not derive other classes from
       Peak2D (unless you know what you are doing, of course).
     */
-    ~Peak2D()
-    {}
+    ~Peak2D() noexcept = default;
+    
     ///@}
 
     ///@name Accessors
@@ -168,7 +170,7 @@ public:
       return intensity_;
     }
 
-    /// Non-mutable access to the data point intensity (height)
+    /// Sets data point intensity (height)
     void setIntensity(IntensityType intensity)
     {
       intensity_ = intensity;
@@ -218,17 +220,6 @@ public:
 
     ///@}
 
-    /// Assignment operator
-    Peak2D & operator=(const Peak2D & rhs)
-    {
-      if (this == &rhs) return *this;
-
-      intensity_ = rhs.intensity_;
-      position_ = rhs.position_;
-
-      return *this;
-    }
-
     /// Equality operator
     bool operator==(const Peak2D & rhs) const
     {
@@ -251,8 +242,7 @@ public:
     */
     ///@{
     /// Comparator by intensity
-    struct IntensityLess :
-      std::binary_function<Peak2D, Peak2D, bool>
+    struct IntensityLess
     {
       bool operator()(const Peak2D & left, const Peak2D & right) const
       {
@@ -277,8 +267,7 @@ public:
     };
 
     /// Comparator by RT position
-    struct RTLess :
-      std::binary_function<Peak2D, Peak2D, bool>
+    struct RTLess
     {
       bool operator()(const Peak2D & left, const Peak2D & right) const
       {
@@ -303,8 +292,7 @@ public:
     };
 
     /// Comparator by m/z position
-    struct MZLess :
-      std::binary_function<Peak2D, Peak2D, bool>
+    struct MZLess
     {
       bool operator()(const Peak2D & left, const Peak2D & right) const
       {
@@ -329,8 +317,7 @@ public:
     };
 
     /// Comparator by position. Lexicographical comparison (first RT then m/z) is done.
-    struct PositionLess :
-      public std::binary_function<Peak2D, Peak2D, bool>
+    struct PositionLess
     {
       bool operator()(const Peak2D & left, const Peak2D & right) const
       {
@@ -360,9 +347,9 @@ public:
 protected:
 
     /// The data point position
-    PositionType position_;
+    PositionType position_{};
     /// The data point intensity
-    IntensityType intensity_;
+    IntensityType intensity_{};
   };
 
   /// Print the contents to a stream.

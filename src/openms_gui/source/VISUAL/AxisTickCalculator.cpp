@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -36,12 +36,11 @@
 // STL
 #include <iostream>
 #include <cmath>
+#include <numeric>
 
 // OpenMS
 #include <OpenMS/VISUAL/AxisTickCalculator.h>
 #include <OpenMS/MATH/MISC/MathFunctions.h>
-
-#include <boost/math/special_functions/fpclassify.hpp>
 
 using namespace std;
 
@@ -53,9 +52,10 @@ namespace OpenMS
   {
     grid.clear();
 
-    if (boost::math::isnan(x1) || boost::math::isnan(x2))
+    if (std::isnan(x1) || std::isnan(x2))
+    {
       return;
-
+    }
     if (x1 > -0.0001 && x1 < 0.0001)
     {
       x1 = 0.0001;
@@ -130,47 +130,46 @@ namespace OpenMS
     grid.push_back(small);
   }
 
-  void AxisTickCalculator::calcLogGridLines(double x1, double x2, GridVector & grid)
+  void AxisTickCalculator::calcLogGridLines(double x1, double x2, GridVector& grid)
   {
-    grid.clear();
-    double scalValues[8];
-    scalValues[0] = log10(2.0);
-    scalValues[1] = log10(3.0);
-    scalValues[2] = log10(4.0);
-    scalValues[3] = log10(5.0);
-    scalValues[4] = log10(6.0);
-    scalValues[5] = log10(7.0);
-    scalValues[6] = log10(8.0);
-    scalValues[7] = log10(9.0);
+    if (std::isnan(x1)) {
+      x1 = 0; // may happen for negative values
+    }
+    if (std::isnan(x2))
+    {
+      x2 = 0; // may happen for negative values
+    }
     double dx = x2 - x1;
-
     if (dx < 0.00000001)
     {
       return;
     }
 
-    Int x1ceil = (Int)floor(x1);
-    Int x2floor = (Int)ceil(x2);
-    std::vector<double> big;
-    for (Int i = x1ceil; i != x2floor; ++i)
+    // small ticks covering one log order
+    static const double TICK_VALUES[] = {log10(2.0), log10(3.0), log10(4.0), log10(5.0), log10(6.0), log10(7.0), log10(8.0), log10(9.0)};
+    static constexpr int TICK_COUNT = sizeof(TICK_VALUES) / sizeof(decltype(TICK_VALUES[0]));
+
+    grid.clear();
+    grid.resize(2);
+    Int x1floor = (Int)floor(x1);
+    Int x2ceil = (Int)ceil(x2);
+    std::vector<double>& big = grid[0];
+    std::vector<double>& small = grid[1];
+    big.resize(x2ceil - x1floor);
+    std::iota(big.begin(), big.end(), x1floor);
+
+    for (const auto b : big)
     {
-      big.push_back(i);
-    }
-    grid.push_back(big);
-    std::vector<double> small;
-    for (Size i = 0; i != grid[0].size(); ++i)
-    {
-      double currGL = grid[0][i];
-      for (Int j = 0; j != 8; ++j)
+      for (Int j = 0; j != TICK_COUNT; ++j)
       {
-        if (currGL + scalValues[j] > x2)
+        const auto mini_tick = b + TICK_VALUES[j];
+        if (mini_tick > x2)
         {
           break;
         }
-        small.push_back(currGL + scalValues[j]);
+        small.push_back(mini_tick);
       }
     }
-    grid.push_back(small);
   }
 
 } //namespace

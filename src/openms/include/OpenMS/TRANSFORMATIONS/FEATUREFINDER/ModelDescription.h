@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -95,7 +95,7 @@ public:
     /// returns 0 if no description is set.
     BaseModel<D> * createModel()
     {
-      if (name_ == "") return nullptr;
+      if (name_.empty()) return nullptr;
 
       BaseModel<D> * model = Factory<BaseModel<D> >::create(name_);
       model->setParameters(parameters_);

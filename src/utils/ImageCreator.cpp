@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -32,16 +32,15 @@
 // $Authors: Clemens Groepl, Timo Sachsenberg$
 // --------------------------------------------------------------------------
 
-#include <OpenMS/config.h>
-
-#include <OpenMS/FORMAT/MzMLFile.h>
-#include <OpenMS/KERNEL/FeatureMap.h>
-
-#include <OpenMS/MATH/MISC/BilinearInterpolation.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
-#include <OpenMS/VISUAL/MultiGradient.h>
+
 #include <OpenMS/FILTERING/TRANSFORMERS/LinearResampler.h>
 #include <OpenMS/FORMAT/FeatureXMLFile.h>
+#include <OpenMS/FORMAT/MzMLFile.h>
+#include <OpenMS/KERNEL/FeatureMap.h>
+#include <OpenMS/KERNEL/RangeUtils.h>
+#include <OpenMS/MATH/MISC/BilinearInterpolation.h>
+#include <OpenMS/VISUAL/MultiGradient.h>
 
 
 #include <QtGui/QImage>
@@ -61,10 +60,9 @@ using namespace std;
 
     @brief Transforms an LC-MS map into a png image.
 
-    The input is first resampled into a matrix using
-    bilinear forward resampling.  Then the content of the matrix is written to
-    an image file.  The output has a uniform spacing in both dimensions regardless
-    of the input.
+    The input is first resampled into a matrix using bilinear forward resampling.
+    Then the content of the matrix is written to an image file.
+    The output has a uniform spacing in both dimensions regardless of the input.
 
     <B>The command line parameters of this tool are:</B>
     @verbinclude UTILS_ImageCreator.cli
@@ -81,15 +79,15 @@ class TOPPImageCreator :
 public:
   TOPPImageCreator() :
     TOPPBase("ImageCreator",
-             "Transforms an LC-MS map into an image.", false)
+             "Transforms an LC-MS map into an image.", false), 
+    out_formats_({"png", "jpg", "bmp", "tiff", "ppm"}) // all in lower case!
   {
-    out_formats_ = ListUtils::create<String>("png,jpg,bmp,tiff,ppm");
   }
 
 protected:
-  StringList out_formats_; ///< valid output formats for image
+  const StringList out_formats_; ///< valid output formats for image
 
-  void addPoint_(int x, int y, QImage & image, QColor color = Qt::black,
+  void addPoint_(int x, int y, QImage& image, QColor color = Qt::black,
                  Size size = 2)
   {
     int h = image.height(), w = image.width();
@@ -118,7 +116,7 @@ protected:
     }
   }
 
-  void addFeatureBox_(int lower_mz, int lower_rt, int upper_mz, int upper_rt, QImage & image, QColor color = Qt::black)
+  void addFeatureBox_(int lower_mz, int lower_rt, int upper_mz, int upper_rt, QImage& image, QColor color = Qt::black)
   {
     QPainter * painter = new QPainter(&image);
     painter->setPen(color);
@@ -126,7 +124,7 @@ protected:
     delete painter;
   }
 
-  void markMS2Locations_(PeakMap & exp, QImage & image, bool transpose,
+  void markMS2Locations_(PeakMap& exp, QImage& image, bool transpose,
                          QColor color, Size size)
   {
     double xcoef = image.width(), ycoef = image.height();
@@ -163,7 +161,7 @@ protected:
     }
   }
 
-  void markFeatureLocations_(FeatureMap & feature_map, PeakMap & exp, QImage & image, bool transpose, QColor color)
+  void markFeatureLocations_(FeatureMap& feature_map, PeakMap& exp, QImage& image, bool transpose, QColor color)
   {
     double xcoef = image.width(), ycoef = image.height();
     if (transpose)
@@ -217,14 +215,17 @@ protected:
   void registerOptionsAndFlags_() override
   {
     registerInputFile_("in", "<file>", "", "input file ");
-    setValidFormats_("in", ListUtils::create<String>("mzML"));
+    setValidFormats_("in", {"mzML"});
     registerInputFile_("in_featureXML", "<file>", "", "input file ", false);
-    setValidFormats_("in_featureXML", ListUtils::create<String>("featureXML"));
+    setValidFormats_("in_featureXML", {"featureXML"});
 
     registerOutputFile_("out", "<file>", "", "output file");
     setValidFormats_("out", out_formats_, false);
     registerStringOption_("out_type", "<file type>", "", "The image format. Set this if you want to force a format not reflected by the 'out' filename.", false);
     setValidStrings_("out_type", out_formats_);
+
+    registerStringOption_("rt", "[min]:[max]", ":", "Retention time range to extract", false);
+    registerStringOption_("mz", "[min]:[max]", ":", "Mass-to-charge range to extract", false);
 
     registerIntOption_("width", "<number>", 1024, "Number of pixels in m/z dimension.\nIf 0, one pixel per Th.", false);
     setMinInt_("width", 0);
@@ -238,7 +239,7 @@ protected:
     registerDoubleOption_("max_intensity", "<int>", 0, "Maximum peak intensity used to determine range for colors.\n"
                                                        "If 0, this is determined from the data.", false);
     registerFlag_("log_intensity", "Apply logarithm to intensity values");
-    registerFlag_("transpose", "flag to transpose the resampled matrix (RT vs. m/z).\n"
+    registerFlag_("transpose", "Flag to transpose the resampled matrix (RT vs. m/z).\n"
                                "Per default, dimensions run bottom-up in RT and left-right in m/z.");
     registerFlag_("precursors", "Mark locations of MS2 precursors.\n");
     registerStringOption_("precursor_color", "<color>", "#000000", "Color for precursor marks (color code or word, e.g. 'black') (requires 'precursors' flag to be active)", false);
@@ -248,7 +249,7 @@ protected:
     setMaxInt_("precursor_size", 3);
   }
 
-  ExitCodes main_(int, const char **) override
+  ExitCodes main_(int, const char**) override
   {
     //----------------------------------------------------------------
     // load data
@@ -257,51 +258,50 @@ protected:
     String in_featureXML = getStringOption_("in_featureXML");
     String out = getStringOption_("out");
     String format = getStringOption_("out_type");
-    if (format.trim() == "") // get from filename
+    if (format.trim().empty()) // get from filename
     {
       try
       {
         format = out.suffix('.');
       }
-      catch (Exception::ElementNotFound & /*e*/)
+      catch (Exception::ElementNotFound& /*e*/)
       {
         format = "nosuffix";
       }
-      StringListUtils::toUpper(out_formats_);
-      if (!ListUtils::contains(out_formats_, format.toUpper()))
+      if (!ListUtils::contains(out_formats_, format.toLower()))
       {
-        LOG_ERROR << "No explicit image output format was provided via 'out_type', and the suffix ('" << format << "') does not resemble a valid type. Please fix one of them." << std::endl;
+        OPENMS_LOG_ERROR << "No explicit image output format was provided via 'out_type', and the suffix ('" << format << "') does not resemble a valid type. Please fix one of them." << std::endl;
         return ILLEGAL_PARAMETERS;
       }
     }
+    const double init = numeric_limits<double>::max();
+    double rt_min = -init, rt_max = init, mz_min = -init, mz_max = init;
+    bool filter_rt = parseRange_(getStringOption_("rt"), rt_min, rt_max);
+    if (rt_min > rt_max) swap(rt_min, rt_max);
+    bool filter_mz = parseRange_(getStringOption_("mz"), mz_min, mz_max);
+    if (mz_min > mz_max) swap(mz_min, mz_max);
+    bool show_precursors = getFlag_("precursors");
+
     PeakMap exp;
     MzMLFile f;
     f.setLogType(log_type_);
+    if (filter_rt) f.getOptions().setRTRange(DRange<1>(rt_min, rt_max));
+    if (filter_mz) f.getOptions().setMZRange(DRange<1>(mz_min, mz_max));
+    if (!show_precursors) f.getOptions().setMSLevels({1});
     f.load(in, exp);
-
+    if (filter_mz && show_precursors)
+    {
+      // MS2 spectra were not filtered by precursor m/z, remove them now:
+      auto predicate =
+        InPrecursorMZRange<MSSpectrum>(mz_min, mz_max, true);
+      exp.getSpectra().erase(remove_if(exp.begin(), exp.end(), predicate),
+                             exp.end());
+    }
     exp.updateRanges(1);
 
-    SignedSize rows = getIntOption_("height");
-    if (rows == 0)
-    {
-      rows = exp.size();
-    }
-    if (rows <= 0)
-    {
-      writeLog_("Error: Zero rows is not possible.");
-      return ILLEGAL_PARAMETERS;
-    }
-
-    SignedSize cols = getIntOption_("width");
-    if (cols == 0)
-    {
-      cols = UInt(ceil(exp.getMaxMZ() - exp.getMinMZ()));
-    }
-    if (cols <= 0)
-    {
-      writeLog_("Error: Zero columns is not possible.");
-      return ILLEGAL_PARAMETERS;
-    }
+    Size rows = getIntOption_("height"), cols = getIntOption_("width");
+    if (rows == 0) rows = exp.size();
+    if (cols == 0) cols = UInt(ceil(exp.getMaxMZ() - exp.getMinMZ()));
 
     //----------------------------------------------------------------
     //Do the actual resampling
@@ -354,19 +354,22 @@ protected:
     int scans = (int) bilip.getData().sizePair().first;
     int peaks = (int) bilip.getData().sizePair().second;
 
+    bool use_log = getFlag_("log_intensity");
+
     MultiGradient gradient;
     String gradient_str = getStringOption_("gradient");
-    if (gradient_str != "")
+    if (!gradient_str.empty())
     {
       gradient.fromString(String("Linear|") + gradient_str);
     }
+    else if (use_log)
+    {
+      gradient = MultiGradient::getDefaultGradientLogarithmicIntensityMode();
+    }
     else
     {
-      gradient.fromString("Linear|0,#FFFFFF;2,#FFFF00;11,#FFAA00;32,#FF0000;55,#AA00FF;78,#5500FF;100,#000000");
+      gradient = MultiGradient::getDefaultGradientLinearIntensityMode();
     }
-
-    bool use_log = getFlag_("log_intensity");
-    writeDebug_("log_intensity: " + String(use_log), 1);
 
     QImage image(peaks, scans, QImage::Format_RGB32);
     string s = getStringOption_("background_color");
@@ -375,7 +378,7 @@ protected:
     string feature_color_string = getStringOption_("feature_color");
     QColor feature_color(feature_color_string.c_str());
 
-    QPainter * painter = new QPainter(&image);
+    QPainter* painter = new QPainter(&image);
     painter->setPen(background_color);
     painter->fillRect(0, 0, peaks, scans, Qt::SolidPattern);
     delete painter;
@@ -385,7 +388,9 @@ protected:
     {
       factor = (*std::max_element(bilip.getData().begin(), bilip.getData().end()));
     }
-    // logarithmize max. intensity as well:
+    // with a user-supplied gradient, we need to logarithmize explicitly;
+    // by default, the gradient itself is adjusted to the log-scale:
+    use_log &= !gradient_str.empty();
     if (use_log) factor = std::log(factor);
 
     factor /= 100.0;
@@ -406,7 +411,7 @@ protected:
       }
     }
 
-    if (getFlag_("precursors"))
+    if (show_precursors)
     {
       markMS2Locations_(exp, image, getFlag_("transpose"),
                         getStringOption_("precursor_color").toQString(),
@@ -428,7 +433,7 @@ protected:
 };
 
 
-int main(int argc, const char ** argv)
+int main(int argc, const char** argv)
 {
   TOPPImageCreator tool;
   return tool.main(argc, argv);

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -29,14 +29,13 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Timo Sachsenberg $
-// $Authors: Andreas Bertsch $
+// $Authors: Andreas Bertsch, Jang Jang Jin$
 // --------------------------------------------------------------------------
 //
 
 #pragma once
 
 #include <OpenMS/CHEMISTRY/EmpiricalFormula.h>
-#include <OpenMS/CHEMISTRY/ResidueModification.h>
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
 
@@ -46,15 +45,17 @@
 
 namespace OpenMS
 {
+  class ResidueModification;
+
   /**
       @ingroup Chemistry
 
-      @brief Representation of a residue
+      @brief Representation of an amino acid residue.
 
-      This class represents residues. Residues can have many different attributes, like
+      This class represents an amino acid. These can have many different attributes, like
       the formula physico-chemical values of properties and so on.
 
-      A very important property of residues are their modifications. By default no
+      A very important property of amino acid residues are their modifications. By default no
       modification is present. Any modification which is present in the ModificationsDB can
       be applied, if appropriate.
   */
@@ -122,14 +123,14 @@ public:
     inline static const EmpiricalFormula& getInternalToXIon()
     {
       // Mind the "-"
-      static const EmpiricalFormula to_full = 
+      static const EmpiricalFormula to_full =
         getInternalToCTerm() + EmpiricalFormula("CO") - EmpiricalFormula("H");
       return to_full;
     }
 
     inline static const EmpiricalFormula& getInternalToYIon()
     {
-      static const EmpiricalFormula to_full = 
+      static const EmpiricalFormula to_full =
         getInternalToCTerm() + EmpiricalFormula("H");
       return to_full;
     }
@@ -137,7 +138,7 @@ public:
     inline static const EmpiricalFormula& getInternalToZIon()
     {
       // Mind the "-"
-      static const EmpiricalFormula to_full = 
+      static const EmpiricalFormula to_full =
         getInternalToCTerm() - EmpiricalFormula("NH2");
       return to_full;
     }
@@ -173,31 +174,45 @@ public:
     /// returns the ion name given as a residue type
     static String getResidueTypeName(const ResidueType res_type);
 
-
     /** @name Constructors
     */
     //@{
-    /// default constructor
+
+    /// Default constructor (needed by pyOpenMS)
     Residue();
 
-    /// copy constructor
-    Residue(const Residue& residue);
+    /// Copy constructor
+    Residue(const Residue&) = default;
 
-    /// detailed constructor
+    /// Move constructor
+    Residue(Residue&&) = default;
+           
+    // Detailed constructor 
     Residue(const String& name,
             const String& three_letter_code,
             const String& one_letter_code,
-            const EmpiricalFormula& formula);
+            const EmpiricalFormula& formula,
+            double pka = 0,
+            double pkb = 0,
+            double pkc = -1,
+            double gb_sc = 0,
+            double gb_bb_l = 0,
+            double gb_bb_r = 0,
+            const std::set<String>& synonyms = std::set<String>());
 
-    /// destructor
+    /// Destructor
     virtual ~Residue();
     //@}
 
     /** @name Assignment
      */
     //@{
-    /// assignment operator
-    Residue& operator=(const Residue& residue);
+
+    /// Assignment operator
+    Residue& operator=(const Residue&) = default;
+
+    /// Move assignment operator
+    Residue& operator=(Residue&&) & = default;
     //@}
 
     /** @name Accessors
@@ -208,12 +223,6 @@ public:
 
     /// returns the name of the residue
     const String& getName() const;
-
-    /// sets the short name of the residue, this name is used in the PeptideSequence for output
-    void setShortName(const String& short_name);
-
-    /// returns the short name of the residue
-    const String& getShortName() const;
 
     /// sets the synonyms
     void setSynonyms(const std::set<String>& synonyms);
@@ -290,12 +299,23 @@ public:
     /// returns monoisotopic weight of the residue
     double getMonoWeight(ResidueType res_type = Full) const;
 
-    /// returns a pointer to the modification, or zero if none is set
+    /// returns a pointer to the modification, or a null pointer if none is set
     const ResidueModification* getModification() const;
 
     /// sets the modification by name; the mod should be present in ModificationsDB
     void setModification(const String& name);
 
+    /// sets the modification by existing ResMod (make sure it exists in ModificationsDB)
+    void setModification(const ResidueModification* mod);
+
+    /// sets the modification by looking for an exact match in the DB first, otherwise creating a
+    /// new entry
+    void setModification(const ResidueModification& mod);
+
+    /// sets a modification by monoisotopic mass difference. Searches in DBs first with a tolerance.
+    /// If not found, creates a new entry with name = OneLetterResidueCode[+/-diffMonoMass] and adds this as user-defined mod.
+    void setModificationByDiffMonoMass(double diffMonoMass);
+    
     /// returns the name (ID) of the modification, or an empty string if none is set
     const String& getModificationName() const;
 
@@ -305,13 +325,13 @@ public:
     /// returns a vector of formulas with the low mass markers of the residue
     const std::vector<EmpiricalFormula>& getLowMassIons() const;
 
-    /// sets the residue sets the amino acid is contained in
+    /// sets the residue sets the amino acid is contained in (e.g. Natural20)
     void setResidueSets(const std::set<String>& residues_sets);
 
-    /// adds a residue set to the residue sets
+    /// adds a residue set to the residue sets (e.g. Natural20)
     void addResidueSet(const String& residue_sets);
 
-    /// returns the residue sets this residue is contained in
+    /// returns the residue sets this residue is contained in (e.g. Natural20)
     const std::set<String>& getResidueSets() const;
 
     /// returns the pka of the residue
@@ -341,13 +361,13 @@ public:
     /// sets the side chain basicity
     void setSideChainBasicity(double gb_sc);
 
-    /// returns the backbone basicitiy if located in N-terminal direction
+    /// returns the backbone basicity if located in N-terminal direction
     double getBackboneBasicityLeft() const;
 
-    /// sets the N-terminal direction backbone basicitiy
+    /// sets the N-terminal direction backbone basicity
     void setBackboneBasicityLeft(double gb_bb_l);
 
-    /// returns the C-terminal direction backbone basicitiy
+    /// returns the C-terminal direction backbone basicity
     double getBackboneBasicityRight() const;
 
     /// sets the C-terminal direction backbone basicity
@@ -382,15 +402,20 @@ public:
     bool isInResidueSet(const String& residue_set);
     //@}
 
+    /// helper for mapping residue types to letters for Text annotations and labels
+    static char residueTypeToIonLetter(const ResidueType& res_type);
+
+    /// Write as Origin+Modification, e.g. M(Oxidation), or X[945.34] or N[+14.54] for user-defined mods.
+    /// This requires the Residue to have a valid OneLetterCode and an optional (but valid) ResidueModification (see ResidueModification::toString())
+    String toString() const;
+
     /// ostream iterator to write the residue to a stream
     friend OPENMS_DLLAPI std::ostream& operator<<(std::ostream& os, const Residue& residue);
 
 protected:
 
-    // basic
+    /// the name of the residue
     String name_;
-
-    String short_name_;
 
     std::set<String> synonyms_;
 
@@ -406,7 +431,7 @@ protected:
 
     double mono_weight_;
 
-    // modification
+    /// pointer to the modification 
     const ResidueModification* modification_;
 
     // loss
@@ -422,7 +447,7 @@ protected:
 
     double loss_mono_weight_;
 
-    // low mass markers like immonium ions
+    /// low mass markers like immonium ions
     std::vector<EmpiricalFormula> low_mass_ions_;
 
     // pka values
@@ -434,21 +459,31 @@ protected:
     // pkc values
     double pkc_;
 
+    /// SideChainBasicity
     double gb_sc_;
 
+    /// BackboneBasicityLeft
     double gb_bb_l_;
 
+    /// BackboneBasicityRight
     double gb_bb_r_;
 
-    // residue sets this amino acid is contained in
+    /// residue sets this amino acid is contained in
     std::set<String> residue_sets_;
 
-    /// sets the modification (helper function)
-    void setModification_(const ResidueModification& mod);
-
+    // pre-calculated residue type delta weights for more efficient weight calculation
+    double internal_to_full_monoweight_ = getInternalToFull().getMonoWeight();
+    double internal_to_nterm_monoweight_ = getInternalToNTerm().getMonoWeight();
+    double internal_to_cterm_monoweight_ = getInternalToCTerm().getMonoWeight();
+    double internal_to_a_monoweight_ = getInternalToAIon().getMonoWeight();
+    double internal_to_b_monoweight_ = getInternalToBIon().getMonoWeight();
+    double internal_to_c_monoweight_ = getInternalToCIon().getMonoWeight();
+    double internal_to_x_monoweight_ = getInternalToXIon().getMonoWeight();
+    double internal_to_y_monoweight_ = getInternalToYIon().getMonoWeight();
+    double internal_to_z_monoweight_ = getInternalToZIon().getMonoWeight();
   };
 
+  // write 'name threelettercode onelettercode formula'
   OPENMS_DLLAPI std::ostream& operator<<(std::ostream& os, const Residue& residue);
 
 }
-

@@ -2,7 +2,7 @@
 #                   OpenMS -- Open-Source Mass Spectrometry
 # --------------------------------------------------------------------------
 # Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-# ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+# ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 #
 # This software is released under a three-clause BSD license:
 #  * Redistributions of source code must retain the above copyright
@@ -32,9 +32,24 @@
 # $Authors: Stephan Aiche $
 # --------------------------------------------------------------------------
 
-cmake_minimum_required(VERSION 2.8.3 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.15 FATAL_ERROR)
 project("OpenMS_coding_tests")
 
+# --------------------------------------------------------------------------
+# OpenMS internal style tests
+if (NOT WIN32)
+  # Check for unintended copies in C++11 for loops
+  add_test(
+    NAME potential_for_loop_copies
+    COMMAND sh -c "grep -R for --exclude-dir=contrib --exclude-dir=cppcheck --exclude-dir=thirdparty ${OPENMS_HOST_DIRECTORY} \
+    | grep auto | grep -v begin | grep -v areaBegin | grep -v MZBegin | grep -v OMS_CODING_TEST_EXCLUDE | grep ':' \
+    | grep -v '&' | grep -v '//' | grep 'for[ ]*(' || echo 'Success' "
+  )
+
+  set_tests_properties(potential_for_loop_copies PROPERTIES
+    PASS_REGULAR_EXPRESSION "Success"
+  )
+endif()
 # --------------------------------------------------------------------------
 # cppcheck tests
 find_package(cppcheck)

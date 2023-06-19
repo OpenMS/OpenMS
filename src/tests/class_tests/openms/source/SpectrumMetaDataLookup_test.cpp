@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry               
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 // 
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -144,7 +144,7 @@ START_SECTION((void getSpectrumMetaData(const String&, SpectrumMetaData&, MetaDa
   TEST_EQUAL(meta.rt, 2.0);
   TEST_EQUAL(meta.native_id, "spectrum=1");
 
-  lookup.addReferenceFormat("rt=(?<RT>\\d+(\\.\\d+)?),mz=(?<MZ>\\d+(\\.\\d+)?)");
+  lookup.addReferenceFormat(R"(rt=(?<RT>\d+(\.\d+)?),mz=(?<MZ>\d+(\.\d+)?))");
   SpectrumMetaDataLookup::SpectrumMetaData meta2;
   SpectrumMetaDataLookup::MetaDataFlags flags =
     (SpectrumMetaDataLookup::MDF_RT | SpectrumMetaDataLookup::MDF_PRECURSORMZ);
@@ -188,7 +188,12 @@ START_SECTION((bool addMissingRTsToPeptideIDs(vector<PeptideIdentification>& pep
 END_SECTION
 
 
-START_SECTION((bool addMissingSpectrumReferences(vector<PeptideIdentification>& peptides, const String& filename, bool stop_on_error, bool override_spectra_data, vector<ProteinIdentification> proteins)))
+START_SECTION((bool addMissingSpectrumReferences(vector<PeptideIdentification>& peptides, 
+  const String& filename, 
+  bool stop_on_error, 
+  bool override_spectra_data, 
+  bool override_spectra_references, 
+  vector<ProteinIdentification> proteins)))
 {
   vector<PeptideIdentification> peptides(1);
   peptides[0].setRT(5.1);
@@ -196,7 +201,8 @@ START_SECTION((bool addMissingSpectrumReferences(vector<PeptideIdentification>& 
   String filename = "this_file_does_not_exist.mzML";
   SpectrumMetaDataLookup lookup;
   // missing file -> exception, no non-effective executions
-  TEST_EXCEPTION(Exception::FileNotFound, SpectrumMetaDataLookup::addMissingSpectrumReferences(peptides, filename, false));
+  TEST_EXCEPTION(Exception::FileNotFound, SpectrumMetaDataLookup::addMissingSpectrumReferences(
+    peptides, filename, false, false));
   // no lookup, no spectrum_references
   TEST_EQUAL(peptides[0].getMetaValue("spectrum_reference"), "index=666");
 
@@ -204,7 +210,12 @@ START_SECTION((bool addMissingSpectrumReferences(vector<PeptideIdentification>& 
   peptides[1].setRT(5.3);
   filename = OPENMS_GET_TEST_DATA_PATH("MzMLFile_1.mzML");
 
-  SpectrumMetaDataLookup::addMissingSpectrumReferences(peptides, filename, false);
+  SpectrumMetaDataLookup::addMissingSpectrumReferences(peptides, filename, false, false, false);
+
+  TEST_EQUAL(peptides[0].getMetaValue("spectrum_reference"), "index=666"); // no overwrite
+  TEST_EQUAL(peptides[1].getMetaValue("spectrum_reference"), "index=2");
+
+  SpectrumMetaDataLookup::addMissingSpectrumReferences(peptides, filename, false, true, true);
 
   TEST_EQUAL(peptides[0].getMetaValue("spectrum_reference"), "index=0"); // gets updated
   TEST_EQUAL(peptides[1].getMetaValue("spectrum_reference"), "index=2");

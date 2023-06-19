@@ -12,9 +12,14 @@
 		<fileContent>
 			<cvParam cvRef="MS" accession="MS:1000579" name="MS1 spectrum" />
 		</fileContent>
-		<sourceFileList count="1">
+		<sourceFileList count="2">
 			<sourceFile id="sf_ru_0" name="SILAC_2.wiff" location="file://.">
 				<cvParam cvRef="MS" accession="MS:1000569" name="SHA-1" value="457f5ed2a86fb242eb77e0db784938d85c506912" />
+				<cvParam cvRef="MS" accession="MS:1000562" name="ABI WIFF format" />
+				<cvParam cvRef="MS" accession="MS:1000770" name="WIFF nativeID format" />
+			</sourceFile>
+			<sourceFile id="sf_ru_1" name="SILAC_2.wiff.scan" location="file://.">
+				<cvParam cvRef="MS" accession="MS:1000569" name="SHA-1" value="7cd0c0db9b02c3d7aa243a4e01d0fb70042a07f8" />
 				<cvParam cvRef="MS" accession="MS:1000562" name="ABI WIFF format" />
 				<cvParam cvRef="MS" accession="MS:1000770" name="WIFF nativeID format" />
 			</sourceFile>
@@ -67,9 +72,9 @@
 				<cvParam cvRef="MS" accession="MS:1000511" name="ms level" value="1" />
 				<cvParam cvRef="MS" accession="MS:1000579" name="MS1 spectrum" />
 				<cvParam cvRef="MS" accession="MS:1000130" name="positive scan" />
-				<cvParam cvRef="MS" accession="MS:1000505" name="base peak intensity" value="1907" unitAccession="MS:1000131" unitName="number of detector counts" unitCvRef="MS"/>
-				<cvParam cvRef="MS" accession="MS:1000504" name="base peak m/z" value="408.787391981167" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
-				<cvParam cvRef="MS" accession="MS:1000285" name="total ion current" value="8585" unitAccession="MS:1000131" unitName="number of detector counts" unitCvRef="MS"/>
+				<cvParam cvRef="MS" accession="MS:1000505" name="base peak intensity" value="1907.0" unitAccession="MS:1000131" unitName="number of detector counts" unitCvRef="MS"/>
+				<cvParam cvRef="MS" accession="MS:1000504" name="base peak m/z" value="408.787391981166991" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
+				<cvParam cvRef="MS" accession="MS:1000285" name="total ion current" value="8585.0" unitAccession="MS:1000131" unitName="number of detector counts" unitCvRef="MS"/>
 				<userParam name="preset scan configuration" type="xsd:string" value="1"/>
 				<scanList count="1">
 					<cvParam cvRef="MS" accession="MS:1000795" name="no combination" />
@@ -103,9 +108,9 @@
 				<cvParam cvRef="MS" accession="MS:1000511" name="ms level" value="1" />
 				<cvParam cvRef="MS" accession="MS:1000579" name="MS1 spectrum" />
 				<cvParam cvRef="MS" accession="MS:1000130" name="positive scan" />
-				<cvParam cvRef="MS" accession="MS:1000505" name="base peak intensity" value="1907" unitAccession="MS:1000131" unitName="number of detector counts" unitCvRef="MS"/>
-				<cvParam cvRef="MS" accession="MS:1000504" name="base peak m/z" value="408.787391981167" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
-				<cvParam cvRef="MS" accession="MS:1000285" name="total ion current" value="8585" unitAccession="MS:1000131" unitName="number of detector counts" unitCvRef="MS"/>
+				<cvParam cvRef="MS" accession="MS:1000505" name="base peak intensity" value="1907.0" unitAccession="MS:1000131" unitName="number of detector counts" unitCvRef="MS"/>
+				<cvParam cvRef="MS" accession="MS:1000504" name="base peak m/z" value="408.787391981166991" unitAccession="MS:1000040" unitName="m/z" unitCvRef="MS"/>
+				<cvParam cvRef="MS" accession="MS:1000285" name="total ion current" value="8585.0" unitAccession="MS:1000131" unitName="number of detector counts" unitCvRef="MS"/>
 				<userParam name="preset scan configuration" type="xsd:string" value="1"/>
 				<scanList count="1">
 					<cvParam cvRef="MS" accession="MS:1000795" name="no combination" />
@@ -139,10 +144,10 @@
 </mzML>
 <indexList count="1">
 	<index name="spectrum">
-		<offset idRef="sample=1 period=1 cycle=1 experiment=1">4058</offset>
-		<offset idRef="sample=2 period=2 cycle=2 experiment=2">6847</offset>
+		<offset idRef="sample=1 period=1 cycle=1 experiment=1">4412</offset>
+		<offset idRef="sample=2 period=2 cycle=2 experiment=2">7208</offset>
 	</index>
 </indexList>
-<indexListOffset>9638</indexListOffset>
+<indexListOffset>10006</indexListOffset>
 <fileChecksum>0</fileChecksum>
 </indexedmzML>

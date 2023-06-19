@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -35,7 +35,6 @@
 #pragma once
 
 #include <OpenMS/CONCEPT/UniqueIdInterface.h>
-#include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/CONCEPT/Exception.h>
 
 #ifdef _MSC_VER // disable some BOOST warnings that distract from ours
@@ -43,7 +42,8 @@
 #   pragma warning( disable : 4396 )
 #endif
 
-#include <boost/unordered_map.hpp>
+#include <unordered_map>
+#include <sstream>
 
 #ifdef _MSC_VER
 #   pragma warning( pop )  // restore old warning state
@@ -53,18 +53,20 @@
 namespace OpenMS
 {
 
-/**@brief A base class for random access containers for classes derived from UniqueIdInterface
- * that adds functionality to convert a unique id into an index into the container.
+/**@brief A base class for containers with elements derived from UniqueIdInterface.
+ * This adds functionality to convert a unique id into an index into the container.
+ * 
+ * The derived class needs a data member called @p data_ which holds the actual elements derived from UniqueIdInterface.
+ * This is classical CRTP with the additional requirement that the derived class needs to declare a .getData() member function.
  *
  * See FeatureMap and ConsensusMap for living examples.
- * The RandomAccessContainer must support operator[], at(), and size().
+ * The RandomAccessContainer returned by .getData() must support operator[], at(), and size().
  */
-  template <typename RandomAccessContainer>
+  template<typename T>
   class UniqueIdIndexer
   {
 public:
-
-    typedef boost::unordered_map<UInt64, Size> UniqueIdMap;
+    typedef std::unordered_map<UInt64, Size> UniqueIdMap;
 
     /**
      @brief Returns the index of the feature with the given unique id, or Size(-1) if none exists in this random access container.
@@ -207,23 +209,19 @@ public:
 protected:
 
     /**@brief A little helper to get access to the base (!) class RandomAccessContainer.
-     *
-     * This is just a static_cast and probably not interesting elsewhere, so we make it a protected member.
      */
-    const RandomAccessContainer &
-    getBase_() const
+    const auto& getBase_() const
     {
-      return *static_cast<const RandomAccessContainer *>(this);
+      const T& derived = static_cast<const T&>(*this);  // using CRTP
+      return derived.getData();
     }
 
     /**@brief A little helper to get access to the base (!) class RandomAccessContainer.
-     *
-     * This is just a static_cast and probably not interesting elsewhere, so we make it a protected member.
      */
-    RandomAccessContainer &
-    getBase_()
+    auto& getBase_()
     {
-      return *static_cast<RandomAccessContainer *>(this);
+      T& derived = static_cast<T&>(*this);  // using CRTP
+      return derived.getData();
     }
 
     /**@brief hash map from unique id to index of features

@@ -3,50 +3,39 @@ from Types cimport *
 from DataValue cimport *
 from Feature cimport *
 from UniqueIdInterface cimport *
-from ProteinIdentification cimport *
+from MetaInfoInterface cimport *
 
 cdef extern from "<OpenMS/METADATA/ProteinHit.h>" namespace "OpenMS":
 
-    cdef cppclass ProteinHit:
+    cdef cppclass ProteinHit(MetaInfoInterface):
+        # wrap-inherits:
+        #   MetaInfoInterface
+        # wrap-doc:
+        #  Representation of a protein hit
+        #  
+        #  It contains the fields score, score_type, rank, accession,
+        #  sequence and coverage
 
         ProteinHit() nogil except +
         ProteinHit(double score, UInt rank, String accession, String sequence) nogil except +
-        ProteinHit(ProteinHit) nogil except +
+        ProteinHit(ProteinHit &) nogil except +
 
         # const members
         ## double COVERAGE_UNKNOWN
 
-        float getScore() nogil except +
-        UInt getRank() nogil except +
-        String getSequence() nogil except +
-        String getAccession() nogil except +
-        String getDescription() nogil except +
-        double getCoverage() nogil except +
+        float getScore() nogil except + # wrap-doc:Returns the score of the protein hit
+        UInt getRank() nogil except + # wrap-doc:Returns the rank of the protein hit
+        String getSequence() nogil except + # wrap-doc:Returns the protein sequence
+        String getAccession() nogil except + # wrap-doc:Returns the accession of the protein
+        String getDescription() nogil except + # wrap-doc:Returns the description of the protein
+        double getCoverage() nogil except + # wrap-doc:Returns the coverage (in percent) of the protein hit based upon matched peptides
 
-        void setScore(float ) nogil except +
-        void setRank(UInt) nogil except +
-        void setSequence(String) nogil except +
-        void setAccession(String) nogil except +
-        void setDescription(String description) nogil except +
-        void setCoverage(double) nogil except +
+        void setScore(float ) nogil except + # wrap-doc:Sets the score of the protein hit
+        void setRank(UInt) nogil except + # wrap-doc:Sets the rank
+        void setSequence(String) nogil except + # wrap-doc:Sets the protein sequence
+        void setAccession(String) nogil except + # wrap-doc:Sets the accession of the protein
+        void setDescription(String description) nogil except + # wrap-doc:Sets the description of the protein
+        void setCoverage(double) nogil except + # wrap-doc:Sets the coverage (in percent) of the protein hit based upon matched peptides
 
         bool operator==(ProteinHit) nogil except +
         bool operator!=(ProteinHit) nogil except +
-        bool isMetaEmpty() nogil except +
-        void clearMetaInfo() nogil except +
-
-        # cython has a problem with inheritance of overloaded methods,
-        # so we do not declare them here, but separately in each derived
-        # class which we want to be wrapped:
-        void getKeys(libcpp_vector[String] & keys) nogil except +
-        void getKeys(libcpp_vector[unsigned int] & keys) nogil except + # wrap-as:getKeysAsIntegers
-        DataValue getMetaValue(unsigned int) nogil except +
-        DataValue getMetaValue(String) nogil except +
-        void setMetaValue(unsigned int, DataValue) nogil except +
-        void setMetaValue(String, DataValue) nogil except +
-        bool metaValueExists(String) nogil except +
-        bool metaValueExists(unsigned int) nogil except +
-        void removeMetaValue(String) nogil except +
-        void removeMetaValue(unsigned int) nogil except +
-
-

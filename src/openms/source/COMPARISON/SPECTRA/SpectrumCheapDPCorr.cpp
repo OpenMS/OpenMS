@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -33,6 +33,7 @@
 // --------------------------------------------------------------------------
 //
 #include <OpenMS/COMPARISON/SPECTRA/SpectrumCheapDPCorr.h>
+#include <map>
 
 // #define SPECTRUMCHEAPDPCORR_DEBUG
 // #undef  SPECTRUMCHEAPDPCORR_DEBUG
@@ -66,9 +67,7 @@ namespace OpenMS
   {
   }
 
-  SpectrumCheapDPCorr::~SpectrumCheapDPCorr()
-  {
-  }
+  SpectrumCheapDPCorr::~SpectrumCheapDPCorr() = default;
 
   SpectrumCheapDPCorr & SpectrumCheapDPCorr::operator=(const SpectrumCheapDPCorr & source)
   {
@@ -111,9 +110,13 @@ namespace OpenMS
     lastconsensus_ = PeakSpectrum();
     Precursor p1, p2;
     if (!x.getPrecursors().empty())
+    {
       p1 = x.getPrecursors()[0];
+    }
     if (!y.getPrecursors().empty())
+    {
       p2 = y.getPrecursors()[0];
+    }
     lastconsensus_.getPrecursors().resize(1);
     lastconsensus_.getPrecursors()[0].setMZ((p1.getMZ() + p2.getMZ()) / 2);
     lastconsensus_.getPrecursors()[0].setCharge(p1.getCharge());
@@ -174,9 +177,13 @@ namespace OpenMS
             yrun++;
           }
           if (xit + xrun == x.end())
+          {
             break;
+          }
           if (yit + yrun == y.end())
+          {
             break;
+          }
         }
 
         //dynamic programming necessary to calculate optimal pairing
@@ -197,7 +204,7 @@ namespace OpenMS
           consensuspeak.setIntensity((xit->getIntensity() * (1 - factor_) + yit->getIntensity() * factor_));
           lastconsensus_.push_back(consensuspeak);
 
-          if (!peak_map_.has(xit - x.begin()))
+          if (!(peak_map_.find(xit - x.begin()) != peak_map_.end()))
           {
             peak_map_[xit - x.begin()] = yit - y.begin();
           }
@@ -275,7 +282,7 @@ namespace OpenMS
         consensuspeak.setMZ((y[ystart + j - 1].getMZ() * (1 - factor_) + x[xstart + i - 1].getMZ() * factor_));
         consensuspeak.setIntensity((y[ystart + j - 1].getIntensity() * (1 - factor_) + x[xstart + i - 1].getIntensity() * factor_));
         lastconsensus_.push_back(consensuspeak);
-        if (!peak_map_.has(xstart + i - 1))
+        if (!(peak_map_.find(xstart + i - 1) != peak_map_.end()))
         {
           peak_map_[xstart + i - 1] = ystart + j - 1;
         }
@@ -292,7 +299,9 @@ namespace OpenMS
         consensuspeak.setMZ(x[xstart + i - 1].getMZ());
         consensuspeak.setIntensity((x[xstart + i - 1].getIntensity()) * (1 - factor_));
         if (keeppeaks_)
+        {
           lastconsensus_.push_back(consensuspeak);
+        }
         i--;
       }
       else if (trace[i][j] == -1)
@@ -301,11 +310,15 @@ namespace OpenMS
         consensuspeak.setMZ(y[ystart + j - 1].getMZ());
         consensuspeak.setIntensity((y[ystart + j - 1].getIntensity()) * factor_);
         if (keeppeaks_)
+        {
           lastconsensus_.push_back(consensuspeak);
+        }
         j--;
       }
       if (!i || !j)
+      {
         break;
+      }
     }
 
     return dparray[xend - xstart + 1][yend - ystart + 1];
@@ -316,7 +329,7 @@ namespace OpenMS
     return lastconsensus_;
   }
 
-  Map<UInt, UInt> SpectrumCheapDPCorr::getPeakMap() const
+  std::map<UInt, UInt> SpectrumCheapDPCorr::getPeakMap() const
   {
     return peak_map_;
   }

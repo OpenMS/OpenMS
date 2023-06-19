@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -35,9 +35,11 @@
 #pragma once
 
 #include <OpenMS/DATASTRUCTURES/String.h>
+
 #include <ostream>
 #include <fstream>      // std::ofstream
-#include <boost/math/special_functions/fpclassify.hpp> // for "isnan"
+#include <sstream>
+#include <boost/math/special_functions/fpclassify.hpp> // because isfinite not supported on Mac
 
 namespace OpenMS
 {
@@ -131,15 +133,28 @@ public:
     */
     SVOutStream& operator<<(enum Newline);
 
-    /// Generic stream output operator (for non-character-based types)
-    template <typename T>
-    SVOutStream& operator<<(const T& value)
+    /// numeric types should be converted to String first to make use
+    /// of StringConversion
+    template<typename T>
+    typename std::enable_if<std::is_arithmetic<typename std::remove_reference<T>::type>::value, SVOutStream&>::type operator<<(const T& value)
     {
       if (!newline_) static_cast<std::ostream&>(*this) << sep_;
       else newline_ = false;
-      static_cast<std::ostream&>(*this) << value;
+      static_cast<std::ostream&>(*this) << String(value);
       return *this;
-    }
+    };
+
+    /// Generic stream output operator (for non-character-based types)
+    template<typename T>
+    typename std::enable_if<!std::is_arithmetic<typename std::remove_reference<T>::type>::value, SVOutStream&>::type operator<<(const T& value)
+    {
+      if (!newline_)
+        static_cast<std::ostream &>(*this) << sep_;
+      else
+        newline_ = false;
+      static_cast<std::ostream &>(*this) << value;
+      return *this;
+    };
 
     /// Unformatted output (no quoting: useful for comments, but use only on a line of its own!)
     SVOutStream& write(const String& str);   // write unmodified string
@@ -160,9 +175,18 @@ public:
       if ((boost::math::isfinite)(thing)) return operator<<(thing);
 
       bool old = modifyStrings(false);
-      if ((boost::math::isnan)(thing)) operator<<(nan_);
-      else if (thing < 0) operator<<("-" + inf_);
-      else operator<<(inf_);
+      if ((boost::math::isnan)(thing)) 
+      {
+        operator<<(nan_);
+      }
+      else if (thing < 0) 
+      {
+        operator<<("-" + inf_);
+      }
+      else 
+      {
+        operator<<(inf_);
+      }
       modifyStrings(old);
       return *this;
     }

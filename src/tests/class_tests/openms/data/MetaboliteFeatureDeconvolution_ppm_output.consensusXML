@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<?xml-stylesheet type="text/xsl" href="file:////home/fa/OpenMS/share/OpenMS/XSL/ConsensusXML.xsl"?>
+<consensusXML version="1.7" id="cm_4346746387102067724" experiment_type="label-free" xsi:noNamespaceSchemaLocation="https://raw.githubusercontent.com/OpenMS/OpenMS/develop/share/OpenMS/SCHEMAS/ConsensusXML_1_7.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+	<mapList count="1">
+		<map id="0" name="" label="decharged features" size="6">
+		</map>
+	</mapList>
+	<consensusElementList>
+		<consensusElement id="e_15329081911327902813" quality="0">
+			<centroid rt="1000" mz="999.99917645215" it="200"/>
+			<groupedElementList>
+				<element map="0" id="1110" rt="1000" mz="1001.007276" it="100" charge="1"/>
+				<element map="0" id="1111" rt="1000" mz="501.007276" it="100" charge="2"/>
+			</groupedElementList>
+			<UserParam type="intList" name="distinct_charges" value="[1, 2]"/>
+			<UserParam type="int" name="distinct_charges_size" value="2"/>
+			<UserParam type="int" name="pure_proton_features" value="2"/>
+			<UserParam type="string" name="1111" value="H2"/>
+			<UserParam type="string" name="1110" value="H1"/>
+		</consensusElement>
+		<consensusElement id="e_11881453989308070806" quality="0">
+			<centroid rt="2000" mz="999.99912645215" it="200"/>
+			<groupedElementList>
+				<element map="0" id="2110" rt="2000" mz="1001.057276" it="100" charge="1"/>
+				<element map="0" id="2111" rt="2000" mz="500.982226" it="100" charge="2"/>
+			</groupedElementList>
+			<UserParam type="intList" name="distinct_charges" value="[1, 2]"/>
+			<UserParam type="int" name="distinct_charges_size" value="2"/>
+			<UserParam type="int" name="pure_proton_features" value="2"/>
+			<UserParam type="string" name="2110" value="H1"/>
+			<UserParam type="string" name="2111" value="H2"/>
+		</consensusElement>
+		<consensusElement id="e_17348772872452528723" quality="0">
+			<centroid rt="3000" mz="999.945447066458" it="100"/>
+			<groupedElementList>
+				<element map="0" id="3111" rt="3000" mz="500.98" it="100" charge="2"/>
+			</groupedElementList>
+			<UserParam type="int" name="is_ungrouped_with_charge" value="1"/>
+		</consensusElement>
+		<consensusElement id="e_17068332045451970805" quality="0">
+			<centroid rt="3000" mz="1000.05272353323" it="100"/>
+			<groupedElementList>
+				<element map="0" id="3110" rt="3000" mz="1001.06" it="100" charge="1"/>
+			</groupedElementList>
+			<UserParam type="int" name="is_ungrouped_with_charge" value="1"/>
+		</consensusElement>
+	</consensusElementList>
+</consensusXML>

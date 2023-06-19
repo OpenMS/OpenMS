@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -38,7 +38,6 @@
 #include <OpenMS/DATASTRUCTURES/DPosition.h>
 
 #include <iosfwd>
-#include <functional>
 
 namespace OpenMS
 {
@@ -60,20 +59,17 @@ public:
     /// Dimension
     enum {DIMENSION = 1};
     /// Intensity type
-    typedef float IntensityType;
+    using IntensityType = float;
     /// Position type
-    typedef DPosition<1> PositionType;
+    using PositionType = DPosition<1>;
     /// Coordinate type
-    typedef double CoordinateType;
+    using CoordinateType = double;
     ///@}
 
     ///@name Constructors and Destructor
     ///@{
     /// Default constructor
-    inline Peak1D() :
-      position_(),
-      intensity_(0)
-    {}
+    inline Peak1D() = default;
 
     /// construct with position and intensity
     inline Peak1D(PositionType a, IntensityType b) :
@@ -82,10 +78,15 @@ public:
     {}
 
     /// Copy constructor
-    inline Peak1D(const Peak1D & p) :
-      position_(p.position_),
-      intensity_(p.intensity_)
-    {}
+    Peak1D(const Peak1D & p) = default;
+
+    Peak1D(Peak1D&&) noexcept = default;
+
+    /// Assignment operator
+    Peak1D& operator=(const Peak1D& rhs) = default;
+
+    /// Move assignment operator
+    Peak1D& operator=(Peak1D&&) noexcept = default;
 
     /**
       @brief Destructor
@@ -95,8 +96,7 @@ public:
       space for a vtable pointer in each instance. Normally you should not derive other classes from
       Peak1D (unless you know what you are doing, of course).
     */
-    ~Peak1D()
-    {}
+    ~Peak1D() = default;
 
     ///@}
 
@@ -153,19 +153,8 @@ public:
 
     ///@}
 
-    /// Assignment operator
-    inline Peak1D & operator=(const Peak1D & rhs)
-    {
-      if (this == &rhs) return *this;
-
-      intensity_ = rhs.intensity_;
-      position_ = rhs.position_;
-
-      return *this;
-    }
-
     /// Equality operator
-    inline bool operator==(const Peak1D & rhs) const
+    bool operator==(const Peak1D & rhs) const
     {
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wfloat-equal"
@@ -174,7 +163,7 @@ public:
     }
 
     /// Equality operator
-    inline bool operator!=(const Peak1D & rhs) const
+    bool operator!=(const Peak1D & rhs) const
     {
       return !(operator==(rhs));
     }
@@ -185,8 +174,7 @@ public:
     */
     ///@{
     /// Comparator by intensity
-    struct IntensityLess :
-      std::binary_function<Peak1D, Peak1D, bool>
+    struct IntensityLess
     {
       inline bool operator()(Peak1D const & left, Peak1D const & right) const
       {
@@ -211,8 +199,7 @@ public:
     };
 
     /// Comparator by m/z position.
-    struct MZLess :
-      public std::binary_function<Peak1D, Peak1D, bool>
+    struct MZLess
     {
       inline bool operator()(const Peak1D & left, const Peak1D & right) const
       {
@@ -237,8 +224,7 @@ public:
     };
 
     /// Comparator by position. As this class has dimension 1, this is basically an alias for MZLess.
-    struct PositionLess :
-      public std::binary_function<Peak1D, Peak1D, bool>
+    struct PositionLess
     {
       inline bool operator()(const Peak1D & left, const Peak1D & right) const
       {
@@ -265,9 +251,9 @@ public:
 
 protected:
     /// The data point position
-    PositionType    position_;
+    PositionType  position_;
     /// The data point intensity
-    IntensityType intensity_;
+    IntensityType intensity_ = 0.0;
   };
 
   /// Print the contents to a stream.

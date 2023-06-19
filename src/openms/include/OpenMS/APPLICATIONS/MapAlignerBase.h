@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -34,13 +34,8 @@
 
 #pragma once
 
-#include <OpenMS/FORMAT/MzMLFile.h>
-#include <OpenMS/FORMAT/ConsensusXMLFile.h>
-#include <OpenMS/FORMAT/FeatureXMLFile.h>
-#include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/FileTypes.h>
-#include <OpenMS/FORMAT/TransformationXMLFile.h>
 
 #include <OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentAlgorithmIdentification.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentTransformer.h>
@@ -67,48 +62,52 @@
 
 namespace OpenMS
 {
+  // @brief stores model defaults for map aligner algorithms
+  struct MapAlignerBase
+  {
+    // "public" so it can be used in DefaultParamHandlerDocumenter to get docu
+    static Param getModelDefaults(const String& default_model)
+    {
+      Param params;
+      params.setValue("type", default_model, "Type of model");
+      // TODO: avoid referring to each TransformationModel subclass explicitly
+      std::vector<std::string> model_types = {"linear","b_spline","lowess","interpolated"};
+      if (!ListUtils::contains(model_types, default_model))
+      {
+        model_types.insert(model_types.begin(), default_model);
+      }
+      params.setValidStrings("type", model_types);
+
+      Param model_params;
+      TransformationModelLinear::getDefaultParameters(model_params);
+      params.insert("linear:", model_params);
+      params.setSectionDescription("linear", "Parameters for 'linear' model");
+
+      TransformationModelBSpline::getDefaultParameters(model_params);
+      params.insert("b_spline:", model_params);
+      params.setSectionDescription("b_spline", "Parameters for 'b_spline' model");
+
+      TransformationModelLowess::getDefaultParameters(model_params);
+      params.insert("lowess:", model_params);
+      params.setSectionDescription("lowess", "Parameters for 'lowess' model");
+
+      TransformationModelInterpolated::getDefaultParameters(model_params);
+      params.insert("interpolated:", model_params);
+      params.setSectionDescription("interpolated",
+                                  "Parameters for 'interpolated' model");
+      return params;
+    }
+  };
+
 
 class TOPPMapAlignerBase :
-  public TOPPBase
+  public TOPPBase, public MapAlignerBase
 {
 
 public:
   TOPPMapAlignerBase(String name, String description, bool official = true) :
     TOPPBase(name, description, official), ref_params_(REF_NONE)
   {
-  }
-
-  // "public" so it can be used in DefaultParamHandlerDocumenter to get docu
-  static Param getModelDefaults(const String& default_model)
-  {
-    Param params;
-    params.setValue("type", default_model, "Type of model");
-    // TODO: avoid referring to each TransformationModel subclass explicitly
-    StringList model_types = ListUtils::create<String>("linear,b_spline,lowess,interpolated");
-    if (!ListUtils::contains(model_types, default_model))
-    {
-      model_types.insert(model_types.begin(), default_model);
-    }
-    params.setValidStrings("type", model_types);
-
-    Param model_params;
-    TransformationModelLinear::getDefaultParameters(model_params);
-    params.insert("linear:", model_params);
-    params.setSectionDescription("linear", "Parameters for 'linear' model");
-
-    TransformationModelBSpline::getDefaultParameters(model_params);
-    params.insert("b_spline:", model_params);
-    params.setSectionDescription("b_spline", "Parameters for 'b_spline' model");
-
-    TransformationModelLowess::getDefaultParameters(model_params);
-    params.insert("lowess:", model_params);
-    params.setSectionDescription("lowess", "Parameters for 'lowess' model");
-
-    TransformationModelInterpolated::getDefaultParameters(model_params);
-    params.insert("interpolated:", model_params);
-    params.setSectionDescription("interpolated",
-                                 "Parameters for 'interpolated' model");
-    return params;
   }
 
 protected:
@@ -120,14 +119,14 @@ protected:
   enum ReferenceParameterKind { REF_NONE, REF_RESTRICTED, REF_FLEXIBLE }
     ref_params_;
 
-  void registerOptionsAndFlags_(const String& file_formats,
-                                enum ReferenceParameterKind ref_params)
+  void registerOptionsAndFlagsMapAligners_(const String& file_formats,
+                                           enum ReferenceParameterKind ref_params)
   {
     registerInputFileList_("in", "<files>", StringList(), "Input files to align (all must have the same file type)", true);
     setValidFormats_("in", ListUtils::create<String>(file_formats));
-    registerOutputFileList_("out", "<files>", StringList(), "Output files (same file type as 'in'). Either this option or 'trafo_out' has to be provided; they can be used together.", false);
+    registerOutputFileList_("out", "<files>", StringList(), "Output files (same file type as 'in'). This option or 'trafo_out' has to be provided; they can be used together.", false);
     setValidFormats_("out", ListUtils::create<String>(file_formats));
-    registerOutputFileList_("trafo_out", "<files>", StringList(), "Transformation output files. Either this option or 'out' has to be provided; they can be used together.", false);
+    registerOutputFileList_("trafo_out", "<files>", StringList(), "Transformation output files. This option or 'out' has to be provided; they can be used together.", false);
     setValidFormats_("trafo_out", ListUtils::create<String>("trafoXML"));
 
     if (ref_params != REF_NONE)
@@ -161,18 +160,18 @@ protected:
     // check whether some kind of output file is given:
     if (outs.empty() && trafos.empty())
     {
-      writeLog_("Error: Either data output or transformation output files have to be provided (parameters 'out'/'trafo_out')");
+      writeLogError_("Error: Data output or transformation output files have to be provided (parameters 'out'/'trafo_out')");
       return ILLEGAL_PARAMETERS;
     }
     // check whether number of input files equals number of output files:
     if (!outs.empty() && (ins.size() != outs.size()))
     {
-      writeLog_("Error: The number of data input and output files has to be equal (parameters 'in'/'out')");
+      writeLogError_("Error: The number of data input and output files has to be equal (parameters 'in'/'out')");
       return ILLEGAL_PARAMETERS;
     }
     if (!trafos.empty() && (ins.size() != trafos.size()))
     {
-      writeLog_("Error: The number of data input and transformation output files has to be equal (parameters 'in'/'trafo_out')");
+      writeLogError_("Error: The number of data input and transformation output files has to be equal (parameters 'in'/'trafo_out')");
       return ILLEGAL_PARAMETERS;
     }
     // check whether all input files have the same type (this type is used to store the output type too):
@@ -181,30 +180,30 @@ protected:
     {
       if (FileHandler::getType(ins[i]) != in_type)
       {
-        writeLog_("Error: All input files (parameter 'in') must have the same format!");
+        writeLogError_("Error: All input files (parameter 'in') must have the same format!");
         return ILLEGAL_PARAMETERS;
       }
     }
-    
+
     if (ref_params_ != REF_NONE) // a valid ref. index OR file should be given
     {
       Size reference_index = getIntOption_("reference:index");
       String reference_file = getStringOption_("reference:file");
       if (reference_index > ins.size())
       {
-        writeLog_("Error: Value of parameter 'reference:index' must not be higher than the number of input files");
+        writeLogError_("Error: Value of parameter 'reference:index' must not be higher than the number of input files");
         return ILLEGAL_PARAMETERS;
       }
       if (reference_index && !reference_file.empty())
       {
-        writeLog_("Error: Parameters 'reference:index' and 'reference:file' cannot be used together");
+        writeLogError_("Error: Parameters 'reference:index' and 'reference:file' cannot be used together");
         return ILLEGAL_PARAMETERS;
       }
 
       if ((ref_params_ == REF_RESTRICTED) && !reference_file.empty() &&
           (FileHandler::getType(reference_file) != in_type))
       {
-        writeLog_("Error: Reference file must have the same format as other input files (parameters 'reference:file'/'in')");
+        writeLogError_("Error: Reference file must have the same format as other input files (parameters 'reference:file'/'in')");
         return ILLEGAL_PARAMETERS;
       }
     }

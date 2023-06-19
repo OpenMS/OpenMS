@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -32,8 +32,10 @@
 // $Authors: Chris Bielow $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/EDTAFile.h>
+
+#include <OpenMS/CONCEPT/LogStream.h>
+#include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
 
 using namespace std;
@@ -41,13 +43,9 @@ using namespace std;
 namespace OpenMS
 {
 
-  EDTAFile::EDTAFile()
-  {
-  }
+  EDTAFile::EDTAFile() = default;
 
-  EDTAFile::~EDTAFile()
-  {
-  }
+  EDTAFile::~EDTAFile() = default;
 
   double EDTAFile::checkedToDouble_(const std::vector<String>& parts, Size index, double def)
   {
@@ -79,12 +77,17 @@ namespace OpenMS
 
     char separator = ' ';
     if (input_it->hasSubstring("\t"))
+    {
       separator = '\t';
+    }
     else if (input_it->hasSubstring(" "))
+    {
       separator = ' ';
+    }
     else if (input_it->hasSubstring(","))
+    {
       separator = ',';
-
+    }
     // parsing header line
     std::vector<String> headers;
     input_it->split(separator, headers);
@@ -116,10 +119,13 @@ namespace OpenMS
       throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "", String("Failed parsing in line 1: not enough columns! Expected at least 3 columns!\nOffending line: '") + header_trimmed + "'  (line 1)\n");
     }
     else if (headers.size() == 3)
+    {
       input_type = TYPE_OLD_NOCHARGE;
+    }
     else if (headers.size() == 4)
+    {
       input_type = TYPE_OLD_CHARGE;
-
+    }
     // see if we have a header
     try
     {
@@ -132,15 +138,19 @@ namespace OpenMS
     {
       offset = 1;
       ++input_it;
-      LOG_INFO << "Detected a header line.\n";
+      OPENMS_LOG_INFO << "Detected a header line.\n";
     }
 
     if (headers.size() >= 5)
     {
       if (String(headers[4].trim()).toUpper() == "RT1")
+      {
         input_type = TYPE_CONSENSUS;
+      }
       else
+      {
         input_type = TYPE_OLD_CHARGE;
+      }
     }
     if (input_type == TYPE_CONSENSUS)
     {
@@ -169,9 +179,9 @@ namespace OpenMS
       //do nothing for empty lines
       String line_trimmed = *input_it;
       line_trimmed.trim();
-      if (line_trimmed == "")
+      if (line_trimmed.empty())
       {
-        if ((input_it - input.begin()) < input_size - 1) LOG_WARN << "Notice: Empty line ignored (line " << ((input_it - input.begin()) + 1) << ").";
+        if ((input_it - input.begin()) < input_size - 1) OPENMS_LOG_WARN << "Notice: Empty line ignored (line " << ((input_it - input.begin()) + 1) << ").";
         continue;
       }
 
@@ -252,10 +262,10 @@ namespace OpenMS
       {
         String part_trimmed = parts[j];
         part_trimmed.trim();
-        if (part_trimmed != "")
+        if (!part_trimmed.empty())
         {
           //check if column name is ok
-          if (headers.size() <= j || headers[j] == "")
+          if (headers.size() <= j || headers[j].empty())
           {
             throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "",
                                         String("Error: Missing meta data header for column ") + (j + 1) + "!"
@@ -314,7 +324,7 @@ namespace OpenMS
       // consensus
       String entry = String(f.getRT()) + "\t" + f.getMZ() + "\t" + f.getIntensity() + "\t" + f.getCharge();
       // sub-features
-      ConsensusFeature::HandleSetType handle = f.getFeatures();
+      const ConsensusFeature::HandleSetType& handle = f.getFeatures();
       for (ConsensusFeature::HandleSetType::const_iterator it = handle.begin(); it != handle.end(); ++it)
       {
         entry += String("\t") + it->getRT() + "\t" + it->getMZ() + "\t" + it->getIntensity() + "\t" + it->getCharge();

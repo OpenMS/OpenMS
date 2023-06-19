@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -68,7 +68,7 @@ START_SECTION((ModificationDefinitionsSet(const ModificationDefinitionsSet& rhs)
   mod_def2.setMaxOccurrences(10);
   ModificationDefinitionsSet mod_set2(mod_set);
 
-  TEST_EQUAL(mod_set == mod_set2, true)
+  TEST_TRUE(mod_set == mod_set2)
 }
 END_SECTION
 
@@ -142,7 +142,7 @@ START_SECTION((void addModification(const ModificationDefinition& mod_def)))
 
   ModificationDefinitionsSet mod_set2;
 
-  TEST_EQUAL(mod_set != mod_set2, true)
+  TEST_FALSE(mod_set == mod_set2)
 
   TEST_EQUAL(mod_set.getNumberOfModifications(), 1)
   TEST_EQUAL(mod_set.getNumberOfFixedModifications(), 1)
@@ -190,7 +190,7 @@ START_SECTION((void setModifications(const String& fixed_modifications, const St
   TEST_EQUAL(mod_set1.getFixedModificationNames() == mod_set2.getFixedModificationNames(), true)
   TEST_EQUAL(mod_set1.getVariableModificationNames() == mod_set2.getVariableModificationNames(), true)
   TEST_EQUAL(mod_set1.getModificationNames() == mod_set2.getModificationNames(), true)
-  TEST_EQUAL(mod_set1 == mod_set2, true)
+  TEST_TRUE(mod_set1 == mod_set2)
 
   mod_set1.setModifications("Phospho (S)", "Carbamidomethyl (C)");
   TEST_EQUAL(mod_set1.getNumberOfModifications(), 2)
@@ -316,17 +316,17 @@ START_SECTION((ModificationDefinitionsSet& operator=(const ModificationDefinitio
   mod_set1.setModifications("Phospho (S),Phospho (T),Phospho (Y)", "");
   TEST_EQUAL(mod_set1 == mod_set2, false)
   mod_set2 = mod_set1;
-  TEST_EQUAL(mod_set1 == mod_set2, true)
+  TEST_TRUE(mod_set1 == mod_set2)
 
   mod_set1.setMaxModifications(3);
   TEST_EQUAL(mod_set1 == mod_set2, false)
   mod_set2 = mod_set1;
-  TEST_EQUAL(mod_set1 == mod_set2, true)
+  TEST_TRUE(mod_set1 == mod_set2)
 
   mod_set1.setModifications("Phospho (S),Phospho (T),Phospho (Y)", "Carbamidomethyl (C)");
   TEST_EQUAL(mod_set1 == mod_set2, false)
   mod_set2 = mod_set1;
-  TEST_EQUAL(mod_set1 == mod_set2, true)
+  TEST_TRUE(mod_set1 == mod_set2)
 }
 END_SECTION
 
@@ -336,17 +336,17 @@ START_SECTION((bool operator==(const ModificationDefinitionsSet& rhs) const))
   mod_set1.setModifications("Phospho (S),Phospho (T),Phospho (Y)", "");
   TEST_EQUAL(mod_set1 == mod_set2, false)
   mod_set2 = mod_set1;
-  TEST_EQUAL(mod_set1 == mod_set2, true)
+  TEST_TRUE(mod_set1 == mod_set2)
 
   mod_set1.setMaxModifications(3);
   TEST_EQUAL(mod_set1 == mod_set2, false)
   mod_set2 = mod_set1;
-  TEST_EQUAL(mod_set1 == mod_set2, true)
+  TEST_TRUE(mod_set1 == mod_set2)
 
   mod_set1.setModifications("Phospho (S),Phospho (T),Phospho (Y)", "Carbamidomethyl (C)");
   TEST_EQUAL(mod_set1 == mod_set2, false)
   mod_set2 = mod_set1;
-  TEST_EQUAL(mod_set1 == mod_set2, true)
+  TEST_TRUE(mod_set1 == mod_set2)
 }
 END_SECTION
 
@@ -354,17 +354,17 @@ START_SECTION((bool operator!=(const ModificationDefinitionsSet& rhs) const))
 {
   ModificationDefinitionsSet mod_set1, mod_set2;
   mod_set1.setModifications("Phospho (S),Phospho (T),Phospho (Y)", "");
-  TEST_EQUAL(mod_set1 != mod_set2, true)
+  TEST_FALSE(mod_set1 == mod_set2)
   mod_set2 = mod_set1;
   TEST_EQUAL(mod_set1 != mod_set2, false)
 
   mod_set1.setMaxModifications(3);
-  TEST_EQUAL(mod_set1 != mod_set2, true)
+  TEST_FALSE(mod_set1 == mod_set2)
   mod_set2 = mod_set1;
   TEST_EQUAL(mod_set1 != mod_set2, false)
 
   mod_set1.setModifications("Phospho (S),Phospho (T),Phospho (Y)", "Carbamidomethyl (C)");
-  TEST_EQUAL(mod_set1 != mod_set2, true)
+  TEST_FALSE(mod_set1 == mod_set2)
   mod_set2 = mod_set1;
   TEST_EQUAL(mod_set1 != mod_set2, false)
 }

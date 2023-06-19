@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -51,9 +51,9 @@ using namespace std;
   <CENTER>
     <table>
       <tr>
-        <td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. predecessor tools </td>
-        <td VALIGN="middle" ROWSPAN=2> \f$ \longrightarrow \f$ PhosphoScoring \f$ \longrightarrow \f$</td>
-        <td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. successor tools </td>
+        <th ALIGN = "center"> pot. predecessor tools </td>
+        <td VALIGN="middle" ROWSPAN=2> &rarr; PhosphoScoring &rarr;</td>
+        <th ALIGN = "center"> pot. successor tools </td>
       </tr>
       <tr>
         <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_MascotAdapter (or other ID engines) </td>
@@ -251,7 +251,7 @@ protected:
     registerInputFile_("id", "<file>", "", "Identification input file which contains a search against a concatenated sequence database");
     setValidFormats_("id", ListUtils::create<String>("idXML"));
     registerOutputFile_("out", "<file>", "", "Identification output annotated with phosphorylation scores");
-
+    setValidFormats_("out", { "idXML" });
     // Ascore algorithm parameters:
     registerFullParam_(AScore().getDefaults());
   }
@@ -287,7 +287,7 @@ protected:
 
     AScore ascore;
     Param ascore_params = ascore.getDefaults();
-    ascore_params.update(getParam_(), false, false, false, false, Log_debug);
+    ascore_params.update(getParam_(), false, false, false, false, OpenMS_Log_debug);
     ascore.setParameters(ascore_params);
 
     //-------------------------------------------------------------
@@ -313,24 +313,24 @@ protected:
     SpectrumLookup lookup;
     lookup.readSpectra(exp.getSpectra());
 
-    for (vector<PeptideIdentification>::iterator pep_id = pep_ids.begin(); pep_id != pep_ids.end(); ++pep_id)
+    for (const PeptideIdentification& pep : pep_ids)
     {
-      Size scan_id = lookup.findByRT(pep_id->getRT());
+      Size scan_id = lookup.findByRT(pep.getRT());
       PeakSpectrum& temp = exp.getSpectrum(scan_id);
       
       vector<PeptideHit> scored_peptides;
-      for (vector<PeptideHit>::const_iterator hit = pep_id->getHits().begin(); hit < pep_id->getHits().end(); ++hit)
+      for (const PeptideHit& hit : pep.getHits())
       {
-        PeptideHit scored_hit = *hit;
-        addScoreToMetaValues_(scored_hit, pep_id->getScoreType()); // backup score value
+        PeptideHit scored_hit = hit;
+        addScoreToMetaValues_(scored_hit, pep.getScoreType()); // backup score value
         
-        LOG_DEBUG << "starting to compute AScore RT=" << pep_id->getRT() << " SEQUENCE: " << scored_hit.getSequence().toString() << std::endl;
+        OPENMS_LOG_DEBUG << "starting to compute AScore RT=" << pep.getRT() << " SEQUENCE: " << scored_hit.getSequence().toString() << std::endl;
         
         PeptideHit phospho_sites = ascore.compute(scored_hit, temp);
         scored_peptides.push_back(phospho_sites);
       }
 
-      PeptideIdentification new_pep_id(*pep_id);
+      PeptideIdentification new_pep_id(pep);
       new_pep_id.setScoreType("PhosphoScore");
       new_pep_id.setHigherScoreBetter(true);
       new_pep_id.setHits(scored_peptides);

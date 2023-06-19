@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -40,10 +40,7 @@
 #include <OpenMS/FORMAT/FASTAFile.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
 
-#include <algorithm>
-#include <cmath>
 #include <set>
-#include <fstream>
 namespace OpenMS
 {
 
@@ -62,11 +59,9 @@ public:
 
     PrecursorIonSelectionPreprocessing & operator=(const PrecursorIonSelectionPreprocessing & source);
 
-
     const std::map<String, std::vector<double> > & getProtMasses() const;
 
-
-    const std::vector<double> & getMasses(String acc) const;
+    const std::vector<double> & getMasses(const String& acc) const;
 
     const std::map<String, std::vector<double> > & getProteinRTMap() const;
     const std::map<String, std::vector<double> > & getProteinPTMap() const;
@@ -82,7 +77,7 @@ public:
       @throws Exception::FileNotFound if file with preprocessing or db can't be found
       @throws Exception::UnableToCreateFile if preprocessing file can't be written
     */
-    void dbPreprocessing(String db_path, bool save = true);
+    void dbPreprocessing(const String& db_path, bool save = true);
 
     /**
       @brief Calculates tryptic peptide masses of a given database and stores masses and peptide sequences
@@ -95,7 +90,7 @@ public:
       @throws Exception::FileNotFound if file with preprocessing or db can't be found
       @throws Exception::UnableToCreateFile if preprocessing file can't be written
     */
-    void dbPreprocessing(String db_path, String rt_model_path, String dt_model_path, bool save = true);
+    void dbPreprocessing(const String& db_path, const String& rt_model_path, const String& dt_model_path, bool save = true);
 
 
     /**
@@ -110,9 +105,9 @@ public:
     /// get the weighted frequency of a mass
     double getWeight(double mass);
 
-    double getRT(String prot_id, Size peptide_index);
+    double getRT(const String& prot_id, Size peptide_index);
 
-    double getPT(String prot_id, Size peptide_index);
+    double getPT(const String& prot_id, Size peptide_index);
 
     void setFixedModifications(StringList & modifications);
     const std::map<char, std::vector<String> > & getFixedModifications()
@@ -121,25 +116,25 @@ public:
     }
 
     void setGaussianParameters(double mu, double sigma);
-    double getGaussMu()
+    double getGaussMu() const
     {
       return mu_;
     }
 
-    double getGaussSigma()
+    double getGaussSigma() const
     {
       return sigma_;
     }
 
-    double getRTProbability(String prot_id, Size peptide_index, Feature & feature);
+    double getRTProbability(const String& prot_id, Size peptide_index, Feature & feature);
     double getRTProbability(double pred_rt, Feature & feature);
 
 protected:
     /// saves the preprocessed db
-    void savePreprocessedDB_(String db_path, String path);
-    void savePreprocessedDBWithRT_(String db_path, String path);
+    void savePreprocessedDB_(const String& db_path, const String& path);
+    void savePreprocessedDBWithRT_(const String& db_path, const String& path);
     /// loads the preprocessed db
-    void loadPreprocessedDB_(String path);
+    void loadPreprocessedDB_(const String& path);
     /// pre-process fasta identifier
     void filterTaxonomyIdentifier_(FASTAFile::FASTAEntry & entry);
     Int getScanNumber_(double rt);

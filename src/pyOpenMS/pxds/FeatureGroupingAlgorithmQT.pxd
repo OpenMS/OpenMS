@@ -9,9 +9,11 @@ cdef extern from "<OpenMS/ANALYSIS/MAPMATCHING/FeatureGroupingAlgorithmQT.h>" na
 
     cdef cppclass FeatureGroupingAlgorithmQT(FeatureGroupingAlgorithm):
         # wrap-inherits:
-        #    FeatureGroupingAlgorithm
+        #   FeatureGroupingAlgorithm
 
-        FeatureGroupingAlgorithmQT() nogil except +
+        FeatureGroupingAlgorithmQT() nogil except + 
+        # private
+        FeatureGroupingAlgorithmQT(FeatureGroupingAlgorithmQT &) nogil except + # wrap-ignore
 
         # not in FeatureGroupingAlgorithm, as cython has a problem with
         # overloaded methods in base classes

@@ -1,0 +1,1036 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<?xml-stylesheet type="text/xsl" href="file:///share/OpenMS/XSL/ConsensusXML.xsl"?>
+<consensusXML version="1.7" id="cm_10999084309661160052" xsi:noNamespaceSchemaLocation="http://open-ms.sourceforge.net/schemas/ConsensusXML_1_7.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+	<UserParam type="stringList" name="spectra_data" value="[file:///C:\c1f1r1.mzML,file:///C:\c1f2r1.mzML,file:///C:\c1f1r2.mzML,file:///C:\c1f2r2.mzML,file:///C:\c2f1r1.mzML,file:///C:\c2f2r1.mzML,file:///C:\c2f1r2.mzML, file:///C:\c2f2r2.mzML]"/>
+	<IdentificationRun id="PI" date="0000-00-00T00:00:00" search_engine="XTandem" search_engine_version="">
+		<SearchParameters db="/Users/pfeuffer/svn/OpenMS/Tutorials/UM_2015/Example_Data/Labelfree/databases/s_pyo_sf370_potato_human_target_decoy_with_contaminants.fasta" db_version="" taxonomy="" mass_type="monoisotopic" charges="" enzyme="trypsin" missed_cleavages="1" precursor_peak_tolerance="5" precursor_peak_tolerance_ppm="true" peak_mass_tolerance="0.1" peak_mass_tolerance_ppm="false" >
+			<FixedModification name="Carbamidomethyl (C)" />
+			<VariableModification name="Acetyl (N-term)" />
+			<VariableModification name="Gln-&gt;pyro-Glu (N-term Q)" />
+			<VariableModification name="Glu-&gt;pyro-Glu (N-term E)" />
+			<UserParam type="string" name="InferenceEngine" value="Epifany"/>
+			<UserParam type="string" name="InferenceEngineVersion" value="2.6.0-pre-feature-cXMLProtGroups-2020-04-06"/>
+		</SearchParameters>
+		<ProteinIdentification score_type="Posterior Probability" higher_score_better="true" significance_threshold="0">
+			<ProteinHit id="PH_0" accession="A" score="0.823050426961284" sequence="">
+				<UserParam type="string" name="target_decoy" value="target"/>
+				<UserParam type="float" name="XTandem_score" value="0.0"/>
+			</ProteinHit>
+			<ProteinHit id="PH_1" accession="B" score="0.823050426961284" sequence="">
+				<UserParam type="string" name="target_decoy" value="target"/>
+				<UserParam type="float" name="XTandem_score" value="0.0"/>
+			</ProteinHit>
+			<ProteinHit id="PH_2" accession="C" score="0.843042994587241" sequence="">
+				<UserParam type="string" name="target_decoy" value="target"/>
+				<UserParam type="float" name="XTandem_score" value="0.0"/>
+			</ProteinHit>
+			<ProteinHit id="PH_3" accession="D" score="0.843042994587241" sequence="">
+				<UserParam type="string" name="target_decoy" value="target"/>
+				<UserParam type="float" name="XTandem_score" value="0.0"/>
+			</ProteinHit>
+			<ProteinHit id="PH_4" accession="E" score="0" sequence="">
+				<UserParam type="string" name="target_decoy" value="target"/>
+				<UserParam type="float" name="XTandem_score" value="0.0"/>
+			</ProteinHit>
+			<ProteinHit id="PH_5" accession="F" score="0" sequence="">
+				<UserParam type="string" name="target_decoy" value="target"/>
+				<UserParam type="float" name="XTandem_score" value="0.0"/>
+			</ProteinHit>
+			<ProteinHit id="PH_6" accession="G" score="0.837758476225889" sequence="">
+				<UserParam type="string" name="target_decoy" value="target"/>
+				<UserParam type="float" name="XTandem_score" value="0.0"/>
+			</ProteinHit>
+			<ProteinHit id="PH_7" accession="H" score="0.837758476225889" sequence="">
+				<UserParam type="string" name="target_decoy" value="target"/>
+				<UserParam type="float" name="XTandem_score" value="0.0"/>
+			</ProteinHit>
+			<ProteinHit id="PH_8" accession="I" score="0.995345539062979" sequence="">
+				<UserParam type="string" name="target_decoy" value="target"/>
+				<UserParam type="float" name="XTandem_score" value="0.0"/>
+			</ProteinHit>
+			<ProteinHit id="PH_9" accession="J" score="0" sequence="">
+				<UserParam type="string" name="target_decoy" value="target"/>
+				<UserParam type="float" name="XTandem_score" value="0.0"/>
+			</ProteinHit>
+			<ProteinHit id="PH_10" accession="M" score="0" sequence="">
+				<UserParam type="string" name="target_decoy" value="target"/>
+				<UserParam type="float" name="XTandem_score" value="0.0"/>
+			</ProteinHit>
+			<ProteinHit id="PH_11" accession="N" score="0" sequence="">
+				<UserParam type="string" name="target_decoy" value="target"/>
+				<UserParam type="float" name="XTandem_score" value="0.0"/>
+			</ProteinHit>
+			<UserParam type="stringList" name="spectra_data" value="[file:///C:\c1f1r1.mzML,file:///C:\c1f2r1.mzML,file:///C:\c1f1r2.mzML,file:///C:\c1f2r2.mzML,file:///C:\c2f1r1.mzML,file:///C:\c2f2r1.mzML,file:///C:\c2f1r2.mzML,file:///C:\c2f2r2.mzML]"/>
+			<UserParam type="string" name="indistinguishable_proteins_0" value="0.9868024191411,PH_0,PH_1"/>
+			<UserParam type="string" name="indistinguishable_proteins_1" value="0.999273936308983,PH_2,PH_3"/>
+			<UserParam type="string" name="indistinguishable_proteins_2" value="0.995977601279186,PH_6,PH_7"/>
+		</ProteinIdentification>
+	</IdentificationRun>
+	<IdentificationRun id="PI_0" date="2018-02-09T14:39:23" search_engine="Percolator" search_engine_version="3.02">
+		<SearchParameters db="/Users/pfeuffer/svn/OpenMS/Tutorials/UM_2015/Example_Data/Labelfree/databases/s_pyo_sf370_potato_human_target_decoy_with_contaminants.fasta" db_version="" taxonomy="" mass_type="monoisotopic" charges="" enzyme="trypsin" missed_cleavages="1" precursor_peak_tolerance="5" precursor_peak_tolerance_ppm="true" peak_mass_tolerance="0.1" peak_mass_tolerance_ppm="false" >
+			<FixedModification name="Carbamidomethyl (C)" />
+			<VariableModification name="Acetyl (N-term)" />
+			<VariableModification name="Gln-&gt;pyro-Glu (N-term Q)" />
+			<VariableModification name="Glu-&gt;pyro-Glu (N-term E)" />
+			<UserParam type="string" name="SE:XTandem" value=""/>
+			<UserParam type="string" name="XTandem:foo" value="bar"/>
+		</SearchParameters>
+		<ProteinIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0">
+			<ProteinHit id="PH_0" accession="A" score="0.258519381284714" sequence="">
+				<UserParam type="string" name="target_decoy" value="target"/>
+				<UserParam type="float" name="XTandem_score" value="0"/>
+			</ProteinHit>
+			<ProteinHit id="PH_1" accession="B" score="0.258519381284714" sequence="">
+				<UserParam type="string" name="target_decoy" value="target"/>
+				<UserParam type="float" name="XTandem_score" value="0"/>
+			</ProteinHit>
+			<ProteinHit id="PH_2" accession="C" score="0.258519381284714" sequence="">
+				<UserParam type="string" name="target_decoy" value="target"/>
+				<UserParam type="float" name="XTandem_score" value="0"/>
+			</ProteinHit>
+			<ProteinHit id="PH_3" accession="D" score="0.258519381284714" sequence="">
+				<UserParam type="string" name="target_decoy" value="target"/>
+				<UserParam type="float" name="XTandem_score" value="0"/>
+			</ProteinHit>
+			<UserParam type="stringList" name="spectra_data" value="[file:///C:\c1f1r1.mzML]"/>
+		</ProteinIdentification>
+	</IdentificationRun>
+	<IdentificationRun id="PI_1" date="2018-02-09T14:39:24" search_engine="Percolator" search_engine_version="3.02">
+		<SearchParameters db="/Users/pfeuffer/svn/OpenMS/Tutorials/UM_2015/Example_Data/Labelfree/databases/s_pyo_sf370_potato_human_target_decoy_with_contaminants.fasta" db_version="" taxonomy="" mass_type="monoisotopic" charges="" enzyme="trypsin" missed_cleavages="1" precursor_peak_tolerance="5" precursor_peak_tolerance_ppm="true" peak_mass_tolerance="0.1" peak_mass_tolerance_ppm="false" >
+			<FixedModification name="Carbamidomethyl (C)" />
+			<VariableModification name="Acetyl (N-term)" />
+			<VariableModification name="Gln-&gt;pyro-Glu (N-term Q)" />
+			<VariableModification name="Glu-&gt;pyro-Glu (N-term E)" />
+			<UserParam type="string" name="SE:XTandem" value=""/>
+			<UserParam type="string" name="XTandem:foo" value="bar"/>
+		</SearchParameters>
+		<ProteinIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0">
+			<ProteinHit id="PH_4" accession="A" score="0.234162896871567" sequence="">
+				<UserParam type="string" name="target_decoy" value="target"/>
+				<UserParam type="float" name="XTandem_score" value="0"/>
+			</ProteinHit>
+			<ProteinHit id="PH_5" accession="E" score="0.234162896871567" sequence="">
+				<UserParam type="string" name="target_decoy" value="target"/>
+				<UserParam type="float" name="XTandem_score" value="0"/>
+			</ProteinHit>
+			<ProteinHit id="PH_6" accession="F" score="0.234162896871567" sequence="">
+				<UserParam type="string" name="target_decoy" value="target"/>
+				<UserParam type="float" name="XTandem_score" value="0"/>
+			</ProteinHit>
+			<ProteinHit id="PH_7" accession="G" score="0.234162896871567" sequence="">
+				<UserParam type="string" name="target_decoy" value="target"/>
+				<UserParam type="float" name="XTandem_score" value="0"/>
+			</ProteinHit>
+			<ProteinHit id="PH_8" accession="H" score="0.234162896871567" sequence="">
+				<UserParam type="string" name="target_decoy" value="target"/>
+				<UserParam type="float" name="XTandem_score" value="0"/>
+			</ProteinHit>
+
+			<UserParam type="stringList" name="spectra_data" value="[file:///C:\c1f2r1.mzML]"/>
+		</ProteinIdentification>
+	</IdentificationRun>
+	<IdentificationRun id="PI_2" date="2018-02-09T14:39:26" search_engine="Percolator" search_engine_version="3.02">
+		<SearchParameters db="/Users/pfeuffer/svn/OpenMS/Tutorials/UM_2015/Example_Data/Labelfree/databases/s_pyo_sf370_potato_human_target_decoy_with_contaminants.fasta" db_version="" taxonomy="" mass_type="monoisotopic" charges="" enzyme="trypsin" missed_cleavages="1" precursor_peak_tolerance="5" precursor_peak_tolerance_ppm="true" peak_mass_tolerance="0.1" peak_mass_tolerance_ppm="false" >
+			<FixedModification name="Carbamidomethyl (C)" />
+			<VariableModification name="Acetyl (N-term)" />
+			<VariableModification name="Gln-&gt;pyro-Glu (N-term Q)" />
+			<VariableModification name="Glu-&gt;pyro-Glu (N-term E)" />
+			<UserParam type="string" name="SE:XTandem" value=""/>
+			<UserParam type="string" name="XTandem:foo" value="bar"/>
+		</SearchParameters>
+		<ProteinIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0">
+			<ProteinHit id="PH_9" accession="A" score="0.295758932828903" sequence="">
+				<UserParam type="string" name="target_decoy" value="target"/>
+				<UserParam type="float" name="XTandem_score" value="0"/>
+			</ProteinHit>
+			<ProteinHit id="PH_10" accession="B" score="0.295758932828903" sequence="">
+				<UserParam type="string" name="target_decoy" value="target"/>
+				<UserParam type="float" name="XTandem_score" value="0"/>
+			</ProteinHit>
+			<ProteinHit id="PH_11" accession="C" score="0.295758932828903" sequence="">
+				<UserParam type="string" name="target_decoy" value="target"/>
+				<UserParam type="float" name="XTandem_score" value="0"/>
+			</ProteinHit>
+			<ProteinHit id="PH_12" accession="D" score="0.295758932828903" sequence="">
+				<UserParam type="string" name="target_decoy" value="target"/>
+				<UserParam type="float" name="XTandem_score" value="0"/>
+			</ProteinHit>
+			<ProteinHit id="PH_13" accession="I" score="0.295758932828903" sequence="">
+				<UserParam type="string" name="target_decoy" value="target"/>
+				<UserParam type="float" name="XTandem_score" value="0"/>
+			</ProteinHit>
+			<UserParam type="stringList" name="spectra_data" value="[file:///C:\c1f1r2.mzML]"/>
+		</ProteinIdentification>
+	</IdentificationRun>
+	<IdentificationRun id="PI_3" date="2018-02-09T14:39:27" search_engine="Percolator" search_engine_version="3.02">
+		<SearchParameters db="/Users/pfeuffer/svn/OpenMS/Tutorials/UM_2015/Example_Data/Labelfree/databases/s_pyo_sf370_potato_human_target_decoy_with_contaminants.fasta" db_version="" taxonomy="" mass_type="monoisotopic" charges="" enzyme="trypsin" missed_cleavages="1" precursor_peak_tolerance="5" precursor_peak_tolerance_ppm="true" peak_mass_tolerance="0.1" peak_mass_tolerance_ppm="false" >
+			<FixedModification name="Carbamidomethyl (C)" />
+			<VariableModification name="Acetyl (N-term)" />
+			<VariableModification name="Gln-&gt;pyro-Glu (N-term Q)" />
+			<VariableModification name="Glu-&gt;pyro-Glu (N-term E)" />
+			<UserParam type="string" name="SE:XTandem" value=""/>
+			<UserParam type="string" name="XTandem:foo" value="bar"/>
+		</SearchParameters>
+		<ProteinIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0">
+			<ProteinHit id="PH_14" accession="A" score="0.295758932828903" sequence="">
+				<UserParam type="string" name="target_decoy" value="target"/>
+				<UserParam type="float" name="XTandem_score" value="0"/>
+			</ProteinHit>
+			<ProteinHit id="PH_15" accession="E" score="0.295758932828903" sequence="">
+				<UserParam type="string" name="target_decoy" value="target"/>
+				<UserParam type="float" name="XTandem_score" value="0"/>
+			</ProteinHit>
+			<ProteinHit id="PH_16" accession="F" score="0.295758932828903" sequence="">
+				<UserParam type="string" name="target_decoy" value="target"/>
+				<UserParam type="float" name="XTandem_score" value="0"/>
+			</ProteinHit>
+			<ProteinHit id="PH_17" accession="G" score="0.295758932828903" sequence="">
+				<UserParam type="string" name="target_decoy" value="target"/>
+				<UserParam type="float" name="XTandem_score" value="0"/>
+			</ProteinHit>
+			<ProteinHit id="PH_18" accession="H" score="0.295758932828903" sequence="">
+				<UserParam type="string" name="target_decoy" value="target"/>
+				<UserParam type="float" name="XTandem_score" value="0"/>
+			</ProteinHit>
+			<UserParam type="stringList" name="spectra_data" value="[file:///C:\c1f2r2.mzML]"/>
+		</ProteinIdentification>
+	</IdentificationRun>
+	<IdentificationRun id="PI_4" date="2018-02-09T14:39:28" search_engine="Percolator" search_engine_version="3.02">
+		<SearchParameters db="/Users/pfeuffer/svn/OpenMS/Tutorials/UM_2015/Example_Data/Labelfree/databases/s_pyo_sf370_potato_human_target_decoy_with_contaminants.fasta" db_version="" taxonomy="" mass_type="monoisotopic" charges="" enzyme="trypsin" missed_cleavages="1" precursor_peak_tolerance="5" precursor_peak_tolerance_ppm="true" peak_mass_tolerance="0.1" peak_mass_tolerance_ppm="false" >
+			<FixedModification name="Carbamidomethyl (C)" />
+			<VariableModification name="Acetyl (N-term)" />
+			<VariableModification name="Gln-&gt;pyro-Glu (N-term Q)" />
+			<VariableModification name="Glu-&gt;pyro-Glu (N-term E)" />
+			<UserParam type="string" name="SE:XTandem" value=""/>
+			<UserParam type="string" name="XTandem:foo" value="bar"/>
+		</SearchParameters>
+		<ProteinIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0">
+			<ProteinHit id="PH_19" accession="A" score="0.295758932828903" sequence="">
+				<UserParam type="string" name="target_decoy" value="target"/>
+				<UserParam type="float" name="XTandem_score" value="0"/>
+			</ProteinHit>
+			<ProteinHit id="PH_20" accession="C" score="0.295758932828903" sequence="">
+				<UserParam type="string" name="target_decoy" value="target"/>
+				<UserParam type="float" name="XTandem_score" value="0"/>
+			</ProteinHit>
+			<ProteinHit id="PH_21" accession="D" score="0.295758932828903" sequence="">
+				<UserParam type="string" name="target_decoy" value="target"/>
+				<UserParam type="float" name="XTandem_score" value="0"/>
+			</ProteinHit>
+			<ProteinHit id="PH_22" accession="I" score="0.295758932828903" sequence="">
+				<UserParam type="string" name="target_decoy" value="target"/>
+				<UserParam type="float" name="XTandem_score" value="0"/>
+			</ProteinHit>
+			<ProteinHit id="PH_23" accession="J" score="0.295758932828903" sequence="">
+				<UserParam type="string" name="target_decoy" value="target"/>
+				<UserParam type="float" name="XTandem_score" value="0"/>
+			</ProteinHit>
+			<UserParam type="stringList" name="spectra_data" value="[file:///C:\c2f1r1.mzML]"/>
+		</ProteinIdentification>
+	</IdentificationRun>
+	<IdentificationRun id="PI_5" date="2018-02-09T14:39:29" search_engine="Percolator" search_engine_version="3.02">
+		<SearchParameters db="/Users/pfeuffer/svn/OpenMS/Tutorials/UM_2015/Example_Data/Labelfree/databases/s_pyo_sf370_potato_human_target_decoy_with_contaminants.fasta" db_version="" taxonomy="" mass_type="monoisotopic" charges="" enzyme="trypsin" missed_cleavages="1" precursor_peak_tolerance="5" precursor_peak_tolerance_ppm="true" peak_mass_tolerance="0.1" peak_mass_tolerance_ppm="false" >
+			<FixedModification name="Carbamidomethyl (C)" />
+			<VariableModification name="Acetyl (N-term)" />
+			<VariableModification name="Gln-&gt;pyro-Glu (N-term Q)" />
+			<VariableModification name="Glu-&gt;pyro-Glu (N-term E)" />
+			<UserParam type="string" name="SE:XTandem" value=""/>
+			<UserParam type="string" name="XTandem:foo" value="bar"/>
+		</SearchParameters>
+		<ProteinIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0">
+			<ProteinHit id="PH_24" accession="N" score="0.295758932828903" sequence="">
+				<UserParam type="string" name="target_decoy" value="target"/>
+				<UserParam type="float" name="XTandem_score" value="0"/>
+			</ProteinHit>
+			<ProteinHit id="PH_25" accession="A" score="0.295758932828903" sequence="">
+				<UserParam type="string" name="target_decoy" value="target"/>
+				<UserParam type="float" name="XTandem_score" value="0"/>
+			</ProteinHit>
+			<ProteinHit id="PH_26" accession="C" score="0.295758932828903" sequence="">
+				<UserParam type="string" name="target_decoy" value="target"/>
+				<UserParam type="float" name="XTandem_score" value="0"/>
+			</ProteinHit>
+			<ProteinHit id="PH_27" accession="G" score="0.295758932828903" sequence="">
+				<UserParam type="string" name="target_decoy" value="target"/>
+				<UserParam type="float" name="XTandem_score" value="0"/>
+			</ProteinHit>
+			<ProteinHit id="PH_28" accession="H" score="0.295758932828903" sequence="">
+				<UserParam type="string" name="target_decoy" value="target"/>
+				<UserParam type="float" name="XTandem_score" value="0"/>
+			</ProteinHit>
+			<ProteinHit id="PH_29" accession="M" score="0.295758932828903" sequence="">
+				<UserParam type="string" name="target_decoy" value="target"/>
+				<UserParam type="float" name="XTandem_score" value="0"/>
+			</ProteinHit>
+			<UserParam type="stringList" name="spectra_data" value="[file:///C:\c2f2r1.mzML]"/>
+		</ProteinIdentification>
+	</IdentificationRun>
+	<IdentificationRun id="PI_6" date="2018-02-09T14:39:30" search_engine="Percolator" search_engine_version="3.02">
+		<SearchParameters db="/Users/pfeuffer/svn/OpenMS/Tutorials/UM_2015/Example_Data/Labelfree/databases/s_pyo_sf370_potato_human_target_decoy_with_contaminants.fasta" db_version="" taxonomy="" mass_type="monoisotopic" charges="" enzyme="trypsin" missed_cleavages="1" precursor_peak_tolerance="5" precursor_peak_tolerance_ppm="true" peak_mass_tolerance="0.1" peak_mass_tolerance_ppm="false" >
+			<FixedModification name="Carbamidomethyl (C)" />
+			<VariableModification name="Acetyl (N-term)" />
+			<VariableModification name="Gln-&gt;pyro-Glu (N-term Q)" />
+			<VariableModification name="Glu-&gt;pyro-Glu (N-term E)" />
+			<UserParam type="string" name="SE:XTandem" value=""/>
+			<UserParam type="string" name="XTandem:foo" value="bar"/>
+		</SearchParameters>
+		<ProteinIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0">
+			<ProteinHit id="PH_30" accession="C" score="0.295758932828903" sequence="">
+				<UserParam type="string" name="target_decoy" value="target"/>
+				<UserParam type="float" name="XTandem_score" value="0"/>
+			</ProteinHit>
+			<ProteinHit id="PH_31" accession="D" score="0.295758932828903" sequence="">
+				<UserParam type="string" name="target_decoy" value="target"/>
+				<UserParam type="float" name="XTandem_score" value="0"/>
+			</ProteinHit>
+			<ProteinHit id="PH_32" accession="I" score="0.295758932828903" sequence="">
+				<UserParam type="string" name="target_decoy" value="target"/>
+				<UserParam type="float" name="XTandem_score" value="0"/>
+			</ProteinHit>
+			<ProteinHit id="PH_33" accession="J" score="0.295758932828903" sequence="">
+				<UserParam type="string" name="target_decoy" value="target"/>
+				<UserParam type="float" name="XTandem_score" value="0"/>
+			</ProteinHit>
+			<UserParam type="stringList" name="spectra_data" value="[file:///C:\c2f1r2.mzML]"/>
+		</ProteinIdentification>
+	</IdentificationRun>
+	<IdentificationRun id="PI_7" date="2018-02-09T14:39:31" search_engine="Percolator" search_engine_version="3.02">
+		<SearchParameters db="/Users/pfeuffer/svn/OpenMS/Tutorials/UM_2015/Example_Data/Labelfree/databases/s_pyo_sf370_potato_human_target_decoy_with_contaminants.fasta" db_version="" taxonomy="" mass_type="monoisotopic" charges="" enzyme="trypsin" missed_cleavages="1" precursor_peak_tolerance="5" precursor_peak_tolerance_ppm="true" peak_mass_tolerance="0.1" peak_mass_tolerance_ppm="false" >
+			<FixedModification name="Carbamidomethyl (C)" />
+			<VariableModification name="Acetyl (N-term)" />
+			<VariableModification name="Gln-&gt;pyro-Glu (N-term Q)" />
+			<VariableModification name="Glu-&gt;pyro-Glu (N-term E)" />
+			<UserParam type="string" name="SE:XTandem" value=""/>
+			<UserParam type="string" name="XTandem:foo" value="bar"/>
+		</SearchParameters>
+		<ProteinIdentification score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0">
+			<ProteinHit id="PH_34" accession="J" score="0.295758932828903" sequence="">
+				<UserParam type="string" name="target_decoy" value="target"/>
+				<UserParam type="float" name="XTandem_score" value="0"/>
+			</ProteinHit>
+			<ProteinHit id="PH_35" accession="G" score="0.295758932828903" sequence="">
+				<UserParam type="string" name="target_decoy" value="target"/>
+				<UserParam type="float" name="XTandem_score" value="0"/>
+			</ProteinHit>
+			<ProteinHit id="PH_36" accession="H" score="0.295758932828903" sequence="">
+				<UserParam type="string" name="target_decoy" value="target"/>
+				<UserParam type="float" name="XTandem_score" value="0"/>
+			</ProteinHit>
+			<ProteinHit id="PH_37" accession="M" score="0.295758932828903" sequence="">
+				<UserParam type="string" name="target_decoy" value="target"/>
+				<UserParam type="float" name="XTandem_score" value="0"/>
+			</ProteinHit>
+			<ProteinHit id="PH_38" accession="N" score="0.295758932828903" sequence="">
+				<UserParam type="string" name="target_decoy" value="target"/>
+				<UserParam type="float" name="XTandem_score" value="0"/>
+			</ProteinHit>
+			<UserParam type="stringList" name="spectra_data" value="[file:///C:\c2f2r2.mzML]"/>
+		</ProteinIdentification>
+	</IdentificationRun>
+	<UnassignedPeptideIdentification identification_run_ref="PI_0" score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0" MZ="611.327697753906" RT="3002.38033267983" spectrum_reference="controllerType=0 controllerNumber=1 scan=4428" >
+		<PeptideHit score="0" sequence="LYQNSADVIAK" charge="2" aa_before="K K" aa_after="L L" start="143 143" end="153 153" protein_refs="PH_1 PH_2">
+			<UserParam type="string" name="target_decoy" value="target"/>
+			<UserParam type="float" name="XTandem_score" value="59.6"/>
+			<UserParam type="float" name="nextscore" value="24.4"/>
+			<UserParam type="float" name="delta" value="0.0007"/>
+			<UserParam type="float" name="mass" value="1221.6474"/>
+			<UserParam type="float" name="E-Value" value="3e-08"/>
+			<UserParam type="float" name="hyperscore" value="59.6"/>
+			<UserParam type="float" name="b_score" value="16.4"/>
+			<UserParam type="int" name="b_ions" value="8"/>
+			<UserParam type="float" name="y_score" value="18.5"/>
+			<UserParam type="int" name="y_ions" value="9"/>
+			<UserParam type="string" name="protein_references" value="non-unique"/>
+			<UserParam type="float" name="Posterior Probability_score" value="0.872986713090188"/>
+		</PeptideHit>
+		<UserParam type="int" name="map_index" value="0"/>
+		<UserParam type="string" name="feature_id" value="not mapped"/>
+		<UserParam type="int" name="feature_leader" value="0"/>
+	</UnassignedPeptideIdentification>
+	<UnassignedPeptideIdentification identification_run_ref="PI_1" score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0" MZ="412.890899658203" RT="3002.64412512197" spectrum_reference="controllerType=0 controllerNumber=1 scan=4429" >
+		<PeptideHit score="0" sequence="IRTDFDTVAAK" charge="3" aa_before="R R" aa_after="L L" start="6 6" end="16 16" protein_refs="PH_4 PH_5">
+			<UserParam type="string" name="target_decoy" value="target"/>
+			<UserParam type="float" name="XTandem_score" value="41.2"/>
+			<UserParam type="float" name="nextscore" value="24"/>
+			<UserParam type="float" name="delta" value="-0.0001"/>
+			<UserParam type="float" name="mass" value="1236.6583"/>
+			<UserParam type="float" name="E-Value" value="0.0061"/>
+			<UserParam type="float" name="hyperscore" value="41.2"/>
+			<UserParam type="float" name="b_score" value="15.4"/>
+			<UserParam type="int" name="b_ions" value="10"/>
+			<UserParam type="float" name="y_score" value="13.8"/>
+			<UserParam type="int" name="y_ions" value="7"/>
+			<UserParam type="string" name="protein_references" value="non-unique"/>
+			<UserParam type="float" name="Posterior Probability_score" value="0.131073372959783"/>
+		</PeptideHit>
+		<UserParam type="int" name="map_index" value="1"/>
+		<UserParam type="string" name="feature_id" value="not mapped"/>
+		<UserParam type="int" name="feature_leader" value="0"/>
+	</UnassignedPeptideIdentification>
+	<UnassignedPeptideIdentification identification_run_ref="PI_2" score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0" MZ="484.895294189453" RT="3002.91867050954" spectrum_reference="controllerType=0 controllerNumber=1 scan=4430" >
+		<PeptideHit score="0" sequence="GYDVLTDDRNER" charge="3" aa_before="K K" aa_after="V V" start="549 549" end="560 560" protein_refs="PH_9 PH_10">
+			<UserParam type="string" name="target_decoy" value="target"/>
+			<UserParam type="float" name="XTandem_score" value="36.9"/>
+			<UserParam type="float" name="nextscore" value="14.2"/>
+			<UserParam type="float" name="delta" value="-0"/>
+			<UserParam type="float" name="mass" value="1452.6714"/>
+			<UserParam type="float" name="E-Value" value="0.00079"/>
+			<UserParam type="float" name="hyperscore" value="36.9"/>
+			<UserParam type="float" name="b_score" value="14.6"/>
+			<UserParam type="int" name="b_ions" value="8"/>
+			<UserParam type="float" name="y_score" value="14.3"/>
+			<UserParam type="int" name="y_ions" value="7"/>
+			<UserParam type="string" name="protein_references" value="non-unique"/>
+			<UserParam type="float" name="Posterior Probability_score" value="0.231959794908459"/>
+		</PeptideHit>
+		<UserParam type="int" name="map_index" value="2"/>
+		<UserParam type="string" name="feature_id" value="not mapped"/>
+		<UserParam type="int" name="feature_leader" value="0"/>
+	</UnassignedPeptideIdentification>
+	<UnassignedPeptideIdentification identification_run_ref="PI_3" score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0" MZ="509.273559570313" RT="3003.24540221047" spectrum_reference="controllerType=0 controllerNumber=1 scan=4431" >
+		<PeptideHit score="0" sequence="QAAEMGVAIK" charge="2" aa_before="K K" aa_after="V V" start="188 188" end="197 197" protein_refs="PH_14 PH_15">
+			<UserParam type="string" name="target_decoy" value="target"/>
+			<UserParam type="float" name="XTandem_score" value="45.5"/>
+			<UserParam type="float" name="nextscore" value="18.5"/>
+			<UserParam type="float" name="delta" value="0.0001"/>
+			<UserParam type="float" name="mass" value="1017.5397"/>
+			<UserParam type="float" name="E-Value" value="0.00019"/>
+			<UserParam type="float" name="hyperscore" value="45.5"/>
+			<UserParam type="float" name="b_score" value="9.7"/>
+			<UserParam type="int" name="b_ions" value="5"/>
+			<UserParam type="float" name="y_score" value="14.9"/>
+			<UserParam type="int" name="y_ions" value="9"/>
+			<UserParam type="string" name="protein_references" value="non-unique"/>
+			<UserParam type="float" name="Posterior Probability_score" value="0.331348298080796"/>
+		</PeptideHit>
+		<UserParam type="int" name="map_index" value="3"/>
+		<UserParam type="string" name="feature_id" value="not mapped"/>
+		<UserParam type="int" name="feature_leader" value="0"/>
+	</UnassignedPeptideIdentification>
+	<UnassignedPeptideIdentification identification_run_ref="PI_4" score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0" MZ="509.273773193359" RT="3004.16107964045" spectrum_reference="controllerType=0 controllerNumber=1 scan=4433" >
+		<PeptideHit score="0.0012666244458518" sequence="QAAEMGVAIK" charge="2" aa_before="K K" aa_after="V V" start="188 188" end="197 197" protein_refs="PH_20 PH_21">
+			<UserParam type="string" name="target_decoy" value="target"/>
+			<UserParam type="float" name="XTandem_score" value="36.1"/>
+			<UserParam type="float" name="nextscore" value="21.2"/>
+			<UserParam type="float" name="delta" value="0.0005"/>
+			<UserParam type="float" name="mass" value="1017.5397"/>
+			<UserParam type="float" name="E-Value" value="0.027"/>
+			<UserParam type="float" name="hyperscore" value="36.1"/>
+			<UserParam type="float" name="b_score" value="8.8"/>
+			<UserParam type="int" name="b_ions" value="3"/>
+			<UserParam type="float" name="y_score" value="14.5"/>
+			<UserParam type="int" name="y_ions" value="8"/>
+			<UserParam type="string" name="protein_references" value="non-unique"/>
+			<UserParam type="float" name="Posterior Probability_score" value="0.0868957137670797"/>
+		</PeptideHit>
+		<UserParam type="int" name="map_index" value="4"/>
+		<UserParam type="string" name="feature_id" value="not mapped"/>
+		<UserParam type="int" name="feature_leader" value="0"/>
+	</UnassignedPeptideIdentification>
+	<UnassignedPeptideIdentification identification_run_ref="PI_5" score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0" MZ="880.403259277344" RT="3004.77606920072" spectrum_reference="controllerType=0 controllerNumber=1 scan=4435" >
+		<PeptideHit score="0" sequence="INAEAETDPTVDEEAR" charge="2" aa_before="R R" aa_after="E E" start="195 195" end="210 210" protein_refs="PH_24 PH_25">
+			<UserParam type="string" name="target_decoy" value="target"/>
+			<UserParam type="float" name="XTandem_score" value="72.9"/>
+			<UserParam type="float" name="nextscore" value="13.7"/>
+			<UserParam type="float" name="delta" value="0.0012"/>
+			<UserParam type="float" name="mass" value="1759.7981"/>
+			<UserParam type="float" name="E-Value" value="7.8e-14"/>
+			<UserParam type="float" name="hyperscore" value="72.9"/>
+			<UserParam type="float" name="b_score" value="13.3"/>
+			<UserParam type="int" name="b_ions" value="9"/>
+			<UserParam type="float" name="y_score" value="15.5"/>
+			<UserParam type="int" name="y_ions" value="12"/>
+			<UserParam type="string" name="protein_references" value="non-unique"/>
+			<UserParam type="float" name="Posterior Probability_score" value="0.994737512325291"/>
+		</PeptideHit>
+		<UserParam type="int" name="map_index" value="5"/>
+		<UserParam type="string" name="feature_id" value="not mapped"/>
+		<UserParam type="int" name="feature_leader" value="0"/>
+	</UnassignedPeptideIdentification>
+	<UnassignedPeptideIdentification identification_run_ref="PI_6" score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0" MZ="618.830993652344" RT="3005.12371488738" spectrum_reference="controllerType=0 controllerNumber=1 scan=4436" >
+		<PeptideHit score="0" sequence="IRTDFDTVAAK" charge="2" aa_before="R R" aa_after="L L" start="6 6" end="16 16" protein_refs="PH_30 PH_31">
+			<UserParam type="string" name="target_decoy" value="target"/>
+			<UserParam type="float" name="XTandem_score" value="52.3"/>
+			<UserParam type="float" name="nextscore" value="24.8"/>
+			<UserParam type="float" name="delta" value="-0.0036"/>
+			<UserParam type="float" name="mass" value="1236.6583"/>
+			<UserParam type="float" name="E-Value" value="0.00011"/>
+			<UserParam type="float" name="hyperscore" value="52.3"/>
+			<UserParam type="float" name="b_score" value="14.7"/>
+			<UserParam type="int" name="b_ions" value="8"/>
+			<UserParam type="float" name="y_score" value="13.7"/>
+			<UserParam type="int" name="y_ions" value="8"/>
+			<UserParam type="string" name="protein_references" value="non-unique"/>
+			<UserParam type="float" name="Posterior Probability_score" value="0.374372652441724"/>
+		</PeptideHit>
+		<UserParam type="int" name="map_index" value="6"/>
+		<UserParam type="string" name="feature_id" value="not mapped"/>
+		<UserParam type="int" name="feature_leader" value="0"/>
+	</UnassignedPeptideIdentification>
+	<UnassignedPeptideIdentification identification_run_ref="PI_7" score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0" MZ="454.757537841797" RT="3006.06218066968" spectrum_reference="controllerType=0 controllerNumber=1 scan=4438" >
+		<PeptideHit score="0.0012666244458518" sequence="TSIIYSPK" charge="2" aa_before="M M" aa_after="D D" start="1 1" end="8 8" protein_refs="PH_34 PH_35">
+			<UserParam type="string" name="target_decoy" value="target"/>
+			<UserParam type="float" name="XTandem_score" value="27.1"/>
+			<UserParam type="float" name="nextscore" value="17.1"/>
+			<UserParam type="float" name="delta" value="-0.001"/>
+			<UserParam type="float" name="mass" value="908.5088"/>
+			<UserParam type="float" name="E-Value" value="0.071"/>
+			<UserParam type="float" name="hyperscore" value="27.1"/>
+			<UserParam type="float" name="b_score" value="12.9"/>
+			<UserParam type="int" name="b_ions" value="5"/>
+			<UserParam type="float" name="y_score" value="15.3"/>
+			<UserParam type="int" name="y_ions" value="3"/>
+			<UserParam type="string" name="protein_references" value="non-unique"/>
+			<UserParam type="float" name="Posterior Probability_score" value="0.0683468444168001"/>
+		</PeptideHit>
+		<UserParam type="int" name="map_index" value="7"/>
+		<UserParam type="string" name="feature_id" value="not mapped"/>
+		<UserParam type="int" name="feature_leader" value="0"/>
+	</UnassignedPeptideIdentification>
+	<UnassignedPeptideIdentification identification_run_ref="PI_0" score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0" MZ="880.402526855469" RT="3006.35734409029" spectrum_reference="controllerType=0 controllerNumber=1 scan=4439" >
+		<PeptideHit score="0" sequence="INAEAETDPTVDEEAR" charge="2" aa_before="R R" aa_after="E E" start="195 195" end="210 210" protein_refs="PH_2 PH_3">
+			<UserParam type="string" name="target_decoy" value="target"/>
+			<UserParam type="float" name="XTandem_score" value="86.1"/>
+			<UserParam type="float" name="nextscore" value="13.6"/>
+			<UserParam type="float" name="delta" value="-0.0003"/>
+			<UserParam type="float" name="mass" value="1759.7981"/>
+			<UserParam type="float" name="E-Value" value="1e-15"/>
+			<UserParam type="float" name="hyperscore" value="86.1"/>
+			<UserParam type="float" name="b_score" value="13.3"/>
+			<UserParam type="int" name="b_ions" value="10"/>
+			<UserParam type="float" name="y_score" value="15.7"/>
+			<UserParam type="int" name="y_ions" value="14"/>
+			<UserParam type="string" name="protein_references" value="non-unique"/>
+			<UserParam type="float" name="Posterior Probability_score" value="0.998293524648817"/>
+		</PeptideHit>
+		<UserParam type="int" name="map_index" value="0"/>
+		<UserParam type="string" name="feature_id" value="not mapped"/>
+		<UserParam type="int" name="feature_leader" value="0"/>
+	</UnassignedPeptideIdentification>
+	<UnassignedPeptideIdentification identification_run_ref="PI_1" score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0" MZ="585.303833007813" RT="3006.70775200144" spectrum_reference="controllerType=0 controllerNumber=1 scan=4440" >
+		<PeptideHit score="0" sequence="YIQNHAPLSNNEVVR" charge="3" aa_before="R R" aa_after="I I" start="100 100" end="114 114" protein_refs="PH_6 PH_7">
+			<UserParam type="string" name="target_decoy" value="target"/>
+			<UserParam type="float" name="XTandem_score" value="38.7"/>
+			<UserParam type="float" name="nextscore" value="35.8"/>
+			<UserParam type="float" name="delta" value="-0.0011"/>
+			<UserParam type="float" name="mass" value="1753.898"/>
+			<UserParam type="float" name="E-Value" value="0.017"/>
+			<UserParam type="float" name="hyperscore" value="38.7"/>
+			<UserParam type="float" name="b_score" value="13.1"/>
+			<UserParam type="int" name="b_ions" value="8"/>
+			<UserParam type="float" name="y_score" value="13.7"/>
+			<UserParam type="int" name="y_ions" value="8"/>
+			<UserParam type="string" name="protein_references" value="non-unique"/>
+			<UserParam type="float" name="Posterior Probability_score" value="0.0983828504616373"/>
+		</PeptideHit>
+		<UserParam type="int" name="map_index" value="1"/>
+		<UserParam type="string" name="feature_id" value="not mapped"/>
+		<UserParam type="int" name="feature_leader" value="0"/>
+	</UnassignedPeptideIdentification>
+	<UnassignedPeptideIdentification identification_run_ref="PI_2" score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0" MZ="536.78955078125" RT="3007.05372062317" spectrum_reference="controllerType=0 controllerNumber=1 scan=4441" >
+		<PeptideHit score="0" sequence="TLINEVNNR" charge="2" aa_before="K K" aa_after="] ]" start="503 503" end="511 511" protein_refs="PH_11 PH_12">
+			<UserParam type="string" name="target_decoy" value="target"/>
+			<UserParam type="float" name="XTandem_score" value="39.8"/>
+			<UserParam type="float" name="nextscore" value="20.2"/>
+			<UserParam type="float" name="delta" value="-0.0027"/>
+			<UserParam type="float" name="mass" value="1072.5745"/>
+			<UserParam type="float" name="E-Value" value="0.0094"/>
+			<UserParam type="float" name="hyperscore" value="39.8"/>
+			<UserParam type="float" name="b_score" value="13.9"/>
+			<UserParam type="int" name="b_ions" value="7"/>
+			<UserParam type="float" name="y_score" value="16.3"/>
+			<UserParam type="int" name="y_ions" value="5"/>
+			<UserParam type="string" name="protein_references" value="non-unique"/>
+			<UserParam type="float" name="Posterior Probability_score" value="0.115977973368827"/>
+		</PeptideHit>
+		<UserParam type="int" name="map_index" value="2"/>
+		<UserParam type="string" name="feature_id" value="not mapped"/>
+		<UserParam type="int" name="feature_leader" value="0"/>
+	</UnassignedPeptideIdentification>
+	<UnassignedPeptideIdentification identification_run_ref="PI_3" score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0" MZ="486.771728515625" RT="3007.9720616268" spectrum_reference="controllerType=0 controllerNumber=1 scan=4443" >
+		<PeptideHit score="0" sequence="QEAIEAAIK" charge="2" aa_before="R R" aa_after="D D" start="232 234" end="240 242" protein_refs="PH_16 PH_17">
+			<UserParam type="string" name="target_decoy" value="target"/>
+			<UserParam type="float" name="XTandem_score" value="48.5"/>
+			<UserParam type="float" name="nextscore" value="20"/>
+			<UserParam type="float" name="delta" value="0.0001"/>
+			<UserParam type="float" name="mass" value="972.536"/>
+			<UserParam type="float" name="E-Value" value="0.0001"/>
+			<UserParam type="float" name="hyperscore" value="48.5"/>
+			<UserParam type="float" name="b_score" value="11.6"/>
+			<UserParam type="int" name="b_ions" value="4"/>
+			<UserParam type="float" name="y_score" value="16.6"/>
+			<UserParam type="int" name="y_ions" value="10"/>
+			<UserParam type="string" name="protein_references" value="non-unique"/>
+			<UserParam type="float" name="Posterior Probability_score" value="0.382069235462344"/>
+		</PeptideHit>
+		<UserParam type="int" name="map_index" value="3"/>
+		<UserParam type="string" name="feature_id" value="not mapped"/>
+		<UserParam type="int" name="feature_leader" value="0"/>
+	</UnassignedPeptideIdentification>
+	<UnassignedPeptideIdentification identification_run_ref="PI_4" score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0" MZ="536.791015625" RT="3008.23180938304" spectrum_reference="controllerType=0 controllerNumber=1 scan=4444" >
+		<PeptideHit score="0" sequence="TLINEVNNR" charge="2" aa_before="K K" aa_after="] ]" start="503 503" end="511 511" protein_refs="PH_22 PH_23">
+			<UserParam type="string" name="target_decoy" value="target"/>
+			<UserParam type="float" name="XTandem_score" value="50.4"/>
+			<UserParam type="float" name="nextscore" value="20.6"/>
+			<UserParam type="float" name="delta" value="0.0002"/>
+			<UserParam type="float" name="mass" value="1072.5745"/>
+			<UserParam type="float" name="E-Value" value="5.9e-07"/>
+			<UserParam type="float" name="hyperscore" value="50.4"/>
+			<UserParam type="float" name="b_score" value="14.4"/>
+			<UserParam type="int" name="b_ions" value="7"/>
+			<UserParam type="float" name="y_score" value="16.8"/>
+			<UserParam type="int" name="y_ions" value="8"/>
+			<UserParam type="string" name="protein_references" value="non-unique"/>
+			<UserParam type="float" name="Posterior Probability_score" value="0.758777146945494"/>
+		</PeptideHit>
+		<UserParam type="int" name="map_index" value="4"/>
+		<UserParam type="string" name="feature_id" value="not mapped"/>
+		<UserParam type="int" name="feature_leader" value="0"/>
+	</UnassignedPeptideIdentification>
+	<UnassignedPeptideIdentification identification_run_ref="PI_5" score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0" MZ="585.304565429688" RT="3008.86524665707" spectrum_reference="controllerType=0 controllerNumber=1 scan=4446" >
+		<PeptideHit score="0" sequence="YIQNHAPLSNNEVVR" charge="3" aa_before="R R" aa_after="I I" start="100 100" end="114 114" protein_refs="PH_26 PH_27">
+			<UserParam type="string" name="target_decoy" value="target"/>
+			<UserParam type="float" name="XTandem_score" value="46.2"/>
+			<UserParam type="float" name="nextscore" value="22.3"/>
+			<UserParam type="float" name="delta" value="0.0011"/>
+			<UserParam type="float" name="mass" value="1753.898"/>
+			<UserParam type="float" name="E-Value" value="0.0039"/>
+			<UserParam type="float" name="hyperscore" value="46.2"/>
+			<UserParam type="float" name="b_score" value="13.4"/>
+			<UserParam type="int" name="b_ions" value="8"/>
+			<UserParam type="float" name="y_score" value="13.8"/>
+			<UserParam type="int" name="y_ions" value="11"/>
+			<UserParam type="string" name="protein_references" value="non-unique"/>
+			<UserParam type="float" name="Posterior Probability_score" value="0.148861670867141"/>
+		</PeptideHit>
+		<UserParam type="int" name="map_index" value="5"/>
+		<UserParam type="string" name="feature_id" value="not mapped"/>
+		<UserParam type="int" name="feature_leader" value="0"/>
+	</UnassignedPeptideIdentification>
+	<UnassignedPeptideIdentification identification_run_ref="PI_6" score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0" MZ="486.771759033203" RT="3010.1371523999" spectrum_reference="controllerType=0 controllerNumber=1 scan=4449" >
+		<PeptideHit score="0" sequence="QEAIEAAIK" charge="2" aa_before="R R" aa_after="D D" start="232 234" end="240 242" protein_refs="PH_32 PH_33">
+			<UserParam type="string" name="target_decoy" value="target"/>
+			<UserParam type="float" name="XTandem_score" value="40.2"/>
+			<UserParam type="float" name="nextscore" value="19.7"/>
+			<UserParam type="float" name="delta" value="0.0002"/>
+			<UserParam type="float" name="mass" value="972.536"/>
+			<UserParam type="float" name="E-Value" value="0.0015"/>
+			<UserParam type="float" name="hyperscore" value="40.2"/>
+			<UserParam type="float" name="b_score" value="11"/>
+			<UserParam type="int" name="b_ions" value="4"/>
+			<UserParam type="float" name="y_score" value="16.2"/>
+			<UserParam type="int" name="y_ions" value="8"/>
+			<UserParam type="string" name="protein_references" value="non-unique"/>
+			<UserParam type="float" name="Posterior Probability_score" value="0.194819195430874"/>
+		</PeptideHit>
+		<UserParam type="int" name="map_index" value="6"/>
+		<UserParam type="string" name="feature_id" value="not mapped"/>
+		<UserParam type="int" name="feature_leader" value="0"/>
+	</UnassignedPeptideIdentification>
+	<UnassignedPeptideIdentification identification_run_ref="PI_7" score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0" MZ="470.920593261719" RT="3010.41150048574" spectrum_reference="controllerType=0 controllerNumber=1 scan=4450" >
+		<PeptideHit score="0" sequence="KLDTTYAGTAEIK" charge="3" aa_before="K K" aa_after="Q Q" start="132 132" end="144 144" protein_refs="PH_36 PH_37">
+			<UserParam type="string" name="target_decoy" value="target"/>
+			<UserParam type="float" name="XTandem_score" value="39.7"/>
+			<UserParam type="float" name="nextscore" value="18.6"/>
+			<UserParam type="float" name="delta" value="-0.0003"/>
+			<UserParam type="float" name="mass" value="1410.7475"/>
+			<UserParam type="float" name="E-Value" value="0.0034"/>
+			<UserParam type="float" name="hyperscore" value="39.7"/>
+			<UserParam type="float" name="b_score" value="13.6"/>
+			<UserParam type="int" name="b_ions" value="8"/>
+			<UserParam type="float" name="y_score" value="12.6"/>
+			<UserParam type="int" name="y_ions" value="9"/>
+			<UserParam type="string" name="protein_references" value="non-unique"/>
+			<UserParam type="float" name="Posterior Probability_score" value="0.154781699636696"/>
+		</PeptideHit>
+		<UserParam type="int" name="map_index" value="7"/>
+		<UserParam type="string" name="feature_id" value="not mapped"/>
+		<UserParam type="int" name="feature_leader" value="0"/>
+	</UnassignedPeptideIdentification>
+	<UnassignedPeptideIdentification identification_run_ref="PI_1" score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0" MZ="586.7958984375" RT="3981.82223604503" spectrum_reference="controllerType=0 controllerNumber=1 scan=7139" >
+		<PeptideHit score="0" sequence="FASDITLDYK" charge="2" aa_before="K" aa_after="G" start="28" end="37" protein_refs="PH_8">
+			<UserParam type="string" name="target_decoy" value="target"/>
+			<UserParam type="float" name="XTandem_score" value="48.7"/>
+			<UserParam type="float" name="nextscore" value="22"/>
+			<UserParam type="float" name="delta" value="0.0011"/>
+			<UserParam type="float" name="mass" value="1172.5834"/>
+			<UserParam type="float" name="E-Value" value="5.6e-05"/>
+			<UserParam type="float" name="hyperscore" value="48.7"/>
+			<UserParam type="float" name="b_score" value="16.2"/>
+			<UserParam type="int" name="b_ions" value="7"/>
+			<UserParam type="float" name="y_score" value="18.7"/>
+			<UserParam type="int" name="y_ions" value="7"/>
+			<UserParam type="string" name="protein_references" value="unique"/>
+			<UserParam type="float" name="Posterior Probability_score" value="0.429729963205321"/>
+		</PeptideHit>
+		<UserParam type="int" name="map_index" value="0"/>
+		<UserParam type="string" name="feature_id" value="not mapped"/>
+		<UserParam type="int" name="feature_leader" value="0"/>
+	</UnassignedPeptideIdentification>
+	<UnassignedPeptideIdentification identification_run_ref="PI_2" score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0" MZ="513.892944335938" RT="3023.4547143493" spectrum_reference="controllerType=0 controllerNumber=1 scan=4531" >
+		<PeptideHit score="0" sequence="FEHC(Carbamidomethyl)NFNDVTTR" charge="3" aa_before="[" aa_after="]" start="0" end="11" protein_refs="PH_13">
+			<UserParam type="string" name="target_decoy" value="target"/>
+			<UserParam type="float" name="XTandem_score" value="37.1"/>
+			<UserParam type="float" name="nextscore" value="15"/>
+			<UserParam type="float" name="delta" value="-0.0002"/>
+			<UserParam type="float" name="mass" value="1539.6645"/>
+			<UserParam type="float" name="E-Value" value="0.0018"/>
+			<UserParam type="float" name="hyperscore" value="37.1"/>
+			<UserParam type="float" name="b_score" value="11.5"/>
+			<UserParam type="int" name="b_ions" value="7"/>
+			<UserParam type="float" name="y_score" value="14.3"/>
+			<UserParam type="int" name="y_ions" value="9"/>
+			<UserParam type="string" name="protein_references" value="unique"/>
+			<UserParam type="float" name="Posterior Probability_score" value="0.174546286760825"/>
+		</PeptideHit>
+		<UserParam type="int" name="map_index" value="2"/>
+		<UserParam type="string" name="feature_id" value="not mapped"/>
+		<UserParam type="int" name="feature_leader" value="0"/>
+	</UnassignedPeptideIdentification>
+	<UnassignedPeptideIdentification identification_run_ref="PI_4" score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0" MZ="594.802062988281" RT="3028.40232759269" spectrum_reference="controllerType=0 controllerNumber=1 scan=4545" >
+		<PeptideHit score="0" sequence="NESLDDALRR" charge="2" aa_before="K" aa_after="F" start="8" end="17" protein_refs="PH_19">
+			<UserParam type="string" name="target_decoy" value="target"/>
+			<UserParam type="float" name="XTandem_score" value="34.2"/>
+			<UserParam type="float" name="nextscore" value="21.5"/>
+			<UserParam type="float" name="delta" value="0.0001"/>
+			<UserParam type="float" name="mass" value="1188.5967"/>
+			<UserParam type="float" name="E-Value" value="0.0076"/>
+			<UserParam type="float" name="hyperscore" value="34.2"/>
+			<UserParam type="float" name="b_score" value="13.1"/>
+			<UserParam type="int" name="b_ions" value="6"/>
+			<UserParam type="float" name="y_score" value="13.4"/>
+			<UserParam type="int" name="y_ions" value="5"/>
+			<UserParam type="string" name="protein_references" value="unique"/>
+			<UserParam type="float" name="Posterior Probability_score" value="0.119311871583533"/>
+		</PeptideHit>
+		<UserParam type="int" name="map_index" value="4"/>
+		<UserParam type="string" name="feature_id" value="not mapped"/>
+		<UserParam type="int" name="feature_leader" value="0"/>
+	</UnassignedPeptideIdentification>
+
+	<mapList count="8">
+		<map id="0" name="C:\c1f1r1.mzML" unique_id="12711035373797432651" label="label-free" size="3">
+		</map>
+		<map id="1" name="C:\c1f2r1.mzML" unique_id="1894766152283797186" label="label-free" size="4">
+		</map>
+		<map id="2" name="C:\c1f1r2.mzML" unique_id="16857100252958292244" label="label-free" size="3">
+		</map>
+		<map id="3" name="C:\c1f2r2.mzML" unique_id="12711035372347432651" label="label-free" size="4">
+		</map>
+		<map id="4" name="C:\c2f1r1.mzML" unique_id="1894765432283797186" label="label-free" size="3">
+		</map>
+		<map id="5" name="C:\c2f2r1.mzML" unique_id="16857100252958292244" label="label-free" size="4">
+		</map>
+		<map id="6" name="C:\c2f1r2.mzML" unique_id="1894766152283234186" label="label-free" size="3">
+		</map>
+		<map id="7" name="C:\c2f2r2.mzML" unique_id="16857100223538292244" label="label-free" size="4">
+		</map>
+	</mapList>
+	<consensusElementList>
+		<consensusElement id="e_3632628636400283963" quality="0.974296" charge="2">
+			<centroid rt="3579.55935384878" mz="631.327448828734" it="4.33027e+06"/>
+			<groupedElementList>
+				<element map="2" id="11778419696830806" rt="3578.44634453285" mz="631.327314293929" it="3.98143e+06" charge="2"/>
+			</groupedElementList>
+			<PeptideIdentification identification_run_ref="PI_2" score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0" MZ="631.326599121094" RT="3585.0573" spectrum_reference="controllerType=0 controllerNumber=1 scan=6120" >
+				<PeptideHit score="0.00239377618192699" sequence="DNDLGVNITTAK" charge="2" aa_before="R R" aa_after="Q Q" start="534 534" end="545 545" protein_refs="PH_0 PH_1">
+					<UserParam type="string" name="target_decoy" value="target"/>
+					<UserParam type="float" name="XTandem_score" value="27.4"/>
+					<UserParam type="float" name="nextscore" value="22.2"/>
+					<UserParam type="float" name="delta" value="1.003"/>
+					<UserParam type="float" name="mass" value="1260.643"/>
+					<UserParam type="float" name="E-Value" value="0.39"/>
+					<UserParam type="float" name="hyperscore" value="27.4"/>
+					<UserParam type="float" name="b_score" value="8"/>
+					<UserParam type="int" name="b_ions" value="3"/>
+					<UserParam type="float" name="y_score" value="12.7"/>
+					<UserParam type="int" name="y_ions" value="6"/>
+					<UserParam type="string" name="protein_references" value="non-unique"/>
+					<UserParam type="float" name="Posterior Probability_score" value="0.0439365224577799"/>
+				</PeptideHit>
+				<UserParam type="int" name="map_index" value="2"/>
+				<UserParam type="string" name="feature_id" value="3632628636400283963"/>
+				<UserParam type="int" name="feature_leader" value="1"/>
+			</PeptideIdentification>
+			<UserParam type="string" name="feature_id" value="3632628636400283963"/>
+		</consensusElement>
+		<consensusElement id="e_244462233529971052" quality="0.991565" charge="2">
+			<centroid rt="3124.69761833532" mz="585.822818024688" it="3.20261e+06"/>
+			<groupedElementList>
+				<element map="0" id="1288840535685729442" rt="3122.84071201243" mz="585.82289934115" it="3.98719e+06" charge="2"/>
+				<element map="2" id="1271215597943875863" rt="3126.21427173407" mz="585.823009877792" it="3.51682e+06" charge="2"/>
+				<element map="4" id="5617752838177037419" rt="3125.03787125946" mz="585.822544855123" it="3.19084e+06" charge="2"/>
+				<element map="6" id="4617712728177037419" rt="3125.03787125946" mz="585.822544855123" it="3.19084e+06" charge="2"/>
+			</groupedElementList>
+			<UserParam type="string" name="feature_id" value="244462233529971052"/>
+		</consensusElement>
+		<consensusElement id="e_9678543183894013445" quality="0.987787" charge="2">
+			<centroid rt="3195.01561423034" mz="532.768790542996" it="610027"/>
+			<groupedElementList>
+				<element map="1" id="1532226405088044024" rt="3193.13388917101" mz="532.769169793539" it="800678" charge="2"/>
+				<element map="3" id="7034194767687214012" rt="3198.01891368182" mz="532.768597962319" it="670447" charge="2"/>
+				<element map="5" id="1293592492923216432" rt="3193.89403983819" mz="532.76860387313" it="571030" charge="2"/>
+				<element map="7" id="1193592492923216432" rt="3193.89403983819" mz="532.76860387313" it="571030" charge="2"/>
+			</groupedElementList>
+			<UserParam type="string" name="feature_id" value="9678543183894013445"/>
+		</consensusElement>
+		<consensusElement id="e_8724043068081738127" quality="0.979224" charge="3">
+			<centroid rt="3950.16723702763" mz="540.952741405588" it="3.40038e+06"/>
+			<groupedElementList>
+				<element map="0" id="2894511177541780883" rt="3953.19470068941" mz="540.952691955183" it="3.5215e+06" charge="3"/>
+				<element map="2" id="1037961237103376483" rt="3952.42269654058" mz="540.952892370276" it="4.48826e+06" charge="3"/>
+				<element map="4" id="1332898643431405151" rt="3944.8843138529" mz="540.952639891306" it="3.39148e+06" charge="3"/>
+				<element map="6" id="1232898643431405151" rt="3944.8843138529" mz="540.952639891306" it="3.39148e+06" charge="3"/>
+			</groupedElementList>
+			<PeptideIdentification identification_run_ref="PI_0" score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0" MZ="540.951416015625" RT="3951.36875553414" spectrum_reference="controllerType=0 controllerNumber=1 scan=7170" >
+				<PeptideHit score="0" sequence="SKGNVVYPEMLVER" charge="3" aa_before="K K" aa_after="F F" start="311 312" end="324 325" protein_refs="PH_2 PH_3">
+					<UserParam type="string" name="target_decoy" value="target"/>
+					<UserParam type="float" name="XTandem_score" value="55.7"/>
+					<UserParam type="float" name="nextscore" value="16.8"/>
+					<UserParam type="float" name="delta" value="-0.0017"/>
+					<UserParam type="float" name="mass" value="1620.8414"/>
+					<UserParam type="float" name="E-Value" value="1.6e-08"/>
+					<UserParam type="float" name="hyperscore" value="55.7"/>
+					<UserParam type="float" name="b_score" value="12.4"/>
+					<UserParam type="int" name="b_ions" value="10"/>
+					<UserParam type="float" name="y_score" value="14.3"/>
+					<UserParam type="int" name="y_ions" value="12"/>
+					<UserParam type="string" name="protein_references" value="non-unique"/>
+					<UserParam type="float" name="Posterior Probability_score" value="0.870291291255394"/>
+				</PeptideHit>
+				<UserParam type="int" name="map_index" value="0"/>
+				<UserParam type="string" name="feature_id" value="8724043068081738127"/>
+				<UserParam type="int" name="feature_leader" value="1"/>
+			</PeptideIdentification>
+			<PeptideIdentification identification_run_ref="PI_2" score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0" MZ="540.951416015625" RT="3951.36875553414" spectrum_reference="controllerType=0 controllerNumber=1 scan=7170" >
+				<PeptideHit score="0" sequence="SKGNVVYPEMLVER" charge="3" aa_before="K K" aa_after="F F" start="311 312" end="324 325" protein_refs="PH_10 PH_11">
+					<UserParam type="string" name="target_decoy" value="target"/>
+					<UserParam type="float" name="XTandem_score" value="55.7"/>
+					<UserParam type="float" name="nextscore" value="16.8"/>
+					<UserParam type="float" name="delta" value="-0.0017"/>
+					<UserParam type="float" name="mass" value="1620.8414"/>
+					<UserParam type="float" name="E-Value" value="1.6e-08"/>
+					<UserParam type="float" name="hyperscore" value="55.7"/>
+					<UserParam type="float" name="b_score" value="12.4"/>
+					<UserParam type="int" name="b_ions" value="10"/>
+					<UserParam type="float" name="y_score" value="14.3"/>
+					<UserParam type="int" name="y_ions" value="12"/>
+					<UserParam type="string" name="protein_references" value="non-unique"/>
+					<UserParam type="float" name="Posterior Probability_score" value="0.870291291255394"/>
+				</PeptideHit>
+				<UserParam type="int" name="map_index" value="2"/>
+				<UserParam type="string" name="feature_id" value="8724043068081738127"/>
+				<UserParam type="int" name="feature_leader" value="0"/>
+			</PeptideIdentification>
+			<PeptideIdentification identification_run_ref="PI_4" score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0" MZ="540.951416015625" RT="3951.36875553414" spectrum_reference="controllerType=0 controllerNumber=1 scan=7170" >
+				<PeptideHit score="0" sequence="SKGNVVYPEMLVER" charge="3" aa_before="K K" aa_after="F F" start="311 312" end="324 325" protein_refs="PH_20 PH_21">
+					<UserParam type="string" name="target_decoy" value="target"/>
+					<UserParam type="float" name="XTandem_score" value="55.7"/>
+					<UserParam type="float" name="nextscore" value="16.8"/>
+					<UserParam type="float" name="delta" value="-0.0017"/>
+					<UserParam type="float" name="mass" value="1620.8414"/>
+					<UserParam type="float" name="E-Value" value="1.6e-08"/>
+					<UserParam type="float" name="hyperscore" value="55.7"/>
+					<UserParam type="float" name="b_score" value="12.4"/>
+					<UserParam type="int" name="b_ions" value="10"/>
+					<UserParam type="float" name="y_score" value="14.3"/>
+					<UserParam type="int" name="y_ions" value="12"/>
+					<UserParam type="string" name="protein_references" value="non-unique"/>
+					<UserParam type="float" name="Posterior Probability_score" value="0.870291291255394"/>
+				</PeptideHit>
+				<UserParam type="int" name="map_index" value="4"/>
+				<UserParam type="string" name="feature_id" value="8724043068081738127"/>
+				<UserParam type="int" name="feature_leader" value="0"/>
+			</PeptideIdentification>
+			<PeptideIdentification identification_run_ref="PI_6" score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0" MZ="540.951416015625" RT="3951.36875553414" spectrum_reference="controllerType=0 controllerNumber=1 scan=7170" >
+				<PeptideHit score="0" sequence="SKGNVVYPEMLVER" charge="3" aa_before="K K" aa_after="F F" start="311 312" end="324 325" protein_refs="PH_30 PH_31">
+					<UserParam type="string" name="target_decoy" value="target"/>
+					<UserParam type="float" name="XTandem_score" value="55.7"/>
+					<UserParam type="float" name="nextscore" value="16.8"/>
+					<UserParam type="float" name="delta" value="-0.0017"/>
+					<UserParam type="float" name="mass" value="1620.8414"/>
+					<UserParam type="float" name="E-Value" value="1.6e-08"/>
+					<UserParam type="float" name="hyperscore" value="55.7"/>
+					<UserParam type="float" name="b_score" value="12.4"/>
+					<UserParam type="int" name="b_ions" value="10"/>
+					<UserParam type="float" name="y_score" value="14.3"/>
+					<UserParam type="int" name="y_ions" value="12"/>
+					<UserParam type="string" name="protein_references" value="non-unique"/>
+					<UserParam type="float" name="Posterior Probability_score" value="0.870291291255394"/>
+				</PeptideHit>
+				<UserParam type="int" name="map_index" value="6"/>
+				<UserParam type="string" name="feature_id" value="8724043068081738127"/>
+				<UserParam type="int" name="feature_leader" value="0"/>
+			</PeptideIdentification>
+			<UserParam type="string" name="feature_id" value="8724043068081738127"/>
+		</consensusElement>
+		<consensusElement id="e_10068340785193147914" quality="0.992136" charge="2">
+			<centroid rt="3690.67093745316" mz="475.244625999967" it="1.57671e+06"/>
+			<groupedElementList>
+				<element map="0" id="34408439589697358" rt="3692.54356430388" mz="475.244426535147" it="1.69744e+06" charge="2"/>
+				<element map="1" id="13564531872350288881" rt="3690.07101459227" mz="475.244598345343" it="1.92382e+06" charge="2"/>
+				<element map="2" id="4269107506571635955" rt="3689.39823346334" mz="475.244853119412" it="1.64573e+06" charge="2"/>
+			</groupedElementList>
+			<UserParam type="string" name="feature_id" value="10068340785193147914"/>
+		</consensusElement>
+		<consensusElement id="e_14950444831405303893" quality="0.973739" charge="2">
+			<centroid rt="3304.09834128021" mz="736.863834413857" it="1.62624e+07"/>
+			<groupedElementList>
+				<element map="2" id="35013757691914204" rt="3297.25424594071" mz="736.864002069137" it="1.62242e+07" charge="2"/>
+				<element map="4" id="12747999476297113675" rt="3307.75820727563" mz="736.863494914336" it="2.33482e+07" charge="2"/>
+				<element map="6" id="3310077343029011610" rt="3307.28257062429" mz="736.864006258099" it="1.52077e+07" charge="2"/>
+			</groupedElementList>
+			<PeptideIdentification identification_run_ref="PI_2" score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0" MZ="736.860900878906" RT="3293.44520404101" spectrum_reference="controllerType=0 controllerNumber=1 scan=5236" >
+				<PeptideHit score="0" sequence="GGIEAVPAGQMEASR" charge="2" aa_before="R" aa_after="S" start="617" end="631" protein_refs="PH_13">
+					<UserParam type="string" name="target_decoy" value="target"/>
+					<UserParam type="float" name="XTandem_score" value="69.9"/>
+					<UserParam type="float" name="nextscore" value="14.6"/>
+					<UserParam type="float" name="delta" value="-0.0017"/>
+					<UserParam type="float" name="mass" value="1472.7162"/>
+					<UserParam type="float" name="E-Value" value="7.8e-13"/>
+					<UserParam type="float" name="hyperscore" value="69.9"/>
+					<UserParam type="float" name="b_score" value="14.7"/>
+					<UserParam type="int" name="b_ions" value="11"/>
+					<UserParam type="float" name="y_score" value="16.9"/>
+					<UserParam type="int" name="y_ions" value="9"/>
+					<UserParam type="string" name="protein_references" value="unique"/>
+					<UserParam type="float" name="Posterior Probability_score" value="0.990483484326173"/>
+				</PeptideHit>
+				<UserParam type="int" name="map_index" value="2"/>
+				<UserParam type="string" name="feature_id" value="14950444831405303893"/>
+				<UserParam type="int" name="feature_leader" value="1"/>
+			</PeptideIdentification>
+			<PeptideIdentification identification_run_ref="PI_4" score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0" MZ="736.860900878906" RT="3293.44520404101" spectrum_reference="controllerType=0 controllerNumber=1 scan=5236" >
+				<PeptideHit score="0" sequence="GGIEAVPAGQMEASR" charge="2" aa_before="R" aa_after="S" start="617" end="631" protein_refs="PH_22">
+					<UserParam type="string" name="target_decoy" value="target"/>
+					<UserParam type="float" name="XTandem_score" value="69.9"/>
+					<UserParam type="float" name="nextscore" value="14.6"/>
+					<UserParam type="float" name="delta" value="-0.0017"/>
+					<UserParam type="float" name="mass" value="1472.7162"/>
+					<UserParam type="float" name="E-Value" value="7.8e-13"/>
+					<UserParam type="float" name="hyperscore" value="69.9"/>
+					<UserParam type="float" name="b_score" value="14.7"/>
+					<UserParam type="int" name="b_ions" value="11"/>
+					<UserParam type="float" name="y_score" value="16.9"/>
+					<UserParam type="int" name="y_ions" value="9"/>
+					<UserParam type="string" name="protein_references" value="unique"/>
+					<UserParam type="float" name="Posterior Probability_score" value="0.990483484326173"/>
+				</PeptideHit>
+				<UserParam type="int" name="map_index" value="4"/>
+				<UserParam type="string" name="feature_id" value="14950444831405303893"/>
+				<UserParam type="int" name="feature_leader" value="0"/>
+			</PeptideIdentification>
+			<PeptideIdentification identification_run_ref="PI_6" score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0" MZ="736.860900878906" RT="3293.44520404101" spectrum_reference="controllerType=0 controllerNumber=1 scan=5236" >
+				<PeptideHit score="0" sequence="GGIEAVPAGQMEASR" charge="2" aa_before="R" aa_after="S" start="617" end="631" protein_refs="PH_13">
+					<UserParam type="string" name="target_decoy" value="target"/>
+					<UserParam type="float" name="XTandem_score" value="69.9"/>
+					<UserParam type="float" name="nextscore" value="14.6"/>
+					<UserParam type="float" name="delta" value="-0.0017"/>
+					<UserParam type="float" name="mass" value="1472.7162"/>
+					<UserParam type="float" name="E-Value" value="7.8e-13"/>
+					<UserParam type="float" name="hyperscore" value="69.9"/>
+					<UserParam type="float" name="b_score" value="14.7"/>
+					<UserParam type="int" name="b_ions" value="11"/>
+					<UserParam type="float" name="y_score" value="16.9"/>
+					<UserParam type="int" name="y_ions" value="9"/>
+					<UserParam type="string" name="protein_references" value="unique"/>
+					<UserParam type="float" name="Posterior Probability_score" value="0.990483484326173"/>
+				</PeptideHit>
+				<UserParam type="int" name="map_index" value="6"/>
+				<UserParam type="string" name="feature_id" value="14950444831405303893"/>
+				<UserParam type="int" name="feature_leader" value="0"/>
+			</PeptideIdentification>
+			<UserParam type="string" name="feature_id" value="14950444831405303893"/>
+		</consensusElement>
+		<consensusElement id="e_3790639781169415627" quality="0.98452" charge="2">
+			<centroid rt="3479.8158588439" mz="451.751226173308" it="2.60583e+06"/>
+			<groupedElementList>
+				<element map="1" id="4996806680077986082" rt="3478.65494655879" mz="451.751211038689" it="2.8866e+06" charge="2"/>
+				<element map="3" id="5176427639221242214" rt="3477.30024089884" mz="451.751281298913" it="3.17342e+06" charge="2"/>
+				<element map="5" id="7400134131394980595" rt="3483.49238907408" mz="451.751186182322" it="2.65339e+06" charge="2"/>
+				<element map="7" id="7410134131394980595" rt="3483.49238907408" mz="451.751186182322" it="2.65339e+06" charge="2"/>
+			</groupedElementList>
+			<PeptideIdentification identification_run_ref="PI_1" score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0" MZ="451.750671386719" RT="3477.410865107" spectrum_reference="controllerType=0 controllerNumber=1 scan=5831" >
+				<PeptideHit score="0.000575705238917674" sequence="VTIDDLAR" charge="2" aa_before="R R" aa_after="A A" start="608 608" end="615 615" protein_refs="PH_7 PH_8">
+					<UserParam type="string" name="target_decoy" value="target"/>
+					<UserParam type="float" name="XTandem_score" value="32.9"/>
+					<UserParam type="float" name="nextscore" value="18.9"/>
+					<UserParam type="float" name="delta" value="-0.0001"/>
+					<UserParam type="float" name="mass" value="902.4942"/>
+					<UserParam type="float" name="E-Value" value="0.14"/>
+					<UserParam type="float" name="hyperscore" value="32.9"/>
+					<UserParam type="float" name="b_score" value="12.6"/>
+					<UserParam type="int" name="b_ions" value="4"/>
+					<UserParam type="float" name="y_score" value="15.6"/>
+					<UserParam type="int" name="y_ions" value="6"/>
+					<UserParam type="string" name="protein_references" value="non-unique"/>
+					<UserParam type="float" name="Posterior Probability_score" value="0.0606571123022006"/>
+				</PeptideHit>
+				<UserParam type="int" name="map_index" value="1"/>
+				<UserParam type="string" name="feature_id" value="3790639781169415627"/>
+				<UserParam type="int" name="feature_leader" value="1"/>
+			</PeptideIdentification>
+			<PeptideIdentification identification_run_ref="PI_3" score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0" MZ="451.750671386719" RT="3477.410865107" spectrum_reference="controllerType=0 controllerNumber=1 scan=5831" >
+				<PeptideHit score="0.000575705238917674" sequence="VTIDDLAR" charge="2" aa_before="R R" aa_after="A A" start="608 608" end="615 615" protein_refs="PH_17 PH_18">
+					<UserParam type="string" name="target_decoy" value="target"/>
+					<UserParam type="float" name="XTandem_score" value="32.9"/>
+					<UserParam type="float" name="nextscore" value="18.9"/>
+					<UserParam type="float" name="delta" value="-0.0001"/>
+					<UserParam type="float" name="mass" value="902.4942"/>
+					<UserParam type="float" name="E-Value" value="0.14"/>
+					<UserParam type="float" name="hyperscore" value="32.9"/>
+					<UserParam type="float" name="b_score" value="12.6"/>
+					<UserParam type="int" name="b_ions" value="4"/>
+					<UserParam type="float" name="y_score" value="15.6"/>
+					<UserParam type="int" name="y_ions" value="6"/>
+					<UserParam type="string" name="protein_references" value="non-unique"/>
+					<UserParam type="float" name="Posterior Probability_score" value="0.0606571123022006"/>
+				</PeptideHit>
+				<UserParam type="int" name="map_index" value="3"/>
+				<UserParam type="string" name="feature_id" value="3790639781169415627"/>
+				<UserParam type="int" name="feature_leader" value="0"/>
+			</PeptideIdentification>
+			<PeptideIdentification identification_run_ref="PI_5" score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0" MZ="451.750671386719" RT="3477.410865107" spectrum_reference="controllerType=0 controllerNumber=1 scan=5831" >
+				<PeptideHit score="0.000575705238917674" sequence="VTIDDLAR" charge="2" aa_before="R R" aa_after="A A" start="608 608" end="615 615" protein_refs="PH_28 PH_29">
+					<UserParam type="string" name="target_decoy" value="target"/>
+					<UserParam type="float" name="XTandem_score" value="32.9"/>
+					<UserParam type="float" name="nextscore" value="18.9"/>
+					<UserParam type="float" name="delta" value="-0.0001"/>
+					<UserParam type="float" name="mass" value="902.4942"/>
+					<UserParam type="float" name="E-Value" value="0.14"/>
+					<UserParam type="float" name="hyperscore" value="32.9"/>
+					<UserParam type="float" name="b_score" value="12.6"/>
+					<UserParam type="int" name="b_ions" value="4"/>
+					<UserParam type="float" name="y_score" value="15.6"/>
+					<UserParam type="int" name="y_ions" value="6"/>
+					<UserParam type="string" name="protein_references" value="non-unique"/>
+					<UserParam type="float" name="Posterior Probability_score" value="0.0606571123022006"/>
+				</PeptideHit>
+				<UserParam type="int" name="map_index" value="5"/>
+				<UserParam type="string" name="feature_id" value="3790639781169415627"/>
+				<UserParam type="int" name="feature_leader" value="0"/>
+			</PeptideIdentification>
+			<PeptideIdentification identification_run_ref="PI_7" score_type="Posterior Error Probability" higher_score_better="false" significance_threshold="0" MZ="451.750671386719" RT="3477.410865107" spectrum_reference="controllerType=0 controllerNumber=1 scan=5831" >
+				<PeptideHit score="0.000575705238917674" sequence="VTIDDLAR" charge="2" aa_before="R R" aa_after="A A" start="608 608" end="615 615" protein_refs="PH_35 PH_36">
+					<UserParam type="string" name="target_decoy" value="target"/>
+					<UserParam type="float" name="XTandem_score" value="32.9"/>
+					<UserParam type="float" name="nextscore" value="18.9"/>
+					<UserParam type="float" name="delta" value="-0.0001"/>
+					<UserParam type="float" name="mass" value="902.4942"/>
+					<UserParam type="float" name="E-Value" value="0.14"/>
+					<UserParam type="float" name="hyperscore" value="32.9"/>
+					<UserParam type="float" name="b_score" value="12.6"/>
+					<UserParam type="int" name="b_ions" value="4"/>
+					<UserParam type="float" name="y_score" value="15.6"/>
+					<UserParam type="int" name="y_ions" value="6"/>
+					<UserParam type="string" name="protein_references" value="non-unique"/>
+					<UserParam type="float" name="Posterior Probability_score" value="0.0606571123022006"/>
+				</PeptideHit>
+				<UserParam type="int" name="map_index" value="7"/>
+				<UserParam type="string" name="feature_id" value="3790639781169415627"/>
+				<UserParam type="int" name="feature_leader" value="0"/>
+			</PeptideIdentification>
+			<UserParam type="string" name="feature_id" value="3790639781169415627"/>
+		</consensusElement>
+	</consensusElementList>
+</consensusXML>

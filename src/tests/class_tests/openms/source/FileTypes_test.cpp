@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -29,7 +29,7 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Timo Sachsenberg $
-// $Authors: Marc Sturm, Andreas Bertsch, Stephan Aiche $
+// $Authors: Stephan Aiche, Andreas Bertsch, Marc Sturm, Chris Bielow $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/CONCEPT/ClassTest.h>
@@ -67,10 +67,23 @@ START_SECTION((static String typeToName(Type type)))
   TEST_EQUAL(FileTypes::typeToName(FileTypes::PNG), "png");
   TEST_EQUAL(FileTypes::typeToName(FileTypes::TXT), "txt");
   TEST_EQUAL(FileTypes::typeToName(FileTypes::CSV), "csv");
+  TEST_EQUAL(FileTypes::typeToName(FileTypes::MZTAB), "mzTab");
+
+  // try them all, just to make sure they are all there
+  for (int i = 0; i < (int)FileTypes::SIZE_OF_TYPE; ++i)
+  {
+    TEST_EQUAL(FileTypes::nameToType(FileTypes::typeToName(FileTypes::Type(i))), FileTypes::Type(i));
+  }
 }
 END_SECTION
 
-START_SECTION((static Type nameToType(const String &name)))
+START_SECTION((static Type nameToType(const String& name)))
+  TEST_EQUAL(FileTypes::typeToDescription(FileTypes::DTA2D), "dta2d raw data file");
+  TEST_EQUAL(FileTypes::typeToDescription(FileTypes::UNKNOWN), "unknown file extension");
+END_SECTION
+
+
+START_SECTION((static Type nameToType(const String& name)))
 {
   TEST_EQUAL(FileTypes::UNKNOWN, FileTypes::nameToType("unknown"));
   TEST_EQUAL(FileTypes::DTA, FileTypes::nameToType("dta"));
@@ -103,7 +116,35 @@ START_SECTION((static Type nameToType(const String &name)))
   TEST_EQUAL(FileTypes::EDTA, FileTypes::nameToType("edta"));
   TEST_EQUAL(FileTypes::CSV, FileTypes::nameToType("csv"));
   TEST_EQUAL(FileTypes::TXT, FileTypes::nameToType("txt"));
+
+  TEST_EQUAL(FileTypes::UNKNOWN, FileTypes::nameToType("somethingunknown"));
 }
 END_SECTION
+
+START_SECTION([EXTRA] FileTypes::FileTypeList)
+  FileTypeList list({ FileTypes::MZML, FileTypes::BZ2 });
+  TEST_EQUAL(list.contains(FileTypes::MZML), true);
+  TEST_EQUAL(list.contains(FileTypes::BZ2), true);
+  TEST_EQUAL(list.contains(FileTypes::MZDATA), false);
+
+  TEST_EQUAL(list.toFileDialogFilter(FilterLayout::BOTH, true), "all readable files (*.mzML *.bz2);;mzML raw data file (*.mzML);;bzip2 compressed file (*.bz2);;all files (*)")
+  TEST_EQUAL(list.toFileDialogFilter(FilterLayout::COMPACT, true), "all readable files (*.mzML *.bz2);;all files (*)")
+  TEST_EQUAL(list.toFileDialogFilter(FilterLayout::ONE_BY_ONE, true), "mzML raw data file (*.mzML);;bzip2 compressed file (*.bz2);;all files (*)")
+  TEST_EQUAL(list.toFileDialogFilter(FilterLayout::BOTH, false), "all readable files (*.mzML *.bz2);;mzML raw data file (*.mzML);;bzip2 compressed file (*.bz2)")
+
+  // testing Type FileTypeList::fromFileDialogFilter(const String& filter, const Type fallback = Type::UNKNOWN) const
+  TEST_EQUAL(list.fromFileDialogFilter("all readable files (*.mzML *.bz2)"), FileTypes::UNKNOWN);
+  TEST_EQUAL(list.fromFileDialogFilter("all files (*)"), FileTypes::UNKNOWN);
+  TEST_EQUAL(list.fromFileDialogFilter("mzML raw data file (*.mzML)"), FileTypes::MZML);
+  TEST_EQUAL(list.fromFileDialogFilter("bzip2 compressed file (*.bz2)"), FileTypes::BZ2);
+  TEST_EXCEPTION(Exception::ElementNotFound, list.fromFileDialogFilter("not a valid filter"));
+  // with default
+  TEST_EQUAL(list.fromFileDialogFilter("all readable files (*.mzML *.bz2)", FileTypes::CONSENSUSXML), FileTypes::CONSENSUSXML);
+  TEST_EQUAL(list.fromFileDialogFilter("all files (*)", FileTypes::CONSENSUSXML), FileTypes::CONSENSUSXML);
+  TEST_EQUAL(list.fromFileDialogFilter("mzML raw data file (*.mzML)", FileTypes::CONSENSUSXML), FileTypes::MZML);
+  TEST_EQUAL(list.fromFileDialogFilter("bzip2 compressed file (*.bz2)", FileTypes::CONSENSUSXML), FileTypes::BZ2);
+  TEST_EXCEPTION(Exception::ElementNotFound, list.fromFileDialogFilter("not a valid filter", FileTypes::CONSENSUSXML));
+
+  END_SECTION
 
 END_TEST

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -39,13 +39,15 @@
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 
+#include <map>
+
 using namespace std;
 
 namespace OpenMS
 {
 
 //static
-bool RNPxlModificationsGenerator::notInSeq(String res_seq, String query)
+bool RNPxlModificationsGenerator::notInSeq(const String& res_seq, const String& query)
 {
   // special case: empty query is in every seq -> false
   if (query.empty()) { return false; }
@@ -65,11 +67,11 @@ bool RNPxlModificationsGenerator::notInSeq(String res_seq, String query)
 }
 
 //static
-RNPxlModificationMassesResult RNPxlModificationsGenerator::initModificationMassesRNA(StringList target_nucleotides,
-                                                                                     StringList nt_groups,
-                                                                                     std::set<char> can_xl,
-                                                                                     StringList mappings,
-                                                                                     StringList modifications,
+RNPxlModificationMassesResult RNPxlModificationsGenerator::initModificationMassesRNA(const StringList& target_nucleotides,
+                                                                                     const StringList& nt_groups,
+                                                                                     const std::set<char>& can_xl,
+                                                                                     const StringList& mappings,
+                                                                                     const StringList& modifications,
                                                                                      String sequence_restriction,
                                                                                      bool cysteine_adduct,
                                                                                      Int max_length)
@@ -77,7 +79,7 @@ RNPxlModificationMassesResult RNPxlModificationsGenerator::initModificationMasse
   String original_sequence_restriction = sequence_restriction;
 
   // 152 modification
-  const String cysteine_adduct_string("C4H8S2O2");
+  const String cysteine_adduct_string("C4H8S2O2");//FIXME: why is this changed from ancestor?
   const EmpiricalFormula cysteine_adduct_formula(cysteine_adduct_string); // 152 modification
 
   RNPxlModificationMassesResult result;
@@ -115,8 +117,8 @@ RNPxlModificationMassesResult RNPxlModificationsGenerator::initModificationMasse
     // add single source nucleotides to all_combinations
     for (Size i = 0; i != source_nucleotides.size(); ++i)
     {
-      all_combinations.push_back(String(source_nucleotides[i]));
-      actual_combinations.push_back(String(source_nucleotides[i]));
+      all_combinations.emplace_back(source_nucleotides[i]);
+      actual_combinations.emplace_back(source_nucleotides[i]);
     }
 
     for (Int i = 1; i <= max_length - 1; ++i)
@@ -127,8 +129,8 @@ RNPxlModificationMassesResult RNPxlModificationsGenerator::initModificationMasse
         // grow actual_combinations/ all_combinations by one nucleotide
         for (Size c = 0; c != actual_combinations.size(); ++c)
         {
-          new_combinations.push_back(source_nucleotides[n] + actual_combinations[c]);
-          all_combinations.push_back(source_nucleotides[n] + actual_combinations[c]);
+          new_combinations.emplace_back(source_nucleotides[n] + actual_combinations[c]);
+          all_combinations.emplace_back(source_nucleotides[n] + actual_combinations[c]);
         }
       }
       actual_combinations = new_combinations;
@@ -165,7 +167,7 @@ RNPxlModificationMassesResult RNPxlModificationsGenerator::initModificationMasse
 
   if (!map_source_to_targets.empty() && sequence_restriction.empty())
   {
-    LOG_WARN << "WARNING: no restriction on sequence but multiple target nucleotides specified. Will generate huge amount of sequences" << endl;
+    OPENMS_LOG_WARN << "WARNING: no restriction on sequence but multiple target nucleotides specified. Will generate huge amount of sequences" << endl;
   }
 
   using NucleotideModificationSubFormula = pair<EmpiricalFormula, bool>; // e.g., "H2O", true
@@ -173,7 +175,7 @@ RNPxlModificationMassesResult RNPxlModificationsGenerator::initModificationMasse
   using NucleotideModifications = vector<NucleotideModification>;
 
   // map nucleotide to list of empirical MS1 precursor losses/gains
-  // nucleotide->all loss/gain formulas (each composed of subformulas)->subformulas
+  // nucleotide->all loss/gain formulas (each composed of subformulae)->subformulae
   map<String, NucleotideModifications> map_to_nucleotide_modifications;
 
   for (String m : modifications)
@@ -194,7 +196,7 @@ RNPxlModificationMassesResult RNPxlModificationsGenerator::initModificationMasse
 
     m = m.substr(2); // remove nucleotide and ':' from front of string
 
-    // decompose string into subformulas
+    // decompose string into subformulae
     m.substitute("-", "#-");
     m.substitute("+", "#+");
     vector<String> ems;
@@ -228,7 +230,7 @@ RNPxlModificationMassesResult RNPxlModificationsGenerator::initModificationMasse
   StringList target_sequences;
   generateTargetSequences(sequence_restriction, 0, map_source_to_targets, target_sequences);
 
-  LOG_INFO << "target sequence(s):" << target_sequences.size() << endl;
+  OPENMS_LOG_INFO << "target sequence(s):" << target_sequences.size() << endl;
 
   if (!original_sequence_restriction.empty())
   {
@@ -236,11 +238,11 @@ RNPxlModificationMassesResult RNPxlModificationsGenerator::initModificationMasse
     {
       if (target_sequences[i].size() < 60)
       {
-        LOG_INFO << target_sequences[i] << endl;
+        OPENMS_LOG_INFO << target_sequences[i] << endl;
       }
       else
       {
-        LOG_INFO << target_sequences[i].prefix(60) << "..."  << endl;
+        OPENMS_LOG_INFO << target_sequences[i].prefix(60) << "..."  << endl;
       }
     }
   }
@@ -252,7 +254,7 @@ RNPxlModificationMassesResult RNPxlModificationsGenerator::initModificationMasse
     for (map<String, EmpiricalFormula>::const_iterator mit = map_target_to_formula.begin(); mit != map_target_to_formula.end(); ++mit)
     {
       String target_nucleotide = mit->first;
-      LOG_INFO << "target nucleotide: " << target_nucleotide << endl;
+      OPENMS_LOG_INFO << "target nucleotide: " << target_nucleotide << endl;
 
       EmpiricalFormula target_nucleotide_formula = mit->second;
 
@@ -280,7 +282,7 @@ RNPxlModificationMassesResult RNPxlModificationsGenerator::initModificationMasse
         }
         actual_combinations.push_back(e);
         result.mod_combinations[actual_combinations.back().toString()].insert(s);
-        LOG_INFO << "\t" << "modifications: " << s << "\t\t" << e.toString() << endl;
+        OPENMS_LOG_INFO << "\t" << "modifications: " << s << "\t\t" << e.toString() << endl;
       }
     }
 
@@ -305,7 +307,7 @@ RNPxlModificationMassesResult RNPxlModificationsGenerator::initModificationMasse
           for (auto const & s : ambiguities)
           {
             result.mod_combinations[all_combinations.back().toString()].insert(target_nucleotide + s);
-            LOG_DEBUG << target_nucleotide + s << endl;
+            OPENMS_LOG_DEBUG << target_nucleotide + s << endl;
           }
         }
       }
@@ -324,7 +326,7 @@ RNPxlModificationMassesResult RNPxlModificationsGenerator::initModificationMasse
   // 1) do not contain a cross-linkable nucleotide
   // 2) or contain no cross-linkable nucleotide that is part of the restricted target sequences
   std::vector<pair<String, String> > violates_restriction; // elemental composition, nucleotide style formula
-  for (Map<String, double>::ConstIterator mit = result.mod_masses.begin(); mit != result.mod_masses.end(); ++mit)
+  for (std::map<String, double>::const_iterator mit = result.mod_masses.begin(); mit != result.mod_masses.end(); ++mit)
   {
     // remove additive or subtractive modifications from string as these are not used in string comparison
     const set<String>& ambiguities = result.mod_combinations[mit->first];
@@ -347,7 +349,7 @@ RNPxlModificationMassesResult RNPxlModificationsGenerator::initModificationMasse
 
       if (!has_xl_nt) 
       { // no cross-linked nucleotide => not valid
-        violates_restriction.push_back(make_pair(mit->first, s)); 
+        violates_restriction.emplace_back(mit->first, s); 
         continue;
       }
 
@@ -360,7 +362,7 @@ RNPxlModificationMassesResult RNPxlModificationsGenerator::initModificationMasse
       // nucleotide stile formula (e.g. AATU matches to more than one group (e.g., RNA and DNA))?
       if (found_in_n_groups > 1)
       {
-        violates_restriction.push_back(make_pair(mit->first, s)); 
+        violates_restriction.emplace_back(mit->first, s); 
         continue;
       }
 
@@ -376,7 +378,7 @@ RNPxlModificationMassesResult RNPxlModificationsGenerator::initModificationMasse
 
       if (containment_violated)
       { 
-        violates_restriction.push_back(make_pair(mit->first, s)); // chemical formula, nucleotide style formula pair violates restrictions
+        violates_restriction.emplace_back(mit->first, s); // chemical formula, nucleotide style formula pair violates restrictions
       }
     }
   }
@@ -385,7 +387,7 @@ RNPxlModificationMassesResult RNPxlModificationsGenerator::initModificationMasse
   {
     const String& chemical_formula = violates_restriction[i].first;
     result.mod_combinations[chemical_formula].erase(violates_restriction[i].second);
-    LOG_DEBUG << "filtered sequence: " 
+    OPENMS_LOG_DEBUG << "filtered sequence: " 
               << chemical_formula 
               << "\t" 
               << violates_restriction[i].second << endl;
@@ -419,15 +421,13 @@ RNPxlModificationMassesResult RNPxlModificationsGenerator::initModificationMasse
   double pseudo_rt = 1;
   for (auto const & m : result.mod_masses)
   {
-    result.mod_formula_idx[pseudo_rt] = m.first;
-
     if (cysteine_adduct && m.first == cysteine_adduct_formula.toString())
     {
-      LOG_INFO << "Precursor adduct " << pseudo_rt++ << "\t:\t" << m.first << " " << m.second << " ( cysteine adduct )" << endl;
+      OPENMS_LOG_INFO << "Precursor adduct " << pseudo_rt++ << "\t:\t" << m.first << " " << m.second << " ( cysteine adduct )" << endl;
       continue;
     }
 
-    LOG_INFO << "Precursor adduct " << pseudo_rt++ << "\t:\t" << m.first << " " << m.second << " ( ";
+    OPENMS_LOG_INFO << "Precursor adduct " << pseudo_rt++ << "\t:\t" << m.first << " " << m.second << " ( ";
 
     const set<String>& ambiguities = result.mod_combinations[m.first];
     set<String> printed;
@@ -452,18 +452,18 @@ RNPxlModificationMassesResult RNPxlModificationsGenerator::initModificationMasse
       // only print ambiguous sequences once
       if (printed.find(nucleotide_style_formula) == printed.end())
       {
-        LOG_INFO << nucleotide_style_formula << " ";
+        OPENMS_LOG_INFO << nucleotide_style_formula << " ";
         printed.insert(nucleotide_style_formula);
       }
       else
       {
-        LOG_DEBUG << "ambigious " << nucleotide_style_formula << endl;
+        OPENMS_LOG_DEBUG << "ambiguous " << nucleotide_style_formula << endl;
       }
     }
 
-    LOG_INFO << ")" << endl;
+    OPENMS_LOG_INFO << ")" << endl;
   }
-  LOG_INFO << "Finished generation of modification masses." << endl;
+  OPENMS_LOG_INFO << "Finished generation of modification masses." << endl;
   return result;
 }
 

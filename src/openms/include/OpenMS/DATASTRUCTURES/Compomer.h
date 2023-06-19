@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -61,8 +61,8 @@ public:
     /// side of compomer (LEFT ^ subtract; RIGHT ^ add)
     enum SIDE {LEFT, RIGHT, BOTH};
 
-    typedef std::map<String, Adduct> CompomerSide; /// adducts and their abundance etc
-    typedef std::vector<CompomerSide> CompomerComponents; /// container for the two sides [0]=left, [1]=right
+    typedef std::map<String, Adduct> CompomerSide; ///< adducts and their abundance etc
+    typedef std::vector<CompomerSide> CompomerComponents; ///< container for the two sides [0]=left, [1]=right
 
     /// Default Constructor
     Compomer();

@@ -17,9 +17,9 @@ cdef extern from "<OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/SpectrumAccessOpenMSInMe
 
         SpectrumAccessOpenMSInMemory() # wrap-pass-constructor
 
-        # SpectrumAccessOpenMSInMemory(ISpectrumAccess & origin) nogil except +
-        SpectrumAccessOpenMSInMemory(SpectrumAccessOpenMS) nogil except +
-        SpectrumAccessOpenMSInMemory(SpectrumAccessOpenMSCached) nogil except +
-        SpectrumAccessOpenMSInMemory(SpectrumAccessOpenMSInMemory) nogil except +
-        SpectrumAccessOpenMSInMemory(SpectrumAccessQuadMZTransforming) nogil except +
-
+        # 'ISpectrumAccess' is not a type identifier
+        SpectrumAccessOpenMSInMemory(ISpectrumAccess &) nogil except + # wrap-ignore
+        SpectrumAccessOpenMSInMemory(SpectrumAccessOpenMS &) nogil except +
+        SpectrumAccessOpenMSInMemory(SpectrumAccessOpenMSCached &) nogil except +
+        SpectrumAccessOpenMSInMemory(SpectrumAccessOpenMSInMemory &) nogil except +
+        SpectrumAccessOpenMSInMemory(SpectrumAccessQuadMZTransforming &) nogil except +

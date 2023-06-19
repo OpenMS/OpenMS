@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -38,11 +38,13 @@
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/CONCEPT/Factory.h>
 
+#include <unsupported/Eigen/NonLinearOptimization>
+
 #define DEBUG_EGHFITTER
 
 namespace OpenMS
 {
-  int EGHFitter1D::EGHFitterFunctor::operator()(const Eigen::VectorXd& x, Eigen::VectorXd& fvec)
+  int EGHFitter1D::EGHFitterFunctor::operator()(const Eigen::VectorXd& x, Eigen::VectorXd& fvec) const
   {
     Size n = m_data->n;
     RawDataArrayType set = m_data->set;
@@ -81,7 +83,7 @@ namespace OpenMS
   }
 
   // compute Jacobian matrix for the different parameters
-  int EGHFitter1D::EGHFitterFunctor::df(const Eigen::VectorXd& x, Eigen::MatrixXd& J)
+  int EGHFitter1D::EGHFitterFunctor::df(const Eigen::VectorXd& x, Eigen::MatrixXd& J) const
   {
     Size n =  m_data->n;
     RawDataArrayType set = m_data->set;
@@ -142,7 +144,7 @@ namespace OpenMS
     LevMarqFitter1D()
   {
     setName(getProductName());
-    defaults_.setValue("statistics:variance", 1.0, "Variance of the model.", ListUtils::create<String>("advanced"));
+    defaults_.setValue("statistics:variance", 1.0, "Variance of the model.", {"advanced"});
     defaultsToParam_();
   }
 
@@ -153,15 +155,14 @@ namespace OpenMS
     updateMembers_();
   }
 
-  EGHFitter1D::~EGHFitter1D()
-  {
-  }
+  EGHFitter1D::~EGHFitter1D() = default;
 
   EGHFitter1D& EGHFitter1D::operator=(const EGHFitter1D& source)
   {
     if (&source == this)
+    {
       return *this;
-
+    }
     LevMarqFitter1D::operator=(source);
     setParameters(source.getParameters());
     updateMembers_();
@@ -169,7 +170,7 @@ namespace OpenMS
     return *this;
   }
 
-  EGHFitter1D::QualityType EGHFitter1D::fit1d(const RawDataArrayType& set, InterpolationModel*& model)
+  EGHFitter1D::QualityType EGHFitter1D::fit1d(const RawDataArrayType& set, std::unique_ptr<InterpolationModel>& model)
   {
     // Calculate bounding box
     CoordinateType min_bb = set[0].getPos(), max_bb = set[0].getPos();
@@ -177,9 +178,13 @@ namespace OpenMS
     {
       CoordinateType tmp = set[pos].getPos();
       if (min_bb > tmp)
+      {
         min_bb = tmp;
+      }
       if (max_bb < tmp)
+      {
         max_bb = tmp;
+      }
     }
 
     // Enlarge the bounding box by a few multiples of the standard deviation
@@ -213,15 +218,16 @@ namespace OpenMS
     tau_ = x_init[3];
 
 #ifdef DEBUG_EGHFITTER
-    LOG_DEBUG << "Fitter returned \n";
-    LOG_DEBUG << "height:       " << height_ << "\n";
-    LOG_DEBUG << "retention:    " << retention_ << "\n";
-    LOG_DEBUG << "sigma_square: " << sigma_square_ << "\n";
-    LOG_DEBUG << "tau:          " << tau_ << std::endl;
+    OPENMS_LOG_DEBUG << "Fitter returned \n";
+    OPENMS_LOG_DEBUG << "height:       " << height_ << "\n";
+    OPENMS_LOG_DEBUG << "retention:    " << retention_ << "\n";
+    OPENMS_LOG_DEBUG << "sigma_square: " << sigma_square_ << "\n";
+    OPENMS_LOG_DEBUG << "tau:          " << tau_ << std::endl;
 #endif
 
     // build model
-    model = static_cast<InterpolationModel*>(Factory<BaseModel<1> >::create("EGHModel"));
+
+    model = std::unique_ptr<InterpolationModel>(dynamic_cast<InterpolationModel*>(Factory<BaseModel<1>>::create("EGHModel")));
     model->setInterpolationStep(interpolation_step_);
 
     Param tmp;
@@ -255,9 +261,10 @@ namespace OpenMS
     }
 
     QualityType correlation = Math::pearsonCorrelationCoefficient(real_data.begin(), real_data.end(), model_data.begin(), model_data.end());
-    if (boost::math::isnan(correlation))
+    if (std::isnan(correlation))
+    {
       correlation = -1.0;
-
+    }
     return correlation;
   }
 
@@ -266,25 +273,29 @@ namespace OpenMS
     // sum over all intensities
     CoordinateType sum = 0.0;
     for (Size i = 0; i < set.size(); ++i)
+    {
       sum += set[i].getIntensity();
-
-    // calculate the median
-    //Size median = 0;
-    //float count = 0.0;
+    }
+    // find maximum = apex
     Size apex_rt = 0;
     CoordinateType apex = 0.0;
     for (Size i = 0; i < set.size(); ++i)
     {
-      //count += set[i].getIntensity();
-      //if ( count <= sum / 2 ) median = i;
-
       if (set[i].getIntensity() > apex)
       {
         apex = set[i].getIntensity();
         apex_rt = i;
       }
-
     }
+
+    // calculate the median
+    /*Size median = 0;
+    float count = 0.0;
+    for (Size i = 0; i < set.size(); ++i)
+    {
+      count += set[i].getIntensity();
+      if ( count <= sum / 2 ) median = i;
+    }*/
 
     // calculate the height of the peak
     height_ = set[apex_rt].getIntensity();
@@ -292,26 +303,19 @@ namespace OpenMS
     // calculate retention time
     retention_ = set[apex_rt].getPos();
 
-
     // guess A / B for alpha = 0.5 -> left/right half max distance
 
     Size i = apex_rt;
-    while (i > 0)
+    while (i > 0 && (set[i].getIntensity() / height_) >= 0.5)
     {
-      if (set[i].getIntensity() / height_ < 0.5)
-        break;
-      else
-        --i;
+      --i;
     }
     CoordinateType A = retention_ - set[i + 1].getPos();
 
     i = apex_rt;
-    while (i < set.size())
+    while (i < set.size() && (set[i].getIntensity() / height_) >= 0.5)
     {
-      if (set[i].getIntensity() / height_ < 0.5)
-        break;
-      else
-        ++i;
+      ++i;
     }
     CoordinateType B = set[i - 1].getPos() - retention_;
 
@@ -322,13 +326,13 @@ namespace OpenMS
     sigma_square_ = (-1 / (2 * log_alpha)) * (B * A);
 
 #ifdef DEBUG_EGHFITTER
-    LOG_DEBUG << "Initial parameters\n";
-    LOG_DEBUG << "height:       " << height_ << "\n";
-    LOG_DEBUG << "retention:    " << retention_ << "\n";
-    LOG_DEBUG << "A:            " << A << "\n";
-    LOG_DEBUG << "B:            " << B << "\n";
-    LOG_DEBUG << "sigma_square: " << sigma_square_ << "\n";
-    LOG_DEBUG << "tau:          " << tau_ << std::endl;
+    OPENMS_LOG_DEBUG << "Initial parameters\n";
+    OPENMS_LOG_DEBUG << "height:       " << height_ << "\n";
+    OPENMS_LOG_DEBUG << "retention:    " << retention_ << "\n";
+    OPENMS_LOG_DEBUG << "A:            " << A << "\n";
+    OPENMS_LOG_DEBUG << "B:            " << B << "\n";
+    OPENMS_LOG_DEBUG << "sigma_square: " << sigma_square_ << "\n";
+    OPENMS_LOG_DEBUG << "tau:          " << tau_ << std::endl;
 #endif
   }
 

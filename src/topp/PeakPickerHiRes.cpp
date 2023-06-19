@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -31,11 +31,12 @@
 // $Maintainer: Timo Sachsenberg $
 // $Authors: Eva Lange $
 // --------------------------------------------------------------------------
+
+#include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakPickerHiRes.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
-#include <OpenMS/FORMAT/PeakTypeEstimator.h>
 
 #include <OpenMS/FORMAT/DATAACCESS/MSDataWritingConsumer.h>
 
@@ -54,9 +55,9 @@ using namespace std;
   <center>
   <table>
   <tr>
-  <td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. predecessor tools </td>
-  <td VALIGN="middle" ROWSPAN=4> \f$ \longrightarrow \f$ PeakPickerHiRes \f$ \longrightarrow \f$</td>
-  <td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. successor tools </td>
+  <th ALIGN = "center"> pot. predecessor tools </td>
+  <td VALIGN="middle" ROWSPAN=4> &rarr; PeakPickerHiRes &rarr;</td>
+  <th ALIGN = "center"> pot. successor tools </td>
   </tr>
   <tr>
   <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_BaselineFilter </td>
@@ -79,7 +80,7 @@ using namespace std;
   is usually called peak picking or centroiding. The choice of the algorithm
   should mainly depend on the resolution of the data.
   As the name implies, the @ref OpenMS::PeakPickerHiRes "high_res"
-  algorithm is fit for high resolution (orbitrap or FTICR) data.
+  algorithm is fit for high resolution (Orbitrap or FTICR) data.
 
   @ref TOPP_example_signalprocessing_parameters is explained in the TOPP tutorial.
 
@@ -134,26 +135,36 @@ protected:
   public:
 
     PPHiResMzMLConsumer(String filename, const PeakPickerHiRes& pp) :
-      MSDataWritingConsumer(filename),
-      ms_levels_(pp.getParameters().getValue("ms_levels").toIntList())
+      MSDataWritingConsumer(std::move(filename)),
+      ms_levels_(pp.getParameters().getValue("ms_levels").toIntVector())
     {
       pp_ = pp;
     }
 
     void processSpectrum_(MapType::SpectrumType& s) override
     {
-      if (!ListUtils::contains(ms_levels_, s.getMSLevel())) {return;}
+      if (ms_levels_.empty()) //auto mode
+      {
+        if (s.getType() == SpectrumSettings::CENTROID)
+        {
+          return;
+        }
+      }
+      else if (!ListUtils::contains(ms_levels_, s.getMSLevel()))
+      {
+        return;
+      }
 
       MapType::SpectrumType sout;
       pp_.pick(s, sout);
-      s = sout;  // todo: swap? (requires implementation)
+      s = std::move(sout);
     }
 
     void processChromatogram_(MapType::ChromatogramType & c) override
     {
       MapType::ChromatogramType c_out;
       pp_.pick(c, c_out);
-      c = c_out;
+      c = std::move(c_out);
     }
 
   private:
@@ -228,9 +239,9 @@ protected:
     PeakMap ms_exp_raw;
     mz_data_file.load(in, ms_exp_raw);
 
-    if (ms_exp_raw.empty() && ms_exp_raw.getChromatograms().size() == 0)
+    if (ms_exp_raw.empty() && ms_exp_raw.getChromatograms().empty())
     {
-      LOG_WARN << "The given file does not contain any conventional peak data, but might"
+      OPENMS_LOG_WARN << "The given file does not contain any conventional peak data, but might"
                   " contain chromatograms. This tool currently cannot handle them, sorry.";
       return INCOMPATIBLE_INPUT_DATA;
     }
@@ -240,7 +251,7 @@ protected:
     {
       if (!ms_exp_raw[i].isSorted())
       {
-        writeLog_("Error: Not all spectra are sorted according to peak m/z positions. Use FileFilter to sort the input!");
+        writeLogError_("Error: Not all spectra are sorted according to peak m/z positions. Use FileFilter to sort the input!");
         return INCOMPATIBLE_INPUT_DATA;
       }
     }
@@ -250,7 +261,7 @@ protected:
     {
       if (!ms_exp_raw.getChromatogram(i).isSorted())
       {
-        writeLog_("Error: Not all chromatograms are sorted according to peak m/z positions. Use FileFilter to sort the input!");
+        writeLogError_("Error: Not all chromatograms are sorted according to peak m/z positions. Use FileFilter to sort the input!");
         return INCOMPATIBLE_INPUT_DATA;
       }
     }

@@ -4,30 +4,30 @@ from String cimport *
 cdef extern from "<OpenMS/METADATA/SourceFile.h>" namespace "OpenMS":
 
     cdef cppclass SourceFile:
-        SourceFile() nogil except +
-        SourceFile(SourceFile) nogil except +
-        libcpp_string getNameOfFile() nogil except +
-        void setNameOfFile(libcpp_string) nogil except +
+        SourceFile() nogil except + # wrap-doc:Description of a file location, used to store the origin of (meta) data
+        SourceFile(SourceFile &) nogil except +
+        String getNameOfFile() nogil except + # wrap-doc:Returns the file name
+        void setNameOfFile(String) nogil except + # wrap-doc:Sets the file name
 
-        libcpp_string getPathToFile() nogil except +
-        void setPathToFile(libcpp_string) nogil except +
+        String getPathToFile() nogil except + # wrap-doc:Returns the file path
+        void setPathToFile(String) nogil except + # wrap-doc:Sets the file path
 
-        float getFileSize() nogil except +
-        void setFileSize(float) nogil except +
+        float getFileSize() nogil except + # wrap-doc:Returns the file size in MB
+        void setFileSize(float) nogil except + # wrap-doc:Sets the file size in MB
 
-        libcpp_string getFileType() nogil except +
-        void setFileType(libcpp_string) nogil except +
+        String getFileType() nogil except + # wrap-doc:Returns the file type
+        void setFileType(String) nogil except + # wrap-doc:Sets the file type
 
-        libcpp_string getChecksum() nogil except +
-        void setChecksum(libcpp_string, ChecksumType) nogil except +
+        String getChecksum() nogil except + # wrap-doc:Returns the file's checksum
+        void setChecksum(String, ChecksumType) nogil except + # wrap-doc:Sets the file's checksum
 
-        ChecksumType getChecksumType() nogil except +
+        ChecksumType getChecksumType() nogil except + # wrap-doc:Returns the checksum type
 
-        libcpp_string getNativeIDType() nogil except +
-        void setNativeIDType(libcpp_string) nogil except +
+        String getNativeIDType() nogil except + # wrap-doc:Returns the native ID type of the spectra
+        void setNativeIDType(String) nogil except + # wrap-doc:Sets the native ID type of the spectra
 
-        String getNativeIDTypeAccession() nogil except +
-        void setNativeIDTypeAccession(const String & accesssion) nogil except +
+        String getNativeIDTypeAccession() nogil except + # wrap-doc:Returns the nativeID of the spectra
+        void setNativeIDTypeAccession(const String & accesssion) nogil except + # wrap-doc:Sets the native ID of the spectra
 
 cdef extern from "<OpenMS/METADATA/SourceFile.h>" namespace "OpenMS::SourceFile":
     cdef enum ChecksumType:

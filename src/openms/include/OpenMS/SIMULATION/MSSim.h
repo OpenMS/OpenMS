@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -87,7 +87,7 @@ public:
      @param rnd_gen random number generator which will be passed to the different classes
      @param peptides List of peptides and abundances that will be simulated
      */
-    void simulate(SimTypes::MutableSimRandomNumberGeneratorPtr rnd_gen, SimTypes::SampleChannels& peptides);
+    void simulate(const SimTypes::MutableSimRandomNumberGeneratorPtr& rnd_gen, SimTypes::SampleChannels& peptides);
 
     /// Access the simulated experiment
     const SimTypes::MSSimExperiment& getExperiment() const;

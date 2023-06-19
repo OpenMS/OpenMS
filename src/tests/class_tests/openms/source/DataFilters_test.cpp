@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry               
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 // 
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -126,12 +126,12 @@ END_SECTION
 
 START_SECTION(([EXTRA]String DataFilter::toString() const))
 	
-	TEST_STRING_EQUAL(filter_1.toString(), "Intensity <= 201.334")
-	TEST_STRING_EQUAL(filter_2.toString(), "Intensity >= 1000")
-	TEST_STRING_EQUAL(filter_3.toString(), "Charge = 4")
-	TEST_STRING_EQUAL(filter_4.toString(), "Quality <= 1")
-	TEST_STRING_EQUAL(filter_5.toString(), "Meta::test_int <= 0")
-	TEST_STRING_EQUAL(filter_6.toString(), "Meta::test_double = 0")
+	TEST_STRING_EQUAL(filter_1.toString(), "Intensity <= 201.334000000000003")
+	TEST_STRING_EQUAL(filter_2.toString(), "Intensity >= 1000.0")
+	TEST_STRING_EQUAL(filter_3.toString(), "Charge = 4.0")
+	TEST_STRING_EQUAL(filter_4.toString(), "Quality <= 1.0")
+	TEST_STRING_EQUAL(filter_5.toString(), "Meta::test_int <= 0.0")
+	TEST_STRING_EQUAL(filter_6.toString(), "Meta::test_double = 0.0")
 	TEST_STRING_EQUAL(filter_7.toString(), "Meta::test_string = \"hello world 2\"")
 	TEST_STRING_EQUAL(filter_8.toString(), "Meta::test_dummy exists")
 	TEST_STRING_EQUAL(filter_9.toString(), "Meta::test_string >= \"a string\"")
@@ -141,9 +141,9 @@ END_SECTION
 
 START_SECTION(([EXTRA]bool DataFilter::operator==(const DataFilter& rhs) const))
 
-	TEST_EQUAL(filter_10 == filter_7, true)
+	TEST_TRUE(filter_10 == filter_7)
 	TEST_EQUAL(filter_1 == filter_2, false)
-	TEST_EQUAL(filter_3 == filter_3, true)
+	TEST_TRUE(filter_3 == filter_3)
 
 END_SECTION
 
@@ -151,7 +151,7 @@ END_SECTION
 START_SECTION(([EXTRA]bool DataFilter::operator!=(const DataFilter& rhs) const))
 
 	TEST_EQUAL(filter_10 != filter_7, false)
-	TEST_EQUAL(filter_3 != filter_4, true)
+	TEST_FALSE(filter_3 == filter_4)
 	TEST_EQUAL(filter_4 != filter_4, false)
 	
 END_SECTION
@@ -447,9 +447,9 @@ START_SECTION(([DataFilters::DataFilter] String toString() const ))
   DataFilters::DataFilter df1;
   df1.field = DataFilters::INTENSITY;
   df1.op = DataFilters::LESS_EQUAL;
-  df1.value = 25.3;
+  df1.value = 25.5;
 
-  TEST_EQUAL(df1.toString(), "Intensity <= 25.3")
+  TEST_EQUAL(df1.toString(), "Intensity <= 25.5")
 
   df1.field = DataFilters::META_DATA;
   df1.meta_name = "meta-value";
@@ -500,7 +500,7 @@ START_SECTION(([DataFilters::DataFilter] bool operator==(const DataFilter &rhs) 
 {
   DataFilters::DataFilter df1,df2,df3;
 
-  TEST_EQUAL(df1==df2, true)
+  TEST_TRUE(df1 == df2)
 
   // field
   df1.field = DataFilters::CHARGE;
@@ -555,7 +555,7 @@ START_SECTION(([DataFilters::DataFilter] bool operator!=(const DataFilter &rhs) 
 {
   DataFilters::DataFilter df1,df2,df3;
 
-  TEST_EQUAL(df1==df2, true)
+  TEST_TRUE(df1 == df2)
 
   // field
   df1.field = DataFilters::CHARGE;

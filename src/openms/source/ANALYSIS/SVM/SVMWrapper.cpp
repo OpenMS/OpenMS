@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -39,22 +39,19 @@
 #include <OpenMS/MATH/STATISTICS/StatisticFunctions.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 
-
+#include <random>
 #include <fstream>
 
 #include <boost/math/distributions/normal.hpp>
+
+#include "svm.h"
 
 using namespace std;
 using boost::math::cdf;
 
 namespace OpenMS
 {
-
-  SVMData::SVMData() :
-    sequences(std::vector<std::vector<std::pair<Int, double> > >()),
-    labels(std::vector<double>())
-  {
-  }
+  SVMData::SVMData() = default;
 
   SVMData::SVMData(std::vector<std::vector<std::pair<Int, double> > >& seqs, std::vector<double>& lbls) :
     sequences(seqs),
@@ -150,8 +147,7 @@ namespace OpenMS
     gauss_table_(),
     kernel_type_(PRECOMPUTED),
     border_length_(0),
-    training_set_(nullptr),
-    training_problem_(nullptr),
+    
     training_data_(SVMData())
   {
     param_ = (struct svm_parameter*) malloc(sizeof(struct svm_parameter));
@@ -441,7 +437,7 @@ namespace OpenMS
 
   }
 
-  void SVMWrapper::saveModel(std::string model_filename) const
+  void SVMWrapper::saveModel(const std::string& model_filename) const
   {
     Int  status = 0;
 
@@ -459,7 +455,7 @@ namespace OpenMS
     }
   }
 
-  void SVMWrapper::loadModel(std::string model_filename)
+  void SVMWrapper::loadModel(const std::string& model_filename)
   {
     TextFile file;
     TextFile::ConstIterator it;
@@ -608,7 +604,7 @@ namespace OpenMS
         indices.push_back(i);
       }
       // Shuffling the indices => random indices
-      random_shuffle(indices.begin(), indices.end());
+      shuffler_.portable_random_shuffle(indices.begin(), indices.end());
 
       indices_iterator = indices.begin();
 
@@ -667,7 +663,7 @@ namespace OpenMS
       // Creating the particular partition instances
       for (Size i = 0; i < number; i++)
       {
-        problems.push_back(SVMData());
+        problems.emplace_back();
       }
 
       // Creating indices
@@ -676,7 +672,7 @@ namespace OpenMS
         indices.push_back(i);
       }
       // Shuffling the indices => random indices
-      random_shuffle(indices.begin(), indices.end());
+      shuffler_.portable_random_shuffle(indices.begin(), indices.end());
 
       indices_iterator = indices.begin();
 
@@ -720,7 +716,7 @@ namespace OpenMS
       return nullptr;
     }
 
-    if (problems.size() > 0)
+    if (!problems.empty())
     {
       int count = 0;
 
@@ -766,7 +762,7 @@ namespace OpenMS
 
     if (problems.size() != 1 || except != 0)
     {
-      if (problems.size() > 0)
+      if (!problems.empty())
       {
         Size count = 0;
         for (Size i = 0; i < problems.size(); i++)
@@ -826,17 +822,17 @@ namespace OpenMS
                                             map<SVM_parameter_type, double>& best_parameters,
                                             bool                                                                                 additive_step_sizes,
                                             bool                                                                             output,
-                                            String                                                                           performances_file_name,
+                                            const String&                                                                           performances_file_name,
                                             bool                                                                                 mcc_as_performance_measure)
   {
     map<SVM_parameter_type, double>::const_iterator start_values_iterator;
     vector<pair<double, Size> > combined_parameters;
-    combined_parameters.push_back(make_pair(1, 25));
+    combined_parameters.emplace_back(1, 25);
 
     double cv_quality = 0.0;
     for (Size i = 1; i < gauss_tables_.size(); ++i)
     {
-      combined_parameters.push_back(make_pair(1, 25));
+      combined_parameters.emplace_back(1, 25);
     }
 
     std::vector<double> start_values(start_values_map.size());
@@ -901,7 +897,7 @@ namespace OpenMS
       ++work_steps;
     //reset actual values:
     actual_values = start_values;
-    LOG_INFO << "SVM-CrossValidation -- number of grid cells:" << work_steps << "\n";
+    OPENMS_LOG_INFO << "SVM-CrossValidation -- number of grid cells:" << work_steps << "\n";
 
     work_steps *= number_of_runs * number_of_partitions;
     startProgress(0, work_steps, "SVM-CrossValidation");
@@ -1394,7 +1390,7 @@ namespace OpenMS
 
   void SVMWrapper::setWeights(const vector<Int>& weight_labels, const vector<double>& weights)
   {
-    if (weight_labels.size() == weights.size() && weights.size() > 0)
+    if (weight_labels.size() == weights.size() && !weights.empty())
     {
       param_->nr_weight = (Int)weights.size();
       param_->weight_label = new Int[weights.size()];
@@ -1644,8 +1640,6 @@ namespace OpenMS
 
   svm_problem* SVMWrapper::computeKernelMatrix(const SVMData& problem1, const SVMData& problem2)
   {
-    double temp = 0;
-    svm_problem* kernel_matrix;
 
     if (problem1.labels.empty() || problem2.labels.empty())
     {
@@ -1657,6 +1651,9 @@ namespace OpenMS
     {
       return nullptr;
     }
+
+    double temp = 0;
+    svm_problem* kernel_matrix;
 
     Size number_of_sequences = problem1.labels.size();
     kernel_matrix = new svm_problem;
@@ -1746,7 +1743,7 @@ namespace OpenMS
           while (pred_it != predicted_labels.end()
                 && real_it != real_labels.end())
           {
-            points.push_back(make_pair(*real_it, *pred_it));
+            points.emplace_back(*real_it, *pred_it);
             differences.push_back(abs(*real_it - *pred_it));
             file << *real_it << " " << *pred_it << endl;
             ++pred_it;
@@ -1826,7 +1823,7 @@ namespace OpenMS
           while (pred_it != predicted_labels.end()
                 && real_it != partitions[j].labels.end())
           {
-            points.push_back(make_pair(*real_it, *pred_it));
+            points.emplace_back(*real_it, *pred_it);
             differences.push_back(abs(*real_it - *pred_it));
             file << *real_it << " " << *pred_it << endl;
 

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -54,7 +54,7 @@ namespace OpenMS
 {
   using namespace Math;
 
-  AxisWidget::AxisWidget(AxisPainter::Alignment alignment, const char * legend, QWidget * parent) :
+  AxisWidget::AxisWidget(const AxisPainter::Alignment alignment, const char* legend, QWidget* parent) :
     QWidget(parent),
     is_log_(false),
     show_legend_(true),
@@ -81,9 +81,7 @@ namespace OpenMS
     resize(minimumSize());
   }
 
-  AxisWidget::~AxisWidget()
-  {
-  }
+  AxisWidget::~AxisWidget() = default;
 
   void AxisWidget::paintEvent(QPaintEvent * e)
   {
@@ -108,7 +106,7 @@ namespace OpenMS
 
     if (is_log_)
     {
-      //abort if no change
+      // abort if no change
       if (min_ == linear2log(min) && max_ == linear2log(max))
         return;
 
@@ -149,12 +147,12 @@ namespace OpenMS
     }
   }
 
-  bool AxisWidget::isLogScale()
+  bool AxisWidget::isLogScale() const
   {
     return is_log_;
   }
 
-  UInt AxisWidget::margin()
+  UInt AxisWidget::margin() const
   {
     return margin_;
   }
@@ -190,7 +188,7 @@ namespace OpenMS
     return show_legend_;
   }
 
-  const String & AxisWidget::getLegend()
+  const String& AxisWidget::getLegend() const
   {
     return legend_;
   }
@@ -204,7 +202,7 @@ namespace OpenMS
     }
   }
 
-  bool AxisWidget::hasInverseOrientation()
+  bool AxisWidget::hasInverseOrientation() const
   {
     return is_inverse_orientation_;
   }
@@ -226,7 +224,7 @@ namespace OpenMS
     }
   }
 
-  const AxisWidget::GridVector & AxisWidget::gridLines()
+  const AxisWidget::GridVector & AxisWidget::gridLines() const
   {
     return grid_line_;
   }

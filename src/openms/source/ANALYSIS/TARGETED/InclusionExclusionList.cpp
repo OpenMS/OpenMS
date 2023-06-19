@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -35,14 +35,15 @@
 
 #include <OpenMS/ANALYSIS/TARGETED/InclusionExclusionList.h>
 
+#include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/CHEMISTRY/ProteaseDigestion.h>
-
 #include <OpenMS/SIMULATION/RTSimulation.h>
 
 #include <OpenMS/COMPARISON/CLUSTERING/SingleLinkage.h>
 #include <OpenMS/COMPARISON/CLUSTERING/ClusterHierarchical.h>
 
 #include <fstream>
+#include <map>
 
 namespace OpenMS
 {
@@ -52,9 +53,9 @@ namespace OpenMS
 
     defaults_.setValue("missed_cleavages", 0, "Number of missed cleavages used for protein digestion.\n");
     defaults_.setValue("RT:unit", "minutes", "Create lists with units as seconds instead of minutes");
-    defaults_.setValidStrings("RT:unit", ListUtils::create<String>("minutes,seconds"));
+    defaults_.setValidStrings("RT:unit", {"minutes","seconds"});
     defaults_.setValue("RT:use_relative", "true", "Use relative RT window, which depends on RT of precursor.");
-    defaults_.setValidStrings("RT:use_relative", ListUtils::create<String>("true,false"));
+    defaults_.setValidStrings("RT:use_relative", {"true","false"});
     defaults_.setValue("RT:window_relative", 0.05, "[for RT:use_relative == true] The relative factor X for the RT exclusion window, e.g. the window is calculated as [rt - rt*X, rt + rt*X].");
     defaults_.setMinFloat("RT:window_relative", 0.0);
     defaults_.setMaxFloat("RT:window_relative", 10.0);
@@ -63,7 +64,7 @@ namespace OpenMS
     defaults_.setValue("merge:mz_tol", 10.0, "Two inclusion/exclusion windows are merged when they (almost) overlap in RT (see 'rt_tol') and are close in m/z by this tolerance. Unit of this is defined in 'mz_tol_unit'.");
     defaults_.setMinFloat("merge:mz_tol", 0.0);
     defaults_.setValue("merge:mz_tol_unit", "ppm", "Unit of 'mz_tol'");
-    defaults_.setValidStrings("merge:mz_tol_unit", ListUtils::create<String>("ppm,Da"));
+    defaults_.setValidStrings("merge:mz_tol_unit", {"ppm","Da"});
     defaults_.setValue("merge:rt_tol", 1.1, "Maximal RT delta (in seconds) which would allow two windows in RT to overlap (which causes merging the windows). Two inclusion/exclusion windows are merged when they (almost) overlap in RT and are close in m/z by this tolerance (see 'mz_tol'). Unit of this param is [seconds].");
     defaults_.setMinFloat("merge:rt_tol", 0.0);
 
@@ -109,7 +110,7 @@ namespace OpenMS
 
     WindowList list_new;
 
-    Map<Size, Size> cluster_sizes;
+    std::map<Size, Size> cluster_sizes;
 
     for (Size i_outer = 0; i_outer < clusters.size(); ++i_outer)
     {
@@ -129,12 +130,12 @@ namespace OpenMS
       ++cluster_sizes[clusters[i_outer].size()]; // for stats
     }
 
-    LOG_INFO << "Clustered overlapping windows\nCluster sizes:\n";
-    for (Map<Size, Size>::const_iterator it = cluster_sizes.begin(); it != cluster_sizes.end(); ++it)
+    OPENMS_LOG_INFO << "Clustered overlapping windows\nCluster sizes:\n";
+    for (std::map<Size, Size>::const_iterator it = cluster_sizes.begin(); it != cluster_sizes.end(); ++it)
     {
-      LOG_INFO << "  size " << it->first << ": " << it->second << "x\n";
+      OPENMS_LOG_INFO << "  size " << it->first << ": " << it->second << "x\n";
     }
-    LOG_INFO << " --> Window count before: " << list.size() << "\n"
+    OPENMS_LOG_INFO << " --> Window count before: " << list.size() << "\n"
              << "     Window count after : " << list_new.size() << "\n";
 
     // replace with clustered version
@@ -154,7 +155,7 @@ namespace OpenMS
   void InclusionExclusionList::writeTargets(const std::vector<FASTAFile::FASTAEntry>& fasta_entries,
                                             const String& out_path,
                                             const IntList& charges,
-                                            const String rt_model_path)
+                                            const String& rt_model_path)
   {
     WindowList result;
 
@@ -220,7 +221,7 @@ namespace OpenMS
       for (Size c = 0; c < charges.size(); ++c)
       {
         // calculate exclusion window
-        double mz = pep_seqs[i].getMonoWeight(Residue::Full, charges[c]) / (double)charges[c];
+        double mz = pep_seqs[i].getMZ(charges[c]);
         double rt_start = std::max(0.0, relative_rt ? (rts[i] - rel_rt_window_size * rts[i]) : rts[i] - abs_rt_window_size);
         double rt_stop =                relative_rt ? (rts[i] + rel_rt_window_size * rts[i]) : rts[i] + abs_rt_window_size;
 
@@ -307,7 +308,7 @@ namespace OpenMS
         bool charge_found = false;
         for (Size c = 0; c < charges.size(); ++c)
         {
-          double mz = pep_hit_iter->getSequence().getMonoWeight(Residue::Full, charges[c]) / (double)charges[c];
+          double mz = pep_hit_iter->getSequence().getMZ(charges[c]);
           result.push_back(IEWindow(rt_start, rt_stop, mz));
           if (charges[c] == charge)
           {
@@ -316,14 +317,14 @@ namespace OpenMS
         }
         if (!charge_found) // if not already done, consider annotated charge of peptide (unless its 0)
         {
-          double mz = pep_hit_iter->getSequence().getMonoWeight(Residue::Full, charge) / (double)charge;
+          double mz = pep_hit_iter->getSequence().getMZ(charge);
           result.push_back(IEWindow(rt_start, rt_stop, mz));
         }
       }
     }
 
     if (charge_invalid_count > 0)
-      LOG_WARN << "Warning: " << charge_invalid_count << " peptides with charge=0 were found, and assumed to have charge=2.\n";
+      OPENMS_LOG_WARN << "Warning: " << charge_invalid_count << " peptides with charge=0 were found, and assumed to have charge=2.\n";
 
     mergeOverlappingWindows_(result);
     writeToFile_(out_path, result);

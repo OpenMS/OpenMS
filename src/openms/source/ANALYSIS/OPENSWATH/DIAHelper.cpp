@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -37,35 +37,183 @@
 #include <OpenMS/CHEMISTRY/TheoreticalSpectrumGenerator.h>
 #include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/CoarseIsotopePatternGenerator.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithmPickedHelperStructs.h>
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithm.h>
 
 #include <OpenMS/KERNEL/MSSpectrum.h>
-#include <OpenMS/KERNEL/MSExperiment.h>
 
 #include <utility>
-#include <boost/bind.hpp>
 
-namespace OpenMS
-{
-  namespace DIAHelpers
+namespace OpenMS::DIAHelpers
   {
+
+    void adjustExtractionWindow(double& right, double& left, const double& mz_extract_window, const bool& mz_extraction_ppm)
+    {
+      OPENMS_PRECONDITION(mz_extract_window > 0, "MZ extraction window needs to be larger than zero.");
+
+      if (mz_extraction_ppm)
+      {
+        left -= left * mz_extract_window / 2e6;
+        right += right * mz_extract_window / 2e6;
+      }
+      else
+      {
+        left -= mz_extract_window / 2.0;
+        right += mz_extract_window / 2.0;
+      }
+    }
+
+    void integrateWindows(const OpenSwath::SpectrumPtr& spectrum,
+                          const std::vector<double> & windowsCenter,
+                          double width,
+                          std::vector<double> & integratedWindowsIntensity,
+                          std::vector<double> & integratedWindowsMZ,
+                          bool remZero)
+    {
+      std::vector<double>::const_iterator beg = windowsCenter.begin();
+      std::vector<double>::const_iterator end = windowsCenter.end();
+      double mz, intensity;
+      for (; beg != end; ++beg)
+      {
+        double left = *beg - width / 2.0;
+        double right = *beg + width / 2.0;
+        if (integrateWindow(spectrum, left, right, mz, intensity, false))
+        {
+          integratedWindowsIntensity.push_back(intensity);
+          integratedWindowsMZ.push_back(mz);
+        }
+        else if (!remZero)
+        {
+          integratedWindowsIntensity.push_back(0.);
+          integratedWindowsMZ.push_back(*beg);
+        }
+      }
+    }
+
+    void integrateDriftSpectrum(const OpenSwath::SpectrumPtr& spectrum, 
+                                              double mz_start,
+                                              double mz_end,
+                                              double & im,
+                                              double & intensity,
+                                              double drift_start,
+                                              double drift_end)
+    {
+      OPENMS_PRECONDITION(spectrum->getDriftTimeArray() != nullptr, "Cannot filter by drift time if no drift time is available.");
+      OPENMS_PRECONDITION(spectrum->getMZArray()->data.size() == spectrum->getIntensityArray()->data.size(), "MZ and Intensity array need to have the same length.");
+      OPENMS_PRECONDITION(spectrum->getMZArray()->data.size() == spectrum->getDriftTimeArray()->data.size(), "MZ and Drift Time array need to have the same length.");
+      OPENMS_PRECONDITION(std::adjacent_find(spectrum->getMZArray()->data.begin(),
+              spectrum->getMZArray()->data.end(), std::greater<double>()) == spectrum->getMZArray()->data.end(),
+              "Precondition violated: m/z vector needs to be sorted!" )
+
+      im = 0;
+      intensity = 0;
+
+      // get the weighted average for noncentroided data.
+      // TODO this is not optimal if there are two peaks in this window (e.g. if the window is too large)
+      auto mz_arr_end = spectrum->getMZArray()->data.end();
+      auto int_it = spectrum->getIntensityArray()->data.begin();
+      auto im_it = spectrum->getDriftTimeArray()->data.begin();
+
+      // this assumes that the spectra are sorted!
+      auto mz_it = std::lower_bound(spectrum->getMZArray()->data.begin(), mz_arr_end, mz_start);
+      auto mz_it_end = std::lower_bound(mz_it, mz_arr_end, mz_end);
+
+      // also advance intensity and ion mobility iterator now
+      auto iterator_pos = std::distance(spectrum->getMZArray()->data.begin(), mz_it);
+      std::advance(int_it, iterator_pos);
+      std::advance(im_it, iterator_pos);
+
+      // Iterate from mz start to end, only storing ion mobility values that are in the range
+      for (; mz_it != mz_it_end; ++mz_it, ++int_it, ++im_it)
+      {
+        if ( *im_it >= drift_start && *im_it <= drift_end)
+        {
+          intensity += (*int_it);
+          im += (*int_it) * (*im_it);
+        }
+      }
+
+      if (intensity > 0.)
+      {
+        im /= intensity;
+      }
+      else
+      {
+        im = -1;
+        intensity = 0;
+      }
+
+    }
+
+    bool integrateWindow(const OpenSwath::SpectrumPtr& spectrum,
+                         double mz_start,
+                         double mz_end,
+                         double & mz,
+                         double & intensity,
+                         bool centroided)
+    {
+      OPENMS_PRECONDITION(spectrum->getMZArray()->data.size() == spectrum->getIntensityArray()->data.size(), "MZ and Intensity array need to have the same length.");
+      OPENMS_PRECONDITION(std::adjacent_find(spectrum->getMZArray()->data.begin(),
+              spectrum->getMZArray()->data.end(), std::greater<double>()) == spectrum->getMZArray()->data.end(),
+              "Precondition violated: m/z vector needs to be sorted!" )
+
+      mz = 0;
+      intensity = 0;
+      if (!centroided)
+      {
+        // get the weighted average for noncentroided data.
+        // TODO this is not optimal if there are two peaks in this window (e.g. if the window is too large)
+        auto mz_arr_end = spectrum->getMZArray()->data.end();
+        auto int_it = spectrum->getIntensityArray()->data.begin();
+
+        // this assumes that the spectra are sorted!
+        auto mz_it = std::lower_bound(spectrum->getMZArray()->data.begin(), mz_arr_end, mz_start);
+        auto mz_it_end = std::lower_bound(mz_it, mz_arr_end, mz_end);
+
+        // also advance intensity iterator now
+        auto iterator_pos = std::distance(spectrum->getMZArray()->data.begin(), mz_it);
+        std::advance(int_it, iterator_pos);
+
+        for (; mz_it != mz_it_end; ++mz_it, ++int_it)
+        {
+          intensity += (*int_it);
+          mz += (*int_it) * (*mz_it);
+        }
+
+        if (intensity > 0.)
+        {
+          mz /= intensity;
+          return true;
+        }
+        else
+        {
+          mz = -1;
+          intensity = 0;
+          return false;
+        }
+
+      }
+      else
+      {
+        // not implemented
+        throw Exception::NotImplemented(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
+      }
+    }
+
     // for SWATH -- get the theoretical b and y series masses for a sequence
     void getBYSeries(const AASequence& a, //
                      std::vector<double>& bseries, //
                      std::vector<double>& yseries, //
                      TheoreticalSpectrumGenerator const * generator,
-                     UInt charge)
+                     int charge)
     {
-      OPENMS_PRECONDITION(charge > 0, "Charge is a positive integer");
-      //too slow!
-      //TheoreticalSpectrumGenerator generator;
-      //Param p;
-      //p.setValue("add_metainfo", "true",
-      //           "Adds the type of peaks as metainfo to the peaks, like y8+, [M-H2O+2H]++");
-      //generator.setParameters(p);
+      // Note: We pass TheoreticalSpectrumGenerator ptr, as constructing it each time is too slow.
+      OPENMS_PRECONDITION(charge > 0, "For constructing b/y series we require charge being a positive integer");
+
+      if (a.empty()) return;
+
       PeakSpectrum spec;
       generator->getSpectrum(spec, a, charge, charge);
 
+      // Data array is present if AASequence is not empty
       const PeakSpectrum::StringDataArray& ion_name = spec.getStringDataArrays()[0];
 
       for (Size i = 0; i != spec.size(); ++i)
@@ -82,18 +230,14 @@ namespace OpenMS
     } // end getBYSeries
 
     // for SWATH -- get the theoretical b and y series masses for a sequence
-    void getTheorMasses(const AASequence& a, std::vector<double>& masses,
+    void getTheorMasses(const AASequence& a,
+                        std::vector<double>& masses,
                         TheoreticalSpectrumGenerator const * generator,
-                        UInt charge)
+                        int charge)
     {
+      // Note: We pass TheoreticalSpectrumGenerator ptr, as constructing it each time is too slow.
       OPENMS_PRECONDITION(charge > 0, "Charge is a positive integer");
-      //too slow!
-      //TheoreticalSpectrumGenerator generator;
-      //Param p;
-      //p.setValue("add_metainfo", "false",
-      //           "Adds the type of peaks as metainfo to the peaks, like y8+, [M-H2O+2H]++");
-      //p.setValue("add_precursor_peaks", "true", "Adds peaks of the precursor to the spectrum, which happen to occur sometimes");
-      //generator.setParameters(p);
+
       PeakSpectrum spec;
       generator->getSpectrum(spec, a, charge, charge);
       for (PeakSpectrum::iterator it = spec.begin();
@@ -103,78 +247,109 @@ namespace OpenMS
       }
     } // end getBYSeries
 
-    void getAveragineIsotopeDistribution(const double product_mz,
-                                         std::vector<std::pair<double, double> >& isotopesSpec, const double charge,
-                                         const int nr_isotopes, const double mannmass)
+    void  getAveragineIsotopeDistribution(const double product_mz,
+                                         std::vector<std::pair<double, double> >& isotopes_spec,
+                                         int charge,
+                                         const int nr_isotopes,
+                                         const double mannmass)
     {
+      charge = std::abs(charge);
       typedef OpenMS::FeatureFinderAlgorithmPickedHelperStructs::TheoreticalIsotopePattern TheoreticalIsotopePattern;
       // create the theoretical distribution
       CoarseIsotopePatternGenerator solver(nr_isotopes);
       TheoreticalIsotopePattern isotopes;
-      //std::cout << product_mz * charge << std::endl;
+      //Note: this is a rough estimate of the weight, usually the protons should be deducted first, left for backwards compatibility.
       auto d = solver.estimateFromPeptideWeight(product_mz * charge);
 
       double mass = product_mz;
       for (IsotopeDistribution::Iterator it = d.begin(); it != d.end(); ++it)
       {
-        isotopesSpec.push_back(std::make_pair(mass, it->getIntensity()));
-        mass += mannmass;
+        isotopes_spec.emplace_back(mass, it->getIntensity());
+        mass += mannmass / charge;
       }
     } //end of dia_isotope_corr_sub
 
     //simulate spectrum from AASequence
     void simulateSpectrumFromAASequence(const AASequence& aa,
-                                        std::vector<double>& firstIsotopeMasses, //[out]
-                                        std::vector<std::pair<double, double> >& isotopeMasses, //[out]
-                                        TheoreticalSpectrumGenerator const * generator, double charge)
+                                        std::vector<double>& first_isotope_masses, //[out]
+                                        std::vector<std::pair<double, double> >& isotope_masses, //[out]
+                                        TheoreticalSpectrumGenerator const * generator, int charge)
     {
-      getTheorMasses(aa, firstIsotopeMasses, generator, charge);
-      for (std::size_t i = 0; i < firstIsotopeMasses.size(); ++i)
+      getTheorMasses(aa, first_isotope_masses, generator, charge);
+      for (std::size_t i = 0; i < first_isotope_masses.size(); ++i)
       {
-        getAveragineIsotopeDistribution(firstIsotopeMasses[i], isotopeMasses,
+        getAveragineIsotopeDistribution(first_isotope_masses[i], isotope_masses,
                                         charge);
       }
     }
 
-    //given an experimental spectrum add isotope pattern.
+    /// given an experimental spectrum add isotope pattern.
     void addIsotopes2Spec(const std::vector<std::pair<double, double> >& spec,
-                          std::vector<std::pair<double, double> >& isotopeMasses, //[out]
-                          double charge)
+                          std::vector<std::pair<double, double> >& isotope_masses, //[out]
+                          Size nr_isotopes, int charge)
     {
 
       for (std::size_t i = 0; i < spec.size(); ++i)
       {
         std::vector<std::pair<double, double> > isotopes;
-        getAveragineIsotopeDistribution(spec[i].first, isotopes, charge);
+        getAveragineIsotopeDistribution(spec[i].first, isotopes, charge, nr_isotopes);
         for (Size j = 0; j < isotopes.size(); ++j)
         {
           isotopes[j].second *= spec[i].second; //multiple isotope intensity by spec intensity
-          isotopeMasses.push_back(isotopes[j]);
+          isotope_masses.push_back(isotopes[j]);
         }
+      }
+    }
+
+    /// given a peak of experimental mz and intensity, add isotope pattern to a "spectrum".
+    void addSinglePeakIsotopes2Spec(double mz, double ity,
+                                    std::vector<std::pair<double, double> >& isotope_masses, //[out]
+                                    Size nr_isotopes, int charge)
+    {
+      std::vector<std::pair<double, double> > isotopes;
+      getAveragineIsotopeDistribution(mz, isotopes, charge, nr_isotopes);
+      for (Size j = 0; j < isotopes.size(); ++j)
+      {
+        isotopes[j].second *= ity; //multiple isotope intensity by spec intensity
+        isotope_masses.push_back(isotopes[j]);
       }
     }
 
     //Add masses before first isotope
-    void addPreisotopeWeights(const std::vector<double>& firstIsotopeMasses,
-                              std::vector<std::pair<double, double> >& isotopeSpec, // output
-                              UInt nrpeaks, double preIsotopePeaksWeight, // weight of pre isotope peaks
-                              double mannmass, double charge)
+    void addPreisotopeWeights(const std::vector<double>& first_isotope_masses,
+                              std::vector<std::pair<double, double> >& isotope_spec, // output
+                              UInt nr_peaks, double pre_isotope_peaks_weight, // weight of pre isotope peaks
+                              double mannmass, int charge)
     {
-      for (std::size_t i = 0; i < firstIsotopeMasses.size(); ++i)
+      charge = std::abs(charge);
+      for (std::size_t i = 0; i < first_isotope_masses.size(); ++i)
       {
-        double mul = 1.;
-        for (UInt j = 0; j < nrpeaks; ++j, ++mul)
+        Size mul = 1.;
+        for (UInt j = 0; j < nr_peaks; ++j, ++mul)
         {
-          isotopeSpec.push_back(
-            std::make_pair(firstIsotopeMasses[i] - (mul * mannmass) / charge,
-                           preIsotopePeaksWeight));
+          isotope_spec.emplace_back(first_isotope_masses[i] - (mul * mannmass) / charge,
+                                    pre_isotope_peaks_weight);
         }
       }
-      sortByFirst(isotopeSpec);
+      sortByFirst(isotope_spec);
     }
 
-    struct MassSorter :
-      std::binary_function<double, double, bool>
+    //Add masses before first isotope
+    void addPreisotopeWeights(double mz,
+                              std::vector<std::pair<double, double> >& isotope_spec, // output
+                              UInt nr_peaks, double pre_isotope_peaks_weight, // weight of pre isotope peaks
+                              double mannmass, int charge)
+    {
+      charge = std::abs(charge);
+      Size mul = 1.;
+      for (UInt j = 0; j < nr_peaks; ++j, ++mul)
+      {
+        isotope_spec.emplace_back(mz - (mul * mannmass) / charge,
+                                  pre_isotope_peaks_weight);
+      }
+    }
+
+    struct MassSorter
     {
       bool operator()(const std::pair<double, double>& left,
                       const std::pair<double, double>& right)
@@ -209,8 +384,9 @@ namespace OpenMS
     //modify masses by charge
     void modifyMassesByCharge(
       const std::vector<std::pair<double, double> >& isotopeSpec,
-      std::vector<std::pair<double, double> >& resisotopeSpec, double charge)
+      std::vector<std::pair<double, double> >& resisotopeSpec, int charge)
     {
+      charge = std::abs(charge);
       resisotopeSpec.clear();
       std::pair<double, double> tmp_;
       for (std::size_t i = 0; i < isotopeSpec.size(); ++i)
@@ -227,4 +403,3 @@ namespace OpenMS
 //std::vector<std::pair<double, double> > & isotopeMasses, uint32_t charge)
 
   }
-}

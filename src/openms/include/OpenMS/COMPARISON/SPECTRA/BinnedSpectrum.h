@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -38,9 +38,14 @@
 #include <OpenMS/KERNEL/MSSpectrum.h>
 #include <OpenMS/CONCEPT/Exception.h>
 
-#include <Eigen/Sparse>
-
 #include <cmath>
+
+// forward decl
+namespace Eigen
+{
+    template<typename _Scalar, int _Flags, typename _StorageIndex>
+    class SparseVector;
+}
 
 namespace OpenMS
 {
@@ -93,44 +98,38 @@ public:
       */ 
  
     // default bin width for low-resolution data (adapted from doi:10.1007/s13361-015-1179-x)
-    static constexpr const float DEFAULT_BIN_WIDTH_LOWRES = 1.0005;
+    static constexpr const float DEFAULT_BIN_WIDTH_LOWRES = 1.0005f;
 
     // default bin width for high-resolution data (adapted from doi:10.1007/s13361-015-1179-x)
-    static constexpr const float DEFAULT_BIN_WIDTH_HIRES = 0.02;
+    static constexpr const float DEFAULT_BIN_WIDTH_HIRES = 0.02f;
 
     /// default bin offset for high-resolution data (adapted from doi:10.1007/s13361-015-1179-x)
-    static constexpr const float DEFAULT_BIN_OFFSET_HIRES = 0.0;
+    static constexpr const float DEFAULT_BIN_OFFSET_HIRES = 0.0f;
 
     /// default bin offset for low-resolution data (adapted from doi:10.1007/s13361-015-1179-x)
-    static constexpr const float DEFAULT_BIN_OFFSET_LOWRES = 0.4;
+    static constexpr const float DEFAULT_BIN_OFFSET_LOWRES = 0.4f;
 
     /// typedef for the underlying sparse vector
-    using SparseVectorType = Eigen::SparseVector<float>;
-
-    /// typedef for the index into the sparse vector
-    using SparseVectorIndexType = Eigen::SparseVector<float>::Index;
- 
-    /// typedef for the index into the sparse vector
-    using SparseVectorIteratorType = Eigen::SparseVector<float>::InnerIterator;
+    using SparseVectorType = Eigen::SparseVector<float, 0, int>;
 
     /// the empty SparseVector
-    static const SparseVectorType EmptySparseVector;
+    // static const SparseVectorType EmptySparseVector;
 
     /// default constructor
     // BinnedSpectrum() = delete;
-    BinnedSpectrum() {}
+    BinnedSpectrum() {};
 
     /// detailed constructor
     BinnedSpectrum(const PeakSpectrum& ps, float size, bool unit_ppm, UInt spread, float offset);
 
     /// copy constructor
-    BinnedSpectrum(const BinnedSpectrum&) = default;
+    BinnedSpectrum(const BinnedSpectrum&);
 
     /// destructor
     virtual ~BinnedSpectrum();
 
     /// assignment operator
-    BinnedSpectrum& operator=(const BinnedSpectrum&) = default;
+    BinnedSpectrum& operator=(const BinnedSpectrum&);
 
     /// equality operator
     bool operator==(const BinnedSpectrum& rhs) const;
@@ -139,27 +138,10 @@ public:
     bool operator!=(const BinnedSpectrum& rhs) const;
 
     /// returns the bin intensity at a given m/z position 
-    inline float getBinIntensity(double mz) { return bins_.coeffRef(getBinIndex(mz)); }
+    float getBinIntensity(double mz);
 
     /// return the bin index of a given m/z position
-    inline SparseVectorIndexType getBinIndex(float mz) const 
-    {
-      if (unit_ppm_)
-      {
-        /*
-         * By solving:    mz = MIN_MZ_ * (1.0 + bin_size_ * 1e-6)^index for index
-         *     we get: index = floor(log(mz/MIN_MZ_)/log(1.0 + bin_size_ * 1e-6))
-         * Note: for ppm we don't need to consider an offset_.
-         */  
-        return static_cast<SparseVectorIndexType>(floor(log(mz/MIN_MZ_)/log1p(bin_size_ * 1e-6)));
-      }
-      else 
-      { // implemented as described in PMC4607604
-        // Note: Consider a peak offset (important for low-resolution data, where most peak boundaries
-        //       may fall on the mass peak apex. See publication for details.).
-        return static_cast<SparseVectorIndexType>(floor(mz / bin_size_ + offset_)); 
-      }
-    }
+    size_t getBinIndex(float mz) const;
 
     /// return the lower m/z of a bin given its index
     inline float getBinLowerMZ(size_t i) const
@@ -167,7 +149,7 @@ public:
       if (unit_ppm_)
       {
         // mz = MIN_MZ_ * (1.0 + bin_size_)^index for index
-        return (MIN_MZ_ * pow(1.0 + bin_size_ * 1e-6, i));
+        return float(MIN_MZ_ * pow(1.0 + bin_size_ * 1e-6, i));
       }
       else 
       { 
@@ -182,10 +164,10 @@ public:
     inline size_t getBinSpread() const { return bin_spread_; }
 
     /// immutable access to the bin container
-    const SparseVectorType& getBins() const;
+    const SparseVectorType* getBins() const;
 
     /// mutable access to the bin container
-    SparseVectorType& getBins();
+    SparseVectorType* getBins();
 
     /// return offset
     inline float getOffset() const { return offset_; }
@@ -202,19 +184,19 @@ public:
 
 private:
     /// the spread to left or right
-    UInt bin_spread_;
+    UInt bin_spread_ {0};
 
     /// the size of each bin
-    float bin_size_;
+    float bin_size_ {0};
 
     /// absolute bin size or relative bin size
-    bool unit_ppm_;
+    bool unit_ppm_ {false};
 
     /// offset of bin start
-    float offset_;
+    float offset_ {0};
 
     /// bins
-    SparseVectorType bins_;
+    SparseVectorType* bins_ {nullptr};
 
     /// calculate binning of peak spectrum
     void binSpectrum_(const PeakSpectrum& ps);

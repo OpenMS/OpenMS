@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -47,9 +47,7 @@ namespace OpenMS
     initialize(sigma_ * 8, spacing_, ppm_tolerance_, use_ppm_tolerance_);
   }
 
-  GaussFilterAlgorithm::~GaussFilterAlgorithm()
-  {
-  }
+  GaussFilterAlgorithm::~GaussFilterAlgorithm() = default;
 
   void GaussFilterAlgorithm::initialize(double gaussian_width, double spacing, double ppm_tolerance, bool use_ppm_tolerance)
   {

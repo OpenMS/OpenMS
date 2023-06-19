@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -38,7 +38,6 @@
 #include <OpenMS/METADATA/ChromatogramSettings.h>
 #include <OpenMS/METADATA/MetaInfoDescription.h>
 #include <OpenMS/KERNEL/RangeManager.h>
-#include <OpenMS/KERNEL/ComparatorUtils.h>
 #include <OpenMS/KERNEL/ChromatogramPeak.h>
 #include <OpenMS/METADATA/DataArrays.h>
 
@@ -53,15 +52,14 @@ namespace OpenMS
 
   class OPENMS_DLLAPI MSChromatogram :
     private std::vector<ChromatogramPeak>,
-    public RangeManager<1>,
+    public RangeManagerContainer<RangeRT, RangeIntensity>,
     public ChromatogramSettings
   {
 
 public:
 
     /// Comparator for the retention time.
-    struct OPENMS_DLLAPI MZLess :
-      public std::binary_function<MSChromatogram, MSChromatogram, bool>
+    struct OPENMS_DLLAPI MZLess
     {
       bool operator()(const MSChromatogram& a, const MSChromatogram& b) const;
     };
@@ -74,6 +72,8 @@ public:
     typedef typename PeakType::CoordinateType CoordinateType;
     /// Chromatogram base type
     typedef std::vector<PeakType> ContainerType;
+    /// RangeManager
+    typedef RangeManager<RangeRT, RangeIntensity> RangeManagerType;
     /// Float data array vector type
     typedef OpenMS::DataArrays::FloatDataArray FloatDataArray ;
     typedef std::vector<FloatDataArray> FloatDataArrays;
@@ -101,8 +101,10 @@ public:
     //@{
     using ContainerType::operator[];
     using ContainerType::begin;
+    using ContainerType::cbegin;
     using ContainerType::rbegin;
     using ContainerType::end;
+    using ContainerType::cend;
     using ContainerType::rend;
     using ContainerType::resize;
     using ContainerType::size;
@@ -127,33 +129,22 @@ public:
     //@}
 
     /// Constructor
-    MSChromatogram() :
-      ContainerType(),
-      RangeManager<1>(),
-      ChromatogramSettings(),
-      name_(),
-      float_data_arrays_(),
-      string_data_arrays_(),
-      integer_data_arrays_()
-    {}
+    MSChromatogram() = default;
 
     /// Copy constructor
-    MSChromatogram(const MSChromatogram& source) :
-      ContainerType(source),
-      RangeManager<1>(source),
-      ChromatogramSettings(source),
-      name_(source.name_),
-      float_data_arrays_(source.float_data_arrays_),
-      string_data_arrays_(source.string_data_arrays_),
-      integer_data_arrays_(source.integer_data_arrays_)
-    {}
+    MSChromatogram(const MSChromatogram&) = default;
+
+    /// Move constructor
+    MSChromatogram(MSChromatogram&&) = default;
 
     /// Destructor
-    ~MSChromatogram() override
-    {}
+    ~MSChromatogram() = default;
 
     /// Assignment operator
     MSChromatogram& operator=(const MSChromatogram& source);
+
+    /// Move assignment operator
+    MSChromatogram& operator=(MSChromatogram&&) & = default;
 
     /// Equality operator
     bool operator==(const MSChromatogram& rhs) const;
@@ -167,8 +158,12 @@ public:
     // Docu in base class (RangeManager)
     void updateRanges() override
     {
-      this->clearRanges();
-      updateRanges_(ContainerType::begin(), ContainerType::end());
+      clearRanges();
+      for (const auto& peak : (ContainerType&) *this)
+      {
+        extendRT(peak.getRT());
+        extendIntensity(peak.getIntensity());
+      }
     }
 
     ///@name Accessors for meta information
@@ -426,6 +421,20 @@ public:
 
     ///@}
 
+    /**
+      @brief Adds all the chromatogram peaks from another MSChromatogram and updates the metadata to indicate a merge
+
+      @note Make sure BOTH chromatograms are sorted with respect to RT. Otherwise the result is
+      undefined.
+
+      @note Peak level metadata stored in float_array string_array and int_array of the destination MSChromatogram is not guaranteed to be correct after merging
+
+      MZ of the destination MSChromatogram remains unchanged. If add_meta is true a metavalue "merged_with" is added with the MZ of the source MSChromatogram
+
+      @param other a reference to the MSChromatogram to take ChromatogramPeaks from
+    */
+    void mergePeaks(MSChromatogram& other, bool add_meta=false);
+
 protected:
 
     /// Name
@@ -442,7 +451,7 @@ protected:
   };
 
   /// Print the contents to a stream.
-  std::ostream& operator<<(std::ostream& os, const MSChromatogram& chrom);
+  OPENMS_DLLAPI std::ostream& operator<<(std::ostream& os, const MSChromatogram& chrom);
 
 } // namespace OpenMS
 

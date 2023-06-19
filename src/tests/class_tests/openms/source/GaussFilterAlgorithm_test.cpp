@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry               
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 // 
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -86,16 +86,10 @@ START_SECTION((template <typename ConstIterT, typename IterT> bool filter(ConstI
   gauss.initialize(1.0 * 8 /* gaussian_width */, 0.01 /* spacing */, 10.0 /* ppm_tolerance */, false /* use_ppm_tolerance */);
   gauss.filter(mz.begin(), mz.end(), intensities.begin(), mz_out.begin(), intensities_out.begin());
 
-  std::vector<double>::iterator it=intensities_out.begin();
-  TEST_REAL_SIMILAR(*it,1.0)
-  ++it;
-  TEST_REAL_SIMILAR(*it,1.0)
-  ++it;
-  TEST_REAL_SIMILAR(*it,1.0)
-  ++it;
-  TEST_REAL_SIMILAR(*it,1.0)
-  ++it;
-  TEST_REAL_SIMILAR(*it,1.0)
+  for (double intensity : intensities_out)
+  {
+    TEST_REAL_SIMILAR(intensity, 1.0)
+  }
 END_SECTION 
 
 START_SECTION((bool filter(OpenMS::Interfaces::SpectrumPtr spectrum)))
@@ -109,20 +103,10 @@ START_SECTION((bool filter(OpenMS::Interfaces::SpectrumPtr spectrum)))
   {
     spectrum->getIntensityArray()->data[i] = 0.0f;
     spectrum->getMZArray()->data[i] = 500.0+0.03*i; 
-    if (i==3)
-    {
-      spectrum->getIntensityArray()->data[i] = 1.0f;
-    }
-    if (i==4)
-    {
-      spectrum->getIntensityArray()->data[i] = 0.8f;
-    }
-    if (i==5)
-    {
-      spectrum->getIntensityArray()->data[i] = 1.2f;
-    }
   }
-
+  spectrum->getIntensityArray()->data[3] = 1.0f;
+  spectrum->getIntensityArray()->data[4] = 0.8f;
+  spectrum->getIntensityArray()->data[5] = 1.2f;
   TOLERANCE_ABSOLUTE(0.01)
 
   GaussFilterAlgorithm gauss;
@@ -131,7 +115,7 @@ START_SECTION((bool filter(OpenMS::Interfaces::SpectrumPtr spectrum)))
   gauss.filter(spectrum);
 
   TEST_EQUAL(spectrum->getIntensityArray()->data.size(), 9) 
-  TEST_REAL_SIMILAR(spectrum->getIntensityArray()->data[0],0.000734827)  
+  TEST_REAL_SIMILAR(spectrum->getIntensityArray()->data[0],0.000734827)
   TEST_REAL_SIMILAR(spectrum->getIntensityArray()->data[1],0.0543746)
   TEST_REAL_SIMILAR(spectrum->getIntensityArray()->data[2],0.298025)
   TEST_REAL_SIMILAR(spectrum->getIntensityArray()->data[3],0.707691)
@@ -154,29 +138,21 @@ START_SECTION((bool filter(OpenMS::Interfaces::ChromatogramPtr chromatogram)))
   {
     chromatogram->getIntensityArray()->data[i] = 0.0f;
     chromatogram->getTimeArray()->data[i] = 500.0+0.03*i; 
-    if (i==3)
-    {
-      chromatogram->getIntensityArray()->data[i] = 1.0f;
-    }
-    if (i==4)
-    {
-      chromatogram->getIntensityArray()->data[i] = 0.8f;
-    }
-    if (i==5)
-    {
-      chromatogram->getIntensityArray()->data[i] = 1.2f;
-    }
   }
+  chromatogram->getIntensityArray()->data[3] = 1.0f;
+  chromatogram->getIntensityArray()->data[4] = 0.8f;
+  chromatogram->getIntensityArray()->data[5] = 1.2f;
 
   TOLERANCE_ABSOLUTE(0.01)
 
   GaussFilterAlgorithm gauss;
   TEST_EQUAL(chromatogram->getIntensityArray()->data.size(), 9) 
+    
   gauss.initialize(0.2, 0.01, 1.0, false);
   gauss.filter(chromatogram);
 
   TEST_EQUAL(chromatogram->getIntensityArray()->data.size(), 9) 
-  TEST_REAL_SIMILAR(chromatogram->getIntensityArray()->data[0],0.000734827)  
+  TEST_REAL_SIMILAR(chromatogram->getIntensityArray()->data[0],0.000734827)
   TEST_REAL_SIMILAR(chromatogram->getIntensityArray()->data[1],0.0543746)
   TEST_REAL_SIMILAR(chromatogram->getIntensityArray()->data[2],0.298025)
   TEST_REAL_SIMILAR(chromatogram->getIntensityArray()->data[3],0.707691)

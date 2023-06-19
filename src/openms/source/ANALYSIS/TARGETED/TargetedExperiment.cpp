@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -33,7 +33,42 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/ANALYSIS/TARGETED/TargetedExperiment.h>
+
 #include <OpenMS/CONCEPT/LogStream.h>
+
+#include <ostream> // for ostream& operator<<(ostream& os, const TargetedExperiment::SummaryStatistics& s);
+#include <map>
+
+
+// from https://stackoverflow.com/questions/17010005/how-to-use-c11-move-semantics-to-append-vector-contents-to-another-vector
+template <typename T>
+typename std::vector<T>::iterator appendRVector(std::vector<T>&& src, std::vector<T>& dest)
+{
+  typename std::vector<T>::iterator result;
+
+  if (dest.empty())
+  {
+    dest = std::move(src);
+    result = std::begin(dest);
+  }
+  else
+  {
+#if 1
+    // dest.reserve(dest.size() + src.size());
+    std::move(std::begin(src), std::end(src), std::back_inserter(dest));
+    src.clear();
+#else
+    result = dest.insert(std::end(dest),
+                         std::make_move_iterator(std::begin(src)),
+                         std::make_move_iterator(std::end(src)));
+#endif
+  }
+
+  src.clear();
+  src.shrink_to_fit();
+
+  return result;
+}
 
 namespace OpenMS
 {
@@ -64,11 +99,29 @@ namespace OpenMS
   {
   }
 
-  TargetedExperiment::~TargetedExperiment()
+  TargetedExperiment::TargetedExperiment(TargetedExperiment && rhs) noexcept :
+    cvs_(std::move(rhs.cvs_)),
+    contacts_(std::move(rhs.contacts_)),
+    publications_(std::move(rhs.publications_)),
+    instruments_(std::move(rhs.instruments_)),
+    targets_(std::move(rhs.targets_)),
+    software_(std::move(rhs.software_)),
+    proteins_(std::move(rhs.proteins_)),
+    compounds_(std::move(rhs.compounds_)),
+    peptides_(std::move(rhs.peptides_)),
+    transitions_(std::move(rhs.transitions_)),
+    include_targets_(std::move(rhs.include_targets_)),
+    exclude_targets_(std::move(rhs.exclude_targets_)),
+    source_files_(std::move(rhs.source_files_)),
+    protein_reference_map_dirty_(true),
+    peptide_reference_map_dirty_(true),
+    compound_reference_map_dirty_(true)
   {
   }
 
-  TargetedExperiment & TargetedExperiment::operator=(const TargetedExperiment & rhs)
+  TargetedExperiment::~TargetedExperiment() = default;
+
+  TargetedExperiment& TargetedExperiment::operator=(const TargetedExperiment & rhs)
   {
     if (&rhs != this)
     {
@@ -85,6 +138,30 @@ namespace OpenMS
       include_targets_ = rhs.include_targets_;
       exclude_targets_ = rhs.exclude_targets_;
       source_files_ = rhs.source_files_;
+      protein_reference_map_dirty_ = true;
+      peptide_reference_map_dirty_ = true;
+      compound_reference_map_dirty_ = true;
+    }
+    return *this;
+  }
+
+  TargetedExperiment& TargetedExperiment::operator=(TargetedExperiment && rhs) noexcept
+  {
+    if (&rhs != this)
+    {
+      cvs_ = std::move(rhs.cvs_);
+      contacts_ = std::move(rhs.contacts_);
+      publications_ = std::move(rhs.publications_);
+      instruments_ = std::move(rhs.instruments_);
+      targets_ = std::move(rhs.targets_);
+      software_ = std::move(rhs.software_);
+      proteins_ = std::move(rhs.proteins_);
+      compounds_ = std::move(rhs.compounds_);
+      peptides_ = std::move(rhs.peptides_);
+      transitions_ = std::move(rhs.transitions_);
+      include_targets_ = std::move(rhs.include_targets_);
+      exclude_targets_ = std::move(rhs.exclude_targets_);
+      source_files_ = std::move(rhs.source_files_);
       protein_reference_map_dirty_ = true;
       peptide_reference_map_dirty_ = true;
       compound_reference_map_dirty_ = true;
@@ -119,7 +196,42 @@ namespace OpenMS
     exclude_targets_.insert(exclude_targets_.end(), rhs.exclude_targets_.begin(), rhs.exclude_targets_.end());
     source_files_.insert(source_files_.end(), rhs.source_files_.begin(), rhs.source_files_.end());
 
-    for (Map<String, std::vector<CVTerm> >::const_iterator targ_it = rhs.targets_.getCVTerms().begin(); targ_it != rhs.targets_.getCVTerms().end(); ++targ_it)
+    for (std::map<String, std::vector<CVTerm> >::const_iterator targ_it = rhs.targets_.getCVTerms().begin(); targ_it != rhs.targets_.getCVTerms().end(); ++targ_it)
+    {
+      for (std::vector<CVTerm>::const_iterator term_it = targ_it->second.begin(); term_it != targ_it->second.end(); ++term_it)
+      {
+        targets_.addCVTerm(*term_it);
+      }
+    }
+
+    // todo: check for double entries
+    // transitions, peptides, proteins
+
+    return *this;
+  }
+
+  TargetedExperiment & TargetedExperiment::operator+=(TargetedExperiment && rhs)
+  {
+    protein_reference_map_dirty_ = true;
+    peptide_reference_map_dirty_ = true;
+    compound_reference_map_dirty_ = true;
+
+    // merge these:
+    appendRVector(std::move(rhs.cvs_), cvs_);
+    appendRVector(std::move(rhs.contacts_), contacts_);
+    appendRVector(std::move(rhs.publications_), publications_);
+    appendRVector(std::move(rhs.instruments_), instruments_);
+    appendRVector(std::move(rhs.software_), software_);
+
+    appendRVector(std::move(rhs.proteins_), proteins_);
+    appendRVector(std::move(rhs.compounds_), compounds_);
+    appendRVector(std::move(rhs.peptides_), peptides_);
+    appendRVector(std::move(rhs.transitions_), transitions_);
+    appendRVector(std::move(rhs.include_targets_), include_targets_);
+    appendRVector(std::move(rhs.exclude_targets_), exclude_targets_);
+    appendRVector(std::move(rhs.source_files_), source_files_);
+
+    for (std::map<String, std::vector<CVTerm> >::const_iterator targ_it = rhs.targets_.getCVTerms().begin(); targ_it != rhs.targets_.getCVTerms().end(); ++targ_it)
     {
       for (std::vector<CVTerm>::const_iterator term_it = targ_it->second.begin(); term_it != targ_it->second.end(); ++term_it)
       {
@@ -153,6 +265,21 @@ namespace OpenMS
   bool TargetedExperiment::operator!=(const TargetedExperiment & rhs) const
   {
     return !(operator==(rhs));
+  }
+
+  TargetedExperiment::SummaryStatistics TargetedExperiment::getSummary() const
+  {
+    SummaryStatistics s;
+    s.protein_count = proteins_.size();
+    s.peptide_count = peptides_.size();
+    s.compound_count = compounds_.size();
+    s.transition_count = transitions_.size();
+    for (const auto& tr : transitions_)
+    {
+      ++s.decoy_counts[tr.getDecoyTransitionType()];
+    }
+    s.contains_invalid_references = containsInvalidReferences();
+    return s;
   }
 
   void TargetedExperiment::clear(bool clear_meta_data)
@@ -285,6 +412,12 @@ namespace OpenMS
     proteins_ = proteins;
   }
 
+  void TargetedExperiment::setProteins(std::vector<Protein> && proteins)
+  {
+    protein_reference_map_dirty_ = true;
+    proteins_ = std::move(proteins);
+  }
+
   const std::vector<TargetedExperiment::Protein> & TargetedExperiment::getProteins() const
   {
     return proteins_;
@@ -334,6 +467,12 @@ namespace OpenMS
   {
     peptide_reference_map_dirty_ = true;
     peptides_ = peptides;
+  }
+
+  void TargetedExperiment::setPeptides(std::vector<Peptide> && peptides)
+  {
+    peptide_reference_map_dirty_ = true;
+    peptides_ = std::move(peptides);
   }
 
   const std::vector<TargetedExperiment::Peptide> & TargetedExperiment::getPeptides() const
@@ -388,6 +527,11 @@ namespace OpenMS
   void TargetedExperiment::setTransitions(const std::vector<ReactionMonitoringTransition> & transitions)
   {
     transitions_ = transitions;
+  }
+
+  void TargetedExperiment::setTransitions(std::vector<ReactionMonitoringTransition> && transitions)
+  {
+    transitions_ = std::move(transitions);
   }
 
   const std::vector<ReactionMonitoringTransition> & TargetedExperiment::getTransitions() const
@@ -450,6 +594,11 @@ namespace OpenMS
     std::sort(transitions_.begin(), transitions_.end(), ReactionMonitoringTransition::ProductMZLess());
   }
 
+  void TargetedExperiment::sortTransitionsByName()
+  {
+    std::sort(transitions_.begin(), transitions_.end(), ReactionMonitoringTransition::NameLess());
+  }
+
   bool TargetedExperiment::containsInvalidReferences() const
   {
     typedef std::vector<OpenMS::TargetedExperiment::Protein> ProteinVectorType;
@@ -464,7 +613,7 @@ namespace OpenMS
       // Create new transition group if it does not yet exist
       if (unique_protein_map.find(prot_it->id) != unique_protein_map.end())
       {
-        LOG_ERROR << "Found duplicate protein id (must be unique): " + String(prot_it->id) << std::endl;
+        OPENMS_LOG_ERROR << "Found duplicate protein id (must be unique): " + String(prot_it->id) << std::endl;
         return true;
       }
       unique_protein_map[prot_it->id] = 0;
@@ -477,7 +626,7 @@ namespace OpenMS
       // Create new transition group if it does not yet exist
       if (unique_peptide_map.find(pep_it->id) != unique_peptide_map.end())
       {
-        LOG_ERROR << "Found duplicate peptide id (must be unique): " + String(pep_it->id) << std::endl;
+        OPENMS_LOG_ERROR << "Found duplicate peptide id (must be unique): " + String(pep_it->id) << std::endl;
         return true;
       }
       unique_peptide_map[pep_it->id] = 0;
@@ -490,7 +639,7 @@ namespace OpenMS
       // Create new transition group if it does not yet exist
       if (unique_compounds_map.find(comp_it->id) != unique_compounds_map.end())
       {
-        LOG_ERROR << "Found duplicate compound id (must be unique): " + String(comp_it->id) << std::endl;
+        OPENMS_LOG_ERROR << "Found duplicate compound id (must be unique): " + String(comp_it->id) << std::endl;
         return true;
       }
       unique_compounds_map[comp_it->id] = 0;
@@ -503,7 +652,7 @@ namespace OpenMS
       // Create new transition group if it does not yet exist
       if (unique_transition_map.find(tr_it->getNativeID()) != unique_transition_map.end())
       {
-        LOG_ERROR << "Found duplicate transition id (must be unique): " + String(tr_it->getNativeID()) << std::endl;
+        OPENMS_LOG_ERROR << "Found duplicate transition id (must be unique): " + String(tr_it->getNativeID()) << std::endl;
         return true;
       }
       unique_transition_map[tr_it->getNativeID()] = 0;
@@ -516,7 +665,7 @@ namespace OpenMS
       {
         if (unique_protein_map.find(*prot_it) == unique_protein_map.end()) 
         {
-          LOG_ERROR << "Protein " << *prot_it << " is not present in the provided data structure." << std::endl;
+          OPENMS_LOG_ERROR << "Protein " << *prot_it << " is not present in the provided data structure." << std::endl;
           return true;
         }
       }
@@ -530,7 +679,7 @@ namespace OpenMS
       {
         if (unique_peptide_map.find(tr.getPeptideRef()) == unique_peptide_map.end()) 
         {
-          LOG_ERROR << "Peptide " << tr.getPeptideRef() << " is not present in the provided data structure." << std::endl;
+          OPENMS_LOG_ERROR << "Peptide " << tr.getPeptideRef() << " is not present in the provided data structure." << std::endl;
           return true;
         }
       }
@@ -538,14 +687,14 @@ namespace OpenMS
       {
         if (unique_compounds_map.find(tr.getCompoundRef()) == unique_compounds_map.end()) 
         {
-          LOG_ERROR << "Compound " << tr.getPeptideRef() << " is not present in the provided data structure." << std::endl;
+          OPENMS_LOG_ERROR << "Compound " << tr.getPeptideRef() << " is not present in the provided data structure." << std::endl;
           return true;
         }
       }
       else
       {
         // It seems that having no associated compound or peptide is valid as both attributes are optional.
-        LOG_WARN << "Transition " << tr.getNativeID() << " does not have a compound or peptide associated with it." << std::endl;
+        OPENMS_LOG_WARN << "Transition " << tr.getNativeID() << " does not have a compound or peptide associated with it." << std::endl;
         // return true;
       }
     }
@@ -578,5 +727,36 @@ namespace OpenMS
     }
     compound_reference_map_dirty_ = false;
   }
+
+  bool formatCount(const size_t count, const size_t all, const String& name, StringList& sink)
+  {
+    if (count == 0) return false; // nothing to report... 0%....
+    sink.push_back(String(count * 100.0 / all, false) + "% (" + name + ")");
+    return true;
+  }
+
+  std::ostream& operator<<(std::ostream& os, const TargetedExperiment::SummaryStatistics& s)
+  {
+    using TYPE = ReactionMonitoringTransition::DecoyTransitionType;
+    auto count_copy = s.decoy_counts; // allow to default construct missing values with 0 counts
+    size_t all = count_copy[TYPE::DECOY] +
+                 count_copy[TYPE::TARGET] +
+                 count_copy[TYPE::UNKNOWN];
+    if (all == 0) all = 1; // avoid division by zero below
+    StringList counts;
+    formatCount(count_copy[TYPE::TARGET], all, "target", counts);
+    formatCount(count_copy[TYPE::DECOY], all, "decoy", counts);
+    formatCount(count_copy[TYPE::UNKNOWN], all, "unknown", counts);
+
+    os << "# Proteins: " << s.protein_count << '\n'
+       << "# Peptides: " << s.peptide_count << '\n'
+       << "# Compounds: " << s.compound_count << '\n'
+       << "# Transitions: " << s.transition_count << '\n'
+       << "Transition Type: " + ListUtils::concatenate(counts, ", ") + "\n"
+       << "All internal references valid: " << (!s.contains_invalid_references ? "yes" : "no") << '\n';
+    return os;
+  }
+
+
 
 } // namespace OpenMS

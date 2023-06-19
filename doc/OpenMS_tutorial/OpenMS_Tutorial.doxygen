@@ -2,7 +2,7 @@
 //                   %OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The %OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -110,7 +110,7 @@ Some more details and tips are collected here.
 <br>
 
 <b>Conventions</b><br>
-See the manual for proper coding style: <a href="https://github.com/OpenMS/OpenMS/wiki/Coding-conventions">Coding conventions</a> also see: <a href="https://github.com/OpenMS/OpenMS/wiki/C&%2343;&%2343;-Guide">C++ Guide</a>.
+See the manual for proper coding style: <a href="https://github.com/OpenMS/OpenMS/wiki/Coding-conventions">Coding conventions</a> also see: <a href="https://github.com/OpenMS/OpenMS/wiki/Cpp-Guide">C++ Guide</a>.
 We automatically test for common coding convention violations using a modified version of cpplint. Style testing can be enabled using CMake options. We also provide a configuration file for Uncrustify for automated style corrections (see "tools/uncrustify.cfg").
 <br>
 
@@ -131,17 +131,17 @@ The nightly (unstable) installers are available <a href="http://ftp.mi.fu-berlin
 <b>Technical Documentation</b><br>
 Documentation of classes and tools is automatically generated using doxygen:
 See the documentation for <a href="http://www.openms.de/current_doxygen/html/">HEAD</a>
-See the documentation for the latest <a href="https://abibuilder.informatik.uni-tuebingen.de/archive/openms/Documentation/release/latest/html/index.html">release branch</a>
+See the documentation for the latest <a href="https://abibuilder.cs.uni-tuebingen.de/archive/openms/Documentation/release/latest/html/index.html">release branch</a>
 <br>
 <br>
 <b>Building %OpenMS</b><br>
 Before you get started coding with %OpenMS you need to build it for your operating system. Please follow the <b>build instructions</b> from the documentation.
 <br>
-<a href="https://abibuilder.informatik.uni-tuebingen.de/archive/openms/Documentation/release/2.3.0/html/install_linux.html"><b>Building %OpenMS on GNU/Linux</b></a>
+<a href="https://abibuilder.cs.uni-tuebingen.de/archive/openms/Documentation/release/latest/html/install_linux.html"><b>Building %OpenMS on GNU/Linux</b></a>
 <br>
-<a href="https://abibuilder.informatik.uni-tuebingen.de/archive/openms/Documentation/release/2.3.0/html/install_mac.html"><b>Building %OpenMS on Mac OS X</b></a>
+<a href="https://abibuilder.cs.uni-tuebingen.de/archive/openms/Documentation/release/latest/html/install_mac.html"><b>Building %OpenMS on Mac OS X</b></a>
 <br>
-<a href="https://abibuilder.informatik.uni-tuebingen.de/archive/openms/Documentation/release/2.3.0/html/install_win.html"><b>Building %OpenMS on Windows</b></a>
+<a href="https://abibuilder.cs.uni-tuebingen.de/archive/openms/Documentation/release/latest/html/install_win.html"><b>Building %OpenMS on Windows</b></a>
 <br>
 Note that for development purposes, you might want to set the variable <i>CMAKE_BUILD_TYPE</i> to <i>Debug</i>. Otherwise, the default <i>Release</i> will be applied and disables pre-condition and post-condition checks, and assertions.
 <br>
@@ -225,8 +225,8 @@ The extensible %OpenMS library implements common mass spectrometric data process
         - Small molecule feature linking:
             - QT based clustering and linking (Tool FeatureLinkerUnlabeledQT)
             - fast, KD-tree based linking (Tool FeatureLinkerUnlabeledKD)
-        - Adduct decharing:
-            - Linear programming based determination of small molecule ion adducts and charges (Tool MetboliteAdductDecharger)
+        - Adduct decharging:
+            - Linear programming based determination of small molecule ion adducts and charges (Tool MetaboliteAdductDecharger)
         - Targeted data extraction: 
             - Analysis of data-independent acquisition or SWATH-MS data (Tool OpenSWATH)
     - Identification:
@@ -260,7 +260,7 @@ The extensible %OpenMS library implements common mass spectrometric data process
  <tr><th>Folder        <th>Description
  <tr><td>ANALYSIS</td><td>Source code of high-level analysis like PeakPicking, Quantitation, Identification, MapAlignment</td></tr>
  <tr><td>APPLICATIONS</td><td>Source code for tool base and handling</td></tr>
- <tr><td>CHEMISTRY</td><td>Source code dealing with Elements, Enzymes, Residues, Modifications, Isotope distributions and amino acid sequences</td></tr>
+ <tr><td>CHEMISTRY</td><td>Source code dealing with Elements, Enzymes, Residues/Amino Acids, Modifications, Isotope distributions and amino acid sequences</td></tr>
  <tr><td>COMPARISON</td><td>Different scoring functions for clustering and spectra comparison</td></tr>
  <tr><td>CONCEPT</td><td>%OpenMS concepts (types, macros, ...)</td></tr>
  <tr><td>DATASTRUCTURES</td><td>Auxiliary data structures</td></tr>
@@ -301,7 +301,7 @@ Within the ANALYSIS folder, you can find several important tools
 For the sake of completeness you will find a short list of the THIRDPARTY tools, which are integrated via wrappers into the %OpenMS framework (usually called -Adapter e.g. SiriusAdapter)
 
 Wrapper to third-party tools:
-    - Search Engines (MSGFPLUS, XTandem, OMSSA, Comet, MyriMatch)
+    - Search Engines (MSGFPLUS, XTandem, Comet)
     - Protein Inference (Fido)
     - Spectral Library Search (SpectraST)
     - Metabolite Identification (Sirius)
@@ -368,7 +368,7 @@ The base class of the two-dimensional data points is Peak2D. It provides the sam
 For information on d-dimensional data points see the appendix.
 
 @subsection tutorial_library_kernelclasses_spectra Spectra
-The most important container for raw/profile data and centroided peaks is MSSpectrum. The elements of a MSSpectrum are peaks (Peak1D). In fact it is so common that it has its own typedef PeakSpectrum. MSSpectrum is derived from SpectrumSettings, a container for the metadata of a spectrum (e.g. precursor information). Here, only MS data handling is explained, SpectrumSettings is described in subsection meta data of a spectrum. In the following example (Tutorial_MSSpectrum.cpp) program, a MSSpectrum is filled with peaks, sorted according to mass-to-charge ratio and a selection of peak positions is displaOne-dimensional data points:
+The most important container for raw/profile data and centroided peaks is MSSpectrum. The elements of a MSSpectrum are peaks (Peak1D). In fact it is so common that it has its own typedef PeakSpectrum. MSSpectrum is derived from SpectrumSettings, a container for the metadata of a spectrum (e.g. precursor information). Here, only MS data handling is explained, SpectrumSettings is described in subsection meta data of a spectrum. In the following example (Tutorial_MSSpectrum.cpp) program, a MSSpectrum is filled with peaks, sorted according to mass-to-charge ratio and a selection of peak positions is displayed as One-dimensional data points:
 <br><br>
 <b>Example: Tutorial_MSSpectrum.cpp</b>
 <br>
@@ -450,15 +450,15 @@ http://www.psidev.info/
 @subsection tutorial_logging Logging
 To make direct output to std::out and std::err more consistent, %OpenMS provides several low-level macros:
 <br>
-LOG_FATAL_ERROR, 
+OPENMS_LOG_FATAL_ERROR, 
 <br>
-LOG_ERROR
+OPENMS_LOG_ERROR
 <br>
-LOG_WARN,
+OPENMS_LOG_WARN,
 <br>
-LOG_INFO and
-<br
->LOG_DEBUG
+OPENMS_LOG_INFO and
+<br>
+OPENMS_LOG_DEBUG
 <br>
 which should be used instead of the less descriptive std::out and std::err streams. 
 
@@ -475,7 +475,7 @@ Depending on how the user configures the tool, this output is written to the com
 @subsection tutorial_identifications Identifications 
 Identifications of proteins, peptides, and the mapping between peptides and proteins (or groups of proteins) are stored in dedicated data structures. These data structures are typically stored to disc as idXML or mzIdentML file.
 The highest-level structure is ProteinIdentification. It stores all identified proteins of an identification run as ProteinHit objects + additional metadata (search parameters, etc.).
-Each ProteinHit contains the actual Proteinaccession, an associated score, and (optionally) the protein sequence. A ProteinIdentification object stores the data corresponding to a single identified spectrum or feature. It has members for the retention time, m/z, and a vector of PeptideHits. Each PeptideHit stores the information of a specific peptide-to-spectrum match (e.g., the score and the peptide sequence). Each PeptideHit also contains a vector of PeptideEvidence objects which store the reference to one (or in the case the peptide maps to multiple proteins multiple) Proteins and the position therein.
+Each ProteinHit contains the actual protein accession, an associated score, and (optionally) the protein sequence. A ProteinIdentification object stores the data corresponding to a single identified spectrum or feature. It has members for the retention time, m/z, and a vector of PeptideHits. Each PeptideHit stores the information of a specific peptide-to-spectrum match (e.g., the score and the peptide sequence). Each PeptideHit also contains a vector of PeptideEvidence objects which store the reference to one (or in the case the peptide maps to multiple proteins multiple) Proteins and the position therein.
 <br><br>
 <b>Example: Tutorial_IdentificationClasses.cpp</b>
 <br>
@@ -485,7 +485,7 @@ Create all identification data needed to store an idXML file
 
 @subsection tutorial_chemistry Chemistry
 @subsection tutorial_element Element, ElementDB, EmpiricalFormula 
-An Element object is the representation of an element. It can store the name, symbol and mass (average/mono) and natural abundances of isotopes. Elements are retrieved from the ElementDB singleton which is created from the file “/OpenMS/CHEMISTRY/Elements.xml”. The EmpiricalFormula object can be used to represent the empirical formula of a compound as well as to extract its natural isotope abundance and weight. 
+An Element object is the representation of an element. It can store the name, symbol and mass (average/mono) and natural abundances of isotopes. Elements are retrieved from the ElementDB singleton. The EmpiricalFormula object can be used to represent the empirical formula of a compound as well as to extract its natural isotope abundance and weight. 
 <br><br>
 <b>Example: Tutorial_Element.cpp</b>
 <br>
@@ -498,7 +498,7 @@ Extract isotope distribution and monoisotopic weight of an EmpiricalFormula obje
 
 \snippet Tutorial_EmpiricalFormula.cpp EmpiricalFormula
 
-@subsection tutorial_aaseq AASequence - Representing a Peptide 
+@subsection tutorial_aaseq AASequence - Representing a Peptide (amino acid sequence)
 An AASequence object stores a (potentially chemically modified) peptide.
 It can conveniently be constructed from the amino acid sequence (e.g., a string or a string literal “DEFIANGR”). Modifications may be encoded using the unimod name.
 Once constructed, many convenient functions are available to calculate peptide or ion properties.
@@ -511,8 +511,8 @@ Compute and output basic AASequence properties
 
 Internally, an AASequence object is composed of Residues.
 
-@subsection tutorial_residue Residue, ResidueDB
-Residues are the building blocks of AASequence objects. They store physico-chemical properties of specific amino acids. ResidueDB stores that data and is initialized from the file “data/CHEMISTRY/residues.xml”.
+@subsection tutorial_residue Residue and ResidueDB - Dealing with residues / amino acids
+Residues are the building blocks of AASequence objects. They store physico-chemical properties of amino acids. ResidueDB provides access to different residue sets (e.g. all natural AAs).
 <br><br>
 <b>Example: Tutorial_Residue.cpp</b>
 <br>
@@ -613,7 +613,7 @@ Add essential includes
 Note: both peptide_identifications and protein_identifications contain protein accessions. The difference between them is that protein_identifications only contain the inferred set of protein accessions while peptide_identifications contains all protein accessions the peptides map to. We consider only the larger set of protein accessions stored in the peptide identifications. In principle, it would be easy to add another parameter that adds a filter for the inferred accessions stored in protein_identifications.
 
 @subsection tutorial_add Add the tool functionality
-First, the accessions are extracted from the IdXML file. Here knowledge of the data structure is needed to extract the protein accessions. The class PeptideIdentification stores general information about a single identified spectrum (e.g., retention time, precursor mass-to-charge). A vector of PeptideHits is stored in each PeptideIdentification object and represent the potentially multiple PSMs of a single spectrum. They can be returned by calling .getHits(). Each peptide sequence stored in a PeptideHit may map to one or multiple proteins. This peptide to protein mapping information is stored in a vector of PeptideEvidence accessible by .getPepitdeEvidences(). From each of these evidences we can extract the protein accession with .getProteinAccession(). 
+First, the accessions are extracted from the IdXML file. Here knowledge of the data structure is needed to extract the protein accessions. The class PeptideIdentification stores general information about a single identified spectrum (e.g., retention time, precursor mass-to-charge). A vector of PeptideHits is stored in each PeptideIdentification object and represent the potentially multiple PSMs of a single spectrum. They can be returned by calling .getHits(). Each peptide sequence stored in a PeptideHit may map to one or multiple proteins. This peptide to protein mapping information is stored in a vector of PeptideEvidence accessible by .getPeptideEvidences(). From each of these evidences we can extract the protein accession with .getProteinAccession().
 
 To store all proteins accessions in the set id_accessions, we write: 
 <br><br>

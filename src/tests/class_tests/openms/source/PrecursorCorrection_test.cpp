@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry               
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 // 
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -355,7 +355,7 @@ START_SECTION((static std::set<Size> correctToNearestFeature(const FeatureMap &f
   vector<Precursor> precursor_after_correction;
 
   vector<MSSpectrum> f_spectra_before = f_exp.getSpectra();
-  for (auto it : f_spectra_before)
+  for (const auto& it : f_spectra_before)
   {
     if (it.getNativeID() == "scan=6")
     {
@@ -367,7 +367,7 @@ START_SECTION((static std::set<Size> correctToNearestFeature(const FeatureMap &f
   PrecursorCorrection::correctToNearestFeature(fmap, f_exp, rt_tolerance, mz_tolerance, ppm);
 
   vector<MSSpectrum> f_spectra_after = f_exp.getSpectra();
-  for (auto it : f_spectra_after)
+  for (const auto& it : f_spectra_after)
   {
     if (it.getNativeID() == "scan=6")
     {

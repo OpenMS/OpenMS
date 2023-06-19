@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -37,6 +37,8 @@
 #include <OpenMS/MATH/STATISTICS/BasicStatistics.h>
 #include <OpenMS/MATH/MISC/LinearInterpolation.h>
 
+#include <boost/math/special_functions/fpclassify.hpp> // isnan
+
 // #define Debug_PoseClusteringAffineSuperimposer
 
 namespace OpenMS
@@ -53,7 +55,7 @@ namespace OpenMS
 
     defaults_.setValue("rt_pair_distance_fraction", 0.1, "Within each of the two maps, the pairs considered for pose clustering "
                                                          "must be separated by at least this fraction of the total elution time "
-                                                         "interval (i.e., max - min).  ", ListUtils::create<String>("advanced"));
+                                                         "interval (i.e., max - min).  ", {"advanced"});
     defaults_.setMinFloat("rt_pair_distance_fraction", 0.);
     defaults_.setMaxFloat("rt_pair_distance_fraction", 1.);
 
@@ -75,21 +77,20 @@ namespace OpenMS
     defaults_.setMinFloat("shift_bucket_size", 0.);
 
     defaults_.setValue("max_shift", 1000.0, "Maximal shift which is considered during histogramming (in seconds).  "
-                                            "This applies for both directions.", ListUtils::create<String>("advanced"));
+                                            "This applies for both directions.", {"advanced"});
     defaults_.setMinFloat("max_shift", 0.);
 
     defaults_.setValue("max_scaling", 2.0, "Maximal scaling which is considered during histogramming.  "
-                                           "The minimal scaling is the reciprocal of this.", ListUtils::create<String>("advanced"));
+                                           "The minimal scaling is the reciprocal of this.", {"advanced"});
     defaults_.setMinFloat("max_scaling", 1.);
 
     defaults_.setValue("dump_buckets", "", "[DEBUG] If non-empty, base filename where hash table buckets will be dumped to.  "
-                                           "A serial number for each invocation will be appended automatically.", ListUtils::create<String>("advanced"));
+                                           "A serial number for each invocation will be appended automatically.", {"advanced"});
 
     defaults_.setValue("dump_pairs", "", "[DEBUG] If non-empty, base filename where the individual hashed pairs will be dumped to (large!).  "
-                                         "A serial number for each invocation will be appended automatically.", ListUtils::create<String>("advanced"));
+                                         "A serial number for each invocation will be appended automatically.", {"advanced"});
 
     defaultsToParam_();
-    return;
   }
 
   /**
@@ -155,7 +156,7 @@ namespace OpenMS
                                    Math::LinearInterpolation<double, double>& rt_high_hash_,
                                    const int hashing_round,
                                    const double rt_pair_min_distance,
-                                   const String dump_pairs_basename,
+                                   const String& dump_pairs_basename,
                                    const Int dump_buckets_serial,
                                    const double mz_pair_max_distance,
                                    const double winlength_factor_baseline,
@@ -323,7 +324,7 @@ namespace OpenMS
     Math::LinearInterpolation<double, double>& scaling_hash_1,
     const bool do_dump_buckets,
     const UInt struc_elem_length_datapoints,
-    const String dump_buckets_basename,
+    const String& dump_buckets_basename,
     const Int dump_buckets_serial,
     const double scaling_histogram_crossing_slope,
     const double scaling_cutoff_stdev_multiplier,
@@ -397,7 +398,7 @@ namespace OpenMS
       double freq_intercept = scaling_hash_1.getData().front();
       double freq_slope = (scaling_hash_1.getData().back() - scaling_hash_1.getData().front()) / double(buffer.size())
                           / scaling_histogram_crossing_slope;
-      if (!freq_slope || !buffer.size())
+      if (!freq_slope || buffer.empty())
       {
         // in fact these conditions are actually impossible, but let's be really sure ;-)
         freq_cutoff = 0;
@@ -413,7 +414,7 @@ namespace OpenMS
         }
         freq_cutoff = buffer[--index];   // note that we have index >= 1
       }
-    } while (0);
+    } while (false);
 
     // ***************************************************************************
     // apply freq_cutoff, setting smaller values to zero
@@ -483,7 +484,7 @@ namespace OpenMS
     const double scaling_histogram_crossing_slope,
     const double scaling_cutoff_stdev_multiplier,
     const UInt loops_mean_stdev_cutoff,
-    const String dump_buckets_basename,
+    const String& dump_buckets_basename,
     double& rt_low_centroid,
     double& rt_high_centroid)
   {
@@ -575,7 +576,7 @@ namespace OpenMS
         double freq_intercept = rt_low_hash_.getData().front();
         double freq_slope = (rt_low_hash_.getData().back() - rt_low_hash_.getData().front()) / double(buffer.size())
                             / scaling_histogram_crossing_slope;
-        if (!freq_slope || !buffer.size())
+        if (!freq_slope || buffer.empty())
         {
           // in fact these conditions are actually impossible, but let's be really sure ;-)
           freq_cutoff_low = 0;
@@ -596,7 +597,7 @@ namespace OpenMS
         double freq_intercept = rt_high_hash_.getData().front();
         double freq_slope = (rt_high_hash_.getData().back() - rt_high_hash_.getData().front()) / double(buffer.size())
                             / scaling_histogram_crossing_slope;
-        if (!freq_slope || !buffer.size())
+        if (!freq_slope || buffer.empty())
         {
           // in fact these conditions are actually impossible, but let's be really sure ;-)
           freq_cutoff_high = 0;
@@ -611,7 +612,7 @@ namespace OpenMS
           freq_cutoff_high = buffer[--index]; // note that we have index >= 1
         }
       }
-    } while (0);
+    } while (false);
 
     // apply freq_cutoff, setting smaller values to zero
     for (Size index = 0; index < rt_low_hash_.getData().size(); ++index)
@@ -786,7 +787,7 @@ namespace OpenMS
     if (param_.getValue("dump_buckets") != "")
     {
       do_dump_buckets = true;
-      dump_buckets_basename = param_.getValue("dump_buckets");
+      dump_buckets_basename = param_.getValue("dump_buckets").toString();
     }
     setProgress(++actual_progress);
 
@@ -796,7 +797,7 @@ namespace OpenMS
     if (param_.getValue("dump_pairs") != "")
     {
       do_dump_pairs = true;
-      dump_pairs_basename = param_.getValue("dump_pairs");
+      dump_pairs_basename = param_.getValue("dump_pairs").toString();
     }
     setProgress(++actual_progress);
 
@@ -860,7 +861,7 @@ namespace OpenMS
         std::cout << "WARNING: your map likely has a scaling around " << slope
           << " but your parameters only allow for a maximal scaling of " <<
           param_.getValue("max_scaling") << std::endl;
-        std::cout << "It is strongly adviced to adjust your max_scaling factor" << std::endl;
+        std::cout << "It is strongly advised to adjust your max_scaling factor" << std::endl;
       }
 
       if ( (double)param_.getValue("max_shift") < shift * 1.2)
@@ -868,7 +869,7 @@ namespace OpenMS
         std::cout << "WARNING: your map likely has a shift around " << shift
           << " but your parameters only allow for a maximal shift of " <<
           param_.getValue("max_shift") << std::endl;
-        std::cout << "It is strongly adviced to adjust your max_shift factor" << std::endl;
+        std::cout << "It is strongly advised to adjust your max_shift factor" << std::endl;
       }
 
     }
@@ -1034,7 +1035,7 @@ namespace OpenMS
       const double intercept = rt_low_image - rt_low * slope;
       params.setValue("intercept", intercept);
 
-      if (boost::math::isinf(slope) || boost::math::isnan(slope) || boost::math::isinf(intercept) || boost::math::isnan(intercept))
+      if (std::isinf(slope) || std::isnan(slope) || std::isinf(intercept) || std::isnan(intercept))
       {
         throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                       String("Superimposer could not compute an initial transformation!") +

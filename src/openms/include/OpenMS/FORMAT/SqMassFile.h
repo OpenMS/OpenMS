@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -48,6 +48,10 @@ namespace OpenMS
     to disk using a SQLite database and store them in sqMass format. This
     allows users to access, select and filter spectra and chromatograms
     on-demand even in a large collection of data.
+
+    Spectra and chromatograms with precursor information will additionally load/store the metavalue
+    'peptide_sequence' from the first precursor (if any).
+
   */
   class OPENMS_DLLAPI SqMassFile
   {
@@ -60,14 +64,9 @@ public:
   */
     struct OPENMS_DLLAPI SqMassConfig 
     {
-      bool write_full_meta; /// write full meta data
-      bool use_lossy_numpress; /// use lossy numpress compression
-      double linear_fp_mass_acc; /// desired mass accuracy for numpress linear encoding (-1 no effect, use 0.0001 for 0.2 ppm accuracy @ 500 m/z)
-
-      SqMassConfig () :
-        write_full_meta(true),
-        use_lossy_numpress(false),
-        linear_fp_mass_acc(-1) {}
+      bool write_full_meta{true}; ///< write full meta data
+      bool use_lossy_numpress{false}; ///< use lossy numpress compression
+      double linear_fp_mass_acc{-1}; ///< desired mass accuracy for numpress linear encoding (-1 no effect, use 0.0001 for 0.2 ppm accuracy @ 500 m/z)
     };
 
     typedef MSExperiment MapType;
@@ -86,13 +85,19 @@ public:
     */
     //@{
 
-    void load(const String& filename, MapType& map);
+    void load(const String& filename, MapType& map) const;
 
-    void store(const String& filename, MapType& map);
+    /**
+     @brief Store an MSExperiment in sqMass format
 
-    void transform(const String& filename_in, Interfaces::IMSDataConsumer * consumer, bool skip_full_count = false, bool skip_first_pass = false);
+     If you want a specific RUN::ID in the sqMass file,
+     make sure to populate MSExperiment::setSqlRunID(UInt64 id) before.
+    */
+    void store(const String& filename, MapType& map) const;
 
-    void setConfig(SqMassConfig config) 
+    void transform(const String& filename_in, Interfaces::IMSDataConsumer* consumer, bool skip_full_count = false, bool skip_first_pass = false) const;
+
+    void setConfig(const SqMassConfig& config) 
     {
       config_ = config;
     }
@@ -106,9 +111,7 @@ public:
     //                                        OpenSwath::BinaryDataArrayPtr data2, std::ifstream& ifs)
 
 protected:
-
       SqMassConfig config_;
-
   };
 }
 

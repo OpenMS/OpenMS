@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -35,7 +35,6 @@
 #pragma once
 
 #include <OpenMS/CONCEPT/Types.h>
-#include <OpenMS/KERNEL/ComparatorUtils.h>
 
 #include <algorithm>
 #include <typeinfo>
@@ -85,9 +84,13 @@ public:
       typedef const value_type* pointer;
       typedef std::random_access_iterator_tag iterator_category;
 
-      ConstRefVectorConstIterator()
-      {
-      }
+      ConstRefVectorConstIterator() = default;
+
+      ConstRefVectorConstIterator(const ConstRefVectorConstIterator&) = default;
+
+      ConstRefVectorConstIterator& operator=(const ConstRefVectorConstIterator&) = default;
+
+      ~ConstRefVectorConstIterator() = default;
 
       ConstRefVectorConstIterator(const typename std::vector<ValueType*>* vec, unsigned int position)
       {
@@ -99,25 +102,6 @@ public:
       {
         vector_ = vec;
         position_ = position;
-      }
-
-      ConstRefVectorConstIterator(const ConstRefVectorConstIterator& it)
-      {
-        vector_ = it.vector_;
-        position_ = it.position_;
-      }
-
-      ~ConstRefVectorConstIterator()
-      {}
-
-      ConstRefVectorConstIterator& operator=(const ConstRefVectorConstIterator& rhs)
-      {
-        if (this == &rhs) return *this;
-
-        vector_ = rhs.vector_;
-        position_ = rhs.position_;
-
-        return *this;
       }
 
       bool operator<(const ConstRefVectorConstIterator& it) const
@@ -214,14 +198,9 @@ public:
         return tmp;
       }
 
-      reference operator*()
+      reference operator*() const
       {
         return *((*vector_)[position_]);
-      }
-
-      pointer operator->()
-      {
-        return (*vector_)[position_];
       }
 
       pointer operator->() const
@@ -252,33 +231,22 @@ public:
       using ConstRefVectorConstIterator<ValueType>::vector_;
       using ConstRefVectorConstIterator<ValueType>::position_;
 
+      ConstRefVectorIterator() = default;
 
-      ConstRefVectorIterator()
-      {
-      }
-
+      ConstRefVectorIterator(const ConstRefVectorIterator&) = default;
+      
       ConstRefVectorIterator(typename std::vector<ValueType*>* vec, unsigned int position) :
         ConstRefVectorConstIterator<ValueType>(vec, position)
       {
       }
 
-      ConstRefVectorIterator(const ConstRefVectorIterator<ValueType>& it) :
-        ConstRefVectorConstIterator<ValueType>(it)
-      {
-      }
+      ~ConstRefVectorIterator() = default;
 
-      ~ConstRefVectorIterator()
-      {
-      }
+      ConstRefVectorIterator& operator=(const ConstRefVectorIterator& rhs) = default;
 
-      reference operator*()
+      reference operator*() const
       {
         return *((*vector_)[position_]);
-      }
-
-      pointer operator->()
-      {
-        return (*vector_)[position_];
       }
 
       pointer operator->() const
@@ -752,18 +720,19 @@ public:
     {
       if (reverse)
       {
-        std::sort(vector_.begin(), vector_.end(), reverseComparator(pointerComparator(typename ValueType::IntensityLess())));
+        auto pointerCmp = [](auto& left, auto& right){typename ValueType::IntensityLess cmp; return cmp(*left, *right);};
+        std::sort(vector_.begin(), vector_.end(), [&](auto &left, auto &right) {return pointerCmp(right, left);});
       }
       else
       {
-        std::sort(vector_.begin(), vector_.end(), pointerComparator(typename ValueType::IntensityLess()));
+        std::sort(vector_.begin(), vector_.end(), [](auto& left, auto& right){typename ValueType::IntensityLess cmp; return cmp(*left, *right);}); 
       }
     }
 
     /// Lexicographically sorts the elements by their position.
     void sortByPosition()
     {
-      std::sort(vector_.begin(), vector_.end(), pointerComparator(typename ValueType::PositionLess()));
+      std::sort(vector_.begin(), vector_.end(), [](auto& left, auto& right){typename ValueType::PositionLess cmp; return cmp(*left, *right);}); 
     }
 
     //@}
@@ -784,7 +753,7 @@ public:
     template <typename ComparatorType>
     void sortByComparator(ComparatorType const& comparator = ComparatorType())
     {
-      std::sort(vector_.begin(), vector_.end(), pointerComparator(comparator));
+      std::sort(vector_.begin(), vector_.end(), [&](auto& left, auto& right){return comparator(*left, *right);});
     }
 
     //@}

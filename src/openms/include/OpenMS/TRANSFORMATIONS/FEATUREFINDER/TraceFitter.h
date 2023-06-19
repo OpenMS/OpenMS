@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -38,7 +38,14 @@
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 #include <OpenMS/KERNEL/Peak1D.h>
 
-#include <Eigen/Core>
+// forward decl
+namespace Eigen
+{
+    template<typename _Scalar, int _Rows, int _Cols, int _Options, int _MaxRows, int _MaxCols>
+    class Matrix;
+    using MatrixXd = Matrix<double, -1, -1, 0, -1, -1>;
+    using VectorXd = Matrix<double, -1, 1, 0, -1, 1>;
+}
 
 namespace OpenMS
 {
@@ -84,7 +91,7 @@ protected:
     TraceFitter(const TraceFitter& source);
 
     /// assignment operator
-    virtual TraceFitter& operator=(const TraceFitter& source);
+    TraceFitter& operator=(const TraceFitter& source);
 
     /// destructor
     ~TraceFitter() override;
@@ -130,7 +137,7 @@ protected:
      * @param trace the mass trace for which the value should be computed
      * @param k  use the position of the k-th peak to compute the value
      */
-    double computeTheoretical(const FeatureFinderAlgorithmPickedHelperStructs::MassTrace& trace, Size k);
+    double computeTheoretical(const FeatureFinderAlgorithmPickedHelperStructs::MassTrace& trace, Size k) const;
 
     /**
      * Checks if the fitted model fills out at least 'min_rt_span' of the RT span
@@ -177,7 +184,7 @@ protected:
      *
      * @param s The solver containing the fitted parameter values.
      */
-    virtual void getOptimizedParameters_(const Eigen::VectorXd&) = 0;
+    virtual void getOptimizedParameters_(const Eigen::VectorXd& s) = 0;
     /**
      * Optimize the given parameters using the Levenberg-Marquardt algorithm.
      */

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -55,9 +55,9 @@ using namespace std;
 <CENTER>
     <table>
         <tr>
-      <td ALIGN = "center" BGCOLOR="#EBEBEB" ROWSPAN=1> pot. predecessor tools </td>
-      <td VALIGN="middle" ROWSPAN=3> \f$ \longrightarrow \f$ FeatureFinderIsotopeWavelet \f$ \longrightarrow \f$</td>
-            <td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. successor tools </td>
+      <th ALIGN = "center" ROWSPAN=1> pot. predecessor tools </td>
+      <td VALIGN="middle" ROWSPAN=3> &rarr; FeatureFinderIsotopeWavelet &rarr;</td>
+            <th ALIGN = "center"> pot. successor tools </td>
         </tr>
         <tr>
       <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_NoiseFilterSGolay </td>
@@ -155,9 +155,7 @@ protected:
 
     // A map for the resulting features
     FeatureMap features;
-    StringList ms_runs;
-    exp.getPrimaryMSRunPath(ms_runs);
-    features.setPrimaryMSRunPath(ms_runs);
+    features.setPrimaryMSRunPath({in}, exp);
 
     // get parameters specific for the feature finder
     Param feafi_param = getParam_().copy("algorithm:", true);
@@ -170,17 +168,16 @@ protected:
     // DEBUG
     if (debug_level_ > 10)
     {
-      FeatureMap::Iterator it;
-      for (it = features.begin(); it != features.end(); ++it)
+      for (const Feature& ft : features)
       {
-        if (!it->isMetaEmpty())
+        if (!ft.isMetaEmpty())
         {
           vector<String> keys;
-          it->getKeys(keys);
-          LOG_INFO << "Feature " << it->getUniqueId() << endl;
+          ft.getKeys(keys);
+          OPENMS_LOG_INFO << "Feature " << ft.getUniqueId() << endl;
           for (Size i = 0; i < keys.size(); i++)
           {
-            LOG_INFO << "  " << keys[i] << " = " << it->getMetaValue(keys[i]) << endl;
+            OPENMS_LOG_INFO << "  " << keys[i] << " = " << ft.getMetaValue(keys[i]) << endl;
           }
         }
       }

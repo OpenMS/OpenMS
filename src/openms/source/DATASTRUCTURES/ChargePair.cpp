@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -34,6 +34,8 @@
 
 #include <OpenMS/DATASTRUCTURES/ChargePair.h>
 #include <OpenMS/DATASTRUCTURES/Adduct.h>
+
+#include <ostream>
 
 namespace OpenMS
 {
@@ -70,23 +72,15 @@ namespace OpenMS
   }
 
   /// Copy constructor
-  ChargePair::ChargePair(const ChargePair& rhs) :
-    feature0_index_(rhs.feature0_index_),
-    feature1_index_(rhs.feature1_index_),
-    feature0_charge_(rhs.feature0_charge_),
-    feature1_charge_(rhs.feature1_charge_),
-    compomer_(rhs.compomer_),
-    mass_diff_(rhs.mass_diff_),
-    score_(rhs.score_),
-    is_active_(rhs.is_active_)
-  {
-  }
+  ChargePair::ChargePair(const ChargePair& rhs) = default;
 
   /// Assignment operator
   ChargePair& ChargePair::operator=(const ChargePair& rhs)
   {
-    if (&rhs == this) return *this;
-
+    if (&rhs == this)
+    {
+      return *this;
+    }
     feature0_index_ = rhs.feature0_index_;
     feature1_index_ = rhs.feature1_index_;
     feature0_charge_ = rhs.feature0_charge_;
@@ -99,11 +93,6 @@ namespace OpenMS
     return *this;
   }
 
-  /// Destructor
-  ChargePair::~ChargePair()
-  {
-  }
-
   //@}
 
   //@name Accessors
@@ -111,29 +100,53 @@ namespace OpenMS
   /// Returns the charge (for element 0 or 1)
   Int ChargePair::getCharge(UInt pairID) const
   {
-    if (pairID == 0) return feature0_charge_;
-    else return feature1_charge_;
+    if (pairID == 0)
+    {
+      return feature0_charge_;
+    }
+    else
+    {
+      return feature1_charge_;
+    }
   }
 
   /// Set the charge (for element 0 or 1)
   void ChargePair::setCharge(UInt pairID, Int e)
   {
-    if (pairID == 0) feature0_charge_ = e;
-    else feature1_charge_ = e;
+    if (pairID == 0)
+    {
+      feature0_charge_ = e;
+    }
+    else
+    {
+      feature1_charge_ = e;
+    }
   }
 
   /// Returns the element index (for element 0 or 1)
   Size ChargePair::getElementIndex(UInt pairID) const
   {
-    if (pairID == 0) return feature0_index_;
-    else return feature1_index_;
+    if (pairID == 0)
+    {
+      return feature0_index_;
+    }
+    else
+    {
+      return feature1_index_;
+    }
   }
 
   /// Set the element index (for element 0 or 1)
   void ChargePair::setElementIndex(UInt pairID, Size e)
   {
-    if (pairID == 0) feature0_index_ = e;
-    else feature1_index_ = e;
+    if (pairID == 0)
+    {
+      feature0_index_ = e;
+    }
+    else
+    {
+      feature1_index_ = e;
+    }
   }
 
   /// Returns the Id of the compomer that explains the mass difference
