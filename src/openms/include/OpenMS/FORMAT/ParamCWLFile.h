@@ -83,16 +83,13 @@ Same file with "__" instead of ':' as the section separator.
   class OPENMS_DLLAPI ParamCWLFile
   {
   public:
-    ParamCWLFile() = default; ///< Constructor
-
-    ~ParamCWLFile() = default; ///< Destructor
 
     /**
       @brief Read JSON file that is formatted in CWL conforming style.
 
       @param filename The file from where to read the Param object.
       @param param A param object with pre-filled defaults, which are updated by the values in the JSON file
-      @return returns true if file was successfully loaded.
+      @return returns true if file was successfully loaded; false if an unknown (non-default) parameter name was encountered in the JSON file
 
       @exception Exception::FileNotFound is thrown if the file could not be found
       @exception Exception::ParseError is thrown if an error occurs during parsing

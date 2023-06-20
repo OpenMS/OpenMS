@@ -298,7 +298,7 @@ namespace OpenMS
         {
           in_ini = param_cmdline_.getValue("ini");
           Param ini_params;
-          std::string in_ini_path = in_ini.toString();
+          const std::string in_ini_path = in_ini.toString();
           if (FileHandler::getTypeByFileName(in_ini_path) == FileTypes::Type::JSON)
           {
             // The JSON file doesn't carry any information about the parameter tree structure.

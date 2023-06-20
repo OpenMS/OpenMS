@@ -68,14 +68,16 @@ namespace OpenMS
       std::string msg = "Ignoring JSON file '" + filename + "' because of unexpected data type. Expecting a dictionary as root type.";
       throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "", msg);
     }
-    for (auto child : jsonNode.items())
+    for (const auto& child : jsonNode.items())
     {
       auto key = child.key();
       key = toolNamespace + replaceAll(key, "__", ":"); // This converts __ to ':', but ':' would also be an accepted delimiter
 
       auto node = child.value();
       if (node.is_null())
+      {
         continue; // No value given
+      }
       if (!param.exists(key))
       {
         OPENMS_LOG_ERROR << "Parameter " << key << " passed to '" << traces.front().name << "' is invalid. To prevent usage of wrong defaults, please update/fix the parameters!" << std::endl;
