@@ -305,7 +305,7 @@ namespace OpenMS
             // We hand an additional parameter object with the default values, so we have information
             // about the tree when parsing the JSON file.
             ini_params = getDefaultParameters_();
-            if (!ParamCWLFile().load(in_ini_path, ini_params))
+            if (!ParamCWLFile::load(in_ini_path, ini_params))
             {
               return ILLEGAL_PARAMETERS;
             }
@@ -353,7 +353,7 @@ namespace OpenMS
             // We prepopulate the param object with the default values, so we have information
             // about the tree when parsing the JSON file.
             param_inifile_ = getDefaultParameters_();
-            if (!ParamCWLFile().load(value_ini, param_inifile_))
+            if (!ParamCWLFile::load(value_ini, param_inifile_))
             {
               return ILLEGAL_PARAMETERS;
             }

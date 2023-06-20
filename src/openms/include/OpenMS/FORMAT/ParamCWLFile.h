@@ -94,6 +94,6 @@ Same file with "__" instead of ':' as the section separator.
       @exception Exception::FileNotFound is thrown if the file could not be found
       @exception Exception::ParseError is thrown if an error occurs during parsing
     */
-    bool load(const std::string& filename, Param& param);
+    static bool load(const std::string& filename, Param& param);
   };
 } // namespace OpenMS
