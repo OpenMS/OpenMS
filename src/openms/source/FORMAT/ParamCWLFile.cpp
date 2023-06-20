@@ -67,79 +67,85 @@ namespace OpenMS
     {
       throw Exception::FileNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename);
     }
-
-    json jsonNode = json::parse(std::ifstream {filename});
-    if (!jsonNode.is_object())
+    try
     {
-      std::string msg = "Ignoring JSON file '" + filename + "' because of unexpected data type. Expecting a dictionary as root type.";
-      throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "", msg);
+      json jsonNode = json::parse(std::ifstream {filename});
+      if (!jsonNode.is_object())
+      {
+        std::string msg = "Ignoring JSON file '" + filename + "' because of unexpected data type. Expecting a dictionary as root type.";
+        throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "", msg);
+      }
+      for (const auto& child : jsonNode.items())
+      {
+        auto key = child.key();
+        key = toolNamespace + replaceAll(key, "__", ":"); // This converts __ to ':', but ':' would also be an accepted delimiter
+
+        auto node = child.value();
+        if (node.is_null())
+        {
+          continue; // No value given
+        }
+        if (!param.exists(key))
+        {
+          OPENMS_LOG_ERROR << "Parameter " << key << " passed to '" << traces.front().name << "' is invalid. To prevent usage of wrong defaults, please update/fix the parameters!" << std::endl;
+          return false;
+        }
+        auto const& entry = param.getEntry(key);
+        auto value = entry.value;
+        if (entry.value.valueType() == ParamValue::ValueType::STRING_VALUE)
+        {
+          if ((entry.valid_strings.size() == 2 && entry.valid_strings[0] == "true" && entry.valid_strings[1] == "false")
+             || (entry.valid_strings.size() == 2 && entry.valid_strings[0] == "false" && entry.valid_strings[1] == "true"))
+          {
+            value = node.get<bool>() ? "true" : "false";
+          }
+          else if (entry.tags.count("input file") || entry.tags.count("output file"))
+          {
+            value = node["path"].get<std::string>();
+          }
+          else
+          {
+            value = node.get<std::string>();
+          }
+        }
+        else if (entry.value.valueType() == ParamValue::ValueType::INT_VALUE)
+        {
+          value = node.get<int64_t>();
+        }
+        else if (entry.value.valueType() == ParamValue::ValueType::DOUBLE_VALUE)
+        {
+          value = node.get<double>();
+        }
+        else if (entry.value.valueType() == ParamValue::ValueType::STRING_LIST)
+        {
+          if (entry.tags.count("input file") || entry.tags.count("output file"))
+          {
+            value = node["path"].get<std::vector<std::string>>();
+          }
+          else
+          {
+            value = node.get<std::vector<std::string>>();
+          }
+        }
+        else if (entry.value.valueType() == ParamValue::ValueType::INT_LIST)
+        {
+          value = node.get<std::vector<int>>();
+        }
+        else if (entry.value.valueType() == ParamValue::ValueType::DOUBLE_LIST)
+        {
+          value = node.get<std::vector<double>>();
+        }
+        else if (entry.value.valueType() == ParamValue::ValueType::EMPTY_VALUE)
+        {
+          // Nothing happens here
+          OPENMS_LOG_WARN << "Ignoring entry '" << key << "' because of unknown type 'EMPTY_VALUE'." << std::endl;
+        }
+        param.setValue(key, value);
+      }
     }
-    for (const auto& child : jsonNode.items())
+    catch(const json::exception& e)
     {
-      auto key = child.key();
-      key = toolNamespace + replaceAll(key, "__", ":"); // This converts __ to ':', but ':' would also be an accepted delimiter
-
-      auto node = child.value();
-      if (node.is_null())
-      {
-        continue; // No value given
-      }
-      if (!param.exists(key))
-      {
-        OPENMS_LOG_ERROR << "Parameter " << key << " passed to '" << traces.front().name << "' is invalid. To prevent usage of wrong defaults, please update/fix the parameters!" << std::endl;
-        return false;
-      }
-      auto const& entry = param.getEntry(key);
-      auto value = entry.value;
-      if (entry.value.valueType() == ParamValue::ValueType::STRING_VALUE)
-      {
-        if ((entry.valid_strings.size() == 2 && entry.valid_strings[0] == "true" && entry.valid_strings[1] == "false")
-           || (entry.valid_strings.size() == 2 && entry.valid_strings[0] == "false" && entry.valid_strings[1] == "true"))
-        {
-          value = node.get<bool>() ? "true" : "false";
-        }
-        else if (entry.tags.count("input file") || entry.tags.count("output file"))
-        {
-          value = node["path"].get<std::string>();
-        }
-        else
-        {
-          value = node.get<std::string>();
-        }
-      }
-      else if (entry.value.valueType() == ParamValue::ValueType::INT_VALUE)
-      {
-        value = node.get<int64_t>();
-      }
-      else if (entry.value.valueType() == ParamValue::ValueType::DOUBLE_VALUE)
-      {
-        value = node.get<double>();
-      }
-      else if (entry.value.valueType() == ParamValue::ValueType::STRING_LIST)
-      {
-        if (entry.tags.count("input file") || entry.tags.count("output file"))
-        {
-          value = node["path"].get<std::vector<std::string>>();
-        }
-        else
-        {
-          value = node.get<std::vector<std::string>>();
-        }
-      }
-      else if (entry.value.valueType() == ParamValue::ValueType::INT_LIST)
-      {
-        value = node.get<std::vector<int>>();
-      }
-      else if (entry.value.valueType() == ParamValue::ValueType::DOUBLE_LIST)
-      {
-        value = node.get<std::vector<double>>();
-      }
-      else if (entry.value.valueType() == ParamValue::ValueType::EMPTY_VALUE)
-      {
-        // Nothing happens here
-        OPENMS_LOG_WARN << "Ignoring entry '" << key << "' because of unknown type 'EMPTY_VALUE'." << std::endl;
-      }
-      param.setValue(key, value);
+      throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "", e.what());
     }
     return true;
   }
