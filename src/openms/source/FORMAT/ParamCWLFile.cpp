@@ -62,6 +62,12 @@ namespace OpenMS
     auto traces = param.begin().getTrace();
     std::string toolNamespace = traces.front().name + ":1:";
 
+    std::ifstream ifs{filename};
+    if (!ifs.good())
+    {
+      throw Exception::FileNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename);
+    }
+
     json jsonNode = json::parse(std::ifstream {filename});
     if (!jsonNode.is_object())
     {
