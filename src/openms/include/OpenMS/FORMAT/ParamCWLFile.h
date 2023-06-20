@@ -91,7 +91,7 @@ Same file with "__" instead of ':' as the section separator.
       @brief Read JSON file that is formatted in CWL conforming style.
 
       @param filename The file from where to read the Param object.
-      @param param The param object where the read data should be stored.
+      @param param A param object with pre-filled defaults, which are updated by the values in the JSON file
       @return returns true if file was successfully loaded.
 
       @exception Exception::FileNotFound is thrown if the file could not be found
