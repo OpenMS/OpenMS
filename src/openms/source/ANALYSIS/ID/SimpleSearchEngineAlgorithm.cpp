@@ -505,32 +505,31 @@ void SimpleSearchEngineAlgorithm::postProcessHits_(const PeakMap& exp,
     vector<FASTAFile::FASTAEntry> fasta_db;
     FASTAFile().load(in_db, fasta_db);
 
-    ProteaseDigestion digestor;
-    digestor.setEnzyme(enzyme_);
     // generate decoy protein sequences by reversing them
     if (decoys_)
     {
-      digestor.setMissedCleavages(0);
       startProgress(0, 1, "Generate decoys...");
-
       DecoyGenerator decoy_generator;
 
       // append decoy proteins
       const size_t old_size = fasta_db.size();
+      fasta_db.reserve(fasta_db.size() * 2);
       for (size_t i = 0; i != old_size; ++i)
       {
         FASTAFile::FASTAEntry e = fasta_db[i];
         e.sequence = decoy_generator.reversePeptides(AASequence::fromString(e.sequence), enzyme_).toString();
         e.identifier = "DECOY_" + e.identifier;
-        fasta_db.push_back(e);
+        fasta_db.push_back(std::move(e));
       }
       // randomize order of targets and decoys to introduce no global bias in the case that
       // many targets have the same score as their decoy. (As we always take the first best scoring one)
       Math::RandomShuffler shuffler;
       shuffler.portable_random_shuffle(fasta_db.begin(), fasta_db.end());
       endProgress();
-      digestor.setMissedCleavages(peptide_missed_cleavages_);
     }
+    ProteaseDigestion digestor;
+    digestor.setEnzyme(enzyme_);
+    digestor.setMissedCleavages(peptide_missed_cleavages_);
     startProgress(0, fasta_db.size(), "Scoring peptide models against spectra...");
 
     // lookup for processed peptides. must be defined outside of omp section and synchronized
@@ -651,7 +650,7 @@ void SimpleSearchEngineAlgorithm::postProcessHits_(const PeakMap& exp,
             ah.score = score;
             ah.prefix_fraction = (double)detail.matched_b_ions/(double)c.size();
             ah.suffix_fraction = (double)detail.matched_y_ions/(double)c.size();
-            ah.mean_error = detail.mean_error;            
+            ah.mean_error = detail.mean_error;
 
 #ifdef _OPENMP
             omp_set_lock(&(annotated_hits_lock[scan_index]));
