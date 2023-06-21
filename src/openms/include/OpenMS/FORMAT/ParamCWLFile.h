@@ -83,7 +83,6 @@ Same file with "__" instead of ':' as the section separator.
   class OPENMS_DLLAPI ParamCWLFile
   {
   public:
-
     /**
       @brief Read JSON file that is formatted in CWL conforming style.
 
