@@ -373,6 +373,7 @@ namespace OpenMS
          {
           continue;
          }
+
          pg.calculateDLMatrices(dspec.getOriginalSpectrum(), tol, avg);
 
          auto dlmatrix = pg.getDLMatrix(0).asVector();
@@ -384,7 +385,6 @@ namespace OpenMS
          {
            std::cout<<pg.getTargetDummyType() << " S \n" << pg.getDLMatrix(0);
            std::cout<<pg.getTargetDummyType() << " N \n"  << pg.getDLMatrix(1);
-           std::cout<<pg.getTargetDummyType() << " T \n"  << pg.getDLMatrix(2);
          }
 
          grouped[cl].push_back(pg);

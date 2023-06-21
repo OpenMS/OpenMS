@@ -975,63 +975,7 @@ protected:
       }
       for (auto& deconvolved_spectrum : deconvolved_spectra)
       {
-        if (deconvolved_spectrum.getOriginalSpectrum().getMSLevel() != 1)
-        {
-          continue;
-        }
         Qscore::writeAttCsvFromDummy(deconvolved_spectrum, out_att_stream);
-
-        /*
-        auto false_deconvolved_spectrum(deconvolved_spectrum);
-        int j = 0; //-2 -1 1 2     2 3 5 /2 /3 /5
-        for (auto& pg : false_deconvolved_spectrum)
-        {
-          int k = j++ % 10;
-          int charge_offset = 0;
-          double charge_multiple = 1;
-          double mz_offset = .0;
-          PeakGroup::TargetDummyType flag = PeakGroup::TargetDummyType::charge_dummy;
-          switch (k)
-          {
-            case 0:
-              charge_offset = -2;
-              break;
-            case 1:
-              charge_offset = -1;
-              break;
-            case 2:
-              charge_offset = 1;
-              break;
-            case 3:
-              charge_offset = 2;
-              break;
-            case 4:
-              charge_multiple = 2.0;
-              break;
-            case 5:
-              charge_multiple = 3.0;
-              break;
-            case 6:
-              charge_multiple = 5.0;
-              break;
-            case 7:
-              charge_multiple = 1.0 / 5.0;
-              break;
-            case 8:
-              charge_multiple = 1.0 / 3.0;
-              break;
-            case 9:
-              charge_multiple = 1.0 / 2.0;
-              break;
-          }
-
-          pg.recruitAllPeaksInSpectrum(deconvolved_spectrum.getOriginalSpectrum(), 1e-6*tols[0], avg, pg.getMonoMass(), std::unordered_set<double>(), charge_offset, charge_multiple, mz_offset);
-          pg.updateIsotopeCosineSNRAvgErrorAndQscore(avg, .85);
-
-          pg.setTargetDummyType(flag);
-        }
-        false_deconvolved_spectra.push_back(false_deconvolved_spectrum);
-         */
       }
 
       FLASHDeconvSpectrumFile::writeDLMatrixHeader(out_dl_stream);

@@ -351,8 +351,10 @@ namespace OpenMS
     /// index to specify if this peak_group is a target (0), an isotope dummy (1), a noise (2), or a charge dummy (3)
     PeakGroup::TargetDummyType target_dummy_type_ = target;
 
-    int charge_range_for_DL_ =  11;
-    int iso_range_for_DL_ = 11;
+    int charge_range_for_DL_ =  7;
+    float bin_width_DL_ = 0.25;
+    int iso_range_for_DL_ = 21 / bin_width_DL_;
+
     /// distance between consecutive isotopes. Can be different for dummys
     double iso_da_distance_ = Constants::ISOTOPE_MASSDIFF_55K_U;
     /// scoring variables

@@ -1091,376 +1091,301 @@ namespace OpenMS
     qvalue_[flag] = q;
   }
 
-
-  void PeakGroup::calculateDLMatrices(const MSSpectrum& spec, double tol, const PrecalculatedAveragine& avg)
-  {
-    dl_matrices_.clear();
-    int iso_index_diff = -(int)avg.getApexIndex(getMonoMass()) + (int)(iso_range_for_DL_ / 2);
-    auto max_charge_iter = std::max_element(per_charge_int_.begin(), per_charge_int_.end());
-    int charge_index_diff = -(int)std::distance(per_charge_int_.begin(), max_charge_iter) + (int)(charge_range_for_DL_ / 2);
-    auto iso = avg.get(getMonoMass());
-    float apex_iso_intensity = iso.getMostAbundant().getIntensity();
-    iso.renormalize();
-    apex_iso_intensity = 1;
-    //float base = iso.getMostAbundant().getIntensity() / 100.0f;
-
-    Matrix<float> theoretical_iso, sig, sigtol, noise;
-    sig.resize(charge_range_for_DL_, iso_range_for_DL_, .0);
-    theoretical_iso.resize(charge_range_for_DL_, iso_range_for_DL_, .0);
-    sigtol.resize(charge_range_for_DL_, iso_range_for_DL_, .0);
-    noise.resize(charge_range_for_DL_, iso_range_for_DL_, .0);
-
-    std::vector<float> per_charge_signal_intensity(charge_range_for_DL_, .0f);
-    std::vector<float> per_charge_noise_intensity(charge_range_for_DL_, .0f);
-
-    for (auto& p : logMzpeaks_)
+  /*
+    void PeakGroup::calculateDLMatrices(const MSSpectrum& spec, double tol, const PrecalculatedAveragine& avg)
     {
-      int charge_index = p.abs_charge + charge_index_diff;
-      if (charge_index < 0 || charge_index >= charge_range_for_DL_)
-      {
-        continue;
-      }
-      per_charge_signal_intensity[charge_index] += p.intensity;//per_charge_signal_intensity[charge_index] > p.intensity ? per_charge_signal_intensity[charge_index] : p.intensity;
-    }
+      dl_matrices_.clear();
+      int iso_index_diff = -(int)avg.getApexIndex(getMonoMass()) + (int)(iso_range_for_DL_ / 2);
+      auto max_charge_iter = std::max_element(per_charge_int_.begin(), per_charge_int_.end());
+      int charge_index_diff = -(int)std::distance(per_charge_int_.begin(), max_charge_iter) + (int)(charge_range_for_DL_ / 2);
+      auto iso = avg.get(getMonoMass());
+      float apex_iso_intensity = iso.getMostAbundant().getIntensity();
+      iso.renormalize();
+      apex_iso_intensity = 1;
+      //float base = iso.getMostAbundant().getIntensity() / 100.0f;
 
+      Matrix<float> theoretical_iso, sig, sigtol, noise;
+      sig.resize(charge_range_for_DL_, iso_range_for_DL_, .0);
+      theoretical_iso.resize(charge_range_for_DL_, iso_range_for_DL_, .0);
+      sigtol.resize(charge_range_for_DL_, iso_range_for_DL_, .0);
+      noise.resize(charge_range_for_DL_, iso_range_for_DL_, .0);
 
-    for(int i=0;i<charge_range_for_DL_;i++)
-    {
-      int charge = i - charge_index_diff;
-      if(charge<min_abs_charge_ || charge > max_abs_charge_)
+      std::vector<float> per_charge_signal_intensity(charge_range_for_DL_, .0f);
+      std::vector<float> per_charge_noise_intensity(charge_range_for_DL_, .0f);
+
+      for (auto& p : logMzpeaks_)
       {
-        continue;
-      }
-      for(int j=0;j<iso_range_for_DL_;j++)
-      {
-        int isotopeIndex = j - iso_index_diff;
-        if (isotopeIndex < 0 || isotopeIndex >= iso.size())
+        int charge_index = p.abs_charge + charge_index_diff;
+        if (charge_index < 0 || charge_index >= charge_range_for_DL_)
         {
           continue;
         }
-        float iso_intensity = iso[isotopeIndex].getIntensity()/apex_iso_intensity;
-        theoretical_iso.setValue(i,j, iso_intensity);//
+        per_charge_signal_intensity[charge_index] += p.intensity;//per_charge_signal_intensity[charge_index] > p.intensity ? per_charge_signal_intensity[charge_index] : p.intensity;
       }
-    }
 
-    for (auto& p : logMzpeaks_)
-    {
-      int iso_index = p.isotopeIndex + iso_index_diff;
-      int charge_index = p.abs_charge + charge_index_diff;
-      if (iso_index < 0 || iso_index >= iso_range_for_DL_)
+
+      for(int i=0;i<charge_range_for_DL_;i++)
       {
-        continue;
-      }
-      if (charge_index < 0 || charge_index >= charge_range_for_DL_)
-      {
-        continue;
-      }
-
-      float nintensity = p.intensity / per_charge_signal_intensity[charge_index];// - (p.isotopeIndex<0? .0 : iso[p.isotopeIndex].getIntensity()/apex_iso_intensity);
-
-      if (nintensity < sig.getValue(charge_index, iso_index))
-      {
-        continue;
-      }
-      sig.setValue(charge_index, iso_index, nintensity);
-      sigtol.setValue(charge_index, iso_index, getAbsDaError_(p));
-    }
-
-    for(int i=0;i<charge_range_for_DL_;i++)
-    {
-      int charge = i - charge_index_diff;
-      for (int j = 0; j < iso_range_for_DL_; j++) {
+        int charge = i - charge_index_diff;
         if(charge<min_abs_charge_ || charge > max_abs_charge_)
         {
-          //sig.setValue(i, j, -1 );
+          continue;
         }
-        else{
-          float m = sig.getValue(i,j);
+        for(int j=0;j<iso_range_for_DL_;j++)
+        {
+          int isotopeIndex = j - iso_index_diff;
+          if (isotopeIndex < 0 || isotopeIndex >= iso.size())
+          {
+            continue;
+          }
+          float iso_intensity = iso[isotopeIndex].getIntensity()/apex_iso_intensity;
+          theoretical_iso.setValue(i,j, iso_intensity);//
+        }
+      }
+
+      for (auto& p : logMzpeaks_)
+      {
+        int iso_index = p.isotopeIndex + iso_index_diff;
+        int charge_index = p.abs_charge + charge_index_diff;
+        if (iso_index < 0 || iso_index >= iso_range_for_DL_)
+        {
+          continue;
+        }
+        if (charge_index < 0 || charge_index >= charge_range_for_DL_)
+        {
+          continue;
+        }
+
+        float nintensity = p.intensity / per_charge_signal_intensity[charge_index];// - (p.isotopeIndex<0? .0 : iso[p.isotopeIndex].getIntensity()/apex_iso_intensity);
+
+        if (nintensity < sig.getValue(charge_index, iso_index))
+        {
+          continue;
+        }
+        sig.setValue(charge_index, iso_index, nintensity);
+        sigtol.setValue(charge_index, iso_index, getAbsDaError_(p));
+      }
+
+      for(int i=0;i<charge_range_for_DL_;i++)
+      {
+        int charge = i - charge_index_diff;
+        for (int j = 0; j < iso_range_for_DL_; j++) {
+          if(charge<min_abs_charge_ || charge > max_abs_charge_)
+          {
+            //sig.setValue(i, j, -1 );
+          }
+          else{
+            float m = sig.getValue(i,j);
+            float M = theoretical_iso.getValue(i,j);
+            //if(M == 0) M = -1;
+            sig.setValue(i, j, m - M);
+            //sig.setValue(i, j, (sig.getValue(i,j) / (.01 + theoretical_iso.getValue(i,j))));
+          }
+        }
+      }
+
+      std::unordered_set<double> excluded_peak_mzs;
+      std::vector<LogMzPeak> noisy_peaks = recruitAllPeaksInSpectrum(spec, tol, avg, getMonoMass(), excluded_peak_mzs);
+
+      std::sort(noisy_peaks.begin(), noisy_peaks.end());
+
+      for (auto& p : noisy_peaks)
+      {
+        int charge_index = p.abs_charge + charge_index_diff;
+        if (charge_index < 0 || charge_index >= charge_range_for_DL_)
+        {
+          continue;
+        }
+        per_charge_noise_intensity[charge_index] += p.intensity;// per_charge_noise_intensity[charge_index] > p.intensity ? per_charge_noise_intensity[charge_index] : p.intensity;
+      }
+
+
+      for (auto& p : noisy_peaks)
+      {
+        if(p.abs_charge<min_abs_charge_ || p.abs_charge > max_abs_charge_)
+        {
+          continue;
+        }
+
+        int iso_index = p.isotopeIndex + iso_index_diff;
+        int charge_index = p.abs_charge + charge_index_diff;
+        if (iso_index < 0 || iso_index >= iso_range_for_DL_)
+        {
+          continue;
+        }
+        if (charge_index < 0 || charge_index >= charge_range_for_DL_)
+        {
+          continue;
+        }
+        float nintensity = p.intensity/ per_charge_noise_intensity[charge_index];// - (p.isotopeIndex<0? .0 :iso[p.isotopeIndex].getIntensity())/apex_iso_intensity;
+
+        if (nintensity < noise.getValue(charge_index, iso_index))
+        {
+          continue;
+        }
+        noise.setValue(charge_index, iso_index, nintensity);
+      }
+
+      for(int i=0;i<charge_range_for_DL_;i++)
+      {
+        int charge = i - charge_index_diff;
+        if(charge<min_abs_charge_ || charge > max_abs_charge_)
+        {
+          for (int j = 0; j < iso_range_for_DL_; j++)
+          {
+           // noise.setValue(i, j, -1);
+          }
+          continue;
+        }
+        if(per_charge_noise_intensity[i] <= 0)
+        {
+          continue;
+        }
+
+        float f = per_charge_signal_intensity[i]<= 0 ? 10.0f : std::min(10.0f, per_charge_noise_intensity[i] / per_charge_signal_intensity[i]);
+        for (int j = 0; j < iso_range_for_DL_; j++) {
+          float m = noise.getValue(i,j);
           float M = theoretical_iso.getValue(i,j);
           //if(M == 0) M = -1;
-          sig.setValue(i, j, m - M);
-          //sig.setValue(i, j, (sig.getValue(i,j) / (.01 + theoretical_iso.getValue(i,j))));
+          noise.setValue(i, j, f*(m - M));
+         // noise.setValue(i, j, f*((noise.getValue(i,j)/(.01+ theoretical_iso.getValue(i,j)))));
         }
       }
+
+      dl_matrices_.push_back(sig);
+      dl_matrices_.push_back(noise);
+      dl_matrices_.push_back(sigtol);
     }
+  */
 
-    std::unordered_set<double> excluded_peak_mzs;
-    std::vector<LogMzPeak> noisy_peaks = recruitAllPeaksInSpectrum(spec, tol, avg, getMonoMass(), excluded_peak_mzs);
-
-    std::sort(noisy_peaks.begin(), noisy_peaks.end());
-
-    for (auto& p : noisy_peaks)
-    {
-      int charge_index = p.abs_charge + charge_index_diff;
-      if (charge_index < 0 || charge_index >= charge_range_for_DL_)
-      {
-        continue;
-      }
-      per_charge_noise_intensity[charge_index] += p.intensity;// per_charge_noise_intensity[charge_index] > p.intensity ? per_charge_noise_intensity[charge_index] : p.intensity;
-    }
-
-
-    for (auto& p : noisy_peaks)
-    {
-      if(p.abs_charge<min_abs_charge_ || p.abs_charge > max_abs_charge_)
-      {
-        continue;
-      }
-
-      int iso_index = p.isotopeIndex + iso_index_diff;
-      int charge_index = p.abs_charge + charge_index_diff;
-      if (iso_index < 0 || iso_index >= iso_range_for_DL_)
-      {
-        continue;
-      }
-      if (charge_index < 0 || charge_index >= charge_range_for_DL_)
-      {
-        continue;
-      }
-      float nintensity = p.intensity/ per_charge_noise_intensity[charge_index];// - (p.isotopeIndex<0? .0 :iso[p.isotopeIndex].getIntensity())/apex_iso_intensity;
-
-      if (nintensity < noise.getValue(charge_index, iso_index))
-      {
-        continue;
-      }
-      noise.setValue(charge_index, iso_index, nintensity);
-    }
-
-    for(int i=0;i<charge_range_for_DL_;i++)
-    {
-      int charge = i - charge_index_diff;
-      if(charge<min_abs_charge_ || charge > max_abs_charge_)
-      {
-        for (int j = 0; j < iso_range_for_DL_; j++)
-        {
-         // noise.setValue(i, j, -1);
-        }
-        continue;
-      }
-      if(per_charge_noise_intensity[i] <= 0)
-      {
-        continue;
-      }
-
-      float f = per_charge_signal_intensity[i]<= 0 ? 10.0f : std::min(10.0f, per_charge_noise_intensity[i] / per_charge_signal_intensity[i]);
-      for (int j = 0; j < iso_range_for_DL_; j++) {
-        float m = noise.getValue(i,j);
-        float M = theoretical_iso.getValue(i,j);
-        //if(M == 0) M = -1;
-        noise.setValue(i, j, f*(m - M));
-       // noise.setValue(i, j, f*((noise.getValue(i,j)/(.01+ theoretical_iso.getValue(i,j)))));
-      }
-    }
-
-    dl_matrices_.push_back(sig);
-    dl_matrices_.push_back(noise);
-    dl_matrices_.push_back(sigtol);
-  }
-
-/*
   void PeakGroup::calculateDLMatrices(const MSSpectrum& spec, double tol, const PrecalculatedAveragine& avg)
   {
     dl_matrices_.clear();
     int center_z = (min_abs_charge_ + max_abs_charge_) / 2;
     int min_z = center_z - charge_range_for_DL_ / 2;
-    int max_z = center_z + charge_range_for_DL_ / 2;
+    int max_z = center_z + charge_range_for_DL_ / 2; // inclusive
+    max_z = std::min(max_abs_charge_, max_z);
 
     auto iso = avg.get(getMonoMass());
     int apex_iso = avg.getApexIndex(getMonoMass());
-    int min_iso = apex_iso - iso_range_for_DL_ / 2;
-    int max_iso = apex_iso + iso_range_for_DL_ / 2;
-    std::vector<double> iso_vector;
+    int min_iso = apex_iso - (iso_range_for_DL_ / 2) * bin_width_DL_;
+    int max_iso = apex_iso + (iso_range_for_DL_ / 2) * bin_width_DL_; // inclusive
 
-    double sum = .0;
+    std::unordered_set<double> excluded_peak_mzs;
+    std::vector<LogMzPeak> noisy_peaks = recruitAllPeaksInSpectrum(spec, tol, avg, getMonoMass(), excluded_peak_mzs);
+
+    max_iso = std::min(max_iso, (int)iso.size() - 1);
+
+    Matrix<float> sig, distortion, noise;
+
+    sig.resize(charge_range_for_DL_, iso_range_for_DL_, .0);
+    distortion.resize(charge_range_for_DL_, iso_range_for_DL_, .0);
+    noise.resize(charge_range_for_DL_, iso_range_for_DL_, .0);
+
+    std::vector<float> iso_vector(max_iso - min_iso + 1, 0);
+
+    float sum = .0;
     for (int i = min_iso; i <= max_iso; i++)
     {
+      if (i < 0) continue;
       sum += iso[i].getIntensity() * iso[i].getIntensity();
     }
 
     for (int i = min_iso; i <= max_iso; i++)
     {
-      iso_vector.push_back(iso[i].getIntensity() / sqrt(sum));
+      if (i < 0) continue;
+      iso_vector[i - min_iso] = iso[i].getIntensity() / sqrt(sum);
     }
+    std::vector<LogMzPeak> new_noisy_peaks;
+    new_noisy_peaks.reserve(noisy_peaks.size());
 
-    std::vector<double> observed_iso_vector(iso_vector.size(), 0);
-    double mul_factor = 0;
-
-    for (auto& p : logMzpeaks_)
+    for (int z = min_z; z <= max_z; z++)
     {
-      int index = p.isotopeIndex;
-      if (index < min_iso || index > max_iso)
-        continue;
-      observed_iso_vector[index - min_iso] += p.intensity;
-    }
-    for (int i = min_iso; i <= max_iso; i++)
-    {
-      mul_factor += iso_vector[i - min_iso] * observed_iso_vector[i - min_iso];
-    }
+      if(z <= 0) continue;
+      std::vector<float> observed_iso_vector(iso_vector.size(), 0);
+      std::vector<float> diff_iso_vector(iso_vector);
+      float mul_factor = 0;
 
-    for (int i = min_iso; i <= max_iso; i++)
-    {
-      iso_vector[i - min_iso] *= mul_factor;
-    }
-
-
-
-    // float base = iso.getMostAbundant().getIntensity() / 100.0f;
-
-    Matrix<float> theoretical_iso, sig, sigtol, noise;
-    sig.resize(charge_range_for_DL_, iso_range_for_DL_, .0);
-    theoretical_iso.resize(charge_range_for_DL_, iso_range_for_DL_, .0);
-    sigtol.resize(charge_range_for_DL_, iso_range_for_DL_, .0);
-    noise.resize(charge_range_for_DL_, iso_range_for_DL_, .0);
-
-    std::vector<float> per_charge_signal_intensity(charge_range_for_DL_, .0f);
-    std::vector<float> per_charge_noise_intensity(charge_range_for_DL_, .0f);
-
-    for (auto& p : logMzpeaks_)
-    {
-      int charge_index = p.abs_charge + charge_index_diff;
-      if (charge_index < 0 || charge_index >= charge_range_for_DL_)
+      for (auto& p : logMzpeaks_)
       {
-        continue;
-      }
-      per_charge_signal_intensity[charge_index] += p.intensity; // per_charge_signal_intensity[charge_index] > p.intensity ? per_charge_signal_intensity[charge_index] : p.intensity;
-    }
-
-
-    for (int i = 0; i < charge_range_for_DL_; i++)
-    {
-      int charge = i - charge_index_diff;
-      if (charge < min_abs_charge_ || charge > max_abs_charge_)
-      {
-        continue;
-      }
-      for (int j = 0; j < iso_range_for_DL_; j++)
-      {
-        int isotopeIndex = j - iso_index_diff;
-        if (isotopeIndex < 0 || isotopeIndex >= iso.size())
-        {
+        if (p.abs_charge != z)
           continue;
-        }
-        float iso_intensity = iso[isotopeIndex].getIntensity() / apex_iso_intensity;
-        theoretical_iso.setValue(i, j, iso_intensity); //
-      }
-    }
+        int index = p.isotopeIndex;
 
-    for (auto& p : logMzpeaks_)
-    {
-      int iso_index = p.isotopeIndex + iso_index_diff;
-      int charge_index = p.abs_charge + charge_index_diff;
-      if (iso_index < 0 || iso_index >= iso_range_for_DL_)
-      {
-        continue;
-      }
-      if (charge_index < 0 || charge_index >= charge_range_for_DL_)
-      {
-        continue;
+        if (index < min_iso || index > max_iso)
+          continue;
+        observed_iso_vector[index - min_iso] += p.intensity;
       }
 
-      float nintensity = p.intensity / per_charge_signal_intensity[charge_index]; // - (p.isotopeIndex<0? .0 : iso[p.isotopeIndex].getIntensity()/apex_iso_intensity);
-
-      if (nintensity < sig.getValue(charge_index, iso_index))
+      for (auto& p : noisy_peaks)
       {
-        continue;
-      }
-      sig.setValue(charge_index, iso_index, nintensity);
-      sigtol.setValue(charge_index, iso_index, getAbsDaError_(p));
-    }
-
-    for (int i = 0; i < charge_range_for_DL_; i++)
-    {
-      int charge = i - charge_index_diff;
-      for (int j = 0; j < iso_range_for_DL_; j++)
-      {
-        if (charge < min_abs_charge_ || charge > max_abs_charge_)
+        if (p.abs_charge != z)
+          continue;
+        if (p.isotopeIndex < 0) continue;
+        if (std::abs(monoisotopic_mass_ - p.getUnchargedMass() + p.isotopeIndex *  iso_da_distance_) < bin_width_DL_)
         {
-          // sig.setValue(i, j, -1 );
+          int index = p.isotopeIndex;
+          if (index < min_iso || index > max_iso)
+            continue;
+          observed_iso_vector[index - min_iso] += p.intensity;
         }
         else
         {
-          float m = sig.getValue(i, j);
-          float M = theoretical_iso.getValue(i, j);
-          // if(M == 0) M = -1;
-          sig.setValue(i, j, m - M);
-          // sig.setValue(i, j, (sig.getValue(i,j) / (.01 + theoretical_iso.getValue(i,j))));
+          new_noisy_peaks.push_back(p);
         }
+      }
+
+      for (int i = min_iso; i <= max_iso; i++)
+      {
+        mul_factor += diff_iso_vector[i - min_iso] * observed_iso_vector[i - min_iso];
+      }
+      for (int i = min_iso; i <= max_iso; i++)
+      {
+        diff_iso_vector[i - min_iso] *= mul_factor;
+      }
+      for (int i = min_iso; i <= max_iso; i++)
+      {
+        diff_iso_vector[i - min_iso] -= observed_iso_vector[i - min_iso];
+      }
+      for (int i = min_iso; i <= max_iso; i++)
+      {
+        int iso_bin = (int)round((i - min_iso) / bin_width_DL_);
+        if (z - min_z >= sig.rows())
+          break;
+        if (iso_bin >= sig.cols())
+          break;
+        if (iso_bin < 0 || z - min_z < 0)
+          continue;
+        sig.setValue(z - min_z, iso_bin, observed_iso_vector[i - min_iso]);
+        distortion.setValue(z - min_z, iso_bin, std::abs(diff_iso_vector[i - min_iso]));
       }
     }
 
-    std::unordered_set<double> excluded_peak_mzs;
-    std::vector<LogMzPeak> noisy_peaks = recruitAllPeaksInSpectrum(spec, tol, avg, getMonoMass(), excluded_peak_mzs);
-
-    std::sort(noisy_peaks.begin(), noisy_peaks.end());
+    noisy_peaks = new_noisy_peaks;
 
     for (auto& p : noisy_peaks)
     {
-      int charge_index = p.abs_charge + charge_index_diff;
-      if (charge_index < 0 || charge_index >= charge_range_for_DL_)
-      {
+      if (p.isotopeIndex < 0) continue;
+      int iso_bin = (int)round(((p.getUnchargedMass() - monoisotopic_mass_) / iso_da_distance_ - min_iso) / bin_width_DL_);
+      int z = p.abs_charge;
+      if (z - min_z >= noise.rows() || iso_bin >= noise.cols() || iso_bin < 0 || z - min_z < 0)
         continue;
-      }
-      per_charge_noise_intensity[charge_index] += p.intensity; // per_charge_noise_intensity[charge_index] > p.intensity ? per_charge_noise_intensity[charge_index] : p.intensity;
+      noise.setValue(z - min_z, iso_bin, (noise.getValue(z - min_z, iso_bin) + p.intensity));
     }
 
-
-    for (auto& p : noisy_peaks)
+    for (auto& p : negative_iso_peaks_)
     {
-      if (p.abs_charge < min_abs_charge_ || p.abs_charge > max_abs_charge_)
-      {
+      int iso_bin = (int)round(((p.getUnchargedMass() - monoisotopic_mass_) / iso_da_distance_ - min_iso) / bin_width_DL_);
+      int z = p.abs_charge;
+      if (z - min_z >= noise.rows() || iso_bin >= noise.cols() || iso_bin < 0 || z - min_z < 0)
         continue;
-      }
-
-      int iso_index = p.isotopeIndex + iso_index_diff;
-      int charge_index = p.abs_charge + charge_index_diff;
-      if (iso_index < 0 || iso_index >= iso_range_for_DL_)
-      {
-        continue;
-      }
-      if (charge_index < 0 || charge_index >= charge_range_for_DL_)
-      {
-        continue;
-      }
-      float nintensity = p.intensity / per_charge_noise_intensity[charge_index]; // - (p.isotopeIndex<0? .0 :iso[p.isotopeIndex].getIntensity())/apex_iso_intensity;
-
-      if (nintensity < noise.getValue(charge_index, iso_index))
-      {
-        continue;
-      }
-      noise.setValue(charge_index, iso_index, nintensity);
-    }
-
-    for (int i = 0; i < charge_range_for_DL_; i++)
-    {
-      int charge = i - charge_index_diff;
-      if (charge < min_abs_charge_ || charge > max_abs_charge_)
-      {
-        for (int j = 0; j < iso_range_for_DL_; j++)
-        {
-          // noise.setValue(i, j, -1);
-        }
-        continue;
-      }
-      if (per_charge_noise_intensity[i] <= 0)
-      {
-        continue;
-      }
-
-      float f = per_charge_signal_intensity[i] <= 0 ? 10.0f : std::min(10.0f, per_charge_noise_intensity[i] / per_charge_signal_intensity[i]);
-      for (int j = 0; j < iso_range_for_DL_; j++)
-      {
-        float m = noise.getValue(i, j);
-        float M = theoretical_iso.getValue(i, j);
-        // if(M == 0) M = -1;
-        noise.setValue(i, j, f * (m - M));
-        // noise.setValue(i, j, f*((noise.getValue(i,j)/(.01+ theoretical_iso.getValue(i,j)))));
-      }
+      distortion.setValue(z - min_z, iso_bin, distortion.getValue(z - min_z, iso_bin) + p.intensity);
     }
 
     dl_matrices_.push_back(sig);
+    dl_matrices_.push_back(distortion);
     dl_matrices_.push_back(noise);
-    dl_matrices_.push_back(sigtol);
-  }*/
+  }
 
   Matrix<float> PeakGroup::getDLMatrix(int index) const
   {

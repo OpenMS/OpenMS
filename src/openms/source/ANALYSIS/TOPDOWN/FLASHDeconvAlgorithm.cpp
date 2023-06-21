@@ -1246,7 +1246,7 @@ namespace OpenMS
         {
           auto noisy_peaks = peak_group.recruitAllPeaksInSpectrum(deconvolved_spectrum_.getOriginalSpectrum(), tol, avg_, peak_group.getMonoMass() + offset * iso_da_distance_, excluded_peak_mzs_);
           // min cosine is checked in here. mono mass is also updated one last time. SNR, per charge SNR, and avg errors are updated here.
-          offset = peak_group.updateQscore(noisy_peaks, avg_, min_isotope_cosine_[ms_level_ - 1]);
+          offset = peak_group.updateQscore(noisy_peaks, avg_, min_isotope_cosine_[ms_level_ - 1], allowed_iso_error_);
           if (offset == 0)
           {
             break;
@@ -1272,7 +1272,7 @@ namespace OpenMS
 
         if (target_dummy_type_ == PeakGroup::TargetDummyType::isotope_dummy)
         {
-          if (peak_group.getIsotopeCosine() < prev_cos * .98) // if taret cosine and isotope dummy cosine are too different, we do not take this dummy.
+          if (peak_group.getIsotopeCosine() < prev_cos * .99) // if target cosine and isotope dummy cosine are too different, we do not take this dummy.
             continue;
         }
 
@@ -1380,6 +1380,7 @@ namespace OpenMS
 
     removeChargeErrorPeakGroups_(deconvolved_spectrum_);
     removeOverlappingPeakGroups_(deconvolved_spectrum_, tol * tol_div_factor * 1.5);
+
     if(debug)
     {
       std::set<int> distinct_masses;
