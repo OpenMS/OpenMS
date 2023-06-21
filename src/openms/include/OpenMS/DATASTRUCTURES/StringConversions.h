@@ -260,10 +260,6 @@ namespace OpenMS
       return String();
     }
 
-    inline String toString(const char* s, size_t length)
-    {
-      return String(s, s+length);
-    }
   }
 
 } // namespace OPENMS
