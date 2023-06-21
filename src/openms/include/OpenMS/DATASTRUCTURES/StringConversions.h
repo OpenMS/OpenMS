@@ -262,14 +262,7 @@ namespace OpenMS
 
     inline String toString(const char* s, size_t length)
     {
-      String res;
-      size_t count = 0;
-      while (count < length)
-      {
-        res += *(s + count);
-        ++count;
-      }
-      return res;
+      return String(s, s+length);
     }
   }
 
