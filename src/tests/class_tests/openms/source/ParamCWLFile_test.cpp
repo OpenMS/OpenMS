@@ -52,7 +52,7 @@ using namespace OpenMS;
 
 START_TEST(ParamCWLFile, "$Id")
 
-START_SECTION((ParamCWLFile::load))
+START_SECTION((bool ParamCWLFile::load(const std::string& filename, Param& param)))
 {
   String filename;
   NEW_TMP_FILE(filename)
