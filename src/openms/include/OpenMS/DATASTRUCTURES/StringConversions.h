@@ -260,17 +260,6 @@ namespace OpenMS
       return String();
     }
 
-    inline String toString(const char* s, size_t length)
-    {
-      String res;
-      size_t count = 0;
-      while (count < length)
-      {
-        res += *(s + count);
-        ++count;
-      }
-      return res;
-    }
   }
 
 } // namespace OPENMS
