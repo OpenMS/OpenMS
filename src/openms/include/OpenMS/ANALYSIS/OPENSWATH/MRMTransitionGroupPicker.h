@@ -233,7 +233,7 @@ public:
       OPENMS_PRECONDITION(transition_group.chromatogramIdsMatch(), "Chromatogram native IDs need to match keys in transition group")
 
       MRMFeature mrmFeature;
-      mrmFeature.setIntensity();
+      mrmFeature.setIntensity(0.0);
       double best_left = picked_chroms[chr_idx].getFloatDataArrays()[PeakPickerMRM::IDX_LEFTBORDER][peak_idx];
       double best_right = picked_chroms[chr_idx].getFloatDataArrays()[PeakPickerMRM::IDX_RIGHTBORDER][peak_idx];
       double peak_apex = picked_chroms[chr_idx][peak_idx].getRT();
