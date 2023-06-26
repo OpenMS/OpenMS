@@ -949,8 +949,8 @@ protected:
       // - multiple_peaks
       // - mean of the shapes (1 is very good, 0 is bad)
       // - mean of the co-elution scores (0 is good, 1 is ok, above 1 is pretty bad)
-      double shape_score = std::accumulate(mean_shapes.begin(), mean_shapes.end(), ) / mean_shapes.size();
-      double coel_score = std::accumulate(mean_coel.begin(), mean_coel.end(), ) / mean_coel.size();
+      double shape_score = std::accumulate(mean_shapes.begin(), mean_shapes.end(), 1e-11) / mean_shapes.size();
+      double coel_score = std::accumulate(mean_coel.begin(), mean_coel.end(), 1e-11) / mean_coel.size();
       coel_score = (coel_score - 1.0) / 2.0;
 
       double score = shape_score - coel_score - 1.0 * missing_peaks / picked_chroms.size();
@@ -1026,8 +1026,8 @@ protected:
       double mean, stdev;
 
       // Right borders
-      mean = std::accumulate(right_borders.begin(), right_borders.end(), ) / (double) right_borders.size();
-      stdev = std::sqrt(std::inner_product(right_borders.begin(), right_borders.end(), right_borders.begin(), )
+      mean = std::accumulate(right_borders.begin(), right_borders.end(), 0.0) / (double) right_borders.size();
+      stdev = std::sqrt(std::inner_product(right_borders.begin(), right_borders.end(), right_borders.begin(), 0.0)
                                / right_borders.size() - mean * mean);
       std::sort(right_borders.begin(), right_borders.end());
 
@@ -1043,8 +1043,8 @@ protected:
       }
 
       // Left borders
-      mean = std::accumulate(left_borders.begin(), left_borders.end(), ) / (double) left_borders.size();
-      stdev = std::sqrt(std::inner_product(left_borders.begin(), left_borders.end(), left_borders.begin(), )
+      mean = std::accumulate(left_borders.begin(), left_borders.end(), 0.0) / (double) left_borders.size();
+      stdev = std::sqrt(std::inner_product(left_borders.begin(), left_borders.end(), left_borders.begin(), 0.0)
                         / left_borders.size() - mean * mean);
       std::sort(left_borders.begin(), left_borders.end());
 
