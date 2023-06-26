@@ -43,21 +43,16 @@ namespace OpenMS
   /**
   @brief Abstract base class for all 1D-model fitters using maximum likelihood optimization.
   */
-  class OPENMS_DLLAPI MaxLikeliFitter1D :
-    public Fitter1D
+  class OPENMS_DLLAPI MaxLikeliFitter1D : public Fitter1D
   {
-
-public:
-
+  public:
     /// default constructor
-    MaxLikeliFitter1D() :
-      Fitter1D()
+    MaxLikeliFitter1D() : Fitter1D()
     {
     }
 
     /// copy constructor
-    MaxLikeliFitter1D(const MaxLikeliFitter1D & source) :
-      Fitter1D(source)
+    MaxLikeliFitter1D(const MaxLikeliFitter1D& source) : Fitter1D(source)
     {
     }
 
@@ -67,26 +62,20 @@ public:
     }
 
     /// assignment operator
-    virtual MaxLikeliFitter1D & operator=(const MaxLikeliFitter1D & source)
+    MaxLikeliFitter1D& operator=(const MaxLikeliFitter1D& source)
     {
-      if (&source == this) return *this;
+      if (&source == this)
+        return *this;
 
       Fitter1D::operator=(source);
 
       return *this;
     }
 
-protected:
-
+  protected:
     /// fit an offset on the basis of the Pearson correlation coefficient
-    QualityType fitOffset_(std::unique_ptr<InterpolationModel>& model,
-                           const RawDataArrayType & set,
-                           const CoordinateType stdev1,
-                           const CoordinateType stdev2,
-                           const CoordinateType offset_step) const;
+    QualityType fitOffset_(std::unique_ptr<InterpolationModel>& model, const RawDataArrayType& set, const CoordinateType stdev1, const CoordinateType stdev2, const CoordinateType offset_step) const;
 
     void updateMembers_() override;
-
   };
-}
-
+} // namespace OpenMS

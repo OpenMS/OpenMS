@@ -35,13 +35,12 @@
 
 #pragma once
 
-#include <OpenMS/QC/QCBase.h>
+#include <OpenMS/CHEMISTRY/ProteaseDigestion.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
-#include <OpenMS/CHEMISTRY/ProteaseDigestion.h>
-
-#include <vector>
+#include <OpenMS/QC/QCBase.h>
 #include <map>
+#include <vector>
 namespace OpenMS
 {
   class FeatureMap;
@@ -61,11 +60,12 @@ namespace OpenMS
     typedef std::map<UInt32, UInt32> MapU32;
     /// collects number of missed cleavages from PeptideIdentification in a result map (missed cleavages: occurences)
     void get_missed_cleavages_from_peptide_identification_(const ProteaseDigestion& digestor, MapU32& result, const UInt32& max_mc, PeptideIdentification& pep_id);
+
   public:
-    ///constructor
+    /// constructor
     MissedCleavages() = default;
 
-    ///destructor
+    /// destructor
     virtual ~MissedCleavages() = default;
 
     /**
@@ -82,7 +82,7 @@ namespace OpenMS
 
     /// returns the name of the metric
     const String& getName() const override;
-    
+
     /// returns the result as maps of number of missed_cleavages to counts; one map for each call to compute(...)
     const std::vector<std::map<UInt32, UInt32>>& getResults() const;
 
@@ -90,7 +90,7 @@ namespace OpenMS
      * @brief Returns the input data requirements of the compute(...) function
      * @return Status for POSTFDRFEAT;
      */
-    QCBase::Status requires() const override;
+    QCBase::Status requirements() const override;
 
   private:
     /// container that stores results

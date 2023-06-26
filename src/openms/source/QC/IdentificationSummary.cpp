@@ -40,10 +40,9 @@
 using namespace std;
 
 namespace OpenMS
-{ 
+{
 
-  IdentificationSummary::Result IdentificationSummary::compute(vector<ProteinIdentification>& prot_ids,
-                                                               vector<PeptideIdentification>& pep_ids)
+  IdentificationSummary::Result IdentificationSummary::compute(vector<ProteinIdentification>& prot_ids, vector<PeptideIdentification>& pep_ids)
   {
     IdentificationSummary::Result result;
     set<String> peptides;
@@ -56,7 +55,8 @@ namespace OpenMS
       {
         result.peptide_spectrum_matches += 1;
         const auto& temp_hits = pep_id.getHits();
-        if (temp_hits.empty()) continue;
+        if (temp_hits.empty())
+          continue;
         peptides.insert(temp_hits[0].getSequence().toUnmodifiedString());
       }
     }
@@ -112,16 +112,11 @@ namespace OpenMS
 
   bool IdentificationSummary::Result::operator==(const Result& rhs) const
   {
-    return peptide_spectrum_matches == rhs.peptide_spectrum_matches
-          && unique_peptides.count == rhs.unique_peptides.count
-          && unique_peptides.fdr_threshold == rhs.unique_peptides.fdr_threshold
-          && unique_proteins.count == rhs.unique_proteins.count
-          && unique_proteins.fdr_threshold == rhs.unique_proteins.fdr_threshold
-          && missed_cleavages_mean == rhs.missed_cleavages_mean
-          && protein_hit_scores_mean == rhs.protein_hit_scores_mean
-          && peptide_length_mean == rhs.peptide_length_mean;
+    return peptide_spectrum_matches == rhs.peptide_spectrum_matches && unique_peptides.count == rhs.unique_peptides.count && unique_peptides.fdr_threshold == rhs.unique_peptides.fdr_threshold &&
+           unique_proteins.count == rhs.unique_proteins.count && unique_proteins.fdr_threshold == rhs.unique_proteins.fdr_threshold && missed_cleavages_mean == rhs.missed_cleavages_mean &&
+           protein_hit_scores_mean == rhs.protein_hit_scores_mean && peptide_length_mean == rhs.peptide_length_mean;
   }
- 
+
 
   /// Returns the name of the metric
   const String& IdentificationSummary::getName() const
@@ -131,8 +126,8 @@ namespace OpenMS
 
   /// Returns required file input i.e. MzML.
   /// This is encoded as a bit in a Status object.
-  QCBase::Status IdentificationSummary::requires() const
+  QCBase::Status IdentificationSummary::requirements() const
   {
     return QCBase::Status(QCBase::Requires::ID);
   }
-}
+} // namespace OpenMS
