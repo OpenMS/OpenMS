@@ -97,11 +97,16 @@ namespace OpenMS
     return (float)(abs(average_mass - p.getUnchargedMass()));
   }
 
+  int PeakGroup::getMinNegativeIsotopeIndex() const
+  {
+    return min_negative_isotope_index_;
+  }
+
   void PeakGroup::updatePerChargeCos_(const FLASHDeconvHelperStructs::PrecalculatedAveragine& avg)
   {
     auto iso_dist = avg.get(monoisotopic_mass_);
     int iso_size = (int)iso_dist.size();
-    auto current_per_isotope_intensities = std::vector<float>(getIsotopeIntensities().size() + min_negative_isotope_index, .0f);
+    auto current_per_isotope_intensities = std::vector<float>(getIsotopeIntensities().size() + min_negative_isotope_index_, .0f);
 
     for (int abs_charge = min_abs_charge_; abs_charge <= max_abs_charge_; abs_charge++)
     {
@@ -160,7 +165,7 @@ namespace OpenMS
 
     int h_offset;
     isotope_cosine_score_ =
-      FLASHDeconvAlgorithm::getIsotopeCosineAndDetermineIsotopeIndex(monoisotopic_mass_, per_isotope_int_, h_offset, avg, -min_negative_isotope_index, -1, allowed_iso_error, target_dummy_type_);
+      FLASHDeconvAlgorithm::getIsotopeCosineAndDetermineIsotopeIndex(monoisotopic_mass_, per_isotope_int_, h_offset, avg, -min_negative_isotope_index_, -1, allowed_iso_error, target_dummy_type_);
 
     if (isotope_cosine_score_ < min_cos)
     {
@@ -563,8 +568,8 @@ namespace OpenMS
 
     // int iso_margin = 3; // how many isotopes do we want to scan before the monoisotopic mass?
     int max_isotope = (int)avg.getLastIndex(mono_mass);
-    int min_isotope = (int)(avg.getApexIndex(mono_mass) - avg.getLeftCountFromApex(mono_mass) + min_negative_isotope_index);
-    min_isotope = std::max(min_negative_isotope_index, min_isotope);
+    int min_isotope = (int)(avg.getApexIndex(mono_mass) - avg.getLeftCountFromApex(mono_mass) + min_negative_isotope_index_);
+    min_isotope = std::max(min_negative_isotope_index_, min_isotope);
 
     clear_(); // clear logMzPeaks
     negative_iso_peaks_.clear();
@@ -581,7 +586,7 @@ namespace OpenMS
       }
 
       double cmz = (mono_mass) / c + FLASHDeconvHelperStructs::getChargeMass(is_positive_);
-      double left_mz = (mono_mass - (1 - min_negative_isotope_index) * iso_da_distance_) / c + FLASHDeconvHelperStructs::getChargeMass(is_positive_);
+      double left_mz = (mono_mass - (1 - min_negative_isotope_index_) * iso_da_distance_) / c + FLASHDeconvHelperStructs::getChargeMass(is_positive_);
       Size index = spec.findNearest(left_mz * (1 - tol));
       double iso_delta = iso_da_distance_ / c;
 
@@ -719,7 +724,7 @@ namespace OpenMS
       max_isotope_index = max_isotope_index < p.isotopeIndex ? p.isotopeIndex : max_isotope_index;
     }
 
-    per_isotope_int_ = std::vector<float>(max_isotope_index + 1 - min_negative_isotope_index, .0f);
+    per_isotope_int_ = std::vector<float>(max_isotope_index + 1 - min_negative_isotope_index_, .0f);
     intensity_ = .0;
     double nominator = .0;
 
@@ -730,17 +735,17 @@ namespace OpenMS
       {
         continue;
       }
-      per_isotope_int_[p.isotopeIndex - min_negative_isotope_index] += pi;
+      per_isotope_int_[p.isotopeIndex - min_negative_isotope_index_] += pi;
       nominator += pi * (p.getUnchargedMass() - p.isotopeIndex * iso_da_distance_);
       intensity_ += pi;
     }
     for (auto& p : negative_iso_peaks_)
     {
-      if (p.isotopeIndex - min_negative_isotope_index < 0)
+      if (p.isotopeIndex - min_negative_isotope_index_ < 0)
       {
         continue;
       }
-      per_isotope_int_[p.isotopeIndex - min_negative_isotope_index] += p.intensity;
+      per_isotope_int_[p.isotopeIndex - min_negative_isotope_index_] += p.intensity;
     }
 
     monoisotopic_mass_ = nominator / intensity_;

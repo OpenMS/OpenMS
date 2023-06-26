@@ -244,6 +244,8 @@ namespace OpenMS
     /// get distance between consecutive isotopes
     double getIsotopeDaDistance() const;
 
+    /// get minimum neagative isotope index
+    int getMinNegativeIsotopeIndex() const;
     /// set index of this peak group
     void setIndex(uint i);
 
@@ -274,9 +276,6 @@ namespace OpenMS
     bool empty() const;
     void swap(std::vector<FLASHDeconvHelperStructs::LogMzPeak>& x);
     void sort();
-
-    /// up to which negative isotope index should be considered. By considereing negative istoopes, one can reduce isotope index error.
-    static const int min_negative_isotope_index = -1;
 
   private:
     /// update chargefit score and also update per charge intensities here.
@@ -335,7 +334,8 @@ namespace OpenMS
     float intensity_ = 0; // total intensity
     /// index to specify if this peak_group is a target (0), an isotope dummy (1), a noise (2), or a charge dummy (3)
     PeakGroup::TargetDummyType target_dummy_type_ = target;
-
+    /// up to which negative isotope index should be considered. By considereing negative istoopes, one can reduce isotope index error.
+    int min_negative_isotope_index_ = -1;
     /// distance between consecutive isotopes. Can be different for dummys
     double iso_da_distance_ = Constants::ISOTOPE_MASSDIFF_55K_U;
     /// scoring variables

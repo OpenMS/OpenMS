@@ -1112,7 +1112,7 @@ namespace OpenMS
         auto peak_group = deconvolved_spectrum_[i];
         peak_group.setTargetDummyType(target_dummy_type_);
         float prev_cos = peak_group.getIsotopeCosine();
-        float cos = getIsotopeCosineAndDetermineIsotopeIndex(peak_group.getMonoMass(), peak_group.getIsotopeIntensities(), offset, avg_, -PeakGroup::min_negative_isotope_index, -1, allowed_iso_error_,
+        float cos = getIsotopeCosineAndDetermineIsotopeIndex(peak_group.getMonoMass(), peak_group.getIsotopeIntensities(), offset, avg_, -peak_group.getMinNegativeIsotopeIndex(), -1, allowed_iso_error_,
                                                              target_dummy_type_);
         auto prev_mono_mass = peak_group.getMonoMass() + offset * iso_da_distance_;
 
