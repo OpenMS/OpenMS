@@ -101,7 +101,7 @@ namespace OpenMS
   {
     auto iso_dist = avg.get(monoisotopic_mass_);
     int iso_size = (int)iso_dist.size();
-    auto current_per_isotope_intensities = std::vector<float>(getIsotopeIntensities().size() - isotope_int_shift, .0f);
+    auto current_per_isotope_intensities = std::vector<float>(getIsotopeIntensities().size() + min_negative_isotope_index, .0f);
 
     for (int abs_charge = min_abs_charge_; abs_charge <= max_abs_charge_; abs_charge++)
     {
@@ -160,7 +160,7 @@ namespace OpenMS
 
     int h_offset;
     isotope_cosine_score_ =
-      FLASHDeconvAlgorithm::getIsotopeCosineAndDetermineIsotopeIndex(monoisotopic_mass_, per_isotope_int_, h_offset, avg, isotope_int_shift, -1, allowed_iso_error, target_dummy_type_);
+      FLASHDeconvAlgorithm::getIsotopeCosineAndDetermineIsotopeIndex(monoisotopic_mass_, per_isotope_int_, h_offset, avg, -min_negative_isotope_index, -1, allowed_iso_error, target_dummy_type_);
 
     if (isotope_cosine_score_ < min_cos)
     {
@@ -205,10 +205,11 @@ namespace OpenMS
     float threshold = 0;
 
     std::vector<FLASHDeconvHelperStructs::LogMzPeak> all_peaks;
-    std::map<double, bool> is_signal;
+    std::set<double> signal_mzs;
 
     all_peaks.reserve(noisy_peaks.size() + signal_peaks.size());
     int z = 0;
+
     // get intensity threshold
     if (noisy_peaks.size() + signal_peaks.size() > max_noisy_peaks)
     {
@@ -222,6 +223,7 @@ namespace OpenMS
       threshold = intensities[intensities.size() - max_noisy_peaks];
     }
 
+    // filter peaks and check which mzs are signal and which are noise.
     for (auto& p : noisy_peaks)
     {
       if (p.intensity < threshold)
@@ -229,7 +231,6 @@ namespace OpenMS
         continue;
       }
       all_peaks.push_back(p);
-      is_signal[p.mz] = false;
     }
 
     for (auto& p : signal_peaks)
@@ -240,17 +241,20 @@ namespace OpenMS
         continue;
       }
       all_peaks.push_back(p);
-      is_signal[p.mz] = true;
+      signal_mzs.insert(p.mz);
     }
+
     if (z == 0)
     {
       return 0;
     }
+
     std::sort(all_peaks.begin(), all_peaks.end());
     boost::dynamic_bitset<> is_signal_bitset(all_peaks.size());
+    // to speed up, use bitset
     for (Size i = 0; i < all_peaks.size(); i++)
     {
-      if (is_signal[all_peaks[i].mz])
+      if (signal_mzs.find(all_peaks[i].mz) != signal_mzs.end())
       {
         is_signal_bitset[i] = true;
       }
@@ -267,7 +271,7 @@ namespace OpenMS
       per_bin_edges[k] = std::vector<Size>(all_peaks.size(), 0);
     }
 
-    // first collect all possible edges
+    // first collect all possible edges. An edge means mass difference between two peaks.
     for (Size i = 0; i < all_peaks.size(); i++)
     {
       auto p1 = all_peaks[i];
@@ -290,7 +294,7 @@ namespace OpenMS
           break;
         }
 
-        if (p1_signal && is_signal_bitset[j] && normalized_dist >= .75) // if both are signal and they are different from each other by ~ one isotope distance, do not connect
+        if (p1_signal && is_signal_bitset[j] && normalized_dist >= .75) // if both are signals and they are different from each other by ~ one isotope distance, do not connect
         {
           continue;
         }
@@ -299,7 +303,7 @@ namespace OpenMS
       }
     }
 
-    // then from each bin find the longest path
+    // then from each bin find the highest intensity path consisting of the same mass differences.
     for (Size k = 0; k < max_bin_number; k++)
     {
       if (per_bin_start_index[k] == -2)
@@ -343,6 +347,7 @@ namespace OpenMS
 
     auto used = boost::dynamic_bitset<>(all_peaks.size());
 
+    // Now from the highest intensity path to the lowest, sum up intensities excluding already used peaks or signal peaks.
     for (auto it = max_intensity_sum_to_bin.rbegin(); it != max_intensity_sum_to_bin.rend(); ++it)
     {
       Size bin = it->second;
@@ -403,6 +408,8 @@ namespace OpenMS
         charge_noise_pwr += sum_squared_intensity;
       }
     }
+
+    // if still peaks are remaining, add their individual power.
     for (Size i = 0; i < all_peaks.size(); i++)
     {
       if (used[i] || is_signal_bitset[i])
@@ -411,7 +418,6 @@ namespace OpenMS
       }
       charge_noise_pwr += all_peaks[i].intensity * all_peaks[i].intensity;
     }
-
     return charge_noise_pwr;
   }
 
@@ -421,6 +427,7 @@ namespace OpenMS
     per_charge_sum_signal_squared_ = std::vector<float>(1 + max_abs_charge_, .0);
     per_charge_int_ = std::vector<float>(1 + max_abs_charge_, .0);
 
+    // calculate per charge intensity, and per charge sum of signal intensity squared
     for (auto& p : logMzpeaks_)
     {
       per_charge_int_[p.abs_charge] += p.intensity;
@@ -430,6 +437,7 @@ namespace OpenMS
     std::vector<LogMzPeak> charge_noisy_peaks;
     std::vector<LogMzPeak> charge_signal_peaks;
 
+    // for each charge calculate signal and noise power
     for (int z = min_abs_charge_; z <= max_abs_charge_; z++)
     {
       charge_noisy_peaks.clear();
@@ -462,6 +470,7 @@ namespace OpenMS
     int max_sig_charge = 0;
     float max_sig = 0;
 
+    // first, find the maximum snr charge.
     for (int z = min_abs_charge_; z <= max_abs_charge_; z++)
     {
       double tmp_snr = per_charge_int_[z] * per_charge_int_[z] / (1 + per_charge_noise_pwr_[z]);
@@ -508,6 +517,7 @@ namespace OpenMS
       std::vector<LogMzPeak> new_noisy_peaks;
       new_noisy_peaks.reserve(noisy_peaks.size());
 
+      // now only take the signal and noise peaks within the new charge range.
       for (const auto& p : logMzpeaks_)
       {
         if (p.abs_charge < new_min_abs_charge || p.abs_charge > new_max_abs_charge)
@@ -553,8 +563,8 @@ namespace OpenMS
 
     // int iso_margin = 3; // how many isotopes do we want to scan before the monoisotopic mass?
     int max_isotope = (int)avg.getLastIndex(mono_mass);
-    int min_isotope = (int)(avg.getApexIndex(mono_mass) - avg.getLeftCountFromApex(mono_mass) - isotope_int_shift);
-    min_isotope = std::max(-isotope_int_shift, min_isotope);
+    int min_isotope = (int)(avg.getApexIndex(mono_mass) - avg.getLeftCountFromApex(mono_mass) + min_negative_isotope_index);
+    min_isotope = std::max(min_negative_isotope_index, min_isotope);
 
     clear_(); // clear logMzPeaks
     negative_iso_peaks_.clear();
@@ -571,7 +581,7 @@ namespace OpenMS
       }
 
       double cmz = (mono_mass) / c + FLASHDeconvHelperStructs::getChargeMass(is_positive_);
-      double left_mz = (mono_mass - (1 + isotope_int_shift) * iso_da_distance_) / c + FLASHDeconvHelperStructs::getChargeMass(is_positive_);
+      double left_mz = (mono_mass - (1 - min_negative_isotope_index) * iso_da_distance_) / c + FLASHDeconvHelperStructs::getChargeMass(is_positive_);
       Size index = spec.findNearest(left_mz * (1 - tol));
       double iso_delta = iso_da_distance_ / c;
 
@@ -709,7 +719,7 @@ namespace OpenMS
       max_isotope_index = max_isotope_index < p.isotopeIndex ? p.isotopeIndex : max_isotope_index;
     }
 
-    per_isotope_int_ = std::vector<float>(max_isotope_index + 1 + isotope_int_shift, .0f);
+    per_isotope_int_ = std::vector<float>(max_isotope_index + 1 - min_negative_isotope_index, .0f);
     intensity_ = .0;
     double nominator = .0;
 
@@ -720,17 +730,17 @@ namespace OpenMS
       {
         continue;
       }
-      per_isotope_int_[p.isotopeIndex + isotope_int_shift] += pi;
+      per_isotope_int_[p.isotopeIndex - min_negative_isotope_index] += pi;
       nominator += pi * (p.getUnchargedMass() - p.isotopeIndex * iso_da_distance_);
       intensity_ += pi;
     }
     for (auto& p : negative_iso_peaks_)
     {
-      if (p.isotopeIndex + isotope_int_shift < 0)
+      if (p.isotopeIndex - min_negative_isotope_index < 0)
       {
         continue;
       }
-      per_isotope_int_[p.isotopeIndex + isotope_int_shift] += p.intensity;
+      per_isotope_int_[p.isotopeIndex - min_negative_isotope_index] += p.intensity;
     }
 
     monoisotopic_mass_ = nominator / intensity_;

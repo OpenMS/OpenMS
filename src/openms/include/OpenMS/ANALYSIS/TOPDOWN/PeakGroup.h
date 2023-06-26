@@ -100,7 +100,7 @@ namespace OpenMS
     void updateMonoMassAndIsotopeIntensities();
 
     /**
-           @brief Update isotope cosine sore and qscore. Mono mass is also updated one last time. SNR, per charge SNR, and avg errors are updated here.
+           @brief Update Qscore. Cosine and SNRs are also updated.
            @param noisy_peaks noisy peaks to calculate Qscore
            @param avg precalculated averagine
            @param min_cos the peak groups with cosine score less than this will have Qscore 0.
@@ -275,7 +275,8 @@ namespace OpenMS
     void swap(std::vector<FLASHDeconvHelperStructs::LogMzPeak>& x);
     void sort();
 
-    static const int isotope_int_shift = 1;
+    /// up to which negative isotope index should be considered. By considereing negative istoopes, one can reduce isotope index error.
+    static const int min_negative_isotope_index = -1;
 
   private:
     /// update chargefit score and also update per charge intensities here.

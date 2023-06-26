@@ -529,7 +529,10 @@ namespace OpenMS
             else // if harmonic
             {
               mass_intensities[mass_bin_index] -= max_h_intensity;
-              spc--;
+              if(spc > 0)
+              {
+                spc--;
+              }
             }
           }
           else if (abs_charge <= low_charge_) // for low charge, include the mass if isotope is present
@@ -698,7 +701,7 @@ namespace OpenMS
       PeakGroup pg(1, per_mass_abs_charge_ranges.getValue(1, mass_bin_index) + 1, // make an empty peakGroup (mass)
                    is_positive_);
 
-      pg.reserve(charge_range * 128);
+      pg.reserve(charge_range * 12);
       pg.setIsotopeDaDistance(iso_da_distance_);
       // the range of isotope span. For a given peak the peaks within the span are searched.
       Size right_index = avg_.getRightCountFromApex(mass);
@@ -1109,7 +1112,7 @@ namespace OpenMS
         auto peak_group = deconvolved_spectrum_[i];
         peak_group.setTargetDummyType(target_dummy_type_);
         float prev_cos = peak_group.getIsotopeCosine();
-        float cos = getIsotopeCosineAndDetermineIsotopeIndex(peak_group.getMonoMass(), peak_group.getIsotopeIntensities(), offset, avg_, PeakGroup::isotope_int_shift, -1, allowed_iso_error_,
+        float cos = getIsotopeCosineAndDetermineIsotopeIndex(peak_group.getMonoMass(), peak_group.getIsotopeIntensities(), offset, avg_, -PeakGroup::min_negative_isotope_index, -1, allowed_iso_error_,
                                                              target_dummy_type_);
         auto prev_mono_mass = peak_group.getMonoMass() + offset * iso_da_distance_;
 
@@ -1125,7 +1128,7 @@ namespace OpenMS
         {
           auto noisy_peaks = peak_group.recruitAllPeaksInSpectrum(deconvolved_spectrum_.getOriginalSpectrum(), tol, avg_, peak_group.getMonoMass() + offset * iso_da_distance_, excluded_peak_mzs_);
           // min cosine is checked in here. mono mass is also updated one last time. SNR, per charge SNR, and avg errors are updated here.
-          offset = peak_group.updateQscore(noisy_peaks, avg_, min_isotope_cosine_[ms_level_ - 1]);
+          offset = peak_group.updateQscore(noisy_peaks, avg_, min_isotope_cosine_[ms_level_ - 1], allowed_iso_error_);
           if (offset == 0)
           {
             break;
@@ -1151,7 +1154,7 @@ namespace OpenMS
 
         if (target_dummy_type_ == PeakGroup::TargetDummyType::isotope_dummy)
         {
-          if (peak_group.getIsotopeCosine() < prev_cos * .98) // if taret cosine and isotope dummy cosine are too different, we do not take this dummy.
+          if (peak_group.getIsotopeCosine() < prev_cos * .98) // if target cosine and isotope dummy cosine are too different, we do not take this dummy.
             continue;
         }
 

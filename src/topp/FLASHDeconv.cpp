@@ -121,8 +121,7 @@ protected:
     setValidFormats_("out_topFD_feature", ListUtils::create<String>("feature"), false);
 
     registerDoubleOption_("min_precursor_snr", "<SNR value>", 1.0,
-                          "Minimum precursor SNR (SNR within the precursor envelope range) for identification. Similar to precursor interference level, but far more stringent as it also considers "
-                          "the isotope distribution shape of signal."
+                          "Minimum precursor SNR (SNR within the precursor envelope range) for identification. Similar to precursor interference level, but far more stringent as it also considers the isotope distribution shape of signal."
                           "When FLASHIda log file is used, this parameter is ignored. Applied only for topFD msalign outputs.",
                           false, false);
 
@@ -742,7 +741,7 @@ protected:
         }
         DeconvolvedSpectrum dummy_deconvolved_spectrum(scan_number);
         deconvolved_spectrum.sortByQscore();
-        float qscore_threshold_for_dummy = 0;//deconvolved_spectrum[deconvolved_spectrum.size() - 1].getQscore();
+        float qscore_threshold_for_dummy = deconvolved_spectrum[deconvolved_spectrum.size() - 1].getQscore();
         dummy_deconvolved_spectrum.setOriginalSpectrum(*it);
         dummy_deconvolved_spectrum.reserve(fd_iso_dummy.getDeconvolvedSpectrum().size() + fd_charge_dummy.getDeconvolvedSpectrum().size() + fd_noise_dummy.getDeconvolvedSpectrum().size());
 

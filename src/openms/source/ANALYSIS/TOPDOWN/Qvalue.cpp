@@ -40,7 +40,7 @@ namespace OpenMS
   void Qvalue::updatePeakGroupQvalues(std::vector<DeconvolvedSpectrum>& deconvolved_spectra,
                                       std::vector<DeconvolvedSpectrum>& deconvolved_decoy_spectra) // per ms level + precursor update as well.
   {
-    uint bin_number = 100;                         // 100 is enough resolution for qvalue calculation. In most cases FDR 5% will be used.
+    uint bin_number = 25;                         // 25 is enough resolution for qvalue calculation. In most cases FDR 5% will be used.
     std::map<uint, std::vector<float>> tscore_map; // per ms level
 
     std::map<uint, std::vector<float>> dscore_iso_decoy_map;
@@ -169,7 +169,6 @@ namespace OpenMS
         size_t tindex = qscores.size() - i;
         float nom = weights[0] * (float)dindex;
         float denom = (float)(tindex);
-        // tmp_q_charge = std::min(tmp_q_charge, (nom / denom));
         tmp_q_charge = (nom / denom);
         map_charge[ts] = tmp_q_charge;
       }
