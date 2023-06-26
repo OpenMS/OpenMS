@@ -330,7 +330,7 @@ namespace OpenMS
     {
       String prefix = "Set" + std::to_string(i+1) + "_";
       PeakGroup peak_group;
-      auto dlm = peak_group.getIsotopeRangeForDL_() * peak_group.getChargeRangeForDL_();
+      int dlm = peak_group.getIsotopeRangeForDL() * peak_group.getChargeRangeForDL() / peak_group.getBinWidthDL();
 
       for(int j=0; j<dlm;j++)
       {
@@ -356,7 +356,7 @@ namespace OpenMS
   void FLASHDeconvSpectrumFile::writeDLMatrix(std::vector<DeconvolvedSpectrum>& dspecs, double tol, std::fstream& fs, const FLASHDeconvHelperStructs::PrecalculatedAveragine& avg)
   {
     String cns[] = {"T", "D1", "D2", "D3"};
-    int count = 20000;
+    //int count = 2000000;
     //class,ID,group,data
     std::vector<std::vector<PeakGroup>> grouped(4);
 
@@ -377,20 +377,11 @@ namespace OpenMS
          pg.calculateDLMatrices(dspec.getOriginalSpectrum(), tol, avg);
 
          auto dlmatrix = pg.getDLMatrix(0).asVector();
-//         if(*std::max_element(dlmatrix.begin(), dlmatrix.end()) <= 0)
-//         {
-//          continue;
-//         }
-         if (false)
-         {
-           std::cout<<pg.getTargetDummyType() << " S \n" << pg.getDLMatrix(0);
-           std::cout<<pg.getTargetDummyType() << " N \n"  << pg.getDLMatrix(1);
-         }
-
          grouped[cl].push_back(pg);
       }
     }
 
+    /*
     for(auto& g : grouped)
     {
       if((int)g.size() < count)
@@ -399,7 +390,7 @@ namespace OpenMS
       }
       random_unique(g.begin(), g.end(), count);
     }
-
+  */
     for(auto& g : grouped)
     {
       int cntr = 0;
@@ -417,10 +408,10 @@ namespace OpenMS
           }
          }
          fs << cns[cl] << "\n";
-         if(++cntr >= count)
-         {
-          break;
-         }
+         //if(++cntr >= count)
+         //{
+         // break;
+         //}
       }
     }
   }

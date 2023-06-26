@@ -555,7 +555,10 @@ namespace OpenMS
             else // if harmonic
             {
               mass_intensities[mass_bin_index] -= max_h_intensity;
-              spc--;
+              if(spc > 0)
+              {
+                spc--;
+              }
             }
           }
           else if (abs_charge <= low_charge_) // for low charge, include the mass if isotope is present
@@ -766,7 +769,7 @@ namespace OpenMS
       PeakGroup pg(1, per_mass_abs_charge_ranges.getValue(1, mass_bin_index) + 1, // make an empty peakGroup (mass)
                    is_positive_);
 
-      pg.reserve(charge_range * 128);
+      pg.reserve(charge_range * 12);
       pg.setIsotopeDaDistance(iso_da_distance_);
       // the range of isotope span. For a given peak the peaks within the span are searched.
       Size right_index = avg_.getRightCountFromApex(mass);
@@ -1410,7 +1413,7 @@ namespace OpenMS
           }
         }
 
-        torch::Tensor t1 = torch::from_blob(vec1.data(), {1, 1, peak_group.getIsotopeRangeForDL_(), peak_group.getChargeRangeForDL_()});
+        torch::Tensor t1 = torch::from_blob(vec1.data(), {1, 1, peak_group.getIsotopeRangeForDL(), peak_group.getChargeRangeForDL()});
 
         auto mat2 = peak_group.getDLMatrix(1);
         std::vector<float> vec2;
@@ -1423,7 +1426,7 @@ namespace OpenMS
           }
         }
 
-        torch::Tensor t2 = torch::from_blob(vec2.data(), {1, 1, peak_group.getIsotopeRangeForDL_(), peak_group.getChargeRangeForDL_()});
+        torch::Tensor t2 = torch::from_blob(vec2.data(), {1, 1, peak_group.getIsotopeRangeForDL(), peak_group.getChargeRangeForDL()});
 
         auto mat3 = peak_group.getDLMatrix(2);
         std::vector<float> vec3;
@@ -1436,7 +1439,7 @@ namespace OpenMS
           }
         }
 
-        torch::Tensor t3 = torch::from_blob(vec3.data(), {1, 1, peak_group.getIsotopeRangeForDL_(), peak_group.getChargeRangeForDL_()});
+        torch::Tensor t3 = torch::from_blob(vec3.data(), {1, 1, peak_group.getIsotopeRangeForDL(), peak_group.getChargeRangeForDL()});
 
         inputs.emplace_back(t1);
         inputs.emplace_back(t2);

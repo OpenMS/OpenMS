@@ -250,8 +250,9 @@ namespace OpenMS
     /// get index of this peak group
     uint getIndex() const;
 
-    int getChargeRangeForDL_() {return charge_range_for_DL_;};
-    int getIsotopeRangeForDL_() {return iso_range_for_DL_;};
+    int getChargeRangeForDL() {return charge_range_for_DL_;};
+    int getIsotopeRangeForDL() {return iso_range_for_DL_;};
+    float getBinWidthDL() {return bin_width_DL_;}
 
     /**
      * @brief calculate the matrices for DL training and scoring
@@ -353,7 +354,7 @@ namespace OpenMS
 
     int charge_range_for_DL_ =  7;
     float bin_width_DL_ = 0.25;
-    int iso_range_for_DL_ = 21 / bin_width_DL_;
+    int iso_range_for_DL_ = 21;
 
     /// distance between consecutive isotopes. Can be different for dummys
     double iso_da_distance_ = Constants::ISOTOPE_MASSDIFF_55K_U;
