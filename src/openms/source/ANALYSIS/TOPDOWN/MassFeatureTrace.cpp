@@ -109,6 +109,7 @@ namespace OpenMS
 
       auto per_isotope_intensity = std::vector<float>(averagine.getMaxIsotopeIndex(), .0f);
       auto per_charge_intensity = std::vector<float>(charge_range + min_abs_charge + 1, .0f);
+
       double mass = mt.getCentroidMZ();
       double max_iso = 0;
       int max_iso_off = 0;
@@ -149,14 +150,14 @@ namespace OpenMS
         auto iso_int = pg.getIsotopeIntensities();
         for (size_t i = 0; i < per_isotope_intensity.size() - iso_off; i++)
         {
-          if((int)i + iso_off < 0 || i>= iso_int.size())
+          if ((int)i + iso_off < 0 || i >= iso_int.size())
           {
             continue;
           }
           per_isotope_intensity[i + iso_off] += iso_int[i];
         }
 
-        max_qscore = max_qscore < pg.getQScore() ? pg.getQScore() : max_qscore;
+        max_qscore = max_qscore < pg.getQscore() ? pg.getQscore() : max_qscore;
       }
 
       int offset = 0;

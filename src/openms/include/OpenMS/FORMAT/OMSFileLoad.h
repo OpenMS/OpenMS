@@ -35,7 +35,6 @@
 #pragma once
 
 #include <OpenMS/CONCEPT/ProgressLogger.h>
-#include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/METADATA/ID/IdentificationData.h>
 #include <OpenMS/FORMAT/OMSFileStore.h>
 
@@ -48,6 +47,9 @@ namespace SQLite
 
 namespace OpenMS
 {
+  class FeatureMap;
+  class ConsensusMap;
+
   namespace Internal
   {
     /*!
@@ -85,72 +87,121 @@ namespace OpenMS
       /// Load data from database and populate a FeatureMap object
       void load(FeatureMap& features);
 
+      /// Load data from database and populate a ConsensusMap object
+      void load(ConsensusMap& consensus);
+
       /// Export database contents in JSON format, write to stream
       void exportToJSON(std::ostream& output);
 
     private:
-      // static CVTerm loadCVTerm_(int id);
+      /// Does the @p query contain an empty SQL statement (signifying that it shouldn't be executed)?
+      static bool isEmpty_(const SQLite::Statement& query);
 
-      void loadScoreTypes_(IdentificationData& id_data);
-
-      void loadInputFiles_(IdentificationData& id_data);
-
-      void loadProcessingSoftwares_(IdentificationData& id_data);
-
-      void loadDBSearchParams_(IdentificationData& id_data);
-
-      void loadProcessingSteps_(IdentificationData& id_data);
-
-      void loadObservations_(IdentificationData& id_data);
-
-      void loadParentSequences_(IdentificationData& id_data);
-
-      void loadParentGroupSets_(IdentificationData& id_data);
-
-      void loadIdentifiedCompounds_(IdentificationData& id_data);
-
-      void loadIdentifiedSequences_(IdentificationData& id_data);
-
-      void loadAdducts_(IdentificationData& id_data);
-
-      void loadObservationMatches_(IdentificationData& id_data);
-
-      void loadMapMetaData_(FeatureMap& features);
-
-      void loadDataProcessing_(FeatureMap& features);
-
-      void loadFeatures_(FeatureMap& features);
-
-      Feature loadFeatureAndSubordinates_(SQLite::Statement& query_feat,
-                                          std::optional<SQLite::Statement>& query_meta,
-                                          std::optional<SQLite::Statement>& query_hull,
-                                          std::optional<SQLite::Statement>& query_match);
-
+      /// Generate a DataValue with information returned by an SQL query
       static DataValue makeDataValue_(const SQLite::Statement& query);
 
+      // static CVTerm loadCVTerm_(int id);
+
+      /// Load information on score type from the database into IdentificationData
+      void loadScoreTypes_(IdentificationData& id_data);
+
+      /// Load information on input files from the database into IdentificationData
+      void loadInputFiles_(IdentificationData& id_data);
+
+      /// Load information on data processing software from the database into IdentificationData
+      void loadProcessingSoftwares_(IdentificationData& id_data);
+
+      /// Load information on sequence database search parameters from the database into IdentificationData
+      void loadDBSearchParams_(IdentificationData& id_data);
+
+      /// Load information on data processing steps from the database into IdentificationData
+      void loadProcessingSteps_(IdentificationData& id_data);
+
+      /// Load information on observations (e.g. spectra) from the database into IdentificationData
+      void loadObservations_(IdentificationData& id_data);
+
+      /// Load information on parent sequences (e.g. proteins) from the database into IdentificationData
+      void loadParentSequences_(IdentificationData& id_data);
+
+      /// Load information on parent group sets (e.g. protein groups) from the database into IdentificationData
+      void loadParentGroupSets_(IdentificationData& id_data);
+
+      /// Load information on identified compounds from the database into IdentificationData
+      void loadIdentifiedCompounds_(IdentificationData& id_data);
+
+      /// Load information on identified sequences (peptides or oligonucleotides) from the database into IdentificationData
+      void loadIdentifiedSequences_(IdentificationData& id_data);
+
+      /// Load information on adducts from the database into IdentificationData
+      void loadAdducts_(IdentificationData& id_data);
+
+      /// Load information on observation matches (e.g. PSMs) from the database into IdentificationData
+      void loadObservationMatches_(IdentificationData& id_data);
+
+      /// Helper function for loading meta data on feature/consensus maps from the database
+      template <class MapType> String loadMapMetaDataTemplate_(MapType& features);
+
+      /// Load feature map meta data from the database
+      void loadMapMetaData_(FeatureMap& features);
+
+      /// Load consensus map meta data from the database
+      void loadMapMetaData_(ConsensusMap& consensus);
+
+      /// Load information on data processing for feature/consensus maps from the database
+      void loadDataProcessing_(std::vector<DataProcessing>& data_processing);
+
+      /// Load information on features from the database into a feature map
+      void loadFeatures_(FeatureMap& features);
+
+      /// Generate a feature (incl. subordinate features) from data returned by SQL queries
+      Feature loadFeatureAndSubordinates_(SQLite::Statement& query_feat,
+                                          SQLite::Statement& query_meta,
+                                          SQLite::Statement& query_match,
+                                          SQLite::Statement& query_hull);
+
+      /// Load consensus map column headers from the database
+      void loadConsensusColumnHeaders_(ConsensusMap& consensus);
+
+      /// Load information on consensus features from the database into a consensus map
+      void loadConsensusFeatures_(ConsensusMap& consensus);
+
+      /// Generate a BaseFeature (parent class) from data returned by SQL queries
+      BaseFeature makeBaseFeature_(int id, SQLite::Statement& query_feat,
+                                   SQLite::Statement& query_meta,
+                                   SQLite::Statement& query_match);
+
+      /// Prepare SQL queries for loading (meta) data on BaseFeatures from the database
+      void prepareQueriesBaseFeature_(SQLite::Statement& query_meta,
+                                      SQLite::Statement& query_match);
+
+      /// Prepare SQL query for loading meta values associated with a particular class (stored in @p parent_table)
       bool prepareQueryMetaInfo_(SQLite::Statement& query, const String& parent_table);
 
+      /// Store results from an SQL query on meta values in a MetaInfoInterface(-derived) object
       void handleQueryMetaInfo_(SQLite::Statement& query, MetaInfoInterface& info,
                                 Key parent_id);
 
+      /// Prepare SQL query for loading processing metadata associated with a particular class (stored in @p parent_table)
       bool prepareQueryAppliedProcessingStep_(SQLite::Statement& query,
                                               const String& parent_table);
 
+      /// Store results from an SQL query on processing metadata in a ScoredProcessingResult(-derived) object
       void handleQueryAppliedProcessingStep_(
         SQLite::Statement& query,
         IdentificationDataInternal::ScoredProcessingResult& result,
         Key parent_id);
 
+      /// Store results from an SQL query on parent matches
       void handleQueryParentMatch_(
         SQLite::Statement& query, IdentificationData::ParentMatches& parent_matches,
         Key molecule_id);
 
+      /// Store results from an SQL query on peak annotations in an observation match
       void handleQueryPeakAnnotation_(
         SQLite::Statement& query, IdentificationData::ObservationMatch& match,
         Key parent_id);
 
-      void createView_(const String& name, const String& select);
-
+      /// Export the contents of a database table to JSON
       QJsonArray exportTableToJSON_(const QString& table, const QString& order_by);
 
       /// The database connection (read)

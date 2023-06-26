@@ -1,7 +1,7 @@
 from Types cimport *
 from String cimport *
 from NASequence cimport *
-from IdentificationData cimport *
+#from IdentificationData cimport *
 from EnzymaticDigestion cimport *
 
 cdef extern from "<OpenMS/CHEMISTRY/RNaseDigestion.h>" namespace "OpenMS":
@@ -45,9 +45,9 @@ cdef extern from "<OpenMS/CHEMISTRY/RNaseDigestion.h>" namespace "OpenMS":
           #  :param max_length: Maximal length of reported products (0 = no restriction)
           #  :returns: Number of discarded digestion products (which are not matching length restrictions)
 
-      void digest(IdentificationData & id_data) nogil except +
+      #void digest(IdentificationData & id_data) nogil except +
 
-      void digest(IdentificationData & id_data, Size min_length, Size max_length) nogil except +
+      #void digest(IdentificationData & id_data, Size min_length, Size max_length) nogil except +
           # wrap-doc:
           #  Performs the enzymatic digestion of all RNA parent molecules in IdentificationData (id_data)
           #    

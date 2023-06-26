@@ -1,4 +1,4 @@
-//--------------------------------------------------------------------------
+// --------------------------------------------------------------------------
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
@@ -28,42 +28,71 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Kyowon Jeong $
-// $Authors: Kyowon Jeong $
+// $Authors: Simon Gene Gottlieb $
 // --------------------------------------------------------------------------
 
 #pragma once
 
-#include <OpenMS/ANALYSIS/TOPDOWN/DeconvolvedSpectrum.h>
-#include <OpenMS/ANALYSIS/TOPDOWN/FLASHDeconvHelperStructs.h>
-#include <OpenMS/KERNEL/Peak1D.h>
-#include <OpenMS/METADATA/Precursor.h>
-
+#include <OpenMS/FORMAT/ParamCTDFile.h>
 
 namespace OpenMS
 {
-  class PeakGroup;
 
   /**
-@brief   QScore : quality score for PeakGroup. This class is being updated.
-   For now, simply it calculate the QScore using a fixed weight vector.
-   The weight vector has been determined by logistic regression.
-   But afterwards, the training part for the QScore should be added in here.
-   Or other technique such as deep learning would be used.
-   This class also contains tsv output function. The tsv file contains features of PeakGroups which are used for training.
-@ingroup Topdown
-*/
+  @brief Load from JSON (in a Common Workflow Language (CWL) compatible way) into the Param class.
 
-  class OPENMS_DLLAPI QScore
+        The JSON file must contain one top level mapping of param value names to actual values.
+        These values can be one of the following types:
+            - null
+            - boolean
+            - int
+            - long
+            - float
+            - double
+            - string
+            - a CWL style file path ({ "class": "File", "path": "./myFolder/myFile.txt" })
+            - an array of these
+
+        param value names match the command line option without the leading '-'. Optionally the ':'
+        can be replaced with a double underscore "__".
+@code
+{
+    "in": {
+        "class": "File",
+        "path": "./myFolder/myFile.txt"
+    },
+    "out_prefix": "test_cwl_",
+    "algorithm:threshold": 5,
+    "algorithm:score_type": "ID"
+}
+@endcode
+
+Same file with "__" instead of ':' as the section separator.
+@code
+{
+    "in": {
+        "class": "File",
+        "path": "./myFolder/myFile.txt"
+    },
+    "out_prefix": "test_cwl_",
+    "algorithm__threshold": 5,
+    "algorithm__score_type": "ID"
+}
+@endcode
+*/
+  class OPENMS_DLLAPI ParamCWLFile
   {
   public:
-    typedef FLASHDeconvHelperStructs::LogMzPeak LogMzPeak;
+    /**
+      @brief Read JSON file that is formatted in CWL conforming style.
 
-    /// get QScore for a peak group of specific abs_charge
-    static float getQScore(const PeakGroup *pg, int abs_charge);
+      @param filename The file from where to read the Param object.
+      @param param A param object with pre-filled defaults, which are updated by the values in the JSON file
+      @return returns true if file was successfully loaded; false if an unknown (non-default) parameter name was encountered in the JSON file
 
-  private:
-    /// convert a peak group to a feature vector for QScore calculation
-    static std::vector<double> toFeatureVector_(const PeakGroup *pg, int abs_charge);
+      @exception Exception::FileNotFound is thrown if the file could not be found
+      @exception Exception::ParseError is thrown if an error occurs during parsing
+    */
+    static bool load(const std::string& filename, Param& param);
   };
-}
+} // namespace OpenMS

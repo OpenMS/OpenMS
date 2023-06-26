@@ -33,14 +33,14 @@
 // --------------------------------------------------------------------------
 
 
-#include <OpenMS/QC/TIC.h>
 #include <OpenMS/FILTERING/TRANSFORMERS/LinearResamplerAlign.h>
 #include <OpenMS/FORMAT/MzTab.h>
+#include <OpenMS/QC/TIC.h>
 
 using namespace std;
 
 namespace OpenMS
-{ 
+{
 
   TIC::Result TIC::compute(const MSExperiment& exp, float bin_size, UInt ms_level)
   {
@@ -56,7 +56,7 @@ namespace OpenMS
 
       UInt max_int = *max_element(result.intensities.begin(), result.intensities.end());
 
-      for (const auto& i: result.intensities)
+      for (const auto& i : result.intensities)
       {
         if (max_int != 0)
         {
@@ -73,11 +73,11 @@ namespace OpenMS
       for (size_t i = 1; i < result.intensities.size(); ++i)
       {
         result.area += result.intensities[i];
-        if (result.intensities[i] > result.intensities[i-1] * 10) // detect 10x jumps between two subsequent scans
+        if (result.intensities[i] > result.intensities[i - 1] * 10) // detect 10x jumps between two subsequent scans
         {
           ++result.jump;
         }
-        if (result.intensities[i] < result.intensities[i-1] / 10) // detect 10x falls between two subsequent scans
+        if (result.intensities[i] < result.intensities[i - 1] / 10) // detect 10x falls between two subsequent scans
         {
           ++result.fall;
         }
@@ -88,11 +88,7 @@ namespace OpenMS
 
   bool TIC::Result::operator==(const Result& rhs) const
   {
-    return intensities == rhs.intensities
-          && retention_times == rhs.retention_times
-          && area == rhs.area
-          && fall == rhs.fall
-          && jump == rhs.jump;
+    return intensities == rhs.intensities && retention_times == rhs.retention_times && area == rhs.area && fall == rhs.fall && jump == rhs.jump;
   }
 
   /// Returns the name of the metric
@@ -103,7 +99,7 @@ namespace OpenMS
 
   /// Returns required file input i.e. MzML.
   /// This is encoded as a bit in a Status object.
-  QCBase::Status TIC::requires() const
+  QCBase::Status TIC::requirements() const
   {
     return QCBase::Status(QCBase::Requires::RAWMZML);
   }
@@ -117,7 +113,7 @@ namespace OpenMS
       {
         continue; // no MS1 spectra
       }
-      MzTabParameter tic{};
+      MzTabParameter tic {};
       tic.setCVLabel("total ion current");
       tic.setAccession("MS:1000285");
       tic.setName("TIC_" + String(i + 1));
@@ -132,4 +128,4 @@ namespace OpenMS
       meta.custom[meta.custom.size()] = tic;
     }
   }
-}
+} // namespace OpenMS

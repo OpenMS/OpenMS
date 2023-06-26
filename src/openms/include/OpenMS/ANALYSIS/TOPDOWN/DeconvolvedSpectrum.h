@@ -37,7 +37,6 @@
 #include <OpenMS/ANALYSIS/TOPDOWN/FLASHDeconvHelperStructs.h>
 #include <OpenMS/ANALYSIS/TOPDOWN/PeakGroup.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
-
 #include <iomanip>
 
 namespace OpenMS
@@ -71,7 +70,7 @@ namespace OpenMS
     ~DeconvolvedSpectrum() = default;
 
     /// copy constructor
-    DeconvolvedSpectrum(const DeconvolvedSpectrum& ) = default;
+    DeconvolvedSpectrum(const DeconvolvedSpectrum&) = default;
 
     /// move constructor
     DeconvolvedSpectrum(DeconvolvedSpectrum&& other) noexcept = default;
@@ -82,15 +81,16 @@ namespace OpenMS
 
     /// Convert DeconvolvedSpectrum to MSSpectrum (e.g., used to store in mzML format).
     /// @param to_charge the charge of each peak in mzml output.
+    /// @param min_ms_level the minimum MS level. If the original spec had an MS level lower than @p min_ms_level the precursor information of the returned spectrum is set to this value.
     /// @param tol the ppm tolerance
     /// @param retain_undeconvolved if set, undeconvolved peaks in the original peaks are output (assuming their abs charge == 1 and m/zs are adjusted with the to_charge parameter)
-    MSSpectrum toSpectrum(int to_charge, double tol = 10.0, bool retain_undeconvolved = false);
+    MSSpectrum toSpectrum(int to_charge, uint min_ms_level, double tol = 10.0, bool retain_undeconvolved = false);
 
     /// original spectrum getter
     const MSSpectrum& getOriginalSpectrum() const;
 
     /// get precursor peak group for MSn (n>1) spectrum. It returns an empty peak group if no peak group is registered (by registerPrecursor)
-    const PeakGroup& getPrecursorPeakGroup() const;
+    PeakGroup& getPrecursorPeakGroup();
 
     /// precursor charge getter (set in registerPrecursor)
     int getPrecursorCharge() const;
@@ -140,13 +140,8 @@ namespace OpenMS
     /// original spectrum setter
     void setOriginalSpectrum(const MSSpectrum& spec);
 
-    /// update peak group Qvalues using target and decoy deconvolved spectra, when FDR report is necessary
-    /// @param deconvolved_spectra target deconvolved spectra
-    /// @param deconvolved_decoy_spectra decoy deconvolved spectra
-    void static updatePeakGroupQvalues(std::vector<DeconvolvedSpectrum>& deconvolved_spectra, std::vector<DeconvolvedSpectrum>& deconvolved_decoy_spectra);
-
     /// set peak groups in this spectrum
-    void setPeakGroups (std::vector<PeakGroup>& x);
+    void setPeakGroups(std::vector<PeakGroup>& x);
 
     /// iterators and vector operators for std::vector<PeakGroup> peak_groups_ in this spectrum
     std::vector<PeakGroup>::const_iterator begin() const noexcept;
@@ -157,16 +152,17 @@ namespace OpenMS
 
     const PeakGroup& operator[](Size i) const;
     PeakGroup& operator[](Size i);
-    void push_back (const PeakGroup& pg);
+    void push_back(const PeakGroup& pg);
     Size size() const noexcept;
     void clear();
-    void reserve (Size n);
+    void reserve(Size n);
     bool empty() const;
 
     /// sort by deconvolved monoisotopic masses
     void sort();
-    /// sort by QScore of peakGroups
-    void sortByQScore();
+    /// sort by Qscore of peakGroups
+    void sortByQscore();
+
   private:
     /// peak groups (deconvolved masses)
     std::vector<PeakGroup> peak_groups_;
@@ -180,6 +176,5 @@ namespace OpenMS
     Precursor::ActivationMethod activation_method_;
     /// scan number and precursor scan number
     int scan_number_ = 0, precursor_scan_number_ = 0;
-
   };
-}
+} // namespace OpenMS

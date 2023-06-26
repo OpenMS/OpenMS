@@ -40,11 +40,11 @@ namespace OpenMS
   {
   }
 
-  MSSpectrum DeconvolvedSpectrum::toSpectrum(const int to_charge, double tol, bool retain_undeconvolved)
+  MSSpectrum DeconvolvedSpectrum::toSpectrum(const int to_charge, uint min_ms_level, double tol, bool retain_undeconvolved)
   {
     auto out_spec = MSSpectrum(spec_);
     out_spec.clear(false);
-    if ((spec_.getMSLevel() > 1 && precursor_peak_group_.empty()) || empty())
+    if ((spec_.getMSLevel() > min_ms_level && precursor_peak_group_.empty()) || empty())
     {
       return out_spec;
     }
@@ -52,8 +52,17 @@ namespace OpenMS
     std::unordered_set<double> deconvolved_mzs;
     std::stringstream val {};
 
-    val << "tol=" << tol << ";massoffset=" << std::to_string(charge_mass_offset) << ";chargemass=" << std::to_string(FLASHDeconvHelperStructs::getChargeMass(peak_groups_[0].isPositive()))
-        << ";peaks=";
+    val << "tol=" << tol << ";massoffset=" << std::to_string(charge_mass_offset) << ";chargemass=" << std::to_string(FLASHDeconvHelperStructs::getChargeMass(peak_groups_[0].isPositive()));
+    if (!precursor_peak_group_.empty())
+    {
+      val << ";precursorscan=" << precursor_scan_number_ << ";precursormass=" << std::to_string(precursor_peak_group_.getMonoMass());
+    }
+    else
+    {
+      val << ";precursorscan=0;precursormass=0";
+    }
+
+    val << ";peaks=";
     for (auto& pg : *this)
     {
       if (pg.empty())
@@ -80,6 +89,46 @@ namespace OpenMS
         }
       }
     }
+
+    val << "cos=";
+    for (auto& pg : *this)
+    {
+      if (pg.empty())
+      {
+        continue;
+      }
+      val << pg.getIsotopeCosine() << ",";
+    }
+
+    val << ";snr=";
+    for (auto& pg : *this)
+    {
+      if (pg.empty())
+      {
+        continue;
+      }
+      val << pg.getSNR() << ",";
+    }
+
+    val << ";qscore=";
+    for (auto& pg : *this)
+    {
+      if (pg.empty())
+      {
+        continue;
+      }
+      val << pg.getQscore() << ",";
+    }
+
+    val << ";qvalue=";
+    for (auto& pg : *this)
+    {
+      if (pg.empty())
+      {
+        continue;
+      }
+      val << pg.getQvalue() << ",";
+    }
     out_spec.setMetaValue("DeconvMassInfo", val.str());
 
     if (retain_undeconvolved)
@@ -94,12 +143,13 @@ namespace OpenMS
       }
     }
     out_spec.sortByPosition();
-    if (!precursor_peak_group_.empty() && !precursor_peak_.empty())
+    if (!precursor_peak_group_.empty())
     {
-      Precursor precursor(spec_.getPrecursors()[0]);
+      Precursor precursor(precursor_peak_);
       precursor.setCharge(to_charge);
       precursor.setMZ(precursor_peak_group_.getMonoMass() + charge_mass_offset);
       precursor.setIntensity(precursor_peak_group_.getIntensity());
+
       out_spec.getPrecursors().clear();
       out_spec.getPrecursors().emplace_back(precursor);
     }
@@ -111,7 +161,7 @@ namespace OpenMS
     return spec_;
   }
 
-  const PeakGroup& DeconvolvedSpectrum::getPrecursorPeakGroup() const
+  PeakGroup& DeconvolvedSpectrum::getPrecursorPeakGroup()
   {
     return precursor_peak_group_;
   }
@@ -265,146 +315,8 @@ namespace OpenMS
     std::sort(peak_groups_.begin(), peak_groups_.end());
   }
 
-  void DeconvolvedSpectrum::sortByQScore()
+  void DeconvolvedSpectrum::sortByQscore()
   {
-    std::sort(peak_groups_.begin(), peak_groups_.end(), [](const PeakGroup& p1, const PeakGroup& p2) { return p1.getQScore() > p2.getQScore(); });
+    std::sort(peak_groups_.begin(), peak_groups_.end(), [](const PeakGroup& p1, const PeakGroup& p2) { return p1.getQscore() > p2.getQscore(); });
   }
-
-  void DeconvolvedSpectrum::updatePeakGroupQvalues(std::vector<DeconvolvedSpectrum>& deconvolved_spectra,
-                                                   std::vector<DeconvolvedSpectrum>& deconvolved_decoy_spectra) // per ms level + precursor update as well.
-  {
-    std::map<uint, std::vector<float>> tscore_map; // per ms level
-
-    std::map<uint, std::vector<float>> dscore_iso_decoy_map;
-    std::map<uint, std::map<float, float>> qscore_iso_decoy_map; // maps for isotope decoy only qvalues
-
-    std::map<uint, std::vector<float>> dscore_noise_decoy_map;
-    std::map<uint, std::map<float, float>> qscore_noise_decoy_map; // maps for noise decoy only qvalues
-
-    std::map<uint, std::vector<float>> dscore_charge_decoy_map;
-    std::map<uint, std::map<float, float>> qscore_charge_decoy_map; // maps for charge decoy only qvalues
-
-    for (auto& deconvolved_spectrum : deconvolved_spectra)
-    {
-      uint ms_level = deconvolved_spectrum.getOriginalSpectrum().getMSLevel();
-      if (tscore_map.find(ms_level) == tscore_map.end())
-      {
-        tscore_map[ms_level] = std::vector<float>();
-        dscore_noise_decoy_map[ms_level] = std::vector<float>();
-        qscore_noise_decoy_map[ms_level] = std::map<float, float>();
-        dscore_iso_decoy_map[ms_level] = std::vector<float>();
-        qscore_iso_decoy_map[ms_level] = std::map<float, float>();
-        dscore_charge_decoy_map[ms_level] = std::vector<float>();
-        qscore_charge_decoy_map[ms_level] = std::map<float, float>();
-      }
-      for (auto& pg : deconvolved_spectrum)
-      {
-        tscore_map[ms_level].push_back(pg.getQScore());
-      }
-    }
-    for (auto& decoy_deconvolved_spectrum : deconvolved_decoy_spectra)
-    {
-      uint ms_level = decoy_deconvolved_spectrum.getOriginalSpectrum().getMSLevel();
-      for (auto& pg : decoy_deconvolved_spectrum)
-      {
-        if (pg.getDecoyFlag() == PeakGroup::DecoyFlag::isotope_decoy)
-        {
-          dscore_iso_decoy_map[ms_level].push_back(pg.getQScore());
-        }
-        else if (pg.getDecoyFlag() == PeakGroup::DecoyFlag::noise_decoy)
-        {
-          dscore_noise_decoy_map[ms_level].push_back(pg.getQScore());
-        }
-        else if (pg.getDecoyFlag() == PeakGroup::DecoyFlag::charge_decoy)
-        {
-          dscore_charge_decoy_map[ms_level].push_back(pg.getQScore());
-        }
-      }
-    }
-
-    for (auto& titem : tscore_map)
-    {
-      uint ms_level = titem.first;
-      auto& tscore = titem.second;
-      auto& dscore_iso = dscore_iso_decoy_map[ms_level];
-      auto& dscore_charge = dscore_charge_decoy_map[ms_level];
-      auto& dscore_noise = dscore_noise_decoy_map[ms_level];
-
-      std::sort(tscore.begin(), tscore.end());
-      std::sort(dscore_iso.begin(), dscore_iso.end());
-      std::sort(dscore_noise.begin(), dscore_noise.end());
-      std::sort(dscore_charge.begin(), dscore_charge.end());
-
-      auto& map_charge = qscore_charge_decoy_map[ms_level];
-      float tmp_q_charge = 1;
-      for (size_t i = 0; i < tscore.size(); i++)
-      {
-        float ts = tscore[i];
-        size_t dindex = dscore_charge.size() == 0 ? 0 : std::distance(std::lower_bound(dscore_charge.begin(), dscore_charge.end(), ts), dscore_charge.end());
-        size_t tindex = tscore.size() - i;
-
-        tmp_q_charge = std::min(tmp_q_charge, ((float)dindex / (float)(dindex + tindex)));
-        map_charge[ts] = tmp_q_charge;
-      }
-
-      auto& map_iso = qscore_iso_decoy_map[ms_level];
-      float tmp_q_iso = 1;
-      for (size_t i = 0; i < tscore.size(); i++)
-      {
-        float ts = tscore[i];
-        size_t dindex = dscore_iso.size() == 0 ? 0 : std::distance(std::lower_bound(dscore_iso.begin(), dscore_iso.end(), ts), dscore_iso.end());
-        size_t tindex = tscore.size() - i;
-
-        tmp_q_iso = std::min(tmp_q_iso, ((float)dindex / (float)(dindex + tindex) * (1 - map_charge[ts])));
-        map_iso[ts] = tmp_q_iso;
-      }
-
-      auto& map_noise = qscore_noise_decoy_map[ms_level];
-      float tmp_q_noise = 1;
-
-      for (size_t i = 0; i < tscore.size(); i++)
-      {
-        float ts = tscore[i];
-        size_t dindex = dscore_noise.size() == 0 ? 0 : std::distance(std::lower_bound(dscore_noise.begin(), dscore_noise.end(), ts), dscore_noise.end());
-        size_t tindex = tscore.size() - i;
-
-        tmp_q_noise = std::min(tmp_q_noise, ((float)dindex / (float)(dindex + tindex)));
-        map_noise[ts] = tmp_q_noise;
-      }
-    }
-
-    for (auto& titem : tscore_map)
-    {
-      uint ms_level = titem.first;
-      for (auto& deconvolved_spectrum : deconvolved_spectra)
-      {
-        if (deconvolved_spectrum.getOriginalSpectrum().getMSLevel() != ms_level)
-        {
-          continue;
-        }
-        auto& map_iso = qscore_iso_decoy_map[ms_level];
-        auto& map_noise = qscore_noise_decoy_map[ms_level];
-        auto& map_charge = qscore_charge_decoy_map[ms_level];
-
-        for (auto& pg : deconvolved_spectrum)
-        {
-          //
-          pg.setQvalue(map_charge[pg.getQScore()], PeakGroup::DecoyFlag::charge_decoy);
-          pg.setQvalue(map_noise[pg.getQScore()], PeakGroup::DecoyFlag::noise_decoy);
-          pg.setQvalue(map_iso[pg.getQScore()], PeakGroup::DecoyFlag::isotope_decoy);
-
-          if (deconvolved_spectrum.getOriginalSpectrum().getMSLevel() > 1 && !deconvolved_spectrum.getPrecursorPeakGroup().empty())
-          {
-            float qs = deconvolved_spectrum.getPrecursorPeakGroup().getQScore();
-            auto& pmap_iso = qscore_iso_decoy_map[ms_level - 1];
-            auto& pmap_charge = qscore_charge_decoy_map[ms_level - 1];
-            auto& pmap_noise = qscore_noise_decoy_map[ms_level - 1];
-            deconvolved_spectrum.precursor_peak_group_.setQvalue(pmap_iso[qs], PeakGroup::DecoyFlag::isotope_decoy);
-            deconvolved_spectrum.precursor_peak_group_.setQvalue(pmap_noise[qs], PeakGroup::DecoyFlag::noise_decoy);
-            deconvolved_spectrum.precursor_peak_group_.setQvalue(pmap_charge[qs], PeakGroup::DecoyFlag::charge_decoy);
-          }
-        }
-      }
-    }
-  }
-}
+} // namespace OpenMS

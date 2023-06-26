@@ -68,6 +68,7 @@ OMSSACSVFile.cpp
 OMSSAXMLFile.cpp
 OSWFile.cpp
 ParamCTDFile.cpp
+ParamCWLFile.cpp
 ParamXMLFile.cpp
 PTMXMLFile.cpp
 PeakTypeEstimator.cpp

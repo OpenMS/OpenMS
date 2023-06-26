@@ -35,9 +35,8 @@
 #include <OpenMS/CONCEPT/ClassTest.h>
 #include <OpenMS/test_config.h>
 ///////////////////////////
-#include <OpenMS/QC/PeptideMass.h>
-
 #include <OpenMS/KERNEL/FeatureMap.h>
+#include <OpenMS/QC/PeptideMass.h>
 
 ///////////////////////////
 
@@ -80,10 +79,10 @@ START_SECTION(void compute(FeatureMap& features))
 }
 END_SECTION
 
-START_SECTION(QCBase::Status requires() const override)
+START_SECTION(QCBase::Status requirements() const override)
 {
   PeptideMass fw;
-  TEST_EQUAL(fw.requires() == (QCBase::Status() | QCBase::Requires::POSTFDRFEAT), true);
+  TEST_EQUAL(fw.requirements() == (QCBase::Status() | QCBase::Requires::POSTFDRFEAT), true);
 }
 END_SECTION
 

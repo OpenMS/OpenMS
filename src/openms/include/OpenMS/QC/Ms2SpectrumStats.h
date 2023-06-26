@@ -34,10 +34,9 @@
 
 #pragma once
 
-#include <OpenMS/QC/QCBase.h>
-
-#include <OpenMS/KERNEL/Peak1D.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
+#include <OpenMS/KERNEL/Peak1D.h>
+#include <OpenMS/QC/QCBase.h>
 
 
 namespace OpenMS
@@ -50,7 +49,7 @@ namespace OpenMS
   /**
     @brief  QC metric to determine the number of MS2 scans per MS1 scan over RT
 
-    Ms2SpectrumStats collects data from MS2 scans and stores the result into PeptideIdentifications, 
+    Ms2SpectrumStats collects data from MS2 scans and stores the result into PeptideIdentifications,
     which already exist in the FeatureMap, or are newly created as empty PeptideIdentifications (with no sequence).
 
     The following meta-values are computed:
@@ -67,11 +66,10 @@ namespace OpenMS
   class OPENMS_DLLAPI Ms2SpectrumStats : public QCBase
   {
   public:
-    struct ScanEvent
-    {
-      ScanEvent(UInt32 sem, bool ms2)
-        : scan_event_number(sem), ms2_presence(ms2) 
-      {}
+    struct ScanEvent {
+      ScanEvent(UInt32 sem, bool ms2) : scan_event_number(sem), ms2_presence(ms2)
+      {
+      }
       UInt32 scan_event_number;
       bool ms2_presence;
     };
@@ -97,14 +95,14 @@ namespace OpenMS
     /// returns the name of the metric
     const String& getName() const override;
     /// define the required input file: featureXML after FDR (=POSTFDRFEAT), MzML-file (MSExperiment) with all MS2-Spectra (=RAWMZML)
-    Status requires() const override;
+    Status requirements() const override;
 
   private:
     /// name of the metric
     const String name_ = "Ms2SpectrumStats";
-    
+
     /// ms2_included_ contains for every spectrum the information "ScanEventNumber" and presence MS2-scan in PeptideIDs
-    std::vector<ScanEvent> ms2_included_{};
+    std::vector<ScanEvent> ms2_included_ {};
 
     /// compute "ScanEventNumber" for every spectrum: MS1=0, MS2=1-n, write into ms2_included_
     void setScanEventNumber_(const MSExperiment& exp);
@@ -118,4 +116,4 @@ namespace OpenMS
     /// calculate highest intensity (base peak intensity)
     static MSSpectrum::PeakType::IntensityType getBPI_(const MSSpectrum& spec);
   };
-}
+} // namespace OpenMS

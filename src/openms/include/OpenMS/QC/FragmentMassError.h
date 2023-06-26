@@ -44,7 +44,7 @@ namespace OpenMS
   class MSExperiment;
   class PeptideIdentification;
   class WindowMower;
-  
+
   class OPENMS_DLLAPI FragmentMassError : public QCBase
   {
   public:
@@ -57,8 +57,7 @@ namespace OpenMS
     /**
      * @brief Structure for storing results: average and variance of all FragmentMassErrors in ppm
      */
-    struct Statistics
-    {
+    struct Statistics {
       double average_ppm = 0;
       double variance_ppm = 0;
     };
@@ -110,33 +109,30 @@ namespace OpenMS
      * @throws Exception::MissingInformation If no fragmentation method given in a MS2 precursor
      * @throws Exception::InvalidParameter If the fragmentation method is not ECD, ETD, CID or HCD
      */
-    void compute(std::vector<PeptideIdentification>& pep_ids,
-                 const ProteinIdentification::SearchParameters& search_params,
-                 const MSExperiment& exp,
-                 const QCBase::SpectraMap& map_to_spectrum,
-                 ToleranceUnit tolerance_unit = ToleranceUnit::AUTO,
-                 double tolerance = 20);
+    void compute(std::vector<PeptideIdentification>& pep_ids, const ProteinIdentification::SearchParameters& search_params, const MSExperiment& exp, const QCBase::SpectraMap& map_to_spectrum,
+                 ToleranceUnit tolerance_unit = ToleranceUnit::AUTO, double tolerance = 20);
 
     /// returns the name of the metric
     const String& getName() const override;
-    
+
     /// returns results
     const std::vector<Statistics>& getResults() const;
 
 
     /**
-    * @brief Returns the input data requirements of the compute(...) function
-    * @return Status for RAWMZML and POSTFDRFEAT
-    */
-    QCBase::Status requires() const override;
+     * @brief Returns the input data requirements of the compute(...) function
+     * @return Status for RAWMZML and POSTFDRFEAT
+     */
+    QCBase::Status requirements() const override;
 
   private:
     /// container that stores results
     std::vector<Statistics> results_;
 
-    static void calculateFME_(PeptideIdentification& pep_id, const MSExperiment& exp, const QCBase::SpectraMap& map_to_spectrum, bool& print_warning, double tolerance, FragmentMassError::ToleranceUnit tolerance_unit, double& accumulator_ppm, UInt32& counter_ppm, WindowMower& window_mower_filter);
+    static void calculateFME_(PeptideIdentification& pep_id, const MSExperiment& exp, const QCBase::SpectraMap& map_to_spectrum, bool& print_warning, double tolerance,
+                              FragmentMassError::ToleranceUnit tolerance_unit, double& accumulator_ppm, UInt32& counter_ppm, WindowMower& window_mower_filter);
 
     static void calculateVariance_(FragmentMassError::Statistics& result, const PeptideIdentification& pep_id, const UInt num_ppm);
   };
 
-} //namespace OpenMS
+} // namespace OpenMS
