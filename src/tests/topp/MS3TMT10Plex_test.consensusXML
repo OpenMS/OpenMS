@@ -4,7 +4,7 @@
 	<UserParam type="int" name="isoquant:scans_noquant" value="11"/>
 	<UserParam type="int" name="isoquant:scans_total" value="106"/>
 	<UserParam type="int" name="isoquant:quantifyable_ch126" value="74"/>
-	<UserParam type="int" name="isoquant:quantifyable_ch127N" value="87"/>
+	<UserParam type="int" name="isoquant:quantifyable_ch127N" value="85"/>
 	<UserParam type="int" name="isoquant:quantifyable_ch127C" value="75"/>
 	<UserParam type="int" name="isoquant:quantifyable_ch128N" value="77"/>
 	<UserParam type="int" name="isoquant:quantifyable_ch128C" value="82"/>
