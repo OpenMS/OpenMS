@@ -8,7 +8,7 @@ FLASHDeconvAlgorithm.h
 FLASHDeconvHelperStructs.h
 MassFeatureTrace.h
 PeakGroup.h
-		Qscore.h
+Qscore.h
 Qvalue.h
 )
 
