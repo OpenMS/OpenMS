@@ -620,6 +620,9 @@ endif()
 
 if(LINUX OR APPLE)
   set(EXTRA_WARNINGS "-Wno-unused-member-function" "-Wno-builtin-macro-redefined" "-Wno-unused" "-Wno-zero-as-null-pointer-constant")
+  if(${Python_VERSION} VERSION_GREATER_EQUAL "3.8" AND ${Python_VERSION} VERSION_LESS "3.9")
+    list(APPEND EXTRA_WARNINGS "-Wno-deprecated-declarations") # https://github.com/cython/cython/issues/3474
+  endif()
 else()
   set(EXTRA_WARNINGS "")
 endif()
