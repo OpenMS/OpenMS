@@ -293,7 +293,7 @@ protected:
   // the main_ function is called after all parameters are read
   ExitCodes main_(int, const char**) override
   {
-    bool DLTrain = true;
+    bool DLTrain = false;
     OPENMS_LOG_INFO << "Initializing ... " << endl;
     //-------------------------------------------------------------
     // parsing parameters
@@ -327,7 +327,7 @@ protected:
     double target_precursor_mz = target_precursor_charge != 0 ? getDoubleOption_("target_precursor_mz") : .0;
     double target_precursor_mass = .0;
 
-    fstream out_stream, out_train_stream, out_promex_stream, out_att_stream, out_dl_stream;
+    fstream out_stream, out_promex_stream, out_dl_stream, out_att_stream;
     std::vector<fstream> out_spec_streams, out_topfd_streams, out_topfd_feature_streams;
 
     out_stream.open(out_file, fstream::out);
@@ -501,6 +501,7 @@ protected:
     exp_annotated.clear(false);
 
     auto fd = FLASHDeconvAlgorithm();
+
     FLASHDeconvAlgorithm fd_charge_dummy, fd_noise_dummy, fd_iso_dummy;
 
     Param fd_param = getParam_().copy("Algorithm:", true);

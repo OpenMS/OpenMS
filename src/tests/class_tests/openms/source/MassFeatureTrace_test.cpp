@@ -151,7 +151,6 @@ tmp_pg.push_back(tmp_p9);
 tmp_pg.push_back(tmp_p10);
 tmp_pg.push_back(tmp_p11);
 tmp_pg.push_back(tmp_p12);
-tmp_pg.updateMonoMassAndIsotopeIntensities();
 deconv_spec1.push_back(tmp_pg);
 
 sample_spec.setRT(55.0);

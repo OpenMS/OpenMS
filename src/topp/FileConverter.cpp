@@ -738,13 +738,13 @@ protected:
       else if (in_type == FileTypes::CONSENSUSXML)
       {
         IdentificationDataConverter::importConsensusIDs(cm);
-        OMSFile().store(out, cm);
+        OMSFile().store(out, cm);        
       }
       else
-      {
+      {        
         OPENMS_LOG_ERROR << "Incompatible input data: FileConverter can only convert featureXML and consensusXML files to oms format.";
         return INCOMPATIBLE_INPUT_DATA;
-      }
+      }      
     }
     else
     {

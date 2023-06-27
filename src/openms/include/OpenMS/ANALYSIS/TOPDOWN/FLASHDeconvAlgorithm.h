@@ -70,7 +70,6 @@ namespace OpenMS
     FLASHDeconvAlgorithm();
 
     /// copy constructor
-    FLASHDeconvAlgorithm(const FLASHDeconvAlgorithm&) = default;
 
     /// move constructor
     FLASHDeconvAlgorithm(FLASHDeconvAlgorithm&& other) = default;
@@ -90,7 +89,7 @@ namespace OpenMS
       @param survey_scans the survey scans to assign precursor mass to the deconvolved spectrum.
       @param scan_number scan number from input spectrum.
       @param precursor_map_for_FLASHIda deconvolved precursor information from FLASHIda
- */
+    */
     void performSpectrumDeconvolution(const MSSpectrum& spec, const std::vector<DeconvolvedSpectrum>& survey_scans, int scan_number,
                                       const std::map<int, std::vector<std::vector<float>>>& precursor_map_for_FLASHIda);
 
@@ -133,14 +132,16 @@ namespace OpenMS
         @param per_isotope_intensities vector of intensities associated with each isotope - aggregated through charges
         @param offset output offset between input monoisotopic mono_mass and determined monoisotopic mono_mass
         @param avg precalculated averagine
+        @param iso_int_shift isotope shift in per_isotope_intensities.
         @param window_width isotope offset value range. If -1, set automatically.
         @param allowed_iso_error_for_second_best_cos allowed isotope error to calculate the second best cos. If target_dummy_type is not PeakGroup::TargetDummyType::target, the second best cosine and
        its corresponding offset will be output
         @param target_dummy_type  This target_dummy_type specifies if a PeakGroup is a target (0), charge dummy (1), noise dummy (2), or isotope dummy (3)
         @return calculated cosine similar score
      */
-    static float getIsotopeCosineAndDetermineIsotopeIndex(double mono_mass, const std::vector<float>& per_isotope_intensities, int& offset, const PrecalculatedAveragine& avg, int iso_int_shift = 0, int window_width = -1,
-                                                          int allowed_iso_error_for_second_best_cos = 0, PeakGroup::TargetDummyType target_dummy_type = PeakGroup::TargetDummyType::target);
+    static float getIsotopeCosineAndDetermineIsotopeIndex(double mono_mass, const std::vector<float>& per_isotope_intensities, int& offset, const PrecalculatedAveragine& avg, int iso_int_shift = 0,
+                                                          int window_width = -1, int allowed_iso_error_for_second_best_cos = 0,
+                                                          PeakGroup::TargetDummyType target_dummy_type = PeakGroup::TargetDummyType::target);
 
     /**
      * add m/zs in input DeconvolvedSpectrum into exclusion list. The exclusion list is used to generate noise dummy masses.
@@ -194,7 +195,7 @@ namespace OpenMS
     DoubleList bin_mul_factors_;
     /// cosine threshold between observed and theoretical isotope patterns for each MS level
     DoubleList min_isotope_cosine_;
-
+    /// the deconvolved spectrum from normal run. This is used when dummy masses are generated.
     DeconvolvedSpectrum* target_dspec_for_dummy_calcualtion_;
 
     /// PeakGroup::TargetDummyType values
@@ -223,8 +224,6 @@ namespace OpenMS
     boost::dynamic_bitset<> mass_bins_;
     /// mz_bins_ stores the binned log mz peaks
     boost::dynamic_bitset<> mz_bins_;
-    /// mz_bin to peak index mz_bin_peak_index_[mz_bin] = peak index
-    // std::vector<int> mz_bin_peak_index_;
 
     /// This stores the "universal pattern"
     std::vector<double> filter_;

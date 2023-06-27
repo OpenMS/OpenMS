@@ -169,7 +169,6 @@ namespace OpenMS
         size_t tindex = qscores.size() - i;
         float nom = weights[0] * (float)dindex;
         float denom = (float)(tindex);
-        //tmp_q_charge = std::min(tmp_q_charge, (nom / denom));
         tmp_q_charge = (nom / denom);
         map_charge[ts] = tmp_q_charge;
       }
@@ -185,7 +184,6 @@ namespace OpenMS
         size_t tindex = qscores.size() - i;
         float nom = weights[2] * (float)dindex;
         float denom = (float)(tindex);
-        //tmp_q_iso = std::min(tmp_q_iso, (nom / denom));
         tmp_q_iso = nom / denom;
         map_iso[ts] = tmp_q_iso;
       }

@@ -399,4 +399,3 @@ public:
   OPENMS_DLLAPI std::ostream& operator<<(std::ostream& os, const ConsensusMap& cons_map);
 
 } // namespace OpenMS
-

@@ -100,7 +100,7 @@ namespace OpenMS
     void updateMonoMassAndIsotopeIntensities();
 
     /**
-           @brief Update isotope cosine sore and qscore. Mono mass is also updated one last time. SNR, per charge SNR, and avg errors are updated here.
+           @brief Update Qscore. Cosine and SNRs are also updated.
            @param noisy_peaks noisy peaks to calculate Qscore
            @param avg precalculated averagine
            @param min_cos the peak groups with cosine score less than this will have Qscore 0.
@@ -244,6 +244,8 @@ namespace OpenMS
     /// get distance between consecutive isotopes
     double getIsotopeDaDistance() const;
 
+    /// get minimum neagative isotope index
+    int getMinNegativeIsotopeIndex() const;
     /// set index of this peak group
     void setIndex(uint i);
 
@@ -290,8 +292,6 @@ namespace OpenMS
     void swap(std::vector<FLASHDeconvHelperStructs::LogMzPeak>& x);
     void sort();
 
-    static const int isotope_int_shift = 1;
-
   private:
     /// update chargefit score and also update per charge intensities here.
     void updateChargeFitScoreAndChargeIntensities_();
@@ -314,8 +314,6 @@ namespace OpenMS
     /// update per charge cosine values
     void updatePerChargeCos_(const FLASHDeconvHelperStructs::PrecalculatedAveragine& avg);
 
-    std::vector<Matrix<float>> dl_matrices_;
-
     /**
      * calculate noisy peak power. The goal of this function is to group noisy peaks that are possibly from the same molecule and sum their intensities before calculate power
      * @param noisy_peaks noisy peaks to calculate power
@@ -323,6 +321,7 @@ namespace OpenMS
      * @return calculated noise power
      */
     float getNoisePeakPower_(const std::vector<LogMzPeak>& noisy_peaks, const std::vector<LogMzPeak>& signal_peaks) const;
+    std::vector<Matrix<float>> dl_matrices_;
 
     /// log Mz peaks
     std::vector<FLASHDeconvHelperStructs::LogMzPeak> logMzpeaks_;
@@ -351,6 +350,8 @@ namespace OpenMS
     float intensity_ = 0; // total intensity
     /// index to specify if this peak_group is a target (0), an isotope dummy (1), a noise (2), or a charge dummy (3)
     PeakGroup::TargetDummyType target_dummy_type_ = target;
+    /// up to which negative isotope index should be considered. By considereing negative istoopes, one can reduce isotope index error.
+    int min_negative_isotope_index_ = -1;
 
     int charge_range_for_DL_ =  7;
     float bin_width_DL_ = 0.25;
