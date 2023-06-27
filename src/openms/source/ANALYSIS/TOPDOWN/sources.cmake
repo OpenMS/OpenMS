@@ -8,7 +8,7 @@ FLASHDeconvAlgorithm.cpp
 FLASHDeconvHelperStructs.cpp
 MassFeatureTrace.cpp
 PeakGroup.cpp
-        Qscore.cpp
+Qscore.cpp
 Qvalue.cpp
 )
 
