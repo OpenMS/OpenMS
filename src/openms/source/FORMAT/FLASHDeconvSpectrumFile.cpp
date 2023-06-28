@@ -393,7 +393,7 @@ namespace OpenMS
   */
     for(auto& g : grouped)
     {
-      int cntr = 0;
+      //int cntr = 0;
       for (auto& pg : g)
       {
          int cl = pg.getTargetDummyType();
