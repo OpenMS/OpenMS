@@ -29,7 +29,6 @@ jobs:
         uses: peter-evans/create-pull-request@v5
         with:
           commit-message: 'Updated year number'
-          committer: ${{github.actor}}
           branch: update_year_number
           delete-branch: true
           title: '[ByGitAction] Updated year number in the header of files'
