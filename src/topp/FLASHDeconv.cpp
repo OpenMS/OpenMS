@@ -293,7 +293,6 @@ protected:
   // the main_ function is called after all parameters are read
   ExitCodes main_(int, const char**) override
   {
-    bool DLTrain = false;
     OPENMS_LOG_INFO << "Initializing ... " << endl;
     //-------------------------------------------------------------
     // parsing parameters
@@ -331,11 +330,6 @@ protected:
     std::vector<fstream> out_spec_streams, out_topfd_streams, out_topfd_feature_streams;
 
     out_stream.open(out_file, fstream::out);
-    if (DLTrain)
-    {
-      out_dl_stream.open(out_file + "_dl.csv", fstream::out);
-      out_att_stream.open(out_file + "_qscore.csv", fstream::out);
-    }
 
     FLASHDeconvFeatureFile::writeHeader(out_stream);
 
@@ -945,45 +939,6 @@ protected:
         }
         j++;
       }
-    }
-
-
-    if (DLTrain)
-    {
-      Qscore::writeAttCsvFromDummyHeader(out_att_stream);
-      vector<DeconvolvedSpectrum> false_deconvolved_spectra;
-      false_deconvolved_spectra.reserve(deconvolved_spectra.size() * 3);
-
-      for (auto& deconvolved_spectrum : dummy_deconvolved_spectra)
-      {
-        if (deconvolved_spectrum.getOriginalSpectrum().getMSLevel() != 1)
-        {
-          continue;
-        }
-        Qscore::writeAttCsvFromDummy(deconvolved_spectrum, out_att_stream);
-        DeconvolvedSpectrum false_deconvolved_spectrum;
-        false_deconvolved_spectrum.setOriginalSpectrum(deconvolved_spectrum.getOriginalSpectrum());
-        false_deconvolved_spectrum.reserve(deconvolved_spectrum.size());
-        for (auto& pg : deconvolved_spectrum)
-        {
-          if(pg.getTargetDummyType() == PeakGroup::TargetDummyType::target)
-          {
-            continue;
-          }
-          false_deconvolved_spectrum.push_back(pg);
-        }
-        false_deconvolved_spectra.push_back(false_deconvolved_spectrum);
-      }
-      for (auto& deconvolved_spectrum : deconvolved_spectra)
-      {
-        Qscore::writeAttCsvFromDummy(deconvolved_spectrum, out_att_stream);
-      }
-
-      FLASHDeconvSpectrumFile::writeDLMatrixHeader(out_dl_stream);
-      FLASHDeconvSpectrumFile::writeDLMatrix(deconvolved_spectra, 1e-6*tols[0],out_dl_stream, avg);
-      FLASHDeconvSpectrumFile::writeDLMatrix(false_deconvolved_spectra, 1e-6*tols[0], out_dl_stream, avg);
-      out_dl_stream.close();
-      out_att_stream.close();
     }
 
     return EXECUTION_OK;

@@ -47,13 +47,6 @@ namespace OpenMS
   inline const int low_charge_ = 10; // 10 inclusive
   inline const double tol_div_factor = 2.5; // use narrow tolerance for deconvolution and at the end use the input tolerance to filter out overlapping masses.
 
-  inline const bool useDL = false;
-  inline const bool debug = false;
-  inline const double debug_mass = -1000; //809.3;
-
-  inline const double debug_mass_min = debug_mass- 1; //809.3;
-  inline const double debug_mass_max = debug_mass+ 1;//809.33;
-
   FLASHDeconvAlgorithm::FLASHDeconvAlgorithm() : DefaultParamHandler("FLASHDeconvAlgorithm")
   {
     defaults_.setValue("tol", DoubleList {10.0, 10.0}, "ppm tolerance for MS1, 2, ... (e.g., -tol 10.0 5.0 to specify 10.0 and 5.0 ppm for MS1 and MS2, respectively)");
