@@ -33,22 +33,33 @@
 # --------------------------------------------------------------------------
 
 project("OpenMS-3rd-party-libs")
-cmake_minimum_required(VERSION 3.15 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.24 FATAL_ERROR)
 
 # evergreen Bayesian inference library (0.9)
 add_subdirectory(evergreen/src)
 
 option(USE_EXTERNAL_JSON "Use an external NLohmann::json library" OFF)
+message(STATUS "Option USE_EXTERNAL_JSON: ${USE_EXTERNAL_JSON}")
 if(USE_EXTERNAL_JSON)
-    find_package(nlohmann_json REQUIRED)
+    find_package(nlohmann_json REQUIRED GLOBAL)  ## global propagates the target up to the parent project
+    message(STATUS "External 'NLohmann::json' at: '${nlohmann_json_DIR}'")
 else()
     set(JSON_BuildTests OFF CACHE INTERNAL "")
     add_subdirectory(nlohmann_json)
 endif()
 
+option(USE_EXTERNAL_SQLITECPP "Use an external SQLiteCpp library" OFF)
+message(STATUS "Option USE_EXTERNAL_SQLITECPP: ${USE_EXTERNAL_SQLITECPP}")
+if(USE_EXTERNAL_SQLITECPP)
+    find_package(SQLiteCpp REQUIRED GLOBAL)      ## global propagates the target up to the parent project
+    message(STATUS "External 'SQLiteCpp' at: '${SQLiteCpp_DIR}'")
+else()
+    add_subdirectory(SQLiteCpp)
+endif()
+
+
 add_subdirectory(eol-bspline)
 add_subdirectory(IsoSpec)
 add_subdirectory(GTE)
-add_subdirectory(SQLiteCpp)
 add_subdirectory(Quadtree)
 
