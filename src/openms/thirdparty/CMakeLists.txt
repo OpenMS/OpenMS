@@ -41,10 +41,17 @@ add_subdirectory(evergreen/src)
 ## Note these libraries will not be compiled
 ## but we only expose their sources
 
-# eol-bspline lib
+option(USE_EXTERNAL_JSON "Use an external NLohmann::json library" OFF)
+
+if(USE_EXTERNAL_JSON)
+    find_package(nlohmann_json REQUIRED)
+else()
+    set(JSON_BuildTests OFF CACHE INTERNAL "")
+    add_subdirectory(nlohmann_json)
+endif()
+
 add_subdirectory(eol-bspline)
 add_subdirectory(IsoSpec)
-add_subdirectory(json)
 add_subdirectory(GTE)
 add_subdirectory(SQLiteCpp)
 add_subdirectory(Quadtree)
