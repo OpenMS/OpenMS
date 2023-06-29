@@ -28,8 +28,8 @@
 # ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 # --------------------------------------------------------------------------
-# $Maintainer: Stephan Aiche $
-# $Authors: Stephan Aiche $
+# $Maintainer: Chris Bielow $
+# $Authors: Stephan Aiche, Chris Bielow $
 # --------------------------------------------------------------------------
 
 project("OpenMS-3rd-party-libs")
@@ -38,11 +38,7 @@ cmake_minimum_required(VERSION 3.15 FATAL_ERROR)
 # evergreen Bayesian inference library (0.9)
 add_subdirectory(evergreen/src)
 
-## Note these libraries will not be compiled
-## but we only expose their sources
-
 option(USE_EXTERNAL_JSON "Use an external NLohmann::json library" OFF)
-
 if(USE_EXTERNAL_JSON)
     find_package(nlohmann_json REQUIRED)
 else()
