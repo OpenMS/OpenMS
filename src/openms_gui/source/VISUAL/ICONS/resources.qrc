@@ -1,5 +1,6 @@
 <RCC>
     <qresource prefix="/">
+        <file>FLASHDeconvWizard.png</file>
         <file>INIFileEditor.png</file>
         <file>Recycling_symbol.svg</file>
         <file>SwathWizard.png</file>

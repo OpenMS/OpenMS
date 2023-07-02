@@ -28,70 +28,76 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Hendrik Weisser $
-// $Authors: Hendrik Weisser $
+// $Maintainer: Jihyung Kim $
+// $Authors: Jihyung Kim $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/FORMAT/OMSFile.h>
-#include <OpenMS/FORMAT/OMSFileLoad.h>
-#include <OpenMS/FORMAT/OMSFileStore.h>
+#pragma once
 
-#include <fstream>
+// OpenMS_GUI config
+#include <OpenMS/VISUAL/OpenMS_GUIConfig.h>
 
-using namespace std;
+// OpenMS
+#include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 
-using ID = OpenMS::IdentificationData;
+// QT
+#include <QtCore/QProcess>
+#include <QtNetwork/QNetworkReply>
+#include <QtWidgets/QButtonGroup>
+#include <QtWidgets/QMainWindow>
+#include <QtWidgets/QMdiArea>
+#include <QtWidgets/QSplashScreen>
+
+class QToolBar;
+class QListWidget;
+class QTextEdit;
+class QMdiArea;
+class QLabel;
+class QWidget;
+class QTreeWidget;
+class QTreeWidgetItem;
+class QWebView;
+class QNetworkAccessManager;
+
+namespace Ui
+{
+  class FLASHDeconvWizardBase;
+}
 
 namespace OpenMS
 {
-  void OMSFile::store(const String& filename, const IdentificationData& id_data)
-  {
-    OpenMS::Internal::OMSFileStore helper(filename, log_type_);
-    helper.store(id_data);
-  }
+  /**
+    @brief Main window of the FLASHDeconvWizard tool
 
-  void OMSFile::store(const String& filename, const FeatureMap& features)
+  */
+  class OPENMS_GUI_DLLAPI FLASHDeconvWizardBase : public QMainWindow, public DefaultParamHandler
   {
-    OpenMS::Internal::OMSFileStore helper(filename, log_type_);
-    helper.store(features);
-  }
+    Q_OBJECT
 
-  void OMSFile::store(const String& filename, const ConsensusMap& consensus)
-  {
-    OpenMS::Internal::OMSFileStore helper(filename, log_type_);
-    helper.store(consensus);
-  }
+  public:
+    /// Constructor
+    FLASHDeconvWizardBase(QWidget* parent = nullptr);
+    /// Destructor
+    ~FLASHDeconvWizardBase() override;
 
-  void OMSFile::load(const String& filename, IdentificationData& id_data)
-  {
-    OpenMS::Internal::OMSFileLoad helper(filename, log_type_);
-    helper.load(id_data);
-  }
+    void showAboutDialog();
 
-  void OMSFile::load(const String& filename, FeatureMap& features)
-  {
-    OpenMS::Internal::OMSFileLoad helper(filename, log_type_);
-    helper.load(features);
-  }
+  protected:
+    /// The current path (used for loading and storing).
+    /// Depending on the preferences this is static or changes with the current window/layer.
+    String current_path_;
 
-  void OMSFile::load(const String& filename, ConsensusMap& consensus)
-  {
-    OpenMS::Internal::OMSFileLoad helper(filename, log_type_);
-    helper.load(consensus);
-  }
+    /// The path for temporary files
+    String tmp_path_;
 
-  void OMSFile::exportToJSON(const String& filename_in, const String& filename_out)
-  {
-    OpenMS::Internal::OMSFileLoad helper(filename_in, log_type_);
-    ofstream output(filename_out.c_str());
-    if (output.is_open())
-    {
-      helper.exportToJSON(output);
-    }
-    else
-    {
-      throw Exception::FileNotWritable(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename_out);
-    }
-  }
+  private slots:
+    // names created by QtCreator. Do not change them.
+    void on_actionExit_triggered();
+    void on_actionVisit_FLASHDeconv_homepage_triggered();
+    void on_actionReport_new_issue_triggered();
 
-}
+  private:
+    Ui::FLASHDeconvWizardBase* ui;
+  }; // class
+
+} // namespace OpenMS

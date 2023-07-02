@@ -41,9 +41,8 @@
 #include <OpenMS/CHEMISTRY/AASequence.h>
 #include <vector>
 #include <map>
+#include <unordered_map>
 #include <set>
-
-#include <boost/container/flat_map.hpp>
 
 namespace OpenMS
 {
@@ -55,7 +54,7 @@ namespace OpenMS
 
   public:
     // struct needed to wrap the template for pyOpenMS
-    struct MapToResidueType { boost::container::flat_map<const ResidueModification*, const Residue*> val; };
+    struct MapToResidueType { std::unordered_map<const ResidueModification*, const Residue*> val; };
 
       /**
       * @brief Retrieve modifications from strings
@@ -83,18 +82,11 @@ namespace OpenMS
      bool keep_original=true);
 
   protected:
+    static const int N_TERM_MODIFICATION_INDEX; // magic constant to distinguish N_TERM only modifications from ANYWHERE modifications placed at N-term residue
+    static const int C_TERM_MODIFICATION_INDEX; // magic constant to distinguish C_TERM only modifications from ANYWHERE modifications placed at C-term residue
+
     // Lookup datastructure to allow lock-free generation of modified peptides
     static MapToResidueType createResidueModificationToResidueMap_(const std::vector<const ResidueModification*>& mods);
-
-
-    // Recursively generate all combinatoric placements at compatible sites
-    static void recurseAndGenerateVariableModifiedPeptides_(
-      const std::vector<int>& subset_indices, 
-      const std::map<int, std::vector<const ResidueModification*> >& map_compatibility, 
-      const MapToResidueType& var_mods,
-      int depth, 
-      const AASequence& current_peptide, 
-      std::vector<AASequence>& modified_peptides);
 
     // Fast implementation of modification placement. No combinatoric placement is needed in this case - just every site is modified once by each compatible modification. Already modified residues are skipped
     static void applyAtMostOneVariableModification_(
@@ -103,7 +95,10 @@ namespace OpenMS
       std::vector<AASequence>& all_modified_peptides, 
       bool keep_original=true);
 
+  private:
+    /// take a vector of AASequences @p original_sequences, and for each mod in @p mods, add a version with mod at index @p idx_to_modify. In-place, with the original sequences recieving the first mod in @p mods.
+    static void applyAllModsAtIdxAndExtend_(std::vector<AASequence>& original_sequences, int idx_to_modify, const std::vector<const ResidueModification*>& mods, const MapToResidueType& var_mods);
+    /// applies a modification @p m to the @p current_peptide at @p current_index. Overwrites mod if it exists. Looks up in var_mods for existing modified Residue pointers.
+    static void applyModToPep_(AASequence& current_peptide, int current_index, const ResidueModification* m, const MapToResidueType& var_mods);
   };
 }
-
-

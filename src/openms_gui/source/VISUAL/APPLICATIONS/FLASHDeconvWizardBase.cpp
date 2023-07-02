@@ -28,70 +28,78 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Hendrik Weisser $
-// $Authors: Hendrik Weisser $
+// $Maintainer: Jihyung Kim $
+// $Authors: Jihyung Kim $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/FORMAT/OMSFile.h>
-#include <OpenMS/FORMAT/OMSFileLoad.h>
-#include <OpenMS/FORMAT/OMSFileStore.h>
+#include <OpenMS/APPLICATIONS/TOPPBase.h>
+#include <OpenMS/APPLICATIONS/ToolHandler.h>
+#include <OpenMS/CONCEPT/LogStream.h>
+#include <OpenMS/VISUAL/APPLICATIONS/FLASHDeconvWizardBase.h>
+#include <OpenMS/VISUAL/APPLICATIONS/MISC/QApplicationTOPP.h>
+#include <OpenMS/VISUAL/DIALOGS/FLASHDeconvTabWidget.h>
+#include <ui_FLASHDeconvWizardBase.h>
 
-#include <fstream>
+// Qt
+#include <QDesktopServices>
+#include <QMessageBox>
+#include <QSettings>
 
 using namespace std;
-
-using ID = OpenMS::IdentificationData;
+using namespace OpenMS;
 
 namespace OpenMS
 {
-  void OMSFile::store(const String& filename, const IdentificationData& id_data)
+  using namespace Internal;
+
+  FLASHDeconvWizardBase::FLASHDeconvWizardBase(QWidget* parent) :
+      QMainWindow(parent), DefaultParamHandler("FLASHDeconvWizardBase"),
+      ui(new Ui::FLASHDeconvWizardBase)
   {
-    OpenMS::Internal::OMSFileStore helper(filename, log_type_);
-    helper.store(id_data);
+    ui->setupUi(this);
+    QSettings settings("OpenMS", "FLASHDeconvWizard");
+    restoreGeometry(settings.value("geometry").toByteArray());
+    restoreState(settings.value("windowState").toByteArray());
+    setWindowTitle("FLASHDeconvWizard");
+    setWindowIcon(QIcon(":/FLASHDeconvWizard.png"));
+
+    FLASHDeconvTabWidget* cwidget = new FLASHDeconvTabWidget(this);
+    setCentralWidget(cwidget);
   }
 
-  void OMSFile::store(const String& filename, const FeatureMap& features)
+
+  FLASHDeconvWizardBase::~FLASHDeconvWizardBase()
   {
-    OpenMS::Internal::OMSFileStore helper(filename, log_type_);
-    helper.store(features);
+    delete ui;
   }
 
-  void OMSFile::store(const String& filename, const ConsensusMap& consensus)
+
+  void FLASHDeconvWizardBase::showAboutDialog()
   {
-    OpenMS::Internal::OMSFileStore helper(filename, log_type_);
-    helper.store(consensus);
+    QApplicationTOPP::showAboutDialog(this, "FLASHDeconvWizard");
   }
 
-  void OMSFile::load(const String& filename, IdentificationData& id_data)
+  void OpenMS::FLASHDeconvWizardBase::on_actionExit_triggered()
   {
-    OpenMS::Internal::OMSFileLoad helper(filename, log_type_);
-    helper.load(id_data);
+    QApplicationTOPP::exit();
   }
 
-  void OMSFile::load(const String& filename, FeatureMap& features)
+  void OpenMS::FLASHDeconvWizardBase::on_actionVisit_FLASHDeconv_homepage_triggered()
   {
-    OpenMS::Internal::OMSFileLoad helper(filename, log_type_);
-    helper.load(features);
-  }
-
-  void OMSFile::load(const String& filename, ConsensusMap& consensus)
-  {
-    OpenMS::Internal::OMSFileLoad helper(filename, log_type_);
-    helper.load(consensus);
-  }
-
-  void OMSFile::exportToJSON(const String& filename_in, const String& filename_out)
-  {
-    OpenMS::Internal::OMSFileLoad helper(filename_in, log_type_);
-    ofstream output(filename_out.c_str());
-    if (output.is_open())
+    const char* url = "https://openms.de/application/flashdeconv/";
+    if (!QDesktopServices::openUrl(QUrl(url)))
     {
-      helper.exportToJSON(output);
-    }
-    else
-    {
-      throw Exception::FileNotWritable(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename_out);
+      QMessageBox::warning(nullptr, "Cannot open browser. Please check your default browser settings.", QString(url));
     }
   }
 
-}
+  void OpenMS::FLASHDeconvWizardBase::on_actionReport_new_issue_triggered()
+  {
+    const char* url = "https://github.com/OpenMS/OpenMS/issues";
+    if (!QDesktopServices::openUrl(QUrl(url)))
+    {
+      QMessageBox::warning(nullptr, "Cannot open browser. Please check your default browser settings.", QString(url));
+    }
+  }
+
+} // namespace OpenMS

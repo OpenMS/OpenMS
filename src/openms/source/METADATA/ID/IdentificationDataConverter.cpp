@@ -234,9 +234,9 @@ namespace OpenMS
         {
           if (step_ref->input_file_refs.size() > 1)
           { // Undo the hack needed in the legacy id datastructure to represent merged id files. Extract the actual input file name so we can properly register it.
-            if (pep.metaValueExists("id_merge_idx"))
+            if (pep.metaValueExists(Constants::UserParam::ID_MERGE_INDEX))
             {
-              inputfile = step_ref->input_file_refs[pep.getMetaValue("id_merge_idx")];
+              inputfile = step_ref->input_file_refs[pep.getMetaValue(Constants::UserParam::ID_MERGE_INDEX)];
             }
             else
             {
@@ -244,7 +244,7 @@ namespace OpenMS
                   __FILE__,
                   __LINE__,
                   OPENMS_PRETTY_FUNCTION,
-                  "Multiple file origins in ProteinIdentification Run but no 'id_merge_idx' metavalue in PeptideIdentification."
+                  String("Multiple file origins in ProteinIdentification Run but no '") + Constants::UserParam::ID_MERGE_INDEX + String("' metavalue in PeptideIdentification.")
                   );
             }
           }
@@ -1047,7 +1047,7 @@ namespace OpenMS
             feat_ptr = &feat_ptr->getSubordinates()[indexes[i]];
           }
           feat_ptr->addIDMatch(ref);
-          // @TODO: remove meta value
+          id_data.removeMetaValue(ref, key);
         }
       }
     }
@@ -1211,6 +1211,182 @@ namespace OpenMS
       extended.push_back(i);
       handleFeatureExport_(feature.getSubordinates()[i], extended, id_data,
                            id_counter);
+    }
+  }
+
+
+  void IdentificationDataConverter::importConsensusIDs(ConsensusMap& consensus,
+                                                       bool clear_original)
+  {
+    // copy identification information in old format to new format;
+    // i.e. from 'protein_identifications_'/'unassigned_peptide_identifications_' (consensus map)
+    // and 'peptides_' (features) to 'id_data_' (consensus map) and 'primary_id_'/'id_matches_' (features);
+    // use meta values to temporarily store which features IDs are assigned to
+
+    // collect all peptide IDs:
+    vector<PeptideIdentification> peptides = consensus.getUnassignedPeptideIdentifications();
+    // get peptide IDs from each consensus feature, add meta values:
+    Size id_counter = 0;
+    for (Size i = 0; i < consensus.size(); ++i)
+    {
+      ConsensusFeature& feature = consensus[i];
+      for (const PeptideIdentification& pep : feature.getPeptideIdentifications())
+      {
+        peptides.push_back(pep);
+        // store feature index so we can map the converted ID back;
+        // key needs to be unique in case the same ID matches multiple features:
+        String key = "IDConverter_trace_" + String(id_counter);
+        for (PeptideHit& hit : peptides.back().getHits())
+        {
+          hit.setMetaValue(key, i);
+        }
+        ++id_counter;
+      }
+      if (clear_original) feature.getPeptideIdentifications().clear();
+    }
+
+    IdentificationData& id_data = consensus.getIdentificationData();
+    importIDs(id_data, consensus.getProteinIdentifications(), peptides);
+
+    // map converted IDs back to consensus features using meta values assigned above:
+    for (ID::ObservationMatchRef ref = id_data.getObservationMatches().begin();
+         ref != id_data.getObservationMatches().end(); ++ref)
+    {
+      vector<String> meta_keys;
+      ref->getKeys(meta_keys);
+      for (const String& key : meta_keys)
+      {
+        if (key.hasPrefix("IDConverter_trace_"))
+        {
+          Size index = ref->getMetaValue(key);
+          ConsensusFeature& feat = consensus.at(index);
+          feat.addIDMatch(ref);
+          id_data.removeMetaValue(ref, key);
+        }
+      }
+    }
+    if (clear_original)
+    {
+      consensus.getUnassignedPeptideIdentifications().clear();
+      consensus.getProteinIdentifications().clear();
+    }
+  }
+
+
+  void IdentificationDataConverter::exportConsensusIDs(ConsensusMap& consensus,
+                                                       bool clear_original)
+  {
+    // copy identification information in new format to old format;
+    // i.e. from 'id_data_' (consensus map) and 'primary_id_'/'id_matches_' (features)
+    // to 'protein_identifications_'/'unassigned_peptide_identifications_' (consensus map)
+    // and 'peptides_' (features);
+    // use meta values to temporarily store which features IDs are assigned to
+
+    Size id_counter = 0;
+    IdentificationData& id_data = consensus.getIdentificationData();
+    // Adds dummy Obs.Match for features with ID but no matches.
+    // Adds "IDConverter_trace" meta value to Matches for every feature they are contained in
+    for (Size i = 0; i < consensus.size(); ++i)
+    {
+      ConsensusFeature& feature = consensus[i];
+      if (feature.getIDMatches().empty() && feature.hasPrimaryID())
+      {
+        // primary ID without supporting ID matches - generate a "dummy" ID match
+        // so we can export it:
+        ID::InputFile file("ConvertedFromFeature");
+        ID::InputFileRef file_ref = id_data.registerInputFile(file);
+        ID::Observation obs(String(feature.getUniqueId()), file_ref,
+                            feature.getRT(), feature.getMZ());
+        ID::ObservationRef obs_ref = id_data.registerObservation(obs);
+        ID::ObservationMatch match(feature.getPrimaryID(), obs_ref,
+                                   feature.getCharge());
+        ID::ObservationMatchRef match_ref = id_data.registerObservationMatch(match);
+        feature.addIDMatch(match_ref);
+      }
+      for (ID::ObservationMatchRef ref : feature.getIDMatches())
+      {
+        // store trace of feature indexes so we can map the converted ID back;
+        // key needs to be unique in case the same ID matches multiple features:
+        String key = "IDConverter_trace_" + String(id_counter);
+        id_data.setMetaValue(ref, key, i);
+        ++id_counter;
+      }
+    }
+
+    exportIDs(consensus.getIdentificationData(), consensus.getProteinIdentifications(),
+              consensus.getUnassignedPeptideIdentifications(), false);
+
+    // map converted IDs back to features using meta values assigned above;
+    // in principle, different "observation matches" from one "observation"
+    // can map to different features, which makes things complicated when they
+    // are converted to "peptide hits"/"peptide identifications"...
+
+    auto& pep_ids = consensus.getUnassignedPeptideIdentifications();
+    for (Size i = 0; i < pep_ids.size(); )
+    {
+      PeptideIdentification& pep = pep_ids[i];
+      // move hits outside of peptide ID so ID can be copied without the hits:
+      vector<PeptideHit> all_hits;
+      all_hits.swap(pep.getHits());
+      vector<bool> assigned_hits(all_hits.size(), false);
+      // which hits map to which features:
+      map<ConsensusFeature*, set<Size>> features_to_hits;
+      for (Size j = 0; j < all_hits.size(); ++j)
+      {
+        PeptideHit& hit = all_hits[j];
+        vector<String> meta_keys;
+        hit.getKeys(meta_keys);
+        for (const String& key : meta_keys)
+        { // ID-data stores a trace (feature index) which is used for a lookup
+          // to attach the converted IDs back to the specific feature.
+          if (key.hasPrefix("IDConverter_trace_"))
+          {
+            Size index = hit.getMetaValue(key);
+            hit.removeMetaValue(key);
+            ConsensusFeature* feat_ptr = &consensus.at(index);
+            features_to_hits[feat_ptr].insert(j);
+            assigned_hits[j] = true;
+          }
+        }
+      }
+      // copy peptide ID with corresponding hits to relevant features:
+      for (auto& pair : features_to_hits)
+      {
+        auto& feat_ids = pair.first->getPeptideIdentifications();
+        feat_ids.push_back(pep);
+        for (Size hit_index : pair.second)
+        {
+          feat_ids.back().getHits().push_back(all_hits[hit_index]);
+        }
+      }
+
+      bool all_assigned = all_of(assigned_hits.begin(), assigned_hits.end(),
+                                 [](bool b) { return b; });
+      if (all_assigned) // remove peptide ID from unassigned IDs
+      {
+        pep_ids.erase(pep_ids.begin() + i);
+        // @TODO: use "std::remove" to make this more efficient
+      }
+      else // only keep hits that weren't assigned:
+      {
+        for (Size j = 0; j < assigned_hits.size(); ++j)
+        {
+          if (!assigned_hits[j])
+          {
+            pep.getHits().push_back(all_hits[j]);
+          }
+        }
+        ++i;
+      }
+    }
+    if (clear_original)
+    {
+      consensus.getIdentificationData().clear();
+      for (auto& feat : consensus)
+      {
+        feat.clearPrimaryID();
+        feat.getIDMatches().clear();
+      }
     }
   }
 

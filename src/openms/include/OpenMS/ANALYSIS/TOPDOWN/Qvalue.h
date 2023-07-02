@@ -37,7 +37,6 @@
 #include <OpenMS/ANALYSIS/TOPDOWN/DeconvolvedSpectrum.h>
 #include <OpenMS/ANALYSIS/TOPDOWN/FLASHDeconvHelperStructs.h>
 #include <OpenMS/KERNEL/Peak1D.h>
-#include <OpenMS/METADATA/Precursor.h>
 
 
 namespace OpenMS
@@ -45,25 +44,28 @@ namespace OpenMS
   class PeakGroup;
 
   /**
-@brief   QScore : quality score for PeakGroup. This class is being updated.
-   For now, simply it calculate the QScore using a fixed weight vector.
-   The weight vector has been determined by logistic regression.
-   But afterwards, the training part for the QScore should be added in here.
-   Or other technique such as deep learning would be used.
-   This class also contains tsv output function. The tsv file contains features of PeakGroups which are used for training.
+@brief   Qvalue : contains functions to calculate Qvalues from deconvolution quality score
 @ingroup Topdown
 */
 
-  class OPENMS_DLLAPI QScore
+  class OPENMS_DLLAPI Qvalue
   {
   public:
     typedef FLASHDeconvHelperStructs::LogMzPeak LogMzPeak;
 
-    /// get QScore for a peak group of specific abs_charge
-    static float getQScore(const PeakGroup *pg, int abs_charge);
+    /// Calculate and perform a batch update of peak group qvalues using Qscores of target and dummy peak groups in deconvolved spectra, when FDR report is necessary.
+    /// @param deconvolved_spectra target deconvolved spectra
+    /// @param deconvolved_decoy_spectra decoy deconvolved spectra
+    void static updatePeakGroupQvalues(std::vector<DeconvolvedSpectrum>& deconvolved_spectra, std::vector<DeconvolvedSpectrum>& deconvolved_decoy_spectra);
 
   private:
-    /// convert a peak group to a feature vector for QScore calculation
-    static std::vector<double> toFeatureVector_(const PeakGroup *pg, int abs_charge);
+    /// get a bin number given qvalue. qvalue is calculated per bin (bin from 0 to 1).
+    static uint getBinNumber(float qscore, uint total_bin_number);
+    /// get the qvalue corresponding to a bin number
+    static float getBinValue(uint bin_number, uint total_bin_number);
+    /// get the Qscore distribution
+    static std::vector<float> getDistribution(const std::vector<float>& qscores, uint bin_number);
+    /// get the weights of different dummy types.
+    static std::vector<float> getDistributionWeights(const std::vector<float>& mixed_dist, const std::vector<std::vector<float>>& comp_dists, uint num_iterations = 100);
   };
-}
+} // namespace OpenMS
