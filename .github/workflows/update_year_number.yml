@@ -1,11 +1,13 @@
 name: Update year number
 
-# Trigger this action manually
+# Trigger this action manually and on a yearly schedule
 on:
   workflow_dispatch:
     inputs:
       year_number:
         required: true
+  schedule:
+    - cron: '0 0 1 1 *'
 
 jobs:
   updating_year_number:
@@ -24,10 +26,9 @@ jobs:
 
 # Commit and PR updated files
       - name: Commit and PR updated files
-        uses: peter-evans/create-pull-request@v4
+        uses: peter-evans/create-pull-request@v5
         with:
           commit-message: 'Updated year number'
-          committer: ${{github.actor}}
           branch: update_year_number
           delete-branch: true
           title: '[ByGitAction] Updated year number in the header of files'
