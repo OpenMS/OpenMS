@@ -47,8 +47,6 @@ namespace OpenMS
   inline const int low_charge_ = 10; // 10 inclusive
   inline const double tol_div_factor = 2.5; // use narrow tolerance for deconvolution and at the end use the input tolerance to filter out overlapping masses.
 
-  inline const bool useDL = false;
-
   FLASHDeconvAlgorithm::FLASHDeconvAlgorithm() : DefaultParamHandler("FLASHDeconvAlgorithm")
   {
     defaults_.setValue("tol", DoubleList {10.0, 10.0}, "ppm tolerance for MS1, 2, ... (e.g., -tol 10.0 5.0 to specify 10.0 and 5.0 ppm for MS1 and MS2, respectively)");
@@ -203,24 +201,6 @@ namespace OpenMS
     min_isotope_cosine_ = param_.getValue("min_isotope_cosine");
     allowed_iso_error_ = param_.getValue("allowed_isotope_error");
 
-    if(useDL)
-    {
-      try
-      {
-        auto file = "/Users/kyowonjeong/Library/CloudStorage/GoogleDrive-kyowonjeong@gmail.com/My Drive/JeongLab/Projects/DL based Deconvolution scoring/230422_code/C11_I11.pt";
-        if (!std::filesystem::exists(file))
-        {
-          std::cerr << file << " does not exists!" << std::endl;
-          return;
-        }
-        module_ = torch::jit::load(file, c10::kCPU);
-      }
-      catch (const c10::Error& e)
-      {
-        std::cerr << e.what() << " error loading the model\n";
-        return;
-      }
-    }
   }
 
   const FLASHDeconvHelperStructs::PrecalculatedAveragine& FLASHDeconvAlgorithm::getAveragine()
@@ -1266,98 +1246,6 @@ namespace OpenMS
 
     removeChargeErrorPeakGroups_(deconvolved_spectrum_);
     removeOverlappingPeakGroups_(deconvolved_spectrum_, tol * tol_div_factor * 1.5);
-
-    if(useDL)
-    {
-      for(auto& peak_group: deconvolved_spectrum_)
-      {
-        peak_group.calculateDLMatrices(deconvolved_spectrum_.getOriginalSpectrum(), tol, avg_);
-        std::vector<torch::jit::IValue> inputs;
-
-        auto mat1 = peak_group.getDLMatrix(0);
-        std::vector<float> vec1;
-
-        for (int c = 0; c < mat1.cols(); c++)
-        {
-          for (int r = 0; r < mat1.rows(); r++)
-          {
-            vec1.push_back(mat1.getValue(r, c));
-          }
-        }
-
-        torch::Tensor t1 = torch::from_blob(vec1.data(), {1, 1, peak_group.getIsotopeRangeForDL(), peak_group.getChargeRangeForDL()});
-
-        auto mat2 = peak_group.getDLMatrix(1);
-        std::vector<float> vec2;
-
-        for (int c = 0; c < mat2.cols(); c++)
-        {
-          for (int r = 0; r < mat2.rows(); r++)
-          {
-            vec2.push_back(mat2.getValue(r, c));
-          }
-        }
-
-        torch::Tensor t2 = torch::from_blob(vec2.data(), {1, 1, peak_group.getIsotopeRangeForDL(), peak_group.getChargeRangeForDL()});
-
-        auto mat3 = peak_group.getDLMatrix(2);
-        std::vector<float> vec3;
-
-        for (int c = 0; c < mat3.cols(); c++)
-        {
-          for (int r = 0; r < mat3.rows(); r++)
-          {
-            vec3.push_back(mat3.getValue(r, c));
-          }
-        }
-
-        torch::Tensor t3 = torch::from_blob(vec3.data(), {1, 1, peak_group.getIsotopeRangeForDL(), peak_group.getChargeRangeForDL()});
-
-        inputs.emplace_back(t1);
-        inputs.emplace_back(t2);
-        inputs.emplace_back(t3);
-        at::Tensor output = module_.forward(inputs).toTensor(); // output[1][2].item<double>()
-
-        auto d1 = output[0][0].item<double>();
-        auto d2 = output[0][1].item<double>();
-        auto d3 = output[0][2].item<double>();
-        auto d4 = output[0][3].item<double>();
-        peak_group.setIsotopeCosine(d1);
-
-        //if (d1 > d2 && d1 > d3 && d1 > d4) //
-        if(//abs(peak_group.getMonoMass() - 12221.1) < .1 &&
-          peak_group.getQscore() > .2)
-        {
-          //          auto dlm = peak_group.getDLMatrix(0).asVector();
-          //          for (double v : dlm)
-          //          {
-          //            std::cout << v << ",";
-          //          }
-          //          std::cout<<" vector \n"<<std::endl;
-          //          std::cout<< peak_group.getDLMatrix(1) <<std::endl;
-          //          std::cout<<"N\n";
-          //          std::cout<<t1<<std::endl;
-          //          std::cout<<" m1 \n";
-          //          std::cout<<t2<<std::endl;
-          //          std::cout<<" m2 \n";
-          //          std::cout<<t3<<std::endl;
-          //          std::cout<<" m3 \n";
-          //          std::cout<< peak_group.getDLMatrix(2) <<std::endl;
-          //          std::cout<<"T\n";
-          //          std::cout<<t3<<std::endl;
-
-          //std::cout << t1 << std::endl;
-          //std::cout<<"N\n";
-          // std::cout<< peak_group.getDLMatrix(1) <<std::endl;
-          //std::cout << t2 << std::endl;
-          //std::cout<<"Tol\n";
-          // std::cout<< peak_group.getDLMatrix(2) <<std::endl;
-          //std::cout << t3 << std::endl;
-          //std::cout<<"Classification\n";
-          //std::cout << peak_group.getMonoMass() << "," << peak_group.getQScore() << " vs. T " << d1  << " C " << d2 << " N " << d3 << " I " << d4<<  '\n';
-        }
-      }
-    }
   }
 
   float FLASHDeconvAlgorithm::getIsotopeCosineAndDetermineIsotopeIndex(const double mono_mass, const std::vector<float>& per_isotope_intensities, int& offset, const PrecalculatedAveragine& avg,

@@ -160,6 +160,17 @@ namespace OpenMS
       double rep_mz;
     };
 
+    /// Isobaric quantities.
+    struct OPENMS_DLLAPI IsobaricQuantities
+    {
+    public:
+      int scan;
+      double rt;
+      double precursor_mz;
+      double precursor_mass;
+      std::vector<double> quantities;
+    };
+
     /// log transformed peak. After deconvolution, all necessary information from deconvolution such as charge and isotope index is stored.
     class OPENMS_DLLAPI LogMzPeak
     {
