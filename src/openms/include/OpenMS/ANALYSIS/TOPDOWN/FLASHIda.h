@@ -187,7 +187,7 @@ namespace OpenMS
     FLASHDeconvAlgorithm fd_;
 
     /// total QScore threshold
-    double tqscore_threshold = .9;
+    double tqscore_threshold = .8;
 
     /// q score threshold - determined from C# side
     double qscore_threshold_;
