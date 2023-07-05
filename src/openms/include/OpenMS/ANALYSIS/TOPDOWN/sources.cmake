@@ -8,11 +8,11 @@ set(sources_list_h
     FLASHDeconvHelperStructs.h
     FLASHIda.h
     FLASHIdaBridgeFunctions.h
-	TopDownIsobaricQuantifier.h
     MassFeatureTrace.h
     PeakGroup.h
     Qscore.h
 	Qvalue.h
+	TopDownIsobaricQuantifier.h
     )
 
 ### add path to the filenames

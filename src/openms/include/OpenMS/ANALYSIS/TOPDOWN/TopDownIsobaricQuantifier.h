@@ -35,6 +35,7 @@
 #pragma once
 
 #include <OpenMS/ANALYSIS/TOPDOWN/DeconvolvedSpectrum.h>
+#include <OpenMS/ANALYSIS/TOPDOWN/FLASHDeconvHelperStructs.h>
 #include <OpenMS/ANALYSIS/TOPDOWN/PeakGroup.h>
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 #include <OpenMS/ANALYSIS/QUANTITATION/IsobaricQuantitationMethod.h>
@@ -72,8 +73,8 @@ namespace OpenMS
        @brief
        @param exp
        */
-    static void quantify(const MSExperiment& exp, const DeconvolvedSpectrum& dspec);
-    static const FLASHDeconvHelperStructs::IsobaricQuantities getQuantities(int scan);
+    void quantify(const MSExperiment& exp, const DeconvolvedSpectrum& dspec);
+    const FLASHDeconvHelperStructs::IsobaricQuantities getQuantities(int scan) const;
 
   protected:
     void updateMembers_() override;
@@ -81,6 +82,6 @@ namespace OpenMS
   private:
 
     /// peak group information is stored in here for tracing
-    static std::map<int, FLASHDeconvHelperStructs::IsobaricQuantities> quantities_;
+    std::map<int, FLASHDeconvHelperStructs::IsobaricQuantities> quantities_;
   };
 } // namespace OpenMS

@@ -8,11 +8,11 @@ set(sources_list
 	FLASHDeconvHelperStructs.cpp
 	FLASHIda.cpp
 	FLASHIdaBridgeFunctions.cpp
-	TopDownIsobaricQuantifier.cpp
 	MassFeatureTrace.cpp
 	PeakGroup.cpp
     Qscore.cpp
 	Qvalue.cpp
+	TopDownIsobaricQuantifier.cpp
 	)
 
 ### add path to the filenames

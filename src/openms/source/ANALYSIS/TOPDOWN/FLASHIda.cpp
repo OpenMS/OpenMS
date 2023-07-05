@@ -556,9 +556,9 @@ namespace OpenMS
             Size index = ospec.findNearest(center_mz);
             Size tindexl = index == 0 ? index : index - 1;
             Size tindexr = index == 0 ? index + 1 : index;
-            double lmz = ospec[tindexl].getMZ(), rmz = ospec[tindexr].getMZ();
-            double sig_pwr = .0;
-            double noise_pwr = .0;
+            double lmz = mz1, rmz = mz2;
+            double sig_pwr = pg.getChargeIntensity(charge) * pg.getChargeIntensity(charge);
+            double noise_pwr = sig_pwr / (.01 + pg.getChargeSNR(charge));
 
             bool goleft = tindexl > 0 && (center_mz - lmz >= rmz - center_mz);
             bool goright = tindexr < ospec.size() - 1 && (center_mz - lmz <= rmz - center_mz);

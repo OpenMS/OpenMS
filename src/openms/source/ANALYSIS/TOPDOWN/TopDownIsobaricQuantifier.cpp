@@ -48,7 +48,7 @@ namespace OpenMS
 
   }
 
-  const FLASHDeconvHelperStructs::IsobaricQuantities TopDownIsobaricQuantifier::getQuantities(int scan)
+  const FLASHDeconvHelperStructs::IsobaricQuantities TopDownIsobaricQuantifier::getQuantities(int scan) const
   {
     return quantities_.at(scan);
   }
