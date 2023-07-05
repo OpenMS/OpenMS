@@ -560,8 +560,8 @@ namespace OpenMS
             double sig_pwr = pg.getChargeIntensity(charge) * pg.getChargeIntensity(charge);
             double noise_pwr = sig_pwr / (.01 + pg.getChargeSNR(charge));
 
-            bool goleft = tindexl > 0 && (center_mz - lmz >= rmz - center_mz);
-            bool goright = tindexr < ospec.size() - 1 && (center_mz - lmz <= rmz - center_mz);
+            bool goleft = tindexl > 0 && (center_mz - lmz <= rmz - center_mz);
+            bool goright = tindexr < ospec.size() - 1 && (center_mz - lmz >= rmz - center_mz);
 
             while (goleft || goright)
             {
@@ -594,8 +594,8 @@ namespace OpenMS
                 rmz = ospec[tindexr].getMZ();
               }
 
-              goleft = tindexl > 0 && (center_mz - lmz >= rmz - center_mz);
-              goright = tindexr < ospec.size() - 1 && (center_mz - lmz <= rmz - center_mz);
+              goleft = tindexl > 0 && (center_mz - lmz <= rmz - center_mz);
+              goright = tindexr < ospec.size() - 1 && (center_mz - lmz >= rmz - center_mz);
 
               if (lmz > mz1 || rmz < mz2 || rmz - lmz < min_isolation_window_half_ * 2)
               {
