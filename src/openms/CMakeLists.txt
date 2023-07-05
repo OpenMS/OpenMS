@@ -88,6 +88,7 @@ include (${PROJECT_SOURCE_DIR}/includes.cmake)
 # all the dependency libraries are linked into libOpenMS.so
 set(OPENMS_DEP_LIBRARIES Evergreen LibSVM::LibSVM XercesC::XercesC Qt5::Core Qt5::Network)
 
+## setup the argumentes to 'target_link_libraries(OpenMS PRIVATE ${OPENMS_DEP_PRIVATE_LIBRARIES})'
 set(OPENMS_DEP_PRIVATE_LIBRARIES 
   GTE Quadtree ${LPTARGET} 
   Eigen3::Eigen
@@ -98,7 +99,8 @@ set(OPENMS_DEP_PRIVATE_LIBRARIES
   Boost::regex
   BZip2::BZip2
   ZLIB::ZLIB
-  SQLiteCpp)
+  SQLiteCpp
+  nlohmann_json::nlohmann_json)
 
 ## ----------
 ## No need to for this at the moment: no Qt plugins required anymore. Left here for reference.
@@ -135,7 +137,6 @@ openms_add_library(TARGET_NAME  OpenMS
                                      ${CMAKE_CURRENT_BINARY_DIR}/include
                    PRIVATE_INCLUDES ${EOL_BSPLINE_INCLUDE_DIRECTORY}
                                     ${ISOSPEC_INCLUDE_DIRECTORY}
-                                    ${JSON_INCLUDE_DIRECTORY}
                    EXTERNAL_INCLUDES
                    LINK_LIBRARIES OpenSwathAlgo
                                   ${OPENMS_DEP_LIBRARIES}
