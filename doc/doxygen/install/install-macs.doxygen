@@ -37,7 +37,7 @@
    \code
      xcode-select --install
    \endcode
-   <li>CMake (version 3.21 or higher) is required to configure and build the %OpenMS as well as some of its dependencies.</li>
+   <li>CMake(>= 3.24) is required to configure and build the %OpenMS as well as some of its dependencies.</li>
    <li>Qt5, its SVG module and the header files are required.
    @note We recommend installing Qt using Homebrew with:
    \code
