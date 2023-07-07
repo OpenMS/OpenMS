@@ -122,7 +122,8 @@ protected:
     setValidFormats_("out_topFD_feature", ListUtils::create<String>("feature"), false);
 
     registerDoubleOption_("min_precursor_snr", "<SNR value>", 1.0,
-                          "Minimum precursor SNR (SNR within the precursor envelope range) for identification. Similar to precursor interference level, but far more stringent as it also considers the isotope distribution shape of signal."
+                          "Minimum precursor SNR (SNR within the precursor envelope range) for identification. Similar to precursor interference level, but far more stringent as it also considers "
+                          "the isotope distribution shape of signal."
                           "When FLASHIda log file is used, this parameter is ignored. Applied only for topFD msalign outputs.",
                           false, false);
 
@@ -857,25 +858,30 @@ protected:
 
     // Isobaric quant run
     quantifier.quantify(map, deconvolved_spectra, mass_features);
+
     out_quant_stream << "Scan\tPrecursorScan\tPrecursorMass";
     bool begin = true;
     for (auto& dspec : deconvolved_spectra)
     {
-      if (dspec.getOriginalSpectrum().getMSLevel() == 1) continue;
-      if (dspec.getPrecursorPeakGroup().empty()) continue;
+      if (dspec.getOriginalSpectrum().getMSLevel() == 1)
+        continue;
+      if (dspec.getPrecursorPeakGroup().empty())
+        continue;
       int scan = dspec.getScanNumber();
       auto quant = quantifier.getQuantities(scan);
+      if (quant.empty())
+        continue;
       if (begin)
       {
-        for (Size i=0; i<quant.quantities.size();i++)
+        for (Size i = 0; i < quant.quantities.size(); i++)
         {
-          out_quant_stream<<"\tq"<<(i+1);
+          out_quant_stream << "\tq" << (i + 1);
         }
-        for (Size i=0; i<quant.quantities.size();i++)
+        for (Size i = 0; i < quant.quantities.size(); i++)
         {
-          out_quant_stream<<"\tnq"<<(i+1);
+          out_quant_stream << "\tnq" << (i + 1);
         }
-        out_quant_stream<<"\n";
+        out_quant_stream << "\n";
         begin = false;
       }
       out_quant_stream << scan << "\t" << dspec.getPrecursorScanNumber() << "\t" << dspec.getPrecursorPeakGroup().getMonoMass();
@@ -886,7 +892,7 @@ protected:
       }
       for (auto q : quant.quantities)
       {
-        out_quant_stream << "\t" << q/sum;
+        out_quant_stream << "\t" << q / sum;
       }
       sum = 0;
       for (auto q : quant.merged_quantities)
@@ -895,11 +901,10 @@ protected:
       }
       for (auto q : quant.merged_quantities)
       {
-        out_quant_stream << "\t" << q/sum;
+        out_quant_stream << "\t" << q / sum;
       }
       out_quant_stream << "\n";
     }
-
 
     out_quant_stream.close();
     if (!out_mzml_file.empty())

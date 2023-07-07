@@ -101,7 +101,6 @@ namespace OpenMS
       return;
     }
 
-
     const auto& quant_method = quant_methods_[type];
 
     IsobaricChannelExtractor channel_extractor(quant_method.get());
@@ -126,11 +125,38 @@ namespace OpenMS
     std::vector<std::vector<PeakGroup>> precursor_clusters; // clusters of the precursor peak groups
     std::vector<std::vector<std::vector<double>>> intensity_clusters;
     std::vector<std::vector<double>> merged_intensity_clusters;
-    std::map<PeakGroup, int> precursor_cluster_index;       // precursor to cluster index
+    std::map<PeakGroup, int> precursor_cluster_index; // precursor to cluster index
+
+    std::map<int, std::vector<int>> precursor_scan_ms2_scans; // from precursor scan to ms2 scans
+    std::map<int, int> ms2_scan_precursor_scan;               // from ms2 scan to precursor scan
+    std::map<int, double> ms2_scan_precursor_mz;              // from ms2 scan to precursor mz
+
+    int pre_scan = 0;
+    for (auto it = exp.begin(); it != exp.end(); ++it)
+    {
+      int scan_number = exp.getSourceFiles().empty() ? -1 : SpectrumLookup::extractScanNumber(it->getNativeID(), exp.getSourceFiles()[0].getNativeIDTypeAccession());
+
+      if (scan_number < 0)
+      {
+        scan_number = (int)std::distance(exp.begin(), it) + 1;
+      }
+      rt_scan_map[it->getRT()] = scan_number;
+
+      if (it->getMSLevel() == 1)
+      {
+        pre_scan = scan_number;
+        precursor_scan_ms2_scans[pre_scan] = std::vector<int>();
+      }
+      else
+      {
+        precursor_scan_ms2_scans[pre_scan].push_back(scan_number);
+        ms2_scan_precursor_scan[scan_number] = pre_scan;
+        ms2_scan_precursor_mz[scan_number] = it->getPrecursors()[0].getMZ();
+      }
+    }
 
     for (auto& dspec : deconvolved_spectra)
     {
-      rt_scan_map[dspec.getOriginalSpectrum().getRT()] = dspec.getScanNumber();
       if (dspec.getOriginalSpectrum().getMSLevel() == 1)
       {
         continue;
@@ -201,42 +227,14 @@ namespace OpenMS
         intensities.push_back(i.getIntensity());
       }
 
-      if (max_int <= 0) continue;
+      if (max_int <= 0)
+        continue;
 
       auto trt = *rt_scan_map.lower_bound(feature.getRT());
       if (abs(trt.first - feature.getRT()) > .01)
         continue;
       int scan = trt.second;
       ms2_ints[scan] = intensities;
-
-      FLASHDeconvHelperStructs::IsobaricQuantities iq;
-      iq.scan = scan;
-      iq.quantities = intensities;
-      quantities_[scan] = iq;
-    }
-
-    std::map<int, std::vector<int>> precursor_scan_ms2_scans; // from precursor scan to ms2 scans
-    std::map<int, int> ms2_scan_precursor_scan; // from ms2 scan to precursor scan
-    std::map<int, double> ms2_scan_precursor_mz; // from ms2 scan to precursor mz
-
-    int pre_scan = 0;
-    for (auto it = exp.begin(); it != exp.end(); ++it)
-    {
-      int scan_number = exp.getSourceFiles().empty() ? -1 : SpectrumLookup::extractScanNumber(it->getNativeID(), exp.getSourceFiles()[0].getNativeIDTypeAccession());
-
-      if (scan_number < 0)
-      {
-        scan_number = (int)std::distance(exp.begin(), it) + 1;
-      }
-      if (it->getMSLevel() == 1){
-        pre_scan = scan_number;
-        precursor_scan_ms2_scans[pre_scan] = std::vector<int>();
-      }
-      else {
-        precursor_scan_ms2_scans[pre_scan].push_back(scan_number);
-        ms2_scan_precursor_scan[scan_number] = pre_scan;
-        ms2_scan_precursor_mz[scan_number] = it->getPrecursors()[0].getMZ();
-      }
     }
 
     intensity_clusters.resize(precursor_clusters.size());
@@ -244,40 +242,52 @@ namespace OpenMS
 
     for (auto& dspec : deconvolved_spectra)
     {
-      if (dspec.getOriginalSpectrum().getMSLevel() == 1 || dspec.getPrecursorPeakGroup().empty()) continue;
+      if (dspec.getOriginalSpectrum().getMSLevel() == 1 || dspec.getPrecursorPeakGroup().empty())
+      {
+        continue;
+      }
       int cluster_index = precursor_cluster_index[dspec.getPrecursorPeakGroup()];
       int scan = dspec.getScanNumber();
       int pre_scan = ms2_scan_precursor_scan[scan];
       double pre_mz = ms2_scan_precursor_mz[scan];
-
-      std::vector<double> intensities;
-      for (int ms2_scan: precursor_scan_ms2_scans[pre_scan])
+      std::vector<double> intensities (0);
+      for (int ms2_scan : precursor_scan_ms2_scans[pre_scan])
       {
-        if (ms2_ints.find(ms2_scan) == ms2_ints.end()) continue;
-
-        if (ms2_scan_precursor_mz.find(ms2_scan) == ms2_scan_precursor_mz.end() || abs(ms2_scan_precursor_mz[ms2_scan] - pre_mz) > .01) continue;
+        if (ms2_ints.find(ms2_scan) == ms2_ints.end() || ms2_ints[ms2_scan].empty())
+          continue;
+        if (ms2_scan_precursor_mz.find(ms2_scan) == ms2_scan_precursor_mz.end() || abs(ms2_scan_precursor_mz[ms2_scan] - pre_mz) > .01)
+          continue;
         if (intensities.empty())
+        {
           intensities = ms2_ints[ms2_scan];
+        }
         else
         {
-          for (Size j=0; j < intensities.size(); j++)
+          for (Size j = 0; j < intensities.size(); j++)
             intensities[j] += ms2_ints[ms2_scan][j];
         }
       }
-      if (*std::max_element(intensities.begin(), intensities.end()) > 0)
+
+      if (!intensities.empty() && *std::max_element(intensities.begin(), intensities.end()) > 0)
       {
         intensity_clusters[cluster_index].push_back(intensities);
+        FLASHDeconvHelperStructs::IsobaricQuantities iq;
+        iq.scan = scan;
+        iq.quantities = intensities;
+        quantities_[scan] = iq;
       }
     }
+
 
     for (Size i = 0; i < intensity_clusters.size(); i++)
     {
       auto intensities = intensity_clusters[i];
-      if (intensities.empty()) continue;
+      if (intensities.empty())
+        continue;
       merged_intensity_clusters[i] = intensities[0];
-      for (Size j=1; j<intensities.size(); j ++)
+      for (Size j = 1; j < intensities.size(); j++)
       {
-        for (Size k=0;k<merged_intensity_clusters[i].size();k++)
+        for (Size k = 0; k < merged_intensity_clusters[i].size(); k++)
         {
           merged_intensity_clusters[i][k] += intensities[j][k];
         }
@@ -289,10 +299,12 @@ namespace OpenMS
       if (dspec.getOriginalSpectrum().getMSLevel() == 1 || dspec.getPrecursorPeakGroup().empty())
         continue;
       int cluster_index = precursor_cluster_index[dspec.getPrecursorPeakGroup()];
-      if (merged_intensity_clusters[cluster_index].empty()) continue;
+      if (merged_intensity_clusters[cluster_index].empty())
+        continue;
       int scan = dspec.getScanNumber();
 
-      if (quantities_.find(scan) == quantities_.end()) continue;
+      if (quantities_.find(scan) == quantities_.end())
+        continue;
       quantities_[scan].merged_quantities = merged_intensity_clusters[cluster_index];
     }
   }
