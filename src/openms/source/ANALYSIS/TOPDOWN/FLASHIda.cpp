@@ -46,7 +46,7 @@ namespace OpenMS
   /// minimum isolation window width divided by two
   inline const double min_isolation_window_half_ = .6;
   /// maximum isolation window width divided by two
-  inline const double max_isolation_window_half_ = 3.0;
+  inline const double max_isolation_window_half_ = 2.5;
   /// constructor
   FLASHIda::FLASHIda(char* arg)
   {
@@ -549,6 +549,7 @@ namespace OpenMS
             }
           }
 
+
           // here crawling isolation windows max_isolation_window_half_
           auto ospec = deconvolved_spectrum_.getOriginalSpectrum();
           if (ospec.size() > 2)
@@ -556,9 +557,9 @@ namespace OpenMS
             Size index = ospec.findNearest(center_mz);
             Size tindexl = index == 0 ? index : index - 1;
             Size tindexr = index == 0 ? index + 1 : index;
-            double lmz = mz1, rmz = mz2;
-            double sig_pwr = pg.getChargeIntensity(charge) * pg.getChargeIntensity(charge);
-            double noise_pwr = sig_pwr / (.01 + pg.getChargeSNR(charge));
+            double lmz = center_mz, rmz = center_mz;
+            double sig_int = pg.getChargeIntensity(charge);
+            double noise_int = sqrt(sig_int * sig_int / (.01 + pg.getChargeSNR(charge)));
 
             bool goleft = tindexl > 0 && (center_mz - lmz <= rmz - center_mz);
             bool goright = tindexr < ospec.size() - 1 && (center_mz - lmz >= rmz - center_mz);
@@ -567,31 +568,23 @@ namespace OpenMS
             {
               if (goleft)
               {
-                double power = pow(ospec[tindexl].getIntensity(), 2);
-                if (pg.isSignalMZ(ospec[tindexl].getMZ(), tol_[ospec.getMSLevel() - 1])) //
-                {
-                  sig_pwr += power;
-                }
-                else
-                {
-                  noise_pwr += power;
-                }
                 tindexl--;
                 lmz = ospec[tindexl].getMZ();
+                double intensity = ospec[tindexl].getIntensity();
+                if (lmz < mz1)
+                {
+                  noise_int += intensity;
+                }
               }
               if (goright)
               {
-                double power = pow(ospec[tindexr].getIntensity(), 2);
-                if (pg.isSignalMZ(ospec[tindexr].getMZ(), tol_[ospec.getMSLevel() - 1])) //
-                {
-                  sig_pwr += power;
-                }
-                else
-                {
-                  noise_pwr += power;
-                }
                 tindexr++;
                 rmz = ospec[tindexr].getMZ();
+                double intensity = ospec[tindexr].getIntensity();
+                if (rmz > mz2)
+                {
+                  noise_int += intensity;
+                }
               }
 
               goleft = tindexl > 0 && (center_mz - lmz <= rmz - center_mz);
@@ -602,14 +595,16 @@ namespace OpenMS
                 continue;
               }
 
-              if (sig_pwr / noise_pwr < snr_threshold)
+              if (sig_int / noise_int < sqrt(snr_threshold))
               {
                 break;
               }
             }
             mz1 = std::max(center_mz - max_isolation_window_half_, lmz);
             mz2 = std::min(center_mz + max_isolation_window_half_, rmz);
+
           }
+
 
           if (mz1 < ospec[0].getMZ() - max_isolation_window_half_ || mz2 > ospec.back().getMZ() + max_isolation_window_half_ || mz1 + 2 * min_isolation_window_half_ - .01 > mz2 ||
               mz2 - mz1 > 2 * max_isolation_window_half_ + .01)

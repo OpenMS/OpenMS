@@ -169,6 +169,9 @@ namespace OpenMS
       double precursor_mz;
       double precursor_mass;
       std::vector<double> quantities;
+      std::vector<double> merged_quantities;
+
+      bool empty();
     };
 
     /// log transformed peak. After deconvolution, all necessary information from deconvolution such as charge and isotope index is stored.

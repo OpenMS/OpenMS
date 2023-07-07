@@ -54,34 +54,44 @@ namespace OpenMS
   public:
 
     /// constructor
-    explicit TopDownIsobaricQuantifier(const IsobaricQuantitationMethod* const quant_method);
+    TopDownIsobaricQuantifier();
 
     /// destructor
     ~TopDownIsobaricQuantifier() override = default;
 
     /// copy constructor
-    TopDownIsobaricQuantifier(const TopDownIsobaricQuantifier&) = default;
+    TopDownIsobaricQuantifier(const TopDownIsobaricQuantifier&);
 
     /// move constructor
     TopDownIsobaricQuantifier(TopDownIsobaricQuantifier&& other) = default;
 
     /// assignment operator
-    TopDownIsobaricQuantifier& operator=(const TopDownIsobaricQuantifier& other) = default;
-    TopDownIsobaricQuantifier& operator=(TopDownIsobaricQuantifier&& fd) = default;
+    TopDownIsobaricQuantifier& operator=(const TopDownIsobaricQuantifier& other);
 
     /**
        @brief
        @param exp
        */
-    void quantify(const MSExperiment& exp, const DeconvolvedSpectrum& dspec);
+    void quantify(const MSExperiment& exp, std::vector<DeconvolvedSpectrum>& deconvolved_spectra, const std::vector<FLASHDeconvHelperStructs::MassFeature>& mass_features);
     const FLASHDeconvHelperStructs::IsobaricQuantities getQuantities(int scan) const;
 
   protected:
     void updateMembers_() override;
+    /// implemented for DefaultParamHandler
+    void setDefaultParams_();
 
   private:
+    /// The quantification method used for the dataset to be analyzed.
+    std::map<String, std::unique_ptr<IsobaricQuantitationMethod>> quant_methods_;
 
     /// peak group information is stored in here for tracing
     std::map<int, FLASHDeconvHelperStructs::IsobaricQuantities> quantities_;
+
+    void addMethod_(std::unique_ptr<IsobaricQuantitationMethod> ptr)
+    {
+      std::string internal_name = ptr->getMethodName();
+      quant_methods_[internal_name] = std::move(ptr);
+    }
+
   };
 } // namespace OpenMS

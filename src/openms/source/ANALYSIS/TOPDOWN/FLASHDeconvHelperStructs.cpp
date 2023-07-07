@@ -239,4 +239,9 @@ namespace OpenMS
   {
     return std::log(mz - getChargeMass(positive));
   }
+
+  bool FLASHDeconvHelperStructs::IsobaricQuantities::empty()
+  {
+    return quantities.empty();
+  }
 } // namespace OpenMS
