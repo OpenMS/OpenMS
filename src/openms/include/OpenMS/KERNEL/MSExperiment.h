@@ -409,7 +409,7 @@ public:
       {
         rt.push_back((float)it.getRT());
         mz.push_back((float)it->getMZ());
-        intensity.push_back(it->getIntensity());
+        intensity.push_back(it.getDriftTime());
       }
     }
 
@@ -421,7 +421,7 @@ public:
         rt.push_back((float)it.getRT());
         mz.push_back((float)it->getMZ());
         intensity.push_back(it->getIntensity());
-        ion.push_back(it->getMobility());
+        ion.push_back(it.getDriftTime());
       }
     }
 
