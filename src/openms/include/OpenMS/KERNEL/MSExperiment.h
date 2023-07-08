@@ -398,7 +398,7 @@ public:
         }
         mz.back().push_back((float)it->getMZ());
         intensity.back().emplace_back(it->getIntensity());
-        ion.back().push_back(it->getMobility());
+        ion.back().push_back(it->getDriftTime());
       }
     }
 
