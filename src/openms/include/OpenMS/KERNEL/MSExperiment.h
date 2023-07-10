@@ -409,7 +409,7 @@ public:
       {
         rt.push_back((float)it.getRT());
         mz.push_back((float)it->getMZ());
-        intensity.push_back(it.getDriftTime());
+        intensity.push_back(it->getIntensity());
       }
     }
 
