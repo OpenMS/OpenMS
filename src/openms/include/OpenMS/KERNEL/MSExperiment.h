@@ -413,7 +413,7 @@ public:
       }
     }
 
-    // for fast pyOpenMS access to MS1 peak data in format: [rt, mz, intensity]
+    // for fast pyOpenMS access to MS1 peak data in format: [rt, mz, intensity, ion mobility]
     void get2DPeakData(CoordinateType min_rt, CoordinateType max_rt, CoordinateType min_mz, CoordinateType max_mz, std::vector<float>& rt, std::vector<float>& mz, std::vector<float>& intensity, std::vector<float>& ion) const
     {
       for (auto it = areaBeginConst(min_rt, max_rt, min_mz, max_mz); it != areaEndConst(); ++it)
