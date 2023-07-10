@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -52,9 +52,10 @@
 #include <OpenMS/FORMAT/FileTypes.h>
 #include <OpenMS/FORMAT/IndentedStream.h>
 #include <OpenMS/FORMAT/ParamCTDFile.h>
+#include <OpenMS/FORMAT/ParamCWLFile.h>
 #include <OpenMS/FORMAT/ParamXMLFile.h>
 #include <OpenMS/FORMAT/VALIDATORS/XMLValidator.h>
-            
+
 
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/KERNEL/ConsensusMap.h>
@@ -297,7 +298,21 @@ namespace OpenMS
         {
           in_ini = param_cmdline_.getValue("ini");
           Param ini_params;
-          ParamXMLFile().load(in_ini.toString(), ini_params);
+          const std::string in_ini_path = in_ini.toString();
+          if (FileHandler::getTypeByFileName(in_ini_path) == FileTypes::Type::JSON)
+          {
+            // The JSON file doesn't carry any information about the parameter tree structure.
+            // We hand an additional parameter object with the default values, so we have information
+            // about the tree when parsing the JSON file.
+            ini_params = getDefaultParameters_();
+            if (!ParamCWLFile::load(in_ini_path, ini_params))
+            {
+              return ILLEGAL_PARAMETERS;
+            }
+          } else {
+            ParamXMLFile().load(in_ini_path, ini_params);
+          }
+
           // check if ini parameters are applicable to this tool
           checkIfIniParametersAreApplicable_(ini_params);
           // update default params with outdated params given in -ini and be verbose
@@ -331,7 +346,21 @@ namespace OpenMS
           writeDebug_("INI file: " + value_ini, 1);
           writeDebug_("INI location: " + getIniLocation_(), 1);
 
-          ParamXMLFile().load(value_ini, param_inifile_);
+          if (FileHandler::getTypeByFileName(value_ini) == FileTypes::Type::JSON)
+          {
+            writeDebug_("Assuming INI is a cwl file", 1);
+            // The JSON file doesn't carry any information about the parameter tree structure.
+            // We prepopulate the param object with the default values, so we have information
+            // about the tree when parsing the JSON file.
+            param_inifile_ = getDefaultParameters_();
+            if (!ParamCWLFile::load(value_ini, param_inifile_))
+            {
+              return ILLEGAL_PARAMETERS;
+            }
+
+          } else {
+            ParamXMLFile().load(value_ini, param_inifile_);
+          }
           checkIfIniParametersAreApplicable_(param_inifile_);
 
           // dissect loaded INI parameters

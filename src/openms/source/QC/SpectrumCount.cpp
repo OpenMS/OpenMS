@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -33,8 +33,8 @@
 // --------------------------------------------------------------------------
 
 
-#include <OpenMS/QC/SpectrumCount.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
+#include <OpenMS/QC/SpectrumCount.h>
 using namespace std;
 
 namespace OpenMS
@@ -46,7 +46,7 @@ namespace OpenMS
     for (const auto& spectrum : exp)
     {
       const Size level = spectrum.getMSLevel();
-      ++counts[level];  // count MS level
+      ++counts[level]; // count MS level
     }
     return counts;
   }
@@ -59,8 +59,8 @@ namespace OpenMS
 
   /// Returns required file input i.e. MzML.
   /// This is encoded as a bit in a Status object.
-  QCBase::Status SpectrumCount::requires() const
+  QCBase::Status SpectrumCount::requirements() const
   {
     return QCBase::Status(QCBase::Requires::RAWMZML);
   }
-}
+} // namespace OpenMS

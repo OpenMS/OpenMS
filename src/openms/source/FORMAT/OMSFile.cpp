@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -56,6 +56,12 @@ namespace OpenMS
     helper.store(features);
   }
 
+  void OMSFile::store(const String& filename, const ConsensusMap& consensus)
+  {
+    OpenMS::Internal::OMSFileStore helper(filename, log_type_);
+    helper.store(consensus);
+  }
+
   void OMSFile::load(const String& filename, IdentificationData& id_data)
   {
     OpenMS::Internal::OMSFileLoad helper(filename, log_type_);
@@ -66,6 +72,12 @@ namespace OpenMS
   {
     OpenMS::Internal::OMSFileLoad helper(filename, log_type_);
     helper.load(features);
+  }
+
+  void OMSFile::load(const String& filename, ConsensusMap& consensus)
+  {
+    OpenMS::Internal::OMSFileLoad helper(filename, log_type_);
+    helper.load(consensus);
   }
 
   void OMSFile::exportToJSON(const String& filename_in, const String& filename_out)

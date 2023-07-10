@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -270,6 +270,7 @@ START_SECTION((void writeCTDToStream(std::ostream *os_ptr, const Param &param) c
                    "Match MS signals to molecules from a database by mass.",
                    {"10.1038/nmeth.3959"}};
   paramFile.writeCTDToStream(&s,p, info);
+  s.close();
   TEST_FILE_EQUAL(filename.c_str(), OPENMS_GET_TEST_DATA_PATH("ParamCTDFile_test_writeCTDToStream.ctd"))
 }
 END_SECTION

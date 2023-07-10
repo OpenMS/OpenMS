@@ -5,7 +5,7 @@ import pylab as P
 
 def main(argv):
     if len(argv) != 2:
-        print 'Usage: draw_dot.py <graph .dot> <graph .png output>'
+        print('Usage: draw_dot.py <graph .dot> <graph .png output>')
     else:
         G = pgv.AGraph(argv[0])
 

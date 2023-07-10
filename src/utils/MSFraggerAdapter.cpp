@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -202,7 +202,7 @@ public:
   TOPPMSFraggerAdapter() :
     SearchEngineBase("MSFraggerAdapter",  "Peptide Identification with MSFragger.\n"
                                   "Important note:\n"
-                                  "The Regents of the University of Michigan (“Michigan”) grants us permission to redistribute    \n"
+                                  "The Regents of the University of Michigan (\"Michigan\") grants us permission to redistribute    \n"
                                   "the MS Fragger application developed by Michigan within the OpenMS Pipeline and make available \n"
                                   "for use on related service offerings supported by the University of Tubingen and the Center for\n"
                                   "Integrative Bioinformatics.                                                                    \n"
