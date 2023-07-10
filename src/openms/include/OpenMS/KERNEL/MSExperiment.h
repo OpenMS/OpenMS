@@ -367,13 +367,10 @@ public:
         if (it.getRT() != t) 
         {
           t = (float)it.getRT();
-          rt.emplace_back(t);
-          mz.resize(mz.size() + 1); 
-          rt.resize(rt.size() + 1);
-          intensity.resize(intensity.size() + 1);
+          rt.push_back(t);
         }
         mz.back().push_back((float)it->getMZ());
-        intensity.back().emplace_back(it->getIntensity());
+        intensity.back().push_back(it->getIntensity());
       }
     }
 
@@ -390,20 +387,23 @@ public:
         if (it.getRT() != t)
         {
           t = (float)it.getRT();
-          rt.emplace_back(t);
-          mz.resize(mz.size() + 1);
-          rt.resize(rt.size() + 1);
-          intensity.resize(intensity.size() + 1);
-          ion.resize(ion.size() + 1);
+          rt.push_back(t);
         }
         mz.back().push_back((float)it->getMZ());
-        intensity.back().emplace_back(it->getIntensity());
-        ion.back().push_back(it->getDriftTime());
+        intensity.back().push_back(it->getIntensity());
+        ion.back().push_back(it.getDriftTime());
       }
     }
 
     // for fast pyOpenMS access to MS1 peak data in format: [rt, mz, intensity]
-    void get2DPeakData(CoordinateType min_rt, CoordinateType max_rt, CoordinateType min_mz, CoordinateType max_mz, std::vector<float>& rt, std::vector<float>& mz, std::vector<float>& intensity) const
+    void get2DPeakData(
+      CoordinateType min_rt,
+      CoordinateType max_rt,
+      CoordinateType min_mz,
+      CoordinateType max_mz,
+      std::vector<float>& rt,
+      std::vector<float>& mz,
+      std::vector<float>& intensity) const
     {
       for (auto it = areaBeginConst(min_rt, max_rt, min_mz, max_mz); it != areaEndConst(); ++it)
       {
@@ -414,7 +414,15 @@ public:
     }
 
     // for fast pyOpenMS access to MS1 peak data in format: [rt, mz, intensity, ion mobility]
-    void get2DPeakData(CoordinateType min_rt, CoordinateType max_rt, CoordinateType min_mz, CoordinateType max_mz, std::vector<float>& rt, std::vector<float>& mz, std::vector<float>& intensity, std::vector<float>& ion) const
+    void get2DPeakData(
+      CoordinateType min_rt,
+      CoordinateType max_rt,
+      CoordinateType min_mz,
+      CoordinateType max_mz,
+      std::vector<float>& rt,
+      std::vector<float>& mz,
+      std::vector<float>& intensity,
+      std::vector<float>& ion) const
     {
       for (auto it = areaBeginConst(min_rt, max_rt, min_mz, max_mz); it != areaEndConst(); ++it)
       {
@@ -424,7 +432,6 @@ public:
         ion.push_back(it.getDriftTime());
       }
     }
-
 
     /**
       @brief Fast search for spectrum range begin
