@@ -389,9 +389,15 @@ public:
           t = (float)it.getRT();
           rt.push_back(t);
         }
+        
+        auto spectrum = it.getSpectrum();
+        auto im_data = spectrum.getIMData();
+        auto peak_index = it.getPeakIndex().peak;
+        auto peak_im = spectrum.getFloatDataArrays()[im_data.first][peak_index];
+        
         mz.back().push_back((float)it->getMZ());
         intensity.back().push_back(it->getIntensity());
-        ion.back().push_back(it.getDriftTime());
+        ion.back().push_back(peak_im);
       }
     }
 
