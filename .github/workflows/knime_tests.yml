@@ -5,6 +5,7 @@ on:
 jobs:
   test-knime:
     env:
+      GH_TOKEN: ${{ github.token }}
       KNIME_MAJOR_VERSION: 4
       KNIME_MINOR_VERSION: 7
       INSTALLATION_DIR: ${{ github.workspace }}
