@@ -268,7 +268,7 @@ namespace OpenMS
         }
       }
 
-      if (!intensities.empty() && *std::max_element(intensities.begin(), intensities.end()) > 0)
+      if (!intensities.empty() && *std::min_element(intensities.begin(), intensities.end()) > 0) // all channel quantified
       {
         intensity_clusters[cluster_index].push_back(intensities);
         FLASHDeconvHelperStructs::IsobaricQuantities iq;
@@ -305,7 +305,11 @@ namespace OpenMS
 
       if (quantities_.find(scan) == quantities_.end())
         continue;
-      quantities_[scan].merged_quantities = merged_intensity_clusters[cluster_index];
+
+      auto intensities = merged_intensity_clusters[cluster_index];
+      if (!intensities.empty() && *std::min_element(intensities.begin(), intensities.end()) > 0) // all channel quantified
+        quantities_[scan].merged_quantities = merged_intensity_clusters[cluster_index];
+      else quantities_.erase(scan);
     }
   }
 
