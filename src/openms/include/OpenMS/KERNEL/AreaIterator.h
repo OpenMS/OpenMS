@@ -279,7 +279,7 @@ namespace OpenMS
       /// returns the current scan into which the iterator points
       const SpectrumT& getSpectrum() const
       {
-        return p_.current_scan_;
+        return *p_.current_scan_;
       }
 
       /// returns the PeakIndex corresponding to the current iterator position
