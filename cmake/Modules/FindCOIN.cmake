@@ -105,7 +105,8 @@ endmacro()
 
 if(NOT TARGET CoinOR::CoinOR)
   add_library(CoinOR::CoinOR INTERFACE IMPORTED)
-  if (NOT CF_COIN_INCLUDE_SUBDIR)
+  if (VCPKG_TOOLCHAIN)
+    # Currently coin-or from vcpkg requires BLAS and LAPACK
     find_package(BLAS)
     find_package(LAPACK)
     target_link_libraries(CoinOR::CoinOR INTERFACE BLAS LAPACK)
