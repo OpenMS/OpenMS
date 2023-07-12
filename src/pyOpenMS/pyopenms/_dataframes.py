@@ -332,7 +332,7 @@ class _MSExperimentDF(_MSExperiment):
         spectraarrs2d = self.get2DPeakDataLongIon(self.getMinRT(), self.getMaxRT(), self.getMinMZ(), self.getMaxMZ())
         return _pd.DataFrame(dict(zip(cols, spectraarrs2d)))
 
-    def get_massql_df(self, ion):
+    def get_massql_df(self, ion=False):
         """Exports data from MSExperiment to pandas DataFrames to be used with MassQL.
 
         The Python module massql allows queries in mass spectrometry data (MS1 and MS2
@@ -346,12 +346,15 @@ class _MSExperimentDF(_MSExperiment):
         'scan': number of the spectrum
         'rt': retention time of the spectrum
         'polarity': ion mode of the spectrum as integer value (positive: 1, negative: 2)
+        'ion': the ionic mobility of a peak if ion parameter is True
         
         The MS2 dataframe contains additional columns:
         'precmz': mass to charge of the precursor ion
         'ms1scan': number of the corresponding MS1 spectrum
         'charge': charge of the precursor ion
-        'ion': the ionic mobility of a peak if ion parameter is True
+        
+        Parameters:
+            ion (bool): if True, returns the ionic mobility of the peaks.
 
         Returns:
         ms1_df (pandas.DataFrame): peak data of MS1 spectra
@@ -454,7 +457,7 @@ class _MSExperimentDF(_MSExperiment):
         # create DataFrame for MS1 and MS2 with according column names and data types
         # if there are no spectra of given MS level return an empty DataFrame
         dtypes = {'i': 'float32', 'i_norm': 'float32', 'i_tic_norm': 'float32', 'mz': 'float64', 'scan': 'int32', 'rt': 'float32', 'polarity': 'int32'}
-        if ion: 
+        if ion:
             dtypes = dict(dtypes, **{"ion": "float32"})
     
         if 1 in self.getMSLevels():
