@@ -42,13 +42,26 @@ include(${CMAKE_CURRENT_LIST_DIR}/SelectLibraryConfigurations.cmake)
 # hint from the user
 set(COIN_ROOT_DIR "" CACHE PATH "COIN root directory")
 
-# find the coin include directory
-find_path(COIN_INCLUDE_DIR coin/CoinUtilsConfig.h coinutils/coin/CoinUtilsConfig.h
-  HINTS
+# find for vcpkg
+find_path(COIN_INCLUDE_DIR coin-or/CoinUtilsConfig.h
+        HINTS
         ${COIN_ROOT_DIR}/include
-)
+        )
 
-# helper macro to find specific coind sub-libraries
+if (COIN_INCLUDE_DIR)
+ set(CF_COIN_INCLUDE_SUBDIR 0 CACHE BOOL "If the subdir for including coin-or headers is coin (1) or coin-or (0).")
+else()
+  # find the coin include directory from contrib or system
+  find_path(COIN_INCLUDE_DIR coin-or/CoinUtilsConfig.h coin/CoinUtilsConfig.h coinutils/coin/CoinUtilsConfig.h
+          HINTS
+          ${COIN_ROOT_DIR}/include
+          )
+  if (COIN_INCLUDE_DIR)
+    set(CF_COIN_INCLUDE_SUBDIR 1 CACHE BOOL "If the subdir for including coin-or headers is coin (1) or coin-or (0).")
+  endif()
+endif()
+
+# helper macro to find specific coin sub-libraries
 macro(_coin_find_lib _libname _lib_file_names _lib_file_names_debug)
   if(NOT COIN_${_libname})
     string(TOLOWER ${_libname} _libnamelower)
@@ -91,11 +104,18 @@ macro(_coin_find_lib _libname _lib_file_names _lib_file_names_debug)
   endif()
 endmacro()
 
-# actually find the required libs
+
 if(NOT TARGET CoinOR::CoinOR)
   add_library(CoinOR::CoinOR INTERFACE IMPORTED)
+  if (NOT CF_COIN_INCLUDE_SUBDIR)
+    find_package(BLAS)
+    find_package(LAPACK)
+    target_link_libraries(CoinOR::CoinOR INTERFACE BLAS LAPACK)
+  endif()
 endif()
 
+# actually find the required libs and add them as dependencies
+# to the parent CoinOR::CoinOR interface target
 _coin_find_lib("CBC" "libCbc;Cbc" "libCbcd;Cbc")
 _coin_find_lib("CGL" "libCgl;Cgl" "libCgld;Cgl")
 _coin_find_lib("CLP" "libClp;Clp" "libClpd;Clp")
