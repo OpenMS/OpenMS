@@ -71,9 +71,9 @@ namespace OpenMS
   {
   }
 
-  String::String(const char* s, SizeType length)
+  String::String(const char* s, SizeType length) :
+    string(s, length)
   {
-    string::operator=(StringConversions::toString(s, length));
   }
 
   String::String(const char c) :

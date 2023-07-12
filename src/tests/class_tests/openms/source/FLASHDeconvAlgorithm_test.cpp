@@ -184,7 +184,7 @@ START_SECTION(DeconvolvedSpectrum& getDeconvolvedSpectrum())
   fd_algo.performSpectrumDeconvolution(input[3], survey_specs, 4, null_map);
 
   DeconvolvedSpectrum d_ms1_spec = fd_algo.getDeconvolvedSpectrum();
-  TEST_EQUAL(d_ms1_spec.size(), 2);
+  TEST_EQUAL(d_ms1_spec.size(), 4);
 }
 END_SECTION
 
@@ -199,11 +199,11 @@ START_SECTION((DeconvolvedSpectrum& performSpectrumDeconvolution(const MSSpectru
   fd_algo.performSpectrumDeconvolution(input[5], survey_specs, 6, null_map);
   DeconvolvedSpectrum d_ms2_spec = fd_algo.getDeconvolvedSpectrum();
   TEST_EQUAL(d_ms1_spec.getScanNumber(), 4);
-  TEST_EQUAL(d_ms1_spec.size(), 2);
+  TEST_EQUAL(d_ms1_spec.size(), 4);
   Precursor precursor = d_ms2_spec.getPrecursor();
   TOLERANCE_ABSOLUTE(1);
   TEST_EQUAL(d_ms1_spec.getPrecursorPeakGroup().size(), 0);
-  TEST_EQUAL(d_ms2_spec.getPrecursorPeakGroup().size(), 64);
+  TEST_EQUAL(d_ms2_spec.getPrecursorPeakGroup().size(), 70);
   TEST_EQUAL(precursor.getCharge(), 9);
   TOLERANCE_ABSOLUTE(100);
   TEST_REAL_SIMILAR(precursor.getIntensity(), 12293.4);

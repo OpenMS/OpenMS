@@ -32,8 +32,8 @@
 // $Authors: Chris Bielow $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/QC/FWHM.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
+#include <OpenMS/QC/FWHM.h>
 
 namespace OpenMS
 {
@@ -57,7 +57,8 @@ namespace OpenMS
       }
       else
       {
-        //throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Metavalue 'FWHM' or 'model_FWHM' is missing for a feature in a FeatureMap. Please check your FeatureFinder reports FWHM using these metavalues or add a new mapping here.");
+        // throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Metavalue 'FWHM' or 'model_FWHM' is missing for a feature in a FeatureMap. Please check your FeatureFinder
+        // reports FWHM using these metavalues or add a new mapping here.");
       }
     }
   }
@@ -67,9 +68,9 @@ namespace OpenMS
     static const String& name = "FWHM";
     return name;
   }
-  
-  QCBase::Status FWHM::requires() const
+
+  QCBase::Status FWHM::requirements() const
   {
     return QCBase::Status() | QCBase::Requires::POSTFDRFEAT;
   }
-}
+} // namespace OpenMS

@@ -28,55 +28,44 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Kyowon Jeong$
-// $Authors: Kyowon Jeong$
+// $Maintainer: Kyowon Jeong $
+// $Authors: Kyowon Jeong $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/ANALYSIS/TOPDOWN/FLASHDeconvHelperStructs.h>
-#include <OpenMS/ANALYSIS/TOPDOWN/PeakGroup.h>
-#include <OpenMS/ANALYSIS/TOPDOWN/QScore.h>
+#pragma once
 
-#include <iomanip>
+#include <OpenMS/ANALYSIS/TOPDOWN/DeconvolvedSpectrum.h>
+#include <OpenMS/ANALYSIS/TOPDOWN/FLASHDeconvHelperStructs.h>
+#include <OpenMS/KERNEL/Peak1D.h>
+
 
 namespace OpenMS
 {
-  float QScore::getQScore(const PeakGroup *pg, const int abs_charge)
+  class PeakGroup;
+
+  /**
+@brief   Qvalue : contains functions to calculate Qvalues from deconvolution quality score
+@ingroup Topdown
+*/
+
+  class OPENMS_DLLAPI Qvalue
   {
-    if (pg->empty())
-    { // all zero
-      return .0f;
-    }
-    // the weights for per charge cosine, per charge SNR, cosine, SNR, PPM error, and intercept.
-    const std::vector<double> weights({ -8.9686, 0.7105, -8.0507, -0.4402, 0.1983, 15.0979});
+  public:
+    typedef FLASHDeconvHelperStructs::LogMzPeak LogMzPeak;
 
-    double score = weights.back();
-    auto fv = toFeatureVector_(pg, abs_charge);
+    /// Calculate and perform a batch update of peak group qvalues using Qscores of target and dummy peak groups in deconvolved spectra, when FDR report is necessary.
+    /// @param deconvolved_spectra target deconvolved spectra
+    /// @param deconvolved_decoy_spectra decoy deconvolved spectra
+    void static updatePeakGroupQvalues(std::vector<DeconvolvedSpectrum>& deconvolved_spectra, std::vector<DeconvolvedSpectrum>& deconvolved_decoy_spectra);
 
-    for (Size i = 0; i < weights.size() - 1; i++)
-    {
-      score += fv[i] * weights[i];
-    }
-    float qscore = 1.0f / (1.0f + (float)exp(score));
-
-    return qscore;
-  }
-
-  std::vector<double> QScore::toFeatureVector_(const PeakGroup *pg, const int abs_charge)
-  {
-    std::vector<double> fvector(5); // length of weights vector - 1, excluding the intercept weight.
-
-    double a = pg->getChargeIsotopeCosine(abs_charge);
-    double d = 1;
-    int index = 0;
-    fvector[index++] = (log2(a + d));
-    a = pg->getChargeSNR(abs_charge);
-    fvector[index++] = (log2(d + a / (d + a)));
-    a = pg->getIsotopeCosine();
-    fvector[index++] = (log2(a + d));
-    a = pg->getSNR();
-    fvector[index++] = (log2(d + a / (d + a)));
-    a = pg->getAvgPPMError();
-    fvector[index++] = (log2(a + d));
-    return fvector;
-  }
-}
+  private:
+    /// get a bin number given qvalue. qvalue is calculated per bin (bin from 0 to 1).
+    static uint getBinNumber(float qscore, uint total_bin_number);
+    /// get the qvalue corresponding to a bin number
+    static float getBinValue(uint bin_number, uint total_bin_number);
+    /// get the Qscore distribution
+    static std::vector<float> getDistribution(const std::vector<float>& qscores, uint bin_number);
+    /// get the weights of different dummy types.
+    static std::vector<float> getDistributionWeights(const std::vector<float>& mixed_dist, const std::vector<std::vector<float>>& comp_dists, uint num_iterations = 100);
+  };
+} // namespace OpenMS

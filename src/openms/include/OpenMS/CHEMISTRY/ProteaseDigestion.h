@@ -43,7 +43,7 @@
 namespace OpenMS
 {
   /**
-     @brief Class for the enzymatic digestion of proteins
+     @brief Class for the enzymatic digestion of proteins represented as AASequence or String
 
      Digestion can be performed using simple regular expressions,
      e.g. [KR] | [^P]
@@ -65,7 +65,7 @@ namespace OpenMS
     void setEnzyme(const String& name);
 
     /** 
-       @brief: Performs the enzymatic digestion of a protein.
+       @brief Performs the enzymatic digestion of a protein represented as AASequence
 
        @param protein Sequence to digest
        @param output Digestion products (peptides)
@@ -75,6 +75,18 @@ namespace OpenMS
 
     */
     Size digest(const AASequence& protein, std::vector<AASequence>& output, Size min_length = 1, Size max_length = 0) const;
+
+    /** 
+       @brief Performs the enzymatic digestion of a protein represented as AASequence
+
+       @param protein Sequence to digest
+       @param output Digestion products (start and end indices of peptides)
+       @param min_length Minimal length of reported products
+       @param max_length Maximal length of reported products (0 = no restriction)
+       @return Number of discarded digestion products (which are not matching length restrictions)
+
+    */
+    Size digest(const AASequence& protein, std::vector<std::pair<size_t,size_t>>& output, Size min_length = 1, Size max_length = 0) const;
 
     /// Returns the number of peptides a digestion of @p protein would yield under the current enzyme and missed cleavage settings.
     Size peptideCount(const AASequence& protein);

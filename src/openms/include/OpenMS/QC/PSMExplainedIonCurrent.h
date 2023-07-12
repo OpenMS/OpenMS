@@ -44,7 +44,7 @@ namespace OpenMS
   class MSExperiment;
   class PeptideIdentification;
   class WindowMower;
-  
+
   class OPENMS_DLLAPI PSMExplainedIonCurrent : public QCBase
   {
   public:
@@ -57,8 +57,7 @@ namespace OpenMS
     /**
      * @brief Structure for storing results: average and variance over all PSMs
      */
-    struct Statistics
-    {
+    struct Statistics {
       double average_correctness = 0;
       double variance_correctness = 0;
     };
@@ -80,7 +79,8 @@ namespace OpenMS
      * @throws Exceptions::MissingInformation If fragment mass tolerance is missing in metadata of FeatureMap (& no ToleranceUnit is given)
      * @throws Exception::InvalidParameter PeptideID is missing meta value 'spectrum_reference'
      * @throws Exception::IllegalArgument Spectrum for a PepID has ms-level of 1
-     * @throws Exception::MissingInformation If PSMExplainedIonCurrent couldn't be calculated for any spectrum. (i.e. all spectra are: empty, contain only peaks with intensity 0 or the matching pep_id has no hits)
+     * @throws Exception::MissingInformation If PSMExplainedIonCurrent couldn't be calculated for any spectrum. (i.e. all spectra are: empty, contain only peaks with intensity 0 or the matching pep_id
+     * has no hits)
      * @throws Exception::InvalidParameter If the fragmentation method is not ECD, ETD, CID or HCD
      */
     void compute(FeatureMap& fmap, const MSExperiment& exp, const QCBase::SpectraMap& map_to_spectrum, ToleranceUnit tolerance_unit = ToleranceUnit::AUTO, double tolerance = 20);
@@ -99,30 +99,32 @@ namespace OpenMS
      * @throws Exceptions::MissingInformation If fragment mass tolerance is missing in metadata of FeatureMap (& no ToleranceUnit is given)
      * @throws Exception::InvalidParameter PeptideID is missing meta value 'spectrum_reference'
      * @throws Exception::IllegalArgument Spectrum for a PepID has ms-level of 1
-     * @throws Exception::MissingInformation If PSMExplainedIonCurrent couldn't be calculated for any spectrum. (i.e. all spectra are: empty, contain only peaks with intensity 0 or the matching pep_id has no hits)
+     * @throws Exception::MissingInformation If PSMExplainedIonCurrent couldn't be calculated for any spectrum. (i.e. all spectra are: empty, contain only peaks with intensity 0 or the matching pep_id
+     * has no hits)
      * @throws Exception::InvalidParameter If the fragmentation method is not ECD, ETD, CID or HCD
      */
-    void compute(std::vector<PeptideIdentification> & pep_ids, const ProteinIdentification::SearchParameters& search_params, const MSExperiment& exp, const QCBase::SpectraMap& map_to_spectrum, ToleranceUnit tolerance_unit = ToleranceUnit::AUTO, double tolerance = 20);
+    void compute(std::vector<PeptideIdentification>& pep_ids, const ProteinIdentification::SearchParameters& search_params, const MSExperiment& exp, const QCBase::SpectraMap& map_to_spectrum,
+                 ToleranceUnit tolerance_unit = ToleranceUnit::AUTO, double tolerance = 20);
 
     /// returns the name of the metric
     const String& getName() const override;
-    
+
     /// returns results
     const std::vector<Statistics>& getResults() const;
 
 
     /**
-    * @brief Returns the input data requirements of the compute(...) function
-    * @return Status for RAWMZML and POSTFDRFEAT
-    */
-    QCBase::Status requires() const override;
+     * @brief Returns the input data requirements of the compute(...) function
+     * @return Status for RAWMZML and POSTFDRFEAT
+     */
+    QCBase::Status requirements() const override;
 
   private:
     /// container that stores results
-    std::vector<Statistics> results_{};
+    std::vector<Statistics> results_ {};
 
-    static double annotatePSMExplainedIonCurrent_(PeptideIdentification& pep_id, const MSExperiment& exp, const QCBase::SpectraMap& map_to_spectrum, WindowMower& filter, PSMExplainedIonCurrent::ToleranceUnit tolerance_unit, double tolerance);
+    static double annotatePSMExplainedIonCurrent_(PeptideIdentification& pep_id, const MSExperiment& exp, const QCBase::SpectraMap& map_to_spectrum, WindowMower& filter,
+                                                  PSMExplainedIonCurrent::ToleranceUnit tolerance_unit, double tolerance);
   };
 
-} //namespace OpenMS
-
+} // namespace OpenMS

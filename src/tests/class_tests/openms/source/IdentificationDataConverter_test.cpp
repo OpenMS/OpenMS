@@ -40,6 +40,7 @@
 ///////////////////////////
 
 #include <OpenMS/METADATA/ID/IdentificationDataConverter.h>
+#include <OpenMS/FORMAT/ConsensusXMLFile.h>
 #include <OpenMS/FORMAT/FeatureXMLFile.h>
 #include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/FORMAT/MzTabFile.h>
@@ -348,6 +349,46 @@ START_SECTION((void exportFeatureIDs(FeatureMap& features, bool clear_original))
   TEST_EQUAL(features[1].getPeptideIdentifications().size(), 1);
   // check that "original" IDs were cleared:
   TEST_EQUAL(features.getIdentificationData().empty(), true);
+}
+END_SECTION
+
+ConsensusMap consensus; // persist through sections
+
+START_SECTION((void importConsensusIDs(ConsensusMap& consensus, bool clear_original)))
+{
+  ConsensusXMLFile().load(OPENMS_GET_TEST_DATA_PATH("ConsensusXMLFile_1.consensusXML"), consensus);
+  // protein and peptide IDs use same score type (name) with different orientations;
+  // IdentificationData doesn't allow this, so change it here:
+  for (auto& run : consensus.getProteinIdentifications())
+  {
+    run.setScoreType(run.getScoreType() + "_protein");
+  }
+  IdentificationDataConverter::importConsensusIDs(consensus);
+  TEST_EQUAL(consensus.getIdentificationData().getObservations().size(), 5);
+  TEST_EQUAL(consensus.getIdentificationData().getObservationMatches().size(), 7);
+  TEST_EQUAL(consensus.getIdentificationData().getIdentifiedPeptides().size(), 7);
+  TEST_EQUAL(consensus.getIdentificationData().getParentSequences().size(), 3);
+  TEST_EQUAL(consensus[0].getIDMatches().size(), 3);
+  TEST_EQUAL(consensus[1].getIDMatches().size(), 1);
+  TEST_EQUAL(consensus.getUnassignedIDMatches().size(), 3);
+  // check that original IDs were cleared:
+  TEST_EQUAL(consensus.getProteinIdentifications().size(), 0);
+  TEST_EQUAL(consensus.getUnassignedPeptideIdentifications().size(), 0);
+  TEST_EQUAL(consensus[0].getPeptideIdentifications().size(), 0);
+  TEST_EQUAL(consensus[1].getPeptideIdentifications().size(), 0);
+}
+END_SECTION
+
+START_SECTION((void exportConsensusIDs(ConsensusMap& consensus, bool clear_original)))
+{
+  // convert IDs from previous test back:
+  IdentificationDataConverter::exportConsensusIDs(consensus);
+  TEST_EQUAL(consensus.getProteinIdentifications().size(), 2);
+  TEST_EQUAL(consensus.getUnassignedPeptideIdentifications().size(), 2);
+  TEST_EQUAL(consensus[0].getPeptideIdentifications().size(), 2);
+  TEST_EQUAL(consensus[1].getPeptideIdentifications().size(), 1);
+  // check that "original" IDs were cleared:
+  TEST_EQUAL(consensus.getIdentificationData().empty(), true);
 }
 END_SECTION
 

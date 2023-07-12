@@ -32,13 +32,9 @@
 // $Authors: Patricia Scheil, Swenja Wagner$
 // --------------------------------------------------------------------------
 
-#include <OpenMS/QC/FragmentMassError.h>
-
-#include <cassert>
-#include <string>
-
 #include <OpenMS/CHEMISTRY/TheoreticalSpectrumGenerator.h>
 #include <OpenMS/CONCEPT/Exception.h>
+#include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/DATASTRUCTURES/DataValue.h>
 #include <OpenMS/DATASTRUCTURES/MatchedIterator.h>
@@ -48,12 +44,14 @@
 #include <OpenMS/MATH/MISC/MathFunctions.h>
 #include <OpenMS/MATH/STATISTICS/BasicStatistics.h>
 #include <OpenMS/MATH/STATISTICS/StatisticFunctions.h>
-#include <OpenMS/CONCEPT/LogStream.h>
+#include <OpenMS/QC/FragmentMassError.h>
+#include <cassert>
+#include <string>
 
 namespace OpenMS
 {
   // Using matched iterator for aligned spectra calculate mz errors
-  template <typename MIV>
+  template<typename MIV>
   void twoSpecErrors(MIV& mi, std::vector<double>& ppms, std::vector<double>& dalton, double& accumulator_ppm, UInt32& counter_ppm)
   {
     while (mi != mi.end())
@@ -72,7 +70,8 @@ namespace OpenMS
     }
   }
 
-  void FragmentMassError::calculateFME_(PeptideIdentification& pep_id, const MSExperiment& exp, const QCBase::SpectraMap& map_to_spectrum, bool& print_warning, double tolerance, FragmentMassError::ToleranceUnit tolerance_unit, double& accumulator_ppm, UInt32& counter_ppm, WindowMower& window_mower_filter)
+  void FragmentMassError::calculateFME_(PeptideIdentification& pep_id, const MSExperiment& exp, const QCBase::SpectraMap& map_to_spectrum, bool& print_warning, double tolerance,
+                                        FragmentMassError::ToleranceUnit tolerance_unit, double& accumulator_ppm, UInt32& counter_ppm, WindowMower& window_mower_filter)
   {
     if (pep_id.getHits().empty())
     {
@@ -122,7 +121,7 @@ namespace OpenMS
         {
           OPENMS_LOG_WARN << "No MS2 activation method provided. Using CID as fallback to compute fragment mass errors." << std::endl;
         }
-        print_warning = false;// only print it once
+        print_warning = false; // only print it once
         act_method = Precursor::ActivationMethod::CID;
       }
       act_method = *exp_spectrum.getPrecursors()[0].getActivationMethods().begin();
@@ -138,7 +137,8 @@ namespace OpenMS
     //-----------------------------------------------------------------------
     if (exp_spectrum.empty() || theo_spectrum.empty())
     {
-      OPENMS_LOG_WARN << "The spectrum with RT: " + String(exp_spectrum.getRT()) + " is empty." << "\n";
+      OPENMS_LOG_WARN << "The spectrum with RT: " + String(exp_spectrum.getRT()) + " is empty."
+                      << "\n";
       return;
     }
 
@@ -146,8 +146,8 @@ namespace OpenMS
     window_mower_filter.filterPeakSpectrum(exp_spectrum_filtered);
 
     // stores ppms for one spectrum
-    DoubleList ppms{};
-    DoubleList dalton{};
+    DoubleList ppms {};
+    DoubleList dalton {};
 
     // iterator, finds nearest peak of a target container to a given peak in a reference container
     if (tolerance_unit == FragmentMassError::ToleranceUnit::DA)
@@ -182,7 +182,8 @@ namespace OpenMS
   {
     if (pep_id.getHits().empty())
     {
-      OPENMS_LOG_WARN << "There is a Peptideidentification(RT: " << pep_id.getRT() << ", MZ: " << pep_id.getMZ() << ") without PeptideHits. " << "\n";
+      OPENMS_LOG_WARN << "There is a Peptideidentification(RT: " << pep_id.getRT() << ", MZ: " << pep_id.getMZ() << ") without PeptideHits. "
+                      << "\n";
       return;
     }
     for (const auto& ppm : (pep_id.getHits()[0].getMetaValue("fragment_mass_error_ppm")).toDoubleList())
@@ -204,10 +205,10 @@ namespace OpenMS
       return;
     }
     // accumulates ppm errors over all first PeptideHits
-    double accumulator_ppm{};
+    double accumulator_ppm {};
 
     // counts number of ppm errors
-    UInt32 counter_ppm{};
+    UInt32 counter_ppm {};
 
     //---------------------------------------------------------------------
     // Prepare MSExperiment
@@ -226,32 +227,29 @@ namespace OpenMS
     //------------------------------------------------------------------
     if (tolerance_unit == ToleranceUnit::AUTO)
     {
-      if (fmap.getProteinIdentifications().empty() )
+      if (fmap.getProteinIdentifications().empty())
       {
-        throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "No information about fragment mass tolerance given in the FeatureMap. Please choose a fragment_mass_unit and tolerance manually.");
+        throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                            "No information about fragment mass tolerance given in the FeatureMap. Please choose a fragment_mass_unit and tolerance manually.");
       }
       tolerance_unit = fmap.getProteinIdentifications()[0].getSearchParameters().fragment_mass_tolerance_ppm ? ToleranceUnit::PPM : ToleranceUnit::DA;
       tolerance = fmap.getProteinIdentifications()[0].getSearchParameters().fragment_mass_tolerance;
       if (tolerance <= 0.0)
       { // some engines, e.g. MSGF+ have no fragment tolerance parameter. It will be 0.0.
-        throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "No information about fragment mass tolerance given in the FeatureMap. Please choose a fragment_mass_unit and tolerance manually.");
+        throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                            "No information about fragment mass tolerance given in the FeatureMap. Please choose a fragment_mass_unit and tolerance manually.");
       }
     }
 
     bool print_warning {false};
 
     // computes the FragmentMassError
-    std::function<void(PeptideIdentification&)> fCompPPM =
-        [&exp, &map_to_spectrum, &print_warning, tolerance, tolerance_unit, &accumulator_ppm, &counter_ppm, &window_mower_filter](PeptideIdentification& pep_id)
-    {
+    std::function<void(PeptideIdentification&)> fCompPPM = [&exp, &map_to_spectrum, &print_warning, tolerance, tolerance_unit, &accumulator_ppm, &counter_ppm,
+                                                            &window_mower_filter](PeptideIdentification& pep_id) {
       calculateFME_(pep_id, exp, map_to_spectrum, print_warning, tolerance, tolerance_unit, accumulator_ppm, counter_ppm, window_mower_filter);
     };
 
-    auto fVar =
-        [&result, &counter_ppm](const PeptideIdentification& pep_id)
-    {
-      calculateVariance_(result, pep_id, counter_ppm);
-    };
+    auto fVar = [&result, &counter_ppm](const PeptideIdentification& pep_id) { calculateVariance_(result, pep_id, counter_ppm); };
 
     // computation of ppms
     fmap.applyFunctionOnPeptideIDs(fCompPPM);
@@ -269,10 +267,10 @@ namespace OpenMS
     fmap.applyFunctionOnPeptideIDs(fVar);
 
     results_.push_back(result);
-
   }
 
-  void FragmentMassError::compute(std::vector<PeptideIdentification>& pep_ids, const ProteinIdentification::SearchParameters& search_params, const MSExperiment& exp, const QCBase::SpectraMap& map_to_spectrum, ToleranceUnit tolerance_unit, double tolerance)
+  void FragmentMassError::compute(std::vector<PeptideIdentification>& pep_ids, const ProteinIdentification::SearchParameters& search_params, const MSExperiment& exp,
+                                  const QCBase::SpectraMap& map_to_spectrum, ToleranceUnit tolerance_unit, double tolerance)
   {
     Statistics result;
 
@@ -282,10 +280,10 @@ namespace OpenMS
       return;
     }
     // accumulates ppm errors over all first PeptideHits
-    double accumulator_ppm{};
+    double accumulator_ppm {};
 
     // counts number of ppm errors
-    UInt32 counter_ppm{};
+    UInt32 counter_ppm {};
 
     //---------------------------------------------------------------------
     // Prepare MSExperiment
@@ -308,11 +306,12 @@ namespace OpenMS
       tolerance = search_params.fragment_mass_tolerance;
       if (tolerance <= 0.0)
       { // some engines, e.g. MSGF+ have no fragment tolerance parameter. It will be 0.0.
-        throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "No information about fragment mass tolerance given. Please choose a fragment_mass_unit and tolerance manually.");
+        throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+                                            "No information about fragment mass tolerance given. Please choose a fragment_mass_unit and tolerance manually.");
       }
     }
 
-    bool print_warning{ false };
+    bool print_warning {false};
 
     // computation of ppms
     // computes the FragmentMassError
@@ -347,11 +346,8 @@ namespace OpenMS
   }
 
 
-  QCBase::Status FragmentMassError::requires() const
+  QCBase::Status FragmentMassError::requirements() const
   {
     return QCBase::Status() | QCBase::Requires::RAWMZML | QCBase::Requires::POSTFDRFEAT;
   }
 } // namespace OpenMS
-
-
-
