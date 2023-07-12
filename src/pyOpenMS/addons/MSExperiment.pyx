@@ -36,7 +36,7 @@
         inty_wrap.set_data(inty)
         ion_wrap.set_data(ion)
 
-        return (np.asarray(rt_wrap), np.asarray(mz_wrap), np.asarray(inty_wrap), np.asarray(ion))
+        return (np.asarray(rt_wrap), np.asarray(mz_wrap), np.asarray(inty_wrap), np.asarray(ion_wrap))
 
     def getMSLevels(self):
         """Cython signature: list[int] getMSLevels()"""
