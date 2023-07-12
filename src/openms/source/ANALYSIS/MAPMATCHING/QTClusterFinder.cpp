@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -202,7 +202,7 @@ namespace OpenMS
       // we calculate minRT (instead of starting first bin at 0) since RTs may start in the "negative" region after alignment.
       double start_rt = minRT;
       double min_tolerance = 20;
-      double tol, q2, q3 = 0.;
+      double tol, q2, q3;
       OPENMS_LOG_INFO << "Calculating RT linking tolerance bins...\n";
       OPENMS_LOG_INFO << "RT_bin_start, Tolerance" << std::endl;
 
@@ -752,9 +752,9 @@ void QTClusterFinder::createConsensusFeature_(ConsensusFeature& feature,
     }
 
     {
-      std::set<AASequence> a = cluster.getAnnotations();
+      std::set<AASequence> ax = cluster.getAnnotations();
       std::cout << " FINAL with annotations: ";
-      for (std::set<AASequence>::iterator it = a.begin(); it != a.end(); ++it) std::cout << " " << *it;
+      for (std::set<AASequence>::iterator it = ax.begin(); it != ax.end(); ++it) std::cout << " " << *it;
       std::cout << std::endl;
     }
 #endif

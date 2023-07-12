@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -45,7 +45,7 @@ namespace OpenMS
   const std::string MSQuantifications::NamesOfQuantTypes[] = {"MS1LABEL", "MS2LABEL", "LABELFREE"};
 
   /// Detailed Constructor
-  MSQuantifications::MSQuantifications(FeatureMap fm, ExperimentalSettings& es, std::vector<DataProcessing>& dps, std::vector<std::vector<std::pair<String, double> > > label) :
+  MSQuantifications::MSQuantifications(const FeatureMap& fm, ExperimentalSettings& es, std::vector<DataProcessing>& dps, std::vector<std::vector<std::pair<String, double> > > label) :
     ExperimentalSettings()
   {
     MSQuantifications::QUANT_TYPES quant_type = MSQuantifications::LABELFREE;
@@ -73,7 +73,7 @@ namespace OpenMS
     return !(operator==(rhs));
   }
 
-  void MSQuantifications::setDataProcessingList(std::vector<DataProcessing> & dpl)
+  void MSQuantifications::setDataProcessingList(const std::vector<DataProcessing> & dpl)
   {
     data_processings_ = dpl;
   }

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -56,7 +56,7 @@ void DecoyGenerator::setSeed(UInt64 seed)
 
 AASequence DecoyGenerator::reverseProtein(const AASequence& protein) const
 {
-  OPENMS_PRECONDITION(!protein.isModified(), "Decoy generation only supports unmodified proteins.");
+  OPENMS_PRECONDITION(!protein.isModified(), "Decoy generation only supports unmodified proteins.")
   String s = protein.toUnmodifiedString();
   std::reverse(s.begin(), s.end());
   return AASequence::fromString(s);
@@ -64,7 +64,7 @@ AASequence DecoyGenerator::reverseProtein(const AASequence& protein) const
 
 AASequence DecoyGenerator::reversePeptides(const AASequence& protein, const String& protease) const
 {
-  OPENMS_PRECONDITION(!protein.isModified(), "Decoy generation only supports unmodified proteins.");
+  OPENMS_PRECONDITION(!protein.isModified(), "Decoy generation only supports unmodified proteins.")
   std::vector<AASequence> peptides;
   ProteaseDigestion ed;
   ed.setMissedCleavages(0); // important as we want to reverse between all cutting sites

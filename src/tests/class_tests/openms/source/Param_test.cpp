@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -391,13 +391,15 @@ END_SECTION
 // Root
 //  |-A=1
 //  |-R
-//  | |
-//	| S
-//  | |-B=2
-//  | |-C=3
+//	| |-S
+//  | | |-B=2
+//  | | |-C=3
+//  | | 
+//  | |-U (empty)
+//  |
 //  |-T
 //    |-D=4
-Param::ParamNode root, r, s, t;
+Param::ParamNode root, r, s, t, u;
 root.name="root";
 r.name="r";
 s.name="s";
@@ -408,6 +410,8 @@ s.description="s_desc";
 s.entries.push_back(Param::ParamEntry("C","3",""));
 t.entries.push_back(Param::ParamEntry("D","4",""));
 r.nodes.push_back(s);
+u.description="empty";
+r.nodes.push_back(u);
 root.nodes.push_back(r);
 root.nodes.push_back(t);
 
@@ -597,6 +601,19 @@ END_SECTION
 
 START_SECTION(([Param::ParamIterator] const std::vector< TraceInfo>& getTrace() const))
 
+	//Recap:
+	//complicated subtree
+	// Root
+	//  |-A=1
+	//  |-R
+	//	| |-S
+	//  | | |-B=2
+	//  | | |-C=3
+	//  | | 
+	//  | |-U (empty)
+	//  |
+	//  |-T
+	//    |-D=4
 	//A
 	Param::ParamIterator it(root);
 	TEST_EQUAL(it.getTrace().size(),0);

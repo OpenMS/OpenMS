@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -145,6 +145,7 @@ public:
         return *this;
       }
 
+      // @TODO: members are public, names shouldn't end in underscores
       double ratio_value_;
       String denominator_ref_;
       String numerator_ref_;
@@ -352,4 +353,3 @@ private:
   OPENMS_DLLAPI std::ostream& operator<<(std::ostream& os, const ConsensusFeature& cons);
 
 } // namespace OpenMS
-

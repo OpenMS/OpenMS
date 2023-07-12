@@ -3,7 +3,7 @@ import sys
 
 def main(argv):
     if len(argv) not in (2,3,4,5):
-        print 'Usage: draw_dot.py <graph .dot> <output image file> [layout, default is neato; optionally multiple layouts separated by ","] [overlap mode {scale, false}, default is false] [label edges {0,1}]'
+        print('Usage: draw_dot.py <graph .dot> <output image file> [layout, default is neato; optionally multiple layouts separated by ","] [overlap mode {scale, false}, default is false] [label edges {0,1}]')
     else:
         layouts = ['neato']
         if len(argv) >= 3:

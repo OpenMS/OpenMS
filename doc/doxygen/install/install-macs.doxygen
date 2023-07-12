@@ -37,7 +37,7 @@
    \code
      xcode-select --install
    \endcode
-   <li>CMake (version 3.21 or higher) is required to configure and build the %OpenMS as well as some of its dependencies.</li>
+   <li>CMake (>= 3.24) is required to configure and build the %OpenMS as well as some of its dependencies.</li>
    <li>Qt5, its SVG module and the header files are required.
    @note We recommend installing Qt using Homebrew with:
    \code
@@ -56,7 +56,6 @@
 
   <ul>
    <li><a href="http://www.doxygen.org/index.html">Doxygen</a> (recommended: >= 1.8.13, required: > 1.7.1, some might be buggy in between) is used to generate the %OpenMS documentation.</li>
-   <li>pdflatex is required to generate the tutorial PDFs. The latest MacTeX release can be downloaded <a href="http://tug.org/mactex/">here</a></li>
   </ul>
 
  <hr>

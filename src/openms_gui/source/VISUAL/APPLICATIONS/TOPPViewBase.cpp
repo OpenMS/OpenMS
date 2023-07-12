@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -2459,10 +2459,14 @@ namespace OpenMS
         if (data->hasUrls())
         {
           QList<QUrl> urls = data->urls();
-          for (QList<QUrl>::const_iterator it = urls.begin(); it != urls.end(); ++it)
-          {
-            addDataFile(it->toLocalFile(), false, true, "", new_id);
-          }
+          // use a QTimer for external sources to make the source (e.g. Windows Explorer responsive again)
+          // Using a QueuedConnection for the DragEvent does not solve the problem (Qt 5.15) -- see previous (reverted) commit
+          QTimer::singleShot(50, [this, urls, new_id]() {
+            for (const QUrl& url : urls)
+            {
+              addDataFile(url.toLocalFile(), false, true, "", new_id);
+            }
+          });
         }
       }
     }
