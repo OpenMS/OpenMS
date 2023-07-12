@@ -107,6 +107,10 @@ if(NOT TARGET CoinOR::CoinOR)
   add_library(CoinOR::CoinOR INTERFACE IMPORTED)
   if (VCPKG_TOOLCHAIN)
     # Currently coin-or from vcpkg requires BLAS and LAPACK
+    # TODO: Find a better way to do this. Ideal would be if Coin exports a CMake config
+    #  Maybe we can parse a header file? Or try_compile?
+    #  The current approach fails if VCPKG toolchain is used but CMake somehow finds
+    #  an external coin-or. Should be rare to impossible.
     find_package(BLAS)
     find_package(LAPACK)
     target_link_libraries(CoinOR::CoinOR INTERFACE BLAS LAPACK)
