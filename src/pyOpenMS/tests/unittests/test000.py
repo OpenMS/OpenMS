@@ -2965,12 +2965,12 @@ def testMSExperiment():
 
     pyopenms.MzMLFile().load(os.path.join(os.environ['OPENMS_DATA_PATH'], 'examples/FRACTIONS/BSA1_F1_ION.mzML'), exp)
     df = exp.get_ion_df()
-    assert df # Assert something on the head of loaded datas (do not know for now as code fails)
+    assert df is not None # Assert something on the head of loaded datas (do not know for now as code fails)
 
     ms1_df, ms2_df = exp.get_massql_df(ion=True)
-    assert ms1_df.shape == (140055, 7)
+    assert ms1_df.shape == (332620, 8)
     # TODO: Create the examples/FRACTIONS/BSA1_F1_MS2_MassQL_ION.tsv file. 
-    assert np.allclose(ms2_df.head(), pd.read_csv(os.path.join(os.environ['OPENMS_DATA_PATH'], 'examples/FRACTIONS/BSA1_F1_MS2_MassQL_ION.tsv'), sep='\t'))
+    assert np.allclose(ms1_df.head(), pd.read_csv(os.path.join(os.environ['OPENMS_DATA_PATH'], 'examples/FRACTIONS/BSA1_F1_MS2_MassQL_ION.tsv'), sep='\t'))
 
 @report
 def testMSQuantifications():

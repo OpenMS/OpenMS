@@ -427,7 +427,7 @@ public:
     }
 
     // for fast pyOpenMS access to MS1 peak data in format: [rt, mz, intensity, ion mobility]
-    void get2DPeakData(
+    void get2DPeakDataIon(
       CoordinateType min_rt,
       CoordinateType max_rt,
       CoordinateType min_mz,
@@ -445,7 +445,7 @@ public:
 
         const MSSpectrum& spectrum = it.getSpectrum();
         bool has_IM = spectrum.containsIMData();
-        double peak_IM{-1.0};
+        float peak_IM = -1.0;
         if (has_IM)
         {
           const auto& im_data = spectrum.getIMData();

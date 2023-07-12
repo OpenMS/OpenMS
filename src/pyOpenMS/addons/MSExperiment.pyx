@@ -25,7 +25,7 @@
         cdef libcpp_vector[float] mz
         cdef libcpp_vector[float] inty
         cdef libcpp_vector[float] ion
-        exp_.get2DPeakData(min_rt, max_rt, min_mz, max_mz, rt, mz, inty, ion)
+        exp_.get2DPeakDataIon(min_rt, max_rt, min_mz, max_mz, rt, mz, inty, ion)
        
         cdef ArrayWrapperFloat rt_wrap = ArrayWrapperFloat()
         cdef ArrayWrapperFloat mz_wrap = ArrayWrapperFloat()
