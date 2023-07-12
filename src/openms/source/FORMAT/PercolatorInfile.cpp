@@ -80,7 +80,12 @@ namespace OpenMS
     return scan_identifier.removeWhitespaces();
   }
 
-  vector<PeptideIdentification> PercolatorInfile::load(const String& pin_file, bool higher_score_better, const String& score_name, StringList& filenames, String decoy_prefix)
+  vector<PeptideIdentification> PercolatorInfile::load(
+    const String& pin_file, 
+    bool higher_score_better, 
+    const String& score_name, 
+    StringList& filenames, 
+    String decoy_prefix)
   {
     CsvFile csv(pin_file, '\t');
     StringList header;
@@ -186,8 +191,9 @@ namespace OpenMS
         target_decoy = std::all_of(accessions.begin(), accessions.end(), [&decoy_prefix](const String& acc) { return acc.hasPrefix(decoy_prefix); }) ? "decoy" : "target" ;
       }          
 
-      // needs to handle strings like: [+42]-MVLVQDLLHPTAASEAR, [+304.207]-ETC[+57.0215]RQLGLGTNIYNAER
+      // needs to handle strings like: [+42]-MVLVQDLLHPTAASEAR, [+304.207]-ETC[+57.0215]RQLGLGTNIYNAER etc.
       sPeptide.substitute("]-", "]."); // we can parse [+42].MVLVQDLLHPTAASEAR
+      sPeptide.substitute("-[", ".["); // we can parse MVLVQDLLHPTAASEAR-[+111]
       AASequence aa_seq = AASequence::fromString(sPeptide);
       PeptideHit ph(score, rank, charge, std::move(aa_seq));
       ph.setMetaValue("SpecId", sSpecId);

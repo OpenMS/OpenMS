@@ -28,8 +28,8 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Chris Bielow $
-// $Authors: Leon Bichmann, Timo Sachsenberg $
+// $Maintainer: Timo Sachsenberg $
+// $Authors: Timo Sachsenberg $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/APPLICATIONS/SearchEngineBase.h>
@@ -98,7 +98,7 @@ using namespace std;
 class TOPPSageAdapter :
   public SearchEngineBase
 {
-public:
+public: 
   TOPPSageAdapter() :
     SearchEngineBase("SageAdapter", "Annotates MS/MS spectra using Sage.", true,
              {
@@ -112,16 +112,16 @@ public:
 
 protected:
 
-std::tuple<std::string, std::string, std::string> getVersionNumber_(const std::string& multi_line_input)
-{
-    std::regex version_regex("Version ([0-9]+)\\.([0-9]+)\\.([0-9]+)");
+  std::tuple<std::string, std::string, std::string> getVersionNumber_(const std::string& multi_line_input)
+  {
+      std::regex version_regex("Version ([0-9]+)\\.([0-9]+)\\.([0-9]+)");
 
-    std::sregex_iterator it(multi_line_input.begin(), multi_line_input.end(), version_regex);
-    std::smatch match = *it;
-    std::cout << "Found version string: " << match.str() << std::endl;      
-        
-    return make_tuple(it->str(1), it->str(2), it->str(3)); // major, minor, patch
-}
+      std::sregex_iterator it(multi_line_input.begin(), multi_line_input.end(), version_regex);
+      std::smatch match = *it;
+      std::cout << "Found Sage version string: " << match.str() << std::endl;      
+          
+      return make_tuple(it->str(1), it->str(2), it->str(3)); // major, minor, patch
+  }
 
   void registerOptionsAndFlags_() override
   {
@@ -148,6 +148,9 @@ std::tuple<std::string, std::string, std::string> getVersionNumber_(const std::s
 
     registerStringOption_("decoy_prefix", "<prefix>", "DECOY_", "Prefix on protein accession used to distinguish decoy from target proteins.", false, false);
     registerIntOption_("batch_size", "<int>", 0, "Number of files to load and search in parallel (default = # of CPUs/2)", false, false);
+    
+    // register peptide indexing parameter (with defaults for this search engine) TODO: check if search engine defaults are needed
+    registerPeptideIndexingParameter_(PeptideIndexing().getParameters());     
   }
 
   ExitCodes main_(int, const char**) override
@@ -162,7 +165,7 @@ std::tuple<std::string, std::string, std::string> getVersionNumber_(const std::s
     TOPPBase::ExitCodes exit_code = runExternalProcess_(sage_executable.toQString(), QStringList() << "--help", proc_stdout, proc_stderr, "");
     auto major_minor_patch = getVersionNumber_(proc_stdout);
     String sage_version = "sage (" + std::get<0>(major_minor_patch) + "." + std::get<1>(major_minor_patch) + "." + std::get<2>(major_minor_patch) + ")";
-       
+    
     //-------------------------------------------------------------
     // run sage
     //-------------------------------------------------------------
@@ -176,7 +179,10 @@ std::tuple<std::string, std::string, std::string> getVersionNumber_(const std::s
     String percolator_executable = getStringOption_("percolator_executable");
 
     QStringList arguments;
-    arguments << config.toQString() << "-f" << fasta_file.toQString() << "-o" << output_folder.toQString() << "--write-pin";
+    arguments << config.toQString() 
+              << "-f" << fasta_file.toQString() 
+              << "-o" << output_folder.toQString() 
+              << "--write-pin";
     if (batch >= 1) arguments << "--batch-size" << QString(batch);
     for (auto s : input_files) arguments << s.toQString();
 
@@ -208,17 +214,17 @@ std::tuple<std::string, std::string, std::string> getVersionNumber_(const std::s
       }
     }
 
-
     //-------------------------------------------------------------
     // writing IdXML output
     //-------------------------------------------------------------
 
     // read the sage output
+    OPENMS_LOG_INFO << "Reading sage output..." << std::endl;
     StringList filenames;
-    vector<PeptideIdentification> peptide_identifications = PercolatorInfile::load("results.sage.pin", true, "ln(hyperscore)", filenames, decoy_prefix);
+    vector<PeptideIdentification> peptide_identifications = PercolatorInfile::load(output_folder + "/results.sage.pin", true, "ln(hyperscore)", filenames, decoy_prefix);
 
-    // TODO: split / merge results and create idXMLs    
-    vector<ProteinIdentification> protein_identifications;
+    // TODO: split / merge results and create idXMLs
+    vector<ProteinIdentification> protein_identifications(1, ProteinIdentification());
 
     writeDebug_("write idXMLFile", 1);    
     
