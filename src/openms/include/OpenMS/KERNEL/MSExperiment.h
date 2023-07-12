@@ -442,7 +442,20 @@ public:
         rt.push_back((float)it.getRT());
         mz.push_back((float)it->getMZ());
         intensity.push_back(it->getIntensity());
-        ion.push_back(it.getDriftTime());
+
+        const MSSpectrum& spectrum = it.getSpectrum();
+        bool has_IM = spectrum.containsIMData();
+        double peak_IM{-1.0};
+        if (has_IM)
+        {
+          const auto& im_data = spectrum.getIMData();
+          const Size& peak_index = it.getPeakIndex().peak;
+          if (spectrum.getFloatDataArrays()[im_data.first].size() == spectrum.size())
+          {
+            peak_IM = spectrum.getFloatDataArrays()[im_data.first][peak_index];
+          }          
+        }        
+        ion.push_back(peak_IM);
       }
     }
 
