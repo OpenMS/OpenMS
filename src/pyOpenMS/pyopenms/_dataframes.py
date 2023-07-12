@@ -354,7 +354,7 @@ class _MSExperimentDF(_MSExperiment):
         'charge': charge of the precursor ion
         
         Parameters:
-            ion (bool): if True, returns the ionic mobility of the peaks.
+            ion (bool): if True, returns the ion mobility of the peaks.
 
         Returns:
         ms1_df (pandas.DataFrame): peak data of MS1 spectra
