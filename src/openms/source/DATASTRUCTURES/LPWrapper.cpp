@@ -45,7 +45,7 @@
   #pragma GCC diagnostic ignored "-Wunused-parameter"
   #endif
 
-  #ifdef COIN_INCLUDE_SUBDIR
+  #ifdef CF_COIN_INCLUDE_SUBDIR_DEF
     #include "coin/CoinModel.hpp"
     #include "coin/OsiClpSolverInterface.hpp"
     #include "coin/CbcModel.hpp"
