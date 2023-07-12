@@ -48,16 +48,14 @@ find_path(COIN_INCLUDE_DIR coin-or/CoinUtilsConfig.h
         ${COIN_ROOT_DIR}/include
         )
 
-if (COIN_INCLUDE_DIR)
- set(CF_COIN_INCLUDE_SUBDIR 0 CACHE BOOL "If the subdir for including coin-or headers is coin (1) or coin-or (0).")
-else()
+if (NOT COIN_INCLUDE_DIR)
   # find the coin include directory from contrib or system
   find_path(COIN_INCLUDE_DIR coin-or/CoinUtilsConfig.h coin/CoinUtilsConfig.h coinutils/coin/CoinUtilsConfig.h
           HINTS
           ${COIN_ROOT_DIR}/include
           )
   if (COIN_INCLUDE_DIR)
-    set(CF_COIN_INCLUDE_SUBDIR 1 CACHE BOOL "If the subdir for including coin-or headers is coin (1) or coin-or (0).")
+    set(CF_COIN_INCLUDE_SUBDIR_DEF 1 CACHE BOOL "If the subdir for including coin-or headers is coin (1) or coin-or (undefined).")
   endif()
 endif()
 
