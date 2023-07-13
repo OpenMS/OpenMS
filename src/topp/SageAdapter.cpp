@@ -128,7 +128,7 @@ protected:
     registerInputFileList_("in", "<files>", StringList(), "Input files separated by blank");
     setValidFormats_("in", { "mzML" } );
 
-    registerOutputFile_("out", "<file>", "", "Path to the output file.", true, false);
+    registerOutputFile_("out", "<file>", "", "Single output file containing all search results.", true, false);
     setValidFormats_("out", { "idXML" } );
 
     registerInputFile_("database", "<file>", "", "FASTA file", true, false, {"skipexists"});

@@ -131,9 +131,9 @@ namespace OpenMS
     vector<PeptideIdentification> pids;
     pids.reserve(n_rows);
     String spec_id;
-    int raw_file_index{-1};
-    String raw_file_name;
-    
+    String raw_file_name("UNKNOWN");
+    unordered_map<String, size_t> map_filename_to_idx; // fast lookup of filename to index in filenames vector
+
     for (size_t i = 1; i != n_rows; ++i)
     {
       StringList row;      
@@ -146,12 +146,11 @@ namespace OpenMS
 
       if (file_name_column_index >= 0)
       {
-        const auto& current_raw_file_name = row[file_name_column_index];
-        if (current_raw_file_name != raw_file_name)
+        raw_file_name = row[file_name_column_index];
+        if (map_filename_to_idx.find(raw_file_name) == map_filename_to_idx.end())
         {
-          raw_file_name = current_raw_file_name;
-          ++raw_file_index;
-          filenames.push_back(current_raw_file_name);
+          filenames.push_back(raw_file_name);
+          map_filename_to_idx[raw_file_name] = filenames.size() - 1;
         }
       }   
 
@@ -161,7 +160,7 @@ namespace OpenMS
         pids.resize(pids.size() + 1);
         pids.back().setHigherScoreBetter(higher_score_better);
         pids.back().setScoreType(score_name);
-        pids.back().setMetaValue("map_index", raw_file_index);
+        pids.back().setMetaValue("map_index", map_filename_to_idx.at(raw_file_name));
       }
 
       int sScanNr = row[to_idx.at("ScanNr")].toInt();
