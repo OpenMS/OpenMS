@@ -327,12 +327,12 @@ class _MSExperimentDF(_MSExperiment):
         pandas.DataFrame: feature information stored in a DataFrame
         """
         
-        cols = ["RT", "mz", "inty", "ion"]
+        cols = ["RT", "mz", "inty", "IM"]
         self.updateRanges()
         spectraarrs2d = self.get2DPeakDataLongIon(self.getMinRT(), self.getMaxRT(), self.getMinMZ(), self.getMaxMZ())
         return _pd.DataFrame(dict(zip(cols, spectraarrs2d)))
 
-    def get_massql_df(self, ion=False):
+    def get_massql_df(self, ion_mobility=False):
         """Exports data from MSExperiment to pandas DataFrames to be used with MassQL.
 
         The Python module massql allows queries in mass spectrometry data (MS1 and MS2
@@ -457,18 +457,18 @@ class _MSExperimentDF(_MSExperiment):
         # create DataFrame for MS1 and MS2 with according column names and data types
         # if there are no spectra of given MS level return an empty DataFrame
         dtypes = {'i': 'float32', 'i_norm': 'float32', 'i_tic_norm': 'float32', 'mz': 'float64', 'scan': 'int32', 'rt': 'float32', 'polarity': 'int32'}
-        if ion:
-            dtypes = dict(dtypes, **{"ion": "float32"})
+        if ion_mobility:
+            dtypes = dict(dtypes, **{"IM": "float32"})
     
         if 1 in self.getMSLevels():
-            spec_arrays = _get_spec_arrays(1) if not ion else _get_ion_spec_arrays(1)
+            spec_arrays = _get_spec_arrays(1) if not ion_mobility else _get_ion_spec_arrays(1)
             ms1_df = _pd.DataFrame(_np.concatenate(list(spec_arrays), axis=0), columns=dtypes.keys()).astype(dtypes)
         else:
             ms1_df = _pd.DataFrame(columns=dtypes.keys()).astype(dtypes)
 
         dtypes = dict(dtypes, **{'precmz': 'float64', 'ms1scan': 'int32', 'charge': 'int32'})
         if 2 in self.getMSLevels():
-            spec_arrays = _get_spec_arrays(2) if not ion else _get_ion_spec_arrays(2)
+            spec_arrays = _get_spec_arrays(2) if not ion_mobility else _get_ion_spec_arrays(2)
             ms2_df = _pd.DataFrame(_np.concatenate(list(spec_arrays), axis=0), columns=dtypes.keys()).astype(dtypes)
         else:
             ms2_df = _pd.DataFrame(columns=dtypes.keys()).astype(dtypes)

@@ -379,7 +379,7 @@ public:
       std::vector<float>& rt, 
       std::vector<std::vector<float>>& mz,
       std::vector<std::vector<float>>& intensity, 
-      std::vector<std::vector<float>>& ion) const
+      std::vector<std::vector<float>>& ion_mobility) const
     {
       float t = -1.0;
       for (auto it = areaBeginConst(min_rt, max_rt, min_mz, max_mz); it != areaEndConst(); ++it)
@@ -402,7 +402,7 @@ public:
             peak_IM = spectrum.getFloatDataArrays()[im_data.first][peak_index];
           }          
         }
-        ion.back().push_back(peak_IM);        
+        ion_mobility.back().push_back(peak_IM);        
         mz.back().push_back((float)it->getMZ());
         intensity.back().push_back(it->getIntensity());
       }
@@ -435,7 +435,7 @@ public:
       std::vector<float>& rt,
       std::vector<float>& mz,
       std::vector<float>& intensity,
-      std::vector<float>& ion) const
+      std::vector<float>& ion_mobility) const
     {
       for (auto it = areaBeginConst(min_rt, max_rt, min_mz, max_mz); it != areaEndConst(); ++it)
       {
@@ -455,7 +455,7 @@ public:
             peak_IM = spectrum.getFloatDataArrays()[im_data.first][peak_index];
           }          
         }        
-        ion.push_back(peak_IM);
+        ion_mobility.push_back(peak_IM);
       }
     }
 
