@@ -41,11 +41,14 @@ namespace OpenMS
      @ingroup FileIO
 **/
 
-  void FLASHDeconvFeatureFile::writeHeader(std::fstream& fs)
+  void FLASHDeconvFeatureFile::writeHeader(std::fstream& fs, bool report_dummy)
   {
-    fs << "FeatureIndex\tFileName\tMonoisotopicMass\tAverageMass\tMassCount\tStartRetentionTime"
+    fs << "FeatureIndex\tFileName";
+    if (report_dummy) fs << "\tIsDummy";
+
+    fs << "\tMonoisotopicMass\tAverageMass\tMassCount\tStartRetentionTime"
           "\tEndRetentionTime\tRetentionTimeDuration\tApexRetentionTime"
-          "\tSumIntensity\tMaxIntensity\tFeatureQuantity\tMinCharge\tMaxCharge\tChargeCount\tIsotopeCosineScore\tMaxQscore\tPerChargeIntensity\tPerIsotopeIntensity"
+          "\tSumIntensity\tMaxIntensity\tFeatureQuantity\tMinCharge\tMaxCharge\tChargeCount\tIsotopeCosineScore\tFeatureQscore\tPerChargeIntensity\tPerIsotopeIntensity"
           "\n";
   }
 
@@ -73,9 +76,8 @@ namespace OpenMS
     }
   }
 
-  void FLASHDeconvFeatureFile::writeFeatures(const std::vector<FLASHDeconvHelperStructs::MassFeature>& mass_features, const String& file_name, std::fstream& fs)
+  void FLASHDeconvFeatureFile::writeFeatures(const std::vector<FLASHDeconvHelperStructs::MassFeature>& mass_features, const String& file_name, std::fstream& fs, bool report_dummy, bool is_dummy)
   {
-    int feature_index = 0;
     for (auto& mass_feature : mass_features)
     {
       auto mt = mass_feature.mt;
@@ -88,10 +90,17 @@ namespace OpenMS
         sum_intensity += p.getIntensity();
       }
 
-      fs << feature_index++ << "\t" << file_name << "\t" << std::to_string(mass) << "\t" << std::to_string(avg_mass) << "\t" // massdiff
+      fs << mass_feature.index << "\t" << file_name;
+
+      if (report_dummy)
+      {
+        fs << "\t" << (is_dummy? 1 : 0);
+      }
+
+      fs << "\t" << std::to_string(mass) << "\t" << std::to_string(avg_mass) << "\t" // massdiff
          << mt.getSize() << "\t" << mt.begin()->getRT() << "\t" << mt.rbegin()->getRT() << "\t" << mt.getTraceLength() << "\t" << mt[mt.findMaxByIntPeak()].getRT() << "\t" << sum_intensity << "\t"
          << mt.getMaxIntensity(false) << "\t" << mt.computePeakArea() << "\t" << mass_feature.min_charge << "\t" << mass_feature.max_charge << "\t" << mass_feature.charge_count << "\t"
-         << mass_feature.isotope_score << "\t" << mass_feature.qscore << "\t";
+         << mass_feature.isotope_score << "\t" << std::setprecision (15) << (mass_feature.qscore) << std::setprecision (-1) << "\t";
 
       for (int i = mass_feature.min_charge; i <= mass_feature.max_charge; i++)
       {

@@ -39,11 +39,11 @@
 
 namespace OpenMS
 {
-  float Qscore::getQscore(const PeakGroup* pg)
+  double Qscore::getQscore(const PeakGroup* pg)
   {
     if (pg->empty())
     { // all zero
-      return .0f;
+      return .0;
     }
     // the weights for per cosine, SNR, PPM error, charge score, and intercept.
     // Cos    -8.9494
@@ -60,7 +60,7 @@ namespace OpenMS
     {
       score += fv[i] * weights[i];
     }
-    float qscore = 1.0f / (1.0f + (float)exp(score));
+    double qscore = 1.0 / (1.0 + exp(score));
 
     return qscore;
   }
@@ -86,7 +86,6 @@ namespace OpenMS
     return fvector;
   }
 
-
   void Qscore::writeAttCsvFromDummyHeader(std::fstream& f)
   {
     f << "MSLevel,Cos,SNR,AvgPPMError,ChargeScore,Class\n";
@@ -96,24 +95,24 @@ namespace OpenMS
   {
     uint ms_level = deconvolved_spectrum.getOriginalSpectrum().getMSLevel();
     String cns[] = {"T", "D", "D", "D"};
-    for(auto& pg:deconvolved_spectrum)
+    for (auto& pg : deconvolved_spectrum)
     {
-      if(pg.getChargeSNR(pg.getRepAbsCharge()) < .5) // remove masses with too low SNRs - they act as outliers.
+      if (pg.getChargeSNR(pg.getRepAbsCharge()) < .5) // remove masses with too low SNRs - they act as outliers.
       {
         continue;
       }
-      if(pg.getChargeIsotopeCosine(pg.getRepAbsCharge()) < .85) // remove masses with too low SNRs - they act as outliers.
+      if (pg.getChargeIsotopeCosine(pg.getRepAbsCharge()) < .85) // remove masses with too low SNRs - they act as outliers.
       {
         continue;
       }
 
       auto fv = toFeatureVector_(&pg);
-      f<< ms_level<<",";
-      for (auto& item: fv)
+      f << ms_level << ",";
+      for (auto& item : fv)
       {
         f << item << ",";
       }
-      f <<  cns[pg.getTargetDummyType()]<< "\n";
+      f << cns[pg.getTargetDummyType()] << "\n";
     }
   }
 } // namespace OpenMS

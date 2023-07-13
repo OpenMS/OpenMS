@@ -84,7 +84,7 @@ namespace OpenMS
        @brief Find mass features.
        @param averagine precalculated averagine for cosine calculation
        */
-    std::vector<FLASHDeconvHelperStructs::MassFeature> findFeatures(const PrecalculatedAveragine& averagine);
+    std::vector<FLASHDeconvHelperStructs::MassFeature> findFeatures(const PrecalculatedAveragine& averagine, std::vector<DeconvolvedSpectrum>& deconvolved_spectra);
 
   protected:
     void updateMembers_() override;

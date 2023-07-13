@@ -44,7 +44,7 @@ namespace OpenMS
   /// harmonic charge factors that will be considered for harmonic mass reduction.
   inline const std::vector<int> harmonic_charges_ {2, 3, 5, 7, 11};
   /// high and low charges are differently deconvolved. This value determines the (inclusive) threshold for low charge.
-  inline const int low_charge_ = 10; // 10 inclusive
+  inline const int low_charge_ = 10;        // 10 inclusive
   inline const double tol_div_factor = 2.5; // use narrow tolerance for deconvolution and at the end use the input tolerance to filter out overlapping masses.
 
   FLASHDeconvAlgorithm::FLASHDeconvAlgorithm() : DefaultParamHandler("FLASHDeconvAlgorithm")
@@ -200,7 +200,6 @@ namespace OpenMS
 
     min_isotope_cosine_ = param_.getValue("min_isotope_cosine");
     allowed_iso_error_ = param_.getValue("allowed_isotope_error");
-
   }
 
   const FLASHDeconvHelperStructs::PrecalculatedAveragine& FLASHDeconvAlgorithm::getAveragine()
@@ -530,7 +529,7 @@ namespace OpenMS
             else // if harmonic
             {
               mass_intensities[mass_bin_index] -= max_h_intensity;
-              if(spc > 0)
+              if (spc > 0)
               {
                 spc--;
               }
@@ -1113,8 +1112,8 @@ namespace OpenMS
         auto peak_group = deconvolved_spectrum_[i];
         peak_group.setTargetDummyType(target_dummy_type_);
         float prev_cos = peak_group.getIsotopeCosine();
-        float cos = getIsotopeCosineAndDetermineIsotopeIndex(peak_group.getMonoMass(), peak_group.getIsotopeIntensities(), offset, avg_, -peak_group.getMinNegativeIsotopeIndex(), -1, allowed_iso_error_,
-                                                             target_dummy_type_);
+        float cos = getIsotopeCosineAndDetermineIsotopeIndex(peak_group.getMonoMass(), peak_group.getIsotopeIntensities(), offset, avg_, -peak_group.getMinNegativeIsotopeIndex(), -1,
+                                                             allowed_iso_error_, target_dummy_type_);
         auto prev_mono_mass = peak_group.getMonoMass() + offset * iso_da_distance_;
 
         peak_group.setIsotopeCosine(cos);
@@ -1636,7 +1635,7 @@ namespace OpenMS
               precursor_pg.setSNR(smap[12]);
               precursor_pg.setChargeScore(smap[13]);
               precursor_pg.setAvgPPMError(smap[14]);
-              precursor_pg.Qscore(smap[2]);
+              precursor_pg.setQscore(smap[2]);
               precursor_pg.setRepAbsCharge((int)smap[1]);
               precursor_pg.updateMonoMassAndIsotopeIntensities();
               precursor_pg.setScanNumber(map->first);

@@ -59,27 +59,32 @@ namespace OpenMS
     defaultsToParam_();
   }
 
-  std::vector<FLASHDeconvHelperStructs::MassFeature> MassFeatureTrace::findFeatures(const PrecalculatedAveragine& averagine)
+  std::vector<FLASHDeconvHelperStructs::MassFeature> MassFeatureTrace::findFeatures(const PrecalculatedAveragine& averagine, std::vector<DeconvolvedSpectrum>& deconvolved_spectra)
   {
+    static uint findex = 1;
     MSExperiment map;
     std::map<int, MSSpectrum> index_spec_map;
     int min_abs_charge = INT_MAX;
     int max_abs_charge = INT_MIN;
     bool is_positive = true;
     std::vector<FLASHDeconvHelperStructs::MassFeature> mass_features;
-    for (auto& item : peak_group_map_)
+    std::map<double, Size> rt_index_map;
+
+    for (Size i = 0; i < deconvolved_spectra.size(); i++)
     {
-      double rt = item.first;
+      auto deconvolved_spectrum = deconvolved_spectra[i];
+      double rt = deconvolved_spectrum.getOriginalSpectrum().getRT();
+      rt_index_map[rt] = i;
       MSSpectrum deconv_spec;
       deconv_spec.setRT(rt);
-      for (auto& pg : item.second)
+      for (auto& pg : deconvolved_spectrum)
       {
-        is_positive = pg.second.isPositive();
-        auto [z1, z2] = pg.second.getAbsChargeRange();
+        is_positive = pg.isPositive();
+        auto [z1, z2] = pg.getAbsChargeRange();
         max_abs_charge = max_abs_charge > z2 ? max_abs_charge : z2;
         min_abs_charge = min_abs_charge < z1 ? min_abs_charge : z1;
 
-        Peak1D tp(pg.first, (float)pg.second.getIntensity());
+        Peak1D tp(pg.getMonoMass(), (float)pg.getIntensity());
         deconv_spec.push_back(tp);
       }
       map.addSpectrum(deconv_spec);
@@ -99,11 +104,12 @@ namespace OpenMS
     std::vector<MassTrace> m_traces;
 
     mtdet.run(map, m_traces); // m_traces : output of this function
+
     int charge_range = max_abs_charge - min_abs_charge + 1;
+    double feature_qscore = 1.0;
 
     for (auto& mt : m_traces)
     {
-      double max_qscore = .0;
       int min_feature_abs_charge = INT_MAX; // min feature charge
       int max_feature_abs_charge = INT_MIN; // max feature charge
 
@@ -114,29 +120,33 @@ namespace OpenMS
       double max_iso = 0;
       int max_iso_off = 0;
       boost::dynamic_bitset<> charges(charge_range + 1);
-      std::vector<PeakGroup> pgs;
+      std::vector<std::vector<PeakGroup>::iterator> pgs;
       pgs.reserve(mt.getSize());
 
       for (auto& p2 : mt)
       {
-        auto& pg_map = peak_group_map_[p2.getRT()];
-        auto& pg = pg_map[p2.getMZ()];
-        auto [z1, z2] = pg.getAbsChargeRange();
+        auto& dspec = deconvolved_spectra[rt_index_map[p2.getRT()]];
+        PeakGroup comp;
+        comp.setMonoisotopicMass(p2.getMZ());
+        auto pg = std::lower_bound(dspec.begin(), dspec.end(), comp);
+        auto [z1, z2] = pg->getAbsChargeRange();
         min_feature_abs_charge = min_feature_abs_charge < z1 ? min_feature_abs_charge : z1;
         max_feature_abs_charge = max_feature_abs_charge > z2 ? max_feature_abs_charge : z2;
-
-        if (pg.getIsotopeCosine() > max_iso)
+        if (pg->getIsotopeCosine() > max_iso)
         {
-          max_iso = pg.getIsotopeCosine();
+          max_iso = pg->getIsotopeCosine();
         }
+
+        feature_qscore *= (1.0 - std::min(.99, pg->getQscore()));
         pgs.push_back(pg);
       }
 
+      feature_qscore = 1.0 - feature_qscore;
       for (auto& pg : pgs)
       {
         for (size_t z = min_abs_charge; z < per_charge_intensity.size(); z++)
         {
-          float zint = pg.getChargeIntensity((int)z);
+          float zint = pg->getChargeIntensity((int)z);
           if (zint <= 0)
           {
             continue;
@@ -145,9 +155,9 @@ namespace OpenMS
           per_charge_intensity[z] += zint;
         }
 
-        int iso_off = int(.5 + (pg.getMonoMass() - mass) / pg.getIsotopeDaDistance());
+        int iso_off = int(.5 + (pg->getMonoMass() - mass) / pg->getIsotopeDaDistance());
         max_iso_off = std::max(max_iso_off, abs(iso_off));
-        auto iso_int = pg.getIsotopeIntensities();
+        auto iso_int = pg->getIsotopeIntensities();
         for (size_t i = 0; i < per_isotope_intensity.size() - iso_off; i++)
         {
           if ((int)i + iso_off < 0 || i >= iso_int.size())
@@ -156,8 +166,6 @@ namespace OpenMS
           }
           per_isotope_intensity[i + iso_off] += iso_int[i];
         }
-
-        max_qscore = max_qscore < pg.getQscore() ? pg.getQscore() : max_qscore;
       }
 
       int offset = 0;
@@ -166,6 +174,12 @@ namespace OpenMS
       if (isotope_score < min_isotope_cosine_)
       {
         continue;
+      }
+
+      for (auto& pg : pgs)
+      {
+        pg->setFeatureIndex(findex);
+        pg->setFeatureQscore(feature_qscore);
       }
 
       FLASHDeconvHelperStructs::MassFeature mass_feature;
@@ -178,7 +192,7 @@ namespace OpenMS
       mass_feature.isotope_score = isotope_score;
       mass_feature.min_charge = (is_positive ? min_feature_abs_charge : -max_feature_abs_charge);
       mass_feature.max_charge = (is_positive ? max_feature_abs_charge : -min_feature_abs_charge);
-      mass_feature.qscore = max_qscore;
+      mass_feature.qscore = feature_qscore;
 
       mass_feature.per_charge_intensity = per_charge_intensity;
       mass_feature.per_isotope_intensity = per_isotope_intensity;
@@ -189,7 +203,9 @@ namespace OpenMS
       mass_feature.rep_mz = apex.getMZ();
       mass_feature.scan_number = rep_pg.getScanNumber();
       mass_feature.rep_charge = rep_pg.getRepAbsCharge();
+      mass_feature.index = findex;
       mass_features.push_back(mass_feature);
+      findex++;
     }
     return mass_features;
   }

@@ -78,7 +78,6 @@ namespace OpenMS
     /// assignment operator
     DeconvolvedSpectrum& operator=(const DeconvolvedSpectrum& deconvolved_spectrum) = default;
 
-
     /// Convert DeconvolvedSpectrum to MSSpectrum (e.g., used to store in mzML format).
     /// @param to_charge the charge of each peak in mzml output.
     /// @param min_ms_level the minimum MS level. If the original spec had an MS level lower than @p min_ms_level the precursor information of the returned spectrum is set to this value.
@@ -160,7 +159,7 @@ namespace OpenMS
 
     /// sort by deconvolved monoisotopic masses
     void sort();
-    /// sort by Qscore of peakGroups
+    /// sort by setQscore of peakGroups
     void sortByQscore();
 
   private:

@@ -72,6 +72,12 @@ namespace OpenMS
 
       pg.setIndex(index);
       fs << index++ << "\t" << file_name << "\t" << pg.getScanNumber() << "\t";
+
+      if (dspec.getOriginalSpectrum().getMSLevel() == 1)
+      {
+        fs << (pg.getFeatureIndex() == 0 ? "nan" : std::to_string(pg.getFeatureIndex()))  << "\t";
+      }
+
       if (dummy)
       {
         fs << pg.getTargetDummyType() << "\t";
@@ -185,7 +191,7 @@ namespace OpenMS
         else
         {
           fs << dspec.getPrecursorPeakGroup().getChargeSNR(dspec.getPrecursor().getCharge()) << "\t" << std::to_string(dspec.getPrecursorPeakGroup().getMonoMass()) << "\t"
-             << dspec.getPrecursorPeakGroup().getQscore() << "\t";
+             << std::to_string(dspec.getPrecursorPeakGroup().getQscore()) << "\t";
           if (dummy)
           {
             fs << dspec.getPrecursorPeakGroup().getQvalue() << "\t" << dspec.getPrecursorPeakGroup().getQvalue(PeakGroup::TargetDummyType::isotope_dummy) << "\t"
@@ -197,7 +203,12 @@ namespace OpenMS
 
       auto max_qscore_mz_range = pg.getRepMzRange();
       fs << pg.getSNR() << "\t" << pg.getChargeSNR(pg.getRepAbsCharge()) << "\t" << pg.getAvgPPMError() << "\t" << (pg.isPositive() ? pg.getRepAbsCharge() : -pg.getRepAbsCharge()) << "\t"
-         << std::to_string(std::get<0>(max_qscore_mz_range)) << "\t" << std::to_string(std::get<1>(max_qscore_mz_range)) << "\t" << pg.getQscore();
+         << std::to_string(std::get<0>(max_qscore_mz_range)) << "\t" << std::to_string(std::get<1>(max_qscore_mz_range)) << "\t" << std::to_string(pg.getQscore());
+
+      if (dspec.getOriginalSpectrum().getMSLevel() == 1)
+      {
+        fs << "\t" <<  std::setprecision (15) << (pg.getFeatureQscore()) << std::setprecision (-1);
+      }
 
       if (dummy)
       {
@@ -240,7 +251,7 @@ namespace OpenMS
     {
       if (ms_level == 1)
       {
-        fs << "Index\tFileName\tScanNum\t";
+        fs << "Index\tFileName\tScanNum\tFeatureIndex\t";
         if (dummy)
         {
           fs << "TargetDummyType\t";
@@ -249,7 +260,7 @@ namespace OpenMS
               "SumIntensity\tMinCharge\tMaxCharge\t"
               "PeakCount\tPeakMZs\tPeakIntensities\tPeakCharges\tPeakMasses\tPeakIsotopeIndices\tPeakPPMErrors\t"
               "NoisePeakMZs\tNoisePeakIntensities\tNoisePeakCharges\tNoisePeakMasses\tNoisePeakIsotopeIndices\tNoisePeakPPMErrors\t"
-              "IsotopeCosine\tChargeCosine\tChargeScore\tMassSNR\tChargeSNR\tAveragePPMError\tRepresentativeCharge\tRepresentativeMzStart\tRepresentativeMzEnd\tQscore\t";
+              "IsotopeCosine\tChargeCosine\tChargeScore\tMassSNR\tChargeSNR\tAveragePPMError\tRepresentativeCharge\tRepresentativeMzStart\tRepresentativeMzEnd\tQscore\tFeatureQscore";
         if (dummy)
         {
           fs << "Qvalue\tQvalueWithIsotopeDummyOnly\tQvalueWithNoiseDummyOnly\tQvalueWithChargeDummyOnly\t";
@@ -284,7 +295,7 @@ namespace OpenMS
     {
       if (ms_level == 1)
       {
-        fs << "Index\tFileName\tScanNum\t";
+        fs << "Index\tFileName\tScanNum\tFeatureIndex\t";
         if (dummy)
         {
           fs << "TargetDummyType\t";
@@ -292,7 +303,7 @@ namespace OpenMS
         fs << "RetentionTime\tMassCountInSpec\tAverageMass\tMonoisotopicMass\t"
               "SumIntensity\tMinCharge\tMaxCharge\t"
               "PeakCount\t"
-              "IsotopeCosine\tChargeCosine\tChargeScore\tMassSNR\tChargeSNR\tAveragePPMError\tRepresentativeCharge\tRepresentativeMzStart\tRepresentativeMzEnd\tQscore\t";
+              "IsotopeCosine\tChargeCosine\tChargeScore\tMassSNR\tChargeSNR\tAveragePPMError\tRepresentativeCharge\tRepresentativeMzStart\tRepresentativeMzEnd\tQscore\tFeatureQscore\t";
         if (dummy)
         {
           fs << "Qvalue\tQvalueWithIsotopeDummyOnly\tQvalueWithNoiseDummyOnly\tQvalueWithChargeDummyOnly";

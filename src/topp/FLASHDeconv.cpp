@@ -36,6 +36,7 @@
 #include <OpenMS/ANALYSIS/TOPDOWN/FLASHDeconvAlgorithm.h>
 #include <OpenMS/ANALYSIS/TOPDOWN/FLASHIda.h>
 #include <OpenMS/ANALYSIS/TOPDOWN/MassFeatureTrace.h>
+#include <OpenMS/ANALYSIS/TOPDOWN/Qscore.h>
 #include <OpenMS/ANALYSIS/TOPDOWN/Qvalue.h>
 #include <OpenMS/ANALYSIS/TOPDOWN/TopDownIsobaricQuantifier.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
@@ -335,7 +336,7 @@ protected:
     out_stream.open(out_file, fstream::out);
     out_quant_stream.open(out_file + "quant.tsv", fstream::out);
 
-    FLASHDeconvFeatureFile::writeHeader(out_stream);
+    FLASHDeconvFeatureFile::writeHeader(out_stream, report_dummy);
 
     if (!out_promex_file.empty())
     {
@@ -578,6 +579,7 @@ protected:
     }
 
     auto mass_tracer = MassFeatureTrace();
+    auto dummy_mass_tracer = MassFeatureTrace();
     Param mf_param = getParam_().copy("FeatureTracing:", true);
     DoubleList isotope_cosines = fd_param.getValue("min_isotope_cosine");
 
@@ -596,7 +598,7 @@ protected:
       mf_param.setValue("min_isotope_cosine", isotope_cosines[0]);
     }
     mass_tracer.setParameters(mf_param);
-
+    dummy_mass_tracer.setParameters(mf_param);
 
     TopDownIsobaricQuantifier quantifier;
     Param quant_param = getParam_().copy("IsobaricQuantification:", true);
@@ -670,7 +672,7 @@ protected:
         precursorPeakGroup.setSNR(1.0);
 
         precursorPeakGroup.setChargeSNR(std::abs(target_precursor_charge), 1.0);
-        precursorPeakGroup.Qscore(1.0);
+        precursorPeakGroup.setQscore(1.0);
         deconvolved_spectrum.setPrecursor(precursor);
         deconvolved_spectrum.setPrecursorPeakGroup(precursorPeakGroup);
       }
@@ -788,10 +790,20 @@ protected:
         deconvolved_spectrum.sort();
         dummy_deconvolved_spectrum.sort();
 
+        if (ms_level == 1)
+        {
+          dummy_mass_tracer.storeInformationFromDeconvolvedSpectrum(dummy_deconvolved_spectrum); // add deconvolved mass in mass_tracer
+        }
         dummy_deconvolved_spectra.push_back(dummy_deconvolved_spectrum);
       }
       qspec_cntr[ms_level - 1]++;
       mass_cntr[ms_level - 1] += deconvolved_spectrum.size();
+
+      if (ms_level == 1)
+      {
+        mass_tracer.storeInformationFromDeconvolvedSpectrum(deconvolved_spectrum); // add deconvolved mass in mass_tracer
+      }
+
       deconvolved_spectra.push_back(deconvolved_spectrum);
 
       elapsed_deconv_cpu_secs[ms_level - 1] += double(clock() - deconv_begin) / CLOCKS_PER_SEC;
@@ -799,17 +811,40 @@ protected:
     }
     progresslogger.endProgress();
 
-    std::cout << " writing per spectrum deconvolution results ... " << std::endl;
+    std::vector<FLASHDeconvHelperStructs::MassFeature> mass_features, dummy_mass_features;
+    // mass_tracer run
+    if (merge != 2) // unless spectra are merged into a single one
+    {
+      mass_features = mass_tracer.findFeatures(fd.getAveragine(), deconvolved_spectra);
+      feature_cntr = mass_features.size();
+      if (report_dummy)
+        dummy_mass_features = dummy_mass_tracer.findFeatures(fd.getAveragine(), dummy_deconvolved_spectra);
+
+      if (feature_cntr > 0)
+      {
+        FLASHDeconvFeatureFile::writeFeatures(mass_features, in_file, out_stream, report_dummy);
+      }
+      if (report_dummy)
+      {
+        FLASHDeconvFeatureFile::writeFeatures(dummy_mass_features, in_file, out_stream, report_dummy, true);
+      }
+      if (!out_topfd_feature_file.empty())
+      {
+        FLASHDeconvFeatureFile::writeTopFDFeatures(mass_features, precursor_peak_groups, scan_rt_map, in_file, out_topfd_feature_streams);
+      }
+
+      if (!out_promex_file.empty())
+      {
+        FLASHDeconvFeatureFile::writePromexFeatures(mass_features, precursor_peak_groups, scan_rt_map, avg, out_promex_stream);
+      }
+    }
 
     Qvalue::updatePeakGroupQvalues(deconvolved_spectra, dummy_deconvolved_spectra);
 
+    std::cout << " writing per spectrum deconvolution results ... " << std::endl;
     for (auto& deconvolved_spectrum : deconvolved_spectra)
     {
       uint ms_level = deconvolved_spectrum.getOriginalSpectrum().getMSLevel();
-      if (ms_level == 1)
-      {
-        mass_tracer.storeInformationFromDeconvolvedSpectrum(deconvolved_spectrum); // add deconvolved mass in mass_tracer
-      }
       if (out_spec_streams.size() + 1 > ms_level)
       {
         FLASHDeconvSpectrumFile::writeDeconvolvedMasses(deconvolved_spectrum, deconvolved_spectrum, out_spec_streams[ms_level - 1], in_file, avg, tols[ms_level - 1], write_detail, report_dummy);
@@ -833,26 +868,6 @@ protected:
           FLASHDeconvSpectrumFile::writeDeconvolvedMasses(dummy_deconvolved_spectrum, deconvolved_spectrum, out_spec_streams[ms_level - 1], in_file, avg, tols[ms_level - 1], write_detail,
                                                           report_dummy);
         }
-      }
-    }
-    std::vector<FLASHDeconvHelperStructs::MassFeature> mass_features;
-    // mass_tracer run
-    if (merge != 2) // unless spectra are merged into a single one
-    {
-      mass_features = mass_tracer.findFeatures(fd.getAveragine());
-      feature_cntr = mass_features.size();
-      if (feature_cntr > 0)
-      {
-        FLASHDeconvFeatureFile::writeFeatures(mass_features, in_file, out_stream);
-      }
-      if (!out_topfd_feature_file.empty())
-      {
-        FLASHDeconvFeatureFile::writeTopFDFeatures(mass_features, precursor_peak_groups, scan_rt_map, in_file, out_topfd_feature_streams);
-      }
-
-      if (!out_promex_file.empty())
-      {
-        FLASHDeconvFeatureFile::writePromexFeatures(mass_features, precursor_peak_groups, scan_rt_map, avg, out_promex_stream);
       }
     }
 
@@ -892,7 +907,7 @@ protected:
       }
       for (auto q : quant.quantities)
       {
-        out_quant_stream << "\t" << q / sum;
+        out_quant_stream << "\t" << std::to_string(q / sum);
       }
       sum = 0;
       for (auto q : quant.merged_quantities)
@@ -901,7 +916,7 @@ protected:
       }
       for (auto q : quant.merged_quantities)
       {
-        out_quant_stream << "\t" << q / sum;
+        out_quant_stream << "\t" << std::to_string(q / sum);
       }
       out_quant_stream << "\n";
     }
