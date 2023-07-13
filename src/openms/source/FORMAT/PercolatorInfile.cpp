@@ -41,6 +41,7 @@
 
 #include <regex>
 #include <functional>
+#include <unordered_set>
 
 namespace OpenMS
 {
@@ -105,12 +106,12 @@ namespace OpenMS
     }
 
     // get column indices of extra scores
-    map<String, String> extra_scores_column_index; // additional (non-main) scores that should be stored in the PeptideHit
+    unordered_set<String> found_extra_scores; // additional (non-main) scores that should be stored in the PeptideHit
     for (const String& s : extra_scores)
     {
       if (auto it = std::find(header.begin(), header.end(), s); it != header.end())
       {
-        extra_scores_column_index[s] = it - header.begin();
+        found_extra_scores.insert(s);
       }
       else
       {
@@ -213,9 +214,9 @@ namespace OpenMS
       ph.setMetaValue("SpecId", sSpecId);
       ph.setMetaValue("ScanNr", sScanNr);
       ph.setMetaValue("target_decoy", target_decoy);
-      for (const auto&[name, idx] : extra_scores_column_index)
+      for (const auto name : found_extra_scores)
       {
-        ph.setMetaValue(name, row[idx]);
+        ph.setMetaValue(name, row[to_idx.at(name)]);
       }
       ph.setRank(rank);
 

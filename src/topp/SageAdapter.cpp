@@ -92,7 +92,7 @@ using namespace std;
 
 
 /*
-./bin/SageAdapter -in /nfs/wsi/abi/projects/proteomics/yasset_iPRG2015/JD_06232014_sample1_A.mzML -out ~/tmp -sage_executable ~/OMS/sage/sage-v0.11.2-x86_64-unknown-linux-musl/sage -percolator_executable ~/OMS/OpenMS/THIRDPARTY/Linux/64bit/Percolator/percolator -database /nfs/wsi/abi/projects/proteomics/yasset_iPRG2015/iPRG2015_decoy.fasta -config_file ~/OMS/sage/sage-v0.11.2-x86_64-unknown-linux-musl/config.json
+./bin/SageAdapter -in /nfs/wsi/abi/projects/proteomics/yasset_iPRG2015/JD_06232014_sample1_A.mzML -out ~/tmp -sage_executable ~/OMS/sage/sage-v0.11.2-x86_64-unknown-linux-musl/sage -database /nfs/wsi/abi/projects/proteomics/yasset_iPRG2015/iPRG2015_decoy.fasta -config_file ~/OMS/sage/sage-v0.11.2-x86_64-unknown-linux-musl/config.json
 */
 
 class TOPPSageAdapter :
@@ -138,11 +138,6 @@ protected:
       "sage", // this is the name on ALL platforms currently...
       "The Sage executable. Provide a full or relative path, or make sure it can be found in your PATH environment.", true, false, {"is_executable"});
 
-    registerInputFile_("percolator_executable", "<executable>",
-      // choose the default value according to the platform where it will be executed
-      "percolator", // this is the name on ALL platforms currently...
-      "The percolator executable. Provide a full or relative path, or make sure it can be found in your PATH environment.", true, false, {"is_executable"});
-
     registerInputFile_("config_file", "<file>", "", "Default Sage config file.", true, false, ListUtils::create<String>("skipexists"));
     setValidFormats_("config_file", ListUtils::create<String>("json"));
 
@@ -176,7 +171,6 @@ protected:
     String config = getStringOption_("config_file");
     int batch = getIntOption_("batch_size");
     String decoy_prefix = getStringOption_("decoy_prefix");
-    String percolator_executable = getStringOption_("percolator_executable");
 
     QStringList arguments;
     arguments << config.toQString() 
@@ -200,13 +194,14 @@ protected:
     // read the sage output
     OPENMS_LOG_INFO << "Reading sage output..." << std::endl;
     StringList filenames;
+    StringList extra_scores = {"ln(delta_next)", "ln(delta_best)", "matched_peaks", 
+       "longest_b", "longest_y", "longest_y_pct",
+       "ln(matched_intensity_pct)", "scored_candidates", "ln(-poisson)"};
     vector<PeptideIdentification> peptide_identifications = PercolatorInfile::load(
       output_folder + "/results.sage.pin",
       true,
       "ln(hyperscore)",
-      {"ln(delta_next)", "ln(delta_best)", "mated_peaks", 
-       "longest_b", "longest_y", "longest_y_pct",
-       "ln(matched_intensity_pct)", "scored_candidates", "ln(-poisson)"},
+      extra_scores,
       filenames,
       decoy_prefix);
 
