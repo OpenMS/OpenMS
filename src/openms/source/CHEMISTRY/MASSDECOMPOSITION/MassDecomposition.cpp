@@ -66,8 +66,6 @@ namespace OpenMS
     // only one aa type?
     if (!split.empty())
     {
-      Size sum = 0;
-
       for (Size i = 0; i != split.size(); ++i)
       {
         char aa = split[i][0];
@@ -78,7 +76,6 @@ namespace OpenMS
         {
           number_of_max_aa_ = n;
         }
-        sum += n;
         decomp_[aa] = n;
       }
     }
