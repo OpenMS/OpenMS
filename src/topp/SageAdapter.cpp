@@ -192,27 +192,6 @@ protected:
     {
       return exit_code;
     }
-    
-    if (!percolator_executable.empty())
-    {
-      QString perc_in = output_folder.toQString() + "/results.sage.pin";
-      QString perc_out = output_folder.toQString() + "/results.sage.pout";
-
-      QStringList process_params;
-      process_params << "--tab-in" << perc_in
-                     << "--results-psms" << perc_out                    
-                     << "--train-best-positive" 
-                     << "--post-processing-tdc"
-                     << "--subset-max-train" << "100000";
-                  
-      TOPPBase::ExitCodes exit_code = runExternalProcess_(percolator_executable.toQString(), process_params);
-
-      if (exit_code != EXECUTION_OK)
-      {
-        OPENMS_LOG_FATAL_ERROR << "Percolator execution failed." << std::endl;
-        return exit_code;
-      }
-    }
 
     //-------------------------------------------------------------
     // writing IdXML output
@@ -221,7 +200,15 @@ protected:
     // read the sage output
     OPENMS_LOG_INFO << "Reading sage output..." << std::endl;
     StringList filenames;
-    vector<PeptideIdentification> peptide_identifications = PercolatorInfile::load(output_folder + "/results.sage.pin", true, "ln(hyperscore)", filenames, decoy_prefix);
+    vector<PeptideIdentification> peptide_identifications = PercolatorInfile::load(
+      output_folder + "/results.sage.pin",
+      true,
+      "ln(hyperscore)",
+      {"ln(delta_next)", "ln(delta_best)", "mated_peaks", 
+       "longest_b", "longest_y", "longest_y_pct",
+       "ln(matched_intensity_pct)", "scored_candidates", "ln(-poisson)"},
+      filenames,
+      decoy_prefix);
 
     // TODO: split / merge results and create idXMLs
     vector<ProteinIdentification> protein_identifications(1, ProteinIdentification());
@@ -233,6 +220,11 @@ protected:
 
     // protein_identifications[0].getSearchParameters().enzyme_term_specificity = static_cast<EnzymaticDigestion::Specificity>(num_enzyme_termini[getStringOption_("num_enzyme_termini")]);
     protein_identifications[0].getSearchParameters().db = getStringOption_("database");
+    
+    // add extra scores for percolator rescoring
+    vector<String> percolator_features = { "score" };
+    for (auto s : extra_scores) percolator_features.push_back(s);
+    protein_identifications[0].getSearchParameters().setMetaValue("extra_features",  ListUtils::concatenate(percolator_features, ","));
 
     // write all (!) parameters as metavalues to the search parameters
     if (!protein_identifications.empty())

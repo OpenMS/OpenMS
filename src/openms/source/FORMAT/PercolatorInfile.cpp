@@ -83,7 +83,8 @@ namespace OpenMS
   vector<PeptideIdentification> PercolatorInfile::load(
     const String& pin_file, 
     bool higher_score_better, 
-    const String& score_name, 
+    const String& score_name,
+    const StringList& extra_scores,
     StringList& filenames, 
     String decoy_prefix)
   {
@@ -103,6 +104,20 @@ namespace OpenMS
       file_name_column_index = it - header.begin();
     }
 
+    // get column indices of extra scores
+    map<String, String> extra_scores_column_index; // additional (non-main) scores that should be stored in the PeptideHit
+    for (const String& s : extra_scores)
+    {
+      if (auto it = std::find(header.begin(), header.end(), s); it != header.end())
+      {
+        extra_scores_column_index[s] = it - header.begin();
+      }
+      else
+      {
+        OPENMS_LOG_WARN << "Extra score: " << s << " not found in Percolator input file." << endl;
+      }
+    }    
+    
     // charge columns are not standardized so we check for the format and create hash to lookup column name to charge mapping
     std::regex charge_one_hot_pattern("^charge\\d+$");
     std::regex sage_one_hot_pattern("^z=\\d+$");
@@ -198,6 +213,10 @@ namespace OpenMS
       ph.setMetaValue("SpecId", sSpecId);
       ph.setMetaValue("ScanNr", sScanNr);
       ph.setMetaValue("target_decoy", target_decoy);
+      for (const auto&[name, idx] : extra_scores_column_index)
+      {
+        ph.setMetaValue(name, row[idx]);
+      }
       ph.setRank(rank);
 
       // add link to protein (we only know the accession but not start/end, aa_before/after in protein at this point)
