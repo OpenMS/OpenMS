@@ -434,7 +434,8 @@ class _MSExperimentDF(_MSExperiment):
                 if spec.getMSLevel() == mslevel:
                     mz, inty = spec.get_peaks() 
                     ion_array_idx, ion_unit = spec.getIMData()
-                    ion_data = spec.getFloatDataArrays()[ion_array_idx].get_data()
+                    ion_data_arr = spec.getFloatDataArrays()[ion_array_idx]
+                    ion_data = ion_data_arr.get_data()
 
                     # data for both DataFrames: i, i_norm, i_tic_norm, mz, scan, rt, polarity
                     data = (inty, inty/_np.amax(inty, initial=0), inty/_np.sum(inty), mz, scan_num + 1, spec.getRT()/60, _get_polarity(spec), ion_data)
