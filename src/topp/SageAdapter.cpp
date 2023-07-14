@@ -111,51 +111,30 @@ public:
   }
 
 protected:
-  // values here are sage parameter that can be changed via TOPP tool parameter.
-  // They will be pasted into the config_template below. E.g. bucket_size at tag ##bucket_size##
-  size_t bucket_size = 32768;
-  size_t min_len = 5; 
-  size_t max_len = 50; 
-  size_t missed_cleavages = 2;
-  double fragment_min_mz = 200.0;
-  double fragment_max_mz = 2000.0;
-  double peptide_min_mass = 500.0;
-  double peptide_max_mass = 5000.0;
-  size_t min_ion_index = 2;
-  size_t max_variable_mods = 2;
-  std::string precursor_tol_unit = "ppm";
-  double precursor_tol_left = -6.0;
-  double precursor_tol_right = 6.0;
-  std::string fragment_tol_unit = "ppm";
-  double fragment_tol_left = -20.0;
-  double fragment_tol_right = 20.0;
-  IntList isotope_errors = {-1, 3};
-  size_t min_matched_peaks = 6;
-  size_t report_psms = 1;
-  
-  /* TODO: enzyme_details have format:
-    "cleave_at": "KR",
-    "restrict": "P",
-    "c_terminal": true
-    and will be filled from OpenMS enzyme information
-  */
-
-  /* TODO: static_mods have format:
-          "^": 304.207,
-          "K": 304.207,
-          "C": 57.0215
-    and will be filled from OpenMS mod information
-  */
-
-  /* TODO: variable_mods have format:
-          "M": [15.9949],
-          "^Q": [-17.026549],
-          "^E": [-18.010565],
-          "$": [49.2, 22.9],
-          "[": 42.0,
-          "]": 111.0
-    and will be filled from OpenMS mod information
-  */
+  // create a template-based configuration file for sage
+  // variable values correspond to sage parameter that can be configured via TOPP tool parameter.
+  // values will be pasted into the config_template at the corresponding tag. E.g. bucket_size at tag ##bucket_size##
+  static constexpr size_t bucket_size = 32768;
+  static constexpr size_t min_len = 5; 
+  static constexpr size_t max_len = 50; 
+  static constexpr size_t missed_cleavages = 2;
+  static constexpr double fragment_min_mz = 200.0;
+  static constexpr double fragment_max_mz = 2000.0;
+  static constexpr double peptide_min_mass = 500.0;
+  static constexpr double peptide_max_mass = 5000.0;
+  static constexpr size_t min_ion_index = 2;
+  static constexpr size_t max_variable_mods = 2;
+  const std::string precursor_tol_unit = "ppm";
+  static constexpr double precursor_tol_left = -6.0;
+  static constexpr double precursor_tol_right = 6.0;
+  const std::string fragment_tol_unit = "ppm";
+  static constexpr double fragment_tol_left = -20.0;
+  static constexpr double fragment_tol_right = 20.0;
+  const  IntList isotope_errors = {-1, 3};
+  static constexpr size_t min_matched_peaks = 6;
+  static constexpr size_t report_psms = 1;
+  static constexpr size_t min_peaks = 15;
+  static constexpr size_t max_peaks = 150;
 
   std::string config_template = R"(
     {
@@ -209,6 +188,59 @@ protected:
     }
   )";
 
+  // impute values into config_template
+  String createConfigFileFromTemplate()
+  {
+    String config_file = config_template;
+    config_file.substitute("##bucket_size##", String(getIntOption_("bucket_size")));
+    config_file.substitute("##min_len##", getIntOption_("min_len"));
+    config_file.substitute("##max_len##", getIntOption_("max_len"));
+    config_file.substitute("##missed_cleavages##", getIntOption_("missed_cleavages"));
+    config_file.substitute("##fragment_min_mz##", getDoubleOption_("fragment_min_mz"));
+    config_file.substitute("##fragment_max_mz##", getDoubleOption_("fragment_max_mz"));
+    config_file.substitute("##peptide_min_mass##", getDoubleOption_("peptide_min_mass"));
+    config_file.substitute("##peptide_max_mass##", getDoubleOption_("peptide_max_mass"));
+    config_file.substitute("##min_ion_index##", getIntOption_("min_ion_index"));
+    config_file.substitute("##max_variable_mods##", getIntOption_("max_variable_mods"));
+    config_file.substitute("##precursor_tol_unit##", precursor_tol_unit  == "Da" ? "da" : "ppm"); // sage might expect lower-case "da"
+    config_file.substitute("##precursor_tol_left##", getDoubleOption_(precursor_tol_left));
+    config_file.substitute("##precursor_tol_right##", getDoubleOption_(precursor_tol_right));
+    config_file.substitute("##fragment_tol_unit##", fragment_tol_unit == "Da" ? "da" : "ppm"); // sage might expect lower-case "da"
+    config_file.substitute("##fragment_tol_left##", getDoubleOption_(fragment_tol_left));
+    config_file.substitute("##fragment_tol_right##", getDoubleOption_(fragment_tol_right));    
+    String isotope_errors = "[" + String(getIntList_("isotope_errors")).remove(' ') + "]";
+    config_file.substitute("##isotope_errors##", isotope_errors);
+    config_file.substitute("##min_matched_peaks##", getIntOption_("min_matched_peaks"));
+    config_file.substitute("##report_psms##", getIntOption_("report_psms"));
+
+    // TODO: update from enzyme/mod information
+    String enzyme_details = R"(
+      "cleave_at": "KR",
+      "restrict": "P",
+      "c_terminal": true
+    )";
+    config_file.substitute("##enzyme_details##", enzyme_details);
+
+    String static_mods_details = R"(
+      "^": 304.207,
+      "K": 304.207,
+      "C": 57.0215
+    )";
+    config_file.substitute("##static_mods##", static_mods_details);
+
+    String variable_mods_details = R"(
+      "M": [15.9949],
+      "^Q": [-17.026549],
+      "^E": [-18.010565],
+      "$": [49.2, 22.9],
+      "[": 42.0,
+      "]": 111.0
+    )";
+    config_file.substitute("##variable_mods##", variable_mods_details);
+
+    return config_file;
+  }
+
   std::tuple<std::string, std::string, std::string> getVersionNumber_(const std::string& multi_line_input)
   {
       std::regex version_regex("Version ([0-9]+)\\.([0-9]+)\\.([0-9]+)");
@@ -241,9 +273,52 @@ protected:
     registerStringOption_("decoy_prefix", "<prefix>", "DECOY_", "Prefix on protein accession used to distinguish decoy from target proteins.", false, false);
     registerIntOption_("batch_size", "<int>", 0, "Number of files to load and search in parallel (default = # of CPUs/2)", false, false);
     
+    registerStringOption_("precursor_tol_unit", "<unit>", "ppm", "Unit of precursor tolerance (ppm or Da)", false, false);
+    setValidStrings_("precursor_tol_unit", ListUtils::create<String>("ppm,Da"));
+    registerDoubleOption_("precursor_tol_left", "<double>", -6.0, "Left side of precursor tolerance window", false, false);
+    registerDoubleOption_("precursor_tol_right", "<double>", 6.0, "Right side of precursor tolerance window", false, false);
+
+    registerDoubleOption_("fragment_tol_left", "<double>", -20.0, "Left side of fragment tolerance window", false, false);
+    registerDoubleOption_("fragment_tol_right", "<double>", 20.0, "Right side of fragment tolerance window", false, false);
+    registerStringOption_("fragment_tol_unit", "<unit>", "ppm", "Unit of fragment tolerance (ppm or Da)", false, false);
+    setValidStrings_("fragment_tol_unit", ListUtils::create<String>("ppm,Da"));
+
+    // add advanced options
+    registerIntOption_("min_matched_peaks", "<int>", min_matched_peaks, "Minimum number of matched peaks", false, true);
+    registerIntOption_("min_peaks", "<int>", min_peaks, "Minimum number of peaks", false, true);
+    registerIntOption_("max_peaks", "<int>", max_peaks, "Maximum number of peaks", false, true);
+    registerIntOption_("report_psms", "<int>", report_psms, "Report PSMs in output file", false, true);  
+    registerIntOption_("bucket_size", "<int>", bucket_size, "Number of spectra to load and search in parallel (default = 32768)", false, true);
+    registerIntOption_("min_len", "<int>", min_len, "Minimum peptide length", false, true);
+    registerIntOption_("max_len", "<int>", max_len, "Maximum peptide length", false, true);
+    registerIntOption_("missed_cleavages", "<int>", missed_cleavages, "Number of missed cleavages", false, true);
+    registerDoubleOption_("fragment_min_mz", "<double>", fragment_min_mz, "Minimum fragment m/z", false, true);
+    registerDoubleOption_("fragment_max_mz", "<double>", fragment_max_mz, "Maximum fragment m/z", false, true);
+    registerDoubleOption_("peptide_min_mass", "<double>", peptide_min_mass, "Minimum peptide mass", false, true);
+    registerDoubleOption_("peptide_max_mass", "<double>", peptide_max_mass, "Maximum peptide mass", false, true);
+    registerIntOption_("min_ion_index", "<int>", min_ion_index, "Minimum ion index", false, true);
+    registerIntOption_("max_variable_mods", "<int>", max_variable_mods, "Maximum number of variable modifications", false, true);  
+    registerIntList_("isotope_errors", "<int_list>", isotope_errors, "Isotope errors", false, true);
+
+    //Search Enzyme
+    vector<String> all_enzymes;
+    ProteaseDB::getInstance()->getAllCometNames(all_enzymes);
+    registerStringOption_("enzyme", "<cleavage site>", "Trypsin", "The enzyme used for peptide digestion.", false, false);
+    setValidStrings_("enzyme", all_enzymes);
+
+    //Modifications
+    vector<String> all_mods;
+    ModificationsDB::getInstance()->getAllSearchModifications(all_mods);
+    registerStringList_("fixed_modifications", "<mods>", ListUtils::create<String>("Carbamidomethyl (C)", ','), "Fixed modifications, specified using Unimod (www.unimod.org) terms, e.g. 'Carbamidomethyl (C)' or 'Oxidation (M)'", false);
+    setValidStrings_("fixed_modifications", all_mods);
+    registerStringList_("variable_modifications", "<mods>", ListUtils::create<String>("Oxidation (M)", ','), "Variable modifications, specified using Unimod (www.unimod.org) terms, e.g. 'Carbamidomethyl (C)' or 'Oxidation (M)'", false);
+    setValidStrings_("variable_modifications", all_mods);
+
     // register peptide indexing parameter (with defaults for this search engine) TODO: check if search engine defaults are needed
     registerPeptideIndexingParameter_(PeptideIndexing().getParameters());     
   }
+
+
 
   ExitCodes main_(int, const char**) override
   {
