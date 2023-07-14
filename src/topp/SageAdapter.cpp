@@ -111,6 +111,103 @@ public:
   }
 
 protected:
+  // values here are sage parameter that can be changed via TOPP tool parameter.
+  // They will be pasted into the config_template below. E.g. bucket_size at tag ##bucket_size##
+  size_t bucket_size = 32768;
+  size_t min_len = 5; 
+  size_t max_len = 50; 
+  size_t missed_cleavages = 2;
+  double fragment_min_mz = 200.0;
+  double fragment_max_mz = 2000.0;
+  double peptide_min_mass = 500.0;
+  double peptide_max_mass = 5000.0;
+  size_t min_ion_index = 2;
+  size_t max_variable_mods = 2;
+  std::string precursor_tol_unit = "ppm";
+  double precursor_tol_left = -6.0;
+  double precursor_tol_right = 6.0;
+  std::string fragment_tol_unit = "ppm";
+  double fragment_tol_left = -20.0;
+  double fragment_tol_right = 20.0;
+  IntList isotope_errors = {-1, 3};
+  size_t min_matched_peaks = 6;
+  size_t report_psms = 1;
+  
+  /* TODO: enzyme_details have format:
+    "cleave_at": "KR",
+    "restrict": "P",
+    "c_terminal": true
+    and will be filled from OpenMS enzyme information
+  */
+
+  /* TODO: static_mods have format:
+          "^": 304.207,
+          "K": 304.207,
+          "C": 57.0215
+    and will be filled from OpenMS mod information
+  */
+
+  /* TODO: variable_mods have format:
+          "M": [15.9949],
+          "^Q": [-17.026549],
+          "^E": [-18.010565],
+          "$": [49.2, 22.9],
+          "[": 42.0,
+          "]": 111.0
+    and will be filled from OpenMS mod information
+  */
+
+  std::string config_template = R"(
+    {
+      "database": {
+        "bucket_size": ##bucket_size##,
+        "enzyme": {
+          "missed_cleavages": 2,
+          "min_len": ##min_len##,
+          "max_len": ##max_len##,
+          ##enzyme_details##
+        },
+        "fragment_min_mz": ##fragment_min_mz##,
+        "fragment_max_mz": ##fragment_max_mz##2000.0,
+        "peptide_min_mass": ##peptide_min_mass##500.0,
+        "peptide_max_mass": ##peptide_max_mass##5000.0,
+        "ion_kinds": ["b", "y"],
+        "min_ion_index": ##min_ion_index##,
+        "static_mods": {
+          ##static_mods##
+        },
+        "variable_mods": {
+          ##variable_mods##
+        },
+        "max_variable_mods": ##max_variable_mods##,
+        "generate_decoys": false,
+      },
+      "precursor_tol": {
+        "##precursor_tol_unit##": [
+          ##precursor_tol_left##,
+          ##precursor_tol_right##
+        ]
+      },
+      "fragment_tol": {
+        "##fragment_tol_unit##": [
+        ##fragment_tol_left##,
+        ##fragment_tol_right##
+        ]
+      },
+      "isotope_errors": [
+        ##isotope_errors##
+      ],
+      "deisotope": false,
+      "chimera": false,
+      "wide_window": false,
+      "predict_rt": false,
+      "min_peaks": 15,
+      "max_peaks": 150,
+      "min_matched_peaks": ##min_matched_peaks##,
+      "report_psms": ##report_psms##,
+      ]       
+    }
+  )";
 
   std::tuple<std::string, std::string, std::string> getVersionNumber_(const std::string& multi_line_input)
   {
