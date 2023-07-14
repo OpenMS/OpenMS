@@ -176,7 +176,7 @@ namespace OpenMS
         pids.resize(pids.size() + 1);
         pids.back().setHigherScoreBetter(higher_score_better);
         pids.back().setScoreType(score_name);
-        pids.back().setMetaValue("map_index", map_filename_to_idx.at(raw_file_name));
+        pids.back().setMetaValue("id_merge_index", map_filename_to_idx.at(raw_file_name));
       }
 
       int sScanNr = row[to_idx.at("ScanNr")].toInt();

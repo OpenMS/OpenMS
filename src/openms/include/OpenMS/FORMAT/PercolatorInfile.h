@@ -60,7 +60,7 @@ namespace OpenMS
           If a decoy prefix is provided, the decoy status is set from the protein accessions.
           Otherwise, it assumes that the pin file already contains the correctly annotated decoy status.
           If @p extra_scores is not empty, the scores are added to the PeptideHit as MetaValues.
-          If a filename column is encountered the set of @p filenames is filled in the order of appearance and PeptideIdentifications annotated with the map_index meta value to link them to the filename (similar to a merged idXML file). 
+          If a filename column is encountered the set of @p filenames is filled in the order of appearance and PeptideIdentifications annotated with the id_merge_index meta value to link them to the filename (similar to a merged idXML file). 
           TODO: implement something similar to PepXMLFile().setPreferredFixedModifications(getModifications_(fixed_modifications_names));
           **/
       static std::vector<PeptideIdentification> load(const String& pin_file, 

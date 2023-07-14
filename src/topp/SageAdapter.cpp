@@ -189,7 +189,7 @@ protected:
   )";
 
   // impute values into config_template
-  String createConfigFileFromTemplate()
+  String imputeConfigIntoTemplate()
   {
     String config_file = config_template;
     config_file.substitute("##bucket_size##", String(getIntOption_("bucket_size")));
@@ -213,12 +213,94 @@ protected:
     config_file.substitute("##min_matched_peaks##", getIntOption_("min_matched_peaks"));
     config_file.substitute("##report_psms##", getIntOption_("report_psms"));
 
+    String enzyme = getStringOption_("enzyme");
+    String enzyme_details;
+    if (enzyme == "Trypsin")
+    {
+      enzyme_details = R"(
+        "cleave_at": "KR",
+        "restrict": "P",
+        "c_terminal": true
+      )";
+    }
+    else if (enzyme == "Trypsin/P")
+    {
+      enzyme_details = R"(
+        "cleave_at": "KR",
+        "restrict": "",
+        "c_terminal": true
+      )";
+    }
+    else if (enzyme == "Chymotrypsin")
+    {
+      enzyme_details = R"(
+        "cleave_at": "FWYL",
+        "restrict": "P",
+        "c_terminal": true
+      )";
+    }
+    else if (enzyme == "Chymotrypsin/P")
+    {
+      enzyme_details = R"(
+        "cleave_at": "FWYL",
+        "restrict": "",
+        "c_terminal": true
+      )";
+    }
+    else if (enzyme == "Arg-C")
+    {
+      enzyme_details = R"(
+        "cleave_at": "R",
+        "restrict": "P",
+        "c_terminal": true
+      )";
+    }
+    else if (enzyme == "Arg-C/P")
+    {
+      enzyme_details = R"(
+        "cleave_at": "R",
+        "restrict": "",
+        "c_terminal": true
+      )";
+    }
+    else if (enzyme == "Lys-C")
+    {
+      enzyme_details = R"(
+        "cleave_at": "K",
+        "restrict": "P",
+        "c_terminal": true
+      )";
+    }
+    else if (enzyme == "Lys-C/P")
+    {
+      enzyme_details = R"(
+        "cleave_at": "K",
+        "restrict": "",
+        "c_terminal": true
+      )";
+    }    
+    else if (enzyme == "Lys-N")
+    {
+      enzyme_details = R"(
+        "cleave_at": "K",
+        "restrict": "",
+        "c_terminal": false
+      )";
+    }
+    else if (enzyme == "no cleavage")
+    {
+      enzyme_details = R"(
+        "cleave_at": "$"
+      )";
+    }    
+    else if (enzyme == "unspecific cleavage")
+    {
+      enzyme_details = R"(
+        "cleave_at": ""
+      )";
+    }           
+
     // TODO: update from enzyme/mod information
-    String enzyme_details = R"(
-      "cleave_at": "KR",
-      "restrict": "P",
-      "c_terminal": true
-    )";
     config_file.substitute("##enzyme_details##", enzyme_details);
 
     String static_mods_details = R"(
@@ -266,9 +348,6 @@ protected:
       // choose the default value according to the platform where it will be executed
       "sage", // this is the name on ALL platforms currently...
       "The Sage executable. Provide a full or relative path, or make sure it can be found in your PATH environment.", true, false, {"is_executable"});
-
-    registerInputFile_("config_file", "<file>", "", "Default Sage config file.", true, false, ListUtils::create<String>("skipexists"));
-    setValidFormats_("config_file", ListUtils::create<String>("json"));
 
     registerStringOption_("decoy_prefix", "<prefix>", "DECOY_", "Prefix on protein accession used to distinguish decoy from target proteins.", false, false);
     registerIntOption_("batch_size", "<int>", 0, "Number of files to load and search in parallel (default = # of CPUs/2)", false, false);
@@ -340,12 +419,20 @@ protected:
     String output_file = getStringOption_("out");
     String output_folder = File::isDirectory(output_file) ? output_file : File::path(output_file);
     String fasta_file = getStringOption_("database");
-    String config = getStringOption_("config_file");
     int batch = getIntOption_("batch_size");
     String decoy_prefix = getStringOption_("decoy_prefix");
 
+    // create config
+    String config = imputeConfigIntoTemplate();
+
+    // store config in config_file 
+    String config_file = File::getTempDirectory() + "/" + File::getUniqueName() + ".json";
+    ofstream config_stream(config_file.c_str());
+    config_stream << config;
+    config_stream.close();
+
     QStringList arguments;
-    arguments << config.toQString() 
+    arguments << config_file.toQString() 
               << "-f" << fasta_file.toQString() 
               << "-o" << output_folder.toQString() 
               << "--write-pin";
