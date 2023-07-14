@@ -94,7 +94,7 @@ using namespace std;
 
 
 /*
-./bin/SageAdapter -in /nfs/wsi/abi/projects/proteomics/yasset_iPRG2015/JD_06232014_sample1_A.mzML -out ~/tmp -sage_executable ~/OMS/sage/sage-v0.11.2-x86_64-unknown-linux-musl/sage -database /nfs/wsi/abi/projects/proteomics/yasset_iPRG2015/iPRG2015_decoy.fasta
+./bin/SageAdapter -in /nfs/wsi/abi/projects/proteomics/yasset_iPRG2015/JD_06232014_sample1_A.mzML /nfs/wsi/abi/projects/proteomics/yasset_iPRG2015/JD_06232014_sample1_B.mzML  /nfs/wsi/abi/projects/proteomics/yasset_iPRG2015/JD_06232014_sample1_C.mzML -out ~/tmp.idXML -sage_executable ~/OMS/sage/sage-v0.13.3-x86_64-unknown-linux-gnu/sage -database /nfs/wsi/abi/projects/proteomics/yasset_iPRG2015/iPRG2015_decoy.fasta
 */
 
 class TOPPSageAdapter :
@@ -130,8 +130,8 @@ protected:
   static constexpr double precursor_tol_left = -6.0;
   static constexpr double precursor_tol_right = 6.0;
   const std::string fragment_tol_unit = "ppm";
-  static constexpr double fragment_tol_left = -20.0;
-  static constexpr double fragment_tol_right = 20.0;
+  static constexpr double fragment_tol_left = -10.0;
+  static constexpr double fragment_tol_right = 10.0;
   const  IntList isotope_errors = {-1, 3};
   static constexpr size_t min_matched_peaks = 6;
   static constexpr size_t report_psms = 1;
@@ -139,56 +139,56 @@ protected:
   static constexpr size_t max_peaks = 150;
 
   std::string config_template = R"(
-    {
-      "database": {
-        "bucket_size": ##bucket_size##,
-        "enzyme": {
-          "missed_cleavages": 2,
-          "min_len": ##min_len##,
-          "max_len": ##max_len##,
-          ##enzyme_details##
-        },
-        "fragment_min_mz": ##fragment_min_mz##,
-        "fragment_max_mz": ##fragment_max_mz##2000.0,
-        "peptide_min_mass": ##peptide_min_mass##500.0,
-        "peptide_max_mass": ##peptide_max_mass##5000.0,
-        "ion_kinds": ["b", "y"],
-        "min_ion_index": ##min_ion_index##,
-        "static_mods": {
-          ##static_mods##
-        },
-        "variable_mods": {
-          ##variable_mods##
-        },
-        "max_variable_mods": ##max_variable_mods##,
-        "generate_decoys": false,
-      },
-      "precursor_tol": {
-        "##precursor_tol_unit##": [
-          ##precursor_tol_left##,
-          ##precursor_tol_right##
-        ]
-      },
-      "fragment_tol": {
-        "##fragment_tol_unit##": [
-        ##fragment_tol_left##,
-        ##fragment_tol_right##
-        ]
-      },
-      "isotope_errors": [
-        ##isotope_errors##
-      ],
-      "deisotope": false,
-      "chimera": false,
-      "wide_window": false,
-      "predict_rt": false,
-      "min_peaks": 15,
-      "max_peaks": 150,
-      "min_matched_peaks": ##min_matched_peaks##,
-      "report_psms": ##report_psms##,
-      ]       
-    }
-  )";
+{
+  "database": {
+    "bucket_size": ##bucket_size##,
+    "enzyme": {
+      "missed_cleavages": 2,
+      "min_len": ##min_len##,
+      "max_len": ##max_len##,
+      ##enzyme_details##
+    },
+    "fragment_min_mz": ##fragment_min_mz##,
+    "fragment_max_mz": ##fragment_max_mz##,
+    "peptide_min_mass": ##peptide_min_mass##,
+    "peptide_max_mass": ##peptide_max_mass##,
+    "ion_kinds": ["b", "y"],
+    "min_ion_index": ##min_ion_index##,
+    "static_mods": {
+      ##static_mods##
+    },
+    "variable_mods": {
+      ##variable_mods##
+    },
+    "max_variable_mods": ##max_variable_mods##,
+    "generate_decoys": false,
+    "decoy_tag": "##decoy_tag##"
+  },
+  "precursor_tol": {
+    "##precursor_tol_unit##": [
+      ##precursor_tol_left##,
+      ##precursor_tol_right##
+    ]
+  },
+  "fragment_tol": {
+    "##fragment_tol_unit##": [
+    ##fragment_tol_left##,
+    ##fragment_tol_right##
+    ]
+  },
+  "isotope_errors": [
+    ##isotope_errors##
+  ],
+  "deisotope": false,
+  "chimera": false,
+  "wide_window": false,
+  "predict_rt": false,
+  "min_peaks": 15,
+  "max_peaks": 150,
+  "min_matched_peaks": ##min_matched_peaks##,
+  "report_psms": ##report_psms##
+}
+)";
 
   // formats a single mod entry as sage json entry
   String getModDetails(const ResidueModification* mod, const Residue* res)
@@ -223,8 +223,11 @@ protected:
     {
       const auto& mod = it->first;
       const auto& res = it->second;
-      mod_details += getModDetails(mod, res);
-      if (it != std::prev(mod_map.val.end())) mod_details += ",\n";
+      mod_details += getModDetails(mod, res);     
+      if (std::next(it) != mod_map.val.end())
+      {
+        mod_details += ",\n";
+      }
     }
     return mod_details;
   }
@@ -234,111 +237,101 @@ protected:
   {
     String config_file = config_template;
     config_file.substitute("##bucket_size##", String(getIntOption_("bucket_size")));
-    config_file.substitute("##min_len##", getIntOption_("min_len"));
-    config_file.substitute("##max_len##", getIntOption_("max_len"));
-    config_file.substitute("##missed_cleavages##", getIntOption_("missed_cleavages"));
-    config_file.substitute("##fragment_min_mz##", getDoubleOption_("fragment_min_mz"));
-    config_file.substitute("##fragment_max_mz##", getDoubleOption_("fragment_max_mz"));
-    config_file.substitute("##peptide_min_mass##", getDoubleOption_("peptide_min_mass"));
-    config_file.substitute("##peptide_max_mass##", getDoubleOption_("peptide_max_mass"));
-    config_file.substitute("##min_ion_index##", getIntOption_("min_ion_index"));
-    config_file.substitute("##max_variable_mods##", getIntOption_("max_variable_mods"));
+    config_file.substitute("##min_len##", String(getIntOption_("min_len")));
+    config_file.substitute("##max_len##", String(getIntOption_("max_len")));
+    config_file.substitute("##missed_cleavages##", String(getIntOption_("missed_cleavages")));
+    config_file.substitute("##fragment_min_mz##", String(getDoubleOption_("fragment_min_mz")));
+    config_file.substitute("##fragment_max_mz##", String(getDoubleOption_("fragment_max_mz")));
+    config_file.substitute("##peptide_min_mass##", String(getDoubleOption_("peptide_min_mass")));
+    config_file.substitute("##peptide_max_mass##", String(getDoubleOption_("peptide_max_mass")));
+    config_file.substitute("##min_ion_index##", String(getIntOption_("min_ion_index")));
+    config_file.substitute("##max_variable_mods##", String(getIntOption_("max_variable_mods")));
     config_file.substitute("##precursor_tol_unit##", precursor_tol_unit  == "Da" ? "da" : "ppm"); // sage might expect lower-case "da"
-    config_file.substitute("##precursor_tol_left##", getDoubleOption_("precursor_tol_left"));
-    config_file.substitute("##precursor_tol_right##", getDoubleOption_("precursor_tol_right"));
+    config_file.substitute("##precursor_tol_left##", String(getDoubleOption_("precursor_tol_left")));
+    config_file.substitute("##precursor_tol_right##", String(getDoubleOption_("precursor_tol_right")));
     config_file.substitute("##fragment_tol_unit##", fragment_tol_unit == "Da" ? "da" : "ppm"); // sage might expect lower-case "da"
-    config_file.substitute("##fragment_tol_left##", getDoubleOption_("fragment_tol_left"));
-    config_file.substitute("##fragment_tol_right##", getDoubleOption_("fragment_tol_right"));    
-    String isotope_errors = "[" + String(getIntList_("isotope_errors")).remove(' ') + "]";
+    config_file.substitute("##fragment_tol_left##", String(getDoubleOption_("fragment_tol_left")));
+    config_file.substitute("##fragment_tol_right##", String(getDoubleOption_("fragment_tol_right")));
+    String isotope_errors = String(getIntList_("isotope_errors")).remove('[').remove(']');
     config_file.substitute("##isotope_errors##", isotope_errors);
-    config_file.substitute("##min_matched_peaks##", getIntOption_("min_matched_peaks"));
-    config_file.substitute("##report_psms##", getIntOption_("report_psms"));
+    config_file.substitute("##min_matched_peaks##", String(getIntOption_("min_matched_peaks")));
+    config_file.substitute("##report_psms##", String(getIntOption_("report_psms")));
+    config_file.substitute("##decoy_tag##", String(getStringOption_("decoy_prefix")));
 
     String enzyme = getStringOption_("enzyme");
     String enzyme_details;
     if (enzyme == "Trypsin")
     {
-      enzyme_details = R"(
-        "cleave_at": "KR",
-        "restrict": "P",
-        "c_terminal": true
-      )";
+      enzyme_details = 
+   R"("cleave_at": "KR",
+      "restrict": "P",
+      "c_terminal": true)";
     }
     else if (enzyme == "Trypsin/P")
     {
-      enzyme_details = R"(
-        "cleave_at": "KR",
-        "restrict": "",
-        "c_terminal": true
-      )";
+      enzyme_details = 
+   R"("cleave_at": "KR",
+      "restrict": "",
+      "c_terminal": true)";
     }
     else if (enzyme == "Chymotrypsin")
     {
-      enzyme_details = R"(
-        "cleave_at": "FWYL",
-        "restrict": "P",
-        "c_terminal": true
-      )";
+      enzyme_details = 
+   R"("cleave_at": "FWYL",
+      "restrict": "P",
+      "c_terminal": true)";
     }
     else if (enzyme == "Chymotrypsin/P")
     {
-      enzyme_details = R"(
-        "cleave_at": "FWYL",
-        "restrict": "",
-        "c_terminal": true
-      )";
+      enzyme_details = 
+   R"("cleave_at": "FWYL",
+      "restrict": "",
+      "c_terminal": true)";
     }
     else if (enzyme == "Arg-C")
     {
-      enzyme_details = R"(
-        "cleave_at": "R",
-        "restrict": "P",
-        "c_terminal": true
-      )";
+      enzyme_details = 
+   R"("cleave_at": "R",
+      "restrict": "P",
+      "c_terminal": true)";
     }
     else if (enzyme == "Arg-C/P")
     {
-      enzyme_details = R"(
-        "cleave_at": "R",
-        "restrict": "",
-        "c_terminal": true
-      )";
+      enzyme_details = 
+   R"("cleave_at": "R",
+      "restrict": "",
+      "c_terminal": true)";
     }
     else if (enzyme == "Lys-C")
     {
-      enzyme_details = R"(
-        "cleave_at": "K",
-        "restrict": "P",
-        "c_terminal": true
-      )";
+      enzyme_details = 
+   R"("cleave_at": "K",
+      "restrict": "P",
+      "c_terminal": true)";
     }
     else if (enzyme == "Lys-C/P")
     {
-      enzyme_details = R"(
-        "cleave_at": "K",
-        "restrict": "",
-        "c_terminal": true
-      )";
+      enzyme_details = 
+   R"("cleave_at": "K",
+      "restrict": "",
+      "c_terminal": true)";
     }    
     else if (enzyme == "Lys-N")
     {
-      enzyme_details = R"(
-        "cleave_at": "K",
-        "restrict": "",
-        "c_terminal": false
-      )";
+      enzyme_details = 
+   R"("cleave_at": "K",
+      "restrict": "",
+      "c_terminal": false)";
     }
     else if (enzyme == "no cleavage")
     {
-      enzyme_details = R"(
-        "cleave_at": "$"
-      )";
+      enzyme_details = 
+   R"("cleave_at": "$")";
     }    
     else if (enzyme == "unspecific cleavage")
     {
-      enzyme_details = R"(
-        "cleave_at": ""
-      )";
+      enzyme_details = 
+   R"("cleave_at": "")";
     }           
 
     config_file.substitute("##enzyme_details##", enzyme_details);
@@ -419,7 +412,7 @@ protected:
 
     //Search Enzyme
     vector<String> all_enzymes;
-    ProteaseDB::getInstance()->getAllCometNames(all_enzymes);
+    ProteaseDB::getInstance()->getAllNames(all_enzymes);
     registerStringOption_("enzyme", "<cleavage site>", "Trypsin", "The enzyme used for peptide digestion.", false, false);
     setValidStrings_("enzyme", all_enzymes);
 
@@ -431,8 +424,8 @@ protected:
     registerStringList_("variable_modifications", "<mods>", ListUtils::create<String>("Oxidation (M)", ','), "Variable modifications, specified using Unimod (www.unimod.org) terms, e.g. 'Carbamidomethyl (C)' or 'Oxidation (M)'", false);
     setValidStrings_("variable_modifications", all_mods);
 
-    // register peptide indexing parameter (with defaults for this search engine) TODO: check if search engine defaults are needed
-    registerPeptideIndexingParameter_(PeptideIndexing().getParameters());     
+    // register peptide indexing parameter (with defaults for this search engine)
+    registerPeptideIndexingParameter_(PeptideIndexing().getParameters());
   }
 
 
@@ -455,7 +448,7 @@ protected:
     //-------------------------------------------------------------
     StringList input_files = getStringList_("in");
     String output_file = getStringOption_("out");
-    String output_folder = File::isDirectory(output_file) ? output_file : File::path(output_file);
+    String output_folder = File::path(output_file);
     String fasta_file = getStringOption_("database");
     int batch = getIntOption_("batch_size");
     String decoy_prefix = getStringOption_("decoy_prefix");
@@ -463,8 +456,10 @@ protected:
     // create config
     String config = imputeConfigIntoTemplate();
 
-    // store config in config_file 
+    // store config in config_file
+    OPENMS_LOG_INFO << "Creating temp file name..." << std::endl;
     String config_file = File::getTempDirectory() + "/" + File::getUniqueName() + ".json";
+    OPENMS_LOG_INFO << "Creating Sage config file..." << config_file << std::endl;
     ofstream config_stream(config_file.c_str());
     config_stream << config;
     config_stream.close();
@@ -476,6 +471,8 @@ protected:
               << "--write-pin";
     if (batch >= 1) arguments << "--batch-size" << QString(batch);
     for (auto s : input_files) arguments << s.toQString();
+
+    OPENMS_LOG_INFO << "Sage command line: " << sage_executable << " " << arguments.join(' ').toStdString() << std::endl;
 
     // Sage execution with the executable and the arguments StringList
     exit_code = runExternalProcess_(sage_executable.toQString(), arguments);
@@ -517,6 +514,9 @@ protected:
     vector<String> percolator_features = { "score" };
     for (auto s : extra_scores) percolator_features.push_back(s);
     protein_identifications[0].getSearchParameters().setMetaValue("extra_features",  ListUtils::concatenate(percolator_features, ","));
+    auto enzyme = *ProteaseDB::getInstance()->getEnzyme(getStringOption_("enzyme"));
+    protein_identifications[0].getSearchParameters().digestion_enzyme = enzyme; // needed for indexing
+    protein_identifications[0].getSearchParameters().enzyme_term_specificity = EnzymaticDigestion::SPEC_FULL;;
 
     // write all (!) parameters as metavalues to the search parameters
     if (!protein_identifications.empty())
