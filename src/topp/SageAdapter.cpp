@@ -244,11 +244,11 @@ protected:
     config_file.substitute("##min_ion_index##", getIntOption_("min_ion_index"));
     config_file.substitute("##max_variable_mods##", getIntOption_("max_variable_mods"));
     config_file.substitute("##precursor_tol_unit##", precursor_tol_unit  == "Da" ? "da" : "ppm"); // sage might expect lower-case "da"
-    config_file.substitute("##precursor_tol_left##", getDoubleOption_(precursor_tol_left));
-    config_file.substitute("##precursor_tol_right##", getDoubleOption_(precursor_tol_right));
+    config_file.substitute("##precursor_tol_left##", getDoubleOption_("precursor_tol_left"));
+    config_file.substitute("##precursor_tol_right##", getDoubleOption_("precursor_tol_right"));
     config_file.substitute("##fragment_tol_unit##", fragment_tol_unit == "Da" ? "da" : "ppm"); // sage might expect lower-case "da"
-    config_file.substitute("##fragment_tol_left##", getDoubleOption_(fragment_tol_left));
-    config_file.substitute("##fragment_tol_right##", getDoubleOption_(fragment_tol_right));    
+    config_file.substitute("##fragment_tol_left##", getDoubleOption_("fragment_tol_left"));
+    config_file.substitute("##fragment_tol_right##", getDoubleOption_("fragment_tol_right"));    
     String isotope_errors = "[" + String(getIntList_("isotope_errors")).remove(' ') + "]";
     config_file.substitute("##isotope_errors##", isotope_errors);
     config_file.substitute("##min_matched_peaks##", getIntOption_("min_matched_peaks"));
