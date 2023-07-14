@@ -46,6 +46,8 @@
 #include <OpenMS/CHEMISTRY/ProteaseDB.h>
 #include <OpenMS/CHEMISTRY/ResidueDB.h>
 #include <OpenMS/CHEMISTRY/ResidueModification.h>
+#include <OpenMS/CHEMISTRY/ModifiedPeptideGenerator.h>
+
 #include <OpenMS/SYSTEM/File.h>
 
 #include <fstream>
@@ -92,7 +94,7 @@ using namespace std;
 
 
 /*
-./bin/SageAdapter -in /nfs/wsi/abi/projects/proteomics/yasset_iPRG2015/JD_06232014_sample1_A.mzML -out ~/tmp -sage_executable ~/OMS/sage/sage-v0.11.2-x86_64-unknown-linux-musl/sage -database /nfs/wsi/abi/projects/proteomics/yasset_iPRG2015/iPRG2015_decoy.fasta -config_file ~/OMS/sage/sage-v0.11.2-x86_64-unknown-linux-musl/config.json
+./bin/SageAdapter -in /nfs/wsi/abi/projects/proteomics/yasset_iPRG2015/JD_06232014_sample1_A.mzML -out ~/tmp -sage_executable ~/OMS/sage/sage-v0.11.2-x86_64-unknown-linux-musl/sage -database /nfs/wsi/abi/projects/proteomics/yasset_iPRG2015/iPRG2015_decoy.fasta
 */
 
 class TOPPSageAdapter :
@@ -187,6 +189,45 @@ protected:
       ]       
     }
   )";
+
+  // formats a single mod entry as sage json entry
+  String getModDetails(const ResidueModification* mod, const Residue* res)
+  {
+    String origin;
+    if (mod->getTermSpecificity() == ResidueModification::N_TERM)
+    {
+      origin += "^";
+    }
+    else if (mod->getTermSpecificity() == ResidueModification::C_TERM)
+    {
+      origin += "$";
+    }
+    else if (mod->getTermSpecificity() == ResidueModification::PROTEIN_N_TERM)
+    {
+      origin += "[";
+    }
+    else if (mod->getTermSpecificity() == ResidueModification::PROTEIN_C_TERM)
+    {
+      origin += "]";
+    }
+    origin += res->getOneLetterCode();
+
+    return String("\"") + origin + "\": " + String(mod->getDiffMonoMass());
+  }
+
+  // formats all mod entries into a single multi-line json string
+  String getModDetailsString(const OpenMS::ModifiedPeptideGenerator::MapToResidueType& mod_map)
+  {
+    String mod_details;
+    for (auto it = mod_map.val.begin(); it != mod_map.val.end(); ++it)
+    {
+      const auto& mod = it->first;
+      const auto& res = it->second;
+      mod_details += getModDetails(mod, res);
+      if (it != std::prev(mod_map.val.end())) mod_details += ",\n";
+    }
+    return mod_details;
+  }
 
   // impute values into config_template
   String imputeConfigIntoTemplate()
@@ -300,24 +341,21 @@ protected:
       )";
     }           
 
-    // TODO: update from enzyme/mod information
     config_file.substitute("##enzyme_details##", enzyme_details);
 
-    String static_mods_details = R"(
-      "^": 304.207,
-      "K": 304.207,
-      "C": 57.0215
-    )";
+    auto fixed_mods = getStringList_("fixed_modifications");
+    set<String> fixed_unique(fixed_mods.begin(), fixed_mods.end());
+    fixed_mods.assign(fixed_unique.begin(), fixed_unique.end());   
+    ModifiedPeptideGenerator::MapToResidueType fixed_mod_map = ModifiedPeptideGenerator::getModifications(fixed_mods); // std::unordered_map<const ResidueModification*, const Residue*> val;
+    String static_mods_details = getModDetailsString(fixed_mod_map);
     config_file.substitute("##static_mods##", static_mods_details);
 
-    String variable_mods_details = R"(
-      "M": [15.9949],
-      "^Q": [-17.026549],
-      "^E": [-18.010565],
-      "$": [49.2, 22.9],
-      "[": 42.0,
-      "]": 111.0
-    )";
+    auto variable_mods = getStringList_("variable_modifications");
+    set<String> variable_unique(variable_mods.begin(), variable_mods.end());
+    variable_mods.assign(variable_unique.begin(), variable_unique.end());
+    ModifiedPeptideGenerator::MapToResidueType variable_mod_map = ModifiedPeptideGenerator::getModifications(variable_mods);
+    String variable_mods_details = getModDetailsString(variable_mod_map);
+
     config_file.substitute("##variable_mods##", variable_mods_details);
 
     return config_file;
