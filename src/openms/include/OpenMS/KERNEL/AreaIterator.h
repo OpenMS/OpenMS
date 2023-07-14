@@ -65,6 +65,7 @@ namespace OpenMS
       typedef ValueT PeakType;
       typedef SpectrumIteratorT SpectrumIteratorType;
       typedef PeakIteratorT PeakIteratorType;
+      using SpectrumT = typename std::iterator_traits<SpectrumIteratorType>::value_type;
 
       /// Parameters for the AreaIterator
       /// Required values must be set in the C'tor. Optional values can be set via member functions (which allow chaining).
@@ -273,6 +274,12 @@ namespace OpenMS
       CoordinateType getDriftTime() const
       {
         return p_.current_scan_->getDriftTime();
+      }
+
+      /// returns the current scan into which the iterator points
+      const SpectrumT& getSpectrum() const
+      {
+        return *p_.current_scan_;
       }
 
       /// returns the PeakIndex corresponding to the current iterator position

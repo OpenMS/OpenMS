@@ -42,14 +42,31 @@ include(${CMAKE_CURRENT_LIST_DIR}/SelectLibraryConfigurations.cmake)
 # hint from the user
 set(COIN_ROOT_DIR "" CACHE PATH "COIN root directory")
 
-# find the coin include directory
-find_path(COIN_INCLUDE_DIR coin/CoinUtilsConfig.h
-  HINTS ${COIN_ROOT_DIR}/include
-)
+# find for vcpkg
+find_path(COIN_INCLUDE_DIR coin-or/CoinUtilsConfig.h
+        HINTS
+        ${COIN_ROOT_DIR}/include
+        )
 
-# helper macro to find specific coind sub-libraries
+if (NOT COIN_INCLUDE_DIR)
+  # find the coin include directory from contrib or system
+  find_path(COIN_INCLUDE_DIR coin-or/CoinUtilsConfig.h coin/CoinUtilsConfig.h coinutils/coin/CoinUtilsConfig.h
+          HINTS
+          ${COIN_ROOT_DIR}/include
+          )
+  if (COIN_INCLUDE_DIR)
+    set(CF_COIN_INCLUDE_SUBDIR_DEF 1 CACHE BOOL "If the subdir for including coin-or headers is coin (1) or coin-or (undefined).")
+  endif()
+endif()
+
+# helper macro to find specific coin sub-libraries
 macro(_coin_find_lib _libname _lib_file_names _lib_file_names_debug)
   if(NOT COIN_${_libname})
+    string(TOLOWER ${_libname} _libnamelower)
+    if(_libnamelower STREQUAL "osi_clp")
+      set(_libnamelower "clp")
+    endif()
+
     # find release version
     find_library(COIN_${_libname}_LIBRARY_RELEASE
       NAMES ${_lib_file_names}
@@ -63,29 +80,49 @@ macro(_coin_find_lib _libname _lib_file_names _lib_file_names_debug)
       HINTS ${COIN_ROOT_DIR}/lib
     )
 
+    if(EXISTS "${COIN_INCLUDE_DIR}/${_libnamelower}/coin")
+      ## Unfortunately coin uses a weird include model and includes headers from different subpackages
+      ## via include<File.hpp> instead of include<coin/File.hpp>
+      set(_libspecific_include "${COIN_INCLUDE_DIR}/${_libnamelower}" "${COIN_INCLUDE_DIR}/${_libnamelower}/coin")
+    else()
+      set(_libspecific_include)
+    endif()
+
     # create final library to be exported
     select_library_configurations(COIN_${_libname})
     if(NOT TARGET COIN_${_libname})
       add_library(CoinOR::${_libname} UNKNOWN IMPORTED) # TODO we could try to infer shared/static
       set_property(TARGET CoinOR::${_libname} PROPERTY IMPORTED_LOCATION "${COIN_${_libname}_LIBRARY_RELEASE}")
       set_property(TARGET CoinOR::${_libname} PROPERTY IMPORTED_LOCATION_DEBUG "${COIN_${_libname}_LIBRARY_DEBUG}")
-      set_property(TARGET CoinOR::${_libname} PROPERTY INCLUDE_DIRECTORIES "${COIN_INCLUDE_DIR}")
-      set_property(TARGET CoinOR::${_libname} PROPERTY INTERFACE_INCLUDE_DIRECTORIES "${COIN_INCLUDE_DIR}")
-      # TODO there are probably dependencies across the single libs but we don't care for now. We always included all.
+      set_property(TARGET CoinOR::${_libname} PROPERTY INCLUDE_DIRECTORIES "${COIN_INCLUDE_DIR}" ${_libspecific_include})
+      set_property(TARGET CoinOR::${_libname} PROPERTY INTERFACE_INCLUDE_DIRECTORIES "${COIN_INCLUDE_DIR}" ${_libspecific_include})
+      # TODO there are probably dependencies across the single libs but we don't care for now. We always include all.
       set_property(TARGET CoinOR::CoinOR APPEND PROPERTY INTERFACE_LINK_LIBRARIES CoinOR::${_libname})
     endif()
   endif()
 endmacro()
 
-# actually find the required libs
+
 if(NOT TARGET CoinOR::CoinOR)
   add_library(CoinOR::CoinOR INTERFACE IMPORTED)
+  if (VCPKG_TOOLCHAIN)
+    # Currently coin-or from vcpkg requires BLAS and LAPACK
+    # TODO: Find a better way to do this. Ideal would be if Coin exports a CMake config
+    #  Maybe we can parse a header file? Or try_compile?
+    #  The current approach fails if VCPKG toolchain is used but CMake somehow finds
+    #  an external coin-or. Should be rare to impossible.
+    find_package(BLAS)
+    find_package(LAPACK)
+    target_link_libraries(CoinOR::CoinOR INTERFACE BLAS LAPACK)
+  endif()
 endif()
 
+# actually find the required libs and add them as dependencies
+# to the parent CoinOR::CoinOR interface target
 _coin_find_lib("CBC" "libCbc;Cbc" "libCbcd;Cbc")
 _coin_find_lib("CGL" "libCgl;Cgl" "libCgld;Cgl")
 _coin_find_lib("CLP" "libClp;Clp" "libClpd;Clp")
-_coin_find_lib("COIN_UTILS" "libCoinUtils;CoinUtils" "libCoinUtilsd;CoinUtils")
+_coin_find_lib("COINUTILS" "libCoinUtils;CoinUtils" "libCoinUtilsd;CoinUtils")
 _coin_find_lib("OSI" "libOsi;Osi" "libOsid;Osi")
 _coin_find_lib("OSI_CLP" "libOsiClp;OsiClp" "libOsiClpd;OsiClp")
 
@@ -95,7 +132,7 @@ find_package_handle_standard_args(COIN DEFAULT_MSG
   COIN_CBC_LIBRARY
   COIN_CGL_LIBRARY
   COIN_CLP_LIBRARY
-  COIN_COIN_UTILS_LIBRARY
+  COIN_COINUTILS_LIBRARY
   COIN_OSI_LIBRARY
   COIN_OSI_CLP_LIBRARY
 )
@@ -107,7 +144,7 @@ if(COIN_FOUND)
     ${COIN_CBC_LIBRARY}
     ${COIN_CGL_LIBRARY}
     ${COIN_CLP_LIBRARY}
-    ${COIN_COIN_UTILS_LIBRARY}
+    ${COIN_COINUTILS_LIBRARY}
     ${COIN_OSI_LIBRARY}
     ${COIN_OSI_CLP_LIBRARY}
   )
@@ -118,7 +155,7 @@ mark_as_advanced(
   COIN_CBC_LIBRARY
   COIN_CGL_LIBRARY
   COIN_CLP_LIBRARY
-  COIN_COIN_UTILS_LIBRARY
+  COIN_COINUTILS_LIBRARY
   COIN_OSI_LIBRARY
   COIN_OSI_CLP_LIBRARY
 )
