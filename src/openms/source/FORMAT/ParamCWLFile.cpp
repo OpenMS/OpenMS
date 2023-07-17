@@ -101,7 +101,23 @@ namespace OpenMS
           }
           else if (entry.tags.count("input file"))
           {
-            value = node["path"].get<std::string>();
+            // If this is an input file and 'is_executable' is set. this can be of 'class: File' or 'type: string'
+            if (entry.tags.count("is_executable"))
+            {
+              if (node.is_object())
+              {
+                value = node["path"].get<std::string>();
+              }
+              else
+              {
+                value = node.get<std::string>();
+              }
+            }
+            // Just a normal input file
+            else
+            {
+              value = node["path"].get<std::string>();
+            }
           }
           else
           {
