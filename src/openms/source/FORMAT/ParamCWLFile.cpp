@@ -62,7 +62,7 @@ namespace OpenMS
     auto traces = param.begin().getTrace();
     std::string toolNamespace = traces.front().name + ":1:";
 
-    std::ifstream ifs{filename};
+    std::ifstream ifs {filename};
     if (!ifs.good())
     {
       throw Exception::FileNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename);
@@ -94,8 +94,8 @@ namespace OpenMS
         auto value = entry.value;
         if (entry.value.valueType() == ParamValue::ValueType::STRING_VALUE)
         {
-          if ((entry.valid_strings.size() == 2 && entry.valid_strings[0] == "true" && entry.valid_strings[1] == "false")
-             || (entry.valid_strings.size() == 2 && entry.valid_strings[0] == "false" && entry.valid_strings[1] == "true"))
+          if ((entry.valid_strings.size() == 2 && entry.valid_strings[0] == "true" && entry.valid_strings[1] == "false") ||
+              (entry.valid_strings.size() == 2 && entry.valid_strings[0] == "false" && entry.valid_strings[1] == "true"))
           {
             value = node.get<bool>() ? "true" : "false";
           }
@@ -143,7 +143,7 @@ namespace OpenMS
         param.setValue(key, value);
       }
     }
-    catch(const json::exception& e)
+    catch (const json::exception& e)
     {
       throw Exception::ParseError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "", e.what());
     }
