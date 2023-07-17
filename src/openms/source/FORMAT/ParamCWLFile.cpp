@@ -99,7 +99,7 @@ namespace OpenMS
           {
             value = node.get<bool>() ? "true" : "false";
           }
-          else if (entry.tags.count("input file") || entry.tags.count("output file"))
+          else if (entry.tags.count("input file"))
           {
             value = node["path"].get<std::string>();
           }
@@ -118,7 +118,7 @@ namespace OpenMS
         }
         else if (entry.value.valueType() == ParamValue::ValueType::STRING_LIST)
         {
-          if (entry.tags.count("input file") || entry.tags.count("output file"))
+          if (entry.tags.count("input file"))
           {
             value = node["path"].get<std::vector<std::string>>();
           }
