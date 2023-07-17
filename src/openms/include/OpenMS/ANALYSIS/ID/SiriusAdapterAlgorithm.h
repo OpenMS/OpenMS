@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -40,6 +40,7 @@
 
 #include <unordered_map>
 #include <QString>
+#include <QStringList>
 
 using namespace std;
 
@@ -71,7 +72,20 @@ namespace OpenMS
        * @brief Accessors for Sirius Parameters
        */
 
-      int getNumberOfSiriusCandidates() const { return sirius.getValue("candidates");  }
+      int getNumberOfSiriusCandidates() const 
+      {
+        int number_of_candidates = sirius.getValue("candidates");
+        // default for SiriusAdapter is -1 to not pass a value to command and use SIRIUS 5 default (10)
+        // therefore 10 needs to be returned in this case
+        if (number_of_candidates == -1)
+        {
+          return 10;
+        }
+        else
+        {
+          return number_of_candidates;
+        }
+      }
 
       /**
        * @brief Updates all parameters that already exist in this DefaultParamHandler
@@ -88,10 +102,6 @@ namespace OpenMS
        * @return Whether this DefaultParamHandler has an ParamEntry for the provided name.
        */
       bool hasFullNameParameter(const String &name) const;
-
-
-      int getNumberOfCSIFingerIDCandidates() const { return fingerid.getValue("candidates"); }
-
 
       /// Struct for temporary folder structure
       class OPENMS_DLLAPI SiriusTemporaryFileSystemObjects
@@ -165,6 +175,14 @@ namespace OpenMS
       void logFeatureSpectraNumber(const String& featureinfo,
                                    const FeatureMapping::FeatureToMs2Indices& feature_mapping,
                                    const MSExperiment& spectra) const;
+
+      /**
+      @brief Log in to Sirius with personal user account (required in Sirius >= 5).
+
+      @param email User account E-Mail.
+      @param password User account password.
+      */
+      void logInSiriusAccount(String& executable, const String& email, const String& password) const;
 
       /**
       @brief Call SIRIUS with QProcess
@@ -241,15 +259,12 @@ namespace OpenMS
 
       QStringList getCommandLine() const
       {
-        const DataValue omit_integer(-1);
-        const DataValue omit_string("");
-
         QStringList result;
         for (const auto &pair : openms_to_sirius)
         {
           DataValue value = enclose->param_.getValue(pair.first);
-
-          if (!value.isEmpty() && value != omit_integer && value != omit_string)
+          DataValue default_value = enclose->defaults_.getValue(pair.first);
+          if (!value.isEmpty() && value != default_value)
           {
            String string_value = value.toString(true);
            if (string_value == "true")

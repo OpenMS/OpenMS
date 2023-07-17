@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -61,9 +61,9 @@ using namespace std;
 <CENTER>
     <table>
         <tr>
-            <td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. predecessor tools </td>
-            <td VALIGN="middle" ROWSPAN=4> \f$ \longrightarrow \f$ ProteinInterference \f$ \longrightarrow \f$</td>
-            <td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. successor tools </td>
+            <th ALIGN = "center"> pot. predecessor tools </td>
+            <td VALIGN="middle" ROWSPAN=4> &rarr; ProteinInterference &rarr;</td>
+            <th ALIGN = "center"> pot. successor tools </td>
         </tr>
         <tr>
             <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_CometAdapter (or other ID engines)</td>
@@ -186,7 +186,7 @@ protected:
         OPENMS_LOG_FATAL_ERROR << "Error: Running on consensusXML requires output as consensusXML. Please change the "
                                   "output type.\n";
       }
-      OPENMS_LOG_INFO << "Loading input..." << std::endl;
+
 
       if (in.size() > 1)
       {
@@ -196,8 +196,15 @@ protected:
       ConsensusMapMergerAlgorithm cmerge;
       ConsensusMap cmap;
       ConsensusXMLFile cxmlf;
+      OPENMS_LOG_INFO << "Loading input..." << std::endl;
       cxmlf.load(in[0], cmap);
+      OPENMS_LOG_INFO << "Loading input took " << sw.toString() << std::endl;
+      sw.clear();
+
+      OPENMS_LOG_INFO << "Merging IDs across runs..." << std::endl;
       cmerge.mergeAllIDRuns(cmap);
+      OPENMS_LOG_INFO << "Merging IDs across runs took " << sw.toString() << std::endl;
+      sw.clear();
 
       OPENMS_LOG_INFO << "Aggregating protein scores..." << std::endl;
       BasicProteinInferenceAlgorithm pi;

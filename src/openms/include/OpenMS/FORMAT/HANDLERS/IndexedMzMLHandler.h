@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -67,8 +67,8 @@ namespace Internal
     IndexedMzMLFileLoader and OnDiscMSExperiment.
 
     Internally, it uses the IndexedMzMLDecoder for initial parsing and
-    extracting all the offsets of the <chromatogram> and <spectrum> tags. These
-    offsets are stored as members of this class as well as the offset to the <indexList> element
+    extracting all the offsets of the &lt;chromatogram&gt; and &lt;spectrum&gt; tags. These
+    offsets are stored as members of this class as well as the offset to the &lt;indexList&gt; element
 
     @note This implementation is @a not thread-safe since it keeps internally a
     single file access pointer which it moves when accessing a specific
@@ -186,7 +186,7 @@ namespace Internal
       @param id The spectrum native id
       @param s The spectrum to be used and filled with data
     */
-    void getMSSpectrumByNativeId(std::string id, OpenMS::MSSpectrum& s);
+    void getMSSpectrumByNativeId(const std::string& id, OpenMS::MSSpectrum& s);
 
     /**
       @brief Retrieve the raw data for the spectrum at position "id"
@@ -226,7 +226,7 @@ namespace Internal
       @throw Exception if id cannot be found
 
       @param id The chromatogram native id
-      @param s The chromatogram to be used and filled with data
+      @param c The chromatogram to be used and filled with data
     */
     void getMSChromatogramByNativeId(const std::string& id, OpenMS::MSChromatogram& c);
 

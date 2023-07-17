@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -36,13 +36,13 @@
 
 #include <OpenMS/CHEMISTRY/EmpiricalFormula.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
-#include <OpenMS/DATASTRUCTURES/Map.h>
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/CHEMISTRY/Residue.h>
 #include <OpenMS/CHEMISTRY/ResidueModification.h>
 
 #include <vector>
 #include <iosfwd>
+#include <map>
 
 namespace OpenMS
 {
@@ -120,8 +120,7 @@ public:
     */
     class OPENMS_DLLAPI ConstIterator
     {
-public:
-
+    public:
       // TODO Iterator constructor for ConstIterator
 
       typedef const Residue& const_reference;
@@ -133,26 +132,20 @@ public:
       typedef std::random_access_iterator_tag iterator_category;
 
       /** @name Constructors and destructors
-      */
+       */
       //@{
       /// default constructor
-      ConstIterator()
-      {
-      }
+      ConstIterator() = default;
 
       /// detailed constructor with pointer to the vector and offset position
       ConstIterator(const std::vector<const Residue*>* vec_ptr, difference_type position)
+        : vector_{vec_ptr},
+          position_{position}
       {
-        vector_ = vec_ptr;
-        position_ = position;
       }
 
       /// copy constructor
-      ConstIterator(const ConstIterator& rhs) :
-        vector_(rhs.vector_),
-        position_(rhs.position_)
-      {
-      }
+      ConstIterator(const ConstIterator& rhs) = default;
 
       /// copy constructor from Iterator
       ConstIterator(const AASequence::Iterator& rhs) :
@@ -162,22 +155,12 @@ public:
       }
 
       /// destructor
-      virtual ~ConstIterator()
-      {
-      }
+      virtual ~ConstIterator() = default;
 
       //@}
 
       /// assignment operator
-      ConstIterator& operator=(const ConstIterator& rhs)
-      {
-        if (this != &rhs)
-        {
-          position_ = rhs.position_;
-          vector_ = rhs.vector_;
-        }
-        return *this;
-      }
+      ConstIterator& operator=(const ConstIterator& rhs) = default;
 
       /** @name Operators
       */
@@ -242,10 +225,10 @@ public:
 protected:
 
       // pointer to the AASequence vector
-      const std::vector<const Residue*>* vector_;
+      const std::vector<const Residue*>* vector_ {};
 
       // position in the AASequence vector
-      difference_type position_;
+      difference_type position_ {};
     };
 
 
@@ -269,28 +252,20 @@ public:
       */
       //@{
       /// default constructor
-      Iterator()
-      {
-      }
+      Iterator() = default;
 
       /// detailed constructor with pointer to the vector and offset position
       Iterator(std::vector<const Residue*>* vec_ptr, difference_type position)
+        : vector_ {vec_ptr},
+          position_{position}
       {
-        vector_ = vec_ptr;
-        position_ = position;
       }
 
       /// copy constructor
-      Iterator(const Iterator& rhs) :
-        vector_(rhs.vector_),
-        position_(rhs.position_)
-      {
-      }
+      Iterator(const Iterator& rhs) = default;
 
       /// destructor
-      virtual ~Iterator()
-      {
-      }
+      virtual ~Iterator() = default;
 
       //@}
 
@@ -374,10 +349,10 @@ public:
 protected:
 
       // pointer to the AASequence vector
-      std::vector<const Residue*>* vector_;
+      std::vector<const Residue*>* vector_ {};
 
       // position in the AASequence vector
-      difference_type position_;
+      difference_type position_ {};
     };
 
     /** @name Constructors and Destructors
@@ -563,7 +538,7 @@ protected:
     AASequence getSubsequence(Size index, UInt number) const;
 
     /// compute frequency table of amino acids
-    void getAAFrequencies(Map<String, Size>& frequency_table) const;
+    void getAAFrequencies(std::map<String, Size>& frequency_table) const;
 
     //@}
 

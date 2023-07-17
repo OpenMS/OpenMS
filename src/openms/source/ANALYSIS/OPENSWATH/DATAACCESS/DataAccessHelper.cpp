@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -39,7 +39,7 @@
 namespace OpenMS
 {
 
-  void OpenSwathDataAccessHelper::convertToOpenMSSpectrum(const OpenSwath::SpectrumPtr sptr, OpenMS::MSSpectrum & spectrum)
+  void OpenSwathDataAccessHelper::convertToOpenMSSpectrum(const OpenSwath::SpectrumPtr& sptr, OpenMS::MSSpectrum & spectrum)
   {
     std::vector<double>::const_iterator mz_it = sptr->getMZArray()->data.begin();
     std::vector<double>::const_iterator int_it = sptr->getIntensityArray()->data.begin();
@@ -86,7 +86,7 @@ namespace OpenMS
     return cptr;
   }
 
-  void OpenSwathDataAccessHelper::convertToOpenMSChromatogram(const OpenSwath::ChromatogramPtr cptr, OpenMS::MSChromatogram & chromatogram)
+  void OpenSwathDataAccessHelper::convertToOpenMSChromatogram(const OpenSwath::ChromatogramPtr& cptr, OpenMS::MSChromatogram & chromatogram)
   {
     std::vector<double>::const_iterator rt_it = cptr->getTimeArray()->data.begin();
     std::vector<double>::const_iterator int_it = cptr->getIntensityArray()->data.begin();
@@ -104,7 +104,7 @@ namespace OpenMS
   }
 
   void OpenSwathDataAccessHelper::convertToOpenMSChromatogramFilter(OpenMS::MSChromatogram & chromatogram,
-                                                                    const OpenSwath::ChromatogramPtr cptr,
+                                                                    const OpenSwath::ChromatogramPtr& cptr,
                                                                     double rt_min,
                                                                     double rt_max)
   {
@@ -144,7 +144,7 @@ namespace OpenMS
       transition_exp.compounds.push_back(p);
     }
 
-    //copy compounds and store as compounds 
+    //copy compounds and store as compounds
     for (Size i = 0; i < transition_exp_.getCompounds().size(); i++)
     {
       OpenSwath::LightCompound c;
@@ -153,62 +153,69 @@ namespace OpenMS
     }
 
     //mapping of transitions
-    for (Size i = 0; i < transition_exp_.getTransitions().size(); i++)
+    for (const auto& transition : transition_exp_.getTransitions())
     {
       OpenSwath::LightTransition t;
-      t.transition_name = transition_exp_.getTransitions()[i].getNativeID();
-      t.product_mz = transition_exp_.getTransitions()[i].getProductMZ();
-      t.precursor_mz = transition_exp_.getTransitions()[i].getPrecursorMZ();
-      t.library_intensity = transition_exp_.getTransitions()[i].getLibraryIntensity();
-      t.peptide_ref = transition_exp_.getTransitions()[i].getPeptideRef();
-      // try compound ref
-      if (t.peptide_ref.empty())
+      t.transition_name = transition.getNativeID();
+      t.product_mz = transition.getProductMZ();
+      t.precursor_mz = transition.getPrecursorMZ();
+      t.library_intensity = transition.getLibraryIntensity();
+      t.peptide_ref = transition.getPeptideRef();
+
+      // If compound is a peptide, get the ion mobility information from the compound
+      if (!t.peptide_ref.empty())
       {
-        t.peptide_ref = transition_exp_.getTransitions()[i].getCompoundRef();
+        OpenSwath::LightCompound p = transition_exp.getPeptideByRef(t.peptide_ref);
+        t.precursor_im = p.getDriftTime();
       }
-      if (transition_exp_.getTransitions()[i].isProductChargeStateSet())
+      // try compound ref
+      else  // (t.peptide_ref.empty())
       {
-        t.fragment_charge = transition_exp_.getTransitions()[i].getProductChargeState();
+        t.peptide_ref = transition.getCompoundRef();
+      }
+
+      if (transition.isProductChargeStateSet())
+      {
+        t.fragment_charge = transition.getProductChargeState();
       }
       t.decoy = false;
 
       // legacy
 #if 1
-      if (transition_exp_.getTransitions()[i].getCVTerms().has("decoy") &&
-          transition_exp_.getTransitions()[i].getCVTerms()["decoy"][0].getValue().toString() == "1" )
+      const auto& cv_terms = transition.getCVTerms();
+      if (cv_terms.find("decoy") != cv_terms.end() && cv_terms.at("decoy")[0].getValue().toString() == "1" )
       {
         t.decoy = true;
       }
-      else if (transition_exp_.getTransitions()[i].getCVTerms().has("MS:1002007"))    // target SRM transition
+      else if (cv_terms.find("MS:1002007") != cv_terms.end())    // target SRM transition
       {
         t.decoy = false;
       }
-      else if (transition_exp_.getTransitions()[i].getCVTerms().has("MS:1002008"))    // decoy SRM transition
+      else if (cv_terms.find("MS:1002008") != cv_terms.end())    // decoy SRM transition
       {
         t.decoy = true;
       }
-      else if (transition_exp_.getTransitions()[i].getCVTerms().has("MS:1002007") &&
-          transition_exp_.getTransitions()[i].getCVTerms().has("MS:1002008"))    // both == illegal
+      else if (cv_terms.find("MS:1002007") != cv_terms.end() && cv_terms.find("MS:1002008") != cv_terms.end())    // both == illegal
       {
         throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                          "Transition " + t.transition_name + " cannot be target and decoy at the same time.");
       }
       else
 #endif
-      if (transition_exp_.getTransitions()[i].getDecoyTransitionType() == ReactionMonitoringTransition::UNKNOWN ||
-          transition_exp_.getTransitions()[i].getDecoyTransitionType() == ReactionMonitoringTransition::TARGET)
+      if (transition.getDecoyTransitionType() == ReactionMonitoringTransition::UNKNOWN ||
+          transition.getDecoyTransitionType() == ReactionMonitoringTransition::TARGET)
       {
         // assume its target
         t.decoy = false;
       }
-      else if (transition_exp_.getTransitions()[i].getDecoyTransitionType() == ReactionMonitoringTransition::DECOY)
+      else if (transition.getDecoyTransitionType() == ReactionMonitoringTransition::DECOY)
       {
         t.decoy = true;
       }
 
-      t.detecting_transition = transition_exp_.getTransitions()[i].isDetectingTransition();
-      t.identifying_transition = transition_exp_.getTransitions()[i].isIdentifyingTransition();
-      t.quantifying_transition = transition_exp_.getTransitions()[i].isQuantifyingTransition();
+      t.detecting_transition = transition.isDetectingTransition();
+      t.identifying_transition = transition.isIdentifyingTransition();
+      t.quantifying_transition = transition.isQuantifyingTransition();
 
       transition_exp.transitions.push_back(t);
     }

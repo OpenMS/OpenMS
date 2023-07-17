@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -71,9 +71,9 @@ public:
 
     /// Loads a Swath run from a list of split mzML files
     std::vector<OpenSwath::SwathMap> loadSplit(StringList file_list,
-                                               String tmp,
+                                               const String& tmp,
                                                boost::shared_ptr<ExperimentalSettings>& exp_meta, 
-                                               String readoptions = "normal");
+                                               const String& readoptions = "normal");
 
     /**
       @brief Loads a Swath run from a single mzML file
@@ -98,19 +98,19 @@ public:
                                               Interfaces::IMSDataConsumer* plugin_consumer = nullptr);
 
     /// Loads a Swath run from a single mzXML file
-    std::vector<OpenSwath::SwathMap> loadMzXML(String file, 
-                                               String tmp,
+    std::vector<OpenSwath::SwathMap> loadMzXML(const String& file, 
+                                               const String& tmp,
                                                boost::shared_ptr<ExperimentalSettings>& exp_meta,
-                                               String readoptions = "normal");
+                                               const String& readoptions = "normal");
 
     /// Loads a Swath run from a single sqMass file
-    std::vector<OpenSwath::SwathMap> loadSqMass(String file, boost::shared_ptr<ExperimentalSettings>& /* exp_meta */);
+    std::vector<OpenSwath::SwathMap> loadSqMass(const String& file, boost::shared_ptr<ExperimentalSettings>& /* exp_meta */);
 
 protected:
 
     /// Cache a file to disk
     OpenSwath::SpectrumAccessPtr doCacheFile_(const String& in, const String& tmp, const String& tmp_fname,
-                                              boost::shared_ptr<PeakMap > experiment_metadata);
+                                              const boost::shared_ptr<PeakMap >& experiment_metadata);
 
     /// Only read the meta data from a file and use it to populate exp_meta
     boost::shared_ptr< PeakMap > populateMetaData_(const String& file);

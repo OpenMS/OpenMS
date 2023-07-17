@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -35,11 +35,13 @@
 #pragma once
 
 #include <OpenMS/CONCEPT/ProgressLogger.h>
-#include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/METADATA/ID/IdentificationData.h>
 
 namespace OpenMS
 {
+  class FeatureMap;
+  class ConsensusMap;
+
   /**
       @brief This class supports reading and writing of OMS files.
 
@@ -69,22 +71,42 @@ namespace OpenMS
      */
     void store(const String& filename, const FeatureMap& features);
 
-    /** @brief Read in a OMS file and construct an IdentificationData object
+    /** @brief Write out a consensus map to SQL-based OMS file
+     *
+     * @param filename The output file
+     * @param consensus The consensus map
+     */
+    void store(const String& filename, const ConsensusMap& consensus);
+
+    /** @brief Read in an OMS file and construct an IdentificationData object
      *
      * @param filename The input file
      * @param id_data The IdentificationData object
      */
     void load(const String& filename, IdentificationData& id_data);
 
-    /** @brief Read in a OMS file and construct a feature map
+    /** @brief Read in an OMS file and construct a feature map
      *
      * @param filename The input file
      * @param features The feature map
      */
     void load(const String& filename, FeatureMap& features);
 
+    /** @brief Read in an OMS file and construct a consensus map
+     *
+     * @param filename The input file
+     * @param consensus The consensus map
+     */
+    void load(const String& filename, ConsensusMap& consensus);
+
+    /** @brief Read in an OMS file and write out the contents in JSON format
+     *
+     * @param filename_in The input file (OMS)
+     * @param filename_out The output file (JSON)
+     */
+    void exportToJSON(const String& filename_in, const String& filename_out);
+
   protected:
     LogType log_type_;
   };
 } // namespace OpenMS
-

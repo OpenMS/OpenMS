@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -147,6 +147,7 @@ namespace OpenMS
     bool higher_better = true;
 
     //TODO check all pep IDs? this assumes equality to first encountered
+    // will throw a well-formed exception in aggregatePeptideScores though.
     for (const auto& cf : cmap)
     {
       const auto& pep_ids = cf.getPeptideIdentifications();
@@ -157,26 +158,19 @@ namespace OpenMS
         break;
       }
     }
+    if (overall_score_type.empty())
+    {
+      for (const auto& id : cmap.getUnassignedPeptideIdentifications())
+      {
+        overall_score_type = id.getScoreType();
+        higher_better = id.isHigherScoreBetter();
+        break;
+      }
+    }
 
     bool pep_scores = IDScoreSwitcherAlgorithm().isScoreType(overall_score_type,IDScoreSwitcherAlgorithm::ScoreType::PEP);
     double initScore = getInitScoreForAggMethod_(aggregation_method, pep_scores || higher_better); // if we have pep scores, we will complement to pp during aggregation
 
-    // build union of prothits
-    //TODO use ConsensusXMLMergerAlgorithm (it checks settings and merged files etc.)
-    /*
-    for (const auto& run : cmap.getProteinIdentifications())
-    {
-      for (const auto& prothit : run.getHits())
-      {
-        if (acc_to_protein_hitP_and_count.find(prothit.getAccession()) == acc_to_protein_hitP_and_count.end())
-        {
-          prot_hits.push_back(prothit);
-          prot_hits.back().setScore(initScore);
-          acc_to_protein_hitP_and_count[prothit.getAccession()] = std::make_pair(&prot_hits.back(),0);
-        }
-      }
-    }
-    */
     for (auto& prothit : prot_hits)
     {
       prothit.setScore(initScore);
@@ -235,8 +229,8 @@ namespace OpenMS
         //Note: the above does not add singleton groups to graph
         ibg.resolveGraphPeptideCentric(true);
         ibg.annotateIndistProteins(true); // this does not really add singletons since they are not in the graph
-        IDFilter::updateProteinGroups(prot_run.getIndistinguishableProteins(), prot_run.getHits());
         IDFilter::removeUnreferencedProteins(cmap, include_unassigned);
+        IDFilter::updateProteinGroups(prot_run.getIndistinguishableProteins(), prot_run.getHits());
         prot_run.fillIndistinguishableGroupsWithSingletons();
       }
       else
@@ -257,8 +251,8 @@ namespace OpenMS
         ibg.clusterIndistProteinsAndPeptides(); //TODO check in resolve or do it there if not done yet!
         //Note: the above does not add singleton groups to graph
         ibg.resolveGraphPeptideCentric(true);
-        IDFilter::updateProteinGroups(prot_run.getIndistinguishableProteins(), prot_run.getHits());
         IDFilter::removeUnreferencedProteins(cmap, include_unassigned);
+        IDFilter::updateProteinGroups(prot_run.getIndistinguishableProteins(), prot_run.getHits());
       }
     }
 
@@ -395,7 +389,7 @@ namespace OpenMS
     for (const auto &seq_to_map_from_charge_to_pep_hit : best_pep)
     {
       // The next line assumes that PeptideHits of different charge states necessarily share the same
-      // protein accessions
+      // protein accessions (might not be the case if we ever allow modified protein databases e.g. in PEF format)
       // TODO this could be done for mods, too (first hashing AASeq, then the mods)
       const std::map<Int, PeptideHit*>& charge_to_peptide_hit = seq_to_map_from_charge_to_pep_hit.second;
       const PeptideHit& first_peptide_hit = *charge_to_peptide_hit.begin()->second;

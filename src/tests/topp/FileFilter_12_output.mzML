@@ -13,12 +13,34 @@
 			<cvParam cvRef="MS" accession="MS:1000579" name="MS1 spectrum" />
 			<cvParam cvRef="MS" accession="MS:1000580" name="MSn spectrum" />
 		</fileContent>
-		<sourceFileList count="2">
+		<sourceFileList count="6">
 			<sourceFile id="sf_ru_0" name="tiny1.RAW" location="file:///F:/data/Exp01">
 				<cvParam cvRef="MS" accession="MS:1000569" name="SHA-1" value="71be39fb2700ab2f3c8b2234b91274968b6899b1" />
 				<cvParam cvRef="MS" accession="MS:1000563" name="Thermo RAW format" />
 				<cvParam cvRef="MS" accession="MS:1000774" name="multiple peak list nativeID format" />
 				<userParam name="name" type="xsd:string" value="sourcefile1"/>
+			</sourceFile>
+			<sourceFile id="sf_ru_1" name="ac.dta" location="file:///F:/data/Exp02">
+				<cvParam cvRef="MS" accession="MS:1000569" name="SHA-1" value="81be39fb2700ab2f3c8b2234b91244968b6899b1" />
+				<cvParam cvRef="MS" accession="MS:1000613" name="DTA format" />
+				<cvParam cvRef="MS" accession="MS:1000824" name="no nativeID format" />
+			</sourceFile>
+			<sourceFile id="sf_ru_2" name="parameters.par" location="file:///C:/settings/">
+				<cvParam cvRef="MS" accession="MS:1000569" name="SHA-1" value="61be39fb2700ab2f3c8b2234b91274968b6899b1" />
+				<cvParam cvRef="MS" accession="MS:1000563" name="Thermo RAW format" />
+				<cvParam cvRef="MS" accession="MS:1000824" name="no nativeID format" />
+				<userParam name="name" type="xsd:string" value="sourcefile3"/>
+			</sourceFile>
+			<sourceFile id="sf_ru_3" name="pr.dta" location="file:///F:/data/Exp03">
+				<cvParam cvRef="MS" accession="MS:1000569" name="SHA-1" value="81be39fb2700ab2f3c8b2234b91244968b6899b1" />
+				<cvParam cvRef="MS" accession="MS:1000613" name="DTA format" />
+				<cvParam cvRef="MS" accession="MS:1000824" name="no nativeID format" />
+			</sourceFile>
+			<sourceFile id="sf_ru_4" name="tiny1.dta" location="file:///F:/data/Exp01">
+				<cvParam cvRef="MS" accession="MS:1000569" name="SHA-1" value="81be39fb2700ab2f3c8b2234b91274968b6899b1" />
+				<cvParam cvRef="MS" accession="MS:1000613" name="DTA format" />
+				<cvParam cvRef="MS" accession="MS:1000824" name="no nativeID format" />
+				<userParam name="name" type="xsd:string" value="sourcefile4"/>
 			</sourceFile>
 			<sourceFile id="sf_sp_1" name="tiny1.dta" location="file:///F:/data/Exp01">
 				<cvParam cvRef="MS" accession="MS:1000569" name="SHA-1" value="81be39fb2700ab2f3c8b2234b91274968b6899b1" />
@@ -174,12 +196,6 @@
 				<cvParam cvRef="MS" accession="MS:1000778" name="charge state calculation" />
 				<cvParam cvRef="MS" accession="MS:1000747" name="completion time" value="2001-02-03+04:15" />
 				<userParam name="p3" type="xsd:string" value="value3"/>
-			</processingMethod>
-		</dataProcessing>
-		<dataProcessing id="dp_sp_1_bi_1">
-			<processingMethod order="0" softwareRef="so_default">
-				<cvParam cvRef="MS" accession="MS:1000544" name="Conversion to mzML" />
-				<userParam name="warning" type="xsd:string" value="fictional processing method used to fulfill format requirements" />
 			</processingMethod>
 		</dataProcessing>
 	</dataProcessingList>
@@ -439,11 +455,11 @@
 </mzML>
 <indexList count="1">
 	<index name="spectrum">
-		<offset idRef="index=0">12965</offset>
-		<offset idRef="index=1">18108</offset>
-		<offset idRef="index=2">26994</offset>
+		<offset idRef="index=0">14176</offset>
+		<offset idRef="index=1">19319</offset>
+		<offset idRef="index=2">28205</offset>
 	</index>
 </indexList>
-<indexListOffset>31834</indexListOffset>
+<indexListOffset>33045</indexListOffset>
 <fileChecksum>0</fileChecksum>
 </indexedmzML>

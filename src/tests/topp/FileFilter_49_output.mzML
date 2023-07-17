@@ -52,306 +52,6 @@
 				<userParam name="parameter: mode" type="xsd:string" value="test_mode"/>
 			</processingMethod>
 		</dataProcessing>
-		<dataProcessing id="dp_sp_1_bi_0">
-			<processingMethod order="0" softwareRef="so_default">
-				<cvParam cvRef="MS" accession="MS:1000544" name="Conversion to mzML" />
-				<userParam name="warning" type="xsd:string" value="fictional processing method used to fulfill format requirements" />
-			</processingMethod>
-		</dataProcessing>
-		<dataProcessing id="dp_sp_3_bi_0">
-			<processingMethod order="0" softwareRef="so_default">
-				<cvParam cvRef="MS" accession="MS:1000544" name="Conversion to mzML" />
-				<userParam name="warning" type="xsd:string" value="fictional processing method used to fulfill format requirements" />
-			</processingMethod>
-		</dataProcessing>
-		<dataProcessing id="dp_sp_5_bi_0">
-			<processingMethod order="0" softwareRef="so_default">
-				<cvParam cvRef="MS" accession="MS:1000544" name="Conversion to mzML" />
-				<userParam name="warning" type="xsd:string" value="fictional processing method used to fulfill format requirements" />
-			</processingMethod>
-		</dataProcessing>
-		<dataProcessing id="dp_sp_7_bi_0">
-			<processingMethod order="0" softwareRef="so_default">
-				<cvParam cvRef="MS" accession="MS:1000544" name="Conversion to mzML" />
-				<userParam name="warning" type="xsd:string" value="fictional processing method used to fulfill format requirements" />
-			</processingMethod>
-		</dataProcessing>
-		<dataProcessing id="dp_sp_9_bi_0">
-			<processingMethod order="0" softwareRef="so_default">
-				<cvParam cvRef="MS" accession="MS:1000544" name="Conversion to mzML" />
-				<userParam name="warning" type="xsd:string" value="fictional processing method used to fulfill format requirements" />
-			</processingMethod>
-		</dataProcessing>
-		<dataProcessing id="dp_sp_11_bi_0">
-			<processingMethod order="0" softwareRef="so_default">
-				<cvParam cvRef="MS" accession="MS:1000544" name="Conversion to mzML" />
-				<userParam name="warning" type="xsd:string" value="fictional processing method used to fulfill format requirements" />
-			</processingMethod>
-		</dataProcessing>
-		<dataProcessing id="dp_sp_13_bi_0">
-			<processingMethod order="0" softwareRef="so_default">
-				<cvParam cvRef="MS" accession="MS:1000544" name="Conversion to mzML" />
-				<userParam name="warning" type="xsd:string" value="fictional processing method used to fulfill format requirements" />
-			</processingMethod>
-		</dataProcessing>
-		<dataProcessing id="dp_sp_15_bi_0">
-			<processingMethod order="0" softwareRef="so_default">
-				<cvParam cvRef="MS" accession="MS:1000544" name="Conversion to mzML" />
-				<userParam name="warning" type="xsd:string" value="fictional processing method used to fulfill format requirements" />
-			</processingMethod>
-		</dataProcessing>
-		<dataProcessing id="dp_sp_17_bi_0">
-			<processingMethod order="0" softwareRef="so_default">
-				<cvParam cvRef="MS" accession="MS:1000544" name="Conversion to mzML" />
-				<userParam name="warning" type="xsd:string" value="fictional processing method used to fulfill format requirements" />
-			</processingMethod>
-		</dataProcessing>
-		<dataProcessing id="dp_sp_19_bi_0">
-			<processingMethod order="0" softwareRef="so_default">
-				<cvParam cvRef="MS" accession="MS:1000544" name="Conversion to mzML" />
-				<userParam name="warning" type="xsd:string" value="fictional processing method used to fulfill format requirements" />
-			</processingMethod>
-		</dataProcessing>
-		<dataProcessing id="dp_sp_21_bi_0">
-			<processingMethod order="0" softwareRef="so_default">
-				<cvParam cvRef="MS" accession="MS:1000544" name="Conversion to mzML" />
-				<userParam name="warning" type="xsd:string" value="fictional processing method used to fulfill format requirements" />
-			</processingMethod>
-		</dataProcessing>
-		<dataProcessing id="dp_sp_23_bi_0">
-			<processingMethod order="0" softwareRef="so_default">
-				<cvParam cvRef="MS" accession="MS:1000544" name="Conversion to mzML" />
-				<userParam name="warning" type="xsd:string" value="fictional processing method used to fulfill format requirements" />
-			</processingMethod>
-		</dataProcessing>
-		<dataProcessing id="dp_sp_25_bi_0">
-			<processingMethod order="0" softwareRef="so_default">
-				<cvParam cvRef="MS" accession="MS:1000544" name="Conversion to mzML" />
-				<userParam name="warning" type="xsd:string" value="fictional processing method used to fulfill format requirements" />
-			</processingMethod>
-		</dataProcessing>
-		<dataProcessing id="dp_sp_27_bi_0">
-			<processingMethod order="0" softwareRef="so_default">
-				<cvParam cvRef="MS" accession="MS:1000544" name="Conversion to mzML" />
-				<userParam name="warning" type="xsd:string" value="fictional processing method used to fulfill format requirements" />
-			</processingMethod>
-		</dataProcessing>
-		<dataProcessing id="dp_sp_29_bi_0">
-			<processingMethod order="0" softwareRef="so_default">
-				<cvParam cvRef="MS" accession="MS:1000544" name="Conversion to mzML" />
-				<userParam name="warning" type="xsd:string" value="fictional processing method used to fulfill format requirements" />
-			</processingMethod>
-		</dataProcessing>
-		<dataProcessing id="dp_sp_31_bi_0">
-			<processingMethod order="0" softwareRef="so_default">
-				<cvParam cvRef="MS" accession="MS:1000544" name="Conversion to mzML" />
-				<userParam name="warning" type="xsd:string" value="fictional processing method used to fulfill format requirements" />
-			</processingMethod>
-		</dataProcessing>
-		<dataProcessing id="dp_sp_33_bi_0">
-			<processingMethod order="0" softwareRef="so_default">
-				<cvParam cvRef="MS" accession="MS:1000544" name="Conversion to mzML" />
-				<userParam name="warning" type="xsd:string" value="fictional processing method used to fulfill format requirements" />
-			</processingMethod>
-		</dataProcessing>
-		<dataProcessing id="dp_sp_35_bi_0">
-			<processingMethod order="0" softwareRef="so_default">
-				<cvParam cvRef="MS" accession="MS:1000544" name="Conversion to mzML" />
-				<userParam name="warning" type="xsd:string" value="fictional processing method used to fulfill format requirements" />
-			</processingMethod>
-		</dataProcessing>
-		<dataProcessing id="dp_sp_37_bi_0">
-			<processingMethod order="0" softwareRef="so_default">
-				<cvParam cvRef="MS" accession="MS:1000544" name="Conversion to mzML" />
-				<userParam name="warning" type="xsd:string" value="fictional processing method used to fulfill format requirements" />
-			</processingMethod>
-		</dataProcessing>
-		<dataProcessing id="dp_sp_39_bi_0">
-			<processingMethod order="0" softwareRef="so_default">
-				<cvParam cvRef="MS" accession="MS:1000544" name="Conversion to mzML" />
-				<userParam name="warning" type="xsd:string" value="fictional processing method used to fulfill format requirements" />
-			</processingMethod>
-		</dataProcessing>
-		<dataProcessing id="dp_sp_41_bi_0">
-			<processingMethod order="0" softwareRef="so_default">
-				<cvParam cvRef="MS" accession="MS:1000544" name="Conversion to mzML" />
-				<userParam name="warning" type="xsd:string" value="fictional processing method used to fulfill format requirements" />
-			</processingMethod>
-		</dataProcessing>
-		<dataProcessing id="dp_sp_43_bi_0">
-			<processingMethod order="0" softwareRef="so_default">
-				<cvParam cvRef="MS" accession="MS:1000544" name="Conversion to mzML" />
-				<userParam name="warning" type="xsd:string" value="fictional processing method used to fulfill format requirements" />
-			</processingMethod>
-		</dataProcessing>
-		<dataProcessing id="dp_sp_45_bi_0">
-			<processingMethod order="0" softwareRef="so_default">
-				<cvParam cvRef="MS" accession="MS:1000544" name="Conversion to mzML" />
-				<userParam name="warning" type="xsd:string" value="fictional processing method used to fulfill format requirements" />
-			</processingMethod>
-		</dataProcessing>
-		<dataProcessing id="dp_sp_47_bi_0">
-			<processingMethod order="0" softwareRef="so_default">
-				<cvParam cvRef="MS" accession="MS:1000544" name="Conversion to mzML" />
-				<userParam name="warning" type="xsd:string" value="fictional processing method used to fulfill format requirements" />
-			</processingMethod>
-		</dataProcessing>
-		<dataProcessing id="dp_sp_49_bi_0">
-			<processingMethod order="0" softwareRef="so_default">
-				<cvParam cvRef="MS" accession="MS:1000544" name="Conversion to mzML" />
-				<userParam name="warning" type="xsd:string" value="fictional processing method used to fulfill format requirements" />
-			</processingMethod>
-		</dataProcessing>
-		<dataProcessing id="dp_sp_51_bi_0">
-			<processingMethod order="0" softwareRef="so_default">
-				<cvParam cvRef="MS" accession="MS:1000544" name="Conversion to mzML" />
-				<userParam name="warning" type="xsd:string" value="fictional processing method used to fulfill format requirements" />
-			</processingMethod>
-		</dataProcessing>
-		<dataProcessing id="dp_sp_53_bi_0">
-			<processingMethod order="0" softwareRef="so_default">
-				<cvParam cvRef="MS" accession="MS:1000544" name="Conversion to mzML" />
-				<userParam name="warning" type="xsd:string" value="fictional processing method used to fulfill format requirements" />
-			</processingMethod>
-		</dataProcessing>
-		<dataProcessing id="dp_sp_55_bi_0">
-			<processingMethod order="0" softwareRef="so_default">
-				<cvParam cvRef="MS" accession="MS:1000544" name="Conversion to mzML" />
-				<userParam name="warning" type="xsd:string" value="fictional processing method used to fulfill format requirements" />
-			</processingMethod>
-		</dataProcessing>
-		<dataProcessing id="dp_sp_57_bi_0">
-			<processingMethod order="0" softwareRef="so_default">
-				<cvParam cvRef="MS" accession="MS:1000544" name="Conversion to mzML" />
-				<userParam name="warning" type="xsd:string" value="fictional processing method used to fulfill format requirements" />
-			</processingMethod>
-		</dataProcessing>
-		<dataProcessing id="dp_sp_59_bi_0">
-			<processingMethod order="0" softwareRef="so_default">
-				<cvParam cvRef="MS" accession="MS:1000544" name="Conversion to mzML" />
-				<userParam name="warning" type="xsd:string" value="fictional processing method used to fulfill format requirements" />
-			</processingMethod>
-		</dataProcessing>
-		<dataProcessing id="dp_sp_61_bi_0">
-			<processingMethod order="0" softwareRef="so_default">
-				<cvParam cvRef="MS" accession="MS:1000544" name="Conversion to mzML" />
-				<userParam name="warning" type="xsd:string" value="fictional processing method used to fulfill format requirements" />
-			</processingMethod>
-		</dataProcessing>
-		<dataProcessing id="dp_sp_63_bi_0">
-			<processingMethod order="0" softwareRef="so_default">
-				<cvParam cvRef="MS" accession="MS:1000544" name="Conversion to mzML" />
-				<userParam name="warning" type="xsd:string" value="fictional processing method used to fulfill format requirements" />
-			</processingMethod>
-		</dataProcessing>
-		<dataProcessing id="dp_sp_65_bi_0">
-			<processingMethod order="0" softwareRef="so_default">
-				<cvParam cvRef="MS" accession="MS:1000544" name="Conversion to mzML" />
-				<userParam name="warning" type="xsd:string" value="fictional processing method used to fulfill format requirements" />
-			</processingMethod>
-		</dataProcessing>
-		<dataProcessing id="dp_sp_67_bi_0">
-			<processingMethod order="0" softwareRef="so_default">
-				<cvParam cvRef="MS" accession="MS:1000544" name="Conversion to mzML" />
-				<userParam name="warning" type="xsd:string" value="fictional processing method used to fulfill format requirements" />
-			</processingMethod>
-		</dataProcessing>
-		<dataProcessing id="dp_sp_69_bi_0">
-			<processingMethod order="0" softwareRef="so_default">
-				<cvParam cvRef="MS" accession="MS:1000544" name="Conversion to mzML" />
-				<userParam name="warning" type="xsd:string" value="fictional processing method used to fulfill format requirements" />
-			</processingMethod>
-		</dataProcessing>
-		<dataProcessing id="dp_sp_71_bi_0">
-			<processingMethod order="0" softwareRef="so_default">
-				<cvParam cvRef="MS" accession="MS:1000544" name="Conversion to mzML" />
-				<userParam name="warning" type="xsd:string" value="fictional processing method used to fulfill format requirements" />
-			</processingMethod>
-		</dataProcessing>
-		<dataProcessing id="dp_sp_73_bi_0">
-			<processingMethod order="0" softwareRef="so_default">
-				<cvParam cvRef="MS" accession="MS:1000544" name="Conversion to mzML" />
-				<userParam name="warning" type="xsd:string" value="fictional processing method used to fulfill format requirements" />
-			</processingMethod>
-		</dataProcessing>
-		<dataProcessing id="dp_sp_75_bi_0">
-			<processingMethod order="0" softwareRef="so_default">
-				<cvParam cvRef="MS" accession="MS:1000544" name="Conversion to mzML" />
-				<userParam name="warning" type="xsd:string" value="fictional processing method used to fulfill format requirements" />
-			</processingMethod>
-		</dataProcessing>
-		<dataProcessing id="dp_sp_77_bi_0">
-			<processingMethod order="0" softwareRef="so_default">
-				<cvParam cvRef="MS" accession="MS:1000544" name="Conversion to mzML" />
-				<userParam name="warning" type="xsd:string" value="fictional processing method used to fulfill format requirements" />
-			</processingMethod>
-		</dataProcessing>
-		<dataProcessing id="dp_sp_79_bi_0">
-			<processingMethod order="0" softwareRef="so_default">
-				<cvParam cvRef="MS" accession="MS:1000544" name="Conversion to mzML" />
-				<userParam name="warning" type="xsd:string" value="fictional processing method used to fulfill format requirements" />
-			</processingMethod>
-		</dataProcessing>
-		<dataProcessing id="dp_sp_81_bi_0">
-			<processingMethod order="0" softwareRef="so_default">
-				<cvParam cvRef="MS" accession="MS:1000544" name="Conversion to mzML" />
-				<userParam name="warning" type="xsd:string" value="fictional processing method used to fulfill format requirements" />
-			</processingMethod>
-		</dataProcessing>
-		<dataProcessing id="dp_sp_83_bi_0">
-			<processingMethod order="0" softwareRef="so_default">
-				<cvParam cvRef="MS" accession="MS:1000544" name="Conversion to mzML" />
-				<userParam name="warning" type="xsd:string" value="fictional processing method used to fulfill format requirements" />
-			</processingMethod>
-		</dataProcessing>
-		<dataProcessing id="dp_sp_85_bi_0">
-			<processingMethod order="0" softwareRef="so_default">
-				<cvParam cvRef="MS" accession="MS:1000544" name="Conversion to mzML" />
-				<userParam name="warning" type="xsd:string" value="fictional processing method used to fulfill format requirements" />
-			</processingMethod>
-		</dataProcessing>
-		<dataProcessing id="dp_sp_87_bi_0">
-			<processingMethod order="0" softwareRef="so_default">
-				<cvParam cvRef="MS" accession="MS:1000544" name="Conversion to mzML" />
-				<userParam name="warning" type="xsd:string" value="fictional processing method used to fulfill format requirements" />
-			</processingMethod>
-		</dataProcessing>
-		<dataProcessing id="dp_sp_89_bi_0">
-			<processingMethod order="0" softwareRef="so_default">
-				<cvParam cvRef="MS" accession="MS:1000544" name="Conversion to mzML" />
-				<userParam name="warning" type="xsd:string" value="fictional processing method used to fulfill format requirements" />
-			</processingMethod>
-		</dataProcessing>
-		<dataProcessing id="dp_sp_91_bi_0">
-			<processingMethod order="0" softwareRef="so_default">
-				<cvParam cvRef="MS" accession="MS:1000544" name="Conversion to mzML" />
-				<userParam name="warning" type="xsd:string" value="fictional processing method used to fulfill format requirements" />
-			</processingMethod>
-		</dataProcessing>
-		<dataProcessing id="dp_sp_93_bi_0">
-			<processingMethod order="0" softwareRef="so_default">
-				<cvParam cvRef="MS" accession="MS:1000544" name="Conversion to mzML" />
-				<userParam name="warning" type="xsd:string" value="fictional processing method used to fulfill format requirements" />
-			</processingMethod>
-		</dataProcessing>
-		<dataProcessing id="dp_sp_95_bi_0">
-			<processingMethod order="0" softwareRef="so_default">
-				<cvParam cvRef="MS" accession="MS:1000544" name="Conversion to mzML" />
-				<userParam name="warning" type="xsd:string" value="fictional processing method used to fulfill format requirements" />
-			</processingMethod>
-		</dataProcessing>
-		<dataProcessing id="dp_sp_97_bi_0">
-			<processingMethod order="0" softwareRef="so_default">
-				<cvParam cvRef="MS" accession="MS:1000544" name="Conversion to mzML" />
-				<userParam name="warning" type="xsd:string" value="fictional processing method used to fulfill format requirements" />
-			</processingMethod>
-		</dataProcessing>
-		<dataProcessing id="dp_sp_99_bi_0">
-			<processingMethod order="0" softwareRef="so_default">
-				<cvParam cvRef="MS" accession="MS:1000544" name="Conversion to mzML" />
-				<userParam name="warning" type="xsd:string" value="fictional processing method used to fulfill format requirements" />
-			</processingMethod>
-		</dataProcessing>
 	</dataProcessingList>
 	<run id="ru_0" defaultInstrumentConfigurationRef="ic_0" sampleRef="sa_0">
 		<spectrumList count="100" defaultDataProcessingRef="dp_sp_0">
@@ -4010,108 +3710,108 @@
 </mzML>
 <indexList count="1">
 	<index name="spectrum">
-		<offset idRef="spectrum=0">20509</offset>
-		<offset idRef="spectrum=1">22288</offset>
-		<offset idRef="spectrum=2">25937</offset>
-		<offset idRef="spectrum=3">27688</offset>
-		<offset idRef="spectrum=4">31630</offset>
-		<offset idRef="spectrum=5">33381</offset>
-		<offset idRef="spectrum=6">37411</offset>
-		<offset idRef="spectrum=7">39162</offset>
-		<offset idRef="spectrum=8">43220</offset>
-		<offset idRef="spectrum=9">44971</offset>
-		<offset idRef="spectrum=10">49049</offset>
-		<offset idRef="spectrum=11">50802</offset>
-		<offset idRef="spectrum=12">54902</offset>
-		<offset idRef="spectrum=13">56655</offset>
-		<offset idRef="spectrum=14">60755</offset>
-		<offset idRef="spectrum=15">62508</offset>
-		<offset idRef="spectrum=16">66624</offset>
-		<offset idRef="spectrum=17">68377</offset>
-		<offset idRef="spectrum=18">72473</offset>
-		<offset idRef="spectrum=19">74226</offset>
-		<offset idRef="spectrum=20">78338</offset>
-		<offset idRef="spectrum=21">80092</offset>
-		<offset idRef="spectrum=22">84193</offset>
-		<offset idRef="spectrum=23">85947</offset>
-		<offset idRef="spectrum=24">90072</offset>
-		<offset idRef="spectrum=25">91826</offset>
-		<offset idRef="spectrum=26">95951</offset>
-		<offset idRef="spectrum=27">97705</offset>
-		<offset idRef="spectrum=28">101842</offset>
-		<offset idRef="spectrum=29">103596</offset>
-		<offset idRef="spectrum=30">107741</offset>
-		<offset idRef="spectrum=31">109495</offset>
-		<offset idRef="spectrum=32">113652</offset>
-		<offset idRef="spectrum=33">115406</offset>
-		<offset idRef="spectrum=34">119531</offset>
-		<offset idRef="spectrum=35">121285</offset>
-		<offset idRef="spectrum=36">125458</offset>
-		<offset idRef="spectrum=37">127212</offset>
-		<offset idRef="spectrum=38">131377</offset>
-		<offset idRef="spectrum=39">133131</offset>
-		<offset idRef="spectrum=40">137316</offset>
-		<offset idRef="spectrum=41">139070</offset>
-		<offset idRef="spectrum=42">143211</offset>
-		<offset idRef="spectrum=43">144965</offset>
-		<offset idRef="spectrum=44">149154</offset>
-		<offset idRef="spectrum=45">150908</offset>
-		<offset idRef="spectrum=46">155097</offset>
-		<offset idRef="spectrum=47">156851</offset>
-		<offset idRef="spectrum=48">161032</offset>
-		<offset idRef="spectrum=49">162786</offset>
-		<offset idRef="spectrum=50">166959</offset>
-		<offset idRef="spectrum=51">168713</offset>
-		<offset idRef="spectrum=52">172918</offset>
-		<offset idRef="spectrum=53">174672</offset>
-		<offset idRef="spectrum=54">178845</offset>
-		<offset idRef="spectrum=55">180599</offset>
-		<offset idRef="spectrum=56">184780</offset>
-		<offset idRef="spectrum=57">186534</offset>
-		<offset idRef="spectrum=58">190723</offset>
-		<offset idRef="spectrum=59">192477</offset>
-		<offset idRef="spectrum=60">196666</offset>
-		<offset idRef="spectrum=61">198420</offset>
-		<offset idRef="spectrum=62">202561</offset>
-		<offset idRef="spectrum=63">204315</offset>
-		<offset idRef="spectrum=64">208500</offset>
-		<offset idRef="spectrum=65">210254</offset>
-		<offset idRef="spectrum=66">214419</offset>
-		<offset idRef="spectrum=67">216173</offset>
-		<offset idRef="spectrum=68">220346</offset>
-		<offset idRef="spectrum=69">222100</offset>
-		<offset idRef="spectrum=70">226225</offset>
-		<offset idRef="spectrum=71">227979</offset>
-		<offset idRef="spectrum=72">232136</offset>
-		<offset idRef="spectrum=73">233890</offset>
-		<offset idRef="spectrum=74">238035</offset>
-		<offset idRef="spectrum=75">239789</offset>
-		<offset idRef="spectrum=76">243926</offset>
-		<offset idRef="spectrum=77">245680</offset>
-		<offset idRef="spectrum=78">249805</offset>
-		<offset idRef="spectrum=79">251559</offset>
-		<offset idRef="spectrum=80">255684</offset>
-		<offset idRef="spectrum=81">257438</offset>
-		<offset idRef="spectrum=82">261539</offset>
-		<offset idRef="spectrum=83">263293</offset>
-		<offset idRef="spectrum=84">267406</offset>
-		<offset idRef="spectrum=85">269160</offset>
-		<offset idRef="spectrum=86">273257</offset>
-		<offset idRef="spectrum=87">275011</offset>
-		<offset idRef="spectrum=88">279128</offset>
-		<offset idRef="spectrum=89">280882</offset>
-		<offset idRef="spectrum=90">284983</offset>
-		<offset idRef="spectrum=91">286737</offset>
-		<offset idRef="spectrum=92">290838</offset>
-		<offset idRef="spectrum=93">292592</offset>
-		<offset idRef="spectrum=94">296673</offset>
-		<offset idRef="spectrum=95">298427</offset>
-		<offset idRef="spectrum=96">302488</offset>
-		<offset idRef="spectrum=97">304242</offset>
-		<offset idRef="spectrum=98">308275</offset>
-		<offset idRef="spectrum=99">310029</offset>
+		<offset idRef="spectrum=0">3664</offset>
+		<offset idRef="spectrum=1">5443</offset>
+		<offset idRef="spectrum=2">9092</offset>
+		<offset idRef="spectrum=3">10843</offset>
+		<offset idRef="spectrum=4">14785</offset>
+		<offset idRef="spectrum=5">16536</offset>
+		<offset idRef="spectrum=6">20566</offset>
+		<offset idRef="spectrum=7">22317</offset>
+		<offset idRef="spectrum=8">26375</offset>
+		<offset idRef="spectrum=9">28126</offset>
+		<offset idRef="spectrum=10">32204</offset>
+		<offset idRef="spectrum=11">33957</offset>
+		<offset idRef="spectrum=12">38057</offset>
+		<offset idRef="spectrum=13">39810</offset>
+		<offset idRef="spectrum=14">43910</offset>
+		<offset idRef="spectrum=15">45663</offset>
+		<offset idRef="spectrum=16">49779</offset>
+		<offset idRef="spectrum=17">51532</offset>
+		<offset idRef="spectrum=18">55628</offset>
+		<offset idRef="spectrum=19">57381</offset>
+		<offset idRef="spectrum=20">61493</offset>
+		<offset idRef="spectrum=21">63247</offset>
+		<offset idRef="spectrum=22">67348</offset>
+		<offset idRef="spectrum=23">69102</offset>
+		<offset idRef="spectrum=24">73227</offset>
+		<offset idRef="spectrum=25">74981</offset>
+		<offset idRef="spectrum=26">79106</offset>
+		<offset idRef="spectrum=27">80860</offset>
+		<offset idRef="spectrum=28">84997</offset>
+		<offset idRef="spectrum=29">86751</offset>
+		<offset idRef="spectrum=30">90896</offset>
+		<offset idRef="spectrum=31">92650</offset>
+		<offset idRef="spectrum=32">96807</offset>
+		<offset idRef="spectrum=33">98561</offset>
+		<offset idRef="spectrum=34">102686</offset>
+		<offset idRef="spectrum=35">104440</offset>
+		<offset idRef="spectrum=36">108613</offset>
+		<offset idRef="spectrum=37">110367</offset>
+		<offset idRef="spectrum=38">114532</offset>
+		<offset idRef="spectrum=39">116286</offset>
+		<offset idRef="spectrum=40">120471</offset>
+		<offset idRef="spectrum=41">122225</offset>
+		<offset idRef="spectrum=42">126366</offset>
+		<offset idRef="spectrum=43">128120</offset>
+		<offset idRef="spectrum=44">132309</offset>
+		<offset idRef="spectrum=45">134063</offset>
+		<offset idRef="spectrum=46">138252</offset>
+		<offset idRef="spectrum=47">140006</offset>
+		<offset idRef="spectrum=48">144187</offset>
+		<offset idRef="spectrum=49">145941</offset>
+		<offset idRef="spectrum=50">150114</offset>
+		<offset idRef="spectrum=51">151868</offset>
+		<offset idRef="spectrum=52">156073</offset>
+		<offset idRef="spectrum=53">157827</offset>
+		<offset idRef="spectrum=54">162000</offset>
+		<offset idRef="spectrum=55">163754</offset>
+		<offset idRef="spectrum=56">167935</offset>
+		<offset idRef="spectrum=57">169689</offset>
+		<offset idRef="spectrum=58">173878</offset>
+		<offset idRef="spectrum=59">175632</offset>
+		<offset idRef="spectrum=60">179821</offset>
+		<offset idRef="spectrum=61">181575</offset>
+		<offset idRef="spectrum=62">185716</offset>
+		<offset idRef="spectrum=63">187470</offset>
+		<offset idRef="spectrum=64">191655</offset>
+		<offset idRef="spectrum=65">193409</offset>
+		<offset idRef="spectrum=66">197574</offset>
+		<offset idRef="spectrum=67">199328</offset>
+		<offset idRef="spectrum=68">203501</offset>
+		<offset idRef="spectrum=69">205255</offset>
+		<offset idRef="spectrum=70">209380</offset>
+		<offset idRef="spectrum=71">211134</offset>
+		<offset idRef="spectrum=72">215291</offset>
+		<offset idRef="spectrum=73">217045</offset>
+		<offset idRef="spectrum=74">221190</offset>
+		<offset idRef="spectrum=75">222944</offset>
+		<offset idRef="spectrum=76">227081</offset>
+		<offset idRef="spectrum=77">228835</offset>
+		<offset idRef="spectrum=78">232960</offset>
+		<offset idRef="spectrum=79">234714</offset>
+		<offset idRef="spectrum=80">238839</offset>
+		<offset idRef="spectrum=81">240593</offset>
+		<offset idRef="spectrum=82">244694</offset>
+		<offset idRef="spectrum=83">246448</offset>
+		<offset idRef="spectrum=84">250561</offset>
+		<offset idRef="spectrum=85">252315</offset>
+		<offset idRef="spectrum=86">256412</offset>
+		<offset idRef="spectrum=87">258166</offset>
+		<offset idRef="spectrum=88">262283</offset>
+		<offset idRef="spectrum=89">264037</offset>
+		<offset idRef="spectrum=90">268138</offset>
+		<offset idRef="spectrum=91">269892</offset>
+		<offset idRef="spectrum=92">273993</offset>
+		<offset idRef="spectrum=93">275747</offset>
+		<offset idRef="spectrum=94">279828</offset>
+		<offset idRef="spectrum=95">281582</offset>
+		<offset idRef="spectrum=96">285643</offset>
+		<offset idRef="spectrum=97">287397</offset>
+		<offset idRef="spectrum=98">291430</offset>
+		<offset idRef="spectrum=99">293184</offset>
 	</index>
 </indexList>
-<indexListOffset>314004</indexListOffset>
+<indexListOffset>297159</indexListOffset>
 <fileChecksum>0</fileChecksum>
 </indexedmzML>

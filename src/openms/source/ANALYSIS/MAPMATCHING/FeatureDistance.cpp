@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -35,6 +35,7 @@
 #include <OpenMS/ANALYSIS/MAPMATCHING/FeatureDistance.h>
 #include <OpenMS/MATH/MISC/MathFunctions.h>
 #include <OpenMS/CHEMISTRY/EmpiricalFormula.h>
+#include <OpenMS/CONCEPT/Constants.h>
 
 using namespace std;
 
@@ -89,9 +90,7 @@ namespace OpenMS
     defaultsToParam_();
   }
 
-  FeatureDistance::~FeatureDistance()
-  {
-  }
+  FeatureDistance::~FeatureDistance() = default;
 
   FeatureDistance & FeatureDistance::operator=(const FeatureDistance & other)
   {
@@ -165,9 +164,9 @@ namespace OpenMS
 
     if (!ignore_adduct_)
     {
-      if (left.metaValueExists("dc_charge_adducts") && right.metaValueExists("dc_charge_adducts"))
+      if (left.metaValueExists(Constants::UserParam::DC_CHARGE_ADDUCTS) && right.metaValueExists(Constants::UserParam::DC_CHARGE_ADDUCTS))
       {
-        if (EmpiricalFormula(left.getMetaValue("dc_charge_adducts")) != EmpiricalFormula(right.getMetaValue("dc_charge_adducts")))
+        if (EmpiricalFormula(left.getMetaValue(Constants::UserParam::DC_CHARGE_ADDUCTS)) != EmpiricalFormula(right.getMetaValue(Constants::UserParam::DC_CHARGE_ADDUCTS)))
         {
           return make_pair(false, infinity);
         }

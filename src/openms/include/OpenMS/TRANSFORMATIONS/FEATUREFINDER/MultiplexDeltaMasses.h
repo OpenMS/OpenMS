@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -82,7 +82,7 @@ namespace OpenMS
       DeltaMass(double dm, LabelSet ls);
       
       // delta mass with a label set containing a single label
-      DeltaMass(double dm, String l);
+      DeltaMass(double dm, const String& l);
     };
 
     /**

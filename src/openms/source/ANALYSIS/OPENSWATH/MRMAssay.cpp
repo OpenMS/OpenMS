@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -39,18 +39,15 @@
 #include <boost/lexical_cast.hpp>
 #include <regex>
 #include <unordered_set>
+#include <map>
 
 using namespace std;
 
 namespace OpenMS
 {
-  MRMAssay::MRMAssay()
-  {
-  }
+  MRMAssay::MRMAssay() = default;
 
-  MRMAssay::~MRMAssay()
-  {
-  }
+  MRMAssay::~MRMAssay() = default;
 
   std::vector<std::string> MRMAssay::getMatchingPeptidoforms_(const double fragment_ion,
                                                               const FragmentSeqMap& ions,
@@ -663,7 +660,7 @@ namespace OpenMS
     for (const auto & decoy_pep_it : DecoyPeptideMap)
     {
       setProgress(progress++);
-      TargetedExperiment::Peptide target_peptide = exp.getPeptideByRef(decoy_pep_it.first);
+      const TargetedExperiment::Peptide& target_peptide = exp.getPeptideByRef(decoy_pep_it.first);
       int precursor_charge = 1;
       if (target_peptide.hasCharge()) 
       {
@@ -839,7 +836,7 @@ namespace OpenMS
       setProgress(++progress);
       ReactionMonitoringTransition tr = exp.getTransitions()[i];
 
-      const TargetedExperiment::Peptide target_peptide = exp.getPeptideByRef(tr.getPeptideRef());
+      const TargetedExperiment::Peptide& target_peptide = exp.getPeptideByRef(tr.getPeptideRef());
       OpenMS::AASequence target_peptide_sequence = TargetedExperimentHelper::getAASequence(target_peptide);
 
       // Check annotation for unannotated interpretations
@@ -889,7 +886,7 @@ namespace OpenMS
     std::unordered_set<String> peptide_ids;
     std::unordered_set<String> ProteinList;
 
-    Map<String, TransitionVectorType> TransitionsMap;
+    std::map<String, TransitionVectorType> TransitionsMap;
 
     // Generate a map of peptides to transitions for easy access
     for (Size i = 0; i < exp.getTransitions().size(); ++i)
@@ -906,7 +903,7 @@ namespace OpenMS
 
     Size progress = 0;
     startProgress(0, TransitionsMap.size() + exp.getPeptides().size() + exp.getProteins().size(), "Select detecting transitions");
-    for (Map<String, TransitionVectorType>::iterator m = TransitionsMap.begin();
+    for (std::map<String, TransitionVectorType>::iterator m = TransitionsMap.begin();
          m != TransitionsMap.end(); ++m)
     {
       setProgress(++progress);
@@ -1055,7 +1052,7 @@ namespace OpenMS
     std::vector<String> compound_ids;
     TransitionVectorType transitions;
 
-    Map<String, TransitionVectorType> TransitionsMap;
+    std::map<String, TransitionVectorType> TransitionsMap;
 
     // Generate a map of compounds to transitions for easy access
     for (Size i = 0; i < exp.getTransitions().size(); ++i)
@@ -1070,7 +1067,7 @@ namespace OpenMS
       TransitionsMap[tr.getCompoundRef()].push_back(tr);
     }
 
-    for (Map<String, TransitionVectorType>::iterator m = TransitionsMap.begin();
+    for (std::map<String, TransitionVectorType>::iterator m = TransitionsMap.begin();
          m != TransitionsMap.end(); ++m)
     {
         // Ensure that all precursors have the minimum number of transitions or are a decoy transitions

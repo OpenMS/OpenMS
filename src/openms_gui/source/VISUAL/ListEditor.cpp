@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -46,6 +46,7 @@
 #include <QtWidgets/QDialogButtonBox>
 #include <QtWidgets/QFileDialog>
 
+#include <utility>
 #include <vector>
 
 using namespace std;
@@ -264,12 +265,12 @@ namespace OpenMS
 
     void ListEditorDelegate::setTypeName(QString name)
     {
-      typeName_ = name;
+      typeName_ = std::move(name);
     }
 
     void ListEditorDelegate::setFileName(QString name)
     {
-      file_name_ = name;
+      file_name_ = std::move(name);
     }
 
     //////////////////////////////////////////////////////////////
@@ -331,7 +332,7 @@ namespace OpenMS
       item->setTextAlignment(Qt::AlignLeft | Qt::AlignVCenter);
       item->setFlags(Qt::ItemIsSelectable | Qt::ItemIsEnabled | Qt::ItemIsEditable);
       addItem(item);
-      setItemSelected(item, true);
+      item->setSelected(true);
       setCurrentRow(row(item));
       itemActivated(item);
       edit(currentIndex());
@@ -347,7 +348,7 @@ namespace OpenMS
   ////////////////////////////////////////////////////////////
   //ListEditor
   ////////////////////////////////////////////////////////////
-  ListEditor::ListEditor(QWidget * parent, QString title) :
+  ListEditor::ListEditor(QWidget * parent, const QString& title) :
     QDialog(parent)
   {
     listTable_ = new Internal::ListTable(this);
@@ -398,7 +399,7 @@ namespace OpenMS
 
   void ListEditor::setTypeName(QString name)
   {
-    listDelegate_->setTypeName(name);
+    listDelegate_->setTypeName(std::move(name));
   }
 
 } //namespace OpenMS

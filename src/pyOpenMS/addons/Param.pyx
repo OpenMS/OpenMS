@@ -1,6 +1,15 @@
 # two empty lines are important !
 
 
+    def initPluginParam(self, name, version):
+        self.addSection(name, "Main section for Plugin '" + name + "'")
+        self.setValue(name + ":version", version, "Version of Plugin '" + name + "'")
+        self.addSection(name + ":1", "Instance '1' section for Plugin '" + name + "'")
+
+        self.setValue(name + ":1:in", "", "The input file", [b"required", b"input file"])
+        self.setValue(name + ":1:out", "", "The output file", [b"required", b"output file"])
+
+
     def asDict(self):
         return dict(self.items())
 

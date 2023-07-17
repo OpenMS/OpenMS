@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -405,8 +405,8 @@ namespace OpenMS
 
           cmpinfo.native_ids.push_back(native_id);
           cmpinfo.m_ids.push_back(m_id);
-          cmpinfo.scan_indices.push_back(ind);
-          cmpinfo.specrefs.push_back(String("ms_run[1]:" + native_id));
+          cmpinfo.scan_indices.emplace_back(ind);
+          cmpinfo.specrefs.emplace_back("ms_run[1]:" + native_id);
 
           // single spectrum peaks
           for (Size i = 0; i < current_ms2.size(); ++i)
@@ -619,8 +619,8 @@ namespace OpenMS
         else
         {
           // initialization with UNKNOWN in case no feature information was available
-          v_description.push_back("UNKNOWN");
-          v_sumformula.push_back("UNKNOWN");
+          v_description.emplace_back("UNKNOWN");
+          v_sumformula.emplace_back("UNKNOWN");
         }
 
         bool writecompound = true;

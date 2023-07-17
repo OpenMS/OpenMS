@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -49,8 +49,7 @@ namespace OpenMS
   {}
 
 
-  SpectrumLookup::~SpectrumLookup()
-  {}
+  SpectrumLookup::~SpectrumLookup() = default;
 
 
   bool SpectrumLookup::empty() const
@@ -350,7 +349,14 @@ namespace OpenMS
         try
         {
           String value = String(matches[0]);
-          return value.toInt();
+          if (native_id_type_accession == "MS:1000774")
+          {
+            return value.toInt() + 1; // if the native ID is index=.., the scan number is usually considered index+1 (especially for pepXML)
+          }
+          else
+          {
+            return value.toInt();
+          }
         }
         catch (Exception::ConversionError&)
         {

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -49,6 +49,7 @@
 #include <OpenMS/VISUAL/PlotWidget.h>
 #include <OpenMS/VISUAL/TOPPViewMenu.h>
 #include <OpenMS/VISUAL/TVToolDiscovery.h>
+#include <OpenMS/VISUAL/DIALOGS/TheoreticalSpectrumGenerationDialog.h>
 
 //STL
 #include <map>
@@ -59,6 +60,7 @@
 #include <QtWidgets/QActionGroup>
 #include <QtCore/QStringList>
 #include <QtCore/QProcess>
+#include <QElapsedTimer>
 
 class QAction;
 class QComboBox;
@@ -166,8 +168,14 @@ public:
       FORCE_SCAN
     };
 
+    enum class VERBOSITY
+    {
+      DEFAULT,
+      VERBOSE
+    };    
+
     ///Constructor
-    explicit TOPPViewBase(TOOL_SCAN scan_mode = TOOL_SCAN::SCAN_IF_NEWER_VERSION, QWidget* parent = nullptr);
+    explicit TOPPViewBase(TOOL_SCAN scan_mode = TOOL_SCAN::SCAN_IF_NEWER_VERSION, VERBOSITY verbosity = VERBOSITY::DEFAULT, QWidget* parent = nullptr);
     ///Destructor
     ~TOPPViewBase() override;
 
@@ -205,16 +213,17 @@ public:
       @param data_type Type of the data
       @param show_as_1d Force dataset to be opened in 1D mode (even if it contains several spectra)
       @param show_options If the options dialog should be shown (otherwise the defaults are used)
+      @param as_new_window Open the layer in a new window within TOPPView
       @param filename source file name (if the data came from a file)
       @param caption Sets the layer name and window caption of the data. If unset the file name is used. If set, the file is not monitored for changes.
       @param window_id in which window the file is opened if opened as a new layer (0 or default equals current
       @param spectrum_id determines the spectrum to show in 1D view.
     */
-    void addData(FeatureMapSharedPtrType feature_map,
-                 ConsensusMapSharedPtrType consensus_map,
+    void addData(const FeatureMapSharedPtrType& feature_map,
+                 const ConsensusMapSharedPtrType& consensus_map,
                  std::vector<PeptideIdentification>& peptides,
-                 ExperimentSharedPtrType peak_map,
-                 ODExperimentSharedPtrType on_disc_peak_map,
+                 const ExperimentSharedPtrType& peak_map,
+                 const ODExperimentSharedPtrType& on_disc_peak_map,
                  LayerDataBase::DataType data_type,
                  bool show_as_1d,
                  bool show_options,
@@ -269,7 +278,7 @@ public:
     PlotCanvas* getActiveCanvas() const;
 
     /// Opens the provided spectrum widget in a new window
-    void showPlotWidgetInWindow(PlotWidget* sw, const String& caption);
+    void showPlotWidgetInWindow(PlotWidget* sw);
 
 public slots:
     /// changes the current path according to the currently active window/layer
@@ -286,8 +295,8 @@ public slots:
     void editMetadata();
     /// gets called if a layer got activated
     void layerActivated();
-    /// gets called when a layer changes in zoom
-    void layerZoomChanged() const;
+    /// gets called when a layer changes in zoom; will apply the same zoom to other windows (if linked)
+    void zoomOtherWindows() const;
     /// link the zoom of individual windows
     void linkZoom();
     /// gets called if a layer got deactivated
@@ -316,11 +325,9 @@ public slots:
       If @p time is 0 the status message is displayed until showStatusMessage is called with an empty message or a new message.
       Otherwise the message is displayed for @p time ms.
     */
-    void showStatusMessage(std::string msg, OpenMS::UInt time);
-    /// shows m/z and rt in the status bar
-    void showCursorStatus(double mz, double rt);
-    /// shows m/z and rt in the status bar (inverting RT and m/z)
-    void showCursorStatusInvert(double mz, double rt);
+    void showStatusMessage(const std::string& msg, OpenMS::UInt time);
+    /// shows X/Y axis mouse values in the status bar
+    void showCursorStatus(const String& x, const String& y);
     /// Apply TOPP tool
     void showTOPPDialog();
     /// Annotates current layer with ID data from AccurateMassSearch
@@ -338,9 +345,9 @@ public slots:
     /// Shows the current peak data of the active layer in 3D
     void showCurrentPeaksAs3D();
     /// Shows the current peak data of the active layer as ion mobility
-    void showCurrentPeaksAsIonMobility();
+    void showCurrentPeaksAsIonMobility(const MSSpectrum& spec);
     /// Shows the current peak data of the active layer as DIA data
-    void showCurrentPeaksAsDIA();
+    void showCurrentPeaksAsDIA(const Precursor& pc, const MSExperiment& exp);
     /// Saves the whole current layer data
     void saveLayerAll() const;
     /// Saves the visible layer data
@@ -441,9 +448,12 @@ protected:
     LogWindow* log_;
 
     /// Determines TVToolDiscovery scans for tool/utils and generates new params.
-    TOOL_SCAN scan_mode_;
+    TOOL_SCAN scan_mode_;    
     /// Scans for tools/utils and generates a param for each.
     TVToolDiscovery tool_scanner_;
+
+    /// Verbosity of TV 
+    VERBOSITY verbosity_;
 
     /** @name Toolbar
     */
@@ -492,10 +502,10 @@ protected:
     //@{
     /// Label for messages in the status bar
     QLabel* message_label_;
-    /// m/z label for messages in the status bar
-    QLabel* mz_label_;
-    /// RT label for messages in the status bar
-    QLabel* rt_label_;
+    /// x-axis label for messages in the status bar
+    QLabel* x_label_;
+    /// y-axis label for messages in the status bar
+    QLabel* y_label_;
     //@}
 
     /// @name Recent files
@@ -522,7 +532,7 @@ protected:
       UInt window_id;
       Size spectrum_id;
       QProcess* process = nullptr;
-      QTime timer;
+      QElapsedTimer timer;
       bool visible_area_only;
     } topp_;
     //@}
@@ -544,12 +554,12 @@ protected:
     /// Depending on the preferences this is static or changes with the current window/layer.
     String current_path_;
 
-    /// Adds tool/util params to param_ object by querying them from TVToolDiscovery
-    void addToolParamsToIni_();
-
 private:
     /// Suffix appended to caption of tabs when layer is shown in 3D
     static const String CAPTION_3D_SUFFIX_;
+
+    /// This dialog is a member so that its settings can be perserved upon closing.
+    TheoreticalSpectrumGenerationDialog spec_gen_dialog_;
   }; //class
 
 } //namespace

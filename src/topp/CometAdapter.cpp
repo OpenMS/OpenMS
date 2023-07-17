@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -49,6 +49,8 @@
 
 #include <fstream>
 
+#include <QStringList>
+
 using namespace OpenMS;
 using namespace std;
 
@@ -64,9 +66,9 @@ using namespace std;
 <CENTER>
     <table>
         <tr>
-            <td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. predecessor tools </td>
-            <td VALIGN="middle" ROWSPAN=2> \f$ \longrightarrow \f$ CometAdapter \f$ \longrightarrow \f$</td>
-            <td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. successor tools </td>
+            <th ALIGN = "center"> pot. predecessor tools </td>
+            <td VALIGN="middle" ROWSPAN=2> &rarr; CometAdapter &rarr;</td>
+            <th ALIGN = "center"> pot. successor tools </td>
         </tr>
         <tr>
             <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> any signal-/preprocessing tool @n (in mzML format)</td>
@@ -480,6 +482,7 @@ protected:
     os << "output_sqtfile = " << 0 << "\n";                      // 0=no, 1=yes  write sqt file
     os << "output_txtfile = " << 0 << "\n";                     // 0=no, 1=yes  write tab-delimited txt file
     os << "output_pepxmlfile = " << 1 << "\n";                   // 0=no, 1=yes  write pep.xml file
+    os << "export_additional_pepxml_scores = " << 1 << "\n";     // Hidden parameter of comet that adds additional comet scores to the pep.xml
 
     os << "output_percolatorfile = " << !getStringOption_("pin_out").empty() << "\n";              // 0=no, 1=yes  write Percolator tab-delimited input file
     os << "print_expect_score = " << 1 << "\n";                  // 0=no, 1=yes to replace Sp with expect in out & sqt
@@ -523,7 +526,6 @@ protected:
     os << "peptide_length_range = " << getIntOption_("min_peptide_length") << " " << getIntOption_("max_peptide_length") << "\n";                       // minimum and maximum peptide length to analyze (default 5 63; max length 63)
     os << "spectrum_batch_size = " << getIntOption_("spectrum_batch_size") << "\n";                 // max. // of spectra to search at a time; 0 to search the entire scan range in one loop
     os << "max_duplicate_proteins = 20\n";                       // maximum number of protein names to report for each peptide identification; -1 reports all duplicates
-    os << "decoy_prefix = " << "--decoysearch-not-used--" << "\n";                 // decoy entries are denoted by this string which is pre-pended to each protein accession
     os << "equal_I_and_L = 1\n";
     os << "output_suffix = " << "" << "\n";                      // add a suffix to output base names i.e. suffix "-C" generates base-C.pep.xml from base.mzXML input
     os << "mass_offsets = " << ListUtils::concatenate(getDoubleList_("mass_offsets"), " ") << "\n"; // one or more mass offsets to search (values subtracted from deconvoluted precursor mass)
@@ -558,7 +560,7 @@ protected:
     const vector<const ResidueModification*> fixed_modifications = getModifications_(fixed_modifications_names);
 
     // merge duplicates, targeting the same AA
-    Map<String, double> mods;
+    std::map<String, double> mods;
     // Comet sets Carbamidometyl (C) as modification as default even if not specified.
     // Therefore there is the need to set it to 0, unless its set as flag (see loop below)
     mods["add_C_cysteine"] = 0;
@@ -603,6 +605,7 @@ protected:
     os << "8.  Glu_C                  1      DE          P" << "\n";
     os << "9.  PepsinA                1      FL          P" << "\n";
     os << "10. Chymotrypsin           1      FWYL        P" << "\n";
+    os << "11. No_cut                 1      @           @" << "\n";
 
     return ExitCodes::EXECUTION_OK;
   }
@@ -676,7 +679,7 @@ protected:
                       << "We will add an index by writing a temporary file. If you run this analysis more often, consider indexing your mzML in advance!" << std::endl;
       // Low memory conversion
       // write mzML with index again
-      auto tmp_file = File::getTemporaryFile();
+      auto tmp_file = File::getTemporaryFile() + ".mzML";
       PlainMSDataWritingConsumer consumer(tmp_file);
       consumer.getOptions().addMSLevel(ms_level); // only load msLevel 2
       bool skip_full_count = true;

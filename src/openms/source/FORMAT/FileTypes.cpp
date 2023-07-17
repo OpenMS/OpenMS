@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -38,11 +38,11 @@
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 
 #include <array>
+#include <utility>
 
+#include <cassert>
 namespace OpenMS
 {
-
-  static FileTypes::FileTypeList test_type_list({ FileTypes::MZML });
   /// connect the type to some other information
   /// We could also use paired arrays, but this way, its less likely to have mismatches if a new type is added
   struct TypeNameBinding
@@ -50,9 +50,12 @@ namespace OpenMS
     FileTypes::Type type;
     String name;
     String description;
-    TypeNameBinding(FileTypes::Type type, String name, String description)
-      : type(type), name(name), description(description)
+    TypeNameBinding(FileTypes::Type ptype, String pname, String pdescription)
+      : type(ptype), name(std::move(pname)), description(std::move(pdescription))
     {
+      // Check that there are no double-spaces in the description, since Qt will replace "  " with " " in filters supplied to QFileDialog::getSaveFileName.
+      // And if you later ask for the selected filter, you will get a different string back.
+      assert(description.find("  ") == std::string::npos);
     }
   };
 
@@ -65,7 +68,7 @@ namespace OpenMS
     TypeNameBinding(FileTypes::MZDATA, "mzData", "mzData raw data file"),
     TypeNameBinding(FileTypes::MZXML, "mzXML", "mzXML raw data file"),
     TypeNameBinding(FileTypes::FEATUREXML, "featureXML", "OpenMS feature map"),
-    TypeNameBinding(FileTypes::IDXML, "idXML", "OpenMS peptide identification  file"),
+    TypeNameBinding(FileTypes::IDXML, "idXML", "OpenMS peptide identification file"),
     TypeNameBinding(FileTypes::CONSENSUSXML, "consensusXML", "OpenMS consensus feature map"),
     TypeNameBinding(FileTypes::MGF, "mgf", "mascot generic format file"),
     TypeNameBinding(FileTypes::INI, "ini", "OpenMS parameter file"),
@@ -122,13 +125,12 @@ namespace OpenMS
     TypeNameBinding(FileTypes::XML, "xml", "any XML file")  // make sure this comes last, since the name is a suffix of other formats and should only be matched last
   };
 
-  FileTypes::FileTypeList::FileTypeList(const std::vector<Type>& types)
+  FileTypeList::FileTypeList(const std::vector<FileTypes::Type>& types)
     : type_list_(types)
   {
   }
 
-  /// check if @p type is contained in this array
-  bool FileTypes::FileTypeList::contains(const Type& type) const
+  bool FileTypeList::contains(const FileTypes::Type& type) const
   {
     for (const auto& t : type_list_)
     {
@@ -140,41 +142,55 @@ namespace OpenMS
     return false;
   }
 
-  /// converts the array into a Qt-compatible filter for selecting files in a user dialog.
-  /// e.g. "all readable files (*.mzML *.mzXML);;". See Filter enum.
-  /// @param style Create a combined filter, or single filters, or both
-  /// @param add_all_filter Add 'all files (*)' as a single filter at the end?
-  String FileTypes::FileTypeList::toFileDialogFilter(const Filter style, bool add_all_filter) const
+  String FileTypeList::toFileDialogFilter(const FilterLayout style, bool add_all_filter) const
   {
-    String out;
-    if (style == Filter::COMPACT || style == Filter::BOTH)
+    return ListUtils::concatenate(asFilterElements_(style, add_all_filter).items, ";;");
+  }
+
+  FileTypes::Type FileTypeList::fromFileDialogFilter(const String& filter, const FileTypes::Type fallback) const
+  {
+    auto candidates = asFilterElements_(FilterLayout::BOTH, true); // may add more filters than needed, but that's fine
+
+    auto where = std::find(candidates.items.begin(), candidates.items.end(), filter);
+    if (where == candidates.items.end())
+    {
+      throw Exception::ElementNotFound(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filter);
+    }
+    const FileTypes::Type r = candidates.types[where - candidates.items.begin()];
+    return r == FileTypes::Type::UNKNOWN ? fallback : r;
+  }
+
+  
+  FileTypeList::FilterElements_ FileTypeList::asFilterElements_(const FilterLayout style, bool add_all_filter) const
+  {
+    FilterElements_ result;
+
+    if (style == FilterLayout::COMPACT || style == FilterLayout::BOTH)
     {
       StringList items;
       for (const auto& t : type_list_)
       {
         items.push_back("*." + FileTypes::typeToName(t));
       }
-      out += "all readable files (" + ListUtils::concatenate(items, " ") + ");;";
-    }
-    if (style == Filter::ONE_BY_ONE || style == Filter::BOTH)
+      result.items.emplace_back("all readable files (" + ListUtils::concatenate(items, " ") + ")");
+      result.types.push_back(FileTypes::Type::UNKNOWN); // cannot associate a single type to a collection
+    }                                     
+    if (style == FilterLayout::ONE_BY_ONE || style == FilterLayout::BOTH)
     {
       StringList items;
       for (const auto& t : type_list_)
       {
-        items.push_back(FileTypes::typeToDescription(t) + " (*." + FileTypes::typeToName(t) + ");;");
+        result.items.push_back(FileTypes::typeToDescription(t) + " (*." + FileTypes::typeToName(t) + ")");
+        result.types.push_back(t);
       }
-      out += ListUtils::concatenate(items, "");
     }
     if (add_all_filter)
     {
-      out += "all files (*);;";
+      result.items.emplace_back("all files (*)");
+      result.types.push_back(FileTypes::Type::UNKNOWN); // cannot associate a single type to a collection
     }
-    // remove the last ";;", since this will be interpreted as ' (*)' by Qt
-    out = out.chop(2);
-
-    return out;
+    return result;
   }
-
 
   String FileTypes::typeToName(FileTypes::Type type)
   {

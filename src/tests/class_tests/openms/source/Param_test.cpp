@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -391,13 +391,15 @@ END_SECTION
 // Root
 //  |-A=1
 //  |-R
-//  | |
-//	| S
-//  | |-B=2
-//  | |-C=3
+//	| |-S
+//  | | |-B=2
+//  | | |-C=3
+//  | | 
+//  | |-U (empty)
+//  |
 //  |-T
 //    |-D=4
-Param::ParamNode root, r, s, t;
+Param::ParamNode root, r, s, t, u;
 root.name="root";
 r.name="r";
 s.name="s";
@@ -408,6 +410,8 @@ s.description="s_desc";
 s.entries.push_back(Param::ParamEntry("C","3",""));
 t.entries.push_back(Param::ParamEntry("D","4",""));
 r.nodes.push_back(s);
+u.description="empty";
+r.nodes.push_back(u);
 root.nodes.push_back(r);
 root.nodes.push_back(t);
 
@@ -539,9 +543,9 @@ END_SECTION
 START_SECTION(([Param::ParamIterator] bool operator==(const ParamIterator& rhs) const))
 	Param::ParamIterator begin(root), begin2(root), end;
 	TEST_EQUAL(begin==end, false)
-	TEST_EQUAL(begin==begin, true)
-	TEST_EQUAL(begin==begin2, true)
-	TEST_EQUAL(end==end, true)
+	TEST_TRUE(begin == begin)
+	TEST_TRUE(begin == begin2)
+	TEST_TRUE(end == end)
 
 	++begin;
 	TEST_EQUAL(begin==begin2, false)
@@ -549,17 +553,7 @@ START_SECTION(([Param::ParamIterator] bool operator==(const ParamIterator& rhs) 
 	TEST_EQUAL(begin2==end, false)
 
 	++begin2;
-	TEST_EQUAL(begin==begin2, true)
-	TEST_EQUAL(begin==end, false)
-	TEST_EQUAL(begin2==end, false)
-
-	++begin;
-	TEST_EQUAL(begin==begin2, false)
-	TEST_EQUAL(begin==end, false)
-	TEST_EQUAL(begin2==end, false)
-
-	++begin2;
-	TEST_EQUAL(begin==begin2, true)
+	TEST_TRUE(begin == begin2)
 	TEST_EQUAL(begin==end, false)
 	TEST_EQUAL(begin2==end, false)
 
@@ -569,34 +563,57 @@ START_SECTION(([Param::ParamIterator] bool operator==(const ParamIterator& rhs) 
 	TEST_EQUAL(begin2==end, false)
 
 	++begin2;
-	TEST_EQUAL(begin==begin2, true)
+	TEST_TRUE(begin == begin2)
 	TEST_EQUAL(begin==end, false)
 	TEST_EQUAL(begin2==end, false)
 
 	++begin;
 	TEST_EQUAL(begin==begin2, false)
-	TEST_EQUAL(begin==end, true)
+	TEST_EQUAL(begin==end, false)
 	TEST_EQUAL(begin2==end, false)
 
 	++begin2;
-	TEST_EQUAL(begin==begin2, true)
-	TEST_EQUAL(begin==end, true)
-	TEST_EQUAL(begin2==end, true)
+	TEST_TRUE(begin == begin2)
+	TEST_EQUAL(begin==end, false)
+	TEST_EQUAL(begin2==end, false)
+
+	++begin;
+	TEST_EQUAL(begin==begin2, false)
+	TEST_TRUE(begin == end)
+	TEST_EQUAL(begin2==end, false)
+
+	++begin2;
+	TEST_TRUE(begin == begin2)
+	TEST_TRUE(begin == end)
+	TEST_TRUE(begin2 == end)
 END_SECTION
 
 START_SECTION(([Param::ParamIterator] bool operator!=(const ParamIterator& rhs) const))
 	Param::ParamIterator begin(root), begin2(root), end;
 	TEST_EQUAL(begin==end, false)
 	TEST_EQUAL(begin2==end, false)
-	TEST_EQUAL(begin==begin2, true)
-	TEST_EQUAL(begin==begin, true)
-	TEST_EQUAL(begin2==begin2, true)
-	TEST_EQUAL(end==end, true)
+	TEST_TRUE(begin == begin2)
+	TEST_TRUE(begin == begin)
+	TEST_TRUE(begin2 == begin2)
+	TEST_TRUE(end == end)
 END_SECTION
 
 
 START_SECTION(([Param::ParamIterator] const std::vector< TraceInfo>& getTrace() const))
 
+	//Recap:
+	//complicated subtree
+	// Root
+	//  |-A=1
+	//  |-R
+	//	| |-S
+	//  | | |-B=2
+	//  | | |-C=3
+	//  | | 
+	//  | |-U (empty)
+	//  |
+	//  |-T
+	//    |-D=4
 	//A
 	Param::ParamIterator it(root);
 	TEST_EQUAL(it.getTrace().size(),0);
@@ -1096,7 +1113,7 @@ END_SECTION
 
 START_SECTION((bool operator == (const Param& rhs) const))
 	Param p2(p_src);
-	TEST_EQUAL(p_src==p2, true)
+	TEST_TRUE(p_src == p2)
 	p2.setValue("test:float",17.5f);
 	TEST_EQUAL(p_src==p2, false)
 	p2 = p_src;
@@ -1112,7 +1129,7 @@ START_SECTION((bool operator == (const Param& rhs) const))
 	p3.setValue("2",2);
 	p4.setValue("2",2);
 	p4.setValue("1",1);
-	TEST_EQUAL(p3==p4, true)
+	TEST_TRUE(p3 == p4)
 
 	//it should be independent of node order
 	Param p5,p6;
@@ -1120,7 +1137,7 @@ START_SECTION((bool operator == (const Param& rhs) const))
 	p5.setValue("2:1",1);
 	p6.setValue("2:1",1);
 	p6.setValue("1:1",1);
-	TEST_EQUAL(p5==p6, true)
+	TEST_TRUE(p5 == p6)
 
 END_SECTION
 

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -29,7 +29,7 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Eugen Netz $
-// $Authors: Lukas Zimmermann $
+// $Authors: Lukas Zimmermann, Eugen Netz $
 // --------------------------------------------------------------------------
 
 #include <OpenMS/FORMAT/HANDLERS/XQuestResultXMLHandler.h>
@@ -100,17 +100,15 @@ namespace OpenMS::Internal
                                                    const String& version
                                                  ) :
       XMLHandler(filename, version),
-      pep_ids_(0),
-      prot_ids_(0),
+      pep_ids_(nullptr),
+      prot_ids_(nullptr),
       cpro_id_(&pro_id),
       cpep_id_(&pep_id)
     {
     }
 
     XQuestResultXMLHandler::~XQuestResultXMLHandler()
-    {
-
-    }
+    = default;
 
     void XQuestResultXMLHandler::extractDateTime_(const String & xquest_datetime_string, DateTime & date_time) const
     {
@@ -351,10 +349,10 @@ namespace OpenMS::Internal
           search_params.setMetaValue("cross_link:mass_monolink", monolink_masses);
         }
 
-        // xQuest uses the non-standard character "−" for negative numbers, this can happen for zero-length cross-linkers.
+        // xQuest uses the non-standard character "\u2212" for the minus in negative numbers. This can happen for zero-length cross-linkers.
         // Replace it with a proper "-" (minus), if there is one, to be able to convert it to a negative double.
         String xlinkermw = this->attributeAsString_(attributes, "xlinkermw");
-        xlinkermw.substitute("−", "-");
+        xlinkermw.substitute("\u2212", "-");
 
         search_params.setMetaValue("cross_link:mass_mass", DataValue(xlinkermw.toDouble()));
         this->cross_linker_name_ = this->attributeAsString_(attributes, "crosslinkername");
@@ -550,10 +548,10 @@ namespace OpenMS::Internal
 
         std::vector<String> mods;
 
-        // xQuest uses the non-standard character "−" for negative numbers, this can happen for zero-length cross-linkers.
+        // xQuest uses the non-standard character "\u2212" for the minus in negative numbers. This can happen for zero-length cross-linkers.
         // Replace it with a proper "-" (minus), if there is one, to be able to convert it to a negative double.
         String xlinkermass_string = this->attributeAsString_(attributes, "xlinkermass");
-        xlinkermass_string.substitute("−", "-");
+        xlinkermass_string.substitute("\u2212", "-");
         double xl_mass = DataValue(xlinkermass_string.toDouble());
 
         ModificationsDB::getInstance()->searchModificationsByDiffMonoMass(mods, xl_mass, 0.01, alpha_seq[xl_pos].getOneLetterCode(), ResidueModification::ANYWHERE);

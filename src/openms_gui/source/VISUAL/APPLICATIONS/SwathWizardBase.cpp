@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -93,7 +93,7 @@ namespace OpenMS
     const char* url = "http://openswath.org";
     if (!QDesktopServices::openUrl(QUrl(url)))
     {
-      QMessageBox::warning(0, "Cannot open browser. Please check your default browser settings.", QString(url));
+      QMessageBox::warning(nullptr, "Cannot open browser. Please check your default browser settings.", QString(url));
     }
   }
 
@@ -102,7 +102,7 @@ namespace OpenMS
     const char* url = "https://github.com/OpenMS/OpenMS/issues";
     if (!QDesktopServices::openUrl(QUrl(url)))
     {
-      QMessageBox::warning(0, "Cannot open browser. Please check your default browser settings.", QString(url));
+      QMessageBox::warning(nullptr, "Cannot open browser. Please check your default browser settings.", QString(url));
     }
   }
 

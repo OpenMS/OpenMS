@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -56,6 +56,11 @@ namespace OpenMS
   {
   }
 
+  String::String(const std::string_view& sv) :
+    string(sv)
+  {
+  }
+
   String::String(const char* s) :
     string(s)
   {
@@ -66,9 +71,9 @@ namespace OpenMS
   {
   }
 
-  String::String(const char* s, SizeType length)
+  String::String(const char* s, SizeType length) :
+    string(s, length)
   {
-    string::operator=(StringConversions::toString(s, length));
   }
 
   String::String(const char c) :
@@ -132,6 +137,8 @@ namespace OpenMS
   String::String(float f, bool full_precision) :
     string()
   {
+    if (std::fabs(f) < std::numeric_limits<float>::min()) { *this = "0.0"; return; } // workaroud for issue https://github.com/OpenMS/OpenMS/issues/6507
+
     full_precision ? StringConversions::append(f, *this)
                    : StringConversions::appendLowP(f, *this);
   }
@@ -139,6 +146,8 @@ namespace OpenMS
   String::String(double d, bool full_precision) :
     string()
   {
+    if (std::fabs(d) < std::numeric_limits<double>::min()) { *this = "0.0"; return; } // workaroud for issue https://github.com/OpenMS/OpenMS/issues/6507
+
     full_precision ? StringConversions::append(d, *this)
                    : StringConversions::appendLowP(d, *this);
   }
@@ -146,6 +155,8 @@ namespace OpenMS
   String::String(long double ld, bool full_precision) :
     string()
   {
+    if (std::fabs(ld) < std::numeric_limits<long double>::min()) { *this = "0.0"; return; } // workaroud for issue https://github.com/OpenMS/OpenMS/issues/6507
+
     full_precision ? StringConversions::append(ld, *this)
                    : StringConversions::appendLowP(ld, *this);
   }
@@ -241,6 +252,11 @@ namespace OpenMS
     return StringUtils::trim(*this);
   }
 
+  bool String::isQuoted(char q)
+  {
+    return StringUtils::isQuoted(*this, q);
+  }
+
   String& String::quote(char q, QuotingMethod method)
   {
     return StringUtils::quote(*this, q, method);
@@ -291,7 +307,24 @@ namespace OpenMS
 
   Int String::toInt() const
   {
-    return StringUtils::toInt(*this);
+    if constexpr (is_same<Int, Int32>::value)
+    {
+      return StringUtils::toInt32(*this);
+    }
+    else
+    {
+      return StringUtils::toInt64(*this);
+    }
+  }
+
+  Int32 String::toInt32() const
+  {
+    return StringUtils::toInt32(*this);
+  }
+
+  Int64 String::toInt64() const
+  {
+    return StringUtils::toInt64(*this);
   }
 
   float String::toFloat() const

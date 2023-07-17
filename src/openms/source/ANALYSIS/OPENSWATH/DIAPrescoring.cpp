@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -40,12 +40,11 @@
 #include <OpenMS/ANALYSIS/OPENSWATH/DIAHelper.h>
 #include <OpenMS/CONCEPT/Constants.h>
 
-#include <boost/bind.hpp>
 #include <boost/lexical_cast.hpp>
 
 #include <iostream>
 #include <algorithm>
-#include <iterator>
+#include <utility>
 
 namespace OpenMS
 {
@@ -79,7 +78,7 @@ namespace OpenMS
     }
   }
 
-  void DiaPrescore::operator()(OpenSwath::SpectrumAccessPtr swath_ptr,
+  void DiaPrescore::operator()(const OpenSwath::SpectrumAccessPtr& swath_ptr,
                                OpenSwath::LightTargetedExperiment& transition_exp_used,
                                OpenSwath::IDataFrameWriter* ivw) const
   {
@@ -185,7 +184,7 @@ namespace OpenMS
     DIAHelpers::extractFirst(spectrumWIso, mzTheor);
     DIAHelpers::extractSecond(spectrumWIso, intTheor);
     std::vector<double> intExp, mzExp;
-    DIAHelpers::integrateWindows(spec, mzTheor, dia_extract_window_, intExp, mzExp);
+    DIAHelpers::integrateWindows(std::move(spec), mzTheor, dia_extract_window_, intExp, mzExp);
     std::transform(intExp.begin(), intExp.end(), intExp.begin(), [](double val){return std::sqrt(val);});
     std::transform(intTheor.begin(), intTheor.end(), intTheor.begin(), [](double val){return std::sqrt(val);});
 
@@ -207,14 +206,14 @@ namespace OpenMS
     // compare against the spectrum with negative weight preIsotope peaks
     std::vector<double> intTheorNeg;
     // WARNING: This was spectrumWIso and therefore with 0 preIso weights in earlier versions! Was this a bug?
-    // Otherwise we don't need the second spectrum at all.
+    // Otherwise, we don't need the second spectrum at all.
     DIAHelpers::extractSecond(spectrumWIsoNegPreIso, intTheorNeg);
     // Sqrt does not work if we actually have negative values
     //std::transform(intTheorNeg.begin(), intTheorNeg.end(), intTheorNeg.begin(), OpenSwath::mySqrt());
     double intTheorNegEuclidNorm = OpenSwath::norm(intTheorNeg.begin(), intTheorNeg.end()); // use Euclidean norm since we have negative values
     OpenSwath::normalize(intTheorNeg, intTheorNegEuclidNorm, intTheorNeg);
 
-    // intExp is normalized already but we can normalize again with euclidean norm to have the same norm (not sure if it makes much of a difference)
+    // intExp is normalized already, but we can normalize again with euclidean norm to have the same norm (not sure if it makes much of a difference)
     double intExpEuclidNorm = OpenSwath::norm(intExp.begin(), intExp.end());
     double intTheorEuclidNorm = OpenSwath::norm(intTheor.begin(), intTheor.end());
     OpenSwath::normalize(intExp, intExpEuclidNorm, intExp);

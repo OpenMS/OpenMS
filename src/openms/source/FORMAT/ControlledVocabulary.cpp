@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -40,6 +40,7 @@
 
 #include <iostream>
 #include <fstream>
+#include <map>
 
 using namespace std;
 
@@ -60,20 +61,7 @@ namespace OpenMS
   {
   }
 
-  ControlledVocabulary::CVTerm::CVTerm(const CVTerm& rhs) :
-    name(rhs.name),
-    id(rhs.id),
-    parents(rhs.parents),
-    children(rhs.children),
-    obsolete(rhs.obsolete),
-    description(rhs.description),
-    synonyms(rhs.synonyms),
-    unparsed(rhs.unparsed),
-    xref_type(rhs.xref_type),
-    xref_binary(rhs.xref_binary),
-    units(rhs.units)
-  {
-  }
+  ControlledVocabulary::CVTerm::CVTerm(const CVTerm& rhs) = default;
 
   ControlledVocabulary::CVTerm& ControlledVocabulary::CVTerm::operator=(const CVTerm& rhs)
   {
@@ -182,10 +170,7 @@ namespace OpenMS
 
   }
 
-  ControlledVocabulary::~ControlledVocabulary()
-  {
-
-  }
+  ControlledVocabulary::~ControlledVocabulary() = default;
 
   void ControlledVocabulary::loadFromOBO(const String& name, const String& filename)
   {
@@ -442,7 +427,7 @@ namespace OpenMS
     }
 
     // now build all child terms
-    for (Map<String, CVTerm>::iterator it = terms_.begin(); it != terms_.end(); ++it)
+    for (std::map<String, CVTerm>::iterator it = terms_.begin(); it != terms_.end(); ++it)
     {
       //cerr << it->first << "\n";
       for (set<String>::const_iterator pit = it->second.parents.begin(); pit != it->second.parents.end(); ++pit)
@@ -451,7 +436,7 @@ namespace OpenMS
         terms_[*pit].children.insert(it->first);
       }
 
-      Map<String, String>::iterator mit = namesToIds_.find(it->second.name);
+      std::map<String, String>::iterator mit = namesToIds_.find(it->second.name);
       if (mit == namesToIds_.end())
       {
         namesToIds_.insert(pair<String, String>(it->second.name, it->first));
@@ -467,7 +452,7 @@ namespace OpenMS
 
   const ControlledVocabulary::CVTerm& ControlledVocabulary::getTerm(const String& id) const
   {
-    Map<String, CVTerm>::const_iterator it = terms_.find(id);
+    std::map<String, CVTerm>::const_iterator it = terms_.find(id);
     if (it == terms_.end())
     {
       throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Invalid CV identifier!", id);
@@ -475,7 +460,7 @@ namespace OpenMS
     return it->second;
   }
 
-  const Map<String, ControlledVocabulary::CVTerm>& ControlledVocabulary::getTerms() const
+  const std::map<String, ControlledVocabulary::CVTerm>& ControlledVocabulary::getTerms() const
   {
     return terms_;
   }
@@ -494,7 +479,7 @@ namespace OpenMS
   const ControlledVocabulary::CVTerm& ControlledVocabulary::getTermByName(const String& name, const String& desc) const
   {
     //slow, but Vocabulary is very finite and this method will be called only a few times during write of a ML file using a CV
-    Map<String, String>::const_iterator it = namesToIds_.find(name);
+    std::map<String, String>::const_iterator it = namesToIds_.find(name);
     if (it == namesToIds_.end())
     {
       if (!desc.empty())
@@ -511,24 +496,24 @@ namespace OpenMS
       }
     }
 
-    return terms_[it->second];
+    return terms_.at(it->second);
   }
 
   bool ControlledVocabulary::exists(const String& id) const
   {
-    return terms_.has(id);
+    return terms_.find(id) != terms_.end();
   }
 
   const ControlledVocabulary::CVTerm* ControlledVocabulary::checkAndGetTermByName(const OpenMS::String& name) const
   {
-    Map<String, String>::const_iterator it = namesToIds_.find(name);
+    std::map<String, String>::const_iterator it = namesToIds_.find(name);
     if (it == namesToIds_.end()) return nullptr;
-    return &terms_[it->second];
+    return &terms_.at(it->second);
   }
 
   bool ControlledVocabulary::hasTermWithName(const OpenMS::String& name) const
   {
-    Map<String, String>::const_iterator it = namesToIds_.find(name);
+    std::map<String, String>::const_iterator it = namesToIds_.find(name);
     return it != namesToIds_.end();
   }
 

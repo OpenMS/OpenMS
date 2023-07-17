@@ -1,5 +1,9 @@
 # Set the default behavior, in case people don't have core.autocrlf set.
-* text=auto
+# Force UNIX line endings, so you can use the same repo e.g., on Win and WSL
+* text=auto eol=lf
+# batch files specifically need to have CRLF (win endings)
+*.{cmd,[cC][mM][dD]} text eol=crlf
+*.{bat,[bB][aA][tT]} text eol=crlf
 
 # Denote all files that are truly binary and should not be modified.
 # Images

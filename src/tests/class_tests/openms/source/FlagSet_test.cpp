@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -121,7 +121,7 @@ START_SECTION(bool operator==(const FlagSet & stat) const)
 {
     FST gg(e_green);
     FST target = gg;
-    TEST_EQUAL(target == gg, true)
+    TEST_TRUE(target == gg)
     TEST_NOT_EQUAL(gg, FST())
 }
 END_SECTION

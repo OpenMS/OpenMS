@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -115,7 +115,7 @@ protected:
     {
       if (FileHandler::getType(ins[i]) != file_type)
       {
-        writeLog_("Error: All input files must be of the same type!");
+        writeLogError_("Error: All input files must be of the same type!");
         return ILLEGAL_PARAMETERS;
       }
     }
@@ -144,7 +144,7 @@ protected:
 
     if (file_type == FileTypes::CONSENSUSXML && !design_file.empty())
     {
-      writeLog_("Error: Using fractionated design with consensusXML als input is not supported!");
+      writeLogError_("Error: Using fractionated design with consensusXML als input is not supported!");
       return ILLEGAL_PARAMETERS;
     }
   
@@ -172,7 +172,7 @@ protected:
         // check if all fractions have the same number of MS runs associated
         if (!ed.sameNrOfMSFilesPerFraction())
         {
-          writeLog_("Error: Number of runs must match for every fraction!");
+          writeLogError_("Error: Number of runs must match for every fraction!");
           return ILLEGAL_PARAMETERS;
         }
       }
@@ -225,17 +225,26 @@ protected:
         for (Feature& ft : tmp)
         {
           String adduct;
+          String group;
           //exception: addduct information
-          if (ft.metaValueExists("dc_charge_adducts"))
+          if (ft.metaValueExists(Constants::UserParam::DC_CHARGE_ADDUCTS))
           {
-            adduct = ft.getMetaValue("dc_charge_adducts");
+            adduct = ft.getMetaValue(Constants::UserParam::DC_CHARGE_ADDUCTS);
+          }
+          if (ft.metaValueExists(Constants::UserParam::ADDUCT_GROUP))
+          {
+            group = ft.getMetaValue(Constants::UserParam::ADDUCT_GROUP);
           }
           ft.getSubordinates().clear();
           ft.getConvexHulls().clear();
           ft.clearMetaInfo();
           if (!adduct.empty())
           {
-            ft.setMetaValue("dc_charge_adducts", adduct);
+            ft.setMetaValue(Constants::UserParam::DC_CHARGE_ADDUCTS, adduct);
+          }
+          if (!group.empty())
+          {
+            ft.setMetaValue("Group", group);
           }
 
         }

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -34,10 +34,11 @@
 
 #pragma once
 
-#include <OpenMS/DATASTRUCTURES/Map.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/DATASTRUCTURES/Param.h>
 #include <OpenMS/DATASTRUCTURES/ToolDescription.h>
+
+#include <map>
 
 namespace OpenMS
 {
@@ -46,7 +47,7 @@ namespace OpenMS
   */
 
   /// map each old TOPP/UTIL to its new Name
-  typedef Map<Internal::ToolDescriptionInternal, Internal::ToolDescriptionInternal> ToolMapping;
+  typedef std::map<Internal::ToolDescriptionInternal, Internal::ToolDescriptionInternal> ToolMapping;
 
   class OPENMS_DLLAPI INIUpdater
   {

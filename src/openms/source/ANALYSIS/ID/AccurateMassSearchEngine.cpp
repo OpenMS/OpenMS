@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -71,30 +71,10 @@ namespace OpenMS
   }
 
   /// default destructor
-  AccurateMassSearchResult::~AccurateMassSearchResult()
-  {
-  }
+  AccurateMassSearchResult::~AccurateMassSearchResult() = default;
 
   /// copy constructor
-  AccurateMassSearchResult::AccurateMassSearchResult(const AccurateMassSearchResult& source) :
-    observed_mz_(source.observed_mz_),
-    theoretical_mz_(source.theoretical_mz_),
-    searched_mass_(source.searched_mass_),
-    db_mass_(source.db_mass_),
-    charge_(source.charge_),
-    mz_error_ppm_(source.mz_error_ppm_),
-    observed_rt_(source.observed_rt_),
-    observed_intensity_(source.observed_intensity_),
-    individual_intensities_(source.individual_intensities_),
-    matching_index_(source.matching_index_),
-    source_feature_index_(source.source_feature_index_),
-    found_adduct_(source.found_adduct_),
-    empirical_formula_(source.empirical_formula_),
-    matching_hmdb_ids_(source.matching_hmdb_ids_),
-    mass_trace_intensities_(source.mass_trace_intensities_),
-    isotopes_sim_score_(source.isotopes_sim_score_)
-  {
-  }
+  AccurateMassSearchResult::AccurateMassSearchResult(const AccurateMassSearchResult& source) = default;
 
   /// assignment operator
   AccurateMassSearchResult& AccurateMassSearchResult::operator=(const AccurateMassSearchResult& rhs)
@@ -352,9 +332,7 @@ namespace OpenMS
     defaultsToParam_();
   }
 
-  AccurateMassSearchEngine::~AccurateMassSearchEngine()
-  {
-  }
+  AccurateMassSearchEngine::~AccurateMassSearchEngine() = default;
 
 /// public methods
 
@@ -492,9 +470,9 @@ namespace OpenMS
     std::vector<AccurateMassSearchResult> results_part;
 
     bool use_feature_adducts = param_.getValue("use_feature_adducts").toString() == "true";
-    if (use_feature_adducts && feature.metaValueExists("dc_charge_adducts"))
+    if (use_feature_adducts && feature.metaValueExists(Constants::UserParam::DC_CHARGE_ADDUCTS))
     {
-      queryByMZ(feature.getMZ(), feature.getCharge(), ion_mode, results_part, EmpiricalFormula(feature.getMetaValue("dc_charge_adducts")));
+      queryByMZ(feature.getMZ(), feature.getCharge(), ion_mode, results_part, EmpiricalFormula(feature.getMetaValue(Constants::UserParam::DC_CHARGE_ADDUCTS)));
     }
     else
     {
@@ -536,7 +514,7 @@ namespace OpenMS
 
     // collect meta data:
     // intensities for all maps as given in handles; 0 if no handle is present for a map
-    ConsensusFeature::HandleSetType ind_feats(cfeat.getFeatures()); // sorted by MapIndices
+    const ConsensusFeature::HandleSetType& ind_feats(cfeat.getFeatures()); // sorted by MapIndices
     ConsensusFeature::const_iterator f_it = ind_feats.begin();
     std::vector<double> tmp_f_ints;
     for (Size map_idx = 0; map_idx < number_of_maps; ++map_idx)
@@ -678,7 +656,7 @@ namespace OpenMS
     // filter FeatureMap to only have entries with an PrimaryID attached
     if (!keep_unidentified_masses_)
     {
-      fmap.erase(std::remove_if(fmap.begin(), fmap.end(), [](Feature f){ return !f.hasPrimaryID(); }), fmap.end());
+      fmap.erase(std::remove_if(fmap.begin(), fmap.end(), [](const Feature& f){ return !f.hasPrimaryID(); }), fmap.end());
     }
 
     // add the identification data to the featureXML
@@ -1514,7 +1492,7 @@ namespace OpenMS
 
   double AccurateMassSearchEngine::computeIsotopePatternSimilarity_(const Feature& feat, const EmpiricalFormula& form) const
   {
-    Size num_traces = (Size)feat.getMetaValue("num_of_masstraces");
+    Size num_traces = (Size)feat.getMetaValue(Constants::UserParam::NUM_OF_MASSTRACES);
     const Size MAX_THEORET_ISOS(5);
 
     Size common_size = std::min(num_traces, MAX_THEORET_ISOS);
@@ -1558,12 +1536,12 @@ namespace OpenMS
 
     if (iso_similarity_ && !is_dummy)
     {
-      if (!feature.metaValueExists("num_of_masstraces"))
+      if (!feature.metaValueExists(Constants::UserParam::NUM_OF_MASSTRACES))
       {
         OPENMS_LOG_WARN
-        << "Feature does not contain meta value 'num_of_masstraces'. Cannot compute isotope similarity.";
+        << "Feature does not contain meta value '" << Constants::UserParam::NUM_OF_MASSTRACES << "'. Cannot compute isotope similarity.";
       }
-      else if ((Size) feature.getMetaValue("num_of_masstraces") > 1)
+      else if ((Size) feature.getMetaValue(Constants::UserParam::NUM_OF_MASSTRACES) > 1)
       { // compute isotope pattern similarities (do not take the best-scoring one, since it might have really bad ppm or other properties --
         // it is impossible to decide here which one is best
         for (Size hit_idx = 0; hit_idx < query_results.size(); ++hit_idx)

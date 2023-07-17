@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -54,7 +54,7 @@ public:
     Adduct(Int charge);
 
     /// C'tor for all members
-    Adduct(Int charge, Int amount, double singleMass, String formula, double log_prob, double rt_shift, const String label = "");
+    Adduct(Int charge, Int amount, double singleMass, const String& formula, double log_prob, double rt_shift, const String& label = "");
 
     /// Increase amount of this adduct by factor @param m
     Adduct operator*(const Int m) const;
@@ -89,6 +89,9 @@ public:
 
     const double& getRTShift() const;
     const String& getLabel() const;
+
+    // convert a ion string to adduct string with charge information (eg. ion_string = "Na1", charge = "1" --> "[M+Na]+")
+    String toAdductString(const String& ion_string, const Int& charge);
     //}
 
 private:

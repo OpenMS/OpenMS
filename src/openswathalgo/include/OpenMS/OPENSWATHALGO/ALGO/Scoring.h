@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -54,6 +54,18 @@ namespace OpenSwath
 
 
     //@{
+    typedef std::pair<unsigned int, unsigned int> pos2D;
+    /// Simple hash function for Scoring::pos2D
+    struct pair_hash 
+    {
+      template <class T1, class T2>
+      std::size_t operator () (const std::pair<T1,T2> &p) const {
+        auto h1 = std::hash<T1>{}(p.first);
+        auto h2 = std::hash<T2>{}(p.second);
+        return h1 ^ h2;  
+      }
+    };
+    
     /// Cross Correlation array contains (lag,correlation) pairs
     typedef std::pair<int, double> XCorrEntry;
     struct XCorrArrayType 
@@ -134,14 +146,14 @@ public:
     /// Divide each element of x by the sum of the vector
     OPENSWATHALGO_DLLAPI void normalize_sum(double x[], unsigned int n);
 
-    /// Compute rank of vector elements and append it to @p ranks
-    OPENSWATHALGO_DLLAPI void computeAndAppendRank(const std::vector<double>& v, std::vector<unsigned int>& ranks);
+    // Compute rank of vector elements, append it to @p ranks and return the highest rank
+    OPENSWATHALGO_DLLAPI unsigned int computeAndAppendRank(const std::vector<double>& v, std::vector<unsigned int>& ranks);
 
-    /// Compute rank of vector elements for each row in a 2D array
-    OPENSWATHALGO_DLLAPI void computeRankVector(const std::vector<std::vector<double>>& intensity, std::vector<std::vector<unsigned int>>& ranks);
+    // Compute rank of vector elements and its highest rank for each row in a 2D array
+    OPENSWATHALGO_DLLAPI std::vector<unsigned int> computeRankVector(const std::vector<std::vector<double>>& intensity, std::vector<std::vector<unsigned int>>& ranks);
 
-    /// Estimate mutual information between two vectors of ranks
-    OPENSWATHALGO_DLLAPI double rankedMutualInformation(std::vector<unsigned int>& ranked_data1, std::vector<unsigned int>& ranked_data2);
+    // Estimate mutual information between two vectors of ranks
+    OPENSWATHALGO_DLLAPI double rankedMutualInformation(std::vector<unsigned int>& ranked_data1, std::vector<unsigned int>& ranked_data2, const unsigned int max_rank1, const unsigned int max_rank2);
 
     //@}
 

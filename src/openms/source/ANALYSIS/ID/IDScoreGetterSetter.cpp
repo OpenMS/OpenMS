@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -57,7 +57,7 @@ namespace OpenMS
       bool target = false;
       for (const auto &acc : grp.accessions)
       {
-        // In groups you usually want to check if at least one member is a real target
+        // In groups, you usually want to check if at least one member is a real target
         if (decoy_accs.find(acc) == decoy_accs.end())
         {
           target = true;
@@ -68,7 +68,60 @@ namespace OpenMS
     }
   }
 
+  inline bool isFirstBetterScore_(double first, double second, bool isHigherBetter)
+  {
+    if (isHigherBetter) return first > second; else return first < second;
+  }
 
+  inline void addToPeptideScoreMap_(
+    std::unordered_map<String, ScoreToTgtDecLabelPair>& seq_to_score_labels,
+    const PeptideIdentification& id)
+  {
+    bool higher_better = id.isHigherScoreBetter();
+    if (id.getHits().empty())
+    {
+      return;
+    }
+    const auto& best_hit = id.getHits()[0];
+    double score = best_hit.getScore();
+    auto [it, found] = seq_to_score_labels.try_emplace(
+      best_hit.getSequence().toUnmodifiedString(),
+      score,
+      (best_hit.getMetaValue("target_decoy") != DataValue::EMPTY) &&
+        (best_hit.getMetaValue("target_decoy").toString().hasPrefix("target")));
+
+    if (found && isFirstBetterScore_(score, it->second.first, higher_better))
+    {
+      it->second.first = score;
+    }
+  }
+
+  void IDScoreGetterSetter::fillPeptideScoreMap_(
+    std::unordered_map<String, ScoreToTgtDecLabelPair>& seq_to_score_labels,
+    const vector<PeptideIdentification>& ids)
+  {
+    for (auto const & id : ids)
+    {
+      addToPeptideScoreMap_(seq_to_score_labels, id);
+    }
+  }
+
+  void IDScoreGetterSetter::fillPeptideScoreMap_(
+    std::unordered_map<String, ScoreToTgtDecLabelPair>& seq_to_score_labels,
+    ConsensusMap const& map,
+    bool include_unassigned = true)
+  {
+    map.applyFunctionOnPeptideIDs(
+      [&seq_to_score_labels](const PeptideIdentification& id){addToPeptideScoreMap_(seq_to_score_labels, id);},
+      include_unassigned);
+  }
+
+  /**
+   * @ingroup getScoresFunctions
+   * @brief For protein groups. Groups are target if at least one protein is target
+   * Decoy accessions are determined by the decoy substring.
+   * Uses the "picked" algorithm. As soon as there was one member which was picked as target over a decoy, the group is counted as target. Otherwise as decoy.
+   */
   void IDScoreGetterSetter::getPickedProteinGroupScores_(
       const std::unordered_map<String, ScoreToTgtDecLabelPair>& picked_scores,
       ScoreToTgtDecLabelPairs& scores_labels,
@@ -83,6 +136,12 @@ namespace OpenMS
       {
         auto [isDecoy, tgt_accession] = removeDecoyStringIfPresent_(acc, decoy_string, decoy_prefix);
         const double tgt_proportion = picked_scores.at(tgt_accession).second;
+        // The problem is here, that in theory, the matching pair can be in different groups
+        //  therefore a group cannot really be matched one-to-one. So we say:
+        //  If at least one (single) target was picked over a decoy in the group, the group
+        //  is a target. This could in theory mean, that two targets in different groups
+        //  are counted as +1, while a group containing both decoy-partners is counted as
+        //  a single 0
         if (!isDecoy && tgt_proportion > 0.) // target was picked on single protein level
         {
           scores_labels.emplace_back(grp.probability, 1.0);
@@ -95,6 +154,8 @@ namespace OpenMS
       }
       // if for none of the proteins the target version was picked, add as decoy
       if (decoy_picked) scores_labels.emplace_back(grp.probability, 0.0);
+      // TODO I think we need an unordered_set to check which proteins were picked already
+      //  and add skip groups where every protein was picked already.
     }
   }
 
@@ -218,4 +279,54 @@ namespace OpenMS
       grp.probability = (scores_to_FDR.lower_bound(grp.probability)->second);
     }
   }
+  void IDScoreGetterSetter::setPeptideScoresFromMap_(std::unordered_map<String, ScoreToTgtDecLabelPair> const& seq_to_fdr,
+                                                     vector<PeptideIdentification>& ids,
+                                                     std::string const& score_type,
+                                                     bool keep_decoys)
+  {
+    for (auto& id : ids)
+    {
+      if (id.getHits().empty())
+      {
+        continue;
+      }
+      auto& best_hit = id.getHits()[0];
+      if (!keep_decoys && (best_hit.getMetaValue("target_decoy") == DataValue::EMPTY || best_hit.getMetaValue("target_decoy") == "decoy"))
+      {
+        id.setHits({});
+        continue;
+      }
+      const auto seq = best_hit.getSequence().toUnmodifiedString();
+      auto it = seq_to_fdr.find(seq);
+      const auto& old_score_type = id.getScoreType();
+      if (it != seq_to_fdr.end())
+      {
+        best_hit.setMetaValue(old_score_type, best_hit.getScore());
+        best_hit.setScore(it->second.first);
+        id.setScoreType(score_type);
+      }
+      else
+      {
+        OPENMS_LOG_ERROR << "Error: No FDR found for " + seq + "." << std::endl;
+        continue;
+      }
+    }
+  }
+
+  void IDScoreGetterSetter::setPeptideScoresFromMap_(std::unordered_map<String, ScoreToTgtDecLabelPair> const& seq_to_fdr,
+                                                     ConsensusMap& map,
+                                                     std::string const& score_type,
+                                                     bool keep_decoys,
+                                                     bool include_unassigned)
+  {
+    for (auto& f : map)
+    {
+      setPeptideScoresFromMap_(seq_to_fdr, f.getPeptideIdentifications(), score_type, keep_decoys);
+    }
+    if (include_unassigned)
+    {
+      setPeptideScoresFromMap_(seq_to_fdr, map.getUnassignedPeptideIdentifications(), score_type, keep_decoys);
+    }
+  }
+
 } // namespace std

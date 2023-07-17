@@ -1,23 +1,23 @@
+from libcpp.map cimport map as libcpp_map
 from Types cimport *
 from CVTermList cimport *
 from Peak1D cimport *
-from Map cimport *
 
 cdef extern from "<OpenMS/METADATA/Precursor.h>" namespace "OpenMS":
 
     cdef cppclass Precursor(Peak1D, CVTermList):
         # wrap-inherits:
-        #    Peak1D
-        #    CVTermList
+        #   Peak1D
+        #   CVTermList
         # wrap-doc:
-        #   Precursor meta information
-        #   -----
-        #   This class contains precursor information:
+        #  Precursor meta information
+        #  
+        #  This class contains precursor information:
         #
-        #   - isolation window
-        #   - activation
-        #   - selected ion (m/z, intensity, charge, possible charge states)
-        #   - ion mobility drift time
+        #  - isolation window
+        #  - activation
+        #  - selected ion (m/z, intensity, charge, possible charge states)
+        #  - ion mobility drift time
 
         Precursor() nogil except +
         Precursor(Precursor &) nogil except +

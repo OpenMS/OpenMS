@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -115,7 +115,7 @@ public:
 
     /// Massdiff scores, see class description
     void dia_massdiff_score(const std::vector<TransitionType>& transitions,
-                            SpectrumPtrType spectrum,
+                            const SpectrumPtrType& spectrum,
                             const std::vector<double>& normalized_library_intensity,
                             double& ppm_score,
                             double& ppm_score_weighted,
@@ -133,14 +133,14 @@ public:
                                 double& ppm_score) const;
 
     /// Precursor isotope scores for precursors (peptides and metabolites)
-    void dia_ms1_isotope_scores_averagine(double precursor_mz, SpectrumPtrType spectrum,
+    void dia_ms1_isotope_scores_averagine(double precursor_mz, const SpectrumPtrType& spectrum,
                                           double& isotope_corr, double& isotope_overlap, int charge_state) const;
-    void dia_ms1_isotope_scores(double precursor_mz, SpectrumPtrType spectrum,
+    void dia_ms1_isotope_scores(double precursor_mz, const SpectrumPtrType& spectrum,
                                 double& isotope_corr, double& isotope_overlap, const EmpiricalFormula& sum_formula) const;
 
 
     /// b/y ion scores
-    void dia_by_ion_score(SpectrumPtrType spectrum, AASequence& sequence,
+    void dia_by_ion_score(const SpectrumPtrType& spectrum, AASequence& sequence,
                           int charge, double& bseries_score, double& yseries_score) const;
 
     /// Dotproduct / Manhattan score with theoretical spectrum
@@ -163,7 +163,7 @@ private:
 
     /// Subfunction of dia_isotope_scores
     void diaIsotopeScoresSub_(const std::vector<TransitionType>& transitions,
-                              SpectrumPtrType spectrum,
+                              const SpectrumPtrType& spectrum,
                               std::map<std::string, double>& intensities,
                               double& isotope_corr,
                               double& isotope_overlap) const;
@@ -192,7 +192,7 @@ private:
       @param nr_occurrences Will contain the maximum ratio of a peaks intensity compared to the monoisotopic peak intensity how often a peak is found at lower m/z than mono_mz with an intensity higher than mono_int. Multiple charge states are tested, see class parameter dia_nr_charges_
 
     */
-    void largePeaksBeforeFirstIsotope_(SpectrumPtrType spectrum, double mono_mz, double mono_int, int& nr_occurrences, double& max_ratio) const;
+    void largePeaksBeforeFirstIsotope_(const SpectrumPtrType& spectrum, double mono_mz, double mono_int, int& nr_occurrences, double& max_ratio) const;
 
     /**
       @brief Compare an experimental isotope pattern to a theoretical one
@@ -228,7 +228,7 @@ private:
 
     /// Get the intensities of isotopes around @p precursor_mz in experimental @p spectrum
     /// and fill @p isotopes_int.
-    void getIsotopeIntysFromExpSpec_(double precursor_mz, SpectrumPtrType spectrum,
+    void getIsotopeIntysFromExpSpec_(double precursor_mz, const SpectrumPtrType& spectrum,
                                      std::vector<double>& isotopes_int,
                                      int charge_state) const;
 

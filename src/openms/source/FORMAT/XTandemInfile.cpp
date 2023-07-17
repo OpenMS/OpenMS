@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -74,9 +74,7 @@ namespace OpenMS
   {
   }
 
-  XTandemInfile::~XTandemInfile()
-  {
-  }
+  XTandemInfile::~XTandemInfile() = default;
 
   void XTandemInfile::write(const String& filename, bool ignore_member_parameters, bool force_default_mods)
   {
@@ -704,7 +702,7 @@ namespace OpenMS
     return number_of_missed_cleavages_;
   }
 
-  void XTandemInfile::setOutputResults(String result)
+  void XTandemInfile::setOutputResults(const String& result)
   {
     if (result == "valid" || result == "all" || result == "stochastic")
     {

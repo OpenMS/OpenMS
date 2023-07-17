@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -41,10 +41,14 @@
 
   @image html TOPPView.png
 
-  More information about TOPPView can be found in the @ref TOPP_tutorial.
+  More information about TOPPView can be found on the OpenMS ReadTheDocs
+  page: https://openms.readthedocs.io/en/latest/docs/tutorials/TOPP/toppview-introduction.html
 
   <B>The command line parameters of this tool are:</B>
   @verbinclude TOPP_TOPPView.cli
+  
+  Note: By default, TOPPView scans for novel TOPP tools if there has been a version update. To force a rescan you
+  can pass the --force flag. To skip the scan for tools, you can pass the --skip_tool_scan flag.
 */
 
 //QT
@@ -93,6 +97,7 @@ void print_usage()
        << "  --help           Shows this help" << "\n"
        << "  -ini <File>      Sets the INI file (default: ~/.TOPPView.ini)" << "\n"
        << "  --force          Forces scan for new tools/utils" << "\n"
+       << "  --skip_tool_scan Skips scan for new tools/utils" << "\n"
        << "\n"
        << "Hints:" << "\n"
        << " - To open several files in one window put a '+' in between the files." << "\n"
@@ -112,6 +117,8 @@ int main(int argc, const char** argv)
   std::map<std::string, std::string> valid_options, valid_flags, option_lists;
   valid_flags["--help"] = "help";
   valid_flags["--force"] = "force";
+  valid_flags["--skip_tool_scan"] = "skip_tool_scan";
+  valid_flags["--debug"] = "debug";
   valid_options["-ini"] = "ini";
 
   Param param;
@@ -140,11 +147,38 @@ int main(int argc, const char** argv)
 
   try
   {
+
+#if defined(__APPLE__)
+    // see https://bugreports.qt.io/browse/QTBUG-104871
+    // if you link to QtWebEngine and the corresponding macros are enabled, it will
+    // try to default to OpenGL 4.1 on macOS (for hardware acceleration of WebGL in Chromium, which we do not need yet)
+    // but our OpenGL code for 3D View is written in OpenGL 2.x.
+    // Now we force 2.1 which is also available on all? Macs.
+    QSurfaceFormat format;
+    format.setVersion(2, 1); // the default is 2, 0
+    QSurfaceFormat::setDefaultFormat(format); // should be done before creating a QApplication
+#endif
+
     QApplicationTOPP a(argc, const_cast<char**>(argv));
     a.connect(&a, &QApplicationTOPP::lastWindowClosed, &a, &QApplicationTOPP::quit);
 
-    TOPPViewBase::TOOL_SCAN mode = param.exists("force")? TOPPViewBase::TOOL_SCAN::FORCE_SCAN : TOPPViewBase::TOOL_SCAN::SCAN_IF_NEWER_VERSION;
-    TOPPViewBase tb(mode);
+    TOPPViewBase::TOOL_SCAN mode = TOPPViewBase::TOOL_SCAN::SCAN_IF_NEWER_VERSION;
+    if (param.exists("force"))
+    {
+      mode = TOPPViewBase::TOOL_SCAN::FORCE_SCAN;
+    }
+    else if (param.exists("skip_tool_scan"))
+    {
+      mode = TOPPViewBase::TOOL_SCAN::SKIP_SCAN;
+    }
+
+    TOPPViewBase::VERBOSITY verbosity = TOPPViewBase::VERBOSITY::DEFAULT;
+    if (param.exists("debug"))
+    {
+      verbosity = TOPPViewBase::VERBOSITY::VERBOSE;
+    }
+
+    TOPPViewBase tb(mode, verbosity);
     a.connect(&a, &QApplicationTOPP::fileOpen, &tb, &TOPPViewBase::openFile);
     tb.show();
 

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -35,10 +35,9 @@
 #include <OpenMS/CHEMISTRY/ProteaseDigestion.h>
 #include <OpenMS/CHEMISTRY/ProteaseDB.h>
 #include <OpenMS/SYSTEM/File.h>
-#include <OpenMS/CONCEPT/LogStream.h>
+#include <algorithm>
 #include <boost/regex.hpp>
 
-#include <iostream>
 #include <limits>
 
 using namespace std;
@@ -48,7 +47,7 @@ namespace OpenMS
   void ProteaseDigestion::setEnzyme(const String& enzyme_name)
   {
     enzyme_ = ProteaseDB::getInstance()->getEnzyme(enzyme_name);
-    re_ = boost::regex(enzyme_->getRegEx());
+    re_.reset(new boost::regex(enzyme_->getRegEx()));
   }
 
   bool ProteaseDigestion::isValidProduct(const String& protein,
@@ -99,6 +98,22 @@ namespace OpenMS
   {
     // initialization
     output.clear();
+    std::vector<std::pair<size_t,size_t>> idcs; // small overhead filling intermediate vector first and iterating again
+    Size wrong_size = digest(protein, idcs, min_length, max_length);
+    output.reserve(idcs.size());
+    std::transform(idcs.begin(), idcs.end(), std::back_inserter(output),
+      [&protein](std::pair<size_t, size_t>& start_end)
+      {
+        return protein.getSubsequence(start_end.first, UInt(start_end.second - start_end.first));
+      }
+    );
+    return wrong_size;
+  }
+
+  Size ProteaseDigestion::digest(const AASequence& protein, vector<std::pair<size_t,size_t>>& output, Size min_length, Size max_length) const
+  {
+    // initialization
+    output.clear();
 
     // disable max length filter by setting to maximum length
     if (max_length == 0 || max_length > protein.size())
@@ -119,7 +134,7 @@ namespace OpenMS
       Size l = pep_positions[i] - begin;
       if (l >= min_length && l <= max_length)
       {
-        output.push_back(protein.getSubsequence(begin, l));
+        output.emplace_back(begin, pep_positions[i]);
       }
       else
       {
@@ -140,7 +155,7 @@ namespace OpenMS
           Size l = pep_positions[j + mcs] - begin;
           if (l >= min_length && l <= max_length)
           {
-            output.push_back(protein.getSubsequence(begin, l));
+            output.emplace_back(begin, pep_positions[j + mcs]);
           }
           else
           {

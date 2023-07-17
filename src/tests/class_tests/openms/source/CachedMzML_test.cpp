@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry               
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 // 
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -118,7 +118,7 @@ START_SECTION(( [EXTRA] testCaching))
       tmp2.getDataProcessing().clear();
       tmp1.getFloatDataArrays().clear(); // clear for now, see test below
       tmp2.getFloatDataArrays().clear(); // clear for now, see test below
-      TEST_EQUAL(tmp1 == tmp2, true)
+      TEST_TRUE(tmp1 == tmp2)
     }
 
     // test spec 1
@@ -173,7 +173,7 @@ START_SECTION(( [EXTRA] testCaching))
       auto tmp2 = exp.getChromatogram(i);
       tmp1.getDataProcessing().clear();
       tmp2.getDataProcessing().clear();
-      TEST_EQUAL(tmp1 == tmp2, true)
+      TEST_TRUE(tmp1 == tmp2)
     }
 
   }
@@ -204,7 +204,7 @@ START_SECTION(( const MSExperiment& getMetaData() const ))
     SpectrumSettings tmp2 = exp.getSpectrum(i);
     tmp1.getDataProcessing().clear();
     tmp2.getDataProcessing().clear();
-    TEST_EQUAL(tmp1 == tmp2, true)
+    TEST_TRUE(tmp1 == tmp2)
   }
 
   TEST_EQUAL(cache_example.getNrChromatograms(), cache_example.getMetaData().getNrChromatograms())
@@ -215,7 +215,7 @@ START_SECTION(( const MSExperiment& getMetaData() const ))
     ChromatogramSettings tmp2 = exp.getChromatogram(i);
     tmp1.getDataProcessing().clear();
     tmp2.getDataProcessing().clear();
-    TEST_EQUAL(tmp1 == tmp2, true)
+    TEST_TRUE(tmp1 == tmp2)
   }
 }
 END_SECTION

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -68,9 +68,12 @@ namespace OpenMS
     but a natural distribution or different isotopes. This distribution can be accessed via the
     member getIsotopeDistribution().
 
-    If one wants only use a specific isotope, it can be specified using "(",")" brackets. For example,
-    to specify 14C a heavy isotope of carbon it is expressed as "(14)C". The isotope distribution
-    of that instance contains only one isotope, 14C itself with a frequency of 100%.
+    If one wants only use a specific isotope, it can be specified using "(",")"
+    brackets. For example, to specify 13C a heavy isotope of carbon it is
+    expressed as "(13)C". The isotope distribution of that instance contains
+    only one isotope, 13C itself with a frequency of 100%. It is possible to
+    mix isotopes, for example "(13)C1CH6O" specifies an ethanol molecule with
+    one 12C and one 13C isotope.
 
     Instances EmpiricalFormula support a (limited) set of mathematical operations. Additions and subtractions
     are supported in different flavors. However, one must be careful, because this can lead to negative
@@ -122,6 +125,19 @@ public:
     virtual ~EmpiricalFormula();
     //@}
 
+     /**
+     @brief create EmpiricalFormular object by parsing an OpenMS string
+
+     @param s Input string
+
+     @throws Exception::ParseError if the formula cannot be parsed
+   */
+    static EmpiricalFormula fromString(const String& rhs)
+    {
+      EmpiricalFormula ef(rhs);
+      return ef;
+    }
+
     /** @name Accessors
     */
     //@{
@@ -148,6 +164,21 @@ public:
       @return bool flag for whether the approximation succeeded without requesting negative hydrogens. true = no problems, 1 = negative hydrogens requested.
     */
     bool estimateFromWeightAndComp(double average_weight, double C, double H, double N, double O, double S, double P);
+
+    /**
+      @brief Fills this EmpiricalFormula with an approximate elemental composition for a given monoisotopic weight and approximate elemental stoichiometry
+
+      @param mono_weight: Monoisotopic weight to estimate an EmpiricalFormula for
+      @param C: The approximate relative stoichiometry of Carbons to other elements in this molecule
+      @param H: The approximate relative stoichiometry of Hydrogens to other elements in this molecule
+      @param N: The approximate relative stoichiometry of Nitrogens to other elements in this molecule
+      @param O: The approximate relative stoichiometry of Oxygens to other elements in this molecule
+      @param S: The approximate relative stoichiometry of Sulfurs to other elements in this molecule
+      @param P: The approximate relative stoichiometry of Phosphoruses to other elements in this molecule
+
+      @return bool flag for whether the approximation succeeded without requesting negative hydrogens. true = no problems, 1 = negative hydrogens requested.
+    */
+    bool estimateFromMonoWeightAndComp(double mono_weight, double C, double H, double N, double O, double S, double P);
 
     /**
       @brief Fills this EmpiricalFormula with an approximate elemental composition for a given average weight,

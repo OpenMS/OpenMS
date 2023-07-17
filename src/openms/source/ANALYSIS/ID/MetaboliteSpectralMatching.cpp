@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -34,6 +34,9 @@
 
 #include <OpenMS/ANALYSIS/ID/MetaboliteSpectralMatching.h>
 
+#include <OpenMS/CONCEPT/Constants.h>
+
+#include <OpenMS/FORMAT/MzMLFile.h>
 
 #include <numeric>
 #include <boost/math/special_functions/factorials.hpp>
@@ -56,6 +59,7 @@ namespace OpenMS
     matching_score_(),
     observed_spectrum_idx_(),
     matching_spectrum_idx_(),
+    observed_spectrum_native_id_(),
     primary_id_(),
     secondary_id_(),
     common_name_(),
@@ -67,28 +71,10 @@ namespace OpenMS
   }
 
   /// Default destructor
-  SpectralMatch::~SpectralMatch()
-  {
-  }
+  SpectralMatch::~SpectralMatch() = default;
 
   /// Copy constructor
-  SpectralMatch::SpectralMatch(const SpectralMatch& sm) :
-    observed_precursor_mass_(sm.observed_precursor_mass_),
-    observed_precursor_rt_(sm.observed_precursor_rt_),
-    found_precursor_mass_(sm.found_precursor_mass_),
-    found_precursor_charge_(sm.found_precursor_charge_),
-    matching_score_(sm.matching_score_),
-    observed_spectrum_idx_(sm.observed_spectrum_idx_),
-    matching_spectrum_idx_(sm.matching_spectrum_idx_),
-    primary_id_(sm.primary_id_),
-    secondary_id_(sm.secondary_id_),
-    common_name_(sm.common_name_),
-    sum_formula_(sm.sum_formula_),
-    inchi_string_(sm.inchi_string_),
-    smiles_string_(sm.smiles_string_),
-    precursor_adduct_(sm.precursor_adduct_)
-  {
-  }
+  SpectralMatch::SpectralMatch(const SpectralMatch& sm) = default;
 
   /// Assignment operator
   SpectralMatch& SpectralMatch::operator=(const SpectralMatch& rhs)
@@ -102,6 +88,7 @@ namespace OpenMS
     matching_score_ = rhs.matching_score_;
     observed_spectrum_idx_ = rhs.observed_spectrum_idx_;
     matching_spectrum_idx_ = rhs.matching_spectrum_idx_;
+    observed_spectrum_native_id_ = rhs.observed_spectrum_native_id_;
     primary_id_ = rhs.primary_id_;
     secondary_id_ = rhs.secondary_id_;
     common_name_ = rhs.common_name_;
@@ -197,6 +184,17 @@ namespace OpenMS
     matching_spectrum_idx_ = match_spec_idx;
   }
 
+
+  String SpectralMatch::getObservedSpectrumNativeID() const
+  {
+    return observed_spectrum_native_id_;
+  }
+
+
+  void SpectralMatch::setObservedSpectrumNativeID(const String& obs_spec_native_id)
+  {
+    observed_spectrum_native_id_ = obs_spec_native_id;
+  }
 
   String SpectralMatch::getPrimaryIdentifier() const
   {
@@ -297,15 +295,16 @@ namespace OpenMS
     defaults_.setValue("ionization_mode", "positive", "Positive or negative ionization mode?");
     defaults_.setValidStrings("ionization_mode", {"positive","negative"});
 
+    defaults_.setValue("merge_spectra", "true", "Merge MS2 spectra with the same precursor mass.");
+    defaults_.setValidStrings("merge_spectra", {"true","false"});
+
     defaultsToParam_();
 
     this->setLogType(CMD);
   }
 
 
-  MetaboliteSpectralMatching::~MetaboliteSpectralMatching()
-  {
-  }
+  MetaboliteSpectralMatching::~MetaboliteSpectralMatching() = default;
 
 
   double MetaboliteSpectralMatching::computeHyperScore(
@@ -317,7 +316,7 @@ namespace OpenMS
   {
     return computeHyperScore_(fragment_mass_error,
                               fragment_mass_tolerance_unit_ppm, exp_spectrum,
-                              db_spectrum, 0, mz_lower_bound);
+                              db_spectrum, nullptr, mz_lower_bound);
   }
 
 
@@ -390,7 +389,7 @@ namespace OpenMS
     }
 
     // return annotations for matching peaks?
-    if ((annotations != 0) &&
+    if ((annotations != nullptr) &&
         !db_spectrum.getStringDataArrays().empty() &&
         !db_spectrum.getIntegerDataArrays().empty())
     {
@@ -437,7 +436,7 @@ namespace OpenMS
   }
 
 
-  void MetaboliteSpectralMatching::run(PeakMap& msexp, PeakMap& spec_db, MzTab& mztab_out)
+  void MetaboliteSpectralMatching::run(PeakMap& msexp, PeakMap& spec_db, MzTab& mztab_out, String& out_spectra)
   {
     sort(spec_db.begin(), spec_db.end(), PrecursorMZLess);
 
@@ -461,9 +460,18 @@ namespace OpenMS
     wm.filterPeakMap(msexp);
 
     // merge MS2 spectra with same precursor mass
-    SpectraMerger spme;
-    spme.mergeSpectraPrecursors(msexp);
-    wm.filterPeakMap(msexp);
+    if (merge_spectra_)
+    {
+      SpectraMerger spme;
+      spme.mergeSpectraPrecursors(msexp);
+      wm.filterPeakMap(msexp);
+    }
+
+    // store the spectra if an output file path is given
+    if (!out_spectra.empty())
+    {
+      MzMLFile().store(out_spectra, msexp);
+    }
 
 
     // container storing results
@@ -539,14 +547,15 @@ namespace OpenMS
             tmp_match.setMatchingScore(hyperscore);
             tmp_match.setObservedSpectrumIndex(spec_idx);
             tmp_match.setMatchingSpectrumIndex(search_idx);
+            tmp_match.setObservedSpectrumNativeID(msexp[spec_idx].getNativeID());
 
             tmp_match.setPrimaryIdentifier(spec_db[search_idx].getMetaValue("Massbank_Accession_ID"));
             tmp_match.setSecondaryIdentifier(spec_db[search_idx].getMetaValue("HMDB_ID"));
-            tmp_match.setSumFormula(spec_db[search_idx].getMetaValue("Sum_Formula"));
-            tmp_match.setCommonName(spec_db[search_idx].getMetaValue("Metabolite_Name"));
-            tmp_match.setInchiString(spec_db[search_idx].getMetaValue("Inchi_String"));
-            tmp_match.setSMILESString(spec_db[search_idx].getMetaValue("SMILES_String"));
-            tmp_match.setPrecursorAdduct(spec_db[search_idx].getMetaValue("Precursor_Ion"));
+            tmp_match.setSumFormula(spec_db[search_idx].getMetaValue(Constants::UserParam::MSM_SUM_FORMULA));
+            tmp_match.setCommonName(spec_db[search_idx].getMetaValue(Constants::UserParam::MSM_METABOLITE_NAME));
+            tmp_match.setInchiString(spec_db[search_idx].getMetaValue(Constants::UserParam::MSM_INCHI_STRING));
+            tmp_match.setSMILESString(spec_db[search_idx].getMetaValue(Constants::UserParam::MSM_SMILES_STRING));
+            tmp_match.setPrecursorAdduct(spec_db[search_idx].getMetaValue(Constants::UserParam::MSM_PRECURSOR_ADDUCT));
 
             partial_results.push_back(tmp_match);
           }
@@ -595,6 +604,7 @@ namespace OpenMS
 
     mz_error_unit_ = param_.getValue("mass_error_unit").toString();
     report_mode_ = param_.getValue("report_mode").toString();
+    merge_spectra_ = (bool)param_.getValue("merge_spectra").toBool();
   }
 
 
@@ -782,6 +792,15 @@ namespace OpenMS
       col4.first = "opt_source_idx";
       col4.second = source_idx_str;
       optionals.push_back(col4);
+
+      // set spectrum native ID
+      String spec_native_id = current_id.getObservedSpectrumNativeID();
+      MzTabString spec_native_id_str;
+      spec_native_id_str.set(spec_native_id);
+      MzTabOptionalColumnEntry col5;
+      col5.first = "opt_spec_native_id";
+      col5.second = spec_native_id_str;
+      optionals.push_back(col5);
 
       mztab_row_record.opt_ = optionals;
 

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -45,29 +45,29 @@ namespace OpenMS
   /**
     @brief Take the original retention time before map alignment and use the alignment's trafoXML
            for calculation of the new alignment retention times.
-           
+
     Sets meta values "rt_raw" and "rt_align" in PeptideIdentifications of the featureMap's PepIDs.
     It does <b>not</b> change the RT of the features.
-    
+
     **/
   class OPENMS_DLLAPI RTAlignment : public QCBase
   {
-    public:
+  public:
     /// Constructor
     RTAlignment() = default;
-    
+
     /// Destructor
     virtual ~RTAlignment() = default;
 
     /**
      @brief Calculates retention time after map alignment
             and sets meta values "rt_raw" and "rt_align" in all PepIDs (on features and all unassigned PepIDs)
-    
+
      @param fm: FeatureMap to receive the new metavalues
      @param trafo: Transformation information to get needed data from
     **/
     void compute(FeatureMap& fm, const TransformationDescription& trafo) const;
-    
+
     /**
     @brief Calculates retention time after map alignment
     and sets meta values "rt_raw" and "rt_align" in all PepIDs
@@ -79,12 +79,12 @@ namespace OpenMS
 
     /// returns the name of the metric
     const String& getName() const override;
-    
+
     /// define the required input file: featureXML before map alignment (=POSTFDRFEAT), trafoXML after map alignment (=TRAFOALIGN)
-    Status requires() const override;
-    
+    Status requirements() const override;
+
   private:
     /// name of the metric
     const String name_ = "RTAlignment";
   };
-}
+} // namespace OpenMS

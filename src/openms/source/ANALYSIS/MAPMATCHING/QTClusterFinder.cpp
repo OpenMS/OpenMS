@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -34,6 +34,7 @@
 
 #include <OpenMS/ANALYSIS/MAPMATCHING/QTClusterFinder.h>
 
+#include <OpenMS/DATASTRUCTURES/Adduct.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
@@ -121,7 +122,7 @@ namespace OpenMS
       double minRT = std::numeric_limits<double>::max();
       for (auto& map : input_maps)
       {
-        for (auto feat : map) //OMS_CODING_TEST_EXCLUDE
+        for (auto feat : map) //OMS_CODING_TEST_EXCLUDE Note: needs copy to sort
         {
           if (feat.getRT() < minRT) minRT = feat.getRT();
           auto& pepIDs = feat.getPeptideIdentifications();
@@ -201,7 +202,7 @@ namespace OpenMS
       // we calculate minRT (instead of starting first bin at 0) since RTs may start in the "negative" region after alignment.
       double start_rt = minRT;
       double min_tolerance = 20;
-      double tol, q2, q3 = 0.;
+      double tol, q2, q3;
       OPENMS_LOG_INFO << "Calculating RT linking tolerance bins...\n";
       OPENMS_LOG_INFO << "RT_bin_start, Tolerance" << std::endl;
 
@@ -527,6 +528,12 @@ void QTClusterFinder::createConsensusFeature_(ConsensusFeature& feature,
   {
     feature.setQuality(quality);
 
+    Adduct adduct;
+    // determine best quality feature for adduct ion annotation (Constanst::UserParam::IIMN_BEST_ION)
+    float best_quality = 0;
+    size_t best_quality_index = 0;
+    // collect the "Group" MetaValues of Features in a ConsensusFeature MetaValue (Constanst::UserParam::IIMN_LINKED_GROUPS)
+    vector<String> linked_groups;
     // the features of the current best cluster are inserted into the new consensus feature
     for (const auto& element : elements)
     {
@@ -536,12 +543,30 @@ void QTClusterFinder::createConsensusFeature_(ConsensusFeature& feature,
 
       BaseFeature& elem_feat = const_cast<BaseFeature&>(element.feature->getFeature());
       feature.insert(element.map_index, elem_feat);
-      if (elem_feat.metaValueExists("dc_charge_adducts"))
+      if (elem_feat.metaValueExists(Constants::UserParam::DC_CHARGE_ADDUCTS))
       {
-        feature.setMetaValue(String(elem_feat.getUniqueId()), elem_feat.getMetaValue("dc_charge_adducts"));
+        feature.setMetaValue(String(elem_feat.getUniqueId()), elem_feat.getMetaValue(Constants::UserParam::DC_CHARGE_ADDUCTS));
+      }
+      if (elem_feat.metaValueExists(Constants::UserParam::DC_CHARGE_ADDUCTS) && (elem_feat.getQuality() > best_quality))
+      {
+        feature.setMetaValue(Constants::UserParam::IIMN_BEST_ION, elem_feat.getMetaValue(Constants::UserParam::DC_CHARGE_ADDUCTS));
+        best_quality = elem_feat.getQuality();
+      }
+      if (elem_feat.metaValueExists(Constants::UserParam::ADDUCT_GROUP))
+      {
+        linked_groups.emplace_back(elem_feat.getMetaValue(Constants::UserParam::ADDUCT_GROUP));
       }
     }
-
+    if (elements[best_quality_index].feature->getFeature().metaValueExists(Constants::UserParam::DC_CHARGE_ADDUCTS))
+    {
+      feature.setMetaValue(Constants::UserParam::IIMN_BEST_ION, 
+                      adduct.toAdductString(elements[best_quality_index].feature->getFeature().getMetaValue(Constants::UserParam::DC_CHARGE_ADDUCTS),
+                                            elements[best_quality_index].feature->getFeature().getCharge()));
+    }
+    if (!linked_groups.empty())
+    {
+      feature.setMetaValue(Constants::UserParam::IIMN_LINKED_GROUPS, linked_groups);
+    }
     feature.computeConsensus();
   }
 
@@ -727,9 +752,9 @@ void QTClusterFinder::createConsensusFeature_(ConsensusFeature& feature,
     }
 
     {
-      std::set<AASequence> a = cluster.getAnnotations();
+      std::set<AASequence> ax = cluster.getAnnotations();
       std::cout << " FINAL with annotations: ";
-      for (std::set<AASequence>::iterator it = a.begin(); it != a.end(); ++it) std::cout << " " << *it;
+      for (std::set<AASequence>::iterator it = ax.begin(); it != ax.end(); ++it) std::cout << " " << *it;
       std::cout << std::endl;
     }
 #endif

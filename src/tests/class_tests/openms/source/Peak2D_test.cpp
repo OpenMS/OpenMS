@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry               
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 // 
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -47,6 +47,15 @@ START_TEST(Peak2D<D>, "$Id$")
 /////////////////////////////////////////////////////////////
 
 using namespace OpenMS;
+
+static_assert(std::is_trivially_destructible<Peak2D> {});
+// static_assert(std::is_trivially_default_constructible<Peak2D> {});
+static_assert(std::is_trivially_copy_constructible<Peak2D> {});
+static_assert(std::is_trivially_copy_assignable<Peak2D> {});
+static_assert(std::is_trivially_move_constructible<Peak2D> {});
+static_assert(std::is_nothrow_move_constructible<Peak2D> {});
+static_assert(std::is_trivially_move_assignable<Peak2D> {});
+
 
 Peak2D* d10_ptr = nullptr;
 Peak2D* d10_nullPointer = nullptr;
@@ -102,7 +111,6 @@ START_SECTION((Peak2D(Peak2D &&rhs)))
   Peak2D::PositionType pos2;
   Peak2D::IntensityType i2;
 
-  Peak2D orig = p;
   Peak2D copy_of_p(std::move(p));
 
   i2 = copy_of_p.getIntensity();
@@ -205,17 +213,17 @@ END_SECTION
 START_SECTION((bool operator == (const Peak2D& rhs) const))
 	Peak2D p1;
 	Peak2D p2(p1);
-	TEST_EQUAL(p1==p2, true)
+	TEST_TRUE(p1 == p2)
 	
 	p1.setIntensity(5.0f);
 	TEST_EQUAL(p1==p2, false)
 	p2.setIntensity(5.0f);
-	TEST_EQUAL(p1==p2, true)
+	TEST_TRUE(p1 == p2)
 	
 	p1.getPosition()[0]=5;
 	TEST_EQUAL(p1==p2, false)
 	p2.getPosition()[0]=5;
-	TEST_EQUAL(p1==p2, true)
+	TEST_TRUE(p1 == p2)
 END_SECTION
 
 START_SECTION((bool operator != (const Peak2D& rhs) const))
@@ -224,12 +232,12 @@ START_SECTION((bool operator != (const Peak2D& rhs) const))
 	TEST_EQUAL(p1!=p2, false)
 	
 	p1.setIntensity(5.0f);
-	TEST_EQUAL(p1!=p2, true)
+	TEST_FALSE(p1 == p2)
 	p2.setIntensity(5.0f);
 	TEST_EQUAL(p1!=p2, false)
 	
 	p1.getPosition()[0]=5;
-	TEST_EQUAL(p1!=p2, true)
+	TEST_FALSE(p1 == p2)
 	p2.getPosition()[0]=5;
 	TEST_EQUAL(p1!=p2, false)
 END_SECTION

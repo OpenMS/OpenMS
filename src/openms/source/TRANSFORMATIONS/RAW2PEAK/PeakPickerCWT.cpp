@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -83,10 +83,7 @@ namespace OpenMS
     defaults_.setValue("peak_width", 0.15, "Approximate fwhm of the peaks.");
     defaults_.setMinFloat("peak_width", 0.0);
     defaults_.setValue("estimate_peak_width", "false", "Flag if the average peak width shall be estimated. Attention: when this flag is set, the peak_width is ignored.");
-    std::vector<std::string> valid_opts;
-    valid_opts.push_back("true");
-    valid_opts.push_back("false");
-    defaults_.setValidStrings("estimate_peak_width", valid_opts);
+    defaults_.setValidStrings("estimate_peak_width", {"true","false"});
 
     defaults_.setValue("fwhm_lower_bound_factor", 0.7, "Factor that calculates the minimal fwhm value from the peak_width. All peaks with width smaller than fwhm_bound_factor * peak_width are discarded.", {"advanced"});
     defaults_.setValue("fwhm_upper_bound_factor", 20., "Factor that calculates the maximal fwhm value from the peak_width. All peaks with width greater than fwhm_upper_bound_factor * peak_width are discarded.", {"advanced"});
@@ -104,10 +101,10 @@ namespace OpenMS
     //Optimization parameters
     defaults_.setValue("optimization", "no", "If the peak parameters position, intensity and left/right width" \
                                              "shall be optimized set optimization to one_dimensional or two_dimensional.", {"advanced"});
-    valid_opts.clear();
-    valid_opts.push_back("no");
-    valid_opts.push_back("one_dimensional");
-    valid_opts.push_back("two_dimensional");
+    std::vector<std::string> valid_opts;
+    valid_opts.emplace_back("no");
+    valid_opts.emplace_back("one_dimensional");
+    valid_opts.emplace_back("two_dimensional");
     defaults_.setValidStrings("optimization", valid_opts);
     defaults_.setValue("optimization:penalties:position", 0.0, "penalty term for the fitting of the position:" \
                                                                "If it differs too much from the initial one it can be penalized ", {"advanced"});
@@ -130,10 +127,7 @@ namespace OpenMS
     defaults_.setMinFloat("optimization:2d:max_peak_distance", 0.0);
     // deconvolution parameters
     defaults_.setValue("deconvolution:deconvolution", "false", "If you want heavily overlapping peaks to be separated set this value to \"true\"", {"advanced"});
-    valid_opts.clear();
-    valid_opts.push_back("true");
-    valid_opts.push_back("false");
-    defaults_.setValidStrings("deconvolution:deconvolution", valid_opts);
+    defaults_.setValidStrings("deconvolution:deconvolution", {"true", "false"});
     defaults_.setValue("deconvolution:asym_threshold", 0.3, "If the symmetry of a peak is smaller than asym_thresholds it is assumed that it consists of more than one peak and the deconvolution procedure is started.", {"advanced"});
     defaults_.setMinFloat("deconvolution:asym_threshold", 0.0);
     defaults_.setValue("deconvolution:left_width", 2.0, "1/left_width is the initial value for the left width of the peaks found in the deconvolution step.", {"advanced"});
@@ -178,9 +172,7 @@ namespace OpenMS
     defaultsToParam_();
   }
 
-  PeakPickerCWT::~PeakPickerCWT()
-  {
-  }
+  PeakPickerCWT::~PeakPickerCWT() = default;
 
   void PeakPickerCWT::updateMembers_()
   {
@@ -852,7 +844,7 @@ namespace OpenMS
     double dist = peak_width / (num_peaks + 1);
 
     // put peak into peak vector using default values for the widths and peak type
-    peaks_DC.push_back(PeakShape(0, 0, left_width, right_width, 0, PeakShape::SECH_PEAK));
+    peaks_DC.emplace_back(0, 0, left_width, right_width, 0, PeakShape::SECH_PEAK);
 
     // adjust the positions and get their initial intensities from the profile data
     for (Size i = 0; i < num_peaks; ++i)

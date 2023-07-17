@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -444,7 +444,7 @@ START_SECTION(([EXTRA]
   TEST_EQUAL(drift_spectrum->getMZArray()->data.size(), 24)
   TEST_EQUAL(drift_spectrum->getMZArray()->data.size(), drift_spectrum->getIntensityArray()->data.size())
   TEST_EQUAL(drift_spectrum->getMZArray()->data.size(), drift_spectrum->getDriftTimeArray()->data.size())
-  /*
+  
   IonMobilityScoring::driftScoringMS1Contrast(drift_spectrum, drift_spectrum_ms1, transitions, scores,
                                    drift_lower, drift_upper,
                                    dia_extract_window_, dia_extraction_ppm_,
@@ -507,11 +507,9 @@ START_SECTION(([EXTRA]
   TEST_EQUAL(std::isnan(scores.im_ms1_contrast_shape), true)
   TEST_REAL_SIMILAR(scores.im_ms1_sum_contrast_coelution, 0)
   TEST_EQUAL(std::isnan(scores.im_ms1_sum_contrast_shape), true)
-  */
 }
 END_SECTION
 
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 END_TEST
-

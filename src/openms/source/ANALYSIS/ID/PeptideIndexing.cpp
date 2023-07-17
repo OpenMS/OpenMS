@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -42,6 +42,9 @@
 #include <OpenMS/SYSTEM/SysInfo.h>
 
 #include <atomic>
+#include <map>
+#include <array>
+
 
 #ifdef _OPENMP 
 #include <omp.h>
@@ -124,9 +127,10 @@ using namespace std;
       other.filter_rejected = 0;
     }
 
-    bool validate(const String& seq_prot, const Int position, const Int len_pep)
+    bool validate(const String& seq_prot, const Int position, const Int len_pep, const bool allow_nterm_protein_cleavage)
     {
-      return enzyme.isValidProduct(seq_prot, position, len_pep, true, true, xtandem_);
+      const bool ignore_missed_cleavages = true;
+      return enzyme.isValidProduct(seq_prot, position, len_pep, ignore_missed_cleavages, allow_nterm_protein_cleavage, xtandem_);
     }
 
     void addHit(
@@ -163,7 +167,7 @@ using namespace std;
 
   // free function (not exported) used to add hits
   void search(ACTrie& trie, ACTrieState& state, const String& prot, const String& full_prot, size_t prot_offset, Hit::T idx_prot, 
-              FoundProteinFunctor& func_threads)
+              FoundProteinFunctor& func_threads, const bool allow_nterm_protein_cleavage)
   {
     state.setQuery(prot);
     trie.getAllHits(state);
@@ -181,7 +185,7 @@ using namespace std;
       Hit::T pos = Hit::T(hit.query_pos + prot_offset);
       if (!(hit.needle_length == old.needle_length && hit.query_pos == old.query_pos))
       { // new stretch in protein. Validate if cutting site
-        last_valid = func_threads.validate(full_prot, pos, hit.needle_length);
+        last_valid = func_threads.validate(full_prot, pos, hit.needle_length, allow_nterm_protein_cleavage);
       }
       func_threads.addHit(last_valid, hit.needle_index, idx_prot, hit.needle_length, full_prot, pos);
       old = hit;
@@ -242,6 +246,9 @@ using namespace std;
     defaults_.setValue("IL_equivalent", "false", "Treat the isobaric amino acids isoleucine ('I') and leucine ('L') as equivalent (indistinguishable). Also occurrences of 'J' will be treated as 'I' thus avoiding ambiguous matching.");
     defaults_.setValidStrings("IL_equivalent", { "true", "false" });
 
+    defaults_.setValue("allow_nterm_protein_cleavage", "true", "Allow the protein N-terminus amino acid to clip.");
+    defaults_.setValidStrings("allow_nterm_protein_cleavage", { "true", "false" });
+
     defaultsToParam_();
   }
 
@@ -263,6 +270,7 @@ using namespace std;
     IL_equivalent_ = param_.getValue("IL_equivalent").toBool();
     aaa_max_ = static_cast<Int>(param_.getValue("aaa_max"));
     mm_max_ = static_cast<Int>(param_.getValue("mismatches_max"));
+    allow_nterm_protein_cleavage_ = param_.getValue("allow_nterm_protein_cleavage").toBool();
   }
 
 PeptideIndexing::ExitCodes PeptideIndexing::run(std::vector<FASTAFile::FASTAEntry>& proteins, std::vector<ProteinIdentification>& prot_ids, std::vector<PeptideIdentification>& pep_ids)
@@ -350,6 +358,11 @@ PeptideIndexing::ExitCodes PeptideIndexing::run_(FASTAContainer<T>& proteins, st
     if (search_engine == "MS-GF+" || search_engine == "MSGFPLUS" || prot_id.getSearchParameters().metaValueExists("SE:MS-GF+")) { msgfplus_fix_parameters = true; }
   }
 
+  if (xtandem_fix_parameters)
+  {
+    OPENMS_LOG_WARN << "X!Tandem detected. Allowing random Asp/Pro cleavage." << std::endl;
+  }
+
   // including MSGFPlus -> Trypsin/P as enzyme
   if (msgfplus_fix_parameters && enzyme.getEnzymeName() == "Trypsin")
   {
@@ -406,7 +419,7 @@ PeptideIndexing::ExitCodes PeptideIndexing::run_(FASTAContainer<T>& proteins, st
   }
 
   FoundProteinFunctor func(enzyme, xtandem_fix_parameters); // store the matches
-  Map<String, Size> acc_to_prot; // map: accessions --> FASTA protein index
+  std::map<String, Size> acc_to_prot; // map: accessions --> FASTA protein index
   std::vector<bool> protein_is_decoy; // protein index -> is decoy?
   std::vector<std::string> protein_accessions; // protein index -> accession
 
@@ -467,7 +480,7 @@ PeptideIndexing::ExitCodes PeptideIndexing::run_(FASTAContainer<T>& proteins, st
     #pragma omp parallel
     {
       FoundProteinFunctor func_threads(enzyme, xtandem_fix_parameters);
-      Map<String, Size> acc_to_prot_thread; // map: accessions --> FASTA protein index
+      std::map<String, Size> acc_to_prot_thread; // map: accessions --> FASTA protein index
       ACTrieState ac_state;
       String prot;
 
@@ -531,7 +544,7 @@ PeptideIndexing::ExitCodes PeptideIndexing::run_(FASTAContainer<T>& proteins, st
             }
           }
 
-          const Hit::T prot_idx = i + proteins.getChunkOffset();
+          const Hit::T prot_idx = Hit::T(i + proteins.getChunkOffset());
           
           // grab #hits before searching protein; we know its a hit if this number changes
           const Size hits_total = func_threads.filter_passed + func_threads.filter_rejected;
@@ -544,7 +557,8 @@ PeptideIndexing::ExitCodes PeptideIndexing::run_(FASTAContainer<T>& proteins, st
             while ((offset = prot.find(jumpX, offset + 1)) != std::string::npos)
             {
               //std::cout << "found X..X at " << offset << " in protein " << proteins[i].identifier << "\n";
-              search(ac_trie, ac_state, prot.substr(start, offset + jumpX.size() - start), prot, start, prot_idx, func_threads);
+              search(ac_trie, ac_state, prot.substr(start, offset + jumpX.size() - start), prot, start, prot_idx, func_threads,
+                     allow_nterm_protein_cleavage_);
               // skip ahead while we encounter more X...
               while (offset + jumpX.size() < prot.size() && prot[offset + jumpX.size()] == 'X') ++offset;
               start = offset;
@@ -553,12 +567,12 @@ PeptideIndexing::ExitCodes PeptideIndexing::run_(FASTAContainer<T>& proteins, st
             // last chunk
             if (start < prot.size())
             {
-              search(ac_trie, ac_state, prot.substr(start), prot, start, prot_idx, func_threads);
+              search(ac_trie, ac_state, prot.substr(start), prot, start, prot_idx, func_threads, allow_nterm_protein_cleavage_);
             }
           }
           else // search the whole protein at once
           {
-            search(ac_trie, ac_state, prot, prot, 0, prot_idx, func_threads);
+            search(ac_trie, ac_state, prot, prot, 0, prot_idx, func_threads, allow_nterm_protein_cleavage_);
           }
           // was protein found?
           if (hits_total < func_threads.filter_passed + func_threads.filter_rejected)
@@ -623,7 +637,7 @@ PeptideIndexing::ExitCodes PeptideIndexing::run_(FASTAContainer<T>& proteins, st
   //   do mapping 
   //
   // index existing proteins
-  Map<String, Size> runid_to_runidx; // identifier to index
+  std::map<String, Size> runid_to_runidx; // identifier to index
   for (Size run_idx = 0; run_idx < prot_ids.size(); ++run_idx)
   {
     runid_to_runidx[prot_ids[run_idx].getIdentifier()] = run_idx;
@@ -637,7 +651,7 @@ PeptideIndexing::ExitCodes PeptideIndexing::run_(FASTAContainer<T>& proteins, st
   Size stats_count_m_d(0);    // match to Decoy DB
   Size stats_count_m_td(0);   // match to T+D DB
 
-  Map<Size, std::set<Size> > runidx_to_protidx; // in which protID do appear which proteins (according to mapped peptides)
+  std::map<Size, std::set<Size> > runidx_to_protidx; // in which protID do appear which proteins (according to mapped peptides)
 
   Size pep_idx(0);
   Size func_hits_idx(0); ///< current position in func.pep_to_prot[] which has a stretch of matches for current pep_idx
@@ -760,7 +774,7 @@ PeptideIndexing::ExitCodes PeptideIndexing::run_(FASTAContainer<T>& proteins, st
   // all peptides contain the correct protein hit references, now update the protein hits
   for (Size run_idx = 0; run_idx < prot_ids.size(); ++run_idx)
   {
-    std::set<Size> masterset = runidx_to_protidx[run_idx]; // all protein matches from above
+    const auto& masterset = runidx_to_protidx[run_idx]; // all protein matches from above
 
     std::vector<ProteinHit>& phits = prot_ids[run_idx].getHits();
     {
@@ -769,7 +783,7 @@ PeptideIndexing::ExitCodes PeptideIndexing::run_(FASTAContainer<T>& proteins, st
       for (std::vector<ProteinHit>::iterator p_hit = phits.begin(); p_hit != phits.end(); ++p_hit)
       {
         const String& acc = p_hit->getAccession();
-        if (!acc_to_prot.has(acc)) // acc_to_prot only contains found proteins from current run
+        if (acc_to_prot.find(acc) == acc_to_prot.end()) // acc_to_prot only contains found proteins from current run
         { // old hit is orphaned
           ++stats_orphaned_proteins;
           if (keep_unreferenced_proteins_)

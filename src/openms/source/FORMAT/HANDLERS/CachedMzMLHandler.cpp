@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -39,13 +39,9 @@
 
 namespace OpenMS::Internal
 {
-  CachedMzMLHandler::CachedMzMLHandler()
-  {
-  }
+  CachedMzMLHandler::CachedMzMLHandler() = default;
 
-  CachedMzMLHandler::~CachedMzMLHandler()
-  {
-  }
+  CachedMzMLHandler::~CachedMzMLHandler() = default;
 
   CachedMzMLHandler& CachedMzMLHandler::operator=(const CachedMzMLHandler& rhs)
   {
@@ -86,7 +82,7 @@ namespace OpenMS::Internal
     endProgress();
   }
 
-  void CachedMzMLHandler::readMemdump(MapType& exp_reading, String filename) const
+  void CachedMzMLHandler::readMemdump(MapType& exp_reading, const String& filename) const
   {
     std::ifstream ifs(filename.c_str(), std::ios::binary);
     if (ifs.fail())
@@ -95,7 +91,6 @@ namespace OpenMS::Internal
     }
 
     Size exp_size, chrom_size;
-    Peak1D current_peak;
 
     int file_identifier;
     ifs.read((char*)&file_identifier, sizeof(file_identifier));
@@ -145,7 +140,7 @@ namespace OpenMS::Internal
     return chrom_index_;
   }
 
-  void CachedMzMLHandler::createMemdumpIndex(String filename)
+  void CachedMzMLHandler::createMemdumpIndex(const String& filename)
   {
     std::ifstream ifs(filename.c_str(), std::ios::binary);
     if (ifs.fail())
@@ -154,7 +149,6 @@ namespace OpenMS::Internal
     }
 
     Size exp_size, chrom_size;
-    Peak1D current_peak;
 
     ifs.seekg(0, ifs.beg); // set file pointer to beginning, start reading
     spectra_index_.clear();
@@ -230,7 +224,7 @@ namespace OpenMS::Internal
     endProgress();
   }
 
-  void CachedMzMLHandler::writeMetadata(MapType exp, String out_meta, bool addCacheMetaValue)
+  void CachedMzMLHandler::writeMetadata(MapType exp, const String& out_meta, bool addCacheMetaValue)
   {
     // delete the actual data for all spectra and chromatograms, leave only metadata
     // TODO : remove copy
@@ -273,7 +267,7 @@ namespace OpenMS::Internal
   {
     // delete the actual data for all spectra and chromatograms, leave only metadata
     // TODO : remove copy
-    ExperimentalSettings qq = exp;
+    const ExperimentalSettings& qq = exp;
     MSExperiment out_exp;
     out_exp = qq;
     // std::vector<MSChromatogram > chromatograms = exp.getChromatograms(); // copy

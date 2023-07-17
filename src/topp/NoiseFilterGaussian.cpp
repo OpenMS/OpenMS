@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -57,9 +57,9 @@ using namespace std;
   <center>
   <table>
   <tr>
-  <td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. predecessor tools </td>
-  <td VALIGN="middle" ROWSPAN=4> \f$ \longrightarrow \f$ NoiseFilterGaussian \f$ \longrightarrow \f$</td>
-  <td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. successor tools </td>
+  <th ALIGN = "center"> pot. predecessor tools </td>
+  <td VALIGN="middle" ROWSPAN=4> &rarr; NoiseFilterGaussian &rarr;</td>
+  <th ALIGN = "center"> pot. successor tools </td>
   </tr>
   <tr>
   <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_FileConverter </td>
@@ -202,7 +202,7 @@ public:
     //check for peak type (profile data required)
     if (!exp.empty() && exp[0].getType(true) == SpectrumSettings::CENTROID)
     {
-      writeLog_("Warning: OpenMS peak type estimation indicates that this is not profile data!");
+      writeLogWarn_("Warning: OpenMS peak type estimation indicates that this is not profile data!");
     }
 
     //check if spectra are sorted
@@ -210,7 +210,7 @@ public:
     {
       if (!exp[i].isSorted())
       {
-        writeLog_("Error: Not all spectra are sorted according to peak m/z positions. Use FileFilter to sort the input!");
+        writeLogError_("Error: Not all spectra are sorted according to peak m/z positions. Use FileFilter to sort the input!");
         return INCOMPATIBLE_INPUT_DATA;
       }
     }
@@ -220,7 +220,7 @@ public:
     {
       if (!exp.getChromatogram(i).isSorted())
       {
-        writeLog_("Error: Not all chromatograms are sorted according to peak m/z positions. Use FileFilter to sort the input!");
+        writeLogError_("Error: Not all chromatograms are sorted according to peak m/z positions. Use FileFilter to sort the input!");
         return INCOMPATIBLE_INPUT_DATA;
       }
     }
@@ -234,7 +234,7 @@ public:
     }
     catch (Exception::IllegalArgument & e)
     {
-      writeLog_(String("Error: ") + e.what());
+      writeLogError_(String("Error: ") + e.what());
       return INCOMPATIBLE_INPUT_DATA;
     }
 

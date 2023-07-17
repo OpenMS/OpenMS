@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -357,8 +357,8 @@ protected:
     }
 
     // determine charge of adduct (by number of '+' or '-')
-    Int pos_charge = parts[1].size() - parts[1].remove('+').size();
-    Int neg_charge = parts[1].size() - parts[1].remove('-').size();
+    Int pos_charge = std::count(parts[1].begin(), parts[1].end(), '+');
+    Int neg_charge = std::count(parts[1].begin(), parts[1].end(), '-');
     OPENMS_LOG_DEBUG << ": " << pos_charge - neg_charge << endl;
     if (pos_charge > 0 && neg_charge > 0)
     {
@@ -1316,6 +1316,7 @@ protected:
             if (!theo_ms2_out.empty())
             {
               theo_spectrum.setName(candidate.toString());
+              theo_spectrum.setRT(exp_spectrum.getRT());
 #pragma omp critical (theo_ms2_out)
               theo_ms2_spectra.addSpectrum(theo_spectrum);
             }

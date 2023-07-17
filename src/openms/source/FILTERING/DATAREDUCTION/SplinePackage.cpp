@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -40,7 +40,7 @@ using namespace std;
 namespace OpenMS
 {
 
-  SplinePackage::SplinePackage(std::vector<double> pos, std::vector<double> intensity) :
+  SplinePackage::SplinePackage(std::vector<double> pos, const std::vector<double>& intensity) :
     spline_(pos, intensity)
   {
     if (!(pos.size() == intensity.size() && pos.size() > 1))
@@ -53,9 +53,7 @@ namespace OpenMS
     pos_step_width_ = (pos_max_ - pos_min_) / (pos.size() - 1);
   }
 
-  SplinePackage::~SplinePackage()
-  {
-  }
+  SplinePackage::~SplinePackage() = default;
 
   double SplinePackage::getPosMin() const
   {

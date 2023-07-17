@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -34,8 +34,11 @@
 
 #include <OpenMS/ANALYSIS/MAPMATCHING/FeatureGroupingAlgorithmQT.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/QTClusterFinder.h>
+#include <OpenMS/ANALYSIS/ID/IonIdentityMolecularNetworking.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
+
+#include <OpenMS/ANALYSIS/MAPMATCHING/FeatureGroupingAlgorithm.h>
 
 using namespace std;
 
@@ -50,9 +53,7 @@ namespace OpenMS
     defaultsToParam_();
   }
 
-  FeatureGroupingAlgorithmQT::~FeatureGroupingAlgorithmQT()
-  {
-  }
+  FeatureGroupingAlgorithmQT::~FeatureGroupingAlgorithmQT() = default;
 
   template <typename MapType>
   void FeatureGroupingAlgorithmQT::group_(const vector<MapType>& maps,
@@ -69,7 +70,7 @@ namespace OpenMS
     cluster_finder.setParameters(param_.copy("", true));
 
     cluster_finder.run(maps, out);
-
+    
     postprocess_(maps, out);
   }
 

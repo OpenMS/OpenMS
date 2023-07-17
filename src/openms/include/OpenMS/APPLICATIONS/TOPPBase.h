@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -47,6 +47,8 @@
 #include <OpenMS/KERNEL/StandardTypes.h>
 
 #include <fstream>
+
+#include <QString>
 
 class QStringList;
 
@@ -623,7 +625,7 @@ protected:
       @param advanced If @em true, this parameter is advanced and by default hidden in the GUI.
 
     */
-    void registerIntList_(const String& name, const String& argument, IntList default_value, const String& description, bool required = true, bool advanced = false);
+    void registerIntList_(const String& name, const String& argument, const IntList& default_value, const String& description, bool required = true, bool advanced = false);
 
     /**
        @brief Registers a list of doubles option.
@@ -635,7 +637,7 @@ protected:
        @param required If the user has to provide a value i.e. if the value has to differ from the default (checked in get-method)
        @param advanced If @em true, this parameter is advanced and by default hidden in the GUI.
      */
-    void registerDoubleList_(const String& name, const String& argument, DoubleList default_value, const String& description, bool required = true, bool advanced = false);
+    void registerDoubleList_(const String& name, const String& argument, const DoubleList& default_value, const String& description, bool required = true, bool advanced = false);
 
     /**
        @brief Registers a list of strings option.
@@ -647,7 +649,7 @@ protected:
        @param required If the user has to provide a value i.e. if the value has to differ from the default (checked in get-method)
        @param advanced If @em true, this parameter is advanced and by default hidden in the GUI.
      */
-    void registerStringList_(const String& name, const String& argument, StringList default_value, const String& description, bool required = true, bool advanced = false);
+    void registerStringList_(const String& name, const String& argument, const StringList& default_value, const String& description, bool required = true, bool advanced = false);
 
     /**
        @brief Registers a list of input files option.
@@ -665,7 +667,7 @@ protected:
                        Valid tags: 'skipexists' - will prevent checking if the given file really exists (useful for partial paths, e.g. in OpenMS/share/... which will be resolved by the TOPP tool internally)
                                    'is_executable' - checks existence of the file using the PATH environment (and common exe file endings on Windows, e.g. .exe and .bat).
        */
-    void registerInputFileList_(const String& name, const String& argument, StringList default_value, const String& description, bool required = true, bool advanced = false, const StringList& tags = StringList());
+    void registerInputFileList_(const String& name, const String& argument, const StringList& default_value, const String& description, bool required = true, bool advanced = false, const StringList& tags = StringList());
 
     /**
        @brief Registers a list of output files option.
@@ -680,7 +682,7 @@ protected:
        @param required If the user has to provide a value i.e. if the value has to differ from the default (checked in get-method)
        @param advanced If @em true, this parameter is advanced and by default hidden in the GUI.
      */
-    void registerOutputFileList_(const String& name, const String& argument, StringList default_value, const String& description, bool required = true, bool advanced = false);
+    void registerOutputFileList_(const String& name, const String& argument, const StringList& default_value, const String& description, bool required = true, bool advanced = false);
 
     /// Registers a flag
     void registerFlag_(const String& name, const String& description, bool advanced = false);
@@ -849,13 +851,19 @@ protected:
 
     ///@name Debug and Log output
     //@{
-    /// Writes a string to the log file and to std::cout
-    void writeLog_(const String& text) const;
+    /// Writes a string to the log file and to OPENMS_LOG_INFO
+    void writeLogInfo_(const String& text) const;
 
-    /// Writes a @p text to the log file and to std::cout if the debug level is at least @p min_level
+    /// Writes a string to the log file and to OPENMS_LOG_WARN
+    void writeLogWarn_(const String& text) const;
+
+    /// Writes a string to the log file and to OPENMS_LOG_ERROR
+    void writeLogError_(const String& text) const;
+
+    /// Writes a string to the log file and to OPENMS_LOG_DEBUG if the debug level is at least @p min_level
     void writeDebug_(const String& text, UInt min_level) const;
 
-    /// Writes a String followed by a Param to the log file and to std::cout if the debug level is at least @p min_level
+    /// Writes a String followed by a Param to the log file and to OPENMS_LOG_DEBUG if the debug level is at least @p min_level
     void writeDebug_(const String& text, const Param& param, UInt min_level) const;
     //@}
 

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -34,11 +34,11 @@
 
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/FORMAT/FileHandler.h>
+#include <OpenMS/KERNEL/ConsensusMap.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
-#include <OpenMS/METADATA/ProteinIdentification.h>
-
-#include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
+#include <OpenMS/METADATA/ProteinIdentification.h>
+#include <OpenMS/SYSTEM/File.h>
 
 #include <numeric>
 #include <unordered_set>
@@ -631,47 +631,70 @@ namespace OpenMS
     }
   }
 
-  void ProteinIdentification::computeCoverage(const std::vector<PeptideIdentification>& pep_ids)
+
+  void ProteinIdentification::fillEvidenceMapping_(unordered_map<String, set<PeptideEvidence> >& map_acc_2_evidence,
+                                                   const std::vector<PeptideIdentification>& pep_ids) const
   {
-    // map protein accession to the corresponding peptide evidence
-    map<String, set<PeptideEvidence> > map_acc_2_evidence;
-    for (Size pep_i = 0; pep_i != pep_ids.size(); ++pep_i)
+    //TODO check matching identifiers?
+    for (const auto & peptide_id : pep_ids)
     {
       // peptide hits
-      const PeptideIdentification& peptide_id = pep_ids[pep_i];
       const vector<PeptideHit>& peptide_hits = peptide_id.getHits();
-      for (Size ph_i = 0; ph_i != peptide_hits.size(); ++ph_i)
+      for (const auto & peptide_hit : peptide_hits)
       {
-        const PeptideHit& peptide_hit = peptide_hits[ph_i];
         const std::vector<PeptideEvidence>& ph_evidences = peptide_hit.getPeptideEvidences();
-
         // matched proteins for hit
-        for (Size pep_ev_i = 0; pep_ev_i != ph_evidences.size(); ++pep_ev_i)
+        for (const auto & evidence : ph_evidences)
         {
-          const PeptideEvidence& evidence = ph_evidences[pep_ev_i];
           map_acc_2_evidence[evidence.getProteinAccession()].insert(evidence);
         }
       }
     }
+  }
 
-    for (Size i = 0; i < protein_hits_.size(); ++i)
+  void ProteinIdentification::computeCoverage(const std::vector<PeptideIdentification>& pep_ids)
+  {
+    // map protein accession to the corresponding peptide evidence
+    unordered_map<String, set<PeptideEvidence> > map_acc_2_evidence;
+    fillEvidenceMapping_(map_acc_2_evidence, pep_ids);
+    computeCoverageFromEvidenceMapping_(map_acc_2_evidence);
+  }
+
+  void ProteinIdentification::computeCoverage(const ConsensusMap& cmap, bool use_unassigned_ids)
+  {
+    // map protein accession to the corresponding peptide evidence
+    unordered_map<String, set<PeptideEvidence> > map_acc_2_evidence;
+    for (const auto& feat : cmap)
     {
-      const Size protein_length = protein_hits_[i].getSequence().length();
+      fillEvidenceMapping_(map_acc_2_evidence,feat.getPeptideIdentifications());
+    }
+    if (use_unassigned_ids)
+    {
+      fillEvidenceMapping_(map_acc_2_evidence, cmap.getUnassignedPeptideIdentifications());
+    }
+    computeCoverageFromEvidenceMapping_(map_acc_2_evidence);
+  }
+
+  void ProteinIdentification::computeCoverageFromEvidenceMapping_(const unordered_map<String, set<PeptideEvidence>>& map_acc_2_evidence)
+  {
+    for (Size i = 0; i < this->protein_hits_.size(); ++i)
+    {
+      const Size protein_length = this->protein_hits_[i].getSequence().length();
       if (protein_length == 0)
       {
         throw Exception::MissingInformation(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, " ProteinHits do not contain a protein sequence. Cannot compute coverage! Use PeptideIndexer to annotate proteins with sequence information.");
       }
       vector<bool> covered_amino_acids(protein_length, false);
 
-      const String& accession = protein_hits_[i].getAccession();
+      const String& accession = this->protein_hits_[i].getAccession();
       double coverage = 0.0;
       if (map_acc_2_evidence.find(accession) != map_acc_2_evidence.end())
       {
         const set<PeptideEvidence>& evidences = map_acc_2_evidence.find(accession)->second;
-        for (set<PeptideEvidence>::const_iterator sit = evidences.begin(); sit != evidences.end(); ++sit)
+        for (const auto & evidence : evidences)
         {
-          int start = sit->getStart();
-          int stop = sit->getEnd();
+          int start = evidence.getStart();
+          int stop = evidence.getEnd();
 
           if (start == PeptideEvidence::UNKNOWN_POSITION || stop == PeptideEvidence::UNKNOWN_POSITION)
           {
@@ -690,9 +713,10 @@ namespace OpenMS
 
           std::fill(covered_amino_acids.begin() + start, covered_amino_acids.begin() + stop + 1, true);
         }
-        coverage = 100.0 * (double) std::accumulate(covered_amino_acids.begin(), covered_amino_acids.end(), 0) / protein_length;
+        coverage = 100.0 * (double) std::accumulate(covered_amino_acids.begin(),
+                                                   covered_amino_acids.end(), 0) / (double) protein_length;
       }
-      protein_hits_[i].setCoverage(coverage);
+      this->protein_hits_[i].setCoverage(coverage);
     }
   }
 
@@ -701,24 +725,57 @@ namespace OpenMS
     const StringList& skip_modifications)
   {
     // map protein accession to observed position,modifications pairs
-    map<String, set<pair<Size, ResidueModification>>> prot2mod;
+    unordered_map<String, set<pair<Size, ResidueModification>>> prot2mod;
 
-    for (Size pep_i = 0; pep_i != pep_ids.size(); ++pep_i)
+    fillModMapping_(pep_ids, skip_modifications, prot2mod);
+
+    for (auto & protein_hit : protein_hits_)
+    {
+      const String& accession = protein_hit.getAccession();
+      if (prot2mod.find(accession) != prot2mod.end())
+      {
+        protein_hit.setModifications(prot2mod[accession]);
+      }
+    }
+  }
+
+  void ProteinIdentification::computeModifications(
+    const ConsensusMap& cmap,
+    const StringList& skip_modifications,
+    bool use_unassigned_ids)
+  {
+    // map protein accession to observed position,modifications pairs
+    unordered_map<String, set<pair<Size, ResidueModification>>> prot2mod;
+
+    for (const auto& feat : cmap)
+    {
+      fillModMapping_(feat.getPeptideIdentifications(), skip_modifications, prot2mod);
+    }
+    if (use_unassigned_ids) fillModMapping_(cmap.getUnassignedPeptideIdentifications(), skip_modifications, prot2mod);
+
+    for (auto & protein_hit : protein_hits_)
+    {
+      const String& accession = protein_hit.getAccession();
+      if (prot2mod.find(accession) != prot2mod.end())
+      {
+        protein_hit.setModifications(prot2mod[accession]);
+      }
+    }
+  }
+
+  void ProteinIdentification::fillModMapping_(const vector<PeptideIdentification>& pep_ids, const StringList& skip_modifications,
+                                              unordered_map<String, set<pair<Size, ResidueModification>>>& prot2mod) const
+  {
+    for (const auto & peptide_id : pep_ids)
     {
       // peptide hits
-      const PeptideIdentification& peptide_id = pep_ids[pep_i];
-      const vector<PeptideHit> peptide_hits = peptide_id.getHits();
-      for (Size ph_i = 0; ph_i != peptide_hits.size(); ++ph_i)
+      const vector<PeptideHit>& peptide_hits = peptide_id.getHits();
+      for (const auto & peptide_hit : peptide_hits)
       {
-        const PeptideHit& peptide_hit = peptide_hits[ph_i];
         const AASequence& aas = peptide_hit.getSequence();
-        const std::vector<PeptideEvidence>& ph_evidences = peptide_hit.getPeptideEvidences();
+        const vector<PeptideEvidence>& ph_evidences = peptide_hit.getPeptideEvidences();
 
         // skip unmodified peptides
-        if (aas.isModified() == false)
-        { 
-          continue;
-        }
         if (aas.isModified())
         {
           if (aas.hasNTerminalModification())
@@ -728,10 +785,10 @@ namespace OpenMS
             if (std::find(skip_modifications.begin(), skip_modifications.end(), res_mod->getId()) == skip_modifications.end()
              && std::find(skip_modifications.begin(), skip_modifications.end(), res_mod->getFullId()) == skip_modifications.end())
             {
-              for (Size phe_i = 0; phe_i != ph_evidences.size(); ++phe_i)
+              for (const auto & ph_evidence : ph_evidences)
               {
-                const String& acc = ph_evidences[phe_i].getProteinAccession();
-                const Size mod_pos = ph_evidences[phe_i].getStart(); // mod at N terminus
+                const String& acc = ph_evidence.getProteinAccession();
+                const Size mod_pos = ph_evidence.getStart(); // mod at N terminus
                 prot2mod[acc].insert(make_pair(mod_pos, *res_mod));
               }
             }
@@ -743,13 +800,13 @@ namespace OpenMS
             {
               const ResidueModification * res_mod = aas[ai].getModification();
 
-              if (std::find(skip_modifications.begin(), skip_modifications.end(), res_mod->getId()) == skip_modifications.end()
-               && std::find(skip_modifications.begin(), skip_modifications.end(), res_mod->getFullId()) == skip_modifications.end())
+              if (find(skip_modifications.begin(), skip_modifications.end(), res_mod->getId()) == skip_modifications.end()
+               && find(skip_modifications.begin(), skip_modifications.end(), res_mod->getFullId()) == skip_modifications.end())
               {
-                for (Size phe_i = 0; phe_i != ph_evidences.size(); ++phe_i)
+                for (const auto & ph_evidence : ph_evidences)
                 {
-                  const String& acc = ph_evidences[phe_i].getProteinAccession();
-                  const Size mod_pos = ph_evidences[phe_i].getStart() + ai; // start + ai
+                  const String& acc = ph_evidence.getProteinAccession();
+                  const Size mod_pos = ph_evidence.getStart() + ai; // start + ai
                   prot2mod[acc].insert(make_pair(mod_pos, *res_mod));
                 }
               }
@@ -760,27 +817,18 @@ namespace OpenMS
           {
             const ResidueModification * res_mod = aas.getCTerminalModification();
             // skip mod?
-            if (std::find(skip_modifications.begin(), skip_modifications.end(), res_mod->getId()) == skip_modifications.end()
-             && std::find(skip_modifications.begin(), skip_modifications.end(), res_mod->getFullId()) == skip_modifications.end())
+            if (find(skip_modifications.begin(), skip_modifications.end(), res_mod->getId()) == skip_modifications.end()
+             && find(skip_modifications.begin(), skip_modifications.end(), res_mod->getFullId()) == skip_modifications.end())
             {
-              for (Size phe_i = 0; phe_i != ph_evidences.size(); ++phe_i)
+              for (const auto & ph_evidence : ph_evidences)
               {
-                const String& acc = ph_evidences[phe_i].getProteinAccession();
-                const Size mod_pos = ph_evidences[phe_i].getEnd(); // mod at C terminus
+                const String& acc = ph_evidence.getProteinAccession();
+                const Size mod_pos = ph_evidence.getEnd(); // mod at C terminus
                 prot2mod[acc].insert(make_pair(mod_pos, *res_mod));
               }
             }
           }
         }
-      }
-    }
-
-    for (Size i = 0; i < protein_hits_.size(); ++i)
-    {
-      const String& accession = protein_hits_[i].getAccession();
-      if (prot2mod.find(accession) != prot2mod.end())
-      {
-        protein_hits_[i].setModifications(prot2mod[accession]);
       }
     }
   }
@@ -902,6 +950,20 @@ namespace OpenMS
       return search_engine_version_;
     }
     return "";
+  }
+
+  void ProteinIdentification::copyMetaDataOnly(const ProteinIdentification& p)
+  {
+    id_ = p.id_;
+    search_engine_ = p.search_engine_;
+    search_engine_version_ = p.search_engine_version_;
+    search_parameters_ = p.search_parameters_;
+    date_ = p.date_;
+
+    protein_score_type_ = p.protein_score_type_;
+    higher_score_better_ = p.higher_score_better_;
+    protein_significance_threshold_ = p.protein_significance_threshold_;
+    MetaInfoInterface::operator=(static_cast<MetaInfoInterface>(p));
   }
 
 } // namespace OpenMS

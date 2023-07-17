@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry               
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 // 
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -182,7 +182,7 @@ END_SECTION
 START_SECTION((bool operator==(const ModificationDefinition& rhs) const))
 {
   ModificationDefinition m1, m2;
-  TEST_EQUAL(m1 == m2, true)
+  TEST_TRUE(m1 == m2)
   m1.setFixedModification(false);
   TEST_EQUAL(m1 == m2, false)
   m1.setFixedModification(true);
@@ -192,7 +192,7 @@ START_SECTION((bool operator==(const ModificationDefinition& rhs) const))
   m1.setModification("Oxidation (M)");
   TEST_EQUAL(m1 == m2, false)
   m2.setModification("Oxidation (M)");
-  TEST_EQUAL(m1 == m2, true)
+  TEST_TRUE(m1 == m2)
 }
 END_SECTION
 
@@ -201,13 +201,13 @@ START_SECTION((bool operator!=(const ModificationDefinition& rhs) const))
   ModificationDefinition m1, m2;
   TEST_EQUAL(m1 != m2, false)
   m1.setFixedModification(false);
-  TEST_EQUAL(m1 != m2, true)
+  TEST_FALSE(m1 == m2)
   m1.setFixedModification(true);
   m1.setMaxOccurrences(15);
-  TEST_EQUAL(m1 != m2, true)
+  TEST_FALSE(m1 == m2)
   m1.setMaxOccurrences(0);
   m1.setModification("Oxidation (M)");
-  TEST_EQUAL(m1 != m2, true)
+  TEST_FALSE(m1 == m2)
   m2.setModification("Oxidation (M)");
   TEST_EQUAL(m1 != m2, false)
 }

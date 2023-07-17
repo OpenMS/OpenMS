@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry               
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 // 
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -34,7 +34,6 @@
 //
 
 #include <OpenMS/CONCEPT/ClassTest.h>
-#include <OpenMS/test_config.h>
 
 ///////////////////////////
 
@@ -81,7 +80,7 @@ START_SECTION((DateTime(const DateTime& date)))
 
   date1.set("2006-12-12 11:59:59");
   date2 = DateTime(date1);
-  TEST_EQUAL(date1 == date2, true)
+  TEST_TRUE(date1 == date2)
 }
 END_SECTION
 
@@ -127,7 +126,7 @@ START_SECTION((void clear()))
   DateTime date2;
   date1.set("2006-12-12 11:59:59");
   date1.clear();
-  TEST_EQUAL(date1 == date2, true)
+  TEST_TRUE(date1 == date2)
   TEST_EQUAL(date1.isNull(), true)
 }
 END_SECTION

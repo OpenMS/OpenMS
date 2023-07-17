@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry               
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 // 
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -60,355 +60,364 @@ LibSVMEncoder* nullPointer = nullptr;
 
 START_SECTION((LibSVMEncoder()))
   ptr = new LibSVMEncoder();
-	TEST_NOT_EQUAL(ptr, nullPointer)
+  TEST_NOT_EQUAL(ptr, nullPointer)
 END_SECTION
 
 START_SECTION((~LibSVMEncoder()))
-	delete ptr;
+  delete ptr;
 END_SECTION
 
 START_SECTION((void encodeCompositionVector(const String &sequence, std::vector< std::pair< Int, double > > &encoded_vector, const String &allowed_characters="ACDEFGHIKLMNPQRSTVWY")))
-	String sequence = "ACCGGGTTTT";
-	String allowed_characters = "ACNGT";
-	vector< pair<Int, double> > encoded_sequence;
-	std::vector< std::pair<Int, double> >::iterator it;
-			
-	encoder.encodeCompositionVector(sequence, encoded_sequence, allowed_characters);
-	it = encoded_sequence.begin(); 
-	TEST_EQUAL(it->first, 1)
-	TEST_REAL_SIMILAR(it->second, 0.1)
-	it++;
-	TEST_EQUAL(it == encoded_sequence.end(), false)
-	TEST_EQUAL(it->first, 2)
-	TEST_REAL_SIMILAR(it->second, 0.2)
-	it++;
-	TEST_EQUAL(it == encoded_sequence.end(), false)
-	TEST_EQUAL(it->first, 4)
-	TEST_REAL_SIMILAR(it->second, 0.3)
-	it++;
-	TEST_EQUAL(it == encoded_sequence.end(), false)
-	TEST_EQUAL(it->first, 5)
-	TEST_REAL_SIMILAR(it->second, 0.4)
-	it++;
-	TEST_EQUAL(it == encoded_sequence.end(), true)
+  String sequence = "ACCGGGTTTT";
+  String allowed_characters = "ACNGT";
+  vector< pair<Int, double> > encoded_sequence;
+  std::vector< std::pair<Int, double> >::iterator it;
+      
+  encoder.encodeCompositionVector(sequence, encoded_sequence, allowed_characters);
+  it = encoded_sequence.begin(); 
+  TEST_EQUAL(it->first, 1)
+  TEST_REAL_SIMILAR(it->second, 0.1)
+  it++;
+  TEST_EQUAL(it == encoded_sequence.end(), false)
+  TEST_EQUAL(it->first, 2)
+  TEST_REAL_SIMILAR(it->second, 0.2)
+  it++;
+  TEST_EQUAL(it == encoded_sequence.end(), false)
+  TEST_EQUAL(it->first, 4)
+  TEST_REAL_SIMILAR(it->second, 0.3)
+  it++;
+  TEST_EQUAL(it == encoded_sequence.end(), false)
+  TEST_EQUAL(it->first, 5)
+  TEST_REAL_SIMILAR(it->second, 0.4)
+  it++;
+  TEST_EQUAL(it == encoded_sequence.end(), true)
 END_SECTION
 
 START_SECTION((void encodeCompositionVectors(const std::vector< String > &sequences, const String &allowed_characters, std::vector< std::vector< std::pair< Int, double > > > &composition_vectors)))
-	vector<String> sequences;
-	String allowed_characters = "ACNGT";
-	vector< vector< pair<Int, double> > > encoded_sequences;
-	vector< pair<Int, double> >::iterator it;
-	sequences.push_back(String("ACCGGGTTTT"));			
-	sequences.push_back(String("ACCA"));			
-			
-	encoder.encodeCompositionVectors(sequences, allowed_characters, encoded_sequences);
-	it = encoded_sequences[0].begin(); 
-	TEST_EQUAL(it->first, 1)
-	TEST_REAL_SIMILAR(it->second, 0.1)
-	it++;
-	TEST_EQUAL(it == encoded_sequences[0].end(), false)
-	TEST_EQUAL(it->first, 2)
-	TEST_REAL_SIMILAR(it->second, 0.2)
-	it++;
-	TEST_EQUAL(it == encoded_sequences[0].end(), false)
-	TEST_EQUAL(it->first, 4)
-	TEST_REAL_SIMILAR(it->second, 0.3)
-	it++;
-	TEST_EQUAL(it == encoded_sequences[0].end(), false)
-	TEST_EQUAL(it->first, 5)
-	TEST_REAL_SIMILAR(it->second, 0.4)
-	it++;
-	TEST_EQUAL(it == encoded_sequences[0].end(), true)
-	it = encoded_sequences[1].begin(); 
-	TEST_EQUAL(it == encoded_sequences[1].end(), false)
-	TEST_EQUAL(it->first, 1)
-	TEST_REAL_SIMILAR(it->second, 0.5)
-	it++;
-	TEST_EQUAL(it == encoded_sequences[1].end(), false)
-	TEST_EQUAL(it->first, 2)
-	TEST_REAL_SIMILAR(it->second, 0.5)
-	it++;
-	TEST_EQUAL(it == encoded_sequences[1].end(), true)
+  vector<String> sequences;
+  String allowed_characters = "ACNGT";
+  vector< vector< pair<Int, double> > > encoded_sequences;
+  vector< pair<Int, double> >::iterator it;
+  sequences.push_back(String("ACCGGGTTTT"));      
+  sequences.push_back(String("ACCA"));      
+      
+  encoder.encodeCompositionVectors(sequences, allowed_characters, encoded_sequences);
+  it = encoded_sequences[0].begin(); 
+  TEST_EQUAL(it->first, 1)
+  TEST_REAL_SIMILAR(it->second, 0.1)
+  it++;
+  TEST_EQUAL(it == encoded_sequences[0].end(), false)
+  TEST_EQUAL(it->first, 2)
+  TEST_REAL_SIMILAR(it->second, 0.2)
+  it++;
+  TEST_EQUAL(it == encoded_sequences[0].end(), false)
+  TEST_EQUAL(it->first, 4)
+  TEST_REAL_SIMILAR(it->second, 0.3)
+  it++;
+  TEST_EQUAL(it == encoded_sequences[0].end(), false)
+  TEST_EQUAL(it->first, 5)
+  TEST_REAL_SIMILAR(it->second, 0.4)
+  it++;
+  TEST_EQUAL(it == encoded_sequences[0].end(), true)
+  it = encoded_sequences[1].begin(); 
+  TEST_EQUAL(it == encoded_sequences[1].end(), false)
+  TEST_EQUAL(it->first, 1)
+  TEST_REAL_SIMILAR(it->second, 0.5)
+  it++;
+  TEST_EQUAL(it == encoded_sequences[1].end(), false)
+  TEST_EQUAL(it->first, 2)
+  TEST_REAL_SIMILAR(it->second, 0.5)
+  it++;
+  TEST_EQUAL(it == encoded_sequences[1].end(), true)
 END_SECTION
 
 START_SECTION((void encodeLibSVMVectors(const std::vector< std::vector< std::pair< Int, double > > > &feature_vectors, std::vector< svm_node * > &libsvm_vectors)))
-	vector<String> sequences;
-	String allowed_characters = "ACNGT";
-	vector<vector< pair<Int, double> > > encoded_sequences;
-	vector<svm_node*> libsvm_sequences;
-	svm_node* nodes;
+  vector<String> sequences;
+  String allowed_characters = "ACNGT";
+  vector<vector< pair<Int, double> > > encoded_sequences;
+  vector<svm_node*> libsvm_sequences;
+  svm_node* nodes;
 
-	sequences.push_back(String("ACCGGGTTTT"));			
-	sequences.push_back(String("ACCA"));			
-			
-	encoder.encodeCompositionVectors(sequences, allowed_characters, encoded_sequences);
-	encoder.encodeLibSVMVectors(encoded_sequences, libsvm_sequences);
-	nodes = libsvm_sequences[0];
-	TEST_EQUAL(nodes[0].index, 1)
-	TEST_REAL_SIMILAR(nodes[0].value, 0.1)
-	TEST_EQUAL(nodes[1].index, 2)
-	TEST_REAL_SIMILAR(nodes[1].value, 0.2)
-	TEST_EQUAL(nodes[2].index, 4)
-	TEST_REAL_SIMILAR(nodes[2].value, 0.3)
-	TEST_EQUAL(nodes[3].index, 5)
-	TEST_REAL_SIMILAR(nodes[3].value, 0.4)
-	TEST_EQUAL(nodes[4].index, -1)
-	nodes = libsvm_sequences[1];
-	TEST_EQUAL(nodes[0].index, 1)
-	TEST_REAL_SIMILAR(nodes[0].value, 0.5)
-	TEST_EQUAL(nodes[1].index, 2)
-	TEST_REAL_SIMILAR(nodes[1].value, 0.5)
-	TEST_EQUAL(nodes[2].index, -1)
-	delete[] nodes;
-	
+  sequences.push_back(String("ACCGGGTTTT"));      
+  sequences.push_back(String("ACCA"));      
+      
+  encoder.encodeCompositionVectors(sequences, allowed_characters, encoded_sequences);
+  encoder.encodeLibSVMVectors(encoded_sequences, libsvm_sequences);
+  nodes = libsvm_sequences[0];
+  TEST_EQUAL(nodes[0].index, 1)
+  TEST_REAL_SIMILAR(nodes[0].value, 0.1)
+  TEST_EQUAL(nodes[1].index, 2)
+  TEST_REAL_SIMILAR(nodes[1].value, 0.2)
+  TEST_EQUAL(nodes[2].index, 4)
+  TEST_REAL_SIMILAR(nodes[2].value, 0.3)
+  TEST_EQUAL(nodes[3].index, 5)
+  TEST_REAL_SIMILAR(nodes[3].value, 0.4)
+  TEST_EQUAL(nodes[4].index, -1)
+  nodes = libsvm_sequences[1];
+  TEST_EQUAL(nodes[0].index, 1)
+  TEST_REAL_SIMILAR(nodes[0].value, 0.5)
+  TEST_EQUAL(nodes[1].index, 2)
+  TEST_REAL_SIMILAR(nodes[1].value, 0.5)
+  TEST_EQUAL(nodes[2].index, -1)
+
+  for (Size k = 0; k < libsvm_sequences.size(); k++)
+  {
+    delete[] libsvm_sequences[k];
+  }
+  
 END_SECTION
 
 START_SECTION((svm_node* encodeLibSVMVector( const std::vector< std::pair<Int, double> >& feature_vector)))
-	vector<String> sequences;
-	String allowed_characters = "ACNGT";
-	vector< pair<Int, double> > encoded_sequence;
-	svm_node* nodes;
-	
-	sequences.push_back(String("ACCGGGTTTT"));			
-	sequences.push_back(String("ACCA"));			
-			
-	encoder.encodeCompositionVector(sequences[0], encoded_sequence, allowed_characters);
-	nodes = encoder.encodeLibSVMVector(encoded_sequence);
-	TEST_EQUAL(nodes[0].index, 1)
-	TEST_REAL_SIMILAR(nodes[0].value, 0.1)
-	TEST_EQUAL(nodes[1].index, 2)
-	TEST_REAL_SIMILAR(nodes[1].value, 0.2)
-	TEST_EQUAL(nodes[2].index, 4)
-	TEST_REAL_SIMILAR(nodes[2].value, 0.3)
-	TEST_EQUAL(nodes[3].index, 5)
-	TEST_REAL_SIMILAR(nodes[3].value, 0.4)
-	TEST_EQUAL(nodes[4].index, -1)
-	
-	delete[] nodes;
+  vector<String> sequences;
+  String allowed_characters = "ACNGT";
+  vector< pair<Int, double> > encoded_sequence;
+  svm_node* nodes;
+  
+  sequences.push_back(String("ACCGGGTTTT"));      
+  sequences.push_back(String("ACCA"));      
+      
+  encoder.encodeCompositionVector(sequences[0], encoded_sequence, allowed_characters);
+  nodes = encoder.encodeLibSVMVector(encoded_sequence);
+  TEST_EQUAL(nodes[0].index, 1)
+  TEST_REAL_SIMILAR(nodes[0].value, 0.1)
+  TEST_EQUAL(nodes[1].index, 2)
+  TEST_REAL_SIMILAR(nodes[1].value, 0.2)
+  TEST_EQUAL(nodes[2].index, 4)
+  TEST_REAL_SIMILAR(nodes[2].value, 0.3)
+  TEST_EQUAL(nodes[3].index, 5)
+  TEST_REAL_SIMILAR(nodes[3].value, 0.4)
+  TEST_EQUAL(nodes[4].index, -1)
+  
+  delete[] nodes;
 END_SECTION
 
 START_SECTION((svm_problem* encodeLibSVMProblem(const std::vector< svm_node * > &vectors, std::vector< double > &labels)))
-	vector<String> sequences;
-	String allowed_characters = "ACNGT";
-	vector<vector< pair<Int, double> > > encoded_sequences;
-	vector<svm_node*> libsvm_sequences;
-	svm_node* nodes;
-	svm_problem* problem;
-	vector<double> labels;
-	
-	labels.push_back(2.1);
-	labels.push_back(1.3);
+  vector<String> sequences;
+  String allowed_characters = "ACNGT";
+  vector<vector< pair<Int, double> > > encoded_sequences;
+  vector<svm_node*> libsvm_sequences;
+  svm_node* nodes;
+  svm_problem* problem;
+  vector<double> labels;
+  
+  labels.push_back(2.1);
+  labels.push_back(1.3);
 
-	sequences.push_back(String("ACCGGGTTTT"));			
-	sequences.push_back(String("ACCA"));			
-			
-	encoder.encodeCompositionVectors(sequences, allowed_characters, encoded_sequences);
-	encoder.encodeLibSVMVectors(encoded_sequences, libsvm_sequences);
-	problem = encoder.encodeLibSVMProblem(libsvm_sequences, labels);
-	TEST_EQUAL(problem->l, 2)
-	TEST_REAL_SIMILAR(problem->y[0], 2.1);
-	TEST_REAL_SIMILAR(problem->y[1], 1.3);
-	nodes = problem->x[0];
-	TEST_REAL_SIMILAR(nodes[0].value, 0.1)
-	TEST_EQUAL(nodes[1].index, 2)
-	TEST_REAL_SIMILAR(nodes[1].value, 0.2)
-	TEST_EQUAL(nodes[2].index, 4)
-	TEST_REAL_SIMILAR(nodes[2].value, 0.3)
-	TEST_EQUAL(nodes[3].index, 5)
-	TEST_REAL_SIMILAR(nodes[3].value, 0.4)
-	TEST_EQUAL(nodes[4].index, -1)
-	nodes = problem->x[1];
-	TEST_EQUAL(nodes[0].index, 1)
-	TEST_REAL_SIMILAR(nodes[0].value, 0.5)
-	TEST_EQUAL(nodes[1].index, 2)
-	TEST_REAL_SIMILAR(nodes[1].value, 0.5)
-	TEST_EQUAL(nodes[2].index, -1)
-	delete[] problem->x;
-	delete[] problem->y;
-	delete problem;
+  sequences.push_back(String("ACCGGGTTTT"));      
+  sequences.push_back(String("ACCA"));      
+      
+  encoder.encodeCompositionVectors(sequences, allowed_characters, encoded_sequences);
+  encoder.encodeLibSVMVectors(encoded_sequences, libsvm_sequences);
+  problem = encoder.encodeLibSVMProblem(libsvm_sequences, labels);
+  TEST_EQUAL(problem->l, 2)
+  TEST_REAL_SIMILAR(problem->y[0], 2.1);
+  TEST_REAL_SIMILAR(problem->y[1], 1.3);
+  nodes = problem->x[0];
+  TEST_REAL_SIMILAR(nodes[0].value, 0.1)
+  TEST_EQUAL(nodes[1].index, 2)
+  TEST_REAL_SIMILAR(nodes[1].value, 0.2)
+  TEST_EQUAL(nodes[2].index, 4)
+  TEST_REAL_SIMILAR(nodes[2].value, 0.3)
+  TEST_EQUAL(nodes[3].index, 5)
+  TEST_REAL_SIMILAR(nodes[3].value, 0.4)
+  TEST_EQUAL(nodes[4].index, -1)
+  nodes = problem->x[1];
+  TEST_EQUAL(nodes[0].index, 1)
+  TEST_REAL_SIMILAR(nodes[0].value, 0.5)
+  TEST_EQUAL(nodes[1].index, 2)
+  TEST_REAL_SIMILAR(nodes[1].value, 0.5)
+  TEST_EQUAL(nodes[2].index, -1)
 
+  LibSVMEncoder::destroyProblem(problem); // cleanup
 END_SECTION
 
 START_SECTION((svm_problem* encodeLibSVMProblemWithCompositionAndLengthVectors(const std::vector< String > &sequences, std::vector< double > &labels, const String &allowed_characters, UInt maximum_sequence_length)))
-	vector<String> sequences;
-	String allowed_characters = "ACNGT";
-	svm_node* nodes;
-	svm_problem* problem;
-	vector<double> labels;
-	
-	labels.push_back(2.1);
-	labels.push_back(1.3);
+  vector<String> sequences;
+  String allowed_characters = "ACNGT";
+  svm_node* nodes;
+  svm_problem* problem;
+  vector<double> labels;
+  
+  labels.push_back(2.1);
+  labels.push_back(1.3);
 
-	sequences.push_back(String("ACCGGGTTTT"));			
-	sequences.push_back(String("ACCA"));			
-			
-	problem = encoder.encodeLibSVMProblemWithCompositionAndLengthVectors(sequences, labels, allowed_characters, 10);
-	TEST_EQUAL(problem->l, 2)
-	TEST_REAL_SIMILAR(problem->y[0], 2.1);
-	TEST_REAL_SIMILAR(problem->y[1], 1.3);
-	nodes = problem->x[0];
-	TEST_REAL_SIMILAR(nodes[0].value, 0.1)
-	TEST_EQUAL(nodes[1].index, 2)
-	TEST_REAL_SIMILAR(nodes[1].value, 0.2)
-	TEST_EQUAL(nodes[2].index, 4)
-	TEST_REAL_SIMILAR(nodes[2].value, 0.3)
-	TEST_EQUAL(nodes[3].index, 5)
-	TEST_REAL_SIMILAR(nodes[3].value, 0.4)
-	TEST_EQUAL(nodes[4].index, 6)
-	TEST_REAL_SIMILAR(nodes[4].value, 1)
-	TEST_EQUAL(nodes[5].index, -1)
-	nodes = problem->x[1];
-	TEST_EQUAL(nodes[0].index, 1)
-	TEST_REAL_SIMILAR(nodes[0].value, 0.5)
-	TEST_EQUAL(nodes[1].index, 2)
-	TEST_REAL_SIMILAR(nodes[1].value, 0.5)
-	TEST_EQUAL(nodes[2].index, 6)
-	TEST_REAL_SIMILAR(nodes[2].value, 0.4)
-	TEST_EQUAL(nodes[3].index, -1)
-	delete[] problem->x;
-	delete[] problem->y;
-	delete problem;
+  sequences.push_back(String("ACCGGGTTTT"));      
+  sequences.push_back(String("ACCA"));      
+      
+  problem = encoder.encodeLibSVMProblemWithCompositionAndLengthVectors(sequences, labels, allowed_characters, 10);
+  TEST_EQUAL(problem->l, 2)
+  TEST_REAL_SIMILAR(problem->y[0], 2.1);
+  TEST_REAL_SIMILAR(problem->y[1], 1.3);
+  nodes = problem->x[0];
+  TEST_REAL_SIMILAR(nodes[0].value, 0.1)
+  TEST_EQUAL(nodes[1].index, 2)
+  TEST_REAL_SIMILAR(nodes[1].value, 0.2)
+  TEST_EQUAL(nodes[2].index, 4)
+  TEST_REAL_SIMILAR(nodes[2].value, 0.3)
+  TEST_EQUAL(nodes[3].index, 5)
+  TEST_REAL_SIMILAR(nodes[3].value, 0.4)
+  TEST_EQUAL(nodes[4].index, 6)
+  TEST_REAL_SIMILAR(nodes[4].value, 1)
+  TEST_EQUAL(nodes[5].index, -1)
+  nodes = problem->x[1];
+  TEST_EQUAL(nodes[0].index, 1)
+  TEST_REAL_SIMILAR(nodes[0].value, 0.5)
+  TEST_EQUAL(nodes[1].index, 2)
+  TEST_REAL_SIMILAR(nodes[1].value, 0.5)
+  TEST_EQUAL(nodes[2].index, 6)
+  TEST_REAL_SIMILAR(nodes[2].value, 0.4)
+  TEST_EQUAL(nodes[3].index, -1)
+
+  LibSVMEncoder::destroyProblem(problem); // cleanup
 END_SECTION
 
 START_SECTION((svm_problem* encodeLibSVMProblemWithCompositionLengthAndWeightVectors(const std::vector< String > &sequences, std::vector< double > &labels, const String &allowed_characters)))
-	vector<String> sequences;
-	String allowed_characters = "ACNGT";
-	svm_node* nodes;
-	svm_problem* problem;
-	vector<double> labels;
-	
-	labels.push_back(2.1);
-	labels.push_back(1.3);
+  vector<String> sequences;
+  String allowed_characters = "ACNGT";
+  svm_node* nodes;
+  svm_problem* problem;
+  vector<double> labels;
+  
+  labels.push_back(2.1);
+  labels.push_back(1.3);
 
-	sequences.push_back(String("ACCGGGTTTT"));			
-	sequences.push_back(String("ACCA"));			
-			
-	problem = encoder.encodeLibSVMProblemWithCompositionLengthAndWeightVectors(sequences, labels, allowed_characters);
-	TEST_EQUAL(problem->l, 2)
-	TEST_REAL_SIMILAR(problem->y[0], 2.1);
-	TEST_REAL_SIMILAR(problem->y[1], 1.3);
-	nodes = problem->x[0];
-	TEST_REAL_SIMILAR(nodes[0].value, 0.1)
-	TEST_EQUAL(nodes[1].index, 2)
-	TEST_REAL_SIMILAR(nodes[1].value, 0.2)
-	TEST_EQUAL(nodes[2].index, 4)
-	TEST_REAL_SIMILAR(nodes[2].value, 0.3)
-	TEST_EQUAL(nodes[3].index, 5)
-	TEST_REAL_SIMILAR(nodes[3].value, 0.4)
-	TEST_EQUAL(nodes[4].index, 6)
-	TEST_REAL_SIMILAR(nodes[4].value, 10)
-	TEST_EQUAL(nodes[5].index, 7)
-	TEST_REAL_SIMILAR(nodes[5].value, 870.948464870453)
-	TEST_EQUAL(nodes[6].index, -1)
-	nodes = problem->x[1];
-	TEST_EQUAL(nodes[0].index, 1)
-	TEST_REAL_SIMILAR(nodes[0].value, 0.5)
-	TEST_EQUAL(nodes[1].index, 2)
-	TEST_REAL_SIMILAR(nodes[1].value, 0.5)
-	TEST_EQUAL(nodes[2].index, 6)
-	TEST_REAL_SIMILAR(nodes[2].value, 4)
-	TEST_EQUAL(nodes[3].index, 7)
-	TEST_REAL_SIMILAR(nodes[3].value, 366.45688)
-	TEST_EQUAL(nodes[4].index, -1)
-	delete[] problem->x;
-	delete[] problem->y;
-	delete problem;
+  sequences.push_back(String("ACCGGGTTTT"));      
+  sequences.push_back(String("ACCA"));      
+      
+  problem = encoder.encodeLibSVMProblemWithCompositionLengthAndWeightVectors(sequences, labels, allowed_characters);
+  TEST_EQUAL(problem->l, 2)
+  TEST_REAL_SIMILAR(problem->y[0], 2.1);
+  TEST_REAL_SIMILAR(problem->y[1], 1.3);
+  nodes = problem->x[0];
+  TEST_REAL_SIMILAR(nodes[0].value, 0.1)
+  TEST_EQUAL(nodes[1].index, 2)
+  TEST_REAL_SIMILAR(nodes[1].value, 0.2)
+  TEST_EQUAL(nodes[2].index, 4)
+  TEST_REAL_SIMILAR(nodes[2].value, 0.3)
+  TEST_EQUAL(nodes[3].index, 5)
+  TEST_REAL_SIMILAR(nodes[3].value, 0.4)
+  TEST_EQUAL(nodes[4].index, 6)
+  TEST_REAL_SIMILAR(nodes[4].value, 10)
+  TEST_EQUAL(nodes[5].index, 7)
+  TEST_REAL_SIMILAR(nodes[5].value, 870.948464870453)
+  TEST_EQUAL(nodes[6].index, -1)
+  nodes = problem->x[1];
+  TEST_EQUAL(nodes[0].index, 1)
+  TEST_REAL_SIMILAR(nodes[0].value, 0.5)
+  TEST_EQUAL(nodes[1].index, 2)
+  TEST_REAL_SIMILAR(nodes[1].value, 0.5)
+  TEST_EQUAL(nodes[2].index, 6)
+  TEST_REAL_SIMILAR(nodes[2].value, 4)
+  TEST_EQUAL(nodes[3].index, 7)
+  TEST_REAL_SIMILAR(nodes[3].value, 366.45688)
+  TEST_EQUAL(nodes[4].index, -1)
+
+  LibSVMEncoder::destroyProblem(problem); // cleanup
 END_SECTION
 
 START_SECTION((svm_problem* encodeLibSVMProblemWithCompositionVectors(const std::vector< String > &sequences, std::vector< double > &labels, const String &allowed_characters)))
-	vector<String> sequences;
-	String allowed_characters = "ACNGT";
-	svm_node* nodes;
-	svm_problem* problem;
-	vector<double> labels;
-	
-	labels.push_back(2.1);
-	labels.push_back(1.3);
+  vector<String> sequences;
+  String allowed_characters = "ACNGT";
+  svm_node* nodes;
+  svm_problem* problem;
+  vector<double> labels;
+  
+  labels.push_back(2.1);
+  labels.push_back(1.3);
 
-	sequences.push_back(String("ACCGGGTTTT"));			
-	sequences.push_back(String("ACCA"));			
-			
-	problem = encoder.encodeLibSVMProblemWithCompositionVectors(sequences, labels, allowed_characters);
-	TEST_EQUAL(problem->l, 2)
-	TEST_REAL_SIMILAR(problem->y[0], 2.1);
-	TEST_REAL_SIMILAR(problem->y[1], 1.3);
-	nodes = problem->x[0];
-	TEST_REAL_SIMILAR(nodes[0].value, 0.1)
-	TEST_EQUAL(nodes[1].index, 2)
-	TEST_REAL_SIMILAR(nodes[1].value, 0.2)
-	TEST_EQUAL(nodes[2].index, 4)
-	TEST_REAL_SIMILAR(nodes[2].value, 0.3)
-	TEST_EQUAL(nodes[3].index, 5)
-	TEST_REAL_SIMILAR(nodes[3].value, 0.4)
-	TEST_EQUAL(nodes[4].index, -1)
-	nodes = problem->x[1];
-	TEST_EQUAL(nodes[0].index, 1)
-	TEST_REAL_SIMILAR(nodes[0].value, 0.5)
-	TEST_EQUAL(nodes[1].index, 2)
-	TEST_REAL_SIMILAR(nodes[1].value, 0.5)
-	TEST_EQUAL(nodes[2].index, -1)
-	delete[] problem->x;
-	delete[] problem->y;
-	delete problem;
+  sequences.push_back(String("ACCGGGTTTT"));      
+  sequences.push_back(String("ACCA"));      
+      
+  problem = encoder.encodeLibSVMProblemWithCompositionVectors(sequences, labels, allowed_characters);
+  TEST_EQUAL(problem->l, 2)
+  TEST_REAL_SIMILAR(problem->y[0], 2.1);
+  TEST_REAL_SIMILAR(problem->y[1], 1.3);
+  nodes = problem->x[0];
+  TEST_REAL_SIMILAR(nodes[0].value, 0.1)
+  TEST_EQUAL(nodes[1].index, 2)
+  TEST_REAL_SIMILAR(nodes[1].value, 0.2)
+  TEST_EQUAL(nodes[2].index, 4)
+  TEST_REAL_SIMILAR(nodes[2].value, 0.3)
+  TEST_EQUAL(nodes[3].index, 5)
+  TEST_REAL_SIMILAR(nodes[3].value, 0.4)
+  TEST_EQUAL(nodes[4].index, -1)
+  nodes = problem->x[1];
+  TEST_EQUAL(nodes[0].index, 1)
+  TEST_REAL_SIMILAR(nodes[0].value, 0.5)
+  TEST_EQUAL(nodes[1].index, 2)
+  TEST_REAL_SIMILAR(nodes[1].value, 0.5)
+  TEST_EQUAL(nodes[2].index, -1)
+
+  LibSVMEncoder::destroyProblem(problem); // cleanup
 END_SECTION
 
 START_SECTION((bool storeLibSVMProblem(const String& filename, const svm_problem* problem) const))
-	vector<String> sequences;
-	String allowed_characters = "ACNGT";
-	svm_problem* problem;
-	vector<double> labels;
-	String temp_filename = OPENMS_GET_TEST_DATA_PATH("LibSVMEncoder_test.tmp");
-	
-	labels.push_back(2.1);
-	labels.push_back(1.3);
+  vector<String> sequences;
+  String allowed_characters = "ACNGT";
+  svm_problem* problem;
+  vector<double> labels;
+  String temp_filename = OPENMS_GET_TEST_DATA_PATH("LibSVMEncoder_test.tmp");
+  
+  labels.push_back(2.1);
+  labels.push_back(1.3);
 
-	sequences.push_back(String("ACCGGGTTTT"));			
-	sequences.push_back(String("ACCA"));			
-			
-	problem = encoder.encodeLibSVMProblemWithCompositionVectors(sequences, labels, allowed_characters);
-	NEW_TMP_FILE(temp_filename)
-	encoder.storeLibSVMProblem(temp_filename, problem);
-	TEST_FILE_EQUAL(OPENMS_GET_TEST_DATA_PATH("LibSVMEncoder_test.txt"), temp_filename.c_str())
+  sequences.push_back(String("ACCGGGTTTT"));      
+  sequences.push_back(String("ACCA"));      
+      
+  problem = encoder.encodeLibSVMProblemWithCompositionVectors(sequences, labels, allowed_characters);
+  NEW_TMP_FILE(temp_filename)
+  encoder.storeLibSVMProblem(temp_filename, problem);
+  TEST_FILE_EQUAL(OPENMS_GET_TEST_DATA_PATH("LibSVMEncoder_test.txt"), temp_filename.c_str())
 
+  LibSVMEncoder::destroyProblem(problem); // cleanup
 END_SECTION
 
 START_SECTION((svm_problem* loadLibSVMProblem(const String& filename)))
-	String allowed_characters = "ACNGT";
-	svm_problem* problem;
-	String temp_filename = OPENMS_GET_TEST_DATA_PATH("LibSVMEncoder_test.tmp");
-	
-	NEW_TMP_FILE(temp_filename)
-	problem = encoder.loadLibSVMProblem(OPENMS_GET_TEST_DATA_PATH("LibSVMEncoder_test.txt"));
-	encoder.storeLibSVMProblem(temp_filename, problem);
-	TEST_FILE_EQUAL(OPENMS_GET_TEST_DATA_PATH("LibSVMEncoder_test.txt"), temp_filename.c_str())
+  String allowed_characters = "ACNGT";
+  svm_problem* problem;
+  String temp_filename = OPENMS_GET_TEST_DATA_PATH("LibSVMEncoder_test.tmp");
+  
+  NEW_TMP_FILE(temp_filename)
+  problem = encoder.loadLibSVMProblem(OPENMS_GET_TEST_DATA_PATH("LibSVMEncoder_test.txt"));
+  encoder.storeLibSVMProblem(temp_filename, problem);
+  TEST_FILE_EQUAL(OPENMS_GET_TEST_DATA_PATH("LibSVMEncoder_test.txt"), temp_filename.c_str())
 
+  LibSVMEncoder::destroyProblem(problem); // cleanup
 END_SECTION
 
 START_SECTION((void encodeOligoBorders(String sequence, UInt k_mer_length, const String& allowed_characters, UInt border_length, std::vector< std::pair<Int, double> >& libsvm_vector, bool strict = false, bool unpaired=false, bool length_encoding = false)))
-	String sequence = "ACNNGTATCA";
-	String allowed_characters = "ACNGT";
-	String output;
-	UInt border_length = 3;
-	vector< pair<Int, double> > encoded_sequence;
-	
-	encoder.encodeOligoBorders(sequence, 1, allowed_characters, border_length, encoded_sequence);
-	encoder.libSVMVectorToString(encoder.encodeLibSVMVector(encoded_sequence), output);
-	TEST_EQUAL(output, "(2, 1.0) (2, 1.0) (3, 2.0) (3, 2.0) (4, 3.0) (6, 3.0) ")
-	encoder.encodeOligoBorders(sequence, 2, allowed_characters, border_length, encoded_sequence);
-	encoder.libSVMVectorToString(encoder.encodeLibSVMVector(encoded_sequence), output);
-	TEST_EQUAL(output, "(3, 1.0) (3, 1.0) (9, 2.0) (11, 2.0) (14, 3.0) (22, 3.0) ")
-	sequence = "ACNNGTZTCA";
-	encoder.encodeOligoBorders(sequence, 1, allowed_characters, border_length, encoded_sequence);
-	TEST_EQUAL(encoded_sequence.size(), 0)
-	
+  String sequence = "ACNNGTATCA";
+  String allowed_characters = "ACNGT";
+  String output;
+  UInt border_length = 3;
+  vector< pair<Int, double> > encoded_sequence;
+
+  svm_node* nodes;
+
+  encoder.encodeOligoBorders(sequence, 1, allowed_characters, border_length, encoded_sequence);
+  nodes = encoder.encodeLibSVMVector(encoded_sequence);
+  encoder.libSVMVectorToString(nodes, output);
+  TEST_EQUAL(output, "(2, 1.0) (2, 1.0) (3, 2.0) (3, 2.0) (4, 3.0) (6, 3.0) ")
+  delete[] nodes;
+
+
+  encoder.encodeOligoBorders(sequence, 2, allowed_characters, border_length, encoded_sequence);
+  nodes = encoder.encodeLibSVMVector(encoded_sequence);
+  encoder.libSVMVectorToString(nodes, output);
+  TEST_EQUAL(output, "(3, 1.0) (3, 1.0) (9, 2.0) (11, 2.0) (14, 3.0) (22, 3.0) ")
+  sequence = "ACNNGTZTCA";
+  encoder.encodeOligoBorders(sequence, 1, allowed_characters, border_length, encoded_sequence);
+  TEST_EQUAL(encoded_sequence.size(), 0)
+  delete[] nodes;
+  
 END_SECTION
 
 START_SECTION((svm_problem* encodeLibSVMProblemWithOligoBorderVectors(const std::vector< String > &sequences, std::vector< double > &labels, UInt k_mer_length, const String &allowed_characters, UInt border_length, bool strict=false, bool unpaired=false, bool length_encoding=false)))
-	vector<String> sequences;
-	String allowed_characters = "ACNGT";
-	String output;
-	UInt border_length = 3;
-	vector< pair<Int, double> > encoded_sequence;
+  vector<String> sequences;
+  String allowed_characters = "ACNGT";
+  String output;
+  UInt border_length = 3;
+  vector< pair<Int, double> > encoded_sequence;
   vector<double> labels;
   struct svm_problem* data;
 
@@ -416,24 +425,27 @@ START_SECTION((svm_problem* encodeLibSVMProblemWithOligoBorderVectors(const std:
   labels.push_back(2);
   sequences.push_back("ACNNGTATCA");
   sequences.push_back("AACNNGTACCA");
-	data = encoder.encodeLibSVMProblemWithOligoBorderVectors(sequences, labels, 1, allowed_characters, border_length);
-	encoder.libSVMVectorToString(data->x[0], output);
-	TEST_EQUAL(output, "(2, 1.0) (2, 1.0) (3, 2.0) (3, 2.0) (4, 3.0) (6, 3.0) ")
-	encoder.libSVMVectorToString(data->x[1], output);
-	TEST_EQUAL(output, "(2, 1.0) (2, 1.0) (2, 2.0) (3, 2.0) (3, 3.0) (3, 3.0) ")
+  data = encoder.encodeLibSVMProblemWithOligoBorderVectors(sequences, labels, 1, allowed_characters, border_length);
+  encoder.libSVMVectorToString(data->x[0], output);
+  TEST_EQUAL(output, "(2, 1.0) (2, 1.0) (3, 2.0) (3, 2.0) (4, 3.0) (6, 3.0) ")
+  encoder.libSVMVectorToString(data->x[1], output);
+  TEST_EQUAL(output, "(2, 1.0) (2, 1.0) (2, 2.0) (3, 2.0) (3, 3.0) (3, 3.0) ")
+
+
+  LibSVMEncoder::destroyProblem(data); // cleanup
 END_SECTION
 
 START_SECTION((void encodeProblemWithOligoBorderVectors(const std::vector< AASequence > &sequences, UInt k_mer_length, const String &allowed_characters, UInt border_length, std::vector< std::vector< std::pair< Int, double > > > &vectors)))
-	vector<AASequence> sequences;
-	String allowed_characters = "ACNGT";
-	String output;
-	UInt border_length = 3;
-	vector< pair<Int, double> > encoded_sequence;
+  vector<AASequence> sequences;
+  String allowed_characters = "ACNGT";
+  String output;
+  UInt border_length = 3;
+  vector< pair<Int, double> > encoded_sequence;
   vector< vector< pair<Int, double> > > encoded_sequences;
   
   sequences.push_back(AASequence::fromString("ACNNGTATCA"));
   sequences.push_back(AASequence::fromString("AACNNGTACCA"));
-	encoder.encodeProblemWithOligoBorderVectors(sequences, 1, allowed_characters, border_length, encoded_sequences);
+  encoder.encodeProblemWithOligoBorderVectors(sequences, 1, allowed_characters, border_length, encoded_sequences);
   TEST_EQUAL(encoded_sequences[0].size(), 6)
   TEST_EQUAL(encoded_sequences[0][0].first, 1)
   TEST_REAL_SIMILAR(encoded_sequences[0][0].second, 0.)
@@ -464,14 +476,14 @@ START_SECTION((void encodeProblemWithOligoBorderVectors(const std::vector< AASeq
 END_SECTION
 
 START_SECTION((void encodeOligo(const AASequence &sequence, UInt k_mer_length, const String &allowed_characters, std::vector< std::pair< Int, double > > &values, bool is_right_border=false)))
-	AASequence sequence = AASequence::fromString("ACNNGTATCA");
-	String allowed_characters = "ACNGT";
-	String output;
-	vector< pair<Int, double> > encoded_sequence;
+  AASequence sequence = AASequence::fromString("ACNNGTATCA");
+  String allowed_characters = "ACNGT";
+  String output;
+  vector< pair<Int, double> > encoded_sequence;
   ModificationsDB* modifications = ModificationsDB::getInstance();
   bool right_border = true;
-	
-	encoder.encodeOligo(sequence, 1, allowed_characters, encoded_sequence);
+  
+  encoder.encodeOligo(sequence, 1, allowed_characters, encoded_sequence);
   TEST_EQUAL(encoded_sequence[0].first, 1)
   TEST_REAL_SIMILAR(encoded_sequence[0].second, 0.)
   TEST_EQUAL(encoded_sequence[1].first, 7)
@@ -493,7 +505,7 @@ START_SECTION((void encodeOligo(const AASequence &sequence, UInt k_mer_length, c
   TEST_EQUAL(encoded_sequence[9].first, 8)
   TEST_REAL_SIMILAR(encoded_sequence[9].second, 4.)
           
-	encoder.encodeOligo(sequence, 1, allowed_characters, encoded_sequence, right_border);
+  encoder.encodeOligo(sequence, 1, allowed_characters, encoded_sequence, right_border);
   TEST_EQUAL(encoded_sequence[0].first, 1)
   TEST_REAL_SIMILAR(encoded_sequence[0].second, 0.)
   TEST_EQUAL(encoded_sequence[1].first, 4)
@@ -516,7 +528,7 @@ START_SECTION((void encodeOligo(const AASequence &sequence, UInt k_mer_length, c
   TEST_REAL_SIMILAR(encoded_sequence[9].second, 4.)
   
   sequence = AASequence::fromString("ACNN");       
-	encoder.encodeOligo(sequence, 2, allowed_characters, encoded_sequence);
+  encoder.encodeOligo(sequence, 2, allowed_characters, encoded_sequence);
   TEST_EQUAL(encoded_sequence[0].first, 1)
   TEST_REAL_SIMILAR(encoded_sequence[0].second, 1.)
   TEST_EQUAL(encoded_sequence[1].first, 2)
@@ -525,7 +537,7 @@ START_SECTION((void encodeOligo(const AASequence &sequence, UInt k_mer_length, c
   TEST_REAL_SIMILAR(encoded_sequence[2].second, 2 * allowed_characters.size() * (modifications->getNumberOfModifications() + 1) + 2.)
 
   sequence = AASequence::fromString("ACNN");       
-	encoder.encodeOligo(sequence, 2, allowed_characters, encoded_sequence, right_border);
+  encoder.encodeOligo(sequence, 2, allowed_characters, encoded_sequence, right_border);
   TEST_EQUAL(encoded_sequence[0].first, 3)
   TEST_REAL_SIMILAR(encoded_sequence[0].second, allowed_characters.size() * (modifications->getNumberOfModifications() + 1.))
   TEST_EQUAL(encoded_sequence[1].first, 2)
@@ -536,45 +548,72 @@ START_SECTION((void encodeOligo(const AASequence &sequence, UInt k_mer_length, c
 END_SECTION
 
 START_SECTION((void libSVMVectorToString(svm_node* vector, String& output)))
-	vector<String> sequences;
-	String allowed_characters = "ACNGT";
-	vector< pair<Int, double> > encoded_sequence;
-	svm_node* nodes;
-	vector<svm_node*>::iterator it;
-	String output;	
-	String correct_output = "(1, 0.1) (2, 0.2) (4, 0.3) (5, 0.4) ";
-	
-	sequences.push_back(String("ACCGGGTTTT"));			
-			
-	encoder.encodeCompositionVector(sequences[0], encoded_sequence, allowed_characters);
-	nodes = encoder.encodeLibSVMVector(encoded_sequence);
-	
-	encoder.libSVMVectorToString(nodes, output);
-	
-	TEST_EQUAL(output, correct_output)
-	
+
+  vector<String> sequences;
+  String allowed_characters = "ACNGT";
+  vector< pair<Int, double> > encoded_sequence;
+  svm_node* nodes;
+  String output;  
+  String correct_output = "(1, 0.1) (2, 0.2) (4, 0.3) (5, 0.4) ";
+  
+  sequences.push_back(String("ACCGGGTTTT"));      
+      
+  encoder.encodeCompositionVector(sequences[0], encoded_sequence, allowed_characters);
+  nodes = encoder.encodeLibSVMVector(encoded_sequence);
+  
+  encoder.libSVMVectorToString(nodes, output);
+  
+  TEST_EQUAL(output, correct_output)
+
+  delete[] nodes;
+  
 END_SECTION
 
 START_SECTION((void libSVMVectorsToString(svm_problem* vector, String& output)))
-	vector<String> sequences;
-	String allowed_characters = "ACNGT";
-	String output;	
-	String correct_output = "(1, 0.1) (2, 0.2) (4, 0.3) (5, 0.4) \n(1, 0.5) (2, 0.5) \n";	
-	vector<double> labels;
-	svm_problem* problem;
-	
-	labels.push_back(2.1);
-	labels.push_back(1.3);
-	sequences.push_back(String("ACCGGGTTTT"));			
-	sequences.push_back(String("ACCA"));
-		
-	problem = encoder.encodeLibSVMProblemWithCompositionVectors(sequences, labels, allowed_characters);			
-	encoder.libSVMVectorsToString(problem, output);
-	TEST_EQUAL(output, correct_output)	
+  vector<String> sequences;
+  String allowed_characters = "ACNGT";
+  String output;  
+  String correct_output = "(1, 0.1) (2, 0.2) (4, 0.3) (5, 0.4) \n(1, 0.5) (2, 0.5) \n";  
+  vector<double> labels;
+  svm_problem* problem;
+  
+  labels.push_back(2.1);
+  labels.push_back(1.3);
+  sequences.push_back(String("ACCGGGTTTT"));      
+  sequences.push_back(String("ACCA"));
+    
+  problem = encoder.encodeLibSVMProblemWithCompositionVectors(sequences, labels, allowed_characters);      
+  encoder.libSVMVectorsToString(problem, output);
+  TEST_EQUAL(output, correct_output)  
+
+  LibSVMEncoder::destroyProblem(problem); // cleanup
 END_SECTION
 
 START_SECTION(static void destroyProblem(svm_problem *problem))
-	NOT_TESTABLE
+  svm_problem* problem = new svm_problem();
+  UInt count = 4;
+  svm_node** nodes = new svm_node*[count];
+  double* labels = new double[count];
+  std::vector<double> label_vector1;
+  label_vector1.reserve(count);
+  std::vector<double> label_vector2;
+  label_vector2.reserve(count);
+
+  for (Size i = 0; i < count; i++)
+  {
+    nodes[i] = new svm_node[count];
+    nodes[i][count - 1].index = -1;
+    labels[i] = i * 2 / 3 + 0.03;
+    label_vector1.push_back(labels[i]);
+  }
+  problem->x = nodes;
+  problem->l = count;
+  problem->y = labels;
+
+  LibSVMEncoder::destroyProblem(problem); // cleanup
+  TEST_EQUAL(problem, nullPointer)
+
+  LibSVMEncoder::destroyProblem(problem); // should be NOP
 END_SECTION
 
 /////////////////////////////////////////////////////////////

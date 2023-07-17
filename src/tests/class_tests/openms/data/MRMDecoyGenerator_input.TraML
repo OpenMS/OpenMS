@@ -8,6 +8,8 @@
     <Protein id="AQRT" >
       <Sequence></Sequence>
     </Protein>
+    <Protein id="O14654">
+    </Protein>
   </ProteinList>
   <CompoundList>
     <Peptide id="AAAAAK" sequence="AAAAAK">

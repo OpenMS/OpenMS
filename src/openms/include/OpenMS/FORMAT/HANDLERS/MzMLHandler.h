@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -48,6 +48,8 @@
 #include <OpenMS/FORMAT/OPTIONS/PeakFileOptions.h>
 #include <OpenMS/FORMAT/ControlledVocabulary.h>
 #include <OpenMS/FORMAT/VALIDATORS/SemanticValidator.h>
+
+#include <map>
 
 
 //MISSING:
@@ -324,7 +326,7 @@ protected:
                               const Internal::MzMLValidator& validator);
 
       template <typename ContainerT>
-      void writeContainerData_(std::ostream& os, const PeakFileOptions& pf_options_, const ContainerT& container, String array_type);
+      void writeContainerData_(std::ostream& os, const PeakFileOptions& pf_options_, const ContainerT& container, const String& array_type);
 
       /**
           @brief Write a single \<binaryDataArray\> element to the output
@@ -428,19 +430,19 @@ protected:
       /// Id of the current list. Used for referencing param group, source file, sample, software, ...
       String current_id_;
       /// The referencing param groups: id => array (accession, value)
-      Map<String, std::vector<SemanticValidator::CVTerm> > ref_param_;
+      std::map<String, std::vector<SemanticValidator::CVTerm> > ref_param_;
       /// The source files: id => SourceFile
-      Map<String, SourceFile> source_files_;
+      std::map<String, SourceFile> source_files_;
       /// The sample list: id => Sample
-      Map<String, Sample> samples_;
+      std::map<String, Sample> samples_;
       /// The software list: id => Software
-      Map<String, Software> software_;
+      std::map<String, Software> software_;
       /// The data processing list: id => Instrument
-      Map<String, Instrument> instruments_;
+      std::map<String, Instrument> instruments_;
       /// CV terms-path-combinations that have been checked in validateCV_()
-      mutable Map<std::pair<String, String>, bool> cached_terms_;
+      mutable std::map<std::pair<String, String>, bool> cached_terms_;
       /// The data processing list: id => Instrument
-      Map<String, std::vector< DataProcessingPtr > > processing_;
+      std::map<String, std::vector< DataProcessingPtr > > processing_;
       /// id of the default data processing (used when no processing is defined)
       String default_processing_;
       /// Count of selected ions

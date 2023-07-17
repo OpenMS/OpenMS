@@ -1,5 +1,4 @@
 from libcpp.vector cimport vector as libcpp_vector
-from libcpp.map cimport map as libcpp_map
 from libcpp.pair cimport pair as libcpp_pair
 from libcpp cimport bool
 
@@ -68,7 +67,7 @@ cdef extern from "<OpenMS/ANALYSIS/ID/IDRipper.h>" namespace "OpenMS":
 
     cdef cppclass IDRipper(DefaultParamHandler):
         # wrap-inherits:
-        #    DefaultParamHandler
+        #   DefaultParamHandler
         
         IDRipper() nogil except + # wrap-doc:Ripping protein/peptide identification according their file origin
         # private

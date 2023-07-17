@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -44,22 +44,13 @@ using namespace std;
 
 namespace OpenMS
 {
-  PepNovoOutfile::PepNovoOutfile()
-  {
-  }
+  PepNovoOutfile::PepNovoOutfile() = default;
 
-  PepNovoOutfile::PepNovoOutfile(const PepNovoOutfile &)
-  {
-  }
+  PepNovoOutfile::PepNovoOutfile(const PepNovoOutfile &) = default;
 
-  PepNovoOutfile::~PepNovoOutfile()
-  {
-  }
+  PepNovoOutfile::~PepNovoOutfile() = default;
 
-  PepNovoOutfile & PepNovoOutfile::operator=(const PepNovoOutfile &)
-  {
-    return *this;
-  }
+  PepNovoOutfile & PepNovoOutfile::operator=(const PepNovoOutfile &) = default;
 
   bool PepNovoOutfile::operator==(const PepNovoOutfile &) const
   {

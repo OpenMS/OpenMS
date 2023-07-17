@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -36,18 +36,31 @@
 #include <OpenMS/MATH/STATISTICS/LinearRegression.h>
 #include <OpenMS/MATH/STATISTICS/StatisticFunctions.h>
 
-#include "Wm5Vector2.h"
-#include "Wm5ApprLineFit2.h"
-#include "Wm5LinearSystem.h"
+#include <Mathematics/Vector2.h>
+#include <Mathematics/ApprHeightLine2.h>
+#include <Mathematics/LinearSystem.h>
 
 #include <boost/math/distributions/normal.hpp>
 #include <boost/math/special_functions/binomial.hpp>
 #include <boost/math/distributions.hpp>
 
+#include <iostream>
+
 using boost::math::detail::inverse_students_t;
 
 namespace OpenMS::Math
 {
+    static void vector2ToStdVec_(const std::vector<gte::Vector2<double>>& points, std::vector<double>& Xout, std::vector<double>& Yout){
+      unsigned N = static_cast<unsigned>(points.size());
+      Xout.clear(); Xout.reserve(N);
+      Yout.clear(); Yout.reserve(N);
+      for (unsigned i = 0; i < N; ++i)
+      {
+        Xout.push_back(points[i][0]);
+        Yout.push_back(points[i][1]);
+      }
+    }
+
     double LinearRegression::getIntercept() const
     {
       return intercept_;
@@ -108,20 +121,15 @@ namespace OpenMS::Math
       return rsd_;
     }
 
-    void LinearRegression::computeGoodness_(const std::vector<Wm5::Vector2d>& points, double confidence_interval_P)
+    void LinearRegression::computeGoodness_(const std::vector<double>& X, const std::vector<double>& Y, double confidence_interval_P)
     {
-      OPENMS_PRECONDITION(static_cast<unsigned>(points.size()) > 2, 
+      OPENMS_PRECONDITION(static_cast<unsigned>(X.size() == Y.size()), 
+          "Fitted X and Y have different lengths.");
+      OPENMS_PRECONDITION(static_cast<unsigned>(X.size()) > 2, 
           "Cannot compute goodness of fit for regression with less than 3 data points");
       // specifically, boost throws an exception for a t-distribution with zero df
 
-      unsigned N = static_cast<unsigned>(points.size());
-      std::vector<double> X; X.reserve(N);
-      std::vector<double> Y; Y.reserve(N);
-      for (unsigned i = 0; i < N; ++i)
-      {
-        X.push_back(points[i].X());
-        Y.push_back(points[i].Y());
-      }
+      Size N = X.size();
 
       // Mean of abscissa and ordinate values
       double x_mean = Math::mean(X.begin(), X.end());
@@ -225,16 +233,19 @@ namespace OpenMS::Math
         std::vector<double>::const_iterator y_begin,
         bool compute_goodness)
     {
-      std::vector<Wm5::Vector2d> points;
+      std::vector<gte::Vector2<double>> points;
       for(std::vector<double>::const_iterator xIter = x_begin, yIter = y_begin; xIter!=x_end; ++xIter, ++yIter)
       {
-        points.emplace_back(*xIter, *yIter);
+        points.emplace_back(std::initializer_list<double>{*xIter, *yIter});
       }
 
       // Compute the unweighted linear fit.
       // Get the intercept and the slope of the regression Y_hat=intercept_+slope_*X
       // and the value of Chi squared (sum( (y - evel(x))^2)
-      bool pass = Wm5::HeightLineFit2<double>(static_cast<int>(points.size()), &points.front(), slope_, intercept_);
+      auto line = gte::ApprHeightLine2<double>();
+      bool pass = line.Fit(static_cast<int>(points.size()), &points.front());
+      slope_ = line.GetParameters().second[0];
+      intercept_ = -slope_ * line.GetParameters().first[0] + line.GetParameters().first[1];
       chi_squared_ = computeChiSquare(x_begin, x_end, y_begin, slope_, intercept_);
 
       if (!pass)
@@ -244,7 +255,9 @@ namespace OpenMS::Math
 
       if (compute_goodness && points.size() > 2)
       {
-        computeGoodness_(points, confidence_interval_P);
+        std::vector<double> X,Y;
+        vector2ToStdVec_(points, X, Y);
+        computeGoodness_(X, Y , confidence_interval_P);
       }
     }
 
@@ -258,13 +271,13 @@ namespace OpenMS::Math
       // Compute the weighted linear fit.
       // Get the intercept and the slope of the regression Y_hat=intercept_+slope_*X
       // and the value of Chi squared, the covariances of the intercept and the slope
-      std::vector<Wm5::Vector2d> points;
+      std::vector<gte::Vector2<double>> points;
       for(std::vector<double>::const_iterator xIter = x_begin, yIter = y_begin; xIter!=x_end; ++xIter, ++yIter)
       {
-        points.emplace_back(*xIter, *yIter);
+        points.emplace_back(std::initializer_list<double>{*xIter, *yIter});
       }
 
-      // Compute sums for linear system. copy&paste from GeometricTools Wm5ApprLineFit2.cpp
+      // Compute sums for linear system. copy&paste from GeometricToolsEngine (gte) ApprHeightLine2.h
       // and modified to allow weights
       int numPoints = static_cast<int>(points.size());
       double sumX = 0, sumY = 0;
@@ -274,26 +287,28 @@ namespace OpenMS::Math
 
       for (int i = 0; i < numPoints; ++i, ++wIter)
       {
-        sumX += (*wIter) * points[i].X();
-        sumY += (*wIter) * points[i].Y();
-        sumXX += (*wIter) * points[i].X() * points[i].X();
-        sumXY += (*wIter) * points[i].X() * points[i].Y();
+        sumX += (*wIter) * points[i][0];
+        sumY += (*wIter) * points[i][1];
+        sumXX += (*wIter) * points[i][0] * points[i][0];
+        sumXY += (*wIter) * points[i][0] * points[i][1];
         sumW += (*wIter);
       }
       //create matrices to solve Ax = B
-      double A[2][2] =
+      gte::Matrix2x2<double> A
       {
-        {sumXX, sumX},
-        {sumX, sumW}
+        sumXX, sumX,
+        sumX, sumW
       };
-      double B[2] =
+
+      gte::Vector2<double> B
       {
         sumXY,
         sumY
       };
-      double X[2];
 
-      bool nonsingular = Wm5::LinearSystem<double>().Solve2(A, B, X);
+      gte::Vector2<double> X;
+
+      bool nonsingular = gte::LinearSystem<double>().Solve(A, B, X);
       if (nonsingular)
       {
         slope_ = X[0];
@@ -303,7 +318,12 @@ namespace OpenMS::Math
 
       if (nonsingular)
       {
-        if (compute_goodness && points.size() > 2) computeGoodness_(points, confidence_interval_P);
+        if (compute_goodness && points.size() > 2)
+        {
+          std::vector<double> X,Y;
+          vector2ToStdVec_(points, X, Y);
+          computeGoodness_(X, Y, confidence_interval_P);
+        }
       }
       else
       {
@@ -311,6 +331,5 @@ namespace OpenMS::Math
             "UnableToFit-LinearRegression", "Could not fit a linear model to the data");
       }
     }
-
 } // OpenMS //Math
 

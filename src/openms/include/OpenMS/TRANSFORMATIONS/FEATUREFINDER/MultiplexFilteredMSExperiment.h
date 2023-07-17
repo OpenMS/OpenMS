@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -98,7 +98,7 @@ namespace OpenMS
          * @param exp_picked   original (i.e. not white) centroided experimental data
          * @param debug_out    file name of the debug output
          */
-        void writeDebugOutput(const MSExperiment& exp_picked, String debug_out) const;
+        void writeDebugOutput(const MSExperiment& exp_picked, const String& debug_out) const;
         
         private:
         /**

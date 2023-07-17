@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -50,12 +50,12 @@ namespace OpenMS
   /**
       @ingroup Chemistry
 
-      @brief Representation of a residue
+      @brief Representation of an amino acid residue.
 
-      This class represents residues. Residues can have many different attributes, like
+      This class represents an amino acid. These can have many different attributes, like
       the formula physico-chemical values of properties and so on.
 
-      A very important property of residues are their modifications. By default no
+      A very important property of amino acid residues are their modifications. By default no
       modification is present. Any modification which is present in the ModificationsDB can
       be applied, if appropriate.
   */
@@ -173,7 +173,6 @@ public:
 
     /// returns the ion name given as a residue type
     static String getResidueTypeName(const ResidueType res_type);
-
 
     /** @name Constructors
     */
@@ -300,13 +299,13 @@ public:
     /// returns monoisotopic weight of the residue
     double getMonoWeight(ResidueType res_type = Full) const;
 
-    /// returns a pointer to the modification, or zero if none is set
+    /// returns a pointer to the modification, or a null pointer if none is set
     const ResidueModification* getModification() const;
 
     /// sets the modification by name; the mod should be present in ModificationsDB
     void setModification(const String& name);
 
-    /// sets the modification by existing ResMod (make sure it exists in ModificationDB)
+    /// sets the modification by existing ResMod (make sure it exists in ModificationsDB)
     void setModification(const ResidueModification* mod);
 
     /// sets the modification by looking for an exact match in the DB first, otherwise creating a
@@ -326,13 +325,13 @@ public:
     /// returns a vector of formulas with the low mass markers of the residue
     const std::vector<EmpiricalFormula>& getLowMassIons() const;
 
-    /// sets the residue sets the amino acid is contained in
+    /// sets the residue sets the amino acid is contained in (e.g. Natural20)
     void setResidueSets(const std::set<String>& residues_sets);
 
-    /// adds a residue set to the residue sets
+    /// adds a residue set to the residue sets (e.g. Natural20)
     void addResidueSet(const String& residue_sets);
 
-    /// returns the residue sets this residue is contained in
+    /// returns the residue sets this residue is contained in (e.g. Natural20)
     const std::set<String>& getResidueSets() const;
 
     /// returns the pka of the residue
@@ -362,13 +361,13 @@ public:
     /// sets the side chain basicity
     void setSideChainBasicity(double gb_sc);
 
-    /// returns the backbone basicitiy if located in N-terminal direction
+    /// returns the backbone basicity if located in N-terminal direction
     double getBackboneBasicityLeft() const;
 
-    /// sets the N-terminal direction backbone basicitiy
+    /// sets the N-terminal direction backbone basicity
     void setBackboneBasicityLeft(double gb_bb_l);
 
-    /// returns the C-terminal direction backbone basicitiy
+    /// returns the C-terminal direction backbone basicity
     double getBackboneBasicityRight() const;
 
     /// sets the C-terminal direction backbone basicity
@@ -415,7 +414,7 @@ public:
 
 protected:
 
-    // basic
+    /// the name of the residue
     String name_;
 
     std::set<String> synonyms_;
@@ -432,7 +431,7 @@ protected:
 
     double mono_weight_;
 
-    // modification
+    /// pointer to the modification 
     const ResidueModification* modification_;
 
     // loss
@@ -448,7 +447,7 @@ protected:
 
     double loss_mono_weight_;
 
-    // low mass markers like immonium ions
+    /// low mass markers like immonium ions
     std::vector<EmpiricalFormula> low_mass_ions_;
 
     // pka values
@@ -460,16 +459,19 @@ protected:
     // pkc values
     double pkc_;
 
+    /// SideChainBasicity
     double gb_sc_;
 
+    /// BackboneBasicityLeft
     double gb_bb_l_;
 
+    /// BackboneBasicityRight
     double gb_bb_r_;
 
-    // residue sets this amino acid is contained in
+    /// residue sets this amino acid is contained in
     std::set<String> residue_sets_;
 
-    // precalculated residue type delta weights for more efficient weight calculation
+    // pre-calculated residue type delta weights for more efficient weight calculation
     double internal_to_full_monoweight_ = getInternalToFull().getMonoWeight();
     double internal_to_nterm_monoweight_ = getInternalToNTerm().getMonoWeight();
     double internal_to_cterm_monoweight_ = getInternalToCTerm().getMonoWeight();

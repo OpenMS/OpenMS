@@ -9,7 +9,7 @@ cdef extern from "<OpenMS/KERNEL/MRMFeature.h>" namespace "OpenMS":
     cdef cppclass MRMFeature(Feature):
         #
         # wrap-inherits:
-        #    Feature
+        #   Feature
 
         MRMFeature() nogil except +
         MRMFeature(MRMFeature &) nogil except +

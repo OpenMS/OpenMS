@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -316,8 +316,55 @@ START_SECTION((ExitCodes run(std::vector<FASTAFile::FASTAEntry>& proteins, std::
     TEST_EQUAL(r.size(), 1); // one hit!
     TEST_EQUAL(*r.begin(), "Protein1"); // one hit!
   }
+  }
 
+  {
+  // test no-cleavage (e.g. matching a peptide FASTA DB exactly)
+  PeptideIndexing pi_8;
+  Param p_8 = pi_8.getParameters();
+  p_8.setValue("aaa_max", 0);
+  p_8.setValue("mm_max", 0);
+  p_8.setValue("enzyme:name", "no cleavage");
+  p_8.setValue("allow_nterm_protein_cleavage", "false");
+  pi_8.setParameters(p_8);
+  std::vector<FASTAFile::FASTAEntry> proteins_8 = toFASTAVec(QStringList() << "MKDPLMMLK"
+                                                                           << "KDPLMMLK",
+                                                             QStringList() << "Protein1" << "otherProtein");
+  pep_ids = toPepVec(QStringList() << "KDPLMMLK" << "MKD"); 
+  pi_8.run(proteins_8, prot_ids_2, pep_ids);
+  TEST_EQUAL(pep_ids[0].getHits().size(), 1)
+  const auto r = pep_ids[0].getHits()[0].extractProteinAccessionsSet();
+  TEST_EQUAL(r.size(), 1); // one hit!
+  TEST_EQUAL(*r.begin(), "otherProtein"); // one hit!
 
+  TEST_EQUAL(pep_ids[1].getHits()[0].extractProteinAccessionsSet().size(), 0) // no hit for "MKD"
+  }
+
+  {
+    // test no-cleavage (e.g. matching a peptide FASTA DB exactly) but with ASP/PRO cleavage enabled
+    PeptideIndexing pi_8;
+    Param p_8 = pi_8.getParameters();
+    p_8.setValue("aaa_max", 0);
+    p_8.setValue("mm_max", 0);
+    p_8.setValue("enzyme:name", "no cleavage");
+    p_8.setValue("allow_nterm_protein_cleavage", "false");
+    pi_8.setParameters(p_8);
+    std::vector<FASTAFile::FASTAEntry> proteins_8 = toFASTAVec(QStringList() << "MKDPLMMLK" // should not hit, due to !allow_nterm_protein_cleavage
+                                                                             << "KDPLMMLK", // target
+                                                               QStringList() << "Protein1"
+                                                                             << "otherProtein");
+    prot_ids_2.resize(1);
+    prot_ids_2[0].setSearchEngine("XTANDEM"); // enable random ASP/PRO cleavage in PeptideIndexing
+    pep_ids = toPepVec(QStringList() << "KDPLMMLK"  // one hit
+                                     << "KD");      // one hit due to D/P cleavage
+    pi_8.run(proteins_8, prot_ids_2, pep_ids);
+    for (auto& pep : pep_ids)
+    {
+      TEST_EQUAL(pep.getHits().size(), 1)
+      const auto r = pep.getHits()[0].extractProteinAccessionsSet();
+      TEST_EQUAL(r.size(), 1);                // one hit!
+      TEST_EQUAL(*r.begin(), "otherProtein"); // one hit!
+    }
   }
 }
 END_SECTION

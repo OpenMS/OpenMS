@@ -2,7 +2,7 @@
 #                   OpenMS -- Open-Source Mass Spectrometry
 # --------------------------------------------------------------------------
 # Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-# ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+# ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 #
 # This software is released under a three-clause BSD license:
 #  * Redistributions of source code must retain the above copyright
@@ -33,26 +33,34 @@
 # --------------------------------------------------------------------------
 
 project("OpenMS-evergreen")
-cmake_minimum_required(VERSION 3.0 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.15 FATAL_ERROR)
 
 # export include directory
 add_library(Evergreen INTERFACE)
 target_include_directories(Evergreen SYSTEM INTERFACE 
                             "$<BUILD_INTERFACE:${CMAKE_CURRENT_LIST_DIR}>"
-                            "$<INSTALL_INTERFACE:${INSTALL_INCLUDE_DIR}/thirdparty/evergreen/src>")
+                            "$<INSTALL_INTERFACE:${INSTALL_INCLUDE_DIR}/OpenMS/thirdparty/evergreen>")
 
 # Export it under OpenMSTargets.cmake instead of a separate EvergreenTargets file
 #install(EXPORT EvergreenTargets DESTINATION lib/cmake/evergreen)
-#install(TARGETS Evergreen EXPORT EvergreenTargets PUBLIC_HEADER DESTINATION ${INSTALL_INCLUDE_DIR}/thirdparty/evergreen COMPONENT library)
+#install(TARGETS Evergreen EXPORT EvergreenTargets PUBLIC_HEADER DESTINATION ${INSTALL_INCLUDE_DIR}/OpenMS/thirdparty/evergreen COMPONENT library)
 
 install_library(Evergreen)
 openms_register_export_target(Evergreen)
 
 get_filename_component(EVERGREEN_HEADERS "${CMAKE_CURRENT_LIST_FILE}" PATH)
-get_filename_component(EVERGREEN_HEADERS "${EVERGREEN_HEADERS}" PATH)
 
 # Install headers
-install_directory(${EVERGREEN_HEADERS} ${INSTALL_INCLUDE_DIR}/thirdparty thirdparty_headers)
-
-
-
+install(DIRECTORY ${EVERGREEN_HEADERS}/
+  DESTINATION ${INSTALL_INCLUDE_DIR}/OpenMS/thirdparty/evergreen
+  COMPONENT thirdparty_headers
+  FILE_PERMISSIONS      OWNER_WRITE OWNER_READ
+                        GROUP_READ
+                        WORLD_READ
+  DIRECTORY_PERMISSIONS OWNER_EXECUTE OWNER_WRITE OWNER_READ
+                        GROUP_EXECUTE GROUP_READ
+                        WORLD_EXECUTE WORLD_READ
+  REGEX "^\\..*" EXCLUDE ## Exclude hidden files (svn, git, DSStore)
+  REGEX ".*\\/\\..*" EXCLUDE ## Exclude hidden files in subdirectories
+  PATTERN "demos/*" EXCLUDE
+  )

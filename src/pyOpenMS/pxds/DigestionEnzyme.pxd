@@ -8,7 +8,7 @@ cdef extern from "<OpenMS/CHEMISTRY/DigestionEnzyme.h>" namespace "OpenMS":
     
     cdef cppclass DigestionEnzyme "OpenMS::DigestionEnzyme":
         # wrap-doc:
-        #     Base class for digestion enzymes
+        #    Base class for digestion enzymes
 
         DigestionEnzyme(DigestionEnzyme &) nogil except +
 

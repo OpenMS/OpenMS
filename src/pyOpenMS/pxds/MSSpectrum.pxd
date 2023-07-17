@@ -4,6 +4,7 @@ from String cimport *
 from RangeManager cimport *
 from DataArrays cimport *
 from SpectrumSettings cimport *
+from IMTypes cimport *
 
 # this class has addons, see the ./addons folder (../addons/MSSpectrum.pyx)
 
@@ -15,63 +16,80 @@ cdef extern from "<OpenMS/KERNEL/MSSpectrum.h>" namespace "OpenMS":
         #  RangeManagerMzInt
         #
         # wrap-doc:
-        #   The representation of a 1D spectrum.
-        #   Raw data access is proved by `get_peaks` and `set_peaks`, which yields numpy arrays
-        #   Iterations yields access to underlying peak objects but is slower
-        #   Extra data arrays can be accessed through getFloatDataArrays / getIntegerDataArrays / getStringDataArrays
-        #   See help(SpectrumSettings) for information about meta-information
-        #   -----
-        #   Usage:
-        #     ms_level = spectrum.getMSLevel()
-        #     rt = spectrum.getRT()
-        #     mz, intensities = spectrum.get_peaks()
-        #
-        #   Usage:
-        #     from pyopenms import *
-        #
-        #     spectrum = MSSpectrum()
-        #     spectrum.setDriftTime(25) # 25 ms
-        #     spectrum.setRT(205.2) # 205.2 s
-        #     spectrum.setMSLevel(3) # MS3
-        #     p = Precursor()
-        #     p.setIsolationWindowLowerOffset(1.5)
-        #     p.setIsolationWindowUpperOffset(1.5)
-        #     p.setMZ(600) # isolation at 600 +/- 1.5 Th
-        #     p.setActivationEnergy(40) # 40 eV
-        #     p.setCharge(4) # 4+ ion
-        #     spectrum.setPrecursors( [p] )
-        #
-        #     # Add raw data to spectrum
-        #     spectrum.set_peaks( ([401.5], [900]) )
-        #
-        #     # Additional data arrays / peak annotations
-        #     fda = FloatDataArray()
-        #     fda.setName("Signal to Noise Array")
-        #     fda.push_back(15)
-        #     sda = StringDataArray()
-        #     sda.setName("Peak annotation")
-        #     sda.push_back("y15++")
-        #     spectrum.setFloatDataArrays( [fda] )
-        #     spectrum.setStringDataArrays( [sda] )
-        #
-        #     # Add spectrum to MSExperiment
-        #     exp = MSExperiment()
-        #     exp.addSpectrum(spectrum)
-        #
-        #     # Add second spectrum and store as mzML file
-        #     spectrum2 = MSSpectrum()
-        #     spectrum2.set_peaks( ([1, 2], [1, 2]) )
-        #     exp.addSpectrum(spectrum2)
-        #
-        #     MzMLFile().store("testfile.mzML", exp)
-        #   -----
+        #  The representation of a 1D spectrum.
+        #  Raw data access is proved by `get_peaks` and `set_peaks`, which yields numpy arrays
+        #  Iterations yields access to underlying peak objects but is slower
+        #  Extra data arrays can be accessed through getFloatDataArrays / getIntegerDataArrays / getStringDataArrays
+        #  See help(SpectrumSettings) for information about meta-information
+        #  
+        #  Usage:
+        #  
+        #  .. code-block:: python
+        #  
+        #    ms_level = spectrum.getMSLevel()
+        #    rt = spectrum.getRT()
+        #    mz, intensities = spectrum.get_peaks()
+        #  
+        #  
+        #  Usage:
+        #  
+        #  .. code-block:: python
+        #  
+        #    from pyopenms import *
+        #    
+        #    spectrum = MSSpectrum()
+        #    spectrum.setDriftTime(25) # 25 ms
+        #    spectrum.setRT(205.2) # 205.2 s
+        #    spectrum.setMSLevel(3) # MS3
+        #    p = Precursor()
+        #    p.setIsolationWindowLowerOffset(1.5)
+        #    p.setIsolationWindowUpperOffset(1.5)
+        #    p.setMZ(600) # isolation at 600 +/- 1.5 Th
+        #    p.setActivationEnergy(40) # 40 eV
+        #    p.setCharge(4) # 4+ ion
+        #    spectrum.setPrecursors( [p] )
+        #    
+        #    # Add raw data to spectrum
+        #    spectrum.set_peaks( ([401.5], [900]) )
+        #    
+        #    # Additional data arrays / peak annotations
+        #    fda = FloatDataArray()
+        #    fda.setName("Signal to Noise Array")
+        #    fda.push_back(15)
+        #    sda = StringDataArray()
+        #    sda.setName("Peak annotation")
+        #    sda.push_back("y15++")
+        #    spectrum.setFloatDataArrays( [fda] )
+        #    spectrum.setStringDataArrays( [sda] )
+        #    
+        #    # Add spectrum to MSExperiment
+        #    exp = MSExperiment()
+        #    exp.addSpectrum(spectrum)
+        #    
+        #    # Add second spectrum and store as mzML file
+        #    spectrum2 = MSSpectrum()
+        #    spectrum2.set_peaks( ([1, 2], [1, 2]) )
+        #    exp.addSpectrum(spectrum2)
+        #    
+        #    MzMLFile().store("testfile.mzML", exp)
+        #  
+        #  
 
         MSSpectrum() nogil except +
         MSSpectrum(MSSpectrum &) nogil except +
+
         double getRT() nogil except + # wrap-doc:Returns the absolute retention time (in seconds)
         void setRT(double) nogil except +  # wrap-doc:Sets the absolute retention time (in seconds)
+
         double getDriftTime() nogil except + # wrap-doc:Returns the drift time (-1 if not set)
         void setDriftTime(double) nogil except + # wrap-doc:Sets the drift time (-1 if not set)
+        DriftTimeUnit getDriftTimeUnit() nogil except +
+        String getDriftTimeUnitAsString() nogil except +
+        void setDriftTimeUnit(DriftTimeUnit dt) nogil except +
+
+        bool containsIMData() nogil except +
+        libcpp_pair[Size, DriftTimeUnit] getIMData() nogil except + # wrap-ignore wrap-doc:Returns position of ion mobility float data array and drift time unit
+
         unsigned int getMSLevel() nogil except + # wrap-doc:Returns the MS level
         void setMSLevel(unsigned int) nogil except + # wrap-doc:Sets the MS level
 
@@ -80,6 +98,7 @@ cdef extern from "<OpenMS/KERNEL/MSSpectrum.h>" namespace "OpenMS":
 
         Size size() nogil except + # wrap-doc:Returns the number of peaks in the spectrum
         void reserve(size_t n) nogil except + 
+        void resize(size_t n) nogil except + # wrap-doc:Resize the peak array 
 
         Peak1D& operator[](size_t) nogil except + # wrap-upper-limit:size()
 
@@ -115,4 +134,5 @@ cdef extern from "<OpenMS/KERNEL/MSSpectrum.h>" namespace "OpenMS":
         void setFloatDataArrays(libcpp_vector[FloatDataArray] fda) nogil except + # wrap-doc:Sets the additional float data arrays to store e.g. meta data
         void setIntegerDataArrays(libcpp_vector[IntegerDataArray] ida) nogil except + # wrap-doc:Sets the additional int data arrays to store e.g. meta data
         void setStringDataArrays(libcpp_vector[StringDataArray] sda) nogil except + # wrap-doc:Sets the additional string data arrays to store e.g. meta data
+
 

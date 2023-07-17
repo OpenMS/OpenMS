@@ -4,7 +4,6 @@ from String cimport *
 from Residue cimport *
 from EmpiricalFormula cimport *
 from Ribonucleotide cimport *
-from Map cimport *
 
 cdef extern from "<OpenMS/CHEMISTRY/NASequence.h>" namespace "OpenMS":
 
@@ -12,12 +11,12 @@ cdef extern from "<OpenMS/CHEMISTRY/NASequence.h>" namespace "OpenMS":
 
     cdef cppclass NASequence "OpenMS::NASequence":
         # wrap-hash:
-        #   toString().c_str()
+        #  toString().c_str()
         #
         # wrap-doc:
-        #   Representation of an RNA sequence
-        #   This class represents nucleic acid sequences in OpenMS. An NASequence
-        #   instance primarily contains a sequence of ribonucleotides. 
+        #  Representation of an RNA sequence
+        #  This class represents nucleic acid sequences in OpenMS. An NASequence
+        #  instance primarily contains a sequence of ribonucleotides. 
 
         NASequence() nogil except +
         NASequence(NASequence &) nogil except +
@@ -76,7 +75,7 @@ cdef extern from "<OpenMS/CHEMISTRY/NASequence.h>" namespace "OpenMS::NASequence
 cdef extern from "<OpenMS/CHEMISTRY/NASequence.h>" namespace "OpenMS::NASequence":
     cdef enum NASFragmentType "OpenMS::NASequence::NASFragmentType":
         #wrap-attach:
-        #    NASequence
+        #   NASequence
         Full
         Internal
         FivePrime

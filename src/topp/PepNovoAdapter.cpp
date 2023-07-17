@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry               
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 // 
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -77,9 +77,9 @@ using namespace std;
 <CENTER>
   <table>
     <tr>
-      <td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. predecessor tools </td>
-      <td VALIGN="middle" ROWSPAN=3> \f$ \longrightarrow \f$ PepNovoAdapter \f$ \longrightarrow \f$</td>
-      <td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. successor tools </td>
+      <th ALIGN = "center"> pot. predecessor tools </td>
+      <td VALIGN="middle" ROWSPAN=3> &rarr; PepNovoAdapter &rarr;</td>
+      <th ALIGN = "center"> pot. successor tools </td>
     </tr>
     <tr>
       <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> any signal-/preprocessing tool @n (in mzML format)</td>
@@ -180,7 +180,7 @@ class TOPPPepNovoAdapter :
       double fragment_tolerance = getDoubleOption_("fragment_tolerance");
       if (fragment_tolerance!=-1.0 && (fragment_tolerance<0 || fragment_tolerance>0.75))
       {
-        writeLog_("Invalid fragment tolerance");
+        writeLogError_("Invalid fragment tolerance");
         printUsage_();
         return ILLEGAL_PARAMETERS;
       }
@@ -188,7 +188,7 @@ class TOPPPepNovoAdapter :
       double pm_tolerance = getDoubleOption_("pm_tolerance");
       if (pm_tolerance!=-1.0 && (pm_tolerance<0.0 || pm_tolerance>5.0))
       {
-        writeLog_("Invalid fragment tolerance");
+        writeLogError_("Invalid fragment tolerance");
         printUsage_();
         return ILLEGAL_PARAMETERS;
       }
@@ -196,7 +196,7 @@ class TOPPPepNovoAdapter :
       Int tag_length = getIntOption_("tag_length");
       if ( tag_length!=-1 && (tag_length<3 || tag_length>6))
       {
-        writeLog_("Invalid fragment tolerance");
+        writeLogError_("Invalid fragment tolerance");
         printUsage_();
         return ILLEGAL_PARAMETERS;
       }
@@ -226,7 +226,7 @@ class TOPPPepNovoAdapter :
       QDir qdir_models_source(model_directory.c_str());
       if (!qdir_models_source.exists())
       {
-        writeLog_("The model directory does not exist");
+        writeLogError_("The model directory does not exist");
         return INPUT_FILE_NOT_FOUND;
       }
       
@@ -252,7 +252,7 @@ class TOPPPepNovoAdapter :
 
         if (qdir_temp.cd("Models"))
         {
-          writeLog_("The temporary directory already contains \"Model\" Folder. Please delete it and re-run. Aborting!");
+          writeLogError_("The temporary directory already contains \"Model\" Folder. Please delete it and re-run. Aborting!");
           return CANNOT_WRITE_OUTPUT_FILE;
         }
         else
@@ -265,7 +265,7 @@ class TOPPPepNovoAdapter :
         QStringList pepnovo_files = qdir_models_source.entryList(QDir::Dirs | QDir::Files|QDir::NoDotAndDotDot);
         if (pepnovo_files.empty())
         {
-          writeLog_("The \"Model\" directory does not contain model files. Aborting!");
+          writeLogError_("The \"Model\" directory does not contain model files. Aborting!");
           return INPUT_FILE_NOT_FOUND;
         }
 
@@ -384,8 +384,7 @@ class TOPPPepNovoAdapter :
       }
       catch(Exception::BaseException &exc)
       {
-        writeLog_(exc.what());
-        OPENMS_LOG_ERROR << "Error occurred: " << exc.what() << std::endl;
+        writeLogError_(String("Error occurred: ") + exc.what());
         error = true;
       }
       
@@ -396,7 +395,7 @@ class TOPPPepNovoAdapter :
       }
       else
       {
-        writeLog_("PepNovo problem. Aborting! (Details can be seen in outfiles: '" + temp_data_directory + "')");
+        writeLogError_("PepNovo problem. Aborting! (Details can be seen in outfiles: '" + temp_data_directory + "')");
         return EXTERNAL_PROGRAM_ERROR;
       }
 

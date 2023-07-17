@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -71,9 +71,9 @@ using namespace std;
 <CENTER>
     <table>
         <tr>
-            <td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. predecessor tools </td>
-            <td VALIGN="middle" ROWSPAN=2> \f$ \longrightarrow \f$ NovorAdapter \f$ \longrightarrow \f$</td>
-            <td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. successor tools </td>
+            <th ALIGN = "center"> pot. predecessor tools </td>
+            <td VALIGN="middle" ROWSPAN=2> &rarr; NovorAdapter &rarr;</td>
+            <th ALIGN = "center"> pot. successor tools </td>
         </tr>
         <tr>
             <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> signal-/preprocessing e.g. @ref TOPP_FileFilter  @n (in mzML format)</td>
@@ -208,7 +208,7 @@ protected:
       const char* novor_path_env = getenv("NOVOR_PATH");
       if (novor_path_env == nullptr || strlen(novor_path_env) == 0)
       {
-        writeLog_( "FATAL: Executable of Novor could not be found. Please either use NOVOR_PATH env variable or provide via '-executable'!");
+        writeLogError_("FATAL: Executable of Novor could not be found. Please either use NOVOR_PATH env variable or provide via '-executable'!");
         return MISSING_PARAMETERS;
       }
       executable = novor_path_env;
@@ -218,7 +218,7 @@ protected:
     QFileInfo file_info(executable);
     executable = file_info.canonicalFilePath();
 
-    writeLog_("Executable is: " + executable);
+    writeLogInfo_("Executable is: " + executable);
     const QString & path_to_executable = File::path(executable).toQString();
     
     //-------------------------------------------------------------

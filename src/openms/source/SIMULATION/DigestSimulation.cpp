@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -38,6 +38,8 @@
 #include <OpenMS/CHEMISTRY/EnzymaticDigestionLogModel.h>
 #include <OpenMS/CHEMISTRY/ProteaseDB.h>
 
+#include <map>
+
 namespace OpenMS
 {
 
@@ -47,10 +49,7 @@ namespace OpenMS
     setDefaultParams_();
   }
 
-  DigestSimulation::DigestSimulation(const DigestSimulation& source) :
-    DefaultParamHandler(source)
-  {
-  }
+  DigestSimulation::DigestSimulation(const DigestSimulation& source) = default;
 
   DigestSimulation& DigestSimulation::operator=(const DigestSimulation& source)
   {
@@ -61,9 +60,7 @@ namespace OpenMS
     return *this;
   }
 
-  DigestSimulation::~DigestSimulation()
-  {
-  }
+  DigestSimulation::~DigestSimulation() = default;
 
   void DigestSimulation::setDefaultParams_()
   {
@@ -190,7 +187,7 @@ namespace OpenMS
       // -> thus abundance of a digestion product is: #proteins / avg#of"atomic"peptides
       // i.e.: protein->second / (number_atomic_whole / number_of_digestion_products)
 
-      Map<String, SimTypes::SimIntensityType> intensities;
+      std::map<String, SimTypes::SimIntensityType> intensities;
       StringList keys;
       protein_hit.getKeys(keys);
       for (const String& key : keys)
@@ -259,7 +256,7 @@ namespace OpenMS
         // sum up intensity values
         generated_features[dp].setIntensity(generated_features[dp].getIntensity() + intensities["intensity"]);
         // ... same for other intensities (iTRAQ...)
-        for (Map<String, SimTypes::SimIntensityType>::const_iterator it_other = intensities.begin(); it_other != intensities.end(); ++it_other)
+        for (std::map<String, SimTypes::SimIntensityType>::const_iterator it_other = intensities.begin(); it_other != intensities.end(); ++it_other)
         {
           if (!generated_features[dp].metaValueExists(it_other->first))
           {

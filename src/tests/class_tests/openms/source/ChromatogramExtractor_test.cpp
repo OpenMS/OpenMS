@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry               
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 // 
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -178,7 +178,7 @@ START_SECTION(void prepare_coordinates(std::vector< OpenSwath::ChromatogramPtr >
     ChromatogramExtractor extractor;
     extractor.prepare_coordinates(output_chromatograms, coordinates, transitions, rt_extraction_window, false);
 
-    TEST_EQUAL(transitions == transitions_, true)
+    TEST_TRUE(transitions == transitions_)
     TEST_EQUAL(output_chromatograms.size(), coordinates.size())
     TEST_EQUAL(coordinates.size(), 3)
     TEST_EQUAL(coordinates[0].mz, 618.31)
@@ -206,7 +206,7 @@ START_SECTION(void prepare_coordinates(std::vector< OpenSwath::ChromatogramPtr >
     ChromatogramExtractor extractor;
     extractor.prepare_coordinates(output_chromatograms, coordinates, transitions, rt_extraction_window, true);
 
-    TEST_EQUAL(transitions == transitions_, true)
+    TEST_TRUE(transitions == transitions_)
     TEST_EQUAL(output_chromatograms.size(), coordinates.size())
     TEST_EQUAL(coordinates.size(), 2)
     TEST_EQUAL(coordinates[0].mz, 500)

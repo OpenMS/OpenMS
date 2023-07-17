@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -69,9 +69,9 @@ using namespace std;
 <center>
 <table>
     <tr>
-        <td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. predecessor tools </td>
-        <td VALIGN="middle" ROWSPAN=2> \f$ \longrightarrow \f$ FileFilter \f$ \longrightarrow \f$</td>
-        <td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. successor tools </td>
+        <th ALIGN = "center"> pot. predecessor tools </td>
+        <td VALIGN="middle" ROWSPAN=2> &rarr; FileFilter &rarr;</td>
+        <th ALIGN = "center"> pot. successor tools </td>
     </tr>
     <tr>
         <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> any tool yielding output @n in mzML, featureXML @n or consensusXML format</td>
@@ -422,6 +422,7 @@ protected:
     registerStringOption_("f_and_c:charge", "[min]:[max]", ":", "Charge range to extract", false);
     registerStringOption_("f_and_c:size", "[min]:[max]", ":", "Size range to extract", false);
     registerStringList_("f_and_c:remove_meta", "<name> 'lt|eq|gt' <value>", StringList(), "Expects a 3-tuple (=3 entries in the list), i.e. <name> 'lt|eq|gt' <value>; the first is the name of meta value, followed by the comparison operator (equal, less or greater) and the value to compare to. All comparisons are done after converting the given value to the corresponding data value type of the meta value (for lists, this simply compares length, not content!)!", false);
+    registerFlag_("f_and_c:remove_hull", "Remove hull from features.", false);
 
     addEmptyLine_();
     // XXX: Change description
@@ -510,7 +511,7 @@ protected:
     }
     else
     {
-      writeLog_("Internal Error. Meta value filtering got invalid comparison operator ('" + meta_info[1] + "'), which should have been caught before! Aborting!");
+      writeLogError_("Internal Error. Meta value filtering got invalid comparison operator ('" + meta_info[1] + "'), which should have been caught before! Aborting!");
       throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Illegal meta value filtering operator!");
     }
   }
@@ -609,6 +610,8 @@ protected:
     StringList accessions = getStringList_("id:accessions_whitelist");
     bool keep_best_score_id = getFlag_("id:keep_best_score_id");
     bool remove_clashes = getFlag_("id:remove_clashes");
+    
+    bool remove_hulls = getFlag_("f_and_c:remove_hull");
 
     // convert bounds to numbers
     try
@@ -640,7 +643,7 @@ protected:
     }
     catch (Exception::ConversionError& ce)
     {
-      writeLog_(String("Invalid boundary given: ") + ce.what() + ". Aborting!");
+      writeLogError_(String("Error: Invalid boundary given: ") + ce.what() + ". Aborting!");
       printUsage_();
       return ILLEGAL_PARAMETERS;
     }
@@ -654,13 +657,13 @@ protected:
     bool remove_meta_enabled = (!meta_info.empty());
     if (remove_meta_enabled && meta_info.size() != 3)
     {
-      writeLog_("Param 'f_and_c:remove_meta' has invalid number of arguments. Expected 3, got " + String(meta_info.size()) + ". Aborting!");
+      writeLogError_("Error: Param 'f_and_c:remove_meta' has invalid number of arguments. Expected 3, got " + String(meta_info.size()) + ". Aborting!");
       printUsage_();
       return ILLEGAL_PARAMETERS;
     }
     if (remove_meta_enabled && !(meta_info[1] == "lt" || meta_info[1] == "eq" || meta_info[1] == "gt"))
     {
-      writeLog_("Param 'f_and_c:remove_meta' has invalid second argument. Expected one of 'lt', 'eq' or 'gt'. Got '" + meta_info[1] + "'. Aborting!");
+      writeLogError_("Error: Param 'f_and_c:remove_meta' has invalid second argument. Expected one of 'lt', 'eq' or 'gt'. Got '" + meta_info[1] + "'. Aborting!");
       printUsage_();
       return ILLEGAL_PARAMETERS;
     }
@@ -1029,7 +1032,7 @@ protected:
           bool const charge_ok = ((charge_l <= fm.getCharge()) && (fm.getCharge() <= charge_u));
           bool const size_ok = ((size_l <= fm.getSubordinates().size()) && (fm.getSubordinates().size() <= size_u));
           bool const q_ok = ((q_l <= fm.getOverallQuality()) && (fm.getOverallQuality() <= q_u));
-
+          if (remove_hulls) fm.getConvexHulls().clear();
 
           if (rt_ok && mz_ok && int_ok && charge_ok && size_ok && q_ok)
           {
@@ -1154,7 +1157,7 @@ protected:
           }
           else
           {
-            writeLog_("When extracting a feature map from a consensus map, only one map ID should be specified. The 'map' parameter contains more than one. Aborting!");
+            writeLogError_("Error: When extracting a feature map from a consensus map, only one map ID should be specified. The 'map' parameter contains more than one. Aborting!");
             printUsage_();
             return ILLEGAL_PARAMETERS;
           }
@@ -1221,14 +1224,14 @@ protected:
       }
       else
       {
-        writeLog_("Error: Unknown output file type given. Aborting!");
+        writeLogError_("Error: Unknown output file type given. Aborting!");
         printUsage_();
         return ILLEGAL_PARAMETERS;
       }
     }
     else
     {
-      writeLog_("Error: Unknown input file type given. Aborting!");
+      writeLogError_("Error: Unknown input file type given. Aborting!");
       printUsage_();
       return INCOMPATIBLE_INPUT_DATA;
     }

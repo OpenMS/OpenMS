@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -175,7 +175,7 @@ public:
     void simulateRun(FeatureMap & features, std::vector<PeptideIdentification> & pep_ids,
                      std::vector<ProteinIdentification> & prot_ids,
                      PrecursorIonSelectionPreprocessing & preprocessed_db,
-                     String path, PeakMap & experiment, String precursor_path = "");
+                     const String& path, PeakMap & experiment, const String& precursor_path = "");
 
     void setLPSolver(LPWrapper::SOLVER solver)
     {
@@ -200,11 +200,11 @@ private:
                                  std::vector<PeptideIdentification> & pep_ids,
                                  std::vector<ProteinIdentification> & prot_ids,
                                  PrecursorIonSelectionPreprocessing & preprocessed_db,
-                                 String output_path, String precursor_path = "");
+                                 const String& output_path, const String& precursor_path = "");
 
     void simulateRun_(FeatureMap & features, std::vector<PeptideIdentification> & pep_ids,
                       std::vector<ProteinIdentification> & prot_ids,
-                      PrecursorIonSelectionPreprocessing & preprocessed_db, String path, String precursor_path = "");
+                      PrecursorIonSelectionPreprocessing & preprocessed_db, const String& path, const String& precursor_path = "");
 
     void shiftDown_(FeatureMap & features, PrecursorIonSelectionPreprocessing & preprocessed_db, String protein_acc);
 

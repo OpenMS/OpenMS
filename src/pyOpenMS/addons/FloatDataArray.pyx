@@ -3,9 +3,10 @@
 
 
     def __getitem__(self,  in_0 ):
-        assert isinstance(in_0, (int, long)), 'arg key wrong type'
-    
-        cdef long _idx = (<int>in_0)
+        assert isinstance(in_0, (int, long)), 'arg in_0 wrong type'
+        assert in_0 >= 0, 'arg in_0 cannot be negative'
+
+        cdef unsigned long _idx = (<int>in_0)
         if _idx >= self.inst.get().size():
             raise IndexError("invalid index %d" % _idx)
 
@@ -16,7 +17,9 @@
     def __setitem__(self, key, value):
         assert isinstance(key, (int, long)), 'arg key wrong type'
         assert isinstance(value, (int, long, float)), 'arg value wrong type'
-        cdef long _idx = (<int>key)
+        assert key >= 0, 'arg key cannot be negative'
+
+        cdef unsigned long _idx = (<int>key)
         if _idx >= self.inst.get().size():
             raise IndexError("invalid index %d" % _idx)
 
@@ -25,12 +28,16 @@
 
     def get_data(self):
         """
-        Gets the raw data for the float data array
+        Gets the raw data for the float data array.
+        .. warning::
+           This returns a fast but unsafe view on the underlying vector data. Make sure that the object you are getting the data from survives the usage of this view! Specifically, do NOT use it like this: :code:`data = spectrum.getFloatDataArrays()[0].get_data()` since the underlying FloatDataArray is temporary for this line and will most likely be garbage collected right after that line.
 
         Example usage: 
-
-          fd = pyopenms.FloatDataArray()
-          data = fd.get_data()
+        
+        .. code-block:: python
+        
+            fd = pyopenms.FloatDataArray()
+            data = fd.get_data()
 
         """
         cdef _FloatDataArray * fda_ = self.inst.get()

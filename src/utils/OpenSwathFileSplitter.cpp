@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -35,17 +35,12 @@
 // Files
 #include <OpenMS/ANALYSIS/OPENSWATH/SwathQC.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/SwathWindowLoader.h>
-
+#include <OpenMS/FORMAT/DATAACCESS/MSDataTransformingConsumer.h>
+#include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/FORMAT/SwathFile.h>
-#include <OpenMS/FORMAT/FileHandler.h>
-#include <OpenMS/FORMAT/DATAACCESS/MSDataTransformingConsumer.h>
-
 #include <OpenMS/METADATA/ExperimentalSettings.h>
-
 #include <OpenMS/SYSTEM/File.h>
-
-
 #include <QDir>
 
 using namespace OpenMS;
@@ -55,7 +50,7 @@ using namespace OpenMS;
 #include <OpenMS/CONCEPT/ProgressLogger.h>
 
 //-------------------------------------------------------------
-//Doxygen docu
+// Doxygen docu
 //-------------------------------------------------------------
 
 /**
@@ -77,35 +72,25 @@ using namespace OpenMS;
 // We do not want this class to show up in the docu:
 /// @cond TOPPCLASSES
 
-class TOPPOpenSwathFileSplitter
-  : public TOPPBase
+class TOPPOpenSwathFileSplitter : public TOPPBase
 {
 public:
-
-  TOPPOpenSwathFileSplitter()
-    : TOPPBase("OpenSwathFileSplitter", "Splits SWATH files into n files, each containing one window.", false)
+  TOPPOpenSwathFileSplitter() : TOPPBase("OpenSwathFileSplitter", "Splits SWATH files into n files, each containing one window.", false)
   {
   }
 
 protected:
-
   void registerOptionsAndFlags_() override
   {
     registerInputFile_("in", "<files>", "", "Input file (SWATH/DIA file)");
     setValidFormats_("in", ListUtils::create<String>("mzML,mzXML"));
-
-    registerStringOption_("outputDirectory", "<output>", "./", "Output path to store the split files", false, true);
-    
+    registerOutputPrefix_("outputDirectory", "<output>", "./", "Output file prefix", false, true);
     // additional QC data
     registerOutputFile_("out_qc", "<file>", "", "Optional QC meta data (charge distribution in MS1). Only works with mzML input files.", false, true);
     setValidFormats_("out_qc", ListUtils::create<String>("json"));
   }
 
-  void loadSwathFiles(const String& file_in,
-                      const String& tmp,
-                      const String& readoptions,
-                      boost::shared_ptr<ExperimentalSettings >& exp_meta,
-                      std::vector< OpenSwath::SwathMap >& swath_maps,
+  void loadSwathFiles(const String& file_in, const String& tmp, const String& readoptions, boost::shared_ptr<ExperimentalSettings>& exp_meta, std::vector<OpenSwath::SwathMap>& swath_maps,
                       Interfaces::IMSDataConsumer* plugin_consumer = nullptr)
   {
     SwathFile swath_file;
@@ -122,24 +107,23 @@ protected:
     }
     else
     {
-      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-          "Input file needs to have ending .mzML(.gz) or .mzXML(.gz)");
+      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Input file needs to have ending .mzML(.gz) or .mzXML(.gz)");
     }
   }
 
-  ExitCodes main_(int, const char **) override
+  ExitCodes main_(int, const char**) override
   {
     ///////////////////////////////////
     // Prepare Parameters
     ///////////////////////////////////
     String file_in = getStringOption_("in");
 
-	  // make sure tmp is a directory with proper separator at the end (downstream methods simply do path + filename)
-	  // (do not use QDir::separator(), since its platform specific (/ or \) while absolutePath() will always use '/')
-	  String tmp_dir = String(QDir(getStringOption_("outputDirectory").c_str()).absolutePath()).ensureLastChar('/');
+    // make sure tmp is a directory with proper separator at the end (downstream methods simply do path + filename)
+    // (do not use QDir::separator(), since its platform specific (/ or \) while absolutePath() will always use '/')
+    String tmp_dir = String(QDir(getStringOption_("outputDirectory").c_str()).absolutePath()).ensureLastChar('/');
 
-	  QFileInfo fi(file_in.toQString());
-	  String tmp = tmp_dir + String(fi.baseName());
+    QFileInfo fi(file_in.toQString());
+    String tmp = tmp_dir + String(fi.baseName());
 
     String out_qc = getStringOption_("out_qc");
 
@@ -147,7 +131,7 @@ protected:
     // Load the SWATH files
     ///////////////////////////////////
     boost::shared_ptr<ExperimentalSettings> exp_meta(new ExperimentalSettings);
-    std::vector< OpenSwath::SwathMap > swath_maps;
+    std::vector<OpenSwath::SwathMap> swath_maps;
 
     // collect some QC data
     if (out_qc.empty())
@@ -166,10 +150,9 @@ protected:
 
     return EXECUTION_OK;
   }
-
 };
 
-int main(int argc, const char ** argv)
+int main(int argc, const char** argv)
 {
   TOPPOpenSwathFileSplitter tool;
   return tool.main(argc, argv);

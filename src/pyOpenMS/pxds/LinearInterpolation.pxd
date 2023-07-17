@@ -6,28 +6,28 @@ cdef extern from "<OpenMS/MATH/MISC/LinearInterpolation.h>" namespace "OpenMS::M
     
     cdef cppclass LinearInterpolation[KeyType,ValueType]:
         # wrap-doc:
-            #   Provides access to linearly interpolated values (and
-            #   derivatives) from discrete data points.  Values beyond the given range
-            #   of data points are implicitly taken as zero.
-            #   -----
-            #   The input is just a vector of values ("Data").  These are interpreted
-            #   as the y-coordinates at the x-coordinate positions 0,...,data_.size-1.
-            #   -----
-            #   The interpolated data can also be scaled and shifted in
-            #   the x-dimension by an affine mapping.  That is, we have "inside" and
-            #   "outside" x-coordinates.  The affine mapping can be specified in two
-            #   ways:
-            #   - using setScale() and setOffset(),
-            #   - using setMapping()
-            #   -----
-            #   By default the identity mapping (scale=1, offset=0) is used.
-            #   -----
-            #   Using the value() and derivative() methods you can sample linearly
-            #   interpolated values for a given x-coordinate position of the data and
-            #   the derivative of the data
+            #  Provides access to linearly interpolated values (and
+            #  derivatives) from discrete data points.  Values beyond the given range
+            #  of data points are implicitly taken as zero.
+            #  
+            #  The input is just a vector of values ("Data").  These are interpreted
+            #  as the y-coordinates at the x-coordinate positions 0,...,data_.size-1.
+            #  
+            #  The interpolated data can also be scaled and shifted in
+            #  the x-dimension by an affine mapping.  That is, we have "inside" and
+            #  "outside" x-coordinates.  The affine mapping can be specified in two
+            #  ways:
+            #  - using setScale() and setOffset(),
+            #  - using setMapping()
+            #  
+            #  By default the identity mapping (scale=1, offset=0) is used.
+            #  
+            #  Using the value() and derivative() methods you can sample linearly
+            #  interpolated values for a given x-coordinate position of the data and
+            #  the derivative of the data
 
         # wrap-instances:
-        #   LinearInterpolation := LinearInterpolation[double, double]
+        #  LinearInterpolation := LinearInterpolation[double, double]
         LinearInterpolation() nogil except +
         LinearInterpolation(LinearInterpolation &) nogil except +
         ValueType value(KeyType arg_pos) nogil except + # wrap-doc:Returns the interpolated value

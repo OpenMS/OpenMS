@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -345,133 +345,133 @@ START_SECTION(bool operator==(const ResidueModification& modification) const)
 	mod1.setId("Id");
 	TEST_EQUAL(mod1 == mod2, false)
 	mod2.setId("Id");
-	TEST_EQUAL(mod1 == mod2, true)
+	TEST_TRUE(mod1 == mod2)
 
 	mod1.setFullName("FullName");
 	TEST_EQUAL(mod1 == mod2, false)
 	mod2.setFullName("FullName");
-	TEST_EQUAL(mod1 == mod2, true)
+	TEST_TRUE(mod1 == mod2)
 
 	mod1.setName("Name");
 	TEST_EQUAL(mod1 == mod2, false)
 	mod2.setName("Name");
-	TEST_EQUAL(mod1 == mod2, true)
+	TEST_TRUE(mod1 == mod2)
 
 	mod1.setTermSpecificity(ResidueModification::N_TERM);
 	TEST_EQUAL(mod1 == mod2, false)
 	mod2.setTermSpecificity(ResidueModification::N_TERM);
-	TEST_EQUAL(mod1 == mod2, true)
+	TEST_TRUE(mod1 == mod2)
 
 	mod1.setOrigin('C');
 	TEST_EQUAL(mod1 == mod2, false)
 	mod2.setOrigin('C');
-	TEST_EQUAL(mod1 == mod2, true)
+	TEST_TRUE(mod1 == mod2)
 
 	mod1.setSourceClassification(ResidueModification::NATURAL);
 	TEST_EQUAL(mod1 == mod2, false)
 	mod2.setSourceClassification(ResidueModification::NATURAL);
-	TEST_EQUAL(mod1 == mod2, true)
+	TEST_TRUE(mod1 == mod2)
 
 	mod1.setAverageMass(0.123);
 	TEST_EQUAL(mod1 == mod2, false)
 	mod2.setAverageMass(0.123);
-	TEST_EQUAL(mod1 == mod2, true)
+	TEST_TRUE(mod1 == mod2)
 
 	mod1.setMonoMass(1.23);
 	TEST_EQUAL(mod1 == mod2, false)
 	mod2.setMonoMass(1.23);
-	TEST_EQUAL(mod1 == mod2, true)
+	TEST_TRUE(mod1 == mod2)
 
 	mod1.setDiffAverageMass(2.34);
 	TEST_EQUAL(mod1 == mod2, false)
 	mod2.setDiffAverageMass(2.34);
-	TEST_EQUAL(mod1 == mod2, true)
+	TEST_TRUE(mod1 == mod2)
 
 	mod1.setDiffMonoMass(3.45);
 	TEST_EQUAL(mod1 == mod2, false)
 	mod2.setDiffMonoMass(3.45);
-	TEST_EQUAL(mod1 == mod2, true)
+	TEST_TRUE(mod1 == mod2)
 
 	mod1.setFormula("C 3 H 4");
 	TEST_EQUAL(mod1 == mod2, false)
 	mod2.setFormula("C 3 H 4");
-	TEST_EQUAL(mod1 == mod2, true)
+	TEST_TRUE(mod1 == mod2)
 
 	mod1.setDiffFormula(EmpiricalFormula("C0H-2N0O0"));
 	TEST_EQUAL(mod1 == mod2, false)
 	mod2.setDiffFormula(EmpiricalFormula("C0H-2N0O0"));
-	TEST_EQUAL(mod1 == mod2, true)
+	TEST_TRUE(mod1 == mod2)
 
 	mod1.addSynonym("new_syn");
 	TEST_EQUAL(mod1 == mod2, false)
 	mod2.addSynonym("new_syn");
-	TEST_EQUAL(mod1 == mod2, true)
+	TEST_TRUE(mod1 == mod2)
 END_SECTION
 
 START_SECTION(bool operator!=(const ResidueModification& modification) const)
 	ResidueModification mod1, mod2;
   mod1.setId("Id");
-  TEST_EQUAL(mod1 != mod2, true)
+  TEST_FALSE(mod1 == mod2)
   mod2.setId("Id");
   TEST_EQUAL(mod1 != mod2, false)
 
   mod1.setFullName("FullName");
-  TEST_EQUAL(mod1 != mod2, true)
+  TEST_FALSE(mod1 == mod2)
   mod2.setFullName("FullName");
   TEST_EQUAL(mod1 != mod2, false)
 
   mod1.setName("Name");
-  TEST_EQUAL(mod1 != mod2, true)
+  TEST_FALSE(mod1 == mod2)
   mod2.setName("Name");
   TEST_EQUAL(mod1 != mod2, false)
 
   mod1.setTermSpecificity(ResidueModification::N_TERM);
-  TEST_EQUAL(mod1 != mod2, true)
+  TEST_FALSE(mod1 == mod2)
   mod2.setTermSpecificity(ResidueModification::N_TERM);
   TEST_EQUAL(mod1 != mod2, false)
 
   mod1.setOrigin('C');
-  TEST_EQUAL(mod1 != mod2, true)
+  TEST_FALSE(mod1 == mod2)
   mod2.setOrigin('C');
   TEST_EQUAL(mod1 != mod2, false)
 
   mod1.setSourceClassification(ResidueModification::NATURAL);
-  TEST_EQUAL(mod1 != mod2, true)
+  TEST_FALSE(mod1 == mod2)
   mod2.setSourceClassification(ResidueModification::NATURAL);
   TEST_EQUAL(mod1 != mod2, false)
 
   mod1.setAverageMass(0.123);
-  TEST_EQUAL(mod1 != mod2, true)
+  TEST_FALSE(mod1 == mod2)
   mod2.setAverageMass(0.123);
   TEST_EQUAL(mod1 != mod2, false)
 
   mod1.setMonoMass(1.23);
-  TEST_EQUAL(mod1 != mod2, true)
+  TEST_FALSE(mod1 == mod2)
   mod2.setMonoMass(1.23);
   TEST_EQUAL(mod1 != mod2, false)
 
   mod1.setDiffAverageMass(2.34);
-  TEST_EQUAL(mod1 != mod2, true)
+  TEST_FALSE(mod1 == mod2)
   mod2.setDiffAverageMass(2.34);
   TEST_EQUAL(mod1 != mod2, false)
 
   mod1.setDiffMonoMass(3.45);
-  TEST_EQUAL(mod1 != mod2, true)
+  TEST_FALSE(mod1 == mod2)
   mod2.setDiffMonoMass(3.45);
   TEST_EQUAL(mod1 != mod2, false)
 
   mod1.setFormula("C 3 H 4");
-  TEST_EQUAL(mod1 != mod2, true)
+  TEST_FALSE(mod1 == mod2)
   mod2.setFormula("C 3 H 4");
   TEST_EQUAL(mod1 != mod2, false)
 
   mod1.setDiffFormula(EmpiricalFormula("C0H-2N0O0"));
-  TEST_EQUAL(mod1 != mod2, true)
+  TEST_FALSE(mod1 == mod2)
   mod2.setDiffFormula(EmpiricalFormula("C0H-2N0O0"));
   TEST_EQUAL(mod1 != mod2, false)
 
   mod1.addSynonym("new_syn");
-  TEST_EQUAL(mod1 != mod2, true)
+  TEST_FALSE(mod1 == mod2)
   mod2.addSynonym("new_syn");
   TEST_EQUAL(mod1 != mod2, false)
 END_SECTION

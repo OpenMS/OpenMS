@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -40,8 +40,6 @@
 #include <OpenMS/VISUAL/AxisWidget.h>
 #include <OpenMS/VISUAL/DIALOGS/Plot2DGoToDialog.h>
 
-//QT
-#include <QtWidgets/QGridLayout>
 
 using namespace std;
 
@@ -62,10 +60,7 @@ namespace OpenMS
     connect(canvas(), SIGNAL(showCurrentPeaksAs2D()), this, SIGNAL(showCurrentPeaksAs2D()));
   }
 
-  Plot3DWidget::~Plot3DWidget()
-  {
-
-  }
+  Plot3DWidget::~Plot3DWidget() = default;
 
   void Plot3DWidget::recalculateAxes_()
   {
@@ -83,17 +78,17 @@ namespace OpenMS
 
   void Plot3DWidget::showGoToDialog()
   {
-    Plot2DGoToDialog goto_dialog(this);
-    const DRange<3> & area = canvas()->getDataRange();
-    goto_dialog.setRange(area.minY(), area.maxY(), area.minX(), area.maxX());
-    goto_dialog.setMinMaxOfRange(canvas()->getDataRange().minY(), canvas()->getDataRange().maxY(), canvas()->getDataRange().minX(), canvas()->getDataRange().maxX());
+    Plot2DGoToDialog goto_dialog(this, canvas_->getMapper().getDim(DIM::X).getDimNameShort(), canvas_->getMapper().getDim(DIM::Y).getDimNameShort());
+    auto va = canvas()->getVisibleArea().getAreaXY();
+    goto_dialog.setRange(va);
+
+    auto all_area_xy = canvas_->getMapper().mapRange(canvas_->getDataRange());
+    goto_dialog.setMinMaxOfRange(all_area_xy);
+    
     goto_dialog.enableFeatureNumber(false);
     if (goto_dialog.exec())
     {
-      goto_dialog.fixRange(); // in case user did something invalid
-      PlotCanvas::AreaType area (goto_dialog.getMinMZ(), goto_dialog.getMinRT(), goto_dialog.getMaxMZ(), goto_dialog.getMaxRT());
-      correctAreaToObeyMinMaxRanges_(area);
-      canvas()->setVisibleArea(area);
+      canvas()->setVisibleArea(goto_dialog.getRange());
     }
   }
 

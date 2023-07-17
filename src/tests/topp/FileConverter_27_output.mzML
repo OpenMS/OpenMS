@@ -13,10 +13,10 @@
 			<cvParam cvRef="MS" accession="MS:1000294" name="mass spectrum" />
 		</fileContent>
 		<sourceFileList count="1">
-			<sourceFile id="sf_ru_0" name="FileConverter_27_input.mzML" location="file:///Users/alka/Documents/work/software/openms_dev/OpenMS/src/tests/topp">
+			<sourceFile id="sf_ru_0" name="FileConverter_27_input.mzML" location="file:///workspace/OpenMS/src/tests/topp">
 				<cvParam cvRef="MS" accession="MS:1000569" name="SHA-1" value="527bd77ecd57f783f88a772decb6b7ff6628a57f" />
 				<cvParam cvRef="MS" accession="MS:1000584" name="mzML format" />
-				<cvParam cvRef="MS" accession="MS:1000777" name="spectrum identifier nativeID format" />
+				<cvParam cvRef="MS" accession="MS:1000776" name="scan number only nativeID format" />
 			</sourceFile>
 		</sourceFileList>
 	</fileDescription>
@@ -1569,50 +1569,50 @@
 </mzML>
 <indexList count="1">
 	<index name="chromatogram">
-		<offset idRef="">3623</offset>
-		<offset idRef="">5568</offset>
-		<offset idRef="">7513</offset>
-		<offset idRef="">9478</offset>
-		<offset idRef="">11443</offset>
-		<offset idRef="">13408</offset>
-		<offset idRef="">15324</offset>
-		<offset idRef="">17240</offset>
-		<offset idRef="">19156</offset>
-		<offset idRef="">21072</offset>
-		<offset idRef="">22988</offset>
-		<offset idRef="">24905</offset>
-		<offset idRef="">26822</offset>
-		<offset idRef="">28739</offset>
-		<offset idRef="">30656</offset>
-		<offset idRef="">32573</offset>
-		<offset idRef="">34490</offset>
-		<offset idRef="">36407</offset>
-		<offset idRef="">38324</offset>
-		<offset idRef="">40270</offset>
-		<offset idRef="">42216</offset>
-		<offset idRef="">44162</offset>
-		<offset idRef="">46096</offset>
-		<offset idRef="">48013</offset>
-		<offset idRef="">49930</offset>
-		<offset idRef="">51847</offset>
-		<offset idRef="">53764</offset>
-		<offset idRef="">55681</offset>
-		<offset idRef="">57598</offset>
-		<offset idRef="">59515</offset>
-		<offset idRef="">61432</offset>
-		<offset idRef="">63349</offset>
-		<offset idRef="">65266</offset>
-		<offset idRef="">67183</offset>
-		<offset idRef="">69100</offset>
-		<offset idRef="">71017</offset>
-		<offset idRef="">72934</offset>
-		<offset idRef="">74851</offset>
-		<offset idRef="">76768</offset>
-		<offset idRef="">78685</offset>
-		<offset idRef="">80602</offset>
-		<offset idRef="">82519</offset>
+		<offset idRef="">3584</offset>
+		<offset idRef="">5529</offset>
+		<offset idRef="">7474</offset>
+		<offset idRef="">9439</offset>
+		<offset idRef="">11404</offset>
+		<offset idRef="">13369</offset>
+		<offset idRef="">15285</offset>
+		<offset idRef="">17201</offset>
+		<offset idRef="">19117</offset>
+		<offset idRef="">21033</offset>
+		<offset idRef="">22949</offset>
+		<offset idRef="">24866</offset>
+		<offset idRef="">26783</offset>
+		<offset idRef="">28700</offset>
+		<offset idRef="">30617</offset>
+		<offset idRef="">32534</offset>
+		<offset idRef="">34451</offset>
+		<offset idRef="">36368</offset>
+		<offset idRef="">38285</offset>
+		<offset idRef="">40231</offset>
+		<offset idRef="">42177</offset>
+		<offset idRef="">44123</offset>
+		<offset idRef="">46057</offset>
+		<offset idRef="">47974</offset>
+		<offset idRef="">49891</offset>
+		<offset idRef="">51808</offset>
+		<offset idRef="">53725</offset>
+		<offset idRef="">55642</offset>
+		<offset idRef="">57559</offset>
+		<offset idRef="">59476</offset>
+		<offset idRef="">61393</offset>
+		<offset idRef="">63310</offset>
+		<offset idRef="">65227</offset>
+		<offset idRef="">67144</offset>
+		<offset idRef="">69061</offset>
+		<offset idRef="">70978</offset>
+		<offset idRef="">72895</offset>
+		<offset idRef="">74812</offset>
+		<offset idRef="">76729</offset>
+		<offset idRef="">78646</offset>
+		<offset idRef="">80563</offset>
+		<offset idRef="">82480</offset>
 	</index>
 </indexList>
-<indexListOffset>84470</indexListOffset>
+<indexListOffset>84431</indexListOffset>
 <fileChecksum>0</fileChecksum>
 </indexedmzML>

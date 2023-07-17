@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -37,13 +37,10 @@
 #include <OpenMS/CHEMISTRY/TheoreticalSpectrumGenerator.h>
 #include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/CoarseIsotopePatternGenerator.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithmPickedHelperStructs.h>
-#include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithm.h>
 
 #include <OpenMS/KERNEL/MSSpectrum.h>
-#include <OpenMS/KERNEL/MSExperiment.h>
 
 #include <utility>
-#include <boost/bind.hpp>
 
 namespace OpenMS::DIAHelpers
   {
@@ -64,7 +61,7 @@ namespace OpenMS::DIAHelpers
       }
     }
 
-    void integrateWindows(const OpenSwath::SpectrumPtr spectrum,
+    void integrateWindows(const OpenSwath::SpectrumPtr& spectrum,
                           const std::vector<double> & windowsCenter,
                           double width,
                           std::vector<double> & integratedWindowsIntensity,
@@ -91,7 +88,7 @@ namespace OpenMS::DIAHelpers
       }
     }
 
-    void integrateDriftSpectrum(OpenSwath::SpectrumPtr spectrum, 
+    void integrateDriftSpectrum(const OpenSwath::SpectrumPtr& spectrum, 
                                               double mz_start,
                                               double mz_end,
                                               double & im,
@@ -146,7 +143,7 @@ namespace OpenMS::DIAHelpers
 
     }
 
-    bool integrateWindow(const OpenSwath::SpectrumPtr spectrum,
+    bool integrateWindow(const OpenSwath::SpectrumPtr& spectrum,
                          double mz_start,
                          double mz_end,
                          double & mz,
@@ -197,7 +194,7 @@ namespace OpenMS::DIAHelpers
       else
       {
         // not implemented
-        throw "Not implemented";
+        throw Exception::NotImplemented(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
       }
     }
 
@@ -324,7 +321,7 @@ namespace OpenMS::DIAHelpers
                               UInt nr_peaks, double pre_isotope_peaks_weight, // weight of pre isotope peaks
                               double mannmass, int charge)
     {
-      charge = std::fabs(charge);
+      charge = std::abs(charge);
       for (std::size_t i = 0; i < first_isotope_masses.size(); ++i)
       {
         Size mul = 1.;
@@ -343,7 +340,7 @@ namespace OpenMS::DIAHelpers
                               UInt nr_peaks, double pre_isotope_peaks_weight, // weight of pre isotope peaks
                               double mannmass, int charge)
     {
-      charge = std::fabs(charge);
+      charge = std::abs(charge);
       Size mul = 1.;
       for (UInt j = 0; j < nr_peaks; ++j, ++mul)
       {

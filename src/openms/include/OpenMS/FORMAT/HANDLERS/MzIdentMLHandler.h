@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -47,6 +47,7 @@
 #include <OpenMS/METADATA/PeptideIdentification.h>
 
 #include <vector>
+#include <map>
 
 namespace OpenMS
 {
@@ -144,7 +145,7 @@ protected:
       //void writeSourceFile_(std::ostream& os, const String& id, const SourceFile& software);
 
       /// Helper method that writes the Enzymes
-      void writeEnzyme_(String& s, DigestionEnzymeProtein enzy, UInt miss, UInt indent) const;
+      void writeEnzyme_(String& s, const DigestionEnzymeProtein& enzy, UInt miss, UInt indent) const;
 
       /// Helper method that writes the modification search params (fixed or variable)
       void writeModParam_(String& s, const std::vector<String>& mod_names, bool fixed, UInt indent) const;
@@ -153,13 +154,13 @@ protected:
       void writeFragmentAnnotations_(String& s, const std::vector<PeptideHit::PeakAnnotation>& annotations, UInt indent, bool is_ppxl) const;
 
       /// Convenience method to remove the [] from OpenMS internal file uri representation
-      String trimOpenMSfileURI(const String file) const;
+      String trimOpenMSfileURI(const String& file) const;
 
       /// Abstraction of PeptideHit loop for most PeptideHits
       void writePeptideHit(const PeptideHit& hit,
                                 std::vector<PeptideIdentification>::const_iterator& it,
                                 std::map<String, String>& pep_ids,
-                                String cv_ns, std::set<String>& sen_set,
+                                const String& cv_ns, std::set<String>& sen_set,
                                 std::map<String, String>& sen_ids,
                                 std::map<String, std::vector<String> >& pep_evis,
                                 std::map<String, double>& pp_identifier_2_thresh,
@@ -168,8 +169,8 @@ protected:
       /// Abstraction of PeptideHit loop for XL-MS data from OpenPepXL
       void writeXLMSPeptideHit(const PeptideHit& hit,
                                 std::vector<PeptideIdentification>::const_iterator& it,
-                                String ppxl_linkid, std::map<String, String>& pep_ids,
-                                String cv_ns, std::set<String>& sen_set,
+                                const String& ppxl_linkid, std::map<String, String>& pep_ids,
+                                const String& cv_ns, std::set<String>& sen_set,
                                 std::map<String, String>& sen_ids,
                                 std::map<String, std::vector<String> >& pep_evis,
                                 std::map<String, double>& pp_identifier_2_thresh,
@@ -181,7 +182,7 @@ private:
       MzIdentMLHandler();
       MzIdentMLHandler(const MzIdentMLHandler& rhs);
       MzIdentMLHandler& operator=(const MzIdentMLHandler& rhs);
-      Map<String, AASequence> pep_sequences_;
+      std::map<String, AASequence> pep_sequences_;
       std::map<String, String> pp_identifier_2_sil_; ///< mapping peptide/proteinidentification identifier_ to spectrumidentificationlist
       std::map<String, String> sil_2_sdb_; ///< mapping spectrumidentificationlist to the search data bases
       std::map<String, String> sil_2_sdat_; ///< mapping spectrumidentificationlist to the search input

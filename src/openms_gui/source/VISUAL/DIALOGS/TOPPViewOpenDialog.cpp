@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -172,7 +172,7 @@ namespace OpenMS
     }
   }
 
-  void TOPPViewOpenDialog::setMergeLayers(const Map<Size, String> & layers)
+  void TOPPViewOpenDialog::setMergeLayers(const std::map<Size, String> & layers)
   {
     // remove all items
     ui_->merge_combo_->clear();
@@ -182,9 +182,9 @@ namespace OpenMS
       ui_->merge_->setEnabled(true);
       ui_->merge_combo_->setEnabled(true);
       UInt i = 0;
-      for (Map<Size, String>::const_iterator it = layers.begin(); it != layers.end(); ++it)
+      for (const auto& it : layers)
       {
-        ui_->merge_combo_->insertItem(i++, it->second.toQString(), (int)(it->first));
+        ui_->merge_combo_->insertItem(i++, it.second.toQString(), (int)(it.first));
       }
     }
     else

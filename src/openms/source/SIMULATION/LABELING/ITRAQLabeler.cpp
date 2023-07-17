@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -41,6 +41,7 @@
 #include <Eigen/Dense>
 
 #include <boost/random/uniform_real.hpp>
+#include <map>
 
 using std::vector;
 using std::pair;
@@ -86,9 +87,7 @@ namespace OpenMS
     defaultsToParam_();
   }
 
-  ITRAQLabeler::~ITRAQLabeler()
-  {
-  }
+  ITRAQLabeler::~ITRAQLabeler() = default;
 
   void ITRAQLabeler::updateMembers_()
   {
@@ -141,7 +140,7 @@ namespace OpenMS
   {
     // no action here .. just check for correct # of channels
     Size active_channel_count = 0;
-    for (ChannelMapType::ConstIterator it = channel_map_.begin(); it != channel_map_.end(); ++it)
+    for (ChannelMapType::const_iterator it = channel_map_.begin(); it != channel_map_.end(); ++it)
     {
       if (it->second.active)
       {
@@ -381,7 +380,7 @@ namespace OpenMS
     m->setZero();
     Size ch(0);
     Size ch_internal(0);
-    for (ChannelMapType::ConstIterator it = channel_map_.begin(); it != channel_map_.end(); ++it)
+    for (ChannelMapType::const_iterator it = channel_map_.begin(); it != channel_map_.end(); ++it)
     {
       SimTypes::SimIntensityType intensity(0);
       if (it->second.active && f.metaValueExists(getChannelIntensityName(ch_internal))) // peptide is present in this channel

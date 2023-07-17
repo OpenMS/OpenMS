@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -42,9 +42,9 @@
 #include <OpenMS/METADATA/PeptideIdentification.h>
 #include <OpenMS/DATASTRUCTURES/ConvexHull2D.h>
 #include <OpenMS/DATASTRUCTURES/Param.h>
-#include <OpenMS/DATASTRUCTURES/Map.h>
 
 #include <iosfwd>
+#include <map>
 
 namespace OpenMS
 {
@@ -180,13 +180,13 @@ protected:
     /// Temporary peptide hit
     PeptideHit pep_hit_;
     /// Map from protein id to accession
-    Map<String, String> proteinid_to_accession_;
+    std::map<String, String> proteinid_to_accession_;
     /// Map from search identifier concatenated with protein accession to id
-    Map<String, Size> accession_to_id_;
+    std::map<String, Size> accession_to_id_;
     /// Map from identification run identifier to file xs:id (for linking peptide identifications to the corresponding run)
-    Map<String, String> identifier_id_;
+    std::map<String, String> identifier_id_;
     /// Map from file xs:id to identification run identifier (for linking peptide identifications to the corresponding run)
-    Map<String, String> id_identifier_;
+    std::map<String, String> id_identifier_;
     /// Temporary search parameters file
     ProteinIdentification::SearchParameters search_param_;
 

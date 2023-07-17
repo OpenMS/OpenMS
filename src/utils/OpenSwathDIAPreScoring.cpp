@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -91,10 +91,6 @@ protected:
   {
     registerInputFile_("tr", "<file>", "", "transition file");
     setValidFormats_("tr", ListUtils::create<String>("traML"));
-
-    // registerOutputFile_("out", "<file>", "", "output file");
-    // setValidFormats_("out", ListUtils::create<String>("tsv"));
-
     registerInputFileList_("swath_files", "<files>", StringList(),
                            "Swath files that were used to extract the transitions. If present, SWATH specific scoring will be applied.",
                            true);
@@ -107,8 +103,6 @@ protected:
     registerDoubleOption_("min_upper_edge_dist", "<double>", 0.0,
                           "Minimal distance to the edge to still consider a precursor, in Thomson (only in SWATH)",
                           false);
-
-
   }
 
   Param getSubsectionDefaults_(const String&) const override
@@ -122,8 +116,6 @@ protected:
     OpenMS::StringList outfile_list = getStringList_("output_files");
     std::string tr_file = getStringOption_("tr");
     std::cout << tr_file << std::endl;
-    //std::string out = getStringOption_("out");
-    //std::cout << out << std::endl;
     double min_upper_edge_dist = getDoubleOption_("min_upper_edge_dist");
 
     // If we have a transformation file, trafo will transform the RT in the
@@ -140,12 +132,8 @@ protected:
       OpenMS::TargetedExperiment transition_exp_;
       TraMLFile t;
       t.load(tr_file, transition_exp_);
-      //int pept =  transition_exp_.getPeptides().size();
-      //int prot = transition_exp_.getProteins().size();
-      //int trans = transition_exp_.getTransitions().size();
       OpenSwathDataAccessHelper::convertTargetedExp(transition_exp_, transition_exp);
       int ltrans = transition_exp.transitions.size();
-
       std::cout << ltrans << std::endl;
     }
     // Here we deal with SWATH files (can be multiple files)
@@ -156,18 +144,6 @@ protected:
       MapTypePtr swath_map (new MapType);
       FeatureMap featureFile;
       std::cout << "Loading file " << file_list[i] << std::endl;
-
-      // no progress log on the console in parallel
-
-      // std::string fileout = file_list[i];
-
-      /// Returns the basename of the file (without the path).
-      /// Returns the path of the file (without the file name).
-
-      //boost::filesystem::path x(fileout);
-      //boost::filesystem::path y = x.parent_path()  ;
-      //std::string fname = x.stem().string();
-
       String fname = outfile_list[i];
       swath_file.setLogType(log_type_);
       swath_file.load(file_list[i], *swath_map);
@@ -192,19 +168,13 @@ protected:
                   << " there are no transitions to extract." << std::endl;
         continue;
       }
-      //OpenMS::MRMFeatureFinderScoring::TransitionGroupMapType transition_group_map;
       std::cout << "Using Spectrum Interface!" << std::endl;
       OpenSwath::SpectrumAccessPtr  spectrumAccess = SimpleOpenMSSpectraFactory::getSpectrumAccessOpenMSPtr(
         swath_map);
-
-      //std::cout << "using data frame writer for storing data. Outfile :" << out << std::endl;
       OpenSwath::IDataFrameWriter* dfw = new OpenSwath::CSVWriter(fname);
       OpenMS::DiaPrescore dp;
       dp.operator()(spectrumAccess, transition_exp_used, dfw);
       delete dfw;
-      //featureFinder.pickExperiment(chromatogram_ptr, out_featureFile,
-      //transition_exp_used, trafo, swath_ptr, transition_group_map);
-      //FeatureXMLFile().store(out, out_featureFile);
     }         //end of for loop
     return EXECUTION_OK;
   }       //end of _main

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -41,14 +41,6 @@
 #include <cmath>
 #include <vector>
 
-// forward declare WildMagic types so WMs headers don't pollute OpenMS library
-namespace Wm5
-{
-  template <typename Real>
-  class Vector2;
-
-  typedef Vector2<double> Vector2d;
-}
 
 namespace OpenMS
 {
@@ -208,9 +200,8 @@ protected:
       /// the relative standard deviation
       double rsd_;
 
-
       /// Computes the goodness of the fitted regression line
-      void computeGoodness_(const std::vector<Wm5::Vector2d>& points, double confidence_interval_P);
+      void computeGoodness_(const std::vector<double>& X, const std::vector<double>& Y, double confidence_interval_P);
 
       /// Compute the chi squared of a linear fit
       template <typename Iterator>

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -46,6 +46,7 @@
 
 #include <cmath>
 #include <algorithm>
+#include <map>
 
 using namespace std;
 
@@ -139,9 +140,7 @@ namespace OpenMS
   {
   }
 
-  AASequence::~AASequence()
-  {
-  }
+  AASequence::~AASequence() = default;
 
   const Residue& AASequence::getResidue(Size index) const
   {
@@ -1425,7 +1424,7 @@ namespace OpenMS
     aas.peptide_.shrink_to_fit();
   }
 
-  void AASequence::getAAFrequencies(Map<String, Size>& frequency_table) const
+  void AASequence::getAAFrequencies(std::map<String, Size>& frequency_table) const
   {
     frequency_table.clear();
     for (std::vector<const Residue*>::const_iterator it = peptide_.begin(); it != peptide_.end(); ++it)

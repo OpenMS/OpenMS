@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -64,24 +64,53 @@ public:
         const std::vector<double>& _rts, 
         const std::vector<double>& _rt_ranges, 
         const std::vector<double>& _iso_distrib):
-      name(_name),
-      formula(_formula),
-      mass(_mass),
-      charges(_charges),
-      rts(_rts),
-      rt_ranges(_rt_ranges),
-      iso_distrib(_iso_distrib)
+      name_(_name),
+      formula_(_formula),
+      mass_(_mass),
+      charges_(_charges),
+      rts_(_rts),
+      rt_ranges_(_rt_ranges),
+      iso_distrib_(_iso_distrib)
       {        
       }
+    
+    private:
+      String name_;
+      String formula_;
+      double mass_;
+      std::vector<int> charges_;
+      std::vector<double> rts_;
+      std::vector<double> rt_ranges_;
+      std::vector<double> iso_distrib_;
 
+    public:
+      const String& getName() const {
+        return name_;
+      }
 
-    String name;
-    String formula;
-    double mass;
-    std::vector<int> charges;
-    std::vector<double> rts;
-    std::vector<double> rt_ranges;
-    std::vector<double> iso_distrib;
+      const String& getFormula() const {
+        return formula_;
+      }
+
+      double getMass() const {
+        return mass_;
+      }
+
+      const std::vector<int>& getCharges() const {
+        return charges_;
+      }
+
+      const std::vector<double>& getRTs() const {
+        return rts_;
+      }
+
+      const std::vector<double> getRTRanges() const {
+        return rt_ranges_;
+      }
+
+      const std::vector<double>& getIsotopeDistribution() const {
+        return iso_distrib_;
+      }
   };
 
   /// default constructor
@@ -90,7 +119,8 @@ public:
   /// @brief perform targeted feature extraction of compounds from @param metaboIdentTable and stores them in @param feature.
   /// If @p spectra_file is provided it will be used as a fall-back to setPrimaryMSRunPath
   /// in the feature map in case a proper primaryMSRunPath is not annotated in the MSExperiment.
-  void run(const std::vector<FeatureFinderMetaboIdentCompound>& metaboIdentTable, FeatureMap& features, String spectra_file = "");
+  /// If there are no MS1 scans in the MSData return 'features' unchanged
+  void run(const std::vector<FeatureFinderMetaboIdentCompound>& metaboIdentTable, FeatureMap& features, const String& spectra_file = "");
 
   /// @brief Retrieve chromatograms (empty if run was not executed)
   PeakMap& getMSData() { return ms_data_; }
@@ -176,24 +206,6 @@ protected:
 
   void generateTransitions_(const String& target_id, double mz, Int charge,
                             const IsotopeDistribution& iso_dist);
-
-  /// Check if two sets of mass trace boundaries overlap
-  bool hasOverlappingBounds_(const std::vector<MassTraceBounds>& mtb1,
-                             const std::vector<MassTraceBounds>& mtb2) const;
-
-  void getFeatureBounds_(const FeatureMap& features,
-                         FeatureBoundsMap& feature_bounds);
-
-
-  bool hasOverlappingFeature_(const Feature& feature, const FeatureGroup& group, 
-                              const FeatureBoundsMap& feature_bounds) const;
-
-  void findOverlappingFeatures_(FeatureMap& features,
-                                const FeatureBoundsMap& feature_bounds,
-                                std::vector<FeatureGroup>& overlap_groups);
-
-  void resolveOverlappingFeatures_(FeatureGroup& group,
-                                   const FeatureBoundsMap& feature_bounds);
 
   void annotateFeatures_(FeatureMap& features);
 

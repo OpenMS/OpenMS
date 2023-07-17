@@ -8,7 +8,7 @@ cdef extern from "<OpenMS/FILTERING/NOISEESTIMATION/SignalToNoiseEstimatorMeanIt
     
     cdef cppclass SignalToNoiseEstimatorMeanIterative[Container]:
         # wrap-instances:
-        #   SignalToNoiseEstimatorMeanIterative := SignalToNoiseEstimatorMeanIterative[ MSSpectrum ]
+        #  SignalToNoiseEstimatorMeanIterative := SignalToNoiseEstimatorMeanIterative[ MSSpectrum ]
 
         SignalToNoiseEstimatorMeanIterative() nogil except +
         SignalToNoiseEstimatorMeanIterative(SignalToNoiseEstimatorMeanIterative &) nogil except + # compiler
@@ -19,7 +19,7 @@ cdef extern from "<OpenMS/FILTERING/NOISEESTIMATION/SignalToNoiseEstimatorMeanIt
     
     cdef enum IntensityThresholdCalculation "OpenMS::SignalToNoiseEstimatorMeanIterative<MSSpectrum>::IntensityThresholdCalculation":
         # wrap-attach:
-        #     SignalToNoiseEstimatorMeanIterative
+        #    SignalToNoiseEstimatorMeanIterative
         MANUAL
         AUTOMAXBYSTDEV
         AUTOMAXBYPERCENT

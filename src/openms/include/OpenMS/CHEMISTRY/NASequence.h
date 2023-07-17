@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -35,17 +35,15 @@
 #pragma once
 
 #include <OpenMS/CHEMISTRY/EmpiricalFormula.h>
-#include <OpenMS/DATASTRUCTURES/String.h>
-#include <OpenMS/DATASTRUCTURES/Map.h>
-#include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/CHEMISTRY/Ribonucleotide.h>
-
-#include <vector>
+#include <OpenMS/CONCEPT/Types.h>
+#include <OpenMS/DATASTRUCTURES/String.h>
 #include <iosfwd>
+#include <vector>
 
 namespace OpenMS
 {
-/**
+  /**
    * @brief Representation of a nucleic acid sequence
    *
    * NASequence represents nucleic acid sequences (RNA) in %OpenMS. Each NASequence consists
@@ -58,37 +56,35 @@ namespace OpenMS
    */
 
 
-
   class OPENMS_DLLAPI NASequence
   {
-
-/**
-  @brief an enum of all possible fragment ion types
-  */
+    /**
+      @brief an enum of all possible fragment ion types
+      */
 
   public:
     enum NASFragmentType
-    {                 //< NB: Not all fragments types are valid for all residue types, this class should probably get split
-      Full = 0,       ///< with N-terminus and C-terminus
-      Internal,       ///< internal, without any termini
-      FivePrime,      ///< only 5' terminus
-      ThreePrime,     ///< only 3' terminus
-      AIon,           ///< MS:1001229 N-terminus up to the C-alpha/carbonyl carbon bond
-      BIon,           ///< MS:1001224 N-terminus up to the peptide bond
-      CIon,           ///< MS:1001231 N-terminus up to the amide/C-alpha bond
-      XIon,           ///< MS:1001228 amide/C-alpha bond up to the C-terminus
-      YIon,           ///< MS:1001220 peptide bond up to the C-terminus
-      ZIon,           ///< MS:1001230 C-alpha/carbonyl carbon bond
-      Precursor,      ///< MS:1001523 Precursor ion
-      BIonMinusH20,   ///< MS:1001222 b ion without water
-      YIonMinusH20,   ///< MS:1001223 y ion without water
-      BIonMinusNH3,   ///< MS:1001232 b ion without ammonia
-      YIonMinusNH3,   ///< MS:1001233 y ion without ammonia
-      NonIdentified,  ///< MS:1001240 Non-identified ion
-      Unannotated,    ///< no stored annotation
-      WIon,           ///< W ion, added for nucleic acid support
-      AminusB,        ///< A ion with base loss, added for nucleic acid support
-      DIon,           ///< D ion, added for nucleic acid support
+    {                //< NB: Not all fragments types are valid for all residue types, this class should probably get split
+      Full = 0,      ///< with N-terminus and C-terminus
+      Internal,      ///< internal, without any termini
+      FivePrime,     ///< only 5' terminus
+      ThreePrime,    ///< only 3' terminus
+      AIon,          ///< MS:1001229 N-terminus up to the C-alpha/carbonyl carbon bond
+      BIon,          ///< MS:1001224 N-terminus up to the peptide bond
+      CIon,          ///< MS:1001231 N-terminus up to the amide/C-alpha bond
+      XIon,          ///< MS:1001228 amide/C-alpha bond up to the C-terminus
+      YIon,          ///< MS:1001220 peptide bond up to the C-terminus
+      ZIon,          ///< MS:1001230 C-alpha/carbonyl carbon bond
+      Precursor,     ///< MS:1001523 Precursor ion
+      BIonMinusH20,  ///< MS:1001222 b ion without water
+      YIonMinusH20,  ///< MS:1001223 y ion without water
+      BIonMinusNH3,  ///< MS:1001232 b ion without ammonia
+      YIonMinusNH3,  ///< MS:1001233 y ion without ammonia
+      NonIdentified, ///< MS:1001240 Non-identified ion
+      Unannotated,   ///< no stored annotation
+      WIon,          ///< W ion, added for nucleic acid support
+      AminusB,       ///< A ion with base loss, added for nucleic acid support
+      DIon,          ///< D ion, added for nucleic acid support
       SizeOfNASFragmentType
     };
 
@@ -119,29 +115,26 @@ namespace OpenMS
       ConstIterator() = default;
 
       /// detailed constructor with pointer to the vector and offset position
-      ConstIterator(const std::vector<const Ribonucleotide*>* vec_ptr,
-                    difference_type position)
+      ConstIterator(const std::vector<const Ribonucleotide*>* vec_ptr, difference_type position)
       {
         vector_ = vec_ptr;
         position_ = position;
       }
 
       /// copy constructor
-      ConstIterator(const ConstIterator& rhs) :
-        vector_(rhs.vector_),
-        position_(rhs.position_)
+      ConstIterator(const ConstIterator& rhs) : vector_(rhs.vector_), position_(rhs.position_)
       {
       }
 
       /// copy constructor from Iterator
-      ConstIterator(const NASequence::Iterator& rhs) :
-        vector_(rhs.vector_),
-        position_(rhs.position_)
+      ConstIterator(const NASequence::Iterator& rhs) : vector_(rhs.vector_), position_(rhs.position_)
       {
       }
 
       /// destructor
-      virtual ~ConstIterator() {}
+      virtual ~ConstIterator()
+      {
+      }
 
       //@}
 
@@ -191,8 +184,7 @@ namespace OpenMS
       /// equality comparator
       bool operator==(const ConstIterator& rhs) const
       {
-        return (std::tie(vector_, position_) ==
-                std::tie(rhs.vector_, rhs.position_));
+        return (std::tie(vector_, position_) == std::tie(rhs.vector_, rhs.position_));
       }
 
       /// inequality operator
@@ -218,7 +210,6 @@ namespace OpenMS
       //@}
 
     protected:
-
       // pointer to the vector
       const std::vector<const Ribonucleotide*>* vector_;
 
@@ -235,7 +226,6 @@ namespace OpenMS
     class OPENMS_DLLAPI Iterator
     {
     public:
-
       friend class NASequence::ConstIterator;
 
       typedef Ribonucleotide value_type;
@@ -251,22 +241,21 @@ namespace OpenMS
       Iterator() = default;
 
       /// detailed constructor with pointer to the vector and offset position
-      Iterator(std::vector<const Ribonucleotide*>* vec_ptr,
-               difference_type position)
+      Iterator(std::vector<const Ribonucleotide*>* vec_ptr, difference_type position)
       {
         vector_ = vec_ptr;
         position_ = position;
       }
 
       /// copy constructor
-      Iterator(const Iterator& rhs) :
-        vector_(rhs.vector_),
-        position_(rhs.position_)
+      Iterator(const Iterator& rhs) : vector_(rhs.vector_), position_(rhs.position_)
       {
       }
 
       /// destructor
-      virtual ~Iterator() {}
+      virtual ~Iterator()
+      {
+      }
 
       //@}
 
@@ -322,8 +311,7 @@ namespace OpenMS
       /// equality comparator
       bool operator==(const Iterator& rhs) const
       {
-        return (std::tie(vector_,position_) ==
-                std::tie(rhs.vector_, rhs.position_));
+        return (std::tie(vector_, position_) == std::tie(rhs.vector_, rhs.position_));
       }
 
       /// inequality operator
@@ -349,7 +337,6 @@ namespace OpenMS
       //@}
 
     protected:
-
       std::vector<const Ribonucleotide*>* vector_;
 
       // position in the vector
@@ -360,22 +347,20 @@ namespace OpenMS
     /*
      * Default constructors and assignment operators.
      */
-    NASequence() = default; /// default constructor
-    NASequence(const NASequence&) = default; ///< Copy constructor
-    NASequence(NASequence&&) = default; ///< Move constructor
-    NASequence& operator=(const NASequence&) & = default;  ///< Copy assignment operator
-    NASequence& operator=(NASequence&&) & = default; ///< Move assignment operator
+    NASequence() = default;                               /// default constructor
+    NASequence(const NASequence&) = default;              ///< Copy constructor
+    NASequence(NASequence&&) = default;                   ///< Move constructor
+    NASequence& operator=(const NASequence&) & = default; ///< Copy assignment operator
+    NASequence& operator=(NASequence&&) & = default;      ///< Move assignment operator
 
     /// full constructor
-    NASequence(std::vector<const Ribonucleotide*> s,
-               const RibonucleotideChainEnd* five_prime,
-               const RibonucleotideChainEnd* three_prime);
+    NASequence(std::vector<const Ribonucleotide*> s, const RibonucleotideChainEnd* five_prime, const RibonucleotideChainEnd* three_prime);
 
     virtual ~NASequence() = default; /// destructor
 
     bool operator==(const NASequence& rhs) const; ///< element-wise equality
     bool operator!=(const NASequence& rhs) const; ///< not quality
-    bool operator<(const NASequence& rhs) const; ///< less operator
+    bool operator<(const NASequence& rhs) const;  ///< less operator
 
     /// getter / setter for sequence
     void setSequence(const std::vector<const Ribonucleotide*>& seq);
@@ -434,12 +419,12 @@ namespace OpenMS
 
     inline Iterator end()
     {
-      return Iterator(&seq_, (Int) seq_.size());
+      return Iterator(&seq_, (Int)seq_.size());
     }
 
     inline ConstIterator end() const
     {
-      return ConstIterator(&seq_, (Int) seq_.size());
+      return ConstIterator(&seq_, (Int)seq_.size());
     }
 
     inline ConstIterator cbegin() const
@@ -449,21 +434,67 @@ namespace OpenMS
 
     inline ConstIterator cend() const
     {
-      return ConstIterator(&seq_, (Int) seq_.size());
+      return ConstIterator(&seq_, (Int)seq_.size());
     }
 
     /// utility functions
+
+    /**
+     * @brief Get the Monoisotopic Weight of a NASequence. NB returns the uncharged mass + or - proton masses to match the charge param
+     *
+     * @param type fragment type to return
+     * @param charge how many protons to add or subtract, NB the mass returned is the UNCHARGED MASS
+     *
+     * @return double
+     */
     double getMonoWeight(NASFragmentType type = Full, Int charge = 0) const;
+
+    /**
+     * @brief Get the Average Weight of a NASequence. NB returns the uncharged mass + or - proton masses to match the charge param
+     *
+     * @param type fragment type to return
+     * @param charge how many protons to add or subtract, NB the mass returned is the UNCHARGED MASS
+     *
+     * @return double
+     */
     double getAverageWeight(NASFragmentType type = Full, Int charge = 0) const;
+
+    /**
+     * @brief Get the formula for a NASequence
+     *
+     * @param type fragment type for formula
+     * @param charge how many H to add or subtract
+     *
+     * @return EmpiricalFormula
+     */
     EmpiricalFormula getFormula(NASFragmentType type = Full, Int charge = 0) const;
 
-    /// Return sequence prefix of the given length (not end index!)
+    /**
+     * @brief Return sequence prefix of the given length (not end index!)
+     *
+     * @param length
+
+     * @return NASequence
+     */
     NASequence getPrefix(Size length) const;
 
-    /// Return sequence suffix of the given length (not start index!)
+    /**
+     * @brief Return sequence suffix of the given length (not start index!)
+     *
+     * @param length
+
+     * @return NASequence
+     */
     NASequence getSuffix(Size length) const;
 
-    /// Return subsequence with given starting position and length
+    /**
+     * @brief Return subsequence with given starting position and length
+     *
+     * @param start
+     * @param length
+     *
+     * @return NASequence
+     */
     NASequence getSubsequence(Size start = 0, Size length = Size(-1)) const;
 
     /**
@@ -478,8 +509,7 @@ namespace OpenMS
     /** @name Stream operators
         writes a NASequence to an output stream
     */
-    friend OPENMS_DLLAPI std::ostream& operator<<(std::ostream& os,
-                                                  const NASequence& seq);
+    friend OPENMS_DLLAPI std::ostream& operator<<(std::ostream& os, const NASequence& seq);
 
     /**
        @brief create NASequence object by parsing a C string (character array)
@@ -490,10 +520,10 @@ namespace OpenMS
     */
     static NASequence fromString(const char* s);
 
-    std::string toString() const ;
+    std::string toString() const;
 
   private:
-    //TODO: query RNA / DNA depending on type
+    // TODO: query RNA / DNA depending on type
     static void parseString_(const String& s, NASequence& nas);
 
     /**
@@ -505,9 +535,8 @@ namespace OpenMS
 
        @return Position at which to continue parsing
     */
-    //TODO: query RNA / DNA depending on type
-    static String::ConstIterator parseMod_(const String::ConstIterator str_it,
-                                           const String& str, NASequence& nas);
+    // TODO: query RNA / DNA depending on type
+    static String::ConstIterator parseMod_(const String::ConstIterator str_it, const String& str, NASequence& nas);
 
     std::vector<const Ribonucleotide*> seq_;
 
@@ -515,4 +544,4 @@ namespace OpenMS
     const RibonucleotideChainEnd* three_prime_ = nullptr;
   };
 
-}
+} // namespace OpenMS

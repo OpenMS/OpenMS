@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -72,7 +72,7 @@ public:
     typedef std::vector<std::vector<double> > GridVector;
 
     /// constructor
-    AxisWidget(AxisPainter::Alignment alignment, const char * legend = "", QWidget * parent = nullptr);
+    AxisWidget(const AxisPainter::Alignment alignment, const char * legend = "", QWidget * parent = nullptr);
 
     /// destructor
     ~AxisWidget() override;
@@ -93,7 +93,7 @@ public:
     void setLegend(const String & legend);
 
     /// returns the actual legend text
-    const String & getLegend();
+    const String & getLegend() const;
 
     /// returns the currently used grid lines
     const GridVector & gridLines() const;

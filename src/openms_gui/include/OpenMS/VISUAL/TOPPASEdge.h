@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -164,8 +164,6 @@ protected:
     /// point where the current edge touches the source or target (default) vertex
     QPointF borderPoint_(bool atTargetVertex = true) const;
 
-    /// Returns the point in the @p list that is nearest to @p origin
-    QPointF nearestPoint_(const QPointF & origin, const QList<QPointF> & list) const;
     /// Pointer to the source of this edge
     TOPPASVertex * from_;
     /// Pointer to the target of this edge

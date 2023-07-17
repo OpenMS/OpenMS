@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -117,9 +117,7 @@ namespace OpenMS
     return *this;
   }
 
-  SpectrumAnnotator::~SpectrumAnnotator()
-  {
-  }
+  SpectrumAnnotator::~SpectrumAnnotator() = default;
 
   void SpectrumAnnotator::annotateMatches(PeakSpectrum& spec, const PeptideHit& ph, const TheoreticalSpectrumGenerator& tg, const SpectrumAlignment& sa) const
   {
@@ -148,7 +146,7 @@ namespace OpenMS
         error_annotations[it->second] = std::fabs(spec[it->second].getMZ() - theoretical_spec[it->first].getMZ());
         type_annotations[it->second] = theo_annot[it->first];
     }
-    Param sap = sa.getParameters();
+    const Param& sap = sa.getParameters();
     spec.setMetaValue("fragment_mass_tolerance", sap.getValue("tolerance"));
     spec.setMetaValue("fragment_mass_tolerance_ppm", false);
     spec.setStringDataArrays(PeakSpectrum::StringDataArrays(1, type_annotations));
@@ -394,7 +392,7 @@ namespace OpenMS
         }
         //TODO add "FragmentArray"s
 
-        Param sap = sa.getParameters();
+        const Param& sap = sa.getParameters();
         pi.setMetaValue("fragment_match_tolerance", (double)sap.getValue("tolerance"));
       }
     }

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -46,10 +46,10 @@ namespace OpenMS
     setName("ItraqFourPlexQuantitationMethod");
 
     // create the channel map
-    channels_.push_back(IsobaricChannelInformation("114", 0, "", 114.1112, -1, -1, 1, 2));
-    channels_.push_back(IsobaricChannelInformation("115", 1, "", 115.1082, -1, 0, 2, 3));
-    channels_.push_back(IsobaricChannelInformation("116", 2, "", 116.1116, 0, 1, 3, -1));
-    channels_.push_back(IsobaricChannelInformation("117", 3, "", 117.1149, 1, 2, -1, -1));
+    channels_.push_back(IsobaricChannelInformation("114", 0, "", 114.1112, {-1, -1, 1, 2}));
+    channels_.push_back(IsobaricChannelInformation("115", 1, "", 115.1082, {-1, 0, 2, 3}));
+    channels_.push_back(IsobaricChannelInformation("116", 2, "", 116.1116, {0, 1, 3, -1}));
+    channels_.push_back(IsobaricChannelInformation("117", 3, "", 117.1149, {1, 2, -1, -1}));
 
     // we assume 114 to be the reference
     reference_channel_ = 0;
@@ -57,9 +57,7 @@ namespace OpenMS
     setDefaultParams_();
   }
 
-  ItraqFourPlexQuantitationMethod::~ItraqFourPlexQuantitationMethod()
-  {
-  }
+  ItraqFourPlexQuantitationMethod::~ItraqFourPlexQuantitationMethod() = default;
 
   void ItraqFourPlexQuantitationMethod::setDefaultParams_()
   {
@@ -135,7 +133,7 @@ namespace OpenMS
   Matrix<double> ItraqFourPlexQuantitationMethod::getIsotopeCorrectionMatrix() const
   {
     StringList iso_correction = ListUtils::toStringList<std::string>(getParameters().getValue("correction_matrix"));
-    return stringListToIsotopCorrectionMatrix_(iso_correction);
+    return stringListToIsotopeCorrectionMatrix_(iso_correction);
   }
 
   Size ItraqFourPlexQuantitationMethod::getReferenceChannel() const

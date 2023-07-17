@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -151,7 +151,7 @@ protected:
       if (in_params_name.empty())
       {
         in_params_name = svmfile_name + "_additional_parameters";
-        writeLog_("Warning: Using OLIGO kernel but in_oligo_params parameter is missing. Trying default filename: " + in_params_name);
+        writeLogWarn_("Warning: Using OLIGO kernel but in_oligo_params parameter is missing. Trying default filename: " + in_params_name);
       }
       inputFileReadable_(in_params_name, "in_oligo_params");
 
@@ -166,24 +166,21 @@ protected:
       if (additional_parameters.getValue("border_length") == ParamValue::EMPTY
          && svm.getIntParameter(SVMWrapper::KERNEL_TYPE) == SVMWrapper::OLIGO)
       {
-        writeLog_("No border length saved in additional parameters file. Aborting!");
-        cout << "No border length saved in additional parameters file. Aborting!" << endl;
+        writeLogError_("No border length saved in additional parameters file. Aborting!");
         return ILLEGAL_PARAMETERS;
       }
       border_length = String(additional_parameters.getValue("border_length").toString()).toInt();
       if (additional_parameters.getValue("k_mer_length") == ParamValue::EMPTY
          && svm.getIntParameter(SVMWrapper::KERNEL_TYPE) == SVMWrapper::OLIGO)
       {
-        writeLog_("No k-mer length saved in additional parameters file. Aborting!");
-        cout << "No k-mer length saved in additional parameters file. Aborting!" << endl;
+        writeLogError_("No k-mer length saved in additional parameters file. Aborting!");
         return ILLEGAL_PARAMETERS;
       }
       k_mer_length = String(additional_parameters.getValue("k_mer_length").toString()).toInt();
       if (additional_parameters.getValue("sigma") == ParamValue::EMPTY
          && svm.getIntParameter(SVMWrapper::KERNEL_TYPE) == SVMWrapper::OLIGO)
       {
-        writeLog_("No sigma saved in additional parameters file. Aborting!");
-        cout << "No sigma saved in additional parameters file. Aborting!" << endl;
+        writeLogError_("No sigma saved in additional parameters file. Aborting!");
         return ILLEGAL_PARAMETERS;
       }
       sigma = String(additional_parameters.getValue("sigma").toString()).toFloat();
@@ -249,7 +246,7 @@ protected:
         if (in_trainset_name.empty())
         {
           in_trainset_name = svmfile_name + "_samples";
-          writeLog_("Warning: Using OLIGO kernel but in_oligo_trainset parameter is missing. Trying default filename: " + in_trainset_name);
+          writeLogWarn_("Warning: Using OLIGO kernel but in_oligo_trainset parameter is missing. Trying default filename: " + in_trainset_name);
         }
         inputFileReadable_(in_trainset_name, "in_oligo_trainset");
 

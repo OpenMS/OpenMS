@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -34,9 +34,8 @@
 
 #pragma once
 
-#include <OpenMS/QC/QCBase.h>
-
 #include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/QC/QCBase.h>
 
 namespace OpenMS
 {
@@ -57,39 +56,37 @@ namespace OpenMS
     **/
   class OPENMS_DLLAPI MzCalibration : public QCBase
   {
-    public:
-      /// Constructor
-      MzCalibration();
+  public:
+    /// Constructor
+    MzCalibration();
 
-      /// Destructor
-      virtual ~MzCalibration() = default;
+    /// Destructor
+    virtual ~MzCalibration() = default;
 
-      /**
-      * @brief Writes results as meta values to the PeptideIdentification of the given FeatureMap
-      * @param features FeatureMap with m/z-values of PeptideIdentification after calibration, meta values are added here
-      * @param exp PeakMap of the original experiment. Can be empty (i.e. not available).
-      * @param map_to_spectrum Map to find index of spectrum given by meta value at PepID
-      * @throws Exception::InvalidParameter PeptideID is missing meta value 'spectrum_reference'
-      * @throws Exception::IllegalArgument Spectrum for a PepID has MSLevel of 1
-      * @throws Exception::MissingInformation Meta value 'mz_raw' missing from MSExperiment 
-      **/
-      void compute(FeatureMap& features, const MSExperiment& exp, const QCBase::SpectraMap& map_to_spectrum);
+    /**
+     * @brief Writes results as meta values to the PeptideIdentification of the given FeatureMap
+     * @param features FeatureMap with m/z-values of PeptideIdentification after calibration, meta values are added here
+     * @param exp PeakMap of the original experiment. Can be empty (i.e. not available).
+     * @param map_to_spectrum Map to find index of spectrum given by meta value at PepID
+     * @throws Exception::InvalidParameter PeptideID is missing meta value 'spectrum_reference'
+     * @throws Exception::IllegalArgument Spectrum for a PepID has MSLevel of 1
+     * @throws Exception::MissingInformation Meta value 'mz_raw' missing from MSExperiment
+     **/
+    void compute(FeatureMap& features, const MSExperiment& exp, const QCBase::SpectraMap& map_to_spectrum);
 
-      /// define the required input files
-      /// only FeatureXML after FDR is ultimately necessary
-      Status requires() const override;
+    /// define the required input files
+    /// only FeatureXML after FDR is ultimately necessary
+    Status requirements() const override;
 
-      /// Returns the name of the metric.
-      const String& getName() const override;
+    /// Returns the name of the metric.
+    const String& getName() const override;
 
-    private:
-      /// calculate the m/z values and m/z errors and add them to the PeptideIdentification
-      void addMzMetaValues_(PeptideIdentification& peptide_ID, const MSExperiment& exp, const QCBase::SpectraMap& map_to_spectrum);
+  private:
+    /// calculate the m/z values and m/z errors and add them to the PeptideIdentification
+    void addMzMetaValues_(PeptideIdentification& peptide_ID, const MSExperiment& exp, const QCBase::SpectraMap& map_to_spectrum);
 
-      double mz_raw_;
-      double mz_ref_;
-      bool no_mzml_;
+    double mz_raw_;
+    double mz_ref_;
+    bool no_mzml_;
   };
-}
-
-
+} // namespace OpenMS

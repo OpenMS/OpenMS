@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry               
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 // 
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -196,32 +196,32 @@ END_SECTION
 START_SECTION((virtual bool operator==(const SampleTreatment &rhs) const ))
 	Digestion empty,edit;
 	
-	TEST_EQUAL(edit==empty, true);
+	TEST_TRUE(edit == empty);
 	
 	edit.setEnzyme("TTEST");
 	TEST_EQUAL(edit==empty, false);
 	edit = empty;
-	TEST_EQUAL(edit==empty, true);
+	TEST_TRUE(edit == empty);
 
 	edit.setDigestionTime(4711.2);
 	TEST_EQUAL(edit==empty, false);
 	edit = empty;
-	TEST_EQUAL(edit==empty, true);		
+	TEST_TRUE(edit == empty);		
 
 	edit.setTemperature(4711.3);
 	TEST_EQUAL(edit==empty, false);
 	edit = empty;
-	TEST_EQUAL(edit==empty, true);			
+	TEST_TRUE(edit == empty);			
 
 	edit.setPh(4711.4);
 	TEST_EQUAL(edit==empty, false);
 	edit = empty;
-	TEST_EQUAL(edit==empty, true);		
+	TEST_TRUE(edit == empty);		
 
 	edit.setMetaValue("color",String("red"));
 	TEST_EQUAL(edit==empty, false);
 	edit = empty;
-	TEST_EQUAL(edit==empty, true);	
+	TEST_TRUE(edit == empty);	
 	
 	Modification m;
 	TEST_EQUAL(m==empty, false);

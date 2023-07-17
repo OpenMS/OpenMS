@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -39,6 +39,7 @@
 
 #include <OpenMS/DATASTRUCTURES/ListUtils.h> // StringList
 #include <OpenMS/DATASTRUCTURES/DateTime.h>
+#include <OpenMS/DATASTRUCTURES/DataValue.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
 
 #include <xercesc/util/XMLString.hpp>
@@ -416,6 +417,51 @@ public:
         if (_copy.has('\'')) _copy.substitute("'","&apos;");
 
         return _copy;
+      }
+
+      /**
+      *  @brief Convert an XSD type (e.g. 'xsd:double') to a DataValue.
+      * 
+      *  Not all conversions are supported yet, due to DataValue using an Int64 as the largest possible integer.
+      *  Thus, if the @p value contains a large UInt64, conversion will fail.
+      *  Value ranges are currently also not checked, only for XSD types which happen to match the internal representation.
+      * 
+      *  @param type An XSD type. If the type is not supported, the returned type will be a string
+      *  @param value The value in sting format, e.g. "123.34"
+      *  @return The Datavalue with the respective type (double, int or string)
+      *  @throws Exception::ConversionError if the value does not fit into the internal representation or (for few types) exceeds the XSD specs.
+      * 
+      */
+      static DataValue fromXSDString(const String& type, const String& value)
+      {
+        DataValue data_value;
+        // float type
+        if (type == "xsd:double" || type == "xsd:float" || type == "xsd:decimal")
+        {
+          data_value = DataValue(value.toDouble());
+        }
+        // <=32 bit integer types
+        else if (type == "xsd:byte" ||          // 8bit signed
+                 type == "xsd:int" ||           // 32bit signed
+                 type == "xsd:unsignedShort" || // 16bit unsigned
+                 type == "xsd:short" ||         // 16bit signed
+                 type == "xsd:unsignedByte" || type == "xsd:unsignedInt")
+        {
+          data_value = DataValue(value.toInt32());
+        }
+        // 64 bit integer types
+        else if (type == "xsd:long" || type == "xsd:unsignedLong" ||       // 64bit signed or unsigned respectively
+                 type == "xsd:integer" || type == "xsd:negativeInteger" || // any 'integer' has arbitrary size... but we have to cope with 64bit for now.
+                 type == "xsd:nonNegativeInteger" || type == "xsd:nonPositiveInteger" || type == "xsd:positiveInteger")
+        {
+          data_value = DataValue(value.toInt64()); // internally a signed 64-bit integer. So if someone uses 2^64-1 as value, toInt64() will raise an exception...
+        }
+        // everything else is treated as a string
+        else
+        {
+          data_value = DataValue(value);
+        }
+        return data_value;
       }
 
       /// throws a ParseError if protIDs are not unique, i.e. PeptideIDs will be randomly assigned (bad!)

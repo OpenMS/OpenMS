@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -64,7 +64,7 @@ using namespace std;
    <table>
      <tr>
        <td ALIGN="center" BGCOLOR="#EBEBEB"> pot. predecessor tools </td>
-       <td VALIGN="middle" ROWSPAN=4> \f$ \longrightarrow \f$ FidoAdapter \f$ \longrightarrow \f$</td>
+       <td VALIGN="middle" ROWSPAN=4> &rarr; FidoAdapter &rarr;</td>
        <td ALIGN="center" BGCOLOR="#EBEBEB"> pot. successor tools </td>
      </tr>
     <tr>
@@ -143,8 +143,8 @@ protected:
     registerFlag_("no_cleanup", "Omit clean-up of peptide sequences (removal of non-letter characters, replacement of I with L)");
     registerFlag_("all_PSMs", "Consider all PSMs of each peptide, instead of only the best one");
     registerFlag_("group_level", "Perform inference on protein group level (instead of individual protein level). This will lead to higher probabilities for (bigger) protein groups.");
-    registerStringOption_("accuracy", "<choice>", "", "Accuracy level of start parameters. There is a trade-off between accuracy and runtime. Empty uses the default ('best').", false, true);
-    setValidStrings_("accuracy", ListUtils::create<String>(",best,relaxed,sloppy"));
+    registerStringOption_("accuracy", "<choice>", "best", "Accuracy level of start parameters. There is a trade-off between accuracy and runtime.", false, true);
+    setValidStrings_("accuracy", ListUtils::create<String>("best,relaxed,sloppy"));
     registerIntOption_("log2_states", "<number>", 0, "Binary logarithm of the max. number of connected states in a subgraph. For a value N, subgraphs that are bigger than 2^N will be split up, sacrificing accuracy for runtime. '0' uses the default (18).", false);
     setMinInt_("log2_states", 0);
     registerIntOption_("log2_states_precalc", "<number>", 0, "Like 'log2_states', but allows to set a separate limit for the precalculation", false, true);
@@ -582,20 +582,17 @@ protected:
         fido_params << "-g";
       }
       String accuracy = getStringOption_("accuracy");
-      if (!accuracy.empty())
+      if (accuracy == "best")
       {
-        if (accuracy == "best")
-        {
-          fido_params << "-c 1";
-        }
-        else if (accuracy == "relaxed")
-        {
-          fido_params << "-c 2";
-        }
-        else if (accuracy == "sloppy")
-        {
-          fido_params << "-c 3";
-        }
+        fido_params << "-c 1";
+      }
+      else if (accuracy == "relaxed")
+      {
+        fido_params << "-c 2";
+      }
+      else if (accuracy == "sloppy")
+      {
+        fido_params << "-c 3";
       }
       fido_params << "INPUT_GRAPH" << "INPUT_PROTEINS";
       Int log2_states_precalc = getIntOption_("log2_states_precalc");

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry               
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 // 
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -118,7 +118,7 @@ void checkData(OSWData& res)
 	TEST_EQUAL(prec.getFeatures().size(), 5);
 	const std::vector<UInt32> tr{ 236830, 236831, 236832, 236833, 236834 };
 	const auto& trd = prec.getFeatures().back().getTransitionIDs();
-	TEST_EQUAL(trd == tr, true);
+	TEST_TRUE(trd == tr);
 	// check last transition
 	const OSWProtein& prot_last = res.getProteins().back();
 	TEST_EQUAL(prot_last.getPeptidePrecursors().back().getFeatures().back().getTransitionIDs().back(), 99);

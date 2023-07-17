@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -37,6 +37,8 @@
 #include <OpenMS/CONCEPT/Macros.h>
 
 // scoring
+#include <OpenMS/ANALYSIS/OPENSWATH/OpenSwathScores.h>
+#include <OpenMS/ANALYSIS/OPENSWATH/DIAScoring.h>
 #include <OpenMS/OPENSWATHALGO/ALGO/Scoring.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/MRMScoring.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/SONARScoring.h>
@@ -46,6 +48,8 @@
 #include <OpenMS/ANALYSIS/OPENSWATH/DATAACCESS/DataAccessHelper.h>
 #include <OpenMS/MATH/STATISTICS/StatisticFunctions.h>
 #include <OpenMS/ANALYSIS/OPENSWATH/SpectrumAddition.h>
+
+#include <utility>
 
 namespace OpenMS
 {
@@ -104,9 +108,7 @@ namespace OpenMS
   }
 
   /// Destructor
-  OpenSwathScoring::~OpenSwathScoring()
-  {
-  }
+  OpenSwathScoring::~OpenSwathScoring() = default;
 
   void OpenSwathScoring::initialize(double rt_normalization_factor,
                                     int add_up_spectra,
@@ -126,7 +128,7 @@ namespace OpenMS
   void OpenSwathScoring::calculateDIAScores(OpenSwath::IMRMFeature* imrmfeature,
                                             const std::vector<TransitionType>& transitions,
                                             const std::vector<OpenSwath::SwathMap>& swath_maps,
-                                            OpenSwath::SpectrumAccessPtr ms1_map,
+                                            const OpenSwath::SpectrumAccessPtr& ms1_map,
                                             const OpenMS::DIAScoring& diascoring,
                                             const CompoundType& compound,
                                             OpenSwath_Scores& scores,
@@ -234,7 +236,7 @@ namespace OpenMS
 
   }
 
-  void OpenSwathScoring::calculatePrecursorDIAScores(OpenSwath::SpectrumAccessPtr ms1_map, 
+  void OpenSwathScoring::calculatePrecursorDIAScores(const OpenSwath::SpectrumAccessPtr& ms1_map, 
                                    const OpenMS::DIAScoring & diascoring,
                                    double precursor_mz, 
                                    double rt, 
@@ -298,7 +300,7 @@ namespace OpenMS
 
   void OpenSwathScoring::calculateDIAIdScores(OpenSwath::IMRMFeature* imrmfeature,
                                               const TransitionType & transition,
-                                              const std::vector<OpenSwath::SwathMap> swath_maps,
+                                              const std::vector<OpenSwath::SwathMap>& swath_maps,
                                               const OpenMS::DIAScoring & diascoring,
                                               OpenSwath_Scores & scores,
                                               double drift_lower, double drift_upper)
@@ -533,7 +535,7 @@ namespace OpenMS
   OpenSwath::SpectrumPtr OpenSwathScoring::fetchSpectrumSwath(OpenSwath::SpectrumAccessPtr swath_map,
                                                               double RT, int nr_spectra_to_add, const double drift_lower, const double drift_upper)
   {
-    return getAddedSpectra_(swath_map, RT, nr_spectra_to_add, drift_lower, drift_upper);
+    return getAddedSpectra_(std::move(swath_map), RT, nr_spectra_to_add, drift_lower, drift_upper);
   }
 
   OpenSwath::SpectrumPtr OpenSwathScoring::fetchSpectrumSwath(std::vector<OpenSwath::SwathMap> swath_maps,
@@ -557,7 +559,7 @@ namespace OpenMS
     }
   }
 
-  OpenSwath::SpectrumPtr filterByDrift(const OpenSwath::SpectrumPtr input, const double drift_lower, const double drift_upper)
+  OpenSwath::SpectrumPtr filterByDrift(const OpenSwath::SpectrumPtr& input, const double drift_lower, const double drift_upper)
   {
     OPENMS_PRECONDITION(drift_upper > 0, "Cannot filter by drift time if upper value is less or equal to zero");
     //OPENMS_PRECONDITION(input->getDriftTimeArray() != nullptr, "Cannot filter by drift time if no drift time is available.");
@@ -605,7 +607,7 @@ namespace OpenMS
   }
 
 
-  OpenSwath::SpectrumPtr OpenSwathScoring::getAddedSpectra_(OpenSwath::SpectrumAccessPtr swath_map,
+  OpenSwath::SpectrumPtr OpenSwathScoring::getAddedSpectra_(const OpenSwath::SpectrumAccessPtr& swath_map,
                                                             double RT, int nr_spectra_to_add, const double drift_lower, const double drift_upper)
   {
     std::vector<std::size_t> indices = swath_map->getSpectraByRT(RT, 0.0);

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -39,7 +39,7 @@
 
 #include <OpenMS/ANALYSIS/MAPMATCHING/FeatureDistance.h>
 #include <OpenMS/CHEMISTRY/EmpiricalFormula.h>
-
+#include <OpenMS/CONCEPT/Constants.h>
 ///////////////////////////
 
 START_TEST(FeatureDistance, "$Id$")
@@ -160,17 +160,17 @@ START_SECTION((std::pair<bool, double> operator()(const BaseFeature& left, const
   dist.setParameters(param);
   right.setMZ(100.0 + 100.0/1e6 * 5); // 5ppm off --> valid in m/z
   // only one adduct set
-  right.setMetaValue("dc_charge_adducts", "NH4");
+  right.setMetaValue(Constants::UserParam::DC_CHARGE_ADDUCTS, "NH4");
   result = dist(left, right);
   TEST_EQUAL(result.first, true); // --> valid
   TEST_REAL_SIMILAR(result.second, 0.5);
   //both set with adducts having same element composition (even if string different ordered)
-  left.setMetaValue("dc_charge_adducts", "H4N");
+  left.setMetaValue(Constants::UserParam::DC_CHARGE_ADDUCTS, "H4N");
   result = dist(left, right);
   TEST_EQUAL(result.first, true); // --> valid
   TEST_REAL_SIMILAR(result.second, 0.5);
   //one different adduct
-  left.setMetaValue("dc_charge_adducts", "H5N");
+  left.setMetaValue(Constants::UserParam::DC_CHARGE_ADDUCTS, "H5N");
   result = dist(left, right);
   TEST_EQUAL(result.first, false); // --> invalid
   TEST_REAL_SIMILAR(result.second, FeatureDistance::infinity);

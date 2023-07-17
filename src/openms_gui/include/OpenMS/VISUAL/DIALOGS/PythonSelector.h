@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -67,7 +67,7 @@ namespace OpenMS
     signals:
       /// emitted whenever the line-edit has new values for the current python executable
       /// @param last_known_python_exe The currently best guess where python can be found
-      /// @param valid_python Is the python executable given in @last_known_python_exe callable?
+      /// @param valid_python Is the python executable given in @p last_known_python_exe callable?
       void valueChanged(QString last_known_python_exe, bool valid_python);
       
     

@@ -96,8 +96,7 @@ public:
   const Vector & operator =(const VectorLike<S, VECTOR> & rhs) {
     // Ensure the vectors do not refer to the same memory (otherwise
     // freeing _data would also free rhs._data):
-    bool no_overlap = (_data + _length <= &rhs[0ul]) || (&rhs[0ul] + rhs.size() <= _data);
-    assert( no_overlap );
+    assert((_data + _length <= &rhs[0ul]) || (&rhs[0ul] + rhs.size() <= _data));
     clear();
 
     _length = rhs.size();
@@ -116,8 +115,7 @@ public:
 
   const Vector & operator =(Vector && rhs) {
     // Ensure no overlap (as above):
-    bool no_overlap = (_data + _length <= rhs._data) || (rhs._data + rhs._length <= _data);
-    assert( no_overlap );
+    assert((_data + _length <= rhs._data) || (rhs._data + rhs._length <= _data));
     clear();
 
     std::swap(_length, rhs._length);

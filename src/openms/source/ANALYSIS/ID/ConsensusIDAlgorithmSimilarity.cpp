@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -111,8 +111,8 @@ namespace OpenMS
             double sim_score = getSimilarity_(hit1->getSequence(),
                                               hit2->getSequence());
             // use "1 - PEP" so higher scores are better (for "max_element"):
-            current_matches.push_back(make_pair(sim_score,
-                                                1.0 - hit2->getScore()));
+            current_matches.emplace_back(sim_score,
+                                                1.0 - hit2->getScore());
           }
           best_matches.push_back(*max_element(current_matches.begin(),
                                               current_matches.end()));

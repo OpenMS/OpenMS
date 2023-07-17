@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -72,9 +72,7 @@ namespace OpenMS
     SplineInterpolatedPeaks::init_(rt, intensity);
   }
 
-  SplineInterpolatedPeaks::~SplineInterpolatedPeaks()
-  {
-  }
+  SplineInterpolatedPeaks::~SplineInterpolatedPeaks() = default;
 
   void SplineInterpolatedPeaks::init_(const std::vector<double>& pos, const std::vector<double>& intensity)
   {
@@ -164,7 +162,7 @@ namespace OpenMS
         if (intensity_package.size() > 1)
         {
           // Two or more data points in package. At least one of them will be non-zero since unnecessary zeros removed above.
-          packages_.push_back(SplinePackage(pos_package, intensity_package));
+          packages_.emplace_back(pos_package, intensity_package);
         }
         pos_package.clear();
         intensity_package.clear();
@@ -175,7 +173,7 @@ namespace OpenMS
     // add the last package
     if (intensity_package.size() > 1)
     {
-      packages_.push_back(SplinePackage(pos_package, intensity_package));
+      packages_.emplace_back(pos_package, intensity_package);
     }
 
   }
@@ -201,25 +199,20 @@ namespace OpenMS
     {
       throw Exception::InvalidSize(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 0);
     }
-    return Navigator(&packages_, pos_min_, pos_max_, scaling);
+    return Navigator(&packages_, pos_max_, scaling);
   }
 
-  SplineInterpolatedPeaks::Navigator::Navigator(const std::vector<SplinePackage>* packages, double pos_min, double pos_max, double scaling) :
+  SplineInterpolatedPeaks::Navigator::Navigator(const std::vector<SplinePackage>* packages, double pos_max, double scaling) :
     packages_(packages),
     last_package_(0),
-    pos_min_(pos_min),
     pos_max_(pos_max),
     pos_step_width_scaling_(scaling)
   {
   }
 
-  SplineInterpolatedPeaks::Navigator::Navigator()
-  {
-  }
+  SplineInterpolatedPeaks::Navigator::Navigator() = default;
 
-  SplineInterpolatedPeaks::Navigator::~Navigator()
-  {
-  }
+  SplineInterpolatedPeaks::Navigator::~Navigator() = default;
 
   double SplineInterpolatedPeaks::Navigator::eval(double pos)
   {

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -43,13 +43,9 @@ using namespace std;
 namespace OpenMS
 {
 
-  EDTAFile::EDTAFile()
-  {
-  }
+  EDTAFile::EDTAFile() = default;
 
-  EDTAFile::~EDTAFile()
-  {
-  }
+  EDTAFile::~EDTAFile() = default;
 
   double EDTAFile::checkedToDouble_(const std::vector<String>& parts, Size index, double def)
   {
@@ -328,7 +324,7 @@ namespace OpenMS
       // consensus
       String entry = String(f.getRT()) + "\t" + f.getMZ() + "\t" + f.getIntensity() + "\t" + f.getCharge();
       // sub-features
-      ConsensusFeature::HandleSetType handle = f.getFeatures();
+      const ConsensusFeature::HandleSetType& handle = f.getFeatures();
       for (ConsensusFeature::HandleSetType::const_iterator it = handle.begin(); it != handle.end(); ++it)
       {
         entry += String("\t") + it->getRT() + "\t" + it->getMZ() + "\t" + it->getIntensity() + "\t" + it->getCharge();

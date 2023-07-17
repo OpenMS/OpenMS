@@ -10,7 +10,7 @@ cdef extern from "<OpenMS/CHEMISTRY/TheoreticalSpectrumGenerator.h>" namespace "
     
     cdef cppclass TheoreticalSpectrumGenerator(DefaultParamHandler):
         # wrap-inherits:
-        #    DefaultParamHandler
+        #   DefaultParamHandler
 
         TheoreticalSpectrumGenerator() nogil except +
         TheoreticalSpectrumGenerator(TheoreticalSpectrumGenerator &) nogil except +

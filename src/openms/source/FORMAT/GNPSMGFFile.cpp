@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -176,7 +176,7 @@ namespace OpenMS
                   << "SCANS=" << scan_index << "\n"
                   << "FEATURE_ID=e_" << feature_id << "\n"
                   << "MSLEVEL=2" << "\n"
-                  << "CHARGE=" << to_string(feature_charge == 0 ? 1 : feature_charge) << "+" << "\n"
+                  << "CHARGE=" << to_string(feature_charge == 0 ? 1 : abs(feature_charge))+(feature_charge >= 0 ? "+" : "-") << "\n"
                   << "PEPMASS=" << feature_mz << "\n"
                   << "FILE_INDEX=" << spec_index << "\n"
                   << "RTINSECONDS=" << feature_rt << "\n";
@@ -250,7 +250,7 @@ namespace OpenMS
         {
           int map_index = pept_id.getMetaValue("map_index");
           int spec_index = pept_id.getMetaValue("spectrum_index");
-          pepts.push_back(pair<int,int>(map_index,spec_index));
+          pepts.emplace_back(map_index,spec_index);
           break;
         }
       }
@@ -258,7 +258,7 @@ namespace OpenMS
     // return will be reformatted vector<PeptideIdentification> pepts passed in by value
   }
 
-  void GNPSMGFFile::run(const String& consensus_file_path, const StringList& mzml_file_paths, const String& out) const
+  void GNPSMGFFile::store(const String& consensus_file_path, const StringList& mzml_file_paths, const String& out) const
   {
     std::string output_type = getParameters().getValue("output_type");
 
@@ -338,6 +338,8 @@ namespace OpenMS
       const int best_speci = pepts[0].second;
       auto best_spec = specs_list[map_index2file_index[best_mapi]][best_speci];
 
+      if (best_spec.empty()) continue; // some Bruker files have MS2 spectra without peaks. skip those during exprot
+
       // write block output header
       writeMSMSBlockHeader_(
         output_file,
@@ -349,6 +351,8 @@ namespace OpenMS
         best_speci,
         best_spec.getRT()
       );
+
+      // OPENMS_LOG_DEBUG << "Best spectrum (index/RT): " << best_speci << "\t" << best_spec.getRT() << std::endl;
 
       // store outputted spectra in MSExperiment
       MSExperiment exp;

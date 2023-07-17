@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -74,7 +74,9 @@ namespace OpenMS
     m_file->setToolTipsVisible(true);
     parent->menuBar()->addMenu(m_file);
 
-    m_file->addAction("&Open file", parent, &TOPPViewBase::openFilesByDialog, Qt::CTRL + Qt::Key_O);
+    m_file->addAction( // we explicitly pass an empty Path here using a Lambda, since using the default `..., parent, &TOPPViewBase::openFilesByDialog, ...`)
+                       // passes a "0" as argument (Qt bug?)
+      "&Open file", parent, [parent]() { parent->openFilesByDialog(""); }, Qt::CTRL + Qt::Key_O);
     m_file->addAction("Open &example file", parent, [parent]() { parent->openFilesByDialog(File::getOpenMSDataPath() + "/examples/"); }, Qt::CTRL + Qt::Key_E);
     addAction_(m_file->addAction("&Close tab", parent, &TOPPViewBase::closeTab, Qt::CTRL + Qt::Key_W),
                TV_STATUS::HAS_CANVAS);

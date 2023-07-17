@@ -2,7 +2,7 @@
 #                   OpenMS -- Open-Source Mass Spectrometry
 # --------------------------------------------------------------------------
 # Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-# ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+# ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 #
 # This software is released under a three-clause BSD license:
 #  * Redistributions of source code must retain the above copyright
@@ -47,6 +47,7 @@ if (MT_ENABLE_OPENMP)
 endif()
 
 if (OPENMP_FOUND)
+  set(CMAKE_INSTALL_OPENMP_LIBRARIES TRUE)
   # For CMake < 3.9, we need to make the OpenMP target ourselves
   # from https://cliutils.gitlab.io/modern-cmake/chapters/packages/OpenMP.html
   if(NOT TARGET OpenMP::OpenMP_CXX)

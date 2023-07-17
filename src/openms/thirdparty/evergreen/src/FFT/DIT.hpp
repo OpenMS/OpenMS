@@ -50,11 +50,11 @@ public:
 template<bool SHUFFLE>
 class DIT<0u, SHUFFLE> {
 public:
-  inline static void fft1d(cpx* __restrict const data) {
+  inline static void fft1d(cpx* __restrict const /*data*/) {
   }
-  inline static void real_fft1d_packed(cpx* __restrict const data) {
+  inline static void real_fft1d_packed(cpx* __restrict const /*data*/) {
   }
-  inline static void real_ifft1d_packed(cpx* __restrict const data) {
+  inline static void real_ifft1d_packed(cpx* __restrict const /*data*/) {
   }
 };
 

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -73,7 +73,10 @@ namespace OpenMS
     Q_OBJECT
 
 public:
-    /// Default constructor
+    /// Default C'tor hidden
+    Plot2DCanvas() = delete;
+
+    /// Constructor
     Plot2DCanvas(const Param& preferences, QWidget* parent = nullptr);
 
     /// Destructor
@@ -82,14 +85,11 @@ public:
     // Docu in base class
     void showCurrentLayerPreferences() override;
 
-    // Docu in base class
-    void saveCurrentLayer(bool visible) override;
-
     /// Merges the features in @p map into the features layer @p i
-    void mergeIntoLayer(Size i, FeatureMapSharedPtrType map);
+    void mergeIntoLayer(Size i, const FeatureMapSharedPtrType& map);
 
     /// Merges the consensus features in @p map into the features layer @p i
-    void mergeIntoLayer(Size i, ConsensusMapSharedPtrType map);
+    void mergeIntoLayer(Size i, const ConsensusMapSharedPtrType& map);
 
     /// Merges the peptide identifications in @p peptides into the peptide layer @p i
     void mergeIntoLayer(Size i, std::vector<PeptideIdentification>& peptides);
@@ -98,13 +98,9 @@ public:
     void recalculateCurrentLayerDotGradient();
 
 signals:
-    /// Sets the data for the horizontal projection
-    void showProjectionHorizontal(ExperimentSharedPtrType);
-    /// Sets the data for the vertical projection
-    void showProjectionVertical(ExperimentSharedPtrType);
-    /// Shows the number of peaks and the intensity sum of the projection
-    void showProjectionInfo(int, double, double);
-    /// Signal emitted when the projections are to be shown/hidden
+    /// Requests to show projections for the @p source_layer. Emitted after calling pickProjectionLayer().
+    void showProjections(const LayerDataBase* source_layer);
+    /// Signal emitted when the projections are to be shown/hidden (e.g. via context menu)
     void toggleProjections();
     /// Requests to display the spectrum with index @p index in 1D
     void showSpectrumAsNew1D(int index);
@@ -124,16 +120,8 @@ public slots:
     // Docu in base class
     void verticalScrollBarChange(int value) override;
 
-    /**
-    @brief Updates the projection data and emits some related signals.
-
-    Emitted signals are showProjectionHorizontal(ExperimentSharedPtrType, Plot1DCanvas::DrawModes, PlotCanvas::IntensityModes) and
-    showProjectionVertical(ExperimentSharedPtrType, Plot1DCanvas::DrawModes, PlotCanvas::IntensityModes).
-
-    @see projection_mz_
-    @see projection_rt_
-    */
-    void updateProjections();
+    /// Picks an appropriate layer for projection and emits the signal showProjections(LayerDataBase*).
+    void pickProjectionLayer();
 
 protected slots:
 
@@ -145,7 +133,7 @@ protected:
     bool finishAdding_() override;
 
     /// Collects fragment ion scans in the indicated RT/mz area and adds them to the indicated action
-    bool collectFragmentScansInArea(double rt_min, double rt_max, double mz_min, double mz_max, QAction* a, QMenu * msn_scans, QMenu * msn_meta);
+    bool collectFragmentScansInArea_(const RangeType& range, QAction* a, QMenu* msn_scans, QMenu* msn_meta);
 
     /// Draws the coordinates (or coordinate deltas) to the widget's upper left corner
     void drawCoordinates_(QPainter& painter, const PeakIndex& peak);
@@ -167,109 +155,9 @@ protected:
     // Docu in base class
     void updateScrollbars_() override;
 
-    /**
-      @brief Paints individual peaks.
-
-      Calls different painting methods depending on the layer type and the density of displayed peaks
-
-      @param layer_index The index of the layer.
-      @param p The QPainter to paint on.
-    */
-    void paintDots_(Size layer_index, QPainter& p);
-
-    void paintAllIntensities_(Size layer_index, double pen_width, QPainter& painter);
-
-    /**
-      @brief Paints maximum intensity of individual peaks.
-
-      Paints the peaks as small ellipses. The peaks are colored according to the
-      selected dot gradient.
-
-      @param layer_index The index of the layer.
-      @param rt_pixel_count
-      @param mz_pixel_count
-      @param p The QPainter to paint on.
-    */
-    void paintMaximumIntensities_(Size layer_index, Size rt_pixel_count, Size mz_pixel_count, QPainter& p);
-
-    /**
-      @brief Paints the precursor peaks.
-
-      @param layer_index The index of the layer.
-      @param painter The QPainter to paint on.
-    */
-    void paintPrecursorPeaks_(Size layer_index, QPainter& painter);
-
-    /**
-      @brief Paints feature data.
-
-      @param layer_index The index of the layer.
-      @param p The QPainter to paint on.
-    */
-    void paintFeatureData_(Size layer_index, QPainter& p);
-
-    /**
-      @brief Paints convex hulls (one for each mass trace) of a features layer.
-
-      @param layer_index Index of the layer.
-      @param p The QPainter to paint on.
-    */
-    void paintTraceConvexHulls_(Size layer_index, QPainter& p);
-
-    /**
-      @brief Paints the convex hulls (one for each feature) of a features layer.
-
-      @param layer_index Index of the layer.
-      @param p The QPainter to paint on.
-    */
-    void paintFeatureConvexHulls_(Size layer_index, QPainter& p);
-
-    /**
-      @brief Paints peptide identifications (for idXML and unassigned peptides in featureXML).
-
-      @param layer_index Index of the layer.
-      @param p The QPainter to paint on.
-    */
-    void paintIdentifications_(Size layer_index, QPainter& p);
-
-    /**
-      @brief Paints the consensus elements of a consensus features layer.
-
-      @param layer_index Index of the layer.
-      @param p The QPainter to paint on.
-    */
-    void paintConsensusElements_(Size layer_index, QPainter& p);
-
-    /**
-      @brief Paints one consensus element of a consensus features layer.
-
-      @param layer_index Index of the layer.
-      @param cf Reference to the feature to be painted.
-      @param p The QPainter to paint on.
-      @param use_buffer Flag to switch between painting on the buffer and screen.
-    */
-    void paintConsensusElement_(Size layer_index, const ConsensusFeature& cf, QPainter& p, bool use_buffer);
-
-    /**
-      @brief checks if any element of a consensus feature is currently visible.
-
-      @param layer_index Index of the layer.
-      @param ce The ConsensusFeature that needs checking
-    */
-    bool isConsensusFeatureVisible_(const ConsensusFeature& ce, Size layer_index);
-
-    /**
-      @brief Paints convex hulls (one for each mass trace) for a single feature.
-
-      @param hulls Reference to convex hull vector
-      @param has_identifications Draw hulls in green (true) or blue color (false)
-      @param p The QPainter to paint on
-    */
-    void paintConvexHulls_(const std::vector<ConvexHull2D>& hulls, bool has_identifications, QPainter& p);
-
     // Docu in base class
     void intensityModeChange_() override;
-    // DOcu in base class
+    // Docu in base class
     void recalculateSnapFactor_() override;
 
     /**
@@ -277,7 +165,7 @@ protected:
 
       Takes intensity modes into account.
     */
-    inline Int precalculatedColorIndex_(float val, const MultiGradient& gradient, double snap_factor)
+    Int precalculatedColorIndex_(float val, const MultiGradient& gradient, double snap_factor)
     {
       float gradientPos = val;
       switch (intensity_mode_)
@@ -306,31 +194,9 @@ protected:
 
       Takes intensity modes into account.
     */
-    inline QColor heightColor_(float val, const MultiGradient& gradient, double snap_factor)
+    QColor heightColor_(float val, const MultiGradient& gradient, double snap_factor)
     {
       return gradient.precalculatedColorByIndex(precalculatedColorIndex_(val, gradient, snap_factor));
-    }
-
-    /**
-      @brief Convert chart to widget coordinates
-
-      Translates chart coordinates to widget coordinates.
-      @param x the chart coordinate x
-      @param y the chart coordinate y
-      @param point returned widget coordinates
-    */
-    inline void dataToWidget_(double x, double y, QPoint& point)
-    {
-      if (!isMzToXAxis())
-      {
-        point.setX(int((y - visible_area_.minY()) / visible_area_.height() * width()));
-        point.setY(height() - int((x - visible_area_.minX()) / visible_area_.width() * height()));
-      }
-      else
-      {
-        point.setX(int((x - visible_area_.minX()) / visible_area_.width() * width()));
-        point.setY(height() - int((y - visible_area_.minY()) / visible_area_.height() * height()));
-      }
     }
 
     /** 
@@ -346,7 +212,7 @@ protected:
     */
     double adaptPenScaling_(double ratio_data2pixel, double& pen_size) const;
     
-    /// recalculates the dot gradient of a layer
+    /// Recalculates the dot gradient of a layer
     void recalculateDotGradient_(Size layer);
 
     /// Highlights a single peak and prints coordinates to screen
@@ -358,8 +224,30 @@ protected:
     /// Paints a peak icon for feature and consensus feature peaks
     void paintIcon_(const QPoint& pos, const QRgb& color, const String& icon, Size s, QPainter& p) const;
 
-    /// translates the visible area by a given offset specified in fractions of current visible area
-    virtual void translateVisibleArea_(double mzShiftRel, double rtShiftRel);
+    /// Translates the visible area by a given offset specified in fractions of current visible area
+    void translateVisibleArea_(double x_axis_rel, double y_axis_rel);
+
+    /**
+      @brief Convert chart to widget coordinates
+
+      Translates chart coordinates to widget coordinates.
+      @param x the chart coordinate x
+      @param y the chart coordinate y
+      @return A point in widget coordinates
+    */
+    QPoint dataToWidget_(double x, double y) const
+    {
+      QPoint point;
+      const auto& xy = visible_area_.getAreaXY();
+      point.setX(int((x - xy.minX()) / xy.width() * width()));
+      point.setY(int((xy.maxY() - y) / xy.height() * height()));
+      return point;
+    }
+
+    QPoint dataToWidget_(const DPosition<2>& xy)
+    {
+      return dataToWidget_(xy.getX(), xy.getY());
+    }
 
     //docu in base class
     void translateLeft_(Qt::KeyboardModifiers m) override;
@@ -373,11 +261,14 @@ protected:
     /// Finishes context menu after customization to peaks, features or consensus features
     void finishContextMenu_(QMenu* context_menu, QMenu* settings_menu);
 
-    /// m/z projection data
-    ExperimentType projection_mz_;
-    /// RT projection data
-    ExperimentType projection_rt_;
-    
+    friend class Painter2DBase;
+    friend class Painter2DChrom;
+    friend class Painter2DConsensus;
+    friend class Painter2DIdent;
+    friend class Painter2DFeature;
+    friend class Painter2DIonMobility;
+    friend class Painter2DPeak;
+
     /// the nearest peak/feature to the mouse cursor
     PeakIndex selected_peak_;
     /// start peak/feature of measuring mode
@@ -389,11 +280,6 @@ protected:
     double pen_size_min_; ///< minimum number of pixels for one data point
     double pen_size_max_; ///< maximum number of pixels for one data point
     double canvas_coverage_min_; ///< minimum coverage of the canvas required; if lower, points are upscaled in size
-
-  private:
-    /// Default C'tor hidden
-    Plot2DCanvas();
-
   };
 }
 

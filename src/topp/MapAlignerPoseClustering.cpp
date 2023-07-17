@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -57,9 +57,9 @@ using namespace std;
 <CENTER>
   <table>
     <tr>
-      <td ALIGN = "center" BGCOLOR="#EBEBEB"> potential predecessor tools </td>
-      <td VALIGN="middle" ROWSPAN=2> \f$ \longrightarrow \f$ MapAlignerPoseClustering \f$ \longrightarrow \f$</td>
-      <td ALIGN = "center" BGCOLOR="#EBEBEB"> potential successor tools </td>
+      <th ALIGN = "center"> potential predecessor tools </td>
+      <td VALIGN="middle" ROWSPAN=2> &rarr; MapAlignerPoseClustering &rarr;</td>
+      <th ALIGN = "center"> potential successor tools </td>
     </tr>
     <tr>
       <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_FeatureFinderCentroided @n (or another feature finding algorithm) </td>
@@ -256,7 +256,7 @@ protected:
           {
             OPENMS_LOG_ERROR << "Aligning " << in_files[i] << " to reference " << in_files[reference_index]
                              << " failed. No transformation will be applied (RT not changed for this file)." << endl;
-            writeLog_("Illegal argument (" + String(e.getName()) + "): " + String(e.what()) + ".");
+            writeLogError_("Illegal argument (" + String(e.getName()) + "): " + String(e.what()) + ".");
             trafo.fitModel("identity");
           }
         }

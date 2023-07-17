@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -39,6 +39,7 @@
 #include <OpenMS/CONCEPT/LogStream.h>
 
 #include <iostream>
+#include <utility>
 
 #undef DEBUG_FD
 
@@ -59,7 +60,7 @@ namespace OpenMS
   /// Constructor
   MassExplainer::MassExplainer(AdductsType adduct_base) :
     explanations_(),
-    adduct_base_(adduct_base),
+    adduct_base_(std::move(adduct_base)),
     q_min_(1),
     q_max_(5),
     max_span_(3),
@@ -84,7 +85,7 @@ namespace OpenMS
   /// Constructor
   MassExplainer::MassExplainer(AdductsType adduct_base, Int q_min, Int q_max, Int max_span, double thresh_logp, Size max_neutrals) :
     explanations_(),
-    adduct_base_(adduct_base),
+    adduct_base_(std::move(adduct_base)),
     q_min_(q_min),
     q_max_(q_max),
     max_span_(max_span),
@@ -151,9 +152,7 @@ namespace OpenMS
   }
 
   /// Destructor
-  MassExplainer::~MassExplainer()
-  {
-  }
+  MassExplainer::~MassExplainer() = default;
 
   //@}
 
@@ -304,7 +303,7 @@ namespace OpenMS
   /// Sets the set of possible adducts
   void MassExplainer::setAdductBase(AdductsType adduct_base)
   {
-    adduct_base_ = adduct_base;
+    adduct_base_ = std::move(adduct_base);
   }
 
   /// Returns the set of adducts

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -263,7 +263,7 @@ public slots:
     /// Called when the new edge is being "released"
     void finishHoveringEdge();
     /// Called by vertices at which an error occurred during pipeline execution
-    void pipelineErrorSlot(const QString msg = "");
+    void pipelineErrorSlot(const QString& msg = "");
     /// Moves all selected items by dx, dy
     void moveSelectedItems(qreal dx, qreal dy);
     /// Makes all vertices snap to the grid

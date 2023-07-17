@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -184,7 +184,7 @@ public:
 
               This function is used to free all the memory used by 'problem'
           */
-    static void destroyProblem(svm_problem * problem);
+    static void destroyProblem(svm_problem* &problem, bool free_nodes = true);
 
     static std::vector<double> predictPeptideRT(const std::vector<String> & sequences,
                                                 SVMWrapper& svm,

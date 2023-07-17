@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -1388,8 +1388,8 @@ namespace OpenMS
       std::cout << "right: " << iter->getRT() << "\t" << raw_data_iter->getMZ() << std::endl;
 #endif
       // region endpoints are stored in global vector
-      d.signal2D.push_back(left);
-      d.signal2D.push_back(right);
+      d.signal2D.emplace_back(left);
+      d.signal2D.emplace_back(right);
     }
 #ifdef DEBUG2D
     std::cout << first_peak_mz << "\t" << last_peak_mz << std::endl;

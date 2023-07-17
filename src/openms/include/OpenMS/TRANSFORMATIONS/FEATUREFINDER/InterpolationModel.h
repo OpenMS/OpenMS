@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -59,7 +59,8 @@ public:
     typedef double IntensityType;
     typedef DPosition<1> PositionType;
     typedef double CoordinateType;
-    typedef Math::LinearInterpolation<double> LinearInterpolation;
+    using KeyType = double;
+    typedef Math::LinearInterpolation<KeyType> LinearInterpolation;
 
     /// Default constructor
     InterpolationModel() :
@@ -140,15 +141,13 @@ public:
     /// get reasonable set of samples from the model (i.e. for printing)
     void getSamples(SamplesType & cont) const override
     {
-      cont = SamplesType();
-      BaseModel<1>::PeakType peak;
+      cont.clear();
+      using PeakT = BaseModel<1>::PeakType;
+      PeakT peak;
       for (Size i = 0; i < interpolation_.getData().size(); ++i)
       {
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wconversion"
-        peak.setIntensity(interpolation_.getData()[i]);
-#pragma clang diagnostic pop
-        peak.getPosition()[0] = interpolation_.index2key(i);
+        peak.getPosition()[0] = interpolation_.index2key((KeyType)i);
+        peak.setIntensity((PeakT::IntensityType)interpolation_.getData()[i]);
         cont.push_back(peak);
       }
     }

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -35,6 +35,7 @@
 #pragma once
 
 #include <OpenMS/SIMULATION/LABELING/BaseLabeler.h>
+#include <map>
 
 namespace OpenMS
 {
@@ -91,7 +92,7 @@ protected:
 
     void addLabelToProteinHits_(SimTypes::FeatureMapSim& features, const String& label) const;
 
-    Feature mergeFeatures_(Feature& labeled_channel_feature, const AASequence& unmodified_sequence, Map<String, Feature>& unlabeled_features_index) const;
+    Feature mergeFeatures_(Feature& labeled_channel_feature, const AASequence& unmodified_sequence, std::map<String, Feature>& unlabeled_features_index) const;
 
     String light_channel_label_;
     String medium_channel_label_;

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -75,10 +75,7 @@ namespace OpenMS
   {
   }
 
-  AnnotationStatistics::AnnotationStatistics(const AnnotationStatistics& rhs) :
-    states(rhs.states)
-  {
-  }
+  AnnotationStatistics::AnnotationStatistics(const AnnotationStatistics& rhs) = default;
 
   AnnotationStatistics& AnnotationStatistics::operator=(const AnnotationStatistics& rhs)
   {
@@ -102,23 +99,24 @@ namespace OpenMS
   }
 
   FeatureMap::FeatureMap() :
-    Base(),
     MetaInfoInterface(),
     RangeManagerContainerType(),
     DocumentIdentifier(),
+    ExposedVector<Feature>(),
     UniqueIdInterface(),
     UniqueIdIndexer<FeatureMap>(),
     protein_identifications_(),
     unassigned_peptide_identifications_(),
-    data_processing_()
+    data_processing_(),
+    id_data_()
   {
   }
 
   FeatureMap::FeatureMap(const FeatureMap& source) :
-    Base(source),
     MetaInfoInterface(source),
     RangeManagerContainerType(source),
     DocumentIdentifier(source),
+    ExposedVector<Feature>(source),
     UniqueIdInterface(source),
     UniqueIdIndexer<FeatureMap>(source),
     protein_identifications_(source.protein_identifications_),
@@ -138,27 +136,38 @@ namespace OpenMS
 
   FeatureMap::~FeatureMap() = default;
 
-  FeatureMap& FeatureMap::operator=(const FeatureMap& rhs)
+  FeatureMap& FeatureMap::operator=(const FeatureMap& rhs)  // TODO: cannot be defaulted since OpenMS::IdentificationData is missing operator=
   {
     if (&rhs == this)
     {
       return *this;
     }
-    Base::operator=(rhs);
     MetaInfoInterface::operator=(rhs);
     RangeManagerType::operator=(rhs);
     DocumentIdentifier::operator=(rhs);
     UniqueIdInterface::operator=(rhs);
+    data_ = rhs.data_;
     protein_identifications_ = rhs.protein_identifications_;
     unassigned_peptide_identifications_ = rhs.unassigned_peptide_identifications_;
     data_processing_ = rhs.data_processing_;
 
+    // copy ID data and update references in features:
+    id_data_.clear();
+    IdentificationData::RefTranslator trans = id_data_.merge(rhs.id_data_);
+    for (Feature& feature : *this)
+    {
+      feature.updateAllIDReferences(trans);
+    }
+
     return *this;
   }
 
+  //FeatureMap& FeatureMap::operator=(FeatureMap&&) = default; // TODO: cannot be defaulted since OpenMS::IdentificationData is missing operator=
+
+
   bool FeatureMap::operator==(const FeatureMap& rhs) const
   {
-    return std::operator==(*this, rhs) &&
+    return data_ == rhs.data_ &&
            MetaInfoInterface::operator==(rhs) &&
            RangeManagerType::operator==(rhs) &&
            DocumentIdentifier::operator==(rhs) &&
@@ -222,7 +231,7 @@ namespace OpenMS
     }
     catch (Exception::Postcondition&) // assign new UID's for conflicting entries
     {
-      Size replaced_uids =  UniqueIdIndexer<FeatureMap>::resolveUniqueIdConflicts();
+      Size replaced_uids = UniqueIdIndexer<FeatureMap>::resolveUniqueIdConflicts();
       OPENMS_LOG_INFO << "Replaced " << replaced_uids << " invalid uniqueID's\n";
     }
 
@@ -271,7 +280,7 @@ namespace OpenMS
   void FeatureMap::updateRanges()
   {
     clearRanges();
-    for (const auto& f : (Base&) *this)
+    for (const auto& f : *this)
     {
       extendRT(f.getRT());
       extendMZ(f.getMZ());
@@ -294,8 +303,7 @@ namespace OpenMS
 
   void FeatureMap::swapFeaturesOnly(FeatureMap& from)
   {
-    // TODO used by FeatureFinderAlgorithmPicked -- could it also use regular swap?
-    Base::swap(from);
+    data_.swap(from.data_);
 
     // swap range information (otherwise its false in both maps)
     FeatureMap tmp;
@@ -425,7 +433,7 @@ namespace OpenMS
 
   void FeatureMap::clear(bool clear_meta_data)
   {
-    Base::clear();
+    data_.clear();
 
     if (clear_meta_data)
     {
@@ -467,8 +475,8 @@ namespace OpenMS
     }
     std::set<IdentificationData::ObservationMatchRef> result;
     std::set_difference(all_matches.begin(), all_matches.end(),
-                   assigned_matches.begin(), assigned_matches.end(),
-                   inserter(result, result.end()));
+                        assigned_matches.begin(), assigned_matches.end(),
+                        inserter(result, result.end()));
     return result;
   }
 

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -37,6 +37,7 @@
 #include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/CoarseIsotopePatternGenerator.h>
 
 #include <numeric>
+#include <map>
 
 //#define ION_SCORING_DEBUG
 
@@ -56,21 +57,9 @@ namespace OpenMS
   {
   }
 
-  CompNovoIonScoringBase::IonScore::IonScore(const IonScore & rhs) :
-    score(rhs.score),
-    s_bion(rhs.s_bion),
-    s_yion(rhs.s_yion),
-    s_witness(rhs.s_witness),
-    position(rhs.position),
-    s_isotope_pattern_1(rhs.s_isotope_pattern_1),
-    is_isotope_1_mono(rhs.is_isotope_1_mono),
-    s_isotope_pattern_2(rhs.s_isotope_pattern_2)
-  {
-  }
+  CompNovoIonScoringBase::IonScore::IonScore(const IonScore & rhs) = default;
 
-  CompNovoIonScoringBase::IonScore::~IonScore()
-  {
-  }
+  CompNovoIonScoringBase::IonScore::~IonScore() = default;
 
   CompNovoIonScoringBase::IonScore & CompNovoIonScoringBase::IonScore::operator=(const IonScore & rhs)
   {
@@ -121,11 +110,9 @@ namespace OpenMS
     return *this;
   }
 
-  CompNovoIonScoringBase::~CompNovoIonScoringBase()
-  {
-  }
+  CompNovoIonScoringBase::~CompNovoIonScoringBase() = default;
 
-  void CompNovoIonScoringBase::addSingleChargedIons_(Map<double, IonScore> & ion_scores, PeakSpectrum & CID_spec)
+  void CompNovoIonScoringBase::addSingleChargedIons_(std::map<double, IonScore> & ion_scores, PeakSpectrum & CID_spec)
   {
     double double_charged_iso_threshold_single((double)param_.getValue("double_charged_iso_threshold_single"));
     PeakSpectrum CID_spec_new = CID_spec;
@@ -204,7 +191,7 @@ namespace OpenMS
     return LONE;
   }
 
-  double CompNovoIonScoringBase::scoreIsotopes_(const PeakSpectrum & CID_spec, PeakSpectrum::ConstIterator it, Map<double, IonScore> & ion_scores, Size charge)
+  double CompNovoIonScoringBase::scoreIsotopes_(const PeakSpectrum & CID_spec, PeakSpectrum::ConstIterator it, std::map<double, IonScore> & ion_scores, Size charge)
   {
     double it_pos(it->getMZ());  // ~ weight of the fragment
     UInt max_isotope_to_score(param_.getValue("max_isotope_to_score"));

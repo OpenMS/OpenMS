@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -101,8 +101,8 @@ namespace OpenMS
       String temp_string = attributeAsString_(attributes, "variable");
       if (temp_string == "Y")
       {
-        variable_modifications_.push_back(make_pair(attributeAsString_(attributes, "description"),
-                                                    attributeAsDouble_(attributes, "mass")));
+        variable_modifications_.emplace_back(attributeAsString_(attributes, "description"),
+                                                    attributeAsDouble_(attributes, "mass"));
       }
       else
       {
@@ -116,8 +116,8 @@ namespace OpenMS
       String temp_string = attributeAsString_(attributes, "variable");
       if (temp_string == "Y")
       {
-        variable_modifications_.push_back(make_pair(attributeAsString_(attributes, "description"),
-                                                    attributeAsDouble_(attributes, "mass")));
+        variable_modifications_.emplace_back(attributeAsString_(attributes, "description"),
+                                                    attributeAsDouble_(attributes, "mass"));
 
       }
       else
@@ -143,7 +143,7 @@ namespace OpenMS
       matchModification_(modification_mass, temp_description);
 
       // the modification position is 1-based
-      actual_modifications_.push_back(make_pair(temp_description, modification_position));
+      actual_modifications_.emplace_back(temp_description, modification_position);
     }
   }
 

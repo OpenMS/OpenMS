@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -32,18 +32,16 @@
 // $Authors: Timo Sachsenberg, Lukas Zimmermann $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/KERNEL/StandardTypes.h>
-
-#include <OpenMS/METADATA/ExperimentalDesign.h>
-#include <OpenMS/FORMAT/ExperimentalDesignFile.h>
-#include <OpenMS/SYSTEM/File.h>
-#include <OpenMS/FORMAT/TextFile.h>
+#include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/DATASTRUCTURES/ListUtils.h>
+#include <OpenMS/FORMAT/ExperimentalDesignFile.h>
+#include <OpenMS/FORMAT/TextFile.h>
+#include <OpenMS/KERNEL/StandardTypes.h>
+#include <OpenMS/METADATA/ExperimentalDesign.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
-
-#include <QtCore/QString>
+#include <OpenMS/SYSTEM/File.h>
 #include <QtCore/QFileInfo>
-
+#include <QtCore/QString>
 #include <iostream>
 
 using namespace std;
@@ -56,7 +54,7 @@ namespace OpenMS
       QFileInfo spectra_file_info(spec_file.toQString());
       if (spectra_file_info.isRelative())
       {
-        // file name is relative so we need to figure out the correct folder
+        // file name is relative, so we need to figure out the correct folder
 
         // first check folder relative to folder of design file
         // to allow, for example, a design in ./design.tsv and spectra in ./spectra/a.mzML
@@ -101,7 +99,7 @@ namespace OpenMS
     }
 
     // Parse Error of filename if test holds
-    void parseErrorIf(const bool test, const String &filename, const String &message)
+    void ExperimentalDesignFile::parseErrorIf_(const bool test, const String &filename, const String &message)
     {
       if (test)
       {
@@ -124,14 +122,12 @@ namespace OpenMS
     {
       // Headers as set
       std::set <String> header_set(header.begin(), header.end());
-      parseErrorIf(header_set.size() != header.size(), filename,
-                   "Some column headers of the table appear multiple times!");
+      parseErrorIf_(header_set.size() != header.size(), filename, "Some column headers of the table appear multiple times!");
 
       // Check that all required headers are there
       for (const String &req_header : required)
       {
-        parseErrorIf( ! ListUtils::contains(header, req_header), filename,
-                      "Missing column header: " + req_header);
+        parseErrorIf_(!ListUtils::contains(header, req_header), filename, "Missing column header: " + req_header);
       }
       // Assign index in column map and check for weird headers
       for (Size i = 0; i < header.size(); ++i)
@@ -140,11 +136,7 @@ namespace OpenMS
 
         // A header is unexpected if it is neither required nor optional and we do not allow other headers
         const bool header_unexpected = (required.find(h) == required.end()) && (optional.find(h) == optional.end());
-        parseErrorIf(
-          !allow_other_header && header_unexpected,
-          filename,
-          "Header not allowed in this section of the Experimental Design: " + h
-        );
+        parseErrorIf_(!allow_other_header && header_unexpected, filename, "Header not allowed in this section of the Experimental Design: " + h);
         column_map[h] = i;
       }
     }
@@ -176,17 +168,22 @@ namespace OpenMS
       bool has_sample(false);
       bool has_label(false);
 
-      // Attributes of the sample section
+      /// Content of the sample section (vector of rows with column contents as strings)
       std::vector< std::vector < String > > sample_content_;
+      /// Sample name to sample (row) index
       std::map< unsigned, Size > sample_sample_to_rowindex_;
+      /// Inside each row, the value for a column can be accessed by name with this map
       std::map< String, Size > sample_columnname_to_columnindex_;
 
-      // Maps the column header string to the column index for
-      // the file section
+      /// Maps the column header string to the column index for
+      /// the file section
       std::map <String, Size> fs_column_header_to_index;
 
-      unsigned line_number(0);
+      /// Maps the sample name to all values of sample-related columns
+      std::map <String, std::vector<String>> sample_content_map;
 
+      /// Maps the sample name to its index (i.e., the order how it gets added to the sample section)
+      std::map<String, Size> samplename_to_index;
       enum ParseState { RUN_HEADER, RUN_CONTENT };
 
       ParseState state(RUN_HEADER);
@@ -196,7 +193,7 @@ namespace OpenMS
       {
         const String line(s.trim());
 	
-        if (line.empty()) { continue; }
+        if (line.hasPrefix("#") || line.empty()) { continue; }
 
         // Now split the line into individual cells
         StringList cells;
@@ -209,7 +206,6 @@ namespace OpenMS
         if (state == RUN_HEADER)
         {
           state = RUN_CONTENT;
-          line_number = 0;
           parseHeader_(
             cells,
             tsv_file,
@@ -219,17 +215,15 @@ namespace OpenMS
           );
           has_label = fs_column_header_to_index.find("Label") != fs_column_header_to_index.end();
           has_sample = fs_column_header_to_index.find("Sample") != fs_column_header_to_index.end();
-     
-          // read label column to end of header
-          if (!has_label)
+
+          if (!has_label) // add label column to end of header
           {
             size_t hs = fs_column_header_to_index.size();
             fs_column_header_to_index["Label"] = hs;
             cells.push_back("Label");
           }
 
-          // read sample column to end of header
-          if (!has_sample)
+          if (!has_sample) // add sample column to end of header
           {
             size_t hs = fs_column_header_to_index.size();
             fs_column_header_to_index["Sample"] = hs;
@@ -251,27 +245,48 @@ namespace OpenMS
         }
         else if (state == RUN_CONTENT)
         {
-          // read label column as we already did in the header
+          // if no label column exists -> label free
+          // -> add label column with label 1 at the end of every row
           if (!has_label) { cells.push_back("1"); }
 
-          // Assign label, fall back to 1 if column is missing
+          // Assign label
           int label = cells[fs_column_header_to_index["Label"]].toInt();
           int fraction = cells[fs_column_header_to_index["Fraction"]].toInt();
           int fraction_group = cells[fs_column_header_to_index["Fraction_Group"]].toInt();
-                    // read sample column
+
+          // read sample column
+          Size sample = 1;
+          String samplename = "";
           if (!has_sample) 
           {
-            int sample = fraction_group; // deducing the sample in the case of multiplexed could be done if label > 1 information is there (e.g., max(label) * (fraction_group - 1) + label 
-            cells.push_back(String(sample)); 
+            samplename = fraction_group; // deducing the sample in the case of multiplexed could be done if label > 1 information is there (e.g., max(label) * (fraction_group - 1) + label
+            cells.push_back(samplename);
           }
 
-          int sample = cells[fs_column_header_to_index["Sample"]].toInt();
-          parseErrorIf(sample < 1, tsv_file,
-                       "Sample index may not be smaller than 1");
+          samplename = cells[fs_column_header_to_index["Sample"]];
+          parseErrorIf_(n_col != cells.size(), tsv_file, "Wrong number of records in line");
 
+          const auto& [it, inserted] = samplename_to_index.emplace(samplename, samplename_to_index.size());
+          sample = it->second;
 
-          parseErrorIf(n_col != cells.size(), tsv_file,
-                       "Wrong number of records in line");
+          // get indices of sample metadata and store content in sample cells
+          StringList sample_cells;
+          for (const auto & c2i : sample_columnname_to_columnindex_)
+          {
+            sample_cells.push_back(cells[c2i.second]);
+          }
+
+          if (inserted)
+          {
+            sample_content_.push_back(sample_cells);
+          }
+          else
+          {
+            if (sample_content_[it->second] != sample_cells)
+            {
+              OPENMS_LOG_WARN << "Warning: Factors for the same sample do not match." << std::endl;
+            }
+          }
 
           ExperimentalDesign::MSFileSectionEntry e;
 
@@ -280,16 +295,6 @@ namespace OpenMS
           e.fraction = fraction;
           e.label = label;
           e.sample = sample;
-
-          sample_sample_to_rowindex_[e.sample] = line_number++;
-
-          // get indices of sample metadata and store content in sample cells
-          StringList sample_cells;
-          for (const auto & c2i : sample_columnname_to_columnindex_)
-          {
-            sample_cells.push_back(cells[c2i.second]);
-          }
-          sample_content_.push_back(sample_cells);
 
           // Spectra files
           e.path = findSpectraFile(
@@ -301,7 +306,8 @@ namespace OpenMS
         }
       }
 
-      // Assign correct position in sample column (without "Fraction_Group", "Fraction", "Spectra_Filepath", "Label")
+      // Assign correct position for columns in sample section subset
+      // (i.e., without "Fraction_Group", "Fraction", "Spectra_Filepath", "Label")
       int sample_index = 0;
       for (auto & c : sample_columnname_to_columnindex_)
       {
@@ -311,7 +317,7 @@ namespace OpenMS
       // Create Sample Section and set in design
       ExperimentalDesign::SampleSection sample_section(
         sample_content_,
-        sample_sample_to_rowindex_,
+        samplename_to_index,
         sample_columnname_to_columnindex_);
 
       // Create experimentalDesign
@@ -328,7 +334,7 @@ namespace OpenMS
 
       // Attributes of the sample section
       std::vector< std::vector < String > > sample_content_;
-      std::map< unsigned, Size > sample_sample_to_rowindex_;
+      std::map< String, Size > sample_sample_to_rowindex_;
       std::map< String, Size > sample_columnname_to_columnindex_;
 
       // Maps the column header string to the column index for
@@ -346,8 +352,8 @@ namespace OpenMS
       {
         // skip empty lines (except in state RUN_CONTENT, where the sample table is read)
         const String line(s.trim());
-	
-        if (line.empty() && state != RUN_CONTENT)
+	      // also skip comment lines
+        if (line.hasPrefix("#") || (line.empty() && state != RUN_CONTENT))
         {
           continue;
         }
@@ -375,17 +381,16 @@ namespace OpenMS
           
           n_col = fs_column_header_to_index.size();
         }
-          // End of file section lines, empty line separates file and sample section
+        // End of file section lines, empty line separates file and sample section
         else if (state == RUN_CONTENT && line.empty())
         {
           // Next line is header of Sample table
           state = SAMPLE_HEADER;
         }
-          // Line is file section line
+        // Line is file section line
         else if (state == RUN_CONTENT)
         {
-          parseErrorIf(n_col != cells.size(), tsv_file,
-                       "Wrong number of records in line");
+          parseErrorIf_(n_col != cells.size(), tsv_file, "Wrong number of records in line");
 
           ExperimentalDesign::MSFileSectionEntry e;
 
@@ -399,11 +404,15 @@ namespace OpenMS
           // Assign sample number
           if (has_sample)
           {
-            e.sample = cells[fs_column_header_to_index["Sample"]].toInt();
+            //e.sample has to be filled after the sample section was read
+            e.sample_name = cells[fs_column_header_to_index["Sample"]];
           }
           else
           {
-            e.sample = e.fraction_group; // deducing the sample in the case of multiplexed could be done if label > 1 information is there (e.g., max(label) * (fraction_group - 1) + label 
+            e.sample = e.fraction_group; // TODO: deducing the sample in the case of multiplexed
+                                         //  could be done if label > 1 information is there
+                                         //  (e.g., max(label) * (fraction_group - 1) + label
+            e.sample_name = "Fraction group " + String(e.fraction_group);
           }
 
           // Spectra files
@@ -413,7 +422,7 @@ namespace OpenMS
             require_spectra_file);
           msfile_section.push_back(e);
         }
-          // Parse header of the Condition Table
+        // Parse header of the Condition Table
         else if (state == SAMPLE_HEADER)
         {
           state = SAMPLE_CONTENT;
@@ -426,19 +435,22 @@ namespace OpenMS
           );
           n_col = sample_columnname_to_columnindex_.size();
         }
-          // Parse Sample Row
+        // Parse Sample Row
         else if (state == SAMPLE_CONTENT)
         {
           // Parse Error if sample appears multiple times
-          unsigned sample = cells[sample_columnname_to_columnindex_["Sample"]].toInt();
-          parseErrorIf(
-            sample_sample_to_rowindex_.find(sample) != sample_sample_to_rowindex_.end(),
-            tsv_file,
-            "Sample: " + String(sample) + " appears multiple times in the sample table"
-          );
+          const String& sample = cells[sample_columnname_to_columnindex_["Sample"]];
+          parseErrorIf_(sample_sample_to_rowindex_.find(sample) != sample_sample_to_rowindex_.end(),
+                        tsv_file,
+                        "Sample: " + String(sample) + " appears multiple times in the sample table");
           sample_sample_to_rowindex_[sample] = line_number++;
           sample_content_.push_back(cells);
         }
+      }
+
+      for (auto& e : msfile_section)
+      {
+        e.sample = sample_sample_to_rowindex_.at(e.sample_name);
       }
 
       // Create Sample Section and set in design
@@ -454,21 +466,26 @@ namespace OpenMS
     }
 
     // static
-    ExperimentalDesign ExperimentalDesignFile::load(const String &tsv_file, const bool require_spectra_file)
+    ExperimentalDesign ExperimentalDesignFile::load(const TextFile &text_file, const bool require_spectra_file, String filename = "--no design file provided--")
     {
-      const TextFile text_file(tsv_file, true);
-
       // check if we have information stored in one or two files
       bool has_one_table = isOneTableFile_(text_file);
 
       if (has_one_table)
       {
-        return parseOneTableFile_(text_file, tsv_file, require_spectra_file);
+        return parseOneTableFile_(text_file, filename, require_spectra_file);
       }
       else // two tables
       {
-        return parseTwoTableFile_(text_file, tsv_file, require_spectra_file);
+        return parseTwoTableFile_(text_file, filename, require_spectra_file);
       }
     }
+
+    ExperimentalDesign ExperimentalDesignFile::load(const String &tsv_file, const bool require_spectra_file)
+    {
+      const TextFile text_file(tsv_file, true);
+      return load(text_file, require_spectra_file, tsv_file);
+    }
+
 }
 

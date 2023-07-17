@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -37,6 +37,7 @@
 #include <OpenMS/CONCEPT/Exception.h>
 
 #include <iostream>
+#include <utility>
 
 using namespace std;
 
@@ -57,7 +58,7 @@ namespace OpenMS
     name_(name),
     cleavage_regex_(cleavage_regex),
     synonyms_(synonyms),
-    regex_description_(regex_description)
+    regex_description_(std::move(regex_description))
   {
   }
 
@@ -69,7 +70,7 @@ namespace OpenMS
                                    String regex_description) :
       name_(name),
       synonyms_(synonyms),
-      regex_description_(regex_description)
+      regex_description_(std::move(regex_description))
   {
     //TODO check if all letters are A-Z?
     if (cut_before.empty())
@@ -113,9 +114,7 @@ namespace OpenMS
     }
   }
 
-  DigestionEnzyme::~DigestionEnzyme()
-  {
-  }
+  DigestionEnzyme::~DigestionEnzyme() = default;
 
   void DigestionEnzyme::setName(const String& name)
   {

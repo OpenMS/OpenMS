@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -55,18 +55,19 @@ namespace OpenMS
   {
     getDefaultParameters(defaults_);
 
-    subsections_.push_back("SavitzkyGolayFilter");
+    subsections_.emplace_back("SavitzkyGolayFilter");
     defaults_.setValue("SavitzkyGolayFilter:frame_length", 15);
     defaults_.setValue("SavitzkyGolayFilter:polynomial_order", 3);
 
-    subsections_.push_back("GaussFilter");
+    subsections_.emplace_back("GaussFilter");
     defaults_.setValue("GaussFilter:gaussian_width", 0.2);
 
-    subsections_.push_back("PeakPickerHiRes");
+    subsections_.emplace_back("PeakPickerHiRes");
     defaults_.setValue("PeakPickerHiRes:signal_to_noise", 1.0);
 
     defaults_.insert("AccurateMassSearchEngine:", AccurateMassSearchEngine().getDefaults());
     defaults_.setValue("AccurateMassSearchEngine:keep_unidentified_masses", "false");
+    defaults_.setValidStrings("AccurateMassSearchEngine:keep_unidentified_masses", {"true","false"});
 
     // write defaults into Param object param_
     defaultsToParam_();
@@ -213,8 +214,6 @@ namespace OpenMS
       }
 
       const double spectrum_rt = spectrum.getRT();
-      const double rt_left_lim = spectrum_rt - rt_window_ / 2.0;
-      const double rt_right_lim = spectrum_rt + rt_window_ / 2.0;
       const std::vector<Precursor>& precursors = spectrum.getPrecursors();
       if (precursors.empty())
       {
@@ -222,36 +221,74 @@ namespace OpenMS
       }
       const double spectrum_mz = precursors.empty() ? 0.0 : precursors.front().getMZ();
 
-      for (const auto& feature : ms1_features)
+      // Lambda to check the mz/rt thresholds
+      auto checkRtAndMzTol = [](const double& spectrum_mz, const double& spectrum_rt, 
+        const double& target_mz, const double& target_rt, const double& mz_window, const double& rt_window) 
       {
-        for (const auto& subordinate : feature.getSubordinates())
+        const double rt_left_lim = spectrum_rt - rt_window / 2.0;
+        const double rt_right_lim = spectrum_rt + rt_window / 2.0;
+        const double mz_left_lim = spectrum_mz - mz_window / 2.0;
+        const double mz_right_lim = spectrum_mz + mz_window / 2.0;
+        if (spectrum_mz != 0.0)
         {
-          const auto& peptide_ref = subordinate.getMetaValue("PeptideRef");
-          const double target_mz = subordinate.getMZ();
-          const double target_rt = subordinate.getRT();
-          if (target_rt >= rt_left_lim && target_rt <= rt_right_lim)
+          return target_rt >= rt_left_lim && target_rt <= rt_right_lim && target_mz >= mz_left_lim && target_mz <= mz_right_lim;
+        }
+        else
+        {
+          return target_rt >= rt_left_lim && target_rt <= rt_right_lim;
+        }
+      };
+
+      // Lambda to create the feature
+      auto construct_feature = [checkRtAndMzTol, spectrum_rt, spectrum_mz, &ms2_features, &annotated_spectra, &spectrum](
+        const OpenMS::Feature& feature, const double& mz_tol, const double& rt_win) {
+        const auto& peptide_ref_s = feature.getMetaValue("PeptideRef");
+        const auto& native_id_s = feature.getMetaValue("native_id");
+        // check for null annotations resulting from unnanotated features
+        if (peptide_ref_s != "null")
+        {
+          const double target_mz = feature.getMZ();
+          const double target_rt = feature.getRT();
+          if (checkRtAndMzTol(spectrum_mz, spectrum_rt, target_mz, target_rt, mz_tol, rt_win))
           {
-            OPENMS_LOG_DEBUG << "annotateSpectra(): " << peptide_ref << "]";
+            OPENMS_LOG_DEBUG << "annotateSpectra(): " << peptide_ref_s << "]";
             OPENMS_LOG_DEBUG << " (target_rt: " << target_rt << ") (target_mz: " << target_mz << ")" << std::endl;
             MSSpectrum annotated_spectrum = spectrum;
-            annotated_spectrum.setName(peptide_ref);
-            annotated_spectra.push_back(annotated_spectrum);
+            annotated_spectrum.setName(peptide_ref_s);
+            annotated_spectra.push_back(std::move(annotated_spectrum));
             // fill the ms2 features map
             Feature ms2_feature;
+            ms2_feature.setUniqueId();
             ms2_feature.setRT(spectrum_rt);
             ms2_feature.setMZ(spectrum_mz);
-            ms2_feature.setIntensity(subordinate.getIntensity());
-            ms2_feature.setMetaValue("transition_name", peptide_ref);
-            ms2_features.push_back(ms2_feature);
+            ms2_feature.setIntensity(feature.getIntensity());
+            ms2_feature.setMetaValue("native_id", native_id_s);
+            ms2_feature.setMetaValue("PeptideRef", peptide_ref_s);
+            ms2_features.push_back(std::move(ms2_feature));
           }
+        }
+      };
+
+      for (const auto& feature : ms1_features)
+      {
+        if (!feature.getSubordinates().empty())
+        {
+          // iterate through the subordinate level
+          for (const auto& subordinate : feature.getSubordinates())
+          {
+            construct_feature(subordinate, mz_tolerance_, rt_window_);
+          }
+        }
+        else
+        {
+          construct_feature(feature, mz_tolerance_, rt_window_);
         }
       }
     }
   }
 
-  void TargetedSpectraExtractor::searchSpectrum(
-      OpenMS::FeatureMap& feat_map,
-      OpenMS::FeatureMap& feat_map_output) const
+  void TargetedSpectraExtractor::searchSpectrum(OpenMS::FeatureMap& feat_map, 
+    OpenMS::FeatureMap& feat_map_output, bool add_unidentified_features) const
   {
     OpenMS::AccurateMassSearchEngine ams;
     OpenMS::MzTab output;
@@ -262,43 +299,71 @@ namespace OpenMS
     feat_map_output.clear();
     for (const OpenMS::Feature& feature : feat_map)
     {
-      for (const auto& ident : feature.getPeptideIdentifications())
+      const auto& peptide_identifications = feature.getPeptideIdentifications();
+      if (peptide_identifications.size())
       {
-        for (const auto& hit : ident.getHits())
+        for (const auto& ident : peptide_identifications)
         {
-          OpenMS::Feature f;
-          OpenMS::Feature s = feature;
-          f.setUniqueId();
-          f.setMetaValue("PeptideRef", hit.getMetaValue("identifier").toStringList().at(0));
-          s.setUniqueId();
-          s.setMetaValue("PeptideRef", hit.getMetaValue("identifier").toStringList().at(0));
-          std::string native_id = hit.getMetaValue("chemical_formula").toString() + ";" + hit.getMetaValue("modifications").toString();
-          s.setMetaValue("native_id", native_id);
-          s.setMetaValue("identifier", hit.getMetaValue("identifier"));
-          s.setMetaValue("description", hit.getMetaValue("description"));
-          s.setMetaValue("modifications", hit.getMetaValue("modifications"));
-          std::string adducts;
-          try
+          for (const auto& hit : ident.getHits())
           {
-            std::string str = hit.getMetaValue("modifications").toString();
-            std::string delimiter = ";";
-            adducts = str.substr(1, str.find(delimiter) - 1);
+            OpenMS::Feature f;
+            OpenMS::Feature s = feature;
+            f.setUniqueId();
+            s.setUniqueId();
+            if (hit.getMetaValue("identifier").toStringList().at(0) != "null")
+            {
+              f.setMetaValue("PeptideRef", hit.getMetaValue("identifier").toStringList().at(0));
+              s.setMetaValue("PeptideRef", hit.getMetaValue("identifier").toStringList().at(0));
+              std::string native_id = hit.getMetaValue("chemical_formula").toString() + ";" + hit.getMetaValue("modifications").toString();
+              s.setMetaValue("native_id", native_id);
+              s.setMetaValue("identifier", hit.getMetaValue("identifier"));
+              s.setMetaValue("description", hit.getMetaValue("description"));
+              s.setMetaValue("modifications", hit.getMetaValue("modifications"));
+              std::string adducts;
+              try
+              {
+                // Extract adduct: the first letter stands for the actual metabolite and then everything after are the abducts up until the ";"
+                // For example, M-H;1- will give -H
+                std::string str = hit.getMetaValue("modifications").toString();
+                std::string delimiter = ";";
+                adducts = str.substr(1, str.find(delimiter) - 1);
+              }
+              catch (const std::exception& e)
+              {
+                OPENMS_LOG_ERROR << e.what();
+              }
+              s.setMetaValue("adducts", adducts);
+              OpenMS::EmpiricalFormula chemform(hit.getMetaValue("chemical_formula").toString());
+              double adduct_mass = s.getMZ() * std::abs(hit.getCharge()) + static_cast<double>(hit.getMetaValue("mz_error_Da")) - chemform.getMonoWeight();
+              s.setMetaValue("dc_charge_adduct_mass", adduct_mass);
+              s.setMetaValue("chemical_formula", hit.getMetaValue("chemical_formula"));
+              s.setMetaValue("mz_error_ppm", hit.getMetaValue("mz_error_ppm"));
+              s.setMetaValue("mz_error_Da", hit.getMetaValue("mz_error_Da"));
+              s.setCharge(hit.getCharge());
+              f.setSubordinates({s});
+              feat_map_output.push_back(f);
+            }
+            else if (add_unidentified_features)
+            {
+              // "PeptideRef" metavalue should have been set during peak picking, but if not...
+              std::ostringstream mass_of_the_peak;
+              mass_of_the_peak << s.getMZ();
+
+              // Fill in accurateMassSearch metavalues
+              DataValue identifiers(std::vector<std::string>({mass_of_the_peak.str()}));
+              s.setMetaValue("identifier", identifiers);
+              s.setMetaValue("description", "");
+              s.setMetaValue("modifications", "");
+              s.setMetaValue("adducts", "");
+              s.setMetaValue("dc_charge_adduct_mass", 0);
+              s.setMetaValue("chemical_formula", "");
+              s.setMetaValue("mz_error_ppm", 0);
+              s.setMetaValue("mz_error_Da", 0);
+              // s.setCharge(hit.getCharge()); // The polarity should have been set during peak picking
+              f.setSubordinates({s});
+              feat_map_output.push_back(f);
+            }
           }
-          catch (const std::exception& e)
-          {
-            OPENMS_LOG_ERROR << e.what();
-          }
-          s.setMetaValue("adducts", adducts);
-          OpenMS::EmpiricalFormula chemform(hit.getMetaValue("chemical_formula").toString());
-          double adduct_mass = s.getMZ() * std::abs(hit.getCharge()) + static_cast<double>(hit.getMetaValue("mz_error_Da")) - chemform.getMonoWeight();
-          s.setMetaValue("dc_charge_adduct_mass", adduct_mass);
-          s.setMetaValue("chemical_formula", hit.getMetaValue("chemical_formula"));
-          s.setMetaValue("mz_error_ppm", hit.getMetaValue("mz_error_ppm"));
-          s.setMetaValue("mz_error_Da", hit.getMetaValue("mz_error_Da"));
-          s.setCharge(hit.getCharge());
-          std::vector<OpenMS::Feature> subs = {s};
-          f.setSubordinates(subs);
-          feat_map_output.push_back(f);
         }
       }
     }
@@ -574,10 +639,10 @@ namespace OpenMS
     selected_spectra.clear();
     selected_features.clear(true);
 
-    for (auto it = transition_best_spec.cbegin(); it != transition_best_spec.cend(); ++it)
+    for (const auto& m : transition_best_spec)
     {
-      selected_spectra.push_back(scored_spectra[it->second]);
-      if (compute_features) selected_features.push_back(features[it->second]);
+      selected_spectra.push_back(scored_spectra[m.second]);
+      if (compute_features) selected_features.push_back(features[m.second]);
     }
   }
 
@@ -643,6 +708,55 @@ namespace OpenMS
     FeatureMap extracted_features;
     const bool compute_features { false };
     extractSpectra(experiment, targeted_exp, extracted_spectra, extracted_features, compute_features);
+  }
+
+  void TargetedSpectraExtractor::extractSpectra(
+    const MSExperiment& experiment,
+    const FeatureMap& ms1_features,
+    std::vector<MSSpectrum>& extracted_spectra
+  ) const
+  {
+    FeatureMap extracted_features;
+    extractSpectra(experiment, ms1_features, extracted_spectra, extracted_features, false);
+  }
+
+  void TargetedSpectraExtractor::extractSpectra(
+    const MSExperiment& experiment,
+    const FeatureMap& ms1_features,
+    std::vector<MSSpectrum>& extracted_spectra,
+    FeatureMap& extracted_features
+  ) const
+  {
+    extractSpectra(experiment, ms1_features, extracted_spectra, extracted_features, true);
+  }
+
+  void TargetedSpectraExtractor::extractSpectra(
+    const MSExperiment& experiment,
+    const FeatureMap& ms1_features,
+    std::vector<MSSpectrum>& extracted_spectra,
+    FeatureMap& extracted_features,
+    const bool compute_features
+  ) const
+  {
+    // annotate spectra
+    std::vector<OpenMS::MSSpectrum> annotated_spectra;
+    OpenMS::FeatureMap ms2_features;
+    annotateSpectra(experiment.getSpectra(), ms1_features, ms2_features, annotated_spectra);
+
+    // pickSpectra
+    std::vector<MSSpectrum> picked_spectra(annotated_spectra.size());
+    for (Size i = 0; i < annotated_spectra.size(); ++i)
+    {
+      pickSpectrum(annotated_spectra[i], picked_spectra[i]);
+    }
+
+    // score and select
+    std::vector<OpenMS::MSSpectrum> scored_spectra;
+    scoreSpectra(annotated_spectra, picked_spectra, scored_spectra);
+
+    // select the best spectrum for each group of spectra having the same name
+    // NOTE: It maybe needed to take the top N instead of the top 1 spectra in the future
+    selectSpectra(scored_spectra, ms2_features, extracted_spectra, extracted_features, compute_features);
   }
 
   void TargetedSpectraExtractor::matchSpectrum(
@@ -767,27 +881,44 @@ namespace OpenMS
     targetedMatching(picked, cmp, features);
   }
 
-  void TargetedSpectraExtractor::storeSpectraTraML(const String& filename, const OpenMS::FeatureMap& ms1_features, const OpenMS::FeatureMap& ms2_features) const
+  void TargetedSpectraExtractor::constructTransitionsList(const OpenMS::FeatureMap& ms1_features, const OpenMS::FeatureMap& ms2_features, TargetedExperiment& t_exp) const
   { 
+    // Create a map based on PeptideRef between MS1 and MS2 features
     std::map<std::string, std::vector<const Feature*>> ms1_to_ms2;
     for (const auto& feature : ms2_features)
     {
       for (const auto& subordinate : feature.getSubordinates())
       {
-        ms1_to_ms2[subordinate.getMetaValue("transition_name")].push_back(&subordinate);
+        ms1_to_ms2[subordinate.getMetaValue("PeptideRef")].push_back(&subordinate);
       }
     }
 
-    std::vector<ReactionMonitoringTransition> v_rmt_all;
-    std::vector<TargetedExperiment::Peptide> peptides;
+    // Create individual maps for the transitions, peptides and proteins to account for the same IDs but different RTs
+    std::map<std::string, ReactionMonitoringTransition> rmt_map;
+    std::map<std::string, OpenMS::TargetedExperiment::Peptide> peptides_map;
+    std::map<std::string, OpenMS::TargetedExperiment::Protein> proteins_map;
     for (const auto& ms1_feature : ms1_features)
     {
       std::string peptide_ref = ms1_feature.getMetaValue("PeptideRef");
+      OpenMS::TargetedExperiment::Protein protein;
+      protein.id = peptide_ref;
+      protein.addMetaValues(ms1_feature);
+      proteins_map.emplace(peptide_ref, protein); // OK to reject duplicate keys
+
+      OpenMS::ReactionMonitoringTransition::RetentionTime rt_f;
+      rt_f.setRT(ms1_feature.getRT());
+
       OpenMS::TargetedExperiment::Peptide peptide;
       peptide.id = peptide_ref;
       peptide.setChargeState(ms1_feature.getCharge());
       peptide.addMetaValues(ms1_feature);
-      peptides.push_back(peptide);
+      peptide.protein_refs.emplace_back(peptide_ref);
+      peptide.rts.push_back(rt_f);
+      auto found_peptide = peptides_map.emplace(peptide_ref, peptide);
+      if (!found_peptide.second)
+      {
+        peptides_map.at(peptide_ref).rts.push_back(rt_f);
+      }
       
       for (const auto& ms2_feature : ms1_to_ms2[peptide_ref])
       {
@@ -795,33 +926,48 @@ namespace OpenMS
         if ((current_mz > min_fragment_mz_ && current_mz < max_fragment_mz_) &&
             (current_mz < ms1_feature.getMZ() + relative_allowable_product_mass_))
         {
-          std::string native_id = ms2_feature->getMetaValue("native_id");
           OpenMS::ReactionMonitoringTransition rmt;
-          rmt.setLibraryIntensity(ms1_feature.getIntensity());
+          rmt.setLibraryIntensity(ms2_feature->getIntensity());
           rmt.setName(ms2_feature->getMetaValue("native_id"));
+
+          OpenMS::ReactionMonitoringTransition::RetentionTime rt_s;
+          rt_s.setRT(ms2_feature->getRT());
+          rmt.setRetentionTime(rt_s);
+
           std::ostringstream os;
-          os << ms2_feature->getMetaValue("native_id") << "_" << peptide_ref;
+          os << peptide_ref << "_" << ms2_feature->getMetaValue("native_id") << "_" << ms2_feature->getRT();
           rmt.setNativeID(os.str());
           rmt.setPeptideRef(peptide_ref);
           rmt.setPrecursorMZ(ms1_feature.getMZ());
           rmt.setProductMZ(ms2_feature->getMZ());
           rmt.addMetaValues(*ms2_feature);
-          v_rmt_all.push_back(rmt);
+          rmt_map.emplace(os.str(), rmt); // OK to reject duplicate keys
         }
       }
     }
 
-    TargetedExperiment t_exp;
+    // Reconstruct the final vectors from the maps
+    std::vector<TargetedExperiment::Peptide> peptides;
+    for (const auto& p : peptides_map) {
+      peptides.push_back(p.second);
+    }
+    std::vector<TargetedExperiment::Protein> proteins;
+    for (const auto& p : proteins_map)
+    {
+      proteins.push_back(p.second);
+    }
+    std::vector<ReactionMonitoringTransition> rmt_vec;
+    for (const auto& p : rmt_map)
+    {
+      rmt_vec.push_back(p.second);
+    }
+    t_exp.setProteins(proteins);
     t_exp.setPeptides(peptides);
-    t_exp.setTransitions(v_rmt_all);
+    t_exp.setTransitions(rmt_vec);
 
     // validate
     OpenMS::TransitionTSVFile tsv_file;
     tsv_file.validateTargetedExperiment(t_exp);
-
-    // write traML
-    TraMLFile traml_file;
-    traml_file.store(filename, t_exp);
   }
 
   void TargetedSpectraExtractor::mergeFeatures(const OpenMS::FeatureMap& fmap_input, OpenMS::FeatureMap& fmap_output) const
@@ -829,7 +975,7 @@ namespace OpenMS
     try
     {
       // Pass 1: organize into a map by combining features and subordinates with the same `identifier`
-      std::map<std::string, std::vector<OpenMS::Feature>> fmapmap;
+      std::map<OpenMS::String, std::vector<OpenMS::Feature>> fmapmap;
       organizeMapWithSameIdentifier(fmap_input, fmapmap);
 
       // Pass 2: compute the consensus manually
@@ -867,7 +1013,18 @@ namespace OpenMS
         // make the feature map and assign subordinates
         OpenMS::Feature f;
         f.setUniqueId();
-        f.setMetaValue("PeptideRef", f_map.first);
+
+        // parse the identifier
+        std::string id_f;
+        try
+        {
+          id_f = f_map.first.prefix('_');
+        }
+        catch (const std::exception& e)
+        {
+          OPENMS_LOG_ERROR << e.what();
+        }
+        f.setMetaValue("PeptideRef", id_f);
         f.setMZ(m);
         f.setRT(rt);
         f.setMetaValue("scan_polarity", f_map.second.front().getMetaValue("scan_polarity"));
@@ -950,28 +1107,27 @@ namespace OpenMS
     }
   }
 
-  void TargetedSpectraExtractor::organizeMapWithSameIdentifier(const OpenMS::FeatureMap& fmap_input, std::map<std::string, std::vector<OpenMS::Feature>>& fmapmap) const
+  void TargetedSpectraExtractor::organizeMapWithSameIdentifier(const OpenMS::FeatureMap& fmap_input, std::map<OpenMS::String, std::vector<OpenMS::Feature>>& fmapmap) const
   {
-    for (const OpenMS::Feature& f : fmap_input)
+    auto construct_feature = [&fmapmap](const OpenMS::Feature& feature)
     {
-      if (f.metaValueExists("identifier"))
+      if (feature.metaValueExists("PeptideRef") && feature.metaValueExists("identifier"))
       {
-        auto found_f = fmapmap.emplace(f.getMetaValue("identifier").toStringList().at(0), std::vector<OpenMS::Feature>({f}));
+        std::string id = std::string(feature.getMetaValue("PeptideRef")) + std::string("_") + std::string(feature.getMetaValue("identifier").toStringList().at(0));
+        std::string id_f = id + std::string("_") + std::to_string(feature.getRT());
+        auto found_f = fmapmap.emplace(id_f, std::vector<OpenMS::Feature>({feature}));
         if (!found_f.second)
         {
-          fmapmap.at(f.getMetaValue("identifier").toStringList().at(0)).push_back(f);
+          fmapmap.at(id_f).push_back(feature);
         }
       }
+    };
+    for (const OpenMS::Feature& f : fmap_input)
+    {
+      construct_feature(f);
       for (const OpenMS::Feature& s : f.getSubordinates())
       {
-        if (s.metaValueExists("identifier"))
-        {
-          auto found_s = fmapmap.emplace(s.getMetaValue("identifier").toStringList().at(0), std::vector<OpenMS::Feature>({s}));
-          if (!found_s.second)
-          {
-            fmapmap.at(s.getMetaValue("identifier").toStringList().at(0)).push_back(s);
-          }
-        }
+        construct_feature(s);
       }
     }
   }
@@ -990,10 +1146,11 @@ namespace OpenMS
     {
       bin_offset_ = options.at("bin_offset");
     }
-    library_ = library;
+    library_.clear();
     bs_library_.clear();
-    for (const MSSpectrum& s : library_)
+    for (const MSSpectrum& s : library)
     {
+      library_.push_back(s);
       bs_library_.emplace_back(s, bin_size_, false, peak_spread_, bin_offset_);
     }
     OPENMS_LOG_INFO << "The library contains " << bs_library_.size() << " spectra." << std::endl;

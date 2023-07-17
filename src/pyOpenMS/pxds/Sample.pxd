@@ -8,7 +8,7 @@ cdef extern from "<OpenMS/METADATA/Sample.h>" namespace "OpenMS":
 
     cdef cppclass Sample(MetaInfoInterface):
         # wrap-inherits:
-        #    MetaInfoInterface
+        #   MetaInfoInterface
 
         Sample() nogil except +
         Sample(Sample &) nogil except +
@@ -71,7 +71,7 @@ cdef extern from "<OpenMS/METADATA/Sample.h>" namespace "OpenMS::Sample":
 
     cdef enum SampleState:
         # wrap-attach:
-        #     Sample
+        #    Sample
     
         SAMPLENULL, SOLID, LIQUID, GAS, SOLUTION, EMULSION, SUSPENSION, SIZE_OF_SAMPLESTATE
 

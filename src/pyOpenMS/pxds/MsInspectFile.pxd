@@ -11,13 +11,13 @@ cdef extern from "<OpenMS/FORMAT/MsInspectFile.h>" namespace "OpenMS":
         MsInspectFile(MsInspectFile &) nogil except + # compiler
         void load(const String & filename, FeatureMap & feature_map) nogil except +
             # wrap-doc:
-                #   Loads a MsInspect file into a featureXML
-                #   -----
-                #   The content of the file is stored in `features`
-                #   :raises:
-                #     Exception: FileNotFound is thrown if the file could not be opened
-                #   :raises:
-                #     Exception: ParseError is thrown if an error occurs during parsing
+                #  Loads a MsInspect file into a featureXML
+                #  
+                #  The content of the file is stored in `features`
+                #  :raises:
+                #    Exception: FileNotFound is thrown if the file could not be opened
+                #  :raises:
+                #    Exception: ParseError is thrown if an error occurs during parsing
 
         void store(const String & filename, MSSpectrum & spectrum) nogil except + # wrap-doc:Stores a featureXML as a MsInspect file
 

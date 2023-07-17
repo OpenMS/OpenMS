@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -34,12 +34,14 @@
 
 #pragma once
 
+#include <OpenMS/METADATA/PeptideIdentification.h>
 #include <OpenMS/METADATA/ProteinHit.h>
 #include <OpenMS/METADATA/MetaInfoInterface.h>
 #include <OpenMS/DATASTRUCTURES/DateTime.h>
 #include <OpenMS/CHEMISTRY/DigestionEnzymeProtein.h>
 #include <OpenMS/CHEMISTRY/EnzymaticDigestion.h>
 #include <OpenMS/METADATA/DataArrays.h>
+#include <OpenMS/CONCEPT/Constants.h>
 
 #include <set>
 
@@ -47,6 +49,8 @@ namespace OpenMS
 {
   class MSExperiment;
   class PeptideIdentification;
+  class PeptideEvidence;
+  class ConsensusMap;
 
   /**
     @brief Representation of a protein identification run
@@ -86,6 +90,7 @@ public:
       {
         create(prot_ids);
       }
+
       void create(const std::vector<ProteinIdentification>& prot_ids)
       {
         identifier_to_msrunpath.clear();
@@ -108,6 +113,14 @@ public:
           }
           runpath_to_identifier[filenames] = prot_id.getIdentifier();
         }
+      }
+
+      String getPrimaryMSRunPath(const PeptideIdentification& pepid) const
+      { 
+        // if a merge index n is annotated, we use the filename annotated at index n in the protein identification, otherwise the one at index 0        
+        size_t merge_index = pepid.getMetaValue(Constants::UserParam::ID_MERGE_INDEX, 0);
+        const auto& filenames = identifier_to_msrunpath.at(pepid.getIdentifier());        
+        return (merge_index < filenames.size()) ?  filenames[merge_index] : ""; // return filename or empty string if missing
       }
     };
 
@@ -386,6 +399,7 @@ public:
        Does not return anything but stores the coverage inside the ProteinHit objects
     */
     void computeCoverage(const std::vector<PeptideIdentification>& pep_ids);
+    void computeCoverage(const ConsensusMap& cmap, bool use_unassigned_ids);
     //@}
 
     /**
@@ -397,6 +411,10 @@ public:
     void computeModifications(
       const std::vector<PeptideIdentification>& pep_ids,
       const StringList& skip_modifications);
+    void computeModifications(
+      const ConsensusMap& cmap,
+      const StringList& skip_modifications,
+      bool use_unassigned_ids);
 
 
     ///@name General information
@@ -475,6 +493,8 @@ public:
 
     //@}
 
+    /// Copies only metadata (no protein hits or protein groups)
+    void copyMetaDataOnly(const ProteinIdentification&);
 protected:
     ///@name General information (search engine, parameters and database)
     //@{
@@ -495,6 +515,15 @@ protected:
     std::vector<ProteinGroup> indistinguishable_proteins_;
     double protein_significance_threshold_;
     //@}
+
+  private:
+    void computeCoverageFromEvidenceMapping_(const std::unordered_map<String, std::set<PeptideEvidence>>& map);
+    void fillEvidenceMapping_(std::unordered_map<String, std::set<PeptideEvidence> >& map_acc_2_evidence,
+                              const std::vector<PeptideIdentification>& pep_ids) const;
+
+    void fillModMapping_(const std::vector<PeptideIdentification>& pep_ids, const StringList& skip_modifications,
+                         std::unordered_map<String, std::set<std::pair<Size, ResidueModification>>>& prot2mod) const;
   };
+
 
 } //namespace OpenMS

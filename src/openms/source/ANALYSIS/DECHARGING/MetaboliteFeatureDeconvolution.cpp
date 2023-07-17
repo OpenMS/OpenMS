@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -38,12 +38,14 @@
 #include <OpenMS/CHEMISTRY/Element.h>
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/CONCEPT/Constants.h>
+#include <OpenMS/DATASTRUCTURES/Adduct.h>
 #include <OpenMS/DATASTRUCTURES/ChargePair.h>
 #include <OpenMS/FORMAT/TextFile.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 
 //DEBUG:
 #include <fstream>
+#include <map>
 
 #undef DC_DEVEL
 //#define DC_DEVEL 1
@@ -64,20 +66,19 @@ namespace OpenMS
   struct MetaboliteFeatureDeconvolution::CmpInfo_
   {
     String s_comp; ///< formula as String
-    Size idx_cp; ///< index into compomer vector
-    UInt side_cp; ///< side of parent compomer (LEFT or RIGHT)
+    Size idx_cp{}; ///< index into compomer vector
+    UInt side_cp{}; ///< side of parent compomer (LEFT or RIGHT)
 
     // C'tor
     CmpInfo_() :
-      s_comp(), idx_cp(), side_cp() {}
+      s_comp() {}
 
     // C'tor
     CmpInfo_(String& s, Size idx, UInt side) :
       s_comp(s), idx_cp(idx), side_cp(side) {}
 
     // Copy C'tor
-    CmpInfo_(const CmpInfo_& rhs) :
-      s_comp(rhs.s_comp), idx_cp(rhs.idx_cp), side_cp(rhs.side_cp) {}
+    CmpInfo_(const CmpInfo_& rhs)  = default;
 
     // Assignment
     CmpInfo_& operator=(const CmpInfo_& rhs)
@@ -133,6 +134,7 @@ namespace OpenMS
     defaults_.setValue("max_neutrals", 1, "Maximal number of neutral adducts(q=0) allowed. Add them in the 'potential_adducts' section!");
 
     defaults_.setValue("use_minority_bound", "true", "Prune the considered adduct transitions by transition probabilities.");
+    defaults_.setValidStrings("use_minority_bound", {"true","false"});
     defaults_.setValue("max_minority_bound", 3, "Limits allowed adduct compositions and changes between compositions in the underlying graph optimization problem by introducing a probability-based threshold: the minority bound sets the maximum count of the least probable adduct (according to 'potential_adducts' param) within a charge variant with maximum charge only containing the most likely adduct otherwise. E.g., for 'charge_max' 4 and 'max_minority_bound' 2 with most probable adduct being H+ and least probable adduct being Na+, this will allow adduct compositions of '2(H+),2(Na+)' but not of '1(H+),3(Na+)'. Further, adduct compositions/changes less likely than '2(H+),2(Na+)' will be discarded as well.");
     defaults_.setMinInt("max_minority_bound", 0);
 
@@ -144,6 +146,7 @@ namespace OpenMS
     defaults_.setValidStrings("intensity_filter", {"true","false"});
 
     defaults_.setValue("negative_mode", "false", "Enable negative ionization mode.");
+    defaults_.setValidStrings("negative_mode", {"true","false"});
 
     defaults_.setValue("default_map_label", "decharged features", "Label of map in output consensus file where all features are put by default", {"advanced"});
 
@@ -338,47 +341,25 @@ namespace OpenMS
   }
 
   /// destructor
-  MetaboliteFeatureDeconvolution::~MetaboliteFeatureDeconvolution()
-  {
-  }
+  MetaboliteFeatureDeconvolution::~MetaboliteFeatureDeconvolution() = default;
 
 
   void MetaboliteFeatureDeconvolution::annotate_feature_(FeatureMap& fm_out, Adduct& default_adduct, Compomer& c, const Size f_idx, const UInt comp_side, const Int new_q, const Int old_q)
   {
     StringList labels;
+    Adduct adduct;
     fm_out[f_idx].setMetaValue("map_idx", 0);
 
     EmpiricalFormula ef_(c.getAdductsAsString(comp_side));
-    if (fm_out[f_idx].metaValueExists("dc_charge_adducts"))
+    if (fm_out[f_idx].metaValueExists(Constants::UserParam::DC_CHARGE_ADDUCTS))
     {
-      if (ef_.toString() != fm_out[f_idx].getMetaValue("dc_charge_adducts"))
-        throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String("Decharging produced inconsistent adduct annotation! [expected: ") + String(fm_out[f_idx].getMetaValue("dc_charge_adducts")) + "]", ef_.toString());
+      if (ef_.toString() != fm_out[f_idx].getMetaValue(Constants::UserParam::DC_CHARGE_ADDUCTS))
+        throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String("Decharging produced inconsistent adduct annotation! [expected: ") + String(fm_out[f_idx].getMetaValue(Constants::UserParam::DC_CHARGE_ADDUCTS)) + "]", ef_.toString());
     }
-    else
+    else // set DC_CHARGE_ADDUCTS meta value and set it to the formula from EmpiricalFormula, also set the adduct string in "adducts" meta value
     {
-      fm_out[f_idx].setMetaValue("dc_charge_adducts", ef_.toString());
-      String charge_sign = new_q >= 0 ? "+" : "-";
-      String s("[M");
-
-      //need elements sorted canonically (by string)
-      map<String, String> sorted_elem_map;
-      for (const auto& element_count : ef_)
-      {
-        String e_symbol(element_count.first->getSymbol());
-        String tmp = element_count.second > 0 ? "+" : "-";
-        tmp += abs(element_count.second) > 1 ? String(abs(element_count.second)) : "";
-        tmp += e_symbol;
-        sorted_elem_map[e_symbol] = std::move(tmp);
-      }
-      for (const auto& sorted_e_cnt : sorted_elem_map)
-      {
-        s += sorted_e_cnt.second;
-      }
-      s += String("]");
-      s += abs(new_q) > 1 ? String(abs(new_q)) : "";
-      s += charge_sign;
-
-      StringList dc_new_adducts = ListUtils::create<String>(s);
+      fm_out[f_idx].setMetaValue(Constants::UserParam::DC_CHARGE_ADDUCTS, ef_.toString());
+      StringList dc_new_adducts = ListUtils::create<String>(adduct.toAdductString(ef_.toString(), new_q));
       fm_out[f_idx].setMetaValue("adducts", dc_new_adducts);
     }
     fm_out[f_idx].setMetaValue("dc_charge_adduct_mass", ef_.getMonoWeight());
@@ -396,7 +377,7 @@ namespace OpenMS
 
   }
 
-  void MetaboliteFeatureDeconvolution::candidateEdges_(FeatureMap& fm_out, const Adduct& default_adduct, PairsType& feature_relation, Map<Size, std::set<CmpInfo_> >& feature_adducts)
+  void MetaboliteFeatureDeconvolution::candidateEdges_(FeatureMap& fm_out, const Adduct& default_adduct, PairsType& feature_relation, std::map<Size, std::set<CmpInfo_> >& feature_adducts)
   {
     bool is_neg = (param_.getValue("negative_mode") == "true" ? true : false);
 
@@ -713,7 +694,7 @@ namespace OpenMS
     // edges
     PairsType feature_relation;
     // for each feature, hold the explicit adduct type induced by edges
-    Map<Size, std::set<CmpInfo_> > feature_adducts;
+    std::map<Size, std::set<CmpInfo_> > feature_adducts;
 
 
     candidateEdges_(fm_out, default_adduct, feature_relation, feature_adducts);
@@ -740,7 +721,7 @@ namespace OpenMS
     // **       DEBUG          ** //
     // -------------------------- //
 
-    Map<Size, Size> features_aes, features_des; // count of adjacent active and dead edges
+    std::map<Size, Size> features_aes, features_des; // count of adjacent active and dead edges
     UInt agreeing_fcharge = 0;
     std::vector<Size> f_idx_v(2);
     Size aedges = 0;
@@ -835,8 +816,8 @@ namespace OpenMS
     // fresh start for meta annotation
     for (Size i = 0; i < fm_out.size(); ++i)
     {
-      if (fm_out[i].metaValueExists("dc_charge_adducts"))
-        fm_out[i].removeMetaValue("dc_charge_adducts");
+      if (fm_out[i].metaValueExists(Constants::UserParam::DC_CHARGE_ADDUCTS))
+        fm_out[i].removeMetaValue(Constants::UserParam::DC_CHARGE_ADDUCTS);
     }
 
     // write groups to consensusXML (with type="charge_groups")
@@ -892,8 +873,8 @@ namespace OpenMS
           cf.removeMetaValue(*it);
         }
         cf.setMetaValue("Old_charges", String(old_q0) + ":" + String(old_q1));
-        cf.setMetaValue("CP", String(fm_out[f0_idx].getCharge()) + "(" + String(fm_out[f0_idx].getMetaValue("dc_charge_adducts")) + "):"
-                        + String(fm_out[f1_idx].getCharge()) + "(" + String(fm_out[f1_idx].getMetaValue("dc_charge_adducts")) + ") "
+        cf.setMetaValue("CP", String(fm_out[f0_idx].getCharge()) + "(" + String(fm_out[f0_idx].getMetaValue(Constants::UserParam::DC_CHARGE_ADDUCTS)) + "):"
+                        + String(fm_out[f1_idx].getCharge()) + "(" + String(fm_out[f1_idx].getMetaValue(Constants::UserParam::DC_CHARGE_ADDUCTS)) + ") "
                         + String("Delta M: ") + feature_relation[i].getMassDiff()
                         + String(" Score: ") + feature_relation[i].getEdgeScore());
         //cf.computeDechargeConsensus(fm_out);
@@ -993,12 +974,12 @@ namespace OpenMS
       // store element adducts
       for (ConsensusFeature::HandleSetType::const_iterator it_h = hst.begin(); it_h != hst.end(); ++it_h)
       {
-        if (fm_out[fm_out.uniqueIdToIndex(it_h->getUniqueId())].metaValueExists("dc_charge_adducts"))
+        if (fm_out[fm_out.uniqueIdToIndex(it_h->getUniqueId())].metaValueExists(Constants::UserParam::DC_CHARGE_ADDUCTS))
         {
-          it->setMetaValue(String(it_h->getUniqueId()), fm_out[fm_out.uniqueIdToIndex(it_h->getUniqueId())].getMetaValue("dc_charge_adducts"));
+          it->setMetaValue(String(it_h->getUniqueId()), fm_out[fm_out.uniqueIdToIndex(it_h->getUniqueId())].getMetaValue(Constants::UserParam::DC_CHARGE_ADDUCTS));
         }
         // also add consensusID of group to all feature_relation
-        fm_out[fm_out.uniqueIdToIndex(it_h->getUniqueId())].setMetaValue("Group", String(it->getUniqueId()));
+        fm_out[fm_out.uniqueIdToIndex(it_h->getUniqueId())].setMetaValue(Constants::UserParam::ADDUCT_GROUP, String(it->getUniqueId()));
       }
 
       // store number of distinct charges
@@ -1056,7 +1037,7 @@ namespace OpenMS
       if (f_single.getCharge() != 0)
       {
         EmpiricalFormula default_ef(default_adduct.getFormula());
-        f_single.setMetaValue("dc_charge_adducts", (default_ef  * abs(f_single.getCharge())).toString());
+        f_single.setMetaValue(Constants::UserParam::DC_CHARGE_ADDUCTS, (default_ef  * abs(f_single.getCharge())).toString());
         f_single.setMetaValue("dc_charge_adduct_mass", (default_adduct.getSingleMass() * abs(f_single.getCharge())));
       }
 
@@ -1077,7 +1058,7 @@ namespace OpenMS
         cf.removeMetaValue(*it);
       }
       // Need to set userParam Group output feature map features for singletons here
-      fm_out[i].setMetaValue("Group", String(cf.getUniqueId()));
+      fm_out[i].setMetaValue(Constants::UserParam::ADDUCT_GROUP, String(cf.getUniqueId()));
 
 
       cons_map.push_back(cf);
@@ -1124,7 +1105,7 @@ namespace OpenMS
   /// (more difficult explanation) supported by neighboring edges
   /// e.g. (.)   -> (H+) might be augmented to
   ///      (Na+) -> (H+Na+)
-  void MetaboliteFeatureDeconvolution::inferMoreEdges_(PairsType& edges, Map<Size, std::set<CmpInfo_> >& feature_adducts)
+  void MetaboliteFeatureDeconvolution::inferMoreEdges_(PairsType& edges, std::map<Size, std::set<CmpInfo_> >& feature_adducts)
   {
     Adduct default_adduct;
 

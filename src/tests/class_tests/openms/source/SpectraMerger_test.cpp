@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -144,6 +144,15 @@ START_SECTION((template < typename MapType > void mergeSpectraPrecursors(MapType
     TEST_EQUAL(exp[i].getMSLevel (), exp2[i].getMSLevel ())
   }
 
+END_SECTION
+
+START_SECTION((bool areMassesMatched(double mz1, double mz2, double tol_ppm, int max_c)))
+  SpectraMerger merger;
+  bool non_matched = merger.areMassesMatched(100, 1000, 10, 5);
+  bool matched = merger.areMassesMatched(1000, 1000.001, 10, 5);
+
+  TEST_EQUAL(non_matched, false);
+  TEST_EQUAL(matched, true);
 END_SECTION
 
 START_SECTION((template < typename MapType > void averageGaussian(MapType &exp)))

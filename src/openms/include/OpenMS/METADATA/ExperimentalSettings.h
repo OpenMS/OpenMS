@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -67,14 +67,14 @@ public:
     /// Copy constructor
     ExperimentalSettings(const ExperimentalSettings &) = default;
     /// Move constructor
-    ExperimentalSettings(ExperimentalSettings&&) = default;
+    ExperimentalSettings(ExperimentalSettings &&) = default;
     /// Destructor
     ~ExperimentalSettings() override;
 
     /// Assignment operator
     ExperimentalSettings & operator=(const ExperimentalSettings &) = default;
     /// Move assignment operator
-    ExperimentalSettings& operator=(ExperimentalSettings&&) & = default;
+    ExperimentalSettings & operator=(ExperimentalSettings &&) = default;
 
     /// Equality operator
     bool operator==(const ExperimentalSettings & rhs) const;

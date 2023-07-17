@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -60,10 +60,10 @@ namespace OpenMS
   /**
     * @brief Interface for the IsoSpec algorithm - a generator of infinitely-resolved theoretical spectra.
     *
-    * Provides an interface to the IsoSpec algorithm. See IsoSpecWrapper for a
-    * more convenient wrapper. Implements a generator pattern using the
-    * nextConf function, which can be used to iterate through all
-    * configurations:
+    * Provides an interface to the IsoSpec algorithm. See IsoSpecWrapper and
+    * FineIsotopePatternGenerator for a more convenient wrapper. Implements a
+    * generator pattern using the nextConf function, which can be used to
+    * iterate through all configurations:
     *
     * @code
     * IsoSpecGeneratorWrapperSubclass iso(...);
@@ -149,6 +149,8 @@ public:
 
   /** @brief A convenience class for the IsoSpec algorithm - easier to use than the IsoSpecGeneratorWrapper classes.
    *
+    * See FineIsotopePatternGenerator for a more convenient (but potentially
+    * slower) wrapper when using the algorithm in OpenMS.
    */
   class OPENMS_DLLAPI IsoSpecWrapper
   {
@@ -231,7 +233,7 @@ public:
              const std::vector<std::vector<double> >& isotopeProbabilities,
              double p);
 
-    // delete copy constructor
+    /// delete copy constructor
     IsoSpecTotalProbGeneratorWrapper(const IsoSpecTotalProbGeneratorWrapper&) = delete;
     /**
       * @brief Setup the algorithm to run on an EmpiricalFormula
@@ -324,11 +326,12 @@ protected:
    *
    * This generator walks through the entire set of isotopologues of a given molecule, allowing
    * the user to terminate the search on the fly. The returned isotopologues are guaranteed to
-   * be generated in order of descending probability (unlike the previous two generators which
-   * make no such guarantees).
+   * be generated in order of descending probability (unlike
+   * IsoSpecThresholdGeneratorWrapper and IsoSpecTotalProbGeneratorWrapper
+   * which make no such guarantees).
    *
-   * This causes the algorithm to run in O(n*log(n)) and means that is it much slower than the
-   * previous two.
+   * This causes the algorithm to run in \c O(n*log(n)) and means that is it much slower than the
+   * previous two classes IsoSpecThresholdGeneratorWrapper and IsoSpecTotalProbGeneratorWrapper.
    *
    * You should only use this generator if you don't know up-front when to stop the walk through
    * the configuration space, and need to make the decision on the fly. If you know the threshold

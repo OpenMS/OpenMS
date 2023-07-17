@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -83,10 +83,17 @@ public:
     /// Equality operator
     bool operator!=(const MetaInfoInterface& rhs) const;
 
-    /// Returns the value corresponding to a string, or a default value (default: DataValue::EMPTY) if not found
-    const DataValue& getMetaValue(const String& name, const DataValue& default_value = DataValue::EMPTY) const;
-    /// Returns the value corresponding to an index, or a default value (default: DataValue::EMPTY) if not found
-    const DataValue& getMetaValue(UInt index, const DataValue& default_value = DataValue::EMPTY) const;
+    /// Returns the value corresponding to a string, or DataValue::EMPTY if not found
+    const DataValue& getMetaValue(const String& name) const;
+
+    /// Returns the value corresponding to a string, or a default value (e.g.: DataValue::EMPTY) if not found    
+    DataValue getMetaValue(const String& name, const DataValue& default_value) const; // Note: return needs to be by value to prevent life-time issues at caller site (e.g. if he passes a temporary to default-value)
+
+    /// Returns the value corresponding to the index, or DataValue::EMPTY if not found
+    const DataValue& getMetaValue(UInt index) const;
+
+    /// Returns the value corresponding to the index, or a default value (e.g.: DataValue::EMPTY) if not found    
+    DataValue getMetaValue(UInt index, const DataValue& default_value) const; // Note: return needs to be by value to prevent life-time issues at caller site
 
     /// Returns whether an entry with the given name exists
     bool metaValueExists(const String& name) const;

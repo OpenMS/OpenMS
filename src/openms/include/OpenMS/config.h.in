@@ -15,7 +15,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -164,6 +164,7 @@ static constexpr cstr past_last_slash(cstr str)
 #define OPENMS_BOOST_VERSION @CF_OPENMS_BOOST_VERSION@
 
 #define COINOR_SOLVER @CF_USECOINOR@
+#cmakedefine CF_COIN_INCLUDE_SUBDIR_DEF
 
 #define OPENMS_GLPK_VERSION @CF_OPENMS_GLPK_VERSION@
 #define OPENMS_GLPK_VERSION_MAJOR @CF_OPENMS_GLPK_VERSION_MAJOR@

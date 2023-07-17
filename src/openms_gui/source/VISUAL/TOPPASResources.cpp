@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -37,6 +37,7 @@
 #include <OpenMS/FORMAT/ParamXMLFile.h>
 
 #include <iostream>
+#include <map>
 
 namespace OpenMS
 {
@@ -54,9 +55,7 @@ namespace OpenMS
   {
   }
 
-  TOPPASResources::~TOPPASResources()
-  {
-  }
+  TOPPASResources::~TOPPASResources() = default;
 
   TOPPASResources& TOPPASResources::operator=(const TOPPASResources& rhs)
   {
@@ -104,7 +103,7 @@ namespace OpenMS
   {
     Param save_param;
 
-    for (Map<QString, QList<TOPPASResource> >::ConstIterator it = map_.begin(); it != map_.end(); ++it)
+    for (std::map<QString, QList<TOPPASResource> >::const_iterator it = map_.begin(); it != map_.end(); ++it)
     {
       const String& key = String(it->first);
       const QList<TOPPASResource>& resource_list = it->second;
@@ -122,12 +121,12 @@ namespace OpenMS
 
   const QList<TOPPASResource>& TOPPASResources::get(const QString& key) const
   {
-    if (!map_.has(key))
+    if (map_.find(key) == map_.end())
     {
       return empty_list_;
     }
 
-    return map_[key];
+    return map_.at(key);
   }
 
   void TOPPASResources::clear()

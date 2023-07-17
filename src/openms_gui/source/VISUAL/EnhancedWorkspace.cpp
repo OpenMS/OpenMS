@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -52,8 +52,16 @@ namespace OpenMS
     setAcceptDrops(true);
   }
 
-  EnhancedWorkspace::~EnhancedWorkspace()
+  EnhancedWorkspace::~EnhancedWorkspace() = default;
+
+  QMdiSubWindow* EnhancedWorkspace::addSubWindow(QWidget* widget)
   {
+    auto subwindow = QMdiArea::addSubWindow(widget);
+    if (subwindow)
+    {
+      subwindow->setSystemMenu(nullptr);
+    }
+    return subwindow;
   }
 
   void EnhancedWorkspace::tileHorizontal()
@@ -126,7 +134,7 @@ namespace OpenMS
     {
       EnhancedTabBarWidgetInterface* w = dynamic_cast<EnhancedTabBarWidgetInterface*>(sub_window->widget());
       //cout << "  Tab " << i << ": " << w->window_id << endl;
-      if (w != 0 && w->getWindowId() == id)
+      if (w != nullptr && w->getWindowId() == id)
       {
         return w;
       }

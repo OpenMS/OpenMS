@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -128,6 +128,7 @@ public:
       min_[1] = miny;
       max_[0] = maxx;
       max_[1] = maxy;
+      Base::normalize_();
     }
 
     /// Assignment operator
@@ -292,19 +293,6 @@ public:
       return true;
     }
 
-    /// Checks if the range is empty
-    bool isEmpty() const
-    {
-      for (UInt i = 0; i != D; i++)
-      {
-        if (max_[i] <= min_[i])
-        {
-          return true;
-        }
-      }
-      return false;
-    }
-
     /**
          @brief Extends the range in all dimensions by a certain multiplier.
 
@@ -315,8 +303,9 @@ public:
            factor = 2.00 doubles the total range, e.g. from [0,100] to [-50,150]
 
          @param factor Multiplier (allowed is [0, inf)).
+         @return A reference to self
     */
-    void extend(double factor)
+    DRange<D>& extend(double factor)
     {
       if (factor < 0)
       {
@@ -329,6 +318,47 @@ public:
         min_[i] -= extra;
         max_[i] += extra;
       }
+      return *this;
+    }
+
+    /**
+     @brief Extends the range in all dimensions by a certain amount.
+
+     Extends the range, while maintaining the original center position.
+     If a negative @p addition is given, the range shrinks and may result in min==max (but never min>max).
+
+     Examples (for D=1):
+       addition = 0.5 extends the range by 1 in total, i.e. 0.5 left and right.
+   
+     @param addition Additive for each dimension (can be negative). Resulting invalid min/max are not fixed automatically!
+     @return A reference to self
+    */
+    DRange<D>& extend(typename Base::PositionType addition)
+    {
+      addition /= 2;
+      min_ -= addition;
+      max_ += addition;
+      for (UInt i = 0; i != D; ++i)
+      {
+        // invalid range --> reduce to single center point
+        if (min_[i] > max_[i]) min_[i] = max_[i] = (min_[i] + max_[i]) / 2;
+      }
+      return *this;
+    }
+
+    DRange<D>& ensureMinSpan(typename Base::PositionType min_span)
+    {
+      typename Base::PositionType extend_by {};
+      for (UInt i = 0; i != D; ++i)
+      {
+        // invalid range --> reduce to single center point
+        if (max_[i] - min_[i] < min_span[i])
+        {
+          extend_by[i] = min_span[i] - (max_[i] - min_[i]); // add whatever is missing to get to min_span
+        }
+      }
+      extend(extend_by);
+      return *this;
     }
 
     /// swaps dimensions for 2D data (i.e. x and y coordinates)
@@ -340,6 +370,18 @@ public:
       return *this;
     }
 
+    /**
+     * @brief Make sure @p point is inside the current area
+     * @param point A point potentially outside the current range, which will be pulled into the current range.
+     */
+    void pullIn(DPosition<D>& point) const
+    {
+      for (UInt i = 0; i != D; ++i)
+      {
+        point[i] = std::max(min_[i], std::min(point[i], max_[i]));
+      }
+    }
+
     //@}
   };
 
@@ -347,10 +389,10 @@ public:
   template <UInt D>
   std::ostream& operator<<(std::ostream& os, const DRange<D>& area)
   {
-    os << "--DRANGE BEGIN--" << std::endl;
-    os << "MIN --> " << area.min_ << std::endl;
-    os << "MAX --> " << area.max_ << std::endl;
-    os << "--DRANGE END--" << std::endl;
+    os << "--DRANGE BEGIN--\n";
+    os << "MIN --> " << area.min_ << '\n';
+    os << "MAX --> " << area.max_ << '\n';
+    os << "--DRANGE END--\n";
     return os;
   }
 

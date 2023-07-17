@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -61,13 +61,13 @@ namespace OpenMS
       @return Returns true if a signal was found (and false if no signal was found)
 
     */
-    OPENMS_DLLAPI bool integrateWindow(const OpenSwath::SpectrumPtr spectrum, double mz_start,
+    OPENMS_DLLAPI bool integrateWindow(const OpenSwath::SpectrumPtr& spectrum, double mz_start,
                                        double mz_end, double& mz, double& intensity, bool centroided = false);
 
     /**
       @brief Integrate intensities in a spectrum from start to end
     */
-    OPENMS_DLLAPI void integrateWindows(const OpenSwath::SpectrumPtr spectrum, //!< [in] Spectrum
+    OPENMS_DLLAPI void integrateWindows(const OpenSwath::SpectrumPtr& spectrum, //!< [in] Spectrum
                                         const std::vector<double>& windows_center, //!< [in] center location
                                         double width,
                                         std::vector<double>& integrated_windows_intensity,
@@ -83,7 +83,7 @@ namespace OpenMS
 
       @note If there is no signal, mz will be set to -1 and intensity to 0
     */
-    OPENMS_DLLAPI void integrateDriftSpectrum(OpenSwath::SpectrumPtr spectrum,
+    OPENMS_DLLAPI void integrateDriftSpectrum(const OpenSwath::SpectrumPtr& spectrum,
                                               double mz_start,
                                               double mz_end,
                                               double & im,

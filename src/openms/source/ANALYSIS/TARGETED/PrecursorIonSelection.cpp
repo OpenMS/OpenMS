@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -39,6 +39,8 @@
 #include <OpenMS/ANALYSIS/TARGETED/OfflinePrecursorIonSelection.h>
 
 #include <OpenMS/SYSTEM/StopWatch.h>
+
+#include <utility>
 
 using namespace std;
 //#define PIS_DEBUG
@@ -83,10 +85,7 @@ namespace OpenMS
     updateMembers_();
   }
 
-  PrecursorIonSelection::~PrecursorIonSelection()
-  {
-
-  }
+  PrecursorIonSelection::~PrecursorIonSelection() = default;
 
   const double& PrecursorIonSelection::getMaxScore() const
   {
@@ -437,7 +436,7 @@ namespace OpenMS
   void PrecursorIonSelection::shiftDown_(FeatureMap& features, PrecursorIonSelectionPreprocessing& preprocessed_db,
                                          String protein_acc)
   {
-    const std::vector<double>& masses = preprocessed_db.getMasses(protein_acc);
+    const std::vector<double>& masses = preprocessed_db.getMasses(std::move(protein_acc));
 #ifdef PIS_DEBUG
     std::cout << protein_acc << "  shift down  " << masses.size() << " peptides" << std::endl;
 #endif
@@ -505,7 +504,7 @@ namespace OpenMS
   void PrecursorIonSelection::shiftUp_(FeatureMap& features, PrecursorIonSelectionPreprocessing& preprocessed_db,
                                        String protein_acc)
   {
-    const std::vector<double>& masses = preprocessed_db.getMasses(protein_acc);
+    const std::vector<double>& masses = preprocessed_db.getMasses(std::move(protein_acc));
 #ifdef PIS_DEBUG
     std::cout << protein_acc << "  shift up  " << masses.size() << " peptides" << std::endl;
 #endif
@@ -659,7 +658,7 @@ namespace OpenMS
   void PrecursorIonSelection::simulateRun(FeatureMap& features, std::vector<PeptideIdentification>& pep_ids,
                                           std::vector<ProteinIdentification>& prot_ids,
                                           PrecursorIonSelectionPreprocessing& preprocessed_db,
-                                          String path, PeakMap& experiment, String precursor_path)
+                                          const String& path, PeakMap& experiment, const String& precursor_path)
   {
     convertPeptideIdScores_(pep_ids);
     if (param_.getValue("type") == "ILP_IPS")
@@ -671,7 +670,7 @@ namespace OpenMS
   void PrecursorIonSelection::simulateRun_(FeatureMap& features, std::vector<PeptideIdentification>& param_pep_ids,
                                            std::vector<ProteinIdentification>& param_prot_ids,
                                            PrecursorIonSelectionPreprocessing& preprocessed_db,
-                                           String path, String precursor_path)
+                                           const String& path, const String& precursor_path)
   {
     UInt step_size(param_.getValue("step_size"));
     sortByTotalScore(features);
@@ -977,7 +976,7 @@ namespace OpenMS
                                                       std::vector<PeptideIdentification>& param_pep_ids,
                                                       std::vector<ProteinIdentification>& prot_ids,
                                                       PrecursorIonSelectionPreprocessing& preprocessed_db,
-                                                      String output_path, String precursor_path)
+                                                      const String& output_path, const String& precursor_path)
   {
     bool use_peptide_rule = (param_.getValue("MIPFormulation:thresholds:use_peptide_rule") == "true") ? true : false;
     Int min_peptides = param_.getValue("MIPFormulation:thresholds:min_peptide_ids");

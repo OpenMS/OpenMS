@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry               
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 // 
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -64,9 +64,7 @@ namespace OpenMS
     defaultsToParam_();
   }
 
-  MasstraceCorrelator::~MasstraceCorrelator()
-  {
-  }
+  MasstraceCorrelator::~MasstraceCorrelator() = default;
 
   void MasstraceCorrelator::matchMassTraces_(
       const MasstracePointsType& hull_points1,
@@ -200,7 +198,7 @@ namespace OpenMS
           max_mz  = it->getMZ();
         }
       }
-      max_intensities.push_back( std::make_pair(max_mz, max_int));
+      max_intensities.emplace_back(max_mz, max_int);
       rt_cache.push_back(map[i].getRT());
     }
     endProgress();

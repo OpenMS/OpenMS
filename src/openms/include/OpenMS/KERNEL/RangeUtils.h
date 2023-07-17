@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -184,7 +184,7 @@ public:
     {
       Int tmp = s.getMSLevel();
       // XOR(^): same as 'if (rev_) return !(test) else return test;' where (test) is the condition;   Speed: XOR is about 25% faster in VS10
-      return reverse_ ^ std::find(levels_.begin(), levels_.end(), tmp) != levels_.end();
+      return reverse_ ^ (std::find(levels_.begin(), levels_.end(), tmp) != levels_.end());
     }
 
 protected:

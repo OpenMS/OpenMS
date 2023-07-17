@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -33,7 +33,6 @@
 
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithmMRM.h>
 
-
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/ProductModel.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/EmgFitter1D.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/EmgModel.h>
@@ -42,6 +41,7 @@
 #include <OpenMS/FILTERING/TRANSFORMERS/LinearResampler.h>
 
 #include <fstream>
+#include <map>
 
 namespace OpenMS
 {
@@ -72,16 +72,12 @@ namespace OpenMS
     //General initialization
     //-------------------------------------------------------------------------
 
-    Map<Size, Map<Size, std::vector<std::pair<double, Peak1D> > > > traces;
-
     SignalToNoiseEstimatorMeanIterative<PeakSpectrum> sne;
     LinearResampler resampler;
 
     // Split the whole map into traces (== MRM transitions)
-    ff_->startProgress(0, traces.size(), "Finding features in traces.");
+    ff_->startProgress(0, map_->getChromatograms().size(), "Finding features in traces.");
     Size counter(0);
-    //typename Map<Size, Map<Size, std::vector<std::pair<double, Peak1D> > > >::const_iterator it1 = traces.begin();
-    //typename Map<Size, std::vector<std::pair<double, Peak1D> > >::const_iterator it2;
     double min_rt_distance(param_.getValue("min_rt_distance"));
     double min_signal_to_noise_ratio(param_.getValue("min_signal_to_noise_ratio"));
     Size min_num_peaks_per_feature(param_.getValue("min_num_peaks_per_feature"));
@@ -100,7 +96,6 @@ namespace OpenMS
     {
       // throw the peaks into a "spectrum" where the m/z values are RTs in reality (more a chromatogram)
       PeakSpectrum chromatogram;
-      //typename std::vector<std::pair<double, Peak1D> >::const_iterator it3 = it2->second.begin();
       for (MSChromatogram::const_iterator it = first_it->begin(); it != first_it->end(); ++it)
       {
         Peak1D peak;
@@ -194,7 +189,7 @@ namespace OpenMS
       // now find sections in the chromatogram which have high s/n value
       double last_rt(0);
       std::vector<std::vector<DPosition<2> > > sections;
-      for (Peak1D& sit : sn_chrom)
+      for (const Peak1D& sit : sn_chrom)
       {
         if (write_debuginfo)
         {

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -74,10 +74,13 @@ namespace OpenMS
 
     /// Switches all main scores in all hits in @p id according to
     /// the settings in the param object of the switcher class
+    /// if the old score type and new score type have the same name (e.g., "q-value") we
+    /// greate a meta value entry with appended "~" to the old score type (to not overwrite the
+    /// meta value of the new one).
     template <typename IDType>
     void switchScores(IDType& id, Size& counter)
     {
-      for (typename std::vector<typename IDType::HitType>::iterator hit_it = id.getHits().begin();
+      for (auto hit_it = id.getHits().begin();
            hit_it != id.getHits().end(); ++hit_it, ++counter)
       {
         if (!hit_it->metaValueExists(new_score_))
@@ -93,15 +96,13 @@ namespace OpenMS
         const DataValue& dv = hit_it->getMetaValue(old_score_meta);
         if (!dv.isEmpty()) // meta value for old score already exists
         {
+          // TODO: find a better way to check if old score type is something different (even if it has same name)
+          // This currently, is a workaround for e.g., having Percolator_qvalue as meta value and same q-value as main score (getScore()).
           if (fabs((double(dv) - hit_it->getScore()) * 2.0 /
                    (double(dv) + hit_it->getScore())) > tolerance_)
-          {
-            std::stringstream msg;
-            msg << "Meta value '" << old_score_meta << "' already exists "
-              << "with a conflicting value for " << *hit_it;
-            throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
-                                          msg.str(), dv.toString());
-          } // else: values match, nothing to do
+          {          
+            hit_it->setMetaValue(old_score_meta + "~", hit_it->getScore());
+          }
         }
         else
         {

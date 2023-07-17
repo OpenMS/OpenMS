@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry               
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 // 
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -53,6 +53,7 @@
 
 #else
 
+#include <algorithm>
 #include <OpenMS/CONCEPT/ClassTest.h>
 #define BOOST_AUTO_TEST_CASE START_SECTION
 using namespace OpenMS;
@@ -438,37 +439,43 @@ m1 = mi(x_ranking,y_ranking)
   std::vector<double> data2 = {15.8951349258423, 41.5446395874023, 76.0746307373047, 109.069435119629, 111.90364074707, 169.79216003418,
                                121.043930053711, 63.0136985778809, 44.6150207519531, 21.4926776885986, 7.93575811386108};
   std::vector<unsigned int> rank_vec1, rank_vec2;
-  Scoring::computeAndAppendRank(data1, rank_vec1);
-  Scoring::computeAndAppendRank(data2, rank_vec2);
+  unsigned int max_rank1 = Scoring::computeAndAppendRank(data1, rank_vec1);
+  unsigned int max_rank2 = Scoring::computeAndAppendRank(data2, rank_vec2);
 
-  double result = Scoring::rankedMutualInformation(rank_vec1, rank_vec2);
+  unsigned int max_rank_check1 = *std::max_element(rank_vec1.begin(), rank_vec1.end());
+  unsigned int max_rank_check2 = *std::max_element(rank_vec2.begin(), rank_vec2.end());
+
+  TEST_EQUAL (max_rank1, max_rank_check1);
+  TEST_EQUAL (max_rank2, max_rank_check2);
+
+  double result = Scoring::rankedMutualInformation(rank_vec1, rank_vec2, max_rank1, max_rank2);
 
   TEST_REAL_SIMILAR (result, 3.2776);
 
   rank_vec1 = {0};
   rank_vec2 = {0};
-  result = Scoring::rankedMutualInformation(rank_vec1, rank_vec2);
+  result = Scoring::rankedMutualInformation(rank_vec1, rank_vec2, 0, 0);
   TEST_REAL_SIMILAR (result, 0);
 
   rank_vec1 = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
   rank_vec2 = {0, 1, 5, 4, 4, 2, 3, 1, 0, 2};
-  result = Scoring::rankedMutualInformation(rank_vec1, rank_vec2);
+  result = Scoring::rankedMutualInformation(rank_vec1, rank_vec2, 0, 5);
   TEST_REAL_SIMILAR (result, 0);
 
-  double result_symmetric = Scoring::rankedMutualInformation(rank_vec2, rank_vec1);
+  double result_symmetric = Scoring::rankedMutualInformation(rank_vec2, rank_vec1, 5, 0);
   TEST_REAL_SIMILAR (result, result_symmetric);
 
   rank_vec1 = {0, 0, 1, 1, 2, 2, 3, 3, 4, 4, 5, 5, 6, 6, 7, 7};
   rank_vec2 = {0, 1, 5, 4, 4, 2, 3, 1, 0, 2, 6, 7, 7, 6, 5, 3};
-  result = Scoring::rankedMutualInformation(rank_vec1, rank_vec2);
+  result = Scoring::rankedMutualInformation(rank_vec1, rank_vec2, 7, 7);
   TEST_REAL_SIMILAR (result, 2);
 
   rank_vec1 = {0, 1, 2, 3, 4, 4, 5, 6, 5, 1};
   rank_vec2 = {6, 7, 8, 4, 5, 1, 2, 0, 3, 0};
-  result = Scoring::rankedMutualInformation(rank_vec1, rank_vec2);
+  result = Scoring::rankedMutualInformation(rank_vec1, rank_vec2, 6, 8);
   TEST_REAL_SIMILAR (result, 2.52193);
 
-  result_symmetric = Scoring::rankedMutualInformation(rank_vec2, rank_vec1);
+  result_symmetric = Scoring::rankedMutualInformation(rank_vec2, rank_vec1, 8, 6);
   TEST_REAL_SIMILAR (result, result_symmetric);
 }
 END_SECTION

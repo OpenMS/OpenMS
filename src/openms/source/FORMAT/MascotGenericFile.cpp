@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -116,9 +116,7 @@ namespace OpenMS
     defaultsToParam_();
   }
 
-  MascotGenericFile::~MascotGenericFile()
-  {
-  }
+  MascotGenericFile::~MascotGenericFile() = default;
 
   void MascotGenericFile::updateMembers_()
   {
@@ -455,7 +453,7 @@ namespace OpenMS
 
 
     String native_id_type_accession;
-    vector<SourceFile> sourcefiles = experiment.getSourceFiles();
+    const vector<SourceFile>& sourcefiles = experiment.getSourceFiles();
     if (sourcefiles.empty())
     {
       OPENMS_LOG_WARN << "MascotGenericFile: no native ID accession." << endl;

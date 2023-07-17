@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -34,7 +34,7 @@
 //
 
 #include <OpenMS/ANALYSIS/QUANTITATION/ItraqConstants.h>
-
+#include <map>
 
 namespace OpenMS
 {
@@ -174,7 +174,7 @@ namespace OpenMS
 
   void ItraqConstants::initChannelMap(const int itraq_type, ChannelMapType & map)
   {
-    static Map<Int, double> reporter_mass_exact;
+    static std::map<Int, double> reporter_mass_exact;
     if (reporter_mass_exact.empty() && (itraq_type == EIGHTPLEX || itraq_type == FOURPLEX)) // exact monoisotopic reporter ion masses (taken from AB Sciex)
     {
       reporter_mass_exact[113] = 113.1078;
@@ -209,7 +209,7 @@ namespace OpenMS
       info.description = "";
       info.name = channel_names[itraq_type].getValue(i, 0);
       info.id = (Int)i;
-      if (!reporter_mass_exact.has(info.name))
+      if (reporter_mass_exact.find(info.name) == reporter_mass_exact.end())
       {
         throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Unexpected reporter name during initialization.", String(info.name));
       }

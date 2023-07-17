@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -93,6 +93,8 @@ public:
     OPENMS_DLLAPI String(String&&) = default;
     /// Constructor from std::string
     OPENMS_DLLAPI String(const std::string& s);
+    /// Constructor from std::string_view
+    OPENMS_DLLAPI String(const std::string_view& sv);
     /// Constructor from Qt QString
     OPENMS_DLLAPI String(const QString& s);
     /// Constructor from char*
@@ -244,6 +246,15 @@ public:
     OPENMS_DLLAPI String& trim();
 
     /**
+        @brief Checks if the string is wrapped in quotation marks
+
+        The quotation mark can be specified by parameter @p q (typically single or double quote).
+
+        @see unquote()
+    */
+    OPENMS_DLLAPI bool isQuoted(char q = '"');
+
+    /**
          @brief Wraps the string in quotation marks
 
          The quotation mark can be specified by parameter @p q (typically single or double quote); embedded quotation marks are handled according to @p method by backslash-escaping, doubling, or not at all.
@@ -301,15 +312,36 @@ public:
     */
     //@{
 
+    
     /**
-        @brief Conversion to int
+        @brief Conversion to Int
 
         This method extracts only the integral part of the string.
         If you want the result rounded, use toFloat() and round the result.
 
-        @exception Exception::ConversionError is thrown if the string could not be converted to int
+        @exception Exception::ConversionError is thrown if the string could not be converted to Int
     */
     OPENMS_DLLAPI Int toInt() const;
+
+    /**
+        @brief Conversion to Int32
+
+        This method extracts only the integral part of the string.
+        If you want the result rounded, use toFloat() and round the result.
+
+        @exception Exception::ConversionError is thrown if the string could not be converted to Int32
+    */
+    OPENMS_DLLAPI Int32 toInt32() const;
+
+    /**
+    @brief Conversion to Int64
+
+    This method extracts only the integral part of the string.
+    If you want the result rounded, use toFloat() and round the result.
+
+    @exception Exception::ConversionError is thrown if the string could not be converted to Int64
+    */
+    OPENMS_DLLAPI Int64 toInt64() const;
 
     /**
       @brief Conversion to float

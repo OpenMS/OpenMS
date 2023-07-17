@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -93,9 +93,7 @@ namespace OpenMS
     }
   } 
 
-  Residue::~Residue()
-  {
-  }
+  Residue::~Residue() = default;
 
   void Residue::setName(const String& name)
   {
@@ -324,6 +322,8 @@ namespace OpenMS
   {
     formula_ = formula;
     internal_formula_ = formula_ - getInternalToFull();
+    average_weight_ = formula_.getAverageWeight();
+    mono_weight_ = formula_.getMonoWeight();
   }
 
   EmpiricalFormula Residue::getFormula(ResidueType res_type) const
@@ -479,26 +479,17 @@ namespace OpenMS
       mono_weight_ += mod->getDiffMonoMass();
     }
 
-    bool updated_formula(false);
     if (!mod->getDiffFormula().isEmpty())
     {
-      updated_formula = true;
       setFormula(getFormula() + mod->getDiffFormula());
     }
     else if (!mod->getFormula().empty())
     {
-      updated_formula = true;
       String formula = mod->getFormula();
       formula.removeWhitespaces();
-      formula_ = EmpiricalFormula(formula);
+      setFormula(EmpiricalFormula(formula));
     }
 
-    if (updated_formula)
-    {
-      average_weight_ = formula_.getAverageWeight();
-      mono_weight_ = formula_.getMonoWeight();
-    }
-    
     // neutral losses
     loss_formulas_.clear();
     loss_names_.clear();
@@ -559,7 +550,7 @@ namespace OpenMS
 
   const String& Residue::getModificationName() const
   {
-    if (modification_ == nullptr) return String::EMPTY;
+    if (!isModified()) return String::EMPTY;
     return modification_->getId();
   }
 

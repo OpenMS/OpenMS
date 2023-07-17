@@ -837,9 +837,7 @@ WARN_LOGFILE           = "@CF_OPENMS_BIN_PATH@/doxygen/doxygen-error.log"
 # spaces. See also FILE_PATTERNS and EXTENSION_MAPPING
 # Note: If this tag is empty the current directory is searched.
 
-INPUT                  = "@CF_OPENMS_SRC_PATH@/doc/OpenMS_tutorial/" \
-                         "@CF_OPENMS_SRC_PATH@/doc/TOPP_tutorial/" \
-                         "@CF_OPENMS_SRC_PATH@/doc/doxygen/public/" \
+INPUT                  = "@CF_OPENMS_SRC_PATH@/doc/doxygen/public/" \
                          "@CF_OPENMS_SRC_PATH@/doc/doxygen/install/" \
                          @CF_OPENMS_DOCUMENTATION_DIRECTORIES@
 
@@ -947,9 +945,7 @@ EXAMPLE_RECURSIVE      = NO
 # that contain images that are to be included in the documentation (see the
 # \image command).
 
-IMAGE_PATH             = "@CF_OPENMS_SRC_PATH@/doc/doxygen/images/" \
-                         "@CF_OPENMS_SRC_PATH@/doc/OpenMS_tutorial/images/" \
-                         "@CF_OPENMS_SRC_PATH@/doc/TOPP_tutorial/images/"
+IMAGE_PATH             = "@CF_OPENMS_SRC_PATH@/doc/doxygen/images/"
 
 # The INPUT_FILTER tag can be used to specify a program that doxygen should
 # invoke to filter for each input file. Doxygen will invoke the filter program
@@ -1225,7 +1221,10 @@ HTML_STYLESHEET        =
 # list). For an example see the documentation.
 # This tag requires that the tag GENERATE_HTML is set to YES.
 
-HTML_EXTRA_STYLESHEET  = "@CF_OPENMS_SRC_PATH@/doc/doxygen/common/style_ini.css"
+HTML_EXTRA_STYLESHEET  = "@CF_OPENMS_SRC_PATH@/doc/doxygen/doxygen-awesome-css/doxygen-awesome.css" \
+                         "@CF_OPENMS_SRC_PATH@/doc/doxygen/doxygen-awesome-css/custom.css" \
+                         "@CF_OPENMS_SRC_PATH@/doc/doxygen/common/style_ini.css"
+
 
 # The HTML_EXTRA_FILES tag can be used to specify one or more extra images or
 # other source files which should be copied to the HTML output directory. Note
@@ -1235,7 +1234,9 @@ HTML_EXTRA_STYLESHEET  = "@CF_OPENMS_SRC_PATH@/doc/doxygen/common/style_ini.css"
 # files will be copied as-is; there are no commands or markers available.
 # This tag requires that the tag GENERATE_HTML is set to YES.
 
-HTML_EXTRA_FILES       = @CF_OPENMS_SRC_PATH@/doc/doxygen/common/favicon.ico
+HTML_EXTRA_FILES       = "@CF_OPENMS_SRC_PATH@/doc/doxygen/common/favicon.ico" \
+                         "@CF_OPENMS_SRC_PATH@/doc/doxygen/common/selectversion.js"
+
 
 # The HTML_COLORSTYLE_HUE tag controls the color of the HTML output. Doxygen
 # will adjust the colors in the style sheet and background images according to
@@ -1522,7 +1523,7 @@ DISABLE_INDEX          = NO
 # The default value is: NO.
 # This tag requires that the tag GENERATE_HTML is set to YES.
 
-GENERATE_TREEVIEW      = NO
+GENERATE_TREEVIEW      = YES
 
 # The ENUM_VALUES_PER_LINE tag can be used to set the number of enum values that
 # doxygen will group on one line in the generated HTML documentation.
@@ -1577,7 +1578,7 @@ FORMULA_TRANSPARENT    = YES
 # The default value is: NO.
 # This tag requires that the tag GENERATE_HTML is set to YES.
 
-USE_MATHJAX            = NO
+USE_MATHJAX            = YES
 
 # When MathJax is enabled you can set the default output format to be used for
 # the MathJax output. See the MathJax site (see:
@@ -1600,7 +1601,7 @@ MATHJAX_FORMAT         = HTML-CSS
 # The default value is: https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/.
 # This tag requires that the tag USE_MATHJAX is set to YES.
 
-MATHJAX_RELPATH        = http://cdn.mathjax.org/mathjax/latest
+MATHJAX_RELPATH        = https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js
 
 # The MATHJAX_EXTENSIONS tag can be used to specify one or more MathJax
 # extension names that should be enabled during MathJax rendering. For example
@@ -2533,7 +2534,7 @@ DOT_TRANSPARENT        = NO
 # The default value is: NO.
 # This tag requires that the tag HAVE_DOT is set to YES.
 
-DOT_MULTI_TARGETS      = NO
+DOT_MULTI_TARGETS      = YES
 
 # If the GENERATE_LEGEND tag is set to YES doxygen will generate a legend page
 # explaining the meaning of the various boxes and arrows in the dot generated

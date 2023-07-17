@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -54,20 +54,7 @@ namespace OpenMS
   {
   }
 
-  TransitionPQPFile::~TransitionPQPFile()
-  {
-  }
-
-  static int callback(void * /* NotUsed */, int argc, char **argv, char **azColName)
-  {
-    int i;
-    for (i = 0; i < argc; i++)
-    {
-      printf("%s = %s\n", azColName[i], argv[i] ? argv[i] : "NULL");
-    }
-    printf("\n");
-    return 0;
-  }
+  TransitionPQPFile::~TransitionPQPFile() = default;
 
   void TransitionPQPFile::readPQPInput_(const char* filename, std::vector<TSVTransition>& transition_list, bool legacy_traml_id)
   {
@@ -108,10 +95,15 @@ namespace OpenMS
     bool gene_exists = SqliteConnector::tableExists(db, "GENE");
     if (gene_exists)
     {
-      select_gene = ", GENE.GENE_NAME AS gene_name ";
+      select_gene = ", GENE_AGGREGATED.GENE_NAME AS gene_name ";
       select_gene_null = ", 'NA' AS gene_name ";
       join_gene = "INNER JOIN PEPTIDE_GENE_MAPPING ON PEPTIDE.ID = PEPTIDE_GENE_MAPPING.PEPTIDE_ID " \
-                  "INNER JOIN GENE ON PEPTIDE_GENE_MAPPING.GENE_ID = GENE.ID ";
+                  "INNER JOIN " \
+                  "(SELECT PEPTIDE_ID, GROUP_CONCAT(GENE_NAME,';') AS GENE_NAME " \
+                  "FROM GENE " \
+                  "INNER JOIN PEPTIDE_GENE_MAPPING ON GENE.ID = PEPTIDE_GENE_MAPPING.GENE_ID "\
+                  "GROUP BY PEPTIDE_ID) " \
+                  "AS GENE_AGGREGATED ON PEPTIDE.ID = GENE_AGGREGATED.PEPTIDE_ID ";
     }
 
     String select_annotation = "'' AS Annotation, ";
@@ -544,7 +536,7 @@ namespace OpenMS
       }
 
       if (gene_map.find(gene_name) == gene_map.end()) gene_map[gene_name] = (int)gene_map.size();
-      peptide_gene_map.push_back(std::make_pair(peptide_set_index, gene_map[gene_name]));
+      peptide_gene_map.emplace_back(peptide_set_index, gene_map[gene_name]);
 
       insert_precursor_sql <<
         "INSERT INTO PRECURSOR (ID, TRAML_ID, GROUP_LABEL, PRECURSOR_MZ, CHARGE, LIBRARY_INTENSITY, " <<

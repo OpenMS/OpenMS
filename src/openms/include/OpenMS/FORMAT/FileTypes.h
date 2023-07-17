@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -119,35 +119,6 @@ namespace OpenMS
       SIZE_OF_TYPE        ///< No file type. Simply stores the number of types
     };
 
-
-    enum class Filter
-    {
-      COMPACT,    ///< make a single item, e.g. 'all readable files (*.mzML *.mzXML);;'
-      ONE_BY_ONE, ///< list all types individually, e.g. 'mzML files (*.mzML);;mzXML files (*.mzXML);;'
-      BOTH        ///< combine COMPACT and ONE_BY_ONE
-    };
-    /**
-      @brief holds a vector of known file types, e.g. as a way to specify supported input formats
-
-      The vector can be exported in Qt's file dialog format.
-    */
-    class OPENMS_DLLAPI FileTypeList
-    {
-    public:
-      FileTypeList(const std::vector<Type>& types);
-
-      /// check if @p type is contained in this array
-      bool contains(const Type& type) const;
-
-      /// converts the array into a Qt-compatible filter for selecting files in a user dialog.
-      /// e.g. "all readable files (*.mzML *.mzXML);;". See Filter enum.
-      /// @param style Create a combined filter, or single filters, or both
-      /// @param add_all_filter Add 'all files (*)' as a single filter at the end?
-      String toFileDialogFilter(const Filter style, bool add_all_filter) const;
-    private:
-      std::vector<Type> type_list_;
-    };
-
     /// Returns the name/extension of the type.
     static String typeToName(Type type);
     
@@ -164,5 +135,66 @@ namespace OpenMS
     static String typeToMZML(Type type);
   };
 
-} //namespace OpenMS
+ enum class FilterLayout
+  {
+    COMPACT,    ///< make a single item, e.g. 'all readable files (*.mzML *.mzXML);;'
+    ONE_BY_ONE, ///< list all types individually, e.g. 'mzML files (*.mzML);;mzXML files (*.mzXML);;'
+    BOTH        ///< combine COMPACT and ONE_BY_ONE
+  };
+  /**
+    @brief holds a vector of known file types, e.g. as a way to specify supported input formats
+
+    The vector can be exported in Qt's file dialog format.
+  */
+  class OPENMS_DLLAPI FileTypeList
+  {
+  public:
+    FileTypeList(const std::vector<FileTypes::Type>& types);
+
+    /// check if @p type is contained in this array
+    bool contains(const FileTypes::Type& type) const;
+
+    const std::vector<FileTypes::Type>& getTypes() const
+    {
+      return type_list_;
+    }
+
+    /// converts the array into a Qt-compatible filter for selecting files in a user dialog.
+    /// e.g. "all readable files (*.mzML *.mzXML);;". See Filter enum.
+    /// @param style Create a combined filter, or single filters, or both
+    /// @param add_all_filter Add 'all files (*)' as a single filter at the end?
+    String toFileDialogFilter(const FilterLayout style, bool add_all_filter) const;
+
+    /**
+      @brief Convert a Qt filter back to a Type if possible.
+
+      E.g. from a full filter such as '"mzML files (*.mzML);;mzData files (*.mzData);;mzXML files (*.mzXML);;all files (*)"',
+      as created by toFileDialogFilter(), the selected @p filter could be "mzML files (*.mzML)", in which case the type is Type::MZML .
+      However, for the filter "all files (*)", Type::UNKNOWN will be returned.
+
+      If the type is UNKNOWN, then the fallback is returned (by default also UNKNOWN). This is useful if you want a default type to fall back to.
+
+      @param filter The filter returned by 'QFileDialog::getSaveFileName' and others, i.e. an item from the result of 'toFileDialogFilter'.
+      @param fallback If the filter is ambiguous, return this type instead
+      @return The type associated to the filter or the fallback
+      @throw Exception::ElementNotFound if the given @p filter is not a filter produced by toFileDialogFilter()
+    **/
+    FileTypes::Type fromFileDialogFilter(const String& filter, const FileTypes::Type fallback = FileTypes::Type::UNKNOWN) const;
+
+  private:
+    /// hold filter items (for Qt dialogs) along with their OpenMS type
+    struct FilterElements_
+    {
+      std::vector<String> items;
+      std::vector<FileTypes::Type> types;
+    };
+    /// creates Qt filters and the corresponding elements from type_list_
+    /// @param style Create a combined filter, or single filters, or both
+    /// @param add_all_filter Add 'all files (*)' as a single filter at the end?
+    FilterElements_ asFilterElements_(const FilterLayout style, bool add_all_filter) const;
+
+    std::vector<FileTypes::Type> type_list_;
+  };
+
+} // namespace OpenMS
 

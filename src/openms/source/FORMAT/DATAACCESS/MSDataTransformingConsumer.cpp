@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -34,6 +34,8 @@
 
 #include <OpenMS/FORMAT/DATAACCESS/MSDataTransformingConsumer.h>
 
+#include <utility>
+
 namespace OpenMS
 {
   /**
@@ -48,8 +50,7 @@ namespace OpenMS
 
       /// Default destructor
       MSDataTransformingConsumer::~MSDataTransformingConsumer()
-      {
-      }
+      = default;
 
       void MSDataTransformingConsumer::setExpectedSize(Size /* expectedSpectra */, Size /* expectedChromatograms */)
       {
@@ -63,7 +64,7 @@ namespace OpenMS
 
       void MSDataTransformingConsumer::setSpectraProcessingFunc( std::function<void (SpectrumType&)> f_spec )
       {
-        lambda_spec_ = f_spec;
+        lambda_spec_ = std::move(f_spec);
       }
 
       void MSDataTransformingConsumer::consumeChromatogram(ChromatogramType & c)
@@ -74,12 +75,12 @@ namespace OpenMS
 
       void MSDataTransformingConsumer::setChromatogramProcessingFunc( std::function<void (ChromatogramType&)> f_chrom )
       {
-        lambda_chrom_ = f_chrom;
+        lambda_chrom_ = std::move(f_chrom);
       }
       
       void MSDataTransformingConsumer::setExperimentalSettingsFunc( std::function<void (const OpenMS::ExperimentalSettings&)> f_exp_settings )
       {
-        lambda_exp_settings_ = f_exp_settings;
+        lambda_exp_settings_ = std::move(f_exp_settings);
       }
 
       void MSDataTransformingConsumer::setExperimentalSettings(const OpenMS::ExperimentalSettings& es)

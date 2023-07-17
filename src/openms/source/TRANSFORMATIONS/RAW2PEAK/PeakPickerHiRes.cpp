@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -29,7 +29,7 @@
 //
 // --------------------------------------------------------------------------
 // $Author: Erhan Kenar $
-// $Maintainer: Timo Sachsenberg$
+// $Maintainer: Timo Sachsenberg $
 // --------------------------------------------------------------------------
 //
 
@@ -80,9 +80,7 @@ namespace OpenMS
     updateMembers_();
   }
 
-  PeakPickerHiRes::~PeakPickerHiRes()
-  {
-  }
+  PeakPickerHiRes::~PeakPickerHiRes() = default;
 
   void PeakPickerHiRes::pick(const MSSpectrum& input, MSSpectrum& output) const
   {
@@ -102,7 +100,15 @@ namespace OpenMS
     copySpectrumMeta(input, output);
     output.setType(SpectrumSettings::CENTROID);
 
-    pick_(input, output, boundaries, check_spacings);
+    int im_data_index = -1;
+    if (input.containsIMData())
+    {
+      // will throw if IM float data array is missing
+      const auto [tmp_index, im_unit] = input.getIMData();
+      im_data_index = tmp_index;
+    }
+
+    pick_(input, output, boundaries, check_spacings, im_data_index);
   }
 
   void PeakPickerHiRes::pick(const MSChromatogram& input, MSChromatogram& output, std::vector<PeakBoundary>& boundaries, bool check_spacings) const
@@ -117,13 +123,30 @@ namespace OpenMS
   }
 
   template <typename ContainerType>
-  void PeakPickerHiRes::pick_(const ContainerType& input, ContainerType& output, std::vector<PeakBoundary>& boundaries, bool check_spacings) const
+  void PeakPickerHiRes::pick_(const ContainerType& input,
+                              ContainerType& output,
+                              std::vector<PeakBoundary>& boundaries,
+                              bool check_spacings,
+                              int im_data_index) const
   {
+    OPENMS_PRECONDITION( im_data_index < 0 || input.getFloatDataArrays()[im_data_index].size() == input.size(),
+        "Ion Mobility array needs to have the same length as the m/z and intensity array.")
 
+    bool has_im = (im_data_index >= 0);
+    Size out_im_index = 0;
+    if (has_im)
+    {
+      out_im_index = output.getFloatDataArrays().size();
+      output.getFloatDataArrays().resize(output.getFloatDataArrays().size() + 1);
+      output.getFloatDataArrays()[out_im_index].setName( input.getFloatDataArrays()[im_data_index].getName() );
+    }
+
+    Size out_fwhm_index = 0;
     if (report_FWHM_)
     {
-      output.getFloatDataArrays().resize(1);
-      output.getFloatDataArrays()[0].setName( report_FWHM_as_ppm_ ? "FWHM_ppm" : "FWHM");
+      out_fwhm_index = output.getFloatDataArrays().size();
+      output.getFloatDataArrays().resize(output.getFloatDataArrays().size() + 1);
+      output.getFloatDataArrays()[out_fwhm_index].setName( report_FWHM_as_ppm_ ? "FWHM_ppm" : "FWHM");
     }
 
     // don't pick a spectrum with less than 5 data points
@@ -218,10 +241,18 @@ namespace OpenMS
         }
 
         std::map<double, double> peak_raw_data;
+        double weighted_im = 0;
 
         peak_raw_data[central_peak_mz] = central_peak_int;
         peak_raw_data[left_neighbor_mz] = left_neighbor_int;
         peak_raw_data[right_neighbor_mz] = right_neighbor_int;
+
+        if (has_im)
+        {
+          weighted_im += input.getFloatDataArrays()[im_data_index][i] * input[i].getIntensity();
+          weighted_im += input.getFloatDataArrays()[im_data_index][i-1] * input[i-1].getIntensity();
+          weighted_im += input.getFloatDataArrays()[im_data_index][i+1] * input[i+1].getIntensity();
+        }
 
         // peak core found, now extend it
         // to the left
@@ -251,6 +282,7 @@ namespace OpenMS
             (peak_raw_data.begin()->first - input[i - k].getMZ() < spacing_difference_ * min_spacing)))
           {
             peak_raw_data[input[i - k].getMZ()] = input[i - k].getIntensity();
+            if (has_im) weighted_im += input.getFloatDataArrays()[im_data_index][i - k] * input[i - k].getIntensity();
           }
           else
           {
@@ -258,6 +290,7 @@ namespace OpenMS
             if (missing_left <= missing_)
             {
               peak_raw_data[input[i - k].getMZ()] = input[i - k].getIntensity();
+              if (has_im) weighted_im += input.getFloatDataArrays()[im_data_index][i - k] * input[i - k].getIntensity();
             }
           }
 
@@ -292,6 +325,7 @@ namespace OpenMS
             (input[i + k].getMZ() - peak_raw_data.rbegin()->first < spacing_difference_ * min_spacing)))
           {
             peak_raw_data[input[i + k].getMZ()] = input[i + k].getIntensity();
+            if (has_im) weighted_im += input.getFloatDataArrays()[im_data_index][i + k] * input[i + k].getIntensity();
           }
           else
           {
@@ -299,6 +333,7 @@ namespace OpenMS
             if (missing_right <= missing_)
             {
               peak_raw_data[input[i + k].getMZ()] = input[i + k].getIntensity();
+              if (has_im) weighted_im += input.getFloatDataArrays()[im_data_index][i + k] * input[i + k].getIntensity();
             }
           }
 
@@ -380,8 +415,16 @@ namespace OpenMS
           }
           const double fwhm_right_mz = mz_mid;
           const double fwhm_absolute = fwhm_right_mz - fwhm_left_mz;
-          output.getFloatDataArrays()[0].push_back( report_FWHM_as_ppm_ ? fwhm_absolute / max_peak_mz  * 1e6 : fwhm_absolute);
+          output.getFloatDataArrays()[out_fwhm_index].push_back( report_FWHM_as_ppm_ ? fwhm_absolute / max_peak_mz  * 1e6 : fwhm_absolute);
         } // FWHM
+
+        // compute the intensity-weighted mean ion mobility
+        if (has_im)
+        {
+          double total_intensity(0);
+          for (const auto& t : peak_raw_data) {total_intensity += t.second;}
+          output.getFloatDataArrays()[out_im_index].push_back(weighted_im / total_intensity);
+        }
 
         // save picked peak into output spectrum
         typename ContainerType::PeakType peak;
@@ -493,7 +536,7 @@ namespace OpenMS
     }
     endProgress();
 
-    OPENMS_LOG_INFO << "Picked spectra by MS-level:\n";
+    OPENMS_LOG_INFO << "#Spectra that needed to and could be picked by MS-level:\n";
     for (const auto& info : pick_info)
     {
       OPENMS_LOG_INFO << "  MS-level " << info.first << ": " << info.second.picked << " / " << info.second.total << "\n";

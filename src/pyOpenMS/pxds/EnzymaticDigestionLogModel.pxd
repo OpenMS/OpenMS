@@ -26,20 +26,21 @@ cdef extern from "<OpenMS/CHEMISTRY/EnzymaticDigestionLogModel.h>" namespace "Op
       void digest(AASequence & protein, libcpp_vector[AASequence] & output) nogil except + # wrap-doc:Performs the enzymatic digestion of a protein
       Size peptideCount(AASequence & protein) nogil except + 
           # wrap-doc:
-          #   Returns the number of peptides a digestion of `protein` would yield under the current enzyme and missed cleavage settings
-          #   -----
-          #   :param protein: Name of protein
+          #  Returns the number of peptides a digestion of `protein` would yield under the current enzyme and missed cleavage settings
+          #  
+          #  
+          #  :param protein: Name of protein
 
 # cdef extern from "<OpenMS/CHEMISTRY/EnzymaticDigestionLogModel.h>" namespace "OpenMS::EnzymaticDigestionLogModel":
 # 
-#     # protected
-#     # cdef cppclass BindingSite:
-#     #   BindingSite()
-#     #   Size position
-#     #   String AAname
+#    # protected
+#    # cdef cppclass BindingSite:
+#    #   BindingSite()
+#    #   Size position
+#    #   String AAname
 # 
-#     # cdef cppclass CleavageModel:
-#     #   CleavageModel()
-#     #   double p_cleave
-#     #   double p_miss
+#    # cdef cppclass CleavageModel:
+#    #   CleavageModel()
+#    #   double p_cleave
+#    #   double p_miss
 # 

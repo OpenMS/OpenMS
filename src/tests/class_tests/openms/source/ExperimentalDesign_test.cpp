@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry               
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 // 
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -163,16 +163,16 @@ START_SECTION((std::map< std::pair< String, unsigned >, unsigned> getPathLabelTo
   const auto fplexst = fourplex_fractionated_single_table_design.getPathLabelToSampleMapping(true);
 
   // 12 quant. values from label-free, unfractionated files map to 12 samples
-  for (const auto& pl2s : { lf, lfst, lfstns })
+  for (const auto& pl2s : {lf, lfst, lfstns})
   {
     TEST_EQUAL(pl2s.size(), 12);
   } 
 
-  // 24 quant. values from 4plex, tripple fractionated files map to 8 samples
-  for (const auto& pl2s : { fplex, fplexst})
+  // 24 quant. values from 4plex, triple fractionated files map to 8 samples
+  for (const auto& pl2s : {fplex, fplexst})
   {
     TEST_EQUAL(pl2s.size(), 24);
-    for (const auto& i : pl2s) { TEST_EQUAL((i.second >=1 && i.second <=8), true)}
+    for (const auto& i : pl2s) { TEST_EQUAL((i.second <=7), true)}
   } 
 }
 END_SECTION
@@ -242,9 +242,9 @@ START_SECTION((std::set< String > ExperimentalDesign::SampleSection::getFactors(
   TEST_EQUAL(lfacst.size(), 3)
   TEST_EQUAL(lfacstns.size(), 3)
 
-  TEST_EQUAL(lfac == lfacst, true)
-  TEST_EQUAL(lfac == lfacstns, true)
-  TEST_EQUAL(facplex == facplexst, true)
+  TEST_TRUE(lfac == lfacst)
+  TEST_TRUE(lfac == lfacstns)
+  TEST_TRUE(facplex == facplexst)
 
   auto l = lfac.begin();
   TEST_EQUAL(*l++, "MSstats_BioReplicate")
@@ -293,7 +293,7 @@ START_SECTION((String SampleSection::getFactorValue(const unsigned sample, const
   auto lss_stns = labelfree_unfractionated_single_table_no_sample_column.getSampleSection();
 
   // 12 samples (see getNumberOfSamples test)
-  for (size_t sample = 1; sample <= lns; ++sample)
+  for (size_t sample = 0; sample < lns; ++sample)
   {
     for (const auto& factor : lss_tt.getFactors())
     {
@@ -308,10 +308,10 @@ START_SECTION((String SampleSection::getFactorValue(const unsigned sample, const
   }    
 
   const auto fns = fourplex_fractionated_design.getNumberOfSamples();
-  auto fss_tt = fourplex_fractionated_design.getSampleSection();
-  auto fss_st = fourplex_fractionated_single_table_design.getSampleSection();
+  const auto& fss_tt = fourplex_fractionated_design.getSampleSection();
+  const auto& fss_st = fourplex_fractionated_single_table_design.getSampleSection();
   // 8 samples (see getNumberOfSamples test)
-  for (size_t sample = 1; sample <= fns; ++sample)
+  for (size_t sample = 0; sample < fns; ++sample)
   {
     for (const auto& factor : fss_tt.getFactors())
     {
@@ -372,12 +372,12 @@ START_SECTION((unsigned getNumberOfMSFiles() const ))
   const auto fplex = fourplex_fractionated_design.getNumberOfMSFiles();
   const auto fplexst = fourplex_fractionated_single_table_design.getNumberOfMSFiles();
 
-  for (const auto& ns : { lf, lfst, lfstns} )
+  for (const auto& ns : {lf, lfst, lfstns} )
   {
     TEST_EQUAL(ns, 12);
   }
 
-  for (const auto& ns : { fplex, fplexst})
+  for (const auto& ns : {fplex, fplexst})
   {
     TEST_EQUAL(ns, 6);
   }
@@ -392,12 +392,12 @@ START_SECTION((unsigned getNumberOfFractionGroups() const ))
   const auto fplex = fourplex_fractionated_design.getNumberOfFractionGroups();
   const auto fplexst = fourplex_fractionated_single_table_design.getNumberOfFractionGroups();
 
-  for (const auto& ns : { lf, lfst, lfstns} )
+  for (const auto& ns : {lf, lfst, lfstns} )
   {
     TEST_EQUAL(ns, 12);
   }
 
-  for (const auto& ns : { fplex, fplexst})
+  for (const auto& ns : {fplex, fplexst})
   {
     TEST_EQUAL(ns, 2);
   }
@@ -412,28 +412,28 @@ START_SECTION((unsigned getSample(unsigned fraction_group, unsigned label=1)))
   const auto fplex11 = fourplex_fractionated_design.getSample(1, 1);
   const auto fplexst11 = fourplex_fractionated_single_table_design.getSample(1, 1);
 
-  for (const auto& s : { lf11, lfst11, lfstns11})
+  for (const auto& s : {lf11, lfst11, lfstns11})
   {
-    TEST_EQUAL(s, 1);
+    TEST_EQUAL(s, 0);
   }
-  for (const auto& s : { fplex11, fplexst11})
+  for (const auto& s : {fplex11, fplexst11})
   {
-    TEST_EQUAL(s, 1);
+    TEST_EQUAL(s, 0);
   }
 
   const auto lf12_1 = labelfree_unfractionated_design.getSample(12, 1);
   const auto lfst12_1 = labelfree_unfractionated_single_table_design.getSample(12, 1);
   const auto lfstns11_1 = labelfree_unfractionated_single_table_no_sample_column.getSample(12, 1);
-  for (const auto& s : { lf12_1, lfst12_1, lfstns11_1})
+  for (const auto& s : {lf12_1, lfst12_1, lfstns11_1})
   {
-    TEST_EQUAL(s, 12);
+    TEST_EQUAL(s, 11);
   }
 
   const auto fplex24 = fourplex_fractionated_design.getSample(2, 4);
   const auto fplexst24 = fourplex_fractionated_single_table_design.getSample(2, 4);
-  for (const auto& s : { fplex24, fplexst24})
+  for (const auto& s : {fplex24, fplexst24})
   {
-    TEST_EQUAL(s, 8);
+    TEST_EQUAL(s, 7);
   }
 }
 END_SECTION
@@ -501,8 +501,8 @@ START_SECTION((static ExperimentalDesign fromConsensusMap(const ConsensusMap &c)
   TEST_EQUAL(ed_tmt10.getMSFileSection().at(9).fraction_group, 1); // only one fraction
   TEST_EQUAL(ed_tmt10.getMSFileSection().at(0).fraction, 1); 
   TEST_EQUAL(ed_tmt10.getMSFileSection().at(9).fraction, 1);
-  TEST_EQUAL(ed_tmt10.getMSFileSection().at(0).sample, 1); // default: sample from 1..n
-  TEST_EQUAL(ed_tmt10.getMSFileSection().at(9).sample, 10);
+  TEST_EQUAL(ed_tmt10.getMSFileSection().at(0).sample, 0); // default: sample from 0..n-1
+  TEST_EQUAL(ed_tmt10.getMSFileSection().at(9).sample, 9);
   TEST_EQUAL(ed_tmt10.getMSFileSection().at(0).path, "C:/dev/OpenMS/src/tests/topp/TMTTenPlexMethod_test.mzML");
   TEST_EQUAL(ed_tmt10.getMSFileSection().at(1).path, "C:/dev/OpenMS/src/tests/topp/TMTTenPlexMethod_test.mzML");    
 
@@ -527,8 +527,8 @@ START_SECTION((static ExperimentalDesign fromConsensusMap(const ConsensusMap &c)
   TEST_EQUAL(ed_dimethyl.getMSFileSection().at(1).fraction_group, 1); // only one fraction
   TEST_EQUAL(ed_dimethyl.getMSFileSection().at(0).fraction, 1); 
   TEST_EQUAL(ed_dimethyl.getMSFileSection().at(1).fraction, 1);
-  TEST_EQUAL(ed_dimethyl.getMSFileSection().at(0).sample, 1); // default: sample from 1..n
-  TEST_EQUAL(ed_dimethyl.getMSFileSection().at(1).sample, 2);
+  TEST_EQUAL(ed_dimethyl.getMSFileSection().at(0).sample, 0); // default: sample from 0..n-1
+  TEST_EQUAL(ed_dimethyl.getMSFileSection().at(1).sample, 1);
   TEST_EQUAL(ed_dimethyl.getMSFileSection().at(0).path, "/home/sachsenb/OpenMS/src/tests/topp/FeatureFinderMultiplex_1_input.mzML");
   TEST_EQUAL(ed_dimethyl.getMSFileSection().at(1).path, "/home/sachsenb/OpenMS/src/tests/topp/FeatureFinderMultiplex_1_input.mzML");    
 
@@ -551,8 +551,8 @@ START_SECTION((static ExperimentalDesign fromConsensusMap(const ConsensusMap &c)
   TEST_EQUAL(ed_labelfree.getMSFileSection().at(1).fraction, 1);
   TEST_EQUAL(ed_labelfree.getMSFileSection().at(0).fraction_group, 1); // each form a different group
   TEST_EQUAL(ed_labelfree.getMSFileSection().at(1).fraction_group, 2); 
-  TEST_EQUAL(ed_labelfree.getMSFileSection().at(0).sample, 1); // default: sample from 1..n
-  TEST_EQUAL(ed_labelfree.getMSFileSection().at(1).sample, 2);
+  TEST_EQUAL(ed_labelfree.getMSFileSection().at(0).sample, 0); // default: sample from 0..n-1
+  TEST_EQUAL(ed_labelfree.getMSFileSection().at(1).sample, 1);
   TEST_EQUAL(ed_labelfree.getMSFileSection().at(0).path, "raw_file1.mzML");
   TEST_EQUAL(ed_labelfree.getMSFileSection().at(1).path, "raw_file2.mzML");    
 }
@@ -569,7 +569,7 @@ START_SECTION((static ExperimentalDesign fromFeatureMap(const FeatureMap &f)))
   TEST_EQUAL(ed_labelfree.getMSFileSection().at(0).label, 1); // "channel_id" + 1
   TEST_EQUAL(ed_labelfree.getMSFileSection().at(0).fraction_group, 1); // only one fraction
   TEST_EQUAL(ed_labelfree.getMSFileSection().at(0).fraction, 1); 
-  TEST_EQUAL(ed_labelfree.getMSFileSection().at(0).sample, 1); // default: sample from 1..n
+  TEST_EQUAL(ed_labelfree.getMSFileSection().at(0).sample, 0); // default: sample indices from 0..n-1
   TEST_EQUAL(ed_labelfree.getMSFileSection().at(0).path, "file://C:/raw_file1.mzML");
 }
 END_SECTION
@@ -577,12 +577,16 @@ END_SECTION
 START_SECTION((isValid_()))
 {
 
+  // missing fractions and wrong orders should work now
   String foo = OPENMS_GET_TEST_DATA_PATH("ExperimentalDesign_input_2_wrong.tsv");
-  TEST_EXCEPTION(Exception::InvalidValue, ExperimentalDesignFile::load(foo,false));
+  ExperimentalDesignFile::load(foo,false);
+  String baz = OPENMS_GET_TEST_DATA_PATH("ExperimentalDesign_input_2_wrong_3.tsv");
+  ExperimentalDesignFile::load(baz,false);
+
+  // fraction groups still need to be consecutive
   String bar = OPENMS_GET_TEST_DATA_PATH("ExperimentalDesign_input_2_wrong_2.tsv");
   TEST_EXCEPTION(Exception::InvalidValue, ExperimentalDesignFile::load(bar,false));
-  String baz = OPENMS_GET_TEST_DATA_PATH("ExperimentalDesign_input_2_wrong_3.tsv");
-  TEST_EXCEPTION(Exception::InvalidValue, ExperimentalDesignFile::load(baz,false));
+
 }
 END_SECTION
 /////////////////////////////////////////////////////////////

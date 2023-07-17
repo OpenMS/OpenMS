@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -92,6 +92,22 @@ namespace OpenMS
       @param clear_original Clear original IDs after conversion?
     */
     static void exportFeatureIDs(FeatureMap& features, bool clear_original = true);
+
+    /*!
+      @brief Convert IDs from legacy peptide/protein identifications in a consensus map
+
+      @param consensus Consensus map containing IDs in legacy format
+      @param clear_original Clear original IDs after conversion?
+    */
+    static void importConsensusIDs(ConsensusMap& consensus, bool clear_original = true);
+
+    /*!
+      @brief Convert IDs in a consensus map to legacy peptide/protein identifications
+
+      @param consensus Consensus map containing IDs in new format
+      @param clear_original Clear original IDs after conversion?
+    */
+    static void exportConsensusIDs(ConsensusMap& consensus, bool clear_original = true);
 
   protected:
 
@@ -290,7 +306,7 @@ namespace OpenMS
       IdentificationData::ProcessingStepRef step_ref,
       ProteinIdentification& protein);
 
-    static void handleFeatureImport_(Feature& feature, IntList indexes,
+    static void handleFeatureImport_(Feature& feature, const IntList& indexes,
                                      std::vector<PeptideIdentification>& peptides,
                                      Size& id_counter, bool clear_original);
 

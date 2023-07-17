@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -40,6 +40,7 @@
 #include <OpenMS/DATASTRUCTURES/ListUtilsIO.h>
 
 #include <map>
+#include <utility>
 
 using std::vector;
 using std::pair;
@@ -56,9 +57,7 @@ namespace OpenMS
     warn_empty_defaults_ = false;
   }
 
-  BaseLabeler::~BaseLabeler()
-  {
-  }
+  BaseLabeler::~BaseLabeler() = default;
 
   Param BaseLabeler::getDefaultParameters() const
   {
@@ -67,7 +66,7 @@ namespace OpenMS
 
   void BaseLabeler::setRnd(SimTypes::MutableSimRandomNumberGeneratorPtr rng)
   {
-    rng_ = rng;
+    rng_ = std::move(rng);
   }
 
   String BaseLabeler::getChannelIntensityName(const Size channel_index) const
@@ -152,8 +151,8 @@ namespace OpenMS
     // in the feature map
 
     // build index for faster access
-    Map<String, IntList> id_map;
-    Map<UInt64, Size> features_per_labeled_map;
+    std::map<String, IntList> id_map;
+    std::map<UInt64, Size> features_per_labeled_map;
     for (Size i = 0; i < simulated_features.size(); ++i)
     {
       if (simulated_features[i].metaValueExists("parent_feature"))
@@ -172,7 +171,7 @@ namespace OpenMS
       }
     }
 
-    for (Map<String, IntList>::iterator it = id_map.begin(); it != id_map.end(); ++it)
+    for (std::map<String, IntList>::iterator it = id_map.begin(); it != id_map.end(); ++it)
     {
       OPENMS_LOG_DEBUG << it->first << " " << it->second << std::endl;
     }
@@ -181,7 +180,7 @@ namespace OpenMS
     ConsensusMap new_cm;
 
     // initialize sub maps in consensus map
-    for (Map<UInt64, Size>::Iterator it = features_per_labeled_map.begin(); it != features_per_labeled_map.end(); ++it)
+    for (std::map<UInt64, Size>::iterator it = features_per_labeled_map.begin(); it != features_per_labeled_map.end(); ++it)
     {
       new_cm.getColumnHeaders()[it->first].size = it->second;
       new_cm.getColumnHeaders()[it->first].unique_id = simulated_features.getUniqueId();
@@ -196,7 +195,7 @@ namespace OpenMS
       // check if we have all elements of current CF in the new feature map (simulated_features)
       for (const FeatureHandle& cf : cm)
       {
-        complete &= id_map.has(String(cf.getUniqueId()));
+        complete &= id_map.find(String(cf.getUniqueId())) != id_map.end();
         OPENMS_LOG_DEBUG << "\t" << String(cf.getUniqueId()) << std::endl;
       }
 
@@ -204,7 +203,7 @@ namespace OpenMS
       {
         // get all elements sorted by charge state; since the same charge can be achieved by different
         // adduct compositions we use the adduct-string as indicator to find the groups
-        Map<String, std::set<FeatureHandle, FeatureHandle::IndexLess> > charge_mapping;
+        std::map<String, std::set<FeatureHandle, FeatureHandle::IndexLess> > charge_mapping;
 
         for (const FeatureHandle& cf : cm)
         {
@@ -218,7 +217,7 @@ namespace OpenMS
               map_index = simulated_features[f_index].getMetaValue("map_index");
             }
 
-            if (charge_mapping.has(simulated_features[f_index].getMetaValue("charge_adducts")))
+            if (charge_mapping.find(simulated_features[f_index].getMetaValue("charge_adducts")) != charge_mapping.end() )
             {
               charge_mapping[simulated_features[f_index].getMetaValue("charge_adducts")].insert(FeatureHandle(map_index, simulated_features[f_index]));
             }
@@ -234,7 +233,7 @@ namespace OpenMS
         }
 
         // create new consensus feature from derived features (separated by charge, if charge != 0)
-        for (Map<String, std::set<FeatureHandle, FeatureHandle::IndexLess> >::const_iterator charge_group_it = charge_mapping.begin();
+        for (std::map<String, std::set<FeatureHandle, FeatureHandle::IndexLess> >::const_iterator charge_group_it = charge_mapping.begin();
              charge_group_it != charge_mapping.end();
              ++charge_group_it)
         {

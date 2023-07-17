@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -357,7 +357,7 @@ protected:
       }
       else
       {
-        writeLog_("Positive peptides for separation prediction set but no negative peptides. Aborting!");
+        writeLogError_("Positive peptides for separation prediction set but no negative peptides. Aborting!");
         printUsage_();
         return ILLEGAL_PARAMETERS;
       }
@@ -382,7 +382,7 @@ protected:
     max_std = getDoubleOption_("max_std");
     if (!separation_prediction && total_gradient_time < 0)
     {
-      writeLog_("No total gradient time given for RT prediction. Aborting!");
+      writeLogError_("No total gradient time given for RT prediction. Aborting!");
       printUsage_();
       return ILLEGAL_PARAMETERS;
     }
@@ -403,7 +403,7 @@ protected:
     }
     else
     {
-      writeLog_("Illegal SVM type given. SVM type has to be either "
+      writeLogError_("Illegal SVM type given. SVM type has to be either "
                 + String("NU_SVR or EPSILON_SVR for RT prediction and ")
                 + "C_SVC for separation prediction. Aborting!");
       printUsage_();
@@ -438,7 +438,7 @@ protected:
     }
     else
     {
-      writeLog_("Unknown kernel type given. Aborting!");
+      writeLogError_("Unknown kernel type given. Aborting!");
       printUsage_();
       return ILLEGAL_PARAMETERS;
     }
@@ -465,7 +465,7 @@ protected:
         UInt degree_step_size = getIntOption_("cv:degree_step_size");
         if (!additive_cv && degree_step_size <= 1)
         {
-          writeLog_("Step size of degree <= 1 and additive_cv is false. Aborting!");
+          writeLogError_("Step size of degree <= 1 and additive_cv is false. Aborting!");
           return ILLEGAL_PARAMETERS;
         }
         UInt degree_stop = getIntOption_("cv:degree_stop");
@@ -482,7 +482,7 @@ protected:
       double p_step_size = getDoubleOption_("cv:p_step_size");
       if (!additive_cv && p_step_size <= 1)
       {
-        writeLog_("Step size of p <= 1 and additive_cv is false. Aborting!");
+        writeLogError_("Step size of p <= 1 and additive_cv is false. Aborting!");
         return ILLEGAL_PARAMETERS;
       }
       double p_stop = getDoubleOption_("cv:p_stop");
@@ -498,7 +498,7 @@ protected:
       double c_step_size = getDoubleOption_("cv:c_step_size");
       if (!additive_cv && c_step_size <= 1)
       {
-        writeLog_("Step size of c <= 1 and additive_cv is false. Aborting!");
+        writeLogError_("Step size of c <= 1 and additive_cv is false. Aborting!");
         return ILLEGAL_PARAMETERS;
       }
       double c_stop = getDoubleOption_("cv:c_stop");
@@ -515,7 +515,7 @@ protected:
       double nu_step_size = getDoubleOption_("cv:nu_step_size");
       if (!additive_cv && nu_step_size <= 1)
       {
-        writeLog_("Step size of nu <= 1 and additive_cv is false. Aborting!");
+        writeLogError_("Step size of nu <= 1 and additive_cv is false. Aborting!");
         return ILLEGAL_PARAMETERS;
       }
       double nu_stop = getDoubleOption_("cv:nu_stop");
@@ -546,7 +546,7 @@ protected:
       sigma_step_size = getDoubleOption_("cv:sigma_step_size");
       if (!additive_cv && sigma_step_size <= 1)
       {
-        writeLog_("Step size of sigma <= 1 and additive_cv is false. Aborting!");
+        writeLogError_("Step size of sigma <= 1 and additive_cv is false. Aborting!");
         return ILLEGAL_PARAMETERS;
       }
       sigma_stop = getDoubleOption_("cv:sigma_stop");
@@ -667,14 +667,14 @@ protected:
           }
           else
           {
-            writeLog_("For one spectrum there should not be more than one peptide."
+            writeLogError_("For one spectrum there should not be more than one peptide."
                       "Please use the IDFilter with the -best:strict option to achieve this. Aborting!");
-            writeLog_("Hits: ");
+            writeLogError_("Hits: ");
             for (vector<PeptideHit>::const_iterator it = identifications[i].getHits().begin();
                  it != identifications[i].getHits().end();
                  ++it)
             {
-              writeLog_(String(it->getSequence().toUnmodifiedString()) + " score: " + String(it->getScore()));
+              writeLogError_(String(it->getSequence().toUnmodifiedString()) + " score: " + String(it->getScore()));
             }
             return INPUT_FILE_CORRUPT;
           }
@@ -829,12 +829,12 @@ protected:
           }
           else
           {
-            writeLog_("For one spectrum there should not be more than one peptide."
+            writeLogError_("For one spectrum there should not be more than one peptide."
                       "Please use the IDFilter with the -best:strict option to achieve this. Aborting!");
-            writeLog_("Hits: ");
+            writeLogError_("Hits: ");
             for (const PeptideHit& hit : identifications_negative[i].getHits())
             {
-              writeLog_(String(hit.getSequence().toUnmodifiedString()) + " score: " + String(hit.getScore()));
+              writeLogError_(String(hit.getSequence().toUnmodifiedString()) + " score: " + String(hit.getScore()));
             }
             return INPUT_FILE_CORRUPT;
           }
@@ -984,12 +984,12 @@ protected:
       if (param_outfile_name.empty())
       {
         param_outfile_name = outfile_name + "_additional_parameters";
-        writeLog_("Warning: Using OLIGO kernel but out_oligo_params was not specified. Trying to write to: " + param_outfile_name);
+        writeLogWarn_("Warning: Using OLIGO kernel but out_oligo_params was not specified. Trying to write to: " + param_outfile_name);
       }
       if (trainset_outfile_name.empty())
       {
         trainset_outfile_name = outfile_name + "_samples";
-        writeLog_("Warning: Using OLIGO kernel but out_oligo_trainset was not specified. Trying to write to: " + trainset_outfile_name);
+        writeLogWarn_("Warning: Using OLIGO kernel but out_oligo_trainset was not specified. Trying to write to: " + trainset_outfile_name);
       }
       training_sample.store(trainset_outfile_name);
       additional_parameters.setValue("kernel_type", temp_type);
@@ -1013,8 +1013,9 @@ protected:
       }
       ParamXMLFile paramFile;
       paramFile.store(param_outfile_name, additional_parameters);
-      LibSVMEncoder::destroyProblem(encoded_training_sample);
     }
+
+    LibSVMEncoder::destroyProblem(encoded_training_sample);
 
     return EXECUTION_OK;
   }

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -48,6 +48,7 @@
 #include <cmath>
 #include <string>
 #include <set>
+#include <map>
 
 #include <QtCore/QProcess>
 #include <boost/algorithm/clamp.hpp>
@@ -71,9 +72,9 @@ using namespace std;
   <center>
     <table>
         <tr>
-            <td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. predecessor tools </td>
-            <td VALIGN="middle" ROWSPAN=2> \f$ \longrightarrow \f$ MaRaClusterAdapter \f$ \longrightarrow \f$</td>
-            <td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. successor tools </td>
+            <th ALIGN = "center"> pot. predecessor tools </td>
+            <td VALIGN="middle" ROWSPAN=2> &rarr; MaRaClusterAdapter &rarr;</td>
+            <th ALIGN = "center"> pot. successor tools </td>
         </tr>
         <tr>
             <td VALIGN="middle" ALIGN = "center" ROWSPAN=1>any signal-/preprocessing tool @n (in mzML format) </td>
@@ -209,7 +210,7 @@ protected:
   }
 
   // read and parse clustering output csv to store specnumber and clusterid associations
-  void readMClusterOutputAsMap_(String mcout_file, Map<MaRaClusterResult, Int>& specid_to_clusterid_map, const std::map<String, Int>& filename_to_idx_map)
+  void readMClusterOutputAsMap_(String mcout_file, std::map<MaRaClusterResult, Int>& specid_to_clusterid_map, const std::map<String, Int>& filename_to_idx_map)
   {
     CsvFile csv_file(mcout_file, '\t');
     StringList row;
@@ -297,14 +298,14 @@ protected:
 
     if (in_list.empty())
     {
-      writeLog_("Fatal error: no input file given (parameter 'in')");
+      writeLogError_("Error:  no input file given (parameter 'in')");
       printUsage_();
       return ILLEGAL_PARAMETERS;
     }
 
     if (consensus_out.empty() && out.empty())
     {
-      writeLog_("Fatal error: no output file given (parameter 'out' or 'consensus_out')");
+      writeLogError_("Error:  no output file given (parameter 'out' or 'consensus_out')");
       printUsage_();
       return ILLEGAL_PARAMETERS;
     }
@@ -360,13 +361,13 @@ protected:
         arguments << "-v" << String(verbose_level).toQString();
       }
     }
-    writeLog_("Prepared maracluster command.");
+    writeLogInfo_("Prepared maracluster command.");
 
     //-------------------------------------------------------------
     // run MaRaCluster for idXML output
     //-------------------------------------------------------------
     // MaRaCluster execution with the executable and the arguments StringList
-    writeLog_("Executing maracluster ...");
+    writeLogInfo_("Executing maracluster ...");
     auto exit_code = runExternalProcess_(maracluster_executable.toQString(), arguments);
     if (exit_code != EXECUTION_OK)
     {
@@ -376,7 +377,7 @@ protected:
     //-------------------------------------------------------------
     // reintegrate clustering results 
     //-------------------------------------------------------------
-    Map<MaRaClusterResult, Int> specid_to_clusterid_map;
+    std::map<MaRaClusterResult, Int> specid_to_clusterid_map;
     readMClusterOutputAsMap_(consensus_output_file, specid_to_clusterid_map, filename_to_file_idx);
     file_idx = 0;
 
@@ -428,7 +429,7 @@ protected:
       }
       else
       {
-        for (Map<MaRaClusterResult,Int>::iterator sid = specid_to_clusterid_map.begin(); sid != specid_to_clusterid_map.end(); ++sid) {
+        for (std::map<MaRaClusterResult,Int>::iterator sid = specid_to_clusterid_map.begin(); sid != specid_to_clusterid_map.end(); ++sid) {
           Int scan_nr = sid->first.scan_nr;
           Int file_id = sid->first.file_idx;
           Int cluster_id = sid->second;
@@ -478,7 +479,7 @@ protected:
         Int verbose_level = getIntOption_("verbose");
         if (verbose_level != 2) arguments_consensus << "-v" << String(verbose_level).toQString();
       }
-      writeLog_("Prepared maracluster-consensus command.");
+      writeLogInfo_("Prepared maracluster-consensus command.");
 
       //-------------------------------------------------------------
       // run MaRaCluster for consensus output
@@ -500,7 +501,7 @@ protected:
       fh.storeExperiment(consensus_output_file, exp, log_type_);
     }
 
-    writeLog_("MaRaClusterAdapter finished successfully!");
+    writeLogInfo_("MaRaClusterAdapter finished successfully!");
     return EXECUTION_OK;
   }
 

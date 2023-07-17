@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -128,10 +128,13 @@ namespace OpenMS
     double im_ms1_delta_score = 0;
     double im_drift = 0;
     double im_drift_weighted = 0;
+    double im_delta = -1;
     double im_ms1_contrast_coelution = 0;
     double im_ms1_contrast_shape = 0;
     double im_ms1_sum_contrast_coelution = 0;
     double im_ms1_sum_contrast_shape = 0;
+    double im_ms1_drift = 0;
+    double im_ms1_delta = -1;
 
     double library_manhattan = 0;
     double library_dotprod = 0;

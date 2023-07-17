@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -36,28 +36,8 @@
 #include <OpenMS/OPENSWATHALGO/DATAACCESS/TransitionExperiment.h>
 #include <OpenMS/OPENSWATHALGO/DATAACCESS/Transitions.h>
 
-#ifdef USE_BOOST_UNIT_TEST
-
-// include boost unit test framework
-#define BOOST_TEST_DYN_LINK
-#define BOOST_TEST_MODULE MyTest
-#include <boost/test/unit_test.hpp>
-// macros for boost
-#define EPS_05 boost::test_tools::fraction_tolerance(1.e-5)
-#define TEST_REAL_SIMILAR(val1, val2) \
-  BOOST_CHECK(boost::test_tools::check_is_close(val1, val2, EPS_05));
-#define TEST_EQUAL(val1, val2) BOOST_CHECK_EQUAL(val1, val2);
-#define END_SECTION
-#define START_TEST(var1, var2)
-#define END_TEST
-
-#else
-
 #include <OpenMS/CONCEPT/ClassTest.h>
-#define BOOST_AUTO_TEST_CASE START_SECTION
 using namespace OpenMS;
-
-#endif
 
 using namespace std;
 
@@ -68,7 +48,7 @@ START_TEST(ITrans2Trans, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-BOOST_AUTO_TEST_CASE(initializeXCorrMatrix)
+START_SECTION(initializeXCorrMatrix)
 {
   OpenSwath::LightTargetedExperiment  lte;
   OpenSwath::TargetedExperiment  te;

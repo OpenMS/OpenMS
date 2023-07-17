@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -39,6 +39,7 @@
 #include <OpenMS/CHEMISTRY/ModificationDefinitionsSet.h>
 
 #include <iostream>
+#include <map>
 using namespace std;
 
 namespace OpenMS
@@ -101,7 +102,7 @@ namespace OpenMS
   {
     // todo add accessor to tolerance, it is called very often in CID mode
 
-    Map<char, double> aa_to_weight;
+    std::map<char, double> aa_to_weight;
 
     set<const Residue *> residues = ResidueDB::getInstance()->getResidues(String(param_.getValue("residue_set").toString()));
 
@@ -112,7 +113,7 @@ namespace OpenMS
 
     // now handle the modifications
     ModificationDefinitionsSet mod_set(ListUtils::toStringList<std::string>(param_.getValue("fixed_modifications")), ListUtils::toStringList<std::string>(param_.getValue("variable_modifications")));
-    set<ModificationDefinition> fixed_mods = mod_set.getFixedModifications();
+    const set<ModificationDefinition>& fixed_mods = mod_set.getFixedModifications();
     for (set<ModificationDefinition>::const_iterator it = fixed_mods.begin(); it != fixed_mods.end(); ++it)
     {
       const ResidueModification& mod = it->getModification();
@@ -147,7 +148,7 @@ namespace OpenMS
 
     const StringList mod_names(ListUtils::create<String>("a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s,t,u,v,w,x,y,z"));
     vector<String>::const_iterator actual_mod_name = mod_names.begin();
-    set<ModificationDefinition> var_mods = mod_set.getVariableModifications();
+    const set<ModificationDefinition>& var_mods = mod_set.getVariableModifications();
     for (set<ModificationDefinition>::const_iterator it = var_mods.begin(); it != var_mods.end(); ++it)
     {
       ResidueModification mod = it->getModification();
@@ -195,7 +196,7 @@ namespace OpenMS
 
     // init mass decomposer
     alphabet_ = new ims::IMSAlphabet();
-    for (Map<char, double>::ConstIterator it = aa_to_weight.begin(); it != aa_to_weight.end(); ++it)
+    for (std::map<char, double>::const_iterator it = aa_to_weight.begin(); it != aa_to_weight.end(); ++it)
     {
       alphabet_->push_back(String(it->first), it->second);
     }

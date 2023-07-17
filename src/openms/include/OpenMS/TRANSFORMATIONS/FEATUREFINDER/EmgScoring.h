@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -146,11 +146,12 @@ namespace OpenMS
       // typedef Peak1D LocalPeakType;
       PeakSpectrum filter_spec;
       // first smooth the data to prevent outliers from destroying the fit
-      for (ConvexHull2D::PointArrayType::const_iterator it = current_section.begin(); it != current_section.end(); it++)
+      for (const auto& pa : current_section)
       {
         LocalPeakType p;
-        p.setMZ(it->getX());
-        p.setIntensity(it->getY());
+        using IntensityType = typename LocalPeakType::IntensityType;
+        p.setMZ(pa.getX());
+        p.setIntensity(IntensityType(pa.getY()));
         filter_spec.push_back(p);
       }
 

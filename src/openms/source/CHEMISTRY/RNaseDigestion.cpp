@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -73,11 +73,11 @@ namespace OpenMS
     rnase->getCutsBeforeRegEx().split(',', CBregexes);
     for (auto it = std::begin(CAregexes); it != std::end(CAregexes); ++it)
     {
-      cuts_after_regexes_.push_back(boost::regex(*it));
+      cuts_after_regexes_.emplace_back(*it);
     }
     for (auto it = std::begin(CBregexes); it != std::end(CBregexes); ++it)
     {
-      cuts_before_regexes_.push_back(boost::regex(*it));
+      cuts_before_regexes_.emplace_back(*it);
     }
   }
 

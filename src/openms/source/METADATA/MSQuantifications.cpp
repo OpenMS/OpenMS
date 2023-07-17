@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -34,6 +34,10 @@
 
 #include <OpenMS/METADATA/MSQuantifications.h>
 
+#include <OpenMS/CONCEPT/UniqueIdGenerator.h>
+
+#include <utility>
+
 using namespace std;
 
 namespace OpenMS
@@ -41,7 +45,7 @@ namespace OpenMS
   const std::string MSQuantifications::NamesOfQuantTypes[] = {"MS1LABEL", "MS2LABEL", "LABELFREE"};
 
   /// Detailed Constructor
-  MSQuantifications::MSQuantifications(FeatureMap fm, ExperimentalSettings& es, std::vector<DataProcessing>& dps, std::vector<std::vector<std::pair<String, double> > > label) :
+  MSQuantifications::MSQuantifications(const FeatureMap& fm, ExperimentalSettings& es, std::vector<DataProcessing>& dps, std::vector<std::vector<std::pair<String, double> > > label) :
     ExperimentalSettings()
   {
     MSQuantifications::QUANT_TYPES quant_type = MSQuantifications::LABELFREE;
@@ -49,15 +53,13 @@ namespace OpenMS
 
     //~ AssayList,InputFiles,SoftwareList
     //~ aus exp.
-    this->registerExperiment(es,dps,label);
+    this->registerExperiment(es,dps,std::move(label));
     
     this->setDataProcessingList(fm.getDataProcessing()); //TODO add dp from experiment (i.e. mzml) ?
     feature_maps_  = std::vector<FeatureMap > (1,fm);
   }
 
-  MSQuantifications::~MSQuantifications()
-  {
-  }
+  MSQuantifications::~MSQuantifications() = default;
 
   /// Equality operator
   bool MSQuantifications::operator==(const MSQuantifications & rhs) const
@@ -71,7 +73,7 @@ namespace OpenMS
     return !(operator==(rhs));
   }
 
-  void MSQuantifications::setDataProcessingList(std::vector<DataProcessing> & dpl)
+  void MSQuantifications::setDataProcessingList(const std::vector<DataProcessing> & dpl)
   {
     data_processings_ = dpl;
   }

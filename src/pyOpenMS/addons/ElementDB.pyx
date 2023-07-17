@@ -1,10 +1,10 @@
 
 
     # NOTE: using shared_ptr for a singleton will lead to segfaults, use raw ptr instead
-    # cdef AutowrapConstPtrHolder[_ElementDB] inst
+    # cdef AutowrapPtrHolder[_ElementDB] inst
 
     def __init__(self):
-      self.inst = AutowrapConstPtrHolder[_ElementDB](_getInstance_ElementDB())
+      self.inst = AutowrapPtrHolder[_ElementDB](_getInstance_ElementDB())
 
     def __dealloc__(self):
       # Careful here, the wrapped ptr is a single instance and we should not

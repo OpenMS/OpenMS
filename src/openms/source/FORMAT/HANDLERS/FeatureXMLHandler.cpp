@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -34,13 +34,15 @@
 
 #include <OpenMS/FORMAT/HANDLERS/FeatureXMLHandler.h>
 
-#include <OpenMS/KERNEL/FeatureMap.h>
-#include <OpenMS/FORMAT/IdXMLFile.h>
-#include <OpenMS/METADATA/DataProcessing.h>
 #include <OpenMS/CHEMISTRY/ProteaseDB.h>
+#include <OpenMS/CONCEPT/UniqueIdGenerator.h>
 #include <OpenMS/FORMAT/FileHandler.h>
+#include <OpenMS/FORMAT/IdXMLFile.h>
+#include <OpenMS/KERNEL/FeatureMap.h>
+#include <OpenMS/METADATA/DataProcessing.h>
 
 #include <fstream>
+#include <map>
 
 using namespace std;
 
@@ -61,9 +63,7 @@ namespace OpenMS::Internal
     cmap_ = &map;
     file_ = filename;
   }
-  FeatureXMLHandler::~FeatureXMLHandler()
-  {
-  }
+  FeatureXMLHandler::~FeatureXMLHandler() = default;
 
   void FeatureXMLHandler::resetMembers_()
   {
@@ -472,7 +472,7 @@ namespace OpenMS::Internal
         // Note: technically, it would be preferable to prefix the UID for faster string comparison, but this results in random write-orderings during file store (breaks tests)
         String identifier = prot_id_.getSearchEngine() + '_' + attributeAsString_(attributes, "date") + '_' + String(UniqueIdGenerator::getUniqueId());
 
-        if (!id_identifier_.has(id))
+        if (id_identifier_.find(id) == id_identifier_.end())
         {
           prot_id_.setIdentifier(identifier);
           id_identifier_[id] = identifier;
@@ -572,7 +572,7 @@ namespace OpenMS::Internal
     else if (tag == "PeptideIdentification" || tag == "UnassignedPeptideIdentification")
     {
       String id = attributeAsString_(attributes, "identification_run_ref");
-      if (!id_identifier_.has(id))
+      if (id_identifier_.find(id) == id_identifier_.end())
       {
         warning(LOAD, String("Peptide identification without ProteinIdentification found (id: '") + id + "')!");
       }
@@ -637,7 +637,7 @@ namespace OpenMS::Internal
         }
         for (vector<String>::const_iterator it = accessions.begin(); it != accessions.end(); ++it)
         {
-          Map<String, String>::const_iterator it2 = proteinid_to_accession_.find(*it);
+          std::map<String, String>::const_iterator it2 = proteinid_to_accession_.find(*it);
           if (it2 != proteinid_to_accession_.end())
           {
             PeptideEvidence pe;
@@ -662,7 +662,7 @@ namespace OpenMS::Internal
         { 
           if (peptide_evidences_.size() < i + 1) 
           {
-            peptide_evidences_.push_back(PeptideEvidence());
+            peptide_evidences_.emplace_back();
           }
           peptide_evidences_[i].setAABefore(splitted[i][0]);
         }
@@ -679,7 +679,7 @@ namespace OpenMS::Internal
         { 
           if (peptide_evidences_.size() < i + 1) 
           {
-            peptide_evidences_.push_back(PeptideEvidence());
+            peptide_evidences_.emplace_back();
           }
           peptide_evidences_[i].setAAAfter(splitted[i][0]);
         }
@@ -697,7 +697,7 @@ namespace OpenMS::Internal
         { 
           if (peptide_evidences_.size() < i + 1) 
           {
-            peptide_evidences_.push_back(PeptideEvidence());
+            peptide_evidences_.emplace_back();
           }
           peptide_evidences_[i].setStart(splitted[i].toInt());
         }
@@ -714,7 +714,7 @@ namespace OpenMS::Internal
         { 
           if (peptide_evidences_.size() < i + 1) 
           {
-            peptide_evidences_.push_back(PeptideEvidence());
+            peptide_evidences_.emplace_back();
           }
           peptide_evidences_[i].setEnd(splitted[i].toInt());
         }
@@ -978,7 +978,7 @@ namespace OpenMS::Internal
   {
     String indent = String(indentation_level, '\t');
 
-    if (!identifier_id_.has(id.getIdentifier()))
+    if (identifier_id_.find(id.getIdentifier()) == identifier_id_.end())
     {
       warning(STORE, String("Omitting peptide identification because of missing ProteinIdentification with identifier '") + id.getIdentifier() + "' while writing '" + filename + "'!");
       return;
@@ -1114,7 +1114,7 @@ namespace OpenMS::Internal
     }
     if (create)
     {
-      f1->getSubordinates().push_back(Feature());
+      f1->getSubordinates().emplace_back();
       current_feature_ = &f1->getSubordinates().back();
       last_meta_ = &f1->getSubordinates().back();
       return;

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -66,9 +66,9 @@ using namespace std;
 <CENTER>
     <table>
         <tr>
-            <td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. predecessor tools </td>
-            <td VALIGN="middle" ROWSPAN=2> \f$ \longrightarrow \f$ MascotAdapterOnline \f$ \longrightarrow \f$</td>
-            <td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. successor tools </td>
+            <th ALIGN = "center"> pot. predecessor tools </td>
+            <td VALIGN="middle" ROWSPAN=2> &rarr; MascotAdapterOnline &rarr;</td>
+            <th ALIGN = "center"> pot. successor tools </td>
         </tr>
         <tr>
             <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> any signal-/preprocessing tool @n (that writes mzML format)</td>
@@ -269,7 +269,7 @@ protected:
     FileHandler fh;
     fh.getOptions().setMSLevels({2});
     fh.loadExperiment(in, exp, FileTypes::Type::MZML, log_type_, false, false);
-    writeLog_("Number of spectra loaded: " + String(exp.size()));
+    writeLogInfo_("Number of spectra loaded: " + String(exp.size()));
 
 
     //-------------------------------------------------------------
@@ -350,13 +350,13 @@ protected:
 
       QObject::connect(mascot_query, SIGNAL(done()), &event_loop, SLOT(quit()));
       QTimer::singleShot(1000, mascot_query, SLOT(run()));
-      writeLog_("Submitting Mascot query (now: " + DateTime::now().get() + ")...");
+      writeLogInfo_("Submitting Mascot query (now: " + DateTime::now().get() + ")...");
       event_loop.exec();
-      writeLog_("Mascot query finished");
+      writeLogInfo_("Mascot query finished");
 
       if (mascot_query->hasError())
       {
-        writeLog_("An error occurred during the query: " + mascot_query->getErrorMessage());
+        writeLogError_("An error occurred during the query: " + mascot_query->getErrorMessage());
         delete mascot_query;
         return EXTERNAL_PROGRAM_ERROR;
       }
@@ -424,7 +424,7 @@ protected:
       String search_number = mascot_query->getSearchIdentifier();
       if (search_number.empty())
       {
-        writeLog_("Error: Failed to extract the Mascot search identifier (search number).");
+        writeLogError_("Error: Failed to extract the Mascot search identifier (search number).");
         if (mascot_query_param.exists("skip_export") &&
             mascot_query_param.getValue("skip_export").toBool())
         {

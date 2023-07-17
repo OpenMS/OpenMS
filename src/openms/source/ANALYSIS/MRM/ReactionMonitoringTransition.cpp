@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -35,6 +35,8 @@
 #include <OpenMS/ANALYSIS/MRM/ReactionMonitoringTransition.h>
 
 #include <OpenMS/CONCEPT/Helpers.h>
+
+#include <utility>
 
 namespace OpenMS
 {
@@ -300,7 +302,7 @@ namespace OpenMS
     return intermediate_products_;
   }
 
-  void ReactionMonitoringTransition::addIntermediateProduct(ReactionMonitoringTransition::Product product)
+  void ReactionMonitoringTransition::addIntermediateProduct(const ReactionMonitoringTransition::Product& product)
   {
     intermediate_products_.push_back(product);
   }
@@ -312,7 +314,7 @@ namespace OpenMS
 
   void ReactionMonitoringTransition::setProduct(ReactionMonitoringTransition::Product product)
   {
-    product_ = product;
+    product_ = std::move(product);
   }
 
   const ReactionMonitoringTransition::Product & ReactionMonitoringTransition::getProduct() const
@@ -322,7 +324,7 @@ namespace OpenMS
 
   void ReactionMonitoringTransition::setRetentionTime(ReactionMonitoringTransition::RetentionTime rt)
   {
-    rts = rt;
+    rts = std::move(rt);
   }
 
   const ReactionMonitoringTransition::RetentionTime & ReactionMonitoringTransition::getRetentionTime() const

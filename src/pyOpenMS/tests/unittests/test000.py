@@ -236,7 +236,7 @@ def testAASequence():
         print("Error: Exception not triggered.")
         assert False
     assert seq.getFormula(pyopenms.Residue.ResidueType.Full, 0) == pyopenms.EmpiricalFormula("C75H122N20O32S2Se1")
-    assert abs(seq.getMonoWeight(pyopenms.Residue.ResidueType.Full, 0) - 1952.7200317517998) < 1e-5
+    assert abs(seq.getMonoWeight(pyopenms.Residue.ResidueType.Full, 0) - 1958.7140766518) < 1e-5
     # assert seq.has(pyopenms.ResidueDB.getResidue("P"))
 
     
@@ -2137,13 +2137,13 @@ def testFeatureXMLFile():
     assert fm.get_df(meta_values='all', export_peptide_identifications=False).shape == (2, 12)
 
     assert pd.merge(fm.get_df(), pyopenms.peptide_identifications_to_df(fm.get_assigned_peptide_identifications()),
-                on = ['feature_id', 'ID_native_id', 'ID_filename']).shape == (2,22)
+                on = ['feature_id', 'ID_native_id', 'ID_filename']).shape == (2,24)
 
     fm = pyopenms.FeatureMap()
     pyopenms.FeatureXMLFile().load(os.path.join(os.environ['OPENMS_DATA_PATH'], 'examples/FRACTIONS/BSA1_F1_idmapped.featureXML'), fm)
 
     assert pd.merge(fm.get_df(), pyopenms.peptide_identifications_to_df(fm.get_assigned_peptide_identifications()),
-                    on = ['feature_id', 'ID_native_id', 'ID_filename']).shape == (15,24)
+                    on = ['feature_id', 'ID_native_id', 'ID_filename']).shape == (15,26)
 
     fh = pyopenms.FeatureXMLFile()
     fh.store("test.featureXML", fm)
@@ -2260,6 +2260,7 @@ def testIdXMLFile():
 
 @report
 def test_peptide_identifications_to_df():
+    # convert to dataframe
     peps = []
 
     p = pyopenms.PeptideIdentification()
@@ -2296,10 +2297,16 @@ def test_peptide_identifications_to_df():
 
     peps.append(p1)
 
-    assert pyopenms.peptide_identifications_to_df(peps).shape == (2,10)
-    assert pyopenms.peptide_identifications_to_df(peps, decode_ontology=False).shape == (2,10)
+    assert pyopenms.peptide_identifications_to_df(peps).shape == (2,12)
+    assert pyopenms.peptide_identifications_to_df(peps, decode_ontology=False).shape == (2,12)
     assert pyopenms.peptide_identifications_to_df(peps)['protein_accession'][0] == 'sp|Accession1,sp|Accession2'
-    assert pyopenms.peptide_identifications_to_df(peps, export_unidentified=False).shape == (1,10)
+    assert pyopenms.peptide_identifications_to_df(peps, export_unidentified=False).shape == (1,12)
+
+    # update from dataframe
+    df = pyopenms.peptide_identifications_to_df(peps)
+    df["ScoreType"][0] = 10.0
+    peps = pyopenms.update_scores_from_df(peps, df, "ScoreType")
+    assert peps[0].getHits()[0].getScore() == 10.0
 
 @report
 def testPepXMLFile():
@@ -2953,11 +2960,16 @@ def testMSExperiment():
     pyopenms.MzMLFile().load(os.path.join(os.environ['OPENMS_DATA_PATH'], 'examples/FRACTIONS/BSA1_F1.mzML'), exp)
 
     ms1_df, ms2_df = exp.get_massql_df()
-
     assert ms1_df.shape == (140055, 7)
-
     assert np.allclose(ms2_df.head(), pd.read_csv(os.path.join(os.environ['OPENMS_DATA_PATH'], 'examples/FRACTIONS/BSA1_F1_MS2_MassQL.tsv'), sep='\t'))
 
+    pyopenms.MzMLFile().load(os.path.join(os.environ['OPENMS_DATA_PATH'], 'examples/FRACTIONS/BSA1_F1_ION.mzML'), exp)
+    df = exp.get_ion_df()
+    assert np.allclose(df.head(), pd.read_csv(os.path.join(os.environ['OPENMS_DATA_PATH'], 'examples/FRACTIONS/BSA1_F1_MS1_ION.tsv'), sep='\t'))
+
+    ms1_df, ms2_df = exp.get_massql_df(ion_mobility=True)
+    assert ms1_df.shape == (332620, 8)
+    assert np.allclose(ms1_df.head(), pd.read_csv(os.path.join(os.environ['OPENMS_DATA_PATH'], 'examples/FRACTIONS/BSA1_F1_MS1_MassQL_ION.tsv'), sep='\t'))
 
 @report
 def testMSQuantifications():
@@ -3226,6 +3238,59 @@ def testMSSpectrum():
     assert spec.getFloatDataArrays()[0][2] == 42.0
     assert len(f_da[0].get_data() ) == 3
 
+    spec = pyopenms.MSSpectrum()
+    dfunit = spec.getDriftTimeUnit()
+    assert pyopenms.DriftTimeUnit().getMapping()[dfunit]  == "NONE"
+    assert dfunit == pyopenms.DriftTimeUnit.NONE
+    assert spec.getDriftTimeUnitAsString() == '<NONE>'
+    spec.setDriftTimeUnit( pyopenms.DriftTimeUnit.MILLISECOND )
+
+    dfunit = spec.getDriftTimeUnit()
+    assert dfunit == pyopenms.DriftTimeUnit.MILLISECOND
+    assert pyopenms.DriftTimeUnit().getMapping()[dfunit]  == "MILLISECOND"
+    assert spec.getDriftTimeUnitAsString() == 'ms'
+
+    spec = pyopenms.MSSpectrum()
+    spec.setDriftTime(6.0)
+    assert spec.getDriftTime() == 6.0
+
+    spec = pyopenms.MSSpectrum()
+    assert not spec.containsIMData()
+    data = np.array( [5, 8, 42] ).astype(np.float32)
+    f_da = [ pyopenms.FloatDataArray() ]
+    f_da[0].set_data(data)
+    f_da[0].setName("Ion Mobility")
+    spec.setFloatDataArrays( f_da )
+    assert spec.containsIMData()
+    assert spec.getIMData()[0] == 0
+    f_da = [ pyopenms.FloatDataArray(), pyopenms.FloatDataArray() ]
+    f_da[0].setName("test")
+    f_da[0].set_data(data)
+    f_da[1].set_data(data)
+    f_da[1].setName("Ion Mobility")
+    spec.setFloatDataArrays( f_da )
+    assert spec.containsIMData()
+    assert spec.getIMData()[0] == 1
+
+    # Ensure that "set_peaks()" doesnt clear the float data arrays
+    spec = pyopenms.MSSpectrum()
+    data_mz = np.array( [5.0, 8.0] ).astype(np.float64)
+    data_i = np.array( [50.0, 80.0] ).astype(np.float32)
+    f_da = [ pyopenms.FloatDataArray() ]
+    f_da[0].set_data(data)
+    f_da[0].setName("Ion Mobility")
+    spec.setFloatDataArrays( f_da )
+    spec.set_peaks( [data_mz,data_i] )
+    assert spec.containsIMData()
+    assert spec.getIMData()[0] == 0
+    assert len(spec.getFloatDataArrays()) == 1
+
+    f = spec.getFloatDataArrays()[0]
+    assert len(f.get_data()) == 3
+    assert f.get_data()[0] == 5
+    assert spec.size() == len(data_mz)
+    assert spec.size() == len(data_i)
+
 @report
 def testStringDataArray():
     """
@@ -3424,6 +3489,31 @@ def testMSChromatogram():
     assert mz[1] == 8.0
     assert ii[0] == 50.0
     assert ii[1] == 80.0
+
+    # test float data
+    chrom = pyopenms.MSChromatogram()
+    data = np.array( [5, 8, 42] ).astype(np.float32)
+    f_da = [ pyopenms.FloatDataArray() ]
+    f_da[0].set_data(data)
+    f_da[0].setName("Test Data")
+    chrom.setFloatDataArrays( f_da )
+    assert len(chrom.getFloatDataArrays()) == 1
+    f = chrom.getFloatDataArrays()[0]
+    assert f.get_data()[0] == 5
+    assert f.getName() == "Test Data"
+
+    # Ensure that "set_peaks()" doesnt clear the float data arrays
+    chrom = pyopenms.MSChromatogram()
+    chrom.setFloatDataArrays( f_da )
+    chrom.set_peaks( [data_mz,data_i] )
+    assert len(chrom.getFloatDataArrays()) == 1
+
+    f = chrom.getFloatDataArrays()[0]
+    assert len(f.get_data()) == 3
+    assert f.get_data()[0] == 5
+    assert chrom.size() == len(data_mz)
+    assert chrom.size() == len(data_i)
+
 
 @report
 def testMRMFeature():
@@ -4576,8 +4666,8 @@ def testSpectrumSetting(s=pyopenms.SpectrumSettings()):
     """
 
     assert s.getType() in [ pyopenms.SpectrumSettings.SpectrumType.UNKNOWN,
-                               pyopenms.SpectrumSettings.SpectrumType.PEAKS,
-                               pyopenms.SpectrumSettings.SpectrumType.RAWDATA]
+                               pyopenms.SpectrumSettings.SpectrumType.CENTROID,
+                               pyopenms.SpectrumSettings.SpectrumType.PROFILE]
 
     assert isinstance(s.getAcquisitionInfo(), pyopenms.AcquisitionInfo)
     assert isinstance(s.getInstrumentSettings(), pyopenms.InstrumentSettings)
@@ -4777,7 +4867,7 @@ def testVersion():
      VersionInfo.getRevision
      VersionInfo.getTime
      VersionInfo.getVersion
-     version.version
+     __version__
     """
     _testStrOutput(pyopenms.VersionInfo.getVersion())
     _testStrOutput(pyopenms.VersionInfo.getRevision())
@@ -4798,7 +4888,7 @@ def testVersion():
     assert not vd < vd
     assert not vd > vd
 
-    assert isinstance(pyopenms.version.version, str)
+    assert isinstance(pyopenms.__version__, str)
 
 @report
 def testInspectInfile():
@@ -5173,6 +5263,26 @@ def testElementDB():
     assert e2.getSymbol() == "O"
     assert e2.getIsotopeDistribution()
 
+    # assume we discovered a new element
+    e2 = edb.addElement(b"NewElement", b"NE", 300, {400 : 1.0}, {400 : 400.1}, False)
+    e2 = edb.getElement(pyopenms.String("NE"))
+    assert e2.getName() == "NewElement"
+
+    # changing existing elements in tests might have side effects so we define a new element
+    # add first new element
+    e2 = edb.addElement(b"Kryptonite", b"@", 500, {999 : 0.7, 1000 : 0.3}, {999 : 999.01, 1000 : 1000.01}, False)
+    e2 = edb.getElement(pyopenms.String("@"))
+    assert e2.getName() == "Kryptonite"
+    assert e2.getIsotopeDistribution()
+    assert len(e2.getIsotopeDistribution().getContainer()) == 2
+    assert abs(e2.getIsotopeDistribution().getContainer()[1].getIntensity() - 0.3) < 1e-5
+    # replace element
+    e2 = edb.addElement(b"Kryptonite", b"@", 500, {9999 : 1.0}, {9999 : 9999.1}, True)
+    e2 = edb.getElement(pyopenms.String("@"))
+    assert e2.getName() == "Kryptonite"
+    assert e2.getIsotopeDistribution()
+    assert len(e2.getIsotopeDistribution().getContainer()) == 1
+    assert abs(e2.getIsotopeDistribution().getContainer()[0].getIntensity() - 1.0) < 1e-5
     # assert e == e2
 
     #  not yet implemented
@@ -5388,8 +5498,8 @@ def testExperimentalDesign():
      ExperimentalDesign.getNumberOfLabels() == 4
      ExperimentalDesign.getNumberOfMSFiles() == 6
      ExperimentalDesign.getNumberOfFractionGroups() == 2
-     ExperimentalDesign.getSample(1, 1) == 1
-     ExperimentalDesign.getSample(2, 4) == 8
+     ExperimentalDesign.getSample(1, 1) == 0
+     ExperimentalDesign.getSample(2, 4) == 7
      ExperimentalDesign.isFractionated()
      ExperimentalDesign.sameNrOfMSFilesPerFraction()
 
@@ -5406,8 +5516,8 @@ def testExperimentalDesign():
     assert fourplex_fractionated_design.getNumberOfLabels() == 4
     assert fourplex_fractionated_design.getNumberOfMSFiles() == 6
     assert fourplex_fractionated_design.getNumberOfFractionGroups() == 2
-    assert fourplex_fractionated_design.getSample(1, 1) == 1
-    assert fourplex_fractionated_design.getSample(2, 4) == 8
+    assert fourplex_fractionated_design.getSample(1, 1) == 0
+    assert fourplex_fractionated_design.getSample(2, 4) == 7
     assert fourplex_fractionated_design.isFractionated()
     assert fourplex_fractionated_design.sameNrOfMSFilesPerFraction()
  
@@ -5516,5 +5626,59 @@ def testString():
     # assert( isinstance(r, bytes) )
     assert(r.decode("iso8859_15") == u"bläh")
 
-
+@report
+def testGNPSExport():
+    cm = pyopenms.ConsensusMap()
     
+    for mz, rt, ion, linked_groups in [(222.08, 62.0, "[M+H]+", ["1","2","3"]),
+                                        (244.08, 62.0, "[M+Na]+", ["1","2"]),
+                                        (204.08, 62.0, "[M-H-O]+", ["3"]),
+                                        (294.1, 62.0, "[M+H]+", ["4","5"])]:
+        f = pyopenms.ConsensusFeature()
+        f.setMZ(mz)
+        f.setRT(rt)
+        f.setCharge(1)
+        f.setQuality(2.0)
+        f.setMetaValue("best ion", ion)
+        f.setMetaValue("LinkedGroups", linked_groups)
+        cm.push_back(f)
+    cm.setUniqueIds()
+
+    pyopenms.IonIdentityMolecularNetworking.annotateConsensusMap(cm)
+
+    pyopenms.IonIdentityMolecularNetworking.writeSupplementaryPairTable(cm, "SupplementaryPairsTable.csv")
+
+    with open("SupplementaryPairsTable.csv", "r") as f:
+        assert f.read() == """ID1,ID2,EdgeType,Score,Annotation
+1,2,MS1 annotation,1,[M+H]+ [M+Na]+ dm/z=22.0
+1,3,MS1 annotation,1,[M+H]+ [M-H-O]+ dm/z=18.0
+"""
+    os.remove("SupplementaryPairsTable.csv")
+
+    pyopenms.GNPSQuantificationFile().store(cm, "FeatureQuantificationTable.txt")
+    with open("FeatureQuantificationTable.txt", "r") as f:
+        assert f.read() == """#MAP	id	filename	label	size
+#CONSENSUS	rt_cf	mz_cf	intensity_cf	charge_cf	width_cf	quality_cf	row ID	best ion	partners	annotation network number
+CONSENSUS	62.0	222.080000000000013	0.0	1	0.0	2.0	1	[M+H]+	2;3	1
+CONSENSUS	62.0	244.080000000000013	0.0	1	0.0	2.0	2	[M+Na]+	1	1
+CONSENSUS	62.0	204.080000000000013	0.0	1	0.0	2.0	3	[M-H-O]+	1	1
+CONSENSUS	62.0	294.100000000000023	0.0	1	0.0	2.0	4	[M+H]+		2
+"""
+    os.remove("FeatureQuantificationTable.txt")
+
+    # add mandatory file descriptions
+    file_descriptions = {}
+    for i, filename in enumerate(["1.mzML", "2.mzML"]):
+        file_description = pyopenms.ColumnHeader()
+        file_description.filename = filename
+        file_descriptions[i] = file_description
+    cm.setColumnHeaders(file_descriptions)
+
+    pyopenms.GNPSMetaValueFile().store(cm, "MetaValueTable.tsv")
+    with open("MetaValueTable.tsv", "r") as f:
+        assert f.read() == """	filename	ATTRIBUTE_MAPID
+0	1.mzML	MAP0
+1	2.mzML	MAP1
+"""
+    os.remove("MetaValueTable.tsv")
+

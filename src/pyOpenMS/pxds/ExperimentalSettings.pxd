@@ -14,12 +14,12 @@ cdef extern from "<OpenMS/METADATA/ExperimentalSettings.h>" namespace "OpenMS":
 
     cdef cppclass ExperimentalSettings(MetaInfoInterface, DocumentIdentifier):
         # wrap-inherits:
-        #    DocumentIdentifier
-        #    MetaInfoInterface
+        #   DocumentIdentifier
+        #   MetaInfoInterface
         #
         # wrap-doc:
-        #   Description of the experimental settings, provides meta-information
-        #   about an LC-MS/MS injection.
+        #  Description of the experimental settings, provides meta-information
+        #  about an LC-MS/MS injection.
 
         ExperimentalSettings() nogil except +
         ExperimentalSettings(ExperimentalSettings &) nogil except +

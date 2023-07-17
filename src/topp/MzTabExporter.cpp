@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -37,6 +37,7 @@
 #include <OpenMS/DATASTRUCTURES/StringListUtils.h>
 #include <OpenMS/MATH/MISC/MathFunctions.h>
 #include <OpenMS/KERNEL/ConsensusMap.h>
+#include <OpenMS/FILTERING/ID/IDFilter.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/FileTypes.h>
 #include <OpenMS/FORMAT/ConsensusXMLFile.h>
@@ -69,9 +70,9 @@ using namespace std;
   <CENTER>
     <table>
      <tr>
-      <td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. predecessor tools </td>
-         <td VALIGN="middle" ROWSPAN=2> \f$ \longrightarrow \f$ MzTabExporter \f$ \longrightarrow \f$</td>
-     <td ALIGN = "center" BGCOLOR="#EBEBEB"> potential successor tools </td>
+      <th ALIGN = "center"> pot. predecessor tools </td>
+         <td VALIGN="middle" ROWSPAN=2> &rarr; MzTabExporter &rarr;</td>
+     <th ALIGN = "center"> potential successor tools </td>
     </tr>
     <tr>
       <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> Any tool producing one of the input formats </td>
@@ -216,6 +217,7 @@ protected:
         ConsensusMap consensus_map;
         ConsensusXMLFile c;
         c.load(in, consensus_map);
+        IDFilter::removeEmptyIdentifications(consensus_map); // MzTab stream exporter currently doesn't support IDs with empty hits.
         MzTabFile().store(out,
            consensus_map,
            getFlag_("first_run_inference_only"), 

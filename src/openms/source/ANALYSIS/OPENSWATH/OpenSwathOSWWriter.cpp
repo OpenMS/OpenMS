@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -82,6 +82,8 @@ namespace OpenMS
       "FEATURE_ID INT NOT NULL," \
       "AREA_INTENSITY REAL NOT NULL," \
       "APEX_INTENSITY REAL NOT NULL," \
+      "EXP_IM REAL," \
+      "DELTA_IM REAL," \
       "VAR_MASSDEV_SCORE REAL NULL," \
       "VAR_MI_SCORE REAL NULL," \
       "VAR_MI_CONTRAST_SCORE REAL NULL," \
@@ -102,6 +104,8 @@ namespace OpenMS
       "AREA_INTENSITY REAL NOT NULL," \
       "TOTAL_AREA_INTENSITY REAL NOT NULL," \
       "APEX_INTENSITY REAL NOT NULL," \
+      "EXP_IM REAL," \
+      "DELTA_IM REAL," \
       "TOTAL_MI REAL NULL," \
       "VAR_BSERIES_SCORE REAL NULL," \
       "VAR_DOTPROD_SCORE REAL NULL," \
@@ -179,7 +183,7 @@ namespace OpenMS
     conn.executeStatement(sql_run.str());
   }
 
-  String OpenSwathOSWWriter::getScore(const Feature& feature, std::string score_name) const
+  String OpenSwathOSWWriter::getScore(const Feature& feature, const std::string& score_name) const
   {
     String score = "NULL";
     if (!feature.getMetaValue(score_name).isEmpty())
@@ -192,7 +196,7 @@ namespace OpenMS
     return score;
   }
 
-  std::vector<String> OpenSwathOSWWriter::getSeparateScore(const Feature& feature, std::string score_name) const
+  std::vector<String> OpenSwathOSWWriter::getSeparateScore(const Feature& feature, const std::string& score_name) const
   {
     std::vector<String> separated_scores;
 
@@ -280,7 +284,7 @@ namespace OpenMS
                   << feature_it.getMetaValue("rightWidth") << "); ";
 
       sql_feature_ms2 << "INSERT INTO FEATURE_MS2 " \
-        "(FEATURE_ID, AREA_INTENSITY, TOTAL_AREA_INTENSITY, APEX_INTENSITY, TOTAL_MI, "\
+        "(FEATURE_ID, AREA_INTENSITY, TOTAL_AREA_INTENSITY, APEX_INTENSITY, EXP_IM, DELTA_IM, TOTAL_MI, "\
         "VAR_BSERIES_SCORE, VAR_DOTPROD_SCORE, VAR_INTENSITY_SCORE, " \
         "VAR_ISOTOPE_CORRELATION_SCORE, VAR_ISOTOPE_OVERLAP_SCORE, VAR_LIBRARY_CORR,  "\
         "VAR_LIBRARY_DOTPROD, VAR_LIBRARY_MANHATTAN, VAR_LIBRARY_RMSD, VAR_LIBRARY_ROOTMEANSQUARE, "\
@@ -288,13 +292,15 @@ namespace OpenMS
         "VAR_MI_SCORE, VAR_MI_WEIGHTED_SCORE, VAR_MI_RATIO_SCORE, VAR_NORM_RT_SCORE, "\
         "VAR_XCORR_COELUTION,VAR_XCORR_COELUTION_WEIGHTED, VAR_XCORR_SHAPE, "\
         "VAR_XCORR_SHAPE_WEIGHTED, VAR_YSERIES_SCORE, VAR_ELUTION_MODEL_FIT_SCORE, "\
-        "VAR_IM_XCORR_SHAPE, VAR_IM_XCORR_COELUTION, VAR_IM_DELTA_SCORE, " \
-        "VAR_SONAR_LAG, VAR_SONAR_SHAPE, VAR_SONAR_LOG_SN, VAR_SONAR_LOG_DIFF, VAR_SONAR_LOG_TREND, VAR_SONAR_RSQ "\
-        ") VALUES ("
+        "VAR_IM_XCORR_SHAPE, VAR_IM_XCORR_COELUTION, VAR_IM_DELTA_SCORE"
+        << (sonar_ ? ", VAR_SONAR_LAG, VAR_SONAR_SHAPE, VAR_SONAR_LOG_SN, VAR_SONAR_LOG_DIFF, VAR_SONAR_LOG_TREND, VAR_SONAR_RSQ " : "")
+        << ") VALUES ("
                       << feature_id << ", "
                       << feature_it.getIntensity() << ", "
                       << getScore(feature_it, "total_xic") << ", "
                       << getScore(feature_it, "peak_apices_sum") << ", "
+                      << getScore(feature_it, "im_drift") << ", "
+                      << getScore(feature_it, "im_delta") << ", "
                       << getScore(feature_it, "total_mi") << ", "
                       << getScore(feature_it, "var_bseries_score") << ", "
                       << getScore(feature_it, "var_dotprod_score") << ", "
@@ -323,18 +329,21 @@ namespace OpenMS
                       << getScore(feature_it, "var_elution_model_fit_score") << ", "
                       << getScore(feature_it, "var_im_xcorr_shape") << ", "
                       << getScore(feature_it, "var_im_xcorr_coelution") << ", "
-                      << getScore(feature_it, "var_im_delta_score") << ", "
-                      << getScore(feature_it, "var_sonar_lag") << ", "
-                      << getScore(feature_it, "var_sonar_shape") << ", "
-                      << getScore(feature_it, "var_sonar_log_sn") << ", "
-                      << getScore(feature_it, "var_sonar_log_diff") << ", "
-                      << getScore(feature_it, "var_sonar_log_trend") << ", "
-                      << getScore(feature_it, "var_sonar_rsq") << "); ";
+                      << getScore(feature_it, "var_im_delta_score");
+      if (sonar_) {
+        sql_feature_ms2 << ", " << getScore(feature_it, "var_sonar_lag")
+                        << ", " << getScore(feature_it, "var_sonar_shape")
+                        << ", " << getScore(feature_it, "var_sonar_log_sn")
+                        << ", " << getScore(feature_it, "var_sonar_log_diff")
+                        << ", " << getScore(feature_it, "var_sonar_log_trend")
+                        << ", " << getScore(feature_it, "var_sonar_rsq");
+      }
+      sql_feature_ms2 << "); ";
 
       if (use_ms1_traces_)
       {
         sql_feature_ms1 << "INSERT INTO FEATURE_MS1 "\
-          "(FEATURE_ID, AREA_INTENSITY, APEX_INTENSITY, "\
+          "(FEATURE_ID, AREA_INTENSITY, APEX_INTENSITY, EXP_IM, DELTA_IM, "\
           " VAR_MASSDEV_SCORE, VAR_IM_MS1_DELTA_SCORE, "\
           " VAR_MI_SCORE, VAR_MI_CONTRAST_SCORE, VAR_MI_COMBINED_SCORE, VAR_ISOTOPE_CORRELATION_SCORE, "\
           " VAR_ISOTOPE_OVERLAP_SCORE, VAR_XCORR_COELUTION, VAR_XCORR_COELUTION_CONTRAST, "\
@@ -343,6 +352,8 @@ namespace OpenMS
                         << feature_id << ", "
                         << getScore(feature_it, "ms1_area_intensity") << ", "
                         << getScore(feature_it, "ms1_apex_intensity") << ", "
+                        << getScore(feature_it, "im_ms1_drift") << ", "
+                        << getScore(feature_it, "im_ms1_delta") << ", "
                         << getScore(feature_it, "var_ms1_ppm_diff") << ", "
                         << getScore(feature_it, "var_im_ms1_delta_score") << ", "
                         << getScore(feature_it, "var_ms1_mi_score") << ", "

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -45,14 +45,9 @@ using namespace std;
 
 namespace OpenMS
 {
-  ConsensusMapNormalizerAlgorithmMedian::ConsensusMapNormalizerAlgorithmMedian()
-  {
-  }
+  ConsensusMapNormalizerAlgorithmMedian::ConsensusMapNormalizerAlgorithmMedian() = default;
 
-  ConsensusMapNormalizerAlgorithmMedian::~ConsensusMapNormalizerAlgorithmMedian()
-  {
-
-  }
+  ConsensusMapNormalizerAlgorithmMedian::~ConsensusMapNormalizerAlgorithmMedian() = default;
 
   Size ConsensusMapNormalizerAlgorithmMedian::computeMedians(const ConsensusMap & map, vector<double>& medians, const String& acc_filter, const String& desc_filter)
   {

@@ -9,7 +9,7 @@ from String cimport *
 cdef extern from "<OpenMS/ANALYSIS/QUANTITATION/ProteinResolver.h>" namespace "OpenMS":
     cdef cppclass ProteinResolver(DefaultParamHandler):
         # wrap-inherits:
-        #    DefaultParamHandler
+        #   DefaultParamHandler
 
         ProteinResolver() nogil except +
         ProteinResolver(ProteinResolver &) nogil except +
@@ -117,7 +117,7 @@ cdef extern from "<OpenMS/ANALYSIS/QUANTITATION/ProteinResolver.h>" namespace "O
 
     cdef enum ProteinEntry_type "OpenMS::ProteinResolver::ProteinEntry::type":
         #wrap-attach:
-        #    ProteinEntry
+        #   ProteinEntry
 
         primary
         secondary

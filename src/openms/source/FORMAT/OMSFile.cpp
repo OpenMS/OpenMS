@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -36,6 +36,8 @@
 #include <OpenMS/FORMAT/OMSFileLoad.h>
 #include <OpenMS/FORMAT/OMSFileStore.h>
 
+#include <fstream>
+
 using namespace std;
 
 using ID = OpenMS::IdentificationData;
@@ -54,6 +56,12 @@ namespace OpenMS
     helper.store(features);
   }
 
+  void OMSFile::store(const String& filename, const ConsensusMap& consensus)
+  {
+    OpenMS::Internal::OMSFileStore helper(filename, log_type_);
+    helper.store(consensus);
+  }
+
   void OMSFile::load(const String& filename, IdentificationData& id_data)
   {
     OpenMS::Internal::OMSFileLoad helper(filename, log_type_);
@@ -65,4 +73,25 @@ namespace OpenMS
     OpenMS::Internal::OMSFileLoad helper(filename, log_type_);
     helper.load(features);
   }
+
+  void OMSFile::load(const String& filename, ConsensusMap& consensus)
+  {
+    OpenMS::Internal::OMSFileLoad helper(filename, log_type_);
+    helper.load(consensus);
+  }
+
+  void OMSFile::exportToJSON(const String& filename_in, const String& filename_out)
+  {
+    OpenMS::Internal::OMSFileLoad helper(filename_in, log_type_);
+    ofstream output(filename_out.c_str());
+    if (output.is_open())
+    {
+      helper.exportToJSON(output);
+    }
+    else
+    {
+      throw Exception::FileNotWritable(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, filename_out);
+    }
+  }
+
 }

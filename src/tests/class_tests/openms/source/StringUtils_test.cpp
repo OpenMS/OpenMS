@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry               
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 // 
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -217,20 +217,48 @@ START_SECTION((static QString toQString(const String &this_s)))
 }
 END_SECTION
 
-START_SECTION((static Int toInt(const String &this_s)))
+
+START_SECTION((static Int32 toInt32(const String &this_s)))
 {
   // easy case
-  TEST_EQUAL(StringUtils::toInt("1234"), 1234)
+  TEST_EQUAL(StringUtils::toInt32("2147483647"), 2147483647)
   // with spaces (allowed)
-  TEST_EQUAL(StringUtils::toInt("  1234"), 1234)
-  TEST_EQUAL(StringUtils::toInt("1234 "), 1234)
-  TEST_EQUAL(StringUtils::toInt("   1234  "), 1234)
+  TEST_EQUAL(StringUtils::toInt32("  2147483647"), 2147483647)
+  TEST_EQUAL(StringUtils::toInt32("2147483647 "), 2147483647)
+  TEST_EQUAL(StringUtils::toInt32("   2147483647  "), 2147483647)
+  //
+  TEST_EXCEPTION(Exception::ConversionError, StringUtils::toInt32("2147483648")) // +1 too large
+  TEST_EXCEPTION(Exception::ConversionError, StringUtils::toInt32("-2147483649")) // -1 too small
+
   // with trailing chars (unexplained) --> error (because it means the input was not split correctly beforehand)!!!
-  TEST_EXCEPTION(Exception::ConversionError, StringUtils::toInt("1234  moreText"))  // 'moreText' is not explained...
-  TEST_EXCEPTION(Exception::ConversionError, StringUtils::toInt(" 1234 911.0"))     // '911.0' is not explained...
+  TEST_EXCEPTION(Exception::ConversionError, StringUtils::toInt32("1234  moreText")) // 'moreText' is not explained...
+  TEST_EXCEPTION(Exception::ConversionError, StringUtils::toInt32(" 1234 911.0"))    // '911.0' is not explained...
   // incorrect type
-  TEST_EXCEPTION(Exception::ConversionError, StringUtils::toInt(" abc "))
-  TEST_EXCEPTION(Exception::ConversionError, StringUtils::toInt(" 123.45 "))
+  TEST_EXCEPTION(Exception::ConversionError, StringUtils::toInt32(" abc "))
+  TEST_EXCEPTION(Exception::ConversionError, StringUtils::toInt32(" 123.45 "))
+}
+END_SECTION
+
+
+
+START_SECTION((static Int64 toInt64(const String &this_s)))
+{
+  // easy case
+  TEST_EQUAL(StringUtils::toInt64("9223372036854775807"), 9223372036854775807)
+  // with spaces (allowed)
+  TEST_EQUAL(StringUtils::toInt64("  9223372036854775807"), 9223372036854775807)
+  TEST_EQUAL(StringUtils::toInt64("9223372036854775807 "), 9223372036854775807)
+  TEST_EQUAL(StringUtils::toInt64("   9223372036854775807  "), 9223372036854775807)
+  //
+  TEST_EXCEPTION(Exception::ConversionError, StringUtils::toInt64("9223372036854775808")) // +1 too large
+  TEST_EXCEPTION(Exception::ConversionError, StringUtils::toInt64("-9223372036854775809")) // -1 too small
+
+  // with trailing chars (unexplained) --> error (because it means the input was not split correctly beforehand)!!!
+  TEST_EXCEPTION(Exception::ConversionError, StringUtils::toInt64("1234  moreText"))  // 'moreText' is not explained...
+  TEST_EXCEPTION(Exception::ConversionError, StringUtils::toInt64(" 1234 911.0"))     // '911.0' is not explained...
+  // incorrect type
+  TEST_EXCEPTION(Exception::ConversionError, StringUtils::toInt64(" abc "))
+  TEST_EXCEPTION(Exception::ConversionError, StringUtils::toInt64(" 123.45 "))
 }
 END_SECTION
 

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2020.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -396,16 +396,13 @@ protected:
     {
       // vector is used to preserve the column order
       std::vector<String> names;
-      if (!rows.empty())
+      for (typename SectionRows::const_iterator it = rows.begin(); it != rows.end(); ++it)
       {
-        for (typename SectionRows::const_iterator it = rows.begin(); it != rows.end(); ++it)
+        for (auto it_opt = it->opt_.cbegin(); it_opt != it->opt_.cend(); ++it_opt)
         {
-          for (auto it_opt = it->opt_.cbegin(); it_opt != it->opt_.cend(); ++it_opt)
+          if (std::find(names.begin(), names.end(), it_opt->first) == names.end())
           {
-            if (std::find(names.begin(), names.end(), it_opt->first) == names.end())
-            {
-              names.push_back(it_opt->first);
-            }
+            names.push_back(it_opt->first);
           }
         }
       }

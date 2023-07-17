@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -129,7 +129,7 @@ namespace OpenMS
       */
       static String getCompressionTerm_(const PeakFileOptions& opt,
                                         MSNumpressCoder::NumpressConfig np_compression,
-                                        String indent = "",
+                                        const String& indent = "",
                                         bool use_numpress = false);
 
       /**
@@ -137,8 +137,8 @@ namespace OpenMS
 
         @param os The output stream
         @param options The PeakFileOptions used for writing
-        @param spectra_offsets Binary offsets of <spectrum> tags
-        @param chromatograms_offsets Binary offsets of <chromatogram> tags
+        @param spectra_offsets Binary offsets of &lt;spectrum&gt; tags
+        @param chromatograms_offsets Binary offsets of &lt;chromatogram&gt; tags
 
       */
       static void writeFooter_(std::ostream& os,

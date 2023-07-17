@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -36,6 +36,9 @@
 #include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
+#include <OpenMS/FORMAT/FileHandler.h>
+#include <OpenMS/FORMAT/MascotGenericFile.h>
+#include <OpenMS/FORMAT/MSPGenericFile.h>
 #include <OpenMS/FORMAT/MzTab.h>
 #include <OpenMS/FORMAT/MzTabFile.h>
 #include <OpenMS/SYSTEM/File.h>
@@ -59,9 +62,9 @@ using namespace std;
         <CENTER>
         <table>
         <tr>
-        <td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. predecessor tools </td>
-        <td VALIGN="middle" ROWSPAN=3> \f$ \longrightarrow \f$ MetaboliteSpectralMatcher \f$ \longrightarrow \f$</td>
-        <td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. successor tools </td>
+        <th ALIGN = "center"> pot. predecessor tools </td>
+        <td VALIGN="middle" ROWSPAN=3> &rarr; MetaboliteSpectralMatcher &rarr;</td>
+        <th ALIGN = "center"> pot. successor tools </td>
         </tr>
         <tr>
         <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_PeakPickerHiRes </td>
@@ -71,6 +74,9 @@ using namespace std;
         </tr>
         </table>
         </CENTER>
+
+        By default, MS2 spectra with similar precursor mass are merged before comparison with database spectra, for example when a mass at the beginning of the peak and on the peak apex is selected twice as precursor.
+        Merging can also have disadvantages, for example, for isobaric or isomeric compounds that have similar/same masses but can have different retention times and MS2 spectra.
 
         <B>The command line parameters of this tool are:</B>
         @verbinclude UTILS_MetaboliteSpectralMatcher.cli
@@ -97,9 +103,11 @@ protected:
     registerInputFile_("in", "<file>", "", "Input spectra.");
     setValidFormats_("in", ListUtils::create<String>("mzML"));
     registerInputFile_("database", "<file>", "", "Default spectral database.", true);
-    setValidFormats_("database", ListUtils::create<String>("mzML"));
+    setValidFormats_("database", {"mzML", "msp", "mgf"});
     registerOutputFile_("out", "<file>", "", "mzTab file");
     setValidFormats_("out", ListUtils::create<String>("mzTab"));
+    registerOutputFile_("out_spectra", "<file>", "", "Output spectra as mzML file. Can be useful to inspect the peak map after spectra merging.", false);
+    setValidFormats_("out_spectra", ListUtils::create<String>("mzML"));
 
     registerSubsection_("algorithm", "Algorithm parameters section");
   }
@@ -127,6 +135,7 @@ protected:
     }
 
     String out = getStringOption_("out");
+    String out_spectra = getStringOption_("out_spectra");
 
     //-------------------------------------------------------------
     // loading input
@@ -159,9 +168,21 @@ protected:
     //-------------------------------------------------------------
     // load database
     //-------------------------------------------------------------
+    FileTypes::Type database_type = FileHandler::getTypeByFileName(database);
 
     PeakMap spec_db;
-    mz_file.load(spec_db_filename, spec_db);
+    if (database_type == FileTypes::MSP)
+    {
+      MSPGenericFile().load(spec_db_filename, spec_db);
+    }
+    else if (database_type == FileTypes::MZML)
+    {
+      mz_file.load(spec_db_filename, spec_db);
+    }
+    else if (database_type == FileTypes::MGF)
+    {
+      MascotGenericFile().load(spec_db_filename, spec_db);
+    }
 
     if (spec_db.empty())
     {
@@ -174,7 +195,7 @@ protected:
     //-------------------------------------------------------------
     MetaboliteSpectralMatching msm;
     msm.setParameters(msm_param);
-    msm.run(ms_peakmap, spec_db, mztab_output);
+    msm.run(ms_peakmap, spec_db, mztab_output, out_spectra);
 
     //-------------------------------------------------------------
     // store results

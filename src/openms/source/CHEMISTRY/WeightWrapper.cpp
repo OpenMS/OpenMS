@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -33,6 +33,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/CHEMISTRY/WeightWrapper.h>
+#include <OpenMS/CONCEPT/Exception.h>
 
 namespace OpenMS
 {
@@ -47,14 +48,9 @@ namespace OpenMS
   {
   }
 
-  WeightWrapper::WeightWrapper(const WeightWrapper & source) :
-    weight_mode_(source.weight_mode_)
-  {
-  }
+  WeightWrapper::WeightWrapper(const WeightWrapper & source) = default;
 
-  WeightWrapper::~WeightWrapper()
-  {
-  }
+  WeightWrapper::~WeightWrapper() = default;
 
   void WeightWrapper::setWeightMode(const WEIGHTMODE mode)
   {

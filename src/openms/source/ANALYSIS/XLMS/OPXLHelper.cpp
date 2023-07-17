@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -40,6 +40,8 @@
 #include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/DATASTRUCTURES/ListUtilsIO.h>
 #include <OpenMS/DATASTRUCTURES/StringView.h>
+
+#include <utility>
 
 #ifdef _OPENMP
 #include <omp.h>
@@ -240,10 +242,10 @@ namespace OpenMS
 
   std::vector<OPXLDataStructs::AASeqWithMass> OPXLHelper::digestDatabase(
     vector<FASTAFile::FASTAEntry> fasta_db,
-    EnzymaticDigestion digestor,
+    const EnzymaticDigestion& digestor,
     Size min_peptide_length,
-    StringList cross_link_residue1,
-    StringList cross_link_residue2,
+    const StringList& cross_link_residue1,
+    const StringList& cross_link_residue2,
     const ModifiedPeptideGenerator::MapToResidueType& fixed_modifications,
     const ModifiedPeptideGenerator::MapToResidueType& variable_modifications,
     Size max_variable_mods_per_peptide)
@@ -372,7 +374,7 @@ namespace OpenMS
                                                                                 const DoubleList & cross_link_mass_mono_link,
                                                                                 const std::vector< double >& spectrum_precursor_vector,
                                                                                 const std::vector< double >& allowed_error_vector,
-                                                                                String cross_link_name)
+                                                                                const String& cross_link_name)
   {
     bool n_term_linker = false;
     bool c_term_linker = false;
@@ -1321,9 +1323,9 @@ namespace OpenMS
                                                                                                 bool precursor_mass_tolerance_unit_ppm,
                                                                                                 const vector<OPXLDataStructs::AASeqWithMass>& filtered_peptide_masses,
                                                                                                 double cross_link_mass,
-                                                                                                DoubleList cross_link_mass_mono_link,
-                                                                                                StringList cross_link_residue1,
-                                                                                                StringList cross_link_residue2,
+                                                                                                const DoubleList& cross_link_mass_mono_link,
+                                                                                                const StringList& cross_link_residue1,
+                                                                                                const StringList& cross_link_residue2,
                                                                                                 String cross_link_name,
                                                                                                 bool use_sequence_tags,
                                                                                                 const std::vector<std::string>& tags)
@@ -1380,11 +1382,11 @@ namespace OpenMS
     {
       precursor_corrections.push_back(precursor_correction_steps[precursor_correction_positions[pc]]);
     }
-    vector <OPXLDataStructs::ProteinProteinCrossLink> cross_link_candidates = OPXLHelper::buildCandidates(candidates, precursor_corrections, precursor_correction_positions, filtered_peptide_masses, cross_link_residue1, cross_link_residue2, cross_link_mass, cross_link_mass_mono_link, spectrum_precursor_vector, allowed_error_vector, cross_link_name);
+    vector <OPXLDataStructs::ProteinProteinCrossLink> cross_link_candidates = OPXLHelper::buildCandidates(candidates, precursor_corrections, precursor_correction_positions, filtered_peptide_masses, cross_link_residue1, cross_link_residue2, cross_link_mass, cross_link_mass_mono_link, spectrum_precursor_vector, allowed_error_vector, std::move(cross_link_name));
     return cross_link_candidates;
   }
 
-  double OPXLHelper::computePrecursorError(OPXLDataStructs::CrossLinkSpectrumMatch csm, double precursor_mz, int precursor_charge)
+  double OPXLHelper::computePrecursorError(const OPXLDataStructs::CrossLinkSpectrumMatch& csm, double precursor_mz, int precursor_charge)
   {
     // Error calculation
     double weight = csm.cross_link.alpha->getMonoWeight();

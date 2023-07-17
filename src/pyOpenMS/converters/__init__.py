@@ -9,7 +9,6 @@ def register_converters():
     special_converters.append(OpenMSIntListConverter())
     special_converters.append(OpenMSStringListConverter())
     special_converters.append(OpenMSDoubleListConverter())
-    special_converters.append(OpenMSMapConverter())
     special_converters.append(CVTermMapConverter())
     special_converters.append(OpenMSDataValue())
     special_converters.append(OpenMSParamValue())

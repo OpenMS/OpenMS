@@ -1,5 +1,6 @@
 set(concept_executables_list
   ClassTest_test
+  Colorizer_test
   Exception_Base_test
   FactoryBase_test
   Factory_test
@@ -24,6 +25,7 @@ set(qc_executables_list
   Ms2IdentificationRate_test
   Ms2SpectrumStats_test
   MQEvidenceExporter_test
+  MQMsmsExporter_test
   MzCalibration_test
   PeptideMass_test
   PSMExplainedIonCurrent_test
@@ -62,7 +64,6 @@ set(datastructures_executables_list
   ListUtils_test
   ListUtilsIO_test
   LPWrapper_test
-  Map_test
   MassExplainer_test
   MatchedIterator_test
   Matrix_test
@@ -148,10 +149,14 @@ set(kernel_executables_list
   ConsensusMap_test
   ConversionHelper_test
   ConstRefVector_test
+  DimMapper_test
   DPeak_test
   FeatureMap_test
   Feature_test
   MassTrace_test
+  Mobilogram_test
+  MobilityPeak1D_test
+  MobilityPeak2D_test
   MRMFeature_test
   MRMTransitionGroup_test
   MSChromatogram_test
@@ -192,6 +197,7 @@ set(format_executables_list
   GzipInputStream_test
   IBSpectraFile_test
   IdXMLFile_test
+  IndentedStream_test
   IndexedMzMLDecoder_test
   IndexedMzMLFile_test
   IndexedMzMLFileLoader_test
@@ -235,6 +241,7 @@ set(format_executables_list
   OSWFile_test
   PTMXMLFile_test
   ParamCTDFile_test
+  ParamCWLFile_test
   ParamXMLFile_test
   PeakFileOptions_test
   PeakTypeEstimator_test
@@ -242,6 +249,7 @@ set(format_executables_list
   PepNovoOutfile_test
   PepXMLFileMascot_test
   PepXMLFile_test
+  PercolatorInfile_test
   PercolatorOutfile_test
   ProtXMLFile_test
   SVOutStream_test
@@ -276,6 +284,10 @@ set(format_executables_list
   SpectrumAccessSqMass_test
   SiriusFragmentAnnotation_test
 )
+
+if(WITH_HDF5)
+  list(APPEND format_executables_list HDF5_test)
+endif()
 
 set(math_executables_list
   AsymmetricStatistics_test
@@ -314,6 +326,7 @@ set(filtering_executables_list
   Deisotoper_test
   ElutionPeakDetection_test
   FeatureFindingMetabo_test
+  FeatureOverlapFilter_test
   FilterFunctor_test
   FastLowessSmoothing_test
   GaussFilter_test
@@ -471,6 +484,7 @@ set(analysis_executables_list
   ConsensusMapNormalizerAlgorithmQuantile_test
   ConsensusMapMergerAlgorithm_test
   #DataAccessHelper_test
+  DeconvolvedSpectrum_test
   DeNovoAlgorithm_test
   DeNovoIdentification_test
   DeNovoIonScoring_test
@@ -486,6 +500,8 @@ set(analysis_executables_list
   FeatureHandle_test
   FIAMSDataProcessor_test
   FIAMSScheduler_test
+  FLASHDeconvAlgorithm_test
+  FLASHDeconvHelperStructs_test
   HiddenMarkovModel_test
   IDBoostGraph_test
   IDMapper_test
@@ -508,6 +524,7 @@ set(analysis_executables_list
   TMTSixPlexQuantitationMethod_test
   TMTTenPlexQuantitationMethod_test
   TMTSixteenPlexQuantitationMethod_test
+  TMTEighteenPlexQuantitationMethod_test
   KDTreeFeatureMaps_test
   KDTreeFeatureNode_test
   LabeledPairFinder_test
@@ -529,6 +546,7 @@ set(analysis_executables_list
   MapAlignmentTransformer_test
   MassDecompositionAlgorithm_test
   MassDecomposition_test
+  MassFeatureTrace_test
   MetaboliteFeatureDeconvolution_test
   MetaboliteSpectralMatching_test
   ModifiedPeptideGenerator_test
@@ -537,6 +555,7 @@ set(analysis_executables_list
   PeptideIndexing_test
   PeptideAndProteinQuant_test
   PeptideProteinResolution_test
+  PeakGroup_test
   PeakIntensityPredictor_test
   PScore_test
   HyperScore_test
@@ -700,13 +719,13 @@ if(NOT DISABLE_OPENSWATH)
     IonMobilityScoring_test
     CachedMzML_test
     CachedMzMLHandler_test
-    HDF5_test
   )
 endif(NOT DISABLE_OPENSWATH)
 
 set(Boost_dependent_tests
   DIAHelper_test
   EmgModel_test
+  FASTAContainer_test
   LogConfigHandler_test
   LogStream_test
   MRMDecoy_test

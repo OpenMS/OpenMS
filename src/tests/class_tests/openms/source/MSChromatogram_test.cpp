@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry               
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 // 
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -31,6 +31,12 @@
 // $Maintainer: Timo Sachsenberg $
 // $Authors: Andreas Bertsch $
 // --------------------------------------------------------------------------
+
+#ifndef OPENMS_WINDOWSPLATFORM
+#pragma clang diagnostic push
+// Ignore -Wpessimizing-move, becuase it's intentional
+#pragma clang diagnostic ignored "-Wpessimizing-move"
+#endif
 
 #include <OpenMS/CONCEPT/ClassTest.h>
 #include <OpenMS/test_config.h>
@@ -898,7 +904,15 @@ START_SECTION((MSChromatogram& operator=(const MSChromatogram &&source)))
 
   //Assignment of empty object
   //normal assignment
+#ifndef OPENMS_WINDOWSPLATFORM
+#pragma clang diagnostic push
+// Ignore -Wpessimizing-move, because we want to test the move assignment operator.
+#pragma clang diagnostic ignored "-Wpessimizing-move"
+#endif
   tmp2 = std::move(MSChromatogram());
+#ifndef OPENMS_WINDOWSPLATFORM
+#pragma clang diagnostic pop
+#endif
   TEST_EQUAL(tmp2.getInstrumentSettings().getScanWindows().size(),0);
   TEST_EQUAL(tmp2.metaValueExists("label"), false)
   TEST_REAL_SIMILAR(tmp2.getMZ(), 0.0)
@@ -941,7 +955,7 @@ START_SECTION((bool operator==(const MSChromatogram &rhs) const ))
   //name is not checked => no change
   edit = empty;
   edit.setName("bla");
-  TEST_EQUAL(empty==edit, true);
+  TEST_TRUE(empty == edit);
 
   edit = empty;
   edit.push_back(p1);
@@ -1125,5 +1139,6 @@ END_SECTION
 /////////////////////////////////////////////////////////////
 END_TEST
 
-
-
+#ifndef OPENMS_WINDOWSPLATFORM
+#pragma clang diagnostic pop
+#endif

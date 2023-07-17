@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry               
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 // 
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -70,18 +70,18 @@ START_SECTION((StopWatch(const StopWatch& stop_watch)))
   StopWatch s1, s2;
   s1.start();
   wait(0.01);
-  TEST_EQUAL(s1 != s2, true) // before stop
+  TEST_FALSE(s1 == s2) // before stop
   s1.stop();
-  TEST_EQUAL(s1 != s2, true)
+  TEST_FALSE(s1 == s2)
   s2 = s1;
-  TEST_EQUAL(s1 == s2, true)
+  TEST_TRUE(s1 == s2)
 
   StopWatch s3(s1);
-  TEST_EQUAL(s1==s3, true)
+  TEST_TRUE(s1 == s3)
   
   StopWatch s4;
   s1.reset();
-  TEST_EQUAL(s1 == s4, true)
+  TEST_TRUE(s1 == s4)
 
   s1.start();
   s2.start();
@@ -91,7 +91,7 @@ START_SECTION((StopWatch(const StopWatch& stop_watch)))
   wait(0.01);
   s2.stop();
 
-  TEST_EQUAL(s1 != s2, true)
+  TEST_FALSE(s1 == s2)
   TEST_EQUAL(s1 <= s2, true)
   TEST_EQUAL(s2 >= s1, true)
 END_SECTION

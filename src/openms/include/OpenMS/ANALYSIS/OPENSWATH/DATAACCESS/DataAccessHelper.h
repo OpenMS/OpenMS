@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -54,19 +54,19 @@ namespace OpenMS
   {
 public:
     /// Convert a SpectrumPtr to an OpenMS Spectrum
-    static void convertToOpenMSSpectrum(const OpenSwath::SpectrumPtr sptr, OpenMS::MSSpectrum & spectrum);
+    static void convertToOpenMSSpectrum(const OpenSwath::SpectrumPtr& sptr, OpenMS::MSSpectrum & spectrum);
 
     /// Convert an OpenMS Spectrum to an SpectrumPtr
     static OpenSwath::SpectrumPtr convertToSpectrumPtr(const OpenMS::MSSpectrum & spectrum);
 
     /// Convert a ChromatogramPtr to an OpenMS Chromatogram
-    static void convertToOpenMSChromatogram(const OpenSwath::ChromatogramPtr cptr, OpenMS::MSChromatogram & chromatogram);
+    static void convertToOpenMSChromatogram(const OpenSwath::ChromatogramPtr& cptr, OpenMS::MSChromatogram & chromatogram);
 
     /// Convert an OpenMS Chromatogram to an ChromatogramPtr
     static OpenSwath::ChromatogramPtr convertToChromatogramPtr(const OpenMS::MSChromatogram & chromatogram);
 
     static void convertToOpenMSChromatogramFilter(OpenMS::MSChromatogram & chromatogram,
-                                                  const OpenSwath::ChromatogramPtr cptr,
+                                                  const OpenSwath::ChromatogramPtr& cptr,
                                                   double rt_min,
                                                   double rt_max);
 

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -43,6 +43,8 @@
 #include <OpenMS/FORMAT/SVOutStream.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SeedListGenerator.h>
 
+#include <map>
+
 // TODO REMOVE
 #include <OpenMS/KERNEL/ConsensusMap.h>
 
@@ -63,9 +65,9 @@ using namespace std;
 <CENTER>
     <table>
         <tr>
-            <td ALIGN = "center" BGCOLOR="#EBEBEB"> potential predecessor tools </td>
-            <td VALIGN="middle" ROWSPAN=4> \f$ \longrightarrow \f$ SeedListGenerator \f$ \longrightarrow \f$</td>
-            <td ALIGN = "center" BGCOLOR="#EBEBEB"> potential successor tools </td>
+            <th ALIGN = "center"> potential predecessor tools </td>
+            <td VALIGN="middle" ROWSPAN=4> &rarr; SeedListGenerator &rarr;</td>
+            <th ALIGN = "center"> potential successor tools </td>
         </tr>
         <tr>
             <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_IDFilter </td>
@@ -146,7 +148,7 @@ protected:
 
       SeedListGenerator seed_gen;
       // results (actually just one result, except for consensusXML input):
-      Map<UInt64, SeedListGenerator::SeedList> seed_lists;
+      std::map<UInt64, SeedListGenerator::SeedList> seed_lists;
 
       Size num_maps = 0;
       FileTypes::Type in_type = FileHandler::getType(in);
@@ -171,7 +173,7 @@ protected:
 
         if (out.size() != num_maps)
         {
-          writeLog_("Error: expected " + String(num_maps) +
+          writeLogError_("Error: expected " + String(num_maps) +
                     " output filenames");
           return ILLEGAL_PARAMETERS;
         }
@@ -179,7 +181,7 @@ protected:
       }
       else if (out.size() > 1)
       {
-        writeLog_("Error: expected only one output filename");
+        writeLogError_("Error: expected only one output filename");
         return ILLEGAL_PARAMETERS;
       }
       else if (in_type == FileTypes::MZML)
@@ -206,7 +208,7 @@ protected:
 
       // output:
       num_maps = 0;
-      for (Map<UInt64, SeedListGenerator::SeedList>::Iterator it =
+      for (std::map<UInt64, SeedListGenerator::SeedList>::iterator it =
              seed_lists.begin(); it != seed_lists.end(); ++it, ++num_maps)
       {
         FeatureMap features;

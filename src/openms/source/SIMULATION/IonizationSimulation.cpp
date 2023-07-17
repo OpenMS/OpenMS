@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -37,7 +37,6 @@
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/DATASTRUCTURES/Compomer.h>
 
-#include <boost/bind.hpp>
 #include <boost/numeric/conversion/cast.hpp>
 #include <boost/random/binomial_distribution.hpp>
 #include <boost/random/discrete_distribution.hpp>
@@ -45,7 +44,9 @@
 #ifdef _OPENMP
 #include <omp.h>
 #endif
+
 #include <atomic>
+#include <utility>
 
 namespace OpenMS
 {
@@ -76,7 +77,7 @@ namespace OpenMS
     esi_adducts_(),
     max_adduct_charge_(),
     maldi_probabilities_(),
-    rnd_gen_(random_generator)
+    rnd_gen_(std::move(random_generator))
   {
     setDefaultParams_();
     updateMembers_();
@@ -112,9 +113,7 @@ namespace OpenMS
     return *this;
   }
 
-  IonizationSimulation::~IonizationSimulation()
-  {
-  }
+  IonizationSimulation::~IonizationSimulation() = default;
 
   void IonizationSimulation::ionize(SimTypes::FeatureMapSim& features, ConsensusMap& charge_consensus, SimTypes::MSSimExperiment& experiment)
   {

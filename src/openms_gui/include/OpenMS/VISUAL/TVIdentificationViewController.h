@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -41,6 +41,7 @@
 
 namespace OpenMS
 {
+  class Annotation1DItem;
   class NASequence;
   class SpectraIDViewTab;
   class TOPPViewBase;
@@ -104,7 +105,7 @@ namespace OpenMS
     void addPeakAnnotations_(const std::vector<PeptideIdentification>& ph);
 
     /// Helper function for text formatting
-    String n_times(Size n, String input);
+    String n_times(Size n, const String& input);
 
     /// Helper function that turns fragment annotations into coverage Strings for visualization with the sequence
     void extractCoverageStrings(std::vector<PeptideHit::PeakAnnotation> frag_annotations, String& alpha_string, String& beta_string, Size alpha_size, Size beta_size);

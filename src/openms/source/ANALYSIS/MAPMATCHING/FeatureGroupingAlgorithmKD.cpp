@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -34,7 +34,10 @@
 
 #include <OpenMS/ANALYSIS/MAPMATCHING/FeatureGroupingAlgorithmKD.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentAlgorithmKD.h>
-
+#include <OpenMS/ANALYSIS/MAPMATCHING/FeatureGroupingAlgorithm.h>
+#include <OpenMS/ANALYSIS/ID/IonIdentityMolecularNetworking.h>
+#include <OpenMS/DATASTRUCTURES/Adduct.h>
+#include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
@@ -105,9 +108,7 @@ namespace OpenMS
     setLogType(CMD);
   }
 
-  FeatureGroupingAlgorithmKD::~FeatureGroupingAlgorithmKD()
-  {
-  }
+  FeatureGroupingAlgorithmKD::~FeatureGroupingAlgorithmKD() = default;
 
   template <typename MapType>
   void FeatureGroupingAlgorithmKD::group_(const vector<MapType>& input_maps,
@@ -274,7 +275,7 @@ namespace OpenMS
       setProgress(progress++);
     }
     endProgress();
-
+    
     postprocess_(input_maps, out);
   }
 
@@ -415,14 +416,14 @@ namespace OpenMS
       if (merge_adduct == "Identical")
       {
         // subcase 1: one has adduct, other not
-        if (kd_data.feature(*it)->metaValueExists("dc_charge_adducts") != f_i->metaValueExists("dc_charge_adducts"))
+        if (kd_data.feature(*it)->metaValueExists(Constants::UserParam::DC_CHARGE_ADDUCTS) != f_i->metaValueExists(Constants::UserParam::DC_CHARGE_ADDUCTS))
         {
           continue;
         }
         // subcase 2: both have adduct, but is it the same?
-        if (kd_data.feature(*it)->metaValueExists("dc_charge_adducts"))
+        if (kd_data.feature(*it)->metaValueExists(Constants::UserParam::DC_CHARGE_ADDUCTS))
         {
-          if (EmpiricalFormula(kd_data.feature(*it)->getMetaValue("dc_charge_adducts")) != EmpiricalFormula(f_i->getMetaValue("dc_charge_adducts")))
+          if (EmpiricalFormula(kd_data.feature(*it)->getMetaValue(Constants::UserParam::DC_CHARGE_ADDUCTS)) != EmpiricalFormula(f_i->getMetaValue(Constants::UserParam::DC_CHARGE_ADDUCTS)))
           {
             continue;
           }  
@@ -433,16 +434,16 @@ namespace OpenMS
       else if (merge_adduct == "With_unknown_adducts")
       {
         // subcase1: *it has adduct, but i not. don't want to collect potentially different adducts to previous without adduct 
-        if ((kd_data.feature(*it)->metaValueExists("dc_charge_adducts")) && (!f_i->metaValueExists("dc_charge_adducts")))
+        if ((kd_data.feature(*it)->metaValueExists(Constants::UserParam::DC_CHARGE_ADDUCTS)) && (!f_i->metaValueExists(Constants::UserParam::DC_CHARGE_ADDUCTS)))
         {
           continue;
         }
         // subcase2: both have adduct
-        if ((kd_data.feature(*it)->metaValueExists("dc_charge_adducts")) && (f_i->metaValueExists("dc_charge_adducts")))
+        if ((kd_data.feature(*it)->metaValueExists(Constants::UserParam::DC_CHARGE_ADDUCTS)) && (f_i->metaValueExists(Constants::UserParam::DC_CHARGE_ADDUCTS)))
         {
           // cheaper string check first, only check EF extensively if strings differ (might be just different element orders)
-          if ((kd_data.feature(*it)->getMetaValue("dc_charge_adducts") != f_i->getMetaValue("dc_charge_adducts")) &&
-              (EmpiricalFormula(kd_data.feature(*it)->getMetaValue("dc_charge_adducts")) != EmpiricalFormula(f_i->getMetaValue("dc_charge_adducts"))))
+          if ((kd_data.feature(*it)->getMetaValue(Constants::UserParam::DC_CHARGE_ADDUCTS) != f_i->getMetaValue(Constants::UserParam::DC_CHARGE_ADDUCTS)) &&
+              (EmpiricalFormula(kd_data.feature(*it)->getMetaValue(Constants::UserParam::DC_CHARGE_ADDUCTS)) != EmpiricalFormula(f_i->getMetaValue(Constants::UserParam::DC_CHARGE_ADDUCTS))))
           {
             continue;
           }
@@ -492,12 +493,39 @@ namespace OpenMS
   void FeatureGroupingAlgorithmKD::addConsensusFeature_(const vector<Size>& indices, const KDTreeFeatureMaps& kd_data, ConsensusMap& out) const
   {
     ConsensusFeature cf;
+    Adduct adduct;
     float avg_quality = 0;
+    // determine best quality feature for adduct ion annotation (Constanst::UserParam::IIMN_BEST_ION)
+    float best_quality = 0;
+    size_t best_quality_index = 0;
+    // collect the "Group" MetaValues of Features in a ConsensusFeature MetaValue (Constant::UserParam::IIMN_LINKED_GROUPS)
+    vector<String> linked_groups;
     for (vector<Size>::const_iterator it = indices.begin(); it != indices.end(); ++it)
     {
       Size i = *it;
       cf.insert(kd_data.mapIndex(i), *(kd_data.feature(i)));
       avg_quality += kd_data.feature(i)->getQuality();
+      if (kd_data.feature(i)->metaValueExists(Constants::UserParam::DC_CHARGE_ADDUCTS) &&
+         (kd_data.feature(i)->getQuality() > best_quality) &&
+         (kd_data.feature(i)->getCharge()))
+      {
+       best_quality = kd_data.feature(i)->getQuality();
+       best_quality_index = i;
+      }
+      if (kd_data.feature(i)->metaValueExists(Constants::UserParam::ADDUCT_GROUP))
+      {
+        linked_groups.emplace_back(kd_data.feature(i)->getMetaValue(Constants::UserParam::ADDUCT_GROUP));
+      }
+    }
+    if (kd_data.feature(best_quality_index)->metaValueExists(Constants::UserParam::DC_CHARGE_ADDUCTS))
+    {
+      cf.setMetaValue(Constants::UserParam::IIMN_BEST_ION, 
+                      adduct.toAdductString(kd_data.feature(best_quality_index)->getMetaValue(Constants::UserParam::DC_CHARGE_ADDUCTS),
+                                            kd_data.feature(best_quality_index)->getCharge()));
+    }
+    if (!linked_groups.empty())
+    {
+      cf.setMetaValue(Constants::UserParam::IIMN_LINKED_GROUPS, linked_groups);
     }
     avg_quality /= indices.size();
     cf.setQuality(avg_quality);

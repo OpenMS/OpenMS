@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -61,6 +61,16 @@ namespace OpenMS
   {
     clear_();
   }
+
+  const std::string DataValue::NamesOfDataType[] = {
+    "String", 
+    "Int", 
+    "Double", 
+    "StringList", 
+    "IntList", 
+    "DoubleList", 
+    "Empty"
+    };
 
   //-------------------------------------------------------------------
   //    ctor for all supported types a DataValue object can hold
@@ -535,8 +545,9 @@ namespace OpenMS
   DataValue::operator short int() const
   {
     if (value_type_ != INT_VALUE)
-    {
-      throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Could not convert non-integer DataValue to short int");
+    {      
+      throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 
+        "Could not convert non-integer DataValue of type '" + NamesOfDataType[value_type_] + "' and value '" + this->toString(true) + "' to short int");
     }
     return data_.ssize_;
   }
@@ -545,7 +556,8 @@ namespace OpenMS
   {
     if (value_type_ != INT_VALUE)
     {
-      throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Could not convert non-integer DataValue to UInt");
+      throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 
+        "Could not convert non-integer DataValue of type '" + NamesOfDataType[value_type_] + "' and value '" + this->toString(true) + "' to unsigned short int");
     }
     if (data_.ssize_ < 0.0)
     {
@@ -558,7 +570,8 @@ namespace OpenMS
   {
     if (value_type_ != INT_VALUE)
     {
-      throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Could not convert non-integer DataValue to int");
+      throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 
+        "Could not convert non-integer DataValue of type '" + NamesOfDataType[value_type_] + "' and value '" + this->toString(true) + "' to int");
     }
     return data_.ssize_;
   }
@@ -567,7 +580,8 @@ namespace OpenMS
   {
     if (value_type_ != INT_VALUE)
     {
-      throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Could not convert non-integer DataValue to unsigned int");
+      throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 
+        "Could not convert non-integer DataValue of type '" + NamesOfDataType[value_type_] + "' and value '" + this->toString(true) + "' to unsigned int");
     }
     if (data_.ssize_ < 0.0)
     {
@@ -580,7 +594,8 @@ namespace OpenMS
   {
     if (value_type_ != INT_VALUE)
     {
-      throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Could not convert non-integer DataValue to long int");
+      throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 
+        "Could not convert non-integer DataValue of type '" + NamesOfDataType[value_type_] + "' and value '" + this->toString(true) + "' to long int");
     }
     return data_.ssize_;
   }
@@ -589,7 +604,8 @@ namespace OpenMS
   {
     if (value_type_ != INT_VALUE)
     {
-      throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Could not convert non-integer DataValue to unsigned long int");
+      throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 
+        "Could not convert non-integer DataValue of type '" + NamesOfDataType[value_type_] + "' and value '" + this->toString(true) + "' to unsigned long int");
     }
     if (data_.ssize_ < 0.0)
     {
@@ -602,7 +618,8 @@ namespace OpenMS
   {
     if (value_type_ != INT_VALUE)
     {
-      throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Could not convert non-integer DataValue to Int");
+      throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 
+        "Could not convert non-integer DataValue of type '" + NamesOfDataType[value_type_] + "' and value '" + this->toString(true) + "' to long");
     }
     return data_.ssize_;
   }
@@ -611,7 +628,8 @@ namespace OpenMS
   {
     if (value_type_ != INT_VALUE)
     {
-      throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Could not convert non-integer DataValue to UInt");
+      throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 
+        "Could not convert non-integer DataValue of type '" + NamesOfDataType[value_type_] + "' and value '" + this->toString(true) + "' to unsigned long");
     }
     if (data_.ssize_ < 0.0)
     {
@@ -637,14 +655,18 @@ namespace OpenMS
       case DOUBLE_LIST:
         return ParamValue(this->toDoubleList());
       case STRING_LIST:
-        // DataValue uses OpenMS::String while ParamValue uses std:string.
-        // Therefore the StringList isn't castable.
-        vector<std::string> v;
-        for (const String& s : this->toStringList())
         {
-          v.push_back(s);
+          // DataValue uses OpenMS::String while ParamValue uses std:string.
+          // Therefore the StringList isn't castable.
+          vector<std::string> v;
+          for (const String& s : this->toStringList())
+          {
+            v.push_back(s);
+          }
+          return ParamValue(v);
         }
-        return ParamValue(v);
+      default:
+        throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Type of DataValue is unkown!");    
     }
     throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Type of DataValue is unkown!");
   }
@@ -653,7 +675,8 @@ namespace OpenMS
   {
     if (value_type_ != STRING_VALUE)
     {
-      throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Could not convert non-string DataValue to string");
+      throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 
+        "Could not convert non-string DataValue of type '" + NamesOfDataType[value_type_] + "' and value '" + this->toString(true) + "' to string");
     }
     return *(data_.str_);
   }
@@ -678,11 +701,15 @@ namespace OpenMS
   {
     switch (value_type_)
     {
-    case DataValue::STRING_VALUE: return const_cast<const char*>(data_.str_->c_str());
+    case DataValue::STRING_VALUE: 
+      return const_cast<const char*>(data_.str_->c_str());
 
-    case DataValue::EMPTY_VALUE: return nullptr;
+    case DataValue::EMPTY_VALUE: 
+      return nullptr;
 
-    default: throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Could not convert DataValue to char*");
+    default: 
+      throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 
+        "Could not convert DataValue of type '" + NamesOfDataType[value_type_] + "' and value '" + this->toString(true) + "' to char*");
     }
   }
 
@@ -690,7 +717,8 @@ namespace OpenMS
   {
     if (value_type_ != STRING_LIST)
     {
-      throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Could not convert non-StringList DataValue to StringList");
+      throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+        "Could not convert non-StringList DataValue of type '" + NamesOfDataType[value_type_] + "' and value '" + this->toString(true) + "' to StringList");
     }
     return *(data_.str_list_);
   }
@@ -699,7 +727,8 @@ namespace OpenMS
   {
     if (value_type_ != INT_LIST)
     {
-      throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Could not convert non-IntList DataValue to IntList");
+      throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
+        "Could not convert non-IntList DataValue of type '" + NamesOfDataType[value_type_] + "' and value '" + this->toString(true) + "' to IntList");
     }
     return *(data_.int_list_);
   }
@@ -708,7 +737,8 @@ namespace OpenMS
   {
     if (value_type_ != DOUBLE_LIST)
     {
-      throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Could not convert non-DoubleList DataValue to DoubleList");
+      throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 
+        "Could not convert non-DoubleList DataValue of type '" + NamesOfDataType[value_type_] + "' and value '" + this->toString(true) + "' to DoubleList");
     }
     return *(data_.dou_list_);
   }
@@ -719,24 +749,33 @@ namespace OpenMS
     std::stringstream ss;
     switch (value_type_)
     {
-      case DataValue::EMPTY_VALUE: break;
-
-      case DataValue::STRING_VALUE: return *(data_.str_);
-
-      case DataValue::STRING_LIST: ss << *(data_.str_list_); break;
-
-      case DataValue::INT_LIST: ss << *(data_.int_list_); break;
-
+      case DataValue::EMPTY_VALUE: 
+        break;
+      case DataValue::STRING_VALUE: 
+        return *(data_.str_);
+      case DataValue::STRING_LIST: ss << *(data_.str_list_); 
+        break;
+      case DataValue::INT_LIST: ss << *(data_.int_list_); 
+        break;
       case DataValue::DOUBLE_LIST: 
-        if (full_precision) ss << *(data_.dou_list_);
-        else ss << VecLowPrecision<double>(*(data_.dou_list_));
+        if (full_precision) 
+        {
+          ss << *(data_.dou_list_);
+        }
+        else 
+        {
+          ss << VecLowPrecision<double>(*(data_.dou_list_));
+        }
         break;
 
-      case DataValue::INT_VALUE: return String(data_.ssize_);
+      case DataValue::INT_VALUE: 
+        return String(data_.ssize_);
+      case DataValue::DOUBLE_VALUE: 
+        return String(data_.dou_, full_precision);
 
-      case DataValue::DOUBLE_VALUE: return String(data_.dou_, full_precision);
-
-      default: throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Could not convert DataValue to String");
+      default:
+        throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 
+          "Could not convert DataValue of type '" + NamesOfDataType[value_type_] + "' to String");
     }
     return ss.str();
   }
@@ -750,11 +789,14 @@ namespace OpenMS
   {
     if (value_type_ != STRING_VALUE)
     {
-      throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Could not convert non-string DataValue to bool.");
+      throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 
+        "Could not convert non-string DataValue of type '" + NamesOfDataType[value_type_] + "' and value '" + this->toString(true) + "' to bool");
     }
     else if (*(data_.str_) != "true" &&  *(data_.str_) != "false")
     {
-      throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String("Could not convert '") + *(data_.str_) + "' to bool. Valid stings are 'true' and 'false'.");
+      throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 
+        String("Could not convert non-string DataValue of type '") + NamesOfDataType[value_type_] + 
+        "' and value '" + *(data_.str_) + "' to bool. Valid stings are 'true' and 'false'.");
     }
 
     return *(data_.str_) == "true";
@@ -781,6 +823,8 @@ namespace OpenMS
       case DataValue::INT_VALUE: return a.data_.ssize_ == b.data_.ssize_;
 
       case DataValue::DOUBLE_VALUE: return fabs(a.data_.dou_ - b.data_.dou_) < 1e-6;
+
+      default: throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Type of DataValue is unkown!");    
       }
     }
     return false;
@@ -805,6 +849,8 @@ namespace OpenMS
       case DataValue::INT_VALUE: return a.data_.ssize_ < b.data_.ssize_;
 
       case DataValue::DOUBLE_VALUE: return a.data_.dou_ < b.data_.dou_;
+
+      default: throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Type of DataValue is unkown!");    
       }
     }
     return false;
@@ -829,6 +875,9 @@ namespace OpenMS
       case DataValue::INT_VALUE: return a.data_.ssize_ > b.data_.ssize_;
 
       case DataValue::DOUBLE_VALUE: return a.data_.dou_ > b.data_.dou_;
+
+      default: throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Type of DataValue is unkown!");    
+
       }
     }
     return false;
@@ -859,6 +908,8 @@ namespace OpenMS
     case DataValue::DOUBLE_VALUE: os << String(p.data_.dou_); break; // using our String conversion (faster than os)
 
     case DataValue::EMPTY_VALUE: break;
+
+    default: throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Type of DataValue is unkown!");
     }
     return os;
   }

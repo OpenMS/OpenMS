@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -258,14 +258,14 @@ private:
 
       /// transform different score types to a range and score orientation that the model can handle (engine string is assumed in upper-case)
       /// @param engine the search engine name as in the SE param object
-      /// @hit the PeptideHit to extract transformed scores from
-      /// @current_score_type the current score type of the PeptideIdentification to take precedence
+      /// @param hit the PeptideHit to extract transformed scores from
+      /// @param current_score_type the current score type of the PeptideIdentification to take precedence
       static double transformScore_(const String& engine, const PeptideHit& hit, const String& current_score_type);
 
       /// gets a specific score (either main score [preferred] or metavalue)
-      /// @requested_score_types the requested score_types in order of preference (will be tested with a "_score" suffix as well)
-      /// @hit the PeptideHit to extract from
-      /// @actual_score_type the current score type to take preference if matching
+      /// @param requested_score_types the requested score_types in order of preference (will be tested with a "_score" suffix as well)
+      /// @param hit the PeptideHit to extract from
+      /// @param actual_score_type the current score type to take preference if matching
       static double getScore_(const std::vector<String>& requested_score_types, const PeptideHit & hit, const String& actual_score_type);
 
       /// assignment operator (not implemented)

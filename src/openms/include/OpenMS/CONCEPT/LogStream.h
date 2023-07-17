@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -46,6 +46,8 @@
 
 namespace OpenMS
 {
+  class Colorizer;
+
   /**
     @brief Log streams
 
@@ -116,11 +118,14 @@ public:
       /// @name Constructors and Destructors
       //@{
 
+
       /**
-        Create a new LogStreamBuf object and set the level to log_level
+        Create a new LogStreamBuf object and set the level to @p log_level
+
         @param log_level The log level of the LogStreamBuf (default is unknown)
+        @param col If messages should be colored, provide a colorizer here
       */
-      explicit LogStreamBuf(std::string log_level = UNKNOWN_LOG_LEVEL);
+      LogStreamBuf(const std::string& log_level = UNKNOWN_LOG_LEVEL, Colorizer* col = nullptr);
 
       /**
         Destruct the buffer and free all stored messages strings.
@@ -200,16 +205,16 @@ public:
 protected:
 
       /// Distribute a new message to connected streams.
-      void distribute_(std::string outstring);
+      void distribute_(const std::string& outstring);
 
       /// Interpret the prefix format string and return the expanded prefix.
       std::string expandPrefix_(const std::string & prefix, time_t time) const;
 
-      char * pbuf_;
+      char * pbuf_ = nullptr;
       std::string             level_;
       std::list<StreamStruct> stream_list_;
       std::string             incomplete_line_;
-
+      Colorizer* colorizer_ = nullptr; ///< optional Colorizer to color the output to stdout/stdcerr (if attached)
       /// @name Caching
       //@{
 
@@ -226,7 +231,7 @@ protected:
         Sequential counter to remember the sequence of occurrence
         of the cached log messages
       */
-      Size log_cache_counter_;
+      Size log_cache_counter_ = 0;
 
       /// Cache of the last two log messages
       std::map<std::string, LogCacheStruct> log_cache_;
@@ -394,6 +399,11 @@ public:
         @param s the stream to be removed
       */
       void remove(std::ostream & s);
+
+      /**
+        Remove all streams associated to this LogStream, effectively silencing it.
+      */
+      void removeAllStreams();
 
       /// Add a notification target
       void insertNotification(std::ostream & s,

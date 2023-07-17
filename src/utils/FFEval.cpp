@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -38,6 +38,8 @@
 #include <OpenMS/FORMAT/TextFile.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/MATH/STATISTICS/StatisticFunctions.h>
+
+#include <map>
 
 using namespace OpenMS;
 using namespace OpenMS::Math;
@@ -179,7 +181,7 @@ protected:
       }
       else
       {
-        writeLog_("Error: Input features do not have convex hulls. You have to set 'rt_tol_abs'!");
+        writeLogError_("Error: Input features do not have convex hulls. You have to set 'rt_tol_abs'!");
         return ILLEGAL_PARAMETERS;
       }
     }
@@ -190,7 +192,7 @@ protected:
     std::vector<double> ints_i;
     std::vector<double> ints_found;
     std::vector<double> ints_missed;
-    Map<String, UInt> abort_strings;
+    std::map<String, UInt> abort_strings;
 
     for (Size m = 0; m < features_truth.size(); ++m)
     {
@@ -287,7 +289,7 @@ protected:
         {
           reason = "No seed found";
         }
-        if (abort_strings.has(reason))
+        if (abort_strings.find(reason) != abort_strings.end())
         {
           abort_strings[reason]++;
         }
@@ -324,7 +326,7 @@ protected:
     if (!abort_reasons.empty())
     {
       cout << "reasons for unmatched features:" << endl;
-      for (Map<String, UInt>::iterator it = abort_strings.begin(); it != abort_strings.end(); ++it)
+      for (std::map<String, UInt>::iterator it = abort_strings.begin(); it != abort_strings.end(); ++it)
       {
         cout << " - " << String(it->second).fillLeft(' ', 4) << ": " << it->first << endl;
       }
@@ -362,7 +364,7 @@ protected:
     cout << endl;
     cout << "charge matches statistics:" << endl;
     cout << "===========================" << endl;
-    Map<UInt, UInt> present_charges, found_charges;
+    std::map<UInt, UInt> present_charges, found_charges;
     for (Size i = 0; i < features_truth.size(); ++i)
     {
       UInt charge = features_truth[i].getCharge();
@@ -372,7 +374,7 @@ protected:
         found_charges[charge]++;
       }
     }
-    for (Map<UInt, UInt>::const_iterator it = present_charges.begin(); it != present_charges.end(); ++it)
+    for (std::map<UInt, UInt>::const_iterator it = present_charges.begin(); it != present_charges.end(); ++it)
     {
       cout << "charge " << it->first << ": " << found_charges[it->first] << "/" << it->second << percentage(found_charges[it->first], it->second) << endl;
     }

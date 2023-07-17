@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -63,7 +63,7 @@ START_SECTION((Param parse(const StringList &setting)))
   settings.push_back("INFO add a.out");
   settings.push_back("FATAL_ERROR add cerr");
 
-  Param p = LogConfigHandler::getInstance().parse(settings);
+  Param p = LogConfigHandler::getInstance()->parse(settings);
 
   // p should contain a list of the above set commands
   std::vector<std::string> parsedConfigs = p.getValue(LogConfigHandler::PARAM_NAME);
@@ -76,7 +76,7 @@ START_SECTION((Param parse(const StringList &setting)))
   StringList settings2;
   settings2.push_back("DEBUG");
 
-  TEST_EXCEPTION(Exception::ParseError, LogConfigHandler::getInstance().parse(settings2));
+  TEST_EXCEPTION(Exception::ParseError, LogConfigHandler::getInstance()->parse(settings2));
 }
 END_SECTION
 
@@ -92,7 +92,7 @@ START_SECTION((void configure(const Param &param)))
   Param p;
   p.setValue(LogConfigHandler::PARAM_NAME, settings, "List of all settings that should be applied to the current Logging Configuration");
 
-  LogConfigHandler::getInstance().configure(p);
+  LogConfigHandler::getInstance()->configure(p);
 
   OPENMS_LOG_INFO << "1" << endl;
   OPENMS_LOG_INFO << "2" << endl;
@@ -103,12 +103,12 @@ START_SECTION((void configure(const Param &param)))
   settings.push_back("WARNING clear");
   p.setValue(LogConfigHandler::PARAM_NAME, settings, "List of all settings that should be applied to the current Logging Configuration");
 
-  LogConfigHandler::getInstance().configure(p);
+  LogConfigHandler::getInstance()->configure(p);
 
   // this should go into nowhere
   OPENMS_LOG_WARN << "5" << endl;
 
-  ostringstream& info_warn_stream = static_cast<ostringstream&>(LogConfigHandler::getInstance().getStream("testing_info_warn_stream"));
+  ostringstream& info_warn_stream = static_cast<ostringstream&>(LogConfigHandler::getInstance()->getStream("testing_info_warn_stream"));
   String info_warn_stream_content(info_warn_stream.str());
   StringList info_warn_result;
   info_warn_stream_content.trim().split('\n', info_warn_result, true );
@@ -120,13 +120,13 @@ START_SECTION((void configure(const Param &param)))
   boost::regex rx(pattern);
 
   int i = 1;
-  for(StringList::const_iterator it = info_warn_result.begin() ; it != info_warn_result.end(); ++it)
+  for(StringList::iterator it = info_warn_result.begin() ; it != info_warn_result.end(); ++it)
   {
-    boost::regex rx(pattern + i);
-    TEST_EQUAL(regex_match(*it, rx), true)
+    rx.assign(pattern + i);
+    TEST_TRUE(regex_search(*it, rx)) // stream may be wrapped in ANSI color codes; only search infix
     ++i;
   }
-  ostringstream& error_stream = static_cast<ostringstream&>(LogConfigHandler::getInstance().getStream("only_error_string_stream"));
+  ostringstream& error_stream = static_cast<ostringstream&>(LogConfigHandler::getInstance()->getStream("only_error_string_stream"));
   String error_stream_content(error_stream.str());
   StringList error_result;
   error_stream_content.trim().split('\n', error_result, true );
@@ -135,8 +135,8 @@ START_SECTION((void configure(const Param &param)))
   TEST_EQUAL(error_result.size(), 1)
 
   String pattern2("\\[[0-9]+/[0-1][0-9]/[0-3][0-9], [0-2][0-9]:[0-5][0-9]:[0-5][0-9]\\] 4");
-  boost::regex rx2(pattern2);
-  TEST_EQUAL(regex_match(error_result[0], rx2), true)
+  rx.assign(pattern2);
+  TEST_TRUE(regex_search(error_result[0], rx)) // stream may be wrapped in ANSI color codes; only search infix
 }
 END_SECTION
 
@@ -148,11 +148,11 @@ START_SECTION((ostream& getStream(const String &stream_name)))
   Param p;
   p.setValue(LogConfigHandler::PARAM_NAME, settings, "List of all settings that should be applied to the current Logging Configuration");
 
-  LogConfigHandler::getInstance().configure(p);
+  LogConfigHandler::getInstance()->configure(p);
 
   OPENMS_LOG_INFO << "getStream 1" << endl;
 
-  ostringstream& info_stream = static_cast<ostringstream&>(LogConfigHandler::getInstance().getStream("testing_getStream"));
+  ostringstream& info_stream = static_cast<ostringstream&>(LogConfigHandler::getInstance()->getStream("testing_getStream"));
   String info_content(info_stream.str());
 
   StringList info_result;
@@ -168,9 +168,9 @@ START_SECTION((ostream& getStream(const String &stream_name)))
 END_SECTION
 
 LogConfigHandler* nullPointer = nullptr;
-START_SECTION((static LogConfigHandler& getInstance()))
+START_SECTION((static LogConfigHandler* getInstance()))
 {
-  TEST_NOT_EQUAL(&LogConfigHandler::getInstance(), nullPointer)
+  TEST_NOT_EQUAL(LogConfigHandler::getInstance(), nullPointer)
 }
 END_SECTION
 

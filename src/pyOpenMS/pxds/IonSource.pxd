@@ -7,7 +7,7 @@ cdef extern from "<OpenMS/METADATA/IonSource.h>" namespace "OpenMS":
 
     cdef cppclass IonSource(MetaInfoInterface):
         # wrap-inherits:
-        #    MetaInfoInterface
+        #   MetaInfoInterface
 
         IonSource() nogil except + # wrap-doc:Description of an ion source (part of a MS Instrument)
         IonSource(IonSource &) nogil except +
@@ -23,14 +23,14 @@ cdef extern from "<OpenMS/METADATA/IonSource.h>" namespace "OpenMS":
 
         Int getOrder() nogil except +
             # wrap-doc:
-                #   Returns the position of this part in the whole Instrument
-                #   -----
-                #   Order can be ignored, as long the instrument has this default setup:
-                #     - one ion source
-                #     - one or many mass analyzers
-                #     - one ion detector
-                #   -----
-                #   For more complex instruments, the order should be defined.
+                #  Returns the position of this part in the whole Instrument
+                #  
+                #  Order can be ignored, as long the instrument has this default setup:
+                #    - one ion source
+                #    - one or many mass analyzers
+                #    - one ion detector
+                #  
+                #  For more complex instruments, the order should be defined.
 
         void setOrder(Int order) nogil except + # wrap-doc:Sets the order
 
@@ -38,12 +38,12 @@ cdef extern from "<OpenMS/METADATA/IonSource.h>" namespace "OpenMS::IonSource":
 
     cdef enum Polarity:
         # wrap-attach:
-        #     IonSource
+        #    IonSource
         POLNULL, POSITIVE, NEGATIVE, SIZE_OF_POLARITY
 
     cdef enum InletType:
         # wrap-attach:
-        #     IonSource
+        #    IonSource
         INLETNULL,                                                        #]Unknown
         DIRECT,                                                               #]Direct
         BATCH,                                                                #]Batch (e.g. in MALDI)
@@ -70,7 +70,7 @@ cdef extern from "<OpenMS/METADATA/IonSource.h>" namespace "OpenMS::IonSource":
     # ionization method
     cdef enum IonizationMethod:
         # wrap-attach:
-        #     IonSource
+        #    IonSource
         IONMETHODNULL,        #]Unknown
         ESI,                              #]electrospray ionisation
         EI,                               #]electron ionization

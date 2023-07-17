@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -43,25 +43,24 @@ using namespace std;
 
 namespace OpenMS
 {
-
-  QFont default_text_font = QFont("Courier");
-
-  Annotation1DVerticalLineItem::Annotation1DVerticalLineItem(const double x_pos, const QColor& color, const QString& text) :
-      Annotation1DItem(text),
-      x_(x_pos),
+  Annotation1DVerticalLineItem::Annotation1DVerticalLineItem(const PointXYType& center_pos, const QColor& color, const QString& text) :
+      Annotation1DItem(text), pos_(center_pos),
       color_(color)
   {
   }
 
-  Annotation1DVerticalLineItem::Annotation1DVerticalLineItem(const double x_center_pos, const double width, const int alpha255, const bool dashed_line, const QColor& color, const QString& text) :
-    Annotation1DItem(text),
-    x_(x_center_pos),
-    width_(width),
-    alpha255_(alpha255),
-    dashed_(dashed_line),
-    color_(color)
+  Annotation1DVerticalLineItem::Annotation1DVerticalLineItem(const PointXYType& center_pos, const float width, const int alpha255, const bool dashed_line, const QColor& color, const QString& text)
+    : Annotation1DItem(text), pos_(center_pos),
+      width_(width),
+      alpha255_(alpha255),
+      dashed_(dashed_line),
+      color_(color)
   {
-    width_ = (width_ < 1 ? 1.0 : width_);
+  }
+
+  void Annotation1DVerticalLineItem::ensureWithinDataRange(Plot1DCanvas* const canvas, const int layer_index)
+  {
+    canvas->pushIntoDataRange(pos_, layer_index);
   }
 
   void Annotation1DVerticalLineItem::draw(Plot1DCanvas* const canvas, QPainter& painter, bool flipped)
@@ -82,59 +81,59 @@ namespace OpenMS
       pen.setDashPattern({ 5, 5, 1, 5 });
     }
 
-    // translate mz/intensity to pixel coordinates
-    QPoint start_p_left, end_p_right, p_width;
-    canvas->dataToWidget(x_, 0, start_p_left, flipped, true);
-    canvas->dataToWidget(x_, canvas->getDataRange().maxY(), end_p_right, flipped, true);
-    canvas->dataToWidgetDistance(width_, 0, p_width);
-    pen.setWidth(p_width.x());
+    // get left/right corner points of the rectangle (line + width); names are as if the line is vertical, but depending on gravity, it could be horizontal as well
+    QPoint start_px_left;
+    canvas->dataToWidget(pos_, start_px_left, flipped);
+    start_px_left = canvas->getGravitator().gravitateMax(start_px_left, canvas->canvasPixelArea());
+    QPoint end_px_right = canvas->getGravitator().gravitateMin(start_px_left, canvas->canvasPixelArea());
+    QPoint px_width;
+    canvas->dataToWidgetDistance(width_, width_, px_width);
+    px_width = canvas->getGravitator().gravitateZero(px_width); // make sure that 'height' is 0
+    // get width in NON-gravity (=swapped) dimension
+    int width = canvas->getGravitator().swap().gravityValue(px_width);
+    // if width_==0, only make a 1px line; in any case, it should be 1 px at least
+    pen.setWidth(std::max(1, width));
     pen.setColor(col);
     painter.setPen(pen);
-    painter.drawLine(start_p_left, end_p_right);
+    painter.drawLine(start_px_left, end_px_right);
 
     // compute bounding box on the specified painter
-    // TODO: implement proper bounding box calculation
-    // currently not needed as we don't support selection or moving
-    bounding_box_ = QRectF(QPointF(start_p_left), QPointF(end_p_right));
+    bounding_box_ = QRectF(QPointF(start_px_left - px_width/2), QPointF(end_px_right + px_width/2)).normalized();
 
-    // TODO: draw according to proper bounding box to support switching axis and flipping
-    // 5 pixel to x() was added to give some space between the line and the text
     if (!text_.isEmpty())
     {
-      GUIHelpers::drawText(painter, text_.split('\n'), { start_p_left.x() - int(p_width.x() / 2.0) + 5, 20 + y_text_offset_ }, Qt::black, "invalid", default_text_font);
+      auto top_left_px = bounding_box_.topLeft() + QPoint(5,5);
+      // shift gravity axis by text_offset_
+      auto final = canvas->getGravitator().gravitateTo(top_left_px.toPoint(), QPoint(text_offset_, text_offset_));
+      GUIHelpers::drawText(painter, text_.split('\n'), final, Qt::black);
     }
 
     painter.restore();
   }
 
-  void Annotation1DVerticalLineItem::move(const PointType& delta)
+  void Annotation1DVerticalLineItem::move(PointXYType delta, const Gravitator& gr, const DimMapper<2>& /*dim_mapper*/)
   {
-    x_ += delta.getX();
+    pos_ = gr.swap().gravitateWith(pos_, delta); // only change the non-gravity axis
   }
 
-  void Annotation1DVerticalLineItem::setPosition(const double& x)
+  void Annotation1DVerticalLineItem::setPosition(const PointXYType& pos)
   {
-    x_ = x;
+    pos_ = pos;
   }
 
-  const double & Annotation1DVerticalLineItem::getPosition() const
+  const PointXYType& Annotation1DVerticalLineItem::getPosition() const
   {
-    return x_;
+    return pos_;
   }
 
   QRectF Annotation1DVerticalLineItem::getTextRect() const
   {
     int dummy;
-    return GUIHelpers::getTextDimension(getText().split('\n'), default_text_font, dummy);
+    return GUIHelpers::getTextDimension(getText().split('\n'), QFont("Courier"), dummy);
   }
 
-  void Annotation1DVerticalLineItem::setTextYOffset(int y_offset)
+  void Annotation1DVerticalLineItem::setTextOffset(int offset)
   {
-    y_text_offset_ = y_offset;
+    text_offset_ = offset;
   }
-
-  void Annotation1DVerticalLineItem::ensureWithinDataRange(Plot1DCanvas* const)
-  { // TODO: add code when needed
-  }
-
 } //Namespace

@@ -14,7 +14,7 @@ cdef extern from "<OpenMS/METADATA/DataArrays.h>" namespace "OpenMS::DataArrays"
         #  MetaInfoDescription
         #
         # wrap-doc:
-        #   The representation of extra string data attached to a spectrum or chromatogram.
+        #  The representation of extra string data attached to a spectrum or chromatogram.
 
         StringDataArray() nogil except +
         StringDataArray(StringDataArray &) nogil except + # compiler

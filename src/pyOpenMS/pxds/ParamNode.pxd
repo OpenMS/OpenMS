@@ -1,9 +1,9 @@
 from Types cimport *
 from libcpp cimport bool
+from libcpp.map cimport map as libcpp_map
 from Types cimport *
 from ParamValue cimport *
 from String cimport *
-from Map cimport *
 from ParamEntry cimport *
 
 cdef extern from "<OpenMS/DATASTRUCTURES/Param.h>" namespace "OpenMS::Param":

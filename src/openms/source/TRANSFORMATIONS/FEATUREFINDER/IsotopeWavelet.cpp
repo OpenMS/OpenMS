@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -127,9 +127,7 @@ namespace OpenMS
     return me_;
   }
 
-  IsotopeWavelet::IsotopeWavelet()
-  {
-  }
+  IsotopeWavelet::IsotopeWavelet() = default;
 
   IsotopeWavelet::IsotopeWavelet(const double max_m, const UInt max_charge)
   {
@@ -138,9 +136,7 @@ namespace OpenMS
     preComputeExpensiveFunctions_(max_m);
   }
 
-  IsotopeWavelet::~IsotopeWavelet()
-  {
-  }
+  IsotopeWavelet::~IsotopeWavelet() = default;
 
   void IsotopeWavelet::destroy()
   {

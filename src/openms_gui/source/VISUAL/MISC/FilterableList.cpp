@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -69,20 +69,38 @@ namespace OpenMS
 
     void FilterableList::setBlacklistItems(const QStringList& bl_items)
     {
+      /*
+       * Suppressing warning toSet() deprecated till Qt 5.14
+       */
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
       blacklist_ = bl_items.toSet();
+#pragma GCC diagnostic pop
       updateInternalList_();
     }
 
     void FilterableList::addBlackListItems(const QStringList& items)
     {
+      /*
+       * Suppressing warning toSet() deprecated till Qt 5.14
+       */
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
       blacklist_.unite(items.toSet());
+#pragma GCC diagnostic pop
       updateInternalList_();
     }
 
     void FilterableList::removeBlackListItems(const QStringList& outdated_blacklist_items)
     {
       // quadratic runtime, but maintains order of items (as opposed to converting to set)
+      /*
+       * Suppressing warning toSet() deprecated till Qt 5.14
+       */
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
       for (const auto& bl : outdated_blacklist_items.toSet())
+#pragma GCC diagnostic pop
       {
         if (blacklist_.remove(bl) == 0)
         {

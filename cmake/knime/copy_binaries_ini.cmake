@@ -2,7 +2,7 @@
 #                   OpenMS -- Open-Source Mass Spectrometry
 # --------------------------------------------------------------------------
 # Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-# ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+# ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 #
 # This software is released under a three-clause BSD license:
 #  * Redistributions of source code must retain the above copyright
@@ -32,7 +32,7 @@
 # $Authors: Stephan Aiche $
 # --------------------------------------------------------------------------
 
-CMAKE_MINIMUM_REQUIRED (VERSION 2.8)
+cmake_minimum_required(VERSION 3.15 FATAL_ERROR)
 
 # include helper functions 
 include ( ${SCRIPT_DIR}common.cmake )

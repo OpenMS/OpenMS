@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -76,7 +76,6 @@ namespace OpenMS
                                     String psi_id = "",
                                     String xtandem_id = "",
                                     Int comet_id = -1,
-                                    String crux_id = "",
                                     Int msgf_id = -1,
                                     Int omssa_id = -1);
 
@@ -126,12 +125,6 @@ namespace OpenMS
 
     /// returns the Comet enzyme ID
     Int getCometID() const;
-
-    /// sets the Crux enzyme ID
-    void setCruxID(const String& value);
-
-    /// returns the Crux enzyme ID
-    String getCruxID() const;
 
     /// sets the MSGFPlus enzyme id
     void setMSGFID(Int value);
@@ -187,8 +180,6 @@ namespace OpenMS
     String xtandem_id_;
 
     Int comet_id_;
-
-    String crux_id_;
 
     Int msgf_id_;
 

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -148,6 +148,10 @@ namespace OpenMS
   class OPENMS_GUI_DLLAPI LayerStatistics
   {
   public:
+
+    /// Make D'tor virtual for correct destruction from pointers to base
+    virtual ~LayerStatistics() = default;
+
     /// get all range statistics, any of which can then be plugged into getDistribution()
     const StatsMap& getRangeStatistics() const
     {

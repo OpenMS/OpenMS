@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -62,10 +62,13 @@ namespace OpenMS
     These columns capture the mapping of quantitative values to files for label-free and multiplexed experiments
     and enables fraction-aware data processing.
 
-    - Fraction_Group: a numeric identifier that indicates which fractions are grouped together.
+    - Fraction_Group: a numeric identifier that indicates which fractions are grouped together. Please do NOT
+        reuse the same identifiers across samples! Assign identifiers continuously.
 
     - Fraction: a numeric identifier that indicates which fraction was measured in this file. 
               In the case of unfractionated data, the fraction identifier is 1 for all samples.
+              Make sure the same identifiers are used across different Fraction_Groups, as this
+              determines which fractions correspond to each other.
 
     - Label: a numeric identifier for the label. 1 for label-free, 1 and 2 for SILAC light/heavy, e.g., 1-10 for TMT10Plex
 
@@ -75,15 +78,14 @@ namespace OpenMS
     column in the case of TMT labeling.
     They capture the experimental factors and conditions associated with a sample.
 
-    - MSstats_Condition: a string that indicates the condition (e.g. control or 1000 mMol). Will be forwarded to MSstats and 
+    - MSstats_Condition: a string that indicates the condition (e.g., control or 1000 mMol). Will be forwarded to MSstats and
                        can then be used to specify test contrasts.
 
-    - MSstats_BioReplicate: a numeric identifier to indicate replication. MSstats requires that there are no duplicate entries. 
-                          E.g., if MSstats_Condition, Fraction_Group group, and Fraction number are the same - 
-                          as in the case of biological or technical replication, 
-                          one uses the MSstats_BioReplicate to make entries non-unique)
+    - MSstats_BioReplicate: a string identifier to indicate biological replication of a sample.
+                        Entries with the same Sample/Condition/BioReplicate but different Filepath (and therefore FractionGroup number)
+                        will be treated as technical replicates.
                           
-    - MSstats_Mixture: (for TMT labeling only): a numeric identifier to indicate the mixture of samples labeled with different TMT reagents, which can be analyzed in
+    - MSstats_Mixture: (for TMT labeling only): a string identifier to indicate the mixture of samples labeled with different TMT reagents, which can be analyzed in
                                              a single mass spectrometry experiment. E.g., same samples labeled with different TMT reagents have a different mixture identifier. 
                                              Technical replicates need to have the same mixture identifier.
 
@@ -257,7 +259,8 @@ namespace OpenMS
       unsigned fraction = 1; ///< fraction 1..m, mandatory, 1 if not set
       std::string path = "UNKNOWN_FILE"; ///< file name, mandatory
       unsigned label = 1;  ///< the label (e.g.,: 1 for label-free, 1..8 for TMT8plex)
-      unsigned sample = 1;  ///< allows grouping by sample
+      unsigned sample = 0;  ///< zero-based index for the sample section contents; allows grouping by sample
+      String sample_name = "0"; ///< sample name for access of the sample row by string, not index
     };
 
     class OPENMS_DLLAPI SampleSection
@@ -268,31 +271,43 @@ namespace OpenMS
 
       SampleSection(
         const std::vector< std::vector < String > >& content,
-        const std::map< unsigned, Size >& sample_to_rowindex,
+        const std::map< String, Size >& sample_to_rowindex,
         const std::map< String, Size >& columnname_to_columnindex
       );
 
       // Get set of all samples that are present in the sample section
-      std::set< unsigned > getSamples() const;
+      std::set< String > getSamples() const;
 
       // Add a sample as the last row
-      void addSample(unsigned sample, const std::vector<String>& content = {});
+      void addSample(const String& sample, const std::vector<String>& content = {});
 
       // TODO should it include the Sample ID column or not??
       // Get set of all factors (column names) that were defined for the sample section
       std::set< String > getFactors() const;
 
       // Checks whether sample section has row for a sample number
-      bool hasSample(unsigned sample) const;
+      bool hasSample(const String& sample) const;
 
       // Checks whether Sample Section has a specific factor (i.e. column name)
       bool hasFactor(const String &factor) const;
 
       // Returns value of factor for given sample and factor name
-      String getFactorValue(unsigned sample, const String &factor) const;
+      String getFactorValue(const String& sample_name, const String &factor) const;
+
+      // Returns value of factor for given sample index and factor name
+      String getFactorValue(unsigned sample_idx, const String &factor) const;
 
       // Returns column index of factor
-      Size getFactorColIdx( const String &factor) const;
+      Size getFactorColIdx(const String &factor) const;
+
+      // Returns the name/ID of the sample. Not necessarily the row index
+      String getSampleName(unsigned sample_row) const;
+
+      // Returns the row index in the sample section for a sample name/ID
+      unsigned getSampleRow(const String& sample) const;
+
+      /// returns the number of entries in content_ member
+      Size getContentSize() const;
 
     private:
 
@@ -300,9 +315,9 @@ namespace OpenMS
       // the Experimental Design File
       std::vector< std::vector < String > > content_;
 
-      // Maps the Sample Entry to the row where the sample
-      // appears in the Sample section
-      std::map< unsigned, Size > sample_to_rowindex_;
+      // Maps the Sample Entry name to the row where the sample
+      // appears in the Sample section, its sample index
+      std::map< String, Size > sample_to_rowindex_;
 
       // Maps the column name of the SampleSection to the
       // Index of the column
@@ -325,13 +340,13 @@ namespace OpenMS
 
     void setSampleSection(const SampleSection& sample_section);
 
-    /// returns a map from a sample section row to sample id to cluster
+    /// returns a map from a sample section row to sample id for clustering
     /// duplicate sample rows (e.g. to find all fractions of the same "sample")
-    std::map<std::vector<String>, std::set<unsigned>> getUniqueSampleRowToSampleMapping() const;
+    std::map<std::vector<String>, std::set<String>> getUniqueSampleRowToSampleMapping() const;
 
     /// uses getUniqueSampleRowToSampleMapping to get the reversed map
     /// mapping sample ID to a real unique sample
-    std::map<unsigned, unsigned> getSampleToPrefractionationMapping() const;
+    std::map<String, unsigned> getSampleToPrefractionationMapping() const;
 
     /// return fraction index to file paths (ordered by fraction_group)
     //TODO this probably needs a basename parameter to be fully compatible with the other mappings!! Implicit full path.
@@ -358,11 +373,11 @@ namespace OpenMS
     /// sample section, except for replicates.
     std::map< std::pair< String, unsigned >, unsigned> getPathLabelToConditionMapping(bool use_basename_only) const;
 
-    /// return Sample index to condition mapping (a condition is a unique combination of all columns in the
+    /// return Sample name to condition mapping (a condition is a unique combination of all columns in the
     /// sample section, except for replicates. Numbering of conditions is alphabetical due to map.
-    std::map<unsigned, unsigned> getSampleToConditionMapping() const;
+    std::map<String, unsigned> getSampleToConditionMapping() const;
 
-    /// return <file_path, label> to sample mapping
+    /// return <file_path, label> to sample index mapping
     std::map< std::pair< String, unsigned >, unsigned> getPathLabelToSampleMapping(bool use_basename_only) const;
 
     /// return <file_path, label> to fraction mapping

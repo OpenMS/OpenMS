@@ -1,5 +1,5 @@
 project("OpenMS_TOPPAS_tests")
-cmake_minimum_required(VERSION 3.0 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.15 FATAL_ERROR)
 
 ################################## README ######################################
 #

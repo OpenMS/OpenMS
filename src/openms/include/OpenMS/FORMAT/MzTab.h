@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -705,6 +705,7 @@ public:
          const ConsensusMap& consensus_map_;
          std::set<String> protein_hit_user_value_keys_;
          std::set<String> consensus_feature_user_value_keys_;
+         std::set<String> consensus_feature_peptide_identification_user_value_keys_;
          std::set<String> consensus_feature_peptide_hit_user_value_keys_;
 
          // beautiful mapping structs
@@ -772,6 +773,7 @@ public:
       const StringList& ms_runs,
       const Size n_study_variables,
       const std::set<String>& consensus_feature_user_value_keys,
+      const std::set<String>& peptide_identifications_user_value_keys,
       const std::set<String>& peptide_hit_user_value_keys,
       const std::map<String, size_t>& idrun_2_run_index,
       const std::map<std::pair<size_t,size_t>,size_t>& map_run_fileidx_2_msfileidx,
@@ -782,6 +784,7 @@ public:
     static MzTabPeptideSectionRow peptideSectionRowFromFeature_(
       const Feature& c, 
       const std::set<String>& feature_user_value_keys,
+      const std::set<String>& peptide_identifications_user_value_keys,
       const std::set<String>& peptide_hit_user_value_keys,
       const std::vector<String>& fixed_mods);
 
@@ -819,9 +822,15 @@ public:
     static MzTabParameter getProteinScoreType_(const ProteinIdentification& prot_id);
 
     // TODO: move to core classes?
-    static void getConsensusMapMetaValues_(const ConsensusMap& consensus_map, std::set<String>& consensus_feature_user_value_keys, std::set<String>& peptide_hit_user_value_keys);
+    static void getConsensusMapMetaValues_(const ConsensusMap& consensus_map, 
+      std::set<String>& consensus_feature_user_value_keys,
+      std::set<String>& peptide_identification_user_value_keys,
+      std::set<String>& peptide_hit_user_value_keys);
 
-    static void getFeatureMapMetaValues_(const FeatureMap& feature_map, std::set<String>& feature_user_value_keys, std::set<String>& peptide_hit_user_value_keys);
+    static void getFeatureMapMetaValues_(const FeatureMap& feature_map,
+      std::set<String>& feature_user_value_keys,
+      std::set<String>& peptide_identification_user_value_keys,
+      std::set<String>& peptide_hit_user_value_keys);
 
     static void getIdentificationMetaValues_(
       const std::vector<const ProteinIdentification*>& prot_ids, 

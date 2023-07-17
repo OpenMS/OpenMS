@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -44,11 +44,12 @@ namespace OpenMS
     *
     * @brief Isotope pattern generator for fine isotope distributions.
     *
-    * This algorithm generates theoretical pattern distributions for empirical
-    * formulas with high resolution (while the CoarseIsotopePatternGenerator
-    * will generate low-resolution patterns). The output is a list of pairs
-    * containing isotope probabilities paired with the accurate m/z for the
-    * analyte isotopic composition.
+    * This algorithm implements IsotopePatternGenerator and generates
+    * theoretical pattern distributions for empirical formulas with high
+    * resolution (while the CoarseIsotopePatternGenerator will generate
+    * low-resolution patterns). The output is a list of pairs containing
+    * isotope probabilities paired with the accurate m/z for the analyte
+    * isotopic composition.
     *
     * For example, for a C100H202 molecule (at 0.01 threshold), you will get:
     *
@@ -77,6 +78,16 @@ namespace OpenMS
     *     ...
     * @endcode
     *
+    * From the above example, we can see that the CoarseIsotopePatternGenerator
+    * will generate a single peak at nominal mass 1404 which sums up the
+    * probability of both the 13C and the 2H (deuterium) peak, while the
+    * FineIsotopePatternGenerator will generate two peaks at 1404.5840 (for
+    * 13C) and at 1404.5869 (for 2H). The probabilities of 36.0% and 0.77% add
+    * up to 36.8% which is the same as the sum reported by the
+    * CoarseIsotopePatternGenerator for the nominal mass at 1404. Note that for
+    * the peak at 1405 the FineIsotopePatternGenerator only reports two out of
+    * the three probabilities due to the chosen probability cutoffs.
+    *
     * One important value to set is the threshold with tells the algorithm when
     * to stop calculating isotopic peaks to calculate. The default stop
     * condition is to stop when only a small portion (such as 0.01) of the
@@ -94,9 +105,11 @@ namespace OpenMS
     *
     * @note Consider using IsoSpec directly or the OpenMS IsoSpecWrapper /
     *       IsoSpecGeneratorWrapper classes defined in IsoSpecWrapper.h for
-    *       increased performance.
+    *       increased performance since this class will sort the resuly by m/z
+    *       while the wrapper will not; sorting substantially decreases
+    *       performance.
     *
-    * The computation is based on the IsoSpec algorithm
+    * The computation is based on the IsoSpec algorithm, please cite
     *
     * @code
     * Łącki MK, Startek M, Valkenborg D, Gambin A.
@@ -175,13 +188,13 @@ namespace OpenMS
       return absolute_;
     }
 
-    /// Set whether total probability should be computed
+    /// Set whether total probability should be computed (see FineIsotopePatternGenerator() )
     void setTotalProbability(bool total)
     {
       use_total_prob_ = total;
     }
 
-    /// Returns whether total probability should be computed
+    /// Returns whether total probability should be computed (see FineIsotopePatternGenerator() )
     bool getTotalProbability() const
     {
       return use_total_prob_;

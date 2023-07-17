@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -61,7 +61,7 @@ bool SortDoubleDoublePairFirst(const std::pair<double, double>& left, const std:
 
 
 void processFeatureForOutput(OpenMS::Feature& curr_feature, bool write_convex_hull_, double
-                             quantification_cutoff_, double& total_intensity, double& total_peak_apices, std::string ms_level)
+                             quantification_cutoff_, double& total_intensity, double& total_peak_apices, const std::string& ms_level)
 {
   // Save some space when writing out the featureXML
   if (!write_convex_hull_)
@@ -109,6 +109,7 @@ namespace OpenMS
     defaults_.setValue("im_extra_drift", 0.0, "Extra drift time to extract for IM scoring (as a fraction, e.g. 0.25 means 25% extra on each side)", {"advanced"});
     defaults_.setMinFloat("im_extra_drift", 0.0);
     defaults_.setValue("strict", "true", "Whether to error (true) or skip (false) if a transition in a transition group does not have a corresponding chromatogram.", {"advanced"});
+    defaults_.setValidStrings("strict", {"true","false"});
 
     defaults_.insert("TransitionGroupPicker:", MRMTransitionGroupPicker().getDefaults());
 
@@ -164,13 +165,13 @@ namespace OpenMS
     defaultsToParam_();
   }
 
-  MRMFeatureFinderScoring::~MRMFeatureFinderScoring()
-  {
-  }
+  MRMFeatureFinderScoring::~MRMFeatureFinderScoring() = default;
 
-  void MRMFeatureFinderScoring::pickExperiment(PeakMap& chromatograms,
-                                               FeatureMap& output, TargetedExperiment& transition_exp_,
-                                               TransformationDescription trafo, PeakMap& swath_map)
+  void MRMFeatureFinderScoring::pickExperiment(const PeakMap& chromatograms,
+                                               FeatureMap& output,
+                                               const TargetedExperiment& transition_exp_,
+                                               const TransformationDescription& trafo,
+                                               const PeakMap& swath_map)
   {
     OpenSwath::LightTargetedExperiment transition_exp;
     OpenSwathDataAccessHelper::convertTargetedExp(transition_exp_, transition_exp);
@@ -190,10 +191,11 @@ namespace OpenMS
     pickExperiment(chromatogram_ptr, output, transition_exp, trafo, swath_ptrs, transition_group_map);
   }
 
-  void MRMFeatureFinderScoring::pickExperiment(OpenSwath::SpectrumAccessPtr input,
-                                               FeatureMap& output, OpenSwath::LightTargetedExperiment& transition_exp,
-                                               TransformationDescription trafo, 
-                                               std::vector<OpenSwath::SwathMap> swath_maps,
+  void MRMFeatureFinderScoring::pickExperiment(const OpenSwath::SpectrumAccessPtr& input,
+                                               FeatureMap& output,
+                                               const OpenSwath::LightTargetedExperiment& transition_exp,
+                                               const TransformationDescription& trafo, 
+                                               const std::vector<OpenSwath::SwathMap>& swath_maps,
                                                TransitionGroupMapType& transition_group_map)
   {
     //
@@ -223,9 +225,9 @@ namespace OpenMS
     // Create all MRM transition groups from the individual transitions.
     mapExperimentToTransitionList(input, transition_exp, transition_group_map, trafo, rt_extraction_window_);
     int counter = 0;
-    for (TransitionGroupMapType::iterator trgroup_it = transition_group_map.begin(); trgroup_it != transition_group_map.end(); ++trgroup_it)
+    for (const auto& trgroup : transition_group_map)
     {
-      if (!trgroup_it->second.getChromatograms().empty()) {counter++; }
+      if (!trgroup.second.getChromatograms().empty()) {counter++; }
     }
     OPENMS_LOG_INFO << "Will analyse " << counter << " peptides with a total of " << transition_exp.getTransitions().size() << " transitions " << std::endl;
 
@@ -390,7 +392,7 @@ namespace OpenMS
 
       for (size_t i = 0; i < native_ids_identification.size(); i++)
       {
-        ind_transition_names.push_back(native_ids_identification[i]);
+        ind_transition_names.emplace_back(native_ids_identification[i]);
         if (idmrmfeature.getFeature(native_ids_identification[i]).getIntensity() > 0)
         {
           double intensity_score = double(idmrmfeature.getFeature(native_ids_identification[i]).getIntensity()) / double(idmrmfeature.getFeature(native_ids_identification[i]).getMetaValue("total_xic"));
@@ -903,8 +905,11 @@ namespace OpenMS
           mrmfeature.addScore("var_im_xcorr_coelution", scores.im_xcorr_coelution_score);
           mrmfeature.addScore("var_im_delta_score", scores.im_delta_score);
           mrmfeature.addScore("var_im_ms1_delta_score", scores.im_ms1_delta_score);
-          mrmfeature.addScore("im_drift", scores.im_drift);
-          mrmfeature.addScore("im_drift_weighted", scores.im_drift_weighted);
+          mrmfeature.addScore("im_drift", scores.im_drift); // MS2 level
+          mrmfeature.addScore("im_drift_weighted", scores.im_drift_weighted); // MS2 level
+          mrmfeature.addScore("im_ms1_drift", scores.im_ms1_drift); // MS1 level
+          mrmfeature.addScore("im_ms1_delta", scores.im_ms1_delta); // MS1 level
+          mrmfeature.addScore("im_delta", scores.im_delta); // MS2 level
         }
 
         precursor_mz = transition_group_detection.getTransitions()[0].getPrecursorMZ();
@@ -1077,8 +1082,8 @@ namespace OpenMS
     su_.use_ms2_isotope_scores   = param_.getValue("Scores:use_ms2_isotope_scores").toBool();
   }
 
-  void MRMFeatureFinderScoring::mapExperimentToTransitionList(OpenSwath::SpectrumAccessPtr input,
-                                                              TargetedExpType& transition_exp,
+  void MRMFeatureFinderScoring::mapExperimentToTransitionList(const OpenSwath::SpectrumAccessPtr& input,
+                                                              const TargetedExpType& transition_exp,
                                                               TransitionGroupMapType& transition_group_map,
                                                               TransformationDescription trafo,
                                                               double rt_extraction_window)

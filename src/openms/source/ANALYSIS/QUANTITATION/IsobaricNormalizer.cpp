@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -37,6 +37,8 @@
 
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/KERNEL/ConsensusMap.h>
+
+#include <map>
 
 namespace OpenMS
 {
@@ -137,7 +139,7 @@ namespace OpenMS
     Peak2D::IntensityType max_deviation_from_control = 0;
 
     // find MEDIAN of ratios for each channel (store as 0th element in sorted vector)
-    for (Map<Size, Size>::const_iterator it_map = map_to_vec_index_.begin(); it_map != map_to_vec_index_.end(); ++it_map)
+    for (std::map<Size, Size>::const_iterator it_map = map_to_vec_index_.begin(); it_map != map_to_vec_index_.end(); ++it_map)
     {
       // this is solely for readability reasons, the compiler should optimize this anyway
       const Size vec_idx = it_map->second;

@@ -9,7 +9,6 @@ CompNovo
 CompNovoCID
 ConsensusID
 ConsensusMapNormalizer
-CruxAdapter
 DatabaseSuitability
 Decharger
 DTAExtractor
@@ -31,6 +30,7 @@ FileConverter
 FileFilter
 FileInfo
 FileMerger
+FLASHDeconv
 GenericWrapper
 GNPSExport
 HighResPrecursorMassCorrector
@@ -59,11 +59,9 @@ MascotAdapterOnline
 MassTraceExtractor
 MRMMapper
 MSGFPlusAdapter
-MyriMatchAdapter
 MzTabExporter
 NoiseFilterGaussian
 NoiseFilterSGolay
-OMSSAAdapter
 OpenPepXL
 OpenPepXLLF
 OpenSwathAnalyzer

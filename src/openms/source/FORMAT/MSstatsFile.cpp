@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -389,8 +389,8 @@ void MSstatsFile::storeLFQ(const String& filename,
 
         //Note: In general as long as we only support merged proteins across conditions,
         // we check if the map is already set at this sequence since
-        // it cannot happen that to peptides with the same sequence map to different proteins unless something is wrong.
-        // Also I think MSstats cannot handle different associations to proteins across conditions.
+        // it cannot happen that two peptides with the same sequence map to different proteins unless something is wrong.
+        // Also, I think MSstats cannot handle different associations to proteins across conditions.
         if (isQuantifyable_(accs, accession_to_group))
         {
           peptideseq_quantifyable.emplace(sequence);
@@ -422,7 +422,7 @@ void MSstatsFile::storeLFQ(const String& filename,
           const unsigned label(aggregatedInfo.consensus_feature_labels[i][j]);
 
           const pair< String, unsigned> tpl1 = make_pair(current_filename, label);
-          const unsigned sample = path_label_to_sample[tpl1];
+          const unsigned sample_idx = path_label_to_sample[tpl1];
           const unsigned fraction = path_label_to_fraction[tpl1];
 
           const pair< String, unsigned> tpl2 = make_pair(current_filename, fraction);
@@ -443,8 +443,8 @@ void MSstatsFile::storeLFQ(const String& filename,
                   fragment_ion,
                   frag_charge,
                   isotope_label_type,
-                  sampleSection.getFactorValue(sample, condition),
-                  sampleSection.getFactorValue(sample, bioreplicate),
+                  sampleSection.getFactorValue(sample_idx, condition),
+                  sampleSection.getFactorValue(sample_idx, bioreplicate),
                   String(run),
                   (has_fraction ? String(fraction) : "")
           );

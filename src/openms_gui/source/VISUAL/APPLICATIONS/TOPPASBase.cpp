@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -57,23 +57,25 @@
 #include <OpenMS/VISUAL/TOPPASToolVertex.h>
 #include <OpenMS/VISUAL/TOPPASWidget.h>
 
+#include <map>
+
 //Qt
 #include <QApplication>
+#include <QCloseEvent>
+#include <QDesktopServices>
+#include <QNetworkAccessManager>
+#include <QNetworkProxy>
+#include <QNetworkProxyFactory>
+#include <QNetworkReply>
+#include <QSvgGenerator>
+#include <QTextCodec>
+#include <QTextStream>
 #include <QtCore/QDir>
 #include <QtCore/QFile>
 #include <QtCore/QMap>
 #include <QtCore/QSet>
 #include <QtCore/QSettings>
 #include <QtCore/QUrl>
-#include <QCloseEvent>
-#include <QDesktopServices>
-#include <QNetworkAccessManager>
-#include <QNetworkProxyFactory>
-#include <QNetworkProxy>
-#include <QNetworkReply>
-#include <QSvgGenerator>
-#include <QTextStream>
-#include <QTextCodec>
 #include <QtWidgets/QCheckBox>
 #include <QtWidgets/QDesktopWidget>
 #include <QtWidgets/QDockWidget>
@@ -82,6 +84,7 @@
 #include <QtWidgets/QLabel>
 #include <QtWidgets/QListWidget>
 #include <QtWidgets/QListWidgetItem>
+#include <QtWidgets/QMdiSubWindow>
 #include <QtWidgets/QMenu>
 #include <QtWidgets/QMenuBar>
 #include <QtWidgets/QMessageBox>
@@ -90,12 +93,12 @@
 #include <QtWidgets/QTextEdit>
 #include <QtWidgets/QToolBar>
 #include <QtWidgets/QToolButton>
+#include <QtWidgets/QToolTip>
 #include <QtWidgets/QTreeWidget>
 #include <QtWidgets/QTreeWidgetItem>
-#include <QtWidgets/QToolTip>
 #include <QtWidgets/QVBoxLayout>
 #include <QtWidgets/QWhatsThis>
-#include <QtWidgets/QMdiSubWindow>
+#include <utility>
 
 
 using namespace std;
@@ -190,7 +193,7 @@ namespace OpenMS
     QAction* action = help->addAction("OpenMS website", this, SLOT(showURL()));
     action->setData("http://www.OpenMS.de");
     action = help->addAction("TOPPAS tutorial", this, SLOT(showURL()), Qt::Key_F1);
-    action->setData(String("html/TOPPAS_tutorial.html").toQString());
+    action->setData("https://openms.readthedocs.io/en/latest/docs/tutorials/TOPPAS/TOPPAS-tutorial.html");
 
     help->addSeparator();
     help->addAction("&About", this, SLOT(showAboutDialog()));
@@ -213,7 +216,7 @@ namespace OpenMS
     defaults_.setValue("preferences:default_path_current", "true", "If the current path is preferred over the default path.");
     defaults_.setValidStrings("preferences:default_path_current", {"true","false"});
     defaults_.setValue("preferences:version", "none", "OpenMS version, used to check if the TOPPAS.ini is up-to-date");
-    subsections_.push_back("preferences:RecentFiles");
+    subsections_.emplace_back("preferences:RecentFiles");
     defaultsToParam_();
 
     //load param file
@@ -464,27 +467,29 @@ namespace OpenMS
     ToolListType tools_list = ToolHandler::getTOPPToolList(true);
     ToolListType util_list = ToolHandler::getUtilList();
     // append utils
-    for (ToolListType::Iterator it = util_list.begin(); it != util_list.end(); ++it)
+    for (ToolListType::iterator it = util_list.begin(); it != util_list.end(); ++it)
     {
       it->second.category = "Utils";
       tools_list.insert(*it);
     }
 
     // any tool without a category gets into "unassigned" bin
-    for (ToolListType::Iterator it = tools_list.begin(); it != tools_list.end(); ++it)
+    for (ToolListType::iterator it = tools_list.begin(); it != tools_list.end(); ++it)
     {
       if (it->second.category.trim().empty())
         it->second.category = "Unassigned";
     }
 
     QSet<QString> category_set;
-    for (ToolListType::ConstIterator it = tools_list.begin(); it != tools_list.end(); ++it)
+    for (ToolListType::const_iterator it = tools_list.begin(); it != tools_list.end(); ++it)
     {
       category_set << String(it->second.category).toQString();
     }
-    QStringList category_list = category_set.toList();
-    qSort(category_list);
-    Map<QString, QTreeWidgetItem*> category_map;
+
+    QStringList category_list = category_set.values();
+    std::sort(category_list.begin(), category_list.end());
+
+    std::map<QString, QTreeWidgetItem*> category_map;
 
     foreach(const QString &category, category_list)
     {
@@ -684,7 +689,7 @@ namespace OpenMS
   }
 
   // static
-  QString TOPPASBase::savePipelineAs(TOPPASWidget* w, QString current_path)
+  QString TOPPASBase::savePipelineAs(TOPPASWidget* w, const QString& current_path)
   {
     if (!w)
     {
@@ -778,7 +783,7 @@ namespace OpenMS
   }
 
   // static
-  QString TOPPASBase::loadPipelineResourceFile(TOPPASWidget* w, QString current_path)
+  QString TOPPASBase::loadPipelineResourceFile(TOPPASWidget* w, const QString& current_path)
   {
     if (!w)
     {
@@ -803,7 +808,7 @@ namespace OpenMS
   }
 
   // static
-  QString TOPPASBase::savePipelineResourceFile(TOPPASWidget* w, QString current_path)
+  QString TOPPASBase::savePipelineResourceFile(TOPPASWidget* w, const QString& current_path)
   {
     if (!w)
     {
@@ -958,14 +963,14 @@ namespace OpenMS
 
   void TOPPASBase::closeFile()
   {
-    if (ws_ != 0 && ws_->currentSubWindow() != 0)
+    if (ws_ != nullptr && ws_->currentSubWindow() != nullptr)
     {
       ws_->currentSubWindow()->close();
     }
     updateMenu();
   }
 
-  void TOPPASBase::showStatusMessage(string msg, OpenMS::UInt time)
+  void TOPPASBase::showStatusMessage(const string& msg, OpenMS::UInt time)
   {
     if (time == 0)
     {
@@ -1384,7 +1389,7 @@ namespace OpenMS
 
   void TOPPASBase::updateTOPPOutputLog(const QString& out)
   {
-    QString text = out; // shortened version for now (if we reintroduce simultaneous tool execution,
+    const QString& text = out; // shortened version for now (if we reintroduce simultaneous tool execution,
                         // we need to rethink this (probably only trigger this slot when tool 100% finished)
 
 
@@ -1485,7 +1490,7 @@ namespace OpenMS
                                        QMessageBox::Save | QMessageBox::Cancel);
     if (ret == QMessageBox::Save)
     {
-      QString file_name = TOPPASBase::savePipelineAs(tw, current_path);
+      QString file_name = TOPPASBase::savePipelineAs(tw, std::move(current_path));
       return file_name;
     }
 
@@ -1510,7 +1515,14 @@ namespace OpenMS
       if (ret == QMessageBox::Cancel) return; // Escape was pressed
       if (ret == QMessageBox::Yes)
       {
+        /*
+         * Suppressed warning QSTring::SkipEmptyParts and QString::SplitBehaviour is deprecated
+         * QT::SkipEmptyParts and QT::SplitBehaviour is added or modified at Qt 5.14
+         */
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
         files = files.join("#SpLiT_sTrInG#+#SpLiT_sTrInG#").split("#SpLiT_sTrInG#", QString::SkipEmptyParts);
+#pragma GCC diagnostic pop
       }
     }
     
@@ -1518,7 +1530,7 @@ namespace OpenMS
 
   }
 
-  void TOPPASBase::openToppasFile(QString filename)
+  void TOPPASBase::openToppasFile(const QString& filename)
   {
     addTOPPASFile(String(filename));
   }

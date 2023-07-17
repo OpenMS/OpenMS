@@ -15,7 +15,7 @@ public:
     _lpmf(lpmf)
   { }
 
-  virtual HUGINMessagePasser<VARIABLE_KEY>* create_message_passer(InferenceGraphBuilder<VARIABLE_KEY> & igb) const {
+  virtual HUGINMessagePasser<VARIABLE_KEY>* create_message_passer(InferenceGraphBuilder<VARIABLE_KEY> & /*igb*/) const {
     // Note: Does not create hyperdges or bind to hyperedges. That is
     // the responsibility of InferenceGraphBuilder.
     return new HUGINMessagePasser<VARIABLE_KEY>(_lpmf, this->p);

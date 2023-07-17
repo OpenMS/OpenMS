@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -258,8 +258,8 @@ START_SECTION((void getModelParameters(Param& params) const))
 	TEST_EQUAL(params, Param());
 	params.setValue("slope", 2.5);
 	params.setValue("intercept", -100.0);
-  params.setValue("x_weight", "");
-  params.setValue("y_weight", "");
+  params.setValue("x_weight", "x");
+  params.setValue("y_weight", "y");
   params.setValue("x_datum_min", 1e-15);
   params.setValue("y_datum_min", 1e-15);
   params.setValue("x_datum_max", 1e15);

@@ -10,10 +10,10 @@ cdef extern from "<OpenMS/CHEMISTRY/DigestionEnzymeProtein.h>" namespace "OpenMS
 
     cdef cppclass DigestionEnzymeProtein(DigestionEnzyme):
         # wrap-inherits:
-        #    DigestionEnzyme
+        #   DigestionEnzyme
         #
         # wrap-doc:
-        #   Representation of a digestion enzyme for proteins (protease)
+        #  Representation of a digestion enzyme for proteins (protease)
 
         DigestionEnzymeProtein() nogil except +
 
@@ -51,9 +51,6 @@ cdef extern from "<OpenMS/CHEMISTRY/DigestionEnzymeProtein.h>" namespace "OpenMS
 
         void setXTandemID(String value) nogil except + # wrap-doc:Sets the X! Tandem enzyme ID
         String getXTandemID() nogil except + # wrap-doc:Returns the X! Tandem enzyme ID
-
-        void setCruxID(const String & value) nogil except + # wrap-doc:Sets the Crux enzyme ID
-        String getCruxID() nogil except + # wrap-doc:Returns the Crux enzyme ID
 
         void setCometID(int value) nogil except + # wrap-doc:Sets the Comet enzyme ID
         int getCometID() nogil except + # wrap-doc:Returns the Comet enzyme ID

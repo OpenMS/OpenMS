@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -34,6 +34,8 @@
 
 #include <OpenMS/METADATA/InstrumentSettings.h>
 
+#include <utility>
+
 using namespace std;
 
 namespace OpenMS
@@ -49,9 +51,7 @@ namespace OpenMS
   {
   }
 
-  InstrumentSettings::~InstrumentSettings()
-  {
-  }
+  InstrumentSettings::~InstrumentSettings() = default;
 
   bool InstrumentSettings::operator==(const InstrumentSettings & rhs) const
   {
@@ -99,7 +99,7 @@ namespace OpenMS
 
   void InstrumentSettings::setScanWindows(std::vector<ScanWindow>  scan_windows)
   {
-    scan_windows_ =  scan_windows;
+    scan_windows_ =  std::move(scan_windows);
   }
 
   bool InstrumentSettings::getZoomScan() const

@@ -30,7 +30,7 @@ def doCythonCodeGeneration(modname, allDecl_mapping, instance_map, converters):
     autowrap_include_dirs = autowrap.generate_code(allDecl_mapping[modname]["decls"], instance_map,
                                                         target=m_filename, debug=False, manual_code=manual_code,
                                                         extra_cimports=cimports,
-                                                        include_boost=False, include_numpy=True, allDecl=allDecl_mapping, add_relative=True)
+                                                        include_boost=False, include_numpy=True, all_decl=allDecl_mapping, add_relative=True)
     allDecl_mapping[modname]["inc_dirs"] = autowrap_include_dirs
     return autowrap_include_dirs
 
@@ -85,7 +85,7 @@ if __name__ == '__main__':
 
 
   classdocu_base = "http://www.openms.de/current_doxygen/html/"
-  autowrap.CodeGenerator.special_class_doc = "\n    Documentation is available at " + classdocu_base + "class%(namespace)s_1_1%(cpp_name)s.html\n"
+  autowrap.CodeGenerator.special_class_doc = "\n    Original C++ documentation is available `here <" + classdocu_base + "class%(namespace)s_1_1%(cpp_name)s.html>`_\n"
   autowrap.DeclResolver.default_namespace = "OpenMS"
 
   def chunkIt(seq, num):
@@ -155,7 +155,10 @@ if __name__ == '__main__':
   if sum([len(ch) for ch in pxd_files_chunk]) != len(pxd_decl_mapping):
       raise Exception("Internal Error: chunking lost files")
 
-  mnames = ["pyopenms_%s" % (k+1) for k in range(int(PY_NUM_MODULES))]
+  if (int(PY_NUM_MODULES)==1):
+    mnames = ["_pyopenms"]
+  else:
+    mnames = ["_pyopenms_%s" % (k+1) for k in range(int(PY_NUM_MODULES))]
   allDecl_mapping = {}
   for pxd_f, m in zip(pxd_files_chunk, mnames):
       tmp_decls = []
@@ -232,14 +235,17 @@ if __name__ == '__main__':
 
   print("Created all %s pyopenms.cpps" % PY_NUM_MODULES)
 
-
-  with open("pyopenms/all_modules.py", "w") as fp:
+  with open("pyopenms/_all_modules.py", "w") as fp:
       for modname in mnames:
-          fp.write("from .%s import *\n" % modname)
+          fp.write("from .%s import *  # pylint: disable=wildcard-import; lgtm(py/polluting-import)\n" % modname)
+
+  with open("pyopenms/_all_modules.pyi", "w") as fp:
+      for modname in mnames:
+          fp.write("from .%s import *  # pylint: disable=wildcard-import; lgtm(py/polluting-import)\n" % modname)
 
 
   # create version information
   version = OPEN_MS_VERSION
 
-  print("version=%r\n" % version, file=open("pyopenms/version.py", "w"))
-  print("info=%r\n" % QT_QMAKE_VERSION_INFO, file=open("pyopenms/qt_version_info.py", "w"))
+  print("version=%r\n" % version, file=open("pyopenms/_version.py", "w"))
+  print("info=%r\n" % QT_QMAKE_VERSION_INFO, file=open("pyopenms/_qt_version_info.py", "w"))

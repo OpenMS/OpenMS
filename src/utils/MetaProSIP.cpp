@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -246,7 +246,7 @@ public:
 
     const size_t n = x.size();
 
-    //Wm5::IntpAkimaNonuniform1<double> spline(x.size(), &x.front(), &y.front());
+    //gte::IntpAkimaNonuniform1<double> spline(x.size(), &x.front(), &y.front());
     CubicSpline2d spline(x, y);
 
     if (debug)
@@ -2071,7 +2071,7 @@ protected:
 
     registerDoubleOption_("mz_tolerance_ppm", "<tol>", 10.0, "Tolerance in ppm", false);
 
-    registerDoubleOption_("rt_tolerance_s", "<tol>", 30.0, "Rolerance window around feature rt for XIC extraction", false);
+    registerDoubleOption_("rt_tolerance_s", "<tol>", 30.0, "Tolerance window around feature rt for XIC extraction", false);
 
     registerDoubleOption_("intensity_threshold", "<tol>", 10.0, "Intensity threshold to collect peaks in the MS1 spectrum.", false);
 

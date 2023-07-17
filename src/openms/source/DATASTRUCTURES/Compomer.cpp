@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -71,17 +71,7 @@ namespace OpenMS
   }
 
   /// Copy C'tor
-  Compomer::Compomer(const Compomer& p) :
-    cmp_(p.cmp_),
-    net_charge_(p.net_charge_),
-    mass_(p.mass_),
-    pos_charges_(p.pos_charges_),
-    neg_charges_(p.neg_charges_),
-    log_p_(p.log_p_),
-    rt_shift_(p.rt_shift_),
-    id_(p.id_)
-  {
-  }
+  Compomer::Compomer(const Compomer& p) = default;
 
   /// Assignment Operator
   Compomer& Compomer::operator=(const Compomer& source)

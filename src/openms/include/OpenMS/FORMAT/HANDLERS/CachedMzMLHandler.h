@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -101,20 +101,20 @@ public:
     void writeMemdump(const MapType& exp, const String& out) const;
 
     /// Write only the meta data of an MSExperiment
-    void writeMetadata(MapType exp, String out_meta, bool addCacheMetaValue=false);
+    void writeMetadata(MapType exp, const String& out_meta, bool addCacheMetaValue=false);
 
     /// Write only the meta data of an MSExperiment
     void writeMetadata_x(const MapType& exp, const String& out_meta, bool addCacheMetaValue=false);
 
     /// Read all spectra from a dump from the disk
-    void readMemdump(MapType& exp_reading, String filename) const;
+    void readMemdump(MapType& exp_reading, const String& filename) const;
     //@}
 
     /** @name Access and creation of the binary indices
     */
     //@{
     /// Create an index on the location of all the spectra and chromatograms
-    void createMemdumpIndex(String filename);
+    void createMemdumpIndex(const String& filename);
 
     /// Access to a constant copy of the binary spectra index
     const std::vector<std::streampos>& getSpectraIndex() const;

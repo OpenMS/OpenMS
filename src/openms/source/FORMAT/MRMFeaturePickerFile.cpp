@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -74,7 +74,7 @@ namespace OpenMS
         bool cgp_found = std::any_of(
           cgp_list.begin(),
           cgp_list.end(),
-          [&cgp](MRMFeaturePicker::ComponentGroupParams current_cgp)
+          [&cgp](const MRMFeaturePicker::ComponentGroupParams& current_cgp)
           {
             return cgp.component_group_name == current_cgp.component_group_name;
           }

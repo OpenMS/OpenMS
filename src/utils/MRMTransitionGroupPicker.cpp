@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry               
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 // 
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -74,9 +74,9 @@ using namespace OpenMS;
     <CENTER>
         <table>
             <tr>
-                <td ALIGN = "center" BGCOLOR="#EBEBEB"> potential predecessor tools </td>
-                <td VALIGN="middle" ROWSPAN=3> \f$ \longrightarrow \f$ MRMTransitionGroupPicker \f$ \longrightarrow \f$</td>
-                <td ALIGN = "center" BGCOLOR="#EBEBEB"> potential successor tools </td>
+                <th ALIGN = "center"> potential predecessor tools </td>
+                <td VALIGN="middle" ROWSPAN=3> &rarr; MRMTransitionGroupPicker &rarr;</td>
+                <th ALIGN = "center"> potential successor tools </td>
             </tr>
             <tr>
                 <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_OpenSwathChromatogramExtractor </td>
@@ -100,6 +100,8 @@ using namespace OpenMS;
 
   Step 2 is performed by finding the largest peak overall and use this to
   create a feature, propagating this through all chromatograms.
+
+  This tool will not compute any scores for the peaks, in order to do peak picking please use TOPP_OpenSwathAnalyzer
 
   <B>The command line parameters of this tool are:</B>
   @verbinclude UTILS_MRMTransitionGroupPicker.cli

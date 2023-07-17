@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -47,23 +47,22 @@
 #endif
 
 
-#include <iostream>
 #include <fstream>
+#include <iostream>
+#include <utility>
 
 using namespace std;
 
 namespace OpenMS
 {
   DocumentIDTagger::DocumentIDTagger(String toolname) :
-    toolname_(toolname),
+    toolname_(std::move(toolname)),
     pool_file_()
   {
     pool_file_ = File::getOpenMSDataPath() + ("/IDPool/IDPool.txt");
   }
 
-  DocumentIDTagger::~DocumentIDTagger()
-  {
-  }
+  DocumentIDTagger::~DocumentIDTagger() = default;
 
   bool DocumentIDTagger::operator==(const DocumentIDTagger & rhs) const
   {

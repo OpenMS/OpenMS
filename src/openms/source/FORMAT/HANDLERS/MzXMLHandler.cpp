@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -225,7 +225,7 @@ namespace OpenMS::Internal
       else if (tag == "precursorMz")
       {
         // add new precursor
-        spectrum_data_.back().spectrum.getPrecursors().push_back(Precursor());
+        spectrum_data_.back().spectrum.getPrecursors().emplace_back();
         // intensity
         try
         {
@@ -904,7 +904,7 @@ namespace OpenMS::Internal
 
         os << String(ms_level + 1, '\t');
 
-        scan_index_positions.push_back(IndexPos(spectrum_id, os.tellp())); // remember scan index
+        scan_index_positions.emplace_back(spectrum_id, os.tellp()); // remember scan index
         os << "<scan num=\"" << spectrum_id << "\""
           << " msLevel=\"" << ms_level << "\""
           << " peaksCount=\"" << spec.size() << "\""
@@ -1150,7 +1150,7 @@ namespace OpenMS::Internal
     }
 
 
-    inline void MzXMLHandler::writeUserParam_(std::ostream& os, const MetaInfoInterface& meta, int indent, String tag)
+    inline void MzXMLHandler::writeUserParam_(std::ostream& os, const MetaInfoInterface& meta, int indent, const String& tag)
     {
       std::vector<String> keys; // Vector to hold keys to meta info
       meta.getKeys(keys);

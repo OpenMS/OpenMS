@@ -10,8 +10,8 @@ cdef extern from "<OpenMS/FILTERING/CALIBRATION/TOFCalibration.h>" namespace "Op
 
     cdef cppclass TOFCalibration(DefaultParamHandler, ProgressLogger):
         # wrap-inherits:
-        #    DefaultParamHandler
-        #    ProgressLogger
+        #   DefaultParamHandler
+        #   ProgressLogger
 
         TOFCalibration() nogil except +
         TOFCalibration(TOFCalibration &) nogil except + # compiler

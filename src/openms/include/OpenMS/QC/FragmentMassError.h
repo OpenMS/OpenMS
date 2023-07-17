@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -44,7 +44,7 @@ namespace OpenMS
   class MSExperiment;
   class PeptideIdentification;
   class WindowMower;
-  
+
   class OPENMS_DLLAPI FragmentMassError : public QCBase
   {
   public:
@@ -57,8 +57,7 @@ namespace OpenMS
     /**
      * @brief Structure for storing results: average and variance of all FragmentMassErrors in ppm
      */
-    struct Statistics
-    {
+    struct Statistics {
       double average_ppm = 0;
       double variance_ppm = 0;
     };
@@ -99,39 +98,41 @@ namespace OpenMS
      * Note: If the metavalues already exist, they will be overwritten.
      *
      * @param pep_ids Input vector of peptide identifications for annotation and data for theoretical spectra
-     * @param search_params Input search parameters (corresponding to ID search that generated @param pep_ids) for finding fragment mass tolerance and unit automatically
+     * @param search_params Input search parameters (corresponding to ID search that generated @p pep_ids) for finding fragment mass tolerance and unit automatically
      * @param exp Input MSExperiment for MS2 spectra; spectra should be sorted (ascending RT)
      * @param map_to_spectrum Map to find index of spectrum given by meta value at PepID
      * @param tolerance_unit Tolerance in ppm or Dalton (if auto was chosen, the unit and value will taken from FeatureMap metadata)
      * @param tolerance Search window for matching peaks; distance has to be lower than tolerance value (Will be overwritten if tolerance_unit AUTO is chosen)
-     * @throws Exceptions::MissingInformation If fragment mass tolerance is missing in @search_params
+     * @throws Exceptions::MissingInformation If fragment mass tolerance is missing in @p search_params
      * @throws Exception::InvalidParameter PeptideID is missing meta value 'spectrum_reference'
      * @throws Exception::IllegalArgument Spectrum for a PepID has ms-level of 1
      * @throws Exception::MissingInformation If no fragmentation method given in a MS2 precursor
      * @throws Exception::InvalidParameter If the fragmentation method is not ECD, ETD, CID or HCD
      */
-    void compute(std::vector<PeptideIdentification>& pep_ids, const ProteinIdentification::SearchParameters& search_params, const MSExperiment& exp, const QCBase::SpectraMap& map_to_spectrum, ToleranceUnit tolerance_unit = ToleranceUnit::AUTO, double tolerance = 20);
+    void compute(std::vector<PeptideIdentification>& pep_ids, const ProteinIdentification::SearchParameters& search_params, const MSExperiment& exp, const QCBase::SpectraMap& map_to_spectrum,
+                 ToleranceUnit tolerance_unit = ToleranceUnit::AUTO, double tolerance = 20);
 
     /// returns the name of the metric
     const String& getName() const override;
-    
+
     /// returns results
     const std::vector<Statistics>& getResults() const;
 
 
     /**
-    * @brief Returns the input data requirements of the compute(...) function
-    * @return Status for RAWMZML and POSTFDRFEAT
-    */
-    QCBase::Status requires() const override;
+     * @brief Returns the input data requirements of the compute(...) function
+     * @return Status for RAWMZML and POSTFDRFEAT
+     */
+    QCBase::Status requirements() const override;
 
   private:
     /// container that stores results
     std::vector<Statistics> results_;
 
-    static void calculateFME_(PeptideIdentification& pep_id, const MSExperiment& exp, const QCBase::SpectraMap& map_to_spectrum, bool& print_warning, double tolerance, FragmentMassError::ToleranceUnit tolerance_unit, double& accumulator_ppm, UInt32& counter_ppm, WindowMower& window_mower_filter);
+    static void calculateFME_(PeptideIdentification& pep_id, const MSExperiment& exp, const QCBase::SpectraMap& map_to_spectrum, bool& print_warning, double tolerance,
+                              FragmentMassError::ToleranceUnit tolerance_unit, double& accumulator_ppm, UInt32& counter_ppm, WindowMower& window_mower_filter);
 
     static void calculateVariance_(FragmentMassError::Statistics& result, const PeptideIdentification& pep_id, const UInt num_ppm);
   };
 
-} //namespace OpenMS
+} // namespace OpenMS

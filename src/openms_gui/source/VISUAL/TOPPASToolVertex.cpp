@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -53,6 +53,7 @@
 #include <QtCore/QRegExp>
 
 #include <QSvgRenderer>
+#include <map>
 
 namespace OpenMS
 {
@@ -96,8 +97,8 @@ namespace OpenMS
     type_(rhs.type_),
     param_(rhs.param_),
     status_(rhs.status_),
-    tool_ready_(rhs.tool_ready_),
-    breakpoint_set_(false)
+    tool_ready_(rhs.tool_ready_)
+    
   {
   }
 
@@ -341,7 +342,7 @@ namespace OpenMS
       }
     }
     // order in param can change --> sort
-    qSort(io_infos);
+    std::sort(io_infos.begin(), io_infos.end());
   }
 
   void TOPPASToolVertex::paint(QPainter* painter, const QStyleOptionGraphicsItem* option, QWidget* widget)
@@ -408,8 +409,14 @@ namespace OpenMS
   QString TOPPASToolVertex::toolnameWithWhitespacesForFancyWordWrapping_(QPainter* painter, const QString& str)
   {
     qreal max_width = 130;
-
+/*
+         * Suppressed warning QSTring::SkipEmptyParts and QString::SplitBehaviour is deprecated
+         * QT::SkipEmptyParts and QT::SplitBehaviour is added or modified at Qt 5.14
+         */
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
     QStringList parts = str.split(QRegExp("\\s+"), QString::SkipEmptyParts);
+#pragma GCC diagnostic pop
     QStringList new_parts;
 
     foreach(QString part, parts)
@@ -762,7 +769,7 @@ namespace OpenMS
     QStringList files = this->getFileNames();
 
     std::map<String, NameComponent> name_old_to_new;
-    Map<String, int> name_new_count, name_new_idx; // count occurrence (for optional counter infix)
+    std::map<String, int> name_new_count, name_new_idx; // count occurrence (for optional counter infix)
 
     // a first round to find which filenames are not unique (and require augmentation with a counter)
 

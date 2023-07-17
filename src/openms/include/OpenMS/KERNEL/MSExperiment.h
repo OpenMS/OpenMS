@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -67,8 +67,7 @@ namespace OpenMS
 
     @ingroup Kernel
   */
-  class OPENMS_DLLAPI MSExperiment final :
-    public RangeManagerContainer<RangeRT, RangeMZ, RangeIntensity>,
+  class OPENMS_DLLAPI MSExperiment final : public RangeManagerContainer<RangeRT, RangeMZ, RangeIntensity, RangeMobility>,
     public ExperimentalSettings
   {
 
@@ -87,9 +86,9 @@ public:
     /// Intensity type of peaks
     typedef PeakType::IntensityType IntensityType;
     /// RangeManager type
-    typedef RangeManager<RangeRT, RangeMZ, RangeIntensity> RangeManagerType;
+    typedef RangeManager<RangeRT, RangeMZ, RangeIntensity, RangeMobility> RangeManagerType;
     /// RangeManager type
-    typedef RangeManagerContainer<RangeRT, RangeMZ, RangeIntensity> RangeManagerContainerType;
+    typedef RangeManagerContainer<RangeRT, RangeMZ, RangeIntensity, RangeMobility> RangeManagerContainerType;
     /// Spectrum Type
     typedef MSSpectrum SpectrumType;
     /// Chromatogram type
@@ -117,32 +116,65 @@ public:
     typedef Base::iterator iterator;
     typedef Base::const_iterator const_iterator;
 
+    /// Constructor
+    MSExperiment();
+
+    /// Copy constructor
+    MSExperiment(const MSExperiment & source);
+
+    /// Move constructor
+    MSExperiment(MSExperiment&&) = default;
+
+    /// Assignment operator
+    MSExperiment & operator=(const MSExperiment & source);
+
+    /// Move assignment operator
+    MSExperiment& operator=(MSExperiment&&) & = default;
+
+    /// Assignment operator
+    MSExperiment & operator=(const ExperimentalSettings & source);
+
+    /// D'tor
+    ~MSExperiment() override;
+
+    /// Equality operator
+    bool operator==(const MSExperiment & rhs) const;
+
+    /// Equality operator
+    bool operator!=(const MSExperiment & rhs) const;
+    
+    /// The number of spectra
     inline Size size() const
     {
       return spectra_.size();
     }
 
-    inline void resize(Size s)
+    /// Resize to @p n spectra
+    inline void resize(Size n)
     {
-      spectra_.resize(s);
+      spectra_.resize(n);
     }
 
+    /// Are there any spectra (does not consider chromatograms)
     inline bool empty() const
     {
       return spectra_.empty();
     }
-
-    inline void reserve(Size s)
+    
+    /// Reserve space for @p n spectra
+    inline void reserve(Size n)
     {
-      spectra_.reserve(s);
+      spectra_.reserve(n);
     }
 
-    inline SpectrumType& operator[] (Size n)
+    /// Random access to @p n'th spectrum
+    inline SpectrumType& operator[](Size n)
     {
       return spectra_[n];
     }
 
-    inline const SpectrumType& operator[] (Size n) const
+    /// Random access to @p n'th spectrum
+    inline const SpectrumType& operator[](Size n) const
     {
       return spectra_[n];
     }
@@ -171,30 +203,6 @@ public:
     // Aliases / chromatograms
     void reserveSpaceSpectra(Size s);
     void reserveSpaceChromatograms(Size s);
-
-    /// Constructor
-    MSExperiment();
-
-    /// Copy constructor
-    MSExperiment(const MSExperiment & source);
-
-    /// Move constructor
-    MSExperiment(MSExperiment&&) = default;
-
-    /// Assignment operator
-    MSExperiment & operator=(const MSExperiment & source);
-
-    /// Move assignment operator
-    MSExperiment& operator=(MSExperiment&&) & = default;
-
-    /// Assignment operator
-    MSExperiment & operator=(const ExperimentalSettings & source);
-
-    /// Equality operator
-    bool operator==(const MSExperiment & rhs) const;
-
-    /// Equality operator
-    bool operator!=(const MSExperiment & rhs) const;
 
     ///@name Conversion to/from 2D data
     //@{
@@ -330,13 +338,19 @@ public:
     ///@name Iterating ranges and areas
     //@{
     /// Returns an area iterator for @p area
-    AreaIterator areaBegin(CoordinateType min_rt, CoordinateType max_rt, CoordinateType min_mz, CoordinateType max_mz);
+    AreaIterator areaBegin(CoordinateType min_rt, CoordinateType max_rt, CoordinateType min_mz, CoordinateType max_mz, UInt  ms_level = 1);
+
+    /// Returns a area iterator for all peaks in @p range. If a dimension is empty(), it is ignored (i.e. does not restrict the area)
+    AreaIterator areaBegin(const RangeManagerType& range, UInt ms_level = 1);
 
     /// Returns an invalid area iterator marking the end of an area
     AreaIterator areaEnd();
 
     /// Returns a non-mutable area iterator for @p area
-    ConstAreaIterator areaBeginConst(CoordinateType min_rt, CoordinateType max_rt, CoordinateType min_mz, CoordinateType max_mz) const;
+    ConstAreaIterator areaBeginConst(CoordinateType min_rt, CoordinateType max_rt, CoordinateType min_mz, CoordinateType max_mz, UInt ms_level = 1) const;
+
+    /// Returns a non-mutable area iterator for all peaks in @p range. If a dimension is empty(), it is ignored (i.e. does not restrict the area)
+    ConstAreaIterator areaBeginConst(const RangeManagerType& range, UInt ms_level = 1) const;
 
     /// Returns an non-mutable invalid area iterator marking the end of an area
     ConstAreaIterator areaEndConst() const;
@@ -352,31 +366,98 @@ public:
       {
         if (it.getRT() != t) 
         {
-          t = it.getRT();
-          rt.emplace_back(t);
-          mz.resize(mz.size() + 1); 
-          rt.resize(rt.size() + 1);
-          intensity.resize(intensity.size() + 1);
+          t = (float)it.getRT();
+          rt.push_back(t);
         }
-        mz.back().emplace_back(it->getMZ());
-        intensity.back().emplace_back(it->getIntensity());
+        mz.back().push_back((float)it->getMZ());
+        intensity.back().push_back(it->getIntensity());
+      }
+    }
+
+    // for fast pyOpenMS access to MS1 peak data in format: [rt, [mz, intensity, ion mobility]]
+    void get2DPeakData(CoordinateType min_rt, CoordinateType max_rt, CoordinateType min_mz, CoordinateType max_mz, 
+      std::vector<float>& rt, 
+      std::vector<std::vector<float>>& mz,
+      std::vector<std::vector<float>>& intensity, 
+      std::vector<std::vector<float>>& ion_mobility) const
+    {
+      float t = -1.0;
+      for (auto it = areaBeginConst(min_rt, max_rt, min_mz, max_mz); it != areaEndConst(); ++it)
+      {
+        if (it.getRT() != t)
+        {
+          t = (float)it.getRT();
+          rt.push_back(t);
+        }
+        
+        const MSSpectrum& spectrum = it.getSpectrum();
+        bool has_IM = spectrum.containsIMData();
+        double peak_IM{-1.0};
+        if (has_IM)
+        {
+          const auto& im_data = spectrum.getIMData();
+          const Size peak_index = it.getPeakIndex().peak;
+          if (spectrum.getFloatDataArrays()[im_data.first].size() == spectrum.size())
+          {
+            peak_IM = spectrum.getFloatDataArrays()[im_data.first][peak_index];
+          }          
+        }
+        ion_mobility.back().push_back(peak_IM);        
+        mz.back().push_back((float)it->getMZ());
+        intensity.back().push_back(it->getIntensity());
       }
     }
 
     // for fast pyOpenMS access to MS1 peak data in format: [rt, mz, intensity]
-    void get2DPeakData(CoordinateType min_rt, CoordinateType max_rt, CoordinateType min_mz, CoordinateType max_mz, 
-      std::vector<float>& rt, 
-      std::vector<float>& mz, 
+    void get2DPeakData(
+      CoordinateType min_rt,
+      CoordinateType max_rt,
+      CoordinateType min_mz,
+      CoordinateType max_mz,
+      std::vector<float>& rt,
+      std::vector<float>& mz,
       std::vector<float>& intensity) const
     {
       for (auto it = areaBeginConst(min_rt, max_rt, min_mz, max_mz); it != areaEndConst(); ++it)
       {
-        rt.emplace_back(it.getRT());
-        mz.emplace_back(it->getMZ());
-        intensity.emplace_back(it->getIntensity());
+        rt.push_back((float)it.getRT());
+        mz.push_back((float)it->getMZ());
+        intensity.push_back(it->getIntensity());
       }
     }
 
+    // for fast pyOpenMS access to MS1 peak data in format: [rt, mz, intensity, ion mobility]
+    void get2DPeakDataIon(
+      CoordinateType min_rt,
+      CoordinateType max_rt,
+      CoordinateType min_mz,
+      CoordinateType max_mz,
+      std::vector<float>& rt,
+      std::vector<float>& mz,
+      std::vector<float>& intensity,
+      std::vector<float>& ion_mobility) const
+    {
+      for (auto it = areaBeginConst(min_rt, max_rt, min_mz, max_mz); it != areaEndConst(); ++it)
+      {
+        rt.push_back((float)it.getRT());
+        mz.push_back((float)it->getMZ());
+        intensity.push_back(it->getIntensity());
+
+        const MSSpectrum& spectrum = it.getSpectrum();
+        bool has_IM = spectrum.containsIMData();
+        float peak_IM = -1.0;
+        if (has_IM)
+        {
+          const auto& im_data = spectrum.getIMData();
+          const Size& peak_index = it.getPeakIndex().peak;
+          if (spectrum.getFloatDataArrays()[im_data.first].size() == spectrum.size())
+          {
+            peak_IM = spectrum.getFloatDataArrays()[im_data.first][peak_index];
+          }          
+        }        
+        ion_mobility.push_back(peak_IM);
+      }
+    }
 
     /**
       @brief Fast search for spectrum range begin
@@ -410,6 +491,24 @@ public:
     */
     Iterator RTEnd(CoordinateType rt);
 
+
+    /**
+      @brief Fast search for spectrum range begin
+
+      Returns the first scan which has equal or higher (>=) ion mobility than @p rt.
+
+      @note Make sure the spectra are sorted with respect to ion mobility! Otherwise the result is undefined.
+    */
+    ConstIterator IMBegin(CoordinateType im) const;
+
+    /**
+      @brief Fast search for spectrum range end (returns the past-the-end iterator)
+
+      Returns the first scan which has higher (>) ion mobility than @p im.
+
+      @note Make sure the spectra are sorted with respect to ion mobility! Otherwise the result is undefined.
+    */
+    ConstIterator IMEnd(CoordinateType im) const;
     //@}
 
     /**
@@ -581,11 +680,14 @@ public:
     /// returns true if at least one of the spectra has the specified level
     bool containsScanOfLevel(size_t ms_level) const;
 
-    /// returns true if any MS spectra of the specified level contain at least one peak with intensity of 0.0
+    /// returns true if any MS spectra of trthe specified level contain at least one peak with intensity of 0.0
     bool hasZeroIntensities(size_t ms_level) const;
 
     /// do any of the spectra have a PeptideID?
     bool hasPeptideIdentifications() const;
+
+    /// Are all MSSpectra in this experiment part of an IM Frame? I.e. they all have the same RT, but different drift times
+    bool isIMFrame() const;
 
   protected:
     /// MS levels of the data

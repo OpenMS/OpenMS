@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -158,6 +158,8 @@ public:
         map.lower = -1;
         map.upper = -1;
         map.center = -1;
+        map.imLower = -1;
+        map.imUpper = -1;
         map.ms1 = true;
         maps.push_back(map);
       }
@@ -178,6 +180,8 @@ public:
         map.lower = swath_map_boundaries_[i].lower;
         map.upper = swath_map_boundaries_[i].upper;
         map.center = swath_map_boundaries_[i].center;
+        map.imLower = swath_map_boundaries_[i].imLower;
+        map.imUpper = swath_map_boundaries_[i].imUpper;
         map.ms1 = false;
         maps.push_back(map);
         if (map.sptr->getNrSpectra() > 0) {nonempty_maps++;}
@@ -185,7 +189,7 @@ public:
 
       if (nonempty_maps != swath_map_boundaries_.size())
       {
-        std::cout << "WARNING: The number nonempty maps found in the input file (" << nonempty_maps << ") is not equal to the number of provided swath window boundaries (" << 
+        std::cout << "WARNING: The number nonempty maps found in the input file (" << nonempty_maps << ") is not equal to the number of provided swath window boundaries (" <<
             swath_map_boundaries_.size() << "). Please check your input." << std::endl;
       }
 
@@ -204,6 +208,7 @@ public:
      */
     void consumeSpectrum(MapType::SpectrumType& s) override
     {
+
       if (!consuming_possible_)
       {
         throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
@@ -226,6 +231,17 @@ public:
         double center = prec[0].getMZ();
         double lower = prec[0].getMZ() - prec[0].getIsolationWindowLowerOffset();
         double upper = prec[0].getMZ() + prec[0].getIsolationWindowUpperOffset();
+
+        double lowerIm = -1; // these initial values assume IM is not present
+        double upperIm = -1;
+
+        // add IM if present
+        if (s.metaValueExists("ion mobility lower limit"))
+        {
+          lowerIm = s.getMetaValue("ion mobility lower limit"); // want this to be -1  if no ion mobility
+          upperIm = s.getMetaValue("ion mobility upper limit");
+        }
+
         bool found = false;
 
         // Check if enough information is present to infer the swath
@@ -240,7 +256,8 @@ public:
         {
           // We group by the precursor mz (center of the window) since this
           // should be present in all SWATH scans.
-          if (std::fabs(center - swath_map_boundaries_[i].center) < 1e-6)
+          // also specify ion mobility, if ion mobility not present will just be -1
+          if ( (std::fabs(center - swath_map_boundaries_[i].center) < 1e-6) && (std::fabs(lowerIm - swath_map_boundaries_[i].imLower) < 1e-6) && ( std::fabs(upperIm - swath_map_boundaries_[i].imUpper) < 1e-6))
           {
             found = true;
             consumeSwathSpectrum_(s, i);
@@ -266,11 +283,13 @@ public:
             boundary.lower = lower;
             boundary.upper = upper;
             boundary.center = center;
+            boundary.imLower = lowerIm;
+            boundary.imUpper = upperIm;
             swath_map_boundaries_.push_back(boundary);
 
             OPENMS_LOG_DEBUG << "Adding Swath centered at " << center
               << " m/z with an isolation window of " << lower << " to " << upper
-              << " m/z." << std::endl;
+              << " m/z and IM lower limit of " <<  lowerIm << " and upper limit of " << upperIm << std::endl;
           }
         }
       }

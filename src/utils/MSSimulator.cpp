@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -180,7 +180,7 @@ protected:
   // Load proteins from FASTA file
   void loadFASTA_(const String& filename, SimTypes::SampleProteins& proteins)
   {
-    writeLog_(String("Loading sequence data from ") + filename +  String(" ..."));
+    writeLogInfo_(String("Loading sequence data from ") + filename +  String(" ..."));
 
     FASTAFile fastafile;
     typedef std::vector<FASTAFile::FASTAEntry> FASTAdata;
@@ -239,7 +239,7 @@ protected:
       proteins.push_back(SimTypes::SimProtein(*it, data));
     }
 
-    writeLog_(String("done (") + fastadata.size() + String(" protein(s) loaded)"));
+    writeLogInfo_(String("done (") + fastadata.size() + String(" protein(s) loaded)"));
   }
 
   ExitCodes main_(int, const char**) override
@@ -283,39 +283,39 @@ protected:
     ms_simulation.setLogType(this->log_type_);
 
     // start simulation
-    writeLog_("Starting simulation");
+    writeLogInfo_("Starting simulation");
     StopWatch w;
 
     w.start();
     ms_simulation.simulate(rnd_gen, channels);
     w.stop();
-    writeLog_(String("Simulation took ") + String(w.getClockTime()) + String(" seconds"));
+    writeLogInfo_(String("Simulation took ") + String(w.getClockTime()) + String(" seconds"));
 
     String outputfile_name = getStringOption_("out");
     if (!outputfile_name.empty())
     {
-      writeLog_(String("Storing simulated raw data in: ") + outputfile_name);
+      writeLogInfo_(String("Storing simulated raw data in: ") + outputfile_name);
       MzMLFile().store(outputfile_name, ms_simulation.getExperiment());
     }
 
     String pxml_out = getStringOption_("out_pm");
     if (!pxml_out.empty())
     {
-      writeLog_(String("Storing simulated peak/centroided data in: ") + pxml_out);
+      writeLogInfo_(String("Storing simulated peak/centroided data in: ") + pxml_out);
       MzMLFile().store(pxml_out, ms_simulation.getPeakMap());
     }
 
     String fxml_out = getStringOption_("out_fm");
     if (!fxml_out.empty())
     {
-      writeLog_(String("Storing simulated features in: ") + fxml_out);
+      writeLogInfo_(String("Storing simulated features in: ") + fxml_out);
       FeatureXMLFile().store(fxml_out, ms_simulation.getSimulatedFeatures());
     }
 
     String cxml_out = getStringOption_("out_cm");
     if (!cxml_out.empty())
     {
-      writeLog_(String("Storing charged consensus features in: ") + cxml_out);
+      writeLogInfo_(String("Storing charged consensus features in: ") + cxml_out);
 
       ConsensusMap& charge_consensus = ms_simulation.getChargeConsensus();
       charge_consensus.getColumnHeaders()[0].filename = fxml_out;
@@ -328,7 +328,7 @@ protected:
     String lcxml_out = getStringOption_("out_lcm");
     if (!lcxml_out.empty())
     {
-      writeLog_(String("Storing labeling consensus features in: ") + lcxml_out);
+      writeLogInfo_(String("Storing labeling consensus features in: ") + lcxml_out);
 
       // set file name for all (sub)feature maps
       ConsensusMap& labeling_consensus = ms_simulation.getLabelingConsensus();
@@ -345,14 +345,14 @@ protected:
     String cntxml_out = getStringOption_("out_cntm");
     if (!cntxml_out.empty())
     {
-      writeLog_(String("Storing simulated contaminant features in: ") + cntxml_out);
+      writeLogInfo_(String("Storing simulated contaminant features in: ") + cntxml_out);
       FeatureXMLFile().store(cntxml_out, ms_simulation.getContaminants());
     }
 
     String id_out = getStringOption_("out_id");
     if (!id_out.empty())
     {
-      writeLog_(String("Storing ground-truth peptide IDs in: ") + id_out);
+      writeLogInfo_(String("Storing ground-truth peptide IDs in: ") + id_out);
       vector<ProteinIdentification> proteins;
       vector<PeptideIdentification> peptides;
       ms_simulation.getIdentifications(proteins, peptides);

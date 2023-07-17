@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -268,10 +268,10 @@ private:
     void readUnstructuredTSVInput_(const char* filename, FileTypes::Type filetype, std::vector<TSVTransition>& transition_list);
 
     /// Extract retention time from a SpectraST comment string
-    void spectrastRTExtract(const String str_inp, double & value, bool & spectrast_legacy);
+    void spectrastRTExtract(const String& str_inp, double & value, bool & spectrast_legacy);
 
     /// Extract annotation from a SpectraST comment string
-    bool spectrastAnnotationExtract(const String str_inp, TSVTransition & mytransition);
+    bool spectrastAnnotationExtract(const String& str_inp, TSVTransition & mytransition);
 
     /** @brief Cleanup of the read fields (removing quotes etc.)
     */
@@ -302,12 +302,12 @@ private:
                            OpenMS::ReactionMonitoringTransition& rm_trans);
 
     /// Populate a new TargetedExperiment::Protein object from a row in the csv
-    void createProtein_(String protein_name, String uniprot_id,
+    void createProtein_(String protein_name, const String& uniprot_id,
                         OpenMS::TargetedExperiment::Protein& protein);
 
     /// Helper function to assign retention times to compounds and peptides
     void interpretRetentionTime_(std::vector<TargetedExperiment::RetentionTime>& retention_times,
-                                 const OpenMS::DataValue rt_value);
+                                 const OpenMS::DataValue& rt_value);
 
     /// Populate a new TargetedExperiment::Peptide object from a row in the csv
     void createPeptide_(std::vector<TSVTransition>::const_iterator tr_it,

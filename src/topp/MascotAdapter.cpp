@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -67,9 +67,9 @@ using namespace std;
 <CENTER>
     <table>
         <tr>
-            <td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. predecessor tools </td>
-            <td VALIGN="middle" ROWSPAN=2> \f$ \longrightarrow \f$ MascotAdapter \f$ \longrightarrow \f$</td>
-            <td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. successor tools </td>
+            <th ALIGN = "center"> pot. predecessor tools </td>
+            <td VALIGN="middle" ROWSPAN=2> &rarr; MascotAdapter &rarr;</td>
+            <th ALIGN = "center"> pot. successor tools </td>
         </tr>
         <tr>
             <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> any signal-/preprocessing tool @n (in mzML format)</td>
@@ -356,7 +356,7 @@ protected:
     mascot_in = out_type == FileTypes::MGF;
     if (mascot_out && mascot_in)
     {
-      writeLog_("When the input file is a mascotXML, only idXML can be written. When the input is mzData, only MGF is written. Please change the output type accordingly.");
+      writeLogError_("When the input file is a mascotXML, only idXML can be written. When the input is mzData, only MGF is written. Please change the output type accordingly.");
       return ILLEGAL_PARAMETERS;
     }
     
@@ -402,7 +402,7 @@ protected:
     }
     if (charges.empty())
     {
-      writeLog_("No charge states specified for Mascot search. Aborting!");
+      writeLogError_("No charge states specified for Mascot search. Aborting!");
       return ILLEGAL_PARAMETERS;
     }
 
@@ -428,7 +428,7 @@ protected:
       mascot_cgi_dir = getStringOption_("mascot_directory");
       if (mascot_cgi_dir.empty())
       {
-        writeLog_("No Mascot directory specified. Aborting!");
+        writeLogError_("No Mascot directory specified. Aborting!");
         return ILLEGAL_PARAMETERS;
       }
       writeDebug_(String("Mascot directory: ") + mascot_cgi_dir, 1);
@@ -439,7 +439,7 @@ protected:
 
       if (mascot_data_dir.empty())
       {
-        writeLog_("No temp directory specified. Aborting!");
+        writeLogError_("No temp directory specified. Aborting!");
         return ILLEGAL_PARAMETERS;
       }
 
@@ -449,7 +449,7 @@ protected:
       String tmp = mascot_data_dir + "/" + mascot_outfile_name;
       if (!File::writable(tmp))
       {
-        writeLog_(String(" Could not write in temp data directory: ") + tmp + " Aborting!");
+        writeLogError_(String(" Could not write in temp data directory: ") + tmp + " Aborting!");
         return ILLEGAL_PARAMETERS;
       }
       mascotXML_file_name = mascot_data_dir + "/" + mascot_outfile_name + ".mascotXML";
@@ -505,7 +505,7 @@ protected:
       {
 #ifdef OPENMS_WINDOWSPLATFORM
         /// @todo test this with a real mascot version for windows
-        writeLog_(QString("The windows platform version of this tool has not been tested yet! If you encounter problems,") +
+        writeLogWarn_(QString("The windows platform version of this tool has not been tested yet! If you encounter problems,") +
                   QString(" please write to the OpenMS mailing list (open-ms-general@lists.sourceforge.net)"));
 #endif
 
@@ -533,15 +533,15 @@ protected:
         Int status = qp.execute("nph-mascot.exe", QStringList() << call.toQString());
         if (status != 0)
         {
-          writeLog_("Mascot server problem. Aborting!(Details can be seen in the logfile: \"" + logfile + "\")");
+          writeLogError_("Mascot server problem. Aborting!(Details can be seen in the logfile: \"" + logfile + "\")");
           QFile(String(mascot_data_dir + "/" + mascot_infile_name).toQString()).remove();
           return EXTERNAL_PROGRAM_ERROR;
         }
 
 #ifdef OPENMS_WINDOWSPLATFORM
-        call = String("perl export_dat.pl ") +
+        call = String("export_dat.pl ") +
 #else
-        call =  String("./export_dat_2.pl ") +
+        call =  String("export_dat_2.pl ") +
 #endif
                " do_export=1 export_format=XML file=" + mascot_data_dir +
                "/" + mascot_outfile_name + " _sigthreshold=" + String(sigthreshold) + " _showsubset=1 show_same_sets=1 show_unassigned=" + String(show_unassigned) +
@@ -559,12 +559,12 @@ protected:
                " prot_score=" + String(prot_score) + " pep_exp_z=" + String(pep_exp_z) + " pep_score=" + String(pep_score) +
                " pep_homol=" + String(pep_homol) + " pep_ident=" + String(pep_ident) + " pep_seq=1 report=0 " +
                "show_params=1 show_header=1 show_queries=1 pep_rank=" + String(pep_rank) + " > " + pepXML_file_name;
-        writeDebug_("CALLING: " + call + "\nCALL Done!    ", 10);
-        status = qp.execute(call.toQString());
+        writeDebug_("CALLING: perl " + call + "\nCALL Done!    ", 10);
+        status = qp.execute("perl", QStringList() << call.toQString());
 
         if (status != 0)
         {
-          writeLog_("Mascot server problem. Aborting!(Details can be seen in the logfile: \"" + logfile + "\")");
+          writeLogError_("Mascot server problem. Aborting!(Details can be seen in the logfile: \"" + logfile + "\")");
           QFile(String(mascot_data_dir + "/" + mascot_infile_name).toQString()).remove();
           QFile(mascotXML_file_name.toQString()).remove();
           QFile(pepXML_file_name.toQString()).remove();

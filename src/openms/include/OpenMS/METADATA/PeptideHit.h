@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -226,8 +226,11 @@ public:
     /**	@name Accessors
     */
     //@{
-    /// returns the peptide sequence without trailing or following spaces
+    /// returns the peptide sequence
     const AASequence& getSequence() const;
+
+    /// returns the mutable peptide sequence
+    AASequence& getSequence();
 
     /// sets the peptide sequence
     void setSequence(const AASequence& sequence);
@@ -262,7 +265,7 @@ public:
     void setAnalysisResults(std::vector<PepXMLAnalysisResult> aresult);
 
     /// add information on (search engine) sub scores associated with this PSM
-    void addAnalysisResults(PepXMLAnalysisResult aresult);
+    void addAnalysisResults(const PepXMLAnalysisResult& aresult);
 
     /// returns information on (search engine) sub scores associated with this PSM
     const std::vector<PepXMLAnalysisResult>& getAnalysisResults() const;

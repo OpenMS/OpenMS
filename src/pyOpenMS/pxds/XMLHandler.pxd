@@ -31,7 +31,7 @@ cdef extern from "<OpenMS/FORMAT/HANDLERS/XMLHandler.h>" namespace "OpenMS::Inte
 cdef extern from "<OpenMS/FORMAT/HANDLERS/XMLHandler.h>" namespace "OpenMS::Internal::XMLHandler":
     cdef enum ActionMode "OpenMS::Internal::XMLHandler::ActionMode":
         #wrap-attach:
-        #    XMLHandler
+        #   XMLHandler
         LOAD
         STORE
 

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -67,8 +67,14 @@ public:
     /// default constructor
     OPENMS_DLLAPI MascotRemoteQuery(QObject* parent = 0);
 
+    /// assignment operator
+    OPENMS_DLLAPI MascotRemoteQuery& operator=(const MascotRemoteQuery& rhs) = delete;
+
+    /// copy constructor
+    OPENMS_DLLAPI MascotRemoteQuery(const MascotRemoteQuery& rhs) = delete;
+
     /// destructor
-    OPENMS_DLLAPI ~MascotRemoteQuery() override ;
+    OPENMS_DLLAPI ~MascotRemoteQuery() override;
     //@}
 
     /// sets the query spectra, given in MGF file format
@@ -76,6 +82,9 @@ public:
 
     /// returns the Mascot XML response which contains the identifications
     OPENMS_DLLAPI const QByteArray& getMascotXMLResponse() const;
+
+    /// returns the Mascot XML response which contains the decoy identifications (note: setExportDecoys must be set to true, otherwise result will be empty)
+    OPENMS_DLLAPI const QByteArray& getMascotXMLDecoyResponse() const;
 
     /// predicate which returns true if an error occurred during the query
     OPENMS_DLLAPI bool hasError() const;
@@ -89,11 +98,9 @@ public:
     /// request export of decoy summary and decoys (note: internal decoy search must be enabled in the MGF file passed to mascot)
     OPENMS_DLLAPI void setExportDecoys(const bool b);
 
-    /// returns the Mascot XML response which contains the decoy identifications (note: setExportDecoys must be set to true, otherwise result will be empty)
-    OPENMS_DLLAPI const QByteArray& getMascotXMLDecoyResponse() const;
 protected:
 
-    OPENMS_DLLAPI void updateMembers_() override ;
+    OPENMS_DLLAPI void updateMembers_() override;
 
 public slots:
 
@@ -133,13 +140,7 @@ private:
     void execQuery();
 
     /// download result file
-    void getResults(QString results_path);
-
-    /// assignment operator
-    OPENMS_DLLAPI MascotRemoteQuery& operator=(const MascotRemoteQuery& rhs);
-
-    /// copy constructor
-    OPENMS_DLLAPI MascotRemoteQuery(const MascotRemoteQuery& rhs);
+    void getResults(const QString& results_path);
 
     /// finish a run and emit "done"
     OPENMS_DLLAPI void endRun_();
@@ -152,10 +153,10 @@ private:
     void removeHostName_(QString& url);
 
     /// helper function to build URL
-    QUrl buildUrl_(std::string path);
+    QUrl buildUrl_(const std::string& path);
 
     /// Write HTTP header to error stream (for debugging)
-    OPENMS_DLLAPI void logHeader_(const QNetworkRequest header, const String& what);
+    OPENMS_DLLAPI void logHeader_(const QNetworkRequest& header, const String& what);
 
     /// Write HTTP header to error stream (for debugging)
     OPENMS_DLLAPI void logHeader_(const QNetworkReply* header, const String& what);

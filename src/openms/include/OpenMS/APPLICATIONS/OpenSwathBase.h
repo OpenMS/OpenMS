@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -77,7 +77,6 @@
 #include <limits>
 
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
-
 namespace OpenMS
 {
 
@@ -147,7 +146,7 @@ protected:
    * @param exp_meta The output (meta data about experiment)
    * @param swath_maps The output (ptr to raw data)
    * @param file_list The input file(s)
-   * @param split_file If loading a single file that contains a single SWATH window 
+   * @param split_file If loading a single file that contains a single SWATH window
    * @param tmp Temporary directory
    * @param readoptions Description on how to read the data ("normal", "cache")
    * @param swath_windows_file Provided file containing the SWATH windows which will be mapped to the experimental windows
@@ -171,6 +170,7 @@ protected:
                       const bool sort_swath_maps,
                       const bool sonar,
                       const bool prm,
+                      const bool pasef,
                       Interfaces::IMSDataConsumer* plugin_consumer = nullptr)
   {
     // (i) Load files
@@ -187,6 +187,8 @@ protected:
       OPENMS_LOG_DEBUG << "Found swath map " << i
         << " with lower " << swath_maps[i].lower
         << " and upper " << swath_maps[i].upper
+        << " and im Lower bounds of " << swath_maps[i].imLower
+        << " and im Upper bounds of " << swath_maps[i].imUpper
         << " and " << swath_maps[i].sptr->getNrSpectra()
         << " spectra." << std::endl;
     }
@@ -223,12 +225,15 @@ protected:
 
       if (sonar) {continue;} // skip next step as expect them to overlap ...
 
+      if (pasef) {continue;} // skip this step, expect there to be overlap ...
+
       if (lower_map_end - upper_map_start > 0.01)
       {
         OPENMS_LOG_WARN << "Extraction will overlap between " << lower_map_end << " and " << upper_map_start << "!\n"
                  << "This will lead to multiple extraction of the transitions in the overlapping region "
                  << "which will lead to duplicated output. It is very unlikely that you want this." << "\n"
-                 << "Please fix this by providing an appropriate extraction file with -swath_windows_file" << std::endl;
+                 << "Please fix this by providing an appropriate extraction file with -swath_windows_file" << "\n"
+                 << "Did you mean to set the -sonar or -pasef Flag?" << std::endl;
         if (!force)
         {
           OPENMS_LOG_ERROR << "Extraction windows overlap. Will abort (override with -force)" << std::endl;
@@ -248,11 +253,11 @@ protected:
    *
    * @param chromatogramConsumer The consumer to process chromatograms
    * @param exp_meta meta data about experiment
-   * @param transition_exp The spectral library 
+   * @param transition_exp The spectral library
    * @param out_chrom The output file for the chromatograms
    * @param run_id Unique identifier which links the sqMass and OSW file
    */
-  void prepareChromOutput(Interfaces::IMSDataConsumer ** chromatogramConsumer, 
+  void prepareChromOutput(Interfaces::IMSDataConsumer ** chromatogramConsumer,
                           const boost::shared_ptr<ExperimentalSettings>& exp_meta,
                           const OpenSwath::LightTargetedExperiment& transition_exp,
                           const String& out_chrom,
@@ -370,6 +375,7 @@ protected:
    * @param calibration_param Parameter for the m/z and im calibration (see SwathMapMassCorrection)
    * @param debug_level Debug level (writes out the RT normalization chromatograms if larger than 1)
    * @param sonar Whether the data is SONAR data
+   * @param pasef whether the data is PASEF data with possible overlapping m/z windows (with different ion mobility). In this case, the "best" SWATH window (with precursor cetntered around IM) is chosen.
    * @param load_into_memory Whether to cache the current SWATH map in memory
    * @param irt_trafo_out Output trafoXML file (if not empty and no input trafoXML file is given,
    *        the transformation parameters will be stored in this file)
@@ -388,6 +394,7 @@ protected:
         const Param& calibration_param,
         Size debug_level,
         bool sonar,
+        bool pasef,
         bool load_into_memory,
         const String& irt_trafo_out,
         const String& irt_mzml_out)
@@ -415,6 +422,20 @@ protected:
       Param tsv_reader_param = TransitionTSVFile().getDefaults();
       OpenSwath::LightTargetedExperiment irt_transitions = loadTransitionList(tr_type, irt_tr_file, tsv_reader_param);
 
+      // If pasef flag is set, validate that IM is present
+      if (pasef)
+      {
+        const auto& transitions = irt_transitions.getTransitions();
+
+        for ( Size k=0; k < (Size)transitions.size(); k++ )
+        {
+          if (transitions[k].precursor_im == -1)
+          {
+            throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Error: iRT Transition " + transitions[k].getNativeID() +  " does not have a valid IM value, this must be set to use the -pasef flag");
+          }
+        }
+      }
+
       // perform extraction
       OpenSwathCalibrationWorkflow wf;
       wf.setLogType(log_type_);
@@ -423,7 +444,7 @@ protected:
                                                min_rsq, min_coverage,
                                                feature_finder_param,
                                                cp_irt, irt_detection_param,
-                                               calibration_param, irt_mzml_out, debug_level, sonar,
+                                               calibration_param, irt_mzml_out, debug_level, sonar, pasef,
                                                load_into_memory);
 
       if (!irt_trafo_out.empty())

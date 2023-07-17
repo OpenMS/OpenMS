@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry               
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 // 
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -182,7 +182,7 @@ START_SECTION(bool operator==(const MatchedIterator& rhs) const)
   TEST_EQUAL(mi.refIdx(), 0)
   ++mi;
   MIV mi2(mi);
-  TEST_EQUAL(mi == mi2, true)
+  TEST_TRUE(mi == mi2)
   
   TEST_EQUAL(mi.ref(), mi2.ref());
   TEST_EQUAL(*mi, *mi2);
@@ -199,7 +199,7 @@ START_SECTION(bool operator!=(const MatchedIterator& rhs) const)
   MIV mi2(mi);
   TEST_EQUAL(mi != mi2, false)
   ++mi;
-  TEST_EQUAL(mi != mi2, true)
+  TEST_FALSE(mi == mi2)
   MIV mi3(mi);
   TEST_EQUAL(mi != mi3, false)
 }

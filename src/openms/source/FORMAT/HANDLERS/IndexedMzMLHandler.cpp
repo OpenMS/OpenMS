@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -113,9 +113,7 @@ namespace OpenMS::Internal
   {
   }
 
-  IndexedMzMLHandler::~IndexedMzMLHandler()
-  {
-  }
+  IndexedMzMLHandler::~IndexedMzMLHandler() = default;
 
   void IndexedMzMLHandler::openFile(const String& filename) 
   {
@@ -278,7 +276,7 @@ namespace OpenMS::Internal
     return s;
   }
 
-  void IndexedMzMLHandler::getMSSpectrumByNativeId(std::string id, MSSpectrum& s)
+  void IndexedMzMLHandler::getMSSpectrumByNativeId(const std::string& id, MSSpectrum& s)
   {
     if (spectra_native_ids_.find(id) == spectra_native_ids_.end())
     {

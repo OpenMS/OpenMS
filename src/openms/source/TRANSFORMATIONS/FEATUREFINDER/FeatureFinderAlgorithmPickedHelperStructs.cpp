@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -223,7 +223,7 @@ namespace OpenMS
     // we add the first trace without check, as the profile is currently empty
     for (TTracePeakIterator trace_peak_it = trace_it->peaks.begin(); trace_peak_it != trace_it->peaks.end(); ++trace_peak_it)
     {
-      intensity_profile.push_back(std::make_pair(trace_peak_it->first, trace_peak_it->second->getIntensity()));
+      intensity_profile.emplace_back(trace_peak_it->first, trace_peak_it->second->getIntensity());
     }
     ++trace_it;
 
@@ -238,7 +238,7 @@ namespace OpenMS
         // append .. if profile has already ended
         if (profile_it == intensity_profile.end())
         {
-          intensity_profile.push_back(std::make_pair(trace_peak_it->first, trace_peak_it->second->getIntensity()));
+          intensity_profile.emplace_back(trace_peak_it->first, trace_peak_it->second->getIntensity());
           ++trace_peak_it;
         }
         // prepend

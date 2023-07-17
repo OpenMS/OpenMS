@@ -154,7 +154,7 @@ public:
     return _number_edges_with_messages_received == number_edges() || (_number_edges_with_messages_received+1 == number_edges() && !_edge_received[edge_index]);
   }
 
-  virtual bool ready_to_send_message_ab_initio(unsigned long edge_index) const {
+  virtual bool ready_to_send_message_ab_initio(unsigned long /*edge_index*/) const {
     return false;
   }
 

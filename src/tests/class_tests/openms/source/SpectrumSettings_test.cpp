@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry               
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 // 
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -302,7 +302,7 @@ END_SECTION
 START_SECTION((bool operator== (const SpectrumSettings& rhs) const))
   SpectrumSettings edit, empty;
   
-  TEST_EQUAL(edit==empty, true);
+  TEST_TRUE(edit == empty);
   
 	edit.getAcquisitionInfo().setMethodOfCombination("test");
 	TEST_EQUAL(edit==empty, false);
@@ -356,48 +356,48 @@ START_SECTION((bool operator!= (const SpectrumSettings& rhs) const))
   TEST_EQUAL(edit!=empty, false);
   
 	edit.getAcquisitionInfo().setMethodOfCombination("test");
-	TEST_EQUAL(edit!=empty, true);
+	TEST_FALSE(edit == empty);
 	
 	edit = empty;
 	edit.setNativeID("nid");
-	TEST_EQUAL(edit!=empty, true);
+	TEST_FALSE(edit == empty);
 	
 	edit = empty;
 	edit.getInstrumentSettings().getScanWindows().resize(1);
-	TEST_EQUAL(edit!=empty, true);
+	TEST_FALSE(edit == empty);
 	
 	edit = empty;
 	edit.getPrecursors().resize(1);
-	TEST_EQUAL(edit!=empty, true);
+	TEST_FALSE(edit == empty);
 	
 	edit = empty;
 	edit.setType(SpectrumSettings::CENTROID);
-	TEST_EQUAL(edit!=empty, true);
+	TEST_FALSE(edit == empty);
 	
 	edit = empty;
 	edit.setComment("bla");
-	TEST_EQUAL(edit!=empty, true);
+	TEST_FALSE(edit == empty);
 
 	edit = empty;
 	edit.getPrecursors().resize(1);
-	TEST_EQUAL(edit!=empty, true);
+	TEST_FALSE(edit == empty);
 
 	edit = empty;
 	edit.getProducts().resize(1);
-	TEST_EQUAL(edit!=empty, true);
+	TEST_FALSE(edit == empty);
 
 	edit = empty;
 	edit.getPeptideIdentifications().resize(1);
-	TEST_EQUAL(edit!=empty, true);
+	TEST_FALSE(edit == empty);
 
 	edit = empty;
     DataProcessingPtr dp = boost::shared_ptr<DataProcessing>(new DataProcessing); 
 	edit.getDataProcessing().push_back(dp);
-	TEST_EQUAL(edit!=empty, true);
+	TEST_FALSE(edit == empty);
 
 	edit = empty;
 	edit.setMetaValue("bla","bluff");
-	TEST_EQUAL(edit!=empty, true);
+	TEST_FALSE(edit == empty);
 
 
 END_SECTION

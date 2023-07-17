@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -34,6 +34,8 @@
 
 #include <OpenMS/METADATA/HPLC.h>
 
+#include <utility>
+
 using namespace std;
 
 namespace OpenMS
@@ -50,9 +52,7 @@ namespace OpenMS
   {
   }
 
-  HPLC::~HPLC()
-  {
-  }
+  HPLC::~HPLC() = default;
 
   bool HPLC::operator==(const HPLC & rhs) const
   {
@@ -127,7 +127,7 @@ namespace OpenMS
 
   void HPLC::setComment(String comment)
   {
-    comment_ = comment;
+    comment_ = std::move(comment);
   }
 
   Gradient & HPLC::getGradient()

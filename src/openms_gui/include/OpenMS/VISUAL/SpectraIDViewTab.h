@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -40,11 +40,7 @@
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 
 #include <QtWidgets>
-#include <QLineEdit>
-#include <QComboBox>
-#include <QTableWidget>
 #include <QCheckBox>
-#include <QWidget>
 
 #include <unordered_map>
 #include <vector>
@@ -71,7 +67,7 @@ namespace OpenMS
     // docu in base class
     bool hasData(const LayerDataBase* layer) override;
 
-    /// set layer data and create table anew; if given a nullptr, behaves as clear()
+    /// set layer data and create table anew; if given a nullptr or the layer is not LayerDataPeak, behaves as clear()
     void updateEntries(LayerDataBase* model) override;
     /// get layer data
     LayerDataBase* getLayer();
@@ -110,7 +106,7 @@ namespace OpenMS
       void resizeEvent(QResizeEvent * event) override;
     };
 
-    LayerDataBase* layer_ = nullptr;
+    LayerDataPeak* layer_ = nullptr;
     QCheckBox* hide_no_identification_ = nullptr;
     QCheckBox* create_rows_for_commmon_metavalue_ = nullptr;
     TableView* table_widget_ = nullptr;
@@ -135,7 +131,7 @@ namespace OpenMS
     void currentSpectraSelectionChanged_();
 
     /// update ProteinHits, when data in the table changes (status of checkboxes)
-    void updatedSingleProteinCell_(QTableWidgetItem* item);
+    void updatedSingleProteinCell_(QTableWidgetItem* /*item*/);
     /// Protein Cell clicked in protein_table_widget; emits which protein (row) was clicked, and may show additional data
     void proteinCellClicked_(int row, int column);
   };

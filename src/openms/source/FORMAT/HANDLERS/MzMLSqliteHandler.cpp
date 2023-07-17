@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -837,7 +837,7 @@ namespace OpenMS::Internal
 
       // prepare streams and set required precision (default is 6 digits)
       std::stringstream insert_run_sql;
-      std::string native_id = exp.getLoadedFilePath(); // TODO escape stuff like ' (SQL inject)
+      const std::string& native_id = exp.getLoadedFilePath(); // TODO escape stuff like ' (SQL inject)
       insert_run_sql << "INSERT INTO RUN (ID, FILENAME, NATIVE_ID) VALUES (" <<
             run_id_ << ",'" << native_id << "','" << native_id << "'); ";
       conn.executeStatement("BEGIN TRANSACTION");
@@ -874,7 +874,7 @@ namespace OpenMS::Internal
         // write the full metadata into the sql file (compress with zlib before)
         std::string encoded_string;
         OpenMS::ZlibCompression::compressString(output, encoded_string);
-        data.push_back(encoded_string);
+        data.emplace_back(encoded_string);
         // data.push_back(output); // in case you need to debug on the uncompressed string ...
         conn.executeBindStatement(prepare_statement, data);
       }

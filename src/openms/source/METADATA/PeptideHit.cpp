@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -34,6 +34,7 @@
 
 #include <OpenMS/METADATA/PeptideHit.h>
 #include <ostream>
+#include <utility>
 
 using namespace std;
 
@@ -205,11 +206,16 @@ namespace OpenMS
     return rank_;
   }
 
-  // returns the peptide sequence without trailing or following spaces
   const AASequence& PeptideHit::getSequence() const
   {
     return sequence_;
   }
+
+  AASequence& PeptideHit::getSequence()
+  {
+    return sequence_;
+  }
+
 
   void PeptideHit::setSequence(const AASequence& sequence)
   {
@@ -261,10 +267,10 @@ namespace OpenMS
   {
     // delete old results first
     if (analysis_results_ != nullptr) delete analysis_results_;
-    analysis_results_ = new std::vector< PeptideHit::PepXMLAnalysisResult> (aresult);
+    analysis_results_ = new std::vector< PeptideHit::PepXMLAnalysisResult> (std::move(aresult));
   }
 
-  void PeptideHit::addAnalysisResults(PeptideHit::PepXMLAnalysisResult aresult)
+  void PeptideHit::addAnalysisResults(const PeptideHit::PepXMLAnalysisResult& aresult)
   {
     if (analysis_results_ == nullptr)
     {

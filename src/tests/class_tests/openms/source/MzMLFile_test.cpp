@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -40,6 +40,7 @@
 ///////////////////////////
 
 #include <OpenMS/FORMAT/FileTypes.h>
+#include <OpenMS/FORMAT/HANDLERS/MzMLHandler.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 
 using namespace OpenMS;
@@ -319,7 +320,7 @@ START_SECTION((template <typename MapType> void load(const String& filename, Map
   TEST_STRING_EQUAL(exp.getContacts()[1].getURL(),"")
   TEST_STRING_EQUAL(exp.getContacts()[1].getAddress(),"")
   //source files
-  TEST_EQUAL(exp.getSourceFiles().size(),1);
+  TEST_EQUAL(exp.getSourceFiles().size(),5);
   TEST_STRING_EQUAL(exp.getSourceFiles()[0].getNameOfFile(),"tiny1.RAW")
   TEST_STRING_EQUAL(exp.getSourceFiles()[0].getPathToFile(),"file:///F:/data/Exp01")
   TEST_STRING_EQUAL(exp.getSourceFiles()[0].getChecksum(),"71be39fb2700ab2f3c8b2234b91274968b6899b1")
@@ -857,10 +858,11 @@ START_SECTION((template <typename MapType> void load(const String& filename, Map
     }
   }
   //Testing corrupted files
+  // Note: the following two statements will trigger the AddressSanitizer
   PeakMap exp_cor;
-  TEST_EXCEPTION(Exception::ParseError,file.load(OPENMS_GET_TEST_DATA_PATH("MzMLFile_6_uncompresscor.MzML.gz"),exp_cor))
+  TEST_EXCEPTION(Exception::ParseError,file.load(OPENMS_GET_TEST_DATA_PATH("MzMLFile_6_uncompresscor.MzML.gz"),exp_cor)) // ASan says this leaks memory
   PeakMap exp_cor2;
-  TEST_EXCEPTION(Exception::ParseError,file.load(OPENMS_GET_TEST_DATA_PATH("MzMLFile_6_uncompresscor.bz2"),exp_cor2))
+  TEST_EXCEPTION(Exception::ParseError,file.load(OPENMS_GET_TEST_DATA_PATH("MzMLFile_6_uncompresscor.bz2"),exp_cor2)) // ASan says this leaks memory
 
   {
     //Testing automated sorting of files
@@ -906,7 +908,7 @@ START_SECTION([EXTRA] load only meta data)
   TEST_EQUAL(exp.size(),0)
   TEST_EQUAL(exp.getIdentifier(),"document_accession");
   TEST_EQUAL(exp.getContacts().size(),2)
-  TEST_EQUAL(exp.getSourceFiles().size(),1);
+  TEST_EQUAL(exp.getSourceFiles().size(),5);
   TEST_EQUAL(exp.getInstrument().getMassAnalyzers().size(),2)
 }
 END_SECTION
@@ -981,6 +983,16 @@ START_SECTION([EXTRA] load intensity range)
 }
 END_SECTION
 
+START_SECTION([EXTRA] load xsd:integer types)
+{
+  MzMLFile file;
+  PeakMap exp;
+  // just load without crashing...
+  file.load(OPENMS_GET_TEST_DATA_PATH("MzMLFile_xsd-ranges.mzML"), exp);
+  NOT_TESTABLE
+}
+END_SECTION
+
 
 START_SECTION((template <typename MapType> void store(const String& filename, const MapType& map) const))
 {
@@ -999,7 +1011,7 @@ START_SECTION((template <typename MapType> void store(const String& filename, co
     PeakMap exp;
     file.load(tmp_filename, exp);
     //test if everything worked
-    TEST_EQUAL(exp == exp_original, true)
+    TEST_TRUE(exp == exp_original)
     //NOTE: If it does not work, use this code to find out where the difference is
     TEST_EQUAL(exp.size() == exp_original.size(), true)
     TEST_EQUAL(exp.ExperimentalSettings::operator==(exp_original), true)
@@ -1036,7 +1048,7 @@ START_SECTION((template <typename MapType> void store(const String& filename, co
     //this will be set when writing (forced by mzML)
     empty[0].setNativeID("spectrum=0");
     empty[0].getInstrumentSettings().setScanMode(InstrumentSettings::MS1SPECTRUM);
-    empty[0].getDataProcessing().push_back( DataProcessingPtr(new DataProcessing) );
+    empty[0].getDataProcessing().emplace_back( new DataProcessing() );
     empty[0].getDataProcessing()[0]->getProcessingActions().insert(DataProcessing::CONVERSION_MZML);
     empty[0].getAcquisitionInfo().setMethodOfCombination("no combination");
     empty[0].getAcquisitionInfo().resize(1);
@@ -1087,9 +1099,9 @@ START_SECTION((void storeBuffer(std::string & output, const PeakMap& map) const)
     // store map in our output buffer
     std::string out;
     file.storeBuffer(out, exp_original);
-    TEST_EQUAL(out.size(), 36859)
+    TEST_EQUAL(out.size(), 38070)
     TEST_EQUAL(out.substr(0, 100), "<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?>\n<indexedmzML xmlns=\"http://psi.hupo.org/ms/mzml\" xmlns:x")
-    TEST_EQUAL(out.substr(36859 - 99, 36859 - 1), "</indexList>\n<indexListOffset>36411</indexListOffset>\n<fileChecksum>0</fileChecksum>\n</indexedmzML>")
+    TEST_EQUAL(out.substr(38070 - 99, 38070 - 1), "</indexList>\n<indexListOffset>37622</indexListOffset>\n<fileChecksum>0</fileChecksum>\n</indexedmzML>")
 
     TEST_EQUAL(String(out).hasSubstring("<spectrumList count=\"4\" defaultDataProcessingRef=\"dp_sp_0\">"), true)
     TEST_EQUAL(String(out).hasSubstring("<chromatogramList count=\"2\" defaultDataProcessingRef=\"dp_sp_0\">"), true)

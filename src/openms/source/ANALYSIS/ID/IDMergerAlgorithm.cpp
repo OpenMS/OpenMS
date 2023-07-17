@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -35,6 +35,7 @@
 #include <OpenMS/ANALYSIS/ID/IDMergerAlgorithm.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
 #include <unordered_map>
+#include <array>
 
 using namespace std;
 namespace OpenMS
@@ -208,14 +209,14 @@ namespace OpenMS
         */
       }
 
-      bool annotated = pid.metaValueExists("id_merge_index");
+      bool annotated = pid.metaValueExists(Constants::UserParam::ID_MERGE_INDEX);
       if (annotate_origin || annotated)
       {
         Size oldFileIdx(0);
         const StringList& origins = originFiles[runIdxIt->second];
         if (annotated)
         {
-          oldFileIdx = pid.getMetaValue("id_merge_index");
+          oldFileIdx = pid.getMetaValue(Constants::UserParam::ID_MERGE_INDEX);
         }
         else if (origins.size() > 1)
         {
@@ -240,7 +241,7 @@ namespace OpenMS
               "(" + String(pid.getMZ()) + ", " + String(pid.getRT()) + ") but"
               " the index exceeds the number of files in the run.");
         }
-        pid.setMetaValue("id_merge_index", file_origin_to_idx_[origins[oldFileIdx]]);
+        pid.setMetaValue(Constants::UserParam::ID_MERGE_INDEX, file_origin_to_idx_[origins[oldFileIdx]]);
       }
       pid.setIdentifier(prot_result_.getIdentifier());
       //move peptides into right vector
@@ -352,13 +353,13 @@ namespace OpenMS
 
       }
 
-      bool annotated = pid.metaValueExists("id_merge_index");
+      bool annotated = pid.metaValueExists(Constants::UserParam::ID_MERGE_INDEX);
       if (annotate_origin || annotated)
       {
         Size oldFileIdx(0);
         if (annotated)
         {
-          oldFileIdx = pid.getMetaValue("id_merge_index");
+          oldFileIdx = pid.getMetaValue(Constants::UserParam::ID_MERGE_INDEX);
         }
           // If there is more than one possible file it might be from
           // and it is not annotated -> fail
@@ -372,7 +373,7 @@ namespace OpenMS
               "(" + String(pid.getMZ()) + ", " + String(pid.getRT()) + ") but"
               "no old id_merge_index present");
         }
-        pid.setMetaValue("id_merge_index", file_origin_to_idx_[originFiles[oldProtRunIdx].at(oldFileIdx)]);
+        pid.setMetaValue(Constants::UserParam::ID_MERGE_INDEX, file_origin_to_idx_[originFiles[oldProtRunIdx].at(oldFileIdx)]);
       }
       pid.setIdentifier(prot_result_.getIdentifier());
       for (auto &phit : pid.getHits())

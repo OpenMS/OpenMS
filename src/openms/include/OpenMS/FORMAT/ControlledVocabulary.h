@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -36,10 +36,10 @@
 
 #include <OpenMS/DATASTRUCTURES/ListUtils.h> // StringList
 #include <OpenMS/DATASTRUCTURES/StringListUtils.h>
-#include <OpenMS/DATASTRUCTURES/Map.h>
 #include <OpenMS/CONCEPT/Exception.h>
 
 #include <set>
+#include <map>
 
 namespace OpenMS
 {
@@ -154,7 +154,7 @@ public:
 
 
     /// returns all the terms stored in the CV
-    const Map<String, CVTerm>& getTerms() const;
+    const std::map<String, CVTerm>& getTerms() const;
 
     /**
         @brief Writes all child terms recursively into terms
@@ -225,9 +225,9 @@ protected:
     bool checkName_(const String& id, const String& name, bool ignore_case = true) const;
 
     /// Map from ID to CVTerm
-    Map<String, CVTerm> terms_;
+    std::map<String, CVTerm> terms_;
     /// Map from name to id
-    Map<String, String> namesToIds_;
+    std::map<String, String> namesToIds_;
     /// Name set in the load method
     String name_;
     /// CV label

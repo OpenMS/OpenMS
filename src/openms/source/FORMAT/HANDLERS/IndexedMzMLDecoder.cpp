@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -50,7 +50,7 @@ namespace OpenMS
 
   namespace IndexedMzMLUtils
   {
-    std::streampos stringToStreampos(std::string s)
+    std::streampos stringToStreampos(const std::string& s)
     {
       // Try to cast the string to a type that can hold the integer value
       // stored in the std::streampos type (which can vary from 32 to 128 bits
@@ -89,7 +89,7 @@ namespace OpenMS
     }
   }
 
-  int IndexedMzMLDecoder::parseOffsets(String filename, std::streampos indexoffset, OffsetVector& spectra_offsets, OffsetVector& chromatograms_offsets)
+  int IndexedMzMLDecoder::parseOffsets(const String& filename, std::streampos indexoffset, OffsetVector& spectra_offsets, OffsetVector& chromatograms_offsets)
   {
     //-------------------------------------------------------------
     // Open file, jump to end and read last indexoffset bytes into buffer.
@@ -147,7 +147,7 @@ namespace OpenMS
     return res;
   }
 
-  std::streampos IndexedMzMLDecoder::findIndexListOffset(String filename, int buffersize)
+  std::streampos IndexedMzMLDecoder::findIndexListOffset(const String& filename, int buffersize)
   {
     // return value
     std::streampos indexoffset = -1;
@@ -204,7 +204,7 @@ namespace OpenMS
     return indexoffset;
   }
 
-  int IndexedMzMLDecoder::domParseIndexedEnd_(std::string in, OffsetVector& spectra_offsets, OffsetVector& chromatograms_offsets)
+  int IndexedMzMLDecoder::domParseIndexedEnd_(const std::string& in, OffsetVector& spectra_offsets, OffsetVector& chromatograms_offsets)
   {
 
     /*
@@ -302,7 +302,7 @@ namespace OpenMS
             char* x_offset = xercesc::XMLString::transcode(currentONode->getTextContent());
 
             std::streampos thisOffset = OpenMS::IndexedMzMLUtils::stringToStreampos( String(x_offset) );
-            result.push_back(std::make_pair(String(x_name), thisOffset));
+            result.emplace_back(String(x_name), thisOffset);
 
             xercesc::XMLString::release(&x_name);
             xercesc::XMLString::release(&x_offset);

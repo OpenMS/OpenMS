@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -36,13 +36,15 @@
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexDeltaMasses.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexIsotopicPeakPattern.h>
 
+#include <utility>
+
 using namespace std;
 
 namespace OpenMS
 {
 
   MultiplexIsotopicPeakPattern::MultiplexIsotopicPeakPattern(int c, int ppp, MultiplexDeltaMasses ms, int msi) :
-    charge_(c), peaks_per_peptide_(ppp), mass_shifts_(ms), mass_shift_index_(msi)
+    charge_(c), peaks_per_peptide_(ppp), mass_shifts_(std::move(ms)), mass_shift_index_(msi)
   {
     // generate m/z shifts
     for (unsigned i = 0; i < mass_shifts_.getDeltaMasses().size(); ++i)

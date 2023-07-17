@@ -23,31 +23,33 @@ cdef extern from "<OpenMS/FORMAT/InspectOutfile.h>" namespace "OpenMS":
                                      ProteinIdentification & protein_identification, double
                                      p_value_threshold, const String & database_filename) nogil except +
             # wrap-doc:
-                #   Load the results of an Inspect search
-                #   -----
-                #   :param result_filename: Input parameter which is the file name of the input file
-                #   :param peptide_identifications: Output parameter which holds the peptide identifications from the given file
-                #   :param protein_identification: Output parameter which holds the protein identifications from the given file
-                #   :param p_value_threshold
-                #   :param database_filename
-                #   :raises:
-                #     Exception: FileNotFound is thrown if the given file could not be found
-                #   :raises:
-                #     Exception: ParseError is thrown if the given file could not be parsed
-                #   :raises:
-                #     Exception: FileEmpty is thrown if the given file is empty
+                #  Load the results of an Inspect search
+                #  
+                #  
+                #  :param result_filename: Input parameter which is the file name of the input file
+                #  :param peptide_identifications: Output parameter which holds the peptide identifications from the given file
+                #  :param protein_identification: Output parameter which holds the protein identifications from the given file
+                #  :param p_value_threshold:
+                #  :param database_filename:
+                #  :raises:
+                #    Exception: FileNotFound is thrown if the given file could not be found
+                #  :raises:
+                #    Exception: ParseError is thrown if the given file could not be parsed
+                #  :raises:
+                #    Exception: FileEmpty is thrown if the given file is empty
 
         libcpp_vector[ size_t ] getWantedRecords(const String & result_filename,
                                                  double p_value_threshold) nogil except +
             # wrap-doc:
-                #   Loads only results which exceeds a given p-value threshold
-                #   -----
-                #   :param result_filename: The filename of the results file
-                #   :param p_value_threshold: Only identifications exceeding this threshold are read
-                #   :raises:
-                #     Exception: FileNotFound is thrown if the given file could not be found
-                #   :raises:
-                #     Exception: FileEmpty is thrown if the given file is empty
+                #  Loads only results which exceeds a given p-value threshold
+                #  
+                #  
+                #  :param result_filename: The filename of the results file
+                #  :param p_value_threshold: Only identifications exceeding this threshold are read
+                #  :raises:
+                #    Exception: FileNotFound is thrown if the given file could not be found
+                #  :raises:
+                #    Exception: FileEmpty is thrown if the given file is empty
 
         void compressTrieDB(const String & database_filename, const String &
                             index_filename, libcpp_vector[ size_t ] &

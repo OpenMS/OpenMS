@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -131,10 +131,7 @@ public:
     ///@name Constructors and Destructor
     ///@{
     /// Default constructor
-    Peak2D() :
-      position_(),
-      intensity_(0)
-    {}
+    Peak2D() = default;
 
     /// Member constructor
     explicit Peak2D(const PositionType& pos, const IntensityType in) :
@@ -146,8 +143,13 @@ public:
     Peak2D(const Peak2D & p) = default;
 
     /// Move constructor
-    Peak2D(Peak2D&&) = default;
+    Peak2D(Peak2D&&) noexcept = default;
 
+    /// Assignment operator
+    Peak2D& operator=(const Peak2D& rhs) = default;
+
+    /// Move assignment operator
+    Peak2D& operator=(Peak2D&&) noexcept = default;
     /**
       @brief Destructor
 
@@ -156,8 +158,8 @@ public:
       space for a vtable pointer in each instance. Normally you should not derive other classes from
       Peak2D (unless you know what you are doing, of course).
     */
-    ~Peak2D()
-    {}
+    ~Peak2D() noexcept = default;
+    
     ///@}
 
     ///@name Accessors
@@ -217,12 +219,6 @@ public:
     }
 
     ///@}
-
-    /// Assignment operator
-    Peak2D & operator=(const Peak2D & rhs) = default;
-
-    /// Move assignment operator
-    Peak2D& operator=(Peak2D&&) & = default;
 
     /// Equality operator
     bool operator==(const Peak2D & rhs) const
@@ -351,9 +347,9 @@ public:
 protected:
 
     /// The data point position
-    PositionType position_;
+    PositionType position_{};
     /// The data point intensity
-    IntensityType intensity_;
+    IntensityType intensity_{};
   };
 
   /// Print the contents to a stream.

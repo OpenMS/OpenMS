@@ -14,7 +14,7 @@ cdef extern from "<OpenMS/FILTERING/NOISEESTIMATION/SignalToNoiseEstimator.h>" n
         #  DefaultParamHandler
         #  ProgressLogger
         # wrap-doc:
-        #   This class represents the abstract base class of a signal to noise estimator
+        #  This class represents the abstract base class of a signal to noise estimator
         
         SignalToNoiseEstimator() nogil except +
         SignalToNoiseEstimator(SignalToNoiseEstimator &) nogil except +

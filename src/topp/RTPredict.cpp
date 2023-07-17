@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -235,7 +235,7 @@ protected:
       }
       else
       {
-        writeLog_("Both files for separation prediction required. Please specify the other one as well. Aborting!");
+        writeLogError_("Both files for separation prediction required. Please specify the other one as well. Aborting!");
         return ILLEGAL_PARAMETERS;
       }
     }
@@ -245,12 +245,12 @@ protected:
     String input_text = getStringOption_("in_text");
     if (!input_text.empty() && !input_id.empty())
     {
-      writeLog_("Two input parameter files given, only one allowed! Use either -in_id:file or -in_text:file!");
+      writeLogError_("Two input parameter files given, only one allowed! Use either -in_id:file or -in_text:file!");
       return ILLEGAL_PARAMETERS;
     }
     else if (input_text.empty() && input_id.empty())
     {
-      writeLog_("No input file given. Aborting...");
+      writeLogError_("No input file given. Aborting...");
       return ILLEGAL_PARAMETERS;
     }
 
@@ -260,7 +260,7 @@ protected:
     String output_text = getStringOption_("out_text:file");
     if (output_text.empty() && output_id.empty() && !separation_prediction)
     {
-      writeLog_("No output files given. Aborting...");
+      writeLogError_("No output files given. Aborting...");
       return ILLEGAL_PARAMETERS;
     }
 
@@ -275,13 +275,13 @@ protected:
 
     if ((svm.getIntParameter(SVMWrapper::SVM_TYPE) == C_SVC || svm.getIntParameter(SVMWrapper::SVM_TYPE) == NU_SVC) && !separation_prediction)
     {
-      writeLog_("You cannot perform peptide separation prediction with a model trained for"
+      writeLogError_("You cannot perform peptide separation prediction with a model trained for"
                 + String("\npeptide retention time prediction. Aborting!"));
       return ILLEGAL_PARAMETERS;
     }
     if ((svm.getIntParameter(SVMWrapper::SVM_TYPE) != C_SVC && svm.getIntParameter(SVMWrapper::SVM_TYPE) != NU_SVC) && separation_prediction)
     {
-      writeLog_("You cannot perform peptide retention time prediction with a model trained for\n"
+      writeLogError_("You cannot perform peptide retention time prediction with a model trained for\n"
                 + String("peptide separation prediction. Aborting!"));
       return ILLEGAL_PARAMETERS;
     }
@@ -294,7 +294,7 @@ protected:
       if (in_params_name.empty())
       {
         in_params_name = svmfile_name + "_additional_parameters";
-        writeLog_("Warning: Using OLIGO kernel but in_oligo_params parameter is missing. Trying default filename: " + in_params_name);
+        writeLogError_("Warning: Using OLIGO kernel but in_oligo_params parameter is missing. Trying default filename: " + in_params_name);
       }
       inputFileReadable_(in_params_name, "in_oligo_params");
 
@@ -313,31 +313,27 @@ protected:
       if (additional_parameters.getValue("border_length") == ParamValue::EMPTY
          && svm.getIntParameter(SVMWrapper::KERNEL_TYPE) == SVMWrapper::OLIGO)
       {
-        writeLog_("No border length saved in additional parameters file. Aborting!");
-        cout << "No border length saved in additional parameters file. Aborting!" << endl;
+        writeLogError_("No border length saved in additional parameters file. Aborting!");
         return ILLEGAL_PARAMETERS;
       }
       border_length = String(additional_parameters.getValue("border_length").toString()).toInt();
       if (additional_parameters.getValue("k_mer_length") == ParamValue::EMPTY
          && svm.getIntParameter(SVMWrapper::KERNEL_TYPE) == SVMWrapper::OLIGO)
       {
-        writeLog_("No k-mer length saved in additional parameters file. Aborting!");
-        cout << "No k-mer length saved in additional parameters file. Aborting!" << endl;
+        writeLogError_("No k-mer length saved in additional parameters file. Aborting!");
         return ILLEGAL_PARAMETERS;
       }
       k_mer_length = String(additional_parameters.getValue("k_mer_length").toString()).toInt();
       if (additional_parameters.getValue("sigma") == ParamValue::EMPTY
          && svm.getIntParameter(SVMWrapper::KERNEL_TYPE) == SVMWrapper::OLIGO)
       {
-        writeLog_("No sigma saved in additional parameters file. Aborting!");
-        cout << "No sigma saved in additional parameters file. Aborting!" << endl;
+        writeLogError_("No sigma saved in additional parameters file. Aborting!");
         return ILLEGAL_PARAMETERS;
       }
       sigma = String(additional_parameters.getValue("sigma").toString()).toDouble();
       if (!separation_prediction && additional_parameters.getValue("sigma_0") == ParamValue::EMPTY)
       {
-        writeLog_("No sigma_0 saved in additional parameters file. Aborting!");
-        cout << "No sigma_0 length saved in additional parameters file. Aborting!" << endl;
+        writeLogError_("No sigma_0 saved in additional parameters file. Aborting!");
         return ILLEGAL_PARAMETERS;
       }
       if (!separation_prediction && additional_parameters.getValue("sigma_0") != ParamValue::EMPTY)
@@ -346,8 +342,7 @@ protected:
       }
       if (!separation_prediction && additional_parameters.getValue("sigma_max") == ParamValue::EMPTY)
       {
-        writeLog_("No sigma_max saved in additional parameters file. Aborting!");
-        cout << "No sigma_max length saved in additional parameters file. Aborting!" << endl;
+        writeLogError_("No sigma_max saved in additional parameters file. Aborting!");
         return ILLEGAL_PARAMETERS;
       }
       if (!separation_prediction && additional_parameters.getValue("sigma_max") != ParamValue::EMPTY)
@@ -465,7 +460,7 @@ protected:
         if (in_trainset_name.empty())
         {
           in_trainset_name = svmfile_name + "_samples";
-          writeLog_("Warning: Using OLIGO kernel but in_oligo_trainset parameter is missing. Trying default filename: " + in_trainset_name);
+          writeLogWarn_("Warning: Using OLIGO kernel but in_oligo_trainset parameter is missing. Trying default filename: " + in_trainset_name);
         }
         inputFileReadable_(in_trainset_name, "in_oligo_trainset");
 

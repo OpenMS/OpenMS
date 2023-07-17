@@ -21,11 +21,11 @@ cdef extern from "<OpenMS/FORMAT/XQuestResultXMLFile.h>" namespace "OpenMS":
                 libcpp_vector[ PeptideIdentification ] & pep_ids,
                 libcpp_vector[ ProteinIdentification ] & prot_ids) nogil except +
         # wrap-doc:
-                #   Load the content of the xquest.xml file into the provided data structures
-                #   -----
-                #   :param filename: Filename of the file which is to be loaded
-                #   :param pep_ids: Where the spectra with identifications of the input file will be loaded to
-                #   :param prot_ids: Where the protein identification of the input file will be loaded to
+                #  Load the content of the xquest.xml file into the provided data structures
+                #  
+                #  :param filename: Filename of the file which is to be loaded
+                #  :param pep_ids: Where the spectra with identifications of the input file will be loaded to
+                #  :param prot_ids: Where the protein identification of the input file will be loaded to
 
         void store(const String & filename,
                 libcpp_vector[ ProteinIdentification ] & poid,
@@ -39,24 +39,24 @@ cdef extern from "<OpenMS/FORMAT/XQuestResultXMLFile.h>" namespace "OpenMS":
                                 OPXL_PreprocessedPairSpectra preprocessed_pair_spectra,
                                 libcpp_vector[ libcpp_pair[ size_t, size_t ] ] spectrum_pairs,
                                 libcpp_vector[ libcpp_vector[ CrossLinkSpectrumMatch ] ] all_top_csms,
-                                MSExperiment spectra) nogil except +
+                                MSExperiment spectra, const bool& test_mode) nogil except +
                 # wrap-doc:
-                        #   Writes spec.xml output containing matching peaks between heavy and light spectra after comparing and filtering
-                        #   -----
-                        #   :param out_file: Path and filename for the output file
-                        #   :param base_name: The base_name should be the name of the input spectra file without the file ending. Used as part of an identifier string for the spectra
-                        #   :param preprocessed_pair_spectra: The preprocessed spectra after comparing and filtering
-                        #   :param spectrum_pairs: Indices of spectrum pairs in the input map
-                        #   :param all_top_csms: CrossLinkSpectrumMatches, from which the IDs were generated. Only spectra with matches are written out
-                        #   :param spectra: The spectra, that were searched as a PeakMap. The indices in spectrum_pairs correspond to spectra in this map
+                        #  Writes spec.xml output containing matching peaks between heavy and light spectra after comparing and filtering
+                        #  
+                        #  :param out_file: Path and filename for the output file
+                        #  :param base_name: The base_name should be the name of the input spectra file without the file ending. Used as part of an identifier string for the spectra
+                        #  :param preprocessed_pair_spectra: The preprocessed spectra after comparing and filtering
+                        #  :param spectrum_pairs: Indices of spectrum pairs in the input map
+                        #  :param all_top_csms: CrossLinkSpectrumMatches, from which the IDs were generated. Only spectra with matches are written out
+                        #  :param spectra: The spectra, that were searched as a PeakMap. The indices in spectrum_pairs correspond to spectra in this map
 
         void writeXQuestXMLSpec(const String& out_file, const String& base_name,
                                 libcpp_vector[ libcpp_vector[ CrossLinkSpectrumMatch] ] all_top_csms,
-                                MSExperiment spectra) nogil except +
+                                MSExperiment spectra, const bool& test_mode) nogil except +
                 # wrap-doc:
-                        #   Writes spec.xml output containing spectra for visualization. This version of the function is meant to be used for label-free linkers
-                        #   -----
-                        #   :param out_file: Path and filename for the output file
-                        #   :param base_name: The base_name should be the name of the input spectra file without the file ending. Used as part of an identifier string for the spectra
-                        #   :param all_top_csms: CrossLinkSpectrumMatches, from which the IDs were generated. Only spectra with matches are written out
-                        #   :param spectra: The spectra, that were searched as a PeakMap
+                        #  Writes spec.xml output containing spectra for visualization. This version of the function is meant to be used for label-free linkers
+                        #  
+                        #  :param out_file: Path and filename for the output file
+                        #  :param base_name: The base_name should be the name of the input spectra file without the file ending. Used as part of an identifier string for the spectra
+                        #  :param all_top_csms: CrossLinkSpectrumMatches, from which the IDs were generated. Only spectra with matches are written out
+                        #  :param spectra: The spectra, that were searched as a PeakMap

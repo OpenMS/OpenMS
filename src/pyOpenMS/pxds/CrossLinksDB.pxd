@@ -1,6 +1,6 @@
 from Types cimport *
 from libcpp.vector cimport vector as libcpp_vector
-from Map cimport *
+from libcpp.map cimport map as libcpp_map
 from String cimport *
 from ResidueModification cimport *
 #from libcpp.memory cimport unique_ptr as libcpp_unique_ptr
@@ -10,7 +10,7 @@ cdef extern from "<OpenMS/CHEMISTRY/CrossLinksDB.h>" namespace "OpenMS":
     
     cdef cppclass CrossLinksDB:
         # wrap-manual-memory:
-        #     cdef AutowrapPtrHolder[_CrossLinksDB] inst
+        #    cdef AutowrapPtrHolder[_CrossLinksDB] inst
 
         # private
         CrossLinksDB() nogil except + #wrap-ignore

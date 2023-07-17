@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -162,6 +162,14 @@ namespace OpenSwath
         */
         double calcXcorrPrecursorContrastCoelutionScore();
 
+        /**
+           @brief Calculate the precursor cross-correlation contrast score against the sum of transitions
+	   implemented the same as calcXcorrPrecursorCoelutionScore(), however assertion is different.
+
+           The score is a distance where zero indicates perfect coelution.
+        */
+        double calcXcorrPrecursorContrastSumFragCoelutionScore();
+
         /// calculate the precursor cross-correlation coelution score including the transitions
         double calcXcorrPrecursorCombinedCoelutionScore();
 
@@ -194,6 +202,14 @@ namespace OpenSwath
 
         /// calculate the precursor cross-correlation shape score against the transitions
         double calcXcorrPrecursorContrastShapeScore();
+
+        /**
+           @brief Calculate the precursor cross-correlation contrast score against the sum of transitions
+	   implemented the same as calcXcorrPrecursorContrastShapeScore(), however assertion is different.
+
+           The score is a distance where zero indicates perfect coelution.
+        */
+        double calcXcorrPrecursorContrastSumFragShapeScore();
 
         /// calculate the precursor cross-correlation shape score including the transitions
         double calcXcorrPrecursorCombinedShapeScore();

@@ -13,7 +13,7 @@
 			<cvParam cvRef="MS" accession="MS:1000294" name="mass spectrum" />
 		</fileContent>
 		<sourceFileList count="1">
-			<sourceFile id="sf_ru_0" name="FileConverter_32_input.mzML" location="file:///Users/alka/Documents/work/software/openms_dev/OpenMS/src/tests/topp">
+			<sourceFile id="sf_ru_0" name="FileConverter_32_input.mzML" location="file:///workspace/OpenMS/src/tests/topp">
 				<cvParam cvRef="MS" accession="MS:1000569" name="SHA-1" value="8653b60abb36f9f7e37b41603e27b328c03f1d8c" />
 				<cvParam cvRef="MS" accession="MS:1000584" name="mzML format" />
 				<cvParam cvRef="MS" accession="MS:1000777" name="spectrum identifier nativeID format" />
@@ -144,30 +144,6 @@
 				<cvParam cvRef="MS" accession="MS:1000544" name="Conversion to mzML" />
 				<cvParam cvRef="MS" accession="MS:1000747" name="completion time" value="1999-12-31+23:59" />
 				<userParam name="parameter: mode" type="xsd:string" value="test_mode"/>
-			</processingMethod>
-		</dataProcessing>
-		<dataProcessing id="dp_sp_1_bi_0">
-			<processingMethod order="0" softwareRef="so_default">
-				<cvParam cvRef="MS" accession="MS:1000544" name="Conversion to mzML" />
-				<userParam name="warning" type="xsd:string" value="fictional processing method used to fulfill format requirements" />
-			</processingMethod>
-		</dataProcessing>
-		<dataProcessing id="dp_sp_3_bi_0">
-			<processingMethod order="0" softwareRef="so_default">
-				<cvParam cvRef="MS" accession="MS:1000544" name="Conversion to mzML" />
-				<userParam name="warning" type="xsd:string" value="fictional processing method used to fulfill format requirements" />
-			</processingMethod>
-		</dataProcessing>
-		<dataProcessing id="dp_sp_5_bi_0">
-			<processingMethod order="0" softwareRef="so_default">
-				<cvParam cvRef="MS" accession="MS:1000544" name="Conversion to mzML" />
-				<userParam name="warning" type="xsd:string" value="fictional processing method used to fulfill format requirements" />
-			</processingMethod>
-		</dataProcessing>
-		<dataProcessing id="dp_sp_7_bi_0">
-			<processingMethod order="0" softwareRef="so_default">
-				<cvParam cvRef="MS" accession="MS:1000544" name="Conversion to mzML" />
-				<userParam name="warning" type="xsd:string" value="fictional processing method used to fulfill format requirements" />
 			</processingMethod>
 		</dataProcessing>
 	</dataProcessingList>
@@ -470,16 +446,16 @@
 </mzML>
 <indexList count="1">
 	<index name="spectrum">
-		<offset idRef="spectrum=10">13252</offset>
-		<offset idRef="spectrum=11">16295</offset>
-		<offset idRef="spectrum=12">25328</offset>
-		<offset idRef="spectrum=13">28343</offset>
-		<offset idRef="spectrum=14">37294</offset>
-		<offset idRef="spectrum=15">40309</offset>
-		<offset idRef="spectrum=16">49342</offset>
-		<offset idRef="spectrum=17">52357</offset>
+		<offset idRef="spectrum=10">11872</offset>
+		<offset idRef="spectrum=11">14915</offset>
+		<offset idRef="spectrum=12">23948</offset>
+		<offset idRef="spectrum=13">26963</offset>
+		<offset idRef="spectrum=14">35914</offset>
+		<offset idRef="spectrum=15">38929</offset>
+		<offset idRef="spectrum=16">47962</offset>
+		<offset idRef="spectrum=17">50977</offset>
 	</index>
 </indexList>
-<indexListOffset>61420</indexListOffset>
+<indexListOffset>60040</indexListOffset>
 <fileChecksum>0</fileChecksum>
 </indexedmzML>

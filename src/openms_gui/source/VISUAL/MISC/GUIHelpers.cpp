@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -36,16 +36,16 @@
 
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/SYSTEM/File.h>
-
 #include <QDesktopServices>
-#include <QDir>
 #include <QGuiApplication>
 #include <QMessageBox>
 #include <QPainter>
 #include <QPoint>
 #include <QProcess>
+#include <QRectF>
 #include <QString>
 #include <QStringList>
+#include <QtWidgets/QFileDialog>
 #include <QUrl>
 
 namespace OpenMS
@@ -70,6 +70,20 @@ namespace OpenMS
       QMessageBox::warning(nullptr, "Open Folder Error", "The folder '" + folder + "' could not be opened!");
     }
 #endif
+  }
+
+  OPENMS_GUI_DLLAPI QString GUIHelpers::getSaveFilename(QWidget* parent, const QString& caption, const QString& dir, const FileTypeList& supported_file_types, bool add_all_filter,
+                                                        const FileTypes::Type fallback_extension)
+  {
+    QString selected_filter;
+    QString file_name = QFileDialog::getSaveFileName(parent, caption, dir, supported_file_types.toFileDialogFilter(FilterLayout::ONE_BY_ONE, add_all_filter).toQString(), &selected_filter);
+    if (file_name.isEmpty())
+    {
+      return file_name;
+    }
+    // check whether a file type suffix has been given, or fall back to @p fallback_extension (if 'all filter' was used)
+    file_name = FileHandler::swapExtension(file_name, supported_file_types.fromFileDialogFilter(selected_filter, fallback_extension)).toQString();
+    return file_name;
   }
 
   void GUIHelpers::startTOPPView(const QStringList& args)
@@ -146,7 +160,7 @@ namespace OpenMS
     }
   }
 
-  void GUIHelpers::drawText(QPainter& painter, const QStringList& text, const QPoint& where, const QColor col_fg, const QColor col_bg, const QFont& f)
+  void GUIHelpers::drawText(QPainter& painter, const QStringList& text, const QPoint& where, const QColor& col_fg, const QColor& col_bg, const QFont& f)
   {
     painter.save();
 
@@ -178,9 +192,82 @@ namespace OpenMS
     int width = 4;
     for (int i = 0; i < text.size(); ++i)
     {
+      /*
+       * QFontMetrics::width() is deprecated after Qt 5.11. Use QFontMetrics::horizontalAdvance()
+       */
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
       width = std::max(width, 4 + metrics.width(text[i]));
+#pragma GCC diagnostic pop
     }
     return QRectF(0, 0, width, height);
+  }
+
+  QPointF GUIHelpers::nearestPoint(const QPointF& origin, const QList<QPointF>& list)
+  {
+    if (list.empty())
+    {
+      return QPointF();
+    }
+    QPointF nearest = list.first();
+    qreal min_distance = (std::numeric_limits<qreal>::max)();
+
+    for (QList<QPointF>::const_iterator it = list.begin(); it != list.end(); ++it)
+    {
+      qreal sqr_distance = (it->x() - origin.x()) * (it->x() - origin.x()) + (it->y() - origin.y()) * (it->y() - origin.y());
+      if (sqr_distance < min_distance)
+      {
+        min_distance = sqr_distance;
+        nearest = *it;
+      }
+    }
+
+    return nearest;
+  }
+
+  QPointF GUIHelpers::intersectionPoint(const QRectF& rect, const QPointF& p)
+  {
+    if (rect.contains(p))
+      return rect.center();
+
+    QPointF delta = rect.center() - p;
+    qreal slope;
+    if (delta.x() == 0)
+    {
+      slope = std::numeric_limits<qreal>::infinity();
+    }
+    else
+    {
+      slope = delta.y() / delta.x();
+    }
+
+    qreal y_1 = p.y() + slope * (rect.left() - p.x());
+    qreal y_2 = p.y() + slope * (rect.right() - p.x());
+
+    slope = 1.0 / slope;
+
+    qreal x_3 = p.x() + slope * (rect.top() - p.y());
+    qreal x_4 = p.x() + slope * (rect.bottom() - p.y());
+
+    QList<QPointF> point_list;
+    if (y_1 <= rect.bottom() && y_1 >= rect.top())
+    {
+      point_list.push_back(QPointF(rect.left(), y_1));
+    }
+    if (y_2 <= rect.bottom() && y_2 >= rect.top())
+    {
+      point_list.push_back(QPointF(rect.right(), y_2));
+    }
+    if (x_3 <= rect.right() && x_3 >= rect.left())
+    {
+      point_list.push_back(QPointF(x_3, rect.top()));
+    }
+    if (x_4 <= rect.right() && x_4 >= rect.left())
+    {
+      point_list.push_back(QPointF(x_4, rect.bottom()));
+    }
+
+    return nearestPoint(p, point_list);
   }
 
   StringList GUIHelpers::convert(const QStringList& in)
@@ -228,41 +315,41 @@ namespace OpenMS
     QGuiApplication::restoreOverrideCursor(); 
     currently_locked_ = false;
   }
+  
+  GUIHelpers::OverlapDetector::OverlapDetector(int levels)
+  {
+    if (levels <= 0)
+      throw Exception::InvalidSize(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, levels);
+    rows_.resize(levels, 0);
+  }
+
+  size_t GUIHelpers::OverlapDetector::placeItem(double x_start, double x_end)
+  {
+    if (x_start < 0)
+      OPENMS_LOG_WARN << "Warning: x coordinates should be positive!\n";
+    if (x_start > x_end)
+      OPENMS_LOG_WARN << "Warning: x-end is larger than x-start!\n";
+
+    size_t best_index = 0;
+    double best_distance = std::numeric_limits<double>::max();
+    for (size_t i = 0; i < rows_.size(); ++i)
+    {
+      if (rows_[i] < x_start)
+      {                   // easy win; row[i] does not overlap; take it
+        rows_[i] = x_end; // update space for next call
+        return i;
+      }
+      // x_start is smaller than row's end...
+      if ((rows_[i] - x_start) < best_distance)
+      {
+        best_distance = rows_[i] - x_start;
+        best_index = i;
+      }
+    }
+
+    rows_[best_index] = x_end; // update space for next call
+    return best_index;
+  }
 
 } //namespace OpenMS
 
-  /// C'tor: number of @p levels must be >=1
-
-OpenMS::GUIHelpers::OverlapDetector::OverlapDetector(int levels)
-{
-  if (levels <= 0) throw Exception::InvalidSize(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, levels);
-  rows_.resize(levels, 0);
-}
-
-/// try to put an item which spans from @p x_start to @p x_end in the topmost row possible
-/// @return the smallest row index (starting at 0) which has none (or the least) overlap
-
-size_t OpenMS::GUIHelpers::OverlapDetector::placeItem(double x_start, double x_end)
-{
-  if (x_start < 0) OPENMS_LOG_WARN << "Warning: x coordinates should be positive!\n";
-  if (x_start > x_end) OPENMS_LOG_WARN << "Warning: x-end is larger than x-start!\n";
-
-  size_t best_index = 0;
-  double best_distance = -std::numeric_limits<double>::max();
-  for (size_t i = 0; i < rows_.size(); ++i)
-  {
-    if (rows_[i] < x_start)
-    { // easy win; row[i] does not overlap; take it
-      rows_[i] = x_end; // update space for next call
-      return i;
-    }
-    // x_start is smaller than row's end...
-    if ((rows_[i] - x_start) < best_distance)
-    {
-      best_distance = rows_[i] - x_start;
-      best_index = i;
-    }
-  }
-
-  return best_index;
-}

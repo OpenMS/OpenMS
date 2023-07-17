@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -33,14 +33,13 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/SeedListGenerator.h>
+#include <map>
 
 using namespace std;
 
 namespace OpenMS
 {
-  SeedListGenerator::SeedListGenerator()
-  {
-  }
+  SeedListGenerator::SeedListGenerator() = default;
 
   void SeedListGenerator::generateSeedList(const PeakMap& experiment,
                                            SeedList& seeds)
@@ -85,7 +84,7 @@ namespace OpenMS
   }
 
   void SeedListGenerator::generateSeedLists(const ConsensusMap& consensus,
-                                            Map<UInt64, SeedList>& seed_lists)
+                                            std::map<UInt64, SeedList>& seed_lists)
   {
     seed_lists.clear();
     // iterate over all consensus features...

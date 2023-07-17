@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -47,7 +47,6 @@
 
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/CONCEPT/VersionInfo.h>
-#include <OpenMS/DATASTRUCTURES/Map.h>
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/FORMAT/ParamXMLFile.h>
 
@@ -58,6 +57,8 @@
 #include <QtCore/QSet>
 #include <QtCore/QTextStream>
 #include <QtWidgets/QMessageBox>
+
+#include <map>
 
 namespace OpenMS
 {
@@ -255,7 +256,7 @@ namespace OpenMS
           Param to_old = to; // backup, to compare
 
           std::stringstream ss;
-          Logger::LogStream my_log(new Logger::LogStreamBuf());
+          Logger::LogStream my_log(new Logger::LogStreamBuf("Transfer", nullptr));
           my_log.insert(ss);
           to.update(from, false, my_log);
           if (to == to_old)
@@ -340,7 +341,7 @@ namespace OpenMS
   void TOPPASScene::copySelected()
   {
     TOPPASScene* tmp_scene = new TOPPASScene(nullptr, this->getTempDir(), false);
-    Map<TOPPASVertex*, TOPPASVertex*> vertex_map;
+    std::map<TOPPASVertex*, TOPPASVertex*> vertex_map;
 
     foreach(TOPPASVertex* v, vertices_)
     {
@@ -406,7 +407,7 @@ namespace OpenMS
       //check if both source and target node were also selected (otherwise don't copy)
       TOPPASVertex* old_source = e->getSourceVertex();
       TOPPASVertex* old_target = e->getTargetVertex();
-      if (!(vertex_map.has(old_source) && vertex_map.has(old_target)))
+      if (vertex_map.find(old_source) == vertex_map.end())
       {
         continue;
       }
@@ -1176,7 +1177,7 @@ namespace OpenMS
       x_offset = pos.x() - new_bounding_rect.left();
       y_offset = pos.y() - new_bounding_rect.top();
     }
-    Map<TOPPASVertex*, TOPPASVertex*> vertex_map;
+    std::map<TOPPASVertex*, TOPPASVertex*> vertex_map;
 
     for (VertexIterator it = tmp_scene->verticesBegin(); it != tmp_scene->verticesEnd(); ++it)
     {
@@ -1261,7 +1262,7 @@ namespace OpenMS
 
     // select new items (so the user can move them); edges do not need to be selected, only vertices
     unselectAll();
-    for (Map<TOPPASVertex*, TOPPASVertex*>::Iterator it = vertex_map.begin(); it != vertex_map.end(); ++it)
+    for (std::map<TOPPASVertex*, TOPPASVertex*>::iterator it = vertex_map.begin(); it != vertex_map.end(); ++it)
     {
       it->second->setSelected(true);
     }
@@ -1334,7 +1335,7 @@ namespace OpenMS
     emit entirePipelineFinished();
   }
 
-  void TOPPASScene::pipelineErrorSlot(const QString msg)
+  void TOPPASScene::pipelineErrorSlot(const QString& msg)
   {
     logTOPPOutput(msg); // print to log window or console
     error_occured_ = true;
@@ -1851,7 +1852,8 @@ namespace OpenMS
       {
         supported_actions_set.intersect(action_set);
       }
-      QList<QString> supported_actions = supported_actions_set.toList();
+
+      QList<QString> supported_actions = supported_actions_set.values();
       supported_actions << "Copy" << "Cut" << "Remove";
       foreach(const QString &supported_action, supported_actions)
       {

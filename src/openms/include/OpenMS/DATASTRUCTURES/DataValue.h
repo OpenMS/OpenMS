@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -72,8 +72,12 @@ public:
       STRING_LIST, ///< string list
       INT_LIST, ///< integer list
       DOUBLE_LIST, ///< double list
-      EMPTY_VALUE ///< empty value
+      EMPTY_VALUE, ///< empty 
+      SIZE_OF_DATATYPE
     };
+
+    /// Names of data types for DataValue
+    static const std::string NamesOfDataType[SIZE_OF_DATATYPE];
 
     /// Supported types for DataValue
     enum UnitType : unsigned char

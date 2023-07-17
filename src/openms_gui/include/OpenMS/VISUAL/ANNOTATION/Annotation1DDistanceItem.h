@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -28,8 +28,8 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Johannes Veit $
-// $Authors: Johannes Junker $
+// $Maintainer: Johannes Veit, Chris Bielow $
+// $Authors: Johannes Junker, Chris Bielow $
 // --------------------------------------------------------------------------
 
 #pragma once
@@ -40,42 +40,72 @@
 namespace OpenMS
 {
   /** @brief An annotation item which represents a measured distance between two peaks.
-          @see Annotation1DItem
+      @see Annotation1DItem
   */
   class Annotation1DDistanceItem :
     public Annotation1DItem
   {
 
 public:
-    /// Constructor
-    Annotation1DDistanceItem(const QString & text, const PointType & start_point, const PointType & end_point);
+    /**
+     * \brief 
+     * \param text The text to display between the two points
+     * \param start_point Start point in XY unit coordinates
+     * \param end_point End point in XY unit coordinates 
+     * \param swap_ends_if_negative Make sure the distance is positive when creating the distance item?
+     */
+    Annotation1DDistanceItem(const QString& text, const PointXYType& start_point, const PointXYType& end_point, const bool swap_ends_if_negative = true);
     /// Copy constructor
-    Annotation1DDistanceItem(const Annotation1DDistanceItem & rhs);
+    Annotation1DDistanceItem(const Annotation1DDistanceItem & rhs) = default;
     /// Destructor
-    ~Annotation1DDistanceItem() override;
+    ~Annotation1DDistanceItem() override = default;
+
     // Docu in base class
-    void ensureWithinDataRange(Plot1DCanvas * const canvas) override;
+    void ensureWithinDataRange(Plot1DCanvas* const canvas, const int layer_index) override;
+
     // Docu in base class
-    void draw(Plot1DCanvas * const canvas, QPainter & painter, bool flipped = false) override;
+    void draw(Plot1DCanvas* const canvas, QPainter& painter, bool flipped = false) override;
+    
     // Docu in base class
-    void move(const PointType & delta) override;
-    /// Sets the start point of the measured distance line
-    void setStartPoint(const PointType & start);
-    /// Sets the peak index of the end peak of the measurement
-    void setEndPoint(const PointType & end);
-    /// Returns the start point as (MZ,intensity)
-    const PointType & getStartPoint() const;
-    /// Returns the end point as (MZ,intensity)
-    const PointType & getEndPoint() const;
-    /// Set tick lines for the distance item
-    void setTicks(const std::vector<double> & ticks);
-protected:
-    /// The start point of the measured distance line
-    PointType start_point_;
-    /// The end point of the measured distance line
-    PointType end_point_;
-    /// Additional tick lines for the distance item
-    std::vector<double> ticks_;
+    void move(const PointXYType delta, const Gravitator& gr, const DimMapper<2>& dim_mapper) override;
+
+    /// Returns the start point
+    const PointXYType& getStartPoint() const
+    {
+      return start_point_;
+    }
+
+    /// Returns the end point
+    const PointXYType& getEndPoint() const
+    {
+      return end_point_;
+    }
+
+    /**
+     * \brief Compute the (negative) euclidean distance between start and endpoint.
+     *
+     * If the startpoint is closer to (0,0) than the endpoint, the distance will be positive; otherwise negative.
+     *
+     * \return sign * sqrt(deltaX^2 + deltaY^2), where deltaX/Y is the difference between start and endpoint in dimension X/Y
+     */
+    double getDistance() const;
+
+    /// Set tick lines for the distance item in unit XY coordinates (the gravity dimension is ignored)
+    void setTicks(const std::vector<PointXYType>& ticks);
+
+    // Docu in base class
+    Annotation1DItem* clone() const override
+    {
+      return new Annotation1DDistanceItem(*this);
+    }
+
+  protected:
+    /// The start point of the measured distance line (in XY data coordinates)
+    PointXYType start_point_;
+    /// The end point of the measured distance line (in XY data coordinates)
+    PointXYType end_point_;
+    /// Additional tick lines for the distance item (the gravity dimension is ignored)
+    std::vector<PointXYType> ticks_;
 
   };
 } // namespace OpenMS

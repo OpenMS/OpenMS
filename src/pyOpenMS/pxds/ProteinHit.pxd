@@ -9,12 +9,12 @@ cdef extern from "<OpenMS/METADATA/ProteinHit.h>" namespace "OpenMS":
 
     cdef cppclass ProteinHit(MetaInfoInterface):
         # wrap-inherits:
-        #    MetaInfoInterface
+        #   MetaInfoInterface
         # wrap-doc:
-        #   Representation of a protein hit
-        #   -----
-        #   It contains the fields score, score_type, rank, accession,
-        #   sequence and coverage
+        #  Representation of a protein hit
+        #  
+        #  It contains the fields score, score_type, rank, accession,
+        #  sequence and coverage
 
         ProteinHit() nogil except +
         ProteinHit(double score, UInt rank, String accession, String sequence) nogil except +

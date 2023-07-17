@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -257,9 +257,9 @@ namespace OpenMS
     Size idx(0);
     Size pfg(0);
 
-    if (spectrum.metaValueExists("id_merge_index"))
+    if (spectrum.metaValueExists(Constants::UserParam::ID_MERGE_INDEX))
     {
-      idx = spectrum.getMetaValue("id_merge_index");
+      idx = spectrum.getMetaValue(Constants::UserParam::ID_MERGE_INDEX);
       auto find_it = indexToPrefractionationGroup.find(idx);
       if (find_it == indexToPrefractionationGroup.end())
       {
@@ -267,7 +267,7 @@ namespace OpenMS
             "Reference (id_merge_index) to non-existing run found at peptide ID."
             " Sth went wrong during merging. Aborting.");
       }
-      pfg = find_it->second - 1; // Experimental design numbering starts at one
+      pfg = find_it->second;
     }
     else
     {

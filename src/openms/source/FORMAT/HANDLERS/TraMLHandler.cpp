@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -39,6 +39,7 @@
 #include <OpenMS/CONCEPT/PrecisionWrapper.h>
 
 #include <ostream>
+#include <map>
 
 namespace OpenMS::Internal
 {
@@ -63,8 +64,7 @@ namespace OpenMS::Internal
     }
 
     TraMLHandler::~TraMLHandler()
-    {
-    }
+    = default;
 
     void TraMLHandler::startElement(const XMLCh* const /*uri*/, const XMLCh* const /*local_name*/, const XMLCh* const qname, const xercesc::Attributes& attributes)
     {
@@ -1127,7 +1127,7 @@ namespace OpenMS::Internal
     void TraMLHandler::handleCVParam_(const String& parent_parent_tag, const String& parent_tag, const CVTerm& cv_term)
     {
       //Error checks of CV values
-      String accession = cv_term.getAccession();
+      const String& accession = cv_term.getAccession();
       if (cv_.exists(accession))
       {
         const ControlledVocabulary::CVTerm& term = cv_.getTerm(accession);
@@ -1591,25 +1591,10 @@ namespace OpenMS::Internal
 
     void TraMLHandler::handleUserParam_(const String& parent_parent_tag, const String& parent_tag, const String& name, const String& type, const String& value)
     {
-      //create a DataValue that contains the data in the right type
-      DataValue data_value;
-      //float type
-      if (type == "xsd:double" || type == "xsd:float")
-      {
-        data_value = DataValue(value.toDouble());
-      }
-      //integer type
-      else if (type == "xsd:byte" || type == "xsd:decimal" || type == "xsd:int" || type == "xsd:integer" || type == "xsd:long" || type == "xsd:negativeInteger" || type == "xsd:nonNegativeInteger" || type == "xsd:nonPositiveInteger" || type == "xsd:positiveInteger" || type == "xsd:short" || type == "xsd:unsignedByte" || type == "xsd:unsignedInt" || type == "xsd:unsignedLong" || type == "xsd:unsignedShort")
-      {
-        data_value = DataValue(value.toInt());
-      }
-      //everything else is treated as a string
-      else
-      {
-        data_value = DataValue(value);
-      }
+      // create a DataValue that contains the data in the right type
+      DataValue data_value = fromXSDString(type, value);
 
-      //find the right MetaInfoInterface
+      // find the right MetaInfoInterface
       if (parent_tag == "Software")
       {
         actual_software_.setMetaValue(name, data_value);
@@ -1758,9 +1743,9 @@ namespace OpenMS::Internal
       writeCVList_(os, cv_terms.getCVTerms(), indent);
     }
 
-    void TraMLHandler::writeCVList_(std::ostream & os, const Map<String, std::vector<CVTerm>> & cv_terms, UInt indent) const
+    void TraMLHandler::writeCVList_(std::ostream & os, const std::map<String, std::vector<CVTerm>> & cv_terms, UInt indent) const
     {
-      for (Map<String, std::vector<CVTerm> >::const_iterator it = cv_terms.begin();
+      for (std::map<String, std::vector<CVTerm> >::const_iterator it = cv_terms.begin();
            it != cv_terms.end(); ++it)
       {
         for (const CVTerm& cit : it->second)

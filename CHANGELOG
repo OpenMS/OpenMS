@@ -1,9 +1,10 @@
 
 
+
 Glossary:
 OpenMS - Name of the project and our C++ library
-TOPP - "The OpenMS Proteomics Pipeline", collection of chainable tools for flexible HPLC/MS workflows
-TOPPAS - "The OpenMS Proteomics Pipeline Assistant", graphical tool to interactively build and run HPLC/MS workflows
+TOPP - "The OpenMS PiPeline", collection of chainable tools for flexible HPLC/MS workflows. Formerly known as "The OpenMS Proteomics Pipeline"
+TOPPAS - "The OpenMS PiPeline Assistant", graphical tool to interactively build and run HPLC/MS workflows
 TOPPView - Versatile viewer for HPLC/MS data
 INI file - parameter configuration file, holding custom parameter settings for TOPP tools
 INIFileEditor - graphical parameter editor for INI files
@@ -12,8 +13,41 @@ PR - Pull Request (on GitHub), i.e. integration of a new feature or bugfix
 UTIL - An executable, just like a TOPP tool, but usually experimental or of lesser importance to common pipelines
 #<number>, e.g. #4957 - a reference to an issue or pull request on GitHub, visit https://github.com/OpenMS/OpenMS/pull/4957 for details
 
+
 ------------------------------------------------------------------------------------------
-----                                OpenMS 2.8     (released 2/2022)                      ----
+----                                OpenMS 3.0     (releases 4/2022)                  ----
+------------------------------------------------------------------------------------------
+
+- full release
+- OpenSwath: Add support for diaPASEF data with overlapping m/z and IM windows, and add new outputs on ion mobility features (delta_im)
+- OpenSwath: Fix duplicated transition error when multiple genes map to a single peptide (#5653)
+- TOPPView: TheoreticalSpectrumGenerationDialog now supports generation of isotope patterns for metabolites
+- pyopenms: pyopenms-extra is renamed to pyopenms-docs.
+- Add extractSpectra to TargetedSpectraExtractor with support of MS1 features
+- TargetedSpectraExtractor::searchSpectrum added an option to add unknown features to the result featureMap
+- Fixed race condition when logging messages.
+- Added the support for 'no cleavage' for XTandemAdapter and CometAdapter (#6133).
+- ParamEditor with more convenient StringList editing  (#5135)
+- TOPPAS: add a `recent files` submenu
+- removed InspectAdapter
+- removed OMSSAAdapter
+- removed MyriMatchAdapter
+- removed Crux
+- OpenMS documentation is moved to openms.readthedocs.io/en/latest. OpenMS API
+reference and advanced developer documentation remains inside OpenMS doxygen
+documentation.
+- Add support for user defined ribonucleotides with phosphorothioate linkages
+- Add support for JSON based ribonucleotides and updated to latest Modomics database
+- fix bug in GaussFilter when using ppm as width (#6830)
+- Add support to load parameter values from a JSON formatted .json file. (Accessible via -ini. This will be
+  helpful for Common Workflow Language users and others)
+
+New Tools:
+- FLASHDeconv -- Ultra-fast high-quality deconvolution enables online processing of top-down MS data (TOPP)
+- FLASHDeconvWizard -- An GUI assistant for FLASHDeconv execution.
+
+------------------------------------------------------------------------------------------
+----                                OpenMS 2.8     (released 2/2022)                  ----
 ------------------------------------------------------------------------------------------
 
 - source + conda release only
@@ -27,6 +61,8 @@ UTIL - An executable, just like a TOPP tool, but usually experimental or of less
 - Resolve compatibility issues between IDRipper and IDMerger (#4957)
 - Basic MzTabM support for AccurateMassSearch
 - Changed default parameter keep_unidentified_masses to "true" (AccurateMassSearch/AccurateMassSearchEngine)
+- Added parameter allow_nterm_protein_cleavage to PeptideIndexer to support no cleavage.
+- Fixes and improves TheoreticalSpectrumGenerationDialog in TOPPView (closes #5787) (#5883)
 
 ------------------------------------------------------------------------------------------
 ----                                OpenMS 2.7     (released 9/2021)                  ----

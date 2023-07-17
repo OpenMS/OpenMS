@@ -15,9 +15,10 @@ cdef extern from "<OpenMS/FORMAT/FileTypes.h>" namespace "OpenMS":
 
         FileType nameToType(String name) nogil except + 
             # wrap-doc:
-                #   Converts a file type name into a Type 
-                #   -----
-                #   :param name: A case-insensitive name (e.g. FASTA or Fasta, etc.)
+                #  Converts a file type name into a Type 
+                #  
+                #  
+                #  :param name: A case-insensitive name (e.g. FASTA or Fasta, etc.)
 
 cdef extern from "<OpenMS/FORMAT/FileTypes.h>" namespace "OpenMS::FileTypes":
 

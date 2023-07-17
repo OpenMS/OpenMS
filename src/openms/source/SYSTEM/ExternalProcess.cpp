@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -37,9 +37,10 @@
 #include <OpenMS/DATASTRUCTURES/String.h>
 
 
+#include <QCoreApplication>
 #include <QProcess>
 #include <QStringList>
-#include <QCoreApplication>
+#include <utility>
 
 
 namespace OpenMS
@@ -53,8 +54,8 @@ namespace OpenMS
 
   ExternalProcess::ExternalProcess(std::function<void(const String&)> callbackStdOut, std::function<void(const String&)> callbackStdErr)
     : qp_(new QProcess),
-    callbackStdOut_(callbackStdOut),
-    callbackStdErr_(callbackStdErr)
+    callbackStdOut_(std::move(callbackStdOut)),
+    callbackStdErr_(std::move(callbackStdErr))
   {
     connect(qp_, &QProcess::readyReadStandardOutput, this, &ExternalProcess::processStdOut_);
     connect(qp_, &QProcess::readyReadStandardError, this, &ExternalProcess::processStdErr_);
@@ -68,8 +69,8 @@ namespace OpenMS
   /// re-wire the callbacks used using run()
   void ExternalProcess::setCallbacks(std::function<void(const String&)> callbackStdOut, std::function<void(const String&)> callbackStdErr)
   {
-    callbackStdOut_ = callbackStdOut;
-    callbackStdErr_ = callbackStdErr;
+    callbackStdOut_ = std::move(callbackStdOut);
+    callbackStdErr_ = std::move(callbackStdErr);
   }
 
 

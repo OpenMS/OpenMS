@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry               
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 // 
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -33,6 +33,7 @@
 
 #include <OpenMS/CONCEPT/ClassTest.h>
 #include <OpenMS/test_config.h>
+#include <map>
 
 ///////////////////////////
 #include <OpenMS/ANALYSIS/DECHARGING/FeatureDeconvolution.h>
@@ -54,11 +55,11 @@ namespace OpenMS
       MassExplainer::AdductsType getPotentialAdducts()
       { return potential_adducts_;}
       /// labeling table
-      Map<Size, String> getMapLabels()
+      std::map<Size, String> getMapLabels()
       { return map_label_;}
 
       /// labeling table inverse
-      Map<String, Size> getMapLabelInverse()
+      std::map<String, Size> getMapLabelInverse()
       { return map_label_inverse_;}
 
 			/// status of intensity filter for edges
@@ -106,8 +107,8 @@ START_SECTION([EXTRA](void updateMembers_()))
   
   {
 	MassExplainer::AdductsType adducts = fdt.getPotentialAdducts();
-  Map<Size, String> map = fdt.getMapLabels();
-  Map<String, Size> map_i = fdt.getMapLabelInverse();
+  std::map<Size, String> map = fdt.getMapLabels();
+  std::map<String, Size> map_i = fdt.getMapLabelInverse();
   bool b_filter = fdt.isIntensityFilterEnabled();
   FeatureDeconvolution::CHARGEMODE cm = fdt.getChargeMode();
 
@@ -152,8 +153,8 @@ START_SECTION([EXTRA](void updateMembers_()))
 	fdt.setParameters(p);
   {
   MassExplainer::AdductsType adducts = fdt.getPotentialAdducts();
-  Map<Size, String> map = fdt.getMapLabels();
-  Map<String, Size> map_i = fdt.getMapLabelInverse();
+  std::map<Size, String> map = fdt.getMapLabels();
+  std::map<String, Size> map_i = fdt.getMapLabelInverse();
   bool b_filter = fdt.isIntensityFilterEnabled();
   FeatureDeconvolution::CHARGEMODE cm = fdt.getChargeMode();
 

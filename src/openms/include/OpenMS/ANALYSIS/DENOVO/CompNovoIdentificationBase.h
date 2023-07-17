@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -38,7 +38,6 @@
 // OpenMS includes
 #include <OpenMS/METADATA/PeptideIdentification.h>
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
-#include <OpenMS/DATASTRUCTURES/Map.h>
 #include <OpenMS/COMPARISON/SPECTRA/ZhangSimilarityScore.h>
 #include <OpenMS/CHEMISTRY/MASSDECOMPOSITION/MassDecomposition.h>
 #include <OpenMS/CHEMISTRY/MASSDECOMPOSITION/MassDecompositionAlgorithm.h>
@@ -46,6 +45,7 @@
 
 // stl includes
 #include <vector>
+#include <map>
 
 namespace OpenMS
 {
@@ -94,7 +94,7 @@ protected:
     void filterPermuts_(std::set<String> & permut) const;
 
     /// selects pivot ion of the given range using the scores given in CID_nodes
-    void selectPivotIons_(std::vector<Size> & pivots, Size left, Size right, Map<double, IonScore> & CID_nodes, const PeakSpectrum & CID_orig_spec, double precursor_weight, bool full_range = false);
+    void selectPivotIons_(std::vector<Size> & pivots, Size left, Size right, std::map<double, IonScore> & CID_nodes, const PeakSpectrum & CID_orig_spec, double precursor_weight, bool full_range = false);
 
     /// filters the decomps by the amino acid frequencies
     void filterDecomps_(std::vector<MassDecomposition> & decomps);
@@ -132,13 +132,13 @@ protected:
     String getModifiedStringFromAASequence_(const AASequence & sequence);
 
     /// mapping for the internal representation character to the actual residue
-    Map<char, const Residue *> name_to_residue_;
+    std::map<char, const Residue *> name_to_residue_;
 
     /// mapping of the actual residue to the internal representing character
-    Map<const Residue *, char> residue_to_name_;
+    std::map<const Residue *, char> residue_to_name_;
 
     /// masses of the amino acids
-    Map<char, double> aa_to_weight_;
+    std::map<char, double> aa_to_weight_;
 
     MassDecompositionAlgorithm mass_decomp_algorithm_;
 
@@ -146,7 +146,7 @@ protected:
 
     ZhangSimilarityScore zhang_;
 
-    Map<Size, Map<Size, std::set<String> > > subspec_to_sequences_;
+    std::map<Size, std::map<Size, std::set<String> > > subspec_to_sequences_;
 
     Size max_number_aa_per_decomp_;
 
@@ -168,13 +168,13 @@ protected:
 
     Size max_isotope_;
 
-    Map<double, std::vector<MassDecomposition> > decomp_cache_;
+    std::map<double, std::vector<MassDecomposition> > decomp_cache_;
 
-    Map<String, std::set<String> > permute_cache_;
+    std::map<String, std::set<String> > permute_cache_;
 
   private:
     ///
-    Map<Size, std::vector<double> > isotope_distributions_;
+    std::map<Size, std::vector<double> > isotope_distributions_;
 
 public:
 

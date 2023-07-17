@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -46,13 +46,13 @@
 #include <OpenMS/CONCEPT/Types.h>
 #include <OpenMS/CONCEPT/UniqueIdInterface.h>
 #include <OpenMS/CONCEPT/UniqueIdIndexer.h>
+#include <OpenMS/DATASTRUCTURES/ExposedVector.h>
 #include <OpenMS/DATASTRUCTURES/Utils/MapUtilities.h>
 
 #include <OpenMS/KERNEL/BaseFeature.h>
 #include <OpenMS/OpenMSConfig.h>
 
 #include <exception>
-#include <vector>
 
 namespace OpenMS
 {
@@ -95,55 +95,25 @@ namespace OpenMS
 
     @ingroup Kernel
   */
-  class FeatureMap :
-    private std::vector<Feature>,
-    public MetaInfoInterface,
-    public RangeManagerContainer<RangeRT, RangeMZ, RangeIntensity>,
-    public DocumentIdentifier,
-    public UniqueIdInterface,
-    public UniqueIdIndexer<FeatureMap>,
-    public MapUtilities<FeatureMap>
+  class OPENMS_DLLAPI FeatureMap :
+      public MetaInfoInterface,
+      public RangeManagerContainer<RangeRT, RangeMZ, RangeIntensity>,
+      public DocumentIdentifier,
+      public ExposedVector<Feature>,
+      public UniqueIdInterface,
+      public UniqueIdIndexer<FeatureMap>,
+      public MapUtilities<FeatureMap>
   {
-public:
-    /**
-      @name Type definitions
-    */
-    typedef std::vector<Feature> Base;
-
-    // types
-    using Base::value_type;
-    using Base::iterator;
-    using Base::const_iterator;
-    using Base::size_type;
-    using Base::pointer; // ConstRefVector
-    using Base::reference; // ConstRefVector
-    using Base::const_reference; // ConstRefVector
-    using Base::difference_type; // ConstRefVector
-
-    // functions
-    using Base::begin;
-    using Base::end;
-
-    using Base::size;
-    using Base::resize; // ConsensusMap, FeatureXMLFile
-    using Base::empty;
-    using Base::reserve;
-    using Base::operator[];
-    using Base::at; // UniqueIdIndexer
-    using Base::back; // FeatureXMLFile
-
-    using Base::push_back;
-    using Base::emplace_back;
-    using Base::pop_back; // FeatureXMLFile
-    using Base::erase; // source/VISUAL/Plot2DCanvas.cpp 2871, FeatureMap_test 599
+  public:
+    EXPOSED_VECTOR_INTERFACE(Feature)
 
     //@{
     typedef RangeManagerContainer<RangeRT, RangeMZ, RangeIntensity> RangeManagerContainerType;
     typedef RangeManager<RangeRT, RangeMZ, RangeIntensity> RangeManagerType;
-    typedef Base::iterator Iterator;
-    typedef Base::const_iterator ConstIterator;
-    typedef Base::reverse_iterator ReverseIterator;
-    typedef Base::const_reverse_iterator ConstReverseIterator;
+    typedef iterator Iterator;
+    typedef const_iterator ConstIterator;
+    typedef reverse_iterator ReverseIterator;
+    typedef const_reverse_iterator ConstReverseIterator;
     //@}
 
     /**
@@ -152,33 +122,36 @@ public:
     //@{
 
     /// Default constructor
-    OPENMS_DLLAPI FeatureMap();
+    FeatureMap();
 
     /// Copy constructor
-    OPENMS_DLLAPI FeatureMap(const FeatureMap& source);
+    FeatureMap(const FeatureMap& source);
 
     /// Move constructor
-    OPENMS_DLLAPI FeatureMap(FeatureMap&& source);
-
-    /// Destructor
-    OPENMS_DLLAPI ~FeatureMap() override;
-    //@}
+    FeatureMap(FeatureMap&& source);
 
     /// Assignment operator
-    OPENMS_DLLAPI FeatureMap& operator=(const FeatureMap& rhs);
+    FeatureMap& operator=(const FeatureMap& rhs);
+
+    /// Move assignment
+    //FeatureMap& FeatureMap::operator=(FeatureMap&&);
+
+    /// Destructor
+    ~FeatureMap() override;
+    //@}
 
     /// Equality operator
-    OPENMS_DLLAPI bool operator==(const FeatureMap& rhs) const;
+    bool operator==(const FeatureMap& rhs) const;
 
-    /// Equality operator
-    OPENMS_DLLAPI bool operator!=(const FeatureMap& rhs) const;
+    /// Inequality operator
+    bool operator!=(const FeatureMap& rhs) const;
 
     /**
       @brief Joins two feature maps.
 
       Features are merged into one container (see operator+= for details).
     */
-    OPENMS_DLLAPI FeatureMap operator+(const FeatureMap& rhs) const;
+    FeatureMap operator+(const FeatureMap& rhs) const;
 
     /**
       @brief Add one feature map to another.
@@ -192,7 +165,7 @@ public:
 
       @param rhs The feature to add to this one.
     */
-    OPENMS_DLLAPI FeatureMap& operator+=(const FeatureMap& rhs);
+    FeatureMap& operator+=(const FeatureMap& rhs);
 
     /**
       @name Sorting.
@@ -201,76 +174,76 @@ public:
     */
     //@{
     /// Sorts the peaks according to ascending intensity.
-    OPENMS_DLLAPI void sortByIntensity(bool reverse = false);
+    void sortByIntensity(bool reverse = false);
 
     ///Sort features by position. Lexicographical comparison (first RT then m/z) is done.
-    OPENMS_DLLAPI void sortByPosition();
+    void sortByPosition();
 
     ///Sort features by RT position.
-    OPENMS_DLLAPI void sortByRT();
+    void sortByRT();
 
     ///Sort features by m/z position.
-    OPENMS_DLLAPI void sortByMZ();
+    void sortByMZ();
 
     ///Sort features by ascending overall quality.
-    OPENMS_DLLAPI void sortByOverallQuality(bool reverse = false);
+    void sortByOverallQuality(bool reverse = false);
 
     //@}
 
     // Docu in base class
-    OPENMS_DLLAPI void updateRanges() override;
+    void updateRanges() override;
 
     /// Swaps the feature content (plus its range information) of this map with the content of @p from
-    OPENMS_DLLAPI void swapFeaturesOnly(FeatureMap& from);
+    void swapFeaturesOnly(FeatureMap& from);
 
-    OPENMS_DLLAPI void swap(FeatureMap& from);
+    void swap(FeatureMap& from);
 
     /// @name Functions for dealing with identifications in legacy format
     ///@{
     /// non-mutable access to the protein identifications
-    OPENMS_DLLAPI const std::vector<ProteinIdentification>& getProteinIdentifications() const;
+    const std::vector<ProteinIdentification>& getProteinIdentifications() const;
 
     /// mutable access to the protein identifications
-    OPENMS_DLLAPI std::vector<ProteinIdentification>& getProteinIdentifications();
+    std::vector<ProteinIdentification>& getProteinIdentifications();
 
     /// sets the protein identifications
-    OPENMS_DLLAPI void setProteinIdentifications(const std::vector<ProteinIdentification>& protein_identifications);
+    void setProteinIdentifications(const std::vector<ProteinIdentification>& protein_identifications);
 
     /// non-mutable access to the unassigned peptide identifications
-    OPENMS_DLLAPI const std::vector<PeptideIdentification>& getUnassignedPeptideIdentifications() const;
+    const std::vector<PeptideIdentification>& getUnassignedPeptideIdentifications() const;
 
     /// mutable access to the unassigned peptide identifications
-    OPENMS_DLLAPI std::vector<PeptideIdentification>& getUnassignedPeptideIdentifications();
+    std::vector<PeptideIdentification>& getUnassignedPeptideIdentifications();
 
     /// sets the unassigned peptide identifications
-    OPENMS_DLLAPI void setUnassignedPeptideIdentifications(const std::vector<PeptideIdentification>& unassigned_peptide_identifications);
+    void setUnassignedPeptideIdentifications(const std::vector<PeptideIdentification>& unassigned_peptide_identifications);
     ///@}
 
     /// returns a const reference to the description of the applied data processing
-    OPENMS_DLLAPI const std::vector<DataProcessing>& getDataProcessing() const;
+    const std::vector<DataProcessing>& getDataProcessing() const;
 
     /// returns a mutable reference to the description of the applied data processing
-    OPENMS_DLLAPI std::vector<DataProcessing>& getDataProcessing();
+    std::vector<DataProcessing>& getDataProcessing();
 
     /// sets the description of the applied data processing
-    OPENMS_DLLAPI void setDataProcessing(const std::vector<DataProcessing>& processing_method);
+    void setDataProcessing(const std::vector<DataProcessing>& processing_method);
 
     /// set the file path to the primary MS run (usually the mzML file obtained after data conversion from raw files)
-    OPENMS_DLLAPI void setPrimaryMSRunPath(const StringList& s);
+    void setPrimaryMSRunPath(const StringList& s);
 
     /// set the file path to the primary MS run using the mzML annotated in the MSExperiment @param e.
     /// If it doesn't exist, fallback to @param s.
-    OPENMS_DLLAPI void setPrimaryMSRunPath(const StringList& s, MSExperiment & e);
+    void setPrimaryMSRunPath(const StringList& s, MSExperiment & e);
 
     /// get the file path to the first MS run
-    OPENMS_DLLAPI void getPrimaryMSRunPath(StringList& toFill) const;
+    void getPrimaryMSRunPath(StringList& toFill) const;
 
     /**
       @brief Clears all data and meta data
 
       @param clear_meta_data If @em true, all meta data is cleared in addition to the data.
     */
-    OPENMS_DLLAPI void clear(bool clear_meta_data = true);
+    void clear(bool clear_meta_data = true);
 
     /**
       @brief Applies a member function of Type to the container itself and all features (including subordinates).
@@ -309,7 +282,7 @@ public:
       return assignments;
     }
 
-    OPENMS_DLLAPI AnnotationStatistics getAnnotationStatistics() const;
+    AnnotationStatistics getAnnotationStatistics() const;
 
     /// @name Functions for dealing with identifications in new format
     ///@{
@@ -320,13 +293,13 @@ public:
 
       @see BaseFeature::getIDMatches()
     */
-    OPENMS_DLLAPI std::set<IdentificationData::ObservationMatchRef> getUnassignedIDMatches() const;
+    std::set<IdentificationData::ObservationMatchRef> getUnassignedIDMatches() const;
 
     /// Immutable access to the contained identification data
-    OPENMS_DLLAPI const IdentificationData& getIdentificationData() const;
+    const IdentificationData& getIdentificationData() const;
 
     /// Mutable access to the contained identification data
-    OPENMS_DLLAPI IdentificationData& getIdentificationData();
+    IdentificationData& getIdentificationData();
     ///@}
 
 protected:

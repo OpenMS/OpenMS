@@ -15,44 +15,44 @@ cdef extern from "<OpenMS/ANALYSIS/QUANTITATION/PeptideAndProteinQuant.h>" names
 
     cdef cppclass PeptideAndProteinQuant(DefaultParamHandler):
         # wrap-inherits:
-        #    DefaultParamHandler
+        #   DefaultParamHandler
 
         PeptideAndProteinQuant() nogil except + # wrap-doc:Helper class for peptide and protein quantification based on feature data annotated with IDs
         PeptideAndProteinQuant(PeptideAndProteinQuant &) nogil except + # comiler
 
         void readQuantData(FeatureMap & map_in, ExperimentalDesign & ed) nogil except +
           # wrap-doc:
-                #   Read quantitative data from a feature map
-                #   -----
-                #   Parameters should be set before using this method, as setting parameters will clear all results
+                #  Read quantitative data from a feature map
+                #  
+                #  Parameters should be set before using this method, as setting parameters will clear all results
 
         void readQuantData(ConsensusMap & map_in, ExperimentalDesign & ed) nogil except +
           # wrap-doc:
-                #   Read quantitative data from a consensus map
-                #   -----
-                #   Parameters should be set before using this method, as setting parameters will clear all results
+                #  Read quantitative data from a consensus map
+                #  
+                #  Parameters should be set before using this method, as setting parameters will clear all results
 
         void readQuantData(libcpp_vector[ProteinIdentification] & proteins,
                            libcpp_vector[PeptideIdentification] & peptides,
                            ExperimentalDesign & ed) nogil except +
           # wrap-doc:
-                #   Read quantitative data from identification results (for quantification via spectral counting)
-                #   -----
-                #   Parameters should be set before using this method, as setting parameters will clear all results
+                #  Read quantitative data from identification results (for quantification via spectral counting)
+                #  
+                #  Parameters should be set before using this method, as setting parameters will clear all results
 
         void quantifyPeptides(libcpp_vector[PeptideIdentification] & peptides) nogil except +
           # wrap-doc:
-                #   Compute peptide abundances
-                #   -----
-                #   Based on quantitative data for individual charge states (in member `pep_quant_`), overall abundances for peptides are computed (and stored again in `pep_quant_`)
-                #   Quantitative data must first be read via readQuantData()
-                #   Optional (peptide-level) protein inference information (e.g. from Fido or ProteinProphet) can be supplied via `peptides`. In that case, peptide-to-protein associations - the basis for protein-level quantification - will also be read from `peptides`!
+                #  Compute peptide abundances
+                #  
+                #  Based on quantitative data for individual charge states (in member `pep_quant_`), overall abundances for peptides are computed (and stored again in `pep_quant_`)
+                #  Quantitative data must first be read via readQuantData()
+                #  Optional (peptide-level) protein inference information (e.g. from Fido or ProteinProphet) can be supplied via `peptides`. In that case, peptide-to-protein associations - the basis for protein-level quantification - will also be read from `peptides`!
 
         void quantifyProteins(ProteinIdentification & proteins) nogil except +
           # wrap-doc:
-                #   Compute protein abundances
-                #   -----
-                #   Peptide abundances must be computed first with quantifyPeptides(). Optional protein inference information (e.g. from Fido or ProteinProphet) can be supplied via `proteins`
+                #  Compute protein abundances
+                #  
+                #  Peptide abundances must be computed first with quantifyPeptides(). Optional protein inference information (e.g. from Fido or ProteinProphet) can be supplied via `proteins`
 
         PeptideAndProteinQuant_Statistics getStatistics() nogil except +
 

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -34,20 +34,23 @@
 
 //OpenMS
 #include <OpenMS/VISUAL/Plot3DCanvas.h>
+
+#include <OpenMS/SYSTEM/File.h>
+#include <OpenMS/SYSTEM/FileWatcher.h>
+#include <OpenMS/VISUAL/ColorSelector.h>
+#include <OpenMS/VISUAL/DIALOGS/Plot3DPrefDialog.h>
+#include <OpenMS/VISUAL/MISC/GUIHelpers.h>
+#include <OpenMS/VISUAL/LayerDataPeak.h>
+#include <OpenMS/VISUAL/MultiGradientSelector.h>
 #include <OpenMS/VISUAL/Plot3DOpenGLCanvas.h>
 #include <OpenMS/VISUAL/PlotWidget.h>
-#include <OpenMS/FORMAT/FileHandler.h>
-#include <OpenMS/VISUAL/DIALOGS/Plot3DPrefDialog.h>
-#include <OpenMS/VISUAL/ColorSelector.h>
-#include <OpenMS/VISUAL/MultiGradientSelector.h>
-#include <OpenMS/SYSTEM/FileWatcher.h>
 
 #include <QResizeEvent>
 #include <QtWidgets/QComboBox>
-#include <QtWidgets/QSpinBox>
-#include <QtWidgets/QMenu>
 #include <QtWidgets/QFileDialog>
+#include <QtWidgets/QMenu>
 #include <QtWidgets/QMessageBox>
+#include <QtWidgets/QSpinBox>
 
 using namespace std;
 
@@ -84,9 +87,7 @@ namespace OpenMS
     connect(this, SIGNAL(preferencesChange()), this, SLOT(currentLayerParamtersChanged_()));
   }
 
-  Plot3DCanvas::~Plot3DCanvas()
-  {
-  }
+  Plot3DCanvas::~Plot3DCanvas() = default;
 
   void Plot3DCanvas::resizeEvent(QResizeEvent * e)
   {
@@ -112,14 +113,16 @@ namespace OpenMS
       return false;
     }
 
-    //Abort if no data points are contained
-    if (getCurrentLayer().getPeakData()->empty())
+    // Abort if no data points are contained
+    auto& layer = dynamic_cast<LayerDataPeak&>(getCurrentLayer());
+      
+    if (layer.getPeakData()->empty())
     {
       popIncompleteLayer_("Cannot add a dataset that contains no survey scans. Aborting!");
       return false;
     }
 
-    recalculateRanges_(0, 1, 2);
+    recalculateRanges_();
     resetZoom(false);
 
     //Warn if negative intensities are contained
@@ -152,10 +155,10 @@ namespace OpenMS
 
     layers_.removeLayer(layer_index);
 
-    recalculateRanges_(0, 1, 2);
+    recalculateRanges_();
     if (layers_.empty())
     {
-      overall_data_range_ = DRange<3>::empty;
+      overall_data_range_.clearRanges();
       update_buffer_ = true;
       update_(OPENMS_PRETTY_FUNCTION);
       return;
@@ -226,7 +229,7 @@ namespace OpenMS
   void Plot3DCanvas::currentLayerParamtersChanged_()
   {
     openglwidget()->recalculateDotGradient_(layers_.getCurrentLayer());
-    recalculateRanges_(0, 1, 2);
+    recalculateRanges_();
 
     update_buffer_ = true;
     update_(OPENMS_PRETTY_FUNCTION);
@@ -304,67 +307,10 @@ namespace OpenMS
     e->accept();
   }
 
-  void Plot3DCanvas::saveCurrentLayer(bool visible)
-  {
-    const LayerDataBase& layer = getCurrentLayer();
-
-    //determine proposed filename
-    String proposed_name = param_.getValue("default_path").toString();
-    if (visible == false && layer.filename != "")
-    {
-      proposed_name = layer.filename;
-    }
-
-    QString selected_filter = "";
-    QString file_name = QFileDialog::getSaveFileName(this, "Save file", proposed_name.toQString(), "mzML files (*.mzML);;mzData files (*.mzData);;mzXML files (*.mzXML);;All files (*)", &selected_filter);
-    if (!file_name.isEmpty())
-    {
-      // check whether a file type suffix has been given
-      // first check mzData and mzXML then mzML
-      // if the setting is at "All files"
-      // mzML will be used
-      String upper_filename = file_name;
-      upper_filename.toUpper();
-      if (selected_filter == "mzData files (*.mzData)")
-      {
-        if (!upper_filename.hasSuffix(".MZDATA"))
-        {
-          file_name += ".mzData";
-        }
-      }
-      else if (selected_filter == "mzXML files (*.mzXML)")
-      {
-        if (!upper_filename.hasSuffix(".MZXML"))
-        {
-          file_name += ".mzXML";
-        }
-      }
-      else
-      {
-        if (!upper_filename.hasSuffix(".MZML"))
-        {
-          file_name += ".mzML";
-        }
-      }
-
-      if (visible)   //only visible data
-      {
-        ExperimentType out;
-        getVisiblePeakData(out);
-        addDataProcessing_(out, DataProcessing::FILTERING);
-        FileHandler().storeExperiment(file_name, out, ProgressLogger::GUI);
-      }
-      else       //all data
-      {
-        FileHandler().storeExperiment(file_name, *layer.getPeakData(), ProgressLogger::GUI);
-      }
-    }
-  }
-
   void Plot3DCanvas::updateLayer(Size i)
   {
     selected_peak_.clear();
-    recalculateRanges_(0, 1, 2);
+    recalculateRanges_();
     resetZoom(false); // no repaint as this is done in intensityModeChange_() anyway
     openglwidget()->recalculateDotGradient_(layers_.getLayer(i));
     intensityModeChange_();
@@ -388,22 +334,6 @@ namespace OpenMS
       openglwidget()->recalculateDotGradient_(layers_.getLayer(i));
     }
     PlotCanvas::intensityModeChange_();
-  }
-
-  void Plot3DCanvas::translateLeft_(Qt::KeyboardModifiers /*m*/)
-  {
-  }
-
-  void Plot3DCanvas::translateRight_(Qt::KeyboardModifiers /*m*/)
-  {
-  }
-
-  void Plot3DCanvas::translateForward_()
-  {
-  }
-
-  void Plot3DCanvas::translateBackward_()
-  {
   }
 
 } //namespace

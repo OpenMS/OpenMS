@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -47,18 +47,21 @@
 // only declare them here
 class CoinModel;
 
-#ifndef GLP_PROB_DEFINED
-#define GLP_PROB_DEFINED
-// depending on the glpk version
-// define glp_prob as forward or struct
-#if OPENMS_GLPK_VERSION_MAJOR == 4 && OPENMS_GLPK_VERSION_MINOR < 48
-typedef struct
-{
-  double _opaque_prob[100];
-} glp_prob;
-#else
-class glp_prob;
-#endif
+// if GLPK was found:
+#ifndef COINOR_SOLVER
+  #ifndef GLP_PROB_DEFINED
+    #define GLP_PROB_DEFINED
+    // depending on the glpk version
+    // define glp_prob as forward or struct
+    #if OPENMS_GLPK_VERSION_MAJOR == 4 && OPENMS_GLPK_VERSION_MINOR < 48
+    typedef struct
+    {
+      double _opaque_prob[100];
+    } glp_prob;
+    #else
+    class glp_prob;
+    #endif
+  #endif
 #endif
 
 namespace OpenMS
@@ -311,9 +314,9 @@ protected:
 #if COINOR_SOLVER == 1
     CoinModel * model_ = nullptr;
     std::vector<double> solution_;
-#endif
-
+#else
     glp_prob * lp_problem_ = nullptr;
+#endif
 
     SOLVER solver_;
 

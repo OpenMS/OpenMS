@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -34,6 +34,8 @@
 #include <OpenMS/ANALYSIS/TARGETED/OfflinePrecursorIonSelection.h>
 
 #include <OpenMS/ANALYSIS/TARGETED/PrecursorIonSelectionPreprocessing.h>
+
+#include <utility>
 
 namespace OpenMS
 {
@@ -72,10 +74,7 @@ namespace OpenMS
     defaultsToParam_();
   }
 
-  OfflinePrecursorIonSelection::~OfflinePrecursorIonSelection()
-  {
-
-  }
+  OfflinePrecursorIonSelection::~OfflinePrecursorIonSelection() = default;
 
   void OfflinePrecursorIonSelection::createProteinSequenceBasedLPInclusionList(String include, String rt_model_file, String pt_model_file,
                                                                                FeatureMap & precursors)
@@ -84,7 +83,7 @@ namespace OpenMS
     Param pisp_param = pisp.getParameters();
     pisp_param.setValue("store_peptide_sequences", "true");
     pisp.setParameters(pisp_param);
-    pisp.dbPreprocessing(include, rt_model_file, pt_model_file, false);
+    pisp.dbPreprocessing(std::move(include), std::move(rt_model_file), std::move(pt_model_file), false);
     //  std::cout << "now learn rt probabilities"<<std::endl;
     //pisp.learnRTProbabilities(f_map,rt_model,0.5);
     //  pisp.setGaussianParameters(3,-1);

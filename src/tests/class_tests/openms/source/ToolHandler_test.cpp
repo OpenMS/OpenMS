@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -65,12 +65,12 @@ END_SECTION
 START_SECTION((static ToolListType getTOPPToolList(const bool includeGenericWrapper=false)))
 {
   ToolListType list = ToolHandler::getTOPPToolList();
-  TEST_EQUAL(list.has("FeatureFinderMRM"), true)
-  TEST_EQUAL(list.has("GenericWrapper"), false)
+  TEST_EQUAL(list.find("FeatureFinderMRM") != list.end(), true)
+  TEST_EQUAL(list.find("GenericWrapper") != list.end(), false)
   TEST_EQUAL(list.size() > 30, true)  // assume we have over 30 tools in there
   list = ToolHandler::getTOPPToolList(true);
-  TEST_EQUAL(list.has("FeatureFinderMRM"), true)
-  TEST_EQUAL(list.has("GenericWrapper"), true)
+  TEST_EQUAL(list.find("FeatureFinderMRM") != list.end(), true)
+  TEST_EQUAL(list.find("GenericWrapper") != list.end(), true)
   TEST_EQUAL(list.size() > 30, true)  // assume we have over 30 tools in there
 }
 END_SECTION
@@ -78,8 +78,8 @@ END_SECTION
 START_SECTION((static ToolListType getUtilList()))
 {
   ToolListType list = ToolHandler::getUtilList();
-  TEST_EQUAL(list.has("SemanticValidator"), true)
-  TEST_EQUAL(list.has("FFEval"), true)
+  TEST_EQUAL(list.find("SemanticValidator") != list.end(), true)
+  TEST_EQUAL(list.find("FFEval") != list.end(), true)
   TEST_EQUAL(list.size() > 10, true)  // assume we have over 10 tools in there
 }
 END_SECTION

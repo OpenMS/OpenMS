@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -44,23 +44,15 @@ KDTreeFeatureNode::KDTreeFeatureNode(KDTreeFeatureMaps* data, Size idx) :
 {
 }
 
-KDTreeFeatureNode::KDTreeFeatureNode(const KDTreeFeatureNode& rhs) :
-  data_(rhs.data_),
-  idx_(rhs.idx_)
-{
-}
+KDTreeFeatureNode::KDTreeFeatureNode(const KDTreeFeatureNode& rhs) 
+  
+= default;
 
 KDTreeFeatureNode& KDTreeFeatureNode::operator=(KDTreeFeatureNode const& rhs)
-{
-  data_ = rhs.data_;
-  idx_ = rhs.idx_;
-
-  return *this;
-}
+= default;
 
 KDTreeFeatureNode::~KDTreeFeatureNode()
-{
-}
+= default;
 
 Size KDTreeFeatureNode::getIndex() const
 {

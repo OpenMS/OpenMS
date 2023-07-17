@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -216,18 +216,14 @@ namespace OpenMS
     bool store_original_rt)
   {
     // update RTs in-place:
-    for (IdentificationData::ObservationRef it = id_data.observations_.begin();
-         it != id_data.observations_.end(); ++it)
-    {
-      id_data.observations_.modify(it, [&](IdentificationData::Observation& obs)
-                                   {
-                                     if (store_original_rt)
-                                     {
-                                       storeOriginalRT_(obs, obs.rt);
-                                     }
-                                     obs.rt = trafo.apply(obs.rt);
-                                   });
-    }
+    id_data.applyToObservations([&](IdentificationData::Observation& obs)
+      {
+        if (store_original_rt)
+        {
+          storeOriginalRT_(obs, obs.rt);
+        }
+        obs.rt = trafo.apply(obs.rt);
+      });
   }
 
 }

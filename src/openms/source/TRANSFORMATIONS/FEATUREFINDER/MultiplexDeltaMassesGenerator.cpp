@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -32,25 +32,28 @@
 // $Authors: Lars Nilse $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexDeltaMasses.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexDeltaMassesGenerator.h>
+#include <OpenMS/KERNEL/StandardTypes.h>
+#include <OpenMS/CONCEPT/Exception.h>
+#include <OpenMS/CONCEPT/LogStream.h>
 
-#include <boost/algorithm/string/split.hpp>
-#include <boost/algorithm/string/replace.hpp>
 #include <boost/algorithm/string/classification.hpp>
+#include <boost/algorithm/string/replace.hpp>
+#include <boost/algorithm/string/split.hpp>
 #include <iostream>
 #include <ostream>
 #include <sstream>
+#include <utility>
 
 using namespace std;
 
 namespace OpenMS
 {
   MultiplexDeltaMassesGenerator::Label::Label(String sn, String ln, String d, double dm) :
-    short_name(sn),
-    long_name(ln),
-    description(d),
+    short_name(std::move(sn)),
+    long_name(std::move(ln)),
+    description(std::move(d)),
     delta_mass(dm)
   {
   }
@@ -77,11 +80,11 @@ namespace OpenMS
 
   MultiplexDeltaMassesGenerator::MultiplexDeltaMassesGenerator(String labels, int missed_cleavages, std::map<String,double> label_delta_mass) :
     DefaultParamHandler("labels"),
-    labels_(labels),
+    labels_(std::move(labels)),
     labels_list_(),
     samples_labels_(),
     missed_cleavages_(missed_cleavages),
-    label_delta_mass_(label_delta_mass)
+    label_delta_mass_(std::move(label_delta_mass))
   {
     // fill label master list
     fillLabelMasterList_();
@@ -109,7 +112,7 @@ namespace OpenMS
         if (temp_samples[i]=="no_label")
         {
           vector<String> temp_labels;
-          temp_labels.push_back("no_label");
+          temp_labels.emplace_back("no_label");
           samples_labels_.push_back(temp_labels);
         }
         else
@@ -124,39 +127,51 @@ namespace OpenMS
     if (samples_labels_.empty())
     {
       vector<String> temp_labels;
-      temp_labels.push_back("no_label");
+      temp_labels.emplace_back("no_label");
       samples_labels_.push_back(temp_labels);
     }
 
     // What kind of labelling do we have?
     // SILAC, Leu, Dimethyl, ICPL, numeric labelling or no labelling ??
 
+    bool no_label = (samples_labels_.size() == 1) && 
+      (samples_labels_[0].size() == 1) && 
+      samples_labels_[0][0] == "no_label";
     bool labelling_SILAC = ((labels_.find("Arg") != std::string::npos) || (labels_.find("Lys") != std::string::npos));
     bool labelling_Leu = (labels_.find("Leu") != std::string::npos);
     bool labelling_Dimethyl = (labels_.find("Dimethyl") != std::string::npos);
     bool labelling_ICPL = (labels_.find("ICPL") != std::string::npos);
-    // Check whether each label string represents a double. If yes, use these doubles as mass shifts.
-    bool labelling_numeric = true;
-    for (size_t i = 0; i < samples_labels_.size(); i++)
-    {
-      for (size_t j = 0; j < samples_labels_[i].size(); j++)
-      {
-        try
-        {
-          double mass_shift = std::stod(samples_labels_[i][j]);
 
-          // For numeric mass shifts, long and short label names as well as the numerical mass shift are trivial.
-          // For example, long label name ("3.1415"), short label name ("3.1415") and numerical mass shift (3.1415).
-          label_delta_mass_.insert(make_pair(samples_labels_[i][j], mass_shift));
-          label_short_long_.insert(make_pair(samples_labels_[i][j], samples_labels_[i][j]));
-          label_long_short_.insert(make_pair(samples_labels_[i][j], samples_labels_[i][j]));
-        }
-        catch(...)
+    bool labelling_numeric = false;
+    if (!(no_label || labelling_SILAC || labelling_Leu || labelling_Dimethyl || labelling_ICPL))
+    {
+      bool all_numeric = true;
+      // Check whether each label string represents a double. If yes, use these doubles as mass shifts.
+      for (size_t i = 0; i < samples_labels_.size(); i++)
+      {
+        for (size_t j = 0; j < samples_labels_[i].size(); j++)
         {
-          labelling_numeric = false;
+          try
+          {
+            double mass_shift = std::stod(samples_labels_[i][j]);
+
+            // For numeric mass shifts, long and short label names as well as the numerical mass shift are trivial.
+            // For example, long label name ("3.1415"), short label name ("3.1415") and numerical mass shift (3.1415).
+            label_delta_mass_.insert(make_pair(samples_labels_[i][j], mass_shift));
+            label_short_long_.insert(make_pair(samples_labels_[i][j], samples_labels_[i][j]));
+            label_long_short_.insert(make_pair(samples_labels_[i][j], samples_labels_[i][j]));
+          }
+          catch(...)
+          {
+            OPENMS_LOG_WARN << "Unrecognized non-numeric label found. Assuming label-free." << std::endl;
+            all_numeric = false;
+            break;
+          }          
         }
       }
+      labelling_numeric = all_numeric;
     }
+
     bool labelling_none = labels_.empty() || (labels_ == "[]") || (labels_ == "()") || (labels_ == "{}");
 
     bool SILAC = (labelling_SILAC && !labelling_Leu && !labelling_Dimethyl && !labelling_ICPL && !labelling_numeric && !labelling_none);
@@ -203,7 +218,7 @@ namespace OpenMS
           if (ArgPerPeptide + LysPerPeptide <= (unsigned) missed_cleavages_ + 1)
           {
             MultiplexDeltaMasses delta_masses_temp;    // single mass shift pattern
-            delta_masses_temp.getDeltaMasses().push_back(MultiplexDeltaMasses::DeltaMass(0, "no_label"));
+            delta_masses_temp.getDeltaMasses().emplace_back(0, "no_label");
             for (unsigned i = 0; i < samples_labels_.size(); i++)
             {
               double mass_shift = 0;
@@ -250,7 +265,7 @@ namespace OpenMS
 
               if (goAhead_Arg && goAhead_Lys && (mass_shift != 0))
               {
-                delta_masses_temp.getDeltaMasses().push_back(MultiplexDeltaMasses::DeltaMass(mass_shift, label_set));
+                delta_masses_temp.getDeltaMasses().emplace_back(mass_shift, label_set);
               }
             }
 
@@ -274,7 +289,7 @@ namespace OpenMS
       {
         MultiplexDeltaMasses delta_masses_temp;    // single mass shift pattern
 
-        delta_masses_temp.getDeltaMasses().push_back(MultiplexDeltaMasses::DeltaMass(0, "no_label"));
+        delta_masses_temp.getDeltaMasses().emplace_back(0, "no_label");
 
         double mass_shift = (mc + 1) * (label_delta_mass_[samples_labels_[1][0]] - label_delta_mass_[samples_labels_[0][0]]);
         MultiplexDeltaMasses::LabelSet label_set;
@@ -283,7 +298,7 @@ namespace OpenMS
         {
           label_set.insert(samples_labels_[1][0]);
         }
-        delta_masses_temp.getDeltaMasses().push_back(MultiplexDeltaMasses::DeltaMass(mass_shift, label_set));
+        delta_masses_temp.getDeltaMasses().emplace_back(mass_shift, label_set);
 
         delta_masses_list_.push_back(delta_masses_temp);
       }
@@ -311,7 +326,7 @@ namespace OpenMS
             label_set.insert(samples_labels_[i][0]);
           }
 
-         delta_masses_temp.getDeltaMasses().push_back(MultiplexDeltaMasses::DeltaMass(mass_shift, label_set));
+         delta_masses_temp.getDeltaMasses().emplace_back(mass_shift, label_set);
         }
         delta_masses_list_.push_back(delta_masses_temp);
       }
@@ -331,7 +346,7 @@ namespace OpenMS
             label_set.insert(samples_labels_[i][0]);
           }
 
-          delta_masses_temp.getDeltaMasses().push_back(MultiplexDeltaMasses::DeltaMass(mass_shift, label_set));
+          delta_masses_temp.getDeltaMasses().emplace_back(mass_shift, label_set);
         }
         delta_masses_list_.push_back(delta_masses_temp);
       }
@@ -340,7 +355,7 @@ namespace OpenMS
     {
       // none (singlet detection)
       MultiplexDeltaMasses delta_masses_temp;
-      delta_masses_temp.getDeltaMasses().push_back(MultiplexDeltaMasses::DeltaMass(0, "no_label"));
+      delta_masses_temp.getDeltaMasses().emplace_back(0, "no_label");
       delta_masses_list_.push_back(delta_masses_temp);
     }
 
@@ -380,7 +395,7 @@ namespace OpenMS
     {
       // add singlets
       MultiplexDeltaMasses dm;
-      dm.getDeltaMasses().push_back(MultiplexDeltaMasses::DeltaMass(0,"any_label_set"));    // There are two singlets with different label sets. But only a single singlet with "any_label_set" is added.
+      dm.getDeltaMasses().emplace_back(0,"any_label_set");    // There are two singlets with different label sets. But only a single singlet with "any_label_set" is added.
       delta_masses_list_.push_back(dm);
     }
     else if (n == 3)
@@ -406,7 +421,7 @@ namespace OpenMS
 
       // add singlets
       MultiplexDeltaMasses dm;
-      dm.getDeltaMasses().push_back(MultiplexDeltaMasses::DeltaMass(0, "any_label_set"));    // There are three singlets with different label sets. But only a single singlet with "any_label_set" is added.
+      dm.getDeltaMasses().emplace_back(0, "any_label_set");    // There are three singlets with different label sets. But only a single singlet with "any_label_set" is added.
       delta_masses_list_.push_back(dm);
     }
     else if (n == 4)
@@ -474,7 +489,7 @@ namespace OpenMS
 
       // add singlets
       MultiplexDeltaMasses dm;
-      dm.getDeltaMasses().push_back(MultiplexDeltaMasses::DeltaMass(0,"any_label_set"));
+      dm.getDeltaMasses().emplace_back(0,"any_label_set");
       delta_masses_list_.push_back(dm);
     }
     else if (n > 4)
@@ -549,17 +564,17 @@ namespace OpenMS
     return samples_labels_;
   }
 
-  String MultiplexDeltaMassesGenerator::getLabelShort(String label)
+  String MultiplexDeltaMassesGenerator::getLabelShort(const String& label)
   {
     return label_long_short_[label];
   }
 
-  String MultiplexDeltaMassesGenerator::getLabelLong(String label)
+  String MultiplexDeltaMassesGenerator::getLabelLong(const String& label)
   {
     return label_short_long_[label];
   }
 
-  MultiplexDeltaMasses::LabelSet MultiplexDeltaMassesGenerator::extractLabelSet(AASequence sequence)
+  MultiplexDeltaMasses::LabelSet MultiplexDeltaMassesGenerator::extractLabelSet(const AASequence& sequence)
   {
     String s(sequence.toString());
 
@@ -598,19 +613,19 @@ namespace OpenMS
 
   void MultiplexDeltaMassesGenerator::fillLabelMasterList_()
   {
-    label_master_list_.push_back(MultiplexDeltaMassesGenerator::Label("Arg6", "Label:13C(6)", "Label:13C(6)  |  C(-6) 13C(6)  |  unimod #188", 6.0201290268));
-    label_master_list_.push_back(MultiplexDeltaMassesGenerator::Label("Arg10", "Label:13C(6)15N(4)", "Label:13C(6)15N(4)  |  C(-6) 13C(6) N(-4) 15N(4)  |  unimod #267", 10.008268600));
-    label_master_list_.push_back(MultiplexDeltaMassesGenerator::Label("Lys4", "Label:2H(4)", "Label:2H(4)  |  H(-4) 2H(4)  |  unimod #481", 4.0251069836));
-    label_master_list_.push_back(MultiplexDeltaMassesGenerator::Label("Lys6", "Label:13C(6)", "Label:13C(6)  |  C(-6) 13C(6)  |  unimod #188", 6.0201290268));
-    label_master_list_.push_back(MultiplexDeltaMassesGenerator::Label("Lys8", "Label:13C(6)15N(2)", "Label:13C(6)15N(2)  |  C(-6) 13C(6) N(-2) 15N(2)  |  unimod #259", 8.0141988132));
-    label_master_list_.push_back(MultiplexDeltaMassesGenerator::Label("Leu3", "Label:2H(3)", "Label:2H(3)  |  H(-3) 2H(3)  |  unimod #262", 3.018830));
-    label_master_list_.push_back(MultiplexDeltaMassesGenerator::Label("Dimethyl0", "Dimethyl", "Dimethyl  |  H(4) C(2)  |  unimod #36", 28.031300));
-    label_master_list_.push_back(MultiplexDeltaMassesGenerator::Label("Dimethyl4", "Dimethyl:2H(4)", "Dimethyl:2H(4)  |  2H(4) C(2)  |  unimod #199", 32.056407));
-    label_master_list_.push_back(MultiplexDeltaMassesGenerator::Label("Dimethyl6", "Dimethyl:2H(4)13C(2)", "Dimethyl:2H(4)13C(2)  |  2H(4) 13C(2)  |  unimod #510", 34.063117));
-    label_master_list_.push_back(MultiplexDeltaMassesGenerator::Label("Dimethyl8", "Dimethyl:2H(6)13C(2)", "Dimethyl:2H(6)13C(2)  |  H(-2) 2H(6) 13C(2)  |  unimod #330", 36.075670));
-    label_master_list_.push_back(MultiplexDeltaMassesGenerator::Label("ICPL0", "ICPL", "ICPL  |  H(3) C(6) N O  |  unimod #365", 105.021464));
-    label_master_list_.push_back(MultiplexDeltaMassesGenerator::Label("ICPL4", "ICPL:2H(4)", "ICPL:2H(4)  |  H(-1) 2H(4) C(6) N O  |  unimod #687", 109.046571));
-    label_master_list_.push_back(MultiplexDeltaMassesGenerator::Label("ICPL6", "ICPL:13C(6)", "ICPL:13C(6)  |  H(3) 13C(6) N O  |  unimod #364", 111.041593));
-    label_master_list_.push_back(MultiplexDeltaMassesGenerator::Label("ICPL10", "ICPL:13C(6)2H(4)", "ICPL:13C(6)2H(4)  |  H(-1) 2H(4) 13C(6) N O  |  unimod #866", 115.066700));
+    label_master_list_.emplace_back("Arg6", "Label:13C(6)", "Label:13C(6)  |  C(-6) 13C(6)  |  unimod #188", 6.0201290268);
+    label_master_list_.emplace_back("Arg10", "Label:13C(6)15N(4)", "Label:13C(6)15N(4)  |  C(-6) 13C(6) N(-4) 15N(4)  |  unimod #267", 10.008268600);
+    label_master_list_.emplace_back("Lys4", "Label:2H(4)", "Label:2H(4)  |  H(-4) 2H(4)  |  unimod #481", 4.0251069836);
+    label_master_list_.emplace_back("Lys6", "Label:13C(6)", "Label:13C(6)  |  C(-6) 13C(6)  |  unimod #188", 6.0201290268);
+    label_master_list_.emplace_back("Lys8", "Label:13C(6)15N(2)", "Label:13C(6)15N(2)  |  C(-6) 13C(6) N(-2) 15N(2)  |  unimod #259", 8.0141988132);
+    label_master_list_.emplace_back("Leu3", "Label:2H(3)", "Label:2H(3)  |  H(-3) 2H(3)  |  unimod #262", 3.018830);
+    label_master_list_.emplace_back("Dimethyl0", "Dimethyl", "Dimethyl  |  H(4) C(2)  |  unimod #36", 28.031300);
+    label_master_list_.emplace_back("Dimethyl4", "Dimethyl:2H(4)", "Dimethyl:2H(4)  |  2H(4) C(2)  |  unimod #199", 32.056407);
+    label_master_list_.emplace_back("Dimethyl6", "Dimethyl:2H(4)13C(2)", "Dimethyl:2H(4)13C(2)  |  2H(4) 13C(2)  |  unimod #510", 34.063117);
+    label_master_list_.emplace_back("Dimethyl8", "Dimethyl:2H(6)13C(2)", "Dimethyl:2H(6)13C(2)  |  H(-2) 2H(6) 13C(2)  |  unimod #330", 36.075670);
+    label_master_list_.emplace_back("ICPL0", "ICPL", "ICPL  |  H(3) C(6) N O  |  unimod #365", 105.021464);
+    label_master_list_.emplace_back("ICPL4", "ICPL:2H(4)", "ICPL:2H(4)  |  H(-1) 2H(4) C(6) N O  |  unimod #687", 109.046571);
+    label_master_list_.emplace_back("ICPL6", "ICPL:13C(6)", "ICPL:13C(6)  |  H(3) 13C(6) N O  |  unimod #364", 111.041593);
+    label_master_list_.emplace_back("ICPL10", "ICPL:13C(6)2H(4)", "ICPL:13C(6)2H(4)  |  H(-1) 2H(4) 13C(6) N O  |  unimod #866", 115.066700);
   }
 }

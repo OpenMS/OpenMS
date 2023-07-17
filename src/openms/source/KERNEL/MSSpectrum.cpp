@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -368,6 +368,8 @@ namespace OpenMS
 
   void MSSpectrum::sortByPositionPresorted(const std::vector<Chunk>& chunks)
   {
+    if (chunks.empty()) return;
+
     if (chunks.size() == 1 && chunks[0].is_sorted)
     {
       return;
@@ -527,19 +529,7 @@ namespace OpenMS
     integer_data_arrays_()
   {}
 
-  MSSpectrum::MSSpectrum(const MSSpectrum &source) :
-    ContainerType(source),
-    RangeManagerContainerType(source),
-    SpectrumSettings(source),
-    retention_time_(source.retention_time_),
-    drift_time_(source.drift_time_),
-    drift_time_unit_(source.drift_time_unit_),
-    ms_level_(source.ms_level_),
-    name_(source.name_),
-    float_data_arrays_(source.float_data_arrays_),
-    string_data_arrays_(source.string_data_arrays_),
-    integer_data_arrays_(source.integer_data_arrays_)
-  {}
+  MSSpectrum::MSSpectrum(const MSSpectrum &source) = default;
 
   MSSpectrum &MSSpectrum::operator=(const SpectrumSettings &source)
   {
@@ -733,8 +723,13 @@ namespace OpenMS
     return MZEnd(begin, mz, end);
   }
 
-  bool MSSpectrum::RTLess::operator()(const MSSpectrum &a, const MSSpectrum &b) const {
+  bool MSSpectrum::RTLess::operator()(const MSSpectrum &a, const MSSpectrum &b) const
+  {
     return a.getRT() < b.getRT();
+  }
+  bool MSSpectrum::IMLess::operator()(const MSSpectrum& a, const MSSpectrum& b) const
+  {
+    return a.getDriftTime() < b.getDriftTime();
   }
 
   bool getIonMobilityArray__(const MSSpectrum::FloatDataArrays& fdas, Size& index, DriftTimeUnit& unit)
@@ -772,4 +767,5 @@ namespace OpenMS
 
     return {index, unit };
   }
-}
+  
+} // namespace OpenMS

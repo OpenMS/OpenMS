@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -57,9 +57,6 @@
 #include <OpenMS/FORMAT/XTandemXMLFile.h>
 #include <OpenMS/SYSTEM/File.h>
 
-
-#include <QtCore/QCoreApplication>
-
 #ifdef _OPENMP
 #include <omp.h>
 #endif
@@ -79,9 +76,9 @@ using namespace std;
 <CENTER>
     <table>
         <tr>
-            <td ALIGN = "center" BGCOLOR="#EBEBEB"> potential predecessor tools </td>
-            <td VALIGN="middle" ROWSPAN=3> \f$ \longrightarrow \f$ IDFileConverter \f$ \longrightarrow \f$</td>
-            <td ALIGN = "center" BGCOLOR="#EBEBEB"> potential successor tools </td>
+            <th ALIGN = "center"> potential predecessor tools </td>
+            <td VALIGN="middle" ROWSPAN=3> &rarr; IDFileConverter &rarr;</td>
+            <th ALIGN = "center"> potential successor tools </td>
         </tr>
         <tr>
             <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> TPP tools: PeptideProphet, ProteinProphet </td>
@@ -94,7 +91,7 @@ using namespace std;
 </CENTER>
 
 IDFileConverter can be used to convert identification results from external tools/pipelines (like TPP, Sequest, Mascot, OMSSA, X! Tandem) into other (OpenMS-specific) formats.
-For search engine results, it might be advisable to use the respective TOPP Adapters (e.g. OMSSAAdapter) to avoid the extra conversion step.
+For search engine results, it might be advisable to use the respective TOPP Adapters (e.g. CometAdapter) to avoid the extra conversion step.
 
 The most simple format accepted is '.tsv': A tab separated text file, which contains one or more peptide sequences per line.
 Each line represents one spectrum, i.e. is stored as a PeptideIdentification with one or more PeptideHits.
@@ -274,18 +271,20 @@ protected:
     vector<PeptideIdentification> peptide_identifications;
     vector<ProteinIdentification> protein_identifications;
     SpectrumMetaDataLookup lookup;
+    IdentificationData id_data;
 
     //-------------------------------------------------------------
     // reading input
     //-------------------------------------------------------------
     const String in = getStringOption_("in");
     const String mz_file = getStringOption_("mz_file");
+    FileTypes::Type in_type = FileTypes::UNKNOWN; // set below if 'in' isn't a directory
 
     const String out = getStringOption_("out");
     FileTypes::Type out_type = FileHandler::getConsistentOutputfileType(out, getStringOption_("out_type"));
     if (out_type == FileTypes::UNKNOWN)
     {
-      writeLog_("Error: Could not determine output file type!");
+      writeLogError_("Error: Could not determine output file type!");
       return PARSE_ERROR;
     }
 
@@ -321,16 +320,16 @@ protected:
           }
           catch (Exception::ConversionError& e)
           {
-            writeLog_(String("Error: Cannot read scan number as integer. '") + e.what());
+            writeLogWarn_(String("Error: Cannot read scan number as integer. '") + e.what());
           }
         }
       }
 
       // Get list of the actual Sequest .out-Files
       StringList in_files;
-      if (!File::fileList(in_directory, String("*.out"), in_files))
+      if (!File::fileList(in_directory, "*.out", in_files))
       {
-        writeLog_(String("Error: No .out files found in '") + in_directory + "'. Aborting!");
+        writeLogError_(String("Error: No .out files found in '") + in_directory + "'. Aborting!");
       }
 
       // Now get to work ...
@@ -366,11 +365,11 @@ protected:
               }
               catch (Exception::ConversionError& e)
               {
-                writeLog_(String("Error: Cannot read scan number as integer. '") + e.what());
+                writeLogError_(String("Error: Cannot read scan number as integer. '") + e.what());
               }
               catch (exception& e)
               {
-                writeLog_(String("Error: Cannot read scan number as integer. '") + e.what());
+                writeLogError_(String("Error: Cannot read scan number as integer. '") + e.what());
               }
               //double real_mz = ( peptide_ids_seq[j].getMZ() - hydrogen_mass )/ (double)peptide_ids_seq[j].getHits()[0].getCharge(); // ???? semantics of mz
               const double real_mz = peptide_ids_seq[j].getMZ() / (double) peptide_ids_seq[j].getHits()[0].getCharge();
@@ -388,12 +387,12 @@ protected:
         }
         catch (Exception::ParseError& pe)
         {
-          writeLog_(pe.what() + String("(file: ") + *in_files_it + ")");
+          writeLogError_(pe.what() + String("(file: ") + *in_files_it + ")");
           throw;
         }
         catch (...)
         {
-          writeLog_(String("Error reading file: ") + *in_files_it);
+          writeLogError_(String("Error reading file: ") + *in_files_it);
           throw;
         }
       }
@@ -402,7 +401,7 @@ protected:
     } // ! directory
     else
     {
-      FileTypes::Type in_type = fh.getType(in);
+      in_type = fh.getType(in);
       switch (in_type)
       {
       case FileTypes::PEPXML:
@@ -607,7 +606,7 @@ protected:
         // handle out type
         if (out_type != FileTypes::MZML)
         {
-          writeLog_("Error: Illegal output file type given. Fasta can only be converted to an MzML. Aborting!");
+          writeLogError_("Error: Illegal output file type given. Fasta can only be converted to an MzML. Aborting!");
           printUsage_();
           return ILLEGAL_PARAMETERS;
         }
@@ -630,7 +629,7 @@ protected:
 
         if (min_charge > max_charge)
         {
-          writeLog_("Error: 'fasta_to_mzml:min_charge' must be smaller than or equal to 'fasta_to_mzml:max_charge'.");
+          writeLogError_("Error: 'fasta_to_mzml:min_charge' must be smaller than or equal to 'fasta_to_mzml:max_charge'.");
           printUsage_();
           return ILLEGAL_PARAMETERS;
         }
@@ -673,7 +672,7 @@ protected:
         }
         if (count_catches > 0)
         {
-          writeLog_("No spectra were calculated for " + String(count_catches) + " peptides because they were to small for generating a C- or X-ion.");
+          writeLogWarn_("No spectra were calculated for " + String(count_catches) + " peptides because they were to small for generating a C- or X-ion.");
         }
         logger.endProgress();
 
@@ -690,15 +689,16 @@ protected:
 
       case FileTypes::OMS:
       {
-        IdentificationData id_data;
         OMSFile().load(in, id_data);
-        IdentificationDataConverter::exportIDs(id_data, protein_identifications,
-                                               peptide_identifications);
+        if (out_type != FileTypes::OMS)
+        {
+          IdentificationDataConverter::exportIDs(id_data, protein_identifications, peptide_identifications);
+        }
       }
       break;
 
       default:
-        writeLog_("Error: Unknown input file type given. Aborting!");
+        writeLogError_("Error: Unknown input file type given. Aborting!");
         printUsage_();
         return ILLEGAL_PARAMETERS;
       }
@@ -801,15 +801,16 @@ protected:
 
     case FileTypes::OMS:
     {
-      IdentificationData id_data;
-      IdentificationDataConverter::importIDs(id_data, protein_identifications,
-                                             peptide_identifications);
+      if (in_type != FileTypes::OMS)
+      {
+        IdentificationDataConverter::importIDs(id_data, protein_identifications, peptide_identifications);
+      }
       OMSFile().store(out, id_data);
     }
     break;
 
     default:
-      writeLog_("Unsupported output file type given. Aborting!");
+      writeLogError_("Unsupported output file type given. Aborting!");
       printUsage_();
       return ILLEGAL_PARAMETERS;
     }
@@ -823,8 +824,6 @@ protected:
 
 int main(int argc, const char** argv)
 {
-  QCoreApplication a(argc, const_cast<char**>(argv)); // required on Win64 to find the qsqlite.dll in OpenMS/bin/sqldrivers/ if Qt is not installed
-
   TOPPIDFileConverter tool;
   return tool.main(argc, argv);
 }

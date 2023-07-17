@@ -2,7 +2,7 @@
 #                   OpenMS -- Open-Source Mass Spectrometry
 # --------------------------------------------------------------------------
 # Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-# ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+# ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 #
 # This software is released under a three-clause BSD license:
 #  * Redistributions of source code must retain the above copyright
@@ -54,7 +54,6 @@ find_dependency(LIBSVM 2.91)
 
 # Rest are private linked libraries
 #find_dependency(Boost COMPONENTS @OpenMS_BOOST_COMPONENTS@)
-#find_dependency(WM5)
 #find_dependency(COIN)
 #find_dependency(GLPK)
 #find_dependency(ZLIB)
@@ -78,6 +77,11 @@ get_filename_component(OPENMS_CMAKE_DIR "${CMAKE_CURRENT_LIST_FILE}" PATH)
 @_EXPORT_INCLUDE_BLOCK@
 
 set(OPENMS_ADDCXX_FLAGS "@CF_OPENMS_ADDCXX_FLAGS@")
+set(OPENMS_DATA_DIR "@PACKAGE_INSTALL_SHARE_DIR@")
+set(OPENMS_SHARE_DIR "@PACKAGE_INSTALL_SHARE_DIR@")
+set(OPENMS_BIN_DIR "@PACKAGE_INSTALL_BIN_DIR@")
+set(OPENMS_DOC_DIR "@PACKAGE_INSTALL_DOC_DIR@")
+set(OPENMS_LIB_DIR "@PACKAGE_INSTALL_LIB_DIR@")
 
 ## The targets file
 include("${OPENMS_CMAKE_DIR}/@_OPENMS_EXPORT_FILE@")

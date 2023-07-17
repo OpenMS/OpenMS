@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -158,6 +158,14 @@ namespace OpenMS
         return omp_get_max_threads();
         #else
         return 1;
+        #endif
+      }
+      /// @brief Set the number of threads that OpenMP will use (including hyperthreads)
+      /// Note: Can be initialized by the OMP_NUM_THREADS environment variable. This function can overwrite this at runtime.
+      static void setOpenMPNumThreads(Int num_threads)
+      {
+        #ifdef _OPENMP
+        omp_set_num_threads(num_threads);
         #endif
       }
     };

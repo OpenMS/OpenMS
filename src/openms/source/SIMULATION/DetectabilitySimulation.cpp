@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -68,9 +68,7 @@ namespace OpenMS
     return *this;
   }
 
-  DetectabilitySimulation::~DetectabilitySimulation()
-  {
-  }
+  DetectabilitySimulation::~DetectabilitySimulation() = default;
 
   void DetectabilitySimulation::filterDetectability(SimTypes::FeatureMapSim& features)
   {
@@ -189,8 +187,8 @@ namespace OpenMS
     svm.getSVCProbabilities(prediction_data, detectabilities, labels);
 
     // clean up when finished with prediction
-    delete prediction_data;
-    delete training_data;
+    LibSVMEncoder::destroyProblem(prediction_data);
+    LibSVMEncoder::destroyProblem(training_data);
   }
 
   void DetectabilitySimulation::svmFilter_(SimTypes::FeatureMapSim& features)

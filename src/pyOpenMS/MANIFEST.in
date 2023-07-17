@@ -3,6 +3,9 @@ prune pyopenms/share/OpenMS/examples
 include pyopenms/*.dll
 include pyopenms/*.dylib
 include pyopenms/*.so
+include pyopenms/*.pyd
+include pyopenms/*.pyi
+include pyopenms/py.typed
 include pyopenms/*.txt
 graft pyopenms/*.framework
 include pyopenms/Qt*

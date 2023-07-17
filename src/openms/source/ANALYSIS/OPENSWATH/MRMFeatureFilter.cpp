@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -56,9 +56,7 @@ namespace OpenMS
     defaultsToParam_(); // write defaults into Param object param_
   }
 
-  MRMFeatureFilter::~MRMFeatureFilter()
-  {
-  }
+  MRMFeatureFilter::~MRMFeatureFilter() = default;
 
   void MRMFeatureFilter::getDefaultParameters(Param& params) const
   {
@@ -202,7 +200,8 @@ namespace OpenMS
               }
             }
 
-            for (const std::pair<String, std::pair<double, double>>& kv : filter_criteria.component_group_qcs.at(cg_qc_it).meta_value_qc)
+            //std::pair<const String, std::pair<double, double>>
+            for (const auto& kv : filter_criteria.component_group_qcs.at(cg_qc_it).meta_value_qc)
             {
               bool metavalue_exists{ false };
               if (!checkMetaValue(features.at(feature_it), kv.first, kv.second.first, kv.second.second, metavalue_exists))
@@ -396,7 +395,7 @@ namespace OpenMS
               ++cg_tests_count;
             }
 
-            for (const std::pair<String, std::pair<double, double>>& kv : filter_criteria.component_group_qcs.at(cg_qc_it).meta_value_qc)
+            for (const auto& kv : filter_criteria.component_group_qcs.at(cg_qc_it).meta_value_qc)
             {
               if (!checkRange(filter_values.component_group_qcs.at(cg_qc_it).meta_value_qc.at(kv.first).second,
                 kv.second.first,

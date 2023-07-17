@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -37,8 +37,8 @@
 
 ///////////////////////////
 
-#include <OpenMS/QC/TIC.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
+#include <OpenMS/QC/TIC.h>
 
 ///////////////////////////
 
@@ -52,27 +52,27 @@ using namespace std;
 TIC* ptr = nullptr;
 TIC* nullPointer = nullptr;
 START_SECTION(TIC())
-  ptr = new TIC();
-  TEST_NOT_EQUAL(ptr, nullPointer)
+ptr = new TIC();
+TEST_NOT_EQUAL(ptr, nullPointer)
 END_SECTION
 
 START_SECTION(~TIC())
-  delete ptr;
+delete ptr;
 END_SECTION
 
 TIC tic;
 START_SECTION(const String& getName() const override)
-  TEST_EQUAL(tic.getName(), "TIC")
+TEST_EQUAL(tic.getName(), "TIC")
 END_SECTION
 
-START_SECTION(Status requires() const override)
-  TEST_EQUAL((tic.requires() == QCBase::Status(QCBase::Requires::RAWMZML)),true);
+START_SECTION(Status requirements() const override)
+TEST_EQUAL((tic.requirements() == QCBase::Status(QCBase::Requires::RAWMZML)), true);
 END_SECTION
 
-START_SECTION(void compute(const MSExperiment &exp, float bin_size))
-  // very simple test ATM, check if compute returns an empty Result struct
-  MSExperiment exp;
-  TEST_EQUAL(tic.compute(exp, 0) == TIC::Result(), true)
+START_SECTION(void compute(const MSExperiment& exp, float bin_size))
+// very simple test ATM, check if compute returns an empty Result struct
+MSExperiment exp;
+TEST_EQUAL(tic.compute(exp, 0) == TIC::Result(), true)
 END_SECTION
 
 /////////////////////////////////////////////////////////////

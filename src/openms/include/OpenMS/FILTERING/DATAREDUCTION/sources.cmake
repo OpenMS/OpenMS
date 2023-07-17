@@ -7,6 +7,7 @@ DataFilters.h
 Deisotoper.h
 ElutionPeakDetection.h
 FeatureFindingMetabo.h
+FeatureOverlapFilter.h
 IsotopeDistributionCache.h
 MassTraceDetection.h
 SplineInterpolatedPeaks.h

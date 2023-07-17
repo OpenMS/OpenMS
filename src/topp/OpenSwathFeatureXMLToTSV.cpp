@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -57,9 +57,9 @@ using namespace OpenMS;
   <CENTER>
       <table>
           <tr>
-              <td ALIGN = "center" BGCOLOR="#EBEBEB"> potential predecessor tools </td>
-              <td VALIGN="middle" ROWSPAN=3> \f$ \longrightarrow \f$ OpenSwathFeatureXMLToTSV \f$ \longrightarrow \f$</td>
-              <td ALIGN = "center" BGCOLOR="#EBEBEB"> potential successor tools </td>
+              <th ALIGN = "center"> potential predecessor tools </td>
+              <td VALIGN="middle" ROWSPAN=3> &rarr; OpenSwathFeatureXMLToTSV &rarr;</td>
+              <th ALIGN = "center"> potential successor tools </td>
           </tr>
           <tr>
               <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_OpenSwathAnalyzer </td>
@@ -166,7 +166,7 @@ void write_out_body_(std::ostream &os, Feature *feature_it, TargetedExperiment &
   // handle charge
   if (pep.hasCVTerm("MS:1000041"))
   {
-    charge = pep.getCVTerms()["MS:1000041"][0].getValue().toString();
+    charge = pep.getCVTerms().at("MS:1000041")[0].getValue().toString();
   }
   else if (pep.hasCharge())
   {
@@ -188,19 +188,20 @@ void write_out_body_(std::ostream &os, Feature *feature_it, TargetedExperiment &
   {
     const ReactionMonitoringTransition *transition = peptide_transition_map[peptide_ref][0];
 #if 1
-    if (transition->getCVTerms().has("decoy"))
+    const auto& terms = transition->getCVTerms();
+    if (terms.find("decoy") != terms.end())
     {
-      decoy = transition->getCVTerms()["decoy"][0].getValue().toString();
+      decoy = transition->getCVTerms().at("decoy")[0].getValue().toString();
     }
-    else if (transition->getCVTerms().has("MS:1002007"))    // target SRM transition
+    else if (terms.find("MS:1002007") != terms.end() )    // target SRM transition
     {
       decoy = "0";
     }
-    else if (transition->getCVTerms().has("MS:1002008"))    // decoy SRM transition
+    else if (terms.find("MS:1002008") != terms.end() )    // decoy SRM transition
     {
       decoy = "1";
     }
-    else if (transition->getCVTerms().has("MS:1002007") && transition->getCVTerms().has("MS:1002008"))    // both == illegal
+    else if (terms.find("MS:1002007") != terms.end() && terms.find("MS:1002008") != terms.end() )    // both == illegal
     {
       throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                        "Peptide " + peptide_ref + " cannot be target and decoy at the same time.");

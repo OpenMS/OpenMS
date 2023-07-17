@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -56,9 +56,9 @@ namespace OpenMS
     defaults_.setValue("bucketsize", 100, "Defines the numbers of buckets. It is a quantize of the interval of those points, which defines the main alignment (match points). These points have to filtered, to reduce the amount of points for the calculating a smoother spline curve.", {"advanced"});
     defaults_.setMinInt("bucketsize", 1);
     defaults_.setValue("anchorpoints", 100, "Defines the percent of numbers of match points which a selected from one bucket. The high score pairs are previously selected. The reduction of match points helps to get a smoother spline curve.", {"advanced"});
-    defaults_.setValue("debug", "false", "Activate the debug mode, there a files written starting with debug prefix.", {"advanced"});
     defaults_.setMinInt("anchorpoints", 1);
     defaults_.setMaxInt("anchorpoints", 100);
+    defaults_.setValue("debug", "false", "Activate the debug mode, there a files written starting with debug prefix.", {"advanced"});
     defaults_.setValidStrings("debug", {"true","false"});
     defaults_.setValue("mismatchscore", -5.0, "Defines the score of two spectra if they have no similarity to each other. ", {"advanced"});
     defaults_.setMaxFloat("mismatchscore", 0.0);

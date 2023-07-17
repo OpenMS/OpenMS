@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry               
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 // 
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -78,7 +78,7 @@ START_SECTION((TwoDOptimization& operator=(const TwoDOptimization& opt)))
   TEST_REAL_SIMILAR(penalties.rWidth,penalties_copy.rWidth)
   TEST_REAL_SIMILAR(penalties.height,penalties_copy.height)
     
-  TEST_EQUAL(number == 10, true)
+  TEST_TRUE(number == 10)
 END_SECTION
 
 START_SECTION((TwoDOptimization(const TwoDOptimization& opt)))
@@ -96,7 +96,7 @@ START_SECTION((TwoDOptimization(const TwoDOptimization& opt)))
   TEST_REAL_SIMILAR(penalties.rWidth,penalties_copy.rWidth)
   TEST_REAL_SIMILAR(penalties.height,penalties_copy.height)
     
-  TEST_EQUAL(number == 10, true)
+  TEST_TRUE(number == 10)
 END_SECTION
 
 

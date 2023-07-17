@@ -147,30 +147,6 @@
 				<userParam name="parameter: mode" type="xsd:string" value="test_mode"/>
 			</processingMethod>
 		</dataProcessing>
-		<dataProcessing id="dp_sp_1_bi_0">
-			<processingMethod order="0" softwareRef="so_default">
-				<cvParam cvRef="MS" accession="MS:1000544" name="Conversion to mzML" />
-				<userParam name="warning" type="xsd:string" value="fictional processing method used to fulfill format requirements" />
-			</processingMethod>
-		</dataProcessing>
-		<dataProcessing id="dp_sp_3_bi_0">
-			<processingMethod order="0" softwareRef="so_default">
-				<cvParam cvRef="MS" accession="MS:1000544" name="Conversion to mzML" />
-				<userParam name="warning" type="xsd:string" value="fictional processing method used to fulfill format requirements" />
-			</processingMethod>
-		</dataProcessing>
-		<dataProcessing id="dp_sp_5_bi_0">
-			<processingMethod order="0" softwareRef="so_default">
-				<cvParam cvRef="MS" accession="MS:1000544" name="Conversion to mzML" />
-				<userParam name="warning" type="xsd:string" value="fictional processing method used to fulfill format requirements" />
-			</processingMethod>
-		</dataProcessing>
-		<dataProcessing id="dp_sp_7_bi_0">
-			<processingMethod order="0" softwareRef="so_default">
-				<cvParam cvRef="MS" accession="MS:1000544" name="Conversion to mzML" />
-				<userParam name="warning" type="xsd:string" value="fictional processing method used to fulfill format requirements" />
-			</processingMethod>
-		</dataProcessing>
 	</dataProcessingList>
 	<run id="ru_0" defaultInstrumentConfigurationRef="ic_0" sampleRef="sa_0">
 		<spectrumList count="8" defaultDataProcessingRef="dp_sp_0">
@@ -471,16 +447,16 @@
 </mzML>
 <indexList count="1">
 	<index name="spectrum">
-		<offset idRef="spectrum=10">13209</offset>
-		<offset idRef="spectrum=11">16252</offset>
-		<offset idRef="spectrum=12">25182</offset>
-		<offset idRef="spectrum=13">28197</offset>
-		<offset idRef="spectrum=14">37127</offset>
-		<offset idRef="spectrum=15">40142</offset>
-		<offset idRef="spectrum=16">49072</offset>
-		<offset idRef="spectrum=17">52087</offset>
+		<offset idRef="spectrum=10">11865</offset>
+		<offset idRef="spectrum=11">14908</offset>
+		<offset idRef="spectrum=12">23838</offset>
+		<offset idRef="spectrum=13">26853</offset>
+		<offset idRef="spectrum=14">35783</offset>
+		<offset idRef="spectrum=15">38798</offset>
+		<offset idRef="spectrum=16">47728</offset>
+		<offset idRef="spectrum=17">50743</offset>
 	</index>
 </indexList>
-<indexListOffset>61062</indexListOffset>
+<indexListOffset>59718</indexListOffset>
 <fileChecksum>0</fileChecksum>
 </indexedmzML>

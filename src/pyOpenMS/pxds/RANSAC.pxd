@@ -7,8 +7,8 @@ cdef extern from "<OpenMS/MATH/MISC/RANSAC.h>" namespace "OpenMS::Math":
 
     cdef cppclass RANSAC[TModelType]:
         # wrap-instances:
-        #   RANSAC := RANSAC[RansacModelLinear]
-        #   RANSACQuadratic := RANSAC[RansacModelQuadratic]
+        #  RANSAC := RANSAC[RansacModelLinear]
+        #  RANSACQuadratic := RANSAC[RansacModelQuadratic]
 
         RANSAC() nogil except +
         RANSAC(UInt64 seed) nogil except +

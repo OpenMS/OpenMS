@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -42,8 +42,9 @@
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/CONCEPT/Macros.h>
 
-#include <limits>
 #include <fstream>
+#include <limits>
+#include <utility>
 
 using namespace std;
 
@@ -92,11 +93,11 @@ namespace OpenMS
     //   throw Exception::FailedAPICall(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Cannot initialize ModificationsDB twice");
     // }
 
-    static ModificationsDB* db_ = new ModificationsDB(unimod_file, psimod_file, xlmod_file);
+    static ModificationsDB* db_ = new ModificationsDB(std::move(unimod_file), std::move(psimod_file), std::move(xlmod_file));
     return db_;
   }
 
-  ModificationsDB::ModificationsDB(OpenMS::String unimod_file, OpenMS::String psimod_file, OpenMS::String xlmod_file)
+  ModificationsDB::ModificationsDB(const OpenMS::String& unimod_file, const OpenMS::String& psimod_file, const OpenMS::String& xlmod_file)
   {
     if (!unimod_file.empty())
     {
@@ -196,7 +197,7 @@ namespace OpenMS
   {
     const ResidueModification* mod(nullptr);
 
-    String mod_name = mod_in.getFullId();
+    const String& mod_name = mod_in.getFullId();
 
     #pragma omp critical(OpenMS_ModificationsDB)
     {

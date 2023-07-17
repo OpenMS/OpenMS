@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -132,7 +132,7 @@ namespace OpenMS
        * @return A vector of AASeqWithMass containing the peptides, their masses and information about terminal peptides
        */
       static std::vector<OPXLDataStructs::AASeqWithMass> digestDatabase(std::vector<FASTAFile::FASTAEntry> fasta_db,
-        EnzymaticDigestion digestor, Size min_peptide_length, StringList cross_link_residue1, StringList cross_link_residue2,
+        const EnzymaticDigestion& digestor, Size min_peptide_length, const StringList& cross_link_residue1, const StringList& cross_link_residue2,
         const ModifiedPeptideGenerator::MapToResidueType& fixed_modifications,
         const ModifiedPeptideGenerator::MapToResidueType& variable_modifications,
         Size max_variable_mods_per_peptide);
@@ -162,7 +162,7 @@ namespace OpenMS
                                                                                     const DoubleList & cross_link_mass_mono_link,
                                                                                     const std::vector< double >& spectrum_precursor_vector,
                                                                                     const std::vector< double >& allowed_error_vector,
-                                                                                    String cross_link_name);
+                                                                                    const String& cross_link_name);
 
       /**
        * @brief Fills up the given FragmentAnnotation vector with annotations from a theoretical spectrum
@@ -263,9 +263,9 @@ namespace OpenMS
                                                                                                 bool precursor_mass_tolerance_unit_ppm,
                                                                                                 const std::vector<OPXLDataStructs::AASeqWithMass>& filtered_peptide_masses,
                                                                                                 double cross_link_mass,
-                                                                                                DoubleList cross_link_mass_mono_link,
-                                                                                                StringList cross_link_residue1,
-                                                                                                StringList cross_link_residue2,
+                                                                                                const DoubleList& cross_link_mass_mono_link,
+                                                                                                const StringList& cross_link_residue1,
+                                                                                                const StringList& cross_link_residue2,
                                                                                                 String cross_link_name,
                                                                                                 bool use_sequence_tags = false,
                                                                                                 const std::vector<std::string>& tags = std::vector<std::string>());
@@ -277,7 +277,7 @@ namespace OpenMS
        * @param precursor_mz The precursor mz of the MS/MS spectrum
        * @param precursor_charge The charge of the precursor
        */
-      static double computePrecursorError(OPXLDataStructs::CrossLinkSpectrumMatch csm, double precursor_mz, int precursor_charge);
+      static double computePrecursorError(const OPXLDataStructs::CrossLinkSpectrumMatch& csm, double precursor_mz, int precursor_charge);
 
       /**
        * @brief Computes the mass error of a precursor mass to a hit

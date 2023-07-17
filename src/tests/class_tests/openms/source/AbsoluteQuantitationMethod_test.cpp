@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -146,10 +146,10 @@ END_SECTION
 START_SECTION(inline bool operator==(const AbsoluteQuantitationMethod& other) const)
 {
   AbsoluteQuantitationMethod aqm1, aqm2;
-  TEST_EQUAL(aqm1 == aqm2, true);
+  TEST_TRUE(aqm1 == aqm2);
   aqm1.setLLOD(1.0);
   aqm2.setLLOD(1.0);
-  TEST_EQUAL(aqm1 == aqm2, true);
+  TEST_TRUE(aqm1 == aqm2);
   aqm2.setLLOD(2.0);
   TEST_EQUAL(aqm1 == aqm2, false);
 }
@@ -163,7 +163,7 @@ START_SECTION(inline bool operator!=(const AbsoluteQuantitationMethod& other) co
   aqm2.setLLOD(1.0);
   TEST_EQUAL(aqm1 != aqm2, false);
   aqm2.setLLOD(2.0);
-  TEST_EQUAL(aqm1 != aqm2, true);
+  TEST_FALSE(aqm1 == aqm2);
 }
 END_SECTION
 

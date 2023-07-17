@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -36,7 +36,6 @@
 #pragma once
 
 #include <OpenMS/CONCEPT/Types.h>
-#include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/CHEMISTRY/ISOTOPEDISTRIBUTION/IsotopeDistribution.h>
 
 #include <string>
@@ -50,7 +49,10 @@ namespace OpenMS
 {
   /** @ingroup Chemistry
 
-          @brief Representation of an element
+      @brief Representation of an element
+
+      This contains information on an element and its isotopes, including a
+      common name, atomic symbol and mass/abundance of its isotopes.
   */
   class OPENMS_DLLAPI Element
   {
@@ -158,7 +160,7 @@ protected:
     /// mono isotopic weight of the most frequent isotope
     double mono_weight_;
 
-    /// distribution of the isotopes
+    /// distribution of the isotopes (mass and natural frequency)
     IsotopeDistribution isotopes_;
   };
 

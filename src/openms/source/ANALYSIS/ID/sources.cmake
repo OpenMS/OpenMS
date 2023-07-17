@@ -30,6 +30,7 @@ IDRipper.cpp
 IDDecoyProbability.cpp
 IDScoreGetterSetter.cpp
 IDScoreSwitcherAlgorithm.cpp
+IonIdentityMolecularNetworking.cpp
 MessagePasserFactory.cpp
 MetaboliteSpectralMatching.cpp
 PeptideProteinResolution.cpp

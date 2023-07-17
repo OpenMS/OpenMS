@@ -41,7 +41,7 @@ import shutil
 import time
 
 if OPEN_MS_GIT_BRANCH == "nightly":
-    package_name = "pyopenms_nightly"
+    package_name = "pyopenms"
     package_version = OPEN_MS_VERSION + ".dev" + OPENMS_GIT_LC_DATE_FORMAT
 else:
     package_name = "pyopenms"
@@ -218,7 +218,7 @@ if not iswin:
         extra_compile_args.append("-O0")
         extra_link_args.append("-O0")
 
-mnames = ["pyopenms_%s" % (k+1) for k in range(int(PY_NUM_MODULES))]
+mnames = ["_pyopenms_%s" % (k+1) for k in range(int(PY_NUM_MODULES))]
 ext = []
 
 ##WARNING debug
@@ -253,9 +253,13 @@ setup(
     name=package_name,
     packages=["pyopenms"],
     ext_package="pyopenms",
+    package_data= {
+        'pyopenms': ['py.typed', '*.pyi']
+    },
 	install_requires=[
           'numpy',
-          'pandas'
+          'pandas',
+          'matplotlib>=3.5'
     ],
 
     version=package_version,
@@ -276,7 +280,7 @@ setup(
     long_description_content_type="text/x-rst",
     zip_safe=False,
 
-    url="http://open-ms.de",
+    url="https://openms.de",
 
     author="Uwe Schmitt and the OpenMS team",
     author_email="uschmitt@mineway.de",

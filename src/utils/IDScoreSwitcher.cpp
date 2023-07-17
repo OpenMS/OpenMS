@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -87,7 +87,6 @@ protected:
     setValidFormats_("in", ListUtils::create<String>("idXML"));
     registerOutputFile_("out", "<file>", "", "Output file");
     setValidFormats_("out", ListUtils::create<String>("idXML"));
-    registerFlag_("proteins", "Apply to protein scores instead of PSM scores");
     registerFullParam_(switcher_.getParameters());
   }
 
@@ -95,7 +94,7 @@ protected:
   {
     switcher_.setParameters(getParam_().copySubset(switcher_.getParameters()));
     String in = getStringOption_("in"), out = getStringOption_("out");
-    bool do_proteins_ = getFlag_("proteins");
+    bool do_proteins_ = getFlag_("proteins"); // from full param of IDScoreSwitcherAlgorithm
 
     vector<ProteinIdentification> proteins;
     vector<PeptideIdentification> peptides;

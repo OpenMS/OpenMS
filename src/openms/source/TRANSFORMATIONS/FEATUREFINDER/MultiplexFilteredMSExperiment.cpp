@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -51,9 +51,7 @@ using namespace std;
 namespace OpenMS
 {
 
-  MultiplexFilteredMSExperiment::MultiplexFilteredMSExperiment()
-  {
-  }
+  MultiplexFilteredMSExperiment::MultiplexFilteredMSExperiment() = default;
 
   void MultiplexFilteredMSExperiment::addPeak(const MultiplexFilteredPeak& peak)
   {
@@ -102,7 +100,7 @@ namespace OpenMS
     return result_.size();
   }
   
-  void MultiplexFilteredMSExperiment::writeDebugOutput(const MSExperiment& exp_picked, String debug_out) const
+  void MultiplexFilteredMSExperiment::writeDebugOutput(const MSExperiment& exp_picked, const String& debug_out) const
   {
     ConsensusMap map;
     

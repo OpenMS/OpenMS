@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -65,10 +65,11 @@ using namespace IsoSpec;
 
 namespace OpenMS
 {
+  /// Convert an set of isotope probabiities to IsoSpec input
   Iso _OMS_IsoFromParameters(const std::vector<int>& isotopeNr,
-                    const std::vector<int>& atomCounts,
-                    const std::vector<std::vector<double> >& isotopeMasses,
-                    const std::vector<std::vector<double> >& isotopeProbabilities)
+                             const std::vector<int>& atomCounts,
+                             const std::vector<std::vector<double> >& isotopeMasses,
+                             const std::vector<std::vector<double> >& isotopeProbabilities)
   {
     OPENMS_PRECONDITION(isotopeNr.size() == atomCounts.size(), "Vectors need to be of the same size")
     OPENMS_PRECONDITION(isotopeNr.size() == isotopeMasses.size(), "Vectors need to be of the same size")
@@ -94,12 +95,15 @@ namespace OpenMS
       IP[i] = isotopeProbabilities[i].data();
     }
 
+    // IsoSpec will *copy* these values, so once provided we are safe to
+    // destroy them here on the OpenMS side
     Iso ret(dimNumber, isotopeNr.data(), atomCounts.data(), IM.get(), IP.get());
     
     return ret;
   }
 
-    Iso _OMS_IsoFromEmpiricalFormula(const EmpiricalFormula& formula) 
+  /// Convert an OpenMS EmpiricalFormula to the input format for IsoSpec
+  Iso _OMS_IsoFromEmpiricalFormula(const EmpiricalFormula& formula) 
   {
     // Use our own isotopic tables
     std::vector<int> isotopeNumbers, atomCounts;

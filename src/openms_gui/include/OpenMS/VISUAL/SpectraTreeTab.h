@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -77,11 +77,11 @@ public:
     /// Return a copy of the currently selected spectrum/chrom (for drag'n'drop to new window)
     /// and store it either as Spectrum or Chromatogram in @p exp (all other data is cleared)
     /// If no spectrum/chrom is selected, false is returned and @p exp is empty
+    /// 
+    /// @param[out] exp The currently active spec/chrom
     /// @param current_type Either DT_PEAK or DT_CHROMATOGRAM, depending on what is currently shown
+    /// @return true if a spec/chrom is currently active
     bool getSelectedScan(MSExperiment& exp, LayerDataBase::DataType& current_type) const;
-
-    /// received focus e.g. through tabswitching
-    void updateIndexFromCurrentLayer();
 
 signals:
     void spectrumSelected(int);

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -267,18 +267,7 @@ namespace OpenMS
             {
               AASequence new_aa = AASequence::fromString("[" + String(rna_weight) + "]." + seq);
               ph.setSequence(new_aa);
-            }
-            else // place it anywhere
-            {
-              for (auto a : aa) // NOTE: performs copy, this cannot possibly work!
-              {
-                if (!a.isModified())
-                {
-                  a.setModification("[" + String(rna_weight) + "]");
-                  break;
-                }
-              }
-            }
+            }           
           }
       }
     }

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -55,6 +55,11 @@ namespace OpenMS
         const std::string& enz, 
         int min_charge, 
         int max_charge);
+
+      /** @brief load pin file and convert to a vector of PeptideIdentification using the given score column @p score_name and orientation @p higher_score_better.
+          If a decoy prefix is provided, the decoy status is set from the protein accessions.
+          Otherwise, it assumes that the pin file already contains the correctly annotated decoy status. **/
+      static std::vector<PeptideIdentification> load(const String& pin_file, bool higher_score_better, const String& score_name, String decoy_prefix = "");
 
       // uses spectrum_reference, if empty uses spectrum_id, if also empty fall back to using index
       static String getScanIdentifier(const PeptideIdentification& pid, size_t index);

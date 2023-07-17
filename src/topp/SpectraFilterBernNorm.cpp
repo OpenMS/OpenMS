@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -53,9 +53,9 @@ using namespace std;
   <CENTER>
   <table>
   <tr>
-  <td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. predecessor tools </td>
-  <td VALIGN="middle" ROWSPAN=2> \f$ \longrightarrow \f$ SpectraFilter \f$ \longrightarrow \f$</td>
-  <td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. successor tools </td>
+  <th ALIGN = "center"> pot. predecessor tools </td>
+  <td VALIGN="middle" ROWSPAN=2> &rarr; SpectraFilter &rarr;</td>
+  <th ALIGN = "center"> pot. successor tools </td>
   </tr>
   <tr>
   <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_PeakPickerWavelet </td>
@@ -126,7 +126,7 @@ protected:
     //-------------------------------------------------------------
     if (exp.clearMetaDataArrays())
     {
-      writeLog_("Warning: Spectrum meta data arrays cannot be sorted. They are deleted.");
+      writeLogWarn_("Warning: Spectrum meta data arrays cannot be sorted. They are deleted.");
     }
 
     //-------------------------------------------------------------

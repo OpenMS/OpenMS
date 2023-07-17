@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -53,9 +53,9 @@ using namespace std;
     <CENTER>
     <table>
         <tr>
-            <td ALIGN = "center" BGCOLOR="#EBEBEB"> potential predecessor tools </td>
-            <td VALIGN="middle" ROWSPAN=2> \f$ \longrightarrow \f$ IDPosteriorErrorProbability \f$ \longrightarrow \f$</td>
-            <td ALIGN = "center" BGCOLOR="#EBEBEB"> potential successor tools </td>
+            <th ALIGN = "center"> potential predecessor tools </td>
+            <td VALIGN="middle" ROWSPAN=2> &rarr; IDPosteriorErrorProbability &rarr;</td>
+            <th ALIGN = "center"> potential successor tools </td>
         </tr>
         <tr>
             <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_MascotAdapter (or other ID engines) </td>
@@ -200,7 +200,7 @@ protected:
 
     if (all_scores.empty())
     {
-      writeLog_("No data collected. Check whether search engine is supported.");
+      writeLogWarn_("No data collected. Check whether search engine is supported.");
       if (!ignore_bad_data)
       {
         return INPUT_FILE_EMPTY;
@@ -232,7 +232,7 @@ protected:
 
       if (!return_value) 
       {
-        writeLog_("Unable to fit data. Algorithm did not run through for the following search engine: " + engine);
+        writeLogWarn_("Unable to fit data. Algorithm did not run through for the following search engine: " + engine);
         if (!ignore_bad_data)
         { 
           return UNEXPECTED_RESULT;
@@ -264,7 +264,7 @@ protected:
 
         if (unable_to_fit_data)
         {
-          writeLog_(String("Unable to fit data for search engine: ") + engine);
+          writeLogWarn_(String("Unable to fit data for search engine: ") + engine);
           if (!ignore_bad_data)
           {
             return UNEXPECTED_RESULT;
@@ -272,7 +272,7 @@ protected:
         }
         else if (data_might_not_be_well_fit) 
         {
-          writeLog_(String("Data might not be well fitted for search engine: ") + engine);
+          writeLogWarn_(String("Data might not be well fitted for search engine: ") + engine);
         }
       }
     }

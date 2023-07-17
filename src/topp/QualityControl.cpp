@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -61,6 +61,8 @@
 #include <OpenMS/QC/TIC.h>
 #include <OpenMS/QC/Ms2SpectrumStats.h>
 #include <OpenMS/QC/MQEvidenceExporter.h>
+#include <OpenMS/QC/MQMsmsExporter.h>
+#include <OpenMS/QC/MQExporterHelper.h>
 #include <cstdio>
 
 #include <map>
@@ -81,9 +83,9 @@ using namespace std;
 <CENTER>
 <table>
 <tr>
-<td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. predecessor tools </td>
-<td VALIGN="middle" ROWSPAN=4> \f$ \longrightarrow \f$ QualityControl \f$ \longrightarrow \f$</td>
-<td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. successor tools </td>
+<th ALIGN = "center"> pot. predecessor tools </td>
+<td VALIGN="middle" ROWSPAN=4> &rarr; QualityControl &rarr;</td>
+<th ALIGN = "center"> pot. successor tools </td>
 </tr>
 <tr>
 <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_FeatureLinkerUnlabeledKD (or FLs; for consensusXML)</td>
@@ -114,7 +116,7 @@ class TOPPQualityControl : public TOPPBase
 {
 public:
   TOPPQualityControl()
-   : TOPPBase("QualityControl", "Computes various QC metrics from many possible input files (only the consensusXML is required). The more optional files you provide, the more metrics you get.", true)
+      : TOPPBase("QualityControl", "Computes various QC metrics from many possible input files (only the consensusXML is required). The more optional files you provide, the more metrics you get.", true)
   {
   }
 protected:
@@ -140,12 +142,14 @@ protected:
     registerDoubleOption_("FragmentMassError:tolerance", "<double>", 20, "m/z search window for matching peaks in two spectra", false);
     registerInputFile_("in_contaminants", "<file>", "", "Proteins considered contaminants", false);
     setValidFormats_("in_contaminants", {"fasta"});
+    registerInputFile_("in_fasta", "<file>", "", "FASTA file used during MS/MS identification (including decoys). If the protein description contains 'GN=...' then gene names will be extracted", false);
+    setValidFormats_("in_fasta", {"fasta"});
     registerInputFileList_("in_trafo", "<file>", {}, "trafoXMLs from MapAligners", false);
     setValidFormats_("in_trafo", {"trafoXML"});
     registerTOPPSubsection_("MS2_id_rate", "MS2 ID Rate settings");
     registerFlag_("MS2_id_rate:assume_all_target", "Forces the metric to run even if target/decoy annotation is missing (accepts all pep_ids as target hits).", false);
     registerStringOption_("out_evd", "<Path>", "", "If a Path is given, a MQEvidence txt-file will be created in this directory. If the directory does not exist, it will be created as well.", false);
-
+    registerStringOption_("out_msms", "<Path>", "", "If a Path is given, a MQMsms txt-file will be created in this directory. If the directory does not exist, it will be created as well.", false);
 
     //TODO get ProteinQuantifier output for PRT section
   }
@@ -172,6 +176,16 @@ protected:
       FASTAFile().load(in_contaminants, contaminants);
       status |= QCBase::Requires::CONTAMINANTS;
     }
+
+    //the additional file the user passed, with annotate genenames & protnames
+    String fasta_file = getStringOption_("in_fasta");
+    vector<FASTAFile::FASTAEntry> prot_description;
+    if(!fasta_file.empty())
+    {
+      OPENMS_LOG_INFO << "Loading FASTA ... " << fasta_file << std::endl;
+      FASTAFile().load(fasta_file, prot_description);
+    }
+
     ConsensusMap cmap;
     String in_cm = getStringOption_("in_cm");
     ConsensusXMLFile().load(in_cm, cmap);
@@ -206,9 +220,9 @@ protected:
         OPENMS_LOG_INFO << "Unlabeled data detected in ConsensusXML detected! Data will be extracted from there. If you can, provide the FeatureXML files for potentially more metrics." << std::endl;
         if (number_exps != fmaps.size())
         {
-          throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, 
+          throw Exception::Precondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION,
                                         String("Number of Maps in the ConsensusMap (") + fmaps.size() +
-                                        ") does not match length of -in_raw or -in_trafo (" + number_exps + ").");
+                                          ") does not match length of -in_raw or -in_trafo (" + number_exps + ").");
         }
       }
     }
@@ -280,6 +294,8 @@ protected:
     String out_evidence = getStringOption_("out_evd");
     MQEvidence export_evidence(out_evidence);
 
+    String out_msms = getStringOption_("out_msms");
+    MQMsms export_msms(out_msms);
 
     vector<TIC::Result> tic_results;
     for (Size i = 0; i < number_exps; ++i)
@@ -307,7 +323,7 @@ protected:
       }
       for (Feature & f: *fmap) // make sure that the first PeptideIdentification of a Feature is the one with the highest Score
       {
-          sortVectorOfPeptideIDsbyScore_(f.getPeptideIdentifications());
+        sortVectorOfPeptideIDsbyScore_(f.getPeptideIdentifications());
       }
       mp_f.create(fmap->getProteinIdentifications());
 
@@ -340,7 +356,7 @@ protected:
       {
         qc_mz_calibration.compute(*fmap, exp, spec_map);
       }
-      
+
       // after qc_mz_calibration, because it calculates 'mass' metavalue
       if (qc_missed_cleavages.isRunnable(status))
       {
@@ -405,7 +421,7 @@ protected:
       {
         FeatureXMLFile().store(out_feat[i], *fmap);
       }
-      //------------------------------------------------------------- 
+      //-------------------------------------------------------------
       // Annotate calculated meta values from FeatureMap to given ConsensusMap
       //-------------------------------------------------------------
 
@@ -418,30 +434,55 @@ protected:
         addPepIDMetaValues_(feature.getPeptideIdentifications(), customID_to_cpepID, mp_f.identifier_to_msrunpath, cmap);
       }
 
-      if (export_evidence.isValid())
+      if (MQExporterHelper::isValid(out_evidence) || MQExporterHelper::isValid(out_msms))
       {
-        export_evidence.exportFeatureMap(*fmap,cmap);
+        //if the user provided no fastafile, we can try this as a last resort
+        const auto& cmap_prot_ids = cmap.getProteinIdentifications();
+        if(!cmap_prot_ids.empty())
+        {
+          const String& file_name = cmap_prot_ids[0].getSearchParameters().db;
+          if(prot_description.empty())
+          {
+            fallbackFasta(file_name, prot_description);
+          }
+        }
+
+        //index the fasta file for constant access
+        map<String,String> fasta_map {};
+        indexFasta(prot_description, fasta_map);
+
+
+        if (MQExporterHelper::isValid(out_evidence))
+        {
+          OPENMS_LOG_INFO << "Exporting FeatureMap for evidence..." << std::endl;
+          export_evidence.exportFeatureMap(*fmap,cmap,exp,fasta_map);
+        }
+        if (MQExporterHelper::isValid(out_msms))
+        {
+          OPENMS_LOG_INFO << "Exporting FeatureMap for msms..." << std::endl;
+          export_msms.exportFeatureMap(*fmap,cmap,exp,fasta_map);
+        }
       }
     }
 
     // check if all PepIDs of ConsensusMap appeared in a FeatureMap
     bool incomplete_features {false};
     auto f =
-        [&incomplete_features](const PeptideIdentification& pep_id)
-        {
-          if (!pep_id.getHits().empty() && !pep_id.getHits()[0].metaValueExists("missed_cleavages"))
-          {
-            OPENMS_LOG_ERROR << "A PeptideIdentification in the ConsensusXML with sequence " << pep_id.getHits()[0].getSequence().toString()
-                             << ", RT '" << pep_id.getRT() << "', m/z '" << pep_id.getMZ() << "' and identifier '" << pep_id.getIdentifier()
-                             << "' does not appear in any of the given FeatureXMLs. Check your input!\n";
-            incomplete_features = true;
-          }
-        };
+      [&incomplete_features](const PeptideIdentification& pep_id)
+    {
+      if (!pep_id.getHits().empty() && !pep_id.getHits()[0].metaValueExists("missed_cleavages"))
+      {
+        OPENMS_LOG_ERROR << "A PeptideIdentification in the ConsensusXML with sequence " << pep_id.getHits()[0].getSequence().toString()
+                         << ", RT '" << pep_id.getRT() << "', m/z '" << pep_id.getMZ() << "' and identifier '" << pep_id.getIdentifier()
+                         << "' does not appear in any of the given FeatureXMLs. Check your input!\n";
+        incomplete_features = true;
+      }
+    };
     cmap.applyFunctionOnPeptideIDs(f, true);
     if (incomplete_features)
     {
       return ILLEGAL_PARAMETERS;
-    }    
+    }
     // add new PeptideIdentifications (for unidentified MS2 spectra)
     cmap.getUnassignedPeptideIdentifications().insert(cmap.getUnassignedPeptideIdentifications().end(), all_new_upep_ids.begin(), all_new_upep_ids.end());
 
@@ -542,6 +583,28 @@ private:
       }
     }
   }
+
+  void indexFasta(std::vector<FASTAFile::FASTAEntry>& prot_description, std::map<String, String>& fasta_map)
+  {
+    //map the identifier to the description so that we can access the description via the cmap-identifier
+    for(const auto& entry : prot_description)
+    {
+      fasta_map.emplace(entry.identifier, entry.description);
+    }
+  }
+
+  void fallbackFasta(const String& file_name, std::vector<FASTAFile::FASTAEntry>& prot_description)
+  {
+    OPENMS_LOG_INFO << "No FASTA passed, looking for the default search parameters in consensusXML" << std::endl;
+    try
+    {
+      FASTAFile().load(file_name, prot_description);
+    }
+    catch(const Exception::FileNotFound& e)
+    {
+      OPENMS_LOG_INFO << e.what() << std::endl;
+    }
+  }
 };
 
 // the actual main function needed to create an executable
@@ -552,4 +615,3 @@ int main(int argc, const char ** argv)
 }
 
 /// @endcond
-

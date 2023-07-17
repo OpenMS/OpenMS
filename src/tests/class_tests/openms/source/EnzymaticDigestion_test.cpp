@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -58,7 +58,8 @@ START_SECTION((EnzymaticDigestion()))
 END_SECTION
 
 START_SECTION([EXTRA] virtual ~EnzymaticDigestion())
-    delete ed_ptr;
+  delete ed_ptr;
+  NOT_TESTABLE
 END_SECTION
 
 START_SECTION(([EXTRA] EnzymaticDigestion(const EnzymaticDigestion& rhs)))
@@ -503,6 +504,15 @@ START_SECTION([EXTRA] Size countMissedCleavages_(const std::vector<int>& cleavag
   TEST_EQUAL(ed.isValidProduct("KKKK", 0, 4, false), false); // has 3 MC's, should not be valid
   ed.setMissedCleavages(3);
   TEST_EQUAL(ed.isValidProduct("KKKK", 0, 4, false), true);  // has 3 MC's, should be valid
+END_SECTION
+
+START_SECTION(Size countInternalCleavageSites(const String& sequence) )
+  EnzymaticDigestion ed;
+  ed.setMissedCleavages(0); // setting max missed cleavages should not have any impact
+  TEST_EQUAL(ed.countInternalCleavageSites("PEEKEEKEEPKEEPK"), 3); // has 3 internal cleavage sites
+  ed.setMissedCleavages(2);
+  TEST_EQUAL(ed.countInternalCleavageSites("PEEKEEKEEPKEEPK"), 3); // has 3 internal cleavage sites
+  TEST_EQUAL(ed.countInternalCleavageSites("EEEEEEEEEEEEEEE"), 0); // has 0 internal cleavage sites
 END_SECTION
 
 /////////////////////////////////////////////////////////////

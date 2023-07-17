@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -33,6 +33,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/SIMULATION/LABELING/ICPLLabeler.h>
+#include <map>
 
 using std::vector;
 
@@ -63,9 +64,7 @@ namespace OpenMS
     defaultsToParam_();
   }
 
-  ICPLLabeler::~ICPLLabeler()
-  {
-  }
+  ICPLLabeler::~ICPLLabeler() = default;
 
   void ICPLLabeler::preCheck(Param& /* param */) const
   {
@@ -155,7 +154,7 @@ namespace OpenMS
     if (features_to_simulate.size() == 2) // merge_mode for two FeatureMaps
     {
       // create index of light channel features for easy mapping of medium-to-light channel
-      Map<String, Feature> light_labeled_features_index;
+      std::map<String, Feature> light_labeled_features_index;
       for (Feature& light_label : light_labeled_features)
       {
         light_label.ensureUniqueId();
@@ -174,7 +173,7 @@ namespace OpenMS
         medium_label.ensureUniqueId();
 
         // check if we have a pair
-        if (light_labeled_features_index.has(getUnmodifiedAASequence_(medium_label, medium_channel_label_)))
+        if (light_labeled_features_index.find(getUnmodifiedAASequence_(medium_label, medium_channel_label_)) != light_labeled_features_index.end())
         {
           // own scope as we don't know what happens to 'f_modified' once we call erase() below
           Feature& light_labeled_feature = light_labeled_features_index[getUnmodifiedAASequence_(medium_label, medium_channel_label_)];
@@ -212,7 +211,7 @@ namespace OpenMS
 
       // add singletons from light-labeled channel
       // clean up light-labeled_index
-      for (Map<String, Feature>::iterator light_labeled_index_iter = light_labeled_features_index.begin(); light_labeled_index_iter != light_labeled_features_index.end(); ++light_labeled_index_iter)
+      for (std::map<String, Feature>::iterator light_labeled_index_iter = light_labeled_features_index.begin(); light_labeled_index_iter != light_labeled_features_index.end(); ++light_labeled_index_iter)
       {
         // the single ones from c0
         final_feature_map.push_back(light_labeled_index_iter->second);
@@ -221,7 +220,7 @@ namespace OpenMS
     else if (features_to_simulate.size() == 3) // merge_mode for three Channels
     {
       // create index of light channel features for easy mapping of heavy-to-medium-to-light channel
-      Map<String, Feature> light_labeled_features_index;
+      std::map<String, Feature> light_labeled_features_index;
       for (Feature& light_label : light_labeled_features)
       {
         light_label.ensureUniqueId();
@@ -232,7 +231,7 @@ namespace OpenMS
       }
 
       // create index of medium channel features for easy mapping of heavy-to-medium-to-light channel
-      Map<String, Feature> medium_labeled_features_index;
+      std::map<String, Feature> medium_labeled_features_index;
       for (Feature& medium_label : medium_labeled_features)
       {
         medium_label.ensureUniqueId();
@@ -248,7 +247,8 @@ namespace OpenMS
         String heavy_feature_unmodified_sequence = getUnmodifiedAASequence_(heavy_feature, heavy_channel_label_);
         heavy_feature.ensureUniqueId();
 
-        if (light_labeled_features_index.has(heavy_feature_unmodified_sequence) && medium_labeled_features_index.has(heavy_feature_unmodified_sequence))
+        if (light_labeled_features_index.find(heavy_feature_unmodified_sequence) != light_labeled_features_index.end() &&
+            medium_labeled_features_index.find(heavy_feature_unmodified_sequence) != medium_labeled_features_index.end())
         {
           // 1st case .. it is a triplet
           if (heavy_feature.getPeptideIdentifications()[0].getHits()[0].getSequence().isModified())
@@ -280,7 +280,7 @@ namespace OpenMS
           light_labeled_features_index.erase(heavy_feature_unmodified_sequence);
           medium_labeled_features_index.erase(heavy_feature_unmodified_sequence);
         }
-        else if (light_labeled_features_index.has(heavy_feature_unmodified_sequence))
+        else if (light_labeled_features_index.find(heavy_feature_unmodified_sequence) != light_labeled_features_index.end())
         {
           // 2nd case -> c0 - c2
           if (heavy_feature.getPeptideIdentifications()[0].getHits()[0].getSequence().isModified())
@@ -304,7 +304,7 @@ namespace OpenMS
           // remove features from indices
           light_labeled_features_index.erase(heavy_feature_unmodified_sequence);
         }
-        else if (medium_labeled_features_index.has(heavy_feature_unmodified_sequence))
+        else if (medium_labeled_features_index.find(heavy_feature_unmodified_sequence) != medium_labeled_features_index.end())
         {
           // 3rd case -> c1 - c2
           if (heavy_feature.getPeptideIdentifications()[0].getHits()[0].getSequence().isModified())
@@ -336,14 +336,14 @@ namespace OpenMS
       }
 
       // clean up medium-labeled_index
-      for (Map<String, Feature>::iterator medium_labeled_index_iter = medium_labeled_features_index.begin(); medium_labeled_index_iter != medium_labeled_features_index.end(); ++medium_labeled_index_iter)
+      for (std::map<String, Feature>::iterator medium_labeled_index_iter = medium_labeled_features_index.begin(); medium_labeled_index_iter != medium_labeled_features_index.end(); ++medium_labeled_index_iter)
       {
         Feature& medium_labeled_feature = medium_labeled_index_iter->second;
         medium_labeled_feature.ensureUniqueId();
 
         String medium_labeled_feature_unmodified_sequence = medium_labeled_feature.getPeptideIdentifications()[0].getHits()[0].getSequence().toUnmodifiedString();
 
-        if (light_labeled_features_index.has(medium_labeled_feature_unmodified_sequence))
+        if (light_labeled_features_index.find(medium_labeled_feature_unmodified_sequence) != light_labeled_features_index.end())
         {
           // 1. case: pair between c0 and c1
           if (medium_labeled_feature.getPeptideIdentifications()[0].getHits()[0].getSequence().isModified())
@@ -375,7 +375,7 @@ namespace OpenMS
       }
 
       // clean up light-labeled_index
-      for (Map<String, Feature>::iterator light_labeled_index_iter = light_labeled_features_index.begin(); light_labeled_index_iter != light_labeled_features_index.end(); ++light_labeled_index_iter)
+      for (std::map<String, Feature>::iterator light_labeled_index_iter = light_labeled_features_index.begin(); light_labeled_index_iter != light_labeled_features_index.end(); ++light_labeled_index_iter)
       {
         // the single ones from c0
         final_feature_map.push_back(light_labeled_index_iter->second);
@@ -392,7 +392,7 @@ namespace OpenMS
     consensus_.getColumnHeaders()[0] = map_description;
   }
 
-  Feature ICPLLabeler::mergeFeatures_(Feature& feature_to_merge, const AASequence& labeled_feature_sequence, Map<String, Feature>& feature_index) const
+  Feature ICPLLabeler::mergeFeatures_(Feature& feature_to_merge, const AASequence& labeled_feature_sequence, std::map<String, Feature>& feature_index) const
   {
     // merge with feature from first map (if it exists)
     if (feature_index.count(labeled_feature_sequence.toString()) != 0)
@@ -437,7 +437,7 @@ namespace OpenMS
 
     if (rt_shift != 0.0)
     {
-      Map<UInt64, Feature*> id_map;
+      std::map<UInt64, Feature*> id_map;
       SimTypes::FeatureMapSim& feature_map = features_to_simulate[0];
       for (Feature& feat : feature_map)
       {
@@ -454,7 +454,7 @@ namespace OpenMS
 
         for (ConsensusFeature::iterator cfit = cf.begin(); cfit != cf.end(); ++cfit)
         {
-          complete &= id_map.has(cfit->getUniqueId());
+          complete &= id_map.find(cfit->getUniqueId()) != id_map.end();
         }
 
         if (complete)

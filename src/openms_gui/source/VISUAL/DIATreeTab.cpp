@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -32,14 +32,14 @@
 // $Authors: Chris Bielow $
 // --------------------------------------------------------------------------
 
+
 #include <OpenMS/VISUAL/DIATreeTab.h>
 
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/CONCEPT/RAIICleanup.h>
 #include <OpenMS/FORMAT/OSWFile.h>
+#include <OpenMS/VISUAL/LayerDataChrom.h>
 #include <OpenMS/VISUAL/TreeView.h>
-
-#include <QtWidgets/QMenu>
 
 namespace OpenMS
 {
@@ -274,12 +274,12 @@ namespace OpenMS
 
   bool DIATreeTab::hasData(const LayerDataBase* layer)
   {
-    if (layer == nullptr)
+    if (auto* lp = dynamic_cast<const LayerDataChrom*>(layer))
     {
-      return false;
+      OSWData* data = lp->getChromatogramAnnotation().get();
+      return (data != nullptr && !data->getProteins().empty());
     }
-    OSWData* data = layer->getChromatogramAnnotation().get();
-    return (data != nullptr && !data->getProteins().empty());
+    return false;
   }
 
   void DIATreeTab::updateEntries(LayerDataBase* layer)
@@ -294,9 +294,10 @@ namespace OpenMS
     {
       return;
     }
-    LayerDataBase& cl = *layer;
+    auto* lp = dynamic_cast<const LayerDataChrom*>(layer);
+    if (!lp) return;
 
-    OSWData* data = cl.getChromatogramAnnotation().get();
+    OSWData* data = lp->getChromatogramAnnotation().get();
 
     if (current_data_ == data)
     {

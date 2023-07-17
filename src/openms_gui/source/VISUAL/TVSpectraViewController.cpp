@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -57,52 +57,14 @@ namespace OpenMS
   void TVSpectraViewController::showSpectrumAsNew1D(int index)
   {
     // basic behavior 1
-    LayerDataBase& layer = const_cast<LayerDataBase&>(tv_->getActiveCanvas()->getCurrentLayer());
-    ExperimentSharedPtrType exp_sptr = layer.getPeakDataMuteable();
-    LayerDataBase::ODExperimentSharedPtrType od_exp_sptr = layer.getOnDiscPeakData();
-    auto ondisc_sptr = layer.getOnDiscPeakData();
+    LayerDataBase& layer = tv_->getActiveCanvas()->getCurrentLayer();
 
     // create new 1D widget; if we return due to error, the widget will be cleaned up automatically
-    unique_ptr<Plot1DWidget> wp(new Plot1DWidget(tv_->getCanvasParameters(1), (QWidget*)tv_->getWorkspace()));
+    unique_ptr<Plot1DWidget> wp(new Plot1DWidget(tv_->getCanvasParameters(1), DIM::Y, (QWidget*)tv_->getWorkspace()));
     Plot1DWidget* w = wp.get();
-
-    if (layer.type == LayerDataBase::DT_CHROMATOGRAM)
-    {
-      // set layer name
-      String caption = layer.getName() + "[" + index + "]";
-
-      // add chromatogram data as peak spectrum
-      if (!w->canvas()->addChromLayer(exp_sptr, ondisc_sptr, layer.getChromatogramAnnotation(), index, layer.filename, caption, false))
-      {
-        return;
-      }
-      w->canvas()->activateSpectrum(index);
-      
-      // set visible area to visible area in 2D view
-      // switch X/Y because now we want to have RT on the x-axis and not m/z
-      DRange<2> visible_area = tv_->getActiveCanvas()->getVisibleArea();
-      w->canvas()->setVisibleArea(visible_area.swapDimensions());
-    }
-    else if (layer.type == LayerDataBase::DT_PEAK)
-    {
-      String caption = layer.getName();
-
-      // add data
-      if (!w->canvas()->addLayer(exp_sptr, od_exp_sptr, layer.filename) || (Size)index >= w->canvas()->getCurrentLayer().getPeakData()->size())
-      {
-        return;
-      }
-      w->canvas()->activateSpectrum(index);
-
-      //for MS1 spectra set visible area to visible area in 2D view.
-      UInt ms_level = w->canvas()->getCurrentLayer().getCurrentSpectrum().getMSLevel();
-      if (ms_level == 1)
-      {
-        // set visible area to visible area in 2D view
-        w->canvas()->setVisibleArea(tv_->getActiveCanvas()->getVisibleArea());
-      }
-    }
-    else
+    
+    // copy data from current layer (keeps the TYPE and underlying data identical)
+    if (!w->canvas()->addLayer(layer.to1DLayer()))
     {
       // Behavior if its neither (user may have clicked on an empty tree or a
       // dummy entry as drawn by SpectraTreeTab::updateEntries)
@@ -110,65 +72,73 @@ namespace OpenMS
       return;
     }
 
+    w->canvas()->activateSpectrum(index);
+
+    // set visible area to visible area in 2D view
+    w->canvas()->setVisibleArea(tv_->getActiveCanvas()->getVisibleArea());
+
     // set relative (%) view of visible area
     w->canvas()->setIntensityMode(PlotCanvas::IM_SNAP);
 
-    // basic behavior 2
-    String caption = layer.getName();
-    w->canvas()->setLayerName(w->canvas()->getCurrentLayerIndex(), caption);
-
-    tv_->showPlotWidgetInWindow(w, caption);
-    wp.release();
-
+    tv_->showPlotWidgetInWindow(wp.release());
     tv_->updateLayerBar();
     tv_->updateViewBar();
     tv_->updateFilterBar();
     tv_->updateMenu();
   }
 
-  void TVSpectraViewController::showChromatogramsAsNew1D(const std::vector<int>& indices)
+  bool add1DChromLayers(const std::vector<int>& indices,
+                        Plot1DWidget* target, 
+                        const LayerDataDefs::ExperimentSharedPtrType& chrom_exp_sptr,
+                        const LayerDataDefs::ODExperimentSharedPtrType& ondisc_sptr,
+                        const OSWDataSharedPtrType& chrom_annotation,
+                        const String& layer_basename,
+                        const String& filename)
   {
-    // basic behavior 1
-
-    // show multiple spectra together is only used for chromatograms directly
-    // where multiple (SRM) traces are shown together
-    LayerDataBase& layer = const_cast<LayerDataBase&>(tv_->getActiveCanvas()->getCurrentLayer());
-    ExperimentSharedPtrType exp_sptr = layer.getPeakDataMuteable();
-    auto ondisc_sptr = layer.getOnDiscPeakData();
-
-    // string for naming the tab title with the indices of the chromatograms
-    String caption = layer.getName();
-
-    //open new 1D widget
-    Plot1DWidget* w = new Plot1DWidget(tv_->getCanvasParameters(1), (QWidget *)tv_->getWorkspace());
-
+    //
     for (const auto& index : indices)
     {
-      if (layer.type == LayerDataBase::DT_CHROMATOGRAM)
+      // get caption (either chromatogram idx or peptide sequence, if available)
+      String basename_suffix;
+      if (chrom_exp_sptr->metaValueExists("peptide_sequence"))
       {
-        // set layer name
-        caption += String(" [") + index + "];";
-        String chromatogram_caption = layer.getName() + "[" + index + "]";
+        basename_suffix = String(chrom_exp_sptr->getMetaValue("peptide_sequence"));
+      }
+      ((basename_suffix += "[") += index) += "]";
 
-        // add chromatogram data as peak spectrum
-        if (!w->canvas()->addChromLayer(exp_sptr, ondisc_sptr, layer.getChromatogramAnnotation(), index, layer.filename, chromatogram_caption, true))
-        {
-          return;
-        }
-
-        // set visible area to visible area in 2D view
-        // switch X/Y because now we want to have RT on the x-axis and not m/z
-        DRange<2> visible_area = tv_->getActiveCanvas()->getVisibleArea();
-        w->canvas()->setVisibleArea(visible_area.swapDimensions());
+      // add chromatogram data
+      if (!target->canvas()->addChromLayer(chrom_exp_sptr, ondisc_sptr, chrom_annotation, index, filename, layer_basename, basename_suffix))
+      {
+        return false;
       }
     }
+    return true;
+  }
 
-    // set relative (%) view of visible area
+  void TVSpectraViewController::showChromatogramsAsNew1D(const std::vector<int>& indices)
+  {
+    // show multiple spectra together is only used for chromatograms directly
+    // where multiple (SRM) traces are shown together
+    auto layer_chrom = dynamic_cast<LayerDataChrom*>(&tv_->getActiveCanvas()->getCurrentLayer());
+    if (!layer_chrom) return;
+
+    auto exp_sptr = layer_chrom->getChromatogramData();
+    auto ondisc_sptr = layer_chrom->getOnDiscPeakData();
+
+    // open new 1D widget
+    auto* w = new Plot1DWidget(tv_->getCanvasParameters(1), DIM::Y, (QWidget *)tv_->getWorkspace());
+    // use RT + intensity mapping
+    w->setMapper({{DIM_UNIT::RT, DIM_UNIT::INT}});
+
+    if (!add1DChromLayers(indices, w, layer_chrom->getChromatogramData(), layer_chrom->getOnDiscPeakData(),
+                     layer_chrom->getChromatogramAnnotation(), layer_chrom->getName(), layer_chrom->filename))
+    {
+      return;
+    }
+    // set relative (%) view of visible area (recalcs snap factor)
     w->canvas()->setIntensityMode(PlotCanvas::IM_SNAP);
 
-    // basic behavior 2
-
-    tv_->showPlotWidgetInWindow(w, caption);
+    tv_->showPlotWidgetInWindow(w);
     tv_->updateBarsAndMenus();
   }
 
@@ -177,40 +147,11 @@ namespace OpenMS
   {
     Plot1DWidget* widget_1d = tv_->getActive1DWidget();
 
-    // return if no active 1D widget is present or no layers are present (e.g. the addLayer call failed)
+    // return if no active 1D widget is present or no layers are present (e.g. the addPeakLayer call failed)
     if (widget_1d == nullptr) return;
     if (widget_1d->canvas()->getLayerCount() == 0) return;
 
-    LayerDataBase& layer = widget_1d->canvas()->getCurrentLayer();
-
-    // If we have a chromatogram, we cannot just simply activate this spectrum.
-    // we have to do much more work, e.g. creating a new experiment with the
-    // new spectrum.
-    if (!layer.chromatogram_flag_set())
-    {
-      widget_1d->canvas()->activateSpectrum(index);
-    }
-    else 
-    {
-      widget_1d->canvas()->blockSignals(true);
-      RAIICleanup clean([&]() {widget_1d->canvas()->blockSignals(false); });
-
-      // first get raw data (the full experiment with all chromatograms), we
-      // only need to grab the one with the desired index
-      ExperimentSharedPtrType exp_sptr = layer.getChromatogramData();
-      auto ondisc_sptr = layer.getOnDiscPeakData();
-
-      widget_1d->canvas()->removeLayers();
-
-      // fix legend and set layer name
-      String fname = layer.filename;
-      String caption = fname + "[" + index + "]";
-
-      // add chromatogram data as peak spectrum and update other controls
-      widget_1d->canvas()->addChromLayer(exp_sptr, ondisc_sptr, layer.getChromatogramAnnotation(), index, fname, caption, false);
-
-      tv_->updateBarsAndMenus(); // needed since we blocked update above (to avoid repeated layer updates for many layers!)
-    }
+    widget_1d->canvas()->activateSpectrum(index);
   }
 
   // called by SpectraTreeTab::chromsSelected()
@@ -218,46 +159,33 @@ namespace OpenMS
   {
     Plot1DWidget * widget_1d = tv_->getActive1DWidget();
 
-    // return if no active 1D widget is present or no layers are present (e.g. the addLayer call failed)
-    if (widget_1d == nullptr)
+    // return if no active 1D widget is present or no layers are present (e.g. the addPeakLayer call failed)
+    if (widget_1d == nullptr) return;
+    if (widget_1d->canvas()->getLayerCount() == 0) return;
+
+    const auto* layer = dynamic_cast<LayerDataChrom*>(&widget_1d->canvas()->getCurrentLayer());
+    if (!layer) return;
+
+    auto chrom_sptr = layer->getChromatogramData();
+    auto ondisc_sptr = layer->getOnDiscPeakData();
+    auto annotation = layer->getChromatogramAnnotation();
+    const String basename = layer->getName();
+    const String filename = layer->filename;
+    widget_1d->canvas()->removeLayers(); // this actually deletes layer
+    layer = nullptr;                     // ... make sure its not used any more
+
+    widget_1d->canvas()->blockSignals(true);
+    RAIICleanup clean([&]() {widget_1d->canvas()->blockSignals(false); });
+    
+    if (!add1DChromLayers(indices, widget_1d, chrom_sptr, ondisc_sptr, annotation, basename,
+                          filename))
     {
       return;
     }
-    if (widget_1d->canvas()->getLayerCount() == 0)
-    {
-      return;
-    }
-    const LayerDataBase& layer = widget_1d->canvas()->getCurrentLayer();
-    // If we have a chromatogram, we cannot just simply activate this spectrum.
-    // we have to do much more work, e.g. creating a new experiment with the
-    // new spectrum.
-    if (layer.chromatogram_flag_set())
-    {
-      // first get raw data (the full experiment with all chromatograms), we
-      // only need to grab the ones with the desired indices
-      ExperimentSharedPtrType exp_sptr = layer.getChromatogramData();
-      auto ondisc_sptr = layer.getOnDiscPeakData();
+    // set relative (%) view of visible area (recalcs snap factor)
+    widget_1d->canvas()->setIntensityMode(PlotCanvas::IM_SNAP);
 
-      widget_1d->canvas()->removeLayers();
-
-      widget_1d->canvas()->blockSignals(true);
-      RAIICleanup clean([&]() {widget_1d->canvas()->blockSignals(false); });
-      String fname = layer.filename;
-      for (const auto& index : indices)
-      {
-        // get caption (either chromatogram idx or peptide sequence, if available)
-        String caption = fname;
-        if (exp_sptr->metaValueExists("peptide_sequence"))
-        {
-          caption = String(exp_sptr->getMetaValue("peptide_sequence"));
-        }
-        ((caption += "[") += index) += "]";
-        // add chromatogram data as peak spectrum
-        widget_1d->canvas()->addChromLayer(exp_sptr, ondisc_sptr, layer.getChromatogramAnnotation(), index, fname, caption, true);
-      }
-
-      tv_->updateBarsAndMenus(); // needed since we blocked update above (to avoid repeated layer updates for many layers!)
-    }
+    tv_->updateBarsAndMenus(); // needed since we blocked update above (to avoid repeated layer updates for many layers!)
   }
 
   void TVSpectraViewController::deactivate1DSpectrum(int /* spectrum_index */)

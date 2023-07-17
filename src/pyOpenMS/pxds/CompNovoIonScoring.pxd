@@ -1,6 +1,6 @@
 from PeptideIdentification cimport *
 from DefaultParamHandler cimport *
-from Map cimport *
+from libcpp.map cimport map as libcpp_map
 # from ZhangSimilarityScore cimport *
 # from MassDecomposition cimport *
 # from MassDecompositionAlgorithm cimport *
@@ -13,6 +13,6 @@ cdef extern from "<OpenMS/ANALYSIS/DENOVO/CompNovoIonScoring.h>" namespace "Open
         CompNovoIonScoring(CompNovoIonScoring &) nogil except +
         # TODO -> replace type ... 
         # TODO OpenMS Map type
-        # void scoreSpectra(Map[ double, IonScore ] &CID_ion_scores, MSSpectrum & CID_spec,
-        #   MSSpectrum &ETD_spec, double precursor_weight, Size charge) nogil except +
+        # void scoreSpectra(libcpp_map[ double, IonScore ] &CID_ion_scores, MSSpectrum & CID_spec,
+        #  MSSpectrum &ETD_spec, double precursor_weight, Size charge) nogil except +
 

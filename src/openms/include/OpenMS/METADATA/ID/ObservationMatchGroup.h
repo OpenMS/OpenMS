@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -78,7 +78,7 @@ namespace OpenMS
         return true;
       }
 
-      bool operator==(const ObservationMatchGroup rhs) const
+      bool operator==(const ObservationMatchGroup& rhs) const
       {
         return ((rhs.observation_match_refs == observation_match_refs) &&
                 (rhs.steps_and_scores == steps_and_scores));

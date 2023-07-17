@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -117,7 +117,7 @@ public:
 
     /// default constructor
     // BinnedSpectrum() = delete;
-    BinnedSpectrum() {}
+    BinnedSpectrum() {};
 
     /// detailed constructor
     BinnedSpectrum(const PeakSpectrum& ps, float size, bool unit_ppm, UInt spread, float offset);
@@ -149,7 +149,7 @@ public:
       if (unit_ppm_)
       {
         // mz = MIN_MZ_ * (1.0 + bin_size_)^index for index
-        return (MIN_MZ_ * pow(1.0 + bin_size_ * 1e-6, i));
+        return float(MIN_MZ_ * pow(1.0 + bin_size_ * 1e-6, i));
       }
       else 
       { 
@@ -184,19 +184,19 @@ public:
 
 private:
     /// the spread to left or right
-    UInt bin_spread_;
+    UInt bin_spread_ {0};
 
     /// the size of each bin
-    float bin_size_;
+    float bin_size_ {0};
 
     /// absolute bin size or relative bin size
-    bool unit_ppm_;
+    bool unit_ppm_ {false};
 
     /// offset of bin start
-    float offset_;
+    float offset_ {0};
 
     /// bins
-    SparseVectorType* bins_;
+    SparseVectorType* bins_ {nullptr};
 
     /// calculate binning of peak spectrum
     void binSpectrum_(const PeakSpectrum& ps);

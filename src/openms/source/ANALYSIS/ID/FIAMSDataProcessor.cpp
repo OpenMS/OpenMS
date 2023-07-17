@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -73,6 +73,7 @@ namespace OpenMS {
                                                                                   "By default CHEMISTRY/NegativeAdducts.tsv in OpenMS/share is used! If empty, the default will be used.", {"advanced"});
 
     defaults_.setValue("store_progress", "true", "If the intermediate files should be stored in the output directory");
+    defaults_.setValidStrings("store_progress", {"true","false"});
     
     defaults_.setValue("sgf:frame_length", 11, "SavitzkyGolayFilter parameter. The number of subsequent data points used for smoothing");
     defaults_.setValue("sgf:polynomial_order", 4, "SavitzkyGolayFilter parameter. Order or the polynomial that is fitted");
@@ -233,7 +234,7 @@ namespace OpenMS {
     return is_cached;
   }
 
-  void FIAMSDataProcessor::storeSpectrum_(const MSSpectrum& input, String filename)
+  void FIAMSDataProcessor::storeSpectrum_(const MSSpectrum& input, const String& filename)
   {
       MzMLFile mzml;
       MSExperiment exp;

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -29,19 +29,19 @@
 //
 // --------------------------------------------------------------------------
 // $Maintainer: Timo Sachsenberg $
-// $Authors: Andreas Bertsch, Timo Sachsenberg, Chris Bielow, Jang Jang Jin‚$
+// $Authors: Andreas Bertsch, Timo Sachsenberg, Chris Bielow, Jang Jang Jin$
 // --------------------------------------------------------------------------
 //
+
 #include <OpenMS/CHEMISTRY/ElementDB.h>
+
+#include <OpenMS/DATASTRUCTURES/String.h>
+#include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/CHEMISTRY/Element.h>
 
-#include <OpenMS/DATASTRUCTURES/Param.h>
-
-#include <OpenMS/FORMAT/ParamXMLFile.h>
-
-#include <OpenMS/SYSTEM/File.h>
-
 #include <iostream>
+#include <cmath>
+#include <memory>
 
 using namespace std;
 
@@ -57,36 +57,36 @@ namespace OpenMS
     clear_();
   }
 
-  const ElementDB* ElementDB::getInstance()
+  ElementDB* ElementDB::getInstance()
   {
     static ElementDB* db_ = new ElementDB;
     return db_;
   }
 
-  const map<string, const Element*>& ElementDB::getNames() const
+  const unordered_map<string, const Element*>& ElementDB::getNames() const
   {
     return names_;
   }
 
-  const map<string, const Element*>& ElementDB::getSymbols() const
+  const unordered_map<string, const Element*>& ElementDB::getSymbols() const
   {
     return symbols_;
   }
 
-  const map<unsigned int, const Element*>& ElementDB::getAtomicNumbers() const
+  const unordered_map<unsigned int, const Element*>& ElementDB::getAtomicNumbers() const
   {
     return atomic_numbers_;
   }
 
   const Element* ElementDB::getElement(const string& name) const
   {
-    if (auto entry = names_.find(name); entry != names_.end())
+    if (auto entry = symbols_.find(name); entry != symbols_.end())
     {
       return entry->second;
     }
     else
     {
-      if (auto entry = symbols_.find(name); entry != symbols_.end())
+      if (auto entry = names_.find(name); entry != names_.end())
       {
         return entry->second;
       }
@@ -110,33 +110,63 @@ namespace OpenMS
 
   bool ElementDB::hasElement(unsigned int atomic_number) const
   {
-    return atomic_numbers_.count(atomic_number) == 1;
+    return atomic_numbers_.find(atomic_number) != atomic_numbers_.end();
+  }
+
+  void ElementDB::addElement(const std::string& name,
+                             const std::string& symbol,
+                             const unsigned int an,
+                             const std::map<unsigned int, double>& abundance,
+                             const std::map<unsigned int, double>& mass,
+                             bool replace_existing)
+  {
+    if (hasElement(an) && !replace_existing)
+    {      
+      throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String("Element with atomic number ") + an + " already exists");
+    }
+    buildElement_(name, symbol, an, abundance, mass);
   }
 
   double ElementDB::calculateAvgWeight_(const map<unsigned int, double>& abundance, const map<unsigned int, double>& mass)
   {
     double avg = 0;
     // calculate weighted average
-    for (map<unsigned int, double>::const_iterator it = abundance.begin(); it != abundance.end(); ++it)
+    for (const auto& it : abundance)
     {
-      avg += mass.at(it->first) * abundance.at(it->first);
+      avg += mass.at(it.first) * abundance.at(it.first);
     }
     return avg;
   }
 
-  double ElementDB::calculateMonoWeight_(const map<unsigned int, double>& mass)
+  double ElementDB::calculateMonoWeight_(const map<unsigned int, double>& abundance, const map<unsigned int, double>& mass)
   {
-    double smallest_weight = 1e10;
+    double highest_abundance = -1.0;
+    int highest_abundance_isotope = -1;
 
-    for (map<unsigned int, double>::const_iterator it = mass.begin(); it != mass.end(); ++it)
+    // the monoisotopic weight is the *most abundant* isotope of an element
+    for (const auto& it : abundance)
     {
-      if (it->second < smallest_weight)
+      if (it.second > highest_abundance)
       {
-        smallest_weight = it->second;
+        highest_abundance = it.second;
+        highest_abundance_isotope = it.first;
       }
     }
 
-    return smallest_weight;
+    if (highest_abundance_isotope != -1) return mass.at(highest_abundance_isotope);
+    else return 0.0;
+  }
+
+  
+  template<class CONT, class KEY>
+  void addIfUniqueOrThrow(CONT& container, const KEY& key, unique_ptr<const Element>& replacement)
+  {
+    auto elem = container.find(key);
+    if (elem != container.end())
+    {
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, String(key), "Already exists!");
+    }
+    container[key] = replacement.get();
   }
 
   void ElementDB::storeElements_()
@@ -190,7 +220,7 @@ namespace OpenMS
     map<unsigned int, double> neon_mass = {{20u,  19.99244018}, {21u, 20.9938467}, {22u, 21.9913851}};
     buildElement_("Neon", "Ne", 10u, neon_abundance, neon_mass);
 
-    
+
     map<unsigned int, double> sodium_abundance = {{23u, 1.0}};
     map<unsigned int, double> sodium_mass = {{23u, 22.989769280899999}};
     buildElement_("Sodium", "Na", 11u, sodium_abundance, sodium_mass);
@@ -351,9 +381,7 @@ namespace OpenMS
     buildElement_("Molybdenum", "Mo", 42u, molybdenum_abundance, molybdenum_mass);
 
 
-    map<unsigned int, double> technitium_abundance = {{97u, 0.0}, {98u, 0.0}, {99u, 0.0}};
-    map<unsigned int, double> technitium_mass = {{97u, 96.906363999999996}, {98u, 97.907214999999994}, {99u, 98.906254000000004}};
-    buildElement_("Technitium", "Tc", 43u, technitium_abundance, technitium_mass);
+    // Technitium(Tc) abundance in not known.
 
 
     map<unsigned int, double> ruthenium_abundance = {{96u, 0.0554}, {98u, 0.0187}, {99u, 0.1276}, {100u, 0.126}, {101u, 0.17059999999999997}, {102u, 0.3155}, {104u, 0.1862}};
@@ -441,6 +469,9 @@ namespace OpenMS
     buildElement_("Neodymium", "Nd", 60u, neodymium_abundance, neodymium_mass);
 
 
+    // Promethium(Pm) abundance is not known.
+
+
     map<unsigned int, double> samarium_abundance = {{144u, 0.0308}, {147u, 0.15}, {148u, 0.1125}, {149u, 0.1382}, {150u, 0.0737}, {152u, 0.26739999999999997}, {154u, 0.2274}};
     map<unsigned int, double> samarium_mass = {{144u, 143.911999000000009}, {147u, 146.9148979}, {148u, 147.914822700000002}, {149u, 148.917184700000007}, {150u, 149.917275499999988}, {152u, 151.919732399999987}, {154u, 153.92220929999999}};
     buildElement_("Samarium", "Sm", 62u, samarium_abundance, samarium_mass);
@@ -496,8 +527,8 @@ namespace OpenMS
     buildElement_("Hafnium", "Hf", 72u, hafnium_abundance, hafnium_mass);
 
 
-    map<unsigned int, double> tantalum_abundance = {{181u, 1.0}};
-    map<unsigned int, double> tantalum_mass = {{181u, 180.947995800000001}};
+    map<unsigned int, double> tantalum_abundance = {{180u, 0.0001176}, {181u, 0.99988}};
+    map<unsigned int, double> tantalum_mass = {{180u, 179.94747}, {181u, 180.947995800000001}};
     buildElement_("Tantalum", "Ta", 73u, tantalum_abundance, tantalum_mass);
 
 
@@ -509,6 +540,16 @@ namespace OpenMS
     map<unsigned int, double> rhenium_abundance = {{185u, 0.374}, {187u, 0.626}};
     map<unsigned int, double> rhenium_mass = {{185u, 184.952955000000003}, {187u, 186.95575310000001}};
     buildElement_("Rhenium", "Re", 75u, rhenium_abundance, rhenium_mass);
+
+
+    map<unsigned int, double> osmium_abundance = {{184u, 0.0002}, {186u, 0.0159}, {187u, 0.0196}, {188u, 0.1324}, {189u, 0.1615}, {190u, 0.2626}, {192u, 0.4078}};
+    map<unsigned int, double> osmium_mass = {{184u, 183.952493}, {186u, 185.953838}, {187u, 186.955750}, {188u, 187.955837}, {189u, 188.958146}, {190u, 189.958446}, {192u, 191.96148}};
+    buildElement_("Osmium", "Os", 76u, osmium_abundance, osmium_mass);
+
+
+    map<unsigned int, double> iridium_abundance = {{191u, 0.3723}, {193u, 0.6277}};
+    map<unsigned int, double> iridium_mass = {{191u, 190.960591}, {193u, 192.962924}};
+    buildElement_("Iridium", "Ir", 77u, rhenium_abundance, rhenium_mass);
 
 
     map<unsigned int, double> platinum_abundance = {{192u, 0.00782}, {194u, 0.32966999999999996}, {195u, 0.33832}, {196u, 0.25242000000000003}, {198u, 0.07163}};
@@ -541,11 +582,19 @@ namespace OpenMS
     buildElement_("Bismuth", "Bi", 83u, bismuth_abundance, bismuth_mass);
 
 
+    // Polonium (Pb) abundance is not known.
+
+    // Astatine(At) abundance is not known.
+
+    // Radon(Rn) abundance is not known.
+
+    // Radium(Ra) abundance is not known.
+
     map<unsigned int, double> thorium_abundance = {{230u, 0.0002}, {232u, 0.9998}};
     map<unsigned int, double> thorium_mass = {{230u, 230.033133800000002}, {232u, 232.038055299999996}};
     buildElement_("Thorium", "Th", 90u, thorium_abundance, thorium_mass);
 
-    
+
     map<unsigned int, double> protactinium_abundance = {{231u, 1.0}};
     map<unsigned int, double> protactinium_mass = {{231u, 231.03588}};
     buildElement_("Protactinium", "Pa", 91u, protactinium_abundance, protactinium_mass);
@@ -555,24 +604,66 @@ namespace OpenMS
     map<unsigned int, double> uranium_mass = {{234u,  234.040950}, {235u,  235.043928}, {238u,   238.05079}};
     buildElement_("Uranium", "U", 92u, uranium_abundance, uranium_mass);
 
+    // special case for deuterium and tritium: add symbol alias
+    const Element* deuterium = getElement("(2)H");
+    symbols_["D"] = deuterium;
+    const Element* tritium = getElement("(3)H");
+    symbols_["T"] = tritium;
+
+    // Pu, Am, Cm, Bk, Cf, Es, Fm, Md, No, Lr, Rf, Db, Sg, Bh, Hs, Mt, Ds, Rg, Cn, Nh, Fl, Mc, Lv, Ts and Og Abundances are not known.
+
   }
+
 
   void ElementDB::buildElement_(const string& name, const string& symbol, const unsigned int an, const map<unsigned int, double>& abundance, const map<unsigned int, double>& mass)
   {
     IsotopeDistribution isotopes = parseIsotopeDistribution_(abundance, mass);
     double avg_weight = calculateAvgWeight_(abundance, mass);
-    double mono_weight = calculateMonoWeight_(mass);
+    double mono_weight = calculateMonoWeight_(abundance, mass);
 
-    Element* e = new Element(name, symbol, an, avg_weight, mono_weight, isotopes);
-    addElementToMaps_(name, symbol, an, e);
+    addElementToMaps_(name, symbol, an, make_unique<const Element>(name, symbol, an, avg_weight, mono_weight, isotopes));
     storeIsotopes_(name, symbol, an, mass, isotopes);
   }
 
-  void ElementDB::addElementToMaps_(const string& name, const string& symbol, const unsigned int an, const Element* e)
+  void overwrite(const Element* old, unique_ptr<const Element>& new_e)
   {
-    names_[name] = e;
-    symbols_[symbol] = e;
-    atomic_numbers_[an] = e;
+    if (old->getSymbol() != new_e->getSymbol())
+    { // -- this would invalidate the lookup, since e_ptr->getSymbols().at("O")->getSymbol() == 'P'
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, new_e->getSymbol(),
+                                    "Replacing element with name " + old->getName() + " and symbol " + old->getSymbol() + " has different new symbol: " + new_e->getSymbol());
+    }
+    if (old->getName() != new_e->getName())
+    { // -- this would invalidate the lookup, since e_ptr->getName().at("Oxygen")->getName() == 'Something'
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, new_e->getSymbol(), "Replacing element with name " + old->getName() + " has different new name: " + new_e->getName());
+    }
+    if (old->getAtomicNumber() != new_e->getAtomicNumber())
+    { // -- this would invalidate the lookup, since e_ptr->getAtomicNumbers().at(12)->getAtomicNumber() == 14
+      throw Exception::InvalidValue(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, new_e->getSymbol(),
+                                    "Replacing element with atomic number " + String(old->getAtomicNumber()) + " has different new atomic number: " + String(new_e->getAtomicNumber()));
+    }
+    // ... overwrite
+    *(const_cast<Element*>(old)) = *new_e;
+  }
+
+  void ElementDB::addElementToMaps_(const string& name, const string& symbol, const unsigned int an, unique_ptr<const Element> e)
+  {
+    // overwrite existing element if it already exists
+    // find() has to be protected here in a parallel context
+    if (atomic_numbers_.find(an) != atomic_numbers_.end())
+    {
+      // in order to ensure that existing elements are still valid and memory
+      // addresses do not change, we have to modify the Element in place
+      // instead of replacing it.
+      overwrite(atomic_numbers_[an], e);
+      // do not release 'e' here; it needs to be deleted when it goes out if scope
+    }
+    else
+    {
+      addIfUniqueOrThrow(names_, name, e);
+      addIfUniqueOrThrow(symbols_, symbol, e);
+      addIfUniqueOrThrow(atomic_numbers_, an, e);
+      e.release(); // allocation will be cleaned up by ~ElementDB now
+    }
   }
 
   void ElementDB::storeIsotopes_(const string& name, const string& symbol, const unsigned int an, const map<unsigned int, double>& mass, const IsotopeDistribution& isotopes)
@@ -580,7 +671,7 @@ namespace OpenMS
     for (const auto& isotope : isotopes)
     {
       double atomic_mass = isotope.getMZ();
-      unsigned int mass_number = round(atomic_mass);
+      unsigned int mass_number = std::round(atomic_mass);
       string iso_name = "(" + std::to_string(mass_number) + ")" + name;
       string iso_symbol = "(" + std::to_string(mass_number) + ")" + symbol;
 
@@ -592,9 +683,18 @@ namespace OpenMS
       iso_container.push_back(Peak1D(atomic_mass, 1.0));
       iso_isotopes.set(iso_container);  
 
-      Element* iso_e = new Element(iso_name, iso_symbol, an, iso_avg_weight, iso_mono_weight, iso_isotopes);
-      names_[iso_name] = iso_e;
-      symbols_[iso_symbol] = iso_e;
+      auto iso_element = make_unique<const Element>(iso_name, iso_symbol, an, iso_avg_weight, iso_mono_weight, iso_isotopes);
+      if (auto has_elem = names_.find(iso_name); has_elem != names_.end())
+      { // already exists: overwrite (affects all maps, since they all point to the same thing)
+        overwrite(has_elem->second, iso_element);
+        // do not release 'iso_element' here; it needs to be deleted when it goes out if scope
+      }
+      else
+      {
+        addIfUniqueOrThrow(names_, iso_name, iso_element);
+        addIfUniqueOrThrow(symbols_, iso_symbol, iso_element);
+        iso_element.release(); // allocation will be cleaned up by ~ElementDB now
+      }
     } 
   }
 

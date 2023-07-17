@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -80,8 +80,8 @@ namespace OpenMS
     defaults_.setValue("precursor:mass_tolerance", 10.0, "+/- tolerance for precursor mass.");
 
     std::vector<std::string> precursor_mass_tolerance_unit_valid_strings;
-    precursor_mass_tolerance_unit_valid_strings.push_back("ppm");
-    precursor_mass_tolerance_unit_valid_strings.push_back("Da");
+    precursor_mass_tolerance_unit_valid_strings.emplace_back("ppm");
+    precursor_mass_tolerance_unit_valid_strings.emplace_back("Da");
 
     defaults_.setValue("precursor:mass_tolerance_unit", "ppm", "Unit of precursor mass tolerance.");
     defaults_.setValidStrings("precursor:mass_tolerance_unit", precursor_mass_tolerance_unit_valid_strings);
@@ -98,8 +98,8 @@ namespace OpenMS
     defaults_.setValue("fragment:mass_tolerance", 10.0, "Fragment mass tolerance");
 
     std::vector<std::string> fragment_mass_tolerance_unit_valid_strings;
-    fragment_mass_tolerance_unit_valid_strings.push_back("ppm");
-    fragment_mass_tolerance_unit_valid_strings.push_back("Da");
+    fragment_mass_tolerance_unit_valid_strings.emplace_back("ppm");
+    fragment_mass_tolerance_unit_valid_strings.emplace_back("Da");
 
     defaults_.setValue("fragment:mass_tolerance_unit", "ppm", "Unit of fragment m");
     defaults_.setValidStrings("fragment:mass_tolerance_unit", fragment_mass_tolerance_unit_valid_strings);
@@ -391,6 +391,11 @@ void SimpleSearchEngineAlgorithm::postProcessHits_(const PeakMap& exp,
     protein_ids[0].setSearchEngine("SimpleSearchEngine");
     protein_ids[0].setSearchEngineVersion(VersionInfo::getVersion());
 
+    DateTime now = DateTime::now();
+    String identifier("SSE_" + now.get());
+    protein_ids[0].setIdentifier(identifier);
+    for (auto & pid : peptide_ids) { pid.setIdentifier(identifier); }
+
     ProteinIdentification::SearchParameters search_parameters;
     search_parameters.db = database_name;
     search_parameters.charges = String(precursor_min_charge) + ":" + String(precursor_max_charge);
@@ -500,32 +505,31 @@ void SimpleSearchEngineAlgorithm::postProcessHits_(const PeakMap& exp,
     vector<FASTAFile::FASTAEntry> fasta_db;
     FASTAFile().load(in_db, fasta_db);
 
-    ProteaseDigestion digestor;
-    digestor.setEnzyme(enzyme_);
     // generate decoy protein sequences by reversing them
     if (decoys_)
     {
-      digestor.setMissedCleavages(0);
       startProgress(0, 1, "Generate decoys...");
-
       DecoyGenerator decoy_generator;
 
       // append decoy proteins
       const size_t old_size = fasta_db.size();
+      fasta_db.reserve(fasta_db.size() * 2);
       for (size_t i = 0; i != old_size; ++i)
       {
         FASTAFile::FASTAEntry e = fasta_db[i];
         e.sequence = decoy_generator.reversePeptides(AASequence::fromString(e.sequence), enzyme_).toString();
         e.identifier = "DECOY_" + e.identifier;
-        fasta_db.push_back(e);
+        fasta_db.push_back(std::move(e));
       }
       // randomize order of targets and decoys to introduce no global bias in the case that
       // many targets have the same score as their decoy. (As we always take the first best scoring one)
       Math::RandomShuffler shuffler;
       shuffler.portable_random_shuffle(fasta_db.begin(), fasta_db.end());
       endProgress();
-      digestor.setMissedCleavages(peptide_missed_cleavages_);
     }
+    ProteaseDigestion digestor;
+    digestor.setEnzyme(enzyme_);
+    digestor.setMissedCleavages(peptide_missed_cleavages_);
     startProgress(0, fasta_db.size(), "Scoring peptide models against spectra...");
 
     // lookup for processed peptides. must be defined outside of omp section and synchronized
@@ -646,7 +650,7 @@ void SimpleSearchEngineAlgorithm::postProcessHits_(const PeakMap& exp,
             ah.score = score;
             ah.prefix_fraction = (double)detail.matched_b_ions/(double)c.size();
             ah.suffix_fraction = (double)detail.matched_y_ions/(double)c.size();
-            ah.mean_error = detail.mean_error;            
+            ah.mean_error = detail.mean_error;
 
 #ifdef _OPENMP
             omp_set_lock(&(annotated_hits_lock[scan_index]));

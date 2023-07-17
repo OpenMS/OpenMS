@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -67,7 +67,7 @@ namespace OpenMS
     DefaultParamHandler("FeatureFinderIdentificationAlgorithm")
   {
     std::vector<std::string> output_file_tags;
-    output_file_tags.push_back("output file");
+    output_file_tags.emplace_back("output file");
 
     defaults_.setValue("candidates_out", "", "Optional output file with feature candidates.", output_file_tags);
 
@@ -136,6 +136,7 @@ namespace OpenMS
 
     defaults_.setValue("quantify_decoys", "false", "Whether decoy peptides should be quantified (true) or skipped (false).");
     defaults_.setValidStrings("quantify_decoys", {"true","false"});
+    defaults_.setValue("min_psm_cutoff", "none", "Minimum score for the best PSM of a spectrum to be used as seed. Use 'none' for no cutoff.");
 
     // available scores: initialPeakQuality,total_xic,peak_apices_sum,var_xcorr_coelution,var_xcorr_coelution_weighted,var_xcorr_shape,var_xcorr_shape_weighted,var_library_corr,var_library_rmsd,var_library_sangle,var_library_rootmeansquare,var_library_manhattan,var_library_dotprod,var_intensity_score,nr_peaks,sn_ratio,var_log_sn_score,var_elution_model_fit_score,xx_lda_prelim_score,var_isotope_correlation_score,var_isotope_overlap_score,var_massdev_score,var_massdev_score_weighted,var_bseries_score,var_yseries_score,var_dotprod_score,var_manhatt_score,main_var_xx_swath_prelim_score,xx_swath_prelim_score
     // exclude some redundant/uninformative scores:
@@ -251,7 +252,7 @@ namespace OpenMS
     vector<ProteinIdentification> proteins_ext,
     FeatureMap& features,
     const FeatureMap& seeds,
-    const String spectra_file
+    const String& spectra_file
     )
   {
     if ((svm_n_samples_ > 0) && (svm_n_samples_ < 2 * svm_n_parts_))
@@ -332,7 +333,7 @@ namespace OpenMS
       trafo_external_ = aligner_trafos[0];
       vector<double> aligned_diffs;
       trafo_external_.getDeviations(aligned_diffs);
-      int index = max(0, int(rt_quantile_ * aligned_diffs.size()) - 1);
+      Size index = std::max(Size(0), Size(rt_quantile_ * static_cast<double>(aligned_diffs.size())) - 1);
       rt_uncertainty = aligned_diffs[index];
       try
       {
@@ -591,6 +592,11 @@ namespace OpenMS
       });
     ids.erase(it, ids.end()); // remove / erase idiom
 
+    // add back ignored PSMs
+    features.getUnassignedPeptideIdentifications().insert(features.getUnassignedPeptideIdentifications().end(),
+                                                          std::move_iterator(unassignedIDs_.begin()),
+                                                          std::move_iterator(unassignedIDs_.end()));
+
     features.ensureUniqueId();
   }
 
@@ -614,6 +620,8 @@ namespace OpenMS
 
     filterFeatures_(features, with_external_ids);
     OPENMS_LOG_INFO << features.size() << " features left after filtering." << endl;
+
+    if (features.empty()) return; // elution model fit throws on empty features
 
     if (!svm_probs_internal_.empty())
     {
@@ -1300,7 +1308,7 @@ namespace OpenMS
     }
   }
 
-  void FeatureFinderIdentificationAlgorithm::addPeptideToMap_(PeptideIdentification& peptide, PeptideMap& peptide_map, bool external) const
+  void FeatureFinderIdentificationAlgorithm::addPeptideToMap_(PeptideIdentification& peptide, PeptideMap& peptide_map, bool external)
   {
     if (peptide.getHits().empty())
     {
@@ -1308,17 +1316,28 @@ namespace OpenMS
     }
     peptide.sort();
     PeptideHit& hit = peptide.getHits()[0];
+    peptide.getHits().resize(1);
 
     // if we don't quantify decoys we don't add them to the peptide list
     if (!quantify_decoys_)
     {
       if (hit.metaValueExists("target_decoy") && hit.getMetaValue("target_decoy") == "decoy")
       { 
+        unassignedIDs_.push_back(peptide);
+        return;
+      }
+    }
+    if (use_psm_cutoff_)
+    {
+      if ( (peptide.isHigherScoreBetter() && hit.getScore() < psm_score_cutoff_) ||
+           (!peptide.isHigherScoreBetter() && hit.getScore() > psm_score_cutoff_) )
+      {
+        unassignedIDs_.push_back(peptide);
         return;
       }
     }
 
-    peptide.getHits().resize(1);
+
     Int charge = hit.getCharge();
     double rt = peptide.getRT();
     double mz = peptide.getMZ();
@@ -1373,10 +1392,15 @@ namespace OpenMS
 
     // quantification of decoys
     quantify_decoys_ = param_.getValue("quantify_decoys").toBool();
+    use_psm_cutoff_ = param_.getValue("min_psm_cutoff") != "none";
+    if (use_psm_cutoff_)
+    {
+      psm_score_cutoff_ = double(param_.getValue("min_psm_cutoff"));
+    }
   }
 
   void FeatureFinderIdentificationAlgorithm::getUnbiasedSample_(const multimap<double, pair<Size, bool> >& valid_obs,
-                          map<Size, Int>& training_labels)
+                          map<Size, double>& training_labels)
   {
     // Create an unbiased training sample:
     // - same number of pos./neg. observations (approx.),
@@ -1448,15 +1472,14 @@ namespace OpenMS
   }
 
 
-  void FeatureFinderIdentificationAlgorithm::getRandomSample_(std::map<Size, Int>& training_labels) const
+  void FeatureFinderIdentificationAlgorithm::getRandomSample_(std::map<Size, double>& training_labels) const
   {
     // @TODO: can this be done with less copying back and forth of data?
     // Pick a random subset of size "svm_n_samples_" for training: Shuffle the whole
     // sequence, then select the first "svm_n_samples_" elements.
     std::vector<Size> selection;
     selection.reserve(training_labels.size());
-    for (std::map<Size, Int>::iterator it = training_labels.begin();
-         it != training_labels.end(); ++it)
+    for (auto it = training_labels.begin(); it != training_labels.end(); ++it)
     {
       selection.push_back(it->first);
     }
@@ -1487,7 +1510,7 @@ namespace OpenMS
     }
     selection.resize(svm_n_samples_);
     // copy the selected subset back:
-    std::map<Size, Int> temp;
+    std::map<Size, double> temp;
     for (vector<Size>::iterator it = selection.begin(); it != selection.end();
          ++it)
     {
@@ -1529,15 +1552,15 @@ namespace OpenMS
     }
 
     // get labels for SVM:
-    std::map<Size, Int> training_labels;
-    bool no_selection = param_.getValue("svm:no_selection") == "true" ? true : false;
+    std::map<Size, double> training_labels;
+    bool no_selection = param_.getValue("svm:no_selection") == "true";
     // mapping (for bias correction): intensity -> (index, positive?)
     std::multimap<double, pair<Size, bool> > valid_obs;
     Size n_obs[2] = {0, 0}; // counters for neg./pos. observations
     for (Size feat_index = 0; feat_index < features.size(); ++feat_index)
     {
       String feature_class = features[feat_index].getMetaValue("feature_class");
-      Int label = -1;
+      int label = -1;
       if (feature_class == "positive")
       {
         label = 1;
@@ -1557,7 +1580,7 @@ namespace OpenMS
         }
         else
         {
-          training_labels[feat_index] = label;
+          training_labels[feat_index] = (double)label;
         }
       }
     }
@@ -1609,7 +1632,7 @@ namespace OpenMS
                          "SVM predictions for all features expected");
     for (Size i = 0; i < features.size(); ++i)
     {
-      features[i].setMetaValue("predicted_class", predictions[i].label);
+      features[i].setMetaValue("predicted_class", predictions[i].outcome);
       double prob_positive = predictions[i].probabilities[1];
       features[i].setMetaValue("predicted_probability", prob_positive);
       // @TODO: store previous (OpenSWATH) overall quality in a meta value?
@@ -1804,7 +1827,7 @@ namespace OpenMS
       else
       {
         double prob = feat.getOverallQuality();
-        // find highest FDR prob. that is less-or-equal to the feature prob.:
+        // find the highest FDR prob. that is less-or-equal to the feature prob.:
         std::vector<double>::iterator pos = upper_bound(fdr_probs.begin(),
                                                    fdr_probs.end(), prob);
         if (pos != fdr_probs.begin())

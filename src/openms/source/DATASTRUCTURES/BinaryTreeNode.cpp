@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -42,14 +42,9 @@ namespace OpenMS
   {
   }
 
-  BinaryTreeNode::BinaryTreeNode(const BinaryTreeNode& source) :
-    left_child(source.left_child), right_child(source.right_child), distance(source.distance)
-  {
-  }
+  BinaryTreeNode::BinaryTreeNode(const BinaryTreeNode& source)  = default;
 
-  BinaryTreeNode::~BinaryTreeNode()
-  {
-  }
+  BinaryTreeNode::~BinaryTreeNode() = default;
 
   BinaryTreeNode& BinaryTreeNode::operator=(const BinaryTreeNode& source)
   {

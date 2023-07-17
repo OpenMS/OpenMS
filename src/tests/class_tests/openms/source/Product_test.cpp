@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry               
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 // 
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -131,7 +131,7 @@ END_SECTION
 START_SECTION((bool operator== (const Product& rhs) const))
 	Product tmp,tmp2;
 	
-	TEST_EQUAL(tmp==tmp2, true);
+	TEST_TRUE(tmp == tmp2);
 	
 	tmp2.setMZ(47.11);
 	TEST_EQUAL(tmp==tmp2, false);
@@ -155,19 +155,19 @@ START_SECTION((bool operator!= (const Product& rhs) const))
 	TEST_EQUAL(tmp!=tmp2, false);
 	
 	tmp2.setMZ(47.11);
-	TEST_EQUAL(tmp!=tmp2, true);
+	TEST_FALSE(tmp == tmp2);
 	
 	tmp2 = tmp;	tmp2 = tmp;
   tmp.setIsolationWindowUpperOffset(22.7);
-	TEST_EQUAL(tmp!=tmp2, true);
+	TEST_FALSE(tmp == tmp2);
 
 	tmp2 = tmp;	tmp2 = tmp;
   tmp.setIsolationWindowLowerOffset(22.8);
-	TEST_EQUAL(tmp!=tmp2, true);
+	TEST_FALSE(tmp == tmp2);
 
 	tmp2 = tmp;
 	tmp.setMetaValue("label",String("label"));
-	TEST_EQUAL(tmp!=tmp2, true);
+	TEST_FALSE(tmp == tmp2);
 END_SECTION
 
 /////////////////////////////////////////////////////////////

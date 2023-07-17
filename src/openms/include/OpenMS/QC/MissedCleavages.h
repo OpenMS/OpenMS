@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -35,13 +35,12 @@
 
 #pragma once
 
-#include <OpenMS/QC/QCBase.h>
+#include <OpenMS/CHEMISTRY/ProteaseDigestion.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
-#include <OpenMS/CHEMISTRY/ProteaseDigestion.h>
-
-#include <vector>
+#include <OpenMS/QC/QCBase.h>
 #include <map>
+#include <vector>
 namespace OpenMS
 {
   class FeatureMap;
@@ -61,15 +60,16 @@ namespace OpenMS
     typedef std::map<UInt32, UInt32> MapU32;
     /// collects number of missed cleavages from PeptideIdentification in a result map (missed cleavages: occurences)
     void get_missed_cleavages_from_peptide_identification_(const ProteaseDigestion& digestor, MapU32& result, const UInt32& max_mc, PeptideIdentification& pep_id);
+
   public:
-    ///constructor
+    /// constructor
     MissedCleavages() = default;
 
-    ///destructor
+    /// destructor
     virtual ~MissedCleavages() = default;
 
     /**
-     * @brief Counts the number of MissedCleavages per PeptideIdentification.
+     * @brief Counts the number of missed cleavages per PeptideIdentification.
      *
      * The result is a key/value map: #missed_cleavages --> counts
      * Additionally the first PeptideHit in each PeptideIdentification of the FeatureMap is annotated with metavalue 'missed_cleavages'.
@@ -82,15 +82,15 @@ namespace OpenMS
 
     /// returns the name of the metric
     const String& getName() const override;
-    
-    /// returns the result as maps of #missed_cleavages --> counts; one map for each call to compute(...)
+
+    /// returns the result as maps of number of missed_cleavages to counts; one map for each call to compute(...)
     const std::vector<std::map<UInt32, UInt32>>& getResults() const;
 
     /**
      * @brief Returns the input data requirements of the compute(...) function
      * @return Status for POSTFDRFEAT;
      */
-    QCBase::Status requires() const override;
+    QCBase::Status requirements() const override;
 
   private:
     /// container that stores results

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -56,15 +56,14 @@ public:
   TestQuantitationMethod()
   {
     setName("TestQuantitationMethod");
-    channel_list.push_back(IsobaricChannelInformation("114", 0, "", 114.1112, -1, -1, 1, 2));
-    channel_list.push_back(IsobaricChannelInformation("115", 1, "", 115.1082, -1, 0, 2, 3));
-    channel_list.push_back(IsobaricChannelInformation("116", 2, "", 116.1116, 0, 1, 3, -1));
-    channel_list.push_back(IsobaricChannelInformation("117", 3, "", 117.1149, 1, 2, -1, -1));
+    channel_list.push_back(IsobaricChannelInformation("114", 0, "", 114.1112, {-1, -1, 1, 2}));
+    channel_list.push_back(IsobaricChannelInformation("115", 1, "", 115.1082, {-1, 0, 2, 3}));
+    channel_list.push_back(IsobaricChannelInformation("116", 2, "", 116.1116, {0, 1, 3, -1}));
+    channel_list.push_back(IsobaricChannelInformation("117", 3, "", 117.1149, {1, 2, -1, -1}));
     name = "TestQuantitationMethod";
   }
 
-  ~TestQuantitationMethod() override
-  {}
+  ~TestQuantitationMethod() override = default;
 
   const String& getMethodName() const override
   {
@@ -83,7 +82,7 @@ public:
 
   Matrix<double> getIsotopeCorrectionMatrix() const override
   {
-    return stringListToIsotopCorrectionMatrix_(correction_list);
+    return stringListToIsotopeCorrectionMatrix_(correction_list);
   }
 
   Size getReferenceChannel() const override
@@ -144,9 +143,19 @@ START_SECTION((virtual Size getNumberOfChannels() const =0))
 }
 END_SECTION
 
+START_SECTION((virtual Matrix<double> getIsotopeCorrectionMatrix() const =0 with Exception))
+{
+  auto* quant_method = new TestQuantitationMethod();
+  // missing entry
+  quant_method->correction_list = ListUtils::create<String>("0.0/1.0/5.9/0.2,0.0/2.0/    0.1,0.0/3.0/4.5/0.1,0.1/4.0/3.5/0.1");
+  TEST_EXCEPTION(Exception::InvalidValue, quant_method->getIsotopeCorrectionMatrix())
+  delete quant_method;
+}
+END_SECTION
+
 START_SECTION((virtual Matrix<double> getIsotopeCorrectionMatrix() const =0))
 {
-  TestQuantitationMethod* quant_method = new TestQuantitationMethod();
+  auto* quant_method = new TestQuantitationMethod();
   quant_method->correction_list = ListUtils::create<String>("0.0/1.0/5.9/0.2,0.0/2.0/5.6/0.1,0.0/3.0/4.5/0.1,0.1/4.0/3.5/0.1");
   Matrix<double> m = quant_method->getIsotopeCorrectionMatrix();
 
@@ -198,16 +207,16 @@ END_SECTION
 
 START_SECTION(([IsobaricQuantitationMethod::IsobaricChannelInformation] IsobaricChannelInformation(const Int name, const Int id, const String &description, const Peak2D::CoordinateType &center)))
 {
-  IsobaricQuantitationMethod::IsobaricChannelInformation cI(114, 0, "", 114.1112, -1, -1, -1, -1);
+  IsobaricQuantitationMethod::IsobaricChannelInformation cI(114, 0, "", 114.1112, {-1, -1, -1, -1});
   TEST_STRING_EQUAL(cI.description, "")
   TEST_EQUAL(cI.name, 114)
   TEST_EQUAL(cI.id, 0)
   TEST_EQUAL(cI.center, 114.1112)
 
-  TEST_EQUAL(cI.channel_id_minus_2, -1)
-  TEST_EQUAL(cI.channel_id_minus_1, -1)
-  TEST_EQUAL(cI.channel_id_plus_1, -1)
-  TEST_EQUAL(cI.channel_id_plus_2, -1)
+  TEST_EQUAL(cI.affected_channels[0], -1)
+  TEST_EQUAL(cI.affected_channels[1], -1)
+  TEST_EQUAL(cI.affected_channels[2], -1)
+  TEST_EQUAL(cI.affected_channels[3], -1)
 
 }
 END_SECTION

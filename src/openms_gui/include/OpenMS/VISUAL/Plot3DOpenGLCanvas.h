@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -112,9 +112,9 @@ protected:
     ///helper function to replicate old behaviour of QGLWidget
     void renderText_(double x, double y, double z, const QString & text);
     ///helper function to replicate old behaviour of QGLWidget
-    void qglColor_(QColor color);
+    void qglColor_(const QColor& color);
     ///helper function to replicate old behaviour of QGLWidget
-    void qglClearColor_(QColor clearColor);
+    void qglClearColor_(const QColor& clearColor);
     /// Builds up a display list for the 3D view
     GLuint makeDataAsStick_();
     /// Builds up a display list for the axes

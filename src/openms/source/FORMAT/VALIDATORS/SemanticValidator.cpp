@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -39,6 +39,7 @@
 #include <OpenMS/DATASTRUCTURES/CVMappingTerm.h>
 
 #include <QtCore/QRegExp>
+#include <map>
 
 using namespace xercesc;
 using namespace std;
@@ -69,8 +70,7 @@ namespace OpenMS::Internal
     }
 
     SemanticValidator::~SemanticValidator()
-    {
-    }
+    = default;
 
     void SemanticValidator::setTag(const String& tag)
     {
@@ -174,7 +174,7 @@ namespace OpenMS::Internal
 
       //look up rules and fulfilled rules/terms
       vector<CVMappingRule>& rules = rules_[path];
-      Map<String, Map<String, UInt> >& fulfilled = fulfilled_[path]; //(rule ID => term ID => term count)
+      std::map<String, std::map<String, UInt> >& fulfilled = fulfilled_[path]; //(rule ID => term ID => term count)
 
       //check how often each term appeared
       for (Size r = 0; r < rules.size(); ++r)
@@ -566,7 +566,7 @@ namespace OpenMS::Internal
       //check if the term is allowed in this element
       //and if there is a mapping rule for this element
       //Also store fulfilled rule term counts - this count is used to check of the MUST/MAY and AND/OR/XOR is fulfilled
-      const vector<CVMappingRule>& rules = rules_[path];
+      const vector<CVMappingRule>& rules = rules_.at(path);
       for (Size r = 0; r < rules.size(); ++r) //go thru all rules
       {
         for (Size t = 0; t < rules[r].getCVTerms().size(); ++t) //go thru all terms

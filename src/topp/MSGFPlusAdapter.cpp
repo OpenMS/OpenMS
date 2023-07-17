@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -67,9 +67,9 @@
 <CENTER>
     <table>
         <tr>
-            <td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. predecessor tools </td>
-            <td VALIGN="middle" ROWSPAN=2> \f$ \longrightarrow \f$ MSGFPlusAdapter \f$ \longrightarrow \f$</td>
-            <td ALIGN = "center" BGCOLOR="#EBEBEB"> pot. successor tools </td>
+            <th ALIGN = "center"> pot. predecessor tools </td>
+            <td VALIGN="middle" ROWSPAN=2> &rarr; MSGFPlusAdapter &rarr;</td>
+            <th ALIGN = "center"> pot. successor tools </td>
         </tr>
         <tr>
             <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_PeakPickerHiRes @n (or another centroiding tool)</td>
@@ -165,9 +165,6 @@ protected:
     registerInputFile_("executable", "<file>", "MSGFPlus.jar", "The MSGFPlus Java archive file. Provide a full or relative path, or make sure it can be found in your PATH environment.", true, false, {"is_executable"});
     registerInputFile_("database", "<file>", "", "Protein sequence database (FASTA file; MS-GF+ parameter '-d'). Non-existing relative filenames are looked up via 'OpenMS.ini:id_db_dir'.", true, false, ListUtils::create<String>("skipexists"));
     setValidFormats_("database", ListUtils::create<String>("FASTA"));
-
-    registerStringOption_("add_decoys", "<choice>", "false", "Create decoy proteins (reversed sequences) and append them to the database for the search (MS-GF+ parameter '-tda'). This allows the calculation of FDRs, but should only be used if the database does not already contain decoys.", false, true);
-    setValidStrings_("add_decoys", ListUtils::create<String>("true,false"));
 
     registerDoubleOption_("precursor_mass_tolerance", "<value>", 10, "Precursor monoisotopic mass tolerance (MS-GF+ parameter '-t')", false);
     registerStringOption_("precursor_error_units", "<choice>", "ppm", "Unit of precursor mass tolerance (MS-GF+ parameter '-t')", false);
@@ -451,7 +448,7 @@ protected:
     String mzid_out = getStringOption_("mzid_out");
     if (mzid_out.empty() && out.empty())
     {
-      writeLog_("Fatal error: no output file given (parameter 'out' or 'mzid_out')");
+      writeLogError_("Error:  no output file given (parameter 'out' or 'mzid_out')");
       return ILLEGAL_PARAMETERS;
     }
 
@@ -464,20 +461,20 @@ protected:
     Int max_mods = getIntOption_("max_mods");
     if ((max_mods == 0) && !no_mods)
     {
-      writeLog_("Warning: Modifications are defined ('fixed_modifications'/'variable_modifications'), but the number of allowed modifications is zero ('max_mods'). Is that intended?");
+      writeLogWarn_("Warning: Modifications are defined ('fixed_modifications'/'variable_modifications'), but the number of allowed modifications is zero ('max_mods'). Is that intended?");
     }
 
     if (!getFlag_("force"))
     {
       if (!JavaInfo::canRun(java_executable))
       {
-        writeLog_("Fatal error: Java is needed to run MS-GF+!");
+        writeLogError_("Fatal error: Java is needed to run MS-GF+!");
         return EXTERNAL_PROGRAM_ERROR;
       }
     }
     else
     {
-      writeLog_("The installation of Java was not checked.");
+      writeLogWarn_("The installation of Java was not checked.");
     }
 
     // create temporary directory (and modifications file, if necessary):
@@ -522,7 +519,6 @@ protected:
                    << "-d" << db_name.toQString()
                    << "-t" << QString::number(precursor_mass_tol) + precursor_error_units.toQString()
                    << "-ti" << getStringOption_("isotope_error_range").toQString()
-                   << "-tda" << QString::number(int(getStringOption_("add_decoys") == "true"))
                    << "-m" << QString::number(fragment_method_code)
                    << "-inst" << QString::number(instrument_code)
                    << "-e" << QString::number(enzyme_code)
@@ -554,7 +550,7 @@ protected:
 
     // run MS-GF+ process and create the .mzid file
 
-    writeLog_("Running MSGFPlus search...");
+    writeLogInfo_("Running MSGFPlus search...");
     // collect all output since MSGF+ might return 'success' even though it did not like the command arguments (e.g. if the version is too old)
     // If no output file is produced, we can print the stderr below.
     String proc_stdout, proc_stderr; 
@@ -597,7 +593,7 @@ protected:
                        << "-showQValue" << "1"
                        << "-showDecoy" << "1"
                        << "-unroll" << "1";
-        writeLog_("Running MzIDToTSVConverter...");
+        writeLogInfo_("Running MzIDToTSVConverter...");
         exit_code = runExternalProcess_(java_executable.toQString(), process_params);
         if (exit_code != EXECUTION_OK)
         {
@@ -654,7 +650,7 @@ protected:
           vector<String> elements;
           if (!tsvfile.getRow(row_count, elements))
           {
-            writeLog_("Error: could not split row " + String(row_count) + " of file '" + tsv_out + "'");
+            writeLogError_("Error: could not split row " + String(row_count) + " of file '" + tsv_out + "'");
             return PARSE_ERROR;
           }
 

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -32,14 +32,15 @@
 // $Authors: Johannes Junker, Chris Bielow $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/VISUAL/TOPPASEdge.h>
-#include <OpenMS/VISUAL/TOPPASScene.h>
-#include <OpenMS/VISUAL/TOPPASToolVertex.h>
-#include <OpenMS/VISUAL/TOPPASInputFileListVertex.h>
-#include <OpenMS/VISUAL/TOPPASOutputFileListVertex.h>
 #include <OpenMS/VISUAL/DIALOGS/TOPPASIOMappingDialog.h>
+#include <OpenMS/VISUAL/MISC/GUIHelpers.h>
+#include <OpenMS/VISUAL/TOPPASEdge.h>
+#include <OpenMS/VISUAL/TOPPASInputFileListVertex.h>
 #include <OpenMS/VISUAL/TOPPASMergerVertex.h>
+#include <OpenMS/VISUAL/TOPPASOutputFileListVertex.h>
+#include <OpenMS/VISUAL/TOPPASScene.h>
 #include <OpenMS/VISUAL/TOPPASSplitterVertex.h>
+#include <OpenMS/VISUAL/TOPPASToolVertex.h>
 
 #include <Qt>
 #include <QPainter>
@@ -180,7 +181,7 @@ namespace OpenMS
     painter->setPen(pen);
 
     // angle of line
-    qreal angle = -QLineF(endPos(), startPos()).angle() + 180; // negate since angle() reports counter-clockwise; +180 since painter.rotate() is more intuivite then
+    qreal angle = -QLineF(endPos(), startPos()).angle() + 180; // negate since angle() reports counter-clockwise; +180 since painter.rotate() is more intuitive then
 
     // draw the actual line
     QPainterPath path_line(startPos());
@@ -232,8 +233,8 @@ namespace OpenMS
       painter->translate(point);
       painter->rotate(text_angle);
       QFontMetrics fm(painter->fontMetrics());
-      int text_width = fm.width(str);
-      int text_height = fm.height();   // shift text below the edge by its own height
+      int text_width = fm.width(str); // replace with QFontMetrics::horizontalAdvance if Qt >= 5.11: CONTRIB_UPDATE_Qt_5.11
+      int text_height = fm.height();  // shift text below the edge by its own height
       if (invert_text_direction)
       {
         painter->drawText(QPoint(arrow_width, text_height + y_text), str);
@@ -284,6 +285,8 @@ namespace OpenMS
     }
   }
 
+
+
   QPointF TOPPASEdge::borderPoint_(bool atTargetVertex) const
   {
     if (!to_ || !from_)
@@ -293,49 +296,10 @@ namespace OpenMS
     const TOPPASVertex* to = (atTargetVertex ? to_ : from_);
     const TOPPASVertex* from = (!atTargetVertex ? to_ : from_);
 
-    const QPointF toP =  mapFromScene(to->scenePos());
     const QPointF fromP = mapFromScene(from->scenePos());
-
-    QPointF delta = toP - fromP;
-    qreal slope;
-    if (delta.x() == 0)
-    {
-      slope = std::numeric_limits<double>::infinity();
-    }
-    else
-    {
-      slope = delta.y() / delta.x();
-    }
-
     QRectF target_boundings = mapFromItem(to, to->shape()).boundingRect();
-    qreal y_1 = fromP.y() + slope * (target_boundings.left() - fromP.x());
-    qreal y_2 = fromP.y() + slope * (target_boundings.right() - fromP.x());
 
-    slope = 1.0 / slope;
-
-    qreal x_3 = fromP.x() + slope * (target_boundings.top() - fromP.y());
-    qreal x_4 = fromP.x() + slope * (target_boundings.bottom() - fromP.y());
-
-    QList<QPointF> point_list;
-    if (y_1 <= target_boundings.bottom() && y_1 >= target_boundings.top())
-    {
-      point_list.push_back(QPointF(target_boundings.left(), y_1));
-    }
-    if (y_2 <= target_boundings.bottom() && y_2 >= target_boundings.top())
-    {
-      point_list.push_back(QPointF(target_boundings.right(), y_2));
-    }
-    if (x_3 <= target_boundings.right() && x_3 >= target_boundings.left())
-    {
-      point_list.push_back(QPointF(x_3, target_boundings.top()));
-    }
-    if (x_4 <= target_boundings.right() && x_4 >= target_boundings.left())
-    {
-      point_list.push_back(QPointF(x_4, target_boundings.bottom()));
-    }
-
-    return (nearestPoint_(fromP, point_list));
-
+    return GUIHelpers::intersectionPoint(target_boundings, fromP);
   }
 
   void TOPPASEdge::setHoverPos(const QPointF& pos)
@@ -368,29 +332,6 @@ namespace OpenMS
   void TOPPASEdge::prepareResize()
   {
     prepareGeometryChange();
-  }
-
-  QPointF TOPPASEdge::nearestPoint_(const QPointF& origin, const QList<QPointF>& list) const
-  {
-    if (list.empty())
-    {
-      return QPointF();
-    }
-    QPointF nearest = list.first();
-    qreal min_distance = (std::numeric_limits<double>::max)();
-
-    for (QList<QPointF>::const_iterator it = list.begin(); it != list.end(); ++it)
-    {
-      qreal sqr_distance = (it->x() - origin.x()) * (it->x() - origin.x()) +
-                           (it->y() - origin.y()) * (it->y() - origin.y());
-      if (sqr_distance < min_distance)
-      {
-        min_distance = sqr_distance;
-        nearest = *it;
-      }
-    }
-
-    return nearest;
   }
 
   void TOPPASEdge::setColor(const QColor& color)

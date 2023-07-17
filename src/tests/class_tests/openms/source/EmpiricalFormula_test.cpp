@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -46,6 +46,7 @@
 #include <OpenMS/CONCEPT/Constants.h>
 
 #include <sstream>
+#include <map>
 
 using namespace OpenMS;
 using namespace std;
@@ -77,6 +78,7 @@ START_SECTION(EmpiricalFormula(const String& rhs))
   // all spaces, tabs and newlines from the provided formula
   e_ptr = new EmpiricalFormula("C4 ");
   TEST_NOT_EQUAL(e_ptr, e_nullPointer)
+  // test isotopes (Carbon 13)
   EmpiricalFormula e0("C5(13)C4H2 ");
   EmpiricalFormula e1("C5(13)C4\n\n ");
   EmpiricalFormula e2("(12)C5(13)C4\t\n ");
@@ -383,7 +385,7 @@ END_SECTION
 
 START_SECTION(bool operator!=(const EmpiricalFormula& rhs) const)
   EmpiricalFormula ef1("C2H5"), ef2(*e_ptr);
-  TEST_EQUAL(ef1 != ef2, true)
+  TEST_FALSE(ef1 == ef2)
   TEST_EQUAL(ef1 != ef1, false)
   ef2.setCharge(1);
   TEST_EQUAL(ef2 != *e_ptr, true)
@@ -392,7 +394,7 @@ END_SECTION
 START_SECTION(bool operator==(const EmpiricalFormula& rhs) const)
   EmpiricalFormula ef1("C2H5"), ef2(*e_ptr);
   TEST_EQUAL(ef1 == ef2, false)
-  TEST_EQUAL(ef1 == ef1, true)
+  TEST_TRUE(ef1 == ef1)
   ef2.setCharge(1);
   TEST_EQUAL(ef2 == *e_ptr, false)
 
@@ -402,7 +404,7 @@ END_SECTION
 
 START_SECTION(ConstIterator begin() const)
   EmpiricalFormula ef("C6H12O6");
-  Map<String, SignedSize> formula;
+  std::map<String, SignedSize> formula;
   formula["C"] = 6;
   formula["H"] = 12;
   formula["O"] = 6;

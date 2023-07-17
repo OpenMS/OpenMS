@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -54,9 +54,9 @@ using namespace std;
   <center>
   <table>
   <tr>
-  <td ALIGN = "center" BGCOLOR="#EBEBEB"> potential predecessor tools </td>
-  <td VALIGN="middle" ROWSPAN=3> \f$ \longrightarrow \f$ IDMerger \f$ \longrightarrow \f$</td>
-  <td ALIGN = "center" BGCOLOR="#EBEBEB"> potential successor tools </td>
+  <th ALIGN = "center"> potential predecessor tools </td>
+  <td VALIGN="middle" ROWSPAN=3> &rarr; IDMerger &rarr;</td>
+  <th ALIGN = "center"> potential successor tools </td>
   </tr>
   <tr>
   <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_MascotAdapter (or other ID engines) </td>
@@ -221,7 +221,7 @@ protected:
     {
       // this also allows exactly 1 file, because it might be useful for
       // a TOPPAS pipeline containing an IDMerger, to run only with one file
-      writeLog_("No input filename given. Aborting!");
+      writeLogError_("No input filename given. Aborting!");
       printUsage_();
       return ILLEGAL_PARAMETERS;
     }
@@ -229,7 +229,7 @@ protected:
     bool pepxml_protxml = getFlag_("pepxml_protxml");
     if (pepxml_protxml && (file_names.size() != 2))
     {
-      writeLog_("Exactly two input filenames expected for option 'pepxml_protxml'. Aborting!");
+      writeLogError_("Exactly two input filenames expected for option 'pepxml_protxml'. Aborting!");
       printUsage_();
       return ILLEGAL_PARAMETERS;
     }
@@ -237,7 +237,7 @@ protected:
     {
       // currently not allowed to keep the code simpler and because it doesn't
       // seem useful, but should be possible in principle:
-      writeLog_("The options 'add_to' and 'pepxml_protxml' cannot be used together. Aborting!");
+      writeLogError_("The options 'add_to' and 'pepxml_protxml' cannot be used together. Aborting!");
       printUsage_();
       return ILLEGAL_PARAMETERS;
     }
@@ -247,7 +247,7 @@ protected:
     {
       // currently not allowed to keep the code simpler and because it doesn't
       // seem useful, but should be possible in principle:
-      writeLog_("The options 'merge_proteins_add_PSMs', 'add_to' and 'pepxml_protxml' cannot be used together. Aborting!");
+      writeLogError_("The options 'merge_proteins_add_PSMs', 'add_to' and 'pepxml_protxml' cannot be used together. Aborting!");
       printUsage_();
       return ILLEGAL_PARAMETERS;
     }
@@ -273,16 +273,16 @@ protected:
       }
       if (current_type != type)
       {
-        writeLog_("Mixing different file types is not supported. Aborting!");
+        writeLogError_("Mixing different file types is not supported. Aborting!");
         printUsage_();
         return ILLEGAL_PARAMETERS;
       }
     }
     if (type == FileTypes::UNKNOWN)
     {
-      writeLog_("Could not determine input/output file type. Aborting!");
-        printUsage_();
-        return ILLEGAL_PARAMETERS;
+      writeLogError_("Could not determine input/output file type. Aborting!");
+      printUsage_();
+      return ILLEGAL_PARAMETERS;
     }
 
     //-------------------------------------------------------------
@@ -294,7 +294,7 @@ protected:
       if (!add_to.empty() || pepxml_protxml || merge_proteins_add_PSMs)
       {
         // 'annotate_file_origin' is on by default - just ignore it
-        writeLog_("Options are currently not supported when merging .oms files. Aborting!");
+        writeLogError_("Options are currently not supported when merging .oms files. Aborting!");
         printUsage_();
         return ILLEGAL_PARAMETERS;
       }
@@ -460,7 +460,7 @@ protected:
             OPENMS_LOG_DEBUG << "identifier: " << id << endl;
             if (proteins_by_id.find(id) == proteins_by_id.end())
             {
-              writeLog_("Error: identifier '" + id + "' linking peptides and proteins not found. Skipping.");
+              writeLogError_("Error: identifier '" + id + "' linking peptides and proteins not found. Skipping.");
               continue;
             }
             ProteinIdentification& protein = proteins_by_id[id];
@@ -468,7 +468,7 @@ protected:
             auto hit_it = protein.findHit(acc);
             if (hit_it == protein.getHits().end())
             {
-              writeLog_("Error: accession '" + acc + "' not found in "
+              writeLogError_("Error: accession '" + acc + "' not found in "
                                                           "protein identification '" + id + "'. Skipping.");
               continue;
             }

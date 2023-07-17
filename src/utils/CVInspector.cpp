@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -40,6 +40,8 @@
 #include <OpenMS/FORMAT/CVMappingFile.h>
 #include <OpenMS/FORMAT/ControlledVocabulary.h>
 #include <OpenMS/FORMAT/TextFile.h>
+
+#include <map>
 
 using namespace OpenMS;
 using namespace std;
@@ -159,7 +161,7 @@ protected:
     {
       cv.loadFromOBO(cv_names[i], cv_files[i]);
     }
-    Map<String, ControlledVocabulary::CVTerm> terms = cv.getTerms();
+    std::map<String, ControlledVocabulary::CVTerm> terms = cv.getTerms();
 
     // load mappings from mapping file
     String mapping_file = getStringOption_("mapping_file");
@@ -412,7 +414,7 @@ protected:
 
     // find unused terms, which CANNOT be used in the XML due to the mapping file
     set<String> unused_terms;
-    for (Map<String, ControlledVocabulary::CVTerm>::ConstIterator it = terms.begin(); it != terms.end(); ++it)
+    for (std::map<String, ControlledVocabulary::CVTerm>::const_iterator it = terms.begin(); it != terms.end(); ++it)
     {
       if (used_terms.find(it->first) == used_terms.end())
       {

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry               
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 // 
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -43,6 +43,8 @@
 #include <OpenMS/KERNEL/MSSpectrum.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 
+#include <map>
+
 using namespace OpenMS;
 using namespace std;
 
@@ -78,7 +80,7 @@ END_SECTION
 
 START_SECTION((void scoreSpectrum(Map<double, IonScore>& CID_ion_scores, PeakSpectrum& CID_spec, double precursor_weight, Size charge)))
 {
-  Map<double, CompNovoIonScoringBase::IonScore> ion_scores;
+  std::map<double, CompNovoIonScoringBase::IonScore> ion_scores;
   TheoreticalSpectrumGenerator tsg;
   Param tsg_param(tsg.getParameters());
   tsg_param.setValue("add_losses", "true");
@@ -100,7 +102,7 @@ START_SECTION((void scoreSpectrum(Map<double, IonScore>& CID_ion_scores, PeakSpe
   CompNovoIonScoringCID cnis;
   cnis.scoreSpectrum(ion_scores, spec, 1018.48, 1);
   
-  for (Map<double, CompNovoIonScoringBase::IonScore>::ConstIterator it = ion_scores.begin(); it != ion_scores.end(); ++it)
+  for (std::map<double, CompNovoIonScoringBase::IonScore>::const_iterator it = ion_scores.begin(); it != ion_scores.end(); ++it)
   {
 /*
 y1 175.118952187571

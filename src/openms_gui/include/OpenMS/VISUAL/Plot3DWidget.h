@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -56,16 +56,22 @@ namespace OpenMS
     Q_OBJECT
 
 public:
-    ///Constructor
+    /// Constructor
     Plot3DWidget(const Param & preferences, QWidget * parent = nullptr);
 
     /// Destructor
     ~Plot3DWidget() override;
 
-    /// This method is overwritten to make the class specific members accessible
-    inline Plot3DCanvas * canvas()
+    // docu in base class
+    Plot3DCanvas* canvas() const override
     {
-      return static_cast<Plot3DCanvas *>(canvas_);
+      return static_cast<Plot3DCanvas*>(canvas_);
+    }
+
+    // Docu in base class
+    void setMapper(const DimMapper<2>& /*mapper*/) override
+    { // 3D widget currently only handles MSExperiment. That's it.
+      throw Exception::NotImplemented(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION);
     }
 
     // Docu in base class

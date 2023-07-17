@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -63,6 +63,14 @@ namespace OpenMS
     So far, this peak picker was mainly tested on high resolution data. With
     appropriate preprocessing steps (e.g. noise reduction and baseline
     subtraction), it might be also applied to low resolution data.
+
+    This implementation performs peak picking in a single dimension (m/z);
+    two-dimensional data such as ion mobility separated data needs additional
+    pre-processing. The current implementation treats these data as
+    one-dimensional data, performs peak picking in the m/z dimension and
+    reports the intensity weighted ion mobility of the picked peaks (which will
+    produce correct results if the data has been binned previously but
+    incorrect results if fully 2D data is provided as input).
 
     @htmlinclude OpenMS_PeakPickerHiRes.parameters
 
@@ -126,6 +134,7 @@ public:
       @param input  input chromatogram in profile mode
       @param output  output chromatogram with picked peaks
       @param boundaries  boundaries of the picked peaks
+      @param check_spacings  check spacing constraints? (yes for spectra, no for chromatograms)
      */
     void pick(const MSChromatogram& input, MSChromatogram& output, std::vector<PeakBoundary>& boundaries, bool check_spacings = false) const;
 
@@ -169,7 +178,7 @@ public:
 protected:
 
     template <typename ContainerType>
-    void pick_(const ContainerType& input, ContainerType& output, std::vector<PeakBoundary>& boundaries, bool check_spacings = true) const;
+    void pick_(const ContainerType& input, ContainerType& output, std::vector<PeakBoundary>& boundaries, bool check_spacings = true, int im_index = -1) const;
 
     // signal-to-noise parameter
     double signal_to_noise_;

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -40,6 +40,7 @@
 
 #include <fstream>
 #include <regex>
+#include <map>
 
 using namespace std;
 
@@ -101,7 +102,7 @@ namespace OpenMS
     String line;
     ifstream is(filename.c_str());
 
-    Map<String, String> modname_to_unimod;
+    std::map<String, String> modname_to_unimod;
     modname_to_unimod["Pyro-glu"] = "Gln->pyro-Glu";
     modname_to_unimod["CAM"] = "Carbamidomethyl";
     modname_to_unimod["AB_old_ICATd8"] = "ICAT-D:2H(8)";
@@ -206,7 +207,7 @@ namespace OpenMS
               mod_split[i].split(',', single_mod);
 
               String mod_name = single_mod[2];
-              if (modname_to_unimod.has(mod_name))
+              if (modname_to_unimod.find(mod_name) != modname_to_unimod.end())
               {
                 mod_name = modname_to_unimod[mod_name];
               }

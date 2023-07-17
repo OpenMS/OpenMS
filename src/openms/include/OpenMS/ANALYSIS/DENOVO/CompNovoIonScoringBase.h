@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -42,6 +42,7 @@
 
 // stl includes
 #include <vector>
+#include <map>
 
 namespace OpenMS
 {
@@ -115,16 +116,16 @@ protected:
 
     IsotopeType classifyIsotopes_(const PeakSpectrum & spec, PeakSpectrum::ConstIterator it) const;
 
-    double scoreIsotopes_(const PeakSpectrum & spec, PeakSpectrum::ConstIterator it, Map<double, IonScore> & CID_nodes, Size charge = 1);
+    double scoreIsotopes_(const PeakSpectrum & spec, PeakSpectrum::ConstIterator it, std::map<double, IonScore> & CID_nodes, Size charge = 1);
 
-    virtual void scoreWitnessSet_(Size charge, double precursor_weight, Map<double, IonScore> & CID_nodes, const PeakSpectrum & CID_orig_spec) = 0;
+    virtual void scoreWitnessSet_(Size charge, double precursor_weight, std::map<double, IonScore> & CID_nodes, const PeakSpectrum & CID_orig_spec) = 0;
 
-    void addSingleChargedIons_(Map<double, IonScore> & ion_scores, PeakSpectrum & CID_spec);
+    void addSingleChargedIons_(std::map<double, IonScore> & ion_scores, PeakSpectrum & CID_spec);
 
     void initIsotopeDistributions_();
 
     ///
-    Map<Size, std::vector<double> > isotope_distributions_;
+    std::map<Size, std::vector<double> > isotope_distributions_;
 
     double fragment_mass_tolerance_;
 

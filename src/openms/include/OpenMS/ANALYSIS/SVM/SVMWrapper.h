@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -193,7 +193,7 @@ public:
 
       @param modelFilename The file name where the model will be saved.
     */
-    void saveModel(std::string modelFilename) const;
+    void saveModel(const std::string& modelFilename) const;
 
     /**
       @brief loads the model
@@ -203,7 +203,7 @@ public:
 
       @param modelFilename The name of the model file that should be loaded.
     */
-    void loadModel(std::string modelFilename);
+    void loadModel(const std::string& modelFilename);
 
     /**
       @brief predicts the labels using the trained model
@@ -345,7 +345,7 @@ public:
                                       std::map<SVM_parameter_type, double>& best_parameters,
                                       bool                                                                                            additive_step_sizes = true,
                                       bool                                                                                        output = false,
-                                      String                                                                                      performances_file_name = "performances.txt",
+                                      const String&                                                                                      performances_file_name = "performances.txt",
                                       bool                                                                                            mcc_as_performance_measure = false);
 
 

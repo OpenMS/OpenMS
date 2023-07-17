@@ -2,7 +2,7 @@
 #                   OpenMS -- Open-Source Mass Spectrometry
 # --------------------------------------------------------------------------
 # Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-# ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+# ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 #
 # This software is released under a three-clause BSD license:
 #  * Redistributions of source code must retain the above copyright
@@ -53,6 +53,7 @@ macro(openms_export_targets )
     "${OPENMS_HOST_DIRECTORY}/cmake/OpenMSConfig.cmake.in"
     "${PROJECT_BINARY_DIR}/OpenMSConfig.cmake"
     INSTALL_DESTINATION ${INSTALL_LIB_DIR}/cmake/OpenMS
+    PATH_VARS INSTALL_SHARE_DIR INSTALL_LIB_DIR INSTALL_DOC_DIR INSTALL_BIN_DIR
   )
 
   # write OpenMSConfigVersion.cmake
@@ -68,12 +69,12 @@ macro(openms_export_targets )
 
   # install the generated config file
   install_file(${PROJECT_BINARY_DIR}/OpenMSConfig.cmake
-               ${INSTALL_LIB_DIR}/cmake/OpenMS/
+               ${INSTALL_CMAKE_DIR}
                cmake)
 
   # .. and ConfigVersion.cmake
   install_file(${PROJECT_BINARY_DIR}/OpenMSConfigVersion.cmake
-               ${INSTALL_LIB_DIR}/cmake/OpenMS/
+               ${INSTALL_CMAKE_DIR}
                cmake)
 
   # register the package

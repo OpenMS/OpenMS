@@ -15,15 +15,15 @@ cdef extern from "<OpenMS/FILTERING/DATAREDUCTION/FeatureFindingMetabo.h>" names
 
     cdef cppclass FeatureFindingMetabo(ProgressLogger, DefaultParamHandler):
         # wrap-inherits:
-        #    ProgressLogger
-        #    DefaultParamHandler
+        #   ProgressLogger
+        #   DefaultParamHandler
         #
 
         FeatureFindingMetabo() nogil except +
             # wrap-doc: 
-            #   Method for the assembly of mass traces belonging to the same isotope
-            #   pattern, i.e., that are compatible in retention times, mass-to-charge ratios,
-            #   and isotope abundances
+            #  Method for the assembly of mass traces belonging to the same isotope
+            #  pattern, i.e., that are compatible in retention times, mass-to-charge ratios,
+            #  and isotope abundances
 
         FeatureFindingMetabo(FeatureFindingMetabo &) nogil except + # compiler
 

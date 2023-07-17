@@ -1,5 +1,5 @@
 ## Use CMake 3.17 to correctly find OpenMP on macOS
-cmake_minimum_required(VERSION 3.9)
+cmake_minimum_required(VERSION 3.15 FATAL_ERROR)
 
 ### example CMakeLists.txt to develop programs using OpenMS
 project("OpenMS_ExternalCodeTest")

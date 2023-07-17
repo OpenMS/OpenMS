@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -35,6 +35,7 @@
 #include <OpenMS/FORMAT/MascotInfile.h>
 
 #include <sstream>
+#include <utility>
 
 using namespace std;
 
@@ -72,7 +73,7 @@ namespace OpenMS
 
     mz_ = mz;
     retention_time_ = retention_time;
-    search_title_ = search_title;
+    search_title_ = std::move(search_title);
 
     writeHeader_(fp);
     writeSpectrum_(fp, filename, spec);
@@ -87,10 +88,7 @@ namespace OpenMS
 
   }
 
-  MascotInfile::~MascotInfile()
-  {
-
-  }
+  MascotInfile::~MascotInfile() = default;
 
   void MascotInfile::store(const String& filename,
                            const PeakMap& experiment,
@@ -98,7 +96,7 @@ namespace OpenMS
   {
     FILE* fp = fopen(filename.c_str(), "wt");
 
-    search_title_ = search_title;
+    search_title_ = std::move(search_title);
 
     writeHeader_(fp);
     writeMSExperiment_(fp, filename, experiment);
@@ -680,13 +678,13 @@ namespace OpenMS
               line.split(' ', split);
               if (split.size() == 2)
               {
-                spectrum.push_back(make_pair(split[0].toDouble(), split[1].toDouble()));
+                spectrum.emplace_back(split[0].toDouble(), split[1].toDouble());
               }
               else
               {
                 if (split.size() == 3)
                 {
-                  spectrum.push_back(make_pair(split[0].toDouble(), split[1].toDouble()));
+                  spectrum.emplace_back(split[0].toDouble(), split[1].toDouble());
                   // @improvement add meta info e.g. charge, name... (Andreas)
                 }
                 else

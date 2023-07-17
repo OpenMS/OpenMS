@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -43,6 +43,7 @@
 #include <OpenMS/COMPARISON/CLUSTERING/ClusterHierarchical.h>
 
 #include <fstream>
+#include <map>
 
 namespace OpenMS
 {
@@ -109,7 +110,7 @@ namespace OpenMS
 
     WindowList list_new;
 
-    Map<Size, Size> cluster_sizes;
+    std::map<Size, Size> cluster_sizes;
 
     for (Size i_outer = 0; i_outer < clusters.size(); ++i_outer)
     {
@@ -130,7 +131,7 @@ namespace OpenMS
     }
 
     OPENMS_LOG_INFO << "Clustered overlapping windows\nCluster sizes:\n";
-    for (Map<Size, Size>::const_iterator it = cluster_sizes.begin(); it != cluster_sizes.end(); ++it)
+    for (std::map<Size, Size>::const_iterator it = cluster_sizes.begin(); it != cluster_sizes.end(); ++it)
     {
       OPENMS_LOG_INFO << "  size " << it->first << ": " << it->second << "x\n";
     }
@@ -154,7 +155,7 @@ namespace OpenMS
   void InclusionExclusionList::writeTargets(const std::vector<FASTAFile::FASTAEntry>& fasta_entries,
                                             const String& out_path,
                                             const IntList& charges,
-                                            const String rt_model_path)
+                                            const String& rt_model_path)
   {
     WindowList result;
 

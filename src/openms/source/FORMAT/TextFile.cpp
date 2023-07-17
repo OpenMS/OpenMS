@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -41,14 +41,9 @@ using namespace std;
 namespace OpenMS
 {
 
-  TextFile::TextFile()
-  {
+  TextFile::TextFile() = default;
 
-  }
-
-  TextFile::~TextFile()
-  {
-  }
+  TextFile::~TextFile() = default;
 
   TextFile::TextFile(const String& filename, bool trim_lines, Int first_n, bool skip_empty_lines)
   {

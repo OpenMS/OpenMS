@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -167,7 +167,7 @@ public:
       for (Size i = 0; i < data.size(); i++)
       {
         //double sz(2), UInt sp(1);
-        binned_data.push_back(BinnedSpectrum(data[i], sz, false, sp, offset));
+        binned_data.emplace_back(data[i], sz, false, sp, offset);
       }
 
       //create distancematrix for data with comparator

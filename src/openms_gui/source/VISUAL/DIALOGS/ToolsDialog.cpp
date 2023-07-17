@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -35,26 +35,28 @@
 // OpenMS includes
 #include <OpenMS/VISUAL/DIALOGS/ToolsDialog.h>
 
-#include <OpenMS/VISUAL/ParamEditor.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
+#include <OpenMS/APPLICATIONS/ToolHandler.h>
+#include <OpenMS/DATASTRUCTURES/Param.h>
+#include <OpenMS/FORMAT/FileTypes.h>
 #include <OpenMS/FORMAT/ParamXMLFile.h>
 #include <OpenMS/SYSTEM/File.h>
+#include <OpenMS/VISUAL/ParamEditor.h>
+#include <OpenMS/VISUAL/TVToolDiscovery.h>
+#include <OpenMS/VISUAL/MISC/CommonDefs.h>
 
+#include <QProcess>
 #include <QtCore/QStringList>
-#include <QtWidgets/QPushButton>
+#include <QtWidgets/QCheckBox>
 #include <QtWidgets/QComboBox>
+#include <QtWidgets/QFileDialog>
 #include <QtWidgets/QHBoxLayout>
 #include <QtWidgets/QLabel>
 #include <QtWidgets/QMessageBox>
+#include <QtWidgets/QPushButton>
 #include <QtWidgets/QRadioButton>
-#include <QtWidgets/QFileDialog>
-#include <QtWidgets/QCheckBox>
-#include <QProcess>
+#include <utility>
 
-#include <OpenMS/DATASTRUCTURES/Map.h>
-#include <OpenMS/DATASTRUCTURES/Param.h>
-#include <OpenMS/FORMAT/FileTypes.h>
-#include <OpenMS/APPLICATIONS/ToolHandler.h>
 
 using namespace std;
 
@@ -67,12 +69,15 @@ namespace OpenMS
           String ini_file,
           String default_dir,
           LayerDataBase::DataType layer_type,
-          String layer_name
-    ) :
-    QDialog(parent),
-    ini_file_(ini_file),
-    default_dir_(default_dir),
-    params_(params)
+          const String& layer_name,
+          TVToolDiscovery* tool_scanner) :
+            QDialog(parent),
+            ini_file_(std::move(ini_file)),
+            default_dir_(std::move(default_dir)),
+            tool_params_(params.copy("tool_params:", true)),
+            plugin_params_(),
+            tool_scanner_(tool_scanner),
+            layer_type_(layer_type)
   {
     auto main_grid = new QGridLayout(this);
 
@@ -84,7 +89,6 @@ namespace OpenMS
 
     auto label = new QLabel("TOPP tool:");
     main_grid->addWidget(label, 1, 0);
-    QStringList list;
 
     // Determine all available tools compatible with the layer_type
     tool_map_ = {
@@ -94,34 +98,19 @@ namespace OpenMS
             {FileTypes::Type::CONSENSUSXML, LayerDataBase::DataType::DT_CONSENSUS},
             {FileTypes::Type::IDXML, LayerDataBase::DataType::DT_IDENT}
     };
-    const auto& tools = ToolHandler::getTOPPToolList();
-    const auto& utils = ToolHandler::getUtilList();
-    for (auto& pair : tools)
-    {
-      std::vector<LayerDataBase::DataType> tool_types = getTypesFromParam_(params.copy(pair.first + ":"));
-      if (std::find(tool_types.begin(), tool_types.end(), layer_type) != tool_types.end())
-      {
-        list << pair.first.toQString();
-      }
-    }
-    for (auto& pair : utils)
-    {
-      std::vector<LayerDataBase::DataType> tool_types = getTypesFromParam_(params.copy(pair.first + ":"));
-      if (std::find(tool_types.begin(), tool_types.end(), layer_type) != tool_types.end())
-      {
-        list << pair.first.toQString();
-      }
-    }
 
-    //sort list alphabetically
-    list.sort();
-    list.push_front("<select tool>");
+    QStringList list = createToolsList_();
+
     tools_combo_ = new QComboBox;
     tools_combo_->setMinimumWidth(150);
     tools_combo_->addItems(list);
-    connect(tools_combo_, SIGNAL(activated(int)), this, SLOT(setTool_(int)));
+    connect(tools_combo_, CONNECTCAST(QComboBox, activated, (int)), this, &ToolsDialog::setTool_);
 
     main_grid->addWidget(tools_combo_, 1, 1);
+
+    reload_plugins_button_ = new QPushButton("Reload Plugins");
+    connect(reload_plugins_button_, &QPushButton::clicked, this, &ToolsDialog::reloadPlugins_);
+    main_grid->addWidget(reload_plugins_button_, 0, 2);
 
     label = new QLabel("input argument:");
     main_grid->addWidget(label, 2, 0);
@@ -145,19 +134,19 @@ namespace OpenMS
 
     auto hbox = new QHBoxLayout;
     auto load_button = new QPushButton(tr("&Load"));
-    connect(load_button, SIGNAL(clicked()), this, SLOT(loadINI_()));
+    connect(load_button, &QPushButton::clicked, this, &ToolsDialog::loadINI_);
     hbox->addWidget(load_button);
     auto store_button = new QPushButton(tr("&Store"));
-    connect(store_button, SIGNAL(clicked()), this, SLOT(storeINI_()));
+    connect(store_button, &QPushButton::clicked, this, &ToolsDialog::storeINI_);
     hbox->addWidget(store_button);
     hbox->addStretch();
 
     ok_button_ = new QPushButton(tr("&Ok"));
-    connect(ok_button_, SIGNAL(clicked()), this, SLOT(ok_()));
+    connect(ok_button_, &QPushButton::clicked, this, &ToolsDialog::ok_);
     hbox->addWidget(ok_button_);
 
     auto cancel_button = new QPushButton(tr("&Cancel"));
-    connect(cancel_button, SIGNAL(clicked()), this, SLOT(reject()));
+    connect(cancel_button, &QPushButton::clicked, this, &ToolsDialog::reject);
     hbox->addWidget(cancel_button);
     main_grid->addLayout(hbox, 5, 0, 1, 5);
 
@@ -167,9 +156,7 @@ namespace OpenMS
     disable_();
   }
 
-  ToolsDialog::~ToolsDialog()
-  {
-  }
+  ToolsDialog::~ToolsDialog() = default;
 
   std::vector<LayerDataBase::DataType> ToolsDialog::getTypesFromParam_(const Param& p) const
   {
@@ -191,6 +178,7 @@ namespace OpenMS
             types.push_back(iter->second);
           }
         }
+        break;
       }
     }
     return types;
@@ -210,7 +198,6 @@ namespace OpenMS
       // Only add items and no nodes
       if (!str.empty() && str.find(":") == String::npos)
       {
-        arg_map_.insert(make_pair(str, iter.getName()));
         // Only add to input list if item has "input file" tag.
         if (iter->tags.find("input file") != iter->tags.end())
         {
@@ -243,6 +230,47 @@ namespace OpenMS
     }
   }
 
+  QStringList ToolsDialog::createToolsList_()
+  {
+    //Make sure the list is empty
+    QStringList list;
+
+    const auto& tools = ToolHandler::getTOPPToolList();
+    const auto& utils = ToolHandler::getUtilList();
+    plugin_params_ = tool_scanner_->getPluginParams();
+
+    for (auto& pair : tools)
+    {
+      std::vector<LayerDataBase::DataType> tool_types = getTypesFromParam_(tool_params_.copy(pair.first + ':'));
+      if (std::find(tool_types.begin(), tool_types.end(), layer_type_) != tool_types.end())
+      {
+        list << pair.first.toQString();
+      }
+    }
+    for (auto& pair : utils)
+    {
+      std::vector<LayerDataBase::DataType> tool_types = getTypesFromParam_(tool_params_.copy(pair.first + ":"));
+      if (std::find(tool_types.begin(), tool_types.end(), layer_type_) != tool_types.end())
+      {
+        list << pair.first.toQString();
+      }
+    }
+    //TODO: Plugins get added to the list just like tools/utils and can't be differentiated in the GUI
+    for (const auto& name : tool_scanner_->getPlugins())
+    {
+      std::vector<LayerDataBase::DataType> tool_types = getTypesFromParam_(plugin_params_.copy(name + ":"));
+      if (std::find(tool_types.begin(), tool_types.end(), layer_type_) != tool_types.end())
+      {
+        list << String(name).toQString();
+      }
+    }
+
+    //sort list alphabetically
+    list.sort();
+    list.push_front("<select tool>");
+    return list;
+  }
+
   void ToolsDialog::createINI_()
   {
     enable_();
@@ -252,12 +280,16 @@ namespace OpenMS
        arg_param_.clear();
        vis_param_.clear();
        editor_->clear();
-       arg_map_.clear();
     }
-    arg_param_ = params_.copy(getTool() + ":");
+    auto tool_name = getTool();
+    arg_param_ = tool_params_.copy(tool_name + ":");
+    if (arg_param_.empty())
+    {
+      arg_param_ = plugin_params_.copy(tool_name + ":");
+    }
 
-    tool_desc_->setText(String(arg_param_.getSectionDescription(getTool())).toQString());
-    vis_param_ = arg_param_.copy(getTool() + ":1:", true);
+    tool_desc_->setText(String(arg_param_.getSectionDescription(tool_name)).toQString());
+    vis_param_ = arg_param_.copy(tool_name + ":1:", true);
     vis_param_.remove("log");
     vis_param_.remove("no_progress");
     vis_param_.remove("debug");
@@ -334,7 +366,6 @@ namespace OpenMS
       arg_param_.clear();
       vis_param_.clear();
       editor_->clear();
-      arg_map_.clear();
     }
     try
     {
@@ -401,6 +432,31 @@ namespace OpenMS
     }
   }
 
+  void ToolsDialog::reloadPlugins_()
+  {
+    QStringList list = createToolsList_();
+
+    int32_t selected_index = list.indexOf(tools_combo_->currentText());
+
+    if (selected_index < 1)
+    {
+      tool_desc_->clear();
+      arg_param_.clear();
+      vis_param_.clear();
+      editor_->clear();
+      input_combo_->clear();
+      output_combo_->clear();
+      disable_();
+    }
+    tools_combo_->clear();
+    tools_combo_->addItems(list);
+    if (selected_index > 0)
+    {
+      tools_combo_->setCurrentIndex(selected_index);
+      createINI_();
+    }
+  }
+
   String ToolsDialog::getOutput()
   {
     if (output_combo_->currentText() == "<select>")
@@ -416,7 +472,7 @@ namespace OpenMS
 
   String ToolsDialog::getTool()
   {
-    return tools_combo_->currentText().toStdString();
+    return tools_combo_->currentText();
   }
 
 }

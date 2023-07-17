@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -961,7 +961,7 @@ namespace OpenMS::Math
       {
         return getScore_({"hyperscore"}, hit, current_score_type); //TODO evaluate transformations
       }
-      else if (engine == "MSFragger")
+      else if (engine == "MSFRAGGER")
       {
         return (-1) * log10(getScore_({"expect"}, hit, current_score_type));
       }

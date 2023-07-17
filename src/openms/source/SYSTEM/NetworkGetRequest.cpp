@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -50,9 +50,7 @@ namespace OpenMS
     manager_ = new QNetworkAccessManager(this);
   }
 
-  NetworkGetRequest::~NetworkGetRequest()
-  {
-  }
+  NetworkGetRequest::~NetworkGetRequest() = default;
 
   void NetworkGetRequest::setUrl(const QUrl& url)
   {
@@ -99,10 +97,15 @@ namespace OpenMS
     emit done();
   }
 
+  const QByteArray& NetworkGetRequest::getResponseBinary() const
+  {
+    return response_bytes_;
+  }
+
   QString NetworkGetRequest::getResponse() const
   {
     return QString(response_bytes_);
-  }
+  }  
 
   bool NetworkGetRequest::hasError() const
   {

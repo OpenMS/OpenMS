@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -41,6 +41,7 @@
 #include <OpenMS/CONCEPT/LogStream.h>
 
 #include <algorithm>
+#include <QString>
 
 #include <boost/regex.hpp>
 #include <boost/math/special_functions/fpclassify.hpp>
@@ -74,9 +75,7 @@ namespace OpenMS
   {
   }
 
-  MzTabFile::~MzTabFile()
-  {
-  }
+  MzTabFile::~MzTabFile() = default;
 
   std::pair<int, int> MzTabFile::extractIndexPairsFromBrackets_(const String & s)
   {
@@ -2983,14 +2982,20 @@ namespace OpenMS
       size_t n_header_columns = 0;
       while (s.nextPSMRow(row))
       {
-        if (first)
-        { // add header
-          tab_file << "\n" << generateMzTabPSMHeader_(n_search_engine_scores, s.getPSMOptionalColumnNames(), n_header_columns) + "\n";
-          first = false;
+        // TODO better return a State enum instead of relying on some uninitialized
+        // parts of a row.. at least it is a mandatory field and therefore it would not make
+        // sense writing that row anyway
+        if (!row.sequence.isNull())
+        {
+          if (first)
+          { // add header
+            tab_file << "\n" << generateMzTabPSMHeader_(n_search_engine_scores, s.getPSMOptionalColumnNames(), n_header_columns) + "\n";
+            first = false;
+          }
+          size_t n_section_columns = 0;
+          tab_file << generateMzTabSectionRow_(row, s.getPSMOptionalColumnNames(), meta_data, n_section_columns) + "\n";
+          if (n_header_columns != n_section_columns)  throw Exception::Postcondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "PSM header and content differs in columns. Please report this bug to the OpenMS developers.");
         }
-        size_t n_section_columns = 0;
-        tab_file << generateMzTabSectionRow_(row, s.getPSMOptionalColumnNames(), meta_data, n_section_columns) + "\n";
-        if (n_header_columns != n_section_columns)  throw Exception::Postcondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "PSM header and content differs in columns. Please report this bug to the OpenMS developers.");
       }
     }
 
@@ -3109,14 +3114,20 @@ namespace OpenMS
       size_t n_header_columns = 0;
       while (s.nextPSMRow(row))
       {
-        if (first)
-        { // add header
-          tab_file << "\n" << generateMzTabPSMHeader_(n_search_engine_scores, s.getPSMOptionalColumnNames(), n_header_columns) + "\n";
-          first = false;
+        // TODO better return a State enum instead of relying on some uninitialized
+        // parts of a row.. at least it is a mandatory field and therefore it would not make
+        // sense writing that row anyway
+        if (!row.sequence.isNull())
+        {
+          if (first)
+          { // add header
+            tab_file << "\n" << generateMzTabPSMHeader_(n_search_engine_scores, s.getPSMOptionalColumnNames(), n_header_columns) + "\n";           
+            first = false;
+          }
+          size_t n_section_columns = 0;
+          tab_file << generateMzTabSectionRow_(row, s.getPSMOptionalColumnNames(), meta_data, n_section_columns) + "\n";
+          if (n_header_columns != n_section_columns)  throw Exception::Postcondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "PSM header and content differs in columns. Please report this bug to the OpenMS developers.");
         }
-        size_t n_section_columns = 0;
-        tab_file << generateMzTabSectionRow_(row, s.getPSMOptionalColumnNames(), meta_data, n_section_columns) + "\n";
-        if (n_header_columns != n_section_columns)  throw Exception::Postcondition(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "PSM header and content differs in columns. Please report this bug to the OpenMS developers.");
       }
     }
 

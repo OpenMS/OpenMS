@@ -11,8 +11,8 @@ cdef extern from "<OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentAlgorithmSpectrumAlig
     
     cdef cppclass MapAlignmentAlgorithmSpectrumAlignment(DefaultParamHandler, ProgressLogger):
         # wrap-inherits:
-        #    DefaultParamHandler
-        #    ProgressLogger
+        #   DefaultParamHandler
+        #   ProgressLogger
 
         MapAlignmentAlgorithmSpectrumAlignment() nogil except +
         # private

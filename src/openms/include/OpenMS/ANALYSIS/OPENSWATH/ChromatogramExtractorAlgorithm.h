@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -100,7 +100,7 @@ public:
      * @param filter Which function to apply in m/z space (currently "tophat" only)
      *
     */
-    void extractChromatograms(const OpenSwath::SpectrumAccessPtr input,
+    void extractChromatograms(const OpenSwath::SpectrumAccessPtr& input,
         std::vector< OpenSwath::ChromatogramPtr >& output,
         const std::vector<ExtractionCoordinates>& extraction_coordinates,
         double mz_extraction_window,

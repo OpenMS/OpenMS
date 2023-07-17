@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -34,13 +34,15 @@
 //
 
 #include <OpenMS/CHEMISTRY/ResidueModification.h>
+
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
 #include <OpenMS/CHEMISTRY/Residue.h>
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 
-#include <iostream>
 #include <cmath>
+#include <iostream>
+#include <utility>
 
 using namespace std;
 
@@ -135,9 +137,7 @@ namespace OpenMS
     return !(*this == rhs);
   }
 
-  ResidueModification::~ResidueModification()
-  {
-  }
+  ResidueModification::~ResidueModification() = default;
 
   void ResidueModification::setId(const String& id)
   {
@@ -544,7 +544,7 @@ namespace OpenMS
 
   void ResidueModification::setNeutralLossMonoMasses(vector<double> mono_masses)
   {
-    neutral_loss_mono_masses_ = mono_masses;
+    neutral_loss_mono_masses_ = std::move(mono_masses);
   }
 
   vector<double> ResidueModification::getNeutralLossMonoMasses() const
@@ -554,7 +554,7 @@ namespace OpenMS
 
   void ResidueModification::setNeutralLossAverageMasses(vector<double> average_masses)
   {
-    neutral_loss_average_masses_ = average_masses;
+    neutral_loss_average_masses_ = std::move(average_masses);
   }
 
   vector<double> ResidueModification::getNeutralLossAverageMasses() const

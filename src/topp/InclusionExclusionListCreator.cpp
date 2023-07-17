@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -59,9 +59,9 @@ using namespace std;
     <CENTER>
     <table>
         <tr>
-            <td ALIGN = "center" BGCOLOR="#EBEBEB"> potential predecessor tools </td>
-            <td VALIGN="middle" ROWSPAN=3> \f$ \longrightarrow \f$ InclusionExclusionListCreator \f$ \longrightarrow \f$</td>
-            <td ALIGN = "center" BGCOLOR="#EBEBEB"> potential successor tools </td>
+            <th ALIGN = "center"> potential predecessor tools </td>
+            <td VALIGN="middle" ROWSPAN=3> &rarr; InclusionExclusionListCreator &rarr;</td>
+            <th ALIGN = "center"> potential successor tools </td>
         </tr>
         <tr>
             <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_MascotAdapter (or other ID engines) </td>
@@ -174,13 +174,13 @@ protected:
 
     if (include.empty() && exclude.empty())
     {
-      writeLog_("Error: No input file given.");
+      writeLogError_("Error: No input file given.");
       return MISSING_PARAMETERS;
     }
     // currently we can handle only inclusion OR exclusion, will be possible with the traML output
     if (!include.empty() && !exclude.empty())
     {
-      writeLog_("Error: Currently only inclusion OR exclusion, both will be possible with the traML output coming soon");
+      writeLogError_("Error: Currently only inclusion OR exclusion, both will be possible with the traML output coming soon");
       return ILLEGAL_PARAMETERS;
     }
 
@@ -218,7 +218,7 @@ protected:
         {
           if (!incl_charges.empty())
           {
-            writeLog_("Warning: 'inclusion_charges' parameter is not honored for featureXML input with strategy ALL.");
+            writeLogWarn_("Warning: 'inclusion_charges' parameter is not honored for featureXML input with strategy ALL.");
             return ILLEGAL_PARAMETERS;
           }
 
@@ -232,7 +232,7 @@ protected:
           }
           catch (Exception::UnableToCreateFile&)
           {
-            writeLog_("Error: Unable to create output file.");
+            writeLogError_("Error: Unable to create output file.");
             return CANNOT_WRITE_OUTPUT_FILE;
           }
         }
@@ -306,14 +306,14 @@ protected:
           }
           catch ( Exception::UnableToCreateFile& )
           {
-            writeLog_("Error: Unable to create output file.");
+            writeLogError_("Error: Unable to create output file.");
             return CANNOT_WRITE_OUTPUT_FILE;
           }
 
         } //else if(strategy == "ILP") // ILP
         else
         {
-          writeLog_("Warning: 'ProteinBased_LP' inclusion strategy is not valid for featureXML input.");
+          writeLogWarn_("Warning: 'ProteinBased_LP' inclusion strategy is not valid for featureXML input.");
           return ILLEGAL_PARAMETERS;
         }
       }
@@ -321,12 +321,12 @@ protected:
       {
         if (!File::exists(rt_model_file))
         {
-          writeLog_("Error: RT model file required for FASTA input to predict RT elution time.");
+          writeLogError_("Error: RT model file required for FASTA input to predict RT elution time.");
           return MISSING_PARAMETERS;
         }
         if (incl_charges.empty())
         {
-          writeLog_("Error: Protein sequences for inclusion given, but no charge states specified.");
+          writeLogError_("Error: Protein sequences for inclusion given, but no charge states specified.");
           return MISSING_PARAMETERS;
         }
         if (strategy == "ProteinBased_LP")
@@ -361,7 +361,7 @@ protected:
           }
           catch (Exception::UnableToCreateFile&)
           {
-            writeLog_("Error: Unable to create output file.");
+            writeLogError_("Error: Unable to create output file.");
             return CANNOT_WRITE_OUTPUT_FILE;
           }
         }
@@ -380,7 +380,7 @@ protected:
       {
         if (!excl_charges.empty())
         {
-          writeLog_("Warning: 'exclusion_charges' parameter is not honored for featureXML input.");
+          writeLogWarn_("Warning: 'exclusion_charges' parameter is not honored for featureXML input.");
           return ILLEGAL_PARAMETERS;
         }
 
@@ -397,7 +397,7 @@ protected:
         }
         catch (Exception::UnableToCreateFile&)
         {
-          writeLog_("Error: Unable to create output file.");
+          writeLogError_("Error: Unable to create output file.");
           return CANNOT_WRITE_OUTPUT_FILE;
         }
       }
@@ -412,17 +412,17 @@ protected:
         }
         catch (Exception::UnableToCreateFile&)
         {
-          writeLog_("Error: Unable to create output file.");
+          writeLogError_("Error: Unable to create output file.");
           return CANNOT_WRITE_OUTPUT_FILE;
         }
         catch (Exception::InvalidSize&)
         {
-          writeLog_("Error: Peptide identification contains several hits. Use IDFilter to filter for significant peptide hits.");
+          writeLogError_("Error: Peptide identification contains several hits. Use IDFilter to filter for significant peptide hits.");
           return ILLEGAL_PARAMETERS;
         }
         catch (Exception::MissingInformation&)
         {
-          writeLog_("Error: Peptide identification contains no RT information.");
+          writeLogError_("Error: Peptide identification contains no RT information.");
           return ILLEGAL_PARAMETERS;
         }
       }
@@ -430,12 +430,12 @@ protected:
       {
         if (!File::exists(rt_model_file))
         {
-          writeLog_("Error: RT model file required for FASTA input to predict RT elution time.");
+          writeLogError_("Error: RT model file required for FASTA input to predict RT elution time.");
           return MISSING_PARAMETERS;
         }
         if (excl_charges.empty())
         {
-          writeLog_("Error: Protein sequences for exclusion given, but no charge states specified.");
+          writeLogError_("Error: Protein sequences for exclusion given, but no charge states specified.");
           return MISSING_PARAMETERS;
         }
         std::vector<FASTAFile::FASTAEntry> entries;
@@ -450,7 +450,7 @@ protected:
         }
         catch (Exception::UnableToCreateFile&)
         {
-          writeLog_("Error: Unable to create output file.");
+          writeLogError_("Error: Unable to create output file.");
           return CANNOT_WRITE_OUTPUT_FILE;
         }
       }

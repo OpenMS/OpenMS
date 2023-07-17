@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -86,7 +86,7 @@ START_SECTION([FASTAFile::FASTAEntry] bool operator==(const FASTAEntry &rhs) con
   FASTAFile::FASTAEntry entry1("ID", "DESC", "DAV*LDELNER");
   FASTAFile::FASTAEntry entry2("ID", "DESC", "DAV*LDELNER");
   FASTAFile::FASTAEntry entry3("ID2", "DESC", "DAV*LDELNER");
-  TEST_EQUAL(entry1 == entry2, true)
+  TEST_TRUE(entry1 == entry2)
   TEST_EQUAL(entry1 == entry3, false)
 END_SECTION
 
@@ -194,7 +194,7 @@ START_SECTION((void
 
   file.load(tmp_filename, data2);
 
-  TEST_EQUAL(data == data2, true);
+  TEST_TRUE(data == data2);
 END_SECTION
 
 

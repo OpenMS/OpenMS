@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -51,7 +51,7 @@ namespace OpenMS::Internal
       ui_->setupUi(this);
       connect(ui_->filter, &QListWidget::itemDoubleClicked, this, &FilterList::filterEdit_);
       connect(ui_->filter, &QListWidget::customContextMenuRequested, this, &FilterList::customContextMenuRequested_);
-      connect(ui_->check, &QCheckBox::toggled, [&]()
+      connect(ui_->check, &QCheckBox::clicked, [&]() // only on user interaction; not when calling setChecked()!
       {
         filters_.setActive(!filters_.isActive()); // invert internal representation
         emit filterChanged(filters_);             // make it public

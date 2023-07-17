@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -65,22 +65,9 @@ namespace OpenMS
     stream_type_map_ = other.stream_type_map_;
   }
 
-  LogConfigHandler::~LogConfigHandler()
-  {
-  }
+  LogConfigHandler::~LogConfigHandler() = default;
 
-  LogConfigHandler & LogConfigHandler::operator=(const LogConfigHandler & source)
-  {
-    debug_streams_ = source.debug_streams_;
-    info_streams_ = source.info_streams_;
-    warn_streams_ = source.warn_streams_;
-    error_streams_ = source.error_streams_;
-    fatal_streams_ = source.fatal_streams_;
-
-    stream_type_map_ = source.stream_type_map_;
-
-    return *this;
-  }
+  LogConfigHandler & LogConfigHandler::operator=(const LogConfigHandler & source) = default;
 
   Param LogConfigHandler::parse(const StringList & settings)
   {
@@ -253,6 +240,16 @@ namespace OpenMS
     }
   }
 
+  void LogConfigHandler::setLogLevel(const String & log_level)
+  {
+    std::vector<String> lvls = {"DEBUG", "INFO", "WARNING", "ERROR", "FATAL_ERROR"};
+    for (const auto& lvl : lvls)
+    {
+      if (lvl == log_level) break;
+      getLogStreamByName_(lvl).removeAllStreams();
+    }
+  }
+
   Logger::LogStream & LogConfigHandler::getLogStreamByName_(const String & stream_name)
   {
     Logger::LogStream * log = &OpenMS_Log_debug; // default
@@ -379,7 +376,7 @@ namespace OpenMS
 
     printStreamConfig_(os, "OPENMS_LOG_DEBUG", lch.debug_streams_, lch.stream_type_map_);
     printStreamConfig_(os, "OPENMS_LOG_INFO", lch.info_streams_, lch.stream_type_map_);
-    printStreamConfig_(os, "LOG_WARNING", lch.warn_streams_, lch.stream_type_map_);
+    printStreamConfig_(os, "OPENMS_LOG_WARN", lch.warn_streams_, lch.stream_type_map_);
     printStreamConfig_(os, "OPENMS_LOG_ERROR", lch.error_streams_, lch.stream_type_map_);
     printStreamConfig_(os, "OPENMS_LOG_FATAL_ERROR", lch.fatal_streams_, lch.stream_type_map_);
 
@@ -388,13 +385,13 @@ namespace OpenMS
 
   LogConfigHandler * LogConfigHandler::instance_ = nullptr;
 
-  LogConfigHandler & LogConfigHandler::getInstance()
+  LogConfigHandler * LogConfigHandler::getInstance()
   {
     if (LogConfigHandler::instance_ == nullptr)
     {
       LogConfigHandler::instance_ = new LogConfigHandler();
     }
-    return *LogConfigHandler::instance_;
+    return LogConfigHandler::instance_;
   }
 
 } // end namespace OpenMS

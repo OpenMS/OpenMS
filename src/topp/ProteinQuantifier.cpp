@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -67,9 +67,9 @@ using namespace std;
 <CENTER>
     <table>
         <tr>
-            <td ALIGN = "center" BGCOLOR="#EBEBEB"> potential predecessor tools </td>
-            <td VALIGN="middle" ROWSPAN=3> \f$ \longrightarrow \f$ ProteinQuantifier \f$ \longrightarrow \f$</td>
-            <td ALIGN = "center" BGCOLOR="#EBEBEB"> potential successor tools </td>
+            <th ALIGN = "center"> potential predecessor tools </td>
+            <td VALIGN="middle" ROWSPAN=3> &rarr; ProteinQuantifier &rarr;</td>
+            <th ALIGN = "center"> potential successor tools </td>
         </tr>
         <tr>
             <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_IDMapper </td>
@@ -86,7 +86,7 @@ using namespace std;
 
     <B>Input: featureXML or consensusXML</B>
 
-    Quantification is based on the intensity values of the features in the input files. Feature intensities are first accumulated to peptide abundances, according to the peptide identifications annotated to the features/feature groups. Then, abundances of the peptides of a protein are averaged to compute the protein abundance.
+    Quantification is based on the intensity values of the features in the input files. Feature intensities are first accumulated to peptide abundances, according to the peptide identifications annotated to the features/feature groups. Then, abundances of the peptides of a protein are aggregated to compute the protein abundance.
 
     The peptide-to-protein step uses the (e.g. 3) most abundant proteotypic peptides per protein to compute the protein abundances. This is a general version of the "top 3 approach" (but only for relative quantification) described in:\n
     Silva <em>et al.</em>: Absolute quantification of proteins by LCMS<sup>E</sup>: a virtue of parallel MS acquisition (Mol. Cell. Proteomics, 2006, PMID: 16219938).
@@ -101,7 +101,7 @@ using namespace std;
 
     Quantification based on identification results uses spectral counting, i.e. the abundance of each peptide is the number of times that peptide was identified from an MS2 spectrum (considering only the best hit per spectrum). Different identification runs in the input are treated as different samples; this makes it possible to quantify several related samples at once by merging the corresponding idXML files with @ref TOPP_IDMerger. Depending on the presence of multiple runs, output format and applicable parameters are the same as for featureXML and consensusXML, respectively.
 
-    The notes above regarding quantification on the protein level and the treatment of modifications also apply to idXML input. In particular, this means that the settings @p top 0 and @p average @p sum should be used to get the "classical" spectral counting quantification on the protein level (where all identifications of all peptides of a protein are summed up).
+    The notes above regarding quantification on the protein level and the treatment of modifications also apply to idXML input. In particular, this means that the settings @p top 0 and @p aggregate @p sum should be used to get the "classical" spectral counting quantification on the protein level (where all identifications of all peptides of a protein are summed up).
 
     <B>Optional input: Protein inference/grouping results</B>
 
@@ -139,7 +139,7 @@ using namespace std;
 
     <B>Protein quantification examples</B>
 
-    While quantification on the peptide level is fairly straight-forward, a number of options influence quantification on the protein level - especially for consensusXML input. The three parameters @p top, @p include_all and @p consensus:fix_peptides determine which peptides are used to quantify proteins in different samples.
+    While quantification on the peptide level is fairly straight-forward, a number of options influence quantification on the protein level - especially for consensusXML input. The three parameters @p top:N, @p top:include_all and @p consensus:fix_peptides determine which peptides are used to quantify proteins in different samples.
 
     As an example, consider a protein with four proteotypic peptides. Each peptide is detected in a subset of three samples, as indicated in the table below. The peptides are ranked by abundance (1: highest, 4: lowest; assuming for simplicity that the order is the same in all samples).
 
@@ -317,9 +317,9 @@ using namespace std;
 
     <B>Further considerations for parameter selection</B>
 
-    With @p best_charge_and_fractions and @p average, there is a trade-off between comparability of protein abundances within a sample and of abundances for the same protein across different samples.\n
+    With @p best_charge_and_fractions and @p aggregate, there is a trade-off between comparability of protein abundances within a sample and of abundances for the same protein across different samples.\n
     Setting @p best_charge_and_fraction may increase reproducibility between samples, but will distort the proportions of protein abundances within a sample. The reason is that ionization properties vary between peptides, but should remain constant across samples. Filtering by charge state can help to reduce the impact of feature detection differences between samples.\n
-    For @p average, there is a qualitative difference between @p (intensity weighted) mean/median and @p sum in the effect that missing peptide abundances have (only if @p include_all is set or @p top is 0): @p (intensity weighted) mean and @p median ignore missing cases, averaging only present values. If low-abundant peptides are not detected in some samples, the computed protein abundances for those samples may thus be too optimistic. @p sum implicitly treats missing values as zero, so this problem does not occur and comparability across samples is ensured. However, with @p sum the total number of peptides ("summands") available for a protein may affect the abundances computed for it (depending on @p top), so results within a sample may become unproportional.
+    For @p aggregate, there is a qualitative difference between @p (intensity weighted) mean/median and @p sum in the effect that missing peptide abundances have (only if @p include_all is set or @p top is 0): @p (intensity weighted) mean and @p median ignore missing cases, averaging only present values. If low-abundant peptides are not detected in some samples, the computed protein abundances for those samples may thus be too optimistic. @p sum implicitly treats missing values as zero, so this problem does not occur and comparability across samples is ensured. However, with @p sum the total number of peptides ("summands") available for a protein may affect the abundances computed for it (depending on @p top), so results within a sample may become unproportional.
 
 */
 
@@ -406,9 +406,9 @@ protected:
     }
     else
     {
-      for (Size i = 1; i <= ed.getNumberOfSamples(); ++i)
+      for (Size i = 0; i < ed.getNumberOfSamples(); ++i)
       {
-        out << "abundance_" + String(i);
+        out << "abundance_" + String(i+1);
       }
     }
     out << "fraction" << endl;
@@ -437,7 +437,7 @@ protected:
           {
             out << q.first.toString() << protein << accessions.size() << ab.first;
 
-            for (size_t sample_id = 1; sample_id <= ed.getNumberOfSamples(); ++sample_id)
+            for (size_t sample_id = 0; sample_id < ed.getNumberOfSamples(); ++sample_id)
             {
               // write abundance for the sample if it exists, 0 otherwise:
               SampleAbundances::const_iterator pos = ab.second.find(sample_id);
@@ -452,7 +452,7 @@ protected:
         // write total abundances (accumulated over all charge states and fractions):
         out << q.first.toString() << protein << accessions.size() << 0;
 
-        for (size_t sample_id = 1; sample_id <= ed.getNumberOfSamples(); ++sample_id)
+        for (size_t sample_id = 0; sample_id < ed.getNumberOfSamples(); ++sample_id)
         {
           // write abundance for the sample if it exists, 0 otherwise:
           SampleAbundances::const_iterator pos = q.second.total_abundances.find(sample_id);
@@ -477,26 +477,26 @@ protected:
     }
     else
     {
-      for (Size i = 1; i <= ed.getNumberOfSamples(); ++i)
+      for (Size i = 0; i < ed.getNumberOfSamples(); ++i)
       {
-        out << "abundance_" + String(i);
+        out << "abundance_" + String(i+1);
       }
 
       // TODO MULTIPLEXING: check if correct
       // if ratios-flag is set, print log2-ratios. ratio_1 <sep> ratio_x ....
       if (print_ratios)
       {
-        for (Size i = 1; i <= ed.getNumberOfSamples(); ++i)
+        for (Size i = 0; i < ed.getNumberOfSamples(); ++i)
         {
-          out << "ratio_" + String(i);
+          out << "ratio_" + String(i+1);
         }
       }
       // if ratiosSILAC-flag is set, print SILAC log2-ratios, only if three
       if (print_SILACratios && ed.getNumberOfSamples() == 3)
       {
-        for (Size i = 1; i <= ed.getNumberOfSamples(); ++i)
+        for (Size i = 0; i < ed.getNumberOfSamples(); ++i)
         {
-          out << "SILACratio_" + String(i);
+          out << "SILACratio_" + String(i+1);
         }
       }
     }
@@ -547,7 +547,7 @@ protected:
       Size n_peptide = q.second.abundances.size();
       out << n_peptide;
 
-      for (size_t sample_id = 1; sample_id <= ed.getNumberOfSamples(); ++sample_id)
+      for (size_t sample_id = 0; sample_id < ed.getNumberOfSamples(); ++sample_id)
       {
         // write abundance for the sample if it exists, 0 otherwise:
         SampleAbundances::const_iterator pos = q.second.total_abundances.find(sample_id);
@@ -558,9 +558,9 @@ protected:
       if (print_ratios)
       {
         double log2 = log(2.0);
-        double ref_abundance = q.second.total_abundances.find(1)->second;
+        double ref_abundance = q.second.total_abundances.find(0)->second;
         out << 0; // =log(1)/log2;
-        for (size_t sample_id = 2; sample_id <= ed.getNumberOfSamples(); ++sample_id)
+        for (size_t sample_id = 1; sample_id < ed.getNumberOfSamples(); ++sample_id)
 
         {
           SampleAbundances::const_iterator pos = q.second.total_abundances.find(sample_id);
@@ -570,9 +570,9 @@ protected:
       // if ratiosSILAC-flag is set, print log2-SILACratios. Only if three maps are provided (triple SILAC).
       if (print_SILACratios && ed.getNumberOfSamples() == 3)
       {
-        double light = q.second.total_abundances.find(1)->second;
-        double middle = q.second.total_abundances.find(2)->second;
-        double heavy = q.second.total_abundances.find(3)->second;
+        double light = q.second.total_abundances.find(0)->second;
+        double middle = q.second.total_abundances.find(1)->second;
+        double heavy = q.second.total_abundances.find(2)->second;
 
         double log2 = log(2.0);
 
@@ -590,19 +590,24 @@ protected:
   {
     String what = (proteins ? "Protein" : "Peptide");
     bool old = out.modifyStrings(false);
+    bool is_ibaq = algo_params_.getValue("method") == "iBAQ";
     out << "# " + what + " abundances computed from file '" +
       getStringOption_("in") + "'" << endl;
     StringList relevant_params;
     if (proteins) // parameters relevant only for protein output
     {
-      relevant_params.push_back("top");
-      Size top = algo_params_.getValue("top");
-      if (top != 1)
+      relevant_params.push_back("method");
+      if (!is_ibaq)
       {
-        relevant_params.push_back("average");
-        if (top != 0)
+        relevant_params.push_back("top:N");
+        Size top = algo_params_.getValue("top:N");
+        if (top != 1)
         {
-          relevant_params.push_back("include_all");
+          relevant_params.push_back("top:aggregate");
+          if (top != 0)
+          {
+            relevant_params.push_back("top:include_all");
+          }
         }
       }
     }
@@ -639,15 +644,15 @@ protected:
     if (ed.getNumberOfSamples() > 1)
     {
       String desc = "# Files/samples associated with abundance values below: ";
-      Size counter = 1;
+      Size counter = 0;
       for (ConsensusMap::ColumnHeaders::iterator it = columns_headers_.begin();
            it != columns_headers_.end(); ++it, ++counter)
       {
-        if (counter > 1)
+        if (counter > 0)
         {
           desc += ", ";
         }
-        desc += String(counter) + ": '" + it->second.filename + "'";
+        desc += String(counter+1) + ": '" + it->second.filename + "'";
         String label = it->second.label;
         if (!label.empty())
         {
@@ -681,11 +686,11 @@ protected:
     }
     if (!getStringOption_("out").empty())
     {
-      bool include_all = algo_params_.getValue("include_all") == "true";
-      Size top = algo_params_.getValue("top");
+      bool include_all = algo_params_.getValue("top:include_all") == "true";
+      Size top_n = algo_params_.getValue("top:N");
       OPENMS_LOG_INFO << "\n...proteins/protein groups: " << stats.quant_proteins
                << " quantified";
-      if (top > 1)
+      if (top_n > 1)
       {
         if (include_all)
         {
@@ -695,7 +700,7 @@ protected:
         {
           OPENMS_LOG_INFO << ", ";
         }
-        OPENMS_LOG_INFO << stats.too_few_peptides << " with fewer than " << top
+        OPENMS_LOG_INFO << stats.too_few_peptides << " with fewer than " << top_n
                  << " peptides";
         if (stats.n_samples > 1)
         {
@@ -797,6 +802,22 @@ protected:
     // algo_params_.update(getParam_());
     quantifier.setParameters(algo_params_);
 
+    // iBAQ works only with feature intensity values in consensusXML or featureXML files
+    if (algo_params_.getValue("method") == "iBAQ" && in.hasSuffix("idXML"))
+    {
+      throw Exception::InvalidParameter(__FILE__, __LINE__,
+                                        OPENMS_PRETTY_FUNCTION,
+                                        "Invalid input: idXML for iBAQ, only consensusXML or featureXML are valid");
+    }
+
+    // iBAQ can only quantify proteins
+    if (algo_params_.getValue("method") == "iBAQ" && !peptide_out.empty())
+    {
+      throw Exception::InvalidParameter(__FILE__, __LINE__,
+                                        OPENMS_PRETTY_FUNCTION,
+                                        "Invalid output: peptide_out can not be set when using iBAQ");
+    }
+
     ExperimentalDesign ed;
 
     if (in_type == FileTypes::FEATUREXML)
@@ -868,7 +889,7 @@ protected:
       {
         // annotate quants to protein(groups) for easier export in mzTab
         auto const & protein_quants = quantifier.getProteinResults();
-        PeptideAndProteinQuant::annotateQuantificationsToProteins(protein_quants, proteins_, quantifier.getStatistics().n_samples);
+        quantifier.annotateQuantificationsToProteins(protein_quants, proteins_);
         if (!inference_in_cxml)
         {
           auto& prots = consensus.getProteinIdentifications();
@@ -878,18 +899,22 @@ protected:
         {
           std::swap(consensus.getProteinIdentifications()[0], proteins_);
         }
-/*
- *      TODO: maybe an assertion that the numbers of quantified proteins / ind. proteins match
+        /*
+        * TODO: maybe an assertion that the numbers of quantified proteins / ind. proteins match
         auto n_ind_prot = consensus.getProteinIdentifications()[0].getIndistinguishableProteins().size();
         cout << "MzTab Export: " << n_ind_prot << endl;
-*/
-        // fill MzTab with meta data and quants annotated in identification data structure
+        */
 
+        // fill MzTab with meta data and quants annotated in identification data structure
         const bool report_unmapped(true);
         const bool report_unidentified_features(false);
         const bool report_subfeatures(false);
-        MzTab m = MzTab::exportConsensusMapToMzTab(consensus, in, !inference_in_cxml, report_unidentified_features, report_unmapped, report_subfeatures);
-        MzTabFile().store(mztab, m);
+        MzTabFile().store(mztab,
+          consensus, 
+          !inference_in_cxml,
+          report_unidentified_features,
+          report_unmapped,
+          report_subfeatures);
       }
     }
 

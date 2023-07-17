@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -65,10 +65,7 @@ namespace OpenMS
     /// returns all the enzyme names available for Comet
     void getAllCometNames(std::vector<String>& all_names) const;
 
-    /// returns all the enzyme names available for Crux
-    void getAllCruxNames(std::vector<String>& all_names) const;
-
-    /// returns all the enzyme names available for OMSSA
+     /// returns all the enzyme names available for OMSSA
     void getAllOMSSANames(std::vector<String>& all_names) const;
 
     /// returns all the enzyme names available for MSGFPlus

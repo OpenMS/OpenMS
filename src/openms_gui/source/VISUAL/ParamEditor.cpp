@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -388,7 +388,7 @@ namespace OpenMS
       return QItemDelegate::eventFilter(editor, event);
     }
 
-    bool ParamEditorDelegate::exists_(QString name, QModelIndex index) const
+    bool ParamEditorDelegate::exists_(const QString& name, QModelIndex index) const
     {
       UInt current_index = 0;
       while (index.parent().child(current_index, 0).isValid())
@@ -520,7 +520,7 @@ namespace OpenMS
           item = new QTreeWidgetItem(parent);
           //name
           item->setText(0, String(par.name).toQString());
-          item->setTextColor(0, Qt::darkGray);  // color of nodes with children
+          item->setForeground(0, Qt::darkGray);  // color of nodes with children
 
           //description
           item->setData(1, Qt::UserRole, String(par.description).toQString());
@@ -554,15 +554,15 @@ namespace OpenMS
       bool is_required = it->tags.find("required") != it->tags.end();
       if (is_required)  // special color for required parameters
       {
-        item->setTextColor(0, QColor(255, 140, 0, 255)); // orange
-        item->setTextColor(2, QColor(255, 140, 0, 255));
-        item->setTextColor(3, QColor(255, 140, 0, 255));
+        item->setForeground(0, QColor(255, 140, 0, 255)); // orange
+        item->setForeground(2, QColor(255, 140, 0, 255));
+        item->setForeground(3, QColor(255, 140, 0, 255));
       }
       else
       {
-        item->setTextColor(0, Qt::darkGray);
-        item->setTextColor(2, Qt::darkGray);
-        item->setTextColor(3, Qt::darkGray);
+        item->setForeground(0, Qt::darkGray);
+        item->setForeground(2, Qt::darkGray);
+        item->setForeground(3, Qt::darkGray);
       }
 
       // advanced parameter
@@ -737,10 +737,7 @@ namespace OpenMS
       }
     }
 
-    if (!has_advanced_item)
-    {
-      ui_->advanced_->setVisible(false);
-    }
+    ui_->advanced_->setVisible(has_advanced_item);
 
     tree_->expandAll();
     toggleAdvancedMode(advanced_mode_);

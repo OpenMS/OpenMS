@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -37,6 +37,8 @@
 #include <OpenMS/FORMAT/HANDLERS/XMLHandler.h>
 #include <OpenMS/FORMAT/ControlledVocabulary.h>
 #include <OpenMS/METADATA/MSQuantifications.h>
+
+#include <map>
 
 namespace OpenMS
 {
@@ -102,7 +104,7 @@ protected:
       /// Write CV term
       //~ TODO rewirte writeCVParams_ in baseclass to be more convenient
       //~ void MzQuantMLHandler::writeCVParams_(std::ostream& os, const Map< String, std::vector < CVTerm > > & , UInt indent);
-      void writeCVParams_(String & s, const Map<String, std::vector<CVTerm> > &, UInt indent);
+      void writeCVParams_(String & s, const std::map<String, std::vector<CVTerm> > &, UInt indent);
 
       /// Writes user terms
       void writeUserParams_(std::ostream & os, const MetaInfoInterface & meta, UInt indent);

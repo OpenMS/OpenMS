@@ -30,7 +30,11 @@ template <TEMPLATE_SEARCH_INT_TYPE MAXIMUM, template <TEMPLATE_SEARCH_INT_TYPE> 
 class LinearTemplateSearch<MAXIMUM, MAXIMUM, WORKER> {
 public:
   template <typename...ARG_TYPES>
-  inline static void apply(TEMPLATE_SEARCH_INT_TYPE v, ARG_TYPES && ... args) {
+#ifdef NDEBUG
+  inline static void apply(TEMPLATE_SEARCH_INT_TYPE /*v*/, ARG_TYPES&&... args) {
+#else
+  inline static void apply(TEMPLATE_SEARCH_INT_TYPE v, ARG_TYPES&&... args) {
+#endif
     assert(v == MAXIMUM);
     WORKER<MAXIMUM>::apply(std::forward<ARG_TYPES>(args)...);
   }

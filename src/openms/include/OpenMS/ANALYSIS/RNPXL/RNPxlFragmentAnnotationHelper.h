@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -91,7 +91,7 @@ class OPENMS_DLLAPI RNPxlFragmentAnnotationHelper
   /// conversion of RNPxl annotations to PeptideHit::PeakAnnotation
   static std::vector<PeptideHit::PeakAnnotation> fragmentAnnotationDetailsToPHFA(
     const String& ion_type, 
-    std::map<Size, std::vector<FragmentAnnotationDetail_> > ion_annotation_details);
+    const std::map<Size, std::vector<FragmentAnnotationDetail_> >& ion_annotation_details);
 
   static std::vector<PeptideHit::PeakAnnotation> shiftedToPHFA(
     const std::map<String, 

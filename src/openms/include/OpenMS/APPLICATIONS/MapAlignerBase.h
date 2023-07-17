@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -160,18 +160,18 @@ protected:
     // check whether some kind of output file is given:
     if (outs.empty() && trafos.empty())
     {
-      writeLog_("Error: Data output or transformation output files have to be provided (parameters 'out'/'trafo_out')");
+      writeLogError_("Error: Data output or transformation output files have to be provided (parameters 'out'/'trafo_out')");
       return ILLEGAL_PARAMETERS;
     }
     // check whether number of input files equals number of output files:
     if (!outs.empty() && (ins.size() != outs.size()))
     {
-      writeLog_("Error: The number of data input and output files has to be equal (parameters 'in'/'out')");
+      writeLogError_("Error: The number of data input and output files has to be equal (parameters 'in'/'out')");
       return ILLEGAL_PARAMETERS;
     }
     if (!trafos.empty() && (ins.size() != trafos.size()))
     {
-      writeLog_("Error: The number of data input and transformation output files has to be equal (parameters 'in'/'trafo_out')");
+      writeLogError_("Error: The number of data input and transformation output files has to be equal (parameters 'in'/'trafo_out')");
       return ILLEGAL_PARAMETERS;
     }
     // check whether all input files have the same type (this type is used to store the output type too):
@@ -180,7 +180,7 @@ protected:
     {
       if (FileHandler::getType(ins[i]) != in_type)
       {
-        writeLog_("Error: All input files (parameter 'in') must have the same format!");
+        writeLogError_("Error: All input files (parameter 'in') must have the same format!");
         return ILLEGAL_PARAMETERS;
       }
     }
@@ -191,19 +191,19 @@ protected:
       String reference_file = getStringOption_("reference:file");
       if (reference_index > ins.size())
       {
-        writeLog_("Error: Value of parameter 'reference:index' must not be higher than the number of input files");
+        writeLogError_("Error: Value of parameter 'reference:index' must not be higher than the number of input files");
         return ILLEGAL_PARAMETERS;
       }
       if (reference_index && !reference_file.empty())
       {
-        writeLog_("Error: Parameters 'reference:index' and 'reference:file' cannot be used together");
+        writeLogError_("Error: Parameters 'reference:index' and 'reference:file' cannot be used together");
         return ILLEGAL_PARAMETERS;
       }
 
       if ((ref_params_ == REF_RESTRICTED) && !reference_file.empty() &&
           (FileHandler::getType(reference_file) != in_type))
       {
-        writeLog_("Error: Reference file must have the same format as other input files (parameters 'reference:file'/'in')");
+        writeLogError_("Error: Reference file must have the same format as other input files (parameters 'reference:file'/'in')");
         return ILLEGAL_PARAMETERS;
       }
     }

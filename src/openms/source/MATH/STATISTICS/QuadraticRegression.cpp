@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -34,8 +34,10 @@
 
 #include <OpenMS/MATH/STATISTICS/QuadraticRegression.h>
 
-#include "Wm5Vector2.h"
-#include "Wm5LinearSystem.h"
+#include <Mathematics/Vector2.h>
+#include <Mathematics/Vector3.h>
+#include <Mathematics/Matrix3x3.h>
+#include <Mathematics/LinearSystem.h>
 
 namespace OpenMS::Math
 {
@@ -90,13 +92,13 @@ namespace OpenMS::Math
     // Compute the linear fit of a quadratic function.
     // Get the coefficients for y = w_1*a +w_2*b*x + w_3*c*x^2.
 
-    std::vector<Wm5::Vector2d> points;
+    std::vector<gte::Vector2<double>> points;
     for(std::vector<double>::const_iterator xIter = x_begin, yIter = y_begin; xIter!=x_end; ++xIter, ++yIter)
     {
-      points.emplace_back(*xIter, *yIter);
+      points.emplace_back(std::initializer_list<double>{*xIter, *yIter});
     }
 
-    // Compute sums for linear system. copy&paste from GeometricTools Wm5ApprLineFit2.cpp
+    // Compute sums for linear system. copy&paste from GeometricTools
     // and modified to allow quadratic functions
     int numPoints = static_cast<Int>(points.size());
     double sumX = 0, sumXX = 0, sumXXX = 0, sumXXXX = 0;
@@ -106,8 +108,8 @@ namespace OpenMS::Math
     auto wIter = w_begin;
     for (int i = 0; i < numPoints; ++i, ++wIter)
     {
-      double x = points[i].X();
-      double y = points[i].Y();
+      double x = points[i][0];
+      double y = points[i][1];
       double weight = *wIter;
 
       sumX += weight * x;
@@ -122,21 +124,23 @@ namespace OpenMS::Math
       sumW += weight;
     }
     //create matrices to solve Ax = B
-    double A[3][3] =
+    gte::Matrix3x3<double> A
     {
-      {sumW, sumX, sumXX},
-      {sumX, sumXX, sumXXX},
-      {sumXX, sumXXX, sumXXXX}
+      sumW, sumX, sumXX,
+      sumX, sumXX, sumXXX,
+      sumXX, sumXXX, sumXXXX
     };
-    double B[3] =
+
+    gte::Vector3<double> B
     {
       sumY,
       sumXY,
       sumXXY
     };
-    double X[3] = {0, 0, 0};
 
-    bool nonsingular = Wm5::LinearSystem<double>().Solve3(A, B, X);
+    gte::Vector3<double> X;
+
+    bool nonsingular = gte::LinearSystem<double>().Solve(A, B, X);
     if (nonsingular)
     {
       a_ = X[0];

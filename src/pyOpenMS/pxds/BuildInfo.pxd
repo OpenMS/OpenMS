@@ -32,3 +32,5 @@ cdef extern from "<OpenMS/SYSTEM/BuildInfo.h>" namespace "OpenMS::Internal::Open
     String getBuildType() nogil except + # wrap-attach:OpenMSBuildInfo
 
     Size getOpenMPMaxNumThreads() nogil except + # wrap-attach:OpenMSBuildInfo
+
+    void setOpenMPNumThreads(Int num_threads) nogil except + # wrap-attach:OpenMSBuildInfo

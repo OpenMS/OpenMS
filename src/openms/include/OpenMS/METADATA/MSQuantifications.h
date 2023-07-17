@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -38,7 +38,6 @@
 #include <OpenMS/CONCEPT/Exception.h>
 #include <OpenMS/METADATA/ExperimentalSettings.h>
 #include <OpenMS/KERNEL/ConsensusMap.h>
-//~ #include <OpenMS/KERNEL/ConsensusFeature.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/METADATA/DataProcessing.h>
@@ -94,67 +93,29 @@ public:
 
     struct AnalysisSummary
     {
-      AnalysisSummary()
-      {
-      }
+      AnalysisSummary() = default;
 
-      AnalysisSummary(const AnalysisSummary & rhs) :
-        cv_params_(rhs.cv_params_)
-      {
-        user_params_ = rhs.user_params_;
-        quant_type_ = rhs.quant_type_;
-      }
+      AnalysisSummary(const AnalysisSummary& rhs) = default;
 
-      virtual ~AnalysisSummary()
-      {
-      }
+      virtual ~AnalysisSummary() = default;
 
-      AnalysisSummary & operator=(const AnalysisSummary & rhs)
-      {
-        if (&rhs != this)
-        {
-          cv_params_ = rhs.cv_params_;
-          user_params_ = rhs.user_params_;
-          quant_type_ = rhs.quant_type_;
-        }
-        return *this;
-      }
+      AnalysisSummary& operator=(const AnalysisSummary& rhs) = default;
 
       MetaInfo user_params_;
       CVTermList cv_params_;
-      QUANT_TYPES quant_type_;
+      QUANT_TYPES quant_type_ = SIZE_OF_QUANT_TYPES;
     };
 
     struct Assay
     {
       //TODO feature_maps_ also in Assay?! srsly?!
-      Assay()
-      {
-      }
+      Assay() = default;
 
-      Assay(const Assay & rhs)
-      {
-        uid_ = rhs.uid_;
-        mods_ = rhs.mods_;
-        raw_files_ = rhs.raw_files_;
-        feature_maps_ = rhs.feature_maps_;
-      }
+      Assay(const Assay& rhs) = default;
 
-      virtual ~Assay()
-      {
-      }
+      virtual ~Assay() = default;
 
-      Assay & operator=(const Assay & rhs)
-      {
-        if (&rhs != this)
-        {
-          uid_ = rhs.uid_;
-          mods_ = rhs.mods_;
-          raw_files_ = rhs.raw_files_;
-          feature_maps_ = rhs.feature_maps_;
-        }
-        return *this;
-      }
+      Assay& operator=(const Assay& rhs) = default;
 
       String uid_;
       std::vector<std::pair<String, double> > mods_;
@@ -186,7 +147,9 @@ public:
     MSQuantifications() = default;
 
     /// Detailed Constructor
-    MSQuantifications(FeatureMap fm, ExperimentalSettings& es, std::vector<DataProcessing>& dps, std::vector<std::vector<std::pair<String, double> > > labels = (std::vector<std::vector<std::pair<String, double> > >()));
+    MSQuantifications(const FeatureMap& fm, 
+                      ExperimentalSettings& es,
+                      std::vector<DataProcessing>& dps, std::vector<std::vector<std::pair<String, double>>> labels = {});
 
     /// Copy constructor
     MSQuantifications(const MSQuantifications & source) = default;
@@ -234,7 +197,7 @@ public:
     const std::vector<FeatureMap > & getFeatureMaps() const;
     const AnalysisSummary & getAnalysisSummary() const;
     AnalysisSummary & getAnalysisSummary();
-    void setDataProcessingList(std::vector<DataProcessing> & dpl);
+    void setDataProcessingList(const std::vector<DataProcessing> & dpl);
     void setAnalysisSummaryQuantType(QUANT_TYPES r);
     void addConsensusMap(ConsensusMap & m);
     void assignUIDs();

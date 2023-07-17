@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -48,7 +48,7 @@ namespace OpenMS
   PSLPFormulation::PSLPFormulation() :
     DefaultParamHandler("PSLPFormulation"), solver_(LPWrapper::SOLVER_GLPK)
   {
-    //model_ = new LPWrapper();
+    model_ = nullptr;
 
     defaults_.setValue("rt:min_rt", 960., "Minimal rt in seconds.");
     defaults_.setMinFloat("rt:min_rt", 0.);
@@ -125,7 +125,7 @@ namespace OpenMS
 
   PSLPFormulation::~PSLPFormulation()
   {
-    //delete model_;
+    delete model_;
   }
 
   void PSLPFormulation::createAndSolveILP_(const FeatureMap& features, std::vector<std::vector<double> >& intensity_weights,
@@ -135,6 +135,7 @@ namespace OpenMS
                                            Size number_of_scans)
   {
     Int counter = 0;
+    delete model_;
     model_ = new LPWrapper();
     //#define DEBUG_OPS
 #ifdef DEBUG_OPS
@@ -442,6 +443,7 @@ namespace OpenMS
     const std::map<String, std::vector<double> >& pt_prot_map = preprocessing.getProteinPTMap();
     std::map<String, std::vector<double> >::const_iterator map_iter = pt_prot_map.begin();
 
+    delete model_;
     model_ = new LPWrapper();
     model_->setObjectiveSense(LPWrapper::MAX); // maximize
 
@@ -999,8 +1001,8 @@ namespace OpenMS
         // we need to remember the index in the solution_indices
         else if (distance(solution_indices.begin(), iter) > (Int)max_sol_index)
           max_sol_index = distance(solution_indices.begin(), iter);
-        points.push_back(DPosition<2>(min_rt + variable_indices[i].scan * rt_step_size, tmp_feat.getMZ() - 0.1));
-        points.push_back(DPosition<2>(min_rt + variable_indices[i].scan * rt_step_size, tmp_feat.getMZ() + 3.));
+        points.emplace_back(min_rt + variable_indices[i].scan * rt_step_size, tmp_feat.getMZ() - 0.1);
+        points.emplace_back(min_rt + variable_indices[i].scan * rt_step_size, tmp_feat.getMZ() + 3.);
 
       }
       ConvexHull2D hull;
@@ -1033,6 +1035,7 @@ namespace OpenMS
 #ifdef DEBUG_OPS
     std::cout << "k2: " << k2 << std::endl;
 #endif
+    delete model_;
     model_ = new LPWrapper();
     Int counter = 0;
 
@@ -1347,7 +1350,7 @@ namespace OpenMS
       model_->setRowBounds(idx, 0., (double)ms2_spectra_per_rt_bin, LPWrapper::UPPER_BOUND_ONLY);
   }
 
-  void PSLPFormulation::updateObjFunction_(String acc, FeatureMap& features, PrecursorIonSelectionPreprocessing& preprocessed_db, std::vector<IndexTriple>& variable_indices)
+  void PSLPFormulation::updateObjFunction_(const String& acc, FeatureMap& features, PrecursorIonSelectionPreprocessing& preprocessed_db, std::vector<IndexTriple>& variable_indices)
   {
 #ifdef DEBUG_OPS
     std::cout << "Update Obj. function of combined ILP." << std::endl;

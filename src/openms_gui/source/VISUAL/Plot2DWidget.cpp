@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -38,7 +38,9 @@
 #include <OpenMS/VISUAL/AxisWidget.h>
 #include <OpenMS/VISUAL/DIALOGS/Plot2DGoToDialog.h>
 #include <OpenMS/CONCEPT/UniqueIdInterface.h>
-#include <OpenMS/KERNEL/OnDiscMSExperiment.h>
+
+#include <OpenMS/VISUAL/LayerDataConsensus.h>
+#include <OpenMS/VISUAL/LayerDataFeature.h>
 
 #include <QtWidgets/QPushButton>
 #include <QtWidgets/QGridLayout>
@@ -60,54 +62,27 @@ namespace OpenMS
     setCanvas_(new Plot2DCanvas(preferences, this), 1, 2);
 
     // add axes
-    x_axis_->setLegend(PlotWidget::MZ_AXIS_TITLE);
-    y_axis_->setLegend(PlotWidget::RT_AXIS_TITLE);
     y_axis_->setMinimumWidth(50);
 
     // add projections
     grid_->setColumnStretch(2, 3);
     grid_->setRowStretch(1, 3);
 
-    PlotCanvas::ExperimentSharedPtrType shr_ptr = PlotCanvas::ExperimentSharedPtrType(new PlotCanvas::ExperimentType());
-    LayerDataBase::ODExperimentSharedPtrType od_dummy(new OnDiscMSExperiment());
-    MSSpectrum dummy_spec;
-    dummy_spec.push_back(Peak1D());
-    shr_ptr->addSpectrum(dummy_spec);
+    projection_onto_X_ = new Plot1DWidget(Param(), DIM::Y, this);
+    projection_onto_X_->hide();
+    grid_->addWidget(projection_onto_X_, 0, 1, 1, 2);
 
-    projection_vert_ = new  Plot1DWidget(Param(), this);
-    projection_vert_->hide();
-    projection_vert_->canvas()->addLayer(shr_ptr, od_dummy);
-    grid_->addWidget(projection_vert_, 1, 3, 2, 1);
+    projection_onto_Y_ = new Plot1DWidget(Param(), DIM::X, this);
+    projection_onto_Y_->hide();
+    grid_->addWidget(projection_onto_Y_, 1, 3, 2, 1);
 
-    projection_horz_ = new Plot1DWidget(Param(), this);
-    projection_horz_->canvas()->addLayer(shr_ptr, od_dummy);
-    projection_horz_->hide();
-    grid_->addWidget(projection_horz_, 0, 1, 1, 2);
-
-    if (canvas()->isMzToXAxis())
-    {
-      projection_horz_->canvas()->setDrawMode(Plot1DCanvas::DM_PEAKS);
-      projection_horz_->canvas()->setIntensityMode(PlotCanvas::IM_PERCENTAGE);
-      projection_vert_->canvas()->setDrawMode(Plot1DCanvas::DM_CONNECTEDLINES);
-      projection_vert_->canvas()->setIntensityMode(PlotCanvas::IM_SNAP);
-    }
-    else
-    {
-      projection_horz_->canvas()->setDrawMode(Plot1DCanvas::DM_CONNECTEDLINES);
-      projection_horz_->canvas()->setIntensityMode(PlotCanvas::IM_SNAP);
-      projection_vert_->canvas()->setDrawMode(Plot1DCanvas::DM_PEAKS);
-      projection_vert_->canvas()->setIntensityMode(PlotCanvas::IM_PERCENTAGE);
-    }
-
-    connect(canvas(), SIGNAL(showProjectionHorizontal(ExperimentSharedPtrType)), this, SLOT(horizontalProjection(ExperimentSharedPtrType)));
-    connect(canvas(), SIGNAL(showProjectionVertical(ExperimentSharedPtrType)), this, SLOT(verticalProjection(ExperimentSharedPtrType)));
-    connect(canvas(), SIGNAL(showProjectionInfo(int, double, double)), this, SLOT(projectionInfo(int, double, double)));
-    connect(canvas(), SIGNAL(toggleProjections()), this, SLOT(toggleProjections()));
-    connect(canvas(), SIGNAL(visibleAreaChanged(DRange<2>)), this, SLOT(autoUpdateProjections()));
+    connect(canvas(), &Plot2DCanvas::showProjections, this, &Plot2DWidget::showProjections_);
+    connect(canvas(), &Plot2DCanvas::toggleProjections, this, &Plot2DWidget::toggleProjections);
+    connect(canvas(), &Plot2DCanvas::visibleAreaChanged, this, &Plot2DWidget::autoUpdateProjections_);
     // delegate signals from canvas
-    connect(canvas(), SIGNAL(showSpectrumAsNew1D(int)), this, SIGNAL(showSpectrumAsNew1D(int)));
-    connect(canvas(), SIGNAL(showChromatogramsAsNew1D(std::vector<int, std::allocator<int> >)), this, SIGNAL(showChromatogramsAsNew1D(std::vector<int, std::allocator<int> >)));
-    connect(canvas(), SIGNAL(showCurrentPeaksAs3D()), this, SIGNAL(showCurrentPeaksAs3D()));
+    connect(canvas(), &Plot2DCanvas::showSpectrumAsNew1D, this, &Plot2DWidget::showSpectrumAsNew1D);
+    connect(canvas(), &Plot2DCanvas::showChromatogramsAsNew1D, this, &Plot2DWidget::showChromatogramsAsNew1D);
+    connect(canvas(), &Plot2DCanvas::showCurrentPeaksAs3D, this, &Plot2DWidget::showCurrentPeaksAs3D);
     // add projections box
     projection_box_ = new QGroupBox("Projections", this);
     projection_box_->hide();
@@ -132,7 +107,7 @@ namespace OpenMS
     box_grid->setRowStretch(3, 2);
 
     QPushButton* button = new QPushButton("Update", projection_box_);
-    connect(button, SIGNAL(clicked()), canvas(), SLOT(updateProjections()));
+    connect(button, &QPushButton::clicked, canvas(), &Plot2DCanvas::pickProjectionLayer);
     box_grid->addWidget(button, 4, 0);
 
     projections_auto_ = new QCheckBox("Auto-update", projection_box_);
@@ -144,15 +119,10 @@ namespace OpenMS
     projections_timer_ = new QTimer(this);
     projections_timer_->setSingleShot(true);
     projections_timer_->setInterval(1000);
-    connect(projections_timer_, SIGNAL(timeout()), this, SLOT(updateProjections()));
+    connect(projections_timer_, &QTimer::timeout, canvas(), &Plot2DCanvas::pickProjectionLayer);
   }
 
-  Plot2DWidget::~Plot2DWidget()
-  {
-    //cout << "DEST Plot2DWidget" << endl;
-  }
-
-  void Plot2DWidget::projectionInfo(int peaks, double intensity, double max)
+  void Plot2DWidget::projectionInfo_(int peaks, double intensity, double max)
   {
     projection_peaks_->setText(QString::number(peaks));
     projection_sum_->setText(QString::number(intensity, 'f', 1));
@@ -161,23 +131,13 @@ namespace OpenMS
 
   void Plot2DWidget::recalculateAxes_()
   {
-    const PlotCanvas::AreaType area = canvas()->getVisibleArea();
+    // set names
+    x_axis_->setLegend(string(canvas()->getMapper().getDim(DIM::X).getDimName()));
+    y_axis_->setLegend(string(canvas()->getMapper().getDim(DIM::Y).getDimName()));
 
-    if (canvas()->isMzToXAxis())
-    {
-      x_axis_->setAxisBounds(area.minX(), area.maxX());
-      y_axis_->setAxisBounds(area.minY(), area.maxY());
-    }
-    else
-    {
-      x_axis_->setAxisBounds(area.minY(), area.maxY());
-      y_axis_->setAxisBounds(area.minX(), area.maxX());
-    }
-  }
-
-  void Plot2DWidget::updateProjections()
-  {
-    canvas()->updateProjections();
+    const auto& area = canvas()->getVisibleArea().getAreaXY();
+    x_axis_->setAxisBounds(area.minX(), area.maxX());
+    y_axis_->setAxisBounds(area.minY(), area.maxY());
   }
 
   void Plot2DWidget::toggleProjections()
@@ -186,122 +146,78 @@ namespace OpenMS
     {
       setMinimumSize(250, 250);
       projection_box_->hide();
-      projection_horz_->hide();
-      projection_vert_->hide();
+      projection_onto_Y_->hide();
+      projection_onto_X_->hide();
       grid_->setColumnStretch(3, 0);
       grid_->setRowStretch(0, 0);
     }
     else
     {
       setMinimumSize(500, 500);
-      updateProjections();
+      canvas()->pickProjectionLayer();
     }
   }
 
-  //  projection above the 2D area
-  void Plot2DWidget::horizontalProjection(ExperimentSharedPtrType exp)
+  //  projections
+  void Plot2DWidget::showProjections_(const LayerDataBase* source_layer)
   {
-    LayerDataBase::ODExperimentSharedPtrType od_dummy(new OnDiscMSExperiment());
+    auto [projection_ontoX, projection_ontoY, stats] =
+      source_layer->getProjection(canvas_->getMapper().getDim(DIM::X).getUnit(), canvas_->getMapper().getDim(DIM::Y).getUnit(), canvas_->getVisibleArea().getAreaUnit());
 
-    // print horizontal (note that m/z in the projection could actually be RT - this only determines the orientation)
-    projection_horz_->canvas()->mzToXAxis(true);
-    projection_horz_->canvas()->setSwappedAxis(true);
+    projectionInfo_(stats.number_of_datapoints, stats.sum_intensity, stats.max_intensity);
 
-    projection_horz_->showLegend(false);
-    Plot1DCanvas::IntensityModes intensity = projection_horz_->canvas()->getIntensityMode();
-    projection_horz_->canvas()->setIntensityMode(intensity);
+    auto va = canvas()->getVisibleArea().getAreaXY();
 
-    projection_horz_->canvas()->removeLayer(0);
-    projection_horz_->canvas()->addLayer(exp, od_dummy);
-
+    projection_onto_Y_->showLegend(false);
+    projection_onto_Y_->setMapper({{DIM_UNIT::INT, canvas_->getMapper().getDim(DIM::Y).getUnit()}}); // must be done before addLayer()
+    projection_onto_Y_->canvas()->removeLayers();
+    projection_onto_Y_->canvas()->addLayer(std::move(projection_ontoY));
+    // manually set projected unit, since 'addPeakLayer' will guess a visible area, but we want the exact same scaling
+    projection_onto_Y_->canvas()->setVisibleAreaY(va.minY(), va.maxY());
     grid_->setColumnStretch(3, 2);
 
-    if (canvas()->isMzToXAxis())
-    {
-      projection_horz_->canvas()->setDrawMode(Plot1DCanvas::DM_PEAKS);
-      projection_horz_->canvas()->setIntensityMode(PlotCanvas::IM_PERCENTAGE);
-      projection_vert_->canvas()->setDrawMode(Plot1DCanvas::DM_CONNECTEDLINES);
-      projection_vert_->canvas()->setIntensityMode(PlotCanvas::IM_SNAP);
-    }
-    else
-    {
-      projection_horz_->canvas()->setDrawMode(Plot1DCanvas::DM_CONNECTEDLINES);
-      projection_horz_->canvas()->setIntensityMode(PlotCanvas::IM_SNAP);
-      projection_vert_->canvas()->setDrawMode(Plot1DCanvas::DM_PEAKS);
-      projection_vert_->canvas()->setIntensityMode(PlotCanvas::IM_PERCENTAGE);
-      projection_horz_->canvas()->setSwappedAxis(false);
-    }
-    projection_horz_->show();
-    projection_box_->show();
-  }
-
-  // projection on the right side of the 2D area
-  void Plot2DWidget::verticalProjection(ExperimentSharedPtrType exp)
-  {
-    LayerDataBase::ODExperimentSharedPtrType od_dummy(new OnDiscMSExperiment());
-    // print vertically (note that m/z in the projection could actually be RT - this only determines the orientation)
-    projection_vert_->canvas()->mzToXAxis(false);
-    projection_vert_->canvas()->setSwappedAxis(true);
-
-    projection_vert_->showLegend(false);
-    Plot1DCanvas::IntensityModes intensity = projection_vert_->canvas()->getIntensityMode();
-    projection_vert_->canvas()->setIntensityMode(intensity);
-
-    projection_vert_->canvas()->removeLayer(0);
-    projection_vert_->canvas()->addLayer(exp, od_dummy);
-
+    projection_onto_X_->showLegend(false);
+    projection_onto_X_->setMapper({{canvas_->getMapper().getDim(DIM::X).getUnit(), DIM_UNIT::INT}}); // must be done before addLayer()
+    projection_onto_X_->canvas()->removeLayers();
+    projection_onto_X_->canvas()->addLayer(std::move(projection_ontoX));
+    // manually set projected unit, since 'addPeakLayer' will guess a visible area, but we want the exact same scaling
+    projection_onto_X_->canvas()->setVisibleAreaX(va.minX(), va.maxX());
     grid_->setRowStretch(0, 2);
-
-    if (canvas()->isMzToXAxis())
-    {
-      projection_horz_->canvas()->setDrawMode(Plot1DCanvas::DM_PEAKS);
-      projection_horz_->canvas()->setIntensityMode(PlotCanvas::IM_PERCENTAGE);
-      projection_vert_->canvas()->setDrawMode(Plot1DCanvas::DM_CONNECTEDLINES);
-      projection_vert_->canvas()->setIntensityMode(PlotCanvas::IM_SNAP);
-    }
-    else
-    {
-      projection_horz_->canvas()->setDrawMode(Plot1DCanvas::DM_CONNECTEDLINES);
-      projection_horz_->canvas()->setIntensityMode(PlotCanvas::IM_SNAP);
-      projection_vert_->canvas()->setDrawMode(Plot1DCanvas::DM_PEAKS);
-      projection_vert_->canvas()->setIntensityMode(PlotCanvas::IM_PERCENTAGE);
-      projection_vert_->canvas()->setSwappedAxis(false);
-    }
+    
     projection_box_->show();
-    projection_vert_->show();
+    projection_onto_X_->show();
+    projection_onto_Y_->show();
   }
 
-  const Plot1DWidget* Plot2DWidget::getHorizontalProjection() const
+  const Plot1DWidget* Plot2DWidget::getProjectionOntoX() const
   {
-    return projection_horz_;
+    return projection_onto_X_;
   }
 
-  const Plot1DWidget* Plot2DWidget::getVerticalProjection() const
+  const Plot1DWidget* Plot2DWidget::getProjectionOntoY() const
   {
-    return projection_vert_;
+    return projection_onto_Y_;
   }
 
   void Plot2DWidget::showGoToDialog()
   {
-    Plot2DGoToDialog goto_dialog(this);
+    Plot2DGoToDialog goto_dialog(this,
+      canvas_->getMapper().getDim(DIM::X).getDimNameShort(),
+      canvas_->getMapper().getDim(DIM::Y).getDimNameShort());
     //set range
-    const DRange<2>& area = canvas()->getVisibleArea();
-    goto_dialog.setRange(area.minY(), area.maxY(), area.minX(), area.maxX());
-    goto_dialog.setMinMaxOfRange(canvas()->getDataRange().minY(), canvas()->getDataRange().maxY(), canvas()->getDataRange().minX(), canvas()->getDataRange().maxX());
+    const auto& area = canvas()->getVisibleArea().getAreaXY();
+    goto_dialog.setRange(area);
+
+    auto all_area_xy = canvas_->getMapper().mapRange(canvas_->getDataRange());
+    goto_dialog.setMinMaxOfRange(all_area_xy);
     // feature numbers only for consensus&feature maps
     goto_dialog.enableFeatureNumber(canvas()->getCurrentLayer().type == LayerDataBase::DT_FEATURE || canvas()->getCurrentLayer().type == LayerDataBase::DT_CONSENSUS);
-    //execute
+    // execute
     if (goto_dialog.exec())
     {
       if (goto_dialog.showRange())
       {
-        goto_dialog.fixRange();
-        PlotCanvas::AreaType area(goto_dialog.getMinMZ(), goto_dialog.getMinRT(), goto_dialog.getMaxMZ(), goto_dialog.getMaxRT());
-        if (goto_dialog.checked())
-        {
-          correctAreaToObeyMinMaxRanges_(area);
-        }
-        canvas()->setVisibleArea(area);
+        canvas()->setVisibleArea(goto_dialog.getRange());
       }
       else
       {
@@ -311,13 +227,15 @@ namespace OpenMS
         uid.setUniqueId(feature_id);
 
         Size feature_index(-1); // TODO : not use -1
-        if (canvas()->getCurrentLayer().type == LayerDataBase::DT_FEATURE)
+        auto* lf = dynamic_cast<LayerDataFeature*>(&canvas()->getCurrentLayer());
+        auto* lc = dynamic_cast<LayerDataConsensus*>(&canvas()->getCurrentLayer());
+        if (lf)
         {
-          feature_index = canvas()->getCurrentLayer().getFeatureMap()->uniqueIdToIndex(uid.getUniqueId());
+          feature_index = lf->getFeatureMap()->uniqueIdToIndex(uid.getUniqueId());
         }
-        else if (canvas()->getCurrentLayer().type == LayerDataBase::DT_CONSENSUS)
+        else if (lc)
         {
-          feature_index = canvas()->getCurrentLayer().getConsensusMap()->uniqueIdToIndex(uid.getUniqueId());
+          feature_index = lc->getConsensusMap()->uniqueIdToIndex(uid.getUniqueId());
         }
         if (feature_index == Size(-1)) // UID does not exist
         {
@@ -332,41 +250,38 @@ namespace OpenMS
         }
 
         //check if the feature index exists
-        if ((canvas()->getCurrentLayer().type == LayerDataBase::DT_FEATURE && feature_index >= canvas()->getCurrentLayer().getFeatureMap()->size())
-           || (canvas()->getCurrentLayer().type == LayerDataBase::DT_CONSENSUS && feature_index >= canvas()->getCurrentLayer().getConsensusMap()->size()))
+        if ((lf && feature_index >= lf->getFeatureMap()->size()) || (lc && feature_index >= lc->getConsensusMap()->size()))
         {
           QMessageBox::warning(this, "Invalid feature number", "Feature number too large/UniqueID not found.\nPlease select a valid feature!");
           return;
         }
-        //display feature with a margin
-        if (canvas()->getCurrentLayer().type == LayerDataBase::DT_FEATURE)
+        // display feature with a margin
+        RangeAllType range;
+        if (lf)
         {
-          const FeatureMap& map = *canvas()->getCurrentLayer().getFeatureMap();
-          DBoundingBox<2> bb = map[feature_index].getConvexHull().getBoundingBox();
-          double rt_margin = (bb.maxPosition()[0] - bb.minPosition()[0]) * 0.5;
-          double mz_margin = (bb.maxPosition()[1] - bb.minPosition()[1]) * 2;
-          PlotCanvas::AreaType narea(bb.minPosition()[1] - mz_margin, bb.minPosition()[0] - rt_margin, bb.maxPosition()[1] + mz_margin, bb.maxPosition()[0] + rt_margin);
-          canvas()->setVisibleArea(narea);
+          const FeatureMap& map = *lf->getFeatureMap();
+          const DBoundingBox<2> bb = map[feature_index].getConvexHull().getBoundingBox();
+          range.RangeRT::operator=(RangeBase{bb.minPosition()[0], bb.maxPosition()[0]});
+          range.RangeMZ::operator=(RangeBase{bb.minPosition()[1], bb.maxPosition()[1]});
         }
         else // Consensus Feature
         {
-          const ConsensusFeature& cf = (*canvas()->getCurrentLayer().getConsensusMap())[feature_index];
-          double rt_margin = 30;
-          double mz_margin = 5;
-          PlotCanvas::AreaType narea(cf.getMZ() - mz_margin, cf.getRT() - rt_margin, cf.getMZ() + mz_margin, cf.getRT() + rt_margin);
-          canvas()->setVisibleArea(narea);
+          const ConsensusFeature& cf = (*lc->getConsensusMap())[feature_index];
+          range = canvas_->getMapper().fromXY(canvas_->getMapper().map(cf));
         }
-
+        range.RangeRT::extendLeftRight(30);
+        range.RangeMZ::extendLeftRight(5);
+        canvas()->setVisibleArea(range);
       }
     }
   }
 
   bool Plot2DWidget::projectionsVisible() const
   {
-    return projection_horz_->isVisible() || projection_vert_->isVisible();
+    return projection_onto_Y_->isVisible() || projection_onto_X_->isVisible();
   }
 
-  void Plot2DWidget::autoUpdateProjections()
+  void Plot2DWidget::autoUpdateProjections_()
   {
     if (projectionsVisible() && projections_auto_->isChecked())
     {

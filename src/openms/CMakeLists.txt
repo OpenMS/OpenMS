@@ -2,7 +2,7 @@
 #                   OpenMS -- Open-Source Mass Spectrometry
 # --------------------------------------------------------------------------
 # Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-# ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+# ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 #
 # This software is released under a three-clause BSD license:
 #  * Redistributions of source code must retain the above copyright
@@ -33,9 +33,8 @@
 # --------------------------------------------------------------------------
 
 project("OpenMS")
-cmake_minimum_required(VERSION 3.1 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.15 FATAL_ERROR)
 
-set(CMAKE_AUTOMOC ON) # some OpenMS classes make use of Signal/Slot, e.g. SYSTEM/FileWatcher.cpp
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
 #------------------------------------------------------------------------------
@@ -87,27 +86,32 @@ include (${PROJECT_SOURCE_DIR}/includes.cmake)
 
 #------------------------------------------------------------------------------
 # all the dependency libraries are linked into libOpenMS.so
-#set(OPENMS_DEP_LIBRARIES  ${COIN_LIBRARIES}
-#                          ${LIBSVM_LIBRARIES}
-#                          ${XercesC_LIBRARY}
-#                          ${Boost_LIBRARIES}
-#                          ${WM5_LIBRARIES}
-#                          ${BZIP2_LIBRARIES}
-#                          ${ZLIB_LIBRARIES}
-#                          ${SQLite_LIBRARY}
-#                          ${HDF5_CXX_LIBRARIES}
-#                          ${GLPK_LIBRARIES}
-#                          ${CMAKE_DL_LIBS}
-#                          ${Qt5Core_LIBRARIES}
-#                          ${Qt5Network_LIBRARIES}
-#                          ${Qt5Sql_LIBRARIES})
+set(OPENMS_DEP_LIBRARIES Evergreen LibSVM::LibSVM XercesC::XercesC Qt5::Core Qt5::Network)
 
-set(OPENMS_DEP_LIBRARIES Evergreen LibSVM::LibSVM XercesC::XercesC Qt5::Core Qt5::Network Qt5::Sql)
+## setup the argumentes to 'target_link_libraries(OpenMS PRIVATE ${OPENMS_DEP_PRIVATE_LIBRARIES})'
+set(OPENMS_DEP_PRIVATE_LIBRARIES 
+  GTE Quadtree ${LPTARGET} 
+  Eigen3::Eigen
+  $<$<BOOL:${WITH_HDF5}>:HDF5::HDF5>
+  Boost::iostreams
+  Boost::date_time
+  Boost::boost
+  Boost::regex
+  BZip2::BZip2
+  ZLIB::ZLIB
+  SQLiteCpp
+  nlohmann_json::nlohmann_json)
 
-set(OPENMS_DEP_PRIVATE_LIBRARIES WM5::WM5 CoinOR::CoinOR Eigen3::Eigen GLPK::GLPK HDF5::HDF5 Boost::iostreams Boost::date_time Boost::math_c99 Boost::regex
-  BZip2::BZip2 ZLIB::ZLIB SQLite::SQLite3)
+## ----------
+## No need to for this at the moment: no Qt plugins required anymore. Left here for reference.
+## ----------
+#------------------------------------------------------------------------------
+# Install the QSQLite driver if we are not on linux so we can use oms files
+#if(WIN32 OR APPLE)
+#  install_qt5_plugin_builddir("Qt5::QSQLiteDriverPlugin" QT_SQLITE_PLUGIN "${INSTALL_PLUGIN_DIR}" Dependencies)
+#endif()
 
-# xerces requires linking against CoreFoundation&CoreServices on macOS
+# Xerces requires linking against CoreFoundation&CoreServices on macOS
 # TODO check if this is still the case
 if(APPLE)
   find_library(CoreFoundation_LIBRARY CoreFoundation )
@@ -125,34 +129,6 @@ if (WITH_CRAWDAD) ## TODO check if still necessary
   list(APPEND OPENMS_DEP_LIBRARIES ${Crawdad_LIBRARY})
 endif()
 
-
-## TODO do the following sorting based on the imported targets and their INCLUDE_DIRECTORY property
-#set (OPENMS_CONTRIB_INCLUDE_DIRS "")
-#if (OPENMS_CONTRIB_LIBS)
-#  set (OPENMS_CONTRIB_INCLUDE_DIRS ${OPENMS_CONTRIB_LIBS}/include)
-#endif()
-
-## Sort include directories into contrib ones (prefered in order) and system ones.
-#foreach (includedir
-#         ${SQLite_INCLUDE_DIR}
-#         ${HDF5_INCLUDE_DIRS}
-#         ${LIBSVM_INCLUDE_DIRS}
-#         ${EIGEN3_INCLUDE_DIR}
-#         ${WM5_INCLUDE_DIRS}
-#         ${CRAWDAD_INCLUDE_DIRS}
-#         ${COIN_INCLUDE_DIRS}
-#         ${GLPK_INCLUDE_DIRS}
-#         ${ZLIB_INCLUDE_DIRS}
-#         ${BZIP2_INCLUDE_DIR}
-#         ${XercesC_INCLUDE_DIRS}
-#         ${Boost_INCLUDE_DIRS})
-#  if (${includedir} MATCHES "${OPENMS_CONTRIB_INCLUDE_DIRS}.*")
-#    list(APPEND INCLUDES_FROM_CONTRIB ${includedir})
-#  else()
-#    list(APPEND INCLUDES_FROM_SYSTEM ${includedir})
-#  endif()
-#endforeach()
-
 openms_add_library(TARGET_NAME  OpenMS
                    SOURCE_FILES  ${OpenMS_sources}
                    HEADER_FILES  ${OpenMS_sources_h}
@@ -161,12 +137,18 @@ openms_add_library(TARGET_NAME  OpenMS
                                      ${CMAKE_CURRENT_BINARY_DIR}/include
                    PRIVATE_INCLUDES ${EOL_BSPLINE_INCLUDE_DIRECTORY}
                                     ${ISOSPEC_INCLUDE_DIRECTORY}
-                                    ${JSON_INCLUDE_DIRECTORY}
                    EXTERNAL_INCLUDES
                    LINK_LIBRARIES OpenSwathAlgo
                                   ${OPENMS_DEP_LIBRARIES}
                    PRIVATE_LINK_LIBRARIES ${OPENMS_DEP_PRIVATE_LIBRARIES}
                    DLL_EXPORT_PATH "OpenMS/")
+
+if (MSVC)
+  ## treat warning of unused function parameter as error, similar to -Werror=unused-variable on GCC
+  target_compile_options(OpenMS PRIVATE "/we4100")
+  ## treat warning of unused local variable as error, similar to -Werror=unused-variable on GCC
+  target_compile_options(OpenMS PRIVATE "/we4189")
+endif()
 
 #------------------------------------------------------------------------------
 # since the share basically belongs to OpenMS core we control its installation

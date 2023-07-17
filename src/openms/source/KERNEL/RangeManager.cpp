@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -34,9 +34,8 @@
 
 #include <OpenMS/KERNEL/RangeManager.h>
 
-#include <iostream>
+#include <ostream>
 
-  
 namespace OpenMS
 {
   std::ostream& operator<<(std::ostream& out, const RangeBase& b)
@@ -68,4 +67,29 @@ namespace OpenMS
     out << "mobility: " << (RangeBase) range << "\n";
     return out;
   }
-}
+
+  RangeBase::operator RangeRT() const
+  {
+    RangeRT out;
+    out.RangeBase::operator=(*this);
+    return out;
+  }
+  RangeBase::operator RangeMZ() const
+  {
+    RangeMZ out;
+    out.RangeBase::operator=(*this);
+    return out;
+  }
+  RangeBase::operator RangeIntensity() const
+  {
+    RangeIntensity out;
+    out.RangeBase::operator=(*this);
+    return out;
+  }
+  RangeBase::operator RangeMobility() const
+  {
+    RangeMobility out;
+    out.RangeBase::operator=(*this);
+    return out;
+  }
+} // namespace OpenMS

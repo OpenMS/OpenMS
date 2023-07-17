@@ -15,43 +15,46 @@ cdef extern from "<OpenMS/TRANSFORMATIONS/FEATUREFINDER/IsotopeWavelet.h>" names
         void destroy() nogil except + # wrap-doc:Deletes the singleton instance
         double getValueByMass(double t, double m, UInt z, Int mode) nogil except +
             # wrap-doc:
-                #   Returns the value of the isotope wavelet at position `t`. Usually, you do not need to call this function
-                #   -----
-                #   Note that this functions returns the pure function value of psi and not the normalized (average=0)
-                #   value given by Psi
-                #   -----
-                #   :param t: The position at which the wavelet has to be drawn (within the coordinate system of the wavelet)
-                #   :param m: The m/z position within the signal (i.e. the mass not de-charged) within the signal
-                #   :param z: The charge `z` we want to detect
-                #   :param mode: Indicates whether positive mode (+1) or negative mode (-1) has been used for ionization
+                #  Returns the value of the isotope wavelet at position `t`. Usually, you do not need to call this function\n
+                #  
+                #  Note that this functions returns the pure function value of psi and not the normalized (average=0)
+                #  value given by Psi
+                #  
+                #  
+                #  :param t: The position at which the wavelet has to be drawn (within the coordinate system of the wavelet)
+                #  :param m: The m/z position within the signal (i.e. the mass not de-charged) within the signal
+                #  :param z: The charge `z` we want to detect
+                #  :param mode: Indicates whether positive mode (+1) or negative mode (-1) has been used for ionization
 
         double getValueByLambda(double lambda_, double tz1) nogil except +
             # wrap-doc:
-                #   Returns the value of the isotope wavelet at position `t` via a fast table lookup
-                #   -----
-                #   Usually, you do not need to call this function
-                #   Please use `sampleTheWavelet` instead
-                #   Note that this functions returns the pure function value of psi and not the normalized (average=0)
-                #   value given by Psi
-                #   -----
-                #   :param lambda: The mass-parameter lambda
-                #   :param tz1: t (the position) times the charge (z) plus 1
+                #  Returns the value of the isotope wavelet at position `t` via a fast table lookup\n
+                #  
+                #  Usually, you do not need to call this function
+                #  Please use `sampleTheWavelet` instead
+                #  Note that this functions returns the pure function value of psi and not the normalized (average=0)
+                #  value given by Psi
+                #  
+                #  
+                #  :param lambda: The mass-parameter lambda
+                #  :param tz1: t (the position) times the charge (z) plus 1
 
         double getValueByLambdaExtrapol(double lambda_, double tz1) nogil except +
             # wrap-doc:
-                #   Returns the value of the isotope wavelet at position `t`
-                #   -----
-                #   This function is usually significantly slower than the table lookup performed in @see getValueByLambda
-                #   Nevertheless, it might be necessary to call this function due to extrapolating reasons caused by the
-                #   alignment of the wavelet
-                #   -----
-                #   Usually, you do not need to call this function
-                #   Please use `sampleTheWavelet` instead
-                #   Note that this functions returns the pure function value of psi and not the normalized (average=0)
-                #   value given by Psi
-                #   -----
-                #   :param lambda: The mass-parameter lambda
-                #   :param tz1: t (the position) times the charge (z) plus 1
+                #  Returns the value of the isotope wavelet at position `t`\n
+                #  
+                #  This function is usually significantly slower than the table lookup performed in @see getValueByLambda
+                #  Nevertheless, it might be necessary to call this function due to extrapolating reasons caused by the
+                #  alignment of the wavelet\n
+                #  
+                #  Usually, you do not need to call this function
+                #  Please use `sampleTheWavelet` instead
+                #  Note that this functions returns the pure function value of psi and not the normalized (average=0)
+                #  value given by Psi
+                #  
+                #  
+                #  :param lambda: The mass-parameter lambda
+                #  :param tz1: t (the position) times the charge (z) plus 1
 
         double getValueByLambdaExact(double lambda_, double tz1) nogil except +# TODO
         UInt getMaxCharge() nogil except + # wrap-doc:Returns the largest charge state we will consider

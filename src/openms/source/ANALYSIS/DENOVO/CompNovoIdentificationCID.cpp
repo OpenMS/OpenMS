@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -40,6 +40,8 @@
 #include <OpenMS/ANALYSIS/DENOVO/CompNovoIonScoringCID.h>
 
 #include <boost/math/special_functions/fpclassify.hpp>
+
+#include <map>
 
 //#define DAC_DEBUG
 
@@ -80,9 +82,7 @@ namespace OpenMS
     return *this;
   }
 
-  CompNovoIdentificationCID::~CompNovoIdentificationCID()
-  {
-  }
+  CompNovoIdentificationCID::~CompNovoIdentificationCID() = default;
 
   void CompNovoIdentificationCID::getIdentifications(vector<PeptideIdentification> & pep_ids, const PeakMap & exp)
   {
@@ -222,7 +222,7 @@ for (PeakSpectrum::ConstIterator it1 = CID_spec.begin(); it1 != CID_spec.end(); 
     ion_scoring_param.setValue("max_isotope", max_isotope_);
     ion_scoring.setParameters(ion_scoring_param);
 
-    Map<double, IonScore> ion_scores;
+    std::map<double, IonScore> ion_scores;
     ion_scoring.scoreSpectrum(ion_scores, new_CID_spec, precursor_weight, charge);
 
     new_CID_spec.sortByPosition();
@@ -511,7 +511,7 @@ for (PeakSpectrum::ConstIterator it1 = CID_spec.begin(); it1 != CID_spec.end(); 
   }
 
 // divide and conquer algorithm of the sequencing
-  void CompNovoIdentificationCID::getDecompositionsDAC_(set<String> & sequences, Size left, Size right, double peptide_weight, const PeakSpectrum & CID_spec, Map<double, CompNovoIonScoringCID::IonScore> & ion_scores)
+  void CompNovoIdentificationCID::getDecompositionsDAC_(set<String> & sequences, Size left, Size right, double peptide_weight, const PeakSpectrum & CID_spec, std::map<double, CompNovoIonScoringCID::IonScore> & ion_scores)
   {
     static double oxonium_mass = EmpiricalFormula("H2O+").getMonoWeight();
     double offset_suffix(CID_spec[left].getPosition()[0] - oxonium_mass);
@@ -532,7 +532,7 @@ for (PeakSpectrum::ConstIterator it1 = CID_spec.begin(); it1 != CID_spec.end(); 
     cerr << "offset_prefix=" << offset_prefix << ", offset_suffix=" << offset_suffix << endl;
 #endif
 
-    if (subspec_to_sequences_.has(left) && subspec_to_sequences_[left].has(right))
+    if (subspec_to_sequences_.find(left) != subspec_to_sequences_.end() && subspec_to_sequences_[left].find(right) != subspec_to_sequences_[left].end())
     {
       sequences = subspec_to_sequences_[left][right];
 
@@ -586,7 +586,7 @@ for (PeakSpectrum::ConstIterator it1 = CID_spec.begin(); it1 != CID_spec.end(); 
 #endif
 
         String exp_string = it->toExpandedString();
-        if (!permute_cache_.has(exp_string))
+        if (permute_cache_.find(exp_string) == permute_cache_.end())
         {
           permute_("", exp_string, sequences);
           permute_cache_[exp_string] = sequences;

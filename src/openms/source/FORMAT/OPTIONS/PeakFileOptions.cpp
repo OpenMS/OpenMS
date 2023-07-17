@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -67,38 +67,9 @@ namespace OpenMS
   {
   }
 
-  PeakFileOptions::PeakFileOptions(const PeakFileOptions& options) :
-    metadata_only_(options.metadata_only_),
-    force_maxquant_compatibility_(options.force_maxquant_compatibility_),
-    force_tpp_compatibility_(options.force_tpp_compatibility_),
-    write_supplemental_data_(options.write_supplemental_data_),
-    has_rt_range_(options.has_rt_range_),
-    has_mz_range_(options.has_mz_range_),
-    has_intensity_range_(options.has_intensity_range_),
-    mz_32_bit_(options.mz_32_bit_),
-    int_32_bit_(options.int_32_bit_),
-    rt_range_(options.rt_range_),
-    mz_range_(options.mz_range_),
-    intensity_range_(options.intensity_range_),
-    ms_levels_(options.ms_levels_),
-    zlib_compression_(options.zlib_compression_),
-    always_append_data_(options.always_append_data_),
-    skip_xml_checks_(options.skip_xml_checks_),
-    sort_spectra_by_mz_(options.sort_spectra_by_mz_),
-    sort_chromatograms_by_rt_(options.sort_chromatograms_by_rt_),
-    fill_data_(options.fill_data_),
-    write_index_(options.write_index_),
-    np_config_mz_(options.np_config_mz_),
-    np_config_int_(options.np_config_int_),
-    np_config_fda_(options.np_config_fda_),
-    maximal_data_pool_size_(options.maximal_data_pool_size_),
-    precursor_mz_selected_ion_(options.precursor_mz_selected_ion_)
-  {
-  }
+  PeakFileOptions::PeakFileOptions(const PeakFileOptions& options) = default;
 
-  PeakFileOptions::~PeakFileOptions()
-  {
-  }
+  PeakFileOptions::~PeakFileOptions() = default;
 
   void PeakFileOptions::setMetadataOnly(bool only)
   {

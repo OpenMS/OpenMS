@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -102,9 +102,6 @@ public:
     // docu in base class
     void showCurrentLayerPreferences() override;
 
-    // Docu in base class
-    void saveCurrentLayer(bool visible) override;
-
 signals:
 
     /// Requests to display all spectra in 2D plot
@@ -127,7 +124,6 @@ protected slots:
     void currentLayerParamtersChanged_();
 
 protected:
-
     // Docu in base class
     bool finishAdding_() override;
 
@@ -139,15 +135,6 @@ protected:
 
     ///stores the linear color gradient for non-log modes
     MultiGradient linear_gradient_;
-
-    //docu in base class
-    void translateLeft_(Qt::KeyboardModifiers m) override;
-    //docu in base class
-    void translateRight_(Qt::KeyboardModifiers m) override;
-    //docu in base class
-    void translateForward_() override;
-    //docu in base class
-    void translateBackward_() override;
   };
 
 } //namespace

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2018.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -37,6 +37,8 @@
 #include <OpenMS/ANALYSIS/ID/FIAMSDataProcessor.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 
+#include <utility>
+
 #ifdef _OPENMP
 #include <omp.h>
 #endif
@@ -49,8 +51,8 @@ namespace OpenMS {
     bool load_cached
   )
     : 
-    filename_(filename),
-    base_dir_(base_dir),
+    filename_(std::move(filename)),
+    base_dir_(std::move(base_dir)),
     load_cached_(load_cached),
     samples_()
   {

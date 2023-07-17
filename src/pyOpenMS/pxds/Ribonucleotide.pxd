@@ -18,7 +18,7 @@ cdef extern from "<OpenMS/CHEMISTRY/Ribonucleotide.h>" namespace "OpenMS":
 
     cdef cppclass Ribonucleotide:
         # wrap-hash:
-        #   getName().c_str()
+        #  getName().c_str()
 
         Ribonucleotide() nogil except +
         Ribonucleotide(Ribonucleotide &) nogil except +

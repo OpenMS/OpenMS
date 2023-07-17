@@ -18,8 +18,8 @@ cdef extern from "<OpenMS/METADATA/AbsoluteQuantitationStandards.h>" namespace "
         ) nogil except +
 
         # void mapComponentsToConcentrations(libcpp_vector[ AQS_runConcentration ] run_concentrations,
-        #                                    libcpp_vector[ FeatureMap ] feature_maps,
-        #                                    libcpp_map[ String, libcpp_vector[ AQS_featureConcentration ]] & components_to_concentrations) nogil except +
+        #                                   libcpp_vector[ FeatureMap ] feature_maps,
+        #                                   libcpp_map[ String, libcpp_vector[ AQS_featureConcentration ]] & components_to_concentrations) nogil except +
 
 cdef extern from "<OpenMS/METADATA/AbsoluteQuantitationStandards.h>" namespace "OpenMS::AbsoluteQuantitationStandards":
 

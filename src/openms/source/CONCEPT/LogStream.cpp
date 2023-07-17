@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -46,6 +46,7 @@
 #include <cstring>
 #include <cstdio>
 #include <algorithm>    // std::min
+#include <OpenMS/CONCEPT/Colorizer.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/CONCEPT/StreamHandler.h>
 
@@ -64,15 +65,10 @@ namespace OpenMS
     const time_t LogStreamBuf::MAX_TIME = numeric_limits<time_t>::max();
     const std::string LogStreamBuf::UNKNOWN_LOG_LEVEL = "UNKNOWN_LOG_LEVEL";
 
-    LogStreamBuf::LogStreamBuf(std::string log_level) :
-      std::streambuf(),
-      pbuf_(nullptr),
-      level_(log_level),
-      stream_list_(),
-      incomplete_line_(),
-      log_cache_counter_(0),
-      log_cache_(),
-      log_time_cache_()
+    LogStreamBuf::LogStreamBuf(const std::string& log_level, Colorizer* col) 
+      : std::streambuf(),
+        level_(log_level),
+        colorizer_(col)
     {
       pbuf_ = new char[BUFFER_LENGTH];
       std::streambuf::setp(pbuf_, pbuf_ + BUFFER_LENGTH - 1);
@@ -219,15 +215,25 @@ namespace OpenMS
       log_time_cache_.clear();
     }
 
-    void LogStreamBuf::distribute_(std::string outstring)
+    void LogStreamBuf::distribute_(const std::string& outstring)
     {
       // if there are any streams in our list, we
       // copy the line into that streams, too and flush them
       std::list<StreamStruct>::iterator list_it = stream_list_.begin();
       for (; list_it != stream_list_.end(); ++list_it)
       {
-        *(list_it->stream) << expandPrefix_(list_it->prefix, time(nullptr)).c_str()
-                           << outstring.c_str() << std::endl;
+        if (colorizer_) 
+        {
+          *(list_it->stream) << (*colorizer_)(); // enable color
+        }        
+
+        *(list_it->stream) << expandPrefix_(list_it->prefix, time(nullptr))
+                           << outstring;
+        if (colorizer_)
+        {
+          *(list_it->stream) << (*colorizer_).undo(); // disable color
+        }
+        *(list_it->stream) << std::endl;
 
         if (list_it->target != nullptr)
         {
@@ -483,6 +489,15 @@ namespace OpenMS
       }
     }
 
+    void LogStream::removeAllStreams()
+    {
+      if (!bound_())
+        return;
+
+      rdbuf()->sync();
+      rdbuf()->stream_list_.clear();
+    }
+
     void LogStream::insertNotification(std::ostream & s, LogStreamNotifier & target)
     {
       if (!bound_())
@@ -562,11 +577,11 @@ namespace OpenMS
   OPENMS_DLLAPI StreamHandler STREAM_HANDLER;
 
   // global default logstream
-  OPENMS_DLLAPI Logger::LogStream OpenMS_Log_fatal(new Logger::LogStreamBuf("FATAL_ERROR"), true, &cerr);
-  OPENMS_DLLAPI Logger::LogStream OpenMS_Log_error(new Logger::LogStreamBuf("ERROR"), true, &cerr);
-  OPENMS_DLLAPI Logger::LogStream OpenMS_Log_warn(new Logger::LogStreamBuf("WARNING"), true, &cout);
-  OPENMS_DLLAPI Logger::LogStream OpenMS_Log_info(new Logger::LogStreamBuf("INFO"), true, &cout);
+  OPENMS_DLLAPI Logger::LogStream OpenMS_Log_fatal(new Logger::LogStreamBuf("FATAL_ERROR", &red), true, &cerr);
+  OPENMS_DLLAPI Logger::LogStream OpenMS_Log_error(new Logger::LogStreamBuf("ERROR", &red), true, &cerr);
+  OPENMS_DLLAPI Logger::LogStream OpenMS_Log_warn(new Logger::LogStreamBuf("WARNING", &yellow), true, &cout);
+  OPENMS_DLLAPI Logger::LogStream OpenMS_Log_info(new Logger::LogStreamBuf("INFO", nullptr), true, &cout);
   // OPENMS_LOG_DEBUG is disabled by default, but will be enabled in TOPPAS.cpp or TOPPBase.cpp if started in debug mode (--debug or -debug X)
-  OPENMS_DLLAPI Logger::LogStream OpenMS_Log_debug(new Logger::LogStreamBuf("DEBUG"), false); // last param should be 'true', but segfaults...
+  OPENMS_DLLAPI Logger::LogStream OpenMS_Log_debug(new Logger::LogStreamBuf("DEBUG", &magenta), false); // last param should be 'true', but segfaults...
 
 } // namespace OpenMS

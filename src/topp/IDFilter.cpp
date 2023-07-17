@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -62,9 +62,9 @@ using namespace std;
 <CENTER>
  <table>
   <tr>
-   <td ALIGN = "center" BGCOLOR="#EBEBEB"> potential predecessor tools </td>
-   <td VALIGN="middle" ROWSPAN=5> \f$ \longrightarrow \f$ IDFilter \f$ \longrightarrow \f$</td>
-   <td ALIGN = "center" BGCOLOR="#EBEBEB"> potential successor tools </td>
+   <th ALIGN = "center"> potential predecessor tools </td>
+   <td VALIGN="middle" ROWSPAN=5> &rarr; IDFilter &rarr;</td>
+   <th ALIGN = "center"> potential successor tools </td>
   </tr>
   <tr>
    <td VALIGN="middle" ALIGN = "center" ROWSPAN=1> @ref TOPP_MascotAdapterOnline (or other ID engines) </td>
@@ -293,13 +293,13 @@ protected:
     bool remove_meta_enabled = (!meta_info.empty());
     if (remove_meta_enabled && meta_info.size() != 3)
     {
-      writeLog_("Param 'remove_peptide_hits_by_metavalue' has invalid number of arguments. Expected 3, got " + String(meta_info.size()) + ". Aborting!");
+      writeLogError_("Param 'remove_peptide_hits_by_metavalue' has invalid number of arguments. Expected 3, got " + String(meta_info.size()) + ". Aborting!");
       printUsage_();
       return ILLEGAL_PARAMETERS;
     }
     if (remove_meta_enabled && !(meta_info[1] == "lt" || meta_info[1] == "eq" || meta_info[1] == "gt" || meta_info[1] == "ne"))
     {
-      writeLog_("Param 'remove_peptide_hits_by_metavalue' has invalid second argument. Expected one of 'lt', 'eq', 'gt' or 'ne'. Got '" + meta_info[1] + "'. Aborting!");
+      writeLogError_("Param 'remove_peptide_hits_by_metavalue' has invalid second argument. Expected one of 'lt', 'eq', 'gt' or 'ne'. Got '" + meta_info[1] + "'. Aborting!");
       printUsage_();
       return ILLEGAL_PARAMETERS;
     }
@@ -682,6 +682,7 @@ protected:
           case DataValue::INT_LIST : v_user = ListUtils::create<Int>(meta_info[2]); break;
           case DataValue::DOUBLE_LIST : v_user = ListUtils::create<double>(meta_info[2]); break;
           case DataValue::EMPTY_VALUE : v_user = DataValue::EMPTY; break;
+          default: throw Exception::ConversionError(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Type of DataValue is unkown!"); break;
         }
 
         if (meta_info[1] == "lt")
@@ -702,7 +703,7 @@ protected:
         }
         else
         {
-          writeLog_("Internal Error. Meta value filtering got invalid comparison operator ('" + meta_info[1] + "'), which should have been caught before! Aborting!");
+          writeLogError_("Internal Error. Meta value filtering got invalid comparison operator ('" + meta_info[1] + "'), which should have been caught before! Aborting!");
           throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "Illegal meta value filtering operator!");
         }
       }; // of lambda

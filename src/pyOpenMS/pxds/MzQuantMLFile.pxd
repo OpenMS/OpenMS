@@ -10,31 +10,31 @@ cdef extern from "<OpenMS/FORMAT/MzQuantMLFile.h>" namespace "OpenMS":
 
         void load(String filename, MSQuantifications & msq) nogil except +
             # wrap-doc:
-                #   Loads a map from a MzQuantML file
-                #   -----
-                #   :raises:
-                #     Exception: FileNotFound is thrown if the file could not be opened
-                #   :raises:
-                #     Exception: ParseError is thrown if an error occurs during parsing
+                #  Loads a map from a MzQuantML file
+                #  
+                #  :raises:
+                #    Exception: FileNotFound is thrown if the file could not be opened
+                #  :raises:
+                #    Exception: ParseError is thrown if an error occurs during parsing
 
         void store(String filename, MSQuantifications & msq) nogil except +
             # wrap-doc:
-                #   Stores a map in a MzQuantML file
-                #   -----
-                #   :raises:
-                #     Exception: UnableToCreateFile is thrown if the file could not be created
+                #  Stores a map in a MzQuantML file
+                #  
+                #  :raises:
+                #    Exception: UnableToCreateFile is thrown if the file could not be created
 
         bool isSemanticallyValid(String filename,
                                  StringList & errors,
                                  StringList & warnings) nogil except +
             # wrap-doc:
-                #   Checks if a file is valid with respect to the mapping file and the controlled vocabulary
-                #   -----
-                #   :param filename: File name of the file to be checked
-                #   :param errors: Errors during the validation are returned in this output parameter
-                #   :param warnings: Warnings during the validation are returned in this output parameter
-                #   -----
-                #   :raises:
-                #     Exception: UnableToCreateFile is thrown if the file could not be created
+                #  Checks if a file is valid with respect to the mapping file and the controlled vocabulary
+                #  
+                #  
+                #  :param filename: File name of the file to be checked
+                #  :param errors: Errors during the validation are returned in this output parameter
+                #  :param warnings: Warnings during the validation are returned in this output parameter
+                #  :raises:
+                #    Exception: UnableToCreateFile is thrown if the file could not be created
 
 

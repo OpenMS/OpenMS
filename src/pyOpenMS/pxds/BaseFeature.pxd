@@ -10,8 +10,8 @@ cdef extern from "<OpenMS/KERNEL/BaseFeature.h>" namespace "OpenMS":
 
     cdef cppclass BaseFeature(UniqueIdInterface, RichPeak2D):
         # wrap-inherits:
-        #    UniqueIdInterface
-        #    RichPeak2D
+        #   UniqueIdInterface
+        #   RichPeak2D
 
         BaseFeature()  nogil except +
         BaseFeature(BaseFeature &) nogil except +

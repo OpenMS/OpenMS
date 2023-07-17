@@ -34,18 +34,18 @@ cdef extern from "<OpenMS/DATASTRUCTURES/DateTime.h>" namespace "OpenMS":
         #Sets the undefined date: 00/00/0000 00:00:00
         void clear() nogil except +
 
-        #   @brief Returns a string representation of the date and time
-        #   The format of the string will be yyyy-MM-dd hh:mm:ss
+        #  @brief Returns a string representation of the date and time
+        #  The format of the string will be yyyy-MM-dd hh:mm:ss
         String get() nogil except +
 
-        #     @brief Sets date and time
-        #     The following formats are supported:
-        #     - MM/dd/yyyy hh:mm:ss
-        #     - dd.MM.yyyy hh:mm:ss
-        #     - yyyy-MM-dd hh:mm:ss
-        #     - yyyy-MM-ddThh:mm:ss (ISO 8601 format)
-        #     - yyyy-MM-ddZ (ISO 8601 format)
-        #     - yyyy-MM-dd+hh:mm (ISO 8601 format)
+        #    @brief Sets date and time
+        #    The following formats are supported:
+        #    - MM/dd/yyyy hh:mm:ss
+        #    - dd.MM.yyyy hh:mm:ss
+        #    - yyyy-MM-dd hh:mm:ss
+        #    - yyyy-MM-ddThh:mm:ss (ISO 8601 format)
+        #    - yyyy-MM-ddZ (ISO 8601 format)
+        #    - yyyy-MM-dd+hh:mm (ISO 8601 format)
         void set(String date) nogil except +
 
 cdef extern from "<OpenMS/DATASTRUCTURES/DateTime.h>" namespace "OpenMS::DateTime":

@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -72,17 +72,7 @@ namespace OpenMS
   }
 
   /// Copy constructor
-  ChargePair::ChargePair(const ChargePair& rhs) :
-    feature0_index_(rhs.feature0_index_),
-    feature1_index_(rhs.feature1_index_),
-    feature0_charge_(rhs.feature0_charge_),
-    feature1_charge_(rhs.feature1_charge_),
-    compomer_(rhs.compomer_),
-    mass_diff_(rhs.mass_diff_),
-    score_(rhs.score_),
-    is_active_(rhs.is_active_)
-  {
-  }
+  ChargePair::ChargePair(const ChargePair& rhs) = default;
 
   /// Assignment operator
   ChargePair& ChargePair::operator=(const ChargePair& rhs)

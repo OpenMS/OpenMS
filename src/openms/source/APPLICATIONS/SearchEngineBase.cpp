@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2021.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -49,7 +49,7 @@ namespace OpenMS
   {
   }
 
-  SearchEngineBase::~SearchEngineBase() {}
+  SearchEngineBase::~SearchEngineBase() = default;
 
   
   String SearchEngineBase::getRawfileName(int ms_level) const
@@ -109,7 +109,7 @@ namespace OpenMS
     return inputfile_name;
   }
 
-  String SearchEngineBase::getDBFilename(String db) const
+  String SearchEngineBase::getDBFilename(const String& db) const
   {
     String db_name(db.empty() ? getStringOption_("database") : db);
     if (!File::readable(db_name))
