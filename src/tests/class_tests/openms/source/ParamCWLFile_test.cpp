@@ -81,12 +81,12 @@ START_SECTION((bool ParamCWLFile::load(const std::string& filename, Param& param
   param.setValue("test:1:int", 0);
   param.setValue("test:1:double", 0.);
   param.setValue("test:1:string", "");
-  param.setValue("test:1:int_list", std::vector<int>{});
-  param.setValue("test:1:double_list", std::vector<double>{});
-  param.setValue("test:1:string_list", std::vector<std::string>{});
-  param.setValue("test:1:file_output", std::string{}, "some description", {"output file"});
-  param.setValue("test:1:is_executable_v1", std::string{}, "test is executable tag, giving a string", {"is_executable", "input file"});
-  param.setValue("test:1:is_executable_v2", std::string{}, "test is executable tag, giving a type: File", {"is_executable", "input file"});
+  param.setValue("test:1:int_list", std::vector<int> {});
+  param.setValue("test:1:double_list", std::vector<double> {});
+  param.setValue("test:1:string_list", std::vector<std::string> {});
+  param.setValue("test:1:file_output", std::string {}, "some description", {"output file"});
+  param.setValue("test:1:is_executable_v1", std::string {}, "test is executable tag, giving a string", {"is_executable", "input file"});
+  param.setValue("test:1:is_executable_v2", std::string {}, "test is executable tag, giving a type: File", {"is_executable", "input file"});
 
 
   // create matching json file
