@@ -208,7 +208,7 @@ namespace OpenMS
 
       // needs to handle strings like: [+42]-MVLVQDLLHPTAASEAR, [+304.207]-ETC[+57.0215]RQLGLGTNIYNAER etc.
       sPeptide.substitute("]-", "]."); // we can parse [+42].MVLVQDLLHPTAASEAR
-      sPeptide.substitute("-[", ".["); // we can parse MVLVQDLLHPTAASEAR-[+111]
+      sPeptide.substitute("-[", ".["); // we can parse MVLVQDLLHPTAASEAR.[+111]
       AASequence aa_seq = AASequence::fromString(sPeptide);
       PeptideHit ph(score, rank, charge, std::move(aa_seq));
       ph.setMetaValue("SpecId", sSpecId);
