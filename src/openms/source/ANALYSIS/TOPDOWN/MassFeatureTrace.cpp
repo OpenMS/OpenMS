@@ -70,9 +70,24 @@ namespace OpenMS
     std::vector<FLASHDeconvHelperStructs::MassFeature> mass_features;
     std::map<double, Size> rt_index_map;
 
+    int prev_scan = 0;
+    int min_scan_diff = -1;
     for (Size i = 0; i < deconvolved_spectra.size(); i++)
     {
       auto deconvolved_spectrum = deconvolved_spectra[i];
+      int scan = deconvolved_spectrum.getScanNumber();
+      if (prev_scan != 0)
+      {
+        if (min_scan_diff < 0)
+        {
+          min_scan_diff = scan - prev_scan;
+        }
+        else
+        {
+          min_scan_diff = std::min(min_scan_diff, scan - prev_scan);
+        }
+      }
+      prev_scan = scan;
       double rt = deconvolved_spectrum.getOriginalSpectrum().getRT();
       rt_index_map[rt] = i;
       MSSpectrum deconv_spec;
@@ -106,10 +121,10 @@ namespace OpenMS
     mtdet.run(map, m_traces); // m_traces : output of this function
 
     int charge_range = max_abs_charge - min_abs_charge + 1;
-    double feature_qscore = 1.0;
 
     for (auto& mt : m_traces)
     {
+      double feature_qscore = 1.0;
       int min_feature_abs_charge = INT_MAX; // min feature charge
       int max_feature_abs_charge = INT_MIN; // max feature charge
 
@@ -122,10 +137,14 @@ namespace OpenMS
       boost::dynamic_bitset<> charges(charge_range + 1);
       std::vector<std::vector<PeakGroup>::iterator> pgs;
       pgs.reserve(mt.getSize());
+      std::vector<double> qscores;
+
+      prev_scan = 0;
 
       for (auto& p2 : mt)
       {
         auto& dspec = deconvolved_spectra[rt_index_map[p2.getRT()]];
+
         PeakGroup comp;
         comp.setMonoisotopicMass(p2.getMZ());
         auto pg = std::lower_bound(dspec.begin(), dspec.end(), comp);
@@ -136,8 +155,12 @@ namespace OpenMS
         {
           max_iso = pg->getIsotopeCosine();
         }
-
-        feature_qscore *= (1.0 - std::min(.99, pg->getQscore()));
+        int scan = dspec.getScanNumber();
+        if (prev_scan != 0 && min_scan_diff == scan - prev_scan)
+        {
+          feature_qscore *= (1.0 - std::min(.99, pg->getQscore()));
+        }
+        prev_scan = scan;
         pgs.push_back(pg);
       }
 

@@ -37,7 +37,7 @@
 
 namespace OpenMS
 {
-  void Qvalue::updatePeakGroupQvalues(std::vector<DeconvolvedSpectrum>& deconvolved_spectra,
+  void Qvalue::updatePeakGroupQvalues(std::vector<DeconvolvedSpectrum>& deconvolved_spectra, /// TDDO - treat masses within a feature as one!!
                                       std::vector<DeconvolvedSpectrum>& deconvolved_decoy_spectra) // per ms level + precursor update as well.
   {
     uint bin_number = 25;                           // 25 is enough resolution for qvalue calculation. In most cases FDR 5% will be used.
@@ -53,11 +53,14 @@ namespace OpenMS
     std::map<uint, std::map<double, double>> qscore_charge_decoy_map; // maps for charge decoy only qvalues
 
     // to calculate qvalues per ms level, store Qscores per ms level
+    std::set<int> used_feature_indices;
     for (auto& deconvolved_spectrum : deconvolved_spectra)
     {
       uint ms_level = deconvolved_spectrum.getOriginalSpectrum().getMSLevel();
       for (auto& pg : deconvolved_spectrum)
       {
+        if (pg.getFeatureIndex() >= 0 && used_feature_indices.find(pg.getFeatureIndex()) != used_feature_indices.end())
+          continue;
         tscore_map[ms_level].push_back(pg.getFeatureQscore());
       }
     }
@@ -67,6 +70,8 @@ namespace OpenMS
       uint ms_level = decoy_deconvolved_spectrum.getOriginalSpectrum().getMSLevel();
       for (auto& pg : decoy_deconvolved_spectrum)
       {
+        if (pg.getFeatureIndex() >= 0 && used_feature_indices.find(pg.getFeatureIndex()) != used_feature_indices.end())
+          continue;
         if (pg.getTargetDummyType() == PeakGroup::TargetDummyType::isotope_dummy)
         {
           dscore_iso_decoy_map[ms_level].push_back(pg.getFeatureQscore());
@@ -165,12 +170,15 @@ namespace OpenMS
       for (size_t i = 0; i < qscores.size(); i++)
       {
         double ts = qscores[i];
+        if (map_charge.find(ts) != map_charge.end()) continue;
+
         size_t dindex = dscore_charge.size() == 0 ? 0 : std::distance(std::lower_bound(dscore_charge.begin(), dscore_charge.end(), ts), dscore_charge.end());
         size_t tindex = qscores.size() - i;
         double nom = weights[0] * (double)dindex;
         double denom = (double)(tindex);
         tmp_q_charge = (nom / denom);
-        map_charge[ts] = tmp_q_charge;
+
+        map_charge[ts] = std::min(1.0, tmp_q_charge);
       }
 
       auto& map_iso = qscore_iso_decoy_map[ms_level];
@@ -180,12 +188,14 @@ namespace OpenMS
       for (size_t i = 0; i < qscores.size(); i++)
       {
         double ts = qscores[i];
+        if (map_iso.find(ts) != map_iso.end()) continue;
+
         size_t dindex = dscore_iso.size() == 0 ? 0 : std::distance(std::lower_bound(dscore_iso.begin(), dscore_iso.end(), ts), dscore_iso.end());
         size_t tindex = qscores.size() - i;
         double nom = weights[2] * (double)dindex;
         double denom = (double)(tindex);
         tmp_q_iso = nom / denom;
-        map_iso[ts] = tmp_q_iso;
+        map_iso[ts] = std::min(1.0, tmp_q_iso);
       }
 
       auto& map_noise = qscore_noise_decoy_map[ms_level];
@@ -195,13 +205,15 @@ namespace OpenMS
       for (size_t i = 0; i < qscores.size(); i++)
       {
         double ts = qscores[i];
+        if (map_noise.find(ts) != map_noise.end()) continue;
+
         size_t dindex = dscore_noise.size() == 0 ? 0 : std::distance(std::lower_bound(dscore_noise.begin(), dscore_noise.end(), ts), dscore_noise.end());
         size_t tindex = qscores.size() - i;
         double nom = weights[1] * (double)dindex;
         double denom = (double)(tindex);
         // tmp_q_noise = std::min(tmp_q_noise, (nom / denom));
         tmp_q_noise = (nom / denom);
-        map_noise[ts] = tmp_q_noise;
+        map_noise[ts] = std::min(1.0, tmp_q_noise);
       }
     }
 

@@ -157,6 +157,20 @@ namespace OpenMS
       int min_charge, max_charge, charge_count;
       double isotope_score, qscore;
       double rep_mz;
+
+      /// features are compared
+      bool operator<(const MassFeature& a) const
+      {
+        return avg_mass < a.avg_mass;
+      }
+      bool operator>(const MassFeature& a) const
+      {
+        return avg_mass > a.avg_mass;
+      }
+      bool operator==(const MassFeature& other) const
+      {
+        return avg_mass == other.avg_mass;
+      }
     };
 
     /// Isobaric quantities.

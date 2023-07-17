@@ -818,8 +818,47 @@ protected:
       mass_features = mass_tracer.findFeatures(fd.getAveragine(), deconvolved_spectra);
       feature_cntr = mass_features.size();
       if (report_dummy)
-        dummy_mass_features = dummy_mass_tracer.findFeatures(fd.getAveragine(), dummy_deconvolved_spectra);
+      {
+        // remove the dummy features overlapping with target features.
+        for (auto& dspec : dummy_deconvolved_spectra)
+        {
+          double rt = dspec.getOriginalSpectrum().getRT();
+          auto filtered_dspec = dspec;
+          filtered_dspec.clear();
 
+          boost::dynamic_bitset<> remove_index;
+          remove_index.resize(dspec.size());
+
+          for (auto& feature : mass_features)
+          {
+            double frt_begin = feature.mt.begin()->getRT();
+            double frt_end = feature.mt.rbegin()->getRT();
+            if (rt < frt_begin || rt > frt_end)
+              continue;
+
+            double f_mass = feature.mt.getCentroidMZ() + feature.iso_offset * Constants::ISOTOPE_MASSDIFF_55K_U;
+            for (uint i = 0; i < dspec.size(); i++)
+            {
+              if (remove_index[i]) continue;
+              auto pg = dspec[i];
+              double pg_mass = pg.getMonoMass();
+              if (abs(f_mass - pg_mass) < 1e-6 * tols[0] * pg_mass)
+              {
+                remove_index[i] = true;
+              }
+            }
+          }
+
+          for (uint i = 0; i < dspec.size(); i++)
+          {
+            if (remove_index[i])
+              continue;
+            filtered_dspec.push_back(dspec[i]);
+          }
+          dspec = filtered_dspec;
+        }
+        dummy_mass_features = dummy_mass_tracer.findFeatures(fd.getAveragine(), dummy_deconvolved_spectra);
+      }
       if (feature_cntr > 0)
       {
         FLASHDeconvFeatureFile::writeFeatures(mass_features, in_file, out_stream, report_dummy);

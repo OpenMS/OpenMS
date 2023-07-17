@@ -1123,9 +1123,9 @@ namespace OpenMS
     std::sort(logMzpeaks_.begin(), logMzpeaks_.end());
   }
 
-  void PeakGroup::setQvalue(float q, PeakGroup::TargetDummyType flag)
+  void PeakGroup::setQvalue(double q, PeakGroup::TargetDummyType flag)
   {
-    qvalue_[flag] = q;
+    qvalue_[flag] = std::min(1.0, q);
   }
 
   void PeakGroup::calculateDLMatrices(const MSSpectrum& spec, double tol, const PrecalculatedAveragine& avg)

@@ -239,7 +239,7 @@ namespace OpenMS
      * set peakGroup q value for different TargetDummyType. Q values are stored per TargetDummyType and later used for final q value calculation.
      * @param  target_dummy_type  This target_dummy_type_ specifies if a PeakGroup is a target (0), charge dummy (1), noise dummy (2), or isotope dummy (3)
      */
-    void setQvalue(float q, PeakGroup::TargetDummyType target_dummy_type);
+    void setQvalue(double q, PeakGroup::TargetDummyType target_dummy_type);
 
     /// set distance between consecutive isotopes
     void setIsotopeDaDistance(double d);
