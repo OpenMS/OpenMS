@@ -210,7 +210,10 @@ protected:
     {
       origin += "]";
     }
-    origin += res->getOneLetterCode();
+   if (res->getOneLetterCode() != "X") // omit letter for "any AA"
+   {
+     origin += res->getOneLetterCode();
+   }
 
     return String("\"") + origin + "\": " + String(mod->getDiffMonoMass());
   }
