@@ -85,7 +85,7 @@ namespace OpenMS
     static const int N_TERM_MODIFICATION_INDEX; // magic constant to distinguish N_TERM only modifications from ANYWHERE modifications placed at N-term residue
     static const int C_TERM_MODIFICATION_INDEX; // magic constant to distinguish C_TERM only modifications from ANYWHERE modifications placed at C-term residue
 
-    // Lookup datastructure to allow lock-free generation of modified peptides
+    // Lookup datastructure to allow lock-free generation of modified peptides. Modifications without origin (e.g., "Protein N-term") set the residue to nullptr.
     static MapToResidueType createResidueModificationToResidueMap_(const std::vector<const ResidueModification*>& mods);
 
     // Fast implementation of modification placement. No combinatoric placement is needed in this case - just every site is modified once by each compatible modification. Already modified residues are skipped

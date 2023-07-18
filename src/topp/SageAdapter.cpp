@@ -210,7 +210,7 @@ protected:
     {
       origin += "]";
     }
-   if (res->getOneLetterCode() != "X") // omit letter for "any AA"
+   if (res != nullptr && res->getOneLetterCode() != "X") // omit letter for "any AA"
    {
      origin += res->getOneLetterCode();
    }
@@ -501,6 +501,8 @@ protected:
       extra_scores,
       filenames,
       decoy_prefix);
+
+    if (filenames.empty()) filenames = getStringList_("in");
 
     // TODO: split / merge results and create idXMLs
     vector<ProteinIdentification> protein_identifications(1, ProteinIdentification());

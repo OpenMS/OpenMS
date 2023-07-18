@@ -91,7 +91,7 @@ public:
        * @param target_decoy_available whether target decoy information is stored as meta value
        * @param fdr_for_targets_smaller fdr threshold for targets
        * @return engine (and optional charge state) id -> vector of triplets (score, target, decoy)
-       * @note supported engines are: XTandem,OMSSA,MASCOT,SpectraST,MyriMatch,SimTandem,MSGFPlus,MS-GF+,Comet
+       * @note supported engines are: XTandem,OMSSA,MASCOT,SpectraST,MyriMatch,SimTandem,MSGFPlus,MS-GF+,Comet,Sage
        */
       static std::map<String, std::vector<std::vector<double>>> extractAndTransformScores(
         const std::vector<ProteinIdentification> & protein_ids,
