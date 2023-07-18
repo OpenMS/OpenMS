@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -151,7 +151,6 @@ tmp_pg.push_back(tmp_p9);
 tmp_pg.push_back(tmp_p10);
 tmp_pg.push_back(tmp_p11);
 tmp_pg.push_back(tmp_p12);
-tmp_pg.updateMonomassAndIsotopeIntensities();
 deconv_spec1.push_back(tmp_pg);
 
 sample_spec.setRT(55.0);

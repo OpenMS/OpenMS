@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -383,7 +383,7 @@ namespace OpenMS
     }
 
 #ifdef DEBUG_DECONV
-    std::cout << "peaksanzahl:" << peaks.size();
+    std::cout << "Number of peaks:" << peaks.size();
     std::cout << "\tpeaks[0].mz_position:" << peaks[0].mz_position << std::endl;
 
     for (Size j = 0; j < peaks.size(); ++j)
@@ -403,8 +403,6 @@ namespace OpenMS
 
     // the input peaks are stored in a temporary vector
     std::vector<PeakShape> temp_shapes = peaks;
-
-    Size global_peak_number = 0;
 
     double min(std::numeric_limits<double>::max());
     Int bestCharge = 0;
@@ -427,7 +425,7 @@ namespace OpenMS
 
       setNumberOfPeaks_(data, temp_shapes, chargeState);
       Eigen::VectorXd x_init(2 + 2 * data.peaks.size());
-      for (Size i = 0; i < data.peaks.size(); i++)
+      for (Eigen::Index i = 0; i < data.peaks.size(); i++)
       {
         x_init(2 + 2 * i) = data.peaks[i].height;
         x_init(3 + 2 * i) = data.peaks[i].mz_position;
@@ -438,17 +436,17 @@ namespace OpenMS
       double wr = data.peaks[0].right_width;
       if (std::isnan(wl))
       {
-        for (Size i = 0; i < data.peaks.size(); ++i)
+        for (auto & peak : data.peaks)
         {
-          data.peaks[i].left_width = 1;
+          peak.left_width = 1;
         }
         wl = 1.;
       }
       if (std::isnan(wr))
       {
-        for (Size i = 0; i < data.peaks.size(); ++i)
+        for (auto & peak : data.peaks)
         {
-          data.peaks[i].right_width = 1;
+          peak.right_width = 1;
         }
         wr = 1.;
       }
@@ -481,12 +479,12 @@ namespace OpenMS
         bestNumPeaks = data.peaks.size();
       }
     }
-    global_peak_number += bestNumPeaks;
+
     // iterate over all peaks and store the optimized values in peaks
     if (bestNumPeaks > 0)
     {
       peaks.resize(bestNumPeaks);
-      for (Size current_peak = 0; current_peak < bestNumPeaks; current_peak++)
+      for (Eigen::Index current_peak = 0; current_peak < bestNumPeaks; current_peak++)
       {
 
         // Store the current parameters for this peak

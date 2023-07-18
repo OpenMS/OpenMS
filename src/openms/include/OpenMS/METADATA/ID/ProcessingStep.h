@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -57,10 +57,10 @@ namespace OpenMS
 
       explicit ProcessingStep(
         ProcessingSoftwareRef software_ref,
-        const std::vector<InputFileRef>& input_file_refs =
-        std::vector<InputFileRef>(), const DateTime& date_time =
-        DateTime::now(), std::set<DataProcessing::ProcessingAction> actions =
-        std::set<DataProcessing::ProcessingAction>()):
+        const std::vector<InputFileRef>& input_file_refs = std::vector<InputFileRef>(),
+        const DateTime& date_time = DateTime::now(),
+        const std::set<DataProcessing::ProcessingAction>& actions = std::set<DataProcessing::ProcessingAction>())
+        :
         software_ref(software_ref), input_file_refs(input_file_refs),
         date_time(date_time), actions(actions)
       {

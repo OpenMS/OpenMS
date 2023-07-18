@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -138,7 +138,7 @@ namespace OpenMS
   IdentificationData::ScoreTypeRef
   MapAlignmentAlgorithmIdentification::handleIdDataScoreType_(const IdentificationData& id_data)
   {
-    IdentificationData::ScoreTypeRef score_ref = id_data.getScoreTypes().end();
+    IdentificationData::ScoreTypeRef score_ref;
     if (score_type_.empty()) // choose a score type
     {
       score_ref = id_data.pickScoreType(id_data.getObservationMatches());

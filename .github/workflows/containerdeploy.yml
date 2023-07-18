@@ -29,7 +29,27 @@ jobs:
       - name: Downcase REPO
         run: echo "repo=${GITHUB_REPOSITORY,,}" >> $GITHUB_OUTPUT
         id: downcase_repo
-      - name: Checkout Dockerfiles
+      - name: Checkout repository because we need to build contrib
+        uses: actions/checkout@v3
+        with:
+          submodules: true
+        if: startsWith(steps.extract_branch.outputs.branch, 'release/')
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v2
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}        
+      - name: Build contrib container using the correct submodule hash
+        uses: docker/build-push-action@v3
+        with:
+          push: true
+          context: contrib
+          file: contrib/dockerfiles/Dockerfile
+          tags: |
+            ghcr.io/openms/contrib:${{ steps.tag_name.outputs.tag }}
+        if: startsWith(steps.extract_branch.outputs.branch, 'release/')        
+      - name: Checkout Library and Executable Dockerfiles
         shell: bash # uses git bash on windows
         run: |
             git clone https://github.com/OpenMS/dockerfiles
@@ -39,12 +59,6 @@ jobs:
             then
               git checkout ${{ steps.extract_branch.outputs.branch }} || git checkout master
             fi
-      - name: Login to GitHub Container Registry
-        uses: docker/login-action@v2
-        with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
       - name: Build and Push Docker Library Image
         uses: docker/build-push-action@v3
         with:
@@ -89,6 +103,26 @@ jobs:
         shell: bash
         run: echo "repo=${GITHUB_REPOSITORY,,}" >> $GITHUB_OUTPUT
         id: downcase_repo
+      - name: Checkout repository because we need to build contrib
+        uses: actions/checkout@v3
+        with:
+          submodules: true
+        if: startsWith(steps.extract_branch.outputs.branch, 'release/')
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v2
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}        
+      - name: Build contrib container using the correct submodule hash
+        uses: docker/build-push-action@v3
+        with:
+          push: true
+          context: contrib
+          file: contrib/dockerfiles/Dockerfile
+          tags: |
+            ghcr.io/openms/contrib:${{ steps.tag_name.outputs.tag }}
+        if: startsWith(steps.extract_branch.outputs.branch, 'release/')                
       - name: Checkout Dockerfiles
         shell: bash
         run: |

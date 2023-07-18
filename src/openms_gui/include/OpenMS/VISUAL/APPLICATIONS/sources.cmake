@@ -3,6 +3,7 @@ set(directory include/OpenMS/VISUAL/APPLICATIONS)
 
 ### list all header files of the directory here
 set(sources_list_h
+FLASHDeconvWizardBase.h
 INIFileEditorWindow.h
 SwathWizardBase.h
 TOPPViewBase.h
