@@ -1640,6 +1640,7 @@ namespace OpenMS
               precursor_pg.updateMonoMassAndIsotopeIntensities();
               precursor_pg.setScanNumber(map->first);
               deconvolved_spectrum_.setPrecursorPeakGroup(precursor_pg);
+              deconvolved_spectrum_.setPrecursorScanNumber(map->first);
 
               for (int i = (int)survey_scans.size() - 1; i >= 0; i--)
               {

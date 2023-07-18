@@ -36,7 +36,6 @@
 #include <OpenMS/ANALYSIS/TOPDOWN/FLASHDeconvAlgorithm.h>
 #include <OpenMS/ANALYSIS/TOPDOWN/FLASHIda.h>
 #include <OpenMS/ANALYSIS/TOPDOWN/MassFeatureTrace.h>
-#include <OpenMS/ANALYSIS/TOPDOWN/Qscore.h>
 #include <OpenMS/ANALYSIS/TOPDOWN/Qvalue.h>
 #include <OpenMS/ANALYSIS/TOPDOWN/TopDownIsobaricQuantifier.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
@@ -128,6 +127,17 @@ protected:
                           "When FLASHIda log file is used, this parameter is ignored. Applied only for topFD msalign outputs.",
                           false, false);
 
+    setMinFloat_("min_precursor_snr", .0);
+
+    registerDoubleOption_("min_precursor_qvalue", "<q value>", 1.0,
+                          "Minimum precursor q value for identification. To use this threshold, set report_FDR option to 1."
+                          " Specify to, for instance, 0.01 to make sure your precursor deconvolution FDR is less than 0.01."
+                          " Applied only for topFD msalign outputs, regardless of using FLASHIda.",
+                          false, false);
+
+    setMinFloat_("min_precursor_qvalue", .0);
+    setMaxFloat_("min_precursor_qvalue", 1.0);
+
     registerIntOption_("target_precursor_charge", "<Target precursor charge>", 0,
                        "Charge state of the target precursor. All precursor charge is fixed to this value. "
                        "This parameter is useful for targeted studies where MS2 spectra are generated from a fixed precursor (e.g., Native-MS). "
@@ -208,6 +218,7 @@ protected:
     fd_defaults.setValue("min_isotope_cosine", DoubleList {.85, .85, .85},
                          "Cosine similarity thresholds between avg. and observed isotope patterns for MS1, 2, ... "
                          "(e.g., -min_isotope_cosine 0.8 0.6 to specify 0.8 and 0.6 for MS1 and MS2, respectively)");
+    fd_defaults.addTag("min_isotope_cosine", "advanced");
 
     Param mf_defaults = MassFeatureTrace().getDefaults();
     mf_defaults.setValue("min_isotope_cosine", -1.0,
@@ -314,6 +325,8 @@ protected:
     auto out_topfd_file = getStringList_("out_topFD");
     auto out_topfd_feature_file = getStringList_("out_topFD_feature");
     double topFD_SNR_threshold = getDoubleOption_("min_precursor_snr");
+    double topFD_qval_threshold = getDoubleOption_("min_precursor_qvalue");
+
     bool use_RNA_averagine = getIntOption_("use_RNA_averagine") > 0;
     uint max_ms_level = getIntOption_("max_MS_level");
     int forced_ms_level = getIntOption_("forced_MS_level");
@@ -385,8 +398,6 @@ protected:
 
     MSExperiment map;
     MzMLFile mzml;
-
-    double expected_identification_count = .0;
 
     // feature number per input file
     size_t feature_cntr = 0;
@@ -680,10 +691,6 @@ protected:
       if (it->getMSLevel() > 1 && !deconvolved_spectrum.getPrecursorPeakGroup().empty())
       {
         precursor_peak_groups[scan_number] = deconvolved_spectrum.getPrecursorPeakGroup();
-        if (deconvolved_spectrum.getPrecursorPeakGroup().getChargeSNR(std::abs(deconvolved_spectrum.getPrecursorCharge())) >= topFD_SNR_threshold)
-        {
-          expected_identification_count += deconvolved_spectrum.getPrecursorPeakGroup().getQscore();
-        }
       }
       bool deconved_mzML_written = false;
       if (!out_mzml_file.empty())
@@ -790,19 +797,10 @@ protected:
         deconvolved_spectrum.sort();
         dummy_deconvolved_spectrum.sort();
 
-        if (ms_level == 1)
-        {
-          dummy_mass_tracer.storeInformationFromDeconvolvedSpectrum(dummy_deconvolved_spectrum); // add deconvolved mass in mass_tracer
-        }
         dummy_deconvolved_spectra.push_back(dummy_deconvolved_spectrum);
       }
       qspec_cntr[ms_level - 1]++;
       mass_cntr[ms_level - 1] += deconvolved_spectrum.size();
-
-      if (ms_level == 1)
-      {
-        mass_tracer.storeInformationFromDeconvolvedSpectrum(deconvolved_spectrum); // add deconvolved mass in mass_tracer
-      }
 
       deconvolved_spectra.push_back(deconvolved_spectrum);
 
@@ -815,7 +813,7 @@ protected:
     // mass_tracer run
     if (merge != 2) // unless spectra are merged into a single one
     {
-      mass_features = mass_tracer.findFeatures(fd.getAveragine(), deconvolved_spectra);
+      mass_features = mass_tracer.findFeatures(fd.getAveragine(), deconvolved_spectra, 1);
       feature_cntr = mass_features.size();
       if (report_dummy)
       {
@@ -857,7 +855,7 @@ protected:
           }
           dspec = filtered_dspec;
         }
-        dummy_mass_features = dummy_mass_tracer.findFeatures(fd.getAveragine(), dummy_deconvolved_spectra);
+        dummy_mass_features = dummy_mass_tracer.findFeatures(fd.getAveragine(), dummy_deconvolved_spectra, 1);
       }
       if (feature_cntr > 0)
       {
@@ -880,17 +878,53 @@ protected:
 
     Qvalue::updatePeakGroupQvalues(deconvolved_spectra, dummy_deconvolved_spectra);
 
+    // update precursor feature Qscore and Qvalue
+    std::map<int, std::vector<PeakGroup*>> scan_precursors;
+
+    for (auto& dspec : deconvolved_spectra)
+    {
+      auto& precursor_pg = dspec.getPrecursorPeakGroup();
+      if (precursor_pg.empty()) continue;
+
+      int pscan = precursor_pg.getScanNumber();
+
+      if (scan_precursors.find(pscan) == scan_precursors.end())
+        scan_precursors[pscan] = std::vector<PeakGroup*>();
+
+      scan_precursors[pscan].push_back(&precursor_pg);
+    }
+
+    for (auto& dspec : deconvolved_spectra)
+    {
+      int scan = dspec.getScanNumber();
+      if (scan_precursors.find(scan) == scan_precursors.end()) continue;
+      auto precursor_pgs = scan_precursors[scan];
+      for (auto& pg : precursor_pgs)
+      {
+        auto iter = std::lower_bound(dspec.begin(), dspec.end(), *pg);
+        if (std::abs(pg->getMonoMass() - iter->getMonoMass()) < .001)
+        {
+          pg->setFeatureIndex(iter->getFeatureIndex());
+          pg->setQvalue(iter->getQvalue(), iter->getTargetDummyType());
+          pg->setFeatureQscore(iter->getFeatureQscore());
+          pg->setQscore(iter->getQscore());
+        }
+      }
+      dspec.sort();
+    }
+
     std::cout << " writing per spectrum deconvolution results ... " << std::endl;
     for (auto& deconvolved_spectrum : deconvolved_spectra)
     {
       uint ms_level = deconvolved_spectrum.getOriginalSpectrum().getMSLevel();
+
       if (out_spec_streams.size() + 1 > ms_level)
       {
         FLASHDeconvSpectrumFile::writeDeconvolvedMasses(deconvolved_spectrum, deconvolved_spectrum, out_spec_streams[ms_level - 1], in_file, avg, tols[ms_level - 1], write_detail, report_dummy);
       }
       if (out_topfd_streams.size() + 1 > ms_level)
       {
-        FLASHDeconvSpectrumFile::writeTopFD(deconvolved_spectrum, out_topfd_streams[ms_level - 1], topFD_SNR_threshold, current_min_ms_level, false,
+        FLASHDeconvSpectrumFile::writeTopFD(deconvolved_spectrum, out_topfd_streams[ms_level - 1], topFD_SNR_threshold, topFD_qval_threshold,current_min_ms_level, false,
                                             false); //, 1, (float)rand() / (float)RAND_MAX * 10 + 10);
       }
     }
@@ -1001,11 +1035,6 @@ protected:
 
       OPENMS_LOG_INFO << "-- deconv per MS" << (j + 1) << " spectrum (except spec loading, feature finding) [took " << 1000.0 * elapsed_deconv_cpu_secs[j] / (double)total_spec_cntr << " ms (CPU), "
                       << 1000.0 * elapsed_deconv_wall_secs[j] / (double)total_spec_cntr << " ms (Wall)] --" << endl;
-    }
-
-    if (expected_identification_count > 0)
-    {
-      OPENMS_LOG_INFO << "Expected number of PrSMs: " << expected_identification_count << endl;
     }
 
     out_stream.close();

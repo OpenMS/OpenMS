@@ -59,7 +59,7 @@ namespace OpenMS
     defaultsToParam_();
   }
 
-  std::vector<FLASHDeconvHelperStructs::MassFeature> MassFeatureTrace::findFeatures(const PrecalculatedAveragine& averagine, std::vector<DeconvolvedSpectrum>& deconvolved_spectra)
+  std::vector<FLASHDeconvHelperStructs::MassFeature> MassFeatureTrace::findFeatures(const PrecalculatedAveragine& averagine, std::vector<DeconvolvedSpectrum>& deconvolved_spectra, int ms_level)
   {
     static uint findex = 1;
     MSExperiment map;
@@ -70,23 +70,17 @@ namespace OpenMS
     std::vector<FLASHDeconvHelperStructs::MassFeature> mass_features;
     std::map<double, Size> rt_index_map;
 
+    std::vector<int> prev_scans(deconvolved_spectra.rbegin()->getScanNumber() + 1,0);
     int prev_scan = 0;
-    int min_scan_diff = -1;
     for (Size i = 0; i < deconvolved_spectra.size(); i++)
     {
       auto deconvolved_spectrum = deconvolved_spectra[i];
+      if (deconvolved_spectrum.getOriginalSpectrum().getMSLevel() != ms_level)
+        continue;
       int scan = deconvolved_spectrum.getScanNumber();
-      if (prev_scan != 0)
-      {
-        if (min_scan_diff < 0)
-        {
-          min_scan_diff = scan - prev_scan;
-        }
-        else
-        {
-          min_scan_diff = std::min(min_scan_diff, scan - prev_scan);
-        }
-      }
+
+      prev_scans[scan] = prev_scan;
+
       prev_scan = scan;
       double rt = deconvolved_spectrum.getOriginalSpectrum().getRT();
       rt_index_map[rt] = i;
@@ -125,6 +119,7 @@ namespace OpenMS
     for (auto& mt : m_traces)
     {
       double feature_qscore = 1.0;
+      double tmp_feature_qscore = 1.0;
       int min_feature_abs_charge = INT_MAX; // min feature charge
       int max_feature_abs_charge = INT_MIN; // max feature charge
 
@@ -156,10 +151,15 @@ namespace OpenMS
           max_iso = pg->getIsotopeCosine();
         }
         int scan = dspec.getScanNumber();
-        if (prev_scan != 0 && min_scan_diff == scan - prev_scan)
+        if (prev_scan != 0 && prev_scans[scan] == prev_scan)
         {
-          feature_qscore *= (1.0 - std::min(.99, pg->getQscore()));
+          tmp_feature_qscore *= (1.0 - pg->getQscore());
         }
+        else
+        {
+          tmp_feature_qscore = 1.0 - pg->getQscore();
+        }
+        feature_qscore = std::min(feature_qscore, tmp_feature_qscore);
         prev_scan = scan;
         pgs.push_back(pg);
       }
@@ -199,8 +199,17 @@ namespace OpenMS
         continue;
       }
 
+      double max_int = 0;
+      PeakGroup rep_pg = *pgs[0];
+
       for (auto& pg : pgs)
       {
+        if (max_int <= pg->getIntensity())
+        {
+          rep_pg = *pg;
+          max_int = pg->getIntensity();
+        }
+
         pg->setFeatureIndex(findex);
         pg->setFeatureQscore(feature_qscore);
       }
@@ -220,10 +229,7 @@ namespace OpenMS
       mass_feature.per_charge_intensity = per_charge_intensity;
       mass_feature.per_isotope_intensity = per_isotope_intensity;
 
-      auto apex = mt[mt.findMaxByIntPeak()];
-      auto& sub_pg_map = peak_group_map_[apex.getRT()];
-      auto& rep_pg = sub_pg_map[apex.getMZ()];
-      mass_feature.rep_mz = apex.getMZ();
+      mass_feature.rep_mz = rep_pg.getMonoMass();
       mass_feature.scan_number = rep_pg.getScanNumber();
       mass_feature.rep_charge = rep_pg.getRepAbsCharge();
       mass_feature.index = findex;
@@ -231,24 +237,6 @@ namespace OpenMS
       findex++;
     }
     return mass_features;
-  }
-
-  void MassFeatureTrace::storeInformationFromDeconvolvedSpectrum(DeconvolvedSpectrum& deconvolved_spectrum)
-  {
-    double rt = deconvolved_spectrum.getOriginalSpectrum().getRT();
-    if (deconvolved_spectrum.getOriginalSpectrum().getMSLevel() != 1)
-    {
-      return;
-    }
-    else
-    {
-      peak_group_map_[rt] = std::map<double, PeakGroup>();
-      auto& sub_pg_map = peak_group_map_[rt];
-      for (auto& pg : deconvolved_spectrum)
-      {
-        sub_pg_map[pg.getMonoMass()] = pg;
-      }
-    }
   }
 
   void MassFeatureTrace::updateMembers_()

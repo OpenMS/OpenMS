@@ -53,14 +53,15 @@ namespace OpenMS
     std::map<uint, std::map<double, double>> qscore_charge_decoy_map; // maps for charge decoy only qvalues
 
     // to calculate qvalues per ms level, store Qscores per ms level
-    std::set<int> used_feature_indices;
+    std::set<uint> used_feature_indices;
     for (auto& deconvolved_spectrum : deconvolved_spectra)
     {
       uint ms_level = deconvolved_spectrum.getOriginalSpectrum().getMSLevel();
       for (auto& pg : deconvolved_spectrum)
       {
-        if (pg.getFeatureIndex() >= 0 && used_feature_indices.find(pg.getFeatureIndex()) != used_feature_indices.end())
+        if (pg.getFeatureIndex() > 0 && used_feature_indices.find(pg.getFeatureIndex()) != used_feature_indices.end())
           continue;
+        used_feature_indices.insert(pg.getFeatureIndex());
         tscore_map[ms_level].push_back(pg.getFeatureQscore());
       }
     }
@@ -70,8 +71,9 @@ namespace OpenMS
       uint ms_level = decoy_deconvolved_spectrum.getOriginalSpectrum().getMSLevel();
       for (auto& pg : decoy_deconvolved_spectrum)
       {
-        if (pg.getFeatureIndex() >= 0 && used_feature_indices.find(pg.getFeatureIndex()) != used_feature_indices.end())
+        if (pg.getFeatureIndex() > 0 && used_feature_indices.find(pg.getFeatureIndex()) != used_feature_indices.end())
           continue;
+        used_feature_indices.insert(pg.getFeatureIndex());
         if (pg.getTargetDummyType() == PeakGroup::TargetDummyType::isotope_dummy)
         {
           dscore_iso_decoy_map[ms_level].push_back(pg.getFeatureQscore());

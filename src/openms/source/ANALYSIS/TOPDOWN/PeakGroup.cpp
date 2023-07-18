@@ -915,7 +915,7 @@ namespace OpenMS
   {
     if (fqscore_ < 0)
       return qscore_;
-    return fqscore_;
+    return std::max(qscore_, fqscore_);
   }
 
   void PeakGroup::setFeatureIndex(uint findex)
