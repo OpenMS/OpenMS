@@ -177,6 +177,7 @@ namespace OpenMS
         pids.back().setHigherScoreBetter(higher_score_better);
         pids.back().setScoreType(score_name);
         pids.back().setMetaValue("id_merge_index", map_filename_to_idx.at(raw_file_name));
+        pids.back().setRT(row[to_idx.at("retentiontime")].toDouble() * 60.0);
       }
 
       int sScanNr = row[to_idx.at("ScanNr")].toInt();
@@ -196,6 +197,11 @@ namespace OpenMS
           charge = z;
           break;
         }
+      }
+
+      if (charge != 0)
+      {
+        pids.back().setMZ((row[to_idx.at("ExpMass")].toDouble() - std::fabs(charge) * Constants::PROTON_MASS_U) / std::fabs(charge));
       }
 
       sProteins.split(';', accessions);
