@@ -143,7 +143,7 @@ protected:
   "database": {
     "bucket_size": ##bucket_size##,
     "enzyme": {
-      "missed_cleavages": 2,
+      "missed_cleavages": ##missed_cleavages##,
       "min_len": ##min_len##,
       "max_len": ##max_len##,
       ##enzyme_details##
@@ -507,19 +507,43 @@ protected:
 
     writeDebug_("write idXMLFile", 1);    
     
-    protein_identifications[0].setPrimaryMSRunPath(filenames);    
+    protein_identifications[0].setPrimaryMSRunPath(filenames);  
+    protein_identifications[0].setDateTime(DateTime::now());
+    protein_identifications[0].setSearchEngine("Sage");
     protein_identifications[0].setSearchEngineVersion(sage_version);
 
+    DateTime now = DateTime::now();
+    String identifier("SSE_" + now.get());
+    protein_identifications[0].setIdentifier(identifier);
+    for (auto & pid : peptide_identifications) 
+    { 
+      pid.setIdentifier(identifier); 
+      pid.setScoreType("hyperscore");
+      pid.setHigherScoreBetter(true);
+    }
+
+    auto& search_parameters = protein_identifications[0].getSearchParameters();
     // protein_identifications[0].getSearchParameters().enzyme_term_specificity = static_cast<EnzymaticDigestion::Specificity>(num_enzyme_termini[getStringOption_("num_enzyme_termini")]);
     protein_identifications[0].getSearchParameters().db = getStringOption_("database");
     
     // add extra scores for percolator rescoring
     vector<String> percolator_features = { "score" };
     for (auto s : extra_scores) percolator_features.push_back(s);
-    protein_identifications[0].getSearchParameters().setMetaValue("extra_features",  ListUtils::concatenate(percolator_features, ","));
+    search_parameters.setMetaValue("extra_features",  ListUtils::concatenate(percolator_features, ","));
     auto enzyme = *ProteaseDB::getInstance()->getEnzyme(getStringOption_("enzyme"));
-    protein_identifications[0].getSearchParameters().digestion_enzyme = enzyme; // needed for indexing
-    protein_identifications[0].getSearchParameters().enzyme_term_specificity = EnzymaticDigestion::SPEC_FULL;;
+    search_parameters.digestion_enzyme = enzyme; // needed for indexing
+    search_parameters.enzyme_term_specificity = EnzymaticDigestion::SPEC_FULL;
+
+    search_parameters.charges = ":"; // not set
+
+    search_parameters.mass_type = ProteinIdentification::MONOISOTOPIC;
+    search_parameters.fixed_modifications = getStringList_("fixed_modifications");;
+    search_parameters.variable_modifications = getStringList_("variable_modifications");;
+    search_parameters.missed_cleavages = missed_cleavages;
+    search_parameters.fragment_mass_tolerance = (fragment_tol_left + fragment_tol_right) * 0.5;
+    search_parameters.precursor_mass_tolerance = (precursor_tol_left + precursor_tol_right) * 0.5;
+    search_parameters.precursor_mass_tolerance_ppm = precursor_tol_unit == "ppm";
+    search_parameters.fragment_mass_tolerance_ppm = fragment_tol_unit == "ppm";
 
     // write all (!) parameters as metavalues to the search parameters
     if (!protein_identifications.empty())
