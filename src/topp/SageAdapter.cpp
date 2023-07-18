@@ -249,10 +249,10 @@ protected:
     config_file.substitute("##peptide_max_mass##", String(getDoubleOption_("peptide_max_mass")));
     config_file.substitute("##min_ion_index##", String(getIntOption_("min_ion_index")));
     config_file.substitute("##max_variable_mods##", String(getIntOption_("max_variable_mods")));
-    config_file.substitute("##precursor_tol_unit##", precursor_tol_unit  == "Da" ? "da" : "ppm"); // sage might expect lower-case "da"
+    config_file.substitute("##precursor_tol_unit##", getStringOption_("precursor_tol_unit") == "Da" ? "da" : "ppm"); // sage might expect lower-case "da"
     config_file.substitute("##precursor_tol_left##", String(getDoubleOption_("precursor_tol_left")));
     config_file.substitute("##precursor_tol_right##", String(getDoubleOption_("precursor_tol_right")));
-    config_file.substitute("##fragment_tol_unit##", fragment_tol_unit == "Da" ? "da" : "ppm"); // sage might expect lower-case "da"
+    config_file.substitute("##fragment_tol_unit##", getStringOption_("fragment_tol_unit") == "Da" ? "da" : "ppm"); // sage might expect lower-case "da"
     config_file.substitute("##fragment_tol_left##", String(getDoubleOption_("fragment_tol_left")));
     config_file.substitute("##fragment_tol_right##", String(getDoubleOption_("fragment_tol_right")));
     String isotope_errors = String(getIntList_("isotope_errors")).remove('[').remove(']');
@@ -541,11 +541,11 @@ protected:
     search_parameters.mass_type = ProteinIdentification::MONOISOTOPIC;
     search_parameters.fixed_modifications = getStringList_("fixed_modifications");;
     search_parameters.variable_modifications = getStringList_("variable_modifications");;
-    search_parameters.missed_cleavages = missed_cleavages;
-    search_parameters.fragment_mass_tolerance = (fragment_tol_left + fragment_tol_right) * 0.5;
-    search_parameters.precursor_mass_tolerance = (precursor_tol_left + precursor_tol_right) * 0.5;
-    search_parameters.precursor_mass_tolerance_ppm = precursor_tol_unit == "ppm";
-    search_parameters.fragment_mass_tolerance_ppm = fragment_tol_unit == "ppm";
+    search_parameters.missed_cleavages = getIntOption_("missed_cleavages");
+    search_parameters.fragment_mass_tolerance = (getDoubleOption_("fragment_tol_left") + getDoubleOption_("fragment_tol_right")) * 0.5;
+    search_parameters.precursor_mass_tolerance = (getDoubleOption_("precursor_tol_left") + getDoubleOption_("precursor_tol_right")) * 0.5;
+    search_parameters.precursor_mass_tolerance_ppm = getStringOption_("precursor_tol_unit") == "ppm";
+    search_parameters.fragment_mass_tolerance_ppm = getStringOption_("fragment_tol_unit") == "ppm";
 
     // write all (!) parameters as metavalues to the search parameters
     if (!protein_identifications.empty())
