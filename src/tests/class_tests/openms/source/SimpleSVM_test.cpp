@@ -348,6 +348,11 @@ START_SECTION(regression_train_and_predict_on_separate)
 
   auto param = svm.getParameters();
   param.setValue("kernel", "RBF");
+  param.setValue("log2_C", ListUtils::create<double>("1,5"));
+  param.setValue("log2_gamma", ListUtils::create<double>("-5,5"));
+  param.setValue("log2_p", ListUtils::create<double>("-15,-3.32192809489"));
+  svm.setParameters(param);
+  
   svm.setParameters(param);
 
   svm.setup(x, y, false); // set up regression
