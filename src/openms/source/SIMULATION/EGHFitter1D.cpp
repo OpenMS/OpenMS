@@ -270,12 +270,6 @@ namespace OpenMS
 
   void EGHFitter1D::setInitialParameters_(const RawDataArrayType& set)
   {
-    // sum over all intensities
-    CoordinateType sum = 0.0;
-    for (Size i = 0; i < set.size(); ++i)
-    {
-      sum += set[i].getIntensity();
-    }
     // find maximum = apex
     Size apex_rt = 0;
     CoordinateType apex = 0.0;
@@ -287,15 +281,6 @@ namespace OpenMS
         apex_rt = i;
       }
     }
-
-    // calculate the median
-    /*Size median = 0;
-    float count = 0.0;
-    for (Size i = 0; i < set.size(); ++i)
-    {
-      count += set[i].getIntensity();
-      if ( count <= sum / 2 ) median = i;
-    }*/
 
     // calculate the height of the peak
     height_ = set[apex_rt].getIntensity();

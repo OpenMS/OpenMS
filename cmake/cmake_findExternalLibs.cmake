@@ -54,9 +54,50 @@ find_boost(iostreams ${OpenMS_BOOST_COMPONENTS})
 if(Boost_FOUND)
   message(STATUS "Found Boost version ${Boost_MAJOR_VERSION}.${Boost_MINOR_VERSION}.${Boost_SUBMINOR_VERSION}" )
   set(CF_OPENMS_BOOST_VERSION_MAJOR ${Boost_MAJOR_VERSION})
-	set(CF_OPENMS_BOOST_VERSION_MINOR ${Boost_MINOR_VERSION})
+  set(CF_OPENMS_BOOST_VERSION_MINOR ${Boost_MINOR_VERSION})
   set(CF_OPENMS_BOOST_VERSION_SUBMINOR ${Boost_SUBMINOR_VERSION})
-	set(CF_OPENMS_BOOST_VERSION ${Boost_VERSION})
+  set(CF_OPENMS_BOOST_VERSION ${Boost_VERSION})
+
+  get_target_property(location Boost::iostreams LOCATION)
+  get_target_property(target_type Boost::iostreams TYPE)
+  if (target_type STREQUAL "STATIC_LIBRARY" AND location MATCHES "^/usr/local/")
+    message(WARNING "Statically linked Boost from system installations like brew, are not fully supported yet.
+Either use '-DBOOST_USE_STATIC=OFF' to use the shared library or build boost with our contrib. Nonetheless,
+we are going to try to continue building.")
+    get_target_property(libs Boost::iostreams INTERFACE_LINK_LIBRARIES)
+    # If boost from brew, replace simple "link flags" like "-lzstd" with
+    # find_package calls and their resulting imported targets
+    # since boost CMake does not expose this transitive dependency as targets!
+    # see https://github.com/boostorg/boost_install/issues/64
+    foreach (lib ${libs})
+      if (lib MATCHES "zstd")
+        find_package(zstd)
+      elseif (lib MATCHES "lzma")
+        find_package(LibLZMA)
+      endif()
+    endforeach ()
+    ##
+    set_target_properties(Boost::iostreams
+          PROPERTIES INTERFACE_LINK_LIBRARIES "BZip2::BZip2;ZLIB::ZLIB;zstd::libzstd_shared;LibLZMA::LibLZMA")
+  endif()
+
+  get_target_property(location Boost::regex LOCATION)
+  get_target_property(target_type Boost::regex TYPE)
+  if (target_type STREQUAL "STATIC_LIBRARY" AND location MATCHES "^/usr/local/")
+    get_target_property(libs Boost::regex INTERFACE_LINK_LIBRARIES)
+    # If boost from brew, replace simple "link flags" like "-lzstd" with
+    # find_package calls and their resulting imported targets
+    # since boost CMake does not expose this transitive dependency as targets!
+    # see https://github.com/boostorg/boost_install/issues/64
+    foreach (lib ${libs})
+      if (lib MATCHES "icui18n")
+        find_package(ICU COMPONENTS "data" "uc" "i18n")
+      endif()
+    endforeach ()
+    ##
+    set_target_properties(Boost::regex
+            PROPERTIES INTERFACE_LINK_LIBRARIES "ICU::data;ICU:uc;ICU::i18n")
+  endif()
 else()
   message(FATAL_ERROR "Boost or one of its components not found!")
 endif()
@@ -155,6 +196,8 @@ IF (NOT Qt5Core_FOUND)
 ELSE()
   message(STATUS "Found Qt ${Qt5Core_VERSION}")
 ENDIF()
+
+
 
 # see https://github.com/ethereum/solidity/issues/4124
 if("${Boost_MAJOR_VERSION}.${Boost_MINOR_VERSION}" VERSION_LESS "1.59")

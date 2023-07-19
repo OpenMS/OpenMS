@@ -33,32 +33,10 @@
 // --------------------------------------------------------------------------
 
 #include "OpenMS/OPENSWATHALGO/OpenSwathAlgoConfig.h"
-
 #include "OpenMS/OPENSWATHALGO/DATAACCESS/DataStructures.h"
 
-#ifdef USE_BOOST_UNIT_TEST
-
-// include boost unit test framework
-#define BOOST_TEST_DYN_LINK
-#define BOOST_TEST_MODULE MyTest
-#include <boost/test/unit_test.hpp>
-// macros for boost
-#define EPS_05 boost::test_tools::fraction_tolerance(1.e-5)
-#define TEST_REAL_SIMILAR(val1, val2) \
-  BOOST_CHECK ( boost::test_tools::check_is_close(val1, val2, EPS_05 ));
-#define TEST_EQUAL(val1, val2) BOOST_CHECK_EQUAL(val1, val2);
-#define END_SECTION
-#define START_TEST(var1, var2)
-#define END_TEST
-
-#else
-
 #include <OpenMS/CONCEPT/ClassTest.h>
-#define BOOST_AUTO_TEST_CASE START_SECTION
 using namespace OpenMS;
-
-#endif
-
 using namespace std;
 using namespace OpenSwath;
 
@@ -69,7 +47,7 @@ START_TEST(DataStructures, "$Id$")
 /////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////
 
-BOOST_AUTO_TEST_CASE(OSSpectrum_empty)
+START_SECTION(OSSpectrum_empty)
 {
   OSSpectrum s;
 
@@ -82,7 +60,7 @@ BOOST_AUTO_TEST_CASE(OSSpectrum_empty)
 }
 END_SECTION
 
-BOOST_AUTO_TEST_CASE(OSSpectrum_data)
+START_SECTION(OSSpectrum_data)
 {
   OSSpectrum s;
 
@@ -112,7 +90,7 @@ BOOST_AUTO_TEST_CASE(OSSpectrum_data)
 }
 END_SECTION
 
-BOOST_AUTO_TEST_CASE(OSSpectrum_data_2)
+START_SECTION(OSSpectrum_data_2)
 {
   OSSpectrum s;
 
