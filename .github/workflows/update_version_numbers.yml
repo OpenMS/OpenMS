@@ -52,8 +52,10 @@ jobs:
           ------------------------------------------------------------------------------------------
           
           
+          .    # ends with a period for preserve trailing newlines
           EOF
           )
+          section_header=${section_header%.*}   # remove the period
 
           # Get the line number of the first line starting with more than 10 "-"
           line_num=$(grep -n "^-\{10,\}" CHANGELOG | head -n 1 | cut -d ":" -f 1)
