@@ -28,8 +28,8 @@
 // ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // --------------------------------------------------------------------------
-// $Maintainer: Kyowon Jeong, Jihyung Kim $
-// $Authors: Kyowon Jeong, Jihyung Kim $
+// $Maintainer: Kyowon Jeong$
+// $Authors: Kyowon Jeong$
 // --------------------------------------------------------------------------
 
 #pragma once
@@ -38,59 +38,60 @@
 #include <OpenMS/ANALYSIS/TOPDOWN/FLASHDeconvHelperStructs.h>
 #include <OpenMS/ANALYSIS/TOPDOWN/PeakGroup.h>
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
-#include <OpenMS/FILTERING/DATAREDUCTION/MassTraceDetection.h>
+#include <OpenMS/ANALYSIS/QUANTITATION/IsobaricQuantitationMethod.h>
 #include <iomanip>
 #include <iostream>
 
 namespace OpenMS
 {
   /**
-  @brief Feature trace in mass dimension for FLASHDeconv
-  This class performs mass tracing on the deconvolved masses by FLASHDeconvAlgorithm
-  In other words, per spectrum deconvolved masses are converted into deconvolved features
-  Currently only works for MS1 spectra. (Top-down DIA is not yet used much).
-  Every time an MS1 spectrum is deconvolved, the relevant information is stored in this class.
-  Tracing is performed at the end of FLASHDeconv run.
-  This class also comes with tsv, TopFD, ProMex format output functions.
+  @brief
   @ingroup Topdown
   */
 
-  class OPENMS_DLLAPI MassFeatureTrace : public DefaultParamHandler
+  class OPENMS_DLLAPI TopDownIsobaricQuantifier : public DefaultParamHandler
   {
   public:
-    typedef FLASHDeconvHelperStructs::PrecalculatedAveragine PrecalculatedAveragine;
-    typedef FLASHDeconvHelperStructs::LogMzPeak LogMzPeak;
 
     /// constructor
-    MassFeatureTrace();
+    TopDownIsobaricQuantifier();
 
     /// destructor
-    ~MassFeatureTrace() override = default;
+    ~TopDownIsobaricQuantifier() override = default;
 
     /// copy constructor
-    MassFeatureTrace(const MassFeatureTrace&) = default;
+    TopDownIsobaricQuantifier(const TopDownIsobaricQuantifier&);
 
     /// move constructor
-    MassFeatureTrace(MassFeatureTrace&& other) = default;
+    TopDownIsobaricQuantifier(TopDownIsobaricQuantifier&& other) = default;
 
     /// assignment operator
-    MassFeatureTrace& operator=(const MassFeatureTrace& fd) = default;
-    MassFeatureTrace& operator=(MassFeatureTrace&& fd) = default;
+    TopDownIsobaricQuantifier& operator=(const TopDownIsobaricQuantifier& other);
 
     /**
-       @brief Find mass features.
-       @param averagine precalculated averagine for cosine calculation
-       @param ms_level ms level to process
+       @brief
+       @param exp
        */
-    std::vector<FLASHDeconvHelperStructs::MassFeature> findFeatures(const PrecalculatedAveragine& averagine, std::vector<DeconvolvedSpectrum>& deconvolved_spectra, int ms_level = 1);
+    void quantify(const MSExperiment& exp, std::vector<DeconvolvedSpectrum>& deconvolved_spectra, const std::vector<FLASHDeconvHelperStructs::MassFeature>& mass_features);
+    const FLASHDeconvHelperStructs::IsobaricQuantities getQuantities(int scan) const;
 
   protected:
     void updateMembers_() override;
+    /// implemented for DefaultParamHandler
+    void setDefaultParams_();
 
   private:
-    /// cosine thresholds for scoring and filtering
-    double min_isotope_cosine_;
+    /// The quantification method used for the dataset to be analyzed.
+    std::map<String, std::unique_ptr<IsobaricQuantitationMethod>> quant_methods_;
+
     /// peak group information is stored in here for tracing
-    std::map<double, std::map<double, PeakGroup>> peak_group_map_; // rt , mono mass, peakgroup
+    std::map<int, FLASHDeconvHelperStructs::IsobaricQuantities> quantities_;
+
+    void addMethod_(std::unique_ptr<IsobaricQuantitationMethod> ptr)
+    {
+      std::string internal_name = ptr->getMethodName();
+      quant_methods_[internal_name] = std::move(ptr);
+    }
+
   };
 } // namespace OpenMS

@@ -56,7 +56,9 @@ namespace OpenMS
     /// Calculate and perform a batch update of peak group qvalues using Qscores of target and dummy peak groups in deconvolved spectra, when FDR report is necessary.
     /// @param deconvolved_spectra target deconvolved spectra
     /// @param deconvolved_decoy_spectra decoy deconvolved spectra
-    void static updatePeakGroupQvalues(std::vector<DeconvolvedSpectrum>& deconvolved_spectra, std::vector<DeconvolvedSpectrum>& deconvolved_decoy_spectra);
+    void static updatePeakGroupQvalues(std::vector<DeconvolvedSpectrum>& deconvolved_spectra,
+                                       std::vector<DeconvolvedSpectrum>& deconvolved_decoy_spectra,
+                                       bool in_features);
 
   private:
     /// get a bin number given qvalue. qvalue is calculated per bin (bin from 0 to 1).

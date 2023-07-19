@@ -38,7 +38,8 @@
 namespace OpenMS
 {
   void Qvalue::updatePeakGroupQvalues(std::vector<DeconvolvedSpectrum>& deconvolved_spectra,
-                                      std::vector<DeconvolvedSpectrum>& deconvolved_decoy_spectra) // per ms level + precursor update as well.
+                                      std::vector<DeconvolvedSpectrum>& deconvolved_decoy_spectra,
+                                      bool in_features) // per ms level + precursor update as well.
   {
     uint bin_number = 25;                           // 25 is enough resolution for qvalue calculation. In most cases FDR 5% will be used.
     std::map<uint, std::vector<double>> tscore_map; // per ms level
@@ -59,6 +60,9 @@ namespace OpenMS
       uint ms_level = deconvolved_spectrum.getOriginalSpectrum().getMSLevel();
       for (auto& pg : deconvolved_spectrum)
       {
+        if (in_features && pg.getFeatureIndex() == 0) continue;
+        if (!in_features && pg.getFeatureIndex() > 0) continue;
+
         if (pg.getFeatureIndex() > 0 && used_feature_indices.find(pg.getFeatureIndex()) != used_feature_indices.end())
           continue;
         used_feature_indices.insert(pg.getFeatureIndex());
@@ -71,6 +75,9 @@ namespace OpenMS
       uint ms_level = decoy_deconvolved_spectrum.getOriginalSpectrum().getMSLevel();
       for (auto& pg : decoy_deconvolved_spectrum)
       {
+        if (in_features && pg.getFeatureIndex() == 0) continue;
+        if (!in_features && pg.getFeatureIndex() > 0) continue;
+
         if (pg.getFeatureIndex() > 0 && used_feature_indices.find(pg.getFeatureIndex()) != used_feature_indices.end())
           continue;
         used_feature_indices.insert(pg.getFeatureIndex());
@@ -224,6 +231,7 @@ namespace OpenMS
       uint ms_level = titem.first;
       for (auto& deconvolved_spectrum : deconvolved_spectra)
       {
+
         if (deconvolved_spectrum.getOriginalSpectrum().getMSLevel() != ms_level)
         {
           continue;
@@ -234,12 +242,19 @@ namespace OpenMS
 
         for (auto& pg : deconvolved_spectrum)
         {
+          if (in_features && pg.getFeatureIndex() == 0) continue;
+          if (!in_features && pg.getFeatureIndex() > 0) continue;
+
           pg.setQvalue(map_charge[pg.getFeatureQscore()], PeakGroup::TargetDummyType::charge_dummy);
           pg.setQvalue(map_noise[pg.getFeatureQscore()], PeakGroup::TargetDummyType::noise_dummy);
           pg.setQvalue(map_iso[pg.getFeatureQscore()], PeakGroup::TargetDummyType::isotope_dummy);
 
+          /*
           if (deconvolved_spectrum.getOriginalSpectrum().getMSLevel() > 1 && !deconvolved_spectrum.getPrecursorPeakGroup().empty())
           {
+            if (in_features && deconvolved_spectrum.getPrecursorPeakGroup().getFeatureIndex() == 0) continue;
+            if (!in_features && deconvolved_spectrum.getPrecursorPeakGroup().getFeatureIndex() > 0) continue;
+
             double qs = deconvolved_spectrum.getPrecursorPeakGroup().getFeatureQscore();
             auto& pmap_iso = qscore_iso_decoy_map[ms_level - 1];
             auto& pmap_charge = qscore_charge_decoy_map[ms_level - 1];
@@ -248,6 +263,7 @@ namespace OpenMS
             deconvolved_spectrum.getPrecursorPeakGroup().setQvalue(pmap_noise[qs], PeakGroup::TargetDummyType::noise_dummy);
             deconvolved_spectrum.getPrecursorPeakGroup().setQvalue(pmap_charge[qs], PeakGroup::TargetDummyType::charge_dummy);
           }
+           */
         }
       }
     }
