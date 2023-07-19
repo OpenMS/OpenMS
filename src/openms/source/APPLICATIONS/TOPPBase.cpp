@@ -2081,6 +2081,11 @@ namespace OpenMS
         tags.emplace_back("input file");
       }
 
+      if (it->type == ParameterInformation::INPUT_FILE && std::find(it->tags.begin(), it->tags.end(), "is_executable") != it->tags.end())
+      {
+        tags.emplace_back("is_executable");
+      }
+
       if (it->type == ParameterInformation::OUTPUT_FILE || it->type == ParameterInformation::OUTPUT_FILE_LIST)
       {
         tags.emplace_back("output file");
