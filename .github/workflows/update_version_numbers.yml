@@ -58,10 +58,8 @@ jobs:
           # Get the line number of the first line starting with more than 10 "-"
           line_num=$(grep -n "^-\{10,\}" CHANGELOG | head -n 1 | cut -d ":" -f 1)
 
-          # Insert the section header above the line
-          if [[ ! -z "$line_num" ]]; then
-              sed -i "${line_num}i\\$section_header" CHANGELOG
-          fi
+          # Use perl to insert the text at the specified line number in the file
+          perl -i -pe "print '${section_header}' if \$. == ${line_num}" CHANGELOG
 
       # Check for changes
       - name: check for changed files
