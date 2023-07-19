@@ -12,7 +12,6 @@ set(sources_list
 	PeakGroup.cpp
     Qscore.cpp
 	Qvalue.cpp
-	TopDownIsobaricQuantifier.cpp
 	)
 
 ### add path to the filenames

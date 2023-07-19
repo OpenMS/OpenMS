@@ -37,7 +37,6 @@
 #include <OpenMS/ANALYSIS/TOPDOWN/FLASHIda.h>
 #include <OpenMS/ANALYSIS/TOPDOWN/MassFeatureTrace.h>
 #include <OpenMS/ANALYSIS/TOPDOWN/Qvalue.h>
-#include <OpenMS/ANALYSIS/TOPDOWN/TopDownIsobaricQuantifier.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/FILTERING/TRANSFORMERS/SpectraMerger.h>
 #include <OpenMS/FORMAT/FLASHDeconvFeatureFile.h>
@@ -235,12 +234,9 @@ protected:
     mf_defaults.setValue("mass_error_ppm", -1.0, "Feature tracing mass ppm tolerance. When negative, MS1 tolerance for mass deconvolution will be used (e.g., 16 ppm is used when -Algorithm:tol 16).");
     mf_defaults.setValue("min_sample_rate", 0.05);
 
-    Param quant_defaults = TopDownIsobaricQuantifier().getDefaults();
-
     Param combined;
     combined.insert("Algorithm:", fd_defaults);
     combined.insert("FeatureTracing:", mf_defaults);
-    combined.insert("IsobaricQuantification:", quant_defaults);
 
     registerFullParam_(combined);
   }
@@ -343,11 +339,10 @@ protected:
     double target_precursor_mz = target_precursor_charge != 0 ? getDoubleOption_("target_precursor_mz") : .0;
     double target_precursor_mass = .0;
 
-    fstream out_stream, out_promex_stream, out_quant_stream;
+    fstream out_stream, out_promex_stream;
     std::vector<fstream> out_spec_streams, out_topfd_streams, out_topfd_feature_streams;
 
     out_stream.open(out_file, fstream::out);
-    out_quant_stream.open(out_file + "quant.tsv", fstream::out);
 
     FLASHDeconvFeatureFile::writeHeader(out_stream, report_dummy);
 
@@ -610,10 +605,6 @@ protected:
     }
     mass_tracer.setParameters(mf_param);
     dummy_mass_tracer.setParameters(mf_param);
-
-    TopDownIsobaricQuantifier quantifier;
-    Param quant_param = getParam_().copy("IsobaricQuantification:", true);
-    quantifier.setParameters(quant_param);
 
     ProgressLogger progresslogger;
     progresslogger.setLogType(log_type_);
@@ -944,57 +935,6 @@ protected:
       }
     }
 
-    // Isobaric quant run
-    quantifier.quantify(map, deconvolved_spectra, mass_features);
-
-    out_quant_stream << "Scan\tPrecursorScan\tPrecursorMass";
-    bool begin = true;
-    for (auto& dspec : deconvolved_spectra)
-    {
-      if (dspec.getOriginalSpectrum().getMSLevel() == 1)
-        continue;
-      if (dspec.getPrecursorPeakGroup().empty())
-        continue;
-      int scan = dspec.getScanNumber();
-      auto quant = quantifier.getQuantities(scan);
-      if (quant.empty())
-        continue;
-      if (begin)
-      {
-        for (Size i = 0; i < quant.quantities.size(); i++)
-        {
-          out_quant_stream << "\tq" << (i + 1);
-        }
-        for (Size i = 0; i < quant.quantities.size(); i++)
-        {
-          out_quant_stream << "\tnq" << (i + 1);
-        }
-        out_quant_stream << "\n";
-        begin = false;
-      }
-      out_quant_stream << scan << "\t" << dspec.getPrecursorScanNumber() << "\t" << dspec.getPrecursorPeakGroup().getMonoMass();
-      double sum = 0;
-      for (auto q : quant.quantities)
-      {
-        sum += q;
-      }
-      for (auto q : quant.quantities)
-      {
-        out_quant_stream << "\t" << std::to_string(q / sum);
-      }
-      sum = 0;
-      for (auto q : quant.merged_quantities)
-      {
-        sum += q;
-      }
-      for (auto q : quant.merged_quantities)
-      {
-        out_quant_stream << "\t" << std::to_string(q / sum);
-      }
-      out_quant_stream << "\n";
-    }
-
-    out_quant_stream.close();
     if (!out_mzml_file.empty())
     {
       MzMLFile mzml_file;

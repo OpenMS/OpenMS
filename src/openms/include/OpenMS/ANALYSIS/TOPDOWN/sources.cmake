@@ -12,7 +12,6 @@ set(sources_list_h
     PeakGroup.h
     Qscore.h
 	Qvalue.h
-	TopDownIsobaricQuantifier.h
     )
 
 ### add path to the filenames

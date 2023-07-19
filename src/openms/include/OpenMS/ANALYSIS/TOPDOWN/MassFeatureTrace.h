@@ -82,7 +82,8 @@ namespace OpenMS
        @param averagine precalculated averagine for cosine calculation
        @param ms_level ms level to process
        */
-    std::vector<FLASHDeconvHelperStructs::MassFeature> findFeatures(const PrecalculatedAveragine& averagine, std::vector<DeconvolvedSpectrum>& deconvolved_spectra, int ms_level = 1);
+    std::vector<FLASHDeconvHelperStructs::MassFeature> findFeatures(const PrecalculatedAveragine& averagine,
+                                                                    std::vector<DeconvolvedSpectrum>& deconvolved_spectra, int ms_level = 1);
 
   protected:
     void updateMembers_() override;

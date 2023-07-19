@@ -549,11 +549,10 @@ namespace OpenMS
             }
           }
 
-
           // here crawling isolation windows max_isolation_window_half_
           auto ospec = deconvolved_spectrum_.getOriginalSpectrum();
           if (ospec.size() > 2)
-          {
+          { 
             Size index = ospec.findNearest(center_mz);
             Size tindexl = index == 0 ? index : index - 1;
             Size tindexr = index == 0 ? index + 1 : index;
@@ -604,6 +603,7 @@ namespace OpenMS
             mz2 = std::min(center_mz + max_isolation_window_half_, rmz);
 
           }
+        
 
 
           if (mz1 < ospec[0].getMZ() - max_isolation_window_half_ || mz2 > ospec.back().getMZ() + max_isolation_window_half_ || mz1 + 2 * min_isolation_window_half_ - .01 > mz2 ||
