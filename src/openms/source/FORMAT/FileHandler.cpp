@@ -964,7 +964,6 @@ namespace OpenMS
 
   void FileHandler::storeFeatures(const String& filename, const FeatureMap& map, const std::vector<FileTypes::Type> allowed_types, ProgressLogger::LogType log)
   {
-
     FileTypes::Type ftype;
 
     ftype = getTypeByFileName(filename);
@@ -1330,7 +1329,6 @@ namespace OpenMS
 
   void FileHandler::loadQuantifications(const String& filename, MSQuantifications& map, const std::vector<FileTypes::Type> allowed_types, ProgressLogger::LogType log)
   {
-
     if (allowed_types.size() != 0)
     {
       if (!check_types_(allowed_types, filename))
@@ -1361,7 +1359,6 @@ namespace OpenMS
 
   void FileHandler::storeQuantifications(const String& filename, const MSQuantifications& map,  const std::vector<FileTypes::Type> allowed_types, ProgressLogger::LogType log)
   {
-
     FileTypes::Type ftype;
     if (allowed_types.size() == 1)
     {
@@ -1399,7 +1396,6 @@ namespace OpenMS
 
   void FileHandler::loadTransformations(const String& filename, TransformationDescription& map, bool fit_model, const std::vector<FileTypes::Type> allowed_types)
   {
-
     if (allowed_types.size() != 0)
     {
       if (!check_types_(allowed_types, filename))
@@ -1428,7 +1424,6 @@ namespace OpenMS
 
   void FileHandler::storeTransformations(const String& filename, const TransformationDescription& map,  const std::vector<FileTypes::Type> allowed_types)
   {
-
     FileTypes::Type ftype;
     if (allowed_types.size() == 1)
     {
