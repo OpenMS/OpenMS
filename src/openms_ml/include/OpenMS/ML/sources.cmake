@@ -3,7 +3,7 @@ set(directory include/OpenMS/ML)
 
 ### list all filenames of the directory here
 set(sources_list_h
-	AlphapeptdeepWrapper.h AlphaDatahandling.h
+	OpenMSMLWrapper.h
 )
 
 ### add path to the filenames

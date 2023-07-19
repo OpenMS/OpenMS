@@ -30,35 +30,18 @@
 // --------------------------------------------------------------------------
 // $Maintainer: Timo Sachsenberg $
 // $Authors: Timo Sachsenberg $
-//  --------------------------------------------------------------------------
+// --------------------------------------------------------------------------
 
-#pragma once
-#include <memory> 
-#include <string>
-#include <vector>
-#include <OpenMS/ML/OpenMS_MLConfig.h>
- 
-namespace OpenMS
+#include <OpenMS/ML/OpenMSMLWrapper.h>
+
+using namespace OpenMS;
+
+DeepLCWrapper::DeepLCWrapper(const std::string& filename)
 {
-  struct config_param {
-      std::vector<std::string> mod_elements;
-      std::vector<std::string> instruments;
-      int max_instrument_num;
-      int aa_embedding_size;  
-  };
-  
-  class OPENMS_ML_DLLAPI Alphapeptdeepwrapper
-  {
-    public:
-     
-        ~Alphapeptdeepwrapper();
-        Alphapeptdeepwrapper(const std::string& model_path, const std::string& model_config_path); 
-        std::vector<float> predict(const std::vector<std::string>& seq);     
-        static config_param set_config_param(const std::string& model_config_path);
-     
-    private:
-       class Impl;
-  
-   std::unique_ptr<Impl> pimpl;
-  };
+	// TODO load the model etc.
+}
+
+std::vector<double> DeepLCWrapper::predict(const std::vector<std::string>& sequences, const std::vector<double>& obs_rt)
+{
+	// TODO make prediciton
 }
