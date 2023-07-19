@@ -47,6 +47,10 @@ if (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
   # see https://github.com/OpenMS/OpenMS/issues/5714
   add_definitions(-D_LIBCPP_DISABLE_AVAILABILITY)  
 endif()
+if (APPLE AND "${CMAKE_SYSTEM_PROCESSOR}" STREQUAL "arm64")
+  add_compile_options(-ffp-contract=off)
+  message(STATUS "MacSilicon detected. Disabling FMA for numerical stability!")
+endif()
 
 if (CMAKE_COMPILER_IS_GNUCXX)
 
