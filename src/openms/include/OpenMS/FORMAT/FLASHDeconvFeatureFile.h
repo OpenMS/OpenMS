@@ -53,7 +53,7 @@ namespace OpenMS
   {
   public:
     /// write header line for regular file output
-    static void writeHeader(std::fstream& fs);
+    static void writeHeader(std::fstream& fs, bool report_dummy = false);
 
     /// write header line for promex file output
     static void writePromexHeader(std::fstream& fs);
@@ -62,8 +62,7 @@ namespace OpenMS
     static void writeTopFDFeatureHeader(std::vector<std::fstream>& fs);
 
     /// write the features in regular file output
-    static void writeFeatures(const std::vector<FLASHDeconvHelperStructs::MassFeature>& mass_features, const String& file_name, std::fstream& fs);
-
+    static void writeFeatures(const std::vector<FLASHDeconvHelperStructs::MassFeature>& mass_features, const String& file_name, std::fstream& fs, bool report_dummy = false, bool is_dummy = false);
 
     /**
      * @brief Find mass features and write features in TopFD format files.

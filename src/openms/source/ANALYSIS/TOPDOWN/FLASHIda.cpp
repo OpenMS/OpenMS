@@ -548,7 +548,6 @@ namespace OpenMS
               continue;
             }
           }
-          
 
           // here crawling isolation windows max_isolation_window_half_
           auto ospec = deconvolved_spectrum_.getOriginalSpectrum();
@@ -567,7 +566,7 @@ namespace OpenMS
             while (goleft || goright)
             {
               if (goleft)
-              {                
+              {
                 tindexl--;
                 lmz = ospec[tindexl].getMZ();
                 double intensity = ospec[tindexl].getIntensity();
@@ -577,7 +576,7 @@ namespace OpenMS
                 }
               }
               if (goright)
-              {                
+              {
                 tindexr++;
                 rmz = ospec[tindexr].getMZ();
                 double intensity = ospec[tindexr].getIntensity();
@@ -601,10 +600,11 @@ namespace OpenMS
               }
             }
             mz1 = std::max(center_mz - max_isolation_window_half_, lmz);
-            mz2 = std::min(center_mz + max_isolation_window_half_, rmz); 
-         
+            mz2 = std::min(center_mz + max_isolation_window_half_, rmz);
+
           }
         
+
 
           if (mz1 < ospec[0].getMZ() - max_isolation_window_half_ || mz2 > ospec.back().getMZ() + max_isolation_window_half_ || mz1 + 2 * min_isolation_window_half_ - .01 > mz2 ||
               mz2 - mz1 > 2 * max_isolation_window_half_ + .01)

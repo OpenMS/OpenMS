@@ -10,7 +10,7 @@ set(sources_list
 	FLASHIdaBridgeFunctions.cpp
 	MassFeatureTrace.cpp
 	PeakGroup.cpp
-        Qscore.cpp
+    Qscore.cpp
 	Qvalue.cpp
 	)
 

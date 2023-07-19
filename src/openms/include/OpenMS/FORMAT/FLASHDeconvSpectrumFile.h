@@ -74,7 +74,7 @@ namespace OpenMS
           Default MS1 headers are:
             FileName, ScanNum, TargetDummyType, RetentionTime, MassCountInSpec, AverageMass, MonoisotopicMass,
             SumIntensity, MinCharge, MaxCharge,
-            PeakCount, IsotopeCosine, ChargeScore, MassSNR, ChargeSNR, RepresentativeCharge, RepresentativeMzStart, RepresentativeMzEnd, Qscore, PerChargeIntensity, PerIsotopeIntensity
+            PeakCount, IsotopeCosine, ChargeScore, MassSNR, ChargeSNR, RepresentativeCharge, RepresentativeMzStart, RepresentativeMzEnd, setQscore, PerChargeIntensity, PerIsotopeIntensity
 
           Default MS2 headers include MS1 headers plus:
             PrecursorScanNum, PrecursorMz, PrecursorIntensity, PrecursorCharge, PrecursorSNR, PrecursorMonoisotopicMass, PrecursorQscore
@@ -100,13 +100,15 @@ namespace OpenMS
       @param dspec deconvolved spectrum to write
       @param fs file stream to the output file
       @param snr_threshold SNR threshold to filter out low SNR precursors. Even if a PeakGroup has a high deconvolution quality, it should be still discarded for identification when its precursor SNR (SNR within the isolation window) is too low.
+      @param qval_threshold qvalue threshold to filter out high qvalue precursors.
       @param min_ms_level min ms level of the dataset
       @param randomize_precursor_mass if set, a random number between -100 to 100 is added to precursor mass
       @param randomize_fragment_mass if set, a random number between -100 to 100 is added to fragment mass
     */
     //      @param avg averagine information to calculate monoisotopic and average mass difference
     static void writeTopFD(DeconvolvedSpectrum& dspec, std::fstream& fs,
-                           double snr_threshold = 1.0,
+                           const double snr_threshold = 1.0,
+                           const double qval_threshold = 1.0,
                            const uint min_ms_level = 1,
                            bool randomize_precursor_mass = false,
                            bool randomize_fragment_mass = false);

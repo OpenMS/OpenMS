@@ -36,10 +36,8 @@
 #include <OpenMS/ANALYSIS/TOPDOWN/FLASHDeconvAlgorithm.h>
 #include <OpenMS/ANALYSIS/TOPDOWN/FLASHIda.h>
 #include <OpenMS/ANALYSIS/TOPDOWN/MassFeatureTrace.h>
-#include <OpenMS/ANALYSIS/TOPDOWN/Qscore.h>
 #include <OpenMS/ANALYSIS/TOPDOWN/Qvalue.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
-#include <OpenMS/CHEMISTRY/Tagger.h>
 #include <OpenMS/FILTERING/TRANSFORMERS/SpectraMerger.h>
 #include <OpenMS/FORMAT/FLASHDeconvFeatureFile.h>
 #include <OpenMS/FORMAT/FLASHDeconvSpectrumFile.h>
@@ -123,9 +121,21 @@ protected:
     setValidFormats_("out_topFD_feature", ListUtils::create<String>("feature"), false);
 
     registerDoubleOption_("min_precursor_snr", "<SNR value>", 1.0,
-                          "Minimum precursor SNR (SNR within the precursor envelope range) for identification. Similar to precursor interference level, but far more stringent as it also considers the isotope distribution shape of signal."
+                          "Minimum precursor SNR (SNR within the precursor envelope range) for identification. Similar to precursor interference level, but far more stringent as it also considers "
+                          "the isotope distribution shape of signal."
                           "When FLASHIda log file is used, this parameter is ignored. Applied only for topFD msalign outputs.",
                           false, false);
+
+    setMinFloat_("min_precursor_snr", .0);
+
+    registerDoubleOption_("min_precursor_qvalue", "<q value>", 1.0,
+                          "Minimum precursor q value for identification. To use this threshold, set report_FDR option to 1."
+                          " Specify to, for instance, 0.01 to make sure your precursor deconvolution FDR is less than 0.01."
+                          " Applied only for topFD msalign outputs, regardless of using FLASHIda.",
+                          false, false);
+
+    setMinFloat_("min_precursor_qvalue", .0);
+    setMaxFloat_("min_precursor_qvalue", 1.0);
 
     registerIntOption_("target_precursor_charge", "<Target precursor charge>", 0,
                        "Charge state of the target precursor. All precursor charge is fixed to this value. "
@@ -207,6 +217,7 @@ protected:
     fd_defaults.setValue("min_isotope_cosine", DoubleList {.85, .85, .85},
                          "Cosine similarity thresholds between avg. and observed isotope patterns for MS1, 2, ... "
                          "(e.g., -min_isotope_cosine 0.8 0.6 to specify 0.8 and 0.6 for MS1 and MS2, respectively)");
+    fd_defaults.addTag("min_isotope_cosine", "advanced");
 
     Param mf_defaults = MassFeatureTrace().getDefaults();
     mf_defaults.setValue("min_isotope_cosine", -1.0,
@@ -310,6 +321,8 @@ protected:
     auto out_topfd_file = getStringList_("out_topFD");
     auto out_topfd_feature_file = getStringList_("out_topFD_feature");
     double topFD_SNR_threshold = getDoubleOption_("min_precursor_snr");
+    double topFD_qval_threshold = getDoubleOption_("min_precursor_qvalue");
+
     bool use_RNA_averagine = getIntOption_("use_RNA_averagine") > 0;
     uint max_ms_level = getIntOption_("max_MS_level");
     int forced_ms_level = getIntOption_("forced_MS_level");
@@ -326,12 +339,12 @@ protected:
     double target_precursor_mz = target_precursor_charge != 0 ? getDoubleOption_("target_precursor_mz") : .0;
     double target_precursor_mass = .0;
 
-    fstream out_stream, out_promex_stream, out_dl_stream, out_att_stream;
+    fstream out_stream, out_promex_stream;
     std::vector<fstream> out_spec_streams, out_topfd_streams, out_topfd_feature_streams;
 
     out_stream.open(out_file, fstream::out);
 
-    FLASHDeconvFeatureFile::writeHeader(out_stream);
+    FLASHDeconvFeatureFile::writeHeader(out_stream, report_dummy);
 
     if (!out_promex_file.empty())
     {
@@ -380,8 +393,6 @@ protected:
 
     MSExperiment map;
     MzMLFile mzml;
-
-    double expected_identification_count = .0;
 
     // feature number per input file
     size_t feature_cntr = 0;
@@ -574,6 +585,7 @@ protected:
     }
 
     auto mass_tracer = MassFeatureTrace();
+    auto dummy_mass_tracer = MassFeatureTrace();
     Param mf_param = getParam_().copy("FeatureTracing:", true);
     DoubleList isotope_cosines = fd_param.getValue("min_isotope_cosine");
 
@@ -592,6 +604,7 @@ protected:
       mf_param.setValue("min_isotope_cosine", isotope_cosines[0]);
     }
     mass_tracer.setParameters(mf_param);
+    dummy_mass_tracer.setParameters(mf_param);
 
     ProgressLogger progresslogger;
     progresslogger.setLogType(log_type_);
@@ -661,7 +674,7 @@ protected:
         precursorPeakGroup.setSNR(1.0);
 
         precursorPeakGroup.setChargeSNR(std::abs(target_precursor_charge), 1.0);
-        precursorPeakGroup.Qscore(1.0);
+        precursorPeakGroup.setQscore(1.0);
         deconvolved_spectrum.setPrecursor(precursor);
         deconvolved_spectrum.setPrecursorPeakGroup(precursorPeakGroup);
       }
@@ -669,10 +682,6 @@ protected:
       if (it->getMSLevel() > 1 && !deconvolved_spectrum.getPrecursorPeakGroup().empty())
       {
         precursor_peak_groups[scan_number] = deconvolved_spectrum.getPrecursorPeakGroup();
-        if (deconvolved_spectrum.getPrecursorPeakGroup().getChargeSNR(std::abs(deconvolved_spectrum.getPrecursorCharge())) >= topFD_SNR_threshold)
-        {
-          expected_identification_count += deconvolved_spectrum.getPrecursorPeakGroup().getQscore();
-        }
       }
       bool deconved_mzML_written = false;
       if (!out_mzml_file.empty())
@@ -783,6 +792,7 @@ protected:
       }
       qspec_cntr[ms_level - 1]++;
       mass_cntr[ms_level - 1] += deconvolved_spectrum.size();
+
       deconvolved_spectra.push_back(deconvolved_spectrum);
 
       elapsed_deconv_cpu_secs[ms_level - 1] += double(clock() - deconv_begin) / CLOCKS_PER_SEC;
@@ -790,24 +800,122 @@ protected:
     }
     progresslogger.endProgress();
 
-    std::cout << " writing per spectrum deconvolution results ... " << std::endl;
+    std::vector<FLASHDeconvHelperStructs::MassFeature> mass_features, dummy_mass_features;
+    // mass_tracer run
+    if (merge != 2) // unless spectra are merged into a single one
+    {
+      mass_features = mass_tracer.findFeatures(fd.getAveragine(), deconvolved_spectra, 1);
+      feature_cntr = mass_features.size();
+      if (report_dummy)
+      {
+        // remove the dummy features overlapping with target features.
+        for (auto& dspec : dummy_deconvolved_spectra)
+        {
+          double rt = dspec.getOriginalSpectrum().getRT();
+          auto filtered_dspec = dspec;
+          filtered_dspec.clear();
+
+          boost::dynamic_bitset<> remove_index;
+          remove_index.resize(dspec.size());
+
+          for (auto& feature : mass_features)
+          {
+            double frt_begin = feature.mt.begin()->getRT();
+            double frt_end = feature.mt.rbegin()->getRT();
+            if (rt < frt_begin || rt > frt_end)
+              continue;
+
+            double f_mass = feature.mt.getCentroidMZ() + feature.iso_offset * Constants::ISOTOPE_MASSDIFF_55K_U;
+            for (uint i = 0; i < dspec.size(); i++)
+            {
+              if (remove_index[i]) continue;
+              auto pg = dspec[i];
+              double pg_mass = pg.getMonoMass();
+              if (abs(f_mass - pg_mass) < 1e-6 * tols[0] * pg_mass)
+              {
+                remove_index[i] = true;
+              }
+            }
+          }
+
+          for (uint i = 0; i < dspec.size(); i++)
+          {
+            if (remove_index[i])
+              continue;
+            filtered_dspec.push_back(dspec[i]);
+          }
+          dspec = filtered_dspec;
+        }
+        dummy_mass_features = dummy_mass_tracer.findFeatures(fd.getAveragine(), dummy_deconvolved_spectra, 1);
+      }
+      if (feature_cntr > 0)
+      {
+        FLASHDeconvFeatureFile::writeFeatures(mass_features, in_file, out_stream, report_dummy);
+      }
+      if (report_dummy)
+      {
+        FLASHDeconvFeatureFile::writeFeatures(dummy_mass_features, in_file, out_stream, report_dummy, true);
+      }
+      if (!out_topfd_feature_file.empty())
+      {
+        FLASHDeconvFeatureFile::writeTopFDFeatures(mass_features, precursor_peak_groups, scan_rt_map, in_file, out_topfd_feature_streams);
+      }
+
+      if (!out_promex_file.empty())
+      {
+        FLASHDeconvFeatureFile::writePromexFeatures(mass_features, precursor_peak_groups, scan_rt_map, avg, out_promex_stream);
+      }
+    }
 
     Qvalue::updatePeakGroupQvalues(deconvolved_spectra, dummy_deconvolved_spectra);
 
+    // update precursor feature Qscore and Qvalue
+    std::map<int, std::vector<PeakGroup*>> scan_precursors;
+
+    for (auto& dspec : deconvolved_spectra)
+    {
+      auto& precursor_pg = dspec.getPrecursorPeakGroup();
+      if (precursor_pg.empty()) continue;
+
+      int pscan = precursor_pg.getScanNumber();
+
+      if (scan_precursors.find(pscan) == scan_precursors.end())
+        scan_precursors[pscan] = std::vector<PeakGroup*>();
+
+      scan_precursors[pscan].push_back(&precursor_pg);
+    }
+
+    for (auto& dspec : deconvolved_spectra)
+    {
+      int scan = dspec.getScanNumber();
+      if (scan_precursors.find(scan) == scan_precursors.end()) continue;
+      auto precursor_pgs = scan_precursors[scan];
+      for (auto& pg : precursor_pgs)
+      {
+        auto iter = std::lower_bound(dspec.begin(), dspec.end(), *pg);
+        if (std::abs(pg->getMonoMass() - iter->getMonoMass()) < .001)
+        {
+          pg->setFeatureIndex(iter->getFeatureIndex());
+          pg->setQvalue(iter->getQvalue(), iter->getTargetDummyType());
+          pg->setFeatureQscore(iter->getFeatureQscore());
+          pg->setQscore(iter->getQscore());
+        }
+      }
+      dspec.sort();
+    }
+
+    std::cout << " writing per spectrum deconvolution results ... " << std::endl;
     for (auto& deconvolved_spectrum : deconvolved_spectra)
     {
       uint ms_level = deconvolved_spectrum.getOriginalSpectrum().getMSLevel();
-      if (ms_level == 1)
-      {
-        mass_tracer.storeInformationFromDeconvolvedSpectrum(deconvolved_spectrum); // add deconvolved mass in mass_tracer
-      }
+
       if (out_spec_streams.size() + 1 > ms_level)
       {
         FLASHDeconvSpectrumFile::writeDeconvolvedMasses(deconvolved_spectrum, deconvolved_spectrum, out_spec_streams[ms_level - 1], in_file, avg, tols[ms_level - 1], write_detail, report_dummy);
       }
       if (out_topfd_streams.size() + 1 > ms_level)
       {
-        FLASHDeconvSpectrumFile::writeTopFD(deconvolved_spectrum, out_topfd_streams[ms_level - 1], topFD_SNR_threshold, current_min_ms_level, false,
+        FLASHDeconvSpectrumFile::writeTopFD(deconvolved_spectrum, out_topfd_streams[ms_level - 1], topFD_SNR_threshold, topFD_qval_threshold,current_min_ms_level, false,
                                             false); //, 1, (float)rand() / (float)RAND_MAX * 10 + 10);
       }
     }
@@ -824,26 +932,6 @@ protected:
           FLASHDeconvSpectrumFile::writeDeconvolvedMasses(dummy_deconvolved_spectrum, deconvolved_spectrum, out_spec_streams[ms_level - 1], in_file, avg, tols[ms_level - 1], write_detail,
                                                           report_dummy);
         }
-      }
-    }
-
-    // mass_tracer run
-    if (merge != 2) // unless spectra are merged into a single one
-    {
-      auto mass_features = mass_tracer.findFeatures(fd.getAveragine());
-      feature_cntr = mass_features.size();
-      if (feature_cntr > 0)
-      {
-        FLASHDeconvFeatureFile::writeFeatures(mass_features, in_file, out_stream);
-      }
-      if (!out_topfd_feature_file.empty())
-      {
-        FLASHDeconvFeatureFile::writeTopFDFeatures(mass_features, precursor_peak_groups, scan_rt_map, in_file, out_topfd_feature_streams);
-      }
-
-      if (!out_promex_file.empty())
-      {
-        FLASHDeconvFeatureFile::writePromexFeatures(mass_features, precursor_peak_groups, scan_rt_map, avg, out_promex_stream);
       }
     }
 
@@ -887,11 +975,6 @@ protected:
 
       OPENMS_LOG_INFO << "-- deconv per MS" << (j + 1) << " spectrum (except spec loading, feature finding) [took " << 1000.0 * elapsed_deconv_cpu_secs[j] / (double)total_spec_cntr << " ms (CPU), "
                       << 1000.0 * elapsed_deconv_wall_secs[j] / (double)total_spec_cntr << " ms (Wall)] --" << endl;
-    }
-
-    if (expected_identification_count > 0)
-    {
-      OPENMS_LOG_INFO << "Expected number of PrSMs: " << expected_identification_count << endl;
     }
 
     out_stream.close();

@@ -43,7 +43,7 @@ namespace OpenMS
 @brief  Class describing a deconvolved mass.
    A mass contains multiple (LogMz) peaks of different charges and isotope indices.
    PeakGroup is the set of such peaks representing a single monoisotopic mass.
-   PeakGroup also contains features that define the quality of it. It is used by Qscore calculation.
+   PeakGroup also contains features that define the quality of it. It is used by setQscore calculation.
    DeconvolvedSpectrum consists of PeakGroups.
 @ingroup Topdown
 */
@@ -100,10 +100,10 @@ namespace OpenMS
     void updateMonoMassAndIsotopeIntensities();
 
     /**
-           @brief Update Qscore. Cosine and SNRs are also updated.
-           @param noisy_peaks noisy peaks to calculate Qscore
+           @brief Update setQscore. Cosine and SNRs are also updated.
+           @param noisy_peaks noisy peaks to calculate setQscore
            @param avg precalculated averagine
-           @param min_cos the peak groups with cosine score less than this will have Qscore 0.
+           @param min_cos the peak groups with cosine score less than this will have setQscore 0.
            @param allowed_iso_error this set the allowed isotope error in dummy mass generation.
            @return returns isotope offset after isotope cosine calculation
       */
@@ -144,7 +144,7 @@ namespace OpenMS
     void setMonoisotopicMass(double mono_mass);
 
     /// set Q score - for FLASHIda log file parsing
-    void Qscore(float qscore);
+    void setQscore(double qscore);
 
     /// set charge score - for FLASHIda log file parsing
     void setChargeScore(float charge_score);
@@ -179,7 +179,7 @@ namespace OpenMS
     /// get per abs_charge intenstiy
     float getChargeIntensity(int abs_charge) const;
 
-    /// get mz range that results in max Qscore
+    /// get mz range that results in max setQscore
     std::tuple<double, double> getRepMzRange() const;
 
     /// get mz range of the charge
@@ -198,7 +198,10 @@ namespace OpenMS
     int getRepAbsCharge() const;
 
     /// get Q score
-    float getQscore() const;
+    double getQscore() const;
+
+    /// get feature Q score
+    double getFeatureQscore() const;
 
     /// get total SNR
     float getSNR() const;
@@ -236,7 +239,7 @@ namespace OpenMS
      * set peakGroup q value for different TargetDummyType. Q values are stored per TargetDummyType and later used for final q value calculation.
      * @param  target_dummy_type  This target_dummy_type_ specifies if a PeakGroup is a target (0), charge dummy (1), noise dummy (2), or isotope dummy (3)
      */
-    void setQvalue(float q, PeakGroup::TargetDummyType target_dummy_type);
+    void setQvalue(double q, PeakGroup::TargetDummyType target_dummy_type);
 
     /// set distance between consecutive isotopes
     void setIsotopeDaDistance(double d);
@@ -246,15 +249,33 @@ namespace OpenMS
 
     /// get minimum neagative isotope index
     int getMinNegativeIsotopeIndex() const;
+
     /// set index of this peak group
     void setIndex(uint i);
 
+    /// set feature Q score
+    void setFeatureQscore(double fqscore);
+
+    /// set feature index
+    void setFeatureIndex(uint findex);
+
     /// get index of this peak group
     uint getIndex() const;
+    /// get feature index of this peak group
+    uint getFeatureIndex() const;
 
-    int getChargeRangeForDL() {return charge_range_for_DL_;};
-    int getIsotopeRangeForDL() {return iso_range_for_DL_;};
-    float getBinWidthDL() {return bin_width_DL_;}
+    int getChargeRangeForDL()
+    {
+      return charge_range_for_DL_;
+    };
+    int getIsotopeRangeForDL()
+    {
+      return iso_range_for_DL_;
+    };
+    float getBinWidthDL()
+    {
+      return bin_width_DL_;
+    }
 
     /**
      * @brief calculate the matrices for DL training and scoring
@@ -339,6 +360,8 @@ namespace OpenMS
     int min_abs_charge_ = 0, max_abs_charge_ = -1;
     /// peak group index
     uint index_ = 0;
+    /// feature index
+    uint findex_ = 0;
     /// scan number
     int scan_number_ = 0;
     /// is positive or not
@@ -353,7 +376,7 @@ namespace OpenMS
     /// up to which negative isotope index should be considered. By considereing negative istoopes, one can reduce isotope index error.
     int min_negative_isotope_index_ = -1;
 
-    int charge_range_for_DL_ =  7;
+    int charge_range_for_DL_ = 7;
     float bin_width_DL_ = 0.25;
     int iso_range_for_DL_ = 21;
 
@@ -363,7 +386,8 @@ namespace OpenMS
     int max_snr_abs_charge_ = -1;
     float isotope_cosine_score_ = 0;
     float charge_score_ = 0;
-    float qscore_ = .0f;
+    double qscore_ = .0f;
+    double fqscore_ = -1.0f;
     float avg_ppm_error_ = 0;
     float avg_da_error_ = 0;
     float snr_ = 0;

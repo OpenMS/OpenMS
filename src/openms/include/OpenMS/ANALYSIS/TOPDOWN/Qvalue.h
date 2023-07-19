@@ -60,12 +60,12 @@ namespace OpenMS
 
   private:
     /// get a bin number given qvalue. qvalue is calculated per bin (bin from 0 to 1).
-    static uint getBinNumber(float qscore, uint total_bin_number);
+    static uint getBinNumber(double qscore, uint total_bin_number);
     /// get the qvalue corresponding to a bin number
-    static float getBinValue(uint bin_number, uint total_bin_number);
-    /// get the Qscore distribution
-    static std::vector<float> getDistribution(const std::vector<float>& qscores, uint bin_number);
+    static double getBinValue(uint bin_number, uint total_bin_number);
+    /// get the setQscore distribution
+    static std::vector<double> getDistribution(const std::vector<double>& qscores, uint bin_number);
     /// get the weights of different dummy types.
-    static std::vector<float> getDistributionWeights(const std::vector<float>& mixed_dist, const std::vector<std::vector<float>>& comp_dists, uint num_iterations = 100);
+    static std::vector<double> getDistributionWeights(const std::vector<double>& mixed_dist, const std::vector<std::vector<double>>& comp_dists, uint num_iterations = 100);
   };
 } // namespace OpenMS

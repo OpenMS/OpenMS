@@ -47,14 +47,13 @@ namespace OpenMS
    * Three structures are defined: PrecalculatedAveragine, TopPicItem, and LogMzPeak
    * i) PrecalculatedAveragine - to match observed isotopic envelope against theoretical one, theoretical envelope from
    * averagine model should be quickly calculated. To do so, precalculate averagines for different masses at the beginning of FLASHDeconv runs
-   * ii) TopPicItem - represent TopPic identification. Currently used for Qscore training. TopPic is the top-down proteomics identification tool (https://www.toppic.org/).
+   * ii) TopPicItem - represent TopPic identification. Currently used for setQscore training. TopPic is the top-down proteomics identification tool (https://www.toppic.org/).
    * iii) LogMzPeak - Log transformed peak from original peak. Contains information such as charge, isotope index, and uncharged mass.
    * @see FLASHDeconvAlgorithm
    * @reference: FeatureFinderAlgorithmPickedHelperStructs
    */
 
-  struct OPENMS_DLLAPI FLASHDeconvHelperStructs
-  {
+  struct OPENMS_DLLAPI FLASHDeconvHelperStructs {
     /// @brief Averagine patterns pre-calculated for speed up. Other variables are also calculated for fast cosine calculation
     class OPENMS_DLLAPI PrecalculatedAveragine
     {
@@ -82,6 +81,7 @@ namespace OpenMS
       double min_mass_;
       /// calculate the mass bin index from mass
       Size massToIndex_(double mass) const;
+
     public:
       /// default constructor
       PrecalculatedAveragine() = default;
@@ -94,15 +94,11 @@ namespace OpenMS
        @param generator this generates (calculates) the distributions
        @param use_RNA_averagine if set, nucleotide-based isotope patters are calculated
     */
-      PrecalculatedAveragine(double min_mass,
-                             double max_mass,
-                             double delta,
-                             CoarseIsotopePatternGenerator &generator,
-                             bool use_RNA_averagine);
+      PrecalculatedAveragine(double min_mass, double max_mass, double delta, CoarseIsotopePatternGenerator& generator, bool use_RNA_averagine);
 
 
       /// copy constructor
-      PrecalculatedAveragine(const PrecalculatedAveragine& ) = default;
+      PrecalculatedAveragine(const PrecalculatedAveragine&) = default;
 
       /// move constructor
       PrecalculatedAveragine(PrecalculatedAveragine&& other) noexcept = default;
@@ -114,7 +110,7 @@ namespace OpenMS
       PrecalculatedAveragine& operator=(PrecalculatedAveragine&& pc) noexcept = default;
 
       /// destructor
-      ~PrecalculatedAveragine() = default ;
+      ~PrecalculatedAveragine() = default;
 
 
       /// get distribution for input mass. If input mass exceeds the maximum mass (specified in constructor), output for the maximum mass
@@ -126,10 +122,12 @@ namespace OpenMS
       /// set max isotope index
       void setMaxIsotopeIndex(int index);
 
-      /// get isotope distance (from apex to the left direction) to consider. This is specified in the constructor. index. If input mass exceeds the maximum mass (specified in constructor), output for the maximum mass
+      /// get isotope distance (from apex to the left direction) to consider. This is specified in the constructor. index. If input mass exceeds the maximum mass (specified in constructor), output for
+      /// the maximum mass
       Size getLeftCountFromApex(double mass) const;
 
-      /// get isotope distance (from apex to the rigth direction) to consider. This is specified in the constructor. index. If input mass exceeds the maximum mass (specified in constructor), output for the maximum mass
+      /// get isotope distance (from apex to the rigth direction) to consider. This is specified in the constructor. index. If input mass exceeds the maximum mass (specified in constructor), output
+      /// for the maximum mass
       Size getRightCountFromApex(double mass) const;
 
       /// get index of most abundant isotope. If input mass exceeds the maximum mass (specified in constructor), output for the maximum mass
@@ -146,9 +144,10 @@ namespace OpenMS
     };
 
     /// Mass feature (Deconvolved masses in spectra are traced by Mass tracing to generate mass features - like LC-MS features).
-    struct OPENMS_DLLAPI MassFeature
-    {
+    struct OPENMS_DLLAPI MassFeature {
     public:
+      /// feature index;
+      uint index;
       MassTrace mt;
       std::vector<float> per_charge_intensity;
       std::vector<float> per_isotope_intensity;
@@ -158,6 +157,33 @@ namespace OpenMS
       int min_charge, max_charge, charge_count;
       double isotope_score, qscore;
       double rep_mz;
+
+      /// features are compared
+      bool operator<(const MassFeature& a) const
+      {
+        return avg_mass < a.avg_mass;
+      }
+      bool operator>(const MassFeature& a) const
+      {
+        return avg_mass > a.avg_mass;
+      }
+      bool operator==(const MassFeature& other) const
+      {
+        return avg_mass == other.avg_mass;
+      }
+    };
+
+    /// Isobaric quantities.
+    struct OPENMS_DLLAPI IsobaricQuantities {
+    public:
+      int scan;
+      double rt;
+      double precursor_mz;
+      double precursor_mass;
+      std::vector<double> quantities;
+      std::vector<double> merged_quantities;
+
+      bool empty();
     };
 
     /// log transformed peak. After deconvolution, all necessary information from deconvolution such as charge and isotope index is stored.
@@ -184,12 +210,13 @@ namespace OpenMS
 
       /**
         @brief constructor from Peak1D.
-        @param positive determines the charge carrier mass. Can be obtained by getChargeMass(true) for positive mode (Constants::PROTON_MASS_U) and getChargeMass(false) for negative mode (-Constants::PROTON_MASS_U)
+        @param positive determines the charge carrier mass. Can be obtained by getChargeMass(true) for positive mode (Constants::PROTON_MASS_U) and getChargeMass(false) for negative mode
+        (-Constants::PROTON_MASS_U)
       */
       explicit LogMzPeak(const Peak1D& peak, bool positive);
 
       /// copy constructor
-      LogMzPeak(const LogMzPeak& ) = default;
+      LogMzPeak(const LogMzPeak&) = default;
 
       /// destructor
       ~LogMzPeak() = default;
@@ -216,4 +243,4 @@ namespace OpenMS
     */
     static float getChargeMass(bool positive_ioniziation_mode);
   };
-}
+} // namespace OpenMS

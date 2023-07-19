@@ -164,9 +164,10 @@ deconv_spec3.setOriginalSpectrum(sample_spec);
 deconv_spec3.push_back(tmp_pg);
 //////////////////////////////
 
-mass_tracer.storeInformationFromDeconvolvedSpectrum(deconv_spec1);
-mass_tracer.storeInformationFromDeconvolvedSpectrum(deconv_spec2);
-mass_tracer.storeInformationFromDeconvolvedSpectrum(deconv_spec3);
+std::vector<DeconvolvedSpectrum> deconvolved_specs;
+deconvolved_specs.push_back(deconv_spec1);
+deconvolved_specs.push_back(deconv_spec2);
+deconvolved_specs.push_back(deconv_spec3);
 
 /// < public methods without tests >
 /// - storeInformationFromDeconvolvedSpectrum : only private variables are affected (cannot test)
@@ -185,7 +186,7 @@ START_SECTION((std::vector<FLASHDeconvHelperStructs::MassFeature> findFeatures(c
   fd.calculateAveragine(false);
   FLASHDeconvHelperStructs::PrecalculatedAveragine averagine = fd.getAveragine();
 
-  std::vector<FLASHDeconvHelperStructs::MassFeature> found_feature = mass_tracer.findFeatures(averagine);
+  std::vector<FLASHDeconvHelperStructs::MassFeature> found_feature = mass_tracer.findFeatures(averagine, deconvolved_specs, 1);
   OPENMS_LOG_INFO << found_feature.size() << std::endl;
 }
 END_SECTION

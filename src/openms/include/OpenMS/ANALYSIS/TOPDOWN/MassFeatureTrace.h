@@ -77,14 +77,12 @@ namespace OpenMS
     MassFeatureTrace& operator=(const MassFeatureTrace& fd) = default;
     MassFeatureTrace& operator=(MassFeatureTrace&& fd) = default;
 
-    /// Obtain and store information from deconvolved_spectrum (necessary information for mass tracing afterwards)
-    void storeInformationFromDeconvolvedSpectrum(DeconvolvedSpectrum& deconvolved_spectrum);
-
     /**
        @brief Find mass features.
        @param averagine precalculated averagine for cosine calculation
+       @param ms_level ms level to process
        */
-    std::vector<FLASHDeconvHelperStructs::MassFeature> findFeatures(const PrecalculatedAveragine& averagine);
+    std::vector<FLASHDeconvHelperStructs::MassFeature> findFeatures(const PrecalculatedAveragine& averagine, std::vector<DeconvolvedSpectrum>& deconvolved_spectra, int ms_level = 1);
 
   protected:
     void updateMembers_() override;

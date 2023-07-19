@@ -245,7 +245,7 @@ END_SECTION
 
 START_SECTION((void setQscore(const float qscore)))
 {
-  sample_pg.Qscore(0.1);
+  sample_pg.setQscore(0.1);
   double temp_score = sample_pg.getQscore();
   TEST_REAL_SIMILAR(temp_score, 0.1);
 }

@@ -317,7 +317,7 @@ namespace OpenMS
     /**
     @brief register the precursor peak as well as the precursor peak group (or mass) if possible for MSn (n>1) spectrum.
     Given a precursor peak (found in the original MS n-1 Spectrum) the masses containing the precursor peak are searched.
-    If multiple masses are detected, the one with the best Qscore is selected. For the selected mass, its corresponding peak group (along with precursor peak) is registered.
+    If multiple masses are detected, the one with the best setQscore is selected. For the selected mass, its corresponding peak group (along with precursor peak) is registered.
     If no such mass exists, only the precursor peak is registered.
     @param survey_scans the candidate precursor spectra - the user may allow search of previous N survey scans.
     @param precursor_map_for_real_time_acquisition this contains the deconvolved mass information from FLASHIda runs.
