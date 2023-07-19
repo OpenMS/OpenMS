@@ -34,11 +34,9 @@
 
 #include <OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentAlgorithmIdentification.h>
 #include <OpenMS/APPLICATIONS/MapAlignerBase.h>
-#include <OpenMS/FORMAT/IdXMLFile.h>
-#include <OpenMS/FORMAT/MzMLFile.h>
+#include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/FeatureXMLFile.h>
 #include <OpenMS/FORMAT/ConsensusXMLFile.h>
-#include <OpenMS/FORMAT/TransformationXMLFile.h>
 #include <OpenMS/METADATA/ExperimentalDesign.h>
 #include <OpenMS/FORMAT/ExperimentalDesignFile.h>
 #include <OpenMS/FORMAT/OMSFile.h>
@@ -220,7 +218,7 @@ private:
     OPENMS_LOG_INFO << "Writing " << transformations.size() << " transformations " << " to " << trafos.size() << " files.";
     for (Size i = 0; i < transformations.size(); ++i)
     {
-      TransformationXMLFile().store(trafos[i], transformations[i]);
+      FileHandler().storeTransformations(trafos[i], transformations[i], {FileTypes::TRANSFORMATIONXML});
     }
     progresslogger.endProgress();
   }
@@ -241,21 +239,21 @@ private:
       case FileTypes::MZML:
       {
         PeakMap experiment;
-        MzMLFile().load(reference_file, experiment);
+        FileHandler().loadExperiment(reference_file, experiment, {FileTypes::MZML});
         algorithm.setReference(experiment);
       }
       break;
       case FileTypes::FEATUREXML:
       {
         FeatureMap features;
-        FeatureXMLFile().load(reference_file, features);
+        FileHandler().loadFeatures(reference_file, features);
         algorithm.setReference(features);
       }
       break;
       case FileTypes::CONSENSUSXML:
       {
         ConsensusMap consensus;
-        ConsensusXMLFile().load(reference_file, consensus);
+        FileHandler().loadConsensusFeatures(reference_file, consensus);
         algorithm.setReference(consensus);
       }
       break;
@@ -263,7 +261,7 @@ private:
       {
         vector<ProteinIdentification> proteins;
         vector<PeptideIdentification> peptides;
-        IdXMLFile().load(reference_file, proteins, peptides);
+        FileHandler().loadIdentifications(reference_file, proteins, peptides);
         algorithm.setReference(peptides);
       }
       break;
@@ -467,7 +465,7 @@ private:
     {
       vector<vector<ProteinIdentification>> protein_ids(input_files.size());
       vector<vector<PeptideIdentification>> peptide_ids(input_files.size());
-      IdXMLFile idxml_file;
+      FileHandler idxml_file;
       ProgressLogger progresslogger;
       progresslogger.setLogType(log_type_);
       progresslogger.startProgress(0, input_files.size(),
@@ -475,7 +473,7 @@ private:
       for (Size i = 0; i < input_files.size(); ++i)
       {
         progresslogger.setProgress(i);
-        idxml_file.load(input_files[i], protein_ids[i], peptide_ids[i]);
+        idxml_file.loadIdentifications(input_files[i], protein_ids[i], peptide_ids[i], {FileTypes::IDXML});
       }
       progresslogger.endProgress();
 
@@ -490,7 +488,7 @@ private:
         for (Size i = 0; i < output_files.size(); ++i)
         {
           progresslogger.setProgress(i);
-          idxml_file.store(output_files[i], protein_ids[i], peptide_ids[i]);
+          idxml_file.storeIdentifications(output_files[i], protein_ids[i], peptide_ids[i], {FileTypes::IDXML});
         }
         progresslogger.endProgress();
       }

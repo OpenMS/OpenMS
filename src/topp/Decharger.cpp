@@ -180,15 +180,15 @@ protected:
     addDataProcessing_(cm2, getProcessingInfo_(DataProcessing::CHARGE_DECONVOLUTION));
 
 
-    FileHandler().storeConsensusFeatures(outfile_cm, cm);
+    FileHandler().storeConsensusFeatures(outfile_cm, cm, {FileTypes::CONSENSUSXML});
 
     if (!outfile_p.empty())
     {
-      FileHandler().storeConsensusFeatures(outfile_p, cm2);
+      FileHandler().storeConsensusFeatures(outfile_p, cm2, {FileTypes::CONSENSUSXML});
     }
     if (!outfile_fm.empty())
     {
-      FileHandler().storeFeatures(outfile_fm, map_out);
+      FileHandler().storeFeatures(outfile_fm, map_out, {FileTypes::FEATUREXML});
     }
     return EXECUTION_OK;
   }

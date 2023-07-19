@@ -35,8 +35,6 @@
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 
 #include <OpenMS/ANALYSIS/ID/AccurateMassSearchEngine.h>
-#include <OpenMS/FORMAT/ConsensusXMLFile.h>
-#include <OpenMS/FORMAT/FeatureXMLFile.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/FileTypes.h>
 #include <OpenMS/FORMAT/MzTab.h>
@@ -171,7 +169,7 @@ protected:
     if (filetype == FileTypes::FEATUREXML)
     {
       FeatureMap ms_feat_map;
-      FeatureXMLFile().load(in, ms_feat_map);
+      FileHandler().loadFeatures(in, ms_feat_map, {FileTypes::FEATUREXML});
 
       //-------------------------------------------------------------
       // do the work
@@ -191,7 +189,7 @@ protected:
 
       if (file_ann.hasSuffix("featureXML"))
       {
-        FeatureXMLFile().store(file_ann, ms_feat_map);
+        FileHandler().storeFeatures(file_ann, ms_feat_map, {FileTypes::FEATUREXML});
       }
       else if (file_ann.hasSuffix("oms"))
       {
@@ -210,7 +208,7 @@ protected:
     {
       ConsensusMap ms_cons_map;
 
-      ConsensusXMLFile().load(in, ms_cons_map);
+      FileHandler().loadConsensusFeatures(in, ms_cons_map, {FileTypes::CONSENSUSXML});
 
       //-------------------------------------------------------------
       // do the work
@@ -223,7 +221,7 @@ protected:
 
       if (!file_ann.empty())
       {
-        ConsensusXMLFile().store(file_ann, ms_cons_map);
+        FileHandler().storeConsensusFeatures(file_ann, ms_cons_map, {FileTypes::CONSENSUSXML});
       }
     }
 

@@ -34,9 +34,8 @@
 
 #include <OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentAlgorithmPoseClustering.h>
 #include <OpenMS/APPLICATIONS/MapAlignerBase.h>
-#include <OpenMS/FORMAT/MzMLFile.h>
+//TODO remove when we get loadsize support in handler
 #include <OpenMS/FORMAT/FeatureXMLFile.h>
-#include <OpenMS/FORMAT/TransformationXMLFile.h>
 
 #ifdef _OPENMP
 #include <omp.h>
@@ -187,7 +186,7 @@ protected:
         else if (in_type == FileTypes::MZML) // this is expensive!
         {
           PeakMap exp;
-          MzMLFile().load(in_files[i], exp);
+          FileHandler().loadExperiment(in_files[i], exp, {FileTypes::MZML});
           exp.updateRanges(1);
           s = exp.getSize();
         }
@@ -201,25 +200,25 @@ protected:
       file = in_files[reference_index];
     }
 
-    FeatureXMLFile f_fxml;
+    FileHandler f_fxml;
     if (out_files.empty()) // no need to store featureXML, thus we can load only minimum required information
     {
-      f_fxml.getOptions().setLoadConvexHull(false);
-      f_fxml.getOptions().setLoadSubordinates(false);
+      f_fxml.getFeatOptions().setLoadConvexHull(false);
+      f_fxml.getFeatOptions().setLoadSubordinates(false);
     }
     if (in_type == FileTypes::FEATUREXML)
     {
       FeatureMap map_ref;
-      FeatureXMLFile f_fxml_tmp; // for the reference, we never need CH or subordinates
-      f_fxml_tmp.getOptions().setLoadConvexHull(false);
-      f_fxml_tmp.getOptions().setLoadSubordinates(false);
-      f_fxml_tmp.load(file, map_ref);
+      FileHandler f_fxml_tmp; // for the reference, we never need CH or subordinates
+      f_fxml_tmp.getFeatOptions().setLoadConvexHull(false);
+      f_fxml_tmp.getFeatOptions().setLoadSubordinates(false);
+      f_fxml_tmp.loadFeatures(file, map_ref, {FileTypes::FEATUREXML});
       algorithm.setReference(map_ref);
     }
     else if (in_type == FileTypes::MZML)
     {
       PeakMap map_ref;
-      MzMLFile().load(file, map_ref);
+      FileHandler().loadExperiment(file, map_ref);
       algorithm.setReference(map_ref);
     }
 
@@ -239,9 +238,9 @@ protected:
       {
         FeatureMap map;
         // workaround for loading: use temporary FeatureXMLFile since it is not thread-safe
-        FeatureXMLFile f_fxml_tmp; // do not use OMP-firstprivate, since FeatureXMLFile has no copy c'tor
-        f_fxml_tmp.getOptions() = f_fxml.getOptions();
-        f_fxml_tmp.load(in_files[i], map);
+        FileHandler f_fxml_tmp; // do not use OMP-firstprivate, since FeatureXMLFile has no copy c'tor
+        f_fxml_tmp.getFeatOptions() = f_fxml.getFeatOptions();
+        f_fxml_tmp.loadFeatures(in_files[i], map);
         if (i == static_cast<int>(reference_index)) 
         {
           trafo.fitModel("identity");
@@ -266,13 +265,13 @@ protected:
           MapAlignmentTransformer::transformRetentionTimes(map, trafo);
           // annotate output with data processing info
           addDataProcessing_(map, getProcessingInfo_(DataProcessing::ALIGNMENT));
-          f_fxml_tmp.store(out_files[i], map);
+          f_fxml_tmp.storeFeatures(out_files[i], map, {FileTypes::FEATUREXML});
         }
       }
       else if (in_type == FileTypes::MZML)
       {
         PeakMap map;
-        MzMLFile().load(in_files[i], map);
+        FileHandler().loadExperiment(in_files[i], map, {FileTypes::MZML});
         if (i == static_cast<int>(reference_index))
         {
           trafo.fitModel("identity");
@@ -286,13 +285,13 @@ protected:
           MapAlignmentTransformer::transformRetentionTimes(map, trafo);
           // annotate output with data processing info
           addDataProcessing_(map, getProcessingInfo_(DataProcessing::ALIGNMENT));
-          MzMLFile().store(out_files[i], map);
+          FileHandler().storeExperiment(out_files[i], map, {FileTypes::MZML});
         }
       }
 
       if (!out_trafos.empty())
       {
-        TransformationXMLFile().store(out_trafos[i], trafo);
+        FileHandler().storeTransformations(out_trafos[i], trafo, {FileTypes::TRANSFORMATIONXML});
       }
 
 #ifdef _OPENMP

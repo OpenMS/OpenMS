@@ -42,9 +42,7 @@
 #include <OpenMS/FORMAT/CsvFile.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/FileTypes.h>
-#include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/FORMAT/PercolatorInfile.h>
-#include <OpenMS/FORMAT/MzIdentMLFile.h>
 #include <OpenMS/FORMAT/OSWFile.h>
 #include <OpenMS/SYSTEM/File.h>
 
@@ -440,12 +438,12 @@ protected:
       OPENMS_LOG_INFO << "Loading input file: " << in << endl;
       if (in_type == FileTypes::IDXML)
       {
-        IdXMLFile().load(in, protein_ids, peptide_ids);
+        FileHandler().loadIdentifications(in, protein_ids, peptide_ids, {FileTypes::IDXML});
       }
       else if (in_type == FileTypes::MZIDENTML)
       {
         OPENMS_LOG_WARN << "Converting from mzid: possible loss of information depending on target format." << endl;
-        MzIdentMLFile().load(in, protein_ids, peptide_ids);
+        FileHandler().loadIdentifications(in, protein_ids, peptide_ids, {FileTypes::IDXML});
       }
       //else catched by TOPPBase:registerInput being mandatory mzid or idxml
       if (protein_ids.empty())
@@ -1200,16 +1198,8 @@ protected:
         
         prot_id_run.setSearchParameters(search_parameters);
       }
-      
       // Storing the PeptideHits with calculated q-value, pep and svm score
-      if (out_type == FileTypes::MZIDENTML)
-      {
-        MzIdentMLFile().store(out, all_protein_ids, all_peptide_ids);
-      }      
-      if (out_type == FileTypes::IDXML)
-      {
-        IdXMLFile().store(out, all_protein_ids, all_peptide_ids);
-      }
+      FileHandler().storeIdentifications(out, all_protein_ids, all_peptide_ids, {FileTypes::IDXML, FileTypes::MZIDENTML});
     }
     else
     {

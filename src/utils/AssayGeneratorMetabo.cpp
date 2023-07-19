@@ -45,9 +45,7 @@
 #include <OpenMS/FILTERING/DATAREDUCTION/Deisotoper.h>
 #include <OpenMS/FORMAT/DATAACCESS/SiriusFragmentAnnotation.h>
 #include <OpenMS/FORMAT/DATAACCESS/SiriusMzTabWriter.h>
-#include <OpenMS/FORMAT/FeatureXMLFile.h>
-#include <OpenMS/FORMAT/MzMLFile.h>
-#include <OpenMS/FORMAT/TraMLFile.h>
+#include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/KERNEL/RangeUtils.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/SYSTEM/File.h>
@@ -355,14 +353,12 @@ protected:
     for (unsigned file_counter = 0; file_counter < in.size(); file_counter++)
     {
       // load mzML
-      MzMLFile mzml;
       PeakMap spectra;
-      mzml.load(in[file_counter], spectra);
+      FileHandler().loadExperiment(in[file_counter], spectra, {FileTypes::MZML});
 
       // load featurexml
-      FeatureXMLFile fxml;
       FeatureMap feature_map;
-      fxml.load(id[file_counter], feature_map);
+      FileHandler().loadFeatures(id[file_counter], feature_map, {FileTypes::FEATUREXML});
 
       // check if featureXML corresponds to mzML
       StringList featurexml_primary_path;
@@ -692,8 +688,7 @@ protected:
       // validate
       OpenMS::TransitionTSVFile::validateTargetedExperiment(t_exp);
       // write traML
-      TraMLFile traml_out;
-      traml_out.store(out, t_exp);
+      FileHandler().storeTransitions(out, t_exp, {FileTypes::TRAML});
     }
     else if (extension == "pqp")
     {

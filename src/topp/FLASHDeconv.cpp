@@ -42,7 +42,7 @@
 #include <OpenMS/FORMAT/FLASHDeconvFeatureFile.h>
 #include <OpenMS/FORMAT/FLASHDeconvSpectrumFile.h>
 #include <OpenMS/FORMAT/FileTypes.h>
-#include <OpenMS/FORMAT/MzMLFile.h>
+#include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/METADATA/SpectrumLookup.h>
 
 #ifdef _OPENMP
@@ -375,7 +375,7 @@ protected:
     //-------------------------------------------------------------
 
     MSExperiment map;
-    MzMLFile mzml;
+    FileHandler mzml;
 
     double expected_identification_count = .0;
 
@@ -397,9 +397,8 @@ protected:
     {
       opt.setIntensityRange(DRange<1> {min_intensity, 1e200});
     }
-    mzml.setLogType(log_type_);
     mzml.setOptions(opt);
-    mzml.load(in_file, map);
+    mzml.loadExperiment(in_file, map, {FileTypes::MZML}, log_type_);
 
     uint current_max_ms_level = 0;
     uint current_min_ms_level = 1000;
@@ -845,14 +844,14 @@ protected:
 
     if (!out_mzml_file.empty())
     {
-      MzMLFile mzml_file;
-      mzml_file.store(out_mzml_file, exp);
+      FileHandler mzml_file;
+      mzml_file.storeExperiment(out_mzml_file, exp, {FileTypes::MZML});
     }
 
     if (!out_anno_mzml_file.empty())
     {
-      MzMLFile mzml_file;
-      mzml_file.store(out_anno_mzml_file, exp_annotated);
+      FileHandler mzml_file;
+      mzml_file.storeExperiment(out_anno_mzml_file, exp_annotated, {FileTypes::MZML});
     }
 
     for (int j = 0; j < (int)current_max_ms_level; j++)

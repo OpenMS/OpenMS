@@ -40,9 +40,7 @@
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
 #include <OpenMS/DATASTRUCTURES/String.h>
 #include <OpenMS/FORMAT/CsvFile.h>
-#include <OpenMS/FORMAT/IdXMLFile.h>
-#include <OpenMS/FORMAT/MzMLFile.h>
-#include <OpenMS/FORMAT/MzIdentMLFile.h>
+#include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/METADATA/ProteinIdentification.h>
 #include <OpenMS/METADATA/SpectrumMetaDataLookup.h>
 #include <OpenMS/SYSTEM/File.h>
@@ -330,10 +328,10 @@ protected:
     {
       PeakMap exp;
       // load only MS2 spectra:
-      MzMLFile f;
+      FileHandler f;
       f.getOptions().addMSLevel(2);
       f.getOptions().setFillData(false);
-      f.load(exp_name, exp);
+      f.loadExperiment(exp_name, exp, {FileTypes::MZML});
       exp.getPrimaryMSRunPath(primary_ms_run_path_);
       // if no primary run is assigned, the mzML file is the (unprocessed) primary file
       if (primary_ms_run_path_.empty())
@@ -764,7 +762,7 @@ protected:
       }
       else // no legacy conversion
       {
-        MzIdentMLFile().load(mzid_temp, protein_ids, peptide_ids);
+        FileHandler().loadIdentifications(mzid_temp, protein_ids, peptide_ids, {FileTypes::MZIDENTML});
 
         // MzID might contain missed_cleavages set to -1 which leads to a crash in PeptideIndexer
         for (auto& pid : protein_ids)
@@ -803,7 +801,7 @@ protected:
       // if "reindex" parameter is set to true will perform reindexing
       if (auto ret = reindex_(protein_ids, peptide_ids); ret != EXECUTION_OK) return ret;
 
-      IdXMLFile().store(out, protein_ids, peptide_ids);
+      FileHandler().storeIdentifications(out, protein_ids, peptide_ids, {FileTypes::IDXML});
     }
 
     //-------------------------------------------------------------

@@ -37,15 +37,10 @@
 #include <OpenMS/ANALYSIS/TARGETED/TargetedExperiment.h>
 #include <OpenMS/CONCEPT/VersionInfo.h>
 #include <OpenMS/DATASTRUCTURES/StringListUtils.h>
-#include <OpenMS/FORMAT/ConsensusXMLFile.h>
-#include <OpenMS/FORMAT/FeatureXMLFile.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/FileTypes.h>
-#include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/FORMAT/TextFile.h>
-#include <OpenMS/FORMAT/TraMLFile.h>
 #include <OpenMS/FORMAT/FASTAFile.h>
-#include <OpenMS/FORMAT/TransformationXMLFile.h>
 
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 
@@ -169,7 +164,7 @@ protected:
     }
     if (!trafo_out.empty())
     {
-      TransformationXMLFile().store(trafo_out, trafo);
+      FileHandler().storeTransformations(trafo_out, trafo, {FileTypes::TRANSFORMATIONXML});
     }
   }
 
@@ -224,11 +219,11 @@ protected:
     if (force_type == FileTypes::FEATUREXML)
     {
       FeatureMap out;
-      FeatureXMLFile fh;
+      FileHandler fh;
       for (Size i = 0; i < file_list.size(); ++i)
       {
         FeatureMap map;
-        fh.load(file_list[i], map);
+        fh.loadFeatures(file_list[i], map, {FileTypes::FEATUREXML});
 
         if (annotate_file_origin)
         {
@@ -253,15 +248,15 @@ protected:
       // annotate output with data processing info
       addDataProcessing_(out, getProcessingInfo_(DataProcessing::FORMAT_CONVERSION));
 
-      fh.store(out_file, out);
+      fh.storeFeatures(out_file, out, {FileTypes::FEATUREXML});
     }
 
     else if (force_type == FileTypes::CONSENSUSXML)
     {
       ConsensusMap out;
-      ConsensusXMLFile fh;
+      FileHandler fh;
       // load the metadata from the first file
-      fh.load(file_list[0], out);
+      fh.loadConsensusFeatures(file_list[0], out, {FileTypes::CONSENSUSXML});
       // but annotate the origins
 
       if (append_rows) {
@@ -277,7 +272,7 @@ protected:
           for (Size i = 1; i < file_list.size(); ++i)
           {
             ConsensusMap map;
-            fh.load(file_list[i], map);
+            fh.loadConsensusFeatures(file_list[i], map, {FileTypes::CONSENSUSXML});
 
             if (annotate_file_origin)
             {
@@ -302,7 +297,7 @@ protected:
           for (Size i = 1; i < file_list.size(); ++i)
           {
             ConsensusMap map;
-            fh.load(file_list[i], map);
+            fh.loadConsensusFeatures(file_list[i], map, {FileTypes::CONSENSUSXML});
             out.appendColumns(map);
           }
       }
@@ -314,7 +309,7 @@ protected:
       // annotate output with data processing info
       addDataProcessing_(out, getProcessingInfo_(DataProcessing::FORMAT_CONVERSION));
 
-      fh.store(out_file, out);
+      fh.storeConsensusFeatures(out_file, out,{FileTypes::CONSENSUSXML});
     }
 
     else if (force_type == FileTypes::FASTA)
@@ -356,11 +351,11 @@ protected:
     else if (force_type == FileTypes::TRAML)
     {
       TargetedExperiment out;
-      TraMLFile fh;
+      FileHandler fh;
       for (Size i = 0; i < file_list.size(); ++i)
       {
         TargetedExperiment map;
-        fh.load(file_list[i], map);
+        fh.loadTransitions(file_list[i], map, {FileTypes::TRAML});
         out += map;
       }
 
@@ -374,7 +369,7 @@ protected:
       software.setVersion(VersionInfo::getVersion());
       out.addSoftware(software);
 
-      fh.store(out_file, out);
+      fh.storeTransitions(out_file, out, {FileTypes::TRAML});
     }
     else // raw data input (e.g. mzML)
     {
@@ -406,7 +401,7 @@ protected:
         // load file
         force_type = file_handler.getType(file_list[i]);
         PeakMap in;
-        file_handler.loadExperiment(filename, in, force_type, log_type_);
+        file_handler.loadExperiment(filename, in, {force_type}, log_type_, true, true);
 
         if (in.empty() && in.getChromatograms().empty())
         {
@@ -506,9 +501,7 @@ protected:
       // annotate output with data processing info
       addDataProcessing_(out, getProcessingInfo_(DataProcessing::FORMAT_CONVERSION));
 
-      MzMLFile f;
-      f.setLogType(log_type_);
-      f.store(out_file, out);
+      FileHandler().storeExperiment(out_file, out,{FileTypes::MZML}, log_type_);
     }
 
     return EXECUTION_OK;

@@ -40,9 +40,7 @@
 #include <OpenMS/FORMAT/CsvFile.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/FileTypes.h>
-#include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/FORMAT/PepXMLFile.h>
-#include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/SYSTEM/JavaInfo.h>
@@ -507,19 +505,17 @@ protected:
     vector<ProteinIdentification> prot_ids;
 
     PeakMap exp;
-    MzMLFile file;
-    file.setLogType(log_type_);
     PeakFileOptions options;
     options.clearMSLevels();
     options.addMSLevel(2);
 
-    file.load(in, exp);
+    FileHandler().loadExperiment(in, exp, {FileTypes::MZML}, log_type_);
     exp.sortSpectra(true);
 
     // convert idXML input to pepXML if necessary
     if (in_type == FileTypes::IDXML)
     {
-      IdXMLFile().load(id, prot_ids, pep_ids);
+      FileHandler().loadIdentifications(id, prot_ids, pep_ids, {FileTypes::IDXML});
       if (!pep_ids.empty())
       {
         IDFilter::keepNBestHits(pep_ids, 1); // LuciPHOR2 only calculates the best hit
@@ -676,7 +672,7 @@ protected:
     {
       p.getSearchParameters().setMetaValue(Constants::UserParam::LOCALIZED_MODIFICATIONS_USERPARAM, getStringList_("target_modifications"));
     }
-    IdXMLFile().store(out, prot_ids, pep_out);
+    FileHandler().storeIdentifications(out, prot_ids, pep_out, {FileTypes::IDXML});
 
     return EXECUTION_OK;
   }

@@ -63,8 +63,7 @@
 #include <OpenMS/FILTERING/TRANSFORMERS/Normalizer.h>
 #include <OpenMS/FILTERING/DATAREDUCTION/Deisotoper.h>
 #include <OpenMS/FORMAT/FASTAFile.h>
-#include <OpenMS/FORMAT/IdXMLFile.h>
-#include <OpenMS/FORMAT/MzMLFile.h>
+#include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/TextFile.h>
 #include <OpenMS/METADATA/SpectrumSettings.h>
 #include <OpenMS/DATASTRUCTURES/ListUtilsIO.h>
@@ -1713,14 +1712,13 @@ protected:
 
     // load MS2 map
     PeakMap spectra;
-    MzMLFile f;
-    f.setLogType(log_type_);
+    FileHandler f;
 
     // load both MS1 and MS2 for precursor purity annotation
     map<String, PrecursorPurity::PurityScores> purities;
     {
       PeakMap tmp_spectra;
-      f.load(in_mzml, tmp_spectra);
+      f.loadExperiment(in_mzml, tmp_spectra, {FileTypes::MZML}, log_type_);
       int nMS1 = std::count_if(tmp_spectra.begin(), tmp_spectra.end(), [](MSSpectrum& s){return s.getMSLevel() == 1;});
       if (nMS1 != 0)
       {
@@ -1732,7 +1730,7 @@ protected:
     options.clearMSLevels();
     options.addMSLevel(2);
     f.getOptions() = options;
-    f.load(in_mzml, spectra);
+    f.loadExperiment(in_mzml, spectra, {FileTypes::MZML}, log_type_);
     spectra.sortSpectra(true);
 
     progresslogger.startProgress(0, 1, "Filtering spectra...");
@@ -2281,7 +2279,7 @@ protected:
 
     // reload spectra from disc with same settings as before (important to keep same spectrum indices)
     spectra.clear(true);
-    f.load(in_mzml, spectra);
+    f.loadExperiment(in_mzml, spectra, {FileTypes::MZML}, log_type_);
     spectra.sortSpectra(true);
 
     // for post scoring don't convert fragments to single charge. Annotate charge instead to every peak.
@@ -2361,7 +2359,7 @@ protected:
     }
 
     // write ProteinIdentifications and PeptideIdentifications to IdXML
-    IdXMLFile().store(out_idxml, protein_ids, peptide_ids);
+    FileHandler().storeIdentifications(out_idxml, protein_ids, peptide_ids, {FileTypes::IDXML});
 
     // save report
     if (!out_csv.empty())

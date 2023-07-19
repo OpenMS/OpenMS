@@ -44,12 +44,7 @@
 #include <OpenMS/SIMULATION/SimTypes.h>
 
 // file types
-#include <OpenMS/FORMAT/DTA2DFile.h>
-#include <OpenMS/FORMAT/IdXMLFile.h>
-#include <OpenMS/FORMAT/MzXMLFile.h>
-#include <OpenMS/FORMAT/MzMLFile.h>
-#include <OpenMS/FORMAT/FeatureXMLFile.h>
-#include <OpenMS/FORMAT/ConsensusXMLFile.h>
+#include <OpenMS/FORMAT/FileHandler.h>
 using namespace OpenMS;
 using namespace std;
 
@@ -295,21 +290,21 @@ protected:
     if (!outputfile_name.empty())
     {
       writeLogInfo_(String("Storing simulated raw data in: ") + outputfile_name);
-      MzMLFile().store(outputfile_name, ms_simulation.getExperiment());
+      FileHandler().storeExperiment(outputfile_name, ms_simulation.getExperiment(), {FileTypes::MZML});
     }
 
     String pxml_out = getStringOption_("out_pm");
     if (!pxml_out.empty())
     {
       writeLogInfo_(String("Storing simulated peak/centroided data in: ") + pxml_out);
-      MzMLFile().store(pxml_out, ms_simulation.getPeakMap());
+      FileHandler().storeExperiment(pxml_out, ms_simulation.getPeakMap(), {FileTypes::MZML});
     }
 
     String fxml_out = getStringOption_("out_fm");
     if (!fxml_out.empty())
     {
       writeLogInfo_(String("Storing simulated features in: ") + fxml_out);
-      FeatureXMLFile().store(fxml_out, ms_simulation.getSimulatedFeatures());
+      FileHandler().storeFeatures(fxml_out, ms_simulation.getSimulatedFeatures(), {FileTypes::FEATUREXML});
     }
 
     String cxml_out = getStringOption_("out_cm");
@@ -322,7 +317,7 @@ protected:
       charge_consensus.getColumnHeaders()[0].size = ms_simulation.getSimulatedFeatures().size();
       charge_consensus.getColumnHeaders()[0].unique_id = ms_simulation.getSimulatedFeatures().getUniqueId();
 
-      ConsensusXMLFile().store(cxml_out, charge_consensus);
+      FileHandler().storeConsensusFeatures(cxml_out, charge_consensus, {FileTypes::CONSENSUSXML});
     }
 
     String lcxml_out = getStringOption_("out_lcm");
@@ -339,14 +334,14 @@ protected:
         fdI->second.filename = fxml_out;
       }
 
-      ConsensusXMLFile().store(lcxml_out, labeling_consensus);
+      FileHandler().storeConsensusFeatures(lcxml_out, labeling_consensus, {FileTypes::CONSENSUSXML});
     }
 
     String cntxml_out = getStringOption_("out_cntm");
     if (!cntxml_out.empty())
     {
       writeLogInfo_(String("Storing simulated contaminant features in: ") + cntxml_out);
-      FeatureXMLFile().store(cntxml_out, ms_simulation.getContaminants());
+      FileHandler().storeFeatures(cntxml_out, ms_simulation.getContaminants(), {FileTypes::FEATUREXML});
     }
 
     String id_out = getStringOption_("out_id");
@@ -362,7 +357,7 @@ protected:
         origin = "SIMULATED";
       }
       proteins[0].setPrimaryMSRunPath({origin});
-      IdXMLFile().store(id_out, proteins, peptides);
+      FileHandler().storeIdentifications(id_out, proteins, peptides, {FileTypes::IDXML});
     }
 
     return EXECUTION_OK;

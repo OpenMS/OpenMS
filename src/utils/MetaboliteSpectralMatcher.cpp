@@ -32,8 +32,7 @@
 // $Authors: Erhan Kenar $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/FORMAT/FeatureXMLFile.h>
-#include <OpenMS/FORMAT/MzMLFile.h>
+#include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/FORMAT/FileHandler.h>
@@ -141,13 +140,12 @@ protected:
     // loading input
     //-------------------------------------------------------------
 
-    MzMLFile mz_file;
-    mz_file.setLogType(log_type_);
+    FileHandler mz_file;
     std::vector<Int> ms_level = {2};
     mz_file.getOptions().setMSLevels(ms_level);
 
     PeakMap ms_peakmap;
-    mz_file.load(in, ms_peakmap);
+    mz_file.loadExperiment(in, ms_peakmap, {FileTypes::MZML});
 
     if (ms_peakmap.empty())
     {
@@ -171,18 +169,8 @@ protected:
     FileTypes::Type database_type = FileHandler::getTypeByFileName(database);
 
     PeakMap spec_db;
-    if (database_type == FileTypes::MSP)
-    {
-      MSPGenericFile().load(spec_db_filename, spec_db);
-    }
-    else if (database_type == FileTypes::MZML)
-    {
-      mz_file.load(spec_db_filename, spec_db);
-    }
-    else if (database_type == FileTypes::MGF)
-    {
-      MascotGenericFile().load(spec_db_filename, spec_db);
-    }
+
+    FileHandler().loadExperiment(spec_db_filename, spec_db, {FileTypes::MSP, FileTypes::MZML, FileTypes::MGF});
 
     if (spec_db.empty())
     {

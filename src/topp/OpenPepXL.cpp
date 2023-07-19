@@ -37,10 +37,7 @@
 #include <OpenMS/CONCEPT/VersionInfo.h>
 #include <OpenMS/FORMAT/XQuestResultXMLFile.h>
 #include <OpenMS/FORMAT/FASTAFile.h>
-#include <OpenMS/FORMAT/MzMLFile.h>
-#include <OpenMS/FORMAT/ConsensusXMLFile.h>
-#include <OpenMS/FORMAT/IdXMLFile.h>
-#include <OpenMS/FORMAT/MzIdentMLFile.h>
+#include <OpenMS/FORMAT/FileHandler.h>
 
 
 using namespace std;
@@ -190,20 +187,19 @@ protected:
 
     // load MS2 map
     PeakMap unprocessed_spectra;
-    MzMLFile f;
-    f.setLogType(log_type_);
+    FileHandler f;
 
     PeakFileOptions options;
     options.clearMSLevels();
     options.addMSLevel(1);
     options.addMSLevel(2);
     f.getOptions() = options;
-    f.load(in_mzml, unprocessed_spectra);
+    f.loadExperiment(in_mzml, unprocessed_spectra, {FileTypes::MZML}, log_type_);
 
     // load linked features
     ConsensusMap cfeatures;
-    ConsensusXMLFile cf;
-    cf.load(in_consensus, cfeatures);
+    FileHandler cf;
+    cf.loadConsensusFeatures(in_consensus, cfeatures, {FileTypes::CONSENSUSXML});
 
     // load fasta database
     progresslogger.startProgress(0, 1, "Load database from FASTA file...");
@@ -265,11 +261,11 @@ protected:
     progresslogger.startProgress(0, 1, "Writing output...");
     if (!out_idXML.empty())
     {
-      IdXMLFile().store(out_idXML, protein_ids, peptide_ids);
+      FileHandler().storeIdentifications(out_idXML, protein_ids, peptide_ids, {FileTypes::IDXML});
     }
     if (!out_mzIdentML.empty())
     {
-      MzIdentMLFile().store(out_mzIdentML, protein_ids, peptide_ids);
+      FileHandler().storeIdentifications(out_mzIdentML, protein_ids, peptide_ids, {FileTypes::MZIDENTML});
     }
 
     if (!out_xquest.empty() || !out_xquest_specxml.empty())
@@ -282,7 +278,7 @@ protected:
 
       if (!out_xquest.empty())
       {
-        XQuestResultXMLFile().store(out_xquest, protein_ids, peptide_ids);
+        FileHandler().storeIdentifications(out_xquest, protein_ids, peptide_ids, {FileTypes::XQUESTXML});
       }
       if (!out_xquest_specxml.empty())
       {

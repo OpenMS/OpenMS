@@ -38,8 +38,7 @@
 #include <OpenMS/ANALYSIS/DENOVO/CompNovoIdentificationCID.h>
 #include <OpenMS/CHEMISTRY/AASequence.h>
 #include <OpenMS/CHEMISTRY/ProteaseDB.h>
-#include <OpenMS/FORMAT/MzMLFile.h>
-#include <OpenMS/FORMAT/IdXMLFile.h>
+#include <OpenMS/FORMAT/FileHandler.h>
 
 using namespace OpenMS;
 using namespace std;
@@ -134,14 +133,13 @@ protected:
     //-------------------------------------------------------------
 
     PeakMap exp;
-    MzMLFile f;
-    f.setLogType(log_type_);
+    FileHandler f;
 
     PeakFileOptions options;
     options.clearMSLevels();
     options.addMSLevel(2);
     f.getOptions() = options;
-    f.load(in, exp);
+    f.loadExperiment(in, exp, {FileTypes::MZML}, log_type_);
 
     writeDebug_("Data set contains " + String(exp.size()) + " spectra", 1);
 
@@ -212,7 +210,7 @@ protected:
     prot_id.setSearchEngine("CompNovo");
     prot_ids.push_back(prot_id);
 
-    IdXMLFile().store(out, prot_ids, pep_ids);
+    FileHandler().storeIdentifications(out, prot_ids, pep_ids, {FileTypes::IDXML});
 
     return EXECUTION_OK;
   }

@@ -36,9 +36,10 @@
 
 #include <OpenMS/ANALYSIS/ID/PeptideIndexing.h>
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
+// TODO remove this once we have handler transform support
 #include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/FORMAT/PepXMLFile.h>
-#include <OpenMS/FORMAT/IdXMLFile.h>
+#include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/HANDLERS/IndexedMzMLDecoder.h>
 #include <OpenMS/FORMAT/DATAACCESS/MSDataWritingConsumer.h>
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
@@ -672,8 +673,7 @@ protected:
     MSExperiment exp;
     MzMLFile mzml_file{};
     String input_file_with_index = inputfile_name;
-    auto index_offset = IndexedMzMLDecoder().findIndexListOffset(inputfile_name);
-    if (index_offset == (std::streampos)-1)
+    if (!mzml_file.hasIndex(inputfile_name))
     {
       OPENMS_LOG_WARN << "The mzML file provided to CometAdapter is not indexed, but comet requires one. "
                       << "We will add an index by writing a temporary file. If you run this analysis more often, consider indexing your mzML in advance!" << std::endl;
@@ -746,7 +746,7 @@ protected:
     // if "reindex" parameter is set to true will perform reindexing
     if (auto ret = reindex_(protein_identifications, peptide_identifications); ret != EXECUTION_OK) return ret;
 
-    IdXMLFile().store(out, protein_identifications, peptide_identifications);
+    FileHandler().storeIdentifications(out, protein_identifications, peptide_identifications, {FileTypes::IDXML});
 
     //-------------------------------------------------------------
     // create (move) optional pin output

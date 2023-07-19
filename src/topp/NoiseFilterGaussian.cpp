@@ -34,6 +34,8 @@
 #include <OpenMS/config.h>
 
 #include <OpenMS/CONCEPT/LogStream.h>
+#include <OpenMS/FORMAT/FileHandler.h>
+// TODO remove needed here for transform
 #include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/FILTERING/SMOOTHING/GaussFilter.h>
@@ -188,10 +190,8 @@ public:
     //-------------------------------------------------------------
     // loading input
     //-------------------------------------------------------------
-    MzMLFile mz_data_file;
-    mz_data_file.setLogType(log_type_);
     PeakMap exp;
-    mz_data_file.load(in, exp);
+    FileHandler().loadExperiment(in, exp, {FileTypes::MZML}, log_type_);
 
     if (exp.empty() && exp.getChromatograms().empty())
     {
@@ -245,7 +245,7 @@ public:
     //annotate output with data processing info
     addDataProcessing_(exp, getProcessingInfo_(DataProcessing::SMOOTHING));
 
-    mz_data_file.store(out, exp);
+    FileHandler().storeExperiment(out, exp, {FileTypes::MZML}, log_type_);
 
     return EXECUTION_OK;
   }

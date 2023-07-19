@@ -34,11 +34,7 @@
 
 #include <OpenMS/APPLICATIONS/MapAlignerBase.h>
 
-#include <OpenMS/FORMAT/MzMLFile.h>
-#include <OpenMS/FORMAT/TransformationXMLFile.h>
-#include <OpenMS/FORMAT/FeatureXMLFile.h>
-#include <OpenMS/FORMAT/ConsensusXMLFile.h>
-#include <OpenMS/FORMAT/IdXMLFile.h>
+#include <OpenMS/FORMAT/FileHandler.h>
 
 using namespace OpenMS;
 using namespace std;
@@ -134,17 +130,13 @@ protected:
     return MapAlignerBase::getModelDefaults("none");
   }
 
-  template <class TFile, class TMap>
-  void applyTransformation_(const String& in, const String& out, 
-                            const TransformationDescription& trafo,
-                            TFile& file, TMap& map)
+  template <class TMap>
+  void applyTransformation_(const TransformationDescription& trafo, TMap& map)
   {
-    file.load(in, map);
     bool store_original_rt = getFlag_("store_original_rt");
     MapAlignmentTransformer::transformRetentionTimes(map, trafo,
                                                      store_original_rt);
     addDataProcessing_(map, getProcessingInfo_(DataProcessing::ALIGNMENT));
-    file.store(out, map);
   }
 
   ExitCodes main_(int, const char**) override
@@ -180,9 +172,8 @@ protected:
     //-------------------------------------------------------------
     // apply transformation
     //-------------------------------------------------------------
-    TransformationXMLFile trafoxml;
     TransformationDescription trafo;
-    trafoxml.load(trafo_in, trafo);
+    FileHandler().loadTransformations(trafo_in, trafo, true, {FileTypes::TRANSFORMATIONXML});
     if (model_type != "none")
     {
       trafo.fitModel(model_type, model_params);
@@ -193,40 +184,43 @@ protected:
     }
     if (!trafo_out.empty())
     {
-      trafoxml.store(trafo_out, trafo);
+      FileHandler().storeTransformations(trafo_out, trafo, {FileTypes::TRANSFORMATIONXML});
     }
     if (!in.empty()) // load input
     {
       FileTypes::Type in_type = FileHandler::getType(in);
       if (in_type == FileTypes::MZML)
       {
-        MzMLFile file;
         PeakMap map;
-        applyTransformation_(in, out, trafo, file, map);
+        FileHandler().loadExperiment(in, map, {FileTypes::MZML});
+        applyTransformation_( trafo, map);
+        FileHandler().storeExperiment(out, map, {FileTypes::MZML});
+
       }
       else if (in_type == FileTypes::FEATUREXML)
       {
-        FeatureXMLFile file;
         FeatureMap map;
-        applyTransformation_(in, out, trafo, file, map);
+        FileHandler().loadFeatures(in, map, {FileTypes::FEATUREXML});
+        applyTransformation_( trafo, map);
+        FileHandler().storeFeatures(out, map, {FileTypes::FEATUREXML});
       }
       else if (in_type == FileTypes::CONSENSUSXML)
       {
-        ConsensusXMLFile file;
         ConsensusMap map;
-        applyTransformation_(in, out, trafo, file, map);
+        FileHandler().loadConsensusFeatures(in, map, {FileTypes::CONSENSUSXML});
+        applyTransformation_( trafo, map);
+        FileHandler().storeConsensusFeatures(out, map, {FileTypes::CONSENSUSXML});
       }
       else if (in_type == FileTypes::IDXML)
       {
-        IdXMLFile file;
         vector<ProteinIdentification> proteins;
         vector<PeptideIdentification> peptides;
-        file.load(in, proteins, peptides);
+        FileHandler().loadIdentifications(in, proteins, peptides, {FileTypes::IDXML});
         bool store_original_rt = getFlag_("store_original_rt");
         MapAlignmentTransformer::transformRetentionTimes(peptides, trafo,
                                                          store_original_rt);
         // no "data processing" section in idXML
-        file.store(out, proteins, peptides);
+        FileHandler().storeIdentifications(out, proteins, peptides, {FileTypes::IDXML});
       }
     }
 

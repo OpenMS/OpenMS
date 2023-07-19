@@ -32,6 +32,8 @@
 // $Authors: Marc Sturm, Clemens Groepl, Steffen Sass $
 // --------------------------------------------------------------------------
 #include <OpenMS/ANALYSIS/MAPMATCHING/FeatureGroupingAlgorithmUnlabeled.h>
+// TODO move LoadSize into handler
+#include <OpenMS/FORMAT/FeatureXMLFile.h>
 
 #include "FeatureLinkerBase.cpp"
 
@@ -176,10 +178,10 @@ protected:
       std::vector<ProteinIdentification> ref_protids;
       {
         FeatureMap map_ref;
-        FeatureXMLFile f_fxml_tmp;
-        f_fxml_tmp.getOptions().setLoadConvexHull(false);
-        f_fxml_tmp.getOptions().setLoadSubordinates(false);
-        f_fxml_tmp.load(ins[reference_index], map_ref);
+        FileHandler f_fxml_tmp;
+        f_fxml_tmp.getFeatOptions().setLoadConvexHull(false);
+        f_fxml_tmp.getFeatOptions().setLoadSubordinates(false);
+        f_fxml_tmp.loadFeatures(ins[reference_index], map_ref, {FileTypes::FEATUREXML});
         algorithm->setReference(reference_index, map_ref);
         ref_id = map_ref.getUniqueId();
         ref_size = map_ref.size();
@@ -192,11 +194,11 @@ protected:
       for (Size i = 0; i < ins.size(); ++i)
       {
 
-        FeatureXMLFile f_fxml_tmp;
+        FileHandler f_fxml_tmp;
         FeatureMap tmp_map;
-        f_fxml_tmp.getOptions().setLoadConvexHull(false);
-        f_fxml_tmp.getOptions().setLoadSubordinates(false);
-        f_fxml_tmp.load(ins[i], tmp_map);
+        f_fxml_tmp.getFeatOptions().setLoadConvexHull(false);
+        f_fxml_tmp.getFeatOptions().setLoadSubordinates(false);
+        f_fxml_tmp.loadFeatures(ins[i], tmp_map, {FileTypes::FEATUREXML});
 
         // copy over information on the primary MS run
         StringList ms_runs;
@@ -290,10 +292,10 @@ protected:
     else
     {
       vector<ConsensusMap> maps(ins.size());
-      ConsensusXMLFile f;
+      FileHandler f;
       for (Size i = 0; i < ins.size(); ++i)
       {
-        f.load(ins[i], maps[i]);
+        f.loadConsensusFeatures(ins[i], maps[i],  {FileTypes::CONSENSUSXML});
         StringList ms_runs;
         maps[i].getPrimaryMSRunPath(ms_runs);
         ms_run_locations.insert(ms_run_locations.end(), ms_runs.begin(), ms_runs.end());
@@ -328,7 +330,7 @@ protected:
 
     out_map.setPrimaryMSRunPath(ms_run_locations);
     // write output
-    ConsensusXMLFile().store(out, out_map);
+    FileHandler().storeConsensusFeatures(out, out_map,  {FileTypes::CONSENSUSXML});
 
     // some statistics
     map<Size, UInt> num_consfeat_of_size;

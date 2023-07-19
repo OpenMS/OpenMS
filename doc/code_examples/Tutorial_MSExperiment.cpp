@@ -77,14 +77,14 @@ int main()
   }
 
   // We could store the spectra to a mzML file with:
-  // MzMLFile mzml;
-  // mzml.store(filename, exp);
+  // FileHandler mzml;
+  // mzml.storeExperiment(filename, exp);
   
   // And load it with
-  // mzml.load(filename, exp);
+  // mzml.loadExperiment(filename, exp);
   // If we wanted to load only the MS2 spectra we could speed up reading by setting:
   // mzml.getOptions().addMSLevel(2);
-  // before executing: mzml.load(filename, exp);
+  // before executing: mzml.loadExperiment(filename, exp);
 
   return 0;
 } //end of main

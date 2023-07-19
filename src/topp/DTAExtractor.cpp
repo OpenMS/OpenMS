@@ -32,8 +32,7 @@
 // $Authors: Marc Sturm $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/FORMAT/MzMLFile.h>
-#include <OpenMS/FORMAT/DTAFile.h>
+#include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
@@ -166,12 +165,11 @@ protected:
     //-------------------------------------------------------------
 
     PeakMap exp;
-    MzMLFile f;
-    f.setLogType(log_type_);
+    FileHandler f;
     f.getOptions().setRTRange(DRange<1>(rt_l, rt_u));
-    f.load(in, exp);
+    f.loadExperiment(in, exp, {FileTypes::MZML}, log_type_);
 
-    DTAFile dta;
+    FileHandler dta;
 
     //-------------------------------------------------------------
     // calculations
@@ -197,11 +195,15 @@ protected:
         {
           continue;
         }
-        dta.store(out + "_RT" + String(spec.getRT()) + "_MZ" + String(mz_value) + ".dta", spec);
+        MSExperiment exp;
+        exp.addSpectrum(spec);
+        dta.storeExperiment(out + "_RT" + String(spec.getRT()) + "_MZ" + String(mz_value) + ".dta", exp);
       }
       else
       {
-        dta.store(out + "_RT" + String(spec.getRT()) + ".dta", spec);
+        MSExperiment exp;
+        exp.addSpectrum(spec);
+        dta.storeExperiment(out + "_RT" + String(spec.getRT()) + ".dta", exp);
       }
     }
 

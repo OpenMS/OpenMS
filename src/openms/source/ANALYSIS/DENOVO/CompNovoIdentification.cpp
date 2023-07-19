@@ -36,6 +36,7 @@
 #include <OpenMS/ANALYSIS/DENOVO/CompNovoIdentification.h>
 
 #include <OpenMS/FILTERING/TRANSFORMERS/Normalizer.h>
+#include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/COMPARISON/SPECTRA/SpectrumAlignmentScore.h>
 #include <OpenMS/CHEMISTRY/ModificationsDB.h>
 #include <OpenMS/CHEMISTRY/ResidueDB.h>
@@ -328,14 +329,14 @@ namespace OpenMS
       p.setPosition(it->first);
       filtered_spec.push_back(p);
     }
-    DTAFile().store("spec_scored.dta", filtered_spec);
+    FileHandler().storeExperiment("spec_scored.dta", filtered_spec, {FileTypes::DTA});
 
     PeakSpectrum test_etd_spec, test_cid_spec;
 #define TEST_PEPTIDE "KEELLLPEWILQR"
     getETDSpectrum_(test_etd_spec, TEST_PEPTIDE, 2, 0.0, 0.0);
     getCIDSpectrum_(test_cid_spec, TEST_PEPTIDE, 2, 0.0, 0.0);
-    DTAFile().store(TEST_PEPTIDE + String("_etd_test.dta"), test_etd_spec);
-    DTAFile().store(TEST_PEPTIDE + String("_cid_test.dta"), test_cid_spec);
+    FileHandler().storeExperiment(TEST_PEPTIDE + String("_etd_test.dta"), test_etd_spec, {FileTypes::DTA});
+    FileHandler().storeExperiment(TEST_PEPTIDE + String("_cid_test.dta"), test_cid_spec, {FileTypes::DTA});
 #endif
 
     set<String> sequences;

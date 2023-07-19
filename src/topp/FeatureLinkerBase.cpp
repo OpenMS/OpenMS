@@ -32,8 +32,6 @@
 // $Authors: Marc Sturm, Clemens Groepl, Steffen Sass $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/FORMAT/ConsensusXMLFile.h>
-#include <OpenMS/FORMAT/FeatureXMLFile.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/FileTypes.h>
 #include <OpenMS/ANALYSIS/MAPMATCHING/FeatureGroupingAlgorithm.h>
@@ -185,13 +183,13 @@ protected:
       }
 
       vector<FeatureMap > maps(ins.size());
-      FeatureXMLFile f;
-      FeatureFileOptions param = f.getOptions();
+      FileHandler f;
+      FeatureFileOptions param = f.getFeatOptions();
 
       // to save memory don't load convex hulls and subordinates
       param.setLoadSubordinates(false);
       param.setLoadConvexHull(false);
-      f.setOptions(param);
+      f.setFeatOptions(param);
 
       Size progress = 0;
       setLogType(ProgressLogger::CMD);
@@ -199,7 +197,7 @@ protected:
       for (Size i = 0; i < ins.size(); ++i)
       {
         FeatureMap tmp;
-        f.load(ins[i], tmp);
+        f.loadFeatures(ins[i], tmp, {FileTypes::FEATUREXML});
 
         StringList ms_runs;
         tmp.getPrimaryMSRunPath(ms_runs);
@@ -294,10 +292,10 @@ protected:
       // Otherwise everyone has to remember e.g. to annotate the old map_index etc.
       bool keep_subelements = getFlag_("keep_subelements");
       vector<ConsensusMap> maps(ins.size());
-      ConsensusXMLFile f;
+      FileHandler f;
       for (Size i = 0; i < ins.size(); ++i)
       {
-        f.load(ins[i], maps[i]);
+        f.loadConsensusFeatures(ins[i], maps[i], {FileTypes::CONSENSUSXML});
         maps[i].updateRanges();
         // copy over information on the primary MS run
         StringList ms_runs;
@@ -355,7 +353,7 @@ protected:
     out_map.sortPeptideIdentificationsByMapIndex();
 
     // write output
-    ConsensusXMLFile().store(out, out_map);
+    FileHandler().storeConsensusFeatures(out, out_map, {FileTypes::CONSENSUSXML});
 
     // some statistics
     map<Size, UInt> num_consfeat_of_size;

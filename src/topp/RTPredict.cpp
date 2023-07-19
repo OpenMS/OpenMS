@@ -34,7 +34,7 @@
 
 #include <OpenMS/ANALYSIS/SVM/SVMWrapper.h>
 
-#include <OpenMS/FORMAT/IdXMLFile.h>
+#include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/TextFile.h>
 #include <OpenMS/FORMAT/LibSVMEncoder.h>
 #include <OpenMS/FORMAT/ParamXMLFile.h>
@@ -186,7 +186,7 @@ protected:
 
   ExitCodes main_(int, const char**) override
   {
-    IdXMLFile idXML_file;
+    FileHandler idXML_file;
     vector<ProteinIdentification> protein_identifications;
     vector<PeptideIdentification> identifications;
     vector<String> peptides;
@@ -365,8 +365,7 @@ protected:
     }
     else
     {
-      String document_id;
-      idXML_file.load(input_id, protein_identifications, identifications, document_id);
+      idXML_file.loadIdentifications(input_id, protein_identifications, identifications, {FileTypes::IDXML});
     }
 
     //-------------------------------------------------------------
@@ -638,12 +637,14 @@ protected:
 
     if (separation_prediction)
     {
-      idXML_file.store(outputfile_name_positive,
+      FileHandler().storeIdentifications(outputfile_name_positive,
                        protein_identifications,
-                       identifications_positive);
-      idXML_file.store(outputfile_name_negative,
+                       identifications_positive,
+                       {FileTypes::IDXML});
+      idXML_file.storeIdentifications(outputfile_name_negative,
                        protein_identifications,
-                       identifications_negative);
+                       identifications_negative,
+                       {FileTypes::IDXML});
     }
     else
     {
@@ -653,9 +654,10 @@ protected:
       }
       if (!output_id.empty()) // idXML
       {
-        idXML_file.store(output_id,
+        idXML_file.storeIdentifications(output_id,
                          protein_identifications,
-                         identifications);
+                         identifications,
+                         {FileTypes::IDXML});
         writeDebug_("Linear correlation between predicted and measured rt is: "
                     + String(Math::pearsonCorrelationCoefficient(all_predicted_retention_times.begin(),
                                                                  all_predicted_retention_times.end(),

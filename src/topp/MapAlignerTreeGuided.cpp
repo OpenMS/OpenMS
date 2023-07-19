@@ -34,8 +34,7 @@
 
 #include <OpenMS/ANALYSIS/MAPMATCHING/MapAlignmentAlgorithmTreeGuided.h>
 #include <OpenMS/APPLICATIONS/MapAlignerBase.h>
-#include <OpenMS/FORMAT/FeatureXMLFile.h>
-#include <OpenMS/FORMAT/TransformationXMLFile.h>
+#include <OpenMS/FORMAT/FileHandler.h>
 
 #include <OpenMS/COMPARISON/CLUSTERING/ClusterAnalyzer.h> // to print newick tree on cml
 
@@ -119,7 +118,7 @@ public:
 
 private:
   template <typename MapType>
-  void loadInputMaps_(vector<MapType>& maps, StringList& ins, FeatureXMLFile& fxml_file)
+  void loadInputMaps_(vector<MapType>& maps, StringList& ins, FileHandler& fxml_file)
   {
     ProgressLogger progresslogger;
     progresslogger.setLogType(TOPPMapAlignerBase::log_type_);
@@ -127,12 +126,12 @@ private:
     for (Size i = 0; i < ins.size(); ++i)
     {
       progresslogger.setProgress(i);
-      fxml_file.load(ins[i], maps[i]);
+      fxml_file.loadFeatures(ins[i], maps[i], {FileTypes::FEATUREXML});
     }
     progresslogger.endProgress();
   }
 
-  void storeFeatureXMLs_(vector<FeatureMap>& feature_maps, const StringList& out_files, FeatureXMLFile& fxml_file)
+  void storeFeatureXMLs_(vector<FeatureMap>& feature_maps, const StringList& out_files, FileHandler& fxml_file)
   {
     ProgressLogger progresslogger;
     progresslogger.setLogType(TOPPMapAlignerBase::log_type_);
@@ -142,7 +141,7 @@ private:
       progresslogger.setProgress(i);
       // annotate output with data processing info
       addDataProcessing_(feature_maps[i], getProcessingInfo_(DataProcessing::ALIGNMENT));
-      fxml_file.store(out_files[i], feature_maps[i]);
+      fxml_file.storeFeatures(out_files[i], feature_maps[i], {FileTypes::FEATUREXML});
     }
     progresslogger.endProgress();
   }
@@ -156,7 +155,7 @@ private:
     for (Size i = 0; i < trafos.size(); ++i)
     {
       progresslogger.setProgress(i);
-      TransformationXMLFile().store(trafos[i], transformations[i]);
+      FileHandler().storeTransformations(trafos[i], transformations[i], {FileTypes::TRANSFORMATIONXML});
     }
     progresslogger.endProgress();
   }
@@ -197,13 +196,13 @@ private:
     // reading input
     //-------------------------------------------------------------
     Size in_files_size = in_files.size();
-    FeatureXMLFile fxml_file;
+    FileHandler fxml_file;
     // define here because needed to load and store
-    FeatureFileOptions param = fxml_file.getOptions();
+    FeatureFileOptions param = fxml_file.getFeatOptions();
     // to save memory don't load convex hulls and subordinates
     param.setLoadSubordinates(false);
     param.setLoadConvexHull(false);
-    fxml_file.setOptions(param);
+    fxml_file.setFeatOptions(param);
 
     vector<FeatureMap> feature_maps(in_files_size);
     loadInputMaps_(feature_maps, in_files, fxml_file);

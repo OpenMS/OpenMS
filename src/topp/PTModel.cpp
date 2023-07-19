@@ -34,7 +34,7 @@
 
 #include <OpenMS/ANALYSIS/SVM/SVMWrapper.h>
 
-#include <OpenMS/FORMAT/IdXMLFile.h>
+#include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/LibSVMEncoder.h>
 #include <OpenMS/FORMAT/ParamXMLFile.h>
 
@@ -424,9 +424,8 @@ protected:
     //-------------------------------------------------------------
     // reading input
     //-------------------------------------------------------------
-    String document_id;
-    IdXMLFile().load(inputfile_positives, protein_identifications, identifications, document_id);
-    IdXMLFile().load(inputfile_negatives, protein_identifications_negative, identifications_negative, document_id);
+    FileHandler().loadIdentifications(inputfile_positives, protein_identifications, identifications, {FileTypes::IDXML});
+    FileHandler().loadIdentifications(inputfile_negatives, protein_identifications_negative, identifications_negative, {FileTypes::IDXML});
 
     //-------------------------------------------------------------
     // calculations

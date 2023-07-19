@@ -40,8 +40,7 @@
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
 #include <OpenMS/METADATA/PeptideHit.h>
-#include <OpenMS/FORMAT/MzMLFile.h>
-#include <OpenMS/FORMAT/ConsensusXMLFile.h>
+#include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexDeltaMasses.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexDeltaMassesGenerator.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/MultiplexIsotopicPeakPattern.h>
@@ -598,17 +597,15 @@ public:
     /**
      * load consensus map
      */
-    ConsensusXMLFile file;
     ConsensusMap map_in;
-    file.load(in_, map_in);
+    FileHandler().loadConsensusFeatures(in_, map_in, {FileTypes::CONSENSUSXML});
 
     /**
      * load (optional) blacklist
      */
-    MzMLFile file_blacklist;
     if (!(in_blacklist_.empty()))
     {
-      file_blacklist.load(in_blacklist_, exp_blacklist_);
+      FileHandler().loadExperiment(in_blacklist_, exp_blacklist_, {FileTypes::MZML});
     }
 
     /**
@@ -632,12 +629,10 @@ public:
     /**
      * store consensus maps
      */
-    ConsensusXMLFile file_out;
-    ConsensusXMLFile file_out_conflicts;
-    file_out.store(out_, map_out);
+    FileHandler().storeConsensusFeatures(out_, map_out, {FileTypes::CONSENSUSXML});
     if (!out_conflicts_.empty())
     {
-      file_out_conflicts.store(out_conflicts_, map_conflicts);
+      FileHandler().storeConsensusFeatures(out_conflicts_, map_conflicts, {FileTypes::CONSENSUSXML});
     }
    
     return EXECUTION_OK;

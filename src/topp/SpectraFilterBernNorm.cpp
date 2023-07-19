@@ -37,7 +37,7 @@
 
 #include <OpenMS/FILTERING/TRANSFORMERS/BernNorm.h>
 
-#include <OpenMS/FORMAT/MzMLFile.h>
+#include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 
 #include <typeinfo>
@@ -117,9 +117,7 @@ protected:
     //-------------------------------------------------------------
 
     PeakMap exp;
-    MzMLFile f;
-    f.setLogType(log_type_);
-    f.load(in, exp);
+    FileHandler().loadExperiment(in, exp, {FileTypes::MZML}, log_type_);
 
     //-------------------------------------------------------------
     // if meta data arrays are present, remove them and warn
@@ -146,7 +144,8 @@ protected:
     //annotate output with data processing info
     addDataProcessing_(exp, getProcessingInfo_(DataProcessing::FILTERING));
 
-    f.store(out, exp);
+    FileHandler().storeExperiment(out, exp, {FileTypes::MZML}, log_type_);
+
 
     return EXECUTION_OK;
   }

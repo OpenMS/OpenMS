@@ -32,8 +32,6 @@
 // $Authors: Andreas Bertsch $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/FORMAT/MzMLFile.h>
-#include <OpenMS/FORMAT/FeatureXMLFile.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/TRANSFORMATIONS/FEATUREFINDER/FeatureFinderAlgorithmIsotopeWavelet.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
@@ -132,13 +130,13 @@ protected:
     FileTypes::Type in_type = fh.getType(in);
 
     PeakMap exp;
-    fh.loadExperiment(in, exp, in_type, log_type_, false, false);
+    fh.loadExperiment(in, exp, {in_type}, ProgressLogger::NONE, false, false);
     exp.sortSpectra();
 
     FeatureMap feature_map;
     if (!feature_in.empty())
     {
-      FeatureXMLFile().load(feature_in, feature_map);
+      FileHandler().loadFeatures(feature_in, feature_map, {FileTypes::FEATUREXML});
     }
 
     // calculations
@@ -267,7 +265,7 @@ protected:
     progresslogger.endProgress();
 
     // writing output
-    fh.storeExperiment(out, exp, log_type_);
+    fh.storeExperiment(out, exp);
 
     return EXECUTION_OK;
   }

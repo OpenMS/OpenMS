@@ -34,11 +34,9 @@
 
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/FILTERING/ID/IDFilter.h>
-#include <OpenMS/FORMAT/ConsensusXMLFile.h>
 #include <OpenMS/FORMAT/ExperimentalDesignFile.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/FileTypes.h>
-#include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/METADATA/ExperimentalDesign.h>
 #include <OpenMS/SYSTEM/File.h>
 #include <OpenMS/SYSTEM/StopWatch.h>
@@ -294,8 +292,7 @@ protected:
       }
       ConsensusMapMergerAlgorithm cmerge;
       ConsensusMap cmap;
-      ConsensusXMLFile cxmlf;
-      cxmlf.load(files[0], cmap);
+      FileHandler().loadConsensusFeatures(files[0], cmap, {FileTypes::CONSENSUSXML});
       std::optional<const ExperimentalDesign> edopt = maybeGetExpDesign_(exp_des);
       if (!exp_des.empty())
       {
@@ -362,11 +359,10 @@ protected:
         }
       }
 
-      cxmlf.store(out_file, cmap);
+      FileHandler().storeConsensusFeatures(out_file, cmap, {FileTypes::CONSENSUSXML});
     }
     else // ----------------------------   IdXML   -------------------------------------
     {
-      IdXMLFile idXMLf;
       IDMergerAlgorithm merger{};
       OPENMS_LOG_INFO << "Loading input..." << std::endl;
       vector<ProteinIdentification> mergedprots{1};
@@ -377,7 +373,7 @@ protected:
         {
           vector<ProteinIdentification> prots;
           vector<PeptideIdentification> peps;
-          idXMLf.load(file, prots, peps);
+          FileHandler().loadIdentifications(file, prots, peps, {FileTypes::IDXML});
           //TODO merger does not support groups yet, so clear them here right away.
           // Not so easy to implement at first sight. Merge groups whenever one protein overlaps?
           prots[0].getIndistinguishableProteins().clear();
@@ -388,7 +384,7 @@ protected:
       }
       else
       {
-        idXMLf.load(files[0], mergedprots, mergedpeps);
+        FileHandler().loadIdentifications(files[0], mergedprots, mergedpeps, {FileTypes::IDXML});
         //TODO For now we delete because we want to add new groups here.
         // Think about:
         // 1) keeping the groups and allow them to be used as a prior grouping (e.g. gene based)
@@ -467,7 +463,7 @@ protected:
              const ProteinIdentification::ProteinGroup& g)
           {return f.accessions < g.accessions;});
 
-      idXMLf.store(out_file, mergedprots, mergedpeps);
+      FileHandler().storeIdentifications(out_file, mergedprots, mergedpeps, {FileTypes::IDXML});
     }
     return ExitCodes::EXECUTION_OK;
   }

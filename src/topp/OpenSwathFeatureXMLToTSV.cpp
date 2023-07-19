@@ -35,8 +35,7 @@
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/ANALYSIS/TARGETED/TargetedExperiment.h>
 #include <OpenMS/CONCEPT/Types.h>
-#include <OpenMS/FORMAT/FeatureXMLFile.h>
-#include <OpenMS/FORMAT/TraMLFile.h>
+#include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
 #include <OpenMS/KERNEL/Feature.h>
 
@@ -412,7 +411,7 @@ protected:
     setLogType(log_type_);
 
     TargetedExperiment transition_exp;
-    TraMLFile().load(tr_file, transition_exp);
+    FileHandler().loadTransitions(tr_file, transition_exp, {FileTypes::TRAML});
 
     startProgress(0, transition_exp.getTransitions().size(), "indexing transitions peaks");
     for (Size i = 0; i < transition_exp.getTransitions().size(); i++)
@@ -440,13 +439,11 @@ protected:
       throw Exception::IllegalArgument(__FILE__, __LINE__, OPENMS_PRETTY_FUNCTION, "No input files given ");
     }
     FeatureMap feature_map;
-    FeatureXMLFile feature_file;
-    feature_file.setLogType(log_type_);
     // feature_file.load() resets the locale to the user's (Don't know where, maybe QT or Xerces)
     // Somehow even our variable OpenMS::Internal::OpenMS_locale is overwritten
     // Create copy here and reset it later. TODO this needs to be fixed more thouroughly.
     String locale_before = String(OpenMS::Internal::OpenMS_locale);
-    feature_file.load(file_list[0], feature_map);
+    FileHandler().loadFeatures(file_list[0], feature_map, {FileTypes::FEATUREXML}, log_type_);
     setlocale(LC_ALL, locale_before.c_str());
     if (feature_map.getIdentifier().empty())
     {
@@ -484,7 +481,7 @@ protected:
     // start with the second in the list (we just wrote out the first one)
     for (Size i = 1; i < file_list.size(); ++i)
     {
-      feature_file.load(file_list[i], feature_map);
+      FileHandler().loadFeatures(file_list[i], feature_map, {FileTypes::FEATUREXML}, log_type_);
       if (feature_map.getIdentifier().empty())
       {
         feature_map.setIdentifier("run" + (String)i);

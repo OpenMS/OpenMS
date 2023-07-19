@@ -40,6 +40,8 @@
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/FileTypes.h>
 
+#include <unordered_set>
+
 ///////////////////////////
 
 START_TEST(FileHandler, "Id")
@@ -145,6 +147,15 @@ START_SECTION([EXTRA] FileTypes::FileTypeList)
   TEST_EQUAL(list.fromFileDialogFilter("bzip2 compressed file (*.bz2)", FileTypes::CONSENSUSXML), FileTypes::BZ2);
   TEST_EXCEPTION(Exception::ElementNotFound, list.fromFileDialogFilter("not a valid filter", FileTypes::CONSENSUSXML));
 
+  END_SECTION
+
+  START_SECTION(static FileTypes::FileTypeList typesWithProperties(const std::unordered_set<FileProperties>& features))
+  {
+    std::unordered_set<FileTypes::FileProperties> f;
+    f.insert(FileTypes::READABLE);
+    FileTypeList g = FileTypeList::typesWithProperties(f);
+    TEST_EQUAL(g.getTypes().size(), 2);
+  }
   END_SECTION
 
 END_TEST

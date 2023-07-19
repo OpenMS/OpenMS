@@ -34,6 +34,8 @@
 
 #include <OpenMS/FORMAT/DATAACCESS/MSDataWritingConsumer.h>
 #include <OpenMS/FORMAT/VALIDATORS/MzMLValidator.h>
+// TODO move getVersion to Handler
+#include <OpenMS/FORMAT/MzMLFile.h>
 
 #include <utility>
 

@@ -53,7 +53,7 @@
 #include <OpenMS/FILTERING/TRANSFORMERS/ThresholdMower.h>
 #include <OpenMS/FILTERING/TRANSFORMERS/WindowMower.h>
 #include <OpenMS/FORMAT/FASTAFile.h>
-#include <OpenMS/FORMAT/MzMLFile.h>
+#include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/KERNEL/MSExperiment.h>
 #include <OpenMS/KERNEL/MSSpectrum.h>
 #include <OpenMS/KERNEL/Peak1D.h>
@@ -435,14 +435,14 @@ void SimpleSearchEngineAlgorithm::postProcessHits_(const PeakMap& exp,
 
     // load MS2 map
     PeakMap spectra;
-    MzMLFile f;
+    FileHandler f;
     //f.setLogType(log_type_);
 
     PeakFileOptions options;
     options.clearMSLevels();
     options.addMSLevel(2);
     f.getOptions() = options;
-    f.load(in_mzML, spectra);
+    f.loadExperiment(in_mzML, spectra, {FileTypes::MZML});
     spectra.sortSpectra(true);
 
     startProgress(0, 1, "Filtering spectra...");

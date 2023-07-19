@@ -38,6 +38,7 @@
 #include <OpenMS/DATASTRUCTURES/String.h>
 
 #include <vector>
+#include <unordered_set>
 
 namespace OpenMS
 {
@@ -119,6 +120,15 @@ namespace OpenMS
       SIZE_OF_TYPE        ///< No file type. Simply stores the number of types
     };
 
+    enum FileProperties
+    {
+      READABLE,
+      WRITEABLE,
+      PROVIDES_MS1,
+      PROVIDES_MS2,
+      SIZE_OF_FEATURES
+    };
+
     /// Returns the name/extension of the type.
     static String typeToName(Type type);
     
@@ -180,6 +190,16 @@ namespace OpenMS
       @throw Exception::ElementNotFound if the given @p filter is not a filter produced by toFileDialogFilter()
     **/
     FileTypes::Type fromFileDialogFilter(const String& filter, const FileTypes::Type fallback = FileTypes::Type::UNKNOWN) const;
+
+
+    /**
+      @brief Get a std::vector<FileTypes::Type> with all fileTypes that support a set of features.
+
+      
+      @param features An unordered_set of features that fileTypes must support
+      @return A std::vector<FileTypes::Type> with the files that support features
+    **/
+    static std::vector<FileTypes::Type> typesWithProperties(const std::unordered_set<FileTypes::FileProperties> features);
 
   private:
     /// hold filter items (for Qt dialogs) along with their OpenMS type

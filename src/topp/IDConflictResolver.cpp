@@ -34,8 +34,6 @@
 
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 
-#include <OpenMS/FORMAT/ConsensusXMLFile.h>
-#include <OpenMS/FORMAT/FeatureXMLFile.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/METADATA/PeptideIdentification.h>
 #include <OpenMS/ANALYSIS/ID/IDConflictResolverAlgorithm.h>
@@ -124,7 +122,7 @@ protected:
     if (in_type == FileTypes::FEATUREXML) // featureXML
     {
       FeatureMap features;
-      FeatureXMLFile().load(in, features);
+      FileHandler().loadFeatures(in, features, {FileTypes::FEATUREXML});
       
       IDConflictResolverAlgorithm::resolve(features);
       
@@ -134,12 +132,12 @@ protected:
       }
       
       addDataProcessing_(features, getProcessingInfo_(DataProcessing::FILTERING));
-      FeatureXMLFile().store(out, features);
+      FileHandler().storeFeatures(out, features, {FileTypes::FEATUREXML});
     }
     else // consensusXML
     {
       ConsensusMap consensus;
-      ConsensusXMLFile().load(in, consensus);
+      FileHandler().loadConsensusFeatures(in, consensus, {FileTypes::CONSENSUSXML});
       
       IDConflictResolverAlgorithm::resolve(consensus);
       
@@ -149,7 +147,7 @@ protected:
       }
       
       addDataProcessing_(consensus, getProcessingInfo_(DataProcessing::FILTERING));
-      ConsensusXMLFile().store(out, consensus);
+      FileHandler().storeConsensusFeatures(out, consensus, {FileTypes::CONSENSUSXML});
     }
     return EXECUTION_OK;
   }

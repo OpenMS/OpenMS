@@ -177,6 +177,14 @@ public:
     */
     bool isSemanticallyValid(const String& filename, StringList& errors, StringList& warnings);
 
+    /**
+      @brief Checks if a file is an indexed MzML file or not.
+
+      @param filename File name of the file to be checked.
+
+      @exception Exception::FileNotFound is thrown if the file could not be opened
+    */
+    bool hasIndex(const String& filename);
 
     struct SpecInfo
     {

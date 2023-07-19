@@ -40,8 +40,7 @@
 #include <OpenMS/FILTERING/SMOOTHING/GaussFilter.h>
 #include <OpenMS/FILTERING/SMOOTHING/SavitzkyGolayFilter.h>
 #include <OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakPickerHiRes.h>
-#include <OpenMS/FORMAT/MSPGenericFile.h>
-#include <OpenMS/FORMAT/TraMLFile.h>
+#include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FILTERING/DATAREDUCTION/Deisotoper.h>
 #include <OpenMS/MATH/MISC/MathFunctions.h>
 #include <OpenMS/KERNEL/RangeUtils.h>
@@ -1050,8 +1049,7 @@ namespace OpenMS
     removeMS2SpectraPeaks_(experiment);
 
     // Store
-    MSPGenericFile msp_file;
-    msp_file.store(filename, experiment);
+    FileHandler().storeExperiment(filename, experiment, {FileTypes::MSP});
   }
   
   void TargetedSpectraExtractor::deisotopeMS2Spectra_(MSExperiment& experiment) const

@@ -34,9 +34,7 @@
 
 #include <OpenMS/CHEMISTRY/SvmTheoreticalSpectrumGeneratorTrainer.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
-#include <OpenMS/FORMAT/TextFile.h>
-#include <OpenMS/FORMAT/MzMLFile.h>
-#include <OpenMS/FORMAT/IdXMLFile.h>
+#include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/ANALYSIS/ID/IDMapper.h>
 
 #include "svm.h"
@@ -131,12 +129,11 @@ protected:
     // loading input
     //-------------------------------------------------------------
     PeakMap map;
-    MzMLFile().load(in_spectra, map);
+    FileHandler().loadExperiment(in_spectra, map, {FileTypes::MZML});
 
     std::vector<PeptideIdentification> pep_ids;
     std::vector<ProteinIdentification> prot_ids;
-    String tmp_str;
-    IdXMLFile().load(in_identifications, prot_ids, pep_ids, tmp_str);
+    FileHandler().loadIdentifications(in_identifications, prot_ids, pep_ids, {FileTypes::IDXML});
 
     IDMapper idmapper;
     Param par;

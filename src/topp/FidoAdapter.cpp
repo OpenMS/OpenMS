@@ -34,7 +34,7 @@
 
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/FILTERING/ID/IDFilter.h>
-#include <OpenMS/FORMAT/IdXMLFile.h>
+#include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/SYSTEM/File.h>
 
 #include <OpenMS/ANALYSIS/ID/PeptideProteinResolution.h>
@@ -524,7 +524,7 @@ protected:
     vector<PeptideIdentification> peptides;
 
     OPENMS_LOG_INFO << "Reading input data..." << endl;
-    IdXMLFile().load(in, proteins, peptides);
+    FileHandler().loadIdentifications(in, proteins, peptides, {FileTypes::IDXML});
     if (proteins.empty() || peptides.empty())
     {
       OPENMS_LOG_ERROR << "Error: Input file '" << in
@@ -683,7 +683,7 @@ protected:
     }
 
     // write output:
-    IdXMLFile().store(out, proteins, peptides);
+    FileHandler().storeIdentifications(out, proteins, peptides, {FileTypes::IDXML});
 
     // clean up temporary files:
     if (debug_level_ > 1)

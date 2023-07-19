@@ -38,10 +38,7 @@
 #include <OpenMS/MATH/MISC/MathFunctions.h>
 #include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/FORMAT/FileTypes.h>
-#include <OpenMS/FORMAT/FeatureXMLFile.h>
-#include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/KERNEL/ConsensusMap.h>
-#include <OpenMS/FORMAT/ConsensusXMLFile.h>
 #include <OpenMS/FORMAT/SVOutStream.h>
 #include <OpenMS/METADATA/MetaInfoInterfaceUtils.h>
 #include <OpenMS/KERNEL/FeatureMap.h>
@@ -695,8 +692,7 @@ protected:
         //-------------------------------------------------------------
 
         FeatureMap feature_map;
-        FeatureXMLFile f;
-        f.load(in, feature_map);
+        FileHandler().loadFeatures(in, feature_map, {FileTypes::FEATUREXML});
 
         // extract common id and hit meta values
         StringList peptide_id_meta_keys;
@@ -856,9 +852,8 @@ protected:
         bool add_metavalues = getFlag_("consensus:add_metavalues");
 
         ConsensusMap consensus_map;
-        ConsensusXMLFile consensus_xml_file;
 
-        consensus_xml_file.load(in, consensus_map);
+        FileHandler().loadConsensusFeatures(in, consensus_map, {FileTypes::CONSENSUSXML});
 
         // for optional export of ConsensusFeature meta values, collect all possible meta value keys
         std::set<String> meta_value_keys;
@@ -1364,8 +1359,7 @@ protected:
       {
         vector<ProteinIdentification> prot_ids;
         vector<PeptideIdentification> pep_ids;
-        String document_id;
-        IdXMLFile().load(in, prot_ids, pep_ids, document_id);
+        FileHandler().loadIdentifications(in, prot_ids, pep_ids, {FileTypes::IDXML});
         StringList peptide_id_meta_keys;
         StringList peptide_hit_meta_keys;
         StringList protein_hit_meta_keys;
@@ -1465,7 +1459,7 @@ protected:
       else if (in_type == FileTypes::MZML)
       {
         PeakMap exp;
-        FileHandler().loadExperiment(in, exp, FileTypes::MZML, ProgressLogger::NONE, false, false);
+        FileHandler().loadExperiment(in, exp, {FileTypes::MZML}, ProgressLogger::NONE, false, false);
 
         if (exp.getSpectra().empty() && exp.getChromatograms().empty())
         {

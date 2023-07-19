@@ -33,7 +33,6 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/DATASTRUCTURES/DefaultParamHandler.h>
-#include <OpenMS/FORMAT/IdXMLFile.h>
 #include <OpenMS/FORMAT/MascotXMLFile.h>
 #include <OpenMS/FORMAT/MascotRemoteQuery.h>
 #include <OpenMS/FORMAT/MascotGenericFile.h>
@@ -268,7 +267,7 @@ protected:
     // keep only MS2 spectra
     FileHandler fh;
     fh.getOptions().setMSLevels({2});
-    fh.loadExperiment(in, exp, FileTypes::Type::MZML, log_type_, false, false);
+    fh.loadExperiment(in, exp, {FileTypes::Type::MZML}, log_type_, false, false);
     writeLogInfo_("Number of spectra loaded: " + String(exp.size()));
 
 
@@ -471,7 +470,7 @@ protected:
     // write all (!) parameters as metavalues to the search parameters
     DefaultParamHandler::writeParametersToMetaValues(this->getParam_(), all_prot_ids[0].getSearchParameters(), this->getToolPrefix());
 
-    IdXMLFile().store(out, all_prot_ids, all_pep_ids);
+    FileHandler().storeIdentifications(out, all_prot_ids, all_pep_ids, {FileTypes::IDXML});
     
     return EXECUTION_OK;
   }

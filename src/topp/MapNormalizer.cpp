@@ -32,7 +32,7 @@
 // $Authors: Marc Sturm $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/FORMAT/MzMLFile.h>
+#include <OpenMS/FORMAT/FileHandler.h>
 
 #include <OpenMS/KERNEL/MSExperiment.h>
 
@@ -107,8 +107,8 @@ protected:
     //-------------------------------------------------------------
 
     PeakMap exp;
-    MzMLFile f;
-    f.load(in, exp);
+    FileHandler f;
+    f.loadExperiment(in, exp, {FileTypes::MZML});
 
     //-------------------------------------------------------------
     // calculations
@@ -160,7 +160,7 @@ for (vector<MSChromatogram >::iterator it = chroms.begin(); it != chroms.end(); 
     //annotate output with data processing info
     addDataProcessing_(exp, getProcessingInfo_(DataProcessing::NORMALIZATION));
 
-    f.store(out, exp);
+    f.storeExperiment(out, exp, {FileTypes::MZML});
 
     return EXECUTION_OK;
   }

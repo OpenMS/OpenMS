@@ -124,10 +124,9 @@ protected:
     String desc_filter = getStringOption_("description_filter");
     double ratio_threshold = getDoubleOption_("ratio_threshold");
 
-    ConsensusXMLFile infile;
-    infile.setLogType(log_type_);
+    FileHandler infile;
     ConsensusMap map;
-    infile.load(in, map);
+    infile.loadConsensusFeatures(in, map, {FileTypes::CONSENSUSXML}, log_type_);
 
     //map normalization
     if (algo_type == "robust_regression")
@@ -160,7 +159,7 @@ protected:
 
     //annotate output with data processing info and save output file
     addDataProcessing_(map, getProcessingInfo_(DataProcessing::NORMALIZATION));
-    infile.store(out, map);
+    infile.storeConsensusFeatures(out, map, {FileTypes::CONSENSUSXML});
 
     return EXECUTION_OK;
   }

@@ -92,7 +92,7 @@ namespace OpenMS
       {
         PeakMap exp;
         exp.setChromatograms(irt_chromatograms);
-        MzMLFile().store(irt_mzml_out, exp);
+        FileHandler().storeExperiment(irt_mzml_out, exp, {FileTypes::MZML});
       }
       catch (OpenMS::Exception::UnableToCreateFile& /*e*/)
       {

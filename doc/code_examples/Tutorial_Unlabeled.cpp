@@ -31,8 +31,7 @@
 #include <OpenMS/CONCEPT/Types.h>
 
 #include <OpenMS/ANALYSIS/MAPMATCHING/FeatureGroupingAlgorithmUnlabeled.h>
-#include <OpenMS/FORMAT/FeatureXMLFile.h>
-#include <OpenMS/FORMAT/ConsensusXMLFile.h>
+#include <OpenMS/FORMAT/FileHandler.h>
 
 using namespace OpenMS;
 using namespace std;
@@ -46,9 +45,9 @@ int main(int argc, const char** argv)
   vector<FeatureMap > maps;
   maps.resize(2);
 
-  FeatureXMLFile feature_file;
-  feature_file.load(tutorial_data_path + "/data/Tutorial_Unlabeled_1.featureXML", maps[0]);
-  feature_file.load(tutorial_data_path + "/data/Tutorial_Unlabeled_2.featureXML", maps[1]);
+  FileHandler feature_file;
+  feature_file.loadFeatures(tutorial_data_path + "/data/Tutorial_Unlabeled_1.featureXML", maps[0]);
+  feature_file.loadFeatures(tutorial_data_path + "/data/Tutorial_Unlabeled_2.featureXML", maps[1]);
 
   ConsensusMap out;
   out.getColumnHeaders()[0].filename = "/data/Tutorial_Unlabeled_1.mzML";
@@ -60,8 +59,8 @@ int main(int argc, const char** argv)
   FeatureGroupingAlgorithmUnlabeled algorithm;
   // ... set parameters
   algorithm.group(maps, out);
-  ConsensusXMLFile consensus_file;
-  consensus_file.store("Tutorial_Unlabeled.consensusXML", out);
+  FileHandler consensus_file;
+  consensus_file.storeConsensusFeatures("Tutorial_Unlabeled.consensusXML", out);
 
   return 0;
 } //end of main

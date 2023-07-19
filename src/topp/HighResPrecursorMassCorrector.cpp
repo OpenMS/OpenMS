@@ -37,7 +37,7 @@
 #include <OpenMS/CONCEPT/Constants.h>
 #include <OpenMS/CONCEPT/LogStream.h>
 #include <OpenMS/FORMAT/FeatureXMLFile.h>
-#include <OpenMS/FORMAT/MzMLFile.h>
+#include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/KERNEL/StandardTypes.h>
 #include <OpenMS/MATH/MISC/MathFunctions.h>
 #include <OpenMS/TRANSFORMATIONS/RAW2PEAK/PeakPickerHiRes.h>
@@ -161,7 +161,7 @@ class TOPPHiResPrecursorMassCorrector :
       const bool highest_intensity_peak_ppm = getStringOption_("highest_intensity_peak:mz_tolerance_unit") == "ppm" ? true : false;
 
       PeakMap exp;
-      MzMLFile().load(in_mzml, exp);
+      FileHandler().loadExperiment(in_mzml, exp, {FileTypes::MZML});
 
       cout << setprecision(12);
 
@@ -196,12 +196,12 @@ class TOPPHiResPrecursorMassCorrector :
       if (!in_feature.empty())
       {
         FeatureMap features;
-        FeatureXMLFile().load(in_feature, features);
+        FileHandler().loadFeatures(in_feature, features);
         corrected_to_nearest_feature = PrecursorCorrection::correctToNearestFeature(features, exp, rt_tolerance, mz_tolerance, mz_unit_ppm, believe_charge, keep_original, assign_all_matching, max_trace, debug_level_);
         corrected_precursors.insert(corrected_to_nearest_feature.begin(), corrected_to_nearest_feature.end());
       }
 
-      MzMLFile().store(out_mzml, exp);
+      FileHandler().storeExperiment(out_mzml, exp, {FileTypes::MZML},log_type_);
 
       if (!out_csv.empty())
       {

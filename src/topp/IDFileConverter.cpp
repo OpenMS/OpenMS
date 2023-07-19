@@ -45,7 +45,6 @@
 #include <OpenMS/FORMAT/MascotXMLFile.h>
 #include <OpenMS/FORMAT/MzIdentMLFile.h>
 #include <OpenMS/FORMAT/OMSFile.h>
-#include <OpenMS/FORMAT/MzMLFile.h>
 #include <OpenMS/FORMAT/OMSSAXMLFile.h>
 #include <OpenMS/FORMAT/PepXMLFile.h>
 #include <OpenMS/FORMAT/PercolatorOutfile.h>
@@ -308,7 +307,7 @@ protected:
       if (!mz_file.empty())
       {
         type = fh.getTypeByFileName(mz_file);
-        fh.loadExperiment(mz_file, msexperiment, type, log_type_, false, false);
+        fh.loadExperiment(mz_file, msexperiment, {type}, log_type_, false, false);
 
         for (PeakMap::Iterator spectra_it = msexperiment.begin(); spectra_it != msexperiment.end(); ++spectra_it)
         {
@@ -415,7 +414,7 @@ protected:
         else
         {
           PeakMap exp;
-          fh.loadExperiment(mz_file, exp, FileTypes::UNKNOWN, log_type_, false,
+          fh.loadExperiment(mz_file, exp, {}, log_type_, false,
                             false);
           if (mz_name.empty()) mz_name = mz_file;
           String scan_regex = getStringOption_("scan_regex");
@@ -429,7 +428,7 @@ protected:
 
       case FileTypes::IDXML:
       {
-        IdXMLFile().load(in, protein_identifications, peptide_identifications);
+        FileHandler().loadIdentifications(in, protein_identifications, peptide_identifications, {FileTypes::IDXML});
         // get spectrum_references from the mz data, if necessary:
         if (!mz_file.empty())
         {
@@ -453,8 +452,8 @@ protected:
       case FileTypes::MZIDENTML:
       {
         OPENMS_LOG_WARN << "Converting from mzid: you might experience loss of information depending on the capabilities of the target format." << endl;
-        MzIdentMLFile().load(in, protein_identifications,
-                             peptide_identifications);
+        FileHandler().loadIdentifications(in, protein_identifications,
+                             peptide_identifications, {FileTypes::MZIDENTML});
 
         // get retention times from the mz data, if necessary:
         if (!mz_file.empty())
@@ -473,18 +472,15 @@ protected:
 
       case FileTypes::PROTXML:
       {
-        protein_identifications.resize(1);
-        peptide_identifications.resize(1);
-        ProtXMLFile().load(in, protein_identifications[0],
-                           peptide_identifications[0]);
+        FileHandler().loadIdentifications(in, protein_identifications,
+                           peptide_identifications, {FileTypes::PROTXML});
       }
       break;
 
       case FileTypes::OMSSAXML:
       {
-        protein_identifications.resize(1);
-        OMSSAXMLFile().load(in, protein_identifications[0],
-                            peptide_identifications, true);
+        FileHandler().loadIdentifications(in, protein_identifications,
+                            peptide_identifications);
       }
       break;
 
@@ -496,7 +492,7 @@ protected:
           PeakMap exp;
           // load only MS2 spectra:
           fh.getOptions().addMSLevel(2);
-          fh.loadExperiment(mz_file, exp, FileTypes::MZML, log_type_, false,
+          fh.loadExperiment(mz_file, exp, {}, log_type_, false,
                             false);
           MascotXMLFile::initializeLookup(lookup, exp, scan_regex);
         }
@@ -519,7 +515,7 @@ protected:
         {
           PeakMap exp;
           fh.getOptions().addMSLevel(2);
-          fh.loadExperiment(mz_file, exp, FileTypes::MZML, log_type_, false,
+          fh.loadExperiment(mz_file, exp, {}, log_type_, false,
                             false);
           for (PeptideIdentification& pep : peptide_identifications)
           {
@@ -553,7 +549,7 @@ protected:
         if (!mz_file.empty())
         {
           PeakMap experiment;
-          fh.loadExperiment(mz_file, experiment, FileTypes::UNKNOWN, log_type_, false, false);
+          fh.loadExperiment(mz_file, experiment, {}, log_type_, false, false);
           lookup.readSpectra(experiment.getSpectra());
         }
         String scan_regex = getStringOption_("scan_regex");
@@ -597,7 +593,7 @@ protected:
 
       case FileTypes::XQUESTXML:
       {
-        XQuestResultXMLFile().load(in, peptide_identifications, protein_identifications);
+        FileHandler().loadIdentifications(in, protein_identifications, peptide_identifications, {FileTypes::XQUESTXML});
       }
       break;
 
@@ -678,8 +674,7 @@ protected:
 
         logger.startProgress(0, 1, "Storing...");
 
-        MzMLFile mz_file;
-        mz_file.store(out, exp);
+        FileHandler().storeExperiment(out, exp, {FileTypes::MZML});
 
         logger.endProgress();
 
@@ -721,17 +716,17 @@ protected:
     break;
 
     case FileTypes::IDXML:
-      IdXMLFile().store(out, protein_identifications, peptide_identifications);
+      FileHandler().storeIdentifications(out, protein_identifications, peptide_identifications, {FileTypes::IDXML});
       break;
 
     case FileTypes::MZIDENTML:
-      MzIdentMLFile().store(out, protein_identifications,
-                            peptide_identifications);
+      FileHandler().storeIdentifications(out, protein_identifications,
+                            peptide_identifications, {FileTypes::MZIDENTML});
       break;
 
     case FileTypes::XQUESTXML:
-      XQuestResultXMLFile().store(out, protein_identifications,
-                                  peptide_identifications);
+      FileHandler().storeIdentifications(out, protein_identifications,
+                                  peptide_identifications, {FileTypes::XQUESTXML});
       break;
 
     case FileTypes::FASTA:

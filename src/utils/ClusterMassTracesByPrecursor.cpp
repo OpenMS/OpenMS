@@ -33,8 +33,7 @@
 // --------------------------------------------------------------------------
 
 #include <OpenMS/ANALYSIS/OPENSWATH/MasstraceCorrelator.h>
-#include <OpenMS/FORMAT/ConsensusXMLFile.h>
-#include <OpenMS/FORMAT/MzMLFile.h>
+#include <OpenMS/FORMAT/FileHandler.h>
 
 #ifdef TESTING
 #define DEBUG_MASSTRACES
@@ -142,12 +141,10 @@ class TOPPCorrelateMasstraces
     // Load input:
     // - MS1 feature map containing the MS1 mass traces
     // - MS2 feature map containing the MS2 (SWATH) mass traces
-    ConsensusXMLFile consensus_f;
-    consensus_f.setLogType(log_type_);
     ConsensusMap MS1_feature_map;
     ConsensusMap MS2_feature_map;
-    consensus_f.load(ms1, MS1_feature_map);
-    consensus_f.load(in_swath, MS2_feature_map);
+    FileHandler().loadConsensusFeatures(ms1, MS1_feature_map, {FileTypes::CONSENSUSXML}, log_type_);
+    FileHandler().loadConsensusFeatures(in_swath, MS2_feature_map, {FileTypes::CONSENSUSXML}, log_type_);
     cout << "Loaded consensus maps" << endl;
 
 #ifdef DEBUG_MASSTRACES
@@ -159,11 +156,10 @@ class TOPPCorrelateMasstraces
     }
 #endif
 
-    MzMLFile f;
     MSExperiment pseudo_spectra_ms1centric;
     MS1CentricClustering(MS1_feature_map, MS2_feature_map, 
         swath_lower, swath_upper, pseudo_spectra_ms1centric);
-    f.store(out,pseudo_spectra_ms1centric);
+    FileHandler().storeExperiment(out,pseudo_spectra_ms1centric, {FileTypes::MZML}, log_type_);
 
     return EXECUTION_OK;
   }

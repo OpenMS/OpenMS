@@ -42,9 +42,7 @@
 #include <OpenMS/ANALYSIS/TARGETED/TargetedExperiment.h>
 
 // files
-#include <OpenMS/FORMAT/TraMLFile.h>
-#include <OpenMS/FORMAT/MzMLFile.h>
-#include <OpenMS/FORMAT/FeatureXMLFile.h>
+#include <OpenMS/FORMAT/FileHandler.h>
 
 #include <OpenMS/SYSTEM/File.h>
 
@@ -278,12 +276,10 @@ protected:
     bool force = getFlag_("force");
 
     boost::shared_ptr<PeakMap > exp ( new PeakMap );
-    MzMLFile mzmlfile;
-    mzmlfile.setLogType(log_type_);
-    mzmlfile.load(in, *exp);
+    FileHandler().loadExperiment(in, *exp, {FileTypes::MZML}, log_type_);
 
     TargetedExpType transition_exp;
-    TraMLFile().load(tr_file, transition_exp);
+    FileHandler().loadTransitions(tr_file, transition_exp, {FileTypes::TRAML});
 
     FeatureMap output;
     OpenSwath::SpectrumAccessPtr input = SimpleOpenMSSpectraFactory::getSpectrumAccessOpenMSPtr(exp);
@@ -300,7 +296,7 @@ protected:
     {
       output.setPrimaryMSRunPath({in}, *exp);
     }      
-    FeatureXMLFile().store(out, output);
+    FileHandler().storeFeatures(out, output, {FileTypes::FEATUREXML});
 
     return EXECUTION_OK;
   }

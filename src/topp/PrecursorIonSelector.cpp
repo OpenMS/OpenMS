@@ -32,9 +32,7 @@
 // $Authors: Alexandra Zerck $
 // --------------------------------------------------------------------------
 
-#include <OpenMS/FORMAT/FeatureXMLFile.h>
-#include <OpenMS/FORMAT/IdXMLFile.h>
-#include <OpenMS/FORMAT/MzMLFile.h>
+#include <OpenMS/FORMAT/FileHandler.h>
 #include <OpenMS/APPLICATIONS/TOPPBase.h>
 #include <OpenMS/ANALYSIS/TARGETED/PrecursorIonSelection.h>
 #include <OpenMS/ANALYSIS/TARGETED/PrecursorIonSelectionPreprocessing.h>
@@ -233,7 +231,7 @@ protected:
     PeakMap exp;
     if (!raw_data.empty())
     {
-      MzMLFile().load(raw_data, exp);
+      FileHandler().loadExperiment(raw_data, exp, {FileTypes::MZML});
     }
     //-------------------------------------------------------------
     // init pis
@@ -256,14 +254,12 @@ protected:
     // loading input
     //-------------------------------------------------------------
     FeatureMap f_map;
-    FeatureXMLFile f_file;
-    f_file.load(in, f_map);
+    FileHandler f_file;
+    f_file.loadFeatures(in, f_map, {FileTypes::FEATUREXML});
 
     std::vector<PeptideIdentification> pep_ids;
     std::vector<ProteinIdentification> prot_ids;
-    String document_id;
-    IdXMLFile idxml_file;
-    idxml_file.load(ids, prot_ids, pep_ids, document_id);
+    FileHandler().loadIdentifications(ids, prot_ids, pep_ids, {FileTypes::IDXML});
 
     //-------------------------------------------------------------
     // preprocessing, rescoring
@@ -286,13 +282,13 @@ protected:
 
       if (!next_prec.empty())
       {
-        f_file.store(next_prec, new_precursors);
+        f_file.storeFeatures(next_prec, new_precursors, {FileTypes::FEATUREXML});
       }
     }
 
     if (!out.empty())
     {
-      f_file.store(out, f_map);
+      f_file.storeFeatures(out, f_map, {FileTypes::FEATUREXML});
     }
     return EXECUTION_OK;
   }

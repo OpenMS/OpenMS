@@ -36,7 +36,7 @@
 
 #include <OpenMS/CONCEPT/Constants.h>
 
-#include <OpenMS/FORMAT/MzMLFile.h>
+#include <OpenMS/FORMAT/FileHandler.h>
 
 #include <numeric>
 #include <boost/math/special_functions/factorials.hpp>
@@ -470,7 +470,7 @@ namespace OpenMS
     // store the spectra if an output file path is given
     if (!out_spectra.empty())
     {
-      MzMLFile().store(out_spectra, msexp);
+      FileHandler().storeExperiment(out_spectra, msexp, {FileTypes::MZML});
     }
 
 
