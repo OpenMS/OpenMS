@@ -1112,6 +1112,14 @@ namespace OpenMS
         f.store(filename, map);
       }
       break;
+
+      case FileTypes::OMS:
+      {
+        OMSFile f;
+        f.setLogType(log);
+        f.store(filename, map);
+      }
+      break;
       
       default:
       {        
