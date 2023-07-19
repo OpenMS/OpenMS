@@ -45,14 +45,15 @@ jobs:
           find ./src/tests/topp/ -type f -name '*.ini' -exec grep -q "<ITEM name=\"version\" value=\".*\" type=\"string\"" {} \; -exec sed -i '' "s#<ITEM name=\"version\" value=\".*\" type=\"string\"#<ITEM name=\"version\" value=\"$package_version\" type=\"string\"#g" {} \;
 
           # Update Changelog
-          # Define the new section using a here-text
-          read -r -d '' section_header <<EOF
+          # Define the new section using a here-doc
+          section_header=$(cat <<EOF
           ------------------------------------------------------------------------------------------
           ----                                OpenMS ${package_version}     (under development)                  ----
           ------------------------------------------------------------------------------------------
           
           
           EOF
+          )
 
           # Get the line number of the first line starting with more than 10 "-"
           line_num=$(grep -n "^-\{10,\}" CHANGELOG | head -n 1 | cut -d ":" -f 1)
