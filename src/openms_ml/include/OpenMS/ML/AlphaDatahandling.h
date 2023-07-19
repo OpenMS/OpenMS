@@ -33,20 +33,25 @@
 // --------------------------------------------------------------------------
 
 #pragma once
-
-#include <OpenMS/OpenMS_MLConfig.h>
-
-#include <vector>
+#include <memory> 
 #include <string>
+#include <vector>
 
-// Note: No torch headers may be included here! only in c++ file. otherwise torch will pollute whole OpenMS API
 namespace OpenMS
 {
-	class OPENMS_ML_DLLAPI DeepLCWrapper
-	{
-		explicit DeepLCWrapper(const std::string& filename);
-
-		std::vector<double> predict(const std::vector<std::string>& sequences, const std::vector<double>& obs_rt); // TODO: other inputs... encoding etc.
-	};
-
+  class AlphaDatahandler
+  {
+      public:
+          AlphaDatahandler(const std::vector<std::string>& seq); 
+          std::vector<std::vector<long int>> get_batch_aa_indices();   
+          std::vector<std::vector<std::vector<int>>> get_batch_mod_feature(const std::vector<std::string>& mod_elements); 
+          void printAll(); //just testing purpose will remove later
+       
+      private:
+         std::vector<std::string> sequences;
+         std::vector<int> nAA;
+         std::vector<double> retention_time;
+         std::vector<std::vector<int>> mod_sites; //mode_sites e-g {3,5}
+         std::vector<std::vector<std::string>> mods; //residue e-g {Oxidation@M, Carbamidomethyl@C}
+  };
 }

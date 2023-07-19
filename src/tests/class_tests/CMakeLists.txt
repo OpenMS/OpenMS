@@ -48,6 +48,10 @@ add_subdirectory(openswathalgo)
 # add OpenMS specific tests
 add_subdirectory(openms)
 
+if(ENABLE_OPENMS_ML)
+  add_subdirectory(openms_ml)
+endif()
+
 if(WITH_GUI)
   #------------------------------------------------------------------------------
   # add OpenMS_GUI specific tests
