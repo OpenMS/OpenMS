@@ -47,7 +47,6 @@ x    IDMerger.cpp         # 200 lines
 x    IDPosteriorErrorProbability.cpp # 300 lines PosteriorErrorProbabilityModel is wrapped
 xx   IDRipper.cpp         # TODO - not yet done on my side, needs hand-wrapping
 x    IDRTCalibration.cpp # 100 lines
-x    InclusionExclusionListCreator.cpp # TODO should we wrap this? 347 lines
 ok   InternalCalibration.cpp
 ok   MapAlignerIdentification.cpp
 ok   MapAlignerPoseClustering.cpp
@@ -211,12 +210,6 @@ ok  IDPosteriorErrorProbability - Estimates posterior error probabilities using 
 x   IDRTCalibration - Can be used to calibrate RTs of peptide hits linearly to standards. # all in TOPP tool
 x   PeptideIndexer - Refreshes the protein references for all peptide hits. # all in TOPP tool
 x   ProteinInference - Infer proteins from a list of (high-confidence) peptides. # all in TOPP tool
-
-
-Targeted Experiments
-
-x   InclusionExclusionListCreator - Creates inclusion and/or exclusion lists for LC-MS/MS experiments. # most in TOPP tools except OfflinePrecursorSelection
-
 
 Peptide Property Prediction
 
