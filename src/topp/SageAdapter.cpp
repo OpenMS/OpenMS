@@ -94,7 +94,6 @@ using namespace std;
 
 
 /*
-./bin/SageAdapter -in /nfs/wsi/abi/projects/proteomics/yasset_iPRG2015/JD_06232014_sample1_A.mzML /nfs/wsi/abi/projects/proteomics/yasset_iPRG2015/JD_06232014_sample1_B.mzML  /nfs/wsi/abi/projects/proteomics/yasset_iPRG2015/JD_06232014_sample1_C.mzML -out ~/tmp.idXML -sage_executable ~/OMS/sage/sage-v0.13.3-x86_64-unknown-linux-gnu/sage -database /nfs/wsi/abi/projects/proteomics/yasset_iPRG2015/iPRG2015_decoy.fasta
 */
 
 class TOPPSageAdapter :
