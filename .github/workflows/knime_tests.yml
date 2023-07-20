@@ -5,6 +5,7 @@ on:
 jobs:
   test-knime:
     env:
+      GH_TOKEN: ${{ github.token }}
       KNIME_MAJOR_VERSION: 4
       KNIME_MINOR_VERSION: 7
       INSTALLATION_DIR: ${{ github.workspace }}
@@ -52,3 +53,18 @@ jobs:
             -i "org.knime.features.r.feature.group,org.knime.features.chem.types.feature.group,org.rdkit.knime.feature.feature.group,org.knime.features.ext.svg.feature.group" \
             -p KNIMEProfile \
             -nosplash
+            
+      - name: Create Workspace and fill with input data
+        run: |
+          wget -c https://abibuilder.cs.uni-tuebingen.de/archive/openms/Tutorials/Example_Data.tar.gz -O - | tar -xz
+            
+      - name:  Clone Tutorials
+        run: |
+          gh repo clone OpenMS/Tutorials
+          pushd Tutorials/Workflows
+            ./executeBatch.sh "$KNIME_DIR/knime" ${INSTALLATION_DIR}
+            cat log*.txt
+          popd
+            
+
+

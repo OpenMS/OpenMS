@@ -28,12 +28,16 @@
 
     def get_data(self):
         """
-        Gets the raw data for the float data array
+        Gets the raw data for the float data array.
+        .. warning::
+           This returns a fast but unsafe view on the underlying vector data. Make sure that the object you are getting the data from survives the usage of this view! Specifically, do NOT use it like this: :code:`data = spectrum.getFloatDataArrays()[0].get_data()` since the underlying FloatDataArray is temporary for this line and will most likely be garbage collected right after that line.
 
         Example usage: 
-
-          fd = pyopenms.FloatDataArray()
-          data = fd.get_data()
+        
+        .. code-block:: python
+        
+            fd = pyopenms.FloatDataArray()
+            data = fd.get_data()
 
         """
         cdef _FloatDataArray * fda_ = self.inst.get()

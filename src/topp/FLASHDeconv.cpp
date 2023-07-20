@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -121,7 +121,7 @@ protected:
     setValidFormats_("out_topFD_feature", ListUtils::create<String>("feature"), false);
 
     registerDoubleOption_("min_precursor_snr", "<SNR value>", 1.0,
-                          "Minimum precursor SNR (SNR within the precursor envelope range) for identification. Similar to precursor interference level, but more stringent."
+                          "Minimum precursor SNR (SNR within the precursor envelope range) for identification. Similar to precursor interference level, but far more stringent as it also considers the isotope distribution shape of signal."
                           "When FLASHIda log file is used, this parameter is ignored. Applied only for topFD msalign outputs.",
                           false, false);
 
@@ -232,42 +232,52 @@ protected:
   {
     for (auto& it : map)
     {
-      if (it.size() <= count)
+      double threshold;
+      if (it.getType(false) == SpectrumSettings::CENTROID)
       {
-        continue;
-      }
-
-      it.sortByIntensity(true);
-      double max_intensity = log10(it[0].getIntensity());
-      double min_intensity = 0;
-      int non_zero_size = 0;
-      for (auto& p : it)
-      {
-        if (p.getIntensity() <= 0)
+        if (it.size() <= count)
         {
-          break;
+          return;
         }
-        non_zero_size++;
-        min_intensity = log10(p.getIntensity());
-        ;
+        it.sortByIntensity(true);
+        threshold = it[count].getIntensity();
       }
-      Size bin_size = 500;
-      std::vector<int> freq(bin_size + 1, 0);
-      for (auto& p : it)
+      else
       {
-        if (p.getIntensity() <= 0)
+        if (it.size() <= count)
         {
-          break;
+          continue;
         }
-        Size bin = round((log10(p.getIntensity()) - min_intensity) / (max_intensity - min_intensity) * bin_size);
-        freq[bin]++;
+
+        it.sortByIntensity(true);
+        double max_intensity = log10(it[0].getIntensity());
+        double min_intensity = 0;
+        for (auto& p : it)
+        {
+          if (p.getIntensity() <= 0)
+          {
+            break;
+          }
+          min_intensity = log10(p.getIntensity());
+        }
+        Size bin_size = 500;
+        std::vector<int> freq(bin_size + 1, 0);
+        for (auto& p : it)
+        {
+          if (p.getIntensity() <= 0)
+          {
+            break;
+          }
+          Size bin = round((log10(p.getIntensity()) - min_intensity) / (max_intensity - min_intensity) * bin_size);
+          freq[bin]++;
+        }
+
+        int mod_bin = std::distance(freq.begin(), std::max_element(freq.begin(), freq.end())); // most frequent intensity is the threshold to distinguish between signal and noise
+
+        threshold =
+          3.0 * (pow(10.0, (double)mod_bin / bin_size * (max_intensity - min_intensity) +
+                             min_intensity)); // multiply by 3 to the most frequent intensity to make sure more signal component remains. Later this could be determined to use signal-to-noise ratio.
       }
-
-      int mod_bin = std::distance(freq.begin(), std::max_element(freq.begin(), freq.end())); // most frequent intensity is the threshold to distinguish between signal and noise
-      double threshold =
-        3.0 * (pow(10.0, (double)mod_bin / bin_size * (max_intensity - min_intensity) +
-                           min_intensity)); // multiply by 3 to the most frequent intensity to make sure more signal component remains. Later this could be determined to use signal-to-noise ratio.
-
       // pop back the low intensity peaks using threshold
       while (it.size() > 0 && it[it.size() - 1].getIntensity() <= threshold)
       {
@@ -285,8 +295,7 @@ protected:
     //-------------------------------------------------------------
     // parsing parameters
     //-------------------------------------------------------------
-    const Size max_peak_count_ = 5e4;
-    3e4; // 223248;
+    const Size max_peak_count_ = 3e4;
     String in_file = getStringOption_("in");
     String out_file = getStringOption_("out");
     String in_log_file = getStringOption_("in_log");
@@ -482,6 +491,7 @@ protected:
     exp_annotated.clear(false);
 
     auto fd = FLASHDeconvAlgorithm();
+
     FLASHDeconvAlgorithm fd_charge_dummy, fd_noise_dummy, fd_iso_dummy;
 
     Param fd_param = getParam_().copy("Algorithm:", true);
@@ -556,7 +566,7 @@ protected:
 
       fd_iso_dummy.setParameters(fd_param);
       fd_iso_dummy.setAveragine(avg);
-      fd_iso_dummy.setTargetDummyType(PeakGroup::TargetDummyType::isotope_dummy, fd.getDeconvolvedSpectrum());
+      fd_iso_dummy.setTargetDummyType(PeakGroup::TargetDummyType::isotope_dummy, fd.getDeconvolvedSpectrum()); // isotope
     }
 
     auto mass_tracer = MassFeatureTrace();
@@ -730,37 +740,37 @@ protected:
           fd_iso_dummy.performSpectrumDeconvolution(*it, precursor_specs, scan_number, precursor_map_for_real_time_acquisition);
         }
         DeconvolvedSpectrum dummy_deconvolved_spectrum(scan_number);
+        deconvolved_spectrum.sortByQscore();
+        float qscore_threshold_for_dummy = deconvolved_spectrum[deconvolved_spectrum.size() - 1].getQscore();
         dummy_deconvolved_spectrum.setOriginalSpectrum(*it);
-
         dummy_deconvolved_spectrum.reserve(fd_iso_dummy.getDeconvolvedSpectrum().size() + fd_charge_dummy.getDeconvolvedSpectrum().size() + fd_noise_dummy.getDeconvolvedSpectrum().size());
 
         for (auto& pg : fd_charge_dummy.getDeconvolvedSpectrum())
         {
+          if (pg.getQscore() < qscore_threshold_for_dummy)
+          {
+            continue;
+          }
           dummy_deconvolved_spectrum.push_back(pg);
         }
 
         for (auto& pg : fd_iso_dummy.getDeconvolvedSpectrum())
         {
+          if (pg.getQscore() < qscore_threshold_for_dummy)
+          {
+            continue;
+          }
           dummy_deconvolved_spectrum.push_back(pg);
         }
 
         for (auto& pg : fd_noise_dummy.getDeconvolvedSpectrum())
         {
+          if (pg.getQscore() < qscore_threshold_for_dummy)
+          {
+            continue;
+          }
           dummy_deconvolved_spectrum.push_back(pg);
         }
-        dummy_deconvolved_spectrum.sortByQscore();
-        deconvolved_spectrum.sortByQscore();
-        DeconvolvedSpectrum tmp_spectrum(scan_number);
-        tmp_spectrum.setOriginalSpectrum(*it);
-        for (auto& pg : dummy_deconvolved_spectrum)
-        {
-          if (pg.getQscore() < deconvolved_spectrum[deconvolved_spectrum.size() - 1].getQscore())
-          {
-            break;
-          }
-          tmp_spectrum.push_back(pg);
-        }
-        dummy_deconvolved_spectrum = tmp_spectrum;
 
         deconvolved_spectrum.sort();
         dummy_deconvolved_spectrum.sort();

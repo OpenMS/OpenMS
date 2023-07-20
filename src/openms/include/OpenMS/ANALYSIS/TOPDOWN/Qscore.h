@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -59,11 +59,11 @@ namespace OpenMS
   public:
     typedef FLASHDeconvHelperStructs::LogMzPeak LogMzPeak;
 
-    /// get Qscore for a peak group of specific abs_charge
-    static float getQscore(const PeakGroup *pg, const int abs_charge);
+    /// get QScore for a peak group of specific abs_charge
+    static float getQscore(const PeakGroup* pg);
 
   private:
     /// convert a peak group to a feature vector for Qscore calculation
-    static std::vector<double> toFeatureVector_(const PeakGroup *pg, int abs_charge);
+    static std::vector<double> toFeatureVector_(const PeakGroup* pg);
   };
-}
+} // namespace OpenMS

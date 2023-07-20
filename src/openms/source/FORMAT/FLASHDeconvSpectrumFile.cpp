@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -89,7 +89,7 @@ namespace OpenMS
         fs << std::fixed << std::setprecision(2);
         for (auto& p : pg)
         {
-          fs << p.mz << " ";
+          fs <<  std::to_string(p.mz) << " ";
         }
 
         fs << "\t";
@@ -119,18 +119,19 @@ namespace OpenMS
         }
 
         fs << "\t";
+        fs << std::setprecision(2);
         for (auto& p : pg)
         {
           double average_mass = pg.getMonoMass() + p.isotopeIndex * pg.getIsotopeDaDistance();
           double mass_error = (average_mass / p.abs_charge + FLASHDeconvHelperStructs::getChargeMass(p.is_positive) - p.mz) / p.mz;
           fs << 1e6 * mass_error << " ";
         }
-
+        fs << std::setprecision(-1);
         fs << "\t";
         fs << std::fixed << std::setprecision(2);
         for (auto& np : noisy_peaks)
         {
-          fs << np.mz << " ";
+          fs <<  std::to_string(np.mz) << " ";
         }
 
         fs << "\t";
@@ -160,12 +161,14 @@ namespace OpenMS
         }
 
         fs << "\t";
+        fs << std::setprecision(2);
         for (auto& np : noisy_peaks)
         {
           double average_mass = pg.getMonoMass() + np.isotopeIndex * pg.getIsotopeDaDistance();
           double mass_error = (average_mass / np.abs_charge + FLASHDeconvHelperStructs::getChargeMass(np.is_positive) - np.mz) / np.mz;
           fs << 1e6 * mass_error << " ";
         }
+        fs << std::setprecision(-1);
         fs << "\t";
       }
       if (dspec.getOriginalSpectrum().getMSLevel() > 1)

@@ -23,10 +23,7 @@
   },
   "log": "",
   "no_progress": false,
-  "out": {
-    "class": "File",
-    "path": ""
-  },
+  "out": "",
   "out_type": "",
   "test": false,
   "threads": 1

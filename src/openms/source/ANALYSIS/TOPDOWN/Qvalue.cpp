@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -32,7 +32,6 @@
 // $Authors: Kyowon Jeong$
 // --------------------------------------------------------------------------
 
-#include <OpenMS/ANALYSIS/TOPDOWN/FLASHDeconvHelperStructs.h>
 #include <OpenMS/ANALYSIS/TOPDOWN/PeakGroup.h>
 #include <OpenMS/ANALYSIS/TOPDOWN/Qvalue.h>
 
@@ -41,7 +40,7 @@ namespace OpenMS
   void Qvalue::updatePeakGroupQvalues(std::vector<DeconvolvedSpectrum>& deconvolved_spectra,
                                       std::vector<DeconvolvedSpectrum>& deconvolved_decoy_spectra) // per ms level + precursor update as well.
   {
-    uint bin_number = 100;                         // 100 is enough resolution for qvalue calculation. In most cases FDR 5% will be used.
+    uint bin_number = 25;                         // 25 is enough resolution for qvalue calculation. In most cases FDR 5% will be used.
     std::map<uint, std::vector<float>> tscore_map; // per ms level
 
     std::map<uint, std::vector<float>> dscore_iso_decoy_map;
@@ -93,48 +92,27 @@ namespace OpenMS
       auto charge_dist = getDistribution(dscore_charge, bin_number);
       auto noise_dist = getDistribution(dscore_noise, bin_number);
       auto iso_dist = getDistribution(dscore_iso, bin_number);
-      float iso_threshold = 1.0f;
 
-      for (int i = (int)bin_number - 1; i >= 0; i--)
-      {
-        if ((iso_dist[i] > 0 && iso_dist[i] < charge_dist[i]))
-        {
-          iso_threshold = getBinValue(i, bin_number);
-          break;
-        }
-      }
-      std::vector<float> tmp_dscore_iso(dscore_iso);
-      dscore_iso.clear();
-      for (auto q : tmp_dscore_iso)
-      {
-        if (q < iso_threshold)
-          continue;
-        dscore_iso.push_back(q);
-      }
-
-      iso_dist = getDistribution(dscore_iso, bin_number);
+      std::vector<float> weight_limit;
+      weight_limit.push_back(((float)dscore_charge.size()) / qscores.size());
+      weight_limit.push_back(((float)dscore_noise.size()) / qscores.size());
+      weight_limit.push_back(((float)dscore_iso.size()) / qscores.size());
 
       std::vector<float> weights(4, .25f);
-      std::vector<float> target_dist(bin_number, .0f);
+      std::vector<float> target_dist(bin_number);
 
       for (uint iteration = 0; iteration < 100; iteration++)
       {
         std::fill(target_dist.begin(), target_dist.end(), .0f);
-        float max_t = .0;
 
-        for (int i = (int)bin_number - 1; i >= 0; i--)
+        for (int i = (int)bin_number - 1; i >= 0; i--) //
         {
           float fp = (charge_dist[i] * weights[0] + noise_dist[i] * weights[1] + iso_dist[i] * weights[2]);
-          if (mixed_dist[i] > 0 && mixed_dist[i] < fp)
+          target_dist[i] = std::max(.0f, mixed_dist[i] - fp);
+          if (mixed_dist[i] > 0 && mixed_dist[i] < charge_dist[i] * weight_limit[0] + noise_dist[i] * weight_limit[1] + iso_dist[i] * weight_limit[2])
           {
             break;
           }
-          target_dist[i] = mixed_dist[i] - fp;
-          if (target_dist[i] > 0 && target_dist[i] < max_t * .1f)
-          {
-            break;
-          }
-          max_t = std::max(max_t, target_dist[i]);
         }
 
         float csum = .0f;
@@ -155,6 +133,14 @@ namespace OpenMS
         comp_dists.push_back(target_dist);
 
         auto tmp_weight = getDistributionWeights(mixed_dist, comp_dists);
+        float tmp_sum = 0;
+        for (Size i = 0; i < tmp_weight.size() - 1; i++)
+        {
+          tmp_weight[i] = std::min(tmp_weight[i], weight_limit[i]);
+          tmp_sum += tmp_weight[i];
+        }
+
+        tmp_weight[tmp_weight.size() - 1] = 1 - tmp_sum;
 
         if (tmp_weight == weights)
         {
@@ -163,9 +149,9 @@ namespace OpenMS
         weights = tmp_weight;
       }
 
-      weights[0] *= dscore_charge.empty() ? .0 : ((double)qscores.size() / dscore_charge.size());
-      weights[1] *= dscore_noise.empty() ? .0 : ((double)qscores.size() / dscore_noise.size());
-      weights[2] *= dscore_iso.empty() ? .0 : ((double)qscores.size() / dscore_iso.size());
+      weights[0] *= dscore_charge.empty() ? .0 : (((double)qscores.size()) / dscore_charge.size());
+      weights[1] *= dscore_noise.empty() ? .0 : (((double)qscores.size()) / dscore_noise.size());
+      weights[2] *= dscore_iso.empty() ? .0 : (((double)qscores.size()) / dscore_iso.size());
 
       std::sort(qscores.begin(), qscores.end());
       std::sort(dscore_iso.begin(), dscore_iso.end());
@@ -183,7 +169,7 @@ namespace OpenMS
         size_t tindex = qscores.size() - i;
         float nom = weights[0] * (float)dindex;
         float denom = (float)(tindex);
-        tmp_q_charge = std::min(tmp_q_charge, (nom / denom));
+        tmp_q_charge = (nom / denom);
         map_charge[ts] = tmp_q_charge;
       }
 
@@ -198,7 +184,7 @@ namespace OpenMS
         size_t tindex = qscores.size() - i;
         float nom = weights[2] * (float)dindex;
         float denom = (float)(tindex);
-        tmp_q_iso = std::min(tmp_q_iso, (nom / denom));
+        tmp_q_iso = nom / denom;
         map_iso[ts] = tmp_q_iso;
       }
 
@@ -213,7 +199,8 @@ namespace OpenMS
         size_t tindex = qscores.size() - i;
         float nom = weights[1] * (float)dindex;
         float denom = (float)(tindex);
-        tmp_q_noise = std::min(tmp_q_noise, (nom / denom));
+        // tmp_q_noise = std::min(tmp_q_noise, (nom / denom));
+        tmp_q_noise = (nom / denom);
         map_noise[ts] = tmp_q_noise;
       }
     }
