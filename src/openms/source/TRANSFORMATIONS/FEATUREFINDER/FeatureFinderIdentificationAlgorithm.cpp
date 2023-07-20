@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -620,6 +620,8 @@ namespace OpenMS
 
     filterFeatures_(features, with_external_ids);
     OPENMS_LOG_INFO << features.size() << " features left after filtering." << endl;
+
+    if (features.empty()) return; // elution model fit throws on empty features
 
     if (!svm_probs_internal_.empty())
     {

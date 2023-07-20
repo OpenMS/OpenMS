@@ -122,8 +122,6 @@ PyOpenMSChecker:
       - total_abundances
     OpenMS::ModificationDefinitionsSet:
       - findMatches
-    OpenMS::SimpleSVM:
-      - setup
     OpenMS::Math::PosteriorErrorProbabilityModel:
       - extractAndTransformScores
     # TODO: iterators

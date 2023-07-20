@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -180,8 +180,8 @@ namespace OpenMS
     {
 
       feature_set.push_back(Constants::UserParam::ISOTOPE_ERROR);
-      feature_set.push_back("COMET:deltCn"); // recalculated deltCn = (current_XCorr - 2nd_best_XCorr) / max(current_XCorr, 1)
-      feature_set.push_back("COMET:deltLCn"); // deltLCn = (current_XCorr - worst_XCorr) / max(current_XCorr, 1)
+      feature_set.push_back("COMET:deltaCn"); // recalculated deltaCn = (current_XCorr - 2nd_best_XCorr) / max(current_XCorr, 1)
+      feature_set.push_back("COMET:deltaLCn"); // deltaLCn = (current_XCorr - worst_XCorr) / max(current_XCorr, 1)
       feature_set.push_back("COMET:lnExpect"); // log(E-value)
       feature_set.push_back("MS:1002252"); // unchanged XCorr
       feature_set.push_back("MS:1002255"); // unchanged Sp = number of candidate peptides
@@ -203,33 +203,52 @@ namespace OpenMS
         
         for (vector<PeptideHit>::iterator hit = it->getHits().begin(); hit != it->getHits().end(); ++hit)
         {
+
           double xcorr = hit->getMetaValue("MS:1002252").toString().toDouble();
-          double delta_cn = (xcorr - second_xcorr) / max(1.0, xcorr);
-          double delta_last_cn = (xcorr - worst_xcorr) / max(1.0, xcorr);
-          hit->setMetaValue("COMET:deltCn", delta_cn);
-          hit->setMetaValue("COMET:deltLCn", delta_last_cn);
+
+          if (!hit->metaValueExists("COMET:deltaCn"))
+          {
+            double delta_cn = (xcorr - second_xcorr) / max(1.0, xcorr);
+            hit->setMetaValue("COMET:deltaCn", delta_cn);
+          }
+
+          if (!hit->metaValueExists("COMET:deltaLCn"))
+          {
+            double delta_last_cn = (xcorr - worst_xcorr) / max(1.0, xcorr);
+            hit->setMetaValue("COMET:deltaLCn", delta_last_cn);
+          }
           
           double ln_expect = log(hit->getMetaValue("MS:1002257").toString().toDouble());
           hit->setMetaValue("COMET:lnExpect", ln_expect);
-         
-          double ln_num_sp;   
-          if (hit->metaValueExists("num_matched_peptides"))
+
+          if (!hit->metaValueExists("COMET:lnNumSP"))
           {
-            double num_sp = hit->getMetaValue("num_matched_peptides").toString().toDouble();
-            ln_num_sp = log(max(1.0, num_sp));  // if recorded, one can be safely assumed
+            double ln_num_sp;   
+            if (hit->metaValueExists("num_matched_peptides"))
+            {
+              double num_sp = hit->getMetaValue("num_matched_peptides").toString().toDouble();
+              ln_num_sp = log(max(1.0, num_sp));  // if recorded, one can be safely assumed
+            }
+            else // fallback TODO: remove?
+            {
+              ln_num_sp = hit->getMetaValue("MS:1002255").toString().toDouble();
+            }  
+            hit->setMetaValue("COMET:lnNumSP", ln_num_sp);
           }
-          else // fallback
+
+          if (!hit->metaValueExists("COMET:lnRankSP"))
+          {          
+            double ln_rank_sp = log(max(1.0, hit->getMetaValue("MS:1002256").toString().toDouble()));
+            hit->setMetaValue("COMET:lnRankSP", ln_rank_sp);
+          }
+
+          if (!hit->metaValueExists("COMET:IonFrac"))
           {
-            ln_num_sp = hit->getMetaValue("MS:1002255").toString().toDouble();
+            double num_matched_ions = hit->getMetaValue("MS:1002258").toString().toDouble();
+            double num_total_ions = hit->getMetaValue("MS:1002259").toString().toDouble();
+            double ion_frac = num_matched_ions / num_total_ions;
+            hit->setMetaValue("COMET:IonFrac", ion_frac);
           }
-          double ln_rank_sp = log(max(1.0, hit->getMetaValue("MS:1002256").toString().toDouble()));
-          hit->setMetaValue("COMET:lnNumSP", ln_num_sp);
-          hit->setMetaValue("COMET:lnRankSP", ln_rank_sp);
-          
-          double num_matched_ions = hit->getMetaValue("MS:1002258").toString().toDouble();
-          double num_total_ions = hit->getMetaValue("MS:1002259").toString().toDouble();
-          double ion_frac = num_matched_ions / num_total_ions;
-          hit->setMetaValue("COMET:IonFrac", ion_frac);
         }
       }
     }

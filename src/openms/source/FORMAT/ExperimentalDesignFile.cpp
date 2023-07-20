@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -466,21 +466,26 @@ namespace OpenMS
     }
 
     // static
-    ExperimentalDesign ExperimentalDesignFile::load(const String &tsv_file, const bool require_spectra_file)
+    ExperimentalDesign ExperimentalDesignFile::load(const TextFile &text_file, const bool require_spectra_file, String filename = "--no design file provided--")
     {
-      const TextFile text_file(tsv_file, true);
-
       // check if we have information stored in one or two files
       bool has_one_table = isOneTableFile_(text_file);
 
       if (has_one_table)
       {
-        return parseOneTableFile_(text_file, tsv_file, require_spectra_file);
+        return parseOneTableFile_(text_file, filename, require_spectra_file);
       }
       else // two tables
       {
-        return parseTwoTableFile_(text_file, tsv_file, require_spectra_file);
+        return parseTwoTableFile_(text_file, filename, require_spectra_file);
       }
     }
+
+    ExperimentalDesign ExperimentalDesignFile::load(const String &tsv_file, const bool require_spectra_file)
+    {
+      const TextFile text_file(tsv_file, true);
+      return load(text_file, require_spectra_file, tsv_file);
+    }
+
 }
 

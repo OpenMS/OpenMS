@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -64,7 +64,7 @@ namespace OpenMS
   }
 
   std::vector<OpenSwath::SwathMap> findSwathMaps(const OpenMS::MRMFeatureFinderScoring::MRMTransitionGroupType& transition_group,
-                                                 const std::vector< OpenSwath::SwathMap > & swath_maps) 
+                                                 const std::vector< OpenSwath::SwathMap > & swath_maps)
   {
     // Get the corresponding SWATH map(s), for SONAR there will be more than one map
     std::vector<OpenSwath::SwathMap> used_maps;
@@ -84,6 +84,7 @@ namespace OpenMS
   std::vector<OpenSwath::SwathMap> SwathMapMassCorrection::findSwathMapsPasef(const OpenMS::MRMFeatureFinderScoring::MRMTransitionGroupType& transition_group,
                                                  const std::vector< OpenSwath::SwathMap > & swath_maps)
   {
+    OPENMS_PRECONDITION(transition_group.getTransitions()[0].precursor_im != -1, "All transitions must have a valid IM value (not -1)");
     // Although theoretically there can be more than one map, for this case, just use the "best" map, best map is defined as the one in which the IM is closest to the center of the window
     std::vector<OpenSwath::SwathMap> used_maps;
     for (const auto& m : swath_maps)
@@ -194,6 +195,7 @@ namespace OpenMS
     TransformationDescription::DataPoints data_im;
     std::vector<double> exp_im;
     std::vector<double> theo_im;
+
 #ifdef _OPENMP
 #pragma omp parallel for
 #endif

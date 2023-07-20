@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -66,8 +66,6 @@ namespace OpenMS
     // only one aa type?
     if (!split.empty())
     {
-      Size sum = 0;
-
       for (Size i = 0; i != split.size(); ++i)
       {
         char aa = split[i][0];
@@ -78,7 +76,6 @@ namespace OpenMS
         {
           number_of_max_aa_ = n;
         }
-        sum += n;
         decomp_[aa] = n;
       }
     }

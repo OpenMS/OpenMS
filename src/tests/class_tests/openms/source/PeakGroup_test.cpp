@@ -2,7 +2,7 @@
 //                   OpenMS -- Open-Source Mass Spectrometry
 // --------------------------------------------------------------------------
 // Copyright The OpenMS Team -- Eberhard Karls University Tuebingen,
-// ETH Zurich, and Freie Universitaet Berlin 2002-2022.
+// ETH Zurich, and Freie Universitaet Berlin 2002-2023.
 //
 // This software is released under a three-clause BSD license:
 //  * Redistributions of source code must retain the above copyright
@@ -89,6 +89,7 @@ sample_pg.push_back(tmp_peak2);
 
 LogMzPeak tmp_peak3 = fillPeak(1127.0168377586081, 7506.6767578125, 2, 3);
 sample_pg.push_back(tmp_peak3);
+sample_pg.updateMonoMassAndIsotopeIntensities();
 
 /// detailed constructor test
 START_SECTION((PeakGroup(const int min_abs_charge, const int max_abs_charge, const bool is_positive)))
@@ -242,17 +243,17 @@ START_SECTION((int getRepAbsCharge() const))
 END_SECTION
 
 
-START_SECTION((void setQScore(const float qscore)))
+START_SECTION((void setQscore(const float qscore)))
 {
-  sample_pg.setQScore(0.1);
-  double temp_score = sample_pg.getQScore();
+  sample_pg.Qscore(0.1);
+  double temp_score = sample_pg.getQscore();
   TEST_REAL_SIMILAR(temp_score, 0.1);
 }
 END_SECTION
 
-START_SECTION((float getQScore() const))
+START_SECTION((float getQscore() const))
 {
-  double temp_score = sample_pg.getQScore();
+  double temp_score = sample_pg.getQscore();
   TEST_REAL_SIMILAR(temp_score, 0.1);
 }
 END_SECTION
@@ -320,7 +321,6 @@ START_SECTION((float getChargeSNR(const int abs_charge) const))
 }
 END_SECTION
 
-sample_pg.updateMonomassAndIsotopeIntensities();
 START_SECTION((double getMonoMass() const))
 {
   double tmp_mass = sample_pg.getMonoMass();
@@ -339,14 +339,13 @@ END_SECTION
 PeakGroup sample_pg2(sample_pg);
 LogMzPeak tmp_peak4 = fillPeak(1127.5185151766082, 2504.3433, 2, 4);
 sample_pg2.push_back(tmp_peak4);
-
-START_SECTION((void updateMonomassAndIsotopeIntensities()))
+sample_pg2.updateMonoMassAndIsotopeIntensities();
+START_SECTION((void updateMonom assAndIsotopeIntensities()))
 {
-  sample_pg2.updateMonomassAndIsotopeIntensities();
   double temp_mass = sample_pg2.getMonoMass();
   double temp_inty = sample_pg2.getIntensity();
   TEST_REAL_SIMILAR(temp_mass, 2249.0101025181098);
-  TEST_REAL_SIMILAR(temp_inty, 12880886.145019531);
+  TEST_REAL_SIMILAR(temp_inty, 12880881);
 }
 END_SECTION
 
@@ -379,8 +378,8 @@ END_SECTION
 
 
 /// TODOs
-/// - updateIsotopeCosineAndQScore, recruitAllPeaksInSpectrum, isSignalMZ, setTargeted, getIsotopeIntensities
-/// - isTargeted, getDecoyFlag, setDecoyFlag, getQvalue, setQvalue, getQvalueWithChargeDecoyOnly, setQvalueWithChargeDecoyOnly
+/// - updateIsotopeCosineAndQscore, recruitAllPeaksInSpectrum, isSignalMZ, setTargeted, getIsotopeIntensities
+/// - isTargeted, getTargetDummyType, setTargetDummyType, getQvalue, setQvalue, getQvalueWithChargeDecoyOnly, setQvalueWithChargeDecoyOnly
 
 
 /////////////////////////////////////////////////////////////
