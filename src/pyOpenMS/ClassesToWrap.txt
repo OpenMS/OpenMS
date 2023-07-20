@@ -135,7 +135,6 @@ x    RTEvaluation.cpp  # 300 lines
 ok   SemanticValidator.cpp
 x    SequenceCoverageCalculator.cpp # 200 lines
 x    SpecLibCreator.cpp # 200 lines
-ok   SvmTheoreticalSpectrumGeneratorTrainer.cpp
 n    TransformationEvaluation.cpp
 x    XMLValidator.cpp # 80 lines
 

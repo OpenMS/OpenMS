@@ -442,8 +442,6 @@ set(chemistry_executables_list
   Ribonucleotide_test
   SimpleTSGXLMS_test
   SpectrumAnnotator_test
-  SvmTheoreticalSpectrumGeneratorTrainer_test
-  SvmTheoreticalSpectrumGenerator_test
   Tagger_test
   TheoreticalSpectrumGeneratorXLMS_test
   TheoreticalSpectrumGenerator_test

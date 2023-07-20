@@ -172,7 +172,7 @@ add_custom_target(
 set(CTD_executables ${TOPP_TOOLS} ${UTILS_TOOLS})
 
 # remove tools that do not produce CTDs or should not be shipped (because of dependencies or specifics that can not be resolved in KNIME)
-list(REMOVE_ITEM CTD_executables OpenMSInfo Resampler ExecutePipeline INIUpdater ImageCreator GenericWrapper InspectAdapter MascotAdapter SvmTheoreticalSpectrumGeneratorTrainer OpenSwathMzMLFileCacher PepNovoAdapter)
+list(REMOVE_ITEM CTD_executables OpenMSInfo Resampler ExecutePipeline INIUpdater ImageCreator GenericWrapper InspectAdapter MascotAdapter OpenSwathMzMLFileCacher PepNovoAdapter)
 
 # TODO do regex with "Adapter". Safe enough?
 set(THIRDPARTY_ADAPTERS

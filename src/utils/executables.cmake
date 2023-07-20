@@ -60,7 +60,6 @@ SiriusAdapter
 SpecLibCreator
 SpectraSTSearchAdapter
 StaticModification
-SvmTheoreticalSpectrumGeneratorTrainer
 TICCalculator
 TransformationEvaluation
 TriqlerConverter

@@ -96,7 +96,6 @@
 #include <OpenMS/FORMAT/MascotRemoteQuery.h>
 #include <OpenMS/CHEMISTRY/TheoreticalSpectrumGenerator.h>
 #include <OpenMS/CHEMISTRY/SvmTheoreticalSpectrumGenerator.h>
-#include <OpenMS/CHEMISTRY/SvmTheoreticalSpectrumGeneratorTrainer.h>
 #include <OpenMS/CHEMISTRY/MASSDECOMPOSITION/MassDecompositionAlgorithm.h>
 #include <OpenMS/COMPARISON/SPECTRA/PeakSpectrumCompareFunctor.h>
 #include <OpenMS/COMPARISON/SPECTRA/SpectrumAlignment.h>
@@ -462,9 +461,6 @@ int main(int argc, char** argv)
   DOCME(SqrtMower);
   DOCME(SteinScottImproveScore);
   DOCME(SpectraMerger);
-  DOCME(SvmTheoreticalSpectrumGenerator);
-  //DOCME(SvmTheoreticalSpectrumGeneratorSet);
-  DOCME(SvmTheoreticalSpectrumGeneratorTrainer);
   DOCME(TICFilter);
   DOCME(TheoreticalSpectrumGenerator);
   DOCME(ThresholdMower);
