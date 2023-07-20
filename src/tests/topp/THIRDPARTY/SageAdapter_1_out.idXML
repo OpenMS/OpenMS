@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <?xml-stylesheet type="text/xsl" href="https://www.openms.de/xml-stylesheet/IdXML.xsl" ?>
 <IdXML version="1.5" xsi:noNamespaceSchemaLocation="https://www.openms.de/xml-schema/IdXML_1_5.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-	<SearchParameters id="SP_0" db="./src/tests/topp/THIRDPARTY/proteins.fasta" db_version="" taxonomy="" mass_type="monoisotopic" charges=":" enzyme="trypsin" missed_cleavages="2" precursor_peak_tolerance="0" precursor_peak_tolerance_ppm="true" peak_mass_tolerance="0" peak_mass_tolerance_ppm="true" >
+	<SearchParameters id="SP_0" db="/home/sachsenb/OMS/OpenMS/src/tests/topp/THIRDPARTY/SageAdapter_1.fasta" db_version="" taxonomy="" mass_type="monoisotopic" charges=":" enzyme="trypsin" missed_cleavages="2" precursor_peak_tolerance="0" precursor_peak_tolerance_ppm="true" peak_mass_tolerance="0" peak_mass_tolerance_ppm="false" >
 				<UserParam type="string" name="extra_features" value="score,ln(delta_next),ln(delta_best),matched_peaks,longest_b,longest_y,longest_y_pct,ln(matched_intensity_pct),scored_candidates,ln(-poisson)"/>
-				<UserParam type="stringList" name="SageAdapter:1:in" value="[./src/tests/topp/THIRDPARTY/spectra_comet.mzML]"/>
-				<UserParam type="string" name="SageAdapter:1:out" value="SageAdapter_1_out.idXML"/>
-				<UserParam type="string" name="SageAdapter:1:database" value="./src/tests/topp/THIRDPARTY/proteins.fasta"/>
-				<UserParam type="string" name="SageAdapter:1:sage_executable" value="THIRDPARTY/Linux/64bit/Sage/sage"/>
+				<UserParam type="stringList" name="SageAdapter:1:in" value="[/home/sachsenb/OMS/OpenMS/src/tests/topp/THIRDPARTY/SageAdapter_1.mzML]"/>
+				<UserParam type="string" name="SageAdapter:1:out" value="SageAdapter_1_out1.tmp.idXML"/>
+				<UserParam type="string" name="SageAdapter:1:database" value="/home/sachsenb/OMS/OpenMS/src/tests/topp/THIRDPARTY/SageAdapter_1.fasta"/>
+				<UserParam type="string" name="SageAdapter:1:sage_executable" value="/home/sachsenb/OMS/OpenMS/THIRDPARTY/Linux/64bit/Sage/sage"/>
 				<UserParam type="string" name="SageAdapter:1:decoy_prefix" value="DECOY_"/>
 				<UserParam type="int" name="SageAdapter:1:batch_size" value="0"/>
 				<UserParam type="string" name="SageAdapter:1:precursor_tol_unit" value="ppm"/>
@@ -35,11 +35,11 @@
 				<UserParam type="stringList" name="SageAdapter:1:variable_modifications" value="[]"/>
 				<UserParam type="string" name="SageAdapter:1:reindex" value="true"/>
 				<UserParam type="string" name="SageAdapter:1:log" value=""/>
-				<UserParam type="int" name="SageAdapter:1:debug" value="10"/>
+				<UserParam type="int" name="SageAdapter:1:debug" value="0"/>
 				<UserParam type="int" name="SageAdapter:1:threads" value="1"/>
 				<UserParam type="string" name="SageAdapter:1:no_progress" value="false"/>
 				<UserParam type="string" name="SageAdapter:1:force" value="false"/>
-				<UserParam type="string" name="SageAdapter:1:test" value="false"/>
+				<UserParam type="string" name="SageAdapter:1:test" value="true"/>
 				<UserParam type="string" name="SageAdapter:1:decoy_string" value=""/>
 				<UserParam type="string" name="SageAdapter:1:decoy_string_position" value="prefix"/>
 				<UserParam type="string" name="SageAdapter:1:missing_decoy_action" value="warn"/>
@@ -55,9 +55,30 @@
 				<UserParam type="string" name="SageAdapter:1:specificity" value="auto"/>
 				<UserParam name="EnzymeTermSpecificity" type="string" value="full" />
 	</SearchParameters>
-	<IdentificationRun date="2023-07-18T12:51:58" search_engine="Sage" search_engine_version="sage (0.13.3)" search_parameters_ref="SP_0" >
+	<IdentificationRun date="2023-07-20T14:34:20" search_engine="Sage" search_engine_version="sage (0.13.3)" search_parameters_ref="SP_0" >
 		<ProteinIdentification score_type="" higher_score_better="true" significance_threshold="0" >
-			<UserParam type="stringList" name="spectra_data" value="[]"/>
+			<ProteinHit id="PH_0" accession="sp|Q99536|VAT1_HUMAN" score="0.0" sequence="" >
+				<UserParam type="string" name="target_decoy" value="target"/>
+			</ProteinHit>
+			<UserParam type="stringList" name="spectra_data" value="[SageAdapter_1.mzML]"/>
 		</ProteinIdentification>
+		<PeptideIdentification score_type="hyperscore" higher_score_better="true" significance_threshold="0.0" MZ="641.019890199895713" RT="6497.123999999999796" >
+			<PeptideHit score="4.568750819879955" sequence="LQSRPAAPPAPGPGQLTLR" charge="3" aa_before="K" aa_after="L" start="63" end="81" protein_refs="PH_0" >
+				<UserParam type="string" name="SpecId" value="0"/>
+				<UserParam type="int" name="ScanNr" value="30069"/>
+				<UserParam type="string" name="target_decoy" value="target"/>
+				<UserParam type="string" name="ln(-poisson)" value="1.1030057965071456"/>
+				<UserParam type="string" name="ln(matched_intensity_pct)" value="3.865689"/>
+				<UserParam type="string" name="longest_y" value="11"/>
+				<UserParam type="string" name="scored_candidates" value="1"/>
+				<UserParam type="string" name="longest_b" value="7"/>
+				<UserParam type="string" name="longest_y_pct" value="0.57894737"/>
+				<UserParam type="string" name="matched_peaks" value="31"/>
+				<UserParam type="string" name="ln(delta_best)" value="0.0"/>
+				<UserParam type="string" name="ln(delta_next)" value="4.568750819879955"/>
+				<UserParam type="string" name="protein_references" value="unique"/>
+			</PeptideHit>
+			<UserParam type="int" name="id_merge_index" value="0"/>
+		</PeptideIdentification>
 	</IdentificationRun>
 </IdXML>
