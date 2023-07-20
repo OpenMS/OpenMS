@@ -899,7 +899,7 @@ protected:
       auto fullscan = scan_fullscan[pscan];
 
       auto iter = std::lower_bound(fullscan.begin(), fullscan.end(), precursor_pg);
-      if (std::abs(precursor_pg.getMonoMass() - iter->getMonoMass()) < .01)
+      if (precursor_pg.getMonoMass() == iter->getMonoMass())
       {
         precursor_pg.setFeatureIndex(iter->getFeatureIndex());
         precursor_pg.setQscore(iter->getQscore());
@@ -908,12 +908,12 @@ protected:
       }
       else
       {
+        std::cout<<iter->getMonoMass() << " " <<  precursor_pg.getMonoMass() << std::endl;
         precursor_pg.setFeatureIndex(0);
       }
     }
 
     Qvalue::updatePeakGroupQvalues(deconvolved_spectra, dummy_deconvolved_spectra, false);
-    Qvalue::updatePeakGroupQvalues(deconvolved_spectra, dummy_deconvolved_spectra, true);
 
     std::cout << " writing per spectrum deconvolution results ... " << std::endl;
     for (auto& deconvolved_spectrum : deconvolved_spectra)

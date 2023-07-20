@@ -1598,6 +1598,80 @@ namespace OpenMS
       start_mz = loffset > 100.0 ? loffset : -loffset + precursor.getMZ();
       end_mz = uoffest > 100.0 ? uoffest : uoffest + precursor.getMZ();
     }
+
+    double max_score = -1.0;
+
+    for (int i = (int)survey_scans.size() - 1; i >= 0; i--)
+    {
+      auto precursor_spectrum = survey_scans[i];
+      if (deconvolved_spectrum_.getPrecursorScanNumber() == 0)
+      {
+        deconvolved_spectrum_.setPrecursorScanNumber(precursor_spectrum.getScanNumber());
+      }
+      if (precursor_spectrum.empty())
+      {
+        continue;
+      }
+      auto o_spec = precursor_spectrum.getOriginalSpectrum();
+
+      for (auto& pg : precursor_spectrum)
+      {
+        if (pg[0].mz > end_mz || pg[pg.size() - 1].mz < start_mz)
+        {
+          continue;
+        }
+
+        double max_intensity = .0;
+        const LogMzPeak* tmp_precursor = nullptr;
+
+        int c = int(.5 + pg.getMonoMass() / start_mz);
+        for (auto& tmp_peak : pg)
+        {
+          if (tmp_peak.abs_charge != c)
+          {
+            continue;
+          }
+
+          if (tmp_peak.mz < start_mz || tmp_peak.mz > end_mz)
+          {
+            continue;
+          }
+
+          if (tmp_peak.intensity < max_intensity)
+          {
+            continue;
+          }
+          max_intensity = tmp_peak.intensity;
+          tmp_precursor = &tmp_peak;
+        }
+
+        if (tmp_precursor == nullptr)
+        {
+          continue;
+        }
+
+        auto score = pg.getChargeSNR(tmp_precursor->abs_charge); // most intense one should determine the mass
+
+        if (score < max_score)
+        {
+          continue;
+        }
+
+        Precursor precursor_pg(deconvolved_spectrum_.getPrecursor());
+        precursor_pg.setCharge(tmp_precursor->is_positive ? tmp_precursor->abs_charge : -tmp_precursor->abs_charge);
+
+        deconvolved_spectrum_.setPrecursor(precursor_pg);
+        max_score = score;
+
+        deconvolved_spectrum_.setPrecursorPeakGroup(pg);
+        deconvolved_spectrum_.setPrecursorScanNumber(precursor_spectrum.getScanNumber());
+      }
+      if (!deconvolved_spectrum_.getPrecursorPeakGroup().empty())
+      {
+        break;
+      }
+    }
+
     if (!precursor_map_for_real_time_acquisition.empty() && deconvolved_spectrum_.getPrecursorPeakGroup().empty())
     {
       auto map = precursor_map_for_real_time_acquisition.lower_bound(deconvolved_spectrum_.getScanNumber());
@@ -1713,78 +1787,6 @@ namespace OpenMS
       return false;
     }
 
-    double max_score = -1.0;
-
-    for (int i = (int)survey_scans.size() - 1; i >= 0; i--)
-    {
-      auto precursor_spectrum = survey_scans[i];
-      if (deconvolved_spectrum_.getPrecursorScanNumber() == 0)
-      {
-        deconvolved_spectrum_.setPrecursorScanNumber(precursor_spectrum.getScanNumber());
-      }
-      if (precursor_spectrum.empty())
-      {
-        continue;
-      }
-      auto o_spec = precursor_spectrum.getOriginalSpectrum();
-
-      for (auto& pg : precursor_spectrum)
-      {
-        if (pg[0].mz > end_mz || pg[pg.size() - 1].mz < start_mz)
-        {
-          continue;
-        }
-
-        double max_intensity = .0;
-        const LogMzPeak* tmp_precursor = nullptr;
-
-        int c = int(.5 + pg.getMonoMass() / start_mz);
-        for (auto& tmp_peak : pg)
-        {
-          if (tmp_peak.abs_charge != c)
-          {
-            continue;
-          }
-
-          if (tmp_peak.mz < start_mz || tmp_peak.mz > end_mz)
-          {
-            continue;
-          }
-
-          if (tmp_peak.intensity < max_intensity)
-          {
-            continue;
-          }
-          max_intensity = tmp_peak.intensity;
-          tmp_precursor = &tmp_peak;
-        }
-
-        if (tmp_precursor == nullptr)
-        {
-          continue;
-        }
-
-        auto score = pg.getChargeSNR(tmp_precursor->abs_charge); // most intense one should determine the mass
-
-        if (score < max_score)
-        {
-          continue;
-        }
-
-        Precursor precursor_pg(deconvolved_spectrum_.getPrecursor());
-        precursor_pg.setCharge(tmp_precursor->is_positive ? tmp_precursor->abs_charge : -tmp_precursor->abs_charge);
-
-        deconvolved_spectrum_.setPrecursor(precursor_pg);
-        max_score = score;
-
-        deconvolved_spectrum_.setPrecursorPeakGroup(pg);
-        deconvolved_spectrum_.setPrecursorScanNumber(precursor_spectrum.getScanNumber());
-      }
-      if (!deconvolved_spectrum_.getPrecursorPeakGroup().empty())
-      {
-        break;
-      }
-    }
     return deconvolved_spectrum_.getPrecursorPeakGroup().empty();
   }
 

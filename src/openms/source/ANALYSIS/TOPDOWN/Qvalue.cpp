@@ -60,8 +60,8 @@ namespace OpenMS
       uint ms_level = deconvolved_spectrum.getOriginalSpectrum().getMSLevel();
       for (auto& pg : deconvolved_spectrum)
       {
-        if (in_features && pg.getFeatureIndex() == 0) continue;
-        if (!in_features && pg.getFeatureIndex() > 0) continue;
+       // if (in_features && pg.getFeatureIndex() == 0) continue;
+      //  if (!in_features && pg.getFeatureIndex() > 0) continue;
 
         if (pg.getFeatureIndex() > 0 && used_feature_indices.find(pg.getFeatureIndex()) != used_feature_indices.end())
           continue;
@@ -75,8 +75,8 @@ namespace OpenMS
       uint ms_level = decoy_deconvolved_spectrum.getOriginalSpectrum().getMSLevel();
       for (auto& pg : decoy_deconvolved_spectrum)
       {
-        if (in_features && pg.getFeatureIndex() == 0) continue;
-        if (!in_features && pg.getFeatureIndex() > 0) continue;
+       // if (in_features && pg.getFeatureIndex() == 0) continue;
+       // if (!in_features && pg.getFeatureIndex() > 0) continue;
 
         if (pg.getFeatureIndex() > 0 && used_feature_indices.find(pg.getFeatureIndex()) != used_feature_indices.end())
           continue;
@@ -237,8 +237,8 @@ namespace OpenMS
       {
         if (deconvolved_spectrum.getOriginalSpectrum().getMSLevel() == ms_level + 1 && !deconvolved_spectrum.getPrecursorPeakGroup().empty())
         {
-          if (in_features && deconvolved_spectrum.getPrecursorPeakGroup().getFeatureIndex() == 0) continue;
-          if (!in_features && deconvolved_spectrum.getPrecursorPeakGroup().getFeatureIndex() > 0) continue;
+        //  if (in_features && deconvolved_spectrum.getPrecursorPeakGroup().getFeatureIndex() == 0) continue;
+        //  if (!in_features && deconvolved_spectrum.getPrecursorPeakGroup().getFeatureIndex() > 0) continue;
 
           double qs = deconvolved_spectrum.getPrecursorPeakGroup().getFeatureQscore();
 
@@ -254,8 +254,8 @@ namespace OpenMS
 
         for (auto& pg : deconvolved_spectrum)
         {
-          if (in_features && pg.getFeatureIndex() == 0) continue;
-          if (!in_features && pg.getFeatureIndex() > 0) continue;
+         // if (in_features && pg.getFeatureIndex() == 0) continue;
+         // if (!in_features && pg.getFeatureIndex() > 0) continue;
 
           pg.setQvalue(map_charge[pg.getFeatureQscore()], PeakGroup::TargetDummyType::charge_dummy);
           pg.setQvalue(map_noise[pg.getFeatureQscore()], PeakGroup::TargetDummyType::noise_dummy);

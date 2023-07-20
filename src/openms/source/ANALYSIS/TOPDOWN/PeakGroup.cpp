@@ -913,8 +913,8 @@ namespace OpenMS
 
   double PeakGroup::getFeatureQscore() const
   {
-    if (fqscore_ < 0)
-      return qscore_;
+    //if (fqscore_ < 0)
+    //  return qscore_;
     return std::max(qscore_, fqscore_);
   }
 
