@@ -508,7 +508,6 @@ set(analysis_executables_list
   ILPDCWrapper_test
   IsotopeLabelingMDVs_test
   IncludeExcludeTarget_test
-  InclusionExclusionList_test
   IsobaricChannelExtractor_test
   IsobaricIsotopeCorrector_test
   IsobaricNormalizer_test
