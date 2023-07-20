@@ -837,7 +837,8 @@ protected:
             double f_mass = feature.mt.getCentroidMZ() + feature.iso_offset * Constants::ISOTOPE_MASSDIFF_55K_U;
             for (uint i = 0; i < dspec.size(); i++)
             {
-              if (remove_index[i]) continue;
+              if (remove_index[i])
+                continue;
               auto pg = dspec[i];
               double pg_mass = pg.getMonoMass();
               if (abs(f_mass - pg_mass) < 1e-6 * tols[0] * pg_mass)
@@ -876,47 +877,43 @@ protected:
       }
     }
 
-    Qvalue::updatePeakGroupQvalues(deconvolved_spectra, dummy_deconvolved_spectra, false);
-    Qvalue::updatePeakGroupQvalues(deconvolved_spectra, dummy_deconvolved_spectra, true);
-
-    // update precursor feature Qscore and Qvalue
-    std::map<int, std::vector<PeakGroup*>> scan_precursors;
-
-    for (auto& dspec : deconvolved_spectra)
-    {
-      auto& precursor_pg = dspec.getPrecursorPeakGroup();
-      if (precursor_pg.empty()) continue;
-
-      int pscan = precursor_pg.getScanNumber();
-
-      if (scan_precursors.find(pscan) == scan_precursors.end())
-        scan_precursors[pscan] = std::vector<PeakGroup*>();
-
-      scan_precursors[pscan].push_back(&precursor_pg);
-    }
+    // update precursor feature Qscore ans Qscore
+    std::map<int, DeconvolvedSpectrum> scan_fullscan;
 
     for (auto& dspec : deconvolved_spectra)
     {
       int scan = dspec.getScanNumber();
-      if (scan_precursors.find(scan) == scan_precursors.end()) continue;
-      auto precursor_pgs = scan_precursors[scan];
-      for (auto& pg : precursor_pgs)
-      {
-        auto iter = std::lower_bound(dspec.begin(), dspec.end(), *pg);
-        if (std::abs(pg->getMonoMass() - iter->getMonoMass()) < .001)
-        {
-          pg->setFeatureIndex(iter->getFeatureIndex());
-          pg->setQvalue(iter->getQvalue(), iter->getTargetDummyType());
-          pg->setQvalue(iter->getQvalue(PeakGroup::TargetDummyType::charge_dummy), PeakGroup::TargetDummyType::charge_dummy);
-          pg->setQvalue(iter->getQvalue(PeakGroup::TargetDummyType::noise_dummy), PeakGroup::TargetDummyType::noise_dummy);
-          pg->setQvalue(iter->getQvalue(PeakGroup::TargetDummyType::isotope_dummy), PeakGroup::TargetDummyType::isotope_dummy);
-          pg->setQscore(iter->getQscore());
-          pg->setFeatureQscore(iter->getFeatureQscore());
-          pg->setQscore(iter->getQscore());
-        }
-      }
-      dspec.sort();
+      scan_fullscan[scan] = dspec;
     }
+
+    for (auto& dspec : deconvolved_spectra)
+    {
+      auto& precursor_pg = dspec.getPrecursorPeakGroup();
+      if (precursor_pg.empty())
+        continue;
+
+      int pscan = precursor_pg.getScanNumber();
+      if (scan_fullscan.find(pscan) == scan_fullscan.end())
+        continue;
+
+      auto fullscan = scan_fullscan[pscan];
+
+      auto iter = std::lower_bound(fullscan.begin(), fullscan.end(), precursor_pg);
+      if (std::abs(precursor_pg.getMonoMass() - iter->getMonoMass()) < .01)
+      {
+        precursor_pg.setFeatureIndex(iter->getFeatureIndex());
+        precursor_pg.setQscore(iter->getQscore());
+        if (iter->getFeatureIndex() > 0)
+          precursor_pg.setFeatureQscore(iter->getFeatureQscore());
+      }
+      else
+      {
+        precursor_pg.setFeatureIndex(0);
+      }
+    }
+
+    Qvalue::updatePeakGroupQvalues(deconvolved_spectra, dummy_deconvolved_spectra, false);
+    Qvalue::updatePeakGroupQvalues(deconvolved_spectra, dummy_deconvolved_spectra, true);
 
     std::cout << " writing per spectrum deconvolution results ... " << std::endl;
     for (auto& deconvolved_spectrum : deconvolved_spectra)
@@ -929,7 +926,7 @@ protected:
       }
       if (out_topfd_streams.size() + 1 > ms_level)
       {
-        FLASHDeconvSpectrumFile::writeTopFD(deconvolved_spectrum, out_topfd_streams[ms_level - 1], topFD_SNR_threshold, topFD_qval_threshold,current_min_ms_level, false,
+        FLASHDeconvSpectrumFile::writeTopFD(deconvolved_spectrum, out_topfd_streams[ms_level - 1], topFD_SNR_threshold, topFD_qval_threshold, current_min_ms_level, false,
                                             false); //, 1, (float)rand() / (float)RAND_MAX * 10 + 10);
       }
     }

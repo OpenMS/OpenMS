@@ -229,16 +229,28 @@ namespace OpenMS
     for (auto& titem : tscore_map)
     {
       uint ms_level = titem.first;
+      auto& map_iso = qscore_iso_decoy_map[ms_level];
+      auto& map_noise = qscore_noise_decoy_map[ms_level];
+      auto& map_charge = qscore_charge_decoy_map[ms_level];
+
       for (auto& deconvolved_spectrum : deconvolved_spectra)
       {
+        if (deconvolved_spectrum.getOriginalSpectrum().getMSLevel() == ms_level + 1 && !deconvolved_spectrum.getPrecursorPeakGroup().empty())
+        {
+          if (in_features && deconvolved_spectrum.getPrecursorPeakGroup().getFeatureIndex() == 0) continue;
+          if (!in_features && deconvolved_spectrum.getPrecursorPeakGroup().getFeatureIndex() > 0) continue;
+
+          double qs = deconvolved_spectrum.getPrecursorPeakGroup().getFeatureQscore();
+
+          deconvolved_spectrum.getPrecursorPeakGroup().setQvalue(map_iso[qs], PeakGroup::TargetDummyType::isotope_dummy);
+          deconvolved_spectrum.getPrecursorPeakGroup().setQvalue(map_noise[qs], PeakGroup::TargetDummyType::noise_dummy);
+          deconvolved_spectrum.getPrecursorPeakGroup().setQvalue(map_charge[qs], PeakGroup::TargetDummyType::charge_dummy);
+        }
 
         if (deconvolved_spectrum.getOriginalSpectrum().getMSLevel() != ms_level)
         {
           continue;
         }
-        auto& map_iso = qscore_iso_decoy_map[ms_level];
-        auto& map_noise = qscore_noise_decoy_map[ms_level];
-        auto& map_charge = qscore_charge_decoy_map[ms_level];
 
         for (auto& pg : deconvolved_spectrum)
         {
@@ -248,22 +260,6 @@ namespace OpenMS
           pg.setQvalue(map_charge[pg.getFeatureQscore()], PeakGroup::TargetDummyType::charge_dummy);
           pg.setQvalue(map_noise[pg.getFeatureQscore()], PeakGroup::TargetDummyType::noise_dummy);
           pg.setQvalue(map_iso[pg.getFeatureQscore()], PeakGroup::TargetDummyType::isotope_dummy);
-
-          /*
-          if (deconvolved_spectrum.getOriginalSpectrum().getMSLevel() > 1 && !deconvolved_spectrum.getPrecursorPeakGroup().empty())
-          {
-            if (in_features && deconvolved_spectrum.getPrecursorPeakGroup().getFeatureIndex() == 0) continue;
-            if (!in_features && deconvolved_spectrum.getPrecursorPeakGroup().getFeatureIndex() > 0) continue;
-
-            double qs = deconvolved_spectrum.getPrecursorPeakGroup().getFeatureQscore();
-            auto& pmap_iso = qscore_iso_decoy_map[ms_level - 1];
-            auto& pmap_charge = qscore_charge_decoy_map[ms_level - 1];
-            auto& pmap_noise = qscore_noise_decoy_map[ms_level - 1];
-            deconvolved_spectrum.getPrecursorPeakGroup().setQvalue(pmap_iso[qs], PeakGroup::TargetDummyType::isotope_dummy);
-            deconvolved_spectrum.getPrecursorPeakGroup().setQvalue(pmap_noise[qs], PeakGroup::TargetDummyType::noise_dummy);
-            deconvolved_spectrum.getPrecursorPeakGroup().setQvalue(pmap_charge[qs], PeakGroup::TargetDummyType::charge_dummy);
-          }
-           */
         }
       }
     }

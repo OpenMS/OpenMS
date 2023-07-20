@@ -211,7 +211,8 @@ namespace OpenMS
         }
 
         pg->setFeatureIndex(findex);
-        pg->setFeatureQscore(feature_qscore);
+        if (findex > 0)
+          pg->setFeatureQscore(feature_qscore);
       }
 
       FLASHDeconvHelperStructs::MassFeature mass_feature;
