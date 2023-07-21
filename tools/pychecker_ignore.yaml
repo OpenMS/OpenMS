@@ -179,9 +179,6 @@ PyOpenMSChecker:
     OpenMS::SeedListGenerator:
         # STL wrapped key
         - generateSeedLists
-    OpenMS::SvmTheoreticalSpectrumGenerator:
-        # boost rng
-        - simulate
     OpenMS::TransformationModelInterpolated:
         - TransformationModelInterpolated
     OpenMS::Param:
@@ -1228,19 +1225,6 @@ PyOpenMSChecker:
     - OpenMS::RichPeak1D
     - OpenMS::FeatureHandle::FeatureHandleMutable_
     - OpenMS::FeatureHandle::IndexLess
-
-    # SIMULATION - Simulator internals (we might want to wrap those)
-    - OpenMS::LabelFreeLabeler
-    - OpenMS::ITRAQLabeler
-    - OpenMS::ICPLLabeler
-    - OpenMS::RawMSSignalSimulation
-    - OpenMS::IonizationSimulation
-    - OpenMS::RawTandemMSSignalSimulation
-    - OpenMS::RTSimulation
-    - OpenMS::EGHModel
-    - OpenMS::EGHFitter1D
-    - OpenMS::O18Labeler
-    - OpenMS::DetectabilitySimulation
 
     # DATASTRUCTURES
     - OpenMS::GridFeature

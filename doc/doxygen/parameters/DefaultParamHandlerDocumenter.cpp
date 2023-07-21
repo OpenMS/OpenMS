@@ -95,7 +95,6 @@
 #include <OpenMS/FORMAT/MascotGenericFile.h>
 #include <OpenMS/FORMAT/MascotRemoteQuery.h>
 #include <OpenMS/CHEMISTRY/TheoreticalSpectrumGenerator.h>
-#include <OpenMS/CHEMISTRY/SvmTheoreticalSpectrumGenerator.h>
 #include <OpenMS/CHEMISTRY/MASSDECOMPOSITION/MassDecompositionAlgorithm.h>
 #include <OpenMS/COMPARISON/SPECTRA/PeakSpectrumCompareFunctor.h>
 #include <OpenMS/COMPARISON/SPECTRA/SpectrumAlignment.h>
@@ -425,8 +424,7 @@ int main(int argc, char** argv)
   DOCME(LabeledPairFinder);
   DOCME(LinearResampler);
   DOCME(MSPFile);
-  DOCME(MSSim);
-  DOCME(MapAlignmentAlgorithmPoseClustering);
+    DOCME(MapAlignmentAlgorithmPoseClustering);
   DOCME(MapAlignmentAlgorithmSpectrumAlignment);
   DOCME(MRMDecoy);
   DOCME(MRMFeatureFinderScoring);
@@ -444,7 +442,6 @@ int main(int argc, char** argv)
   DOCME(PeakPickerHiRes);
   DOCME(PeakPickerMRM);
   DOCME(PeptideIndexing);
-  DOCME(PSLPFormulation);
   DOCME(PoseClusteringAffineSuperimposer);
   DOCME(PoseClusteringShiftSuperimposer);
   DOCME(QTClusterFinder);
@@ -468,7 +465,6 @@ int main(int argc, char** argv)
   DOCME(TwoDOptimization);
   DOCME(WindowMower);
   DOCME(ZhangSimilarityScore);
-  DOCME(PrecursorIonSelection);
   DOCME(MorphologicalFilter);
   DOCME(CompNovoIonScoring);
   DOCME(CompNovoIonScoringCID);
@@ -479,15 +475,7 @@ int main(int argc, char** argv)
   DOCME(ProtonDistributionModel);
   DOCME(MascotRemoteQuery);
   DOCME(MascotGenericFile);
-  DOCME(OfflinePrecursorIonSelection);
-  DOCME(Fitter1D);
-  DOCME(EGHModel);
-  DOCME(EGHFitter1D);
-  DOCME(O18Labeler);
-  DOCME(ITRAQLabeler);
-  DOCME(SILACLabeler);
-  DOCME(ICPLLabeler);
-  DOCME(LabelFreeLabeler);
+  DOCME(Fitter1D);  
   DOCME(PeptideAndProteinQuant);
   DOCME(Math::PosteriorErrorProbabilityModel);
   // workarounds for documenting model parameters in MapAligners:
@@ -515,8 +503,6 @@ int main(int argc, char** argv)
   DOCME2(GaussTraceFitter, (GaussTraceFitter()));
   DOCME2(EGHTraceFitter, (EGHTraceFitter()));
   DOCME2(TraceFitter, (GaussTraceFitter())); //TraceFitter is an abstract base class, get parameters from subclass GaussTraceFitter
-  DOCME2(BaseLabeler, (ICPLLabeler())); //BaseLabeler is an abstract base class, get parameters from subclass ICPLLabeler
-  DOCME2(BaseModel, (EGHModel())); //BaseModel is an abstract base class, get parameters from subclass EGHModel
   DOCME2(BinnedSpectrumCompareFunctor, (BinnedSharedPeakCount())); //BaseModel is a base class, get parameters from subclass BinnedSharedPeakCount
 
   // handle GUI documentation separately
