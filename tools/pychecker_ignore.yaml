@@ -179,9 +179,6 @@ PyOpenMSChecker:
     OpenMS::SeedListGenerator:
         # STL wrapped key
         - generateSeedLists
-    OpenMS::SvmTheoreticalSpectrumGenerator:
-        # boost rng
-        - simulate
     OpenMS::TransformationModelInterpolated:
         - TransformationModelInterpolated
     OpenMS::Param:
