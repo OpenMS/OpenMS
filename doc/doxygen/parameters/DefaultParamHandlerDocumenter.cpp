@@ -88,7 +88,6 @@
 #include <OpenMS/ANALYSIS/QUANTITATION/TMTSixteenPlexQuantitationMethod.h>
 #include <OpenMS/ANALYSIS/QUANTITATION/TMTEighteenPlexQuantitationMethod.h>
 #include <OpenMS/ANALYSIS/QUANTITATION/PeptideAndProteinQuant.h>
-#include <OpenMS/ANALYSIS/TARGETED/InclusionExclusionList.h>
 #include <OpenMS/MATH/MISC/EmgGradientDescent.h>
 #include <OpenMS/MATH/STATISTICS/PosteriorErrorProbabilityModel.h>
 #include <OpenMS/FORMAT/MSPFile.h>
@@ -409,7 +408,6 @@ int main(int argc, char** argv)
   DOCME(GoodDiffFilter);
   DOCME(IDMapper);
   DOCME(IDRipper);
-  DOCME(InclusionExclusionList);
   DOCME(InterpolationModel);
   DOCME(IsotopeDiffFilter);
   DOCME(IsotopeFitter1D);
