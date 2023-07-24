@@ -10,7 +10,6 @@ PSProteinInference.h
 IncludeExcludeTarget.h
 TargetedExperiment.h
 TargetedExperimentHelper.h
-InclusionExclusionList.h
 )
 
 ### add path to the filenames
