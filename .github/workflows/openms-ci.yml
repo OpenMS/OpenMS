@@ -24,7 +24,7 @@ jobs:
     - name: Install Qt
       uses: jurplel/install-qt-action@v3
       with:
-        version: '5.15.4' # 5.12.7 is broken https://bugreports.qt.io/browse/QTBUG-81715
+        version: '5.15.2' # 5.12.7 is broken https://bugreports.qt.io/browse/QTBUG-81715
         host: 'windows' # default: win64_msvc2017_64
         target: 'desktop'
         install-deps: 'true'
@@ -179,13 +179,12 @@ jobs:
     - name: Install Qt
       uses: jurplel/install-qt-action@v3
       with:
-        version: '5.15.4'
+        version: '5.15.2'
         host: 'mac'
         target: 'desktop'
         install-deps: 'true'
         cache: 'false'
         setup-python: 'false' # see https://github.com/jurplel/install-qt-action/issues/130
-        aqtversion: '==3.1.*'
 
     - name: Install build tools
       run: brew install autoconf automake libtool ninja
