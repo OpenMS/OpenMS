@@ -503,8 +503,6 @@ int main(int argc, char** argv)
   DOCME2(GaussTraceFitter, (GaussTraceFitter()));
   DOCME2(EGHTraceFitter, (EGHTraceFitter()));
   DOCME2(TraceFitter, (GaussTraceFitter())); //TraceFitter is an abstract base class, get parameters from subclass GaussTraceFitter
-  DOCME2(BaseLabeler, (ICPLLabeler())); //BaseLabeler is an abstract base class, get parameters from subclass ICPLLabeler
-  DOCME2(BaseModel, (EGHModel())); //BaseModel is an abstract base class, get parameters from subclass EGHModel
   DOCME2(BinnedSpectrumCompareFunctor, (BinnedSharedPeakCount())); //BaseModel is a base class, get parameters from subclass BinnedSharedPeakCount
 
   // handle GUI documentation separately
