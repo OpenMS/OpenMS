@@ -183,6 +183,7 @@ jobs:
         host: 'mac'
         target: 'desktop'
         install-deps: 'true'
+        aqtversion: '==3.1.*'
         cache: 'false'
         setup-python: 'false' # see https://github.com/jurplel/install-qt-action/issues/130
 
