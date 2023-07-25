@@ -381,24 +381,12 @@ set(_pyopenms_files
   setup.py
   create_cpp_extension.py
   mac_fix_dependencies.rb
-  version.py
-    doCythonCompileOnly.py
+  doCythonCompileOnly.py
 )
 
 foreach(pyfile ${_pyopenms_files})
   configure_file(${PROJECT_SOURCE_DIR}/${pyfile} ${CMAKE_BINARY_DIR}/pyOpenMS/${pyfile} COPYONLY)
 endforeach()
-
-set(_sub_pyopenms_files
-  License.txt
-  version.py
-)
-
-# list of files located in pyOpenMS/pyopenms
-foreach(pyfile ${_sub_pyopenms_files})
-  configure_file(${PROJECT_SOURCE_DIR}/${pyfile} ${CMAKE_BINARY_DIR}/pyOpenMS/pyopenms/${pyfile} COPYONLY)
-endforeach()
-
 
 
 #------------------------------------------------------------------------------
